@@ -195,7 +195,7 @@ void HgmHardwareUtils::TransactRefreshRateParam(uint32_t& currentRate, RefreshRa
     currentRate = hgmCore_.GetScreenCurrentRefreshRate(curScreenId);
 }
 
-void HgmHardwareUtils::SwitchRefreshRate(const std::shared_ptr<HdiOutput>& hdiOutput)
+void HgmHardwareUtils::SwitchRefreshRate(const std::shared_ptr<HdiOutput>& hdiOutput, int64_t timestamp)
 {
     RS_TRACE_NAME_FMT("%s rate:%u", __func__, refreshRateParam_.rate);
     ScreenId screenId = hdiOutput->GetScreenId();
@@ -204,8 +204,21 @@ void HgmHardwareUtils::SwitchRefreshRate(const std::shared_ptr<HdiOutput>& hdiOu
         return;
     }
 
+    RecordTimestampForAS(timestamp);
     ExecuteSwitchRefreshRate(screenId);
     PerformSetActiveMode(hdiOutput);
+}
+
+void HgmHardwareUtils::RecordTimestampForAS(int64_t timestamp)
+{
+    auto frameRateMgr = hgmCore_.GetFrameRateMgr();
+    if (!frameRateMgr->IsSupportASConfig()) {
+        asRecordRateParam_.ClearTimestamp();
+        frameRateMgr->UpdateASStateForFps(false);
+        return;
+    }
+
+    frameRateMgr->UpdateASStateForFps(asRecordRateParam_.RecordTimestamp(timestamp));
 }
 } // namespace Rosen
 } // namespace OHOS

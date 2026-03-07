@@ -38,6 +38,55 @@ struct SetRateRetryParam {
     bool isRetryOverLimit = false;  // Determines if the maximum retry limit has been exceeded
 };
 
+struct ASRecordRateParam {
+    static constexpr int32_t TIMESTAMP_BUFFER_SIZE = 6;
+    static constexpr int32_t BELOW_THRESHOLD_LIMIT = 50;
+    static constexpr int64_t AS_INTERVAL_THRESHOLD = 25000; // 25ms, 40Hz frame rate (in microseconds)
+    int32_t highFpsFrameCount = 0;
+    std::vector<int64_t> frameTimestamps;
+    int32_t curIndex = 0;
+
+    void ClearTimestamp()
+    {
+        if (!frameTimestamps.empty()) {
+            std::vector<int64_t>().swap(frameTimestamps);
+            highFpsFrameCount = 0;
+            curIndex = 0;
+        }
+    }
+
+    bool RecordTimestamp(int64_t timestamp)
+    {
+        if (frameTimestamps.empty()) {
+            highFpsFrameCount = 0;
+            curIndex = 0;
+        }
+
+        if (curIndex < frameTimestamps.size()) {
+            frameTimestamps[curIndex] = timestamp;
+        } else {
+            frameTimestamps.push_back(timestamp);
+        }
+
+        if (frameTimestamps.size() < TIMESTAMP_BUFFER_SIZE) {
+            curIndex++;
+            return false;
+        }
+
+        int32_t nextIndex = (curIndex + 1) % TIMESTAMP_BUFFER_SIZE;
+        int32_t avgInterval = (frameTimestamps[curIndex] -
+                               frameTimestamps[nextIndex]) / (TIMESTAMP_BUFFER_SIZE - 1);
+        curIndex = nextIndex;
+
+        if (avgInterval > AS_INTERVAL_THRESHOLD) {
+            highFpsFrameCount = 0;
+        } else if (highFpsFrameCount < BELOW_THRESHOLD_LIMIT) {
+            highFpsFrameCount++;
+        }
+        return highFpsFrameCount >= BELOW_THRESHOLD_LIMIT;
+    }
+};
+
 class HgmHardwareUtils {
 public:
     HgmHardwareUtils() = default;
@@ -54,18 +103,20 @@ public:
         return refreshRateParam_;
     }
 
-    void SwitchRefreshRate(const std::shared_ptr<HdiOutput>& hdiOutput);
+    void SwitchRefreshRate(const std::shared_ptr<HdiOutput>& hdiOutput, int64_t timestamp);
 
     void TransactRefreshRateParam(uint32_t& currentRate, RefreshRateParam& param);
 
 private:
     void UpdateRetrySetRateStatus(ScreenId id, int32_t modeId, uint32_t setRateRet);
     void ReportRetryOverLimit(uint64_t vsyncId, uint32_t rate);
+    void RecordTimestampForAS(int64_t timestamp);
 
     HgmCore& hgmCore_ = HgmCore::Instance();
     HgmRefreshRates hgmRefreshRates_ = HgmRefreshRates::SET_RATE_NULL;
     RefreshRateParam refreshRateParam_;
     SetRateRetryParam setRateRetryParam_;
+    ASRecordRateParam asRecordRateParam_;
     RSVBlankIdleCorrector vblankIdleCorrector_;
 };
 } // namespace OHOS

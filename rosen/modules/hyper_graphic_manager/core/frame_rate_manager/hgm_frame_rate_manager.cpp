@@ -1309,8 +1309,21 @@ VoteInfo HgmFrameRateManager::ProcessRefreshRateVote()
     ProcessAdaptiveSync(resultVoteInfo.voterName);
 
     auto sampler = CreateVSyncSampler();
-    sampler->SetAdaptive(isAdaptive_.load() == SupportASStatus::SUPPORT_AS);
+    sampler->SetAdaptive(AdaptiveStatus() == SupportASStatus::SUPPORT_AS);
     return resultVoteInfo;
+}
+
+int32_t HgmFrameRateManager::AdaptiveStatus() const
+{
+    return asStateForFps_.load() ? isAdaptive_.load() : SupportASStatus::NOT_SUPPORT;
+}
+
+void HgmFrameRateManager::UpdateASStateForFps(bool state)
+{
+    if (asStateForFps_.exchange(state) != state) {
+        CreateVSyncSampler()->SetAdaptive(AdaptiveStatus() == SupportASStatus::SUPPORT_AS);
+        RS_TRACE_NAME_FMT("ASStateForFps change new state: %d", state);
+    }
 }
 
 void HgmFrameRateManager::CleanVote(pid_t pid)

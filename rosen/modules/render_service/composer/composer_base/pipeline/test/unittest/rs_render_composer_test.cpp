@@ -2376,6 +2376,90 @@ HWTEST_F(RsRenderComposerTest, PerformSetActiveMode, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RecordTimestampForAS001
+ * @tc.desc: Test RecordTimestampForAS with status change
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsRenderComposerTest, RecordTimestampForAS001, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(1u);
+    output->Init();
+    auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output);
+    auto hgmHardwareUtil = tmpRsRenderComposer->hgmHardwareUtils_;
+
+    auto mgr = HgmCore::Instance().hgmFrameRateMgr_;
+    mgr->isAdaptive_.store(SupportASStatus::NOT_SUPPORT);
+    hgmHardwareUtil.RecordTimestampForAS(0);
+    ASSERT_TRUE(hgmHardwareUtil.asRecordRateParam_.frameTimestamps.empty());
+    ASSERT_GE(hgmHardwareUtil.asRecordRateParam_.highFpsFrameCount, 0);
+    ASSERT_FALSE(mgr->asStateForFps_.load());
+
+    mgr->isAdaptive_.store(SupportASStatus::SUPPORT_AS);
+    for (int i = 0; i < 6; i++) {
+        hgmHardwareUtil.RecordTimestampForAS(10000 * (i + 1));
+    }
+    for (int i = 0; i < 50; i++) {
+        hgmHardwareUtil.RecordTimestampForAS(10000 * (i + 7));
+    }
+    ASSERT_GE(hgmHardwareUtil.asRecordRateParam_.highFpsFrameCount, 50);
+    ASSERT_TRUE(mgr->asStateForFps_.load());
+    ASSERT_EQ(hgmHardwareUtil.asRecordRateParam_.frameTimestamps.size(), 6);
+
+    mgr->isAdaptive_.store(SupportASStatus::GAME_SCENE_SKIP);
+    hgmHardwareUtil.RecordTimestampForAS(570000);
+    ASSERT_TRUE(hgmHardwareUtil.asRecordRateParam_.frameTimestamps.empty());
+    ASSERT_EQ(hgmHardwareUtil.asRecordRateParam_.curIndex, 0);
+    ASSERT_EQ(hgmHardwareUtil.asRecordRateParam_.highFpsFrameCount, 0);
+    ASSERT_FALSE(mgr->asStateForFps_.load());
+}
+
+/**
+ * @tc.name: RecordTimestampForAS002
+ * @tc.desc: Test RecordTimestampForAS with SUPPORT_AS status and buffer management
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsRenderComposerTest, RecordTimestampForAS002, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(1u);
+    output->Init();
+    auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output);
+    auto hgmHardwareUtil = tmpRsRenderComposer->hgmHardwareUtils_;
+
+    auto mgr = HgmCore::Instance().hgmFrameRateMgr_;
+    mgr->isAdaptive_.store(SupportASStatus::SUPPORT_AS);
+    mgr->asStateForFps_.store(false);
+    
+    for (int i = 0; i < 6; i++) {
+        hgmHardwareUtil.RecordTimestampForAS(10000 * i);
+    }
+    ASSERT_EQ(hgmHardwareUtil.asRecordRateParam_.frameTimestamps.size(), 6);
+    ASSERT_GE(hgmHardwareUtil.asRecordRateParam_.highFpsFrameCount, 0);
+    ASSERT_FALSE(mgr->asStateForFps_.load());
+    
+    for (int i = 0; i < 50; i++) {
+        hgmHardwareUtil.RecordTimestampForAS(10000 * (i + 6));
+    }
+    ASSERT_EQ(hgmHardwareUtil.asRecordRateParam_.frameTimestamps.size(), 6);
+    ASSERT_GE(hgmHardwareUtil.asRecordRateParam_.highFpsFrameCount, 50);
+    ASSERT_TRUE(mgr->asStateForFps_.load());
+
+    for (int i = 0; i < 6; i++) {
+        hgmHardwareUtil.RecordTimestampForAS(10000 * (i + 56));
+    }
+    ASSERT_GE(hgmHardwareUtil.asRecordRateParam_.highFpsFrameCount, 50);
+    ASSERT_TRUE(mgr->asStateForFps_.load());
+
+    for (int i = 0; i < 6; i++) {
+        hgmHardwareUtil.RecordTimestampForAS(610000 + 30000 * (i + 1));
+    }
+    ASSERT_EQ(hgmHardwareUtil.asRecordRateParam_.frameTimestamps.size(), 6);
+    ASSERT_EQ(hgmHardwareUtil.asRecordRateParam_.highFpsFrameCount, 0);
+    ASSERT_FALSE(mgr->asStateForFps_.load());
+}
+
+/**
  * Function: ResetRetryCount
  * Type: Function
  * Rank: Important(2)
