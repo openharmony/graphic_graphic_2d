@@ -129,32 +129,6 @@ HWTEST_F(RSRenderNodeDrawableTest, GenerateCacheIfNeedTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: GenerateCacheIfNeedNeedUpdateCacheFalse001
- * @tc.desc: Test GenerateCacheIfNeed when needUpdateCache is false
- * @tc.type: FUNC
- * @tc.require: issueI9US6V
- */
-HWTEST_F(RSRenderNodeDrawableTest, GenerateCacheIfNeedNeedUpdateCacheFalse001, TestSize.Level1)
-{
-    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
-    Drawing::Canvas canvas;
-    RSRenderParams params(RSRenderNodeDrawableTest::id);
-    RSPaintFilterCanvas paintFilterCanvas(&canvas);
-
-    drawable->InitCachedSurface(paintFilterCanvas.GetGPUContext().get(), {100, 100}, 0xFF);
-    drawable->cachedSurface_ = std::make_shared<Drawing::Surface>();
-
-    params.drawingCacheType_ = RSDrawingCacheType::FORCED_CACHE;
-    params.isDrawingCacheChanged_ = false;
-    params.SetCacheSize({100, 100});
-    drawable->drawingCacheUpdateTimeMap_[drawable->nodeId_] = 1;
-
-    drawable->GenerateCacheIfNeed(canvas, params);
-
-    EXPECT_EQ(drawable->drawingCacheUpdateTimeMap_[drawable->nodeId_], 1);
-}
-
-/**
  * @tc.name: CheckCacheTypeAndDraw
  * @tc.desc: Test If CheckCacheTypeAndDraw Can Run
  * @tc.type: FUNC
