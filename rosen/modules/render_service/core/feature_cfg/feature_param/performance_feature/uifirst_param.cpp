@@ -98,4 +98,14 @@ void UIFirstParam::SetSizeChangedThreshold(float threshold)
 {
     sizeChangedThreshold_ = threshold;
 }
+
+bool UIFirstParam::IsOcclusionEnabled()
+{
+    return isOcclusionEnabled_;
+}
+
+void UIFirstParam::SetOcclusionEnabled(bool isEnable)
+{
+    isOcclusionEnabled_ = isEnable;
+}
 } // namespace OHOS::Rosen

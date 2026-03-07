@@ -198,6 +198,13 @@ public:
      */
     std::array<int, 2> CalcHpsBluredImageDimension(const Drawing::HpsBlurParameter& blurParams) override;
 
+    /**
+     * @brief insert opaque region to canvas, which can help gpu enable overdraw optimize
+     *
+     * @param opaqueRects the opaque rects to be inserted, which should be in device coordinate.
+     */
+    void InsertOpaqueRegion(const std::vector<Drawing::RectI>& opaqueRects) override;
+
     bool IsClipRect() override;
 
 protected:

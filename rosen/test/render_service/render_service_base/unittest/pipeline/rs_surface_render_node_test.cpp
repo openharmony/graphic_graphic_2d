@@ -2998,5 +2998,37 @@ HWTEST_F(RSSurfaceRenderNodeTest, RegisterCaptureCallbackTest, TestSize.Level1)
     surfaceRenderNode->stagingRenderParams_ = nullptr;
     surfaceRenderNode->RegisterCaptureCallback(callback, config);
 }
+
+/**
+ * @tc.name: SetIsParticipateInOcclusionTest
+ * @tc.desc: Test SetIsParticipateInOcclusion function
+ * @tc.type: FUNC
+ * @tc.require: issues22651
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetIsParticipateInOcclusionTest, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+
+    // Test set IsParticipateInOcclusion to true
+    node->SetIsParticipateInOcclusion(true);
+    EXPECT_EQ(node->GetIsParticipateInOcclusion(), true);
+
+    // Test set IsParticipateInOcclusion to false
+    node->SetIsParticipateInOcclusion(false);
+    EXPECT_EQ(node->GetIsParticipateInOcclusion(), false);
+
+    // Test with stagingRenderParams_ is nullptr
+    node->stagingRenderParams_ = nullptr;
+    node->SetIsParticipateInOcclusion(true);
+    EXPECT_EQ(node->GetIsParticipateInOcclusion(), true);
+
+    // Test with valid stagingRenderParams_
+    node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id);
+    node->SetIsParticipateInOcclusion(true);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(node->stagingRenderParams_.get());
+    EXPECT_EQ(surfaceParams->GetIsParticipateInOcclusion(), true);
+}
 } // namespace Rosen
 } // namespace OHOS

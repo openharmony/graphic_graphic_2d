@@ -44,6 +44,7 @@
 #include "rs_frame_report.h"
 #include "utils/rect.h"
 #include "utils/region.h"
+#include "uifirst_param.h"
 #ifdef RS_ENABLE_VK
 #ifdef USE_M133_SKIA
 #include "include/gpu/ganesh/vk/GrVkBackendSurface.h"
@@ -260,6 +261,9 @@ bool RsSubThreadCache::DrawCacheSurface(DrawableV2::RSSurfaceRenderNodeDrawable*
     auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
     auto translateX = gravityMatrix.Get(Drawing::Matrix::TRANS_X);
     auto translateY = gravityMatrix.Get(Drawing::Matrix::TRANS_Y);
+    std::vector<Drawing::RectI> opaqueRects;
+    Drawing::Rect imgDrawRect = { translateX, translateY, cacheImage->GetWidth(), cacheImage->GetHeight() };
+    InsertOpaqueRegion(canvas, surfaceDrawable, opaqueRects, imgDrawRect);
     DrawBehindWindowBeforeCache(canvas, translateX, translateY);
     auto stencilVal = canvas.GetStencilVal();
     if (stencilVal > Drawing::Canvas::INVALID_STENCIL_VAL && stencilVal < canvas.GetMaxStencilVal()) {
@@ -272,6 +276,7 @@ bool RsSubThreadCache::DrawCacheSurface(DrawableV2::RSSurfaceRenderNodeDrawable*
     }
     canvas.DetachBrush();
     canvas.Restore();
+    DrawOpaqueRegionDfx(canvas, opaqueRects);
     return true;
 }
 
@@ -1166,6 +1171,87 @@ void RsSubThreadCache::DrawBehindWindowBeforeCache(RSPaintFilterCanvas& canvas,
     filter->DrawImageRect(canvas, imageSnapshot, srcRect, dstRect);
     filter->PostProcess(canvas);
     RS_TRACE_NAME_FMT("RsSubThreadCache::DrawBehindWindowBeforeCache imageRect:%s", imageRect.ToString().c_str());
+}
+
+void RsSubThreadCache::InsertOpaqueRegion(RSPaintFilterCanvas& canvas,
+    DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
+    std::vector<Drawing::RectI>& opaqueRects, const Drawing::Rect& imgDrawRect)
+{
+    if (!RSUifirstManager::Instance().IsOcclusionEnabled()) {
+        return;
+    }
+
+    if (!surfaceDrawable) {
+        RS_LOGE("InsertOpaqueRegion surfaceDrawable is nullptr");
+        return;
+    }
+
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
+    if (!surfaceParams) {
+        RS_LOGE("InsertOpaqueRegion surfaceParams is nullptr");
+        return;
+    }
+
+    Occlusion::Region opaqueRegion;
+    // if leash window, we should consider the opaque region of all sub surface nodes
+    if (surfaceParams->IsLeashWindow()) {
+        for (const auto& item : surfaceDrawable->GetDrawableVectorById(surfaceParams->GetAllSubSurfaceNodeIds())) {
+            auto childNodeDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(item);
+            if (!childNodeDrawable) {
+                continue;
+            }
+            auto childParams = static_cast<RSSurfaceRenderParams*>(childNodeDrawable->GetRenderParams().get());
+            if (!childParams || !childParams->GetIsParticipateInOcclusion()) {
+                continue;
+            }
+            opaqueRegion.OrSelf(childParams->GetOpaqueRegion());
+        }
+    } else {
+        opaqueRegion = surfaceParams->GetOpaqueRegion();
+    }
+
+    Drawing::Rect absImgDrawRect;
+    // Map the imgDrawRect to absolute coordinate, because the opaque region is in absolute coordinate.
+    canvas.GetTotalMatrix().MapRect(absImgDrawRect, imgDrawRect);
+    Drawing::RectI absImgDrawRectI(
+        static_cast<int>(std::ceil(absImgDrawRect.GetLeft())),
+        static_cast<int>(std::ceil(absImgDrawRect.GetTop())),
+        static_cast<int>(std::floor(absImgDrawRect.GetRight())),
+        static_cast<int>(std::floor(absImgDrawRect.GetBottom()))
+    );
+
+    for (const auto& opaqueRect : opaqueRegion.GetRegionRectIs()) {
+        Drawing::RectI rect(opaqueRect.GetLeft(), opaqueRect.GetTop(), opaqueRect.GetRight(), opaqueRect.GetBottom());
+        // Intersect with absImgDrawRectI to get the actual opaque region on screen.
+        rect.Intersect(absImgDrawRectI);
+        if (!rect.IsEmpty()) {
+            opaqueRects.push_back(rect);
+        }
+    }
+
+    canvas.InsertOpaqueRegion(opaqueRects);
+}
+
+void RsSubThreadCache::DrawOpaqueRegionDfx(RSPaintFilterCanvas& canvas, const std::vector<Drawing::RectI>& opaqueRects)
+{
+    if (!RSUifirstManager::Instance().IsOcclusionEnabled() || !RSSystemParameters::GetUIFirstOcclusionDebugEnabled()) {
+        return;
+    }
+    RSAutoCanvasRestore acr(&canvas);
+    canvas.ResetMatrix();
+    std::string opaqueRectsStr;
+    for (const auto& rect : opaqueRects) {
+        Drawing::Brush brush;
+        brush.SetColor(Drawing::Color::COLOR_RED);
+        brush.SetAlphaF(0.2f);
+        canvas.AttachBrush(brush);
+        canvas.DrawRect(rect);
+        canvas.DetachBrush();
+
+        opaqueRectsStr += "[" + std::to_string(rect.GetLeft()) + " " + std::to_string(rect.GetTop()) +
+                          " " + std::to_string(rect.GetWidth()) + " " + std::to_string(rect.GetHeight()) + "] ";
+    }
+    RS_TRACE_NAME_FMT("DrawOpaqueRegionDfx opaqueRects: %s", opaqueRectsStr.c_str());
 }
 
 void RsSubThreadCache::SetUifirstSurfaceCacheContentStatic(bool staticContent)

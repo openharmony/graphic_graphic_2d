@@ -1072,6 +1072,21 @@ std::array<int, 2> RSPaintFilterCanvasBase::CalcHpsBluredImageDimension(const Dr
     return result;
 }
 
+void RSPaintFilterCanvasBase::InsertOpaqueRegion(const std::vector<Drawing::RectI>& opaqueRects)
+{
+#ifdef SKP_RECORDING_ENABLED
+    for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
+        if ((*iter) != nullptr) {
+            (*iter)->InsertOpaqueRegion(opaqueRects);
+        }
+    }
+#else
+    if (canvas_ != nullptr) {
+        canvas_->InsertOpaqueRegion(opaqueRects);
+    }
+#endif
+}
+
 bool RSPaintFilterCanvasBase::IsClipRect()
 {
     bool result = false;

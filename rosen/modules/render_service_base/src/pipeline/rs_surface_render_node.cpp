@@ -3965,5 +3965,16 @@ bool RSSurfaceRenderNode::IsRelatedSourceNode() const
     }
     return surfaceParams->IsRelatedSourceNode();
 }
+
+void RSSurfaceRenderNode::SetIsParticipateInOcclusion(bool isParticipate)
+{
+    isParticipateInOcclusion_ = isParticipate;
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        return;
+    }
+    surfaceParams->SetIsParticipateInOcclusion(isParticipateInOcclusion_);
+    AddToPendingSyncList();
+}
 } // namespace Rosen
 } // namespace OHOS
