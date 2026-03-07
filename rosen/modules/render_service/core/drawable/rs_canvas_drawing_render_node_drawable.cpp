@@ -206,7 +206,7 @@ void RSCanvasDrawingRenderNodeDrawable::DrawRenderContent(Drawing::Canvas& canva
         std::optional<RSTagTracker> tagTracer;
         auto gpuContext = GetGpuContext();
         if (gpuContext && renderParams_) {
-            tagTracer.emplace(gpuContext, renderParams_->GetInstanceRootNodeId(),
+            tagTracer.emplace(gpuContext, GetNodeIdForMemTag(),
                 RSTagTracker::TAGTYPE::TAG_CANVAS_DRAWING_NODE, renderParams_->GetInstanceRootNodeName());
         }
         DrawContent(*canvas_, rect);
@@ -322,7 +322,7 @@ void RSCanvasDrawingRenderNodeDrawable::PostPlaybackInCorrespondThread()
 
         std::optional<RSTagTracker> tagTracer;
         if (auto gpuContext = GetGpuContext()) {
-            tagTracer.emplace(gpuContext, renderParams_->GetInstanceRootNodeId(),
+            tagTracer.emplace(gpuContext, GetNodeIdForMemTag(),
                 RSTagTracker::TAGTYPE::TAG_CANVAS_DRAWING_NODE, renderParams_->GetInstanceRootNodeName());
         }
 
@@ -364,7 +364,7 @@ bool RSCanvasDrawingRenderNodeDrawable::InitSurface(int width, int height, RSPai
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     std::optional<RSTagTracker> tagTracer;
     if (renderParams_) {
-        tagTracer.emplace(canvas.GetGPUContext(), renderParams_->GetInstanceRootNodeId(),
+        tagTracer.emplace(canvas.GetGPUContext(), GetNodeIdForMemTag(),
             RSTagTracker::TAGTYPE::TAG_CANVAS_DRAWING_NODE, renderParams_->GetInstanceRootNodeName());
     }
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
@@ -492,7 +492,7 @@ void RSCanvasDrawingRenderNodeDrawable::Flush(float width, float height, std::sh
     std::optional<RSTagTracker> tagTracer;
     auto gpuContext = GetGpuContext();
     if (gpuContext && renderParams_) {
-        tagTracer.emplace(gpuContext, renderParams_->GetInstanceRootNodeId(),
+        tagTracer.emplace(gpuContext, GetNodeIdForMemTag(),
             RSTagTracker::TAGTYPE::TAG_CANVAS_DRAWING_NODE, renderParams_->GetInstanceRootNodeName());
     }
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
@@ -1051,6 +1051,12 @@ std::shared_ptr<Drawing::GPUContext> RSCanvasDrawingRenderNodeDrawable::GetGpuCo
     std::shared_ptr<Drawing::GPUContext> gpuContext = nullptr;
     GetCurrentContext(gpuContext);
     return gpuContext;
+}
+
+NodeId RSCanvasDrawingRenderNodeDrawable::GetNodeIdForMemTag()
+{
+    NodeId id = renderParams_ != nullptr ? renderParams_->GetInstanceRootNodeId() : 0;
+    return id > 0 ? id : nodeId_;
 }
 
 bool RSCanvasDrawingRenderNodeDrawable::GpuContextResetGL(
