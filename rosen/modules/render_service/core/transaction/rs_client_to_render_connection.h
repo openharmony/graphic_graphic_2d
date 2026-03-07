@@ -166,6 +166,21 @@ private:
     std::string GetBundleName(pid_t pid) override;
     int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection) override;
 
+    int32_t RegisterFrameStabilityDetection(
+        const FrameStabilityTarget& target,
+        const FrameStabilityConfig& config,
+        sptr<RSIFrameStabilityCallback> callback
+    ) override;
+
+    int32_t UnregisterFrameStabilityDetection(const FrameStabilityTarget& target) override;
+
+    int32_t StartFrameStabilityCollection(
+        const FrameStabilityTarget& target,
+        const FrameStabilityConfig& config
+    ) override;
+
+    int32_t GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result) override;
+
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;
     sptr<RSRenderPipelineAgent> renderPipelineAgent_;

@@ -631,5 +631,42 @@ int32_t RSClientToRenderConnection::SetLogicalCameraRotationCorrection(
     }
     return renderPipelineAgent_->SetLogicalCameraRotationCorrection(screenId, logicalCorrection);
 }
+
+int32_t RSClientToRenderConnection::RegisterFrameStabilityDetection(
+    const FrameStabilityTarget& target,
+    const FrameStabilityConfig& config,
+    sptr<RSIFrameStabilityCallback> callback)
+{
+    if (renderPipelineAgent_ == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+    return renderPipelineAgent_->RegisterFrameStabilityDetection(remotePid_, target, config, callback);
+}
+
+int32_t RSClientToRenderConnection::UnregisterFrameStabilityDetection(const FrameStabilityTarget& target)
+{
+    if (renderPipelineAgent_ == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+    return renderPipelineAgent_->UnregisterFrameStabilityDetection(remotePid_, target);
+}
+
+int32_t RSClientToRenderConnection::StartFrameStabilityCollection(
+    const FrameStabilityTarget& target,
+    const FrameStabilityConfig& config)
+{
+    if (renderPipelineAgent_ == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+    return renderPipelineAgent_->StartFrameStabilityCollection(remotePid_, target, config);
+}
+
+int32_t RSClientToRenderConnection::GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result)
+{
+    if (renderPipelineAgent_ == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+    return renderPipelineAgent_->GetFrameStabilityResult(remotePid_, target, result);
+}
 } // namespace Rosen
 } // namespace OHOS

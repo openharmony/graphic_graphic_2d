@@ -1383,6 +1383,46 @@ public:
      * @return 0 means success, others failed.
      */
     int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection);
+
+    /**
+     * @brief Register frame stability detection, used for callback of frame stability result.
+     * @param target Frame stability target (screen or node).
+     * @param config Detection configuration.
+     * @param callback Callback function, trigger callbacks based on configuration.
+     * @return 0 means success, others failed.
+     */
+    int32_t RegisterFrameStabilityDetection(
+        const FrameStabilityTarget& target,
+        const FrameStabilityConfig& config,
+        const FrameStabilityCallback& callback
+    );
+
+    /**
+     * @brief Unregister frame stability detection.
+     * @param target Frame stability target (screen or node).
+     * @return 0 means success, others failed.
+     */
+    int32_t UnregisterFrameStabilityDetection(const FrameStabilityTarget& target);
+
+    /**
+     * @brief Start frame stability data collection, collect stable results for every frame and accumulate them.
+     * @param target Frame stability target (screen or node).
+     * @param config Collection configuration.
+     * @return 0 means success, others failed.
+     */
+    int32_t StartFrameStabilityCollection(
+        const FrameStabilityTarget& target,
+        const FrameStabilityConfig& config
+    );
+
+    /**
+     * @brief Get frame stability result and stop collection.
+     * @param target Frame stability target (screen or node).
+     * @param result Collection result, get frame stability result from StartFrameStabilityCollection to present.
+     * false means unstable, true means stable.
+     * @return 0 means success, others failed.
+     */
+    int32_t GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result);
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

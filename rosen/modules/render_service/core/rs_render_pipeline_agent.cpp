@@ -41,6 +41,7 @@
 #include "feature/capture/rs_ui_capture_task_parallel.h"
 #include "feature/capture/rs_ui_capture_solo_task_parallel.h"
 #include "feature/capture/rs_surface_capture_task_parallel.h"
+#include "feature/frame_stability/rs_frame_stability_manager.h"
 #include "feature/hwc_event/rs_uni_hwc_event_manager.h"
 #include "feature/pointer_window_manager/rs_pointer_window_manager.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
@@ -2083,6 +2084,34 @@ sptr<RSIClientToRenderConnection> RSRenderPipelineAgent::FindClientToRenderConne
         return nullptr;
     }
     return rsRenderPipeline_->FindClientToRenderConnection(token);
+}
+
+int32_t RSRenderPipelineAgent::RegisterFrameStabilityDetection(
+    pid_t pid,
+    const FrameStabilityTarget& target,
+    const FrameStabilityConfig& config,
+    sptr<RSIFrameStabilityCallback> callback)
+{
+    return RSFrameStabilityManager::GetInstance().RegisterFrameStabilityDetection(
+        pid, target, config, callback);
+}
+
+int32_t RSRenderPipelineAgent::UnregisterFrameStabilityDetection(pid_t pid, const FrameStabilityTarget& target)
+{
+    return RSFrameStabilityManager::GetInstance().UnregisterFrameStabilityDetection(pid, target);
+}
+
+int32_t RSRenderPipelineAgent::StartFrameStabilityCollection(
+    pid_t pid,
+    const FrameStabilityTarget& target,
+    const FrameStabilityConfig& config)
+{
+    return RSFrameStabilityManager::GetInstance().StartFrameStabilityCollection(pid, target, config);
+}
+
+int32_t RSRenderPipelineAgent::GetFrameStabilityResult(pid_t pid, const FrameStabilityTarget& target, bool& result)
+{
+    return RSFrameStabilityManager::GetInstance().GetFrameStabilityResult(pid, target, result);
 }
 } // namespace Rosen
 } // namespace OHOS

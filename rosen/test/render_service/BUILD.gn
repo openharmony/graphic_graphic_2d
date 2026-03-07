@@ -194,6 +194,7 @@ group("test") {
     "render_service_client/fuzztest/rsclientproperty_fuzzer:fuzztest",
     "render_service_client/fuzztest/rsmodifiermanager_fuzzer:fuzztest",
     "render_service_client/fuzztest/rsnodemap_fuzzer:fuzztest",
+    "render_service_client/fuzztest/rsinterfaces_framestability/rsframestability_fuzzer:fuzztest",
     "render_service_client/fuzztest/rsinterfaces_ltpo/notifyEvents_fuzzer:fuzztest",
     "render_service_client/fuzztest/rsinterfaces_ltpo/refreshRate_fuzzer:fuzztest",
     "render_service_client/fuzztest/rsinterfaces_ltpo/refreshRateCallback_fuzzer:fuzztest",
