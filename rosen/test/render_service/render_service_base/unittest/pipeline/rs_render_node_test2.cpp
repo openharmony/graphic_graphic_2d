@@ -1069,6 +1069,44 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterRegionInSkippedSubTree002, TestSize.Leve
 }
 
 /**
+ * @tc.name: UpdateFilterRegionInSkippedSubTree003
+ * @tc.desc: test UpdateFilterRegionInSkippedSubTree with boundsGeometry not null and GetAbsMatrixReverse success
+ * @tc.type: FUNC
+ * @tc.require: issue22644
+ */
+HWTEST_F(RSRenderNodeTest2, UpdateFilterRegionInSkippedSubTree003, TestSize.Level1)
+{
+    // init tree state.
+    auto node = std::make_shared<RSRenderNode>(id, context);
+    node->GetMutableRenderProperties().boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    auto subTreeRoot = std::make_shared<RSRenderNode>(id + 1, context);
+    subTreeRoot->GetMutableRenderProperties().boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    auto parentNode = std::make_shared<RSRenderNode>(id + 2, context);
+    parentNode->GetMutableRenderProperties().boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    parentNode->AddChild(node);
+    subTreeRoot->AddChild(parentNode);
+    
+    // assign matrix.
+    auto& nodeMatrix = node->GetMutableRenderProperties().boundsGeo_->matrix_;
+    auto& nodeAbsMatrix = node->GetMutableRenderProperties().boundsGeo_->absMatrix_;
+    auto& parentNodeMatrix = parentNode->GetMutableRenderProperties().boundsGeo_->matrix_;
+    auto& subTreeRootAbsMatrix = subTreeRoot->GetMutableRenderProperties().boundsGeo_->absMatrix_;
+
+    Drawing::Matrix identityMatrix;
+    nodeMatrix = identityMatrix;
+    nodeAbsMatrix = identityMatrix;
+    parentNodeMatrix = identityMatrix;
+    subTreeRootAbsMatrix = identityMatrix;
+    subTreeRootAbsMatrix->SetScale(100.0f, 100.0f);
+
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    RectI filterRect;
+    RectI clipRect;
+    node->UpdateFilterRegionInSkippedSubTree(*rsDirtyManager, *subTreeRoot, filterRect, clipRect, clipRect);
+    ASSERT_NE(nodeAbsMatrix->Get(0), identityMatrix.Get(0));
+}
+
+/**
  * @tc.name: FilterRectMergeDirtyRectInSkippedSubtree001
  * @tc.desc: test FilterRectMergeDirtyRectInSkippedSubtree last filter region is equal to filterRect
  * @tc.type: FUNC

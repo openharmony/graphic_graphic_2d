@@ -2556,9 +2556,11 @@ void RSRenderNode::UpdateFilterRegionInSkippedSubTree(RSDirtyRegionManager& dirt
     const std::optional<RectI>& surfaceClipRect)
 {
     Drawing::Matrix absMatrix;
-    if (!GetAbsMatrixReverse(subTreeRoot, absMatrix)) {
+    auto geoPtr = GetRenderProperties().GetBoundsGeometry();
+    if (geoPtr == nullptr || !GetAbsMatrixReverse(subTreeRoot, absMatrix)) {
         return;
     }
+    geoPtr->SetAbsMatrix(absMatrix);
     absDrawRect_ = RSObjAbsGeometry::MapRect(selfDrawRect_, absMatrix);
     oldDirtyInSurface_ = absDrawRect_.IntersectRect(clipRect);
     auto boundsRect = GetRenderProperties().GetBoundsRect();
