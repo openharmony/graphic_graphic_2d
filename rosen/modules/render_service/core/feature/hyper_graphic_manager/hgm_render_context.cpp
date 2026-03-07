@@ -65,9 +65,7 @@ void HgmRenderContext::NotifyRpHgmFrameRate(uint64_t vsyncId, const std::shared_
         RSRealtimeRefreshRateManager::Instance().SetShowRefreshRateEnabled(enable, 1);
     }
 
-    HandleGameNode(rsContext->GetNodeMap());
-    isAdaptiveVsyncReaddy_.store(rsContext->GetNodeMap().GetVisibleLeashWindowCount() < MULTI_WINDOW_PERF_START_NUM &&
-                                 rsContext->GetAnimatingNodeList().empty());
+    HandleAdaptiveVsyncCondition(rsContext);
     auto info = sptr<HgmProcessToServiceInfo>::MakeSptr();
     info->isGameNodeOnTree = isGameNodeOnTree_.load();
     info->rsCurrRange = rsCurrRange_;
@@ -87,14 +85,16 @@ void HgmRenderContext::NotifyRpHgmFrameRate(uint64_t vsyncId, const std::shared_
         pipelineParam.pendingScreenRefreshRate, pipelineParam.pendingConstraintRelativeTime);
 }
 
-void HgmRenderContext::HandleGameNode(const RSRenderNodeMap& nodeMap)
+void HgmRenderContext::HandleAdaptiveVsyncCondition(const std::shared_ptr<RSContext>& rsContext)
 {
     if (isAdaptive_.load() != SupportASStatus::SUPPORT_AS) {
         isGameNodeOnTree_.store(false);
+        isAdaptiveVsyncReady_.store(false);
         return;
     }
     bool isGameSelfNodeOnTree = false;
     bool isOtherSelfNodeOnTree = false;
+    auto& nodeMap = rsContext->GetNodeMap();
     nodeMap.TraverseSurfaceNodesBreakOnCondition(
         [this, &isGameSelfNodeOnTree, &isOtherSelfNodeOnTree, &nodeMap]
         (const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) {
@@ -114,9 +114,15 @@ void HgmRenderContext::HandleGameNode(const RSRenderNodeMap& nodeMap)
         }
         return false;
     });
-    RS_TRACE_NAME_FMT(
-        "%s: game node on tree: %d, other node no tree: %d", __func__, isGameSelfNodeOnTree, isOtherSelfNodeOnTree);
     isGameNodeOnTree_.store(isGameSelfNodeOnTree && !isOtherSelfNodeOnTree);
+
+    uint32_t windowCount = nodeMap.GetVisibleLeashWindowCount();
+    bool isAnimateRunning = rsContext->IsRequestedNextVsyncAnimate();
+    isAdaptiveVsyncReady_.store(windowCount < MULTI_WINDOW_PERF_START_NUM && !isAnimateRunning);
+
+    RS_TRACE_NAME_FMT(
+        "%s: game: %d, other: %d, window count: %u, animate: %d",
+        __func__, isGameSelfNodeOnTree, isOtherSelfNodeOnTree, windowCount, isAnimateRunning);
 }
 
 void HgmRenderContext::SetServiceToProcessInfo(sptr<HgmServiceToProcessInfo> serviceToProcessInfo,

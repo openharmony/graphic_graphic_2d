@@ -54,7 +54,7 @@ public:
 
     bool AdaptiveStatus() const { return isAdaptive_.load(); }
     bool IsGameNodeOnTree() const { return isGameNodeOnTree_.load(); }
-    bool IsAdaptiveVsyncReady() const { return isAdaptiveVsyncReaddy_.load(); }
+    bool IsAdaptiveVsyncReady() const { return isAdaptiveVsyncReady_.load(); }
 
     bool GetLtpoEnabled() const { return ltpoEnabled_; }
     bool IsDelayMode() const { return isDelayMode_; }
@@ -65,7 +65,7 @@ public:
         const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
 
 private:
-    void HandleGameNode(const RSRenderNodeMap& nodeMap);
+    void HandleAdaptiveVsyncCondition(const std::shared_ptr<RSContext>& rsContext);
 
     const sptr<RSIRenderToServiceConnection> renderToServiceConnection_;
     std::unordered_set<ScreenId> screenIds_; // Accessed ONLY on main thread
@@ -78,7 +78,7 @@ private:
     std::atomic<bool> isAdaptive_ = false;
     std::string gameNodeName_ = "";
     std::atomic<bool> isGameNodeOnTree_ = false;
-    std::atomic<bool> isAdaptiveVsyncReaddy_ = false;
+    std::atomic<bool> isAdaptiveVsyncReady_ = false;
 
     bool ltpoEnabled_ = false;
     bool isDelayMode_ = false;
