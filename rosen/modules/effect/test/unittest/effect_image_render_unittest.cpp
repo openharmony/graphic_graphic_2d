@@ -197,7 +197,6 @@ HWTEST_F(EffectImageRenderUnittest, DirectionBlurTest, TestSize.Level1)
     EXPECT_NE(flag, nullptr);
 }
 
-
 /**
  * @tc.name: MapColorByBrightnessTest
  * @tc.desc: Test MapColorByBrightness by invalid params
@@ -213,7 +212,7 @@ HWTEST_F(EffectImageRenderUnittest, MapColorByBrightnessTest, TestSize.Level1)
     Vector4f color1 = {1.0f, 0.0f, 0.5f, 1.0f}; // color rgba
     Vector4f color2 = {1.0f, 0.5f, 0.5f, 1.0f}; // color rgba
     Vector4f color3 = {0.0f, 0.5f, 0.5f, 1.0f}; // color rgba
-    colors = {color1, color3, color3};
+    colors = {color1, color2, color3};
     flag = EffectImageFilter::MapColorByBrightness(colors, positions);
     EXPECT_EQ(flag, nullptr);
 
@@ -223,6 +222,35 @@ HWTEST_F(EffectImageRenderUnittest, MapColorByBrightnessTest, TestSize.Level1)
 
     colors = {};
     flag = EffectImageFilter::MapColorByBrightness(colors, positions);
+    EXPECT_EQ(flag, nullptr);
+}
+
+/**
+ * @tc.name: MapColorByBrightnessTestNotEqual
+ * @tc.desc: Test MapColorByBrightness by colors and positions are not equal
+ * @tc.type: FUNC
+ */
+HWTEST_F(EffectImageRenderUnittest, MapColorByBrightnessTestNotEqual, TestSize.Level1)
+{
+    Vector4f color1 = {1.0f, 0.0f, 0.5f, 1.0f}; // color rgba
+    Vector4f color2 = {1.0f, 0.5f, 0.5f, 1.0f}; // color rgba
+    std::vector<Vector4f> colors = {color1, color2};
+    std::vector<float> positions = {0.2f, 0.5f, 1.0f};
+    auto flag = EffectImageFilter::MapColorByBrightness(colors, positions);
+    EXPECT_EQ(flag, nullptr);
+
+    Vector4f color3 = {0.0f, 0.5f, 0.5f, 1.0f}; // color rgba
+    std::vector<Vector4f> colors1 = {color1, color2, color3};
+    std::vector<float> positions1 = {0.5f, 1.0f};
+    flag = EffectImageFilter::MapColorByBrightness(colors1, positions1);
+    EXPECT_EQ(flag, nullptr);
+
+    colors1 = {};
+    flag = EffectImageFilter::MapColorByBrightness(colors1, positions1);
+    EXPECT_EQ(flag, nullptr);
+
+    positions1 = {};
+    flag = EffectImageFilter::MapColorByBrightness(colors1, positions1);
     EXPECT_EQ(flag, nullptr);
 }
 
