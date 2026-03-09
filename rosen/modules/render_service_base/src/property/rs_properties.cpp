@@ -5447,6 +5447,9 @@ void RSProperties::SetBackgroundNGShader(const std::shared_ptr<RSNGRenderShaderB
     if (bgNGRenderShader_ && bgNGRenderShader_->ContainsType(RSNGEffectType::HARMONIUM_EFFECT)) {
         hasHarmonium_ = true;
     }
+    if (renderShader != nullptr && renderShader->ContainsType(RSNGEffectType::FROSTED_GLASS_EFFECT)) {
+        filterNeedUpdate_ = true;
+    }
 }
 
 std::shared_ptr<RSNGRenderShaderBase> RSProperties::GetBackgroundNGShader() const
