@@ -474,25 +474,25 @@ HWTEST_F(RSSubThreadCacheTest, UpdateAllSurfaceUifirstDirtyEnableState, TestSize
     system::SetParameter("rosen.ui.first.dirty.enabled", "0");
     surfaceDrawable_->GetRsSubThreadCache().UpdateAllSurfaceUifirstDirtyEnableState(
         surfaceDrawable_.get(), dirtyEnableFlag);
-    ASSERT_EQ(surfaceDrawable_->GetRsSubThreadCache().GetUifrstDirtyEnableFlag(), false);
+    ASSERT_EQ(surfaceDrawable_->GetRsSubThreadCache().GetUifirstDirtyEnableFlag(), false);
 
     uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
     system::SetParameter("rosen.ui.first.dirty.enabled", "1");
     surfaceDrawable_->GetRsSubThreadCache().UpdateAllSurfaceUifirstDirtyEnableState(
         surfaceDrawable_.get(), dirtyEnableFlag);
-    ASSERT_EQ(surfaceDrawable_->GetRsSubThreadCache().GetUifrstDirtyEnableFlag(), false);
+    ASSERT_EQ(surfaceDrawable_->GetRsSubThreadCache().GetUifirstDirtyEnableFlag(), false);
 
     uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::MULTI));
     system::SetParameter("rosen.ui.first.dirty.enabled", "0");
     surfaceDrawable_->GetRsSubThreadCache().UpdateAllSurfaceUifirstDirtyEnableState(
         surfaceDrawable_.get(), dirtyEnableFlag);
-    ASSERT_EQ(surfaceDrawable_->GetRsSubThreadCache().GetUifrstDirtyEnableFlag(), false);
+    ASSERT_EQ(surfaceDrawable_->GetRsSubThreadCache().GetUifirstDirtyEnableFlag(), false);
 
     uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::MULTI));
     system::SetParameter("rosen.ui.first.dirty.enabled", "1");
     surfaceDrawable_->GetRsSubThreadCache().UpdateAllSurfaceUifirstDirtyEnableState(
         surfaceDrawable_.get(), dirtyEnableFlag);
-    ASSERT_EQ(surfaceDrawable_->GetRsSubThreadCache().GetUifrstDirtyEnableFlag(), false);
+    ASSERT_EQ(surfaceDrawable_->GetRsSubThreadCache().GetUifirstDirtyEnableFlag(), false);
     uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
 }
 
@@ -1267,13 +1267,13 @@ HWTEST_F(RSSubThreadCacheTest, PushDirtyRegionToStack, TestSize.Level1)
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     canvas.SetIsParallelCanvas(true);
-    subCache.SetUifrstDirtyEnableFlag(false);
+    subCache.SetUifirstDirtyEnableFlag(false);
     // push nothing
     subCache.PushDirtyRegionToStack(canvas, region);
     ASSERT_TRUE(canvas.IsDirtyRegionStackEmpty());
 
     canvas.SetIsParallelCanvas(true);
-    subCache.SetUifrstDirtyEnableFlag(true);
+    subCache.SetUifirstDirtyEnableFlag(true);
     subCache.SetUifirstDirtyRegion(dirtyRegion);
     // push uifirst dirty region
     subCache.PushDirtyRegionToStack(canvas, region);
@@ -1375,18 +1375,18 @@ HWTEST_F(RSSubThreadCacheTest, GetUifirstDirtyRegionTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetUifrstDirtyEnableFlagTest
- * @tc.desc: Test GetUifrstDirtyEnableFlag
+ * @tc.name: GetUifirstDirtyEnableFlagTest
+ * @tc.desc: Test GetUifirstDirtyEnableFlag
  * @tc.type: FUNC
  * @tc.require: issuesICFWAC
  */
-HWTEST_F(RSSubThreadCacheTest, GetUifrstDirtyEnableFlagTest, TestSize.Level1)
+HWTEST_F(RSSubThreadCacheTest, GetUifirstDirtyEnableFlagTest, TestSize.Level1)
 {
     RsSubThreadCache subCache;
-    subCache.SetUifrstDirtyEnableFlag(true);
-    ASSERT_TRUE(subCache.GetUifrstDirtyEnableFlag());
-    subCache.SetUifrstDirtyEnableFlag(false);
-    ASSERT_FALSE(subCache.GetUifrstDirtyEnableFlag());
+    subCache.SetUifirstDirtyEnableFlag(true);
+    ASSERT_TRUE(subCache.GetUifirstDirtyEnableFlag());
+    subCache.SetUifirstDirtyEnableFlag(false);
+    ASSERT_FALSE(subCache.GetUifirstDirtyEnableFlag());
 }
 
 /**

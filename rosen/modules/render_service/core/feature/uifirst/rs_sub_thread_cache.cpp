@@ -596,14 +596,14 @@ Drawing::Region RsSubThreadCache::GetUifirstDirtyRegion() const
     return uifirstDirtyRegion_;
 }
 
-void RsSubThreadCache::SetUifrstDirtyEnableFlag(bool dirtyEnableFlag)
+void RsSubThreadCache::SetUifirstDirtyEnableFlag(bool dirtyEnableFlag)
 {
-    uifrstDirtyEnableFlag_ = dirtyEnableFlag;
+    uifirstDirtyEnableFlag_ = dirtyEnableFlag;
 }
 
-bool RsSubThreadCache::GetUifrstDirtyEnableFlag() const
+bool RsSubThreadCache::GetUifirstDirtyEnableFlag() const
 {
-    return uifrstDirtyEnableFlag_;
+    return uifirstDirtyEnableFlag_;
 }
 
 bool RsSubThreadCache::GetCurDirtyRegionWithMatrix(const Drawing::Matrix& matrix,
@@ -660,24 +660,24 @@ bool RsSubThreadCache::CalculateUifirstDirtyRegion(DrawableV2::RSSurfaceRenderNo
         RS_LOGD("absRect params is err or out of dispaly");
         return false;
     }
-    Drawing::RectF curDrityRegion = Drawing::RectF(latestDirtyRect.GetLeft(), latestDirtyRect.GetTop(),
+    Drawing::RectF curDirtyRegion = Drawing::RectF(latestDirtyRect.GetLeft(), latestDirtyRect.GetTop(),
         latestDirtyRect.GetRight(), latestDirtyRect.GetBottom());
     Drawing::RectF curAbsDrawRect = Drawing::RectF(absDrawRect.GetLeft(), absDrawRect.GetTop(),
         absDrawRect.GetRight(), absDrawRect.GetBottom());
-    if (!GetCurDirtyRegionWithMatrix(surfaceParams->GetDirtyRegionMatrix(), curDrityRegion, curAbsDrawRect)) {
+    if (!GetCurDirtyRegionWithMatrix(surfaceParams->GetDirtyRegionMatrix(), curDirtyRegion, curAbsDrawRect)) {
         return false;
     }
     auto surfaceBounds = surfaceParams->GetBounds();
     float widthScale = surfaceBounds.GetWidth() / curAbsDrawRect.GetWidth();
     float heightScale = surfaceBounds.GetHeight() / curAbsDrawRect.GetHeight();
-    float left = (curDrityRegion.GetLeft() - curAbsDrawRect.GetLeft()) * widthScale;
-    float top = (curDrityRegion.GetTop() - curAbsDrawRect.GetTop()) * heightScale;
-    float width = curDrityRegion.GetWidth() * widthScale;
-    float height = curDrityRegion.GetHeight() * heightScale;
+    float left = (curDirtyRegion.GetLeft() - curAbsDrawRect.GetLeft()) * widthScale;
+    float top = (curDirtyRegion.GetTop() - curAbsDrawRect.GetTop()) * heightScale;
+    float width = curDirtyRegion.GetWidth() * widthScale;
+    float height = curDirtyRegion.GetHeight() * heightScale;
     Drawing::RectF tempRect = Drawing::RectF(left, top, left + width, top + height);
     dirtyRect = tempRect.RoundOut();
     RS_TRACE_NAME_FMT("lR[%.1f %.1f %.1f %.1f], absR[%.1f %.1f %.1f %.1f], resultR[%d %d %d %d]",
-        curDrityRegion.GetLeft(), curDrityRegion.GetTop(), curDrityRegion.GetWidth(), curDrityRegion.GetHeight(),
+        curDirtyRegion.GetLeft(), curDirtyRegion.GetTop(), curDirtyRegion.GetWidth(), curDirtyRegion.GetHeight(),
         curAbsDrawRect.GetLeft(), curAbsDrawRect.GetTop(), curAbsDrawRect.GetWidth(), curAbsDrawRect.GetHeight(),
         dirtyRect.GetLeft(), dirtyRect.GetTop(), dirtyRect.GetWidth(), dirtyRect.GetHeight());
     return true;
@@ -738,7 +738,7 @@ void RsSubThreadCache::UpdateAllSurfaceUifirstDirtyEnableState(DrawableV2::RSSur
         return;
     }
     SetUifirstDirtyRegion(uifirstMergedDirtyRegion_);
-    SetUifrstDirtyEnableFlag(isEnableDirtyRegion);
+    SetUifirstDirtyEnableFlag(isEnableDirtyRegion);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetUifirstRenderParams().get());
     if (!surfaceParams) {
         RS_LOGE("UpdateAllSurfaceUifirstDirtyState params is nullptr");
@@ -749,7 +749,7 @@ void RsSubThreadCache::UpdateAllSurfaceUifirstDirtyEnableState(DrawableV2::RSSur
         auto surfaceNodeDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(nestedDrawable);
         if (surfaceNodeDrawable) {
             surfaceNodeDrawable->GetRsSubThreadCache().SetUifirstDirtyRegion(uifirstMergedDirtyRegion_);
-            surfaceNodeDrawable->GetRsSubThreadCache().SetUifrstDirtyEnableFlag(isEnableDirtyRegion);
+            surfaceNodeDrawable->GetRsSubThreadCache().SetUifirstDirtyEnableFlag(isEnableDirtyRegion);
         }
     }
 }
@@ -757,7 +757,7 @@ void RsSubThreadCache::UpdateAllSurfaceUifirstDirtyEnableState(DrawableV2::RSSur
 void RsSubThreadCache::PushDirtyRegionToStack(RSPaintFilterCanvas& canvas, Drawing::Region& resultRegion)
 {
     if (canvas.GetIsParallelCanvas()) {
-        if (GetUifrstDirtyEnableFlag()) {
+        if (GetUifirstDirtyEnableFlag()) {
             auto uifirstDirtyRegion = GetUifirstDirtyRegion();
             canvas.PushDirtyRegion(uifirstDirtyRegion);
         }

@@ -113,7 +113,7 @@ void RSUifirstManager::AddProcessDoneNode(NodeId id)
         return;
     }
     RS_OPTIONAL_TRACE_NAME_FMT("sub done %" PRIu64"", id);
-    std::lock_guard<std::mutex> lock(childernDrawableMutex_);
+    std::lock_guard<std::mutex> lock(childrenDrawableMutex_);
     subthreadProcessDoneNode_.push_back(id);
 }
 
@@ -349,7 +349,7 @@ void RSUifirstManager::ProcessDoneNodeInner()
 {
     std::vector<NodeId> tmp;
     {
-        std::lock_guard<std::mutex> lock(childernDrawableMutex_);
+        std::lock_guard<std::mutex> lock(childrenDrawableMutex_);
         if (subthreadProcessDoneNode_.size() == 0) {
             return;
         }
