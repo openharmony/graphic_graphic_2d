@@ -1026,20 +1026,11 @@ static void KillProcessByPid(const pid_t pid, const MemorySnapshotInfo& info, co
 {
 #ifdef RS_ENABLE_UNI_RENDER
     if (pid > 0) {
-        int32_t eventWriteStatus = -1;
-        AAFwk::ExitReason killReason{AAFwk::Reason::REASON_RESOURCE_CONTROL, KILL_PROCESS_TYPE, reason};
-        int32_t ret = (int32_t)AAFwk::AbilityManagerClient::GetInstance()->KillProcessWithReason(pid, killReason);
-        if (ret == ERR_OK) {
-            RS_TRACE_NAME("KillProcessByPid HiSysEventWrite");
-            eventWriteStatus = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::FRAMEWORK, "PROCESS_KILL",
-                HiviewDFX::HiSysEvent::EventType::FAULT, "PID", pid, "PROCESS_NAME", info.bundleName,
-                "MSG", reason, "FOREGROUND", true, "UID", info.uid, "BUNDLE_NAME", info.bundleName,
-                "REASON", GPU_RS_LEAK);
-        }
+        AAFwk::ExitReasonCompability killReason{AAFwk::Reason::REASON_RESOURCE_CONTROL, KILL_PROCESS_TYPE, reason};
+        int32_t ret = AAFwk::AbilityManagerClient::GetInstance()->KillAppWithReason(pid, killReason);
         // To prevent the print from being filtered, use RS_LOGE.
         std::string logInfo = "KillProcessByPid, pid: " + std::to_string(pid) + ", process name: " + info.bundleName +
-            "killStatus: " + std::to_string(ret) + ", eventWriteStatus: " + std::to_string(eventWriteStatus) +
-            ", reason: " + reason;
+            "killStatus: " + std::to_string(ret) + ", reason: " + reason;
         RS_LOGE("%{public}s", logInfo.c_str());
     }
 #endif

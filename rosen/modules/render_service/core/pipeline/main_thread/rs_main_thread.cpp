@@ -958,12 +958,12 @@ void RSMainThread::InitVulkanErrorCallback(Drawing::GPUContext* gpuContext)
             return;
         }
 #ifdef RS_ENABLE_UNI_RENDER
-        AAFwk::ExitReason killReason{AAFwk::Reason::REASON_UNKNOWN, reason};
+        AAFwk::ExitReasonCompability killReason{AAFwk::Reason::REASON_UNKNOWN, reason};
         for (const auto pid : pidsToKill) {
             if (pid <= 0) {
                 continue;
             }
-            auto result = AAFwk::AbilityManagerClient::GetInstance()->KillProcessWithReason(pid, killReason);
+            auto result = AAFwk::AbilityManagerClient::GetInstance()->KillAppWithReason(pid, killReason);
             RS_LOGE("VulkanErrorCallback Kill Process, pid: %{public}d, killStatus: %{public}d, reason: %{public}s",
                 static_cast<int>(pid), static_cast<int>(result), reason.c_str());
         }

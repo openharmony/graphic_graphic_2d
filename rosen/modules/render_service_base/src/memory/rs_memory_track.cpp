@@ -555,8 +555,8 @@ void MemoryTrack::KillProcessByPid(const pid_t pid, const std::string& reason)
     }
 #ifdef RS_ENABLE_UNI_RENDER
     FdOverReport(pid, RSEventName::RENDER_MEMORY_OVER_WARNING, "");
-    AAFwk::ExitReason killReason{AAFwk::Reason::REASON_RESOURCE_CONTROL, KILL_PROCESS_TYPE, reason};
-    int32_t ret = (int32_t)AAFwk::AbilityManagerClient::GetInstance()->KillProcessWithReason(pid, killReason);
+    AAFwk::ExitReasonCompability killReason{AAFwk::Reason::REASON_RESOURCE_CONTROL, KILL_PROCESS_TYPE, reason};
+    int32_t ret = AAFwk::AbilityManagerClient::GetInstance()->KillAppWithReason(pid, killReason);
     if (ret == ERR_OK) {
         auto it = fdNumOfPid_.find(pid);
         if (it != fdNumOfPid_.end()) {

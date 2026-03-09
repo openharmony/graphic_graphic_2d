@@ -34,6 +34,10 @@
 #include "rs_trace.h"
 #include "platform/common/rs_hisysevent.h"
 
+#ifdef RS_ENABLE_UNI_RENDER
+#include "ability_manager_client.h"
+#endif
+
 #ifdef RES_SCHED_ENABLE
 #include "qos.h"
 #endif
@@ -259,10 +263,13 @@ bool RSUnmarshalThread::ReportTransactionDataStatistics(pid_t pid,
     if (!isNonSystemAppCalling || !terminateEnabled) {
         return false;
     }
+#ifdef RS_ENABLE_UNI_RENDER
     if (totalCount > TRANSACTION_DATA_KILL_COUNT && preCount <= TRANSACTION_DATA_KILL_COUNT) {
-        int res = appMgrClient->KillApplicationByUid(bundleName, uid);
-        return res == AppExecFwk::RESULT_OK;
+        AAFwk::ExitReasonCompability exitReason{AAFwk::Reason::REASON_RESOURCE_CONTROL, "IPC_DATA_OVER_ERROR"};
+        int res = AAFwk::AbilityManagerClient::GetInstance()->KillAppWithReason(pid, exitReason);
+        return res == ERR_OK;
     }
+#endif
     return false;
 }
 
