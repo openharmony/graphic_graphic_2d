@@ -1325,7 +1325,7 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
             RS_LOGI("surfaceCapNotUsingUIFirst = true, not using uifirst, id: %{public}" PRIu64,
                 surfaceParams.GetId());
         }
-        if (!canvas.GetUICapture() && !surfaceCapNotUsingUIFirst &&
+        if (!canvas.GetUICapture() &&
             RSSystemParameters::GetUIFirstCaptrueReuseEnabled() &&
             subThreadCache_.DealWithUIFirstCache(this, canvas, surfaceParams, *uniParams)) {
             if (RSUniRenderThread::GetCaptureParam().isSingleSurface_) {
