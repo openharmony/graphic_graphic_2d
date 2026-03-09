@@ -162,8 +162,7 @@ std::shared_ptr<RSSurface> RSRenderPipelineClient::CreateRSSurface(const sptr<Su
     return std::make_shared<RSSurfaceOhosRaster>(surface); // CPU render
 }
 
-class CustomBufferAvailableCallback : public RSBufferAvailableCallbackStub
-{
+class CustomBufferAvailableCallback : public RSBufferAvailableCallbackStub {
 public:
     explicit CustomBufferAvailableCallback(const BufferAvailableCallback &callback) : cb_(callback) {}
     ~CustomBufferAvailableCallback() override {};
@@ -179,8 +178,7 @@ private:
     BufferAvailableCallback cb_;
 };
 
-class CustomBufferClearCallback : public RSBufferClearCallbackStub
-{
+class CustomBufferClearCallback : public RSBufferClearCallbackStub {
 public:
     explicit CustomBufferClearCallback(const BufferClearCallback &callback) : cb_(callback) {}
     ~CustomBufferClearCallback() override {};

@@ -524,11 +524,8 @@ RSMainThread* RecorRsProfileRecordTest::mainThread_ = nullptr;
 void RecorRsProfileRecordTest::SetUpTestCase()
 {
     mainThread_ = RSMainThread::Instance();
-    // mainThread_->runner_ = AppExecFwk::EventRunner::Create(true);
-    // mainThread_->handler_ = std::make_shared<AppExecFwk::EventHandler>(mainThread_->runner_);
 
     renderService_ = new RSRenderService();
-    // renderService_->mainThread_ = mainThread_;
     renderService_->screenManager_ = sptr<RSScreenManager>::MakeSptr();
 
     RSProfiler::Init(renderService_);

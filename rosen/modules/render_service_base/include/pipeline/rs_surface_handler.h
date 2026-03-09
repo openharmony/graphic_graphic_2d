@@ -68,8 +68,8 @@ public:
 
         ~BufferOwnerCount() {
             if (bufferReleaseCb_ != nullptr && bufferId_ != 0 && refCount_.load() != 0) {
-                // RS_TRACE_NAME_FMT("BufferOwnerCount::~BufferOwnerCount bufferId %" PRIu64 " refCount_ %u",
-                //     bufferId_, refCount_.load());
+                RS_TRACE_NAME_FMT("BufferOwnerCount::~BufferOwnerCount bufferId %" PRIu64 " refCount_ %u",
+                    bufferId_, refCount_.load());
                 bufferReleaseCb_(bufferId_);
                 bufferReleaseCb_ = nullptr;
             }
@@ -77,8 +77,8 @@ public:
 
         void AddRef()
         {
-            // RS_OPTIONAL_TRACE_NAME_FMT("BufferOwnerCount::AddRef bufferId %" PRIu64 " refCount_ %u", bufferId_,
-            //     refCount_.load());
+            RS_OPTIONAL_TRACE_NAME_FMT("BufferOwnerCount::AddRef bufferId %" PRIu64 " refCount_ %u", bufferId_,
+                refCount_.load());
             if (bufferId_ == 0) {
                 RS_LOGE("BufferOwnerCount::AddRef bufferId %{public}" PRIu64 " ret %{public}u", bufferId_,
                     refCount_.load());
@@ -89,8 +89,8 @@ public:
 
         void DecRef()
         {
-            // RS_OPTIONAL_TRACE_NAME_FMT("BufferOwnerCount::DecRef bufferId %" PRIu64 " refCount_ %u", bufferId_,
-            //     refCount_.load());
+            RS_OPTIONAL_TRACE_NAME_FMT("BufferOwnerCount::DecRef bufferId %" PRIu64 " refCount_ %u", bufferId_,
+                refCount_.load());
             if (bufferId_ == 0) {
                 RS_LOGE("BufferOwnerCount::DecRef bufferId %{public}" PRIu64 " ret %{public}u", bufferId_,
                     refCount_.load());
@@ -113,8 +113,8 @@ public:
 
         void InsertUniOnDrawSet(uint64_t layerId, uint64_t bufferId)
         {
-            // RS_OPTIONAL_TRACE_NAME_FMT("InsertUniOnDrawSet layerId:%" PRIu64 " bufferId:%" PRIu64,
-            //     layerId, bufferId);
+            RS_OPTIONAL_TRACE_NAME_FMT("InsertUniOnDrawSet layerId:%" PRIu64 " bufferId:%" PRIu64,
+                layerId, bufferId);
             std::lock_guard<std::mutex> lock(mapMutex_);
             auto iter = uniOnDrawBuffersMap_.find(layerId);
             if (iter != uniOnDrawBuffersMap_.end()) {
@@ -126,8 +126,8 @@ public:
 
         void SetUniBufferOwner(uint64_t bufferId, uint64_t screenId)
         {
-            // RS_OPTIONAL_TRACE_NAME_FMT("SetUniBufferOwner seq:%" PRIu64 " uniSeq:%" PRIu64 " screenId:%",
-            //     bufferId_, bufferId, screenId);
+            RS_OPTIONAL_TRACE_NAME_FMT("SetUniBufferOwner seq:%" PRIu64 " uniSeq:%" PRIu64 " screenId:%",
+                bufferId_, bufferId, screenId);
             std::lock_guard<std::mutex> lock(mapMutex_);
             uniBufferOwnerSeqNumMap_[screenId] = bufferId;
         }
