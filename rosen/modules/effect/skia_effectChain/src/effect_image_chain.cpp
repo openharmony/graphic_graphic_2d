@@ -32,7 +32,6 @@
 #include "surface_buffer.h"
 
 #ifdef RS_ENABLE_VK
-#include "effect_vulkan_context.h"
 #include "platform/ohos/backend/native_buffer_utils.h"
 #endif
 
@@ -763,7 +762,8 @@ std::shared_ptr<Drawing::Surface> EffectImageChain::CreateSurface(bool forceCPU)
 
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::IsUseVulkan()) {
-        gpuContext_ = EffectVulkanContext::GetSingleton().CreateDrawingContext();
+        gpuContext_ = RsVulkanContext::GetSingleton().CreateDrawingContext();
+        gpuContext_->SetResourceCacheLimits(0, 0);
     }
 #endif
 
