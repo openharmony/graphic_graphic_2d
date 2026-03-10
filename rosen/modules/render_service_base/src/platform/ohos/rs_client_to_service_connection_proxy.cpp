@@ -3300,6 +3300,7 @@ ErrCode RSClientToServiceConnectionProxy::GetPixelmap(NodeId id, std::shared_ptr
         success = false;
         return ERR_INVALID_VALUE;
     }
+    RSMarshallingHelper::MarshallingTransactionVer(data);
     option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteUint64(id)) {
         ROSEN_LOGE("GetPixelmap: WriteUint64 id err.");
