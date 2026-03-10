@@ -103,6 +103,7 @@ void BootCompileProgress::Init(const std::string& configPath, const BootAnimatio
     currentRadius_ = isWearable_ ? RADIUS_WEARABLE :
         TranslateVp2Pixel(std::min(windowWidth_, windowHeight_), isOther_ ? RADIUS * DOUBLE_TIMES : RADIUS);
 
+    SkFontMgr::SetSymbolLoadMode(SymbolLoadMode::NONE);
     timeLimitSec_ = system::GetIntParameter<int32_t>(OTA_COMPILE_TIME_LIMIT, OTA_COMPILE_TIME_LIMIT_DEFAULT);
     tf_ = Rosen::Drawing::Typeface::MakeFromName("HarmonyOS Sans SC", Rosen::Drawing::FontStyle());
 
