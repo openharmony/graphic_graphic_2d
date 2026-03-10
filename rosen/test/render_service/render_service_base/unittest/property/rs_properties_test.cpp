@@ -1320,6 +1320,13 @@ HWTEST_F(RSPropertiesTest, UpdateBackgroundShader003, TestSize.Level1)
     properties.GetEffect().bgNGRenderShader_ = head;
     properties.UpdateBackgroundShader();
     EXPECT_FALSE(properties.bgShaderNeedUpdate_);
+
+    head = RSNGRenderShaderBase::Create(RSNGEffectType::FROSTED_GLASS_EFFECT);
+    properties.GetEffect().bgNGRenderShader_ = head;
+    properties.SetBackgroundNGShader(head);
+    properties.UpdateBackgroundShader();
+    EXPECT_FALSE(properties.bgShaderNeedUpdate_);
+    EXPECT_TRUE(properties.filterNeedUpdate_);
 }
 
 /**
