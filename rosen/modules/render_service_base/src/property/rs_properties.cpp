@@ -5254,7 +5254,7 @@ bool RSProperties::DisableHWCForFilter() const
 
 bool RSProperties::NeedClipHoleForFilter() const
 {
-    return GetColorFilter() != nullptr || GetGreyCoef().has_value();
+    return GetColorFilter() != nullptr;
 }
 
 void RSProperties::UpdateForegroundFilter()
