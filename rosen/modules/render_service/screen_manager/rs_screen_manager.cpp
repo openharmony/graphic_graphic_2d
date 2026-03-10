@@ -1413,15 +1413,15 @@ bool RSScreenManager::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus sc
     return screen->SetVirtualScreenStatus(screenStatus);
 }
 
-void RSScreenManager::SetScreenSwitchStatus(ScreenId id, bool status)
+void RSScreenManager::SetScreenSwitchStatus(bool status)
 {
-    auto screen = GetScreen(id);
-    if (screen == nullptr) {
-        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
-        return;
+    std::lock_guard<std::mutex> lock(screenMapMutex_);
+    for (const auto& [id, screen] : screens_) {
+        if (!screen) {
+            continue;
+        }
+        screen->SetScreenSwitchStatus(status);
     }
-
-    screen->SetScreenSwitchStatus(status);
     RS_LOGI("%{public}s: set isScreenSwitching_ = %{public}d", __func__, status);
     if (!status) {
         NotifySwitchingCallback(status);

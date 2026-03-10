@@ -347,7 +347,7 @@ void DoSetLayerTopForHWC()
     dataParcel.WriteUint64(nodeId);
     dataParcel.WriteBool(isTop);
     dataParcel.WriteUint32(zOrder);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoGetRefreshInfoByPidAndUniqueId()

@@ -30,6 +30,8 @@
 #include "render_server/transaction/rs_client_to_service_connection.h"
 #include "platform/ohos/transaction/zidl/rs_irender_service.h"
 #include "render_server/transaction/zidl/rs_client_to_service_connection_stub.h"
+#include "transaction/rs_client_to_render_connection.h"
+#include "transaction/zidl/rs_client_to_render_connection_stub.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "message_parcel.h"
 #include "securec.h"
@@ -45,6 +47,7 @@ sptr<OHOS::Rosen::RSScreenManager> screenManagerPtr_ = OHOS::sptr<OHOS::Rosen::R
 auto mainThread_ = RSMainThread::Instance();
 
 sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ = nullptr;
+sptr<RSClientToRenderConnectionStub> toRenderConnectionStub_ = nullptr;
 sptr<OHOS::Rosen::RSRenderService> renderService_ = nullptr;
 namespace {
 const uint8_t DO_REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK = 0;
@@ -106,7 +109,7 @@ void DoRegisterSurfaceOcclusionChangeCallback()
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;
-    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+    if (!dataP.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
@@ -130,8 +133,8 @@ void DoRegisterSurfaceOcclusionChangeCallback()
         return;
     }
     uint32_t code = static_cast<uint32_t>(
-        RSIClientToServiceConnectionInterfaceCode::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
+        RSIClientToRenderConnectionInterfaceCode::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
 void DoUnRegisterSurfaceOcclusionChangeCallback()
@@ -139,7 +142,7 @@ void DoUnRegisterSurfaceOcclusionChangeCallback()
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;
-    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+    if (!dataP.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
@@ -148,8 +151,8 @@ void DoUnRegisterSurfaceOcclusionChangeCallback()
         return;
     }
     uint32_t code = static_cast<uint32_t>(
-        RSIClientToServiceConnectionInterfaceCode::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
+        RSIClientToRenderConnectionInterfaceCode::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 }  // namespace Rosen
 }  // namespace OHOS
@@ -170,9 +173,9 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
         new OHOS::Rosen::VSyncDistributor(appVSyncController, "app", dvsyncParam);
 
     OHOS::Rosen::renderService_ = OHOS::sptr<OHOS::Rosen::RSRenderService>::MakeSptr();
+
     auto vsyncManager = OHOS::sptr<OHOS::Rosen::RSVsyncManager>::MakeSptr();
     vsyncManager->appVSyncDistributor_ = appVSyncDistributor_;
-
     auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
     runner->Run();
     OHOS::Rosen::renderService_->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
@@ -186,9 +189,16 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
     OHOS::sptr<OHOS::Rosen::RSScreenManagerAgent> screenManagerAgent_ =
         new OHOS::Rosen::RSScreenManagerAgent(OHOS::Rosen::screenManagerPtr_);
 
+    OHOS::sptr<OHOS::Rosen::RSRenderPipelineAgent> renderPipelineAgent_ =
+        OHOS::sptr<OHOS::Rosen::RSRenderPipelineAgent>::MakeSptr(OHOS::Rosen::renderService_->renderPipeline_);
+
     OHOS::Rosen::toServiceConnectionStub_ = new OHOS::Rosen::RSClientToServiceConnection(
         OHOS::Rosen::g_pid, renderServiceAgent_, renderProcessManagerAgent_,
         screenManagerAgent_, token_->AsObject(), vsyncManager->GetVsyncManagerAgent());
+    OHOS::sptr<OHOS::Rosen::RSClientToRenderConnection> toRenderConnection =
+        new OHOS::Rosen::RSClientToRenderConnection(OHOS::Rosen::g_pid, renderPipelineAgent_, token_->AsObject());
+    OHOS::Rosen::toRenderConnectionStub_ = toRenderConnection;
+    toRenderConnection->cleanDone_ = true;
 
     // reset recevier, otherwise maybe crash
     OHOS::Rosen::renderService_->renderPipeline_->uniRenderThread_->uniRenderEngine_ = nullptr;

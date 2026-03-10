@@ -123,7 +123,7 @@ public:
     int32_t GetScreenSupportedColorSpaces(
         ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces) const;
 
-    void SetScreenSwitchStatus(ScreenId id, bool status);
+    void SetScreenSwitchStatus(bool status);
 
     uint32_t SetScreenActiveRect(ScreenId id, const Rect& activeRect);
 

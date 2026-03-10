@@ -1736,7 +1736,7 @@ void RSRenderServiceClient::NotifyScreenSwitched()
         ROSEN_LOGE("RSRenderServiceClient::%{public}s clientToService is nullptr", __func__);
         return;
     }
-    clientToService->NotifyScreenSwitched(0); // ??? todo
+    clientToService->NotifyScreenSwitched();
 }
 
 class CustomSelfDrawingNodeRectChangeCallback : public RSSelfDrawingNodeRectChangeCallbackStub

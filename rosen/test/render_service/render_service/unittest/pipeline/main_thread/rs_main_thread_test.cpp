@@ -283,7 +283,7 @@ std::shared_ptr<RSScreenRenderNode> RSMainThreadTest::GetAndInitScreenRenderNode
 {
     auto context = std::make_shared<RSContext>();
     ScreenId screenId = 0xFFFF;
-    NodeId displayId = 1;
+    NodeId displayId = 10;
     auto screenNode = std::make_shared<RSScreenRenderNode>(displayId, screenId, context);
     auto rsScreen = std::make_shared<RSScreen>(screenId);
     if (rsScreen == nullptr) {
@@ -5729,7 +5729,6 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition004, TestSize.Level1)
     handle->usage = BUFFER_USAGE_CPU_READ;
     displayDrawable->surfaceHandler_->buffer_.buffer->SetBufferHandle(handle);
     screenNode->renderDrawable_.reset(displayDrawable);
-
     auto otherNode2 = std::make_shared<RSRenderNode>(3);
     screenNode->AddChild(otherNode2);
     rootNode->AddChild(screenNode);
@@ -5738,6 +5737,7 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition004, TestSize.Level1)
     childNode->SetCompositeType(CompositeType::UNI_RENDER_COMPOSITE);
     auto type = system::GetParameter("persist.sys.graphic.anco.disableHebc", "-1");
     system::SetParameter("persist.sys.graphic.anco.disableHebc", "1");
+
     RSSurfaceRenderNode::SetAncoForceDoDirect(true);
     ASSERT_FALSE(mainThread->DoDirectComposition(rootNode));
 
@@ -5777,7 +5777,6 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition004_BufferSync, TestSize.Level1)
     // INIT CHILDLIST
     auto rsContext = std::make_shared<RSContext>();
     auto screenNode2 = std::make_shared<RSScreenRenderNode>(displayId, 2, rsContext->weak_from_this());
-
     rootNode->AddChild(screenNode);
     rootNode->AddChild(screenNode2);
     rootNode->GenerateFullChildrenList();

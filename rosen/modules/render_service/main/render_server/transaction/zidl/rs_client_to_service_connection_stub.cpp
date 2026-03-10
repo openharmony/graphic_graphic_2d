@@ -2819,13 +2819,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_SCREEN_SWITCHED) : {
-            ScreenId screenId;
-            if (!data.ReadUint64(screenId)) {
-                RS_LOGE("RSClientToServiceConnectionStub::NOTIFY_SCREEN_SWITCHED Read screenId failed");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            NotifyScreenSwitched(screenId);
+            NotifyScreenSwitched();
             break;
         }
 #ifdef RS_ENABLE_OVERLAY_DISPLAY

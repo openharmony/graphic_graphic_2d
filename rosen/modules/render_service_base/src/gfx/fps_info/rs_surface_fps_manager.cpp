@@ -193,8 +193,9 @@ void RSSurfaceFpsManager::ClearDump(std::string& result, NodeId id)
     result += " The fps info of surface [" + surfaceFps->GetName() + "] is cleared.\n";
     surfaceFps->ClearDump();
 }
-const std::string RSSurfaceFpsManager::GetSelfDrawSurfaceNameByPid(pid_t nodePid) const
+const std::string RSSurfaceFpsManager::GetSelfDrawSurfaceNameByPid(pid_t nodePid)
 {
+    std::unique_lock<std::shared_mutex> lock(smtx);
     for (auto [id, surfaceFps] : surfaceFpsMap_) {
         auto name = surfaceFps->GetName();
         if (ExtractPid(id) == nodePid && name.find("RosenWeb") == std::string::npos) {
@@ -206,8 +207,9 @@ const std::string RSSurfaceFpsManager::GetSelfDrawSurfaceNameByPid(pid_t nodePid
     return "";
 }
 
-const std::string RSSurfaceFpsManager::GetSelfDrawSurfaceNameByPidAndUniqueId(pid_t nodePid, uint64_t uniqueId) const
+const std::string RSSurfaceFpsManager::GetSelfDrawSurfaceNameByPidAndUniqueId(pid_t nodePid, uint64_t uniqueId)
 {
+    std::unique_lock<std::shared_mutex> lock(smtx);
     for (auto [id, surfaceFps] : surfaceFpsMap_) {
         auto name = surfaceFps->GetName();
         if (ExtractPid(id) == nodePid && name.find("RosenWeb") == std::string::npos) {

@@ -356,7 +356,7 @@ public:
         int32_t feature, const char* config, TpFeatureConfigType tpFeatureConfigType) = 0;
 #endif
 
-    virtual ErrCode NotifyScreenSwitched(ScreenId id) = 0;
+    virtual ErrCode NotifyScreenSwitched() = 0;
 
     virtual int32_t RegisterSelfDrawingNodeRectChangeCallback(
         const RectConstraint& constraint, sptr<RSISelfDrawingNodeRectChangeCallback> callback) = 0;

@@ -32,8 +32,10 @@
 #include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "platform/ohos/transaction/zidl/rs_irender_service.h"
 #include "render_server/transaction/zidl/rs_client_to_service_connection_stub.h"
+#include "transaction/rs_client_to_render_connection.h"
 #include "transaction/zidl/rs_client_to_render_connection_stub.h"
 #include "render_server/transaction/zidl/rs_client_to_service_connection_stub.h"
+#include "transaction/zidl/rs_client_to_render_connection_stub.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "message_parcel.h"
 #include "securec.h"
@@ -534,10 +536,10 @@ void DoRegisterOcclusionChangeCallback()
     sptr<CustomTestOcclusionChangeCallback> rsIOcclusionChangeCallback_ =
         new CustomTestOcclusionChangeCallback(callback);
 
-    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    dataParcel.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     dataParcel.WriteRemoteObject(rsIOcclusionChangeCallback_->AsObject());
     dataParcel.RewindRead(0);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoSetSystemAnimatedScenes()
@@ -545,7 +547,7 @@ void DoSetSystemAnimatedScenes()
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;
-    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+    if (!dataP.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
@@ -556,7 +558,7 @@ void DoSetSystemAnimatedScenes()
     }
     uint32_t code = static_cast<uint32_t>(
         RSIClientToRenderConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
 class CustomTestHgmConfigChangeCallback : public RSHgmConfigChangeCallbackStub {

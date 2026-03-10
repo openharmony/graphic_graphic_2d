@@ -297,6 +297,17 @@ void RSClientToServiceConnectionStubTest::SetUpTestCase()
 
 void RSClientToServiceConnectionStubTest::TearDownTestCase()
 {
+    auto* connection = static_cast<RSClientToServiceConnection*>(connectionStub_.GetRefPtr());
+    auto renderServiceAgent = connection->renderServiceAgent_;
+    connection->renderServiceAgent_ = nullptr;
+    connection->CleanAll(true);
+    connection->renderServiceAgent_ = renderServiceAgent;
+    auto hgmContext = connection->hgmContext_;
+    if (connection->hgmContext_) {
+        connection->hgmContext_ = nullptr;
+    }
+    connection->CleanAll(true);
+
     std::this_thread::sleep_for(std::chrono::milliseconds(DELAY_TEAR_DOWN_TESE_CASE));
 #if defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     RSBackgroundThread::Instance().gpuContext_ = nullptr;
@@ -411,6 +422,9 @@ void RSClientToServiceConnectionStubTest::CreateComposerAdapterWithScreenInfo(ui
     composerAdapter_ = std::make_unique<RSComposerAdapter>();
     composerAdapter_->Init(info, mirrorAdaptiveCoefficient, nullptr, nullptr);
     composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
+
+    sptr<RSClientToServiceConnection>::MakeSptr(
+        0, nullptr, nullptr, nullptr, nullptr, renderService_.vsyncManager_->GetVsyncManagerAgent());
 }
 
 /**
@@ -1409,6 +1423,20 @@ HWTEST_F(RSClientToServiceConnectionStubTest, OnRemoteRequest_CreateVirtualScree
     MessageOption option;
     data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     ASSERT_EQ(ERR_INVALID_DATA, connectionStub_->OnRemoteRequest(code, data, reply, option));
+
+    auto* connection = static_cast<RSClientToServiceConnection*>(connectionStub_.GetRefPtr());
+    ASSERT_NE(connection, nullptr);
+    auto screenManagerAgent = connection->screenManagerAgent_;
+    ASSERT_NE(screenManagerAgent, nullptr);
+    connection->screenManagerAgent_ = nullptr;
+    connection->CreateVirtualScreen("test", 0, 0, nullptr, INVALID_SCREEN_ID, 0);
+    connection->CleanVirtualScreens();
+    connection->screenManagerAgent_ = screenManagerAgent;
+    auto screenManager = connection->screenManagerAgent_->screenManager_;
+    connection->screenManagerAgent_->screenManager_ = nullptr;
+    connection->CreateVirtualScreen("test", 0, 0, nullptr, INVALID_SCREEN_ID, 0);
+    connection->screenManagerAgent_->screenManager_ = screenManager;
+    connection->CleanVirtualScreens();
 }
 
 /**
@@ -1617,6 +1645,12 @@ HWTEST_F(RSClientToServiceConnectionStubTest, OnRemoteRequest_SetVirtualScreenRe
     MessageOption option;
     data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     ASSERT_EQ(ERR_INVALID_DATA, connectionStub_->OnRemoteRequest(code, data, reply, option));
+
+    auto* connection = static_cast<RSClientToServiceConnection*>(connectionStub_.GetRefPtr());
+    auto screenManagerAgent = connection->screenManagerAgent_;
+    connection->screenManagerAgent_ = nullptr;
+    connection->SetVirtualScreenResolution(INVALID_SCREEN_ID, 0, 0);
+    connection->screenManagerAgent_ = screenManagerAgent;
 }
 
 /**
@@ -2285,6 +2319,18 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetScreenPowerStatusTest002, TestS
     data.WriteUint32(static_cast<uint32_t>(ScreenPowerStatus::INVALID_POWER_STATUS));
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_OK);
+
+    auto* connection = static_cast<RSClientToServiceConnection*>(connectionStub_.GetRefPtr());
+    auto screenManagerAgent = connection->screenManagerAgent_;
+    ASSERT_NE(screenManagerAgent, nullptr);
+    auto renderServiceAgent = connection->renderServiceAgent_;
+    ASSERT_NE(renderServiceAgent, nullptr);
+    connection->screenManagerAgent_ = nullptr;
+    connection->SetScreenPowerStatus(INVALID_SCREEN_ID, ScreenPowerStatus::INVALID_POWER_STATUS);
+    connection->screenManagerAgent_ = screenManagerAgent;
+    connection->renderServiceAgent_ = nullptr;
+    connection->SetScreenPowerStatus(INVALID_SCREEN_ID, ScreenPowerStatus::INVALID_POWER_STATUS);
+    connection->renderServiceAgent_ = renderServiceAgent;
 }
 
 /**

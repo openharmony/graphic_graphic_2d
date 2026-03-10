@@ -31,11 +31,14 @@
 #include "securec.h"
 
 #include "pipeline/main_thread/rs_main_thread.h"
+
 #include "render_server/transaction/rs_client_to_service_connection.h"
 #include "platform/ohos/transaction/zidl/rs_irender_service.h"
 #include "render_server/transaction/zidl/rs_client_to_service_connection_stub.h"
+#include "transaction/rs_client_to_render_connection.h"
 #include "transaction/zidl/rs_client_to_render_connection_stub.h"
 #include "transaction/rs_transaction_proxy.h"
+#include "transaction/zidl/rs_client_to_render_connection_stub.h"
 #include "ipc_callbacks/pointer_render/pointer_luminance_callback_stub.h"
 #include "ipc_callbacks/buffer_available_callback_stub.h"
 #include "ipc_callbacks/buffer_clear_callback_stub.h"
@@ -47,6 +50,7 @@ sptr<OHOS::Rosen::RSScreenManager> screenManagerPtr_ = OHOS::sptr<OHOS::Rosen::R
 auto mainThread_ = RSMainThread::Instance();
 
 sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ = nullptr;
+sptr<RSClientToRenderConnectionStub> toRenderConnectionStub_ = nullptr;
 sptr<OHOS::Rosen::RSRenderService> renderService_ = nullptr;
 
 namespace {
@@ -212,7 +216,7 @@ void DoRegisterApplicationAgent()
     sptr<ApplicationAgentImpl> agent = new ApplicationAgentImpl();
     dataParcel.WriteRemoteObject(agent);
     dataParcel.RewindRead(0);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 class CustomTestBufferAvailableCallback : public RSBufferAvailableCallbackStub {
@@ -236,12 +240,12 @@ void DoRegisterBufferAvailableListener()
     sptr<RSIBufferAvailableCallback> rsIBufferAvailableCallback_ = new CustomTestBufferAvailableCallback();
     auto nodeId = static_cast<NodeId>(g_pid) << 32;
     bool isFromRenderThread = GetData<bool>();
-    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    dataParcel.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     dataParcel.WriteUint64(nodeId);
     dataParcel.WriteRemoteObject(rsIBufferAvailableCallback_->AsObject());
     dataParcel.WriteBool(isFromRenderThread);
     dataParcel.RewindRead(0);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 class CustomTestBufferClearCallback : public RSBufferClearCallbackStub {
@@ -269,7 +273,7 @@ void DoRegisterBufferClearListener()
     dataP.WriteRemoteObject(rsBufferClearCallback->AsObject());
     uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_BUFFER_CLEAR_LISTENER);
 
-    toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
 } // namespace Rosen
@@ -294,7 +298,6 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 
     auto vsyncManager = OHOS::sptr<OHOS::Rosen::RSVsyncManager>::MakeSptr();
     vsyncManager->appVSyncDistributor_ = appVSyncDistributor_;
-
     auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
     runner->Run();
     OHOS::Rosen::renderService_->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
@@ -308,9 +311,16 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
     OHOS::sptr<OHOS::Rosen::RSScreenManagerAgent> screenManagerAgent_ =
         new OHOS::Rosen::RSScreenManagerAgent(OHOS::Rosen::screenManagerPtr_);
 
+    OHOS::sptr<OHOS::Rosen::RSRenderPipelineAgent> renderPipelineAgent_ =
+        OHOS::sptr<OHOS::Rosen::RSRenderPipelineAgent>::MakeSptr(OHOS::Rosen::renderService_->renderPipeline_);
+
     OHOS::Rosen::toServiceConnectionStub_ = new OHOS::Rosen::RSClientToServiceConnection(
         OHOS::Rosen::g_pid, renderServiceAgent_, renderProcessManagerAgent_,
         screenManagerAgent_, token_->AsObject(), vsyncManager->GetVsyncManagerAgent());
+    OHOS::sptr<OHOS::Rosen::RSClientToRenderConnection> toRenderConnection =
+        new OHOS::Rosen::RSClientToRenderConnection(OHOS::Rosen::g_pid, renderPipelineAgent_, token_->AsObject());
+    OHOS::Rosen::toRenderConnectionStub_ = toRenderConnection;
+    toRenderConnection->cleanDone_ = true;
 
     // reset recevier, otherwise maybe crash
     OHOS::Rosen::renderService_->renderPipeline_->uniRenderThread_->uniRenderEngine_ = nullptr;

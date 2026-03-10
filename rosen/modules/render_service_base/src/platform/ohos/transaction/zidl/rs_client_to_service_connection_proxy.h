@@ -301,7 +301,7 @@ public:
         TpFeatureConfigType tpFeatureConfigType = TpFeatureConfigType::DEFAULT_TP_FEATURE) override;
 #endif
 
-    ErrCode NotifyScreenSwitched(ScreenId id) override;
+    ErrCode NotifyScreenSwitched() override;
 
     int32_t RegisterSelfDrawingNodeRectChangeCallback(
         const RectConstraint& constraint, sptr<RSISelfDrawingNodeRectChangeCallback> callback) override;

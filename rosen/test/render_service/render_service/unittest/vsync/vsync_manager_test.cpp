@@ -298,6 +298,29 @@ HWTEST_F(VSyncManagerTest, InitDVSyncParams, Function | MediumTest| Level0)
     auto dvsyncParam = vsyncManager_->InitDVSyncParams();
     ASSERT_NE(dvsyncParam.bufferCountParams[0], 12);
 }
+
+/*
+* Function: DoSamplerCallBack
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: Test DoSamplerCallBack
+ */
+HWTEST_F(VSyncManagerTest, DoSamplerCallBack, Function | MediumTest| Level0)
+{
+    ScreenId id = 14;
+    ScreenId lastVsyncEnabledScreenId = 16;
+    ScreenPowerStatus status = ScreenPowerStatus::POWER_STATUS_SUSPEND;
+    bool enabled = true;
+    auto res = static_cast<impl::VSyncSampler*>(
+        vsyncManager_->vsyncSampler_.GetRefPtr())->judgeVSyncEnabledScreenWhilePowerStatusChangedCallback_(
+            id, status, lastVsyncEnabledScreenId);
+    ASSERT_EQ(res, lastVsyncEnabledScreenId);
+    static_cast<impl::VSyncSampler*>(
+        vsyncManager_->vsyncSampler_.GetRefPtr())->setScreenVsyncEnableByIdCallback_(
+            id, lastVsyncEnabledScreenId, enabled);
+    ASSERT_NE(vsyncManager_->vsyncSampler_, nullptr);
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

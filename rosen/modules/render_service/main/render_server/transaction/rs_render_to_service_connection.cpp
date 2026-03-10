@@ -38,7 +38,7 @@ sptr<HgmServiceToProcessInfo> RSRenderToServiceConnection::NotifyRpHgmFrameRate(
 
 void RSRenderToServiceConnection::NotifyScreenSwitchFinished(ScreenId screenId)
 {
-    screenManagerAgent_->SetScreenSwitchStatus(screenId, false);
+    screenManagerAgent_->SetScreenSwitchStatus(false);
 }
 } // namespace Rosen
 } // namespace OHOS

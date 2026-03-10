@@ -113,7 +113,7 @@ void DoCommitTransaction()
     MessageParcel replyParcel;
 
     dataParcel.WriteInt32(0);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoCreateNode()
@@ -124,9 +124,10 @@ void DoCreateNode()
     MessageOption option;
 
     NodeId id = static_cast<NodeId>(g_pid) << 32;
+    dataParcel.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
     dataParcel.WriteString("SurfaceName");
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoCreateNodeAndSurface()
@@ -142,6 +143,7 @@ void DoCreateNodeAndSurface()
     bool isTextureExportNode = GetData<bool>();
     bool isSync = GetData<bool>();
     bool unobscured = GetData<bool>();
+    dataParcel.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
     dataParcel.WriteString("SurfaceName");
     dataParcel.WriteUint8(type);
@@ -149,7 +151,7 @@ void DoCreateNodeAndSurface()
     dataParcel.WriteBool(isSync);
     dataParcel.WriteUint8(surfaceWindowType);
     dataParcel.WriteBool(unobscured);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoSetHidePrivacyContent()
@@ -160,14 +162,14 @@ void DoSetHidePrivacyContent()
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;
-    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+    if (!dataP.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
     dataP.WriteUint64(nodeId);
     dataP.WriteBool(needHidePrivacyContent);
     uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_HIDE_PRIVACY_CONTENT);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
 void DoSetHardwareEnabled()
@@ -175,7 +177,7 @@ void DoSetHardwareEnabled()
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;
-    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+    if (!dataP.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
@@ -188,7 +190,7 @@ void DoSetHardwareEnabled()
     dataP.WriteBool(isEnabled);
     dataP.WriteUint8(selfDrawingType);
     dataP.WriteBool(dynamicHardwareEnable);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
 void DoExecuteSynchronousTask()
@@ -199,12 +201,12 @@ void DoExecuteSynchronousTask()
     MessageOption option;
 
     option.SetFlags(MessageOption::TF_SYNC);
-    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    dataParcel.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     std::shared_ptr<RSRenderPropertyBase> property = std::make_shared<RSRenderProperty<bool>>();
     NodeId targetId = static_cast<NodeId>(g_pid) << 32;
     auto task = std::make_shared<RSNodeGetShowingPropertyAndCancelAnimation>(targetId, property);
     task->Marshalling(dataParcel);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoGetPixelmap()
@@ -214,7 +216,7 @@ void DoGetPixelmap()
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;
-    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+    if (!dataP.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
         return;
     }
     dataP.WriteUint64(nodeId);
@@ -222,7 +224,7 @@ void DoGetPixelmap()
     if (toServiceConnectionStub_ == nullptr) {
         return;
     }
-    toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
 void DoGetBitmap()
@@ -233,9 +235,9 @@ void DoGetBitmap()
     MessageOption option;
 
     NodeId id = static_cast<NodeId>(g_pid) << 32;
-    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    dataParcel.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoGetMemoryGraphics()

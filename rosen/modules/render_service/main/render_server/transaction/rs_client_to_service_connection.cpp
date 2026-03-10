@@ -2038,7 +2038,7 @@ void RSClientToServiceConnection::SetColorFollow(const std::string &nodeIdStr, b
     }
 }
 
-ErrCode RSClientToServiceConnection::NotifyScreenSwitched(ScreenId id)
+ErrCode RSClientToServiceConnection::NotifyScreenSwitched()
 {
     if (!screenManagerAgent_) {
         RS_LOGE("NotifyScreenSwitched screenManagerAgent_ is nullptr");
@@ -2046,7 +2046,7 @@ ErrCode RSClientToServiceConnection::NotifyScreenSwitched(ScreenId id)
     }
     RS_LOGI("NotifyScreenSwitched SetScreenSwitchStatus true");
     RS_TRACE_NAME_FMT("NotifyScreenSwitched");
-    screenManagerAgent_->SetScreenSwitchStatus(id, true);
+    screenManagerAgent_->SetScreenSwitchStatus(true);
     return ERR_OK;
 }
 

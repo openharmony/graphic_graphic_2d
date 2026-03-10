@@ -4673,7 +4673,7 @@ int32_t RSClientToServiceConnectionProxy::SendRequest(uint32_t code, MessageParc
     return Remote()->SendRequest(code, data, reply, option);
 }
 
-ErrCode RSClientToServiceConnectionProxy::NotifyScreenSwitched(ScreenId id)
+ErrCode RSClientToServiceConnectionProxy::NotifyScreenSwitched()
 {
     MessageParcel data;
     MessageParcel reply;

@@ -698,14 +698,13 @@ bool RSScreenManagerAgent::SetVirtualScreenStatus(ScreenId id, VirtualScreenStat
     return screenManager_->SetVirtualScreenStatus(id, screenStatus);
 }
 
-void RSScreenManagerAgent::SetScreenSwitchStatus(ScreenId id, bool status)
+void RSScreenManagerAgent::SetScreenSwitchStatus(bool status)
 {
     if (!screenManager_) {
         RS_LOGW("%{public}s screenManager_ is nullptr", __func__);
         return;
     }
-    // temporary: only for main screen
-    screenManager_->SetScreenSwitchStatus(0, status);
+    screenManager_->SetScreenSwitchStatus(status);
 }
 
 void RSScreenManagerAgent::SetScreenFrameGravity(ScreenId id, int32_t gravity)

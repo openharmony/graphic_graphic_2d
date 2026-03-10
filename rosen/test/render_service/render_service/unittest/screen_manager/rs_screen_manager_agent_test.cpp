@@ -1418,12 +1418,11 @@ HWTEST_F(RSScreenManagerAgentTest, SetVirtualScreenStatus001, TestSize.Level1)
 HWTEST_F(RSScreenManagerAgentTest, SetScreenSwitchStatus001, TestSize.Level1)
 {
     ASSERT_NE(screenManagerAgent_, nullptr);
-    ScreenId screenId = GenerateScreenId();
-    screenManagerAgent_->SetScreenSwitchStatus(screenId, false);
+    screenManagerAgent_->SetScreenSwitchStatus(false);
 
     auto screenManager = screenManagerAgent_->screenManager_;
     screenManagerAgent_->screenManager_ = nullptr;
-    screenManagerAgent_->SetScreenSwitchStatus(screenId, false);
+    screenManagerAgent_->SetScreenSwitchStatus(false);
     screenManagerAgent_->screenManager_ = screenManager;
 }
 

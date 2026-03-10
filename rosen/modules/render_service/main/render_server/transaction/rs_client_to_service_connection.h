@@ -351,7 +351,7 @@ private:
 
     void SetColorFollow(const std::string &nodeIdStr, bool isColorFollow) override;
 
-    ErrCode NotifyScreenSwitched(ScreenId id) override;
+    ErrCode NotifyScreenSwitched() override;
 
     int32_t RegisterSelfDrawingNodeRectChangeCallback(
         const RectConstraint& constraint, sptr<RSISelfDrawingNodeRectChangeCallback> callback) override;
