@@ -95,7 +95,8 @@ void AniRegion::ConstructorWithRegion(ani_env* env, ani_object obj, ani_object a
 {
     auto aniRegion = GetNativeFromObj<AniRegion>(env, aniRegionObj, AniGlobalField::GetInstance().regionNativeObj);
     if (aniRegion == nullptr) {
-        AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "AniRegion::ConstructorWithRegion region is nullptr.");
         return;
     }
     std::shared_ptr<Region> other = aniRegion->GetRegion();

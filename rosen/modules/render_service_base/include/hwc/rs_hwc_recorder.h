@@ -16,6 +16,8 @@
 #ifndef RENDER_SERVICE_BASE_PIPELINE_RS_HWC_RECORDER_H
 #define RENDER_SERVICE_BASE_PIPELINE_RS_HWC_RECORDER_H
 
+#include <bitset>
+
 #include "common/rs_common_def.h"
 
 namespace OHOS {
@@ -31,29 +33,36 @@ public:
     RSHwcRecorder& operator=(const RSHwcRecorder&) = delete;
     RSHwcRecorder& operator=(RSHwcRecorder&&) = delete;
 
-    void SetBlendWithBackground(bool isBlendWithBackground) { isBlendWithBackground_ = isBlendWithBackground; }
-    bool IsBlendWithBackground() const { return isBlendWithBackground_; }
-    void SetForegroundColorValid(bool isForegroundColorValid) { isForegroundColorValid_ = isForegroundColorValid; }
-    bool IsForegroundColorValid() const { return isForegroundColorValid_; }
-    bool GetZorderChanged() const { return zOrderChanged_; }
-    void UpdatePositionZ(float positionZ)
-    {
-        zOrderChanged_ = !ROSEN_EQ(positionZ, positionZ_);
+    void SetBlendWithBackground(bool isBlendWithBackground) {
+        flags_.set(BLEND_WITH_BACKGROUND, isBlendWithBackground);
+    }
+    bool IsBlendWithBackground() const { return flags_.test(BLEND_WITH_BACKGROUND); }
+    void SetForegroundColorValid(bool isForegroundColorValid) {
+        flags_.set(FOREGROUND_COLOR_VALID, isForegroundColorValid);
+    }
+    bool IsForegroundColorValid() const { return flags_.test(FOREGROUND_COLOR_VALID); }
+    bool GetZorderChanged() const { return flags_.test(Z_ORDER_CHANGED); }
+    void UpdatePositionZ(float positionZ) {
+        flags_.set(Z_ORDER_CHANGED, !ROSEN_EQ(positionZ, positionZ_));
         positionZ_ = positionZ;
     }
 
-    void SetZOrderForHwcEnableByFilter(uint32_t zOrderForHwcEnableByFilter)
-    {
+    void SetZOrderForHwcEnableByFilter(uint32_t zOrderForHwcEnableByFilter) {
         zOrderForHwcEnableByFilter_ = zOrderForHwcEnableByFilter;
     }
     uint32_t GetZOrderForHwcEnableByFilter() const { return zOrderForHwcEnableByFilter_; }
 
 private:
-    bool isBlendWithBackground_ = false;
-    bool isForegroundColorValid_ = false;
+    // Bit flags for memory optimization
+    enum FlagBits {
+        BLEND_WITH_BACKGROUND = 0,
+        FOREGROUND_COLOR_VALID = 1,
+        Z_ORDER_CHANGED = 2
+    };
+
+    std::bitset<3> flags_;  // Compresses 3 bools into ~4 bytes instead of ~3 bytes + padding
     uint32_t zOrderForHwcEnableByFilter_ = 0;
     float positionZ_ = 0.0f;
-    bool zOrderChanged_ = false;
 };
 
 struct RSHwcSurfaceRecorder {
@@ -66,13 +75,11 @@ public:
     RSHwcSurfaceRecorder& operator=(const RSHwcSurfaceRecorder&) = delete;
     RSHwcSurfaceRecorder& operator=(RSHwcSurfaceRecorder&&) = delete;
 
-    void SetLastFrameHasVisibleRegion(bool lastFrameHasVisibleRegion)
-    {
+    void SetLastFrameHasVisibleRegion(bool lastFrameHasVisibleRegion) {
         lastFrameHasVisibleRegion_ = lastFrameHasVisibleRegion;
     }
     bool GetLastFrameHasVisibleRegion() const { return lastFrameHasVisibleRegion_; }
-    void SetIntersectWithPreviousFilter(bool isIntersectWithPreviousFilter)
-    {
+    void SetIntersectWithPreviousFilter(bool isIntersectWithPreviousFilter) {
         isIntersectWithPreviousFilter_ = isIntersectWithPreviousFilter;
     }
     bool IsIntersectWithPreviousFilter() const { return isIntersectWithPreviousFilter_; }
@@ -92,8 +99,7 @@ struct RSHwcDisplayRecorder {
     RSHwcDisplayRecorder& operator=(RSHwcDisplayRecorder&&) = delete;
 
     bool GetNeedForceUpdateHwcNodes() const { return needForceUpdateHwcNodes_; }
-    void SetNeedForceUpdateHwcNodes(bool needForceUpdateHwcNodes)
-    {
+    void SetNeedForceUpdateHwcNodes(bool needForceUpdateHwcNodes) {
         needForceUpdateHwcNodes_ = needForceUpdateHwcNodes;
     }
     bool HasVisibleHwcNodes() const { return hasVisibleHwcNodes_; }

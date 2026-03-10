@@ -183,6 +183,7 @@
 
 #ifdef RS_ENABLE_UNI_RENDER
 #include "ability_manager_client.h"
+#include "xcollie/process_kill_reason.h"
 #endif
 #include "gfx/fps_info/rs_surface_fps_manager.h"
 using namespace FRAME_TRACE;
@@ -1103,12 +1104,13 @@ void RSMainThread::InitVulkanErrorCallback(Drawing::GPUContext* gpuContext)
             return;
         }
 #ifdef RS_ENABLE_UNI_RENDER
-        AAFwk::ExitReason killReason{AAFwk::Reason::REASON_UNKNOWN, reason};
+        AAFwk::ExitReasonCompability killReason{AAFwk::Reason::REASON_UNKNOWN, reason};
+        killReason.killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_GPU_THRESHOLD_KILLER;
         for (const auto pid : pidsToKill) {
             if (pid <= 0) {
                 continue;
             }
-            auto result = AAFwk::AbilityManagerClient::GetInstance()->KillProcessWithReason(pid, killReason);
+            auto result = AAFwk::AbilityManagerClient::GetInstance()->KillAppWithReason(pid, killReason);
             RS_LOGE("VulkanErrorCallback Kill Process, pid: %{public}d, killStatus: %{public}d, reason: %{public}s",
                 static_cast<int>(pid), static_cast<int>(result), reason.c_str());
         }

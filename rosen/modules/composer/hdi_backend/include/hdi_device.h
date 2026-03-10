@@ -17,7 +17,7 @@
 #define HDI_BACKEND_HDI_DEVICE_H
 
 #include <vector>
-#include <refbase.h>
+#include "refbase.h"
 #include <unordered_map>
 #include <sync_fence.h>
 #include "hdi_display_type.h"

@@ -27,6 +27,7 @@ const TEXT_LOG_DOMAIN = 0xD001408;
 const TEXT_LOG_TAG = "Text";
 
 export default namespace text {
+  loadLibraryWithPermissionCheck('drawing_ani_core', "@ohos.graphics.text");
   loadLibraryWithPermissionCheck('text_engine_ani.z', "@ohos.graphics.text");
   const ERROR_INVALID_PARAM = 401;
 

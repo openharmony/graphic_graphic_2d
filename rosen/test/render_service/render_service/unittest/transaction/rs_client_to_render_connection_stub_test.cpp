@@ -4696,4 +4696,22 @@ HWTEST_F(RSClientToRenderConnectionStubTest, GetBundleNameTest002, TestSize.Leve
     const std::string bundleName = connectionStub_->GetBundleName(testPid);
     EXPECT_TRUE(bundleName.empty());
 }
+
+/**
+ * @tc.name: GetPixelMapTest
+ * @tc.desc: Test GetPixelMap
+ * @tc.type: FUNC
+ * @tc.require: 2267
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, GetPixelMapTest, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteBool(false);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_PIXELMAP);
+    auto res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_NE(res, ERR_OK);
+}
 } // namespace OHOS::Rosen

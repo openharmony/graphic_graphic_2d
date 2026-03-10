@@ -354,6 +354,7 @@ public:
     void SetRegionToBeMagnified(const Vector4<int>& regionToBeMagnified);
     void SetContainerWindowTransparent(bool isContainerWindowTransparent);
     void SetAppRotationCorrection(ScreenRotation appRotationCorrection);
+    void SetHDRBrightnessWithType(const float& hdrBrightness, uint32_t hdrType);
 protected:
     bool NeedForcedSendToRemote() const override;
     RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode,

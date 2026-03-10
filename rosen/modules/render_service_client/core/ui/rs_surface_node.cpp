@@ -139,9 +139,9 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
 #endif
         // codes for arkui-x
 #if defined(USE_SURFACE_TEXTURE) && defined(ROSEN_IOS) && !defined(SCREENLESS_DEVICE)
-        if ((type == RSSurfaceNodeType::SURFACE_TEXTURE_NODE) &&
-            (surfaceNodeConfig.SurfaceNodeName == "PlatformViewSurface") ||
-            (surfaceNodeConfig.SurfaceNodeName == "xcomponentSurface")) {
+        if (type == RSSurfaceNodeType::SURFACE_TEXTURE_NODE &&
+            (surfaceNodeConfig.SurfaceNodeName == "PlatformViewSurface" ||
+            surfaceNodeConfig.SurfaceNodeName == "xcomponentSurface")) {
             RSSurfaceExtConfig config = {
                 .type = RSSurfaceExtType::SURFACE_PLATFORM_TEXTURE,
                 .additionalData = nullptr,
@@ -1097,6 +1097,34 @@ void RSSurfaceNode::SetAppRotationCorrection(ScreenRotation appRotationCorrectio
     AddCommand(command, true);
     RS_LOGD("RSSurfaceNode::SetAppRotationCorrection: Node: %{public}" PRIu64 ", appRotationCorrection: %{public}u",
         GetId(), appRotationCorrection);
+}
+
+void RSSurfaceNode::SetHDRBrightnessWithType(const float& hdrBrightness, uint32_t hdrType)
+{
+    RSNode::SetHDRBrightness(hdrBrightness);
+    RS_LOGD("SurfaceNode::SetHDRBrightnessWithType set with hdrType:%{public}d", hdrType);
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    switch (static_cast<HDRType>(hdrType)) {
+        case HDRType::DEFAULT: {
+            RSSurfaceRenderNodeConfig config = {
+                .id = GetId(),
+                .name = GetName(),
+            };
+            RSVpeManager::GetInstance().DisableVpeVideo(config);
+            break;
+        }
+        case HDRType::AIHDR: {
+            RSSurfaceRenderNodeConfig config = {
+                .id = GetId(),
+                .name = GetName(),
+            };
+            RSVpeManager::GetInstance().EnableVpeVideo(config);
+            break;
+        }
+        default:
+            break;
+    }
+#endif
 }
 } // namespace Rosen
 } // namespace OHOS

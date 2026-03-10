@@ -372,7 +372,7 @@ private:
     std::unordered_map<NodeId, std::vector<std::shared_ptr<RSRenderNode>>> pendingSyncForSkipBefore_;
 
     // use in RT & subThread
-    std::mutex childernDrawableMutex_;
+    std::mutex childrenDrawableMutex_;
     std::vector<NodeId> subthreadProcessDoneNode_;
     std::mutex skippedNodeMutex_;
     std::unordered_set<NodeId> subthreadProcessSkippedNode_;

@@ -644,6 +644,7 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_PIXELMAP): {
+            RSMarshallingHelper::UnmarshallingTransactionVer(data);
             NodeId id{0};
             if (!data.ReadUint64(id)) {
                 ret = ERR_INVALID_DATA;
