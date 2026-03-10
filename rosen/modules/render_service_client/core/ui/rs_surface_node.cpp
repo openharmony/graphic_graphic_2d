@@ -139,9 +139,9 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
 #endif
         // codes for arkui-x
 #if defined(USE_SURFACE_TEXTURE) && defined(ROSEN_IOS) && !defined(SCREENLESS_DEVICE)
-        if ((type == RSSurfaceNodeType::SURFACE_TEXTURE_NODE) &&
-            (surfaceNodeConfig.SurfaceNodeName == "PlatformViewSurface") ||
-            (surfaceNodeConfig.SurfaceNodeName == "xcomponentSurface")) {
+        if (type == RSSurfaceNodeType::SURFACE_TEXTURE_NODE &&
+            (surfaceNodeConfig.SurfaceNodeName == "PlatformViewSurface" ||
+            surfaceNodeConfig.SurfaceNodeName == "xcomponentSurface")) {
             RSSurfaceExtConfig config = {
                 .type = RSSurfaceExtType::SURFACE_PLATFORM_TEXTURE,
                 .additionalData = nullptr,
