@@ -439,31 +439,10 @@ typedef struct {
      */
     float refractionFactor;
 
-    /** Higher values result in stronger dispersion; 0.0f means no dispersion.
-     * Dispersion adjustment has no effect when refractionFactor is 0.0f.
-     * Range: [0.0f, 1.0f]
-     */
-    float dispersionStrength;
-
-    /** Higher values result in greater roughness.
-     *  Range: [0.0f, 1.0f]
-     */
-    float roughness;
-
-    /** Higher frequency results in finer grain.
-     *  Range: [0.0f, 1.0f]
-     */
-    float noiseFrequency;
-
     /** Specifies the number of grids.
      *  Range: [0.0f, 100.0f]
      */
     uint8_t horizontalPatternNumber;
-
-    /** Specifies overall color saturation; 0.0f results in a black-and-white image.
-     *  Range: [0.0f, 2.0f]
-     */
-    float saturationFactor;
 
     /** Specifies the light strength of every grid; 0.0f means no light, 1.0f means light smoothly fills the grid.
      *  Range: [0.0f, 1.0f]
@@ -494,33 +473,6 @@ typedef struct {
      *  Range: [0.0f, 1.0f]
      */
     float gridShadowPositionEnd;
-
-    /** Follows OH_Filter_Color; alpha is meaningless.
-     *  Range: [0.0f, 1.0f]
-     */
-    OH_Filter_Color pointLightColor;
-
-    /** Specifies position of point light 1.0f; within [0.0f,1.0f] is inside the UI component, outside is beyond the UI
-     *  component.
-     *  Range: No limitation
-     */
-    OH_Filter_Vec2 pointLight1Position;
-
-    /** Specifies intensity of point light 1.0f.
-     *  Range: [0.0f, 1.0f]
-     */
-    float pointLight1Strength;
-
-    /** Specifies position of point light 2.0f; within [0.0f,1.0f] is inside the UI component, outside is beyond the UI
-     *  component.
-     *  Range: No limitation
-     */
-    OH_Filter_Vec2 pointLight2Position;
-
-    /** Specifies intensity of point light 2.0f.
-     *  Range: [0.0f, 1.0f]
-     */
-    float pointLight2Strength;
 
     /** Specifies the size of portal light.
      *  Range: [0.0, +∞]
