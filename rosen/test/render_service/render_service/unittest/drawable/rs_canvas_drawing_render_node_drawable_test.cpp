@@ -1168,4 +1168,30 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, GetGpuContextTest, TestSize.Leve
     context = drawable->GetGpuContext();
     ASSERT_NE(context, nullptr);
 }
+
+/**
+ * @tc.name: GetNodeIdForMemTagTest
+ * @tc.desc: Test If GetNodeIdForMemTag Can Run
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, GetNodeIdForMemTagTest, TestSize.Level1)
+{
+    NodeId testNodeId = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(testNodeId, rsContext->weak_from_this());
+    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
+
+    drawable->renderParams_ = nullptr;
+    NodeId result = drawable->GetNodeIdForMemTag();
+    ASSERT_EQ(result, testNodeId);
+
+    drawable->renderParams_ = std::make_unique<RSRenderParams>(0);
+    result = drawable->GetNodeIdForMemTag();
+    ASSERT_EQ(result, testNodeId);
+
+    NodeId rootId = 2; // 2 is rootId for test
+    drawable->renderParams_->instanceRootNodeId_ = rootId;
+    result = drawable->GetNodeIdForMemTag();
+    ASSERT_EQ(result, rootId);
+}
 }

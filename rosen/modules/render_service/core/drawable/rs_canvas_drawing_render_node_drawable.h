@@ -109,6 +109,7 @@ private:
     bool ResetSurfaceforPlayback(int width, int height);
     bool GetCurrentContext(std::shared_ptr<Drawing::GPUContext>& grContext);
     std::shared_ptr<Drawing::GPUContext> GetGpuContext();
+    NodeId GetNodeIdForMemTag();
     bool IsNeedResetSurface() const;
     void FlushForGL(float width, float height, std::shared_ptr<RSContext> context,
         NodeId nodeId, RSPaintFilterCanvas& rscanvas);
