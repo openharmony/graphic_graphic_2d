@@ -1098,5 +1098,33 @@ void RSSurfaceNode::SetAppRotationCorrection(ScreenRotation appRotationCorrectio
     RS_LOGD("RSSurfaceNode::SetAppRotationCorrection: Node: %{public}" PRIu64 ", appRotationCorrection: %{public}u",
         GetId(), appRotationCorrection);
 }
+
+void RSSurfaceNode::SetHDRBrightnessWithType(const float& hdrBrightness, uint32_t hdrType)
+{
+    RSNode::SetHDRBrightness(hdrBrightness);
+    RS_LOGD("SurfaceNode::SetHDRBrightnessWithType set with hdrType:%{public}d", hdrType);
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    switch (static_cast<HDRType>(hdrType)) {
+        case HDRType::DEFAULT: {
+            RSSurfaceRenderNodeConfig config = {
+                .id = GetId(),
+                .name = GetName(),
+            };
+            RSVpeManager::GetInstance().DisableVpeVideo(config);
+            break;
+        }
+        case HDRType::AIHDR: {
+            RSSurfaceRenderNodeConfig config = {
+                .id = GetId(),
+                .name = GetName(),
+            };
+            RSVpeManager::GetInstance().EnableVpeVideo(config);
+            break;
+        }
+        default:
+            break;
+    }
+#endif
+}
 } // namespace Rosen
 } // namespace OHOS

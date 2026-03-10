@@ -17,6 +17,7 @@
 #include "limit_number.h"
 #include "parameters.h"
 
+#include "common/rs_common_def.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_surface_node.h"
@@ -1597,6 +1598,51 @@ HWTEST_F(RSSurfaceNodeTest, SetIsNotifyUIBufferAvailable, TestSize.Level1)
     bool available = true;
     surfaceNode->SetIsNotifyUIBufferAvailable(available);
     ASSERT_NE(surfaceNode, nullptr);
+}
+
+/**
+ * @tc.name: SetHDRBrightnessWithType_AIHDR
+ * @tc.desc: Test SetHDRBrightnessWithType with AIHDR type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, SetHDRBrightnessWithType_AIHDR, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    float hdrBrightness = 1.0f;
+    surfaceNode->SetHDRBrightnessWithType(hdrBrightness, static_cast<uint32_t>(HDRType::AIHDR));
+    EXPECT_EQ(hdrBrightness, 1.0f);
+}
+
+/**
+ * @tc.name: SetHDRBrightnessWithType_DEFAULT
+ * @tc.desc: Test SetHDRBrightnessWithType with DEFAULT type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, SetHDRBrightnessWithType_DEFAULT, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    float hdrBrightness = 1.0f;
+    surfaceNode->SetHDRBrightnessWithType(hdrBrightness, static_cast<uint32_t>(HDRType::DEFAULT));
+    EXPECT_EQ(hdrBrightness, 1.0f);
+}
+
+/**
+ * @tc.name: SetHDRBrightnessWithType_OtherType
+ * @tc.desc: Test SetHDRBrightnessWithType with other HDR type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, SetHDRBrightnessWithType_OtherType, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    float hdrBrightness = 1.0f;
+    surfaceNode->SetHDRBrightnessWithType(hdrBrightness, 100);
+    EXPECT_EQ(hdrBrightness, 1.0f);
 }
 
 /**

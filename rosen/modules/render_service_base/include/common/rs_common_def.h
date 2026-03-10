@@ -591,6 +591,11 @@ struct RSSurfaceRenderNodeConfig {
     std::string bundleName = "";
 };
 
+enum class HDRType : uint32_t {
+    DEFAULT = 0,
+    AIHDR = 1,
+};
+
 struct RSAdvancedDirtyConfig {
     // a threshold, if the number of rectangles is larger than it, we will merge all rectangles to one
     static const int RECT_NUM_MERGING_ALL = 35;
