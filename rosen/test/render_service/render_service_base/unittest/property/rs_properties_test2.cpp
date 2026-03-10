@@ -1624,10 +1624,10 @@ HWTEST_F(PropertiesTest, GetRRectForSDFTest002, TestSize.Level1)
 }
 
 /**
-  * @tc.name: GetRRectForSDFTest003
-  * @tc.desc: else test
-  * @tc.type: FUNC
-  */
+ * @tc.name: GetRRectForSDFTest003
+ * @tc.desc: else test
+ * @tc.type: FUNC
+ */
 HWTEST_F(PropertiesTest, GetRRectForSDFTest003, TestSize.Level1)
 {
     RSProperties properties;
@@ -1638,11 +1638,11 @@ HWTEST_F(PropertiesTest, GetRRectForSDFTest003, TestSize.Level1)
 }
 
 /**
-  * @tc.name: NeedClipHoleForFilterTest
-  * @tc.desc: test NeedClipHoleForFilter with different filter configurations
-  * @tc.type: FUNC
-  * @tc.require:
-  */
+ * @tc.name: NeedClipHoleForFilterTest
+ * @tc.desc: test NeedClipHoleForFilter with different filter configurations
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(PropertiesTest, NeedClipHoleForFilterTest, TestSize.Level1)
 {
     RSProperties properties;
