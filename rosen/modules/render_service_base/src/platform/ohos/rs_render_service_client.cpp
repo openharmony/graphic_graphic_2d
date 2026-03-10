@@ -1771,6 +1771,10 @@ int32_t RSRenderServiceClient::RegisterSelfDrawingNodeRectChangeCallback(
         cb = new CustomSelfDrawingNodeRectChangeCallback(callback);
     }
 
+    if (cb == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::RegisterSelfDrawingNodeRectChangeCallback callback == nullptr");
+        return IPC_ERROR;
+    }
     return clientToService->RegisterSelfDrawingNodeRectChangeCallback(constraint, cb);
 }
 

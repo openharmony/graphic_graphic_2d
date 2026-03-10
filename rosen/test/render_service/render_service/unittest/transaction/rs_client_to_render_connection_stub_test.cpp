@@ -150,7 +150,8 @@ void RSClientToRenderConnectionStubTest::WaitHandlerTask()
 void RSClientToRenderConnectionStubTest::TearDownTestCase()
 {
     WaitHandlerTask();
-
+    auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
+    nodeMap.UnregisterRenderNode(surfaceNode_->GetId());
     renderPipeline_->mainThread_->handler_->eventRunner_->Stop();
     renderPipeline_->uniRenderThread_->runner_->Stop();
 
@@ -3397,10 +3398,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest010, TestSize
 {
     ASSERT_NE(renderPipelineAgent_, nullptr);
 
-    // Register surfaceNode
-    auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
-    nodeMap.RegisterRenderNode(surfaceNode_);
-
     NodeId nodeId = surfaceNode_->GetId();
     sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
     RSSurfaceCaptureConfig captureConfig;
@@ -3416,7 +3413,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest010, TestSize
     renderPipelineAgent_->TakeSurfaceCapture(nodeId, callback,
         captureConfig, blurParam, specifiedAreaRect, permissions);
 
-    nodeMap.UnregisterRenderNode(nodeId);
 }
 
 /**
@@ -3428,10 +3424,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest010, TestSize
 HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest011, TestSize.Level1)
 {
     ASSERT_NE(renderPipelineAgent_, nullptr);
-
-    // Register surfaceNode
-    auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
-    nodeMap.RegisterRenderNode(surfaceNode_);
 
     NodeId nodeId = surfaceNode_->GetId();
     sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
@@ -3446,8 +3438,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest011, TestSize
     // Test with specified area rect - should proceed
     renderPipelineAgent_->TakeSurfaceCapture(nodeId,
         callback, captureConfig, blurParam, specifiedAreaRect, permissions);
-
-    nodeMap.UnregisterRenderNode(nodeId);
 }
 
 /**
@@ -3459,10 +3449,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest011, TestSize
 HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest012, TestSize.Level1)
 {
     ASSERT_NE(renderPipelineAgent_, nullptr);
-
-    // Register surfaceNode and mark it as dirty
-    auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
-    nodeMap.RegisterRenderNode(surfaceNode_);
 
     NodeId nodeId = surfaceNode_->GetId();
     surfaceNode_->SetDirty(true);
@@ -3482,7 +3468,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest012, TestSize
     renderPipelineAgent_->TakeSurfaceCapture(nodeId, callback,
         captureConfig, blurParam, specifiedAreaRect, permissions);
 
-    nodeMap.UnregisterRenderNode(nodeId);
 }
 
 /**
@@ -3494,10 +3479,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest012, TestSize
 HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest013, TestSize.Level1)
 {
     ASSERT_NE(renderPipelineAgent_, nullptr);
-
-    // Register surfaceNode and mark subtree as dirty
-    auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
-    nodeMap.RegisterRenderNode(surfaceNode_);
 
     NodeId nodeId = surfaceNode_->GetId();
     surfaceNode_->SetSubTreeDirty(true);
@@ -3516,8 +3497,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest013, TestSize
     // Test with subtree dirty SURFACE_NODE - should set hasDirtyContentInSurfaceCapture = true
     renderPipelineAgent_->TakeSurfaceCapture(nodeId, callback,
         captureConfig, blurParam, specifiedAreaRect, permissions);
-
-    nodeMap.UnregisterRenderNode(nodeId);
 }
 
 /**
@@ -3529,10 +3508,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest013, TestSize
 HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest014, TestSize.Level1)
 {
     ASSERT_NE(renderPipelineAgent_, nullptr);
-
-    // Register surfaceNode
-    auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
-    nodeMap.RegisterRenderNode(surfaceNode_);
 
     NodeId nodeId = surfaceNode_->GetId();
     sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
@@ -3549,7 +3524,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest014, TestSize
     renderPipelineAgent_->TakeSurfaceCapture(nodeId, callback,
         captureConfig, blurParam, specifiedAreaRect, permissions);
 
-    nodeMap.UnregisterRenderNode(nodeId);
 }
 
 /**
@@ -3561,10 +3535,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest014, TestSize
 HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest015, TestSize.Level1)
 {
     ASSERT_NE(renderPipelineAgent_, nullptr);
-
-    // Register surfaceNode
-    auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
-    nodeMap.RegisterRenderNode(surfaceNode_);
 
     NodeId nodeId = surfaceNode_->GetId();
     // Add HAS_GENERAL_SPECIAL to the special layer manager
@@ -3590,7 +3560,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest015, TestSize
 
     // Clean up
     surfaceNode_->GetMultableSpecialLayerMgr().Set(HAS_GENERAL_SPECIAL, false);
-    nodeMap.UnregisterRenderNode(nodeId);
 }
 
 /**
@@ -3602,7 +3571,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest015, TestSize
 HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest016, TestSize.Level1)
 {
     ASSERT_NE(renderPipelineAgent_, nullptr);
-
+    constexpr uint32_t TIME_OF_CAPUTRE_TASK = 100;
     // Create a LOGICAL_DISPLAY_NODE (non-surface node)
     pid_t pid = 2003;
     NodeId nodeId = ((NodeId)pid << 32 | 2003);
@@ -3630,7 +3599,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest016, TestSize
     // Test with non-surface node - surfaceNode will be null, skip RegisterCaptureCallback branch
     renderPipelineAgent_->TakeSurfaceCapture(nodeId, callback,
         captureConfig, blurParam, specifiedAreaRect, permissions);
-
+    std::this_thread::sleep_for(std::chrono::milliseconds(TIME_OF_CAPUTRE_TASK));
     nodeMap.UnregisterRenderNode(nodeId);
 }
 
@@ -3643,10 +3612,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest016, TestSize
 HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest017, TestSize.Level1)
 {
     ASSERT_NE(renderPipelineAgent_, nullptr);
-
-    // Register surfaceNode without dirty flags
-    auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
-    nodeMap.RegisterRenderNode(surfaceNode_);
 
     NodeId nodeId = surfaceNode_->GetId();
     surfaceNode_->SetDirty(false);  // Ensure not dirty
@@ -3667,8 +3632,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureTest017, TestSize
     // Test with clean SURFACE_NODE - should not set hasDirtyContentInSurfaceCapture
     renderPipelineAgent_->TakeSurfaceCapture(nodeId, callback,
         captureConfig, blurParam, specifiedAreaRect, permissions);
-
-    nodeMap.UnregisterRenderNode(nodeId);
 }
 
 /**

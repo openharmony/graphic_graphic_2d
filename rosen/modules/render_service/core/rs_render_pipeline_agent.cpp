@@ -1092,48 +1092,48 @@ void RSRenderPipelineAgent::UpdateAnimationOcclusionStatus(const std::string& sc
 
 ErrCode RSRenderPipelineAgent::ReportRsSceneJankStart(AppInfo info)
 {
-    if (rsRenderPipeline_ == nullptr) {
-        return ERR_INVALID_VALUE;
+    if (rsRenderPipeline_ != nullptr) {
+        auto task = [info]() -> void { RSJankStats::GetInstance().SetReportRsSceneJankStart(info); };
+        rsRenderPipeline_->PostUniRenderThreadTask(task);
+        return ERR_OK;
     }
-    auto task = [info]() -> void { RSJankStats::GetInstance().SetReportRsSceneJankStart(info); };
-    rsRenderPipeline_->PostUniRenderThreadTask(task);
-    return ERR_OK;
+    return ERR_INVALID_VALUE;
 }
 
 ErrCode RSRenderPipelineAgent::ReportRsSceneJankEnd(AppInfo info)
 {
-    if (rsRenderPipeline_ == nullptr) {
-        return ERR_INVALID_VALUE;
+    if (rsRenderPipeline_ != nullptr) {
+        auto task = [info]() -> void { RSJankStats::GetInstance().SetReportRsSceneJankEnd(info); };
+        rsRenderPipeline_->PostUniRenderThreadTask(task);
+        return ERR_OK;
     }
-    auto task = [info]() -> void { RSJankStats::GetInstance().SetReportRsSceneJankEnd(info); };
-    rsRenderPipeline_->PostUniRenderThreadTask(task);
-    return ERR_OK;
+    return ERR_INVALID_VALUE;
 }
 
 ErrCode RSRenderPipelineAgent::AvcodecVideoStart(const std::vector<uint64_t>& uniqueIdList,
     const std::vector<std::string>& surfaceNameList, uint32_t fps, uint64_t reportTime)
 {
-    if (rsRenderPipeline_ == nullptr) {
-        return ERR_INVALID_VALUE;
+    if (rsRenderPipeline_ != nullptr) {
+        auto task = [uniqueIdList, surfaceNameList, fps, reportTime]() -> void {
+            RSJankStats::GetInstance().AvcodecVideoStart(uniqueIdList, surfaceNameList, fps, reportTime);
+        };
+        rsRenderPipeline_->PostMainThreadTask(task);
+        return ERR_OK;
     }
-    auto task = [uniqueIdList, surfaceNameList, fps, reportTime]() -> void {
-        RSJankStats::GetInstance().AvcodecVideoStart(uniqueIdList, surfaceNameList, fps, reportTime);
-    };
-    rsRenderPipeline_->PostMainThreadTask(task);
-    return ERR_OK;
+    return ERR_INVALID_VALUE;
 }
 
 ErrCode RSRenderPipelineAgent::AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
     const std::vector<std::string>& surfaceNameList, uint32_t fps)
 {
-    if (rsRenderPipeline_ == nullptr) {
-        return ERR_INVALID_VALUE;
+    if (rsRenderPipeline_ != nullptr) {
+        auto task = [uniqueIdList, surfaceNameList, fps]() -> void {
+            RSJankStats::GetInstance().AvcodecVideoStop(uniqueIdList, surfaceNameList, fps);
+        };
+        rsRenderPipeline_->PostMainThreadTask(task);
+        return ERR_OK;
     }
-    auto task = [uniqueIdList, surfaceNameList, fps]() -> void {
-        RSJankStats::GetInstance().AvcodecVideoStop(uniqueIdList, surfaceNameList, fps);
-    };
-    rsRenderPipeline_->PostMainThreadTask(task);
-    return ERR_OK;
+    return ERR_INVALID_VALUE;
 }
 
 ErrCode RSRenderPipelineAgent::AvcodecVideoGet(uint64_t uniqueId)
@@ -1305,26 +1305,26 @@ ErrCode RSRenderPipelineAgent::CreatePixelMapFromSurface(sptr<Surface> surface, 
 
 ErrCode RSRenderPipelineAgent::GetMemoryGraphic(int pid, MemoryGraphic& memoryGraphic)
 {
-    if (rsRenderPipeline_ == nullptr) {
-        return ERR_INVALID_VALUE;
+    if (rsRenderPipeline_ != nullptr) {
+        ErrCode ret = ERR_OK;
+        rsRenderPipeline_->PostUniRenderThreadSyncTask(
+            [renderPipeline = rsRenderPipeline_, pid, &memoryGraphic, &ret] {
+                if (!renderPipeline->GetMainThread()->GetContext().GetNodeMap().ContainPid(pid)) {
+                    ret = ERR_INVALID_VALUE;
+                    return;
+                }
+                if (renderPipeline->GetUniRenderThread()->GetRenderEngine() == nullptr ||
+                    renderPipeline->GetUniRenderThread()->GetRenderEngine()->GetRenderContext() == nullptr) {
+                    ret = ERR_INVALID_VALUE;
+                    return;
+                }
+                auto context =
+                    renderPipeline->GetUniRenderThread()->GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
+                memoryGraphic = MemoryManager::CountPidMemory(pid, context);
+            });
+        return ret;
     }
-    ErrCode ret = ERR_OK;
-    rsRenderPipeline_->PostUniRenderThreadSyncTask(
-        [renderPipeline = rsRenderPipeline_, &memoryGraphic, &pid, &ret] {
-            if (!renderPipeline->GetMainThread()->GetContext().GetNodeMap().ContainPid(pid)) {
-                ret = ERR_INVALID_VALUE;
-                return;
-            }
-            if (renderPipeline->GetUniRenderThread()->GetRenderEngine() == nullptr ||
-                renderPipeline->GetUniRenderThread()->GetRenderEngine()->GetRenderContext() == nullptr) {
-                ret = ERR_INVALID_VALUE;
-                return;
-            }
-            auto context =
-                renderPipeline->GetUniRenderThread()->GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
-            memoryGraphic = MemoryManager::CountPidMemory(pid, context);
-        });
-    return ERR_OK;
+    return ERR_INVALID_VALUE;
 }
 
 void RSRenderPipelineAgent::NotifyPackageEvent(const std::vector<std::string>& packageList)
@@ -1363,48 +1363,49 @@ ErrCode RSRenderPipelineAgent::SetLayerTop(const std::string &nodeIdStr, bool is
 
 ErrCode RSRenderPipelineAgent::GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize)
 {
-    if (rsRenderPipeline_ == nullptr) {
-        return ERR_INVALID_VALUE;
-    }
+    if (rsRenderPipeline_ != nullptr) {
 #ifdef RS_ENABLE_GPU
-    rsRenderPipeline_->PostUniRenderThreadSyncTask([&cpuMemSize, &gpuMemSize] {
-        gpuMemSize = MemoryManager::GetAppGpuMemoryInMB(
-            RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
-        cpuMemSize = MemoryTrack::Instance().GetAppMemorySizeInMB();
-    });
-    gpuMemSize += RSSubThreadManager::Instance()->GetAppGpuMemoryInMB();
+        rsRenderPipeline_->PostUniRenderThreadSyncTask([&cpuMemSize, &gpuMemSize] {
+            gpuMemSize = MemoryManager::GetAppGpuMemoryInMB(
+                RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
+            cpuMemSize = MemoryTrack::Instance().GetAppMemorySizeInMB();
+        });
+        gpuMemSize += RSSubThreadManager::Instance()->GetAppGpuMemoryInMB();
 #endif
-    return ERR_OK;
+        return ERR_OK;
+    }
+    return ERR_INVALID_VALUE;
 }
 
 ErrCode RSRenderPipelineAgent::GetMemoryGraphics(std::vector<MemoryGraphic>& memoryGraphics)
 {
-    if (rsRenderPipeline_ == nullptr) {
-        return ERR_INVALID_VALUE;
-    }
-    const auto& nodeMap = rsRenderPipeline_->GetMainThread()->GetContext().GetNodeMap();
-    std::vector<pid_t> pids;
-    nodeMap.TraverseSurfaceNodes([&pids](const std::shared_ptr<RSSurfaceRenderNode>& node) {
-        auto pid = ExtractPid(node->GetId());
-        if (std::find(pids.begin(), pids.end(), pid) == pids.end()) {
-            pids.emplace_back(pid);
+    if (rsRenderPipeline_ != nullptr) {
+        const auto& nodeMap = rsRenderPipeline_->GetMainThread()->GetContext().GetNodeMap();
+        std::vector<pid_t> pids;
+        nodeMap.TraverseSurfaceNodes([&pids](const std::shared_ptr<RSSurfaceRenderNode>& node) {
+            auto pid = ExtractPid(node->GetId());
+            if (std::find(pids.begin(), pids.end(), pid) == pids.end()) {
+                pids.emplace_back(pid);
+            }
+        });
+
+        bool enable = RSUniRenderJudgement::IsUniRender();
+        if (rsRenderPipeline_->GetUniRenderThread()->GetRenderEngine() == nullptr ||
+            rsRenderPipeline_->GetUniRenderThread()->GetRenderEngine()->GetRenderContext() == nullptr) {
+            return ERR_INVALID_VALUE;
         }
-    });
 
-    bool enable = RSUniRenderJudgement::IsUniRender();
-    if (rsRenderPipeline_->GetUniRenderThread()->GetRenderEngine() == nullptr ||
-        rsRenderPipeline_->GetUniRenderThread()->GetRenderEngine()->GetRenderContext() == nullptr) {
-        return ERR_INVALID_VALUE;
+        auto context =
+            rsRenderPipeline_->GetUniRenderThread()->GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
+        if (enable) {
+            rsRenderPipeline_->PostUniRenderThreadSyncTask(
+                [&context, &memoryGraphics, &pids] { MemoryManager::CountMemory(pids, context, memoryGraphics); });
+            return ERR_OK;
+        } else {
+            return ERR_INVALID_VALUE;
+        }
     }
-
-    auto context = rsRenderPipeline_->GetUniRenderThread()->GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
-    if (enable) {
-        rsRenderPipeline_->PostUniRenderThreadSyncTask(
-            [&context, &memoryGraphics, &pids] { MemoryManager::CountMemory(pids, context, memoryGraphics); });
-        return ERR_OK;
-    } else {
-        return ERR_INVALID_VALUE;
-    }
+    return ERR_INVALID_VALUE;
 }
 
 void RSRenderPipelineAgent::CollectSurfaceBuffersByProcessId(

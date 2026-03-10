@@ -27,6 +27,154 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+#ifndef ROSEN_CROSS_PLATFORM
+class FakeConsumerSurface : public IConsumerSurface {
+public:
+    explicit FakeConsumerSurface(uint64_t uniqueId) : uniqueId_(uniqueId) {}
+    ~FakeConsumerSurface() override = default;
+
+    bool IsConsumer() const override
+    {
+        return true;
+    }
+
+    sptr<IBufferProducer> GetProducer() const override
+    {
+        return nullptr;
+    }
+
+    GSError AttachBuffer(sptr<SurfaceBuffer>& buffer) override
+    {
+        (void)buffer;
+        return GSERROR_NOT_SUPPORT;
+    }
+
+    GSError DetachBuffer(sptr<SurfaceBuffer>& buffer) override
+    {
+        (void)buffer;
+        return GSERROR_NOT_SUPPORT;
+    }
+
+    uint32_t GetQueueSize() override
+    {
+        return 0;
+    }
+
+    GSError SetQueueSize(uint32_t queueSize) override
+    {
+        (void)queueSize;
+        return GSERROR_NOT_SUPPORT;
+    }
+
+    int32_t GetDefaultWidth() override
+    {
+        return 0;
+    }
+
+    int32_t GetDefaultHeight() override
+    {
+        return 0;
+    }
+
+    GSError SetDefaultUsage(uint64_t usage) override
+    {
+        (void)usage;
+        return GSERROR_NOT_SUPPORT;
+    }
+
+    uint64_t GetDefaultUsage() override
+    {
+        return 0;
+    }
+
+    GSError SetUserData(const std::string &key, const std::string &val) override
+    {
+        (void)key;
+        (void)val;
+        return GSERROR_NOT_SUPPORT;
+    }
+
+    std::string GetUserData(const std::string &key) override
+    {
+        (void)key;
+        return "";
+    }
+
+    const std::string& GetName() override
+    {
+        return name_;
+    }
+
+    uint64_t GetUniqueId() const override
+    {
+        return uniqueId_;
+    }
+
+    GSError SetMetaData(uint32_t sequence, const std::vector<GraphicHDRMetaData> &metaData) override
+    {
+        (void)sequence;
+        (void)metaData;
+        return GSERROR_NOT_SUPPORT;
+    }
+
+    GSError SetMetaDataSet(uint32_t sequence, GraphicHDRMetadataKey key,
+        const std::vector<uint8_t> &metaData) override
+    {
+        (void)sequence;
+        (void)key;
+        (void)metaData;
+        return GSERROR_NOT_SUPPORT;
+    }
+
+    GSError SetTunnelHandle(const GraphicExtDataHandle *handle) override
+    {
+        (void)handle;
+        return GSERROR_NOT_SUPPORT;
+    }
+
+    void Dump(std::string &result) const override
+    {
+        (void)result;
+    }
+
+    GSError AttachBuffer(sptr<SurfaceBuffer>& buffer, int32_t timeOut) override
+    {
+        (void)buffer;
+        (void)timeOut;
+        return GSERROR_NOT_SUPPORT;
+    }
+
+    GSError RegisterSurfaceDelegator(sptr<IRemoteObject> client) override
+    {
+        (void)client;
+        return GSERROR_NOT_SUPPORT;
+    }
+
+    GSError AttachBufferToQueue(sptr<SurfaceBuffer> buffer) override
+    {
+        (void)buffer;
+        return GSERROR_NOT_SUPPORT;
+    }
+
+    GSError DetachBufferFromQueue(sptr<SurfaceBuffer> buffer, bool isReserveSlot = false) override
+    {
+        (void)buffer;
+        (void)isReserveSlot;
+        return GSERROR_NOT_SUPPORT;
+    }
+
+    GSError SetScalingMode(ScalingMode scalingMode) override
+    {
+        (void)scalingMode;
+        return GSERROR_NOT_SUPPORT;
+    }
+
+private:
+    std::string name_ = "fake_consumer_surface";
+    uint64_t uniqueId_ = 0;
+};
+#endif
+
 class RSSurfaceHandlerTest : public testing::Test, public IBufferConsumerListenerClazz {
 public:
     static inline NodeId id;
@@ -57,6 +205,9 @@ private:
 };
 void RSSurfaceHandlerTest::SetUp()
 {
+#ifndef ROSEN_CROSS_PLATFORM
+    RSSurfaceHandler::SetConsumerDeleteBufferListenerCallback(nullptr);
+#endif
     NodeId id = 1;
     rSSurfaceHandlerPtr_ = std::make_unique<RSSurfaceHandler>(id);
     consumerSurfacePtr_ = IConsumerSurface::Create();
@@ -65,7 +216,12 @@ void RSSurfaceHandlerTest::SetUp()
     surfacePtr_ = Surface::CreateSurfaceAsProducer(bufferProducerPtr_);
     rSSurfaceHandlerPtr_->SetConsumer(consumerSurfacePtr_);
 }
-void RSSurfaceHandlerTest::TearDown() {}
+void RSSurfaceHandlerTest::TearDown()
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    RSSurfaceHandler::SetConsumerDeleteBufferListenerCallback(nullptr);
+#endif
+}
 
 static inline void BufferDeleteCbFunc(uint64_t bufferId)
 {
@@ -237,6 +393,121 @@ HWTEST_F(RSSurfaceHandlerTest, RegisterDeleteBufferListener001, TestSize.Level1)
     rSSurfaceHandlerPtr_->RegisterDeleteBufferListener(BufferDeleteCbFunc);
     EXPECT_TRUE(rSSurfaceHandlerPtr_->preBuffer_.bufferDeleteCb_ != nullptr);
     rSSurfaceHandlerPtr_->CleanCache();
+#endif
+}
+
+/**
+ * @tc.name: EnsureConsumerDeleteBufferListenerRegistered001
+ * @tc.desc: test EnsureConsumerDeleteBufferListenerRegistered while callback is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueI9IUKU
+ */
+HWTEST_F(RSSurfaceHandlerTest, EnsureConsumerDeleteBufferListenerRegistered001, TestSize.Level1)
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    ASSERT_NE(rSSurfaceHandlerPtr_, nullptr);
+    EXPECT_EQ(rSSurfaceHandlerPtr_->registeredConsumerDeleteListenerSurfaceId_, 0u);
+    rSSurfaceHandlerPtr_->EnsureConsumerDeleteBufferListenerRegistered();
+    EXPECT_EQ(rSSurfaceHandlerPtr_->registeredConsumerDeleteListenerSurfaceId_, 0u);
+#endif
+}
+
+/**
+ * @tc.name: EnsureConsumerDeleteBufferListenerRegistered002
+ * @tc.desc: test EnsureConsumerDeleteBufferListenerRegistered while consumer is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueI9IUKU
+ */
+HWTEST_F(RSSurfaceHandlerTest, EnsureConsumerDeleteBufferListenerRegistered002, TestSize.Level1)
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    ASSERT_NE(rSSurfaceHandlerPtr_, nullptr);
+    int32_t callCount = 0;
+    RSSurfaceHandler::SetConsumerDeleteBufferListenerCallback([&callCount](const sptr<IConsumerSurface>& consumer) {
+        (void)consumer;
+        ++callCount;
+    });
+
+    rSSurfaceHandlerPtr_->SetConsumer(nullptr);
+
+    EXPECT_EQ(callCount, 0);
+    EXPECT_EQ(rSSurfaceHandlerPtr_->registeredConsumerDeleteListenerSurfaceId_, 0u);
+#endif
+}
+
+/**
+ * @tc.name: EnsureConsumerDeleteBufferListenerRegistered003
+ * @tc.desc: test EnsureConsumerDeleteBufferListenerRegistered while surface id is zero
+ * @tc.type: FUNC
+ * @tc.require: issueI9IUKU
+ */
+HWTEST_F(RSSurfaceHandlerTest, EnsureConsumerDeleteBufferListenerRegistered003, TestSize.Level1)
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    ASSERT_NE(rSSurfaceHandlerPtr_, nullptr);
+    int32_t callCount = 0;
+    RSSurfaceHandler::SetConsumerDeleteBufferListenerCallback([&callCount](const sptr<IConsumerSurface>& consumer) {
+        (void)consumer;
+        ++callCount;
+    });
+
+    sptr<IConsumerSurface> consumer = new FakeConsumerSurface(0);
+    rSSurfaceHandlerPtr_->SetConsumer(consumer);
+
+    EXPECT_EQ(callCount, 0);
+    EXPECT_EQ(rSSurfaceHandlerPtr_->registeredConsumerDeleteListenerSurfaceId_, 0u);
+#endif
+}
+
+/**
+ * @tc.name: EnsureConsumerDeleteBufferListenerRegistered004
+ * @tc.desc: test EnsureConsumerDeleteBufferListenerRegistered while callback should be invoked
+ * @tc.type: FUNC
+ * @tc.require: issueI9IUKU
+ */
+HWTEST_F(RSSurfaceHandlerTest, EnsureConsumerDeleteBufferListenerRegistered004, TestSize.Level1)
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    ASSERT_NE(rSSurfaceHandlerPtr_, nullptr);
+    ASSERT_NE(consumerSurfacePtr_, nullptr);
+    int32_t callCount = 0;
+    sptr<IConsumerSurface> registeredConsumer = nullptr;
+    RSSurfaceHandler::SetConsumerDeleteBufferListenerCallback(
+        [&callCount, &registeredConsumer](const sptr<IConsumerSurface>& consumer) {
+            registeredConsumer = consumer;
+            ++callCount;
+        });
+
+    rSSurfaceHandlerPtr_->SetConsumer(consumerSurfacePtr_);
+
+    EXPECT_EQ(callCount, 1);
+    EXPECT_EQ(registeredConsumer, consumerSurfacePtr_);
+    EXPECT_EQ(rSSurfaceHandlerPtr_->registeredConsumerDeleteListenerSurfaceId_, consumerSurfacePtr_->GetUniqueId());
+#endif
+}
+
+/**
+ * @tc.name: EnsureConsumerDeleteBufferListenerRegistered005
+ * @tc.desc: test EnsureConsumerDeleteBufferListenerRegistered avoids duplicate registration
+ * @tc.type: FUNC
+ * @tc.require: issueI9IUKU
+ */
+HWTEST_F(RSSurfaceHandlerTest, EnsureConsumerDeleteBufferListenerRegistered005, TestSize.Level1)
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    ASSERT_NE(rSSurfaceHandlerPtr_, nullptr);
+    ASSERT_NE(consumerSurfacePtr_, nullptr);
+    int32_t callCount = 0;
+    RSSurfaceHandler::SetConsumerDeleteBufferListenerCallback([&callCount](const sptr<IConsumerSurface>& consumer) {
+        (void)consumer;
+        ++callCount;
+    });
+
+    rSSurfaceHandlerPtr_->SetConsumer(consumerSurfacePtr_);
+    rSSurfaceHandlerPtr_->EnsureConsumerDeleteBufferListenerRegistered();
+
+    EXPECT_EQ(callCount, 1);
+    EXPECT_EQ(rSSurfaceHandlerPtr_->registeredConsumerDeleteListenerSurfaceId_, consumerSurfacePtr_->GetUniqueId());
 #endif
 }
 
