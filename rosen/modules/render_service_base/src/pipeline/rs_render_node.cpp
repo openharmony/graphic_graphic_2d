@@ -4474,6 +4474,7 @@ void RSRenderNode::UpdateRenderParams()
         stagingRenderParams_->SetCloneSourceDrawable(cloneSourceNode->GetRenderDrawable());
     }
     stagingRenderParams_->MarkRepaintBoundary(isRepaintBoundary_);
+    stagingRenderParams_->SetNeedClipHoleForFilter(GetRenderProperties().NeedClipHoleForFilter());
 #endif
 }
 

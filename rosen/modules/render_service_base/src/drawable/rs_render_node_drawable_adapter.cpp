@@ -626,7 +626,8 @@ bool RSRenderNodeDrawableAdapter::HasFilterOrEffect(const RSRenderParams& params
            (drawCmdIndex_.shadowIndex_ != -1 && !params.GetShadowRect().IsEmpty()) ||
            drawCmdIndex_.backgroundFilterIndex_ != -1 ||
            drawCmdIndex_.useEffectIndex_ != -1 ||
-           drawCmdIndex_.backgroundNgShaderIndex_ != -1;
+           drawCmdIndex_.backgroundNgShaderIndex_ != -1 ||
+           params.NeedClipHoleForFilter();
 }
 
 void RSRenderNodeDrawableAdapter::ClearResource()
