@@ -76,9 +76,7 @@ static ani_object BuildColor(ani_env* env, const ColorManager::Color &color)
         (env->Object_SetPropertyByName_Int(result, "blue", colorBlue) != ANI_OK) ||
         (env->Object_SetPropertyByName_Int(result, "alpha", colorAlpha) != ANI_OK)) {
         EFFECT_LOG_E("build color is fail, set color value fail.");
-        return result;
     }
-
     return result;
 }
 
