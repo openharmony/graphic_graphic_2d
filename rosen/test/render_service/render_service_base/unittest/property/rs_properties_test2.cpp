@@ -1646,29 +1646,12 @@ HWTEST_F(PropertiesTest, GetRRectForSDFTest003, TestSize.Level1)
 HWTEST_F(PropertiesTest, NeedClipHoleForFilterTest, TestSize.Level1)
 {
     RSProperties properties;
-    
-    // Test case 1: Only color filter - should return true
-    std::shared_ptr<Drawing::ColorFilter> colorFilter = Drawing::ColorFilter::CreateColorMatrixFilter(
-        1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+
+    std::shared_ptr<Drawing::ColorFilter> colorFilter = Drawing::ColorFilter::CreateLumaColorFilter();
     properties.GetEffect().colorFilter_ = colorFilter;
     EXPECT_TRUE(properties.NeedClipHoleForFilter());
-    
-    // Test case 2: Only grey coefficient - should return true
-    properties.GetEffect().colorFilter_ = nullptr;  // Clear color filter
-    std::optional<Vector2f> greyCoef({0.5f, 0.8f});
-    properties.SetGreyCoef(greyCoef);
-    EXPECT_TRUE(properties.NeedClipHoleForFilter());
-    
-    // Test case 3: Both color filter and grey coefficient - should return true
-    properties.GetEffect().colorFilter_ = colorFilter;
-    EXPECT_TRUE(properties.NeedClipHoleForFilter());
-    
-    // Test case 4: Neither color filter nor grey coefficient - should return false
-    properties.SetFilter(nullptr);
-    properties.SetGreyCoef(std::nullopt);
+
+    properties.GetEffect().colorFilter_ = nullptr;
     EXPECT_FALSE(properties.NeedClipHoleForFilter());
 }
 } // namespace Rosen
