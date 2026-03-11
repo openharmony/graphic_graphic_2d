@@ -303,6 +303,7 @@ protected:
     std::string DumpDrawableVec(const std::shared_ptr<RSRenderNode>& renderNode) const;
     bool QuickReject(Drawing::Canvas& canvas, const RectF& localDrawRect);
     bool HasFilterOrEffect(const RSRenderParams& params) const;
+    void AlignRectToDevicePixels(const Drawing::Matrix& matrix, Drawing::Rect& rect);
 
     // Draw functions
     void DrawAll(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
