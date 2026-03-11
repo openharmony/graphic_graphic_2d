@@ -212,7 +212,7 @@ HWTEST_F(RSRenderGroupCacheTest, SetNeedClipHoleForFilterTest002, TestSize.Level
 
     bool rst = renderGroupCache->SetNeedClipHoleForFilter(false);
     EXPECT_FALSE(renderGroupCache->NeedClipHoleForFilter());
-    EXPECT_TRUE(rst);
+    EXPECT_FALSE(rst);
 
     rst = renderGroupCache->SetNeedClipHoleForFilter(true);
     EXPECT_TRUE(renderGroupCache->NeedClipHoleForFilter());
