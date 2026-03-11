@@ -46,6 +46,8 @@ ohos_unittest("dvsync_lib_manager_test") {
   deps = [
     ":vsync_test_common",
   ]
+
+  external_deps = [ "eventhandler:libeventhandler" ]
 }
 
 ## UnitTest dvsync_lib_manager_test }}}
@@ -116,7 +118,10 @@ ohos_unittest("vsync_distributor_test") {
     "$graphic_2d_root/utils:socketpair",
   ]
 
-  external_deps = [ "samgr:samgr_proxy" ]
+  external_deps = [ 
+    "samgr:samgr_proxy",
+    "eventhandler:libeventhandler",
+  ]
 }
 
 ## UnitTest vsync_distributor_test }}}
@@ -155,6 +160,7 @@ ohos_unittest("vsync_receiver_test") {
   ]
 
   external_deps = [
+    "eventhandler:libeventhandler",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
   ]
@@ -211,6 +217,10 @@ ohos_unittest("vsync_present_fence_test") {
 
   include_dirs = [
     "$graphic_2d_root/rosen/modules/render_service_base/include",
+  ]
+
+  external_deps = [
+    "eventhandler:libeventhandler",
   ]
 }
 

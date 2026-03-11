@@ -69,6 +69,7 @@ common_deps_transaction = [
 ]
 
 common_external_deps_light = [
+  "eventhandler:libeventhandler",
   "googletest:gtest_main",
   "ipc:ipc_core",
   "hilog:libhilog",

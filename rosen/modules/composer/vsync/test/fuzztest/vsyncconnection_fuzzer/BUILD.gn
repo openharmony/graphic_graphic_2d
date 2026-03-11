@@ -41,6 +41,7 @@ ohos_fuzztest("VsyncConnectionFuzzTest") {
   ]
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "ipc:ipc_single",
     "samgr:samgr_proxy",
   ]
