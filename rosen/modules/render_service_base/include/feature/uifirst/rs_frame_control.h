@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2024 Huawei Device Co., Ltd.
+* Copyright (c) 2026 Huawei Device Co., Ltd.
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
@@ -17,7 +17,6 @@
 #define RS_FRAME_CONTROL_H
 
 #include <set>
-#include "rs_trace.h"
 #include "common/rs_macros.h"
 #include "common/rs_common_def.h"
 namespace OHOS {
@@ -28,6 +27,7 @@ public:
     bool SerchNodeIdFromAppWindowsSet(NodeId id);
     static RSFrameControlTool& Instance();
 private:
+    // refreshAppWindowSet_ cannot be operated concurrently
     std::set<NodeId> refreshAppWindowSet_ {};
 };
 }
