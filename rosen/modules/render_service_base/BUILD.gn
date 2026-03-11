@@ -400,6 +400,7 @@ ohos_source_set("render_service_base_src") {
     "src/feature/window_keyframe/rs_window_keyframe_node_command.cpp",
     "src/feature/window_keyframe/rs_window_keyframe_render_node.cpp",
     "src/feature/buffer_reclaim/rs_buffer_reclaim.cpp",
+    "src/feature/uifirst/rs_frame_control.cpp",
 
     #dirty_region
     "src/dirty_region/rs_filter_dirty_collector.cpp",

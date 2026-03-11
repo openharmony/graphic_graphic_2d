@@ -1690,7 +1690,7 @@ bool RSSystemProperties::GetSubThreadControlFrameRate()
 int RSSystemProperties::GetSubThreadDropFrameInterval()
 {
     static int dropFrameInterval =
-        system::GetIntParameter("const.graphic.subthread.dropframe.interval", 1);
+        system::GetIntParameter("const.graphic.subthread.dropframe.interval", 0);
     return dropFrameInterval;
 }
 
