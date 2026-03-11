@@ -226,7 +226,7 @@ private:
 
     bool isRogResolution_ = false;
 
-    OnPropertyChangeCallback onPropertyChange_;  //change by jianghongxi
+    OnPropertyChangeCallback onPropertyChange_;
     RSScreenThreadSafeProperty property_;
 };
 } // namespace Rosen
