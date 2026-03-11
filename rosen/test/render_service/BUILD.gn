@@ -16,6 +16,9 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 group("test") {
   testonly = true
   deps = [
+    "render_process/unittest/transaction:unittest",
+    "render_server/unittest:unittest",
+    "render_server/unittest/transaction:unittest",
     "render_service/fuzztest/rsclienttorenderconnection_fuzzer:fuzztest",
     "render_service/fuzztest/rsirenderserviceipcinterfacecodeaccessverifier_fuzzer:fuzztest",
     "render_service/fuzztest/rsrenderserviceconnection_fuzzer:fuzztest",
@@ -60,13 +63,14 @@ group("test") {
     "render_service/fuzztest/rsserviceconnectionstub_transaction/pixelMapProcessIdstub_fuzzer:fuzztest",
     "render_service/fuzztest/rsserviceconnectionstub_transaction/rectChangeCallbackstub_fuzzer:fuzztest",
     "render_service/systemtest/pipeline:systemtest",
+    "render_service/unittest/vsync:unittest",
     "render_service/unittest/composer:unittest",
     "render_service/unittest/drawable:unittest",
+    "render_service/unittest/dfx:unittest",
     "render_service/unittest/feature:unittest",
     "render_service/unittest/feature_cfg:unittest",
     "render_service/unittest/memory:unittest",
     "render_service/unittest/pipeline:unittest",
-    "render_service/unittest/render_server:unittest",
     "render_service/unittest/screen_manager:unittest",
     "render_service/unittest/system:unittest",
     "render_service/unittest/transaction:unittest",
@@ -130,6 +134,7 @@ group("test") {
     "render_service_base/fuzztest/rsproxyrendernode_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsrenderanimation_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsrenderdisplaysync_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsrenderframeratelinker_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsrenderframeratelinkermap_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsrenderimage_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsrenderinteractiveimplictanimator_fuzzer:fuzztest",
@@ -273,9 +278,10 @@ group("test") {
     "render_service_base/fuzztest/rsspringmodelstandard_fuzzer:fuzztest",
     "render_service_base/fuzztest/rswindowkeyframerendernode_fuzzer:fuzztest",
     "render_service_base/fuzztest/rswindowkeyframenodecommand_fuzzer:fuzztest",
+    "render_service/fuzztest/composer/composer_service/layer_backend:fuzztest",
+    "render_service/systemtest/composer/composer_service/layer_backend:systemtest",
+    "render_service/unittest/composer:unittest",
   ]
-
-
   if (graphic_2d_modifier_ng_enable) {
     deps += [
       "render_service_base/fuzztest/modifier_ng/rsappearancerendermodifier_fuzzer:fuzztest",

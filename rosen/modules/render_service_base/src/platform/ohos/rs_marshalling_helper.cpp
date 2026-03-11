@@ -54,7 +54,7 @@
 #include "modifier_ng/rs_render_modifier_ng.h"
 #include "pipeline/rs_draw_cmd.h"
 #include "platform/common/rs_log.h"
-#include "platform/ohos/rs_iclient_to_service_connection.h"
+#include "platform/ohos/transaction/zidl/rs_iclient_to_service_connection.h"
 #include "render/rs_gradient_blur_para.h"
 #include "render/rs_image.h"
 #include "render/rs_image_base.h"

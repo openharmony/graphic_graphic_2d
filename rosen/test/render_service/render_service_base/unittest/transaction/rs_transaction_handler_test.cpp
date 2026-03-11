@@ -128,7 +128,6 @@ HWTEST_F(RSTransactionHandlerTest, FlushImplicitTransactionHybridRender003, Test
     ASSERT_NE(transaction, nullptr);
     uint64_t timestamp = 1;
     NodeId nodeId = 1;
-    transaction->renderServiceClient_ = nullptr;
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSAnimationCallback>(nodeId, 1, 1, AnimationCallbackEvent::FINISHED);
     transaction->AddRemoteCommand(command, nodeId, FollowType::NONE);
@@ -162,34 +161,6 @@ HWTEST_F(RSTransactionHandlerTest, SetRenderThreadClient002, TestSize.Level1)
     renderThreadClient.reset();
     ASSERT_EQ(renderThreadClient, nullptr);
     transaction->SetRenderThreadClient(renderThreadClient);
-}
-
-/**
- * @tc.name: SetRenderServiceClient001
- * @tc.desc: test
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSTransactionHandlerTest, SetRenderServiceClient001, TestSize.Level1)
-{
-    auto transaction = std::make_shared<RSTransactionHandler>();
-    auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
-    ASSERT_NE(renderServiceClient, nullptr);
-    transaction->SetRenderServiceClient(renderServiceClient);
-}
-
-/**
- * @tc.name: SetRenderServiceClient002
- * @tc.desc: test
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSTransactionHandlerTest, SetRenderServiceClient002, TestSize.Level1)
-{
-    auto transaction = std::make_shared<RSTransactionHandler>();
-    ASSERT_NE(transaction, nullptr);
-    auto renderServiceClient = nullptr;
-    transaction->SetRenderServiceClient(renderServiceClient);
 }
 
 /**
@@ -306,7 +277,6 @@ HWTEST_F(RSTransactionHandlerTest, FlushImplicitTransaction006, TestSize.Level1)
     renderServiceClient.reset();
     ASSERT_EQ(renderServiceClient, nullptr);
     transaction->SetRenderThreadClient(renderThreadClient);
-    transaction->SetRenderServiceClient(renderServiceClient);
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSAnimationCallback>(1, 1, 1, AnimationCallbackEvent::FINISHED);
     transaction->AddCommand(command, false, FollowType::FOLLOW_TO_PARENT, 1);
@@ -329,7 +299,7 @@ HWTEST_F(RSTransactionHandlerTest, FlushImplicitTransaction007, TestSize.Level1)
     renderServiceClient.reset();
     ASSERT_EQ(renderServiceClient, nullptr);
     transaction->SetRenderThreadClient(renderThreadClient);
-    transaction->SetRenderServiceClient(renderServiceClient);
+    // add rendRenderPipelineClient
     FlushEmptyCallback callback = [](const uint64_t timestamp) -> bool {
         return true;
     };
@@ -364,7 +334,6 @@ HWTEST_F(RSTransactionHandlerTest, FlushImplicitTransactionFromRT002, TestSize.L
     auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
     renderServiceClient.reset();
     ASSERT_EQ(renderServiceClient, nullptr);
-    transaction->SetRenderServiceClient(renderServiceClient);
     transaction->FlushImplicitTransactionFromRT(timestamp);
 }
 
@@ -380,7 +349,7 @@ HWTEST_F(RSTransactionHandlerTest, FlushImplicitTransactionFromRT003, TestSize.L
     uint64_t timestamp = 1;
     auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
     ASSERT_NE(renderServiceClient, nullptr);
-    transaction->SetRenderServiceClient(renderServiceClient);
+
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSAnimationCallback>(1, 1, 1, AnimationCallbackEvent::FINISHED);
     transaction->AddCommandFromRT(command, 1, FollowType::FOLLOW_TO_PARENT);
@@ -414,7 +383,6 @@ HWTEST_F(RSTransactionHandlerTest, Commit002, TestSize.Level1)
     uint64_t timestamp = 1;
     auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
     ASSERT_NE(renderServiceClient, nullptr);
-    transaction->SetRenderServiceClient(renderServiceClient);
     transaction->Begin();
     transaction->Commit(timestamp);
 }
@@ -432,7 +400,6 @@ HWTEST_F(RSTransactionHandlerTest, Commit003, TestSize.Level1)
     auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
     renderServiceClient.reset();
     ASSERT_EQ(renderServiceClient, nullptr);
-    transaction->SetRenderServiceClient(renderServiceClient);
     transaction->Commit(timestamp);
 }
 
@@ -449,7 +416,6 @@ HWTEST_F(RSTransactionHandlerTest, Commit004, TestSize.Level1)
     auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
     renderServiceClient.reset();
     ASSERT_EQ(renderServiceClient, nullptr);
-    transaction->SetRenderServiceClient(renderServiceClient);
     transaction->Begin();
     transaction->Commit(timestamp);
 }
@@ -512,7 +478,7 @@ HWTEST_F(RSTransactionHandlerTest, CommitSyncTransaction002, TestSize.Level1)
     auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
     ASSERT_NE(renderServiceClient, nullptr);
     transaction->SetRenderThreadClient(renderThreadClient);
-    transaction->SetRenderServiceClient(renderServiceClient);
+
     transaction->Begin();
     transaction->CommitSyncTransaction(0, timestamp, "abilityName");
 }
@@ -532,7 +498,6 @@ HWTEST_F(RSTransactionHandlerTest, CommitSyncTransaction003, TestSize.Level1)
     auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
     ASSERT_NE(renderServiceClient, nullptr);
     transaction->SetRenderThreadClient(renderThreadClient);
-    transaction->SetRenderServiceClient(renderServiceClient);
     transaction->Begin();
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSAnimationCallback>(1, 1, 1, AnimationCallbackEvent::FINISHED);
@@ -555,7 +520,6 @@ HWTEST_F(RSTransactionHandlerTest, CommitSyncTransaction004, TestSize.Level1)
     auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
     ASSERT_NE(renderServiceClient, nullptr);
     transaction->SetRenderThreadClient(renderThreadClient);
-    transaction->SetRenderServiceClient(renderServiceClient);
     transaction->Begin();
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSAnimationCallback>(1, 1, 1, AnimationCallbackEvent::FINISHED);
@@ -579,7 +543,6 @@ HWTEST_F(RSTransactionHandlerTest, CommitSyncTransaction005, TestSize.Level1)
     renderServiceClient.reset();
     ASSERT_EQ(renderServiceClient, nullptr);
     transaction->SetRenderThreadClient(renderThreadClient);
-    transaction->SetRenderServiceClient(renderServiceClient);
     transaction->Begin();
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSAnimationCallback>(1, 1, 1, AnimationCallbackEvent::FINISHED);
@@ -618,7 +581,6 @@ HWTEST_F(RSTransactionHandlerTest, CommitSyncTransaction007, TestSize.Level1)
     auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
     ASSERT_NE(renderServiceClient, nullptr);
     transaction->SetRenderThreadClient(renderThreadClient);
-    transaction->SetRenderServiceClient(renderServiceClient);
     transaction->Begin();
     transaction->Begin();
     transaction->CommitSyncTransaction(0, timestamp, "abilityName");
@@ -639,7 +601,6 @@ HWTEST_F(RSTransactionHandlerTest, CommitSyncTransaction008, TestSize.Level1)
     auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
     ASSERT_NE(renderServiceClient, nullptr);
     transaction->SetRenderThreadClient(renderThreadClient);
-    transaction->SetRenderServiceClient(renderServiceClient);
     transaction->Begin();
     transaction->Begin();
     std::unique_ptr<RSCommand> command =
@@ -663,7 +624,6 @@ HWTEST_F(RSTransactionHandlerTest, CommitSyncTransaction09, TestSize.Level1)
     auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
     ASSERT_NE(renderServiceClient, nullptr);
     transaction->SetRenderThreadClient(renderThreadClient);
-    transaction->SetRenderServiceClient(renderServiceClient);
     transaction->Begin();
     transaction->Begin();
     std::unique_ptr<RSCommand> command =
@@ -688,7 +648,6 @@ HWTEST_F(RSTransactionHandlerTest, CommitSyncTransaction010, TestSize.Level1)
     renderServiceClient.reset();
     ASSERT_EQ(renderServiceClient, nullptr);
     transaction->SetRenderThreadClient(renderThreadClient);
-    transaction->SetRenderServiceClient(renderServiceClient);
     transaction->Begin();
     transaction->Begin();
     std::unique_ptr<RSCommand> command =
@@ -724,7 +683,6 @@ HWTEST_F(RSTransactionHandlerTest, MarkTransactionNeedSync002, TestSize.Level1)
     auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
     ASSERT_NE(renderServiceClient, nullptr);
     transaction->SetRenderThreadClient(renderThreadClient);
-    transaction->SetRenderServiceClient(renderServiceClient);
     transaction->Begin();
     transaction->MarkTransactionNeedSync();
 }
@@ -756,7 +714,6 @@ HWTEST_F(RSTransactionHandlerTest, MarkTransactionNeedCloseSync002, TestSize.Lev
     auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
     ASSERT_NE(renderServiceClient, nullptr);
     transaction->SetRenderThreadClient(renderThreadClient);
-    transaction->SetRenderServiceClient(renderServiceClient);
     transaction->Begin();
     transaction->MarkTransactionNeedCloseSync(0);
 }
@@ -777,7 +734,6 @@ HWTEST_F(RSTransactionHandlerTest, AddCommand001, TestSize.Level1)
     renderServiceClient.reset();
     ASSERT_EQ(renderServiceClient, nullptr);
     transaction->SetRenderThreadClient(renderThreadClient);
-    transaction->SetRenderServiceClient(renderServiceClient);
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSAnimationCallback>(1, 1, 1, AnimationCallbackEvent::FINISHED);
     command.reset();
@@ -798,7 +754,6 @@ HWTEST_F(RSTransactionHandlerTest, AddCommand002, TestSize.Level1)
     auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
     ASSERT_NE(renderServiceClient, nullptr);
     transaction->SetRenderThreadClient(renderThreadClient);
-    transaction->SetRenderServiceClient(renderServiceClient);
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSAnimationCallback>(1, 1, 1, AnimationCallbackEvent::FINISHED);
     command.reset();
@@ -820,7 +775,6 @@ HWTEST_F(RSTransactionHandlerTest, AddCommand003, TestSize.Level1)
     renderServiceClient.reset();
     ASSERT_EQ(renderServiceClient, nullptr);
     transaction->SetRenderThreadClient(renderThreadClient);
-    transaction->SetRenderServiceClient(renderServiceClient);
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSAnimationCallback>(1, 1, 1, AnimationCallbackEvent::FINISHED);
     command.reset();
@@ -841,7 +795,6 @@ HWTEST_F(RSTransactionHandlerTest, AddCommand004, TestSize.Level1)
     auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
     ASSERT_NE(renderServiceClient, nullptr);
     transaction->SetRenderThreadClient(renderThreadClient);
-    transaction->SetRenderServiceClient(renderServiceClient);
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSAnimationCallback>(1, 1, 1, AnimationCallbackEvent::FINISHED);
     transaction->AddCommand(command, true, FollowType::FOLLOW_TO_PARENT, 1);
@@ -861,7 +814,6 @@ HWTEST_F(RSTransactionHandlerTest, AddCommand005, TestSize.Level1)
     auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
     ASSERT_NE(renderServiceClient, nullptr);
     transaction->SetRenderThreadClient(renderThreadClient);
-    transaction->SetRenderServiceClient(renderServiceClient);
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSAnimationCallback>(1, 1, 1, AnimationCallbackEvent::FINISHED);
     transaction->AddCommand(command, false, FollowType::FOLLOW_TO_PARENT, 1);
@@ -882,7 +834,6 @@ HWTEST_F(RSTransactionHandlerTest, AddCommand006, TestSize.Level1)
     auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
     ASSERT_NE(renderServiceClient, nullptr);
     transaction->SetRenderThreadClient(renderThreadClient);
-    transaction->SetRenderServiceClient(renderServiceClient);
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSAnimationCallback>(1, 1, 1, AnimationCallbackEvent::FINISHED);
     transaction->AddCommand(command, false, FollowType::FOLLOW_TO_PARENT, 1);
@@ -903,7 +854,6 @@ HWTEST_F(RSTransactionHandlerTest, AddCommand007, TestSize.Level1)
     renderServiceClient.reset();
     ASSERT_EQ(renderServiceClient, nullptr);
     transaction->SetRenderThreadClient(renderThreadClient);
-    transaction->SetRenderServiceClient(renderServiceClient);
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSAnimationCallback>(1, 1, 1, AnimationCallbackEvent::FINISHED);
     transaction->AddCommand(command, true, FollowType::FOLLOW_TO_PARENT, 1);
@@ -926,7 +876,6 @@ HWTEST_F(RSTransactionHandlerTest, MoveCommandByNodeId001, TestSize.Level1)
     renderServiceClient.reset();
     ASSERT_EQ(renderServiceClient, nullptr);
     preTransaction->renderThreadClient_ = std::move(renderThreadClient);
-    preTransaction->renderServiceClient_ = std::move(renderServiceClient);
     NodeId nodeId = 1;
     preTransaction->MoveCommandByNodeId(curTransaction, nodeId);
 }
@@ -943,10 +892,7 @@ HWTEST_F(RSTransactionHandlerTest, MoveCommandByNodeId002, TestSize.Level1)
     auto curTransaction = std::make_shared<RSTransactionHandler>();
     auto renderThreadClient = CreateRenderThreadClient();
     ASSERT_NE(renderThreadClient, nullptr);
-    auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
-    ASSERT_NE(renderServiceClient, nullptr);
     preTransaction->renderThreadClient_ = std::move(renderThreadClient);
-    preTransaction->renderServiceClient_ = std::move(renderServiceClient);
     NodeId nodeId = 1;
     preTransaction->MoveCommandByNodeId(curTransaction, nodeId);
 }
@@ -963,11 +909,7 @@ HWTEST_F(RSTransactionHandlerTest, MoveCommandByNodeId003, TestSize.Level1)
     auto curTransaction = std::make_shared<RSTransactionHandler>();
     auto renderThreadClient = CreateRenderThreadClient();
     ASSERT_NE(renderThreadClient, nullptr);
-    auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
-    renderServiceClient.reset();
-    ASSERT_EQ(renderServiceClient, nullptr);
     preTransaction->renderThreadClient_ = std::move(renderThreadClient);
-    preTransaction->renderServiceClient_ = std::move(renderServiceClient);
     NodeId nodeId = 1;
     preTransaction->MoveCommandByNodeId(curTransaction, nodeId);
 }
@@ -985,10 +927,7 @@ HWTEST_F(RSTransactionHandlerTest, MoveCommandByNodeId004, TestSize.Level1)
     auto renderThreadClient = CreateRenderThreadClient();
     renderThreadClient.reset();
     ASSERT_EQ(renderThreadClient, nullptr);
-    auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
-    ASSERT_NE(renderServiceClient, nullptr);
     preTransaction->renderThreadClient_ = std::move(renderThreadClient);
-    preTransaction->renderServiceClient_ = std::move(renderServiceClient);
     NodeId nodeId = 1;
     preTransaction->MoveCommandByNodeId(curTransaction, nodeId);
 }
@@ -1005,7 +944,6 @@ HWTEST_F(RSTransactionHandlerTest, AddCommandFromRT001, TestSize.Level1)
     auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
     renderServiceClient.reset();
     ASSERT_EQ(renderServiceClient, nullptr);
-    transaction->SetRenderServiceClient(renderServiceClient);
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSAnimationCallback>(1, 1, 1, AnimationCallbackEvent::FINISHED);
     transaction->AddCommandFromRT(command, 1, FollowType::FOLLOW_TO_PARENT);
@@ -1024,7 +962,6 @@ HWTEST_F(RSTransactionHandlerTest, AddCommandFromRT002, TestSize.Level1)
     auto transaction = std::make_shared<RSTransactionHandler>();
     auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
     ASSERT_NE(renderServiceClient, nullptr);
-    transaction->SetRenderServiceClient(renderServiceClient);
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSAnimationCallback>(1, 1, 1, AnimationCallbackEvent::FINISHED);
     transaction->AddCommandFromRT(command, 1, FollowType::FOLLOW_TO_PARENT);
@@ -1081,7 +1018,6 @@ HWTEST_F(RSTransactionHandlerTest, ExecuteSynchronousTask003, TestSize.Level1)
     auto task = std::make_shared<RSNodeGetShowingPropertyAndCancelAnimation>(0, nullptr);
     ASSERT_NE(task, nullptr);
     transaction->SetRenderThreadClient(renderThreadClient);
-    transaction->SetRenderServiceClient(renderServiceClient);
     transaction->ExecuteSynchronousTask(task);
 }
 
@@ -1102,7 +1038,6 @@ HWTEST_F(RSTransactionHandlerTest, ExecuteSynchronousTask004, TestSize.Level1)
     auto task = std::make_shared<RSNodeGetShowingPropertyAndCancelAnimation>(0, nullptr);
     ASSERT_NE(task, nullptr);
     transaction->SetRenderThreadClient(renderThreadClient);
-    transaction->SetRenderServiceClient(renderServiceClient);
     transaction->ExecuteSynchronousTask(task, false);
     transaction->ExecuteSynchronousTask(task, true);
 }
@@ -1124,7 +1059,7 @@ HWTEST_F(RSTransactionHandlerTest, ExecuteSynchronousTask005, TestSize.Level1)
     auto task = std::make_shared<RSNodeGetShowingPropertyAndCancelAnimation>(0, nullptr);
     ASSERT_NE(task, nullptr);
     transaction->SetRenderThreadClient(renderThreadClient);
-    transaction->SetRenderServiceClient(renderServiceClient);
+    // add rendRenderPipelineClient
     transaction->ExecuteSynchronousTask(task, false);
     transaction->ExecuteSynchronousTask(task, true);
 }
@@ -1145,7 +1080,7 @@ HWTEST_F(RSTransactionHandlerTest, ExecuteSynchronousTask006, TestSize.Level1)
     auto task = std::make_shared<RSNodeGetShowingPropertyAndCancelAnimation>(0, nullptr);
     ASSERT_NE(task, nullptr);
     transaction->SetRenderThreadClient(renderThreadClient);
-    transaction->SetRenderServiceClient(renderServiceClient);
+
     transaction->ExecuteSynchronousTask(task, false);
     transaction->ExecuteSynchronousTask(task, true);
 }
@@ -1368,11 +1303,6 @@ HWTEST_F(RSTransactionHandlerTest, FlushImplicitTransactionFromRT004, TestSize.L
 {
     auto transaction = std::make_shared<RSTransactionHandler>();
     uint64_t timestamp = 1;
-    auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
-    renderServiceClient.reset();
-    ASSERT_EQ(renderServiceClient, nullptr);
-
-    transaction->renderServiceClient_ = renderServiceClient;
     transaction->FlushImplicitTransactionFromRT(timestamp);
     transaction->SetSyncTransactionNum(0);
     transaction->StartSyncTransaction();

@@ -391,17 +391,6 @@ HWTEST_F(RSSystemPropertiesTest, GetHighContrastStatus, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetDrmEnabled
- * @tc.desc: GetDrmEnabled Test
- * @tc.type:FUNC
- * @tc.require: issueI9JZWC
- */
-HWTEST_F(RSSystemPropertiesTest, GetDrmEnabled, TestSize.Level1)
-{
-    ASSERT_TRUE(RSSystemProperties::GetDrmEnabled());
-}
-
-/**
  * @tc.name: GetTargetDirtyRegionDfxEnabled
  * @tc.desc: GetDrmEGetTargetDirtyRegionDfxEnablednabled Test
  * @tc.type:FUNC
@@ -1210,10 +1199,21 @@ HWTEST_F(RSSystemPropertiesTest, GetSupportScreenFreezeEnabledTest, TestSize.Lev
  */
 HWTEST_F(RSSystemPropertiesTest, GetScaleImageAsyncEnabledTest, TestSize.Level1)
 {
-    auto ret = system::GetParameter("rosen.isEnabledScaleImageAsync.enabled", "1");
-    system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", "1");
     EXPECT_TRUE(RSSystemProperties::GetScaleImageAsyncEnabled());
-    system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", ret);
+}
+
+/**
+ * @tc.name: GetMemoryWatermarkEnabled
+ * @tc.desc: GetMemoryWatermarkEnabledTest
+ * @tc.type: FUNC
+ * @tc.require: issuesICQ74B
+ */
+HWTEST_F(RSSystemPropertiesTest, GetMemoryWatermarkEnabledTest, TestSize.Level1)
+{
+    system::SetParameter("resourceschedule.memmgr.min.memmory.watermark", "true");
+    EXPECT_FALSE(RSSystemProperties::GetMemoryWatermarkEnabled());
+    system::SetParameter("resourceschedule.memmgr.min.memmory.watermark", "false");
+    EXPECT_TRUE(RSSystemProperties::GetMemoryWatermarkEnabled());
 }
 
 /**

@@ -27,7 +27,7 @@
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pixel_map.h"
-#include "screen_manager/rs_screen_manager.h"
+#include "rs_layer_transaction_data.h"
 #include "sync_fence.h"
 #include "utils/matrix.h"
 #include "utils/rect.h"
@@ -43,10 +43,12 @@ struct ComposeInfo {
     GraphicMatrix matrix;
     int32_t gravity { 0 };
     int32_t zOrder { 0 };
-    GraphicLayerAlpha alpha;
+    GraphicLayerAlpha alpha { 0 };
     sptr<SurfaceBuffer> buffer = nullptr;
     sptr<SurfaceBuffer> preBuffer = nullptr;
     sptr<SyncFence> fence = SyncFence::InvalidFence();
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount = nullptr;
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> preBufferOwnerCount = nullptr;
     GraphicBlendType blendType = GraphicBlendType::GRAPHIC_BLEND_NONE;
     bool needClient = false;
     float sdrNit { 0.0f };
@@ -144,7 +146,8 @@ public:
     static bool IsNeedClient(RSRenderNode& node, const ComposeInfo& info);
     static void SetNeedClient(bool flag);
     static bool IsBufferValid(const sptr<SurfaceBuffer>& buffer);
-    static BufferRequestConfig GetFrameBufferRequestConfig(const ScreenInfo& screenInfo, bool isProtected = false,
+    static BufferRequestConfig GetFrameBufferRequestConfig(const ComposerScreenInfo& composerScreenInfo,
+        bool isProtected = false,
         GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB,
         GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_8888);
 
@@ -202,8 +205,7 @@ public:
     static bool WritePixelMapToPng(Media::PixelMap& pixelMap);
     static int32_t GetScreenRotationOffset(RSSurfaceRenderParams* nodeParams);
     // collect the rotation lock correction degree
-    static void GetRotationLockParam(RSSurfaceRenderNode& node, std::shared_ptr<RSScreenRenderNode> screenRenderNode,
-        sptr<RSScreenManager> screenManager);
+    static void GetRotationLockParam(RSSurfaceRenderNode& node, std::shared_ptr<RSScreenRenderNode> screenRenderNode);
 #ifdef RS_ENABLE_GPU
     static void DealWithSurfaceRotationAndGravity(GraphicTransformType transform, Gravity gravity,
         RectF& localBounds, BufferDrawParam& params, RSSurfaceRenderParams* nodeParams = nullptr);

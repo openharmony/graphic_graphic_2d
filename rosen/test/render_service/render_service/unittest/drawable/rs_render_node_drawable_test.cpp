@@ -950,6 +950,7 @@ HWTEST_F(RSRenderNodeDrawableTest, SkipDrawByWhiteList001, TestSize.Level1)
     CaptureParam params;
     params.isMirror_ = true;
     std::unordered_set<NodeId> whiteList = {nodeId};
+    RSUniRenderThread::Instance().composerClientManager_ = std::make_shared<RSComposerClientManager>();
     RSUniRenderThread::Instance().SetWhiteList(whiteList);
     AutoSpecialLayerStateRecover whiteListRecover(INVALID_NODEID);
     RSUniRenderThread::SetCaptureParam(params);
@@ -971,26 +972,21 @@ HWTEST_F(RSRenderNodeDrawableTest, SkipDrawByWhiteList001, TestSize.Level1)
     // set screenDrawable info
     auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable->renderParams_.get());
     ASSERT_NE(screenParams, nullptr);
-    ScreenId screenid = 1;
-    screenParams->screenInfo_.id = screenid;
+    ScreenId screenId = 1;
+    screenParams->screenInfo_.id = screenId;
     screenParams->childDisplayCount_++;
     // sync curDisplayScreenId_
     screenDrawable->OnDraw(canvas);
 
-    std::unordered_map<ScreenId, bool> info;
-    info[screenid] = true;
-    drawable->renderParams_->SetVirtualScreenWhiteListInfo(info);
+    std::unordered_set<ScreenId> info;
+    info.insert(screenId);
+    drawable->renderParams_->SetScreensWithSubTreeWhitelist(info);
     RSUniRenderThread::SetCaptureParam(params);
     ASSERT_TRUE(drawable->SkipDrawByWhiteList(canvas));
 
     info.clear();
-    info[screenid + 1] = true;
-    drawable->renderParams_->SetVirtualScreenWhiteListInfo(info);
-    ASSERT_TRUE(drawable->SkipDrawByWhiteList(canvas));
-
-    info.clear();
-    info[screenid] = false;
-    drawable->renderParams_->SetVirtualScreenWhiteListInfo(info);
+    info.insert(screenId + 1);
+    drawable->renderParams_->SetScreensWithSubTreeWhitelist(info);
     ASSERT_TRUE(drawable->SkipDrawByWhiteList(canvas));
 }
 

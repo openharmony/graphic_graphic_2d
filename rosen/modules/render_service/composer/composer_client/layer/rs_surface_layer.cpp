@@ -13,28 +13,160 @@
  * limitations under the License.
  */
 
-
-#include <memory>
-#include "rs_layer_context.h"
 #include "rs_surface_layer.h"
+#include <memory>
+#include "rs_composer_context.h"
+#include "rs_layer_parcel.h"
+#include "rs_surface_layer_parcel.h"
 #include "surface_type.h"
 
+#undef LOG_TAG
+#define LOG_TAG "RSSurfaceLayer"
 namespace OHOS {
 namespace Rosen {
-std::shared_ptr<RSLayer> RSSurfaceLayer::CreateLayer(const std::shared_ptr<RSRenderComposerClient>& client)
+const std::map<GraphicTransformType, std::string> TransformTypeStrs = {
+    {GRAPHIC_ROTATE_NONE,                    "0 <no rotation>"},
+    {GRAPHIC_ROTATE_90,                      "1 <rotation by 90 degrees>"},
+    {GRAPHIC_ROTATE_180,                     "2 <rotation by 180 degrees>"},
+    {GRAPHIC_ROTATE_270,                     "3 <rotation by 270 degrees>"},
+    {GRAPHIC_FLIP_H,                         "4 <flip horizontally>"},
+    {GRAPHIC_FLIP_V,                         "5 <flip vertically>"},
+    {GRAPHIC_FLIP_H_ROT90,                   "6 <flip horizontally and rotate 90 degrees>"},
+    {GRAPHIC_FLIP_V_ROT90,                   "7 <flip vertically and rotate 90 degrees>"},
+    {GRAPHIC_FLIP_H_ROT180,                  "8 <flip horizontally and rotate 180 degrees>"},
+    {GRAPHIC_FLIP_V_ROT180,                  "9 <flip vertically and rotate 180 degrees>"},
+    {GRAPHIC_FLIP_H_ROT270,                  "10 <flip horizontally and rotate 270 degrees>"},
+    {GRAPHIC_FLIP_V_ROT270,                  "11 <flip vertically and rotate 270 degrees>"},
+    {GRAPHIC_ROTATE_BUTT,                    "12 <uninitialized>"},
+};
+
+const std::map<GraphicCompositionType, std::string> CompositionTypeStrs = {
+    {GRAPHIC_COMPOSITION_CLIENT,             "0 <client composition>"},
+    {GRAPHIC_COMPOSITION_DEVICE,             "1 <device composition>"},
+    {GRAPHIC_COMPOSITION_CURSOR,             "2 <cursor composition>"},
+    {GRAPHIC_COMPOSITION_VIDEO,              "3 <video composition>"},
+    {GRAPHIC_COMPOSITION_DEVICE_CLEAR,       "4 <device clear composition>"},
+    {GRAPHIC_COMPOSITION_CLIENT_CLEAR,       "5 <client clear composition>"},
+    {GRAPHIC_COMPOSITION_TUNNEL,             "6 <tunnel composition>"},
+    {GRAPHIC_COMPOSITION_SOLID_COLOR,        "7 <layercolor composition>"},
+    {GRAPHIC_COMPOSITION_BUTT,               "8 <uninitialized>"},
+};
+
+const std::map<GraphicBlendType, std::string> BlendTypeStrs = {
+    {GRAPHIC_BLEND_NONE,                     "0 <No blending>"},
+    {GRAPHIC_BLEND_CLEAR,                    "1 <CLEAR blending>"},
+    {GRAPHIC_BLEND_SRC,                      "2 <SRC blending>"},
+    {GRAPHIC_BLEND_SRCOVER,                  "3 <SRC_OVER blending>"},
+    {GRAPHIC_BLEND_DSTOVER,                  "4 <DST_OVER blending>"},
+    {GRAPHIC_BLEND_SRCIN,                    "5 <SRC_IN blending>"},
+    {GRAPHIC_BLEND_DSTIN,                    "6 <DST_IN blending>"},
+    {GRAPHIC_BLEND_SRCOUT,                   "7 <SRC_OUT blending>"},
+    {GRAPHIC_BLEND_DSTOUT,                   "8 <DST_OUT blending>"},
+    {GRAPHIC_BLEND_SRCATOP,                  "9 <SRC_ATOP blending>"},
+    {GRAPHIC_BLEND_DSTATOP,                  "10 <DST_ATOP blending>"},
+    {GRAPHIC_BLEND_ADD,                      "11 <ADD blending>"},
+    {GRAPHIC_BLEND_XOR,                      "12 <XOR blending>"},
+    {GRAPHIC_BLEND_DST,                      "13 <DST blending>"},
+    {GRAPHIC_BLEND_AKS,                      "14 <AKS blending>"},
+    {GRAPHIC_BLEND_AKD,                      "15 <AKD blending>"},
+    {GRAPHIC_BLEND_BUTT,                     "16 <Uninitialized>"},
+};
+
+std::shared_ptr<RSLayer> RSSurfaceLayer::Create(RSLayerId rsLayerId,
+    const std::shared_ptr<RSComposerContext>& context)
 {
-    if (client == nullptr) {
-        RS_LOGE("RSSurfaceLayer::CreateLayer client is nullptr");
+    if (context == nullptr) {
+        RS_LOGE("%{public}s context is nullptr", __func__);
         return nullptr;
     }
-    std::shared_ptr<RSLayer> layer = std::make_shared<RSSurfaceLayer>();
-    client->AddLayer(layer);
+    std::shared_ptr<RSLayer> layer = context->GetRSLayer(rsLayerId);
+    if (layer != nullptr) {
+        RS_TRACE_NAME_FMT("%s use exist layer, id: %" PRIu64 ", name: %s",
+            __func__, rsLayerId, layer->GetSurfaceName().c_str());
+        RS_LOGD("%{public}s get cache layer by layer id: %{public}" PRIu64, __func__, rsLayerId);
+        layer->SetRSLayerId(rsLayerId);
+        return layer;
+    }
+    layer = std::shared_ptr<RSSurfaceLayer>(new RSSurfaceLayer(rsLayerId, context));
+    context->AddRSLayer(layer);
     return layer;
+}
+
+RSSurfaceLayer::RSSurfaceLayer(RSLayerId rsLayerId, std::shared_ptr<RSComposerContext> rsComposerContext)
+{
+    RS_TRACE_NAME_FMT("%s id: %" PRIu64, __func__, rsLayerId);
+    ROSEN_LOGI("Constructing RSSurfaceLayer, id: %{public}" PRIu64, rsLayerId);
+    rsLayerId_ = rsLayerId;
+    rsComposerContext_ = rsComposerContext;
+
+    SetRSLayerCmd<RSRenderLayerRSLayerIdCmd>(rsLayerId);
+}
+
+RSSurfaceLayer::~RSSurfaceLayer()
+{
+    RS_TRACE_NAME_FMT("%s id: %" PRIu64 ", name %s",
+        __func__, rsLayerId_, surfaceName_.c_str());
+    ROSEN_LOGI("Destructing RSSurfaceLayer, id: %{public}" PRIu64 ", name %{public}s",
+        rsLayerId_, surfaceName_.c_str());
+    auto destroyCmd = std::make_shared<RSRenderLayerCmdProperty<bool>>(true);
+    auto renderLayerCmd = std::make_shared<RSRenderLayerDeleteLayerCmd>(destroyCmd);
+    std::shared_ptr<RSLayerParcel> layerParcel =
+        std::make_shared<RSDestroyRSLayerCmd>(rsLayerId_, renderLayerCmd);
+
+    bool success = AddRSLayerParcel(rsLayerId_, layerParcel);
+    if (!success) {
+        ROSEN_LOGE("%{public}s failed to send destroy command, layerId: %{public}" PRIu64, __func__, GetRSLayerId());
+    } else {
+        ROSEN_LOGI("%{public}s destroy command sent successfully, layerId: %{public}" PRIu64, __func__, GetRSLayerId());
+    }
+    auto context = rsComposerContext_.lock();
+    if (context) {
+        context->RemoveRSLayer(rsLayerId_);
+    }
+}
+
+void RSSurfaceLayer::SetRSLayerId(RSLayerId rsLayerId)
+{
+    rsLayerId_ = rsLayerId;
+    SetRSLayerCmd<RSRenderLayerRSLayerIdCmd>(rsLayerId);
+}
+
+RSLayerId RSSurfaceLayer::GetRSLayerId() const
+{
+    return rsLayerId_;
+}
+
+bool RSSurfaceLayer::AddRSLayerParcel(RSLayerId rsLayerId, std::shared_ptr<RSLayerParcel>& layerParcel)
+{
+    auto rsComposerContext = rsComposerContext_.lock();
+    if (!rsComposerContext) {
+        return false;
+    }
+    auto rsLayerTransaction = rsComposerContext->GetRSLayerTransaction();
+    if (rsLayerTransaction != nullptr) {
+        rsLayerTransaction->AddRSLayerParcel(rsLayerId, layerParcel);
+        return true;
+    }
+    return false;
+}
+
+template<typename RSRenderLayerCmdName, typename T>
+void RSSurfaceLayer::SetRSLayerCmd(const T& value)
+{
+    auto renderProperty = std::make_shared<RSRenderLayerCmdProperty<T>>(value);
+    auto renderLayerCmd = std::make_shared<RSRenderLayerCmdName>(renderProperty);
+    std::shared_ptr<RSLayerParcel> layerParcel =
+        std::make_shared<RSUpdateRSLayerCmd>(GetRSLayerId(), renderLayerCmd);
+    AddRSLayerParcel(GetRSLayerId(), layerParcel);
 }
 
 void RSSurfaceLayer::SetAlpha(const GraphicLayerAlpha& alpha)
 {
+    if (layerAlpha_ == alpha) {
+        return;
+    }
     layerAlpha_ = alpha;
+    SetRSLayerCmd<RSRenderLayerAlphaCmd>(alpha);
 }
 
 const GraphicLayerAlpha& RSSurfaceLayer::GetAlpha() const
@@ -42,9 +174,25 @@ const GraphicLayerAlpha& RSSurfaceLayer::GetAlpha() const
     return layerAlpha_;
 }
 
+bool RSSurfaceLayer::GetIsNeedComposition() const
+{
+    return isNeedComposition_;
+}
+
+void RSSurfaceLayer::SetIsNeedComposition(bool isNeedComposition)
+{
+    /* Each setting needs to be re-deliverd */
+    isNeedComposition_ = isNeedComposition;
+    SetRSLayerCmd<RSRenderLayerIsNeedCompositionCmd>(isNeedComposition);
+}
+
 void RSSurfaceLayer::SetZorder(int32_t zOrder)
 {
-    zOrder_ = static_cast<uint32_t>(zOrder);
+    if (zOrder_ == zOrder) {
+        return;
+    }
+    zOrder_ = zOrder;
+    SetRSLayerCmd<RSRenderLayerZorderCmd>(zOrder);
 }
 
 uint32_t RSSurfaceLayer::GetZorder() const
@@ -54,7 +202,11 @@ uint32_t RSSurfaceLayer::GetZorder() const
 
 void RSSurfaceLayer::SetType(const GraphicLayerType layerType)
 {
+    if (layerType_ == layerType) {
+        return;
+    }
     layerType_ = layerType;
+    SetRSLayerCmd<RSRenderLayerTypeCmd>(layerType);
 }
 
 GraphicLayerType RSSurfaceLayer::GetType() const
@@ -64,17 +216,25 @@ GraphicLayerType RSSurfaceLayer::GetType() const
 
 void RSSurfaceLayer::SetTransform(GraphicTransformType type)
 {
+    if (transformType_ == type) {
+        return;
+    }
     transformType_ = type;
+    SetRSLayerCmd<RSRenderLayerTransformCmd>(type);
 }
 
-GraphicTransformType RSSurfaceLayer::GetTransformType() const
+GraphicTransformType RSSurfaceLayer::GetTransform() const
 {
     return transformType_;
 }
 
 void RSSurfaceLayer::SetCompositionType(GraphicCompositionType type)
 {
+    if (compositionType_ == type) {
+        return;
+    }
     compositionType_ = type;
+    SetRSLayerCmd<RSRenderLayerCompositionTypeCmd>(type);
 }
 
 GraphicCompositionType RSSurfaceLayer::GetCompositionType() const
@@ -84,7 +244,11 @@ GraphicCompositionType RSSurfaceLayer::GetCompositionType() const
 
 void RSSurfaceLayer::SetVisibleRegions(const std::vector<GraphicIRect>& visibleRegions)
 {
+    if (visibleRegions_ == visibleRegions) {
+        return;
+    }
     visibleRegions_ = visibleRegions;
+    SetRSLayerCmd<RSRenderLayerVisibleRegionsCmd>(visibleRegions);
 }
 
 const std::vector<GraphicIRect>& RSSurfaceLayer::GetVisibleRegions() const
@@ -94,7 +258,11 @@ const std::vector<GraphicIRect>& RSSurfaceLayer::GetVisibleRegions() const
 
 void RSSurfaceLayer::SetDirtyRegions(const std::vector<GraphicIRect>& dirtyRegions)
 {
+    if (dirtyRegions_ == dirtyRegions) {
+        return;
+    }
     dirtyRegions_ = dirtyRegions;
+    SetRSLayerCmd<RSRenderLayerDirtyRegionsCmd>(dirtyRegions);
 }
 
 const std::vector<GraphicIRect>& RSSurfaceLayer::GetDirtyRegions() const
@@ -104,7 +272,11 @@ const std::vector<GraphicIRect>& RSSurfaceLayer::GetDirtyRegions() const
 
 void RSSurfaceLayer::SetBlendType(GraphicBlendType type)
 {
+    if (blendType_ == type) {
+        return;
+    }
     blendType_ = type;
+    SetRSLayerCmd<RSRenderLayerBlendTypeCmd>(type);
 }
 
 GraphicBlendType RSSurfaceLayer::GetBlendType() const
@@ -114,7 +286,11 @@ GraphicBlendType RSSurfaceLayer::GetBlendType() const
 
 void RSSurfaceLayer::SetCropRect(const GraphicIRect& crop)
 {
+    if (cropRect_ == crop) {
+        return;
+    }
     cropRect_ = crop;
+    SetRSLayerCmd<RSRenderLayerCropRectCmd>(crop);
 }
 
 const GraphicIRect& RSSurfaceLayer::GetCropRect() const
@@ -124,7 +300,11 @@ const GraphicIRect& RSSurfaceLayer::GetCropRect() const
 
 void RSSurfaceLayer::SetPreMulti(bool preMulti)
 {
+    if (preMulti_ == preMulti) {
+        return;
+    }
     preMulti_ = preMulti;
+    SetRSLayerCmd<RSRenderLayerPreMultiCmd>(preMulti);
 }
 
 bool RSSurfaceLayer::IsPreMulti() const
@@ -132,9 +312,13 @@ bool RSSurfaceLayer::IsPreMulti() const
     return preMulti_;
 }
 
-void RSSurfaceLayer::SetLayerSize(const GraphicIRect &layerRect)
+void RSSurfaceLayer::SetLayerSize(const GraphicIRect& layerRect)
 {
+    if (layerRect_ == layerRect) {
+        return;
+    }
     layerRect_ = layerRect;
+    SetRSLayerCmd<RSRenderLayerLayerSizeCmd>(layerRect);
 }
 
 const GraphicIRect& RSSurfaceLayer::GetLayerSize() const
@@ -144,7 +328,11 @@ const GraphicIRect& RSSurfaceLayer::GetLayerSize() const
 
 void RSSurfaceLayer::SetBoundSize(const GraphicIRect& boundRect)
 {
+    if (boundRect_ == boundRect) {
+        return;
+    }
     boundRect_ = boundRect;
+    SetRSLayerCmd<RSRenderLayerBoundSizeCmd>(boundRect);
 }
 
 const GraphicIRect& RSSurfaceLayer::GetBoundSize() const
@@ -154,7 +342,11 @@ const GraphicIRect& RSSurfaceLayer::GetBoundSize() const
 
 void RSSurfaceLayer::SetLayerColor(GraphicLayerColor layerColor)
 {
+    if (layerColor_ == layerColor) {
+        return;
+    }
     layerColor_ = layerColor;
+    SetRSLayerCmd<RSRenderLayerLayerColorCmd>(layerColor);
 }
 
 const GraphicLayerColor& RSSurfaceLayer::GetLayerColor() const
@@ -164,7 +356,11 @@ const GraphicLayerColor& RSSurfaceLayer::GetLayerColor() const
 
 void RSSurfaceLayer::SetBackgroundColor(GraphicLayerColor backgroundColor)
 {
+    if (backgroundColor_ == backgroundColor) {
+        return;
+    }
     backgroundColor_ = backgroundColor;
+    SetRSLayerCmd<RSRenderLayerBackgroundColorCmd>(backgroundColor);
 }
 
 const GraphicLayerColor& RSSurfaceLayer::GetBackgroundColor() const
@@ -174,7 +370,11 @@ const GraphicLayerColor& RSSurfaceLayer::GetBackgroundColor() const
 
 void RSSurfaceLayer::SetCornerRadiusInfoForDRM(const std::vector<float>& drmCornerRadiusInfo)
 {
+    if (drmCornerRadiusInfo_ == drmCornerRadiusInfo) {
+        return;
+    }
     drmCornerRadiusInfo_ = drmCornerRadiusInfo;
+    SetRSLayerCmd<RSRenderLayerCornerRadiusInfoForDRMCmd>(drmCornerRadiusInfo);
 }
 
 const std::vector<float>& RSSurfaceLayer::GetCornerRadiusInfoForDRM() const
@@ -182,19 +382,27 @@ const std::vector<float>& RSSurfaceLayer::GetCornerRadiusInfoForDRM() const
     return drmCornerRadiusInfo_;
 }
 
-void RSSurfaceLayer::SetColorTransform(const std::vector<float>& matrix)
+void RSSurfaceLayer::SetColorTransform(const std::vector<float> &matrix)
 {
+    if (colorTransformMatrix_ == matrix) {
+        return;
+    }
     colorTransformMatrix_ = matrix;
+    SetRSLayerCmd<RSRenderLayerColorTransformCmd>(matrix);
 }
 
-const std::vector<float> &RSSurfaceLayer::GetColorTransform() const
+const std::vector<float>& RSSurfaceLayer::GetColorTransform() const
 {
     return colorTransformMatrix_;
 }
 
 void RSSurfaceLayer::SetColorDataSpace(GraphicColorDataSpace colorSpace)
 {
+    if (colorSpace_ == colorSpace) {
+        return;
+    }
     colorSpace_ = colorSpace;
+    SetRSLayerCmd<RSRenderLayerColorDataSpaceCmd>(colorSpace);
 }
 
 GraphicColorDataSpace RSSurfaceLayer::GetColorDataSpace() const
@@ -204,7 +412,11 @@ GraphicColorDataSpace RSSurfaceLayer::GetColorDataSpace() const
 
 void RSSurfaceLayer::SetMetaData(const std::vector<GraphicHDRMetaData>& metaData)
 {
+    if (metaData_ == metaData) {
+        return;
+    }
     metaData_ = metaData;
+    SetRSLayerCmd<RSRenderLayerMetaDataCmd>(metaData);
 }
 
 const std::vector<GraphicHDRMetaData>& RSSurfaceLayer::GetMetaData() const
@@ -214,7 +426,11 @@ const std::vector<GraphicHDRMetaData>& RSSurfaceLayer::GetMetaData() const
 
 void RSSurfaceLayer::SetMetaDataSet(const GraphicHDRMetaDataSet& metaDataSet)
 {
+    if (metaDataSet_ == metaDataSet) {
+        return;
+    }
     metaDataSet_ = metaDataSet;
+    SetRSLayerCmd<RSRenderLayerMetaDataSetCmd>(metaDataSet);
 }
 
 const GraphicHDRMetaDataSet& RSSurfaceLayer::GetMetaDataSet() const
@@ -222,9 +438,13 @@ const GraphicHDRMetaDataSet& RSSurfaceLayer::GetMetaDataSet() const
     return metaDataSet_;
 }
 
-void RSSurfaceLayer::SetMatrix(GraphicMatrix matrix)
+void RSSurfaceLayer::SetMatrix(const GraphicMatrix& matrix)
 {
+    if (matrix_ == matrix) {
+        return;
+    }
     matrix_ = matrix;
+    SetRSLayerCmd<RSRenderLayerMatrixCmd>(matrix);
 }
 
 const GraphicMatrix& RSSurfaceLayer::GetMatrix() const
@@ -234,7 +454,11 @@ const GraphicMatrix& RSSurfaceLayer::GetMatrix() const
 
 void RSSurfaceLayer::SetGravity(int32_t gravity)
 {
+    if (gravity_ == gravity) {
+        return;
+    }
     gravity_ = gravity;
+    SetRSLayerCmd<RSRenderLayerGravityCmd>(gravity);
 }
 
 int32_t RSSurfaceLayer::GetGravity() const
@@ -244,7 +468,11 @@ int32_t RSSurfaceLayer::GetGravity() const
 
 void RSSurfaceLayer::SetUniRenderFlag(bool isUniRender)
 {
+    if (isUniRender_ == isUniRender) {
+        return;
+    }
     isUniRender_ = isUniRender;
+    SetRSLayerCmd<RSRenderLayerUniRenderFlagCmd>(isUniRender);
 }
 
 bool RSSurfaceLayer::GetUniRenderFlag() const
@@ -254,7 +482,11 @@ bool RSSurfaceLayer::GetUniRenderFlag() const
 
 void RSSurfaceLayer::SetTunnelHandleChange(bool change)
 {
+    if (tunnelHandleChange_ == change) {
+        return;
+    }
     tunnelHandleChange_ = change;
+    SetRSLayerCmd<RSRenderLayerTunnelHandleChangeCmd>(change);
 }
 
 bool RSSurfaceLayer::GetTunnelHandleChange() const
@@ -264,7 +496,11 @@ bool RSSurfaceLayer::GetTunnelHandleChange() const
 
 void RSSurfaceLayer::SetTunnelHandle(const sptr<SurfaceTunnelHandle>& handle)
 {
+    if (tunnelHandle_ == handle) {
+        return;
+    }
     tunnelHandle_ = handle;
+    SetRSLayerCmd<RSRenderLayerTunnelHandleCmd>(handle);
 }
 
 sptr<SurfaceTunnelHandle> RSSurfaceLayer::GetTunnelHandle() const
@@ -274,7 +510,11 @@ sptr<SurfaceTunnelHandle> RSSurfaceLayer::GetTunnelHandle() const
 
 void RSSurfaceLayer::SetTunnelLayerId(const uint64_t tunnelLayerId)
 {
+    if (tunnelLayerId_ == tunnelLayerId) {
+        return;
+    }
     tunnelLayerId_ = tunnelLayerId;
+    SetRSLayerCmd<RSRenderLayerTunnelLayerIdCmd>(tunnelLayerId);
 }
 
 uint64_t RSSurfaceLayer::GetTunnelLayerId() const
@@ -284,7 +524,11 @@ uint64_t RSSurfaceLayer::GetTunnelLayerId() const
 
 void RSSurfaceLayer::SetTunnelLayerProperty(uint32_t tunnelLayerProperty)
 {
+    if (tunnelLayerProperty_ == tunnelLayerProperty) {
+        return;
+    }
     tunnelLayerProperty_ = tunnelLayerProperty;
+    SetRSLayerCmd<RSRenderLayerTunnelLayerPropertyCmd>(tunnelLayerProperty);
 }
 
 uint32_t RSSurfaceLayer::GetTunnelLayerProperty() const
@@ -294,6 +538,9 @@ uint32_t RSSurfaceLayer::GetTunnelLayerProperty() const
 
 void RSSurfaceLayer::SetPresentTimestamp(const GraphicPresentTimestamp& timestamp)
 {
+    if (presentTimestamp_ == timestamp) {
+        return;
+    }
     presentTimestamp_ = timestamp;
 }
 
@@ -304,17 +551,24 @@ const GraphicPresentTimestamp& RSSurfaceLayer::GetPresentTimestamp() const
 
 void RSSurfaceLayer::SetIsSupportedPresentTimestamp(bool isSupported)
 {
+    if (isSupportedPresentTimestamp_ == isSupported) {
+        return;
+    }
     isSupportedPresentTimestamp_ = isSupported;
 }
 
-bool RSSurfaceLayer::IsSupportedPresentTimestamp() const
+bool RSSurfaceLayer::GetIsSupportedPresentTimestamp() const
 {
     return isSupportedPresentTimestamp_;
 }
 
 void RSSurfaceLayer::SetSdrNit(float sdrNit)
 {
+    if (sdrNit_ == sdrNit) {
+        return;
+    }
     sdrNit_ = sdrNit;
+    SetRSLayerCmd<RSRenderLayerSdrNitCmd>(sdrNit);
 }
 
 float RSSurfaceLayer::GetSdrNit() const
@@ -324,7 +578,11 @@ float RSSurfaceLayer::GetSdrNit() const
 
 void RSSurfaceLayer::SetDisplayNit(float displayNit)
 {
+    if (displayNit_ == displayNit) {
+        return;
+    }
     displayNit_ = displayNit;
+    SetRSLayerCmd<RSRenderLayerDisplayNitCmd>(displayNit);
 }
 
 float RSSurfaceLayer::GetDisplayNit() const
@@ -334,7 +592,11 @@ float RSSurfaceLayer::GetDisplayNit() const
 
 void RSSurfaceLayer::SetBrightnessRatio(float brightnessRatio)
 {
+    if (brightnessRatio_ == brightnessRatio) {
+        return;
+    }
     brightnessRatio_ = brightnessRatio;
+    SetRSLayerCmd<RSRenderLayerBrightnessRatioCmd>(brightnessRatio);
 }
 
 float RSSurfaceLayer::GetBrightnessRatio() const
@@ -344,7 +606,11 @@ float RSSurfaceLayer::GetBrightnessRatio() const
 
 void RSSurfaceLayer::SetLayerLinearMatrix(const std::vector<float>& layerLinearMatrix)
 {
+    if (layerLinearMatrix_ == layerLinearMatrix) {
+        return;
+    }
     layerLinearMatrix_ = layerLinearMatrix;
+    SetRSLayerCmd<RSRenderLayerLayerLinearMatrixCmd>(layerLinearMatrix);
 }
 
 const std::vector<float>& RSSurfaceLayer::GetLayerLinearMatrix() const
@@ -354,7 +620,11 @@ const std::vector<float>& RSSurfaceLayer::GetLayerLinearMatrix() const
 
 void RSSurfaceLayer::SetLayerSourceTuning(int32_t layerSource)
 {
+    if (layerSource_ == layerSource) {
+        return;
+    }
     layerSource_ = layerSource;
+    SetRSLayerCmd<RSRenderLayerLayerSourceTuningCmd>(layerSource);
 }
 
 int32_t RSSurfaceLayer::GetLayerSourceTuning() const
@@ -364,7 +634,11 @@ int32_t RSSurfaceLayer::GetLayerSourceTuning() const
 
 void RSSurfaceLayer::SetWindowsName(std::vector<std::string>& windowsName)
 {
+    if (windowsName_ == windowsName) {
+        return;
+    }
     windowsName_ = windowsName;
+    SetRSLayerCmd<RSRenderLayerWindowsNameCmd>(windowsName);
 }
 
 const std::vector<std::string>& RSSurfaceLayer::GetWindowsName() const
@@ -374,7 +648,11 @@ const std::vector<std::string>& RSSurfaceLayer::GetWindowsName() const
 
 void RSSurfaceLayer::SetRotationFixed(bool rotationFixed)
 {
+    if (rotationFixed_ == rotationFixed) {
+        return;
+    }
     rotationFixed_ = rotationFixed;
+    SetRSLayerCmd<RSRenderLayerRotationFixedCmd>(rotationFixed);
 }
 
 bool RSSurfaceLayer::GetRotationFixed() const
@@ -384,7 +662,11 @@ bool RSSurfaceLayer::GetRotationFixed() const
 
 void RSSurfaceLayer::SetLayerArsr(bool arsrTag)
 {
+    if (arsrTag_ == arsrTag) {
+        return;
+    }
     arsrTag_ = arsrTag;
+    SetRSLayerCmd<RSRenderLayerLayerArsrCmd>(arsrTag);
 }
 
 bool RSSurfaceLayer::GetLayerArsr() const
@@ -394,7 +676,11 @@ bool RSSurfaceLayer::GetLayerArsr() const
 
 void RSSurfaceLayer::SetLayerCopybit(bool copybitTag)
 {
+    if (copybitTag_ == copybitTag) {
+        return;
+    }
     copybitTag_ = copybitTag;
+    SetRSLayerCmd<RSRenderLayerLayerCopybitCmd>(copybitTag);
 }
 
 bool RSSurfaceLayer::GetLayerCopybit() const
@@ -404,7 +690,11 @@ bool RSSurfaceLayer::GetLayerCopybit() const
 
 void RSSurfaceLayer::SetNeedBilinearInterpolation(bool need)
 {
+    if (needBilinearInterpolation_ == need) {
+        return;
+    }
     needBilinearInterpolation_ = need;
+    SetRSLayerCmd<RSRenderLayerNeedBilinearInterpolationCmd>(need);
 }
 
 bool RSSurfaceLayer::GetNeedBilinearInterpolation() const
@@ -414,17 +704,25 @@ bool RSSurfaceLayer::GetNeedBilinearInterpolation() const
 
 void RSSurfaceLayer::SetIsMaskLayer(bool isMaskLayer)
 {
+    if (isMaskLayer_ == isMaskLayer) {
+        return;
+    }
     isMaskLayer_ = isMaskLayer;
+    SetRSLayerCmd<RSRenderLayerIsMaskLayerCmd>(isMaskLayer);
 }
 
-bool RSSurfaceLayer::IsMaskLayer() const
+bool RSSurfaceLayer::GetIsMaskLayer() const
 {
     return isMaskLayer_;
 }
 
 void RSSurfaceLayer::SetNodeId(uint64_t nodeId)
 {
+    if (nodeId_ == nodeId) {
+        return;
+    }
     nodeId_ = nodeId;
+    SetRSLayerCmd<RSRenderLayerNodeIdCmd>(nodeId);
 }
 
 uint64_t RSSurfaceLayer::GetNodeId() const
@@ -432,9 +730,13 @@ uint64_t RSSurfaceLayer::GetNodeId() const
     return nodeId_;
 }
 
-void RSSurfaceLayer::SetAncoFlags(const uint32_t ancoFlags)
+void RSSurfaceLayer::SetAncoFlags(uint32_t ancoFlags)
 {
+    if (ancoFlags_ == ancoFlags) {
+        return;
+    }
     ancoFlags_ = ancoFlags;
+    SetRSLayerCmd<RSRenderLayerAncoFlagsCmd>(ancoFlags);
 }
 
 uint32_t RSSurfaceLayer::GetAncoFlags() const
@@ -444,13 +746,19 @@ uint32_t RSSurfaceLayer::GetAncoFlags() const
 
 bool RSSurfaceLayer::IsAncoNative() const
 {
-    static constexpr uint32_t ANCO_NATIVE_NODE_FLAG = static_cast<uint32_t>(AncoFlags::ANCO_NATIVE_NODE);
+    constexpr uint32_t ANCO_NATIVE_NODE_FLAG = static_cast<uint32_t>(AncoFlags::ANCO_NATIVE_NODE);
     return (ancoFlags_ & ANCO_NATIVE_NODE_FLAG) == ANCO_NATIVE_NODE_FLAG;
 }
 
 void RSSurfaceLayer::SetLayerMaskInfo(LayerMask mask)
 {
+    if (mask == layerMask_) {
+        return;
+    }
+
     layerMask_ = mask;
+    SetRSLayerCmd<RSRenderLayerLayerMaskInfoCmd>(mask);
+    return;
 }
 
 LayerMask RSSurfaceLayer::GetLayerMaskInfo() const
@@ -468,35 +776,70 @@ sptr<IConsumerSurface> RSSurfaceLayer::GetSurface() const
     return cSurface_;
 }
 
+uint64_t RSSurfaceLayer::GetSurfaceUniqueId() const
+{
+    return surfaceUniqueId_;
+}
+
+void RSSurfaceLayer::SetSurfaceUniqueId(uint64_t uniqueId)
+{
+    if (uniqueId == surfaceUniqueId_) {
+        return;
+    }
+    surfaceUniqueId_ = uniqueId;
+    SetRSLayerCmd<RSRenderLayerSurfaceUniqueIdCmd>(uniqueId);
+}
+
 void RSSurfaceLayer::SetBuffer(const sptr<SurfaceBuffer>& sbuffer, const sptr<SyncFence>& acquireFence)
 {
     sbuffer_ = sbuffer;
     acquireFence_ = acquireFence;
+    SetRSLayerCmd<RSRenderLayerBufferCmd>(sbuffer);
+    SetRSLayerCmd<RSRenderLayerAcquireFenceCmd>(acquireFence);
 }
 
 void RSSurfaceLayer::SetBuffer(const sptr<SurfaceBuffer>& sbuffer)
 {
     sbuffer_ = sbuffer;
+    SetRSLayerCmd<RSRenderLayerBufferCmd>(sbuffer);
 }
 
 sptr<SurfaceBuffer> RSSurfaceLayer::GetBuffer() const
 {
-    return sbuffer_;
+    auto sbuffer = sbuffer_.promote();
+    if (sbuffer == nullptr) {
+        ROSEN_LOGE("%{public}s layer id: %{public}" PRIu64 "buffer is released", __func__, rsLayerId_);
+        return nullptr;
+    }
+    return sbuffer;
 }
 
 void RSSurfaceLayer::SetPreBuffer(const sptr<SurfaceBuffer>& buffer)
 {
+    if (buffer == pbuffer_) {
+        return;
+    }
     pbuffer_ = buffer;
+    SetRSLayerCmd<RSRenderLayerPreBufferCmd>(buffer);
 }
 
 sptr<SurfaceBuffer> RSSurfaceLayer::GetPreBuffer() const
 {
-    return pbuffer_;
+    auto pbuffer = pbuffer_.promote();
+    if (pbuffer == nullptr) {
+        ROSEN_LOGE("%{public}s layer id: %{public}" PRIu64 "buffer is released", __func__, rsLayerId_);
+        return nullptr;
+    }
+    return pbuffer;
 }
 
 void RSSurfaceLayer::SetAcquireFence(const sptr<SyncFence>& acquireFence)
 {
+    if (acquireFence == acquireFence_) {
+        return;
+    }
     acquireFence_ = acquireFence;
+    SetRSLayerCmd<RSRenderLayerAcquireFenceCmd>(acquireFence);
 }
 
 sptr<SyncFence> RSSurfaceLayer::GetAcquireFence() const
@@ -504,9 +847,53 @@ sptr<SyncFence> RSSurfaceLayer::GetAcquireFence() const
     return acquireFence_;
 }
 
+void RSSurfaceLayer::SetCycleBuffersNum(uint32_t cycleBuffersNum)
+{
+    if (cycleBuffersNum_ == cycleBuffersNum) {
+        return;
+    }
+    cycleBuffersNum_ = cycleBuffersNum;
+    SetRSLayerCmd<RSRenderLayerCycleBuffersNumCmd>(cycleBuffersNum);
+}
+
+uint32_t RSSurfaceLayer::GetCycleBuffersNum() const
+{
+    return cycleBuffersNum_;
+}
+
+void RSSurfaceLayer::SetSurfaceName(std::string surfaceName)
+{
+    if (surfaceName_ == surfaceName) {
+        return;
+    }
+    surfaceName_ = surfaceName;
+    SetRSLayerCmd<RSRenderLayerSurfaceNameCmd>(surfaceName);
+}
+
+std::string RSSurfaceLayer::GetSurfaceName() const
+{
+    return surfaceName_;
+}
+
+void RSSurfaceLayer::SetSolidColorLayerProperty(GraphicSolidColorLayerProperty solidColorLayerProperty)
+{
+    /* Each setting needs to be re-deliverd */
+    solidColorLayerProperty_ = solidColorLayerProperty;
+    SetRSLayerCmd<RSRenderLayerSolidColorLayerPropertyCmd>(solidColorLayerProperty);
+}
+
+GraphicSolidColorLayerProperty RSSurfaceLayer::GetSolidColorLayerProperty() const
+{
+    return solidColorLayerProperty_;
+}
+
 void RSSurfaceLayer::SetUseDeviceOffline(bool useOffline)
 {
+    if (useDeviceOffline_ == useOffline) {
+        return;
+    }
     useDeviceOffline_ = useOffline;
+    SetRSLayerCmd<RSRenderLayerUseDeviceOfflineCmd>(useOffline);
 }
 
 bool RSSurfaceLayer::GetUseDeviceOffline() const
@@ -516,7 +903,11 @@ bool RSSurfaceLayer::GetUseDeviceOffline() const
 
 void RSSurfaceLayer::SetIgnoreAlpha(bool ignoreAlpha)
 {
+    if (ignoreAlpha_ == ignoreAlpha) {
+        return;
+    }
     ignoreAlpha_ = ignoreAlpha;
+    SetRSLayerCmd<RSRenderLayerIgnoreAlphaCmd>(ignoreAlpha);
 }
 
 bool RSSurfaceLayer::GetIgnoreAlpha() const
@@ -526,7 +917,11 @@ bool RSSurfaceLayer::GetIgnoreAlpha() const
 
 void RSSurfaceLayer::SetAncoSrcRect(const GraphicIRect& ancoSrcRect)
 {
+    if (ancoSrcRect_ == ancoSrcRect) {
+        return;
+    }
     ancoSrcRect_ = ancoSrcRect;
+    SetRSLayerCmd<RSRenderLayerAncoSrcRectCmd>(ancoSrcRect);
 }
 
 const GraphicIRect& RSSurfaceLayer::GetAncoSrcRect() const
@@ -534,73 +929,16 @@ const GraphicIRect& RSSurfaceLayer::GetAncoSrcRect() const
     return ancoSrcRect_;
 }
 
-void RSSurfaceLayer::CopyLayerInfo(const std::shared_ptr<RSLayer>& rsLayer)
-{
-    zOrder_ = rsLayer->GetZorder();
-    layerType_ = rsLayer->GetType();
-    layerRect_ = rsLayer->GetLayerSize();
-    boundRect_ = rsLayer->GetBoundSize();
-    visibleRegions_ = rsLayer->GetVisibleRegions();
-    dirtyRegions_ = rsLayer->GetDirtyRegions();
-    cropRect_ = rsLayer->GetCropRect();
-    matrix_ = rsLayer->GetMatrix();
-    gravity_ = rsLayer->GetGravity();
-    isUniRender_ =rsLayer->GetUniRenderFlag();
-    layerAlpha_ = rsLayer->GetAlpha();
-    transformType_ = rsLayer->GetTransformType();
-    compositionType_ = rsLayer->GetCompositionType();
-    blendType_ = rsLayer->GetBlendType();
-    colorTransformMatrix_ = rsLayer->GetColorTransform();
-    colorSpace_ = rsLayer->GetColorDataSpace();
-    backgroundColor_ = rsLayer->GetBackgroundColor();
-    layerColor_ = rsLayer->GetLayerColor();
-    metaData_ = rsLayer->GetMetaData();
-    metaDataSet_ = rsLayer->GetMetaDataSet();
-    tunnelHandle_ = rsLayer->GetTunnelHandle();
-    windowsName_ = rsLayer->GetWindowsName();
-    tunnelHandleChange_ = rsLayer->GetTunnelHandleChange();
-    isSupportedPresentTimestamp_ = rsLayer->IsSupportedPresentTimestamp();
-    presentTimestamp_ = rsLayer->GetPresentTimestamp();
-    cSurface_ = rsLayer->GetSurface();
-    sbuffer_ = rsLayer->GetBuffer();
-    pbuffer_= rsLayer->GetPreBuffer();
-    acquireFence_ = rsLayer->GetAcquireFence();
-    preMulti_ = rsLayer->IsPreMulti();
-    layerMask_ = rsLayer->GetLayerMaskInfo();
-    sdrNit_ = rsLayer->GetSdrNit();
-    displayNit_ = rsLayer->GetDisplayNit();
-    brightnessRatio_ = rsLayer->GetBrightnessRatio();
-    layerLinearMatrix_ = rsLayer->GetLayerLinearMatrix();
-    nodeId_ = rsLayer->GetNodeId();
-    layerSource_ = rsLayer->GetLayerSourceTuning();
-    rotationFixed_ = rsLayer->GetRotationFixed();
-    arsrTag_ = rsLayer->GetLayerArsr();
-    copybitTag_ = rsLayer->GetLayerCopybit();
-    drmCornerRadiusInfo_ = rsLayer->GetCornerRadiusInfoForDRM();
-    needBilinearInterpolation_ = rsLayer->GetNeedBilinearInterpolation();
-    isMaskLayer_ = rsLayer->IsMaskLayer();
-    tunnelLayerId_ = rsLayer->GetTunnelLayerId();
-    tunnelLayerProperty_ = rsLayer->GetTunnelLayerProperty();
-    ancoFlags_ = rsLayer->GetAncoFlags();
-    useDeviceOffline_ = rsLayer->GetUseDeviceOffline();
-    ignoreAlpha_ = rsLayer->GetIgnoreAlpha();
-    ancoSrcRect_ = rsLayer->GetAncoSrcRect();
-}
-
 void RSSurfaceLayer::Dump(std::string& result) const
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto transformTypeStrsIter = TransformTypeStrs.find(transformType_);
-    auto compositionTypeStrsIter = CompositionTypeStrs.find(compositionType_);
-    auto blendTypeStrsIter = BlendTypeStrs.find(blendType_);
-    if (transformTypeStrsIter != TransformTypeStrs.end() &&
-        compositionTypeStrsIter != CompositionTypeStrs.end() &&
-        blendTypeStrsIter != BlendTypeStrs.end()) {
+    if (TransformTypeStrs.find(transformType_) != TransformTypeStrs.end() &&
+        CompositionTypeStrs.find(compositionType_) != CompositionTypeStrs.end() &&
+        BlendTypeStrs.find(blendType_) != BlendTypeStrs.end()) {
         result += " zOrder = " + std::to_string(zOrder_) +
             ", visibleNum = " + std::to_string(visibleRegions_.size()) +
-            ", transformType = " + transformTypeStrsIter->second +
-            ", compositionType = " + compositionTypeStrsIter->second +
-            ", blendType = " + blendTypeStrsIter->second +
+            ", transformType = " + TransformTypeStrs.at(transformType_) +
+            ", compositionType = " + CompositionTypeStrs.at(compositionType_) +
+            ", blendType = " + BlendTypeStrs.at(blendType_) +
             ", layerAlpha = [enGlobalAlpha(" + std::to_string(layerAlpha_.enGlobalAlpha) + "), enPixelAlpha(" +
             std::to_string(layerAlpha_.enPixelAlpha) + "), alpha0(" +
             std::to_string(layerAlpha_.alpha0) + "), alpha1(" +
@@ -639,15 +977,57 @@ void RSSurfaceLayer::Dump(std::string& result) const
     result += " displayNit = " + std::to_string(displayNit_) +
         ", brightnessRatio = " + std::to_string(brightnessRatio_) + ", ";
     result += " ancoFlags = " + std::to_string(ancoFlags_) + ", ";
+    result += " cycleBuffersNum = " + std::to_string(cycleBuffersNum_) + ", ";
+    result += "surfaceName = " + surfaceName_ + ", ";
+    result += "solidColorLayer Composition type = " + std::to_string(solidColorLayerProperty_.compositionType) +
+        " Zorder = " + std::to_string(solidColorLayerProperty_.zOrder) + ", ";
+    result += "useDeviceOffline" + std::to_string(useDeviceOffline_) + ", ";
+    result += "ignoreAlpha" + std::to_string(ignoreAlpha_) + ", ";
+    result += "ancoSrcRect = [" + std::to_string(ancoSrcRect_.x) + ", " + std::to_string(ancoSrcRect_.y) + ", " +
+        std::to_string(ancoSrcRect_.w) + ", " + std::to_string(ancoSrcRect_.h) + "]" + ";\n";
 }
 
 void RSSurfaceLayer::DumpCurrentFrameLayer() const
 {
-    std::lock_guard<std::mutex> lock(mutex_);
     if (cSurface_ != nullptr) {
         cSurface_->DumpCurrentFrameLayer();
     }
 }
 
+void RSSurfaceLayer::SetBufferOwnerCount(const std::shared_ptr<RSSurfaceHandler::BufferOwnerCount>& bufferOwnerCount,
+    bool needUpdate)
+{
+    if (bufferOwnerCount == nullptr) {
+        return;
+    }
+    RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceLayer::SetBufferOwnerCount bufferId %" PRIu64 " layerId %" PRIu64,
+        bufferOwnerCount->bufferId_, rsLayerId_);
+    std::lock_guard<std::mutex> lockGuard(ownerCountMutex_);
+    if (bufferOwnerCounts_.find(bufferOwnerCount->bufferId_) == bufferOwnerCounts_.end()) {
+        bufferOwnerCount->AddRef();
+    }
+    bufferOwnerCounts_[bufferOwnerCount->bufferId_] = bufferOwnerCount;
+    if (needUpdate) {
+        bufferOwnerCount_ = bufferOwnerCount;
+    }
+}
+
+std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> RSSurfaceLayer::PopBufferOwnerCountById(uint64_t bufferId)
+{
+    std::lock_guard<std::mutex> lockGuard(ownerCountMutex_);
+    auto iter = bufferOwnerCounts_.find(bufferId);
+    if (iter != bufferOwnerCounts_.end()) {
+        auto bufferOwnerCount = iter->second;
+        bufferOwnerCounts_.erase(iter);
+        return bufferOwnerCount;
+    }
+    return nullptr;
+}
+
+std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> RSSurfaceLayer::GetBufferOwnerCount() const
+{
+    std::lock_guard<std::mutex> lockGuard(ownerCountMutex_);
+    return bufferOwnerCount_;
+}
 } // namespace Rosen
 } // namespace OHOS

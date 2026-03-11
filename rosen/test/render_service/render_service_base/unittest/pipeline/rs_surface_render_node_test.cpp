@@ -891,40 +891,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetSkipLayer001, TestSize.Level2)
 }
 
 /**
- * @tc.name: UpdateBlackListStatus001
- * @tc.desc: Test UpdateBlackListStatus
- * @tc.type: FUNC
- * @tc.require: issueIC9I11
- */
-HWTEST_F(RSSurfaceRenderNodeTest, UpdateBlackListStatus001, TestSize.Level1)
-{
-    auto rsContext = std::make_shared<RSContext>();
-    ASSERT_NE(rsContext, nullptr);
-    auto parentNode = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
-    auto childNode = std::make_shared<RSSurfaceRenderNode>(id + 1, rsContext);
-    ASSERT_NE(parentNode, nullptr);
-    ASSERT_NE(childNode, nullptr);
-
-    auto virtualScreenId = 1;
-    childNode->UpdateBlackListStatus(virtualScreenId);
-    ASSERT_TRUE(childNode->GetSpecialLayerMgr().FindWithScreen(virtualScreenId, SpecialLayerType::IS_BLACK_LIST));
-
-    NodeId parentNodeId = parentNode->GetId();
-    pid_t parentNodePid = ExtractPid(parentNodeId);
-    NodeId childNodeId = childNode->GetId();
-    pid_t childNodePid = ExtractPid(childNodeId);
-    rsContext->GetMutableNodeMap().renderNodeMap_[parentNodePid][parentNodeId] = parentNode;
-    rsContext->GetMutableNodeMap().renderNodeMap_[childNodePid][childNodeId] = childNode;
-    childNode->firstLevelNodeId_ = parentNodeId;
-    parentNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
-    parentNode->AddChild(childNode);
-
-    parentNode->SetIsOnTheTree(true);
-    childNode->UpdateBlackListStatus(virtualScreenId);
-    ASSERT_TRUE(parentNode->GetSpecialLayerMgr().FindWithScreen(virtualScreenId, SpecialLayerType::HAS_BLACK_LIST));
-}
-
-/**
  * @tc.name: SetSnapshotSkipLayer001
  * @tc.desc: Test SetSnapshotSkipLayer for single surface node which is skip layer
  * @tc.type: FUNC
@@ -2758,19 +2724,19 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdateVirtualScreenWhiteListInfo, TestSize.Lev
     std::unordered_map<ScreenId, std::unordered_set<uint64_t>> allWhiteListInfo;
     ScreenId screenId = 1;
     allWhiteListInfo[screenId] = {node->GetId()};
-    node->UpdateVirtualScreenWhiteListInfo(allWhiteListInfo);
+    node->UpdateVirtualScreenWhiteListInfo();
     parent = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
     node->SetParent(parent);
     ASSERT_NE(node->parent_.lock(), nullptr);
     allWhiteListInfo[screenId] = {node->GetLeashPersistentId()};
-    node->UpdateVirtualScreenWhiteListInfo(allWhiteListInfo);
+    node->UpdateVirtualScreenWhiteListInfo();
 
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id + 2, context);
     ASSERT_NE(surfaceNode, nullptr);
-    surfaceNode->RSRenderNode::UpdateVirtualScreenWhiteListInfo();
+    surfaceNode->RSRenderNode::SyncWhiteListInfoToParent();
 
     parent->nodeType_ = RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE;
-    parent->UpdateVirtualScreenWhiteListInfo(allWhiteListInfo);
+    parent->UpdateVirtualScreenWhiteListInfo();
 }
 
 /**

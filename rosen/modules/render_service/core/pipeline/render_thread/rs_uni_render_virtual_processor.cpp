@@ -56,7 +56,8 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSScreenRender
         return false;
     }
 
-    scaleMode_ = screenProperty.GetScaleMode();
+    auto scaleModeDFX = static_cast<ScreenScaleMode>(RSSystemProperties::GetVirtualScreenScaleModeDFX());
+    scaleMode_ = (scaleModeDFX == ScreenScaleMode::INVALID_MODE) ? screenProperty.GetScaleMode() : scaleModeDFX;
     enableVisibleRect_ = screenProperty.GetEnableVisibleRect();
     canvasRotation_ = screenProperty.GetCanvasRotation();
     if (enableVisibleRect_) {
@@ -179,6 +180,15 @@ void RSUniRenderVirtualProcessor::CancelCurrentFrame()
     if (renderFrame_ != nullptr) {
         renderFrame_->CancelCurrentFrame();
     }
+}
+
+sptr<SyncFence> RSUniRenderVirtualProcessor::GetFrameAcquireFence()
+{
+    if (!renderFrame_) {
+        RS_LOGE("RSUniRenderVirtualProcessor::GetFrameAcquireFence renderFrame_ is null");
+        return SyncFence::InvalidFence();
+    }
+    return renderFrame_->GetAcquireFence();
 }
 
 bool RSUniRenderVirtualProcessor::UpdateMirrorInfo(DrawableV2::RSLogicalDisplayRenderNodeDrawable& displayDrawable)
@@ -495,24 +505,6 @@ void RSUniRenderVirtualProcessor::MergeMirrorFenceToHardwareEnabledDrawables()
     }
 }
 
-void RSUniRenderVirtualProcessor::SetVirtualScreenFenceToRenderThread()
-{
-    if (renderFrame_ == nullptr) {
-        RS_LOGE("RSUniRenderVirtualProcessor::%{public}s renderFrame_ null!", __func__);
-        return;
-    }
-    auto acquireFence = renderFrame_->GetAcquireFence();
-    if (!acquireFence || !acquireFence->IsValid()) {
-        RS_LOGE("RSUniRenderVirtualProcessor::%{public}s acquireFence not valid!", __func__);
-        return;
-    }
-    RSUniRenderThread::Instance().SetAcquireFence(acquireFence);
-    RS_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::%s: screen: %" PRIu64 " fence set to render thread!",
-            __func__, virtualScreenId_);
-    RS_LOGD("RSUniRenderVirtualProcessor::%{public}s: screen: %{public}" PRIu64 " fence set to render thread!",
-        __func__, virtualScreenId_);
-}
-
 void RSUniRenderVirtualProcessor::PostProcess()
 {
     if (renderFrame_ == nullptr || renderEngine_ == nullptr) {
@@ -526,7 +518,6 @@ void RSUniRenderVirtualProcessor::PostProcess()
     if (isMirror_) {
         MergeMirrorFenceToHardwareEnabledDrawables();
     }
-    SetVirtualScreenFenceToRenderThread();
     RS_LOGD("RSUniRenderVirtualProcessor::PostProcess, FlushFrame succeed.");
     RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::PostProcess, FlushFrame succeed.");
 }
@@ -637,7 +628,7 @@ void RSUniRenderVirtualProcessor::ProcessCacheImage(Drawing::Image& cacheImage)
 }
 
 void RSUniRenderVirtualProcessor::CanvasClipRegionForUniscaleMode(const Drawing::Matrix& visibleClipRectMatrix,
-    const ScreenInfo& mainScreenInfo)
+    bool isSamplingOn)
 {
     if (canvas_ == nullptr) {
         RS_LOGE("RSUniRenderVirtualProcessor::CanvasClipRegion: Canvas is null!");
@@ -655,7 +646,7 @@ void RSUniRenderVirtualProcessor::CanvasClipRegionForUniscaleMode(const Drawing:
             rect = Drawing::Rect(0, 0, visibleRect_.GetWidth(), visibleRect_.GetHeight());
         } else {
             rect = visibleRect_;
-            if (mainScreenInfo.isSamplingOn && !RSSystemProperties::GetSLRScaleEnabled()) {
+            if (isSamplingOn && !RSSystemProperties::GetSLRScaleEnabled()) {
                 // If SLR scaling is not enabled, apply visibleClipRectMatrix to rect to exclude sampling operation.
                 matrix = visibleClipRectMatrix;
             }

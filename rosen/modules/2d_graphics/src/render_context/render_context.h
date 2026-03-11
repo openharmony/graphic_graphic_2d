@@ -55,6 +55,8 @@ public:
     virtual void CreateShareContext() { return; }
     virtual void DestroyShareContext() { return; }
     virtual int32_t QueryEglBufferAge() { return 0; }
+    virtual void SetRenderContextType(uint8_t type) { return; }
+    virtual void ChangeProtectedState(bool isProtected) { return; }
 
     void SetUniRenderMode(bool isUni)
     {

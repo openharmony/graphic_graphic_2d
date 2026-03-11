@@ -51,6 +51,7 @@
 #ifdef ENABLE_FULL_SCREEN_RECONGNIZE
 #include "monitor/aps_monitor_impl.h"
 #endif
+#include "transaction/rs_render_pipeline_client.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -307,8 +308,10 @@ public:
     }
 
 #ifndef ROSEN_CROSS_PLATFORM
-    void UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer, const Rect& damageRect,
-        const sptr<SyncFence>& acquireFence, const sptr<SurfaceBuffer>& preBuffer);
+    void UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer,
+        std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount, const Rect& damageRect,
+        const sptr<SyncFence>& acquireFence, const sptr<SurfaceBuffer>& preBuffer,
+        std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> preBufferOwnerCount);
 #endif
 
     bool IsLastFrameHardwareEnabled() const
@@ -680,9 +683,8 @@ public:
     void SetSkipLayer(bool isSkipLayer);
     void SetSnapshotSkipLayer(bool isSnapshotSkipLayer);
     void SetProtectedLayer(bool isProtectedLayer);
-    void UpdateBlackListStatus(ScreenId screenId);
-    void UpdateVirtualScreenWhiteListInfo(
-        const std::unordered_map<ScreenId, std::unordered_set<uint64_t>>& allWhiteListInfo);
+    void SetScreenSpecialLayerStatus(ScreenId screenId, uint32_t type, bool isSpecialLayer);
+    void UpdateVirtualScreenWhiteListInfo();
 
     // get whether it is a security/skip layer itself
     LeashPersistentId GetLeashPersistentId() const
@@ -2062,6 +2064,7 @@ private:
     std::string name_;
     std::string bundleName_;
     std::vector<NodeId> childSurfaceNodeIds_;
+    std::shared_ptr<RSRenderPipelineClient> rsRenderPipelineClient_;
     friend class RSRenderThreadVisitor;
     /*
         visibleRegion: appwindow visible region after occlusion, used for rs opdrop and other optimization.
@@ -2193,6 +2196,7 @@ private:
     friend class RSRenderNode;
     friend class RSRenderService;
     friend class RSHdrUtil;
+    friend class RSPipelineDumper;
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif

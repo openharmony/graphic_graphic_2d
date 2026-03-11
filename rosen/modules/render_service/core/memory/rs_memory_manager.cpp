@@ -255,18 +255,15 @@ void MemoryManager::DumpMem(std::unordered_set<std::u16string>& argSets, std::st
         }
     }
     dumpString.append("dumpMem: " + type + "\n");
-    auto screenManager = CreateOrGetScreenManager();
-    if (!screenManager) {
-        RS_LOGE("DumpMem screenManager is nullptr");
-        return;
-    }
-    auto maxScreenInfo = screenManager->GetActualScreenMaxResolution();
-    dumpString.append("ScreenResolution = " + std::to_string(maxScreenInfo.phyWidth) +
-        "x" + std::to_string(maxScreenInfo.phyHeight) + "\n");
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    nodeMap.TraverseScreenNodes([&dumpString](const auto& screenNode) {
+ 	    const auto& screenProperty = screenNode->GetScreenProperty();
+        dumpString.append("\nScreenResolution: " + std::to_string(screenProperty.GetPhyWidth()) + "x" +
+ 	        std::to_string(screenProperty.GetPhyHeight()) + "\n");
+    });
     dumpString.append(log.GetString());
     if (!isLite) {
         RSUniRenderThread::Instance().DumpVkImageInfo(dumpString);
-        RSRenderComposerManager::GetInstance().DumpVkImageInfo(dumpString);
     }
 #else
     dumpString.append("No GPU in this device");

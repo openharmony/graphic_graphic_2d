@@ -164,11 +164,11 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnCaptureTest002, TestSize.Level1)
     CaptureParam params;
     std::unordered_set<NodeId> whiteList = {nodeId};
     RSUniRenderThread::Instance().SetWhiteList(whiteList);
-    ScreenId screenid = 1;
-    params.virtualScreenId_ = screenid;
-    std::unordered_map<ScreenId, bool> info;
-    info[screenid] = true;
-    drawable->renderParams_->SetVirtualScreenWhiteListInfo(info);
+    ScreenId screenId = 1;
+    params.virtualScreenId_ = screenId;
+    std::unordered_set<ScreenId> info;
+    info.insert(screenId);
+    drawable->renderParams_->SetScreensWithSubTreeWhitelist(info);
     RSUniRenderThread::SetCaptureParam(params);
     drawable->OnCapture(canvas);
 }

@@ -559,7 +559,7 @@ void RSRenderThread::Render()
         RSPropertyTrace::GetInstance().RefreshNodeTraceInfo();
     }
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderThread::Render");
-    RsFrameReport::GetInstance().RenderStart(timestamp_);
+    RsFrameReport::RenderStart(timestamp_);
     std::unique_lock<std::mutex> lock(mutex_);
     const auto& rootNode = context_->GetGlobalRootRenderNode();
 
@@ -586,7 +586,7 @@ void RSRenderThread::Render()
 void RSRenderThread::SendCommands()
 {
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderThread::SendCommands");
-    RsFrameReport::GetInstance().SendCommandsStart();
+    RsFrameReport::SendCommandsStart();
 
     RSUIDirector::RecvMessages();
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);

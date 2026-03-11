@@ -16,12 +16,17 @@
 #ifndef RENDER_SERVICE_BASE_GFX_RS_DUMP_MANAGER_H
 #define RENDER_SERVICE_BASE_GFX_RS_DUMP_MANAGER_H
 
+#ifdef ROSEN_OHOS
+#include "ashmem.h"
+#include <sys/mman.h>
+#include <unistd.h>
+#include "ipc_file_descriptor.h"
+#endif
 #include <string>
-#include <vector>
-#include <functional>
-#include <unordered_map>
-#include <unordered_set>
-#include "common/rs_macros.h"
+#include "common/rs_common_def.h"
+
+#include "parcel.h"
+#include "refbase.h"
 
 namespace OHOS::Rosen {
 // Define static constant strings for different tags
@@ -137,6 +142,33 @@ public:
 
     // Execute a command
     void CmdExec(std::unordered_set<std::u16string>& argSets, std::string &out);
+
+#ifdef ROSEN_OHOS
+    // ashmem
+    static bool WriteFileDescriptor(Parcel &parcel, int fd);
+    static int ReadFileDescriptor(Parcel &parcel);
+    static bool WriteAshmemDataToParcel(Parcel &parcel, size_t size, const char* dataPtr);
+    static char *ReadAshmemDataFromParcel(Parcel &parcel, int32_t size);
+    static void ReleaseMemory(int32_t allocType, void *addr, void *context, uint32_t size);
+    static bool CheckAshmemSize(const int &fd, const int32_t &bufferSize, bool isAstc = false)
+    {
+        if (fd < 0) {
+            return false;
+        }
+        int32_t ashmemSize = AshmemGetSize(fd);
+        return isAstc || bufferSize == ashmemSize;
+    }
+#else
+    static bool WriteFileDescriptor(Parcel &parcel, int fd);
+    static int ReadFileDescriptor(Parcel &parcel);
+    static bool WriteAshmemDataToParcel(Parcel &parcel, size_t size, const char* dataPtr);
+    static char *ReadAshmemDataFromParcel(Parcel &parcel, int32_t size);
+    static void ReleaseMemory(int32_t allocType, void *addr, void *context, uint32_t size);
+    static bool CheckAshmemSize(const int &fd, const int32_t &bufferSize, bool isAstc = false)
+    {
+        return true;
+    }
+#endif
 
 private:
     void MatchAndExecuteCommand(std::unordered_set<std::u16string> &argSets, std::string &out);

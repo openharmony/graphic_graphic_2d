@@ -16,11 +16,13 @@
 #ifndef RS_CORE_PIPELINE_UNI_RENDER_ENGINE_H
 #define RS_CORE_PIPELINE_UNI_RENDER_ENGINE_H
 
-#include "hdi_layer_info.h"
+#include <atomic>
 #include "pipeline/render_thread/rs_base_render_engine.h"
+#include "rs_layer.h"
 
 namespace OHOS {
 namespace Rosen {
+inline std::atomic<int32_t> REDRAW_FRAME_NUMBER{0};
 class RSUniRenderEngine : public RSBaseRenderEngine {
 public:
     RSUniRenderEngine() = default;
@@ -34,19 +36,19 @@ public:
         PostProcessFunc postProcess) override;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<RSLayerPtr>& layers, bool forceCPU,
-        const ScreenInfo& screenInfo = {}, GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB) override;
+        const ComposerScreenInfo& composerScreenInfo = {},
+        GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB) override;
 #else
     void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<RSLayerPtr>& layers, bool forceCPU,
-        const ScreenInfo& screenInfo = {}) override;
+        const ComposerScreenInfo& composerScreenInfo = {}) override;
 #endif
 private:
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     GraphicColorGamut ComputeTargetColorGamut(const std::vector<RSLayerPtr>& layers);
 #endif
-    void DrawHdiLayerWithParams(RSPaintFilterCanvas& canvas, const RSLayerPtr& layer,
-        BufferDrawParam& params);
+    void DrawHdiLayerWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
     void DrawLayerPreProcess(RSPaintFilterCanvas& canvas, const RSLayerPtr& layer,
-        const ScreenInfo& screenInfo);
+        const ComposerScreenInfo& ComposerscreenInfo);
 };
 } // namespace Rosen
 } // namespace OHOS

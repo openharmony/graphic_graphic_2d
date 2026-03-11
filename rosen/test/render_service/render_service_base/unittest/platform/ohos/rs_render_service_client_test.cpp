@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 
+#include "common/rs_special_layer_manager.h"
 #include "feature/capture/rs_ui_capture.h"
 #include "transaction/rs_render_service_client.h"
 #include "platform/ohos/rs_render_service_connect_hub.h"
@@ -70,85 +71,6 @@ void RSServiceClientTest::SetUp() {}
 void RSServiceClientTest::TearDown()
 {
     usleep(SET_REFRESHRATE_SLEEP_US);
-}
-
-/**
- * @tc.name: CreateNode Test
- * @tc.desc: CreateNode Test
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSServiceClientTest, CreateNode_Test, TestSize.Level1)
-{
-    ASSERT_NE(rsClient, nullptr);
-    RSSurfaceRenderNodeConfig config;
-    bool ret = rsClient->CreateNode(config);
-    ASSERT_EQ(ret, true);
-}
-
-/**
- * @tc.name: RegisterBufferAvailableListener Test a notfound id True
- * @tc.desc: RegisterBufferAvailableListener Test a notfound id True
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSServiceClientTest, RegisterBufferAvailableListener_True, TestSize.Level1)
-{
-    ASSERT_NE(rsClient, nullptr);
-    BufferAvailableCallback cb = [](){};
-    rsClient->RegisterBufferAvailableListener(TEST_ID, cb, true); // test a notfound number: 123
-}
-
-/**
- * @tc.name: RegisterBufferAvailableListener Test a notfound id False
- * @tc.desc: RegisterBufferAvailableListener Test a notfound id False
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSServiceClientTest, RegisterBufferAvailableListener_False, TestSize.Level1)
-{
-    ASSERT_NE(rsClient, nullptr);
-    BufferAvailableCallback cb = [](){};
-    rsClient->RegisterBufferAvailableListener(TEST_ID, cb, false); // test a notfound number: 123
-}
-
-/**
- * @tc.name: RegisterBufferAvailableListener Test nullptr
- * @tc.desc: RegisterBufferAvailableListener Test nullptr
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSServiceClientTest, RegisterBufferAvailableListener_Nullptr, TestSize.Level1)
-{
-    ASSERT_NE(rsClient, nullptr);
-    rsClient->RegisterBufferAvailableListener(TEST_ID, nullptr, false); // NodeId: 123
-}
-
-/**
- * @tc.name: UnregisterBufferAvailableListener Test a notfound id
- * @tc.desc: UnregisterBufferAvailableListener Test a notfound id
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSServiceClientTest, UnregisterBufferAvailableListener_False, TestSize.Level1)
-{
-    ASSERT_NE(rsClient, nullptr);
-    BufferAvailableCallback cb = [](){};
-    bool ret = rsClient->UnregisterBufferAvailableListener(TEST_ID); // test a notfound number: 123
-    ASSERT_EQ(ret, true);
-}
-
-/**
- * @tc.name: RegisterApplicationAgent Test nullptr
- * @tc.desc: RegisterApplicationAgent Test nullptr
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSServiceClientTest, RegisterApplicationAgent_Nullptr, TestSize.Level1)
-{
-    auto renderService = RSRenderServiceConnectHub::GetRenderService().first;
-    ASSERT_NE(renderService, nullptr);
-    renderService->RegisterApplicationAgent(TEST_ID, nullptr); // pid: 123
 }
 
 /**
@@ -215,22 +137,6 @@ HWTEST_F(RSServiceClientTest, SetCurtainScreenUsingStatus002, TestSize.Level2)
 }
 
 /**
- * @tc.name: ExecuteSynchronousTask Test
- * @tc.desc: Test ExecuteSynchronousTask
- * @tc.type:FUNC
- * @tc.require: issuesI9K7SJ
- */
-HWTEST_F(RSServiceClientTest, ExecuteSynchronousTask001, TestSize.Level1)
-{
-    ASSERT_NE(rsClient, nullptr);
-    rsClient->ExecuteSynchronousTask(nullptr);
-
-    auto task = std::make_shared<RSNodeGetShowingPropertyAndCancelAnimation>(0, nullptr);
-    ASSERT_NE(task, nullptr);
-    rsClient->ExecuteSynchronousTask(task);
-}
-
-/**
  * @tc.name: GetUniRenderEnabled Test
  * @tc.desc: GetUniRenderEnabled Test
  * @tc.type:FUNC
@@ -270,19 +176,6 @@ HWTEST_F(RSServiceClientTest, GetTotalAppMemSize001, TestSize.Level1)
     float gpuMemSize = 0;
     bool ret = rsClient->GetTotalAppMemSize(cpuMemSize, gpuMemSize);
     ASSERT_EQ(ret, true);
-}
-
-/**
- * @tc.name: CreateNodeAndSurface Test
- * @tc.desc: CreateNodeAndSurface Test
- * @tc.type:FUNC
- * @tc.require: issuesI9K7SJ
- */
-HWTEST_F(RSServiceClientTest, CreateNodeAndSurface001, TestSize.Level1)
-{
-    ASSERT_NE(rsClient, nullptr);
-    RSSurfaceRenderNodeConfig config = {.id=0, .name="testSurface"};
-    ASSERT_EQ(rsClient->CreateNodeAndSurface(config), nullptr);
 }
 
 /**
@@ -359,12 +252,12 @@ HWTEST_F(RSServiceClientTest, SetVirtualScreenSurface001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetVirtualScreenBlackList Test
- * @tc.desc: SetVirtualScreenBlackList Test
- * @tc.type:FUNC
+ * @tc.name: SetVirtualScreenBlackListTest001
+ * @tc.desc: Test SetVirtualScreenBlackList when blacklist is valid
+ * @tc.type: FUNC
  * @tc.require: issues#IC98BX
  */
-HWTEST_F(RSServiceClientTest, SetVirtualScreenBlackListTest, TestSize.Level1)
+HWTEST_F(RSServiceClientTest, SetVirtualScreenBlackListTest001, TestSize.Level1)
 {
     ASSERT_NE(rsClient, nullptr);
     ScreenId screenId = 100;
@@ -374,17 +267,60 @@ HWTEST_F(RSServiceClientTest, SetVirtualScreenBlackListTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: AddVirtualScreenBlackList Test
- * @tc.desc: AddVirtualScreenBlackList Test
+ * @tc.name: SetVirtualScreenBlackListTest002
+ * @tc.desc: Test SetVirtualScreenBlackList when ScreenId is not found
+ * @tc.type: FUNC
+ * @tc.require: issues#IC98BX
+ */
+HWTEST_F(RSServiceClientTest, SetVirtualScreenBlackListTest002, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    ScreenId screenId = 100;
+    std::vector<NodeId> blackList;
+    int32_t ret = rsClient->SetVirtualScreenBlackList(screenId, blackList);
+    ASSERT_EQ(ret, 0);
+}
+
+/**
+ * @tc.name: SetVirtualScreenBlackListTest003
+ * @tc.desc: Test SetVirtualScreenBlackList when blackList is invalid
+ * @tc.type: FUNC
+ * @tc.require: issues#IC98BX
+ */
+HWTEST_F(RSServiceClientTest, SetVirtualScreenBlackListTest003, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    std::vector<NodeId> blackList(MAX_SPECIAL_LAYER_NUM + 1);
+    int32_t ret = rsClient->SetVirtualScreenBlackList(INVALID_SCREEN_ID, blackList);
+    ASSERT_EQ(ret, 0);
+}
+
+/**
+ * @tc.name: AddVirtualScreenBlackListTest001
+ * @tc.desc: Test AddVirtualScreenBlackList
  * @tc.type:FUNC
  * @tc.require: issues#IC98BX
  */
-HWTEST_F(RSServiceClientTest, AddVirtualScreenBlackListTest, TestSize.Level1)
+HWTEST_F(RSServiceClientTest, AddVirtualScreenBlackListTest001, TestSize.Level1)
 {
     ASSERT_NE(rsClient, nullptr);
     ScreenId screenId = 100;
     std::vector<NodeId> blackListVector({1, 2, 3});
     int32_t ret = rsClient->AddVirtualScreenBlackList(screenId, blackListVector);
+    ASSERT_EQ(ret, 0);
+}
+
+/**
+ * @tc.name: AddVirtualScreenBlackListTest002
+ * @tc.desc: Test AddVirtualScreenBlackList when blackList size is over limit
+ * @tc.type:FUNC
+ * @tc.require: issues#IC98BX
+ */
+HWTEST_F(RSServiceClientTest, AddVirtualScreenBlackListTest002, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    std::vector<NodeId> blackList(MAX_SPECIAL_LAYER_NUM + 1);
+    int32_t ret = rsClient->AddVirtualScreenBlackList(INVALID_SCREEN_ID, blackList);
     ASSERT_EQ(ret, 0);
 }
 
@@ -912,20 +848,6 @@ HWTEST_F(RSServiceClientTest, GetScreenBacklight001, TestSize.Level1)
     EXPECT_EQ(backLight, 60); // for test
 }
 
-/**
- * @tc.name: RegisterBufferClearListener Test
- * @tc.desc: RegisterBufferClearListener Test
- * @tc.type:FUNC
- * @tc.require: issuesI9K7SJ
- */
-HWTEST_F(RSServiceClientTest, RegisterBufferClearListener001, TestSize.Level1)
-{
-    ASSERT_NE(rsClient, nullptr);
-    BufferClearCallback cb = [](){};
-    bool ret = rsClient->RegisterBufferClearListener(TEST_ID, cb);
-    ASSERT_TRUE(ret);
-}
-
 /*
  * @tc.name: GetScreenSupportedColorGamuts Test
  * @tc.desc: GetScreenSupportedColorGamuts Test
@@ -1084,17 +1006,6 @@ HWTEST_F(RSServiceClientTest, SetVirtualMirrorScreenScaleMode001, TestSize.Level
         "virtualScreenTest", defaultWidth, defaultHeight, psurface, INVALID_SCREEN_ID, -1);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
     EXPECT_EQ(rsClient->SetVirtualMirrorScreenScaleMode(virtualScreenId, ScreenScaleMode::UNISCALE_MODE), true);
-}
-
-/*
- * @tc.name: SetGlobalDarkColorMode Test
- * @tc.desc: SetGlobalDarkColorMode Test
- * @tc.type:FUNC
- * @tc.require: issuesI9K7SJ
-*/
-HWTEST_F(RSServiceClientTest, SetGlobalDarkColorMode001, TestSize.Level1)
-{
-    EXPECT_EQ(rsClient->SetGlobalDarkColorMode(true), true);
 }
 
 /**
@@ -1340,36 +1251,6 @@ HWTEST_F(RSServiceClientTest, SetBrightnessInfoChangeCallbackTest, TestSize.Leve
 }
 
 /**
- * @tc.name: GetBrightnessInfoTest
- * @tc.desc: GetBrightnessInfo
- * @tc.type: FUNC
- */
-HWTEST_F(RSServiceClientTest, GetBrightnessInfoTest, TestSize.Level1)
-{
-    BrightnessInfo brightnessInfo = { 0 };
-    ASSERT_EQ(rsClient->GetBrightnessInfo(0, brightnessInfo), 0);
-    RSRenderServiceConnectHub::Destroy();
-    ASSERT_EQ(rsClient->GetBrightnessInfo(0, brightnessInfo), RENDER_SERVICE_NULL);
-    RSRenderServiceConnectHub::Init();
-}
-
-/**
- * @tc.name: SurfaceWatermarkTest01
- * @tc.desc: SurfaceWatermarkTest01
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSServiceClientTest, SurfaceWatermarkTest01, TestSize.Level1)
-{
-    RSRenderServiceConnectHub::Destroy();
-    EXPECT_EQ(rsClient->SetSurfaceWatermark(0, "WATERMARK", nullptr, {},
-        SurfaceWatermarkType::CUSTOM_WATER_MARK), SurfaceWatermarkStatusCode::WATER_MARK_RENDER_SERVICE_NULL);
-    rsClient->ClearSurfaceWatermark(0, "WATERMARK");
-    rsClient->ClearSurfaceWatermarkForNodes(0, "WATERMARK", {});
-    RSRenderServiceConnectHub::Init();
-}
-
-/**
  * @tc.name: SetDualScreenState
  * @tc.desc: Test SetDualScreenState
  * @tc.type:FUNC
@@ -1385,26 +1266,5 @@ HWTEST_F(RSServiceClientTest, SetDualScreenState001, TestSize.Level1)
     rsClient->SetDualScreenState(screenId, DualScreenStatus::DUAL_SCREEN_ENTER);
 }
 
-/**
- * @tc.name: SetSystemAnimatedScenesTest
- * @tc.desc: test SetSystemAnimatedScenes when rsRenderServiceClient is nullptr or not
- * @tc.type: FUNC
- * @tc.require:issues20726
- */
-HWTEST_F(RSServiceClientTest, SetSystemAnimatedScenesTest, TestSize.Level1)
-{
-    ASSERT_NE(rsClient, nullptr);
-    bool ret = rsClient->SetSystemAnimatedScenes(SystemAnimatedScenes::ENTER_MISSION_CENTER, true);
-    ASSERT_EQ(ret, true);
-    ret = rsClient->SetSystemAnimatedScenes(SystemAnimatedScenes::ENTER_MISSION_CENTER, false);
-    ASSERT_EQ(ret, true);
- 
-    auto instance = RSRenderServiceConnectHub::GetInstance();
-    RSRenderServiceConnectHub::instance_ = nullptr;
-    ret = rsClient->SetSystemAnimatedScenes(SystemAnimatedScenes::ENTER_MISSION_CENTER, true);
-    ASSERT_EQ(ret, false);
-
-    RSRenderServiceConnectHub::instance_ = instance;
-}
 } // namespace Rosen
 } // namespace OHOS

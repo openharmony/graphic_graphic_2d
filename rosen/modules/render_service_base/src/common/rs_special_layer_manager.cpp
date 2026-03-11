@@ -42,9 +42,25 @@ template <class TYPE_T> inline bool HasType(TYPE_T x, TYPE_T y)
     return x & y;
 }
 
+template<typename K, typename V>
+void EraseEmptyValues(std::unordered_map<K, V>& map)
+{
+    auto it = map.begin();
+    while (it != map.end()) {
+        if (it->second.empty()) {
+            it = map.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
 namespace OHOS {
 namespace Rosen {
 std::stack<LeashPersistentId> RSSpecialLayerManager::whiteListRootIds_ = {};
+std::unordered_map<SpecialLayerType, std::unordered_map<NodeId, std::unordered_set<ScreenId>>>
+    ScreenSpecialLayerInfo::screenSpecialLayerInfoByNode_ = {};
+std::unordered_set<NodeId> ScreenSpecialLayerInfo::globalBlackList_ = {};
 
 void RSSpecialLayerManager::SetWhiteListRootId(LeashPersistentId id)
 {
@@ -157,6 +173,15 @@ bool RSSpecialLayerManager::FindWithScreen(ScreenId screenId, uint32_t type) con
     return HasType(screenSpecialLayer_.at(screenId), type);
 }
 
+uint32_t RSSpecialLayerManager::GetWithScreen(ScreenId screenId) const
+{
+    auto iter = screenSpecialLayer_.find(screenId);
+    if (iter == screenSpecialLayer_.end()) {
+        return SpecialLayerType::NONE;
+    }
+    return iter->second;
+}
+
 void RSSpecialLayerManager::AddIdsWithScreen(ScreenId screenId, uint32_t type, NodeId id)
 {
     uint32_t isType = type & IS_GENERAL_SPECIAL;
@@ -193,6 +218,17 @@ void RSSpecialLayerManager::RemoveIdsWithScreen(ScreenId screenId, uint32_t type
     }
 }
 
+const std::unordered_set<uint64_t> RSSpecialLayerManager::FindScreenHasType(uint32_t type) const
+{
+    std::unordered_set<uint64_t> screenIds;
+    for (const auto& [screenId, specialLayerType] : screenSpecialLayer_) {
+        if (HasType(specialLayerType, type)) {
+            screenIds.insert(screenId);
+        }
+    }
+    return screenIds;
+}
+
 std::unordered_set<NodeId> RSSpecialLayerManager::GetIdsWithScreen(ScreenId screenId, uint32_t type) const
 {
     std::unordered_set<NodeId> currentTypeIds;
@@ -221,6 +257,7 @@ std::unordered_set<NodeId> RSSpecialLayerManager::GetIdsWithScreen(ScreenId scre
 void RSSpecialLayerManager::ClearScreenSpecialLayer()
 {
     screenSpecialLayer_.clear();
+    screenSpecialLayerIds_.clear();
 }
 
 void RSSpecialLayerManager::MergeChildren(const RSSpecialLayerManager& childSlm)
@@ -269,6 +306,79 @@ std::unordered_set<NodeId> RSSpecialLayerManager::GetIds(uint32_t type) const
         currentType <<= 1;
     }
     return currentTypeIds;
+}
+
+void ScreenSpecialLayerInfo::Update(
+    SpecialLayerType type, ScreenId screenId, const std::unordered_set<NodeId>& nodeIds)
+{
+    auto& typeInfo = screenSpecialLayerInfoByNode_[type];
+    // clear
+    for (const auto& [nodeId, screenIds] : typeInfo) {
+        typeInfo[nodeId].erase(screenId);
+    }
+    // reset
+    for (const auto& nodeId : nodeIds) {
+        typeInfo[nodeId].insert(screenId);
+    }
+    ClearEmptyInfo();
+}
+
+void ScreenSpecialLayerInfo::ClearByScreenId(ScreenId screenId)
+{
+    for (auto& [type, typeInfo] : screenSpecialLayerInfoByNode_) {
+        for (auto& [nodeId, nodeInfo] : typeInfo) {
+            nodeInfo.erase(screenId);
+        }
+    }
+    ClearEmptyInfo();
+}
+
+void ScreenSpecialLayerInfo::ClearEmptyInfo()
+{
+    for (auto& [_, typeInfo] : screenSpecialLayerInfoByNode_) {
+        EraseEmptyValues(typeInfo);
+    }
+    EraseEmptyValues(screenSpecialLayerInfoByNode_);
+}
+
+std::unordered_set<ScreenId> ScreenSpecialLayerInfo::QueryEnableScreen(SpecialLayerType type,
+    std::pair<NodeId, LeashPersistentId> id)
+{
+    auto typeIter = screenSpecialLayerInfoByNode_.find(type);
+    if (typeIter == screenSpecialLayerInfoByNode_.end()) {
+        return {};
+    }
+
+    std::unordered_set<ScreenId> screenIds = {};
+    const auto& typeInfo = typeIter->second;
+    // find with nodeId
+    auto nodeIdIter =  typeInfo.find(id.first);
+    if (nodeIdIter != typeInfo.end()) {
+        const auto& screenIdsForNodeId = nodeIdIter->second;
+        screenIds.insert(screenIdsForNodeId.begin(), screenIdsForNodeId.end());
+    }
+    // find with persistId
+    auto persistIdIter =  typeInfo.find(id.second);
+    if (persistIdIter != typeInfo.end()) {
+        const auto& screenIdsForPersistId = persistIdIter->second;
+        screenIds.insert(screenIdsForPersistId.begin(), screenIdsForPersistId.end());
+    }
+    return screenIds;
+}
+
+bool ScreenSpecialLayerInfo::ExistEnableScreen(SpecialLayerType type)
+{
+    return screenSpecialLayerInfoByNode_.find(type) != screenSpecialLayerInfoByNode_.end();
+}
+
+void ScreenSpecialLayerInfo::SetGlobalBlackList(const std::unordered_set<NodeId>& globalBlackList)
+{
+    globalBlackList_ = globalBlackList;
+}
+
+const std::unordered_set<NodeId>& ScreenSpecialLayerInfo::GetGlobalBlackList()
+{
+    return globalBlackList_;
 }
 } // namespace Rosen
 } // namespace OHOS

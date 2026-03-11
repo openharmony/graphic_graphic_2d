@@ -95,8 +95,42 @@ RSSurfaceRenderNodeDrawable::RSSurfaceRenderNodeDrawable(std::shared_ptr<const R
     surfaceNodeType_ = surfaceNode->GetSurfaceNodeType();
 #ifndef ROSEN_CROSS_PLATFORM
     consumerOnDraw_ = surfaceNode->GetRSSurfaceHandler()->GetConsumer();
+    if (consumerOnDraw_) {
+        uniqueId_ = consumerOnDraw_->GetUniqueId();
+    }
 #endif
     subThreadCache_.SetNodeId(surfaceNode->GetId());
+
+    id_ = surfaceNode->GetId();
+
+    UpdatePipelineParamForSelfDraw(SurfaceFpsOpType::SURFACE_FPS_ADD);
+}
+
+RSSurfaceRenderNodeDrawable::~RSSurfaceRenderNodeDrawable()
+{
+    UpdatePipelineParamForSelfDraw(SurfaceFpsOpType::SURFACE_FPS_REMOVE);
+}
+
+void RSSurfaceRenderNodeDrawable::UpdatePipelineParamForSelfDraw(SurfaceFpsOpType surfaceFpsOpType)
+{
+    if (!IsSelfDrawingType()) {
+        return;
+    }
+
+    if (auto composerClientMgr = RSUniRenderThread::Instance().GetComposerClientManager()) {
+        SurfaceFpsOp op {
+            static_cast<uint32_t>(surfaceFpsOpType),
+            id_,
+            name_,
+            uniqueId_,
+        };
+        PipelineParam param = composerClientMgr->GetPipelineParam(curDisplayScreenId_);
+        param.SurfaceFpsOpList.push_back(op);
+        param.SurfaceFpsOpNum++;
+        composerClientMgr->UpdatePipelineParam(curDisplayScreenId_, param);
+        RS_LOGD("update surfaceFps op id: %{public}" PRIu64 ", name: %{public}s, type: %{public}u",
+                id_, name_.c_str(), surfaceFpsOpType);
+    }
 }
 
 RSRenderNodeDrawable::Ptr RSSurfaceRenderNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)
@@ -1119,10 +1153,12 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         return;
     }
 
+    bool isScreenshot = RSUniRenderThread::GetCaptureParam().isSnapshot_ &&
+        !RSUniRenderThread::GetCaptureParam().isSingleSurface_;
     const auto& whiteList = RSUniRenderThread::Instance().GetWhiteList();
     if (uniParam->IsOcclusionEnabled() && surfaceParams->IsMainWindowType() &&
         surfaceParams->GetVisibleRegionInVirtual().IsEmpty() && whiteList.empty() &&
-        UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_)) {
+        UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_ || isScreenshot)) {
         RS_TRACE_NAME("RSSurfaceRenderNodeDrawable::OnCapture occlusion skip :[" + name_ + "] " +
             surfaceParams->GetAbsDrawRect().ToString());
         return;
@@ -1423,6 +1459,9 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
             VideoInfo videoInfo;
             auto surfaceNodeImage = renderEngine->CreateImageFromBuffer(canvas, params, videoInfo);
 
+            RSUniRenderThread::Instance().OnDrawBuffer(consumerOnDraw_, params.buffer,
+                                                       surfaceParams.GetBufferOwnerCount());
+
             // Use to adapt to AIBar DSS solution
             Color solidLayerColor = RgbPalette::Transparent();
             if (surfaceParams.GetIsHwcEnabledBySolidLayer()) {
@@ -1632,9 +1671,6 @@ void RSSurfaceRenderNodeDrawable::DrawSelfDrawingNodeBuffer(
 #ifdef RS_ENABLE_GPU
     RSTagTracker tagTracker(canvas.GetGPUContext(), RSTagTracker::SOURCETYPE::SOURCE_DRAWSELFDRAWINGNODEBUFFER);
 #endif
-    if (params.buffer == nullptr) {
-        RS_LOGE("RSSurfaceRenderNodeDrawable::DrawSelfDrawingNodeBuffer params.buffer is nullptr");
-    }
     auto bgColor = surfaceParams.GetBackgroundColor();
     if (surfaceParams.GetHardwareEnabled() && surfaceParams.GetIsHwcEnabledBySolidLayer()) {
         bgColor = surfaceParams.GetSolidLayerColor();
@@ -1664,6 +1700,7 @@ void RSSurfaceRenderNodeDrawable::DrawSelfDrawingNodeBuffer(
     } else {
         renderEngine->DrawSurfaceNodeWithParams(canvas, *this, params);
     }
+    RSUniRenderThread::Instance().OnDrawBuffer(consumerOnDraw_, params.buffer, surfaceParams.GetBufferOwnerCount());
 }
 
 bool RSSurfaceRenderNodeDrawable::HasCornerRadius(const RSSurfaceRenderParams& surfaceParams) const
@@ -1761,17 +1798,6 @@ std::shared_ptr<RSDirtyRegionManager> RSSurfaceRenderNodeDrawable::GetSyncDirtyM
 {
     return syncDirtyManager_;
 }
-
-#ifndef ROSEN_CROSS_PLATFORM
-void RSSurfaceRenderNodeDrawable::RegisterDeleteBufferListenerOnSync(sptr<IConsumerSurface> consumer)
-{
-    auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
-    if (!renderEngine || !consumerOnDraw_) {
-        return;
-    }
-    renderEngine->RegisterDeleteBufferListener(consumerOnDraw_);
-}
-#endif
 
 void  RSSurfaceRenderNodeDrawable::SetCulledNodesToCanvas(RSPaintFilterCanvas* canvas,
     const RSSurfaceRenderParams* surfaceParams)

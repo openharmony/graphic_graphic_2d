@@ -29,8 +29,6 @@
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_innovation.h"
 #include "platform/drawing/rs_surface.h"
-#include "screen_manager/rs_screen_manager.h"
-#include "screen_manager/screen_types.h"
 
 #undef LOG_TAG
 #define LOG_TAG "RSRenderServiceVisitor"
@@ -60,23 +58,40 @@ void RSRenderServiceVisitor::PrepareScreenRenderNode(RSScreenRenderNode& node)
 {
     currentVisitDisplay_ = node.GetScreenId();
     displayHasSecSurface_.emplace(currentVisitDisplay_, false);
-    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
-    if (!screenManager) {
-        RS_LOGE("PrepareScreenRenderNode ScreenManager is nullptr");
-        return;
-    }
 
-    ScreenInfo curScreenInfo = screenManager->QueryScreenInfo(node.GetScreenId());
-    node.SetScreenInfo(curScreenInfo);
-    offsetX_ = curScreenInfo.offsetX;
-    offsetY_ = curScreenInfo.offsetY;
-    UpdateScreenNodeCompositeType(node, curScreenInfo);
+    const auto& screenProperty = node.GetScreenProperty();
+    node.SetScreenInfo(screenProperty.GetScreenInfo());
+    offsetX_ = screenProperty.GetOffsetX();
+    offsetY_ = screenProperty.GetOffsetY();
+    ScreenState state = screenProperty.GetState();
+    switch (state) {
+        case ScreenState::PRODUCER_SURFACE_ENABLE:
+            node.SetCompositeType(CompositeType::SOFTWARE_COMPOSITE);
+            break;
+        case ScreenState::HDI_OUTPUT_ENABLE:
+            node.SetCompositeType(node.IsForceSoftComposite() ?
+                CompositeType::SOFTWARE_COMPOSITE:
+                CompositeType::HARDWARE_COMPOSITE);
+            break;
+        default:
+            RS_LOGE("PrepareDisplayRenderNode State is unusual");
+            return;
+    }
 
     ResetSurfaceNodeAttrsInScreenNode(node);
 
     curScreenNode_ = node.shared_from_this()->ReinterpretCastTo<RSScreenRenderNode>();
+
+    int32_t logicalScreenWidth = static_cast<int32_t>(node.GetRenderProperties().GetFrameWidth());
+    int32_t logicalScreenHeight = static_cast<int32_t>(node.GetRenderProperties().GetFrameHeight());
+    if (logicalScreenWidth <= 0 || logicalScreenHeight <= 0) {
+        logicalScreenWidth = static_cast<int32_t>(screenProperty.GetWidth());
+        logicalScreenHeight = static_cast<int32_t>(screenProperty.GetHeight());
+    }
+
     auto& boundsGeoPtr = (node.GetRenderProperties().GetBoundsGeometry());
     RSBaseRenderUtil::SetNeedClient(boundsGeoPtr && boundsGeoPtr->IsNeedClientCompose());
+    CreateCanvas(logicalScreenWidth, logicalScreenHeight);
     PrepareChildren(node);
     node.GetCurAllSurfaces().clear();
     node.CollectSurface(node.shared_from_this(), node.GetCurAllSurfaces(), false, false);
@@ -84,17 +99,16 @@ void RSRenderServiceVisitor::PrepareScreenRenderNode(RSScreenRenderNode& node)
 
 void RSRenderServiceVisitor::PrepareLogicalDisplayRenderNode(RSLogicalDisplayRenderNode& node)
 {
-    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
-    if (!screenManager) {
-        RS_LOGE("PrepareScreenRenderNode ScreenManager is nullptr");
+    if (!curScreenNode_) {
+        RS_LOGE("PrepareLogicalDisplayRenderNode curScreenNode is nullptr");
         return;
     }
-    ScreenInfo curScreenInfo = screenManager->QueryScreenInfo(node.GetScreenId());
+    const auto& screenProperty = curScreenNode_->GetScreenProperty();
     int32_t logicalScreenWidth = static_cast<int32_t>(node.GetRenderProperties().GetFrameWidth());
     int32_t logicalScreenHeight = static_cast<int32_t>(node.GetRenderProperties().GetFrameHeight());
     if (logicalScreenWidth <= 0 || logicalScreenHeight <= 0) {
-        logicalScreenWidth = static_cast<int32_t>(curScreenInfo.width);
-        logicalScreenHeight = static_cast<int32_t>(curScreenInfo.height);
+        logicalScreenWidth = static_cast<int32_t>(screenProperty.GetWidth());
+        logicalScreenHeight = static_cast<int32_t>(screenProperty.GetHeight());
         auto rotation = node.GetRotation();
         if (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270) {
             std::swap(logicalScreenWidth, logicalScreenHeight);
@@ -117,28 +131,23 @@ void RSRenderServiceVisitor::PrepareLogicalDisplayRenderNode(RSLogicalDisplayRen
     PrepareChildren(node);
 }
 
+//todo:need to check
 void RSRenderServiceVisitor::ProcessScreenRenderNode(RSScreenRenderNode& node)
 {
     // need reset isSecurityDisplay_ on ProcessScreenRenderNode
     RS_LOGD("RsDebug ProcessScreenRenderNode: nodeid:[%{public}" PRIu64 "]"
-        " screenid:[%{public}" PRIu64 "] isSecurityDisplay:[%{public}s] child size:[%{public}u]",
+        " screenid:[%{public}" PRIu64 "] isSecurityDisplay:[%{public}s] child size:[%{public}d]",
         node.GetId(), node.GetScreenId(), isSecurityDisplay_ ? "true" : "false", node.GetChildrenCount());
     globalZOrder_ = 0.0f;
-    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
-    if (!screenManager) {
-        RS_LOGE("ProcessScreenRenderNode ScreenManager is nullptr");
-        return;
-    }
-    ScreenInfo curScreenInfo = screenManager->QueryScreenInfo(node.GetScreenId());
+    const auto& screenProperty = node.GetScreenProperty();
     RS_TRACE_NAME("ProcessScreenRenderNode[" + std::to_string(node.GetScreenId()) + "]");
-    RSScreenModeInfo modeInfo = {};
-    screenManager->GetDefaultScreenActiveMode(modeInfo);
-    uint32_t refreshRate = modeInfo.GetScreenRefreshRate();
-    screenManager->RemoveForceRefreshTask();
+
+    uint32_t refreshRate = screenProperty.GetRefreshRate();
+    RSMainThread::Instance()->RemoveForceRefreshTask();
     // skip frame according to skipFrameInterval value of SetScreenSkipFrameInterval interface
-    if (node.SkipFrame(refreshRate, curScreenInfo.skipFrameInterval)) {
+    if (node.SkipFrame(refreshRate, screenProperty.GetScreenSkipFrameInterval())) {
         RS_TRACE_NAME("SkipFrame, screenId:" + std::to_string(node.GetScreenId()));
-        screenManager->PostForceRefreshTask();
+        RSMainThread::Instance()->PostForceRefreshTask();
         return;
     }
 
@@ -293,7 +302,7 @@ void RSRenderServiceVisitor::CreateCanvas(int32_t width, int32_t height, bool is
 
 bool RSRenderServiceVisitor::CreateProcessor(RSScreenRenderNode& node)
 {
-    processor_ = RSProcessorFactory::CreateProcessor(node.GetCompositeType());
+    processor_ = RSProcessorFactory::CreateProcessor(node.GetCompositeType(), node.GetScreenId());
     if (processor_ == nullptr) {
         RS_LOGE("CreateProcessor: processor_ is null!");
         return false;
@@ -306,9 +315,7 @@ bool RSRenderServiceVisitor::CreateProcessor(RSScreenRenderNode& node)
         processorRenderEngine_ = mainThread->GetRenderEngine();
     }
 
-    const auto& screenProperty = node.GetScreenProperty();
-    if (!processor_->Init(node, screenProperty.GetOffsetX(), screenProperty.GetOffsetY(),
-        mirrorNode ? mirrorNode->GetScreenId() : INVALID_SCREEN_ID, processorRenderEngine_)) {
+    if (!processor_->Init(node, processorRenderEngine_)) {
         RS_LOGE("ProcessDisplayRenderNode: processor init failed!");
         return false;
     }

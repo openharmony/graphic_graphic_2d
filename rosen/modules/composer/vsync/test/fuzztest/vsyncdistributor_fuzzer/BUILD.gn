@@ -44,10 +44,6 @@ ohos_fuzztest("VsyncDistributorFuzzTest") {
     "ipc:ipc_core",
     "samgr:samgr_proxy",
   ]
-  defines = []
-  if (graphic_2d_feature_enable_dvsync) {
-    defines += [ "RS_ENABLE_DVSYNC_2" ]
-  }
 }
 
 ###############################################################################

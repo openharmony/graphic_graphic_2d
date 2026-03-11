@@ -140,16 +140,12 @@ HWTEST_F(RSUifirstManagerTest2, CommonPendingNodePurgeTest, TestSize.Level1)
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> map = { { nodeId, surfaceRenderNode } };
     auto iter = map.begin();
 
-    ScreenId screenId = 1;
-    auto screenManager = CreateOrGetScreenManager();
-    screenManager->powerOffNeedProcessOneFrame_ = false;
-
-    bool powerStatus = screenManager->screenPowerStatus_[screenId];
-    screenManager->screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON;
+    auto tmp = uifirstManager_.allScreenPowerOffNeedPurge_;
+    uifirstManager_.allScreenPowerOffNeedPurge_ = false;
     EXPECT_FALSE(uifirstManager_.CommonPendingNodePurge(iter));
-    screenManager->screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_OFF;
+    uifirstManager_.allScreenPowerOffNeedPurge_ = true;
     EXPECT_TRUE(uifirstManager_.CommonPendingNodePurge(iter));
-    screenManager->screenPowerStatus_[screenId] = powerStatus;
+    uifirstManager_.allScreenPowerOffNeedPurge_ = tmp;
 }
 
 /**

@@ -115,10 +115,10 @@ void RSModifiersDrawThread::SubscribeHighContrastChange()
     highContrastObserver_ = std::make_shared<Detail::HighContrastObserver>(highContrast_);
     // Non-system app, the first highContrast value in highContrastObserver_ is incorrect, so get it from RS.
     if (!highContrastObserver_->IsSystemApp()) {
-        auto renderServiceClient =
-            std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
-        if (renderServiceClient != nullptr) {
-            highContrast_ = renderServiceClient->GetHighContrastTextState();
+        auto rendePipelineClient =
+            std::static_pointer_cast<RSRenderPipelineClient>(RSIRenderClient::CreateRenderPiplineClient());
+        if (rendePipelineClient != nullptr) {
+            highContrast_ = rendePipelineClient->GetHighContrastTextState();
         } else {
             RS_LOGE("%{public}s GetHighContrastTextState, renderServiceClient is null", __func__);
         }

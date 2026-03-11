@@ -26,14 +26,13 @@
 
 #include "animation/rs_frame_rate_range.h"
 #include "common/rs_common_def.h"
-#include "transaction/rs_hgm_config_data.h"
 
 namespace OHOS::Rosen {
 
-using SyncEnergyInfoFunc = std::function<void(const EnergyInfo&)>;
 constexpr uint32_t DRAG_FRAME_RATE_TYPE = REFRESH_DRAG_FRAME_RATE_TYPE | SWIPER_DRAG_FRAME_RATE_TYPE |
     SCROLLABLE_DRAG_FRAME_RATE_TYPE | SCROLLBAR_DRAG_FRAME_RATE_TYPE | SPLIT_DRAG_FRAME_RATE_TYPE |
     PICKER_DRAG_FRAME_RATE_TYPE | SCROLLABLE_MULTI_TASK_FRAME_RATE_TYPE;
+using HandleRPFunc = std::function<void(const std::unordered_map<std::string, std::string>&)>;
 
 class HgmEnergyConsumptionPolicy {
 public:
@@ -42,18 +41,14 @@ public:
     void SetUiEnergyConsumptionConfig(std::unordered_map<std::string, std::string> uiPowerConfig);
     void SetAnimationEnergyConsumptionAssuranceMode(bool isEnergyConsumptionAssuranceMode);
     // called by RSMainThread
-    void StatisticAnimationTime(uint64_t timestamp);
-    void StartNewAnimation(const std::string& componentName);
-    // called by RSMainThread
     void GetAnimationIdleFps(FrameRateRange& rsRange);
     void SetTouchState(TouchState touchState);
+    void StatisticsVideoCallBufferCount(pid_t pid, const std::string& surfaceName);
 
     bool GetUiIdleFps(FrameRateRange& rsRange, pid_t pid = 0);
     void SetRefreshRateMode(int32_t currentRefreshMode, std::string curScreenStrategyId);
     void PrintEnergyConsumptionLog(const FrameRateRange& rsRange);
     void SetVideoCallSceneInfo(const EventInfo& eventInfo);
-    // called by RSMainThread
-    void StatisticsVideoCallBufferCount(pid_t pid, const std::string& surfaceName);
     // called by RSMainThread
     void CheckOnlyVideoCallExist();
     // called by RSMainThread
@@ -61,11 +56,8 @@ public:
     bool GetVideoCallFrameRate(pid_t pid, const std::string& vsyncName, FrameRateRange& finalRange);
     void SetCurrentPkgName(const std::vector<std::string>& pkgs);
     void SetEnergyConsumptionAssuranceSceneInfo(const EventInfo& eventInfo);
-
-    // component default fps
-    void SetComponentDefaultFpsInfo(const EventInfo& eventInfo);
-    bool DisableTouchHighFrameRate(const FrameRateRange& finalRange);
-    void SetSyncEnergyInfoFunc(const SyncEnergyInfoFunc& func) { syncEnergyInfoFunc_ = func; }
+    void HandleEnergyCommonData(const EnergyCommonDataMap& commonData);
+    bool GetPowerIdle();
 
 private:
     // <rateType, <isEnable, idleFps>>
@@ -96,8 +88,7 @@ private:
     // concurrency protection <<<
     std::atomic<bool> dragSceneEnable_ = { true };
     std::atomic<pid_t> dragSceneDisablePid_ = { 0 };
-    SyncEnergyInfoFunc syncEnergyInfoFunc_ = nullptr;
-    EnergyInfo energyInfo_{};
+    const static std::unordered_map<EnergyEvent, HandleRPFunc> commonDataMapFunc_;
 
     HgmEnergyConsumptionPolicy();
     ~HgmEnergyConsumptionPolicy() = default;
@@ -108,8 +99,10 @@ private:
     static void ConverStrToInt(int& targetNum, std::string sourceStr, int defaultValue);
     void SetEnergyConsumptionRateRange(FrameRateRange& rsRange, int idleFps);
     int32_t GetComponentEnergyConsumptionConfig(const std::string& componentName);
-    // Invoked by the render_service thread
-    void GetComponentFps(FrameRateRange& rsRange);
+
+    void StartNewAnimation(const std::unordered_map<std::string, std::string>& commonData);
+    void VoterVideoFrameRate(const std::unordered_map<std::string, std::string>& commonData);
+    void StatisticAnimationTime(const std::unordered_map<std::string, std::string>& commonData);
     // called by hgm thread
     void VoterVideoCallFrameRate();
 };

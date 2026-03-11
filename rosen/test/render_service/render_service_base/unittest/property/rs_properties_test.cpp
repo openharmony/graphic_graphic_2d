@@ -3144,7 +3144,7 @@ HWTEST_F(RSPropertiesTest, SetLightIntensity002, TestSize.Level1)
     EXPECT_NE(properties.GetEffect().lightSourcePtr_, nullptr);
     std::shared_ptr<RSRenderNode> node = nullptr;
     properties.backref_ = node;
-    auto instance = RSPointLightManager::Instance();
+    auto& instance = RSPointLightManager::Instance(0);
     instance->lightSourceNodeMap_.clear();
     properties.SetLightIntensity(1.f);
     EXPECT_TRUE(instance->lightSourceNodeMap_.empty());
@@ -3252,7 +3252,7 @@ HWTEST_F(RSPropertiesTest, SetIlluminatedType002, TestSize.Level1)
 
     std::shared_ptr<RSRenderNode> node = nullptr;
     properties.backref_ = node;
-    auto instance = RSPointLightManager::Instance();
+    auto& instance = RSPointLightManager::Instance(0);
     instance->illuminatedNodeMap_.clear();
     properties.SetIlluminatedType(1);
     EXPECT_TRUE(instance->illuminatedNodeMap_.empty());

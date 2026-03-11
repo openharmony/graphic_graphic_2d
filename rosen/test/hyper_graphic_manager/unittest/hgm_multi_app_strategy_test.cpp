@@ -608,30 +608,6 @@ HWTEST_F(HgmMultiAppStrategyTest, HandleLowAmbientStatus, Function | SmallTest |
 }
 
 /**
- * @tc.name: CheckImageEnhanceListTest
- * @tc.desc: Verify the result of CheckImageEnhanceList
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmMultiAppStrategyTest, CheckImageEnhanceListTest, Function | SmallTest | Level0)
-{
-    auto& hgmCore = HgmCore::Instance();
-    std::unordered_set<pid_t> imageEnhancePidList;
-    const pid_t pid = 1234;
-    std::string pkgName = "com.other.app";
-    hgmCore.mImageEnhanceScene_.clear();
-    multiAppStrategy_->CheckImageEnhanceList(pkgName, pid, imageEnhancePidList);
-    EXPECT_TRUE(imageEnhancePidList.empty());
-    hgmCore.mImageEnhanceScene_.insert("com.example.app");
-    multiAppStrategy_->CheckImageEnhanceList(pkgName, pid, imageEnhancePidList);
-    EXPECT_TRUE(imageEnhancePidList.empty());
-    pkgName = "com.example.app";
-    multiAppStrategy_->CheckImageEnhanceList(pkgName, pid, imageEnhancePidList);
-    EXPECT_FALSE(imageEnhancePidList.empty());
-    EXPECT_NE(imageEnhancePidList.find(pid), imageEnhancePidList.end());
-}
-
-/**
  * @tc.name: BackgroundApp
  * @tc.desc: Verify the result of BackgroundApp
  * @tc.type: FUNC

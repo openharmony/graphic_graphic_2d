@@ -17,6 +17,7 @@
 #define ROSEN_RENDER_SERVICE_BASE_PIPELINE_RS_CONTEXT_H
 
 #include <cstdint>
+#include <unordered_set>
 #include "common/rs_macros.h"
 #ifndef ROSEN_CROSS_PLATFORM
 #include "iconsumer_surface.h"
@@ -25,6 +26,7 @@
 #endif
 #include "animation/rs_render_interactive_implict_animator_map.h"
 #include "feature/capture/rs_ui_capture_helper.h"
+#include "feature/power_off_render_skip/rs_power_off_render_controller.h"
 #include "ipc_callbacks/brightness_info_change_callback.h"
 #include "pipeline/rs_render_node_map.h"
 #include "feature/hyper_graphic_manager/rs_render_frame_rate_linker_map.h"
@@ -81,14 +83,30 @@ public:
         return animatingNodeList_;
     }
 
-    RSRenderFrameRateLinkerMap& GetMutableFrameRateLinkerMap()
+    std::unordered_set<FrameRateLinkerId>& GetMutableFrameRateLinkerDestroyIds()
     {
-        return frameRateLinkerMap;
+        return frameRateLinkerDestroyIds_;
     }
 
-    const RSRenderFrameRateLinkerMap& GetFrameRateLinkerMap() const
+    const std::unordered_set<FrameRateLinkerId>& GetFrameRateLinkerDestroyIds() const
     {
-        return frameRateLinkerMap;
+        return frameRateLinkerDestroyIds_;
+    }
+
+    FrameRateLinkerUpdateInfoMap& GetMutableFrameRateLinkerUpdateInfoMap()
+    {
+        return frameRateLinkerUpdateInfoMap_;
+    }
+
+    const FrameRateLinkerUpdateInfoMap& GetFrameRateLinkerUpdateInfoMap() const
+    {
+        return frameRateLinkerUpdateInfoMap_;
+    }
+
+    void ClearFrameRateLinker()
+    {
+        frameRateLinkerDestroyIds_.clear();
+        frameRateLinkerUpdateInfoMap_.clear();
     }
 
     const std::shared_ptr<RSBaseRenderNode>& GetGlobalRootRenderNode() const
@@ -218,6 +236,13 @@ public:
     {
         visibleLeashWindowCount_.store(count);
     }
+
+    RSPowerOffRenderController& GetPowerOffRenderController()
+    {
+        return powerOffRenderController_;
+    }
+
+    std::unordered_map<std::string, pid_t> GetUIFrameworkDirtyNodeNameMap();
 private:
     // This function is used for initialization, should be called once after constructor.
     void Initialize();
@@ -232,7 +257,8 @@ private:
     RSRenderNodeMap nodeMap;
     std::vector<std::string> uiFrameworkTypeTable_;
     std::vector<std::weak_ptr<RSRenderNode>> uiFrameworkDirtyNodes_;
-    RSRenderFrameRateLinkerMap frameRateLinkerMap;
+    std::unordered_set<FrameRateLinkerId> frameRateLinkerDestroyIds_;
+    std::unordered_map<FrameRateLinkerId, FrameRateLinkerUpdateInfo> frameRateLinkerUpdateInfoMap_;
     RSRenderInteractiveImplictAnimatorMap interactiveImplictAnimatorMap_;
     std::unordered_map<pid_t, sptr<RSIBrightnessInfoChangeCallback>> brightnessInfoChangeCallbackMap_;
     // The list of animating nodes in this frame.
@@ -252,6 +278,7 @@ private:
 
     std::unique_ptr<RSUiCaptureHelper> uiCaptureHelper_;
     std::atomic<uint32_t> visibleLeashWindowCount_ = 0;
+    RSPowerOffRenderController powerOffRenderController_;
 
     friend class RSRenderThread;
     friend class RSMainThread;

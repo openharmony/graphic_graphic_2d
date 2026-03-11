@@ -15,7 +15,7 @@
 
 #include <iostream>
 #include "rs_interface_client_frame_test.h"
-#include "platform/ohos/rs_irender_service_connection_ipc_interface_code.h"
+#include "platform/ohos/rs_iclient_to_service_connection_ipc_interface_code.h"
 #include "foundation/window/window_manager/interfaces/innerkits/wm/window.h"
 using namespace OHOS;
 using namespace OHOS::Rosen;
@@ -42,7 +42,7 @@ public:
 int main()
 {
     InterfaceClientFrameTest::GetInstance().SetExecFun(
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE),
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE),
             [](InterfaceClientFrameTest &testFrame) {
                 auto& rsInterefaces = RSInterfaces::GetInstance();
                 std::shared_ptr<SurfaceCaptureCallback> callback = std::make_shared<CustomizedSurfaceCapture>();

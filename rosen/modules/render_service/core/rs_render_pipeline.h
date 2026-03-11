@@ -1,0 +1,159 @@
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#ifndef RS_RENDER_PIPELINE_H
+#define RS_RENDER_PIPELINE_H
+
+#include <event_handler.h>
+#include <map>
+#include <unordered_set>
+#include "common/rs_common_def.h"
+#include "common/rs_thread_handler.h"
+#include "dfx/rs_pipeline_dump_manager.h"
+#include "dfx/rs_pipeline_dumper.h"
+#include "dirty_region/rs_optimize_canvas_dirty_collector.h"
+#include "feature/image_enhance/image_enhance_manager.h"
+#include "ipc_callbacks/rs_iocclusion_change_callback.h"
+#include "ipc_callbacks/rs_isurface_occlusion_change_callback.h"
+#include "info_collection/rs_gpu_dirty_region_collection.h"
+#include "info_collection/rs_hardware_compose_disabled_reason_collection.h"
+#include "info_collection/rs_hdr_collection.h"
+#include "info_collection/rs_layer_compose_collection.h"
+#include "irs_render_to_composer_connection.h"
+#include "memory/rs_memory_manager.h"
+#include "platform/ohos/transaction/zidl/rs_iclient_to_render_connection.h"
+#include "platform/ohos/transaction/zidl/rs_iclient_to_service_connection.h"
+#include "rs_composer_client_manager.h"
+#include "vsync_receiver.h"
+#include "vsync/vsync_manager_agent.h"
+#include "screen_manager/rs_screen_property.h"
+#include "screen_manager/screen_types.h"
+#include "memory/rs_memory_manager.h"
+
+namespace OHOS {
+namespace Rosen {
+namespace ST {
+template<typename Task>
+class ScheduledTask : public RefBase {
+public:
+    static auto Create(Task&& task)
+    {
+        sptr<ScheduledTask<Task>> t(new ScheduledTask(std::move(task)));
+        return std::make_pair(t, t->task_.get_future());
+    }
+
+    void Run() { task_(); }
+
+private:
+    explicit ScheduledTask(Task&& task) : task_(std::move(task)) {}
+    ~ScheduledTask() override = default;
+
+    using Return = std::invoke_result_t<Task>;
+    std::packaged_task<Return()> task_;
+};
+} // namespace ST
+
+class RSIRenderToServiceConnection;
+class RSMainThread;
+class RSUniRenderThread;
+class RSHwcContext;
+class RSRenderPipeline final : public RefBase {
+public:
+    static std::shared_ptr<RSRenderPipeline> Create(const std::shared_ptr<AppExecFwk::EventHandler>& handler,
+        const std::shared_ptr<VSyncReceiver>& receiver,
+        const sptr<RSIRenderToServiceConnection>& renderToServiceConnection,
+        const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent);
+
+    void PostMainThreadTask(RSTaskMessage::RSTask task);
+
+    void PostUniRenderThreadTask(RSTaskMessage::RSTask task);
+
+    bool PostMainThreadSyncTask(RSTaskMessage::RSTask task);
+
+    void PostUniRenderThreadSyncTask(RSTaskMessage::RSTask task);
+
+    void PostMainThreadTask(RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
+        AppExecFwk::EventQueue::Priority priority);
+
+    template<typename Task, typename Return = std::invoke_result_t<Task>>
+    std::future<Return> ScheduleMainThreadTask(Task&& task)
+    {
+        auto [scheduledTask, taskFuture] = ST::ScheduledTask<Task>::Create(std::move(task));
+        PostMainThreadTask([t(std::move(scheduledTask))]() { t->Run(); });
+        return std::move(taskFuture);
+    }
+
+    void OnScreenConnected(const sptr<RSScreenProperty>& rsScreenProperty,
+        const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
+        const sptr<IRSComposerToRenderConnection>& composerToRenderConn,
+        const std::shared_ptr<HdiOutput>& output);
+    void OnScreenDisconnected(ScreenId screenId);
+    void OnScreenPropertyChanged(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
+    void OnScreenRefresh(ScreenId screenId);
+    void RegisterScreenSwitchFinishCallback(const sptr<RSIRenderToServiceConnection>& conn);
+
+private:
+    void Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler, const std::shared_ptr<VSyncReceiver>& receiver,
+        const sptr<RSIRenderToServiceConnection>& renderToServiceConnection,
+        const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent);
+    void InitEnvironment();
+    void InitUniRenderConfig();
+    void InitCCMConfig();
+    // RS Filter CCM init
+    void FilterCCMInit();
+    void InitMainThread(const std::shared_ptr<AppExecFwk::EventHandler>& handler,
+        const std::shared_ptr<VSyncReceiver>& receiver,
+        const sptr<RSIRenderToServiceConnection>& renderToServiceConnection,
+        const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent);
+    void InitUniRenderThread();
+    void InitDumper(const std::shared_ptr<AppExecFwk::EventHandler>& handler);
+    bool RemoveConnection(const sptr<RSIConnectionToken>& token);
+    void AddConnection(sptr<IRemoteObject>& token, sptr<RSIClientToRenderConnection> connectToRenderConnection);
+    sptr<RSIClientToRenderConnection> FindClientToRenderConnection(const sptr<IRemoteObject>& token);
+    void AddTransactionDataPidInfo(pid_t remotePid);
+    RSMainThread* GetMainThread()
+    {
+        return mainThread_;
+    }
+    RSUniRenderThread* GetUniRenderThread()
+    {
+        return uniRenderThread_;
+    }
+    std::shared_ptr<RSComposerClientManager> GetComposerClientManager() const;
+
+    // LPP
+    void RegisterJudgeLppLayerCB(const sptr<IRSComposerToRenderConnection>& composerToRenderConn);
+    RSMainThread* mainThread_ = nullptr;
+    RSUniRenderThread* uniRenderThread_ = nullptr;
+    std::map<sptr<IRemoteObject>, sptr<RSIClientToRenderConnection>> renderConnections_ = {};
+    mutable std::mutex renderConnectionMutex_;
+    std::shared_ptr<ImageEnhanceManager> imageEnhanceManager_ = nullptr;
+    std::shared_ptr<RSPipelineDumper> rpDumper_ = nullptr;
+    std::shared_ptr<RSPipelineDumpManager> rpDumpManager_ = nullptr;
+    std::shared_ptr<RSComposerClientManager> composerClientManager_ = nullptr;
+
+    friend class RSServiceToRenderConnection;
+    friend class RSRenderProcessAgent;
+    friend class RSRenderServiceAgent;
+    friend class RSRenderPipelineAgent;
+
+#ifdef RS_PROFILER_ENABLED
+    friend class RSProfiler;
+#endif
+};
+} // Rosen
+} // OHOS
+
+#endif // RS_RENDER_PIPELINE_H

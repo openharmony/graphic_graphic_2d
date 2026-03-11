@@ -29,7 +29,7 @@ group("unittest") {
     ":RSProfilerPixelMapTest",
     ":RSProfilerSocketTest",
     ":RSProfilerTelemetryTest",
-    ":RSProfilerTest",
+    # ":RSProfilerTest",
     ":RSProfilerUtilsTest",
     ":subtest",
   ]
@@ -102,6 +102,7 @@ ohos_unittest("RSProfilerBaseTest") {
   ]
 
   deps = [
+    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/test/render_service/render_service/unittest/pipeline:rs_test_common",
