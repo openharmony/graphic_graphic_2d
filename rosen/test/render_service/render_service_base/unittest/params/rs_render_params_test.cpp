@@ -1070,15 +1070,16 @@ HWTEST_F(RSRenderParamsTest, SetNeedClipHoleForFilterTest001, TestSize.Level1)
     ASSERT_EQ(params.renderGroupCache_, nullptr);
 
     params.SetNeedClipHoleForFilter(false);
-    ASSERT_NE(params.renderGroupCache_, nullptr);
+    ASSERT_EQ(params.renderGroupCache_, nullptr);
     EXPECT_FALSE(params.NeedClipHoleForFilter());
     EXPECT_FALSE(params.needSync_);
 
     params.SetNeedClipHoleForFilter(true);
+    ASSERT_NE(params.renderGroupCache_, nullptr);
     EXPECT_TRUE(params.NeedClipHoleForFilter());
     EXPECT_TRUE(params.needSync_);
-    params.needSync_ = false;
 
+    params.needSync_ = false;
     params.SetNeedClipHoleForFilter(true);
     EXPECT_TRUE(params.NeedClipHoleForFilter());
     EXPECT_FALSE(params.needSync_);
