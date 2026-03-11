@@ -24,15 +24,14 @@ RSFrameControlTool& RSFrameControlTool::Instance()
     return instance;
 }
 
-void RSFrameControlTool::InsertNodeIdToAppWindowSet(NodeId id)
+void RSFrameControlTool::SetAppWindowNodeId(NodeId id)
 {
-    refreshAppWindowSet_.insert(id);
+    refreshAppWindowNodeId_ = id;
 }
 
-bool RSFrameControlTool::SerchNodeIdFromAppWindowsSet(NodeId id)
+bool RSFrameControlTool::CheckAppWindowNodeId(NodeId id)
 {
-    if (refreshAppWindowSet_.count(id) > 0) {
-        refreshAppWindowSet_.clear();
+    if (refreshAppWindowNodeId_ == id) {
         return true;
     }
     return false;
