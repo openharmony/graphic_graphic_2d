@@ -38,6 +38,8 @@ int RSDumpCallbackStub::OnRemoteRequest(uint32_t code, MessageParcel& data, Mess
             std::string dumpString = dataPtr != nullptr ?
                 std::string(static_cast<const char*>(dataPtr), size) : "";
             OnDumpResult(dumpString);
+            free(dataPtr);
+            dataPtr = nullptr;
             break;
         }
         default: {

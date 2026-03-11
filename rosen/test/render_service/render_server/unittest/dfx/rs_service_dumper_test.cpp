@@ -722,6 +722,7 @@ HWTEST_F(RSServiceDumperTest, IsNumber_ValidNumbers, TestSize.Level1)
 {
     // Given: Valid numeric strings
     std::vector<std::string> validNumbers = {"0", "123", "456789", "007", "999"};
+    ASSERT_NE(dumpManager_, nullptr);
 
     // When & Then: All should be recognized as numbers (tested via dumpMem command)
     for (const auto& numStr : validNumbers) {
@@ -729,6 +730,7 @@ HWTEST_F(RSServiceDumperTest, IsNumber_ValidNumbers, TestSize.Level1)
         std::string dumpString;
         dumpManager_->CmdExec(argSets, dumpString);
     }
+    ASSERT_NE(dumpManager_, nullptr);
     // Should complete without crash
     SUCCEED();
 }
@@ -743,6 +745,7 @@ HWTEST_F(RSServiceDumperTest, IsNumber_InvalidStrings, TestSize.Level1)
 {
     // Given: Invalid non-numeric strings
     std::vector<std::string> invalidStrings = {"abc", "12a", "a1b2c3", "test", "invalid"};
+    ASSERT_NE(dumpManager_, nullptr);
 
     // When & Then: Should handle gracefully (tested via dumpMem command)
     for (const auto& str : invalidStrings) {
@@ -750,6 +753,7 @@ HWTEST_F(RSServiceDumperTest, IsNumber_InvalidStrings, TestSize.Level1)
         std::string dumpString;
         dumpManager_->CmdExec(argSets, dumpString);
     }
+    ASSERT_NE(dumpManager_, nullptr);
     // Should complete without crash
     SUCCEED();
 }
@@ -764,6 +768,7 @@ HWTEST_F(RSServiceDumperTest, IsNumber_MixedStrings, TestSize.Level1)
 {
     // Given: Mixed alphanumeric strings
     std::vector<std::string> mixedStrings = {"12abc", "abc123", "1a2b3c", "test123abc"};
+    ASSERT_NE(dumpManager_, nullptr);
 
     // When & Then: Should handle gracefully (tested via dumpMem command)
     for (const auto& str : mixedStrings) {
@@ -771,6 +776,7 @@ HWTEST_F(RSServiceDumperTest, IsNumber_MixedStrings, TestSize.Level1)
         std::string dumpString;
         dumpManager_->CmdExec(argSets, dumpString);
     }
+    ASSERT_NE(dumpManager_, nullptr);
     // Should complete without crash
     SUCCEED();
 }
@@ -785,6 +791,7 @@ HWTEST_F(RSServiceDumperTest, IsNumber_SpecialCharacters, TestSize.Level1)
 {
     // Given: Strings with special characters
     std::vector<std::string> specialStrs = {"12.5", "-123", "+456", "12 ", " 34", "1e2"};
+    ASSERT_NE(dumpManager_, nullptr);
 
     // When & Then: Should handle gracefully (tested via dumpMem command)
     for (const auto& str : specialStrs) {
@@ -792,6 +799,7 @@ HWTEST_F(RSServiceDumperTest, IsNumber_SpecialCharacters, TestSize.Level1)
         std::string dumpString;
         dumpManager_->CmdExec(argSets, dumpString);
     }
+    ASSERT_NE(dumpManager_, nullptr);
     // Should complete without crash
     SUCCEED();
 }

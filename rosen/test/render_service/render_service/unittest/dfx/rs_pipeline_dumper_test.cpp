@@ -542,7 +542,6 @@ HWTEST_F(RSPipelineDumperTest, ScheduleTask_WithValidHandler, TestSize.Level1)
     // Given: Dumper with valid handler
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = AppExecFwk::EventRunner::Create(true);
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
-    runner_->Run();
     ASSERT_NE(handler_, nullptr);
     auto dumper = std::make_unique<RSPipelineDumper>(handler_);
     // When: Schedule task
@@ -1677,6 +1676,275 @@ HWTEST_F(RSPipelineDumperTest, DumpMem_DirectCall_Empty, TestSize.Level1)
     std::unordered_set<std::u16string> argSets;
     std::string dumpString;
     dumper_->DumpMem(argSets, dumpString);
+
+    // Then: Should execute without crash
+    SUCCEED();
+}
+
+/*
+ * @tc.name: WindowHitchsDump_DirectCall_ValidArgs
+ * @tc.desc: Direct call WindowHitchsDump function with valid args
+ * @tc.type: FUNC
+ * @tc.require: AR000GSH6G
+ */
+HWTEST_F(RSPipelineDumperTest, WindowHitchsDump_DirectCall_ValidArgs, TestSize.Level1)
+{
+    // Given: A dumper instance
+    ASSERT_NE(dumper_, nullptr);
+
+    // When: Directly call WindowHitchsDump with valid layer name
+    std::unordered_set<std::u16string> argSets = { u"testLayer", u"hitchs" };
+    std::string dumpString;
+    std::u16string arg = u"hitchs";
+    dumper_->WindowHitchsDump(argSets, dumpString, arg);
+
+    // Then: Should execute without crash
+    SUCCEED();
+}
+
+/*
+ * @tc.name: WindowHitchsDump_DirectCall_ArgNotFound
+ * @tc.desc: Direct call WindowHitchsDump function with arg not in argSets
+ * @tc.type: FUNC
+ * @tc.require: AR000GSH6G
+ */
+HWTEST_F(RSPipelineDumperTest, WindowHitchsDump_DirectCall_ArgNotFound, TestSize.Level1)
+{
+    // Given: A dumper instance
+    ASSERT_NE(dumper_, nullptr);
+
+    // When: Directly call WindowHitchsDump with arg not in argSets
+    std::unordered_set<std::u16string> argSets = { u"testLayer" };
+    std::string dumpString;
+    std::u16string arg = u"nonexistent";
+    dumper_->WindowHitchsDump(argSets, dumpString, arg);
+
+    // Then: Should execute without crash
+    SUCCEED();
+}
+
+/*
+ * @tc.name: WindowHitchsDump_DirectCall_EmptyArgSets
+ * @tc.desc: Direct call WindowHitchsDump function with empty argSets
+ * @tc.type: FUNC
+ * @tc.require: AR000GSH6G
+ */
+HWTEST_F(RSPipelineDumperTest, WindowHitchsDump_DirectCall_EmptyArgSets, TestSize.Level1)
+{
+    // Given: A dumper instance
+    ASSERT_NE(dumper_, nullptr);
+
+    // When: Directly call WindowHitchsDump with empty argSets
+    std::unordered_set<std::u16string> argSets;
+    std::string dumpString;
+    std::u16string arg = u"hitchs";
+    dumper_->WindowHitchsDump(argSets, dumpString, arg);
+
+    // Then: Should execute without crash
+    SUCCEED();
+}
+
+/*
+ * @tc.name: FPSDumpClearProcess_DirectCall_ValidArgs
+ * @tc.desc: Direct call FPSDumpClearProcess function with valid args
+ * @tc.type: FUNC
+ * @tc.require: AR000GSH6G
+ */
+HWTEST_F(RSPipelineDumperTest, FPSDumpClearProcess_DirectCall_ValidArgs, TestSize.Level1)
+{
+    // Given: A dumper instance
+    ASSERT_NE(dumper_, nullptr);
+
+    // When: Directly call FPSDumpClearProcess with valid layer name
+    std::unordered_set<std::u16string> argSets = { u"testLayer", u"fpsClear" };
+    std::string dumpString;
+    std::u16string arg = u"fpsClear";
+    dumper_->FPSDumpClearProcess(argSets, dumpString, arg);
+
+    // Then: Should execute without crash
+    SUCCEED();
+}
+
+/*
+ * @tc.name: FPSDumpClearProcess_DirectCall_ArgNotFound
+ * @tc.desc: Direct call FPSDumpClearProcess function with arg not in argSets
+ * @tc.type: FUNC
+ * @tc.require: AR000GSH6G
+ */
+HWTEST_F(RSPipelineDumperTest, FPSDumpClearProcess_DirectCall_ArgNotFound, TestSize.Level1)
+{
+    // Given: A dumper instance
+    ASSERT_NE(dumper_, nullptr);
+
+    // When: Directly call FPSDumpClearProcess with arg not in argSets
+    std::unordered_set<std::u16string> argSets = { u"testLayer" };
+    std::string dumpString;
+    std::u16string arg = u"nonexistent";
+    dumper_->FPSDumpClearProcess(argSets, dumpString, arg);
+
+    // Then: Should execute without crash
+    SUCCEED();
+}
+
+/*
+ * @tc.name: FPSDumpClearProcess_DirectCall_EmptyArgSets
+ * @tc.desc: Direct call FPSDumpClearProcess function with empty argSets after erase
+ * @tc.type: FUNC
+ * @tc.require: AR000GSH6G
+ */
+HWTEST_F(RSPipelineDumperTest, FPSDumpClearProcess_DirectCall_EmptyArgSets, TestSize.Level1)
+{
+    // Given: A dumper instance
+    ASSERT_NE(dumper_, nullptr);
+
+    // When: Directly call FPSDumpClearProcess with only the arg (empty after erase)
+    std::unordered_set<std::u16string> argSets = { u"fpsClear" };
+    std::string dumpString;
+    std::u16string arg = u"fpsClear";
+    dumper_->FPSDumpClearProcess(argSets, dumpString, arg);
+
+    // Then: Should execute without crash (logs error for missing layer name)
+    SUCCEED();
+}
+
+/*
+ * @tc.name: ClearFps_DirectCall_ValidArgs
+ * @tc.desc: Direct call ClearFps function with valid layer name
+ * @tc.type: FUNC
+ * @tc.require: AR000GSH6G
+ */
+HWTEST_F(RSPipelineDumperTest, ClearFps_DirectCall_ValidArgs, TestSize.Level1)
+{
+    // Given: A dumper instance
+    ASSERT_NE(dumper_, nullptr);
+
+    // When: Directly call ClearFps with valid layer name
+    std::string dumpString;
+    std::string layerName = "testLayer";
+    dumper_->ClearFps(dumpString, layerName);
+
+    // Then: Should execute without crash
+    SUCCEED();
+}
+
+/*
+ * @tc.name: ClearFps_DirectCall_EmptyLayerName
+ * @tc.desc: Direct call ClearFps function with empty layer name
+ * @tc.type: FUNC
+ * @tc.require: AR000GSH6G
+ */
+HWTEST_F(RSPipelineDumperTest, ClearFps_DirectCall_EmptyLayerName, TestSize.Level1)
+{
+    // Given: A dumper instance
+    ASSERT_NE(dumper_, nullptr);
+
+    // When: Directly call ClearFps with empty layer name
+    std::string dumpString;
+    std::string layerName = "";
+    dumper_->ClearFps(dumpString, layerName);
+
+    // Then: Should execute without crash
+    SUCCEED();
+}
+
+/*
+ * @tc.name: FPSDumpProcess_DirectCall_ValidArgs
+ * @tc.desc: Direct call FPSDumpProcess function with valid args
+ * @tc.type: FUNC
+ * @tc.require: AR000GSH6G
+ */
+HWTEST_F(RSPipelineDumperTest, FPSDumpProcess_DirectCall_ValidArgs, TestSize.Level1)
+{
+    // Given: A dumper instance
+    ASSERT_NE(dumper_, nullptr);
+
+    // When: Directly call FPSDumpProcess with valid layer name
+    std::unordered_set<std::u16string> argSets = { u"testLayer", u"composer" };
+    std::string dumpString;
+    std::u16string arg = u"composer";
+    dumper_->FPSDumpProcess(argSets, dumpString, arg);
+
+    // Then: Should execute without crash
+    SUCCEED();
+}
+
+/*
+ * @tc.name: FPSDumpProcess_DirectCall_ArgNotFound
+ * @tc.desc: Direct call FPSDumpProcess function with arg not in argSets
+ * @tc.type: FUNC
+ * @tc.require: AR000GSH6G
+ */
+HWTEST_F(RSPipelineDumperTest, FPSDumpProcess_DirectCall_ArgNotFound, TestSize.Level1)
+{
+    // Given: A dumper instance
+    ASSERT_NE(dumper_, nullptr);
+
+    // When: Directly call FPSDumpProcess with arg not in argSets
+    std::unordered_set<std::u16string> argSets = { u"testLayer" };
+    std::string dumpString;
+    std::u16string arg = u"nonexistent";
+    dumper_->FPSDumpProcess(argSets, dumpString, arg);
+
+    // Then: Should execute without crash
+    SUCCEED();
+}
+
+/*
+ * @tc.name: FPSDumpProcess_DirectCall_EmptyArgSets
+ * @tc.desc: Direct call FPSDumpProcess function with empty argSets after erase
+ * @tc.type: FUNC
+ * @tc.require: AR000GSH6G
+ */
+HWTEST_F(RSPipelineDumperTest, FPSDumpProcess_DirectCall_EmptyArgSets, TestSize.Level1)
+{
+    // Given: A dumper instance
+    ASSERT_NE(dumper_, nullptr);
+
+    // When: Directly call FPSDumpProcess with only the arg (empty after erase)
+    std::unordered_set<std::u16string> argSets = { u"composer" };
+    std::string dumpString;
+    std::u16string arg = u"composer";
+    dumper_->FPSDumpProcess(argSets, dumpString, arg);
+
+    // Then: Should execute without crash (logs error for missing layer name)
+    SUCCEED();
+}
+
+/*
+ * @tc.name: DumpFps_DirectCall_ValidArgs
+ * @tc.desc: Direct call DumpFps function with valid layer name
+ * @tc.type: FUNC
+ * @tc.require: AR000GSH6G
+ */
+HWTEST_F(RSPipelineDumperTest, DumpFps_DirectCall_ValidArgs, TestSize.Level1)
+{
+    // Given: A dumper instance
+    ASSERT_NE(dumper_, nullptr);
+
+    // When: Directly call DumpFps with valid layer name
+    std::string dumpString;
+    std::string layerName = "testLayer";
+    dumper_->DumpFps(dumpString, layerName);
+
+    // Then: Should execute without crash
+    SUCCEED();
+}
+
+/*
+ * @tc.name: DumpFps_DirectCall_EmptyLayerName
+ * @tc.desc: Direct call DumpFps function with empty layer name
+ * @tc.type: FUNC
+ * @tc.require: AR000GSH6G
+ */
+HWTEST_F(RSPipelineDumperTest, DumpFps_DirectCall_EmptyLayerName, TestSize.Level1)
+{
+    // Given: A dumper instance
+    ASSERT_NE(dumper_, nullptr);
+
+    // When: Directly call DumpFps with empty layer name
+    std::string dumpString;
+    std::string layerName = "";
+    dumper_->DumpFps(dumpString, layerName);
 
     // Then: Should execute without crash
     SUCCEED();
