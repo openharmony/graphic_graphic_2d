@@ -26,7 +26,7 @@ class RS_EXPORT RSFrameControlTool {
 public:
     void InsertNodeIdToAppWindowSet(NodeId id);
     bool SerchNodeIdFromAppWindowsSet(NodeId id);
-    static FrameControlTool& Instance();
+    static RSFrameControlTool& Instance();
 private:
     std::set<NodeId> refreshAppWindowSet_ {};
 };
