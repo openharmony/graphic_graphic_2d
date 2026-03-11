@@ -64,7 +64,7 @@ group("libvulkan") {
 }
 
 group("libnative_image") {
-  public_deps = [ "frameworks/surfaceimage:libnative_image" ]
+  deps = [ "frameworks/surfaceimage:libnative_image" ]
 }
 
 group("libbootanimation_utils") {
