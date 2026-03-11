@@ -1643,16 +1643,16 @@ HWTEST_F(PropertiesTest, GetRRectForSDFTest003, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(PropertiesTest, NeedClipHoleForFilterTest, TestSize.Level1)
+HWTEST_F(PropertiesTest, NeedClipHoleForRenderGroupTest, TestSize.Level1)
 {
     RSProperties properties;
 
     std::shared_ptr<Drawing::ColorFilter> colorFilter = Drawing::ColorFilter::CreateLumaColorFilter();
     properties.GetEffect().colorFilter_ = colorFilter;
-    EXPECT_TRUE(properties.NeedClipHoleForFilter());
+    EXPECT_TRUE(properties.NeedClipHoleForRenderGroup());
 
     properties.GetEffect().colorFilter_ = nullptr;
-    EXPECT_FALSE(properties.NeedClipHoleForFilter());
+    EXPECT_FALSE(properties.NeedClipHoleForRenderGroup());
 }
 } // namespace Rosen
 } // namespace OHOS
