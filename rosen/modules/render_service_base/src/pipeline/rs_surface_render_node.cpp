@@ -30,6 +30,7 @@
 #ifdef RS_MEMORY_INFO_MANAGER
 #include "feature/memory_info_manager/rs_memory_info_manager.h"
 #endif
+#include "feature/uifirst/rs_frame_control.h"
 #include "feature/window_keyframe/rs_window_keyframe_render_node.h"
 #include "ipc_callbacks/rs_rt_refresh_callback.h"
 #include "monitor/self_drawing_node_monitor.h"
@@ -52,7 +53,6 @@
 #include "visitor/rs_node_visitor.h"
 #include "render/rs_image_cache.h"
 #include "pipeline/rs_render_node_map.h"
-#include "feature/uifirst/rs_frame_control.h"
 #ifndef ROSEN_CROSS_PLATFORM
 #include "metadata_helper.h"
 #include <v1_0/cm_color_space.h>
@@ -2848,7 +2848,7 @@ void RSSurfaceRenderNode::UpdateCacheSurfaceDirtyManager(int bufferAge)
     }
 }
 
-void RSSurfaceRenderNode::InsertSurfaceNodeIdToSet()
+void RSSurfaceRenderNode::SetOnTreeNodeIdToFrameControl()
 {
     if (!RSSystemProperties::GetSubThreadControlFrameRate()) {
         return;
@@ -2860,7 +2860,7 @@ void RSSurfaceRenderNode::InsertSurfaceNodeIdToSet()
     }
     auto surfaceNode = context->GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(GetFirstLevelNodeId());
     if (surfaceNode) {
-        RSFrameControlTool::Instance().InsertNodeIdToAppWindowSet(GetFirstLevelNodeId());
+        RSFrameControlTool::Instance().SetAppWindowNodeId(GetFirstLevelNodeId());
     }
 }
 
