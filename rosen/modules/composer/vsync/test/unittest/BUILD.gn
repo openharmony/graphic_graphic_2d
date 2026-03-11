@@ -256,7 +256,7 @@ ohos_unittest("vsync_present_fence_test") {
   deps = [ ":vsync_test_common" ]
 
   external_deps = [
-    "c_utils:utils"，
+    "c_utils:utils",
     "eventhandler:libeventhandler",
   ]
 
