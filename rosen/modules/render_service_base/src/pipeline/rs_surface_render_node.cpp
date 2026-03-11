@@ -2860,7 +2860,7 @@ void RSSurfaceRenderNode::InsertSurfaceNodeIdToSet()
     }
     auto surfaceNode = context->GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(GetFirstLevelNodeId());
     if (surfaceNode) {
-        FrameControlTool::Instance().InsertNodeIdToAppWindowSet(GetFirstLevelNodeId());
+        RSFrameControlTool::Instance().InsertNodeIdToAppWindowSet(GetFirstLevelNodeId());
     }
 }
 
