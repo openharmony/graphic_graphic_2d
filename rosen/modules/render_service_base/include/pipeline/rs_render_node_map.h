@@ -88,9 +88,14 @@ public:
     bool AttachToDisplay(
         std::shared_ptr<RSSurfaceRenderNode> surfaceRenderNode, ScreenId screenId, bool toContainer) const;
     void RegisterNeedAttachedNode(std::shared_ptr<RSSurfaceRenderNode> surfaceRenderNode);
-    std::vector<std::shared_ptr<RSSurfaceRenderNode>> GetNeedAttachedNode()
+    const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& GetNeedAttachedNode() const
     {
         return needAttachedNode_;
+    }
+
+    void ClearNeedAttachedNode()
+    {
+        needAttachedNode_.clear();
     }
 
 private:

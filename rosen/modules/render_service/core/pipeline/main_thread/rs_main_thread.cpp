@@ -2552,17 +2552,15 @@ void RSMainThread::ProcessNeedAttachedNodes()
 {
     // Collect the nodes that need to be re-attached and call AfterTreeStateChanged
     auto& mutablenodeMap = context_->GetMutableNodeMap();
-    auto needAttachedNodes = mutablenodeMap.GetNeedAttachedNode();
+    const auto& needAttachedNodes = mutablenodeMap.GetNeedAttachedNode();
     if (needAttachedNodes.empty()) {
         return;
     }
-    for (auto it = needAttachedNodes.begin(); it != needAttachedNodes.end();) {
-        auto needAttachNode = *it;
+    for (const auto& needAttachNode : needAttachedNodes) {
         needAttachNode->AfterTreeStateChanged();
-        it = needAttachedNodes.erase(it);
     }
+    mutablenodeMap.ClearNeedAttachedNode();
 }
-
 namespace {
 bool CheckReduceIntervalForAIBarNodesIfNeeded(const RSRenderNode::WeakPtrSet& nodeSet,
     const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& hwcNodes)

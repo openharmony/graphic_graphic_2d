@@ -220,6 +220,14 @@ void RSRenderNodeMap::UnregisterRenderNode(NodeId id)
     screenNodeMap_.erase(id);
     logicalDisplayNodeMap_.erase(id);
     canvasDrawingNodeMap_.erase(id);
+    auto removeIter = std::remove_if(needAttachedNode_.begin(), needAttachedNode_.end(), [id](const auto& node) {
+        if (node && node->GetId() == id) {
+            node->GetAttachedInfo() = std::nullopt;
+            return true;
+        }
+        return false;
+    });
+    needAttachedNode_.erase(removeIter, needAttachedNode_.end());
 }
 
 void RSRenderNodeMap::MoveRenderNodeMap(
