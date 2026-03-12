@@ -266,8 +266,11 @@ bool RSUnmarshalThread::ReportTransactionDataStatistics(pid_t pid,
     }
 #ifdef RS_ENABLE_UNI_RENDER
     if (totalCount > TRANSACTION_DATA_KILL_COUNT && preCount <= TRANSACTION_DATA_KILL_COUNT) {
-        AAFwk::ExitReasonCompability exitReason{AAFwk::Reason::REASON_RESOURCE_CONTROL, "IPC_DATA_OVER_ERROR"};
-        exitReason.killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_RESOURCE_OVERLIMIT;
+        AAFwk::ExitReasonCompability exitReason{
+            AAFwk::Reason::REASON_RESOURCE_CONTROL,
+            "RS_TRANSACTION_DATA_OVERLIMIT"
+        };
+        exitReason.killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_RS_TRANSACTION_DATA_OVERLIMIT;
         int res = AAFwk::AbilityManagerClient::GetInstance()->KillAppWithReason(pid, exitReason);
         return res == ERR_OK;
     }
