@@ -53,6 +53,10 @@ public:
     {
         return particleSystem_;
     }
+    void SetParticleAnimationToken(uint64_t token)
+    {
+        SetToken(token);
+    }
     template <typename T>
     void UpdateParamsIfChanged(const std::shared_ptr<T>& updaterValue, std::shared_ptr<T>& targetValue)
     {
