@@ -47,8 +47,8 @@ using namespace OHOS;
 using namespace OHOS::Rosen;
 using namespace OHOS::Rosen::Drawing;
 using namespace std;
-namespace OHOS{
-namespace Rosen{
+namespace OHOS {
+namespace Rosen {
 // ============================================================================
 // Test Helper Classes
 // ============================================================================
@@ -381,8 +381,10 @@ void TestWatermark(InterfaceClientFrameTest &testFrame)
     rsInterfaces.SetWatermark("TestWatermark", watermark, SaSurfaceWatermarkMaxSize::SA_WATER_MARK_MIDDLE_SIZE);
     rsInterfaces.SetWatermark("TestWatermark", watermark, SaSurfaceWatermarkMaxSize::SA_WATER_MARK_BOTTOM);
 
-    rsInterfaces.SetSurfaceWatermark(pid, "SurfaceWatermark", watermark, nodeIdList, SurfaceWatermarkType::CUSTOM_WATER_MARK);
-    rsInterfaces.SetSurfaceWatermark(pid, "SurfaceWatermark", watermark, nodeIdList, SurfaceWatermarkType::SYSTEM_WATER_MARK);
+    rsInterfaces.SetSurfaceWatermark(pid, "SurfaceWatermark", watermark,
+        nodeIdList, SurfaceWatermarkType::CUSTOM_WATER_MARK);
+    rsInterfaces.SetSurfaceWatermark(pid, "SurfaceWatermark", watermark,
+        nodeIdList, SurfaceWatermarkType::SYSTEM_WATER_MARK);
 
     rsInterfaces.ClearSurfaceWatermarkForNodes(pid, "TestWatermark", nodeIdList);
     rsInterfaces.ClearSurfaceWatermark(pid, "TestWatermark");
@@ -392,7 +394,8 @@ void TestWatermark(InterfaceClientFrameTest &testFrame)
 
     // Abnormal call - null pointer
     rsInterfaces.SetWatermark("NullWatermark", nullptr);
-    rsInterfaces.SetSurfaceWatermark(pid, "SurfaceWatermark", nullptr, nodeIdList, SurfaceWatermarkType::CUSTOM_WATER_MARK);
+    rsInterfaces.SetSurfaceWatermark(pid, "SurfaceWatermark", nullptr,
+        nodeIdList, SurfaceWatermarkType::CUSTOM_WATER_MARK);
 
     // Abnormal call - empty name
     rsInterfaces.SetWatermark("", watermark);
@@ -843,7 +846,8 @@ void TestFrameRateLinkerCallbacks(InterfaceClientFrameTest &testFrame)
     auto& rsInterfaces = RSInterfaces::GetInstance();
 
     // Normal call
-    FrameRateLinkerExpectedFpsUpdateCallback callback = [](int32_t pid, const std::string& bundleName, int32_t expectedFps) {};
+    FrameRateLinkerExpectedFpsUpdateCallback callback = [](int32_t pid,
+        const std::string& bundleName, int32_t expectedFps) {};
     rsInterfaces.RegisterFrameRateLinkerExpectedFpsUpdateCallback(0, callback);
     rsInterfaces.UnRegisterFrameRateLinkerExpectedFpsUpdateCallback(0);
 
