@@ -1080,6 +1080,12 @@ public:
 protected:
     void ResetDirtyStatus();
 
+    virtual void EmplaceSameTypeModifier(
+        ModifierNGContainer& container, const std::shared_ptr<ModifierNG::RSRenderModifier>& modifier)
+    {
+        container.emplace_back(modifier);
+    }
+
     virtual void OnApplyModifiers() {}
 
     enum class NodeDirty {

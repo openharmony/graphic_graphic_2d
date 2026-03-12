@@ -82,9 +82,19 @@ public:
     void Dump(std::string& out, const std::string& splitStr) const
     {
         for (auto& [type, property] : properties_) {
-            out += RSModifierTypeString::GetPropertyTypeString(type) + (IsCustom() ? ":[" : "");
+            bool custom = IsCustom();
+            out += RSModifierTypeString::GetPropertyTypeString(type) + ":";
+            if (IsDeduplicationEnabled()) {
+                out += "[IsDeduplicationEnabled: true], ";
+            }
+            if (custom) {
+                out += "[";
+            }
             property->Dump(out);
-            out += (IsCustom() ? "]" : "") + splitStr;
+            if (custom) {
+                out += "]";
+            }
+            out += splitStr;
         }
     }
 

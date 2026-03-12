@@ -18,12 +18,12 @@
 #include "parameters.h"
 
 #include "common/rs_common_def.h"
+#include "modifier_ng/shadow_modifier/rs_bounds_shadow_modifier.h"
+#include "modifier_ng/shadow_modifier/rs_frame_shadow_modifier.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_surface_node.h"
 #include "ui/rs_ui_context_manager.h"
-#include "modifier_ng/geometry/rs_bounds_modifier.h"
-#include "modifier_ng/geometry/rs_frame_modifier.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -120,33 +120,6 @@ HWTEST_F(RSSurfaceNodeTest, SetBufferAvailableCallback001, TestSize.Level1)
         std::cout << "SetBufferAvailableCallback" << std::endl;
     });
     ASSERT_TRUE(isSuccess);
-}
-
-/**
- * @tc.name: CreateShadowSurfaceNode
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSSurfaceNodeTest, CreateShadowSurfaceNode, TestSize.Level1)
-{
-    RSSurfaceNodeConfig c;
-    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
-    ASSERT_TRUE(surfaceNode != nullptr);
-    {
-        RSSurfaceNode::SharedPtr shadowNode = surfaceNode->CreateShadowSurfaceNode();
-        EXPECT_TRUE(shadowNode->isShadowNode_);
-    }
-    {
-        RSSurfaceNode::SharedPtr shadowNode2 = surfaceNode->CreateShadowSurfaceNode();
-        ASSERT_TRUE(shadowNode2->isShadowNode_);
-        auto rsUIContext = shadowNode2->GetRSUIContext();
-        if (RSUIContextManager::MutableInstance().isMultiInstanceOpen_) {
-            ASSERT_NE(rsUIContext, nullptr);
-            RSUIContextManager::MutableInstance().DestroyContext(rsUIContext->GetToken());
-        } else {
-            ASSERT_EQ(rsUIContext, nullptr);
-        }
-    }
 }
 
 /**
@@ -1289,6 +1262,18 @@ HWTEST_F(RSSurfaceNodeTest, SetGlobalPositionEnabled, TestSize.Level1)
     ASSERT_EQ(true, surfaceNode->GetGlobalPositionEnabled());
     surfaceNode->SetGlobalPositionEnabled(false);
     ASSERT_EQ(false, surfaceNode->GetGlobalPositionEnabled());
+    surfaceNode->isGlobalPositionEnabled_ = true;
+    surfaceNode->existsDuplicateModifier_ = false;
+    surfaceNode->SetGlobalPositionEnabled(true);
+    ASSERT_EQ(true, surfaceNode->GetGlobalPositionEnabled());
+    surfaceNode->isGlobalPositionEnabled_ = true;
+    surfaceNode->existsDuplicateModifier_ = true;
+    surfaceNode->SetGlobalPositionEnabled(false);
+    ASSERT_EQ(false, surfaceNode->GetGlobalPositionEnabled());
+    surfaceNode->isGlobalPositionEnabled_ = true;
+    surfaceNode->existsDuplicateModifier_ = true;
+    surfaceNode->SetGlobalPositionEnabled(true);
+    ASSERT_EQ(true, surfaceNode->GetGlobalPositionEnabled());
 }
 
 /**
@@ -1981,137 +1966,316 @@ HWTEST_F(RSSurfaceNodeTest, SetAppRotationCorrectionTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetGlobalPositionEnabledWithDeduplication001
- * @tc.desc: Test SetGlobalPositionEnabled with deduplication modifier enabled
+ * @tc.name: CreateShadowSurfaceNode001
+ * @tc.desc: Test CreateShadowSurfaceNode with empty shadowPropertyTypes
  * @tc.type: FUNC
  */
-HWTEST_F(RSSurfaceNodeTest, SetGlobalPositionEnabledWithDeduplication001, TestSize.Level1)
+HWTEST_F(RSSurfaceNodeTest, CreateShadowSurfaceNode001, TestSize.Level1)
 {
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     ASSERT_NE(surfaceNode, nullptr);
-
-    // Add RSBoundsModifier with deduplication enabled
-    auto modifier = std::make_shared<ModifierNG::RSBoundsModifier>();
-    modifier->SetDeduplicationEnabled(true);
-    surfaceNode->AddModifier(modifier);
-
-    // Verify deduplication is detected
-    EXPECT_TRUE(surfaceNode->IsAnyModifierDeduplicationEnabled());
-
-    // First call should set the value
-    surfaceNode->SetGlobalPositionEnabled(true);
-    EXPECT_TRUE(surfaceNode->GetGlobalPositionEnabled());
-
-    // Second call with same value should still process due to deduplication enabled
-    // (command will be sent, value unchanged)
-    surfaceNode->SetGlobalPositionEnabled(true);
-    EXPECT_TRUE(surfaceNode->GetGlobalPositionEnabled());
+    std::set<ShadowPropertyType> emptyTypes;
+    auto shadowNode = surfaceNode->CreateShadowSurfaceNode(emptyTypes);
+    EXPECT_NE(shadowNode, nullptr);
 }
 
 /**
- * @tc.name: SetGlobalPositionEnabledWithDeduplication002
- * @tc.desc: Test SetGlobalPositionEnabled without deduplication modifier
+ * @tc.name: CreateShadowSurfaceNode002
+ * @tc.desc: Test CreateShadowSurfaceNode with BOUNDS shadowPropertyType
  * @tc.type: FUNC
  */
-HWTEST_F(RSSurfaceNodeTest, SetGlobalPositionEnabledWithDeduplication002, TestSize.Level1)
+HWTEST_F(RSSurfaceNodeTest, CreateShadowSurfaceNode002, TestSize.Level1)
 {
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     ASSERT_NE(surfaceNode, nullptr);
-
-    // Add RSBoundsModifier without deduplication enabled (default)
-    auto modifier = std::make_shared<ModifierNG::RSBoundsModifier>();
-    surfaceNode->AddModifier(modifier);
-
-    // Verify deduplication is not detected
-    EXPECT_FALSE(surfaceNode->IsAnyModifierDeduplicationEnabled());
-
-    // First call should set the value
-    surfaceNode->SetGlobalPositionEnabled(true);
-    EXPECT_TRUE(surfaceNode->GetGlobalPositionEnabled());
-
-    // Store reference to check if value changes
-    bool enabledBefore = surfaceNode->GetGlobalPositionEnabled();
-
-    // Second call with same value should be skipped (no deduplication)
-    surfaceNode->SetGlobalPositionEnabled(true);
-    // Value should not change (call was skipped)
-    EXPECT_EQ(surfaceNode->GetGlobalPositionEnabled(), enabledBefore);
+    std::set<ShadowPropertyType> shadowTypes = { ShadowPropertyType::BOUNDS };
+    auto shadowNode = surfaceNode->CreateShadowSurfaceNode(shadowTypes);
+    EXPECT_EQ(shadowNode, nullptr);
 }
 
 /**
- * @tc.name: SetGlobalPositionEnabledWithDeduplication003
- * @tc.desc: Test SetGlobalPositionEnabled with different values
+ * @tc.name: CreateShadowSurfaceNode003
+ * @tc.desc: Test CreateShadowSurfaceNode with FRAME shadowPropertyType
  * @tc.type: FUNC
  */
-HWTEST_F(RSSurfaceNodeTest, SetGlobalPositionEnabledWithDeduplication003, TestSize.Level1)
+HWTEST_F(RSSurfaceNodeTest, CreateShadowSurfaceNode003, TestSize.Level1)
 {
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     ASSERT_NE(surfaceNode, nullptr);
-
-    // Add modifier with deduplication enabled
-    auto modifier = std::make_shared<ModifierNG::RSBoundsModifier>();
-    modifier->SetDeduplicationEnabled(true);
-    surfaceNode->AddModifier(modifier);
-
-    // Test alternating values
-    surfaceNode->SetGlobalPositionEnabled(true);
-    EXPECT_TRUE(surfaceNode->GetGlobalPositionEnabled());
-
-    surfaceNode->SetGlobalPositionEnabled(false);
-    EXPECT_FALSE(surfaceNode->GetGlobalPositionEnabled());
-
-    surfaceNode->SetGlobalPositionEnabled(true);
-    EXPECT_TRUE(surfaceNode->GetGlobalPositionEnabled());
+    std::set<ShadowPropertyType> shadowTypes = { ShadowPropertyType::FRAME };
+    auto shadowNode = surfaceNode->CreateShadowSurfaceNode(shadowTypes);
+    EXPECT_EQ(shadowNode, nullptr);
 }
 
 /**
- * @tc.name: IsAnyModifierDeduplication001
- * @tc.desc: Test IsAnyModifierDeduplicationEnabled with no modifiers
+ * @tc.name: CreateShadowSurfaceNode004
+ * @tc.desc: Test CreateShadowSurfaceNode with both shadowPropertyTypes
  * @tc.type: FUNC
  */
-HWTEST_F(RSSurfaceNodeTest, IsAnyModifierDeduplication001, TestSize.Level1)
+HWTEST_F(RSSurfaceNodeTest, CreateShadowSurfaceNode004, TestSize.Level1)
 {
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     ASSERT_NE(surfaceNode, nullptr);
-
-    // No modifiers attached
-    EXPECT_FALSE(surfaceNode->IsAnyModifierDeduplicationEnabled());
+    std::set<ShadowPropertyType> shadowTypes = { ShadowPropertyType::BOUNDS, ShadowPropertyType::FRAME };
+    auto shadowNode = surfaceNode->CreateShadowSurfaceNode(shadowTypes);
+    EXPECT_EQ(shadowNode, nullptr);
 }
 
 /**
- * @tc.name: IsAnyModifierDeduplication002
- * @tc.desc: Test IsAnyModifierDeduplicationEnabled with multiple modifiers
+ * @tc.name: CreateShadowSurfaceNode005
+ * @tc.desc: Test CreateShadowSurfaceNode with modifiers present
  * @tc.type: FUNC
  */
-HWTEST_F(RSSurfaceNodeTest, IsAnyModifierDeduplication002, TestSize.Level1)
+HWTEST_F(RSSurfaceNodeTest, CreateShadowSurfaceNode005, TestSize.Level1)
 {
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetBounds({ 0, 0, 1, 1 });
+    std::set<ShadowPropertyType> shadowTypes = { ShadowPropertyType::BOUNDS };
+    auto shadowNode = surfaceNode->CreateShadowSurfaceNode(shadowTypes);
+    EXPECT_NE(shadowNode, nullptr);
+    EXPECT_TRUE(shadowNode->isShadowNode_);
+}
 
-    auto modifier1 = std::make_shared<ModifierNG::RSBoundsModifier>();
-    auto modifier2 = std::make_shared<ModifierNG::RSFrameModifier>();
-    surfaceNode->AddModifier(modifier1);
-    surfaceNode->AddModifier(modifier2);
+/**
+ * @tc.name: CreateShadowSurfaceNode006
+ * @tc.desc: Test CreateShadowSurfaceNode
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, CreateShadowSurfaceNode006, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->modifiersNGCreatedBySetter_.clear();
+    std::set<ShadowPropertyType> shadowTypes = { ShadowPropertyType::BOUNDS };
+    auto shadowNode = surfaceNode->CreateShadowSurfaceNode(shadowTypes);
+    EXPECT_EQ(shadowNode, nullptr);
+    shadowTypes = {};
+    surfaceNode->modifiersNGCreatedBySetter_.clear();
+    shadowNode = surfaceNode->CreateShadowSurfaceNode(shadowTypes);
+    EXPECT_NE(shadowNode, nullptr);
+}
 
-    // Both modifiers have deduplication disabled by default
-    EXPECT_FALSE(surfaceNode->IsAnyModifierDeduplicationEnabled());
+/**
+ * @tc.name: InitShadowModifiers001
+ * @tc.desc: Test InitShadowModifiers with empty shadowPropertyTypes
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, InitShadowModifiers001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    std::set<ShadowPropertyType> emptyTypes;
+    auto result = surfaceNode->InitShadowModifiers(surfaceNode, emptyTypes);
+    EXPECT_FALSE(result);
+}
 
-    // Enable deduplication on one modifier
-    modifier1->SetDeduplicationEnabled(true);
-    EXPECT_TRUE(surfaceNode->IsAnyModifierDeduplicationEnabled());
+/**
+ * @tc.name: InitShadowModifiers002
+ * @tc.desc: Test InitShadowModifiers with BOUNDS shadowPropertyType
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, InitShadowModifiers002, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetBounds({ 0, 0, 1, 1 });
+    std::set<ShadowPropertyType> shadowTypes = { ShadowPropertyType::BOUNDS };
+    auto result = surfaceNode->InitShadowModifiers(surfaceNode, shadowTypes);
+    EXPECT_TRUE(result);
+}
 
-    // Enable deduplication on second modifier
-    modifier2->SetDeduplicationEnabled(true);
-    EXPECT_TRUE(surfaceNode->IsAnyModifierDeduplicationEnabled());
+/**
+ * @tc.name: InitShadowModifiers003
+ * @tc.desc: Test InitShadowModifiers with FRAME shadowPropertyType
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, InitShadowModifiers003, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetFrame({ 0, 0, 1, 1 });
+    std::set<ShadowPropertyType> shadowTypes = { ShadowPropertyType::FRAME };
+    auto result = surfaceNode->InitShadowModifiers(surfaceNode, shadowTypes);
+    EXPECT_TRUE(result);
+}
 
-    // Disable all
-    modifier1->SetDeduplicationEnabled(false);
-    modifier2->SetDeduplicationEnabled(false);
-    EXPECT_FALSE(surfaceNode->IsAnyModifierDeduplicationEnabled());
+/**
+ * @tc.name: InitShadowModifiers004
+ * @tc.desc: Test InitShadowModifiers with both shadowPropertyTypes
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, InitShadowModifiers004, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetBounds({ 0, 0, 1, 1 });
+    surfaceNode->SetFrame({ 0, 0, 1, 1 });
+    std::set<ShadowPropertyType> shadowTypes = { ShadowPropertyType::BOUNDS, ShadowPropertyType::FRAME,
+        static_cast<ShadowPropertyType>(9) };
+    auto result = surfaceNode->InitShadowModifiers(surfaceNode, shadowTypes);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: CreateShadowModifierAndProperty001
+ * @tc.desc: Test CreateShadowModifierAndProperty with
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, CreateShadowModifierAndProperty001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetBounds({ 0, 0, 1, 1 });
+    auto shadowModifier = surfaceNode->CreateShadowModifierAndProperty<ModifierNG::RSBoundsShadowModifier, Vector4f>(
+        surfaceNode, ModifierNG::RSPropertyType::BOUNDS);
+    EXPECT_NE(shadowModifier, nullptr);
+}
+
+/**
+ * @tc.name: CreateShadowModifierAndProperty002
+ * @tc.desc: Test CreateShadowModifierAndProperty with FRAME shadowPropertyType
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, CreateShadowModifierAndProperty002, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetFrame({ 0, 0, 1, 1 });
+    auto shadowModifier = surfaceNode->CreateShadowModifierAndProperty<ModifierNG::RSFrameShadowModifier, Vector4f>(
+        surfaceNode, ModifierNG::RSPropertyType::FRAME);
+    EXPECT_NE(shadowModifier, nullptr);
+}
+
+/**
+ * @tc.name: CreateShadowModifierAndProperty003
+ * @tc.desc: Test CreateShadowModifierAndProperty without source modifier
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, CreateShadowModifierAndProperty003, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    auto shadowModifier = surfaceNode->CreateShadowModifierAndProperty<ModifierNG::RSBoundsShadowModifier, Vector4f>(
+        surfaceNode, ModifierNG::RSPropertyType::BOUNDS);
+    EXPECT_EQ(shadowModifier, nullptr);
+}
+
+/**
+ * @tc.name: CreateShadowModifierAndProperty004
+ * @tc.desc: Test CreateShadowModifierAndProperty without source property
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, CreateShadowModifierAndProperty004, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetBounds({ 0, 0, 1, 1 });
+    auto shadowModifier = surfaceNode->CreateShadowModifierAndProperty<ModifierNG::RSBoundsShadowModifier, Vector4f>(
+        surfaceNode, ModifierNG::RSPropertyType::FRAME);
+    EXPECT_EQ(shadowModifier, nullptr);
+}
+
+/**
+ * @tc.name: CreateShadowModifierAndProperty005
+ * @tc.desc: Test CreateShadowModifierAndProperty
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, CreateShadowModifierAndProperty005, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    RSSurfaceNode::SharedPtr shadowNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    ASSERT_NE(shadowNode, nullptr);
+    surfaceNode->SetFrame({ 0, 0, 1, 1 });
+    auto shadowModifier = surfaceNode->CreateShadowModifierAndProperty<ModifierNG::RSFrameShadowModifier, Vector4f>(
+        shadowNode, ModifierNG::RSPropertyType::BOUNDS);
+    EXPECT_EQ(shadowModifier, nullptr);
+    shadowModifier = surfaceNode->CreateShadowModifierAndProperty<ModifierNG::RSFrameShadowModifier, Vector4f>(
+        shadowNode, ModifierNG::RSPropertyType::FRAME);
+    EXPECT_NE(shadowModifier, nullptr);
+}
+
+/**
+ * @tc.name: DumpSubClass001
+ * @tc.desc: Test DumpSubClass with normal node
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, DumpSubClass001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    std::string out;
+    surfaceNode->DumpSubClass(out);
+    EXPECT_TRUE(out.empty());
+}
+
+/**
+ * @tc.name: DumpSubClass002
+ * @tc.desc: Test DumpSubClass with shadow node
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, DumpSubClass002, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->isShadowNode_ = true;
+    std::string out;
+    surfaceNode->DumpSubClass(out);
+    EXPECT_FALSE(out.empty());
+    EXPECT_TRUE(out.find("isShadowNode[true") != std::string::npos);
+}
+
+/**
+ * @tc.name: DumpSubClass003
+ * @tc.desc: Test DumpSubClass with duplicate modifier
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, DumpSubClass003, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->existsDuplicateModifier_ = true;
+    std::string out;
+    surfaceNode->DumpSubClass(out);
+    EXPECT_FALSE(out.empty());
+    EXPECT_TRUE(out.find("existsDuplicateModifier[true") != std::string::npos);
+}
+
+/**
+ * @tc.name: DumpSubClass004
+ * @tc.desc: Test DumpSubClass with both shadow node and duplicate modifier
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, DumpSubClass004, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->isShadowNode_ = true;
+    surfaceNode->existsDuplicateModifier_ = true;
+    std::string out;
+    surfaceNode->DumpSubClass(out);
+    EXPECT_FALSE(out.empty());
+    EXPECT_TRUE(out.find("isShadowNode[true") != std::string::npos);
+    EXPECT_TRUE(out.find("existsDuplicateModifier[true") != std::string::npos);
 }
 } // namespace OHOS::Rosen
