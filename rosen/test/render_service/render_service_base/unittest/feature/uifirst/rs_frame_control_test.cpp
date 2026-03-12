@@ -16,7 +16,6 @@
 #include "gtest/gtest.h"
 
 #include "feature/uifirst/rs_frame_control.h"
-#include "pipeline/rs_test_util.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
