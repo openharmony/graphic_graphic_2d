@@ -31,7 +31,7 @@ void RSFrameControlTool::SetAppWindowNodeId(NodeId id)
     refreshAppWindowNodeId_ = id;
 }
 
-void FrameControlTool::SetSurfaceNodeIsOnTheTree(RSSurfaceRenderNode& node)
+void FrameControlTool::SetNodeIdForFrameControl(RSSurfaceRenderNode& node)
 {
     if (!RSSystemProperties::GetSubThreadControlFrameRate()) {
         return;
