@@ -1105,7 +1105,7 @@ void RSMainThread::InitVulkanErrorCallback(Drawing::GPUContext* gpuContext)
         }
 #ifdef RS_ENABLE_UNI_RENDER
         AAFwk::ExitReasonCompability killReason{AAFwk::Reason::REASON_UNKNOWN, reason};
-        killReason.killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_GPU_THRESHOLD_KILLER;
+        killReason.killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_RS_VULKAN_ERROR;
         for (const auto pid : pidsToKill) {
             if (pid <= 0) {
                 continue;
