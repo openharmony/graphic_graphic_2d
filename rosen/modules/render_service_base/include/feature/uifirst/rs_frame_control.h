@@ -27,7 +27,7 @@ class RS_EXPORT RSFrameControlTool {
 public:
     void SetAppWindowNodeId(NodeId id);
     bool CheckAppWindowNodeId(NodeId id);
-    void SetSurfaceNodeIsOnTheTree(RSSurfaceRenderNode& node);
+    void SetNodeIdForFrameControl(RSSurfaceRenderNode& node);
     static RSFrameControlTool& Instance();
 private:
     // refreshAppWindowNodeId_ cannot be operated concurrently
