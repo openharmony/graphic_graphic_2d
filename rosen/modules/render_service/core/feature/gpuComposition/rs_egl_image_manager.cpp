@@ -349,7 +349,6 @@ void RSEglImageManager::HandleDeletedBuffer(const sptr<SurfaceBuffer>& buffer)
             buffer->ClearBufferDeletedFlag(BufferDeletedFlag::DELETED_FROM_CACHE);
         }
     }
-
 }
 
 std::shared_ptr<Drawing::Image> RSEglImageManager::CreateImageFromBuffer(
