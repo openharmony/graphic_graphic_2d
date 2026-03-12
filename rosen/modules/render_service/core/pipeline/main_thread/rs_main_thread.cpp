@@ -1840,6 +1840,9 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             if (isColorTemperatureOn_ && surfaceNode->GetVideoHdrStatus() == HdrStatus::NO_HDR) {
                 surfaceNode->SetSdrHasMetadata(RSHdrUtil::CheckIsSurfaceWithMetadata(*surfaceNode));
             }
+            if (!surfaceNode->GetSdrHasMetadata() && RSHdrUtil::CheckHasSurfaceWithAiHdrMetadata(*surfaceNode)) {
+                surfaceNode->SetSdrHasMetadata(true);
+            }
 #ifdef HETERO_HDR_ENABLE
             RSHeteroHDRManager::Instance().UpdateHDRNodes(*surfaceNode, surfaceHandler->IsCurrentFrameBufferConsumed());
 #endif

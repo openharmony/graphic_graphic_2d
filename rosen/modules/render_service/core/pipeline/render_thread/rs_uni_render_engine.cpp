@@ -129,20 +129,7 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
         params.screenId = composerScreenInfo.id;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
         params.targetColorGamut = colorGamut;
-
-        params.sdrNits = layer->GetSdrNit();
-        params.tmoNits = layer->GetDisplayNit();
-        params.displayNits = params.tmoNits / std::pow(layer->GetBrightnessRatio(), 2.2f); // gamma 2.2
-        // color temperature
-        params.layerLinearMatrix = layer->GetLayerLinearMatrix();
-        if (RSHdrUtil::CheckIsHdrSurfaceBuffer(layer->GetBuffer()) == HdrStatus::NO_HDR) {
-            params.brightnessRatio = layer->GetBrightnessRatio();
-            if (RSHdrUtil::CheckIsSurfaceBufferWithMetadata(layer->GetBuffer())) {
-                params.hasMetadata = true;
-            }
-        } else {
-            params.isHdrRedraw = true;
-        }
+        RSHdrUtil::SetBufferHDRParam(params, layer);
 #endif
         RS_TRACE_NAME_FMT("DrawLayerWithParams, surface name: %s", layer->GetSurfaceName().c_str());
         DrawHdiLayerWithParams(canvas, params);

@@ -770,7 +770,6 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
     // Fix tonemapping: all xxxNits reset to 500, layerLinearMatrix reset to 3x3 Identity matrix
     params.isTmoNitsFixed = canvas.IsOnMultipleScreen() ||
         (!canvas.GetHdrOn() &&
-        !params.hasMetadata &&
         !rsLuminance.IsScreenNoHeadroom(canvas.GetScreenId())) ||
         !RSSystemProperties::GetHdrVideoEnabled();
     auto shotType = canvas.GetScreenshotType();
