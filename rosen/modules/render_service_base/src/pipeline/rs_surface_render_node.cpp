@@ -3970,5 +3970,45 @@ void RSSurfaceRenderNode::SetIsParticipateInOcclusion(bool isParticipate)
     surfaceParams->SetIsParticipateInOcclusion(isParticipateInOcclusion_);
     AddToPendingSyncList();
 }
+
+void RSSurfaceRenderNode::EmplaceSameTypeModifier(
+    ModifierNGContainer& container, const std::shared_ptr<ModifierNG::RSRenderModifier>& modifier)
+{
+    // Deduplication is disabled by default. Only apply deduplication logic when:
+    // modifier supports it (BOUNDS/FRAME) AND IsDeduplicationEnabled() returns true
+    if (!modifier->IsDeduplicationEnabled()) {
+        // Default behavior: no deduplication, directly add modifier
+        RSRenderNode::EmplaceSameTypeModifier(container, modifier);
+        return;
+    }
+
+    // Apply deduplication: check if modifier with same ID exists
+    auto it = std::find_if(container.begin(), container.end(),
+        [modifier](const auto& m) -> bool { return m->GetId() == modifier->GetId(); });
+    if (it == container.end()) {
+        RSRenderNode::EmplaceSameTypeModifier(container, modifier);
+    } else {
+        switch (modifier->GetType()) {
+            case ModifierNG::RSModifierType::BOUNDS:
+                CopyModifierValue<Vector4f>(ModifierNG::RSPropertyType::BOUNDS, *it, modifier);
+                break;
+            case ModifierNG::RSModifierType::FRAME:
+                CopyModifierValue<Vector4f>(ModifierNG::RSPropertyType::FRAME, *it, modifier);
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+template<typename T>
+void RSSurfaceRenderNode::CopyModifierValue(ModifierNG::RSPropertyType propertyType,
+    std::shared_ptr<ModifierNG::RSRenderModifier> oldModifier,
+    std::shared_ptr<ModifierNG::RSRenderModifier> newModifier)
+{
+    if (newModifier->HasProperty(propertyType) && oldModifier->HasProperty(propertyType)) {
+        oldModifier->Setter(propertyType, newModifier->Getter<T>(propertyType));
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -1841,6 +1841,14 @@ private:
     void UpdatePropertyFromConsumer();
 #endif
 
+    void EmplaceSameTypeModifier(
+        ModifierNGContainer& container, const std::shared_ptr<ModifierNG::RSRenderModifier>& modifier) override;
+
+    template<typename T>
+    void CopyModifierValue(ModifierNG::RSPropertyType propertyType,
+        std::shared_ptr<ModifierNG::RSRenderModifier> oldModifier,
+        std::shared_ptr<ModifierNG::RSRenderModifier> newModifier);
+
     RSSpecialLayerManager specialLayerManager_;
     bool specialLayerChanged_ = false;
     bool isGlobalPositionEnabled_ = false;

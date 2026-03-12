@@ -3287,18 +3287,6 @@ void RSNode::DoFlushModifier()
     }
 }
 
-bool RSNode::IsAnyModifierDeduplicationEnabled() const
-{
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-    // Check if any modifier on this node has deduplication enabled
-    for (const auto& [_, modifier] : modifiersNG_) {
-        if (modifier && modifier->IsDeduplicationEnabled()) {
-            return true;
-        }
-    }
-    return false;
-}
-
 const std::shared_ptr<RSPropertyBase> RSNode::GetProperty(const PropertyId& propertyId)
 {
     std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
@@ -4384,8 +4372,8 @@ void RSNode::Dump(std::string& out) const
         out += "null";
     }
     out += "], outOfParent[" + std::to_string(static_cast<int>(outOfParent_));
-    out += "], hybridRenderCanvas[";
-    out += hybridRenderCanvas_ ? "true" : "false";
+    out += "], hybridRenderCanvas[" + std::string(hybridRenderCanvas_ ? "true" : "false");
+    DumpSubClass(out);
     out += "], animations[";
     for (const auto& [id, anim] : animations_) {
         out += "{id:" + std::to_string(id);

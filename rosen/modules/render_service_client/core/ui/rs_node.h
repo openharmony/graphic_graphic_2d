@@ -1932,6 +1932,8 @@ protected:
     explicit RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode = false,
         std::shared_ptr<RSUIContext> rsUIContext = nullptr, bool isOnTheTree = false);
 
+    virtual void DumpSubClass(std::string& out) const {}
+
     void DumpModifiers(std::string& out) const;
 
     mutable bool lazyLoad_ = false;
@@ -1967,7 +1969,7 @@ protected:
     void DoFlushModifier();
 
     std::vector<PropertyId> GetModifierIds() const;
-    bool IsAnyModifierDeduplicationEnabled() const;
+
     bool isCustomTextType_ = false;
     bool isCustomTypeface_ = false;
 
@@ -2280,6 +2282,7 @@ private:
     template<typename T>
     friend class RSAnimatableProperty;
     friend class RSInteractiveImplictAnimator;
+    friend class RSSurfaceNode;
 };
 // backward compatibility
 using RSBaseNode = RSNode;

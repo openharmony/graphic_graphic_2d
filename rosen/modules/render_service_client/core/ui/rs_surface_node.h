@@ -76,6 +76,11 @@ struct RSSurfaceNodeConfig {
     bool isSkipCheckInMultiInstance = true;
 };
 
+enum class ShadowPropertyType : uint8_t {
+    BOUNDS = 0,
+    FRAME
+};
+
 /**
  * @class RSSurfaceNode
  *
@@ -245,7 +250,7 @@ public:
      */
     void SetSurfaceBufferOpaque(bool isOpaque);
 
-    SharedPtr CreateShadowSurfaceNode();
+    SharedPtr CreateShadowSurfaceNode(const std::set<ShadowPropertyType>& shadowPropertyTypes = {});
 
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<OHOS::Surface> GetSurface() const;
@@ -382,6 +387,15 @@ private:
     void CreateRenderNodeForTextureExportSwitch() override;
     void SetIsTextureExportNode(bool isTextureExportNode);
     void RegisterNodeMap() override;
+
+    bool InitShadowModifiers(SharedPtr shadowNode, const std::set<ShadowPropertyType>& shadowPropertyTypes = {});
+
+    template<typename Modifier, typename ValueType>
+    std::shared_ptr<ModifierNG::RSModifier> CreateShadowModifierAndProperty(
+        SharedPtr shadowNode, ModifierNG::RSPropertyType propertyType);
+
+    void DumpSubClass(std::string& out) const override;
+
     std::shared_ptr<RSSurface> surface_;
     std::string name_;
     std::string bundleName_;
@@ -390,6 +404,8 @@ private:
     bool bufferAvailable_ = false;
     BoundsChangedCallback boundsChangedCallback_;
     bool isShadowNode_ = false;
+    // If has shadow node or itself is a shadow node, existsDuplicateModifier_ may be true.
+    bool existsDuplicateModifier_ = false;
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     bool isSecurityLayer_ = false;
     bool isSkipLayer_ = false;

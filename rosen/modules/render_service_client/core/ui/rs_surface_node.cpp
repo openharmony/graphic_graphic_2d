@@ -24,6 +24,8 @@
 #include "command/rs_surface_node_command.h"
 #include "common/rs_optional_trace.h"
 #include "ipc_callbacks/rs_rt_refresh_callback.h"
+#include "modifier_ng/shadow_modifier/rs_bounds_shadow_modifier.h"
+#include "modifier_ng/shadow_modifier/rs_frame_shadow_modifier.h"
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_render_thread.h"
 #include "platform/common/rs_log.h"
@@ -505,16 +507,101 @@ std::shared_ptr<RSSurfaceNode> RSSurfaceNode::Unmarshalling(Parcel& parcel)
     return surfaceNode;
 }
 
-RSSurfaceNode::SharedPtr RSSurfaceNode::CreateShadowSurfaceNode()
+RSSurfaceNode::SharedPtr RSSurfaceNode::CreateShadowSurfaceNode(const std::set<ShadowPropertyType>& shadowPropertyTypes)
 {
+    bool hasShadowProperty = !shadowPropertyTypes.empty();
+    if (hasShadowProperty && modifiersNGCreatedBySetter_.empty()) {
+        RS_LOGE("RSSurfaceNode::CreateShadowSurfaceNode, no source modifiers, nodeId=%{public}" PRIu64, GetId());
+        return nullptr;
+    }
+
     RSSurfaceNodeConfig config = { GetName() };
-    SharedPtr surfaceNode(new RSSurfaceNode(config, isRenderServiceNode_, GetId()));
+    SharedPtr shadowNode(new RSSurfaceNode(config, isRenderServiceNode_, GetId()));
     auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
-    surfaceNode->SetRSUIContext(rsUIContext);
-    surfaceNode->isShadowNode_ = true;
-    surfaceNode->SetSkipCheckInMultiInstance(true);
-    surfaceNode->skipDestroyCommandInDestructor_ = true;
-    return surfaceNode;
+    shadowNode->SetRSUIContext(rsUIContext);
+    shadowNode->isShadowNode_ = true;
+    shadowNode->SetSkipCheckInMultiInstance(true);
+    shadowNode->skipDestroyCommandInDestructor_ = true;
+    if (!hasShadowProperty) {
+        RS_LOGW("RSSurfaceNode::CreateShadowSurfaceNode, shadowPropertyTypes empty, nodeId=%{public}" PRIu64, GetId());
+        return shadowNode;
+    }
+    if (!InitShadowModifiers(shadowNode, shadowPropertyTypes)) {
+        return nullptr;
+    }
+
+    shadowNode->existsDuplicateModifier_ = true;
+    existsDuplicateModifier_ = true;
+    return shadowNode;
+}
+
+bool RSSurfaceNode::InitShadowModifiers(SharedPtr shadowNode, const std::set<ShadowPropertyType>& shadowPropertyTypes)
+{
+    std::map<ModifierId, std::shared_ptr<ModifierNG::RSModifier>> modifierMap;
+    for (const auto& type : shadowPropertyTypes) {
+        std::shared_ptr<ModifierNG::RSModifier> modifier = nullptr;
+        switch (type) {
+            case ShadowPropertyType::BOUNDS:
+                modifier = CreateShadowModifierAndProperty<ModifierNG::RSBoundsShadowModifier, Vector4f>(
+                    shadowNode, ModifierNG::RSPropertyType::BOUNDS);
+                break;
+            case ShadowPropertyType::FRAME:
+                modifier = CreateShadowModifierAndProperty<ModifierNG::RSFrameShadowModifier, Vector4f>(
+                    shadowNode, ModifierNG::RSPropertyType::FRAME);
+                break;
+            default:
+                break;
+        }
+
+        if (modifier != nullptr) {
+            modifierMap.emplace(modifier->GetId(), modifier);
+        }
+    }
+
+    if (modifierMap.empty()) {
+        return false;
+    }
+
+    for (auto& [_, modifier] : modifierMap) {
+        std::unique_ptr<RSCommand> command =
+            std::make_unique<RSAddModifierNG>(shadowNode->GetId(), modifier->CreateRenderModifier());
+        shadowNode->AddCommand(
+            command, shadowNode->IsRenderServiceNode(), shadowNode->GetFollowType(), shadowNode->GetId());
+    }
+    return true;
+}
+
+template<typename Modifier, typename ValueType>
+std::shared_ptr<ModifierNG::RSModifier> RSSurfaceNode::CreateShadowModifierAndProperty(
+    SharedPtr shadowNode, ModifierNG::RSPropertyType propertyType)
+{
+    auto srcModifier = GetModifierCreatedBySetter(Modifier::Type);
+    if (srcModifier == nullptr) {
+        RS_LOGE("RSSurfaceNode::CreateShadowModifierAndProperty, no source modifier, nodeId=%{public}" PRIu64
+            ", propertyType=%{public}hu", GetId(), propertyType);
+        return nullptr;
+    }
+    auto srcProperty = srcModifier->GetProperty(propertyType);
+    if (srcProperty == nullptr) {
+        RS_LOGE("RSSurfaceNode::CreateShadowModifierAndProperty, no source property, nodeId=%{public}" PRIu64
+            ", propertyType=%{public}hu", GetId(), propertyType);
+        return nullptr;
+    }
+
+    auto shadowModifier = shadowNode->GetModifierCreatedBySetter(Modifier::Type);
+    if (shadowModifier == nullptr) {
+        shadowModifier = std::make_shared<Modifier>();
+        shadowModifier->id_ = srcModifier->GetId();
+        shadowModifier->OnAttach(*shadowNode);
+        std::unique_lock<std::recursive_mutex> lock(shadowNode->propertyMutex_);
+        shadowNode->modifiersNG_.emplace(shadowModifier->GetId(), shadowModifier);
+        shadowNode->modifiersNGCreatedBySetter_.emplace(shadowModifier->GetType(), shadowModifier);
+    }
+    auto shadowProperty =
+        std::make_shared<RSProperty<ValueType>>(std::static_pointer_cast<RSProperty<ValueType>>(srcProperty)->Get());
+    shadowProperty->id_ = srcProperty->GetId();
+    shadowModifier->AttachProperty(propertyType, shadowProperty);
+    return shadowModifier;
 }
 
 void RSSurfaceNode::SetSurfaceIdToRenderNode()
@@ -734,7 +821,7 @@ bool RSSurfaceNode::GetBootAnimation() const
 
 void RSSurfaceNode::SetGlobalPositionEnabled(bool isEnabled)
 {
-    if (isGlobalPositionEnabled_ == isEnabled && !IsAnyModifierDeduplicationEnabled()) {
+    if (isGlobalPositionEnabled_ == isEnabled && !existsDuplicateModifier_) {
         return;
     }
 
@@ -883,6 +970,7 @@ void RSSurfaceNode::SetAncoFlags(uint32_t flags)
         std::make_unique<RSSurfaceNodeSetAncoFlags>(GetId(), flags);
     AddCommand(command, true);
 }
+
 void RSSurfaceNode::SetHDRPresent(bool hdrPresent, NodeId id)
 {
     std::unique_ptr<RSCommand> command =
@@ -1125,6 +1213,17 @@ void RSSurfaceNode::SetHDRBrightnessWithType(const float& hdrBrightness, uint32_
             break;
     }
 #endif
+}
+
+void RSSurfaceNode::DumpSubClass(std::string& out) const
+{
+    if (isShadowNode_) {
+        out += "], isShadowNode[true";
+    }
+
+    if (existsDuplicateModifier_) {
+        out += "], existsDuplicateModifier[true";
+    }
 }
 } // namespace Rosen
 } // namespace OHOS
