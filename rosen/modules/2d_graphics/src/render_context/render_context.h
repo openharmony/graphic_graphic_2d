@@ -18,6 +18,8 @@
 
 #include <memory>
 #include <mutex>
+#include <functional>
+#include <atomic>
 #include "common/rs_rect.h"
 #ifdef ROSEN_IOS
 #include "render_context_egl_defines.h"
@@ -55,6 +57,12 @@ public:
     virtual void CreateShareContext() { return; }
     virtual void DestroyShareContext() { return; }
     virtual int32_t QueryEglBufferAge() { return 0; }
+    #ifdef ROSEN_ARKUI_X
+    virtual void AddSurface() { return; }
+    virtual void DeleteSurface() { return; }
+    virtual void SetCleanUpHelper(std::function<void()> func) { return; }
+    virtual void DestroySharedSource() { return; }
+    #endif
 
     void SetUniRenderMode(bool isUni)
     {
@@ -121,6 +129,10 @@ protected:
     std::shared_ptr<MemoryHandler> mHandler_ = nullptr;
     int32_t pixelFormat_ = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    #ifdef ROSEN_ARKUI_X
+    std::atomic<int32_t> surface_count_ = 0;
+    std::function<void()> cleanUpHelper_ = nullptr;
+    #endif
 };
 } // namespace Rosen
 } // namespace OHOS
