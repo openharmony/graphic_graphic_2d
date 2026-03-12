@@ -121,6 +121,37 @@ T* CheckParamsAndGetThis(const napi_env env, napi_callback_info info, const char
     return nullptr;
 }
 
+/**
+ * @brief Check parameters and unwrap 'this' object with type tag validation (napi_unwrap_s mode)
+ * @tparam T Type of the wrapped native object
+ * @param env N-API environment
+ * @param info N-API callback info containing 'this'
+ * @param typeTag Pointer to type tag for validation
+ * @param name Optional property name to extract from 'this' before unwrap
+ * @return Pointer to unwrapped native object, or nullptr if failed
+ */
+template <class T>
+T* CheckParamsAndGetThisWithTag(
+    const napi_env env, napi_callback_info info, const napi_type_tag* typeTag, const char* name = nullptr)
+{
+    if (env == nullptr || info == nullptr || typeTag == nullptr) {
+        return nullptr;
+    }
+    napi_value object = nullptr;
+    napi_value propertyNameValue = nullptr;
+    napi_value pointerValue = nullptr;
+    napi_get_cb_info(env, info, nullptr, nullptr, &object, nullptr);
+    if (object != nullptr && name != nullptr) {
+        napi_create_string_utf8(env, name, NAPI_AUTO_LENGTH, &propertyNameValue);
+    }
+    napi_value& resObject = propertyNameValue ? propertyNameValue : object;
+    if (resObject) {
+        return napi_unwrap_s(env, resObject, typeTag, (void**)(&pointerValue)) == napi_ok ?
+            reinterpret_cast<T*>(pointerValue) : nullptr;
+    }
+    return nullptr;
+}
+
 template<typename T, size_t N>
 inline constexpr size_t ArraySize(T (&)[N]) noexcept
 {
