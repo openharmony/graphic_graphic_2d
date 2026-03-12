@@ -2848,22 +2848,6 @@ void RSSurfaceRenderNode::UpdateCacheSurfaceDirtyManager(int bufferAge)
     }
 }
 
-void RSSurfaceRenderNode::SetOnTreeNodeIdToFrameControl()
-{
-    if (!RSSystemProperties::GetSubThreadControlFrameRate()) {
-        return;
-    }
-    auto context = GetContext().lock();
-    if (!context) {
-        RS_LOGE("RSSurfaceRenderNode::SetClonedNodeInfo invalid context");
-        return;
-    }
-    auto surfaceNode = context->GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(GetFirstLevelNodeId());
-    if (surfaceNode) {
-        RSFrameControlTool::Instance().SetAppWindowNodeId(GetFirstLevelNodeId());
-    }
-}
-
 void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId, NodeId firstLevelNodeId,
     NodeId cacheNodeId, NodeId uifirstRootNodeId, NodeId screenNodeId, NodeId logicalDisplayNodeId)
 {
@@ -2900,7 +2884,7 @@ void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId,
         }
     }
     // set surfaceNode id to RSFrameControlTool for refalsh when frame control
-    SetOnTreeNodeIdToFrameControl();
+    RSFrameControlTool::Instance().SetNodeIdForFrameControl(*this);
 
     if (auto context = GetContext().lock(); context && onTree) {
         context->GetMutableNodeMap().ObtainLauncherNodeId(
