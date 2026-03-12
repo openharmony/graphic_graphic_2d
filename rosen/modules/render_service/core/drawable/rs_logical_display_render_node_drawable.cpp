@@ -227,7 +227,7 @@ void RSLogicalDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (needOffscreen) {
         scaleManager_ = uniParam->GetSLRScaleManager();
         UpdateSlrScale(screenProperty, params->GetFixedWidth(), params->GetFixedHeight(), screenParams);
-        ScaleCanvasIfNeeded(screenProperty);  // change by jianghongxi
+        ScaleCanvasIfNeeded(screenProperty);
         auto rect = curCanvas_->GetDeviceClipBounds();
         if (screenProperty.GetIsSamplingOn() && scaleManager_ != nullptr) {
             screenParams->SetSlrMatrix(scaleManager_->GetScaleMatrix());
