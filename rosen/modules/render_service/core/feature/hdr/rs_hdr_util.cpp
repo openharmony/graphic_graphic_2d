@@ -135,6 +135,59 @@ bool RSHdrUtil::CheckIsHDRSelfProcessingBuffer(const sptr<SurfaceBuffer>& surfac
     return ROSEN_GNE(data.cta861.maxContentLightLevel, DEFAULT_SDR_NITS);
 }
 
+void RSHdrUtil::SetBufferHDRParam(BufferDrawParam& params, const RSLayerPtr& layer)
+{
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    params.sdrNits = layer->GetSdrNit();
+    params.tmoNits = layer->GetDisplayNit();
+    params.displayNits = params.tmoNits / std::pow(layer->GetBrightnessRatio(), GAMMA2_2); // gamma 2.2
+    // color temperature
+    params.layerLinearMatrix = layer->GetLayerLinearMatrix();
+    bool isSurfaceBufferWithMetadata = false;
+    if (CheckIsHdrSurfaceBuffer(layer->GetBuffer()) == HdrStatus::NO_HDR) {
+        params.brightnessRatio = layer->GetBrightnessRatio();
+        isSurfaceBufferWithMetadata = CheckIsSurfaceBufferWithMetadata(layer->GetBuffer());
+    } else {
+        params.isHdrRedraw = true;
+    }
+    if (isSurfaceBufferWithMetadata ||
+        CheckIsSurfaceBufferWithAiHdrMetadata(layer->GetBuffer())) {
+        params.hasMetadata = true;
+    }
+#endif
+}
+
+bool RSHdrUtil::CheckHasSurfaceWithAiHdrMetadata(const RSSurfaceRenderNode& surfaceNode)
+{
+    if (!surfaceNode.IsOnTheTree()) {
+        return false;
+    }
+    if (!surfaceNode.GetRSSurfaceHandler()) {
+        return false;
+    }
+    return CheckIsSurfaceBufferWithAiHdrMetadata(surfaceNode.GetRSSurfaceHandler()->GetBuffer());
+}
+
+bool RSHdrUtil::CheckIsSurfaceBufferWithAiHdrMetadata(const sptr<SurfaceBuffer> surfaceBuffer)
+{
+    if (surfaceBuffer == nullptr) {
+        return false;
+    }
+    if (!RSSystemProperties::GetHdrVideoEnabled()) {
+        RS_LOGD("RSHdrUtil::CheckIsSurfaceBufferWithAiHdrMetadata HDRVideoEnabled false");
+        return false;
+    }
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    std::vector<uint8_t> metadataType{};
+    bool isHdrStatus = surfaceBuffer->GetMetadata(ATTRKEY_HDR_METADATA_TYPE, metadataType) == GSERROR_OK &&
+        !metadataType.empty();
+    if (isHdrStatus && (CheckAIHDRType(metadataType[0]) != HdrStatus::NO_HDR)) {
+        return true;
+    }
+#endif
+    return false;
+}
+
 bool RSHdrUtil::CheckIsSurfaceWithMetadata(const RSSurfaceRenderNode& surfaceNode)
 {
     if (!surfaceNode.IsOnTheTree()) {

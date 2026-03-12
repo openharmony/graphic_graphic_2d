@@ -48,6 +48,7 @@
 #include "screen_manager/rs_screen.h"
 #include "screen_manager/rs_screen_property.h"
 #include "string_utils.h"
+#include "v2_2/cm_color_space.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/mock/mock_rs_luminance_control.h"
 #include "render_process/transaction/rs_service_to_render_connection.h"
@@ -3218,6 +3219,46 @@ HWTEST_F(RSMainThreadTest, ConsumeAndUpdateAllNodes005, TestSize.Level1)
     mainThread->ConsumeAndUpdateAllNodes();
     mainThread->ConsumeAndUpdateAllNodes();
     mainThread->vsyncRsTimestamp_.store(vsyncRsTimestamp);
+}
+
+/**
+ * @tc.name: ConsumeAndUpdateAllNodes006
+ * @tc.desc: ConsumeAndUpdateAllNodes006 Test
+ * @tc.type: FUNC
+ * @tc.require: issueIB787L
+ */
+HWTEST_F(RSMainThreadTest, ConsumeAndUpdateAllNodes006, TestSize.Level1)
+{
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    bool isUniRender = mainThread->isUniRender_;
+    mainThread->isUniRender_ = true;
+    mainThread->timestamp_ = 1000;
+    // prepare nodemap
+    mainThread->context_->GetMutableNodeMap().renderNodeMap_.clear();
+    mainThread->context_->GetMutableNodeMap().surfaceNodeMap_.clear();
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    auto rsSurfaceHandlerPtr_ = rsSurfaceRenderNode->GetRSSurfaceHandler();
+    ASSERT_NE(rsSurfaceHandlerPtr_, nullptr);
+    rsSurfaceRenderNode->isHardwareEnabledNode_ = true;
+    // aihdr metadata
+    std::vector<uint8_t> metadataType;
+    uint32_t hdrType = HDI::Display::Graphic::Common::V2_2::CM_VIDEO_AI_HDR;
+    metadataType.resize(sizeof(hdrType));
+    memcpy_s(metadataType.data(), metadataType.size(), &hdrType, sizeof(hdrType));
+    auto surfaceBuffer = rsSurfaceHandlerPtr_->GetBuffer();
+    rsSurfaceRenderNode->SetIsOnTheTree(true);
+    surfaceBuffer->SetMetadata(Media::VideoProcessingEngine::ATTRKEY_HDR_METADATA_TYPE, metadataType);
+    auto acquireFence = rsSurfaceHandlerPtr_->GetAcquireFence();
+    auto damageRegion = rsSurfaceHandlerPtr_->GetDamageRegion();
+    auto timestamp = rsSurfaceHandlerPtr_->GetTimestamp();
+    auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    rsSurfaceHandlerPtr_->SetBuffer(surfaceBuffer, acquireFence, damageRegion, timestamp, bufferOwnerCount);
+    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(rsSurfaceRenderNode);
+    mainThread->ConsumeAndUpdateAllNodes();
+    mainThread->isUniRender_ = isUniRender;
+#endif
 }
 
 /**
