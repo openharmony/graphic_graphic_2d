@@ -669,10 +669,10 @@ HWTEST(RSRenderSurfaceLayerTest, CopyLayerInfo_CopiesSelectedFields, TestSize.Le
         std::make_shared<RSRenderLayerCmdProperty<GraphicIRect>>(GraphicIRect{1, 2, 3, 4})));
     src->UpdateRSLayerCmd(std::make_shared<RSRenderLayerVisibleRegionsCmd>(
         std::make_shared<RSRenderLayerCmdProperty<std::vector<GraphicIRect>>>(
-            std::vector<GraphicIRect>{ {0, 0, 5, 5} })));
+            std::vector<GraphicIRect> { { 0, 0, 5, 5 } })));
     src->UpdateRSLayerCmd(std::make_shared<RSRenderLayerDirtyRegionsCmd>(
         std::make_shared<RSRenderLayerCmdProperty<std::vector<GraphicIRect>>>(
-            std::vector<GraphicIRect>{ {1, 1, 2, 2} })));
+            std::vector<GraphicIRect> { { 1, 1, 2, 2 } })));
     src->UpdateRSLayerCmd(std::make_shared<RSRenderLayerCropRectCmd>(
         std::make_shared<RSRenderLayerCmdProperty<GraphicIRect>>(GraphicIRect{3, 4, 5, 6})));
     src->UpdateRSLayerCmd(std::make_shared<RSRenderLayerMatrixCmd>(

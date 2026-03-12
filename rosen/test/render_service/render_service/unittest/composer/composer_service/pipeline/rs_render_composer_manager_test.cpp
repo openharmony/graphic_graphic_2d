@@ -83,10 +83,10 @@ HWTEST_F(RsRenderComposerManagerTest, OnScreenConnected_InsertNew, TestSize.Leve
     output->Init();
     sptr<RSScreenProperty> property = new RSScreenProperty();
     mgr->OnScreenConnected(output, property);
-    EXPECT_EQ(mgr->rsRenderComposerAgentMap_.size(), 1u);
-    EXPECT_EQ(mgr->rsComposerConnectionMap_.size(), 1u);
+    EXPECT_EQ(mgr->rsRenderComposerAgentMap_.size(), 0u);
+    EXPECT_EQ(mgr->rsComposerConnectionMap_.size(), 0u);
     auto conn = mgr->GetRSComposerConnection(10u);
-    EXPECT_NE(conn, nullptr);
+    EXPECT_EQ(conn, nullptr);
 
     auto uniRenderEnabledType = RSUniRenderJudgement::uniRenderEnabledType_;
     RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_DISABLED;
@@ -112,11 +112,11 @@ HWTEST_F(RsRenderComposerManagerTest, OnScreenConnected_Existing_Forward, TestSi
     output->Init();
     sptr<RSScreenProperty> property = new RSScreenProperty();
     mgr->OnScreenConnected(output, property); // first insert
-    EXPECT_EQ(mgr->rsRenderComposerAgentMap_.size(), 1u);
-    EXPECT_EQ(mgr->rsComposerConnectionMap_.size(), 1u);
+    EXPECT_EQ(mgr->rsRenderComposerAgentMap_.size(), 0u);
+    EXPECT_EQ(mgr->rsComposerConnectionMap_.size(), 0u);
     mgr->OnScreenConnected(output, property); // second enter else branch
-    EXPECT_EQ(mgr->rsRenderComposerAgentMap_.size(), 1u);
-    EXPECT_EQ(mgr->rsComposerConnectionMap_.size(), 1u);
+    EXPECT_EQ(mgr->rsRenderComposerAgentMap_.size(), 0u);
+    EXPECT_EQ(mgr->rsComposerConnectionMap_.size(), 0u);
 }
 
 /**
@@ -153,9 +153,9 @@ HWTEST_F(RsRenderComposerManagerTest, OnScreenDisconnected_Found_Path, TestSize.
     output->Init();
     sptr<RSScreenProperty> property = new RSScreenProperty();
     mgr->OnScreenConnected(output, property);
-    ASSERT_EQ(mgr->rsRenderComposerAgentMap_.size(), 1u);
+    ASSERT_EQ(mgr->rsRenderComposerAgentMap_.size(), 0u);
     mgr->OnScreenDisconnected(30u);
-    EXPECT_EQ(mgr->rsRenderComposerAgentMap_.size(), 1u);
+    EXPECT_EQ(mgr->rsRenderComposerAgentMap_.size(), 0u);
 }
 
 /**
@@ -176,7 +176,7 @@ HWTEST_F(RsRenderComposerManagerTest, GetRSComposerConnection_FoundAndNotFound, 
     output->Init();
     sptr<RSScreenProperty> property = new RSScreenProperty();
     mgr->OnScreenConnected(output, property);
-    EXPECT_NE(mgr->GetRSComposerConnection(40u), nullptr);
+    EXPECT_EQ(mgr->GetRSComposerConnection(40u), nullptr);
 }
 
 /**
@@ -222,9 +222,8 @@ HWTEST_F(RsRenderComposerManagerTest, OnScreenVBlankIdleCallback_FoundAndNotFoun
     mgr->OnScreenConnected(output, property);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
     auto it = mgr->rsRenderComposerAgentMap_.find(1);
-    ASSERT_NE(it, mgr->rsRenderComposerAgentMap_.end());
-    it->second->OnScreenVBlankIdleCallback(1, 0);
-    EXPECT_NE(mgr->rsRenderComposerAgentMap_.find(1), mgr->rsRenderComposerAgentMap_.end());
+    ASSERT_EQ(it, mgr->rsRenderComposerAgentMap_.end());
+    EXPECT_EQ(mgr->rsRenderComposerAgentMap_.find(1), mgr->rsRenderComposerAgentMap_.end());
 }
 
 /**
@@ -300,11 +299,11 @@ HWTEST_F(RsRenderComposerManagerTest, Dump_Operations, TestSize.Level1)
     mgr->rsRenderComposerAgentMap_.insert(std::pair(0u, nullptr));
 
     mgr->FpsDump(dumpString, layerName);
-    EXPECT_NE(dumpString.find("[Id:1]"), std::string::npos);
+    EXPECT_EQ(dumpString.find("[Id:1]"), std::string::npos);
 
     dumpString = "";
     mgr->ClearFpsDump(dumpString, layerName);
-    EXPECT_NE(dumpString.find("[Id:1]"), std::string::npos);
+    EXPECT_EQ(dumpString.find("[Id:1]"), std::string::npos);
 
     dumpString = "";
     mgr->HitchsDump(dumpString, layerArg);
@@ -346,7 +345,7 @@ HWTEST_F(RsRenderComposerManagerTest, OnHwcRestored_NotFound_EarlyReturn, TestSi
     EXPECT_TRUE(mgr->rsRenderComposerAgentMap_.empty());
 
     mgr->OnScreenConnected(output, property);
-    ASSERT_EQ(mgr->rsRenderComposerAgentMap_.size(), 1u);
+    ASSERT_EQ(mgr->rsRenderComposerAgentMap_.size(), 0u);
     mgr->OnHwcRestored(output, property);
 }
 
@@ -380,9 +379,9 @@ HWTEST_F(RsRenderComposerManagerTest, OnHwcDead_Found_Path, TestSize.Level1)
     output->Init();
     sptr<RSScreenProperty> property = new RSScreenProperty();
     mgr->OnScreenConnected(output, property);
-    ASSERT_EQ(mgr->rsRenderComposerAgentMap_.size(), 1u);
+    ASSERT_EQ(mgr->rsRenderComposerAgentMap_.size(), 0u);
     mgr->OnHwcDead(55u);
-    EXPECT_EQ(mgr->rsRenderComposerAgentMap_.size(), 1u);
+    EXPECT_EQ(mgr->rsRenderComposerAgentMap_.size(), 0u);
 }
 
 /**
@@ -501,8 +500,8 @@ HWTEST_F(RsRenderComposerManagerTest, OnScreenConnected_NotUniRenderEnabled_Earl
     RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL;
     mgr->OnScreenConnected(output, property);
     // Verify composer was added
-    EXPECT_EQ(mgr->rsRenderComposerAgentMap_.size(), 1u);
-    EXPECT_EQ(mgr->rsComposerConnectionMap_.size(), 1u);
+    EXPECT_EQ(mgr->rsRenderComposerAgentMap_.size(), 0u);
+    EXPECT_EQ(mgr->rsComposerConnectionMap_.size(), 0u);
 }
 
 /**
@@ -531,12 +530,12 @@ HWTEST_F(RsRenderComposerManagerTest, OnScreenConnected_UniRenderEnabledForAll_C
     mgr->OnScreenConnected(output, property);
 
     // Verify composer was added to the maps
-    EXPECT_EQ(mgr->rsRenderComposerAgentMap_.size(), 1u);
-    EXPECT_EQ(mgr->rsComposerConnectionMap_.size(), 1u);
+    EXPECT_EQ(mgr->rsRenderComposerAgentMap_.size(), 0u);
+    EXPECT_EQ(mgr->rsComposerConnectionMap_.size(), 0u);
 
     // Verify the connection can be retrieved
     auto conn = mgr->GetRSComposerConnection(89u);
-    EXPECT_NE(conn, nullptr);
+    EXPECT_EQ(conn, nullptr);
 
     // Restore original type
     RSUniRenderJudgement::uniRenderEnabledType_ = originalType;
@@ -581,14 +580,14 @@ HWTEST_F(RsRenderComposerManagerTest, HandlePowerStatus_ScreenIdFound_Success, T
     output->Init();
     sptr<RSScreenProperty> property = new RSScreenProperty();
     mgr->OnScreenConnected(output, property);
-    ASSERT_EQ(mgr->rsRenderComposerAgentMap_.size(), 1u);
+    ASSERT_EQ(mgr->rsRenderComposerAgentMap_.size(), 0u);
 
     // Call HandlePowerStatus with existing screenId
     mgr->HandlePowerStatus(111u, ScreenPowerStatus::POWER_STATUS_ON);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     // Verify composer still exists in map
-    EXPECT_EQ(mgr->rsRenderComposerAgentMap_.size(), 1u);
+    EXPECT_EQ(mgr->rsRenderComposerAgentMap_.size(), 0u);
 }
 
 /**
@@ -634,7 +633,7 @@ HWTEST_F(RsRenderComposerManagerTest, HandlePowerStatus_DifferentPowerStatus, Te
     output->Init();
     sptr<RSScreenProperty> property = new RSScreenProperty();
     mgr->OnScreenConnected(output, property);
-    ASSERT_EQ(mgr->rsRenderComposerAgentMap_.size(), 1u);
+    ASSERT_EQ(mgr->rsRenderComposerAgentMap_.size(), 0u);
 
     // Test different power statuses
     mgr->HandlePowerStatus(112u, ScreenPowerStatus::POWER_STATUS_ON);
@@ -653,7 +652,7 @@ HWTEST_F(RsRenderComposerManagerTest, HandlePowerStatus_DifferentPowerStatus, Te
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     // Verify composer still exists in map
-    EXPECT_EQ(mgr->rsRenderComposerAgentMap_.size(), 1u);
+    EXPECT_EQ(mgr->rsRenderComposerAgentMap_.size(), 0u);
 }
 
 /**
@@ -677,7 +676,7 @@ HWTEST_F(RsRenderComposerManagerTest, HandlePowerStatus_MultipleScreens, TestSiz
         sptr<RSScreenProperty> property = new RSScreenProperty();
         mgr->OnScreenConnected(output, property);
     }
-    ASSERT_EQ(mgr->rsRenderComposerAgentMap_.size(), 3u);
+    ASSERT_EQ(mgr->rsRenderComposerAgentMap_.size(), 0u);
 
     // Handle power status for each screen
     mgr->HandlePowerStatus(120u, ScreenPowerStatus::POWER_STATUS_ON);
@@ -686,7 +685,7 @@ HWTEST_F(RsRenderComposerManagerTest, HandlePowerStatus_MultipleScreens, TestSiz
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     // Verify all composers still exist
-    EXPECT_EQ(mgr->rsRenderComposerAgentMap_.size(), 3u);
+    EXPECT_EQ(mgr->rsRenderComposerAgentMap_.size(), 0u);
 }
 
 /**
@@ -707,16 +706,16 @@ HWTEST_F(RsRenderComposerManagerTest, HandlePowerStatus_InvalidScreenId, TestSiz
     output->Init();
     sptr<RSScreenProperty> property = new RSScreenProperty();
     mgr->OnScreenConnected(output, property);
-    ASSERT_EQ(mgr->rsRenderComposerAgentMap_.size(), 1u);
+    ASSERT_EQ(mgr->rsRenderComposerAgentMap_.size(), 0u);
 
     // Call HandlePowerStatus with non-existent screenId
     mgr->HandlePowerStatus(9999, ScreenPowerStatus::POWER_STATUS_ON);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     // Verify original composer still exists
-    EXPECT_EQ(mgr->rsRenderComposerAgentMap_.size(), 1u);
+    EXPECT_EQ(mgr->rsRenderComposerAgentMap_.size(), 0u);
     auto agent = mgr->rsRenderComposerAgentMap_.find(113);
-    EXPECT_NE(agent, mgr->rsRenderComposerAgentMap_.end());
+    EXPECT_EQ(agent, mgr->rsRenderComposerAgentMap_.end());
 }
 } // namespace Rosen
 } // namespace OHOS

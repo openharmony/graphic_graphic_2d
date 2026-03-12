@@ -746,7 +746,7 @@ uint32_t RSSurfaceLayer::GetAncoFlags() const
 
 bool RSSurfaceLayer::IsAncoNative() const
 {
-    constexpr uint32_t ANCO_NATIVE_NODE_FLAG = static_cast<uint32_t>(AncoFlags::ANCO_NATIVE_NODE);
+    static constexpr uint32_t ANCO_NATIVE_NODE_FLAG = static_cast<uint32_t>(AncoFlags::ANCO_NATIVE_NODE);
     return (ancoFlags_ & ANCO_NATIVE_NODE_FLAG) == ANCO_NATIVE_NODE_FLAG;
 }
 

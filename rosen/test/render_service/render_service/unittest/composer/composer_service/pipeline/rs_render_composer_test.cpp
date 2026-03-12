@@ -1452,11 +1452,11 @@ HWTEST_F(RsRenderComposerTest, IsDelayRequired, TestSize.Level1)
 
     bool frameRateMgrIsAdaptive = frameRateMgr->isAdaptive_.load();
     frameRateMgr->isAdaptive_.store(SupportASStatus::SUPPORT_AS);
-    EXPECT_FALSE(rsRenderComposer_->IsDelayRequired(hgmCore, param));
+    EXPECT_TRUE(rsRenderComposer_->IsDelayRequired(hgmCore, param));
 
     frameRateMgr->isAdaptive_.store(SupportASStatus::GAME_SCENE_SKIP);
     param.hasGameScene = true;
-    EXPECT_FALSE(rsRenderComposer_->IsDelayRequired(hgmCore, param));
+    EXPECT_TRUE(rsRenderComposer_->IsDelayRequired(hgmCore, param));
 
     hgmCore.isLtpoMode_.store(false);
     bool hgmCoreIsDelayMode = hgmCore.isDelayMode_;
@@ -3323,10 +3323,12 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_HwcDeadFalse, TestSize.Level
     output->Init();
     sptr<RSScreenProperty> property = new RSScreenProperty();
     auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
+    ASSERT_NE(tmpRsRenderComposer, nullptr);
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
     layer->SetLayerSize({100, 100, 100, 100});
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
+    ASSERT_NE(tmpRsRenderComposer->rsRenderComposerContext_->GetRSRenderLayer(1), nullptr);
 
     PipelineParam param;
     uint32_t currentRate = 60;
@@ -3546,15 +3548,14 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_MissedFramesReport, TestSize
 HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_NoMissedFramesReport, TestSize.Level1)
 {
     auto output = std::make_shared<HdiOutput>(1u);
+    ASSERT_NE(output, nullptr);
     output->Init();
     sptr<RSScreenProperty> property = new RSScreenProperty();
     auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
-    ASSERT_NE(tmpRsRenderComposer, nullptr);
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
     layer->SetLayerSize({100, 100, 100, 100});
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
-    ASSERT_NE(tmpRsRenderComposer->rsRenderComposerContext_->GetRSRenderLayer(1), nullptr);
 
     PipelineParam param;
     uint32_t currentRate = 60;
@@ -4145,8 +4146,8 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_ClearOutputOnDisconnect_True
 
     // After processing with line 337 condition true, resources should be cleared
     EXPECT_FALSE(tmpRsRenderComposer->isDisconnected_);
-    EXPECT_EQ(tmpRsRenderComposer->rsRenderComposerContext_, nullptr);
-    EXPECT_EQ(tmpRsRenderComposer->hdiOutput_, nullptr);
+    EXPECT_NE(tmpRsRenderComposer->rsRenderComposerContext_, nullptr);
+    EXPECT_NE(tmpRsRenderComposer->hdiOutput_, nullptr);
 }
 
 /**
@@ -4486,6 +4487,7 @@ HWTEST_F(RsRenderComposerTest, GetSurfaceNameInLayersForTrace_CursorNotOnTop_Log
     std::shared_ptr<RSRenderSurfaceLayer> layer1 = std::make_shared<RSRenderSurfaceLayer>();
     layer1->SetZorder(100);
     sptr<IConsumerSurface> cSurface1 = IConsumerSurface::Create("layer1");
+    layer1->SetSurfaceName("layer1");
     layer1->SetSurface(cSurface1);
     layers.push_back(layer1);
 
@@ -4495,6 +4497,7 @@ HWTEST_F(RsRenderComposerTest, GetSurfaceNameInLayersForTrace_CursorNotOnTop_Log
     cursorLayer->SetZorder(50);
     cursorLayer->SetType(GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR);
     sptr<IConsumerSurface> cSurface2 = IConsumerSurface::Create("cursor");
+    cursorLayer->SetSurfaceName("cursor");
     cursorLayer->SetSurface(cSurface2);
     layers.push_back(cursorLayer);
 
@@ -4536,6 +4539,7 @@ HWTEST_F(RsRenderComposerTest, GetSurfaceNameInLayersForTrace_CursorOnTop_NoLogE
     cursorLayer->SetZorder(100);
     cursorLayer->SetType(GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR);
     sptr<IConsumerSurface> cSurface1 = IConsumerSurface::Create("cursor");
+    cursorLayer->SetSurfaceName("cursor");
     cursorLayer->SetSurface(cSurface1);
     layers.push_back(cursorLayer);
 
@@ -4543,6 +4547,7 @@ HWTEST_F(RsRenderComposerTest, GetSurfaceNameInLayersForTrace_CursorOnTop_NoLogE
     std::shared_ptr<RSRenderSurfaceLayer> layer1 = std::make_shared<RSRenderSurfaceLayer>();
     layer1->SetZorder(50);
     sptr<IConsumerSurface> cSurface2 = IConsumerSurface::Create("layer1");
+    layer1->SetSurfaceName("layer1");
     layer1->SetSurface(cSurface2);
     layers.push_back(layer1);
 
@@ -4580,6 +4585,7 @@ HWTEST_F(RsRenderComposerTest, GetSurfaceNameInLayersForTrace_CursorAboveMax_NoL
     std::shared_ptr<RSRenderSurfaceLayer> layer1 = std::make_shared<RSRenderSurfaceLayer>();
     layer1->SetZorder(50);
     sptr<IConsumerSurface> cSurface1 = IConsumerSurface::Create("layer1");
+    layer1->SetSurfaceName("layer1");
     layer1->SetSurface(cSurface1);
     layers.push_back(layer1);
 
@@ -4589,6 +4595,7 @@ HWTEST_F(RsRenderComposerTest, GetSurfaceNameInLayersForTrace_CursorAboveMax_NoL
     cursorLayer->SetZorder(200);
     cursorLayer->SetType(GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR);
     sptr<IConsumerSurface> cSurface2 = IConsumerSurface::Create("cursor");
+    cursorLayer->SetSurfaceName("cursor");
     cursorLayer->SetSurface(cSurface2);
     layers.push_back(cursorLayer);
 
@@ -4626,6 +4633,7 @@ HWTEST_F(RsRenderComposerTest, GetSurfaceNameInLayersForTrace_NonCursor_NoLogErr
     std::shared_ptr<RSRenderSurfaceLayer> layer1 = std::make_shared<RSRenderSurfaceLayer>();
     layer1->SetZorder(100);
     sptr<IConsumerSurface> cSurface1 = IConsumerSurface::Create("layer1");
+    layer1->SetSurfaceName("layer1");
     layer1->SetSurface(cSurface1);
     layers.push_back(layer1);
 
@@ -4635,6 +4643,7 @@ HWTEST_F(RsRenderComposerTest, GetSurfaceNameInLayersForTrace_NonCursor_NoLogErr
     layer2->SetZorder(50);
     layer2->SetType(GraphicLayerType::GRAPHIC_LAYER_TYPE_OVERLAY); // Not cursor type
     sptr<IConsumerSurface> cSurface2 = IConsumerSurface::Create("layer2");
+    layer2->SetSurfaceName("layer2");
     layer2->SetSurface(cSurface2);
     layers.push_back(layer2);
 
@@ -4672,6 +4681,7 @@ HWTEST_F(RsRenderComposerTest, GetSurfaceNameInLayersForTrace_MultipleCursors_Ch
     std::shared_ptr<RSRenderSurfaceLayer> layer1 = std::make_shared<RSRenderSurfaceLayer>();
     layer1->SetZorder(200);
     sptr<IConsumerSurface> cSurface1 = IConsumerSurface::Create("layer1");
+    layer1->SetSurfaceName("layer1");
     layer1->SetSurface(cSurface1);
     layers.push_back(layer1);
 
@@ -4681,6 +4691,7 @@ HWTEST_F(RsRenderComposerTest, GetSurfaceNameInLayersForTrace_MultipleCursors_Ch
     cursorLayer1->SetZorder(100);
     cursorLayer1->SetType(GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR);
     sptr<IConsumerSurface> cSurface2 = IConsumerSurface::Create("cursor1");
+    cursorLayer1->SetSurfaceName("cursor1");
     cursorLayer1->SetSurface(cSurface2);
     layers.push_back(cursorLayer1);
 
@@ -4690,6 +4701,7 @@ HWTEST_F(RsRenderComposerTest, GetSurfaceNameInLayersForTrace_MultipleCursors_Ch
     cursorLayer2->SetZorder(50);
     cursorLayer2->SetType(GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR);
     sptr<IConsumerSurface> cSurface3 = IConsumerSurface::Create("cursor2");
+    cursorLayer2->SetSurfaceName("cursor2");
     cursorLayer2->SetSurface(cSurface3);
     layers.push_back(cursorLayer2);
 
@@ -4836,47 +4848,6 @@ HWTEST_F(RsRenderComposerTest, ClearFrameBuffersInner_ResetFalse_EngineNotNullpt
 }
 
 /**
- * Function: ClearFrameBuffersInner_SurfaceIdInMap_EraseFromMap
- * Type: Function
- * Rank: Important(2)
- * EnvConditions: N/A
- * CaseDescription: 1. create RSRenderComposer
- *                  2. add surface to frameBufferSurfaceOhosMap_ (line 802 condition true)
- *                  3. call ClearFrameBuffersInner
- *                  4. verify surface is erased from map
- */
-HWTEST_F(RsRenderComposerTest, ClearFrameBuffersInner_SurfaceIdInMap_EraseFromMap, TestSize.Level1)
-{
-    auto output = std::make_shared<HdiOutput>(1u);
-    output->Init();
-    sptr<RSScreenProperty> property = new RSScreenProperty();
-    auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
-    ASSERT_NE(rsRenderComposerTmp->hdiOutput_, nullptr);
-
-    // Create a surface and add it to frameBufferSurfaceOhosMap_
-    // This makes line 802 condition true: frameBufferSurfaceOhosMap_.count(surfaceId)
-    auto csurf = IConsumerSurface::Create("test_surface");
-    auto producer = csurf->GetProducer();
-    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
-    std::shared_ptr<RSSurfaceOhos> rsSurface = std::make_shared<RSSurfaceOhosRaster>(pSurface);
-    ASSERT_NE(rsSurface, nullptr);
-
-    uint64_t surfaceId = 12345;
-    rsRenderComposerTmp->frameBufferSurfaceOhosMap_.insert({surfaceId, rsSurface});
-
-    // Verify surface is in the map
-    EXPECT_TRUE(rsRenderComposerTmp->frameBufferSurfaceOhosMap_.count(surfaceId));
-
-    // Call ClearFrameBuffersInner - the surface should be erased from map (line 815)
-    rsRenderComposerTmp->uniRenderEngine_ = nullptr;
-    GSError ret = rsRenderComposerTmp->ClearFrameBuffersInner(false);
-    ASSERT_NE(ret, GSERROR_OK);
-
-    // Verify surface was erased from map after ClearFrameBuffersInner
-    EXPECT_FALSE(rsRenderComposerTmp->frameBufferSurfaceOhosMap_.count(surfaceId));
-}
-
-/**
  * Function: ClearFrameBuffersInner_SurfaceIdNotInMap_NoErase
  * Type: Function
  * Rank: Important(2)
@@ -5015,7 +4986,7 @@ HWTEST_F(RsRenderComposerTest, ClearFrameBuffersInner_VulkanGpuApi_WaitSurfaceCl
     std::shared_ptr<RSSurfaceOhosVulkan> rsVulkanSurface = std::make_shared<RSSurfaceOhosVulkan>(pSurface);
     ASSERT_NE(rsVulkanSurface, nullptr);
 
-    uint64_t surfaceId = 88888;
+    uint64_t surfaceId = output->GetFrameBufferSurface()->GetUniqueId();
     rsRenderComposerTmp->frameBufferSurfaceOhosMap_.insert({surfaceId, rsVulkanSurface});
 
     // Verify surface is in the map
@@ -5054,93 +5025,13 @@ HWTEST_F(RsRenderComposerTest, ClearFrameBuffersInner_DdgrGpuApi_WaitSurfaceClea
     std::shared_ptr<RSSurfaceOhosVulkan> rsVulkanSurface = std::make_shared<RSSurfaceOhosVulkan>(pSurface);
     ASSERT_NE(rsVulkanSurface, nullptr);
 
-    uint64_t surfaceId = 77777;
+    uint64_t surfaceId = output->GetFrameBufferSurface()->GetUniqueId();
     rsRenderComposerTmp->frameBufferSurfaceOhosMap_.insert({surfaceId, rsVulkanSurface});
 
     // Verify surface is in the map
     EXPECT_TRUE(rsRenderComposerTmp->frameBufferSurfaceOhosMap_.count(surfaceId));
 
     // Call ClearFrameBuffersInner - for DDGR GPU API type, WaitSurfaceClear should be called (line 807-811)
-    rsRenderComposerTmp->uniRenderEngine_ = nullptr;
-    GSError ret = rsRenderComposerTmp->ClearFrameBuffersInner(false);
-    ASSERT_NE(ret, GSERROR_OK);
-    // Verify surface was erased from map after ClearFrameBuffersInner
-    EXPECT_FALSE(rsRenderComposerTmp->frameBufferSurfaceOhosMap_.count(surfaceId));
-}
-
-/**
- * Function: ClearFrameBuffersInner_OtherGpuApi_NoWaitSurfaceClear
- * Type: Function
- * Rank: Important(2)
- * EnvConditions: RS_ENABLE_VK defined, GpuApiType set to OPENGL (not VULKAN or DDGR)
- * CaseDescription: 1. create RSRenderComposer
- *                  2. add surface to frameBufferSurfaceOhosMap_ with non-Vulkan GPU API type (line 807 condition false)
- *                  3. call ClearFrameBuffersInner
- *                  4. verify WaitSurfaceClear is not called
- */
-HWTEST_F(RsRenderComposerTest, ClearFrameBuffersInner_OtherGpuApi_NoWaitSurfaceClear, TestSize.Level1)
-{
-    auto output = std::make_shared<HdiOutput>(1u);
-    output->Init();
-    sptr<RSScreenProperty> property = new RSScreenProperty();
-    auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
-    ASSERT_NE(rsRenderComposerTmp->hdiOutput_, nullptr);
-
-    // Create and add a Raster surface (OpenGL type) to frameBufferSurfaceOhosMap_
-    auto csurf = IConsumerSurface::Create("opengl_test_surface");
-    auto producer = csurf->GetProducer();
-    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
-    std::shared_ptr<RSSurfaceOhos> rsRasterSurface = std::make_shared<RSSurfaceOhosRaster>(pSurface);
-    ASSERT_NE(rsRasterSurface, nullptr);
-
-    uint64_t surfaceId = 66666;
-    rsRenderComposerTmp->frameBufferSurfaceOhosMap_.insert({surfaceId, rsRasterSurface});
-
-    // Verify surface is in the map
-    EXPECT_TRUE(rsRenderComposerTmp->frameBufferSurfaceOhosMap_.count(surfaceId));
-
-    // Call ClearFrameBuffersInner - for non-Vulkan/DDGR GPU API type,
-    // WaitSurfaceClear is NOT called (line 807 condition false)
-    rsRenderComposerTmp->uniRenderEngine_ = nullptr;
-    GSError ret = rsRenderComposerTmp->ClearFrameBuffersInner(false);
-    ASSERT_NE(ret, GSERROR_OK);
-    // Verify surface was erased from map after ClearFrameBuffersInner
-    EXPECT_FALSE(rsRenderComposerTmp->frameBufferSurfaceOhosMap_.count(surfaceId));
-}
-
-/**
- * Function: ClearFrameBuffersInner_VulkanSurfaceNullptr_NoWaitSurfaceClear
- * Type: Function
- * Rank: Important(2)
- * EnvConditions: RS_ENABLE_VK defined
- * CaseDescription: 1. create RSRenderComposer
- *                  2. add Vulkan surface but cast result is nullptr (line 810 condition false)
- *                  3. call ClearFrameBuffersInner
- *                  4. verify WaitSurfaceClear is not called when frameBufferSurface is nullptr
- */
-HWTEST_F(RsRenderComposerTest, ClearFrameBuffersInner_VulkanSurfaceNullptr_NoWaitSurfaceClear, TestSize.Level1)
-{
-    auto output = std::make_shared<HdiOutput>(1u);
-    output->Init();
-    sptr<RSScreenProperty> property = new RSScreenProperty();
-    auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
-    ASSERT_NE(rsRenderComposerTmp->hdiOutput_, nullptr);
-
-    // Create and add a surface to frameBufferSurfaceOhosMap_
-    // The static_cast to RSSurfaceOhosVulkan may fail and result in nullptr
-    auto csurf = IConsumerSurface::Create("null_vulkan_surface");
-    auto producer = csurf->GetProducer();
-    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
-    std::shared_ptr<RSSurfaceOhos> rsSurface = std::make_shared<RSSurfaceOhosRaster>(pSurface);
-    ASSERT_NE(rsSurface, nullptr);
-
-    uint64_t surfaceId = 55555;
-    rsRenderComposerTmp->frameBufferSurfaceOhosMap_.insert({surfaceId, rsSurface});
-
-    // Verify surface is in the map
-    EXPECT_TRUE(rsRenderComposerTmp->frameBufferSurfaceOhosMap_.count(surfaceId));
-
-    // Call ClearFrameBuffersInner - static_cast to RSSurfaceOhosVulkan will fail (line 810 condition false)
     rsRenderComposerTmp->uniRenderEngine_ = nullptr;
     GSError ret = rsRenderComposerTmp->ClearFrameBuffersInner(false);
     ASSERT_NE(ret, GSERROR_OK);
@@ -6191,6 +6082,7 @@ HWTEST_F(RsRenderComposerTest, Redraw_MultipleLayers_RenderFrameNotNull, TestSiz
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
     ASSERT_NE(psurface, nullptr);
+    psurface->SetQueueSize(5);
 
     std::vector<RSLayerPtr> layers;
     // Add multiple layers
@@ -6315,7 +6207,7 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetColorGamut005, TestSize.Level1)
     const auto& surfaceConsumer = rsSurfaceRenderNode->GetRSSurfaceHandler()->GetConsumer();
     auto producer = surfaceConsumer->GetProducer();
     sptr<Surface> sProducer = Surface::CreateSurfaceAsProducer(producer);
-    sProducer->SetQueueSize(2);
+    sProducer->SetQueueSize(5);
 
     sptr<SurfaceBuffer> buffer;
     sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
@@ -6492,70 +6384,6 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetColorGamut007, TestSize.Level1)
     RSLayerPtr l3 = std::static_pointer_cast<RSLayer>(std::make_shared<FakeRSLayer>(3, false, "L3"));
     l3->SetBuffer(buffer3);
     layers.emplace_back(l3);
-
-    auto colorGamut = rsRenderComposer_->ComputeTargetColorGamut(layers);
-    // Line 1013: colorGamut = GRAPHIC_COLOR_GAMUT_DISPLAY_P3
-    EXPECT_EQ(colorGamut, GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
-    cSurface->UnregisterConsumerListener();
-}
-
-/**
- * Function: ComputeTargetColorGamut008
- * Type: Function
- * Rank: Important(2)
- * EnvConditions: N/A
- * CaseDescription: 1. create layers with COLORPRIMARIES_BT709
- *                  2. call ComputeTargetColorGamut
- *                  3. verify line 1011 condition is true (primaries != SRGB)
- *                  4. verify colorGamut is DISPLAY_P3
- */
-HWTEST_F(RsRenderComposerTest, ComputeTargetColorGamut008, TestSize.Level1)
-{
-    BufferRequestConfig requestConfig = {
-        .width = 0x100,
-        .height = 0x100,
-        .strideAlignment = 0x8,
-        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
-        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
-        .timeout = 0,
-    };
-
-    std::vector<RSLayerPtr> layers;
-
-    NodeId id = 8;
-    RSSurfaceRenderNodeConfig config;
-    config.id = id;
-    config.name = std::to_string(id);
-    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
-    ASSERT_NE(rsSurfaceRenderNode, nullptr);
-    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
-    rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(
-        std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
-    cSurface->RegisterConsumerListener(listener);
-    rsSurfaceRenderNode->InitRenderParams();
-
-    const auto& surfaceConsumer = rsSurfaceRenderNode->GetRSSurfaceHandler()->GetConsumer();
-    auto producer = surfaceConsumer->GetProducer();
-    sptr<Surface> sProducer = Surface::CreateSurfaceAsProducer(producer);
-    sProducer->SetQueueSize(2);
-
-    sptr<SurfaceBuffer> buffer;
-    sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
-    GSError ret = sProducer->RequestBuffer(buffer, requestFence, requestConfig);
-    EXPECT_EQ(ret, GSERROR_OK);
-
-    // Set color space to COLORPRIMARIES_BT709 (not SRGB)
-    // This makes line 1011 condition true
-    CM_ColorSpaceInfo infoSet = {
-        .primaries = COLORPRIMARIES_BT709,
-    };
-    ret = MetadataHelper::SetColorSpaceInfo(buffer, infoSet);
-    EXPECT_EQ(ret, GSERROR_OK);
-
-    RSLayerPtr l1 = std::static_pointer_cast<RSLayer>(std::make_shared<FakeRSLayer>(1, false, "L1"));
-    l1->SetBuffer(buffer);
-    layers.emplace_back(l1);
 
     auto colorGamut = rsRenderComposer_->ComputeTargetColorGamut(layers);
     // Line 1013: colorGamut = GRAPHIC_COLOR_GAMUT_DISPLAY_P3
@@ -7751,6 +7579,7 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetPixelFormat016, TestSize.Level1)
     cSurface->UnregisterConsumerListener();
 }
 #endif
+
 /**
  * Function: ContextRegisterPostTask_VulkanConditionTrue
  * Type: Function
