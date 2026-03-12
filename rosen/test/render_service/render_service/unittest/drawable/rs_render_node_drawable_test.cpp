@@ -244,19 +244,6 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckCacheTypeAndDrawTest003, TestSize.Level1
     params.childHasVisibleFilter_ = true;
     drawable->CheckCacheTypeAndDraw(canvas, params);
     ASSERT_TRUE(params.ChildHasVisibleFilter());
-
-    drawable->isOffScreenWithClipHole_ = false;
-    drawable->SetDrawBlurForCache(true);
-    params.drawingCacheType_ = RSDrawingCacheType::FORCED_CACHE;
-    drawable->CheckCacheTypeAndDraw(canvas, params);
-    EXPECT_EQ(drawable->GetCacheType(), DrawableCacheType::NONE);
-
-    drawable->SetCacheType(DrawableCacheType::CONTENT);
-    drawable->isOffScreenWithClipHole_ = false;
-    drawable->SetDrawBlurForCache(false);
-    drawable->CheckCacheTypeAndDraw(canvas, params);
-    EXPECT_EQ(drawable->GetCacheType(), DrawableCacheType::CONTENT);
-    EXPECT_EQ(drawable->IsCanceledByParentRenderGroup(), false);
 }
 
 /**
@@ -587,30 +574,6 @@ HWTEST_F(RSRenderNodeDrawableTest, TraverseSubTreeAndDrawFilterWithClipTest, Tes
 }
 
 /**
- * @tc.name: DrawWithoutNodeGroupCache
- * @tc.desc: Test If DrawWithoutNodeGroupCache Can Run
- * @tc.type: FUNC
- * @tc.require: issueIAVPAJ
- */
-HWTEST_F(RSRenderNodeDrawableTest, DrawWithoutNodeGroupCache, TestSize.Level1)
-{
-    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
-    Drawing::Canvas canvas;
-    RSRenderParams params(RSRenderNodeDrawableTest::id);
-    DrawableCacheType originalCacheType = DrawableCacheType::CONTENT;
-    drawable->DrawWithoutNodeGroupCache(canvas, params, originalCacheType);
-    ASSERT_TRUE(drawable->GetCacheType() == DrawableCacheType::CONTENT);
-
-    NodeId id = 1;
-    auto rootRenderNode = std::make_shared<RSRenderNode>(id);
-    auto rootDrawable = RSRenderNodeDrawable::OnGenerate(rootRenderNode);
-    drawable->SetDrawBlurForCache(true);
-    drawable->curDrawingCacheRoot_ = rootDrawable;
-    drawable->DrawWithoutNodeGroupCache(canvas, params, originalCacheType);
-    ASSERT_TRUE(drawable->GetCacheType() == DrawableCacheType::CONTENT);
-}
-
-/**
  * @tc.name: ClearDrawingCacheDataMapTest
  * @tc.desc: Test If ClearDrawingCacheDataMap Can Run
  * @tc.type: FUNC
@@ -789,7 +752,9 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckRegionAndDrawWithFilter, TestSize.Level1
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
     Drawing::Canvas canvas;
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
     RSRenderParams params(RSRenderNodeDrawableTest::id);
+    drawable->SetOcclusionCullingEnabled(false);
     Drawing::RectI rect(0, 0, 100, 100);
     Drawing::Matrix matrix;
     const std::vector<RSRenderNodeDrawableAdapter::FilterNodeInfo> filterInfoVec = {
@@ -800,7 +765,7 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckRegionAndDrawWithFilter, TestSize.Level1
     drawable->filterInfoVec_ = filterInfoVec;
     auto begin = std::find_if(filterInfoVec.begin(), filterInfoVec.end(),
         [nodeId = 0](const auto& item) -> bool { return item.nodeId_ == nodeId; });
-    drawable->CheckRegionAndDrawWithFilter(begin, filterInfoVec, canvas, params);
+    drawable->CheckRegionAndDrawWithFilter(begin, filterInfoVec, paintFilterCanvas, params);
     ASSERT_FALSE(drawable->filterInfoVec_.empty());
 
     NodeId id = 1;
@@ -808,11 +773,11 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckRegionAndDrawWithFilter, TestSize.Level1
     auto rootDrawable = RSRenderNodeDrawable::OnGenerate(rootRenderNode);
     drawable->curDrawingCacheRoot_ = rootDrawable;
     params.ExcludedFromNodeGroup(true);
-    drawable->CheckRegionAndDrawWithFilter(begin, filterInfoVec, canvas, params);
+    drawable->CheckRegionAndDrawWithFilter(begin, filterInfoVec, paintFilterCanvas, params);
     ASSERT_FALSE(drawable->filterInfoVec_.empty());
 
     params.ExcludedFromNodeGroup(false);
-    drawable->CheckRegionAndDrawWithFilter(begin, filterInfoVec, canvas, params);
+    drawable->CheckRegionAndDrawWithFilter(begin, filterInfoVec, paintFilterCanvas, params);
     drawable->filterInfoVec_.clear();
     ASSERT_TRUE(drawable->filterInfoVec_.empty());
     ASSERT_NE(drawable->GetRenderParams(), nullptr);

@@ -553,12 +553,12 @@ HWTEST(RSRenderNodeDrawableAdapterTest, GetSkipIndexTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SkipDrawBackGroundAndClipHoleForBlurTest
- * @tc.desc: Test SkipDrawBackGroundAndClipHoleForBlur
+ * @tc.name: SkipDrawSubtreeAndClipHoleTest
+ * @tc.desc: Test SkipDrawSubtreeAndClipHole
  * @tc.type: FUNC
  * @tc.require: issueI9UTMA
  */
-HWTEST(RSRenderNodeDrawableAdapterTest, SkipDrawBackGroundAndClipHoleForBlurTest, TestSize.Level1)
+HWTEST(RSRenderNodeDrawableAdapterTest, SkipDrawSubtreeAndClipHoleTest, TestSize.Level1)
 {
     NodeId id = 15;
     auto node = std::make_shared<RSRenderNode>(id);
@@ -566,11 +566,11 @@ HWTEST(RSRenderNodeDrawableAdapterTest, SkipDrawBackGroundAndClipHoleForBlurTest
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     RSRenderParams params(id);
-    adapter->SkipDrawBackGroundAndClipHoleForBlur(canvas, params);
+    adapter->SkipDrawSubtreeAndClipHole(canvas, params);
     EXPECT_TRUE(adapter->drawCmdList_.empty());
     std::shared_ptr<RSTestDrawable> rsDrawable = std::make_shared<RSTestDrawable>();
     adapter->drawCmdList_.emplace_back(rsDrawable);
-    adapter->SkipDrawBackGroundAndClipHoleForBlur(canvas, params);
+    adapter->SkipDrawSubtreeAndClipHole(canvas, params);
     EXPECT_FALSE(adapter->drawCmdList_.empty());
 }
 
