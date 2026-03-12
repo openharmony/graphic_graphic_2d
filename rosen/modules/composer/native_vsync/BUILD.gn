@@ -58,9 +58,8 @@ ohos_shared_library("libnative_vsync") {
   external_deps = [
     "eventhandler:libeventhandler",
     "hilog:libhilog",
+    "c_utils:utils"
   ]
-
-  public_external_deps = [ "c_utils:utils" ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"

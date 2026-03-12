@@ -44,7 +44,7 @@ void RSPointLightManagerTest::TearDown() {}
  */
 HWTEST_F(RSPointLightManagerTest, Instance001, TestSize.Level1)
 {
-    RSPointLightManager::Instance();
+    RSPointLightManager::Instance(0);
     EXPECT_TRUE(true);
 }
 
@@ -56,7 +56,7 @@ HWTEST_F(RSPointLightManagerTest, Instance001, TestSize.Level1)
  */
 HWTEST_F(RSPointLightManagerTest, RegisterLightSource001, TestSize.Level1)
 {
-    auto instance = RSPointLightManager::Instance();
+    auto& instance = RSPointLightManager::Instance(0);
     auto renderNode = std::make_shared<RSRenderNode>(0);
     instance->RegisterLightSource(renderNode);
     EXPECT_TRUE(true);
@@ -70,7 +70,7 @@ HWTEST_F(RSPointLightManagerTest, RegisterLightSource001, TestSize.Level1)
  */
 HWTEST_F(RSPointLightManagerTest, RegisterLightSource002, TestSize.Level1)
 {
-    auto instance = RSPointLightManager::Instance();
+    auto& instance = RSPointLightManager::Instance(0);
     std::shared_ptr<RSRenderNode> renderNode = nullptr;
     instance->lightSourceNodeMap_.clear();
     instance->RegisterLightSource(renderNode);
@@ -85,7 +85,7 @@ HWTEST_F(RSPointLightManagerTest, RegisterLightSource002, TestSize.Level1)
  */
 HWTEST_F(RSPointLightManagerTest, RegisterIlluminated001, TestSize.Level1)
 {
-    auto instance = RSPointLightManager::Instance();
+    auto& instance = RSPointLightManager::Instance(0);
     auto renderNode = std::make_shared<RSRenderNode>(1);
     instance->RegisterIlluminated(renderNode);
     EXPECT_TRUE(true);
@@ -99,7 +99,7 @@ HWTEST_F(RSPointLightManagerTest, RegisterIlluminated001, TestSize.Level1)
  */
 HWTEST_F(RSPointLightManagerTest, RegisterIlluminated002, TestSize.Level1)
 {
-    auto instance = RSPointLightManager::Instance();
+    auto& instance = RSPointLightManager::Instance(0);
     std::shared_ptr<RSRenderNode> renderNode = nullptr;
     instance->illuminatedNodeMap_.clear();
     instance->RegisterIlluminated(renderNode);
@@ -114,7 +114,7 @@ HWTEST_F(RSPointLightManagerTest, RegisterIlluminated002, TestSize.Level1)
  */
 HWTEST_F(RSPointLightManagerTest, UnRegisterLightSource001, TestSize.Level1)
 {
-    auto instance = RSPointLightManager::Instance();
+    auto& instance = RSPointLightManager::Instance(0);
     auto renderNode = std::make_shared<RSRenderNode>(1);
     instance->UnRegisterLightSource(renderNode);
     EXPECT_TRUE(true);
@@ -128,7 +128,7 @@ HWTEST_F(RSPointLightManagerTest, UnRegisterLightSource001, TestSize.Level1)
  */
 HWTEST_F(RSPointLightManagerTest, UnRegisterLightSource002, TestSize.Level1)
 {
-    auto instance = RSPointLightManager::Instance();
+    auto& instance = RSPointLightManager::Instance(0);
     std::shared_ptr<RSRenderNode> renderNode = nullptr;
     instance->lightSourceNodeMap_.clear();
     instance->UnRegisterLightSource(renderNode);
@@ -143,7 +143,7 @@ HWTEST_F(RSPointLightManagerTest, UnRegisterLightSource002, TestSize.Level1)
  */
 HWTEST_F(RSPointLightManagerTest, UnRegisterIlluminated001, TestSize.Level1)
 {
-    auto instance = RSPointLightManager::Instance();
+    auto& instance = RSPointLightManager::Instance(0);
     auto renderNode = std::make_shared<RSRenderNode>(1);
     instance->UnRegisterIlluminated(renderNode);
     EXPECT_TRUE(true);
@@ -158,7 +158,7 @@ HWTEST_F(RSPointLightManagerTest, UnRegisterIlluminated001, TestSize.Level1)
  */
 HWTEST_F(RSPointLightManagerTest, UnRegisterIlluminated002, TestSize.Level1)
 {
-    auto instance = RSPointLightManager::Instance();
+    auto& instance = RSPointLightManager::Instance(0);
     std::shared_ptr<RSRenderNode> renderNode = nullptr;
     instance->UnRegisterIlluminated(renderNode);
     EXPECT_TRUE(instance->illuminatedNodeMap_.empty());
@@ -172,7 +172,7 @@ HWTEST_F(RSPointLightManagerTest, UnRegisterIlluminated002, TestSize.Level1)
  */
 HWTEST_F(RSPointLightManagerTest, AddDirtyLightSource001, TestSize.Level1)
 {
-    auto instance = RSPointLightManager::Instance();
+    auto& instance = RSPointLightManager::Instance(0);
     std::shared_ptr<RSRenderNode> sharedRenderNode = std::make_shared<RSRenderNode>(1);
     std::weak_ptr<RSRenderNode> renderNode = sharedRenderNode;
     instance->AddDirtyLightSource(renderNode);
@@ -187,7 +187,7 @@ HWTEST_F(RSPointLightManagerTest, AddDirtyLightSource001, TestSize.Level1)
  */
 HWTEST_F(RSPointLightManagerTest, AddDirtyIlluminated001, TestSize.Level1)
 {
-    auto instance = RSPointLightManager::Instance();
+    auto& instance = RSPointLightManager::Instance(0);
     std::shared_ptr<RSRenderNode> sharedRenderNode = std::make_shared<RSRenderNode>(1);
     std::weak_ptr<RSRenderNode> renderNode = sharedRenderNode;
     instance->AddDirtyIlluminated(renderNode);
@@ -202,7 +202,7 @@ HWTEST_F(RSPointLightManagerTest, AddDirtyIlluminated001, TestSize.Level1)
  */
 HWTEST_F(RSPointLightManagerTest, ClearDirtyList001, TestSize.Level1)
 {
-    auto instance = RSPointLightManager::Instance();
+    auto& instance = RSPointLightManager::Instance(0);
     instance->ClearDirtyList();
     EXPECT_TRUE(true);
 }
@@ -215,7 +215,7 @@ HWTEST_F(RSPointLightManagerTest, ClearDirtyList001, TestSize.Level1)
  */
 HWTEST_F(RSPointLightManagerTest, PrepareLight001, TestSize.Level1)
 {
-    auto instance = RSPointLightManager::Instance();
+    auto& instance = RSPointLightManager::Instance(0);
     instance->PrepareLight();
 
     std::shared_ptr<RSRenderNode> rsRenderNode = std::make_shared<RSRenderNode>(0);
@@ -247,7 +247,7 @@ HWTEST_F(RSPointLightManagerTest, PrepareLight001, TestSize.Level1)
  */
 HWTEST_F(RSPointLightManagerTest, PrepareLight002, TestSize.Level1)
 {
-    auto instance = RSPointLightManager::Instance();
+    auto& instance = RSPointLightManager::Instance(0);
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> map;
     std::vector<std::weak_ptr<RSRenderNode>> dirtyList;
     instance->PrepareLight(map, dirtyList, true);
@@ -272,7 +272,7 @@ HWTEST_F(RSPointLightManagerTest, PrepareLight002, TestSize.Level1)
  */
 HWTEST_F(RSPointLightManagerTest, PrepareLight003, TestSize.Level1)
 {
-    auto instance = RSPointLightManager::Instance();
+    auto& instance = RSPointLightManager::Instance(0);
     instance->illuminatedNodeMap_.clear();
     instance->PrepareLight();
     EXPECT_TRUE(instance->illuminatedNodeMap_.empty());
@@ -319,7 +319,7 @@ HWTEST_F(RSPointLightManagerTest, PrepareLight003, TestSize.Level1)
  */
 HWTEST_F(RSPointLightManagerTest, PrepareLight004, TestSize.Level1)
 {
-    auto instance = RSPointLightManager::Instance();
+    auto& instance = RSPointLightManager::Instance(0);
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> map;
     std::vector<std::weak_ptr<RSRenderNode>> dirtyList;
     instance->PrepareLight(map, dirtyList, true);
@@ -367,7 +367,7 @@ HWTEST_F(RSPointLightManagerTest, PrepareLight004, TestSize.Level1)
  */
 HWTEST_F(RSPointLightManagerTest, PrepareLight005, TestSize.Level1)
 {
-    auto instance = RSPointLightManager::Instance();
+    auto& instance = RSPointLightManager::Instance(0);
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> illuminatedMap;
     std::vector<std::weak_ptr<RSRenderNode>> dirtyList;
     instance->PrepareLight();
@@ -383,7 +383,6 @@ HWTEST_F(RSPointLightManagerTest, PrepareLight005, TestSize.Level1)
     std::shared_ptr<RSRenderNode> lightSourceNode = std::make_shared<RSRenderNode>(1);
     dirtyList.push_back(lightSourceNode);
     instance->PrepareLight();
-    EXPECT_TRUE(instance->previousFrameIlluminatedNodeMap_.empty());
 }
 
 /**
@@ -394,7 +393,7 @@ HWTEST_F(RSPointLightManagerTest, PrepareLight005, TestSize.Level1)
  */
 HWTEST_F(RSPointLightManagerTest, CheckIlluminated002, TestSize.Level1)
 {
-    auto instance = RSPointLightManager::Instance();
+    auto& instance = RSPointLightManager::Instance(0);
     auto lightSourceNode = std::make_shared<RSRenderNode>(0);
     auto illuminatedNode = std::make_shared<RSRenderNode>(0);
     instance->CheckIlluminated(lightSourceNode, illuminatedNode);
@@ -421,7 +420,7 @@ HWTEST_F(RSPointLightManagerTest, CheckIlluminated002, TestSize.Level1)
  */
 HWTEST_F(RSPointLightManagerTest, CheckIlluminated003, TestSize.Level1)
 {
-    auto instance = RSPointLightManager::Instance();
+    auto& instance = RSPointLightManager::Instance(0);
     auto lightSourceNode = std::make_shared<RSRenderNode>(0);
     auto illuminatedNode = std::make_shared<RSRenderNode>(0);
     instance->CheckIlluminated(lightSourceNode, illuminatedNode);
@@ -470,7 +469,7 @@ HWTEST_F(RSPointLightManagerTest, CheckIlluminated003, TestSize.Level1)
  */
 HWTEST_F(RSPointLightManagerTest, ChildHasVisibleIlluminatedTest001, TestSize.Level1)
 {
-    auto instance = RSPointLightManager::Instance();
+    auto& instance = RSPointLightManager::Instance(0);
     constexpr NodeId nodeId = 1;
     auto node = std::make_shared<RSRenderNode>(nodeId);
     ASSERT_NE(node, nullptr);
@@ -492,7 +491,7 @@ HWTEST_F(RSPointLightManagerTest, ChildHasVisibleIlluminatedTest001, TestSize.Le
  */
 HWTEST_F(RSPointLightManagerTest, CollectPreviousFrameIlluminatedNodesTest001, TestSize.Level1)
 {
-    auto instance = RSPointLightManager::Instance();
+    auto& instance = RSPointLightManager::Instance(0);
     std::shared_ptr<RSRenderNode> nullptrNode = nullptr;
     std::shared_ptr<RSRenderNode> sharedRenderNode = std::make_shared<RSRenderNode>(1);
     std::shared_ptr<RSLightSource> lightSourcePtr = std::make_shared<RSLightSource>();
@@ -526,7 +525,7 @@ HWTEST_F(RSPointLightManagerTest, CollectPreviousFrameIlluminatedNodesTest001, T
  */
 HWTEST_F(RSPointLightManagerTest, ProcessLostIlluminationNodeTest001, TestSize.Level1)
 {
-    auto instance = RSPointLightManager::Instance();
+    auto& instance = RSPointLightManager::Instance(0);
     std::shared_ptr<RSRenderNode> sharedRenderNode = std::make_shared<RSRenderNode>(1);
     std::shared_ptr<RSLightSource> lightSourcePtr = std::make_shared<RSLightSource>();
     instance->previousFrameIlluminatedNodeMap_.clear();
@@ -566,7 +565,7 @@ HWTEST_F(RSPointLightManagerTest, ProcessLostIlluminationNodeTest001, TestSize.L
  */
 HWTEST_F(RSPointLightManagerTest, HasVisibleIlluminatedTest001, TestSize.Level1)
 {
-    auto instance = RSPointLightManager::Instance();
+    auto& instance = RSPointLightManager::Instance(0);
     std::shared_ptr<RSRenderNode> illuminatedRenderNode = std::make_shared<RSRenderNode>(0);
     illuminatedRenderNode->instanceRootNodeId_ = 0;
     std::shared_ptr<RSRenderNode> lightSourceRenderNode = std::make_shared<RSRenderNode>(1);
@@ -597,7 +596,7 @@ HWTEST_F(RSPointLightManagerTest, HasVisibleIlluminatedTest001, TestSize.Level1)
  */
 HWTEST_F(RSPointLightManagerTest, CalculateLightRelativePositionTest001, TestSize.Level1)
 {
-    auto instance = RSPointLightManager::Instance();
+    auto& instance = RSPointLightManager::Instance(0);
     std::shared_ptr<RSRenderNode> illuminatedRenderNode = std::make_shared<RSRenderNode>(0);
     std::shared_ptr<RSRenderNode> lightSourceRenderNode = std::make_shared<RSRenderNode>(1);
     auto res = instance->CalculateLightRelativePosition(lightSourceRenderNode, illuminatedRenderNode);

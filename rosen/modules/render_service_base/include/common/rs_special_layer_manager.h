@@ -76,9 +76,11 @@ public:
 
     bool SetWithScreen(ScreenId screenId, uint32_t type, bool enable);
     bool FindWithScreen(ScreenId screenId, uint32_t type) const;
+    uint32_t GetWithScreen(uint64_t screenId) const;
     void AddIdsWithScreen(ScreenId screenId, uint32_t type, NodeId id);
     void RemoveIdsWithScreen(ScreenId screenId, uint32_t type, NodeId id);
     std::unordered_set<NodeId> GetIdsWithScreen(ScreenId screenId, uint32_t type) const;
+    const std::unordered_set<uint64_t> FindScreenHasType(uint32_t type) const;
 
     void SetHasSlInVisibleRect(ScreenId screenId, bool hasSlInVisibleRect);
     bool GetHasSlInVisibleRect(ScreenId screenId) const;
@@ -97,6 +99,23 @@ private:
         std::unordered_map<SpecialLayerBitmask, std::unordered_set<NodeId>>> screenSpecialLayerIds_;
     // value : whether the virtual screen rect intersect with the special layer rect
     std::unordered_map<ScreenId, bool> hasSlInVisibleRect_;
+};
+
+class RSB_EXPORT ScreenSpecialLayerInfo {
+public :
+    static void Update(SpecialLayerType type, ScreenId screenId, const std::unordered_set<NodeId>& nodeIds);
+    static void ClearByScreenId(ScreenId screenId);
+    static void ClearEmptyInfo();
+    static std::unordered_set<ScreenId> QueryEnableScreen(
+        SpecialLayerType type, std::pair<NodeId, LeashPersistentId> id);
+    static bool ExistEnableScreen(SpecialLayerType type);
+
+    static void SetGlobalBlackList(const std::unordered_set<NodeId>& globalBlackList);
+    static const std::unordered_set<NodeId>& GetGlobalBlackList();
+private :
+    static std::unordered_map<SpecialLayerType,
+        std::unordered_map<NodeId, std::unordered_set<ScreenId>>> screenSpecialLayerInfoByNode_;
+    static std::unordered_set<NodeId> globalBlackList_;
 };
 
 class AutoSpecialLayerStateRecover {

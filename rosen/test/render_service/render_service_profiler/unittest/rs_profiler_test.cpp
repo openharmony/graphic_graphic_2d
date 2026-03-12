@@ -25,7 +25,6 @@
 #include "rs_profiler_utils.h"
 
 #include "common/rs_common_def.h"
-#include "pipeline/main_thread/rs_main_thread.h"
 #include "render_server/rs_render_service.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_context.h"

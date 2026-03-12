@@ -151,7 +151,6 @@ bool RsVulkanInterface::SetupLoaderProcAddresses()
     }
 
     VkInstance null_instance = VK_NULL_HANDLE;
-    ACQUIRE_PROC(EnumerateInstanceLayerProperties, null_instance);
     return true;
 }
 
@@ -192,7 +191,6 @@ bool RsVulkanInterface::CreateInstance()
     ACQUIRE_PROC(DestroyDevice, instance_);
     ACQUIRE_PROC(DestroyInstance, instance_);
     ACQUIRE_PROC(EnumerateDeviceExtensionProperties, instance_);
-    ACQUIRE_PROC(EnumerateDeviceLayerProperties, instance_);
     ACQUIRE_PROC(EnumeratePhysicalDevices, instance_);
     ACQUIRE_PROC(GetPhysicalDeviceFeatures, instance_);
     ACQUIRE_PROC(GetPhysicalDeviceQueueFamilyProperties, instance_);
@@ -429,37 +427,20 @@ bool RsVulkanInterface::CreateSkiaBackendContext(GrVkBackendContext* context, bo
 
 bool RsVulkanInterface::SetupDeviceProcAddresses(VkDevice device)
 {
-    ACQUIRE_PROC(AllocateCommandBuffers, device_);
     ACQUIRE_PROC(AllocateMemory, device_);
-    ACQUIRE_PROC(BeginCommandBuffer, device_);
     ACQUIRE_PROC(BindImageMemory, device_);
     ACQUIRE_PROC(BindImageMemory2, device_);
-    ACQUIRE_PROC(CmdPipelineBarrier, device_);
-    ACQUIRE_PROC(CreateCommandPool, device_);
-    ACQUIRE_PROC(CreateFence, device_);
     ACQUIRE_PROC(CreateImage, device_);
-    ACQUIRE_PROC(CreateImageView, device_);
     ACQUIRE_PROC(CreateSemaphore, device_);
-    ACQUIRE_PROC(DestroyCommandPool, device_);
-    ACQUIRE_PROC(DestroyFence, device_);
     ACQUIRE_PROC(DestroyImage, device_);
-    ACQUIRE_PROC(DestroyImageView, device_);
     ACQUIRE_PROC(DestroySemaphore, device_);
     ACQUIRE_PROC(DeviceWaitIdle, device_);
-    ACQUIRE_PROC(EndCommandBuffer, device_);
-    ACQUIRE_PROC(FreeCommandBuffers, device_);
     ACQUIRE_PROC(FreeMemory, device_);
-    ACQUIRE_PROC(GetDeviceQueue, device_);
     ACQUIRE_PROC(GetImageMemoryRequirements, device_);
     ACQUIRE_PROC(QueueSubmit, device_);
-    ACQUIRE_PROC(QueueWaitIdle, device_);
-    ACQUIRE_PROC(ResetCommandBuffer, device_);
-    ACQUIRE_PROC(ResetFences, device_);
-    ACQUIRE_PROC(WaitForFences, device_);
     ACQUIRE_PROC(GetNativeBufferPropertiesOHOS, device_);
     ACQUIRE_PROC(QueueSignalReleaseImageOHOS, device_);
     ACQUIRE_PROC(ImportSemaphoreFdKHR, device_);
-    ACQUIRE_PROC(SetFreqAdjustEnable, device_);
     ACQUIRE_PROC(GetSemaphoreFdKHR, device_);
 
     return true;
@@ -892,8 +873,8 @@ VKAPI_ATTR VkResult RsVulkanContext::HookedVkQueueSubmit(VkQueue queue, uint32_t
         return vkInterface.vkQueueSubmit(queue, submitCount, pSubmits, fence);
     } else if (interfaceType == VulkanInterfaceType::BASIC_RENDER) {
         std::lock_guard<std::mutex> lock(vkInterface.graphicsQueueMutex_);
-        RS_LOGD("%{public}s queue", __func__);
-        RS_OPTIONAL_TRACE_NAME_FMT("%s queue", __func__);
+        RS_LOGD("%{public}s queue, interfaceType: %{public}d", __func__, static_cast<int>(interfaceType));
+        RS_OPTIONAL_TRACE_NAME_FMT("%s queue, interfaceType: %d", __func__, static_cast<int>(interfaceType));
         VkResult ret = vkInterface.vkQueueSubmit(queue, submitCount, pSubmits, fence);
 #ifdef HETERO_HDR_ENABLE
         RSHDRPatternManager::Instance().MHCSubmitGPUTask(submitCount, pSubmits);

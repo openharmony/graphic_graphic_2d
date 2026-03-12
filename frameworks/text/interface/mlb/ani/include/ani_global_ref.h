@@ -258,17 +258,7 @@ public:
     ani_method fontVariationValue;
     ani_method fontVariationIsNormalized;
     ani_method fontVariationAxisCtor;
-    ani_method fontVariationAxisKey;
-    ani_method fontVariationAxisMinValue;
-    ani_method fontVariationAxisMaxValue;
-    ani_method fontVariationAxisDefaultValue;
-    ani_method fontVariationAxisFlags;
-    ani_method fontVariationAxisName;
-    ani_method fontVariationAxisLocalName;
     ani_method fontVariationInstanceCtor;
-    ani_method fontVariationInstanceName;
-    ani_method fontVariationInstanceLocalName;
-    ani_method fontVariationInstanceCoordinates;
     ani_method rectStyleCtor;
     ani_method rectStyleColor;
     ani_method rectStyleLeftTopRadius;

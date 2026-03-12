@@ -42,8 +42,8 @@ bool BuildImageFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
     Bitmap bitmap;
-    int width = GetObject<int>() % MAX_SIZE;
-    int height = GetObject<int>() % MAX_SIZE;
+    int width = static_cast<int>(data[0]) % MAX_SIZE;
+    int height = static_cast<int>(data[1]) % MAX_SIZE;
     BitmapFormat bitmapFormat = { COLORTYPE_ARGB_4444, ALPHATYPE_OPAQUE };
     bitmap.Build(width, height, bitmapFormat);
     if (bitmap.GetWidth() != width || bitmap.GetHeight() != height) {
@@ -67,9 +67,9 @@ bool ImageFuzzTest001(const uint8_t* data, size_t size)
     
     Image image;
     Bitmap bitmap;
-    int width = GetObject<int>() % MAX_SIZE;
-    int height = GetObject<int>() % MAX_SIZE;
-    float headroom = GetObject<int>() / 2.0f;
+    int width = static_cast<int>(data[0]) % MAX_SIZE;
+    int height = static_cast<int>(data[1]) % MAX_SIZE;
+    float headroom = static_cast<int>(data[0]) / 2.0f;
     BitmapFormat bitmapFormat = { COLORTYPE_ARGB_4444, ALPHATYPE_OPAQUE };
     bool buildBitmap = bitmap.Build(width, height, bitmapFormat);
     if (!buildBitmap) {
@@ -93,8 +93,8 @@ bool ImageFuzzTest002(const uint8_t* data, size_t size)
     }
     BitmapFormat bitmapFormat = { COLORTYPE_ARGB_4444, ALPHATYPE_OPAQUE };
     Bitmap srcBitmap;
-    int srcWidth = GetObject<int>() % MAX_SIZE;
-    int srcHeight = GetObject<int>() % MAX_SIZE;
+    int srcWidth = static_cast<int>(data[0]) % MAX_SIZE;
+    int srcHeight = static_cast<int>(data[1]) % MAX_SIZE;
     srcBitmap.Build(srcWidth, srcHeight, bitmapFormat);
     if (srcBitmap.GetWidth() != srcWidth || srcBitmap.GetHeight() != srcHeight) {
         return false;
@@ -111,7 +111,7 @@ bool ImageFuzzTest002(const uint8_t* data, size_t size)
     std::shared_ptr<Image> dstImage = std::make_shared<Image>();
     dstImage->BuildFromBitmap(dstBitmap);
 
-    ScalingType type = static_cast<ScalingType>(GetObject<uint32_t>() %
+    ScalingType type = static_cast<ScalingType>(static_cast<uint32_t>(data[0]) %
         static_cast<uint32_t>(ScalingType::OPTION_INVALID));
     ScalingOption option = {RectI(0, 0, srcWidth, srcHeight), RectI(0, 0, dstWidth, dstHeight), type};
     Image::ScaleImage(srcImage, dstImage, option);
@@ -124,11 +124,6 @@ bool ImageFuzzTest002(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
-    // initialize
-    OHOS::Rosen::Drawing::g_data = data;
-    OHOS::Rosen::Drawing::g_size = size;
-    OHOS::Rosen::Drawing::g_pos = 0;
-
     /* Run your code on data */
     OHOS::Rosen::Drawing::BuildImageFuzzTest(data, size);
     OHOS::Rosen::Drawing::ImageFuzzTest001(data, size);

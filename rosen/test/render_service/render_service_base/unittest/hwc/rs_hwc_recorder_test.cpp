@@ -59,7 +59,7 @@ HWTEST_F(RSHwcRecorderTest, SetBlendWithBackground_001, TestSize.Level1)
     NodeId id = 0;
     RSSurfaceRenderNode node(id);
     node.GetHwcRecorder().SetBlendWithBackground(true);
-    ASSERT_TRUE(node.GetHwcRecorder().isBlendWithBackground_);
+    ASSERT_TRUE(node.GetHwcRecorder().IsBlendWithBackground());
 }
 
 /**
@@ -87,7 +87,7 @@ HWTEST_F(RSHwcRecorderTest, SetForegroundColorValid_001, TestSize.Level1)
     NodeId id = 0;
     RSSurfaceRenderNode node(id);
     node.GetHwcRecorder().SetForegroundColorValid(true);
-    ASSERT_TRUE(node.GetHwcRecorder().isForegroundColorValid_);
+    ASSERT_TRUE(node.GetHwcRecorder().IsForegroundColorValid());
 }
 
 /**

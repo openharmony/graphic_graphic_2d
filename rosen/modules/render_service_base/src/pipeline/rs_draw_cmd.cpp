@@ -1144,6 +1144,12 @@ void DrawFuncOpItem::Playback(Canvas* canvas, const Rect* rect)
 }
 
 #ifdef ROSEN_OHOS
+namespace {
+    std::function<void(const DrawSurfaceBufferFinishCbData&)> surfaceBufferFinishCb;
+    std::function<void(const DrawSurfaceBufferAfterAcquireCbData&)> surfaceBufferAfterAcquireCb;
+    std::function<NodeId()> getRootNodeIdForRT;
+    bool contextIsUniRender = true;
+}
 /* DrawSurfaceBufferOpItem */
 UNMARSHALLING_REGISTER(DrawSurfaceBuffer, DrawOpItem::SURFACEBUFFER_OPITEM,
     DrawSurfaceBufferOpItem::Unmarshalling, sizeof(DrawSurfaceBufferOpItem::ConstructorHandle));
@@ -1165,7 +1171,9 @@ DrawSurfaceBufferOpItem::DrawSurfaceBufferOpItem(
         surfaceBufferInfo_.acquireFence_ = surfaceBufferEntry->acquireFence_;
 
         // Store the surfaceBufferInfo in RSSurfaceBufferCallbackManager
-        RSSurfaceBufferCallbackManager::Instance().StoreSurfaceBufferInfo(surfaceBufferInfo_);
+        if (contextIsUniRender && surfaceBufferInfo_.pid_ != 0) {
+            RSSurfaceBufferCallbackManager::Instance().StoreSurfaceBufferInfo(surfaceBufferInfo_);
+        }
     }
 }
 
@@ -1192,13 +1200,6 @@ void DrawSurfaceBufferOpItem::Marshalling(DrawCmdList& cmdList)
         surfaceBufferInfo_.dstRect_.GetWidth(), surfaceBufferInfo_.dstRect_.GetHeight(), surfaceBufferInfo_.pid_,
         surfaceBufferInfo_.uid_, surfaceBufferInfo_.transform_, surfaceBufferInfo_.srcRect_,
         surfaceBufferInfo_.isIgnoreAlpha_, paintHandle);
-}
-
-namespace {
-    std::function<void(const DrawSurfaceBufferFinishCbData&)> surfaceBufferFinishCb;
-    std::function<void(const DrawSurfaceBufferAfterAcquireCbData&)> surfaceBufferAfterAcquireCb;
-    std::function<NodeId()> getRootNodeIdForRT;
-    bool contextIsUniRender = true;
 }
 
 void DrawSurfaceBufferOpItem::OnDestruct()

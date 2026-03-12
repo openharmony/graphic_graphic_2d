@@ -18,7 +18,6 @@
 #include <memory>
 #include <mutex>
 #include <unordered_map>
-#include "common/rs_common_def.h"
 
 #ifndef ROSEN_CROSS_PLATFORM
 #include <ibuffer_consumer_listener.h>
@@ -27,6 +26,7 @@
 #include "sync_fence.h"
 #endif
 
+#include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 #include "common/rs_occlusion_region.h"
 #include "display_engine/rs_luminance_control.h"
@@ -86,6 +86,14 @@ public:
         screenProperty_ = property;
     }
 
+    void UpdateScreenProperty(ScreenPropertyType type, const sptr<ScreenPropertyBase>& property)
+    {
+        screenProperty_.Set(type, property);
+        if (type == ScreenPropertyType::SCREEN_FRAME_GRAVITY) {
+            GetMutableRenderProperties().SetFrameGravity(screenProperty_.GetFrameGravity());
+        }
+    }
+
     const RSScreenProperty& GetScreenProperty() const
     {
         return screenProperty_;
@@ -111,8 +119,6 @@ public:
         return screenRect_;
     }
 
-    static void SetReleaseTask(ReleaseDmaBufferTask callback);
-    
     bool HasChildCrossNode() const
     {
         return hasChildCrossNode_;
@@ -499,7 +505,9 @@ public:
     void SetForceFreeze(bool forceFreeze);
     bool GetForceFreeze() const;
 
-    void CheckSurfaceChanged();
+    void SetScreenDirtyFlag(bool flag) { screenDirtyFlag_ = flag; }
+    bool GetAndResetScreenDirtyFlag() { return std::exchange(screenDirtyFlag_, false); }
+    void SetVirtualSurfaceChanged(bool isChanged);
 
     using HeadroomMap = std::unordered_map<HdrStatus, std::unordered_map<uint32_t, uint32_t>>;
     const HeadroomMap& GetHeadroomMap() const {
@@ -576,13 +584,9 @@ private:
     std::map<NodeId, RectI> surfaceDstRects_;
     std::map<NodeId, Drawing::Matrix> surfaceTotalMatrix_;
 
-    std::vector<NodeId> lastSurfaceIds_;
+    bool screenDirtyFlag_ = false;
 
-    bool hasMirrorDisplay_ = false;
     bool screenResolutionChanged_ = false;
-
-    std::pair<bool, uint64_t> virtualSurfaceState_ = { false, UINT64_MAX };
-    bool isVirtualSurfaceChanged_ = false;
 
     // Use in round corner display
     // removed later due to rcd node will be handled by RS tree in OH 6.0 rcd refactoring

@@ -31,8 +31,8 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-static constexpr size_t PARCEL_MAX_CPACITY = 4000 * 1024; // upper bound of parcel capacity
-static constexpr size_t PARCEL_SPLIT_THRESHOLD = 1800 * 1024; // should be < PARCEL_MAX_CPACITY
+static constexpr size_t PARCEL_MAX_CAPACITY = 4000 * 1024; // upper bound of parcel capacity
+static constexpr size_t PARCEL_SPLIT_THRESHOLD = 1800 * 1024; // should be < PARCEL_MAX_CAPACITY
 static constexpr uint64_t MAX_ADVANCE_TIME = 1000000000; // one second advance most
 #ifndef ROSEN_TRACE_DISABLE
 constexpr int TRACE_LEVEL_THREE = 3;
@@ -104,7 +104,7 @@ void RSTransactionData::AlarmRsNodeLog() const
 bool RSTransactionData::Marshalling(Parcel& parcel) const
 {
     bool success = true;
-    parcel.SetMaxCapacity(PARCEL_MAX_CPACITY);
+    parcel.SetMaxCapacity(PARCEL_MAX_CAPACITY);
     // to correct actual marshaled command size later, record its position in parcel
     size_t recordPosition = parcel.GetWritePosition();
     std::unique_lock<std::mutex> lock(commandMutex_);

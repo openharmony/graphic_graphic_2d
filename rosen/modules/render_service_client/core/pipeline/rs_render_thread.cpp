@@ -52,7 +52,7 @@
 #include "rs_vulkan_context.h"
 #endif
 #endif
-#ifdef ROSEN_IOS
+#if defined(ROSEN_ARKUI_X)
 #include "render_context/new_render_context/render_context_gl.h"
 #endif
 #ifdef OHOS_RSS_CLIENT
@@ -299,20 +299,18 @@ void RSRenderThread::CreateAndInitRenderContextIfNeed()
     if (renderContext_ == nullptr) {
         renderContext_ = RenderContext::Create();
         ROSEN_LOGD("Create RenderContext");
-#ifdef ROSEN_IOS
-        auto renderContextGL = std::static_pointer_cast<RenderContextGL>(renderContext_);
-        if (renderContextGL == nullptr) {
-            ROSEN_LOGE("renderContextGL is nullptr");
+#if defined(ROSEN_ARKUI_X)
+        if (renderContext_ == nullptr) {
+            ROSEN_LOGE("renderContext_ is nullptr");
             return;
         }
-        auto cleanupTask = [renderContextGL]() {
-            RSRenderThread::Instance().PostSyncTask([renderContextGL]() {
-                //release egl source
-                renderContextGL->DestroySharedSource();
-            });
-        };
-
-        renderContextGL->SetCleanUpHelper(cleanupTask);
+            auto cleanupTask = [rc = renderContext_]() {
+                RSRenderThread::Instance().PostSyncTask([rc]() {
+                    rc->DestroySharedSource();
+                });
+            };
+            renderContext_->SetCleanUpHelper(cleanupTask);
+        
 #endif
 #ifdef ROSEN_OHOS
 
@@ -559,7 +557,7 @@ void RSRenderThread::Render()
         RSPropertyTrace::GetInstance().RefreshNodeTraceInfo();
     }
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderThread::Render");
-    RsFrameReport::GetInstance().RenderStart(timestamp_);
+    RsFrameReport::RenderStart(timestamp_);
     std::unique_lock<std::mutex> lock(mutex_);
     const auto& rootNode = context_->GetGlobalRootRenderNode();
 
@@ -586,7 +584,7 @@ void RSRenderThread::Render()
 void RSRenderThread::SendCommands()
 {
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderThread::SendCommands");
-    RsFrameReport::GetInstance().SendCommandsStart();
+    RsFrameReport::SendCommandsStart();
 
     RSUIDirector::RecvMessages();
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);

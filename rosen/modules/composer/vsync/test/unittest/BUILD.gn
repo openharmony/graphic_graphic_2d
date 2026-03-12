@@ -37,6 +37,21 @@ group("unittest") {
   }
 }
 
+## UnitTest dvsync_lib_manager_test {{{
+ohos_unittest("dvsync_lib_manager_test") {
+  module_out_path = module_out_path
+ 
+  sources = [ "dvsync_lib_manager_test.cpp" ]
+
+  deps = [
+    ":vsync_test_common",
+  ]
+
+  external_deps = [ "eventhandler:libeventhandler" ]
+}
+
+## UnitTest dvsync_lib_manager_test }}}
+
 ## UnitTest vsync_connection_test {{{
 ohos_unittest("vsync_connection_test") {
   module_out_path = module_out_path
@@ -46,9 +61,14 @@ ohos_unittest("vsync_connection_test") {
   deps = [
     ":vsync_test_common",
     "$graphic_2d_root/utils:socketpair",
+    "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync:libvsync",
   ]
 
-  external_deps = [ "samgr:samgr_proxy" ]
+  external_deps = [
+    "samgr:samgr_proxy",
+    "googletest:gmock_main",
+    "ipc:ipc_core",
+  ]
 }
 
 ## UnitTest vsync_connection_test }}}
@@ -59,9 +79,16 @@ ohos_unittest("vsync_callback_listener_test") {
 
   sources = [ "vsync_callback_listener_test.cpp" ]
 
-  deps = [ ":vsync_test_common" ]
+  deps = [
+    ":vsync_test_common",
+    "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync:libvsync",
+  ]
 
-  external_deps = [ "eventhandler:libeventhandler" ]
+  external_deps = [
+    "eventhandler:libeventhandler",
+    "googletest:gmock_main",
+    "ipc:ipc_core",
+  ]
 
 }
 
@@ -73,8 +100,15 @@ ohos_unittest("vsync_system_ability_listener_test") {
 
   sources = [ "vsync_system_ability_listener_test.cpp" ]
 
-  deps = [ ":vsync_test_common" ]
+  deps = [
+    ":vsync_test_common",
+    "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync:libvsync",
+  ]
 
+  external_deps = [
+    "googletest:gmock_main",
+    "ipc:ipc_core",
+  ]
 }
 
 ## UnitTest vsync_system_ability_listener_test }}}
@@ -85,9 +119,16 @@ ohos_unittest("vsync_controller_test") {
 
   sources = [ "vsync_controller_test.cpp" ]
 
-  deps = [ ":vsync_test_common" ]
+  deps = [
+    ":vsync_test_common",
+    "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync:libvsync",
+  ]
 
-  external_deps = [ "samgr:samgr_proxy" ]
+  external_deps = [
+    "samgr:samgr_proxy",
+    "googletest:gmock_main",
+    "ipc:ipc_core",
+  ]
 }
 
 ## UnitTest vsync_controller_test }}}
@@ -101,9 +142,15 @@ ohos_unittest("vsync_distributor_test") {
   deps = [
     ":vsync_test_common",
     "$graphic_2d_root/utils:socketpair",
+    "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync:libvsync",
   ]
 
-  external_deps = [ "samgr:samgr_proxy" ]
+  external_deps = [
+    "eventhandler:libeventhandler",
+    "samgr:samgr_proxy",
+    "googletest:gmock_main",
+    "ipc:ipc_core",
+  ]
 }
 
 ## UnitTest vsync_distributor_test }}}
@@ -114,8 +161,11 @@ ohos_unittest("vsync_generator_test") {
 
   sources = [ "vsync_generator_test.cpp" ]
 
-  deps = [ ":vsync_test_common",
-          "$graphic_2d_root/utils:socketpair", ]
+  deps = [
+    ":vsync_test_common",
+    "$graphic_2d_root/utils:socketpair",
+    "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync:libvsync",
+  ]
 
   external_deps = [
     "eventhandler:libeventhandler",
@@ -142,6 +192,7 @@ ohos_unittest("vsync_receiver_test") {
   ]
 
   external_deps = [
+    "eventhandler:libeventhandler",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
   ]
@@ -155,7 +206,29 @@ ohos_unittest("vsync_sampler_test") {
 
   sources = [ "vsync_sampler_test.cpp" ]
 
-  deps = [ ":vsync_test_common" ]
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+  ]
+
+  deps = [
+    ":vsync_test_common",
+    "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync:libvsync",
+  ]
+
+  external_deps = [
+    "googletest:gmock_main",
+    "ipc:ipc_core",
+    "eventhandler:libeventhandler",
+  ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
 }
 
 ## UnitTest vsync_sampler_test }}}
@@ -166,7 +239,10 @@ ohos_unittest("native_vsync_test") {
 
   sources = [ "native_vsync_test.cpp" ]
 
-  deps = [ ":vsync_test_common" ]
+  deps = [
+    ":vsync_test_common",
+    "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync:libvsync",
+  ]
 }
 
 ## UnitTest vsync_connection_test }}}
@@ -178,6 +254,15 @@ ohos_unittest("vsync_present_fence_test") {
   sources = [ "vsync_present_fence_test.cpp" ]
 
   deps = [ ":vsync_test_common" ]
+
+  external_deps = [
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+  ]
 }
 
 ## UnitTest vsync_present_fence_test }}}
@@ -187,6 +272,10 @@ ohos_unittest("dvsync_rate_test") {
   module_out_path = module_out_path
 
   sources = [ "$graphic_2d_ext_root/dvsync/test/unittest/dvsync_rate_test.cpp" ]
+
+  include_dirs = [
+    "//foundation/graphic/graphic_2d_ext/dvsync/dvsync_2/include",
+  ]
 
   deps = [
     ":vsync_test_common",
@@ -225,12 +314,12 @@ ohos_static_library("vsync_test_common") {
 
   public_configs = [ ":vsync_test_common_public_config" ]
 
-  public_deps = [
+  deps = [
     "//foundation/graphic/graphic_2d/rosen/modules/composer/native_vsync:libnative_vsync",
     "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync:libvsync",
   ]
 
-  public_external_deps = [
+  external_deps = [
     "c_utils:utils",
     "googletest:gmock_main",
     "googletest:gtest_main",

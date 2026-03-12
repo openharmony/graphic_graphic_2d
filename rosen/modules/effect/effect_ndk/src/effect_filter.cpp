@@ -358,30 +358,13 @@ EffectErrorCode OH_Filter_ReededGlass(OH_Filter* filter, OH_Filter_ReededGlassDa
         std::make_shared<Drawing::GEReededGlassDataParams>();
 
     geReededparams->refractionFactor = reededGlassParams->refractionFactor;
-    geReededparams->dispersionStrength = reededGlassParams->dispersionStrength;
-    geReededparams->roughness = reededGlassParams->roughness;
-    geReededparams->noiseFrequency = reededGlassParams->noiseFrequency;
     geReededparams->horizontalPatternNumber = reededGlassParams->horizontalPatternNumber;
-    geReededparams->saturationFactor = reededGlassParams->saturationFactor;
-
     geReededparams->gridLightStrength = reededGlassParams->gridLightStrength;
     geReededparams->gridLightPositionStart = reededGlassParams->gridLightPositionStart;
     geReededparams->gridLightPositionEnd = reededGlassParams->gridLightPositionEnd;
-
     geReededparams->gridShadowStrength = reededGlassParams->gridShadowStrength;
     geReededparams->gridShadowPositionStart = reededGlassParams->gridShadowPositionStart;
     geReededparams->gridShadowPositionEnd = reededGlassParams->gridShadowPositionEnd;
-
-    geReededparams->pointLightColor.redF_ = reededGlassParams->pointLightColor.red;
-    geReededparams->pointLightColor.greenF_ = reededGlassParams->pointLightColor.green;
-    geReededparams->pointLightColor.blueF_ = reededGlassParams->pointLightColor.blue;
-    geReededparams->pointLight1Position.SetX(reededGlassParams->pointLight1Position.x);
-    geReededparams->pointLight1Position.SetY(reededGlassParams->pointLight1Position.y);
-    geReededparams->pointLight1Strength = reededGlassParams->pointLight1Strength;
-    geReededparams->pointLight2Position.SetX(reededGlassParams->pointLight2Position.x);
-    geReededparams->pointLight2Position.SetY(reededGlassParams->pointLight2Position.y);
-    geReededparams->pointLight2Strength = reededGlassParams->pointLight2Strength;
-
     geReededparams->portalLightSize.SetX(reededGlassParams->portalLightSize.x);
     geReededparams->portalLightSize.SetY(reededGlassParams->portalLightSize.y);
     geReededparams->portalLightTilt.SetX(reededGlassParams->portalLightTilt.x);

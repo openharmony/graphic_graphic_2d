@@ -38,6 +38,21 @@
 #include "common/rs_macros.h"
 #include "render_service_base/include/pipeline/rs_render_display_sync.h"
 
+#ifdef _WIN32
+#include <windows.h>
+#define gettid GetCurrentThreadId
+#endif
+
+#ifdef __APPLE__
+#define gettid getpid
+#endif
+
+#ifdef __gnu_linux__
+#include <sys/types.h>
+#include <sys/syscall.h>
+#define gettid []() -> int32_t { return static_cast<int32_t>(syscall(SYS_gettid)); }
+#endif
+
 namespace OHOS {
 namespace Rosen {
 class RSRenderAnimation;
@@ -209,7 +224,7 @@ private:
     std::unordered_map<PropertyId, AnimationId> springAnimations_;
 
     RSAnimationRateDecider rateDecider_;
-    FrameRateFunctions frameRateFunctions_;
+    FrameRateGetFunc frameRateGetFunc_;
     bool hasFirstFrameAnimation_ = false;
 
     std::unordered_map<AnimationId, std::shared_ptr<RSRenderDisplaySync>> displaySyncs_;

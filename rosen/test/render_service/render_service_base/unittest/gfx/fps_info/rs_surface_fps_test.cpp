@@ -41,7 +41,7 @@ void RSSurfaceFpsTest::TearDown() {}
  */
 HWTEST_F(RSSurfaceFpsTest, DumpAndClearDump, TestSize.Level1)
 {
-    RSSurfaceFps surfaceFps("surfacefps");
+    RSSurfaceFps surfaceFps("surfacefps", 0);
     std::string result("");
     surfaceFps.Dump(result);
     EXPECT_TRUE(result.length() != 0);

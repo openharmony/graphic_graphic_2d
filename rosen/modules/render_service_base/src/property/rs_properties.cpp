@@ -4109,10 +4109,11 @@ void RSProperties::SetLightIntensity(float lightIntensity)
     }
     bool preIntensityIsZero = ROSEN_EQ(preIntensity, 0.f);
     bool curIntensityIsZero = ROSEN_EQ(lightIntensity, 0.f);
+    auto logicalDisplayNodeId = renderNode->GetLogicalDisplayNodeId();
     if (preIntensityIsZero && !curIntensityIsZero) { // 0 --> non-zero
-        RSPointLightManager::Instance()->RegisterLightSource(renderNode);
+        RSPointLightManager::Instance(logicalDisplayNodeId)->RegisterLightSource(renderNode);
     } else if (!preIntensityIsZero && curIntensityIsZero) { // non-zero --> 0
-        RSPointLightManager::Instance()->UnRegisterLightSource(renderNode);
+        RSPointLightManager::Instance(logicalDisplayNodeId)->UnRegisterLightSource(renderNode);
     }
 }
 
@@ -4159,6 +4160,9 @@ void RSProperties::SetIlluminatedType(int illuminatedType)
     isDrawn_ = true;
     SetDirty();
     contentDirty_ = true;
+    if (curIlluminateType == IlluminatedType::INVALID) { // skip when resetFunc call
+        return;
+    }
     auto renderNode = backref_.lock();
     if (renderNode == nullptr) {
         return;
@@ -4166,10 +4170,11 @@ void RSProperties::SetIlluminatedType(int illuminatedType)
     auto preIlluminatedType = GetIlluminated()->GetPreIlluminatedType();
     bool preTypeIsNone = preIlluminatedType == IlluminatedType::NONE;
     bool curTypeIsNone = curIlluminateType == IlluminatedType::NONE;
+    auto logicalDisplayNodeId = renderNode->GetLogicalDisplayNodeId();
     if (preTypeIsNone && !curTypeIsNone) {
-        RSPointLightManager::Instance()->RegisterIlluminated(renderNode);
+        RSPointLightManager::Instance(logicalDisplayNodeId)->RegisterIlluminated(renderNode);
     } else if (!preTypeIsNone && curTypeIsNone) {
-        RSPointLightManager::Instance()->UnRegisterIlluminated(renderNode);
+        RSPointLightManager::Instance(logicalDisplayNodeId)->UnRegisterIlluminated(renderNode);
     }
 }
 
@@ -5464,6 +5469,9 @@ void RSProperties::SetBackgroundNGShader(const std::shared_ptr<RSNGRenderShaderB
     const auto& bgNGRenderShader_ = GetBackgroundNGShader();
     if (bgNGRenderShader_ && bgNGRenderShader_->ContainsType(RSNGEffectType::HARMONIUM_EFFECT)) {
         hasHarmonium_ = true;
+    }
+    if (renderShader != nullptr && renderShader->ContainsType(RSNGEffectType::FROSTED_GLASS_EFFECT)) {
+        filterNeedUpdate_ = true;
     }
 }
 

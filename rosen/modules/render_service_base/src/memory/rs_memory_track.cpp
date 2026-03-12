@@ -17,6 +17,7 @@
 #ifdef RS_ENABLE_UNI_RENDER
 #include "ability_manager_client.h"
 #include "platform/common/rs_hisysevent.h"
+#include "xcollie/process_kill_reason.h"
 #endif
 
 #include "platform/common/rs_log.h"
@@ -556,8 +557,9 @@ void MemoryTrack::KillProcessByPid(const pid_t pid, const std::string& reason)
     }
 #ifdef RS_ENABLE_UNI_RENDER
     FdOverReport(pid, RSEventName::RENDER_MEMORY_OVER_WARNING, "");
-    AAFwk::ExitReason killReason{AAFwk::Reason::REASON_RESOURCE_CONTROL, KILL_PROCESS_TYPE, reason};
-    int32_t ret = (int32_t)AAFwk::AbilityManagerClient::GetInstance()->KillProcessWithReason(pid, killReason);
+    AAFwk::ExitReasonCompability killReason{AAFwk::Reason::REASON_RESOURCE_CONTROL, KILL_PROCESS_TYPE, reason};
+    killReason.killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_FD_EXCEEDS_LIMIT;
+    int32_t ret = AAFwk::AbilityManagerClient::GetInstance()->KillAppWithReason(pid, killReason);
     if (ret == ERR_OK) {
         auto it = fdNumOfPid_.find(pid);
         if (it != fdNumOfPid_.end()) {

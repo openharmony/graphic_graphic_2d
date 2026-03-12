@@ -979,7 +979,7 @@ namespace drawing {
      * @since 20
      */
     native drawPixelMapMesh(pixelmap: image.PixelMap, meshWidth: int, meshHeight: int,
-      vertices: Array<double>, vertOffset: int, colors: Array<int>, colorOffset: int): void;
+      vertices: Array<double>, vertOffset: int, colors: Array<int> | null, colorOffset: int): void;
 
     /**
      * Used to draw a triangle mesh defined by an array of vertices.

@@ -24,14 +24,18 @@
 #include "common/rs_thread_looper.h"
 #include "event_handler.h"
 #include "params/rs_render_thread_params.h"
+#include "pipeline/buffer_manager/rs_buffer_manager.h"
 #include "pipeline/rs_context.h"
 #include "rs_base_render_engine.h"
+#include "rs_composer_client_manager.h"
 #ifdef RES_SCHED_ENABLE
 #include "vsync_system_ability_listener.h"
 #endif
 
 namespace OHOS {
 namespace Rosen {
+class RSComposerClient;
+class IRSRenderToComposerConnection;
 namespace DrawableV2 {
 class RSRenderNodeDrawable;
 class RSScreenRenderNodeDrawable;
@@ -48,7 +52,7 @@ public:
     RSUniRenderThread(RSUniRenderThread&&) = delete;
     RSUniRenderThread& operator=(RSUniRenderThread&&) = delete;
 
-    void Start();
+    void Start(const std::shared_ptr<RSComposerClientManager>& composerClientManager);
     void InitGrContext();
     void RenderFrames();
     void Sync(std::unique_ptr<RSRenderThreadParams>&& stagingRenderThreadParams);
@@ -63,20 +67,22 @@ public:
     void PostSyncTask(const std::function<void()>& task);
     bool IsIdle() const;
     void Render();
-    void ReleaseSelfDrawingNodeBuffer();
     void ReleaseSurfaceOpItemBuffer();
     std::shared_ptr<RSBaseRenderEngine> GetRenderEngine() const;
 
     void UnRegisterCond(ScreenId curScreenId);
-    void NotifyScreenNodeBufferReleased(ScreenId curScreenId);
+    void ReleaseLayerBuffers(ReleaseLayerBuffersInfo& releaseLayerInfo);
     bool WaitUntilScreenNodeBufferReleased(DrawableV2::RSScreenRenderNodeDrawable& screenNodeDrawable);
 
     uint64_t GetCurrentTimestamp() const;
     int64_t GetActualTimestamp() const;
     uint64_t GetVsyncId() const;
     bool GetForceRefreshFlag() const;
+    bool GetHasGameScene() const;
+    bool GetHasLppVideo() const;
     uint32_t GetPendingScreenRefreshRate() const;
     uint64_t GetPendingConstraintRelativeTime() const;
+    uint32_t GetDefaultScreenRefreshRate() const;
     uint64_t GetFastComposeTimeStampDiff() const;
 
     void PurgeCacheBetweenFrames();
@@ -235,6 +241,8 @@ public:
 
     void DumpVkImageInfo(std::string &dumpString);
 
+    int GetMinAccumulatedBufferCount();
+
     void InitDrawOpOverCallback(Drawing::GPUContext* gpuContext);
 
     void SetScreenPowerOnChanged(bool val);
@@ -242,6 +250,84 @@ public:
     bool GetSetScreenPowerOnChanged();
 
     void CollectProcessNodeNum(int num);
+
+    void DumpSurfaceInfo(std::string &dumpString);
+    void DumpCurrentFrameLayers();
+
+    RSBufferManager& GetBufferManager()
+    {
+        return bufferManager_;
+    }
+
+    void AddPendingReleaseBuffer(sptr<IConsumerSurface> consumer, sptr<OHOS::SurfaceBuffer> buffer,
+        sptr<SyncFence> fence)
+    {
+        bufferManager_.AddPendingReleaseBuffer(consumer, buffer, fence);
+    }
+
+    void OnReleaseLayerBuffers(std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>>& rsLayers,
+        std::vector<std::tuple<RSLayerId, sptr<SurfaceBuffer>, sptr<SyncFence>>>& releaseBufferFenceVec,
+        uint64_t screenId)
+    {
+        bufferManager_.OnReleaseLayerBuffers(rsLayers, releaseBufferFenceVec, screenId);
+    }
+
+    void OnDrawBuffer(sptr<IConsumerSurface> consumer, sptr<SurfaceBuffer> buffer,
+        std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount)
+    {
+        bufferManager_.OnDrawBuffer(consumer, buffer, bufferOwnerCount);
+    }
+
+    void ReleaseBufferById(uint64_t seqNum)
+    {
+        bufferManager_.ReleaseBufferById(seqNum);
+    }
+
+    struct BufferManagerGuard {
+        BufferManagerGuard()
+        {
+            RSUniRenderThread::Instance().bufferManager_.OnDrawStart();
+        }
+
+        ~BufferManagerGuard()
+        {
+            // Set to true to enable dump of pendingReleaseBuffers_ after each frame
+            constexpr bool DEBUG_DUMP_BUFFER_MANAGER = false;
+            RSUniRenderThread::Instance().bufferManager_.OnDrawEnd(fence_, DEBUG_DUMP_BUFFER_MANAGER);
+        }
+
+        void SetAcquireFence(sptr<SyncFence> fence)
+        {
+            if (!fence || !fence->IsValid()) {
+                fence_ = SyncFence::InvalidFence();
+            } else {
+                fence_ = fence;
+            }
+        }
+
+        sptr<SyncFence> fence_ = SyncFence::InvalidFence();
+    };
+
+    void AddScreenHasProtectedLayerSet(ScreenId screenId)
+    {
+        hasProtectedLayerScreenIdSet_.emplace(screenId);
+    }
+
+    const std::unordered_set<ScreenId>& GetScreenHasProtectedLayerSet()
+    {
+        return hasProtectedLayerScreenIdSet_;
+    }
+
+    void ClearScreenHasProtectedLayerSet()
+    {
+        hasProtectedLayerScreenIdSet_.clear();
+    }
+
+    const std::shared_ptr<RSComposerClientManager>& GetComposerClientManager() const
+    {
+        return composerClientManager_;
+    }
+
 private:
     RSUniRenderThread();
     ~RSUniRenderThread() noexcept;
@@ -249,7 +335,7 @@ private:
     void InitMhc();
     void PerfForBlurIfNeeded();
     void PostReclaimMemoryTask(ClearMemoryMoment moment, bool isReclaim);
-    void CollectReleaseTasks(std::map<ScreenId, std::vector<std::function<void()>>>& releaseTasks);
+    void NotifyScreenNodeBufferReleased(ScreenId curScreenId);
 
     std::atomic_bool isPostedReclaimMemoryTask_ = false;
     // Those variable is used to manage memory.
@@ -304,6 +390,7 @@ private:
     std::unordered_set<NodeType> typeBlackList_ = {};
     std::unordered_set<NodeId> whiteList_ = {};
     Drawing::RectI visibleRect_;
+    std::unordered_set<ScreenId> hasProtectedLayerScreenIdSet_;
 
     std::mutex vmaCacheCountMutex_;
 
@@ -314,6 +401,8 @@ private:
 
     std::atomic<bool> screenPowerOnChanged_ = false;
     std::atomic<uint32_t> totalProcessNodeNum_ = 0;
+    RSBufferManager bufferManager_ = RSBufferManager();
+    std::shared_ptr<RSComposerClientManager> composerClientManager_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

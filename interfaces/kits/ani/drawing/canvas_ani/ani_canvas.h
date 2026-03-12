@@ -92,7 +92,7 @@ public:
     static void DrawRegion(ani_env* env, ani_object obj, ani_object regionObj);
     static void DrawPixelMapMesh(ani_env* env, ani_object obj,
         ani_object pixelmapObj, ani_int aniMeshWidth, ani_int aniMeshHeight,
-        ani_array verticesObj, ani_int aniVertOffset, ani_array colorsObj, ani_int aniColorOffset);
+        ani_array verticesObj, ani_int aniVertOffset, ani_object colorsObj, ani_int aniColorOffset);
     static void DrawVertices(ani_env* env, ani_object obj, ani_enum_item aniVertexMode,
         ani_int aniVertexCount, ani_array positionsObj, ani_object texsObj,
         ani_object colorsObj, ani_int aniIndexCount, ani_object indicesObj, ani_enum_item aniBlendMode);
@@ -157,7 +157,7 @@ private:
     static bool GetTexs(ani_env* env, ani_int vertexCount, ani_object texsObj,
         std::vector<Drawing::Point>& pointTexs);
     static bool CheckDrawVerticesParams(ani_env* env, ani_int& vertexCount, ani_int& indexCount);
-    static void GetColorsAndDraw(ani_env* env, ani_array colorsObj, int32_t colorOffset,
+    static void GetColorsAndDraw(ani_env* env, ani_object colorsObj, int32_t colorOffset,
         DrawPixelMapMeshArgs& args, AniCanvas* aniCanvas);
     std::shared_ptr<Media::PixelMap>* GetPixelMapPtrAddr();
 #endif

@@ -34,7 +34,11 @@ public:
 };
 
 void RSImageBaseTest::SetUpTestCase() {}
-void RSImageBaseTest::TearDownTestCase() {}
+void RSImageBaseTest::TearDownTestCase() {
+    RSImageCache::Instance().pixelMapCache_.clear();
+    RSImageCache::Instance().editablePixelMapCache_.clear();
+    RSImageCache::Instance().editablePixelMapCacheToRelease_.clear();
+}
 void RSImageBaseTest::SetUp() {}
 void RSImageBaseTest::TearDown() {}
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)

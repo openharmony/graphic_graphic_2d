@@ -14,6 +14,7 @@
  */
 
 #include "gtest/gtest.h"
+#include "common/rs_common_def.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "parameters.h"
@@ -25,6 +26,7 @@
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "skia_adapter/skia_surface.h"
+#include "uifirst_param.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -472,25 +474,25 @@ HWTEST_F(RSSubThreadCacheTest, UpdateAllSurfaceUifirstDirtyEnableState, TestSize
     system::SetParameter("rosen.ui.first.dirty.enabled", "0");
     surfaceDrawable_->GetRsSubThreadCache().UpdateAllSurfaceUifirstDirtyEnableState(
         surfaceDrawable_.get(), dirtyEnableFlag);
-    ASSERT_EQ(surfaceDrawable_->GetRsSubThreadCache().GetUifrstDirtyEnableFlag(), false);
+    ASSERT_EQ(surfaceDrawable_->GetRsSubThreadCache().GetUifirstDirtyEnableFlag(), false);
 
     uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
     system::SetParameter("rosen.ui.first.dirty.enabled", "1");
     surfaceDrawable_->GetRsSubThreadCache().UpdateAllSurfaceUifirstDirtyEnableState(
         surfaceDrawable_.get(), dirtyEnableFlag);
-    ASSERT_EQ(surfaceDrawable_->GetRsSubThreadCache().GetUifrstDirtyEnableFlag(), false);
+    ASSERT_EQ(surfaceDrawable_->GetRsSubThreadCache().GetUifirstDirtyEnableFlag(), false);
 
     uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::MULTI));
     system::SetParameter("rosen.ui.first.dirty.enabled", "0");
     surfaceDrawable_->GetRsSubThreadCache().UpdateAllSurfaceUifirstDirtyEnableState(
         surfaceDrawable_.get(), dirtyEnableFlag);
-    ASSERT_EQ(surfaceDrawable_->GetRsSubThreadCache().GetUifrstDirtyEnableFlag(), false);
+    ASSERT_EQ(surfaceDrawable_->GetRsSubThreadCache().GetUifirstDirtyEnableFlag(), false);
 
     uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::MULTI));
     system::SetParameter("rosen.ui.first.dirty.enabled", "1");
     surfaceDrawable_->GetRsSubThreadCache().UpdateAllSurfaceUifirstDirtyEnableState(
         surfaceDrawable_.get(), dirtyEnableFlag);
-    ASSERT_EQ(surfaceDrawable_->GetRsSubThreadCache().GetUifrstDirtyEnableFlag(), false);
+    ASSERT_EQ(surfaceDrawable_->GetRsSubThreadCache().GetUifirstDirtyEnableFlag(), false);
     uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
 }
 
@@ -1265,13 +1267,13 @@ HWTEST_F(RSSubThreadCacheTest, PushDirtyRegionToStack, TestSize.Level1)
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     canvas.SetIsParallelCanvas(true);
-    subCache.SetUifrstDirtyEnableFlag(false);
+    subCache.SetUifirstDirtyEnableFlag(false);
     // push nothing
     subCache.PushDirtyRegionToStack(canvas, region);
     ASSERT_TRUE(canvas.IsDirtyRegionStackEmpty());
 
     canvas.SetIsParallelCanvas(true);
-    subCache.SetUifrstDirtyEnableFlag(true);
+    subCache.SetUifirstDirtyEnableFlag(true);
     subCache.SetUifirstDirtyRegion(dirtyRegion);
     // push uifirst dirty region
     subCache.PushDirtyRegionToStack(canvas, region);
@@ -1373,18 +1375,18 @@ HWTEST_F(RSSubThreadCacheTest, GetUifirstDirtyRegionTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetUifrstDirtyEnableFlagTest
- * @tc.desc: Test GetUifrstDirtyEnableFlag
+ * @tc.name: GetUifirstDirtyEnableFlagTest
+ * @tc.desc: Test GetUifirstDirtyEnableFlag
  * @tc.type: FUNC
  * @tc.require: issuesICFWAC
  */
-HWTEST_F(RSSubThreadCacheTest, GetUifrstDirtyEnableFlagTest, TestSize.Level1)
+HWTEST_F(RSSubThreadCacheTest, GetUifirstDirtyEnableFlagTest, TestSize.Level1)
 {
     RsSubThreadCache subCache;
-    subCache.SetUifrstDirtyEnableFlag(true);
-    ASSERT_TRUE(subCache.GetUifrstDirtyEnableFlag());
-    subCache.SetUifrstDirtyEnableFlag(false);
-    ASSERT_FALSE(subCache.GetUifrstDirtyEnableFlag());
+    subCache.SetUifirstDirtyEnableFlag(true);
+    ASSERT_TRUE(subCache.GetUifirstDirtyEnableFlag());
+    subCache.SetUifirstDirtyEnableFlag(false);
+    ASSERT_FALSE(subCache.GetUifirstDirtyEnableFlag());
 }
 
 /**
@@ -1528,5 +1530,292 @@ HWTEST_F(RSSubThreadCacheTest, UpdateCacheSurfaceInfo002, TestSize.Level1)
     ASSERT_EQ(subCache.cacheSurfaceInfo_.processedNodeCount, 2);
     ASSERT_EQ(subCache.cacheSurfaceInfo_.alpha, 0);
     ASSERT_TRUE(subCache.cacheSurfaceInfo_.processedSubSurfaceNodeIds.empty());
+}
+
+/**
+ * @tc.name: InsertOpaqueRegionTest001
+ * @tc.desc: Test InsertOpaqueRegion when occlusion is disabled
+ * @tc.type: FUNC
+ * @tc.require: issues22651
+ */
+HWTEST_F(RSSubThreadCacheTest, InsertOpaqueRegionTest001, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto& subCache = surfaceDrawable_->GetRsSubThreadCache();
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    std::vector<Drawing::RectI> resultRects;
+    Drawing::Rect imgDrawRect = {0, 0, 100, 100};
+
+    // Occlusion is disabled by default (UIFirstParam::isOcclusionEnabled_ = false)
+    // Should return early without adding any rects
+    subCache.InsertOpaqueRegion(canvas, surfaceDrawable_.get(), resultRects, imgDrawRect);
+    EXPECT_TRUE(resultRects.empty());
+}
+
+/**
+ * @tc.name: InsertOpaqueRegionTest002
+ * @tc.desc: Test InsertOpaqueRegion when surfaceDrawable is null
+ * @tc.type: FUNC
+ * @tc.require: issues22651
+ */
+HWTEST_F(RSSubThreadCacheTest, InsertOpaqueRegionTest002, TestSize.Level1)
+{
+    // Enable occlusion
+    auto& uifirstManager = RSUifirstManager::Instance();
+    uifirstManager.SetUiFirstType(static_cast<int>(UiFirstCcmType::MULTI));
+    uifirstManager.SetFreeMultiWindowStatus(true);
+    UIFirstParam::SetOcclusionEnabled(true);
+    system::SetParameter("rosen.uni.uifirst.occlusion.enable", "1");
+
+    auto& subCache = surfaceDrawable_->GetRsSubThreadCache();
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    std::vector<Drawing::RectI> resultRects;
+    Drawing::Rect imgDrawRect = {0, 0, 100, 100};
+
+    // Test with null surfaceDrawable - should log error and return
+    subCache.InsertOpaqueRegion(canvas, nullptr, resultRects, imgDrawRect);
+    EXPECT_TRUE(resultRects.empty());
+
+    // Reset
+    UIFirstParam::SetOcclusionEnabled(false);
+    system::SetParameter("rosen.uni.uifirst.occlusion.enable", "0");
+    uifirstManager.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
+}
+
+/**
+ * @tc.name: InsertOpaqueRegionTest003
+ * @tc.desc: Test InsertOpaqueRegion when surfaceParams is null
+ * @tc.type: FUNC
+ * @tc.require: issues22651
+ */
+HWTEST_F(RSSubThreadCacheTest, InsertOpaqueRegionTest003, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto& subCache = surfaceDrawable_->GetRsSubThreadCache();
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    std::vector<Drawing::RectI> resultRects;
+    Drawing::Rect imgDrawRect = {0, 0, 100, 100};
+
+    // Enable occlusion
+    auto& uifirstManager = RSUifirstManager::Instance();
+    uifirstManager.SetUiFirstType(static_cast<int>(UiFirstCcmType::MULTI));
+    uifirstManager.SetFreeMultiWindowStatus(true);
+    UIFirstParam::SetOcclusionEnabled(true);
+    system::SetParameter("rosen.uni.uifirst.occlusion.enable", "1");
+
+    // Set renderParams to nullptr to test null check
+    surfaceDrawable_->renderParams_.reset(nullptr);
+
+    subCache.InsertOpaqueRegion(canvas, surfaceDrawable_.get(), resultRects, imgDrawRect);
+    EXPECT_TRUE(resultRects.empty());
+
+    // Restore renderParams
+    surfaceDrawable_->renderParams_ = std::make_unique<RSSurfaceRenderParams>(surfaceDrawable_->GetId());
+
+    // Reset
+    UIFirstParam::SetOcclusionEnabled(false);
+    system::SetParameter("rosen.uni.uifirst.occlusion.enable", "0");
+    uifirstManager.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
+}
+
+/**
+ * @tc.name: InsertOpaqueRegionTest004
+ * @tc.desc: Test InsertOpaqueRegion with non-leash window
+ * @tc.type: FUNC
+ * @tc.require: issues22651
+ */
+HWTEST_F(RSSubThreadCacheTest, InsertOpaqueRegionTest004, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto& subCache = surfaceDrawable_->GetRsSubThreadCache();
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    std::vector<Drawing::RectI> resultRects;
+    Drawing::Rect imgDrawRect = {0, 0, 100, 100};
+
+    // Enable occlusion
+    auto& uifirstManager = RSUifirstManager::Instance();
+    uifirstManager.SetUiFirstType(static_cast<int>(UiFirstCcmType::MULTI));
+    uifirstManager.SetFreeMultiWindowStatus(true);
+    UIFirstParam::SetOcclusionEnabled(true);
+    system::SetParameter("rosen.uni.uifirst.occlusion.enable", "1");
+
+    // Test with non-leash window (default)
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->SetWindowInfo(false, false, false); // Not a leash window
+
+    subCache.InsertOpaqueRegion(canvas, surfaceDrawable_.get(), resultRects, imgDrawRect);
+    // Should execute the non-leash window branch
+
+    // Reset
+    UIFirstParam::SetOcclusionEnabled(false);
+    system::SetParameter("rosen.uni.uifirst.occlusion.enable", "0");
+    uifirstManager.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
+}
+
+/**
+ * @tc.name: InsertOpaqueRegionTest005
+ * @tc.desc: Test InsertOpaqueRegion with leash window and empty sub surfaces
+ * @tc.type: FUNC
+ * @tc.require: issues22651
+ */
+HWTEST_F(RSSubThreadCacheTest, InsertOpaqueRegionTest005, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto& subCache = surfaceDrawable_->GetRsSubThreadCache();
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    std::vector<Drawing::RectI> resultRects;
+    Drawing::Rect imgDrawRect = {0, 0, 100, 100};
+
+    // Enable occlusion
+    auto& uifirstManager = RSUifirstManager::Instance();
+    uifirstManager.SetUiFirstType(static_cast<int>(UiFirstCcmType::MULTI));
+    uifirstManager.SetFreeMultiWindowStatus(true);
+    UIFirstParam::SetOcclusionEnabled(true);
+    system::SetParameter("rosen.uni.uifirst.occlusion.enable", "1");
+
+    // Test with leash window
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->SetWindowInfo(false, true, false); // Is a leash window
+
+    subCache.InsertOpaqueRegion(canvas, surfaceDrawable_.get(), resultRects, imgDrawRect);
+    // Should execute the leash window branch with empty sub surfaces
+
+    // Reset
+    UIFirstParam::SetOcclusionEnabled(false);
+    system::SetParameter("rosen.uni.uifirst.occlusion.enable", "0");
+    uifirstManager.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
+}
+
+/**
+ * @tc.name: InsertOpaqueRegionTest006
+ * @tc.desc: Test InsertOpaqueRegion when UIFirst mode is not MULTI_WINDOW_MODE
+ * @tc.type: FUNC
+ * @tc.require: issues22651
+ */
+HWTEST_F(RSSubThreadCacheTest, InsertOpaqueRegionTest006, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto& subCache = surfaceDrawable_->GetRsSubThreadCache();
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    std::vector<Drawing::RectI> resultRects;
+    Drawing::Rect imgDrawRect = {0, 0, 100, 100};
+
+    // Set UIFirst mode to SINGLE (occlusion requires MULTI_WINDOW_MODE)
+    auto& uifirstManager = RSUifirstManager::Instance();
+    uifirstManager.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
+    UIFirstParam::SetOcclusionEnabled(true);
+    system::SetParameter("rosen.uni.uifirst.occlusion.enable", "1");
+
+    subCache.InsertOpaqueRegion(canvas, surfaceDrawable_.get(), resultRects, imgDrawRect);
+    // Should return early because mode is not MULTI_WINDOW_MODE
+    EXPECT_TRUE(resultRects.empty());
+
+    // Reset
+    UIFirstParam::SetOcclusionEnabled(false);
+    uifirstManager.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
+}
+
+/**
+ * @tc.name: DrawOpaqueRegionDfxTest001
+ * @tc.desc: Test DrawOpaqueRegionDfx when debug is disabled
+ * @tc.type: FUNC
+ * @tc.require: issues22651
+ */
+HWTEST_F(RSSubThreadCacheTest, DrawOpaqueRegionDfxTest001, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto& subCache = surfaceDrawable_->GetRsSubThreadCache();
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    std::vector<Drawing::RectI> opaqueRects;
+
+    // Enable occlusion but disable debug (default)
+    auto& uifirstManager = RSUifirstManager::Instance();
+    uifirstManager.SetUiFirstType(static_cast<int>(UiFirstCcmType::MULTI));
+    uifirstManager.SetFreeMultiWindowStatus(true);
+    UIFirstParam::SetOcclusionEnabled(true);
+    system::SetParameter("rosen.uni.uifirst.occlusion.enable", "1");
+
+    // Test when debug is disabled (default) - should return early
+    subCache.DrawOpaqueRegionDfx(canvas, opaqueRects);
+
+    // Reset
+    UIFirstParam::SetOcclusionEnabled(false);
+    uifirstManager.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
+}
+
+/**
+ * @tc.name: DrawOpaqueRegionDfxTest002
+ * @tc.desc: Test DrawOpaqueRegionDfx when debug is enabled with rects
+ * @tc.type: FUNC
+ * @tc.require: issues22651
+ */
+HWTEST_F(RSSubThreadCacheTest, DrawOpaqueRegionDfxTest002, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto& subCache = surfaceDrawable_->GetRsSubThreadCache();
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    std::vector<Drawing::RectI> opaqueRects;
+
+    // Add some test rects
+    opaqueRects.push_back({0, 0, 50, 50});
+    opaqueRects.push_back({50, 50, 100, 100});
+
+    // Enable occlusion and debug
+    auto& uifirstManager = RSUifirstManager::Instance();
+    uifirstManager.SetUiFirstType(static_cast<int>(UiFirstCcmType::MULTI));
+    uifirstManager.SetFreeMultiWindowStatus(true);
+    UIFirstParam::SetOcclusionEnabled(true);
+    system::SetParameter("rosen.uni.uifirst.occlusion.enable", "1");
+    auto originalDebug = system::GetParameter("rosen.uifirst.occlusion.dfx.enable", "0");
+    system::SetParameter("rosen.uifirst.occlusion.dfx.enable", "1");
+
+    subCache.DrawOpaqueRegionDfx(canvas, opaqueRects);
+
+    // Reset
+    system::SetParameter("rosen.uifirst.occlusion.dfx.enable", originalDebug);
+    UIFirstParam::SetOcclusionEnabled(false);
+    uifirstManager.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
+}
+
+/**
+ * @tc.name: DrawOpaqueRegionDfxTest003
+ * @tc.desc: Test DrawOpaqueRegionDfx with empty rects
+ * @tc.type: FUNC
+ * @tc.require: issues22651
+ */
+HWTEST_F(RSSubThreadCacheTest, DrawOpaqueRegionDfxTest003, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto& subCache = surfaceDrawable_->GetRsSubThreadCache();
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    std::vector<Drawing::RectI> opaqueRects;
+
+    // Enable occlusion and debug
+    auto& uifirstManager = RSUifirstManager::Instance();
+    uifirstManager.SetUiFirstType(static_cast<int>(UiFirstCcmType::MULTI));
+    uifirstManager.SetFreeMultiWindowStatus(true);
+    UIFirstParam::SetOcclusionEnabled(true);
+    system::SetParameter("rosen.uni.uifirst.occlusion.enable", "1");
+    auto originalDebug = system::GetParameter("rosen.uifirst.occlusion.dfx.enable", "0");
+    system::SetParameter("rosen.uifirst.occlusion.dfx.enable", "1");
+
+    // Test with empty rects - should not draw anything
+    subCache.DrawOpaqueRegionDfx(canvas, opaqueRects);
+
+    // Reset
+    system::SetParameter("rosen.uifirst.occlusion.dfx.enable", originalDebug);
+    UIFirstParam::SetOcclusionEnabled(false);
+    uifirstManager.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
 }
 }

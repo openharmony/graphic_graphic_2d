@@ -3646,26 +3646,28 @@ HWTEST_F(RSRenderNodeTest, HasHpaeBackgroundFilter, TestSize.Level1)
     renderNode->GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::COMPOSITING_FILTER)] = drawableFilter;
     ASSERT_TRUE(renderNode->HasHpaeBackgroundFilter());
 }
+
 /*
- * @tc.name: UpdateVirtualScreenWhiteListInfo
- * @tc.desc: Test function UpdateVirtualScreenWhiteListInfo
+ * @tc.name: SyncWhiteListInfoToParent
+ * @tc.desc: Test function SyncWhiteListInfoToParent
  * @tc.type: FUNC
  * @tc.require: issueICF7P6
  */
-HWTEST_F(RSRenderNodeTest, UpdateVirtualScreenWhiteListInfo, TestSize.Level1)
+HWTEST_F(RSRenderNodeTest, SyncWhiteListInfoToParent, TestSize.Level1)
 {
     auto node = std::make_shared<RSRenderNode>(1);
     ASSERT_NE(node, nullptr);
     std::shared_ptr<RSRenderNode> parent = nullptr;
     node->SetParent(parent);
     ASSERT_EQ(node->parent_.lock(), nullptr);
-    node->UpdateVirtualScreenWhiteListInfo();
+    node->SyncWhiteListInfoToParent();
+
     parent = std::make_shared<RSRenderNode>(id + 1);
     node->SetParent(parent);
     ASSERT_NE(node->parent_.lock(), nullptr);
     ScreenId screenId = 1;
-    node->hasVirtualScreenWhiteList_[screenId] = false;
-    node->UpdateVirtualScreenWhiteListInfo();
+    node->screensWithSubTreeWhitelist_.insert(screenId);
+    node->SyncWhiteListInfoToParent();
 }
 
 /*

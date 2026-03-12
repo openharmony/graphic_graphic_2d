@@ -784,6 +784,12 @@ public:
      * @return {width, height}, if return {0, 0}, witch means something error.
      */
     virtual std::array<int, 2> CalcHpsBluredImageDimension(const Drawing::HpsBlurParameter& blurParams);
+    
+    /**
+     * @brief Insert opaque region to canvas, which can help gpu enable overdraw optimize.
+     * @param opaqueRects the opaque rects to be inserted, which should be in device coordinate.
+     */
+    virtual void InsertOpaqueRegion(const std::vector<RectI>& opaqueRects);
 
 protected:
     CoreCanvas(int32_t width, int32_t height);

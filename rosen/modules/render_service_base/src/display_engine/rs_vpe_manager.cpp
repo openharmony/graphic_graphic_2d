@@ -66,6 +66,42 @@ void RSVpeManager::ReleaseVpeVideo(uint64_t nodeId)
     return;
 }
 
+void RSVpeManager::EnableVpeVideo(const RSSurfaceRenderNodeConfig& config)
+{
+    std::shared_ptr<VpeVideo> vpeVideo;
+    {
+        std::lock_guard<std::mutex> lock(vpeVideoLock_);
+        auto it = allVpeVideo_.find(config.id);
+        if (it == allVpeVideo_.end()) {
+            return;
+        }
+        vpeVideo = it->second;
+    }
+    if (vpeVideo == nullptr) {
+        return;
+    }
+    RS_LOGD("RSVpeManager::EnableVpeVideo vpe video enable.");
+    vpeVideo->Enable();
+}
+
+void RSVpeManager::DisableVpeVideo(const RSSurfaceRenderNodeConfig& config)
+{
+    std::shared_ptr<VpeVideo> vpeVideo;
+    {
+        std::lock_guard<std::mutex> lock(vpeVideoLock_);
+        auto it = allVpeVideo_.find(config.id);
+        if (it == allVpeVideo_.end()) {
+            return;
+        }
+        vpeVideo = it->second;
+    }
+    if (vpeVideo == nullptr) {
+        return;
+    }
+    RS_LOGD("RSVpeManager::EnableVpeVideo vpe video disable.");
+    vpeVideo->Disable();
+}
+
 std::shared_ptr<VpeVideo> RSVpeManager::GetVpeVideo(uint32_t type, const RSSurfaceRenderNodeConfig& config)
 {
     ReleaseVpeVideo(config.id);

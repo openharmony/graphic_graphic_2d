@@ -1050,8 +1050,10 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceforPlaybackTest, Tes
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, CreateDmaBackendTextureTest001, TestSize.Level1)
 {
-    auto rsContext = std::make_shared<RSContext>();
-    auto node = std::make_shared<RSCanvasDrawingRenderNode>(1, rsContext->weak_from_this());
+    RSMainThread::Instance()->composerClientManager_ = std::make_shared<RSComposerClientManager>();
+    auto& context = RSMainThread::Instance()->GetContext();
+    auto& bufferCache = RSCanvasDmaBufferCache::GetInstance();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(1);
     auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     auto ret = drawable->CreateDmaBackendTexture(1, 100, 100);
     ASSERT_EQ(ret, false);
@@ -1256,6 +1258,32 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, GetGpuContextTest, TestSize.Leve
     drawable->Flush(1, 1, rsContext, id, rsCanvas);
     context = drawable->GetGpuContext();
     ASSERT_NE(context, nullptr);
+}
+
+/**
+ * @tc.name: GetNodeIdForMemTagTest
+ * @tc.desc: Test If GetNodeIdForMemTag Can Run
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, GetNodeIdForMemTagTest, TestSize.Level1)
+{
+    NodeId testNodeId = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(testNodeId, rsContext->weak_from_this());
+    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
+
+    drawable->renderParams_ = nullptr;
+    NodeId result = drawable->GetNodeIdForMemTag();
+    ASSERT_EQ(result, testNodeId);
+
+    drawable->renderParams_ = std::make_unique<RSRenderParams>(0);
+    result = drawable->GetNodeIdForMemTag();
+    ASSERT_EQ(result, testNodeId);
+
+    NodeId rootId = 2; // 2 is rootId for test
+    drawable->renderParams_->instanceRootNodeId_ = rootId;
+    result = drawable->GetNodeIdForMemTag();
+    ASSERT_EQ(result, rootId);
 }
 
 #ifdef RS_ENABLE_VK

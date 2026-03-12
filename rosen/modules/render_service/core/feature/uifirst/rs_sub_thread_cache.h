@@ -197,6 +197,9 @@ public:
         RSSurfaceRenderParams& surfaceParams, RSRenderThreadParams& uniParams);
     bool DrawCacheSurface(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable, RSPaintFilterCanvas& canvas,
         const Vector2f& boundSize, uint32_t threadIndex = UNI_MAIN_THREAD_INDEX, bool isUIFirst = false);
+    void InsertOpaqueRegion(RSPaintFilterCanvas& canvas, DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
+        std::vector<Drawing::RectI>& opaqueRects, const Drawing::Rect& imgDrawRect);
+    void DrawOpaqueRegionDfx(RSPaintFilterCanvas& canvas, const std::vector<Drawing::RectI>& opaqueRects);
 
     // uifirst dirtyRegion
     std::shared_ptr<RSDirtyRegionManager> GetSyncUifirstDirtyManager() const;
@@ -211,8 +214,8 @@ public:
         Drawing::RectF& latestDirtyRect, Drawing::RectF& absDrawRect);
     bool MergeUifirstAllSurfaceDirtyRegion(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
         Drawing::RectI& dirtyRects);
-    void SetUifrstDirtyEnableFlag(bool dirtyEnableFlag);
-    bool GetUifrstDirtyEnableFlag() const;
+    void SetUifirstDirtyEnableFlag(bool dirtyEnableFlag);
+    bool GetUifirstDirtyEnableFlag() const;
     void PushDirtyRegionToStack(RSPaintFilterCanvas& canvas, Drawing::Region& resultRegion);
     bool IsCacheValid() const;
     void UifirstDirtyRegionDfx(Drawing::Canvas& canvas, Drawing::RectI& surfaceDrawRect);
@@ -318,7 +321,7 @@ private:
     std::shared_ptr<RSDirtyRegionManager> syncUifirstDirtyManager_ = nullptr;
     bool isDirtyRecordCompleted_ = false;
     Drawing::Region uifirstDirtyRegion_;
-    bool uifrstDirtyEnableFlag_ = false;
+    bool uifirstDirtyEnableFlag_ = false;
     Drawing::Region uifirstMergedDirtyRegion_;
     std::shared_ptr<RSPaintFilterCanvas::CacheBehindWindowData> cacheBehindWindowData_ = nullptr;
     std::shared_ptr<RSPaintFilterCanvas::CacheBehindWindowData> cacheCompletedBehindWindowData_ = nullptr;

@@ -33,9 +33,6 @@
 #include "common/rs_self_draw_rect_change_callback_constraint.h"
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/iapplication_agent.h"
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-#include "ipc_callbacks/pointer_render/pointer_luminance_change_callback.h"
-#endif
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 #include "ipc_callbacks/rs_icanvas_surface_buffer_callback.h"
 #endif
@@ -71,9 +68,6 @@ namespace Rosen {
 using ScreenChangeCallback = std::function<void(ScreenId, ScreenEvent, ScreenChangeReason)>;
 using BrightnessInfoChangeCallback = std::function<void(ScreenId, BrightnessInfo)>;
 using ScreenSwitchingNotifyCallback = std::function<void(bool)>;
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-using PointerLuminanceChangeCallback = std::function<void(int32_t)>;
-#endif
 using BufferAvailableCallback = std::function<void()>;
 using BufferClearCallback = std::function<void()>;
 using OcclusionChangeCallback = std::function<void(std::shared_ptr<RSOcclusionData>)>;
@@ -93,6 +87,41 @@ public:
     void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
 
     void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
+
+    bool CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId);
+
+    bool CreateNode(const RSSurfaceRenderNodeConfig& config);
+
+    std::shared_ptr<RSSurface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, bool unobscured = false);
+
+    void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app); // proxy Single
+
+    bool RegisterBufferClearListener(
+        NodeId id, const BufferClearCallback& callback);
+
+    bool RegisterBufferAvailableListener(
+        NodeId id, const BufferAvailableCallback &callback, bool isFromRenderThread = false);
+
+    std::shared_ptr<RSSurface> CreateRSSurface(const sptr<Surface> &surface);
+
+    bool UnregisterBufferAvailableListener(NodeId id);
+
+    bool GetBitmap(NodeId id, Drawing::Bitmap& bitmap);
+
+    bool SetGlobalDarkColorMode(bool isDark);
+
+    bool GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
+        const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList);
+
+    bool SetSystemAnimatedScenes(
+        SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation);
+
+    void SetHardwareEnabled(NodeId id, bool isEnabled,
+        SelfDrawingNodeType selfDrawingType, bool dynamicHardwareEnable);
+
+    uint32_t SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent);
+
+    bool GetHighContrastTextState();
 
     bool TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam = {},
@@ -125,9 +154,27 @@ public:
 
     void SetLayerTopForHWC(NodeId nodeId, bool isTop, uint32_t zOrder);
 
+    int32_t GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo);
+
     int32_t GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus);
 
     void DropFrameByPid(const std::vector<int32_t>& pidList, int32_t dropFrameLevel = 0);
+
+    uint32_t SetSurfaceWatermark(pid_t pid, const std::string &name,
+    const std::shared_ptr<Media::PixelMap> &watermark,
+    const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType);
+
+    void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string &name,
+    const std::vector<NodeId> &nodeIdList);
+
+    void ClearSurfaceWatermark(pid_t pid, const std::string &name);
+
+    ErrCode RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback);
+
+    int32_t RegisterSurfaceOcclusionChangeCallback(
+        NodeId id, const SurfaceOcclusionChangeCallback& callback, std::vector<float>& partitionPoints);
+
+    int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id);
 
     bool RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
         std::shared_ptr<SurfaceBufferCallback> callback);
@@ -137,8 +184,6 @@ public:
     void SetWindowContainer(NodeId nodeId, bool value);
 
     void ClearUifirstCache(NodeId id);
-
-    void SetScreenFrameGravity(ScreenId id, int32_t gravity);
 
     bool RegisterTransactionDataCallback(uint64_t token, uint64_t timeStamp, std::function<void()> callback);
 

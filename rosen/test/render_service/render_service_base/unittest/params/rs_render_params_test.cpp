@@ -979,23 +979,22 @@ HWTEST_F(RSRenderParamsTest, GetLayerInfo_001, TestSize.Level2)
 }
 
 /**
- * @tc.name: SetVirtualScreenWhiteListInfo
- * @tc.desc: Test SetVirtualScreenWhiteListInfo
+ * @tc.name: SetScreensWithSubTreeWhitelist
+ * @tc.desc: Test SetScreensWithSubTreeWhitelist
  * @tc.type: FUNC
  * @tc.require:#issueICF7P6
  */
-HWTEST_F(RSRenderParamsTest, SetVirtualScreenWhiteListInfo, TestSize.Level2)
+HWTEST_F(RSRenderParamsTest, SetScreensWithSubTreeWhitelist, TestSize.Level2)
 {
     constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
     std::unique_ptr<RSRenderParams> renderParams = std::make_unique<RSRenderParams>(id);
-    std::unordered_map<ScreenId, bool> info = {};
-    renderParams->hasVirtualScreenWhiteList_ = {};
-    renderParams->SetVirtualScreenWhiteListInfo(info);
-    ASSERT_EQ(renderParams->GetVirtualScreenWhiteListInfo(), info);
+    std::unordered_set<ScreenId> info = {};
+    renderParams->SetScreensWithSubTreeWhitelist(info);
+    ASSERT_EQ(renderParams->GetScreensWithSubTreeWhitelist(), info);
     ScreenId screenId = 1;
-    info[screenId] = true;
-    renderParams->SetVirtualScreenWhiteListInfo(info);
-    ASSERT_EQ(renderParams->GetVirtualScreenWhiteListInfo(), info);
+    info.insert(screenId);
+    renderParams->SetScreensWithSubTreeWhitelist(info);
+    ASSERT_EQ(renderParams->GetScreensWithSubTreeWhitelist(), info);
 }
 
 /**

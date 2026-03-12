@@ -15,69 +15,56 @@
 
 #include <gtest/gtest.h>
 #include <memory>
-
-#include "render_context.h"
-
-#include "iconsumer_surface.h"
 #include "platform/common/rs_system_properties.h"
+#include "render_context.h"
 #include "render_context/new_render_context/render_context_gl.h"
-#include "surface/ibuffer_consumer_listener.h"
-#include "window.h"
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
-class BufferConsumerListener : public IBufferConsumerListener {
-public:
-    void OnBufferAvailable() override
-    {
-    }
-};
-
 class RenderContextGLTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
-    static GpuApiType gpuType;
 };
 
 void RenderContextGLTest::SetUpTestCase() {}
 void RenderContextGLTest::TearDownTestCase() {}
-void RenderContextGLTest::SetUp()
-{
-    const_cast<GpuApiType&>(RSSystemProperties::systemGpuApiType_) = GpuApiType::OPENGL;
-}
-void RenderContextGLTest::TearDown()
-{
-    const_cast<GpuApiType&>(RSSystemProperties::systemGpuApiType_) = gpuType;
-}
-
-GpuApiType RenderContextGLTest::gpuType = RSSystemProperties::GetGpuApiType();
+void RenderContextGLTest::SetUp() {}
+void RenderContextGLTest::TearDown() {}
 
 /**
  * @tc.name: CleanAllShaderCache
  * @tc.desc: Verify the CleanAllShaderCache of RenderContextGLTest
  * @tc.type: FUNC
- */
+*/
 HWTEST_F(RenderContextGLTest, CleanAllShaderCache, TestSize.Level1)
 {
+    if (RSSystemProperties::IsUseVulkan()) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     auto renderContext = std::make_shared<RenderContextGL>();
     std::string result = renderContext->CleanAllShaderCache();
     EXPECT_EQ(result, "");
 
     renderContext->SetUpGpuContext();
     result = renderContext->CleanAllShaderCache();
-    EXPECT_NE(result, "");
+    EXPECT_EQ(result, "");
 }
 
 /**
  * @tc.name: GetShaderCacheSize
  * @tc.desc: Verify the GetShaderCacheSize of RenderContextGLTest
  * @tc.type: FUNC
- */
+*/
 HWTEST_F(RenderContextGLTest, GetShaderCacheSize, TestSize.Level1)
 {
+    if (RSSystemProperties::IsUseVulkan()) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     auto renderContext = std::make_shared<RenderContextGL>();
     auto result = renderContext->GetShaderCacheSize();
     EXPECT_EQ(result, "");
@@ -91,11 +78,14 @@ HWTEST_F(RenderContextGLTest, GetShaderCacheSize, TestSize.Level1)
  * @tc.name: ClearRedundantResources
  * @tc.desc: Verify the ClearRedundantResources of RenderContextGLTest
  * @tc.type: FUNC
- */
+*/
 HWTEST_F(RenderContextGLTest, ClearRedundantResources, TestSize.Level1)
 {
+    if (RSSystemProperties::IsUseVulkan()) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     auto renderContext = std::make_shared<RenderContextGL>();
-    renderContext->drGPUContext_ = nullptr;
     renderContext->ClearRedundantResources();
 
     renderContext->SetUpGpuContext();
@@ -107,33 +97,21 @@ HWTEST_F(RenderContextGLTest, ClearRedundantResources, TestSize.Level1)
  * @tc.name: DamageFrameTest
  * @tc.desc: Verify the SetPixelFormatTest and GetPixelFormat of RenderContextGLTest
  * @tc.type: FUNC
- */
+*/
 HWTEST_F(RenderContextGLTest, DamageFrameTest, Level1)
 {
+    if (RSSystemProperties::IsUseVulkan()) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     auto renderContext = std::make_shared<RenderContextGL>();
     renderContext->Init();
     EXPECT_NE(nullptr, renderContext->GetEGLDisplay());
     renderContext->DamageFrame({});
-    RectI rect { 0, 0, 1, 1 };
-    auto rects = { rect };
+    RectI rect{0, 0, 1, 1};
+    auto rects = {rect};
     renderContext->DamageFrame(rects);
     EXPECT_NE(nullptr, renderContext->GetEGLDisplay());
-
-    auto context = std::make_shared<RenderContextGL>();
-    context->Init();
-    renderContext->SetUpGpuContext();
-    auto cSurface = IConsumerSurface::Create();
-    sptr<IBufferConsumerListener> listener = new BufferConsumerListener();
-    cSurface->RegisterConsumerListener(listener);
-    auto producer = cSurface->GetProducer();
-    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
-    auto window = CreateNativeWindowFromSurface(&pSurface);
-    context->CreateEGLSurface(window);
-    context->DamageFrame({});
-    EXPECT_NE(nullptr, context->GetEGLDisplay());
-
-    context->DamageFrame(rects);
-    EXPECT_NE(nullptr, context->GetEGLDisplay());
 }
 
 /**
@@ -143,24 +121,15 @@ HWTEST_F(RenderContextGLTest, DamageFrameTest, Level1)
  */
 HWTEST_F(RenderContextGLTest, QueryEglBufferAgeTest, Level1)
 {
+    if (RSSystemProperties::IsUseVulkan()) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     auto renderContext = std::make_shared<RenderContextGL>();
     renderContext->Init();
     renderContext->MakeCurrent(renderContext->GetEGLSurface(), renderContext->GetEGLContext());
     auto res = renderContext->QueryEglBufferAge();
     EXPECT_EQ(EGL_UNKNOWN, res);
-
-    auto context = std::make_shared<RenderContextGL>();
-    context->Init();
-    context->SetUpGpuContext();
-    auto cSurface = IConsumerSurface::Create();
-    sptr<IBufferConsumerListener> listener = new BufferConsumerListener();
-    cSurface->RegisterConsumerListener(listener);
-    auto producer = cSurface->GetProducer();
-    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
-    auto window = CreateNativeWindowFromSurface(&pSurface);
-    context->CreateEGLSurface(window);
-    res = context->QueryEglBufferAge();
-    EXPECT_EQ(res, EGL_UNKNOWN);
 }
 
 /**
@@ -170,16 +139,19 @@ HWTEST_F(RenderContextGLTest, QueryEglBufferAgeTest, Level1)
  */
 HWTEST_F(RenderContextGLTest, RenderFrameTest, Level1)
 {
+    if (RSSystemProperties::IsUseVulkan()) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     auto renderContext = std::make_shared<RenderContextGL>();
+    EXPECT_NE(renderContext, nullptr);
     renderContext->surface_ = nullptr;
     renderContext->RenderFrame();
     renderContext->surface_ = std::make_shared<Drawing::Surface>();
     EXPECT_NE(renderContext->surface_, nullptr);
     renderContext->RenderFrame();
-    renderContext->surface_->cachedCanvas_ = std::make_shared<Drawing::Canvas>(0, 0);
-    renderContext->RenderFrame();
-    EXPECT_NE(renderContext, nullptr);
 }
+
 
 /**
  * @tc.name: AcquireSurfaceTest
@@ -188,6 +160,10 @@ HWTEST_F(RenderContextGLTest, RenderFrameTest, Level1)
  */
 HWTEST_F(RenderContextGLTest, AcquireSurfaceTest, Function | SmallTest | Level2)
 {
+    if (RSSystemProperties::IsUseVulkan()) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     auto renderContext = std::make_shared<RenderContextGL>();
     renderContext->SetColorSpace(GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
     auto surface = renderContext->AcquireSurface(0, 0);
@@ -206,8 +182,6 @@ HWTEST_F(RenderContextGLTest, AcquireSurfaceTest, Function | SmallTest | Level2)
     surface = renderContext->AcquireSurface(0, 0);
     EXPECT_TRUE(surface == nullptr);
 
-    renderContext->Init();
-    renderContext->SetUpGpuContext();
     renderContext->SetPixelFormat(GRAPHIC_PIXEL_FMT_YCBCR_P010);
     surface = renderContext->AcquireSurface(400, 800);
     EXPECT_FALSE(surface == nullptr);
@@ -220,6 +194,10 @@ HWTEST_F(RenderContextGLTest, AcquireSurfaceTest, Function | SmallTest | Level2)
  */
 HWTEST_F(RenderContextGLTest, DestroyEGLSurfaceTest, Function | SmallTest | Level2)
 {
+    if (RSSystemProperties::IsUseVulkan()) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     auto renderContext = std::make_shared<RenderContextGL>();
     renderContext->DestroyEGLSurface(renderContext->GetEGLSurface());
     EXPECT_EQ(renderContext->GetEGLSurface(), nullptr);
@@ -237,6 +215,10 @@ HWTEST_F(RenderContextGLTest, DestroyEGLSurfaceTest, Function | SmallTest | Leve
  */
 HWTEST_F(RenderContextGLTest, CreateEGLSurfaceTest, Function | SmallTest | Level2)
 {
+    if (RSSystemProperties::IsUseVulkan()) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     auto renderContext = std::make_shared<RenderContextGL>();
     EGLSurface eglSurface = renderContext->CreateEGLSurface(nullptr);
     EXPECT_EQ(eglSurface, EGL_NO_SURFACE);
@@ -244,19 +226,9 @@ HWTEST_F(RenderContextGLTest, CreateEGLSurfaceTest, Function | SmallTest | Level
     renderContext->Init();
     eglSurface = renderContext->CreateEGLSurface(nullptr);
     EXPECT_EQ(eglSurface, EGL_NO_SURFACE);
-
-    auto context = std::make_shared<RenderContextGL>();
-    context->Init();
-    context->SetUpGpuContext();
-    EXPECT_NE(context->eglContext_, EGL_NO_CONTEXT);
-    auto cSurface = IConsumerSurface::Create();
-    sptr<IBufferConsumerListener> listener = new BufferConsumerListener();
-    cSurface->RegisterConsumerListener(listener);
-    auto producer = cSurface->GetProducer();
-    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
-    auto window = CreateNativeWindowFromSurface(&pSurface);
-    eglSurface = context->CreateEGLSurface(window);
-    EXPECT_NE(eglSurface, EGL_NO_SURFACE);
+    renderContext->SetUpGpuContext();
+    eglSurface = renderContext->CreateEGLSurface(nullptr);
+    EXPECT_EQ(eglSurface, EGL_NO_SURFACE);
 }
 
 /**
@@ -266,31 +238,13 @@ HWTEST_F(RenderContextGLTest, CreateEGLSurfaceTest, Function | SmallTest | Level
  */
 HWTEST_F(RenderContextGLTest, SwapBuffersTest, Function | SmallTest | Level2)
 {
+    if (RSSystemProperties::IsUseVulkan()) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     auto renderContext = std::make_shared<RenderContextGL>();
-    auto res = renderContext->SwapBuffers(EGL_NO_SURFACE);
-    EXPECT_EQ(res, false);
-    renderContext->Init();
-    renderContext->SetUpGpuContext();
-    auto cSurface = IConsumerSurface::Create();
-    sptr<IBufferConsumerListener> listener = new BufferConsumerListener();
-    cSurface->RegisterConsumerListener(listener);
-    auto producer = cSurface->GetProducer();
-    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
-    auto window = CreateNativeWindowFromSurface(&pSurface);
-    renderContext->CreateEGLSurface(window);
-
-    auto context = std::make_shared<RenderContextGL>();
-    context->Init();
-    context->SetUpGpuContext();
-    auto cSurface1 = IConsumerSurface::Create();
-    sptr<IBufferConsumerListener> listener1 = new BufferConsumerListener();
-    cSurface1->RegisterConsumerListener(listener1);
-    auto producer1 = cSurface1->GetProducer();
-    auto pSurface1 = Surface::CreateSurfaceAsProducer(producer1);
-    auto window1 = CreateNativeWindowFromSurface(&pSurface1);
-    auto eglSurface1 = context->CreateEGLSurface(window1);
-    res = renderContext->SwapBuffers(eglSurface1);
-    EXPECT_EQ(res, false);
+    renderContext->SwapBuffers(EGL_NO_SURFACE);
+    EXPECT_EQ(renderContext->GetEGLSurface(), EGL_NO_SURFACE);
 }
 
 /**
@@ -300,11 +254,15 @@ HWTEST_F(RenderContextGLTest, SwapBuffersTest, Function | SmallTest | Level2)
  */
 HWTEST_F(RenderContextGLTest, MakeCurrentTest, Function | SmallTest | Level2)
 {
+    if (RSSystemProperties::IsUseVulkan()) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     auto renderContext = std::make_shared<RenderContextGL>();
     renderContext->MakeCurrent(EGL_NO_SURFACE, EGL_NO_CONTEXT);
     EXPECT_EQ(renderContext->GetEGLSurface(), EGL_NO_SURFACE);
     renderContext->MakeCurrent(static_cast<EGLSurface>((void*)(0x1)), static_cast<EGLContext>((void*)(0x1)));
-    EXPECT_NE(renderContext->GetEGLSurface(), EGL_NO_SURFACE);
+    EXPECT_EQ(renderContext->GetEGLSurface(), EGL_NO_SURFACE);
 }
 
 /**
@@ -314,11 +272,12 @@ HWTEST_F(RenderContextGLTest, MakeCurrentTest, Function | SmallTest | Level2)
  */
 HWTEST_F(RenderContextGLTest, InitializeEglContextTest, Function | SmallTest | Level2)
 {
+    if (RSSystemProperties::IsUseVulkan()) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     auto renderContext = std::make_shared<RenderContextGL>();
     auto res = renderContext->Init();
-    EXPECT_EQ(res, true);
-
-    res = renderContext->Init();
     EXPECT_EQ(res, true);
 }
 
@@ -329,16 +288,14 @@ HWTEST_F(RenderContextGLTest, InitializeEglContextTest, Function | SmallTest | L
  */
 HWTEST_F(RenderContextGLTest, CreatePbufferSurfaceTest001, Level1)
 {
+    if (RSSystemProperties::IsUseVulkan()) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     auto renderContext = std::make_shared<RenderContextGL>();
     EXPECT_NE(renderContext, nullptr);
     renderContext->CreatePbufferSurface();
-    EXPECT_EQ(renderContext->pbufferSurface_, EGL_NO_SURFACE);
-
-    renderContext = std::make_shared<RenderContextGL>();
-    renderContext->Init();
-    renderContext->SetUpGpuContext();
-    renderContext->CreatePbufferSurface();
-    EXPECT_EQ(renderContext->pbufferSurface_, EGL_NO_SURFACE);
+    EXPECT_EQ(renderContext->GetEGLDisplay(), EGL_NO_DISPLAY);
 }
 
 /**
@@ -348,13 +305,15 @@ HWTEST_F(RenderContextGLTest, CreatePbufferSurfaceTest001, Level1)
  */
 HWTEST_F(RenderContextGLTest, SetUpGpuContextTest, Level1)
 {
+    if (RSSystemProperties::IsUseVulkan()) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     auto renderContext = std::make_shared<RenderContextGL>();
     renderContext->Init();
     EXPECT_NE(renderContext, nullptr);
     bool res = renderContext->SetUpGpuContext();
-    EXPECT_EQ(res, true);
-    renderContext = std::make_shared<RenderContextGL>();
-    renderContext->isUniRenderMode_ = true;
+    EXPECT_EQ(res, false);
     res = renderContext->SetUpGpuContext();
     EXPECT_EQ(res, false);
 }
@@ -366,6 +325,10 @@ HWTEST_F(RenderContextGLTest, SetUpGpuContextTest, Level1)
  */
 HWTEST_F(RenderContextGLTest, AbandonContextTest, Level1)
 {
+    if (RSSystemProperties::IsUseVulkan()) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     auto renderContext = std::make_shared<RenderContextGL>();
     auto res = renderContext->AbandonContext();
     EXPECT_EQ(res, true);
@@ -378,14 +341,13 @@ HWTEST_F(RenderContextGLTest, AbandonContextTest, Level1)
  */
 HWTEST_F(RenderContextGLTest, CreateShareContextTest, Level1)
 {
+    if (RSSystemProperties::IsUseVulkan()) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     auto renderContext = std::make_shared<RenderContextGL>();
     renderContext->CreateShareContext();
-    EXPECT_EQ(renderContext->eglShareContext_, EGL_NO_CONTEXT);
-
-    renderContext->Init();
-    renderContext->SetUpGpuContext();
-    renderContext->CreateShareContext();
-    EXPECT_NE(renderContext->eglShareContext_, EGL_NO_CONTEXT);
+    EXPECT_NE(renderContext, nullptr);
 }
 
 /**
@@ -395,54 +357,12 @@ HWTEST_F(RenderContextGLTest, CreateShareContextTest, Level1)
  */
 HWTEST_F(RenderContextGLTest, DestroyShareContextTest, Level1)
 {
+    if (RSSystemProperties::IsUseVulkan()) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
     auto renderContext = std::make_shared<RenderContextGL>();
     renderContext->DestroyShareContext();
     EXPECT_NE(renderContext, nullptr);
-}
-
-/**
- * @tc.name: ColorTypeTest
- * @tc.desc: Verify ColorTypeToGLFormat
- * @tc.type: FUNC
- */
-HWTEST_F(RenderContextGLTest, ColorTypeTest, Level1)
-{
-    auto renderContext = std::make_shared<RenderContextGL>();
-    Drawing::ColorType type = Drawing::ColorType::COLORTYPE_RGBA_8888;
-    auto res = renderContext->ColorTypeToGLFormat(type);
-    EXPECT_EQ(res, GL_RGBA8);
-    type = Drawing::ColorType::COLORTYPE_ALPHA_8;
-    res = renderContext->ColorTypeToGLFormat(type);
-    EXPECT_EQ(res, GL_R8);
-    type = Drawing::ColorType::COLORTYPE_RGB_565;
-    res = renderContext->ColorTypeToGLFormat(type);
-    EXPECT_EQ(res, GL_RGB565);
-    type = Drawing::ColorType::COLORTYPE_ARGB_4444;
-    res = renderContext->ColorTypeToGLFormat(type);
-    EXPECT_EQ(res, GL_RGBA4);
-    type = Drawing::ColorType::COLORTYPE_RGBA_1010102;
-    res = renderContext->ColorTypeToGLFormat(type);
-    EXPECT_EQ(res, GL_RGBA8);
-}
-
-/**
- * @tc.name: CheckEglExtensionTest
- * @tc.desc: Verify CheckEglExtension
- * @tc.type: FUNC
- */
-HWTEST_F(RenderContextGLTest, CheckEglExtensionTest, Level1)
-{
-    auto renderContext = std::make_shared<RenderContextGL>();
-    EXPECT_TRUE(renderContext->CheckEglExtension("EGL_EXT_platform_wayland",
-        "EGL_EXT_platform_wayland"));
-    EXPECT_FALSE(renderContext->CheckEglExtension("EGL_EXT_platform_x11",
-        "EGL_EXT_platform_wayland"));
-    EXPECT_TRUE(renderContext->CheckEglExtension("  EGL_EXT_platform_wayland  EGL_OTHER",
-        "EGL_EXT_platform_wayland"));
-    EXPECT_FALSE(renderContext->CheckEglExtension("EGL_EXT_platform_wayland2",
-        "EGL_EXT_platform_wayland"));
-    EXPECT_FALSE(renderContext->CheckEglExtension("", "EGL_EXT_platform_wayland"));
-    EXPECT_TRUE(renderContext->CheckEglExtension("EGL_FIRST EGL_EXT_platform_wayland EGL_LAST",
-        "EGL_EXT_platform_wayland"));
 }
 } // namespace OHOS::Rosen

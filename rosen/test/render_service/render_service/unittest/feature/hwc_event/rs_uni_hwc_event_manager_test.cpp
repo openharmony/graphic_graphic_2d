@@ -15,7 +15,7 @@
  
 #include "feature/hwc_event/rs_uni_hwc_event_manager.h"
 #include "gtest/gtest.h"
-#include "pipeline/rs_pointer_window_manager.h"
+#include "feature/pointer_window_manager/rs_pointer_window_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -46,10 +46,9 @@ HWTEST_F(RSUniHwcEventManagerTest, OnHwcEvent001, TestSize.Level1)
 {
     auto& uniHwcEventManager = RSUniHwcEventManager::GetInstance();
     vector<int32_t> eventData;
-    uniHwcEventManager.Init();
-    uniHwcEventManager.OnHwcEvent(DEFAULT_DEVID, HwcEvent::HWCEVENT_TUI_ENTER, eventData, nullptr);
-    uniHwcEventManager.OnHwcEvent(DEFAULT_DEVID, HwcEvent::HWCEVENT_TUI_EXIT, eventData, nullptr);
-    uniHwcEventManager.OnHwcEvent(DEFAULT_DEVID, DEFAULT_EVENTID, eventData, nullptr);
+    uniHwcEventManager.OnHwcEvent(DEFAULT_DEVID, HwcEvent::HWCEVENT_TUI_ENTER, eventData);
+    uniHwcEventManager.OnHwcEvent(DEFAULT_DEVID, HwcEvent::HWCEVENT_TUI_EXIT, eventData);
+    uniHwcEventManager.OnHwcEvent(DEFAULT_DEVID, DEFAULT_EVENTID, eventData);
     ASSERT_EQ(eventData.size(), 0);
 }
 }

@@ -502,6 +502,14 @@
           },
           {
             "type": "so",
+            "name": "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync:libvsync",
+            "header": {
+              "header_files": [],
+              "header_base": "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync/include"
+            }
+          },
+          {
+            "type": "so",
             "name": "//foundation/graphic/graphic_2d/frameworks/text/interface/mlb/ani:text_engine_ani",
             "header": {
               "header_files": [ "ani_paragraph.h" ],
@@ -522,7 +530,7 @@
           "//foundation/graphic/graphic_2d/rosen/test/dtk:dtk",
           "//foundation/graphic/graphic_2d/frameworks/text/test:text_test",
           "//foundation/graphic/graphic_2d/rosen/test/frame_load:test",
-          "//foundation/graphic/graphic_2d/rosen/modules/render_service:test"
+          "//foundation/graphic/graphic_2d/rosen/test/render_service:test"
         ]
       }
     }

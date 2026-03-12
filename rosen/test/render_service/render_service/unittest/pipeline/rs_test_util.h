@@ -31,6 +31,7 @@ public:
     static std::shared_ptr<RSSurfaceRenderNode> CreateSurfaceNodeWithBuffer();
     static std::shared_ptr<RSRcdSurfaceRenderNode> CreateRcdNodeWithBuffer();
     static void InitRenderNodeGC();
+    static void UnregisterConsumerListener();
 private:
     static inline BufferRequestConfig requestConfig = {
         .width = 0x100,
@@ -47,6 +48,7 @@ private:
     static inline sptr<IBufferProducer> producer = nullptr;
     static inline sptr<Surface> psurf = nullptr;
     static NodeId id;
+    static std::shared_ptr<RSUniRenderThread> uniRenderThread_;
 };
 } // namespace ROSEN
 } // namespace OHOS
