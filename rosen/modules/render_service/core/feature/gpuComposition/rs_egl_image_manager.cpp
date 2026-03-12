@@ -338,6 +338,20 @@ void RSEglImageManager::UnMapEglImageFromSurfaceBufferForUniRedraw(uint64_t seqN
     });
 }
 
+void RSEglImageManager::HandleDeletedBuffer(const sptr<SurfaceBuffer>& buffer)
+{
+    if (buffer->IsBufferDeleted()) {
+        RS_LOGE("RSEglImageManager::HandleDeletedBuffer buffer_id %s marked for deletion from cache, unmapping",
+            std::to_string(buffer->GetBufferId()).c_str());
+        UnMapImageFromSurfaceBuffer(buffer->GetBufferId());
+        if ((buffer->GetBufferDeletedFlag() & BufferDeletedFlag::DELETED_FROM_CACHE) !=
+            static_cast<BufferDeletedFlag>(0)) {
+            buffer->ClearBufferDeletedFlag(BufferDeletedFlag::DELETED_FROM_CACHE);
+        }
+    }
+
+}
+
 std::shared_ptr<Drawing::Image> RSEglImageManager::CreateImageFromBuffer(
     RSPaintFilterCanvas& canvas, const BufferDrawParam& params,
     const std::shared_ptr<Drawing::ColorSpace>& drawingColorSpace)
@@ -361,17 +375,7 @@ std::shared_ptr<Drawing::Image> RSEglImageManager::CreateImageFromBuffer(
         RS_LOGE("RSEglImageManager::CreateEglImageFromBuffer MapEglImageFromSurfaceBuffer return invalid texture ID");
         return nullptr;
     }
-
-    if (buffer->IsBufferDeleted()) {
-        RS_LOGE("RSEglImageManager::CreateEglImageFromBuffer buffer_id %s marked for deletion from cache, unmapping",
-            std::to_string(buffer->GetBufferId()).c_str());
-        UnMapImageFromSurfaceBuffer(buffer->GetBufferId());
-        if ((buffer->GetBufferDeletedFlag() & BufferDeletedFlag::DELETED_FROM_CACHE) !=
-            static_cast<BufferDeletedFlag>(0)) {
-            buffer->ClearBufferDeletedFlag(BufferDeletedFlag::DELETED_FROM_CACHE);
-        }
-    }
-
+    HandleDeletedBuffer(buffer);
     auto pixelFmt = buffer->GetFormat();
     auto bitmapFormat = RSBaseRenderUtil::GenerateDrawingBitmapFormat(buffer, alphaType);
 
