@@ -70,7 +70,7 @@ HWTEST_F(RSFrameControlToolTest, CheckAppWindowNodeId002, TestSize.Level1)
 
     auto rsContext = std::make_shared<RSContext>();
     std::shared_ptr<RSSurfaceRenderNode> node2 = std::make_shared<RSSurfaceRenderNode>(id1, rsContext);
-    node->firstLevelNodeId_ = id2;
+    node2->firstLevelNodeId_ = id2;
     RSFrameControlTool::Instance().SetNodeIdForFrameControl(*node2);
 
     auto& nodeMap = rsContext->GetMutableNodeMap();
@@ -78,6 +78,7 @@ HWTEST_F(RSFrameControlToolTest, CheckAppWindowNodeId002, TestSize.Level1)
     bool res = nodeMap.RegisterRenderNode(surfaceRenderNode);
     ASSERT_EQ(res, true);
     std::shared_ptr<RSSurfaceRenderNode> node3 = std::make_shared<RSSurfaceRenderNode>(id1, rsContext);
+    node3->firstLevelNodeId_ = id2;
     RSFrameControlTool::Instance().SetNodeIdForFrameControl(*node3);
     EXPECT_EQ(RSFrameControlTool::Instance().CheckAppWindowNodeId(id2), true);
 }
