@@ -44,6 +44,7 @@ void RSFrameControlToolTest::TearDown() {}
 * @tc.require:
 */
 HWTEST_F(RSFrameControlToolTest, CheckAppWindowNodeId001, TestSize.Level1)
+{
     NodeId id1 = 100;
     NodeId id2 = 200;
     // case1
@@ -51,5 +52,6 @@ HWTEST_F(RSFrameControlToolTest, CheckAppWindowNodeId001, TestSize.Level1)
     EXPECT_EQ(RSFrameControlTool::Instance().CheckAppWindowNodeId(id1), true);
     // case2
     EXPECT_EQ(RSFrameControlTool::Instance().CheckAppWindowNodeId(id2), false);
+}
 }
 }
