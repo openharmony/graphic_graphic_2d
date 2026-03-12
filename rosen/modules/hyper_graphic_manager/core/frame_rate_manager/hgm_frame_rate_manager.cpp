@@ -1647,9 +1647,9 @@ void HgmFrameRateManager::TriggerHgmConfigUpdateCallback(std::shared_ptr<RPHgmCo
 
 void HgmFrameRateManager::TriggerAdaptiveVsyncUpdateCallback()
 {
-    if (adaptiveVsyncUpdateCallback_ &&
-        (lastIsAdaptive_.load() != isAdaptive_.load() || lastGameNodeName_ != curGameNodeName_)) {
-        lastIsAdaptive_.store(isAdaptive_.load());
+    if (auto isAdaptive = AdaptiveStatus(); adaptiveVsyncUpdateCallback_ &&
+        (lastIsAdaptive_.load() != isAdaptive || lastGameNodeName_ != curGameNodeName_)) {
+        lastIsAdaptive_.store(isAdaptive);
         lastGameNodeName_ = curGameNodeName_;
         adaptiveVsyncUpdateCallback_(lastIsAdaptive_, lastGameNodeName_);
     }

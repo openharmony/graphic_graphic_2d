@@ -1775,5 +1775,48 @@ HWTEST_F(HgmFrameRateMgrTest, TestIsMouseOrTouchPadEvent, Function | SmallTest |
     mgr.HandleTouchEvent(0, touchStatus, 1, sourceType);
     usleep(10);
 }
+
+/**
+ * @tc.name: TriggerAdaptiveVsyncUpdateCallback
+ * @tc.desc: Verify the result of TriggerAdaptiveVsyncUpdateCallback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, TriggerAdaptiveVsyncUpdateCallback, Function | SmallTest | Level2)
+{
+    HgmFrameRateManager mgr;
+    mgr.adaptiveVsyncUpdateCallback_ = nullptr;
+    mgr.lastIsAdaptive_.store(SupportASStatus::NOT_SUPPORT);
+    mgr.isAdaptive_.store(SupportASStatus::SUPPORT_AS);
+    mgr.TriggerAdaptiveVsyncUpdateCallback();
+    ASSERT_EQ(mgr.lastIsAdaptive_.load(), SupportASStatus::NOT_SUPPORT);
+    mgr.adaptiveVsyncUpdateCallback_ = [] (bool isAdaptive, const std::string& gameNodeName) {};
+    mgr.asStateForFps_.store(SupportASStatus::NOT_SUPPORT);
+    mgr.lastIsAdaptive_.store(SupportASStatus::NOT_SUPPORT);
+    mgr.isAdaptive_.store(SupportASStatus::SUPPORT_AS);
+    mgr.TriggerAdaptiveVsyncUpdateCallback();
+    ASSERT_EQ(mgr.lastIsAdaptive_.load(), SupportASStatus::NOT_SUPPORT);
+
+    mgr.asStateForFps_.store(SupportASStatus::SUPPORT_AS);
+    mgr.lastIsAdaptive_.store(SupportASStatus::NOT_SUPPORT);
+    mgr.isAdaptive_.store(SupportASStatus::SUPPORT_AS);
+    mgr.TriggerAdaptiveVsyncUpdateCallback();
+    ASSERT_EQ(mgr.lastIsAdaptive_.load(), SupportASStatus::SUPPORT_AS);
+    mgr.curGameNodeName_ = "test";
+    mgr.TriggerAdaptiveVsyncUpdateCallback();
+    ASSERT_EQ(mgr.curGameNodeName_, mgr.curGameNodeName_);
+    mgr.lastIsAdaptive_.store(SupportASStatus::NOT_SUPPORT);
+    mgr.isAdaptive_.store(SupportASStatus::SUPPORT_AS);
+    mgr.curGameNodeName_ = "test2";
+    mgr.TriggerAdaptiveVsyncUpdateCallback();
+    ASSERT_EQ(mgr.lastIsAdaptive_.load(), SupportASStatus::SUPPORT_AS);
+    ASSERT_EQ(mgr.curGameNodeName_, mgr.curGameNodeName_);
+
+    mgr.asStateForFps_.store(SupportASStatus::NOT_SUPPORT);
+    mgr.lastIsAdaptive_.store(SupportASStatus::SUPPORT_AS);
+    mgr.isAdaptive_.store(SupportASStatus::SUPPORT_AS);
+    mgr.TriggerAdaptiveVsyncUpdateCallback();
+    ASSERT_EQ(mgr.lastIsAdaptive_.load(), SupportASStatus::NOT_SUPPORT);
+}
 } // namespace Rosen
 } // namespace OHOS

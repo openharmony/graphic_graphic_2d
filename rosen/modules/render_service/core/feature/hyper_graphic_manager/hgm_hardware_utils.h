@@ -45,39 +45,43 @@ struct ASRecordRateParam {
     static constexpr int64_t AS_INTERVAL_THRESHOLD = 25000; // 25ms, 40Hz frame rate (in microseconds)
     int32_t highFpsFrameCount = 0;
     std::vector<int64_t> frameTimestamps;
-    int32_t curIndex = 0;
+    int32_t newIndex = 0;
 
     void ClearTimestamp()
     {
         if (!frameTimestamps.empty()) {
             std::vector<int64_t>().swap(frameTimestamps);
             highFpsFrameCount = 0;
-            curIndex = 0;
+            newIndex = 0;
         }
+    }
+
+    bool IsBufferNotFull()
+    {
+        return frameTimestamps.size() < static_cast<size_t>(TIMESTAMP_BUFFER_SIZE);
     }
 
     bool RecordTimestamp(int64_t timestamp)
     {
         if (frameTimestamps.empty()) {
             highFpsFrameCount = 0;
-            curIndex = 0;
+            newIndex = 0;
         }
 
-        if (curIndex < frameTimestamps.size()) {
-            frameTimestamps[curIndex] = timestamp;
-        } else {
+        if (IsBufferNotFull()) {
             frameTimestamps.push_back(timestamp);
+        } else {
+            frameTimestamps[newIndex] = timestamp;
         }
+        int32_t curIndex = newIndex;
+        newIndex = (newIndex + 1) % TIMESTAMP_BUFFER_SIZE;
 
-        if (frameTimestamps.size() < TIMESTAMP_BUFFER_SIZE) {
-            curIndex++;
+        if (IsBufferNotFull()) {
             return false;
         }
 
-        int32_t nextIndex = (curIndex + 1) % TIMESTAMP_BUFFER_SIZE;
-        int32_t avgInterval = (frameTimestamps[curIndex] -
-                               frameTimestamps[nextIndex]) / (TIMESTAMP_BUFFER_SIZE - 1);
-        curIndex = nextIndex;
+        int64_t avgInterval = (frameTimestamps[curIndex] - frameTimestamps[newIndex]) /
+                              static_cast<int64_t>(TIMESTAMP_BUFFER_SIZE - 1);
 
         if (avgInterval > AS_INTERVAL_THRESHOLD) {
             highFpsFrameCount = 0;
