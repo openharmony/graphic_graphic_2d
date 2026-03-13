@@ -63,35 +63,14 @@ void RSRenderServiceVisitor::PrepareScreenRenderNode(RSScreenRenderNode& node)
     node.SetScreenInfo(screenProperty.GetScreenInfo());
     offsetX_ = screenProperty.GetOffsetX();
     offsetY_ = screenProperty.GetOffsetY();
-    ScreenState state = screenProperty.GetState();
-    switch (state) {
-        case ScreenState::PRODUCER_SURFACE_ENABLE:
-            node.SetCompositeType(CompositeType::SOFTWARE_COMPOSITE);
-            break;
-        case ScreenState::HDI_OUTPUT_ENABLE:
-            node.SetCompositeType(node.IsForceSoftComposite() ?
-                CompositeType::SOFTWARE_COMPOSITE:
-                CompositeType::HARDWARE_COMPOSITE);
-            break;
-        default:
-            RS_LOGE("PrepareDisplayRenderNode State is unusual");
-            return;
-    }
+    UpdateScreenNodeCompositeType(node, screenProperty);
 
     ResetSurfaceNodeAttrsInScreenNode(node);
 
     curScreenNode_ = node.shared_from_this()->ReinterpretCastTo<RSScreenRenderNode>();
 
-    int32_t logicalScreenWidth = static_cast<int32_t>(node.GetRenderProperties().GetFrameWidth());
-    int32_t logicalScreenHeight = static_cast<int32_t>(node.GetRenderProperties().GetFrameHeight());
-    if (logicalScreenWidth <= 0 || logicalScreenHeight <= 0) {
-        logicalScreenWidth = static_cast<int32_t>(screenProperty.GetWidth());
-        logicalScreenHeight = static_cast<int32_t>(screenProperty.GetHeight());
-    }
-
     auto& boundsGeoPtr = (node.GetRenderProperties().GetBoundsGeometry());
     RSBaseRenderUtil::SetNeedClient(boundsGeoPtr && boundsGeoPtr->IsNeedClientCompose());
-    CreateCanvas(logicalScreenWidth, logicalScreenHeight);
     PrepareChildren(node);
     node.GetCurAllSurfaces().clear();
     node.CollectSurface(node.shared_from_this(), node.GetCurAllSurfaces(), false, false);
@@ -323,9 +302,9 @@ bool RSRenderServiceVisitor::CreateProcessor(RSScreenRenderNode& node)
     return true;
 }
 
-void RSRenderServiceVisitor::UpdateScreenNodeCompositeType(RSScreenRenderNode& node, const ScreenInfo& screenInfo)
+void RSRenderServiceVisitor::UpdateScreenNodeCompositeType(RSScreenRenderNode& node, const RSScreenProperty& property)
 {
-    ScreenState state = screenInfo.state;
+    ScreenState state = property.GetState();
     switch (state) {
         case ScreenState::PRODUCER_SURFACE_ENABLE:
             node.SetCompositeType(CompositeType::SOFTWARE_COMPOSITE);

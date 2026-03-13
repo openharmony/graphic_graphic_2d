@@ -1302,4 +1302,100 @@ HWTEST_F(RSRenderServiceVisitorTest, ShouldForceSerial, TestSize.Level1)
     auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     ASSERT_EQ(false, rsRenderServiceVisitor->ShouldForceSerial());
 }
+
+/**
+ * @tc.name: UpdateScreenNodeCompositeTypeTest001
+ * @tc.desc: Test UpdateScreenNodeCompositeType with PRODUCER_SURFACE_ENABLE state
+ * @tc.type: FUNC
+ * @tc.require: issueI614P1
+ */
+HWTEST_F(RSRenderServiceVisitorTest, UpdateScreenNodeCompositeTypeTest001, TestSize.Level1)
+{
+    constexpr NodeId nodeId = 400;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
+    auto rsContext = std::make_shared<RSContext>();
+    ScreenId screenId = 1;
+    auto node = std::make_shared<RSScreenRenderNode>(nodeId, screenId, rsContext);
+    EXPECT_NE(node, nullptr);
+
+    RSScreenProperty property;
+    property.Set<ScreenPropertyType::STATE>(static_cast<uint8_t>(ScreenState::PRODUCER_SURFACE_ENABLE));
+
+    rsRenderServiceVisitor->UpdateScreenNodeCompositeType(*node, property);
+
+    EXPECT_EQ(CompositeType::SOFTWARE_COMPOSITE, node->GetCompositeType());
+}
+
+/**
+ * @tc.name: UpdateScreenNodeCompositeTypeTest002
+ * @tc.desc: Test UpdateScreenNodeCompositeType with HDI_OUTPUT_ENABLE state without force soft composite
+ * @tc.type: FUNC
+ * @tc.require: issueI614P1
+ */
+HWTEST_F(RSRenderServiceVisitorTest, UpdateScreenNodeCompositeTypeTest002, TestSize.Level1)
+{
+    constexpr NodeId nodeId = 500;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
+    auto rsContext = std::make_shared<RSContext>();
+    ScreenId screenId = 1;
+    auto node = std::make_shared<RSScreenRenderNode>(nodeId, screenId, rsContext);
+    EXPECT_NE(node, nullptr);
+    node->SetForceSoftComposite(false);
+
+    RSScreenProperty property;
+    property.Set<ScreenPropertyType::STATE>(static_cast<uint8_t>(ScreenState::HDI_OUTPUT_ENABLE));
+
+    rsRenderServiceVisitor->UpdateScreenNodeCompositeType(*node, property);
+
+    EXPECT_EQ(CompositeType::HARDWARE_COMPOSITE, node->GetCompositeType());
+}
+
+/**
+ * @tc.name: UpdateScreenNodeCompositeTypeTest003
+ * @tc.desc: Test UpdateScreenNodeCompositeType with HDI_OUTPUT_ENABLE state with force soft composite
+ * @tc.type: FUNC
+ * @tc.require: issueI614P1
+ */
+HWTEST_F(RSRenderServiceVisitorTest, UpdateScreenNodeCompositeTypeTest003, TestSize.Level1)
+{
+    constexpr NodeId nodeId = 600;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
+    auto rsContext = std::make_shared<RSContext>();
+    ScreenId screenId = 1;
+    auto node = std::make_shared<RSScreenRenderNode>(nodeId, screenId, rsContext);
+    EXPECT_NE(node, nullptr);
+    node->SetForceSoftComposite(true);
+
+    RSScreenProperty property;
+    property.Set<ScreenPropertyType::STATE>(static_cast<uint8_t>(ScreenState::HDI_OUTPUT_ENABLE));
+
+    rsRenderServiceVisitor->UpdateScreenNodeCompositeType(*node, property);
+
+    EXPECT_EQ(CompositeType::SOFTWARE_COMPOSITE, node->GetCompositeType());
+}
+
+/**
+ * @tc.name: UpdateScreenNodeCompositeTypeTest004
+ * @tc.desc: Test UpdateScreenNodeCompositeType with unknown state
+ * @tc.type: FUNC
+ * @tc.require: issueI614P1
+ */
+HWTEST_F(RSRenderServiceVisitorTest, UpdateScreenNodeCompositeTypeTest004, TestSize.Level1)
+{
+    constexpr NodeId nodeId = 700;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
+    auto rsContext = std::make_shared<RSContext>();
+    ScreenId screenId = 1;
+    auto node = std::make_shared<RSScreenRenderNode>(nodeId, screenId, rsContext);
+    EXPECT_NE(node, nullptr);
+    node->SetCompositeType(CompositeType::HARDWARE_COMPOSITE);
+
+    RSScreenProperty property;
+    property.Set<ScreenPropertyType::STATE>(static_cast<uint8_t>(ScreenState::UNKNOWN));
+
+    rsRenderServiceVisitor->UpdateScreenNodeCompositeType(*node, property);
+
+    // Composite type should remain unchanged when state is unusual
+    EXPECT_EQ(CompositeType::HARDWARE_COMPOSITE, node->GetCompositeType());
+}
 } // namespace OHOS::Rosen
