@@ -303,6 +303,68 @@ ani_object AniFilter::GetPixelMap(ani_env* env, ani_object obj)
     return Media::PixelMapTaiheAni::CreateEtsPixelMap(env, thisFilter->GetDstPixelMap());
 }
 
+ani_object AniFilter::GetPixelMapAsync(ani_env* env, ani_object obj)
+{
+    AniFilter* thisFilter = AniEffectKitUtils::GetFilterFromEnv(env, obj);
+    if (!thisFilter) {
+        EFFECT_LOG_E("[GetPixelMapAsync] thisFilter is null");
+        return AniEffectKitUtils::CreateAniUndefined(env);
+    }
+
+    // Create a Promise object
+    ani_value promise = nullptr;
+    ani_value resolveFunc = nullptr;
+    ani_value rejectFunc = nullptr;
+    if (env->Promise_Create(&promise, &resolveFunc, &rejectFunc) != ANI_OK) {
+        EFFECT_LOG_E("[GetPixelMapAsync] Failed to create Promise");
+        return AniEffectKitUtils::CreateAniUndefined(env);
+    }
+
+    // Store the Promise functions
+    std::unique_ptr<ani_value> promiseHolder(&promise);
+    std::unique_ptr<ani_value> resolveFuncHolder(&resolveFunc);
+    std::unique_ptr<ani_value> rejectFuncHolder(&rejectFunc);
+
+    // For async implementation, we can use taskpool or similar mechanism
+    // For now, we'll implement synchronous rendering and resolve the promise
+    bool forceCpu = false;
+    if (thisFilter->Render(forceCpu) != DrawingError::ERR_OK) {
+        EFFECT_LOG_E("[GetPixelMapAsync] Render error");
+        // Reject the promise on error
+        ani_value errorObj = nullptr;
+        if (env->CreateObject(&errorObj) == ANI_OK) {
+            ani_value errorMsg = nullptr;
+            env->CreateStringUTF8("Render error", &errorMsg);
+            env->Object_SetPropertyByName(errorObj, "message", errorMsg);
+            ani_value errorArgs[1] = { errorObj };
+            env->CallFunction(rejectFunc, nullptr, errorArgs, 1, nullptr);
+        }
+        return promise;
+    }
+
+    // Resolve the promise with the result
+    ani_value pixelMapObj = Media::PixelMapTaiheAni::CreateEtsPixelMap(env, thisFilter->GetDstPixelMap());
+    ani_value resolveArgs[1] = { pixelMapObj };
+    env->CallFunction(resolveFunc, nullptr, resolveArgs, 1, nullptr);
+
+    return promise;
+}
+
+ani_object AniFilter::GetEffectPixelMapSync(ani_env* env, ani_object obj, ani_boolean useCpuRender)
+{
+    AniFilter* thisFilter = AniEffectKitUtils::GetFilterFromEnv(env, obj);
+    bool forceCpu = useCpuRender;
+    if (!thisFilter) {
+        EFFECT_LOG_E("[GetEffectPixelMapSync] thisFilter is null");
+        return AniEffectKitUtils::CreateAniUndefined(env);
+    }
+    if (thisFilter->Render(forceCpu) != DrawingError::ERR_OK) {
+        EFFECT_LOG_E("[GetEffectPixelMapSync] Render error");
+        return AniEffectKitUtils::CreateAniUndefined(env);
+    }
+    return Media::PixelMapTaiheAni::CreateEtsPixelMap(env, thisFilter->GetDstPixelMap());
+}
+
 ani_object AniFilter::CreateEffectFromPtr(ani_env* env, std::shared_ptr<Media::PixelMap> pixelMap)
 {
     if (!pixelMap) {
@@ -399,6 +461,10 @@ ani_status AniFilter::Init(ani_env* env)
             reinterpret_cast<void*>(OHOS::Rosen::AniFilter::SetColorMatrix) },
         ani_native_function { "getPixelMapNative", ":C{@ohos.multimedia.image.image.PixelMap}",
             reinterpret_cast<void*>(OHOS::Rosen::AniFilter::GetPixelMap) },
+        ani_native_function { "getPixelMapAsyncNative", nullptr,
+            reinterpret_cast<void*>(OHOS::Rosen::AniFilter::GetPixelMapAsync) },
+        ani_native_function { "getEffectPixelMapSyncNative", "z:C{@ohos.multimedia.image.image.PixelMap}",
+            reinterpret_cast<void*>(OHOS::Rosen::AniFilter::GetEffectPixelMapSync) },
     };
     ani_status ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
