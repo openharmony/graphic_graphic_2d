@@ -3508,6 +3508,71 @@ HWTEST_F(RSClientToServiceConnectionStubTest, NotifyTouchEventTest001, TestSize.
 }
 
 /**
+ * @tc.name: UpdateHgmSurfaceTime001
+ * @tc.desc: Test UpdateHgmSurfaceTime with xweb framework node
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, UpdateHgmSurfaceTime001, TestSize.Level1)
+{
+    std::string frameworkType = "oh_xweb_1";
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(MakeNodeId(1, 1), mainThread->context_);
+    auto surfaceNode2 = std::make_shared<RSSurfaceRenderNode>(MakeNodeId(2, 2), mainThread->context_);
+    ASSERT_NE(surfaceNode, nullptr);
+    ASSERT_NE(surfaceNode2, nullptr);
+    surfaceNode->GetRSSurfaceHandler()->SetConsumer(IConsumerSurface::Create("SurfaceNode"));
+
+    auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
+    auto surfaceHandler2 = surfaceNode2->GetMutableRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler, nullptr);
+    ASSERT_NE(surfaceHandler2, nullptr);
+    surfaceHandler2->consumer_ = nullptr;
+
+    auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+    bool voterTouchEffective = frameRateMgr->voterTouchEffective_;
+    frameRateMgr->surfaceData_.clear();
+    HgmCore::Instance().hgmFrameRateMgr_ = nullptr;
+    mainThread->UpdateHgmSurfaceTime(surfaceHandler, surfaceNode);
+
+    frameRateMgr->voterTouchEffective_ = true;
+    HgmCore::Instance().hgmFrameRateMgr_ = frameRateMgr;
+    mainThread->UpdateHgmSurfaceTime(surfaceHandler2, surfaceNode2);
+    EXPECT_EQ(frameRateMgr->surfaceData_.size(), 0);
+
+    auto consumer = surfaceHandler->GetConsumer();
+    ASSERT_NE(consumer, nullptr);
+
+    consumer->SetSurfaceSourceType(OH_SURFACE_SOURCE_GAME);
+    mainThread->UpdateHgmSurfaceTime(surfaceHandler, surfaceNode);
+    EXPECT_EQ(frameRateMgr->surfaceData_.size(), 0);
+
+    consumer->SetSurfaceSourceType(OH_SURFACE_SOURCE_CAMERA);
+    mainThread->UpdateHgmSurfaceTime(surfaceHandler, surfaceNode);
+    EXPECT_EQ(frameRateMgr->surfaceData_.size(), 0);
+
+    consumer->SetSurfaceSourceType(OH_SURFACE_SOURCE_VIDEO);
+    mainThread->UpdateHgmSurfaceTime(surfaceHandler, surfaceNode);
+    EXPECT_EQ(frameRateMgr->surfaceData_.size(), 0);
+
+    consumer->SetSurfaceSourceType(OH_SURFACE_SOURCE_DEFAULT);
+    mainThread->UpdateHgmSurfaceTime(surfaceHandler, surfaceNode);
+    EXPECT_EQ(frameRateMgr->surfaceData_.size(), 1);
+    const auto& [surfaceName1, id1, type1] = frameRateMgr->surfaceData_[frameRateMgr->surfaceData_.size() - 1];
+    EXPECT_NE(surfaceName1, frameworkType);
+
+    consumer->SetSurfaceAppFrameworkType(frameworkType);
+    mainThread->UpdateHgmSurfaceTime(surfaceHandler, surfaceNode);
+    EXPECT_EQ(frameRateMgr->surfaceData_.size(), 2);
+    const auto& [surfaceName2, id2, type2] = frameRateMgr->surfaceData_[frameRateMgr->surfaceData_.size() - 1];
+    EXPECT_EQ(surfaceName2, frameworkType);
+
+    frameRateMgr->voterTouchEffective_ = voterTouchEffective;
+}
+
+/**
  * @tc.name: RegisterSharedTypefaceTest001
  * @tc.desc: Test RegisterSharedTypeface
  * @tc.type: FUNC
