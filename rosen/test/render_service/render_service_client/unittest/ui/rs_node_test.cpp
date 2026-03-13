@@ -5467,6 +5467,52 @@ HWTEST_F(RSNodeTest, SetParticleParams, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetParticleParamsWithUIContext
+ * @tc.desc: test SetParticleParams with RSUIContext for multi-instance token
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetParticleParamsWithUIContext, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_TRUE(rsNode != nullptr);
+
+    // create RSUIDirector and init with multi-instance to get a valid RSUIContext
+    auto uiDirector = RSUIDirector::Create();
+    uiDirector->Init(false, true);
+    auto rsUIContext = uiDirector->GetRSUIContext();
+    ASSERT_TRUE(rsUIContext != nullptr);
+    rsNode->rsUIContext_ = rsUIContext;
+
+    ParticleParams params;
+    std::vector<ParticleParams> particleParams;
+    particleParams.push_back(params);
+    std::function<void()> finishCallback = []() {};
+    rsNode->SetParticleParams(particleParams, finishCallback);
+    EXPECT_FALSE(particleParams.empty());
+}
+
+/**
+ * @tc.name: SetParticleParamsWithoutUIContext
+ * @tc.desc: test SetParticleParams without RSUIContext (rsUIContext_ is nullptr)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetParticleParamsWithoutUIContext, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_TRUE(rsNode != nullptr);
+
+    // rsUIContext_ is nullptr by default, should log error but not crash
+    rsNode->rsUIContext_ = nullptr;
+
+    ParticleParams params;
+    std::vector<ParticleParams> particleParams;
+    particleParams.push_back(params);
+    std::function<void()> finishCallback = []() {};
+    rsNode->SetParticleParams(particleParams, finishCallback);
+    EXPECT_FALSE(particleParams.empty());
+}
+
+/**
  * @tc.name: SetParticleDrawRegion
  * @tc.desc: test results of SetParticleDrawRegion
  * @tc.type: FUNC

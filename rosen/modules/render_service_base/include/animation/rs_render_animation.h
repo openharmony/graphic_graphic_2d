@@ -219,6 +219,11 @@ protected:
 
     void FinishOnCurrentPosition();
 
+    void SetToken(uint64_t token)
+    {
+        token_ = token;
+    }
+
     RSAnimationFraction animationFraction_;
 
     // calculateAnimationValue_ is embedded modify for stat animate frame drop
@@ -243,11 +248,6 @@ private:
     bool GetRepeatCallbackEnable() const
     {
         return animationFraction_.GetRepeatCallbackEnable();
-    }
-
-    void SetToken(uint64_t token)
-    {
-        token_ = token;
     }
 
     AnimationId id_ = 0;

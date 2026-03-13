@@ -1687,6 +1687,13 @@ void RSNode::SetParticleParams(std::vector<ParticleParams>& particleParams, cons
     }
     auto animation =
         std::make_shared<RSRenderParticleAnimation>(animationId, propertyId, std::move(particlesRenderParams));
+    // set token to RSRenderParticleAnimation
+    if (rsUIContext_ != nullptr) {
+        animation->SetParticleAnimationToken(rsUIContext_->GetToken());
+    } else {
+        ROSEN_LOGE("multi-instance, RSNode [%{public}" PRIu64 "] without RSUIContext "
+            "when creating particle animation [%{public}" PRIu64 "]", GetId(), animationId);
+    }
     ModifierId modifierId = ModifierNG::RSModifier::GenerateModifierId();
     std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCreateParticleNG>(GetId(), modifierId, animation);
     AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
