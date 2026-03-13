@@ -499,6 +499,7 @@ void RSPropertyDrawableUtils::BeginForegroundFilter(RSPaintFilterCanvas& canvas,
     canvas.RemoveAll();
     canvas.AddCanvas(offscreenCanvas.get());
     canvas.SetEffectData(offscreenCanvas->GetEffectData());
+    canvas.SetFilterClipBounds(offscreenCanvas->GetFilterClipBounds());
 }
 
 void RSPropertyDrawableUtils::DrawForegroundFilter(RSPaintFilterCanvas& canvas,
