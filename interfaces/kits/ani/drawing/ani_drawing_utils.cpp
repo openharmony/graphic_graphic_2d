@@ -226,7 +226,10 @@ bool GetColor4fFromAniColor4fObj(ani_env* env, ani_object obj, Drawing::Color4f 
     }
 
     ani_boolean isColorClass;
-    env->Object_InstanceOf(obj, colorCls, &isColorClass);
+    if (env->Object_InstanceOf(obj, colorCls, &isColorClass) != ANI_OK) {
+        ROSEN_LOGE("Object_InstanceOf failed");
+        return false;
+    }
 
     if (!isColorClass) {
         return false;
@@ -271,7 +274,10 @@ bool GetValueFromAniRectObj(ani_env* env, ani_object obj, std::vector<double>& l
     }
 
     ani_boolean isRectClass;
-    env->Object_InstanceOf(obj, rectCls, &isRectClass);
+    if (env->Object_InstanceOf(obj, rectCls, &isRectClass) != ANI_OK) {
+        ROSEN_LOGE("Object_InstanceOf failed");
+        return false;
+    }
     if (!isRectClass) {
         return false;
     }
@@ -340,7 +346,10 @@ bool GetColorQuadFromColorObj(ani_env* env, ani_object obj, Drawing::ColorQuad &
     }
 
     ani_boolean isColorClass;
-    env->Object_InstanceOf(obj, colorCls, &isColorClass);
+    if (env->Object_InstanceOf(obj, colorCls, &isColorClass) != ANI_OK) {
+        ROSEN_LOGE("Object_InstanceOf failed");
+        return false;
+    }
 
     if (!isColorClass) {
         return false;
@@ -380,7 +389,10 @@ bool GetColorQuadFromParam(ani_env* env, ani_object obj, Drawing::ColorQuad &col
         return false;
     }
     ani_boolean isInt;
-    env->Object_InstanceOf(obj, intClass, &isInt);
+    if (env->Object_InstanceOf(obj, intClass, &isInt) != ANI_OK) {
+        ROSEN_LOGE("Object_InstanceOf failed");
+        return false;
+    }
     if (isInt) {
         ani_int aniColor;
         if (ANI_OK != env->Object_CallMethod_Int(obj, AniGlobalMethod::GetInstance().intGet, &aniColor)) {
@@ -422,7 +434,10 @@ bool GetRectFromAniRectObj(ani_env* env, ani_object obj, Drawing::Rect& rect)
     }
 
     ani_boolean isRectClass;
-    env->Object_InstanceOf(obj, rectCls, &isRectClass);
+    if (env->Object_InstanceOf(obj, rectCls, &isRectClass) != ANI_OK) {
+        ROSEN_LOGE("Object_InstanceOf failed");
+        return false;
+    }
     if (!isRectClass) {
         return false;
     }
@@ -534,7 +549,10 @@ ani_status GetPointFromPointObj(ani_env* env, ani_object obj, Drawing::Point& po
         return ANI_NOT_FOUND;
     }
     ani_boolean isPoint;
-    env->Object_InstanceOf(obj, pointCls, &isPoint);
+    if (env->Object_InstanceOf(obj, pointCls, &isPoint) != ANI_OK) {
+        ROSEN_LOGE("Object_InstanceOf failed");
+        return ANI_ERROR;
+    }
     if (!isPoint) {
         return ANI_ERROR;
     }
@@ -580,7 +598,10 @@ bool CreatePointObjAndCheck(ani_env* env, const Drawing::Point& point, ani_objec
         ani_double(point.GetY())
     );
     ani_boolean isUndefined;
-    env->Reference_IsUndefined(obj, &isUndefined);
+    if (env->Reference_IsUndefined(obj, &isUndefined) != ANI_OK) {
+        ROSEN_LOGE("Reference_IsUndefined failed");
+        return false;
+    }
     return !isUndefined;
 }
 
@@ -610,7 +631,10 @@ bool GetPoint3FromPoint3dObj(ani_env* env, ani_object obj, Drawing::Point3& poin
         return false;
     }
     ani_boolean isPoint3dClass;
-    env->Object_InstanceOf(obj, point3dClass, &isPoint3dClass);
+    if (env->Object_InstanceOf(obj, point3dClass, &isPoint3dClass) != ANI_OK) {
+        ROSEN_LOGE("Object_InstanceOf failed");
+        return false;
+    }
     if (!isPoint3dClass) {
         ROSEN_LOGE("Get point3d object failed");
         return false;
@@ -651,7 +675,10 @@ bool GetPoint3FromPoint3dObj(ani_env* env, ani_object obj, Drawing::Point3& poin
 ani_object CreateAniUndefined(ani_env* env)
 {
     ani_ref aniRef;
-    env->GetUndefined(&aniRef);
+    if (env->GetUndefined(&aniRef) != ANI_OK) {
+        ROSEN_LOGE("GetUndefined failed");
+        return {};
+    }
     return static_cast<ani_object>(aniRef);
 }
 
@@ -677,7 +704,10 @@ ani_object CreateAniObject(ani_env* env, const ani_class cls, const ani_method c
 ani_object CreateAniNull(ani_env* env)
 {
     ani_ref aniRef;
-    env->GetNull(&aniRef);
+    if (env->GetNull(&aniRef) != ANI_OK) {
+        ROSEN_LOGE("GetNull failed");
+        return {};
+    }
     return static_cast<ani_object>(aniRef);
 }
 

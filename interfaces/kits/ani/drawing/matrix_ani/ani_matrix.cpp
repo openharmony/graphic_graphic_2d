@@ -580,7 +580,10 @@ void AniMatrix::SetMatrixWithObject(ani_env* env, ani_object obj, ani_object mat
     }
 
     ani_boolean isMatrix;
-    env->Object_InstanceOf(matrixArrayObj, matrixClass, &isMatrix);
+    if (env->Object_InstanceOf(matrixArrayObj, matrixClass, &isMatrix) != ANI_OK) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "invalid params.");
+        return;
+    }
     if (isMatrix) {
         return aniMatrix->OnSetMatrix(env, obj, matrixArrayObj);
     }
