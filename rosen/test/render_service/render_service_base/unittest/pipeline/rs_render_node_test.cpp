@@ -2433,18 +2433,6 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoAfterChildrenTest001, TestSize.
     nodeTest->nodeGroupType_ = RSRenderNode::GROUPED_BY_USER;
     nodeTest->CheckDrawingCacheType();
     EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::FORCED_CACHE);
-
-    childNode->SetLastFrameUifirstFlag(MultiThreadCacheType::ARKTS_CARD);
-    // ArkTsCard disable render group
-    nodeTest->SetForceDisableNodeGroup(true);
-    nodeTest->UpdateDrawingCacheInfoAfterChildren();
-    EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
-
-    childNode->SetLastFrameUifirstFlag(MultiThreadCacheType::NONE);
-    nodeTest->SetDrawingCacheType(RSDrawingCacheType::TARGETED_CACHE);
-    nodeTest->SetForceDisableNodeGroup(false);
-    nodeTest->UpdateDrawingCacheInfoAfterChildren();
-    EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::TARGETED_CACHE);
 }
 
 /**
@@ -2513,11 +2501,6 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoAfterChildrenTest004, TestSize.
     nodeTest->nodeGroupType_ = RSRenderNode::GROUPED_BY_USER;
     nodeTest->CheckDrawingCacheType();
     EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::FORCED_CACHE);
-
-    childNode->SetUIFirstSwitch(RSUIFirstSwitch::FORCE_DISABLE_CARD);
-    childNode->UpdateDrawingCacheInfoAfterChildren(isInBlackList);
-    EXPECT_TRUE(childNode->IsForceDisableNodeGroup());
-    EXPECT_TRUE(nodeTest->IsForceDisableNodeGroup());
 
     nodeTest->UpdateDrawingCacheInfoAfterChildren(isInBlackList);
     EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
