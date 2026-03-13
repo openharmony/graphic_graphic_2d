@@ -25,6 +25,9 @@
 #include <unistd.h>
 
 #include "dfx/rs_service_dump_manager.h"
+#ifdef RS_CAR_FEATURES
+#include "rs_car_multi_display_feature_param.h"
+#endif
 #include "gfx/fps_info/rs_surface_fps_manager.h"
 #include "hgm_core.h"
 #include "parameter.h"
@@ -116,6 +119,10 @@ void RSRenderService::InitCCMConfig()
 {
     // feature param parse
     GraphicFeatureParamManager::GetInstance().Init();
+
+#ifdef RS_CAR_FEATURES
+    RSCarMultiDisplayFeatureParam::Load();
+#endif
 }
 
 void RSRenderService::CoreComponentsInit()
@@ -327,6 +334,13 @@ sptr<IRemoteObject> RSRenderService::ScreenManagerListener::OnScreenConnected(Sc
     RS_LOGD("%{public}s: rsScreenProperty.id[%{public}" PRIu64 "] .width[%{public}d] .height[%{public}d]",
         __func__, property->GetScreenId(), property->GetWidth(), property->GetHeight());
     renderService_.rsRenderComposerManager_->OnScreenConnected(output, property);
+#ifdef RS_CAR_FEATURES
+    if (RSCarMultiDisplayFeatureParam::IsCrossDomainFeatureEnable() &&
+        RSCarMultiDisplayFeatureParam::IsScreenInCrossDomain(screenId)) {
+        renderService_.rsRenderComposerManager_->SetAFBCEnabled(screenId, false);
+        RS_LOGI("%{public}s: ScreenId[%{public}" PRIu64 "] SetAFBCEnabled[false]", __func__, screenId);
+    }
+#endif
     if (const auto& hgmContext = renderService_.GetHgmContext()) {
         hgmContext->AddScreenToHgm(property);
     }

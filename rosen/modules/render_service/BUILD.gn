@@ -467,6 +467,13 @@ ohos_shared_library("librender_service") {
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
   ]
 
+  # car features
+  if (defined(graphic_2d_car_features_configs.car_features_root)) {
+    defines += [ "RS_CAR_FEATURES" ]
+    sources += graphic_2d_car_features_configs.librender_service_ext_car_features_sources
+    include_dirs += graphic_2d_car_features_configs.librender_service_ext_car_features_includes
+  }
+
   if (graphic_2d_feature_subtree_parallel_enable && defined(graphic_2d_subtree_configs.subtree_root)) {
     include_dirs += graphic_2d_subtree_configs.librender_service_subtree_include
   }

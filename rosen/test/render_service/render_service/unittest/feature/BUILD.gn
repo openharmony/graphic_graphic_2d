@@ -1418,6 +1418,20 @@ ohos_unittest("RSChipsetVsyncTest") {
   ]
 }
 
+##Build RSCarMultiDisplayFeatureParamTest
+ohos_unittest("RSCarMultiDisplayFeatureParamTest") {
+  module_out_path = module_output_path
+  if (defined(graphic_2d_car_features_configs.car_features_root)) {
+    sources = graphic_2d_car_features_configs.librender_service_ext_car_features_test
+    include_dirs += graphic_2d_car_features_configs.librender_service_ext_car_features_includes
+  }
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
+}
+
 ## Build RSUniHwcEventManagerTest
 ohos_unittest("RSUniHwcEventManagerTest") {
   module_out_path = module_output_path

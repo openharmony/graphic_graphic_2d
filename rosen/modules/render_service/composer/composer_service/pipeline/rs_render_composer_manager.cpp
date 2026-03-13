@@ -301,5 +301,24 @@ void RSRenderComposerManager::HandlePowerStatus(ScreenId screenId, ScreenPowerSt
     }
     renderComposerAgent->HandlePowerStatus(status);
 }
+
+void RSRenderComposerManager::SetAFBCEnabled(ScreenId screenId, bool enabled)
+{
+    std::shared_ptr<RSRenderComposerAgent> renderComposerAgent;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        auto iter = rsRenderComposerAgentMap_.find(screenId);
+        if (iter == rsRenderComposerAgentMap_.end()) {
+            RS_LOGE("%{public}s not find screenId:%{public}" PRIu64, __func__, screenId);
+            return;
+        }
+        renderComposerAgent = iter->second;
+    }
+    if (renderComposerAgent == nullptr) {
+        RS_LOGE("%{public}s renderComposerAgent is null, screenId:%{public}" PRIu64, __func__, screenId);
+        return;
+    }
+    renderComposerAgent->SetAFBCEnabled(enabled);
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -1494,6 +1494,28 @@ HWTEST_F(RsRenderComposerTest, CreateFrameBufferSurfaceOhos, TestSize.Level1)
 }
 
 /**
+ * Function: SetAFBCEnabled
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer
+ *                  2. call SetAFBCEnabled
+ *                  3. verify result
+ */
+HWTEST_F(RsRenderComposerTest, SetAFBCEnabled, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(0u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
+
+    rsRenderComposerTmp->SetAFBCEnabled(false);
+    ASSERT_EQ(rsRenderComposerTmp->enableAFBC_, false);
+    rsRenderComposerTmp->SetAFBCEnabled(true);
+    ASSERT_EQ(rsRenderComposerTmp->enableAFBC_, true);
+}
+
+/**
  * Function: Redraw001
  * Type: Function
  * Rank: Important(2)
@@ -1555,6 +1577,10 @@ HWTEST_F(RsRenderComposerTest, Redraw001, TestSize.Level1)
     rsRenderComposerTmp->hdiOutput_ = nullptr;
     rsRenderComposerTmp->Redraw(psurface, layers);
     rsRenderComposerTmp->hdiOutput_ = hdiOutput;
+
+    rsRenderComposerTmp->SetAFBCEnabled(false);
+    rsRenderComposerTmp->Redraw(psurface, layers);
+    rsRenderComposerTmp->SetAFBCEnabled(true);
 }
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE

@@ -226,6 +226,11 @@ void RSRenderComposer::HandlePowerStatus(ScreenPowerStatus status)
     PostTask([this, status]() { hgmHardwareUtils_->ResetRetryCount(status); });
 }
 
+void RSRenderComposer::SetAFBCEnabled(bool enabled)
+{
+    enableAFBC_ = enabled;
+}
+
 void PrintHiperfSurfaceLog(const std::string& counterContext, uint64_t counter)
 {
 #ifdef HIPERF_TRACE_ENABLE
@@ -931,7 +936,7 @@ void RSRenderComposer::Redraw(const sptr<Surface>& surface, const std::vector<st
     FrameContextConfig frameContextConfig = FrameContextConfig(isProtected);
     std::lock_guard<std::mutex> ohosSurfaceLock(surfaceMutex_);
     auto renderFrame = uniRenderEngine_->RequestFrame(frameBufferSurfaceOhos, renderFrameConfig,
-        forceCPU, true, frameContextConfig);
+        forceCPU, enableAFBC_, frameContextConfig);
     if (renderFrame == nullptr) {
         RS_LOGE("RsDebug Redraw failed to request frame.");
         return;

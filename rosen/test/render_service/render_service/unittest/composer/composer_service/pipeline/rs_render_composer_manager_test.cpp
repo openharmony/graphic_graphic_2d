@@ -717,5 +717,56 @@ HWTEST_F(RsRenderComposerManagerTest, HandlePowerStatus_InvalidScreenId, TestSiz
     auto agent = mgr->rsRenderComposerAgentMap_.find(113);
     EXPECT_EQ(agent, mgr->rsRenderComposerAgentMap_.end());
 }
+
+/**
+ * Function: SetAFBCEnabledWithRenderComposerAgentNull
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposerManager
+ *                  2. set renderComposerAgent Null, call SetAFBCEnabled
+ *                  3. verify function returns early
+ */
+HWTEST_F(RsRenderComposerManagerTest, SetAFBCEnabledWithRenderComposerAgentNull, TestSize.Level1)
+{
+    std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
+    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>(handler, nullptr);
+
+    ScreenId screenId = 0;
+    mgr->rsRenderComposerAgentMap_[screenId] = nullptr;
+
+    mgr->SetAFBCEnabled(screenId, true);
+    auto agent = mgr->rsRenderComposerAgentMap_.find(screenId);
+    EXPECT_NE(agent, mgr->rsRenderComposerAgentMap_.end());
+}
+
+/**
+ * Function: SetAFBCEnabledWithRenderComposerAgent
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposerManager and valid renderComposer
+ *                  2. call SetAFBCEnabled with invalid screenId and valid id
+ *                  3. verify function returns
+ */
+HWTEST_F(RsRenderComposerManagerTest, SetAFBCEnabledWithRenderComposerAgent, TestSize.Level1)
+{
+    std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
+    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>(handler, nullptr);
+
+    ScreenId screenId = 0;
+    auto output = std::make_shared<HdiOutput>(screenId);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    std::shared_ptr<RSRenderComposer> rsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
+    auto agent = std::make_shared<RSRenderComposerAgent>(rsRenderComposer);
+    mgr->rsRenderComposerAgentMap_[screenId] = agent;
+
+    mgr->SetAFBCEnabled(9999, true);
+    EXPECT_EQ(mgr->rsRenderComposerAgentMap_.find(9999), mgr->rsRenderComposerAgentMap_.end());
+
+    mgr->SetAFBCEnabled(screenId, true);
+    EXPECT_NE(mgr->rsRenderComposerAgentMap_.find(screenId), mgr->rsRenderComposerAgentMap_.end());
+}
 } // namespace Rosen
 } // namespace OHOS

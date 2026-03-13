@@ -371,5 +371,22 @@ void RSRenderComposerAgent::PreAllocProtectedFrameBuffers(const sptr<SurfaceBuff
         });
     }
 }
+
+void RSRenderComposerAgent::SetAFBCEnabled(bool enabled)
+{
+    if (rsRenderComposer_ == nullptr) {
+        return;
+    }
+    std::weak_ptr<RSRenderComposerAgent> weakThis = shared_from_this();
+    rsRenderComposer_->PostSyncTask(
+        [weakThis, enabled]() {
+            std::shared_ptr<RSRenderComposerAgent> renderComposerAgent = weakThis.lock();
+            if (renderComposerAgent == nullptr || renderComposerAgent->rsRenderComposer_ == nullptr) {
+                return;
+            }
+            renderComposerAgent->rsRenderComposer_->SetAFBCEnabled(enabled);
+        }
+    );
+}
 } // namespace Rosen
 } // namespace OHOS

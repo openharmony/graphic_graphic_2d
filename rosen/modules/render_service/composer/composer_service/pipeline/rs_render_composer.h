@@ -83,6 +83,7 @@ protected:
     void RefreshRateCounts(std::string& dumpString);
     void ClearRefreshRateCounts(std::string& dumpString);
     void HandlePowerStatus(ScreenPowerStatus status);
+    void SetAFBCEnabled(bool enabled);
     int64_t GetDelayTime() const;
 
 private:
@@ -167,6 +168,7 @@ private:
     sptr<RSVsyncManagerAgent> rsVsyncManagerAgent_ = nullptr;
     bool isDisconnected_ = false;
     bool isHwcDead_ = false;
+    bool enableAFBC_ = true;
     friend class RSRenderComposerAgent;
 };
 } // namespace OHOS::Rosen

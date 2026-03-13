@@ -844,5 +844,66 @@ HWTEST_F(RsRenderComposerAgentTest, MultipleMethodsSetNullDuringExecution, TestS
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 }
 
+/**
+ * Function: SetAFBCEnabled_AgentNotNull_ComposerNull001
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposerAgent with valid RSRenderComposer
+ *                  2. set composer to null and call methods
+ *                  3. verify early return handling
+ */
+HWTEST_F(RsRenderComposerAgentTest, SetAFBCEnabled_AgentNotNull_ComposerNull001, TestSize.Level1)
+{
+    auto agent = std::make_shared<RSRenderComposerAgent>(rsRenderComposer_);
+    ASSERT_NE(agent->rsRenderComposer_, nullptr);
+    agent->rsRenderComposer_ = nullptr;
+    agent->SetAFBCEnabled(true);
+    EXPECT_NE(agent, nullptr);
+    EXPECT_EQ(agent->rsRenderComposer_, nullptr);
+}
+
+/**
+ * Function: SetAFBCEnabled_AgentNotNull_ComposerNull002
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposerAgent with valid RSRenderComposer
+ *                  2. call methods and set composer to null
+ *                  3. verify early return handling
+ */
+HWTEST_F(RsRenderComposerAgentTest, SetAFBCEnabled_AgentNotNull_ComposerNull002, TestSize.Level1)
+{
+    auto agent = std::make_shared<RSRenderComposerAgent>(rsRenderComposer_);
+    ASSERT_NE(agent->rsRenderComposer_, nullptr);
+
+    agent->SetAFBCEnabled(false);
+
+    // Set rsRenderComposer_ to nullptr after task is posted
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    agent->rsRenderComposer_ = nullptr;
+
+    // The task should return early at line 159 without crash
+    // Line 385 condition: renderComposerAgent != nullptr && rsRenderComposer_ == nullptr -> true
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+}
+
+/**
+ * Function: SetAFBCEnabled_AgentNotNull_ComposerNotNull
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposerAgent with valid RSRenderComposer
+ *                  2. call methods
+ *                  3. verify early return handling
+ */
+HWTEST_F(RsRenderComposerAgentTest, SetAFBCEnabled_AgentNotNull_ComposerNotNull, TestSize.Level1)
+{
+    auto agent = std::make_shared<RSRenderComposerAgent>(rsRenderComposer_);
+    ASSERT_NE(agent->rsRenderComposer_, nullptr);
+    agent->SetAFBCEnabled(false);
+    EXPECT_EQ(agent->rsRenderComposer_->enableAFBC_, false);
+}
+
 } // namespace Rosen
 } // namespace OHOS
