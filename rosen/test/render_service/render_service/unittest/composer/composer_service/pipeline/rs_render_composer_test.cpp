@@ -7819,7 +7819,7 @@ HWTEST_F(RsRenderComposerTest, RecordTimestampForAS001, TestSize.Level1)
     mgr->isAdaptive_.store(SupportASStatus::GAME_SCENE_SKIP);
     hgmHardwareUtil->RecordTimestampForAS(570000);
     ASSERT_TRUE(hgmHardwareUtil->asRecordRateParam_.frameTimestamps.empty());
-    ASSERT_EQ(hgmHardwareUtil->asRecordRateParam_.curIndex, 0);
+    ASSERT_EQ(hgmHardwareUtil->asRecordRateParam_.newIndex, 0);
     ASSERT_EQ(hgmHardwareUtil->asRecordRateParam_.highFpsFrameCount, 0);
     ASSERT_FALSE(mgr->asStateForFps_.load());
 }
