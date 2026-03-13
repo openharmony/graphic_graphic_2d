@@ -341,13 +341,9 @@ void RSEglImageManager::UnMapEglImageFromSurfaceBufferForUniRedraw(uint64_t seqN
 void RSEglImageManager::HandleDeletedBuffer(const sptr<SurfaceBuffer>& buffer)
 {
     if (buffer->IsBufferDeleted()) {
-        RS_LOGE("RSEglImageManager::HandleDeletedBuffer buffer_id %s marked for deletion from cache, unmapping",
+        RS_LOGE("RSEglImageManager::HandleDeletedBuffer buffer_id %{public}s marked for deletion from cache, unmapping",
             std::to_string(buffer->GetBufferId()).c_str());
         UnMapImageFromSurfaceBuffer(buffer->GetBufferId());
-        if ((buffer->GetBufferDeletedFlag() & BufferDeletedFlag::DELETED_FROM_CACHE) !=
-            static_cast<BufferDeletedFlag>(0)) {
-            buffer->ClearBufferDeletedFlag(BufferDeletedFlag::DELETED_FROM_CACHE);
-        }
     }
 }
 
