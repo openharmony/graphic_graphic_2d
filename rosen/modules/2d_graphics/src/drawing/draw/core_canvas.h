@@ -479,7 +479,7 @@ public:
      * @param font Typeface, font size, skew or more other styles
      */
     virtual void DrawGlyphs(int count, const uint16_t glyphs[], const Point positions[],
-                            Point origin, const Font* font)
+                            Point origin, const Font* font);
 
     /**
      * @brief blob contains glyphs, their positions, and paint attributes specific to text:

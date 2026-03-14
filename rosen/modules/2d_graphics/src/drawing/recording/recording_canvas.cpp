@@ -408,7 +408,7 @@ void RecordingCanvas::DrawPicture(const Picture& picture)
     cmdList_->AddDrawOp<DrawPictureOpItem::ConstructorHandle>(pictureHandle);
 }
 
-void RecordingCanvas::DrawGlyphs(int count, const uint16_t glyphs[], const  Point pts[],
+void RecordingCanvas::DrawGlyphs(int count, const uint16_t glyphs[], const Point pts[],
                                  Point origin, const Font* font)
 {
     static uint64_t shiftedPid = static_cast<uint64_t>(GetRealPid()) << 32;

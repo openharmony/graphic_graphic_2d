@@ -904,7 +904,7 @@ class DrawGlyphsOpItem : public DrawWithPaintOpItem {
 public:
     struct ConstructorHandle : public OpItem {
         ConstructorHandle(const std::pair<size_t, size_t>& glyphs, const std::pair<size_t, size_t>& positions,
-                          const Point& origin, const OpFontrHandle& font, const uint64_t& globalUniqueId,
+                          const Point& origin, const OpFontHandle& font, const uint64_t& globalUniqueId,
                           const PaintHandle& paintHandle)
             : OpItem(DrawOpItem::GLYPHS_OPITEM), glyphs(glyphs), positions(positions),
               origin(origin), font(font), globalUniqueId(globalUniqueId),
@@ -914,14 +914,14 @@ public:
         std::pair<size_t, size_t> glyphs;
         std::pair<size_t, size_t> positions;
         Point origin;
-        OpFontrHandle font;
+        OpFontHandle font;
         uint64_t globalUniqueId;
         PaintHandle paintHandle;
     };
     DrawGlyphsOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
     DrawGlyphsOpItem(const std::vector<uint16_t>& glyphs, const std::vector<Point>& positions,
                      const Point& origin, const Font* font, const Paint& paint)
-        : DrawWithPaintOpItem(paint, DrawOpItem::GLYPHS_OPITEM), glyphs_(glyphs), positions_(position),
+        : DrawWithPaintOpItem(paint, DrawOpItem::GLYPHS_OPITEM), glyphs_(glyphs), positions_(positions),
           origin_(origin), font_(std::make_shared<Font>(*font)), globalUniqueId_(0) {}
     ~DrawGlyphsOpItem() override = default;
 
@@ -933,7 +933,7 @@ private:
     std::vector<uint16_t> glyphs_;
     std::vector<Point> positions_;
     Point origin_;
-    std_shared_ptr<Font> font_;
+    std::shared_ptr<Font> font_;
     uint64_t globalUniqueId_;
 };
 
