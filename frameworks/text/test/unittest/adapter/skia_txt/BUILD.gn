@@ -22,9 +22,11 @@ ohos_unittest("rosen_text_adapt_test") {
   sources = [
     "convert_test.cpp",
     "font_collection_test.cpp",
+    "placeholder_run_test.cpp",
     "run_test.cpp",
     "style_copy_test.cpp",
     "text_line_base_test.cpp",
+    "text_style_branch_test.cpp",
     "typography_character_index_test.cpp",
     "typography_create_test.cpp",
     "typography_ellipsis_test.cpp",

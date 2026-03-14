@@ -24,6 +24,7 @@
 #include "drawable/rs_render_node_drawable_adapter.h"
 #include "memory/rs_memory_track.h"
 #include "pipeline/rs_render_node.h"
+#include "pipeline/rs_surface_handler.h"
 #include "property/rs_properties.h"
 #include "screen_manager/screen_types.h"
 #include "utils/matrix.h"
@@ -57,6 +58,44 @@ typedef enum {
     RS_PARAM_OWNED_BY_DRAWABLE_UIFIRST,
     RS_PARAM_INVALID,
 } RSRenderParamsType;
+
+typedef enum {
+    SURFACE_FPS_DEFAULT,
+    SURFACE_FPS_ADD,
+    SURFACE_FPS_REMOVE,
+} SurfaceFpsOpType;
+
+struct SurfaceFpsOp {
+    uint32_t surfaceFpsOpType = 0;
+    NodeId surfaceNodeId = 0;
+    std::string surfaceName = "";
+    uint64_t uniqueId = 0;
+};
+
+struct PipelineParam {
+    uint64_t frameTimestamp = 0;
+    int64_t actualTimestamp = 0;
+    uint64_t fastComposeTimeStampDiff = 0;
+    uint64_t vsyncId = 0;
+    uint64_t pendingConstraintRelativeTime = 0;
+    uint32_t pendingScreenRefreshRate = 0;
+    bool isForceRefresh = false;
+    bool hasGameScene = false;
+    uint32_t SurfaceFpsOpNum = 0;
+    std::vector<SurfaceFpsOp> SurfaceFpsOpList;
+    bool hasLppVideo = false;
+
+    void ResetSurfaceFpsOp()
+    {
+        SurfaceFpsOpNum = 0;
+        SurfaceFpsOpList.clear();
+    }
+
+    uint32_t GetSurfaceFpsOpNum() const
+    {
+        return (SurfaceFpsOpNum < SurfaceFpsOpList.size()) ? SurfaceFpsOpNum : SurfaceFpsOpList.size();
+    }
+};
 
 class RSB_EXPORT RSRenderParams {
 public:
@@ -283,11 +322,6 @@ public:
     {
         return isDrawingCacheChanged_;
     }
-    void SetForceDisableNodeGroup(bool forceDisable);
-    bool IsForceDisableNodeGroup() const
-    {
-        return isForceDisableNodeGroup_;
-    }
     void SetNeedUpdateCache(bool needUpdateCache)
     {
         isNeedUpdateCache_ = needUpdateCache;
@@ -438,9 +472,11 @@ public:
 
     // overrided surface params
 #ifndef ROSEN_CROSS_PLATFORM
-    virtual void SetBuffer(const sptr<SurfaceBuffer>& buffer, const Rect& damageRect) {}
+    virtual void SetBuffer(const sptr<SurfaceBuffer>& buffer,
+        std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount, const Rect& damageRect) {}
     virtual sptr<SurfaceBuffer> GetBuffer() const { return nullptr; }
-    virtual void SetPreBuffer(const sptr<SurfaceBuffer>& preBuffer) {}
+    virtual void SetPreBuffer(const sptr<SurfaceBuffer>& preBuffer,
+        std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> preBufferOwnerCount) {}
     virtual sptr<SurfaceBuffer> GetPreBuffer() { return nullptr; }
     virtual void SetAcquireFence(const sptr<SyncFence>& acquireFence) {}
     virtual sptr<SyncFence> GetAcquireFence() const { return nullptr; }
@@ -448,6 +484,14 @@ public:
     {
         static const Rect defaultRect = {};
         return defaultRect;
+    }
+    virtual std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetBufferOwnerCount() const
+    {
+        return nullptr;
+    }
+    virtual std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetPreBufferOwnerCount() const
+    {
+        return nullptr;
     }
 #endif
     virtual const RSLayerInfo& GetLayerInfo() const;
@@ -542,10 +586,10 @@ public:
         hasUnobscuredUEC_ = flag;
     }
 
-    void SetVirtualScreenWhiteListInfo(const std::unordered_map<ScreenId, bool>& info);
-    const std::unordered_map<ScreenId, bool>& GetVirtualScreenWhiteListInfo() const
+    void SetScreensWithSubTreeWhitelist(const std::unordered_set<ScreenId>& screenIds);
+    const std::unordered_set<ScreenId>& GetScreensWithSubTreeWhitelist() const
     {
-        return hasVirtualScreenWhiteList_;
+        return screensWithSubTreeWhitelist_;
     }
 
     // [Attention] Only used in PC window resize scene now
@@ -554,6 +598,8 @@ public:
 
     void SetIsOnTheTree(bool isOnTheTree);
     bool GetIsOnTheTree() const;
+
+    void SwapRelatedRenderParams(RSRenderParams& relatedRenderParams);
 
 protected:
     bool needSync_ = false;
@@ -583,7 +629,6 @@ private:
     bool childHasVisibleFilter_ = false;
     bool hasSandBox_ = false;
     bool isDrawingCacheChanged_ = false;
-    bool isForceDisableNodeGroup_ = false;
     std::atomic_bool isNeedUpdateCache_ = false;
     bool drawingCacheIncludeProperty_ = false;
     bool isNodeGroupHasChildInBlacklist_ = false;
@@ -628,7 +673,7 @@ private:
     // used for DFX
     bool isOnTheTree_ = false;
 
-    std::unordered_map<ScreenId, bool> hasVirtualScreenWhiteList_;
+    std::unordered_set<ScreenId> screensWithSubTreeWhitelist_;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_RENDER_PARAMS_H

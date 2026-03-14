@@ -44,8 +44,14 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm* vm, uint32_t* result)
         EFFECT_LOG_E("[ANI_Constructor] Namespace_BindNativeFunctions failed");
         return ANI_ERROR;
     };
-    OHOS::Rosen::AniColorPicker::Init(env);
-    OHOS::Rosen::AniFilter::Init(env);
+    if (OHOS::Rosen::AniColorPicker::Init(env) != ANI_OK) {
+        EFFECT_LOG_E("[ANI_Constructor] AniColorPicker init failed");
+        return ANI_ERROR;
+    }
+    if (OHOS::Rosen::AniFilter::Init(env) != ANI_OK) {
+        EFFECT_LOG_E("[ANI_Constructor] AniFilter init failed");
+        return ANI_ERROR;
+    }
     *result = ANI_VERSION_1;
     return ANI_OK;
 }

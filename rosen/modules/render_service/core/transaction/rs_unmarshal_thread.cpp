@@ -107,9 +107,9 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
             ashmemFdWorker->PushFdsToContainer();
         }
         static thread_local int unmarshalTid = gettid();
-        RsFrameReport::GetInstance().ReportUnmarshalData(unmarshalTid, parcel->GetDataSize());
+        RsFrameReport::ReportUnmarshalData(unmarshalTid, parcel->GetDataSize());
         auto transData = RSBaseRenderUtil::ParseTransactionData(*parcel, parcelNumber);
-        RsFrameReport::GetInstance().ReportUnmarshalData(unmarshalTid, 0);
+        RsFrameReport::ReportUnmarshalData(unmarshalTid, 0);
         if (ashmemFdWorker) {
             // ashmem parcel fds will be closed in ~AshmemFdWorker() instead of ~MessageParcel()
             parcel->FlushBuffer();
@@ -266,8 +266,11 @@ bool RSUnmarshalThread::ReportTransactionDataStatistics(pid_t pid,
     }
 #ifdef RS_ENABLE_UNI_RENDER
     if (totalCount > TRANSACTION_DATA_KILL_COUNT && preCount <= TRANSACTION_DATA_KILL_COUNT) {
-        AAFwk::ExitReasonCompability exitReason{AAFwk::Reason::REASON_RESOURCE_CONTROL, "IPC_DATA_OVER_ERROR"};
-        exitReason.killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_RESOURCE_OVERLIMIT;
+        AAFwk::ExitReasonCompability exitReason{
+            AAFwk::Reason::REASON_RESOURCE_CONTROL,
+            "RS_TRANSACTION_DATA_OVERLIMIT"
+        };
+        exitReason.killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_RS_TRANSACTION_DATA_OVERLIMIT;
         int res = AAFwk::AbilityManagerClient::GetInstance()->KillAppWithReason(pid, exitReason);
         return res == ERR_OK;
     }

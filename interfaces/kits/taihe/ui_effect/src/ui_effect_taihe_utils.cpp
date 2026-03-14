@@ -189,8 +189,7 @@ bool ConvertVector4fFromAniRect(uintptr_t rect, OHOS::Rosen::Vector4f& values)
     }
     ani_object obj = reinterpret_cast<ani_object>(rect);
     ani_boolean isRectClass = false;
-    env->Object_InstanceOf(obj, rectClass, &isRectClass);
-    if (!isRectClass) {
+    if ((env->Object_InstanceOf(obj, rectClass, &isRectClass) != ANI_OK) || !isRectClass) {
         UIEFFECT_LOG_E("ConvertVector4fFromAniRect object is not a rect obj");
         return false;
     }

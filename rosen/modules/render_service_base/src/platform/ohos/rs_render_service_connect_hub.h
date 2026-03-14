@@ -17,12 +17,12 @@
 #define ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_RENDER_SERVICE_CONNECT_HUB_H
 
 #include <mutex>
-#include <platform/ohos/rs_irender_service.h>
 #include "platform/common/rs_log.h"
+#include "platform/ohos/transaction/zidl/rs_irender_service.h"
 
 namespace OHOS {
 namespace Rosen {
-using OnConnectCallback = std::function<void(sptr<RSIClientToServiceConnection>&)>;
+using OnConnectCallback = std::function<void(sptr<RSIClientToRenderConnection>&)>;
 class RSRenderServiceConnectHub : public RefBase {
 public:
     static std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> GetRenderService();
@@ -32,8 +32,8 @@ public:
     {
         onConnectCallback_ = cb;
         // if already connected, call the callback immediately
-        if (instance_ && instance_->conn_ && onConnectCallback_) {
-            onConnectCallback_(instance_->conn_);
+        if (instance_ && instance_->renderConn_ && onConnectCallback_) {
+            onConnectCallback_(instance_->renderConn_);
         }
     }
 

@@ -184,7 +184,6 @@ ohos_source_set("render_service_base_src") {
     "src/common/rs_occlusion_region_helper.cpp",
     "src/common/rs_rectangles_merger.cpp",
     "src/common/rs_special_layer_manager.cpp",
-    "src/common/rs_switching_thread.cpp",
     "src/common/rs_thread_handler_generic.cpp",
     "src/common/rs_thread_looper_generic.cpp",
     "src/common/rs_thread_looper_impl.cpp",
@@ -230,6 +229,8 @@ ohos_source_set("render_service_base_src") {
     "src/ipc_callbacks/screen_switching_notify_callback_stub.cpp",
     "src/ipc_callbacks/surface_capture_callback_proxy.cpp",
     "src/ipc_callbacks/surface_capture_callback_stub.cpp",
+    "src/ipc_callbacks/dfx/rs_dump_callback_proxy.cpp",
+    "src/ipc_callbacks/dfx/rs_dump_callback_stub.cpp",
 
     #ipc_security
     "src/ipc_security/rs_ipc_interface_code_access_verifier_base.cpp",
@@ -392,12 +393,14 @@ ohos_source_set("render_service_base_src") {
     "src/feature/image_detail_enhancer/rs_image_detail_enhancer_thread.cpp",
     "src/feature/opinc/rs_opinc_cache.cpp",
     "src/feature/opinc/rs_opinc_manager.cpp",
+    "src/feature/power_off_render_skip/rs_power_off_render_controller.cpp",
     "src/feature/render_group/rs_render_group_cache.cpp",
     "src/feature/single_frame_composer/rs_single_frame_composer.cpp",
     "src/feature/capture/rs_capture_pixelmap_manager.cpp",
     "src/feature/window_keyframe/rs_window_keyframe_node_command.cpp",
     "src/feature/window_keyframe/rs_window_keyframe_render_node.cpp",
     "src/feature/buffer_reclaim/rs_buffer_reclaim.cpp",
+    "src/feature/uifirst/rs_frame_control.cpp",
 
     #dirty_region
     "src/dirty_region/rs_filter_dirty_collector.cpp",

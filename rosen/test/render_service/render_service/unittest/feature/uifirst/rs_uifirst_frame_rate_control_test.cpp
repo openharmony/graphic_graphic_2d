@@ -502,6 +502,8 @@ HWTEST_F(RSUifirstFrameRateControlTest, SubThreadFrameDropDecisionTest, TestSize
     RSSurfaceRenderNode node(config);
     RSUifirstFrameRateControl control;
     EXPECT_EQ(control.SubThreadFrameDropDecision(node), false);
+    node.firstLevelNodeId_ = 1;
+    EXPECT_EQ(control.SubThreadFrameDropDecision(node), false);
     EXPECT_EQ(control.NeedRSUifirstControlFrameDrop(node), false);
 }
 

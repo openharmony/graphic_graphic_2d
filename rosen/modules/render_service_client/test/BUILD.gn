@@ -622,6 +622,7 @@ ohos_executable("rs_interface_stable_demo") {
     "hilog:libhilog",
     "image_framework:image_native",
     "window_manager:libwm",
+    "graphic_surface:surface",
   ]
 
   defines = []

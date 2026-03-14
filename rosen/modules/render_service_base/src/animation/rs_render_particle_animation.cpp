@@ -203,6 +203,11 @@ bool RSRenderParticleAnimation::Marshalling(Parcel& parcel) const
         ROSEN_LOGE("RSRenderParticleAnimation::Marshalling, write particlesRenderParams failed");
         return false;
     }
+    // token for finding ui instance when executing animation callback in client
+    if (!parcel.WriteUint64(GetToken())) {
+        ROSEN_LOGE("multi-instance, RSRenderParticleAnimation::Marshalling, write token failed");
+        return false;
+    }
     return true;
 }
 
@@ -231,6 +236,12 @@ bool RSRenderParticleAnimation::ParseParam(Parcel& parcel)
         return false;
     }
     particleSystem_ = std::make_shared<RSRenderParticleSystem>(particlesRenderParams_);
+    uint64_t token = 0;
+    if (!parcel.ReadUint64(token)) {
+        ROSEN_LOGE("RSRenderParticleAnimation::ParseParam, Unmarshalling token failed");
+        return false;
+    }
+    SetToken(token);
     return true;
 }
 

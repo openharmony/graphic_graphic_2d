@@ -330,7 +330,6 @@ HWTEST_F(RSSubThreadCacheTest, UpdateUifirstDirtyManagerTest, TestSize.Level1)
     surfaceDrawable_->syncDirtyManager_->dirtyRegion_ = {0, 0, 10, 10};
     surfaceDrawable_->GetRsSubThreadCache().isCacheValid_ = true;
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->GetRenderParams().get());
-    surfaceParams->allSubSurfaceNodeIds_.insert(renderNode_->GetId());
     surfaceDrawable_->GetRsSubThreadCache().UpdateUifirstDirtyManager(surfaceDrawable_.get());
     ASSERT_EQ(surfaceDrawable_->GetRsSubThreadCache().syncUifirstDirtyManager_->currentFrameDirtyRegion_.GetWidth(),
         10);

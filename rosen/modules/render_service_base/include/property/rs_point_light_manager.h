@@ -25,7 +25,11 @@ namespace OHOS {
 namespace Rosen {
 class RSB_EXPORT RSPointLightManager {
 public:
-    static RSPointLightManager* Instance();
+    RSPointLightManager() = default;
+    ~RSPointLightManager() = default;
+
+    static const std::unique_ptr<RSPointLightManager>& Instance(NodeId logicalDisplayNodeId);
+    static void ReleaseInstance(NodeId logicalDisplayNodeId);
     void RegisterLightSource(const std::shared_ptr<RSRenderNode>& renderNode);
     void RegisterIlluminated(const std::shared_ptr<RSRenderNode>& renderNode);
     void UnRegisterLightSource(const std::shared_ptr<RSRenderNode>& renderNode);
@@ -39,13 +43,10 @@ public:
     bool HasVisibleIlluminated(const std::shared_ptr<RSRenderNode>& illuminatedNode);
 
 private:
-    RSPointLightManager() = default;
-    ~RSPointLightManager() = default;
     RSPointLightManager(const RSPointLightManager&) = delete;
-    RSPointLightManager(const RSPointLightManager&&) = delete;
+    RSPointLightManager(RSPointLightManager&&) = delete;
     RSPointLightManager& operator=(const RSPointLightManager&) = delete;
-    RSPointLightManager& operator=(const RSPointLightManager&&) = delete;
-
+    RSPointLightManager& operator=(RSPointLightManager&&) = delete;
     void ClearDirtyList();
     void CheckIlluminated(
         const std::shared_ptr<RSRenderNode>& lightSourceNode, const std::shared_ptr<RSRenderNode>& illuminatedNode);

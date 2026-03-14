@@ -94,6 +94,34 @@ ohos_unittest("RSOpincCacheTest") {
   subsystem_name = "graphic"
 }
 
+##############################  RSFrameControlToolTest  ##################################
+ohos_unittest("RSFrameControlToolTest") {
+  module_out_path = module_output_path
+
+  sources = [ "uifirst/rs_frame_control_test.cpp" ]
+
+  cflags = [ 
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
+  ]
+
+  subsystem_name = "graphic"
+}
+
 ##############################  RSOpincManagerTest  ##################################
 ohos_unittest("RSOpincManagerTest") {
   module_out_path = module_output_path
@@ -308,6 +336,10 @@ ohos_unittest("RSImageDetailEnhancerThreadTest") {
     "$rosen_root/modules/platform:eventhandler",
   ]
 
+  external_deps = [
+    "init:libbegetutil",
+  ]
+
   subsystem_name = "graphic"
 }
 
@@ -348,6 +380,48 @@ ohos_unittest("RSWindowKeyFrameRenderNodeTest") {
   ]
 }
 
+##############################  RSPowerOffRenderSkipTest  ##################################
+ohos_unittest("RSPowerOffRenderSkipTest") {
+  module_out_path = module_output_path
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines = [ "USE_ROSEN_DRAWING" ]
+  }
+
+  sources = [ "power_off_render_skip/power_off_render_skip_test.cpp" ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
+    "$graphic_2d_root/rosen/test/render_service/render_service/unittest/pipeline:rs_test_common",
+  ]
+  external_deps = [
+    "c_utils:utils",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+  ]
+
+  subsystem_name = "graphic"
+}
+
 ###############################################################################
 config("render_test") {
   visibility = [ ":*" ]
@@ -367,5 +441,6 @@ group("unittest") {
     ":RSSingleFrameComposerTest",
     ":RSMemoryInfoManagerTest",
     ":RSWindowKeyFrameRenderNodeTest",
+    ":RSPowerOffRenderSkipTest",
   ]
 }

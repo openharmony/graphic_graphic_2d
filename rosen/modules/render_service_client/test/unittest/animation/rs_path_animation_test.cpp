@@ -18,6 +18,7 @@
 
 #include "animation/rs_path_animation.h"
 #include "modifier_ng/appearance/rs_background_filter_modifier.h"
+#include "ui/rs_ui_context_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -38,7 +39,9 @@ HWTEST_F(RSPathAnimationTest, SetRotationTest001, TestSize.Level1)
     auto property = std::make_shared<RSAnimatableProperty<Vector2f>>(Vector2f(0.f, 0.f));
     auto startProperty = std::make_shared<RSAnimatableProperty<Vector2f>>(Vector2f(0.f, 0.f));
     auto endProperty = std::make_shared<RSAnimatableProperty<Vector2f>>(Vector2f(1.f, 1.f));
-    auto pathAnimation = std::make_shared<RSPathAnimation>(property, ANIMATION_PATH, startProperty, endProperty);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    auto pathAnimation =
+        std::make_shared<RSPathAnimation>(rsUIContext, property, ANIMATION_PATH, startProperty, endProperty);
     auto node = RSCanvasNode::Create();
     EXPECT_EQ(node->GetModifierCreatedBySetter(ModifierNG::RSModifierType::TRANSFORM), nullptr);
     pathAnimation->SetRotation(node, 1.0f);

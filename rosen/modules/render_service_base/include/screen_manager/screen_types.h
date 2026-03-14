@@ -200,7 +200,6 @@ typedef enum : uint32_t {
     INVALID_ARGUMENTS,
     WRITE_PARCEL_ERR,
     HDI_ERROR,
-    SCREEN_MANAGER_NULL,
     BLACKLIST_IS_EMPTY,
     SET_RATE_ERROR,
     VIRTUAL_SCREEN,
@@ -306,7 +305,7 @@ inline int32_t ScreenRotationMapping(ScreenRotation screenCorrection)
         RS_ROTATION_0 : static_cast<int32_t>(screenCorrection) * RS_ROTATION_90;
 }
 
-typedef enum {
+typedef enum : uint8_t {
     SKIP_FRAME_BY_INTERVAL,
     SKIP_FRAME_BY_REFRESH_RATE,
     SKIP_FRAME_BY_ACTIVE_REFRESH_RATE,

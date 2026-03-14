@@ -26,6 +26,7 @@ group("unittest") {
     ":RSOcclusionHandlerTest",
     ":RSOcclusionNodeTest",
     ":RSOpincDrawCacheTest",
+    ":RSPointerWindowManagerTest",
     ":RSOpincDrawCacheLayerPartTest",
     ":RSSpecialLayerUtilsTest",
     ":RSSubThreadCacheTest",
@@ -36,8 +37,8 @@ group("unittest") {
     ":RSUiCaptureTaskParallelTest",
     ":RSUniHwcComputeUtilTest",
     ":RSUniUiCaptureTest",
-    ":RSVBlankIdleCorrectorTest",
     ":HgmContextTest",
+    ":HgmRenderContextTest",
     ":LppVideoHandlerTest",
     ":RSWindowKeyFrameDrawableTest",
     ":RSWindowCaptureTaskTest",
@@ -62,6 +63,9 @@ group("unittest") {
       ":RSSubThreadTest",
       ":RSVsyncRateReduceManagerTest",
     ]
+  }
+  if (rs_enable_gpu) {
+    deps += [ ":RSGPUCacheManagerTest" ]
   }
   if (rs_enable_eglimage) {
     deps += [ ":RSEglImageManagerTest" ]
@@ -172,6 +176,40 @@ ohos_unittest("RSOcclusionNodeTest") {
   ]
 }
 
+## Build RSPointerWindowManagerTest
+ohos_unittest("RSPointerWindowManagerTest") {
+  module_out_path = module_output_path
+  sources = [ "pointer_window_manager/rs_pointer_window_manager_test.cpp" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+  ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "init:libbegetutil",
+    "samgr:samgr_proxy",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
+  defines = []
+  defines += gpu_defines
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+  }
+  include_dirs = []
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    external_deps += [
+      "drivers_interface_display:display_commontype_idl_headers",
+      "video_processing_engine:videoprocessingengine",
+    ]
+  }
+}
+
 ## Build RSSurfaceCaptureTaskParallelTest
 ohos_unittest("RSSurfaceCaptureTaskParallelTest") {
   module_out_path = module_output_path
@@ -183,12 +221,14 @@ ohos_unittest("RSSurfaceCaptureTaskParallelTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
   ]
   include_dirs =
       [ "$graphic_2d_root/rosen/modules/render_service_base/include" ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "eventhandler:libeventhandler",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
   ]
@@ -220,6 +260,7 @@ ohos_unittest("RSSurfaceCaptureTaskTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
   ]
   include_dirs =
       [ "$graphic_2d_root/rosen/modules/render_service_base/include" ]
@@ -253,6 +294,7 @@ ohos_unittest("RSDrmUtilTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
   ]
   external_deps = [
     "c_utils:utils",
@@ -284,6 +326,7 @@ ohos_unittest("RSHdrUtilTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
   ]
   external_deps = [
     "c_utils:utils",
@@ -319,9 +362,15 @@ ohos_unittest("RSUiCaptureTaskParallelTest") {
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
     "capture/rs_ui_capture_task_parallel_test.cpp",
   ]
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = true
+  }
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
   ]
   include_dirs =
       [ "$graphic_2d_root/rosen/modules/render_service_base/include" ]
@@ -359,6 +408,7 @@ ohos_unittest("RSUiCaptureSoloTaskParallelTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
   ]
   include_dirs = [ "../../../../../modules/render_service_base/include" ]
   external_deps = [
@@ -434,6 +484,7 @@ ohos_unittest("RSUifirstManagerTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
   ]
   external_deps = [
     "c_utils:utils",
@@ -528,6 +579,7 @@ ohos_unittest("RSDrawWindowCacheTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
   ]
   external_deps = [
     "c_utils:utils",
@@ -547,6 +599,7 @@ ohos_unittest("RSSubThreadManagerTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
   ]
   external_deps = [
     "c_utils:utils",
@@ -581,6 +634,7 @@ ohos_unittest("RSSubThreadTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
   ]
   external_deps = [
     "c_utils:utils",
@@ -616,6 +670,7 @@ ohos_unittest("RSSubThreadCacheTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
   ]
   external_deps = [
     "c_utils:utils",
@@ -635,6 +690,7 @@ ohos_unittest("RSVsyncRateReduceManagerTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
   ]
   external_deps = [
     "c_utils:utils",
@@ -830,17 +886,93 @@ ohos_unittest("RSEglImageManagerTest") {
   }
 }
 
+if (rs_enable_gpu) {
+  ## Build RSGPUCacheManagerTest
+  ohos_unittest("RSGPUCacheManagerTest") {
+    module_out_path = module_output_path
+    sources = [ "gpuComposition/rs_gpu_cache_manager_test.cpp" ]
+    deps = [ ":rs_test_common" ]
+    external_deps = [
+      "c_utils:utils",
+      "hilog:libhilog",
+      "hisysevent:libhisysevent",
+      "samgr:samgr_proxy",
+    ]
+    if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+      external_deps += [ "sensor:sensor_interface_native" ]
+      external_deps += [ "accessibility:accessibilityconfig" ]
+      external_deps += [ "accessibility:accessibility_common" ]
+    }
+    defines = []
+    defines += gpu_defines
+    if (defined(use_rosen_drawing) && use_rosen_drawing) {
+      defines += [ "USE_ROSEN_DRAWING" ]
+    }
+    if (defined(use_video_processing_engine) && use_video_processing_engine) {
+      include_dirs = []
+      defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+      external_deps += [
+        "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+        "video_processing_engine:videoprocessingengine",
+      ]
+    }
+  }
+}
+
 ## Build HgmContextTest
 ohos_unittest("HgmContextTest") {
   module_out_path = module_output_path
   sources = [
     "hyper_graphic_manager/hgm_context_test.cpp",
-    "hyper_graphic_manager/rp_frame_rate_policy_test.cpp",
-    "hyper_graphic_manager/rp_hgm_xml_parser_test.cpp",
-    "hyper_graphic_manager/hgm_rp_energy_test.cpp",
+    "hyper_graphic_manager/hgm_hardware_utils_test.cpp",
+    "hyper_graphic_manager/rs_vblank_idle_corrector_test.cpp",
+    "$graphic_2d_root/rosen/test/render_service/render_service/unittest/pipeline/mock/mock_hdi_device.cpp",
   ]
   deps = [
     ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
+    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+  ]
+  external_deps = [
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "init:libbegetutil",
+    "samgr:samgr_proxy",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+    external_deps += [ "accessibility:accessibilityconfig" ]
+    external_deps += [ "accessibility:accessibility_common" ]
+  }
+  defines = []
+  defines += gpu_defines
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines += [ "USE_ROSEN_DRAWING" ]
+  }
+  if (defined(use_video_processing_engine) && use_video_processing_engine) {
+    include_dirs = []
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    external_deps += [
+      "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+      "video_processing_engine:videoprocessingengine",
+    ]
+  }
+}
+
+## Build HgmRenderContextTest
+ohos_unittest("HgmRenderContextTest") {
+  module_out_path = module_output_path
+  sources = [
+    "hyper_graphic_manager/hgm_render_context_test.cpp",
+    "hyper_graphic_manager/rp_frame_rate_policy_test.cpp",
+    "hyper_graphic_manager/rp_hgm_xml_parser_test.cpp",
+  ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
     "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
   ]
   external_deps = [
@@ -870,50 +1002,18 @@ ohos_unittest("HgmContextTest") {
   }
 }
 
-## Build RSVBlankIdleCorrectorTest
-ohos_unittest("RSVBlankIdleCorrectorTest") {
-  module_out_path = module_output_path
-  sources = [
-    "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
-    "hyper_graphic_manager/rs_vblank_idle_corrector_test.cpp",
-  ]
-  deps = [
-    ":rs_test_common",
-    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
-  ]
-  external_deps = [
-    "c_utils:utils",
-    "ffrt:libffrt",
-    "hilog:libhilog",
-    "hisysevent:libhisysevent",
-    "samgr:samgr_proxy",
-  ]
-  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
-    external_deps += [ "sensor:sensor_interface_native" ]
-  }
-  defines = []
-  defines += gpu_defines
-  if (defined(use_rosen_drawing) && use_rosen_drawing) {
-    defines += [ "USE_ROSEN_DRAWING" ]
-  }
-  if (defined(use_video_processing_engine) && use_video_processing_engine) {
-    include_dirs = []
-    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
-    external_deps += [
-      "drivers_interface_display:libdisplay_commontype_proxy_1.0",
-      "video_processing_engine:videoprocessingengine",
-    ]
-  }
-}
-
 ## Build LppVideoHandlerTest
 ohos_unittest("LppVideoHandlerTest") {
   module_out_path = module_output_path
   sources = [
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
+    "lpp/lpp_collector_layer_test.cpp",
     "lpp/lpp_video_handler_test.cpp",
   ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+  ]
   external_deps = [
     "c_utils:utils",
     "ffrt:libffrt",
@@ -983,6 +1083,7 @@ ohos_unittest("RSWindowKeyFrameDrawableTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
   ]
   external_deps = [
     "c_utils:utils",
@@ -1083,6 +1184,7 @@ ohos_unittest("RSUniHwcComputeUtilTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
   ]
   external_deps = [
     "c_utils:utils",
@@ -1136,7 +1238,10 @@ ohos_unittest("RSRDOTest") {
 ohos_unittest("RSSpecialLayerUtilsTest") {
   module_out_path = module_output_path
   sources = [ "special_layer/rs_special_layer_utils_test.cpp" ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
@@ -1221,7 +1326,10 @@ ohos_unittest("RSWindowCaptureTaskTest") {
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
     "capture/rs_window_capture_task_test.cpp",
   ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+  ]
   include_dirs = [ "$graphic_2d_root/rosen/modules/render_service_base/include" ]
   external_deps = [
     "c_utils:utils",
@@ -1347,7 +1455,18 @@ config("rs_test_common_public_config") {
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/soft_vsync_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
-    "$graphic_2d_root/rosen/modules/render_service/main",
+    "$graphic_2d_root/rosen/modules/render_service",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/layer",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/command",
     "$graphic_2d_root/rosen/modules/render_service/core",
     "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg",
     "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param",
@@ -1356,17 +1475,14 @@ config("rs_test_common_public_config") {
     "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser",
     "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser/extend_feature_parser",
     "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser/performance_feature_parser",
+    "$graphic_2d_root/rosen/modules/render_service/main",
+    "$graphic_2d_root/rosen/modules/render_service/main/render_server",
     "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/test/include",
     "$graphic_2d_root/rosen/test/render_service/render_service/unittest",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/layer_backend",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/render_layer",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/pipeline",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/transaction",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/connection",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/layer",
+    "$graphic_2d_root/rosen/modules/render_service/vsync",
   ]
 
   cflags = [
@@ -1428,6 +1544,18 @@ ohos_static_library("rs_test_common") {
 
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
+  }
+
+  if (accessibility_enable) {
+    external_deps += [ "accessibility:accessibilityconfig" ]
+    external_deps += [ "accessibility:accessibility_common" ]
+    defines += accessibility_defines
+  }
+
+  if (defined(global_parts_info) &&
+    defined(global_parts_info.resourceschedule_resource_schedule_service)) {
+    external_deps += [ "resource_schedule_service:ressched_client" ]
+    defines += [ "RES_SCHED_ENABLE" ]
   }
 
   subsystem_name = "graphic"

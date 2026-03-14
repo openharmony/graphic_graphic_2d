@@ -23,14 +23,12 @@
 #include <hitrace_meter.h>
 
 #include "accesstoken_kit.h"
-#if defined(RS_ENABLE_DVSYNC_2)
-#include "dvsync_delay.h"
-#endif
+#include "dvsync_lib_manager.h"
 #include "event_handler.h"
 #include "graphic_common.h"
 #include "ipc_skeleton.h"
 #include "parameters.h"
-#include "rs_frame_report_ext.h"
+#include "rs_frame_report.h"
 #include "vsync_log.h"
 #include "sandbox_utils.h"
 #include <rs_trace.h>
@@ -168,9 +166,7 @@ VsyncError VSyncReceiver::RequestNextVSync(
     listener_->SetCallback(callback);
     listener_->SetRNVFlag(true);
     ScopedDebugTrace func("VSyncReceiver::RequestNextVSync:" + name_);
-    if (OHOS::Rosen::RsFrameReportExt::GetInstance().GetEnable()) {
-        OHOS::Rosen::RsFrameReportExt::GetInstance().RequestNextVSync();
-    }
+    RsFrameReport::RequestNextVSync();
     if (listener_->GetType() == AppExecFwk::FileDescriptorListener::ListenerType::LTYPE_VSYNC) {
         looper_->RequestVsyncNotification(listener_->GetTimeStamp(), listener_->GetPeriod());
     }
@@ -187,9 +183,7 @@ VsyncError VSyncReceiver::RequestNextVSyncWithMultiCallback(FrameCallback callba
     listener_->AddCallback(callback);
     listener_->SetRNVFlag(true);
     ScopedDebugTrace func("VSyncReceiver::RequestNextVSync:" + name_);
-    if (OHOS::Rosen::RsFrameReportExt::GetInstance().GetEnable()) {
-        OHOS::Rosen::RsFrameReportExt::GetInstance().RequestNextVSync();
-    }
+    RsFrameReport::RequestNextVSync();
     if (listener_->GetType() == AppExecFwk::FileDescriptorListener::ListenerType::LTYPE_VSYNC) {
         looper_->RequestVsyncNotification(listener_->GetTimeStamp(), listener_->GetPeriod());
     }
@@ -308,9 +302,7 @@ VsyncError VSyncReceiver::SetNativeDVSyncSwitch(bool dvsyncSwitch)
 
 void VSyncReceiver::SetTouchEvent(int32_t touchType)
 {
-#if defined(RS_ENABLE_DVSYNC_2)
-    DVSyncDelay::Instance().SetTouchEvent(touchType);
-#endif
+    DVSyncLibManager::DvsyncDelayInstance().SetTouchEvent(touchType);
 }
 } // namespace Rosen
 } // namespace OHOS

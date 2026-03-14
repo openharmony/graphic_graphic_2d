@@ -547,6 +547,10 @@ void RSRenderNodeDrawableAdapter::SkipDrawSubtreeAndClipHole(
     RS_OPTIONAL_TRACE_NAME_FMT(
         "ClipHoleForBlurOrExcludedSubtree Rect:[%.2f, %.2f]", filterRect.GetWidth(), filterRect.GetHeight());
     Drawing::AutoCanvasRestore arc(*curCanvas, true);
+    auto matrix = canvas.GetTotalMatrix();
+    matrix.Set(Drawing::Matrix::TRANS_X, std::floor(matrix.Get(Drawing::Matrix::TRANS_X)));
+    matrix.Set(Drawing::Matrix::TRANS_Y, std::ceil(matrix.Get(Drawing::Matrix::TRANS_Y)));
+    canvas.SetMatrix(matrix);
     curCanvas->ResetClip();
     curCanvas->ClipRect(filterRect, Drawing::ClipOp::INTERSECT, false);
     curCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);

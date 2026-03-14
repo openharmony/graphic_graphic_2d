@@ -209,21 +209,6 @@ HWTEST_F(RSLuminanceControlTest, LuminanceControl005, TestSize.Level1)
 }
 
 /**
- * @tc.name: LuminanceControl006
- * @tc.desc: Test LuminanceControl class members
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSLuminanceControlTest, LuminanceControl006, TestSize.Level1)
-{
-    auto& luminCtrl = RSLuminanceControl::Get();
-    auto mockRSLuminanceControl = MockRSLuminanceControl::GetInstance();
-    luminCtrl.rSLuminanceControlInterface_ = mockRSLuminanceControl.get();
-    ASSERT_NE(luminCtrl.rSLuminanceControlInterface_, nullptr);
-    ASSERT_EQ(luminCtrl.IsHardwareHdrDisabled(0.0f, 0), false);
-}
-
-/**
  * @tc.name: LuminanceControl007
  * @tc.desc: Test LuminanceControl class members
  * @tc.type: FUNC

@@ -37,11 +37,12 @@ std::atomic<bool> RSFrameRateVote::isVideoApp_ = {false};
 RSFrameRateVote::RSFrameRateVote()
 {
     ffrtQueue_ = std::make_shared<ffrt::queue>("frame_rate_vote_queue");
-    auto policyConfigData = OHOS::Rosen::HgmCore::Instance().GetPolicyConfigData();
-    if (policyConfigData != nullptr) {
-        isSwitchOn_ = policyConfigData->videoFrameRateVoteSwitch_;
-        RS_LOGI("video vote feature isSwitchOn:%{public}s", isSwitchOn_ ? "true" : "false");
-    }
+}
+
+void RSFrameRateVote::SetVideoFrameRateSwtich(bool isSwitchOn)
+{
+    isSwitchOn_ = isSwitchOn;
+    RS_LOGI("video vote feature isSwitchOn:%{public}s", isSwitchOn_ ? "true" : "false");
 }
 
 RSFrameRateVote::~RSFrameRateVote()
@@ -57,14 +58,14 @@ void RSFrameRateVote::SetTransactionFlags(const std::string& transactionFlags)
     }
 }
 
-void RSFrameRateVote::CheckSurfaceAndUi()
+void RSFrameRateVote::CheckSurfaceAndUi(uint64_t timestamp)
 {
     if (!isVideoApp_.load() || !hasUiOrSurface) {
         return;
     }
     hasUiOrSurface = false;
     auto lastUpdateTime = currentUpdateTime_;
-    currentUpdateTime_ = OHOS::Rosen::HgmCore::Instance().GetActualTimestamp() / NS_PER_MS;
+    currentUpdateTime_ = timestamp / NS_PER_MS;
     auto duration = currentUpdateTime_ > lastUpdateTime ? currentUpdateTime_ - lastUpdateTime : 0;
     if (duration < DANMU_MAX_INTERVAL_TIME) {
         if (lastVotedRate_ == OLED_NULL_HZ) {
@@ -80,6 +81,11 @@ void RSFrameRateVote::CheckSurfaceAndUi()
         }
         SurfaceVideoVote(currentId, 0);
     }
+}
+
+void RSFrameRateVote::SetVoterRateFunc(VideoVoterFunc func)
+{
+    voterRateFunc_ = func;
 }
 
 void RSFrameRateVote::VideoFrameRateVote(uint64_t surfaceNodeId, OHSurfaceSource sourceType,
@@ -203,13 +209,12 @@ void RSFrameRateVote::SurfaceVideoVote(uint64_t surfaceNodeId, uint32_t rate)
 void RSFrameRateVote::VoteRate(pid_t pid, std::string eventName, uint32_t rate)
 {
     isVoted_ = true;
-    EventInfo eventInfo = {
-        .eventName = eventName,
-        .eventStatus = true,
-        .minRefreshRate = rate,
-        .maxRefreshRate = rate,
-    };
-    NotifyRefreshRateEvent(pid, eventInfo);
+    if (voterRateFunc_) {
+        voterRateFunc_("PID", std::to_string(pid));
+        voterRateFunc_("EVENT_NAME", eventName);
+        voterRateFunc_("EVENT_STATUS", "true");
+        voterRateFunc_("REFRESH_RATE", std::to_string(rate));
+    }
 }
 
 void RSFrameRateVote::CancelVoteRate(pid_t pid, std::string eventName)
@@ -218,24 +223,10 @@ void RSFrameRateVote::CancelVoteRate(pid_t pid, std::string eventName)
         return;
     }
     isVoted_ = false;
-    EventInfo eventInfo = {
-        .eventName = eventName,
-        .eventStatus = false,
-    };
-    NotifyRefreshRateEvent(pid, eventInfo);
-}
-
-void RSFrameRateVote::NotifyRefreshRateEvent(pid_t pid, EventInfo eventInfo)
-{
-    if (pid > DEFAULT_PID) {
-        RS_LOGI("video vote pid:%{public}d rate(%{public}u, %{public}u)",
-            pid, eventInfo.minRefreshRate, eventInfo.maxRefreshRate);
-        HgmTaskHandleThread::Instance().PostTask([pid, eventInfo]() {
-            auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
-            if (frameRateMgr != nullptr) {
-                frameRateMgr->HandleRefreshRateEvent(pid, eventInfo);
-            }
-        });
+    if (voterRateFunc_) {
+        voterRateFunc_("PID", std::to_string(pid));
+        voterRateFunc_("EVENT_NAME", eventName);
+        voterRateFunc_("EVENT_STATUS", "false");
     }
 }
 } // namespace Rosen

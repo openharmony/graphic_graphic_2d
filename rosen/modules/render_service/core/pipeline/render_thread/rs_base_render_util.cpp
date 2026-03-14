@@ -52,7 +52,7 @@ namespace Rosen {
 namespace {
 const std::string DUMP_CACHESURFACE_DIR = "/data/cachesurface";
 const std::string DUMP_CANVASDRAWING_DIR = "/data/canvasdrawing";
-const std::string DISPLAYNODE = "DisplayNode";
+const std::string SCREENNODE = "ScreenNode";
 constexpr uint32_t API14 = 14;
 constexpr uint32_t API18 = 18;
 constexpr uint32_t INVALID_API_COMPATIBLE_VERSION = 0;
@@ -869,12 +869,12 @@ bool RSBaseRenderUtil::IsNeedClient(RSRenderNode& node, const ComposeInfo& info)
     return false;
 }
 
-BufferRequestConfig RSBaseRenderUtil::GetFrameBufferRequestConfig(const ScreenInfo& screenInfo,
+BufferRequestConfig RSBaseRenderUtil::GetFrameBufferRequestConfig(const ComposerScreenInfo& composerScreenInfo,
     bool isProtected, GraphicColorGamut colorGamut, GraphicPixelFormat pixelFormat)
 {
     BufferRequestConfig config {};
-    auto width = screenInfo.isSamplingOn ? screenInfo.phyWidth : screenInfo.width;
-    auto height = screenInfo.isSamplingOn ? screenInfo.phyHeight : screenInfo.height;
+    auto width = composerScreenInfo.isSamplingOn ? composerScreenInfo.phyWidth : composerScreenInfo.width;
+    auto height = composerScreenInfo.isSamplingOn ? composerScreenInfo.phyHeight : composerScreenInfo.height;
     config.width = static_cast<int32_t>(width);
     config.height = static_cast<int32_t>(height);
     config.strideAlignment = 0x8; // default stride is 8 Bytes.
@@ -983,7 +983,6 @@ CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfac
     bool acqiureWithPTSEnable =
         RSUniRenderJudgement::IsUniRender() && RSSystemParameters::GetControlBufferConsumeEnabled();
     if (dropFrameConfig.ShouldDrop() && acqiureWithPTSEnable) {
-        consumer->SetDropFrameLevel(dropFrameConfig.level);
         RS_LOGD("RsDebug RSBaseRenderUtil::ConsumeAndUpdateBuffer(node: %{public}" PRIu64
             "), set drop frame level=%{public}d", surfaceHandler.GetNodeId(), dropFrameConfig.level);
     }
@@ -1001,11 +1000,6 @@ CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfac
     if (surfaceHandler.GetHoldBuffer() == nullptr) {
         IConsumerSurface::AcquireBufferReturnValue returnValue;
         int32_t ret = consumer->AcquireBuffer(returnValue, static_cast<int64_t>(acquireTimeStamp), false);
-
-        // Reset drop frame level after acquire to avoid affecting subsequent acquires
-        if (dropFrameConfig.ShouldDrop() && acqiureWithPTSEnable) {
-            consumer->SetDropFrameLevel(0);
-        }
 
         if (returnValue.buffer == nullptr || ret != SURFACE_ERROR_OK) {
             auto holdReturnValue = surfaceHandler.GetHoldReturnValue();
@@ -1035,6 +1029,13 @@ CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfac
         surfaceBuffer->buffer = returnValue.buffer;
         surfaceBuffer->acquireFence = returnValue.fence;
         surfaceBuffer->timestamp = returnValue.timestamp;
+        RS_OPTIONAL_TRACE_NAME_FMT("RSBaseRenderUtil::ConsumeAndUpdateBuffer bufferId %" PRIu64,
+            surfaceBuffer->buffer ? surfaceBuffer->buffer->GetBufferId() : 0);
+        surfaceBuffer->RegisterReleaseBufferListener([](uint64_t bufferId) {
+            RSUniRenderThread::Instance().ReleaseBufferById(bufferId);
+        });
+        RSUniRenderThread::Instance().AddPendingReleaseBuffer(consumer, surfaceBuffer->buffer,
+                                                              SyncFence::InvalidFence());
         RS_LOGD_IF(DEBUG_PIPELINE,
             "RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer success, acquireTimeStamp = "
             "%{public}" PRIu64 ", buffer timestamp = %{public}" PRId64 ", seq = %{public}" PRIu32 ".",
@@ -1077,7 +1078,7 @@ CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfac
     }
     RSJankStats::GetInstance().AvcodecVideoCollect(consumer->GetUniqueId(), surfaceBuffer->buffer->GetSeqNum());
     surfaceHandler.ConsumeAndUpdateBuffer(*surfaceBuffer);
-    if (consumer->GetName() != DISPLAYNODE) {
+    if (consumer->GetName() != SCREENNODE) {
         DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(surfaceHandler.GetNodeId(),
             consumer->GetSurfaceSourceType(), surfaceBuffer->buffer);
     }
@@ -1089,19 +1090,8 @@ CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfac
     surfaceBuffer = nullptr;
     surfaceHandler.SetAvailableBufferCount(static_cast<int32_t>(consumer->GetAvailableBufferCount()));
     // should drop frame after acquire buffer to avoid drop key frame
-    if (!dropFrameConfig.enable) {
-        DropFrameProcess(surfaceHandler, acquireTimeStamp);
-    }
-#ifdef RS_ENABLE_GPU
-    auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
-    if (!renderEngine) {
-        return true;
-    }
-    renderEngine->RegisterDeleteBufferListener(surfaceHandler);
+    DropFrameProcess(surfaceHandler, acquireTimeStamp);
     return true;
-#else
-    return true;
-#endif
 }
 
 bool RSBaseRenderUtil::ReleaseBuffer(RSSurfaceHandler& surfaceHandler)
@@ -1319,12 +1309,12 @@ Drawing::Matrix RSBaseRenderUtil::GetGravityMatrix(
 }
 
 void RSBaseRenderUtil::GetRotationLockParam(RSSurfaceRenderNode& node,
-    std::shared_ptr<RSScreenRenderNode> screenRenderNode, sptr<RSScreenManager> screenManager)
+    std::shared_ptr<RSScreenRenderNode> screenRenderNode)
 {
-    if (screenRenderNode == nullptr || screenManager == nullptr) {
+    if (screenRenderNode == nullptr) {
         return;
     }
-    auto screenRotationCorrection = screenManager->GetScreenCorrection(screenRenderNode->GetScreenId());
+    auto screenRotationCorrection = screenRenderNode->GetScreenProperty().GetScreenCorrection();
 
     auto screenNodeParams = static_cast<RSScreenRenderParams*>(screenRenderNode->GetStagingRenderParams().get());
     if (screenNodeParams == nullptr) {

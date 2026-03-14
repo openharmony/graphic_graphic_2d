@@ -392,6 +392,68 @@ public:
         return true;
     }
 
+    // reloaded marshalling & unmarshalling function for std::unordered_set
+    template<typename T>
+    static bool Marshalling(Parcel& parcel, const std::unordered_set<T>& val,
+        size_t maxSize = UNMARSHALLING_MAX_VECTOR_SIZE)
+    {
+        if (val.size() > maxSize) {
+            return false;
+        }
+        if (!Marshalling(parcel, val.size())) {
+            return false;
+        }
+        for (const auto& item : val) {
+            if (!Marshalling(parcel, item)) {
+                return false;
+            }
+        }
+        return true;
+    }
+    template<typename T>
+    static bool Unmarshalling(Parcel& parcel, std::unordered_set<T>& val,
+        size_t maxSize = UNMARSHALLING_MAX_VECTOR_SIZE)
+    {
+        size_t size = 0;
+        if (!Unmarshalling(parcel, size)) {
+            return false;
+        }
+        if (size > maxSize) {
+            return false;
+        }
+        val.clear();
+        val.reserve(size);
+        for (uint32_t i = 0; i < size; ++i) {
+            // in-place unmarshalling
+            T tmp;
+            if (!Unmarshalling(parcel, tmp)) {
+                return false;
+            }
+            val.insert(std::move(tmp));
+        }
+        return true;
+    }
+
+    // reloaded marshalling & unmarshalling function for std::tuple
+    template<typename... Args>
+    static bool Marshalling(Parcel& parcel, const std::tuple<Args...>& val)
+    {
+        bool res = true;
+        std::apply([&res, &parcel](const auto&... args) {
+            ((res &= Marshalling(parcel, args)), ...);
+        }, val);
+        return res;
+    }
+    template<typename... Args>
+    static bool Unmarshalling(Parcel& parcel, std::tuple<Args...>& val)
+    {
+        bool res = true;
+        std::apply([&res, &parcel](auto&... args) {
+            ((res &= Unmarshalling(parcel, args)), ...);
+        }, val);
+        return res;
+    }
+
     // reloaded marshalling & unmarshalling function for std::optional
     template<typename T>
     static bool Marshalling(Parcel& parcel, const std::optional<T>& val)

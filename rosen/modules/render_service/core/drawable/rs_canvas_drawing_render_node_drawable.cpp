@@ -510,12 +510,11 @@ void RSCanvasDrawingRenderNodeDrawable::ProcessCPURenderInBackgroundThread(std::
 {
     auto surface = surface_;
     auto drawable = RSRenderNodeDrawableAdapter::GetDrawableById(nodeId);
-    auto self = shared_from_this();
-    RSBackgroundThread::Instance().PostTask([self, drawable, cmds, surface, ctx, nodeId]() {
+    RSBackgroundThread::Instance().PostTask([drawable, cmds, surface, ctx, nodeId]() {
         if (!cmds || cmds->IsEmpty() || !surface || !ctx || !drawable) {
             return;
         }
-        RSRenderNodeSingleDrawableLocker singleLocker(self.get());
+        RSRenderNodeSingleDrawableLocker singleLocker(drawable.get());
         if (UNLIKELY(!singleLocker.IsLocked())) {
             singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
             RS_LOGE("RSCanvasDrawingRenderNodeDrawable::ProcessCPURenderInBackgroundThread node %{public}" PRIu64
@@ -822,7 +821,7 @@ void RSCanvasDrawingRenderNodeDrawable::CreateGpuSurface(const Drawing::ImageInf
         return;
     }
     newVulkanCleanupHelper = vulkanCleanupHelper_ == nullptr;
-    if (vulkanCleanupHelper_ == nullptr) {
+    if (newVulkanCleanupHelper) {
         vulkanCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
             vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory, vkTextureInfo->vkAlloc.statName);
     }
@@ -833,20 +832,20 @@ void RSCanvasDrawingRenderNodeDrawable::CreateGpuSurface(const Drawing::ImageInf
     REAL_ALLOC_CONFIG_SET_STATUS(false);
     if (surface_ == nullptr) {
         ResetResource();
-    }
-    if (!isDmaBackendTexture || surface_ != nullptr) {
+    } else {
         return;
     }
-
-    if (preAllocateDmaEnabled_) {
-        dmaFallbackCount_.fetch_add(1, std::memory_order_relaxed);
+    if (isDmaBackendTexture) {
+        if (preAllocateDmaEnabled_) {
+            dmaFallbackCount_.fetch_add(1, std::memory_order_relaxed);
+        }
+        // Create surface from DMA backendTexture fail, try again by GPU backendTexture.
+        // In this case, surface_ and vulkanCleanupHelper_ must be null, so newVulkanCleanupHelper can be reused.
+        if (!CheckBackendTexture(true, width, height, ExtractPid(nodeId_))) {
+            return;
+        }
+        CreateGpuSurface(imageInfo, gpuContext, newVulkanCleanupHelper, false);
     }
-    // Create surface from DMA backendTexture fail, try again by GPU backendTexture.
-    // In this case, surface_ and vulkanCleanupHelper_ must be null, so newVulkanCleanupHelper can be reused.
-    if (!CheckBackendTexture(true, width, height, ExtractPid(nodeId_))) {
-        return;
-    }
-    CreateGpuSurface(imageInfo, gpuContext, newVulkanCleanupHelper, false);
 }
 
 bool RSCanvasDrawingRenderNodeDrawable::CheckBackendTexture(bool needCreateFromGpu, int width, int height, pid_t pid)

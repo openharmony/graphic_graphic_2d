@@ -30,6 +30,7 @@ struct ProcessOfflineResult {
     sptr<SurfaceBuffer> buffer = nullptr;
     sptr<SyncFence> acquireFence = nullptr;
     GraphicIRect bufferRect = {0, 0, 0, 0};
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount = nullptr;
     bool taskSuccess = false;
 };
 

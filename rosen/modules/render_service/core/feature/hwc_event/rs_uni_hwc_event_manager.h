@@ -35,7 +35,7 @@ class RSUniHwcEventManager {
 public:
     static RSUniHwcEventManager& GetInstance();
     void Init();
-    static void OnHwcEvent(uint32_t devId, uint32_t eventId, const std::vector<int32_t>& eventData, void* data);
+    static void OnHwcEvent(uint32_t devId, uint32_t eventId, const std::vector<int32_t>& eventData);
 private:
     RSUniHwcEventManager() = default;
     ~RSUniHwcEventManager() = default;

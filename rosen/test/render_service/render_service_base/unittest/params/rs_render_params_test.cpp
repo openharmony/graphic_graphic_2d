@@ -470,25 +470,6 @@ HWTEST_F(RSRenderParamsTest, GetNeedUpdateCache_001, TestSize.Level2)
 }
 
 /**
- * @tc.name: SetForceDisableNodeGroupTest
- * @tc.desc: Test function SetForceDisableNodeGroup
- * @tc.type:FUNC
- * @tc.require:issueIB1KXV
- */
-HWTEST_F(RSRenderParamsTest, SetForceDisableNodeGroupTest, TestSize.Level2)
-{
-    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
-    std::unique_ptr<RSRenderParams> target = std::make_unique<RSRenderParams>(id);
-    RSRenderParams params(id);
-    auto renderParams = static_cast<RSRenderParams*>(target.get());
-
-    EXPECT_FALSE(renderParams->IsForceDisableNodeGroup());
-    renderParams->SetForceDisableNodeGroup(true);
-    EXPECT_TRUE(renderParams->IsForceDisableNodeGroup());
-    EXPECT_TRUE(renderParams->needSync_);
-}
-
-/**
  * @tc.name: ExcludedFromNodeGroupTest
  * @tc.desc: Test ExcludedFromNodeGroup
  * @tc.type: FUNC
@@ -979,23 +960,22 @@ HWTEST_F(RSRenderParamsTest, GetLayerInfo_001, TestSize.Level2)
 }
 
 /**
- * @tc.name: SetVirtualScreenWhiteListInfo
- * @tc.desc: Test SetVirtualScreenWhiteListInfo
+ * @tc.name: SetScreensWithSubTreeWhitelist
+ * @tc.desc: Test SetScreensWithSubTreeWhitelist
  * @tc.type: FUNC
  * @tc.require:#issueICF7P6
  */
-HWTEST_F(RSRenderParamsTest, SetVirtualScreenWhiteListInfo, TestSize.Level2)
+HWTEST_F(RSRenderParamsTest, SetScreensWithSubTreeWhitelist, TestSize.Level2)
 {
     constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
     std::unique_ptr<RSRenderParams> renderParams = std::make_unique<RSRenderParams>(id);
-    std::unordered_map<ScreenId, bool> info = {};
-    renderParams->hasVirtualScreenWhiteList_ = {};
-    renderParams->SetVirtualScreenWhiteListInfo(info);
-    ASSERT_EQ(renderParams->GetVirtualScreenWhiteListInfo(), info);
+    std::unordered_set<ScreenId> info = {};
+    renderParams->SetScreensWithSubTreeWhitelist(info);
+    ASSERT_EQ(renderParams->GetScreensWithSubTreeWhitelist(), info);
     ScreenId screenId = 1;
-    info[screenId] = true;
-    renderParams->SetVirtualScreenWhiteListInfo(info);
-    ASSERT_EQ(renderParams->GetVirtualScreenWhiteListInfo(), info);
+    info.insert(screenId);
+    renderParams->SetScreensWithSubTreeWhitelist(info);
+    ASSERT_EQ(renderParams->GetScreensWithSubTreeWhitelist(), info);
 }
 
 /**
@@ -1126,5 +1106,40 @@ HWTEST_F(RSRenderParamsTest, SetNeedClipHoleForFilterTest003, TestSize.Level1)
     ASSERT_NE(params.renderGroupCache_, nullptr);
     EXPECT_TRUE(params.NeedClipHoleForFilter());
     EXPECT_TRUE(params.needSync_);
+}
+
+/**
+ * @tc.name: SwapRelatedRenderParamsTest
+ * @tc.desc: Test SwapRelatedRenderParams swaps matrix and shouldPaint
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderParamsTest, SwapRelatedRenderParamsTest, TestSize.Level1)
+{
+    constexpr NodeId id = 1;
+    RSRenderParams paramsA(id);
+    RSRenderParams paramsB(id);
+
+    Drawing::Matrix matrixA;
+    matrixA.SetScale(2.0f, 2.0f);
+    Drawing::Matrix matrixB;
+    matrixB.SetScale(3.0f, 3.0f);
+
+    paramsA.SetMatrix(matrixA);
+    paramsB.SetMatrix(matrixB);
+    paramsA.SetShouldPaint(true);
+    paramsB.SetShouldPaint(false);
+
+    ASSERT_TRUE(paramsA.GetShouldPaint());
+    ASSERT_FALSE(paramsB.GetShouldPaint());
+    ASSERT_EQ(paramsA.GetMatrix().Get(Drawing::Matrix::SCALE_X), 2.0f);
+    ASSERT_EQ(paramsB.GetMatrix().Get(Drawing::Matrix::SCALE_X), 3.0f);
+
+    paramsA.SwapRelatedRenderParams(paramsB);
+
+    ASSERT_FALSE(paramsA.GetShouldPaint());
+    ASSERT_TRUE(paramsB.GetShouldPaint());
+    ASSERT_EQ(paramsA.GetMatrix().Get(Drawing::Matrix::SCALE_X), 3.0f);
+    ASSERT_EQ(paramsB.GetMatrix().Get(Drawing::Matrix::SCALE_X), 2.0f);
 }
 } // namespace OHOS::Rosen

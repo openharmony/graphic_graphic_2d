@@ -123,5 +123,10 @@ bool HgmVSyncGeneratorController::CheckNeedUpdateAppOffsetRefreshRate(uint32_t r
 {
     return refreshRate <= OLED_60_HZ;
 }
+
+bool HgmVSyncGeneratorController::IsNeedAdaptiveAfterUpdateMode()
+{
+    return vsyncGenerator_ != nullptr && vsyncGenerator_->IsNeedAdaptiveAfterUpdateMode();
+}
 } // namespace Rosen
 } // namespace OHOS

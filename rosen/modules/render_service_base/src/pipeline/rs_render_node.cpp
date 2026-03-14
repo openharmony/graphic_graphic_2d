@@ -757,8 +757,7 @@ void RSRenderNode::ResetChildRelevantFlags()
     SetHasChildExcludedFromNodeGroup(false);
     SetChildHasVisibleHDRContent(false);
     ResetNodeColorSpace();
-    SetForceDisableNodeGroup(false);
-    RSPointLightManager::Instance()->SetChildHasVisibleIlluminated(shared_from_this(), false);
+    RSPointLightManager::Instance(GetLogicalDisplayNodeId())->SetChildHasVisibleIlluminated(shared_from_this(), false);
 }
 
 void RSRenderNode::ResetPixelStretchSlot()
@@ -1551,7 +1550,7 @@ bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
     if (childHasSharedTransition_ || isAccumulatedClipFlagChanged_ || subSurfaceCnt_ > 0) {
         return true;
     }
-    if (RSPointLightManager::Instance()->GetChildHasVisibleIlluminated(shared_from_this())) {
+    if (RSPointLightManager::Instance(GetLogicalDisplayNodeId())->GetChildHasVisibleIlluminated(shared_from_this())) {
         return true;
     }
     if (ChildHasVisibleFilter()) {
@@ -4301,20 +4300,6 @@ bool RSRenderNode::GetDrawingCacheChanged() const
     return false;
 #endif
 }
-void RSRenderNode::SetForceDisableNodeGroup(bool forceDisable)
-{
-#ifdef RS_ENABLE_GPU
-    stagingRenderParams_->SetForceDisableNodeGroup(forceDisable);
-#endif
-}
-bool RSRenderNode::IsForceDisableNodeGroup() const
-{
-#ifdef RS_ENABLE_GPU
-    return stagingRenderParams_->IsForceDisableNodeGroup();
-#else
-    return false;
-#endif
-}
 void RSRenderNode::SetGeoUpdateDelay(bool val)
 {
     geoUpdateDelay_ = geoUpdateDelay_ || val;
@@ -4408,17 +4393,10 @@ RSRenderNode::NodeGroupType RSRenderNode::GetNodeGroupType() const
     return NodeGroupType::NONE;
 }
 
-void RSRenderNode::UpdateVirtualScreenWhiteListInfo()
+void RSRenderNode::SyncWhiteListInfoToParent()
 {
-    if (IsInstanceOf<RSSurfaceRenderNode>()) {
-        return;
-    }
-    auto nodeParent = GetParent().lock();
-    if (nodeParent == nullptr) {
-        return;
-    }
-    for (const auto& [screenId, ret] : hasVirtualScreenWhiteList_) {
-        nodeParent->SetHasWhiteListNode(screenId, ret);
+    if (auto nodeParent = GetParent().lock()) {
+        nodeParent->AddScreensWithSubTreeWhitelist(screensWithSubTreeWhitelist_);
     }
 }
 
@@ -4468,7 +4446,7 @@ void RSRenderNode::UpdateRenderParams()
     stagingRenderParams_->SetHasGlobalCorner(!globalCornerRadius_.IsZero());
     stagingRenderParams_->SetFirstLevelCrossNode(isFirstLevelCrossNode_);
     stagingRenderParams_->SetAbsRotation(absRotation_);
-    stagingRenderParams_->SetVirtualScreenWhiteListInfo(hasVirtualScreenWhiteList_);
+    stagingRenderParams_->SetScreensWithSubTreeWhitelist(screensWithSubTreeWhitelist_);
     auto cloneSourceNode = GetSourceCrossNode().lock();
     if (cloneSourceNode) {
         stagingRenderParams_->SetCloneSourceDrawable(cloneSourceNode->GetRenderDrawable());
@@ -4689,10 +4667,10 @@ void RSRenderNode::ValidateLightResources()
 {
     auto& properties = GetMutableRenderProperties();
     if (properties.GetLightSource() && properties.GetLightSource()->IsLightSourceValid()) {
-        RSPointLightManager::Instance()->AddDirtyLightSource(weak_from_this());
+        RSPointLightManager::Instance(GetLogicalDisplayNodeId())->AddDirtyLightSource(weak_from_this());
     }
     if (properties.GetIlluminated() && properties.GetIlluminated()->IsIlluminatedValid()) {
-        RSPointLightManager::Instance()->AddDirtyIlluminated(weak_from_this());
+        RSPointLightManager::Instance(GetLogicalDisplayNodeId())->AddDirtyIlluminated(weak_from_this());
     }
 }
 
@@ -5090,23 +5068,7 @@ void RSRenderNode::AddModifier(
         ModifierNGContainer modifiers { modifier };
         modifiersNG_.emplace(type, modifiers);
     } else {
-        // Deduplication is disabled by default. Only apply deduplication logic when:
-        // modifier supports it (BOUNDS/FRAME) AND IsDeduplicationEnabled() returns true
-        if (modifier->IsDeduplicationEnabled()) {
-            // Apply deduplication: check if modifier with same ID exists
-            auto it = std::find_if(modifiersIt->second.begin(), modifiersIt->second.end(),
-                [modifier](const auto& m)->bool {return m->GetId() == modifier->GetId();});
-            if (it == modifiersIt->second.end()) {
-                modifiersIt->second.emplace_back(modifier);
-            } else {
-                ModifierNG::RSPropertyType propertyType = (type == ModifierNG::RSModifierType::BOUNDS
-                    ? ModifierNG::RSPropertyType::BOUNDS : ModifierNG::RSPropertyType::FRAME);
-                (*it)->Setter(propertyType, modifier->Getter(propertyType, Vector4f()));
-            }
-        } else {
-            // Default behavior: no deduplication, directly add modifier
-            modifiersIt->second.emplace_back(modifier);
-        }
+        EmplaceSameTypeModifier(modifiersIt->second, modifier);
     }
     modifier->OnAttachModifier(*this);
 }
@@ -5329,14 +5291,7 @@ void RSRenderNode::UpdateDrawingCacheInfoAfterChildren(bool isInBlackList,
         SetRenderGroupSubTreeDirty(false); // reset subtree dirty
         RS_OPTIONAL_TRACE_NAME_FMT("DrawingCacheInfoAfter::renderGroup subtree dirty, id:%" PRIu64, GetId());
     }
-    if (IsForceDisableNodeGroup() || GetUIFirstSwitch() == RSUIFirstSwitch::FORCE_DISABLE_CARD) {
-        RS_OPTIONAL_TRACE_NAME_FMT("DrawingCacheInfoAfter force disable nodeGroup id:%" PRIu64, GetId());
-        auto parentNode = GetParent().lock();
-        if (parentNode) {
-            parentNode->SetForceDisableNodeGroup(true);
-        }
-        SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
-    } else if (isInBlackList) {
+    if (isInBlackList) {
         stagingRenderParams_->SetNodeGroupHasChildInBlacklist(true);
     }
     if (HasChildrenOutOfRect() && GetDrawingCacheType() == RSDrawingCacheType::TARGETED_CACHE) {
@@ -5368,8 +5323,9 @@ void RSRenderNode::NodePostPrepare(
     UpdateAbsDrawRect();
     ResetChangeState();
     SetHasUnobscuredUEC();
+    // only container nodes outside the surfaceNode need to mark whitelist info
     if (curSurfaceNode == nullptr) {
-        UpdateVirtualScreenWhiteListInfo();
+        SyncWhiteListInfoToParent();
     }
 }
 

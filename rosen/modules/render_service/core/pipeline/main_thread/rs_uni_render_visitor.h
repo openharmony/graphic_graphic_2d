@@ -26,15 +26,14 @@
 #include "system/rs_system_parameters.h"
 
 #include "feature/hwc/rs_uni_hwc_prevalidate_util.h"
+#include "feature/pointer_window_manager/rs_pointer_window_manager.h"
 #include "feature/round_corner_display/rs_rcd_render_manager.h"
 #include "common/rs_special_layer_manager.h"
 #include "params/rs_render_thread_params.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "pipeline/rs_pointer_window_manager.h"
 #include "pipeline/rs_render_node.h"
 #include "platform/ohos/overdraw/rs_overdraw_controller.h"
-#include "screen_manager/rs_screen_manager.h"
 #include "visitor/rs_node_visitor.h"
 #include "info_collection/rs_hdr_collection.h"
 
@@ -189,7 +188,6 @@ private:
     void UpdateSurfaceDirtyAndGlobalDirty();
     // should ensure that the surface size of dirty region manager has been set
     void ResetDisplayDirtyRegion();
-    bool CheckScreenPowerChange() const;
     bool CheckCurtainScreenUsingStatusChange() const;
     bool CheckLuminanceStatusChange(ScreenId id);
     bool CheckSkipCrossNode(RSSurfaceRenderNode& node);
@@ -287,9 +285,6 @@ private:
     void HandlePixelFormat(RSScreenRenderNode& node);
     bool IsHardwareComposerEnabled();
 
-    void UpdateSpecialLayersRecord(RSSurfaceRenderNode& node);
-    void UpdateBlackListRecord(RSSurfaceRenderNode& node);
-    void DealWithSpecialLayer(RSSurfaceRenderNode& node);
     void SendRcdMessage(RSScreenRenderNode& node);
 
     bool ForcePrepareSubTree()
@@ -306,8 +301,9 @@ private:
         if (specialLayerMgr.Find(IS_GENERAL_SPECIAL) || isSkipDrawInVirtualScreen_) {
             return false; // surface is special layer
         }
-        if (!allWhiteList_.empty() || allBlackList_.count(node.GetId()) != 0) {
-            return false; // white list is not empty, or surface is in black list
+        if (!specialLayerMgr.FindScreenHasType(SpecialLayerType::IS_BLACK_LIST).empty() ||
+            !allWhiteList_.empty()) {
+            return false; // surface is in black list or white list is not empty
         }
         return true;
     }
@@ -410,7 +406,6 @@ private:
     // record DRM nodes
     std::vector<std::weak_ptr<RSSurfaceRenderNode>> drmNodes_;
     int16_t occlusionSurfaceOrder_ = DEFAULT_OCCLUSION_SURFACE_ORDER;
-    sptr<RSScreenManager> screenManager_;
     static std::unordered_set<NodeId> allBlackList_; // The collection of blacklist for all screens
     static std::unordered_set<NodeId> allWhiteList_; // The collection of whitelist for all screens
     // The info of whitelist contains screenId
@@ -536,8 +531,6 @@ private:
     int32_t rsScreenNodeChildNum_ = 0;
     size_t rsScreenNodeNum_ = 0;
 
-    ScreenState screenState_ = ScreenState::UNKNOWN;
-    
     bool isSkipDrawInVirtualScreen_ = false;
 
     // used for finding the first effect render node to check to need to enabled debug

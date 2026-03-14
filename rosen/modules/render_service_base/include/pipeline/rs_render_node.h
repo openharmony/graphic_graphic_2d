@@ -49,6 +49,7 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_display_sync.h"
 #include "property/rs_properties.h"
+#include "screen_manager/screen_types.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -63,6 +64,7 @@ class RSRenderParams;
 class RSContext;
 class RSNodeVisitor;
 class RSCommand;
+class RSLayer;
 namespace NativeBufferUtils {
 class VulkanCleanupHelper;
 }
@@ -704,8 +706,6 @@ public:
     }
     void SetDrawingCacheChanged(bool cacheChanged);
     bool GetDrawingCacheChanged() const;
-    void SetForceDisableNodeGroup(bool forceDisable);
-    bool IsForceDisableNodeGroup() const;
     bool IsForcedDrawInGroup() const;
     bool IsSuggestedDrawInGroup() const;
     void CheckDrawingCacheType();
@@ -1032,12 +1032,17 @@ public:
         return opincCache_;
     }
 
-    void SetHasWhiteListNode(ScreenId screenId, bool hasWhiteListNode)
+    void AddScreensWithSubTreeWhitelist(const std::unordered_set<ScreenId>& screenIds)
     {
-        hasVirtualScreenWhiteList_[screenId] |= hasWhiteListNode;
+        screensWithSubTreeWhitelist_.insert(screenIds.begin(), screenIds.end());
     }
 
-    void UpdateVirtualScreenWhiteListInfo();
+    void SetScreensWithSubTreeWhitelist(const std::unordered_set<ScreenId>& screenIds)
+    {
+        screensWithSubTreeWhitelist_ = screenIds;
+    }
+
+    void SyncWhiteListInfoToParent();
     bool IsForegroundFilterEnable();
     void ResetPixelStretchSlot();
     bool CanFuzePixelStretch();
@@ -1059,6 +1064,10 @@ public:
     virtual void AfterTreeStatueChanged() {}
 
     RectI GetFilterDrawableSnapshotRegion() const;
+    void SetRSLayer(ScreenId screenId, const std::shared_ptr<RSLayer>& layer)
+    {
+        rsLayersPerScreen_[screenId] = layer;
+    }
 
     std::shared_ptr<DrawableV2::RSColorPickerDrawable> GetColorPickerDrawable() const;
     // returns true if color picker will execute this frame
@@ -1068,6 +1077,12 @@ public:
 
 protected:
     void ResetDirtyStatus();
+
+    virtual void EmplaceSameTypeModifier(
+        ModifierNGContainer& container, const std::shared_ptr<ModifierNG::RSRenderModifier>& modifier)
+    {
+        container.emplace_back(modifier);
+    }
 
     virtual void OnApplyModifiers() {}
 
@@ -1177,6 +1192,7 @@ protected:
     RSHwcRecorder hwcRecorder_;
 
 private:
+    std::unordered_map<ScreenId, std::shared_ptr<RSLayer>> rsLayersPerScreen_;
     // mark cross node in physical extended screen model
     bool isRepaintBoundary_ = false;
     bool hasForceSubmit_ = false;
@@ -1344,7 +1360,7 @@ private:
     std::unordered_set<NodeId> curCacheFilterRects_ = {};
     std::unordered_set<NodeId> visitedCacheRoots_ = {};
 
-    std::unordered_map<ScreenId, bool> hasVirtualScreenWhiteList_;
+    std::unordered_set<ScreenId> screensWithSubTreeWhitelist_ = {};
 
     RSProperties renderProperties_;
 

@@ -29,6 +29,7 @@
 #include "drawable/rs_property_drawable.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "recording/recording_canvas.h"
+#include "screen_manager/screen_types.h"
 #include "utils/rect.h"
 
 #ifndef ROSEN_CROSS_PLATFORM
@@ -45,6 +46,7 @@ class RSContext;
 class RSDirtyRegionManager;
 class RSDrawWindowCache;
 class RSRenderNodeGC;
+class RSLayer;
 #ifdef SUBTREE_PARALLEL_ENABLE
 class RSParallelRBPolicy;
 struct RSSubtreeDrawElement;
@@ -192,10 +194,6 @@ public:
     void ResetClearSurfaceFunc();
     void TryClearSurfaceOnSync();
 
-#ifndef ROSEN_CROSS_PLATFORM
-    virtual void RegisterDeleteBufferListenerOnSync(sptr<IConsumerSurface> consumer) {}
-#endif
-
     virtual bool IsNeedDraw() const
     {
         return false;
@@ -295,6 +293,11 @@ public:
         return RSRenderNodeDrawableType::UNKNOW;
     }
 
+    void SetRSLayer(ScreenId screenId, const std::shared_ptr<RSLayer>& layer)
+    {
+        std::lock_guard<std::mutex> lock(rsLayerMutex_);
+        rsLayersPerScreen_[screenId] = layer;
+    }
 protected:
     // Util functions
     std::string DumpDrawableVec(const std::shared_ptr<RSRenderNode>& renderNode) const;
@@ -393,6 +396,8 @@ private:
     static void RemoveDrawableFromCache(const NodeId nodeId);
     NodeId lastDrawnFilterNodeId_ = 0;
     std::atomic<bool> isOnDraw_ = false;
+    mutable std::mutex rsLayerMutex_;
+    std::unordered_map<ScreenId, std::shared_ptr<RSLayer>> rsLayersPerScreen_;
     RSCacheDrawableArray filterDrawables_{};
 
     friend class OHOS::Rosen::RSRenderNode;
