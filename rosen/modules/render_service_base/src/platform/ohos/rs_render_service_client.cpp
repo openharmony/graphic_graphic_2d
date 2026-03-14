@@ -30,6 +30,7 @@
 #include "command/rs_command.h"
 #include "command/rs_node_showing_command.h"
 #include "common/rs_xcollie.h"
+#include "ipc_callbacks/screen_supported_hdr_formats_callback_stub.h"
 #include "ipc_callbacks/brightness_info_change_callback_stub.h"
 #include "ipc_callbacks/pointer_render/pointer_luminance_callback_stub.h"
 #include "ipc_callbacks/rs_surface_occlusion_change_callback_stub.h"
