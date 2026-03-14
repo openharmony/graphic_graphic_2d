@@ -863,4 +863,11 @@ bool RSSurfaceRenderParams::GetIsParticipateInOcclusion() const
 {
     return isParticipateInOcclusion_;
 }
+
+void RSSurfaceRenderParams::SwapRelatedRenderParams(RSSurfaceRenderParams& relatedRenderParams)
+{
+    std::swap(isOccludedByFilterCache_, relatedRenderParams.isOccludedByFilterCache_);
+    std::swap(isSkipDraw_, relatedRenderParams.isSkipDraw_);
+    RSRenderParams::SwapRelatedRenderParams(relatedRenderParams);
+}
 } // namespace OHOS::Rosen

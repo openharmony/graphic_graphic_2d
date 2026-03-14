@@ -1034,4 +1034,39 @@ HWTEST_F(RSRenderParamsTest, GetLayerPartRenderCurrentFrameDirtyRegionTest, Test
     ASSERT_EQ(result.GetWidth(), testRect.GetWidth());
     ASSERT_EQ(result.GetHeight(), testRect.GetHeight());
 }
+
+/**
+ * @tc.name: SwapRelatedRenderParamsTest
+ * @tc.desc: Test SwapRelatedRenderParams swaps matrix and shouldPaint
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderParamsTest, SwapRelatedRenderParamsTest, TestSize.Level1)
+{
+    constexpr NodeId id = 1;
+    RSRenderParams paramsA(id);
+    RSRenderParams paramsB(id);
+
+    Drawing::Matrix matrixA;
+    matrixA.SetScale(2.0f, 2.0f);
+    Drawing::Matrix matrixB;
+    matrixB.SetScale(3.0f, 3.0f);
+
+    paramsA.SetMatrix(matrixA);
+    paramsB.SetMatrix(matrixB);
+    paramsA.SetShouldPaint(true);
+    paramsB.SetShouldPaint(false);
+
+    ASSERT_TRUE(paramsA.GetShouldPaint());
+    ASSERT_FALSE(paramsB.GetShouldPaint());
+    ASSERT_EQ(paramsA.GetMatrix().Get(Drawing::Matrix::SCALE_X), 2.0f);
+    ASSERT_EQ(paramsB.GetMatrix().Get(Drawing::Matrix::SCALE_X), 3.0f);
+
+    paramsA.SwapRelatedRenderParams(paramsB);
+
+    ASSERT_FALSE(paramsA.GetShouldPaint());
+    ASSERT_TRUE(paramsB.GetShouldPaint());
+    ASSERT_EQ(paramsA.GetMatrix().Get(Drawing::Matrix::SCALE_X), 3.0f);
+    ASSERT_EQ(paramsB.GetMatrix().Get(Drawing::Matrix::SCALE_X), 2.0f);
+}
 } // namespace OHOS::Rosen

@@ -597,6 +597,8 @@ public:
     void SetIsOnTheTree(bool isOnTheTree);
     bool GetIsOnTheTree() const;
 
+    void SwapRelatedRenderParams(RSRenderParams& relatedRenderParams);
+
 protected:
     bool needSync_ = false;
     std::bitset<RSRenderParamsDirtyType::MAX_DIRTY_TYPE> dirtyType_;

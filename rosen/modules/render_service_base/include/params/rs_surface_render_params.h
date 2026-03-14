@@ -827,6 +827,8 @@ public:
 
     void SetIsParticipateInOcclusion(bool isParticipateInOcclusion);
     bool GetIsParticipateInOcclusion() const;
+
+    void SwapRelatedRenderParams(RSSurfaceRenderParams& relatedRenderParams);
 private:
     RSSurfaceNodeType rsSurfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;

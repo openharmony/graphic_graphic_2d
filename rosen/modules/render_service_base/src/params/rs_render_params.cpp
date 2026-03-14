@@ -759,4 +759,10 @@ bool RSRenderParams::GetIsOnTheTree() const
 {
     return isOnTheTree_;
 }
+
+void RSRenderParams::SwapRelatedRenderParams(RSRenderParams& relatedRenderParams)
+{
+    matrix_.Swap(relatedRenderParams.matrix_);
+    std::swap(shouldPaint_, relatedRenderParams.shouldPaint_);
+}
 } // namespace OHOS::Rosen
