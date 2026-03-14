@@ -1018,12 +1018,12 @@ void SkiaCanvas::DrawGlyphs(int count, const uint16_t glyphs[], const Point posi
     }
     if (!font) {
         LOGD("font is null, return on line %{public}d", __LINE__);
-        return;     
+        return;
     }
     auto skiaFont = font->GetImpl<SkiaFont>();
     if (!skiaFont) {
         LOGD("skiaFont is null, return on line %{public}d", __LINE__);
-        return; 
+        return;
     }
     auto skFont = skiaFont->GetFont();
     skPaint_ = defaultPaint_;

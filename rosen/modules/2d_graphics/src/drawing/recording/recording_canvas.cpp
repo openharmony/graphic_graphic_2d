@@ -408,10 +408,10 @@ void RecordingCanvas::DrawPicture(const Picture& picture)
     cmdList_->AddDrawOp<DrawPictureOpItem::ConstructorHandle>(pictureHandle);
 }
 
-void RecordingCanvas::DrawGlyphs(int count, const uint16_t glyphs[], const  Poinnt pts[],
+void RecordingCanvas::DrawGlyphs(int count, const uint16_t glyphs[], const  Point pts[],
                                  Point origin, const Font* font)
 {
-    static uint64_t shiftedPid = static_cast<uint64_t>(GetRealPid()) << 32; // 32 for 64-bit unsignd number shift
+    static uint64_t shiftedPid = static_cast<uint64_t>(GetRealPid()) << 32;
     if (count <= 0) {
         return;
     }
@@ -422,13 +422,13 @@ void RecordingCanvas::DrawGlyphs(int count, const uint16_t glyphs[], const  Poin
         return;
     }
     auto fontHandle = CmdListHelper::AddFontToCmdList(*cmdList_, font);
-    auto glyphIDsData = CmdListHelper::AddVectorToCmdList(*cmdList_, glyphIDs);
-    auto positionData = CmdListHelper::AddVectorToCmdList(*cmdList_, positions);
+    auto glyphIDsData = CmdListHelper::AddVectorToCmdList<uint16_t>(*cmdList_, glyphIDs);
+    auto positionsData = CmdListHelper::AddVectorToCmdList<Point>(*cmdList_, positions);
     uint64_t globalUniqueId = 0;
     if (font->GetTypeface() != nullptr) {
         globalUniqueId = (shiftedPid | font->GetTypeface()->GetUniqueID());
     }
-    AddDrawOpImmediate<DrawGlyphsOpItem::ConstructorHandle>(glyphIDsData, positionData, origin, fontHandlde,
+    AddDrawOpImmediate<DrawGlyphsOpItem::ConstructorHandle>(glyphIDsData, positionsData, origin, fontHandlde,
                                                             globalUniqueId);
 }
 
