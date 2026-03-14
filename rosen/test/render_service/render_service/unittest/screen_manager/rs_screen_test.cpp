@@ -1808,10 +1808,8 @@ HWTEST_F(RSScreenTest, GetScreenSupportedHDRFormats_002, testing::ext::TestSize.
     rsScreen->supportedPhysicalHDRFormats_.resize(0);
     std::vector<ScreenHDRFormat> hdrFormats;
     ASSERT_EQ(rsScreen->GetScreenSupportedHDRFormats(hdrFormats), StatusCode::HDI_ERROR);
-    sptr<RSIScreenSupportedHdrFormatsCallback> callback = new CustomScreenSupportedHDRFormatsCallback(
-        [](ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats) {});
-    rsScreen->GetScreenSupportedHDRFormats(hdrFormats);
 }
+
 /*
  * @tc.name: GetScreenSupportedHDRFormats_003
  * @tc.desc: GetScreenSupportedHDRFormats Test, IsVirtual() return  false, hdrFormats.size() != 0
@@ -1826,6 +1824,25 @@ HWTEST_F(RSScreenTest, GetScreenSupportedHDRFormats_003, testing::ext::TestSize.
     rsScreen->supportedPhysicalHDRFormats_.resize(1);
     std::vector<ScreenHDRFormat> hdrFormats;
     ASSERT_EQ(rsScreen->GetScreenSupportedHDRFormats(hdrFormats), StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: GetScreenSupportedHDRFormats_004
+ * @tc.desc: GetScreenSupportedHDRFormats Test, IsVirtual() return  false, hdrFormats.size() == 0
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RSScreenTest, GetScreenSupportedHDRFormats_004, testing::ext::TestSize.Level1)
+{
+    auto rsScreen = std::make_shared<RSScreen>(0);
+    ASSERT_NE(nullptr, rsScreen);
+ 
+    rsScreen->supportedPhysicalHDRFormats_.resize(0);
+    std::vector<ScreenHDRFormat> hdrFormats;
+    ASSERT_EQ(rsScreen->GetScreenSupportedHDRFormats(hdrFormats), StatusCode::HDI_ERROR);
+    sptr<RSIScreenSupportedHdrFormatsCallback> callback = new CustomScreenSupportedHDRFormatsCallback(
+        [](ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats) {});
+    rsScreen->GetScreenSupportedHDRFormats(hdrFormats);
 }
 
 /*
