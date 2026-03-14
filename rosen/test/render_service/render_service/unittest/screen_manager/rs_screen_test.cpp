@@ -19,6 +19,7 @@
 #include "rs_screen.h"
 #include "mock_hdi_device.h"
 #include "multiscreen_param.h"
+#include "ipc_callbacks/screen_supported_hdr_formats_callback_stub.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -33,6 +34,25 @@ public:
 
     static inline ScreenId mockScreenId_;
     static inline Mock::HdiDeviceMock* hdiDeviceMock_;
+};
+
+class CustomScreenSupportedHDRFormatsCallback : public RSScreenSupportedHDRFormatsCallbackStub
+{
+public:
+    explicit CustomScreenSupportedHDRFormatsCallback(const std::function<void(ScreenId,
+        std::vector<ScreenHDRFormat>& specialHdrFormats)> &callback) :
+        cb_(callback) {}
+    ~CustomScreenSupportedHDRFormatsCallback() override {};
+
+    void OnScreenSupportedHDRFormatsUpdate(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats) override
+    {
+        if (cb_ != nullptr) {
+            cb_(id, hdrFormats);
+        }
+    }
+
+private:
+    std::function<void(ScreenId, std::vector<ScreenHDRFormat>& specialHdrFormats)> cb_;
 };
 
 void RSScreenTest::SetUpTestCase()

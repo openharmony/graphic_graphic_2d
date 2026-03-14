@@ -1009,8 +1009,12 @@ int32_t RSRenderServiceClient::GetScreenSupportedHDRFormats(ScreenId id, std::ve
     if (clientToService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
-    screenSupportedHdrFormatsCb_ = new CustomScreenSupportedHDRFormatsCallback(callback);
-    return clientToService->GetScreenSupportedHDRFormats(id, hdrFormats, screenSupportedHdrFormatsCb_);
+
+    sptr<RSIScreenSupportedHdrFormatsCallback> cb = nullptr;
+    if (callback) {
+        cb = new CustomScreenSupportedHDRFormatsCallback(callback);
+    }
+    return clientToService->GetScreenSupportedHDRFormats(id, hdrFormats, cb);
 }
 
 int32_t RSRenderServiceClient::GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat)

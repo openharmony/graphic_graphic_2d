@@ -29,14 +29,16 @@ RSScreenSupportedHdrFormatsCallbackProxy::RSScreenSupportedHdrFormatsCallbackPro
 {
 }
 
-void RSScreenSupportedHdrFormatsCallbackProxy::OnScreenSupportedHDRFormatsUpdate(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats)
+void RSScreenSupportedHdrFormatsCallbackProxy::OnScreenSupportedHDRFormatsUpdate(
+    ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
 
     if (!data.WriteInterfaceToken(RSIScreenSupportedHdrFormatsCallback::GetDescriptor())) {
-        ROSEN_LOGE("RSScreenSupportedHdrFormatsCallbackProxy::OnScreenSupportedHDRFormatsUpdate WriteInterfaceToken failed");
+        ROSEN_LOGE("RSScreenSupportedHdrFormatsCallbackProxy::OnScreenSupportedHDRFormatsUpdate"
+            " WriteInterfaceToken failed");
         return;
     }
 
@@ -48,12 +50,14 @@ void RSScreenSupportedHdrFormatsCallbackProxy::OnScreenSupportedHDRFormatsUpdate
     std::copy(hdrFormats.begin(), hdrFormats.end(), std::back_inserter(hdrFormatsSend));
 
     if (!data.WriteUInt32Vector(hdrFormatsSend)) {
-        ROSEN_LOGE("RSScreenSupportedHdrFormatsCallbackProxy::OnScreenSupportedHDRFormatsUpdate WriteUInt32Vector failed");
+        ROSEN_LOGE("RSScreenSupportedHdrFormatsCallbackProxy::OnScreenSupportedHDRFormatsUpdate"
+            " WriteUInt32Vector failed");
         return;
     }
 
     option.SetFlags(MessageOption::TF_ASYNC);
-    uint32_t code = static_cast<uint32_t>(RSIScreenSupportedHdrFormatsCallbackInterfaceCode::ON_SCREEN_SUPPORTED_HDR_FORMATS_UPDATE);
+    uint32_t code = static_cast<uint32_t>
+        (RSIScreenSupportedHdrFormatsCallbackInterfaceCode::ON_SCREEN_SUPPORTED_HDR_FORMATS_UPDATE);
 
     auto remote = Remote();
     if (remote == nullptr) {
@@ -63,7 +67,8 @@ void RSScreenSupportedHdrFormatsCallbackProxy::OnScreenSupportedHDRFormatsUpdate
 
     int32_t err = remote->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("RSScreenSupportedHdrFormatsCallbackProxy::OnScreenSupportedHDRFormatsUpdate error = %{public}d", err);
+        ROSEN_LOGE("RSScreenSupportedHdrFormatsCallbackProxy::OnScreenSupportedHDRFormatsUpdate"
+            " error = %{public}d", err);
     }
 }
 } // namespace Rosen

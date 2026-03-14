@@ -31,16 +31,19 @@ int RSScreenSupportedHDRFormatsCallbackStub::OnRemoteRequest(
 
     int ret = ERR_NONE;
     switch (code) {
-        case static_cast<uint32_t>(RSIScreenSupportedHdrFormatsCallbackInterfaceCode::ON_SCREEN_SUPPORTED_HDR_FORMATS_UPDATE): {
+        case static_cast<uint32_t>
+            (RSIScreenSupportedHdrFormatsCallbackInterfaceCode::ON_SCREEN_SUPPORTED_HDR_FORMATS_UPDATE): {
             ScreenId id{0};
             if (!data.ReadUint64(id)) {
-                RS_LOGE("RSScreenSupportedHDRFormatsCallbackStub::ON_SCREEN_SUPPORTED_HDR_FORMATS_UPDATE read id failed!");
+                RS_LOGE("RSScreenSupportedHDRFormatsCallbackStub::ON_SCREEN_SUPPORTED_HDR_FORMATS_UPDATE"
+                    " read id failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
             std::vector<uint32_t> hdrFormatsRecv;
             if (!data.ReadUInt32Vector(&hdrFormatsRecv)) {
-                RS_LOGE("RSScreenSupportedHDRFormatsCallbackStub::ON_SCREEN_SUPPORTED_HDR_FORMATS_UPDATE ReadUInt32Vector failed!");
+                RS_LOGE("RSScreenSupportedHDRFormatsCallbackStub::ON_SCREEN_SUPPORTED_HDR_FORMATS_UPDATE"
+                    " ReadUInt32Vector failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }

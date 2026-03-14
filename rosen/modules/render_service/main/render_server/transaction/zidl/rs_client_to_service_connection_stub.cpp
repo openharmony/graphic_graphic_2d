@@ -1735,7 +1735,8 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             if (hasObj) {
                 auto remoteObject = data.ReadRemoteObject();
                 if (remoteObject == nullptr) {
-                    RS_LOGE("RSClientToServiceConnectionStub::GET_SCREEN_SUPPORTED_HDR_FORMATS remoteObject is nullptr");
+                    RS_LOGE("RSClientToServiceConnectionStub::GET_SCREEN_SUPPORTED_HDR_FORMATS"
+                        " remoteObject is nullptr");
                     ret = ERR_NULL_OBJECT;
                     break;
                 }
