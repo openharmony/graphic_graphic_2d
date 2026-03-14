@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -65,6 +65,7 @@ public:
         IMAGE_OPITEM,
         IMAGE_RECT_OPITEM,
         PICTURE_OPITEM,
+        GLYPHS_OPITEM,
         TEXT_BLOB_OPITEM,
         SYMBOL_OPITEM,
         CLIP_RECT_OPITEM,
@@ -897,6 +898,43 @@ public:
     void Playback(Canvas* canvas, const Rect* rect) override;
 private:
     std::shared_ptr<Picture> picture_;
+};
+
+class DrawGlyphsOpItem : public DrawWithPaintOpItem {
+public:
+    struct ConstructorHandle : public OpItem {
+        ConstructorHandle(const std::pair<size_t, size_t>& glyphs, const std::pair<size_t, size_t>& positions,
+                          const Point& origin, const OpFontrHandle& font, const uint64_t& globalUniqueId,
+                          const PaintHandle& paintHandle)
+            : OpItem(DrawOpItem::GLYPHS_OPITEM), glyphs(glyphs), positions(positions),
+              origin(origin), font(font), globalUniqueId(globalUniqueId),
+              paintHandle(paintHandle) {}
+        ~ConstructorHandle() override = default;
+
+        std::pair<size_t, size_t> glyphs;
+        std::pair<size_t, size_t> positions;
+        Point origin;
+        OpFontrHandle font;
+        uint64_t globalUniqueId;
+        PaintHandle paintHandle;
+    };
+    DrawGlyphsOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
+    DrawGlyphsOpItem(const std::vector<uint16_t>& glyphs, const std::vector<Point>& positions,
+                     const Point& origin, const Font* font, const Paint& paint)
+        : DrawWithPaintOpItem(paint, DrawOpItem::GLYPHS_OPITEM), glyphs_(glyphs), positions_(position),
+          origin_(origin), font_(std::make_shared(*font)), globalUniqueId_(0) {}
+    ~DrawGlyphsOpItem() override = default;
+
+    static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
+    void Marshalling(DrawCmdList& cmdList) override;
+    void Playback(Canvas* canvas, const Rect* rect) override;
+
+private:
+    std::vector<uint16_t> glyphs_;
+    std::vector<Point> positions_;
+    Point origin_;
+    std_shared_ptr<Font> font_;
+    uint64_t globalUniqueId_;
 };
 
 class DrawTextBlobOpItem : public DrawWithPaintOpItem {

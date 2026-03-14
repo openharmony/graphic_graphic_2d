@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1594,6 +1594,58 @@ void DrawPictureOpItem::Playback(Canvas* canvas, const Rect* rect)
         return;
     }
     canvas->DrawPicture(*picture_);
+}
+
+/* DrawGlyphsOpItem */
+UNMARSHALLING_REGISTER(DrawGlyphs, DrawOpItem::GLYPHS_OPITEM,
+                       DrawGlyphsOpItem::Unmarshalling, sizeof(DrawGlyphsOpItem::ConstructorHandle));
+
+DrawGlyphsOpItem::DrawGlyphsOpItem(const DrawCmdList& cmdList, DrawGlyphsOpItem::ConstructorHandle* handle)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, GLYPHS_OPITEM)
+{
+    glyphs_ = CmdListHelper::GetVectorFromCmdList<uint16_t>(cmdList, handle->glyphs);
+    positions_ = CmdListHelper::GetVectorFromCmdList<Point>(cmdList, handle->positions);
+    origin_ = handle->origin;
+    font_ = CmdListHelper::GetFontFromCmdList(cmdList, handle->font);
+    globalUniqueId_ = handle->globalUniqueId;
+}
+
+std::shared_ptr<DrawOpItem> DrawGlyphsOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawGlyphsOpItem>(cmdList, static_cast<DrawGlyphsOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawGlyphsOpItem::Marshalling(DrawCmdList& cmdList)
+{
+    static uint64_t shiftedPid = static_cast<uint64_t>(GetRealPid()) << 32; // 32 for 64-bit unsignd number shift
+    PaintHandle paintHandle;
+    GenerateHandleFromPaint(cmdList, paint_, paintHandle);
+    auto fontHandlde = CmdListHelper::AddFontToCmdList(cmdList, font_.get());
+    auto glyphIDs = CmdListHelper::AddVectorToCmdList<uint16_t>(cmdList, glyphs_);
+    auto positions = CmdListHelper::AddVectorToCmdList<Point>(cmdList, positions);
+    uint64_t globalUniqueId = 0;
+    if (font_ && font_->GetTypeface() != nullptr) {
+        uint32_t typefaceId = font_->GetTypeface()->GetUniqueID();
+        globalUniqueId = (shiftedPid | typefaceId);
+    }
+    if (font_) {
+        cmdList.AddOp<ConstructorHandle>(glyphIDs, positions, origin_, fontHandle,
+                                         globalUniqueId, paintHandle);
+    }
+}
+
+void DrawGlyphsOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    if (glyphs_.size() == 0) {
+        LOGD("DrawGlyphsOpItem run size is invalid");
+        return;
+    }
+    if (font_ == nullptr) {
+        LOGD("DrawGlyphsOpItem font is null");
+        return;
+    }
+    canvas->AttachPaint(paint_);
+    canvas->DrawGlyphs(glyphs_.size(), glyphs_.data(), positions_.data(), origin_, font_.get());
 }
 
 /* DrawTextBlobOpItem */

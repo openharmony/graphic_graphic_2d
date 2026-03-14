@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -142,6 +142,8 @@ public:
     virtual void DrawSVGDOM(const sk_sp<SkSVGDOM>& svgDom) = 0;
 
     // text
+    virtual void DrawGlyphs(int count, const uint16_t glyphs[], const Point positions[],
+                            Point origin, const Font* font, const Paint& paint) = 0;
     virtual void DrawTextBlob(const TextBlob* blob, const scalar x, const scalar y, const Paint& paint) = 0;
 
     // symbol
