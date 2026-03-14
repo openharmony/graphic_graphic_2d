@@ -1151,10 +1151,12 @@ void RSScreen::GetScreenSupportedHDRFormatsCallBack(sptr<RSIScreenSupportedHdrFo
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     Media::Format parameter{};
     parameter.PutIntValue("isAihdrFeatureSupported", 1);
-    if (Media::VideoProcessingEngine::VpeVideo::IsSupported(Media::VideoProcessingEngine::VIDEO_TYPE_AIHDR_ENHANCER, parameter)) {
+    if (Media::VideoProcessingEngine::VpeVideo::IsSupported(
+        Media::VideoProcessingEngine::VIDEO_TYPE_AIHDR_ENHANCER, parameter)) {
         RS_LOGI("GetScreenSupportedHDRFormatsCallBack ScreenHDRFormat::VIDEO_AIHDR is support.");
         hdrFormatsByVpe.emplace_back(ScreenHDRFormat::VIDEO_AIHDR);
-        if (std::find(supportedPhysicalHDRFormats_.begin(), supportedPhysicalHDRFormats_.end(), ScreenHDRFormat::VIDEO_AIHDR) == supportedPhysicalHDRFormats_.end()) {
+        if (std::find(supportedPhysicalHDRFormats_.begin(), supportedPhysicalHDRFormats_.end(),
+            ScreenHDRFormat::VIDEO_AIHDR) == supportedPhysicalHDRFormats_.end()) {
             supportedPhysicalHDRFormats_.emplace_back(ScreenHDRFormat::VIDEO_AIHDR);
         }
     }
