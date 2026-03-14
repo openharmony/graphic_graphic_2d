@@ -851,6 +851,11 @@ void RSMainThread::OnScreenConnected(const sptr<RSScreenProperty>& screenPropert
     }
     RS_LOGI("%{public}s: screen id: %{public}" PRIu64, __func__, screenProperty->GetScreenId());
     CreateScreenNode(screenProperty);
+
+    // update screen refresh rate at startup to prevent devices with a fixed frame rate from not updating the screen
+    // refresh rate with UpdateScreenProperty and thus using the default value.
+    RSRealtimeRefreshRateManager::Instance().UpdateScreenRefreshRate(
+        *screenProperty, ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE);
 }
 
 void RSMainThread::OnScreenDisconnected(ScreenId screenId)
