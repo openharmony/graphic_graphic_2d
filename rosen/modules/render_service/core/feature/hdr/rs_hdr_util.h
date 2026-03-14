@@ -92,7 +92,7 @@ public:
         const Drawing::SamplingOptions& sampling);
     static GSError EraseHDRMetadataKey(std::unique_ptr<RSRenderFrame>& renderFrame);
     static GSError SetMetadata(const HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceInfo& colorspaceInfo,
-        std::unique_ptr<RSRenderFrame>& renderFrame);
+        std::unique_ptr<RSRenderFrame>& renderFrame, bool isHDRCast);
     static GSError SetMetadata(SurfaceBuffer* buffer,
         const HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceInfo& colorspaceInfo,
         const HDI::Display::Graphic::Common::V1_0::CM_HDR_Metadata_Type& value);
