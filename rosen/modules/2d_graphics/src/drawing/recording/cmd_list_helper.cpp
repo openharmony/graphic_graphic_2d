@@ -452,7 +452,7 @@ OpFontHandle CmdListHelper::AddFontToCmdList(CmdList& cmdList, const Font* font)
         return {};
     }
     auto typeface = font->GetTypeface();
-    auto data = typeface->Serizlize();
+    auto data = typeface->Serialize();
     if (!data || data->GetSize() == 0) {
         LOGD("font typeface serialize invalid, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return {};
@@ -460,15 +460,15 @@ OpFontHandle CmdListHelper::AddFontToCmdList(CmdList& cmdList, const Font* font)
     auto offset = cmdList.AddImageData(data->GetData(), data->GetSize());
     return {offset, data->GetSize(),
             font->GetSize(), font->GetScaleX(), font->GetSkewX(),
-            font->IsForceAutoHinting(),font->IsEmbeddedBitmaps(), font->IsSubpixel(),
-            font->isLinearMetrics(), font->isEmbolden(), font->isBaselineSnap(),
+            font->IsForceAutoHinting(), font->IsEmbeddedBitmaps(), font->IsSubpixel(),
+            font->IsLinearMetrics(), font->IsEmbolden(), font->IsBaselineSnap(),
             font->GetEdging(), font->GetHinting()};
 }
 
-std::shared_ptr<Font> CmdListHelper::GetFontFromCmdList(CmdList& cmdList, const OpFontHandle& fontJ\Handle,
+std::shared_ptr<Font> CmdListHelper::GetFontFromCmdList(const CmdList& cmdList, const OpFontHandle& fontHandle,
                                                         uint64_t globalUniqueId)
 {
-    if (fontHandle.size() == 0) {
+    if (fontHandle.size == 0) {
         return nullptr;
     }
     std::shared_ptr<Drawing::Typeface> typeface = nullptr;
@@ -480,18 +480,18 @@ std::shared_ptr<Font> CmdListHelper::GetFontFromCmdList(CmdList& cmdList, const 
         typeface = Drawing::Typeface::GetUniqueIdCallBack()(globalUniqueId);
     }
     if (!typeface) {
-        const void* data = cmdList.GetImageData(textBlobHandle.offset, textBlobHandle.size);
+        const void* data = cmdList.GetImageData(fontHandle.offset, fontHandle.size);
         if (!data) {
             LOGD("font typeface data nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
             return nullptr;
         }
         auto typefaceData = std::make_shared<Data>();
         typefaceData->BuildWithoutCopy(data, fontHandle.size);
-        typeface = Typeface::Deserialize(typefaxceData->GetData(), typefaceData->GetSize());
+        typeface = Typeface::Deserialize(typefaceData->GetData(), typefaceData->GetSize());
     }
     auto result = std::make_shared<Font>(typeface, fontHandle.fontSize, fontHandle.fontScaleX, fontHandle.fontSkewX);
     result->SetForceAutoHinting(fontHandle.isForceAutoHinting);
-    result->SetEmbeddedBitmaos(fontHandle.isEmbeddedBitmap);
+    result->SetEmbeddedBitmaps(fontHandle.isEmbeddedBitmap);
     result->SetSubpixel(fontHandle.isSubpixel);
     result->SetLinearMetrics(fontHandle.isLinearMetrics);
     result->SetEmbolden(fontHandle.isEmbolden);

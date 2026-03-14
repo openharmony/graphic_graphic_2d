@@ -199,7 +199,7 @@ public:
         return childCmdList;
     }
     static OpFontHandle AddFontToCmdList(CmdList& cmdList, const Font* font);
-    static std::shared_ptr<Font> GetFontFromCmdList(CmdList& cmdList, const OpFontHandle& fontJ\Handle,
+    static std::shared_ptr<Font> GetFontFromCmdList(const CmdList& cmdList, const OpFontHandle& fontHandle,
                                                     uint64_t globalUniqueId = 0);
     static OpDataHandle AddTextBlobToCmdList(CmdList& cmdList, const TextBlob* textBlob, void* ctx = nullptr);
     static std::shared_ptr<TextBlob> GetTextBlobFromCmdList(const CmdList& cmdList,

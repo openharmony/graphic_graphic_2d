@@ -1606,7 +1606,7 @@ DrawGlyphsOpItem::DrawGlyphsOpItem(const DrawCmdList& cmdList, DrawGlyphsOpItem:
     glyphs_ = CmdListHelper::GetVectorFromCmdList<uint16_t>(cmdList, handle->glyphs);
     positions_ = CmdListHelper::GetVectorFromCmdList<Point>(cmdList, handle->positions);
     origin_ = handle->origin;
-    font_ = CmdListHelper::GetFontFromCmdList(cmdList, handle->font);
+    font_ = CmdListHelper::GetFontFromCmdList(cmdList, handle->font, handle->globalUniqueId);
     globalUniqueId_ = handle->globalUniqueId;
 }
 
@@ -1620,9 +1620,9 @@ void DrawGlyphsOpItem::Marshalling(DrawCmdList& cmdList)
     static uint64_t shiftedPid = static_cast<uint64_t>(GetRealPid()) << 32; // 32 for 64-bit unsignd number shift
     PaintHandle paintHandle;
     GenerateHandleFromPaint(cmdList, paint_, paintHandle);
-    auto fontHandlde = CmdListHelper::AddFontToCmdList(cmdList, font_.get());
+    auto fontHandle = CmdListHelper::AddFontToCmdList(cmdList, font_.get());
     auto glyphIDs = CmdListHelper::AddVectorToCmdList<uint16_t>(cmdList, glyphs_);
-    auto positions = CmdListHelper::AddVectorToCmdList<Point>(cmdList, positions);
+    auto positions = CmdListHelper::AddVectorToCmdList<Point>(cmdList, positions_);
     uint64_t globalUniqueId = 0;
     if (font_ && font_->GetTypeface() != nullptr) {
         uint32_t typefaceId = font_->GetTypeface()->GetUniqueID();

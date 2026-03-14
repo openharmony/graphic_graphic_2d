@@ -922,7 +922,7 @@ public:
     DrawGlyphsOpItem(const std::vector<uint16_t>& glyphs, const std::vector<Point>& positions,
                      const Point& origin, const Font* font, const Paint& paint)
         : DrawWithPaintOpItem(paint, DrawOpItem::GLYPHS_OPITEM), glyphs_(glyphs), positions_(position),
-          origin_(origin), font_(std::make_shared(*font)), globalUniqueId_(0) {}
+          origin_(origin), font_(std::make_shared<Font>(*font)), globalUniqueId_(0) {}
     ~DrawGlyphsOpItem() override = default;
 
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
