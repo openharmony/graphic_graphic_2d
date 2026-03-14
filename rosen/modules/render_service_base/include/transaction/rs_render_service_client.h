@@ -33,6 +33,7 @@
 #include "ipc_callbacks/iapplication_agent.h"
 #include "ipc_callbacks/rs_surface_buffer_callback.h"
 #include "ipc_callbacks/screen_change_callback.h"
+#include "ipc_callbacks/screen_supported_hdr_formats_callback.h"
 #include "ipc_callbacks/screen_switching_notify_callback.h"
 #include "ipc_callbacks/surface_capture_callback.h"
 #include "ipc_callbacks/rs_transaction_data_callback.h"
@@ -65,6 +66,8 @@ namespace Rosen {
 using ScreenChangeCallback = std::function<void(ScreenId, ScreenEvent, ScreenChangeReason)>;
 using BrightnessInfoChangeCallback = std::function<void(ScreenId, BrightnessInfo)>;
 using ScreenSwitchingNotifyCallback = std::function<void(bool)>;
+using ScreenSupportedHDRFormatsCallback = std::function<void(ScreenId,
+    std::vector<ScreenHDRFormat>& specialHdrFormats)>;
 using BufferAvailableCallback = std::function<void()>;
 using BufferClearCallback = std::function<void()>;
 using OcclusionChangeCallback = std::function<void(std::shared_ptr<RSOcclusionData>)>;
@@ -242,7 +245,8 @@ public:
 
     int32_t SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat);
 
-    int32_t GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats);
+    int32_t GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats,
+        const ScreenSupportedHDRFormatsCallback& callback = nullptr);
 
     int32_t GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat);
 
@@ -436,7 +440,7 @@ private:
     sptr<RSIScreenChangeCallback> screenChangeCb_ = nullptr;
     sptr<RSIScreenSwitchingNotifyCallback> screenSwitchingNotifyCb_ = nullptr;
     sptr<RSISurfaceCaptureCallback> surfaceCaptureCbDirector_ = nullptr;
-
+    sptr<RSIScreenSupportedHdrFormatsCallback> screenSupportedHdrFormatsCb_ = nullptr;
     sptr<RSISurfaceBufferCallback> surfaceBufferCbDirector_;
     std::map<uint64_t, std::shared_ptr<SurfaceBufferCallback>> surfaceBufferCallbacks_;
     mutable std::shared_mutex surfaceBufferCallbackMutex_;

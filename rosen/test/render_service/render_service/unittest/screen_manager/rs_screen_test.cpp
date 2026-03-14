@@ -1790,6 +1790,9 @@ HWTEST_F(RSScreenTest, GetScreenSupportedHDRFormats_002, testing::ext::TestSize.
     rsScreen->supportedPhysicalHDRFormats_.resize(0);
     std::vector<ScreenHDRFormat> hdrFormats;
     ASSERT_EQ(rsScreen->GetScreenSupportedHDRFormats(hdrFormats), StatusCode::HDI_ERROR);
+    sptr<RSIScreenSupportedHdrFormatsCallback> callback = new CustomScreenSupportedHDRFormatsCallback(
+        [](ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats) {});
+    rsScreen->GetScreenSupportedHDRFormats(hdrFormats);
 }
 /*
  * @tc.name: GetScreenSupportedHDRFormats_003

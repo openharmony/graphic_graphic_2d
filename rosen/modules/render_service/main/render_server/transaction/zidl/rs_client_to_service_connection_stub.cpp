@@ -1725,16 +1725,36 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
+            bool hasObj = false;
+            if (!data.ReadBool(hasObj)) {
+                RS_LOGE("RSClientToServiceConnectionStub::GET_SCREEN_SUPPORTED_HDR_FORMATS Read bool failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            sptr<RSIScreenSupportedHdrFormatsCallback> cb = nullptr;
+            if (hasObj) {
+                auto remoteObject = data.ReadRemoteObject();
+                if (remoteObject == nullptr) {
+                    RS_LOGE("RSClientToServiceConnectionStub::GET_SCREEN_SUPPORTED_HDR_FORMATS remoteObject is nullptr");
+                    ret = ERR_NULL_OBJECT;
+                    break;
+                }
+                cb = iface_cast<RSIScreenSupportedHdrFormatsCallback>(remoteObject);
+                if (cb == nullptr) {
+                    RS_LOGE("RSClientToServiceConnectionStub::GET_SCREEN_SUPPORTED_HDR_FORMATS callback is nullptr");
+                    ret = ERR_NULL_OBJECT;
+                    break;
+                }
+            }
             std::vector<uint32_t> hdrFormatsSend;
             std::vector<ScreenHDRFormat> hdrFormats;
-            int32_t resCode;
-            GetScreenSupportedHDRFormats(id, hdrFormats, resCode);
-            if (!reply.WriteInt32(resCode)) {
+            int32_t result = GetScreenSupportedHDRFormats(id, hdrFormats, cb);
+            if (!reply.WriteInt32(result)) {
                 RS_LOGE("RSClientToServiceConnectionStub::GET_SCREEN_SUPPORTED_HDR_FORMATS Write result failed!");
                 ret = ERR_INVALID_REPLY;
                 break;
             }
-            if (resCode != StatusCode::SUCCESS) {
+            if (result != StatusCode::SUCCESS) {
                 break;
             }
             std::copy(hdrFormats.begin(), hdrFormats.end(), std::back_inserter(hdrFormatsSend));

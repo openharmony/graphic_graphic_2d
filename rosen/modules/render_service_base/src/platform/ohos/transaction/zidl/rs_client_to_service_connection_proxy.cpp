@@ -2364,41 +2364,51 @@ ErrCode RSClientToServiceConnectionProxy::SetPixelFormat(ScreenId id, GraphicPix
     return ERR_OK;
 }
 
-ErrCode RSClientToServiceConnectionProxy::GetScreenSupportedHDRFormats(
-    ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats, int32_t& resCode)
+int32_t RSClientToServiceConnectionProxy::GetScreenSupportedHDRFormats(
+    ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats, sptr<RSIScreenSupportedHdrFormatsCallback> callback)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
         ROSEN_LOGE("GetScreenSupportedHDRFormats: WriteInterfaceToken GetDescriptor err.");
-        resCode = RS_CONNECTION_ERROR;
-        return ERR_INVALID_VALUE;
+        return RS_CONNECTION_ERROR;
     }
     option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteUint64(id)) {
         ROSEN_LOGE("GetScreenSupportedHDRFormats: WriteUint64 id err.");
-        resCode =  WRITE_PARCEL_ERR;
-        return ERR_INVALID_VALUE;
+        return WRITE_PARCEL_ERR;
     }
+    if (callback) {
+        if (!data.WriteBool(true) || !data.WriteRemoteObject(callback->AsObject())) {
+            ROSEN_LOGE("GetScreenSupportedHDRFormats WriteRemoteObject obj failed");
+            return WRITE_PARCEL_ERR;
+        }
+    } else {
+        if (!data.WriteBool(false)) {
+            ROSEN_LOGE("GetScreenSupportedHDRFormats WriteBool false failed");
+            return WRITE_PARCEL_ERR;
+        }
+    }
+
     uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_HDR_FORMATS);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        resCode =  RS_CONNECTION_ERROR;
-        return ERR_INVALID_VALUE;
+        return RS_CONNECTION_ERROR;
     }
-    if (!reply.ReadInt32(resCode)) {
-        ROSEN_LOGE("RSClientToServiceConnectionProxy::GetScreenSupportedHDRFormats Read resCode failed");
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::GetScreenSupportedHDRFormats Read result failed");
         return READ_PARCEL_ERR;
     }
-    if (resCode == SUCCESS) {
+    if (result == SUCCESS) {
         hdrFormats.clear();
         std::vector<uint32_t> hdrFormatsRecv;
         reply.ReadUInt32Vector(&hdrFormatsRecv);
         std::transform(hdrFormatsRecv.begin(), hdrFormatsRecv.end(), back_inserter(hdrFormats),
                        [](uint32_t i) -> ScreenHDRFormat {return static_cast<ScreenHDRFormat>(i);});
     }
-    return ERR_OK;
+    return result;
 }
 
 ErrCode RSClientToServiceConnectionProxy::GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat, int32_t& resCode)

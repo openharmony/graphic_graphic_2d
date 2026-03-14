@@ -779,7 +779,8 @@ public:
      * @param hdrFormats The hardware supported HDR format will set to this parameter.
      * @return 0 success, others failed.
      */
-    int32_t GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats);
+    int32_t GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats,
+        const ScreenSupportedHDRFormatsCallback& callback = nullptr);
 
     /**
      * @brief Get the HDR format of the current screen.

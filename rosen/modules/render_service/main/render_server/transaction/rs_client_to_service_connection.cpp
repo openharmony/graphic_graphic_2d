@@ -1192,15 +1192,13 @@ ErrCode RSClientToServiceConnection::SetPixelFormat(ScreenId id, GraphicPixelFor
     return ERR_OK;
 }
 
-ErrCode RSClientToServiceConnection::GetScreenSupportedHDRFormats(
-    ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats, int32_t& resCode)
+int32_t RSClientToServiceConnection::GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats,
+    sptr<RSIScreenSupportedHdrFormatsCallback> callback)
 {
     if (!screenManagerAgent_) {
-        resCode = StatusCode::SCREEN_NOT_FOUND;
-        return ERR_INVALID_VALUE;
+        return StatusCode::SCREEN_NOT_FOUND;
     }
-    resCode = screenManagerAgent_->GetScreenSupportedHDRFormats(id, hdrFormats);
-    return ERR_OK;
+    return screenManagerAgent_->GetScreenSupportedHDRFormats(id, hdrFormats, callback);
 }
 
 ErrCode RSClientToServiceConnection::GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat, int32_t& resCode)

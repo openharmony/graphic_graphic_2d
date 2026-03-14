@@ -983,15 +983,33 @@ int32_t RSRenderServiceClient::SetPixelFormat(ScreenId id, GraphicPixelFormat pi
     return resCode;
 }
 
-int32_t RSRenderServiceClient::GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats)
+class CustomScreenSupportedHDRFormatsCallback : public RSScreenSupportedHDRFormatsCallbackStub
+{
+public:
+    explicit CustomScreenSupportedHDRFormatsCallback(const ScreenSupportedHDRFormatsCallback &callback) :
+        cb_(callback) {}
+    ~CustomScreenSupportedHDRFormatsCallback() override {};
+
+    void OnScreenSupportedHDRFormatsUpdate(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats) override
+    {
+        if (cb_ != nullptr) {
+            cb_(id, hdrFormats);
+        }
+    }
+
+private:
+    ScreenSupportedHDRFormatsCallback cb_;
+};
+
+int32_t RSRenderServiceClient::GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats,
+    const ScreenSupportedHDRFormatsCallback& callback)
 {
     auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
-    int32_t resCode = SUCCESS;
-    clientToService->GetScreenSupportedHDRFormats(id, hdrFormats, resCode);
-    return resCode;
+    screenSupportedHdrFormatsCb_ = new CustomScreenSupportedHDRFormatsCallback(callback);
+    return clientToService->GetScreenSupportedHDRFormats(id, hdrFormats, screenSupportedHdrFormatsCb_);
 }
 
 int32_t RSRenderServiceClient::GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat)

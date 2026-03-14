@@ -114,7 +114,8 @@ public:
 
     int32_t SetScreenHDRFormat(ScreenId id, int32_t modeIdx);
     int32_t GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat) const;
-    int32_t GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats) const;
+    int32_t GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats,
+        sptr<RSIScreenSupportedHdrFormatsCallback> callback = nullptr) const;
     int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability) const;
     int32_t GetScreenSupportedMetaDataKeys(ScreenId id, std::vector<ScreenHDRMetadataKey>& keys) const;
 
