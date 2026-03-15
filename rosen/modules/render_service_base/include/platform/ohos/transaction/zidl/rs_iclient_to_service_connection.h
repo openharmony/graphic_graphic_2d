@@ -236,8 +236,8 @@ public:
 
     virtual ErrCode SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat, int32_t& resCode) = 0;
 
-    virtual int32_t GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats,
-        sptr<RSIScreenSupportedHdrFormatsCallback> callback = nullptr) = 0;
+    virtual ErrCode GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats,
+        int32_t& resCode, sptr<RSIScreenSupportedHdrFormatsCallback> callback = nullptr) = 0;
 
     virtual ErrCode GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat, int32_t& resCode) = 0;
 

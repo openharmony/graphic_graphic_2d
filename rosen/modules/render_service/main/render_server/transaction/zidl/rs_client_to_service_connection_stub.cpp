@@ -1749,13 +1749,14 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             }
             std::vector<uint32_t> hdrFormatsSend;
             std::vector<ScreenHDRFormat> hdrFormats;
-            int32_t result = GetScreenSupportedHDRFormats(id, hdrFormats, cb);
-            if (!reply.WriteInt32(result)) {
+            int32_t resCode;
+            GetScreenSupportedHDRFormats(id, hdrFormats, resCode, cb);
+            if (!reply.WriteInt32(resCode)) {
                 RS_LOGE("RSClientToServiceConnectionStub::GET_SCREEN_SUPPORTED_HDR_FORMATS Write result failed!");
                 ret = ERR_INVALID_REPLY;
                 break;
             }
-            if (result != StatusCode::SUCCESS) {
+            if (resCode != StatusCode::SUCCESS) {
                 break;
             }
             std::copy(hdrFormats.begin(), hdrFormats.end(), std::back_inserter(hdrFormatsSend));
