@@ -865,6 +865,95 @@ napi_value CreateTextStyleJsValue(napi_env env, TextStyle textStyle)
     return objValue;
 }
 
+napi_value CreateStrutStyleJsValue(napi_env env, const TypographyStyle& typographyStyle)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    if (objValue != nullptr) {
+        napi_set_named_property(env, objValue, "fontFamilies",
+            CreateArrayStringJsValue(env, typographyStyle.lineStyleFontFamilies));
+        napi_set_named_property(env, objValue, "fontStyle",
+            CreateJsNumber(env, static_cast<uint32_t>(typographyStyle.lineStyleFontStyle)));
+        napi_set_named_property(env, objValue, "fontWidth",
+            CreateJsNumber(env, static_cast<uint32_t>(typographyStyle.lineStyleFontWidth)));
+        napi_set_named_property(env, objValue, "fontWeight",
+            CreateJsNumber(env, static_cast<uint32_t>(typographyStyle.lineStyleFontWeight)));
+        napi_set_named_property(env, objValue, "fontSize",
+            CreateJsNumber(env, typographyStyle.lineStyleFontSize));
+        napi_set_named_property(env, objValue, "height",
+            CreateJsNumber(env, typographyStyle.lineStyleHeightScale));
+        napi_set_named_property(env, objValue, "leading",
+            CreateJsNumber(env, typographyStyle.lineStyleSpacingScale));
+        napi_set_named_property(env, objValue, "forceHeight",
+            CreateJsValue(env, typographyStyle.lineStyleOnly));
+        napi_set_named_property(env, objValue, "enabled",
+            CreateJsValue(env, typographyStyle.useLineStyle));
+        napi_set_named_property(env, objValue, "heightOverride",
+            CreateJsValue(env, typographyStyle.lineStyleHeightOnly));
+        napi_set_named_property(env, objValue, "halfLeading",
+            CreateJsValue(env, typographyStyle.lineStyleHalfLeading));
+    }
+    return objValue;
+}
+
+napi_value CreateTextTabJsValue(napi_env env, const TextTab& textTab)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    if (objValue != nullptr) {
+        napi_set_named_property(env, objValue, "alignment",
+            CreateJsNumber(env, static_cast<uint32_t>(textTab.alignment)));
+        napi_set_named_property(env, objValue, "location",
+            CreateJsNumber(env, textTab.location));
+    }
+    return objValue;
+}
+
+napi_value CreateTypographyStyleJsValue(napi_env env, const TypographyStyle& typographyStyle)
+{
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    if (objValue != nullptr) {
+        napi_set_named_property(env, objValue, "textStyle",
+            CreateTextStyleJsValue(env, typographyStyle.GetTextStyle()));
+        napi_set_named_property(env, objValue, "textDirection",
+            CreateJsNumber(env, static_cast<uint32_t>(typographyStyle.textDirection)));
+        napi_set_named_property(env, objValue, "textAlign",
+            CreateJsNumber(env, static_cast<uint32_t>(typographyStyle.textAlign)));
+        napi_set_named_property(env, objValue, "wordBreak",
+            CreateJsNumber(env, static_cast<uint32_t>(typographyStyle.wordBreakType)));
+        napi_set_named_property(env, objValue, "maxLines",
+            CreateJsNumber(env, static_cast<uint64_t>(typographyStyle.maxLines)));
+        napi_set_named_property(env, objValue, "breakStrategy",
+            CreateJsNumber(env, static_cast<uint32_t>(typographyStyle.breakStrategy)));
+        napi_set_named_property(env, objValue, "strutStyle",
+            CreateStrutStyleJsValue(env, typographyStyle));
+        napi_set_named_property(env, objValue, "ellipsis",
+            CreateStringJsValue(env, typographyStyle.ellipsis));
+        napi_set_named_property(env, objValue, "ellipsisMode",
+            CreateJsNumber(env, static_cast<uint32_t>(typographyStyle.ellipsisModal)));
+        napi_set_named_property(env, objValue, "tab",
+            CreateTextTabJsValue(env, typographyStyle.tab));
+        napi_set_named_property(env, objValue, "textHeightBehavior",
+            CreateJsNumber(env, static_cast<uint32_t>(typographyStyle.textHeightBehavior)));
+        napi_set_named_property(env, objValue, "trailingSpaceOptimized",
+            CreateJsValue(env, typographyStyle.isTrailingSpaceOptimized));
+        napi_set_named_property(env, objValue, "autoSpace",
+            CreateJsValue(env, typographyStyle.enableAutoSpace));
+        napi_set_named_property(env, objValue, "compressHeadPunctuation",
+            CreateJsValue(env, typographyStyle.compressHeadPunctuation));
+        napi_set_named_property(env, objValue, "verticalAlign",
+            CreateJsNumber(env, static_cast<uint32_t>(typographyStyle.verticalAlignment)));
+        napi_set_named_property(env, objValue, "lineSpacing",
+            CreateJsNumber(env, typographyStyle.lineSpacing));
+        napi_set_named_property(env, objValue, "includeFontPadding",
+            CreateJsValue(env, typographyStyle.includeFontPadding));
+        napi_set_named_property(env, objValue, "fallbackLineSpacing",
+            CreateJsValue(env, typographyStyle.fallbackLineSpacing));
+    }
+    return objValue;
+}
+
 struct NapiMap {
     napi_value instance;
     napi_value set_function;

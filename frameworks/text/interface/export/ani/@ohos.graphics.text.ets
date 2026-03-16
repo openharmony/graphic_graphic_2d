@@ -305,9 +305,60 @@ export default namespace text {
     halfLeading?: boolean;
   }
 
+  class StrutStyleInternal implements StrutStyle {
+    fontFamilies?: Array<string>;
+    fontStyle?: FontStyle;
+    fontWidth?: FontWidth;
+    fontWeight?: FontWeight;
+    fontSize?: double;
+    height?: double;
+    leading?: double;
+    forceHeight?: boolean;
+    enabled?: boolean;
+    heightOverride?: boolean;
+    halfLeading?: boolean;
+    constructor(
+      fontFamilies?: Array<string>,
+      fontStyle?: FontStyle,
+      fontWidth?: FontWidth,
+      fontWeight?: FontWeight,
+      fontSize?: double,
+      height?: double,
+      leading?: double,
+      forceHeight?: boolean,
+      enabled?: boolean,
+      heightOverride?: boolean,
+      halfLeading?: boolean
+    ) {
+      this.fontFamilies = fontFamilies;
+      this.fontStyle = fontStyle;
+      this.fontWidth = fontWidth;
+      this.fontWeight = fontWeight;
+      this.fontSize = fontSize;
+      this.height = height;
+      this.leading = leading;
+      this.forceHeight = forceHeight;
+      this.enabled = enabled;
+      this.heightOverride = heightOverride;
+      this.halfLeading = halfLeading;
+    }
+  }
+
   export interface TextTab {
     alignment: TextAlign;
     location: double;
+  }
+
+  class TextTabInternal implements TextTab {
+    alignment: TextAlign;
+    location: double;
+    constructor(
+      alignment: TextAlign,
+      location: double
+    ) {
+      this.alignment = alignment;
+      this.location = location;
+    }
   }
 
   export interface ParagraphStyle {
@@ -327,6 +378,60 @@ export default namespace text {
     verticalAlign?: TextVerticalAlign;
     compressHeadPunctuation?: boolean;
     lineSpacing?: double;
+  }
+
+  class ParagraphStyleInternal implements ParagraphStyle {
+    fallbackLineSpacing?: boolean;
+    includeFontPadding?: boolean;
+    textStyle?: TextStyle;
+    textDirection?: TextDirection;
+    align?: TextAlign;
+    wordBreak?: WordBreak;
+    maxLines?: int;
+    breakStrategy?: BreakStrategy;
+    strutStyle?: StrutStyle;
+    textHeightBehavior?: TextHeightBehavior;
+    tab?: TextTab;
+    trailingSpaceOptimized?: boolean;
+    autoSpace?: boolean;
+    verticalAlign?: TextVerticalAlign;
+    compressHeadPunctuation?: boolean;
+    lineSpacing?: double;
+    constructor(
+      fallbackLineSpacing?: boolean,
+      includeFontPadding?: boolean,
+      textStyle?: TextStyle,
+      textDirection?: TextDirection,
+      align?: TextAlign,
+      wordBreak?: WordBreak,
+      maxLines?: int,
+      breakStrategy?: BreakStrategy,
+      strutStyle?: StrutStyle,
+      textHeightBehavior?: TextHeightBehavior,
+      tab?: TextTab,
+      trailingSpaceOptimized?: boolean,
+      autoSpace?: boolean,
+      verticalAlign?: TextVerticalAlign,
+      compressHeadPunctuation?: boolean,
+      lineSpacing?: double
+    ) {
+      this.fallbackLineSpacing = fallbackLineSpacing;
+      this.includeFontPadding = includeFontPadding;
+      this.textStyle = textStyle;
+      this.textDirection = textDirection;
+      this.align = align;
+      this.wordBreak = wordBreak;
+      this.maxLines = maxLines;
+      this.breakStrategy = breakStrategy;
+      this.strutStyle = strutStyle;
+      this.textHeightBehavior = textHeightBehavior;
+      this.tab = tab;
+      this.trailingSpaceOptimized = trailingSpaceOptimized;
+      this.autoSpace = autoSpace;
+      this.verticalAlign = verticalAlign;
+      this.compressHeadPunctuation = compressHeadPunctuation;
+      this.lineSpacing = lineSpacing;
+    }
   }
 
   export interface TextShadow {
