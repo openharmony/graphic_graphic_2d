@@ -156,7 +156,7 @@ EffectErrorCode OH_Filter_SetColorMatrix(OH_Filter* filter, OH_Filter_ColorMatri
 
 /**
 * @brief Creates a scale filter and then add to the filter
-* 
+*
 * @param filter The OH_Filter pointer will be operated.
 * @param radius The scaleX.
 * @param radius The scaleY.
