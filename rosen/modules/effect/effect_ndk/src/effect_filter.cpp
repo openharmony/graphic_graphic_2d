@@ -107,6 +107,14 @@ EffectErrorCode OH_Filter_GrayScale(OH_Filter* filter)
     return EFFECT_SUCCESS;
 }
 
+EffectErrorCode OH_Filter_Scale(OH_Filter* filter, float scaleX, float scaleY)
+{
+    if (!filter || !(CastToFilter(filter)->Scale(scaleX, scaleY))) {
+        return EFFECT_BAD_PARAMETER;
+    }
+    return EFFECT_SUCCESS;
+}
+
 EffectErrorCode OH_Filter_Invert(OH_Filter* filter)
 {
     if (!filter || !(CastToFilter(filter)->Invert())) {
