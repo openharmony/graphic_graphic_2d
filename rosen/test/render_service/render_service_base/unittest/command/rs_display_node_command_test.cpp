@@ -168,7 +168,6 @@ HWTEST_F(RSDisplayNodeCommandTest, SetBootAnimation001, TestSize.Level1)
  * @tc.name: SetDisplayContentRectTest
  * @tc.desc: SetDisplayContentRect test.
  * @tc.type: FUNC
- * @tc.require:
  */
 HWTEST_F(RSDisplayNodeCommandTest, SetDisplayContentRectTest, TestSize.Level1)
 {

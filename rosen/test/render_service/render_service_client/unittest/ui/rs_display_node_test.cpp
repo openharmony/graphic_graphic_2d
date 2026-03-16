@@ -480,6 +480,7 @@ HWTEST_F(RSDisplayNodeTest, SetDisplayContentRect002, TestSize.Level1)
     // case1: non-zero value of [x, y]
     Rect contentRect{100, 50, 1280, 720};
     displayNode->SetDisplayContentRect(contentRect);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->FlushImplicitTransaction();
     }
