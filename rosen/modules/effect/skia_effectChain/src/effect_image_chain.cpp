@@ -650,7 +650,7 @@ void EffectImageChain::DrawOnFilter()
         canvas_->DrawingImageRect(*image_, 
             imageRec_,
             canvasRec_,
-            Drawing:;SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR));
+            Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR));
     } else {
         canvas_->DrawImage(*image_, 0, 0, Drawing::SamplingOptions());
     }
