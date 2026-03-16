@@ -155,6 +155,9 @@ EffectErrorCode OH_Filter_Invert(OH_Filter* filter);
 EffectErrorCode OH_Filter_SetColorMatrix(OH_Filter* filter, OH_Filter_ColorMatrix* matrix);
 
 /**
+*/
+
+/**
  * @brief Creates an effect blend the original image and transition image based on different types of masks.
  *        different mask types correspond to different structures,
  *        and generate different types of transition effects.
