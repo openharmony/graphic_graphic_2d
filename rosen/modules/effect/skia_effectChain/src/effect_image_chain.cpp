@@ -120,6 +120,21 @@ Drawing::CoreCanvas& EffectCanvas::DetachBrush()
     return *this;
 }
 
+void EffectImageChain::UpdateImage()
+{
+    DrawOnFilter(); // need draw first to ensure cascading
+    Drawing::RectI rec = {0, 0, (int)canvasRec_.GetRight(), (int)canvasRec_.GetBottom()};
+    image_ = surface_->GetImageSnapshot(rec, false);
+    filters_ = nulltpr; // clear filters_ to avoid applying again
+}
+
+void EffectImageChain::ScaleCanvas(float scaleX, float scaleY)
+{
+    canvas_->Scale(scaleX, scaleY);
+    canvasRec_.SetRight(canvasRec_.GetRight() * scaleX);
+    canvasRec_.SetBottom(canvasRec_.GetBottom() * scaleY);
+}
+
 DrawingError EffectImageChain::Prepare(const std::shared_ptr<Media::PixelMap>& srcPixelMap, bool forceCPU)
 {
     std::lock_guard<std::mutex> lock(apiMutex_);
