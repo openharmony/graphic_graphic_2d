@@ -218,8 +218,8 @@ bool RSUniRenderVirtualProcessor::UpdateMirrorInfo(DrawableV2::RSLogicalDisplayR
     mirroredScreenHeight_ = mirroredParams->GetFixedHeight();
     const Rect& contentRect = mirroredParams->GetDisplayContentRect();
     if (contentRect.w > 0 && contentRect.h > 0) {
-        mirroredScreenWidth_ = contentRect.w;
-        mirroredScreenHeight_ = contentRect.h;
+        mirroredScreenWidth_ = static_cast<float>(contentRect.w);
+        mirroredScreenHeight_ = static_cast<float>(contentRect.h);
         RS_LOGD("RSUniRenderVirtualProcessor::%{public}s: contentRect valid, width: %{public}d, height: %{public}d",
             __func__, contentRect.w, contentRect.h);
     }
