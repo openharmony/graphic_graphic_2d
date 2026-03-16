@@ -114,6 +114,16 @@ public:
     void SetScreenId(uint64_t screenId);
 
     /**
+     * @brief Sets the display content rect.
+     *
+     * The interface specifies an rect starting from the origin for DisplayNode.
+     * Only the content within the rect will take effect during screen recording, wired mirroring, or screenshot task.
+     * 
+     * @param contentRect Only width and height can be set currently (rect origin is fixed at [0,0])
+     */
+    void SetDisplayContentRect(const Rect& contentRect);
+
+    /**
      * @brief Sets whether it is a security screen.
      *
      * The secure screen processes secure layers, while the non-secure screen processes insecure layers

@@ -509,6 +509,14 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByD
     finalRotationAngle_ = CalPixelMapRotation();
     uint32_t pixmapWidth = static_cast<uint32_t>(node->GetFixedWidth());
     uint32_t pixmapHeight = static_cast<uint32_t>(node->GetFixedHeight());
+    const Rect& contentRect = node->GetDisplayContentRect();
+    if (contentRect.w > 0 && contentRect.h > 0) {
+        RS_LOGI("RSSurfaceCaptureTaskParallel::CreatePixelMapByDisplayNode: contentRect valid,"
+            "width: %{public}d, height: %{public}d", contentRect.w, contentRect.h);
+        pixmapWidth = static_cast<uint32_t>(contentRect.w);
+        pixmapHeight = static_cast<uint32_t>(contentRect.h);
+    }
+
     auto bounds = node->GetRenderProperties().GetBoundsGeometry();
     boundsX_ = bounds->GetX();
     boundsY_ = bounds->GetY();
@@ -529,10 +537,12 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByD
     opts.size.height = ceil(pixmapHeight * captureConfig_.scaleY);
     RS_LOGI("RSSurfaceCaptureTaskParallel::%{public}s NodeId[%{public}" PRIu64 "],pixelmap[%{public}u, %{public}u],"
         " scale[%{public}f, %{public}f], rect[%{public}f, %{public}f, %{public}f, %{public}f], dma[%{public}d],"
-        " rotation[%{public}d], correction[%{public}d], blackList[%{public}zu], isHDRCapture[%{public}d]", __func__,
+        " rotation[%{public}d], correction[%{public}d], blackList[%{public}zu], isHDRCapture[%{public}d],"
+        " contentRect[%{public}d, %{public}d, %{public}d, %{public}d]", __func__,
         node->GetId(), pixmapWidth, pixmapHeight, captureConfig_.scaleX, captureConfig_.scaleY,
         rect.GetLeft(), rect.GetTop(), rect.GetWidth(), rect.GetHeight(), captureConfig_.useDma, screenRotation_,
-        screenCorrection_, captureConfig_.blackList.size(), isHDRCapture);
+        screenCorrection_, captureConfig_.blackList.size(), isHDRCapture,
+        contentRect.x, contentRect.y, contentRect.w, contentRect.h);
     std::unique_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
     auto screenNode = std::static_pointer_cast<RSScreenRenderNode>(node->GetParent().lock());
     if (pixelMap && screenNode) {

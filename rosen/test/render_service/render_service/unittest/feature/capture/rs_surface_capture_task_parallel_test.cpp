@@ -330,6 +330,22 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapByDisplayNode003, TestS
     screenNode->AddChild(node);
     ASSERT_EQ(nullptr, task.CreatePixelMapByDisplayNode(node));
     ASSERT_EQ(nullptr, task.CreatePixelMapByDisplayNode(node, true));
+
+    // set contentRect (valid)
+    Rect contentRect{0, 0, 100, 50};
+    node->SetDisplayContentRect(contentRect);
+    task.CreatePixelMapByDisplayNode(node);
+
+    // set contentRect (invalid)
+    Rect contentRect1{0, 0, 0, 0};
+    node->SetDisplayContentRect(contentRect1);
+    task.CreatePixelMapByDisplayNode(node);
+    Rect contentRect2{0, 0, 100, 0};
+    node->SetDisplayContentRect(contentRect2);
+    task.CreatePixelMapByDisplayNode(node);
+    Rect contentRect3{0, 0, 0, 50};
+    node->SetDisplayContentRect(contentRect3);
+    task.CreatePixelMapByDisplayNode(node);
 }
 
 /*
