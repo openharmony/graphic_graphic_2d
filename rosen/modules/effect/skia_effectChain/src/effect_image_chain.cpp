@@ -240,7 +240,7 @@ DrawingError EffectImageChain::ApplyBlur(float radius, const Drawing::TileMode& 
     }
 
     auto isHpsApplied = (RSSystemProperties::GetHpsBlurEnabled() && tileMode == Drawing::TileMode::CLAMP &&
-        (ApplyHpsBlur(radius) == DrawingError::ERR_OK) && !isDirection);
+        !isDirection && (ApplyHpsBlur(radius) == DrawingError::ERR_OK));
     if (isHpsApplied) { // apply hps blur success
         return DrawingError::ERR_OK;
     }
