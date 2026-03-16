@@ -5234,6 +5234,11 @@ bool RSProperties::DisableHWCForFilter() const
         localMagnificationCap_ || GetPixelStretch().has_value() || HasHarmonium() || GetMaterialFilter() != nullptr;
 }
 
+bool RSProperties::NeedClipHoleForRenderGroup() const
+{
+    return GetColorFilter() != nullptr;
+}
+
 void RSProperties::UpdateForegroundFilter()
 {
     foregroundFilter_.reset();

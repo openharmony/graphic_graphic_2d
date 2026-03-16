@@ -28,6 +28,7 @@
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "property/rs_point_light_manager.h"
+#include "render/rs_drawing_filter.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -1635,6 +1636,24 @@ HWTEST_F(PropertiesTest, GetRRectForSDFTest003, TestSize.Level1)
     properties.boundsGeo_->width_ = 10.f;
     properties.boundsGeo_->height_ = 10.f;
     ASSERT_FALSE(properties.GetRRectForSDF().rect_.IsEmpty());
+}
+
+/**
+ * @tc.name: NeedClipHoleForFilterTest
+ * @tc.desc: test NeedClipHoleForFilter with different filter configurations
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PropertiesTest, NeedClipHoleForRenderGroupTest, TestSize.Level1)
+{
+    RSProperties properties;
+
+    std::shared_ptr<Drawing::ColorFilter> colorFilter = Drawing::ColorFilter::CreateLumaColorFilter();
+    properties.GetEffect().colorFilter_ = colorFilter;
+    EXPECT_TRUE(properties.NeedClipHoleForRenderGroup());
+
+    properties.GetEffect().colorFilter_ = nullptr;
+    EXPECT_FALSE(properties.NeedClipHoleForRenderGroup());
 }
 } // namespace Rosen
 } // namespace OHOS

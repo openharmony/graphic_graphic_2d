@@ -311,6 +311,8 @@ public:
     bool IsRenderGroupSubTreeDirty() const;
     void SetChildHasTranslateOnSqueeze(bool val);
     bool ChildHasTranslateOnSqueeze() const;
+    void SetNeedClipHoleForFilter(bool val);
+    bool NeedClipHoleForFilter() const;
     void SetDrawingCacheIncludeProperty(bool includeProperty);
     bool GetDrawingCacheIncludeProperty() const
     {

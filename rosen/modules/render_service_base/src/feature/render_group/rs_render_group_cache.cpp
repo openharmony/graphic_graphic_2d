@@ -64,6 +64,15 @@ bool RSRenderGroupCache::SetChildHasTranslateOnSqueeze(bool val)
     return true;
 }
 
+bool RSRenderGroupCache::SetNeedClipHoleForFilter(bool val)
+{
+    if (needClipHoleForFilter_ == val) {
+        return false;
+    }
+    needClipHoleForFilter_ = val;
+    return true;
+}
+
 AutoRenderGroupExcludedSubTreeGuard::AutoRenderGroupExcludedSubTreeGuard(
     NodeId& curExcludedRootNodeId, bool isCurNodeExcluded, NodeId curNodeId)
     : curExcludedRootNodeId_(curExcludedRootNodeId)
