@@ -642,9 +642,10 @@ int32_t RSInterfaces::SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat
     return renderServiceClient_->SetPixelFormat(id, pixelFormat);
 }
 
-int32_t RSInterfaces::GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats)
+int32_t RSInterfaces::GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats,
+    const ScreenSupportedHDRFormatsCallback& callback)
 {
-    return renderServiceClient_->GetScreenSupportedHDRFormats(id, hdrFormats);
+    return renderServiceClient_->GetScreenSupportedHDRFormats(id, hdrFormats, callback);
 }
 
 int32_t RSInterfaces::GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat)

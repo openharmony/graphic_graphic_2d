@@ -19,6 +19,7 @@
 #include "rs_screen.h"
 #include "mock_hdi_device.h"
 #include "multiscreen_param.h"
+#include "ipc_callbacks/screen_supported_hdr_formats_callback_stub.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -33,6 +34,23 @@ public:
 
     static inline ScreenId mockScreenId_;
     static inline Mock::HdiDeviceMock* hdiDeviceMock_;
+};
+
+class CustomScreenSupportedHDRFormatsCallback : public RSScreenSupportedHDRFormatsCallbackStub {
+public:
+    explicit CustomScreenSupportedHDRFormatsCallback(const std::function<void(ScreenId,
+        std::vector<ScreenHDRFormat>& specialHdrFormats)> &callback) : cb_(callback) {}
+    ~CustomScreenSupportedHDRFormatsCallback() override {};
+
+    void OnScreenSupportedHDRFormatsUpdate(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats) override
+    {
+        if (cb_ != nullptr) {
+            cb_(id, hdrFormats);
+        }
+    }
+
+private:
+    std::function<void(ScreenId, std::vector<ScreenHDRFormat>& specialHdrFormats)> cb_;
 };
 
 void RSScreenTest::SetUpTestCase()
@@ -1791,6 +1809,7 @@ HWTEST_F(RSScreenTest, GetScreenSupportedHDRFormats_002, testing::ext::TestSize.
     std::vector<ScreenHDRFormat> hdrFormats;
     ASSERT_EQ(rsScreen->GetScreenSupportedHDRFormats(hdrFormats), StatusCode::HDI_ERROR);
 }
+
 /*
  * @tc.name: GetScreenSupportedHDRFormats_003
  * @tc.desc: GetScreenSupportedHDRFormats Test, IsVirtual() return  false, hdrFormats.size() != 0
@@ -1805,6 +1824,25 @@ HWTEST_F(RSScreenTest, GetScreenSupportedHDRFormats_003, testing::ext::TestSize.
     rsScreen->supportedPhysicalHDRFormats_.resize(1);
     std::vector<ScreenHDRFormat> hdrFormats;
     ASSERT_EQ(rsScreen->GetScreenSupportedHDRFormats(hdrFormats), StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: GetScreenSupportedHDRFormats_004
+ * @tc.desc: GetScreenSupportedHDRFormats Test, IsVirtual() return  false, hdrFormats.size() == 0
+ * @tc.type: FUNC
+ * @tc.require: issueIAIRAN
+ */
+HWTEST_F(RSScreenTest, GetScreenSupportedHDRFormats_004, testing::ext::TestSize.Level1)
+{
+    auto rsScreen = std::make_shared<RSScreen>(0);
+    ASSERT_NE(nullptr, rsScreen);
+ 
+    rsScreen->supportedPhysicalHDRFormats_.resize(0);
+    std::vector<ScreenHDRFormat> hdrFormats;
+    ASSERT_EQ(rsScreen->GetScreenSupportedHDRFormats(hdrFormats), StatusCode::HDI_ERROR);
+    sptr<RSIScreenSupportedHdrFormatsCallback> callback = new CustomScreenSupportedHDRFormatsCallback(
+        [](ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats) {});
+    rsScreen->GetScreenSupportedHDRFormats(hdrFormats);
 }
 
 /*

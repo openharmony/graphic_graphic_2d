@@ -2364,8 +2364,8 @@ ErrCode RSClientToServiceConnectionProxy::SetPixelFormat(ScreenId id, GraphicPix
     return ERR_OK;
 }
 
-ErrCode RSClientToServiceConnectionProxy::GetScreenSupportedHDRFormats(
-    ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats, int32_t& resCode)
+ErrCode RSClientToServiceConnectionProxy::GetScreenSupportedHDRFormats(ScreenId id,
+    std::vector<ScreenHDRFormat>& hdrFormats, int32_t& resCode, sptr<RSIScreenSupportedHdrFormatsCallback> callback)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -2381,6 +2381,20 @@ ErrCode RSClientToServiceConnectionProxy::GetScreenSupportedHDRFormats(
         resCode =  WRITE_PARCEL_ERR;
         return ERR_INVALID_VALUE;
     }
+    if (callback) {
+        if (!data.WriteBool(true) || !data.WriteRemoteObject(callback->AsObject())) {
+            ROSEN_LOGE("GetScreenSupportedHDRFormats WriteRemoteObject obj failed");
+            resCode =  WRITE_PARCEL_ERR;
+            return ERR_INVALID_VALUE;
+        }
+    } else {
+        if (!data.WriteBool(false)) {
+            ROSEN_LOGE("GetScreenSupportedHDRFormats WriteBool false failed");
+            resCode =  WRITE_PARCEL_ERR;
+            return ERR_INVALID_VALUE;
+        }
+    }
+
     uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_HDR_FORMATS);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {

@@ -23,6 +23,7 @@
 #include "hgm_config_callback_manager.h"
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/buffer_clear_callback.h"
+#include "ipc_callbacks/screen_supported_hdr_formats_callback.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "rs_render_composer_manager.h"
 #include "zidl/rs_client_to_service_connection_stub.h"
@@ -221,8 +222,8 @@ private:
 
     ErrCode SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat, int32_t& resCode) override;
 
-    ErrCode GetScreenSupportedHDRFormats(
-        ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats, int32_t& resCode) override;
+    ErrCode GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats,
+        int32_t& resCode, sptr<RSIScreenSupportedHdrFormatsCallback> callback = nullptr) override;
 
     ErrCode GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat, int32_t& resCode) override;
 

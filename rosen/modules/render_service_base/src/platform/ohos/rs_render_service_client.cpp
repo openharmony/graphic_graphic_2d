@@ -30,6 +30,7 @@
 #include "command/rs_command.h"
 #include "command/rs_node_showing_command.h"
 #include "common/rs_xcollie.h"
+#include "ipc_callbacks/screen_supported_hdr_formats_callback_stub.h"
 #include "ipc_callbacks/brightness_info_change_callback_stub.h"
 #include "ipc_callbacks/pointer_render/pointer_luminance_callback_stub.h"
 #include "ipc_callbacks/rs_surface_occlusion_change_callback_stub.h"
@@ -983,14 +984,38 @@ int32_t RSRenderServiceClient::SetPixelFormat(ScreenId id, GraphicPixelFormat pi
     return resCode;
 }
 
-int32_t RSRenderServiceClient::GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats)
+class CustomScreenSupportedHDRFormatsCallback : public RSScreenSupportedHDRFormatsCallbackStub
+{
+public:
+    explicit CustomScreenSupportedHDRFormatsCallback(
+        const ScreenSupportedHDRFormatsCallback &callback) : cb_(callback) {}
+    ~CustomScreenSupportedHDRFormatsCallback() override {};
+
+    void OnScreenSupportedHDRFormatsUpdate(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats) override
+    {
+        if (cb_ != nullptr) {
+            cb_(id, hdrFormats);
+        }
+    }
+
+private:
+    ScreenSupportedHDRFormatsCallback cb_;
+};
+
+int32_t RSRenderServiceClient::GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats,
+    const ScreenSupportedHDRFormatsCallback& callback)
 {
     auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
+
+    sptr<RSIScreenSupportedHdrFormatsCallback> cb = nullptr;
+    if (callback) {
+        cb = new CustomScreenSupportedHDRFormatsCallback(callback);
+    }
     int32_t resCode = SUCCESS;
-    clientToService->GetScreenSupportedHDRFormats(id, hdrFormats, resCode);
+    clientToService->GetScreenSupportedHDRFormats(id, hdrFormats, resCode, cb);
     return resCode;
 }
 

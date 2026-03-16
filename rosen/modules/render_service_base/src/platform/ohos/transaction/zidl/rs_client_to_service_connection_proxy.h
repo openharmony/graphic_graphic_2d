@@ -184,8 +184,8 @@ public:
 
     ErrCode SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat, int32_t& resCode) override;
 
-    ErrCode GetScreenSupportedHDRFormats(
-        ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats, int32_t& resCode) override;
+    ErrCode GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats,
+        int32_t& resCode, sptr<RSIScreenSupportedHdrFormatsCallback> callback = nullptr) override;
 
     ErrCode GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat, int32_t& resCode) override;
 

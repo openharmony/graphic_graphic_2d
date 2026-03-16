@@ -44,6 +44,7 @@
 #include "ipc_callbacks/screen_switching_notify_callback.h"
 #include "ipc_callbacks/surface_capture_callback.h"
 #include "ipc_callbacks/rs_transaction_data_callback.h"
+#include "ipc_callbacks/screen_supported_hdr_formats_callback.h"
 #include "memory/rs_memory_graphic.h"
 #include "screen_manager/rs_screen_capability.h"
 #include "screen_manager/rs_screen_data.h"
@@ -235,8 +236,8 @@ public:
 
     virtual ErrCode SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat, int32_t& resCode) = 0;
 
-    virtual ErrCode GetScreenSupportedHDRFormats(
-        ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats, int32_t& resCode) = 0;
+    virtual ErrCode GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats,
+        int32_t& resCode, sptr<RSIScreenSupportedHdrFormatsCallback> callback = nullptr) = 0;
 
     virtual ErrCode GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat, int32_t& resCode) = 0;
 

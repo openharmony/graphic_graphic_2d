@@ -524,13 +524,13 @@ int32_t RSScreenManagerAgent::GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& h
 }
 
 int32_t RSScreenManagerAgent::GetScreenSupportedHDRFormats(ScreenId id,
-    std::vector<ScreenHDRFormat>& hdrFormats) const
+    std::vector<ScreenHDRFormat>& hdrFormats, sptr<RSIScreenSupportedHdrFormatsCallback> callback) const
 {
     if (!screenManager_) {
         RS_LOGW("%{public}s screenManager_ is nullptr", __func__);
         return StatusCode::SCREEN_NOT_FOUND;
     }
-    return screenManager_->GetScreenSupportedHDRFormats(id, hdrFormats);
+    return screenManager_->GetScreenSupportedHDRFormats(id, hdrFormats, callback);
 }
 
 int32_t RSScreenManagerAgent::GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability) const

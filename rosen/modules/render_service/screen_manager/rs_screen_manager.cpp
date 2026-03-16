@@ -1320,7 +1320,8 @@ int32_t RSScreenManager::SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFor
     return screen->SetPixelFormat(pixelFormat);
 }
 
-int32_t RSScreenManager::GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats) const
+int32_t RSScreenManager::GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats,
+    sptr<RSIScreenSupportedHdrFormatsCallback> callback) const
 {
     auto screen = GetScreen(id);
     if (screen == nullptr) {
@@ -1328,7 +1329,7 @@ int32_t RSScreenManager::GetScreenSupportedHDRFormats(ScreenId id, std::vector<S
         return StatusCode::SCREEN_NOT_FOUND;
     }
     RS_OPTIONAL_TRACE_NAME_FMT("RSScreenManager::%s, id:[%" PRIu64 "].", __func__, id);
-    return screen->GetScreenSupportedHDRFormats(hdrFormats);
+    return screen->GetScreenSupportedHDRFormats(hdrFormats, callback);
 }
 
 int32_t RSScreenManager::GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat) const

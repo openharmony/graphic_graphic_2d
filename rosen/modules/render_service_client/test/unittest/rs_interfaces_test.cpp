@@ -998,6 +998,10 @@ HWTEST_F(RSInterfacesTest, GetScreenSupportedHDRFormats002, Function | SmallTest
     std::vector<ScreenHDRFormat> hdrFormats;
     int ret = rsInterfaces->GetScreenSupportedHDRFormats(INVALID_SCREEN_ID, hdrFormats);
     EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+    ret = rsInterfaces->GetScreenSupportedHDRFormats(INVALID_SCREEN_ID, hdrFormats,
+        [](ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats) {
+    });
+    EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
 }
 
 /*
