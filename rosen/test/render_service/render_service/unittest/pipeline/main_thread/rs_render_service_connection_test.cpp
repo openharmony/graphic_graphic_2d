@@ -1149,7 +1149,7 @@ HWTEST_F(RSRenderServiceConnectionTest, GetPixelMapByProcessIdWithTexture001, Te
     std::vector<PixelMapInfo> pixelMapInfoVector;
     int32_t repCode = 0;
     ErrCode result = connection->GetPixelMapByProcessId(pixelMapInfoVector, 4005, repCode);
-    EXPECT_EQ(repCode, INVALID_ARGUMENTS);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
 }
 #endif
 } // namespace OHOS::Rosen
