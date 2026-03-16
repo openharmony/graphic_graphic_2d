@@ -53,6 +53,14 @@ std::shared_ptr<EffectImageFilter> EffectImageFilter::Blur(float radius, float a
     return std::make_shared<EffectImageBlurFilter>(radius, angle, tileMode);
 }
 
+std::shared_ptr<EffectImageFilter> EffectImageFilter::Scale(float scaleX, float scaleY)
+{
+    if (scaleX < 0 || scaleY < 0) {
+        return nullptr;
+    }
+    return std::make_shared<EffectImageScaleFilter>(scaleX, scaleY);
+}
+
 std::shared_ptr<EffectImageFilter> EffectImageFilter::MapColorByBrightness(const std::vector<Vector4f>& colors,
     const std::vector<float>& positions)
 {
@@ -348,5 +356,13 @@ DrawingError EffectImageRender::RenderDstNative(const std::shared_ptr<Media::Pix
  
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     return ret;
+}
+
+DrawingError EffectImageScaleFilter::Apply(const std::shared_ptr<EffectImageChain>& image)
+{
+    if (image == nullptr) {
+        return DrawingError::ERR_IMAGE_NULL;
+    }
+    return image->ApplyScale(scaleX_, scaleY_);
 }
 } // namespace OHOS::Rosen
