@@ -736,6 +736,17 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     RSRenderParams::OnSync(target);
 }
 
+void RSSurfaceRenderParams::OnPartialSync(const std::unique_ptr<RSRenderParams>& target)
+{
+    auto targetSurfaceParams = static_cast<RSSurfaceRenderParams*>(target.get());
+    if (targetSurfaceParams == nullptr) {
+        RS_LOGE("RSSurfaceRenderParams::OnPartialSync targetSurfaceParams is nullptr");
+        return;
+    }
+    targetSurfaceParams->isUIFirstLeashAllEnable_ = isUIFirstLeashAllEnable_;
+    targetSurfaceParams->isUIFirstLeashAllEnableChange_ = isUIFirstLeashAllEnableChange_;
+}
+
 std::string RSSurfaceRenderParams::ToString() const
 {
     std::string ret = RSRenderParams::ToString() + ", RSSurfaceRenderParams: {";
@@ -862,6 +873,31 @@ void RSSurfaceRenderParams::SetIsParticipateInOcclusion(bool isParticipateInOccl
 bool RSSurfaceRenderParams::GetIsParticipateInOcclusion() const
 {
     return isParticipateInOcclusion_;
+}
+
+void RSSurfaceRenderParams::SetUIFirstLeashAllEnable(bool enable)
+{
+    if (isUIFirstLeashAllEnable_ == enable) {
+        return;
+    }
+    isUIFirstLeashAllEnable_ = enable;
+    isUIFirstLeashAllEnableChange_ = true;
+    needSync_ = true;
+}
+
+bool RSSurfaceRenderParams::IsUIFirstLeashAllEnable() const
+{
+    return isUIFirstLeashAllEnable_;
+}
+
+void RSSurfaceRenderParams::SetUIFirstLeashAllEnableChange(bool isChanged)
+{
+    isUIFirstLeashAllEnableChange_ = isChanged;
+}
+
+bool RSSurfaceRenderParams::IsUIFirstLeashAllEnableChange() const
+{
+    return isUIFirstLeashAllEnableChange_;
 }
 
 void RSSurfaceRenderParams::SwapRelatedRenderParams(RSSurfaceRenderParams& relatedRenderParams)

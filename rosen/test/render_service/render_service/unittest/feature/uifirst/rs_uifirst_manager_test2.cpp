@@ -1920,4 +1920,30 @@ HWTEST_F(RSUifirstManagerTest2, CheckAndBlockFirstFrameCallbackTest002, TestSize
     EXPECT_TRUE(appWindow->IsWaitUifirstFirstFrame());
     EXPECT_TRUE(surfaceNode->GetUifirstHasContentAppWindow());
 }
+
+/**
+ * @tc.name: UpdateLeashAllEnableChangeTest
+ * @tc.desc: Test UpdateLeashAllEnableChange
+ * @tc.type:FUNC
+ * @tc.require: issue21674
+ */
+HWTEST_F(RSUifirstManagerTest2, UpdateLeashAllEnableChangeTest, TestSize.Level1)
+{
+    RSUifirstManager uifirstManager;
+    uifirstManager.mainThread_ = mainThread_;
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    mainThread_->context_->nodeMap.RegisterRenderNode(surfaceNode);
+    uifirstManager.UpdateLeashAllEnableChange(surfaceNode->GetId());
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetStagingRenderParams().get());
+    EXPECT_FALSE(surfaceParams->isUIFirstLeashAllEnableChange_);
+
+    auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+    surfaceDrawable->uifirstRenderParams_ = nullptr;
+    uifirstManager.UpdateLeashAllEnableChange(surfaceNode->GetId());
+    surfaceNode->stagingRenderParams_ = nullptr;
+    uifirstManager.UpdateLeashAllEnableChange(surfaceNode->GetId());
+    mainThread_->context_->nodeMap.UnregisterRenderNode(surfaceNode->GetId());
+}
 }

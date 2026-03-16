@@ -1606,6 +1606,7 @@ CM_INLINE void RSUniRenderVisitor::PrepareForUIFirstNode(RSSurfaceRenderNode& no
         node.isTargetUIFirstDfxEnabled_ = isTargetUIFirstDfxSurface;
     }
     RSUifirstManager::Instance().UpdateUifirstNodes(node, ancestorNodeHasAnimation_ || node.GetCurFrameHasAnimation());
+    RSUifirstManager::Instance().SetUIFirstLeashAllEnable(node);
     RSUifirstManager::Instance().RecordScreenRect(node, curScreenNode_->GetScreenRect());
     if (RSUifirstManager::Instance().IsUIFirstDirtyEnabled() &&
         node.GetLastFrameUifirstFlag() == MultiThreadCacheType::NONFOCUS_WINDOW) {
