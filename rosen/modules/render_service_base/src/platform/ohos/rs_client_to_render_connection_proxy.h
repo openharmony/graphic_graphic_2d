@@ -101,6 +101,8 @@ public:
 #endif
     int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection) override;
 
+    int32_t GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight) override;
+
     void RemoveToken() override {};
     static inline BrokerDelegator<RSClientToRenderConnectionProxy> delegator_;
 

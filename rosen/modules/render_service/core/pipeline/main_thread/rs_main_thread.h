@@ -424,6 +424,8 @@ public:
     void SetHasSurfaceLockLayer(bool hasSurfaceLockLayer);
     bool HasDRMOrSurfaceLockLayer() const;
 
+    bool GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight);
+
     bool IsReadyForSyncTask() const;
 
     bool TransitionDataMutexLockIfNoCommands();

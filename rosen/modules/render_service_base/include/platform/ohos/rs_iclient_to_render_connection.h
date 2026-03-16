@@ -146,6 +146,8 @@ public:
         NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex) = 0;
 #endif
     virtual int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection) = 0;
+
+    virtual int32_t GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight) = 0;
 };
 
 } // namespace Rosen

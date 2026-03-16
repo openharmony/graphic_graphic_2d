@@ -113,6 +113,23 @@ RSRenderThread& RSRenderThread::Instance()
     return renderThread;
 }
 
+bool RSRenderThread::QueryMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
+{
+    ROSEN_LOGI("RSRenderThread::QueryMaxGpuBufferSize: start query GPU buffer size limits");
+
+#ifdef RS_ENABLE_GPU
+    if (renderContext_) {
+        return renderContext_->QueryMaxGpuBufferSize(maxWidth, maxHeight);
+    } else {
+        ROSEN_LOGE("RSRenderThread::QueryMaxGpuBufferSize: renderContext_ is null");
+        return false;
+    }
+#else
+    ROSEN_LOGE("RSRenderThread::QueryMaxGpuBufferSize: GPU backend not enabled");
+    return false;
+#endif
+}
+
 RSRenderThread::RSRenderThread()
 {
     FontCollection::RegisterUnloadFontFinishCallback([](const FontCollection*, const FontEventInfo& info) {

@@ -5343,5 +5343,26 @@ void RSMainThread::TransitionDataMutexUnlock()
 {
     transitionDataMutex_.unlock();
 }
+
+bool RSMainThread::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
+{
+    RS_LOGI("GetMaxGpuBufferSize: start query GPU buffer size limits");
+
+#if !defined(RS_ENABLE_GL) && !defined(RS_ENABLE_VK)
+    RS_LOGE("GetMaxGpuBufferSize: No GPU backend enabled");
+    return false;
+#endif
+
+    bool querySuccess = false;
+    auto queryGpuLimits = [this, &maxWidth, &maxHeight, &querySuccess]() {
+        auto renderContext = isUniRender_ ? GetRenderEngine()->GetRenderContext() : renderEngine_->GetRenderContext();
+        if (renderContext) {
+            querySuccess = renderContext->QueryMaxGpuBufferSize(maxWidth, maxHeight);
+        }
+    };
+
+    RSUniRenderThread::Instance().PostSyncTask(queryGpuLimits);
+    return querySuccess;
+}
 } // namespace Rosen
 } // namespace OHOS

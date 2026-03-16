@@ -307,6 +307,8 @@ public:
      */
     int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection);
 
+    int32_t GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight);
+
 private:
     std::unique_ptr<RSRenderPipelineClient> renderPiplineClient_;
     friend class RSUIContext;

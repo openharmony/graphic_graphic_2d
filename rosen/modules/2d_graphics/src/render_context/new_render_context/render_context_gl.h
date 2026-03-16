@@ -42,6 +42,7 @@ public:
     std::string GetShaderCacheSize() const override;
     std::string CleanAllShaderCache() const override;
     bool SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> context = nullptr) override;
+    bool QueryMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight) override;
 
     std::shared_ptr<Drawing::Surface> AcquireSurface(int width, int height) override;
     void RenderFrame() override;

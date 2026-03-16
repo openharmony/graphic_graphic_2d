@@ -853,5 +853,28 @@ int32_t RSClientToRenderConnectionProxy::SetLogicalCameraRotationCorrection(
     }
     return result;
 }
+
+int32_t RSClientToRenderConnectionProxy::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("GetMaxGpuBufferSize: WriteInterfaceToken GetDescriptor err.");
+        return ERR_INVALID_VALUE;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_MAX_GPU_BUFFER_SIZE);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("GetMaxGpuBufferSize: Send Request err.");
+        return ERR_INVALID_VALUE;
+    }
+    if (!reply.ReadUint32(maxWidth) || !reply.ReadUint32(maxHeight)) {
+        ROSEN_LOGE("GetMaxGpuBufferSize: Read failed");
+        return READ_PARCEL_ERR;
+    }
+    return ERR_OK;
+}
 } // namespace Rosen
 } // namespace OHOS

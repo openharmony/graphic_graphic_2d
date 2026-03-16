@@ -6515,4 +6515,113 @@ HWTEST_F(RSMainThreadTest, AddUICaptureNode005, TestSize.Level1)
     mainThread->RemoveUICaptureNode(id1);
     EXPECT_EQ(mainThread->uiCaptureNodeMap_.size(), 0);
 }
+
+HWTEST_F(RSMainThreadTest, GetMaxGpuBufferSize001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    uint32_t maxWidth = 0;
+    uint32_t maxHeight = 0;
+
+    bool result = mainThread->GetMaxGpuBufferSize(maxWidth, maxHeight);
+
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    EXPECT_TRUE(result);
+    EXPECT_GT(maxWidth, 0);
+    EXPECT_GT(maxHeight, 0);
+    EXPECT_EQ(maxWidth, maxHeight);
+#else
+    EXPECT_FALSE(result);
+    EXPECT_EQ(maxWidth, 0);
+    EXPECT_EQ(maxHeight, 0);
+#endif
+}
+
+HWTEST_F(RSMainThreadTest, GetMaxGpuBufferSize002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    uint32_t maxWidth = 1024;
+    uint32_t maxHeight = 768;
+
+    bool result = mainThread->GetMaxGpuBufferSize(maxWidth, maxHeight);
+
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    EXPECT_TRUE(result);
+    EXPECT_GE(maxWidth, 1024);
+    EXPECT_GE(maxHeight, 1024);
+#else
+    EXPECT_FALSE(result);
+    EXPECT_EQ(maxWidth, 1024);
+    EXPECT_EQ(maxHeight, 768);
+#endif
+}
+
+HWTEST_F(RSMainThreadTest, GetMaxGpuBufferSize003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    uint32_t maxWidth = 0;
+    uint32_t maxHeight = 0;
+
+    bool result = mainThread->GetMaxGpuBufferSize(maxWidth, maxHeight);
+
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    EXPECT_TRUE(result);
+    EXPECT_GT(maxWidth, 0);
+    EXPECT_GT(maxHeight, 0);
+    RS_LOGI("GetMaxGpuBufferSize003: maxWidth=%u, maxHeight=%u", maxWidth, maxHeight);
+#else
+    EXPECT_FALSE(result);
+    EXPECT_EQ(maxWidth, 0);
+    EXPECT_EQ(maxHeight, 0);
+#endif
+}
+
+HWTEST_F(RSMainThreadTest, GetMaxGpuBufferSize004, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    uint32_t maxWidth = UINT32_MAX;
+    uint32_t maxHeight = UINT32_MAX;
+
+    bool result = mainThread->GetMaxGpuBufferSize(maxWidth, maxHeight);
+
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    EXPECT_TRUE(result);
+    EXPECT_LT(maxWidth, UINT32_MAX);
+    EXPECT_LT(maxHeight, UINT32_MAX);
+    RS_LOGI("GetMaxGpuBufferSize004: maxWidth=%u, maxHeight=%u", maxWidth, maxHeight);
+#else
+    EXPECT_FALSE(result);
+#endif
+}
+
+HWTEST_F(RSMainThreadTest, GetMaxGpuBufferSize005, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    uint32_t maxWidth1 = 0;
+    uint32_t maxHeight1 = 0;
+    bool result1 = mainThread->GetMaxGpuBufferSize(maxWidth1, maxHeight1);
+
+    uint32_t maxWidth2 = 0;
+    uint32_t maxHeight2 = 0;
+    bool result2 = mainThread->GetMaxGpuBufferSize(maxWidth2, maxHeight2);
+
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    EXPECT_TRUE(result1);
+    EXPECT_TRUE(result2);
+    EXPECT_EQ(maxWidth1, maxWidth2);
+    EXPECT_EQ(maxHeight1, maxHeight2);
+#else
+    EXPECT_FALSE(result1);
+    EXPECT_FALSE(result2);
+#endif
+}
 } // namespace OHOS::Rosen

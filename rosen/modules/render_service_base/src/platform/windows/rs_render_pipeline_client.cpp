@@ -145,5 +145,10 @@ int32_t RSRenderPipelineClient::SetLogicalCameraRotationCorrection(ScreenId id, 
 {
     return 0;
 }
+
+int32_t RSRenderPipelineClient::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS

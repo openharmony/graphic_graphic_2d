@@ -413,5 +413,21 @@ int32_t RSRenderInterface::SetLogicalCameraRotationCorrection(ScreenId id, Scree
 {
     return renderPiplineClient_->SetLogicalCameraRotationCorrection(id, logicalCorrection);
 }
+
+int32_t RSRenderInterface::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
+{
+    if (RSUniRenderJudgement::GetUniRenderEnabledType() == UniRenderEnabledType::UNI_RENDER_DISABLED) {
+        RS_LOGI("GetMaxGpuBufferSize: non-uni render mode, PostSyncTask to render thread");
+        bool querySuccess = false;
+        auto queryGpuLimits = [&maxWidth, &maxHeight, &querySuccess]() {
+            querySuccess = RSRenderThread::Instance().QueryMaxGpuBufferSize(maxWidth, maxHeight);
+        };
+        RSRenderThread::Instance().PostSyncTask(queryGpuLimits);
+        return querySuccess ? 0 : -1;
+    } else {
+        RS_LOGI("GetMaxGpuBufferSize: uni render mode, using render pipeline client");
+        return renderPiplineClient_->GetMaxGpuBufferSize(maxWidth, maxHeight);
+    }
 }
-}
+} // namespace Rosen
+} // namespace OHOS

@@ -793,5 +793,17 @@ int32_t RSClientToRenderConnection::SetLogicalCameraRotationCorrection(
     mainThread_->PostTask(task);
     return SUCCESS;
 }
+
+ErrCode RSClientToRenderConnection::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
+{
+    if (mainThread_ == nullptr) {
+        RS_LOGE("%{public}s mainThread_ is nullptr", __func__);
+        return ERR_INVALID_VALUE;
+    }
+
+    bool result = mainThread_->GetMaxGpuBufferSize(maxWidth, maxHeight);
+
+    return result ? ERR_OK : RET_FAILD;
+}
 } // namespace Rosen
 } // namespace OHOS

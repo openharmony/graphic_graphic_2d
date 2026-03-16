@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,26 +13,20 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_CONTEXT_VK_H
-#define RENDER_CONTEXT_VK_H
+#ifndef RSMAINTHREAD_GPUBUFFERSIZE_FUZZER_H
+#define RSMAINTHREAD_GPUBUFFERSIZE_FUZZER_H
 
-#include "render_context/render_context.h"
+#include <cstdint>
+#include <string>
 
 namespace OHOS {
 namespace Rosen {
-class RenderContextVK : public RenderContext {
+namespace RSMainThreadGPUBufferSizeFuzzer {
 
-public:
-    RenderContextVK() = default;
-    ~RenderContextVK() override;
+constexpr size_t MAX_INPUT_SIZE = 1024;
 
-    bool Init() override;
-    bool AbandonContext() override;
-    std::string GetShaderCacheSize() const override;
-    std::string CleanAllShaderCache() const override;
-    bool SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawingContext = nullptr) override;
-    bool QueryMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight) override;
-};
+bool DoGetMaxGpuBufferSize();
+} // namespace RSMainThreadGPUBufferSizeFuzzer
 } // namespace Rosen
 } // namespace OHOS
 #endif

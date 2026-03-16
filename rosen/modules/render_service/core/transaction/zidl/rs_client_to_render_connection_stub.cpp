@@ -860,6 +860,26 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             }
             break;
         }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_MAX_GPU_BUFFER_SIZE): {
+            uint32_t maxWidth { 0 };
+            uint32_t maxHeight { 0 };
+            ret = GetMaxGpuBufferSize(maxWidth, maxHeight);
+            if (ret != ERR_OK) {
+                RS_LOGE("RSClientToRenderConnectionStub::GET_MAX_GPU_BUFFER_SIZE Business error(%{public}d)!", ret);
+                break;
+            }
+            if (!reply.WriteUint32(maxWidth)) {
+                RS_LOGE("RSClientToRenderConnectionStub::GET_MAX_GPU_BUFFER_SIZE Write maxWidth failed!");
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
+            if (!reply.WriteUint32(maxHeight)) {
+                RS_LOGE("RSClientToRenderConnectionStub::GET_MAX_GPU_BUFFER_SIZE Write maxHeight failed!");
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
+            break;
+        }
         default: {
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
         }

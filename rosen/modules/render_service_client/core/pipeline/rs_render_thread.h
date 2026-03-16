@@ -54,6 +54,7 @@ public:
     void PostSyncTask(RSTaskMessage::RSTask task);
     void PostPreTask();
     void UpdateWindowStatus(bool active);
+    bool QueryMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight);
 
     int32_t GetTid();
 
