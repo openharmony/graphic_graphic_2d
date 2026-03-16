@@ -3433,6 +3433,14 @@ void RSUniRenderVisitor::UpdateFilterRegionInSkippedSurfaceNode(
             continue;
         }
 
+#if defined(ROSEN_OHOS)
+        // Prepare filterNode for HpaeBlur
+        // node would be occluded if isBgWindowTraversalStarted_, and no blur required
+        if (!isBgWindowTraversalStarted_ && filterNode->IsInstanceOf<RSCanvasRenderNode>()) {
+            RSHpaeManager::GetInstance().RegisterHpaeCallback(*filterNode, curScreenNode_);
+        }
+#endif
+
         // Prepare ColorPicker drawable for disable decision
         PrepareColorPickerDrawable(*filterNode);
 
