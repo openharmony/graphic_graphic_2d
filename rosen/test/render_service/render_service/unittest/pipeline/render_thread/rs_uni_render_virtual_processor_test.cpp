@@ -477,7 +477,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, InitForRenderThread003, TestSize.Level
     ASSERT_NE(nativeWindowBuffer, nullptr);
     rsSurface1->mSurfaceList.emplace_back(nativeWindowBuffer);
     virtualProcessor->InitForRenderThread(*virtualRenderDrawable, renderEngine);
-    auto res = RSHdrUtil::SetMetadata(RSHDRUtilConst::HDR_CAST_OUT_COLORSPACE, virtualProcessor->renderFrame_);
+    auto res = RSHdrUtil::SetMetadata(RSHDRUtilConst::HDR_CAST_OUT_COLORSPACE, virtualProcessor->renderFrame_, true);
     EXPECT_EQ(GSERROR_OK, res);
 }
 #endif

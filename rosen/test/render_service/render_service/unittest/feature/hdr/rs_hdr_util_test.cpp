@@ -1018,11 +1018,11 @@ HWTEST_F(RSHdrUtilTest, EraseHDRMetadataKey001, TestSize.Level2)
 HWTEST_F(RSHdrUtilTest, SetMetadata001, TestSize.Level2)
 {
     std::unique_ptr<RSRenderFrame> renderFrame = nullptr;
-    auto res = RSHdrUtil::SetMetadata(RSHDRUtilConst::HDR_CAST_OUT_COLORSPACE, renderFrame);
+    auto res = RSHdrUtil::SetMetadata(RSHDRUtilConst::HDR_CAST_OUT_COLORSPACE, renderFrame, true);
     EXPECT_EQ(GSERROR_INVALID_ARGUMENTS, res);
 
     renderFrame = std::make_unique<RSRenderFrame>(nullptr, nullptr);
-    res = RSHdrUtil::SetMetadata(RSHDRUtilConst::HDR_CAST_OUT_COLORSPACE, renderFrame);
+    res = RSHdrUtil::SetMetadata(RSHDRUtilConst::HDR_CAST_OUT_COLORSPACE, renderFrame, true);
     EXPECT_EQ(GSERROR_INVALID_ARGUMENTS, res);
 
     sptr<OHOS::IConsumerSurface> cSurface = IConsumerSurface::Create();
@@ -1036,8 +1036,9 @@ HWTEST_F(RSHdrUtilTest, SetMetadata001, TestSize.Level2)
     pSurface2->RequestBuffer(sBuffer, fence, requestConfig);
     NativeWindowBuffer* nativeWindowBuffer = OH_NativeWindow_CreateNativeWindowBufferFromSurfaceBuffer(&sBuffer);
     ASSERT_NE(nativeWindowBuffer, nullptr);
-    res = RSHdrUtil::SetMetadata(RSHDRUtilConst::HDR_CAST_OUT_COLORSPACE, renderFrame);
+    res = RSHdrUtil::SetMetadata(RSHDRUtilConst::HDR_CAST_OUT_COLORSPACE, renderFrame, true);
     EXPECT_EQ(GSERROR_OK, res);
+    RSHdrUtil::SetMetadata(RSHDRUtilConst::HDR_CAST_OUT_COLORSPACE, renderFrame, false);
     RSHdrUtil::UnregisterConsumerListener();
 }
 

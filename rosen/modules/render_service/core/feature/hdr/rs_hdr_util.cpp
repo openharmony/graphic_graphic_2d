@@ -736,7 +736,7 @@ GSError RSHdrUtil::EraseHDRMetadataKey(std::unique_ptr<RSRenderFrame>& renderFra
 }
 
 GSError RSHdrUtil::SetMetadata(const HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceInfo& colorspaceInfo,
-    std::unique_ptr<RSRenderFrame>& renderFrame)
+    std::unique_ptr<RSRenderFrame>& renderFrame, bool isHDRCast)
 {
     RS_TRACE_NAME_FMT("RSHdrUtil::SetMetadata HDRCast");
     if (renderFrame == nullptr) {
@@ -755,8 +755,12 @@ GSError RSHdrUtil::SetMetadata(const HDI::Display::Graphic::Common::V1_0::CM_Col
     }
     using namespace HDI::Display::Graphic::Common::V1_0;
     HdrStaticMetadata staticMetadata;
-    staticMetadata.cta861.maxContentLightLevel = RSLuminanceConst::DEFAULT_CAST_HDR_NITS;
+    staticMetadata.cta861.maxContentLightLevel = isHDRCast ? RSLuminanceConst::DEFAULT_CAST_HDR_NITS : 0.0f;
     auto ret = MetadataHelper::SetHDRStaticMetadata(buffer, staticMetadata);
+    if (!isHDRCast) {
+        RS_LOGD("RSHdrUtil::SetMetadata isHDRCast: %{public}d, ret: %{public}d", isHDRCast, ret);
+        return ret;
+    }
     if (ret != GSERROR_OK) {
         RS_LOGD("RSHdrUtil::SetMetadata SetHDRStaticMetadata failed %{public}d", ret);
         return ret;
