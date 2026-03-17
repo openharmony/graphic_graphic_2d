@@ -575,6 +575,22 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasDrawSingleCharacterWithFeatures(OH_Drawing
  */
 void OH_Drawing_CanvasDrawTextBlob(OH_Drawing_Canvas*, const OH_Drawing_TextBlob*, float x, float y);
 
+/**
+ * @brief Draw Glyphs with certain positions
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param glyphIds int array of glyphId.
+ * @param glyphIdOffset number of elements to skip before drawing in glyphIds.
+ * @param positions Point struct array of positions for relevant glyphs.
+ * @param positionOffset number of elements to skip before drawing in positions.
+ * @param glyphCount number of glyphs to draw.
+ * @param font Indicates the pointer to an <b>OH_Drawing_Font</b> object.
+ */
+void OH_Drawing_CanvasDrawGlyphs(OH_Drawing_Canvas* canvas,
+                                 const int* glyphIds, int glyphIdOffset,
+                                 const OH_Drawing_Point2D* positions, int positionOffset,
+                                 int glyphCount, OH_Drawing_Font* font);
 
 /**
  * @brief Enumerates clip op.
