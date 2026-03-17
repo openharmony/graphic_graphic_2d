@@ -371,6 +371,7 @@ bool RSSurfaceCaptureTaskParallel::DrawHDRSurfaceContent(
         RS_LOGE("RSSurfaceCaptureTaskParallel::DrawHDRSurfaceContent surface is nullptr!");
         return false;
     }
+    RSUniRenderThread::BufferManagerGuard bufferGuard;
     RSPaintFilterCanvas canvas(surface.get());
     canvas.Scale(captureConfig_.scaleX, captureConfig_.scaleY);
     const Drawing::Rect& rect = captureConfig_.mainScreenRect;
@@ -393,8 +394,10 @@ bool RSSurfaceCaptureTaskParallel::DrawHDRSurfaceContent(
     RSUniRenderThread::ResetCaptureParam();
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)) && \
     (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_UNI_RENDER))
-    RSUniRenderUtil::OptimizedFlushAndSubmit(surface, gpuContext_.get(), GetFeatureParamValue("CaptureConfig",
-        &CaptureBaseParam::IsSnapshotWithDMAEnabled).value_or(false));
+    sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
+    RSUniRenderUtil::OptimizedFlushAndSubmit(surface, gpuContext_.get(), acquireFence,
+        GetFeatureParamValue("CaptureConfig", &CaptureBaseParam::IsSnapshotWithDMAEnabled).value_or(false));
+    bufferGuard.SetAcquireFence(acquireFence);
 #endif
     return true;
 }

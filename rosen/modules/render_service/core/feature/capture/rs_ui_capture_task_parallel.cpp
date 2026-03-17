@@ -348,6 +348,7 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
     RSUniRenderThread::SetCaptureParam(CaptureParam(true, true, false, false, false, false, false, false,
         captureConfig_.uiCaptureInRangeParam.endNodeId));
     DrawableV2::RSRenderNodeDrawable::ClearSnapshotProcessedNodeCount();
+    RSUniRenderThread::BufferManagerGuard bufferGuard;
     if (HasEndNodeRect() && !isStartEndNodeSame_) {
         auto offScreenWidth = nodeParams->GetBounds().GetWidth();
         auto offScreenHeight = nodeParams->GetBounds().GetHeight();
@@ -427,8 +428,11 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
     bool isEnableFeature = GetFeatureParamValue("CaptureConfig",
         &CaptureBaseParam::IsSnapshotWithDMAEnabled).value_or(false);
     if (snapshotDmaEnabled && isEnableFeature) {
-        RSUniRenderUtil::OptimizedFlushAndSubmit(surface, grContext, GetFeatureParamValue("UICaptureConfig",
+        sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
+        RSUniRenderUtil::OptimizedFlushAndSubmit(surface, grContext, acquireFence,
+            GetFeatureParamValue("UICaptureConfig",
             &UICaptureParam::IsUseOptimizedFlushAndSubmitEnabled).value_or(false));
+        bufferGuard.SetAcquireFence(acquireFence);
         auto copytask =
             RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(
                 surface, std::move(pixelMap_), nodeId_, captureConfig_, callback, 0, needDump_, errorCode_,
