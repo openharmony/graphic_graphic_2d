@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -302,6 +302,7 @@ static const std::array g_methods = {
     ani_native_function { "drawLine", nullptr, reinterpret_cast<void*>(AniCanvas::DrawLine) },
     ani_native_function { "drawSingleCharacter", nullptr, reinterpret_cast<void*>(AniCanvas::DrawSingleCharacter) },
     ani_native_function { "drawTextBlob", nullptr, reinterpret_cast<void*>(AniCanvas::DrawTextBlob) },
+    ani_native_function { "drawGlyphs", nullptr, reinterpret_cast<void*>(AniCanvas::DrawGlyphs) },
     ani_native_function { "drawOval", nullptr, reinterpret_cast<void*>(AniCanvas::DrawOval) },
     ani_native_function { "drawArc", nullptr, reinterpret_cast<void*>(AniCanvas::DrawArc) },
     ani_native_function { "drawArcWithCenter", nullptr, reinterpret_cast<void*>(AniCanvas::DrawArcWithCenter) },
@@ -1619,6 +1620,98 @@ void AniCanvas::DrawPoints(ani_env* env, ani_object obj, ani_array pointsObj, an
     aniCanvas->GetCanvas()->DrawPoints(PointMode::POINTS_POINTMODE, size, points);
     aniCanvas->NotifyDirty();
     delete [] points;
+}
+
+bool AniCanvas::GetGlyphIds(ani_env* env, ani_int glyphsIDCountLimit,
+                            ani_object glyphIdsObj, std::unique_ptr<uint16_t>& glyphIds)
+{
+    ani_size aniLength;
+    if (ANI_OK != env->Array_GetLength(glyphIdsObj, &aniLength) ||
+        aniLength == 0 || aniLength < glyphsIDCountLimit) {
+        ROSEN_LOGE("AniCanvas::DrawGlyphs glyphIds array is invalid");
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniCanvas::DrawGlyphs incorrect glyphIds.");
+        return false;
+    }
+    uint32_t size = static_cast<uint32_t>(aniLength);
+    if (size > MAX_ELEMENTSIZE) {
+        ROSEN_LOGE("AniCanvas::DrawGlyphs glyphIds size exceeds the upper limit");
+        return false;
+    }
+    glyphIds = std::make_unique<uint16_t>(size);
+    if (glyphIds == nullptr) {
+        ROSEN_LOGE("AniCanvas::DrawGlyphs glyphIds size is %{public}u", size);
+        return false;
+    }
+    for (uint32_t i = 0; i < size; i++) {
+        ani_int glyphId;
+        ani_ref glyphIdsRef;
+        if (ANI_OK != env->Array_Get(glyphIdsObj, static_cast<ani_size>(i), &glyphIdsRef) ||
+            ANI_OK != env->Object_CallMethod_Int(
+                static_cast<ani_object>(glyphIdsRef), AniGlobalMethod::GetInstance().intGet, &glyphId)) {
+            glyphIds[i] = 0;
+            continue;
+        }
+        if (glyphId > std::numeric_limits<uint16_t>::max() || glyphId < 0) {
+            ROSEN_LOGE("AniCanvas::GetGlyphIds id = %{public}d out of uint16_t range [0, 65535], will set to 0",
+                       glyphId);
+            glyphIds[i] = 0;
+            continue;
+        }
+        glyphIds[i] = static_cast<uint16_t>(glyphId);
+    }
+    return true;
+}
+
+bool AniCanvas::GetGlyphPositions(ani_env* env, ani_int positionCountLimit,
+                                  ani_object positionsObj, std::unique_ptr<DrawingLLPoint[]>& positions)
+{
+    ani_size aniLength;
+    if (ANI_OK != env->Array_GetLength(positionsObj, &aniLength) ||
+        aniLength == 0 || aniLength < positionCountLimit) {
+        ROSEN_LOGE("AniCanvas::DrawGlyphs positions array is invalid");
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniCanvas::DrawGlyphs incorrect positions.");
+        return false;
+    }
+    uint32_t size = static_cast<uint32_t>(aniLength);
+    if (size > MAX_ELEMENTSIZE) {
+        ROSEN_LOGE("AniCanvas::DrawGlyphs positions size exceeds the upper limit");
+        return false;
+    }
+    positions = std::make_unique<Drawing::Point[]>(size);
+    if (positions == nullptr) {
+        ROSEN_LOGE("AniCanvas::DrawGlyphs positions size is %{public}u", size);
+        return false;
+    }
+    if (!GetPoints(env, positionsObj, size, positions.get())) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniCanvas::DrawGlyphs get positions failed.");
+        return false;
+    }
+    return true;
+}
+
+void AniCanvas::DrawGlyphs(ani_env* env, ani_object obj,
+                           ani_array glyphIdsObj, ani_int glyphIdOffset,
+                           ani_array positionsObj, ani_int positionOffset,
+                           ani_int glyphCount, ani_object fontObj)
+{
+    auto aniCanvas = GetNativeFromObj<AniCanvas>(env, obj, AniGlobalField::GetInstance().canvasNativeObj);
+    if (!aniCanvas || !aniCanvas->GetCanvas()) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniCanvas::DrawGlyphs canvas is nullptr.");
+        return;
+    }
+    std::unique_ptr<uint16_t> glyphIds;
+    std::unique_ptr<Drawing::Point[]> positions;
+
+    if (!GetGlyphIds(env, glyphIdOffset + glyphCount, glyphIdsObj, glyphIds) ||
+        !GetGlyphPositions(env, positionOffset + glyphCount, positionsObj, positions)) {
+        return;
+    }
+    // 04. 获取font
+    auto aniFont = GetNativeFromObj<AniFont>(env, fontObj, AniGlobalField::GetInstance().fontNativeObj);
+    aniCanvas->GetCanvas()->DrawGlyphs(glyphIds.get(), glyphIdOffset,
+                                       positions.get(), positionOffset,
+                                       glyphCount, aniFont);
+    aniCanvas->NotifyDirty();
 }
 
 void AniCanvas::DrawRegion(ani_env* env, ani_object obj, ani_object regionObj)
