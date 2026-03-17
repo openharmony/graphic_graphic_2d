@@ -438,6 +438,7 @@ private:
     // vector of Appwindow nodes ids not contain subAppWindow nodes ids in current frame
     std::queue<NodeId> curMainAndLeashWindowNodesIds_;
     RectI prepareClipRect_{0, 0, 0, 0}; // renderNode clip rect used in Prepare
+    RectI prepareDirtyRegionClipRect_{0, 0, 0, 0}; // only used in dirty region clip rect calculation
     /*
      * surfaceRenderNode clip rect used in Prepare.
      * use as the clip bounds of the filter with a custom snapshot/drawing rect.
