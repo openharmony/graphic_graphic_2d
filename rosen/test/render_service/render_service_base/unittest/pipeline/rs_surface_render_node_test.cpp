@@ -2996,5 +2996,188 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetIsParticipateInOcclusionTest, TestSize.Leve
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(node->stagingRenderParams_.get());
     EXPECT_EQ(surfaceParams->GetIsParticipateInOcclusion(), true);
 }
+
+/**
+ * @tc.name: UpdateBufferInfoTest001
+ * @tc.desc: Test UpdateBufferInfo with buffer not synced
+ * @tc.type: FUNC
+ * @tc.require: issueI9JAFQ
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, UpdateBufferInfoTest001, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+
+    node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(node->stagingRenderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+
+    surfaceParams->SetBufferSynced(false);
+
+    auto buffer = SurfaceBuffer::Create();
+    Rect damageRect = {0, 0, 100, 100};
+    sptr<SyncFence> acquireFence = nullptr;
+    sptr<SurfaceBuffer> preBuffer = nullptr;
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> preBufferOwnerCount = nullptr;
+
+    node->UpdateBufferInfo(buffer, nullptr, damageRect, acquireFence, preBuffer, preBufferOwnerCount);
+    EXPECT_FALSE(surfaceParams->IsBufferSynced());
+}
+
+/**
+ * @tc.name: UpdateBufferInfoTest002
+ * @tc.desc: Test UpdateBufferInfo with buffer synced
+ * @tc.type: FUNC
+ * @tc.require: issueI9JAFQ
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, UpdateBufferInfoTest002, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+
+    node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(node->stagingRenderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+
+    surfaceParams->SetBufferSynced(true);
+
+    auto buffer = SurfaceBuffer::Create();
+    auto preBuffer = SurfaceBuffer::Create();
+    Rect damageRect = {0, 0, 100, 100};
+    sptr<SyncFence> acquireFence = nullptr;
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount = nullptr;
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> preBufferOwnerCount = nullptr;
+
+    node->UpdateBufferInfo(buffer, bufferOwnerCount, damageRect, acquireFence, preBuffer, preBufferOwnerCount);
+    EXPECT_FALSE(surfaceParams->IsBufferSynced());
+}
+
+/**
+ * @tc.name: UpdateBufferInfoTest003
+ * @tc.desc: Test UpdateBufferInfo with valid bufferOwnerCount
+ * @tc.type: FUNC
+ * @tc.require: issueI9JAFQ
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, UpdateBufferInfoTest003, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+
+    node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(node->stagingRenderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+
+    surfaceParams->SetBufferSynced(false);
+    surfaceParams->bufferOwnerCount_ = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+
+    auto buffer = SurfaceBuffer::Create();
+    Rect damageRect = {0, 0, 100, 100};
+    sptr<SyncFence> acquireFence = nullptr;
+    sptr<SurfaceBuffer> preBuffer = nullptr;
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> preBufferOwnerCount = nullptr;
+
+    auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    bufferOwnerCount->bufferId_ = 1;
+    bufferOwnerCount->refCount_ = 1;
+
+    node->UpdateBufferInfo(buffer, bufferOwnerCount, damageRect, acquireFence, preBuffer, preBufferOwnerCount);
+    EXPECT_FALSE(surfaceParams->IsBufferSynced());
+}
+
+/**
+ * @tc.name: UpdateBufferInfoTest004
+ * @tc.desc: Test UpdateBufferInfo with all valid parameters
+ * @tc.type: FUNC
+ * @tc.require: issueI9JAFQ
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, UpdateBufferInfoTest004, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+
+    node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(node->stagingRenderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+
+    surfaceParams->SetBufferSynced(true);
+
+    auto buffer = SurfaceBuffer::Create();
+    auto preBuffer = SurfaceBuffer::Create();
+    Rect damageRect = {0, 0, 100, 100};
+    sptr<SyncFence> acquireFence = nullptr;
+
+    auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    bufferOwnerCount->bufferId_ = 1;
+    bufferOwnerCount->refCount_ = 1;
+
+    auto preBufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    preBufferOwnerCount->bufferId_ = 2;
+    preBufferOwnerCount->refCount_ = 1;
+
+    node->UpdateBufferInfo(buffer, bufferOwnerCount, damageRect, acquireFence, preBuffer, preBufferOwnerCount);
+    EXPECT_FALSE(surfaceParams->IsBufferSynced());
+}
+
+/**
+ * @tc.name: UpdateBufferInfoTest005
+ * @tc.desc: Test UpdateBufferInfo with null buffer
+ * @tc.type: FUNC
+ * @tc.require: issueI9JAFQ
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, UpdateBufferInfoTest005, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+
+    node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(node->stagingRenderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+
+    surfaceParams->SetBufferSynced(false);
+
+    sptr<SurfaceBuffer> buffer = nullptr;
+    Rect damageRect = {0, 0, 100, 100};
+    sptr<SyncFence> acquireFence = nullptr;
+    sptr<SurfaceBuffer> preBuffer = nullptr;
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount = nullptr;
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> preBufferOwnerCount = nullptr;
+
+    node->UpdateBufferInfo(buffer, bufferOwnerCount, damageRect, acquireFence, preBuffer, preBufferOwnerCount);
+    EXPECT_FALSE(surfaceParams->IsBufferSynced());
+}
+
+/**
+ * @tc.name: UpdateBufferInfoTest006
+ * @tc.desc: Test UpdateBufferInfo with empty damageRect
+ * @tc.type: FUNC
+ * @tc.require: issueI9JAFQ
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, UpdateBufferInfoTest006, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+
+    node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(node->stagingRenderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+
+    surfaceParams->SetBufferSynced(false);
+
+    auto buffer = SurfaceBuffer::Create();
+    Rect damageRect = {0, 0, 0, 0};
+    sptr<SyncFence> acquireFence = nullptr;
+    sptr<SurfaceBuffer> preBuffer = nullptr;
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount = nullptr;
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> preBufferOwnerCount = nullptr;
+
+    node->UpdateBufferInfo(buffer, bufferOwnerCount, damageRect, acquireFence, preBuffer, preBufferOwnerCount);
+    EXPECT_FALSE(surfaceParams->IsBufferSynced());
+}
 } // namespace Rosen
 } // namespace OHOS
