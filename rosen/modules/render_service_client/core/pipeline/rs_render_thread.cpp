@@ -41,6 +41,7 @@
 #include "render_context/shader_cache.h"
 #include "rosen_text/font_collection.h"
 #include "transaction/rs_render_service_client.h"
+#include "transaction/rs_interfaces.h"
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_surface_node.h"
 #include "ui/rs_ui_director.h"
@@ -620,3 +621,9 @@ void RSRenderThread::PostPreTask()
 }
 } // namespace Rosen
 } // namespace OHOS
+
+bool RSRenderThread::QueryMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
+{
+    RS_LOGI("RSRenderThread::QueryMaxGpuBufferSize called");
+    return RSInterfaces::GetInstance().GetMaxGpuBufferSize(maxWidth, maxHeight);
+}

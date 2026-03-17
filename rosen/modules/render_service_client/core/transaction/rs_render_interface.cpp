@@ -23,6 +23,22 @@
 #include "rs_interfaces.h"
 #include "rs_trace.h"
 
+int32_t RSRenderInterface::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
+{
+    if (RSUniRenderJudgement::GetUniRenderEnabledType() == UniRenderEnabledType::UNI_RENDER_DISABLED) {
+        RS_LOGI("GetMaxGpuBufferSize: non-uni render mode, PostSyncTask to render thread");
+        bool querySuccess = false;
+        auto queryGpuLimits = [&maxWidth, &maxHeight, &querySuccess]() {
+            querySuccess = RSRenderThread::Instance().QueryMaxGpuBufferSize(maxWidth, maxHeight);
+        };
+        RSRenderThread::Instance().PostSyncTask(queryGpuLimits);
+        return querySuccess ? 0 : -1;
+    } else {
+        RS_LOGI("GetMaxGpuBufferSize: uni render mode, using render pipeline client");
+        return renderPipelineClient_->GetMaxGpuBufferSize(maxWidth, maxHeight);
+    }
+}
+
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
 #include "ipc_callbacks/rs_isurface_occlusion_change_callback.h"
 #include "platform/common/rs_system_properties.h"
@@ -32,6 +48,7 @@
 #include "feature/hyper_graphic_manager/rs_frame_rate_policy.h"
 #include "feature/ui_capture/rs_divided_ui_capture.h"
 #include "pipeline/rs_render_thread.h"
+#include "pipeline/rs_uni_render_judgement.h"
 #include "ui/rs_proxy_node.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_typeface_cache.h"

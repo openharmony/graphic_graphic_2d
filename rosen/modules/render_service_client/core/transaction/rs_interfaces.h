@@ -1361,6 +1361,8 @@ public:
 
     int32_t GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB);
 
+    int32_t GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight);
+
     /**
      * @brief clear uifirst node cache
      * @param id surface node id

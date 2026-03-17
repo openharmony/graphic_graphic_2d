@@ -19,6 +19,8 @@
 #include "rs_interfaces.h"
 #include "rs_trace.h"
 #include "platform/common/rs_system_properties.h"
+#include "pipeline/rs_uni_render_judgement.h"
+#include "transaction/rs_render_pipeline_client.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
@@ -1099,6 +1101,18 @@ int32_t RSInterfaces::GetPidGpuMemoryInMB(pid_t pid, float& gpuMemInMB)
     ROSEN_LOGI("RSInterfaces::GetpidGpuMemoryInMB called");
     auto ret = renderServiceClient_->GetPidGpuMemoryInMB(pid, gpuMemInMB);
     return ret;
+int32_t RSInterfaces::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
+{
+    RS_LOGI("RSInterfaces::GetMaxGpuBufferSize called");
+    if (RSUniRenderJudgement::GetUniRenderEnabledType() == UniRenderEnabledType::UNI_RENDER_DISABLED) {
+        RS_LOGI("RSInterfaces::GetMaxGpuBufferSize: non-uni render mode");
+        auto renderPipelineClient = std::make_unique<RSRenderPipelineClient>();
+        return renderPipelineClient->GetMaxGpuBufferSize(maxWidth, maxHeight);
+    } else {
+        RS_LOGI("RSInterfaces::GetMaxGpuBufferSize: uni render mode");
+        return renderInterface_->GetMaxGpuBufferSize(maxWidth, maxHeight);
+    }
+}
 }
 // LCOV_EXCL_START
 bool RSInterfaces::GetHighContrastTextState()

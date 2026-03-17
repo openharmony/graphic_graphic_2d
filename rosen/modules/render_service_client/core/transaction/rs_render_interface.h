@@ -388,6 +388,7 @@ public:
      * @return 0 means success, others failed.
      */
     int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection);
+    int32_t GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight);
 
 private:
     std::unique_ptr<RSRenderPipelineClient> renderPipelineClient_;
