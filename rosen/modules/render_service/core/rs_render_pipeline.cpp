@@ -314,9 +314,6 @@ sptr<RSIClientToRenderConnection> RSRenderPipeline::FindClientToRenderConnection
     auto it = renderConnections_.find(token);
     if (it != renderConnections_.end()) {
         auto clientToRenderConnection = it->second;
-        RS_LOGE("RSRenderPipelineAgent::FindClientToRenderConnection::%{public}s,"
-            "has the same token one %{public}p, return %{public}p",
-            __func__, token.GetRefPtr(), clientToRenderConnection.GetRefPtr());
         return clientToRenderConnection;
     }
     return nullptr;
