@@ -263,6 +263,18 @@ std::string UIEffectNapiUtils::GetBundleName()
 #endif
 }
 
+bool UIEffectNapiUtils::CheckPermission(const std::string& permission)
+{
+#ifdef ENABLE_IPC_SECURITY
+    auto tokenID = OHOS::IPCSkeleton::GetCallingTokenID();
+    int result = Security::AccessToken::AccessTokenKit::VerifyAccessToken(
+        tokenID, permission, false);
+    return result == Security::AccessToken::PERMISSION_GRANTED;
+#else
+    return true;
+#endif
+}
+
 bool UIEffectNapiUtils::IsFormRenderServiceCall()
 {
     static const std::string frsBundleName = "com.ohos.formrenderservice";

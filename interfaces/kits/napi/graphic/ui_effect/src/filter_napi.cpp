@@ -42,6 +42,7 @@ std::map<int32_t, GradientDirection> INDEX_TO_DIRECTION = {
 };
 
 static const std::string CLASS_NAME = "Filter";
+static const std::string HDR_BRIGHTNESS_PERMISSION = "ohos.permission.HDR_BRIGHTNESS";
 
 FilterNapi::FilterNapi()
 {
@@ -946,10 +947,10 @@ napi_value FilterNapi::SetMaskDirectionLight(napi_env env, napi_callback_info in
 
 napi_value FilterNapi::SetHDRBrightnessRatio(napi_env env, napi_callback_info info)
 {
-    if (!UIEffectNapiUtils::IsSystemApp()) {
-        FILTER_LOG_E("FilterNapi SetHDRBrightnessRatio not system app");
-        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
-            "The SetHDRBrightnessRatio is only accessible to system applications.");
+    if (!UIEffectNapiUtils::IsSystemApp() && !UIEffectNapiUtils::CheckPermission(HDR_BRIGHTNESS_PERMISSION)) {
+        FILTER_LOG_E("FilterNapi SetHDRBrightnessRatio caller is not system app or lacks the required permission.");
+        napi_throw_error(env, std::to_string(ERR_NO_PERMISSION).c_str(),
+            "The SetHDRBrightnessRatio is only accessible to applications which have HDR_BRIGHTNESS permission.");
         return nullptr;
     }
 
