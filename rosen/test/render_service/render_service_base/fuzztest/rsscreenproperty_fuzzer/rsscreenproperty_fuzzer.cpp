@@ -20,10 +20,6 @@
 #include <hilog/log.h>
 #include <securec.h>
 #include <unistd.h>
-#include <string>
-#include <tuple>
-#include <unordered_set>
-#include <vector>
 #include "rsscreenproperty_fuzzer.h"
 #include "screen_manager/rs_screen_property.h"
 #include "transaction/rs_render_service_client.h"
@@ -32,8 +28,8 @@ namespace OHOS {
 namespace Rosen {
 
 namespace {
-const uint8_t STRING_LEN = 10;
-const uint8_t* g_data = nullptr;
+constexpr uint8_t STRING_LEN = 10;
+constexpr uint8_t* g_data = nullptr;
 size_t g_size = 0;
 size_t g_pos = 0;
 } // namespace
@@ -72,15 +68,16 @@ void InitRSScreenPropertyAndParcel(RSScreenProperty& screenProperty, Parcel& par
     screenProperty.Set<ScreenPropertyType::CANVAS_ROTATION>(GetData<bool>());
     screenProperty.Set<ScreenPropertyType::AUTO_BUFFER_ROTATION>(GetData<bool>());
     screenProperty.Set<ScreenPropertyType::ACTIVE_RECT_OPTION>(
-        std::make_tuple(RectI(GetData<int32_t>(), GetData<int32_t>(), GetData<int32_t>()),
-                      RectI(GetData<int32_t>(), GetData<int32_t>(), GetData<int32_t>()),
-                      RectI(GetData<int32_t>(), GetData<int32_t>(), GetData<int32_t>())));
+        std::make_tuple(RectI(GetData<int32_t>(), GetData<int32_t>(), GetData<int32_t>(), GetData<int32_t>()),
+                        RectI(GetData<int32_t>(), GetData<int32_t>(), GetData<int32_t>(), GetData<int32_t>()),
+                        RectI(GetData<int32_t>(), GetData<int32_t>(), GetData<int32_t>(), GetData<int32_t>())));
     screenProperty.Set<ScreenPropertyType::SKIP_FRAME_OPTION>(
         std::make_tuple(GetData<uint32_t>(), GetData<uint32_t>(), GetData<uint8_t>()));
     screenProperty.Set<ScreenPropertyType::PIXEL_FORMAT>(GetData<int32_t>());
     screenProperty.Set<ScreenPropertyType::HDR_FORMAT>(GetData<uint32_t>());
     screenProperty.Set<ScreenPropertyType::VISIBLE_RECT_OPTION>(
-        std::make_tuple(GetData<bool>(), Rect(GetData<int32_t>(), GetData<int32_t>(), GetData<int32_t>()), GetData<bool>()));
+        std::make_tuple(GetData<bool>(), Rect{GetData<int32_t>(), GetData<int32_t>(),
+                        GetData<int32_t>(), GetData<int32_t>()}, GetData<bool>()));
     screenProperty.Set<ScreenPropertyType::WHITE_LIST>(std::unordered_set<NodeId>{GetData<uint64_t>()});
     screenProperty.Set<ScreenPropertyType::BLACK_LIST>(std::unordered_set<NodeId>{GetData<uint64_t>()});
     screenProperty.Set<ScreenPropertyType::TYPE_BLACK_LIST>(std::unordered_set<NodeType>{GetData<uint8_t>()});
@@ -89,7 +86,6 @@ void InitRSScreenPropertyAndParcel(RSScreenProperty& screenProperty, Parcel& par
     screenProperty.Set<ScreenPropertyType::POWER_STATUS>(GetData<uint32_t>());
     screenProperty.Set<ScreenPropertyType::SCREEN_TYPE>(GetData<uint32_t>());
     screenProperty.Set<ScreenPropertyType::CONNECTION_TYPE>(GetData<uint32_t>());
-    screenProperty.Set<ScreenPropertyType::PRODUCER_SURFACE>(GetData<void*>());
     screenProperty.Set<ScreenPropertyType::SCALE_MODE>(GetData<uint32_t>());
     screenProperty.Set<ScreenPropertyType::SCREEN_STATUS>(GetData<uint32_t>());
     screenProperty.Set<ScreenPropertyType::VIRTUAL_SEC_LAYER_OPTION>(GetData<int32_t>());
