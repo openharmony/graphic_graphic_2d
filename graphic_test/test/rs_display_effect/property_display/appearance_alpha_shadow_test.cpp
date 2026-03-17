@@ -229,7 +229,7 @@ GRAPHIC_TEST(AppearanceTest09, CONTENT_DISPLAY_TEST, Appearance_Alpha_Shadow_Rad
     int nodeOffset = 100;
     int nodeSize = 400;
 
-    float radiusList[] = { 0, 50, 250 };
+    float radiusList[] = { -1, 50, 250 };
 
     for (int i = 0; i < THREE_; i++) {
         int x = (i % TWO_) * nodePos;
