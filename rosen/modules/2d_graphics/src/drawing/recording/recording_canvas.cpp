@@ -408,22 +408,23 @@ void RecordingCanvas::DrawPicture(const Picture& picture)
     cmdList_->AddDrawOp<DrawPictureOpItem::ConstructorHandle>(pictureHandle);
 }
 
-void RecordingCanvas::DrawGlyphs(int count, const uint16_t glyphs[], const Point pts[],
-                                 Point origin, const Font* font)
+void RecordingCanvas::DrawGlyphs(const uint16_t glyphIDs[], int glyphIdOffset,
+                                 const Point positions[], int positionOffset,
+                                 int count, const Font* font)
 {
     static uint64_t shiftedPid = static_cast<uint64_t>(GetRealPid()) << 32;
     if (count <= 0) {
         return;
     }
-    std::vector<uint16_t> glyphIDs(glyphs, glyphs + count);
-    std::vector<Point> positions(pts, pts + count);
+    std::vector<uint16_t> exactGlyphIDs(glyphs + glyphIdOffset, glyphs + glyphIdOffset + count);
+    std::vector<Point> exactPositions(positions + positionOffset, positions + positionOffset + count);
     if (!addDrawOpImmediate_) {
-        AddDrawOpDeferred<DrawGlyphsOpItem>(glyphIDs, positions, origin, font);
+        AddDrawOpDeferred<DrawGlyphsOpItem>(exactGlyphIDs, exactPositions, origin, font);
         return;
     }
     auto fontHandle = CmdListHelper::AddFontToCmdList(*cmdList_, font);
-    auto glyphIDsData = CmdListHelper::AddVectorToCmdList<uint16_t>(*cmdList_, glyphIDs);
-    auto positionsData = CmdListHelper::AddVectorToCmdList<Point>(*cmdList_, positions);
+    auto glyphIDsData = CmdListHelper::AddVectorToCmdList<uint16_t>(*cmdList_, exactGlyphIDs);
+    auto positionsData = CmdListHelper::AddVectorToCmdList<Point>(*cmdList_, exactPositions);
     uint64_t globalUniqueId = 0;
     if (font->GetTypeface() != nullptr) {
         globalUniqueId = (shiftedPid | font->GetTypeface()->GetUniqueID());
