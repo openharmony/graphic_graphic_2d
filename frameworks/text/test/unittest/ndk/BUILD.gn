@@ -84,6 +84,7 @@ ohos_unittest("text_ndk_test") {
     "c_utils:utils",
     "hilog:libhilog",
     "icu:shared_icuuc",
+    "ipc:ipc_single",
     "image_framework:image_native",
   ]
 

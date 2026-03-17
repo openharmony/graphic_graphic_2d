@@ -47,7 +47,10 @@ ohos_unittest("dvsync_lib_manager_test") {
     ":vsync_test_common",
   ]
 
-  external_deps = [ "eventhandler:libeventhandler" ]
+  external_deps = [
+    "eventhandler:libeventhandler",
+    "ipc:ipc_single",
+  ]
 }
 
 ## UnitTest dvsync_lib_manager_test }}}

@@ -67,6 +67,7 @@ ohos_source_set("rosen_text_skia") {
     "cJSON:cjson",
     "hilog:libhilog",
     "skia:skia_canvaskit",
+    "ipc:ipc_single",
   ]
 
   deps = [
