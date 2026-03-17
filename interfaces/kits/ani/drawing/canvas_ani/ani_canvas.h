@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -82,6 +82,10 @@ public:
     static void DrawSingleCharacter(ani_env* env, ani_object obj, ani_string text,
         ani_object fontObj, ani_double x, ani_double y);
     static void DrawTextBlob(ani_env* env, ani_object obj, ani_object textBlobObj, ani_double x, ani_double y);
+    static void DrawGlyphs(ani_env* env, ani_object obj,
+                           ani_array glyphIdsObj, ani_int glyphIdOffset,
+                           ani_array positionsObj, ani_int positionOffset,
+                           ani_int glyphCount, ani_object fontObj);
     static void DrawOval(ani_env* env, ani_object obj, ani_object rectObj);
     static void DrawArc(ani_env* env, ani_object obj, ani_object rectObj,
         ani_double startAngle, ani_double sweepAngle);
@@ -156,6 +160,10 @@ private:
         std::vector<Drawing::Point>& pointPositions);
     static bool GetTexs(ani_env* env, ani_int vertexCount, ani_object texsObj,
         std::vector<Drawing::Point>& pointTexs);
+    static bool GetGlyphIds(ani_env* env, ani_int glyphsIDCountLimit,
+                            ani_object glyphIdsObj, std::unique_ptr<uint16_t>& glyphIds);
+    static bool GetGlyphPositions(ani_env* env, ani_int positionCount,
+                                  ani_object positionsObj, std::unique_ptr<DrawingLLPoint[]>& positions);
     static bool CheckDrawVerticesParams(ani_env* env, ani_int& vertexCount, ani_int& indexCount);
     static void GetColorsAndDraw(ani_env* env, ani_object colorsObj, int32_t colorOffset,
         DrawPixelMapMeshArgs& args, AniCanvas* aniCanvas);
