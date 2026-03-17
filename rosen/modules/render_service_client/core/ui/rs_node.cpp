@@ -4294,6 +4294,18 @@ RSNode::SharedPtr RSNode::GetChildByIndex(int index) const
     return children_.at(index).lock();
 }
 
+size_t RSNode::GetDescendantCount() const
+{
+    size_t count = children_.size();
+    for (const auto& child : children_) {
+        auto childNode = child.lock();
+        if (childNode) {
+            count += childNode->GetDescendantCount();
+        }
+    }
+    return count;
+}
+
 void RSNode::SetParent(WeakPtr parent)
 {
     parent_ = parent;

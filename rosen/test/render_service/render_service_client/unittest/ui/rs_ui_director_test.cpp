@@ -358,6 +358,39 @@ HWTEST_F(RSUIDirectorTest, UIDirectorSetRSRootNode001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetUIDescendantCount001
+ * @tc.desc: Test GetUIDescendantCount returns 0 when root node is not set
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, GetUIDescendantCount001, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_NE(director, nullptr);
+    EXPECT_EQ(director->GetUIDescendantCount(), 0U);
+}
+
+/**
+ * @tc.name: GetUIDescendantCount002
+ * @tc.desc: Test GetUIDescendantCount returns correct count with children
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, GetUIDescendantCount002, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_NE(director, nullptr);
+    director->Init(true, true);
+    RSNode::SharedPtr rootNode = RSRootNode::Create(false, false, director->GetRSUIContext());
+    director->SetRSRootNode(rootNode->ReinterpretCastTo<RSRootNode>());
+
+    auto child1 = RSCanvasNode::Create();
+    auto child2 = RSCanvasNode::Create();
+    rootNode->AddChild(child1, -1);
+    rootNode->AddChild(child2, -1);
+
+    EXPECT_EQ(director->GetUIDescendantCount(), 2U);
+}
+
+/**
  * @tc.name: UIDirectorTotal001
  * @tc.desc:
  * @tc.type:FUNC

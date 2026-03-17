@@ -165,6 +165,17 @@ public:
     {
         return children_;
     }
+
+    /**
+     * @brief Gets the total count of all descendant nodes recursively.
+     *
+     * This method traverses the entire child tree recursively and returns
+     * the total number of all descendant nodes, including direct children,
+     * grandchildren, and all deeper levels.
+     *
+     * @return The total count of all descendant nodes.
+     */
+    size_t GetDescendantCount() const;
     // ONLY support index in [0, childrenTotal) or index = -1, otherwise return std::nullopt
     RSNode::SharedPtr GetChildByIndex(int index) const;
 
