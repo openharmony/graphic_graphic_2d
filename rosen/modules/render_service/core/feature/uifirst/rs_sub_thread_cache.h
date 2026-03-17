@@ -230,7 +230,8 @@ public:
     void ResetCacheBehindWindowData();
     void ResetCacheCompletedBehindWindowData();
     void DrawBehindWindowBeforeCache(RSPaintFilterCanvas& canvas,
-        const Drawing::scalar px = 0.f, const Drawing::scalar py = 0.f);
+        const Drawing::scalar px = 0.f, const Drawing::scalar py = 0.f,
+        DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable = nullptr);
 
     void SetUifirstSurfaceCacheContentStatic(bool staticContent);
     bool GetUifirstSurfaceCacheContentStatic() const;
@@ -280,6 +281,7 @@ private:
         int processedSurfaceCount = -1;
         int processedNodeCount = -1;
         float alpha = -1.f;
+        bool isContainShadow = false;
         std::unordered_set<NodeId> processedSubSurfaceNodeIds;
 
         void Reset()
@@ -287,6 +289,7 @@ private:
             processedSurfaceCount = -1;
             processedNodeCount = -1;
             alpha = -1.f;
+            isContainShadow = false;
             processedSubSurfaceNodeIds.clear();
         }
     };
@@ -294,6 +297,8 @@ private:
     CacheSurfaceInfo cacheCompletedSurfaceInfo_;
     std::shared_ptr<Drawing::Surface> cacheSurface_ = nullptr;
     std::shared_ptr<Drawing::Surface> cacheCompletedSurface_ = nullptr;
+    RectF cacheSurfaceRect_;
+    RectF cacheCompletedSurfaceRect_;
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     Drawing::BackendTexture cacheBackendTexture_;
     Drawing::BackendTexture cacheCompletedBackendTexture_;

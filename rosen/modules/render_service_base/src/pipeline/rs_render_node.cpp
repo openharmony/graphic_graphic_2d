@@ -4637,6 +4637,7 @@ void RSRenderNode::OnSync()
         unobscuredUECChildrenNeedSync_ = false;
     }
     if (!uifirstSkipPartialSync_) {
+        stagingRenderParams_->OnPartialSync(renderDrawable_->renderParams_);
         if (!dirtySlots_.empty()) {
             for (const auto& slot : dirtySlots_) {
                 if (auto& drawable = findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(slot))) {
@@ -4653,21 +4654,14 @@ void RSRenderNode::OnSync()
                                                         renderDrawable_->drawCmdList_.end());
             renderDrawable_->uifirstDrawCmdIndex_ = renderDrawable_->drawCmdIndex_;
             renderDrawable_->renderParams_->OnSync(renderDrawable_->uifirstRenderParams_);
+            renderDrawable_->renderParams_->OnPartialSync(renderDrawable_->uifirstRenderParams_);
             uifirstNeedSync_ = false;
         }
     } else {
         RS_TRACE_NAME_FMT("partial_sync %lu", GetId());
-        std::vector<RSDrawableSlot> todele;
-        for (const auto& slot : dirtySlots_) {
-            if (slot != RSDrawableSlot::CONTENT_STYLE && slot != RSDrawableSlot::CHILDREN) { // SAVE_FRAME
-                if (auto& drawable = findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(slot))) {
-                    drawable->OnSync();
-                }
-                todele.push_back(slot);
-            }
-        }
-        for (const auto& slot : todele) {
-            dirtySlots_.erase(slot);
+        bool uifirstLeashAllEnable = renderDrawable_->renderParams_->IsUIFirstLeashAllEnable();
+        if (!uifirstLeashAllEnable) {
+            DirtySlotsPartialSync();
         }
         uifirstSkipPartialSync_ = false;
         isLeashWindowPartialSkip = true;
@@ -4690,6 +4684,22 @@ void RSRenderNode::OnSync()
     waitSync_ = false;
 
     lastFrameSynced_ = !isLeashWindowPartialSkip;
+}
+
+void RSRenderNode::DirtySlotsPartialSync()
+{
+    std::vector<RSDrawableSlot> toDelete;
+    for (const auto& slot : dirtySlots_) {
+        if (slot != RSDrawableSlot::CONTENT_STYLE && slot != RSDrawableSlot::CHILDREN) { // SAVE_FRAME
+            if (auto& drawable = findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(slot))) {
+                drawable->OnSync();
+            }
+            toDelete.push_back(slot);
+        }
+    }
+    for (const auto& slot : toDelete) {
+        dirtySlots_.erase(slot);
+    }
 }
 
 void RSRenderNode::OnSkipSync()

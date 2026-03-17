@@ -463,6 +463,7 @@ public:
     RSRenderParams& operator=(RSRenderParams&&) = delete;
 
     virtual void OnSync(const std::unique_ptr<RSRenderParams>& target);
+    virtual void OnPartialSync(const std::unique_ptr<RSRenderParams>& target) {}
 
     // dfx
     virtual std::string ToString() const;
@@ -598,6 +599,11 @@ public:
 
     void SetIsOnTheTree(bool isOnTheTree);
     bool GetIsOnTheTree() const;
+
+    virtual bool IsUIFirstLeashAllEnable() const
+    {
+        return false;
+    }
 
     void SwapRelatedRenderParams(RSRenderParams& relatedRenderParams);
 

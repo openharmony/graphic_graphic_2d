@@ -215,6 +215,8 @@ public:
         return !subthreadProcessingNode_.empty();
     }
 
+    void SetUIFirstLeashAllEnable(RSSurfaceRenderNode& surfaceNode);
+
     bool IsUIFirstDirtyEnabled() const
     {
         return GetUiFirstType() == UiFirstCcmType::MULTI && RSSystemProperties::GetUIFirstDirtyEnabled();
@@ -327,6 +329,7 @@ private:
 
     bool IsContentAppWindow(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
     void CheckAndBlockFirstFrameCallback(RSSurfaceRenderNode& surfaceNode) const;
+    void UpdateLeashAllEnableChange(NodeId id);
 
     bool rotationChanged_ = false;
     bool isUiFirstOn_ = false;
@@ -434,6 +437,8 @@ private:
     bool allScreenPowerOffNeedPurge_ = false;
 
     float sizeChangedThreshold_ = 0.1f;
+
+    bool isUIFirstLeashAllEnable_ = false;
 };
 
 // If a subnode is delivered directly
