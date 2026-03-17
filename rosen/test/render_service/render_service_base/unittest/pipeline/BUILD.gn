@@ -433,6 +433,7 @@ ohos_unittest("RSSurfaceBufferCallbackManagerTest") {
     "hitrace:hitrace_meter",
     "init:libbegetutil",
     "skia:skia_canvaskit",
+    "googletest:gmock",
   ]
 
   subsystem_name = "graphic"
