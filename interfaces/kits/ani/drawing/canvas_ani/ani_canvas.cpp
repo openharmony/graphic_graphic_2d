@@ -1706,8 +1706,13 @@ void AniCanvas::DrawGlyphs(ani_env* env, ani_object obj,
         return;
     }
     auto aniFont = GetNativeFromObj<AniFont>(env, fontObj, AniGlobalField::GetInstance().fontNativeObj);
+    if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniCanvas::DrawGlyphs font is nullptr.");
+        return;
+    }
+    std::shared_ptr<Font> font = aniFont->GetFont();
     Drawing::Point origin = Drawing::Point(0, 0);
-    aniCanvas->GetCanvas()->DrawGlyphs(glyphCount, glyphIds.get(), positions.get(), origin, aniFont);
+    aniCanvas->GetCanvas()->DrawGlyphs(glyphCount, glyphIds.get(), positions.get(), origin, *font);
     aniCanvas->NotifyDirty();
 }
 
