@@ -1701,16 +1701,13 @@ void AniCanvas::DrawGlyphs(ani_env* env, ani_object obj,
     }
     std::unique_ptr<uint16_t> glyphIds;
     std::unique_ptr<Drawing::Point[]> positions;
-
     if (!GetGlyphIds(env, glyphIdOffset + glyphCount, glyphIdsObj, glyphIds) ||
         !GetGlyphPositions(env, positionOffset + glyphCount, positionsObj, positions)) {
         return;
     }
-    // 04. 获取font
     auto aniFont = GetNativeFromObj<AniFont>(env, fontObj, AniGlobalField::GetInstance().fontNativeObj);
-    aniCanvas->GetCanvas()->DrawGlyphs(glyphIds.get(), glyphIdOffset,
-                                       positions.get(), positionOffset,
-                                       glyphCount, aniFont);
+    Drawing::Point origin = Drawing::Point(0, 0);
+    aniCanvas->GetCanvas()->DrawGlyphs(glyphCount, glyphIds.get(), positions.get(), origin, aniFont);
     aniCanvas->NotifyDirty();
 }
 
