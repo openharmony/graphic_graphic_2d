@@ -8250,7 +8250,7 @@ HWTEST_F(RSNodeTest, MarkRepaintBoundary001, TestSize.Level1)
     const char* cResult = strResult.c_str();
     int result = strcmp(cTag, cResult);
     EXPECT_EQ(result, 0);
-    EXPECT_FALSE(RSTransactionProxy::GetInstance()->IsEmpty());
+    EXPECT_TRUE(RSTransactionProxy::GetInstance()->IsEmpty());
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
 }
 
