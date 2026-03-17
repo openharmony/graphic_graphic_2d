@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -182,6 +182,7 @@ static const napi_property_descriptor g_properties[] = {
     DECLARE_NAPI_FUNCTION("drawPath", JsCanvas::DrawPath),
     DECLARE_NAPI_FUNCTION("drawLine", JsCanvas::DrawLine),
     DECLARE_NAPI_FUNCTION("drawTextBlob", JsCanvas::DrawText),
+    DECLARE_NAPI_FUNCTION("drawGlyphs", JsCanvas::DrawGlyphs),
     DECLARE_NAPI_FUNCTION("drawSingleCharacter", JsCanvas::DrawSingleCharacter),
     DECLARE_NAPI_FUNCTION("drawSingleCharacterWithFeatures", JsCanvas::DrawSingleCharacterWithFeatures),
     DECLARE_NAPI_FUNCTION("getTotalMatrix", JsCanvas::GetTotalMatrix),
@@ -1073,6 +1074,101 @@ napi_value JsCanvas::OnDrawText(napi_env env, napi_callback_info info)
 
     DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
     m_canvas->DrawTextBlob(jsTextBlob->GetTextBlob().get(), x, y);
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
+    if (mPixelMap_ != nullptr) {
+        mPixelMap_->MarkDirty();
+    }
+#endif
+    return nullptr;
+}
+
+bool GetGlyphIds(napi_value& jsGlyphIds, uint32_t size, std::unique_ptr<uint16_t[]>& glyphIds)
+{
+    if (size > MAX_ELEMENTSIZE) {
+        ROSEN_LOGE("GetGlyphIds size exceeds the upper limit");
+        return false;
+    }
+    for (uint32_t i = 0; i < size; i++) {
+        napi_value tempGlyphIds = nullptr;
+        napi_get_element(env, jsGlyphIds, i, &tempGlyphIds);
+        uint32_t glyphId = 0;
+        if (napi_get_value_uint32(env, tempGlyphIds, &glyphId) != napi_ok) {
+            ROSEN_LOGE("GetGlyphIds id = %{public}u is Invalid", glyphId);
+            continue;
+        }
+        if (glyphId > std::numeric_limits<uint16_t>::max()) {
+            ROSEN_LOGE("GetGlyphIds id = %{public}u is Invalid", glyphId);
+            continue;
+        }
+        glyphIds[i] = static_cast<uint16_t>(glyphId);
+    }
+    return true;
+}
+
+bool GetGlyphPositions(napi_value& jsPosition, uint32_t size, std::unique_ptr<Drawing::Point[]>& positions)
+{
+    if (positions == nullptr) {
+        return false;
+    }
+    if (!OnMakePoints(env, positions, size, jsPosition)) {
+        ROSEN_LOGE("JsCanvas::OnDrawGlyphs Argv[ARGC_TWO] is invalid");
+        return false;
+    }
+    return true;
+}
+
+napi_value JsCanvas::DrawGlyphs(napi_env env, napi_callback_info info)
+{
+    DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
+    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    return (me != nullptr) ? me->OnDrawGlyphs(env, info) : nullptr;
+}
+
+napi_value JsCanvas::OnDrawGlyphs(napi_env env, napi_callback_info info)
+{
+    if (m_canvas == nullptr) {
+        ROSEN_LOGE("JsCanvas::OnDrawGlyphs canvas is null");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    napi_value argv[ARGC_SIX] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_SIX);
+    int32_t glyphIdOffSet = 0;
+    GET_INT32_CHECK_GE_ZERO_PARAM(ARGC_ONE, glyphIdOffSet);
+    int32_t positionOffSet = 0;
+    GET_INT32_CHECK_GE_ZERO_PARAM(ARGC_THREE, positionOffSet);
+    int32_t glyphCount = 0;
+    GET_INT32_CHECK_GE_ZERO_PARAM(ARGC_FOUR, glyphCount);
+    napi_value jsGlyphIds = argv[ARGC_ZERO];
+    uint32_t glyphIdsSize = 0;
+    if (napi_get_array_length(env, jsGlyphIds, &glyphIdsSize) != napi_ok || (glyphIdsSize == 0) ||
+        (size < glyphIdOffSet + glyphCount)) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect glyphIds array size.");
+    }
+    std::unique_ptr<uint16_t[]> glyphIds = std::make_unique<uint16_t[]>(glyphIdsSize);
+    if (!GetGlyphIds(jsPosition, glyphIdsSize, positions)) {
+        return nullptr;
+    }
+    napi_value jsPosition = argv[ARGC_TWO];
+    uint32_t positionsSize = 0;
+    if (napi_get_array_length(env, jsPosition, &positionsSize) != napi_ok || (positionsSize == 0) ||
+        (size < positionOffSet + glyphCount)) {
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect positions array size.");
+    }
+    std::unique_ptr<Drawing::Point[]> positions = std::make_unique<Drawing::Point[]>(positionsSize);
+    if (!GetGlyphPositions(jsPosition, positionsSize, positions)) {
+        return nullptr;
+    }
+    Drawing::Point origin = Drawing::Point(x, y);
+    JsFont* jsFont = nullptr;
+    GET_UNWRAP_PARAM(ARGC_FIVE, jsFont);
+    std::shared_ptr<Font> font = jsFont->GetFont();
+    if (font == nullptr) {
+        ROSEN_LOGE("JsCanvas::OnDrawGlyphs font is nullptr");
+        return nullptr;
+    }
+    DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
+    m_canvas->DrawGlyphs(glyphCount, glyphIds.get() + glyphIdOffSet,
+                         positions.get() + positionOffSet, origin, *font);
 #if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     if (mPixelMap_ != nullptr) {
         mPixelMap_->MarkDirty();

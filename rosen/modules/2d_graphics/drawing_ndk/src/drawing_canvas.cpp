@@ -852,7 +852,11 @@ void OH_Drawing_CanvasDrawGlyphs(OH_Drawing_Canvas* cCanvas,
     const Point* glyphPositions = reinterpret_cast<const Point*>(positions);
     const uint16* glyphIdsUForm = reinterpret_cast<const uint16*>(glyphIds);
     Drawing::Point origin = Drawing::Point(0, 0);
-    canvas->DrawGlyphs(glyphCount, glyphIdsUForm, glyphPositions, origin, *font);
+    canvas->DrawGlyphs(glyphCount,
+                       glyphIdsUForm + glyphIdOffset,
+                       glyphPositions + positionOffset,
+                       origin,
+                       *font);
     #ifdef OHOS_PLATFORM
         auto iter = g_canvasMap.find(canvas);
         if (iter != g_canvasMap.end() && iter->second != nullptr) {
