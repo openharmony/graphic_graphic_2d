@@ -35,6 +35,7 @@ public:
     ADD_RANDOM_COMMAND_WITH_PARAM_1(RSDisplayNodeRemoveFromTree, Uint64);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSDisplayNodeClearModifiersByPid, Uint64, Int32);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSDisplayNodeForceCloseHdr, Uint64, Bool);
+    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSDisplayNodeSetDisplayContentRect, Uint64, Rect);
 };
 } // namespace Rosen
 } // namespace OHOS

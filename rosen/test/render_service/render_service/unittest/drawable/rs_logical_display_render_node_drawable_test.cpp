@@ -1459,6 +1459,80 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, ScaleAndRotateMirrorForWiredScr
 }
 
 /**
+ * @tc.name: ScaleAndRotateMirrorForWiredScreen005
+ * @tc.desc: Test ScaleAndRotateMirrorForWiredScreen while contentRect set
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, ScaleAndRotateMirrorForWiredScreen005, TestSize.Level2)
+{
+    // set drawable screenInfo
+    ASSERT_NE(displayDrawable_, nullptr);
+    auto mainParams = displayDrawable_->GetRenderParams() ?
+        static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get()) : nullptr;
+    ASSERT_NE(mainParams, nullptr);
+    mainParams->SetBoundsRect({0, 0, 100, 100});
+
+    ASSERT_NE(mirroredDisplayDrawable_, nullptr);
+    ASSERT_NE(mirroredDisplayDrawable_->GetRenderParams(), nullptr);
+    auto mirroredParams = mirroredDisplayDrawable_->GetRenderParams() ?
+        static_cast<RSLogicalDisplayRenderParams*>(mirroredDisplayDrawable_->GetRenderParams().get()) : nullptr;
+    ASSERT_NE(mirroredParams, nullptr);
+    mirroredParams->SetBoundsRect({0, 0, 100, 100});
+
+    // set contentRect (valid)
+    Rect contentRect{0, 0, 100, 50};
+    mirroredParams->SetDisplayContentRect(contentRect);
+    displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
+
+    // set contentRect (invalid)
+    Rect contentRect1{0, 0, 0, 0};
+    mirroredParams->SetDisplayContentRect(contentRect1);
+    displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
+    Rect contentRect2{0, 0, 100, 0};
+    mirroredParams->SetDisplayContentRect(contentRect2);
+    displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
+    Rect contentRect3{0, 0, 0, 50};
+    mirroredParams->SetDisplayContentRect(contentRect3);
+    displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
+}
+
+/**
+ * @tc.name: ScaleAndRotateMirrorForWiredScreen006
+ * @tc.desc: Test ScaleAndRotateMirrorForWiredScreen while enableVisibleRect_ set
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, ScaleAndRotateMirrorForWiredScreen006, TestSize.Level2)
+{
+    // set drawable screenInfo
+    ASSERT_NE(displayDrawable_, nullptr);
+    auto mainParams = displayDrawable_->GetRenderParams() ?
+        static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get()) : nullptr;
+    ASSERT_NE(mainParams, nullptr);
+    mainParams->SetBoundsRect({0, 0, 100, 100});
+
+    ASSERT_NE(mirroredDisplayDrawable_, nullptr);
+    ASSERT_NE(mirroredDisplayDrawable_->GetRenderParams(), nullptr);
+    auto mirroredParams = mirroredDisplayDrawable_->GetRenderParams() ?
+        static_cast<RSLogicalDisplayRenderParams*>(mirroredDisplayDrawable_->GetRenderParams().get()) : nullptr;
+    ASSERT_NE(mirroredParams, nullptr);
+    mirroredParams->SetBoundsRect({0, 0, 100, 100});
+
+    // set contentRect
+    Rect contentRect{0, 0, 100, 50};
+    mirroredParams->SetDisplayContentRect(contentRect);
+
+    // set enableVisibleRect_
+    displayDrawable_->enableVisibleRect_ = true;
+    displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
+
+    // reset enableVisibleRect_
+    displayDrawable_->enableVisibleRect_ = false;
+    displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
+}
+
+/**
  * @tc.name: WiredScreenProjectionTest001
  * @tc.desc: Test WiredScreenProjection when curCanvas_ is nullptr
  * @tc.type: FUNC

@@ -202,6 +202,7 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     DECLARE_ADD_RANDOM(RSDisplayNodeCommand, RSDisplayNodeRemoveFromTree),
     DECLARE_ADD_RANDOM(RSDisplayNodeCommand, RSDisplayNodeClearModifiersByPid),
     DECLARE_ADD_RANDOM(RSDisplayNodeCommand, RSDisplayNodeForceCloseHdr),
+    DECLARE_ADD_RANDOM(RSDisplayNodeCommand, RSDisplayNodeSetDisplayContentRect),
 
     /********** RSEffectNodeCommand **********/
     DECLARE_ADD_RANDOM(RSEffectNodeCommand, RSEffectNodeCreate),

@@ -524,6 +524,9 @@ void RSScreen::SetRogResolution(uint32_t width, uint32_t height)
     isRogResolution_ = true;
     property_.SetWidth(width);
     property_.SetHeight(height);
+    if (onPropertyChange_) {
+        onPropertyChange_(property_.Clone());
+    }
     RS_LOGI("%{public}s: RSScreen(id %{public}" PRIu64 "), width: %{public}u,"
         " height: %{public}u, phywidth: %{public}u, phyHeight: %{public}u.",
         __func__, property_.GetId(), width, height, property_.GetPhyWidth(), property_.GetPhyHeight());

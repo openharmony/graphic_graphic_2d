@@ -33,6 +33,7 @@ void RSLogicalDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>&
     targetLogicalDisplayRenderParam->screenRotation_ = screenRotation_;
     targetLogicalDisplayRenderParam->mirrorSourceRotation_ = mirrorSourceRotation_;
     targetLogicalDisplayRenderParam->screenId_ = screenId_;
+    targetLogicalDisplayRenderParam->contentRect_ = contentRect_;
     targetLogicalDisplayRenderParam->needOffscreen_ = needOffscreen_;
     targetLogicalDisplayRenderParam->nodeRotation_ = nodeRotation_;
     targetLogicalDisplayRenderParam->compositeType_ = compositeType_;
@@ -97,6 +98,17 @@ void RSLogicalDisplayRenderParams::SetScreenId(uint64_t screenId)
     }
     screenId_ = screenId;
     needSync_ = true;
+}
+
+void RSLogicalDisplayRenderParams::SetDisplayContentRect(const Rect& contentRect)
+{
+    contentRect_ = contentRect;
+    needSync_ = true;
+}
+
+const Rect& RSLogicalDisplayRenderParams::GetDisplayContentRect() const
+{
+    return contentRect_;
 }
 
 void RSLogicalDisplayRenderParams::SetNeedOffscreen(bool needOffscreen)
