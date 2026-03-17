@@ -410,7 +410,6 @@ void RecordingCanvas::DrawPicture(const Picture& picture)
 
 void RecordingCanvas::DrawGlyphs(int count, const uint16_t glyphs[], const Point pts[],
                                   Point origin, const Font* font)
-
 {
     static uint64_t shiftedPid = static_cast<uint64_t>(GetRealPid()) << 32;
     if (count <= 0) {
@@ -430,7 +429,7 @@ void RecordingCanvas::DrawGlyphs(int count, const uint16_t glyphs[], const Point
         globalUniqueId = (shiftedPid | font->GetTypeface()->GetUniqueID());
     }
     AddDrawOpImmediate<DrawGlyphsOpItem::ConstructorHandle>(glyphIDsData, positionsData, origin, fontHandlde,
-                                                            globalUniqueId); 
+                                                            globalUniqueId);
 }
 
 void RecordingCanvas::DrawTextBlob(const TextBlob* blob, const scalar x, const scalar y)
