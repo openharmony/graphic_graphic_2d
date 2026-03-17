@@ -3962,13 +3962,23 @@ bool RSSurfaceRenderNode::IsRelatedSourceNode() const
 
 void RSSurfaceRenderNode::SetIsParticipateInOcclusion(bool isParticipate)
 {
-    isParticipateInOcclusion_ = isParticipate;
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (surfaceParams == nullptr) {
         return;
     }
-    surfaceParams->SetIsParticipateInOcclusion(isParticipateInOcclusion_);
-    AddToPendingSyncList();
+    surfaceParams->SetIsParticipateInOcclusion(isParticipate);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+}
+
+bool RSSurfaceRenderNode::GetIsParticipateInOcclusion() const
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        return true;
+    }
+    return surfaceParams->GetIsParticipateInOcclusion();
 }
 
 void RSSurfaceRenderNode::EmplaceSameTypeModifier(

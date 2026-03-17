@@ -8161,12 +8161,13 @@ HWTEST_F(RSUniRenderVisitorTest, SubSurfaceOpaqueRegionFromAccumulatedDirtyRegio
     EXPECT_NE(rsUniRenderVisitor, nullptr);
     auto rsContext = std::make_shared<RSContext>();
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1, rsContext);
+    surfaceNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(surfaceNode->GetId());
     surfaceNode->renderProperties_.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     surfaceNode->dirtyManager_ = std::make_shared<RSDirtyRegionManager>();
     EXPECT_NE(surfaceNode->dirtyManager_, nullptr);
     surfaceNode->isFirstLevelCrossNode_ = false;
     surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
-    surfaceNode->isParticipateInOcclusion_ = false;
+    surfaceNode->SetIsParticipateInOcclusion(false);
     surfaceNode->opaqueRegion_ = Occlusion::Region(RectI(0, 0, 5, 5));
 
     Occlusion::Region origin = Occlusion::Region(RectI(0, 0, 10, 10));
@@ -8187,12 +8188,13 @@ HWTEST_F(RSUniRenderVisitorTest, SubSurfaceOpaqueRegionFromAccumulatedDirtyRegio
     EXPECT_NE(rsUniRenderVisitor, nullptr);
     auto rsContext = std::make_shared<RSContext>();
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1, rsContext);
+    surfaceNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(surfaceNode->GetId());
     surfaceNode->renderProperties_.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     surfaceNode->dirtyManager_ = std::make_shared<RSDirtyRegionManager>();
     EXPECT_NE(surfaceNode->dirtyManager_, nullptr);
     surfaceNode->isFirstLevelCrossNode_ = false;
     surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
-    surfaceNode->isParticipateInOcclusion_ = true;
+    surfaceNode->SetIsParticipateInOcclusion(true);
     surfaceNode->opaqueRegion_ = Occlusion::Region(RectI(0, 0, 5, 5));
 
     Occlusion::Region origin = Occlusion::Region(RectI(0, 0, 10, 10));

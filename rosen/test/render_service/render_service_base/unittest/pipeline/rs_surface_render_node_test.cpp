@@ -2976,6 +2976,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetIsParticipateInOcclusionTest, TestSize.Leve
     NodeId id = 1;
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
     ASSERT_NE(node, nullptr);
+    node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id);
 
     // Test set IsParticipateInOcclusion to true
     node->SetIsParticipateInOcclusion(true);
