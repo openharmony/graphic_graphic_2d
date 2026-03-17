@@ -593,11 +593,11 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Filter_Test
 }
 
 /*
- * @tc.name: Appearance_Shadow_Radius_Zero_Test
+ * @tc.name: Appearance_Shadow_Radius_Zero_Test01
  * @tc.desc: Test shadow with radius=0 (no blur), Color type, offset(10, 10)
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Radius_Zero_Test)
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Radius_Zero_Test01)
 {
     int nodePosX = ONE_HUNDRED_;
     int nodePosY = ONE_HUNDRED_;
@@ -616,11 +616,34 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Radius_Zero
 }
 
 /*
- * @tc.name: Appearance_Shadow_Radius_Negative_Test
+ * @tc.name: Appearance_Shadow_Radius_Zero_Test02
+ * @tc.desc: Test shadow with radius=0 (no blur), Color type, offset(0, 0)
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Radius_Zero_Test02)
+{
+    int nodePosX = ONE_HUNDRED_;
+    int nodePosY = ONE_HUNDRED_;
+    int nodeOffset = ONE_HUNDRED_;
+    int nodeSize = FOUR_HUNDRED_;
+
+    auto testNode = RSCanvasNode::Create();
+    testNode->SetBounds({ nodePosX, nodePosY, nodeSize, nodeSize });
+    testNode->SetTranslate(nodeOffset, nodeOffset, 0);
+    testNode->SetBackgroundColor(0xffc0c0c0);
+    testNode->SetShadowColor(0xff000000);
+    testNode->SetShadowRadius(0.0f);
+    testNode->SetShadowOffset(0, 0);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/*
+ * @tc.name: Appearance_Shadow_Radius_Negative_Test01
  * @tc.desc: Test shadow with radius=-1 (no shadow), Color type, offset(10, 10)
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Radius_Negative_Test)
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Radius_Negative_Test01)
 {
     int nodePosX = THREE_HUNDRED_;
     int nodePosY = THREE_HUNDRED_;
@@ -639,11 +662,34 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Radius_Nega
 }
 
 /*
- * @tc.name: Appearance_Shadow_Radius_Positive_Test
+ * @tc.name: Appearance_Shadow_Radius_Negative_Test02
+ * @tc.desc: Test shadow with radius=-1 (no shadow), Color type, offset(0, 0)
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Radius_Negative_Test02)
+{
+    int nodePosX = THREE_HUNDRED_;
+    int nodePosY = THREE_HUNDRED_;
+    int nodeOffset = ONE_HUNDRED_;
+    int nodeSize = FOUR_HUNDRED_;
+
+    auto testNode = RSCanvasNode::Create();
+    testNode->SetBounds({ nodePosX, nodePosY, nodeSize, nodeSize });
+    testNode->SetTranslate(nodeOffset, nodeOffset, 0);
+    testNode->SetBackgroundColor(0xffc0c0c0);
+    testNode->SetShadowColor(0xff000000);
+    testNode->SetShadowRadius(-1.0f);
+    testNode->SetShadowOffset(0, 0);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/*
+ * @tc.name: Appearance_Shadow_Radius_Positive_Test01
  * @tc.desc: Test shadow with radius=10 (with blur), Color type, offset(10, 10)
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Radius_Positive_Test)
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Radius_Positive_Test01)
 {
     int nodePosX = FIVE_HUNDRED_;
     int nodePosY = FIVE_HUNDRED_;
@@ -657,6 +703,29 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Radius_Posi
     testNode->SetShadowColor(0xff000000);
     testNode->SetShadowRadius(10.0f);
     testNode->SetShadowOffset(TEN_, TEN_);
+    GetRootNode()->AddChild(testNode);
+    RegisterNode(testNode);
+}
+
+/*
+ * @tc.name: Appearance_Shadow_Radius_Positive_Test02
+ * @tc.desc: Test shadow with radius=10 (with blur), Color type, offset(0, 0)
+ * @tc.type: FUNC
+ */
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Radius_Positive_Test02)
+{
+    int nodePosX = FIVE_HUNDRED_;
+    int nodePosY = FIVE_HUNDRED_;
+    int nodeOffset = ONE_HUNDRED_;
+    int nodeSize = FOUR_HUNDRED_;
+
+    auto testNode = RSCanvasNode::Create();
+    testNode->SetBounds({ nodePosX, nodePosY, nodeSize, nodeSize });
+    testNode->SetTranslate(nodeOffset, nodeOffset, 0);
+    testNode->SetBackgroundColor(0xffc0c0c0);
+    testNode->SetShadowColor(0xff000000);
+    testNode->SetShadowRadius(10.0f);
+    testNode->SetShadowOffset(0, 0);
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
 }
