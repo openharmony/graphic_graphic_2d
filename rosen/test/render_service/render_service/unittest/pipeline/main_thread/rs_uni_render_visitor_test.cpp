@@ -8450,7 +8450,7 @@ HWTEST_F(RSUniRenderVisitorTest, IsWiredExtendedScreen001, TestSize.Level2)
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0);
     screenNode->screenProperty_.Set<ScreenPropertyType::CONNECTION_TYPE>(
-        static_cast<uint32_t>(ScreenPropertyType::DISPLAY_CONNECTION_TYPE_EXTERNAL));
+        static_cast<uint32_t>(ScreenConnectionType::DISPLAY_CONNECTION_TYPE_EXTERNAL));
     screenNode->mirrorSource_.reset();
     ASSERT_NE(screenManager_, nullptr);
 
