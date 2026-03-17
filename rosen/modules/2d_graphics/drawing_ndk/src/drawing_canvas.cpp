@@ -834,6 +834,32 @@ void OH_Drawing_CanvasDrawTextBlob(OH_Drawing_Canvas* cCanvas, const OH_Drawing_
 #endif
 }
 
+void OH_Drawing_CanvasDrawGlyphs(OH_Drawing_Canvas* cCanvas,
+                                 const int* glyphIds, int glyphIdOffset,
+                                 const OH_Drawing_Point2D* positions, int positionOffset,
+                                 int glyphCount, OH_Drawing_Font* cFont)
+{
+    if ((glyphCount <= 0) || (glyphIdOffset < 0) || (positionOffset < 0)) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+        return;
+    }
+    Canvas* canvas = CastToCanvas(cCanvas);
+    const Font* font = CastToFont(cFont);
+    if (canvas == nullptr || font == nullptr || glyphIds == nullptr || positions == nullptr) {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return;
+    }
+    const Point* glyphPositions = reinterpret_cast<const Point*>(positions);
+    const uint16* glyphIdsUForm = reinterpret_cast<const uint16*>(glyphIds);
+    canvas->DrawGlyphs(glyphCount, glyphIdsUForm, glyphPositions, {0, 0}, *font);
+    #ifdef OHOS_PLATFORM
+        auto iter = g_canvasMap.find(canvas);
+        if (iter != g_canvasMap.end() && iter->second != nullptr) {
+            iter->second->MarkDirty();
+        }
+    #endif
+}
+
 void OH_Drawing_CanvasClipRect(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Rect* cRect,
     OH_Drawing_CanvasClipOp cClipOp, bool doAntiAlias)
 {
