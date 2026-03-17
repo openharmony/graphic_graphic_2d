@@ -57,26 +57,13 @@ public:
 
 /*
  * @tc.name: OHDrawingOrphanCharOptimizationTest001
- * @tc.desc: Test TypographyStyle default orphanCharOptimization value
- * @tc.type: FUNC
- */
-HWTEST_F(OHDrawingOrphanCharOptimizationTest, OHDrawingOrphanCharOptimizationTest001, TestSize.Level0)
-{
-    TypographyStyle typographyStyle;
-    EXPECT_EQ(typographyStyle.orphanCharOptimization, false);
-
-    typographyStyle.orphanCharOptimization = true;
-    EXPECT_EQ(typographyStyle.orphanCharOptimization, true);
-}
-
-/*
- * @tc.name: OHDrawingOrphanCharOptimizationTest002
- * @tc.desc: Test TypographyStyle copy assignment with orphanCharOptimization = true
+ * @tc.desc: Test TypographyStyle copy assignment with orphanCharOptimization = true and default value
  * @tc.type: FUNC
  */
 HWTEST_F(OHDrawingOrphanCharOptimizationTest, OHDrawingOrphanCharOptimizationTest002, TestSize.Level0)
 {
     TypographyStyle typographyStyle;
+    EXPECT_EQ(typographyStyle.orphanCharOptimization, false);
     typographyStyle.orphanCharOptimization = true;
 
     TypographyStyle typographyStyleCopy = typographyStyle;
@@ -84,7 +71,7 @@ HWTEST_F(OHDrawingOrphanCharOptimizationTest, OHDrawingOrphanCharOptimizationTes
 }
 
 /*
- * @tc.name: OHDrawingOrphanCharOptimizationTest003
+ * @tc.name: OHDrawingOrphanCharOptimizationTest002
  * @tc.desc: Test TypographyStyle copy constructor with orphanCharOptimization
  * @tc.type: FUNC
  */
@@ -98,7 +85,7 @@ HWTEST_F(OHDrawingOrphanCharOptimizationTest, OHDrawingOrphanCharOptimizationTes
 }
 
 /*
- * @tc.name: OHDrawingOrphanCharOptimizationTest004
+ * @tc.name: OHDrawingOrphanCharOptimizationTest003
  * @tc.desc: Test Convert TypographyStyle to ParagraphStyle with orphanCharOptimization = true
  * @tc.type: FUNC
  */
@@ -112,7 +99,7 @@ HWTEST_F(OHDrawingOrphanCharOptimizationTest, OHDrawingOrphanCharOptimizationTes
 }
 
 /*
- * @tc.name: OHDrawingOrphanCharOptimizationTest005
+ * @tc.name: OHDrawingOrphanCharOptimizationTest004
  * @tc.desc: Test Convert TypographyStyle to ParagraphStyle with orphanCharOptimization = false
  * @tc.type: FUNC
  */
