@@ -1712,7 +1712,11 @@ void AniCanvas::DrawGlyphs(ani_env* env, ani_object obj,
     }
     std::shared_ptr<Font> font = aniFont->GetFont();
     Drawing::Point origin = Drawing::Point(0, 0);
-    aniCanvas->GetCanvas()->DrawGlyphs(glyphCount, glyphIds.get(), positions.get(), origin, *font);
+    aniCanvas->GetCanvas()->DrawGlyphs(glyphCount,
+                                       glyphIds.get() + glyphIdOffset,
+                                       positions.get() + positionOffset,
+                                       origin,
+                                       *font);
     aniCanvas->NotifyDirty();
 }
 
