@@ -934,7 +934,8 @@ DrawingError EffectImageChain::ApplyReededGlass(
     return DrawingError::ERR_OK;
 }
 
-DrawingError EffectImageChain::ApplyScale(float scaleX, float scaleY, Drawing::FilterMode filterMode, Drawing::MipmapMode mipmapMode)
+DrawingError EffectImageChain::ApplyScale(
+    float scaleX, float scaleY, Drawing::FilterMode filterMode, Drawing::MipmapMode mipmapMode)
 {
     if (scaleX <= 0.0f || scaleY <= 0.0f) {
         return DrawingError::ERR_ILLEGAL_INPUT;
