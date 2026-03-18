@@ -53,12 +53,13 @@ std::shared_ptr<EffectImageFilter> EffectImageFilter::Blur(float radius, float a
     return std::make_shared<EffectImageBlurFilter>(radius, angle, tileMode);
 }
 
-std::shared_ptr<EffectImageFilter> EffectImageFilter::Scale(float scaleX, float scaleY)
+std::shared_ptr<EffectImageFilter> EffectImageFilter::Scale(float scaleX, float scaleY,
+    Drawing::FilterMode filterMode, Drawing::MipmapMode mipmapMode)
 {
-    if (scaleX < 0 || scaleY < 0) {
+    if (scaleX <= 0 || scaleY <= 0) {
         return nullptr;
     }
-    return std::make_shared<EffectImageScaleFilter>(scaleX, scaleY);
+    return std::make_shared<EffectImageScaleFilter>(scaleX, scaleY, filterMode, mipmapMode);
 }
 
 std::shared_ptr<EffectImageFilter> EffectImageFilter::MapColorByBrightness(const std::vector<Vector4f>& colors,
