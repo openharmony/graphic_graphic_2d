@@ -364,6 +364,6 @@ DrawingError EffectImageScaleFilter::Apply(const std::shared_ptr<EffectImageChai
     if (image == nullptr) {
         return DrawingError::ERR_IMAGE_NULL;
     }
-    return image->ApplyScale(scaleX_, scaleY_);
+    return image->ApplyScale(scaleX_, scaleY_, filterMode_, mipmapMode_);
 }
 } // namespace OHOS::Rosen
