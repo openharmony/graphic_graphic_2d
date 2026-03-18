@@ -164,7 +164,8 @@ EffectErrorCode OH_Filter_SetColorMatrix(OH_Filter* filter, OH_Filter_ColorMatri
 * @since 24
 * @version 1.0
 */
-EffectErrorCode OH_Filter_Scale(OH_Filter* filter, float scaleX, float scaleY, OH_Filter_ScaleMode filterMode, OH_Filter_MipmapMode mipmapMode);
+EffectErrorCode OH_Filter_Scale(
+    OH_Filter* filter, float scaleX, float scaleY, OH_Filter_ScaleMode filterMode, OH_Filter_MipmapMode mipmapMode);
 
 /**
  * @brief Creates an effect blend the original image and transition image based on different types of masks.
