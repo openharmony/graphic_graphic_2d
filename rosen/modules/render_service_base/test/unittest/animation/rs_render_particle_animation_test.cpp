@@ -678,5 +678,106 @@ HWTEST_F(RSRenderParticleAnimationTest, OnDetachTest, TestSize.Level1)
     renderParticleAnimation.OnDetach();
     ASSERT_FALSE(renderParticleAnimation.particleSystem_);
 }
+/**
+ * @tc.name: SetParticleAnimationToken001
+ * @tc.desc: Verify SetParticleAnimationToken sets token correctly
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderParticleAnimationTest, SetParticleAnimationToken001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest SetParticleAnimationToken001 start";
+    auto renderParticleAnimation =
+        std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, PROPERTY_ID, particlesRenderParams);
+    ASSERT_TRUE(renderParticleAnimation != nullptr);
+
+    uint64_t token = 123456;
+    renderParticleAnimation->SetParticleAnimationToken(token);
+    EXPECT_EQ(renderParticleAnimation->GetToken(), token);
+    GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest SetParticleAnimationToken001 end";
+}
+
+/**
+ * @tc.name: SetParticleAnimationToken002
+ * @tc.desc: Verify SetParticleAnimationToken with zero token
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderParticleAnimationTest, SetParticleAnimationToken002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest SetParticleAnimationToken002 start";
+    auto renderParticleAnimation =
+        std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, PROPERTY_ID, particlesRenderParams);
+    ASSERT_TRUE(renderParticleAnimation != nullptr);
+
+    renderParticleAnimation->SetParticleAnimationToken(0);
+    EXPECT_EQ(renderParticleAnimation->GetToken(), 0);
+    GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest SetParticleAnimationToken002 end";
+}
+
+/**
+ * @tc.name: MarshallingWithToken001
+ * @tc.desc: Verify token is preserved through Marshalling and Unmarshalling
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderParticleAnimationTest, MarshallingWithToken001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest MarshallingWithToken001 start";
+    auto renderParticleAnimation =
+        std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, PROPERTY_ID, particlesRenderParams);
+    ASSERT_TRUE(renderParticleAnimation != nullptr);
+
+    uint64_t token = 789012;
+    renderParticleAnimation->SetParticleAnimationToken(token);
+
+    Parcel parcel;
+    auto result = renderParticleAnimation->Marshalling(parcel);
+    EXPECT_TRUE(result);
+
+    auto unmarshalled = RSRenderParticleAnimation::Unmarshalling(parcel);
+    ASSERT_TRUE(unmarshalled != nullptr);
+    EXPECT_EQ(unmarshalled->GetToken(), token);
+    delete unmarshalled;
+    GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest MarshallingWithToken001 end";
+}
+
+/**
+ * @tc.name: MarshallingWithToken002
+ * @tc.desc: Verify Marshalling with zero token
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderParticleAnimationTest, MarshallingWithToken002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest MarshallingWithToken002 start";
+    auto renderParticleAnimation =
+        std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, PROPERTY_ID, particlesRenderParams);
+    ASSERT_TRUE(renderParticleAnimation != nullptr);
+
+    // default token should be 0
+    Parcel parcel;
+    auto result = renderParticleAnimation->Marshalling(parcel);
+    EXPECT_TRUE(result);
+
+    auto unmarshalled = RSRenderParticleAnimation::Unmarshalling(parcel);
+    ASSERT_TRUE(unmarshalled != nullptr);
+    EXPECT_EQ(unmarshalled->GetToken(), 0);
+    delete unmarshalled;
+    GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest MarshallingWithToken002 end";
+}
+
+/**
+ * @tc.name: ParseParamTokenFail001
+ * @tc.desc: Verify Unmarshalling fails with empty parcel
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderParticleAnimationTest, ParseParamTokenFail001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest ParseParamTokenFail001 start";
+
+    // empty parcel should cause Unmarshalling to fail
+    Parcel parcel;
+    auto unmarshalled = RSRenderParticleAnimation::Unmarshalling(parcel);
+    EXPECT_TRUE(unmarshalled == nullptr);
+    GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest ParseParamTokenFail001 end";
+}
+
 } // namespace Rosen
 } // namespace OHOS

@@ -1,0 +1,110 @@
+# Copyright (c) 2022 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+#####################hydra-fuzz###################
+import("//build/config/features.gni")
+import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+module_output_path = "graphic_2d/graphic_2d/rosen/modules/composer/composer_service/layer_backend"
+
+# Common settings for layer_backend fuzz targets
+lb_fuzz_include_dirs = [
+  "$graphic_2d_root/interfaces/inner_api/common",
+  "$graphic_2d_root/rosen/include/common",
+  "$graphic_2d_root/rosen/modules/2d_graphics/include",
+  "$graphic_2d_root/rosen/modules/composer/hdi_backend/include",
+  "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/common",
+  "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
+  "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
+  "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
+  "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/soft_vsync_manager",
+  "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/pipeline",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/command",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/layer",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
+  "$graphic_2d_root/rosen/modules/render_service/core",
+  "$graphic_2d_root/rosen/modules/render_service_base/include",
+  "$graphic_2d_root/rosen/modules/render_service_base/src",
+  "$graphic_2d_root/rosen/modules/utils",
+]
+
+lb_fuzz_cflags = [
+  "-g",
+  "-O0",
+  "-Wno-unused-variable",
+  "-fno-omit-frame-pointer",
+  "-Dprivate=public",
+  "-Dprotected=public",
+]
+
+lb_fuzz_core_deps = [
+  "$graphic_2d_root/rosen/modules/composer:libcomposer",
+  "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+  "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+  "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+  "$graphic_2d_root/utils:scoped_bytrace",
+]
+
+lb_fuzz_ext_deps = [
+  "c_utils:utils",
+  "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+  "drivers_interface_display:libdisplay_commontype_proxy_2.0",
+  "drivers_interface_display:libdisplay_commontype_proxy_2.1",
+  "drivers_interface_display:libdisplay_commontype_proxy_2.2",
+  "eventhandler:libeventhandler",
+  "graphic_surface:surface",
+  "hilog:libhilog",
+  "hisysevent:libhisysevent",
+  "init:libbegetutil",
+  "ipc:ipc_core",
+  "libxml2:libxml2",
+]
+
+if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+  lb_fuzz_ext_deps += [ "sensor:sensor_interface_native" ]
+}
+if (use_memmgr_plugin || use_memmgr) {
+  lb_fuzz_ext_deps += [ "memmgr:memmgrclient" ]
+}
+
+##############################fuzztest##########################################
+ohos_fuzztest("HdiLayerFuzzTest") {
+  fuzz_config_file = "$graphic_2d_root/rosen/test/render_service/render_service/fuzztest/composer/composer_service/layer_backend/hdilayer_fuzzer"
+  module_out_path = module_output_path
+
+  sources = [ "hdilayer_fuzzer.cpp" ]
+
+  include_dirs = lb_fuzz_include_dirs
+  cflags = lb_fuzz_cflags
+
+  deps = lb_fuzz_core_deps + [ "//foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/composer/composer_service/layer_backend:layer_backend_test_impl" ]
+  external_deps = lb_fuzz_ext_deps
+}
+
+###############################################################################
+group("fuzztest") {
+  testonly = true
+  deps = []
+  deps += [
+    # deps file
+    ":HdiLayerFuzzTest",
+  ]
+}
+###############################################################################

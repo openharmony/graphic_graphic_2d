@@ -17,21 +17,20 @@
 #define RENDER_SERVICE_CLIENT_CORE_TRANSACTION_RS_RENDRE_INTERFACE_H
 
 #include "common/rs_common_def.h"
-#include "ui/rs_display_node.h"
-#include "ui/rs_surface_node.h"
+#include "ipc_callbacks/rs_iocclusion_change_callback.h"
 #include "platform/drawing/rs_surface.h"
 #include "transaction/rs_render_pipeline_client.h"
+#include "ui/rs_display_node.h"
+#include "ui/rs_surface_node.h"
 
 namespace OHOS {
 namespace Rosen {
-
+using OcclusionChangeCallback = std::function<void(std::shared_ptr<RSOcclusionData>)>;
+using SurfaceOcclusionChangeCallback = std::function<void(float)>;
 class RSC_EXPORT RSRenderInterface {
-
 public:
     RSRenderInterface();
     ~RSRenderInterface() noexcept;
-
-    static RSRenderInterface &GetInstance();
     /**
      * @brief Get snapshot of surfaceNode.
      * @param node Indicates which node, usually point to a window.
@@ -70,8 +69,8 @@ public:
      * @param captureConfig Indicates the configuration items required for snapshot.
      * @return return true if snaphot success, else return false.
      */
-    bool TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
-        RSSurfaceCaptureConfig captureConfig = {});
+    bool TakeSurfaceCapture(
+        NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig = {});
 
     /**
      * @brief Get component snapshot.
@@ -83,9 +82,9 @@ public:
      * @param specifiedAreaRect Indicates the range that user wants to clip the snapshot.
      * @return return true if snaphot success, else return false.
      */
-    bool TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
-        std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX = 1.f, float scaleY = 1.f,
-        bool isSync = false, const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f));
+    bool TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node, std::shared_ptr<SurfaceCaptureCallback> callback,
+        float scaleX = 1.f, float scaleY = 1.f, bool isSync = false,
+        const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f));
 
     /**
      * @brief Get component snapshot.
@@ -130,7 +129,7 @@ public:
      * @return return a vector of pair, the first element is the NodeId, the second element is the pixelmap.
      */
     std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> TakeSurfaceCaptureSoloNodeList(
-    std::shared_ptr<RSNode> node);
+        std::shared_ptr<RSNode> node);
 
     /**
      * @brief Take snapshot of displayNode.
@@ -174,8 +173,8 @@ public:
      * @param scaleX Indicates the scale of X-axis.
      * @param scaleY Indicates the scale of Y-axis.
      */
-    bool TakeSurfaceCaptureForUIWithoutUni(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
-        float scaleX, float scaleY);
+    bool TakeSurfaceCaptureForUIWithoutUni(
+        NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY);
 
     /**
      * @brief Set selfdrawing node to topLayer force use DSS.
@@ -193,8 +192,7 @@ public:
      * @param callback It is triggered when buffer state changes.
      * @return bool Returns true if successfully send to RS, otherwise false.
      */
-    bool RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
-        std::shared_ptr<SurfaceBufferCallback> callback);
+    bool RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid, std::shared_ptr<SurfaceBufferCallback> callback);
 
     /**
      * @brief UnRegister the DrawSurfaceBuffer op callback that holds the buffer state.
@@ -242,6 +240,27 @@ public:
     bool SetAncoForceDoDirect(bool direct);
 
     /**
+     * @brief clear uifirst node cache
+     * @param id surface node id
+     */
+    void ClearUifirstCache(NodeId id);
+
+    /**
+     * @brief Set the process ID list requiring frame dropping. Next time RS triggers rending,
+     * it will purge queued frames of corresponding self-rendering nodes in bufferQueue, and use the latest frame
+     * buffer for screen display.
+     * @param pidList Process ID list requiring frame dropping.
+     */
+    void DropFrameByPid(const std::vector<int32_t> pidList);
+
+    /**
+     * @brief Get brightness info by screenId.
+     * @param screenId is screen id.
+     * @return Returns 0 success, otherwise, failed.
+     */
+    int32_t GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo);
+
+    /**
      * @brief Get the HDR status of the current screen.
      * @param id Id of the screen.
      * @param hdrStatus The HDR status of the current screen.
@@ -249,19 +268,27 @@ public:
      */
     int32_t GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus);
 
+    // WMS set dark color display mode to RS
     /**
-     * @brief clear uifirst node cache
-     * @param id surface node id
+     * @brief Notify if system themes switch to dark mode.
+     * @param isDark whether is dark mode.
+     * @return True if success, false if failed.
      */
-    void ClearUifirstCache(NodeId id);
+    bool SetGlobalDarkColorMode(bool isDark);
+
+    /*
+     * @brief Set the system overload Animated Scenes to RS for special load shedding.
+     * @param systemAnimatedScenes indicates the system animation scene.
+     * @param isRegularAnimation indicates irregular windows in the animation scene.
+     * @return true if succeed, otherwise false.
+     */
+    bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation = false);
 
     /**
-     * @brief Set frame gravity of screen node.
-     * @param id Screen id.
-     * @param gravity The gravity value of the screen node.
+     * @brief Get high contrast text state.
+     * @return Return true if high contrast text enabled, otherwise false.
      */
-    void SetScreenFrameGravity(ScreenId id, int32_t gravity);
-
+    bool GetHighContrastTextState();
     /**
      * @brief Freeze or unfreeze screen.
      * @param node Indicates a display node to freeze or unfreeze.
@@ -298,6 +325,55 @@ public:
      */
     int32_t SubmitCanvasPreAllocatedBuffer(NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex);
 #endif
+    /**
+     * @brief Set watermark for surfaceNode.
+     * @param pid pid of process.
+     * @param name Watermark name. Note: ensure watermark name is unique.
+     * @param watermark Watermark pixelmap.
+     * @param nodeIdList Node id list
+     * @param watermarkType custom or system watermark.
+     * @return set watermark success return 0, else return errorCode.
+     */
+    uint32_t SetSurfaceWatermark(pid_t pid, const std::string& name, const std::shared_ptr<Media::PixelMap>& watermark,
+        const std::vector<NodeId>& nodeIdList, SurfaceWatermarkType watermarkType);
+
+    /**
+     * @brief Set watermark for surfaceNode.
+     * @param pid pid of process.
+     * @param name Watermark name.
+     * @param watermark Watermark pixelmap.
+     */
+    void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name, const std::vector<NodeId>& nodeIdList);
+
+    /**
+     * @brief Set watermark for surfaceNode.
+     * @param pid pid of process.
+     * @param name Watermark name.
+     */
+    void ClearSurfaceWatermark(pid_t pid, const std::string& name);
+
+    /**
+     * @brief Register window occlusion change callback.
+     * @param callback callback fuction.
+     * @return 0 success, else failed.
+     */
+    int32_t RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback);
+
+    /**
+     * @brief Register web surface occlusion change callback.
+     * @param callback callback fuction.
+     * @param partitionPoints is a vector of area ratio.
+     * @return 0 success, else failed.
+     */
+    int32_t RegisterSurfaceOcclusionChangeCallback(
+        NodeId id, const SurfaceOcclusionChangeCallback& callback, std::vector<float>& partitionPoints);
+
+    /**
+     * @brief UnRegister web surface occlusion change callback.
+     * @param id is the node id indicates which surface occlusion change callback needs to be unRegister.
+     * @return 0 success, else failed.
+     */
+    int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id);
 
     /**
      * @brief Set logical camera rotation correction, used to correct logical rotation.
@@ -306,16 +382,17 @@ public:
      * @return 0 means success, others failed.
      */
     int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection);
+    int32_t GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight);
 
     int32_t GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight);
 
 private:
-    std::unique_ptr<RSRenderPipelineClient> renderPiplineClient_;
+    std::unique_ptr<RSRenderPipelineClient> renderPipelineClient_;
     friend class RSUIContext;
     friend class RSApplicationAgentImpl;
     friend class RSDisplayNode;
     friend class RSSurfaceNode;
 };
-}
-}
+} // namespace Rosen
+} // namespace OHOS
 #endif // RENDER_SERVICE_CLIENT_CORE_TRANSACTION_RS_RENDRE_INTERFACE_H

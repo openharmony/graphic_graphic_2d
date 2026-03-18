@@ -430,6 +430,8 @@ private:
 
     // auto clear the cache when cache reuse count reach threshold
     int clearCacheThreshold_ = 0;
+    // when all screens are power off, uifirst pending post nodes need purge.
+    bool allScreenPowerOffNeedPurge_ = false;
 
     float sizeChangedThreshold_ = 0.1f;
 };

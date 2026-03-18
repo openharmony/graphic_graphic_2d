@@ -95,7 +95,7 @@ void RSAnimationManagerFuzzerTest()
     bool nodeIsOnTheTree = GetData<bool>();
     RSSurfaceNodeAbilityState abilityState = GetData<RSSurfaceNodeAbilityState>();
     bool isEnable = GetData<bool>();
-    const FrameRateFunctions func;
+    const FrameRateGetFunc func;
     float width = GetData<float>();
     float height = GetData<float>();
     float scaleX = GetData<float>();

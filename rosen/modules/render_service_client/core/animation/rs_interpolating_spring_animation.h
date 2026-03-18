@@ -28,11 +28,12 @@ class RSRenderInterpolatingSpringAnimation;
 
 class RSC_EXPORT RSInterpolatingSpringAnimation : public RSPropertyAnimation {
 public:
-    RSInterpolatingSpringAnimation(
+    RSInterpolatingSpringAnimation(const std::shared_ptr<RSUIContext>& rsUIContext,
         std::shared_ptr<RSPropertyBase> property, const std::shared_ptr<RSPropertyBase>& byValue);
 
-    RSInterpolatingSpringAnimation(std::shared_ptr<RSPropertyBase> property,
-        const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue);
+    RSInterpolatingSpringAnimation(const std::shared_ptr<RSUIContext>& rsUIContext,
+        std::shared_ptr<RSPropertyBase> property, const std::shared_ptr<RSPropertyBase>& startValue,
+        const std::shared_ptr<RSPropertyBase>& endValue);
 
     virtual ~RSInterpolatingSpringAnimation() = default;
 

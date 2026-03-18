@@ -40,13 +40,11 @@ public:
     int32_t GetScreenSupportedModes(std::vector<GraphicDisplayModeInfo> &modes) const;
     int32_t GetScreenMode(uint32_t &modeId);
     int32_t SetScreenMode(uint32_t modeId);
-    int32_t SetScreenActiveRect(const GraphicIRect& activeRect);
     int32_t SetScreenOverlayResolution(uint32_t width, uint32_t height) const;
     int32_t GetPanelPowerStatus(GraphicPanelPowerStatus& status);
     int32_t GetScreenPowerStatus(GraphicDispPowerStatus &status) const;
     int32_t SetScreenPowerStatus(GraphicDispPowerStatus status) const;
     int32_t GetScreenBacklight(uint32_t &level) const;
-    int32_t SetScreenBacklight(uint32_t level) const;
     int32_t SetScreenVsyncEnabled(bool enabled) const;
 
     int32_t GetScreenSupportedColorGamuts(std::vector<GraphicColorGamut> &gamuts) const;

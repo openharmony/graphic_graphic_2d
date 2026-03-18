@@ -28,6 +28,7 @@ RSRcdRenderVisitor::RSRcdRenderVisitor()
 
 bool RSRcdRenderVisitor::ConsumeAndUpdateBuffer(RSRcdSurfaceRenderNode& node)
 {
+    node.ResetCurrentFrameBufferConsumed();
     auto availableBufferCnt = node.GetAvailableBufferCount();
     if (availableBufferCnt <= 0) {
         // this node has no new buffer, try use old buffer.
@@ -51,8 +52,14 @@ bool RSRcdRenderVisitor::ConsumeAndUpdateBuffer(RSRcdSurfaceRenderNode& node)
             node.GetNodeId(), ret);
         return false;
     }
+    auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    bufferOwnerCount->bufferId_ = buffer->GetBufferId();
+    bufferOwnerCount->bufferReleaseCb_ = [](uint64_t bufferId) {
+        RSUniRenderThread::Instance().ReleaseBufferById(bufferId);
+    };
+    RSUniRenderThread::Instance().AddPendingReleaseBuffer(consumer, buffer, SyncFence::InvalidFence());
 
-    node.SetBuffer(buffer, acquireFence, damage, timestamp);
+    node.SetBuffer(buffer, acquireFence, damage, timestamp, bufferOwnerCount);
 
     if (!node.SetHardwareResourceToBuffer()) {
         RS_LOGE("RSRcdRenderVisitor SetHardwareResourceToBuffer Failed!");
@@ -64,7 +71,8 @@ bool RSRcdRenderVisitor::ConsumeAndUpdateBuffer(RSRcdSurfaceRenderNode& node)
     return true;
 }
 
-void RSRcdRenderVisitor::ProcessRcdSurfaceRenderNodeMainThread(RSRcdSurfaceRenderNode& node, bool resourceChanged)
+void RSRcdRenderVisitor::ProcessRcdSurfaceRenderNodeMainThread(
+    RSRcdSurfaceRenderNode& node, bool resourceChanged)
 {
     if (uniProcessor_ == nullptr || node.IsInvalidSurface() || resourceChanged) {
         RS_LOGE("RSRcdRenderVisitor RSProcessor null, node invalid, resource changed %{public}d %{public}d %{public}d",
@@ -82,7 +90,8 @@ void RSRcdRenderVisitor::ProcessRcdSurfaceRenderNodeMainThread(RSRcdSurfaceRende
 }
 
 bool RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(
-    RSRcdSurfaceRenderNode &node, const std::shared_ptr<rs_rcd::RoundCornerLayer> &layerInfo, bool resourceChanged)
+    RSRcdSurfaceRenderNode& node, const std::shared_ptr<rs_rcd::RoundCornerLayer>& layerInfo,
+    bool resourceChanged)
 {
     std::lock_guard<std::mutex> lock(bufferMut_);
     if (uniProcessor_ == nullptr || node.IsInvalidSurface() || renderEngine_ == nullptr) {
@@ -91,8 +100,8 @@ bool RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(
         return false;
     }
 
-    sptr<SurfaceBuffer> buffer = node.GetBuffer();
-    if (!resourceChanged && buffer != nullptr) {
+    if (!resourceChanged && node.GetBuffer() != nullptr) {
+        node.ResetCurrentFrameBufferConsumed();
         uniProcessor_->ProcessRcdSurface(node);
         return true;
     }
@@ -101,14 +110,14 @@ bool RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(
     if (surfaceNodePtr == nullptr || (!node.IsSurfaceCreated())) {
         sptr<IBufferConsumerListener> listener = new RSRcdRenderListener(surfaceNodePtr);
         if (listener == nullptr || (!node.CreateSurface(listener))) {
-            RS_LOGE("RSRcdRenderVisitor::RenderExpandedFrame CreateSurface failed");
+            RS_LOGE("RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode CreateSurface failed");
             return false;
         }
     }
 
     auto rsSurface = std::static_pointer_cast<RSSurfaceOhos>(node.GetRSSurface());
     if (rsSurface == nullptr) {
-        RS_LOGE("RSRcdRenderVisitor::RenderExpandedFrame no RSSurface found");
+        RS_LOGE("RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode no RSSurface found");
         return false;
     }
 

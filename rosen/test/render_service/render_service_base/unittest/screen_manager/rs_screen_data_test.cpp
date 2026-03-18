@@ -58,6 +58,10 @@ HWTEST_F(RSScreenDataTest, Marshalling001, TestSize.Level1)
 HWTEST_F(RSScreenDataTest, Unmarshalling001, TestSize.Level1)
 {
     RSScreenModeInfo screenModeInfo1;
+    screenModeInfo1.SetScreenWidth(-1);
+    screenModeInfo1.SetScreenHeight(-1);
+    screenModeInfo1.SetScreenRefreshRate(0);
+    screenModeInfo1.SetScreenModeId(-1);
     RSScreenModeInfo screenModeInfo2;
     std::vector<RSScreenModeInfo> supportModeInfo = { screenModeInfo1, screenModeInfo2 };
     RSScreenCapability capability;

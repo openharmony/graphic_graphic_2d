@@ -16,15 +16,17 @@
 #ifndef RENDER_SERVICE_BASE_TRANSACTION_RS_RENDER_PIPELINE_CLIENT_H
 #define RENDER_SERVICE_BASE_TRANSACTION_RS_RENDER_PIPELINE_CLIENT_H
 
-#include "common/rs_common_def.h"
-#include "rs_client_render_comm_def_info.h"
 #include <functional>
 #include <map>
 #include <memory>
 #include <mutex>
-#include <shared_mutex>
 #include <refbase.h>
+#include <shared_mutex>
 #include <surface_type.h>
+
+#include "rs_client_render_comm_def_info.h"
+
+#include "common/rs_common_def.h"
 #ifndef ROSEN_CROSS_PLATFORM
 #include <surface.h>
 #include <utility>
@@ -33,36 +35,34 @@
 #include "common/rs_self_draw_rect_change_callback_constraint.h"
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/iapplication_agent.h"
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-#include "ipc_callbacks/pointer_render/pointer_luminance_change_callback.h"
-#endif
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 #include "ipc_callbacks/rs_icanvas_surface_buffer_callback.h"
 #endif
+#include "info_collection/rs_gpu_dirty_region_collection.h"
+#include "info_collection/rs_hardware_compose_disabled_reason_collection.h"
+#include "info_collection/rs_layer_compose_collection.h"
+#include "rs_hgm_config_data.h"
+#include "rs_irender_client.h"
+#include "rs_occlusion_data.h"
+#include "rs_self_drawing_node_rect_data.h"
+#include "rs_uiextension_data.h"
+#include "variable_frame_rate/rs_variable_frame_rate.h"
+#include "vsync_receiver.h"
+
+#include "ipc_callbacks/rs_iocclusion_change_callback.h"
 #include "ipc_callbacks/rs_surface_buffer_callback.h"
+#include "ipc_callbacks/rs_transaction_data_callback.h"
 #include "ipc_callbacks/screen_change_callback.h"
 #include "ipc_callbacks/screen_switching_notify_callback.h"
 #include "ipc_callbacks/surface_capture_callback.h"
-#include "ipc_callbacks/rs_transaction_data_callback.h"
 #include "memory/rs_memory_graphic.h"
 #include "platform/drawing/rs_surface.h"
-#include "rs_irender_client.h"
-#include "variable_frame_rate/rs_variable_frame_rate.h"
 #include "screen_manager/rs_screen_capability.h"
 #include "screen_manager/rs_screen_data.h"
 #include "screen_manager/rs_screen_hdr_capability.h"
 #include "screen_manager/rs_screen_mode_info.h"
-#include "screen_manager/screen_types.h"
 #include "screen_manager/rs_virtual_screen_resolution.h"
-#include "vsync_receiver.h"
-#include "ipc_callbacks/rs_iocclusion_change_callback.h"
-#include "rs_hgm_config_data.h"
-#include "rs_occlusion_data.h"
-#include "rs_self_drawing_node_rect_data.h"
-#include "rs_uiextension_data.h"
-#include "info_collection/rs_gpu_dirty_region_collection.h"
-#include "info_collection/rs_hardware_compose_disabled_reason_collection.h"
-#include "info_collection/rs_layer_compose_collection.h"
+#include "screen_manager/screen_types.h"
 #include "utils/scalar.h"
 
 namespace OHOS {
@@ -71,9 +71,6 @@ namespace Rosen {
 using ScreenChangeCallback = std::function<void(ScreenId, ScreenEvent, ScreenChangeReason)>;
 using BrightnessInfoChangeCallback = std::function<void(ScreenId, BrightnessInfo)>;
 using ScreenSwitchingNotifyCallback = std::function<void(bool)>;
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-using PointerLuminanceChangeCallback = std::function<void(int32_t)>;
-#endif
 using BufferAvailableCallback = std::function<void()>;
 using BufferClearCallback = std::function<void()>;
 using OcclusionChangeCallback = std::function<void(std::shared_ptr<RSOcclusionData>)>;
@@ -94,6 +91,38 @@ public:
 
     void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
 
+    bool CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId);
+
+    bool CreateNode(const RSSurfaceRenderNodeConfig& config);
+
+    std::shared_ptr<RSSurface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, bool unobscured = false);
+
+    void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app); // proxy Single
+
+    bool RegisterBufferClearListener(NodeId id, const BufferClearCallback& callback);
+
+    bool RegisterBufferAvailableListener(
+        NodeId id, const BufferAvailableCallback& callback, bool isFromRenderThread = false);
+
+    std::shared_ptr<RSSurface> CreateRSSurface(const sptr<Surface>& surface);
+
+    bool UnregisterBufferAvailableListener(NodeId id);
+
+    bool GetBitmap(NodeId id, Drawing::Bitmap& bitmap);
+
+    bool SetGlobalDarkColorMode(bool isDark);
+
+    bool GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap, const Drawing::Rect* rect,
+        std::shared_ptr<Drawing::DrawCmdList> drawCmdList);
+
+    bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation);
+
+    void SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType, bool dynamicHardwareEnable);
+
+    uint32_t SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent);
+
+    bool GetHighContrastTextState();
+
     bool TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam = {},
         const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f));
@@ -101,23 +130,21 @@ public:
     std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> TakeSurfaceCaptureSoloNode(
         NodeId id, const RSSurfaceCaptureConfig& captureConfig);
 
-    bool TakeSelfSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
-        const RSSurfaceCaptureConfig& captureConfig);
+    bool TakeSelfSurfaceCapture(
+        NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig);
 
     bool SetWindowFreezeImmediately(NodeId id, bool isFreeze, std::shared_ptr<SurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam = {});
 
-    bool TakeSurfaceCaptureWithAllWindows(NodeId id,
-        std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
-        bool checkDrmAndSurfaceLock);
+    bool TakeSurfaceCaptureWithAllWindows(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
+        const RSSurfaceCaptureConfig& captureConfig, bool checkDrmAndSurfaceLock);
 
     bool FreezeScreen(NodeId id, bool isFreeze, bool needSync = false);
 
     bool TakeUICaptureInRange(
         NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig);
 
-    bool SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
-        float positionZ, float positionW);
+    bool SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY, float positionZ, float positionW);
 
     int32_t SetFocusAppInfo(const FocusAppInfo& info);
 
@@ -125,20 +152,33 @@ public:
 
     void SetLayerTopForHWC(NodeId nodeId, bool isTop, uint32_t zOrder);
 
+    int32_t GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo);
+
     int32_t GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus);
 
     void DropFrameByPid(const std::vector<int32_t>& pidList, int32_t dropFrameLevel = 0);
 
-    bool RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
-        std::shared_ptr<SurfaceBufferCallback> callback);
+    uint32_t SetSurfaceWatermark(pid_t pid, const std::string& name, const std::shared_ptr<Media::PixelMap>& watermark,
+        const std::vector<NodeId>& nodeIdList, SurfaceWatermarkType watermarkType);
+
+    void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name, const std::vector<NodeId>& nodeIdList);
+
+    void ClearSurfaceWatermark(pid_t pid, const std::string& name);
+
+    ErrCode RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback);
+
+    int32_t RegisterSurfaceOcclusionChangeCallback(
+        NodeId id, const SurfaceOcclusionChangeCallback& callback, std::vector<float>& partitionPoints);
+
+    int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id);
+
+    bool RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid, std::shared_ptr<SurfaceBufferCallback> callback);
 
     bool UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid);
 
     void SetWindowContainer(NodeId nodeId, bool value);
 
     void ClearUifirstCache(NodeId id);
-
-    void SetScreenFrameGravity(ScreenId id, int32_t gravity);
 
     bool RegisterTransactionDataCallback(uint64_t token, uint64_t timeStamp, std::function<void()> callback);
 
@@ -160,7 +200,8 @@ private:
     void TriggerOnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) const;
     void TriggerTransactionDataCallbackAndErase(uint64_t token, uint64_t timeStamp);
     struct RectHash {
-        std::size_t operator()(const Drawing::Rect& rect) const {
+        std::size_t operator()(const Drawing::Rect& rect) const
+        {
             std::size_t h1 = std::hash<Drawing::scalar>()(rect.left_);
             std::size_t h2 = std::hash<Drawing::scalar>()(rect.top_);
             std::size_t h3 = std::hash<Drawing::scalar>()(rect.right_);
@@ -171,7 +212,8 @@ private:
 
     // Hash for solo node capture
     struct UICaptureParamHash {
-        std::size_t operator()(const RSUICaptureInRangeParam& param) const {
+        std::size_t operator()(const RSUICaptureInRangeParam& param) const
+        {
             std::size_t h1 = std::hash<NodeId>()(param.endNodeId);
             std::size_t h2 = std::hash<bool>()(param.useBeginNodeSize);
             return h1 ^ (h2 << 1);
@@ -179,7 +221,8 @@ private:
     };
 
     struct PairHash {
-        std::size_t operator()(const std::pair<NodeId, RSSurfaceCaptureConfig>& p) const {
+        std::size_t operator()(const std::pair<NodeId, RSSurfaceCaptureConfig>& p) const
+        {
             std::size_t h1 = std::hash<NodeId>()(p.first);
             std::size_t h2 = RectHash()(p.second.mainScreenRect);
             std::size_t h3 = UICaptureParamHash()(p.second.uiCaptureInRangeParam);
@@ -196,8 +239,9 @@ private:
     sptr<RSIScreenChangeCallback> screenChangeCb_ = nullptr;
     sptr<RSIScreenSwitchingNotifyCallback> screenSwitchingNotifyCb_ = nullptr;
     sptr<RSISurfaceCaptureCallback> surfaceCaptureCbDirector_ = nullptr;
-    std::unordered_map<std::pair<NodeId, RSSurfaceCaptureConfig>,
-    std::vector<std::shared_ptr<SurfaceCaptureCallback>>, PairHash> surfaceCaptureCbMap_;
+    std::unordered_map<std::pair<NodeId, RSSurfaceCaptureConfig>, std::vector<std::shared_ptr<SurfaceCaptureCallback>>,
+        PairHash>
+        surfaceCaptureCbMap_;
 
     sptr<RSISurfaceBufferCallback> surfaceBufferCbDirector_;
     std::map<uint64_t, std::shared_ptr<SurfaceBufferCallback>> surfaceBufferCallbacks_;

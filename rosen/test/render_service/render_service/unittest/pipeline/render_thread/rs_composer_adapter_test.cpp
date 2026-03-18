@@ -16,14 +16,17 @@
 #include "gtest/gtest.h"
 #include "limit_number.h"
 #include "drawable/rs_screen_render_node_drawable.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/render_thread/rs_composer_adapter.h"
 #include "pipeline/rs_test_util.h"
 #include "pipeline/mock/mock_hdi_device.h"
-#include "screen_manager/rs_screen_manager.h"
-#include "screen_manager/rs_screen.h"
-#include "transaction/rs_interfaces.h"
-#include "surface_buffer_impl.h"
+#include "rs_render_composer.h"
 #include "rs_surface_layer.h"
+#include "screen_manager/rs_screen.h"
+#include "surface_buffer_impl.h"
+#include "transaction/rs_interfaces.h"
+#include "rs_layer.h"
+#include <parameters.h>
 
 using namespace testing;
 using namespace testing::ext;
@@ -41,12 +44,10 @@ public:
         ScreenRotation rotation = ScreenRotation::ROTATION_0);
     static inline Mock::HdiDeviceMock* hdiDeviceMock_;
     static inline std::unique_ptr<RSComposerAdapter> composerAdapter_;
-    static inline sptr<RSScreenManager> screenManager_;
     static inline std::shared_ptr<HdiOutput> hdiOutput_;
-    int32_t offsetX = 0; // screenOffset on x axis equals to 0
-    int32_t offsetY = 0; // screenOffset on y axis equals to 0
     float mirrorAdaptiveCoefficient = 1.0f;
     static uint32_t screenId_;
+    static inline std::shared_ptr<RSRenderComposerManager> rsRenderComposerManager = nullptr;
 };
 
 uint32_t RSComposerAdapterTest::screenId_ = 0;
@@ -59,11 +60,11 @@ void RSComposerAdapterTest::SetUpTestCase()
     RSTestUtil::InitRenderNodeGC();
 
     hdiOutput_ = HdiOutput::CreateHdiOutput(screenId_);
-    RSRenderComposerManager::GetInstance().OnScreenConnected(hdiOutput_);
-    auto screen = std::make_shared<RSScreen>(hdiOutput_);
-    screenManager_ = CreateOrGetScreenManager();
-    screenManager_->MockHdiScreenConnected(screen);
-
+    std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
+    rsRenderComposerManager = std::make_shared<RSRenderComposerManager>(handler, nullptr);
+    auto property = sptr<RSScreenProperty>::MakeSptr();
+    rsRenderComposerManager->OnScreenConnected(hdiOutput_, property);
+    auto screen = std::make_shared<RSScreen>(screenId_);
     composerAdapter_ = std::make_unique<RSComposerAdapter>();
     hdiDeviceMock_ = Mock::HdiDeviceMock::GetInstance();
     EXPECT_CALL(*hdiDeviceMock_, RegHotPlugCallback(_, _)).WillRepeatedly(testing::Return(0));
@@ -72,10 +73,9 @@ void RSComposerAdapterTest::SetUpTestCase()
 
 void RSComposerAdapterTest::TearDownTestCase()
 {
-    RSRenderComposerManager::GetInstance().rsRenderComposerMap_[screenId_]->uniRenderEngine_ = nullptr;
+    rsRenderComposerManager->rsRenderComposerAgentMap_[screenId_]->rsRenderComposer_->uniRenderEngine_ = nullptr;
     hdiOutput_ = nullptr;
     composerAdapter_ = nullptr;
-    screenManager_ = nullptr;
     hdiDeviceMock_ = nullptr;
 }
 
@@ -85,7 +85,7 @@ void RSComposerAdapterTest::TearDown() {}
 void RSComposerAdapterTest::CreateComposerAdapterWithScreenInfo(uint32_t width, uint32_t height,
     ScreenColorGamut colorGamut, ScreenState state, ScreenRotation rotation)
 {
-    auto info = screenManager_->QueryScreenInfo(screenId_);
+    ScreenInfo info;
     info.width = width;
     info.height = height;
     info.phyWidth = width;
@@ -93,8 +93,7 @@ void RSComposerAdapterTest::CreateComposerAdapterWithScreenInfo(uint32_t width, 
     info.colorGamut = colorGamut;
     info.state = state;
     info.rotation = rotation;
-    composerAdapter_->Init(info, offsetX, offsetY, mirrorAdaptiveCoefficient, nullptr);
-    EXPECT_NE(composerAdapter_->composerClient_, nullptr);
+    composerAdapter_->Init(info, mirrorAdaptiveCoefficient, nullptr, hdiOutput_);
     EXPECT_NE(composerAdapter_->output_, nullptr);
 }
 
@@ -124,6 +123,7 @@ HWTEST_F(RSComposerAdapterTest, CommitLayersTest001, Function | SmallTest | Leve
     layers.emplace_back(infoPtr1);
     layers.emplace_back(infoPtr2);
     composerAdapter_->CommitLayers(layers);
+    RSTestUtil::UnregisterConsumerListener();
 }
 
 /**
@@ -137,7 +137,7 @@ HWTEST_F(RSComposerAdapterTest, CommitLayersTest002, Function | SmallTest | Leve
     CreateComposerAdapterWithScreenInfo(2160, 1080, ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN,
         ScreenRotation::ROTATION_0);
     composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
-    std::vector<std::shared_ptr<RSLayer>> layers;
+    std::vector<RSLayerPtr> layers;
     auto surfaceNode1 = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode1, nullptr);
     ASSERT_NE(surfaceNode1->GetRSSurfaceHandler(), nullptr);
@@ -151,6 +151,7 @@ HWTEST_F(RSComposerAdapterTest, CommitLayersTest002, Function | SmallTest | Leve
     ASSERT_EQ(infoPtr, nullptr);
     layers.emplace_back(infoPtr);
     composerAdapter_->CommitLayers(layers);
+    RSTestUtil::UnregisterConsumerListener();
 }
 
 /**
@@ -164,7 +165,7 @@ HWTEST_F(RSComposerAdapterTest, CommitLayersTest003, Function | SmallTest | Leve
     CreateComposerAdapterWithScreenInfo(2160, 1080, ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN,
         ScreenRotation::ROTATION_0);
     composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
-    std::vector<std::shared_ptr<RSLayer>> layers;
+    std::vector<RSLayerPtr> layers;
     auto surfaceNode1 = RSTestUtil::CreateSurfaceNodeWithBuffer();
     auto surfaceNode2 = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode1, nullptr);
@@ -174,6 +175,7 @@ HWTEST_F(RSComposerAdapterTest, CommitLayersTest003, Function | SmallTest | Leve
     layers.emplace_back(infoPtr1);
     layers.emplace_back(infoPtr2);
     composerAdapter_->CommitLayers(layers);
+    RSTestUtil::UnregisterConsumerListener();
 }
 
 /**
@@ -201,6 +203,21 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest001, Function | SmallTest | Leve
     auto infoPtr1 = composerAdapter_->CreateLayer(*surfaceNode1);
     auto infoPtr2 = composerAdapter_->CreateLayer(*surfaceNode2);
     auto infoPtr3 = composerAdapter_->CreateLayer(*surfaceNode3);
+    RSTestUtil::UnregisterConsumerListener();
+}
+
+/**
+ * @tc.name: Init_ReturnFalse_WhenOutputNull
+ * @tc.desc: RSComposerAdapter::Init should return false when output is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSComposerAdapterTest, Init_ReturnFalse_WhenOutputNull, Function | SmallTest | Level2)
+{
+    ScreenInfo info;
+    float coeff = 1.0f;
+    RSComposerAdapter adapter;
+    auto ok = adapter.Init(info, coeff, nullptr, nullptr);
+    ASSERT_FALSE(ok);
 }
 
 /**
@@ -211,7 +228,7 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest001, Function | SmallTest | Leve
  */
 HWTEST_F(RSComposerAdapterTest, CreateLayersTest002, Function | SmallTest | Level2)
 {
-    std::vector<std::shared_ptr<RSLayer>> layers;
+    std::vector<RSLayerPtr> layers;
     auto surfaceNode1 = RSTestUtil::CreateSurfaceNodeWithBuffer();
     auto surfaceNode2 = RSTestUtil::CreateSurfaceNode();
     RectI dstRect1{500, 600, 5000, 6000};
@@ -231,6 +248,7 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest002, Function | SmallTest | Leve
     composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
     auto infoPtr1 = composerAdapter_->CreateLayer(*surfaceNode1);
     auto infoPtr2 = composerAdapter_->CreateLayer(*surfaceNode2);
+    RSTestUtil::UnregisterConsumerListener();
 }
 
 /**
@@ -241,7 +259,7 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest002, Function | SmallTest | Leve
  */
 HWTEST_F(RSComposerAdapterTest, CreateLayersTest003, Function | SmallTest | Level2)
 {
-    std::vector<std::shared_ptr<RSLayer>> layers;
+    std::vector<RSLayerPtr> layers;
     auto surfaceNode1 = RSTestUtil::CreateSurfaceNodeWithBuffer();
     RectI dstRect{0, 0, 400, 600};
     surfaceNode1->SetSrcRect(dstRect);
@@ -253,6 +271,7 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest003, Function | SmallTest | Leve
         ScreenRotation::ROTATION_90);
     composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
     auto infoPtr1 = composerAdapter_->CreateLayer(*surfaceNode1);
+    RSTestUtil::UnregisterConsumerListener();
 }
 
 /**
@@ -263,7 +282,7 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest003, Function | SmallTest | Leve
  */
 HWTEST_F(RSComposerAdapterTest, CreateLayersTest004, Function | SmallTest | Level2)
 {
-    std::vector<std::shared_ptr<RSLayer>> layers;
+    std::vector<RSLayerPtr> layers;
     auto surfaceNode1 = RSTestUtil::CreateSurfaceNodeWithBuffer();
     RectI dstRect{0, 0, 400, 600};
     surfaceNode1->SetSrcRect(dstRect);
@@ -275,6 +294,7 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest004, Function | SmallTest | Leve
         ScreenRotation::ROTATION_180);
     composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
     auto infoPtr1 = composerAdapter_->CreateLayer(*surfaceNode1);
+    RSTestUtil::UnregisterConsumerListener();
 }
 
 /**
@@ -285,7 +305,7 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest004, Function | SmallTest | Leve
  */
 HWTEST_F(RSComposerAdapterTest, CreateLayersTest005, Function | SmallTest | Level2)
 {
-    std::vector<std::shared_ptr<RSLayer>> layers;
+    std::vector<RSLayerPtr> layers;
     auto surfaceNode1 = RSTestUtil::CreateSurfaceNodeWithBuffer();
     RectI dstRect{0, 0, 400, 600};
     surfaceNode1->SetSrcRect(dstRect);
@@ -297,6 +317,7 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest005, Function | SmallTest | Leve
         ScreenRotation::ROTATION_270);
     composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
     auto infoPtr1 = composerAdapter_->CreateLayer(*surfaceNode1);
+    RSTestUtil::UnregisterConsumerListener();
 }
 
 /**
@@ -307,7 +328,7 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest005, Function | SmallTest | Leve
  */
 HWTEST_F(RSComposerAdapterTest, CreateLayersTest006, Function | SmallTest | Level2)
 {
-    std::vector<std::shared_ptr<RSLayer>> layers;
+    std::vector<RSLayerPtr> layers;
     auto surfaceNode1 = RSTestUtil::CreateSurfaceNodeWithBuffer();
     RectI scrRect{0, 0, 400, 60};
     RectI dstRect{0, 0, 40, 600};
@@ -322,6 +343,7 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest006, Function | SmallTest | Leve
         ScreenRotation::ROTATION_180);
     composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
     auto infoPtr1 = composerAdapter_->CreateLayer(*surfaceNode1);
+    RSTestUtil::UnregisterConsumerListener();
 }
 
 /**
@@ -332,7 +354,7 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest006, Function | SmallTest | Leve
  */
 HWTEST_F(RSComposerAdapterTest, CreateLayersTest007, Function | SmallTest | Level2)
 {
-    std::vector<std::shared_ptr<RSLayer>> layers;
+    std::vector<RSLayerPtr> layers;
     auto surfaceNode1 = RSTestUtil::CreateSurfaceNodeWithBuffer();
     RectI dstRect{0, 0, 400, 600};
     surfaceNode1->SetSrcRect(dstRect);
@@ -350,6 +372,7 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest007, Function | SmallTest | Leve
         ScreenRotation::ROTATION_180);
     composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
     auto infoPtr1 = composerAdapter_->CreateLayer(*surfaceNode1);
+    RSTestUtil::UnregisterConsumerListener();
 }
 
 /**
@@ -360,7 +383,7 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest007, Function | SmallTest | Leve
  */
 HWTEST_F(RSComposerAdapterTest, CreateLayersTest008, Function | SmallTest | Level2)
 {
-    std::vector<std::shared_ptr<RSLayer>> layers;
+    std::vector<RSLayerPtr> layers;
     auto surfaceNode1 = RSTestUtil::CreateSurfaceNodeWithBuffer();
     RectI dstRect{0, 0, 400, 600};
     surfaceNode1->SetSrcRect(dstRect);
@@ -380,6 +403,7 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest008, Function | SmallTest | Leve
         ScreenRotation::ROTATION_180);
     composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
     auto infoPtr1 = composerAdapter_->CreateLayer(*surfaceNode1);
+    RSTestUtil::UnregisterConsumerListener();
 }
 
 /**
@@ -390,7 +414,7 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest008, Function | SmallTest | Leve
  */
 HWTEST_F(RSComposerAdapterTest, CreateLayersTest009, Function | SmallTest | Level2)
 {
-    std::vector<std::shared_ptr<RSLayer>> layers;
+    std::vector<RSLayerPtr> layers;
     auto surfaceNode1 = RSTestUtil::CreateSurfaceNodeWithBuffer();
     RectI scrRect{0, 0, 40, 600};
     RectI dstRect{0, 0, 400, 60};
@@ -406,9 +430,6 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest009, Function | SmallTest | Leve
     composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
     auto layer = composerAdapter_->CreateLayer(*surfaceNode1);
     EXPECT_NE(layer, nullptr);
-    composerAdapter_->composerClient_ = nullptr;
-    layer = composerAdapter_->CreateLayer(*surfaceNode1);
-    EXPECT_EQ(layer, nullptr);
 
     auto consumer = surfaceNode1->GetRSSurfaceHandler()->GetConsumer();
     GraphicExtDataHandle handle;
@@ -419,9 +440,7 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest009, Function | SmallTest | Leve
         ScreenRotation::ROTATION_180);
     layer = composerAdapter_->CreateLayer(*surfaceNode1);
     EXPECT_NE(layer, nullptr);
-    composerAdapter_->composerClient_ = nullptr;
-    layer = composerAdapter_->CreateLayer(*surfaceNode1);
-    EXPECT_EQ(layer, nullptr);
+    RSTestUtil::UnregisterConsumerListener();
 }
 
 /**
@@ -467,12 +486,69 @@ HWTEST_F(RSComposerAdapterTest, CreateLayer011, Function | SmallTest | Level2)
     int64_t timestamp = 0;
     Rect damage;
     sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
-    std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(
-        node->GetRenderDrawable())->GetRSSurfaceHandlerOnDraw()->SetBuffer(buffer, acquireFence, damage, timestamp);
+    auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(node->GetRenderDrawable());
+    screenDrawable->GetRSSurfaceHandlerOnDraw()->SetBuffer(buffer, acquireFence, damage, timestamp, bufferOwnerCount);
     ASSERT_NE(composerAdapter_->CreateLayer(*node), nullptr);
+}
 
-    composerAdapter_->composerClient_ = nullptr;
-    EXPECT_EQ(composerAdapter_->CreateLayer(*node), nullptr);
+/**
+ * @tc.name: CommitLayers_DumpEnabled
+ * @tc.desc: RSComposerAdapter.CommitLayers triggers DumpLayersToFile when enabled
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSComposerAdapterTest, CommitLayers_DumpEnabled, Function | SmallTest | Level2)
+{
+    // Enable dumping layers to file via system parameter
+    OHOS::system::SetParameter("rosen.dumplayer.enabled", "1");
+
+    CreateComposerAdapterWithScreenInfo(2160, 1080, ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN,
+        ScreenRotation::ROTATION_0);
+    composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
+    composerAdapter_->output_ = HdiOutput::CreateHdiOutput(screenId_);
+    composerAdapter_->output_->Init();
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    surfaceNode->SetSrcRect(RectI(0, 80, 2560, 1600));
+    surfaceNode->SetDstRect(RectI(0, 80, 2560, 1600));
+    ASSERT_NE(surfaceNode, nullptr);
+    auto layer = composerAdapter_->CreateLayer(*surfaceNode);
+    ASSERT_NE(layer, nullptr);
+
+    std::vector<RSLayerPtr> layers;
+    layers.emplace_back(layer);
+    // Should go through DumpLayersToFile path; file open may fail but path executes
+    composerAdapter_->CommitLayers(layers);
+
+    // Reset parameter to avoid side effects
+    OHOS::system::SetParameter("rosen.dumplayer.enabled", "0");
+    RSTestUtil::UnregisterConsumerListener();
+}
+
+/**
+ * @tc.name: CreateLayer_InvertColor_ClientComposition
+ * @tc.desc: Invert color filter forces client composition type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSComposerAdapterTest, CreateLayer_InvertColor_ClientComposition, Function | SmallTest | Level2)
+{
+    CreateComposerAdapterWithScreenInfo(2160, 1080, ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN,
+        ScreenRotation::ROTATION_0);
+    composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
+    composerAdapter_->SetColorFilterMode(ColorFilterMode::INVERT_COLOR_ENABLE_MODE);
+
+    composerAdapter_->output_ = HdiOutput::CreateHdiOutput(screenId_);
+    composerAdapter_->output_->Init();
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    surfaceNode->SetSrcRect(RectI(0, 80, 2560, 1600));
+    surfaceNode->SetDstRect(RectI(0, 80, 2560, 1600));
+    ASSERT_NE(surfaceNode, nullptr);
+    auto layer = composerAdapter_->CreateLayer(*surfaceNode);
+    ASSERT_NE(layer, nullptr);
+    // With invert color enabled, needClient should be true → client composition
+    EXPECT_EQ(layer->GetCompositionType(), GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
+    RSTestUtil::UnregisterConsumerListener();
 }
 
 /**
@@ -490,31 +566,11 @@ HWTEST_F(RSComposerAdapterTest, LayerPresentTimestamp001, Function | SmallTest |
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
     auto buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
-    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     layer->SetBuffer(buffer, surfaceNode->GetRSSurfaceHandler()->GetAcquireFence());
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
     composerAdapter_->LayerPresentTimestamp(layer, consumer);
-}
-
-/**
- * @tc.name: LayerPresentTimestamp002
- * @tc.desc: RSComposerAdapter.LayerPresentTimestamp test, SupportedPresentTimestamp
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSComposerAdapterTest, LayerPresentTimestamp002, Function | SmallTest | Level2)
-{
-    uint32_t width = 2160;
-    uint32_t height = 1080;
-    CreateComposerAdapterWithScreenInfo(
-        width, height, ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN, ScreenRotation::ROTATION_0);
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    ASSERT_NE(surfaceNode, nullptr);
-    auto buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
-    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
-    layer->SetBuffer(buffer, surfaceNode->GetRSSurfaceHandler()->GetAcquireFence());
-    sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
-    composerAdapter_->LayerPresentTimestamp(layer, consumer);
+    RSTestUtil::UnregisterConsumerListener();
 }
 
 /**
@@ -529,11 +585,62 @@ HWTEST_F(RSComposerAdapterTest, LayerPresentTimestamp003, Function | SmallTest |
     uint32_t height = 1080;
     CreateComposerAdapterWithScreenInfo(
         width, height, ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN, ScreenRotation::ROTATION_0);
-    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
+    auto ctx = std::make_shared<RSComposerContext>(nullptr);
+    RSLayerPtr layer = RSSurfaceLayer::Create(0, ctx);
     ASSERT_NE(layer, nullptr);
+    layer->SetIsSupportedPresentTimestamp(true);
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
     ASSERT_NE(consumer, nullptr);
     composerAdapter_->LayerPresentTimestamp(layer, consumer);
+}
+
+/**
+ * @tc.name: LayerPresentTimestamp004
+ * @tc.desc: RSComposerAdapter.LayerPresentTimestamp test with valid buffer
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSComposerAdapterTest, LayerPresentTimestamp004, Function | SmallTest | Level2)
+{
+    uint32_t width = 2160;
+    uint32_t height = 1080;
+    CreateComposerAdapterWithScreenInfo(
+        width, height, ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN, ScreenRotation::ROTATION_0);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    layer->SetBuffer(buffer, surfaceNode->GetRSSurfaceHandler()->GetAcquireFence());
+    layer->SetIsSupportedPresentTimestamp(true);
+    sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
+    composerAdapter_->LayerPresentTimestamp(layer, consumer);
+    RSTestUtil::UnregisterConsumerListener();
+}
+
+/**
+ * @tc.name: LayerPresentTimestamp005
+ * @tc.desc: RSComposerAdapter.LayerPresentTimestamp test with invalid buffer sequence
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSComposerAdapterTest, LayerPresentTimestamp005, Function | SmallTest | Level2)
+{
+    uint32_t width = 2160;
+    uint32_t height = 1080;
+    CreateComposerAdapterWithScreenInfo(
+        width, height, ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN, ScreenRotation::ROTATION_0);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    layer->SetBuffer(buffer, surfaceNode->GetRSSurfaceHandler()->GetAcquireFence());
+    layer->SetIsSupportedPresentTimestamp(true);
+    sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
+    // Create buffer with invalid sequence number not registered in the consumer's queue
+    sptr<SurfaceBuffer> testBuffer = new SurfaceBufferImpl(0);
+    layer->SetBuffer(testBuffer, surfaceNode->GetRSSurfaceHandler()->GetAcquireFence());
+    composerAdapter_->LayerPresentTimestamp(layer, consumer);
+    RSTestUtil::UnregisterConsumerListener();
 }
 
 /**
@@ -555,5 +662,6 @@ HWTEST_F(RSComposerAdapterTest, OnPrepareComplete, Function | SmallTest | Level2
     auto producer = surfaceConsumer->GetProducer();
     sptr<Surface> sProducer = Surface::CreateSurfaceAsProducer(producer);
     composerAdapter_->OnPrepareComplete(sProducer, para, nullptr);
+    RSTestUtil::UnregisterConsumerListener();
 }
 } // namespace OHOS::Rosen

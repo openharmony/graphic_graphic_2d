@@ -16,12 +16,20 @@
 #ifndef RENDER_CONTEXT_VK_H
 #define RENDER_CONTEXT_VK_H
 
+#include <atomic>
 #include "render_context/render_context.h"
 
 namespace OHOS {
 namespace Rosen {
-class RenderContextVK : public RenderContext {
 
+enum class RenderContextVKType : uint8_t {
+    BASIC_RENDER = 0,
+    PROTECTED_REDRAW,
+    UNPROTECTED_REDRAW,
+    MAX_INTERFACE_TYPE,
+};
+
+class RenderContextVK : public RenderContext {
 public:
     RenderContextVK() = default;
     ~RenderContextVK() override;
@@ -31,7 +39,18 @@ public:
     std::string GetShaderCacheSize() const override;
     std::string CleanAllShaderCache() const override;
     bool SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawingContext = nullptr) override;
+    void SetRenderContextType(uint8_t type) override;
+    void ChangeProtectedState(bool isProtected) override;
     bool QueryMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight) override;
+    #ifdef ROSEN_ARKUI_X
+    void AddSurface() override {}
+    void DeleteSurface() override {}
+    void SetCleanUpHelper(std::function<void()> func) override {}
+    void DestroySharedSource() override {}
+    #endif
+    
+private:
+    std::atomic<bool> isProtected_{false};
 };
 } // namespace Rosen
 } // namespace OHOS

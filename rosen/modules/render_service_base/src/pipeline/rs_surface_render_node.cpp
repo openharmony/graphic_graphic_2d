@@ -30,6 +30,7 @@
 #ifdef RS_MEMORY_INFO_MANAGER
 #include "feature/memory_info_manager/rs_memory_info_manager.h"
 #endif
+#include "feature/uifirst/rs_frame_control.h"
 #include "feature/window_keyframe/rs_window_keyframe_render_node.h"
 #include "ipc_callbacks/rs_rt_refresh_callback.h"
 #include "monitor/self_drawing_node_monitor.h"
@@ -46,6 +47,9 @@
 #include "render/rs_drawing_filter.h"
 #include "render/rs_skia_filter.h"
 #include "transaction/rs_render_service_client.h"
+#include "transaction/rs_render_pipeline_client.h"
+#include "platform/ohos/transaction/rs_irender_connection_token.h"
+#include <iremote_stub.h>
 #include "visitor/rs_node_visitor.h"
 #include "render/rs_image_cache.h"
 #include "pipeline/rs_render_node_map.h"
@@ -1092,35 +1096,24 @@ void RSSurfaceRenderNode::UpdateSpecialLayerInfoByOnTreeStateChange()
     }
 }
 
-void RSSurfaceRenderNode::UpdateBlackListStatus(ScreenId screenId)
+void RSSurfaceRenderNode::SetScreenSpecialLayerStatus(ScreenId screenId, uint32_t type, bool isSpecialLayer)
 {
-    specialLayerManager_.SetWithScreen(screenId, SpecialLayerType::IS_BLACK_LIST, true);
+    specialLayerManager_.SetWithScreen(screenId, type, isSpecialLayer);
     auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetFirstLevelNode());
-    if (firstLevelNode == nullptr) {
-        return;
+    if (firstLevelNode) {
+        firstLevelNode->specialLayerManager_.SetWithScreen(screenId, type << SPECIAL_TYPE_NUM, isSpecialLayer);
     }
-    firstLevelNode->GetMultableSpecialLayerMgr().SetWithScreen(screenId, SpecialLayerType::HAS_BLACK_LIST, true);
 }
 
-void RSSurfaceRenderNode::UpdateVirtualScreenWhiteListInfo(
-    const std::unordered_map<ScreenId, std::unordered_set<uint64_t>>& allWhiteListInfo)
+void RSSurfaceRenderNode::UpdateVirtualScreenWhiteListInfo()
 {
     if (!IsLeashOrMainWindow()) {
         return;
     }
-    for (const auto& [screenId, whiteList] : allWhiteListInfo) {
-        bool ret = false;
-        if ((whiteList.find(GetId()) != whiteList.end()) ||
-            (whiteList.find(GetLeashPersistentId()) != whiteList.end())) {
-            ret = true;
-            SetHasWhiteListNode(screenId, ret);
-        }
-        auto nodeParent = GetParent().lock();
-        if (nodeParent == nullptr) {
-            continue;
-        }
-        nodeParent->SetHasWhiteListNode(screenId, ret);
-    }
+    auto screenIds = ScreenSpecialLayerInfo::QueryEnableScreen(
+        SpecialLayerType::IS_WHITE_LIST, {GetId(), GetLeashPersistentId()});
+    SetScreensWithSubTreeWhitelist(screenIds);
+    RSRenderNode::SyncWhiteListInfoToParent();
 }
 
 void RSSurfaceRenderNode::SyncPrivacyContentInfoToFirstLevelNode()
@@ -1554,23 +1547,25 @@ void RSSurfaceRenderNode::UpdateSurfaceDefaultSize(float width, float height)
 }
 
 #ifndef ROSEN_CROSS_PLATFORM
-void RSSurfaceRenderNode::UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer, const Rect& damageRect,
-    const sptr<SyncFence>& acquireFence, const sptr<SurfaceBuffer>& preBuffer)
+void RSSurfaceRenderNode::UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer,
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount, const Rect& damageRect,
+    const sptr<SyncFence>& acquireFence, const sptr<SurfaceBuffer>& preBuffer,
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> preBufferOwnerCount)
 {
 #ifdef RS_ENABLE_GPU
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (!surfaceParams->IsBufferSynced()) {
-        auto curBuffer = surfaceParams->GetBuffer();
-        auto consumer = GetRSSurfaceHandler()->GetConsumer();
-        if (curBuffer && consumer) {
-            auto fence = surfaceParams->GetAcquireFence();
-            consumer->ReleaseBuffer(curBuffer, fence);
+        auto curBufferOwnerCount = surfaceParams->GetBufferOwnerCount();
+        if (curBufferOwnerCount) {
+            curBufferOwnerCount->DecRef();
         }
     } else {
-        surfaceParams->SetPreBuffer(preBuffer);
+        RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceRenderNode::UpdateBufferInfo SetPreBuffer %" PRIu64,
+            uint32_t(preBufferOwnerCount ? preBufferOwnerCount->bufferId_ : 0));
+        surfaceParams->SetPreBuffer(preBuffer, preBufferOwnerCount);
     }
 
-    surfaceParams->SetBuffer(buffer, damageRect);
+    surfaceParams->SetBuffer(buffer, bufferOwnerCount, damageRect);
     surfaceParams->SetAcquireFence(acquireFence);
     surfaceParams->SetBufferSynced(false);
     surfaceParams->SetIsBufferFlushed(true);
@@ -1610,7 +1605,7 @@ void RSSurfaceRenderNode::NeedClearPreBuffer(std::set<uint64_t>& bufferCacheSet)
         bufferCacheSet.insert(preBuffer->GetBufferId());
         RS_OPTIONAL_TRACE_NAME_FMT("NeedClearPreBuffer preBufferSeqNum:%" PRIu64 "", preBuffer->GetBufferId());
     }
-    surfaceParams->SetPreBuffer(nullptr);
+    surfaceParams->SetPreBuffer(nullptr, nullptr);
     AddToPendingSyncList();
 #endif
 }
@@ -1654,10 +1649,9 @@ void RSSurfaceRenderNode::SetNotifyRTBufferAvailable(bool isNotifyRTBufferAvaila
 void RSSurfaceRenderNode::ConnectToNodeInRenderService()
 {
     ROSEN_LOGI("RSSurfaceRenderNode::ConnectToNodeInRenderService nodeId = %{public}" PRIu64, GetId());
-    auto renderServiceClient =
-        std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
-    if (renderServiceClient != nullptr) {
-        renderServiceClient->RegisterBufferAvailableListener(
+    auto renderPipelineClient = std::make_shared<RSRenderPipelineClient>();
+    if (renderPipelineClient != nullptr) {
+        renderPipelineClient->RegisterBufferAvailableListener(
             GetId(), [weakThis = weak_from_this()]() {
                 auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(weakThis.lock());
                 if (node == nullptr) {
@@ -1665,7 +1659,7 @@ void RSSurfaceRenderNode::ConnectToNodeInRenderService()
                 }
                 node->NotifyRTBufferAvailable(node->GetIsTextureExportNode());
             }, true);
-        renderServiceClient->RegisterBufferClearListener(
+        renderPipelineClient->RegisterBufferClearListener(
             GetId(), [weakThis = weak_from_this()]() {
                 auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(weakThis.lock());
                 if (node == nullptr) {
@@ -2442,9 +2436,6 @@ void RSSurfaceRenderNode::OnSync()
         }
         surfaceParams->SetNeedSync(true);
     }
-#ifndef ROSEN_CROSS_PLATFORM
-    renderDrawable_->RegisterDeleteBufferListenerOnSync(GetRSSurfaceHandler()->GetConsumer());
-#endif
     RSRenderNode::OnSync();
 #endif
 }
@@ -2892,6 +2883,9 @@ void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId,
             firstLevelNodeId = parentNode->GetFirstLevelNodeId();
         }
     }
+    // set surfaceNode id to RSFrameControlTool for refalsh when frame control
+    RSFrameControlTool::Instance().SetNodeIdForFrameControl(*this);
+
     if (auto context = GetContext().lock(); context && onTree) {
         context->GetMutableNodeMap().ObtainLauncherNodeId(
             std::static_pointer_cast<RSSurfaceRenderNode>(shared_from_this())
@@ -3975,6 +3969,46 @@ void RSSurfaceRenderNode::SetIsParticipateInOcclusion(bool isParticipate)
     }
     surfaceParams->SetIsParticipateInOcclusion(isParticipateInOcclusion_);
     AddToPendingSyncList();
+}
+
+void RSSurfaceRenderNode::EmplaceSameTypeModifier(
+    ModifierNGContainer& container, const std::shared_ptr<ModifierNG::RSRenderModifier>& modifier)
+{
+    // Deduplication is disabled by default. Only apply deduplication logic when:
+    // modifier supports it (BOUNDS/FRAME) AND IsDeduplicationEnabled() returns true
+    if (!modifier->IsDeduplicationEnabled()) {
+        // Default behavior: no deduplication, directly add modifier
+        RSRenderNode::EmplaceSameTypeModifier(container, modifier);
+        return;
+    }
+
+    // Apply deduplication: check if modifier with same ID exists
+    auto it = std::find_if(container.begin(), container.end(),
+        [modifier](const auto& m) -> bool { return m->GetId() == modifier->GetId(); });
+    if (it == container.end()) {
+        RSRenderNode::EmplaceSameTypeModifier(container, modifier);
+    } else {
+        switch (modifier->GetType()) {
+            case ModifierNG::RSModifierType::BOUNDS:
+                CopyModifierValue<Vector4f>(ModifierNG::RSPropertyType::BOUNDS, *it, modifier);
+                break;
+            case ModifierNG::RSModifierType::FRAME:
+                CopyModifierValue<Vector4f>(ModifierNG::RSPropertyType::FRAME, *it, modifier);
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+template<typename T>
+void RSSurfaceRenderNode::CopyModifierValue(ModifierNG::RSPropertyType propertyType,
+    std::shared_ptr<ModifierNG::RSRenderModifier> oldModifier,
+    std::shared_ptr<ModifierNG::RSRenderModifier> newModifier)
+{
+    if (newModifier->HasProperty(propertyType) && oldModifier->HasProperty(propertyType)) {
+        oldModifier->Setter(propertyType, newModifier->Getter<T>(propertyType));
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

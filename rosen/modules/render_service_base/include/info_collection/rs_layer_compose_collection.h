@@ -33,6 +33,13 @@ struct LayerComposeInfo {
         int32_t redrawFrameNumber_, int32_t drawImageNumber_)
         : uniformRenderFrameNumber(uniformRenderFrameNumber_), offlineComposeFrameNumber(offlineComposeFrameNumber_),
           redrawFrameNumber(redrawFrameNumber_), drawImageNumber(drawImageNumber_) {}
+    LayerComposeInfo& operator+=(const LayerComposeInfo& other) noexcept
+    {
+        uniformRenderFrameNumber += other.uniformRenderFrameNumber;
+        offlineComposeFrameNumber += other.offlineComposeFrameNumber;
+        redrawFrameNumber += other.redrawFrameNumber;
+        return *this;
+    }
 };
 
 class RSB_EXPORT LayerComposeCollection {

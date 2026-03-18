@@ -14,8 +14,10 @@
  */
 
 #include "rs_render_service_stub.h"
-#include "render_server/transaction/rs_client_to_service_connection.h"
+
 #include <iremote_proxy.h>
+#include "message_parcel.h"
+#include "render_server/transaction/rs_client_to_service_connection.h"
 namespace OHOS {
 namespace Rosen {
 class RSConnectionTokenProxy : public IRemoteProxy<RSIConnectionToken> {
@@ -31,6 +33,11 @@ private:
 int RSRenderServiceStub::OnRemoteRequest(
     uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
 {
+    if (auto interfaceToken = data.ReadInterfaceToken();
+        interfaceToken != RSIRenderService::GetDescriptor()) {
+        RS_LOGE("RSRenderServiceStub::OnRemoteRequest Read interfaceToken failed!");
+        return ERR_INVALID_STATE;
+    }
 #ifdef ENABLE_IPC_SECURITY_ACCESS_COUNTER
     auto accessCount = securityUtils_.GetCodeAccessCounter(code);
     if (!securityManager_.IsAccessTimesRestricted(code, accessCount)) {
@@ -38,20 +45,11 @@ int RSRenderServiceStub::OnRemoteRequest(
             "by pid[%{public}d]", code, accessCount, GetCallingPid());
         return ERR_INVALID_STATE;
     }
-#endif
-#ifdef ENABLE_IPC_SECURITY_ACCESS_COUNTER
     securityUtils_.IncreaseAccessCounter(code);
 #endif
     int ret = ERR_NONE;
     switch (code) {
         case static_cast<uint32_t>(RSIRenderServiceInterfaceCode::CREATE_CONNECTION): {
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIRenderService::GetDescriptor()) {
-                RS_LOGE("RSRenderServiceStub::CREATE_CONNECTION Read interfaceToken failed!");
-                ret = ERR_INVALID_STATE;
-                break;
-            }
-
             auto remoteObj = data.ReadRemoteObject();
             if (remoteObj == nullptr) {
                 RS_LOGE("RSRenderServiceStub::CREATE_CONNECTION Read remoteObj failed!");
@@ -65,20 +63,15 @@ int RSRenderServiceStub::OnRemoteRequest(
             }
             auto token = iface_cast<RSIConnectionToken>(remoteObj);
             auto [newConn, newRenderConn] = CreateConnection(token);
-            if (newConn != nullptr && newRenderConn != nullptr) {
+            if (newConn != nullptr) {
                 reply.WriteRemoteObject(newConn->AsObject());
+            }
+            if (newRenderConn != nullptr) {
                 reply.WriteRemoteObject(newRenderConn->AsObject());
             }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceInterfaceCode::REMOVE_CONNECTION): {
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIRenderService::GetDescriptor()) {
-                RS_LOGE("RSRenderServiceStub::REMOVE_CONNECTION Read interfaceToken failed!");
-                ret = ERR_INVALID_STATE;
-                break;
-            }
-
             auto remoteObj = data.ReadRemoteObject();
             if (remoteObj == nullptr) {
                 RS_LOGE("RSRenderServiceStub::REMOVE_CONNECTION Read remoteObj failed!");

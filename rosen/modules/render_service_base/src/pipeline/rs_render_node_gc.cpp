@@ -395,7 +395,9 @@ void RSRenderNodeGC::ReleaseOffTreeNodeForBucketMap(const RSThresholdDetector<ui
 #endif
 
     for (auto subIter = subMap.begin(); subIter != subMap.end();) {
-        if (count++ >= OFF_TREE_BUCKET_MAX_SIZE) {
+        if (isEnable_.load() == false || count++ >= OFF_TREE_BUCKET_MAX_SIZE) {
+            RS_TRACE_NAME_FMT("ReleaseOffTreeNodeForBucketMap break: count=%u, isEnable=%s",
+                count, isEnable_.load() ? "true" : "false");
             break;
         }
         auto renderNode = subIter->second;

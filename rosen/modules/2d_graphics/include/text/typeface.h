@@ -21,6 +21,18 @@
 #include <cstdint>
 #include <vector>
 
+#ifdef REGISTERING
+#undef REGISTERING
+#endif
+
+#ifdef REGISTERED
+#undef REGISTERED
+#endif
+
+#ifdef NO_REGISTER
+#undef NO_REGISTER
+#endif
+
 #include "impl_interface/typeface_impl.h"
 #include "text/font_arguments.h"
 #include "text/font_style.h"

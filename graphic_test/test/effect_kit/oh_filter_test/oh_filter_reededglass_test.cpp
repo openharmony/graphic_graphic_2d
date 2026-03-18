@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#include "oh_filter_test_utils.h"
 #include "oh_filter_test_params.h"
+#include "oh_filter_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -31,20 +31,20 @@ public:
         SetScreenSize(screenWidth, screenHeight);
     }
 
-void DrawBackgroundNodeOHPixelMap(OH_PixelmapNative* pixelMapNative, const Rosen::Vector4f bounds)
-{
-    auto pixelmap = pixelMapNative->GetInnerPixelmap();
-    auto image = std::make_shared<Rosen::RSImage>();
-    image->SetPixelMap(pixelmap);
-    image->SetImageFit((int)ImageFit::FILL);
-    auto node = Rosen::RSCanvasNode::Create();
-    node->SetBounds(bounds);
-    node->SetFrame(bounds);
-    node->SetBgImageSize(bounds[WIDTH_INDEX], bounds[HEIGHT_INDEX]);
-    node->SetBgImage(image);
-    GetRootNode()->AddChild(node);
-    RegisterNode(node);
-}
+    void DrawBackgroundNodeOHPixelMap(OH_PixelmapNative* pixelMapNative, const Rosen::Vector4f bounds)
+    {
+        auto pixelmap = pixelMapNative->GetInnerPixelmap();
+        auto image = std::make_shared<Rosen::RSImage>();
+        image->SetPixelMap(pixelmap);
+        image->SetImageFit((int)ImageFit::FILL);
+        auto node = Rosen::RSCanvasNode::Create();
+        node->SetBounds(bounds);
+        node->SetFrame(bounds);
+        node->SetBgImageSize(bounds[WIDTH_INDEX], bounds[HEIGHT_INDEX]);
+        node->SetBgImage(image);
+        GetRootNode()->AddChild(node);
+        RegisterNode(node);
+    }
 
 private:
     const int screenWidth = 1200;
@@ -63,43 +63,34 @@ GRAPHIC_TEST(OHFilterReededGlassTest, EFFECT_TEST, ReededGlassTest)
         auto ohFilter = CreateFilter(pixelMapNative);
 
         OH_Filter_ReededGlassDataParams params = {};
-        params.refractionFactor = reededGlassParams[i][0];
-        params.dispersionStrength = reededGlassParams[i][1];
-        params.roughness = reededGlassParams[i][2];
-        params.noiseFrequency = reededGlassParams[i][3];
-        params.horizontalPatternNumber = static_cast<uint8_t>(reededGlassParams[i][4]);
-        params.saturationFactor = reededGlassParams[i][5];
-        params.gridLightStrength = reededGlassParams[i][6];
-        params.gridLightPositionStart = reededGlassParams[i][7];
-        params.gridLightPositionEnd = reededGlassParams[i][8];
-        params.gridShadowStrength = reededGlassParams[i][9];
-        params.gridShadowPositionStart = reededGlassParams[i][10];
-        params.gridShadowPositionEnd = reededGlassParams[i][11];
-        params.pointLightColor = {
-            reededGlassParams[i][12], reededGlassParams[i][13],
-            reededGlassParams[i][14], reededGlassParams[i][15]
-        };
-        params.pointLight1Position = {reededGlassParams[i][16], reededGlassParams[i][17]};
-        params.pointLight1Strength = reededGlassParams[i][18];
-        params.pointLight2Position = {reededGlassParams[i][19], reededGlassParams[i][20]};
-        params.pointLight2Strength = reededGlassParams[i][21];
-        params.portalLightSize = {reededGlassParams[i][22], reededGlassParams[i][23]};
-        params.portalLightTilt = {reededGlassParams[i][24], reededGlassParams[i][25]};
-        params.portalLightPosition = {reededGlassParams[i][26], reededGlassParams[i][27]};
-        params.portalLightDisperseAttenuation = reededGlassParams[i][28];
-        params.portalLightDisperse = reededGlassParams[i][29];
-        params.portalLightSmoothBorder = reededGlassParams[i][30];
-        params.portalLightShadowBorder = reededGlassParams[i][31];
-        params.portalLightShadowPositionShift = reededGlassParams[i][32];
-        params.portalLightStrength = reededGlassParams[i][33];
+        params.refractionFactor = reededGlassParams[i][REFRACTION_FACTOR_INDEX];
+        params.horizontalPatternNumber = static_cast<uint8_t>(reededGlassParams[i][HORIZONTAL_PATTERN_NUMBER_INDEX]);
+        params.gridLightStrength = reededGlassParams[i][GRID_LIGHT_STRENGTH_INDEX];
+        params.gridLightPositionStart = reededGlassParams[i][GRID_LIGHT_POSITION_START_INDEX];
+        params.gridLightPositionEnd = reededGlassParams[i][GRID_LIGHT_POSITION_END_INDEX];
+        params.gridShadowStrength = reededGlassParams[i][GRID_SHADOW_STRENGTH_INDEX];
+        params.gridShadowPositionStart = reededGlassParams[i][GRID_SHADOW_POSITION_START_INDEX];
+        params.gridShadowPositionEnd = reededGlassParams[i][GRID_SHADOW_POSITION_END_INDEX];
+        params.portalLightSize = { reededGlassParams[i][PORTAL_LIGHT_SIZE_X_INDEX],
+            reededGlassParams[i][PORTAL_LIGHT_SIZE_Y_INDEX] };
+        params.portalLightTilt = { reededGlassParams[i][PORTAL_LIGHT_TILT_X_INDEX],
+            reededGlassParams[i][PORTAL_LIGHT_TILT_Y_INDEX] };
+        params.portalLightPosition = { reededGlassParams[i][PORTAL_LIGHT_POSITION_X_INDEX],
+            reededGlassParams[i][PORTAL_LIGHT_POSITION_Y_INDEX] };
+        params.portalLightDisperseAttenuation = reededGlassParams[i][PORTAL_LIGHT_DISPERSE_ATTENUATION_INDEX];
+        params.portalLightDisperse = reededGlassParams[i][PORTAL_LIGHT_DISPERSE_INDEX];
+        params.portalLightSmoothBorder = reededGlassParams[i][PORTAL_LIGHT_SMOOTH_BORDER_INDEX];
+        params.portalLightShadowBorder = reededGlassParams[i][PORTAL_LIGHT_SHADOW_BORDER_INDEX];
+        params.portalLightShadowPositionShift = reededGlassParams[i][PORTAL_LIGHT_SHADOW_POSITION_SHIFT_INDEX];
+        params.portalLightStrength = reededGlassParams[i][PORTAL_LIGHT_STRENGTH_INDEX];
 
         OH_Filter_ReededGlass(ohFilter, &params);
         OH_Filter_GetEffectPixelMap(ohFilter, &pixelMapNative);
 
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        DrawBackgroundNodeOHPixelMap(pixelMapNative, {x, y, sizeX, sizeY});
+        DrawBackgroundNodeOHPixelMap(pixelMapNative, { x, y, sizeX, sizeY });
         OH_Filter_Release(ohFilter);
     }
 }
-}  // namespace OHOS::Rosen
+} // namespace OHOS::Rosen

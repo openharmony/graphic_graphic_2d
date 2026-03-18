@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "feature/uifirst/rs_frame_control.h"
 #include "rs_uifirst_frame_rate_control.h"
 
 namespace OHOS {
@@ -102,7 +103,12 @@ bool RSUifirstFrameRateControl::SubThreadFrameDropDecision(const RSSurfaceRender
     bool hasMultipleSubSurfaces = JudgeMultiSubSurface(node);
     bool canDropFrame = GetUifirstFrameDropInternal(RSSystemProperties::GetSubThreadDropFrameInterval());
     
-    return inAnimation && (forceRefreshOnce_ || (!hasMultipleSubSurfaces && canDropFrame));
+    bool isNeedFrameContrel = true;
+    NodeId id = node.GetFirstLevelNodeId();
+    if (RSFrameControlTool::Instance().CheckAppWindowNodeId(id)) {
+        isNeedFrameContrel = false;
+    }
+    return inAnimation && ((forceRefreshOnce_ && isNeedFrameContrel) || (!hasMultipleSubSurfaces && canDropFrame));
 }
 
 bool RSUifirstFrameRateControl::NeedRSUifirstControlFrameDrop(const RSSurfaceRenderNode& node)

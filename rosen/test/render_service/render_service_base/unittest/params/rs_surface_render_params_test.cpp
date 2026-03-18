@@ -643,4 +643,50 @@ HWTEST_F(RSSurfaceRenderParamsTest, SetIsParticipateInOcclusionTest, TestSize.Le
     params.SetIsParticipateInOcclusion(false);
     EXPECT_EQ(params.needSync_, false);
 }
+
+/**
+ * @tc.name: SwapRelatedRenderParamsTest
+ * @tc.desc: Test SwapRelatedRenderParams swaps occludedByFilterCache, skipDraw, matrix and shouldPaint
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SwapRelatedRenderParamsTest, TestSize.Level1)
+{
+    RSSurfaceRenderParams paramsA(DEFAULT_NODEID);
+    RSSurfaceRenderParams paramsB(DEFAULT_NODEID);
+
+    Drawing::Matrix matrixA;
+    matrixA.SetScale(2.0f, 2.0f);
+    Drawing::Matrix matrixB;
+    matrixB.SetScale(3.0f, 3.0f);
+
+    paramsA.SetOccludedByFilterCache(true);
+    paramsB.SetOccludedByFilterCache(false);
+    paramsA.SetSkipDraw(true);
+    paramsB.SetSkipDraw(false);
+    paramsA.SetMatrix(matrixA);
+    paramsB.SetMatrix(matrixB);
+    paramsA.SetShouldPaint(true);
+    paramsB.SetShouldPaint(false);
+
+    ASSERT_TRUE(paramsA.GetOccludedByFilterCache());
+    ASSERT_FALSE(paramsB.GetOccludedByFilterCache());
+    ASSERT_TRUE(paramsA.GetSkipDraw());
+    ASSERT_FALSE(paramsB.GetSkipDraw());
+    ASSERT_TRUE(paramsA.GetShouldPaint());
+    ASSERT_FALSE(paramsB.GetShouldPaint());
+    ASSERT_EQ(paramsA.GetMatrix().Get(Drawing::Matrix::SCALE_X), 2.0f);
+    ASSERT_EQ(paramsB.GetMatrix().Get(Drawing::Matrix::SCALE_X), 3.0f);
+
+    paramsA.SwapRelatedRenderParams(paramsB);
+
+    ASSERT_FALSE(paramsA.GetOccludedByFilterCache());
+    ASSERT_TRUE(paramsB.GetOccludedByFilterCache());
+    ASSERT_FALSE(paramsA.GetSkipDraw());
+    ASSERT_TRUE(paramsB.GetSkipDraw());
+    ASSERT_FALSE(paramsA.GetShouldPaint());
+    ASSERT_TRUE(paramsB.GetShouldPaint());
+    ASSERT_EQ(paramsA.GetMatrix().Get(Drawing::Matrix::SCALE_X), 3.0f);
+    ASSERT_EQ(paramsB.GetMatrix().Get(Drawing::Matrix::SCALE_X), 2.0f);
+}
 } // namespace OHOS::Rosen

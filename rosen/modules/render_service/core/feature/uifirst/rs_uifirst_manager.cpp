@@ -20,6 +20,7 @@
 #include "common/rs_optional_trace.h"
 #include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "feature/power_off_render_skip/rs_power_off_render_controller.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/uifirst/rs_uifirst_frame_rate_control.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
@@ -730,7 +731,7 @@ void RSUifirstManager::OnPurgePendingPostNodesInner(std::shared_ptr<RSSurfaceRen
 bool RSUifirstManager::CommonPendingNodePurge(PendingPostNodeMap::iterator& it)
 {
     auto& [id, node] = *it;
-    bool needPurge = RSUniRenderUtil::CheckRenderSkipIfScreenOff();
+    bool needPurge = allScreenPowerOffNeedPurge_;
     if (needPurge) {
         AddPurgedNode(id);
     }
@@ -2363,8 +2364,8 @@ void RSUifirstManager::SetUiFirstType(int type)
 void RSUifirstManager::RefreshUIFirstParam()
 {
     RSUifirstManager::Instance().SetPurgeEnable(RSSystemParameters::GetUIFirstPurgeEnabled());
-    const std::shared_ptr<RSBaseRenderNode> rootNode = RSMainThread::Instance()->GetContext()
-        .GetGlobalRootRenderNode();
+    RSContext& context = RSMainThread::Instance()->GetContext();
+    const std::shared_ptr<RSBaseRenderNode> rootNode = context.GetGlobalRootRenderNode();
     if (!rootNode) {
         return;
     }
@@ -2377,6 +2378,7 @@ void RSUifirstManager::RefreshUIFirstParam()
         return;
     }
     isUiFirstSupportFlag_ = true;
+    allScreenPowerOffNeedPurge_ = context.GetPowerOffRenderController().GetAllScreenRenderSkipped();
 }
 
 bool RSUifirstManager::IsSubTreeNeedPrepareForSnapshot(RSSurfaceRenderNode& node)

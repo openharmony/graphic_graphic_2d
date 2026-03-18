@@ -29,6 +29,75 @@ void RSRenderPipelineClient::ExecuteSynchronousTask(const std::shared_ptr<RSSync
 {
 }
 
+bool RSRenderPipelineClient::CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId)
+{
+    return {};
+}
+
+bool RSRenderPipelineClient::CreateNode(const RSSurfaceRenderNodeConfig& config)
+{
+    return {};
+}
+
+std::shared_ptr<RSSurface> RSRenderPipelineClient::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config,
+    bool unobscured)
+{
+    return std::make_shared<RSSurfaceDarwin>(reinterpret_cast<OnRenderFunc>(config.additionalData));
+}
+
+bool RSRenderPipelineClient::RegisterBufferAvailableListener(
+    NodeId id, const BufferAvailableCallback &callback, bool isFromRenderThread)
+{
+    return {};
+}
+
+bool RSRenderPipelineClient::RegisterBufferClearListener(NodeId id, const BufferClearCallback& callback)
+{
+    return {};
+}
+
+bool RSRenderPipelineClient::UnregisterBufferAvailableListener(NodeId id)
+{
+    return {};
+}
+
+bool RSRenderPipelineClient::SetGlobalDarkColorMode(bool isDark)
+{
+    return {};
+}
+
+bool RSRenderPipelineClient::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
+{
+    return {};
+}
+
+bool RSRenderPipelineClient::GetPixelmap(NodeId id, const std::shared_ptr<Media::PixelMap> pixelmap,
+    const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
+{
+    return {};
+}
+
+bool RSRenderPipelineClient::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation)
+{
+    return {};
+}
+
+
+void RSRenderPipelineClient::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
+    bool dynamicHardwareEnable)
+{
+}
+
+uint32_t RSRenderPipelineClient::SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent)
+{
+    return {};
+}
+
+bool RSRenderPipelineClient::GetHighContrastTextState()
+{
+    return false;
+}
+
 void RSRenderPipelineClient::TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
     std::shared_ptr<Media::PixelMap> pixelmap, CaptureError captureErrorCode,
     std::shared_ptr<Media::PixelMap> pixelmapHDR)
@@ -90,6 +159,11 @@ int32_t RSRenderPipelineClient::SetFocusAppInfo(const FocusAppInfo& info)
     return 0;
 }
 
+int32_t RSRenderPipelineClient::GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo)
+{
+    return 0;
+}
+
 int32_t RSRenderPipelineClient::GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus)
 {
     return 0;
@@ -137,9 +211,38 @@ void RSRenderPipelineClient::ClearUifirstCache(NodeId id)
 {
 }
 
-void RSRenderPipelineClient::SetScreenFrameGravity(ScreenId id, int32_t gravity)
+uint32_t RSRenderPipelineClient::SetSurfaceWatermark(pid_t pid, const std::string &name,
+    const std::shared_ptr<Media::PixelMap> &watermark,
+    const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType)
+{
+    return 0;
+}
+    
+void RSRenderPipelineClient::ClearSurfaceWatermarkForNodes(pid_t pid, const std::string &name,
+    const std::vector<NodeId> &nodeIdList)
 {
 }
+    
+void RSRenderPipelineClient::ClearSurfaceWatermark(pid_t pid, const std::string &name)
+{
+}
+
+int32_t RSRenderPipelineClient::RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback)
+{
+    return {};
+}
+
+int32_t RSRenderPipelineClient::RegisterSurfaceOcclusionChangeCallback(
+    NodeId id, const SurfaceOcclusionChangeCallback& callback, std::vector<float>& partitionPoints)
+{
+    return {};
+}
+
+int32_t RSRenderPipelineClient::UnRegisterSurfaceOcclusionChangeCallback(NodeId id)
+{
+    return {};
+}
+
 
 int32_t RSRenderPipelineClient::SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection)
 {

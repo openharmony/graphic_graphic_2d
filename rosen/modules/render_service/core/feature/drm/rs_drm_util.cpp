@@ -17,6 +17,7 @@
 #include <parameters.h>
 #include "common/rs_background_thread.h"
 #include "graphic_feature_param_manager.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_effect_render_node.h"
@@ -99,39 +100,6 @@ void RSDrmUtil::DRMCreateLayer(std::shared_ptr<RSProcessor> processor, Drawing::
         surfaceParams->SetLayerInfo(layerInfo);
         processor->CreateLayerForRenderThread(*surfaceDrawable);
     }
-}
-
-void RSDrmUtil::PreAllocateProtectedBuffer(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
-    const std::shared_ptr<RSSurfaceHandler>& surfaceHandler)
-{
-    auto displayLock = surfaceNode->GetAncestorScreenNode().lock();
-    std::shared_ptr<RSScreenRenderNode> ancestor = nullptr;
-    if (displayLock != nullptr) {
-        ancestor = displayLock->ReinterpretCastTo<RSScreenRenderNode>();
-    }
-    if (ancestor == nullptr) {
-        return;
-    }
-    auto protectedLayerScreenId = ancestor->GetScreenId();
-    auto screenManager = CreateOrGetScreenManager();
-
-    auto output = screenManager->GetOutput(ToScreenPhysicalId(protectedLayerScreenId));
-    if (UNLIKELY(output == nullptr)) {
-        RS_LOGE("output is NULL");
-        return;
-    }
-    if (output->GetProtectedFrameBufferState()) {
-        return;
-    }
-    auto protectedBuffer = surfaceHandler->GetBuffer();
-    if (UNLIKELY(protectedBuffer == nullptr)) {
-        RS_LOGE("buffer is NULL");
-        return;
-    }
-    auto preAllocateProtectedBufferTask = [buffer = protectedBuffer, screenId = protectedLayerScreenId]() {
-        RSRenderComposerManager::GetInstance().PreAllocateProtectedBuffer(screenId, buffer);
-    };
-    RSBackgroundThread::Instance().PostTask(preAllocateProtectedBufferTask);
 }
 
 void RSDrmUtil::MarkBlurIntersectWithDRM(const std::shared_ptr<RSRenderNode>& node,
@@ -271,6 +239,25 @@ bool RSDrmUtil::IsDRMNodesOnTheTree()
         }
     }
     return false;
+}
+
+void RSDrmUtil::PreAllocProtectedFrameBuffers(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
+    const sptr<SurfaceBuffer>& buffer, const std::shared_ptr<RSComposerClientManager>& clientManager)
+{
+    if (auto screenNode = std::static_pointer_cast<RSScreenRenderNode>(surfaceNode->GetAncestorScreenNode().lock())) {
+        RSUniRenderThread::Instance().AddScreenHasProtectedLayerSet(screenNode->GetScreenId());
+        if (clientManager != nullptr) {
+            RS_TRACE_NAME_FMT("PreAllocProtectedFrameBuffers screenId:%" PRIu64, screenNode->GetScreenId());
+            clientManager->PreAllocProtectedFrameBuffers(screenNode->GetScreenId(), buffer);
+        }
+    }
+}
+
+void RSDrmUtil::DealWithDRMNodes(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
+    const sptr<SurfaceBuffer>& buffer, const std::shared_ptr<RSComposerClientManager>& clientManager)
+{
+    CollectDrmNodes(surfaceNode);
+    PreAllocProtectedFrameBuffers(surfaceNode, buffer, clientManager);
 }
 } // namespace Rosen
 } // namespace OHOS

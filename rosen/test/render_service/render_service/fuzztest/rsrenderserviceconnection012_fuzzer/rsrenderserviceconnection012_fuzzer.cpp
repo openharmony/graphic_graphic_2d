@@ -31,17 +31,23 @@
 #include "securec.h"
 
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "transaction/rs_client_to_render_connection.h"
+#include "transaction/zidl/rs_client_to_render_connection_stub.h"
 #include "render_server/transaction/rs_client_to_service_connection.h"
-#include "platform/ohos/rs_irender_service.h"
+#include "platform/ohos/transaction/zidl/rs_irender_service.h"
 #include "render_server/transaction/zidl/rs_client_to_service_connection_stub.h"
 #include "transaction/rs_transaction_proxy.h"
 
 namespace OHOS {
 namespace Rosen {
-int32_t g_pid;
-sptr<OHOS::Rosen::RSScreenManager> screenManagerPtr_ = nullptr;
-RSMainThread* mainThread_ = RSMainThread::Instance();
+auto g_pid = getpid();
+sptr<OHOS::Rosen::RSScreenManager> screenManagerPtr_ = OHOS::sptr<OHOS::Rosen::RSScreenManager>::MakeSptr();
+auto mainThread_ = RSMainThread::Instance();
+
 sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ = nullptr;
+sptr<RSClientToRenderConnectionStub> toRenderConnectionStub_ = nullptr;
+sptr<OHOS::Rosen::RSRenderService> renderService_ = nullptr;
+
 namespace {
 const uint8_t DO_GET_HIGH_CONTRAST_TEXT_STATE = 0;
 const uint8_t DO_COMMIT_TRANSACTION = 1;
@@ -89,43 +95,44 @@ bool Init(const uint8_t* data, size_t size)
 
 void DoGetHighContrastTextState()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_HIGH_CONTRAST_TEXT_STATE);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_HIGH_CONTRAST_TEXT_STATE);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
-    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    dataParcel.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoCommitTransaction()
 {
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::COMMIT_TRANSACTION);
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::COMMIT_TRANSACTION);
 
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
 
     dataParcel.WriteInt32(0);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoCreateNode()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_NODE);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_NODE);
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     MessageOption option;
 
     NodeId id = static_cast<NodeId>(g_pid) << 32;
+    dataParcel.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
     dataParcel.WriteString("SurfaceName");
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoCreateNodeAndSurface()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_NODE_AND_SURFACE);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_NODE_AND_SURFACE);
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     MessageOption option;
@@ -136,6 +143,7 @@ void DoCreateNodeAndSurface()
     bool isTextureExportNode = GetData<bool>();
     bool isSync = GetData<bool>();
     bool unobscured = GetData<bool>();
+    dataParcel.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
     dataParcel.WriteString("SurfaceName");
     dataParcel.WriteUint8(type);
@@ -143,7 +151,7 @@ void DoCreateNodeAndSurface()
     dataParcel.WriteBool(isSync);
     dataParcel.WriteUint8(surfaceWindowType);
     dataParcel.WriteBool(unobscured);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoSetHidePrivacyContent()
@@ -154,14 +162,14 @@ void DoSetHidePrivacyContent()
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;
-    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+    if (!dataP.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
     dataP.WriteUint64(nodeId);
     dataP.WriteBool(needHidePrivacyContent);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_HIDE_PRIVACY_CONTENT);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_HIDE_PRIVACY_CONTENT);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
 void DoSetHardwareEnabled()
@@ -169,11 +177,11 @@ void DoSetHardwareEnabled()
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;
-    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+    if (!dataP.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_HARDWARE_ENABLED);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_HARDWARE_ENABLED);
     uint64_t id = static_cast<NodeId>(g_pid) << 32;
     bool isEnabled = GetData<bool>();
     uint8_t selfDrawingType = GetData<uint8_t>();
@@ -182,23 +190,23 @@ void DoSetHardwareEnabled()
     dataP.WriteBool(isEnabled);
     dataP.WriteUint8(selfDrawingType);
     dataP.WriteBool(dynamicHardwareEnable);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
 void DoExecuteSynchronousTask()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::EXECUTE_SYNCHRONOUS_TASK);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::EXECUTE_SYNCHRONOUS_TASK);
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     MessageOption option;
 
     option.SetFlags(MessageOption::TF_SYNC);
-    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    dataParcel.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     std::shared_ptr<RSRenderPropertyBase> property = std::make_shared<RSRenderProperty<bool>>();
     NodeId targetId = static_cast<NodeId>(g_pid) << 32;
     auto task = std::make_shared<RSNodeGetShowingPropertyAndCancelAnimation>(targetId, property);
     task->Marshalling(dataParcel);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoGetPixelmap()
@@ -208,28 +216,28 @@ void DoGetPixelmap()
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;
-    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+    if (!dataP.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
         return;
     }
     dataP.WriteUint64(nodeId);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_PIXELMAP);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_PIXELMAP);
     if (toServiceConnectionStub_ == nullptr) {
         return;
     }
-    toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
 void DoGetBitmap()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_BITMAP);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_BITMAP);
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     MessageOption option;
 
     NodeId id = static_cast<NodeId>(g_pid) << 32;
-    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    dataParcel.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoGetMemoryGraphics()
@@ -241,7 +249,7 @@ void DoGetMemoryGraphics()
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_MEMORY_GRAPHICS);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_MEMORY_GRAPHICS);
     toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 } // namespace Rosen
@@ -251,21 +259,51 @@ void DoGetMemoryGraphics()
 extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 {
     OHOS::Rosen::g_pid = getpid();
-    OHOS::Rosen::screenManagerPtr_ = OHOS::Rosen::RSScreenManager::GetInstance();
     OHOS::Rosen::mainThread_ = OHOS::Rosen::RSMainThread::Instance();
-    OHOS::Rosen::mainThread_->runner_ = OHOS::AppExecFwk::EventRunner::Create(true);
     OHOS::Rosen::mainThread_->handler_ =
-        std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::Rosen::mainThread_->runner_);
+        std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::AppExecFwk::EventRunner::Create(true));
     OHOS::sptr<OHOS::Rosen::RSIConnectionToken> token_ = new OHOS::IRemoteStub<OHOS::Rosen::RSIConnectionToken>();
-    OHOS::Rosen::mainThread_->mainLoop_ = []() {};
 
     OHOS::Rosen::DVSyncFeatureParam dvsyncParam;
     auto generator = OHOS::Rosen::CreateVSyncGenerator();
     auto appVSyncController = new OHOS::Rosen::VSyncController(generator, 0);
     OHOS::sptr<OHOS::Rosen::VSyncDistributor> appVSyncDistributor_ =
         new OHOS::Rosen::VSyncDistributor(appVSyncController, "app", dvsyncParam);
-    OHOS::Rosen::toServiceConnectionStub_ = new OHOS::Rosen::RSClientToServiceConnection(OHOS::Rosen::g_pid, nullptr,
-        OHOS::Rosen::mainThread_, OHOS::Rosen::screenManagerPtr_, token_->AsObject(), appVSyncDistributor_);
+
+    OHOS::Rosen::renderService_ = OHOS::sptr<OHOS::Rosen::RSRenderService>::MakeSptr();
+    auto vsyncManager = OHOS::sptr<OHOS::Rosen::RSVsyncManager>::MakeSptr();
+    vsyncManager->appVSyncDistributor_ = appVSyncDistributor_;
+
+    auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
+    runner->Run();
+    OHOS::Rosen::renderService_->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
+    OHOS::Rosen::renderService_->renderProcessManager_ =
+        OHOS::Rosen::RSRenderProcessManager::Create(*OHOS::Rosen::renderService_);
+    auto renderServiceAgent_ = OHOS::sptr<OHOS::Rosen::RSRenderServiceAgent>::MakeSptr(*OHOS::Rosen::renderService_);
+    OHOS::sptr<OHOS::Rosen::RSRenderProcessManagerAgent> renderProcessManagerAgent_ =
+        OHOS::sptr<OHOS::Rosen::RSRenderProcessManagerAgent>::MakeSptr(
+            OHOS::Rosen::renderService_->renderProcessManager_);
+
+    OHOS::sptr<OHOS::Rosen::RSScreenManagerAgent> screenManagerAgent_ =
+        new OHOS::Rosen::RSScreenManagerAgent(OHOS::Rosen::screenManagerPtr_);
+
+    OHOS::sptr<OHOS::Rosen::RSRenderPipelineAgent> renderPipelineAgent_ =
+        OHOS::sptr<OHOS::Rosen::RSRenderPipelineAgent>::MakeSptr(OHOS::Rosen::renderService_->renderPipeline_);
+
+    OHOS::Rosen::toServiceConnectionStub_ = new OHOS::Rosen::RSClientToServiceConnection(
+        OHOS::Rosen::g_pid, renderServiceAgent_, renderProcessManagerAgent_,
+        screenManagerAgent_, token_->AsObject(), vsyncManager->GetVsyncManagerAgent());
+    OHOS::sptr<OHOS::Rosen::RSClientToRenderConnection> toRenderConnection =
+        new OHOS::Rosen::RSClientToRenderConnection(OHOS::Rosen::g_pid, renderPipelineAgent_, token_->AsObject());
+    OHOS::Rosen::toRenderConnectionStub_ = toRenderConnection;
+    toRenderConnection->cleanDone_ = true;
+
+    // reset recevier, otherwise maybe crash
+    OHOS::Rosen::renderService_->renderPipeline_->uniRenderThread_->uniRenderEngine_ = nullptr;
+
+    OHOS::Rosen::RSMainThread::Instance()->receiver_->connection_ = nullptr;
+    OHOS::Rosen::RSMainThread::Instance()->receiver_ = nullptr;
+    OHOS::Rosen::RSMainThread::Instance()->mainLoop_ = []() {};
     return 0;
 }
 

@@ -119,4 +119,21 @@ void RSContext::AddSyncFinishAnimationList(NodeId nodeId, AnimationId animationI
 {
     needSyncFinishAnimationList_.push_back({nodeId, animationId, token});
 }
+
+std::unordered_map<std::string, pid_t> RSContext::GetUIFrameworkDirtyNodeNameMap()
+{
+    std::unordered_map<std::string, pid_t> uiFrameworkDirtyNodeNameMap;
+    for (auto iter = uiFrameworkDirtyNodes_.begin(); iter != uiFrameworkDirtyNodes_.end();) {
+        auto renderNode = iter->lock();
+        if (renderNode == nullptr) {
+            iter = uiFrameworkDirtyNodes_.erase(iter);
+        } else {
+            if (renderNode->IsDirty()) {
+                uiFrameworkDirtyNodeNameMap[renderNode->GetNodeName()] = ExtractPid(renderNode->GetId());
+            }
+            ++iter;
+        }
+    }
+    return uiFrameworkDirtyNodeNameMap;
+}
 } // namespace OHOS::Rosen

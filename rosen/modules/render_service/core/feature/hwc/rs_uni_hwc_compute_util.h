@@ -23,14 +23,16 @@ namespace OHOS {
 namespace Rosen {
 class RSUniHwcComputeUtil {
 public:
-    static void CalcSrcRectByBufferFlip(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
+    static void CalcSrcRectByBufferFlip(RSSurfaceRenderNode& node, const RSScreenProperty& screenProperty);
     static Drawing::Rect CalcSrcRectByBufferRotation(const SurfaceBuffer& buffer,
         const GraphicTransformType consumerTransformType, Drawing::Rect newSrcRect);
     static void DealWithNodeGravity(RSSurfaceRenderNode& node, const Drawing::Matrix& totalMatrix);
-    static void DealWithNodeGravityOldVersion(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
+    static void DealWithNewSrcRect(Drawing::Rect& newSrcRect, Drawing::Rect newDstRect,
+        Drawing::Matrix inverseTotalMatrix, Drawing::Matrix inverseGravityMatrix,
+        const GraphicTransformType consumerTransformType);
+    static void DealWithNodeGravityOldVersion(RSSurfaceRenderNode& node, const RSScreenProperty& screenProperty);
     static void DealWithScalingMode(RSSurfaceRenderNode& node, const Drawing::Matrix& totalMatrix);
-    static void LayerCrop(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
-    static void LayerRotate(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
+    static void LayerCrop(RSSurfaceRenderNode& node, const RSScreenProperty& screenProperty);
     static RectI SrcRectRotateTransform(const SurfaceBuffer& buffer,
         const GraphicTransformType bufferRotateTransformType, const RectI& newSrcRect);
     static void UpdateHwcNodeByScalingMode(RSSurfaceRenderNode& node, const Drawing::Matrix& totalMatrix,
@@ -42,7 +44,7 @@ public:
         sptr<IConsumerSurface> consumer);
     static void UpdateHwcNodeProperty(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode);
     static bool HasNonZRotationTransform(const Drawing::Matrix& matrix);
-    static GraphicTransformType GetLayerTransform(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
+    static GraphicTransformType GetLayerTransform(RSSurfaceRenderNode& node);
     static std::optional<Drawing::Matrix> GetMatrix(const std::shared_ptr<RSRenderNode>& hwcNode);
     static bool IntersectRect(Drawing::Rect& result, const Drawing::Rect& other);
     static bool IsBlendNeedFilter(RSRenderNode& node);

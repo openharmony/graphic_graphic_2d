@@ -49,6 +49,7 @@ class RSRenderAnimation;
 class RSC_EXPORT RSAnimation : public RSAnimationTimingProtocol, public std::enable_shared_from_this<RSAnimation> {
 public:
     virtual ~RSAnimation();
+    explicit RSAnimation(const std::shared_ptr<RSUIContext>& rsUIContext);
 
     AnimationId GetId() const;
 
@@ -146,6 +147,7 @@ private:
     std::shared_ptr<AnimationRepeatCallback> repeatCallback_;
     std::shared_ptr<InteractiveAnimatorFinishCallback> interactiveFinishCallback_;
     std::shared_ptr<RSRenderAnimation> uiAnimation_;
+    std::weak_ptr<RSUIContext> rsUIContext_;
 
     friend class RSCurveImplicitAnimParam;
     friend class RSNode;
@@ -156,7 +158,7 @@ private:
 
 class RSC_EXPORT RSDummyAnimation : public RSAnimation {
 public:
-    RSDummyAnimation() = default;
+    RSDummyAnimation(const std::shared_ptr<RSUIContext>& rsUIContext) : RSAnimation(rsUIContext) {}
     ~RSDummyAnimation() = default;
 };
 } // namespace Rosen

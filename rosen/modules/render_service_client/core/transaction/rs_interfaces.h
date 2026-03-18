@@ -183,37 +183,6 @@ public:
      */
     void RemoveVirtualScreen(ScreenId id);
 
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-    /**
-     * @brief Sets the parameters for inverting the color of the variable cursor.
-     * @param darkBuffer Dark buffer area.
-     * @param brightBuffer Bright color buffer area Enable cast black list for virtual screen or not.
-     * @param interval Cursor color obtaining interval.
-     * @return 0 means success, others failed.
-     */
-    int32_t SetPointerColorInversionConfig(float darkBuffer, float brightBuffer, int64_t interval, int32_t rangeSize);
-    
-    /**
-     * @brief Indicates whether to enable color inversion of the variable cursor or not.
-     * @param enable enable color inversion of the variable cursor or not.
-     * @return 0 means success, others failed.
-     */
-    int32_t SetPointerColorInversionEnabled(bool enable);
-    
-    /**
-     * @brief Register the callback for changing the color of the cursor.
-     * @param callback callback for changing the color of the cursor.
-     * @return 0 means success, others failed.
-     */
-    int32_t RegisterPointerLuminanceChangeCallback(const PointerLuminanceChangeCallback &callback);
-    
-    /**
-     * @brief UnRegister the callback for changing the color of the cursor.
-     * @return 0 means success, others failed.
-     */
-    int32_t UnRegisterPointerLuminanceChangeCallback();
-#endif
-
     /**
      * @brief Set screen connection status change callback.
      * on the screen connection status is changed.
@@ -810,7 +779,8 @@ public:
      * @param hdrFormats The hardware supported HDR format will set to this parameter.
      * @return 0 success, others failed.
      */
-    int32_t GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats);
+    int32_t GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats,
+        const ScreenSupportedHDRFormatsCallback& callback = nullptr);
 
     /**
      * @brief Get the HDR format of the current screen.
@@ -1030,6 +1000,23 @@ public:
      * @return true if succeed, otherwise false.
      */
     bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation = false);
+    
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    /**
+     * @brief Register Canvas SurfaceBuffer callback for memory attribution.
+     * @param callback is the Canvas SurfaceBuffer callback.
+     */
+    void RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback);
+
+    /**
+     * @brief Submit Canvas pre-allocated buffer to RS.
+     * @param nodeId is the canvas node id.
+     * @param buffer is the pre-allocated DMA buffer.
+     * @param resetSurfaceIndex is the index of ResetSurface.
+     * @return Returns 0 success, otherwise, failed.
+     */
+    int32_t SubmitCanvasPreAllocatedBuffer(NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex);
+#endif
 
     /**
      * @brief Set display safe watermark.
@@ -1360,7 +1347,7 @@ public:
      * @param pageName the name of pageUrl.
      * @param isEnter is whether to enter the pageUrl.
      */
-    void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter);
+    void NotifyPageName(const std::string& packageName, const std::string& pageName, bool isEnter);
 
     /**
      * @brief Get high contrast text state.
@@ -1373,6 +1360,8 @@ public:
     bool GetBehindWindowFilterEnabled(bool& enabled);
 
     int32_t GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB);
+
+    int32_t GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight);
 
     /**
      * @brief clear uifirst node cache

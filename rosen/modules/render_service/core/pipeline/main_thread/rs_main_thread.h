@@ -24,10 +24,12 @@
 #include <set>
 #include <thread>
 
+#include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
+#include "feature/lpp/render_process/lpp_video_handler.h"
+#include "feature/vrate/rs_vsync_rate_reduce_manager.h"
+#include "feature/watermark/rs_surface_watermark.h"
 #include "refbase.h"
-#include "pipeline/render_thread/rs_base_render_engine.h"
-#include "pipeline/render_thread/rs_draw_frame.h"
-#include "vsync_distributor.h"
+#include "vsync_manager_agent.h"
 #include "vsync_receiver.h"
 
 #include "command/rs_command.h"
@@ -42,17 +44,15 @@
 #include "memory/rs_app_state_listener.h"
 #include "memory/rs_memory_graphic.h"
 #include "params/rs_render_thread_params.h"
-#include "pipeline/rs_context.h"
-#include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/hwc/rs_direct_composition_helper.h"
 #include "pipeline/hwc/rs_hwc_context.h"
-#include "feature/hyper_graphic_manager/hgm_context.h"
-#include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
-#include "feature/vrate/rs_vsync_rate_reduce_manager.h"
-#include "feature/watermark/rs_surface_watermark.h"
+#include "pipeline/render_thread/rs_base_render_engine.h"
+#include "pipeline/render_thread/rs_draw_frame.h"
+#include "pipeline/rs_context.h"
+#include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_event_manager.h"
-#include "screen_manager/rs_screen_node_listener.h"
 #include "platform/drawing/rs_vsync_client.h"
+#include "platform/ohos/transaction/zidl/rs_iclient_to_render_connection.h"
 #include "transaction/rs_transaction_data.h"
 #include "transaction/rs_uiextension_data.h"
 
@@ -60,14 +60,16 @@
 #include "vsync_system_ability_listener.h"
 #endif
 
-#include "hgm_core.h"
+#include "pipeline/render_thread/rs_uni_render_thread.h"
+
 namespace OHOS::Rosen {
 #if defined(ACCESSIBILITY_ENABLE)
 class AccessibilityObserver;
 #endif
-class HgmFrameRateManager;
+class HgmRenderContext;
+class RSIRenderToServiceConnection;
 class RSUniRenderVisitor;
-struct FrameRateRangeData;
+class GPUCacheManager;
 namespace Detail {
 template<typename Task>
 class ScheduledTask : public RefBase {
@@ -96,9 +98,13 @@ class RSMainThread {
 public:
     static RSMainThread* Instance();
 
-    void Init(const std::shared_ptr<AppExecFwk::EventRunner>& runner,
-        const std::shared_ptr<AppExecFwk::EventHandler>& handler);
-    void Start();
+    void Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler, const std::shared_ptr<VSyncReceiver>& receiver,
+        const sptr<RSIRenderToServiceConnection>& renderToServiceConnection,
+        const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent,
+        const std::shared_ptr<RSComposerClientManager>& composerClientManager);
+    void OnScreenConnected(const sptr<RSScreenProperty>& property);
+    void OnScreenDisconnected(ScreenId screenId);
+    void OnScreenPropertyChanged(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
     void UpdateFocusNodeId(NodeId focusNodeId);
     bool IsNeedProcessBySingleFrameComposer(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void ProcessDataBySingleFrameComposer(std::unique_ptr<RSTransactionData>& rsTransactionData);
@@ -112,8 +118,8 @@ public:
     bool PostSyncTask(RSTaskMessage::RSTask task);
     bool IsIdle() const;
     void TransactionDataMapDump(const TransactionDataMap& transactionDataMap, std::string& dumpString);
-    void RenderServiceTreeDump(std::string& dumpString, bool forceDumpSingleFrame = true,
-        bool needUpdateJankStats = false);
+    void RenderServiceTreeDump(
+        std::string& dumpString, bool forceDumpSingleFrame = true, bool needUpdateJankStats = false);
     void SendClientDumpNodeTreeCommands(uint32_t taskId);
     void CollectClientNodeTreeResult(uint32_t taskId, std::string& dumpString, size_t timeout);
     void RsEventParamDump(std::string& dumpString);
@@ -121,8 +127,11 @@ public:
     void ResetAnimateNodeFlag();
     void GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize);
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply = false, pid_t pid = -1);
-    void SetForceRsDVsync(const std::string& sceneId);
 
+    void SetForceRsDVsync(const std::string& sceneId);
+    void GetNodeInfo(std::unordered_map<int, std::pair<int, int>>& node_info,
+        std::unordered_map<int, int>& nullnode_info, std::unordered_map<pid_t, size_t>& modifierSize);
+    void CheckPackageInConfigList(const std::vector<std::string>& packageList);
     template<typename Task, typename Return = std::invoke_result_t<Task>>
     std::future<Return> ScheduleTask(Task&& task)
     {
@@ -174,10 +183,7 @@ public:
     void SetFocusAppInfo(const FocusAppInfo& info);
     const std::unordered_map<NodeId, bool>& GetCacheCmdSkippedNodes() const;
 
-    sptr<VSyncDistributor> rsVSyncDistributor_;
-    sptr<VSyncController> rsVSyncController_;
-    sptr<VSyncController> appVSyncController_;
-    sptr<VSyncGenerator> vsyncGenerator_;
+    sptr<RSVsyncManagerAgent> rsVsyncManagerAgent_ = nullptr;
 
     void ReleaseSurface();
     void AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface);
@@ -193,14 +199,18 @@ public:
     bool GetScreenPowerOnChanged() const;
     bool IsAccessibilityConfigChanged() const;
     bool IsCurtainScreenUsingStatusChanged() const;
-    bool IsFastComposeAllow(uint64_t unsignedVsyncPeriod, bool nextVsyncRequested,
-        uint64_t unsignedNowTime, uint64_t lastVsyncTime);
+    bool IsFastComposeAllow(
+        uint64_t unsignedVsyncPeriod, bool nextVsyncRequested, uint64_t unsignedNowTime, uint64_t lastVsyncTime);
     // check if timestamp in vsync receiver sync with mainthread timestamp, if not, return false;
-    bool IsFastComposeVsyncTimeSync(uint64_t unsignedVsyncPeriod, bool nextVsyncRequested,
-        uint64_t unsignedNowTime, uint64_t lastVsyncTime, int64_t vsyncTimeStamp);
+    bool IsFastComposeVsyncTimeSync(uint64_t unsignedVsyncPeriod, bool nextVsyncRequested, uint64_t unsignedNowTime,
+        uint64_t lastVsyncTime, int64_t vsyncTimeStamp);
     bool CheckFastCompose(int64_t bufferTimeStamp);
     bool CheckAdaptiveCompose();
     void ForceRefreshForUni(bool needDelay = false);
+    void PostForceRefreshTask();
+    void RemoveForceRefreshTask();
+    void DumpMem(std::unordered_set<std::u16string>& argSets, std::string& result, std::string& type, pid_t pid = 0,
+        bool isLite = false);
     void CountMem(int pid, MemoryGraphic& mem);
     void CountMem(std::vector<MemoryGraphic>& mems);
     bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation = false);
@@ -208,15 +218,14 @@ public:
     bool GetIsRegularAnimation() const;
     // Save marks, and use it for SurfaceNodes later.
     void SetWatermark(const pid_t& pid, const std::string& name, std::shared_ptr<Media::PixelMap> watermark);
-    uint32_t SetSurfaceWatermark(pid_t pid, const std::string& name,
-        std::shared_ptr<Media::PixelMap> watermark, const std::vector<NodeId>& nodeIdList,
-        SurfaceWatermarkType watermarkType, bool isSystemCalling = false);
+    uint32_t SetSurfaceWatermark(pid_t pid, const std::string& name, std::shared_ptr<Media::PixelMap> watermark,
+        const std::vector<NodeId>& nodeIdList, SurfaceWatermarkType watermarkType, bool isSystemCalling = false);
     void ClearSurfaceWatermark(pid_t pid, const std::string& name, bool isSystemCalling);
     void ClearSurfaceWatermark(pid_t pid);
-    void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,
-        const std::vector<NodeId>& nodeIdList, bool isSystemCalling);
+    void ClearSurfaceWatermarkForNodes(
+        pid_t pid, const std::string& name, const std::vector<NodeId>& nodeIdList, bool isSystemCalling);
     // Save marks, and use it for ScreenNode later.
-    void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool flag);
+    void ShowWatermark(const std::shared_ptr<Media::PixelMap>& watermarkImg, bool flag);
     void SetIsCachedSurfaceUpdated(bool isCachedSurfaceUpdated);
     pid_t GetDesktopPidForRotationScene() const;
     void SetForceUpdateUniRenderFlag(bool flag)
@@ -231,9 +240,13 @@ public:
         return lastWatermarkFlag_ != watermarkFlag_;
     }
 
-    void SetAppVSyncDistributor(const sptr<VSyncDistributor>& appVSyncDistributor)
+    uint64_t GetFrameCount() const
     {
-        appVSyncDistributor_ = appVSyncDistributor;
+        return frameCount_;
+    }
+    std::vector<NodeId>& GetDrawStatusVec()
+    {
+        return curDrawStatusVec_;
     }
 
     DeviceType GetDeviceType() const;
@@ -319,8 +332,8 @@ public:
 
     void CallbackDrawContextStatusToWMS(bool isUniRender = false);
     void SetHardwareTaskNum(uint32_t num);
-    void RegisterUIExtensionCallback(pid_t pid, uint64_t userId, sptr<RSIUIExtensionCallback> callback,
-        bool unobscured = false);
+    void RegisterUIExtensionCallback(
+        pid_t pid, uint64_t userId, sptr<RSIUIExtensionCallback> callback, bool unobscured = false);
     void UnRegisterUIExtensionCallback(pid_t pid);
 
     void SetAncoForceDoDirect(bool direct);
@@ -342,7 +355,8 @@ public:
 
     uint64_t GetRealTimeOffsetOfDvsync(int64_t time);
 
-    static bool GetMultiDisplay(const std::shared_ptr<RSBaseRenderNode>& rootNode);
+    bool IsFoldScreenSwitching() const;
+    bool IsMultiDisplay() const;
 
     bool GetMultiDisplayChange() const
     {
@@ -375,40 +389,14 @@ public:
     {
         ifStatusBarDirtyOnly_.store(ifStatusBarDirtyOnly);
     }
-
-    struct GPUCompositonCacheGuard {
-        GPUCompositonCacheGuard()
-        {
-            RSMainThread::Instance()->StartGPUDraw();
-        }
-
-        ~GPUCompositonCacheGuard()
-        {
-            RSMainThread::Instance()->EndGPUDraw();
-        }
-    };
-
-    void AddToUnmappedCacheSet(uint64_t bufferId)
-    {
-        std::lock_guard<std::mutex> lock(unmappedCacheSetMutex_);
-        unmappedCacheSet_.insert(bufferId);
-    }
-
-    void AddToUnmappedCacheSet(const std::set<uint64_t>& seqNumSet)
-    {
-        std::lock_guard<std::mutex> lock(unmappedCacheSetMutex_);
-        unmappedCacheSet_.insert(seqNumSet.begin(), seqNumSet.end());
-    }
-
     void SetAnimationOcclusionInfo(const std::string& sceneId, bool isStart);
-
-    void ClearUnmappedCache();
     void InitVulkanErrorCallback(Drawing::GPUContext* gpuContext);
+#ifdef RS_ENABLE_GPU
+    void InitGPUCacheManager();
+#endif
     void NotifyUnmarshalTask(int64_t uiTimestamp);
     void NotifyPackageEvent(const std::vector<std::string>& packageList);
-    void HandleTouchEvent(int32_t touchStatus, int32_t touchCnt);
-    void SetBufferInfo(uint64_t id, const std::string& name, uint32_t queueSize,
-        int32_t bufferCount, int64_t lastConsumeTime, bool isUrgent);
+    void SetBufferInfo(const BufferInfo& bufferInfo);
     void GetFrontBufferDesiredPresentTimeStamp(
         const sptr<IConsumerSurface>& consumer, int64_t& desiredPresentTimeStamp);
 
@@ -424,26 +412,45 @@ public:
     void SetHasSurfaceLockLayer(bool hasSurfaceLockLayer);
     bool HasDRMOrSurfaceLockLayer() const;
 
+    // used for ScaleImageAsync
+    void MarkScaledImageDirty(uint64_t nodeId);
+
+    LppVideoHandler& GetLppVideoHander()
+    {
+        return lppVideoHandler_;
+    }
+
+    void RegisterScreenSwitchFinishCallback(sptr<RSIRenderToServiceConnection> conn);
+    void SetScreenFrameGravity(ScreenId id, Gravity gravity);
+
     bool GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight);
 
     bool IsReadyForSyncTask() const;
 
     bool TransitionDataMutexLockIfNoCommands();
     void TransitionDataMutexUnlock();
+    void CleanResources(pid_t pid);
 
-    const std::shared_ptr<RSHwcContext>& GetHwcContext() const { return hwcContext_; }
+    const std::shared_ptr<RSHwcContext>& GetHwcContext() const
+    {
+        return hwcContext_;
+    }
 
     std::unordered_map<ScreenId, RSRenderNode::WeakPtrSet>& GetMutableAIBarNodes()
     {
         return aibarNodes_;
     }
 
+    uint64_t GetVsyncId() const
+    {
+        return vsyncId_;
+    }
+
 private:
     // TransactionDataIndexMap is Pid to {index of RSTransactionData, vector of std::unique_ptr<RSTransactionData>}
-    using TransactionDataIndexMap = std::unordered_map<pid_t,
-        std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
-    using DrawablesVec = std::vector<std::tuple<NodeId, NodeId,
-        DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>>;
+    using TransactionDataIndexMap =
+        std::unordered_map<pid_t, std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
+    using DrawablesVec = std::vector<std::tuple<NodeId, NodeId, DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>>;
 
     RSMainThread();
     ~RSMainThread() noexcept;
@@ -454,7 +461,13 @@ private:
 
     void OnVsync(uint64_t timestamp, uint64_t frameCount, void* data);
     void ProcessCommand();
+    void CreateScreenNode(const sptr<RSScreenProperty>& property);
+    void DestroyScreenNode(ScreenId screenId);
+    void HandleScreenPropertyRefreshOneFrame(ScreenId id, ScreenPropertyType type);
+    void HandlePowerStatusChanged(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
+    void UpdateScreenProperty(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
     void UpdateSubSurfaceCnt();
+    void HandleGameNode();
     void Animate(uint64_t timestamp);
     void ConsumeAndUpdateAllNodes();
     void ReleaseAllNodesBuffer();
@@ -476,14 +489,13 @@ private:
     void SetRSEventDetectorLoopStartTag();
     void SetRSEventDetectorLoopFinishTag();
     void CheckSystemSceneStatus();
-    void RegisterScreenNodeListener();
     void UpdateScreenNodeScreenId();
 
     uint32_t GetRefreshRate() const;
     uint32_t GetDynamicRefreshRate() const;
-    static void OnHideNotchStatusCallback(const char *key, const char *value, void *context);
-    static void OnDrawingCacheDfxSwitchCallback(const char *key, const char *value, void *context);
-    static void OnFmtTraceSwitchCallback(const char *key, const char *value, void *context);
+    static void OnHideNotchStatusCallback(const char* key, const char* value, void* context);
+    static void OnDrawingCacheDfxSwitchCallback(const char* key, const char* value, void* context);
+    static void OnFmtTraceSwitchCallback(const char* key, const char* value, void* context);
 
     bool DoParallelComposition(std::shared_ptr<RSBaseRenderNode> rootNode);
 
@@ -507,21 +519,13 @@ private:
 
     bool IsResidentProcess(pid_t pid) const;
     uint32_t GetForceCommitReason() const;
-    void RegisterHwcEvent();
 
     void TraverseCanvasDrawingNodes();
 
     void SetFocusLeashWindowId();
-
-    void ProcessHgmFrameRate(uint64_t timestamp);
-    void UpdateHgmSurfaceTime(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
-        const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
-
-    RSVisibleLevel GetRegionVisibleLevel(const Occlusion::Region& curRegion,
-        const Occlusion::Region& visibleRegion);
+    RSVisibleLevel GetRegionVisibleLevel(const Occlusion::Region& curRegion, const Occlusion::Region& visibleRegion);
     void PrintCurrentStatus();
     void UpdateGpuContextCacheSize();
-    void ProcessScreenHotPlugEvents();
 #ifdef RES_SCHED_ENABLE
     void SubScribeSystemAbility();
 #endif
@@ -530,10 +534,10 @@ private:
     void SetVsyncInfo(uint64_t timestamp);
 #endif
 
-    void RSJankStatsOnVsyncStart(int64_t onVsyncStartTime, int64_t onVsyncStartTimeSteady,
-                                 float onVsyncStartTimeSteadyFloat);
-    void RSJankStatsOnVsyncEnd(int64_t onVsyncStartTime, int64_t onVsyncStartTimeSteady,
-                               float onVsyncStartTimeSteadyFloat);
+    void RSJankStatsOnVsyncStart(
+        int64_t onVsyncStartTime, int64_t onVsyncStartTimeSteady, float onVsyncStartTimeSteadyFloat);
+    void RSJankStatsOnVsyncEnd(
+        int64_t onVsyncStartTime, int64_t onVsyncStartTimeSteady, float onVsyncStartTimeSteadyFloat);
     int64_t GetCurrentSystimeMs() const;
     int64_t GetCurrentSteadyTimeMs() const;
     float GetCurrentSteadyTimeMsFloat() const;
@@ -543,8 +547,8 @@ private:
     void PrepareUiCaptureTasks(std::shared_ptr<RSUniRenderVisitor> uniVisitor);
     void UIExtensionNodesTraverseAndCallback();
     bool CheckUIExtensionCallbackDataChanged() const;
-    void RequestNextVSyncInner(VSyncReceiver::FrameCallback callback,
-        const std::string& fromWhom = "unknown", int64_t lastVSyncTS = 0, const int64_t& requestVsyncTime = 0);
+    void RequestNextVSyncInner(VSyncReceiver::FrameCallback callback, const std::string& fromWhom = "unknown",
+        int64_t lastVSyncTS = 0, const int64_t& requestVsyncTime = 0);
 
     void OnCommitDumpClientNodeTree(NodeId nodeId, pid_t pid, uint32_t taskId, const std::string& result);
 
@@ -561,18 +565,10 @@ private:
     void CollectInfoForHardwareComposer();
     void ResetHardwareEnabledState(bool isUniRender);
     void CheckIfHardwareForcedDisabled();
-    bool DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNode, bool waitForRT);
+    bool DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNode);
+    bool ExistBufferIsVisibleAndUpdate();
     bool NeedConsumeMultiCommand(int32_t& dvsyncPid);
-    bool NeedConsumeDVSyncCommand(uint32_t& endIndex,
-        std::vector<std::unique_ptr<RSTransactionData>>& transactionVec);
-    class RSScreenNodeListener : public RSIScreenNodeListener {
-    public:
-        ~RSScreenNodeListener() override = default;
-
-        void OnScreenConnect(ScreenId id, const sptr<RSScreenProperty>& property) override;
-        void OnScreenDisconnect(ScreenId id) override;
-        void OnScreenPropertyChanged(ScreenId id, const sptr<RSScreenProperty>& property) override;
-    };
+    bool NeedConsumeDVSyncCommand(uint32_t& endIndex, std::vector<std::unique_ptr<RSTransactionData>>& transactionVec);
 
     bool IfStatusBarDirtyOnly();
 
@@ -582,13 +578,18 @@ private:
     void UpdateDirectCompositionByAnimate(bool animateNeedRequestNextVsync);
     void HandleTunnelLayerId(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
         const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
+    void CleanRenderNodes(pid_t remotePid) noexcept;
+    void CleanBrightnessInfoChangeCallbacks(pid_t remotePid) noexcept;
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    void CleanCanvasCallbacksAndPendingBuffer(pid_t remotePid) noexcept;
+#endif
 
     void ProcessNeedAttachedNodes();
     void AddUICaptureNode(NodeId nodeId);
     void RemoveUICaptureNode(NodeId nodeId);
     bool CheckUICaptureNode(NodeId nodeId);
-    void PostTryReclaimLastBuffer(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
-        std::shared_ptr<RSSurfaceHandler> surfaceHandler);
+    void PostTryReclaimLastBuffer(
+        const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode, std::shared_ptr<RSSurfaceHandler> surfaceHandler);
     bool isUniRender_ = RSUniRenderJudgement::IsUniRender();
     bool needWaitUnmarshalFinished_ = true;
     bool clearMemoryFinished_ = true;
@@ -600,7 +601,6 @@ private:
 
     std::atomic<bool> ifStatusBarDirtyOnly_ = false;
     const uint8_t opacity_ = 255;
-    bool vsyncControlEnabled_ = true;
     bool systemAnimatedScenesEnabled_ = false;
     mutable std::atomic_bool hasWiredMirrorDisplay_ = false;
     mutable std::atomic_bool hasVirtualMirrorDisplay_ = false;
@@ -653,7 +653,7 @@ private:
     pid_t desktopPidForRotationScene_ = 0;
     int32_t subscribeFailCount_ = 0;
     SystemAnimatedScenes systemAnimatedScenes_ = SystemAnimatedScenes::OTHERS; // guard by systemAndRegularMutex_
-    bool isRegularAnimation_ = false; // guard by systemAndRegularMutex_
+    bool isRegularAnimation_ = false;                                          // guard by systemAndRegularMutex_
     mutable std::mutex systemAndRegularMutex_;
     uint32_t leashWindowCount_ = 0;
     pid_t exitedPid_ = -1;
@@ -669,6 +669,7 @@ private:
     uint64_t prePerfTimestamp_ = 0;
     uint64_t lastCleanCacheTimestamp_ = 0;
     uint64_t focusLeashWindowId_ = 0;
+    uint32_t defaultScreenRefreshRate_ = 0;
     std::string focusLeashWindowName_ = "";
     std::string appWindowName_ = "";
     uint32_t appPid_ = 0;
@@ -677,12 +678,9 @@ private:
     ScreenId screenNodeScreenId_ = 0;
     std::atomic<uint64_t> focusNodeId_ = 0;
     std::atomic<uint64_t> frameCount_ = 0;
-    std::atomic<bool> isRunning_ = false;
-    std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     std::shared_ptr<RSContext> context_;
     std::shared_ptr<VSyncReceiver> receiver_ = nullptr;
-    sptr<VSyncDistributor> appVSyncDistributor_ = nullptr;
     std::shared_ptr<RSBaseRenderEngine> renderEngine_;
     std::shared_ptr<RSBaseEventDetector> rsCompositionTimeoutDetector_;
     std::shared_ptr<Drawing::Image> watermarkImg_ = nullptr; // display safterWatermask(true) or hide it(false)
@@ -706,24 +704,7 @@ private:
     bool isHdrSwitchChanged_ = false;
     bool isColorTemperatureOn_ = false;
 
-    /**
-     * @brief A set to store buffer IDs of images that are about to be unmapped from GPU cache.
-     *
-     * This set is used to track images that are no longer needed and should be removed from the GPU cache.
-     * When an image is unmapped, its buffer ID is added to this set. During the rendering process,
-     * if an image is found in this set, it means that the image is no longer needed and can be safely
-     * removed from the GPU cache.
-     */
-    std::set<uint64_t> unmappedCacheSet_ = {}; // must protected by unmappedCacheSetMutex_
-    std::mutex unmappedCacheSetMutex_;
-
-    /**
-     * @brief An atomic integer to keep track of the GPU draw count.
-     *
-     * This variable is used to safely increment and decrement the count of GPU draw operations
-     * across multiple threads without causing data races.
-     */
-    std::atomic<int> gpuDrawCount_ = 0;
+    LppVideoHandler lppVideoHandler_;
 
     std::string transactionFlags_ = "";
     std::unordered_map<uint32_t, sptr<IApplicationAgent>> applicationAgentMap_;
@@ -737,6 +718,9 @@ private:
     std::mutex unmarshalMutex_;
 
     mutable std::mutex uniRenderMutex_;
+
+    // for fixed pipeline
+    PipelineParam pipelineParam_;
 
     // Used to refresh the whole display when luminance is changed
     std::unordered_map<ScreenId, bool> displayLuminanceChanged_;
@@ -781,6 +765,10 @@ private:
 
     std::unordered_map<pid_t, uint32_t> registerSurfaceWaterMaskCount_;
 
+    // ipc
+    mutable std::mutex conncetionMutex_;
+    std::map<sptr<IRemoteObject>, sptr<RSIClientToRenderConnection>> connections_;
+
     // for ui first
     std::mutex mutex_;
     std::queue<std::shared_ptr<Drawing::Surface>> tmpSurfaces_;
@@ -792,10 +780,11 @@ private:
     std::list<std::pair<SystemAnimatedScenes, time_t>> systemAnimatedScenesList_;
     std::list<std::pair<SystemAnimatedScenes, time_t>> threeFingerScenesList_;
     std::unordered_map<NodeId, // map<node ID, <pid, callback, partition points vector, level>>
-        std::tuple<pid_t, sptr<RSISurfaceOcclusionChangeCallback>,
-        std::vector<float>, uint8_t>> surfaceOcclusionListeners_;
+        std::tuple<pid_t, sptr<RSISurfaceOcclusionChangeCallback>, std::vector<float>, uint8_t>>
+        surfaceOcclusionListeners_;
     std::unordered_map<NodeId, // map<node ID, <surface node, app window node>>
-        std::pair<std::shared_ptr<RSSurfaceRenderNode>, std::shared_ptr<RSSurfaceRenderNode>>> savedAppWindowNode_;
+        std::pair<std::shared_ptr<RSSurfaceRenderNode>, std::shared_ptr<RSSurfaceRenderNode>>>
+        savedAppWindowNode_;
 
     // used for watermark
     std::mutex watermarkMutex_;
@@ -819,14 +808,13 @@ private:
     RSDrawFrame drawFrame_;
 #endif
     std::unique_ptr<RSRenderThreadParams> renderThreadParams_ = nullptr; // sync to render thread
-    std::unordered_map<int32_t, int32_t> surfacePidNeedDropFrame_;  // pid -> dropFrameLevel
+    std::unordered_map<int32_t, int32_t> surfacePidNeedDropFrame_;       // pid -> dropFrameLevel
     RSVsyncRateReduceManager rsVsyncRateReduceManager_;
     RSSurfaceWatermarkHelper surfaceWatermarkHelper_;
 
     // for record fastcompose time change
     uint64_t lastFastComposeTimeStamp_ = 0;
     uint64_t lastFastComposeTimeStampDiff_ = 0;
-    std::atomic<bool> waitForDVSyncFrame_ = false;
     std::atomic<uint64_t> vsyncRsTimestamp_ = 0;
     std::string dumpInfo_;
     std::atomic<uint32_t> currentNum_ = 0;
@@ -838,11 +826,12 @@ private:
 #endif
 
     std::function<void(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)> consumeAndUpdateNode_;
-    HgmContext hgmContext_;
     std::mutex dumpInfoMutex_;
 
     bool hasCanvasDrawingNodeCachedOp_ = false;
 
+    std::shared_ptr<HgmRenderContext> hgmRenderContext_ = nullptr;
+    std::shared_ptr<RSComposerClientManager> composerClientManager_ = nullptr;
     uint32_t curFrameBufferReclaimCount_ = 0;
     std::mutex uiCaptureNodeMapMutex_;
     std::map<uint32_t, std::map<NodeId, uint32_t>> uiCaptureNodeMap_;

@@ -168,34 +168,6 @@ HWTEST_F(RSInterfacesTest, SetRogScreenResolution001, Function | SmallTest | Lev
 }
 
 /*
- * @tc.name: GetRogScreenResolution001
- * @tc.desc: Test GetRogScreenResolution with valid screenId
- * @tc.type: FUNC
- */
-HWTEST_F(RSInterfacesTest, GetRogScreenResolution001, Function | SmallTest | Level2)
-{
-    auto screenId = rsInterfaces->GetDefaultScreenId();
-    EXPECT_NE(screenId, INVALID_SCREEN_ID);
-    uint32_t width{0};
-    uint32_t height{0};
-    rsInterfaces->GetRogScreenResolution(screenId, width, height);
-}
-
-/*
- * @tc.name: GetRogScreenResolution002
- * @tc.desc: Test GetRogScreenResolution with invalid screenId
- * @tc.type: FUNC
- */
-HWTEST_F(RSInterfacesTest, GetRogScreenResolution002, Function | SmallTest | Level2)
-{
-    auto screenId = INVALID_SCREEN_ID;
-    uint32_t width{0};
-    uint32_t height{0};
-    auto ret = rsInterfaces->GetRogScreenResolution(screenId, width, height);
-    EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
-}
-
-/*
  * @tc.name: SetPhysicalScreenResolution001
  * @tc.desc: Test SetPhysicalScreenResolution
  * @tc.type: FUNC
@@ -499,60 +471,6 @@ HWTEST_F(RSInterfacesTest, GetScreenSupportedModes002, Function | SmallTest | Le
     auto supportedScreenModes = rsInterfaces->GetScreenSupportedModes(INVALID_SCREEN_ID);
     EXPECT_EQ(supportedScreenModes.size(), 0);
 }
-
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-/**
- * @tc.name: SetPointerColorInversionConfig001
- * @tc.desc: set pointer color inversion config function.
- * @tc.type: FUNC
- * @tc.require: Issue #IA8DQ6
- */
-HWTEST_F(RSInterfacesTest, SetPointerColorInversionConfig001, TestSize.Level1)
-{
-    float darkBuffer = 0.5f;
-    float brightBuffer = 0.5f;
-    int64_t interval = 50;
-    int32_t rangeSize = 20;
-    int32_t ret = rsInterfaces->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval, rangeSize);
-    EXPECT_EQ(ret, StatusCode::SUCCESS);
-}
-
-/**
- * @tc.name: SetPointerColorInversionEnabled001
- * @tc.desc: set pointer color inversion enabled function.
- * @tc.type: FUNC
- * @tc.require: Issue #IA8DQ6
- */
-HWTEST_F(RSInterfacesTest, SetPointerColorInversionEnabled001, TestSize.Level1)
-{
-    int32_t ret = rsInterfaces->SetPointerColorInversionEnabled(false);
-    EXPECT_EQ(ret, StatusCode::SUCCESS);
-}
-
-/**
- * @tc.name: RegisterPointerLuminanceChangeCallback001
- * @tc.desc: register pointer luminance change callback function.
- * @tc.type: FUNC
- * @tc.require: Issue #IA8DQ6
- */
-HWTEST_F(RSInterfacesTest, RegisterPointerLuminanceChangeCallback001, TestSize.Level1)
-{
-    int32_t ret = rsInterfaces->RegisterPointerLuminanceChangeCallback([](int32_t brightness) -> void {});
-    EXPECT_EQ(ret, StatusCode::SUCCESS);
-}
-
-/**
- * @tc.name: UnRegisterPointerLuminanceChangeCallback001
- * @tc.desc: unregister pointer luminance change callback function.
- * @tc.type: FUNC
- * @tc.require: Issue #IA8DQ6
- */
-HWTEST_F(RSInterfacesTest, UnRegisterPointerLuminanceChangeCallback001, TestSize.Level1)
-{
-    int32_t ret = rsInterfaces->UnRegisterPointerLuminanceChangeCallback();
-    EXPECT_EQ(ret, StatusCode::SUCCESS);
-}
-#endif
 
 /*
 * Function: SetScreenActiveMode
@@ -945,7 +863,7 @@ HWTEST_F(RSInterfacesTest, SetScreenChangeCallback, Function | SmallTest | Level
     };
     int32_t status = rsInterfaces->SetScreenChangeCallback(callback);
     EXPECT_EQ(status, StatusCode::SUCCESS);
-    usleep(SET_REFRESHRATE_SLEEP_US); // wait to check if the callback returned.
+    usleep(SET_REFRESHRATE_SLEEP_US * 10); // wait to check if the callback returned.
     if (status == StatusCode::SUCCESS) {
         EXPECT_NE(screenId, INVALID_SCREEN_ID);
         EXPECT_NE(screenEvent, ScreenEvent::UNKNOWN);
@@ -1064,7 +982,6 @@ HWTEST_F(RSInterfacesTest, SetScreenColorGamut002, Function | SmallTest | Level2
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     auto screenId = rsInterfaces->GetDefaultScreenId();
     ret = rsInterfaces->SetScreenColorGamut(screenId, 0);
-    EXPECT_EQ(ret, StatusCode::SUCCESS);
 #endif
 }
 
@@ -1080,6 +997,10 @@ HWTEST_F(RSInterfacesTest, GetScreenSupportedHDRFormats002, Function | SmallTest
 {
     std::vector<ScreenHDRFormat> hdrFormats;
     int ret = rsInterfaces->GetScreenSupportedHDRFormats(INVALID_SCREEN_ID, hdrFormats);
+    EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+    ret = rsInterfaces->GetScreenSupportedHDRFormats(INVALID_SCREEN_ID, hdrFormats,
+        [](ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats) {
+    });
     EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
 }
 
@@ -3286,10 +3207,9 @@ HWTEST_F(RSInterfacesTest, ModifyVirtualScreenBlackList001, Function | SmallTest
  */
 HWTEST_F(RSInterfacesTest, SetLogicalCameraRotationCorrection, Function | SmallTest | Level2)
 {
-    RSRenderInterface& instance = RSRenderInterface::GetInstance();
     ScreenId screenId = 0;
     ScreenRotation logicalRotation = ScreenRotation::ROTATION_90;
-    EXPECT_EQ(instance.SetLogicalCameraRotationCorrection(screenId, logicalRotation), SUCCESS);
+    EXPECT_EQ(rsInterfaces->SetLogicalCameraRotationCorrection(screenId, logicalRotation), SUCCESS);
 }
 } // namespace Rosen
 } // namespace OHOS

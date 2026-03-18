@@ -24,9 +24,9 @@
 #include "ipc_callbacks/buffer_clear_callback.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "render_server/rs_render_service.h"
-#include "screen_manager/rs_screen_manager.h"
 #include "zidl/rs_client_to_render_connection_stub.h"
 #include "vsync_distributor.h"
+#include "core/rs_render_pipeline_agent.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -34,12 +34,8 @@ class HgmFrameRateManager;
 class RSClientToRenderConnection : public RSClientToRenderConnectionStub {
 public:
     RSClientToRenderConnection(
-        pid_t remotePid,
-        wptr<RSRenderService> renderService,
-        RSMainThread* mainThread,
-        sptr<RSScreenManager> screenManager,
-        sptr<IRemoteObject> token,
-        sptr<VSyncDistributor> distributor);
+    pid_t remotePid,
+    sptr<RSRenderPipelineAgent> renderPipelineAgent, sptr<IRemoteObject> token);
     ~RSClientToRenderConnection() noexcept;
     RSClientToRenderConnection(const RSClientToRenderConnection&) = delete;
     RSClientToRenderConnection& operator=(const RSClientToRenderConnection&) = delete;
@@ -55,15 +51,45 @@ public:
     }
 
 private:
-    void CleanVirtualScreens() noexcept;
-    void CleanRenderNodes() noexcept;
-    void CleanFrameRateLinkers() noexcept;
-    void CleanBrightnessInfoChangeCallbacks() noexcept;
     void CleanAll(bool toDelete = false) noexcept;
 
     // IPC RSIRenderServiceConnection Interfaces
     ErrCode CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
     ErrCode ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
+    
+    ErrCode CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
+        bool& success) override;
+
+    ErrCode CreateNode(const RSSurfaceRenderNodeConfig& config, bool& success) override;
+
+    ErrCode CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config,
+        sptr<Surface>& sfc, bool unobscured) override;
+
+    ErrCode RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) override;
+
+    ErrCode RegisterBufferClearListener(
+        NodeId id, sptr<RSIBufferClearCallback> callback) override;
+
+    ErrCode RegisterBufferAvailableListener(
+        NodeId id, sptr<RSIBufferAvailableCallback> callback, bool isFromRenderThread) override;
+
+    ErrCode GetBitmap(NodeId id, Drawing::Bitmap& bitmap, bool& success) override;
+
+    ErrCode SetGlobalDarkColorMode(bool isDark) override;
+
+    ErrCode GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
+        const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList, bool& success) override;
+
+    ErrCode SetSystemAnimatedScenes(
+        SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation, bool& success) override;
+
+    ErrCode SetHardwareEnabled(NodeId id, bool isEnabled,
+        SelfDrawingNodeType selfDrawingType, bool dynamicHardwareEnable) override;
+
+    ErrCode SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent, uint32_t& resCode) override;
+
+    bool GetHighContrastTextState() override;
+
     ErrCode SetFocusAppInfo(const FocusAppInfo& info, int32_t& repCode) override;
 
     void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
@@ -94,6 +120,8 @@ private:
     ErrCode SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
         float positionZ, float positionW) override;
 
+    int32_t GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo) override;
+
     ErrCode GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus, int32_t& resCode) override;
 
     ErrCode DropFrameByPid(const std::vector<int32_t>& pidList, int32_t dropFrameLevel = 0) override;
@@ -111,8 +139,6 @@ private:
 
     ErrCode SetWindowContainer(NodeId nodeId, bool value) override;
 
-    void SetScreenFrameGravity(ScreenId id, int32_t gravity) override;
-
     void ClearUifirstCache(NodeId id) override;
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
@@ -121,16 +147,30 @@ private:
     int32_t SubmitCanvasPreAllocatedBuffer(
         NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex) override;
 #endif
+    uint32_t SetSurfaceWatermark(pid_t pid, const std::string &name,
+        const std::shared_ptr<Media::PixelMap> &watermark,
+        const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType) override;
+        
+    void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,
+        const std::vector<NodeId>& nodeIdList) override;
+        
+    void ClearSurfaceWatermark(pid_t pid, const std::string &name) override;
+
+    ErrCode RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback) override;
+
+    int32_t RegisterSurfaceOcclusionChangeCallback(
+        NodeId id, sptr<RSISurfaceOcclusionChangeCallback> callback, std::vector<float>& partitionPoints) override;
+
+    int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id) override;
+
+    std::string GetBundleName(pid_t pid) override;
     int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection) override;
 
     ErrCode GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight) override;
 
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;
-    RSMainThread* mainThread_ = nullptr;
-#ifdef RS_ENABLE_GPU
-    RSUniRenderThread& renderThread_;
-#endif
+    sptr<RSRenderPipelineAgent> renderPipelineAgent_;
     sptr<RSScreenManager> screenManager_;
     sptr<IRemoteObject> token_;
 
@@ -165,9 +205,6 @@ private:
     const std::string VOTER_SCENE_BLUR = "VOTER_SCENE_BLUR";
     const std::string VOTER_SCENE_GPU = "VOTER_SCENE_GPU";
     const std::string GPU_FREQ_PREF = "GPU_FREQ_PREF";
-    // save all virtual screenIds created by this connection.
-    std::unordered_set<ScreenId> virtualScreenIds_;
-    sptr<RSIScreenChangeCallback> screenChangeCallback_;
     sptr<VSyncDistributor> appVSyncDistributor_;
 
 #ifdef RS_PROFILER_ENABLED

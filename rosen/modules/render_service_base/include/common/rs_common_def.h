@@ -57,7 +57,7 @@ constexpr uint8_t TOP_OCCLUSION_SURFACES_NUM = 3;
 constexpr uint8_t OCCLUSION_ENABLE_SCENE_NUM = 2;
 constexpr int16_t DEFAULT_OCCLUSION_SURFACE_ORDER = -1;
 constexpr int MAX_DIRTY_ALIGNMENT_SIZE = 128;
-static const std::string CAPTURE_WINDOW_NAME = "CapsuleWindow";
+constexpr const char* CAPTURE_WINDOW_NAME = "CapsuleWindow";
 constexpr uint32_t DEFAULT_DYNAMIC_RANGE_MODE_STANDARD = 2;
 constexpr uint32_t DYNAMIC_RANGE_MODE_HIGH = 0;
 constexpr uint32_t DYNAMIC_RANGE_MODE_CONSTRAINT = 1;
@@ -79,6 +79,7 @@ inline bool ROSEN_EQ(T x, T y, T epsilon)
     return (std::abs((x) - (y)) <= (epsilon));
 }
 
+
 template<typename T>
 inline bool ROSEN_EQ(const std::weak_ptr<T>& x, const std::weak_ptr<T>& y)
 {
@@ -96,6 +97,7 @@ inline bool ROSEN_LNE(float left, float right) // less not equal
     constexpr float epsilon = -0.001f;
     return (left - right) < epsilon;
 }
+
 
 inline bool ROSEN_GNE(float left, float right) // great not equal
 {
@@ -780,6 +782,14 @@ typedef enum : uint8_t {
     SYSTEM_WATER_MARK = 1,
     INVALID_WATER_MARK = 2,
 } SurfaceWatermarkType;
+
+enum class EnergyEvent : int32_t {
+    VOTER_VIDEO_RATE = 0,
+    START_NEW_ANIMATION = 1,
+    ANIMATION_EXEC_TIME = 2,
+};
+
+using EnergyCommonDataMap = std::unordered_map<EnergyEvent, std::unordered_map<std::string, std::string>>;
 } // namespace Rosen
 } // namespace OHOS
 #endif // RENDER_SERVICE_CLIENT_CORE_COMMON_RS_COMMON_DEF_H
