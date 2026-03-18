@@ -948,12 +948,12 @@ DrawingError EffectImageChain::ApplyScale(float scaleX, float scaleY, Drawing::F
         EFFECT_LOG_E("EffectImageChain::ApplyScale: Cannot use CPU to scale currently.");
         return DrawingError::ERR_ILLEGAL_INPUT;
     }
-    if (filters_ != nullptr) {
-        UpdateImage();
-    }
 
     filterMode_ = filterMode;
     mipmapMode_ = mipmapMode;
+    if (filters_ != nullptr) {
+        UpdateImage();
+    }
     ScaleCanvas(scaleX, scaleY);
     UpdateImage();
     return DrawingError::ERR_OK;
