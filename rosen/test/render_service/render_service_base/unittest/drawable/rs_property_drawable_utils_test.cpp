@@ -1559,9 +1559,8 @@ HWTEST_F(RSPropertyDrawableUtilsTest, PickColorAndGpuScaleImageTest001, testing:
     EXPECT_EQ(utils->GpuScaleImage(gpuContext, nullptr), nullptr);
     EXPECT_EQ(utils->GpuScaleImage(gpuContext, image), nullptr); // invalid dims
 
-    // void* semaphore parameter (default nullptr, works on all backends)
-    utils->PickColor(gpuContext, image, color, nullptr);
-    utils->GpuScaleImage(gpuContext, image, nullptr);
+    utils->PickColor(gpuContext, image, color);
+    utils->GpuScaleImage(gpuContext, image);
 }
 
 } // namespace OHOS::Rosen

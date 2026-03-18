@@ -63,6 +63,9 @@
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 
 namespace OHOS::Rosen {
+namespace DrawableV2 {
+enum class ColorPickerState : uint8_t;
+}
 #if defined(ACCESSIBILITY_ENABLE)
 class AccessibilityObserver;
 #endif
@@ -409,6 +412,7 @@ public:
     void DVSyncUpdate(uint64_t dvsyncTime, uint64_t vsyncTime);
     void MarkNodeDirty(uint64_t nodeId);
     void SendColorPickerCallback(uint64_t nodeId, uint32_t color);
+    void ColorPickerStateTransition(uint64_t nodeId, DrawableV2::ColorPickerState state, int64_t delayTime = 0);
 
     void SetHasSurfaceLockLayer(bool hasSurfaceLockLayer);
     bool HasDRMOrSurfaceLockLayer() const;

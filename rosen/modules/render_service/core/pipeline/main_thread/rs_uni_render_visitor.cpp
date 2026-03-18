@@ -60,6 +60,8 @@
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_union_render_node.h"
+#include "drawable/rs_color_picker_drawable.h"
+#include "feature/color_picker/rs_color_picker_utils.h"
 #include "pipeline/hwc/rs_uni_hwc_visitor.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
@@ -817,6 +819,7 @@ void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node)
     if (UNLIKELY(!SharedTransitionParam::unpairedShareTransitions_.empty())) {
         ProcessUnpairedSharedTransitionNode();
     }
+    PrepareColorPickers();
     node.HandleCurMainAndLeashSurfaceNodes();
     layerNum_ += node.GetSurfaceCountForMultiLayersPerf();
     node.RenderTraceDebug();
@@ -3395,8 +3398,8 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeS
     // planning: only do this if node is dirty
     node.UpdateRenderParams();
 
-    // Prepare ColorPicker drawable for disable decision
-    PrepareColorPickerDrawable(node);
+    // Check if HWC should be disabled for ColorPicker node
+    HandleColorPickerHwcDisable(node);
 
     // add if node is dirty
     node.AddToPendingSyncList();
@@ -3455,8 +3458,8 @@ void RSUniRenderVisitor::UpdateFilterRegionInSkippedSurfaceNode(
         }
 #endif
 
-        // Prepare ColorPicker drawable for disable decision
-        PrepareColorPickerDrawable(*filterNode);
+        // Check if HWC should be disabled for ColorPicker node
+        HandleColorPickerHwcDisable(*filterNode);
 
         // Skip nodes that only have ColorPickerDrawable without any real filter
         if (filterNode->IsColorPickerOnlyNode()) {
@@ -3485,8 +3488,8 @@ void RSUniRenderVisitor::CheckFilterNodeInSkippedSubTreeNeedClearCache(
             continue;
         }
 
-        // Prepare ColorPicker drawable for disable decision
-        PrepareColorPickerDrawable(*filterNode);
+        // Check if HWC should be disabled for ColorPicker node
+        HandleColorPickerHwcDisable(*filterNode);
         // Skip nodes that only have ColorPickerDrawable without any real filter
         if (filterNode->IsColorPickerOnlyNode()) {
             continue;
@@ -3565,8 +3568,8 @@ void RSUniRenderVisitor::CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache(
             continue;
         }
 
-        // Prepare ColorPicker drawable for disable decision
-        PrepareColorPickerDrawable(*filterNode);
+        // Check if HWC should be disabled for ColorPicker node
+        HandleColorPickerHwcDisable(*filterNode);
         // Skip nodes that only have ColorPickerDrawable without any real filter
         if (filterNode->IsColorPickerOnlyNode()) {
             continue;
@@ -4151,19 +4154,55 @@ bool RSUniRenderVisitor::IsCurrentSubTreeForcePrepare(RSRenderNode& node)
     return false;
 }
 
-void RSUniRenderVisitor::PrepareColorPickerDrawable(RSRenderNode& node)
+void RSUniRenderVisitor::HandleColorPickerHwcDisable(RSRenderNode& node)
 {
-    if (!node.GetColorPickerDrawable()) {
+    auto colorPicker = node.GetColorPickerDrawable();
+    if (!colorPicker) {
         return;
     }
-    const auto* ctx = RSMainThread::Instance();
-    const bool needColorPick =
-        node.PrepareColorPickerForExecution(ctx->GetCurrentVsyncTime(), ctx->GetGlobalDarkColorMode());
-    if (needColorPick && curSurfaceNode_) {
+    using State = DrawableV2::ColorPickerState;
+    if (colorPicker->GetState() == State::COLOR_PICK_THIS_FRAME && curSurfaceNode_) {
         // Get the ColorPicker rect from current surface node (in screen coordinates)
         RectI colorPickerRect = curSurfaceNode_->GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
         // Store surface ID with its rect for intersection checking later
         hwcVisitor_->colorPickerHwcDisabledSurfaces_.emplace(curSurfaceNode_->GetId(), colorPickerRect);
+    }
+}
+
+void RSUniRenderVisitor::PrepareColorPickers()
+{
+    if (!curScreenNode_) {
+        RS_LOGD("PrepareColorPickers: curScreenNode_ is nullptr");
+        return;
+    }
+
+    auto* ctx = RSMainThread::Instance();
+    const auto& nodeMap = ctx->GetContext().GetNodeMap();
+    const auto& surfaces = curScreenNode_->GetAllMainAndLeashSurfaces();
+    const auto colorPickerNodeIds = RSColorPickerUtils::CollectColorPickerNodeIds(surfaces, nodeMap);
+
+    const uint64_t vsyncTime = ctx->GetCurrentVsyncTime();
+    const bool darkMode = ctx->GetGlobalDarkColorMode();
+    for (auto nodeId : colorPickerNodeIds) {
+        auto filterNode = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
+        if (!filterNode) {
+            continue;
+        }
+        const bool resetState = filterNode->PrepareColorPicker(darkMode);
+        if (resetState) {
+            using State = DrawableV2::ColorPickerState;
+            // reset in postTask
+            RSMainThread::Instance()->ColorPickerStateTransition(nodeId, State::PREPARING);
+        }
+
+        if (RSColorPickerUtils::IsColorPickerDirty(*filterNode, surfaces)) {
+            auto drawable = filterNode->GetColorPickerDrawable();
+            if (!drawable) {
+                RS_LOGW("recorded colorPicker node doesn't have drawable");
+                continue;
+            }
+            drawable->ScheduleColorPickIfReady(vsyncTime);
+        }
     }
 }
 

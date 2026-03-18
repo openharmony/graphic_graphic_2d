@@ -17,6 +17,7 @@
 
 #include <chrono>
 
+#include "common/rs_optional_trace.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 
@@ -76,6 +77,7 @@ bool RSColorPickerThread::PostTask(const std::function<void()>& task, bool limit
     uint32_t currentCount = taskCount_.fetch_add(1, std::memory_order_relaxed);
     if (currentCount >= MAX_TASKS_PER_SECOND) {
         RS_LOGD("RSColorPickerThread: Task dropped due to rate limit (count: %{public}u)", currentCount + 1);
+        RS_OPTIONAL_TRACE_NAME_FMT("RSColorPickerThread::PostTask rate limited (count: %u)", currentCount + 1);
         return false;
     }
 
@@ -99,6 +101,14 @@ void RSColorPickerThread::RegisterNotifyClientCallback(const NotifyClientCallbac
     notifyClient_ = callback;
 }
 
+void RSColorPickerThread::RegisterStateTransitionCallback(const StateTransitionCallback& callback)
+{
+    if (callback == nullptr) {
+        RS_LOGE("RSColorPickerThread RegisterStateTransitionCallback, callback invalid!");
+    }
+    stateTransitionCallback_ = callback;
+}
+
 void RSColorPickerThread::NotifyNodeDirty(uint64_t nodeId)
 {
     if (callback_) {
@@ -110,6 +120,16 @@ void RSColorPickerThread::NotifyClient(uint64_t nodeId, uint32_t color)
 {
     if (notifyClient_) {
         notifyClient_(nodeId, color);
+    }
+}
+
+void RSColorPickerThread::TransitionState(
+    uint64_t nodeId, DrawableV2::ColorPickerState state, int64_t delayTime)
+{
+    if (stateTransitionCallback_) {
+        RS_OPTIONAL_TRACE_NAME_FMT("RSColorPickerThread::TransitionState node %" PRIu64 " state=%u delay=%" PRId64,
+            nodeId, static_cast<uint8_t>(state), delayTime);
+        stateTransitionCallback_(nodeId, state, delayTime);
     }
 }
 

@@ -2746,20 +2746,18 @@ std::shared_ptr<DrawableV2::RSColorPickerDrawable> RSRenderNode::GetColorPickerD
     return nullptr;
 }
 
-bool RSRenderNode::PrepareColorPickerForExecution(uint64_t vsyncTime, bool darkMode)
+bool RSRenderNode::PrepareColorPicker(bool darkMode)
 {
-    auto colorPickerDrawable = GetColorPickerDrawable();
-    if (!colorPickerDrawable) {
+    auto drawable = GetColorPickerDrawable();
+    if (!drawable) {
         return false;
     }
-    RS_OPTIONAL_TRACE_NAME_FMT(
-        "ColorPicker: Preparing in filter iteration node id:%" PRIu64, GetId());
-
-    const auto [needColorPick, needSync] = colorPickerDrawable->PrepareForExecution(vsyncTime, darkMode);
+    bool needSync = drawable->OnPrepare(darkMode);
     if (needSync) {
         UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::COLOR_PICKER);
     }
-    return needColorPick;
+    // reset state to PREPARING in a postTask, never color pick for more than one frame
+    return drawable->GetState() == DrawableV2::ColorPickerState::COLOR_PICK_THIS_FRAME;
 }
 
 namespace {
