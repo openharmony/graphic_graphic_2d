@@ -2201,11 +2201,11 @@ void AniCanvas::DrawSingleCharacterWithFeatures(ani_env* env, ani_object obj, an
         return;
     }
 
-    char str[len + 1];
+    std::vector<char> str(len + 1);
     ani_size realLen = 0;
-    env->String_GetUTF8(text, str, len + 1, &realLen);
+    env->String_GetUTF8(text, str.data(), len + 1, &realLen);
     str[realLen] = '\0';
-    const char* currentStr = str;
+    const char* currentStr = str.data();
     int32_t unicode = SkUTF::NextUTF8(&currentStr, currentStr + len);
 
     std::shared_ptr<Font> font = aniFont->GetFont();
@@ -2213,7 +2213,7 @@ void AniCanvas::DrawSingleCharacterWithFeatures(ani_env* env, ani_object obj, an
     if (themeFont != nullptr) {
         font = themeFont;
     }
-    size_t byteLen = currentStr - str;
+    size_t byteLen = currentStr - str.data();
     if (byteLen != len) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED,
             "AniCanvas::DrawSingleCharacterWithFeatures Parameter verification failed");
@@ -2226,7 +2226,7 @@ void AniCanvas::DrawSingleCharacterWithFeatures(ani_env* env, ani_object obj, an
         return;
     }
 
-    aniCanvas->GetCanvas()->DrawSingleCharacterWithFeatures(str, *font, x, y, drawingFontFeatures);
+    aniCanvas->GetCanvas()->DrawSingleCharacterWithFeatures(str.data(), *font, x, y, drawingFontFeatures);
     aniCanvas->NotifyDirty();
 }
 
