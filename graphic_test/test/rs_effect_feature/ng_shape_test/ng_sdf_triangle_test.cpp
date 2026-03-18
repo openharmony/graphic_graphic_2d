@@ -44,31 +44,31 @@ static void InitFrostedGlassFilter(std::shared_ptr<RSNGFrostedGlassFilter>& fros
         frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
     }
 
-    frostedGlassFilter->Setter<FrostedGlassBlurParamsTag>(defaultBlurParams);
-    frostedGlassFilter->Setter<FrostedGlassWeightsEmbossTag>(defaultWeightsEmboss);
-    frostedGlassFilter->Setter<FrostedGlassWeightsEdlTag>(defaultWeightsEdl);
-    frostedGlassFilter->Setter<FrostedGlassBgRatesTag>(defaultBgRates);
-    frostedGlassFilter->Setter<FrostedGlassBgKBSTag>(defaultBgKBS);
-    frostedGlassFilter->Setter<FrostedGlassBgPosTag>(defaultBgPos);
-    frostedGlassFilter->Setter<FrostedGlassBgNegTag>(defaultBgNeg);
-    frostedGlassFilter->Setter<FrostedGlassRefractParamsTag>(defaultRefractParams);
-    frostedGlassFilter->Setter<FrostedGlassSdParamsTag>(defaultSdParams);
-    frostedGlassFilter->Setter<FrostedGlassSdRatesTag>(defaultSdRates);
-    frostedGlassFilter->Setter<FrostedGlassSdKBSTag>(defaultSdKBS);
-    frostedGlassFilter->Setter<FrostedGlassSdPosTag>(defaultSdPos);
-    frostedGlassFilter->Setter<FrostedGlassSdNegTag>(defaultSdNeg);
-    frostedGlassFilter->Setter<FrostedGlassEnvLightParamsTag>(defaultEnvLightParams);
-    frostedGlassFilter->Setter<FrostedGlassEnvLightRatesTag>(defaultEnvLightRates);
-    frostedGlassFilter->Setter<FrostedGlassEnvLightKBSTag>(defaultEnvLightKBS);
-    frostedGlassFilter->Setter<FrostedGlassEnvLightPosTag>(defaultEnvLightPos);
-    frostedGlassFilter->Setter<FrostedGlassEnvLightNegTag>(defaultEnvLightNeg);
-    frostedGlassFilter->Setter<FrostedGlassEdLightParamsTag>(defaultEdLightParams);
-    frostedGlassFilter->Setter<FrostedGlassEdLightAnglesTag>(defaultEdLightAngles);
-    frostedGlassFilter->Setter<FrostedGlassEdLightDirTag>(defaultEdLightDir);
-    frostedGlassFilter->Setter<FrostedGlassEdLightRatesTag>(defaultEdLightRates);
-    frostedGlassFilter->Setter<FrostedGlassEdLightKBSTag>(defaultEdLightKBS);
-    frostedGlassFilter->Setter<FrostedGlassEdLightPosTag>(defaultEdLightPos);
-    frostedGlassFilter->Setter<FrostedGlassEdLightNegTag>(defaultEdLightNeg);
+    frostedGlassFilter->Setter<FrostedGlassBlurParamsTag>(thickBlurParams);
+    frostedGlassFilter->Setter<FrostedGlassWeightsEmbossTag>(thickWeightsEmboss);
+    frostedGlassFilter->Setter<FrostedGlassWeightsEdlTag>(thickWeightsEdl);
+    frostedGlassFilter->Setter<FrostedGlassBgRatesTag>(thickBgRates);
+    frostedGlassFilter->Setter<FrostedGlassBgKBSTag>(thickBgKBS);
+    frostedGlassFilter->Setter<FrostedGlassBgPosTag>(thickBgPos);
+    frostedGlassFilter->Setter<FrostedGlassBgNegTag>(thickBgNeg);
+    frostedGlassFilter->Setter<FrostedGlassRefractParamsTag>(thickRefractParams);
+    frostedGlassFilter->Setter<FrostedGlassSdParamsTag>(thickSdParams);
+    frostedGlassFilter->Setter<FrostedGlassSdRatesTag>(thickSdRates);
+    frostedGlassFilter->Setter<FrostedGlassSdKBSTag>(thickSdKBS);
+    frostedGlassFilter->Setter<FrostedGlassSdPosTag>(thickSdPos);
+    frostedGlassFilter->Setter<FrostedGlassSdNegTag>(thickSdNeg);
+    frostedGlassFilter->Setter<FrostedGlassEnvLightParamsTag>(thickEnvLightParams);
+    frostedGlassFilter->Setter<FrostedGlassEnvLightRatesTag>(thickEnvLightRates);
+    frostedGlassFilter->Setter<FrostedGlassEnvLightKBSTag>(thickEnvLightKBS);
+    frostedGlassFilter->Setter<FrostedGlassEnvLightPosTag>(thickEnvLightPos);
+    frostedGlassFilter->Setter<FrostedGlassEnvLightNegTag>(thickEnvLightNeg);
+    frostedGlassFilter->Setter<FrostedGlassEdLightParamsTag>(thickEdLightParams);
+    frostedGlassFilter->Setter<FrostedGlassEdLightAnglesTag>(thickEdLightAngles);
+    frostedGlassFilter->Setter<FrostedGlassEdLightDirTag>(thickEdLightDir);
+    frostedGlassFilter->Setter<FrostedGlassEdLightRatesTag>(thickEdLightRates);
+    frostedGlassFilter->Setter<FrostedGlassEdLightKBSTag>(thickEdLightKBS);
+    frostedGlassFilter->Setter<FrostedGlassEdLightPosTag>(thickEdLightPos);
+    frostedGlassFilter->Setter<FrostedGlassEdLightNegTag>(thickEdLightNeg);
 }
 
 GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_TriangleShape_Test_1)
@@ -407,4 +407,91 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_Triangle_ExcessiveRadius_Test)
     }
 }
 
+GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_Triangle_Properties_Test_1)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(triangleParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode = RSCanvasNode::Create();
+        Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
+        backgroundTestNode->SetBounds(bounds);
+        backgroundTestNode->SetFrame(bounds);
+        backgroundTestNode->SetMaterialNGFilter(frostedGlassFilter);
+        auto childShape = CreateShape(RSNGEffectType::SDF_TRIANGLE_SHAPE);
+        auto triangleChildShape = std::static_pointer_cast<RSNGSDFTriangleShape>(childShape);
+        auto [v0, v1, v2] = triangleParams[i];
+        triangleChildShape->Setter<SDFTriangleShapeVertex0Tag>(v0);
+        triangleChildShape->Setter<SDFTriangleShapeVertex1Tag>(v1);
+        triangleChildShape->Setter<SDFTriangleShapeVertex2Tag>(v2);
+        triangleChildShape->Setter<SDFTriangleShapeRadiusTag>(triangleRadiusParams[i]);
+
+        backgroundTestNode->SetSDFShape(childShape);
+        backgroundTestNode->SetBorderWidth(borderWidthParams[i]);
+        backgroundTestNode->SetBorderStyle(0);
+        backgroundTestNode->SetBorderColor(0xff00ff00);
+
+        Color color(0, 0, 0);
+        Vector4<Color> outlineColor = {color, color, color, color};
+        backgroundTestNode->SetOutlineWidth(outlineWidthParams[i]);
+        backgroundTestNode->SetOutlineColor(outlineColor);
+
+        backgroundTestNode->SetShadowRadius(shadowRadiusParams[i]);
+        backgroundTestNode->SetClipToBounds(true);
+
+        auto childNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        childNode->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+        GetRootNode()->AddChild(childNode);
+        RegisterNode(childNode);
+    }
+}
+
+GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_Triangle_RRect_SmoothUnion_Test_1)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(triangleParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode = RSCanvasNode::Create();
+        Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
+        backgroundTestNode->SetBounds(bounds);
+        backgroundTestNode->SetFrame(bounds);
+        backgroundTestNode->SetMaterialNGFilter(frostedGlassFilter);
+        auto childShape1 = CreateShape(RSNGEffectType::SDF_TRIANGLE_SHAPE);
+        auto triangleChildShape = std::static_pointer_cast<RSNGSDFTriangleShape>(childShape1);
+        auto [v0, v1, v2] = triangleParams[i];
+        triangleChildShape->Setter<SDFTriangleShapeVertex0Tag>(v0);
+        triangleChildShape->Setter<SDFTriangleShapeVertex1Tag>(v1);
+        triangleChildShape->Setter<SDFTriangleShapeVertex2Tag>(v2);
+        triangleChildShape->Setter<SDFTriangleShapeRadiusTag>(triangleRadiusParams[i]);
+
+        auto childShape2 = CreateShape(RSNGEffectType::SDF_RRECT_SHAPE);
+        auto rRectChildShape = std::static_pointer_cast<RSNGSDFRRectShape>(childShape2);
+        rRectChildShape->Setter<SDFRRectShapeRRectTag>(rrectParams[i]);
+
+        auto rootShape = CreateShape(RSNGEffectType::SDF_SMOOTH_UNION_OP_SHAPE);
+        auto sdfUnionRootShape = std::static_pointer_cast<RSNGSDFSmoothUnionOpShape>(rootShape);
+        sdfUnionRootShape->Setter<SDFSmoothUnionOpShapeShapeXTag>(childShape1);
+        sdfUnionRootShape->Setter<SDFSmoothUnionOpShapeShapeYTag>(childShape2);
+        sdfUnionRootShape->Setter<SDFSmoothUnionOpShapeSpacingTag>(30.0f);
+
+        backgroundTestNode->SetSDFShape(rootShape);
+        auto childNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        childNode->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+        GetRootNode()->AddChild(childNode);
+        RegisterNode(childNode);
+    }
+}
 }  // namespace OHOS::Rosen

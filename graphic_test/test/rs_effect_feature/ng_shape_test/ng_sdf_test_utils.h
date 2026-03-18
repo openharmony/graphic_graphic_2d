@@ -54,6 +54,33 @@ const Vector3f defaultEdLightKBS = Vector3f(0.6027f, 0.64f, 2.0f);
 const Vector3f defaultEdLightPos = Vector3f(1.0f, 1.5f, 2.0f);
 const Vector3f defaultEdLightNeg = Vector3f(1.7f, 3.0f, 1.0f);
 
+//Thick Values
+const Vector2f thickBlurParams = Vector2f(80.0f, 1.0f);
+const Vector2f thickWeightsEmboss = Vector2f(0.0f, 0.0f); // (envLight, sd)
+const Vector2f thickWeightsEdl = Vector2f(0.0f, 0.0f); // (envLight, sd)
+const Vector3f thickRefractParams = Vector3f(0.0f, 0.0f, 0.0f);
+const Vector2f thickBgRates = Vector2f(-0.0f, 0.0f);
+const Vector3f thickBgKBS = Vector3f(0.6975f, 0.2706f, 1.2f);
+const Vector3f thickBgPos = Vector3f(1.0f, 1.5f, 1.0f);
+const Vector3f thickBgNeg = Vector3f(1.2f, 1.0f, 1.0f);
+const Vector3f thickSdParams = Vector3f(0.0f, 0.0f, 0.0f);
+const Vector2f thickSdRates = Vector2f(0.0f, 0.0f);
+const Vector3f thickSdKBS = Vector3f(0.0f, 0.0f, 0.0f);
+const Vector3f thickSdPos = Vector3f(0.0f, 0.0f, 0.0f);
+const Vector3f thickSdNeg = Vector3f(0.0f, 0.0f, 0.0f);
+const Vector3f thickEnvLightParams = Vector3f(0.8f, 0.157f, 2.0f);
+const Vector2f thickEnvLightRates = Vector2f(0.0f, 0.0f);
+const Vector3f thickEnvLightKBS = Vector3f(1.0f, 0.2268f, 1.5f);
+const Vector3f thickEnvLightPos = Vector3f(1.0f, 1.5f, 2.0f);
+const Vector3f thickEnvLightNeg = Vector3f(1.7f, 3.0f, 1.0f);
+const Vector2f thickEdLightParams = Vector2f(2.7f, 3.0f);
+const Vector2f thickEdLightAngles = Vector2f(75.0f, 85.0f);
+const Vector2f thickEdLightDir = Vector2f(0.0f, -1.0f);
+const Vector2f thickEdLightRates = Vector2f(0.0f, 0.0f);
+const Vector3f thickEdLightKBS = Vector3f(0.8f, 0.3922f, 1.5f);
+const Vector3f thickEdLightPos = Vector3f(1.0f, 1.5f, 2.0f);
+const Vector3f thickEdLightNeg = Vector3f(1.7f, 3.0f, 1.0f);
+
 // Param arrays
 const std::vector<RRect> rectXParams = {
     RRect{RectT<float>{50, 150, 150, 150}, 1.0f, 1.0f},
@@ -122,30 +149,41 @@ const std::vector<std::string> sdfPixelmapShapePath = {
     "/data/local/tmp/sdfImage9.png",
 };
 
-// 三角形参数 - 不同大小和形状
-static const std::vector<std::tuple<Vector2f, Vector2f, Vector2f>> triangleParams = {
-    {Vector2f(100, 100), Vector2f(200, 100), Vector2f(150, 200)},  // 等边三角形
-    {Vector2f(50, 50), Vector2f(300, 50), Vector2f(175, 300)},   // 扁平三角形
-    {Vector2f(100, 50), Vector2f(400, 50), Vector2f(250, 400)},  // 宽三角形
-    {Vector2f(100, 100), Vector2f(150, 80), Vector2f(180, 150)},  // 不规则三角形
+const std::vector<std::tuple<Vector2f, Vector2f, Vector2f>> triangleParams = {
+    {Vector2f(100, 100), Vector2f(200, 100), Vector2f(150, 200)},
+    {Vector2f(50, 50), Vector2f(300, 50), Vector2f(175, 300)},
+    {Vector2f(100, 50), Vector2f(400, 50), Vector2f(250, 400)},
+    {Vector2f(100, 100), Vector2f(150, 80), Vector2f(180, 150)},
 };
 
-// 圆角参数
-static const std::vector<float> triangleRadiusParams = {
+const std::vector<float> triangleRadiusParams = {
     0.0f, 10.0f, 30.0f, 50.0f, 100.0f
 };
 
-// 退化三角形参数
-static const std::vector<std::tuple<Vector2f, Vector2f, Vector2f>> degenerateTriangleParams = {
-    {Vector2f(100, 100), Vector2f(200, 100), Vector2f(300, 100)},  // 三点共线水平
-    {Vector2f(100, 100), Vector2f(100, 200), Vector2f(100, 300)},  // 三点共线垂直
-    {Vector2f(100, 100), Vector2f(150, 150), Vector2f(200, 200)},  // 三点共线对角线
+const std::vector<std::tuple<Vector2f, Vector2f, Vector2f>> degenerateTriangleParams = {
+    {Vector2f(100, 100), Vector2f(200, 100), Vector2f(300, 100)},
+    {Vector2f(100, 100), Vector2f(100, 200), Vector2f(100, 300)},
+    {Vector2f(100, 100), Vector2f(150, 150), Vector2f(200, 200)},
 };
 
-// 负坐标三角形参数
-static const std::vector<std::tuple<Vector2f, Vector2f, Vector2f>> negativeCoordTriangleParams = {
-    {Vector2f(-50, 100), Vector2f(100, -50), Vector2f(150, 200)},   // 包含负坐标
-    {Vector2f(-100, -100), Vector2f(100, -100), Vector2f(0, 100)},  // 多个负坐标
+const std::vector<std::tuple<Vector2f, Vector2f, Vector2f>> negativeCoordTriangleParams = {
+    {Vector2f(-50, 100), Vector2f(100, -50), Vector2f(150, 200)},
+    {Vector2f(-100, -100), Vector2f(100, -100), Vector2f(0, 100)},
+};
+
+const std::vector<Vector4f> outlineWidthParams = {
+    {-5, 5, 5, 5},
+    {0, 0, 5, 5},
+    {25, 0, 5, 5},
+    {100, 0, 5, 5},
+};
+
+const std::vector<float> borderWidthParams = {
+    -5.0f, 0.0f, 25.0f, 100.0f
+};
+
+const std::vector<float> shadowRadiusParams = {
+    -5.0f, 5.0f, 25.0f, 100.0f
 };
 
 void InitSmoothUnionShapesByTriangle(
