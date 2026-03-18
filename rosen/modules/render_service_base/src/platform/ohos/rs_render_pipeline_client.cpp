@@ -16,9 +16,10 @@
 #include "transaction/rs_render_pipeline_client.h"
 
 #include <iremote_stub.h>
+
 #include "rs_render_service_connect_hub.h"
-#include "surface_type.h"
 #include "rs_trace.h"
+#include "surface_type.h"
 #include "surface_utils.h"
 #ifdef RS_ENABLE_GL
 #include "backend/rs_surface_ohos_gl.h"
@@ -37,29 +38,29 @@
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 #include "ipc_callbacks/pointer_render/pointer_luminance_callback_stub.h"
 #endif
-#include "ipc_callbacks/rs_surface_occlusion_change_callback_stub.h"
-#include "ipc_callbacks/screen_change_callback_stub.h"
-#include "ipc_callbacks/screen_switching_notify_callback_stub.h"
-#include "ipc_callbacks/surface_capture_callback_stub.h"
-#include "ipc_callbacks/buffer_available_callback_stub.h"
-#include "ipc_callbacks/buffer_clear_callback_stub.h"
-#include "ipc_callbacks/hgm_config_change_callback_stub.h"
-#include "ipc_callbacks/rs_first_frame_commit_callback_stub.h"
-#include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
-#include "ipc_callbacks/rs_self_drawing_node_rect_change_callback_stub.h"
-#include "ipc_callbacks/rs_surface_buffer_callback_stub.h"
-#include "ipc_callbacks/rs_transaction_data_callback_stub.h"
-#include "ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_stub.h"
-#include "ipc_callbacks/rs_uiextension_callback_stub.h"
-#include "platform/common/rs_log.h"
-#include "render/rs_typeface_cache.h"
 #include "rs_render_service_connect_hub.h"
 #include "rs_surface_ohos.h"
 #include "vsync_iconnection_token.h"
 
+#include "ipc_callbacks/buffer_available_callback_stub.h"
+#include "ipc_callbacks/buffer_clear_callback_stub.h"
+#include "ipc_callbacks/hgm_config_change_callback_stub.h"
+#include "ipc_callbacks/rs_first_frame_commit_callback_stub.h"
+#include "ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_stub.h"
+#include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
+#include "ipc_callbacks/rs_self_drawing_node_rect_change_callback_stub.h"
+#include "ipc_callbacks/rs_surface_buffer_callback_stub.h"
+#include "ipc_callbacks/rs_surface_occlusion_change_callback_stub.h"
+#include "ipc_callbacks/rs_transaction_data_callback_stub.h"
+#include "ipc_callbacks/rs_uiextension_callback_stub.h"
+#include "ipc_callbacks/screen_change_callback_stub.h"
+#include "ipc_callbacks/screen_switching_notify_callback_stub.h"
+#include "ipc_callbacks/surface_capture_callback_stub.h"
+#include "platform/common/rs_log.h"
+#include "render/rs_typeface_cache.h"
+
 namespace OHOS {
 namespace Rosen {
-
 
 void RSRenderPipelineClient::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
 {
@@ -67,8 +68,8 @@ void RSRenderPipelineClient::CommitTransaction(std::unique_ptr<RSTransactionData
     if (clientToRender != nullptr) {
         clientToRender->CommitTransaction(transactionData);
     } else {
-        RS_LOGE_LIMIT(__func__, __line__,
-            "RSRenderPipelineClient::CommitTransaction failed, clientToRender is nullptr");
+        RS_LOGE_LIMIT(
+            __func__, __line__, "RSRenderPipelineClient::CommitTransaction failed, clientToRender is nullptr");
     }
 }
 
@@ -81,8 +82,8 @@ void RSRenderPipelineClient::ExecuteSynchronousTask(const std::shared_ptr<RSSync
     if (clientToRender != nullptr) {
         clientToRender->ExecuteSynchronousTask(task);
     } else {
-        RS_LOGE_LIMIT(__func__, __line__,
-            "RSRenderPipelineClient::ExecuteSynchronousTask failed, clientToRender is nullptr");
+        RS_LOGE_LIMIT(
+            __func__, __line__, "RSRenderPipelineClient::ExecuteSynchronousTask failed, clientToRender is nullptr");
     }
 }
 
@@ -92,8 +93,8 @@ void RSRenderPipelineClient::RegisterApplicationAgent(uint32_t pid, sptr<IApplic
     if (clientToRender != nullptr) {
         clientToRender->RegisterApplicationAgent(pid, app);
     } else {
-        RS_LOGE_LIMIT(__func__, __line__,
-            "RSRenderPipelineClient::RegisterApplicationAgent failed, clientToRender is nullptr");
+        RS_LOGE_LIMIT(
+            __func__, __line__, "RSRenderPipelineClient::RegisterApplicationAgent failed, clientToRender is nullptr");
     }
 }
 
@@ -121,8 +122,8 @@ bool RSRenderPipelineClient::CreateNode(const RSSurfaceRenderNodeConfig& config)
     return success;
 }
 
-std::shared_ptr<RSSurface> RSRenderPipelineClient::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config,
-    bool unobscured)
+std::shared_ptr<RSSurface> RSRenderPipelineClient::CreateNodeAndSurface(
+    const RSSurfaceRenderNodeConfig& config, bool unobscured)
 {
     auto clientToRender = RSRenderServiceConnectHub::GetClientToRenderConnection();
     if (clientToRender == nullptr) {
@@ -146,15 +147,15 @@ std::shared_ptr<RSSurface> RSRenderPipelineClient::CreateNodeAndSurface(const RS
     return CreateRSSurface(surface);
 }
 
-std::shared_ptr<RSSurface> RSRenderPipelineClient::CreateRSSurface(const sptr<Surface> &surface)
+std::shared_ptr<RSSurface> RSRenderPipelineClient::CreateRSSurface(const sptr<Surface>& surface)
 {
-#if defined (RS_ENABLE_VK)
+#if defined(RS_ENABLE_VK)
     if (RSSystemProperties::IsUseVulkan()) {
         return std::make_shared<RSSurfaceOhosVulkan>(surface); // GPU render
     }
 #endif
 
-#if defined (RS_ENABLE_GL)
+#if defined(RS_ENABLE_GL)
     if (RSSystemProperties::GetGpuApiType() == Rosen::GpuApiType::OPENGL) {
         return std::make_shared<RSSurfaceOhosGl>(surface); // GPU render
     }
@@ -164,7 +165,7 @@ std::shared_ptr<RSSurface> RSRenderPipelineClient::CreateRSSurface(const sptr<Su
 
 class CustomBufferAvailableCallback : public RSBufferAvailableCallbackStub {
 public:
-    explicit CustomBufferAvailableCallback(const BufferAvailableCallback &callback) : cb_(callback) {}
+    explicit CustomBufferAvailableCallback(const BufferAvailableCallback& callback) : cb_(callback) {}
     ~CustomBufferAvailableCallback() override {};
 
     void OnBufferAvailable() override
@@ -180,7 +181,7 @@ private:
 
 class CustomBufferClearCallback : public RSBufferClearCallbackStub {
 public:
-    explicit CustomBufferClearCallback(const BufferClearCallback &callback) : cb_(callback) {}
+    explicit CustomBufferClearCallback(const BufferClearCallback& callback) : cb_(callback) {}
     ~CustomBufferClearCallback() override {};
 
     void OnBufferClear() override
@@ -195,7 +196,7 @@ private:
 };
 
 bool RSRenderPipelineClient::RegisterBufferAvailableListener(
-    NodeId id, const BufferAvailableCallback &callback, bool isFromRenderThread)
+    NodeId id, const BufferAvailableCallback& callback, bool isFromRenderThread)
 {
     auto clientToRender = RSRenderServiceConnectHub::GetClientToRenderConnection();
     if (clientToRender == nullptr) {
@@ -206,12 +207,14 @@ bool RSRenderPipelineClient::RegisterBufferAvailableListener(
     auto iter = isFromRenderThread ? bufferAvailableCbRTMap_.find(id) : bufferAvailableCbUIMap_.find(id);
     if (isFromRenderThread && iter != bufferAvailableCbRTMap_.end()) {
         HILOG_COMM_WARN("RSRenderPipelineClient::RegisterBufferAvailableListener "
-                   "Node %{public}" PRIu64 " already, bufferAvailableCbRTMap_", iter->first);
+                        "Node %{public}" PRIu64 " already, bufferAvailableCbRTMap_",
+            iter->first);
     }
 
     if (!isFromRenderThread && iter != bufferAvailableCbUIMap_.end()) {
         HILOG_COMM_WARN("RSRenderPipelineClient::RegisterBufferAvailableListener "
-                   "Node %{public}" PRIu64 " already, bufferAvailableCbUIMap_", iter->first);
+                        "Node %{public}" PRIu64 " already, bufferAvailableCbUIMap_",
+            iter->first);
         bufferAvailableCbUIMap_.erase(iter);
     }
 
@@ -237,7 +240,6 @@ bool RSRenderPipelineClient::RegisterBufferClearListener(NodeId id, const Buffer
     return true;
 }
 
-
 bool RSRenderPipelineClient::UnregisterBufferAvailableListener(NodeId id)
 {
     std::lock_guard<std::mutex> lock(mapMutex_);
@@ -246,14 +248,16 @@ bool RSRenderPipelineClient::UnregisterBufferAvailableListener(NodeId id)
         bufferAvailableCbRTMap_.erase(iter);
     } else {
         ROSEN_LOGD("RSRenderPipelineClient::UnregisterBufferAvailableListener "
-                   "Node %{public}" PRIu64 " has not registered RT callback", id);
+                   "Node %{public}" PRIu64 " has not registered RT callback",
+            id);
     }
     iter = bufferAvailableCbUIMap_.find(id);
     if (iter != bufferAvailableCbUIMap_.end()) {
         bufferAvailableCbUIMap_.erase(iter);
     } else {
         ROSEN_LOGD("RSRenderPipelineClient::UnregisterBufferAvailableListener "
-                   "Node %{public}" PRIu64 " has not registered UI callback", id);
+                   "Node %{public}" PRIu64 " has not registered UI callback",
+            id);
     }
     return true;
 }
@@ -282,8 +286,8 @@ uint32_t RSRenderPipelineClient::SetHidePrivacyContent(NodeId id, bool needHideP
     return static_cast<uint32_t>(RSInterfaceErrorCode::UNKNOWN_ERROR);
 }
 
-void RSRenderPipelineClient::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
-    bool dynamicHardwareEnable)
+void RSRenderPipelineClient::SetHardwareEnabled(
+    NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType, bool dynamicHardwareEnable)
 {
     auto clientToRender = RSRenderServiceConnectHub::GetClientToRenderConnection();
     if (clientToRender != nullptr) {
@@ -335,7 +339,6 @@ bool RSRenderPipelineClient::GetHighContrastTextState()
     }
     return clientToRender->GetHighContrastTextState();
 }
-
 
 void RSRenderPipelineClient::TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
     std::shared_ptr<Media::PixelMap> pixelmap, CaptureError captureErrorCode,
@@ -427,7 +430,7 @@ bool RSRenderPipelineClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<Surfa
             iter->second.emplace_back(callback);
             return true;
         }
-        std::vector<std::shared_ptr<SurfaceCaptureCallback>> callbackVector = {callback};
+        std::vector<std::shared_ptr<SurfaceCaptureCallback>> callbackVector = { callback };
         surfaceCaptureCbMap_.emplace(std::make_pair(id, captureConfig), callbackVector);
     }
 
@@ -451,8 +454,8 @@ std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> RSRenderPipelin
     return pixelMapIdPairVector;
 }
 
-bool RSRenderPipelineClient::TakeSelfSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
-    const RSSurfaceCaptureConfig& captureConfig)
+bool RSRenderPipelineClient::TakeSelfSurfaceCapture(
+    NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
 {
     auto clientToRender = RSRenderServiceConnectHub::GetClientToRenderConnection();
     if (clientToRender == nullptr) {
@@ -471,7 +474,7 @@ bool RSRenderPipelineClient::TakeSelfSurfaceCapture(NodeId id, std::shared_ptr<S
             iter->second.emplace_back(callback);
             return true;
         }
-        std::vector<std::shared_ptr<SurfaceCaptureCallback>> callbackVector = {callback};
+        std::vector<std::shared_ptr<SurfaceCaptureCallback>> callbackVector = { callback };
         surfaceCaptureCbMap_.emplace(std::make_pair(id, captureConfig), callbackVector);
     }
 
@@ -507,7 +510,7 @@ bool RSRenderPipelineClient::SetWindowFreezeImmediately(NodeId id, bool isFreeze
             iter->second.emplace_back(callback);
             return true;
         }
-        std::vector<std::shared_ptr<SurfaceCaptureCallback>> callbackVector = {callback};
+        std::vector<std::shared_ptr<SurfaceCaptureCallback>> callbackVector = { callback };
         surfaceCaptureCbMap_.emplace(std::make_pair(id, captureConfig), callbackVector);
     }
 
@@ -590,7 +593,7 @@ bool RSRenderPipelineClient::TakeUICaptureInRange(
             iter->second.emplace_back(callback);
             return true;
         }
-        std::vector<std::shared_ptr<SurfaceCaptureCallback>> callbackVector = {callback};
+        std::vector<std::shared_ptr<SurfaceCaptureCallback>> callbackVector = { callback };
         surfaceCaptureCbMap_.emplace(std::make_pair(id, captureConfig), callbackVector);
     }
 
@@ -602,8 +605,8 @@ bool RSRenderPipelineClient::TakeUICaptureInRange(
     return true;
 }
 
-bool RSRenderPipelineClient::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
-    float positionZ, float positionW)
+bool RSRenderPipelineClient::SetHwcNodeBounds(
+    int64_t rsNodeId, float positionX, float positionY, float positionZ, float positionW)
 {
     auto clientToRender = RSRenderServiceConnectHub::GetClientToRenderConnection();
     if (clientToRender == nullptr) {
@@ -711,7 +714,8 @@ bool RSRenderPipelineClient::RegisterSurfaceBufferCallback(
             surfaceBufferCallbacks_.emplace(uid, callback);
         } else {
             ROSEN_LOGE("RSRenderPipelineClient::RegisterSurfaceBufferCallback callback exists"
-                " in uid %{public}s", std::to_string(uid).c_str());
+                       " in uid %{public}s",
+                std::to_string(uid).c_str());
             return false;
         }
         if (surfaceBufferCbDirector_ == nullptr) {
@@ -786,8 +790,9 @@ public:
     ~TransactionDataCallbackDirector() noexcept override = default;
     void OnAfterProcess(uint64_t token, uint64_t timeStamp) override
     {
-        RS_LOGD("OnAfterProcess: TriggerTransactionDataCallbackAndErase, timeStamp: %{public}"
-            PRIu64 " token: %{public}" PRIu64, timeStamp, token);
+        RS_LOGD("OnAfterProcess: TriggerTransactionDataCallbackAndErase, timeStamp: %{public}" PRIu64
+                " token: %{public}" PRIu64,
+            timeStamp, token);
         client_->TriggerTransactionDataCallbackAndErase(token, timeStamp);
     }
 
@@ -795,8 +800,8 @@ private:
     RSRenderPipelineClient* client_;
 };
 
-bool RSRenderPipelineClient::RegisterTransactionDataCallback(uint64_t token, uint64_t timeStamp,
-    std::function<void()> callback)
+bool RSRenderPipelineClient::RegisterTransactionDataCallback(
+    uint64_t token, uint64_t timeStamp, std::function<void()> callback)
 {
     auto clientToRender = RSRenderServiceConnectHub::GetClientToRenderConnection();
     if (clientToRender == nullptr) {
@@ -808,20 +813,22 @@ bool RSRenderPipelineClient::RegisterTransactionDataCallback(uint64_t token, uin
         return false;
     }
     {
-        std::lock_guard<std::mutex> lock{ transactionDataCallbackMutex_ };
+        std::lock_guard<std::mutex> lock { transactionDataCallbackMutex_ };
         if (transactionDataCallbacks_.find(std::make_pair(token, timeStamp)) == std::end(transactionDataCallbacks_)) {
             transactionDataCallbacks_.emplace(std::make_pair(token, timeStamp), callback);
         } else {
             ROSEN_LOGE("RSRenderPipelineClient::RegisterTransactionDataCallback callback exists"
-                " in timeStamp %{public}s", std::to_string(timeStamp).c_str());
+                       " in timeStamp %{public}s",
+                std::to_string(timeStamp).c_str());
             return false;
         }
         if (transactionDataCbDirector_ == nullptr) {
             transactionDataCbDirector_ = new TransactionDataCallbackDirector(this);
         }
     }
-    RS_LOGD("RSRenderPipelineClient::RegisterTransactionDataCallback, timeStamp: %{public}"
-        PRIu64 " token: %{public}" PRIu64, timeStamp, token);
+    RS_LOGD("RSRenderPipelineClient::RegisterTransactionDataCallback, timeStamp: %{public}" PRIu64
+            " token: %{public}" PRIu64,
+        timeStamp, token);
     clientToRender->RegisterTransactionDataCallback(token, timeStamp, transactionDataCbDirector_);
     return true;
 }
@@ -830,7 +837,7 @@ void RSRenderPipelineClient::TriggerTransactionDataCallbackAndErase(uint64_t tok
 {
     std::function<void()> callback = nullptr;
     {
-        std::lock_guard<std::mutex> lock{ transactionDataCallbackMutex_ };
+        std::lock_guard<std::mutex> lock { transactionDataCallbackMutex_ };
         auto iter = transactionDataCallbacks_.find(std::make_pair(token, timeStamp));
         if (iter != std::end(transactionDataCallbacks_)) {
             callback = iter->second;
@@ -838,8 +845,9 @@ void RSRenderPipelineClient::TriggerTransactionDataCallbackAndErase(uint64_t tok
         }
     }
     if (callback) {
-        RS_LOGD("TriggerTransactionDataCallbackAndErase: invoke callback, timeStamp: %{public}"
-            PRIu64 " token: %{public}" PRIu64, timeStamp, token);
+        RS_LOGD("TriggerTransactionDataCallbackAndErase: invoke callback, timeStamp: %{public}" PRIu64
+                " token: %{public}" PRIu64,
+            timeStamp, token);
         std::invoke(callback);
     }
 }
@@ -886,9 +894,9 @@ int32_t RSRenderPipelineClient::SubmitCanvasPreAllocatedBuffer(
 }
 #endif // ROSEN_OHOS && RS_ENABLE_VK
 
-uint32_t RSRenderPipelineClient::SetSurfaceWatermark(pid_t pid, const std::string &name,
-    const std::shared_ptr<Media::PixelMap> &watermark,
-    const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType)
+uint32_t RSRenderPipelineClient::SetSurfaceWatermark(pid_t pid, const std::string& name,
+    const std::shared_ptr<Media::PixelMap>& watermark, const std::vector<NodeId>& nodeIdList,
+    SurfaceWatermarkType watermarkType)
 {
     auto clientToRender = RSRenderServiceConnectHub::GetClientToRenderConnection();
     if (clientToRender == nullptr) {
@@ -896,9 +904,9 @@ uint32_t RSRenderPipelineClient::SetSurfaceWatermark(pid_t pid, const std::strin
     }
     return clientToRender->SetSurfaceWatermark(pid, name, watermark, nodeIdList, watermarkType);
 }
-    
-void RSRenderPipelineClient::ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,
-    const std::vector<NodeId> &nodeIdList)
+
+void RSRenderPipelineClient::ClearSurfaceWatermarkForNodes(
+    pid_t pid, const std::string& name, const std::vector<NodeId>& nodeIdList)
 {
     auto clientToRender = RSRenderServiceConnectHub::GetClientToRenderConnection();
     if (clientToRender == nullptr) {
@@ -906,8 +914,8 @@ void RSRenderPipelineClient::ClearSurfaceWatermarkForNodes(pid_t pid, const std:
     }
     clientToRender->ClearSurfaceWatermarkForNodes(pid, name, nodeIdList);
 }
-    
-void RSRenderPipelineClient::ClearSurfaceWatermark(pid_t pid, const std::string &name)
+
+void RSRenderPipelineClient::ClearSurfaceWatermark(pid_t pid, const std::string& name)
 {
     auto clientToRender = RSRenderServiceConnectHub::GetClientToRenderConnection();
     if (clientToRender == nullptr) {
@@ -918,7 +926,7 @@ void RSRenderPipelineClient::ClearSurfaceWatermark(pid_t pid, const std::string 
 
 class CustomOcclusionChangeCallback : public RSOcclusionChangeCallbackStub {
 public:
-    explicit CustomOcclusionChangeCallback(const OcclusionChangeCallback &callback) : cb_(callback) {}
+    explicit CustomOcclusionChangeCallback(const OcclusionChangeCallback& callback) : cb_(callback) {}
     ~CustomOcclusionChangeCallback() override {};
 
     void OnOcclusionVisibleChanged(std::shared_ptr<RSOcclusionData> occlusionData) override
@@ -934,7 +942,7 @@ private:
 
 class CustomSurfaceOcclusionChangeCallback : public RSSurfaceOcclusionChangeCallbackStub {
 public:
-    explicit CustomSurfaceOcclusionChangeCallback(const SurfaceOcclusionChangeCallback &callback) : cb_(callback) {}
+    explicit CustomSurfaceOcclusionChangeCallback(const SurfaceOcclusionChangeCallback& callback) : cb_(callback) {}
     ~CustomSurfaceOcclusionChangeCallback() override {};
 
     void OnSurfaceOcclusionVisibleChanged(float visibleAreaRatio) override
@@ -985,9 +993,19 @@ int32_t RSRenderPipelineClient::SetLogicalCameraRotationCorrection(ScreenId id, 
         ROSEN_LOGE("RSRenderPipelineClient::SetLogicalCameraRotationCorrection renderPipeline is nullptr!");
         return RENDER_SERVICE_NULL;
     }
-    RS_LOGD("RSRenderPipelineClient::SetLogicalCameraRotationCorrection, screenId: %{public}"
-        PRIu64 ", logicalCorrection: %{public}u", id, logicalCorrection);
+    RS_LOGD("RSRenderPipelineClient::SetLogicalCameraRotationCorrection, screenId: %{public}" PRIu64
+            ", logicalCorrection: %{public}u",
+        id, logicalCorrection);
     return renderPipeline->SetLogicalCameraRotationCorrection(id, logicalCorrection);
 }
+
+int32_t RSRenderPipelineClient::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
+{
+    RS_LOGI("RSRenderPipelineClient::GetMaxGpuBufferSize called");
+    maxWidth = 16384;
+    maxHeight = 16384;
+    return 0;
+}
+
 } // namespace Rosen
 } // namespace OHOS

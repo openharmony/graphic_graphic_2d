@@ -18,19 +18,16 @@
 
 #include "common/rs_common_def.h"
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
-#include "transaction/rs_render_pipeline_client.h"
 #include "platform/drawing/rs_surface.h"
+#include "transaction/rs_render_pipeline_client.h"
 #include "ui/rs_display_node.h"
 #include "ui/rs_surface_node.h"
-#include "platform/drawing/rs_surface.h"
-#include "transaction/rs_render_pipeline_client.h"
 
 namespace OHOS {
 namespace Rosen {
 using OcclusionChangeCallback = std::function<void(std::shared_ptr<RSOcclusionData>)>;
 using SurfaceOcclusionChangeCallback = std::function<void(float)>;
 class RSC_EXPORT RSRenderInterface {
-
 public:
     RSRenderInterface();
     ~RSRenderInterface() noexcept;
@@ -72,8 +69,8 @@ public:
      * @param captureConfig Indicates the configuration items required for snapshot.
      * @return return true if snaphot success, else return false.
      */
-    bool TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
-        RSSurfaceCaptureConfig captureConfig = {});
+    bool TakeSurfaceCapture(
+        NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig = {});
 
     /**
      * @brief Get component snapshot.
@@ -85,9 +82,9 @@ public:
      * @param specifiedAreaRect Indicates the range that user wants to clip the snapshot.
      * @return return true if snaphot success, else return false.
      */
-    bool TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
-        std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX = 1.f, float scaleY = 1.f,
-        bool isSync = false, const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f));
+    bool TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node, std::shared_ptr<SurfaceCaptureCallback> callback,
+        float scaleX = 1.f, float scaleY = 1.f, bool isSync = false,
+        const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f));
 
     /**
      * @brief Get component snapshot.
@@ -132,7 +129,7 @@ public:
      * @return return a vector of pair, the first element is the NodeId, the second element is the pixelmap.
      */
     std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> TakeSurfaceCaptureSoloNodeList(
-    std::shared_ptr<RSNode> node);
+        std::shared_ptr<RSNode> node);
 
     /**
      * @brief Take snapshot of displayNode.
@@ -176,8 +173,8 @@ public:
      * @param scaleX Indicates the scale of X-axis.
      * @param scaleY Indicates the scale of Y-axis.
      */
-    bool TakeSurfaceCaptureForUIWithoutUni(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
-        float scaleX, float scaleY);
+    bool TakeSurfaceCaptureForUIWithoutUni(
+        NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY);
 
     /**
      * @brief Set selfdrawing node to topLayer force use DSS.
@@ -195,8 +192,7 @@ public:
      * @param callback It is triggered when buffer state changes.
      * @return bool Returns true if successfully send to RS, otherwise false.
      */
-    bool RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
-        std::shared_ptr<SurfaceBufferCallback> callback);
+    bool RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid, std::shared_ptr<SurfaceBufferCallback> callback);
 
     /**
      * @brief UnRegister the DrawSurfaceBuffer op callback that holds the buffer state.
@@ -287,7 +283,7 @@ public:
      * @return true if succeed, otherwise false.
      */
     bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation = false);
-    
+
     /**
      * @brief Get high contrast text state.
      * @return Return true if high contrast text enabled, otherwise false.
@@ -338,9 +334,8 @@ public:
      * @param watermarkType custom or system watermark.
      * @return set watermark success return 0, else return errorCode.
      */
-    uint32_t SetSurfaceWatermark(pid_t pid, const std::string &name,
-        const std::shared_ptr<Media::PixelMap> &watermark,
-        const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType);
+    uint32_t SetSurfaceWatermark(pid_t pid, const std::string& name, const std::shared_ptr<Media::PixelMap>& watermark,
+        const std::vector<NodeId>& nodeIdList, SurfaceWatermarkType watermarkType);
 
     /**
      * @brief Set watermark for surfaceNode.
@@ -348,15 +343,14 @@ public:
      * @param name Watermark name.
      * @param watermark Watermark pixelmap.
      */
-    void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string &name,
-        const std::vector<NodeId> &nodeIdList);
+    void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name, const std::vector<NodeId>& nodeIdList);
 
     /**
      * @brief Set watermark for surfaceNode.
      * @param pid pid of process.
      * @param name Watermark name.
      */
-    void ClearSurfaceWatermark(pid_t pid, const std::string &name);
+    void ClearSurfaceWatermark(pid_t pid, const std::string& name);
 
     /**
      * @brief Register window occlusion change callback.
@@ -372,7 +366,7 @@ public:
      * @return 0 success, else failed.
      */
     int32_t RegisterSurfaceOcclusionChangeCallback(
-         NodeId id, const SurfaceOcclusionChangeCallback& callback, std::vector<float>& partitionPoints);
+        NodeId id, const SurfaceOcclusionChangeCallback& callback, std::vector<float>& partitionPoints);
 
     /**
      * @brief UnRegister web surface occlusion change callback.
@@ -397,6 +391,6 @@ private:
     friend class RSDisplayNode;
     friend class RSSurfaceNode;
 };
-}
-}
+} // namespace Rosen
+} // namespace OHOS
 #endif // RENDER_SERVICE_CLIENT_CORE_TRANSACTION_RS_RENDRE_INTERFACE_H

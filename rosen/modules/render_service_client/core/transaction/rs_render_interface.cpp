@@ -15,13 +15,36 @@
 
 #include "rs_render_interface.h"
 
-#include <iremote_stub.h>
-
 #include <cstdint>
 #include <functional>
+#include <iremote_stub.h>
 
+#include "feature/hyper_graphic_manager/rs_frame_rate_policy.h"
+#include "feature/ui_capture/rs_divided_ui_capture.h"
+#include "offscreen_render/rs_offscreen_render_thread.h"
 #include "rs_interfaces.h"
 #include "rs_trace.h"
+
+#include "ipc_callbacks/rs_iocclusion_change_callback.h"
+#include "ipc_callbacks/rs_isurface_occlusion_change_callback.h"
+#include "pipeline/rs_render_node.h"
+#include "pipeline/rs_render_thread.h"
+#include "pipeline/rs_surface_buffer_callback_manager.h"
+#include "pipeline/rs_uni_render_judgement.h"
+#include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
+#include "render/rs_typeface_cache.h"
+#include "ui/rs_proxy_node.h"
+
+namespace OHOS {
+namespace Rosen {
+#ifdef ROSEN_OHOS
+constexpr uint32_t WATERMARK_NAME_LENGTH_LIMIT = 128;
+#endif
+
+RSRenderInterface::RSRenderInterface() : renderPipelineClient_(std::make_unique<RSRenderPipelineClient>()) {}
+
+RSRenderInterface::~RSRenderInterface() noexcept {}
 
 int32_t RSRenderInterface::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
 {
@@ -37,34 +60,6 @@ int32_t RSRenderInterface::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& max
         RS_LOGI("GetMaxGpuBufferSize: uni render mode, using render pipeline client");
         return renderPipelineClient_->GetMaxGpuBufferSize(maxWidth, maxHeight);
     }
-}
-
-#include "ipc_callbacks/rs_iocclusion_change_callback.h"
-#include "ipc_callbacks/rs_isurface_occlusion_change_callback.h"
-#include "platform/common/rs_system_properties.h"
-#include "pipeline/rs_render_node.h"
-#include "pipeline/rs_surface_buffer_callback_manager.h"
-#include "offscreen_render/rs_offscreen_render_thread.h"
-#include "feature/hyper_graphic_manager/rs_frame_rate_policy.h"
-#include "feature/ui_capture/rs_divided_ui_capture.h"
-#include "pipeline/rs_render_thread.h"
-#include "pipeline/rs_uni_render_judgement.h"
-#include "ui/rs_proxy_node.h"
-#include "platform/common/rs_log.h"
-#include "render/rs_typeface_cache.h"
-
-namespace OHOS {
-namespace Rosen {
-#ifdef ROSEN_OHOS
-constexpr uint32_t WATERMARK_NAME_LENGTH_LIMIT = 128;
-#endif
-
-RSRenderInterface::RSRenderInterface() : renderPipelineClient_(std::make_unique<RSRenderPipelineClient>())
-{
-}
-
-RSRenderInterface::~RSRenderInterface() noexcept
-{
 }
 
 bool RSRenderInterface::TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node,
@@ -104,15 +99,15 @@ bool RSRenderInterface::TakeSurfaceCapture(std::shared_ptr<RSDisplayNode> node,
     return renderPipelineClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig);
 }
 
-bool RSRenderInterface::TakeSurfaceCapture(NodeId id,
-    std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
+bool RSRenderInterface::TakeSurfaceCapture(
+    NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
 {
     return renderPipelineClient_->TakeSurfaceCapture(id, callback, captureConfig);
 }
 
 bool RSRenderInterface::TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
-    std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY,
-    bool isSync, const Drawing::Rect& specifiedAreaRect)
+    std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY, bool isSync,
+    const Drawing::Rect& specifiedAreaRect)
 {
     RSSurfaceCaptureConfig captureConfig;
     captureConfig.scaleX = scaleX;
@@ -134,13 +129,13 @@ bool RSRenderInterface::TakeSurfaceCaptureForUIWithConfig(std::shared_ptr<RSNode
     // textureExportNode process cmds in renderThread of application, isSync is unnecessary.
     if (node->IsTextureExportNode()) {
         ROSEN_LOGD("RSRenderInterface::TakeSurfaceCaptureForUI rsNode [%{public}" PRIu64
-            "] is textureExportNode, set isSync false", node->GetId());
+                   "] is textureExportNode, set isSync false",
+            node->GetId());
         captureConfig.isSync = false;
     }
-    if (!((node->GetType() == RSUINodeType::ROOT_NODE) ||
-          (node->GetType() == RSUINodeType::CANVAS_NODE) ||
-          (node->GetType() == RSUINodeType::CANVAS_DRAWING_NODE) ||
-          (node->GetType() == RSUINodeType::SURFACE_NODE))) {
+    if (!((node->GetType() == RSUINodeType::ROOT_NODE) || (node->GetType() == RSUINodeType::CANVAS_NODE) ||
+            (node->GetType() == RSUINodeType::CANVAS_DRAWING_NODE) ||
+            (node->GetType() == RSUINodeType::SURFACE_NODE))) {
         ROSEN_LOGE("RSRenderInterface::TakeSurfaceCaptureForUI unsupported node type return");
         return false;
     }
@@ -148,20 +143,20 @@ bool RSRenderInterface::TakeSurfaceCaptureForUIWithConfig(std::shared_ptr<RSNode
         if (captureConfig.isSync) {
             node->SetTakeSurfaceForUIFlag();
         }
-        return renderPipelineClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig, {},
-            captureConfig.specifiedAreaRect);
+        return renderPipelineClient_->TakeSurfaceCapture(
+            node->GetId(), callback, captureConfig, {}, captureConfig.specifiedAreaRect);
     } else {
         return TakeSurfaceCaptureForUIWithoutUni(node->GetId(), callback, captureConfig.scaleX, captureConfig.scaleY);
     }
 }
 
-bool RSRenderInterface::TakeSurfaceCaptureForUIWithoutUni(NodeId id,
-    std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY)
+bool RSRenderInterface::TakeSurfaceCaptureForUIWithoutUni(
+    NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY)
 {
     std::function<void()> offscreenRenderTask = [scaleX, scaleY, callback, id, this]() -> void {
-        ROSEN_LOGD(
-            "RSRenderInterface::TakeSurfaceCaptureForUIWithoutUni callback->OnOffscreenRender nodeId:"
-            "[%{public}" PRIu64 "]", id);
+        ROSEN_LOGD("RSRenderInterface::TakeSurfaceCaptureForUIWithoutUni callback->OnOffscreenRender nodeId:"
+                   "[%{public}" PRIu64 "]",
+            id);
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderThread::TakeSurfaceCaptureForUIWithoutUni");
         std::shared_ptr<RSDividedUICapture> rsDividedUICapture =
             std::make_shared<RSDividedUICapture>(id, scaleX, scaleY);
@@ -198,20 +193,20 @@ bool RSRenderInterface::TakeUICaptureInRangeWithConfig(std::shared_ptr<RSNode> b
     }
     captureConfig.captureType = SurfaceCaptureType::UICAPTURE;
     if (!endNode) {
-        return TakeSurfaceCaptureForUI(beginNode, callback, captureConfig.scaleX,
-            captureConfig.scaleY, captureConfig.isSync);
+        return TakeSurfaceCaptureForUI(
+            beginNode, callback, captureConfig.scaleX, captureConfig.scaleY, captureConfig.isSync);
     }
     captureConfig.uiCaptureInRangeParam.endNodeId = endNode->GetId();
     captureConfig.uiCaptureInRangeParam.useBeginNodeSize = useBeginNodeSize;
     if (beginNode->IsTextureExportNode()) {
         ROSEN_LOGD("RSRenderInterface::TakeUICaptureInRange beginNode [%{public}" PRIu64
-            "] is textureExportNode, set isSync false", beginNode->GetId());
+                   "] is textureExportNode, set isSync false",
+            beginNode->GetId());
         captureConfig.isSync = false;
     }
-    if (!((beginNode->GetType() == RSUINodeType::ROOT_NODE) ||
-          (beginNode->GetType() == RSUINodeType::CANVAS_NODE) ||
-          (beginNode->GetType() == RSUINodeType::CANVAS_DRAWING_NODE) ||
-          (beginNode->GetType() == RSUINodeType::SURFACE_NODE))) {
+    if (!((beginNode->GetType() == RSUINodeType::ROOT_NODE) || (beginNode->GetType() == RSUINodeType::CANVAS_NODE) ||
+            (beginNode->GetType() == RSUINodeType::CANVAS_DRAWING_NODE) ||
+            (beginNode->GetType() == RSUINodeType::SURFACE_NODE))) {
         ROSEN_LOGE("RSRenderInterface::TakeUICaptureInRange unsupported node type return");
         return false;
     }
@@ -221,23 +216,22 @@ bool RSRenderInterface::TakeUICaptureInRangeWithConfig(std::shared_ptr<RSNode> b
         }
         return renderPipelineClient_->TakeUICaptureInRange(beginNode->GetId(), callback, captureConfig);
     } else {
-        return TakeSurfaceCaptureForUIWithoutUni(beginNode->GetId(), callback,
-            captureConfig.scaleX, captureConfig.scaleY);
+        return TakeSurfaceCaptureForUIWithoutUni(
+            beginNode->GetId(), callback, captureConfig.scaleX, captureConfig.scaleY);
     }
 }
 
-std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>>
-    RSRenderInterface::TakeSurfaceCaptureSoloNodeList(std::shared_ptr<RSNode> node)
+std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> RSRenderInterface::TakeSurfaceCaptureSoloNodeList(
+    std::shared_ptr<RSNode> node)
 {
     std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> pixelMapIdPairVector;
     if (!node) {
         ROSEN_LOGW("RSRenderInterface::TakeSurfaceCaptureSoloNodeList rsnode is nullpter return");
         return pixelMapIdPairVector;
     }
-    if (!((node->GetType() == RSUINodeType::ROOT_NODE) ||
-          (node->GetType() == RSUINodeType::CANVAS_NODE) ||
-          (node->GetType() == RSUINodeType::CANVAS_DRAWING_NODE) ||
-          (node->GetType() == RSUINodeType::SURFACE_NODE))) {
+    if (!((node->GetType() == RSUINodeType::ROOT_NODE) || (node->GetType() == RSUINodeType::CANVAS_NODE) ||
+            (node->GetType() == RSUINodeType::CANVAS_DRAWING_NODE) ||
+            (node->GetType() == RSUINodeType::SURFACE_NODE))) {
         ROSEN_LOGE("RSRenderInterface::TakeSurfaceCaptureSoloNodeList unsupported node type return");
         return pixelMapIdPairVector;
     }
@@ -263,8 +257,7 @@ bool RSRenderInterface::TakeSelfSurfaceCapture(std::shared_ptr<RSSurfaceNode> no
 }
 
 bool RSRenderInterface::TakeSurfaceCaptureWithAllWindows(std::shared_ptr<RSDisplayNode> node,
-    std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig,
-    bool checkDrmAndSurfaceLock)
+    std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig, bool checkDrmAndSurfaceLock)
 {
     if (!node) {
         ROSEN_LOGE("%{public}s node is nullptr", __func__);
@@ -283,23 +276,19 @@ bool RSRenderInterface::FreezeScreen(std::shared_ptr<RSDisplayNode> node, bool i
     return renderPipelineClient_->FreezeScreen(node->GetId(), isFreeze, needSync);
 }
 
-bool RSRenderInterface::RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
-    std::shared_ptr<SurfaceBufferCallback> callback)
+bool RSRenderInterface::RegisterSurfaceBufferCallback(
+    pid_t pid, uint64_t uid, std::shared_ptr<SurfaceBufferCallback> callback)
 {
     if (callback == nullptr) {
         ROSEN_LOGE("RSRenderInterface::RegisterSurfaceBufferCallback callback == nullptr.");
         return false;
     }
     RSSurfaceBufferCallbackManager::Instance().RegisterSurfaceBufferCallback(pid, uid,
-        new (std::nothrow) RSDefaultSurfaceBufferCallback ({
-            .OnFinish = [callback](const FinishCallbackRet& ret) {
-                callback->OnFinish(ret);
-            },
-            .OnAfterAcquireBuffer = [callback](const AfterAcquireBufferRet& ret) {
-                callback->OnAfterAcquireBuffer(ret);
-            },
-        })
-    );
+        new (std::nothrow) RSDefaultSurfaceBufferCallback({
+            .OnFinish = [callback](const FinishCallbackRet& ret) { callback->OnFinish(ret); },
+            .OnAfterAcquireBuffer = [callback](
+                                        const AfterAcquireBufferRet& ret) { callback->OnAfterAcquireBuffer(ret); },
+        }));
     return renderPipelineClient_->RegisterSurfaceBufferCallback(pid, uid, callback);
 }
 
@@ -312,8 +301,9 @@ bool RSRenderInterface::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
 bool RSRenderInterface::RegisterTransactionDataCallback(
     uint64_t token, uint64_t timeStamp, std::function<void()> callback)
 {
-    RS_LOGD("RSRenderInterface::RegisterTransactionDataCallback, timeStamp: %{public}"
-        PRIu64 " token: %{public}" PRIu64, timeStamp, token);
+    RS_LOGD("RSRenderInterface::RegisterTransactionDataCallback, timeStamp: %{public}" PRIu64
+            " token: %{public}" PRIu64,
+        timeStamp, token);
     return renderPipelineClient_->RegisterTransactionDataCallback(token, timeStamp, callback);
 }
 
@@ -353,8 +343,8 @@ bool RSRenderInterface::SetAncoForceDoDirect(bool direct)
     return renderPipelineClient_->SetAncoForceDoDirect(direct);
 }
 
-bool RSRenderInterface::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
-    float positionZ, float positionW)
+bool RSRenderInterface::SetHwcNodeBounds(
+    int64_t rsNodeId, float positionX, float positionY, float positionZ, float positionW)
 {
     if (renderPipelineClient_ == nullptr) {
         RS_LOGE("RSRenderInterface::SetHwcNodeBounds renderPipelineClient_ is null!");
@@ -440,9 +430,9 @@ int32_t RSRenderInterface::SubmitCanvasPreAllocatedBuffer(
 }
 #endif
 
-uint32_t RSRenderInterface::SetSurfaceWatermark(pid_t pid, const std::string &name,
-    const std::shared_ptr<Media::PixelMap> &watermark,
-    const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType)
+uint32_t RSRenderInterface::SetSurfaceWatermark(pid_t pid, const std::string& name,
+    const std::shared_ptr<Media::PixelMap>& watermark, const std::vector<NodeId>& nodeIdList,
+    SurfaceWatermarkType watermarkType)
 {
 #ifdef ROSEN_OHOS
     if (name.length() > WATERMARK_NAME_LENGTH_LIMIT || name.empty()) {
@@ -450,23 +440,22 @@ uint32_t RSRenderInterface::SetSurfaceWatermark(pid_t pid, const std::string &na
         return SurfaceWatermarkStatusCode::WATER_MARK_NAME_ERROR;
     }
     if (watermark && watermark->IsAstc()) {
-        ROSEN_LOGE("SetSurfaceWatermark failed, watermark[%{public}d, %{public}u] is error",
-            watermark->IsAstc(), watermark->GetCapacity());
+        ROSEN_LOGE("SetSurfaceWatermark failed, watermark[%{public}d, %{public}u] is error", watermark->IsAstc(),
+            watermark->GetCapacity());
         return SurfaceWatermarkStatusCode::WATER_MARK_IMG_ASTC_ERROR;
     }
 
     if (watermarkType >= SurfaceWatermarkType::INVALID_WATER_MARK) {
         return SurfaceWatermarkStatusCode::WATER_MARK_INVALID_WATERMARK_TYPE;
     }
-    return renderPipelineClient_->SetSurfaceWatermark(pid, name, watermark,
-        nodeIdList, watermarkType);
+    return renderPipelineClient_->SetSurfaceWatermark(pid, name, watermark, nodeIdList, watermarkType);
 #else
-    return 0 ;
+    return 0;
 #endif
 }
 
-void RSRenderInterface::ClearSurfaceWatermarkForNodes(pid_t pid,
-    const std::string& name, const std::vector<NodeId>& nodeIdList)
+void RSRenderInterface::ClearSurfaceWatermarkForNodes(
+    pid_t pid, const std::string& name, const std::vector<NodeId>& nodeIdList)
 {
 #ifdef ROSEN_OHOS
     if (name.length() > WATERMARK_NAME_LENGTH_LIMIT || name.empty()) {
@@ -477,7 +466,7 @@ void RSRenderInterface::ClearSurfaceWatermarkForNodes(pid_t pid,
 #endif
 }
 
-void RSRenderInterface::ClearSurfaceWatermark(pid_t pid, const std::string &name)
+void RSRenderInterface::ClearSurfaceWatermark(pid_t pid, const std::string& name)
 {
 #ifdef ROSEN_OHOS
     if (name.length() > WATERMARK_NAME_LENGTH_LIMIT || name.empty()) {
@@ -508,5 +497,5 @@ int32_t RSRenderInterface::SetLogicalCameraRotationCorrection(ScreenId id, Scree
 {
     return renderPipelineClient_->SetLogicalCameraRotationCorrection(id, logicalCorrection);
 }
-}
-}
+} // namespace Rosen
+} // namespace OHOS

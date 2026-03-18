@@ -18,6 +18,7 @@
 #include <cstdint>
 
 #include "delegate/rs_functional_delegate.h"
+#include "rosen_text/font_collection.h"
 #include "rs_frame_report.h"
 #include "rs_trace.h"
 #include "sandbox_utils.h"
@@ -39,9 +40,8 @@
 #include "render/rs_image_cache.h"
 #include "render/rs_typeface_cache.h"
 #include "render_context/shader_cache.h"
-#include "rosen_text/font_collection.h"
-#include "transaction/rs_render_service_client.h"
 #include "transaction/rs_interfaces.h"
+#include "transaction/rs_render_service_client.h"
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_surface_node.h"
 #include "ui/rs_ui_director.h"
@@ -71,11 +71,14 @@
 
 #ifdef ROSEN_OHOS
 #include <unistd.h>
+
 #include "frame_collector.h"
 #include "render_frame_trace.h"
+
 #include "platform/ohos/overdraw/rs_overdraw_controller.h"
 #ifdef ACCESSIBILITY_ENABLE
 #include "accessibility_config.h"
+
 #include "platform/common/rs_accessibility.h"
 #endif
 
@@ -98,7 +101,7 @@ namespace OHOS {
 namespace Rosen {
 std::atomic_bool RSRenderThread::running_ = false;
 namespace {
-    static constexpr uint64_t REFRESH_PERIOD = 16666667;
+static constexpr uint64_t REFRESH_PERIOD = 16666667;
 }
 
 void SendFrameEvent(bool start)
@@ -135,8 +138,8 @@ RSRenderThread::RSRenderThread()
         prevTimestamp_ = timestamp_;
         ProcessCommands();
 #ifdef RS_ENABLE_GPU
-        ROSEN_LOGD("RSRenderThread DrawFrame(%{public}" PRIu64 ") in %{public}s",
-            prevTimestamp_, renderContext_ ? "GPU" : "CPU");
+        ROSEN_LOGD("RSRenderThread DrawFrame(%{public}" PRIu64 ") in %{public}s", prevTimestamp_,
+            renderContext_ ? "GPU" : "CPU");
 #endif
         Animate(prevTimestamp_);
         Render();
@@ -175,28 +178,25 @@ RSRenderThread::RSRenderThread()
         .OnAfterAcquireBuffer = RSSurfaceBufferCallbackManager::Instance().GetOnAfterAcquireBufferCb(),
     });
     Drawing::DrawSurfaceBufferOpItem::SetIsUniRender(false);
-    Drawing::DrawSurfaceBufferOpItem::RegisterGetRootNodeIdFuncForRT(
-        [this]() {
-            if (visitor_) {
-                return visitor_->GetActiveSubtreeRootId();
-            }
-            return INVALID_NODEID;
+    Drawing::DrawSurfaceBufferOpItem::RegisterGetRootNodeIdFuncForRT([this]() {
+        if (visitor_) {
+            return visitor_->GetActiveSubtreeRootId();
         }
-    );
+        return INVALID_NODEID;
+    });
 #endif
     RSSurfaceBufferCallbackManager::Instance().SetIsUniRender(false);
     RSSurfaceBufferCallbackManager::Instance().SetVSyncFuncs({
-        .requestNextVSync = []() {
-            RSRenderThread::Instance().RequestNextVSync();
-        },
-        .isRequestedNextVSync = [this]() {
+        .requestNextVSync = []() { RSRenderThread::Instance().RequestNextVSync(); },
+        .isRequestedNextVSync =
+            [this]() {
 #ifdef __OHOS__
-            if (receiver_ != nullptr) {
-                return receiver_->IsRequestedNextVSync();
-            }
+                if (receiver_ != nullptr) {
+                    return receiver_->IsRequestedNextVSync();
+                }
 #endif
-            return false;
-        },
+                return false;
+            },
     });
 }
 
@@ -296,7 +296,7 @@ int32_t RSRenderThread::GetTid()
 
 void RSRenderThread::CreateAndInitRenderContextIfNeed()
 {
-#if (defined(RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && !defined(ROSEN_PREVIEW)
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)) && !defined(ROSEN_PREVIEW)
     if (renderContext_ == nullptr) {
         renderContext_ = RenderContext::Create();
         ROSEN_LOGD("Create RenderContext");
@@ -305,13 +305,11 @@ void RSRenderThread::CreateAndInitRenderContextIfNeed()
             ROSEN_LOGE("renderContext_ is nullptr");
             return;
         }
-            auto cleanupTask = [rc = renderContext_]() {
-                RSRenderThread::Instance().PostSyncTask([rc]() {
-                    rc->DestroySharedSource();
-                });
-            };
-            renderContext_->SetCleanUpHelper(cleanupTask);
-        
+        auto cleanupTask = [rc = renderContext_]() {
+            RSRenderThread::Instance().PostSyncTask([rc]() { rc->DestroySharedSource(); });
+        };
+        renderContext_->SetCleanUpHelper(cleanupTask);
+
 #endif
 #ifdef ROSEN_OHOS
 
@@ -417,8 +415,8 @@ void RSRenderThread::UpdateWindowStatus(bool active)
     } else {
         activeWindowCnt_--;
     }
-    ROSEN_LOGD("RSRenderThread UpdateWindowStatus %{public}d, cur activeWindowCnt_ %{public}d",
-        active, activeWindowCnt_.load());
+    ROSEN_LOGD("RSRenderThread UpdateWindowStatus %{public}d, cur activeWindowCnt_ %{public}d", active,
+        activeWindowCnt_.load());
 }
 
 void RSRenderThread::ProcessCommands()
@@ -493,8 +491,7 @@ void RSRenderThread::PrepareCommandForCrossPlatform(std::vector<std::unique_ptr<
     uint64_t firstCmdTimestamp = cmds_[0]->GetTimestamp();
     uint64_t lastCmdTimestamp = cmds_.back()->GetTimestamp();
     while (index < cmds_.size()) {
-        if (cmds_[index]->GetTimestamp() <
-            std::max({timestamp_, firstCmdTimestamp + 1, lastCmdTimestamp})) {
+        if (cmds_[index]->GetTimestamp() < std::max({ timestamp_, firstCmdTimestamp + 1, lastCmdTimestamp })) {
             index++;
         } else {
             break;
@@ -529,20 +526,20 @@ void RSRenderThread::Animate(uint64_t timestamp)
     // iterate and animate all animating nodes, remove if animation finished
     EraseIf(context_->animatingNodeList_,
         [timestamp, &needRequestNextVsync, &isCalculateAnimationValue, &minLeftDelayTime](const auto& iter) -> bool {
-        auto node = iter.second.lock();
-        if (node == nullptr) {
-            ROSEN_LOGD("RSRenderThread::Animate removing expired animating node");
-            return true;
-        }
-        auto [hasRunningAnimation, nodeNeedRequestNextVsync, nodeCalculateAnimationValue] =
-            node->Animate(timestamp, minLeftDelayTime);
-        if (!hasRunningAnimation) {
-            ROSEN_LOGD("RSRenderThread::Animate removing finished animating node %{public}" PRIu64, node->GetId());
-        }
-        needRequestNextVsync = needRequestNextVsync || nodeNeedRequestNextVsync;
-        isCalculateAnimationValue = isCalculateAnimationValue || nodeCalculateAnimationValue;
-        return !hasRunningAnimation;
-    });
+            auto node = iter.second.lock();
+            if (node == nullptr) {
+                ROSEN_LOGD("RSRenderThread::Animate removing expired animating node");
+                return true;
+            }
+            auto [hasRunningAnimation, nodeNeedRequestNextVsync, nodeCalculateAnimationValue] =
+                node->Animate(timestamp, minLeftDelayTime);
+            if (!hasRunningAnimation) {
+                ROSEN_LOGD("RSRenderThread::Animate removing finished animating node %{public}" PRIu64, node->GetId());
+            }
+            needRequestNextVsync = needRequestNextVsync || nodeNeedRequestNextVsync;
+            isCalculateAnimationValue = isCalculateAnimationValue || nodeCalculateAnimationValue;
+            return !hasRunningAnimation;
+        });
     if (!isCalculateAnimationValue && needRequestNextVsync) {
         RS_TRACE_NAME("Animation running empty");
     }
@@ -572,7 +569,7 @@ void RSRenderThread::Render()
     // get latest partial render status from system properties and set it to RTvisitor_
     visitor_->SetPartialRenderStatus(RSSystemProperties::GetPartialRenderEnabled(),
         isRTRenderForced_ || (isOverDrawEnabledOfLastFrame_ != isOverDrawEnabledOfCurFrame_) ||
-        IsHighContrastChanged());
+            IsHighContrastChanged());
     ResetHighContrastChanged();
     rootNode->Prepare(visitor_);
     rootNode->Process(visitor_);
@@ -619,11 +616,12 @@ void RSRenderThread::PostPreTask()
         handler_->PostTask(preTask_);
     }
 }
-} // namespace Rosen
-} // namespace OHOS
 
 bool RSRenderThread::QueryMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
 {
     RS_LOGI("RSRenderThread::QueryMaxGpuBufferSize called");
     return RSInterfaces::GetInstance().GetMaxGpuBufferSize(maxWidth, maxHeight);
 }
+
+} // namespace Rosen
+} // namespace OHOS
