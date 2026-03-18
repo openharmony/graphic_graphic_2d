@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -258,6 +258,29 @@ void RSDrmUtil::DealWithDRMNodes(const std::shared_ptr<RSSurfaceRenderNode>& sur
 {
     CollectDrmNodes(surfaceNode);
     PreAllocProtectedFrameBuffers(surfaceNode, buffer, clientManager);
+}
+
+bool RSDrmUtil::HasDRMInVirtualScreen(
+    RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams)
+{
+    auto ancestorDrawable = surfaceParams.GetAncestorScreenDrawable().lock();
+    if (ancestorDrawable == nullptr) {
+        return false;
+    }
+    auto& params = ancestorDrawable->GetRenderParams();
+    if (params == nullptr) {
+        return false;
+    }
+    auto screenParam = static_cast<RSScreenRenderParams*>(params.get());
+    const auto& screenProperty = screenParam->GetScreenProperty();
+    if (!screenProperty.IsVirtual()) {
+        return false;
+    }
+    const auto& specialLayerManager = surfaceParams.GetSpecialLayerMgr();
+    if (!specialLayerManager.Find(SpecialLayerType::PROTECTED)) {
+        return false;
+    }
+    return true;
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,6 +19,7 @@
 #include "gtest/gtest.h"
 #include "params/rs_screen_render_params.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_screen_render_node.h"
@@ -51,7 +52,10 @@ public:
 };
 
 void RSSpecialLayerUtilsTest::SetUpTestCase() {}
-void RSSpecialLayerUtilsTest::TearDownTestCase() {}
+void RSSpecialLayerUtilsTest::TearDownTestCase()
+{
+    RSMainThread::Instance()->context_ = nullptr;
+}
 void RSSpecialLayerUtilsTest::SetUp()
 {
     ScreenSpecialLayerInfo::screenSpecialLayerInfoByNode_ = {};
@@ -873,5 +877,338 @@ HWTEST_F(RSSpecialLayerUtilsTest, HasMirrorDisplay_MultipleDisplayNodesTest, Tes
     bool result = RSSpecialLayerUtils::HasMirrorDisplay(RSMainThread::Instance()->GetContext().GetNodeMap());
     ASSERT_TRUE(result);
 }
-} // namespace Rosen
 
+/**
+ * @tc.name: GetDrawTypeInSecurityDisplay001
+ * @tc.desc: Test GetDrawTypeInSecurityDisplay returns NONE when not in security display mode
+ * @tc.type: FUNC
+ * @tc.require: issue22101
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, GetDrawTypeInSecurityDisplay001, TestSize.Level2)
+{
+    NodeId nodeId = 1;
+    RSSurfaceRenderNodeConfig config = { .id = nodeId, .name = "testSurface" };
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(config);
+    RSSurfaceRenderParams surfaceParams(nodeId);
+
+    // Setup render thread params with security display disabled
+    RSRenderThreadParams uniParam;
+    uniParam.SetSecurityDisplay(false);
+
+    auto result = RSSpecialLayerUtils::GetDrawTypeInSecurityDisplay(surfaceParams, uniParam);
+    ASSERT_EQ(result, DrawType::NONE);
+}
+
+/**
+ * @tc.name: GetDrawTypeInSecurityDisplay002
+ * @tc.desc: Test GetDrawTypeInSecurityDisplay returns DRAW_BLACK for SECURITY layer without exemption
+ * @tc.type: FUNC
+ * @tc.require: issue22101
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, GetDrawTypeInSecurityDisplay002, TestSize.Level2)
+{
+    NodeId nodeId = 1;
+    RSSurfaceRenderNodeConfig config = { .id = nodeId, .name = "testSurface" };
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(config);
+    RSSurfaceRenderParams surfaceParams(nodeId);
+
+    // Setup security display mode without exemption
+    RSRenderThreadParams uniParam;
+    uniParam.SetSecurityDisplay(true);
+    uniParam.SetSecExemption(false);
+
+    // Add SECURITY layer
+    surfaceParams.GetMultableSpecialLayerMgr().Set(SpecialLayerType::SECURITY, true);
+
+    auto result = RSSpecialLayerUtils::GetDrawTypeInSecurityDisplay(surfaceParams, uniParam);
+    ASSERT_EQ(result, DrawType::DRAW_BLACK);
+}
+
+/**
+ * @tc.name: GetDrawTypeInSecurityDisplay003
+ * @tc.desc: Test GetDrawTypeInSecurityDisplay returns NONE for SECURITY layer with exemption
+ * @tc.type: FUNC
+ * @tc.require: issue22101
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, GetDrawTypeInSecurityDisplay003, TestSize.Level2)
+{
+    NodeId nodeId = 1;
+    RSSurfaceRenderNodeConfig config = { .id = nodeId, .name = "testSurface" };
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(config);
+    RSSurfaceRenderParams surfaceParams(nodeId);
+
+    // Setup security display mode with exemption
+    RSRenderThreadParams uniParam;
+    uniParam.SetSecurityDisplay(true);
+    uniParam.SetSecExemption(true);
+
+    // Add SECURITY layer
+    surfaceParams.GetMultableSpecialLayerMgr().Set(SpecialLayerType::SECURITY, true);
+
+    auto result = RSSpecialLayerUtils::GetDrawTypeInSecurityDisplay(surfaceParams, uniParam);
+    ASSERT_EQ(result, DrawType::NONE);
+}
+
+/**
+ * @tc.name: GetDrawTypeInSecurityDisplay004
+ * @tc.desc: Test GetDrawTypeInSecurityDisplay returns SKIP_DRAW for SKIP layer
+ * @tc.type: FUNC
+ * @tc.require: issue22101
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, GetDrawTypeInSecurityDisplay004, TestSize.Level2)
+{
+    NodeId nodeId = 1;
+    RSSurfaceRenderNodeConfig config = { .id = nodeId, .name = "testSurface" };
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(config);
+    RSSurfaceRenderParams surfaceParams(nodeId);
+
+    // Setup security display mode
+    RSRenderThreadParams uniParam;
+    uniParam.SetSecurityDisplay(true);
+
+    // Add SKIP layer
+    surfaceParams.GetMultableSpecialLayerMgr().Set(SpecialLayerType::SKIP, true);
+
+    auto result = RSSpecialLayerUtils::GetDrawTypeInSecurityDisplay(surfaceParams, uniParam);
+    ASSERT_EQ(result, DrawType::SKIP_DRAW);
+}
+
+/**
+ * @tc.name: GetDrawTypeInSecurityDisplay005
+ * @tc.desc: Test GetDrawTypeInSecurityDisplay returns NONE when no special layers present
+ * @tc.type: FUNC
+ * @tc.require: issue22101
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, GetDrawTypeInSecurityDisplay005, TestSize.Level2)
+{
+    NodeId nodeId = 1;
+    RSSurfaceRenderNodeConfig config = { .id = nodeId, .name = "testSurface" };
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(config);
+    RSSurfaceRenderParams surfaceParams(nodeId);
+
+    // Setup security display mode without any special layers
+    RSRenderThreadParams uniParam;
+    uniParam.SetSecurityDisplay(true);
+
+    auto result = RSSpecialLayerUtils::GetDrawTypeInSecurityDisplay(surfaceParams, uniParam);
+    ASSERT_EQ(result, DrawType::NONE);
+}
+
+/**
+ * @tc.name: GetDrawTypeInSnapshot001
+ * @tc.desc: Test GetDrawTypeInSnapshot returns NONE when needCaptureSpecialLayer is true
+ * @tc.type: FUNC
+ * @tc.require: issue22101
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, GetDrawTypeInSnapshot001, TestSize.Level2)
+{
+    NodeId nodeId = 1;
+    RSSurfaceRenderNodeConfig config = { .id = nodeId, .name = "testSurface" };
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(config);
+    RSSurfaceRenderParams surfaceParams(nodeId);
+
+    CaptureParam captureParam;
+    captureParam.needCaptureSpecialLayer_ = true;
+    RSUniRenderThread::SetCaptureParam(captureParam);
+
+    auto result = RSSpecialLayerUtils::GetDrawTypeInSnapshot(surfaceParams);
+    ASSERT_EQ(result, DrawType::NONE);
+}
+
+/**
+ * @tc.name: GetDrawTypeInSnapshot002
+ * @tc.desc: Test GetDrawTypeInSnapshot returns DRAW_WHITE for SECURITY layer in single surface mode
+ * @tc.type: FUNC
+ * @tc.require: issue22101
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, GetDrawTypeInSnapshot002, TestSize.Level2)
+{
+    NodeId nodeId = 1;
+    RSSurfaceRenderNodeConfig config = { .id = nodeId, .name = "testSurface" };
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(config);
+    RSSurfaceRenderParams surfaceParams(nodeId);
+
+    CaptureParam captureParam;
+    captureParam.isSnapshot_ = true;
+    captureParam.isSingleSurface_ = true;
+    captureParam.isNeedBlur_ = false;
+    captureParam.isSelfCapture_ = false;
+    RSUniRenderThread::SetCaptureParam(captureParam);
+
+    surfaceParams.GetMultableSpecialLayerMgr().Set(SpecialLayerType::SECURITY, true);
+
+    auto result = RSSpecialLayerUtils::GetDrawTypeInSnapshot(surfaceParams);
+    ASSERT_EQ(result, DrawType::DRAW_WHITE);
+}
+
+/**
+ * @tc.name: GetDrawTypeInSnapshot003
+ * @tc.desc: Test GetDrawTypeInSnapshot returns NONE when isNeedBlur is true (skip white)
+ * @tc.type: FUNC
+ * @tc.require: issue22101
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, GetDrawTypeInSnapshot003, TestSize.Level2)
+{
+    NodeId nodeId = 1;
+    RSSurfaceRenderNodeConfig config = { .id = nodeId, .name = "testSurface" };
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(config);
+    RSSurfaceRenderParams surfaceParams(nodeId);
+
+    CaptureParam captureParam;
+    captureParam.isSnapshot_ = true;
+    captureParam.isSingleSurface_ = true;
+    captureParam.isNeedBlur_ = true;
+    captureParam.isSelfCapture_ = false;
+    RSUniRenderThread::SetCaptureParam(captureParam);
+
+    surfaceParams.GetMultableSpecialLayerMgr().Set(SpecialLayerType::SECURITY, true);
+
+    auto result = RSSpecialLayerUtils::GetDrawTypeInSnapshot(surfaceParams);
+    ASSERT_EQ(result, DrawType::NONE);
+}
+
+/**
+ * @tc.name: GetDrawTypeInSnapshot004
+ * @tc.desc: Test GetDrawTypeInSnapshot returns NONE when isSelfCapture is true (skip white)
+ * @tc.type: FUNC
+ * @tc.require: issue22101
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, GetDrawTypeInSnapshot004, TestSize.Level2)
+{
+    NodeId nodeId = 1;
+    RSSurfaceRenderNodeConfig config = { .id = nodeId, .name = "testSurface" };
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(config);
+    RSSurfaceRenderParams surfaceParams(nodeId);
+
+    CaptureParam captureParam;
+    captureParam.isSnapshot_ = true;
+    captureParam.isSingleSurface_ = true;
+    captureParam.isNeedBlur_ = false;
+    captureParam.isSelfCapture_ = true;
+    RSUniRenderThread::SetCaptureParam(captureParam);
+
+    surfaceParams.GetMultableSpecialLayerMgr().Set(SpecialLayerType::SECURITY, true);
+
+    auto result = RSSpecialLayerUtils::GetDrawTypeInSnapshot(surfaceParams);
+    ASSERT_EQ(result, DrawType::NONE);
+}
+
+/**
+ * @tc.name: GetDrawTypeInSnapshot005
+ * @tc.desc: Test GetDrawTypeInSnapshot returns DRAW_BLACK for SECURITY layer in multi surface screenshot
+ * @tc.type: FUNC
+ * @tc.require: issue22101
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, GetDrawTypeInSnapshot005, TestSize.Level2)
+{
+    NodeId nodeId = 1;
+    RSSurfaceRenderNodeConfig config = { .id = nodeId, .name = "testSurface" };
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(config);
+    RSSurfaceRenderParams surfaceParams(nodeId);
+
+    CaptureParam captureParam;
+    captureParam.isSnapshot_ = true;
+    captureParam.isSingleSurface_ = false;
+    RSUniRenderThread::SetCaptureParam(captureParam);
+
+    surfaceParams.GetMultableSpecialLayerMgr().Set(SpecialLayerType::SECURITY, true);
+
+    auto result = RSSpecialLayerUtils::GetDrawTypeInSnapshot(surfaceParams);
+    ASSERT_EQ(result, DrawType::DRAW_BLACK);
+}
+
+/**
+ * @tc.name: GetDrawTypeInSnapshot006
+ * @tc.desc: Test GetDrawTypeInSnapshot returns SKIP_DRAW for SKIP layer
+ * @tc.type: FUNC
+ * @tc.require: issue22101
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, GetDrawTypeInSnapshot006, TestSize.Level2)
+{
+    NodeId nodeId = 1;
+    RSSurfaceRenderNodeConfig config = { .id = nodeId, .name = "testSurface" };
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(config);
+    RSSurfaceRenderParams surfaceParams(nodeId);
+
+    CaptureParam captureParam;
+    captureParam.isSnapshot_ = true;
+    RSUniRenderThread::SetCaptureParam(captureParam);
+
+    surfaceParams.GetMultableSpecialLayerMgr().Set(SpecialLayerType::SKIP, true);
+
+    auto result = RSSpecialLayerUtils::GetDrawTypeInSnapshot(surfaceParams);
+    ASSERT_EQ(result, DrawType::SKIP_DRAW);
+}
+
+/**
+ * @tc.name: GetDrawTypeInSnapshot007
+ * @tc.desc: Test GetDrawTypeInSnapshot returns SKIP_DRAW for SNAPSHOT_SKIP layer
+ * @tc.type: FUNC
+ * @tc.require: issue22101
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, GetDrawTypeInSnapshot007, TestSize.Level2)
+{
+    NodeId nodeId = 1;
+    RSSurfaceRenderNodeConfig config = { .id = nodeId, .name = "testSurface" };
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(config);
+    RSSurfaceRenderParams surfaceParams(nodeId);
+
+    CaptureParam captureParam;
+    captureParam.isSnapshot_ = true;
+    RSUniRenderThread::SetCaptureParam(captureParam);
+
+    surfaceParams.GetMultableSpecialLayerMgr().Set(SpecialLayerType::SNAPSHOT_SKIP, true);
+
+    auto result = RSSpecialLayerUtils::GetDrawTypeInSnapshot(surfaceParams);
+    ASSERT_EQ(result, DrawType::SKIP_DRAW);
+}
+
+/**
+ * @tc.name: GetDrawTypeInSnapshot008
+ * @tc.desc: Test GetDrawTypeInSnapshot returns NONE when no special layers present
+ * @tc.type: FUNC
+ * @tc.require: issue22101
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, GetDrawTypeInSnapshot008, TestSize.Level2)
+{
+    NodeId nodeId = 1;
+    RSSurfaceRenderNodeConfig config = { .id = nodeId, .name = "testSurface" };
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(config);
+    RSSurfaceRenderParams surfaceParams(nodeId);
+
+    CaptureParam captureParam;
+    captureParam.isSnapshot_ = true;
+    RSUniRenderThread::SetCaptureParam(captureParam);
+
+    auto result = RSSpecialLayerUtils::GetDrawTypeInSnapshot(surfaceParams);
+    ASSERT_EQ(result, DrawType::NONE);
+}
+
+/**
+ * @tc.name: GetDrawTypeInSnapshot009
+ * @tc.desc: Test GetDrawTypeInSnapshot returns NONE when isSecLayer is false and isSingleSurface is true
+ * @tc.type: FUNC
+ * @tc.require: issue22101
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, GetDrawTypeInSnapshot009, TestSize.Level2)
+{
+    NodeId nodeId = 1;
+    RSSurfaceRenderNodeConfig config = { .id = nodeId, .name = "testSurface" };
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(config);
+    RSSurfaceRenderParams surfaceParams(nodeId);
+
+    CaptureParam captureParam;
+    captureParam.isSnapshot_ = true;
+    captureParam.isSingleSurface_ = true;
+    captureParam.isNeedBlur_ = false;
+    captureParam.isSelfCapture_ = false;
+    RSUniRenderThread::SetCaptureParam(captureParam);
+
+    // Do NOT set SECURITY layer, so isSecLayer will be false
+    // This tests the branch: if (captureParam.isSingleSurface_ && UNLIKELY(isSecLayer && !needSkipDrawWhite))
+    // When isSecLayer=false, the condition fails and should return NONE
+
+    auto result = RSSpecialLayerUtils::GetDrawTypeInSnapshot(surfaceParams);
+    ASSERT_EQ(result, DrawType::NONE);
+}
+} // namespace Rosen

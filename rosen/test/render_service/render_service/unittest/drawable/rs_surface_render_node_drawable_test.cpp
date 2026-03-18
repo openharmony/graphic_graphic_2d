@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -2137,21 +2137,6 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawWatermark01, TestSize.Level1)
 #endif
 
 /**
- * @tc.name: DrawSpecialLayer001
- * @tc.desc: test DrawSpecialLayer while renderThreadParams_ = nullptr
- * @tc.type: FUNC
- * @tc.require: issueICWNX9
- */
-HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawSpecialLayer001, TestSize.Level2)
-{
-    ASSERT_NE(surfaceDrawable_, nullptr);
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
-    ASSERT_NE(surfaceParams, nullptr);
-    RSRenderThreadParamsManager::Instance().renderThreadParams_ = nullptr;
-    ASSERT_FALSE(surfaceDrawable_->DrawSpecialLayer(*canvas_, *surfaceParams));
-}
-
-/**
  * @tc.name: CaptureSurface010
  * @tc.desc: test CaptureSurface while renderThreadParams_ = nullptr
  * @tc.type: FUNC
@@ -2840,5 +2825,102 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OcclusionSkip005, TestSize.Level1)
 
     // Reset for next test
     RSRenderNodeDrawable::isOpDropped_ = true;
+}
+
+/**
+ * @tc.name: DrawSpecialLayer_DRAW_WHITE
+ * @tc.desc: Test DrawSpecialLayer when drawType returns DRAW_WHITE to trigger DrawRectWithColor with white color
+ * @tc.type: FUNC
+ * @tc.require: issue22101
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawSpecialLayer_DRAW_WHITE, TestSize.Level2)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SECURITY, true);
+
+    CaptureParam captureParam;
+    captureParam.isSnapshot_ = true;
+    captureParam.isSingleSurface_ = true;
+    captureParam.isNeedBlur_ = false;
+    captureParam.isSelfCapture_ = false;
+    RSUniRenderThread::SetCaptureParam(captureParam);
+
+    RSRenderThreadParams uniParam;
+    ASSERT_TRUE(surfaceDrawable_->DrawSpecialLayer(*canvas_, *surfaceParams, uniParam));
+}
+
+/**
+ * @tc.name: DrawSpecialLayer_DRAW_BLACK
+ * @tc.desc: Test DrawSpecialLayer when drawType returns DRAW_BLACK to trigger DrawRectWithColor with black color
+ * @tc.type: FUNC
+ * @tc.require: issue22101
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawSpecialLayer_DRAW_BLACK, TestSize.Level2)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SECURITY, true);
+
+    RSRenderThreadParams uniParam;
+    uniParam.SetSecurityDisplay(true);
+    uniParam.SetSecExemption(false);
+
+    ASSERT_TRUE(surfaceDrawable_->DrawSpecialLayer(*canvas_, *surfaceParams, uniParam));
+}
+
+/**
+ * @tc.name: DrawSpecialLayer_SKIP_DRAW_SecurityDisplay
+ * @tc.desc: Test DrawSpecialLayer when drawType returns SKIP_DRAW in security display mode
+ * @tc.type: FUNC
+ * @tc.require: issue22101
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawSpecialLayer_SKIP_DRAW_SecurityDisplay, TestSize.Level2)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SKIP, true);
+
+    RSRenderThreadParams uniParam;
+    uniParam.SetSecurityDisplay(true);
+
+    ASSERT_TRUE(surfaceDrawable_->DrawSpecialLayer(*canvas_, *surfaceParams, uniParam));
+}
+
+/**
+ * @tc.name: OnDraw_HasDRMInVirtualScreen
+ * @tc.desc: Test OnDraw when HasDRMInVirtualScreen returns true to trigger DrawRectWithColor with black color
+ * @tc.type: FUNC
+ * @tc.require: issue22101
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDraw_HasDRMInVirtualScreen, TestSize.Level2)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+
+    // Set up ancestor screen drawable with virtual screen property
+    auto screenNode = std::make_shared<RSScreenRenderNode>(1, 1);
+    auto screenDrawable = std::make_shared<DrawableV2::RSScreenRenderNodeDrawable>(std::move(screenNode));
+    screenDrawable->renderParams_ = std::make_unique<RSScreenRenderParams>(1);
+    auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable->renderParams_.get());
+    ASSERT_NE(screenParams, nullptr);
+
+    // Set screen as virtual and protected
+    screenParams->screenProperty_.Set<ScreenPropertyType::IS_VIRTUAL>(true);
+    surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
+
+    // Set ancestor screen drawable for surface params
+    surfaceParams->ancestorScreenDrawable_ = screenDrawable;
+
+    // Enable paint
+    drawable_->renderParams_->shouldPaint_ = true;
+    drawable_->renderParams_->contentEmpty_ = false;
+
+    // Call OnDraw which should trigger HasDRMInVirtualScreen and DrawRectWithColor
+    surfaceDrawable_->OnDraw(*canvas_);
 }
 }
