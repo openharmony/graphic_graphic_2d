@@ -205,6 +205,7 @@ public:
     ani_method paragraphStyleTrailingSpaceOptimized;
     ani_method paragraphStyleAutoSpace;
     ani_method paragraphStyleCompressHeadPunctuation;
+    ani_method paragraphStylePunctuationOverflow;
     ani_method paragraphStyleVerticalAlign;
     ani_method paragraphStyleIncludeFontPadding;
     ani_method paragraphStyleFallbackLineSpacing;

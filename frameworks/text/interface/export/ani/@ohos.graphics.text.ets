@@ -381,6 +381,7 @@ export default namespace text {
     autoSpace?: boolean;
     verticalAlign?: TextVerticalAlign;
     compressHeadPunctuation?: boolean;
+    punctuationOverflow?: boolean;
     lineSpacing?: double;
     firstLineHeadIndent?: double;
     tailIndents?: Array<double>;

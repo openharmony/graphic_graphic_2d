@@ -101,6 +101,8 @@ constexpr CacheKey PARAGRAPH_STYLE_AUTO_SPACE_KEY{
     ANI_INTERFACE_PARAGRAPH_STYLE, "<get>autoSpace", ANI_WRAP_RETURN_C(ANI_BOOLEAN)};
 constexpr CacheKey PARAGRAPH_STYLE_COMPRESS_HEAD_PUNCTUATION_KEY{
     ANI_INTERFACE_PARAGRAPH_STYLE, "<get>compressHeadPunctuation", ANI_WRAP_RETURN_C(ANI_BOOLEAN)};
+constexpr CacheKey PARAGRAPH_STYLE_PUNCTUATION_OVERFLOW_KEY{
+    ANI_INTERFACE_PARAGRAPH_STYLE, "<get>punctuationOverflow", ANI_WRAP_RETURN_C(ANI_BOOLEAN)};
 constexpr CacheKey PARAGRAPH_STYLE_VERTICAL_ALIGN_KEY{
     ANI_INTERFACE_PARAGRAPH_STYLE, "<get>verticalAlign", ANI_WRAP_RETURN_E(ANI_ENUM_TEXT_VERTICAL_ALIGN)};
 constexpr CacheKey PARAGRAPH_STYLE_INCLUDE_FONT_PADDING_KEY{
@@ -500,6 +502,8 @@ void AniGlobalMethod::InitParagraphStyleMethod(ani_env* env)
         env, AniGlobalClass::GetInstance().paragraphStyle, PARAGRAPH_STYLE_AUTO_SPACE_KEY);
     paragraphStyleCompressHeadPunctuation = AniClassFindMethod(
         env, AniGlobalClass::GetInstance().paragraphStyle, PARAGRAPH_STYLE_COMPRESS_HEAD_PUNCTUATION_KEY);
+    paragraphStylePunctuationOverflow = AniClassFindMethod(
+        env, AniGlobalClass::GetInstance().paragraphStyle, PARAGRAPH_STYLE_PUNCTUATION_OVERFLOW_KEY);
     paragraphStyleVerticalAlign = AniClassFindMethod(
         env, AniGlobalClass::GetInstance().paragraphStyle, PARAGRAPH_STYLE_VERTICAL_ALIGN_KEY);
     paragraphStyleIncludeFontPadding = AniClassFindMethod(

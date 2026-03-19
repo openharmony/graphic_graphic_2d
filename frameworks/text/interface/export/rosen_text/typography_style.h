@@ -109,6 +109,7 @@ struct RS_EXPORT TypographyStyle {
     bool isEndAddParagraphSpacing{false};
     bool isTrailingSpaceOptimized{false};
     bool compressHeadPunctuation{false};
+    bool punctuationOverflow{false};
     bool enableAutoSpace{false};
     TextVerticalAlign verticalAlignment{TextVerticalAlign::BASELINE};
 

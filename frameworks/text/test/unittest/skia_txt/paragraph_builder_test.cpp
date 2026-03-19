@@ -285,4 +285,25 @@ HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest016, TestSize.Level0)
      EXPECT_EQ(skStyle.getEnableAutoSpace(), txt.enableAutoSpace);
      EXPECT_EQ(skStyle.getCompressHeadPunctuation(), txt.compressHeadPunctuation);
 }
+
+/*
+ * @tc.name: ParagraphBuilderTest017
+ * @tc.desc: test for PunctuationOverflow property transfer in ParagraphStyle
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest017, TestSize.Level0)
+{
+    skia::textlayout::ParagraphStyle skStyle;
+    ParagraphStyle txt;
+
+    // Test default value (false)
+    txt.punctuationOverflow = false;
+    skStyle.setPunctuationOverflow(txt.punctuationOverflow);
+    EXPECT_EQ(skStyle.getPunctuationOverflow(), txt.punctuationOverflow);
+
+    // Test set value (true)
+    txt.punctuationOverflow = true;
+    skStyle.setPunctuationOverflow(txt.punctuationOverflow);
+    EXPECT_EQ(skStyle.getPunctuationOverflow(), txt.punctuationOverflow);
+}
 } // namespace txt

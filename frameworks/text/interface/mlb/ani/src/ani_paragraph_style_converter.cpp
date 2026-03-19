@@ -41,6 +41,8 @@ void AniParagraphStyleConverter::ParseSimpleParagraphStyleToNative(
         env, obj, AniGlobalMethod::GetInstance().paragraphStyleAutoSpace, paragraphStyle->enableAutoSpace);
     AniTextUtils::ReadOptionalBoolField(env, obj, AniGlobalMethod::GetInstance().paragraphStyleCompressHeadPunctuation,
         paragraphStyle->compressHeadPunctuation);
+    AniTextUtils::ReadOptionalBoolField(env, obj, AniGlobalMethod::GetInstance().paragraphStylePunctuationOverflow,
+        paragraphStyle->punctuationOverflow);
     AniTextUtils::ReadOptionalEnumField(env, obj, AniTextEnum::textVerticalAlign,
         AniGlobalMethod::GetInstance().paragraphStyleVerticalAlign, paragraphStyle->verticalAlignment);
     AniTextUtils::ReadOptionalBoolField(env, obj, AniGlobalMethod::GetInstance().paragraphStyleIncludeFontPadding,

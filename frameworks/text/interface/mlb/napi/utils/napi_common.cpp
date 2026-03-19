@@ -542,9 +542,11 @@ void HandleExtentParagraphStyleProperties(napi_env env, napi_value argValue, Typ
     SetBoolValueFromJS(env, argValue, "includeFontPadding", pographyStyle.includeFontPadding);
     SetBoolValueFromJS(env, argValue, "fallbackLineSpacing", pographyStyle.fallbackLineSpacing);
     SetBoolValueFromJS(env, argValue, "orphanCharOptimization", pographyStyle.orphanCharOptimization);
+    SetBoolValueFromJS(env, argValue, "punctuationOverflow", pographyStyle.punctuationOverflow);
     SetDoubleValueFromJS(env, argValue, "firstLineHeadIndent", pographyStyle.firstLineIndent);
     ParseDoubleArrayFromJsProperty(env, argValue, "tailIndents", pographyStyle.tailIndents);
     ParseDoubleArrayFromJsProperty(env, argValue, "headIndents", pographyStyle.headIndents);
+    SetBoolValueFromJS(env, argValue, "punctuationOverflow", pographyStyle.punctuationOverflow);
 }
 
 bool GetPlaceholderSpanFromJS(napi_env env, napi_value argValue, PlaceholderSpan& placeholderSpan)
