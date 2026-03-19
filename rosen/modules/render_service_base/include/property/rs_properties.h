@@ -486,6 +486,7 @@ public:
     const std::shared_ptr<MotionBlurParam>& GetMotionBlurPara() const;
     const std::shared_ptr<RSMagnifierParams>& GetMagnifierPara() const;
     bool DisableHWCForFilter() const;
+    bool NeedClipHoleForRenderGroup() const;
     bool NeedFilter() const;
     bool NeedHwcFilter() const;
     bool NeedSkipSubtreeParallel() const;

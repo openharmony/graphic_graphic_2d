@@ -299,6 +299,27 @@ bool RSRenderParams::ChildHasTranslateOnSqueeze() const
     return false;
 }
 
+void RSRenderParams::SetNeedClipHoleForFilter(bool val)
+{
+    if (NeedClipHoleForFilter() == val) {
+        return;
+    }
+    if (!renderGroupCache_) {
+        renderGroupCache_ = std::make_unique<RSRenderGroupCache>();
+    }
+    if (renderGroupCache_ && renderGroupCache_->SetNeedClipHoleForFilter(val)) {
+        needSync_ = true;
+    }
+}
+
+bool RSRenderParams::NeedClipHoleForFilter() const
+{
+    if (renderGroupCache_) {
+        return renderGroupCache_->NeedClipHoleForFilter();
+    }
+    return false;
+}
+
 void RSRenderParams::SetDrawingCacheIncludeProperty(bool includeProperty)
 {
     if (drawingCacheIncludeProperty_ == includeProperty) {

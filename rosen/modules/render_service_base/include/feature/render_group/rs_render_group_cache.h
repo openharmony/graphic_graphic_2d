@@ -62,12 +62,19 @@ public:
         return childHasTranslateOnSqueeze_;
     }
 
+    bool SetNeedClipHoleForFilter(bool val);
+    bool NeedClipHoleForFilter() const
+    {
+        return needClipHoleForFilter_;
+    }
+
 private:
     bool excludedFromNodeGroup_ = false;
     bool hasChildExcludedFromNodeGroup_ = false;
     bool isExcludedStateChanged_ = false;
     bool isCachedSubTreeDirty_ = false;
     bool childHasTranslateOnSqueeze_ = false;
+    bool needClipHoleForFilter_ = false;
 };
 
 class RSB_EXPORT AutoRenderGroupExcludedSubTreeGuard {
