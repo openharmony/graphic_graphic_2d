@@ -231,7 +231,8 @@ static bool IsInvalidConnectInfo(const sptr<ConnectToServiceInfo>& result)
            !result->vsyncToken_;
 }
 
-sptr<ReplyToRenderInfo> RSRenderService::RegisterRenderProcessConnection(const sptr<ConnectToServiceInfo>& connectToServiceInfo)
+sptr<ReplyToRenderInfo> RSRenderService::RegisterRenderProcessConnection(
+    const sptr<ConnectToServiceInfo>& connectToServiceInfo)
 {
     if (IsInvalidConnectInfo(connectToServiceInfo)) {
         RS_LOGE("dmulti_process %{public}s: connectToServiceInfo is invalid", __func__);
