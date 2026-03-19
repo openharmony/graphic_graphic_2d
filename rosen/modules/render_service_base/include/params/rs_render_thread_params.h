@@ -24,6 +24,7 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/ohos/rs_jank_stats.h"
 #include "property/rs_properties.h"
+#include "rs_render_params.h"
 #include "screen_manager/rs_screen_info.h"
 
 namespace OHOS::Rosen {
@@ -492,6 +493,22 @@ public:
         return isDrawingCacheDfxEnabled_;
     }
 
+    void SetSurfaceFpsOp(uint32_t surfaceFpsOpNum, std::vector<SurfaceFpsOp> surfaceFpsOpList)
+    {
+        surfaceFpsOpNum_ = surfaceFpsOpNum;
+        surfaceFpsOpList_ = std::move(surfaceFpsOpList);
+    }
+
+    uint32_t GetSurfaceFpsOpNum() const
+    {
+        return surfaceFpsOpNum_;
+    }
+
+    std::vector<SurfaceFpsOp> GetSurfaceFpsOpList() const
+    {
+        return surfaceFpsOpList_;
+    }
+
     const ScreenInfo& GetScreenInfo() const
     {
         return screenInfo_;
@@ -645,6 +662,9 @@ private:
     RSPowerOffRenderController powerOffRenderController_;
     bool isOverDrawEnabled_ = false;
     bool isDrawingCacheDfxEnabled_ = false;
+
+    uint32_t surfaceFpsOpNum_ = 0;
+    std::vector<SurfaceFpsOp> surfaceFpsOpList_;
 
     int64_t onVsyncStartTime_ = TIMESTAMP_INITIAL;
     int64_t onVsyncStartTimeSteady_ = TIMESTAMP_INITIAL;
