@@ -17,7 +17,10 @@
 
 #include <iremote_proxy.h>
 #include "message_parcel.h"
+
 #include "render_server/transaction/rs_client_to_service_connection.h"
+#include "platform/ohos/transaction/rs_render_connect_parcel_info.h"
+
 namespace OHOS {
 namespace Rosen {
 class RSConnectionTokenProxy : public IRemoteProxy<RSIConnectionToken> {

@@ -54,6 +54,8 @@
 #include "transaction/rs_client_to_render_connection.h"
 #include "vsync_generator.h"
 
+#include "platform/ohos/transaction/rs_render_connect_parcel_info.h"
+
 #undef LOG_TAG
 #define LOG_TAG "RSRenderService"
 
