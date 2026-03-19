@@ -124,7 +124,10 @@ bool RSRenderProcess::Init()
 
     // 子进程初始化完毕
     RS_LOGI("dmulti_process %{public}s: notify render process init successful", __func__);
-    renderToServiceConnection_->NotifyRenderProcessInitFinished();
+    if (!renderToServiceConnection_->NotifyRenderProcessInitFinished()) {
+        RS_LOGE("%{public}s: NotifyRenderProcessInitFinished is failed", __func__);
+        return false;
+    }
 
     RSProcessDumpManager::GetInstance().SetRenderToServiceConnection(renderToServiceConnection_);
     RSProcessDumpManager::GetInstance().SetPid(getpid());
