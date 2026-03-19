@@ -94,6 +94,8 @@ public:
         std::string name;
         std::string localName;
         std::vector<FontVariation> coordinates;
+        mutable void* cachedCoordinates = nullptr;
+        mutable size_t cachedCoordinatesLength = 0;
     };
 
     struct FontDescriptor {

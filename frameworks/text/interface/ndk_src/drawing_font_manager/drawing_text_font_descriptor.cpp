@@ -503,6 +503,24 @@ void OH_Drawing_DestroyFontVariationAxis(OH_Drawing_Array* array)
     delete axisArray;
 }
 
+static void FreeCachedCoordinates(Drawing::FontParser::FontVariationInstance* instance)
+{
+    if (instance == nullptr || instance->cachedCoordinates == nullptr) {
+        return;
+    }
+    OH_Drawing_FontVariationInstanceCoordinate* coords =
+        static_cast<OH_Drawing_FontVariationInstanceCoordinate*>(instance->cachedCoordinates);
+    for (size_t j = 0; j < instance->cachedCoordinatesLength; ++j) {
+        if (coords[j].axisKey != nullptr) {
+            free(coords[j].axisKey);
+            coords[j].axisKey = nullptr;
+        }
+    }
+    delete[] coords;
+    instance->cachedCoordinates = nullptr;
+    instance->cachedCoordinatesLength = 0;
+}
+
 void OH_Drawing_DestroyFontVariationInstance(OH_Drawing_Array* array)
 {
     if (array == nullptr) {
@@ -521,6 +539,7 @@ void OH_Drawing_DestroyFontVariationInstance(OH_Drawing_Array* array)
         if (instances[i] == nullptr) {
             continue;
         }
+        FreeCachedCoordinates(instances[i]);
         delete instances[i];
         instances[i] = nullptr;
     }
@@ -600,7 +619,13 @@ OH_Drawing_FontVariationInstanceCoordinate* OH_Drawing_GetFontVariationInstanceC
         return nullptr;
     }
 
-    const auto& instance = *reinterpret_cast<const Drawing::FontParser::FontVariationInstance*>(variationInstance);
+    auto& instance = *reinterpret_cast<Drawing::FontParser::FontVariationInstance*>(variationInstance);
+
+    // Return cached coordinates if already allocated
+    if (instance.cachedCoordinates != nullptr) {
+        *arrayLength = instance.cachedCoordinatesLength;
+        return static_cast<OH_Drawing_FontVariationInstanceCoordinate*>(instance.cachedCoordinates);
+    }
 
     *arrayLength = instance.coordinates.size();
     OH_Drawing_FontVariationInstanceCoordinate* coordinates =
@@ -617,6 +642,10 @@ OH_Drawing_FontVariationInstanceCoordinate* OH_Drawing_GetFontVariationInstanceC
         }
         coordinates[i].value = instance.coordinates[i].value;
     }
+
+    // Cache the allocated coordinates for later cleanup
+    instance.cachedCoordinates = coordinates;
+    instance.cachedCoordinatesLength = *arrayLength;
 
     return coordinates;
 }
