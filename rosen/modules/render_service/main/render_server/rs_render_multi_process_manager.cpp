@@ -165,9 +165,12 @@ sptr<IRemoteObject> RSMultiRenderProcessManager::HandleExistingGroup(pid_t pid, 
     const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property)
 {
     RS_LOGD("GroupId has connected already, screenId is %{public}" PRIu64, screenId);
-    sptr<RSIServiceToRenderConnection> serviceToRenderConnection = GotServiceToRenderConnByPid(pid);
     auto composerConn = renderService_.rsRenderComposerManager_->GetRSComposerConnection(screenId);
+
+    // TODO: 需要适配ouput的marshalling和unmarshalling
+    sptr<RSIServiceToRenderConnection> serviceToRenderConnection = GotServiceToRenderConnByPid(pid);
     serviceToRenderConnection->NotifyScreenConnectInfoToRender(output, property, composerConn);
+
     sptr<RSIComposerToRenderConnection> composerToRenderConnection = composerToRenderConnections_.at(pid);
     renderService_.rsRenderComposerManager_->SetComposerToRenderConnection(screenId, composerToRenderConnection);
     auto connectToRender = GotConnectToRenderConnByPid(pid);
@@ -273,6 +276,8 @@ void RSMultiRenderProcessManager::OnVirtualScreenConnected(ScreenId id, ScreenId
             oldScreenServiceToRenderConn->NotifyScreenDisconnectInfoToRender(id);
         }
     }
+
+    serviceToRenderConn->NotifyScreenConnectInfoToRender(nullptr, property, nullptr);
 }
 
 void RSMultiRenderProcessManager::OnVirtualScreenDisconnected(ScreenId id)

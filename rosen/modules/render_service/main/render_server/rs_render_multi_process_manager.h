@@ -58,8 +58,10 @@ public:
     sptr<RSIConnectToRenderProcess> GetConnectToRenderConnection(ScreenId screenId) const override;
 
 private:
-    sptr<IRemoteObject> HandleExistingGroup(pid_t pid, ScreenId screenId, const sptr<RSScreenProperty>& property);
-    sptr<IRemoteObject> HandleNewGroup(GroupId groupId, ScreenId screenId, const sptr<RSScreenProperty>& property);
+    sptr<IRemoteObject> HandleExistingGroup(pid_t pid, ScreenId screenId, const std::shared_ptr<HdiOutput>& output,
+        const sptr<RSScreenProperty>& property);
+    sptr<IRemoteObject> HandleNewGroup(GroupId groupId, ScreenId screenId, const std::shared_ptr<HdiOutput>& output,
+        const sptr<RSScreenProperty>& property);
     GroupId GetGroupIdByScreenId(ScreenId screenId) const;
     std::optional<GroupId> CheckGroupIdByScreenId(ScreenId screenId) const;
 
