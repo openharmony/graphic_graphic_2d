@@ -149,24 +149,25 @@ std::optional<GroupId> RSMultiRenderProcessManager::CheckGroupIdByScreenId(Scree
     return (iter != screenIdToGroupId.end()) ? std::make_optional<GroupId>(iter->second) : std::nullopt;
 }
 
-sptr<IRemoteObject> RSMultiRenderProcessManager::OnScreenConnected(ScreenId screenId, const ScreenEventData& data,
-    const sptr<RSScreenProperty>& property)
+sptr<IRemoteObject> RSMultiRenderProcessManager::OnScreenConnected(ScreenId id,
+    const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property)
 {
     // Find the corresponding groupId for the screenId
     GroupId groupId = GetGroupId(screenId);
     auto optionalPid = GetRenderProcessPidByGroupId(groupId);
     auto renderConnProxy = optionalPid.has_value() ?
-        HandleExistingGroup(optionalPid.value(), screenId, property) : HandleNewGroup(groupId, screenId, property);
+        HandleExistingGroup(optionalPid.value(), screenId, output, property) :
+        HandleNewGroup(groupId, screenId, output, property);
     return renderConnProxy;
 }
 
 sptr<IRemoteObject> RSMultiRenderProcessManager::HandleExistingGroup(pid_t pid, ScreenId screenId,
-    const sptr<RSScreenProperty>& property)
+    const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property)
 {
     RS_LOGD("GroupId has connected already, screenId is %{public}" PRIu64, screenId);
     sptr<RSIServiceToRenderConnection> serviceToRenderConnection = GotServiceToRenderConnByPid(pid);
     auto composerConn = renderService_.rsRenderComposerManager_->GetRSComposerConnection(screenId);
-    serviceToRenderConnection->NotifyScreenConnectInfoToRender(property, composerConn);
+    serviceToRenderConnection->NotifyScreenConnectInfoToRender(output, property, composerConn);
     sptr<RSIComposerToRenderConnection> composerToRenderConnection = composerToRenderConnections_.at(pid);
     renderService_.rsRenderComposerManager_->SetComposerToRenderConnection(screenId, composerToRenderConnection);
     auto connectToRender = GotConnectToRenderConnByPid(pid);
@@ -174,7 +175,7 @@ sptr<IRemoteObject> RSMultiRenderProcessManager::HandleExistingGroup(pid_t pid, 
 }
 
 sptr<IRemoteObject> RSMultiRenderProcessManager::HandleNewGroup(GroupId groupId, ScreenId screenId,
-    const sptr<RSScreenProperty>& property)
+    const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property)
 {
     RS_LOGD("GroupId first time connect, screenId is %{public}" PRIu64, screenId);
     std::promise<bool> renderProcessReadyPromise;
@@ -186,7 +187,7 @@ sptr<IRemoteObject> RSMultiRenderProcessManager::HandleNewGroup(GroupId groupId,
         pid = ForkAndExec(groupId);
         if (pid > 0) {
             UpdateGroupIdToRenderProcessPid(groupId, pid);
-            PendingScreenConnectInfo screenConnectInfo {.screenId = screenId, .property = property};
+            PendingScreenConnectInfo screenConnectInfo {.screenId = screenId, .output = output, .property = property};
             pendingScreenConnectInfos_.insert_or_assign(pid, screenConnectInfo);
             renderProcessReadyPromises_[pid] = std::move(renderProcessReadyPromise);
             if (const auto& hgmContext = renderService_.GetHgmContext()) {

@@ -37,13 +37,14 @@ public:
     explicit RSMultiRenderProcessManager(RSRenderService& renderService);
     ~RSMultiRenderProcessManager() noexcept override = default;
 
-    sptr<IRemoteObject> OnScreenConnected(ScreenId id, const ScreenEventData& data,
-        const sptr<RSScreenProperty>& property) override;
+    sptr<IRemoteObject> OnScreenConnected(ScreenId id,
+        const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property) override;
     void OnScreenDisconnected(ScreenId id) override;
-    void OnScreenPropertyChanged(ScreenId id, const sptr<RSScreenProperty>& property,
-        std::optional<ScreenId> associatedScreenId) override;
+    void OnScreenPropertyChanged(ScreenId id, ScreenPropertyType type,
+        const sptr<ScreenPropertyBase>& property) override;
     void OnScreenRefresh(ScreenId id) override;
-    void OnVirtualScreenConnected(ScreenId id, ScreenId associatedScreenId, const sptr<RSScreenProperty>& property) override;
+    void OnVirtualScreenConnected(ScreenId id,
+        ScreenId associatedScreenId, const sptr<RSScreenProperty>& property) override;
     void OnVirtualScreenDisconnected(ScreenId id) override;
 
     void RecordRenderProcessConnection(pid_t pid, sptr<RSIServiceToRenderConnection> serviceToRenderConnection,
@@ -95,6 +96,7 @@ private:
 
     struct PendingScreenConnectInfo {
         ScreenId screenId = INVALID_SCREEN_ID;
+        std::shared_ptr<HdiOutput> output = nullptr;
         sptr<RSScreenProperty> property = nullptr;
     };
     std::unordered_map<pid_t, PendingScreenConnectInfo> pendingScreenConnectInfos_;

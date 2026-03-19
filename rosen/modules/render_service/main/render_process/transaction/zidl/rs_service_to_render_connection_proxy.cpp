@@ -36,32 +36,33 @@ namespace Rosen {
 RSServiceToRenderConnectionProxy::RSServiceToRenderConnectionProxy(const sptr<IRemoteObject>& impl)
     : IRemoteProxy<RSIServiceToRenderConnection>(impl) {}
 
-int32_t RSServiceToRenderConnectionProxy::NotifyScreenConnectInfoToRender(const sptr<RSScreenProperty>& screenProperty, sptr<IRSRenderToComposerConnection> composerConn)
+int32_t RSServiceToRenderConnectionProxy::NotifyScreenConnectInfoToRender(const sptr<RSScreenProperty>& screenProperty,
+    sptr<IRSRenderToComposerConnection> composerConn)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
-        ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::NotifyScreenConnectInfoToRender: WriteInterfaceToken failed");
+        ROSEN_LOGE("%{public}s::NotifyScreenConnectInfoToRender: WriteInterfaceToken failed", __func__);
         return -1;
     }
     if (!data.WriteParcelable(screenProperty.GetRefPtr())) {
-        ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::NotifyScreenConnectInfoToRender: WriteParcelable failed");
+        ROSEN_LOGE("%{public}s::NotifyScreenConnectInfoToRender: WriteParcelable failed", __func__);
         return -1;
     }
     if (!data.WriteRemoteObject(composerConn->AsObject())) {
-        ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::NotifyScreenConnectInfoToRender: WriteObject failed");
+        ROSEN_LOGE("%{public}s::NotifyScreenConnectInfoToRender: WriteObject failed", __func__);
         return -1;
     }
     if (composerConn) {
         if (!data.WriteBool(true) || !data.WriteRemoteObject(composerConn->AsObject())) {
-            ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::NotifyScreenConnectInfoToRender: WriteObject failed.");
+            ROSEN_LOGE("%{public}s::NotifyScreenConnectInfoToRender: WriteObject failed.", __func__);
             return -1;
         }
     } else {
         if (!data.WriteBool(false)) {
-            ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::NotifyScreenConnectInfoToRender: WriteBool failed.");
+            ROSEN_LOGE("%{public}s::NotifyScreenConnectInfoToRender: WriteBool failed.", __func__);
             return -1;
         }
     }

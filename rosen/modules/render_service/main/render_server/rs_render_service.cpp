@@ -222,6 +222,49 @@ void RSRenderService::Run()
     }
 }
 
+static bool IsInvalidConnectInfo(const sptr<ConnectToServiceInfo>& result)
+{
+    return !result ||
+           !result->serviceToRenderConnection_ ||
+           !result->composerToRenderConnection_ ||
+           !result->connectToRenderConnection_ ||
+           !result->vsyncToken_;
+}
+
+sptr<ReplyToRenderInfo> RSRenderService::RegisterRenderProcessConnection(const sptr<ConnectToServiceInfo>& connectToServiceInfo)
+{
+    if (IsInvalidConnectInfo(connectToServiceInfo)) {
+        RS_LOGE("dmulti_process %{public}s: connectToServiceInfo is invalid", __func__);
+        return nullptr;
+    }
+    const auto remotePid = GetCallingPid();
+    auto serviceToRenderConn = iface_cast<RSIServiceToRenderConnection>(connectToServiceInfo->serviceToRenderConnection_);
+    auto composerToRenderConn = iface_cast<RSIComposerToRenderConnection>(connectToServiceInfo->composerToRenderConnection_);
+    auto connectToRenderConn = iface_cast<RSIConnectToRenderProcess>(connectToServiceInfo->connectToRenderConnection_);
+    RS_LOGI("dmulti_process %{public}s: remotePid[%{public}d], connectToRenderConn[%{public}p", __func__,
+        remotePid, connectToRenderConn.GetRefPtr());
+    RS_LOGI("dmulti_process renderProcessManager_[%{public}p]", renderProcessManager_.GetRefPtr());
+    auto renderMultiProcessManager = static_cast<RSMultiRenderProcessManager*>(renderProcessManager_.GetRefPtr());
+    renderMultiProcessManager->RecordRenderProcessConnection(remotePid, serviceToRenderConn,
+        composerToRenderConn, connectToRenderConn);
+
+    // 准备往回带的信息
+    auto rsScreenProperty = renderMultiProcessManager->GetPendingScreenProperty(remotePid);
+    RS_LOGI("dmulti_process %{public}s rsScreenProperty.id[%{public}" PRIu64 "] .width[%{public}d] .height[%{public}d]",
+        __func__, rsScreenProperty->GetScreenId(), rsScreenProperty->GetWidth(), rsScreenProperty->GetHeight());
+    sptr<RSRenderServiceAgent> renderServiceAgent = sptr<RSRenderServiceAgent>::MakeSptr(*this);
+    sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent = sptr<RSRenderProcessManagerAgent>::MakeSptr(renderProcessManager_);
+    auto screenManagerAgent = sptr<RSScreenManagerAgent>::MakeSptr(screenManager_);
+    auto renderToServiceConnection = sptr<RSRenderToServiceConnection>::MakeSptr(
+        renderServiceAgent, renderProcessManagerAgent, screenManagerAgent);
+    auto composerConn = rsRenderComposerManager_->GetRSComposerConnection(rsScreenProperty->GetScreenId());
+    sptr<VSyncConnection> vsyncConn = new VSyncConnection(rsVSyncDistributor_, "render_process", connectToServiceInfo->vsyncToken_);
+    RS_LOGI("dmulti_process RSRenderService::RegisterRenderProcessConnection create vsyncConn");
+    rsVSyncDistributor_->AddConnection(vsyncConn);
+    return sptr<ReplyToRenderInfo>::MakeSptr(renderToServiceConnection->AsObject(), composerConn->AsObject(),
+        rsScreenProperty, vsyncConn->AsObject());
+}
+
 std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> RSRenderService::GetConnection(
     const sptr<RSIConnectionToken>& token)
 {

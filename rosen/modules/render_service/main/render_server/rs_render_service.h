@@ -77,6 +77,8 @@ private:
     };
 
     // IPC related
+    sptr<ReplyToRenderInfo> RegisterRenderProcessConnection(
+        const sptr<ConnectToServiceInfo>& connectToServiceInfo) override;
     std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> CreateConnection(
         const sptr<RSIConnectionToken>& token) override;
     std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> GetConnection(
