@@ -58,6 +58,7 @@
 #include "drawable/rs_color_picker_drawable.h"
 #include "feature/dirty/rs_uni_dirty_occlusion_util.h"
 #include "feature/drm/rs_drm_util.h"
+#include "feature/frame_stability/rs_frame_stability_manager.h"
 #include "feature/hdr/rs_hdr_util.h"
 #include "feature/pointer_window_manager/rs_pointer_window_manager.h"
 #include "feature/power_off_render_skip/rs_power_off_render_controller.h"
@@ -2672,6 +2673,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
         auto screenId = screenNode->GetScreenId();
         screenNode->ResetVideoHeadroomInfo();
         auto& rsLuminance = RSLuminanceControl::Get();
+        std::vector<RectI> refreshRects;
         for (auto& surfaceNode : hardwareEnabledNodes_) {
             if (surfaceNode == nullptr) {
                 RS_LOGE("DoDirectComposition: surfaceNode is null!");
@@ -2692,6 +2694,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
                     if (preBufferOwnerCount) {
                         preBufferOwnerCount->DecRef();
                     }
+                    refreshRects.emplace_back(surfaceNode->GetDstRect());
                 }
                 HandleTunnelLayerId(surfaceHandler, surfaceNode);
                 if (!surfaceHandler->IsCurrentFrameBufferConsumed() && params->GetPreBuffer() != nullptr) {
@@ -2721,6 +2724,8 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
         RSPointerWindowManager::Instance().HardCursorCreateLayerForDirect(processor);
         auto rcdInfo = std::make_unique<RcdInfo>();
         DoScreenRcdTask(screenNode->GetId(), processor, rcdInfo, screenNode->GetScreenProperty());
+        RSFrameStabilityManager::GetInstance().RecordCurrentFrameDirty(screenId, refreshRects,
+            screenNode->GetScreenProperty().GetWidth() * screenNode->GetScreenProperty().GetHeight());
         processor->ProcessScreenSurface(*screenNode);
         composerClientManager_->UpdatePipelineParam(screenId, pipelineParam_);
         processor->PostProcess();

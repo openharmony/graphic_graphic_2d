@@ -22,7 +22,11 @@ namespace OHOS {
 namespace Rosen {
 enum class FrameStabilityErrorCode : int32_t {
     SUCCESS = 0,
-    NULL_CALLBACK
+    NULL_CALLBACK,
+    TARGET_ID_ALREADY_REGISTERED,
+    TARGET_ID_NOT_REGISTERED,
+    CONNECTIONS_OCCUPIED,
+    UNKNOW
 };
 
 enum class FrameStabilityTargetType : uint32_t {
