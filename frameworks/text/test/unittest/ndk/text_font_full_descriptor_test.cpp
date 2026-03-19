@@ -392,7 +392,7 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest007, TestSize.Level
 
 /*
  * @tc.name: NdkFontFullDescriptorTest008
- * @tc.desc: test for OH_Drawing_GetFontVariationInstanceByIndex and OH_Drawing_DestroyFontVariationInstance with nullptr input
+ * @tc.desc: test OH_Drawing_GetFontVariationInstanceByIndex and OH_Drawing_DestroyFontVariationInstance with nullptr
  * @tc.type: FUNC
  */
 HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest008, TestSize.Level0)
