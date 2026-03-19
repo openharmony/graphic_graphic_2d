@@ -22,6 +22,9 @@
 
 namespace OHOS {
 namespace Rosen {
+struct ReplyToRenderInfo;
+struct ConnectToServiceInfo;
+
 class RSIRenderService : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.RenderService");

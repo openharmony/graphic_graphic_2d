@@ -30,7 +30,7 @@ public:
         : renderPipelineAgent_(renderPipelineAgent) {}
     RSServiceToRenderConnection(sptr<RSRenderProcessAgent> renderProcessAgent,
         sptr<RSRenderPipelineAgent> renderPipelineAgent)
-        : renderProcessAgent_(renderProcessAgent)
+        : renderProcessAgent_(renderProcessAgent),
           renderPipelineAgent_(renderPipelineAgent) {}
     ~RSServiceToRenderConnection() noexcept = default;
 

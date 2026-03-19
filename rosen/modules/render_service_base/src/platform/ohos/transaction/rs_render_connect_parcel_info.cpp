@@ -19,6 +19,7 @@ namespace OHOS {
 namespace Rosen {
 bool ReplyToRenderInfo::Marshalling(Parcel& data) const
 {
+    // TODO: 泄露风险，需要整改
     MessageParcel* message = static_cast<MessageParcel*>(&data);
     if (!message->WriteRemoteObject(serviceConnection_)) {
         return false;
@@ -26,7 +27,6 @@ bool ReplyToRenderInfo::Marshalling(Parcel& data) const
     if (!message->WriteRemoteObject(composeConnection_)) {
         return false;
     }
-    // chenke fix
     if (!data.WriteParcelable(rsScreenProperty_.GetRefPtr())) {
         return false;
     }
@@ -39,6 +39,7 @@ bool ReplyToRenderInfo::Marshalling(Parcel& data) const
 ReplyToRenderInfo* ReplyToRenderInfo::Unmarshalling(Parcel& data)
 {
     auto result = new ReplyToRenderInfo();
+    // TODO: 泄露风险，需要整改
     MessageParcel* message = static_cast<MessageParcel*>(&data);
     result->serviceConnection_ = message->ReadRemoteObject();
     result->composeConnection_ = message->ReadRemoteObject();
@@ -49,6 +50,7 @@ ReplyToRenderInfo* ReplyToRenderInfo::Unmarshalling(Parcel& data)
 
 bool ConnectToServiceInfo::Marshalling(Parcel& data) const
 {
+    // TODO: 泄露风险，需要整改
     MessageParcel* message = static_cast<MessageParcel*>(&data);
     if (!message->WriteRemoteObject(serviceToRenderConnection_)) {
         return false;
@@ -68,6 +70,7 @@ bool ConnectToServiceInfo::Marshalling(Parcel& data) const
 ConnectToServiceInfo* ConnectToServiceInfo::Unmarshalling(Parcel& data)
 {
     auto result = new ConnectToServiceInfo();
+    // TODO: 泄露风险，需要整改
     MessageParcel* message = static_cast<MessageParcel*>(&data);
     result->serviceToRenderConnection_ = message->ReadRemoteObject();
     result->composerToRenderConnection_ = message->ReadRemoteObject();
