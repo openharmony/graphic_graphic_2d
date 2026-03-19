@@ -86,19 +86,19 @@ HWTEST_F(RSRenderNodeDrawableTest, CreateRenderNodeDrawable, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetSyncLayerPartRenderDirtyManager001
- * @tc.desc: Test GetSyncLayerPartRenderDirtyManager returns allocated layer-part dirty manager
+ * @tc.name: GetOpincDrawCache001
+ * @tc.desc: Test GetOpincDrawCache returns a valid reference
  * @tc.type: FUNC
  * @tc.require: issueLayerPart
  */
-HWTEST_F(RSRenderNodeDrawableTest, GetSyncLayerPartRenderDirtyManager001, TestSize.Level1)
+HWTEST_F(RSRenderNodeDrawableTest, GetOpincDrawCache001, TestSize.Level1)
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
     ASSERT_NE(drawable, nullptr);
 
-    auto layerPartDirtyManager = drawable->GetSyncLayerPartRenderDirtyManager();
+    auto& opincDrawCache = drawable->GetOpincDrawCache();
 
-    ASSERT_NE(layerPartDirtyManager, nullptr);
+    ASSERT_EQ(opincDrawCache.GetDrawAreaEnableState(), DrawAreaEnableState::DRAW_AREA_INIT);
 }
 
 /**
@@ -906,9 +906,8 @@ HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheSurfaceLayerPartStateChange001, Te
     drawable->cacheThreadId_ = gettid();
     ASSERT_NE(drawable->GetCachedSurface(gettid()), nullptr);
 
-    auto layerPartDirtyManager = drawable->GetSyncLayerPartRenderDirtyManager();
-    ASSERT_NE(layerPartDirtyManager, nullptr);
-    layerPartDirtyManager->SetLayerPartRenderEnabled(false);
+    params.SetLayerPartRenderEnabled(false);
+    params.SetLayerPartRenderCurrentFrameDirtyRegion(RectI(0, 0, 10, 10));
 
     drawable->UpdateCacheSurface(paintFilterCanvas, params);
 
@@ -934,10 +933,8 @@ HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheSurfaceLayerPartRenderDirtyRegion0
     drawable->cachedSurface_ = cacheSurface;
     drawable->cacheThreadId_ = gettid();
 
-    auto layerPartDirtyManager = drawable->GetSyncLayerPartRenderDirtyManager();
-    ASSERT_NE(layerPartDirtyManager, nullptr);
-    layerPartDirtyManager->SetLayerPartRenderEnabled(true);
-    layerPartDirtyManager->SetLayerPartRenderCurrentFrameDirtyRegion(RectI(0, 0, 10, 10));
+    params.SetLayerPartRenderEnabled(true);
+    params.SetLayerPartRenderCurrentFrameDirtyRegion(RectI(0, 0, 10, 10));
 
     drawable->UpdateCacheSurface(paintFilterCanvas, params);
 

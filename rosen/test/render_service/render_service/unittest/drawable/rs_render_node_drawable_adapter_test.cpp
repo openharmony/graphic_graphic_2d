@@ -17,6 +17,7 @@
 #include "drawable/rs_misc_drawable.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
 #include "drawable/rs_render_node_drawable.h"
+#include "parameters.h"
 #include "params/rs_render_params.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_context.h"
@@ -24,6 +25,7 @@
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "platform/common/rs_system_properties.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -305,6 +307,45 @@ HWTEST(RSRenderNodeDrawableAdapterTest, QuickRejectTest, TestSize.Level1)
     EXPECT_TRUE(!canvas.GetOffscreenDataList().empty());
     EXPECT_TRUE(!canvas.IsDirtyRegionStackEmpty() && !canvas.GetIsParallelCanvas());
     ret = adapter->QuickReject(canvas, rectF);
+}
+
+/**
+ * @tc.name: QuickRejectLayerPartDirtySwitchEnabled001
+ * @tc.desc: Test QuickReject enters layer-part dirty branch when switch is enabled
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST(RSRenderNodeDrawableAdapterTest, QuickRejectLayerPartDirtySwitchEnabled001, TestSize.Level1)
+{
+    const std::string layerPartDirtyKey = "rosen.layerPartRenderDirty.enabled";
+    const std::string oldLayerPartDirtyValue = system::GetParameter(layerPartDirtyKey, "0");
+    (void)system::SetParameter(layerPartDirtyKey, "1");
+    ASSERT_TRUE(RSSystemProperties::GetLayerPartRenderDirtyEnabled());
+
+    NodeId id = 16;
+    auto node = std::make_shared<RSRenderNode>(id);
+    auto adapter = std::make_shared<RSRenderNodeDrawable>(std::move(node));
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+
+    Drawing::Region baseDirtyRegion;
+    ASSERT_TRUE(baseDirtyRegion.SetRect(Drawing::RectI(0, 0, 10, 10)));
+    canvas.PushDirtyRegion(baseDirtyRegion);
+
+    Drawing::Region layerDirtyIntersect;
+    ASSERT_TRUE(layerDirtyIntersect.SetRect(Drawing::RectI(0, 0, 10, 10)));
+    canvas.PushLayerPartRenderDirtyRegion(layerDirtyIntersect);
+
+    RectF localDrawRect(1.0f, 1.0f, 1.0f, 1.0f);
+    EXPECT_FALSE(adapter->QuickReject(canvas, localDrawRect));
+
+    canvas.PopLayerPartRenderDirtyRegion();
+    Drawing::Region layerDirtyNotIntersect;
+    ASSERT_TRUE(layerDirtyNotIntersect.SetRect(Drawing::RectI(100, 100, 110, 110)));
+    canvas.PushLayerPartRenderDirtyRegion(layerDirtyNotIntersect);
+    EXPECT_TRUE(adapter->QuickReject(canvas, localDrawRect));
+
+    (void)system::SetParameter(layerPartDirtyKey, oldLayerPartDirtyValue);
 }
 
 /**

@@ -17,7 +17,6 @@
 #include "feature/opinc/rs_opinc_draw_cache.h"
 #include "feature/opinc/rs_opinc_manager.h"
 #include "params/rs_render_params.h"
-#include "pipeline/rs_dirty_region_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -714,17 +713,13 @@ HWTEST_F(RSOpincDrawCacheTest, PushLayerPartRenderDirtyRegion, TestSize.Level1)
     Drawing::Canvas canvas;
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
     RSRenderParams params(id);
-    auto dirtyManager = std::make_shared<RSDirtyRegionManager>();
-    ASSERT_NE(dirtyManager, nullptr);
 
     RectI dirtyRect = { LAYER_PART_RENDER_DIRTY_OFFSET, LAYER_PART_RENDER_DIRTY_OFFSET,
         LAYER_PART_RENDER_DIRTY_SIZE, LAYER_PART_RENDER_DIRTY_SIZE };
-    dirtyManager->SetLayerPartRenderCurrentFrameDirtyRegion(dirtyRect);
-    dirtyManager->SetLayerPartRenderEnabled(true);
-    ASSERT_TRUE(dirtyManager->GetLayerPartRenderEnabled());
+    params.SetLayerPartRenderCurrentFrameDirtyRegion(dirtyRect);
+    params.SetLayerPartRenderEnabled(true);
 
-    opincDrawCache.PushLayerPartRenderDirtyRegion(dirtyManager, params, paintFilterCanvas,
-        LAYER_PART_RENDER_NODE_COUNT);
+    opincDrawCache.PushLayerPartRenderDirtyRegion(params, paintFilterCanvas, LAYER_PART_RENDER_NODE_COUNT);
     SUCCEED();
 }
 
@@ -739,19 +734,18 @@ HWTEST_F(RSOpincDrawCacheTest, LayerPartRenderClipDirtyRegion, TestSize.Level1)
     DrawableV2::RSOpincDrawCache opincDrawCache;
     Drawing::Canvas canvas;
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
-    auto dirtyManager = std::make_shared<RSDirtyRegionManager>();
-    ASSERT_NE(dirtyManager, nullptr);
+    RSRenderParams params(id);
 
     RectI dirtyRect = { LAYER_PART_RENDER_DIRTY_OFFSET, LAYER_PART_RENDER_DIRTY_OFFSET,
         LAYER_PART_RENDER_DIRTY_SIZE, LAYER_PART_RENDER_DIRTY_SIZE };
-    dirtyManager->SetLayerPartRenderCurrentFrameDirtyRegion(dirtyRect);
-    dirtyManager->SetLayerPartRenderEnabled(true);
+    params.SetLayerPartRenderCurrentFrameDirtyRegion(dirtyRect);
+    params.SetLayerPartRenderEnabled(true);
 
-    opincDrawCache.LayerPartRenderClipDirtyRegion(dirtyManager, paintFilterCanvas);
+    opincDrawCache.LayerPartRenderClipDirtyRegion(params, paintFilterCanvas);
     ASSERT_TRUE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
 
-    dirtyManager->SetLayerPartRenderEnabled(false);
-    opincDrawCache.LayerPartRenderClipDirtyRegion(dirtyManager, paintFilterCanvas);
+    params.SetLayerPartRenderEnabled(false);
+    opincDrawCache.LayerPartRenderClipDirtyRegion(params, paintFilterCanvas);
     ASSERT_TRUE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
 }
 
@@ -766,12 +760,14 @@ HWTEST_F(RSOpincDrawCacheTest, PopLayerPartRenderDirtyRegion, TestSize.Level1)
     DrawableV2::RSOpincDrawCache opincDrawCache;
     Drawing::Canvas canvas;
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
-    auto dirtyManager = std::make_shared<RSDirtyRegionManager>();
-    ASSERT_NE(dirtyManager, nullptr);
+    RSRenderParams params(id);
 
-    dirtyManager->SetLayerPartRenderEnabled(true);
-    ASSERT_TRUE(dirtyManager->GetLayerPartRenderEnabled());
-    opincDrawCache.PopLayerPartRenderDirtyRegion(dirtyManager, paintFilterCanvas);
+    params.SetLayerPartRenderEnabled(true);
+    params.SetLayerPartRenderCurrentFrameDirtyRegion(RectI(0, 0, 10, 10));
+    ASSERT_TRUE(params.GetLayerPartRenderEnabled());
+
+    opincDrawCache.PushLayerPartRenderDirtyRegion(params, paintFilterCanvas, LAYER_PART_RENDER_NODE_COUNT);
+    opincDrawCache.PopLayerPartRenderDirtyRegion(params, paintFilterCanvas);
     SUCCEED();
 }
 

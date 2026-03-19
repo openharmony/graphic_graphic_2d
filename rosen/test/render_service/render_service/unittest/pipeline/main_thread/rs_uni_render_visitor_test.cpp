@@ -5890,10 +5890,12 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareCanvasRenderNodeLayerPartRender001,
     OPIncParam::SetLayerPartRenderEnable(false);
 
     auto& dirtyManager = canvasNode->GetOpincCache().GetLayerPartRenderDirtyManager();
+    auto& stagingRenderParams = canvasNode->GetStagingRenderParams();
     ASSERT_NE(dirtyManager, nullptr);
+    ASSERT_NE(stagingRenderParams, nullptr);
     ASSERT_TRUE(canvasNode->GetOpincCache().IsLayerPartRender());
-    ASSERT_TRUE(dirtyManager->GetLayerPartRenderEnabled());
-    ASSERT_EQ(dirtyManager->GetLayerPartRenderCurrentFrameDirtyRegion(), DEFAULT_FILTER_RECT);
+    ASSERT_TRUE(stagingRenderParams->GetLayerPartRenderEnabled());
+    ASSERT_EQ(stagingRenderParams->GetLayerPartRenderCurrentFrameDirtyRegion(), DEFAULT_FILTER_RECT);
 }
 
 /**
@@ -5930,9 +5932,11 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareCanvasRenderNode002, TestSize.Level
     rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
     rsUniRenderVisitor->curSurfaceDirtyManager_ = surfaceNode->GetDirtyManager();
     ASSERT_NE(rsUniRenderVisitor->curSurfaceDirtyManager_, nullptr);
+    rsUniRenderVisitor->curLayerPartRenderDirtyManager_ = nullptr;
     rsUniRenderVisitor->autoCacheEnable_ = false;
     rsUniRenderVisitor->isFirstFrameAfterScreenRotation_ = false;
     rsUniRenderVisitor->isCurSubTreeForcePrepare_ = false;
+    OPIncParam::SetLayerPartRenderEnable(false);
 
     rsUniRenderVisitor->QuickPrepareCanvasRenderNode(*canvasNode);
     bool isSubTreeSkipped = canvasNode->LastFrameSubTreeSkipped();
@@ -5941,6 +5945,42 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareCanvasRenderNode002, TestSize.Level
     (void)system::SetParameter(subTreePrepareTypeKey, oldSubTreePrepareType);
 
     ASSERT_TRUE(isSubTreeSkipped);
+    ASSERT_EQ(rsUniRenderVisitor->curLayerPartRenderDirtyManager_, nullptr);
+}
+
+/**
+ * @tc.name: QuickPrepareCanvasRenderNodeLayerPartManagerBranch003
+ * @tc.desc: Test QuickPrepareCanvasRenderNode keeps non-null layer-part manager when layer-part switch is disabled
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSUniRenderVisitorTest, QuickPrepareCanvasRenderNodeLayerPartManagerBranch003, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(DEFAULT_NODE_ID, rsContext->weak_from_this());
+    ASSERT_NE(canvasNode, nullptr);
+    canvasNode->InitRenderParams();
+    canvasNode->SetSubTreeDirty(false);
+    canvasNode->SetTreeStateChangeDirty(false);
+    canvasNode->SetForcePrepare(false);
+    canvasNode->MarkSuggestOpincNode(false, false);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
+    rsUniRenderVisitor->curSurfaceDirtyManager_ = surfaceNode->GetDirtyManager();
+    ASSERT_NE(rsUniRenderVisitor->curSurfaceDirtyManager_, nullptr);
+    rsUniRenderVisitor->curLayerPartRenderDirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+    ASSERT_NE(rsUniRenderVisitor->curLayerPartRenderDirtyManager_, nullptr);
+
+    OPIncParam::SetLayerPartRenderEnable(false);
+    rsUniRenderVisitor->QuickPrepareCanvasRenderNode(*canvasNode);
+
+    ASSERT_NE(rsUniRenderVisitor->curLayerPartRenderDirtyManager_, nullptr);
 }
 
 /**

@@ -1263,19 +1263,23 @@ HWTEST_F(RSRenderNodeTest, OnSyncLayerPartDirtyManagerToDrawable001, TestSize.Le
     auto drawable = std::make_shared<RSRenderNodeDrawableAdapterBoy>(node);
     ASSERT_NE(drawable, nullptr);
     node->renderDrawable_ = drawable;
-    ASSERT_EQ(drawable->GetSyncLayerPartRenderDirtyManager(), nullptr);
+    ASSERT_EQ(drawable->GetSyncDirtyManager(), nullptr);
+
+    auto& stagingRenderParams = node->GetStagingRenderParams();
+    ASSERT_NE(stagingRenderParams, nullptr);
 
     auto layerPartDirtyManager = node->GetOpincCache().GetLayerPartRenderDirtyManager();
     ASSERT_NE(layerPartDirtyManager, nullptr);
 
     RectI dirtyRect(1, 2, 3, 4);
-    layerPartDirtyManager->SetLayerPartRenderEnabled(true);
-    layerPartDirtyManager->SetLayerPartRenderCurrentFrameDirtyRegion(dirtyRect);
+    stagingRenderParams->SetLayerPartRenderEnabled(true);
+    stagingRenderParams->SetLayerPartRenderCurrentFrameDirtyRegion(dirtyRect);
 
     node->OnSync();
 
-    ASSERT_TRUE(layerPartDirtyManager->GetLayerPartRenderEnabled());
-    ASSERT_EQ(layerPartDirtyManager->GetLayerPartRenderCurrentFrameDirtyRegion(), dirtyRect);
+    ASSERT_NE(drawable->GetRenderParams(), nullptr);
+    ASSERT_TRUE(drawable->GetRenderParams()->GetLayerPartRenderEnabled());
+    ASSERT_EQ(drawable->GetRenderParams()->GetLayerPartRenderCurrentFrameDirtyRegion(), dirtyRect);
 }
 
 /**

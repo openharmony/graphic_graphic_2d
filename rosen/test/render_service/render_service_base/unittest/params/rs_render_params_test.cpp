@@ -1003,13 +1003,13 @@ HWTEST_F(RSRenderParamsTest, SetCanvasDrawingResetSurfaceIndexTest, TestSize.Lev
  */
 HWTEST_F(RSRenderParamsTest, SetLayerPartRenderEnabledTest, TestSize.Level1)
 {
-    RSDirtyRegionManager dirtyManager;
+    RSRenderParams params(1);
 
-    dirtyManager.SetLayerPartRenderEnabled(true);
-    ASSERT_TRUE(dirtyManager.GetLayerPartRenderEnabled());
+    params.SetLayerPartRenderEnabled(true);
+    ASSERT_TRUE(params.GetLayerPartRenderEnabled());
 
-    dirtyManager.SetLayerPartRenderEnabled(false);
-    ASSERT_FALSE(dirtyManager.GetLayerPartRenderEnabled());
+    params.SetLayerPartRenderEnabled(false);
+    ASSERT_FALSE(params.GetLayerPartRenderEnabled());
 }
 
 /**
@@ -1020,14 +1020,14 @@ HWTEST_F(RSRenderParamsTest, SetLayerPartRenderEnabledTest, TestSize.Level1)
  */
 HWTEST_F(RSRenderParamsTest, GetLayerPartRenderCurrentFrameDirtyRegionTest, TestSize.Level1)
 {
-    RSDirtyRegionManager dirtyManager;
+    RSRenderParams params(1);
 
-    RectI dirtyRect = dirtyManager.GetLayerPartRenderCurrentFrameDirtyRegion();
+    RectI dirtyRect = params.GetLayerPartRenderCurrentFrameDirtyRegion();
     ASSERT_TRUE(dirtyRect.IsEmpty());
 
     RectI testRect = {10, 10, 100, 100};
-    dirtyManager.SetLayerPartRenderCurrentFrameDirtyRegion(testRect);
-    RectI result = dirtyManager.GetLayerPartRenderCurrentFrameDirtyRegion();
+    params.SetLayerPartRenderCurrentFrameDirtyRegion(testRect);
+    RectI result = params.GetLayerPartRenderCurrentFrameDirtyRegion();
     ASSERT_EQ(result.GetLeft(), testRect.GetLeft());
     ASSERT_EQ(result.GetTop(), testRect.GetTop());
     ASSERT_EQ(result.GetWidth(), testRect.GetWidth());

@@ -86,12 +86,12 @@ HWTEST_F(RSDirtyRegionManagerTest, SetBufferAge001, TestSize.Level1)
 }
 
 /*
- * @tc.name: OnSyncLayerPartRenderState001
- * @tc.desc: test OnSync copies layer-part render state into target manager
+ * @tc.name: OnSyncCurrentFrameDirtyState001
+ * @tc.desc: test OnSync copies current frame dirty region into target manager
  * @tc.type: FUNC
  * @tc.require: issueLayerPart
  */
-HWTEST_F(RSDirtyRegionManagerTest, OnSyncLayerPartRenderState001, Function | SmallTest | Level2)
+HWTEST_F(RSDirtyRegionManagerTest, OnSyncCurrentFrameDirtyState001, Function | SmallTest | Level2)
 {
     constexpr int32_t rectLeft = 10;
     constexpr int32_t rectTop = 10;
@@ -102,33 +102,32 @@ HWTEST_F(RSDirtyRegionManagerTest, OnSyncLayerPartRenderState001, Function | Sma
     ASSERT_NE(targetManager, nullptr);
 
     RectI dirtyRect(rectLeft, rectTop, rectWidth, rectHeight);
-    rsDirtyManager->SetLayerPartRenderEnabled(true);
-    rsDirtyManager->SetLayerPartRenderCurrentFrameDirtyRegion(dirtyRect);
     rsDirtyManager->SetCurrentFrameDirtyRect(dirtyRect);
 
     rsDirtyManager->OnSync(targetManager);
 
-    ASSERT_TRUE(targetManager->GetLayerPartRenderEnabled());
-    ASSERT_EQ(targetManager->GetLayerPartRenderCurrentFrameDirtyRegion(), dirtyRect);
+    ASSERT_EQ(targetManager->GetCurrentFrameDirtyRegion(), dirtyRect);
     ASSERT_TRUE(rsDirtyManager->GetCurrentFrameDirtyRegion().IsEmpty());
 }
 
 /*
- * @tc.name: OnSyncLayerPartRenderStateChange002
- * @tc.desc: test OnSync copies layer-part state change flag into target manager
+ * @tc.name: OnSyncCurrentFrameDirtyStateChange002
+ * @tc.desc: test OnSync copies dirty region with partial render state changed
  * @tc.type: FUNC
  * @tc.require: issueLayerPart
  */
-HWTEST_F(RSDirtyRegionManagerTest, OnSyncLayerPartRenderStateChange002, Function | SmallTest | Level2)
+HWTEST_F(RSDirtyRegionManagerTest, OnSyncCurrentFrameDirtyStateChange002, Function | SmallTest | Level2)
 {
     auto targetManager = std::make_shared<RSDirtyRegionManager>();
     ASSERT_NE(targetManager, nullptr);
 
-    rsDirtyManager->SetLayerPartRenderEnabled(false);
+    RectI dirtyRect(1, 2, 3, 4);
+    rsDirtyManager->SetPartialRenderEnabled(false);
+    rsDirtyManager->SetCurrentFrameDirtyRect(dirtyRect);
 
     rsDirtyManager->OnSync(targetManager);
 
-    ASSERT_FALSE(targetManager->GetLayerPartRenderEnabled());
+    ASSERT_EQ(targetManager->GetCurrentFrameDirtyRegion(), dirtyRect);
 }
 
 /**
