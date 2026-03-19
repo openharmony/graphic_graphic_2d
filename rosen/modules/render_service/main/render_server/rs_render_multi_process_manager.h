@@ -48,7 +48,7 @@ public:
     void OnVirtualScreenDisconnected(ScreenId id) override;
 
     void RecordRenderProcessConnection(pid_t pid, sptr<RSIServiceToRenderConnection> serviceToRenderConnection,
-        sptr<RSIComposerToRenderConnection> composerToRenderConnection,
+        sptr<IRSComposerToRenderConnection> composerToRenderConnection,
         sptr<RSIConnectToRenderProcess> connectToRenderConnection) const;
     sptr<RSScreenProperty> GetPendingScreenProperty(pid_t pid) const;
     void SetRenderProcessReadyPromise(pid_t pid);
@@ -85,7 +85,7 @@ private:
     std::optional<ScreenId> DeleteVirtualToPhysicalScreenMap(ScreenId id);
     ScreenId FindVirtualToPhysicalScreenMap(ScreenId id);
     
-    std::unordered_map<pid_t, sptr<RSIComposerToRenderConnection>> composerToRenderConnections_;
+    std::unordered_map<pid_t, sptr<IRSComposerToRenderConnection>> composerToRenderConnections_;
     std::unordered_map<pid_t, std::promise<bool>> renderProcessReadyPromises_;
 
     mutable std::mutex mutex_;

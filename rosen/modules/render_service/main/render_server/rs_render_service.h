@@ -21,6 +21,7 @@
 #include <unordered_set>
 
 #include "rs_render_pipeline.h"
+#include "rs_render_multi_process_manager.h"
 #include "rs_render_single_process_manager.h"
 #include "vsync/vsync_manager_agent.h"
 #include "vsync_iconnection_token.h"

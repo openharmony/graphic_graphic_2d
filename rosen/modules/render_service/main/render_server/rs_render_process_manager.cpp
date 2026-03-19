@@ -26,7 +26,7 @@ namespace Rosen {
 sptr<RSRenderProcessManager> RSRenderProcessManager::Create(RSRenderService& renderService)
 {
     sptr<RSRenderProcessManager> renderProcessManager;
-    if (renderService.renderModeConfig_->GetIsMultiPocessModeEnabled()) {
+    if (renderService.renderModeConfig_->GetIsMultiProcessModeEnabled()) {
         renderProcessManager = sptr<RSMultiRenderProcessManager>::MakeSptr(renderService);
     } else {
         renderProcessManager = sptr<RSSingleRenderProcessManager>::MakeSptr(renderService);

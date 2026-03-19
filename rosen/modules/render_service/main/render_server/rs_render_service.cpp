@@ -33,7 +33,9 @@
 
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "transaction/rs_client_to_render_connection.h"
+#include "transaction/rs_render_to_service_connection.h"
 
+#include "rs_render_to_composer_connection.h"
 #include "graphic_feature_param_manager.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "rs_render_composer_manager.h"

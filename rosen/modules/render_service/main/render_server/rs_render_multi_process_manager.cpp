@@ -93,7 +93,7 @@ RSMultiRenderProcessManager::RSMultiRenderProcessManager(RSRenderService& render
 
 void RSMultiRenderProcessManager::RecordRenderProcessConnection(pid_t pid,
     sptr<RSIServiceToRenderConnection> serviceToRenderConnection,
-    sptr<RSIComposerToRenderConnection> composerToRenderConnection,
+    sptr<IRSComposerToRenderConnection> composerToRenderConnection,
     sptr<RSIConnectToRenderProcess> connectToRenderConnection)
 {
     // No problem in a multithreaded environment
@@ -171,7 +171,7 @@ sptr<IRemoteObject> RSMultiRenderProcessManager::HandleExistingGroup(pid_t pid, 
     sptr<RSIServiceToRenderConnection> serviceToRenderConnection = GotServiceToRenderConnByPid(pid);
     serviceToRenderConnection->NotifyScreenConnectInfoToRender(output, property, composerConn);
 
-    sptr<RSIComposerToRenderConnection> composerToRenderConnection = composerToRenderConnections_.at(pid);
+    sptr<IRSComposerToRenderConnection> composerToRenderConnection = composerToRenderConnections_.at(pid);
     renderService_.rsRenderComposerManager_->SetComposerToRenderConnection(screenId, composerToRenderConnection);
     auto connectToRender = GotConnectToRenderConnByPid(pid);
     return connectToRender->AsObject();
@@ -209,7 +209,7 @@ sptr<IRemoteObject> RSMultiRenderProcessManager::HandleNewGroup(GroupId groupId,
     // Block and wait for the clientToRenderConnectionProxy to be ready
     renderProcessReadyFuture.wait();
     sptr<IRemoteObject> renderConnProxy = GotConnectToRenderConnByPid(pid)->AsObject();
-    sptr<RSIComposerToRenderConnection> composerToRenderProxy = composerToRenderConnections_.at(pid);
+    sptr<IRSComposerToRenderConnection> composerToRenderProxy = composerToRenderConnections_.at(pid);
     renderService_.rsRenderComposerManager_->SetComposerToRenderConnection(screenId, composerToRenderProxy);
 
     auto conn = GotServiceToRenderConnByPid(pid);
