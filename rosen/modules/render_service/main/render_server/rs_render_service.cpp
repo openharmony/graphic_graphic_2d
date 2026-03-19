@@ -249,7 +249,7 @@ sptr<ReplyToRenderInfo> RSRenderService::RegisterRenderProcessConnection(
     renderMultiProcessManager->RecordRenderProcessConnection(remotePid, serviceToRenderConn,
         composerToRenderConn, connectToRenderConn);
 
-    // 准备往回带的信息
+    // preparing required infos
     auto rsScreenProperty = renderMultiProcessManager->GetPendingScreenProperty(remotePid);
     RS_LOGI("dmulti_process %{public}s rsScreenProperty.id[%{public}" PRIu64 "] .width[%{public}d] .height[%{public}d]",
         __func__, rsScreenProperty->GetScreenId(), rsScreenProperty->GetWidth(), rsScreenProperty->GetHeight());
