@@ -57,9 +57,6 @@
 #undef LOG_TAG
 #define LOG_TAG "RSRenderService"
 
-#undef LOG_TAG
-#define LOG_TAG "RSRenderService"
-
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -127,7 +124,7 @@ void RSRenderService::CoreComponentsInit()
 
     // vsync manger
     vsyncManager_ = sptr<RSVsyncManager>::MakeSptr();
-    if (vsyncManager_->init(screenManager_)) {
+    if (!vsyncManager_->init(screenManager_)) {
         RS_LOGE("%{public}s: vsync init failed", __func__);
     }
 
@@ -179,6 +176,7 @@ void RSRenderService::FeatureComponentInit()
     rsDumper_ = std::make_shared<RSServiceDumper>(handler_, screenManager_, rsRenderComposerManager_);
     rsDumpManager_ = std::make_shared<RSServiceDumpManager>();
     rsDumper_->RsDumpInit(rsDumpManager_);
+
     // rdo init
 #ifdef RS_ENABLE_RDO
     EnableRSCodeCache();

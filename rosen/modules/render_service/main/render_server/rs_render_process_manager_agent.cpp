@@ -23,6 +23,12 @@ namespace Rosen {
 RSRenderProcessManagerAgent::RSRenderProcessManagerAgent(sptr<RSRenderProcessManager> renderProcessManager)
     : renderProcessManager_(renderProcessManager) {}
 
+void RSRenderProcessManagerAgent::SetRenderProcessReadyPromise(pid_t pid)
+{
+    auto renderProcessManager = static_cast<RSMultiRenderProcessManager*>(renderProcessManager_.GetRefPtr());
+    renderProcessManager->SetRenderProcessReadyPromise(pid);
+}
+
 sptr<RSIServiceToRenderConnection> RSRenderProcessManagerAgent::GetServiceToRenderConn(ScreenId screenId) const
 {
     return renderProcessManager_->GetServiceToRenderConn(screenId);

@@ -61,6 +61,39 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
         return ERR_INVALID_STATE;
     }
     switch (code) {
+        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER): {
+            auto screenProperty = sptr<RSScreenProperty>(data.ReadParcelable<RSScreenProperty>());
+            bool hasComposerConn = data.ReadBool();
+            sptr<IRSRenderToComposerConnection> composerConn = nullptr;
+            if (hasComposerConn) {
+                auto remoteObj = data.ReadRemoteObject();
+                composerConn = iface_cast<IRSRenderToComposerConnection>(remoteObj);
+            }
+            auto replyMessage = NotifyScreenConnectInfoToRender(screenProperty, composerConn);
+            if (reply.WriteInt32(replyMessage)) {
+                RS_LOGE("%{public}s::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER WriteInt32 failed", __func__);
+                return ERR_INVALID_DATA;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::NOTIFY_SCREEN_DISCONNECT_INFO_TO_RENDER): {
+            auto screenId = data.ReadUint64();
+            auto replyMessage = NotifyScreenDisconnectInfoToRender(screenId);
+            if (reply.WriteInt32(replyMessage)) {
+                RS_LOGE("%{public}s::NOTIFY_SCREEN_DISCONNECT_INFO_TO_RENDER WriteInt32 failed", __func__);
+                return ERR_INVALID_DATA;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::NOTIFY_SCREEN_PROPERTY_CHANGED_INFO_TO_RENDER): {
+            auto screenProperty = sptr<RSScreenProperty>(data.ReadParcelable<RSScreenProperty>());
+            auto replyMessage = NotifyScreenPropertyChangedInfoToRender(screenProperty);
+            if (reply.WriteInt32(replyMessage)) {
+                RS_LOGE("%{public}s::NOTIFY_SCREEN_PROPERTY_CHANGED_INFO_TO_RENDER WriteInt32 failed", __func__);
+                return ERR_INVALID_DATA;
+            }
+            break;
+        }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK): {
             pid_t pid;
             if (!data.ReadInt32(pid)) {
