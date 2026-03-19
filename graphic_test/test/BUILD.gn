@@ -311,6 +311,14 @@ ohos_unittest("RSGraphicTest") {
     "image_framework:image_native",
     "image_framework:pixelmap", 
     "image_framework:pixelmap_ndk",
+
+    "cJSON:cjson",
+    "googletest:gtest",
+    "graphics_effect:graphics_effect_core",
+    "hitrace:hitrace_meter",
+    "libpng:libpng",
+    "window_manager:libdm",
+    "zlib:libz",
   ]
 
   defines += gpu_defines
