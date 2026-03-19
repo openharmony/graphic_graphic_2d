@@ -35,7 +35,7 @@ public:
     ~ReplyToRenderInfo() = default;
 
     bool Marshalling(Parcel& data) const override;
-    static ReplyToRenderInfo* Unmarshalling(Parcel& data);
+    [[nodiscard]] static ReplyToRenderInfo* Unmarshalling(Parcel& data);
 
     sptr<IRemoteObject> serviceConnection_ = nullptr;
     sptr<IRemoteObject> composeConnection_ = nullptr;
@@ -48,16 +48,16 @@ public:
     ConnectToServiceInfo() = default;
     ConnectToServiceInfo(const sptr<IRemoteObject>& serviceToRenderConnection,
         const sptr<IRemoteObject>& composerToRenderConnection,
-        const sptr<IRemoteObject>& connectToRenderConnection, const sptr<IRemoteObject>& vsyncToken) :
-        serviceToRenderConnection_(serviceToRenderConnection),
-        composerToRenderConnection_(composerToRenderConnection),
-        connectToRenderConnection_(connectToRenderConnection),
-        vsyncToken_(vsyncToken)
+        const sptr<IRemoteObject>& connectToRenderConnection, const sptr<IRemoteObject>& vsyncToken)
+        : serviceToRenderConnection_(serviceToRenderConnection),
+          composerToRenderConnection_(composerToRenderConnection),
+          connectToRenderConnection_(connectToRenderConnection),
+          vsyncToken_(vsyncToken)
     {}
     ~ConnectToServiceInfo() = default;
 
     bool Marshalling(Parcel& data) const override;
-    static ConnectToServiceInfo* Unmarshalling(Parcel& data);
+    [[nodiscard]] static ConnectToServiceInfo* Unmarshalling(Parcel& data);
 
     sptr<IRemoteObject> serviceToRenderConnection_ = nullptr;
     sptr<IRemoteObject> composerToRenderConnection_ = nullptr;
