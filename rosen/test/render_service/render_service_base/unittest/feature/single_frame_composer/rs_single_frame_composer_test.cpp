@@ -107,7 +107,7 @@ HWTEST_F(RSSingleFrameComposerTest, IsShouldProcessByIpcThread001, TestSize.Leve
   * @tc.type: FUNC
   * @tc.require: issueI9IUKU
   */
-HWTEST_F(RSSingleFrameComposerTest, GetSetVisibleWinCountTest001, TestSize.Level1) +
+HWTEST_F(RSSingleFrameComposerTest, GetSetVisibleWinCountTest001, TestSize.Level1)
 {
     uint32_t testCount = 1;
     uint32_t testReturn = 0;
