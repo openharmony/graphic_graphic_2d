@@ -32,6 +32,9 @@ public:
     RSRenderToServiceConnection(const RSRenderToServiceConnection&) = delete;
     RSRenderToServiceConnection& operator=(const RSRenderToServiceConnection&) = delete;
 
+    // Process Manager
+    bool NotifyRenderProcessInitFinished() override;
+
     // Hgm
     sptr<HgmServiceToProcessInfo> NotifyRpHgmFrameRate(uint64_t timestamp, uint64_t vsyncId,
         const sptr<HgmProcessToServiceInfo>& processToServiceInfo) override;

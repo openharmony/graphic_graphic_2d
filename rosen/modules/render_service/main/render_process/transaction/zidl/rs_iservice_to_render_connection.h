@@ -41,6 +41,12 @@ public:
     RSIServiceToRenderConnection() = default;
     virtual ~RSIServiceToRenderConnection() noexcept = default;
 
+    // Process Manager
+    virtual int32_t NotifyScreenConnectInfoToRender(const sptr<RSScreenProperty>& screenProperty,
+        sptr<IRSRenderToComposerConnection> composerConn) = 0;
+    virtual int32_t NotifyScreenDisconnectInfoToRender(ScreenId screenId) = 0;
+    virtual int32_t NotifyScreenPropertyChangedInfoToRender(const sptr<RSScreenProperty>& screenProeprty) = 0;
+
     // Screen Manager
     virtual int32_t NotifyScreenRefresh(ScreenId id) = 0;
     virtual void HandleHwcEvent(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData) = 0;

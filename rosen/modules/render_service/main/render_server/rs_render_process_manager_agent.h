@@ -25,6 +25,8 @@ public:
     explicit RSRenderProcessManagerAgent(sptr<RSRenderProcessManager> renderProcessManager);
     ~RSRenderProcessManagerAgent() noexcept = default;
 
+    void SetRenderProcessReadyPromise(pid_t pid);
+
     sptr<RSIServiceToRenderConnection> GetServiceToRenderConn(ScreenId screenId) const;
     std::vector<sptr<RSIServiceToRenderConnection>> GetServiceToRenderConns() const;
 
