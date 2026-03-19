@@ -643,6 +643,11 @@ bool RSSystemProperties::GetLayerPartRenderEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetLayerPartRenderDirtyEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetLayerPartRenderDebugEnabled()
 {
     return false;

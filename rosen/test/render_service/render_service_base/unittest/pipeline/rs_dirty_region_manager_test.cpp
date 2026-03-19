@@ -85,6 +85,52 @@ HWTEST_F(RSDirtyRegionManagerTest, SetBufferAge001, TestSize.Level1)
     ASSERT_TRUE(rsDirtyManager->SetBufferAge(age));
 }
 
+/*
+ * @tc.name: OnSyncLayerPartRenderState001
+ * @tc.desc: test OnSync copies layer-part render state into target manager
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSDirtyRegionManagerTest, OnSyncLayerPartRenderState001, Function | SmallTest | Level2)
+{
+    constexpr int32_t rectLeft = 10;
+    constexpr int32_t rectTop = 10;
+    constexpr int32_t rectWidth = 100;
+    constexpr int32_t rectHeight = 100;
+
+    auto targetManager = std::make_shared<RSDirtyRegionManager>();
+    ASSERT_NE(targetManager, nullptr);
+
+    RectI dirtyRect(rectLeft, rectTop, rectWidth, rectHeight);
+    rsDirtyManager->SetLayerPartRenderEnabled(true);
+    rsDirtyManager->SetLayerPartRenderCurrentFrameDirtyRegion(dirtyRect);
+    rsDirtyManager->SetCurrentFrameDirtyRect(dirtyRect);
+
+    rsDirtyManager->OnSync(targetManager);
+
+    ASSERT_TRUE(targetManager->GetLayerPartRenderEnabled());
+    ASSERT_EQ(targetManager->GetLayerPartRenderCurrentFrameDirtyRegion(), dirtyRect);
+    ASSERT_TRUE(rsDirtyManager->GetCurrentFrameDirtyRegion().IsEmpty());
+}
+
+/*
+ * @tc.name: OnSyncLayerPartRenderStateChange002
+ * @tc.desc: test OnSync copies layer-part state change flag into target manager
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSDirtyRegionManagerTest, OnSyncLayerPartRenderStateChange002, Function | SmallTest | Level2)
+{
+    auto targetManager = std::make_shared<RSDirtyRegionManager>();
+    ASSERT_NE(targetManager, nullptr);
+
+    rsDirtyManager->SetLayerPartRenderEnabled(false);
+
+    rsDirtyManager->OnSync(targetManager);
+
+    ASSERT_FALSE(targetManager->GetLayerPartRenderEnabled());
+}
+
 /**
  * @tc.name: SetSurfaceSize001
  * @tc.desc: test results of SetSurfaceSize

@@ -64,8 +64,8 @@ public:
 
     void InitLayerPartRenderNode(bool isCCMLayerPartRenderEnables, RSRenderNode& node,
         std::shared_ptr<RSDirtyRegionManager>& layerPartRenderDirtyManager);
-    void CalculateLayerPartRenderDirtyRegion(RSRenderNode& node,
-        std::shared_ptr<RSDirtyRegionManager>& layerPartRenderDirtyManager);
+    void CalculateAndUpdateLayerPartRenderDirtyRegion(RSRenderNode& node,
+        std::shared_ptr<RSDirtyRegionManager>& layerPartRenderDirtyManager, const RectI& visibleFilterRect);
 
 private:
     RSOpincManager() = default;
@@ -76,6 +76,9 @@ private:
     RSOpincManager& operator=(const RSOpincManager&&);
 
     bool OpincGetCanvasNodeSupportFlag(RSRenderNode& node);
+    bool CalculateLayerPartRenderDirtyRegion(RSRenderNode& node,
+        std::shared_ptr<RSDirtyRegionManager>& layerPartRenderDirtyManager, const RectI& visibleFilterRect,
+        RectI& layerCurDirty);
 
     bool isOPIncOn_ = false;
     std::mutex mutex_;

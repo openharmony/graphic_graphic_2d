@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 #include "params/rs_render_params.h"
 #include "params/rs_surface_render_params.h"
+#include "pipeline/rs_dirty_region_manager.h"
 #include "limit_number.h"
 
 using namespace testing;
@@ -1002,14 +1003,13 @@ HWTEST_F(RSRenderParamsTest, SetCanvasDrawingResetSurfaceIndexTest, TestSize.Lev
  */
 HWTEST_F(RSRenderParamsTest, SetLayerPartRenderEnabledTest, TestSize.Level1)
 {
-    constexpr NodeId id = 1;
-    RSRenderParams params(id);
+    RSDirtyRegionManager dirtyManager;
 
-    params.SetLayerPartRenderEnabled(true);
-    ASSERT_TRUE(params.GetLayerPartRenderEnabled());
+    dirtyManager.SetLayerPartRenderEnabled(true);
+    ASSERT_TRUE(dirtyManager.GetLayerPartRenderEnabled());
 
-    params.SetLayerPartRenderEnabled(false);
-    ASSERT_FALSE(params.GetLayerPartRenderEnabled());
+    dirtyManager.SetLayerPartRenderEnabled(false);
+    ASSERT_FALSE(dirtyManager.GetLayerPartRenderEnabled());
 }
 
 /**
@@ -1020,15 +1020,14 @@ HWTEST_F(RSRenderParamsTest, SetLayerPartRenderEnabledTest, TestSize.Level1)
  */
 HWTEST_F(RSRenderParamsTest, GetLayerPartRenderCurrentFrameDirtyRegionTest, TestSize.Level1)
 {
-    constexpr NodeId id = 1;
-    RSRenderParams params(id);
+    RSDirtyRegionManager dirtyManager;
 
-    RectI dirtyRect = params.GetLayerPartRenderCurrentFrameDirtyRegion();
+    RectI dirtyRect = dirtyManager.GetLayerPartRenderCurrentFrameDirtyRegion();
     ASSERT_TRUE(dirtyRect.IsEmpty());
 
     RectI testRect = {10, 10, 100, 100};
-    params.SetLayerPartRenderCurrentFrameDirtyRegion(testRect);
-    RectI result = params.GetLayerPartRenderCurrentFrameDirtyRegion();
+    dirtyManager.SetLayerPartRenderCurrentFrameDirtyRegion(testRect);
+    RectI result = dirtyManager.GetLayerPartRenderCurrentFrameDirtyRegion();
     ASSERT_EQ(result.GetLeft(), testRect.GetLeft());
     ASSERT_EQ(result.GetTop(), testRect.GetTop());
     ASSERT_EQ(result.GetWidth(), testRect.GetWidth());

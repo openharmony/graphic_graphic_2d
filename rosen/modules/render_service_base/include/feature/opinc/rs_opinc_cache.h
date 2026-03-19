@@ -70,8 +70,14 @@ public:
     bool IsSuggestLayerPartRenderNode() const;
     void SetLayerPartRender(bool isLayerPartRender);
     bool IsLayerPartRender() const;
+    void SetLayerPartRenderNodeStrategyType(NodeStrategyType type);
+    NodeStrategyType GetLayerPartRenderNodeStrategyType() const;
     bool IsLayerPartRenderUnchangeState();
     void ResetLayerPartRenderUnchangeState();
+    void SetLayerPartRenderDirtyFlag(bool dirtyFlag);
+    bool GetLayerPartRenderDirtyFlag() const;
+    void SetLayerPartRenderOldAbsDrawRect(RectI& oldAbsDrawRect);
+    const RectI& GetLayerPartRenderOldAbsDrawRect() const;
     std::shared_ptr<RSDirtyRegionManager>& GetLayerPartRenderDirtyManager();
 
 private:
@@ -94,7 +100,10 @@ private:
     // layer part render
     bool isSuggestLayerPartRenderNode_ = false;
     bool isLayerPartRender_ = false;
+    NodeStrategyType layerPartRenderNodeStrategyType_ = NodeStrategyType::CACHE_NONE;
     int layerPartRenderUnchangeCount_ = 0;
+    bool layerPartRenderDirtyFlag_ = false;
+    RectI oldAbsDrawRect_;
     std::shared_ptr<RSDirtyRegionManager> layerPartRenderDirtyManager_ = nullptr;
 
     // opinc state func

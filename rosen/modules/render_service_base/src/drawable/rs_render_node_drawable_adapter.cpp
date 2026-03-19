@@ -547,7 +547,8 @@ bool RSRenderNodeDrawableAdapter::QuickReject(Drawing::Canvas& canvas, const Rec
             dst.ToString().c_str(), dst.RoundOut().ToString().c_str());
         return false;
     }
-    if (!paintFilterCanvas->IsLayerPartRenderDirtyRegionStackEmpty()) {
+    if (RSSystemProperties::GetLayerPartRenderDirtyEnabled() &&
+        !paintFilterCanvas->IsLayerPartRenderDirtyRegionStackEmpty()) {
         auto& layerNodeDirtyRegion = paintFilterCanvas->GetCurLayerPartRenderDirtyRegion();
         return !(layerNodeDirtyRegion.IsIntersects(dstRegion));
     }

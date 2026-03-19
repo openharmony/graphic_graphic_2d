@@ -203,6 +203,16 @@ bool RSOpincCache::IsLayerPartRender() const
     return isLayerPartRender_;
 }
 
+void RSOpincCache::SetLayerPartRenderNodeStrategyType(NodeStrategyType type)
+{
+    layerPartRenderNodeStrategyType_ = type;
+}
+
+NodeStrategyType RSOpincCache::GetLayerPartRenderNodeStrategyType() const
+{
+    return layerPartRenderNodeStrategyType_;
+}
+
 bool RSOpincCache::IsLayerPartRenderUnchangeState()
 {
     if (layerPartRenderUnchangeCount_ <= MIN_UNCHANGE_COUNT) {
@@ -215,6 +225,26 @@ bool RSOpincCache::IsLayerPartRenderUnchangeState()
 void RSOpincCache::ResetLayerPartRenderUnchangeState()
 {
     layerPartRenderUnchangeCount_ = 0;
+}
+
+void RSOpincCache::SetLayerPartRenderDirtyFlag(bool dirtyFlag)
+{
+    layerPartRenderDirtyFlag_ = dirtyFlag;
+}
+
+bool RSOpincCache::GetLayerPartRenderDirtyFlag() const
+{
+    return layerPartRenderDirtyFlag_;
+}
+
+void RSOpincCache::SetLayerPartRenderOldAbsDrawRect(RectI& oldAbsDrawRect)
+{
+    oldAbsDrawRect_ = oldAbsDrawRect;
+}
+
+const RectI& RSOpincCache::GetLayerPartRenderOldAbsDrawRect() const
+{
+    return oldAbsDrawRect_;
 }
 
 std::shared_ptr<RSDirtyRegionManager>& RSOpincCache::GetLayerPartRenderDirtyManager()

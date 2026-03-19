@@ -79,7 +79,7 @@ public:
     static void DealWithFilterDirtyRegion(Occlusion::Region& damageRegion, Occlusion::Region& drawRegion,
         DrawableV2::RSScreenRenderNodeDrawable& screenDrawable, const std::optional<Drawing::Matrix>& matrix,
         bool dirtyAlign = false);
-    static RectI GetVisibleFilterRect(const RSSurfaceRenderNode& node);
+    static RectI GetVisibleFilterRect(const RSRenderNode& node);
 private:
     static bool DealWithFilterDirtyForScreen(Occlusion::Region& damageRegion, Occlusion::Region& drawRegion,
         DrawableV2::RSScreenRenderNodeDrawable& screenDrawable, const std::optional<Drawing::Matrix>& matrix);

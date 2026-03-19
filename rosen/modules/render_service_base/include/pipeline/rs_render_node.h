@@ -235,7 +235,7 @@ public:
     bool IsOnlyBasicGeoTransform() const;
     void ForceMergeSubTreeDirtyRegion(RSDirtyRegionManager& dirtyManager);
     void SubTreeSkipPrepare(RSDirtyRegionManager& dirtymanager, bool isDirty, bool accumGeoDirty,
-        const RectI& clipRect);
+        const RectI& clipRect, const std::shared_ptr<RSDirtyRegionManager>& layerPartRenderDirtyManager = nullptr);
     inline bool LastFrameSubTreeSkipped() const
     {
         return lastFrameSubTreeSkipped_;
@@ -1228,9 +1228,6 @@ private:
     bool childHasVisibleFilter_ = false;  // only collect visible children filter status
     bool childHasVisibleEffect_ = false;  // only collect visible children has useeffect
     bool hasChildrenOutOfRect_ = false;
-
-    // for layer part render
-    bool layerPartRenderDirtyFlag_ = false;
 
     bool isSubTreeDirty_ = false;
     bool isTreeStateChangeDirty_ = false;

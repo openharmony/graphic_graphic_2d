@@ -33,6 +33,7 @@ constexpr float PERCENT = 100.f;
 constexpr int32_t BORDER_WIDTH = 6;
 constexpr int32_t MARGIN = 20;
 constexpr float RECT_PEN_ALPHA = 0.2f;
+constexpr float LAYER_RECT_PEN_ALPHA = 0.5f;
 constexpr float DFX_FONT_SIZE = 30.f;
 }
 
@@ -418,6 +419,9 @@ void RSOpincDrawCache::PushLayerPartRenderDirtyRegion(const RSRenderParams& para
     if (!params.GetLayerPartRenderEnabled()) {
         return;
     }
+    if (!RSSystemProperties::GetLayerPartRenderDirtyEnabled()) {
+        return;
+    }
     RectI currentFrameDirty = params.GetLayerPartRenderCurrentFrameDirtyRegion();
     layerPartRenderDirtyRegion_.SetRect(Drawing::RectI(currentFrameDirty.GetLeft(), currentFrameDirty.GetTop(),
         currentFrameDirty.GetRight(), currentFrameDirty.GetBottom()));
@@ -425,22 +429,30 @@ void RSOpincDrawCache::PushLayerPartRenderDirtyRegion(const RSRenderParams& para
     RS_OPTIONAL_TRACE_NAME_FMT("id:%" PRIu64 ", LayerPartRenderNodeDirtyRegion:[%d %d %d %d], nodeCount:%d",
         params.GetId(), bounds.GetLeft(), bounds.GetTop(), bounds.GetWidth(), bounds.GetHeight(), nodeCount);
     canvas.PushLayerPartRenderDirtyRegion(layerPartRenderDirtyRegion_);
+    return;
 }
 
 void RSOpincDrawCache::LayerPartRenderClipDirtyRegion(const RSRenderParams& params,
-    bool* isOffScreenWithClipHole, RSPaintFilterCanvas& canvas)
+    RSPaintFilterCanvas& canvas)
 {
     if (!params.GetLayerPartRenderEnabled()) {
         return;
     }
-    *isOffScreenWithClipHole = false;
-    canvas.ClipRect(layerPartRenderDirtyRegion_.GetBounds());
+    if (!RSSystemProperties::GetLayerPartRenderDirtyEnabled()) {
+        return;
+    }
+    if(!layerPartRenderDirtyRegion_.IsEmpty()){
+        canvas.ClipRect(layerPartRenderDirtyRegion_.GetBounds());
+    }
 }
 
 void RSOpincDrawCache::PopLayerPartRenderDirtyRegion(const RSRenderParams& params,
     RSPaintFilterCanvas& canvas)
 {
     if (!params.GetLayerPartRenderEnabled()) {
+        return;
+    }
+    if (!RSSystemProperties::GetLayerPartRenderDirtyEnabled()) {
         return;
     }
     if (canvas.IsLayerPartRenderDirtyRegionStackEmpty()) {
@@ -459,7 +471,7 @@ void RSOpincDrawCache::LayerDirtyRegionDfx(RSPaintFilterCanvas& canvas, const Dr
     Drawing::Brush brush;
     brush.SetColor(Drawing::Color(0x8090EE90));
     brush.SetAntiAlias(true);
-    brush.SetAlphaF(RECT_PEN_ALPHA);
+    brush.SetAlphaF(LAYER_RECT_PEN_ALPHA);
     std::shared_ptr<Drawing::Typeface> typeFace = nullptr;
     std::string position = "pos:[" + dirtyRect.ToString() + "]";
     // font size 24

@@ -59,6 +59,7 @@
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "feature/special_layer/rs_special_layer_utils.h"
 #include "feature/window_keyframe/rs_window_keyframe_render_node.h"
+#include "feature_cfg/feature_param/performance_feature/opinc_param.h"
 #include "feature_cfg/graphic_feature_param_manager.h"
 #include "gmock/gmock.h"
 #include "surface_buffer_impl.h"
@@ -75,6 +76,10 @@ namespace {
     constexpr int SCREEN_WIDTH = 3120;
     constexpr int SCREEN_HEIGHT = 1080;
     constexpr OHOS::Rosen::NodeId DEFAULT_NODE_ID = 100;
+    constexpr OHOS::Rosen::NodeId LAYER_PART_CANVAS_NODE_ID = 101;
+    constexpr OHOS::Rosen::NodeId LAYER_PART_SURFACE_PARENT_ID = 102;
+    constexpr OHOS::Rosen::NodeId LAYER_PART_SURFACE_CHILD_ID = 103;
+    constexpr OHOS::Rosen::NodeId LAYER_PART_VISITOR_SURFACE_ID = 104;
     const OHOS::Rosen::RectI DEFAULT_SCREEN_RECT = {0, 0, 1000, 1000};
 }
 
@@ -5321,6 +5326,46 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareEffectRenderNode002, TestSize.Level
 }
 
 /**
+ * @tc.name: QuickPrepareEffectRenderNode003
+ * @tc.desc: Test QuickPrepareEffectRenderNode takes SubTreeSkipPrepare branch when subtree prepare is not needed
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSUniRenderVisitorTest, QuickPrepareEffectRenderNode003, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
+    rsUniRenderVisitor->curSurfaceDirtyManager_ = surfaceNode->GetDirtyManager();
+    ASSERT_NE(rsUniRenderVisitor->curSurfaceDirtyManager_, nullptr);
+
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto node = std::make_shared<RSEffectRenderNode>(DEFAULT_NODE_ID, rsContext->weak_from_this());
+    ASSERT_NE(node, nullptr);
+    node->InitRenderParams();
+    node->SetSubTreeDirty(false);
+    node->SetTreeStateChangeDirty(false);
+    node->SetForcePrepare(false);
+
+    auto screenNode = std::make_shared<RSScreenRenderNode>(DEFAULT_NODE_ID + 1, 0, rsContext->weak_from_this());
+    ASSERT_NE(screenNode, nullptr);
+    rsUniRenderVisitor->curScreenNode_ = screenNode;
+    RSDisplayNodeConfig displayConfig;
+    auto logicalDisplayNode =
+        std::make_shared<RSLogicalDisplayRenderNode>(DEFAULT_NODE_ID + 2, displayConfig, rsContext->weak_from_this());
+    ASSERT_NE(logicalDisplayNode, nullptr);
+    rsUniRenderVisitor->curLogicalDisplayNode_ = logicalDisplayNode;
+    ASSERT_NE(rsUniRenderVisitor->curScreenNode_, nullptr);
+    ASSERT_NE(rsUniRenderVisitor->curLogicalDisplayNode_, nullptr);
+    rsUniRenderVisitor->QuickPrepareEffectRenderNode(*node);
+
+    ASSERT_TRUE(node->LastFrameSubTreeSkipped());
+}
+
+/**
  * @tc.name: UpdateSurfaceRenderNodeRotate002
  * @tc.desc: Test UpdateSurfaceRenderNodeRotate when IsMainWindowType is false
  * @tc.type: FUNC
@@ -5802,6 +5847,100 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareCanvasRenderNode001, TestSize.Level
     rsUniRenderVisitor->isDrawingCacheEnabled_ = true;
     rsUniRenderVisitor->QuickPrepareCanvasRenderNode(*rsCanvasRenderNode);
     ASSERT_TRUE(RSOpincManager::Instance().OpincGetNodeSupportFlag(*rsCanvasRenderNode));
+}
+
+/**
+ * @tc.name: QuickPrepareCanvasRenderNodeLayerPartRender001
+ * @tc.desc: Test QuickPrepareCanvasRenderNode initializes and calculates layer-part dirty manager
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSUniRenderVisitorTest, QuickPrepareCanvasRenderNodeLayerPartRender001, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(LAYER_PART_CANVAS_NODE_ID, rsContext->weak_from_this());
+    ASSERT_NE(canvasNode, nullptr);
+    canvasNode->InitRenderParams();
+    auto& canvasGeo = canvasNode->GetMutableRenderProperties().boundsGeo_;
+    ASSERT_NE(canvasGeo, nullptr);
+    canvasGeo->absRect_ = DEFAULT_FILTER_RECT;
+    canvasGeo->absMatrix_ = Drawing::Matrix();
+
+    auto parentSurfaceNode = std::make_shared<RSSurfaceRenderNode>(
+        LAYER_PART_SURFACE_PARENT_ID, rsContext->weak_from_this());
+    auto childSurfaceNode = std::make_shared<RSSurfaceRenderNode>(
+        LAYER_PART_SURFACE_CHILD_ID, rsContext->weak_from_this());
+    ASSERT_NE(parentSurfaceNode, nullptr);
+    ASSERT_NE(childSurfaceNode, nullptr);
+    parentSurfaceNode->SetParent(canvasNode);
+    childSurfaceNode->SetParent(parentSurfaceNode);
+    childSurfaceNode->MarkSuggestLayerPartRenderNode(true);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->curSurfaceNode_ = std::make_shared<RSSurfaceRenderNode>(
+        LAYER_PART_VISITOR_SURFACE_ID, rsContext->weak_from_this());
+    ASSERT_NE(rsUniRenderVisitor->curSurfaceNode_, nullptr);
+    rsUniRenderVisitor->curSurfaceDirtyManager_ = rsUniRenderVisitor->curSurfaceNode_->GetDirtyManager();
+
+    OPIncParam::SetLayerPartRenderEnable(true);
+    rsUniRenderVisitor->QuickPrepareCanvasRenderNode(*canvasNode);
+    OPIncParam::SetLayerPartRenderEnable(false);
+
+    auto& dirtyManager = canvasNode->GetOpincCache().GetLayerPartRenderDirtyManager();
+    ASSERT_NE(dirtyManager, nullptr);
+    ASSERT_TRUE(canvasNode->GetOpincCache().IsLayerPartRender());
+    ASSERT_TRUE(dirtyManager->GetLayerPartRenderEnabled());
+    ASSERT_EQ(dirtyManager->GetLayerPartRenderCurrentFrameDirtyRegion(), DEFAULT_FILTER_RECT);
+}
+
+/**
+ * @tc.name: QuickPrepareCanvasRenderNode002
+ * @tc.desc: Test QuickPrepareCanvasRenderNode takes SubTreeSkipPrepare branch when subtree prepare is not needed
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSUniRenderVisitorTest, QuickPrepareCanvasRenderNode002, TestSize.Level2)
+{
+    const std::string subTreePrepareTypeKey = "persist.sys.graphic.SubTreePrepareCheckType.type";
+    const std::string oldSubTreePrepareType = system::GetParameter(subTreePrepareTypeKey, "2");
+    (void)system::SetParameter(subTreePrepareTypeKey, "2"); // ENABLED
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    bool oldAccessibilityConfigChanged = mainThread->isAccessibilityConfigChanged_;
+    mainThread->isAccessibilityConfigChanged_ = false;
+
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(DEFAULT_NODE_ID, rsContext->weak_from_this());
+    ASSERT_NE(canvasNode, nullptr);
+    canvasNode->InitRenderParams();
+    canvasNode->SetSubTreeDirty(false);
+    canvasNode->SetTreeStateChangeDirty(false);
+    canvasNode->SetForcePrepare(false);
+    canvasNode->MarkSuggestOpincNode(false, false);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetNeedCollectHwcNode(false);
+    rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
+    rsUniRenderVisitor->curSurfaceDirtyManager_ = surfaceNode->GetDirtyManager();
+    ASSERT_NE(rsUniRenderVisitor->curSurfaceDirtyManager_, nullptr);
+    rsUniRenderVisitor->autoCacheEnable_ = false;
+    rsUniRenderVisitor->isFirstFrameAfterScreenRotation_ = false;
+    rsUniRenderVisitor->isCurSubTreeForcePrepare_ = false;
+
+    rsUniRenderVisitor->QuickPrepareCanvasRenderNode(*canvasNode);
+    bool isSubTreeSkipped = canvasNode->LastFrameSubTreeSkipped();
+
+    mainThread->isAccessibilityConfigChanged_ = oldAccessibilityConfigChanged;
+    (void)system::SetParameter(subTreePrepareTypeKey, oldSubTreePrepareType);
+
+    ASSERT_TRUE(isSubTreeSkipped);
 }
 
 /**
@@ -7509,6 +7648,52 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareUnionRenderNode002, TestSize.Level1
     node->InitRenderParams();
     rsUniRenderVisitor->QuickPrepareUnionRenderNode(*node);
     ASSERT_NE(rsUniRenderVisitor->curSurfaceDirtyManager_, nullptr);
+}
+
+/**
+ * @tc.name: QuickPrepareUnionRenderNode003
+ * @tc.desc: Test QuickPrepareUnionRenderNode takes SubTreeSkipPrepare branch when subtree prepare is not needed
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVisitorTest, QuickPrepareUnionRenderNode003, TestSize.Level1)
+{
+    const std::string subTreePrepareTypeKey = "persist.sys.graphic.SubTreePrepareCheckType.type";
+    const std::string oldSubTreePrepareType = system::GetParameter(subTreePrepareTypeKey, "2");
+    (void)system::SetParameter(subTreePrepareTypeKey, "2"); // ENABLED
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    bool oldAccessibilityConfigChanged = mainThread->isAccessibilityConfigChanged_;
+    mainThread->isAccessibilityConfigChanged_ = false;
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetNeedCollectHwcNode(false);
+    rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
+    rsUniRenderVisitor->curSurfaceDirtyManager_ = surfaceNode->GetDirtyManager();
+    ASSERT_NE(rsUniRenderVisitor->curSurfaceDirtyManager_, nullptr);
+    rsUniRenderVisitor->autoCacheEnable_ = false;
+    rsUniRenderVisitor->isFirstFrameAfterScreenRotation_ = false;
+    rsUniRenderVisitor->isCurSubTreeForcePrepare_ = false;
+
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto node = std::make_shared<RSUnionRenderNode>(DEFAULT_NODE_ID, rsContext->weak_from_this());
+    ASSERT_NE(node, nullptr);
+    node->InitRenderParams();
+    node->SetSubTreeDirty(false);
+    node->SetTreeStateChangeDirty(false);
+    node->SetForcePrepare(false);
+    node->MarkSuggestOpincNode(false, false);
+
+    rsUniRenderVisitor->QuickPrepareUnionRenderNode(*node);
+    bool isSubTreeSkipped = node->LastFrameSubTreeSkipped();
+
+    mainThread->isAccessibilityConfigChanged_ = oldAccessibilityConfigChanged;
+    (void)system::SetParameter(subTreePrepareTypeKey, oldSubTreePrepareType);
+
+    ASSERT_TRUE(isSubTreeSkipped);
 }
 
 /**

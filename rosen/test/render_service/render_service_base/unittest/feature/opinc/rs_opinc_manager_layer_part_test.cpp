@@ -13,561 +13,463 @@
  * limitations under the License.
  */
 
-/**
- * @tc.name: RSOpincManagerLayerPartBranchTest
- * @tc.desc: Branch coverage tests for layer part render manager (commit 266e787e55)
- * @tc.type: FUNC
- * @tc.require: issueLayerPart
- */
-
 #include "gtest/gtest.h"
+
+#include "common/rs_obj_abs_geometry.h"
 #include "feature/opinc/rs_opinc_manager.h"
 #include "pipeline/rs_canvas_render_node.h"
-#include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_dirty_region_manager.h"
-#include "params/rs_render_params.h"
+#include "pipeline/rs_surface_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+namespace {
+constexpr NodeId DEFAULT_NODE_ID = 10;
+constexpr NodeId SECOND_NODE_ID = 11;
+constexpr NodeId THIRD_NODE_ID = 12;
+constexpr int32_t ABS_RECT_LEFT = 10;
+constexpr int32_t ABS_RECT_TOP = 10;
+constexpr int32_t ABS_RECT_WIDTH = 100;
+constexpr int32_t ABS_RECT_HEIGHT = 100;
+constexpr int32_t OLD_RECT_LEFT = 0;
+constexpr int32_t OLD_RECT_TOP = 0;
+constexpr int32_t OLD_RECT_WIDTH = 20;
+constexpr int32_t OLD_RECT_HEIGHT = 20;
+constexpr int32_t CHILD_RECT_LEFT = 5;
+constexpr int32_t CHILD_RECT_TOP = 5;
+constexpr int32_t CHILD_RECT_WIDTH = 30;
+constexpr int32_t CHILD_RECT_HEIGHT = 30;
+constexpr int32_t WARMUP_UNCHANGED_COUNT = 4;
+constexpr int32_t OUTSIDE_RECT_LEFT = 1000;
+constexpr int32_t OUTSIDE_RECT_TOP = 1000;
+constexpr int32_t OUTSIDE_RECT_WIDTH = 50;
+constexpr int32_t OUTSIDE_RECT_HEIGHT = 50;
+constexpr int32_t INSIDE_RECT_LEFT = 20;
+constexpr int32_t INSIDE_RECT_TOP = 20;
+constexpr int32_t INSIDE_RECT_WIDTH = 10;
+constexpr int32_t INSIDE_RECT_HEIGHT = 10;
+const RectI DEFAULT_ABS_RECT = { ABS_RECT_LEFT, ABS_RECT_TOP, ABS_RECT_WIDTH, ABS_RECT_HEIGHT };
+const RectI DEFAULT_OLD_RECT = { OLD_RECT_LEFT, OLD_RECT_TOP, OLD_RECT_WIDTH, OLD_RECT_HEIGHT };
+const RectI DEFAULT_CHILD_RECT = { CHILD_RECT_LEFT, CHILD_RECT_TOP, CHILD_RECT_WIDTH, CHILD_RECT_HEIGHT };
+const RectI DEFAULT_OUTSIDE_RECT = { OUTSIDE_RECT_LEFT, OUTSIDE_RECT_TOP, OUTSIDE_RECT_WIDTH, OUTSIDE_RECT_HEIGHT };
+const RectI DEFAULT_INSIDE_RECT = { INSIDE_RECT_LEFT, INSIDE_RECT_TOP, INSIDE_RECT_WIDTH, INSIDE_RECT_HEIGHT };
+}
 
 class RSOpincManagerLayerPartTest : public testing::Test {
 public:
-    static void SetUpTestCase();
-    static void TearDownTestCase();
-    void SetUp() override;
-    void TearDown() override;
+    static std::shared_ptr<RSCanvasRenderNode> CreateCanvasNode(NodeId nodeId)
+    {
+        auto node = std::make_shared<RSCanvasRenderNode>(nodeId);
+        auto& geo = node->GetMutableRenderProperties().boundsGeo_;
+        if (geo == nullptr) {
+            geo = std::make_shared<RSObjAbsGeometry>();
+        }
+        geo->absMatrix_ = Drawing::Matrix();
+        geo->absRect_ = DEFAULT_ABS_RECT;
+        node->absDrawRect_ = DEFAULT_ABS_RECT;
+        return node;
+    }
 
-    RSOpincManager& opincManager_ = RSOpincManager::Instance();
+    static void WarmUpLayerPartUnchangeState(RSOpincCache& opincCache)
+    {
+        for (int32_t index = 0; index < WARMUP_UNCHANGED_COUNT; ++index) {
+            (void)opincCache.IsLayerPartRenderUnchangeState();
+        }
+    }
 };
-
-void RSOpincManagerLayerPartTest::SetUpTestCase() {}
-void RSOpincManagerLayerPartTest::TearDownTestCase() {}
-void RSOpincManagerLayerPartTest::SetUp() {}
-void RSOpincManagerLayerPartTest::TearDown() {}
 
 /**
  * @tc.name: InitLayerPartRenderNodeDisabled
- * @tc.desc: Test InitLayerPartRenderNode when CCM layer part render is disabled
+ * @tc.desc: Verify InitLayerPartRenderNode returns early when switch is disabled
  * @tc.type: FUNC
  * @tc.require: issueLayerPart
  */
 HWTEST_F(RSOpincManagerLayerPartTest, InitLayerPartRenderNodeDisabled, TestSize.Level1)
 {
-    NodeId id = 1;
-    auto node = std::make_shared<RSCanvasRenderNode>(id);
-    std::shared_ptr<RSDirtyRegionManager> layerPartRenderDirtyManager = nullptr;
+    auto node = CreateCanvasNode(DEFAULT_NODE_ID);
+    std::shared_ptr<RSDirtyRegionManager> dirtyManager = nullptr;
 
-    bool isCCMLayerPartRenderEnabled = false;
-    opincManager_.InitLayerPartRenderNode(isCCMLayerPartRenderEnabled, *node, layerPartRenderDirtyManager);
-    ASSERT_EQ(layerPartRenderDirtyManager, nullptr);
+    RSOpincManager::Instance().InitLayerPartRenderNode(false, *node, dirtyManager);
+
+    ASSERT_EQ(dirtyManager, nullptr);
     ASSERT_FALSE(node->GetOpincCache().IsLayerPartRender());
 }
 
 /**
- * @tc.name: InitLayerPartRenderNodeNotSuggested
- * @tc.desc: Test InitLayerPartRenderNode when node is not suggested for layer part render
+ * @tc.name: InitLayerPartRenderNodeSuggestedClearsDirtyManager
+ * @tc.desc: Verify InitLayerPartRenderNode clears and reuses dirty manager for suggested node
  * @tc.type: FUNC
  * @tc.require: issueLayerPart
  */
-HWTEST_F(RSOpincManagerLayerPartTest, InitLayerPartRenderNodeNotSuggested, TestSize.Level1)
+HWTEST_F(RSOpincManagerLayerPartTest, InitLayerPartRenderNodeSuggestedClearsDirtyManager, TestSize.Level1)
 {
-    NodeId id = 2;
-    auto node = std::make_shared<RSCanvasRenderNode>(id);
-    std::shared_ptr<RSDirtyRegionManager> layerPartRenderDirtyManager = nullptr;
-
-    bool isCCMLayerPartRenderEnabled = true;
-    opincManager_.InitLayerPartRenderNode(isCCMLayerPartRenderEnabled, *node, layerPartRenderDirtyManager);
-
-    ASSERT_FALSE(node->GetOpincCache().IsSuggestLayerPartRenderNode());
-    ASSERT_FALSE(node->GetOpincCache().IsLayerPartRender());
-}
-
-/**
- * @tc.name: InitLayerPartRenderNodeWithSuggested
- * @tc.desc: Test InitLayerPartRenderNode when node is suggested for layer part render
- * @tc.type: FUNC
- * @tc.require: issueLayerPart
- */
-HWTEST_F(RSOpincManagerLayerPartTest, InitLayerPartRenderNodeWithSuggested, TestSize.Level1)
-{
-    NodeId id = 3;
-    auto node = std::make_shared<RSCanvasRenderNode>(id);
-    std::shared_ptr<RSDirtyRegionManager> layerPartRenderDirtyManager = nullptr;
-
+    auto node = CreateCanvasNode(SECOND_NODE_ID);
     node->GetOpincCache().MarkSuggestLayerPartRenderNode(true);
-    ASSERT_TRUE(node->GetOpincCache().IsSuggestLayerPartRenderNode());
+    auto& cachedDirtyManager = node->GetOpincCache().GetLayerPartRenderDirtyManager();
+    ASSERT_NE(cachedDirtyManager, nullptr);
+    cachedDirtyManager->MergeDirtyRect(DEFAULT_ABS_RECT);
+    ASSERT_FALSE(cachedDirtyManager->GetCurrentFrameDirtyRegion().IsEmpty());
 
-    bool isCCMLayerPartRenderEnabled = true;
-    opincManager_.InitLayerPartRenderNode(isCCMLayerPartRenderEnabled, *node, layerPartRenderDirtyManager);
+    std::shared_ptr<RSDirtyRegionManager> dirtyManager = nullptr;
+    RSOpincManager::Instance().InitLayerPartRenderNode(true, *node, dirtyManager);
 
+    ASSERT_EQ(dirtyManager, cachedDirtyManager);
+    ASSERT_TRUE(dirtyManager->GetCurrentFrameDirtyRegion().IsEmpty());
     ASSERT_TRUE(node->GetOpincCache().IsLayerPartRender());
-    ASSERT_NE(layerPartRenderDirtyManager, nullptr);
 }
 
 /**
- * @tc.name: InitLayerPartRenderNodeWithDirtyManagerClear
- * @tc.desc: Test InitLayerPartRenderNode when dirty manager already exists and Clear() is called
+ * @tc.name: InitLayerPartRenderNodeEnableByDisableStrategy
+ * @tc.desc: Verify InitLayerPartRenderNode still enters layer-part flow when strategy is CACHE_DISABLE
  * @tc.type: FUNC
  * @tc.require: issueLayerPart
  */
-HWTEST_F(RSOpincManagerLayerPartTest, InitLayerPartRenderNodeWithDirtyManagerClear, TestSize.Level1)
+HWTEST_F(RSOpincManagerLayerPartTest, InitLayerPartRenderNodeEnableByDisableStrategy, TestSize.Level1)
 {
-    NodeId id = 4;
-    auto node = std::make_shared<RSCanvasRenderNode>(id);
-    node->GetOpincCache().MarkSuggestLayerPartRenderNode(true);
+    auto node = CreateCanvasNode(DEFAULT_NODE_ID);
+    node->GetOpincCache().MarkSuggestLayerPartRenderNode(false);
+    node->GetOpincCache().SetLayerPartRenderNodeStrategyType(NodeStrategyType::CACHE_DISABLE);
+    std::shared_ptr<RSDirtyRegionManager> dirtyManager = nullptr;
 
-    auto& dirtyManager = node->GetOpincCache().GetLayerPartRenderDirtyManager();
+    RSOpincManager::Instance().InitLayerPartRenderNode(true, *node, dirtyManager);
+
     ASSERT_NE(dirtyManager, nullptr);
-
-    dirtyManager->MergeDirtyRect(RectI(0, 0, 100, 100));
-    ASSERT_FALSE(dirtyManager->GetCurrentFrameDirtyRegion().IsEmpty());
-
-    std::shared_ptr<RSDirtyRegionManager> layerPartRenderDirtyManager = nullptr;
-    bool isCCMLayerPartRenderEnabled = true;
-    opincManager_.InitLayerPartRenderNode(isCCMLayerPartRenderEnabled, *node, layerPartRenderDirtyManager);
-
     ASSERT_TRUE(node->GetOpincCache().IsLayerPartRender());
-    ASSERT_NE(layerPartRenderDirtyManager, nullptr);
+}
+
+/**
+ * @tc.name: InitLayerPartRenderNodeReturnWhenNotSuggested
+ * @tc.desc: Verify InitLayerPartRenderNode returns early when not suggested and strategy is not CACHE_DISABLE
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSOpincManagerLayerPartTest, InitLayerPartRenderNodeReturnWhenNotSuggested, TestSize.Level1)
+{
+    auto node = CreateCanvasNode(SECOND_NODE_ID);
+    node->GetOpincCache().MarkSuggestLayerPartRenderNode(false);
+    node->GetOpincCache().SetLayerPartRenderNodeStrategyType(NodeStrategyType::CACHE_NONE);
+    std::shared_ptr<RSDirtyRegionManager> dirtyManager = nullptr;
+
+    RSOpincManager::Instance().InitLayerPartRenderNode(true, *node, dirtyManager);
+
+    ASSERT_EQ(dirtyManager, nullptr);
+    ASSERT_FALSE(node->GetOpincCache().IsLayerPartRender());
+}
+
+/**
+ * @tc.name: CalculateLayerPartRenderDirtyRegionNormalPath
+ * @tc.desc: Verify CalculateAndUpdateLayerPartRenderDirtyRegion normal path enables layer-part and sets dirty region
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionNormalPath, TestSize.Level1)
+{
+    auto node = CreateCanvasNode(THIRD_NODE_ID);
+    node->GetOpincCache().SetLayerPartRender(true);
+    auto dirtyManager = node->GetOpincCache().GetLayerPartRenderDirtyManager();
+    ASSERT_NE(dirtyManager, nullptr);
+    dirtyManager->SetCurrentFrameDirtyRect(DEFAULT_OLD_RECT);
+
+    RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(*node, dirtyManager, DEFAULT_OLD_RECT);
+
+    auto& cachedDirtyManager = node->GetOpincCache().GetLayerPartRenderDirtyManager();
+    ASSERT_NE(cachedDirtyManager, nullptr);
+    ASSERT_TRUE(cachedDirtyManager->GetLayerPartRenderEnabled());
+    ASSERT_EQ(cachedDirtyManager->GetLayerPartRenderCurrentFrameDirtyRegion(), DEFAULT_ABS_RECT);
+    ASSERT_EQ(node->GetNodeGroupType(), RSRenderNode::NodeGroupType::GROUPED_BY_USER);
+    ASSERT_EQ(dirtyManager, nullptr);
 }
 
 /**
  * @tc.name: CalculateLayerPartRenderDirtyRegionNullDirtyManager
- * @tc.desc: Test CalculateLayerPartRenderDirtyRegion with null dirty manager
+ * @tc.desc: Verify CalculateLayerPartRenderDirtyRegion returns early for null manager
  * @tc.type: FUNC
  * @tc.require: issueLayerPart
  */
 HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionNullDirtyManager, TestSize.Level1)
 {
-    NodeId id = 10;
-    auto node = std::make_shared<RSCanvasRenderNode>(id);
-    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
+    auto node = CreateCanvasNode(THIRD_NODE_ID);
+    std::shared_ptr<RSDirtyRegionManager> dirtyManager = nullptr;
 
-    std::shared_ptr<RSDirtyRegionManager> layerPartRenderDirtyManager = nullptr;
+    RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(*node, dirtyManager, DEFAULT_ABS_RECT);
 
-    opincManager_.CalculateLayerPartRenderDirtyRegion(*node, layerPartRenderDirtyManager);
-
-    ASSERT_EQ(layerPartRenderDirtyManager, nullptr);
-}
-
-/**
- * @tc.name: CalculateLayerPartRenderDirtyRegionNullStagingParams
- * @tc.desc: Test CalculateLayerPartRenderDirtyRegion with null staging params
- * @tc.type: FUNC
- * @tc.require: issueLayerPart
- */
-HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionNullStagingParams, TestSize.Level1)
-{
-    NodeId id = 11;
-    auto node = std::make_shared<RSCanvasRenderNode>(id);
-    node->stagingRenderParams_ = nullptr;
-
-    auto layerPartRenderDirtyManager = std::make_shared<RSDirtyRegionManager>(id);
-    ASSERT_NE(layerPartRenderDirtyManager, nullptr);
-
-    opincManager_.CalculateLayerPartRenderDirtyRegion(*node, layerPartRenderDirtyManager);
-
-    ASSERT_NE(layerPartRenderDirtyManager, nullptr);
+    ASSERT_EQ(dirtyManager, nullptr);
 }
 
 /**
  * @tc.name: CalculateLayerPartRenderDirtyRegionLayerPartDisabled
- * @tc.desc: Test CalculateLayerPartRenderDirtyRegion when layer part render is disabled
+ * @tc.desc: Verify CalculateLayerPartRenderDirtyRegion disables layer-part state when node is not enabled
  * @tc.type: FUNC
  * @tc.require: issueLayerPart
  */
 HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionLayerPartDisabled, TestSize.Level1)
 {
-    NodeId id = 12;
-    auto node = std::make_shared<RSCanvasRenderNode>(id);
-    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
+    auto node = CreateCanvasNode(DEFAULT_NODE_ID);
+    node->GetOpincCache().SetLayerPartRenderNodeStrategyType(NodeStrategyType::CACHE_DISABLE);
+    auto dirtyManager = std::make_shared<RSDirtyRegionManager>();
+    auto dirtyManagerHold = dirtyManager;
+    ASSERT_NE(dirtyManager, nullptr);
+    dirtyManager->SetLayerPartRenderEnabled(true);
 
-    node->GetOpincCache().SetLayerPartRender(false);
-    ASSERT_FALSE(node->GetOpincCache().IsLayerPartRender());
+    RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(*node, dirtyManager, DEFAULT_ABS_RECT);
 
-    auto layerPartRenderDirtyManager = std::make_shared<RSDirtyRegionManager>(id);
-    ASSERT_NE(layerPartRenderDirtyManager, nullptr);
-
-    opincManager_.CalculateLayerPartRenderDirtyRegion(*node, layerPartRenderDirtyManager);
-
-    ASSERT_FALSE(node->stagingRenderParams_->GetLayerPartRenderEnabled());
+    ASSERT_NE(dirtyManagerHold, nullptr);
+    ASSERT_FALSE(dirtyManagerHold->GetLayerPartRenderEnabled());
+    ASSERT_EQ(node->GetOpincCache().GetLayerPartRenderNodeStrategyType(), NodeStrategyType::CACHE_NONE);
+    ASSERT_EQ(node->GetNodeGroupType(), RSRenderNode::NodeGroupType::NONE);
 }
 
 /**
- * @tc.name: CalculateLayerPartRenderDirtyRegionWithDisableAnimation
- * @tc.desc: Test CalculateLayerPartRenderDirtyRegion when animation is disabled
+ * @tc.name: CalculateLayerPartRenderDirtyRegionUsesNodeAbsRect
+ * @tc.desc: Verify CalculateLayerPartRenderDirtyRegion uses node abs rect for changing node
  * @tc.type: FUNC
  * @tc.require: issueLayerPart
  */
-HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionWithDisableAnimation, TestSize.Level1)
+HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionUsesNodeAbsRect, TestSize.Level1)
 {
-    NodeId id = 13;
-    auto node = std::make_shared<RSCanvasRenderNode>(id);
-    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
+    auto node = CreateCanvasNode(SECOND_NODE_ID);
     node->GetOpincCache().SetLayerPartRender(true);
+    auto dirtyManager = node->GetOpincCache().GetLayerPartRenderDirtyManager();
+    ASSERT_NE(dirtyManager, nullptr);
+    dirtyManager->SetCurrentFrameDirtyRect(DEFAULT_OLD_RECT);
 
-    auto layerPartRenderDirtyManager = std::make_shared<RSDirtyRegionManager>(id);
-    ASSERT_NE(layerPartRenderDirtyManager, nullptr);
+    RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(*node, dirtyManager, DEFAULT_OLD_RECT);
 
-    opincManager_.CalculateLayerPartRenderDirtyRegion(*node, layerPartRenderDirtyManager);
-
-    ASSERT_FALSE(node->stagingRenderParams_->GetLayerPartRenderEnabled());
-}
-
-/**
- * @tc.name: CalculateLayerPartRenderDirtyRegionNotGroupedByUser
- * @tc.desc: Test CalculateLayerPartRenderDirtyRegion when node is not grouped by user
- * @tc.type: FUNC
- * @tc.require: issueLayerPart
- */
-HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionNotGroupedByUser, TestSize.Level1)
-{
-    NodeId id = 14;
-    auto node = std::make_shared<RSCanvasRenderNode>(id);
-    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
-    node->GetOpincCache().SetLayerPartRender(true);
-    node->GetOpincCache().MarkSuggestLayerPartRenderNode(true);
-
-    ASSERT_NE(node->GetNodeGroupType(), RSRenderNode::NodeGroupType::GROUPED_BY_USER);
-
-    auto layerPartRenderDirtyManager = std::make_shared<RSDirtyRegionManager>(id);
-    ASSERT_NE(layerPartRenderDirtyManager, nullptr);
-
-    opincManager_.CalculateLayerPartRenderDirtyRegion(*node, layerPartRenderDirtyManager);
-
+    auto& cachedDirtyManager = node->GetOpincCache().GetLayerPartRenderDirtyManager();
+    ASSERT_NE(cachedDirtyManager, nullptr);
+    ASSERT_TRUE(cachedDirtyManager->GetLayerPartRenderEnabled());
+    ASSERT_EQ(cachedDirtyManager->GetLayerPartRenderCurrentFrameDirtyRegion(), DEFAULT_ABS_RECT);
     ASSERT_EQ(node->GetNodeGroupType(), RSRenderNode::NodeGroupType::GROUPED_BY_USER);
-    ASSERT_TRUE(node->stagingRenderParams_->GetLayerPartRenderEnabled());
+    ASSERT_EQ(dirtyManager, nullptr);
 }
 
 /**
- * @tc.name: CalculateLayerPartRenderDirtyRegionAlreadyGrouped
- * @tc.desc: Test CalculateLayerPartRenderDirtyRegion when node is already grouped by user
+ * @tc.name: CalculateLayerPartRenderDirtyRegionFallbackToNodeAbsRect
+ * @tc.desc: Verify unchanged node falls back to node abs rect when dirty region is not fully inside node abs rect
  * @tc.type: FUNC
  * @tc.require: issueLayerPart
  */
-HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionAlreadyGrouped, TestSize.Level1)
+HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionFallbackToNodeAbsRect, TestSize.Level1)
 {
-    NodeId id = 15;
-    auto node = std::make_shared<RSCanvasRenderNode>(id);
-    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
+    auto node = CreateCanvasNode(THIRD_NODE_ID);
     node->GetOpincCache().SetLayerPartRender(true);
-
     node->MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_USER, true, false);
+    WarmUpLayerPartUnchangeState(node->GetOpincCache());
+
+    auto dirtyManager = node->GetOpincCache().GetLayerPartRenderDirtyManager();
+    ASSERT_NE(dirtyManager, nullptr);
+    dirtyManager->SetCurrentFrameDirtyRect(DEFAULT_OLD_RECT);
+
+    RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(*node, dirtyManager, DEFAULT_OLD_RECT);
+
+    auto& cachedDirtyManager = node->GetOpincCache().GetLayerPartRenderDirtyManager();
+    ASSERT_NE(cachedDirtyManager, nullptr);
+    ASSERT_TRUE(cachedDirtyManager->GetLayerPartRenderEnabled());
+    ASSERT_EQ(cachedDirtyManager->GetLayerPartRenderCurrentFrameDirtyRegion(), DEFAULT_ABS_RECT);
+    ASSERT_EQ(dirtyManager, nullptr);
+}
+
+/**
+ * @tc.name: CalculateLayerPartRenderDirtyRegionNotLayerPartRender
+ * @tc.desc: Verify CalculateAndUpdateLayerPartRenderDirtyRegion returns early when node is not layer-part render
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionNotLayerPartRender, TestSize.Level1)
+{
+    auto node = CreateCanvasNode(DEFAULT_NODE_ID);
+    auto dirtyManager = std::make_shared<RSDirtyRegionManager>();
+    ASSERT_NE(dirtyManager, nullptr);
+    dirtyManager->SetLayerPartRenderEnabled(true);
+
+    RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(*node, dirtyManager, DEFAULT_ABS_RECT);
+
+    ASSERT_NE(dirtyManager, nullptr);
+    ASSERT_TRUE(dirtyManager->GetLayerPartRenderEnabled());
+}
+
+/**
+ * @tc.name: CalculateLayerPartRenderDirtyRegionGeoNull
+ * @tc.desc: Verify CalculateAndUpdateLayerPartRenderDirtyRegion clears layer-part state when geometry is null
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionGeoNull, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasRenderNode>(SECOND_NODE_ID);
+    ASSERT_NE(node, nullptr);
+    node->GetOpincCache().SetLayerPartRender(true);
+    node->GetMutableRenderProperties().boundsGeo_ = nullptr;
+    auto dirtyManager = std::make_shared<RSDirtyRegionManager>();
+    ASSERT_NE(dirtyManager, nullptr);
+
+    RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(*node, dirtyManager, DEFAULT_ABS_RECT);
+
+    ASSERT_NE(dirtyManager, nullptr);
+    ASSERT_FALSE(dirtyManager->GetLayerPartRenderEnabled());
+    ASSERT_EQ(node->GetNodeGroupType(), RSRenderNode::NodeGroupType::NONE);
+}
+
+/**
+ * @tc.name: CalculateLayerPartRenderDirtyRegionInvertFailed
+ * @tc.desc: Verify CalculateAndUpdateLayerPartRenderDirtyRegion clears layer-part state when matrix invert fails
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionInvertFailed, TestSize.Level1)
+{
+    auto node = CreateCanvasNode(SECOND_NODE_ID);
+    node->GetOpincCache().SetLayerPartRender(true);
+    auto& geo = node->GetMutableRenderProperties().boundsGeo_;
+    ASSERT_NE(geo, nullptr);
+    geo->absMatrix_->Set(Drawing::Matrix::SCALE_X, 0.0f);
+    geo->absMatrix_->Set(Drawing::Matrix::SCALE_Y, 0.0f);
+
+    auto dirtyManager = std::make_shared<RSDirtyRegionManager>();
+    ASSERT_NE(dirtyManager, nullptr);
+
+    RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(*node, dirtyManager, DEFAULT_ABS_RECT);
+
+    ASSERT_NE(dirtyManager, nullptr);
+    ASSERT_FALSE(dirtyManager->GetLayerPartRenderEnabled());
+    ASSERT_EQ(node->GetNodeGroupType(), RSRenderNode::NodeGroupType::NONE);
+}
+
+/**
+ * @tc.name: CalculateLayerPartRenderDirtyRegionOutsideNodeAbsRect
+ * @tc.desc: Verify out-of-range dirty region falls back to node abs rect
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionOutsideNodeAbsRect, TestSize.Level1)
+{
+    auto node = CreateCanvasNode(THIRD_NODE_ID);
+    node->GetOpincCache().SetLayerPartRender(true);
+    node->MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_USER, true, false);
+    WarmUpLayerPartUnchangeState(node->GetOpincCache());
+
+    auto dirtyManager = node->GetOpincCache().GetLayerPartRenderDirtyManager();
+    ASSERT_NE(dirtyManager, nullptr);
+    dirtyManager->SetCurrentFrameDirtyRect(DEFAULT_OUTSIDE_RECT);
+
+    RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(*node, dirtyManager,
+        DEFAULT_OUTSIDE_RECT);
+
+    auto& cachedDirtyManager = node->GetOpincCache().GetLayerPartRenderDirtyManager();
+    ASSERT_NE(cachedDirtyManager, nullptr);
+    ASSERT_EQ(cachedDirtyManager->GetLayerPartRenderCurrentFrameDirtyRegion(), DEFAULT_ABS_RECT);
+    ASSERT_EQ(dirtyManager, nullptr);
+}
+
+/**
+ * @tc.name: CalculateLayerPartRenderDirtyRegionInsideNodeAbsRect
+ * @tc.desc: Verify unchanged node keeps inside dirty region and does not fallback to node abs rect
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionInsideNodeAbsRect, TestSize.Level1)
+{
+    auto node = CreateCanvasNode(THIRD_NODE_ID);
+    node->GetOpincCache().SetLayerPartRender(true);
+    node->MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_USER, true, false);
+    WarmUpLayerPartUnchangeState(node->GetOpincCache());
+
+    auto dirtyManager = node->GetOpincCache().GetLayerPartRenderDirtyManager();
+    ASSERT_NE(dirtyManager, nullptr);
+    dirtyManager->SetCurrentFrameDirtyRect(DEFAULT_INSIDE_RECT);
+
+    RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(*node, dirtyManager,
+        DEFAULT_INSIDE_RECT);
+
+    auto& cachedDirtyManager = node->GetOpincCache().GetLayerPartRenderDirtyManager();
+    ASSERT_NE(cachedDirtyManager, nullptr);
+    ASSERT_TRUE(cachedDirtyManager->GetLayerPartRenderEnabled());
+    ASSERT_EQ(cachedDirtyManager->GetLayerPartRenderCurrentFrameDirtyRegion(), DEFAULT_INSIDE_RECT);
     ASSERT_EQ(node->GetNodeGroupType(), RSRenderNode::NodeGroupType::GROUPED_BY_USER);
-
-    auto layerPartRenderDirtyManager = std::make_shared<RSDirtyRegionManager>(id);
-    ASSERT_NE(layerPartRenderDirtyManager, nullptr);
-
-    opincManager_.CalculateLayerPartRenderDirtyRegion(*node, layerPartRenderDirtyManager);
-
-    ASSERT_TRUE(node->stagingRenderParams_->GetLayerPartRenderEnabled());
+    ASSERT_EQ(dirtyManager, nullptr);
 }
 
 /**
- * @tc.name: CalculateLayerPartRenderDirtyRegionUnchangeStateFalse
- * @tc.desc: Test CalculateLayerPartRenderDirtyRegion when unchange state is false
+ * @tc.name: UpdateLayerPartRenderDirtyRegionNullManager
+ * @tc.desc: Verify UpdateLayerPartRenderDirtyRegion returns false for null manager
  * @tc.type: FUNC
  * @tc.require: issueLayerPart
  */
-HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionUnchangeStateFalse, TestSize.Level1)
+HWTEST_F(RSOpincManagerLayerPartTest, UpdateLayerPartRenderDirtyRegionNullManager, TestSize.Level1)
 {
-    NodeId id = 16;
-    auto node = std::make_shared<RSCanvasRenderNode>(id);
-    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
-    node->GetOpincCache().SetLayerPartRender(true);
-    node->GetOpincCache().MarkSuggestLayerPartRenderNode(true);
-
-    node->MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_USER, true, false);
-
-    auto layerPartRenderDirtyManager = std::make_shared<RSDirtyRegionManager>(id);
-    ASSERT_NE(layerPartRenderDirtyManager, nullptr);
-
-    opincManager_.CalculateLayerPartRenderDirtyRegion(*node, layerPartRenderDirtyManager);
-
-    ASSERT_TRUE(node->stagingRenderParams_->GetLayerPartRenderEnabled());
-}
-
-/**
- * @tc.name: CalculateLayerPartRenderDirtyRegionUnchangeStateTrue
- * @tc.desc: Test CalculateLayerPartRenderDirtyRegion when unchange state is true
- * @tc.type: FUNC
- * @tc.require: issueLayerPart
- */
-HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionUnchangeStateTrue, TestSize.Level1)
-{
-    NodeId id = 17;
-    auto node = std::make_shared<RSCanvasRenderNode>(id);
-    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
-    node->GetOpincCache().SetLayerPartRender(true);
-    node->GetOpincCache().MarkSuggestLayerPartRenderNode(true);
-    node->MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_USER, true, false);
-
-    auto layerPartRenderDirtyManager = std::make_shared<RSDirtyRegionManager>(id);
-    ASSERT_NE(layerPartRenderDirtyManager, nullptr);
-
-    for (int i = 0; i < 5; i++) {
-        node->GetOpincCache().IsLayerPartRenderUnchangeState();
-    }
-
-    opincManager_.CalculateLayerPartRenderDirtyRegion(*node, layerPartRenderDirtyManager);
-
-    ASSERT_TRUE(node->stagingRenderParams_->GetLayerPartRenderEnabled());
-}
-
-/**
- * @tc.name: CalculateLayerPartRenderDirtyRegionSuccess
- * @tc.desc: Test CalculateLayerPartRenderDirtyRegion success path
- * @tc.type: FUNC
- * @tc.require: issueLayerPart
- */
-HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionSuccess, TestSize.Level1)
-{
-    NodeId id = 18;
-    auto node = std::make_shared<RSCanvasRenderNode>(id);
-    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
-    node->GetOpincCache().SetLayerPartRender(true);
-    node->GetOpincCache().MarkSuggestLayerPartRenderNode(true);
-    node->MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_USER, true, false);
-
-    auto layerPartRenderDirtyManager = std::make_shared<RSDirtyRegionManager>(id);
-    ASSERT_NE(layerPartRenderDirtyManager, nullptr);
-
-    opincManager_.CalculateLayerPartRenderDirtyRegion(*node, layerPartRenderDirtyManager);
-
-    ASSERT_TRUE(node->stagingRenderParams_->GetLayerPartRenderEnabled());
-}
-
-/**
- * @tc.name: MarkSuggestLayerPartRenderNode001
- * @tc.desc: Test MarkSuggestLayerPartRenderNode with non-SURFACE node
- * @tc.type: FUNC
- * @tc.require: issueLayerPart
- */
-HWTEST_F(RSOpincManagerLayerPartTest, MarkSuggestLayerPartRenderNode001, TestSize.Level1)
-{
-    NodeId id = 20;
-    auto canvasNode = std::make_shared<RSCanvasRenderNode>(id);
-    ASSERT_NE(canvasNode, nullptr);
-    ASSERT_NE(canvasNode->GetType(), RSRenderNodeType::SURFACE_NODE);
-
-    canvasNode->MarkSuggestLayerPartRenderNode(true);
-    canvasNode->MarkSuggestLayerPartRenderNode(false);
-
-    ASSERT_FALSE(canvasNode->GetOpincCache().IsSuggestLayerPartRenderNode());
-}
-
-/**
- * @tc.name: MarkSuggestLayerPartRenderNode002
- * @tc.desc: Test MarkSuggestLayerPartRenderNode with SURFACE node but no parent
- * @tc.type: FUNC
- * @tc.require: issueLayerPart
- */
-HWTEST_F(RSOpincManagerLayerPartTest, MarkSuggestLayerPartRenderNode002, TestSize.Level1)
-{
-    NodeId id = 21;
-    std::weak_ptr<RSContext> context;
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, context);
-    ASSERT_NE(surfaceNode, nullptr);
-    ASSERT_EQ(surfaceNode->GetType(), RSRenderNodeType::SURFACE_NODE);
-
-    surfaceNode->MarkSuggestLayerPartRenderNode(true);
-
-    ASSERT_FALSE(surfaceNode->GetOpincCache().IsSuggestLayerPartRenderNode());
-}
-
-/**
- * @tc.name: MarkSuggestLayerPartRenderNode003
- * @tc.desc: Test MarkSuggestLayerPartRenderNode with SURFACE node but parent is not SURFACE
- * @tc.type: FUNC
- * @tc.require: issueLayerPart
- */
-HWTEST_F(RSOpincManagerLayerPartTest, MarkSuggestLayerPartRenderNode003, TestSize.Level1)
-{
-    NodeId id = 22;
-    std::weak_ptr<RSContext> context;
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, context);
-    auto canvasNode = std::make_shared<RSCanvasRenderNode>(id + 1);
-    ASSERT_NE(surfaceNode, nullptr);
-    ASSERT_NE(canvasNode, nullptr);
-
-    surfaceNode->SetParent(canvasNode);
-
-    surfaceNode->MarkSuggestLayerPartRenderNode(true);
-
-    ASSERT_FALSE(surfaceNode->GetOpincCache().IsSuggestLayerPartRenderNode());
-}
-
-/**
- * @tc.name: MarkSuggestLayerPartRenderNode004
- * @tc.desc: Test MarkSuggestLayerPartRenderNode with proper hierarchy but no ground parent
- * @tc.type: FUNC
- * @tc.require: issueLayerPart
- */
-HWTEST_F(RSOpincManagerLayerPartTest, MarkSuggestLayerPartRenderNode004, TestSize.Level1)
-{
-    NodeId id = 23;
-    std::weak_ptr<RSContext> context;
-    auto parentSurface = std::make_shared<RSSurfaceRenderNode>(id, context);
-    auto childSurface = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
-    ASSERT_NE(parentSurface, nullptr);
-    ASSERT_NE(childSurface, nullptr);
-
-    childSurface->SetParent(parentSurface);
-
-    childSurface->MarkSuggestLayerPartRenderNode(true);
-
-    ASSERT_FALSE(childSurface->GetOpincCache().IsSuggestLayerPartRenderNode());
-}
-
-/**
- * @tc.name: MarkSuggestLayerPartRenderNode005
- * @tc.desc: Test MarkSuggestLayerPartRenderNode with proper hierarchy but ground parent is not CANVAS
- * @tc.type: FUNC
- * @tc.require: issueLayerPart
- */
-HWTEST_F(RSOpincManagerLayerPartTest, MarkSuggestLayerPartRenderNode005, TestSize.Level1)
-{
-    NodeId id = 24;
-    std::weak_ptr<RSContext> context;
-    auto grandParentSurface = std::make_shared<RSSurfaceRenderNode>(id, context);
-    auto parentSurface = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
-    auto childSurface = std::make_shared<RSSurfaceRenderNode>(id + 2, context);
-    ASSERT_NE(grandParentSurface, nullptr);
-    ASSERT_NE(parentSurface, nullptr);
-    ASSERT_NE(childSurface, nullptr);
-
-    parentSurface->SetParent(grandParentSurface);
-    childSurface->SetParent(parentSurface);
-
-    childSurface->MarkSuggestLayerPartRenderNode(true);
-
-    ASSERT_FALSE(childSurface->GetOpincCache().IsSuggestLayerPartRenderNode());
-}
-
-/**
- * @tc.name: MarkSuggestLayerPartRenderNode006
- * @tc.desc: Test MarkSuggestLayerPartRenderNode with complete hierarchy and isLayerPartRender=true
- * @tc.type: FUNC
- * @tc.require: issueLayerPart
- */
-HWTEST_F(RSOpincManagerLayerPartTest, MarkSuggestLayerPartRenderNode006, TestSize.Level1)
-{
-    NodeId id = 25;
-    std::weak_ptr<RSContext> context;
-    auto canvasNode = std::make_shared<RSCanvasRenderNode>(id);
-    auto parentSurface = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
-    auto childSurface = std::make_shared<RSSurfaceRenderNode>(id + 2, context);
-    ASSERT_NE(canvasNode, nullptr);
-    ASSERT_NE(parentSurface, nullptr);
-    ASSERT_NE(childSurface, nullptr);
-
-    parentSurface->SetParent(canvasNode);
-    childSurface->SetParent(parentSurface);
-
-    // Before marking, groundParent (canvasNode) should not be suggested
-    ASSERT_FALSE(canvasNode->GetOpincCache().IsSuggestLayerPartRenderNode());
-
-    childSurface->MarkSuggestLayerPartRenderNode(true);
-
-    // groundParent's (canvasNode's) opincCache should be marked, not childSurface's
-    ASSERT_TRUE(canvasNode->GetOpincCache().IsSuggestLayerPartRenderNode());
-    ASSERT_FALSE(childSurface->GetOpincCache().IsSuggestLayerPartRenderNode());
-    // When isLayerPartRender=true, MarkNodeGroup should NOT be called
-    ASSERT_NE(canvasNode->GetNodeGroupType(), RSRenderNode::NodeGroupType::GROUPED_BY_USER);
-}
-
-/**
- * @tc.name: MarkSuggestLayerPartRenderNode007
- * @tc.desc: Test MarkSuggestLayerPartRenderNode with complete hierarchy and isLayerPartRender=false
- * @tc.type: FUNC
- * @tc.require: issueLayerPart
- */
-HWTEST_F(RSOpincManagerLayerPartTest, MarkSuggestLayerPartRenderNode007, TestSize.Level1)
-{
-    NodeId id = 26;
-    std::weak_ptr<RSContext> context;
-    auto canvasNode = std::make_shared<RSCanvasRenderNode>(id);
-    auto parentSurface = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
-    auto childSurface = std::make_shared<RSSurfaceRenderNode>(id + 2, context);
-    ASSERT_NE(canvasNode, nullptr);
-    ASSERT_NE(parentSurface, nullptr);
-    ASSERT_NE(childSurface, nullptr);
-
-    parentSurface->SetParent(canvasNode);
-    childSurface->SetParent(parentSurface);
-
-    // Before marking, groundParent (canvasNode) should not be suggested
-    ASSERT_FALSE(canvasNode->GetOpincCache().IsSuggestLayerPartRenderNode());
-
-    childSurface->MarkSuggestLayerPartRenderNode(false);
-
-    // groundParent's (canvasNode's) opincCache should be marked as false
-    ASSERT_FALSE(canvasNode->GetOpincCache().IsSuggestLayerPartRenderNode());
-    ASSERT_FALSE(childSurface->GetOpincCache().IsSuggestLayerPartRenderNode());
-    // When isLayerPartRender=false, MarkNodeGroup should be called on groundParent
-    ASSERT_EQ(canvasNode->GetNodeGroupType(), RSRenderNode::NodeGroupType::GROUPED_BY_USER);
-}
-
-/**
- * @tc.name: UpdateLayerPartRenderDirtyRegion001
- * @tc.desc: Test UpdateLayerPartRenderDirtyRegion with null dirty manager
- * @tc.type: FUNC
- * @tc.require: issueLayerPart
- */
-HWTEST_F(RSOpincManagerLayerPartTest, UpdateLayerPartRenderDirtyRegion001, TestSize.Level1)
-{
-    NodeId id = 30;
-    std::weak_ptr<RSContext> context;
-    auto node = std::make_shared<RSCanvasRenderNode>(id, context);
+    auto node = CreateCanvasNode(DEFAULT_NODE_ID);
     std::shared_ptr<RSDirtyRegionManager> dirtyManager = nullptr;
 
-    bool result = node->UpdateLayerPartRenderDirtyRegion(dirtyManager);
-
-    ASSERT_FALSE(result);
+    ASSERT_FALSE(node->UpdateLayerPartRenderDirtyRegion(dirtyManager));
 }
 
 /**
- * @tc.name: UpdateLayerPartRenderDirtyRegion002
- * @tc.desc: Test UpdateLayerPartRenderDirtyRegion with flag false
+ * @tc.name: UpdateLayerPartRenderDirtyRegionWithoutDirtyFlag
+ * @tc.desc: Verify UpdateLayerPartRenderDirtyRegion still refreshes cached old rect without merging dirty
  * @tc.type: FUNC
  * @tc.require: issueLayerPart
  */
-HWTEST_F(RSOpincManagerLayerPartTest, UpdateLayerPartRenderDirtyRegion002, TestSize.Level1)
+HWTEST_F(RSOpincManagerLayerPartTest, UpdateLayerPartRenderDirtyRegionWithoutDirtyFlag, TestSize.Level1)
 {
-    NodeId id = 31;
-    std::weak_ptr<RSContext> context;
-    auto node = std::make_shared<RSCanvasRenderNode>(id, context);
+    auto node = CreateCanvasNode(SECOND_NODE_ID);
     auto dirtyManager = std::make_shared<RSDirtyRegionManager>();
     ASSERT_NE(dirtyManager, nullptr);
+    node->GetOpincCache().SetLayerPartRenderDirtyFlag(false);
 
-    node->layerPartRenderDirtyFlag_ = false;
-    bool result = node->UpdateLayerPartRenderDirtyRegion(dirtyManager);
-
-    ASSERT_TRUE(result);
+    ASSERT_TRUE(node->UpdateLayerPartRenderDirtyRegion(dirtyManager));
+    ASSERT_TRUE(dirtyManager->GetCurrentFrameDirtyRegion().IsEmpty());
+    ASSERT_EQ(node->GetOpincCache().GetLayerPartRenderOldAbsDrawRect(), DEFAULT_ABS_RECT);
 }
 
 /**
- * @tc.name: UpdateLayerPartRenderDirtyRegion003
- * @tc.desc: Test UpdateLayerPartRenderDirtyRegion with flag true
+ * @tc.name: UpdateLayerPartRenderDirtyRegionWithDirtyFlag
+ * @tc.desc: Verify UpdateLayerPartRenderDirtyRegion merges current and old abs rect when dirty flag is set
  * @tc.type: FUNC
  * @tc.require: issueLayerPart
  */
-HWTEST_F(RSOpincManagerLayerPartTest, UpdateLayerPartRenderDirtyRegion003, TestSize.Level1)
+HWTEST_F(RSOpincManagerLayerPartTest, UpdateLayerPartRenderDirtyRegionWithDirtyFlag, TestSize.Level1)
 {
-    NodeId id = 32;
-    std::weak_ptr<RSContext> context;
-    auto node = std::make_shared<RSCanvasRenderNode>(id, context);
+    auto node = CreateCanvasNode(THIRD_NODE_ID);
     auto dirtyManager = std::make_shared<RSDirtyRegionManager>();
     ASSERT_NE(dirtyManager, nullptr);
 
-    node->absDrawRect_ = RectI(10, 10, 100, 100);
-    node->layerPartRenderDirtyFlag_ = true;
+    RectI oldAbsRect = DEFAULT_OLD_RECT;
+    node->GetOpincCache().SetLayerPartRenderOldAbsDrawRect(oldAbsRect);
+    node->GetOpincCache().SetLayerPartRenderDirtyFlag(true);
 
-    bool result = node->UpdateLayerPartRenderDirtyRegion(dirtyManager);
-
-    ASSERT_TRUE(result);
+    ASSERT_TRUE(node->UpdateLayerPartRenderDirtyRegion(dirtyManager));
     ASSERT_FALSE(dirtyManager->GetCurrentFrameDirtyRegion().IsEmpty());
+    ASSERT_EQ(node->GetOpincCache().GetLayerPartRenderOldAbsDrawRect(), DEFAULT_ABS_RECT);
 }
 
+/**
+ * @tc.name: SubTreeSkipPrepareWithLayerPartDirtyManager
+ * @tc.desc: Verify SubTreeSkipPrepare also merges subtree dirty into layer-part dirty manager
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSOpincManagerLayerPartTest, SubTreeSkipPrepareWithLayerPartDirtyManager, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(DEFAULT_NODE_ID);
+    ASSERT_NE(node, nullptr);
+    node->InitRenderParams();
+#ifdef RS_ENABLE_GPU
+    ASSERT_NE(node->GetStagingRenderParams(), nullptr);
+#endif
+    auto layerPartDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    ASSERT_NE(layerPartDirtyManager, nullptr);
+
+    node->hasChildrenOutOfRect_ = true;
+    node->lastFrameHasChildrenOutOfRect_ = true;
+    node->childrenRect_ = DEFAULT_CHILD_RECT;
+    node->oldChildrenRect_ = DEFAULT_CHILD_RECT;
+    node->oldClipRect_ = DEFAULT_ABS_RECT;
+
+    RSDirtyRegionManager dirtyManager;
+    node->SubTreeSkipPrepare(dirtyManager, true, true, DEFAULT_ABS_RECT, layerPartDirtyManager);
+
+    ASSERT_FALSE(layerPartDirtyManager->GetCurrentFrameDirtyRegion().IsEmpty());
+}
 } // namespace OHOS::Rosen
