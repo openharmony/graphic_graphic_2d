@@ -52,7 +52,6 @@ int RSConnectToRenderProcessStub::OnRemoteRequest(
             auto token = iface_cast<RSIConnectionToken>(remoteObj);
             auto newRenderConn = CreateRenderConnection(token);
             reply.WriteBool(newRenderConn != nullptr);
-            RS_LOGE("RSConnectToRenderProcessStub::CREATE_CONNECTION %{public}p", newRenderConn.GetRefPtr());
             if (newRenderConn) {
                 auto replyObj = newRenderConn->AsObject();
                 reply.WriteRemoteObject(replyObj);

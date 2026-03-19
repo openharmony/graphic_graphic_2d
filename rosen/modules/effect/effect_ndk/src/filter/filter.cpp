@@ -91,6 +91,16 @@ bool Filter::Brightness(float brightness)
     return true;
 }
 
+bool Filter::Scale(float scaleX, float scaleY, Drawing::FilterMode filterMode, Drawing::MipmapMode mipmapMode)
+{
+    auto scale = EffectImageFilter::Scale(scaleX, scaleY, filterMode, mipmapMode);
+    if (!scale) {
+        return false;
+    }
+    AddNextFilter(scale);
+    return true;
+}
+
 bool Filter::Grayscale()
 {
     auto grayscale = EffectImageFilter::Grayscale();

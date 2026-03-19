@@ -107,6 +107,17 @@ EffectErrorCode OH_Filter_GrayScale(OH_Filter* filter)
     return EFFECT_SUCCESS;
 }
 
+EffectErrorCode OH_Filter_Scale(
+    OH_Filter* filter, float scaleX, float scaleY, OH_Filter_ScaleMode filterMode, OH_Filter_MipmapMode mipmapMode)
+{
+    Drawing::FilterMode drawingFilterMode = static_cast<Drawing::FilterMode>(filterMode);
+    Drawing::MipmapMode drawingMipmapMode = static_cast<Drawing::MipmapMode>(mipmapMode);
+    if (!filter || !(CastToFilter(filter)->Scale(scaleX, scaleY, drawingFilterMode, drawingMipmapMode))) {
+        return EFFECT_BAD_PARAMETER;
+    }
+    return EFFECT_SUCCESS;
+}
+
 EffectErrorCode OH_Filter_Invert(OH_Filter* filter)
 {
     if (!filter || !(CastToFilter(filter)->Invert())) {

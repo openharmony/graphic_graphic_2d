@@ -1721,5 +1721,153 @@ int32_t RSClientToRenderConnectionProxy::SetLogicalCameraRotationCorrection(
     return result;
 }
 
+int32_t RSClientToRenderConnectionProxy::RegisterFrameStabilityDetection(
+    const FrameStabilityTarget& target,
+    const FrameStabilityConfig& config,
+    sptr<RSIFrameStabilityCallback> callback)
+{
+    if (callback == nullptr) {
+        ROSEN_LOGE("%{public}s: callback is nullptr.", __func__);
+        return INVALID_ARGUMENTS;
+    }
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("%{public}s: WriteInterfaceToken GetDescriptor err.", __func__);
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteUint64(target.id)) {
+        ROSEN_LOGE("%{public}s: WriteUint64 target.id err.", __func__);
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteUint32(static_cast<uint32_t>(target.type))) {
+        ROSEN_LOGE("%{public}s: WriteUint32 target.type err.", __func__);
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteUint32(config.stableDuration)) {
+        ROSEN_LOGE("%{public}s: WriteUint32 stableDuration err.", __func__);
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteFloat(config.changePercent)) {
+        ROSEN_LOGE("%{public}s: WriteFloat changePercent err.", __func__);
+        return WRITE_PARCEL_ERR;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteRemoteObject(callback->AsObject())) {
+        ROSEN_LOGE("%{public}s: WriteRemoteObject callback->AsObject() err.", __func__);
+        return WRITE_PARCEL_ERR;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_FRAME_STABILITY_DETECTION);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("%{public}s: SendRequest err: %{public}d", __func__, err);
+        return RS_CONNECTION_ERROR;
+    }
+    return SUCCESS;
+}
+
+int32_t RSClientToRenderConnectionProxy::UnregisterFrameStabilityDetection(const FrameStabilityTarget& target)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("%{public}s: WriteInterfaceToken GetDescriptor err.", __func__);
+        return RS_CONNECTION_ERROR;
+    }
+    if (!data.WriteUint64(target.id)) {
+        ROSEN_LOGE("%{public}s: WriteUint64 target.id err.", __func__);
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteUint32(static_cast<uint32_t>(target.type))) {
+        ROSEN_LOGE("%{public}s: WriteUint32 target.type err.", __func__);
+        return WRITE_PARCEL_ERR;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToRenderConnectionInterfaceCode::UNREGISTER_FRAME_STABILITY_DETECTION);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("%{public}s: SendRequest err: %{public}d", __func__, err);
+        return RS_CONNECTION_ERROR;
+    }
+    return SUCCESS;
+}
+
+int32_t RSClientToRenderConnectionProxy::StartFrameStabilityCollection(
+    const FrameStabilityTarget& target,
+    const FrameStabilityConfig& config)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("%{public}s: WriteInterfaceToken GetDescriptor err.", __func__);
+        return RS_CONNECTION_ERROR;
+    }
+    if (!data.WriteUint64(target.id)) {
+        ROSEN_LOGE("%{public}s: WriteUint64 target.id err.", __func__);
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteUint32(static_cast<uint32_t>(target.type))) {
+        ROSEN_LOGE("%{public}s: WriteUint32 target.type err.", __func__);
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteUint32(config.stableDuration)) {
+        ROSEN_LOGE("%{public}s: WriteUint32 stableDuration err.", __func__);
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteFloat(config.changePercent)) {
+        ROSEN_LOGE("%{public}s: WriteFloat changePercent err.", __func__);
+        return WRITE_PARCEL_ERR;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::START_FRAME_STABILITY_COLLECTION);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("%{public}s: SendRequest err: %{public}d", __func__, err);
+        return RS_CONNECTION_ERROR;
+    }
+    return SUCCESS;
+}
+
+int32_t RSClientToRenderConnectionProxy::GetFrameStabilityResult(
+    const FrameStabilityTarget& target,
+    bool& result)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("%{public}s: WriteInterfaceToken GetDescriptor err.", __func__);
+        return RS_CONNECTION_ERROR;
+    }
+    if (!data.WriteUint64(target.id)) {
+        ROSEN_LOGE("%{public}s: WriteUint64 target.id err.", __func__);
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteUint32(static_cast<uint32_t>(target.type))) {
+        ROSEN_LOGE("%{public}s: WriteUint32 target.type err.", __func__);
+        return WRITE_PARCEL_ERR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_FRAME_STABILITY_RESULT);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("%{public}s: SendRequest err: %{public}d", __func__, err);
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t repCode = 0;
+    if (!reply.ReadInt32(repCode)) {
+        ROSEN_LOGE("%{public}s: ReadInt32 repCode failed", __func__);
+        return READ_PARCEL_ERR;
+    }
+    if (!reply.ReadBool(result)) {
+        ROSEN_LOGE("%{public}s: ReadBool result failed", __func__);
+        return READ_PARCEL_ERR;
+    }
+    return repCode;
+}
 } // namespace Rosen
 } // namespace OHOS

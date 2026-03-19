@@ -113,6 +113,7 @@ SPText::ParagraphStyle Convert(const TypographyStyle& style)
     paragraphStyle.lineHeightStyle = style.lineHeightStyle;
     paragraphStyle.includeFontPadding = style.includeFontPadding;
     paragraphStyle.fallbackLineSpacing = style.fallbackLineSpacing;
+    paragraphStyle.orphanCharOptimization = style.orphanCharOptimization;
     ConvertStrutStyle(style, paragraphStyle);
 
     return paragraphStyle;

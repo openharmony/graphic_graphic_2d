@@ -1497,14 +1497,14 @@ void RSNode::SetSkewZ(float skewZ)
     property->Set(skew);
 }
 
-void RSNode::SetRSUIContext(std::shared_ptr<RSUIContext> rsUIContext)
+bool RSNode::SetRSUIContext(std::shared_ptr<RSUIContext> rsUIContext, bool moveCommands)
 {
     if (rsUIContext == nullptr) {
-        return;
+        return false;
     }
     auto preUIContext = rsUIContext_;
     if ((preUIContext != nullptr) && (preUIContext == rsUIContext)) {
-        return;
+        return true;
     }
 
     // if have old rsContext, should remove nodeId from old nodeMap and travel child
@@ -1513,13 +1513,14 @@ void RSNode::SetRSUIContext(std::shared_ptr<RSUIContext> rsUIContext)
             ROSEN_LOGE("When RSNode has animations, RSUIContext should not be modified! nodeId[%{public}" PRIu64 "], "
                        "preUIContext[%{public}" PRIu64 "], rsUIContext[%{public}" PRIu64 "]",
                         id_, preUIContext->GetToken(), rsUIContext->GetToken());
+            return false;
         }
         // step1 remove node from old context
         preUIContext->GetMutableNodeMap().UnregisterNode(id_);
         // sync child
         for (uint32_t index = 0; index < children_.size(); index++) {
             if (auto childPtr = children_[index].lock()) {
-                childPtr->SetRSUIContext(rsUIContext);
+                childPtr->SetRSUIContext(rsUIContext, false);
             }
         }
     }
@@ -1535,13 +1536,12 @@ void RSNode::SetRSUIContext(std::shared_ptr<RSUIContext> rsUIContext)
     RegisterNodeMap();
     if (preUIContext != nullptr) {
         preUIContext->MoveModifier(rsUIContext, GetId());
-        auto preTransaction = preUIContext->GetRSTransaction();
-        auto curTransaction = rsUIContext->GetRSTransaction();
-        if (preTransaction && curTransaction) {
-            preTransaction->MoveCommandByNodeId(curTransaction, id_);
+        if (moveCommands && !preUIContext->MoveCommandsIfNeeded(rsUIContext)) {
+            return false;
         }
     }
     SetUIContextToken();
+    return true;
 }
 
 void RSNode::SetPersp(float persp)

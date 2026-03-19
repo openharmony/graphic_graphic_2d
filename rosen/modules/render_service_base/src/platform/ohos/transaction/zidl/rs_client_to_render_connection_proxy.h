@@ -153,6 +153,21 @@ public:
         NodeId id, sptr<RSISurfaceOcclusionChangeCallback> callback, std::vector<float>& partitionPoints) override;
 
     int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id) override;
+
+    int32_t RegisterFrameStabilityDetection(
+        const FrameStabilityTarget& target,
+        const FrameStabilityConfig& config,
+        sptr<RSIFrameStabilityCallback> callback
+    ) override;
+
+    int32_t UnregisterFrameStabilityDetection(const FrameStabilityTarget& target) override;
+
+    int32_t StartFrameStabilityCollection(
+        const FrameStabilityTarget& target,
+        const FrameStabilityConfig& config
+    ) override;
+
+    int32_t GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result) override;
     
     void RemoveToken() override {};
     static inline BrokerDelegator<RSClientToRenderConnectionProxy> delegator_;

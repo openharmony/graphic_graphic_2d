@@ -127,6 +127,7 @@ ohos_shared_library("librender_service") {
     "core/feature/dirty/rs_uni_dirty_compute_util.cpp",
     "core/feature/dirty/rs_uni_dirty_occlusion_util.cpp",
     "core/feature/drm/rs_drm_util.cpp",
+    "core/feature/frame_stability/rs_frame_stability_manager.cpp",
     "core/feature/hdr/rs_hdr_util.cpp",
     "core/feature/hwc/hpae_offline/rs_hpae_offline_layer.cpp",
     "core/feature/hwc/hpae_offline/rs_hpae_offline_processor.cpp",

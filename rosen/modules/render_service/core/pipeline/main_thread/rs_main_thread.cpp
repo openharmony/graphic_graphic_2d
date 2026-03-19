@@ -53,7 +53,9 @@
 #include "display_engine/rs_color_temperature.h"
 #include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
+#include "feature/buffer_reclaim/rs_buffer_reclaim.h"
 #include "feature/color_picker/rs_color_picker_thread.h"
+#include "drawable/rs_color_picker_drawable.h"
 #include "feature/dirty/rs_uni_dirty_occlusion_util.h"
 #include "feature/drm/rs_drm_util.h"
 #include "feature/hdr/rs_hdr_util.h"
@@ -440,6 +442,38 @@ void RSMainThread::SendColorPickerCallback(uint64_t nodeId, uint32_t color)
     });
 }
 
+void RSMainThread::ColorPickerStateTransition(
+    uint64_t nodeId, DrawableV2::ColorPickerState state, int64_t delayTime)
+{
+    auto task = [this, nodeId, state]() {
+        RS_OPTIONAL_TRACE_NAME_FMT("RSMainThread::ColorPickerStateTransition node %" PRIu64 " state=%u",
+            nodeId, static_cast<uint8_t>(state));
+        auto& nodeMap = GetContext().GetNodeMap();
+        auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
+        if (!node) {
+            RS_LOGE("RSMainThread::ColorPickerStateTransition: node %" PRIu64 " not found", nodeId);
+            return;
+        }
+        auto drawable = node->GetColorPickerDrawable();
+        if (!drawable) {
+            RS_LOGE("RSMainThread::ColorPickerStateTransition: drawable not found for node %" PRIu64, nodeId);
+            return;
+        }
+
+        // Update the state based on the parameter
+        if (state == DrawableV2::ColorPickerState::COLOR_PICK_THIS_FRAME) {
+            node->SetDirty();
+            SetForceUpdateUniRenderFlag(true);
+            if (!IsRequestedNextVSync()) {
+                RequestNextVSync();
+            }
+        }
+        drawable->SetState(state);
+    };
+    using Priority = AppExecFwk::EventQueue::Priority;
+    PostTask(task, "RSColorPickerStateTransition", delayTime, Priority::IMMEDIATE);
+}
+
 RSMainThread* RSMainThread::Instance()
 {
     static RSMainThread instance;
@@ -620,10 +654,12 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
     RsFrameReport::InitDeadline();
     RSImageDetailEnhancerThread::Instance().RegisterCallback(
         std::bind(&RSMainThread::MarkNodeDirty, this, std::placeholders::_1));
-    RSColorPickerThread::Instance().RegisterNodeDirtyCallback(std::bind(&RSMainThread::MarkNodeDirty, this,
-        std::placeholders::_1));
+    RSColorPickerThread::Instance().RegisterNodeDirtyCallback(
+        std::bind(&RSMainThread::MarkNodeDirty, this, std::placeholders::_1));
     RSColorPickerThread::Instance().RegisterNotifyClientCallback(
         std::bind(&RSMainThread::SendColorPickerCallback, this, std::placeholders::_1, std::placeholders::_2));
+    RSColorPickerThread::Instance().RegisterStateTransitionCallback(std::bind(&RSMainThread::ColorPickerStateTransition,
+        this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
     RSSystemProperties::WatchSystemProperty(HIDE_NOTCH_STATUS, OnHideNotchStatusCallback, nullptr);
     RSSystemProperties::WatchSystemProperty(DRAWING_CACHE_DFX, OnDrawingCacheDfxSwitchCallback, nullptr);
     rsVsyncManagerAgent_ = rsVsyncManagerAgent;
@@ -1689,7 +1725,7 @@ void RSMainThread::PostTryReclaimLastBuffer(const std::shared_ptr<RSSurfaceRende
     }
 
     if (!surfaceNode->IsOnTheTree() && surfaceHandler->IsNeedSwapLastBuffer()) {
-        if (CheckUICaptureNode(surfaceNode->GetId())) {
+        if (RSBufferReclaim::GetInstance().CheckSameProcessUICaptureNode(surfaceNode->GetId())) {
             surfaceHandler->ResetLastBufferInfo();
             return;
         }
@@ -2250,57 +2286,6 @@ void RSMainThread::SetFrameIsRender(bool isRender)
     }
 }
 
-void RSMainThread::AddUICaptureNode(NodeId nodeId)
-{
-    std::lock_guard<std::mutex> lock(uiCaptureNodeMapMutex_);
-    pid_t pid = ExtractPid(nodeId);
-    auto iter1 = uiCaptureNodeMap_.find(pid);
-    if (iter1 == uiCaptureNodeMap_.end()) {
-        std::map<NodeId, uint32_t> nodeIdCountMap;
-        nodeIdCountMap[nodeId] = 1;
-        uiCaptureNodeMap_[pid] = nodeIdCountMap;
-        return;
-    }
-
-    auto& nodeIdCountMap = iter1->second;
-    auto iter2 = nodeIdCountMap.find(nodeId);
-    if (iter2 != nodeIdCountMap.end()) {
-        iter2->second++;
-    } else {
-        nodeIdCountMap[nodeId] = 1;
-    }
-}
-
-void RSMainThread::RemoveUICaptureNode(NodeId nodeId)
-{
-    std::lock_guard<std::mutex> lock(uiCaptureNodeMapMutex_);
-    pid_t pid = ExtractPid(nodeId);
-    auto iter1 = uiCaptureNodeMap_.find(pid);
-    if (iter1 == uiCaptureNodeMap_.end()) {
-        return;
-    }
-
-    auto& nodeIdCountMap = iter1->second;
-    auto iter2 = nodeIdCountMap.find(nodeId);
-    if (iter2 != nodeIdCountMap.end()) {
-        iter2->second--;
-        if (iter2->second == 0) {
-            nodeIdCountMap.erase(iter2);
-        }
-    }
-
-    if (nodeIdCountMap.empty()) {
-        uiCaptureNodeMap_.erase(iter1);
-    }
-}
-
-bool RSMainThread::CheckUICaptureNode(NodeId id)
-{
-    std::lock_guard<std::mutex> lock(uiCaptureNodeMapMutex_);
-    pid_t pid = ExtractPid(id);
-    return (uiCaptureNodeMap_.find(pid) != uiCaptureNodeMap_.end());
-}
-
 void RSMainThread::AddUiCaptureTask(NodeId id, std::function<void()> task)
 {
     pendingUiCaptureTasks_.emplace_back(id, task);
@@ -2316,8 +2301,8 @@ void RSMainThread::AddUiCaptureTask(NodeId id, std::function<void()> task)
             node->SetChildrenTreeStateChangeDirty();
             node->SetParentTreeStateChangeDirty(true);
         }
-        if (!node->IsOnTheTree()) {
-            AddUICaptureNode(id);
+        if (BufferReclaimParam::GetInstance().IsBufferReclaimEnable() && !node->IsOnTheTree()) {
+            RSBufferReclaim::GetInstance().AddUICaptureNode(id);
         }
     }
     if (!IsRequestedNextVSync()) {
@@ -2366,7 +2351,9 @@ void RSMainThread::ProcessUiCaptureTasks()
         auto captureTask = std::get<1>(uiCaptureTasks_.front());
         uiCaptureTasks_.pop();
         captureTask();
-        RemoveUICaptureNode(nodeId);
+        if (BufferReclaimParam::GetInstance().IsBufferReclaimEnable()) {
+            RSBufferReclaim::GetInstance().RemoveUICaptureNode(nodeId);
+        }
     }
 #endif
 }

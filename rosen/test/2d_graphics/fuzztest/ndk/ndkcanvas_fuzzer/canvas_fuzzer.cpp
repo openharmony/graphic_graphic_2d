@@ -47,6 +47,7 @@ constexpr uint32_t ENUM_RANGE_FIVE = 5;
 constexpr uint32_t ENUM_RANGE_TWENTY_EIGHT = 28;
 constexpr uint32_t WIDTH_FACTOR = 4;
 constexpr size_t DATA_MIN_SIZE = 2;
+constexpr uint32_t MAX_ARRAY = 500;
 
 namespace OHOS {
 namespace Rosen {
@@ -711,18 +712,18 @@ void CanvasFuzzTest018(const uint8_t* data, size_t size)
     }
     OH_Pixelmap_InitializationOptions* options = nullptr;
     OH_PixelmapNative* pixelMap = nullptr;
-    size_t width = GetObject<size_t>() % MAX_ARRAY_MAX;
-    size_t height = GetObject<size_t>() % MAX_ARRAY_MAX;
+    size_t width = GetObject<size_t>() % MAX_ARRAY;
+    size_t height = GetObject<size_t>() % MAX_ARRAY;
     std::unique_ptr<uint8_t[]> colorData;
     PrepareTest018(pixelMap, options, width, height, colorData);
     OH_Drawing_PixelMap* drPixelMap = OH_Drawing_PixelMapGetFromOhPixelMapNative(pixelMap);
     OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreateWithPixelMap(drPixelMap);
     OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
     OH_Drawing_CanvasAttachBrush(canvas, brush);
-    uint32_t meshWidth = GetObject<uint32_t>() % width;
-    uint32_t meshHeight = GetObject<uint32_t>() % height;
-    uint32_t vertOffset = GetObject<uint32_t>() % MAX_ARRAY_MAX;
-    uint32_t colorsOffset = GetObject<uint32_t>() % MAX_ARRAY_MAX;
+    uint32_t meshWidth = GetObject<uint32_t>() % MAX_ARRAY;
+    uint32_t meshHeight = GetObject<uint32_t>() % MAX_ARRAY;
+    uint32_t vertOffset = GetObject<uint32_t>() % MAX_ARRAY;
+    uint32_t colorsOffset = GetObject<uint32_t>() % MAX_ARRAY;
     uint32_t verticesSize = ((meshWidth + 1) * (meshHeight + 1) + vertOffset) * 2;
     uint32_t colorsSize = (meshWidth + 1) * (meshHeight + 1) + colorsOffset;
     float* vertices = new float[verticesSize];

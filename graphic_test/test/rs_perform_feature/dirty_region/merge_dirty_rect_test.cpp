@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,9 +13,11 @@
  * limitations under the License.
  */
 #include <filesystem>
+#include "display_manager.h"
 
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_director.h"
+#include "rs_graphic_test_img.h"
 #include "rs_graphic_test_utils.h"
 
 #include "pipeline/rs_dirty_region_manager.h"
@@ -31,7 +33,8 @@ constexpr uint32_t COLOR_BLUE = 0xFF0000FF;
 constexpr uint32_t COLOR_RED = 0xFFFF0000;
 constexpr uint32_t COLOR_DKGRAY = 0xFF444444;
 constexpr uint32_t COLOR_CYAN = 0xFF00FFFF;
-
+constexpr uint32_t SLEEP_TIME_FOR_PROXY = 1000000;
+const std::string TEST_IMG_PATH = "/data/local/tmp/dr_test.jpg";
 class DirtyRegionTest01 : public RSGraphicTest {
 private:
     const int screenWidth = 1200;
@@ -55,6 +58,37 @@ public:
             GetRootNode()->AddChild(testNode);
             RegisterNode(testNode);
         }
+    }
+
+    void TestCaseCapture()
+    {
+        auto pixelMap =
+            DisplayManager::GetInstance().GetScreenshot(DisplayManager::GetInstance().GetDefaultDisplayId());
+        if (pixelMap == nullptr) {
+            // NOT MODIFY THE COMMENTS
+            std::cout << "[   FAILED   ] " << "image is null" << std::endl;
+            return;
+        }
+        pixelMap->crop({ 0, 0, 1200, 2000 });
+        const ::testing::TestInfo* const testInfo =
+            ::testing::UnitTest::GetInstance()->current_test_info();
+        std::string fileName = "/data/local/graphic_test/rs_perform_feature/dirty_region/";
+        namespace fs = std::filesystem;
+        if (fs::exists(fileName) && !fs::is_directory(fileName)) {
+            std::cout << "path is not dir" << std::endl;
+            return;
+        }
+        if (!fs::exists(fileName) && !fs::create_directories(fileName)) {
+            std::cout << "create dir failed" << std::endl;
+            return;
+        }
+        fileName += testInfo->test_case_name() + std::string("_") + testInfo->name() + std::string(".png");
+        if (!WriteToPngWithPixelMap(fileName, *pixelMap)) {
+            // NOT MODIFY THE COMMENTS
+            std::cout << "[   FAILED   ] " << fileName << std::endl;
+            return;
+        }
+        std::cout << "png write to " << fileName << std::endl;
     }
 };
 } //namespace
@@ -401,5 +435,366 @@ GRAPHIC_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Intersect_Dirty_Rect_Test0
     RegisterNode(testNode1);
     RegisterNode(testNode2);
     RegisterNode(testNode3);
+}
+
+/*
+ * @tc.name: Merge_Dirty_Rect_MultiScreen01
+ * @tc.desc: test dirty region merge with multiple windows
+ * @tc.type: FUNC
+ * @tc.require: issueICF36K
+ */
+GRAPHIC_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiScreen01)
+{
+    auto rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    
+    RectI mainRect = {100, 100, 400, 400};
+    RectI subRect1 = {600, 200, 300, 300};
+    RectI subRect2 = {900, 500, 200, 200};
+    
+    Vector4f mainBounds = {mainRect.left_, mainRect.top_, mainRect.width_, mainRect.height_};
+    auto mainNode = RSCanvasNode::Create();
+    mainNode->SetBounds(mainBounds);
+    mainNode->SetBackgroundColor(COLOR_YELLOW);
+    GetRootNode()->AddChild(mainNode);
+    
+    SubWindowOptions subOpts1;
+    subOpts1.bounds = {subRect1.left_, subRect1.top_, subRect1.width_, subRect1.height_};
+    subOpts1.order = SubWindowOrder::ABOVE_MAIN;
+    subOpts1.contentBgColor = 0x80FF0000;
+    auto subId1 = CreateSubWindow(subOpts1);
+    
+    auto subNode1 = RSCanvasNode::Create();
+    subNode1->SetBounds({0, 0, 200, 200});
+    subNode1->SetBackgroundColor(COLOR_BLUE);
+    GetRootNode()->AddChildToSubWindow(subId1, subNode1);
+    
+    SubWindowOptions subOpts2;
+    subOpts2.bounds = {subRect2.left_, subRect2.top_, subRect2.width_, subRect2.height_};
+    subOpts2.order = SubWindowOrder::BELOW_MAIN;
+    subOpts2.contentBgColor = 0x800000FF;
+    auto subId2 = CreateSubWindow(subOpts2);
+    
+    auto subNode2 = RSCanvasNode::Create();
+    subNode2->SetBounds({0, 0, 150, 150});
+    subNode2->SetBackgroundColor(COLOR_RED);
+    GetRootNode()->AddChildToSubWindow(subId2, subNode2);
+    
+    rsDirtyManager->MergeDirtyRect(mainRect);
+    rsDirtyManager->MergeDirtyRect(subRect1);
+    rsDirtyManager->MergeDirtyRect(subRect2);
+    
+    rsDirtyManager->ResetDirtyAsSurfaceSize();
+    RectI curDirtyRect = rsDirtyManager->GetCurrentFrameDirtyRegion();
+    
+    auto testNode4 = RSCanvasNode::Create();
+    testNode4->SetBounds(
+        {curDirtyRect.left_, curDirtyRect.top_ + DEFAULT_TRANS_Y, curDirtyRect.width_, curDirtyRect.height_});
+    testNode4->SetBackgroundColor(COLOR_CYAN);
+    GetRootNode()->AddChild(testNode4);
+    
+    RegisterNode(mainNode);
+    RegisterNode(subNode1);
+    RegisterNode(subNode2);
+    RegisterNode(testNode4);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    TestCaseCapture();
+}
+
+/*
+ * @tc.name: Merge_Dirty_Rect_Rect_MultiScreen02
+ * @tc.desc: test dirty region merge with overlapping sub-windows
+ * @tc.type: FUNC
+ * @tc.require: issueICF36K
+ */
+GRAPHIC_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiScreen02)
+{
+    auto rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    
+    RectI mainRect = {0, 0, 800, 800};
+    RectI subRect1 = {400, 400, 500, 500};
+    RectI subRect2 = {500, 500, 400, 400};
+    
+    Vector4f mainBounds = {mainRect.left_, mainRect.top_, mainRect.width_, mainRect.height_};
+    auto mainNode = SetUpNodeBgImage(TEST_IMG_PATH, mainBounds);
+    RegisterNode(mainNode);
+    GetRootNode()->AddChild(mainNode);
+    
+    SubWindowOptions subOpts1;
+    subOpts1.bounds = {subRect1.left_, subRect1.top_, subRect1.width_, subRect1.height_};
+    subOpts1.order = SubWindowOrder::ABOVE_MAIN;
+    subOpts1.contentBgColor = 0x80000000;
+    auto subId1 = CreateSubWindow(subOpts1);
+    
+    auto subNode1 = RSCanvasNode::Create();
+    subNode1->SetBounds({0, 0, 300, 300});
+    subNode1->SetBackgroundColor(COLOR_YELLOW);
+    GetRootNode()->AddChildToSubWindow(subId1, subNode1);
+    
+    SubWindowOptions subOpts2;
+    subOpts2.bounds = {subRect2.left_, subRect2.top_, subRect2.width_, subRect2.height_};
+    subOpts2.order = SubWindowOrder::ABSOLUTE;
+    subOpts2.absoluteZ = 1000001.0f;
+    subOpts2.contentBgColor = 0x80000000;
+    auto subId2 = CreateSubWindow(subOpts2);
+    
+    auto subNode2 = RSCanvasNode::Create();
+    subNode2->SetBounds({0, 0, 250, 250});
+    subNode2->SetBackgroundColor(COLOR_BLUE);
+    GetRootNode()->AddChildToSubWindow(subId2, subNode2);
+    
+    rsDirtyManager->SetMaxNumOfDirtyRects(10);
+    
+    rsDirtyManager->MergeDirtyRect(mainRect);
+    rsDirtyManager->MergeDirtyRect(subRect1);
+    rsDirtyManager->MergeDirtyRect(subRect2);
+    std::vector<RectI> curAdvancedDirtyRegion = rsDirtyManager->GetCurrentFrameAdvancedDirtyRegion();
+    
+    DrawAdvancedDirtyRegion(curAdvancedDirtyRegion, COLOR_RED, DEFAULT_TRANS_Y);
+    
+    RegisterNode(subNode1);
+    RegisterNode(subNode2);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    TestCaseCapture();
+}
+
+/*
+ * @tc.name: Merge_Dirty_Rect_MultiScreen_Boundary01
+ * @tc.desc: test dirty region when sub-window slides from screen boundary
+ * @tc.type: FUNC
+ * @tc.require: issueICF36K
+ */
+GRAPHIC_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiScreen_Boundary01)
+{
+    auto rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    
+    RectI mainRect = {0, 0, 800, 800};
+    RectI subRect = {600, 200, 300, 300};
+    
+    Vector4f mainBounds = {mainRect.left_, mainRect.top_, mainRect.width_, mainRect.height_};
+    auto mainNode = SetUpNodeBgImage(TEST_IMG_PATH, mainBounds);
+    RegisterNode(mainNode);
+    GetRootNode()->AddChild(mainNode);
+    
+    SubWindowOptions subOpts;
+    subOpts.bounds = {subRect.left_, subRect.top_, subRect.width_, subRect.height_};
+    subOpts.order = SubWindowOrder::ABOVE_MAIN;
+    subOpts.contentBgColor = 0x80FF0000;
+    auto subId = CreateSubWindow(subOpts);
+    
+    auto subNode = RSCanvasNode::Create();
+    subNode->SetBounds({0, 0, 200, 200});
+    subNode->SetBackgroundColor(COLOR_BLUE);
+    GetRootNode()->AddChildToSubWindow(subId, subNode);
+    
+    rsDirtyManager->MergeDirtyRect(mainRect);
+    rsDirtyManager->MergeDirtyRect(subRect);
+    RectI curDirtyRect = rsDirtyManager->GetCurrentFrameDirtyRegion();
+    
+    auto testNode = RSCanvasNode::Create();
+    testNode->SetBounds(
+        {curDirtyRect.left_, curDirtyRect.top_ + DEFAULT_TRANS_Y, curDirtyRect.width_, curDirtyRect.height_});
+    testNode->SetBackgroundColor(COLOR_CYAN);
+    GetRootNode()->AddChild(testNode);
+    
+    RegisterNode(subNode);
+    RegisterNode(testNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    TestCaseCapture();
+}
+
+/*
+ * @tc.name: Merge_Dirty_Rect_MultiScreen_Reset01
+ * @tc.desc: test reset dirty region to full window size in multi-window scenario
+ * @tc.type: FUNC
+ * @tc.require: issueICF36K
+ */
+GRAPHIC_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiScreen_Reset01)
+{
+    auto rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    
+    RectI mainRect = {100, 100, 400, 400};
+    RectI subRect1 = {600, 200, 300, 300};
+    RectI subRect2 = {900, 500, 200, 200};
+    
+    auto mainNode = RSCanvasNode::Create();
+    mainNode->SetBounds({mainRect.left_, mainRect.top_, mainRect.width_, mainRect.height_});
+    mainNode->SetBackgroundColor(COLOR_YELLOW);
+    GetRootNode()->AddChild(mainNode);
+    
+    SubWindowOptions subOpts1;
+    subOpts1.bounds = {subRect1.left_, subRect1.top_, subRect1.width_, subRect1.height_};
+    subOpts1.order = SubWindowOrder::ABOVE_MAIN;
+    subOpts1.contentBgColor = 0x80FF0000;
+    auto subId1 = CreateSubWindow(subOpts1);
+    
+    auto subNode1 = RSCanvasNode::Create();
+    subNode1->SetBounds({0, 0, 200, 200});
+    subNode1->SetBackgroundColor(COLOR_BLUE);
+    GetRootNode()->AddChildToSubWindow(subId1, subNode1);
+    
+    SubWindowOptions subOpts2;
+    subOpts2.bounds = {subRect2.left_, subRect2.top_, subRect2.width_, subRect2.height_};
+    subOpts2.order = SubWindowOrder::BELOW_MAIN;
+    subOpts2.contentBgColor = 0x800000FF;
+    auto subId2 = CreateSubWindow(subOpts2);
+    
+    auto subNode2 = RSCanvasNode::Create();
+    subNode2->SetBounds({0, 0, 150, 150});
+    subNode2->SetBackgroundColor(COLOR_RED);
+    GetRootNode()->AddChildToSubWindow(subId2, subNode2);
+    
+    rsDirtyManager->MergeDirtyRect(mainRect);
+    rsDirtyManager->MergeDirtyRect(subRect1);
+    rsDirtyManager->MergeDirtyRect(subRect2);
+    
+    rsDirtyManager->ResetDirtyAsSurfaceSize();
+    RectI curDirtyRect = rsDirtyManager->GetCurrentFrameDirtyRegion();
+    
+    auto testNode = RSCanvasNode::Create();
+    testNode->SetBounds(
+        {curDirtyRect.left_, curDirtyRect.top_ + DEFAULT_TRANS_Y, curDirtyRect.width_, curDirtyRect.height_});
+    testNode->SetBackgroundColor(COLOR_CYAN);
+    GetRootNode()->AddChild(testNode);
+    
+    RegisterNode(mainNode);
+    RegisterNode(subNode1);
+    RegisterNode(subNode2);
+    RegisterNode(testNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    TestCaseCapture();
+}
+
+/*
+ * @tc.name: Merge_Dirty_Rect_MultiScreen_Advanced01
+ * @tc.desc: test advanced dirty region mode with multiple windows
+ * @tc.type: FUNC
+ * @tc.require: issueICF36K
+ */
+GRAPHIC_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiScreen_Advanced01)
+{
+    auto rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    
+    RectI mainRect = {0, 0, 800, 800};
+    RectI subRect1 = {100, 100, 300, 300};
+    RectI subRect2 = {500, 200, 300, 300};
+    RectI subRect3 = {700, 600, 250, 250};
+
+    auto mainNode = SetUpNodeBgImage(TEST_IMG_PATH, {0, 0, 800, 800});
+    RegisterNode(mainNode);
+    GetRootNode()->AddChild(mainNode);
+    SubWindowOptions subOpts1;
+    subOpts1.bounds = {subRect1.left_, subRect1.top_, subRect1.width_, subRect1.height_};
+    subOpts1.order = SubWindowOrder::ABOVE_MAIN;
+    subOpts1.contentBgColor = 0x80FF0000;
+    auto subId1 = CreateSubWindow(subOpts1);
+    
+    auto subNode1 = RSCanvasNode::Create();
+    subNode1->SetBounds({0, 0, 200, 200});
+    subNode1->SetBackgroundColor(COLOR_YELLOW);
+    GetRootNode()->AddChildToSubWindow(subId1, subNode1);
+    
+    SubWindowOptions subOpts2;
+    subOpts2.bounds = {subRect2.left_, subRect2.top_, subRect2.width_, subRect2.height_};
+    subOpts2.order = SubWindowOrder::BELOW_MAIN;
+    subOpts2.contentBgColor = 0x800000FF;
+    auto subId2 = CreateSubWindow(subOpts2);
+    
+    auto subNode2 = RSCanvasNode::Create();
+    subNode2->SetBounds({0, 0, 200, 200});
+    subNode2->SetBackgroundColor(COLOR_BLUE);
+    GetRootNode()->AddChildToSubWindow(subId2, subNode2);
+    
+    SubWindowOptions subOpts3;
+    subOpts3.bounds = {subRect3.left_, subRect3.top_, subRect3.width_, subRect3.height_};
+    subOpts3.order = SubWindowOrder::ABSOLUTE;
+    subOpts3.absoluteZ = 1000003.0f;
+    subOpts3.contentBgColor = 0x800000FF;
+    auto subId3 = CreateSubWindow(subOpts3);
+    
+    auto subNode3 = RSCanvasNode::Create();
+    subNode3->SetBounds({0, 0, 180, 180});
+    subNode3->SetBackgroundColor(COLOR_RED);
+    GetRootNode()->AddChildToSubWindow(subId3, subNode3);
+
+    rsDirtyManager->SetMaxNumOfDirtyRects(10);
+    rsDirtyManager->MergeDirtyRect(mainRect);
+    rsDirtyManager->MergeDirtyRect(subRect1);
+    rsDirtyManager->MergeDirtyRect(subRect2);
+    rsDirtyManager->MergeDirtyRect(subRect3);
+    DrawAdvancedDirtyRegion(rsDirtyManager->GetCurrentFrameAdvancedDirtyRegion(), COLOR_RED, DEFAULT_TRANS_Y);
+    
+    RegisterNode(subNode1);
+    RegisterNode(subNode2);
+    RegisterNode(subNode3);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    TestCaseCapture();
+}
+
+/*
+ * @tc.name: Merge_Dirty_Rect_MultiScreen_Surface01
+ * @tc.desc: test surface rect changes with multiple windows
+ * @tc.type: FUNC
+ * @tc.require: issueICF36K
+ */
+GRAPHIC_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiScreen_Surface01)
+{
+    auto rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    
+    RectI mainRect = {100, 100, 400, 400};
+    RectI subRect1 = {600, 200, 300, 300};
+    RectI subRect2 = {900, 500, 200, 200};
+    
+    auto mainNode = RSCanvasNode::Create();
+    mainNode->SetBounds({mainRect.left_, mainRect.top_, mainRect.width_, mainRect.height_});
+    mainNode->SetBackgroundColor(COLOR_YELLOW);
+    GetRootNode()->AddChild(mainNode);
+    
+    SubWindowOptions subOpts1;
+    subOpts1.bounds = {subRect1.left_, subRect1.top_, subRect1.width_, subRect1.height_};
+    subOpts1.order = SubWindowOrder::ABOVE_MAIN;
+    subOpts1.contentBgColor = 0x80FF0000;
+    auto subId1 = CreateSubWindow(subOpts1);
+    
+    auto subNode1 = RSCanvasNode::Create();
+    subNode1->SetBounds({0, 0, 200, 200});
+    subNode1->SetBackgroundColor(COLOR_BLUE);
+    GetRootNode()->AddChildToSubWindow(subId1, subNode1);
+    
+    SubWindowOptions subOpts2;
+    subOpts2.bounds = {subRect2.left_, subRect2.top_, subRect2.width_, subRect2.height_};
+    subOpts2.order = SubWindowOrder::BELOW_MAIN;
+    subOpts2.contentBgColor = 0x800000FF;
+    auto subId2 = CreateSubWindow(subOpts2);
+    
+    auto subNode2 = RSCanvasNode::Create();
+    subNode2->SetBounds({0, 0, 150, 150});
+    subNode2->SetBackgroundColor(COLOR_RED);
+    GetRootNode()->AddChildToSubWindow(subId2, subNode2);
+    
+    rsDirtyManager->MergeDirtyRect(mainRect);
+    rsDirtyManager->MergeDirtyRect(subRect1);
+    rsDirtyManager->MergeDirtyRect(subRect2);
+    
+    rsDirtyManager->ResetDirtyAsSurfaceSize();
+    RectI curDirtyRect = rsDirtyManager->GetCurrentFrameDirtyRegion();
+    
+    auto testNode = RSCanvasNode::Create();
+    testNode->SetBounds(
+        {curDirtyRect.left_, curDirtyRect.top_ + DEFAULT_TRANS_Y, curDirtyRect.width_, curDirtyRect.height_});
+    testNode->SetBackgroundColor(COLOR_CYAN);
+    GetRootNode()->AddChild(testNode);
+    
+    RegisterNode(mainNode);
+    RegisterNode(subNode1);
+    RegisterNode(subNode2);
+    RegisterNode(testNode);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    TestCaseCapture();
 }
 } // namespace OHOS::Rosen

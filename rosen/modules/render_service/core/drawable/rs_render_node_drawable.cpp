@@ -287,17 +287,19 @@ void RSRenderNodeDrawable::TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas&
     RS_TRACE_NAME_FMT("DrawBlurForCache id:%" PRIu64 "", nodeId_);
 
     DrawBackground(canvas, params.GetBounds());
+    auto matrix = canvas.GetTotalMatrix();
     Drawing::Region filterRegion;
     for (auto& item : filterInfoVec_) {
-        for (auto& rect: item.rectVec_) {
+        for (auto& rect : item.rectVec_) {
+            Drawing::Rect alignedRect = rect;
+            AlignRectToDevicePixels(matrix, alignedRect);
             Drawing::Region region;
-            region.SetRect(rect);
+            region.SetRect(alignedRect.RoundOut());
             filterRegion.Op(region, Drawing::RegionOp::UNION);
         }
     }
     Drawing::Path filetrPath;
     filterRegion.GetBoundaryPath(&filetrPath);
-    auto matrix = canvas.GetTotalMatrix();
     matrix.Set(Drawing::Matrix::TRANS_X, std::floor(matrix.Get(Drawing::Matrix::TRANS_X)));
     matrix.Set(Drawing::Matrix::TRANS_Y, std::floor(matrix.Get(Drawing::Matrix::TRANS_Y)));
     canvas.SetMatrix(matrix);

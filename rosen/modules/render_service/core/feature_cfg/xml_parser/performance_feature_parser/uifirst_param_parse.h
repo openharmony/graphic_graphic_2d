@@ -27,6 +27,7 @@ enum class UIFirstSwitchType {
     ROTATE_ENABLED,
     FREE_MULTI_WINDOW_ENABLED,
     OCCLUSION_ENABLED,
+    LEASH_ALL_ENABLED,
     UNKNOWN
 };
 

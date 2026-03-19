@@ -27,6 +27,7 @@
 #include "dirty_region/rs_gpu_dirty_collector.h"
 #include "drawable/rs_property_drawable_background.h"
 #include "drawable/rs_screen_render_node_drawable.h"
+#include "feature/buffer_reclaim/rs_buffer_reclaim.h"
 #include "feature/dirty/rs_uni_dirty_occlusion_util.h"
 #include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
@@ -72,6 +73,7 @@ constexpr uint64_t SKIP_COMMAND_FREQ_LIMIT = 30;
 constexpr uint32_t DEFAULT_SCREEN_WIDTH = 480;
 constexpr uint32_t DEFAULT_SCREEN_HEIGHT = 320;
 constexpr uint32_t WAIT_HANDLER_TIME = 10000;
+constexpr uint32_t MAX_BUFFER_RECLAIM_NUMS_IN_SINGLE_FRAME = 1;
 class RSSingleRenderProcessManagerMock : public RSRenderProcessManager {
 
 public:
@@ -5986,5 +5988,204 @@ HWTEST_F(RSMainThreadTest, NeedConsumeMultiCommand001, TestSize.Level1)
     int32_t dvsyncPid = 100;
     auto ret = mainThread->NeedConsumeMultiCommand(dvsyncPid);
     ASSERT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: PostTryReclaimLastBuffer001
+ * @tc.desc: Test PostTryReclaimLastBuffer
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, PostTryReclaimLastBuffer001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    mainThread->curFrameBufferReclaimCount_ = 0;
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler, nullptr);
+
+    bool enable = BufferReclaimParam::GetInstance().IsBufferReclaimEnable();
+
+    BufferReclaimParam::GetInstance().SetBufferReclaimEnable(false);
+    surfaceNode->name_ = "RosenWeb";
+    mainThread->PostTryReclaimLastBuffer(surfaceNode, surfaceHandler);
+    EXPECT_EQ(mainThread->curFrameBufferReclaimCount_, 0);
+
+    BufferReclaimParam::GetInstance().SetBufferReclaimEnable(false);
+    surfaceNode->name_ = "NoRosenWeb";
+    mainThread->PostTryReclaimLastBuffer(surfaceNode, surfaceHandler);
+    EXPECT_EQ(mainThread->curFrameBufferReclaimCount_, 0);
+
+    BufferReclaimParam::GetInstance().SetBufferReclaimEnable(true);
+    surfaceNode->name_ = "RosenWeb";
+    mainThread->PostTryReclaimLastBuffer(surfaceNode, surfaceHandler);
+    EXPECT_EQ(mainThread->curFrameBufferReclaimCount_, 0);
+
+    BufferReclaimParam::GetInstance().SetBufferReclaimEnable(true);
+    surfaceNode->name_ = "NoRosenWeb";
+    mainThread->PostTryReclaimLastBuffer(surfaceNode, surfaceHandler);
+    EXPECT_EQ(mainThread->curFrameBufferReclaimCount_, 0);
+
+    BufferReclaimParam::GetInstance().SetBufferReclaimEnable(enable);
+}
+
+/**
+ * @tc.name: PostTryReclaimLastBuffer002
+ * @tc.desc: Test PostTryReclaimLastBuffer
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, PostTryReclaimLastBuffer002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    mainThread->curFrameBufferReclaimCount_ = MAX_BUFFER_RECLAIM_NUMS_IN_SINGLE_FRAME;
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler, nullptr);
+
+    bool enable = BufferReclaimParam::GetInstance().IsBufferReclaimEnable();
+    BufferReclaimParam::GetInstance().SetBufferReclaimEnable(true);
+    surfaceNode->name_ = "RosenWeb";
+    mainThread->PostTryReclaimLastBuffer(surfaceNode, surfaceHandler);
+    EXPECT_EQ(mainThread->curFrameBufferReclaimCount_, MAX_BUFFER_RECLAIM_NUMS_IN_SINGLE_FRAME);
+    BufferReclaimParam::GetInstance().SetBufferReclaimEnable(enable);
+}
+
+/**
+ * @tc.name: PostTryReclaimLastBuffer003
+ * @tc.desc: Test PostTryReclaimLastBuffer
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, PostTryReclaimLastBuffer003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    mainThread->curFrameBufferReclaimCount_ = 0;
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler, nullptr);
+
+    bool enable = BufferReclaimParam::GetInstance().IsBufferReclaimEnable();
+    BufferReclaimParam::GetInstance().SetBufferReclaimEnable(true);
+    surfaceNode->name_ = "RosenWeb";
+    mainThread->PostTryReclaimLastBuffer(surfaceNode, surfaceHandler);
+
+    surfaceHandler->lastBufferReclaimNum_ = 0;
+    surfaceNode->isOnTheTree_ = false;
+    surfaceHandler->lastBufferId_ = 0;
+    mainThread->PostTryReclaimLastBuffer(surfaceNode, surfaceHandler);
+    EXPECT_EQ(mainThread->curFrameBufferReclaimCount_, 0);
+
+    surfaceNode->isOnTheTree_ = true;
+    surfaceHandler->lastBufferId_ = 0;
+    mainThread->PostTryReclaimLastBuffer(surfaceNode, surfaceHandler);
+    EXPECT_EQ(mainThread->curFrameBufferReclaimCount_, 0);
+
+    surfaceNode->isOnTheTree_ = false;
+    surfaceHandler->lastBufferId_ = 1;
+    mainThread->PostTryReclaimLastBuffer(surfaceNode, surfaceHandler);
+    EXPECT_EQ(mainThread->curFrameBufferReclaimCount_, 0);
+
+    surfaceNode->isOnTheTree_ = true;
+    surfaceHandler->lastBufferId_ = 1;
+    mainThread->PostTryReclaimLastBuffer(surfaceNode, surfaceHandler);
+    EXPECT_EQ(mainThread->curFrameBufferReclaimCount_, 0);
+
+    BufferReclaimParam::GetInstance().SetBufferReclaimEnable(enable);
+}
+
+/**
+ * @tc.name: PostTryReclaimLastBuffer004
+ * @tc.desc: Test PostTryReclaimLastBuffer
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, PostTryReclaimLastBuffer004, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    mainThread->curFrameBufferReclaimCount_ = 0;
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler, nullptr);
+
+    bool enable = BufferReclaimParam::GetInstance().IsBufferReclaimEnable();
+    BufferReclaimParam::GetInstance().SetBufferReclaimEnable(true);
+    surfaceNode->name_ = "RosenWeb";
+
+    surfaceHandler->lastBufferReclaimNum_ = 0;
+    surfaceNode->isOnTheTree_ = false;
+    RSBufferReclaim::GetInstance().AddUICaptureNode(surfaceNode->GetId());
+    mainThread->PostTryReclaimLastBuffer(surfaceNode, surfaceHandler);
+    EXPECT_EQ(mainThread->curFrameBufferReclaimCount_, 0);
+
+    RSBufferReclaim::GetInstance().RemoveUICaptureNode(surfaceNode->GetId());
+    mainThread->PostTryReclaimLastBuffer(surfaceNode, surfaceHandler);
+    EXPECT_EQ(mainThread->curFrameBufferReclaimCount_, 0);
+
+    surfaceHandler->lastBufferId_ = 1;
+    surfaceHandler->lastBufferReclaimNum_ = 3;
+    mainThread->PostTryReclaimLastBuffer(surfaceNode, surfaceHandler);
+    EXPECT_LE(mainThread->curFrameBufferReclaimCount_, MAX_BUFFER_RECLAIM_NUMS_IN_SINGLE_FRAME);
+    BufferReclaimParam::GetInstance().SetBufferReclaimEnable(enable);
+}
+
+/**
+ * @tc.name: PostTryReclaimLastBuffer005
+ * @tc.desc: Test PostTryReclaimLastBuffer
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckUiCaptureNodeTest, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    auto task = []() {};
+    auto node = RSTestUtil::CreateSurfaceNode();
+    mainThread->context_->nodeMap.RegisterRenderNode(node);
+    mainThread->PrepareUiCaptureTasks(nullptr);
+    mainThread->ProcessUiCaptureTasks();
+
+    NodeId id = node->GetId();
+    bool enable = BufferReclaimParam::GetInstance().IsBufferReclaimEnable();
+
+    // case 1
+    BufferReclaimParam::GetInstance().SetBufferReclaimEnable(false);
+    node->isOnTheTree_ = false;
+    mainThread->AddUiCaptureTask(id, task);
+    EXPECT_FALSE(RSBufferReclaim::GetInstance().CheckSameProcessUICaptureNode(id));
+    mainThread->PrepareUiCaptureTasks(nullptr);
+    mainThread->ProcessUiCaptureTasks();
+
+    // case 2
+    BufferReclaimParam::GetInstance().SetBufferReclaimEnable(true);
+    node->isOnTheTree_ = false;
+    mainThread->AddUiCaptureTask(id, task);
+    EXPECT_TRUE(RSBufferReclaim::GetInstance().CheckSameProcessUICaptureNode(id));
+    mainThread->PrepareUiCaptureTasks(nullptr);
+    mainThread->ProcessUiCaptureTasks();
+    EXPECT_FALSE(RSBufferReclaim::GetInstance().CheckSameProcessUICaptureNode(id));
+
+    // case 3
+    BufferReclaimParam::GetInstance().SetBufferReclaimEnable(true);
+    node->isOnTheTree_ = true;
+    mainThread->AddUiCaptureTask(id, task);
+    EXPECT_FALSE(RSBufferReclaim::GetInstance().CheckSameProcessUICaptureNode(id));
+    mainThread->PrepareUiCaptureTasks(nullptr);
+    mainThread->ProcessUiCaptureTasks();
+
+    // case 4
+    BufferReclaimParam::GetInstance().SetBufferReclaimEnable(false);
+    node->isOnTheTree_ = true;
+    mainThread->AddUiCaptureTask(id, task);
+    EXPECT_FALSE(RSBufferReclaim::GetInstance().CheckSameProcessUICaptureNode(id));
+    mainThread->PrepareUiCaptureTasks(nullptr);
+    mainThread->ProcessUiCaptureTasks();
+
+    BufferReclaimParam::GetInstance().SetBufferReclaimEnable(enable);
 }
 }

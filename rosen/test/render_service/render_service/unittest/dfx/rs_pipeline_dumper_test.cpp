@@ -422,6 +422,28 @@ HWTEST_F(RSPipelineDumperTest, RegisterMemFuncs_DumpMem, TestSize.Level1)
 }
 
 /*
+ * @tc.name: RegisterMemFuncs_DumpMemLite
+ * @tc.desc: Test RegisterMemFuncs registers mem dump function
+ * @tc.type: FUNC
+ * @tc.require: AR000GSH6G
+ */
+HWTEST_F(RSPipelineDumperTest, RegisterMemFuncs_DumpMemLite, TestSize.Level1)
+{
+    // Given: Dump manager and dumper
+    ASSERT_NE(dumpManager_, nullptr);
+    ASSERT_NE(dumper_, nullptr);
+
+    dumper_->RenderPipelineDumpInit(dumpManager_);
+
+    // Then: dumpMem command should be registered
+    std::unordered_set<std::u16string> argSets = { u"dumpMemLite", u"123" };
+    std::string out;
+    dumpManager_->CmdExec(argSets, out, nullptr);
+
+    EXPECT_FALSE(out.empty());
+}
+
+/*
  * @tc.name: RegisterMemFuncs_ExistPidMem
  * @tc.desc: Test RegisterMemFuncs registers exist pid mem function
  * @tc.type: FUNC
@@ -1948,6 +1970,52 @@ HWTEST_F(RSPipelineDumperTest, DumpFps_DirectCall_EmptyLayerName, TestSize.Level
 
     // Then: Should execute without crash
     SUCCEED();
+}
+
+/*
+ * @tc.name: DumpGpuMem_WithArgs
+ * @tc.desc: Test DumpGpuMem with arguments (branch: argSets.size() > 1 && !argSets.empty())
+ * @tc.type: FUNC
+ * @tc.require: AR000GSH6G
+ */
+HWTEST_F(RSPipelineDumperTest, DumpGpuMem_WithArgs, TestSize.Level1)
+{
+    // Given: Dump manager and dumper
+    ASSERT_NE(dumpManager_, nullptr);
+    ASSERT_NE(dumper_, nullptr);
+
+    dumper_->RenderPipelineDumpInit(dumpManager_);
+
+    // When: Dump GPU memory with type argument
+    std::unordered_set<std::u16string> argSets = { u"dumpGpuMem", u"detail" };
+    std::string out;
+    dumpManager_->CmdExec(argSets, out, nullptr);
+
+    // Then: Should execute without crash
+    EXPECT_FALSE(out.empty());
+}
+
+/*
+ * @tc.name: DumpGpuMem_SingleArg
+ * @tc.desc: Test DumpGpuMem with single argument (branch: argSets.size() <= 1)
+ * @tc.type: FUNC
+ * @tc.require: AR000GSH6G
+ */
+HWTEST_F(RSPipelineDumperTest, DumpGpuMem_SingleArg, TestSize.Level1)
+{
+    // Given: Dump manager and dumper
+    ASSERT_NE(dumpManager_, nullptr);
+    ASSERT_NE(dumper_, nullptr);
+
+    dumper_->RenderPipelineDumpInit(dumpManager_);
+
+    // When: Dump GPU memory with type argument
+    std::unordered_set<std::u16string> argSets = { u"dumpGpuMem" };
+    std::string out;
+    dumpManager_->CmdExec(argSets, out, nullptr);
+
+    // Then: Should execute without crash
+    EXPECT_FALSE(out.empty());
 }
 
 } // namespace OHOS::Rosen

@@ -249,7 +249,7 @@ void ReceiveFontVariation(napi_env env, napi_value argValue, TextStyle& textStyl
             break;
         }
 
-        int value = 0;
+        double value = 0;
         status = napi_get_named_property(env, singleElementValue, "value", &variationElement);
         if ((status != napi_ok) || !ConvertFromJsValue(env, variationElement, value)) {
             TEXT_LOGE("Failed to get value, ret %{public}d", static_cast<int>(status));
@@ -517,6 +517,7 @@ void HandleExtentParagraphStyleProperties(napi_env env, napi_value argValue, Typ
     SetDoubleValueFromJS(env, argValue, "lineSpacing", pographyStyle.lineSpacing);
     SetBoolValueFromJS(env, argValue, "includeFontPadding", pographyStyle.includeFontPadding);
     SetBoolValueFromJS(env, argValue, "fallbackLineSpacing", pographyStyle.fallbackLineSpacing);
+    SetBoolValueFromJS(env, argValue, "orphanCharOptimization", pographyStyle.orphanCharOptimization);
 }
 
 bool GetPlaceholderSpanFromJS(napi_env env, napi_value argValue, PlaceholderSpan& placeholderSpan)

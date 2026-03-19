@@ -31,6 +31,12 @@ class ColorPickAltManager;
 
 namespace DrawableV2 {
 // RSColorPickerDrawable, pick color for current content of canvas
+enum class ColorPickerState : uint8_t {
+    PREPARING = 0,
+    SCHEDULED = 1,
+    COLOR_PICK_THIS_FRAME = 2,
+};
+
 class RSB_EXPORT RSColorPickerDrawable : public RSDrawable {
 public:
     RSColorPickerDrawable() = default;
@@ -43,24 +49,39 @@ public:
     void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
 
     /**
-     * @brief Prepare ColorPicker for execution on main thread
-     * @param vsyncTime Current vsync time in nanoseconds
+     * @brief Called every frame during Prepare phase for all color pickers
      * @param darkMode Whether current system is in dark color mode
      *
-     * Checks cooldown interval and determines if color pick should execute this frame.
-     * Sets needColorPick flag for render thread to check. Called during Prepare phase.
-     * @return pair<needColorPick, needSync> - @c needColorPick indicates if color pick should run this frame, @c
-     * needSync indicates if @c needColorPick are updated and need to be synced to render thread
+     * Handles COLOR_PICK_THIS_FRAME state transition and dark mode changes.
+     * This is called regardless of dirty region intersection.
+     * @return needSync - true if staging data changed and needs sync to render thread
      */
-    RSB_EXPORT std::pair<bool, bool> PrepareForExecution(uint64_t vsyncTime, bool darkMode);
+    bool OnPrepare(bool darkMode);
+
+    /**
+     * @brief Called only when color picker node intersects with dirty region
+     * @param vsyncTime Current vsync time in nanoseconds
+     *
+     * Schedules color pick when in PREPARING state.
+     * Calculates delay based on cooldown interval:
+     * - If cooldown passed: execute immediately (delay = 0)
+     * - If cooldown not passed: delay = lastUpdateTime + interval - currentTime
+     * Transitions from PREPARING to SCHEDULED state and posts delayed task.
+     */
+    void ScheduleColorPickIfReady(uint64_t vsyncTime);
 
     void ResetColorMemory();
+
+    // main thread only
+    void SetState(ColorPickerState state);
+    ColorPickerState GetState() const;
 
 private:
     NodeId stagingNodeId_ = INVALID_NODEID;
     NodeId nodeId_ = INVALID_NODEID;
     std::shared_ptr<ColorPickerParam> stagingColorPicker_;
     ColorPickerParam params_;
+    ColorPickerState stagingState_ = ColorPickerState::PREPARING;
 
     std::shared_ptr<IColorPickerManager> colorPickerManager_;
 

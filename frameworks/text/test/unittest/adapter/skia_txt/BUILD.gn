@@ -23,6 +23,7 @@ ohos_unittest("rosen_text_adapt_test") {
     "convert_test.cpp",
     "font_collection_test.cpp",
     "placeholder_run_test.cpp",
+    "orphan_char_optimization_test.cpp",
     "run_test.cpp",
     "style_copy_test.cpp",
     "text_line_base_test.cpp",

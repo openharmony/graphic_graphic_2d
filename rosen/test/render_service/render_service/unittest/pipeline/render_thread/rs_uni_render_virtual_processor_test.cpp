@@ -37,6 +37,7 @@
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/rs_test_util.h"
 #include "params/rs_screen_render_params.h"
+#include "platform/ohos/backend/rs_surface_frame_ohos_raster.h"
 #include "platform/ohos/backend/rs_surface_ohos_gl.h"
 #include "platform/ohos/backend/rs_surface_ohos_raster.h"
 #include "surface_buffer_impl.h"
@@ -1591,35 +1592,31 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, GetFrameAcquireFence_RenderFrameValidT
 {
     ASSERT_NE(virtualProcessor_, nullptr);
 
-    // Create a valid renderFrame
+    // Create a mock RSRenderFrame to test GetFrameAcquireFence
+    // In unit test environment, surface RequestBuffer may fail, so we create a mock frame
     auto consumer = IConsumerSurface::Create("test_acquire_fence");
     ASSERT_NE(consumer, nullptr);
     auto producer = consumer->GetProducer();
     auto pSurface = Surface::CreateSurfaceAsProducer(producer);
     ASSERT_NE(pSurface, nullptr);
 
-    // Create RSSurfaceOhosRaster to request frame
     auto rsSurface = std::make_shared<RSSurfaceOhosRaster>(pSurface);
     ASSERT_NE(rsSurface, nullptr);
 
-    auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
-    ASSERT_NE(renderEngine, nullptr);
+    // Create a mock RSSurfaceFrameOhosRaster
+    auto mockFrame = std::make_unique<RSSurfaceFrameOhosRaster>(100, 100);
 
-    BufferRequestConfig config { 100, 100, 8, GRAPHIC_PIXEL_FMT_RGBA_8888,
-        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE, 0, GRAPHIC_COLOR_GAMUT_SRGB,
-        GraphicTransformType::GRAPHIC_ROTATE_NONE };
-    FrameContextConfig frameCtx(false);
-    frameCtx.isVirtual = true;
+    // Create RSRenderFrame with the mock surface and frame
+    virtualProcessor_->renderFrame_ = std::make_unique<RSRenderFrame>(
+        std::static_pointer_cast<RSSurfaceOhos>(rsSurface),
+        std::move(mockFrame));
 
-    virtualProcessor_->renderFrame_ = renderEngine->RequestFrame(
-        std::static_pointer_cast<RSSurfaceOhos>(rsSurface), config, true, false, frameCtx);
+    ASSERT_NE(virtualProcessor_->renderFrame_, nullptr);
 
-    if (virtualProcessor_->renderFrame_ != nullptr) {
-        // Should return valid acquire fence from renderFrame
-        auto fence = virtualProcessor_->GetFrameAcquireFence();
-        ASSERT_NE(fence, nullptr);
-        // Fence might be invalid if frame wasn't flushed yet, but function should not crash
-    }
+    // Should return acquire fence from renderFrame (might be invalid but should not be nullptr)
+    auto fence = virtualProcessor_->GetFrameAcquireFence();
+    ASSERT_NE(fence, nullptr);
+    // Fence might be invalid if frame wasn't flushed yet, but function should not crash
 
     // Clean up renderFrame_ to prevent crash on test teardown
     virtualProcessor_->renderFrame_ = nullptr;

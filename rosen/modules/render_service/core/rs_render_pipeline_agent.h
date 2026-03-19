@@ -204,6 +204,18 @@ public:
     void AddTransactionDataPidInfo(pid_t remotePid);
     void AddConnection(sptr<IRemoteObject>& token, sptr<RSIClientToRenderConnection> connectToRenderConnection);
     sptr<RSIClientToRenderConnection> FindClientToRenderConnection(const sptr<IRemoteObject>& token);
+    int32_t RegisterFrameStabilityDetection(
+        pid_t pid,
+        const FrameStabilityTarget& target,
+        const FrameStabilityConfig& config,
+        sptr<RSIFrameStabilityCallback> callback
+    );
+    int32_t UnregisterFrameStabilityDetection(pid_t pid, const FrameStabilityTarget& target);
+    int32_t StartFrameStabilityCollection(
+        pid_t pid,
+        const FrameStabilityTarget& target,
+        const FrameStabilityConfig& config);
+    int32_t GetFrameStabilityResult(pid_t pid, const FrameStabilityTarget& target, bool& result);
 private:
     std::shared_ptr<RSRenderPipeline>& rsRenderPipeline_;
     std::unordered_map<pid_t, std::string> pidToBundleName_;

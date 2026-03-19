@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -140,8 +140,8 @@ HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithSmallPixelMapWithout
     options.size.width = 1;
     options.size.height = 1;
     options.pixelFormat = Media::PixelFormat::RGBA_8888;
-    const size_t position = 92;
-    const size_t pixelMapSize = 80;
+    const size_t position = 88;
+    const size_t pixelMapSize = 84;
 
     std::shared_ptr pixelMap = Media::PixelMap::Create(options);
     EXPECT_TRUE(pixelMap != nullptr);
@@ -163,8 +163,8 @@ HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithMediumPixelMapWithou
     options.size.width = 860;
     options.size.height = 520;
     options.pixelFormat = Media::PixelFormat::RGBA_8888;
-    const size_t position = 92;
-    const size_t pixelMapSize = 80;
+    const size_t position = 88;
+    const size_t pixelMapSize = 84;
 
     std::shared_ptr pixelMap = Media::PixelMap::Create(options);
     EXPECT_TRUE(pixelMap != nullptr);
@@ -186,8 +186,8 @@ HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithBigPixelMapWithoutPr
     options.size.width = 2123;
     options.size.height = 1987;
     options.pixelFormat = Media::PixelFormat::RGBA_8888;
-    const size_t position = 92;
-    const size_t pixelMapSize = 80;
+    const size_t position = 88;
+    const size_t pixelMapSize = 84;
 
     std::shared_ptr pixelMap = Media::PixelMap::Create(options);
     EXPECT_TRUE(pixelMap != nullptr);
@@ -251,8 +251,8 @@ HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithSmallPixelMapWithPro
     options.size.width = 1;
     options.size.height = 1;
     options.pixelFormat = Media::PixelFormat::RGBA_8888;
-    const size_t position = 100;
-    const size_t pixelMapSize = 88;
+    const size_t position = 96;
+    const size_t pixelMapSize = 92;
 
     std::shared_ptr pixelMap = Media::PixelMap::Create(options);
     EXPECT_TRUE(pixelMap != nullptr);
@@ -273,8 +273,8 @@ HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithMediumPixelMapWithPr
     options.size.width = 860;
     options.size.height = 520;
     options.pixelFormat = Media::PixelFormat::RGBA_8888;
-    const size_t position = 100;
-    const size_t pixelMapSize = 88;
+    const size_t position = 96;
+    const size_t pixelMapSize = 92;
 
     std::shared_ptr pixelMap = Media::PixelMap::Create(options);
     EXPECT_TRUE(pixelMap != nullptr);
@@ -295,8 +295,8 @@ HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithBigPixelMapWithProfi
     options.size.width = 2123;
     options.size.height = 1987;
     options.pixelFormat = Media::PixelFormat::RGBA_8888;
-    const size_t position = 100;
-    const size_t pixelMapSize = 88;
+    const size_t position = 96;
+    const size_t pixelMapSize = 92;
 
     std::shared_ptr pixelMap = Media::PixelMap::Create(options);
     EXPECT_TRUE(pixelMap != nullptr);

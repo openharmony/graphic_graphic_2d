@@ -107,6 +107,8 @@ constexpr CacheKey PARAGRAPH_STYLE_INCLUDE_FONT_PADDING_KEY{
     ANI_INTERFACE_PARAGRAPH_STYLE, "<get>includeFontPadding", ANI_WRAP_RETURN_C(ANI_BOOLEAN)};
 constexpr CacheKey PARAGRAPH_STYLE_FALLBACK_LINE_SPACING_KEY{
     ANI_INTERFACE_PARAGRAPH_STYLE, "<get>fallbackLineSpacing", ANI_WRAP_RETURN_C(ANI_BOOLEAN)};
+constexpr CacheKey PARAGRAPH_STYLE_ORPHAN_CHAR_OPTIMIZATION_KEY{
+    ANI_INTERFACE_PARAGRAPH_STYLE, "<get>orphanCharOptimization", ANI_WRAP_RETURN_C(ANI_BOOLEAN)};
 constexpr CacheKey PARAGRAPH_STYLE_LINE_SPACING_KEY{
     ANI_INTERFACE_PARAGRAPH_STYLE, "<get>lineSpacing", ANI_WRAP_RETURN_C(ANI_DOUBLE)};
 
@@ -471,6 +473,8 @@ void AniGlobalMethod::InitParagraphStyleMethod(ani_env* env)
         env, AniGlobalClass::GetInstance().paragraphStyle, PARAGRAPH_STYLE_INCLUDE_FONT_PADDING_KEY);
     paragraphStyleFallbackLineSpacing = AniClassFindMethod(
         env, AniGlobalClass::GetInstance().paragraphStyle, PARAGRAPH_STYLE_FALLBACK_LINE_SPACING_KEY);
+    paragraphStyleOrphanCharOptimization = AniClassFindMethod(
+        env, AniGlobalClass::GetInstance().paragraphStyle, PARAGRAPH_STYLE_ORPHAN_CHAR_OPTIMIZATION_KEY);
     paragraphStyleLineSpacing = AniClassFindMethod(
         env, AniGlobalClass::GetInstance().paragraphStyle, PARAGRAPH_STYLE_LINE_SPACING_KEY);
 }

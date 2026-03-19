@@ -234,5 +234,21 @@ void RSUIContext::MoveModifier(std::shared_ptr<RSUIContext> dstUIContext, NodeId
         rsModifierManager_->MoveModifier(dstModifierManager, nodeId);
     }
 }
+
+bool RSUIContext::MoveCommandsIfNeeded(const std::shared_ptr<RSUIContext>& newUIContext)
+{
+    auto preTransaction = GetRSTransaction();
+    auto curTransaction = newUIContext->GetRSTransaction();
+    if (!preTransaction || !curTransaction) {
+        ROSEN_LOGE("RSUIContext::MoveCommandsIfNeeded: transaction is null");
+        return false;
+    }
+
+    if (preTransaction->HasStackData()) {
+        ROSEN_LOGE("RSUIContext::MoveCommandsIfNeeded: Stack data exists in RemoteStackData or CommandStackData, "
+                   "cannot move stack commands!");
+    }
+    return preTransaction->MoveAllCommand(curTransaction);
+}
 } // namespace Rosen
 } // namespace OHOS

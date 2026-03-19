@@ -192,6 +192,7 @@ void ParagraphBuilderImpl::ParagraphStyleToSkParagraphStyle(const ParagraphStyle
     skStyle.setLineSpacing(txt.lineSpacing);
     skStyle.setIncludeFontPadding(txt.includeFontPadding);
     skStyle.setFallbackLineSpacing(txt.fallbackLineSpacing);
+    skStyle.setOrphanCharOptimization(txt.orphanCharOptimization);
 }
 
 skt::TextStyle ParagraphBuilderImpl::TextStyleToSkStyle(const TextStyle& txt)
@@ -230,8 +231,7 @@ skt::TextStyle ParagraphBuilderImpl::ConvertTextStyleToSkStyle(const TextStyle& 
     skStyle.setStyleId(txt.styleId);
     skStyle.setTextStyleUid(txt.textStyleUid);
     skStyle.setBackgroundRect({ txt.backgroundRect.color, txt.backgroundRect.leftTopRadius,
-        txt.backgroundRect.rightTopRadius, txt.backgroundRect.rightBottomRadius,
-        txt.backgroundRect.leftBottomRadius });
+        txt.backgroundRect.rightTopRadius, txt.backgroundRect.rightBottomRadius, txt.backgroundRect.leftBottomRadius });
 
     skStyle.resetFontFeatures();
     for (const auto& ff : txt.fontFeatures.GetFontFeatures()) {
@@ -260,6 +260,7 @@ skt::TextStyle ParagraphBuilderImpl::ConvertTextStyleToSkStyle(const TextStyle& 
     skStyle.setMinLineHeight(txt.minLineHeight);
     skStyle.setLineHeightStyle(static_cast<skt::LineHeightStyle>(txt.lineHeightStyle));
     skStyle.setFontEdging(txt.fontEdging);
+    skStyle.setFakeBoldEnabled(txt.isFakeBoldEnabled);
 
     return skStyle;
 }
@@ -289,6 +290,9 @@ void ParagraphBuilderImpl::CopyTextStylePaint(const TextStyle& txt, skia::textla
         paint.symbol.SetSymbolShadow(txt.symbol.GetSymbolShadow());
         paint.symbol.SetFirstActive(txt.symbol.GetFirstActive());
         skStyle.setForegroundPaintID(AllocPaintID(paint));
+        if (txt.isSymbolGlyph) {
+            skStyle.setFakeBoldEnabled(false);
+        }
     }
 }
 } // namespace SPText

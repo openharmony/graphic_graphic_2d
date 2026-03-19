@@ -371,6 +371,158 @@ HWTEST_F(RSUniRenderProcessorTest, ProcessScreenSurfaceForRenderThread004, TestS
     }
 }
 
+// Test helper class for buffer consumer listener
+class TestBufferConsumerListener : public IBufferConsumerListener {
+public:
+    void OnBufferAvailable() override {}
+};
+
+/**
+ * @tc.name: ProcessScreenSurface_FingerprintTrueTest001
+ * @tc.desc: Test ProcessScreenSurface when GetFingerprint() is true
+ *           The if (node.GetFingerprint()) branch at line 520 should be true
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSUniRenderProcessorTest, ProcessScreenSurface_FingerprintTrueTest001, TestSize.Level2)
+{
+    if (RSUniRenderJudgement::IsUniRender()) {
+        NodeId nodeId = 1;
+        auto node = std::make_shared<RSScreenRenderNode>(nodeId, screenId_);
+        node->SetFingerprint(true);
+
+        // Initialize render drawable
+        auto drawable = node->GetRenderDrawable();
+        if (drawable == nullptr) {
+            drawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(
+                std::static_pointer_cast<RSRenderNode>(node));
+        }
+        ASSERT_NE(drawable, nullptr);
+
+        auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(drawable);
+        ASSERT_NE(screenDrawable, nullptr);
+
+        // Set surfaceHandler
+        screenDrawable->surfaceHandler_ = std::make_shared<RSSurfaceHandler>(0);
+        ASSERT_NE(screenDrawable->surfaceHandler_, nullptr);
+
+        // Create consumer and call CreateSurface to set surfaceCreated_ = true
+        // Use a simple test listener since RSRenderServiceListener requires RSSurfaceRenderNode
+        sptr<IBufferConsumerListener> listener = new TestBufferConsumerListener();
+        screenDrawable->CreateSurface(listener);
+        ASSERT_TRUE(screenDrawable->IsSurfaceCreated());
+
+        // Request and flush buffer
+        auto consumer = screenDrawable->surfaceHandler_->GetConsumer();
+        ASSERT_NE(consumer, nullptr);
+        auto producer = consumer->GetProducer();
+        auto surface = Surface::CreateSurfaceAsProducer(producer);
+        ASSERT_NE(surface, nullptr);
+        surface->SetQueueSize(1);
+
+        sptr<SurfaceBuffer> buffer;
+        sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
+        [[maybe_unused]] GSError ret = surface->RequestBuffer(buffer, requestFence, requestConfig);
+        ASSERT_EQ(ret, GSERROR_OK);
+
+        sptr<SyncFence> flushFence = SyncFence::INVALID_FENCE;
+        BufferFlushConfig flushConfig = { .damage = { .w = 200, .h = 200, } };
+        ret = surface->FlushBuffer(buffer, flushFence, flushConfig);
+        ASSERT_EQ(ret, GSERROR_OK);
+
+        // Acquire buffer to consumer
+        OHOS::sptr<SurfaceBuffer> cbuffer;
+        Rect damage;
+        sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+        int64_t timestamp = 0;
+        ret = consumer->AcquireBuffer(cbuffer, acquireFence, timestamp, damage);
+        ASSERT_EQ(ret, GSERROR_OK);
+        ASSERT_NE(cbuffer, nullptr);
+
+        screenDrawable->surfaceHandler_->SetBuffer(cbuffer, acquireFence, damage, timestamp, nullptr);
+
+        // Call ProcessScreenSurface with Fingerprint = true
+        auto layerSize = renderProcessor->layers_.size();
+        EXPECT_NO_FATAL_FAILURE(renderProcessor->ProcessScreenSurface(*node));
+
+        // Verify that a layer was created
+        EXPECT_GT(renderProcessor->layers_.size(), layerSize);
+    }
+}
+
+/**
+ * @tc.name: ProcessScreenSurface_FingerprintFalseTest001
+ * @tc.desc: Test ProcessScreenSurface when GetFingerprint() is false
+ *           The if (node.GetFingerprint()) branch at line 520 should be false
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSUniRenderProcessorTest, ProcessScreenSurface_FingerprintFalseTest001, TestSize.Level2)
+{
+    if (RSUniRenderJudgement::IsUniRender()) {
+        NodeId nodeId = 2;
+        auto node = std::make_shared<RSScreenRenderNode>(nodeId, screenId_);
+        node->SetFingerprint(false);  // Explicitly set to false
+
+        // Initialize render drawable
+        auto drawable = node->GetRenderDrawable();
+        if (drawable == nullptr) {
+            drawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(
+                std::static_pointer_cast<RSRenderNode>(node));
+        }
+        ASSERT_NE(drawable, nullptr);
+
+        auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(drawable);
+        ASSERT_NE(screenDrawable, nullptr);
+
+        // Set surfaceHandler
+        screenDrawable->surfaceHandler_ = std::make_shared<RSSurfaceHandler>(0);
+        ASSERT_NE(screenDrawable->surfaceHandler_, nullptr);
+
+        // Create consumer and call CreateSurface to set surfaceCreated_ = true
+        // Use a simple test listener since RSRenderServiceListener requires RSSurfaceRenderNode
+        sptr<IBufferConsumerListener> listener = new TestBufferConsumerListener();
+        screenDrawable->CreateSurface(listener);
+        ASSERT_TRUE(screenDrawable->IsSurfaceCreated());
+
+        // Request and flush buffer
+        auto consumer = screenDrawable->surfaceHandler_->GetConsumer();
+        ASSERT_NE(consumer, nullptr);
+        auto producer = consumer->GetProducer();
+        auto surface = Surface::CreateSurfaceAsProducer(producer);
+        ASSERT_NE(surface, nullptr);
+        surface->SetQueueSize(1);
+
+        sptr<SurfaceBuffer> buffer;
+        sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
+        [[maybe_unused]] GSError ret = surface->RequestBuffer(buffer, requestFence, requestConfig);
+        ASSERT_EQ(ret, GSERROR_OK);
+
+        sptr<SyncFence> flushFence = SyncFence::INVALID_FENCE;
+        BufferFlushConfig flushConfig = { .damage = { .w = 200, .h = 200, } };
+        ret = surface->FlushBuffer(buffer, flushFence, flushConfig);
+        ASSERT_EQ(ret, GSERROR_OK);
+
+        // Acquire buffer to consumer
+        OHOS::sptr<SurfaceBuffer> cbuffer;
+        Rect damage;
+        sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+        int64_t timestamp = 0;
+        ret = consumer->AcquireBuffer(cbuffer, acquireFence, timestamp, damage);
+        ASSERT_EQ(ret, GSERROR_OK);
+        ASSERT_NE(cbuffer, nullptr);
+
+        screenDrawable->surfaceHandler_->SetBuffer(cbuffer, acquireFence, damage, timestamp, nullptr);
+
+        // Call ProcessScreenSurface with Fingerprint = false
+        auto layerSize = renderProcessor->layers_.size();
+        EXPECT_NO_FATAL_FAILURE(renderProcessor->ProcessScreenSurface(*node));
+
+        // Verify that a layer was created
+        EXPECT_GT(renderProcessor->layers_.size(), layerSize);
+    }
+}
+
 /**
  * @tc.name: CreateLayerForRenderThread001
  * @tc.desc: Test RSUniRenderProcessorTest.CreateLayerForRenderThread with nullptr
@@ -1092,7 +1244,7 @@ HWTEST_F(RSUniRenderProcessorTest, PostProcess_LayerNullInLoopTest001, TestSize.
         ASSERT_NE(uniLayer, nullptr);
         auto owner = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
         owner->bufferId_ = 1000ULL;
-        uniLayer->SetBufferOwnerCount(owner, false);
+        uniLayer->SetBufferOwnerCount(owner, true);
         renderProcessor->uniLayer_ = uniLayer;
 
         // Add an expired weak_ptr to layers_
@@ -1102,7 +1254,7 @@ HWTEST_F(RSUniRenderProcessorTest, PostProcess_LayerNullInLoopTest001, TestSize.
             // tempLayer goes out of scope, weak_ptr becomes expired
         }
 
-        // Call PostProcess, should skip the expired layer
+        // Call PostProcess, should skip expired layer
         EXPECT_NO_FATAL_FAILURE(renderProcessor->PostProcess());
     }
 }
@@ -1125,13 +1277,13 @@ HWTEST_F(RSUniRenderProcessorTest, PostProcess_LayerEqualsUniLayerTest001, TestS
         ASSERT_NE(uniLayer, nullptr);
         auto owner = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
         owner->bufferId_ = 1000ULL;
-        uniLayer->SetBufferOwnerCount(owner, false);
+        uniLayer->SetBufferOwnerCount(owner, true);
         renderProcessor->uniLayer_ = uniLayer;
 
-        // Add the same layer to layers_
+        // Add same layer to layers_
         renderProcessor->layers_.emplace_back(uniLayer);
 
-        // Call PostProcess, should skip the layer that equals uniLayer_
+        // Call PostProcess, should skip layer that equals uniLayer_
         EXPECT_NO_FATAL_FAILURE(renderProcessor->PostProcess());
     }
 }
@@ -1154,7 +1306,7 @@ HWTEST_F(RSUniRenderProcessorTest, PostProcess_LayerBufferNullTest001, TestSize.
         ASSERT_NE(uniLayer, nullptr);
         auto owner = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
         owner->bufferId_ = 1000ULL;
-        uniLayer->SetBufferOwnerCount(owner, false);
+        uniLayer->SetBufferOwnerCount(owner, true);
         renderProcessor->uniLayer_ = uniLayer;
 
         // Add a layer without buffer to layers_
@@ -1162,7 +1314,7 @@ HWTEST_F(RSUniRenderProcessorTest, PostProcess_LayerBufferNullTest001, TestSize.
         ASSERT_NE(layerWithoutBuffer, nullptr);
         renderProcessor->layers_.emplace_back(layerWithoutBuffer);
 
-        // Call PostProcess, should skip the layer without buffer
+        // Call PostProcess, should skip layer without buffer
         EXPECT_NO_FATAL_FAILURE(renderProcessor->PostProcess());
     }
 }
@@ -1185,7 +1337,7 @@ HWTEST_F(RSUniRenderProcessorTest, PostProcess_BufferOwnerCountNullInLoopTest001
         ASSERT_NE(uniLayer, nullptr);
         auto uniOwner = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
         uniOwner->bufferId_ = 1000ULL;
-        uniLayer->SetBufferOwnerCount(uniOwner, false);
+        uniLayer->SetBufferOwnerCount(uniOwner, true);
         renderProcessor->uniLayer_ = uniLayer;
 
         // Add a layer with buffer but without bufferOwnerCount to layers_
@@ -1200,7 +1352,7 @@ HWTEST_F(RSUniRenderProcessorTest, PostProcess_BufferOwnerCountNullInLoopTest001
         // Do NOT set bufferOwnerCount, so GetBufferOwnerCount() will return nullptr
         renderProcessor->layers_.emplace_back(layerWithoutOwner);
 
-        // Call PostProcess, should skip the layer without bufferOwnerCount
+        // Call PostProcess, should skip layer without bufferOwnerCount
         EXPECT_NO_FATAL_FAILURE(renderProcessor->PostProcess());
     }
 }
@@ -1224,7 +1376,7 @@ HWTEST_F(RSUniRenderProcessorTest, PostProcess_AllBranchesCoveredTest001, TestSi
         ASSERT_NE(uniLayer, nullptr);
         auto uniOwner = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
         uniOwner->bufferId_ = 1000ULL;
-        uniLayer->SetBufferOwnerCount(uniOwner, false);
+        uniLayer->SetBufferOwnerCount(uniOwner, true);
         renderProcessor->uniLayer_ = uniLayer;
 
         // Add a valid layer with buffer and bufferOwnerCount to layers_
@@ -1238,7 +1390,7 @@ HWTEST_F(RSUniRenderProcessorTest, PostProcess_AllBranchesCoveredTest001, TestSi
         validLayer->SetBuffer(buffer, nullptr);
         auto layerOwner = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
         layerOwner->bufferId_ = buffer->GetBufferId();
-        validLayer->SetBufferOwnerCount(layerOwner, false);
+        validLayer->SetBufferOwnerCount(layerOwner, true);
         renderProcessor->layers_.emplace_back(validLayer);
 
         // Call PostProcess with all valid conditions
@@ -1264,7 +1416,7 @@ HWTEST_F(RSUniRenderProcessorTest, PostProcess_MixedLayersTest001, TestSize.Leve
         ASSERT_NE(uniLayer, nullptr);
         auto uniOwner = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
         uniOwner->bufferId_ = 1000ULL;
-        uniLayer->SetBufferOwnerCount(uniOwner, false);
+        uniLayer->SetBufferOwnerCount(uniOwner, true);
         renderProcessor->uniLayer_ = uniLayer;
         renderProcessor->layers_.clear();
 
@@ -1299,7 +1451,7 @@ HWTEST_F(RSUniRenderProcessorTest, PostProcess_MixedLayersTest001, TestSize.Leve
         validLayer->SetBuffer(buffer2, nullptr);
         auto layerOwner = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
         layerOwner->bufferId_ = buffer2->GetBufferId();
-        validLayer->SetBufferOwnerCount(layerOwner, false);
+        validLayer->SetBufferOwnerCount(layerOwner, true);
         renderProcessor->layers_.emplace_back(validLayer);
 
         // Call PostProcess, should handle all cases
@@ -1709,9 +1861,9 @@ HWTEST_F(RSUniRenderProcessorTest, CreateLayerForRenderThread_NullBufferOwnerCou
         // Set buffer in params from node's surfaceHandler
         auto surfaceHandler = node->GetRSSurfaceHandler();
         auto buffer = surfaceHandler->GetBuffer();
-        if (buffer != nullptr) {
-            params->SetBuffer(buffer, {}, DEFAULT_RECT);
-        }
+        ASSERT_NE(buffer, nullptr);
+        auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+        params->SetBuffer(buffer, bufferOwnerCount, DEFAULT_RECT);
         NodeId nodeId = 1;
         RSScreenRenderNode screenNode(nodeId, screenId_);
         auto renderEngine = std::make_shared<RSUniRenderEngine>();
@@ -1728,8 +1880,8 @@ HWTEST_F(RSUniRenderProcessorTest, CreateLayerForRenderThread_NullBufferOwnerCou
 
 /**
  * @tc.name: CreateLayerForRenderThread_WithBufferOwnerCountTest001
- * @tc.desc: Test CreateLayerForRenderThread when bufferOwnerCount is not nullptr
- *           The if (bufferOwnerCount) branch at line 216 should be true
+ * * @tc.desc: Test CreateLayerForRenderThread when bufferOwnerCount is not nullptr
+ *           The if (bufferOwnerCount) branch at line 220 should be true
  * @tc.type: FUNC
  * @tc.require: issue41
  */
@@ -1750,9 +1902,8 @@ HWTEST_F(RSUniRenderProcessorTest, CreateLayerForRenderThread_WithBufferOwnerCou
         // Set buffer in params from node's surfaceHandler
         auto surfaceHandler = node->GetRSSurfaceHandler();
         auto buffer = surfaceHandler->GetBuffer();
-        if (buffer != nullptr) {
-            params->SetBuffer(buffer, {}, DEFAULT_RECT);
-        }
+        ASSERT_NE(buffer, nullptr);
+        params->SetBuffer(buffer, bufferOwnerCount, DEFAULT_RECT);
 
         NodeId nodeId = 1;
         RSScreenRenderNode screenNode(nodeId, screenId_);
@@ -1908,9 +2059,8 @@ HWTEST_F(RSUniRenderProcessorTest, CreateLayerForRenderThread_AllBranchesCovered
         // Set buffer in params from node's surfaceHandler
         auto surfaceHandler = node->GetRSSurfaceHandler();
         auto buffer = surfaceHandler->GetBuffer();
-        if (buffer != nullptr) {
-            params->SetBuffer(buffer, {}, DEFAULT_RECT);
-        }
+        ASSERT_NE(buffer, nullptr);
+        params->SetBuffer(buffer, bufferOwnerCount, DEFAULT_RECT);
 
         NodeId nodeId = 1;
         RSScreenRenderNode screenNode(nodeId, screenId_);

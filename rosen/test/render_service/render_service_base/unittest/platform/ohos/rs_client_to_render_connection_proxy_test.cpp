@@ -653,5 +653,23 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, SetLogicalCameraRotationCorrection
     auto ret = proxy->SetLogicalCameraRotationCorrection(screenId, logicalCorrection);
     EXPECT_EQ(ret, 2);
 }
+
+/**
+ * @tc.name: RegisterFrameStabilityDetectionTest001
+ * @tc.desc: Test RegisterFrameStabilityDetection with nullptr callback
+ * @tc.type: FUNC
+ * @tc.require: issues22734
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, RegisterFrameStabilityDetectionTest001, TestSize.Level1)
+{
+    FrameStabilityTarget target =
+        { .id = 100, .type = FrameStabilityTargetType::SCREEN };
+    FrameStabilityConfig config = {
+        .stableDuration = 1000,
+        .changePercent = 0.1f
+    };
+    int32_t ret = proxy->RegisterFrameStabilityDetection(target, config, nullptr);
+    EXPECT_EQ(ret, INVALID_ARGUMENTS);
+}
 } // namespace Rosen
 } // namespace OHOS

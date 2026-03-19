@@ -310,6 +310,7 @@ void ParagraphImpl::GetExtraTextStyleAttributes(const skt::TextStyle& skStyle, T
     textStyle.minLineHeight = skStyle.getMinLineHeight();
     textStyle.lineHeightStyle = static_cast<OHOS::Rosen::LineHeightStyle>(skStyle.getLineHeightStyle());
     textStyle.fontEdging = skStyle.getFontEdging();
+    textStyle.isFakeBoldEnabled = skStyle.isFakeBoldEnabled();
 }
 
 TextStyle ParagraphImpl::SkStyleToTextStyle(const skt::TextStyle& skStyle)

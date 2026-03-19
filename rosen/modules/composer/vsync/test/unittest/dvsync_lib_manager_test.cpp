@@ -31,6 +31,7 @@ public:
     static inline sptr<VSyncGenerator> vsyncGenerator = nullptr;
     static inline sptr<VSyncConnection> vsyncConnection = nullptr;
     static inline DVSyncLibManager dvsyncLibManager;
+    static constexpr const int32_t WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS = 5;
 };
 
 void DVSyncLibManagerTest::SetUpTestCase()
@@ -42,8 +43,10 @@ void DVSyncLibManagerTest::SetUpTestCase()
 
 void DVSyncLibManagerTest::TearDownTestCase()
 {
-    vsyncController = nullptr;
+    sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
     vsyncGenerator = nullptr;
+    DestroyVSyncGenerator();
+    vsyncController = nullptr;
     vsyncDistributor = nullptr;
     vsyncConnection = nullptr;
 }

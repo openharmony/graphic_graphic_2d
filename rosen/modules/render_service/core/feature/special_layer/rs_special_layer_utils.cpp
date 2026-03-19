@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,12 +14,12 @@
  */
 
 #include "rs_special_layer_utils.h"
-#include "pipeline/main_thread/rs_main_thread.h"
-#include "pipeline/rs_surface_render_node.h"
 
 #include <sstream>
 
+#include "common/rs_common_def.h"
 #include "common/rs_special_layer_manager.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
@@ -31,15 +31,12 @@ const std::map<ScreenPropertyType, SpecialLayerType> SCREEN_SPECIAL_LAYER_PROPER
     {ScreenPropertyType::BLACK_LIST, SpecialLayerType::IS_BLACK_LIST},
     {ScreenPropertyType::WHITE_LIST, SpecialLayerType::IS_WHITE_LIST}
 };
-
 const GetFunc GET_WHITE_LIST = [](const auto& screenProperty) { return screenProperty.GetWhiteList(); };
-
 const std::map<SpecialLayerType, GetFunc> GET_SCREEN_SPECIAL_LAYER = {
     {SpecialLayerType::IS_BLACK_LIST, RSSpecialLayerUtils::GetMergeBlackList},
     {SpecialLayerType::IS_WHITE_LIST, GET_WHITE_LIST}
 };
 }
-
 void RSSpecialLayerUtils::CheckSpecialLayerIntersectMirrorDisplay(const RSLogicalDisplayRenderNode& mirrorNode,
     RSLogicalDisplayRenderNode& sourceNode)
 {
@@ -72,7 +69,7 @@ void RSSpecialLayerUtils::CheckSpecialLayerIntersectMirrorDisplay(const RSLogica
         }
         currentType <<= 1;
     }
-    
+
     sourceNode.GetMultableSpecialLayerMgr().SetHasSlInVisibleRect(screenId, hasSlInVisibleRect);
 }
 
@@ -158,6 +155,33 @@ void RSSpecialLayerUtils::DumpScreenSpecialLayer(const std::string& funcName,
         funcName.c_str(), type, screenId, out.str().c_str());
 }
 
+bool RSSpecialLayerUtils::NeedProcessSecLayerInDisplay(bool enableVisibleRect, RSScreenRenderParams& mirrorScreenParam,
+    RSLogicalDisplayRenderParams& mirrorParam, RSLogicalDisplayRenderParams& sourceParam)
+{
+    // Skip security layer processing if: has security exemption, not a security display, or
+    // GetVirtualSecLayerOption() != 0 ( 0 = full screen black, 1 = window black )
+    if (mirrorParam.GetSecurityExemption() ||
+        !mirrorParam.IsSecurityDisplay() ||
+        mirrorScreenParam.GetScreenProperty().GetVirtualSecLayerOption() != 0) {
+        return false;
+    }
+    return enableVisibleRect ? mirrorParam.HasSecLayerInVisibleRect() :
+        sourceParam.GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY);
+}
+
+bool RSSpecialLayerUtils::HasMirrorDisplay(const RSRenderNodeMap& nodeMap)
+{
+    bool hasMirrorDisplay = false;
+    nodeMap.TraverseLogicalDisplayNodes(
+        [&hasMirrorDisplay](const std::shared_ptr<RSLogicalDisplayRenderNode>& displayRenderNode) {
+            if (displayRenderNode != nullptr && displayRenderNode->GetMirrorSource().lock()) {
+                hasMirrorDisplay = true;
+            }
+        }
+    );
+    return hasMirrorDisplay;
+}
+
 std::unordered_set<uint64_t> RSSpecialLayerUtils::GetAllBlackList(const RSRenderNodeMap& nodeMap)
 {
     std::unordered_set<uint64_t> allBlackList;
@@ -176,11 +200,12 @@ std::unordered_set<uint64_t> RSSpecialLayerUtils::GetAllWhiteList(const RSRender
     std::unordered_set<uint64_t> allWhiteList;
     nodeMap.TraverseScreenNodes(
         [&allWhiteList](const std::shared_ptr<RSScreenRenderNode>& screenRenderNode) {
-        if (screenRenderNode != nullptr) {
-            auto currentWhiteList = screenRenderNode->GetScreenProperty().GetWhiteList();
-            allWhiteList.insert(currentWhiteList.begin(), currentWhiteList.end());
+            if (screenRenderNode != nullptr) {
+                auto currentWhiteList = screenRenderNode->GetScreenProperty().GetWhiteList();
+                allWhiteList.insert(currentWhiteList.begin(), currentWhiteList.end());
+            }
         }
-    });
+    );
     return allWhiteList;
 }
 
@@ -299,31 +324,46 @@ void RSSpecialLayerUtils::UpdateSpecialLayersRecord(
     }
 }
 
-bool RSSpecialLayerUtils::NeedProcessSecLayerInDisplay(bool enableVisibleRect, RSScreenRenderParams& mirrorScreenParam,
-    RSLogicalDisplayRenderParams& mirrorParam, RSLogicalDisplayRenderParams& sourceParam)
+DrawType RSSpecialLayerUtils::GetDrawTypeInSecurityDisplay(
+    const RSSurfaceRenderParams& surfaceParams, const RSRenderThreadParams& uniParams)
 {
-    // Skip security layer processing if: has security exemption, not a security display, or
-    // GetVirtualSecLayerOption() != 0 ( 0 = full screen black, 1 = window black )
-    if (mirrorParam.GetSecurityExemption() ||
-        !mirrorParam.IsSecurityDisplay() ||
-        mirrorScreenParam.GetScreenProperty().GetVirtualSecLayerOption() != 0) {
-        return false;
+    if (!uniParams.IsSecurityDisplay()) {
+        return DrawType::NONE;
     }
-    return enableVisibleRect ? mirrorParam.HasSecLayerInVisibleRect() :
-        sourceParam.GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY);
+
+    const auto& slManager = surfaceParams.GetSpecialLayerMgr();
+    if (slManager.Find(SpecialLayerType::SECURITY) && !uniParams.GetSecExemption()) {
+        return DrawType::DRAW_BLACK;
+    }
+
+    if (slManager.Find(SpecialLayerType::SKIP)) {
+        return DrawType::SKIP_DRAW;
+    }
+    return DrawType::NONE;
 }
 
-bool RSSpecialLayerUtils::HasMirrorDisplay(const RSRenderNodeMap& nodeMap)
+DrawType RSSpecialLayerUtils::GetDrawTypeInSnapshot(const RSSurfaceRenderParams& surfaceParams)
 {
-    bool hasMirrorDisplay = false;
-    nodeMap.TraverseLogicalDisplayNodes(
-        [&hasMirrorDisplay](const std::shared_ptr<RSLogicalDisplayRenderNode>& displayRenderNode) {
-            if (displayRenderNode != nullptr && displayRenderNode->GetMirrorSource().lock()) {
-                hasMirrorDisplay = true;
-            }
-        }
-    );
-    return hasMirrorDisplay;
+    const auto& captureParam = RSUniRenderThread::GetCaptureParam();
+    if (captureParam.needCaptureSpecialLayer_) {
+        return DrawType::NONE;
+    }
+    const auto& specialLayerManager = surfaceParams.GetSpecialLayerMgr();
+    bool isSecLayer = specialLayerManager.Find(SpecialLayerType::SECURITY);
+
+    bool needSkipDrawWhite = captureParam.isNeedBlur_ || captureParam.isSelfCapture_;
+    if (captureParam.isSingleSurface_ && UNLIKELY(isSecLayer && !needSkipDrawWhite)) {
+        return DrawType::DRAW_WHITE;
+    }
+
+    if (UNLIKELY(isSecLayer && !captureParam.isSingleSurface_)) {
+        return DrawType::DRAW_BLACK;
+    }
+
+    if (specialLayerManager.Find(SpecialLayerType::SKIP | SpecialLayerType::SNAPSHOT_SKIP)) {
+        return DrawType::SKIP_DRAW;
+    }
+    return DrawType::NONE;
 }
 } // namespace Rosen
 } // namespace OHOS

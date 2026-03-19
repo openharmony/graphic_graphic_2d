@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -37,6 +37,7 @@ public:
     static bool IsDRMNodesOnTheTree();
     static void DealWithDRMNodes(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
         const sptr<SurfaceBuffer>& buffer, const std::shared_ptr<RSComposerClientManager>& clientManager);
+    static bool HasDRMInVirtualScreen(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
 private:
     static void MarkAllBlurIntersectWithDRM(const std::shared_ptr<RSRenderNode>& node,
         const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& drmNodes,

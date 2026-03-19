@@ -94,6 +94,65 @@ void RSBufferReclaim::RemoveBufferReclaim(uint64_t bufferId)
     RS_TRACE_NAME_FMT("RemoveBufferReclaim: bufferReclaimNumsSet_=%lu", bufferReclaimNumsSet_.size());
     RS_LOGI("RemoveBufferReclaim: bufferReclaimNumsSet_=%{public}u", bufferReclaimNumsSet_.size());
 }
+
+void RSBufferReclaim::AddUICaptureNode(NodeId nodeId)
+{
+    std::lock_guard<std::mutex> lock(uiCaptureNodeMapMutex_);
+    pid_t pid = ExtractPid(nodeId);
+    RS_TRACE_NAME_FMT("UICaptureNode: add nodeid=%llu, pid=%d, mapSize=%u", nodeId, pid, uiCaptureNodeMap_.size());
+    auto iter1 = uiCaptureNodeMap_.find(pid);
+    if (iter1 == uiCaptureNodeMap_.end()) {
+        std::map<NodeId, uint32_t> nodeIdCountMap;
+        nodeIdCountMap[nodeId] = 1;
+        uiCaptureNodeMap_[pid] = nodeIdCountMap;
+        RS_TRACE_NAME("new pid and node");
+        return;
+    }
+
+    auto& nodeIdCountMap = iter1->second;
+    auto iter2 = nodeIdCountMap.find(nodeId);
+    if (iter2 != nodeIdCountMap.end()) {
+        iter2->second++;
+        RS_TRACE_NAME_FMT("same node, count=%u", iter2->second);
+    } else {
+        nodeIdCountMap[nodeId] = 1;
+        RS_TRACE_NAME("new node");
+    }
+}
+
+void RSBufferReclaim::RemoveUICaptureNode(NodeId nodeId)
+{
+    std::lock_guard<std::mutex> lock(uiCaptureNodeMapMutex_);
+    pid_t pid = ExtractPid(nodeId);
+    RS_TRACE_NAME_FMT("UICaptureNode: remove nodeid=%llu, pid=%d, mapSize=%u", nodeId, pid, uiCaptureNodeMap_.size());
+    auto iter1 = uiCaptureNodeMap_.find(pid);
+    if (iter1 == uiCaptureNodeMap_.end()) {
+        RS_TRACE_NAME("invalid pid");
+        return;
+    }
+
+    auto& nodeIdCountMap = iter1->second;
+    auto iter2 = nodeIdCountMap.find(nodeId);
+    if (iter2 != nodeIdCountMap.end()) {
+        iter2->second--;
+        RS_TRACE_NAME_FMT("node count=%u", iter2->second);
+        if (iter2->second == 0) {
+            nodeIdCountMap.erase(iter2);
+        }
+    }
+
+    if (nodeIdCountMap.empty()) {
+        RS_TRACE_NAME_FMT("pid=%d, all node is removed", pid);
+        uiCaptureNodeMap_.erase(iter1);
+    }
+}
+
+bool RSBufferReclaim::CheckSameProcessUICaptureNode(NodeId id)
+{
+    std::lock_guard<std::mutex> lock(uiCaptureNodeMapMutex_);
+    pid_t pid = ExtractPid(id);
+    return (uiCaptureNodeMap_.find(pid) != uiCaptureNodeMap_.end());
+}
 } // namespace Rosen
 } // namespace OHOS
 #endif // ROSEN_CROSS_PLATFORM

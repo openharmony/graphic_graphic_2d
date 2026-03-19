@@ -1864,8 +1864,14 @@ public:
      * @brief Sets the context for the RSUI.
      *
      * @param rsUIContext A shared pointer to the RSUIContext object.
+     * @param moveCommands Whether to move commands from old context to new context.
+     *
+     * @return Returns true if no change is needed, or RSUIContext is successfully changed
+     *         and commands are correctly moved to the new RSUIContext. Returns false if
+     *         rsUIContext is nullptr, the node has animations (RSUIContext will not be changed),
+     *         or command movement fails.
      */
-    void SetRSUIContext(std::shared_ptr<RSUIContext> rsUIContext);
+    bool SetRSUIContext(std::shared_ptr<RSUIContext> rsUIContext, bool moveCommands = true);
 
     /**
      * @brief Sets whether to skip check in multi-instance.

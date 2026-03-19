@@ -63,6 +63,9 @@
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 
 namespace OHOS::Rosen {
+namespace DrawableV2 {
+enum class ColorPickerState : uint8_t;
+}
 #if defined(ACCESSIBILITY_ENABLE)
 class AccessibilityObserver;
 #endif
@@ -409,6 +412,7 @@ public:
     void DVSyncUpdate(uint64_t dvsyncTime, uint64_t vsyncTime);
     void MarkNodeDirty(uint64_t nodeId);
     void SendColorPickerCallback(uint64_t nodeId, uint32_t color);
+    void ColorPickerStateTransition(uint64_t nodeId, DrawableV2::ColorPickerState state, int64_t delayTime = 0);
 
     void SetHasSurfaceLockLayer(bool hasSurfaceLockLayer);
     bool HasDRMOrSurfaceLockLayer() const;
@@ -576,9 +580,6 @@ private:
 #endif
 
     void ProcessNeedAttachedNodes();
-    void AddUICaptureNode(NodeId nodeId);
-    void RemoveUICaptureNode(NodeId nodeId);
-    bool CheckUICaptureNode(NodeId nodeId);
     void PostTryReclaimLastBuffer(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
         std::shared_ptr<RSSurfaceHandler> surfaceHandler);
     bool isUniRender_ = RSUniRenderJudgement::IsUniRender();
@@ -823,8 +824,6 @@ private:
     std::shared_ptr<HgmRenderContext> hgmRenderContext_ = nullptr;
     std::shared_ptr<RSComposerClientManager> composerClientManager_ = nullptr;
     uint32_t curFrameBufferReclaimCount_ = 0;
-    std::mutex uiCaptureNodeMapMutex_;
-    std::map<uint32_t, std::map<NodeId, uint32_t>> uiCaptureNodeMap_;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD
