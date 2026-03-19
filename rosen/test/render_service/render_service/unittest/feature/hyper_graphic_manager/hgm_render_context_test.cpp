@@ -35,7 +35,7 @@ namespace OHOS::Rosen {
 namespace {
 constexpr uint32_t delay_110Ms = 110;
 constexpr const char* HGM_CONFIG_PATH = "/sys_prod/etc/graphic/hgm_policy_config.xml";
-std::string g_testStr= HGM_CONFIG_PATH;
+std::string g_testStr = HGM_CONFIG_PATH;
 }
 
 std::string GetHgmXmlPath()
