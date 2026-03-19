@@ -49,6 +49,101 @@ HWTEST_F(RSPointLightManagerTest, Instance001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: Instance002
+ * @tc.desc: test Instance with different display node IDs
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, Instance002, TestSize.Level1)
+{
+    auto& instance1 = RSPointLightManager::Instance(0);
+    auto& instance2 = RSPointLightManager::Instance(1);
+    auto& instance3 = RSPointLightManager::Instance(2);
+    EXPECT_NE(instance1.get(), instance2.get());
+    EXPECT_NE(instance2.get(), instance3.get());
+    EXPECT_NE(instance1.get(), instance3.get());
+}
+
+/**
+ * @tc.name: Instance003
+ * @tc.desc: test Instance returns same instance for same display node ID
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, Instance003, TestSize.Level1)
+{
+    auto& instance1 = RSPointLightManager::Instance(0);
+    auto& instance2 = RSPointLightManager::Instance(0);
+    EXPECT_EQ(instance1.get(), instance2.get());
+}
+
+/**
+ * @tc.name: Instance004
+ * @tc.desc: test ReleaseInstance and re-create
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, Instance004, TestSize.Level1)
+{
+    auto& instance1 = RSPointLightManager::Instance(0);
+    RSPointLightManager::ReleaseInstance(0);
+    auto& instance2 = RSPointLightManager::Instance(0);
+    EXPECT_NE(instance1.get(), instance2.get());
+}
+
+/**
+ * @tc.name: Instance005
+ * @tc.desc: test ReleaseInstance with non-existent display node ID
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, Instance005, TestSize.Level1)
+{
+    RSPointLightManager::ReleaseInstance(999999);
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: Instance006
+ * @tc.desc: test multiple instances can coexist
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, Instance006, TestSize.Level1)
+{
+    auto& instance0 = RSPointLightManager::Instance(0);
+    auto& instance1 = RSPointLightManager::Instance(1);
+    auto& instance2 = RSPointLightManager::Instance(2);
+    
+    auto renderNode0 = std::make_shared<RSRenderNode>(0);
+    auto renderNode1 = std::make_shared<RSRenderNode>(1);
+    auto renderNode2 = std::make_shared<RSRenderNode>(2);
+    
+    instance0->RegisterLightSource(renderNode0);
+    instance1->RegisterLightSource(renderNode1);
+    instance2->RegisterLightSource(renderNode2);
+    
+    EXPECT_TRUE(!instance0->lightSourceNodeMap_.empty());
+    EXPECT_TRUE(!instance1->lightSourceNodeMap_.empty());
+    EXPECT_TRUE(!instance2->lightSourceNodeMap_.empty());
+}
+
+/**
+ * @tc.name: Instance007
+ * @tc.desc: test Instance after ReleaseInstance
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, Instance007, TestSize.Level1)
+{
+    RSPointLightManager::Instance(0);
+    RSPointLightManager::ReleaseInstance(0);
+    auto& instance = RSPointLightManager::Instance(0);
+    EXPECT_TRUE(instance->lightSourceNodeMap_.empty());
+    EXPECT_TRUE(instance->illuminatedNodeMap_.empty());
+}
+
+/**
  * @tc.name: RegisterLightSource001
  * @tc.desc: test results of RegisterLightSource
  * @tc.type:FUNC
