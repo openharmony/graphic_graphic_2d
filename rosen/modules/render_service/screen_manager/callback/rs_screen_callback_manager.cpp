@@ -177,6 +177,21 @@ void RSScreenCallbackManager::NotifyGlobalBlacklistChanged(const std::unordered_
     coreListener_->OnGlobalBlacklistChanged(globalBlackList);
 }
 
+void RSScreenCallbackManager::NotifySwitchingCallback(bool status)
+{
+    std::vector<sptr<RSIScreenManagerAgentListener>> agentListeners;
+    {
+        std::lock_guard<std::mutex> lock(agentMtx_);
+        agentListeners = agentListeners_;
+    }
+    for (const auto& agentListener : agentListeners) {
+        if (!agentListener) {
+            continue;
+        }
+        agentListener->OnScreenSwitchingNotify(status);
+    }
+}
+
 sptr<IRemoteObject> RSScreenCallbackManager::GetClientToRenderConnection(ScreenId id) const
 {
     std::lock_guard<std::mutex> lock(clientToRenderMtx_);

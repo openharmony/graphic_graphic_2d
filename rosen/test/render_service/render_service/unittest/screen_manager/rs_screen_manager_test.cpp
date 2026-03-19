@@ -3205,20 +3205,6 @@ HWTEST_F(RSScreenManagerTest, SetScreenFrameGravityTest, TestSize.Level1)
 }
 
 /*
- * @tc.name: NotifySwitchingCallbackTest
- * @tc.desc: Test NotifySwitchingCallback
- * @tc.type: FUNC
- */
-HWTEST_F(RSScreenManagerTest, NotifySwitchingCallbackTest, TestSize.Level1)
-{
-    ASSERT_NE(screenManager_, nullptr);
-    screenManager_->screenSwitchingNotifyCallback_ = nullptr;
-    screenManager_->NotifySwitchingCallback(false);
-    screenManager_->screenSwitchingNotifyCallback_ = sptr<RSIScreenSwitchingNotifyCallbackConfig>::MakeSptr();
-    screenManager_->NotifySwitchingCallback(false);
-}
-
-/*
  * @tc.name: ExecuteCallbackTest
  * @tc.desc: Test ExecuteCallbackTest
  * @tc.type: FUNC

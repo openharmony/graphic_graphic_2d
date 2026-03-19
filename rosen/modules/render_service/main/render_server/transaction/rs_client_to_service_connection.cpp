@@ -155,7 +155,6 @@ void RSClientToServiceConnection::CleanVirtualScreens() noexcept
         return;
     }
     screenManagerAgent_->CleanVirtualScreens();
-    screenManagerAgent_->SetScreenChangeCallback(nullptr);
 }
 
 void RSClientToServiceConnection::CleanAll(bool toDelete) noexcept
@@ -576,11 +575,7 @@ int32_t RSClientToServiceConnection::SetScreenChangeCallback(sptr<RSIScreenChang
     }
 
     // update
-    int32_t status;
-    renderServiceAgent_->ScheduleTask([this, callback, &status]() {
-        status = screenManagerAgent_->SetScreenChangeCallback(callback);
-    }).wait();
-    return status;
+    return screenManagerAgent_->SetScreenChangeCallback(callback);
 }
 
 int32_t RSClientToServiceConnection::SetScreenSwitchingNotifyCallback(sptr<RSIScreenSwitchingNotifyCallback> callback)
@@ -591,8 +586,7 @@ int32_t RSClientToServiceConnection::SetScreenSwitchingNotifyCallback(sptr<RSISc
     }
 
     // update
-    int32_t status = screenManagerAgent_->SetScreenSwitchingNotifyCallback(callback);
-    return status;
+    return screenManagerAgent_->SetScreenSwitchingNotifyCallback(callback);
 }
 
 int32_t RSClientToServiceConnection::SetBrightnessInfoChangeCallback(sptr<RSIBrightnessInfoChangeCallback> callback)
