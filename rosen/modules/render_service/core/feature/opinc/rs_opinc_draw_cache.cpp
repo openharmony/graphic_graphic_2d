@@ -441,7 +441,7 @@ void RSOpincDrawCache::LayerPartRenderClipDirtyRegion(const RSRenderParams& para
     if (!RSSystemProperties::GetLayerPartRenderDirtyEnabled()) {
         return;
     }
-    if (!layerPartRenderDirtyRegion_.IsEmpty()){
+    if (!layerPartRenderDirtyRegion_.IsEmpty()) {
         canvas.ClipRect(layerPartRenderDirtyRegion_.GetBounds());
     }
 }
