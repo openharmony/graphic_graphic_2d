@@ -2482,7 +2482,9 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     screenPowerOnChanged_ = false;
     forceUpdateUniRenderFlag_ = false;
     if (context_) {
-        context_->SetUnirenderVisibleLeashWindowCount(context_->GetNodeMap().GetVisibleLeashWindowCount());
+        uint32_t visibleWinCount = context_->GetNodeMap().GetVisibleLeashWindowCount();
+        context_->SetUnirenderVisibleLeashWindowCount(visibleWinCount);
+        RSSingleFrameComposer::SetVisibleWinCount(visibleWinCount);
     }
 #endif
 }
@@ -3634,6 +3636,16 @@ bool RSMainThread::IsNeedProcessBySingleFrameComposer(std::unique_ptr<RSTransact
 
     if (!RSSingleFrameComposer::IsShouldProcessByIpcThread(rsTransactionData->GetSendingPid()) &&
         !RSSystemProperties::GetSingleFrameComposerEnabled()) {
+        return false;
+    }
+
+    // animation node will call RequestNextVsync() in mainLoop_, here we simply ignore animation scenario
+    if (doWindowAnimate_) {
+        return false;
+    }
+
+    // ignore mult-window scenario
+    if (RSSingleFrameComposer::GetVisibleWinCount() >= MULTI_WINDOW_PERF_START_NUM) {
         return false;
     }
 
