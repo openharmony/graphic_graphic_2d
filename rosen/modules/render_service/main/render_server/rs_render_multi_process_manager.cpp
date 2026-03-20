@@ -236,7 +236,7 @@ void RSMultiRenderProcessManager::OnScreenPropertyChanged(ScreenId screenId, Scr
         RS_LOGW("%{public}s: property is null, screenId: %{public}" PRIu64, __func__, screenId);
         return;
     }
-    ScreenId connScreenId = FindVirtualToPhysicalScreenMap(connScreenId);
+    ScreenId connScreenId = FindVirtualToPhysicalScreenMap(screenId);
     auto serviceToRenderConnection = GetServiceToRenderConn(connScreenId);
     if (!serviceToRenderConnection) {
         RS_LOGE("%{public}s: serviceToRenderConnection is nullptr", __func__);
@@ -245,7 +245,7 @@ void RSMultiRenderProcessManager::OnScreenPropertyChanged(ScreenId screenId, Scr
     serviceToRenderConnection->NotifyScreenPropertyChangedInfoToRender(screenId, type, property);
 }
 
-void RSMultiRenderProcessManager::OnScreenRefresh(screenId)
+void RSMultiRenderProcessManager::OnScreenRefresh(ScreenId screenId)
 {
     RS_LOGW("%{public}s: screenId: %{public}" PRIu64, __func__, screenId);
     auto serviceToRenderConnection = GetServiceToRenderConn(screenId);
@@ -398,7 +398,7 @@ ScreenId RSMultiRenderProcessManager::InsertVirtualToPhysicalScreenMap(ScreenId 
 
 std::optional<ScreenId> RSMultiRenderProcessManager::DeleteVirtualToPhysicalScreenMap(ScreenId screenId)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(virtualScreenMutex_);
     if (auto node = virtualToPhysicalScreenMap_.extract(screenId)) {
         return node.mapped();
     }
@@ -407,7 +407,7 @@ std::optional<ScreenId> RSMultiRenderProcessManager::DeleteVirtualToPhysicalScre
 
 ScreenId RSMultiRenderProcessManager::FindVirtualToPhysicalScreenMap(ScreenId screenId)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(virtualScreenMutex_);
     if (auto iter = virtualToPhysicalScreenMap_.find(screenId); iter != virtualToPhysicalScreenMap_.end()) {
         RS_LOGW("%{public}s: cannot find render process by virtual screenId: %{public}" PRIu64, __func__, screenId);
         return iter->second;
