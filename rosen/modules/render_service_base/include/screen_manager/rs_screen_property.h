@@ -140,6 +140,9 @@ class ScreenPropertyBase : public Parcelable {
 public:
     ScreenPropertyBase() = default;
     virtual ~ScreenPropertyBase() = default;
+
+    static bool Marshalling(Parcel& data, ScreenPropertyType type, sptr<ScreenPropertyBase> prop);
+    static bool Unmarshalling(Parcel& data, ScreenPropertyType& type, sptr<ScreenPropertyBase>& property);
 };
 
 template<typename T>

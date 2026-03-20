@@ -82,6 +82,7 @@ private:
     std::optional<ScreenId> DeleteVirtualToPhysicalScreenMap(ScreenId screenId);
     ScreenId FindVirtualToPhysicalScreenMap(ScreenId screenId);
 
+    std::unordered_map<pid_t, sptr<IRSComposerToRenderConnection>> composerToRenderConnections_;
     std::unordered_map<pid_t, std::promise<bool>> renderProcessReadyPromises_;
 
     mutable std::mutex mutex_;

@@ -26,34 +26,25 @@
 namespace OHOS {
 namespace Rosen {
 int32_t RSServiceToRenderConnection::NotifyScreenConnectInfoToRender(const sptr<ScreenPropertyBase>& screenProperty,
-    sptr<IRSRenderToComposerConnection> composerConn)
+    const sptr<IRSRenderToComposerConnection>& renderToComposerConn, const sptr<IRSComposerToRenderConnection>& composerToRenderConn)
 {
-    if (renderProcessAgent_ == nullptr) {
-        RS_LOGE("dmulti_process %{public}s: renderProcessAgent_ is nullptr", __func__);
-        return -1;
-    }
-    renderProcessAgent_->NotifyScreenConnectInfoToRender(screenProperty, composerConn);
+    // TODO: 需要改成bool
+    renderProcessAgent_->NotifyScreenConnectInfoToRender(screenProperty, renderToComposerConn, composerToRenderConn);
     return 0;
 }
 
 int32_t RSServiceToRenderConnection::NotifyScreenDisconnectInfoToRender(ScreenId screenId)
 {
-    if (renderProcessAgent_ == nullptr) {
-        RS_LOGE("dmulti_process %{public}s: renderProcessAgent_ is nullptr", __func__);
-        return -1;
-    }
+    // TODO: 需要改成bool
     renderProcessAgent_->NotifyScreenDisconnectInfoToRender(screenId);
     return 0;
 }
 
-int32_t RSServiceToRenderConnection::NotifyScreenPropertyChangedInfoToRender(ScreenPropertyType type,
+int32_t RSServiceToRenderConnection::NotifyScreenPropertyChangedInfoToRender(ScreenId id, ScreenPropertyType type,
     const sptr<ScreenPropertyBase>& screenProperty)
 {
-    if (renderProcessAgent_ == nullptr) {
-        RS_LOGE("dmulti_process %{public}s: renderProcessAgent_ is nullptr", __func__);
-        return -1;
-    }
-    renderProcessAgent_->NotifyScreenPropertyChangedInfoToRender(screenProperty);
+    // TODO: 需要改成bool
+    renderProcessAgent_->NotifyScreenPropertyChangedInfoToRender(id, type, screenProperty);
     return 0;
 }
 

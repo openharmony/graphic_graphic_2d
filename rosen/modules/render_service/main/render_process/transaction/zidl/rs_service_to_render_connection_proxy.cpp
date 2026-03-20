@@ -37,7 +37,8 @@ RSServiceToRenderConnectionProxy::RSServiceToRenderConnectionProxy(const sptr<IR
     : IRemoteProxy<RSIServiceToRenderConnection>(impl) {}
 
 int32_t RSServiceToRenderConnectionProxy::NotifyScreenConnectInfoToRender(const sptr<RSScreenProperty>& screenProperty,
-    sptr<IRSRenderToComposerConnection> composerConn)
+    const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
+    const sptr<IRSComposerToRenderConnection>& composerToRenderConn)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -51,12 +52,12 @@ int32_t RSServiceToRenderConnectionProxy::NotifyScreenConnectInfoToRender(const 
         ROSEN_LOGE("%{public}s: WriteParcelable failed", __func__);
         return -1;
     }
-    if (!data.WriteRemoteObject(composerConn->AsObject())) {
+    if (!data.WriteRemoteObject(renderToComposerConn->AsObject())) {
         ROSEN_LOGE("%{public}s: WriteObject failed", __func__);
         return -1;
     }
-    if (composerConn) {
-        if (!data.WriteBool(true) || !data.WriteRemoteObject(composerConn->AsObject())) {
+    if (renderToComposerConn) {
+        if (!data.WriteBool(true) || !data.WriteRemoteObject(renderToComposerConn->AsObject())) {
             ROSEN_LOGE("%{public}s: WriteObject failed.", __func__);
             return -1;
         }
@@ -66,6 +67,7 @@ int32_t RSServiceToRenderConnectionProxy::NotifyScreenConnectInfoToRender(const 
             return -1;
         }
     }
+    data.WriteRemoteObject(composerToRenderConn->AsObject())
     RS_LOGI("dmulti_process RSServiceToRenderConnectionProxy::NotifyScreenConnectInfoToRender conn write in remoteObj successfully");
     uint32_t code = static_cast<uint32_t>(
         RSIServiceToRenderConnectionInterfaceCode::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER);
@@ -104,7 +106,7 @@ int32_t RSServiceToRenderConnectionProxy::NotifyScreenDisconnectInfoToRender(Scr
     return replyMessage;
 }
 
-int32_t RSServiceToRenderConnectionProxy::NotifyScreenPropertyChangedInfoToRender(ScreenPropertyType type,
+int32_t RSServiceToRenderConnectionProxy::NotifyScreenPropertyChangedInfoToRender(ScreenId id, ScreenPropertyType type,
     const sptr<ScreenPropertyBase>& screenProperty)
 {
     MessageParcel data;
@@ -113,6 +115,11 @@ int32_t RSServiceToRenderConnectionProxy::NotifyScreenPropertyChangedInfoToRende
     option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("%{public}s: WriteInterfaceToken failed", __func__);
+        return -1;
+    }
+    data.WriteUint64(id);
+    if (!data.WriteUint32(static_cast<uint32_t>(type))) {
+        ROSEN_LOGE("%{public}s: WriteUint32 failed", __func__);
         return -1;
     }
     if (!data.WriteParcelable(screenProperty.GetRefPtr())) {

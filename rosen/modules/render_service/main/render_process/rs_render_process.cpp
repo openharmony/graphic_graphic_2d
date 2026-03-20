@@ -107,7 +107,8 @@ bool RSRenderProcess::Init()
 
     // 注册子进程到主进程
     RS_LOGD("dmulti_process %{public}s: Subprocess Registration", __func__);
-    auto [rsScreenProperty, composeConn, receiver] = ConnectToRenderService();
+    auto composerToRenderConn = sptr<RSComposerToRenderConnection>::MakeSptr();
+    auto [rsScreenProperty, renderToComposerConn, receiver] = ConnectToRenderService(composerToRenderConn);
     if (!renderToServiceConnection_) {
         RS_LOGI("dmulti_process %{public}s: renderToServiceConnection_ not exist", __func__);
         return false;
@@ -117,10 +118,8 @@ bool RSRenderProcess::Init()
     // 渲染管线拉起
     RS_LOGE("dmulti_process liweiiii RSRenderProcess::init %{public}p", mainThread_);
     // TODO: 需要适配
-    // renderPipeline_ = RSRenderPipeline::Create(handler_, receiver);
-    // renderPipeline_->OnScreenConnected(rsScreenProperty, composerClient, hgmClient);
     renderPipeline_ = RSRenderPipeline::Create(handler_, receiver, renderToServiceConnection_, nullptr);
-    renderPipeline_->OnScreenConnected(rsScreenProperty, nullptr, nullptr, nullptr);
+    renderPipeline_->OnScreenConnected(rsScreenProperty, renderToComposerConn, composerToRenderConn, nullptr);
 
     // 子进程初始化完毕
     RS_LOGI("dmulti_process %{public}s: notify render process init successful", __func__);
@@ -163,7 +162,7 @@ static bool IsInvalidReplyInfo(const sptr<ReplyToRenderInfo>& result)
            !result->vsyncConn_;
 }
 
-std::tuple<sptr<RSScreenProperty>, sptr<IRSRenderToComposerConnection>, std::shared_ptr<VSyncReceiver>> RSRenderProcess::ConnectToRenderService()
+std::tuple<sptr<RSScreenProperty>, sptr<IRSRenderToComposerConnection>, std::shared_ptr<VSyncReceiver>> RSRenderProcess::ConnectToRenderService(const sptr<RSComposerToRenderConnection>& composerToRenderConn)
 {
     auto renderServer = GetRenderServer();
     if (UNLIKELY(renderServer == nullptr)) {
@@ -175,7 +174,6 @@ std::tuple<sptr<RSScreenProperty>, sptr<IRSRenderToComposerConnection>, std::sha
     sptr<RSRenderPipelineAgent> renderPipelineAgent = new RSRenderPipelineAgent(renderPipeline_);
     // called from service
     auto serviceToRenderConnection = sptr<RSServiceToRenderConnection>::MakeSptr(renderProcessAgent, renderPipelineAgent);
-    auto composerToRenderConnection = sptr<RSComposerToRenderConnection>::MakeSptr();
     // called from others
     renderPipelineAgent = new RSRenderPipelineAgent(renderPipeline_);
     auto connectToRender = sptr<RSConnectToRenderProcess>::MakeSptr(renderPipelineAgent);

@@ -64,12 +64,14 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER): {
             auto screenProperty = sptr<RSScreenProperty>(data.ReadParcelable<RSScreenProperty>());
             bool hasComposerConn = data.ReadBool();
-            sptr<IRSRenderToComposerConnection> composerConn = nullptr;
+            sptr<IRSRenderToComposerConnection> renderToComposerConn = nullptr;
             if (hasComposerConn) {
-                auto remoteObj = data.ReadRemoteObject();
-                composerConn = iface_cast<IRSRenderToComposerConnection>(remoteObj);
+                auto remoteObj1 = data.ReadRemoteObject();
+                renderToComposerConn = iface_cast<IRSRenderToComposerConnection>(remoteObj1);
             }
-            auto replyMessage = NotifyScreenConnectInfoToRender(screenProperty, composerConn);
+            auto remoteObj2 = data.ReadRemoteObject();
+            auto composerToRenderConn = iface_cast<IRSComposerToRenderConnection>(remoteObj2);
+            auto replyMessage = NotifyScreenConnectInfoToRender(screenProperty, renderToComposerConn, composerToRenderConn);
             if (reply.WriteInt32(replyMessage)) {
                 RS_LOGE("%{public}s::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER WriteInt32 failed", __func__);
                 return ERR_INVALID_DATA;
@@ -86,11 +88,12 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::NOTIFY_SCREEN_PROPERTY_CHANGED_INFO_TO_RENDER): {
-            // auto type = data.ReadUint32();
-            // auto screenProperty = sptr<RSScreenProperty>(data.ReadParcelable<RSScreenProperty>());
+            auto type = data.ReadUint64();
             ScreenPropertyType type = ScreenPropertyType::ID;
             sptr<ScreenPropertyBase> screenProperty = nullptr;
-            auto replyMessage = NotifyScreenPropertyChangedInfoToRender(type, screenProperty);
+            // TODO: 屏幕管理适配一下
+            // ScreenPropertyBase::Unmarshalling(data, type, screenProperty);
+            auto replyMessage = NotifyScreenPropertyChangedInfoToRender(id, type, screenProperty);
             if (reply.WriteInt32(replyMessage)) {
                 RS_LOGE("%{public}s::NOTIFY_SCREEN_PROPERTY_CHANGED_INFO_TO_RENDER WriteInt32 failed", __func__);
                 return ERR_INVALID_DATA;
