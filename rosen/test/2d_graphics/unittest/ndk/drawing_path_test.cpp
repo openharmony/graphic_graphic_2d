@@ -1857,6 +1857,761 @@ HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_PathGetConicWeightData072,
     OH_Drawing_PathDestroy(path);
 }
 
+
+/*
+ * @tc.name: NativeDrawingPathTest_pathGetLastPoint001
+ * @tc.desc: test for PathGetLastPoint func with valid parameters.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_pathGetLastPoint001, TestSize.Level1)
+{
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    OH_Drawing_Point2D point;
+    
+    OH_Drawing_PathMoveTo(path, 10.0f, 20.0f);
+    EXPECT_EQ(OH_Drawing_PathGetLastPoint(path, &point), OH_DRAWING_SUCCESS);
+    EXPECT_TRUE(IsScalarAlmostEqual(point.x, 10.0f));
+    EXPECT_TRUE(IsScalarAlmostEqual(point.y, 20.0f));
+    
+    OH_Drawing_PathLineTo(path, 30.0f, 40.0f);
+    EXPECT_EQ(OH_Drawing_PathGetLastPoint(path, &point), OH_DRAWING_SUCCESS);
+    EXPECT_TRUE(IsScalarAlmostEqual(point.x, 30.0f));
+    EXPECT_TRUE(IsScalarAlmostEqual(point.y, 40.0f));
+    
+    OH_Drawing_PathDestroy(path);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_pathGetLastPoint002
+ * @tc.desc: test for PathGetLastPoint func with null parameters.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_pathGetLastPoint002, TestSize.Level1)
+{
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    OH_Drawing_Point2D point;
+    
+    EXPECT_EQ(OH_Drawing_PathGetLastPoint(nullptr, &point), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PathGetLastPoint(path, nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    
+    OH_Drawing_PathDestroy(path);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_pathGetLastPoint003
+ * @tc.desc: test for PathGetLastPoint func with empty path.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_pathGetLastPoint003, TestSize.Level1)
+{
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    OH_Drawing_Point2D point;
+    
+    EXPECT_EQ(OH_Drawing_PathGetLastPoint(path, &point), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    
+    OH_Drawing_PathDestroy(path);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_pathIsEqual001
+ * @tc.desc: test for PathIsEqual func with equal paths.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_pathIsEqual001, TestSize.Level1)
+{
+    OH_Drawing_Path* path1 = OH_Drawing_PathCreate();
+    OH_Drawing_Path* path2 = OH_Drawing_PathCreate();
+    
+    OH_Drawing_PathMoveTo(path1, 10.0f, 20.0f);
+    OH_Drawing_PathLineTo(path1, 30.0f, 40.0f);
+    
+    OH_Drawing_PathMoveTo(path2, 10.0f, 20.0f);
+    OH_Drawing_PathLineTo(path2, 30.0f, 40.0f);
+    
+    bool isEqual = false;
+    EXPECT_EQ(OH_Drawing_PathIsEqual(path1, path2, &isEqual), OH_DRAWING_SUCCESS);
+    EXPECT_TRUE(isEqual);
+    
+    OH_Drawing_PathDestroy(path1);
+    OH_Drawing_PathDestroy(path2);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_pathIsEqual002
+ * @tc.desc: test for PathIsEqual func with different paths.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_pathIsEqual002, TestSize.Level1)
+{
+    OH_Drawing_Path* path1 = OH_Drawing_PathCreate();
+    OH_Drawing_Path* path2 = OH_Drawing_PathCreate();
+    
+    OH_Drawing_PathMoveTo(path1, 10.0f, 20.0f);
+    OH_Drawing_PathLineTo(path1, 30.0f, 40.0f);
+    
+    OH_Drawing_PathMoveTo(path2, 10.0f, 20.0f);
+    OH_Drawing_PathLineTo(path2, 30.0f, 50.0f);
+    
+    bool isEqual = false;
+    EXPECT_EQ(OH_Drawing_PathIsEqual(path1, path2, &isEqual), OH_DRAWING_SUCCESS);
+    EXPECT_FALSE(isEqual);
+    
+    OH_Drawing_PathDestroy(path1);
+    OH_Drawing_PathDestroy(path2);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_pathIsEqual003
+ * @tc.desc: test for PathIsEqual func with null pointers.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_pathIsEqual003, TestSize.Level1)
+{
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    
+    bool isEqual = false;
+    EXPECT_EQ(OH_Drawing_PathIsEqual(nullptr, path, &isEqual), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PathIsEqual(path, nullptr, &isEqual), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PathIsEqual(nullptr, nullptr, &isEqual), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PathIsEqual(path, path, nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    
+    OH_Drawing_PathDestroy(path);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_pathGetLastPoint004
+ * @tc.desc: test for PathGetLastPoint fuzz test with random coordinates.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_pathGetLastPoint004, TestSize.Level1)
+{
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    OH_Drawing_Point2D point;
+    
+    OH_Drawing_PathMoveTo(path, 123.456f, 789.012f);
+    OH_Drawing_PathLineTo(path, 345.678f, 901.234f);
+    EXPECT_EQ(OH_Drawing_PathGetLastPoint(path, &point), OH_DRAWING_SUCCESS);
+    EXPECT_TRUE(IsScalarAlmostEqual(point.x, 345.678f));
+    EXPECT_TRUE(IsScalarAlmostEqual(point.y, 901.234f));
+    
+    OH_Drawing_PathDestroy(path);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_pathGetLastPoint005
+ * @tc.desc: test for PathGetLastPoint fuzz test with extreme values.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_pathGetLastPoint005, TestSize.Level1)
+{
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    OH_Drawing_Point2D point;
+    
+    OH_Drawing_PathMoveTo(path, 99999.999f, 99999.999f);
+    OH_Drawing_PathLineTo(path, -99999.999f, -99999.999f);
+    EXPECT_EQ(OH_Drawing_PathGetLastPoint(path, &point), OH_DRAWING_SUCCESS);
+    
+    OH_Drawing_PathDestroy(path);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_pathGetLastPoint006
+ * @tc.desc: test for PathGetLastPoint fuzz test with very small values.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_pathGetLastPoint006, TestSize.Level1)
+{
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    OH_Drawing_Point2D point;
+    
+    OH_Drawing_PathMoveTo(path, 0.0001f, 0.0002f);
+    OH_Drawing_PathLineTo(path, 0.0003f, 0.0004f);
+    EXPECT_EQ(OH_Drawing_PathGetLastPoint(path, &point), OH_DRAWING_SUCCESS);
+    
+    OH_Drawing_PathDestroy(path);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_pathGetLastPoint007
+ * @tc.desc: test for PathGetLastPoint fuzz test with mixed positive and negative.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_pathGetLastPoint007, TestSize.Level1)
+{
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    OH_Drawing_Point2D point;
+    
+    OH_Drawing_PathMoveTo(path, -100.0f, 200.0f);
+    OH_Drawing_PathLineTo(path, 300.0f, -400.0f);
+    EXPECT_EQ(OH_Drawing_PathGetLastPoint(path, &point), OH_DRAWING_SUCCESS);
+    EXPECT_TRUE(IsScalarAlmostEqual(point.x, 300.0f));
+    EXPECT_TRUE(IsScalarAlmostEqual(point.y, -400.0f));
+    
+    OH_Drawing_PathDestroy(path);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_pathGetLastPoint008
+ * @tc.desc: test for PathGetLastPoint fuzz test with complex curve.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_pathGetLastPoint008, TestSize.Level1)
+{
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    OH_Drawing_Point2D point;
+    
+    OH_Drawing_PathMoveTo(path, 0.0f, 0.0f);
+    OH_Drawing_PathCubicTo(path, 100.5f, 200.7f, 300.9f, 400.3f, 500.1f, 600.8f);
+    EXPECT_EQ(OH_Drawing_PathGetLastPoint(path, &point), OH_DRAWING_SUCCESS);
+    EXPECT_TRUE(IsScalarAlmostEqual(point.x, 500.1f));
+    EXPECT_TRUE(IsScalarAlmostEqual(point.y, 600.8f));
+    
+    OH_Drawing_PathDestroy(path);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_pathGetLastPoint009
+ * @tc.desc: test for PathGetLastPoint fuzz test with conic weight.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_pathGetLastPoint009, TestSize.Level1)
+{
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    OH_Drawing_Point2D point;
+    
+    OH_Drawing_PathMoveTo(path, 0.0f, 0.0f);
+    OH_Drawing_PathConicTo(path, 100.0f, 200.0f, 300.0f, 400.0f, 0.707f);
+    EXPECT_EQ(OH_Drawing_PathGetLastPoint(path, &point), OH_DRAWING_SUCCESS);
+    EXPECT_TRUE(IsScalarAlmostEqual(point.x, 300.0f));
+    EXPECT_TRUE(IsScalarAlmostEqual(point.y, 400.0f));
+    
+    OH_Drawing_PathDestroy(path);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_pathGetLastPoint010
+ * @tc.desc: test for PathGetLastPoint fuzz test with extreme conic weight.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_pathGetLastPoint010, TestSize.Level1)
+{
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    OH_Drawing_Point2D point;
+    
+    OH_Drawing_PathMoveTo(path, 0.0f, 0.0f);
+    OH_Drawing_PathConicTo(path, 100.0f, 200.0f, 300.0f, 400.0f, 2.5f);
+    EXPECT_EQ(OH_Drawing_PathGetLastPoint(path, &point), OH_DRAWING_SUCCESS);
+    
+    OH_Drawing_PathDestroy(path);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_pathGetLastPoint011
+ * @tc.desc: test for PathGetLastPoint fuzz test with very small conic weight.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_pathGetLastPoint011, TestSize.Level1)
+{
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    OH_Drawing_Point2D point;
+    
+    OH_Drawing_PathMoveTo(path, 0.0f, 0.0f);
+    OH_Drawing_PathConicTo(path, 100.0f, 200.0f, 300.0f, 400.0f, 0.1f);
+    EXPECT_EQ(OH_Drawing_PathGetLastPoint(path, &point), OH_DRAWING_SUCCESS);
+    
+    OH_Drawing_PathDestroy(path);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_pathGetLastPoint012
+ * @tc.desc: test for PathGetLastPoint fuzz test with arc parameters.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_pathGetLastPoint012, TestSize.Level1)
+{
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    OH_Drawing_Point2D point;
+    
+    OH_Drawing_PathMoveTo(path, 0.0f, 0.0f);
+    OH_Drawing_PathArcTo(path, 50.0f, 50.0f, 45.0f, 0.0f, 0.0f, 270.0f);
+    EXPECT_EQ(OH_Drawing_PathGetLastPoint(path, &point), OH_DRAWING_SUCCESS);
+    
+    OH_Drawing_PathDestroy(path);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_pathGetLastPoint013
+ * @tc.desc: test for PathGetLastPoint fuzz test with large arc.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_pathGetLastPoint013, TestSize.Level1)
+{
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    OH_Drawing_Point2D point;
+    
+    OH_Drawing_PathMoveTo(path, 0.0f, 0.0f);
+    OH_Drawing_PathArcTo(path, 500.0f, 500.0f, 0.0f, 0.0f, 0.0f, 360.0f);
+    EXPECT_EQ(OH_Drawing_PathGetLastPoint(path, &point), OH_DRAWING_SUCCESS);
+    
+    OH_Drawing_PathDestroy(path);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_pathIsEqual004
+ * @tc.desc: test for PathIsEqual fuzz test with random coordinates.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_pathIsEqual004, TestSize.Level1)
+{
+    OH_Drawing_Path* path1 = OH_Drawing_PathCreate();
+    OH_Drawing_Path* path2 = OH_Drawing_PathCreate();
+    
+    OH_Drawing_PathMoveTo(path1, 123.456f, 789.012f);
+    OH_Drawing_PathLineTo(path1, 345.678f, 901.234f);
+    
+    OH_Drawing_PathMoveTo(path2, 123.456f, 789.012f);
+    OH_Drawing_PathLineTo(path2, 345.678f, 901.234f);
+    
+    bool isEqual = false;
+    EXPECT_EQ(OH_Drawing_PathIsEqual(path1, path2, &isEqual), OH_DRAWING_SUCCESS);
+    EXPECT_TRUE(isEqual);
+    
+    OH_Drawing_PathDestroy(path1);
+    OH_Drawing_PathDestroy(path2);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_pathIsEqual005
+ * @tc.desc: test for PathIsEqual fuzz test with extreme values.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_pathIsEqual005, TestSize.Level1)
+{
+    OH_Drawing_Path* path1 = OH_Drawing_PathCreate();
+    OH_Drawing_Path* path2 = OH_Drawing_PathCreate();
+    
+    OH_Drawing_PathMoveTo(path1, 99999.999f, 99999.999f);
+    OH_Drawing_PathLineTo(path1, -99999.999f, -99999.999f);
+    
+    OH_Drawing_PathMoveTo(path2, 99999.999f, 99999.999f);
+    OH_Drawing_PathLineTo(path2, -99999.999f, -99999.999f);
+    
+    bool isEqual = false;
+    EXPECT_EQ(OH_Drawing_PathIsEqual(path1, path2, &isEqual), OH_DRAWING_SUCCESS);
+    EXPECT_TRUE(isEqual);
+    
+    OH_Drawing_PathDestroy(path1);
+    OH_Drawing_PathDestroy(path2);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_pathIsEqual006
+ * @tc.desc: test for PathIsEqual fuzz test with very small values.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_pathIsEqual006, TestSize.Level1)
+{
+    OH_Drawing_Path* path1 = OH_Drawing_PathCreate();
+    OH_Drawing_Path* path2 = OH_Drawing_PathCreate();
+    
+    OH_Drawing_PathMoveTo(path1, 0.0001f, 0.0002f);
+    OH_Drawing_PathLineTo(path1, 0.0003f, 0.0004f);
+    
+    OH_Drawing_PathMoveTo(path2, 0.0001f, 0.0002f);
+    OH_Drawing_PathLineTo(path2, 0.0003f, 0.0004f);
+    
+    bool isEqual = false;
+    EXPECT_EQ(OH_Drawing_PathIsEqual(path1, path2, &isEqual), OH_DRAWING_SUCCESS);
+    EXPECT_TRUE(isEqual);
+    
+    OH_Drawing_PathDestroy(path1);
+    OH_Drawing_PathDestroy(path2);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_pathIsEqual007
+ * @tc.desc: test for PathIsEqual fuzz test with mixed positive and negative.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_pathIsEqual007, TestSize.Level1)
+{
+    OH_Drawing_Path* path1 = OH_Drawing_PathCreate();
+    OH_Drawing_Path* path2 = OH_Drawing_PathCreate();
+    
+    OH_Drawing_PathMoveTo(path1, -100.0f, 200.0f);
+    OH_Drawing_PathLineTo(path1, 300.0f, -400.0f);
+    
+    OH_Drawing_PathMoveTo(path2, -100.0f, 200.0f);
+    OH_Drawing_PathLineTo(path2, 300.0f, -400.0f);
+    
+    bool isEqual = false;
+    EXPECT_EQ(OH_Drawing_PathIsEqual(path1, path2, &isEqual), OH_DRAWING_SUCCESS);
+    EXPECT_TRUE(isEqual);
+    
+    OH_Drawing_PathDestroy(path1);
+    OH_Drawing_PathDestroy(path2);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_pathIsEqual008
+ * @tc.desc: test for PathIsEqual fuzz test with complex curve.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_pathIsEqual008, TestSize.Level1)
+{
+    OH_Drawing_Path* path1 = OH_Drawing_PathCreate();
+    OH_Drawing_Path* path2 = OH_Drawing_PathCreate();
+    
+    OH_Drawing_PathMoveTo(path1, 0.0f, 0.0f);
+    OH_Drawing_PathCubicTo(path1, 100.5f, 200.7f, 300.9f, 400.3f, 500.1f, 600.8f);
+    
+    OH_Drawing_PathMoveTo(path2, 0.0f, 0.0f);
+    OH_Drawing_PathCubicTo(path2, 100.5f, 200.7f, 300.9f, 400.3f, 500.1f, 600.8f);
+    
+    bool isEqual = false;
+    EXPECT_EQ(OH_Drawing_PathIsEqual(path1, path2, &isEqual), OH_DRAWING_SUCCESS);
+    EXPECT_TRUE(isEqual);
+    
+    OH_Drawing_PathDestroy(path1);
+    OH_Drawing_PathDestroy(path2);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_pathIsEqual009
+ * @tc.desc: test for PathIsEqual fuzz test with conic weight.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_pathIsEqual009, TestSize.Level1)
+{
+    OH_Drawing_Path* path1 = OH_Drawing_PathCreate();
+    OH_Drawing_Path* path2 = OH_Drawing_PathCreate();
+    
+    OH_Drawing_PathMoveTo(path1, 0.0f, 0.0f);
+    OH_Drawing_PathConicTo(path1, 100.0f, 200.0f, 300.0f, 400.0f, 0.707f);
+    
+    OH_Drawing_PathMoveTo(path2, 0.0f, 0.0f);
+    OH_Drawing_PathConicTo(path2, 100.0f, 200.0f, 300.0f, 400.0f, 0.707f);
+    
+    bool isEqual = false;
+    EXPECT_EQ(OH_Drawing_PathIsEqual(path1, path2, &isEqual), OH_DRAWING_SUCCESS);
+    EXPECT_TRUE(isEqual);
+    
+    OH_Drawing_PathDestroy(path1);
+    OH_Drawing_PathDestroy(path2);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_pathIsEqual010
+ * @tc.desc: test for PathIsEqual fuzz test with extreme conic weight.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_pathIsEqual010, TestSize.Level1)
+{
+    OH_Drawing_Path* path1 = OH_Drawing_PathCreate();
+    OH_Drawing_Path* path2 = OH_Drawing_PathCreate();
+    
+    OH_Drawing_PathMoveTo(path1, 0.0f, 0.0f);
+    OH_Drawing_PathConicTo(path1, 100.0f, 200.0f, 300.0f, 400.0f, 2.5f);
+    
+    OH_Drawing_PathMoveTo(path2, 0.0f, 0.0f);
+    OH_Drawing_PathConicTo(path2, 100.0f, 200.0f, 300.0f, 400.0f, 2.5f);
+    
+    bool isEqual = false;
+    EXPECT_EQ(OH_Drawing_PathIsEqual(path1, path2, &isEqual), OH_DRAWING_SUCCESS);
+    EXPECT_TRUE(isEqual);
+    
+    OH_Drawing_PathDestroy(path1);
+    OH_Drawing_PathDestroy(path2);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_pathIsEqual011
+ * @tc.desc: test for PathIsEqual fuzz test with very small conic weight.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_pathIsEqual011, TestSize.Level1)
+{
+    OH_Drawing_Path* path1 = OH_Drawing_PathCreate();
+    OH_Drawing_Path* path2 = OH_Drawing_PathCreate();
+    
+    OH_Drawing_PathMoveTo(path1, 0.0f, 0.0f);
+    OH_Drawing_PathConicTo(path1, 100.0f, 200.0f, 300.0f, 400.0f, 0.1f);
+    
+    OH_Drawing_PathMoveTo(path2, 0.0f, 0.0f);
+    OH_Drawing_PathConicTo(path2, 100.0f, 200.0f, 300.0f, 400.0f, 0.1f);
+    
+    bool isEqual = false;
+    EXPECT_EQ(OH_Drawing_PathIsEqual(path1, path2, &isEqual), OH_DRAWING_SUCCESS);
+    EXPECT_TRUE(isEqual);
+    
+    OH_Drawing_PathDestroy(path1);
+    OH_Drawing_PathDestroy(path2);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_pathIsEqual012
+ * @tc.desc: test for PathIsEqual fuzz test with arc parameters.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_pathIsEqual012, TestSize.Level1)
+{
+    OH_Drawing_Path* path1 = OH_Drawing_PathCreate();
+    OH_Drawing_Path* path2 = OH_Drawing_PathCreate();
+    
+    OH_Drawing_PathMoveTo(path1, 0.0f, 0.0f);
+    OH_Drawing_PathArcTo(path1, 50.0f, 50.0f, 45.0f, 0.0f, 0.0f, 270.0f);
+    
+    OH_Drawing_PathMoveTo(path2, 0.0f, 0.0f);
+    OH_Drawing_PathArcTo(path2, 50.0f, 50.0f, 45.0f, 0.0f, 0.0f, 270.0f);
+    
+    bool isEqual = false;
+    EXPECT_EQ(OH_Drawing_PathIsEqual(path1, path2, &isEqual), OH_DRAWING_SUCCESS);
+    EXPECT_TRUE(isEqual);
+    
+    OH_Drawing_PathDestroy(path1);
+    OH_Drawing_PathDestroy(path2);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_pathIsEqual013
+ * @tc.desc: test for PathIsEqual fuzz test with large arc.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_pathIsEqual013, TestSize.Level1)
+{
+    OH_Drawing_Path* path1 = OH_Drawing_PathCreate();
+    OH_Drawing_Path* path2 = OH_Drawing_PathCreate();
+    
+    OH_Drawing_PathMoveTo(path1, 0.0f, 0.0f);
+    OH_Drawing_PathArcTo(path1, 500.0f, 500.0f, 0.0f, 0.0f, 0.0f, 360.0f);
+    
+    OH_Drawing_PathMoveTo(path2, 0.0f, 0.0f);
+    OH_Drawing_PathArcTo(path2, 500.0f, 500.0f, 0.0f, 0.0f, 0.0f, 360.0f);
+    
+    bool isEqual = false;
+    EXPECT_EQ(OH_Drawing_PathIsEqual(path1, path2, &isEqual), OH_DRAWING_SUCCESS);
+    EXPECT_TRUE(isEqual);
+    
+    OH_Drawing_PathDestroy(path1);
+    OH_Drawing_PathDestroy(path2);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_pathIsEqual014
+ * @tc.desc: test for PathIsEqual fuzz test with very small difference.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_pathIsEqual014, TestSize.Level1)
+{
+    OH_Drawing_Path* path1 = OH_Drawing_PathCreate();
+    OH_Drawing_Path* path2 = OH_Drawing_PathCreate();
+    
+    OH_Drawing_PathMoveTo(path1, 10.0f, 20.0f);
+    OH_Drawing_PathLineTo(path1, 30.0f, 40.0f);
+    
+    OH_Drawing_PathMoveTo(path2, 10.0001f, 20.0f);
+    OH_Drawing_PathLineTo(path2, 30.0f, 40.0f);
+    
+    bool isEqual = false;
+    EXPECT_EQ(OH_Drawing_PathIsEqual(path1, path2, &isEqual), OH_DRAWING_SUCCESS);
+    EXPECT_FALSE(isEqual);
+    
+    OH_Drawing_PathDestroy(path1);
+    OH_Drawing_PathDestroy(path2);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_pathIsEqual015
+ * @tc.desc: test for PathIsEqual fuzz test with complex mixed operations.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_pathIsEqual015, TestSize.Level1)
+{
+    OH_Drawing_Path* path1 = OH_Drawing_PathCreate();
+    OH_Drawing_Path* path2 = OH_Drawing_PathCreate();
+    
+    OH_Drawing_PathMoveTo(path1, 0.0f, 0.0f);
+    OH_Drawing_PathLineTo(path1, 100.5f, 0.0f);
+    OH_Drawing_PathQuadTo(path1, 150.7f, 50.3f, 200.9f, 100.1f);
+    OH_Drawing_PathCubicTo(path1, 250.5f, 150.7f, 300.9f, 200.3f, 350.1f, 250.7f);
+    OH_Drawing_PathConicTo(path1, 400.5f, 300.9f, 450.1f, 350.3f, 0.707f);
+    
+    OH_Drawing_PathMoveTo(path2, 0.0f, 0.0f);
+    OH_Drawing_PathLineTo(path2, 100.5f, 0.0f);
+    OH_Drawing_PathQuadTo(path2, 150.7f, 50.3f, 200.1f, 100.1f);
+    OH_Drawing_PathCubicTo(path2, 250.5f, 150.7f, 300.9f, 200.3f, 350.1f, 250.7f);
+    OH_Drawing_PathConicTo(path2, 400.5f, 300.9f, 450.1f, 350.3f, 0.707f);
+    
+    bool isEqual = false;
+    EXPECT_EQ(OH_Drawing_PathIsEqual(path1, path2, &isEqual), OH_DRAWING_SUCCESS);
+    EXPECT_FALSE(isEqual);
+    
+    OH_Drawing_PathDestroy(path1);
+    OH_Drawing_PathDestroy(path2);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_pathIsEqual016
+ * @tc.desc: test for PathIsEqual fuzz test with multiple contours.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_pathIsEqual016, TestSize.Level1)
+{
+    OH_Drawing_Path* path1 = OH_Drawing_PathCreate();
+    OH_Drawing_Path* path2 = OH_Drawing_PathCreate();
+    
+    OH_Drawing_PathMoveTo(path1, 10.5f, 20.7f);
+    OH_Drawing_PathLineTo(path1, 30.3f, 40.9f);
+    OH_Drawing_PathMoveTo(path1, 50.1f, 60.3f);
+    OH_Drawing_PathLineTo(path1, 70.7f, 80.5f);
+    OH_Drawing_PathMoveTo(path1, 90.9f, 100.1f);
+    OH_Drawing_PathLineTo(path1, 110.3f, 120.7f);
+    
+    OH_Drawing_PathMoveTo(path2, 10.5f, 20.7f);
+    OH_Drawing_PathLineTo(path2, 30.3f, 40.9f);
+    OH_Drawing_PathMoveTo(path2, 50.1f, 60.3f);
+    OH_Drawing_PathLineTo(path2, 70.7f, 80.5f);
+    OH_Drawing_PathMoveTo(path2, 90.9f, 100.1f);
+    OH_Drawing_PathLineTo(path2, 110.3f, 120.7f);
+    
+    bool isEqual = false;
+    EXPECT_EQ(OH_Drawing_PathIsEqual(path1, path2, &isEqual), OH_DRAWING_SUCCESS);
+    EXPECT_TRUE(isEqual);
+    
+    OH_Drawing_PathDestroy(path1);
+    OH_Drawing_PathDestroy(path2);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_pathIsEqual017
+ * @tc.desc: test for PathIsEqual fuzz test with different contour count.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_pathIsEqual017, TestSize.Level1)
+{
+    OH_Drawing_Path* path1 = OH_Drawing_PathCreate();
+    OH_Drawing_Path* path2 = OH_Drawing_PathCreate();
+    
+    OH_Drawing_PathMoveTo(path1, 10.5f, 20.7f);
+    OH_Drawing_PathLineTo(path1, 30.3f, 40.9f);
+    OH_Drawing_PathMoveTo(path1, 50.1f, 60.3f);
+    OH_Drawing_PathLineTo(path1, 70.7f, 80.5f);
+    
+    OH_Drawing_PathMoveTo(path2, 10.5f, 20.7f);
+    OH_Drawing_PathLineTo(path2, 30.3f, 40.9f);
+    
+    bool isEqual = false;
+    EXPECT_EQ(OH_Drawing_PathIsEqual(path1, path2, &isEqual), OH_DRAWING_SUCCESS);
+    EXPECT_FALSE(isEqual);
+    
+    OH_Drawing_PathDestroy(path1);
+    OH_Drawing_PathDestroy(path2);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_pathIsEqual018
+ * @tc.desc: test for PathIsEqual fuzz test with large coordinates.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_pathIsEqual018, TestSize.Level1)
+{
+    OH_Drawing_Path* path1 = OH_Drawing_PathCreate();
+    OH_Drawing_Path* path2 = OH_Drawing_PathCreate();
+    
+    OH_Drawing_PathMoveTo(path1, 100000.0f, 200000.0f);
+    OH_Drawing_PathLineTo(path1, 300000.0f, 400000.0f);
+    
+    OH_Drawing_PathMoveTo(path2, 100000.0f, 200000.0f);
+    OH_Drawing_PathLineTo(path2, 300000.0f, 400000.0f);
+    
+    bool isEqual = false;
+    EXPECT_EQ(OH_Drawing_PathIsEqual(path1, path2, &isEqual), OH_DRAWING_SUCCESS);
+    EXPECT_TRUE(isEqual);
+    
+    OH_Drawing_PathDestroy(path1);
+    OH_Drawing_PathDestroy(path2);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_pathIsEqual019
+ * @tc.desc: test for PathIsEqual fuzz test with negative large coordinates.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_pathIsEqual019, TestSize.Level1)
+{
+    OH_Drawing_Path* path1 = OH_Drawing_PathCreate();
+    OH_Drawing_Path* path2 = OH_Drawing_PathCreate();
+    
+    OH_Drawing_PathMoveTo(path1, -100000.0f, -200000.0f);
+    OH_Drawing_PathLineTo(path1, -300000.0f, -400000.0f);
+    
+    OH_Drawing_PathMoveTo(path2, -100000.0f, -200000.0f);
+    OH_Drawing_PathLineTo(path2, -300000.0f, -400000.0f);
+    
+    bool isEqual = false;
+    EXPECT_EQ(OH_Drawing_PathIsEqual(path1, path2, &isEqual), OH_DRAWING_SUCCESS);
+    EXPECT_TRUE(isEqual);
+    
+    OH_Drawing_PathDestroy(path1);
+    OH_Drawing_PathDestroy(path2);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_pathIsEqual020
+ * @tc.desc: test for PathIsEqual fuzz test with very small floating point.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_pathIsEqual020, TestSize.Level1)
+{
+    OH_Drawing_Path* path1 = OH_Drawing_PathCreate();
+    OH_Drawing_Path* path2 = OH_Drawing_PathCreate();
+    
+    OH_Drawing_PathMoveTo(path1, 0.000001f, 0.000002f);
+    OH_Drawing_PathLineTo(path1, 0.000003f, 0.000004f);
+    
+    OH_Drawing_PathMoveTo(path2, 0.000001f, 0.000002f);
+    OH_Drawing_PathLineTo(path2, 0.000003f, 0.000004f);
+    
+    bool isEqual = false;
+    EXPECT_EQ(OH_Drawing_PathIsEqual(path1, path2, &isEqual), OH_DRAWING_SUCCESS);
+    EXPECT_TRUE(isEqual);
+    
+    OH_Drawing_PathDestroy(path1);
+    OH_Drawing_PathDestroy(path2);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
