@@ -1318,7 +1318,10 @@ VoteInfo HgmFrameRateManager::ProcessRefreshRateVote()
 
 int32_t HgmFrameRateManager::AdaptiveStatus() const
 {
-    return asStateForFps_.load() ? isAdaptive_.load() : SupportASStatus::NOT_SUPPORT;
+    if (auto isAdaptive = isAdaptive_.load(); isAdaptive != SupportASStatus::SUPPORT_AS) {
+        return isAdaptive;
+    }
+    return asStateForFps_.load() ? SupportASStatus::SUPPORT_AS : SupportASStatus::NOT_SUPPORT;
 }
 
 void HgmFrameRateManager::UpdateASStateForFps(bool state)

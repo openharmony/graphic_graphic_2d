@@ -1453,10 +1453,13 @@ HWTEST_F(RsRenderComposerTest, IsDelayRequired, TestSize.Level1)
     bool frameRateMgrIsAdaptive = frameRateMgr->isAdaptive_.load();
     frameRateMgr->isAdaptive_.store(SupportASStatus::SUPPORT_AS);
     EXPECT_TRUE(rsRenderComposer_->IsDelayRequired(hgmCore, param));
+    frameRateMgr->asStateForFps_.store(true);
+    EXPECT_FALSE(rsRenderComposer_->IsDelayRequired(hgmCore, param));
+    frameRateMgr->asStateForFps_.store(false);
 
     frameRateMgr->isAdaptive_.store(SupportASStatus::GAME_SCENE_SKIP);
     param.hasGameScene = true;
-    EXPECT_TRUE(rsRenderComposer_->IsDelayRequired(hgmCore, param));
+    EXPECT_FALSE(rsRenderComposer_->IsDelayRequired(hgmCore, param));
 
     hgmCore.isLtpoMode_.store(false);
     bool hgmCoreIsDelayMode = hgmCore.isDelayMode_;

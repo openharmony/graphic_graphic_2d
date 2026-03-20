@@ -288,6 +288,11 @@ std::shared_ptr<RSScreenRenderNode> RSMainThreadTest::GetAndInitScreenRenderNode
     ScreenId screenId = 0xFFFF;
     NodeId displayId = 10;
     auto screenNode = std::make_shared<RSScreenRenderNode>(displayId, screenId, context);
+    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
+    screenNode->UpdateScreenProperty(ScreenPropertyType::STATE,
+        sptr<ScreenProperty<uint8_t>>::MakeSptr(static_cast<uint8_t>(ScreenState::HDI_OUTPUT_ENABLE)));
+
     auto rsScreen = std::make_shared<RSScreen>(screenId);
     if (rsScreen == nullptr) {
         return screenNode;
@@ -5782,7 +5787,7 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition004, TestSize.Level1)
     system::SetParameter("persist.sys.graphic.anco.disableHebc", "1");
 
     RSSurfaceRenderNode::SetAncoForceDoDirect(true);
-    ASSERT_FALSE(mainThread->DoDirectComposition(rootNode));
+    EXPECT_TRUE(mainThread->DoDirectComposition(rootNode));
 
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes = mainThread->hardwareEnabledNodes_;
     ChangeHardwareEnabledNodesBufferData(hardwareEnabledNodes);
@@ -5793,7 +5798,7 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition004, TestSize.Level1)
     rootNode->AddChild(screenNode2);
     rootNode->GenerateFullChildrenList();
 
-    ASSERT_FALSE(mainThread->DoDirectComposition(rootNode));
+    EXPECT_TRUE(mainThread->DoDirectComposition(rootNode));
     system::SetParameter("persist.sys.graphic.anco.disableHebc", type);
     delete handle;
 }
@@ -5841,12 +5846,12 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition004_BufferSync, TestSize.Level1)
     mainThread->isUniRender_ = true;
     screenNode->HwcDisplayRecorder().hasVisibleHwcNodes_ = true;
     surfaceNode->surfaceHandler_->SetCurrentFrameBufferConsumed();
-    EXPECT_FALSE(mainThread->DoDirectComposition(rootNode));
+    EXPECT_TRUE(mainThread->DoDirectComposition(rootNode));
 
     // true false
     screenNode->HwcDisplayRecorder().hasVisibleHwcNodes_ = true;
     surfaceNode->surfaceHandler_->ResetCurrentFrameBufferConsumed();
-    EXPECT_FALSE(mainThread->DoDirectComposition(rootNode));
+    EXPECT_TRUE(mainThread->DoDirectComposition(rootNode));
 
     std::shared_ptr<RSBaseRenderEngine> renderEngine = std::make_shared<RSRenderEngine>();
     renderEngine->Init();
@@ -5855,13 +5860,13 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition004_BufferSync, TestSize.Level1)
     screenNode->HwcDisplayRecorder().hasVisibleHwcNodes_ = true;
     mainThread->isUniRender_ = false;
     surfaceNode->surfaceHandler_->SetCurrentFrameBufferConsumed();
-    EXPECT_FALSE(mainThread->DoDirectComposition(rootNode));
+    EXPECT_TRUE(mainThread->DoDirectComposition(rootNode));
 
     // false false
     screenNode->HwcDisplayRecorder().hasVisibleHwcNodes_ = true;
     mainThread->isUniRender_ = false;
     surfaceNode->surfaceHandler_->ResetCurrentFrameBufferConsumed();
-    EXPECT_FALSE(mainThread->DoDirectComposition(rootNode));
+    EXPECT_TRUE(mainThread->DoDirectComposition(rootNode));
 
     // RESET
     mainThread->renderEngine_ = nullptr;
@@ -5915,7 +5920,7 @@ HWTEST_F(RSMainThreadTest, DoDirectCompositionWithAIBar, TestSize.Level1)
     // add nullptr
     RSRenderNode::WeakPtr nullNode;
     mainThread->aibarNodes_[childNode->GetScreenId()].insert(nullNode);
-    EXPECT_FALSE(mainThread->DoDirectComposition(rootNode));
+    EXPECT_TRUE(mainThread->DoDirectComposition(rootNode));
 
     // add not aibar node
     auto node = std::make_shared<RSRenderNode>(100, mainThread->context_);

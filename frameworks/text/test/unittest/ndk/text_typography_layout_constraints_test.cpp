@@ -1962,4 +1962,28 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 
     EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
 }
+
+/**
+ * @tc.name: TypographyLayoutWithConstraintsTest057
+ * @tc.desc: Test for constraints height less than line height and hard break break at the beginning of a paragraph.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest057, TestSize.Level0)
+{
+    CreateTypographyHandler();
+    AddText("/n你好");
+    CreateTypography();
+    OH_Drawing_Array* rangeArray = nullptr;
+    size_t rangeCount = 0;
+    OH_Drawing_RectSize result = CallLayoutWithConstraints(
+        LAYOUT_WIDTH_LARGE, 20, &rangeArray, &rangeCount);
+
+    ASSERT_NE(rangeArray, nullptr);
+    EXPECT_EQ(rangeCount, 1);
+    std::vector<std::pair<size_t, size_t>> expectedRanges = { {0, 0} };
+    VerifyAllRanges(expectedRanges, rangeArray, rangeCount);
+    const double expectRectWidth = 0;
+    VerifyRectSize(expectRectWidth, 0, result);
+    EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+}
 } // namespace OHOS
