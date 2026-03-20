@@ -3601,6 +3601,13 @@ void RSProperties::ComposeNGRenderFilter(
             Vector3f rotationAngle(boundsGeo_->GetRotationX(), boundsGeo_->GetRotationY(), boundsGeo_->GetRotation());
             RSNGRenderFilterHelper::SetRotationAngle(filter, rotationAngle);
         }
+        if (filter->ContainsType(RSNGEffectType::FROSTED_GLASS_BLUR)) {
+            std::string dumpStr = "";
+            RS_OPTIONAL_TRACE_NAME_FMT("FROSTED_GLASS_BLUR skip = %d dump: %s",
+                static_cast<int>(filter->CanSkipFrame()),
+                ({filter->Dump(dumpStr); dumpStr.c_str();}));
+            originDrawingFilter->SetSkipFrame(filter->CanSkipFrame());
+        }
     }
     originFilter = originDrawingFilter;
 }
@@ -3933,6 +3940,13 @@ void RSProperties::GenerateMaterialFilter()
     auto filter = std::make_shared<RSDrawingFilter>();
     filter->SetNGRenderFilter(GetMaterialNGFilter());
     filter->SetFilterType(RSFilter::COMPOUND_EFFECT);
+    if (GetMaterialNGFilter()->GetType() == RSNGEffectType::FROSTED_GLASS) {
+        std::string dumpStr = "";
+        RS_OPTIONAL_TRACE_NAME_FMT("FROSTED_GLASS skip = %d dump: %s",
+            static_cast<int>(filter->CanSkipFrame()),
+            ({GetMaterialNGFilter()->Dump(dumpStr); dumpStr.c_str();}));
+        filter->SetSkipFrame(GetMaterialNGFilter()->CanSkipFrame());
+    }
     GetEffect().materialFilter_ = filter;
 }
 

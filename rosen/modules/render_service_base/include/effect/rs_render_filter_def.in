@@ -160,7 +160,8 @@ DECLARE_FILTER(FrostedGlass, FROSTED_GLASS,
     ADD_PROPERTY_TAG(FrostedGlass, DarkModeBgRates),
     ADD_PROPERTY_TAG(FrostedGlass, DarkModeBgKBS),
     ADD_PROPERTY_TAG(FrostedGlass, DarkModeBgPos),
-    ADD_PROPERTY_TAG(FrostedGlass, DarkModeBgNeg)
+    ADD_PROPERTY_TAG(FrostedGlass, DarkModeBgNeg),
+    ADD_PROPERTY_TAG(FrostedGlass, SkipFrameEnable)
 );
 
 DECLARE_FILTER(GridWarp, GRID_WARP,
@@ -207,7 +208,8 @@ DECLARE_FILTER(Magnifier, MAGNIFIER,
 DECLARE_FILTER(FrostedGlassBlur, FROSTED_GLASS_BLUR,
     ADD_PROPERTY_TAG(FrostedGlassBlur, Radius),
     ADD_PROPERTY_TAG(FrostedGlassBlur, RadiusScaleK),
-    ADD_PROPERTY_TAG(FrostedGlassBlur, RefractOutPx)
+    ADD_PROPERTY_TAG(FrostedGlassBlur, RefractOutPx),
+    ADD_PROPERTY_TAG(FrostedGlassBlur, SkipFrameEnable)
 );
 
 DECLARE_FILTER(SDFEdgeLight, SDF_EDGE_LIGHT,

@@ -371,6 +371,10 @@ public:
         return maskPara_;
     }
 
+    bool GetSkipFrameEnable() const
+    {
+        return isSkipFrameEnable_;
+    }
 private:
     Vector2f blurParams_ = Vector2f(0.0f, 0.0f);
     Vector2f weightsEmboss_ = Vector2f(0.0f, 0.0f); // (envLight, sd)
@@ -410,6 +414,7 @@ private:
     float samplingScale_ = 1.0f;
     std::shared_ptr<MaskPara> maskPara_ = nullptr;
     std::shared_ptr<AdaptiveFrostedGlassParams> darkAdaptiveParams_;
+    bool isSkipFrameEnable_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS
