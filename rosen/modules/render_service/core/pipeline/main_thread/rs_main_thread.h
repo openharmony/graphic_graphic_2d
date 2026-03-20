@@ -63,9 +63,6 @@
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 
 namespace OHOS::Rosen {
-namespace DrawableV2 {
-enum class ColorPickerState : uint8_t;
-}
 #if defined(ACCESSIBILITY_ENABLE)
 class AccessibilityObserver;
 #endif

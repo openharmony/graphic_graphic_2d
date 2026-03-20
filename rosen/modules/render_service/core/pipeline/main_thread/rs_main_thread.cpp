@@ -55,7 +55,6 @@
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
 #include "feature/buffer_reclaim/rs_buffer_reclaim.h"
 #include "feature/color_picker/rs_color_picker_thread.h"
-#include "drawable/rs_color_picker_drawable.h"
 #include "feature/dirty/rs_uni_dirty_occlusion_util.h"
 #include "feature/drm/rs_drm_util.h"
 #include "feature/hdr/rs_hdr_util.h"
