@@ -1623,7 +1623,7 @@ void AniCanvas::DrawPoints(ani_env* env, ani_object obj, ani_array pointsObj, an
 }
 
 bool AniCanvas::GetGlyphIds(ani_env* env, ani_int glyphsIDCountLimit,
-                            ani_object glyphIdsObj, std::unique_ptr<uint16_t>& glyphIds)
+                            ani_array glyphIdsObj, std::unique_ptr<uint16_t[]>& glyphIds)
 {
     ani_size aniLength;
     if (ANI_OK != env->Array_GetLength(glyphIdsObj, &aniLength) ||
@@ -1637,7 +1637,7 @@ bool AniCanvas::GetGlyphIds(ani_env* env, ani_int glyphsIDCountLimit,
         ROSEN_LOGE("AniCanvas::DrawGlyphs glyphIds size exceeds the upper limit");
         return false;
     }
-    glyphIds = std::make_unique<uint16_t>(size);
+    glyphIds = std::make_unique<uint16_t[]>(size);
     if (glyphIds == nullptr) {
         ROSEN_LOGE("AniCanvas::DrawGlyphs glyphIds size is %{public}u", size);
         return false;
@@ -1663,7 +1663,7 @@ bool AniCanvas::GetGlyphIds(ani_env* env, ani_int glyphsIDCountLimit,
 }
 
 bool AniCanvas::GetGlyphPositions(ani_env* env, ani_int positionCountLimit,
-                                  ani_object positionsObj, std::unique_ptr<DrawingLLPoint[]>& positions)
+                                  ani_array positionsObj, std::unique_ptr<Drawing::Point[]>& positions)
 {
     ani_size aniLength;
     if (ANI_OK != env->Array_GetLength(positionsObj, &aniLength) ||
@@ -1699,7 +1699,7 @@ void AniCanvas::DrawGlyphs(ani_env* env, ani_object obj,
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniCanvas::DrawGlyphs canvas is nullptr.");
         return;
     }
-    std::unique_ptr<uint16_t> glyphIds;
+    std::unique_ptr<uint16_t[]> glyphIds;
     std::unique_ptr<Drawing::Point[]> positions;
     if (!GetGlyphIds(env, glyphIdOffset + glyphCount, glyphIdsObj, glyphIds) ||
         !GetGlyphPositions(env, positionOffset + glyphCount, positionsObj, positions)) {
@@ -1716,7 +1716,7 @@ void AniCanvas::DrawGlyphs(ani_env* env, ani_object obj,
                                        glyphIds.get() + glyphIdOffset,
                                        positions.get() + positionOffset,
                                        origin,
-                                       *font);
+                                       font.get());
     aniCanvas->NotifyDirty();
 }
 

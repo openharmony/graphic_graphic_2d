@@ -1111,7 +1111,7 @@ bool GetGlyphPositions(napi_env env, napi_value& jsPosition, uint32_t size,
     if (positions == nullptr) {
         return false;
     }
-    if (!OnMakePoints(env, positions, size, jsPosition)) {
+    if (!OnMakePoints(env, positions.get(), size, jsPosition)) {
         ROSEN_LOGE("JsCanvas::OnDrawGlyphs Argv[ARGC_TWO] is invalid");
         return false;
     }
@@ -1142,21 +1142,21 @@ napi_value JsCanvas::OnDrawGlyphs(napi_env env, napi_callback_info info)
     napi_value jsGlyphIds = argv[ARGC_ZERO];
     uint32_t glyphIdsSize = 0;
     if (napi_get_array_length(env, jsGlyphIds, &glyphIdsSize) != napi_ok || (glyphIdsSize == 0) ||
-        (glyphIdsSize < glyphIdOffSet + glyphCount)) {
+        (glyphIdsSize < static_cast<uint32_t>(glyphIdOffSet + glyphCount))) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect glyphIds array size.");
     }
     std::unique_ptr<uint16_t[]> glyphIds = std::make_unique<uint16_t[]>(glyphIdsSize);
-    if (!GetGlyphIds(env, jsPosition, glyphIdsSize, positions)) {
+    if (!GetGlyphIds(env, jsGlyphIds, glyphIdsSize, glyphIds)) {
         return nullptr;
     }
     napi_value jsPosition = argv[ARGC_TWO];
     uint32_t positionsSize = 0;
     if (napi_get_array_length(env, jsPosition, &positionsSize) != napi_ok || (positionsSize == 0) ||
-        (positionsSize < positionOffSet + glyphCount)) {
+        (positionsSize < static_cast<uint32_t>(positionOffSet + glyphCount))) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect positions array size.");
     }
     std::unique_ptr<Drawing::Point[]> positions = std::make_unique<Drawing::Point[]>(positionsSize);
-    if (!GetGlyphPositions(jsPosition, positionsSize, positions)) {
+    if (!GetGlyphPositions(env, jsPosition, positionsSize, positions)) {
         return nullptr;
     }
     Drawing::Point origin = Drawing::Point(0, 0);

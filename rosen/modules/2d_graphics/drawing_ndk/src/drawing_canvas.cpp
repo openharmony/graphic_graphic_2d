@@ -854,13 +854,13 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasDrawGlyphs(OH_Drawing_Canvas* cCanvas,
         return OH_DRAWING_ERROR_INVALID_PARAMETER;
     }
     const Point* glyphPositions = reinterpret_cast<const Point*>(positions);
-    const uint16* glyphIdsUForm = reinterpret_cast<const uint16*>(glyphIds);
+    const uint16_t* glyphIdsUForm = reinterpret_cast<const uint16_t*>(glyphIds);
     Drawing::Point origin = Drawing::Point(0, 0);
     canvas->DrawGlyphs(glyphCount,
                        glyphIdsUForm + glyphIdOffset,
                        glyphPositions + positionOffset,
                        origin,
-                       *font);
+                       font);
     #ifdef OHOS_PLATFORM
         auto iter = g_canvasMap.find(canvas);
         if (iter != g_canvasMap.end() && iter->second != nullptr) {
