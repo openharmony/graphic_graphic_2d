@@ -29,7 +29,7 @@ public:
     int32_t NotifyScreenConnectInfoToRender(const sptr<RSScreenProperty>& screenProperty,
         const sptr<IRSRenderToComposerConnection>& composerConn);
     int32_t NotifyScreenDisconnectInfoToRender(ScreenId screenId);
-    int32_t NotifyScreenPropertyChangedInfoToRender(const sptr<RSScreenPropertyBase>& screenProperty);
+    int32_t NotifyScreenPropertyChangedInfoToRender(const sptr<ScreenPropertyBase>& screenProperty);
 
 private:
     RSRenderProcess& renderProcess_;

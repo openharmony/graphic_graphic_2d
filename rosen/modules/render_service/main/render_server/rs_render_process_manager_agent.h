@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_MAIN_RENDER_SERVER_RS_RENDER_PROCESS_MANAGER_AGENT_H
 
 #include "rs_render_process_manager.h"
+#include "rs_render_multi_process_manager.h"
 
 namespace OHOS {
 namespace Rosen {
