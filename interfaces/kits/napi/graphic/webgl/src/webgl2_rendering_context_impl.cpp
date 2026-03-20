@@ -1378,19 +1378,50 @@ napi_value WebGL2RenderingContextImpl::GetBufferSubData(
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_OPERATION, "no buffer");
         return NVal::CreateNull(env).val_;
     }
-    if (static_cast<size_t>(offset) + bufferData.GetBufferLength() > writeBuffer->GetBufferSize()) {
-        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_OPERATION, "check buffer size failed");
+    size_t elementSize = bufferData.GetBufferDataSize();
+    size_t byteLength = bufferData.GetBufferLength();
+    size_t elementCount = bufferData.GetElementCount();
+
+    size_t dstOffsetBytes = static_cast<size_t>(ext.offset) * elementSize;
+
+    // Validate dstOffset doesn't exceed buffer byte length
+    if (dstOffsetBytes > byteLength) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "dstOffset exceeds buffer size");
         return NVal::CreateNull(env).val_;
     }
-    GLsizeiptr dstSize = (ext.length == 0) ? static_cast<GLsizeiptr>(bufferData.GetBufferLength())
-                                           : static_cast<GLsizeiptr>(ext.length * bufferData.GetBufferDataSize());
-    GLuint dstOffset = static_cast<GLuint>(ext.offset * bufferData.GetBufferDataSize());
+
+    // Calculate remaining elements in destination buffer after dstOffset
+    size_t remainingElements = elementCount - ext.offset;
+
+    GLsizeiptr dstSize;
+    if (ext.length == 0) {
+        dstSize = static_cast<GLsizeiptr>(remainingElements * elementSize);
+    } else {
+        // Validate ext.length doesn't exceed remaining elements
+        if (ext.length > remainingElements) {
+            SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "srcLength exceeds remaining buffer capacity");
+            return NVal::CreateNull(env).val_;
+        }
+        dstSize = static_cast<GLsizeiptr>(ext.length * elementSize);
+    }
+
+    // offset is validated to be non-negative, safe to convert to uint64_t
+    uint64_t offset64 = static_cast<uint64_t>(offset);
+    if (offset64 + static_cast<uint64_t>(dstSize) > static_cast<uint64_t>(writeBuffer->GetBufferSize())) {
+        SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_VALUE, "check buffer size failed");
+        return NVal::CreateNull(env).val_;
+    }
+
+    GLuint dstOffset = static_cast<GLuint>(dstOffsetBytes);
     LOGD("WebGL2 getBufferSubData dstSize %{public}u dstOffset %{private}p",
          static_cast<unsigned int>(dstSize), writeBuffer->bufferData_);
 
+    // Calculate remaining capacity in bytes for memcpy_s destsz to prevent heap OOB write
+    size_t remainingCapacity = byteLength - dstOffsetBytes;
+
     void *mapBuffer = glMapBufferRange(target, static_cast<GLintptr>(offset), dstSize, GL_MAP_READ_BIT);
     if (mapBuffer == nullptr ||
-        memcpy_s(bufferData.GetBuffer() + dstOffset, bufferData.GetBufferLength(), mapBuffer, dstSize) != 0) {
+        memcpy_s(bufferData.GetBuffer() + dstOffset, remainingCapacity, mapBuffer, dstSize) != 0) {
         SET_ERROR_WITH_LOG(WebGLRenderingContextBase::INVALID_OPERATION, "mapBuffer is nullptr");
     }
     glUnmapBuffer(target);
