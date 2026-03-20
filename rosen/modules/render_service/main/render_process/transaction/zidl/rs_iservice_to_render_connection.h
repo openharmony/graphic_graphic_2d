@@ -44,9 +44,10 @@ public:
 
     // Process Manager
     virtual int32_t NotifyScreenConnectInfoToRender(const sptr<RSScreenProperty>& screenProperty,
-        sptr<IRSRenderToComposerConnection> composerConn) = 0;
+        const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
+        const sptr<IRSComposerToRenderConnection>& composerToRenderConn) = 0;
     virtual int32_t NotifyScreenDisconnectInfoToRender(ScreenId screenId) = 0;
-    virtual int32_t NotifyScreenPropertyChangedInfoToRender(ScreenPropertyType type,
+    virtual int32_t NotifyScreenPropertyChangedInfoToRender(ScreenId id, ScreenPropertyType type,
         const sptr<ScreenPropertyBase>& screenProeprty) = 0;
 
     // Screen Manager

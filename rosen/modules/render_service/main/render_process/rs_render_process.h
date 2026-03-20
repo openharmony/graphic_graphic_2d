@@ -39,7 +39,7 @@ public:
 
 private:
     sptr<RSIRenderService> GetRenderServer();
-    std::tuple<sptr<RSScreenProperty>, sptr<IRSRenderToComposerConnection>, std::shared_ptr<VSyncReceiver>> ConnectToRenderService();
+    std::tuple<sptr<RSScreenProperty>, sptr<IRSRenderToComposerConnection>, std::shared_ptr<VSyncReceiver>> ConnectToRenderService(const sptr<RSComposerToRenderConnection>& composerToRenderConn);
 
     sptr<RSIRenderService> renderServer_ = nullptr;
     sptr<RSIRenderToServiceConnection> renderToServiceConnection_ = nullptr;

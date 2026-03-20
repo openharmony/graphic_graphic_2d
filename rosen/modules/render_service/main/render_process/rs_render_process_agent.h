@@ -27,9 +27,11 @@ public:
     ~RSRenderProcessAgent() = default;
 
     int32_t NotifyScreenConnectInfoToRender(const sptr<RSScreenProperty>& screenProperty,
-        const sptr<IRSRenderToComposerConnection>& composerConn);
+        const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
+        const sptr<IRSComposerToRenderConnection>& composerToRenderConn);
     int32_t NotifyScreenDisconnectInfoToRender(ScreenId screenId);
-    int32_t NotifyScreenPropertyChangedInfoToRender(const sptr<ScreenPropertyBase>& screenProperty);
+    int32_t NotifyScreenPropertyChangedInfoToRender(ScreenId id,
+        ScreenPropertyType type, const sptr<RSScreenPropertyBase>& screenProperty);
 
 private:
     RSRenderProcess& renderProcess_;

@@ -30,19 +30,15 @@ RSRenderProcessAgent::RSRenderProcessAgent(RSRenderProcess& renderProcess) :
     renderProcess_(renderProcess) {}
 
 int32_t RSRenderProcessAgent::NotifyScreenConnectInfoToRender(const sptr<RSScreenProperty>& screenProperty,
-    const sptr<IRSRenderToComposerConnection>& composerConn)
+    const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
+    const sptr<IRSComposerToRenderConnection>& composerToRenderConn)
 {
     auto handler = renderProcess_.handler_;
-    handler->PostTask([this, screenProperty, composerConn] {
-        // std::shared_ptr<HgmClient> hgmClient = HgmClient::Create(renderProcess_.renderToServiceConnection_);
-        // RSProcessDumpManager::GetInstance().SetRenderToServiceConnection(renderProcess_.renderToServiceConnection_);
-        // std::shared_ptr<RSRenderComposerClient> composerClient = nullptr;
-        // if (composerConn) {
-        //     composerClient = RSRenderComposerClient::Create(true, composerConn);
-        // }
-        // RS_LOGI("dmulti_process %{public}s: screenId[%{public}llu] width[%{public}d] height[%{public}d]",
-        //     __func__, screenProperty->GetScreenId(), screenProperty->GetWidth(), screenProperty->GetHeight());
-        renderProcess_.renderPipeline_->OnScreenConnected(screenProperty, composerClient, hgmClient);
+    handler->PostTask([this, screenProperty, renderToComposerConn, composerToRenderConn] {
+        RS_LOGI("dmulti_process %{public}s: screenId[%{public}llu] width[%{public}d] height[%{public}d]",
+            __func__, screenProperty->GetScreenId(), screenProperty->GetWidth(), screenProperty->GetHeight());
+        renderProcess_.renderPipeline_->OnScreenConnected(screenProperty,
+            renderToComposerConn, composerToRenderConn, nullptr);
     });
     return 0;
 }
@@ -57,14 +53,13 @@ int32_t RSRenderProcessAgent::NotifyScreenDisconnectInfoToRender(ScreenId screen
     return 0;
 }
 
-int32_t RSRenderProcessAgent::NotifyScreenPropertyChangedInfoToRender(const sptr<RSScreenPropertyBase>& screenProperty)
+int32_t RSRenderProcessAgent::NotifyScreenPropertyChangedInfoToRender(ScreenId id,
+    ScreenPropertyType type, const sptr<RSScreenPropertyBase>& screenProperty)
 {
     auto handler = renderProcess_.handler_;
-    // handler->PostTask([this, screenProperty] {
-    //     RS_LOGI("dmulti_process %{public}s: screenId[%{public}llu] width[%{public}d] height[%{public}d]",
-    //         __func__, screenProperty->GetScreenId(), screenProperty->GetWidth(), screenProperty->GetHeight());
-    //     renderProcess_.renderPipeline_->OnScreenPropertyChanged(screenProperty);
-    // });
+    handler->PostTask([this, id, type, screenProperty] {
+        renderProcess_.renderPipeline_->OnScreenPropertyChanged(id, type, screenProperty);
+    });
     return 0;
 }
 } // namespace Rosen
