@@ -45,16 +45,19 @@
 #include "ipc_callbacks/rs_surface_buffer_callback.h"
 #include "ipc_callbacks/rs_transaction_data_callback_stub.h"
 #include <system_ability_definition.h>
+#include "transaction/rs_render_to_service_connection.h"
+#include "feature/hyper_graphic_manager/hgm_render_context.h"
 
 namespace OHOS {
 namespace Rosen {
-
-int32_t g_pid;
-sptr<OHOS::Rosen::RSScreenManager> screenManagerPtr_ = OHOS::sptr<OHOS::Rosen::RSScreenManager>::MakeSptr();
 [[maybe_unused]] auto& rsRenderNodeGC = RSRenderNodeGC::Instance();
 [[maybe_unused]] auto& rsSurfaceBufferCallbackManager = RSSurfaceBufferCallbackManager::Instance();
 RSMainThread* mainThread_ = RSMainThread::Instance();
+auto g_pid = getpid();
+sptr<OHOS::Rosen::RSScreenManager> screenManagerPtr_ = OHOS::sptr<OHOS::Rosen::RSScreenManager>::MakeSptr();
+sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
 sptr<RSClientToRenderConnectionStub> toRenderConnectionStub_ = nullptr;
+sptr<OHOS::Rosen::RSRenderService> renderService_ = nullptr;
 
 namespace {
 const uint8_t DO_SET_FOCUS_APP_INFO = 0;
@@ -80,6 +83,7 @@ const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
 constexpr uint32_t FUZZ_MAX_DROP_FRAME_LIST = 10000;
+constexpr uint32_t MAX_DROP_FRAME_PID_LIST_SIZE = 1024;
 
 template<class T>
 T GetData()
@@ -311,7 +315,6 @@ void DoSetHwcNodeBounds()
 void DoDropFrameByPid()
 {
     std::vector<int32_t> pidList;
-    const int32_t MAX_DROP_FRAME_PID_LIST_SIZE = 1024;
     uint8_t pidListSize = GetData<uint8_t>();
     int32_t status = GetData<int32_t>() % 3;
     if (status == 0) {
@@ -565,14 +568,6 @@ void DoRegisterTransactionDataCallback()
 
 bool DoTakeSurfaceCaptureWithAllWindows()
 {
-    auto newPid = getpid();
-    
-    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
-    auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::AppExecFwk::EventRunner::Create(false));
-    std::shared_ptr<RSRenderPipeline> renderPipeline_ = RSRenderPipeline::Create(handler, nullptr, nullptr, nullptr);
-    sptr<RSRenderPipelineAgent> renderPipelineAgent_ = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline_);
-    sptr<RSClientToRenderConnectionStub> toRenderConnectionStub_ =
-        new RSClientToRenderConnection(newPid, renderPipelineAgent_, token_->AsObject());
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     MessageOption option;
@@ -638,14 +633,6 @@ bool DoTakeSurfaceCaptureWithAllWindows()
 
 bool DoFreezeScreen()
 {
-    auto newPid = getpid();
-    
-    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
-    auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::AppExecFwk::EventRunner::Create(false));
-    std::shared_ptr<RSRenderPipeline> renderPipeline_ = RSRenderPipeline::Create(handler, nullptr, nullptr, nullptr);
-    sptr<RSRenderPipelineAgent> renderPipelineAgent_ = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline_);
-    sptr<RSClientToRenderConnectionStub> toRenderConnectionStub_ =
-        new RSClientToRenderConnection(newPid, renderPipelineAgent_, token_->AsObject());
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     MessageOption option;
@@ -671,23 +658,6 @@ bool DoFreezeScreen()
 
 bool DoGetScreenHDRStatus()
 {
-    auto newPid = getpid();
-    bool hasMainThread = GetData<bool>();
-    auto mainThread = hasMainThread ? RSMainThread::Instance() : nullptr;
-    if (mainThread) {
-        auto context = std::make_shared<RSContext>();
-        auto screenNode = std::make_shared<RSScreenRenderNode>(1, 1, context);
-        auto& nodeMap = mainThread->GetContext().GetMutableNodeMap();
-        nodeMap.RegisterRenderNode(screenNode);
-    }
-    
-    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
-    auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::AppExecFwk::EventRunner::Create(false));
-    std::shared_ptr<RSRenderPipeline> renderPipeline_ = RSRenderPipeline::Create(handler, nullptr, nullptr, nullptr);
-    sptr<RSRenderPipelineAgent> renderPipelineAgent_ = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline_);
-    sptr<RSClientToRenderConnectionStub> toRenderConnectionStub_ =
-    new RSClientToRenderConnection(newPid, renderPipelineAgent_, token_->AsObject());
-
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     MessageOption option;
@@ -757,6 +727,51 @@ void DoSubmitCanvasPreAllocatedBuffer()
 /* Fuzzer envirement */
 extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 {
+    OHOS::Rosen::g_pid = getpid();
+    OHOS::sptr<OHOS::Rosen::RSIConnectionToken> token_ = new OHOS::IRemoteStub<OHOS::Rosen::RSIConnectionToken>();
+    OHOS::Rosen::DVSyncFeatureParam dvsyncParam;
+    auto generator = OHOS::Rosen::CreateVSyncGenerator();
+    auto appVSyncController = new OHOS::Rosen::VSyncController(generator, 0);
+    OHOS::sptr<OHOS::Rosen::VSyncDistributor> appVSyncDistributor_ =
+        new OHOS::Rosen::VSyncDistributor(appVSyncController, "app", dvsyncParam);
+
+    OHOS::Rosen::renderService_ = new OHOS::Rosen::RSRenderService();
+    OHOS::Rosen::RSUniRenderThread::Instance().InitGrContext();
+    
+    auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
+    runner->Run();
+    OHOS::Rosen::renderService_->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
+
+    OHOS::Rosen::renderService_->vsyncManager_ = OHOS::sptr<OHOS::Rosen::RSVsyncManager>::MakeSptr();
+    OHOS::Rosen::renderService_->screenManager_ = OHOS::sptr<OHOS::Rosen::RSScreenManager>::MakeSptr();
+    OHOS::Rosen::renderService_->vsyncManager_->init(OHOS::Rosen::renderService_->screenManager_);
+
+    OHOS::Rosen::renderService_->renderProcessManager_ =
+        OHOS::Rosen::RSRenderProcessManager::Create(*OHOS::Rosen::renderService_);
+
+    auto renderServiceAgent_ = OHOS::sptr<OHOS::Rosen::RSRenderServiceAgent>::MakeSptr(*OHOS::Rosen::renderService_);
+    OHOS::sptr<OHOS::Rosen::RSRenderProcessManagerAgent> renderProcessManagerAgent_ =
+        OHOS::sptr<OHOS::Rosen::RSRenderProcessManagerAgent>::MakeSptr(
+            OHOS::Rosen::renderService_->renderProcessManager_);
+
+    OHOS::sptr<OHOS::Rosen::RSScreenManagerAgent> screenManagerAgent_ =
+        new OHOS::Rosen::RSScreenManagerAgent(OHOS::Rosen::screenManagerPtr_);
+    OHOS::Rosen::renderService_->rsRenderComposerManager_ = std::make_shared<OHOS::Rosen::RSRenderComposerManager>(
+        OHOS::Rosen::renderService_->handler_, OHOS::Rosen::renderService_->vsyncManager_->GetVsyncManagerAgent());
+
+    OHOS::sptr<OHOS::Rosen::RSRenderPipelineAgent> renderPipelineAgent_ =
+        OHOS::sptr<OHOS::Rosen::RSRenderPipelineAgent>::MakeSptr(OHOS::Rosen::renderService_->renderPipeline_);
+    OHOS::sptr<OHOS::Rosen::RSClientToRenderConnection> toRenderConnection =
+        new OHOS::Rosen::RSClientToRenderConnection(OHOS::Rosen::g_pid, renderPipelineAgent_, token_->AsObject());
+    OHOS::Rosen::toRenderConnectionStub_ = toRenderConnection;
+    toRenderConnection->cleanDone_ = true;
+
+    OHOS::sptr<OHOS::Rosen::RSRenderToServiceConnection> g_rsConn =
+        OHOS::sptr<OHOS::Rosen::RSRenderToServiceConnection>::MakeSptr(
+            renderServiceAgent_, renderProcessManagerAgent_, screenManagerAgent_);
+    OHOS::Rosen::RSMainThread::Instance()->hgmRenderContext_ =
+        std::make_shared<OHOS::Rosen::HgmRenderContext>(g_rsConn);
+
     return 0;
 }
 
