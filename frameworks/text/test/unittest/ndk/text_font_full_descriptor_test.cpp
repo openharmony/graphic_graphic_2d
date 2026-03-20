@@ -532,6 +532,7 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest011, TestSize.Level
         size_t coordLength = 0;
         OH_Drawing_FontVariationInstanceCoordinate* coords =
             OH_Drawing_GetFontVariationInstanceCoordinate(instance, &coordLength);
+        coords = OH_Drawing_GetFontVariationInstanceCoordinate(instance, &coordLength);
         EXPECT_NE(coords, nullptr);
         EXPECT_EQ(coordLength, SYMBOL_DESC.variationInstanceRecords[i].coordinates.size());
         for (size_t j = 0; j < coordLength; j++) {

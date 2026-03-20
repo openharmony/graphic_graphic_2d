@@ -15,7 +15,10 @@
 
 #include "drawing_text_font_descriptor.h"
 
+#include <shared_mutex>
+#include <set>
 #include <string_ex.h>
+#include <unordered_map>
 
 #include "array_mgr.h"
 #include "font_descriptor_mgr.h"
@@ -24,6 +27,15 @@
 #include "utils/text_log.h"
 
 using namespace OHOS::Rosen;
+
+namespace {
+// Cache for font variation instance coordinates.
+// Key: pointer to FontVariationInstance
+// Value.first: pointer to the ObjectArray containing the instance (for lifecycle tracking)
+// Value.second: cached OH_Drawing_FontVariationInstanceCoordinate array allocated by getCoordinate
+std::unordered_map<void*, std::pair<ObjectArray*, OH_Drawing_FontVariationInstanceCoordinate*>> g_instanceCache;
+std::shared_mutex g_instanceCacheMutex;
+} // namespace
 template<typename T1, typename T2>
 inline T1* ConvertToOriginalText(T2* ptr)
 {
@@ -423,8 +435,7 @@ static OH_Drawing_Array* CreateVariationAxisArray(
 
     std::unique_ptr array = std::make_unique<ObjectArray>();
     array->type = ObjectType::FONT_VARIATION_AXIS;
-    array->addr = const_cast<Drawing::FontParser::FontVariationAxis*>(
-        reinterpret_cast<const Drawing::FontParser::FontVariationAxis*>(variationAxes.data()));
+    array->addr = const_cast<TextEngine::FontParser::FontVariationAxis*>(variationAxes.data());
     array->num = variationAxes.size();
     return reinterpret_cast<OH_Drawing_Array*>(array.release());
 }
@@ -438,8 +449,7 @@ static OH_Drawing_Array* CreateVariationInstanceArray(
 
     std::unique_ptr array = std::make_unique<ObjectArray>();
     array->type = ObjectType::FONT_VARIATION_INSTANCE;
-    array->addr = const_cast<Drawing::FontParser::FontVariationInstance*>(
-        reinterpret_cast<const Drawing::FontParser::FontVariationInstance*>(variationInstances.data()));
+    array->addr = const_cast<TextEngine::FontParser::FontVariationInstance*>(variationInstances.data());
     array->num = variationInstances.size();
     return reinterpret_cast<OH_Drawing_Array*>(array.release());
 }
@@ -469,22 +479,13 @@ void OH_Drawing_DestroyFontVariationAxis(OH_Drawing_Array* array)
     }
 
     ObjectArray* axisArray = reinterpret_cast<ObjectArray*>(array);
+    if (axisArray->type != ObjectType::FONT_VARIATION_AXIS) {
+        return;
+    }
     axisArray->addr = nullptr;
     axisArray->num = 0;
     axisArray->type = ObjectType::INVALID;
     delete axisArray;
-}
-
-static void FreeCachedCoordinates(Drawing::FontParser::FontVariationInstance* instance)
-{
-    if (instance == nullptr || instance->cachedCoordinates == nullptr) {
-        return;
-    }
-    OH_Drawing_FontVariationInstanceCoordinate* coords =
-        static_cast<OH_Drawing_FontVariationInstanceCoordinate*>(instance->cachedCoordinates);
-    delete[] coords;
-    instance->cachedCoordinates = nullptr;
-    instance->cachedCoordinatesLength = 0;
 }
 
 void OH_Drawing_DestroyFontVariationInstance(OH_Drawing_Array* array)
@@ -494,14 +495,22 @@ void OH_Drawing_DestroyFontVariationInstance(OH_Drawing_Array* array)
     }
 
     ObjectArray* instanceArray = reinterpret_cast<ObjectArray*>(array);
+    if (instanceArray->type != ObjectType::FONT_VARIATION_INSTANCE) {
+        return;
+    }
 
-    Drawing::FontParser::FontVariationInstance* instances =
-        static_cast<Drawing::FontParser::FontVariationInstance*>(instanceArray->addr);
-    if (instances != nullptr) {
-        for (size_t i = 0; i < instanceArray->num; ++i) {
-            FreeCachedCoordinates(&instances[i]);
+    {
+        std::unique_lock<std::shared_mutex> cacheLock(g_instanceCacheMutex);
+        for (auto it = g_instanceCache.begin(); it != g_instanceCache.end();) {
+            if (it->second.first == instanceArray) {
+                delete[] it->second.second;
+                it = g_instanceCache.erase(it);
+            } else {
+                ++it;
+            }
         }
     }
+
     instanceArray->addr = nullptr;
     instanceArray->num = 0;
     instanceArray->type = ObjectType::INVALID;
@@ -538,7 +547,12 @@ OH_Drawing_FontVariationInstance* OH_Drawing_GetFontVariationInstanceByIndex(
         instanceArray->type == ObjectType::FONT_VARIATION_INSTANCE && index < instanceArray->num) {
         Drawing::FontParser::FontVariationInstance* variationInstance =
             static_cast<Drawing::FontParser::FontVariationInstance*>(instanceArray->addr);
-        return reinterpret_cast<OH_Drawing_FontVariationInstance*>(&variationInstance[index]);
+        auto* instance = &variationInstance[index];
+        {
+            std::unique_lock<std::shared_mutex> cacheLock(g_instanceCacheMutex);
+            g_instanceCache.try_emplace(instance, instanceArray, nullptr);
+        }
+        return reinterpret_cast<OH_Drawing_FontVariationInstance*>(instance);
     }
 
     return nullptr;
@@ -577,26 +591,25 @@ OH_Drawing_FontVariationInstanceCoordinate* OH_Drawing_GetFontVariationInstanceC
         return nullptr;
     }
 
-    auto& instance = *reinterpret_cast<Drawing::FontParser::FontVariationInstance*>(variationInstance);
+    auto* instance = reinterpret_cast<Drawing::FontParser::FontVariationInstance*>(variationInstance);
+    *arrayLength = instance->coordinates.size();
 
-    // Return cached coordinates if already allocated
-    if (instance.cachedCoordinates != nullptr) {
-        *arrayLength = instance.cachedCoordinatesLength;
-        return static_cast<OH_Drawing_FontVariationInstanceCoordinate*>(instance.cachedCoordinates);
+    {
+        std::unique_lock<std::shared_mutex> cacheLock(g_instanceCacheMutex);
+        auto cacheIt = g_instanceCache.find(instance);
+        if (cacheIt != g_instanceCache.end() && cacheIt->second.second != nullptr) {
+            return cacheIt->second.second;
+        }
+        OH_Drawing_FontVariationInstanceCoordinate* coordinates =
+            new OH_Drawing_FontVariationInstanceCoordinate[*arrayLength];
+
+        for (size_t i = 0; i < *arrayLength; ++i) {
+            coordinates[i].axisKey = instance->coordinates[i].axis.data();
+            coordinates[i].value = instance->coordinates[i].value;
+        }
+
+        g_instanceCache[instance].second = coordinates;
+
+        return coordinates;
     }
-
-    *arrayLength = instance.coordinates.size();
-    OH_Drawing_FontVariationInstanceCoordinate* coordinates =
-        new OH_Drawing_FontVariationInstanceCoordinate[*arrayLength];
-
-    for (size_t i = 0; i < *arrayLength; ++i) {
-        coordinates[i].axisKey = instance.coordinates[i].axis.data();
-        coordinates[i].value = instance.coordinates[i].value;
-    }
-
-    // Cache the allocated coordinates for later cleanup
-    instance.cachedCoordinates = coordinates;
-    instance.cachedCoordinatesLength = *arrayLength;
-
-    return coordinates;
 }
