@@ -43,10 +43,11 @@ public:
     virtual ~RSIServiceToRenderConnection() noexcept = default;
 
     // Process Manager
-    virtual int32_t NotifyScreenConnectInfoToRender(const std::shared_ptr<HdiOutput>& output,
-        const sptr<RSScreenProperty>& screenProperty, sptr<IRSRenderToComposerConnection> composerConn) = 0;
+    virtual int32_t NotifyScreenConnectInfoToRender(const sptr<RSScreenProperty>& screenProperty,
+        sptr<IRSRenderToComposerConnection> composerConn) = 0;
     virtual int32_t NotifyScreenDisconnectInfoToRender(ScreenId screenId) = 0;
-    virtual int32_t NotifyScreenPropertyChangedInfoToRender(const sptr<RSScreenPropertyBase>& screenProeprty) = 0;
+    virtual int32_t NotifyScreenPropertyChangedInfoToRender(ScreenPropertyType type,
+        const sptr<ScreenPropertyBase>& screenProeprty) = 0;
 
     // Screen Manager
     virtual int32_t NotifyScreenRefresh(ScreenId id) = 0;

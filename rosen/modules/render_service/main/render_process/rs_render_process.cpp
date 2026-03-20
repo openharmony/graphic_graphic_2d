@@ -23,7 +23,7 @@
 
 #include "irs_render_to_composer_connection.h"
 
-#include "dfx/rs_process_dump_manager.h"
+// #include "dfx/rs_process_dump_manager.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_log.h"
@@ -34,7 +34,6 @@
 #include "transaction/rs_service_to_render_connection.h"
 #include "xcollie/watchdog.h"
 #include "transaction/rs_connect_to_render_process.h"
-#include "feature/hyper_graphic_manager/hgm_client.h"
 #include "rs_composer_to_render_connection.h"
 
 #undef LOG_TAG
@@ -117,10 +116,11 @@ bool RSRenderProcess::Init()
 
     // 渲染管线拉起
     RS_LOGE("dmulti_process liweiiii RSRenderProcess::init %{public}p", mainThread_);
-    renderPipeline_ = RSRenderPipeline::Create(handler_, receiver);
-    std::shared_ptr<RSRenderComposerClient> composerClient = RSRenderComposerClient::Create(true, composeConn);
-    std::shared_ptr<HgmClient> hgmClient = HgmClient::Create(renderToServiceConnection_);
-    renderPipeline_->OnScreenConnected(rsScreenProperty, composerClient, hgmClient);
+    // TODO: 需要适配
+    // renderPipeline_ = RSRenderPipeline::Create(handler_, receiver);
+    // renderPipeline_->OnScreenConnected(rsScreenProperty, composerClient, hgmClient);
+    renderPipeline_ = RSRenderPipeline::Create(handler_, receiver, renderToServiceConnection_, nullptr);
+    renderPipeline_->OnScreenConnected(rsScreenProperty, nullptr, nullptr, nullptr);
 
     // 子进程初始化完毕
     RS_LOGI("dmulti_process %{public}s: notify render process init successful", __func__);
@@ -129,8 +129,9 @@ bool RSRenderProcess::Init()
         return false;
     }
 
-    RSProcessDumpManager::GetInstance().SetRenderToServiceConnection(renderToServiceConnection_);
-    RSProcessDumpManager::GetInstance().SetPid(getpid());
+    // TODO: dfx适配
+    // RSProcessDumpManager::GetInstance().SetRenderToServiceConnection(renderToServiceConnection_);
+    // RSProcessDumpManager::GetInstance().SetPid(getpid());
 
     RS_LOGI("dmulti_process %{public}s: subprocess init successful", __func__);
     return true;
@@ -177,7 +178,7 @@ std::tuple<sptr<RSScreenProperty>, sptr<IRSRenderToComposerConnection>, std::sha
     auto composerToRenderConnection = sptr<RSComposerToRenderConnection>::MakeSptr();
     // called from others
     renderPipelineAgent = new RSRenderPipelineAgent(renderPipeline_);
-    auto connectToRender = sptr<RSConnectToRenderProcess>::MakeSptr(mainThread_, renderPipelineAgent);
+    auto connectToRender = sptr<RSConnectToRenderProcess>::MakeSptr(renderPipelineAgent);
     sptr<VSyncIConnectionToken> token = new IRemoteStub<VSyncIConnectionToken>();
     auto connectToServiceInfo = sptr<ConnectToServiceInfo>::MakeSptr(serviceToRenderConnection->AsObject(),
         composerToRenderConnection->AsObject(), connectToRender->AsObject(), token->AsObject());
@@ -191,7 +192,8 @@ std::tuple<sptr<RSScreenProperty>, sptr<IRSRenderToComposerConnection>, std::sha
     renderToServiceConnection_ = iface_cast<RSIRenderToServiceConnection>(replyToRenderInfo->serviceConnection_);
     auto composerConn = iface_cast<IRSRenderToComposerConnection>(replyToRenderInfo->composeConnection_);
     auto& rsScreenProperty = replyToRenderInfo->rsScreenProperty_;
-    RSProcessDumpManager::GetInstance().SetScreenId(rsScreenProperty->GetScreenId());
+    // TODO: dfx适配
+    // RSProcessDumpManager::GetInstance().SetScreenId(rsScreenProperty->GetScreenId());
     auto vsyncConn = iface_cast<IVSyncConnection>(replyToRenderInfo->vsyncConn_);
     RS_LOGI("dmulti_process %{public}s: vsync conn create successfully", __func__);
     auto receiver = std::make_shared<VSyncReceiver>(vsyncConn, token->AsObject(), handler_, "render_process");

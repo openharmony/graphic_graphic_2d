@@ -36,8 +36,8 @@ namespace Rosen {
 RSServiceToRenderConnectionProxy::RSServiceToRenderConnectionProxy(const sptr<IRemoteObject>& impl)
     : IRemoteProxy<RSIServiceToRenderConnection>(impl) {}
 
-int32_t RSServiceToRenderConnectionProxy::NotifyScreenConnectInfoToRender(const std::shared_ptr<HdiOutput>& output,
-    const sptr<RSScreenProperty>& screenProperty, sptr<IRSRenderToComposerConnection> composerConn)
+int32_t RSServiceToRenderConnectionProxy::NotifyScreenConnectInfoToRender(const sptr<RSScreenProperty>& screenProperty,
+    sptr<IRSRenderToComposerConnection> composerConn)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -104,7 +104,8 @@ int32_t RSServiceToRenderConnectionProxy::NotifyScreenDisconnectInfoToRender(Scr
     return replyMessage;
 }
 
-int32_t RSServiceToRenderConnectionProxy::NotifyScreenPropertyChangedInfoToRender(const sptr<RSScreenProperty>& screenProperty)
+int32_t RSServiceToRenderConnectionProxy::NotifyScreenPropertyChangedInfoToRender(ScreenPropertyType type,
+    const sptr<ScreenPropertyBase>& screenProperty)
 {
     MessageParcel data;
     MessageParcel reply;

@@ -24,7 +24,6 @@
 
 #include "rs_render_process_manager.h"
 
-#include "irs_render_to_composer_connection.h"
 #include "platform/ohos/transaction/zidl/rs_iconnect_to_render_process.h"
 #include "rs_render_mode_config.h"
 
@@ -58,10 +57,8 @@ public:
     sptr<RSIConnectToRenderProcess> GetConnectToRenderConnection(ScreenId screenId) const override;
 
 private:
-    sptr<IRemoteObject> HandleExistingGroup(pid_t pid, ScreenId screenId, const std::shared_ptr<HdiOutput>& output,
-        const sptr<RSScreenProperty>& property);
-    sptr<IRemoteObject> HandleNewGroup(GroupId groupId, ScreenId screenId, const std::shared_ptr<HdiOutput>& output,
-        const sptr<RSScreenProperty>& property);
+    sptr<IRemoteObject> HandleExistingGroup(pid_t pid, ScreenId screenId, const sptr<RSScreenProperty>& property);
+    sptr<IRemoteObject> HandleNewGroup(GroupId groupId, ScreenId screenId, const sptr<RSScreenProperty>& property);
     GroupId GetGroupIdByScreenId(ScreenId screenId) const;
     std::optional<GroupId> CheckGroupIdByScreenId(ScreenId screenId) const;
 
@@ -85,7 +82,6 @@ private:
     std::optional<ScreenId> DeleteVirtualToPhysicalScreenMap(ScreenId screenId);
     ScreenId FindVirtualToPhysicalScreenMap(ScreenId screenId);
 
-    // std::unordered_map<pid_t, sptr<IRSComposerToRenderConnection>> composerToRenderConnections_;
     std::unordered_map<pid_t, std::promise<bool>> renderProcessReadyPromises_;
 
     mutable std::mutex mutex_;
@@ -98,7 +94,6 @@ private:
 
     struct PendingScreenConnectInfo {
         ScreenId screenId = INVALID_SCREEN_ID;
-        std::shared_ptr<HdiOutput> output = nullptr;
         sptr<RSScreenProperty> property = nullptr;
     };
     std::unordered_map<pid_t, PendingScreenConnectInfo> pendingScreenConnectInfos_;

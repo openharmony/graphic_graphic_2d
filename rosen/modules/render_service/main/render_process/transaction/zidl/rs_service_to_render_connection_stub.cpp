@@ -69,7 +69,7 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                 auto remoteObj = data.ReadRemoteObject();
                 composerConn = iface_cast<IRSRenderToComposerConnection>(remoteObj);
             }
-            auto replyMessage = NotifyScreenConnectInfoToRender(nullptr, screenProperty, composerConn);
+            auto replyMessage = NotifyScreenConnectInfoToRender(screenProperty, composerConn);
             if (reply.WriteInt32(replyMessage)) {
                 RS_LOGE("%{public}s::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER WriteInt32 failed", __func__);
                 return ERR_INVALID_DATA;
@@ -86,8 +86,11 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::NOTIFY_SCREEN_PROPERTY_CHANGED_INFO_TO_RENDER): {
-            auto screenProperty = sptr<RSScreenProperty>(data.ReadParcelable<RSScreenProperty>());
-            auto replyMessage = NotifyScreenPropertyChangedInfoToRender(screenProperty);
+            // auto type = data.ReadUint32();
+            // auto screenProperty = sptr<RSScreenProperty>(data.ReadParcelable<RSScreenProperty>());
+            ScreenPropertyType type = ScreenPropertyType::ID;
+            sptr<ScreenPropertyBase> screenProperty = nullptr;
+            auto replyMessage = NotifyScreenPropertyChangedInfoToRender(type, screenProperty);
             if (reply.WriteInt32(replyMessage)) {
                 RS_LOGE("%{public}s::NOTIFY_SCREEN_PROPERTY_CHANGED_INFO_TO_RENDER WriteInt32 failed", __func__);
                 return ERR_INVALID_DATA;

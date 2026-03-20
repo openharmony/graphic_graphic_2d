@@ -15,10 +15,9 @@
 
 #include "rs_render_process_agent.h"
 
-#include "dfx/rs_process_dump_manager.h"
+// #include "dfx/rs_process_dump_manager.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "screen_manager/rs_screen_property.h"
-#include "rs_layer_context.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 
@@ -30,18 +29,19 @@ namespace Rosen {
 RSRenderProcessAgent::RSRenderProcessAgent(RSRenderProcess& renderProcess) :
     renderProcess_(renderProcess) {}
 
-int32_t RSRenderProcessAgent::NotifyScreenConnectInfoToRender(const sptr<RSScreenProperty>& screenProperty, const sptr<IRSRenderToComposerConnection>& composerConn)
+int32_t RSRenderProcessAgent::NotifyScreenConnectInfoToRender(const sptr<RSScreenProperty>& screenProperty,
+    const sptr<IRSRenderToComposerConnection>& composerConn)
 {
     auto handler = renderProcess_.handler_;
     handler->PostTask([this, screenProperty, composerConn] {
-        std::shared_ptr<HgmClient> hgmClient = HgmClient::Create(renderProcess_.renderToServiceConnection_);
-        RSProcessDumpManager::GetInstance().SetRenderToServiceConnection(renderProcess_.renderToServiceConnection_);
-        std::shared_ptr<RSRenderComposerClient> composerClient = nullptr;
-        if (composerConn) {
-            composerClient = RSRenderComposerClient::Create(true, composerConn);
-        }
-        RS_LOGI("dmulti_process %{public}s: screenId[%{public}llu] width[%{public}d] height[%{public}d]",
-            __func__, screenProperty->GetScreenId(), screenProperty->GetWidth(), screenProperty->GetHeight());
+        // std::shared_ptr<HgmClient> hgmClient = HgmClient::Create(renderProcess_.renderToServiceConnection_);
+        // RSProcessDumpManager::GetInstance().SetRenderToServiceConnection(renderProcess_.renderToServiceConnection_);
+        // std::shared_ptr<RSRenderComposerClient> composerClient = nullptr;
+        // if (composerConn) {
+        //     composerClient = RSRenderComposerClient::Create(true, composerConn);
+        // }
+        // RS_LOGI("dmulti_process %{public}s: screenId[%{public}llu] width[%{public}d] height[%{public}d]",
+        //     __func__, screenProperty->GetScreenId(), screenProperty->GetWidth(), screenProperty->GetHeight());
         renderProcess_.renderPipeline_->OnScreenConnected(screenProperty, composerClient, hgmClient);
     });
     return 0;
@@ -60,11 +60,11 @@ int32_t RSRenderProcessAgent::NotifyScreenDisconnectInfoToRender(ScreenId screen
 int32_t RSRenderProcessAgent::NotifyScreenPropertyChangedInfoToRender(const sptr<RSScreenPropertyBase>& screenProperty)
 {
     auto handler = renderProcess_.handler_;
-    handler->PostTask([this, screenProperty] {
-        RS_LOGI("dmulti_process %{public}s: screenId[%{public}llu] width[%{public}d] height[%{public}d]",
-            __func__, screenProperty->GetScreenId(), screenProperty->GetWidth(), screenProperty->GetHeight());
-        renderProcess_.renderPipeline_->OnScreenPropertyChanged(screenProperty);
-    });
+    // handler->PostTask([this, screenProperty] {
+    //     RS_LOGI("dmulti_process %{public}s: screenId[%{public}llu] width[%{public}d] height[%{public}d]",
+    //         __func__, screenProperty->GetScreenId(), screenProperty->GetWidth(), screenProperty->GetHeight());
+    //     renderProcess_.renderPipeline_->OnScreenPropertyChanged(screenProperty);
+    // });
     return 0;
 }
 } // namespace Rosen

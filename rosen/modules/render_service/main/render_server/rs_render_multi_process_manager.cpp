@@ -96,9 +96,6 @@ void RSMultiRenderProcessManager::RecordRenderProcessConnection(pid_t pid,
     sptr<IRSComposerToRenderConnection> composerToRenderConnection,
     sptr<RSIConnectToRenderProcess> connectToRenderConnection)
 {
-    // // No problem in a multithreaded environment
-    // composerToRenderConnections_.insert_or_assign(pid, composerToRenderConnection);
-
     // Using a mutex to protect this write operation in a multithreaded environment
     std::lock_guard<std::mutex> lock(mutex_);
     serviceToRenderConnections_.insert_or_assign(pid, serviceToRenderConnection);
@@ -156,29 +153,26 @@ sptr<IRemoteObject> RSMultiRenderProcessManager::OnScreenConnected(ScreenId scre
     GroupId groupId = GetGroupIdByScreenId(screenId);
     auto optionalPid = GetRenderProcessPidByGroupId(groupId);
     auto renderConnProxy = optionalPid.has_value() ?
-        HandleExistingGroup(optionalPid.value(), screenId, output, property) :
-        HandleNewGroup(groupId, screenId, output, property);
+        HandleExistingGroup(optionalPid.value(), screenId, property) :
+        HandleNewGroup(groupId, screenId, property);
     return renderConnProxy;
 }
 
 sptr<IRemoteObject> RSMultiRenderProcessManager::HandleExistingGroup(pid_t pid, ScreenId screenId,
-    const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property)
+    const sptr<RSScreenProperty>& property)
 {
     RS_LOGD("GroupId has connected already, screenId is %{public}" PRIu64, screenId);
     auto composerConn = renderService_.rsRenderComposerManager_->GetRSComposerConnection(screenId);
 
-    // TODO: 需要适配ouput的marshalling和unmarshalling
     sptr<RSIServiceToRenderConnection> serviceToRenderConnection = GotServiceToRenderConnByPid(pid);
-    serviceToRenderConnection->NotifyScreenConnectInfoToRender(output, property, composerConn);
+    serviceToRenderConnection->NotifyScreenConnectInfoToRender(property, composerConn);
 
-    // sptr<IRSComposerToRenderConnection> composerToRenderConnection = composerToRenderConnections_.at(pid);
-    // renderService_.rsRenderComposerManager_->SetComposerToRenderConnection(screenId, composerToRenderConnection);
     auto connectToRender = GotConnectToRenderConnByPid(pid);
     return connectToRender->AsObject();
 }
 
 sptr<IRemoteObject> RSMultiRenderProcessManager::HandleNewGroup(GroupId groupId, ScreenId screenId,
-    const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property)
+    const sptr<RSScreenProperty>& property)
 {
     RS_LOGD("GroupId first time connect, screenId is %{public}" PRIu64, screenId);
     std::promise<bool> renderProcessReadyPromise;
@@ -190,7 +184,7 @@ sptr<IRemoteObject> RSMultiRenderProcessManager::HandleNewGroup(GroupId groupId,
         pid = ForkAndExec(groupId);
         if (pid > 0) {
             UpdateGroupIdToRenderProcessPid(groupId, pid);
-            PendingScreenConnectInfo screenConnectInfo {.screenId = screenId, .output = output, .property = property};
+            PendingScreenConnectInfo screenConnectInfo {.screenId = screenId, .property = property};
             pendingScreenConnectInfos_.insert_or_assign(pid, screenConnectInfo);
             renderProcessReadyPromises_[pid] = std::move(renderProcessReadyPromise);
             // TODO: LTPO适配
@@ -210,8 +204,6 @@ sptr<IRemoteObject> RSMultiRenderProcessManager::HandleNewGroup(GroupId groupId,
     // Block and wait for the clientToRenderConnectionProxy to be ready
     renderProcessReadyFuture.wait();
     sptr<IRemoteObject> renderConnProxy = GotConnectToRenderConnByPid(pid)->AsObject();
-    // sptr<IRSComposerToRenderConnection> composerToRenderProxy = composerToRenderConnections_.at(pid);
-    // renderService_.rsRenderComposerManager_->SetComposerToRenderConnection(screenId, composerToRenderProxy);
 
     // TODO: 字体需要适配
     // auto conn = GotServiceToRenderConnByPid(pid);
@@ -245,7 +237,7 @@ void RSMultiRenderProcessManager::OnScreenPropertyChanged(ScreenId screenId, Scr
         RS_LOGE("%{public}s: serviceToRenderConnection is nullptr", __func__);
         return;
     }
-    serviceToRenderConnection->NotifyScreenPropertyChangedInfoToRender(property);
+    // serviceToRenderConnection->NotifyScreenPropertyChangedInfoToRender(property);
 }
 
 void RSMultiRenderProcessManager::OnScreenRefresh(screenId)
@@ -276,7 +268,7 @@ void RSMultiRenderProcessManager::OnVirtualScreenConnected(ScreenId screenId, Sc
         }
     }
 
-    serviceToRenderConnection->NotifyScreenConnectInfoToRender(nullptr, property, nullptr);
+    serviceToRenderConnection->NotifyScreenConnectInfoToRender(property, nullptr);
 }
 
 void RSMultiRenderProcessManager::OnVirtualScreenDisconnected(ScreenId screenId)

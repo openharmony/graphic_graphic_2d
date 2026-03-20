@@ -15,9 +15,6 @@
 
 #include "rs_service_to_render_connection.h"
 
-#include "rs_render_composer_client.h"
-#include "rs_trace.h"
-
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "platform/common/rs_log.h"
@@ -28,8 +25,8 @@
 
 namespace OHOS {
 namespace Rosen {
-int32_t RSServiceToRenderConnection::NotifyScreenConnectInfoToRender(const std::shared_ptr<HdiOutput>& output,
-    const sptr<RSScreenProperty>& screenProperty, sptr<IRSRenderToComposerConnection> composerConn)
+int32_t RSServiceToRenderConnection::NotifyScreenConnectInfoToRender(const sptr<ScreenPropertyBase>& screenProperty,
+    sptr<IRSRenderToComposerConnection> composerConn)
 {
     if (renderProcessAgent_ == nullptr) {
         RS_LOGE("dmulti_process %{public}s: renderProcessAgent_ is nullptr", __func__);
@@ -49,8 +46,8 @@ int32_t RSServiceToRenderConnection::NotifyScreenDisconnectInfoToRender(ScreenId
     return 0;
 }
 
-int32_t RSServiceToRenderConnection::NotifyScreenPropertyChangedInfoToRender(
-    const sptr<RSScreenPropertyBase>& screenProperty)
+int32_t RSServiceToRenderConnection::NotifyScreenPropertyChangedInfoToRender(ScreenPropertyType type,
+    const sptr<ScreenPropertyBase>& screenProperty)
 {
     if (renderProcessAgent_ == nullptr) {
         RS_LOGE("dmulti_process %{public}s: renderProcessAgent_ is nullptr", __func__);
