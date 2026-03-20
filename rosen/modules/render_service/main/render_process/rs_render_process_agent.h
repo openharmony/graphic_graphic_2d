@@ -23,13 +23,13 @@ namespace Rosen {
 class RSScreenProperty;
 class RSRenderProcessAgent : public RefBase {
 public:
-    RSRenderProcessAgent(RSRenderProcess& renderProcess);
+    explicit RSRenderProcessAgent(RSRenderProcess& renderProcess);
     ~RSRenderProcessAgent() = default;
 
-    int32_t NotifyScreenConnectInfoToRender(const sptr<RSScreenProperty>& screenProperty, 
+    int32_t NotifyScreenConnectInfoToRender(const sptr<RSScreenProperty>& screenProperty,
         const sptr<IRSRenderToComposerConnection>& composerConn);
     int32_t NotifyScreenDisconnectInfoToRender(ScreenId screenId);
-    int32_t NotifyScreenPropertyChangedInfoToRender(const sptr<RSScreenProperty>& screenProperty);
+    int32_t NotifyScreenPropertyChangedInfoToRender(const sptr<RSScreenPropertyBase>& screenProperty);
 
 private:
     RSRenderProcess& renderProcess_;

@@ -57,7 +57,7 @@ int32_t RSRenderProcessAgent::NotifyScreenDisconnectInfoToRender(ScreenId screen
     return 0;
 }
 
-int32_t RSRenderProcessAgent::NotifyScreenPropertyChangedInfoToRender(const sptr<RSScreenProperty>& screenProperty)
+int32_t RSRenderProcessAgent::NotifyScreenPropertyChangedInfoToRender(const sptr<RSScreenPropertyBase>& screenProperty)
 {
     auto handler = renderProcess_.handler_;
     handler->PostTask([this, screenProperty] {

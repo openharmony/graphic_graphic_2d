@@ -37,19 +37,19 @@ public:
     explicit RSMultiRenderProcessManager(RSRenderService& renderService);
     ~RSMultiRenderProcessManager() noexcept override = default;
 
-    sptr<IRemoteObject> OnScreenConnected(ScreenId id,
+    sptr<IRemoteObject> OnScreenConnected(ScreenId screenId,
         const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property) override;
-    void OnScreenDisconnected(ScreenId id) override;
-    void OnScreenPropertyChanged(ScreenId id, ScreenPropertyType type,
+    void OnScreenDisconnected(ScreenId screenId) override;
+    void OnScreenPropertyChanged(ScreenId screenId, ScreenPropertyType type,
         const sptr<ScreenPropertyBase>& property) override;
-    void OnScreenRefresh(ScreenId id) override;
-    void OnVirtualScreenConnected(ScreenId id,
+    void OnScreenRefresh(ScreenId screenId) override;
+    void OnVirtualScreenConnected(ScreenId screenId,
         ScreenId associatedScreenId, const sptr<RSScreenProperty>& property) override;
-    void OnVirtualScreenDisconnected(ScreenId id) override;
+    void OnVirtualScreenDisconnected(ScreenId screenId) override;
 
     void RecordRenderProcessConnection(pid_t pid, sptr<RSIServiceToRenderConnection> serviceToRenderConnection,
         sptr<IRSComposerToRenderConnection> composerToRenderConnection,
-        sptr<RSIConnectToRenderProcess> connectToRenderConnection) const;
+        sptr<RSIConnectToRenderProcess> connectToRenderConnection);
     sptr<RSScreenProperty> GetPendingScreenProperty(pid_t pid) const;
     void SetRenderProcessReadyPromise(pid_t pid);
 
@@ -81,11 +81,11 @@ private:
     sptr<RSIConnectToRenderProcess> GotConnectToRenderConnByPid(pid_t pid) const;
     sptr<RSIConnectToRenderProcess> GetConnectToRenderConnByPidLocked(pid_t pid) const;
 
-    ScreenId InsertVirtualToPhysicalScreenMap(ScreenId id, ScreenId associatedScreenId);
-    std::optional<ScreenId> DeleteVirtualToPhysicalScreenMap(ScreenId id);
-    ScreenId FindVirtualToPhysicalScreenMap(ScreenId id);
-    
-    std::unordered_map<pid_t, sptr<IRSComposerToRenderConnection>> composerToRenderConnections_;
+    ScreenId InsertVirtualToPhysicalScreenMap(ScreenId screenId, ScreenId associatedScreenId);
+    std::optional<ScreenId> DeleteVirtualToPhysicalScreenMap(ScreenId screenId);
+    ScreenId FindVirtualToPhysicalScreenMap(ScreenId screenId);
+
+    // std::unordered_map<pid_t, sptr<IRSComposerToRenderConnection>> composerToRenderConnections_;
     std::unordered_map<pid_t, std::promise<bool>> renderProcessReadyPromises_;
 
     mutable std::mutex mutex_;

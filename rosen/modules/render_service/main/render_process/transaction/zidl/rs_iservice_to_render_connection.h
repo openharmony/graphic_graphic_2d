@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_MAIN_RENDER_PROCESS_TRANSACTION_ZIDL_RS_ISERVICE_TO_RENDER_CONNECTION_H
 
 #include <sync_fence.h>
+#include "hdi_output.h"
 #include "ipc_callbacks/dfx/rs_dump_callback.h"
 #include "irs_render_to_composer_connection.h"
 #include "platform/ohos/transaction/rs_irender_connection_token.h"
@@ -42,10 +43,10 @@ public:
     virtual ~RSIServiceToRenderConnection() noexcept = default;
 
     // Process Manager
-    virtual int32_t NotifyScreenConnectInfoToRender(const sptr<RSScreenProperty>& screenProperty,
-        sptr<IRSRenderToComposerConnection> composerConn) = 0;
+    virtual int32_t NotifyScreenConnectInfoToRender(const std::shared_ptr<HdiOutput>& output,
+        const sptr<RSScreenProperty>& screenProperty, sptr<IRSRenderToComposerConnection> composerConn) = 0;
     virtual int32_t NotifyScreenDisconnectInfoToRender(ScreenId screenId) = 0;
-    virtual int32_t NotifyScreenPropertyChangedInfoToRender(const sptr<RSScreenProperty>& screenProeprty) = 0;
+    virtual int32_t NotifyScreenPropertyChangedInfoToRender(const sptr<RSScreenPropertyBase>& screenProeprty) = 0;
 
     // Screen Manager
     virtual int32_t NotifyScreenRefresh(ScreenId id) = 0;

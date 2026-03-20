@@ -28,7 +28,8 @@
 
 namespace OHOS {
 namespace Rosen {
-int32_t RSServiceToRenderConnection::NotifyScreenConnectInfoToRender(const sptr<RSScreenProperty>& screenProperty, sptr<IRSRenderToComposerConnection> composerConn)
+int32_t RSServiceToRenderConnection::NotifyScreenConnectInfoToRender(const std::shared_ptr<HdiOutput>& output,
+    const sptr<RSScreenProperty>& screenProperty, sptr<IRSRenderToComposerConnection> composerConn)
 {
     if (renderProcessAgent_ == nullptr) {
         RS_LOGE("dmulti_process %{public}s: renderProcessAgent_ is nullptr", __func__);
@@ -48,7 +49,8 @@ int32_t RSServiceToRenderConnection::NotifyScreenDisconnectInfoToRender(ScreenId
     return 0;
 }
 
-int32_t RSServiceToRenderConnection::NotifyScreenPropertyChangedInfoToRender(const sptr<RSScreenProperty>& screenProperty)
+int32_t RSServiceToRenderConnection::NotifyScreenPropertyChangedInfoToRender(
+    const sptr<RSScreenPropertyBase>& screenProperty)
 {
     if (renderProcessAgent_ == nullptr) {
         RS_LOGE("dmulti_process %{public}s: renderProcessAgent_ is nullptr", __func__);

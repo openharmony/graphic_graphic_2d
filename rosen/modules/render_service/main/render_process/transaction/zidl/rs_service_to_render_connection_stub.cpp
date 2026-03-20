@@ -69,7 +69,7 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                 auto remoteObj = data.ReadRemoteObject();
                 composerConn = iface_cast<IRSRenderToComposerConnection>(remoteObj);
             }
-            auto replyMessage = NotifyScreenConnectInfoToRender(screenProperty, composerConn);
+            auto replyMessage = NotifyScreenConnectInfoToRender(nullptr, screenProperty, composerConn);
             if (reply.WriteInt32(replyMessage)) {
                 RS_LOGE("%{public}s::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER WriteInt32 failed", __func__);
                 return ERR_INVALID_DATA;

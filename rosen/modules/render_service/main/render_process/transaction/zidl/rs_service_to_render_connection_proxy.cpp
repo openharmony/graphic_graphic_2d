@@ -36,41 +36,42 @@ namespace Rosen {
 RSServiceToRenderConnectionProxy::RSServiceToRenderConnectionProxy(const sptr<IRemoteObject>& impl)
     : IRemoteProxy<RSIServiceToRenderConnection>(impl) {}
 
-int32_t RSServiceToRenderConnectionProxy::NotifyScreenConnectInfoToRender(const sptr<RSScreenProperty>& screenProperty,
-    sptr<IRSRenderToComposerConnection> composerConn)
+int32_t RSServiceToRenderConnectionProxy::NotifyScreenConnectInfoToRender(const std::shared_ptr<HdiOutput>& output,
+    const sptr<RSScreenProperty>& screenProperty, sptr<IRSRenderToComposerConnection> composerConn)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
-        ROSEN_LOGE("%{public}s::NotifyScreenConnectInfoToRender: WriteInterfaceToken failed", __func__);
+        ROSEN_LOGE("%{public}s: WriteInterfaceToken failed", __func__);
         return -1;
     }
     if (!data.WriteParcelable(screenProperty.GetRefPtr())) {
-        ROSEN_LOGE("%{public}s::NotifyScreenConnectInfoToRender: WriteParcelable failed", __func__);
+        ROSEN_LOGE("%{public}s: WriteParcelable failed", __func__);
         return -1;
     }
     if (!data.WriteRemoteObject(composerConn->AsObject())) {
-        ROSEN_LOGE("%{public}s::NotifyScreenConnectInfoToRender: WriteObject failed", __func__);
+        ROSEN_LOGE("%{public}s: WriteObject failed", __func__);
         return -1;
     }
     if (composerConn) {
         if (!data.WriteBool(true) || !data.WriteRemoteObject(composerConn->AsObject())) {
-            ROSEN_LOGE("%{public}s::NotifyScreenConnectInfoToRender: WriteObject failed.", __func__);
+            ROSEN_LOGE("%{public}s: WriteObject failed.", __func__);
             return -1;
         }
     } else {
         if (!data.WriteBool(false)) {
-            ROSEN_LOGE("%{public}s::NotifyScreenConnectInfoToRender: WriteBool failed.", __func__);
+            ROSEN_LOGE("%{public}s: WriteBool failed.", __func__);
             return -1;
         }
     }
     RS_LOGI("dmulti_process RSServiceToRenderConnectionProxy::NotifyScreenConnectInfoToRender conn write in remoteObj successfully");
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER);
+    uint32_t code = static_cast<uint32_t>(
+        RSIServiceToRenderConnectionInterfaceCode::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("dmulti_process %{public}s: SendRquest failed, err is %{public}d", __func__, err);
+        ROSEN_LOGE("%{public}s: SendRquest failed, err is %{public}d", __func__, err);
         return -1;
     }
     auto replyMessage = reply.ReadInt32();
@@ -85,21 +86,21 @@ int32_t RSServiceToRenderConnectionProxy::NotifyScreenDisconnectInfoToRender(Scr
     MessageOption option;
     option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
-        ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::NotifyScreenConnectInfoToRender: WriteInterfaceToken failed");
+        ROSEN_LOGE("%{public}s: WriteInterfaceToken failed", __func__);
         return -1;
     }
     if (!data.WriteUint64(screenId)) {
-        ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::NotifyScreenConnectInfoToRender: WriteParcelable failed");
+        ROSEN_LOGE("%{public}s: WriteParcelable failed", __func__);
         return -1;
     }
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::NOTIFY_SCREEN_DISCONNECT_INFO_TO_RENDER);
+    uint32_t code = static_cast<uint32_t>(
+        RSIServiceToRenderConnectionInterfaceCode::NOTIFY_SCREEN_DISCONNECT_INFO_TO_RENDER);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("dmulti_process %{public}s: SendRquest failed, err is %{public}d", __func__, err);
+        ROSEN_LOGE("%{public}s: SendRquest failed, err is %{public}d", __func__, err);
         return -1;
     }
     auto replyMessage = reply.ReadInt32();
-    RS_LOGI("dmult_process RSServiceToRenderConnectionProxy::NotifyScreenConnectInfoToRender reply received successfully");
     return replyMessage;
 }
 
@@ -110,21 +111,21 @@ int32_t RSServiceToRenderConnectionProxy::NotifyScreenPropertyChangedInfoToRende
     MessageOption option;
     option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
-        ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::NotifyScreenConnectInfoToRender: WriteInterfaceToken failed");
+        ROSEN_LOGE("%{public}s: WriteInterfaceToken failed", __func__);
         return -1;
     }
     if (!data.WriteParcelable(screenProperty.GetRefPtr())) {
-        ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::NotifyScreenConnectInfoToRender: WriteParcelable failed");
+        ROSEN_LOGE("%{public}s: WriteParcelable failed", __func__);
         return -1;
     }
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::NOTIFY_SCREEN_PROPERTY_CHANGED_INFO_TO_RENDER);
+    uint32_t code = static_cast<uint32_t>(
+        RSIServiceToRenderConnectionInterfaceCode::NOTIFY_SCREEN_PROPERTY_CHANGED_INFO_TO_RENDER);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("dmulti_process %{public}s: SendRquest failed, err is %{public}d", __func__, err);
+        ROSEN_LOGE("%{public}s: SendRquest failed, err is %{public}d", __func__, err);
         return -1;
     }
     auto replyMessage = reply.ReadInt32();
-    RS_LOGI("dmult_process RSServiceToRenderConnectionProxy::NotifyScreenConnectInfoToRender reply received successfully");
     return replyMessage;
 }
 

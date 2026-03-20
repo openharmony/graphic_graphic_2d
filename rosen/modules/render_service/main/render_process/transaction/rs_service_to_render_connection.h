@@ -38,10 +38,10 @@ public:
     RSServiceToRenderConnection& operator=(const RSServiceToRenderConnection&) = delete;
 
     // Process Manager
-    int32_t NotifyScreenConnectInfoToRender(const sptr<RSScreenProperty>& screenProperty,
-        sptr<IRSRenderToComposerConnection> composerConn) override;
+    int32_t NotifyScreenConnectInfoToRender(const std::shared_ptr<HdiOutput>& output,
+        const sptr<RSScreenProperty>& screenProperty, sptr<IRSRenderToComposerConnection> composerConn) override;
     int32_t NotifyScreenDisconnectInfoToRender(ScreenId screenId) override;
-    int32_t NotifyScreenPropertyChangedInfoToRender(const sptr<RSScreenProperty>& screenProperty) override;
+    int32_t NotifyScreenPropertyChangedInfoToRender(const sptr<RSScreenPropertyBase>& screenProperty) override;
 
     // Screen Manager
     int32_t NotifyScreenRefresh(ScreenId screenId) override;

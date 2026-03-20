@@ -123,6 +123,7 @@ private:
     
     friend class RSRenderServiceAgent;
     friend class RSRenderProcessManager;
+    friend class RSMultiRenderProcessManager;
     friend class RSSingleRenderProcessManager;
     friend class RSConnectToRenderProcess;
     friend class RSClientToRenderConnection;
