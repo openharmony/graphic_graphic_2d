@@ -934,6 +934,15 @@ void RSSurfaceNode::SetSurfaceTextureInitTypeCallBack(const RSSurfaceTextureInit
     if (texture) {
         texture->SetInitTypeCallback(initTypeCallback);
     }
+#else
+    RSSurfaceTextureConfig config = {
+        .type = RSSurfaceExtType::SURFACE_TEXTURE,
+        .additionalData = nullptr
+    };
+    auto texture = surface_->GetSurfaceExt(config);
+    if (texture) {
+        texture->SetInitTypeCallback(initTypeCallback);
+    }
 #endif // ROSEN_IOS
 }
 #endif

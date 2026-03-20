@@ -19,7 +19,7 @@
 #include <mutex>
 #include <string>
 #include <unordered_map>
-#ifdef RS_ENABLE_VK
+#if defined (RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
 #include "vulkan/vulkan_core.h"
 #include "vulkan/vulkan_xeg.h"
 #include "vulkan/vulkan.h"
@@ -54,7 +54,7 @@ public:
     static void ReportAddScreenId(const int screenId);
     static void ReportDelScreenId(const int screenId);
     static bool IsInitSchedCompleted();
-#ifdef RS_ENABLE_VK
+#if defined (RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
     static void ReportWindowInfo(VkDevice device, bool isSingleFullScreenApp, const char* firstFrontBundleName);
 #endif
 private:
