@@ -23,7 +23,7 @@
 namespace OHOS {
 namespace Rosen {
 
-class RSNGShapeBase : public RSNGEffectBase<RSNGShapeBase, RSNGRenderShapeBase> {
+class RSC_EXPORT RSNGShapeBase : public RSNGEffectBase<RSNGShapeBase, RSNGRenderShapeBase> {
 public:
     virtual ~RSNGShapeBase() = default;
 
