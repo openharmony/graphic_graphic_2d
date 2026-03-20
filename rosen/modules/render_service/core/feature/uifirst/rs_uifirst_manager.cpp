@@ -571,8 +571,12 @@ bool RSUifirstManager::CurSurfaceHasVisibleDirtyRegion(const std::shared_ptr<RSS
 
 bool RSUifirstManager::CheckVisibleDirtyRegionIsEmpty(const std::shared_ptr<RSSurfaceRenderNode>& node)
 {
-    if (GetUiFirstMode() != UiFirstModeType::MULTI_WINDOW_MODE) {
+    if (!node->IsLeashOrMainWindow()) {
         return false;
+    }
+    if (node->GetVisibleRegion().IsEmpty()) {
+        RS_TRACE_NAME_FMT("node[%s] has empty visible region", node->GetName().c_str());
+        return true;
     }
     if (ROSEN_EQ(node->GetGlobalAlpha(), 0.0f) &&
         RSMainThread::Instance()->GetSystemAnimatedScenes() == SystemAnimatedScenes::LOCKSCREEN_TO_LAUNCHER &&
