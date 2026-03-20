@@ -240,7 +240,9 @@ CM_INLINE void RSRenderNodeDrawable::GenerateCacheIfNeed(
     bool isForegroundFilterCache = params.GetForegroundFilterCache() != nullptr;
     // in case of no filter
     if (needUpdateCache && (!hasFilter || isForegroundFilterCache || params.GetRSFreezeFlag())) {
-        RS_TRACE_NAME_FMT("UpdateCacheSurface id:%" PRIu64 ", isForegroundFilter:%d", nodeId_, isForegroundFilterCache);
+        RS_TRACE_NAME_FMT("UpdateCacheSurface id:%" PRIu64 ", isForegroundFilter:%d, isOpinc:%d, isFreeze:[%d, %d]",
+            nodeId_, isForegroundFilterCache, GetOpincDrawCache().OpincGetCachedMark(), params.GetRSFreezeFlag(),
+            params.IsFreezedByUser());
         RSRenderNodeDrawableAdapter* root = curDrawingCacheRoot_;
         curDrawingCacheRoot_ = this;
         hasSkipCacheLayer_ = false;
@@ -932,7 +934,14 @@ bool RSRenderNodeDrawable::CheckIfNeedUpdateCache(RSRenderParams& params, int32_
 
     // node freeze
     if (params.GetRSFreezeFlag()) {
-        return updateTimes == 0;
+        if (params.IsFreezedByUser()) {
+            return updateTimes == 0;
+        } else {
+            RS_TRACE_NAME_FMT("DisableFreeze for filter id:%llu", GetId());
+            bool hasFilter = params.ChildHasVisibleFilter() || params.ChildHasVisibleEffect() ||
+                             params.HasChildExcludedFromNodeGroup();
+            return updateTimes == 0 && !hasFilter;
+        }
     }
     if ((params.GetDrawingCacheType() == RSDrawingCacheType::TARGETED_CACHE && params.NeedFilter() &&
         params.GetDrawingCacheIncludeProperty()) || ROSEN_LE(params.GetCacheSize().x_, 0.f) ||

@@ -1200,7 +1200,7 @@ HWTEST_F(RSRenderNodeTest, OnSyncTest1, TestSize.Level1)
 
     node->GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)] = drawableFilter;
     node->drawingCacheType_ = RSDrawingCacheType::FORCED_CACHE;
-    node->stagingRenderParams_->freezeFlag_ = true;
+    node->stagingRenderParams_->SetRSFreezeFlag(true);
     node->needClearSurface_ = true;
     std::function<void()> clearTask = []() { printf("ClearSurfaceTask CallBack\n"); };
     node->GetOpincCache().isOpincRootFlag_ = true;

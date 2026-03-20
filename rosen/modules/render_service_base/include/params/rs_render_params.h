@@ -352,11 +352,10 @@ public:
     {
         return drawingCacheIncludeProperty_;
     }
-    void SetRSFreezeFlag(bool freezeFlag);
-    bool GetRSFreezeFlag() const
-    {
-        return freezeFlag_;
-    }
+    void SetRSFreezeFlag(bool freezeFlag, bool isMarkedByUI = false);
+    bool GetRSFreezeFlag() const;
+    RSRenderGroupCache::RSFreezeFlag GetRSFreezeFlagType() const;
+    bool IsFreezedByUser() const;
     // !used for RenderGroup
 
     void OpincSetIsSuggest(bool isSuggest);
@@ -630,7 +629,6 @@ private:
     HdrStatus hdrStatus_ = HdrStatus::NO_HDR;
     bool childHasVisibleHDRContent_ = false;
     GraphicColorGamut nodeColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-    bool freezeFlag_ = false;
     bool childHasVisibleEffect_ = false;
     bool childHasVisibleFilter_ = false;
     bool hasSandBox_ = false;

@@ -90,7 +90,7 @@ HWTEST_F(RSRenderNodeDrawableTest, GenerateCacheIfNeedTest, TestSize.Level1)
     drawable->InitCachedSurface(paintFilterCanvas.GetGPUContext().get(), params.GetCacheSize(), 0xFF);
     drawable->GenerateCacheIfNeed(canvas, params);
     ASSERT_FALSE(params.GetRSFreezeFlag());
-    params.freezeFlag_ = false;
+    params.SetRSFreezeFlag(false);
     drawable->GenerateCacheIfNeed(canvas, params);
     ASSERT_FALSE(params.GetRSFreezeFlag());
     drawable->opincDrawCache_.isOpincMarkCached_ = true;
@@ -107,7 +107,7 @@ HWTEST_F(RSRenderNodeDrawableTest, GenerateCacheIfNeedTest, TestSize.Level1)
     drawable->GenerateCacheIfNeed(canvas, params);
     ASSERT_FALSE(params.GetDrawingCacheType() == RSDrawingCacheType::TARGETED_CACHE);
 
-    params.freezeFlag_ = false;
+    params.SetRSFreezeFlag(false);
     params.isDrawingCacheChanged_ = true;
     drawable->drawingCacheUpdateTimeMap_[drawable->nodeId_] = 4;
     drawable->GenerateCacheIfNeed(canvas, params);
@@ -119,7 +119,7 @@ HWTEST_F(RSRenderNodeDrawableTest, GenerateCacheIfNeedTest, TestSize.Level1)
     params.drawingCacheType_ = RSDrawingCacheType::FORCED_CACHE;
     drawable->GenerateCacheIfNeed(canvas, params);
     ASSERT_TRUE(!drawable->opincDrawCache_.OpincGetCachedMark());
-    params.freezeFlag_ = false;
+    params.SetRSFreezeFlag(false);
     drawable->GenerateCacheIfNeed(canvas, params);
     ASSERT_FALSE(params.GetRSFreezeFlag());
     ASSERT_TRUE(params.GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE);
@@ -474,10 +474,6 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckIfNeedUpdateCacheTest001, TestSize.Level
     updateTimes = 0;
     result = drawable->CheckIfNeedUpdateCache(params, updateTimes);
     ASSERT_FALSE(result);
-    params.freezeFlag_ = true;
-    updateTimes = 0;
-    result = drawable->CheckIfNeedUpdateCache(params, updateTimes);
-    ASSERT_TRUE(result);
 }
 
 /**
@@ -497,6 +493,16 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckIfNeedUpdateCacheTest002, TestSize.Level
     drawable->UpdateCurRenderGroupCacheRootFilterState(params);
     params.SetHasChildExcludedFromNodeGroup(true);
     EXPECT_TRUE(drawable->IsCurRenderGroupCacheRootExcludedStateChanged(params));
+    result = drawable->CheckIfNeedUpdateCache(params, updateTimes);
+    EXPECT_FALSE(result);
+    params.SetHasChildExcludedFromNodeGroup(false);
+
+    params.SetRSFreezeFlag(true, true);
+    updateTimes = 0;
+    result = drawable->CheckIfNeedUpdateCache(params, updateTimes);
+    EXPECT_TRUE(result);
+    updateTimes = 0;
+    params.SetChildHasVisibleFilter(true);
     result = drawable->CheckIfNeedUpdateCache(params, updateTimes);
     EXPECT_FALSE(result);
 }
@@ -802,7 +808,7 @@ HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheSurfaceTest001, TestSize.Level1)
     drawable->UpdateCacheSurface(paintFilterCanvas1, params);
     ASSERT_EQ(params.foregroundFilterCache_, nullptr);
 
-    params.freezeFlag_ = true;
+    params.SetRSFreezeFlag(true);
     bool includeProperty = true;
     params.SetDrawingCacheIncludeProperty(includeProperty);
     drawable->UpdateCacheSurface(paintFilterCanvas1, params);
