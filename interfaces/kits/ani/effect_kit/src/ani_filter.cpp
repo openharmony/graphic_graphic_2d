@@ -399,10 +399,6 @@ ani_status AniFilter::Init(ani_env* env)
             reinterpret_cast<void*>(OHOS::Rosen::AniFilter::SetColorMatrix) },
         ani_native_function { "getPixelMapNative", ":C{@ohos.multimedia.image.image.PixelMap}",
             reinterpret_cast<void*>(OHOS::Rosen::AniFilter::GetPixelMap) },
-        ani_native_function { "getPixelMapAsyncNative", nullptr,
-            reinterpret_cast<void*>(OHOS::Rosen::AniFilter::GetPixelMapAsync) },
-        ani_native_function { "getEffectPixelMapSyncNative", "z:C{@ohos.multimedia.image.image.PixelMap}",
-            reinterpret_cast<void*>(OHOS::Rosen::AniFilter::GetEffectPixelMapSync) },
     };
     ani_status ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
