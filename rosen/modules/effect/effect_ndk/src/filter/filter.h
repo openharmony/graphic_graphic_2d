@@ -30,6 +30,7 @@ public:
     Filter(){};
     explicit Filter(std::shared_ptr<OHOS::Media::PixelMap> pixelMap);
 
+    std::shared_ptr<OHOS::Media::PixelMap> GetSrcPixelMap();
     std::shared_ptr<OHOS::Media::PixelMap> GetPixelMap(bool useCpuRender = false);
     bool Blur(float radius, Drawing::TileMode tileMode = Drawing::TileMode::DECAL);
     bool Blur(float radius, float angle, Drawing::TileMode tileMode = Drawing::TileMode::DECAL);
@@ -39,6 +40,10 @@ public:
     bool MapColorByBrightness(const std::vector<Vector4f>& colors, const std::vector<float>& positions);
     bool GammaCorrection(float gamma);
     bool SetColorMatrix(const Drawing::ColorMatrix& matrix);
+    bool MaskTransition(const std::shared_ptr<OHOS::Media::PixelMap>& topLayer,
+        const std::shared_ptr<Drawing::GEShaderMask>& mask, float factor, bool inverse);
+    bool WaterDropletTransition(const std::shared_ptr<OHOS::Media::PixelMap>& topLayer,
+        const std::shared_ptr<Drawing::GEWaterDropletTransitionFilterParams>& geWaterDropletParams);
     private:
     void AddNextFilter(std::shared_ptr<EffectImageFilter> filter);
     bool Render(bool forceCPU);

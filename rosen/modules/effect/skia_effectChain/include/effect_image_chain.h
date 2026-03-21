@@ -19,6 +19,8 @@
 #include <memory>
 #include <mutex>
 
+#include "ge_shader_filter_params.h"
+#include "ge_shader_mask.h"
 #include "include/draw/canvas.h"
 #include "include/draw/surface.h"
 #include "include/effect/image_filter.h"
@@ -79,6 +81,10 @@ public:
     DrawingError ApplyEllipticalGradientBlur(float blurRadius, float centerX, float centerY,
         float maskRadiusX, float maskRadiusY, const std::vector<float> &positions, const std::vector<float> &degrees);
     DrawingError ApplySDFCreation(int spreadFactor, bool generateDerivs);
+    DrawingError ApplyMaskTransitionFilter(const std::shared_ptr<Media::PixelMap>& topLayerMap,
+        const std::shared_ptr<Drawing::GEShaderMask>& mask, float factor, bool inverse);
+    DrawingError ApplyWaterDropletTransitionFilter(const std::shared_ptr<Media::PixelMap>& topLayerMap,
+        const std::shared_ptr<Drawing::GEWaterDropletTransitionFilterParams>& geWaterDropletParams);
 
     DrawingError Draw();
 
@@ -92,6 +98,7 @@ private:
         bool isDirection = false, float angle = 0.0);
     DrawingError ApplyHpsBlur(float radius);
     void DrawOnFilter();
+    std::shared_ptr<Drawing::Image> ConvertPixelMapToDrawingImage(const std::shared_ptr<Media::PixelMap>& pixelMap);
 
     std::mutex apiMutex_;
 

@@ -40,6 +40,7 @@ template("effect_ndk_source_set") {
       "c_utils:utils",
       "hilog:libhilog",
       "image_framework:image",
+      "graphics_effect:graphics_effect_core",
     ]
 
     public_deps = [
@@ -67,6 +68,12 @@ template("effect_ndk_source_set") {
       "$graphic_2d_root/rosen/modules/render_service_base/include",
       "$graphic_2d_root/modules/2d_graphics/include",
     ]
+
+    if (is_arkui_x) {
+      include_dirs += [
+        "//foundation/graphic/graphics_effect/include"
+      ]
+    }
 
     if (platform == "ohos" || platform == "ohos_ng") {
       defines += [ "OHOS_PLATFORM" ]
