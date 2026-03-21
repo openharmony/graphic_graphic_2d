@@ -329,7 +329,7 @@ ani_int AniColorPicker::DiscriminatePictureLightDegree(ani_env* env, ani_object 
     }
     uint32_t errorCode = ERR_EFFECT_INVALID_VALUE;
     PictureLightColorDegree degree;
-    errorCode = thisColorPicker->nativeColorPicker_->DiscriminatePitureLightDegree(degree);
+    errorCode = thisColorPicker->nativeColorPicker_->DiscriminatePictureLightDegree(degree);
     if (errorCode != SUCCESS) {
         EFFECT_LOG_E("[DiscriminatePictureLightDegree] Error3, failed to discriminate picture light "
                      "degree (error code: %u)", errorCode);
