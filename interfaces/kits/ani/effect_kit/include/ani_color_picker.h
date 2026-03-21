@@ -51,8 +51,6 @@ public:
     double coordinatesBuffer_[4] = {0.0, 0.0, 0.0, 0.0};
 
 private:
-    static ani_status BindNativeMethods(ani_env* env, ani_class cls);
-    static ani_status BindStaticNativeMethods(ani_env* env, ani_class cls);
     static thread_local std::shared_ptr<ColorPicker> sColorPicker_;
 };
 } // namespace Rosen
