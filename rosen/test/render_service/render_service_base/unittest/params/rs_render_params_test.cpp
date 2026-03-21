@@ -470,25 +470,6 @@ HWTEST_F(RSRenderParamsTest, GetNeedUpdateCache_001, TestSize.Level2)
 }
 
 /**
- * @tc.name: SetForceDisableNodeGroupTest
- * @tc.desc: Test function SetForceDisableNodeGroup
- * @tc.type:FUNC
- * @tc.require:issueIB1KXV
- */
-HWTEST_F(RSRenderParamsTest, SetForceDisableNodeGroupTest, TestSize.Level2)
-{
-    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
-    std::unique_ptr<RSRenderParams> target = std::make_unique<RSRenderParams>(id);
-    RSRenderParams params(id);
-    auto renderParams = static_cast<RSRenderParams*>(target.get());
-
-    EXPECT_FALSE(renderParams->IsForceDisableNodeGroup());
-    renderParams->SetForceDisableNodeGroup(true);
-    EXPECT_TRUE(renderParams->IsForceDisableNodeGroup());
-    EXPECT_TRUE(renderParams->needSync_);
-}
-
-/**
  * @tc.name: ExcludedFromNodeGroupTest
  * @tc.desc: Test ExcludedFromNodeGroup
  * @tc.type: FUNC
@@ -1012,5 +993,78 @@ HWTEST_F(RSRenderParamsTest, SetCanvasDrawingResetSurfaceIndexTest, TestSize.Lev
     ASSERT_FALSE(renderParams->needSync_);
     renderParams->SetCanvasDrawingResetSurfaceIndex(2);
     ASSERT_TRUE(renderParams->needSync_);
+}
+
+/**
+ * @tc.name: SetNeedClipHoleForFilterTest001
+ * @tc.desc: Test SetNeedClipHoleForFilter with same value
+ * @tc.type: FUNC
+ * @tc.require: issues/20738
+ */
+HWTEST_F(RSRenderParamsTest, SetNeedClipHoleForFilterTest001, TestSize.Level1)
+{
+    constexpr NodeId id = 1;
+    RSRenderParams params(id);
+
+    EXPECT_FALSE(params.NeedClipHoleForFilter());
+    ASSERT_EQ(params.renderGroupCache_, nullptr);
+
+    params.SetNeedClipHoleForFilter(false);
+    ASSERT_EQ(params.renderGroupCache_, nullptr);
+    EXPECT_FALSE(params.NeedClipHoleForFilter());
+    EXPECT_FALSE(params.needSync_);
+
+    params.SetNeedClipHoleForFilter(true);
+    ASSERT_NE(params.renderGroupCache_, nullptr);
+    EXPECT_TRUE(params.NeedClipHoleForFilter());
+    EXPECT_TRUE(params.needSync_);
+
+    params.needSync_ = false;
+    params.SetNeedClipHoleForFilter(true);
+    EXPECT_TRUE(params.NeedClipHoleForFilter());
+    EXPECT_FALSE(params.needSync_);
+}
+
+/**
+ * @tc.name: SetNeedClipHoleForFilterTest002
+ * @tc.desc: Test SetNeedClipHoleForFilter with different value
+ * @tc.type: FUNC
+ * @tc.require: issues/20738
+ */
+HWTEST_F(RSRenderParamsTest, SetNeedClipHoleForFilterTest002, TestSize.Level1)
+{
+    constexpr NodeId id = 1;
+    RSRenderParams params(id);
+
+    params.SetNeedClipHoleForFilter(true);
+    EXPECT_TRUE(params.NeedClipHoleForFilter());
+    EXPECT_TRUE(params.needSync_);
+
+    params.SetNeedClipHoleForFilter(false);
+    EXPECT_FALSE(params.NeedClipHoleForFilter());
+    EXPECT_TRUE(params.needSync_);
+
+    params.SetNeedClipHoleForFilter(true);
+    EXPECT_TRUE(params.NeedClipHoleForFilter());
+    EXPECT_TRUE(params.needSync_);
+}
+
+/**
+ * @tc.name: SetNeedClipHoleForFilterTest003
+ * @tc.desc: Test SetNeedClipHoleForFilter with null renderGroupCache
+ * @tc.type: FUNC
+ * @tc.require: issues/20738
+ */
+HWTEST_F(RSRenderParamsTest, SetNeedClipHoleForFilterTest003, TestSize.Level1)
+{
+    constexpr NodeId id = 1;
+    RSRenderParams params(id);
+
+    ASSERT_EQ(params.renderGroupCache_, nullptr);
+
+    params.SetNeedClipHoleForFilter(true);
+    ASSERT_NE(params.renderGroupCache_, nullptr);
+    EXPECT_TRUE(params.NeedClipHoleForFilter());
+    EXPECT_TRUE(params.needSync_);
 }
 } // namespace OHOS::Rosen

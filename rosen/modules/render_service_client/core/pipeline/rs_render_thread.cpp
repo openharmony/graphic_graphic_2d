@@ -146,6 +146,9 @@ RSRenderThread::RSRenderThread()
         }
         RSRenderNodeGC::Instance().ReleaseNodeMemory();
         ReleasePixelMapInBackgroundThread();
+#if defined(RS_ENABLE_VK) && defined(ROSEN_ARKUI_X) && defined(RS_ENABLE_GPU)
+        ScheduleIdleGpuResourceClean();
+#endif
         context_->pendingSyncNodes_.clear();
 #ifdef ROSEN_OHOS
         FRAME_TRACE::RenderFrameTrace::GetInstance().RenderEndFrameTrace(RT_INTERVAL_NAME);
@@ -209,6 +212,29 @@ RSRenderThread::~RSRenderThread()
     }
 #endif
 }
+
+#if defined(RS_ENABLE_VK) && defined(ROSEN_ARKUI_X) && defined(RS_ENABLE_GPU)
+void RSRenderThread::ScheduleIdleGpuResourceClean()
+{
+    lastRenderEndTimeNs_ = jankDetector_ ? static_cast<int64_t>(jankDetector_->GetSysTimeNs()) : 0;
+    const int64_t scheduledTimeNs = lastRenderEndTimeNs_;
+    constexpr int64_t IDLE_CLEAN_DELAY_MS = 5000;
+    if (!handler_) {
+        return;
+    }
+    handler_->PostTask([this, scheduledTimeNs]() {
+        if (lastRenderEndTimeNs_ > scheduledTimeNs || !renderContext_) {
+            return;
+        }
+        auto gpuContext = renderContext_->GetSharedDrGPUContext();
+        if (!gpuContext) {
+            return;
+        }
+        gpuContext->FlushAndSubmit(true);
+        gpuContext->PurgeUnlockedResources(true);
+        }, IDLE_CLEAN_DELAY_MS);
+}
+#endif
 
 void RSRenderThread::Start()
 {

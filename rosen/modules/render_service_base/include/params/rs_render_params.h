@@ -283,11 +283,6 @@ public:
     {
         return isDrawingCacheChanged_;
     }
-    void SetForceDisableNodeGroup(bool forceDisable);
-    bool IsForceDisableNodeGroup() const
-    {
-        return isForceDisableNodeGroup_;
-    }
     void SetNeedUpdateCache(bool needUpdateCache)
     {
         isNeedUpdateCache_ = needUpdateCache;
@@ -311,6 +306,8 @@ public:
     bool IsRenderGroupSubTreeDirty() const;
     void SetChildHasTranslateOnSqueeze(bool val);
     bool ChildHasTranslateOnSqueeze() const;
+    void SetNeedClipHoleForFilter(bool val);
+    bool NeedClipHoleForFilter() const;
     void SetDrawingCacheIncludeProperty(bool includeProperty);
     bool GetDrawingCacheIncludeProperty() const
     {
@@ -575,7 +572,6 @@ private:
     bool childHasVisibleFilter_ = false;
     bool hasSandBox_ = false;
     bool isDrawingCacheChanged_ = false;
-    bool isForceDisableNodeGroup_ = false;
     std::atomic_bool isNeedUpdateCache_ = false;
     bool drawingCacheIncludeProperty_ = false;
     bool isNodeGroupHasChildInBlacklist_ = false;

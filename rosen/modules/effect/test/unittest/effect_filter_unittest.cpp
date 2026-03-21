@@ -451,6 +451,29 @@ HWTEST_F(EffectFilterUnittest, OH_Filter_GammaCorrectionTest, TestSize.Level1)
     GTEST_LOG_(INFO) << "EffectFilterUnittest OH_Filter_GammaCorrectionTest end";
 }
 
+/*
+ * @tc.name: OH_Filter_GammaCorrectionTest_Boundary
+ * @tc.desc: Create a gamma correction effect filter with gamma is zero.
+ * @tc.type: FUNC
+ * @tc.author:
+ */
+HWTEST_F(EffectFilterUnittest, OH_Filter_GammaCorrectionTest_Boundary, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "EffectFilterUnittest OH_Filter_GammaCorrectionTest_Boundary start";
+    OH_PixelmapNative *pixmap = nullptr;
+    /** pixmap is necessary, otherwize can not create pixelmap*/
+    OH_PixelmapNative ** pixMap = &pixmap;
+    CreatePixelMap(&pixMap);
+    ASSERT_TRUE(*pixMap != nullptr);
+    OH_Filter *filter = nullptr;
+    ASSERT_TRUE(OH_Filter_CreateEffect(*pixMap, &filter) == EFFECT_SUCCESS);
+
+    // 0.0f test gamma is invalid
+    float gamma = 0.0f;
+    EXPECT_EQ(OH_Filter_GammaCorrection(filter, gamma), EFFECT_BAD_PARAMETER);
+    GTEST_LOG_(INFO) << "EffectFilterUnittest OH_Filter_GammaCorrectionTest_Boundary end";
+}
+
 /**
  * @tc.name: OH_Filter_MaskTransition001
  * @tc.desc: Test MaskTransition with null parameters.

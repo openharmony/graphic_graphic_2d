@@ -5234,6 +5234,11 @@ bool RSProperties::DisableHWCForFilter() const
         localMagnificationCap_ || GetPixelStretch().has_value() || HasHarmonium() || GetMaterialFilter() != nullptr;
 }
 
+bool RSProperties::NeedClipHoleForRenderGroup() const
+{
+    return GetColorFilter() != nullptr;
+}
+
 void RSProperties::UpdateForegroundFilter()
 {
     foregroundFilter_.reset();
@@ -5446,6 +5451,9 @@ void RSProperties::SetBackgroundNGShader(const std::shared_ptr<RSNGRenderShaderB
     const auto& bgNGRenderShader_ = GetBackgroundNGShader();
     if (bgNGRenderShader_ && bgNGRenderShader_->ContainsType(RSNGEffectType::HARMONIUM_EFFECT)) {
         hasHarmonium_ = true;
+    }
+    if (renderShader != nullptr && renderShader->ContainsType(RSNGEffectType::FROSTED_GLASS_EFFECT)) {
+        filterNeedUpdate_ = true;
     }
 }
 

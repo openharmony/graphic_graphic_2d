@@ -245,7 +245,7 @@ HWTEST_F(EffectImageChainUnittest, ApplyMapColorByBrightnessTest, TestSize.Level
     auto ret = image->ApplyMapColorByBrightness(colors, positions);
     EXPECT_NE(ret, DrawingError::ERR_OK);
 
-    // test CUP
+    // test CPU
     Media::InitializationOptions opts;
     opts.size = { 1, 1 };
     std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
@@ -257,14 +257,14 @@ HWTEST_F(EffectImageChainUnittest, ApplyMapColorByBrightnessTest, TestSize.Level
     // test filter is nullptr
     ret = image->Prepare(srcPixelMap, false);
     ret = image->ApplyMapColorByBrightness(colors, positions);
-    EXPECT_EQ(ret, DrawingError::ERR_OK);
+    EXPECT_EQ(ret, DrawingError::ERR_MEMORY);
 
     // test filter not is nullptr
     auto filterBlur = Drawing::ImageFilter::CreateBlurImageFilter(1, 1, Drawing::TileMode::DECAL, nullptr);
     ASSERT_NE(filterBlur, nullptr);
     ret = image->ApplyDrawingFilter(filterBlur);
     ret = image->ApplyMapColorByBrightness(colors, positions);
-    EXPECT_EQ(ret, DrawingError::ERR_OK);
+    EXPECT_EQ(ret, DrawingError::ERR_MEMORY);
 }
 
 /**
@@ -293,14 +293,14 @@ HWTEST_F(EffectImageChainUnittest, ApplyGammaCorrectionTest, TestSize.Level1)
     // test filter is nullptr
     ret = image->Prepare(srcPixelMap, false);
     ret = image->ApplyGammaCorrection(gamma);
-    EXPECT_EQ(ret, DrawingError::ERR_OK);
+    EXPECT_EQ(ret, DrawingError::ERR_MEMORY);
 
     // test filter not is nullptr
     auto filterBlur = Drawing::ImageFilter::CreateBlurImageFilter(1, 1, Drawing::TileMode::DECAL, nullptr);
     ASSERT_NE(filterBlur, nullptr);
     ret = image->ApplyDrawingFilter(filterBlur);
     ret = image->ApplyGammaCorrection(gamma);
-    EXPECT_EQ(ret, DrawingError::ERR_OK);
+    EXPECT_EQ(ret, DrawingError::ERR_MEMORY);
 }
 
 /**

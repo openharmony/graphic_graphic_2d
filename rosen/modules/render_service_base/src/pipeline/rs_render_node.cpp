@@ -756,7 +756,6 @@ void RSRenderNode::ResetChildRelevantFlags()
     SetHasChildExcludedFromNodeGroup(false);
     SetChildHasVisibleHDRContent(false);
     ResetNodeColorSpace();
-    SetForceDisableNodeGroup(false);
     RSPointLightManager::Instance()->SetChildHasVisibleIlluminated(shared_from_this(), false);
 }
 
@@ -4256,20 +4255,6 @@ bool RSRenderNode::GetDrawingCacheChanged() const
     return false;
 #endif
 }
-void RSRenderNode::SetForceDisableNodeGroup(bool forceDisable)
-{
-#ifdef RS_ENABLE_GPU
-    stagingRenderParams_->SetForceDisableNodeGroup(forceDisable);
-#endif
-}
-bool RSRenderNode::IsForceDisableNodeGroup() const
-{
-#ifdef RS_ENABLE_GPU
-    return stagingRenderParams_->IsForceDisableNodeGroup();
-#else
-    return false;
-#endif
-}
 void RSRenderNode::SetGeoUpdateDelay(bool val)
 {
     geoUpdateDelay_ = geoUpdateDelay_ || val;
@@ -4430,6 +4415,7 @@ void RSRenderNode::UpdateRenderParams()
         stagingRenderParams_->SetCloneSourceDrawable(cloneSourceNode->GetRenderDrawable());
     }
     stagingRenderParams_->MarkRepaintBoundary(isRepaintBoundary_);
+    stagingRenderParams_->SetNeedClipHoleForFilter(GetRenderProperties().NeedClipHoleForRenderGroup());
 #endif
 }
 
@@ -5263,14 +5249,7 @@ void RSRenderNode::UpdateDrawingCacheInfoAfterChildren(bool isInBlackList,
         SetRenderGroupSubTreeDirty(false); // reset subtree dirty
         RS_OPTIONAL_TRACE_NAME_FMT("DrawingCacheInfoAfter::renderGroup subtree dirty, id:%" PRIu64, GetId());
     }
-    if (IsForceDisableNodeGroup() || GetUIFirstSwitch() == RSUIFirstSwitch::FORCE_DISABLE_CARD) {
-        RS_OPTIONAL_TRACE_NAME_FMT("DrawingCacheInfoAfter force disable nodeGroup id:%" PRIu64, GetId());
-        auto parentNode = GetParent().lock();
-        if (parentNode) {
-            parentNode->SetForceDisableNodeGroup(true);
-        }
-    }
-    if (IsUifirstArkTsCardNode() || IsForceDisableNodeGroup()) {
+    if (IsUifirstArkTsCardNode()) {
         // disable render group because cards will use uifirst cache.
         SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
     } else if (isInBlackList) {

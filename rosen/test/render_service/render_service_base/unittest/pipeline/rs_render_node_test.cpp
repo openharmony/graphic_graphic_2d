@@ -2511,11 +2511,6 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoAfterChildrenTest004, TestSize.
     nodeTest->CheckDrawingCacheType();
     EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::FORCED_CACHE);
 
-    childNode->SetUIFirstSwitch(RSUIFirstSwitch::FORCE_DISABLE_CARD);
-    childNode->UpdateDrawingCacheInfoAfterChildren(isInBlackList);
-    EXPECT_TRUE(childNode->IsForceDisableNodeGroup());
-    EXPECT_TRUE(nodeTest->IsForceDisableNodeGroup());
-
     nodeTest->UpdateDrawingCacheInfoAfterChildren(isInBlackList);
     EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
 }

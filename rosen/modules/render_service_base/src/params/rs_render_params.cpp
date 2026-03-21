@@ -185,15 +185,6 @@ void RSRenderParams::SetDrawingCacheChanged(bool isChanged, bool lastFrameSynced
     }
 }
 
-void RSRenderParams::SetForceDisableNodeGroup(bool forceDisable)
-{
-    if (isForceDisableNodeGroup_ == forceDisable) {
-        return;
-    }
-    isForceDisableNodeGroup_ = forceDisable;
-    needSync_ = true;
-}
-
 void RSRenderParams::SetDrawingCacheType(RSDrawingCacheType cacheType)
 {
     if (drawingCacheType_ == cacheType) {
@@ -295,6 +286,27 @@ bool RSRenderParams::ChildHasTranslateOnSqueeze() const
 {
     if (renderGroupCache_) {
         return renderGroupCache_->ChildHasTranslateOnSqueeze();
+    }
+    return false;
+}
+
+void RSRenderParams::SetNeedClipHoleForFilter(bool val)
+{
+    if (NeedClipHoleForFilter() == val) {
+        return;
+    }
+    if (!renderGroupCache_) {
+        renderGroupCache_ = std::make_unique<RSRenderGroupCache>();
+    }
+    if (renderGroupCache_ && renderGroupCache_->SetNeedClipHoleForFilter(val)) {
+        needSync_ = true;
+    }
+}
+
+bool RSRenderParams::NeedClipHoleForFilter() const
+{
+    if (renderGroupCache_) {
+        return renderGroupCache_->NeedClipHoleForFilter();
     }
     return false;
 }
@@ -573,7 +585,6 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     // use flag in render param and staging render param to determine if cache should be updated
     // (flag in render param may be not used because of occlusion skip, so we need to update cache in next frame)
     target->isDrawingCacheChanged_ = target->isDrawingCacheChanged_ || isDrawingCacheChanged_;
-    target->isForceDisableNodeGroup_ = isForceDisableNodeGroup_;
     target->shadowRect_ = shadowRect_;
     target->drawingCacheIncludeProperty_ = drawingCacheIncludeProperty_;
     target->isNodeGroupHasChildInBlacklist_ = isNodeGroupHasChildInBlacklist_;
