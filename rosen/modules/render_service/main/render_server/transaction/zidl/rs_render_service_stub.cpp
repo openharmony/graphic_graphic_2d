@@ -100,12 +100,6 @@ int RSRenderServiceStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceInterfaceCode::REGISTER_RENDER_PROCESS_CONNECTION): {
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIRenderService::GetDescriptor()) {
-                RS_LOGE("%{public}s::REGISTER_RENDER_PROCESS_CONNECTION Read interfaceToken failed.", __func__);
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             auto connectToServiceInfo = sptr<ConnectToServiceInfo>(data.ReadParcelable<ConnectToServiceInfo>());
             auto replyToRenderInfo = RegisterRenderProcessConnection(connectToServiceInfo);
             reply.WriteParcelable(replyToRenderInfo.GetRefPtr());

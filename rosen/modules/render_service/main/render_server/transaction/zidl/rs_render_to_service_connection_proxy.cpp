@@ -30,6 +30,10 @@ bool RSRenderToServiceConnectionProxy::NotifyRenderProcessInitFinished()
     MessageParcel reply;
     MessageOption option;
     option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteInterfaceToken(RSIRenderToServiceConnection::GetDescriptor())) {
+        RS_LOGE("%{public}s: WriteInterfaceToken failed", __func__);
+        return;
+    }
     uint32_t code = static_cast<uint32_t>(RSIRenderToServiceConnectionInterfaceCode::NOTIFY_RENDER_PROCESS_READY);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {

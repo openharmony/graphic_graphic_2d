@@ -97,14 +97,14 @@ bool RSRenderService::Init()
     // Create core components
     CoreComponentsInit();
 
-    // Create multi-process/single-process mode
-    RenderProcessManagerInit();
-
     // Register with system ability manager
     if (!SAMgrRegister()) {
         RS_LOGE("%{public}s: samgr registration failed", __func__);
         return false;
     }
+
+    // Create multi-process/single-process mode
+    RenderProcessManagerInit();
 
     // Set boot voting to true
     system::SetParameter(BOOTEVENT_RENDER_SERVICE_READY.c_str(), "true");
