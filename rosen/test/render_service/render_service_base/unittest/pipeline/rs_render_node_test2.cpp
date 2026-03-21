@@ -1651,10 +1651,12 @@ HWTEST_F(RSRenderNodeTest2, GetChildClipRegion008, TestSize.Level1)
     ASSERT_NE(node, nullptr);
 
     auto& properties = node->GetMutableRenderProperties();
+    properties.SetBounds(Vector4f(0.0f, 0.0f, 400.0f, 400.0f));
     properties.SetCornerRadius(Vector4f(10.0f, 10.0f, 10.0f, 10.0f));
 
     auto clipRegion = node->GetChildClipRegion();
-    ASSERT_EQ(clipRegion, nullptr);
+    ASSERT_NE(clipRegion, nullptr);
+    ASSERT_EQ(*clipRegion, RectF(0.0f, 0.0f, 400.0f, 400.0f));
 }
 
 /**

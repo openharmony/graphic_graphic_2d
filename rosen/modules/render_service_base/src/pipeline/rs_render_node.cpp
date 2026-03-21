@@ -2421,7 +2421,7 @@ std::shared_ptr<RectF> RSRenderNode::GetChildClipRegion() const
     } else if (properties.GetClipToRRect()) {
         clipToBoundsRect = std::make_shared<RectF>(properties.GetClipRRect().rect_);
     } else if (!properties.GetCornerRadius().IsZero()) {
-        // Planning: Border radius clip
+        clipToBoundsRect = std::make_shared<RectF>(properties.GetRRect().rect_);
     } else if (GetType() == RSRenderNodeType::SURFACE_NODE && RSSystemProperties::GetCacheEnabledForRotation() &&
         ReinterpretCastTo<RSSurfaceRenderNode>()->IsAppWindow()) {
         // Planning: Screen rotation clip
@@ -2445,6 +2445,7 @@ std::shared_ptr<RectF> RSRenderNode::GetChildClipRegion() const
     } else if (clipFrameRect) {
         return clipFrameRect;
     }
+    // no-clip node returns nullptr
     return nullptr;
 }
 

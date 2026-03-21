@@ -1280,7 +1280,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     curAlpha_ = prevAlpha;
     globalShouldPaint_ = preGlobalShouldPaint;
     prepareClipRect_ = prepareClipRect;
-    prepareDirtyRegionClipRect_= prepareDirtyRegionClipRect;
+    prepareDirtyRegionClipRect_ = prepareDirtyRegionClipRect;
     prepareFilterClipRect_ = prepareFilterClipRect;
     hasAccumulatedClip_ = hasAccumulatedClip;
     dirtyFlag_ = dirtyFlag;
