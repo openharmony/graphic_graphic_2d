@@ -4759,6 +4759,36 @@ namespace drawing {
     native convertToSvgString(): string;
 
     /**
+     * Gets path point data.
+     *
+     * @returns { Array<common2D.Point> } path points array.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @stagemodelonly
+     * @since 26.0.0 dynamic&static
+     */
+    native getPointData(): Array<common2D.Point>;
+
+    /**
+     * Gets path verb data.
+     *
+     * @returns { Array<PathIteratorVerb> } path verbs array.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @stagemodelonly
+     * @since 26.0.0 dynamic&static
+     */
+    native getVerbData(): Array<PathIteratorVerb>;
+
+    /**
+     * Gets path conic weight data.
+     *
+     * @returns { Array<double> } path conic weight array.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @stagemodelonly
+     * @since 26.0.0 dynamic&static
+     */
+    native getConicWeightData(): Array<double>;
+
+    /**
      * Obtains the operation iterator of this path.
      *
      * @returns { PathIterator | undefined } Indicates the pointer to an pathIterator object.

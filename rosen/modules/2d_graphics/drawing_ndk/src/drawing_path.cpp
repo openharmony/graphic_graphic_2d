@@ -707,6 +707,74 @@ OH_Drawing_ErrorCode OH_Drawing_PathApproximate(OH_Drawing_Path* cPath, float ac
     return OH_DRAWING_SUCCESS;
 }
 
+OH_Drawing_ErrorCode OH_Drawing_PathGetPointData(
+    OH_Drawing_Path* path, OH_Drawing_Point2D* points, uint32_t* count)
+{
+    Path* drawingPath = CastToPath(path);
+    if (drawingPath == nullptr || count == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+
+    std::vector<Point> pointData = drawingPath->GetPointData();
+    uint32_t requiredSize = static_cast<uint32_t>(pointData.size());
+    *count = requiredSize;
+
+    if (points == nullptr) {
+        return OH_DRAWING_SUCCESS;
+    }
+
+    Point* drawingPoints = CastToPoint(points);
+    for (uint32_t i = 0; i < requiredSize; i++) {
+        drawingPoints[i] = pointData[i];
+    }
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_PathGetVerbData(
+    OH_Drawing_Path* path, OH_Drawing_PathIteratorVerb* verbs, uint32_t* count)
+{
+    Path* drawingPath = CastToPath(path);
+    if (drawingPath == nullptr || count == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+
+    std::vector<PathVerb> verbData = drawingPath->GetVerbData();
+    uint32_t requiredSize = static_cast<uint32_t>(verbData.size());
+    *count = requiredSize;
+
+    if (verbs == nullptr) {
+        return OH_DRAWING_SUCCESS;
+    }
+
+    for (uint32_t i = 0; i < requiredSize; i++) {
+        verbs[i] = static_cast<OH_Drawing_PathIteratorVerb>(verbData[i]);
+    }
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_PathGetConicWeightData(
+    OH_Drawing_Path* path, float* conicWeights, uint32_t* count)
+{
+    Path* drawingPath = CastToPath(path);
+    if (drawingPath == nullptr || count == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+
+    std::vector<float> conicWeightData = drawingPath->GetConicWeightData();
+    uint32_t requiredSize = static_cast<uint32_t>(conicWeightData.size());
+    *count = requiredSize;
+
+    if (conicWeights == nullptr) {
+        return OH_DRAWING_SUCCESS;
+    }
+
+    for (uint32_t i = 0; i < requiredSize; i++) {
+        conicWeights[i] = conicWeightData[i];
+    }
+    return OH_DRAWING_SUCCESS;
+}
+
+
 OH_Drawing_ErrorCode OH_Drawing_PathInterpolate(OH_Drawing_Path* cPath, OH_Drawing_Path* cOther, float weight,
     bool* success, OH_Drawing_Path* cInterpolatedPath)
 {

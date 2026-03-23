@@ -67,6 +67,9 @@ static const napi_property_descriptor g_properties[] = {
     DECLARE_NAPI_FUNCTION("getMatrix", JsPath::GetMatrix),
     DECLARE_NAPI_FUNCTION("buildFromSvgString", JsPath::BuildFromSvgString),
     DECLARE_NAPI_FUNCTION("convertToSvgString", JsPath::ConvertToSVGString),
+    DECLARE_NAPI_FUNCTION("getPointData", JsPath::GetPointData),
+    DECLARE_NAPI_FUNCTION("getVerbData", JsPath::GetVerbData),
+    DECLARE_NAPI_FUNCTION("getConicWeightData", JsPath::GetConicWeightData),
     DECLARE_NAPI_FUNCTION("isClosed", JsPath::IsClosed),
     DECLARE_NAPI_FUNCTION("isEmpty", JsPath::IsEmpty),
     DECLARE_NAPI_FUNCTION("isRect", JsPath::IsRect),
@@ -395,6 +398,24 @@ napi_value JsPath::ConvertToSVGString(napi_env env, napi_callback_info info)
 {
     JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
     return (me != nullptr) ? me->OnConvertToSVGString(env, info) : nullptr;
+}
+
+napi_value JsPath::GetPointData(napi_env env, napi_callback_info info)
+{
+    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    return (me != nullptr) ? me->OnGetPointData(env, info) : nullptr;
+}
+
+napi_value JsPath::GetVerbData(napi_env env, napi_callback_info info)
+{
+    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    return (me != nullptr) ? me->OnGetVerbData(env, info) : nullptr;
+}
+
+napi_value JsPath::GetConicWeightData(napi_env env, napi_callback_info info)
+{
+    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    return (me != nullptr) ? me->OnGetConicWeightData(env, info) : nullptr;
 }
 
 napi_value JsPath::IsClosed(napi_env env, napi_callback_info info)
@@ -1068,6 +1089,96 @@ napi_value JsPath::OnConvertToSVGString(napi_env env, napi_callback_info info)
 
     std::string str = m_path->ConvertToSVGString();
     return CreateJsValue(env, str);
+}
+
+napi_value JsPath::OnGetPointData(napi_env env, napi_callback_info info)
+{
+    if (m_path == nullptr) {
+        ROSEN_LOGE("JsPath::OnGetPointData path is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(nullptr, ARGC_ZERO);
+
+    std::vector<Point> points = m_path->GetPointData();
+
+    napi_value resultArray = nullptr;
+    if (napi_create_array(env, &resultArray) != napi_ok) {
+        ROSEN_LOGE("JsPath::OnGetPointData failed to create array");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Create array failed.");
+    }
+
+    for (size_t i = 0; i < points.size(); i++) {
+        napi_value pointObj = nullptr;
+        if (napi_create_object(env, &pointObj) != napi_ok) {
+            ROSEN_LOGE("JsPath::OnGetPointData failed to create point object");
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Create point object failed.");
+        }
+
+        if (napi_set_named_property(env, pointObj, "x", CreateJsNumber(env, points[i].GetX())) != napi_ok ||
+            napi_set_named_property(env, pointObj, "y", CreateJsNumber(env, points[i].GetY())) != napi_ok ||
+            napi_set_element(env, resultArray, i, pointObj) != napi_ok) {
+            ROSEN_LOGE("JsPath::OnGetPointData failed to fill point object");
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Fill point object failed.");
+        }
+    }
+
+    return resultArray;
+}
+
+napi_value JsPath::OnGetVerbData(napi_env env, napi_callback_info info)
+{
+    if (m_path == nullptr) {
+        ROSEN_LOGE("JsPath::OnGetVerbData path is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(nullptr, ARGC_ZERO);
+
+    std::vector<PathVerb> verbs = m_path->GetVerbData();
+
+    napi_value resultArray = nullptr;
+    if (napi_create_array(env, &resultArray) != napi_ok) {
+        ROSEN_LOGE("JsPath::OnGetVerbData failed to create array");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Create array failed.");
+    }
+
+    for (size_t i = 0; i < verbs.size(); i++) {
+        napi_value element = CreateJsValue(env, static_cast<int32_t>(verbs[i]));
+        if (napi_set_element(env, resultArray, i, element) != napi_ok) {
+            ROSEN_LOGE("JsPath::OnGetVerbData failed to set element");
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Set verb array item failed.");
+        }
+    }
+
+    return resultArray;
+}
+
+napi_value JsPath::OnGetConicWeightData(napi_env env, napi_callback_info info)
+{
+    if (m_path == nullptr) {
+        ROSEN_LOGE("JsPath::OnGetConicWeightData path is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(nullptr, ARGC_ZERO);
+
+    std::vector<float> weights = m_path->GetConicWeightData();
+
+    napi_value resultArray = nullptr;
+    if (napi_create_array(env, &resultArray) != napi_ok) {
+        ROSEN_LOGE("JsPath::OnGetConicWeightData failed to create array");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Create array failed.");
+    }
+
+    for (size_t i = 0; i < weights.size(); i++) {
+        napi_value element = CreateJsValue(env, weights[i]);
+        if (napi_set_element(env, resultArray, i, element) != napi_ok) {
+            ROSEN_LOGE("JsPath::OnGetConicWeightData failed to set element");
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Set weight array item failed.");
+        }
+    }
+    return resultArray;
 }
 
 napi_value JsPath::OnAddOval(napi_env env, napi_callback_info info)
