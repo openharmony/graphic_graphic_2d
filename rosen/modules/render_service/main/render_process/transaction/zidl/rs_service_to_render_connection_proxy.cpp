@@ -52,31 +52,31 @@ int32_t RSServiceToRenderConnectionProxy::NotifyScreenConnectInfoToRender(const 
         ROSEN_LOGE("%{public}s: WriteParcelable failed", __func__);
         return -1;
     }
-    if (!data.WriteRemoteObject(renderToComposerConn->AsObject())) {
-        ROSEN_LOGE("%{public}s: WriteObject failed", __func__);
-        return -1;
-    }
     if (renderToComposerConn) {
-        if (!data.WriteBool(true) || !data.WriteRemoteObject(renderToComposerConn->AsObject())) {
-            ROSEN_LOGE("%{public}s: WriteObject failed.", __func__);
-            return -1;
-        }
-    } else {
-        if (!data.WriteBool(false)) {
-            ROSEN_LOGE("%{public}s: WriteBool failed.", __func__);
+        if (!data.WriteRemoteObject(renderToComposerConn->AsObject())) {
+            ROSEN_LOGE("%{public}s: WriteObject failed", __func__);
             return -1;
         }
     }
-    data.WriteRemoteObject(composerToRenderConn->AsObject())
+    if (composerToRenderConn) {
+        if (!data.WriteRemoteObject(composerToRenderConn->AsObject())) {
+            ROSEN_LOGE("%{public}s: WriteObject failed", __func__);
+            return -1;
+        }
+    }
     RS_LOGI("dmulti_process RSServiceToRenderConnectionProxy::NotifyScreenConnectInfoToRender conn write in remoteObj successfully");
     uint32_t code = static_cast<uint32_t>(
         RSIServiceToRenderConnectionInterfaceCode::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("%{public}s: SendRquest failed, err is %{public}d", __func__, err);
+        return ERR_INVALID_VALUE;
+    }
+    int32_t replyMessage{0};
+    if (!reply.ReadInt32(replyMessage)) {
+        ROSEN_LOGE("%{public}s: ReadInt32 failed", __func__);
         return -1;
     }
-    auto replyMessage = reply.ReadInt32();
     RS_LOGI("dmult_process RSServiceToRenderConnectionProxy::NotifyScreenConnectInfoToRender reply received successfully");
     return replyMessage;
 }
@@ -92,7 +92,7 @@ int32_t RSServiceToRenderConnectionProxy::NotifyScreenDisconnectInfoToRender(Scr
         return -1;
     }
     if (!data.WriteUint64(screenId)) {
-        ROSEN_LOGE("%{public}s: WriteParcelable failed", __func__);
+        ROSEN_LOGE("%{public}s: WriteUint64 failed", __func__);
         return -1;
     }
     uint32_t code = static_cast<uint32_t>(
@@ -100,9 +100,13 @@ int32_t RSServiceToRenderConnectionProxy::NotifyScreenDisconnectInfoToRender(Scr
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("%{public}s: SendRquest failed, err is %{public}d", __func__, err);
+        return ERR_INVALID_VALUE;
+    }
+    int32_t replyMessage{0};
+    if (!reply.ReadInt32(replyMessage)) {
+        ROSEN_LOGE("%{public}s: ReadInt32 failed", __func__);
         return -1;
     }
-    auto replyMessage = reply.ReadInt32();
     return replyMessage;
 }
 
@@ -117,7 +121,10 @@ int32_t RSServiceToRenderConnectionProxy::NotifyScreenPropertyChangedInfoToRende
         ROSEN_LOGE("%{public}s: WriteInterfaceToken failed", __func__);
         return -1;
     }
-    data.WriteUint64(id);
+    if (!data.WriteUint64(id)) {
+        ROSEN_LOGE("%{public}s: WriteUint64 failed", __func__);
+        return -1;
+    }
     if (!data.WriteUint32(static_cast<uint32_t>(type))) {
         ROSEN_LOGE("%{public}s: WriteUint32 failed", __func__);
         return -1;
@@ -131,9 +138,13 @@ int32_t RSServiceToRenderConnectionProxy::NotifyScreenPropertyChangedInfoToRende
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("%{public}s: SendRquest failed, err is %{public}d", __func__, err);
+        return ERR_INVALID_VALUE;
+    }
+    int32_t replyMessage{0};
+    if (!reply.ReadInt32(replyMessage)) {
+        ROSEN_LOGE("%{public}s: ReadInt32 failed", __func__);
         return -1;
     }
-    auto replyMessage = reply.ReadInt32();
     return replyMessage;
 }
 
@@ -1246,10 +1257,14 @@ ErrCode RSServiceToRenderConnectionProxy::RepaintEverything()
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::REPAINT_EVERYTHING);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("%{public}s: SendRequest failed, err is %{public}d.", __func__, err);
-        return ERR_INVALID_VALUE;
+        ROSEN_LOGE("%{public}s: SendRquest failed, err is %{public}d", __func__, err);
+        return -1;
     }
-    auto replyMessage = reply.ReadInt32();
+    int32_t replyMessage{0};
+    if (!reply.ReadInt32(replyMessage)) {
+        ROSEN_LOGE("%{public}s: ReadInt32 failed", __func__);
+        return -1;
+    }
     return replyMessage;
 }
 
