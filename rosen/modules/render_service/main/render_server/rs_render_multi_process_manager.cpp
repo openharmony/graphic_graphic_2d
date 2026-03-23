@@ -162,21 +162,14 @@ sptr<IRemoteObject> RSMultiRenderProcessManager::OnScreenConnected(ScreenId scre
 sptr<IRemoteObject> RSMultiRenderProcessManager::HandleExistingGroup(pid_t pid, ScreenId screenId,
     const sptr<RSScreenProperty>& property)
 {
-    RS_LOGD("GroupId has connected already, screenId is %{public}" PRIu64, screenId);
-    auto renderToComposerConn = renderService_.rsRenderComposerManager_->GetRSComposerConnection(screenId);
-    
-    sptr<IRSComposerToRenderConnection> composerToRenderConn;
-    sptr<RSIServiceToRenderConnection> serviceToRenderConnection;
-    sptr<RSIConnectToRenderProcess> connectToRender;
-    
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        composerToRenderConn = composerToRenderConnections_.at(pid);
-        serviceToRenderConnection = GotServiceToRenderConnByPidLocked(pid);
-        connectToRender = GotConnectToRenderConnByPidLocked(pid);
-    }
-    
-    serviceToRenderConnection->NotifyScreenConnectInfoToRender(property, renderToComposerConn, composerToRenderConn);
+    RS_LOGD("GroupId has connected already, screenId is %{public}" PRIu64, screenId);	 
+    auto renderToComposerConn = renderService_.rsRenderComposerManager_->GetRSComposerConnection(screenId);	 
+    auto composerToRenderConn = GotComposerToRenderConnByPid(pid);	 
+
+    sptr<RSIServiceToRenderConnection> serviceToRenderConnection = GotServiceToRenderConnByPid(pid);	 
+    serviceToRenderConnection->NotifyScreenConnectInfoToRender(property, renderToComposerConn, composerToRenderConn);	 
+    auto connectToRender = GotConnectToRenderConnByPid(pid); 
+
     return connectToRender->AsObject();
 }
 
@@ -377,6 +370,13 @@ sptr<RSIConnectToRenderProcess> RSMultiRenderProcessManager::GetConnectToRenderC
         return iter->second;
     }
     return nullptr;
+}
+
+sptr<IRSComposerToRenderProcess> RSMultiRenderProcessManager::GotComposerToRenderConnByPid(pid_t pid) const
+{
+    // Must success, or gonna throw an exception if failed
+    std::lock_guard<std::mutex> lock(mutex_);
+    return composerToRenderConnections_.at(pid);
 }
 
 void RSMultiRenderProcessManager::UpdateGroupIdToRenderProcessPid(GroupId groupId, pid_t pid)
