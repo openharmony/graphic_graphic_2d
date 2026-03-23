@@ -489,8 +489,12 @@ HWTEST_F(RSTransactionHandlerTest, CommitSyncTransaction001, TestSize.Level1)
     auto transaction = std::make_shared<RSTransactionHandler>();
     uint64_t timestamp = 1;
     transaction->Begin();
+    EXPECT_FALSE(transaction->implicitCommonTransactionDataStack_.empty());
+    EXPECT_FALSE(transaction->implicitRemoteTransactionDataStack_.empty());
     transaction->CommitSyncTransaction(0, timestamp, "abilityName");
     EXPECT_EQ(transaction->timestamp_, timestamp);
+    EXPECT_TRUE(transaction->implicitCommonTransactionDataStack_.empty());
+    EXPECT_TRUE(transaction->implicitRemoteTransactionDataStack_.empty());
 }
 
 /**
