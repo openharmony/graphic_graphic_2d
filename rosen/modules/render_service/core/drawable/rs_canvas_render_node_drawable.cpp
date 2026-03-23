@@ -73,12 +73,64 @@ bool RSCanvasRenderNodeDrawable::IsUiRangeCaptureEndNode()
     return (captureParam.endNodeId_ != INVALID_NODEID && GetId() == captureParam.endNodeId_);
 }
 
+void RSCanvasRenderNodeDrawable::BeforeOnDraw(Drawing::Canvas& canvas)
+{
+#ifdef RS_ENABLE_GPU
+    if (LIKELY(isDrawingCacheEnabled_)) {
+        bool shouldPaint = ShouldPaint() || (canvas.GetUICapture() && IsUiRangeCaptureEndNode());
+        if (!shouldPaint) {
+            SetDrawSkipType(DrawSkipType::SHOULD_NOT_PAINT);
+            return;
+        }
+        const auto& params = GetRenderParams();
+        if (params == nullptr) {
+            SetDrawSkipType(DrawSkipType::RENDER_PARAMS_NULL);
+            return;
+        }
+        Drawing::GPUResourceTag::SetCurrentNodeId(GetId());
+        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
+
+        float hdrBrightness = paintFilterCanvas->GetHDRBrightness();
+        paintFilterCanvas->SetHDRBrightness(params->GetHDRBrightness());
+
+        RSRenderNodeSingleDrawableLocker singleLocker(this);
+        if (UNLIKELY(!singleLocker.IsLocked())) {
+            singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
+            HILOG_COMM_ERROR("RSCanvasRenderNodeDrawable::OnDraw node %{public}" PRIu64 " onDraw!!!", GetId());
+            if (RSSystemProperties::GetSingleDrawableLockerEnabled()) {
+                SetDrawSkipType(DrawSkipType::MULTI_ACCESS);
+                return;
+            }
+        }
+        if (params->GetHDRStatus() == HdrStatus::HDR_EFFECT) {
+            paintFilterCanvas->ConvertToType(
+                Drawing::ColorType::COLORTYPE_RGBA_F16, Drawing::ALPHATYPE_PREMUL, Drawing::ColorSpace::CreateSRGB());
+        }
+
+        GenerateCacheIfNeed(canvas, *params);
+        isLayerMarkCachehandled_ = true;
+        paintFilterCanvas->SetHDRBrightness(hdrBrightness);
+    }
+#endif
+}
+
 /*
  * This function will be called recursively many times, and the logic should be as concise as possible.
  */
 void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
 #ifdef RS_ENABLE_GPU
+    if (needHandledInBeforeOnDraw_) {
+        needHandledInBeforeOnDraw_ = false;
+
+        for (auto drawable : layerMarkNodesDrawable_) {
+            auto drawablePtr = drawable.lock();
+            if (drawablePtr) {
+                drawablePtr->BeforeOnDraw(canvas);
+                drawablePtr->needDrawLayerCacheDFX_ = true;
+            }
+        }
+    }
     SetDrawSkipType(DrawSkipType::NONE);
     // Draw only when should paint is valid or when this node is the end node of the range ui-capture
     bool shouldPaint = ShouldPaint() || (canvas.GetUICapture() && IsUiRangeCaptureEndNode());

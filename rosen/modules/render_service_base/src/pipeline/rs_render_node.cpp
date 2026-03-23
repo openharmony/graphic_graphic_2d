@@ -3593,6 +3593,28 @@ bool RSRenderNode::GetBootAnimation() const
     return isBootAnimation_;
 }
 
+void RSRenderNode::SetLayerMark(bool layerMark)
+{
+    if (!layerMark) {
+        if (hasSetLayerMark_) {
+            MarkNodeGroup(NodeGroupType::GROUPED_BY_LAYER, false, false);
+            hasSetLayerMark_ = false;
+        }
+        return;
+    }
+
+    if (hasSetLayerMark_) {
+        return;
+    }
+
+    if (GetOpincCache().IsSuggestOpincNode() == false && IsContentDirty() == false && IsAIBarFilter() == false &&
+        GetType() != RSRenderNodeType::SURFACE_NODE && GetType() != RSRenderNodeType::ROOT_NODE &&
+        isChildSupportUifirst_ == false && GetType() != RSRenderNodeType::SCREEN_NODE) {
+        MarkNodeGroup(NodeGroupType::GROUPED_BY_LAYER, true, false);
+        hasSetLayerMark_ = true;
+    }
+}
+
 bool RSRenderNode::GetGlobalPositionEnabled() const
 {
     return false;
@@ -4544,6 +4566,7 @@ void RSRenderNode::OnSync()
     addedToPendingSyncList_ = false;
     bool isLeashWindowPartialSkip = false;
 
+    renderHasSetLayerMark_ = hasSetLayerMark_;
     if (renderDrawable_ == nullptr) {
         return;
     }

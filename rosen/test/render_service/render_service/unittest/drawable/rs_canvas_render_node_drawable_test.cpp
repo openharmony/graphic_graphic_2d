@@ -67,12 +67,14 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnDrawTest, TestSize.Level1)
     Drawing::Canvas canvas;
     drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
     drawable->OnDraw(canvas);
+    drawable->BeforeOnDraw(canvas);
     ASSERT_TRUE(drawable->GetRenderParams());
 
     DrawableV2::RSOpincDrawCache::SetOpincBlockNodeSkip(false);
     drawable->renderParams_->isOpincStateChanged_ = false;
     drawable->renderParams_->startingWindowFlag_ = false;
     drawable->OnDraw(canvas);
+    drawable->BeforeOnDraw(canvas);
     ASSERT_TRUE(drawable->GetRenderParams());
 
     drawable->isOpDropped_ = false;
@@ -80,10 +82,12 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnDrawTest, TestSize.Level1)
     RSOpincManager::Instance().SetOPIncSwitch(false);
     drawable->SetDrawBlurForCache(false);
     drawable->OnDraw(canvas);
+    drawable->BeforeOnDraw(canvas);
     ASSERT_TRUE(drawable->isDrawingCacheEnabled_);
 
     drawable->SetDrawBlurForCache(true);
     drawable->OnDraw(canvas);
+    drawable->BeforeOnDraw(canvas);
     ASSERT_TRUE(drawable->isDrawingCacheEnabled_);
 }
 
@@ -220,9 +224,11 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnDrawTest001, TestSize.Level1)
     auto canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
     ASSERT_TRUE(canvas);
     canvasDrawable->OnDraw(*canvas);
+    canvasDrawable->BeforeOnDraw(canvas);
     ASSERT_NE(canvasDrawable->renderParams_, nullptr);
     canvas->SetSubTreeParallelState(RSPaintFilterCanvas::SubTreeStatus::SUBTREE_QUICK_DRAW_STATE);
     canvasDrawable->OnDraw(*canvas);
+    canvasDrawable->BeforeOnDraw(canvas);
     ASSERT_NE(canvasDrawable->renderParams_, nullptr);
 }
 
@@ -304,6 +310,7 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnDrawTest002, TestSize.Level2)
     RSPaintFilterCanvas canvas(&drawingCanvas);
     AutoSpecialLayerStateRecover whiteListRecover(INVALID_NODEID);
     canvasDrawable->OnDraw(canvas);
+    canvasDrawable->BeforeOnDraw(canvas);
 
     // restore
     RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
@@ -364,6 +371,7 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnDrawTest003, TestSize.Level2)
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     canvasDrawable->OnDraw(canvas);
+    canvasDrawable->BeforeOnDraw(canvas);
     ASSERT_FALSE(canvasDrawable->SkipDrawByWhiteList(canvas));
 
     // restore
@@ -394,6 +402,7 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnDrawTest004, TestSize.Level2)
     RSPaintFilterCanvas canvas(&drawingCanvas);
     canvasDrawable->renderParams_->UpdateHDRStatus(HdrStatus::HDR_EFFECT, true);
     canvasDrawable->OnDraw(canvas);
+    canvasDrawable->BeforeOnDraw(canvas);
     ASSERT_FALSE(canvasDrawable->SkipDrawByWhiteList(canvas));
 
     // restore
@@ -454,6 +463,7 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnDrawTest005, TestSize.Level2)
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     canvasDrawable->OnDraw(canvas);
+    canvasDrawable->BeforeOnDraw(canvas);
     EXPECT_EQ(canvasDrawable->GetOpincDrawCache().GetNodeCacheType(), NodeStrategyType::CACHE_NONE);
 
     // restore

@@ -246,6 +246,22 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckCacheTypeAndDrawTest003, TestSize.Level1
     ASSERT_TRUE(params.ChildHasVisibleFilter());
 }
 
+// /**
+//  * @tc.name: LayerCacheRegionDfxTest
+//  * @tc.desc: Test If LayerCacheRegionDfx Can Run
+//  * @tc.type: FUNC
+//  * @tc.require: #I9NVOG
+//  */
+// HWTEST_F(RSRenderNodeDrawableTest, LayerCacheRegionDfxTest, TestSize.Level1)
+// {
+//     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+
+//     Drawing::Canvas canvas;
+//     RSRenderParams params(RSRenderNodeDrawableTest::id);
+//     drawable->LayerCacheRegionDfx(canvas, params.GetBounds());
+//     ASSERT_EQ(drawable->isDrawingCacheEnabled_, false);
+// }
+
 /**
  * @tc.name: UpdateCacheInfoForDfx
  * @tc.desc: Test If UpdateCacheInfoForDfx Can Run

@@ -836,6 +836,13 @@ public:
     void SetAlphaOffscreen(bool alphaOffscreen);
 
     /**
+     * @brief Sets the layer mark for the node.
+     *
+     * @param layerMark The layer mark value to set (true for layer, false for non-Layer).
+     */
+    void SetLayerMark(bool layerMark);
+
+    /**
      * @brief Sets the foreground color of environment.
      *
      * @param colorValue The color value to set.
@@ -2201,6 +2208,7 @@ private:
     bool isNodeSingleFrameComposer_ = false;
 
     bool isSuggestOpincNode_ = false;
+    bool isLayerMarked_ = false;
     bool isLayerPartRender_ = false;
     bool isDrawNode_ = false;
     // Used to identify whether the node has real drawing property

@@ -715,7 +715,8 @@ public:
         GROUPED_BY_UI = GROUPED_BY_ANIM << 1,
         GROUPED_BY_USER = GROUPED_BY_UI << 1,
         GROUPED_BY_FOREGROUND_FILTER = GROUPED_BY_USER << 1,
-        GROUP_TYPE_BUTT = GROUPED_BY_FOREGROUND_FILTER,
+        GROUPED_BY_LAYER = GROUPED_BY_FOREGROUND_FILTER << 1,
+        GROUP_TYPE_BUTT = GROUPED_BY_LAYER,
     };
     void MarkNodeGroup(NodeGroupType type, bool isNodeGroup, bool includeProperty);
     void ExcludedFromNodeGroup(bool isExcluded);
@@ -1061,6 +1062,11 @@ public:
     bool GetNeedUseCmdlistDrawRegion();
     void ReleaseNodeMem();
     bool IsNodeMemClearEnable();
+    void SetLayerMark(bool layerMark);
+    bool IsLayerMarkEnabled()
+    {
+        return renderHasSetLayerMark_;
+    }
     virtual void AfterTreeStatueChanged() {}
 
     RectI GetFilterDrawableSnapshotRegion() const;
@@ -1367,6 +1373,9 @@ private:
     // The angle at which the node rotates about the Z-axis
     float absRotation_ = 0.f;
     void ShowSetIsOnetheTreeCntIfNeed(const std::string& funcName, NodeId nodeId, const std::string& nodeName);
+
+    bool hasSetLayerMark_ = false;
+    bool renderHasSetLayerMark_ = false;
 
     bool enableHdrEffect_ = false;
     static constexpr uint32_t DEFAULT_HEADROOM_VALUE = 0U;

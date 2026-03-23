@@ -69,6 +69,27 @@ HWTEST_F(RSNodeCommandTest, MarkNodeGroupTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetLayerMarkTest
+ * @tc.desc: SetLayerMark test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeCommandTest, SetLayerMarkTest, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = static_cast<NodeId>(-1);
+    bool isLayerMark = false;
+    RSNodeCommandHelper::SetLayerMark(context, nodeId, isLayerMark);
+    nodeId = 1;
+    RSCanvasNodeCommandHelper::Create(context, nodeId, false);
+    isLayerMark = true;
+    RSNodeCommandHelper::SetLayerMark(context, nodeId, isLayerMark);
+    auto canvasNode = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
+    ASSERT_NE(canvasNode, nullptr);
+    canvasNode->OnSync();
+    EXPECT_EQ(canvasNode->IsLayerMarkEnabled(), true);
+}
+
+/**
  * @tc.name: ExcludedFromNodeGroupTest
  * @tc.desc: ExcludedFromNodeGroup test.
  * @tc.type: FUNC

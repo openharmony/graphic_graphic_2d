@@ -355,6 +355,45 @@ HWTEST_F(RSRenderNodeTest, SetBootAnimationTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetLayerMarkTest
+ * @tc.desc: SetLayerMark
+ * @tc.type:FUNC
+ * @tc.require:SR000HSUII
+ */
+HWTEST_F(RSRenderNodeTest, SetLayerMarkTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(100, true);
+    EXPECT_EQ(node->hasSetLayerMark_, false);
+
+    node->SetLayerMark(true);
+    EXPECT_EQ(node->hasSetLayerMark_, true);
+
+    node->SetLayerMark(true);
+    node->SetLayerMark(false);
+    EXPECT_EQ(node->hasSetLayerMark_, false);
+
+    node->isChildSupportUifirst_ = true;
+    node->SetLayerMark(true);
+    EXPECT_EQ(node->hasSetLayerMark_, false);
+}
+
+/**
+ * @tc.name: IsLayerMarkEnabledTest
+ * @tc.desc: IsLayerMarkEnabled
+ * @tc.type:FUNC
+ * @tc.require:SR000HSUII
+ */
+HWTEST_F(RSRenderNodeTest, IsLayerMarkEnabledTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(100, true);
+    EXPECT_EQ(node->IsLayerMarkEnabled(), false);
+    node->SetLayerMark(true);
+    EXPECT_EQ(node->IsLayerMarkEnabled(), true);
+    node->OnSync();
+    EXPECT_EQ(node->IsLayerMarkEnabled(), true);
+}
+
+/**
  * @tc.name: OnlyBasicGeoTransfromTest01
  * @tc.desc: Check node only contains BasicGeoTransfrom by default
  * @tc.type: FUNC

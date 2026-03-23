@@ -304,6 +304,45 @@ HWTEST_F(RSUniRenderThreadTest, Render001, TestSize.Level1)
     EXPECT_FALSE(instance.screenPowerOnChanged_);
 }
 
+/**
+ * @tc.name: AsyncLayerMarkNodeDrawableTest
+ * @tc.desc: Test AsyncLayerMarkNodeDrawable
+ * @tc.type: FUNC
+ * @tc.require: issueIAE59W
+ */
+HWTEST_F(RSUniRenderThreadTest, AsyncLayerMarkNodeDrawableTest, TestSize.Level1)
+{
+    RSUniRenderThread& instance = RSUniRenderThread::Instance();
+    EXPECT_TRUE(instance.layerMarkNodes_.empty());
+    instance.AsyncLayerMarkNodeDrawable();
+
+    auto node = std::make_shared<RSRenderNode>(100, true);
+    instance.layerMarkNodes_.emplace_back(node);
+    EXPECT_FALSE(instance.layerMarkNodes_.empty());
+    instance.AsyncLayerMarkNodeDrawable();
+}
+
+/**
+ * @tc.name: IfIsLayerMarkEnabledAddToListTest
+ * @tc.desc: Test IfIsLayerMarkEnabledAddToList && ClearLastFrameLayerMarkNodes
+ * @tc.type: FUNC
+ * @tc.require: issueIAE59W
+ */
+HWTEST_F(RSUniRenderThreadTest, IfIsLayerMarkEnabledAddToListTest, TestSize.Level1)
+{
+    RSUniRenderThread& instance = RSUniRenderThread::Instance();
+    EXPECT_TRUE(instance.layerMarkNodes_.empty());
+
+    auto node = std::make_shared<RSRenderNode>(100, true);
+    EXPECT_FALSE(node->renderHasSetLayerMark_);
+    node->renderHasSetLayerMark_ = true;
+    instance.IfIsLayerMarkEnabledAddToList(node);
+    EXPECT_FALSE(instance.layerMarkNodes_.empty());
+
+    instance.ClearLastFrameLayerMarkNodes();
+    EXPECT_TRUE(instance.layerMarkNodes_.empty());
+}
+
 #ifdef RES_SCHED_ENABLE
 /**
  * @tc.name: SubScribeSystemAbility001

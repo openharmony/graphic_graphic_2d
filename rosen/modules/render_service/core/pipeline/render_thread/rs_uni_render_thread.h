@@ -251,6 +251,20 @@ public:
 
     void CollectProcessNodeNum(int num);
 
+    void AsyncLayerMarkNodeDrawable();
+
+    void IfIsLayerMarkEnabledAddToList(std::shared_ptr<RSRenderNode> node)
+    {
+        if (node->IsLayerMarkEnabled()) {
+            layerMarkNodes_.emplace_back(node);
+        }
+    }
+
+    void ClearLastFrameLayerMarkNodes()
+    {
+        layerMarkNodes_.clear();
+    }
+
     void DumpSurfaceInfo(std::string &dumpString);
     void DumpCurrentFrameLayers();
 
@@ -336,6 +350,8 @@ private:
     void PerfForBlurIfNeeded();
     void PostReclaimMemoryTask(ClearMemoryMoment moment, bool isReclaim);
     void NotifyScreenNodeBufferReleased(ScreenId curScreenId);
+
+    std::vector<std::shared_ptr<RSRenderNode>> layerMarkNodes_;
 
     std::atomic_bool isPostedReclaimMemoryTask_ = false;
     // Those variable is used to manage memory.
