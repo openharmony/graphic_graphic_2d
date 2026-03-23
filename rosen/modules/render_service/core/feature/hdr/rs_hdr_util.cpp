@@ -460,6 +460,13 @@ void RSHdrUtil::CheckPixelFormatForHdrEffect(RSSurfaceRenderNode& surfaceNode,
         screenNode->CollectHdrStatus(HdrStatus::HDR_EFFECT);
         SetHDRParam(*screenNode, surfaceNode, true);
     }
+    if (surfaceNode.HDRColorHeadroomEnabled()) {
+        RS_LOGD("CheckPixelFormatForHdrEffect HDRColorHeadroomEnabled: %{public}d, id: %{public}" PRIu64 "",
+            static_cast<int>(surfaceNode.HDRColorHeadroomEnabled()), surfaceNode.GetId());
+        screenNode->SetHasUniRenderHdrSurface(true);
+        screenNode->CollectHdrStatus(HdrStatus::HDR_COLOR);
+        SetHDRParam(*screenNode, surfaceNode, false);
+    }
 }
 
 bool RSHdrUtil::GetRGBA1010108Enabled()

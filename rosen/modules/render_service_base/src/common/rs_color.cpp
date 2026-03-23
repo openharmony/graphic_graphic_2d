@@ -49,14 +49,16 @@ RSColor::RSColor(int16_t red, int16_t green, int16_t blue, int16_t alpha, Graphi
 bool RSColor::operator==(const RSColor& rhs) const
 {
     return red_ == rhs.red_ && green_ == rhs.green_ && blue_ == rhs.blue_ && alpha_ == rhs.alpha_ &&
-           colorSpace_ == rhs.colorSpace_ && placeholder_ == rhs.placeholder_;
+           colorSpace_ == rhs.colorSpace_ && placeholder_ == rhs.placeholder_ &&
+           OHOS::ColorManager::FloatNearlyEqual(headroom_, rhs.headroom_);
 }
 
 bool RSColor::IsNearEqual(const RSColor& other, int16_t threshold) const
 {
     return (std::abs(red_ - other.red_) <= threshold) && (std::abs(green_ - other.green_) <= threshold) &&
            (std::abs(blue_ - other.blue_) <= threshold) && (std::abs(alpha_ - other.alpha_) <= threshold) &&
-           (colorSpace_ == other.colorSpace_) && (placeholder_ == other.placeholder_);
+           (colorSpace_ == other.colorSpace_) && (placeholder_ == other.placeholder_) &&
+           OHOS::ColorManager::FloatNearlyEqual(headroom_, other.headroom_);
 }
 
 RSColor RSColor::operator+(const RSColor& rhs) const
@@ -67,7 +69,9 @@ RSColor RSColor::operator+(const RSColor& rhs) const
     if (UNLIKELY(rhs.placeholder_ != 0)) {
         return rhs;
     }
-    return RSColor(red_ + rhs.red_, green_ + rhs.green_, blue_ + rhs.blue_, alpha_ + rhs.alpha_);
+    RSColor color = RSColor(red_ + rhs.red_, green_ + rhs.green_, blue_ + rhs.blue_, alpha_ + rhs.alpha_);
+    color.SetHeadroom(rhs.headroom_);
+    return color;
 }
 
 RSColor RSColor::operator-(const RSColor& rhs) const
@@ -78,8 +82,10 @@ RSColor RSColor::operator-(const RSColor& rhs) const
     if (UNLIKELY(rhs.placeholder_ != 0)) {
         return rhs;
     }
-    return RSColor(red_ - rhs.red_, green_ - rhs.green_, blue_ - rhs.blue_, alpha_ - rhs.alpha_,
+    RSColor color = RSColor(red_ - rhs.red_, green_ - rhs.green_, blue_ - rhs.blue_, alpha_ - rhs.alpha_,
         static_cast<GraphicColorGamut>(rhs.colorSpace_));
+    color.SetHeadroom(rhs.headroom_);
+    return color;
 }
 
 RSColor RSColor::operator*(float scale) const
@@ -87,7 +93,9 @@ RSColor RSColor::operator*(float scale) const
     if (UNLIKELY(placeholder_ != 0)) {
         return *this;
     }
-    return RSColor(round(red_ * scale), round(green_ * scale), round(blue_ * scale), round(alpha_ * scale));
+    RSColor color = RSColor(round(red_ * scale), round(green_ * scale), round(blue_ * scale), round(alpha_ * scale));
+    color.SetHeadroom(rhs.headroom_);
+    return color;
 }
 
 RSColor& RSColor::operator*=(float scale)
@@ -300,6 +308,9 @@ void RSColor::Dump(std::string& out) const
     if (IsPlaceholder()) {
         out += " placeholder[" + std::to_string(placeholder_) + "]";
     }
+    if (!OHOS::ColorManager::FloatNearlyEqual(headroom_, 1.0f)) {
+        out += " headroom[" + std::to_string(headroom_) + "]";
+    }
 }
 ColorPlaceholder RSColor::GetPlaceholder() const
 {
@@ -313,5 +324,16 @@ void RSColor::SetPlaceholder(ColorPlaceholder ph)
 {
     placeholder_ = static_cast<uint16_t>(ph);
 }
+
+float RSColor::GetHeadroom() const
+{
+    return headroom_;
+}
+
+void RSColor::SetHeadroom(float headroom)
+{
+    headroom_ = headroom;
+}
+
 } // namespace Rosen
 } // namespace OHOS

@@ -1231,6 +1231,9 @@ void RSSurfaceRenderNode::IncreaseHDRNum(HDRComponentType hdrType)
     } else if (hdrType == HDRComponentType::EFFECT) {
         hdrEffectNum_++;
         RS_LOGD("RSSurfaceRenderNode::IncreaseHDRNum HDRClient hdrEffectNum_: %{public}d", hdrEffectNum_);
+    } else if (hdrType == HDRComponentType::HDRCOLOR) {
+        hdrColorNum_++;
+        RS_LOGD("RSSurfaceRenderNode::IncreaseHDRNum HDRClient hdrColorNum_: %{public}d", hdrColorNum_);
     }
 }
 
@@ -1258,6 +1261,13 @@ void RSSurfaceRenderNode::ReduceHDRNum(HDRComponentType hdrType)
         }
         hdrEffectNum_--;
         RS_LOGD("RSSurfaceRenderNode::ReduceHDRNum HDRClient hdrEffectNum_: %{public}d", hdrEffectNum_);
+    } else if (hdrType == HDRComponentType::HDRCOLOR) {
+        if (hdrColorNum_ == 0) {
+            ROSEN_LOGE("RSSurfaceRenderNode::ReduceHDRNum hdrColor error");
+            return;
+        }
+        hdrColorNum_--;
+        RS_LOGD("RSSurfaceRenderNode::ReduceHDRNum HDRClient hdrColorNum_: %{public}d", hdrColorNum_);
     }
 }
 
@@ -1311,6 +1321,11 @@ void RSSurfaceRenderNode::ReduceCanvasGamutNum(GraphicColorGamut gamut)
 bool RSSurfaceRenderNode::IsHdrEffectColorGamut() const
 {
     return hdrEffectNum_ > 0;
+}
+
+bool RSSurfaceRenderNode::HDRColorHeadroomEnabled() const
+{
+    return hdrColorNum_ > 0;
 }
 
 void RSSurfaceRenderNode::SetForceUIFirstChanged(bool forceUIFirstChanged)

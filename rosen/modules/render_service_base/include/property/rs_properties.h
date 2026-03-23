@@ -702,6 +702,12 @@ public:
     bool IsHDRUIBrightnessValid() const;
     void CreateHDRUIBrightnessFilter();
 
+    void SetHDRColorHeadroom(float headrom);
+    float GetHDRColorHeadroom() const;
+    float GetHDRColorMaxHeadroom() const;
+    bool HDRColorHeadroomEnabled() const;
+    void UpdateHDRColorMaxHeadroom(float hdrColorHeadroom, float backgroundColorHeadroom);
+
     bool IsAttractionValid() const
     {
         if (effect_) {
@@ -1085,6 +1091,8 @@ private:
     float unionSpacing_ = 0.f;
     Gravity frameGravity_ = Gravity::DEFAULT;
     float hdrUIBrightness_ = 1.0f;
+    float hdrColorHeadroom_ = 1.0f;
+    float hdrColorMaxHeadroom_ = 1.0f;
     std::shared_ptr<ColorPickerParam> colorPicker_;
     // filter property
     std::shared_ptr<RSObjAbsGeometry> boundsGeo_;

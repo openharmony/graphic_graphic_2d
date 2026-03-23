@@ -307,6 +307,7 @@ public:
             case RSPropertyType::HDR_BRIGHTNESS: return "HdrBrightness";
             case RSPropertyType::HDR_UI_BRIGHTNESS: return "HDRUIBrightness";
             case RSPropertyType::HDR_BRIGHTNESS_FACTOR: return "HdrBrightnessFactor";
+            case RSPropertyType::HDR_COLOR_HEADROOM: return "HDRColorHeadroom";
             case RSPropertyType::BEHIND_WINDOW_FILTER_RADIUS: return "BehindWindowFilterRadius";
             case RSPropertyType::BEHIND_WINDOW_FILTER_SATURATION: return "BehindWindowFilterSaturation";
             case RSPropertyType::BEHIND_WINDOW_FILTER_BRIGHTNESS: return "BehindWindowFilterBrightness";

@@ -1561,6 +1561,13 @@ public:
     void SetHDRBrightnessFactor(float factor);
 
     /**
+     * @brief Sets the headroom of HDR Color (High Dynamic Range).
+     *
+     * @param headroom The HDR headroom to set.
+     */
+    void SetHDRColorHeadroom(const float& headroom);
+
+    /**
      * @brief Sets the visibility of the node.
      *
      * @param visible True to make the node visible; false to hide it.

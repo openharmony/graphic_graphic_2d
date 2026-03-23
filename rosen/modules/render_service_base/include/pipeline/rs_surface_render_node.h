@@ -806,6 +806,8 @@ public:
 
     bool IsHdrEffectColorGamut() const;
 
+    bool HDRColorHeadroomEnabled() const;
+
     const std::shared_ptr<RSDirtyRegionManager>& GetDirtyManager() const
     {
         return dirtyManager_;
@@ -1969,6 +1971,7 @@ private:
     // Count the number of hdr UI components. If hdrUIComponentNum_ > 0, it means there are hdr UI components
     int hdrUIComponentNum_ = 0;
     int hdrEffectNum_ = 0;
+    int hdrColorNum_ = 0;
     int bt2020Num_ = 0;
     int p3Num_ = 0;
     int firstLevelNodeBt2020WindowNum_ = 0;

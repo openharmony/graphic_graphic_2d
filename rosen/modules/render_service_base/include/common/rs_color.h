@@ -51,6 +51,7 @@ public:
         alpha_ = rhs.alpha_;
         colorSpace_ = rhs.colorSpace_;
         placeholder_ = rhs.placeholder_;
+        headroom_ = rhs.headroom_;
     }
 
     RSColor& operator=(const RSColor& rhs) noexcept
@@ -61,6 +62,7 @@ public:
         alpha_ = rhs.alpha_;
         colorSpace_ = rhs.colorSpace_;
         placeholder_ = rhs.placeholder_;
+        headroom_ = rhs.headroom_;
         return *this;
     }
 
@@ -120,6 +122,9 @@ public:
         return sizeof(int64_t);
     }
 
+    float GetHeadroom() const;
+    void SetHeadroom(float headroom);
+
 private:
     struct {
         int16_t alpha_ : 16;
@@ -129,6 +134,7 @@ private:
     };
     int16_t colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     uint16_t placeholder_ = 0; // enum ColorPlaceholder
+    float headroom_ = 1.0f; // brightness ratio, range [1, 1+]
 };
 } // namespace Rosen
 } // namespace OHOS

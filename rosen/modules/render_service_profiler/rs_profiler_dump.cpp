@@ -542,6 +542,12 @@ void RSProfiler::DumpNodePropertiesColor(const RSProperties& properties, JsonWri
         out["skblendmode"] = properties.GetColorBlendMode() - 1;
         out["blendType"] = properties.GetColorBlendApplyType();
     }
+    if (!ROSEN_EQ(properties.GetHDRColorHeadroom(), 1.0f)) {
+        out["HDRColorHeadroom"] = properties.GetHDRColorHeadroom();
+    }
+    if (!ROSEN_EQ(properties.GetHDRColorMaxHeadroom(), 1.0f)) {
+        out["HDRColorMaxHeadroom"] = properties.GetHDRColorMaxHeadroom();
+    }
 }
 
 void RSProfiler::DumpNodeAnimations(const RSAnimationManager& animationManager, JsonWriter& out)
