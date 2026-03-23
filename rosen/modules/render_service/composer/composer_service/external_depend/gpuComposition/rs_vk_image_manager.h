@@ -13,20 +13,20 @@
  * limitations under the License.
  */
 
-#ifndef RS_VK_IMAGE_MANAGER_H
-#define RS_VK_IMAGE_MANAGER_H
+#ifndef RENDER_SERVICE_COMPOSER_SERVICE_EXTERNER_DEPEND_GPU_COMPOSITION_RS_VK_IMAGE_MANAGER_H
+#define RENDER_SERVICE_COMPOSER_SERVICE_EXTERNER_DEPEND_GPU_COMPOSITION_RS_VK_IMAGE_MANAGER_H
 
 #include <memory>
 #include <mutex>
 #include <queue>
 #include <unordered_map>
 
-#include "rs_image_manager.h"
+#include "gpuComposition/rs_image_manager.h"
 
 #include "common/rs_common_def.h"
 #include "draw/surface.h"
+#include "engine/rs_base_render_util.h"
 #include "native_window.h"
-#include "pipeline/render_thread/rs_base_render_util.h"
 #include "platform/ohos/backend/native_buffer_utils.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #include "surface.h"
@@ -124,4 +124,4 @@ private:
 
 } // namespace Rosen
 } // namespace OHOS
-#endif // RS_VK_IMAGE_MANAGER_H
+#endif // RENDER_SERVICE_COMPOSER_SERVICE_EXTERNER_DEPEND_GPU_COMPOSITION_RS_VK_IMAGE_MANAGER_H

@@ -23,7 +23,6 @@
 #include "surface_type.h"
 
 #include "common/rs_common_hook.h"
-#include "feature/gpuComposition/rs_gpu_cache_manager.h"
 #include "common/rs_optional_trace.h"
 #include "dirty_region/rs_gpu_dirty_collector.h"
 #include "display_engine/rs_luminance_control.h"
@@ -38,6 +37,7 @@
 // hpae offline
 #include "feature/hwc/hpae_offline/rs_hpae_offline_processor.h"
 #include "feature/hwc/hpae_offline/rs_hpae_offline_util.h"
+#include "gpuComposition/rs_gpu_cache_manager.h"
 #include "info_collection/rs_layer_compose_collection.h"
 #include "params/rs_screen_render_params.h"
 #include "params/rs_surface_render_params.h"

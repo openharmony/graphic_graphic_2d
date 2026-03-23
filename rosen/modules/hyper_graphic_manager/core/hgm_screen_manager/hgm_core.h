@@ -34,11 +34,17 @@
 namespace OHOS::Rosen {
 class HgmFrameRateManager;
 class RSScreenManager;
+class RSScreenModeInfo;
 
 class HgmCore final {
 public:
     using RefreshRateModeChangeCallback = std::function<void(int32_t)>;
     using RefreshRateUpdateCallback = std::function<void(int32_t)>;
+    using GetDefaultScreenIdCallback = std::function<ScreenId()>;
+    using GetScreenPowerStatusCallback = std::function<ScreenPowerStatus(ScreenId)>;
+    using GetScreenSupportedModesCallback = std::function<std::vector<RSScreenModeInfo>(ScreenId)>;
+    using SetScreenConstraintCallback = std::function<int32_t(ScreenId, uint64_t, ScreenConstraintType)>;
+    using SetScreenActiveModeCallback = std::function<uint32_t(ScreenId, uint32_t)>;
 
     static void SysModeChangeProcess(const char* key, const char* value, void* context);
     static HgmCore& Instance();
@@ -136,6 +142,18 @@ public:
     bool GetMultiSelfOwnedScreenEnable() const { return multiSelfOwnedScreenEnable_.load(); }
     void SetMultiSelfOwnedScreenEnable(bool multiSelfOwnedScreenEnable);
 
+    // Screen Manager
+    void RegisterScreenManagerCallbacks(
+        const GetDefaultScreenIdCallback& getDefaultScreenIdCb,
+        const GetScreenPowerStatusCallback& getScreenPowerStatusCb,
+        const GetScreenSupportedModesCallback& getScreenSupportedModesCb,
+        const SetScreenConstraintCallback& setScreenConstraintCb,
+        const SetScreenActiveModeCallback& setScreenActiveModeCb);
+    ScreenId GetDefaultScreenId() const;
+    ScreenPowerStatus GetScreenPowerStatus(ScreenId id) const;
+    std::vector<RSScreenModeInfo> GetScreenSupportedModes(ScreenId id) const;
+    int32_t SetScreenConstraint(ScreenId id, uint64_t timestamp, ScreenConstraintType type);
+    uint32_t SetScreenActiveMode(ScreenId id, uint32_t modeId);
     RSScreenManager* GetScreenManager() { return screenManager_; }
     void SetScreenManager(RSScreenManager* screenManager) { screenManager_ = screenManager; }
 
@@ -206,6 +224,12 @@ private:
     std::atomic<int64_t> appPhaseOffset_{ 0 };
     std::atomic<bool> isVsyncOffsetCustomized_{ false };
 
+    // Screen Manager
+    GetDefaultScreenIdCallback getDefaultScreenIdCb_ = nullptr;
+    GetScreenPowerStatusCallback getScreenPowerStatusCb_ = nullptr;
+    GetScreenSupportedModesCallback getScreenSupportedModesCb_ = nullptr;
+    SetScreenConstraintCallback setScreenConstraintCb_ = nullptr;
+    SetScreenActiveModeCallback setScreenActiveModeCb_ = nullptr;
     RSScreenManager* screenManager_;
 };
 } // namespace OHOS::Rosen

@@ -26,6 +26,7 @@
 #include "hgm_log.h"
 #include "hgm_screen_info.h"
 #include "platform/common/rs_system_properties.h"
+#include "screen_manager/rs_screen_mode_info.h"
 #include "syspara/parameter.h"
 #include "vsync_generator.h"
 
@@ -604,5 +605,64 @@ int64_t HgmCore::GetIdealPeriod(uint32_t rate)
         return iter->second;
     }
     return 0;
+}
+
+void HgmCore::RegisterScreenManagerCallbacks(
+    const GetDefaultScreenIdCallback& getDefaultScreenIdCb,
+    const GetScreenPowerStatusCallback& getScreenPowerStatusCb,
+    const GetScreenSupportedModesCallback& getScreenSupportedModesCb,
+    const SetScreenConstraintCallback& setScreenConstraintCb,
+    const SetScreenActiveModeCallback& setScreenActiveModeCb)
+{
+    getDefaultScreenIdCb_ = getDefaultScreenIdCb;
+    getScreenPowerStatusCb_ = getScreenPowerStatusCb;
+    getScreenSupportedModesCb_ = getScreenSupportedModesCb;
+    setScreenConstraintCb_ = setScreenConstraintCb;
+    setScreenActiveModeCb_ = setScreenActiveModeCb;
+}
+
+ScreenId HgmCore::GetDefaultScreenId() const
+{
+    if (LIKELY(getDefaultScreenIdCb_ != nullptr)) {
+        return getDefaultScreenIdCb_();
+    }
+    HGM_LOGE("getDefaultScreenIdCB is null");
+    return INVALID_SCREEN_ID;
+}
+
+ScreenPowerStatus HgmCore::GetScreenPowerStatus(ScreenId id) const
+{
+    if (LIKELY(getScreenPowerStatusCb_ != nullptr)) {
+        return getScreenPowerStatusCb_(id);
+    }
+    HGM_LOGE("getScreenPowerStatusCb is null");
+    return INVALID_POWER_STATUS;
+}
+
+std::vector<RSScreenModeInfo> HgmCore::GetScreenSupportedModes(ScreenId id) const
+{
+    if (LIKELY(getScreenSupportedModesCb_ != nullptr)) {
+        return getScreenSupportedModesCb_(id);
+    }
+    HGM_LOGE("getScreenSupportedModesCb is null");
+    return {};
+}
+
+int32_t HgmCore::SetScreenConstraint(ScreenId id, uint64_t timestamp, ScreenConstraintType type)
+{
+    if (LIKELY(setScreenConstraintCb_ != nullptr)) {
+        return setScreenConstraintCb_(id, timestamp, type);
+    }
+    HGM_LOGE("setScreenConstraintCb is null");
+    return StatusCode::SCREEN_NOT_FOUND;
+}
+
+uint32_t HgmCore::SetScreenActiveMode(ScreenId id, uint32_t modeId)
+{
+    if (LIKELY(setScreenActiveModeCb_ != nullptr)) {
+        return setScreenActiveModeCb_(id, modeId);
+    }
+    HGM_LOGE("setScreenActiveModeCb is null");
+    return StatusCode::SCREEN_NOT_FOUND;
 }
 } // namespace OHOS::Rosen

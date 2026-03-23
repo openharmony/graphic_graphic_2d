@@ -16,8 +16,9 @@
 #ifndef RS_HDR_UTIL_H
 #define RS_HDR_UTIL_H
 
+#include "engine/rs_base_render_engine.h"
+#include "hdr/rs_base_hdr_util.h"
 #include "params/rs_screen_render_params.h"
-#include "pipeline/render_thread/rs_base_render_engine.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -61,13 +62,8 @@ public:
     ~RSHdrUtil() = default;
 
     static HdrStatus CheckIsHdrSurface(const RSSurfaceRenderNode& surfaceNode);
-    static HdrStatus CheckIsHdrSurfaceBuffer(const sptr<SurfaceBuffer> surfaceBuffer);
-    static bool CheckIsHDRSelfProcessingBuffer(const sptr<SurfaceBuffer>& surfaceBuffer);
-    static void SetBufferHDRParam(BufferDrawParam& params, const RSLayerPtr& layer);
     static bool CheckHasSurfaceWithAiHdrMetadata(const RSSurfaceRenderNode& surfaceNode);
-    static bool CheckIsSurfaceBufferWithAiHdrMetadata(const sptr<SurfaceBuffer> surfaceBuffer);
     static bool CheckIsSurfaceWithMetadata(const RSSurfaceRenderNode& surfaceNode);
-    static bool CheckIsSurfaceBufferWithMetadata(const sptr<SurfaceBuffer> surfaceBuffer);
     static void UpdateSurfaceNodeLayerLinearMatrix(RSSurfaceRenderNode& surfaceNode, ScreenId screenId);
     static void UpdatePixelFormatAfterHwcCalc(RSScreenRenderNode& node);
     static void UpdateSelfDrawingNodesNit(RSScreenRenderNode& node);
@@ -77,7 +73,6 @@ public:
     static bool UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId screenId, float& scaler);
     static void SetHDRParam(RSScreenRenderNode& screenNode, RSSurfaceRenderNode& node, bool isEDR);
     static void LuminanceChangeSetDirty(RSScreenRenderNode& node);
-    static bool GetRGBA1010108Enabled();
     static void CheckNotifyCallback(RSContext& context, ScreenId screenId);
     static bool BufferFormatNeedUpdate(const std::shared_ptr<Drawing::Surface>& cacheSurface, bool isNeedFP16);
     static void HandleVirtualScreenHDRStatus(RSScreenRenderNode& node);

@@ -21,9 +21,9 @@
 #include <functional>
 #include <memory>
 
+#include "pipeline/render_thread/rs_base_surface_util.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
-#include "rs_base_render_util.h"
 
 namespace OHOS {
 namespace Rosen {

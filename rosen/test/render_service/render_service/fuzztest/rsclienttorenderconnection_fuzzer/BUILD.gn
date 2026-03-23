@@ -41,6 +41,8 @@ ohos_fuzztest("RSClientToRenderConnectionFuzzTest") {
     "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser/performance_feature_parser",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/test/include",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/external_depend",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/pipeline",
@@ -51,7 +53,6 @@ ohos_fuzztest("RSClientToRenderConnectionFuzzTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection",
     "$graphic_2d_root/rosen/modules/render_service/vsync",
   ]
 
@@ -59,6 +60,7 @@ ohos_fuzztest("RSClientToRenderConnectionFuzzTest") {
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",

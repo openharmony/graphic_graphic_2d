@@ -81,10 +81,8 @@ public:
     static bool GetWiredScreenOndrawEnabled();
     static bool GetDebugMirrorOndrawEnabled();
     static bool GetIsCopybitSupported();
-    static bool GetMultimediaEnableCameraRotationCompensation();
     static bool GetArsrPreEnabled();
     static bool GetCanvasDrawingNodeRegionEnabled();
-    static int32_t GetWindowScreenScanType();
     static int32_t GetPurgeableResourceLimit();
     static bool GetAnimationOcclusionEnabled();
     static bool GetDDGRSLREnabled();

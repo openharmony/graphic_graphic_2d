@@ -36,7 +36,7 @@
 #include "feature/hwc/rs_uni_hwc_prevalidate_util.h"
 #include "memory/rs_memory_track.h"
 #include "pipeline/render_thread/rs_render_engine.h"
-#include "pipeline/render_thread/rs_uni_render_engine.h"
+#include "engine/rs_uni_render_engine.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "render_server/transaction/rs_client_to_service_connection.h"
 #include "pipeline/rs_root_render_node.h"

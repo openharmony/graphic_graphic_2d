@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-#ifndef HGM_HARDWARE_UTILS_H
-#define HGM_HARDWARE_UTILS_H
+#ifndef RENDER_SERVICE_COMPOSER_SERVICE_EXTERNER_DEPEND_HYPER_GRAPHIC_MANAGER_HGM_HARDWARE_UTILS_H
+#define RENDER_SERVICE_COMPOSER_SERVICE_EXTERNER_DEPEND_HYPER_GRAPHIC_MANAGER_HGM_HARDWARE_UTILS_H
 
-#include "feature/hyper_graphic_manager/rs_vblank_idle_corrector.h"
 #include "hdi_backend.h"
 #include "hgm_core.h"
 #include "hgm_frame_rate_manager.h"
+#include "hyper_graphic_manager/rs_vblank_idle_corrector.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -97,7 +97,6 @@ public:
     HgmHardwareUtils() = default;
     ~HgmHardwareUtils() noexcept = default;
 
-    void PerformSetActiveMode(const std::shared_ptr<HdiOutput>& output);
     void ResetRetryCount(ScreenPowerStatus status);
     void SetScreenVBlankIdle() { vblankIdleCorrector_.SetScreenVBlankIdle(); }
     void TransactRefreshRateParam(uint32_t& currentRate,
@@ -116,7 +115,7 @@ private:
 
     void ExecuteSwitchRefreshRate(ScreenId screenId);
     void UpdateRetrySetRateStatus(ScreenId id, int32_t modeId, uint32_t setRateRet);
-    void PerformSetActiveMode(const std::shared_ptr<HdiOutput>& output, RSScreenManager* screenManager);
+    void PerformSetActiveMode(const std::shared_ptr<HdiOutput>& output);
 
     void AddRefreshRateCount(ScreenId screenId);
 
@@ -136,4 +135,4 @@ private:
 };
 } // namespace OHOS
 } // namespace Rosen
-#endif // HGM_HARDWARE_UTILS_H
+#endif // RENDER_SERVICE_COMPOSER_SERVICE_EXTERNER_DEPEND_HYPER_GRAPHIC_MANAGER_HGM_HARDWARE_UTILS_H

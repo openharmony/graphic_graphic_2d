@@ -275,19 +275,19 @@ void RSHpaeOfflineProcessor::FlushAndReleaseOfflineLayer(sptr<SurfaceBuffer>& ds
     const auto surfaceConsumer = surfaceHandler->GetConsumer();
     int32_t ret = surfaceConsumer->AcquireBuffer(returnValue, 0, false);
     if (ret != OHOS::SURFACE_ERROR_OK) {
-        RS_OFFLINE_LOGW("RSBaseRenderUtil::DropFrameProcess(node: %{public}" PRIu64 "): AcquireBuffer failed("
+        RS_OFFLINE_LOGW("RSBaseSurfaceUtil::DropFrameProcess(node: %{public}" PRIu64 "): AcquireBuffer failed("
             " ret: %{public}d), do nothing ", surfaceHandler->GetNodeId(), ret);
         return;
     }
 
     ret = surfaceConsumer->ReleaseBuffer(returnValue.buffer, returnValue.fence);
     if (ret != OHOS::SURFACE_ERROR_OK) {
-        RS_OFFLINE_LOGW("RSBaseRenderUtil::DropFrameProcess(node: %{public}" PRIu64
+        RS_OFFLINE_LOGW("RSBaseSurfaceUtil::DropFrameProcess(node: %{public}" PRIu64
             "): ReleaseBuffer failed(ret: %{public}d), Acquire done ",
             surfaceHandler->GetNodeId(), ret);
     }
     surfaceHandler->SetAvailableBufferCount(static_cast<int32_t>(surfaceConsumer->GetAvailableBufferCount()));
-    RS_OFFLINE_LOGD("RSBaseRenderUtil::DropFrameProcess (node: %{public}" PRIu64 "), drop one frame",
+    RS_OFFLINE_LOGD("RSBaseSurfaceUtil::DropFrameProcess (node: %{public}" PRIu64 "), drop one frame",
         surfaceHandler->GetNodeId());
 }
 
@@ -354,7 +354,7 @@ bool RSHpaeOfflineProcessor::DoProcessOffline(
         .w = inputInfo.dstRect.w, .h = inputInfo.dstRect.h};
     offlineLayer_.FlushSurfaceBuffer(dstSurfaceBuffer, -1, flushConfig_);
     auto offlineSurfaceHandler = offlineLayer_.GetMutableRSSurfaceHandler();
-    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(*offlineSurfaceHandler) || !offlineSurfaceHandler->GetBuffer()) {
+    if (!RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(*offlineSurfaceHandler) || !offlineSurfaceHandler->GetBuffer()) {
         RS_OFFLINE_LOGW("DeviceOfflineLayer consume buffer failed. %{public}d",
             !offlineSurfaceHandler->GetBuffer());
         return false;

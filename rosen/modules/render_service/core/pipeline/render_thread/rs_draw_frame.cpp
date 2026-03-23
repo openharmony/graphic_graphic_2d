@@ -24,6 +24,7 @@
 #include "feature/hpae/rs_hpae_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "gfx/performance/rs_perfmonitor_reporter.h"
+#include "gpuComposition/rs_gpu_cache_manager.h"
 #include "memory/rs_memory_manager.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_render_node_gc.h"
@@ -42,7 +43,6 @@
 #endif
 #include "rs_render_composer_manager.h"
 #include "rs_uni_render_thread.h"
-#include "feature/gpuComposition/rs_gpu_cache_manager.h"
 
 namespace OHOS {
 namespace Rosen {

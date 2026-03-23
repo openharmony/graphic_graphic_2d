@@ -14,7 +14,7 @@
  */
 #include <memory>
  
-#include "feature/lpp/render_server/lpp_layer_collector.h"
+#include "lpp/render_server/lpp_layer_collector.h"
 #include "gtest/gtest.h"
 #include "rs_surface_layer.h"
  

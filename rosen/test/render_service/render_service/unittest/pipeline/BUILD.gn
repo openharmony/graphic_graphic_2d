@@ -83,7 +83,7 @@ ohos_unittest("RSBufferManagerTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
-    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
     "c_utils:utils",
@@ -102,7 +102,7 @@ ohos_unittest("RSVirtualScreenProcessorTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
-    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
     "c_utils:utils",
@@ -280,7 +280,7 @@ ohos_unittest("RSUniRenderProcessorTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
-    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
     "c_utils:utils",
@@ -355,7 +355,7 @@ ohos_unittest("RSRenderServiceVisitorTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
-    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
     "c_utils:utils",
@@ -392,7 +392,7 @@ ohos_unittest("RSComposerAdapterTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
-    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
     "c_utils:utils",
@@ -425,7 +425,7 @@ ohos_unittest("RSRenderServiceListenerTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
-    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
     "c_utils:utils",
@@ -459,7 +459,7 @@ ohos_unittest("RSProcessorFactoryTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
-    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
     "c_utils:utils",
@@ -502,7 +502,7 @@ ohos_unittest("RSPhysicalScreenProcessorTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
-    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
     "c_utils:utils",
@@ -542,7 +542,7 @@ ohos_unittest("RSDropFrameProcessorTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
-    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
     "c_utils:utils",
@@ -575,7 +575,7 @@ ohos_unittest("RSBaseRenderUtilTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
-    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
     "$graphic_2d_root/utils:socketpair",
   ]
   external_deps = [
@@ -621,7 +621,7 @@ ohos_unittest("RSUniRenderComposerAdapterTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
-    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
     "c_utils:utils",
@@ -655,7 +655,7 @@ ohos_unittest("RSUniRenderUtilTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
-    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
     "c_utils:utils",
@@ -688,7 +688,7 @@ ohos_unittest("RSUniRenderUtilDirtyRegionTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
-    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
     "c_utils:utils",
@@ -709,7 +709,7 @@ ohos_unittest("RSUniRenderUtilSecUIExtensionTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
-    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
     "c_utils:utils",
@@ -740,7 +740,7 @@ ohos_unittest("RSUniRenderVisitorTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
-    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
     "c_utils:utils",
@@ -860,7 +860,7 @@ ohos_unittest("RSRenderTaskTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
-    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
     "c_utils:utils",
@@ -912,7 +912,7 @@ ohos_unittest("RSUniRenderVirtualProcessorTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
-    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
     "c_utils:utils",
@@ -948,7 +948,7 @@ ohos_unittest("RSBaseRenderEngineUnitTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
-    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
     "c_utils:utils",
@@ -983,7 +983,7 @@ ohos_unittest("RSRoundCornerDisplayTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
-    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
 
   external_deps = [
@@ -1053,7 +1053,7 @@ ohos_unittest("RSRenderEngineTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
-    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
     "c_utils:utils",
@@ -1086,7 +1086,7 @@ ohos_unittest("RSDividedRenderUtilTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
-    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
     "c_utils:utils",
@@ -1120,7 +1120,7 @@ ohos_unittest("RSDrawFrameTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
-    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
     "c_utils:utils",
@@ -1148,7 +1148,7 @@ ohos_unittest("RSUniRenderEngineTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
-    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
     "c_utils:utils",
@@ -1220,7 +1220,7 @@ ohos_unittest("RSHwcContextTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
-    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
     "c_utils:utils",
@@ -1260,7 +1260,7 @@ ohos_unittest("RSUniHwcVisitorTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
-    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
     "c_utils:utils",
@@ -1304,6 +1304,7 @@ config("rs_test_common_public_config") {
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/external_depend",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/pipeline",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer",
@@ -1348,6 +1349,7 @@ ohos_static_library("rs_test_common") {
   public_deps = [
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",

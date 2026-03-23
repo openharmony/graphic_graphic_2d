@@ -25,8 +25,8 @@
 
 #include "common/rs_common_def.h"
 #include "drawable/rs_render_node_drawable.h"
+#include "engine/rs_base_render_engine.h"
 #include "params/rs_surface_render_params.h"
-#include "pipeline/render_thread/rs_base_render_engine.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "feature/uifirst/rs_draw_window_cache.h"
 

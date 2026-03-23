@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
-#include "rs_gpu_cache_manager.h"
+#include "gpuComposition/rs_gpu_cache_manager.h"
 
 #include <cinttypes>
 #include <unordered_set>
 
-#include "pipeline/render_thread/rs_base_render_engine.h"
+#include "engine/rs_base_render_engine.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {

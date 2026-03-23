@@ -23,6 +23,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
 #include "common/rs_singleton.h"
+#include "engine/rs_base_render_util.h"
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "feature/dirty/rs_uni_dirty_occlusion_util.h"
 #include "feature/hwc/rs_uni_hwc_compute_util.h"
@@ -49,7 +50,6 @@
 #include "memory/rs_tag_tracker.h"
 #include "monitor/self_drawing_node_monitor.h"
 #include "params/rs_screen_render_params.h"
-#include "pipeline/render_thread/rs_base_render_util.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/render_thread/rs_uni_render_virtual_processor.h"
 #include "pipeline/rs_base_render_node.h"
@@ -2532,7 +2532,7 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(
         bool isHardwareHdrDisabled = RSLuminanceControl::Get().IsHardwareHdrDisabled() &&
             (isHdrSurface || RSLuminanceControl::Get().IsHdrOn(curScreenNode_->GetScreenId()));
         bool hasUniRenderHdrSurface = curScreenNode_->GetHasUniRenderHdrSurface();
-        bool isDisableHwcForHdrSurface = hasUniRenderHdrSurface && !RSHdrUtil::GetRGBA1010108Enabled();
+        bool isDisableHwcForHdrSurface = hasUniRenderHdrSurface && !RSBaseHdrUtil::GetRGBA1010108Enabled();
         bool hasProtectedLayer = hwcNodePtr->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED);
         if ((isHardwareHdrDisabled || isDisableHwcForHdrSurface || !drmNodes_.empty() || hasFingerprint_) &&
             !hasProtectedLayer) {

@@ -19,8 +19,8 @@
 #include <ctime>
 
 #include "draw/color.h"
+#include "engine/rs_base_render_util.h"
 #include "platform/common/rs_log.h"
-#include "rs_base_render_util.h"
 #include "rs_divided_render_util.h"
 #include "rs_trace.h"
 #include "string_utils.h"
