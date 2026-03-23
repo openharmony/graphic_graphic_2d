@@ -60,7 +60,7 @@ int32_t RSServiceToRenderConnectionProxy::NotifyScreenConnectInfoToRender(const 
         if (!data.WriteBool(true) || !data.WriteRemoteObject(renderToComposerConn->AsObject())) {
             ROSEN_LOGE("%{public}s: WriteBool or WriteObject failed.", __func__);
             return -1;
-        }	 
+        }
     } else {
         if (!data.WriteBool(false)) {
             ROSEN_LOGE("%{public}s: WriteBool failed.", __func__);
