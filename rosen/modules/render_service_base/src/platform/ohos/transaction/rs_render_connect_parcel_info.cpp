@@ -40,9 +40,21 @@ ReplyToRenderInfo* ReplyToRenderInfo::Unmarshalling(Parcel& data)
     auto result = std::make_unique<ReplyToRenderInfo>();
     MessageParcel* message = static_cast<MessageParcel*>(&data);
     result->serviceConnection_ = message->ReadRemoteObject();
+    if (result->serviceConnection_ == nullptr) {
+        return nullptr;
+    }
     result->composeConnection_ = message->ReadRemoteObject();
+    if (result->composeConnection_ == nullptr) {
+        return nullptr;
+    }
     result->rsScreenProperty_ = sptr<RSScreenProperty>(data.ReadParcelable<RSScreenProperty>());
+    if (result->rsScreenProperty_ == nullptr) {
+        return nullptr;
+    }
     result->vsyncConn_ = message->ReadRemoteObject();
+    if (result->vsyncConn_ == nullptr) {
+        return nullptr;
+    }
     return result.release();
 }
 
@@ -69,9 +81,21 @@ ConnectToServiceInfo* ConnectToServiceInfo::Unmarshalling(Parcel& data)
     auto result = std::make_unique<ConnectToServiceInfo>();
     MessageParcel* message = static_cast<MessageParcel*>(&data);
     result->serviceToRenderConnection_ = message->ReadRemoteObject();
+    if (result->serviceToRenderConnection_ == nullptr) {
+        return nullptr;
+    }
     result->composerToRenderConnection_ = message->ReadRemoteObject();
+    if (result->composerToRenderConnection_ == nullptr) {
+        return nullptr;
+    }
     result->connectToRenderConnection_ = message->ReadRemoteObject();
+    if (result->connectToRenderConnection_ == nullptr) {
+        return nullptr;
+    }
     result->vsyncToken_ = message->ReadRemoteObject();
+    if (result->vsyncToken_ == nullptr) {
+        return nullptr;
+    }
     return result.release();
 }
 } // namespace Rosen
