@@ -81,8 +81,8 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                     renderToComposerConn = iface_cast<IRSRenderToComposerConnection>(remoteObj1);
                 }
             }
-            auto remoteObj2 = data.ReadRemoteObject();
             sptr<IRSComposerToRenderConnection> composerToRenderConn = nullptr;
+            auto remoteObj2 = data.ReadRemoteObject();
             if (remoteObj2 != nullptr) {
                 composerToRenderConn = iface_cast<IRSComposerToRenderConnection>(remoteObj2);
             }
