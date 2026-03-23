@@ -308,7 +308,10 @@ ani_double AniFont::MeasureSingleCharacterWithFeatures(ani_env* env, ani_object 
 
     std::vector<char> str(len + 1);
     ani_size realLen = 0;
-    env->String_GetUTF8(text, str.data(), len + 1, &realLen);
+    if (env->String_GetUTF8(text, str.data(), len + 1, &realLen) != ANI_OK) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type.");
+        return -1;
+    }
     str[realLen] = '\0';
     const char* currentStr = str.data();
     int32_t unicode = SkUTF::NextUTF8(&currentStr, currentStr + len);
@@ -349,7 +352,10 @@ ani_double AniFont::MeasureSingleCharacter(ani_env* env, ani_object obj, ani_str
     }
 
     ani_size len = 0;
-    env->String_GetUTF8Size(text, &len);
+    if (env->String_GetUTF8Size(text, &len) != ANI_OK) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type.");
+        return -1;
+    }
     if (len == 0 || len > ARGC_FOUR) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
             "AniFont::MeasureSingleCharacter text should be single character.");
@@ -358,7 +364,10 @@ ani_double AniFont::MeasureSingleCharacter(ani_env* env, ani_object obj, ani_str
 
     char str[len + 1];
     ani_size realLen = 0;
-    env->String_GetUTF8(text, str, len + 1, &realLen);
+    if (env->String_GetUTF8(text, str, len + 1, &realLen) != ANI_OK) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type.");
+        return -1;
+    }
     str[realLen] = '\0';
     const char* currentStr = str;
     int32_t unicode = SkUTF::NextUTF8(&currentStr, currentStr + len);
