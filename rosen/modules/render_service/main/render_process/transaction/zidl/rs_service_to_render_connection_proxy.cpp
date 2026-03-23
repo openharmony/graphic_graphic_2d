@@ -1262,14 +1262,10 @@ ErrCode RSServiceToRenderConnectionProxy::RepaintEverything()
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::REPAINT_EVERYTHING);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("%{public}s: SendRquest failed, err is %{public}d", __func__, err);
-        return -1;
+        ROSEN_LOGE("%{public}s: SendRequest failed, err is %{public}d.", __func__, err);
+        return ERR_INVALID_VALUE;
     }
-    int32_t replyMessage{0};
-    if (!reply.ReadInt32(replyMessage)) {
-        ROSEN_LOGE("%{public}s: ReadInt32 failed", __func__);
-        return -1;
-    }
+    auto replyMessage = reply.ReadInt32();
     return replyMessage;
 }
 
