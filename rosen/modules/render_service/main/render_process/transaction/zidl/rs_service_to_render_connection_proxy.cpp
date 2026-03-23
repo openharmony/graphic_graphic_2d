@@ -52,11 +52,20 @@ int32_t RSServiceToRenderConnectionProxy::NotifyScreenConnectInfoToRender(const 
         ROSEN_LOGE("%{public}s: WriteParcelable failed", __func__);
         return -1;
     }
-    if (renderToComposerConn) {
-        if (!data.WriteRemoteObject(renderToComposerConn->AsObject())) {
-            ROSEN_LOGE("%{public}s: WriteObject failed", __func__);
-            return -1;
-        }
+    if (!data.WriteRemoteObject(renderToComposerConn->AsObject())) { 
+        ROSEN_LOGE("%{public}s: WriteObject failed", __func__); 
+        return -1; 
+    } 
+    if (renderToComposerConn) {	 
+        if (!data.WriteBool(true) || !data.WriteRemoteObject(renderToComposerConn->AsObject())) {	 
+            ROSEN_LOGE("%{public}s: WriteObject failed.", __func__);	 
+            return -1;	 
+        }	 
+    } else {	 
+        if (!data.WriteBool(false)) {	 
+            ROSEN_LOGE("%{public}s: WriteBool failed.", __func__);	 
+            return -1;	 
+        }	 
     }
     if (composerToRenderConn) {
         if (!data.WriteRemoteObject(composerToRenderConn->AsObject())) {
