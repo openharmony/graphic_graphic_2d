@@ -102,6 +102,8 @@ public:
     HgmFrameRateManager();
     ~HgmFrameRateManager() noexcept = default;
 
+    void AddScreenInit();
+
     void HandleLightFactorStatus(pid_t pid, int32_t state);
     void HandlePackageEvent(pid_t pid, const std::vector<std::string>& packageList);
     void HandleRefreshRateEvent(pid_t pid, const EventInfo& eventInfo);
@@ -120,7 +122,6 @@ public:
     ScreenId GetCurScreenId() const { return curScreenId_.load(); }
     ScreenId GetLastCurScreenId() const { return lastCurScreenId_.load(); }
     std::string GetCurScreenStrategyId() const { return curScreenStrategyId_; }
-    void AddScreenInit();
     void SetLastCurScreenId(ScreenId screenId) { lastCurScreenId_.store(screenId); }
     void HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
     void HandleScreenRectFrameRate(ScreenId id, const Rect& activeRect);
