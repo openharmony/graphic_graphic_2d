@@ -15,17 +15,39 @@
 
 #include "rs_service_to_render_connection.h"
 
-#include "frame_report.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "platform/common/rs_log.h"
-#include "rs_trace.h"
+#include "frame_report.h"
 
 #undef LOG_TAG
 #define LOG_TAG "RSServiceToRenderConnection"
 
 namespace OHOS {
 namespace Rosen {
+int32_t RSServiceToRenderConnection::NotifyScreenConnectInfoToRender(const sptr<ScreenPropertyBase>& screenProperty,
+    const sptr<IRSRenderToComposerConnection>& renderToComposerConn, const sptr<IRSComposerToRenderConnection>& composerToRenderConn)
+{
+    // TODO: 需要改成bool
+    renderProcessAgent_->NotifyScreenConnectInfoToRender(screenProperty, renderToComposerConn, composerToRenderConn);
+    return 0;
+}
+
+int32_t RSServiceToRenderConnection::NotifyScreenDisconnectInfoToRender(ScreenId screenId)
+{
+    // TODO: 需要改成bool
+    renderProcessAgent_->NotifyScreenDisconnectInfoToRender(screenId);
+    return 0;
+}
+
+int32_t RSServiceToRenderConnection::NotifyScreenPropertyChangedInfoToRender(ScreenId id, ScreenPropertyType type,
+    const sptr<ScreenPropertyBase>& screenProperty)
+{
+    // TODO: 需要改成bool
+    renderProcessAgent_->NotifyScreenPropertyChangedInfoToRender(id, type, screenProperty);
+    return 0;
+}
+
 int32_t RSServiceToRenderConnection::NotifyScreenRefresh(ScreenId screenId)
 {
     return renderPipelineAgent_->NotifyScreenRefresh(screenId);

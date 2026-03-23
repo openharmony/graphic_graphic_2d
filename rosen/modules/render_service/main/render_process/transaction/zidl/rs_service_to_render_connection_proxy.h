@@ -31,6 +31,14 @@ public:
     explicit RSServiceToRenderConnectionProxy(const sptr<IRemoteObject>& impl);
     virtual ~RSServiceToRenderConnectionProxy() noexcept = default;
 
+    // Process Manager
+    int32_t NotifyScreenConnectInfoToRender(const sptr<RSScreenProperty>& screenProperty,
+        const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
+        const sptr<IRSComposerToRenderConnection>& composerToRenderConn) override;
+    int32_t NotifyScreenDisconnectInfoToRender(ScreenId screenId) override;
+    int32_t NotifyScreenPropertyChangedInfoToRender(ScreenId id, ScreenPropertyType type,
+        const sptr<ScreenPropertyBase>& screenProperty) override;
+
     // Screen Manager
     int32_t NotifyScreenRefresh(ScreenId screenId) override;
     void HandleHwcEvent(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData) override;

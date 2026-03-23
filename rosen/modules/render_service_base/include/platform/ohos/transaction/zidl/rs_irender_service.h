@@ -22,6 +22,9 @@
 
 namespace OHOS {
 namespace Rosen {
+struct ReplyToRenderInfo;
+struct ConnectToServiceInfo;
+
 class RSIRenderService : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.RenderService");
@@ -31,6 +34,8 @@ public:
 
     virtual std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
         CreateConnection(const sptr<RSIConnectionToken>& token) = 0;
+    virtual sptr<ReplyToRenderInfo> RegisterRenderProcessConnection(
+        const sptr<ConnectToServiceInfo>& connectToServiceInfo) = 0;
     virtual bool RemoveConnection(const sptr<RSIConnectionToken>& token) = 0;
 };
 } // namespace Rosen

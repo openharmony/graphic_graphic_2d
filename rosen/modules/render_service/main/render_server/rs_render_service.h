@@ -22,8 +22,9 @@
 
 #include "rs_render_mode_config.h"
 #include "rs_render_pipeline.h"
+#include "rs_render_multi_process_manager.h"
 #include "rs_render_single_process_manager.h"
-#include "vsync/vsync_manager_agent.h"
+#include "vsync_manager_agent.h"
 #include "vsync_iconnection_token.h"
 #include "vsync_receiver.h"
 #include "dfx/rs_service_dumper.h"
@@ -78,6 +79,8 @@ private:
     };
 
     // IPC related
+    sptr<ReplyToRenderInfo> RegisterRenderProcessConnection(
+        const sptr<ConnectToServiceInfo>& connectToServiceInfo) override;
     std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> CreateConnection(
         const sptr<RSIConnectionToken>& token) override;
     std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> GetConnection(
@@ -123,6 +126,7 @@ private:
     
     friend class RSRenderServiceAgent;
     friend class RSRenderProcessManager;
+    friend class RSMultiRenderProcessManager;
     friend class RSSingleRenderProcessManager;
     friend class RSConnectToRenderProcess;
     friend class RSClientToRenderConnection;

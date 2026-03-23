@@ -16,6 +16,7 @@
 #ifndef RENDER_SERVICE_MAIN_RENDER_PROCESS_TRANSACTION_RS_SERVICE_TO_RENDER_CONNECTION_H
 #define RENDER_SERVICE_MAIN_RENDER_PROCESS_TRANSACTION_RS_SERVICE_TO_RENDER_CONNECTION_H
 
+#include "rs_render_process_agent.h"
 #include "render_server/rs_render_service_agent.h"
 #include "core/rs_render_pipeline_agent.h"
 
@@ -27,10 +28,22 @@ class RSServiceToRenderConnection : public RSServiceToRenderConnectionStub {
 public:
     explicit RSServiceToRenderConnection(sptr<RSRenderPipelineAgent> renderPipelineAgent)
         : renderPipelineAgent_(renderPipelineAgent) {}
+    RSServiceToRenderConnection(sptr<RSRenderProcessAgent> renderProcessAgent,
+        sptr<RSRenderPipelineAgent> renderPipelineAgent)
+        : renderProcessAgent_(renderProcessAgent),
+          renderPipelineAgent_(renderPipelineAgent) {}
     ~RSServiceToRenderConnection() noexcept = default;
 
     RSServiceToRenderConnection(const RSServiceToRenderConnection&) = delete;
     RSServiceToRenderConnection& operator=(const RSServiceToRenderConnection&) = delete;
+
+    // Process Manager
+    int32_t NotifyScreenConnectInfoToRender(const sptr<RSScreenProperty>& screenProperty,
+        const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
+        const sptr<IRSComposerToRenderConnection>& composerToRenderConn) override;
+    int32_t NotifyScreenDisconnectInfoToRender(ScreenId screenId) override;
+    int32_t NotifyScreenPropertyChangedInfoToRender(ScreenId id, ScreenPropertyType type,
+        const sptr<ScreenPropertyBase>& screenProperty) override;
 
     // Screen Manager
     int32_t NotifyScreenRefresh(ScreenId screenId) override;
@@ -123,7 +136,7 @@ public:
     void SetVmaCacheStatus(bool flag) override;
 
 private:
-    sptr<RSRenderServiceAgent> renderServiceAgent_ = nullptr;
+    sptr<RSRenderProcessAgent> renderProcessAgent_ = nullptr;
     sptr<RSRenderPipelineAgent> renderPipelineAgent_ = nullptr;
 };
 

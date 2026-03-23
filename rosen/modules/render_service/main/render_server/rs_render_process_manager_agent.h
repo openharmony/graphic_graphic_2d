@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_MAIN_RENDER_SERVER_RS_RENDER_PROCESS_MANAGER_AGENT_H
 
 #include "rs_render_process_manager.h"
+#include "rs_render_multi_process_manager.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -24,6 +25,8 @@ class RSRenderProcessManagerAgent : public RefBase {
 public:
     explicit RSRenderProcessManagerAgent(sptr<RSRenderProcessManager> renderProcessManager);
     ~RSRenderProcessManagerAgent() noexcept = default;
+
+    void SetRenderProcessReadyPromise(pid_t pid);
 
     sptr<RSIServiceToRenderConnection> GetServiceToRenderConn(ScreenId screenId) const;
     std::vector<sptr<RSIServiceToRenderConnection>> GetServiceToRenderConns() const;

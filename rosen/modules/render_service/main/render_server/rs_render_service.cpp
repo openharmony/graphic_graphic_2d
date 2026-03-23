@@ -33,7 +33,9 @@
 
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "transaction/rs_client_to_render_connection.h"
+#include "transaction/rs_render_to_service_connection.h"
 
+#include "rs_render_to_composer_connection.h"
 #include "graphic_feature_param_manager.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "rs_render_composer_manager.h"
@@ -55,8 +57,7 @@
 #include "transaction/rs_client_to_render_connection.h"
 #include "vsync_generator.h"
 
-#undef LOG_TAG
-#define LOG_TAG "RSRenderService"
+#include "platform/ohos/transaction/rs_render_connect_parcel_info.h"
 
 #undef LOG_TAG
 #define LOG_TAG "RSRenderService"
@@ -100,14 +101,14 @@ bool RSRenderService::Init()
     // Create core components
     CoreComponentsInit();
 
-    // Create multi-process/single-process mode
-    RenderProcessManagerInit();
-
     // Register with system ability manager
     if (!SAMgrRegister()) {
         RS_LOGE("%{public}s: samgr registration failed", __func__);
         return false;
     }
+
+    // Create multi-process/single-process mode
+    RenderProcessManagerInit();
 
     // Set boot voting to true
     system::SetParameter(BOOTEVENT_RENDER_SERVICE_READY.c_str(), "true");
@@ -137,7 +138,7 @@ void RSRenderService::CoreComponentsInit()
 
     // vsync manger
     vsyncManager_ = sptr<RSVsyncManager>::MakeSptr();
-    if (vsyncManager_->init(screenManager_)) {
+    if (!vsyncManager_->init(screenManager_)) {
         RS_LOGE("%{public}s: vsync init failed", __func__);
     }
 
@@ -189,6 +190,7 @@ void RSRenderService::FeatureComponentInit()
     rsDumper_ = std::make_shared<RSServiceDumper>(handler_, screenManager_, rsRenderComposerManager_);
     rsDumpManager_ = std::make_shared<RSServiceDumpManager>();
     rsDumper_->RsDumpInit(rsDumpManager_);
+
     // rdo init
 #ifdef RS_ENABLE_RDO
     EnableRSCodeCache();
@@ -232,6 +234,50 @@ void RSRenderService::Run()
         RS_LOGI("%{public}s: MainProcess Run", __func__);
         runner_->Run();
     }
+}
+
+static bool IsInvalidConnectInfo(const sptr<ConnectToServiceInfo>& result)
+{
+    return !result ||
+           !result->serviceToRenderConnection_ ||
+           !result->composerToRenderConnection_ ||
+           !result->connectToRenderConnection_ ||
+           !result->vsyncToken_;
+}
+
+sptr<ReplyToRenderInfo> RSRenderService::RegisterRenderProcessConnection(
+    const sptr<ConnectToServiceInfo>& connectToServiceInfo)
+{
+    if (IsInvalidConnectInfo(connectToServiceInfo)) {
+        RS_LOGE("dmulti_process %{public}s: connectToServiceInfo is invalid", __func__);
+        return nullptr;
+    }
+    const auto remotePid = GetCallingPid();
+    auto serviceToRenderConn = iface_cast<RSIServiceToRenderConnection>(connectToServiceInfo->serviceToRenderConnection_);
+    auto composerToRenderConn = iface_cast<RSIComposerToRenderConnection>(connectToServiceInfo->composerToRenderConnection_);
+    auto connectToRenderConn = iface_cast<RSIConnectToRenderProcess>(connectToServiceInfo->connectToRenderConnection_);
+    RS_LOGI("dmulti_process %{public}s: remotePid[%{public}d], connectToRenderConn[%{public}p", __func__,
+        remotePid, connectToRenderConn.GetRefPtr());
+    RS_LOGI("dmulti_process renderProcessManager_[%{public}p]", renderProcessManager_.GetRefPtr());
+    auto renderMultiProcessManager = static_cast<RSMultiRenderProcessManager*>(renderProcessManager_.GetRefPtr());
+    renderMultiProcessManager->RecordRenderProcessConnection(remotePid, serviceToRenderConn,
+        composerToRenderConn, connectToRenderConn);
+
+    // preparing required infos
+    auto rsScreenProperty = renderMultiProcessManager->GetPendingScreenProperty(remotePid);
+    RS_LOGI("dmulti_process %{public}s rsScreenProperty.id[%{public}" PRIu64 "] .width[%{public}d] .height[%{public}d]",
+        __func__, rsScreenProperty->GetScreenId(), rsScreenProperty->GetWidth(), rsScreenProperty->GetHeight());
+    sptr<RSRenderServiceAgent> renderServiceAgent = sptr<RSRenderServiceAgent>::MakeSptr(*this);
+    sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent = sptr<RSRenderProcessManagerAgent>::MakeSptr(renderProcessManager_);
+    auto screenManagerAgent = sptr<RSScreenManagerAgent>::MakeSptr(screenManager_);
+    auto renderToServiceConnection = sptr<RSRenderToServiceConnection>::MakeSptr(
+        renderServiceAgent, renderProcessManagerAgent, screenManagerAgent);
+    auto composerConn = rsRenderComposerManager_->GetRSComposerConnection(rsScreenProperty->GetScreenId());
+    sptr<VSyncConnection> vsyncConn = new VSyncConnection(rsVSyncDistributor_, "render_process", connectToServiceInfo->vsyncToken_);
+    RS_LOGI("dmulti_process RSRenderService::RegisterRenderProcessConnection create vsyncConn");
+    rsVSyncDistributor_->AddConnection(vsyncConn);
+    return sptr<ReplyToRenderInfo>::MakeSptr(renderToServiceConnection->AsObject(), composerConn->AsObject(),
+        rsScreenProperty, vsyncConn->AsObject());
 }
 
 std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> RSRenderService::GetConnection(
