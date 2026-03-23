@@ -318,6 +318,7 @@ DrawingError EffectImageReededGlassFilter::Apply(const std::shared_ptr<EffectIma
     return image->ApplyReededGlass(reededGlassData_);
 }
 
+#ifndef ROSEN_ARKUI_X
 DrawingError EffectImageRender::RenderDstNative(const std::shared_ptr<Media::PixelMap>& srcPixelMap,
     std::shared_ptr<OH_NativeBuffer>& dstNativeBuffer,
     const std::vector<std::shared_ptr<EffectImageFilter>>& effectFilters, bool forceCPU)
@@ -358,6 +359,7 @@ DrawingError EffectImageRender::RenderDstNative(const std::shared_ptr<Media::Pix
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     return ret;
 }
+#endif
 
 DrawingError EffectImageScaleFilter::Apply(const std::shared_ptr<EffectImageChain>& image)
 {
