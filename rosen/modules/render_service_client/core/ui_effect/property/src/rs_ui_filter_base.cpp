@@ -363,6 +363,8 @@ std::shared_ptr<RSNGFilterBase> ConvertFrostedGlassPara(std::shared_ptr<FilterPa
     frostedGlassFilter->Setter<FrostedGlassSamplingScaleTag>(frostedGlassFilterPara->GetSamplingScale());
     frostedGlassFilter->Setter<FrostedGlassWaveMaskTag>(RSNGMaskBase::Create(frostedGlassFilterPara->GetMask()));
     ConvertOptionalAdaptivePara(frostedGlassFilterPara.get(), frostedGlassFilter.get());
+    frostedGlassFilter->Setter<FrostedGlassSkipFrameEnableTag>(
+        frostedGlassFilterPara->GetSkipFrameEnable());
     return frostedGlassFilter;
 }
 
@@ -374,6 +376,8 @@ std::shared_ptr<RSNGFilterBase> ConvertFrostedGlassBlurPara(std::shared_ptr<Filt
     frostedGlassBlurFilter->Setter<FrostedGlassBlurRadiusTag>(frostedGlassBlurFilterPara->GetBlurRadius());
     frostedGlassBlurFilter->Setter<FrostedGlassBlurRadiusScaleKTag>(frostedGlassBlurFilterPara->GetBlurRadiusScaleK());
     frostedGlassBlurFilter->Setter<FrostedGlassBlurRefractOutPxTag>(frostedGlassBlurFilterPara->GetRefractOutPx());
+    frostedGlassBlurFilter->Setter<FrostedGlassBlurSkipFrameEnableTag>(
+        frostedGlassBlurFilterPara->GetSkipFrameEnable());
     return frostedGlassBlurFilter;
 }
 

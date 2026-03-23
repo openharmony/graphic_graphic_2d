@@ -29,6 +29,9 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr float MATERIAL_SKIP_BLUR_THRESHOLD = 25.0f;
+}
 using FilterCreator = std::function<std::shared_ptr<RSNGRenderFilterBase>()>;
 static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
     {RSNGEffectType::BLUR, [] {
@@ -165,6 +168,30 @@ static std::unordered_map<RSNGEffectType, FilterGetSnapshotRect> getSnapshotRect
 
 using FilterGetDrawRect = std::function<RectF(std::shared_ptr<RSNGRenderFilterBase>, RectF)>;
 static std::unordered_map<RSNGEffectType, FilterGetDrawRect> getDrawRectLUT = {};
+
+using CheckFilterSkipFrameFunc = std::function<bool(std::shared_ptr<RSNGRenderFilterBase>)>;
+static std::unordered_map<RSNGEffectType, CheckFilterSkipFrameFunc> checkFilterSkipLUT = {
+    {
+        RSNGEffectType::FROSTED_GLASS_BLUR, [](std::shared_ptr<RSNGRenderFilterBase> filter) {
+            auto frostedGlassBlur = std::static_pointer_cast<RSNGRenderFrostedGlassBlurFilter>(filter);
+            auto blurRadius = frostedGlassBlur->Getter<OHOS::Rosen::FrostedGlassBlurRadiusRenderTag>()->Get();
+            bool isSkipFrameEnable =
+                frostedGlassBlur->Getter<OHOS::Rosen::FrostedGlassBlurSkipFrameEnableRenderTag>()->Get();
+            RS_OPTIONAL_TRACE_NAME_FMT("FROSTED_GLASS_BLUR client set skip = %d", static_cast<int>(isSkipFrameEnable));
+            return isSkipFrameEnable && blurRadius > MATERIAL_SKIP_BLUR_THRESHOLD;
+        }
+    },
+    {
+        RSNGEffectType::FROSTED_GLASS, [](std::shared_ptr<RSNGRenderFilterBase> filter) {
+            auto frostedGlass = std::static_pointer_cast<RSNGRenderFrostedGlassFilter>(filter);
+            auto blurRadius = frostedGlass->Getter<OHOS::Rosen::FrostedGlassBlurParamsRenderTag>()->Get();
+            bool isSkipFrameEnable = frostedGlass->Getter<OHOS::Rosen::FrostedGlassSkipFrameEnableRenderTag>()->Get();
+            RS_OPTIONAL_TRACE_NAME_FMT("FROSTED_GLASS client set skip = %d", static_cast<int>(isSkipFrameEnable));
+            return isSkipFrameEnable && (blurRadius[0] > MATERIAL_SKIP_BLUR_THRESHOLD ||
+                blurRadius[0] * blurRadius[1] > MATERIAL_SKIP_BLUR_THRESHOLD);
+        }
+    },
+};
 
 std::shared_ptr<RSNGRenderFilterBase> RSNGRenderFilterBase::Create(RSNGEffectType type)
 {
@@ -328,6 +355,13 @@ void RSNGRenderFilterHelper::GetDescription(std::shared_ptr<RSNGRenderFilterBase
             filterString += "-";
         }
     }
+}
+
+bool RSNGRenderFilterTemplateHelper::CheckFilterSkipFrame(RSNGEffectType type,
+    const std::shared_ptr<RSNGRenderFilterBase>& filter)
+{
+    auto checkFunc = checkFilterSkipLUT.find(type);
+    return checkFunc != checkFilterSkipLUT.end() ? checkFunc->second(filter) : false;
 }
 } // namespace Rosen
 } // namespace OHOS
