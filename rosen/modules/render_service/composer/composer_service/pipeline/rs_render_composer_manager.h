@@ -43,6 +43,7 @@ public:
     void RefreshRateCounts(std::string& dumpString);
     void ClearRefreshRateCounts(std::string& dumpString);
     void HandlePowerStatus(ScreenId screenId, ScreenPowerStatus status);
+    void SetAFBCEnabled(ScreenId screenId, bool enabled);
 
 private:
     std::unordered_map<ScreenId, std::shared_ptr<RSRenderComposerAgent>> rsRenderComposerAgentMap_;
