@@ -73,7 +73,6 @@ int32_t RSServiceToRenderConnectionProxy::NotifyScreenConnectInfoToRender(const 
             return -1;
         }
     }
-    RS_LOGI("dmulti_process RSServiceToRenderConnectionProxy::NotifyScreenConnectInfoToRender conn write in remoteObj successfully");
     uint32_t code = static_cast<uint32_t>(
         RSIServiceToRenderConnectionInterfaceCode::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
@@ -86,7 +85,6 @@ int32_t RSServiceToRenderConnectionProxy::NotifyScreenConnectInfoToRender(const 
         ROSEN_LOGE("%{public}s: ReadInt32 failed", __func__);
         return -1;
     }
-    RS_LOGI("dmult_process RSServiceToRenderConnectionProxy::NotifyScreenConnectInfoToRender reply received successfully");
     return replyMessage;
 }
 
