@@ -78,15 +78,17 @@ private:
     sptr<RSIConnectToRenderProcess> GotConnectToRenderConnByPid(pid_t pid) const;
     sptr<RSIConnectToRenderProcess> GetConnectToRenderConnByPidLocked(pid_t pid) const;
 
+    sptr<IRSComposerToRenderProcess> GotComposerToRenderConnByPid(pid_t pid) const;
+
     ScreenId InsertVirtualToPhysicalScreenMap(ScreenId screenId, ScreenId associatedScreenId);
     std::optional<ScreenId> DeleteVirtualToPhysicalScreenMap(ScreenId screenId);
     ScreenId FindVirtualToPhysicalScreenMap(ScreenId screenId);
 
-    std::unordered_map<pid_t, sptr<IRSComposerToRenderConnection>> composerToRenderConnections_;
     std::unordered_map<pid_t, std::promise<bool>> renderProcessReadyPromises_;
-
+    
     mutable std::mutex mutex_;
     std::unordered_map<GroupId, pid_t> groupIdToRenderProcessPid_;
+    std::unordered_map<pid_t, sptr<IRSComposerToRenderConnection>> composerToRenderConnections_;
     std::unordered_map<pid_t, sptr<RSIServiceToRenderConnection>> serviceToRenderConnections_;
     std::unordered_map<pid_t, sptr<RSIConnectToRenderProcess>> connectToRenderConnections_;
 
