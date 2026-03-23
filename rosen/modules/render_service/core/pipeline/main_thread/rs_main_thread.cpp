@@ -66,7 +66,6 @@
 #include "feature/anco_manager/rs_anco_manager.h"
 #include "feature/opinc/rs_opinc_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
-#include "feature/gpuComposition/rs_gpu_cache_manager.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
 #endif
@@ -77,6 +76,7 @@
 #include "feature/hyper_graphic_manager/hgm_render_context.h"
 #include "frame_report.h"
 #include "gfx/performance/rs_perfmonitor_reporter.h"
+#include "gpuComposition/rs_gpu_cache_manager.h"
 #include "graphic_feature_param_manager.h"
 #include "info_collection/rs_gpu_dirty_region_collection.h"
 #include "memory/rs_memory_graphic.h"
@@ -85,8 +85,8 @@
 #include "metadata_helper.h"
 #include "monitor/self_drawing_node_monitor.h"
 #include "params/rs_surface_render_params.h"
+#include "pipeline/render_thread/rs_base_surface_util.h"
 #include "pipeline/rs_base_render_node.h"
-#include "pipeline/render_thread/rs_base_render_util.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/render_thread/rs_divided_render_util.h"
 #include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
@@ -131,7 +131,7 @@
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/round_corner_display/rs_rcd_render_manager.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
-#include "pipeline/render_thread/rs_uni_render_engine.h"
+#include "engine/rs_uni_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/main_thread/rs_uni_render_visitor.h"
@@ -1748,10 +1748,10 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             PostTryReclaimLastBuffer(surfaceNode, surfaceHandler);
             surfaceHandler->ResetCurrentFrameBufferConsumed();
             auto parentNode = surfaceNode->GetParent().lock();
-            RSBaseRenderUtil::DropFrameConfig dropFrameConfig;
+            RSBaseSurfaceUtil::DropFrameConfig dropFrameConfig;
             dropFrameConfig.enable = IsNeedDropFrameByPid(surfaceHandler->GetNodeId());
             dropFrameConfig.level = GetDropFrameLevelByPid(surfaceHandler->GetNodeId());
-            auto comsumeResult = RSBaseRenderUtil::ConsumeAndUpdateBuffer(
+            auto comsumeResult = RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(
                 *surfaceHandler, timestamp_, dropFrameConfig,
                 parentNode ? parentNode->GetId() : 0, surfaceNode->IsAncestorScreenFrozen());
             if (surfaceHandler->GetSourceType() ==

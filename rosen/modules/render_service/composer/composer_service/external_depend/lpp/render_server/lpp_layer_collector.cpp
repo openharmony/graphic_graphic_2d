@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "feature/lpp/render_server/lpp_layer_collector.h"
+#include "lpp/render_server/lpp_layer_collector.h"
 
 namespace OHOS::Rosen {
 void LppLayerCollector::AddLppLayerId(const std::vector<RSLayerPtr>& layers)

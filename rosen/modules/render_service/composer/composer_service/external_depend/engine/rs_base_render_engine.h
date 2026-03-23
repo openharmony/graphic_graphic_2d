@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef RS_CORE_PIPELINE_BASE_RENDER_ENGINE_H
-#define RS_CORE_PIPELINE_BASE_RENDER_ENGINE_H
+#ifndef RENDER_SERVICE_COMPOSER_SERVICE_EXTERNER_DEPEND_ENGINE_BASE_RENDER_ENGINE_H
+#define RENDER_SERVICE_COMPOSER_SERVICE_EXTERNER_DEPEND_ENGINE_BASE_RENDER_ENGINE_H
 
 #include <atomic>
 #include <functional>
@@ -23,6 +23,7 @@
 #include <mutex>
 #include <set>
 
+#include "engine/rs_base_render_util.h"
 #include "hdi_layer_info.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_screen_render_node.h"
@@ -30,7 +31,7 @@
 #include "rs_layer.h"
 #include "sync_fence.h"
 #ifdef RS_ENABLE_VK
-#include "feature/gpuComposition/rs_vk_image_manager.h"
+#include "gpuComposition/rs_vk_image_manager.h"
 #include "platform/ohos/backend/rs_surface_frame_ohos_vulkan.h"
 #include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
 #endif
@@ -39,7 +40,6 @@
 #else
 #include "include/gpu/GrDirectContext.h"
 #endif
-#include "rs_base_render_util.h"
 #include "rs_layer_transaction_data.h"
 
 #include "platform/drawing/rs_surface_frame.h"
@@ -48,7 +48,7 @@
 #include "render_context/render_context.h"
 #endif // RS_ENABLE_GL || RS_ENABLE_VK
 #if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU)) || defined(RS_ENABLE_VK)
-#include "feature/gpuComposition/rs_image_manager.h"
+#include "gpuComposition/rs_image_manager.h"
 #endif // RS_ENABLE_EGLIMAGE
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 #include "colorspace_converter_display.h"
@@ -175,6 +175,15 @@ private:
 using PreProcessFunc = std::function<void(RSPaintFilterCanvas&, BufferDrawParam&)>;
 // function that will be called after drawing Buffer / Image.
 using PostProcessFunc = std::function<void(RSPaintFilterCanvas&, BufferDrawParam&)>;
+using CreateLayerBufferDrawParamFunc = std::function<BufferDrawParam(const RSLayerPtr&, bool)>;
+using DrawRectForDfxFunc =
+    std::function<void(RSPaintFilterCanvas&, const RectI&, Drawing::Color, float, const std::string&)>;
+#ifdef HETERO_HDR_ENABLE
+using GenerateHDRHeteroShaderFunc = std::function<void(BufferDrawParam&, std::shared_ptr<Drawing::ShaderEffect>&)>;
+using UpdateHDRHeteroParamsFunc =
+    std::function<bool(RSPaintFilterCanvas&, const DrawableV2::RSSurfaceRenderNodeDrawable&, BufferDrawParam&)>;
+using GetHDRSurfaceHandlerFunc = std::function<std::shared_ptr<RSSurfaceHandler>()>;
+#endif
 
 struct VideoInfo {
     std::shared_ptr<Drawing::ColorSpace> drawingColorSpace_ = nullptr;
@@ -283,6 +292,15 @@ public:
     }
 #endif
     void DumpVkImageInfo(std::string &dumpString);
+    static void RegisterUniRenderUtilCallback(
+        const CreateLayerBufferDrawParamFunc createLayerBufferDrawParamCallback,
+        const DrawRectForDfxFunc drawRectForDfxCallback);
+#ifdef HETERO_HDR_ENABLE
+    static void RegisterHeteroHDRCallback(
+        const GenerateHDRHeteroShaderFunc generateHDRHeteroShaderCallback,
+        const UpdateHDRHeteroParamsFunc updateHDRHeteroParamsCallback,
+        const GetHDRSurfaceHandlerFunc getHDRSurfaceHandlerCallback);
+#endif
 
 protected:
     void DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
@@ -290,6 +308,13 @@ protected:
     static inline std::mutex colorFilterMutex_;
     static inline ColorFilterMode colorFilterMode_ = ColorFilterMode::COLOR_FILTER_END;
     static inline std::atomic_bool isHighContrastEnabled_ = false;
+    static inline CreateLayerBufferDrawParamFunc createLayerBufferDrawParamCallback_ = nullptr;
+    static inline DrawRectForDfxFunc drawRectForDfxCallback_ = nullptr;
+#ifdef HETERO_HDR_ENABLE
+    static inline GenerateHDRHeteroShaderFunc generateHDRHeteroShaderCallback_ = nullptr;
+    static inline UpdateHDRHeteroParamsFunc updateHDRHeteroParamsCallback_ = nullptr;
+    static inline GetHDRSurfaceHandlerFunc getHDRSurfaceHandlerCallback_ = nullptr;
+#endif
 
 private:
     static void DrawImageRect(RSPaintFilterCanvas& canvas, std::shared_ptr<Drawing::Image> image,
@@ -317,4 +342,4 @@ private:
 };
 } // namespace Rosen
 } // namespace OHOS
-#endif // RS_CORE_PIPELINE_BASE_RENDER_ENGINE_H
+#endif // RENDER_SERVICE_COMPOSER_SERVICE_EXTERNER_DEPEND_ENGINE_BASE_RENDER_ENGINE_H

@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-#ifndef ROSEN_RENDER_SERVICE_LPP_LAYER_COLLECTOR_H
-#define ROSEN_RENDER_SERVICE_LPP_LAYER_COLLECTOR_H
+#ifndef RENDER_SERVICE_COMPOSER_SERVICE_EXTERNER_DEPEND_LPP_LPP_LAYER_COLLECTOR_H
+#define RENDER_SERVICE_COMPOSER_SERVICE_EXTERNER_DEPEND_LPP_LPP_LAYER_COLLECTOR_H
 #include <unordered_set>
 
-#include "feature/lpp/render_server/lpp_layer_collector.h"
+#include "lpp/render_server/lpp_layer_collector.h"
 #include "hdi_layer.h"
 namespace OHOS::Rosen {
 constexpr uint32_t LPP_LAYER_PROPERTY =
@@ -33,4 +33,4 @@ public:
 };
 } // namespace OHOS::Rosen
 
-#endif
+#endif // RENDER_SERVICE_COMPOSER_SERVICE_EXTERNER_DEPEND_LPP_LPP_LAYER_COLLECTOR_H

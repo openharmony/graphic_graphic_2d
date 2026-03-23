@@ -22,7 +22,7 @@
 #include <parameters.h>
 #include <set>
 
-#include "pipeline/render_thread/rs_base_render_engine.h"
+#include "engine/rs_base_render_engine.h"
 #include "system/rs_system_parameters.h"
 
 #include "feature/hwc/rs_uni_hwc_prevalidate_util.h"

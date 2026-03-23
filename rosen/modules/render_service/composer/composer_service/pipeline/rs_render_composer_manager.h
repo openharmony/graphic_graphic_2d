@@ -23,8 +23,7 @@
 namespace OHOS::Rosen {
 class RSRenderComposerManager {
 public:
-    RSRenderComposerManager(std::shared_ptr<AppExecFwk::EventHandler>& handler,
-        const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent);
+    explicit RSRenderComposerManager(std::shared_ptr<AppExecFwk::EventHandler>& handler);
     ~RSRenderComposerManager() = default;
 
     void OnScreenConnected(const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property);
@@ -44,13 +43,16 @@ public:
     void ClearRefreshRateCounts(std::string& dumpString);
     void HandlePowerStatus(ScreenId screenId, ScreenPowerStatus status);
     void SetAFBCEnabled(ScreenId screenId, bool enabled);
+    void RegisterVsyncManagerCallbacks(ScreenId screenId,
+        const SetHardwareTaskNumCallback& setHardwareTaskNumCb,
+        const SetTaskEndWithTimeCallback& setTaskEndWithTimeCb,
+        const GetRealTimeOffsetOfDvsyncCallback& getRealTimeOffsetOfDvsyncCb);
 
 private:
     std::unordered_map<ScreenId, std::shared_ptr<RSRenderComposerAgent>> rsRenderComposerAgentMap_;
     std::unordered_map<ScreenId, sptr<RSRenderToComposerConnection>> rsComposerConnectionMap_;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     std::mutex mutex_;
-    sptr<RSVsyncManagerAgent> rsVsyncManagerAgent_ = nullptr;
 };
 } // namespace OHOS::Rosen
 

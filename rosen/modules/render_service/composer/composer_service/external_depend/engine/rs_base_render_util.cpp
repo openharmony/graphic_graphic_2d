@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "rs_base_render_util.h"
+#include "engine/rs_base_render_util.h"
 
 #include <parameters.h>
 #include <sys/stat.h>
@@ -37,10 +37,8 @@
 #include "platform/common/rs_log.h"
 #include "platform/ohos/rs_jank_stats.h"
 #include "png.h"
-#include "rs_frame_rate_vote.h"
 #include "rs_profiler.h"
 #include "rs_trace.h"
-#include "rs_uni_render_thread.h"
 #include "rs_uni_render_util.h"
 #include "system/rs_system_parameters.h"
 #include "transaction/rs_transaction_data.h"
@@ -52,7 +50,6 @@ namespace Rosen {
 namespace {
 const std::string DUMP_CACHESURFACE_DIR = "/data/cachesurface";
 const std::string DUMP_CANVASDRAWING_DIR = "/data/canvasdrawing";
-const std::string SCREENNODE = "ScreenNode";
 constexpr uint32_t API14 = 14;
 constexpr uint32_t API18 = 18;
 constexpr uint32_t INVALID_API_COMPATIBLE_VERSION = 0;
@@ -672,7 +669,8 @@ bool ConvertBufferColorGamut(std::vector<uint8_t>& dstBuf, const sptr<OHOS::Surf
     auto bufferAddr = srcBuf->GetVirAddr();
     uint8_t* srcStart = static_cast<uint8_t*>(bufferAddr);
 
-    uint32_t offsetDst = 0, offsetSrc = 0;
+    uint32_t offsetDst = 0;
+    uint32_t offsetSrc = 0;
     auto& srcColorSpace = GetColorSpaceOfCertainGamut(srcGamut, metaDatas);
     auto& dstColorSpace = GetColorSpaceOfCertainGamut(dstGamut, metaDatas);
     while (offsetSrc < bufferSize) {
@@ -888,46 +886,6 @@ BufferRequestConfig RSBaseRenderUtil::GetFrameBufferRequestConfig(const Composer
     return config;
 }
 
-GSError RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen)
-{
-    auto availableBufferCnt = surfaceHandler.GetAvailableBufferCount();
-    const auto surfaceConsumer = surfaceHandler.GetConsumer();
-    if (surfaceConsumer == nullptr) {
-        RS_LOGE("RsDebug RSBaseRenderUtil::DropFrameProcess (node: %{public}" PRIu64 "): surfaceConsumer is null!",
-            surfaceHandler.GetNodeId());
-        return OHOS::GSERROR_NO_CONSUMER;
-    }
-
-    // maxDirtyListSize should minus one buffer used for displaying, and another one that has just been acquried.
-    int32_t maxDirtyListSize = static_cast<int32_t>(surfaceConsumer->GetQueueSize()) - 1 - 1;
-    // maxDirtyListSize > 1 means QueueSize >3 too
-    if (maxDirtyListSize > 1 && availableBufferCnt >= maxDirtyListSize) {
-        if (IsTagEnabled(HITRACE_TAG_GRAPHIC_AGP)) {
-            RS_TRACE_NAME("DropFrame");
-        }
-        IConsumerSurface::AcquireBufferReturnValue returnValue;
-        returnValue.fence = SyncFence::InvalidFence();
-        int32_t ret = surfaceConsumer->AcquireBuffer(returnValue, static_cast<int64_t>(presentWhen), false);
-        if (ret != OHOS::SURFACE_ERROR_OK) {
-            RS_LOGW("RSBaseRenderUtil::DropFrameProcess(node: %{public}" PRIu64 "): AcquireBuffer failed("
-                " ret: %{public}d), do nothing ", surfaceHandler.GetNodeId(), ret);
-            return OHOS::GSERROR_NO_BUFFER;
-        }
-
-        ret = surfaceConsumer->ReleaseBuffer(returnValue.buffer, returnValue.fence);
-        if (ret != OHOS::SURFACE_ERROR_OK) {
-            RS_LOGW("RSBaseRenderUtil::DropFrameProcess(node: %{public}" PRIu64
-                    "): ReleaseBuffer failed(ret: %{public}d), Acquire done ",
-                surfaceHandler.GetNodeId(), ret);
-        }
-        surfaceHandler.SetAvailableBufferCount(static_cast<int32_t>(surfaceConsumer->GetAvailableBufferCount()));
-        RS_LOGD("RsDebug RSBaseRenderUtil::DropFrameProcess (node: %{public}" PRIu64 "), drop one frame",
-            surfaceHandler.GetNodeId());
-    }
-
-    return OHOS::GSERROR_OK;
-}
-
 Drawing::ColorType RSBaseRenderUtil::GetColorTypeFromBufferFormat(int32_t pixelFmt)
 {
     switch (pixelFmt) {
@@ -948,150 +906,6 @@ Drawing::ColorType RSBaseRenderUtil::GetColorTypeFromBufferFormat(int32_t pixelF
         default:
             return Drawing::ColorType::COLORTYPE_RGBA_8888;
     }
-}
-
-Rect RSBaseRenderUtil::MergeBufferDamages(const std::vector<Rect>& damages)
-{
-    RectI damage;
-    std::for_each(damages.begin(), damages.end(), [&damage](const Rect& damageRect) {
-        damage = damage.JoinRect(RectI(damageRect.x, damageRect.y, damageRect.w, damageRect.h));
-    });
-    return {damage.left_, damage.top_, damage.width_, damage.height_};
-}
-
-void RSBaseRenderUtil::MergeBufferDamages(Rect& surfaceDamage, const std::vector<Rect>& damages)
-{
-    RectI damage;
-    std::for_each(damages.begin(), damages.end(), [&damage](const Rect& damageRect) {
-        damage = damage.JoinRect(RectI(damageRect.x, damageRect.y, damageRect.w, damageRect.h));
-    });
-    surfaceDamage = { damage.left_, damage.top_, damage.width_, damage.height_ };
-}
-
-CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen,
-    const DropFrameConfig& dropFrameConfig, uint64_t parentNodeId, bool dropFrameByScreenFrozen)
-{
-    if (surfaceHandler.GetAvailableBufferCount() <= 0) {
-        return true;
-    }
-    const auto& consumer = surfaceHandler.GetConsumer();
-    if (consumer == nullptr) {
-        RS_LOGE("Consume and update buffer fail for consumer is nullptr");
-        return false;
-    }
-
-    bool acqiureWithPTSEnable =
-        RSUniRenderJudgement::IsUniRender() && RSSystemParameters::GetControlBufferConsumeEnabled();
-    if (dropFrameConfig.ShouldDrop() && acqiureWithPTSEnable) {
-        RS_LOGD("RsDebug RSBaseRenderUtil::ConsumeAndUpdateBuffer(node: %{public}" PRIu64
-            "), set drop frame level=%{public}d", surfaceHandler.GetNodeId(), dropFrameConfig.level);
-    }
-
-    // check presentWhen conversion validation range
-    bool presentWhenValid = presentWhen <= static_cast<uint64_t>(INT64_MAX);
-    uint64_t acquireTimeStamp = presentWhen;
-    if (!presentWhenValid || !acqiureWithPTSEnable) {
-        acquireTimeStamp = CONSUME_DIRECTLY;
-        RS_LOGD("RSBaseRenderUtil::ConsumeAndUpdateBuffer ignore presentWhen "\
-            "[acqiureWithPTSEnable:%{public}d, presentWhenValid:%{public}d]", acqiureWithPTSEnable, presentWhenValid);
-    }
-
-    std::shared_ptr<RSSurfaceHandler::SurfaceBufferEntry> surfaceBuffer;
-    if (surfaceHandler.GetHoldBuffer() == nullptr) {
-        IConsumerSurface::AcquireBufferReturnValue returnValue;
-        int32_t ret = consumer->AcquireBuffer(returnValue, static_cast<int64_t>(acquireTimeStamp), false);
-
-        if (returnValue.buffer == nullptr || ret != SURFACE_ERROR_OK) {
-            auto holdReturnValue = surfaceHandler.GetHoldReturnValue();
-            if (LIKELY(!dropFrameByScreenFrozen) && UNLIKELY(holdReturnValue)) {
-                returnValue.buffer = holdReturnValue->buffer;
-                returnValue.fence = holdReturnValue->fence;
-                returnValue.timestamp = holdReturnValue->timestamp;
-                returnValue.damages = holdReturnValue->damages;
-                surfaceHandler.ResetHoldReturnValue();
-            } else {
-                RS_LOGD_IF(DEBUG_PIPELINE, "RsDebug surfaceHandler(id: %{public}" PRIu64 ") "
-                    "AcquireBuffer failed(ret: %{public}d)!", surfaceHandler.GetNodeId(), ret);
-                surfaceBuffer = nullptr;
-                return false;
-            }
-        }
-        auto holdReturnValue = surfaceHandler.GetHoldReturnValue();
-        if (UNLIKELY(holdReturnValue)) {
-            consumer->ReleaseBuffer(holdReturnValue->buffer, holdReturnValue->fence);
-            surfaceHandler.ResetHoldReturnValue();
-        }
-        if (UNLIKELY(dropFrameByScreenFrozen)) {
-            surfaceHandler.SetHoldReturnValue(returnValue);
-            return false;
-        }
-        surfaceBuffer = std::make_shared<RSSurfaceHandler::SurfaceBufferEntry>();
-        surfaceBuffer->buffer = returnValue.buffer;
-        surfaceBuffer->acquireFence = returnValue.fence;
-        surfaceBuffer->timestamp = returnValue.timestamp;
-        RS_OPTIONAL_TRACE_NAME_FMT("RSBaseRenderUtil::ConsumeAndUpdateBuffer bufferId %" PRIu64,
-            surfaceBuffer->buffer ? surfaceBuffer->buffer->GetBufferId() : 0);
-        surfaceBuffer->RegisterReleaseBufferListener([](uint64_t bufferId) {
-            RSUniRenderThread::Instance().ReleaseBufferById(bufferId);
-        });
-        RSUniRenderThread::Instance().AddPendingReleaseBuffer(consumer, surfaceBuffer->buffer,
-                                                              SyncFence::InvalidFence());
-        RS_LOGD_IF(DEBUG_PIPELINE,
-            "RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer success, acquireTimeStamp = "
-            "%{public}" PRIu64 ", buffer timestamp = %{public}" PRId64 ", seq = %{public}" PRIu32 ".",
-            surfaceHandler.GetNodeId(), acquireTimeStamp, surfaceBuffer->timestamp, surfaceBuffer->buffer->GetSeqNum());
-        if (IsTagEnabled(HITRACE_TAG_GRAPHIC_AGP)) {
-            RS_TRACE_NAME_FMT("RsDebug surfaceHandler(id: %" PRIu64 ") AcquireBuffer success, parentNodeId = %"
-                PRIu64 ", acquireTimeStamp = %" PRIu64 ", buffer timestamp = %" PRId64 ", seq = %" PRIu32 ".",
-                surfaceHandler.GetNodeId(), parentNodeId, acquireTimeStamp, surfaceBuffer->timestamp,
-                surfaceBuffer->buffer->GetSeqNum());
-        }
-        // The damages of buffer will be merged here, only single damage is supported so far
-        MergeBufferDamages(surfaceBuffer->damageRect, returnValue.damages);
-        if (surfaceBuffer->damageRect.h <= 0 || surfaceBuffer->damageRect.w <= 0) {
-            RS_LOGW("RsDebug surfaceHandler(id: %{public}" PRIu64 ") buffer damage is invalid",
-                surfaceHandler.GetNodeId());
-        }
-        // Flip damage because the rect is specified relative to the bottom-left of the surface in gl,
-        // but the damages is specified relative to the top-left in rs.
-        // The damages in vk is also transformed to the same as gl now.
-        // [planning]: Unify the damage's coordinate systems of vk and gl.
-        surfaceBuffer->damageRect.y =
-            surfaceBuffer->buffer->GetHeight() - surfaceBuffer->damageRect.y - surfaceBuffer->damageRect.h;
-        if (consumer->IsBufferHold()) {
-            surfaceHandler.SetHoldBuffer(surfaceBuffer);
-            surfaceBuffer = nullptr;
-            RS_LOGW("RsDebug surfaceHandler(id: %{public}" PRIu64 ") set hold buffer",
-                surfaceHandler.GetNodeId());
-            return true;
-        }
-    }
-    if (consumer->IsBufferHold()) {
-        surfaceBuffer = surfaceHandler.GetHoldBuffer();
-        surfaceHandler.SetHoldBuffer(nullptr);
-        consumer->SetBufferHold(false);
-        RS_LOGW("RsDebug surfaceHandler(id: %{public}" PRIu64 ") consume hold buffer", surfaceHandler.GetNodeId());
-    }
-    if (surfaceBuffer == nullptr || surfaceBuffer->buffer == nullptr) {
-        RS_LOGE("RsDebug surfaceHandler(id: %{public}" PRIu64 ") no buffer to consume", surfaceHandler.GetNodeId());
-        return false;
-    }
-    RSJankStats::GetInstance().AvcodecVideoCollect(consumer->GetUniqueId(), surfaceBuffer->buffer->GetSeqNum());
-    surfaceHandler.ConsumeAndUpdateBuffer(*surfaceBuffer);
-    if (consumer->GetName() != SCREENNODE) {
-        DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(surfaceHandler.GetNodeId(),
-            consumer->GetSurfaceSourceType(), surfaceBuffer->buffer);
-    }
-    OHSurfaceSource sourceType =  consumer->GetSurfaceSourceType();
-    surfaceHandler.SetSourceType(static_cast<uint32_t>(sourceType));
-    if (sourceType == OHSurfaceSource::OH_SURFACE_SOURCE_LOWPOWERVIDEO) {
-        RS_TRACE_NAME_FMT("lpp node: %" PRIu64 "", surfaceHandler.GetNodeId());
-    }
-    surfaceBuffer = nullptr;
-    surfaceHandler.SetAvailableBufferCount(static_cast<int32_t>(consumer->GetAvailableBufferCount()));
-    // should drop frame after acquire buffer to avoid drop key frame
-    DropFrameProcess(surfaceHandler, acquireTimeStamp);
-    return true;
 }
 
 bool RSBaseRenderUtil::ReleaseBuffer(RSSurfaceHandler& surfaceHandler)
@@ -1351,6 +1165,18 @@ void RSBaseRenderUtil::GetRotationLockParam(RSSurfaceRenderNode& node,
     node.SetRotationCorrectionDegree(totalRotationCorrectionDegree);
 }
 
+bool RSBaseRenderUtil::GetMultimediaEnableCameraRotationCompensation()
+{
+    static bool flag = system::GetBoolParameter("const.multimedia.enable_camera_rotation_compensation", 0);
+    return flag;
+}
+
+int32_t RSBaseRenderUtil::GetWindowScreenScanType()
+{
+    static int32_t screenScanType = system::GetIntParameter<int32_t>("const.window.screen.scan_type", 0);
+    return screenScanType;
+}
+
 int32_t RSBaseRenderUtil::GetScreenRotationOffset(RSSurfaceRenderParams* nodeParams)
 {
     int32_t rotationDegree = 0;
@@ -1358,11 +1184,11 @@ int32_t RSBaseRenderUtil::GetScreenRotationOffset(RSSurfaceRenderParams* nodePar
         return rotationDegree;
     }
 
-    bool isCameraRotationCompensation = RSSystemParameters::GetMultimediaEnableCameraRotationCompensation();
+    bool isCameraRotationCompensation = RSBaseRenderUtil::GetMultimediaEnableCameraRotationCompensation();
     uint32_t apiCompatibleVersion = nodeParams->GetApiCompatibleVersion();
     if (isCameraRotationCompensation && apiCompatibleVersion != INVALID_API_COMPATIBLE_VERSION &&
         apiCompatibleVersion < API14) {
-        if (RSSystemParameters::GetWindowScreenScanType() == SCREEN_SCAN_DIRECTION_VERTICAL) {
+        if (RSBaseRenderUtil::GetWindowScreenScanType() == SCREEN_SCAN_DIRECTION_VERTICAL) {
             rotationDegree = RS_ROTATION_90;
         }
         return rotationDegree;

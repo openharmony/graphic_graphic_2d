@@ -47,6 +47,9 @@ public:
     void HandlePowerStatus(ScreenPowerStatus status);
     void PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer);
     void SetAFBCEnabled(bool enabled);
+    void SetVsyncManagerCallbacks(const SetHardwareTaskNumCallback& setHardwareTaskNumCb,
+        const SetTaskEndWithTimeCallback& setTaskEndWithTimeCb,
+        const GetRealTimeOffsetOfDvsyncCallback& getRealTimeOffsetOfDvsyncCb);
 
 private:
     std::shared_ptr<RSRenderComposer> rsRenderComposer_;

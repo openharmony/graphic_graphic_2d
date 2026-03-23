@@ -20,8 +20,8 @@
 #include <string>
 
 #include "common/rs_common_def.h"
+#include "engine/rs_base_render_engine.h"
 #include "image/gpu_context.h"
-#include "pipeline/render_thread/rs_base_render_engine.h"
 #include "pipeline/rs_surface_handler.h"
 
 namespace OHOS::Rosen {

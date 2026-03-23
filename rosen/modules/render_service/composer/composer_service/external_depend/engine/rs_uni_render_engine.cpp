@@ -15,9 +15,9 @@
 
 #include "common/rs_singleton.h"
 #include "display_engine/rs_luminance_control.h"
+#include "engine/rs_uni_render_engine.h"
 #include "feature/hdr/rs_hdr_util.h"
 #include "info_collection/rs_layer_compose_collection.h"
-#include "rs_uni_render_engine.h"
 #include "rs_uni_render_util.h"
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 #include "metadata_helper.h"
@@ -49,14 +49,19 @@ void RSUniRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas,
 {
     canvas.Save();
 #ifdef HETERO_HDR_ENABLE
-    bool hdrHeteroRet = RSHeteroHDRManager::Instance().UpdateHDRHeteroParams(canvas, surfaceDrawable, params);
+    bool hdrHeteroRet = false;
+    if (updateHDRHeteroParamsCallback_) {
+        hdrHeteroRet = updateHDRHeteroParamsCallback_(canvas, surfaceDrawable, params);
+    }
 #endif
     canvas.ConcatMatrix(params.matrix);
     RS_TRACE_NAME_FMT("RSUniRenderEngine::DrawSurfaceNodeWithParams ignoreAlpha[%d]", params.ignoreAlpha);
     if (!params.useCPU) {
 #ifdef HETERO_HDR_ENABLE
         if (hdrHeteroRet) {
-            std::shared_ptr<RSSurfaceHandler> hdrSurfaceHandler = RSHeteroHDRManager::Instance().GetHDRSurfaceHandler();
+            if (getHDRSurfaceHandlerCallback_) {
+                std::shared_ptr<RSSurfaceHandler> hdrSurfaceHandler = getHDRSurfaceHandlerCallback_();
+            }
             DrawImage(canvas, params);
         } else {
 #else
@@ -66,7 +71,9 @@ void RSUniRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas,
             auto& renderParams = surfaceDrawable.GetRenderParams();
             if (renderParams) {
                 auto& surfaceRenderParams = *(static_cast<RSSurfaceRenderParams*>(renderParams.get()));
-                RSTvMetadataManager::Instance().RecordTvMetadata(surfaceRenderParams, params.buffer);
+                if (recordTvMetadataCallback_) {
+                    recordTvMetadataCallback_(surfaceRenderParams, params.buffer);
+                }
             }
 #endif
             DrawImage(canvas, params);
@@ -120,7 +127,8 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
         Drawing::AutoCanvasRestore acr(canvas, true);
         DrawLayerPreProcess(canvas, layer, composerScreenInfo);
         // prepare BufferDrawParam
-        auto params = RSUniRenderUtil::CreateLayerBufferDrawParam(layer, forceCPU);
+        auto params = createLayerBufferDrawParamCallback_ ?
+            createLayerBufferDrawParamCallback_(layer, forceCPU) : BufferDrawParam();
         // if rotation fixed or use hpae offline, no further scaling will be performed
         bool rotationFixed = layer->GetRotationFixed() || layer->GetUseDeviceOffline();
         if (!rotationFixed) {
@@ -129,7 +137,7 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
         params.screenId = composerScreenInfo.id;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
         params.targetColorGamut = colorGamut;
-        RSHdrUtil::SetBufferHDRParam(params, layer);
+        RSBaseHdrUtil::SetBufferHDRParam(params, layer);
 #endif
         RS_TRACE_NAME_FMT("DrawLayerWithParams, surface name: %s", layer->GetSurfaceName().c_str());
         DrawHdiLayerWithParams(canvas, params);
@@ -137,8 +145,10 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
         auto dstRect = layer->GetLayerSize();
         if (RSSystemProperties::GetHwcRegionDfxEnabled()) {
             RectI dst(dstRect.x, dstRect.y, dstRect.w, dstRect.h);
-            RSUniRenderUtil::DrawRectForDfx(canvas, dst, Drawing::Color::COLOR_YELLOW, REDRAW_DFX_ALPHA,
-                layer->GetSurfaceName());
+            if (drawRectForDfxCallback_) {
+                drawRectForDfxCallback_(canvas, dst, Drawing::Color::COLOR_YELLOW,
+                    REDRAW_DFX_ALPHA, layer->GetSurfaceName());
+            }
         }
     }
 
@@ -213,5 +223,12 @@ void RSUniRenderEngine::DrawHdiLayerWithParams(RSPaintFilterCanvas& canvas, Buff
         DrawBuffer(canvas, params);
     }
 }
+
+#ifdef RS_ENABLE_TV_PQ_METADATA
+void RSUniRenderEngine::RegisterTvMetadataCallback(const RecordTvMetadataFunc recordTvMetadataCallback)
+{
+    recordTvMetadataCallback_ = recordTvMetadataCallback;
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

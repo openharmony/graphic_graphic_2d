@@ -24,7 +24,7 @@
 #include "limit_number.h"
 #include "metadata_helper.h"
 #include "params/rs_screen_render_params.h"
-#include "pipeline/render_thread/rs_uni_render_engine.h"
+#include "engine/rs_uni_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_processor.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/rs_logical_display_render_node.h"

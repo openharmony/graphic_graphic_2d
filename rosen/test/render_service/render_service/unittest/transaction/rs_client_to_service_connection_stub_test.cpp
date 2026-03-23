@@ -286,8 +286,7 @@ void RSClientToServiceConnectionStubTest::SetUpTestCase()
 
     renderService_.vsyncManager_ = sptr<RSVsyncManager>::MakeSptr();
     renderService_.vsyncManager_->init(screenManager_);
-    renderService_.rsRenderComposerManager_ = std::make_shared<RSRenderComposerManager>(renderService_.handler_,
-        renderService_.vsyncManager_->GetVsyncManagerAgent());
+    renderService_.rsRenderComposerManager_ = std::make_shared<RSRenderComposerManager>(renderService_.handler_);
     token_ = new OHOS::IRemoteStub<OHOS::Rosen::RSIConnectionToken>();
     connectionStub_ =
         sptr<RSClientToServiceConnection>::MakeSptr(0, renderServiceAgent_,
