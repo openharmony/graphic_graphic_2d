@@ -89,10 +89,12 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::NOTIFY_SCREEN_PROPERTY_CHANGED_INFO_TO_RENDER): {
             auto type = data.ReadUint64();
-            ScreenPropertyType type = ScreenPropertyType::ID;
+            ScreenPropertyType type = static_cast<ScreenPropertyType>(data.ReadUint32());
             sptr<ScreenPropertyBase> screenProperty = nullptr;
-            // TODO: 屏幕管理适配一下
-            // ScreenPropertyBase::Unmarshalling(data, type, screenProperty);
+            if (!ScreenPropertyBase::Unmarshalling(data, type, screenProperty)) {
+                RS_LOGE("%{public}s::NOTIFY_SCREEN_PROPERTY_CHANGED_INFO_TO_RENDER Unmarshalling failed", __func__);
+                return ERR_INVALID_DATA;
+            }
             auto replyMessage = NotifyScreenPropertyChangedInfoToRender(id, type, screenProperty);
             if (reply.WriteInt32(replyMessage)) {
                 RS_LOGE("%{public}s::NOTIFY_SCREEN_PROPERTY_CHANGED_INFO_TO_RENDER WriteInt32 failed", __func__);
