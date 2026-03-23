@@ -19,7 +19,6 @@ namespace OHOS {
 namespace Rosen {
 bool ReplyToRenderInfo::Marshalling(Parcel& data) const
 {
-    // TODO: 泄露风险，需要整改
     MessageParcel* message = static_cast<MessageParcel*>(&data);
     if (!message->WriteRemoteObject(serviceConnection_)) {
         return false;
@@ -38,19 +37,17 @@ bool ReplyToRenderInfo::Marshalling(Parcel& data) const
 
 ReplyToRenderInfo* ReplyToRenderInfo::Unmarshalling(Parcel& data)
 {
-    auto result = new ReplyToRenderInfo();
-    // TODO: 泄露风险，需要整改
+    auto result = std::make_unique<ReplyToRenderInfo>();
     MessageParcel* message = static_cast<MessageParcel*>(&data);
     result->serviceConnection_ = message->ReadRemoteObject();
     result->composeConnection_ = message->ReadRemoteObject();
     result->rsScreenProperty_ = sptr<RSScreenProperty>(data.ReadParcelable<RSScreenProperty>());
     result->vsyncConn_ = message->ReadRemoteObject();
-    return result;
+    return result.release();
 }
 
 bool ConnectToServiceInfo::Marshalling(Parcel& data) const
 {
-    // TODO: 泄露风险，需要整改
     MessageParcel* message = static_cast<MessageParcel*>(&data);
     if (!message->WriteRemoteObject(serviceToRenderConnection_)) {
         return false;
@@ -69,14 +66,13 @@ bool ConnectToServiceInfo::Marshalling(Parcel& data) const
 
 ConnectToServiceInfo* ConnectToServiceInfo::Unmarshalling(Parcel& data)
 {
-    auto result = new ConnectToServiceInfo();
-    // TODO: 泄露风险，需要整改
+    auto result = std::make_unique<ConnectToServiceInfo>();
     MessageParcel* message = static_cast<MessageParcel*>(&data);
     result->serviceToRenderConnection_ = message->ReadRemoteObject();
     result->composerToRenderConnection_ = message->ReadRemoteObject();
     result->connectToRenderConnection_ = message->ReadRemoteObject();
     result->vsyncToken_ = message->ReadRemoteObject();
-    return result;
+    return result.release();
 }
 } // namespace Rosen
 } // namespace OHOS
