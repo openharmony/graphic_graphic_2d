@@ -122,7 +122,7 @@ int32_t RSServiceToRenderConnectionProxy::NotifyScreenPropertyChangedInfoToRende
         ROSEN_LOGE("%{public}s: WriteUint32 failed", __func__);
         return -1;
     }
-    if (!data.WriteParcelable(screenProperty.GetRefPtr())) {
+    if (!screenProperty->Marshalling(data)) {
         ROSEN_LOGE("%{public}s: WriteParcelable failed", __func__);
         return -1;
     }

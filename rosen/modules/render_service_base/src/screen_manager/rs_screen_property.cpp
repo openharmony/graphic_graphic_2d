@@ -318,67 +318,6 @@ ScreenInfo RSScreenProperty::GetScreenInfo() const
 }
 // LCOV_EXCL_STOP
 
-#define MARSHALL_CASE(ENUM_TYPE)                                                                        \
-    case ENUM_TYPE: {                                                                                   \
-        using T = PropertyTypeMapper<ENUM_TYPE>::value_type;                                            \
-        auto property = static_cast<ScreenProperty<T>*>(prop.GetRefPtr());                              \
-        if (!property || !property->Marshalling(data)) {                                                \
-            RS_LOGE("%{public}s failed, type: %{public}u", __func__, static_cast<uint32_t>(ENUM_TYPE)); \
-            return false;                                                                               \
-        }                                                                                               \
-        break;                                                                                          \
-    }
-
-bool ScreenPropertyBase::Marshalling(Parcel& data, ScreenPropertyType type, sptr<ScreenPropertyBase> prop) const
-{
-    if (!data.WriteUint32(static_cast<uint32_t>(type))) {
-        RS_LOGE("%{public}s write size failed", __func__);
-        return false;
-    }
-
-    switch (type) {
-        MARSHALL_CASE(ScreenPropertyType::ID)
-        MARSHALL_CASE(ScreenPropertyType::IS_VIRTUAL)
-        MARSHALL_CASE(ScreenPropertyType::NAME)
-        MARSHALL_CASE(ScreenPropertyType::RENDER_RESOLUTION)
-        MARSHALL_CASE(ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE)
-        MARSHALL_CASE(ScreenPropertyType::OFFSET)
-        MARSHALL_CASE(ScreenPropertyType::SAMPLING_OPTION)
-        MARSHALL_CASE(ScreenPropertyType::COLOR_GAMUT)
-        MARSHALL_CASE(ScreenPropertyType::GAMUT_MAP)
-        MARSHALL_CASE(ScreenPropertyType::STATE)
-        MARSHALL_CASE(ScreenPropertyType::CORRECTION)
-        MARSHALL_CASE(ScreenPropertyType::CANVAS_ROTATION)
-        MARSHALL_CASE(ScreenPropertyType::AUTO_BUFFER_ROTATION)
-        MARSHALL_CASE(ScreenPropertyType::ACTIVE_RECT_OPTION)
-        MARSHALL_CASE(ScreenPropertyType::SKIP_FRAME_OPTION)
-        MARSHALL_CASE(ScreenPropertyType::PIXEL_FORMAT)
-        MARSHALL_CASE(ScreenPropertyType::HDR_FORMAT)
-        MARSHALL_CASE(ScreenPropertyType::VISIBLE_RECT_OPTION)
-        MARSHALL_CASE(ScreenPropertyType::WHITE_LIST)
-        MARSHALL_CASE(ScreenPropertyType::BLACK_LIST)
-        MARSHALL_CASE(ScreenPropertyType::TYPE_BLACK_LIST)
-        MARSHALL_CASE(ScreenPropertyType::SECURITY_EXEMPTION_LIST)
-        MARSHALL_CASE(ScreenPropertyType::SECURITY_MASK)
-        MARSHALL_CASE(ScreenPropertyType::ENABLE_SKIP_WINDOW)
-        MARSHALL_CASE(ScreenPropertyType::POWER_STATUS)
-        MARSHALL_CASE(ScreenPropertyType::SCREEN_TYPE)
-        MARSHALL_CASE(ScreenPropertyType::CONNECTION_TYPE)
-        MARSHALL_CASE(ScreenPropertyType::PRODUCER_SURFACE)
-        MARSHALL_CASE(ScreenPropertyType::SCALE_MODE)
-        MARSHALL_CASE(ScreenPropertyType::SCREEN_STATUS)
-        MARSHALL_CASE(ScreenPropertyType::VIRTUAL_SEC_LAYER_OPTION)
-        MARSHALL_CASE(ScreenPropertyType::IS_HARD_CURSOR_SUPPORT)
-        MARSHALL_CASE(ScreenPropertyType::SUPPORTED_COLOR_GAMUTS)
-        MARSHALL_CASE(ScreenPropertyType::DISABLE_POWER_OFF_RENDER_CONTROL)
-        MARSHALL_CASE(ScreenPropertyType::SCREEN_SWITCH_STATUS)
-        MARSHALL_CASE(ScreenPropertyType::SCREEN_FRAME_GRAVITY)
-        default:
-            RS_LOGW("%{public}s invalid type: %{public}u", __func__, static_cast<uint32_t>(type));
-    }
-    return true;
-}
-
 #define UNMARSHALL_CASE(ENUM_TYPE)                                                                      \
     case ENUM_TYPE: {                                                                                   \
         using T = PropertyTypeMapper<ENUM_TYPE>::value_type;                                            \
@@ -390,14 +329,8 @@ bool ScreenPropertyBase::Marshalling(Parcel& data, ScreenPropertyType type, sptr
         break;                                                                                          \
     }
 
-bool ScreenPropertyBase::UnmarshallingData(Parcel& data, ScreenPropertyType& type, sptr<ScreenPropertyBase>& property)
+bool ScreenPropertyBase::UnmarshallingData(Parcel& data, ScreenPropertyType type, sptr<ScreenPropertyBase>& property)
 {
-    uint32_t propType;
-    if (!data.ReadUint32(propType)) {
-        RS_LOGE("%{public}s read size failed", __func__);
-        return false;
-    }
-    type = static_cast<ScreenPropertyType>(type);
     switch (type) {
         UNMARSHALL_CASE(ScreenPropertyType::ID)
         UNMARSHALL_CASE(ScreenPropertyType::IS_VIRTUAL)
@@ -448,7 +381,10 @@ bool RSScreenProperty::Marshalling(Parcel& data) const
         return false;
     }
     for (const auto& [type, prop] : screenProperties_) {
-        if (!ScreenPropertyBase::Marshalling(data, type, prop)) {
+        if (!data.WriteUint32(static_cast<uint32_t>(type))) {
+            return false;
+        }
+        if (!prop->Marshalling(data)) {
             return false;
         }
     }
@@ -473,7 +409,7 @@ bool RSScreenProperty::UnmarshallingData(Parcel& data)
         return false;
     }
     for (uint32_t i = 0; i < size; i++) {
-        ScreenPropertyType type;
+        ScreenPropertyType type = static_cast<ScreenPropertyType>(data.ReadUint32());
         sptr<ScreenPropertyBase> prop = nullptr;
         if (!ScreenPropertyBase::Unmarshalling(data, type, prop)) {
             return false;
