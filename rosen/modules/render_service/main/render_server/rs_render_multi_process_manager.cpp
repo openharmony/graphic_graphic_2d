@@ -162,13 +162,13 @@ sptr<IRemoteObject> RSMultiRenderProcessManager::OnScreenConnected(ScreenId scre
 sptr<IRemoteObject> RSMultiRenderProcessManager::HandleExistingGroup(pid_t pid, ScreenId screenId,
     const sptr<RSScreenProperty>& property)
 {
-    RS_LOGD("GroupId has connected already, screenId is %{public}" PRIu64, screenId);	 
-    auto renderToComposerConn = renderService_.rsRenderComposerManager_->GetRSComposerConnection(screenId);	 
-    auto composerToRenderConn = GotComposerToRenderConnByPid(pid);	 
+    RS_LOGD("GroupId has connected already, screenId is %{public}" PRIu64, screenId);
+    auto renderToComposerConn = renderService_.rsRenderComposerManager_->GetRSComposerConnection(screenId);
+    auto composerToRenderConn = GotComposerToRenderConnByPid(pid);
 
-    sptr<RSIServiceToRenderConnection> serviceToRenderConnection = GotServiceToRenderConnByPid(pid);	 
-    serviceToRenderConnection->NotifyScreenConnectInfoToRender(property, renderToComposerConn, composerToRenderConn);	 
-    auto connectToRender = GotConnectToRenderConnByPid(pid); 
+    sptr<RSIServiceToRenderConnection> serviceToRenderConnection = GotServiceToRenderConnByPid(pid);
+    serviceToRenderConnection->NotifyScreenConnectInfoToRender(property, renderToComposerConn, composerToRenderConn);
+    auto connectToRender = GotConnectToRenderConnByPid(pid);
 
     return connectToRender->AsObject();
 }
