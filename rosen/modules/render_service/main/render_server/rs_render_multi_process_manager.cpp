@@ -168,8 +168,8 @@ sptr<IRemoteObject> RSMultiRenderProcessManager::HandleExistingGroup(pid_t pid, 
 
     sptr<RSIServiceToRenderConnection> serviceToRenderConnection = GotServiceToRenderConnByPid(pid);
     serviceToRenderConnection->NotifyScreenConnectInfoToRender(property, renderToComposerConn, composerToRenderConn);
-    auto connectToRender = GotConnectToRenderConnByPid(pid);
 
+    auto connectToRender = GotConnectToRenderConnByPid(pid);
     return connectToRender->AsObject();
 }
 
