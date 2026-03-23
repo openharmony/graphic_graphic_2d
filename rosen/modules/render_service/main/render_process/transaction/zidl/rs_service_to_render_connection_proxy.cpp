@@ -146,7 +146,7 @@ int32_t RSServiceToRenderConnectionProxy::NotifyScreenPropertyChangedInfoToRende
     if (err != NO_ERROR) {
         ROSEN_LOGE("%{public}s: SendRquest failed, err is %{public}d", __func__, err);
         return -1;
-    }s
+    }
     int32_t replyMessage{0};
     if (!reply.ReadInt32(replyMessage)) {
         ROSEN_LOGE("%{public}s: ReadInt32 failed", __func__);
