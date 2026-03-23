@@ -78,7 +78,7 @@ int32_t RSServiceToRenderConnectionProxy::NotifyScreenConnectInfoToRender(const 
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("%{public}s: SendRquest failed, err is %{public}d", __func__, err);
-        return ERR_INVALID_VALUE;
+        return -1;
     }
     int32_t replyMessage{0};
     if (!reply.ReadInt32(replyMessage)) {
@@ -107,7 +107,7 @@ int32_t RSServiceToRenderConnectionProxy::NotifyScreenDisconnectInfoToRender(Scr
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("%{public}s: SendRquest failed, err is %{public}d", __func__, err);
-        return ERR_INVALID_VALUE;
+        return -1;
     }
     int32_t replyMessage{0};
     if (!reply.ReadInt32(replyMessage)) {
@@ -145,8 +145,8 @@ int32_t RSServiceToRenderConnectionProxy::NotifyScreenPropertyChangedInfoToRende
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("%{public}s: SendRquest failed, err is %{public}d", __func__, err);
-        return ERR_INVALID_VALUE;
-    }
+        return -1;
+    }s
     int32_t replyMessage{0};
     if (!reply.ReadInt32(replyMessage)) {
         ROSEN_LOGE("%{public}s: ReadInt32 failed", __func__);
