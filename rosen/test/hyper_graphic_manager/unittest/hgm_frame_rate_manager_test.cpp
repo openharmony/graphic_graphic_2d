@@ -1818,5 +1818,22 @@ HWTEST_F(HgmFrameRateMgrTest, TriggerAdaptiveVsyncUpdateCallback, Function | Sma
     mgr.TriggerAdaptiveVsyncUpdateCallback();
     ASSERT_EQ(mgr.lastIsAdaptive_.load(), SupportASStatus::NOT_SUPPORT);
 }
+
+/**
+ * @tc.name: TestAddScreenInit
+ * @tc.desc: Verify the result of AddScreenInit
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, TestAddScreenInit, Function | SmallTest | Level2)
+{
+    HgmFrameRateManager mgr;
+    const auto id = mgr.curScreenStrategyId_;
+    const std::string mode = std::to_string(mgr.curRefreshRateMode_);
+    std::shared_ptr<PolicyConfigData> policyConfigData = std::move(HgmCore::Instance().mPolicyConfigData_);
+    HgmCore::Instance().mPolicyConfigData_ = nullptr;
+    mgr.AddScreenInit();
+    EXPECT_EQ(mgr.isAmbientEffect_, false);
+}
 } // namespace Rosen
 } // namespace OHOS

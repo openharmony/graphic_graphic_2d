@@ -120,6 +120,7 @@ public:
     ScreenId GetCurScreenId() const { return curScreenId_.load(); }
     ScreenId GetLastCurScreenId() const { return lastCurScreenId_.load(); }
     std::string GetCurScreenStrategyId() const { return curScreenStrategyId_; }
+    void AddScreenInit();
     void SetLastCurScreenId(ScreenId screenId) { lastCurScreenId_.store(screenId); }
     void HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
     void HandleScreenRectFrameRate(ScreenId id, const Rect& activeRect);
@@ -180,7 +181,6 @@ public:
 
     void SetHgmConfigUpdateCallback(
         std::function<void(std::shared_ptr<RPHgmConfigData>, bool, bool, int32_t)> hgmConfigUpdateCallback);
-    void SyncHgmConfigUpdateCallback();
 
     const VoteInfo& GetLastVoteInfo() const { return lastVoteInfo_; }
 
@@ -239,6 +239,7 @@ private:
     void CheckNeedUpdateAppOffset(uint32_t refreshRate, uint32_t controllerRate);
     void CheckForceUpdateCallback(uint32_t refreshRate);
     void HandleLowPowerSlideSceneEvent(const std::string& sceneName, bool eventStatus);
+    void SyncHgmConfigUpdateCallback();
     void TriggerHgmConfigUpdateCallback(std::shared_ptr<RPHgmConfigData> configData, bool ltpoEnabled, bool isDelayMode,
         int32_t pipelineOffsetPulseNum);
     void TriggerAdaptiveVsyncUpdateCallback();
