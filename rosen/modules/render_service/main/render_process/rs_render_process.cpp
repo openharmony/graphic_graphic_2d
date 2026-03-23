@@ -103,17 +103,17 @@ bool RSRenderProcess::Init()
     }
 
     // 核心组件初始化
+    // TODO: 需要删除
     mainThread_ = RSMainThread::Instance();
 
     // 注册子进程到主进程
     RS_LOGD("dmulti_process %{public}s: Subprocess Registration", __func__);
     auto composerToRenderConn = sptr<RSComposerToRenderConnection>::MakeSptr();
     auto [rsScreenProperty, renderToComposerConn, receiver] = ConnectToRenderService(composerToRenderConn);
-    if (!renderToServiceConnection_) {
+    if (!renderToServiceConnection_ || renderToComposerConn) {
         RS_LOGI("dmulti_process %{public}s: renderToServiceConnection_ not exist", __func__);
         return false;
     }
-    mainThread_->RegisterScreenSwitchFinishCallback(renderToServiceConnection_);
 
     // 渲染管线拉起
     RS_LOGE("dmulti_process liweiiii RSRenderProcess::init %{public}p", mainThread_);
