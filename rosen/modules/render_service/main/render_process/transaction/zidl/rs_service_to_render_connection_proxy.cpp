@@ -67,11 +67,9 @@ int32_t RSServiceToRenderConnectionProxy::NotifyScreenConnectInfoToRender(const 
             return -1;
         }
     }
-    if (composerToRenderConn) {
-        if (!data.WriteRemoteObject(composerToRenderConn->AsObject())) {
-            ROSEN_LOGE("%{public}s: WriteObject failed", __func__);
-            return -1;
-        }
+    if (!data.WriteRemoteObject(composerToRenderConn->AsObject())) {
+        ROSEN_LOGE("%{public}s: WriteBool or WriteObject failed", __func__);
+        return -1;
     }
     uint32_t code = static_cast<uint32_t>(
         RSIServiceToRenderConnectionInterfaceCode::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER);
