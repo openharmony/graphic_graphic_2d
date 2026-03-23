@@ -350,8 +350,8 @@ void RSCanvasDrawingRenderNodeDrawable::PostPlaybackInCorrespondThread()
         auto surfaceParams = renderParams_->GetCanvasDrawingSurfaceParams();
         if (!surface_ || !canvas_) {
             if (!ResetSurfaceforPlayback(surfaceParams.width, surfaceParams.height)) {
-                RS_LOGE("PostPlaybackInCorrespondThread Reset Surface Error NodeId[%{public}" PRIu64
-                    "], width[%{public}d], height[%{public}d]", nodeId, surfaceParams.width, surfaceParams.height);
+                RS_LOGE_LIMIT(__func__, __line__, "NodeId[%{public}" PRIu64 "], Surface[%{public}d], Canvas[%{public}d]",
+                    nodeId, surface_ == nullptr, canvas_ == nullptr);
                 return;
             }
         }
@@ -1089,7 +1089,6 @@ bool RSCanvasDrawingRenderNodeDrawable::GpuContextResetVK(
 bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceforPlayback(int width, int height)
 {
     auto info = Drawing::ImageInfo { width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
-    RS_LOGI("RSCanvasDrawingRenderNodeDrawable::ResetSurfaceforPlayback NodeId[%{public}" PRIu64 "]", GetId());
     std::shared_ptr<Drawing::GPUContext> gpuContext;
     if (canvas_ != nullptr) {
         gpuContext = canvas_->GetGPUContext();
