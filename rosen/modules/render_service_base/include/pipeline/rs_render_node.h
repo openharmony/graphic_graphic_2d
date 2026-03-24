@@ -1062,10 +1062,10 @@ public:
     bool GetNeedUseCmdlistDrawRegion();
     void ReleaseNodeMem();
     bool IsNodeMemClearEnable();
-    void SetLayerMark(bool layerMark);
-    bool IsLayerMarkEnabled()
+    void MarkLayer(bool markLayer);
+    bool IsMarkLayerEnabled()
     {
-        return renderHasSetLayerMark_;
+        return renderHasMarkLayer_;
     }
     virtual void AfterTreeStatueChanged() {}
 
@@ -1374,8 +1374,8 @@ private:
     float absRotation_ = 0.f;
     void ShowSetIsOnetheTreeCntIfNeed(const std::string& funcName, NodeId nodeId, const std::string& nodeName);
 
-    bool hasSetLayerMark_ = false;
-    bool renderHasSetLayerMark_ = false;
+    bool hasMarkLayer_ = false;
+    bool renderHasMarkLayer_ = false;
 
     bool enableHdrEffect_ = false;
     static constexpr uint32_t DEFAULT_HEADROOM_VALUE = 0U;

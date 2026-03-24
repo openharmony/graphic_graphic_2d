@@ -164,8 +164,8 @@ void RSRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 CM_INLINE void RSRenderNodeDrawable::GenerateCacheIfNeed(
     Drawing::Canvas& canvas, RSRenderParams& params)
 {
-    if (isLayerMarkCachehandled_) {
-        isLayerMarkCachehandled_ = false;
+    if (isMarkLayerCachehandled_) {
+        isMarkLayerCachehandled_ = false;
         return;
     }
     // check if drawing cache enabled
@@ -1066,10 +1066,10 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     isOpDropped_ = isOpDropped;
 
     GetOpincDrawCache().PopLayerPartRenderDirtyRegion(params, *cacheCanvas);
-    if (needDrawLayerCacheDFX_) {
-        auto tempRect = params.GetBounds();
-        LayerCacheRegionDfx(*cacheCanvas, tempRect);
-    }
+    // if (needDrawLayerCacheDFX_) {
+    //     auto tempRect = params.GetBounds();
+    //     LayerCacheRegionDfx(*cacheCanvas, tempRect);
+    // }
     // get image & backend
     {
         std::scoped_lock<std::recursive_mutex> lock(cacheMutex_);
@@ -1113,28 +1113,6 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
         cacheUpdatedNodeMap_.emplace(params.GetId(), true);
     }
     RSPerfMonitorReporter::GetInstance().EndRendergroupMonitor(startTime, nodeId_, updateTimes);
-}
-
-constexpr int32_t BORDER_WIDTH = 6;
-constexpr int32_t MARGIN = 20;
-constexpr float RECT_PEN_ALPHA = 0.2f;
-void RSRenderNodeDrawable::LayerCacheRegionDfx(Drawing::Canvas& canvas, const Drawing::Rect& dirtyRect)
-{
-    Drawing::Brush brush;
-    brush.SetColor(Drawing::Color(0x8090EE90));
-    brush.SetAntiAlias(true);
-    brush.SetAlphaF(RECT_PEN_ALPHA);
-    std::shared_ptr<Drawing::Typeface> typeFace = nullptr;
-    std::string position = "pos:[" + dirtyRect.ToString() + "]";
-    // font size 24
-    std::shared_ptr<Drawing::TextBlob> textBlob =
-        Drawing::TextBlob::MakeFromString(position.c_str(), Drawing::Font(typeFace, 24.0f, 0.6f, 0.0f));
-    canvas.AttachBrush(brush);
-    canvas.DrawRect(dirtyRect);
-    canvas.DetachBrush();
-    canvas.AttachBrush(Drawing::Brush());
-    canvas.DrawTextBlob(textBlob.get(), dirtyRect.GetLeft() + BORDER_WIDTH, dirtyRect.GetTop() + MARGIN);
-    canvas.DetachBrush();
 }
 
 int RSRenderNodeDrawable::GetTotalProcessedNodeCount()

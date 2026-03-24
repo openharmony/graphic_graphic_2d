@@ -305,42 +305,42 @@ HWTEST_F(RSUniRenderThreadTest, Render001, TestSize.Level1)
 }
 
 /**
- * @tc.name: AsyncLayerMarkNodeDrawableTest
- * @tc.desc: Test AsyncLayerMarkNodeDrawable
+ * @tc.name: AsyncMarkLayerNodeDrawableTest
+ * @tc.desc: Test AsyncMarkLayerNodeDrawable
  * @tc.type: FUNC
  * @tc.require: issueIAE59W
  */
-HWTEST_F(RSUniRenderThreadTest, AsyncLayerMarkNodeDrawableTest, TestSize.Level1)
+HWTEST_F(RSUniRenderThreadTest, AsyncMarkLayerNodeDrawableTest, TestSize.Level1)
 {
     RSUniRenderThread& instance = RSUniRenderThread::Instance();
-    EXPECT_TRUE(instance.layerMarkNodes_.empty());
-    instance.AsyncLayerMarkNodeDrawable();
+    EXPECT_TRUE(instance.markLayerNodes_.empty());
+    instance.AsyncMarkLayerNodeDrawable();
 
     auto node = std::make_shared<RSRenderNode>(100, true);
-    instance.layerMarkNodes_.emplace_back(node);
-    EXPECT_FALSE(instance.layerMarkNodes_.empty());
-    instance.AsyncLayerMarkNodeDrawable();
+    instance.markLayerNodes_.emplace_back(node);
+    EXPECT_FALSE(instance.markLayerNodes_.empty());
+    instance.AsyncMarkLayerNodeDrawable();
 }
 
 /**
- * @tc.name: IfIsLayerMarkEnabledAddToListTest
- * @tc.desc: Test IfIsLayerMarkEnabledAddToList && ClearLastFrameLayerMarkNodes
+ * @tc.name: IfIsMarkLayerEnabledAddToListTest
+ * @tc.desc: Test IfIsMarkLayerEnabledAddToList && ClearLastFrameMarkLayerNodes
  * @tc.type: FUNC
  * @tc.require: issueIAE59W
  */
-HWTEST_F(RSUniRenderThreadTest, IfIsLayerMarkEnabledAddToListTest, TestSize.Level1)
+HWTEST_F(RSUniRenderThreadTest, IfIsMarkLayerEnabledAddToListTest, TestSize.Level1)
 {
     RSUniRenderThread& instance = RSUniRenderThread::Instance();
-    EXPECT_TRUE(instance.layerMarkNodes_.empty());
+    EXPECT_TRUE(instance.markLayerNodes_.empty());
 
     auto node = std::make_shared<RSRenderNode>(100, true);
-    EXPECT_FALSE(node->renderHasSetLayerMark_);
-    node->renderHasSetLayerMark_ = true;
-    instance.IfIsLayerMarkEnabledAddToList(node);
-    EXPECT_FALSE(instance.layerMarkNodes_.empty());
+    EXPECT_FALSE(node->renderHasMarkLayer_);
+    node->renderHasMarkLayer_ = true;
+    instance.IfIsMarkLayerEnabledAddToList(node);
+    EXPECT_FALSE(instance.markLayerNodes_.empty());
 
-    instance.ClearLastFrameLayerMarkNodes();
-    EXPECT_TRUE(instance.layerMarkNodes_.empty());
+    instance.ClearLastFrameMarkLayerNodes();
+    EXPECT_TRUE(instance.markLayerNodes_.empty());
 }
 
 #ifdef RES_SCHED_ENABLE

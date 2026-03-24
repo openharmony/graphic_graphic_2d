@@ -160,7 +160,7 @@ public:
     static void SetTakeSurfaceForUIFlag(RSContext& context, NodeId nodeId);
     static void SetNeedUseCmdlistDrawRegion(RSContext &context, NodeId nodeId, bool needUseCmdlistDrawRegion);
     static void SetHDRUIBrightness(RSContext& context, NodeId nodeId, float brightness);
-    static void SetLayerMark(RSContext& context, NodeId nodeId, bool layerMark);
+    static void MarkLayer(RSContext& context, NodeId nodeId, bool markLayer);
 
     static void RegisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId,
         const bool isInSameWindow);
@@ -399,7 +399,7 @@ ADD_COMMAND(RSSetHDRUIBrightness,
         RSNodeCommandHelper::SetHDRUIBrightness, NodeId, float))
 
 ADD_COMMAND(
-    RSSetLayerMark, ARG(PERMISSION_APP, RS_NODE, SET_LAYER_MARK, RSNodeCommandHelper::SetLayerMark, NodeId, bool))
+    RSMarkLayer, ARG(PERMISSION_APP, RS_NODE, SET_LAYER_MARK, RSNodeCommandHelper::MarkLayer, NodeId, bool))
 
 ADD_COMMAND(RSRegisterGeometryTransitionNodePair,
     ARG(PERMISSION_APP, RS_NODE, REGISTER_GEOMETRY_TRANSITION,

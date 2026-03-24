@@ -1954,20 +1954,20 @@ HWTEST_F(RSNodeTest, SetandGetAlpha005, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetandSetLayerMark
- * @tc.desc:
- * @tc.type:FUNC
+ * @tc.name: MarkLayerTest
+ * @tc.desc: TEST MarkLayer
+ * @tc.type: FUNC
  */
-HWTEST_F(RSNodeTest, SetandSetLayerMark, TestSize.Level1)
+HWTEST_F(RSNodeTest, MarkLayerTest, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    EXPECT_EQ(rsNode->isLayerMarked_, false);
-    rsNode->SetLayerMark(true);
-    EXPECT_EQ(rsNode->isLayerMarked_, true);
-    rsNode->SetLayerMark(false);
-    EXPECT_EQ(rsNode->isLayerMarked_, false);
-    rsNode->SetLayerMark(false);
-    EXPECT_EQ(rsNode->isLayerMarked_, false);
+    EXPECT_EQ(rsNode->isMarkLayer_, false);
+    rsNode->MarkLayer(true);
+    EXPECT_EQ(rsNode->isMarkLayer_, true);
+    rsNode->MarkLayer(false);
+    EXPECT_EQ(rsNode->isMarkLayer_, false);
+    rsNode->MarkLayer(false);
+    EXPECT_EQ(rsNode->isMarkLayer_, false);
 }
 
 /**

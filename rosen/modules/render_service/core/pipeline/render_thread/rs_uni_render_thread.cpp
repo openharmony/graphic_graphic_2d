@@ -391,15 +391,15 @@ void RSUniRenderThread::Sync(std::unique_ptr<RSRenderThreadParams>&& stagingRend
     RSRenderThreadParamsManager::Instance().SetRSRenderThreadParams(std::move(stagingRenderThreadParams));
 }
 
-void RSUniRenderThread::AsyncLayerMarkNodeDrawable()
+void RSUniRenderThread::AsyncMarkLayerNodeDrawable()
 {
-    DrawableV2::RSRenderNodeDrawable::layerMarkNodesDrawable_.clear();
-    if (!layerMarkNodes_.empty()) {
+    DrawableV2::RSRenderNodeDrawable::markLayerNodesDrawable_.clear();
+    if (!markLayerNodes_.empty()) {
         DrawableV2::RSRenderNodeDrawable::needHandledInBeforeOnDraw_ = true;
-        for (auto& node : layerMarkNodes_) {
+        for (auto& node : markLayerNodes_) {
             auto nodeDrawableAdapter = node->GetRenderDrawable();
             auto nodeDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(nodeDrawableAdapter);
-            DrawableV2::RSRenderNodeDrawable::layerMarkNodesDrawable_.emplace_back(nodeDrawable);
+            DrawableV2::RSRenderNodeDrawable::markLayerNodesDrawable_.emplace_back(nodeDrawable);
         }
     }
 }
@@ -422,7 +422,7 @@ void RSUniRenderThread::Render()
     Drawing::Canvas canvas;
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
     RSNodeStats::GetInstance().ClearNodeStats();
-    AsyncLayerMarkNodeDrawable();
+    AsyncMarkLayerNodeDrawable();
     rootNodeDrawable_->OnDraw(paintFilterCanvas);
     RSNodeStats::GetInstance().ReportRSNodeLimitExceeded();
     PerfForBlurIfNeeded();

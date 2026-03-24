@@ -3593,25 +3593,23 @@ bool RSRenderNode::GetBootAnimation() const
     return isBootAnimation_;
 }
 
-void RSRenderNode::SetLayerMark(bool layerMark)
+void RSRenderNode::MarkLayer(bool markLayer)
 {
-    if (!layerMark) {
-        if (hasSetLayerMark_) {
+    if (!markLayer) {
+        if (hasMarkLayer_) {
             MarkNodeGroup(NodeGroupType::GROUPED_BY_LAYER, false, false);
-            hasSetLayerMark_ = false;
+            hasMarkLayer_ = false;
         }
         return;
     }
 
-    if (hasSetLayerMark_) {
+    if (hasMarkLayer_) {
         return;
     }
-
-    if (GetOpincCache().IsSuggestOpincNode() == false && IsContentDirty() == false && IsAIBarFilter() == false &&
-        GetType() != RSRenderNodeType::SURFACE_NODE && GetType() != RSRenderNodeType::ROOT_NODE &&
-        isChildSupportUifirst_ == false && GetType() != RSRenderNodeType::SCREEN_NODE) {
+    // only node is not OpincNode can marklayer 
+    if (GetOpincCache().IsSuggestOpincNode() == false) {
         MarkNodeGroup(NodeGroupType::GROUPED_BY_LAYER, true, false);
-        hasSetLayerMark_ = true;
+        hasMarkLayer_ = true;
     }
 }
 
@@ -4566,7 +4564,7 @@ void RSRenderNode::OnSync()
     addedToPendingSyncList_ = false;
     bool isLeashWindowPartialSkip = false;
 
-    renderHasSetLayerMark_ = hasSetLayerMark_;
+    renderHasMarkLayer_ = hasMarkLayer_;
     if (renderDrawable_ == nullptr) {
         return;
     }

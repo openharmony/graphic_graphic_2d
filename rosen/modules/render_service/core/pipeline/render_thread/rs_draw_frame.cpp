@@ -294,7 +294,7 @@ void RSDrawFrame::Sync()
         pendingSyncNodes.emplace(id, weakPtr);
     }
     stagingSyncCanvasDrawingNodes_.clear();
-    unirenderInstance_.ClearLastFrameLayerMarkNodes();
+    unirenderInstance_.ClearLastFrameMarkLayerNodes();
     for (auto& [id, weakPtr] : pendingSyncNodes) {
         if (auto node = weakPtr.lock()) {
             if (!CheckCanvasSkipSync(node)) {
@@ -303,7 +303,7 @@ void RSDrawFrame::Sync()
             }
             if (!RSUifirstManager::Instance().CollectSkipSyncNode(node)) {
                 node->Sync();
-                unirenderInstance_.IfIsLayerMarkEnabledAddToList(node);
+                unirenderInstance_.IfIsMarkLayerEnabledAddToList(node);
             } else {
                 node->SkipSync();
             }

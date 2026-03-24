@@ -355,42 +355,42 @@ HWTEST_F(RSRenderNodeTest, SetBootAnimationTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetLayerMarkTest
- * @tc.desc: SetLayerMark
+ * @tc.name: MarkLayerTest
+ * @tc.desc: TEST MarkLayer
  * @tc.type:FUNC
  * @tc.require:SR000HSUII
  */
-HWTEST_F(RSRenderNodeTest, SetLayerMarkTest, TestSize.Level1)
+HWTEST_F(RSRenderNodeTest, MarkLayerTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSRenderNode>(100, true);
-    EXPECT_EQ(node->hasSetLayerMark_, false);
+    EXPECT_EQ(node->hasMarkLayer_, false);
 
-    node->SetLayerMark(true);
-    EXPECT_EQ(node->hasSetLayerMark_, true);
+    node->MarkLayer(true);
+    EXPECT_EQ(node->hasMarkLayer_, true);
 
-    node->SetLayerMark(true);
-    node->SetLayerMark(false);
-    EXPECT_EQ(node->hasSetLayerMark_, false);
+    node->MarkLayer(true);
+    node->MarkLayer(false);
+    EXPECT_EQ(node->hasMarkLayer_, false);
 
     node->isChildSupportUifirst_ = true;
-    node->SetLayerMark(true);
-    EXPECT_EQ(node->hasSetLayerMark_, false);
+    node->MarkLayer(true);
+    EXPECT_EQ(node->hasMarkLayer_, false);
 }
 
 /**
- * @tc.name: IsLayerMarkEnabledTest
- * @tc.desc: IsLayerMarkEnabled
+ * @tc.name: IsMarkLayerEnabledTest
+ * @tc.desc: TEST IsMarkLayerEnabled
  * @tc.type:FUNC
  * @tc.require:SR000HSUII
  */
-HWTEST_F(RSRenderNodeTest, IsLayerMarkEnabledTest, TestSize.Level1)
+HWTEST_F(RSRenderNodeTest, IsMarkLayerEnabledTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSRenderNode>(100, true);
-    EXPECT_EQ(node->IsLayerMarkEnabled(), false);
-    node->SetLayerMark(true);
-    EXPECT_EQ(node->IsLayerMarkEnabled(), true);
+    EXPECT_EQ(node->IsMarkLayerEnabled(), false);
+    node->MarkLayer(true);
+    EXPECT_EQ(node->IsMarkLayerEnabled(), true);
     node->OnSync();
-    EXPECT_EQ(node->IsLayerMarkEnabled(), true);
+    EXPECT_EQ(node->IsMarkLayerEnabled(), true);
 }
 
 /**
