@@ -39,6 +39,7 @@
 #include "graphic_feature_param_manager.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "rs_render_composer_manager.h"
+#include "rs_render_mode_config_parser.h"
 
 #include "rs_render_process_manager_agent.h"
 #include "transaction/rs_client_to_service_connection.h"
@@ -91,6 +92,9 @@ bool RSRenderService::Init()
         mallopt(M_DELAYED_FREE, M_DELAYED_FREE_ENABLE);
     }
 
+    // Render mode config parsing
+    ParseRenderModeConfig();
+
     // CCM config parsing
     InitCCMConfig();
 
@@ -111,6 +115,12 @@ bool RSRenderService::Init()
 
     RS_LOGI("%{public}s: render service init successfully", __func__);
     return true;
+}
+
+void RSRenderService::ParseRenderModeConfig()
+{
+    RS_LOGI("%{public}s: multiprocess parse start", __func__);
+    renderModeConfig_ = RSRenderModeConfigParser().BuildRenderConfig();
 }
 
 void RSRenderService::InitCCMConfig()

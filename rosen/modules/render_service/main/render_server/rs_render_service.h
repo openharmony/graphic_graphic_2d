@@ -20,6 +20,7 @@
 #include <map>
 #include <unordered_set>
 
+#include "rs_render_mode_config.h"
 #include "rs_render_pipeline.h"
 #include "rs_render_multi_process_manager.h"
 #include "rs_render_single_process_manager.h"
@@ -87,6 +88,7 @@ private:
     bool RemoveConnection(const sptr<RSIConnectionToken>& token) override;
 
     // Initialization related
+    void ParseRenderModeConfig();
     void InitCCMConfig();
     void CoreComponentsInit();
     void HgmInit();
@@ -110,6 +112,7 @@ private:
     sptr<RSVsyncManager> vsyncManager_ = nullptr;
     sptr<RSRenderProcessManager> renderProcessManager_ = nullptr;
     std::shared_ptr<RSRenderComposerManager> rsRenderComposerManager_ = nullptr;
+    std::shared_ptr<const RenderModeConfig> renderModeConfig_ { nullptr };
     std::shared_ptr<HgmContext> hgmContext_ = nullptr;
     std::shared_ptr<RSServiceDumper> rsDumper_ = nullptr;
     std::shared_ptr<RSServiceDumpManager> rsDumpManager_ = nullptr;

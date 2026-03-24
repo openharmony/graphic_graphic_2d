@@ -189,6 +189,7 @@ ohos_shared_library("librender_service") {
     "main/render_process/transaction/rs_service_to_render_connection.cpp",
     "main/render_process/transaction/zidl/rs_service_to_render_connection_proxy.cpp",
     "main/render_process/transaction/zidl/rs_service_to_render_connection_stub.cpp",
+    "main/render_server/rs_render_mode_config_parser.cpp",
     "main/render_server/rs_render_process_manager.cpp",
     "main/render_server/rs_render_process_manager_agent.cpp",
     "main/render_server/rs_render_service.cpp",
