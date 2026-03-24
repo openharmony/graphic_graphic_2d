@@ -137,6 +137,7 @@ struct RS_EXPORT TypographyStyle {
     bool includeFontPadding{false};
     bool fallbackLineSpacing{false};
     bool orphanCharOptimization{false};
+    bool useLocaleForTextBreak{false};
 };
 } // namespace Rosen
 } // namespace OHOS
