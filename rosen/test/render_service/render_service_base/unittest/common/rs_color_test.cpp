@@ -429,4 +429,18 @@ HWTEST_F(RSColorTest, PlaceholderOperatorsTest, TestSize.Level1)
     // operator* should early-return when left operand is a placeholder
     EXPECT_TRUE(ph == (ph * 2.0f));
 }
+
+/**
+ * @tc.name: HeadroomTest
+ * @tc.desc: Verify function GetHeadroom SetHeadroom
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSColorTest, HeadroomTest, TestSize.Level1)
+{
+    RSColor color;
+    EXPECT_FLOAT_EQ(color.GetHeadroom(), 1.0f);
+    color.SetHeadroom(3.5f);
+    EXPECT_FLOAT_EQ(color.GetHeadroom(), 3.5f);
+}
 } // namespace OHOS::Rosen

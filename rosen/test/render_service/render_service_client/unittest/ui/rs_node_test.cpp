@@ -8504,4 +8504,70 @@ HWTEST_F(RSNodeTest, SetRSUIContext007, TestSize.Level1)
         EXPECT_FALSE(rsNode->SetRSUIContext(rsUIContext2, true));
     }
 }
+
+/**
+ * @tc.name: SetBackgroundColorHeadroomTest
+ * @tc.desc: test SetBackgroundColor set headroom
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeTest, SetBackgroundColorHeadroomTest, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_TRUE(rsNode != nullptr);
+
+    constexpr uint32_t colorValue = 0x034123;
+    RSColor color = Color::FromArgbInt(colorValue);
+    rsNode->SetBackgroundColor(color);
+    EXPECT_FLOAT_EQ(rsNode->GetStagingProperties().GetHDRColorMaxHeadroom(), 1.0f);
+    EXPECT_FLOAT_EQ(rsNode->GetStagingProperties().GetBackgroundColor().GetHeadroom(), 1.0f);
+    
+    color.SetHeadroom(0.5f);
+    rsNode->SetBackgroundColor(color);
+    EXPECT_FLOAT_EQ(rsNode->GetStagingProperties().GetHDRColorMaxHeadroom(), 0.5f);
+    EXPECT_FLOAT_EQ(rsNode->GetStagingProperties().GetBackgroundColor().GetHeadroom(), 1.0f);
+    
+    color.SetHeadroom(1.0f);
+    rsNode->SetBackgroundColor(color);
+    EXPECT_FLOAT_EQ(rsNode->GetStagingProperties().GetHDRColorMaxHeadroom(), 1.0f);
+    EXPECT_FLOAT_EQ(rsNode->GetStagingProperties().GetBackgroundColor().GetHeadroom(), 1.0f);
+    
+    color.SetHeadroom(3.5f);
+    rsNode->SetBackgroundColor(color);
+    EXPECT_FLOAT_EQ(rsNode->GetStagingProperties().GetHDRColorMaxHeadroom(), 3.5f);
+    EXPECT_FLOAT_EQ(rsNode->GetStagingProperties().GetBackgroundColor().GetHeadroom(), 3.5f);
+
+    color.SetHeadroom(1.5f);
+    rsNode->SetBackgroundColor(color);
+    EXPECT_FLOAT_EQ(rsNode->GetStagingProperties().GetHDRColorMaxHeadroom(), 1.5f);
+    EXPECT_FLOAT_EQ(rsNode->GetStagingProperties().GetBackgroundColor().GetHeadroom(), 1.5f);
+}
+
+/**
+ * @tc.name: SetHDRColorHeadroomTest
+ * @tc.desc: test SetHDRColorHeadroom multiple calls
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeTest, SetHDRColorHeadroomTest, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_TRUE(rsNode != nullptr);
+    
+    rsNode->SetHDRColorHeadroom(0.5f);
+    EXPECT_FLOAT_EQ(rsNode->GetStagingProperties().GetHDRColorHeadroom(), 0.5f);
+    EXPECT_FLOAT_EQ(rsNode->GetStagingProperties().GetHDRColorMaxHeadroom(), 1.0f);
+    
+    rsNode->SetHDRColorHeadroom(1.0f);
+    EXPECT_FLOAT_EQ(rsNode->GetStagingProperties().GetHDRColorHeadroom(), 1.0f);
+    EXPECT_FLOAT_EQ(rsNode->GetStagingProperties().GetHDRColorMaxHeadroom(), 1.0f);
+    
+    rsNode->SetHDRColorHeadroom(3.5f);
+    EXPECT_FLOAT_EQ(rsNode->GetStagingProperties().GetHDRColorHeadroom(), 3.5f);
+    EXPECT_FLOAT_EQ(rsNode->GetStagingProperties().GetHDRColorMaxHeadroom(), 3.5f);
+
+    rsNode->SetHDRColorHeadroom(1.0f);
+    EXPECT_FLOAT_EQ(rsNode->GetStagingProperties().GetHDRColorHeadroom(), 1.0f);
+    EXPECT_FLOAT_EQ(rsNode->GetStagingProperties().GetHDRColorMaxHeadroom(), 1.0f);
+}
 } // namespace OHOS::Rosen
