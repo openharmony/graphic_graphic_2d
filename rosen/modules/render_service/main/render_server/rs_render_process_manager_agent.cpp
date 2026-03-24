@@ -25,7 +25,6 @@ RSRenderProcessManagerAgent::RSRenderProcessManagerAgent(sptr<RSRenderProcessMan
 
 void RSRenderProcessManagerAgent::SetRenderProcessReadyPromise(pid_t pid)
 {
-    // TODO: 裸指针，泄露风险
     auto renderProcessManager = static_cast<RSMultiRenderProcessManager*>(renderProcessManager_.GetRefPtr());
     renderProcessManager->SetRenderProcessReadyPromise(pid);
 }

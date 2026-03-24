@@ -96,12 +96,8 @@ void RSMultiRenderProcessManager::RecordRenderProcessConnection(pid_t pid,
     sptr<IRSComposerToRenderConnection> composerToRenderConnection,
     sptr<RSIConnectToRenderProcess> connectToRenderConnection)
 {
-    // TODO: 需要分析是不是有多线程读写问题
-    // No multithreaded environment
-    composerToRenderConnection_.insert_or_assign(pid, composerToRenderConnection);
-
-    // Using a mutex to protect this write operation in a multithreaded environment
     std::lock_guard<std::mutex> lock(mutex_);
+    composerToRenderConnections_.insert_or_assign(pid, composerToRenderConnection);
     serviceToRenderConnections_.insert_or_assign(pid, serviceToRenderConnection);
     connectToRenderConnections_.insert_or_assign(pid, connectToRenderConnection);
 }
@@ -133,6 +129,7 @@ sptr<RSScreenProperty> RSMultiRenderProcessManager::GetPendingScreenProperty(pid
 void RSMultiRenderProcessManager::SetRenderProcessReadyPromise(pid_t pid)
 {
     renderProcessReadyPromises_.at(pid).set_value(true);
+    renderProcessReadyPromises_.erase(pid);
 }
 
 GroupId RSMultiRenderProcessManager::GetGroupIdByScreenId(ScreenId screenId) const
@@ -167,7 +164,7 @@ sptr<IRemoteObject> RSMultiRenderProcessManager::HandleExistingGroup(pid_t pid, 
 {
     RS_LOGD("GroupId has connected already, screenId is %{public}" PRIu64, screenId);
     auto renderToComposerConn = renderService_.rsRenderComposerManager_->GetRSComposerConnection(screenId);
-    auto composerToRenderConn = composerToRenderConnections.at(pid);
+    auto composerToRenderConn = GotComposerToRenderConnByPid(pid);
 
     sptr<RSIServiceToRenderConnection> serviceToRenderConnection = GotServiceToRenderConnByPid(pid);
     serviceToRenderConnection->NotifyScreenConnectInfoToRender(property, renderToComposerConn, composerToRenderConn);
@@ -373,6 +370,13 @@ sptr<RSIConnectToRenderProcess> RSMultiRenderProcessManager::GetConnectToRenderC
         return iter->second;
     }
     return nullptr;
+}
+
+sptr<IRSComposerToRenderProcess> RSMultiRenderProcessManager::GotComposerToRenderConnByPid(pid_t pid) const
+{
+    // Must success, or gonna throw an exception if failed
+    std::lock_guard<std::mutex> lock(mutex_);
+    return composerToRenderConnections_.at(pid);
 }
 
 void RSMultiRenderProcessManager::UpdateGroupIdToRenderProcessPid(GroupId groupId, pid_t pid)
