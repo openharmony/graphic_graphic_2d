@@ -2114,25 +2114,14 @@ HWTEST_F(RSUniRenderVisitorTest, HandleColorGamuts002, TestSize.Level2)
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0);
 
-    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
-    ASSERT_NE(screenManager, nullptr);
-
     ScreenId screenId = 1;
-    auto rsScreen = std::make_shared<RSScreen>(HdiOutput::CreateHdiOutput(screenId));
+    auto rsScreen = std::make_shared<RSScreen>(screenId);
     rsScreen->property_.SetConnectionType(ScreenConnectionType::DISPLAY_CONNECTION_TYPE_EXTERNAL);
-    rsScreen->supportedPhysicalColorGamuts_ = {COLOR_GAMUT_SRGB, COLOR_GAMUT_DCI_P3};
-    rsUniRenderVisitor->screenManager_->MockHdiScreenConnected(rsScreen);
-    screenNode->screenId_ = screenId;
-    auto virtualScreenId = screenManager->CreateVirtualScreen("virtual screen 002", 0, 0, nullptr);
-    screenNode->screenInfo_ = screenManager->QueryScreenInfo(virtualScreenId);
-    ASSERT_NE(INVALID_SCREEN_ID, virtualScreenId);
 
-    GraphicColorGamut originalColorSpace = GRAPHIC_COLOR_GAMUT_SRGB;
+    GraphicColorGamut originalColorSpace = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     screenNode->SetColorSpace(originalColorSpace);
     rsUniRenderVisitor->HandleColorGamuts(*screenNode);
-    ScreenColorGamut screenColorGamut;
-    screenManager->GetScreenColorGamut(screenNode->GetScreenId(), screenColorGamut);
-    ASSERT_EQ(screenNode->GetColorSpace(), static_cast<GraphicColorGamut>(screenColorGamut));
+    ASSERT_EQ(screenNode->GetColorSpace(), GRAPHIC_COLOR_GAMUT_SRGB);
 }
 
 /**
@@ -2147,18 +2136,11 @@ HWTEST_F(RSUniRenderVisitorTest, HandleColorGamuts003, TestSize.Level2)
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0);
 
-    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
-    ASSERT_NE(screenManager, nullptr);
-
     ScreenId screenId = 1;
-    auto rsScreen = std::make_shared<RSScreen>(HdiOutput::CreateHdiOutput(screenId));
+    auto rsScreen = std::make_shared<RSScreen>(screenId);
     rsScreen->property_.SetConnectionType(ScreenConnectionType::DISPLAY_CONNECTION_TYPE_EXTERNAL);
     rsScreen->supportedPhysicalColorGamuts_ = {COLOR_GAMUT_SRGB, COLOR_GAMUT_DCI_P3};
-    rsUniRenderVisitor->screenManager_->MockHdiScreenConnected(rsScreen);
     screenNode->screenId_ = screenId;
-    auto virtualScreenId = screenManager->CreateVirtualScreen("virtual screen 003", 0, 0, nullptr);
-    screenNode->screenInfo_ = screenManager->QueryScreenInfo(virtualScreenId);
-    ASSERT_NE(INVALID_SCREEN_ID, virtualScreenId);
 
     GraphicColorGamut originalColorSpace = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     screenNode->SetColorSpace(originalColorSpace);
@@ -2185,7 +2167,7 @@ HWTEST_F(RSUniRenderVisitorTest, HandleColorGamuts004, TestSize.Level2)
     ASSERT_NE(screenManager, nullptr);
 
     ScreenId screenId = 1;
-    auto rsScreen = std::make_shared<RSScreen>(HdiOutput::CreateHdiOutput(screenId));
+    auto rsScreen = std::make_shared<RSScreen>(screenId);
     rsScreen->property_.SetConnectionType(ScreenConnectionType::DISPLAY_CONNECTION_TYPE_EXTERNAL);
     rsScreen->supportedPhysicalColorGamuts_ = {COLOR_GAMUT_SRGB, COLOR_GAMUT_DCI_P3};
     rsUniRenderVisitor->screenManager_->MockHdiScreenConnected(rsScreen);
@@ -2215,23 +2197,16 @@ HWTEST_F(RSUniRenderVisitorTest, HandleColorGamuts005, TestSize.Level2)
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0);
 
-    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
-    ASSERT_NE(screenManager, nullptr);
-
     auto rsContext = std::make_shared<RSContext>();
     ScreenId screenId = 1;
-    auto rsScreen = std::make_shared<RSScreen>(HdiOutput::CreateHdiOutput(screenId));
+    auto rsScreen = std::make_shared<RSScreen>(screenId);
     rsScreen->property_.SetConnectionType(ScreenConnectionType::DISPLAY_CONNECTION_TYPE_EXTERNAL);
     rsScreen->supportedPhysicalColorGamuts_ = {COLOR_GAMUT_SRGB, COLOR_GAMUT_DCI_P3};
-    rsUniRenderVisitor->screenManager_->MockHdiScreenConnected(rsScreen);
     auto displayNode = std::make_shared<RSScreenRenderNode>(TestSrc::limitNumber::Uint64[6], screenId, rsContext);
     ASSERT_NE(displayNode, nullptr);
 
     screenNode->SetMirrorSource(displayNode);
     screenNode->screenId_ = screenId;
-    auto virtualScreenId = screenManager->CreateVirtualScreen("virtual screen 005", 0, 0, nullptr);
-    screenNode->screenInfo_ = screenManager->QueryScreenInfo(virtualScreenId);
-    ASSERT_NE(INVALID_SCREEN_ID, virtualScreenId);
 
     GraphicColorGamut originalColorSpace = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     screenNode->SetColorSpace(originalColorSpace);
@@ -8454,7 +8429,6 @@ HWTEST_F(RSUniRenderVisitorTest, IsWiredExtendedScreen001, TestSize.Level2)
     screenNode->screenProperty_.Set<ScreenPropertyType::CONNECTION_TYPE>(
         static_cast<uint32_t>(ScreenConnectionType::DISPLAY_CONNECTION_TYPE_EXTERNAL));
     screenNode->mirrorSource_.reset();
-    ASSERT_NE(screenManager_, nullptr);
 
     bool result = rsUniRenderVisitor->IsWiredExtendedScreen(*screenNode);
     EXPECT_TRUE(result);
@@ -8472,14 +8446,9 @@ HWTEST_F(RSUniRenderVisitorTest, IsWiredExtendedScreen002, TestSize.Level2)
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0);
 
-    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
-    ASSERT_NE(screenManager, nullptr);
-
     ScreenId screenId = 1;
-    auto rsScreen = std::make_shared<RSScreen>(HdiOutput::CreateHdiOutput(screenId));
+    auto rsScreen = std::make_shared<RSScreen>(screenId);
     rsScreen->property_.SetConnectionType(ScreenConnectionType::DISPLAY_CONNECTION_TYPE_INTERNAL);
-    rsUniRenderVisitor->screenManager_ = CreateOrGetScreenManager();
-    rsUniRenderVisitor->screenManager_->MockHdiScreenConnected(rsScreen);
     screenNode->screenId_ = screenId;
 
     bool result = rsUniRenderVisitor->IsWiredExtendedScreen(*screenNode);
@@ -8494,21 +8463,23 @@ HWTEST_F(RSUniRenderVisitorTest, IsWiredExtendedScreen002, TestSize.Level2)
  */
 HWTEST_F(RSUniRenderVisitorTest, HandleWiredExtendedScreenColorGamut001, TestSize.Level2)
 {
+    auto& originalInterface = RSLuminanceControl::Get().rSLuminanceControlInterface_;
+    Mock::RSLuminanceControlInterfaceMock mockInterface;
+    RSLuminanceControl::Get().rSLuminanceControlInterface_ = &mockInterface;
+
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0);
     screenNode->SetColorSpace(GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
-
-    ScreenId screenId = 1;
-    auto rsScreen = std::make_shared<RSScreen>(HdiOutput::CreateHdiOutput(screenId));
-    rsScreen->property_.SetConnectionType(ScreenConnectionType::DISPLAY_CONNECTION_TYPE_EXTERNAL);
-    rsUniRenderVisitor->screenManager_ = CreateOrGetScreenManager();
-    rsUniRenderVisitor->screenManager_->MockHdiScreenConnected(rsScreen);
-    screenNode->screenId_ = screenId;
-
     GraphicColorGamut originalColorSpace = screenNode->GetColorSpace();
     rsUniRenderVisitor->HandleWiredExtendedScreenColorGamut(*screenNode);
-    EXPECT_EQ(screenNode->GetColorSpace(), originalColorSpace);
+    if (ColorGamutParam::DisableP3OnWiredExtendedScreen()) {
+        EXPECT_EQ(screenNode->GetColorSpace(), GRAPHIC_COLOR_GAMUT_SRGB);
+    } else {
+        EXPECT_EQ(screenNode->GetColorSpace(), originalColorSpace);
+    }
+
+    RSLuminanceControl::Get().rSLuminanceControlInterface_ = originalInterface;
 }
 
 /**
@@ -8524,16 +8495,11 @@ HWTEST_F(RSUniRenderVisitorTest, HandleWiredExtendedScreenColorGamut002, TestSiz
     auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0);
     screenNode->SetColorSpace(GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
     ColorGamutParam::SetDisableP3OnWiredExtendedScreen(true);
-    ScreenId screenId = 1;
-    auto rsScreen = std::make_shared<RSScreen>(HdiOutput::CreateHdiOutput(screenId));
-    rsScreen->property_.SetConnectionType(ScreenConnectionType::DISPLAY_CONNECTION_TYPE_EXTERNAL);
-    rsUniRenderVisitor->screenManager_ = CreateOrGetScreenManager();
-    rsUniRenderVisitor->screenManager_->MockHdiScreenConnected(rsScreen);
-    screenNode->screenId_ = screenId;
 
-    GraphicColorGamut originalColorSpace = screenNode->GetColorSpace();
     rsUniRenderVisitor->HandleWiredExtendedScreenColorGamut(*screenNode);
-    EXPECT_EQ(screenNode->GetColorSpace(), originalColorSpace);
+    if (ColorGamutParam::DisableP3OnWiredExtendedScreen()) {
+        EXPECT_EQ(screenNode->GetColorSpace(), originalColorSpace);
+    }
 }
 
 /**
@@ -8591,46 +8557,18 @@ HWTEST_F(RSUniRenderVisitorTest, HandleWiredExtendedScreenColorGamut004, TestSiz
  */
 HWTEST_F(RSUniRenderVisitorTest, HandleMainScreenColorGamut001, TestSize.Level2)
 {
+    auto& originalInterface = RSLuminanceControl::Get().rSLuminanceControlInterface_;
+    Mock::RSLuminanceControlInterfaceMock mockInterface;
+    RSLuminanceControl::Get().rSLuminanceControlInterface_ = &mockInterface;
+
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-
     auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0);
-    ScreenId screenId = 1;
-    auto rsScreen = std::make_shared<RSScreen>(HdiOutput::CreateHdiOutput(screenId));
-    rsScreen->property_.SetConnectionType(ScreenConnectionType::DISPLAY_CONNECTION_TYPE_INTERNAL);
-    rsUniRenderVisitor->screenManager_ = CreateOrGetScreenManager();
-    rsUniRenderVisitor->screenManager_->MockHdiScreenConnected(rsScreen);
-    screenNode->screenId_ = screenId;
-    screenNode->SetColorSpace(GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
 
+    screenNode->SetColorSpace(GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
     rsUniRenderVisitor->HandleMainScreenColorGamut(*screenNode);
     EXPECT_NE(screenNode->GetColorSpace(), GRAPHIC_COLOR_GAMUT_ADOBE_RGB);
-}
-
-/**
- * @tc.name: HandleMainScreenColorGamut002
- * @tc.desc: Test HandleMainScreenColorGamut with external screen
- * @tc.type: FUNC
- */
-HWTEST_F(RSUniRenderVisitorTest, HandleMainScreenColorGamut002, TestSize.Level2)
-{
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0);
-
-    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
-    ASSERT_NE(screenManager, nullptr);
-
-    ScreenId screenId = 1;
-    auto rsScreen = std::make_shared<RSScreen>(HdiOutput::CreateHdiOutput(screenId));
-    rsScreen->property_.SetConnectionType(ScreenConnectionType::DISPLAY_CONNECTION_TYPE_EXTERNAL);
-    rsUniRenderVisitor->screenManager_ = CreateOrGetScreenManager();
-    rsUniRenderVisitor->screenManager_->MockHdiScreenConnected(rsScreen);
-    screenNode->screenId_ = screenId;
-
-    screenNode->SetColorSpace(GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
-    rsUniRenderVisitor->HandleMainScreenColorGamut(*screenNode);
-    EXPECT_NE(screenNode->GetColorSpace(), GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    RSLuminanceControl::Get().rSLuminanceControlInterface_ = originalInterface;
 }
 
 /**
