@@ -2115,7 +2115,7 @@ HWTEST_F(RSUniRenderVisitorTest, HandleColorGamuts002, TestSize.Level2)
     auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0);
 
     ScreenId screenId = 1;
-    auto rsScreen = std::make_shared<RSScreen>(HdiOutput::CreateHdiOutput(screenId));
+    auto rsScreen = std::make_shared<RSScreen>(screenId);
     rsScreen->property_.SetConnectionType(ScreenConnectionType::DISPLAY_CONNECTION_TYPE_EXTERNAL);
 
     GraphicColorGamut originalColorSpace = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
