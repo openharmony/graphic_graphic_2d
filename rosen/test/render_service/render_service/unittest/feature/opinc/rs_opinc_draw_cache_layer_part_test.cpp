@@ -60,7 +60,7 @@ HWTEST_F(RSOpincDrawCacheLayerPartTest, PushLayerPartRenderDirtyRegionDisabled, 
 
     opincDrawCache.PushLayerPartRenderDirtyRegion(*params, paintFilterCanvas, TEST_NODE_COUNT);
 
-    ASSERT_TRUE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
+    EXPECT_TRUE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
 }
 
 /**
@@ -78,7 +78,7 @@ HWTEST_F(RSOpincDrawCacheLayerPartTest, PushLayerPartRenderDirtyRegionEnabled, T
 
     opincDrawCache.PushLayerPartRenderDirtyRegion(*params, paintFilterCanvas, TEST_NODE_COUNT);
 
-    ASSERT_FALSE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
+    EXPECT_FALSE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
 }
 
 /**
@@ -96,7 +96,7 @@ HWTEST_F(RSOpincDrawCacheLayerPartTest, LayerPartRenderClipDirtyRegionDisabled, 
 
     opincDrawCache.LayerPartRenderClipDirtyRegion(*params, paintFilterCanvas);
 
-    ASSERT_TRUE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
+    EXPECT_TRUE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
 }
 
 /**
@@ -114,7 +114,7 @@ HWTEST_F(RSOpincDrawCacheLayerPartTest, LayerPartRenderClipDirtyRegionWithEmptyD
 
     opincDrawCache.LayerPartRenderClipDirtyRegion(*params, paintFilterCanvas);
 
-    ASSERT_TRUE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
+    EXPECT_TRUE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
 }
 
 /**
@@ -133,7 +133,7 @@ HWTEST_F(RSOpincDrawCacheLayerPartTest, LayerPartRenderClipDirtyRegionWithNonEmp
     opincDrawCache.PushLayerPartRenderDirtyRegion(*params, paintFilterCanvas, TEST_NODE_COUNT);
     opincDrawCache.LayerPartRenderClipDirtyRegion(*params, paintFilterCanvas);
 
-    ASSERT_FALSE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
+    EXPECT_FALSE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
 }
 
 /**
@@ -151,11 +151,11 @@ HWTEST_F(RSOpincDrawCacheLayerPartTest, PopLayerPartRenderDirtyRegionDisabled, T
     auto disabledParams = CreateRenderParams(false);
 
     opincDrawCache.PushLayerPartRenderDirtyRegion(*enabledParams, paintFilterCanvas, TEST_NODE_COUNT);
-    ASSERT_FALSE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
+    EXPECT_FALSE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
 
     opincDrawCache.PopLayerPartRenderDirtyRegion(*disabledParams, paintFilterCanvas);
 
-    ASSERT_FALSE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
+    EXPECT_FALSE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
 }
 
 /**
@@ -173,7 +173,7 @@ HWTEST_F(RSOpincDrawCacheLayerPartTest, PopLayerPartRenderDirtyRegionEmptyStack,
 
     opincDrawCache.PopLayerPartRenderDirtyRegion(*params, paintFilterCanvas);
 
-    ASSERT_TRUE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
+    EXPECT_TRUE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
 }
 
 /**
@@ -190,11 +190,11 @@ HWTEST_F(RSOpincDrawCacheLayerPartTest, PopLayerPartRenderDirtyRegionNonEmptySta
     auto params = CreateRenderParams(true);
 
     opincDrawCache.PushLayerPartRenderDirtyRegion(*params, paintFilterCanvas, TEST_NODE_COUNT);
-    ASSERT_FALSE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
+    EXPECT_FALSE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
 
     opincDrawCache.PopLayerPartRenderDirtyRegion(*params, paintFilterCanvas);
 
-    ASSERT_TRUE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
+    EXPECT_TRUE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
 }
 
 /**
@@ -209,10 +209,14 @@ HWTEST_F(RSOpincDrawCacheLayerPartTest, LayerDirtyRegionDfxWithDebugDisabled, Te
     Drawing::Canvas canvas;
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
     Drawing::RectI dirtyRect(DIRTY_LEFT, DIRTY_TOP, DIRTY_WIDTH, DIRTY_HEIGHT);
+    const std::string debugKey = "rosen.layerPartRenderDfx.enabled";
+    const std::string oldDebugValue = system::GetParameter(debugKey, "0");
+    (void)system::SetParameter(debugKey, "0");
 
     opincDrawCache.LayerDirtyRegionDfx(paintFilterCanvas, dirtyRect);
 
-    ASSERT_FALSE(RSSystemProperties::GetLayerPartRenderDebugEnabled());
+    EXPECT_FALSE(RSSystemProperties::GetLayerPartRenderDebugEnabled());
+    (void)system::SetParameter(debugKey, oldDebugValue);
 }
 
 /**
@@ -227,12 +231,14 @@ HWTEST_F(RSOpincDrawCacheLayerPartTest, LayerDirtyRegionDfxWithDebugEnabled, Tes
     Drawing::Canvas canvas;
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
     Drawing::RectI dirtyRect(DIRTY_LEFT, DIRTY_TOP, DIRTY_WIDTH, DIRTY_HEIGHT);
+    const std::string debugKey = "rosen.layerPartRenderDfx.enabled";
+    const std::string oldDebugValue = system::GetParameter(debugKey, "0");
 
-    system::SetParameter("rosen.layerPartRenderDfx.enabled", "1");
-    ASSERT_TRUE(RSSystemProperties::GetLayerPartRenderDebugEnabled());
+    (void)system::SetParameter(debugKey, "1");
+    EXPECT_TRUE(RSSystemProperties::GetLayerPartRenderDebugEnabled());
 
     opincDrawCache.LayerDirtyRegionDfx(paintFilterCanvas, dirtyRect);
 
-    system::SetParameter("rosen.layerPartRenderDfx.enabled", "0");
+    (void)system::SetParameter(debugKey, oldDebugValue);
 }
 } // namespace OHOS::Rosen
