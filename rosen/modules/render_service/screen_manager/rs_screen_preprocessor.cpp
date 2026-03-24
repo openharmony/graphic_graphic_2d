@@ -129,7 +129,8 @@ bool RSScreenPreprocessor::Init() noexcept
     if (composer_->RegScreenVBlankIdleCallback(&RSScreenPreprocessor::OnScreenVBlankIdle, this) != 0) {
         RS_LOGW("%{public}s: Not support register OnScreenVBlankIdle Func to composer", __func__);
     }
-    ProcessScreenHotPlugEvents();
+    // TODO: 屏幕管理需要适配
+    // ProcessScreenHotPlugEvents();
     RS_LOGI("Init RSScreenPreprocessor succeed");
     return true;
 }
