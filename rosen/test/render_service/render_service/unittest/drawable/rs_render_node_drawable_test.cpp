@@ -1382,8 +1382,7 @@ HWTEST_F(RSRenderNodeDrawableTest, DrawCachedImageWithFilterTest, TestSize.Level
     ASSERT_NE(drawable->cachedSurface_, nullptr);
 
     auto rsFilter = std::make_shared<RSBlurFilter>(0.0f, 0.0f);
-    params.SetForegroundFilterCache(rsFilter);
-    drawable->DrawCachedImage(paintFilterCanvas, params);
+    drawable->DrawCachedImage(paintFilterCanvas, params, rsFilter);
 
     params.SetChildHasVisibleFilter(true);
     drawable->DrawCachedImage(paintFilterCanvas, params);

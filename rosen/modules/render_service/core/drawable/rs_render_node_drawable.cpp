@@ -826,7 +826,8 @@ std::shared_ptr<Drawing::Image> RSRenderNodeDrawable::GetCacheImageByCapture() c
     return cachedImageByCapture_;
 }
 
-void RSRenderNodeDrawable::DrawCachedImage(RSPaintFilterCanvas& canvas, const RSRenderParams& params)
+void RSRenderNodeDrawable::DrawCachedImage(
+    RSPaintFilterCanvas& canvas, const RSRenderParams& params, const std::shared_ptr<RSFilter>& rsFilter)
 {
     auto cacheImage = GetCachedImage(canvas);
     std::lock_guard<std::mutex> lock(freezeByCaptureMutex_);
@@ -877,11 +878,11 @@ void RSRenderNodeDrawable::DrawCachedImage(RSPaintFilterCanvas& canvas, const RS
         matrix.Set(Drawing::Matrix::TRANS_Y, std::floor(matrix.Get(Drawing::Matrix::TRANS_Y)));
         canvas.SetMatrix(matrix);
     }
-    if (params.GetForegroundFilterCache() != nullptr) {
+    if (rsFilter != nullptr) {
         RS_TRACE_NAME_FMT("RSRenderNodeDrawable::DrawCachedImage image width: %d, height: %d, %s, nodeID = %llu",
             cacheImage->GetWidth(), cacheImage->GetHeight(),
-            params.GetForegroundFilterCache()->GetDescription().c_str(), nodeId_);
-        auto foregroundFilter = std::static_pointer_cast<RSDrawingFilterOriginal>(params.GetForegroundFilterCache());
+            rsFilter->GetDescription().c_str(), nodeId_);
+        auto foregroundFilter = std::static_pointer_cast<RSDrawingFilterOriginal>(rsFilter);
         foregroundFilter->DrawImageRect(canvas, cacheImage,
             Drawing::Rect(0, 0, cacheImage->GetWidth(), cacheImage->GetHeight()),
             Drawing::Rect(0, 0, cacheImage->GetWidth(), cacheImage->GetHeight()));
