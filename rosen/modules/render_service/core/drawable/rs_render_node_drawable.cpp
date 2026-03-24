@@ -464,7 +464,7 @@ void RSRenderNodeDrawable::DrawWithNodeGroupCache(Drawing::Canvas& canvas, const
         DrawForeground(canvas, params.GetBounds());
     } else if (params.GetForegroundFilterCache() != nullptr) {
         DrawBeforeCacheWithForegroundFilter(canvas, params.GetBounds());
-        DrawCachedImage(*curCanvas, params);
+        DrawCachedImage(*curCanvas, params, params.GetForegroundFilterCache());
         DrawAfterCacheWithForegroundFilter(canvas, params.GetBounds());
     } else {
         DrawBeforeCacheWithProperty(canvas, params.GetBounds());
