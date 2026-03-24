@@ -172,6 +172,7 @@ RSScreenRenderNodeDrawable::~RSScreenRenderNodeDrawable()
     auto curScreenId = params ? params->GetScreenId() : INVALID_SCREEN_ID;
     RSUniRenderThread::Instance().UnRegisterCond(curScreenId);
     RSPointerWindowManager::Instance().RemoveCommitResult(GetId());
+    RSFrameStabilityManager::GetInstance().CleanResourcesByScreenId(curScreenId);
 }
 
 RSRenderNodeDrawable::Ptr RSScreenRenderNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)

@@ -15,19 +15,65 @@
 
 #include "gtest/gtest.h"
 
-#include "rs_render_pipeline.h"
-#include "rs_render_pipeline_agent.h"
+#include "ipc_callbacks/rs_frame_stability_callback_stub.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "rs_render_pipeline_agent.h"
+#include "rs_render_pipeline.h"
+#include "transaction/rs_frame_stability_types.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+constexpr uint32_t DEFAULT_TIME = 100000; // 100ms
+constexpr uint64_t DEFAULT_ID = 10;
+constexpr FrameStabilityTarget INVALID_TARGET = { .id = 100, .type = FrameStabilityTargetType::SCREEN };
+constexpr FrameStabilityTarget VALID_TARGET = { .id = DEFAULT_ID, .type = FrameStabilityTargetType::SCREEN };
+constexpr FrameStabilityConfig DEFAULT_CONFIG = { .stableDuration = 200, .changePercent = 0.0f };
+
+class RSFrameStabilityCallbackStubMock : public RSFrameStabilityCallbackStub {
+public:
+    RSFrameStabilityCallbackStubMock() = default;
+    virtual ~RSFrameStabilityCallbackStubMock() = default;
+    void OnFrameStabilityChanged(bool isStable) override {};
+};
+
 class RSRenderPipelineAgentTest : public testing::Test {
 public:
+    static inline RSMainThread* mainThread_ = nullptr;
+    static inline std::shared_ptr<RSScreenRenderNode> screenNode_ = nullptr;
+    static void SetUpTestCase();
+    static void TearDownTestCase();
     void SetUp() override {}
     void TearDown() override {}
 };
+
+void RSRenderPipelineAgentTest::SetUpTestCase()
+{
+    mainThread_ = RSMainThread::Instance();
+    ASSERT_NE(mainThread_, nullptr);
+    mainThread_->handler_ =
+        std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::AppExecFwk::EventRunner::Create(true));
+    mainThread_->handler_->eventRunner_->Run();
+    auto context = mainThread_->context_;
+    ASSERT_NE(context, nullptr);
+    screenNode_ = std::make_shared<RSScreenRenderNode>(DEFAULT_ID, DEFAULT_ID, context);
+    ASSERT_NE(screenNode_, nullptr);
+    context->nodeMap.RegisterRenderNode(screenNode_);
+}
+
+void RSRenderPipelineAgentTest::TearDownTestCase()
+{
+    usleep(DEFAULT_TIME);
+    auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
+    nodeMap.UnregisterRenderNode(DEFAULT_ID);
+    mainThread_->handler_->RemoveAllEvents();
+    mainThread_->handler_->eventRunner_->Stop();
+    mainThread_->handler_->eventRunner_ = nullptr;
+    mainThread_->handler_ = nullptr;
+    mainThread_->context_ = nullptr;
+    screenNode_ = nullptr;
+}
 
 /**
  * @tc.name: SetGlobalDarkColorMode_NullPipeline_ReturnInvalidValue
@@ -151,5 +197,178 @@ HWTEST_F(RSRenderPipelineAgentTest, GetScreenHdrStatusTest002, TestSize.Level1)
     EXPECT_EQ(resCode, SUCCESS);
     EXPECT_EQ(hdrStatus, HdrStatus::NO_HDR);
     nodeMap.screenNodeMap_.erase(nodeId);
+}
+
+/**
+ * @tc.name: RegisterFrameStabilityDetection001
+ * @tc.desc: Verify RegisterFrameStabilityDetection returns error when pipeline is null
+ * @tc.type: FUNC
+ * @tc.require: 22984
+ */
+HWTEST_F(RSRenderPipelineAgentTest, RegisterFrameStabilityDetection001, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+    sptr<RSFrameStabilityCallbackStubMock> callback = new RSFrameStabilityCallbackStubMock();
+    int32_t ret = agent->RegisterFrameStabilityDetection(1000, INVALID_TARGET, DEFAULT_CONFIG, callback);
+    EXPECT_NE(ret, 0);
+}
+
+/**
+ * @tc.name: RegisterFrameStabilityDetection002
+ * @tc.desc: Verify RegisterFrameFrameStabilityDetection returns error with invalid ID
+ * @tc.type: FUNC
+ * @tc.require: 22984
+ */
+HWTEST_F(RSRenderPipelineAgentTest, RegisterFrameStabilityDetection002, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    renderPipeline->mainThread_ = mainThread_;
+
+    sptr<RSFrameStabilityCallbackStubMock> callback = new RSFrameStabilityCallbackStubMock();
+    int32_t ret = agent->RegisterFrameStabilityDetection(1000, INVALID_TARGET, DEFAULT_CONFIG, callback);
+    EXPECT_EQ(ret, static_cast<int32_t>(FrameStabilityErrorCode::INVALID_ID));
+}
+
+/**
+ * @tc.name: RegisterFrameStabilityDetection003
+ * @tc.desc: Verify RegisterFrameFrameStabilityDetection returns error with valid ID
+ * @tc.type: FUNC
+ * @tc.require: 22984
+ */
+HWTEST_F(RSRenderPipelineAgentTest, RegisterFrameStabilityDetection003, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    renderPipeline->mainThread_ = mainThread_;
+
+    sptr<RSFrameStabilityCallbackStubMock> callback = new RSFrameStabilityCallbackStubMock();
+    int32_t ret = agent->RegisterFrameStabilityDetection(1000, VALID_TARGET, DEFAULT_CONFIG, callback);
+    EXPECT_NE(ret, static_cast<int32_t>(FrameStabilityErrorCode::INVALID_ID));
+}
+
+/**
+ * @tc.name: UnregisterFrameStabilityDetection001
+ * @tc.desc: Verify UnregisterFrameStabilityDetection returns error when pipeline is null
+ * @tc.type: FUNC
+ * @tc.require: 22984
+ */
+HWTEST_F(RSRenderPipelineAgentTest, UnregisterFrameStabilityDetection001, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+    int32_t ret = agent->UnregisterFrameStabilityDetection(1000, INVALID_TARGET);
+    EXPECT_NE(ret, 0);
+}
+
+/**
+ * @tc.name: UnregisterFrameStabilityDetection002
+ * @tc.desc: Verify UnregisterFrameStabilityDetection returns error with valid ID
+ * @tc.type: FUNC
+ * @tc.require: 22984
+ */
+HWTEST_F(RSRenderPipelineAgentTest, UnregisterFrameStabilityDetection002, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    renderPipeline->mainThread_ = mainThread_;
+
+    int32_t ret = agent->UnregisterFrameStabilityDetection(1000, VALID_TARGET);
+    EXPECT_NE(ret, static_cast<int32_t>(FrameStabilityErrorCode::INVALID_ID));
+}
+
+/**
+ * @tc.name: StartFrameStabilityCollection001
+ * @tc.desc: Verify StartFrameStabilityCollection returns error when pipeline is null
+ * @tc.type: FUNC
+ * @tc.require: 22984
+ */
+HWTEST_F(RSRenderPipelineAgentTest, StartFrameStabilityCollection001, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+    int32_t ret = agent->StartFrameStabilityCollection(1000, INVALID_TARGET, DEFAULT_CONFIG);
+    EXPECT_NE(ret, 0);
+}
+
+/**
+ * @tc.name: StartFrameStabilityCollection002
+ * @tc.desc: Verify StartFrameStabilityCollection returns error with invalid ID
+ * @tc.type: FUNC
+ * @tc.require: 22984
+ */
+HWTEST_F(RSRenderPipelineAgentTest, StartFrameStabilityCollection002, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    renderPipeline->mainThread_ = mainThread_;
+
+    int32_t ret = agent->StartFrameStabilityCollection(1000, INVALID_TARGET, DEFAULT_CONFIG);
+    EXPECT_EQ(ret, static_cast<int32_t>(FrameStabilityErrorCode::INVALID_ID));
+}
+
+/**
+ * @tc.name: StartFrameStabilityCollection003
+ * @tc.desc: Verify StartFrameStabilityCollection returns error with valid ID
+ * @tc.type: FUNC
+ * @tc.require: 22984
+ */
+HWTEST_F(RSRenderPipelineAgentTest, StartFrameStabilityCollection003, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    renderPipeline->mainThread_ = mainThread_;
+
+    int32_t ret = agent->StartFrameStabilityCollection(1000, VALID_TARGET, DEFAULT_CONFIG);
+    EXPECT_NE(ret, static_cast<int32_t>(FrameStabilityErrorCode::INVALID_ID));
+}
+
+/**
+ * @tc.name: GetFrameStabilityResult_NullPipeline
+ * @tc.desc: Verify GetFrameStabilityResult returns error when pipeline is null
+ * @tc.type: FUNC
+ * @tc.require: 22984
+ */
+HWTEST_F(RSRenderPipelineAgentTest, GetFrameStabilityResult001, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+    bool result = false;
+    int32_t ret = agent->GetFrameStabilityResult(1000, INVALID_TARGET, result);
+    EXPECT_NE(ret, 0);
+}
+
+/**
+ * @tc.name: GetFrameStabilityResult002
+ * @tc.desc: Verify GetFrameStabilityResult returns error with valid ID
+ * @tc.type: FUNC
+ * @tc.require: 22984
+ */
+HWTEST_F(RSRenderPipelineAgentTest, GetFrameStabilityResult002, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    renderPipeline->mainThread_ = mainThread_;
+
+    bool result = false;
+    int32_t ret = agent->GetFrameStabilityResult(1000, VALID_TARGET, result);
+    EXPECT_NE(ret, static_cast<int32_t>(FrameStabilityErrorCode::INVALID_ID));
 }
 } // namespace OHOS::Rosen

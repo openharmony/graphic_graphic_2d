@@ -4762,7 +4762,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RegisterFrameStabilityDetectionTest
     uint32_t code = static_cast<uint32_t>(
         RSIClientToRenderConnectionInterfaceCode::REGISTER_FRAME_STABILITY_DETECTION);
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(res, ERR_NONE);
+    ASSERT_EQ(res, ERR_INVALID_REPLY);
 }
 
 /**
@@ -4832,7 +4832,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, UnregisterFrameStabilityDetectionTe
     uint32_t code = static_cast<uint32_t>(
         RSIClientToRenderConnectionInterfaceCode::UNREGISTER_FRAME_STABILITY_DETECTION);
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(res, ERR_NONE);
+    ASSERT_EQ(res, ERR_INVALID_REPLY);
 }
 
 /**
@@ -4867,7 +4867,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, StartFrameStabilityCollectionTest00
     uint32_t code = static_cast<uint32_t>(
         RSIClientToRenderConnectionInterfaceCode::START_FRAME_STABILITY_COLLECTION);
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(res, ERR_NONE);
+    ASSERT_EQ(res, ERR_INVALID_REPLY);
 }
 
 /**
@@ -4928,6 +4928,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, GetFrameStabilityResultTest002, Tes
     uint32_t code = static_cast<uint32_t>(
         RSIClientToRenderConnectionInterfaceCode::GET_FRAME_STABILITY_RESULT);
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(res, ERR_NONE);
+    ASSERT_EQ(res, ERR_INVALID_REPLY);
 }
 } // namespace OHOS::Rosen
