@@ -1663,5 +1663,15 @@ bool HgmFrameRateManager::IsNeedAdaptiveAfterUpdateMode()
 {
     return controller_ != nullptr && controller_->IsNeedAdaptiveAfterUpdateMode();
 }
+
+void HgmFrameRateManager::AddScreenInit()
+{
+    SyncHgmConfigUpdateCallback();
+    if (auto configData = HgmCore::Instance().GetPolicyConfigData()) {
+        GetLowBrightVec(configData);
+        GetAncoLowBrightVec(configData);
+        GetStylusVec(configData);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS
