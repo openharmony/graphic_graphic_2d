@@ -99,4 +99,57 @@ HWTEST_F(RSRenderPipelineAgentTest, DropFrameByPid_ValidPipeline_ReturnOk, TestS
     ErrCode ret = agent->DropFrameByPid(pidList, DROP_FRAME_LEVEL);
     EXPECT_EQ(ret, ERR_OK);
 }
+
+/**
+ * @tc.name: GetScreenHdrStatusTest001
+ * @tc.desc: Verify GetScreenHdrStatus.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, GetScreenHdrStatusTest001, TestSize.Level1)
+{
+    auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
+    auto mainThread = RSMainThread::Instance();
+    mainThread->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
+    mainThread->handler_->eventRunner_->Run();
+
+    auto pipeline = std::make_shared<RSRenderPipeline>();
+    pipeline->mainThread_ = mainThread;
+    auto agent = sptr<RSRenderPipelineAgent>::MakeSptr(pipeline);
+
+    ScreenId screenId = 0;
+    HdrStatus hdrStatus = HdrStatus::HDR_EFFECT;
+    int32_t resCode = 0;
+    EXPECT_EQ(agent->GetScreenHDRStatus(screenId, hdrStatus, resCode), ERR_OK);
+    EXPECT_EQ(resCode, SCREEN_NOT_FOUND);
+    EXPECT_EQ(hdrStatus, HdrStatus::NO_HDR);
+}
+
+/**
+ * @tc.name: GetScreenHdrStatusTest002
+ * @tc.desc: Verify GetScreenHdrStatus.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, GetScreenHdrStatusTest002, TestSize.Level1)
+{
+    auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
+    auto mainThread = RSMainThread::Instance();
+    mainThread->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
+    mainThread->handler_->eventRunner_->Run();
+    NodeId nodeId = 1001;
+    ScreenId screenId = 1005;
+    auto screenNode = std::make_shared<RSScreenRenderNode>(nodeId, screenId);
+    auto& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+    nodeMap.screenNodeMap_[nodeId] = screenNode;
+
+    auto pipeline = std::make_shared<RSRenderPipeline>();
+    pipeline->mainThread_ = mainThread;
+    auto agent = sptr<RSRenderPipelineAgent>::MakeSptr(pipeline);
+
+    HdrStatus hdrStatus = HdrStatus::HDR_EFFECT;
+    int32_t resCode = 1;
+    EXPECT_EQ(agent->GetScreenHDRStatus(screenId, hdrStatus, resCode), ERR_OK);
+    EXPECT_EQ(resCode, SUCCESS);
+    EXPECT_EQ(hdrStatus, HdrStatus::NO_HDR);
+    nodeMap.screenNodeMap_.erase(nodeId);
+}
 } // namespace OHOS::Rosen
