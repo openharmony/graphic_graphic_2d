@@ -188,8 +188,7 @@ ani_object AniParagraphStyleConverter::ParseStrutStyleToAni(
 {
     return AniTextUtils::CreateAniObject(env, AniGlobalClass::GetInstance().strutStyleInternal,
         AniGlobalMethod::GetInstance().strutStyleInternalCtor,
-        AniTextUtils::CreateAniArrayAndInitData(env, style.lineStyleFontFamilies,
-            style.lineStyleFontFamilies.size(),
+        AniTextUtils::CreateAniArrayAndInitData(env, style.lineStyleFontFamilies, style.lineStyleFontFamilies.size(),
             [](ani_env* env, const std::string& item) { return AniTextUtils::CreateAniStringObj(env, item); }),
         AniTextUtils::CreateAniOptionalEnum(env, AniGlobalEnum::GetInstance().fontStyle,
             aniGetEnumIndex(AniTextEnum::fontStyle, static_cast<uint32_t>(style.lineStyleFontStyle))),
@@ -197,26 +196,26 @@ ani_object AniParagraphStyleConverter::ParseStrutStyleToAni(
             aniGetEnumIndex(AniTextEnum::fontWidth, static_cast<uint32_t>(style.lineStyleFontWidth))),
         AniTextUtils::CreateAniOptionalEnum(env, AniGlobalEnum::GetInstance().fontWeight,
             aniGetEnumIndex(AniTextEnum::fontWeight, static_cast<uint32_t>(style.lineStyleFontWeight))),
-        static_cast<ani_double>(style.lineStyleFontSize),
-        static_cast<ani_double>(style.lineStyleHeightScale),
-        static_cast<ani_double>(style.lineStyleSpacingScale),
-        static_cast<ani_boolean>(style.lineStyleOnly),
-        static_cast<ani_boolean>(style.useLineStyle),
-        static_cast<ani_boolean>(style.lineStyleHeightOnly),
-        static_cast<ani_boolean>(style.lineStyleHalfLeading));
+        AniTextUtils::CreateAniDoubleObj(env, style.lineStyleFontSize),
+        AniTextUtils::CreateAniDoubleObj(env, style.lineStyleHeightScale),
+        AniTextUtils::CreateAniDoubleObj(env, style.lineStyleSpacingScale),
+        AniTextUtils::CreateAniBooleanObj(env, style.lineStyleOnly),
+        AniTextUtils::CreateAniBooleanObj(env, style.useLineStyle),
+        AniTextUtils::CreateAniBooleanObj(env, style.lineStyleHeightOnly),
+        AniTextUtils::CreateAniBooleanObj(env, style.lineStyleHalfLeading));
 }
 
 void AniParagraphStyleConverter::ParseTypographyStyleToAni(
     ani_env* env, const OHOS::Rosen::TypographyStyle& style, ani_object& obj)
 {
-    ani_object textStyleObj = AniTextStyleConverter::ParseTextStyleToAni(env, style.GetTextStyle());
+    ani_object textStyleObj = AniTextStyleConverter::ParseTextStyleToAni(env, style.insideTextStyle);
     ani_object strutStyleObj = ParseStrutStyleToAni(env, style);
     ani_object tabObj = ParseTextTabToAni(env, style.tab);
 
     obj = AniTextUtils::CreateAniObject(env, AniGlobalClass::GetInstance().paragraphStyleInternal,
         AniGlobalMethod::GetInstance().paragraphStyleInternalCtor,
-        static_cast<ani_boolean>(style.fallbackLineSpacing),
-        static_cast<ani_boolean>(style.includeFontPadding),
+        AniTextUtils::CreateAniBooleanObj(env, style.fallbackLineSpacing),
+        AniTextUtils::CreateAniBooleanObj(env, style.includeFontPadding),
         textStyleObj,
         AniTextUtils::CreateAniOptionalEnum(env, AniGlobalEnum::GetInstance().textDirection,
             aniGetEnumIndex(AniTextEnum::textDirection, static_cast<uint32_t>(style.textDirection))),
@@ -231,11 +230,11 @@ void AniParagraphStyleConverter::ParseTypographyStyleToAni(
         AniTextUtils::CreateAniOptionalEnum(env, AniGlobalEnum::GetInstance().textHeightBehavior,
             aniGetEnumIndex(AniTextEnum::textHeightBehavior, static_cast<uint32_t>(style.textHeightBehavior))),
         tabObj,
-        static_cast<ani_boolean>(style.isTrailingSpaceOptimized),
-        static_cast<ani_boolean>(style.enableAutoSpace),
+        AniTextUtils::CreateAniBooleanObj(env, style.isTrailingSpaceOptimized),
+        AniTextUtils::CreateAniBooleanObj(env, style.enableAutoSpace),
         AniTextUtils::CreateAniOptionalEnum(env, AniGlobalEnum::GetInstance().textVerticalAlign,
             aniGetEnumIndex(AniTextEnum::textVerticalAlign, static_cast<uint32_t>(style.verticalAlignment))),
-        static_cast<ani_boolean>(style.compressHeadPunctuation),
-        static_cast<ani_double>(style.lineSpacing));
+        AniTextUtils::CreateAniBooleanObj(env, style.compressHeadPunctuation),
+        AniTextUtils::CreateAniDoubleObj(env, style.lineSpacing));
 }
 } // namespace OHOS::Text::ANI

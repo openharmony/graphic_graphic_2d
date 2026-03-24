@@ -333,36 +333,30 @@ TextStyle Convert(const SPText::TextStyle& style)
 TypographyStyle Convert(const SPText::ParagraphStyle& style)
 {
     TypographyStyle typoStyle;
-    typoStyle.fontWeight = static_cast<FontWeight>(style.fontWeight);
-    typoStyle.fontWidth = static_cast<FontWidth>(style.fontWidth);
-    typoStyle.fontStyle = static_cast<FontStyle>(style.fontStyle);
-    typoStyle.fontFamily = style.fontFamily;
-    typoStyle.fontSize = style.fontSize;
-    typoStyle.heightScale = style.height;
-    typoStyle.heightOnly = style.heightOverride;
-    typoStyle.halfLeading = style.halfLeading;
-    typoStyle.textAlign = static_cast<TextAlign>(style.GetEquivalentAlign());
+    typoStyle.fallbackLineSpacing = style.fallbackLineSpacing;
+    typoStyle.includeFontPadding = style.includeFontPadding;
     typoStyle.textDirection = static_cast<TextDirection>(style.textDirection);
+    typoStyle.textAlign = static_cast<TextAlign>(style.textAlign);
     typoStyle.maxLines = style.maxLines;
-    typoStyle.ellipsis = style.ellipsis;
-    typoStyle.locale = style.locale;
-    typoStyle.breakStrategy = static_cast<BreakStrategy>(style.breakStrategy);
     typoStyle.wordBreakType = static_cast<WordBreakType>(style.wordBreakType);
-    typoStyle.ellipsisModal = static_cast<EllipsisModal>(style.ellipsisModal);
-    typoStyle.textSplitRatio = style.textSplitRatio;
-    typoStyle.paragraphSpacing = style.paragraphSpacing;
-    typoStyle.isEndAddParagraphSpacing = style.isEndAddParagraphSpacing;
+    typoStyle.breakStrategy = static_cast<BreakStrategy>(style.breakStrategy);
+    typoStyle.textHeightBehavior = static_cast<TextHeightBehavior>(style.textHeightBehavior);
     typoStyle.isTrailingSpaceOptimized = style.isTrailingSpaceOptimized;
-    typoStyle.compressHeadPunctuation = style.compressHeadPunctuation;
     typoStyle.enableAutoSpace = style.enableAutoSpace;
     typoStyle.verticalAlignment = static_cast<TextVerticalAlign>(style.verticalAlignment);
+    typoStyle.compressHeadPunctuation = style.compressHeadPunctuation;
+    typoStyle.lineSpacing = style.lineSpacing;
+
+    //tab
+    typoStyle.tab.alignment = static_cast<TextAlign>(style.tab.alignment);
+    typoStyle.tab.location = style.tab.location;
 
     // Strut style
     typoStyle.useLineStyle = style.strutEnabled;
-    typoStyle.lineStyleFontWeight = static_cast<FontWeight>(style.strutFontWeight);
-    typoStyle.lineStyleFontWidth = static_cast<FontWidth>(style.strutFontWidth);
-    typoStyle.lineStyleFontStyle = static_cast<FontStyle>(style.strutFontStyle);
     typoStyle.lineStyleFontFamilies = style.strutFontFamilies;
+    typoStyle.lineStyleFontStyle = static_cast<FontStyle>(style.strutFontStyle);
+    typoStyle.lineStyleFontWidth = static_cast<FontWidth>(style.strutFontWidth);
+    typoStyle.lineStyleFontWeight = static_cast<FontWeight>(style.strutFontWeight);
     typoStyle.lineStyleFontSize = style.strutFontSize;
     typoStyle.lineStyleHeightScale = style.strutHeight;
     typoStyle.lineStyleHeightOnly = style.strutHeightOverride;
@@ -372,6 +366,8 @@ TypographyStyle Convert(const SPText::ParagraphStyle& style)
 
     // Text style
     OHOS::Rosen::TextStyle textStyle = Convert(style.spTextStyle);
+    textStyle.ellipsis = style.ellipsis;
+    textStyle.ellipsisModal = static_cast<EllipsisModal>(style.ellipsisModal);
     typoStyle.SetTextStyle(textStyle);
 
     return typoStyle;

@@ -916,7 +916,7 @@ napi_value CreateTypographyStyleJsValue(napi_env env, const TypographyStyle& typ
     napi_create_object(env, &objValue);
     if (objValue != nullptr) {
         napi_set_named_property(env, objValue, "textStyle",
-            CreateTextStyleJsValue(env, typographyStyle.GetTextStyle()));
+            CreateTextStyleJsValue(env, typographyStyle.insideTextStyle));
         napi_set_named_property(env, objValue, "textDirection",
             CreateJsNumber(env, static_cast<uint32_t>(typographyStyle.textDirection)));
         napi_set_named_property(env, objValue, "align",

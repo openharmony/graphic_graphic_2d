@@ -34,6 +34,19 @@ FontStyle TextFontUtils::GetTxtFontStyle(RSFontStyle::Slant slant)
     return slant == RSFontStyle::Slant::UPRIGHT_SLANT ? FontStyle::NORMAL : FontStyle::ITALIC;
 }
 
+FontStyle TextFontUtils::GetRealTxtFontStyle(RSFontStyle::Slant slant)
+{
+    switch (slant) {
+        case RSFontStyle::Slant::UPRIGHT_SLANT:
+            return FontStyle::NORMAL;
+        case RSFontStyle::Slant::ITALIC_SLANT:
+            return FontStyle::ITALIC;
+        case RSFontStyle::Slant::OBLIQUE_SLANT:
+            return FontStyle::OBLIQUE;
+    }
+    return FontStyle::NORMAL;
+}
+
 RSFontStyle::Weight TextFontUtils::GetSkiaFontWeight(FontWeight spFontWeight)
 {
     constexpr int minWeight = static_cast<int>(FontWeight::W100);
