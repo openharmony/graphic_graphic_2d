@@ -32,6 +32,7 @@
 #include "common/rs_singleton.h"
 #include "common/rs_special_layer_manager.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "engine/rs_base_render_engine.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
 #endif
@@ -50,10 +51,9 @@
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/main_thread/rs_uni_render_listener.h"
-#include "pipeline/render_thread/rs_base_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #ifdef RS_ENABLE_GPU
-#include "feature/gpuComposition/rs_gpu_cache_manager.h"
+#include "gpuComposition/rs_gpu_cache_manager.h"
 #endif
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/render_thread/rs_uni_render_virtual_processor.h"
@@ -868,7 +868,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     CheckAndUpdateFilterCacheOcclusion(*params, screenInfo);
     if (isHdrOn) {
-        params->SetNewPixelFormat(RSHdrUtil::GetRGBA1010108Enabled() && params->GetExistHWCNode() ?
+        params->SetNewPixelFormat(RSBaseHdrUtil::GetRGBA1010108Enabled() && params->GetExistHWCNode() ?
             GRAPHIC_PIXEL_FMT_RGBA_1010108 : GRAPHIC_PIXEL_FMT_RGBA_1010102);
     }
     // hpae offline: post offline task

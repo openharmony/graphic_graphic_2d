@@ -106,7 +106,7 @@ void RSRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<R
             }
             auto params = RSDividedRenderUtil::CreateBufferDrawParam(node, false, false, forceCPU);
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-            RSHdrUtil::SetBufferHDRParam(params, layer);
+            RSBaseHdrUtil::SetBufferHDRParam(params, layer);
 #endif
             DrawSurfaceNode(canvas, node, params);
         } else {

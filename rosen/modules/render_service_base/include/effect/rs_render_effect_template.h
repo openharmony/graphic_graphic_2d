@@ -223,6 +223,7 @@ public:
     virtual std::string Dump() const = 0;
     virtual uint32_t CalculateHash() = 0;
     virtual void CalculateHashInner(uint32_t& hash) = 0;
+    virtual bool CanSkipFrame() = 0;
 
     bool ContainsType(RSNGEffectType type)
     {
@@ -240,6 +241,7 @@ protected:
     [[nodiscard]] virtual bool OnUnmarshalling(Parcel& parcel) = 0;
     virtual void DumpProperties(std::string& out) const {}
     virtual std::string DumpProperties() const = 0;
+    virtual bool CanCurrentFilterSkipFrame() = 0;
 
     size_t GetEffectCount() const
     {
@@ -416,7 +418,17 @@ public:
         }
     }
 
+    bool CanSkipFrame() override
+    {
+        bool isSkip = CanCurrentFilterSkipFrame();
+        if (Base::nextEffect_) {
+            isSkip &= Base::nextEffect_->CanSkipFrame();
+        }
+        return isSkip;
+    }
 protected:
+    virtual bool CanCurrentFilterSkipFrame() override { return false; }
+
     [[nodiscard]] bool OnUnmarshalling(Parcel& parcel) override
     {
         // Type has been covered in Unmarshalling

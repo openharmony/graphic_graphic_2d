@@ -55,7 +55,7 @@ lb_sys_cflags = [
 lb_sys_core_deps = [
   "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
   "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync:libvsync",
-  "//foundation/graphic/graphic_2d/rosen/modules/render_service/composer:render_composer",
+  "//foundation/graphic/graphic_2d/rosen/modules/render_service/composer:librender_composer",
   "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
   "//foundation/graphic/graphic_2d/utils:socketpair",
 ]

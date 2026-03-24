@@ -20,12 +20,12 @@
 #include <set>
 #include <unordered_map>
 #include "common/rs_exception_check.h"
+#include "engine/rs_base_render_engine.h"
 #include "event_handler.h"
-#include "feature/hyper_graphic_manager/hgm_hardware_utils.h"
-#include "feature/lpp/render_server/lpp_layer_collector.h"
 #include "hgm_core.h"
+#include "hyper_graphic_manager/hgm_hardware_utils.h"
 #include "irs_composer_to_render_connection.h"
-#include "pipeline/render_thread/rs_base_render_engine.h"
+#include "lpp/render_server/lpp_layer_collector.h"
 #include "rs_render_composer_context.h"
 #include "screen_manager/rs_screen_property.h"
 #include "vsync_manager_agent.h"
@@ -36,6 +36,9 @@
 namespace OHOS::Rosen {
 using ComposerFallbackCallback = std::function<void(const sptr<Surface>& surface,
     const std::vector<RSLayerPtr>& layers)>;
+using SetHardwareTaskNumCallback = std::function<void(uint32_t num)>;
+using SetTaskEndWithTimeCallback = std::function<void(int64_t time)>;
+using GetRealTimeOffsetOfDvsyncCallback = std::function<uint64_t(uint64_t timestamp)>;
 
 namespace Composer {
 template<typename Task>
@@ -61,7 +64,9 @@ class RSRenderComposer {
 public:
     RSRenderComposer(const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property);
     ~RSRenderComposer() = default;
-    void InitRsVsyncManagerAgent(const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent);
+    void SetVsyncManagerCallbacks(const SetHardwareTaskNumCallback& setHardwareTaskNumCb,
+        const SetTaskEndWithTimeCallback& setTaskEndWithTimeCb,
+        const GetRealTimeOffsetOfDvsyncCallback& getRealTimeOffsetOfDvsyncCb);
 
 protected:
     void ComposerPrepare(uint32_t& currentRate, int64_t& delayTime, const PipelineParam& pipelineParam);
@@ -83,6 +88,7 @@ protected:
     void RefreshRateCounts(std::string& dumpString);
     void ClearRefreshRateCounts(std::string& dumpString);
     void HandlePowerStatus(ScreenPowerStatus status);
+    void SetAFBCEnabled(bool enabled);
     int64_t GetDelayTime() const;
 
 private:
@@ -165,9 +171,12 @@ private:
     ExceptionCheck exceptionCheck_;
     sptr<IRSComposerToRenderConnection> composerToRenderConnection_;
     ComposerScreenInfo composerScreenInfo_;
-    sptr<RSVsyncManagerAgent> rsVsyncManagerAgent_ = nullptr;
+    SetHardwareTaskNumCallback setHardwareTaskNumCb_;
+    SetTaskEndWithTimeCallback setTaskEndWithTimeCb_;
+    GetRealTimeOffsetOfDvsyncCallback getRealTimeOffsetOfDvsyncCb_;
     bool isDisconnected_ = false;
     bool isHwcDead_ = false;
+    bool enableAFBC_ = true;
     friend class RSRenderComposerAgent;
 };
 } // namespace OHOS::Rosen

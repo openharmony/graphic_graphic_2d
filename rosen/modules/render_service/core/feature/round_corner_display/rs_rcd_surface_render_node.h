@@ -139,19 +139,7 @@ public:
         displayRect_ = rect;
     }
 
-    static void DrawRsRCDLayer(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSLayer>& layer);
-
     static PixelMapPtr CreatePixelMapFromBitmap(const Drawing::Bitmap& src);
-
-    static bool BindPixelMapToDrawingImage(Drawing::Canvas& canvas,
-        const std::shared_ptr<RSRenderSurfaceRCDLayer>& layer);
-
-    static bool StoreWithoutDMA(Drawing::Canvas& canvas,
-        const std::shared_ptr<RSRenderSurfaceRCDLayer>& layer, PixelMapPtr& pixelMap);
-
-    static Drawing::ColorType PixelFormatToDrawingColorType(Media::PixelFormat pixelFormat);
-
-    static Drawing::AlphaType AlphaTypeToDrawingAlphaType(Media::AlphaType alphaType);
 
     PixelMapPtr GetPixelMap() const
     {

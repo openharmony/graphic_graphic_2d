@@ -20,7 +20,7 @@
 #include "transaction/rs_render_service_client.h"
 #include "transaction/rs_irender_client.h"
 #include "feature/hpae/rs_hpae_render_listener.h"
-#include "pipeline/render_thread/rs_base_render_engine.h"
+#include "engine/rs_base_render_engine.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "iconsumer_surface.h"

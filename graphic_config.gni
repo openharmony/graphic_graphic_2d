@@ -369,6 +369,14 @@ if (path_exists("//foundation/graphic/graphic_2d_ext/mhc/build/mhc_config.gni"))
   }
 }
 
+graphic_2d_car_features_configs = {}
+if (path_exists("//foundation/graphic/graphic_2d_ext/car_features/build/car_features_config.gni")) {
+  graphic_2d_car_features_configs = {
+    import(
+      "//foundation/graphic/graphic_2d_ext/car_features/build/car_features_config.gni")
+  }
+}
+
 flutter_root = "//third_party/flutter"
 ace_flutter_engine_root = "$flutter_root/build"
 graphic_2d_root = "//foundation/graphic/graphic_2d"

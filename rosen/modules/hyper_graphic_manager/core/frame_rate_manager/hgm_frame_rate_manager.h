@@ -102,6 +102,8 @@ public:
     HgmFrameRateManager();
     ~HgmFrameRateManager() noexcept = default;
 
+    void AddScreenInit();
+
     void HandleLightFactorStatus(pid_t pid, int32_t state);
     void HandlePackageEvent(pid_t pid, const std::vector<std::string>& packageList);
     void HandleRefreshRateEvent(pid_t pid, const EventInfo& eventInfo);
@@ -180,7 +182,6 @@ public:
 
     void SetHgmConfigUpdateCallback(
         std::function<void(std::shared_ptr<RPHgmConfigData>, bool, bool, int32_t)> hgmConfigUpdateCallback);
-    void SyncHgmConfigUpdateCallback();
 
     const VoteInfo& GetLastVoteInfo() const { return lastVoteInfo_; }
 
@@ -239,6 +240,7 @@ private:
     void CheckNeedUpdateAppOffset(uint32_t refreshRate, uint32_t controllerRate);
     void CheckForceUpdateCallback(uint32_t refreshRate);
     void HandleLowPowerSlideSceneEvent(const std::string& sceneName, bool eventStatus);
+    void SyncHgmConfigUpdateCallback();
     void TriggerHgmConfigUpdateCallback(std::shared_ptr<RPHgmConfigData> configData, bool ltpoEnabled, bool isDelayMode,
         int32_t pipelineOffsetPulseNum);
     void TriggerAdaptiveVsyncUpdateCallback();

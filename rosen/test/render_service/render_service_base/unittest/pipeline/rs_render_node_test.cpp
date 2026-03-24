@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -764,26 +764,8 @@ HWTEST_F(RSRenderNodeTest, HasChildrenOutOfRectTest, TestSize.Level1)
     auto node = std::make_shared<RSRenderNode>(id, context);
     node->hasChildrenOutOfRect_ = true;
     EXPECT_TRUE(node->HasChildrenOutOfRect());
-}
-
-/**
- * @tc.name: HasChildrenOutOfRectTest002
- * @tc.desc: clip region is inside of self region
- * @tc.type: FUNC
- * @tc.require: issue28860
- */
-HWTEST_F(RSRenderNodeTest, HasChildrenOutOfRectTest002, TestSize.Level1)
-{
-    auto rsContext = std::make_shared<RSContext>();
-    auto node = std::make_shared<RSRenderNode>(1, rsContext);
-    ASSERT_NE(node, nullptr);
-    RectF selfDrawRect = {0.0f, 0.0f, 600.0f, 600.0f};
-    node->selfDrawRect_ = selfDrawRect;
-
-    auto& parentProps = node->GetMutableRenderProperties();
-    parentProps.SetClipToBounds(true);
-    parentProps.SetBounds(Vector4f(0.0f, 0.0f, 400.0f, 400.0f));
-    ASSERT_TRUE(node->IsClipRectInsideNodeSelfDrawRegion());
+    node->renderProperties_.clipToBounds_ = true;
+    EXPECT_TRUE(node->GetRenderProperties().GetClipToBounds());
     EXPECT_FALSE(node->HasChildrenOutOfRect());
 }
 
