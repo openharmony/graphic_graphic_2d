@@ -6213,6 +6213,39 @@ namespace drawing {
   }
 
   /**
+   * This class offers a comprehensive set of operations for handling common2D Point objects.
+   *
+   * @syscap SystemCapability.Graphics.Drawing
+   * @stagemodelonly
+   * @since 26.0.0
+   */
+  export class PointUtils {
+    static { loadLibraryWithPermissionCheck("drawing_ani_core", "@ohos.graphics.drawing"); }
+
+    /**
+     * Negates the point's coordinates.
+     *
+     * @param { common2D.Point } point - Specifies the point to be negated.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @stagemodelonly
+     * @since 26.0.0
+     */
+    static native negate(point: common2D.Point): void;
+
+    /**
+     * Offsets the point's coordinates by dx, dy.
+     *
+     * @param { common2D.Point } point - Specifies the point to be offset.
+     * @param { double } dx - Indicates the distance to offset on the x-axis in pixels.
+     * @param { double } dy - Indicates the distance to offset on the y-axis in pixels.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @stagemodelonly
+     * @since 26.0.0
+     */
+    static native offset(point: common2D.Point, dx: double, dy: double): void;
+  }
+
+  /**
    * Enumerates the corner positions of a rounded rectangle.
    *
    * @enum { int }
