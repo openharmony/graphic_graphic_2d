@@ -130,11 +130,11 @@ FontDesc NOTO_SANS_DESC = {
     .localFullName = "Noto Sans Regular",
     .localFamilyName = "Noto Sans",
     .localSubFamilyName = "Regular",
-    .version = "Version 2.010",
+    .version = "Version 2.015",
     .manufacture = "Monotype Imaging Inc.",
     .copyright = "Copyright 2022 The Noto Project Authors (https://github.com/notofonts/latin-greek-cyrillic)",
     .license = "This Font Software is licensed under the SIL Open Font License,"
-        " Version 1.1. This license is available with a FAQ at: https://scripts.sil.org/OFL",
+        " Version 1.1. This license is available with a FAQ at: https://openfontlicense.org",
     .index = 0
 };
 
