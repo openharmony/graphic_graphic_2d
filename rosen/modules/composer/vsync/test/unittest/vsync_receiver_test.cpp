@@ -171,7 +171,42 @@ HWTEST_F(VsyncReceiverTest, Init003, Function | MediumTest| Level3)
     auto& rsClient = RSInterfaces::GetInstance();
     auto rsReceiver = rsClient.CreateVSyncReceiver("VsyncReceiverTest");
     rsReceiver->looper_ = nullptr;
+    ASSERT_EQ(rsReceiver->Init(false), VSYNC_ERROR_OK);
+}
+
+/*
+ * Function: Init004
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call Init
+ */
+HWTEST_F(VsyncReceiverTest, Init004, Function | MediumTest| Level3)
+{
+    auto& rsClient = RSInterfaces::GetInstance();
+    auto rsReceiver = rsClient.CreateVSyncReceiver("VsyncReceiverTest");
+    rsReceiver->looper_ = nullptr;
     ASSERT_EQ(rsReceiver->Init(), VSYNC_ERROR_OK);
+}
+
+/*
+ * Function: RegisterFileDescriptorListener
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call RegisterFileDescriptorListener
+ */
+HWTEST_F(VsyncReceiverTest, RegisterFileDescriptorListener, Function | MediumTest| Level3)
+{
+    auto& rsClient = RSInterfaces::GetInstance();
+    auto rsReceiver = rsClient.CreateVSyncReceiver("VsyncReceiverTest");
+    bool hasVsyncThread = ture;
+    bool needAddFd = false;
+    auto fd = rsReceiver->fd_;
+    rsReceiver->fd_ = 10;
+    ASSERT_EQ(rsReceiver->Init(needAddFd), VSYNC_ERROR_OK);
+    rsReceiver->RegisterFileDescriptorListener(hasVsyncThread, needAddFd);
+    rsReceiver->fd_ = fd;
 }
 
 /*
