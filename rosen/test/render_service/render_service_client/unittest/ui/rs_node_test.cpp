@@ -7011,8 +7011,8 @@ HWTEST_F(RSNodeTest, IsRenderServiceNode, TestSize.Level1)
  */
 HWTEST_F(RSNodeTest, MarkLayerPartRender, TestSize.Level1)
 {
-    const auto oldLayerPartRenderValue = RSSystemProperties::GetLayerPartRenderEnabled() ? "1" : "0";
     auto rsNode = RSCanvasNode::Create();
+    const auto oldLayerPartRenderValue = RSSystemProperties::GetLayerPartRenderEnabled() ? "1" : "0";
     system::SetParameter(LAYER_PART_RENDER_KEY, "1");
     rsNode->MarkLayerPartRender(true);
     EXPECT_TRUE(rsNode->isLayerPartRender_);

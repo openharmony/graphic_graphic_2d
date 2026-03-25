@@ -647,6 +647,7 @@ HWTEST_F(RSOpincManagerLayerPartTest, CalculateAndUpdateLayerPartRenderDirtyRegi
 HWTEST_F(RSOpincManagerLayerPartTest, UpdateLayerPartRenderDirtyRegionNullManager, TestSize.Level1)
 {
     auto node = CreateCanvasNode(DEFAULT_NODE_ID);
+    node->InitRenderParams();
     std::shared_ptr<RSDirtyRegionManager> dirtyManager = nullptr;
 
     EXPECT_FALSE(node->UpdateLayerPartRenderDirtyRegion(dirtyManager));

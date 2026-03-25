@@ -1311,6 +1311,27 @@ HWTEST_F(RSRenderNodeTest, UpdateLayerPartRenderDirtyRegionNullManagerWithLayerP
 }
 
 /**
+ * @tc.name: UpdateLayerPartRenderDirtyRegionSwitchDisabled
+ * @tc.desc: Verify UpdateLayerPartRenderDirtyRegion returns false when layer-part switch is disabled
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSRenderNodeTest, UpdateLayerPartRenderDirtyRegionSwitchDisabled, TestSize.Level1)
+{
+    const auto oldLayerPartRenderValue = RSSystemProperties::GetLayerPartRenderEnabled() ? "1" : "0";
+    EXPECT_EQ(system::SetParameter(LAYER_PART_RENDER_KEY, "0"), 0);
+    EXPECT_FALSE(RSSystemProperties::GetLayerPartRenderEnabled());
+
+    auto node = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID);
+    auto dirtyManager = std::make_shared<RSDirtyRegionManager>();
+    ASSERT_NE(node, nullptr);
+    ASSERT_NE(dirtyManager, nullptr);
+    EXPECT_FALSE(node->UpdateLayerPartRenderDirtyRegion(dirtyManager));
+
+    (void)system::SetParameter(LAYER_PART_RENDER_KEY, oldLayerPartRenderValue);
+}
+
+/**
  * @tc.name: UpdateLayerPartRenderDirtyRegionDirtyFlagTrueMergesRects
  * @tc.desc: Verify dirty-flag true branch merges old and current rects when switch is enabled
  * @tc.type: FUNC
