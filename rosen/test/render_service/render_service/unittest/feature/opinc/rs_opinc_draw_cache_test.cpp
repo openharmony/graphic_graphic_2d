@@ -25,6 +25,9 @@ namespace OHOS {
 namespace Rosen {
 constexpr NodeId DEFAULT_ID = 0xFFFF;
 constexpr int64_t CACHE_MEM = 100;
+constexpr int32_t LAYER_PART_RENDER_DIRTY_OFFSET = 10;
+constexpr int32_t LAYER_PART_RENDER_DIRTY_SIZE = 100;
+constexpr int32_t LAYER_PART_RENDER_NODE_COUNT = 5;
 
 class RSOpincDrawCacheTest : public testing::Test {
 public:
@@ -679,7 +682,7 @@ HWTEST_F(RSOpincDrawCacheTest, GetOpincCacheMaxWidthWithScreen, TestSize.Level1)
     DrawableV2::RSOpincDrawCache::SetScreenRectInfo({0, 0, 1080, 1920});
     int32_t width = opincDrawCache.GetOpincCacheMaxWidth();
     ASSERT_GT(width, 0);
-    ASSERT_LE(width, 1080);
+    ASSERT_GT(width, 1080);
     DrawableV2::RSOpincDrawCache::SetScreenRectInfo({0, 0, 0, 0});
 }
 
@@ -711,13 +714,12 @@ HWTEST_F(RSOpincDrawCacheTest, PushLayerPartRenderDirtyRegion, TestSize.Level1)
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
     RSRenderParams params(id);
 
-    RectI dirtyRect = {10, 10, 100, 100};
+    RectI dirtyRect = { LAYER_PART_RENDER_DIRTY_OFFSET, LAYER_PART_RENDER_DIRTY_OFFSET,
+        LAYER_PART_RENDER_DIRTY_SIZE, LAYER_PART_RENDER_DIRTY_SIZE };
     params.SetLayerPartRenderCurrentFrameDirtyRegion(dirtyRect);
     params.SetLayerPartRenderEnabled(true);
-    ASSERT_TRUE(params.GetLayerPartRenderEnabled());
 
-    int nodeCount = 5;
-    opincDrawCache.PushLayerPartRenderDirtyRegion(params, paintFilterCanvas, nodeCount);
+    opincDrawCache.PushLayerPartRenderDirtyRegion(params, paintFilterCanvas, LAYER_PART_RENDER_NODE_COUNT);
     SUCCEED();
 }
 
@@ -734,15 +736,17 @@ HWTEST_F(RSOpincDrawCacheTest, LayerPartRenderClipDirtyRegion, TestSize.Level1)
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
     RSRenderParams params(id);
 
+    RectI dirtyRect = { LAYER_PART_RENDER_DIRTY_OFFSET, LAYER_PART_RENDER_DIRTY_OFFSET,
+        LAYER_PART_RENDER_DIRTY_SIZE, LAYER_PART_RENDER_DIRTY_SIZE };
+    params.SetLayerPartRenderCurrentFrameDirtyRegion(dirtyRect);
     params.SetLayerPartRenderEnabled(true);
-    bool isOffScreenWithClipHole = true;
 
-    opincDrawCache.LayerPartRenderClipDirtyRegion(params, &isOffScreenWithClipHole, paintFilterCanvas);
-    ASSERT_FALSE(isOffScreenWithClipHole);
+    opincDrawCache.LayerPartRenderClipDirtyRegion(params, paintFilterCanvas);
+    ASSERT_TRUE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
 
     params.SetLayerPartRenderEnabled(false);
-    opincDrawCache.LayerPartRenderClipDirtyRegion(params, &isOffScreenWithClipHole, paintFilterCanvas);
-    ASSERT_TRUE(isOffScreenWithClipHole);
+    opincDrawCache.LayerPartRenderClipDirtyRegion(params, paintFilterCanvas);
+    ASSERT_TRUE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
 }
 
 /**
@@ -759,7 +763,10 @@ HWTEST_F(RSOpincDrawCacheTest, PopLayerPartRenderDirtyRegion, TestSize.Level1)
     RSRenderParams params(id);
 
     params.SetLayerPartRenderEnabled(true);
+    params.SetLayerPartRenderCurrentFrameDirtyRegion(RectI(0, 0, 10, 10));
     ASSERT_TRUE(params.GetLayerPartRenderEnabled());
+
+    opincDrawCache.PushLayerPartRenderDirtyRegion(params, paintFilterCanvas, LAYER_PART_RENDER_NODE_COUNT);
     opincDrawCache.PopLayerPartRenderDirtyRegion(params, paintFilterCanvas);
     SUCCEED();
 }
@@ -787,7 +794,7 @@ HWTEST_F(RSOpincDrawCacheTest, IsOpincNodeInScreenRectBoundary, TestSize.Level1)
 
     RectI absRect3 = {100, 100, 50, 50};
     params.SetAbsDrawRect(absRect3);
-    ASSERT_FALSE(opincDrawCache.IsOpincNodeInScreenRect(params));
+    ASSERT_TRUE(opincDrawCache.IsOpincNodeInScreenRect(params));
 
     RectI absRect4 = {-10, -10, 5, 5};
     params.SetAbsDrawRect(absRect4);

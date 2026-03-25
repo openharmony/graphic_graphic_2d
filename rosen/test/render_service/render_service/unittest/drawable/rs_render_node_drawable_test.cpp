@@ -34,6 +34,16 @@ namespace OHOS::Rosen {
 constexpr NodeId DEFAULT_ID = 0xFFFF;
 constexpr int DEFAULT_CANVAS_WIDTH = 100;
 constexpr int DEFAULT_CANVAS_HEIGHT = 100;
+class RSTestDrawableForLayerPart : public RSDrawable {
+public:
+    bool OnUpdate(const RSRenderNode& content) override
+    {
+        return true;
+    }
+    void OnSync() override {}
+    void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override {}
+};
+
 class RSRenderNodeDrawableTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -74,6 +84,22 @@ HWTEST_F(RSRenderNodeDrawableTest, CreateRenderNodeDrawable, TestSize.Level1)
     auto renderNode = std::make_shared<RSRenderNode>(id);
     auto drawable = RSRenderNodeDrawable::OnGenerate(renderNode);
     ASSERT_NE(drawable, nullptr);
+}
+
+/**
+ * @tc.name: GetOpincDrawCache001
+ * @tc.desc: Test GetOpincDrawCache returns a valid reference
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSRenderNodeDrawableTest, GetOpincDrawCache001, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    ASSERT_NE(drawable, nullptr);
+
+    auto& opincDrawCache = drawable->GetOpincDrawCache();
+
+    ASSERT_EQ(opincDrawCache.GetDrawAreaEnableState(), DrawAreaEnableState::DRAW_AREA_INIT);
 }
 
 /**
@@ -857,6 +883,61 @@ HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheSurfaceTest002, TestSize.Level1)
     OPIncParam::SetImageAliasEnable(true);
     ASSERT_TRUE(OPIncParam::IsImageAliasEnable());
 #endif
+}
+
+/**
+ * @tc.name: UpdateCacheSurfaceLayerPartStateChange001
+ * @tc.desc: Cover cache clear branch when layer-part render changes from enabled to disabled
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheSurfaceLayerPartStateChange001, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+
+    params.SetCacheSize({ 10.0f, 10.0f });
+    auto cacheSurface = Drawing::Surface::MakeRasterN32Premul(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    ASSERT_NE(cacheSurface, nullptr);
+    drawable->cachedSurface_ = cacheSurface;
+    drawable->cacheThreadId_ = gettid();
+    ASSERT_NE(drawable->GetCachedSurface(gettid()), nullptr);
+
+    params.SetLayerPartRenderEnabled(false);
+    params.SetLayerPartRenderCurrentFrameDirtyRegion(RectI(0, 0, 10, 10));
+
+    drawable->UpdateCacheSurface(paintFilterCanvas, params);
+
+    ASSERT_NE(drawable->GetCachedSurface(gettid()), nullptr);
+}
+
+/**
+ * @tc.name: UpdateCacheSurfaceLayerPartRenderDirtyRegion001
+ * @tc.desc: Cover layer-part dirty-region push/clip/pop path in UpdateCacheSurface
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheSurfaceLayerPartRenderDirtyRegion001, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+
+    params.SetCacheSize({ 10.0f, 10.0f });
+    auto cacheSurface = Drawing::Surface::MakeRasterN32Premul(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    ASSERT_NE(cacheSurface, nullptr);
+    drawable->cachedSurface_ = cacheSurface;
+    drawable->cacheThreadId_ = gettid();
+
+    params.SetLayerPartRenderEnabled(true);
+    params.SetLayerPartRenderCurrentFrameDirtyRegion(RectI(0, 0, 10, 10));
+
+    drawable->UpdateCacheSurface(paintFilterCanvas, params);
+
+    ASSERT_NE(drawable->cachedSurface_, nullptr);
 }
 
 /**

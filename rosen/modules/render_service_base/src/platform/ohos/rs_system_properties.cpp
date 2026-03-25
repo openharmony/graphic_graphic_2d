@@ -1242,7 +1242,7 @@ bool RSSystemProperties::GetOpincCacheMemThresholdEnabled()
 
 bool RSSystemProperties::GetLayerPartRenderEnabled()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.layerPartRender.enabled", "0");
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.layerPartRender.enabled", "1");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 0) != 0;

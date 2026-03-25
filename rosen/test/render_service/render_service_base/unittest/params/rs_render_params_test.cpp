@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 #include "params/rs_render_params.h"
 #include "params/rs_surface_render_params.h"
+#include "pipeline/rs_dirty_region_manager.h"
 #include "limit_number.h"
 
 using namespace testing;
@@ -1002,8 +1003,7 @@ HWTEST_F(RSRenderParamsTest, SetCanvasDrawingResetSurfaceIndexTest, TestSize.Lev
  */
 HWTEST_F(RSRenderParamsTest, SetLayerPartRenderEnabledTest, TestSize.Level1)
 {
-    constexpr NodeId id = 1;
-    RSRenderParams params(id);
+    RSRenderParams params(1);
 
     params.SetLayerPartRenderEnabled(true);
     ASSERT_TRUE(params.GetLayerPartRenderEnabled());
@@ -1020,8 +1020,7 @@ HWTEST_F(RSRenderParamsTest, SetLayerPartRenderEnabledTest, TestSize.Level1)
  */
 HWTEST_F(RSRenderParamsTest, GetLayerPartRenderCurrentFrameDirtyRegionTest, TestSize.Level1)
 {
-    constexpr NodeId id = 1;
-    RSRenderParams params(id);
+    RSRenderParams params(1);
 
     RectI dirtyRect = params.GetLayerPartRenderCurrentFrameDirtyRegion();
     ASSERT_TRUE(dirtyRect.IsEmpty());

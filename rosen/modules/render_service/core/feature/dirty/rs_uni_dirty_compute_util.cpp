@@ -340,7 +340,7 @@ Occlusion::Region RSUniFilterDirtyComputeUtil::GetVisibleEffectRegion(RSRenderNo
     return childEffectRegion;
 }
 
-RectI RSUniFilterDirtyComputeUtil::GetVisibleFilterRect(const RSSurfaceRenderNode& node)
+RectI RSUniFilterDirtyComputeUtil::GetVisibleFilterRect(const RSRenderNode& node)
 {
     auto context = node.GetContext().lock();
     RectI visibleFilterRect;

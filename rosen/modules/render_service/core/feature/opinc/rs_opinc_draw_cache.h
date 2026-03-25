@@ -131,11 +131,11 @@ public:
     void AddOpincCacheMem(int64_t cacheMem);
     void ReduceOpincCacheMem(int64_t cacheMem);
 
-    void PushLayerPartRenderDirtyRegion(const RSRenderParams& params,
-        RSPaintFilterCanvas& canvas, int nodeCount);
+    void PushLayerPartRenderDirtyRegion(const RSRenderParams& params, RSPaintFilterCanvas& canvas, int nodeCount);
     void LayerPartRenderClipDirtyRegion(const RSRenderParams& params,
-        bool* isOffScreenWithClipHole, RSPaintFilterCanvas& canvas);
-    void PopLayerPartRenderDirtyRegion(const RSRenderParams& params, RSPaintFilterCanvas& canvas);
+        RSPaintFilterCanvas& canvas);
+    void PopLayerPartRenderDirtyRegion(const RSRenderParams& params,
+        RSPaintFilterCanvas& canvas);
 protected:
     thread_local static inline NodeStrategyType nodeCacheType_ = NodeStrategyType::CACHE_NONE;
     static RectI screenRectInfo_;

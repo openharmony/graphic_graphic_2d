@@ -193,6 +193,16 @@ bool RSOpincCache::IsSuggestLayerPartRenderNode() const
     return isSuggestLayerPartRenderNode_;
 }
 
+void RSOpincCache::MarkMaterialNode(bool isMaterialNode)
+{
+    isMaterialNode_ = isMaterialNode;
+}
+
+bool RSOpincCache::IsMaterialNode() const
+{
+    return isMaterialNode_;
+}
+
 void RSOpincCache::SetLayerPartRender(bool isLayerPartRender)
 {
     isLayerPartRender_ = isLayerPartRender;
@@ -201,6 +211,16 @@ void RSOpincCache::SetLayerPartRender(bool isLayerPartRender)
 bool RSOpincCache::IsLayerPartRender() const
 {
     return isLayerPartRender_;
+}
+
+void RSOpincCache::SetLayerPartRenderNodeStrategyType(NodeStrategyType type)
+{
+    layerPartRenderNodeStrategyType_ = type;
+}
+
+NodeStrategyType RSOpincCache::GetLayerPartRenderNodeStrategyType() const
+{
+    return layerPartRenderNodeStrategyType_;
 }
 
 bool RSOpincCache::IsLayerPartRenderUnchangeState()
@@ -215,6 +235,26 @@ bool RSOpincCache::IsLayerPartRenderUnchangeState()
 void RSOpincCache::ResetLayerPartRenderUnchangeState()
 {
     layerPartRenderUnchangeCount_ = 0;
+}
+
+void RSOpincCache::SetLayerPartRenderDirtyFlag(bool dirtyFlag)
+{
+    layerPartRenderDirtyFlag_ = dirtyFlag;
+}
+
+bool RSOpincCache::GetLayerPartRenderDirtyFlag() const
+{
+    return layerPartRenderDirtyFlag_;
+}
+
+void RSOpincCache::SetLayerPartRenderOldAbsDrawRect(RectI& oldAbsDrawRect)
+{
+    oldAbsDrawRect_ = oldAbsDrawRect;
+}
+
+const RectI& RSOpincCache::GetLayerPartRenderOldAbsDrawRect() const
+{
+    return oldAbsDrawRect_;
 }
 
 std::shared_ptr<RSDirtyRegionManager>& RSOpincCache::GetLayerPartRenderDirtyManager()
