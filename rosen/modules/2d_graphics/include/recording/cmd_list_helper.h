@@ -198,6 +198,7 @@ public:
 
         return childCmdList;
     }
+
     static OpFontHandle AddFontToCmdList(CmdList& cmdList, const Font* font);
     static std::shared_ptr<Font> GetFontFromCmdList(const CmdList& cmdList, const OpFontHandle& fontHandle,
                                                     uint64_t globalUniqueId = 0);
