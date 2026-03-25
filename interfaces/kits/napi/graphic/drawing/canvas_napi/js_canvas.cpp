@@ -1159,7 +1159,6 @@ napi_value JsCanvas::OnDrawGlyphs(napi_env env, napi_callback_info info)
     if (!GetGlyphPositions(env, jsPosition, positionsSize, positions)) {
         return nullptr;
     }
-    Drawing::Point origin = Drawing::Point(0, 0);
     JsFont* jsFont = nullptr;
     GET_UNWRAP_PARAM(ARGC_FIVE, jsFont);
     std::shared_ptr<Font> font = jsFont->GetFont();
@@ -1169,7 +1168,7 @@ napi_value JsCanvas::OnDrawGlyphs(napi_env env, napi_callback_info info)
     }
     DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
     m_canvas->DrawGlyphs(glyphCount, glyphIds.get() + glyphIdOffSet,
-                         positions.get() + positionOffSet, origin, font.get());
+                         positions.get() + positionOffSet, {0, 0}, font.get());
 #if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
     if (mPixelMap_ != nullptr) {
         mPixelMap_->MarkDirty();
