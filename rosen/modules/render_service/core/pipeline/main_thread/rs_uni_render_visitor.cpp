@@ -2720,30 +2720,28 @@ void RSUniRenderVisitor::CheckMergeFilterDirtyWithPreDirty(const std::shared_ptr
         }
         Occlusion::Region belowDirtyToConsider = filterDirtyType == FilterDirtyType::CONTAINER_FILTER ?
             accumulatedDirtyRegion : accumulatedDirtyRegion.Or(filterInfo.belowDirty_);
-        bool effectNodeIntersectBgDirty = false;
+        bool isIntersect = false;
+        if (filterNode->GetRenderProperties().GetMaterialFilter()) {
+            // materialfilter affected by below dirty
+            isIntersect |= filterNode->UpdateFilterCacheWithBelowDirty(
+                filterInfo.isBackgroundFilterClean_ ? accumulatedDirtyRegion : belowDirtyToConsider,
+                RSDrawableSlot::MATERIAL_FILTER);
+        }
         if (filterNode->GetRenderProperties().GetBackgroundFilter() ||
             filterNode->GetRenderProperties().GetNeedDrawBehindWindow()) {
             // backgroundfilter affected by below dirty
-            effectNodeIntersectBgDirty = filterNode->UpdateFilterCacheWithBelowDirty(
-                filterInfo.isBackgroundFilterClean_ ? accumulatedDirtyRegion : belowDirtyToConsider) &&
-                filterNode->IsInstanceOf<RSEffectRenderNode>();
-        }
-        if (filterNode->GetRenderProperties().GetMaterialFilter()) {
-            // backgroundfilter affected by below dirty
-            effectNodeIntersectBgDirty |= filterNode->UpdateFilterCacheWithBelowDirty(
-                filterInfo.isBackgroundFilterClean_ ? accumulatedDirtyRegion : belowDirtyToConsider,
-                RSDrawableSlot::MATERIAL_FILTER) && filterNode->IsInstanceOf<RSEffectRenderNode>();
+            isIntersect |= filterNode->UpdateFilterCacheWithBelowDirty(
+                filterInfo.isBackgroundFilterClean_ ? accumulatedDirtyRegion : belowDirtyToConsider);
         }
         if (filterNode->GetRenderProperties().GetFilter()) {
             // foregroundfilter affected by below dirty
-            filterNode->UpdateFilterCacheWithBelowDirty(belowDirtyToConsider, RSDrawableSlot::COMPOSITING_FILTER);
+            isIntersect |= filterNode->UpdateFilterCacheWithBelowDirty(
+                belowDirtyToConsider, RSDrawableSlot::COMPOSITING_FILTER);
         }
-        RectI filterRect = filterNode->GetFilterRect();
-        bool isIntersect = belowDirtyToConsider.IsIntersectWith(Occlusion::Rect(filterRect));
         filterNode->PostPrepareForBlurFilterNode(*dirtyManager, needRequestNextVsync_);
         RsFrameBlurPredict::GetInstance().PredictDrawLargeAreaBlur(*filterNode);
         if (isIntersect) {
-            RectI filterDirty = effectNodeIntersectBgDirty ? filterRect : filterInfo.filterDirty_.GetBound().ToRectI();
+            RectI filterDirty = filterInfo.filterDirty_.GetBound().ToRectI();
             RS_OPTIONAL_TRACE_NAME_FMT("CheckMergeFilterDirtyWithPreDirty [%" PRIu64 "] type %d intersects below dirty"
                 " Add %s to dirty.", filterInfo.id_, filterDirtyType, filterDirty.ToString().c_str());
             dirtyManager->MergeDirtyRect(filterDirty);

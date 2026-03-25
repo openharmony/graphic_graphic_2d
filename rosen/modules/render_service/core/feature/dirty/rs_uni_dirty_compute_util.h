@@ -93,6 +93,8 @@ private:
 
     static void ResetFilterInfoStatus(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable,
         std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& surfaceDrawables);
+    
+    static bool FilterCachePartialRenderEnabled(const FilterDirtyRegionInfo& info);
 
     static Occlusion::Region GetVisibleEffectRegion(RSRenderNode& filterNode);
     inline static bool dirtyAlignEnabled_ = false;
