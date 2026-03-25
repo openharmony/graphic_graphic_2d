@@ -37,6 +37,7 @@ common_include_dirs_transaction = [
   "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer",
   "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection",
   "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/external_depend",
   "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection",
   "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl",
   "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/pipeline",
@@ -64,7 +65,7 @@ common_cflags_basic = [
 ]
 
 common_deps_transaction = [
-  "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+  "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
 ]
 
@@ -96,6 +97,7 @@ ohos_unittest("RSLayerTransactionTest") {
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/external_depend",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/pipeline",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer",
@@ -120,7 +122,7 @@ ohos_unittest("RSLayerTransactionTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
-    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
   ]
 

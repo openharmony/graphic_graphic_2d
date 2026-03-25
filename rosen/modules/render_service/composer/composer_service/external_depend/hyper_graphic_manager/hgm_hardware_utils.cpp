@@ -13,13 +13,12 @@
  * limitations under the License.
  */
 
-#include "feature/hyper_graphic_manager/hgm_hardware_utils.h"
+#include "hyper_graphic_manager/hgm_hardware_utils.h"
 
 #include "common/rs_optional_trace.h"
 #include "parameters.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "platform/common/rs_hisysevent.h"
-#include "screen_manager/rs_screen_manager.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -91,7 +90,7 @@ void HgmHardwareUtils::UpdateRetrySetRateStatus(ScreenId id, int32_t modeId, uin
         "need retry set modeId %{public}" PRId32 ", ScreenId:%{public}" PRIu64, modeId, id);
 }
 
-void HgmHardwareUtils::PerformSetActiveMode(const std::shared_ptr<HdiOutput>& output, RSScreenManager* screenManager)
+void HgmHardwareUtils::PerformSetActiveMode(const std::shared_ptr<HdiOutput>& output)
 {
     uint64_t timestamp = refreshRateParam_.frameTimestamp;
     uint64_t constraintRelativeTime = refreshRateParam_.constraintRelativeTime;
@@ -99,7 +98,7 @@ void HgmHardwareUtils::PerformSetActiveMode(const std::shared_ptr<HdiOutput>& ou
     HgmRefreshRates newRate = RSSystemProperties::GetHgmRefreshRatesEnabled();
     if (hgmRefreshRates_ != newRate) {
         hgmRefreshRates_ = newRate;
-        hgmCore_.SetScreenRefreshRate(screenManager->GetDefaultScreenId(), 0, static_cast<int32_t>(hgmRefreshRates_));
+        hgmCore_.SetScreenRefreshRate(hgmCore_.GetDefaultScreenId(), 0, static_cast<int32_t>(hgmRefreshRates_));
     }
 
     std::unique_ptr<std::unordered_map<ScreenId, int32_t>> modeMap(hgmCore_.GetModesToApply());
@@ -110,14 +109,14 @@ void HgmHardwareUtils::PerformSetActiveMode(const std::shared_ptr<HdiOutput>& ou
     RS_TRACE_NAME_FMT("%s: setting active mode. rate: %u",
         __func__, hgmCore_.GetScreenCurrentRefreshRate(hgmCore_.GetActiveScreenId()));
     for (const auto [screenId, modeId] : *modeMap) {
-        for (const auto& mode : screenManager->GetScreenSupportedModes(screenId)) {
+        for (const auto& mode : hgmCore_.GetScreenSupportedModes(screenId)) {
             RS_OPTIONAL_TRACE_NAME_FMT(
                 "%s: check modes w:%" PRId32 ", h:%" PRId32 ", rate:%" PRIu32 ", id:%" PRId32,
                 __func__, mode.GetScreenWidth(), mode.GetScreenHeight(), mode.GetScreenRefreshRate(),
                 mode.GetScreenModeId());
         }
 
-        uint32_t ret = screenManager->SetScreenActiveMode(screenId, modeId);
+        uint32_t ret = hgmCore_.SetScreenActiveMode(screenId, modeId);
         if (screenId <= MAX_HAL_DISPLAY_ID) {
             UpdateRetrySetRateStatus(screenId, modeId, ret);
         } else {
@@ -179,14 +178,8 @@ void HgmHardwareUtils::SwitchRefreshRate(const std::shared_ptr<HdiOutput>& hdiOu
         return;
     }
 
-    RSScreenManager* screenManager = hgmCore_.GetScreenManager();
-    if (screenManager == nullptr) {
-        HGM_LOGE("screenManager is nullptr");
-        return;
-    }
-
     if (RSSystemProperties::IsFoldDeviceOfOldDss()) {
-        if (auto powerStatus = screenManager->GetScreenPowerStatus(screenId);
+        if (auto powerStatus = hgmCore_.GetScreenPowerStatus(screenId);
             powerStatus == ScreenPowerStatus::POWER_STATUS_SUSPEND ||
             powerStatus == ScreenPowerStatus::POWER_STATUS_OFF) {
             return;
@@ -195,7 +188,7 @@ void HgmHardwareUtils::SwitchRefreshRate(const std::shared_ptr<HdiOutput>& hdiOu
 
     RecordTimestampForAS(timestamp);
     ExecuteSwitchRefreshRate(screenId);
-    PerformSetActiveMode(hdiOutput, screenManager);
+    PerformSetActiveMode(hdiOutput);
     AddRefreshRateCount(screenId);
 }
 

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "rs_egl_image_manager.h"
+#include "gpuComposition/rs_egl_image_manager.h"
 
 #include <memory>
 #include <vector>

@@ -20,15 +20,14 @@
 #include <string>
 
 #include "common/rs_optional_trace.h"
-#include "rs_trace.h"
-
+#include "engine/rs_base_render_util.h"
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "feature/uifirst/rs_uifirst_frame_rate_control.h"
 #include "graphic_feature_param_manager.h"
-#include "pipeline/render_thread/rs_base_render_util.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "property/rs_properties.h"
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {

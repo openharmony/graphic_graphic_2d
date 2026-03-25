@@ -15,11 +15,13 @@
 
 #include <gtest/gtest.h>
 #include <thread>
-#include "rs_render_composer_agent.h"
+
 #include "hdi_output.h"
 #include "rs_layer_transaction_data.h"
-#include "screen_manager/rs_screen_property.h"
+#include "rs_render_composer_agent.h"
 #include "surface_buffer_impl.h"
+
+#include "screen_manager/rs_screen_property.h"
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
@@ -55,7 +57,6 @@ void RsRenderComposerAgentTest::TearDownTestCase()
 }
 void RsRenderComposerAgentTest::SetUp() {}
 void RsRenderComposerAgentTest::TearDown() {}
-
 
 /**
  * Function: ComposerProcess_NullTransactionData_NoCrash
@@ -537,7 +538,7 @@ HWTEST_F(RsRenderComposerAgentTest, ClearRedrawGPUCompositionCache_AgentNotNull_
     auto agent = std::make_shared<RSRenderComposerAgent>(rsRenderComposer_);
     ASSERT_NE(agent->rsRenderComposer_, nullptr);
 
-    std::unordered_set<uint64_t> bufferIds = {1, 2, 3};
+    std::unordered_set<uint64_t> bufferIds = { 1, 2, 3 };
     agent->ClearRedrawGPUCompositionCache(bufferIds);
 
     // Set rsRenderComposer_ to nullptr after task is posted
@@ -844,5 +845,286 @@ HWTEST_F(RsRenderComposerAgentTest, MultipleMethodsSetNullDuringExecution, TestS
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 }
 
+/**
+ * Function: SetAFBCEnabled_AgentNotNull_ComposerNull001
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposerAgent with valid RSRenderComposer
+ *                  2. set composer to null and call methods
+ *                  3. verify early return handling
+ */
+HWTEST_F(RsRenderComposerAgentTest, SetAFBCEnabled_AgentNotNull_ComposerNull001, TestSize.Level1)
+{
+    auto agent = std::make_shared<RSRenderComposerAgent>(rsRenderComposer_);
+    ASSERT_NE(agent->rsRenderComposer_, nullptr);
+    agent->rsRenderComposer_ = nullptr;
+    agent->SetAFBCEnabled(true);
+    EXPECT_NE(agent, nullptr);
+    EXPECT_EQ(agent->rsRenderComposer_, nullptr);
+}
+
+/**
+ * Function: SetAFBCEnabled_AgentNotNull_ComposerNull002
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposerAgent with valid RSRenderComposer
+ *                  2. call methods and set composer to null
+ *                  3. verify early return handling
+ */
+HWTEST_F(RsRenderComposerAgentTest, SetAFBCEnabled_AgentNotNull_ComposerNull002, TestSize.Level1)
+{
+    auto agent = std::make_shared<RSRenderComposerAgent>(rsRenderComposer_);
+    ASSERT_NE(agent->rsRenderComposer_, nullptr);
+
+    agent->SetAFBCEnabled(false);
+
+    // Set rsRenderComposer_ to nullptr after task is posted
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    agent->rsRenderComposer_ = nullptr;
+
+    // The task should return early at line 159 without crash
+    // Line 385 condition: renderComposerAgent != nullptr && rsRenderComposer_ == nullptr -> true
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+}
+
+/**
+ * Function: SetAFBCEnabled_AgentNotNull_ComposerNotNull
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposerAgent with valid RSRenderComposer
+ *                  2. call methods
+ *                  3. verify early return handling
+ */
+HWTEST_F(RsRenderComposerAgentTest, SetAFBCEnabled_AgentNotNull_ComposerNotNull, TestSize.Level1)
+{
+    auto agent = std::make_shared<RSRenderComposerAgent>(rsRenderComposer_);
+    ASSERT_NE(agent->rsRenderComposer_, nullptr);
+    agent->SetAFBCEnabled(false);
+    EXPECT_EQ(agent->rsRenderComposer_->enableAFBC_, false);
+}
+
+/**
+ * Function: SetVsyncManagerCallbacks_NullComposer_EarlyReturn
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposerAgent with null RSRenderComposer
+ *                  2. call SetVsyncManagerCallbacks
+ *                  3. verify function returns early (line 379 branch true)
+ */
+HWTEST_F(RsRenderComposerAgentTest, SetVsyncManagerCallbacks_NullComposer_EarlyReturn, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderComposer> nullComposer = nullptr;
+    std::shared_ptr<RSRenderComposerAgent> agent = std::make_shared<RSRenderComposerAgent>(nullComposer);
+    ASSERT_EQ(agent->rsRenderComposer_, nullptr);
+
+    // Create dummy callbacks
+    auto setHardwareTaskNumCb = [](uint32_t) {};
+    auto setTaskEndWithTimeCb = [](uint64_t) {};
+    auto getRealTimeOffsetOfDvsyncCb = [](uint64_t) -> uint64_t { return 0; };
+
+    // Call SetVsyncManagerCallbacks with null composer
+    // Line 379 branch: rsRenderComposer_ == nullptr -> true
+    agent->SetVsyncManagerCallbacks(setHardwareTaskNumCb, setTaskEndWithTimeCb, getRealTimeOffsetOfDvsyncCb);
+
+    // Verify no crash and composer is still null
+    EXPECT_EQ(agent->rsRenderComposer_, nullptr);
+}
+
+/**
+ * Function: SetVsyncManagerCallbacks_ValidComposer_Success
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposerAgent with valid RSRenderComposer
+ *                  2. call SetVsyncManagerCallbacks
+ *                  3. verify function executes normally (line 379 branch false)
+ */
+HWTEST_F(RsRenderComposerAgentTest, SetVsyncManagerCallbacks_ValidComposer_Success, TestSize.Level1)
+{
+    auto agent = std::make_shared<RSRenderComposerAgent>(rsRenderComposer_);
+    ASSERT_NE(agent->rsRenderComposer_, nullptr);
+
+    // Create dummy callbacks
+    auto setHardwareTaskNumCb = [](uint32_t) {};
+    auto setTaskEndWithTimeCb = [](uint64_t) {};
+    auto getRealTimeOffsetOfDvsyncCb = [](uint64_t) -> uint64_t { return 0; };
+
+    // Call SetVsyncManagerCallbacks with valid composer
+    // Line 379 branch: rsRenderComposer_ == nullptr -> false
+    agent->SetVsyncManagerCallbacks(setHardwareTaskNumCb, setTaskEndWithTimeCb, getRealTimeOffsetOfDvsyncCb);
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+    // Verify no crash and composer is still valid
+    EXPECT_NE(agent->rsRenderComposer_, nullptr);
+}
+
+/**
+ * Function: SetVsyncManagerCallbacks_AgentNotNull_ComposerNull
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposerAgent with valid RSRenderComposer
+ *                  2. call SetVsyncManagerCallbacks
+ *                  3. set rsRenderComposer_ to nullptr before task executes
+ *                  4. verify line 387 condition: renderComposerAgent != nullptr, rsRenderComposer_ == nullptr (true)
+ *                  5. verify lambda returns early without crash
+ */
+HWTEST_F(RsRenderComposerAgentTest, SetVsyncManagerCallbacks_AgentNotNull_ComposerNull, TestSize.Level1)
+{
+    auto agent = std::make_shared<RSRenderComposerAgent>(rsRenderComposer_);
+    ASSERT_NE(agent->rsRenderComposer_, nullptr);
+
+    // Create dummy callbacks
+    auto setHardwareTaskNumCb = [](uint32_t) {};
+    auto setTaskEndWithTimeCb = [](uint64_t) {};
+    auto getRealTimeOffsetOfDvsyncCb = [](uint64_t) -> uint64_t { return 0; };
+
+    // Call SetVsyncManagerCallbacks
+    agent->SetVsyncManagerCallbacks(setHardwareTaskNumCb, setTaskEndWithTimeCb, getRealTimeOffsetOfDvsyncCb);
+
+    // Set rsRenderComposer_ to nullptr after task is posted but before it executes
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    agent->rsRenderComposer_ = nullptr;
+
+    // The task should return early at line 388 without crash
+    // Line 387 condition: renderComposerAgent != nullptr && rsRenderComposer_ == nullptr -> true
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+    // Verify agent still exists but composer is null
+    EXPECT_NE(agent, nullptr);
+    EXPECT_EQ(agent->rsRenderComposer_, nullptr);
+}
+
+/**
+ * Function: SetVsyncManagerCallbacks_CallbacksExecute
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposerAgent with valid RSRenderComposer
+ *                  2. call SetVsyncManagerCallbacks with callbacks that track execution
+ *                  3. verify callbacks are properly forwarded to composer
+ */
+HWTEST_F(RsRenderComposerAgentTest, SetVsyncManagerCallbacks_CallbacksExecute, TestSize.Level1)
+{
+    auto agent = std::make_shared<RSRenderComposerAgent>(rsRenderComposer_);
+    ASSERT_NE(agent->rsRenderComposer_, nullptr);
+
+    // Create callbacks that track execution
+    std::atomic<bool> hardwareTaskNumCalled { false };
+    std::atomic<bool> taskEndWithTimeCalled { false };
+    std::atomic<bool> realTimeOffsetCalled { false };
+
+    auto setHardwareTaskNumCb = [&hardwareTaskNumCalled](uint32_t) { hardwareTaskNumCalled.store(true); };
+    auto setTaskEndWithTimeCb = [&taskEndWithTimeCalled](uint64_t) { taskEndWithTimeCalled.store(true); };
+    auto getRealTimeOffsetOfDvsyncCb = [&realTimeOffsetCalled](uint64_t) -> uint64_t {
+        realTimeOffsetCalled.store(true);
+        return 0;
+    };
+
+    // Register callbacks
+    agent->SetVsyncManagerCallbacks(setHardwareTaskNumCb, setTaskEndWithTimeCb, getRealTimeOffsetOfDvsyncCb);
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+    // Verify function completed without crash
+    // Note: Callbacks may not be executed immediately as they are forwarded to composer
+    EXPECT_NE(agent->rsRenderComposer_, nullptr);
+}
+
+/**
+ * Function: SetVsyncManagerCallbacks_MultipleCalls
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposerAgent with valid RSRenderComposer
+ *                  2. call SetVsyncManagerCallbacks multiple times
+ *                  3. verify all calls complete without crash
+ */
+HWTEST_F(RsRenderComposerAgentTest, SetVsyncManagerCallbacks_MultipleCalls, TestSize.Level1)
+{
+    auto agent = std::make_shared<RSRenderComposerAgent>(rsRenderComposer_);
+    ASSERT_NE(agent->rsRenderComposer_, nullptr);
+
+    // Create dummy callbacks
+    auto setHardwareTaskNumCb = [](uint32_t) {};
+    auto setTaskEndWithTimeCb = [](uint64_t) {};
+    auto getRealTimeOffsetOfDvsyncCb = [](uint64_t) -> uint64_t { return 0; };
+
+    // Call SetVsyncManagerCallbacks multiple times
+    for (int i = 0; i < 5; i++) {
+        agent->SetVsyncManagerCallbacks(setHardwareTaskNumCb, setTaskEndWithTimeCb, getRealTimeOffsetOfDvsyncCb);
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+
+    // Verify no crash and composer is still valid
+    EXPECT_NE(agent->rsRenderComposer_, nullptr);
+}
+
+/**
+ * Function: SetVsyncManagerCallbacks_NullCallbacks
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposerAgent with valid RSRenderComposer
+ *                  2. call SetVsyncManagerCallbacks with null callbacks
+ *                  3. verify function handles null callbacks gracefully
+ */
+HWTEST_F(RsRenderComposerAgentTest, SetVsyncManagerCallbacks_NullCallbacks, TestSize.Level1)
+{
+    auto agent = std::make_shared<RSRenderComposerAgent>(rsRenderComposer_);
+    ASSERT_NE(agent->rsRenderComposer_, nullptr);
+
+    // Create null callbacks
+    SetHardwareTaskNumCallback nullSetHardwareTaskNumCb = nullptr;
+    SetTaskEndWithTimeCallback nullSetTaskEndWithTimeCb = nullptr;
+    GetRealTimeOffsetOfDvsyncCallback nullGetRealTimeOffsetOfDvsyncCb = nullptr;
+
+    // Call SetVsyncManagerCallbacks with null callbacks
+    // This should not crash as callbacks are optional
+    agent->SetVsyncManagerCallbacks(
+        nullSetHardwareTaskNumCb, nullSetTaskEndWithTimeCb, nullGetRealTimeOffsetOfDvsyncCb);
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+    // Verify no crash and composer is still valid
+    EXPECT_NE(agent->rsRenderComposer_, nullptr);
+}
+
+/**
+ * Function: SetVsyncManagerCallbacks_MixedNullCallbacks
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposerAgent with valid RSRenderComposer
+ *                  2. call SetVsyncManagerCallbacks with mixed null and valid callbacks
+ *                  3. verify function handles mixed callbacks gracefully
+ */
+HWTEST_F(RsRenderComposerAgentTest, SetVsyncManagerCallbacks_MixedNullCallbacks, TestSize.Level1)
+{
+    auto agent = std::make_shared<RSRenderComposerAgent>(rsRenderComposer_);
+    ASSERT_NE(agent->rsRenderComposer_, nullptr);
+
+    // Create valid callback
+    auto setHardwareTaskNumCb = [](uint32_t) {};
+
+    // Call SetVsyncManagerCallbacks with first callback valid, others null
+    agent->SetVsyncManagerCallbacks(setHardwareTaskNumCb, nullptr, nullptr);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+    // Call with second callback valid, others null
+    auto setTaskEndWithTimeCb = [](uint64_t) {};
+    agent->SetVsyncManagerCallbacks(nullptr, setTaskEndWithTimeCb, nullptr);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+    // Call with third callback valid, others null
+    auto getRealTimeOffsetOfDvsyncCb = [](uint64_t) -> uint64_t { return 0; };
+    agent->SetVsyncManagerCallbacks(nullptr, nullptr, getRealTimeOffsetOfDvsyncCb);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+    // Verify no crash and composer is still valid
+    EXPECT_NE(agent->rsRenderComposer_, nullptr);
+}
 } // namespace Rosen
 } // namespace OHOS

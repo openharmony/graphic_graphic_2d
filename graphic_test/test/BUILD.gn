@@ -196,6 +196,7 @@ rs_effect_feature_sources = [
   "rs_effect_feature/ng_filter_test/ng_filter_test.cpp",
   "rs_effect_feature/ng_filter_test/ng_filter_test_utils.cpp",
   "rs_effect_feature/ng_shape_test/ng_sdf_shape_test.cpp",
+  "rs_effect_feature/ng_shape_test/ng_sdf_triangle_test.cpp",
   "rs_effect_feature/ng_shape_test/ng_sdf_test_utils.cpp",
   "rs_effect_feature/ui_filter_test/ui_filter_test.cpp",
   "rs_effect_feature/ui_filter_test/ui_filter_test_data_manager.cpp",
@@ -246,8 +247,6 @@ rs_perform_feature_sources = [
   "rs_perform_feature/dirty_region/uni_render_util_test.cpp",
   "rs_perform_feature/dirty_region/update_self_draw_rect_test.cpp",
   "rs_perform_feature/hwc/hwc_test.cpp",
-  "rs_perform_feature/hybrid_render/hybrid_render_test.cpp",
-  "rs_perform_feature/hybrid_render/hybrid_render_interfaces_test.cpp",
   "rs_perform_feature/gpu_composer/gpu_composer_test.cpp",
 ]
 effect_kit_sources = [

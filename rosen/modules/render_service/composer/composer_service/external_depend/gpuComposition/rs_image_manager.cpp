@@ -13,15 +13,15 @@
  * limitations under the License.
  */
 
-#include "rs_image_manager.h"
+#include "gpuComposition/rs_image_manager.h"
 
 #ifdef RS_ENABLE_VK
-#include "rs_vk_image_manager.h"
+#include "gpuComposition/rs_vk_image_manager.h"
 #endif // RS_ENABLE_VK
 
 #include "EGL/egl.h"
+#include "gpuComposition/rs_egl_image_manager.h"
 #include "platform/common/rs_system_properties.h"
-#include "rs_egl_image_manager.h"
 #include "render_context/new_render_context/render_context_gl.h"
 
 namespace OHOS {

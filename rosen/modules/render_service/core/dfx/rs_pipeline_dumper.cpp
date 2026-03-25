@@ -294,6 +294,7 @@ void RSPipelineDumper::RegisterMemFuncs(std::shared_ptr<RSPipelineDumpManager> r
         DumpExistPidMem(argSets, dumpString);
     };
 
+    // gpu mem
     RSDumpFunc gpuMemDumpFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
                                         std::string &dumpString) -> void {
         DumpGpuMem(argSets, dumpString);

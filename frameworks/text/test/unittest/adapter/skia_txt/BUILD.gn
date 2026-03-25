@@ -67,6 +67,7 @@ ohos_unittest("rosen_text_adapt_test") {
     "c_utils:utils",
     "hilog:libhilog",
     "icu:shared_icuuc",
+    "ipc:ipc_single",
     "image_framework:image_native",
   ]
 

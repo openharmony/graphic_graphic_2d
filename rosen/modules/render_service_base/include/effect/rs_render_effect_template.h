@@ -92,6 +92,7 @@ public:
             case RSNGEffectType::SDF_UNION_OP_SHAPE: return "SDFUnionOpShape";
             case RSNGEffectType::SDF_SMOOTH_UNION_OP_SHAPE: return "SDFSmoothUnionOpShape";
             case RSNGEffectType::SDF_RRECT_SHAPE: return "SDFRRectShape";
+            case RSNGEffectType::SDF_TRIANGLE_SHAPE: return "SDFTriangleShape";
             case RSNGEffectType::SDF_PIXELMAP_SHAPE: return "SDFPixelmapShape";
             case RSNGEffectType::SDF_TRANSFORM_SHAPE: return "SDFTransformShape";
             case RSNGEffectType::SDF_EMPTY_SHAPE: return "SDFEmptyShape";
@@ -222,6 +223,7 @@ public:
     virtual std::string Dump() const = 0;
     virtual uint32_t CalculateHash() = 0;
     virtual void CalculateHashInner(uint32_t& hash) = 0;
+    virtual bool CanSkipFrame() = 0;
 
     bool ContainsType(RSNGEffectType type)
     {
@@ -239,6 +241,7 @@ protected:
     [[nodiscard]] virtual bool OnUnmarshalling(Parcel& parcel) = 0;
     virtual void DumpProperties(std::string& out) const {}
     virtual std::string DumpProperties() const = 0;
+    virtual bool CanCurrentFilterSkipFrame() = 0;
 
     size_t GetEffectCount() const
     {
@@ -415,7 +418,17 @@ public:
         }
     }
 
+    bool CanSkipFrame() override
+    {
+        bool isSkip = CanCurrentFilterSkipFrame();
+        if (Base::nextEffect_) {
+            isSkip &= Base::nextEffect_->CanSkipFrame();
+        }
+        return isSkip;
+    }
 protected:
+    virtual bool CanCurrentFilterSkipFrame() override { return false; }
+
     [[nodiscard]] bool OnUnmarshalling(Parcel& parcel) override
     {
         // Type has been covered in Unmarshalling

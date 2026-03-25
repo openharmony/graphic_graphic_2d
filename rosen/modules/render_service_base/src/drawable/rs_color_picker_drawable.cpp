@@ -49,7 +49,7 @@ RSDrawable::Ptr RSColorPickerDrawable::OnGenerate(const RSRenderNode& node)
 bool RSColorPickerDrawable::OnPrepare(bool darkMode)
 {
     RS_OPTIONAL_TRACE_NAME_FMT(
-        "RSColorPickerDrawable::OnPrepareFrame node %" PRIu64 " darkMode=%d", stagingNodeId_, darkMode);
+        "RSColorPickerDrawable::OnPrepareFrame node %" PRIu64 " darkMode = %d", stagingNodeId_, darkMode);
     const bool darkModeChanged = std::exchange(stagingIsSystemDarkColorMode_, darkMode) != darkMode;
 
     // Derive stagingNeedColorPick_ directly from state
@@ -60,10 +60,10 @@ bool RSColorPickerDrawable::OnPrepare(bool darkMode)
     return prevNeedColorPick != stagingNeedColorPick_ || darkModeChanged;
 }
 
-void RSColorPickerDrawable::ScheduleColorPickIfReady(uint64_t vsyncTime)
+int64_t RSColorPickerDrawable::ScheduleColorPickIfReady(uint64_t vsyncTime)
 {
     if (!stagingColorPicker_ || stagingColorPicker_->strategy == ColorPickStrategyType::NONE) {
-        return;
+        return -1;
     }
 
     // Only schedule if in PREPARING state
@@ -71,7 +71,7 @@ void RSColorPickerDrawable::ScheduleColorPickIfReady(uint64_t vsyncTime)
         RS_OPTIONAL_TRACE_NAME_FMT(
             "RSColorPickerDrawable::ScheduleColorPickIfReady: Invalid state %u (only PREPARING allowed)",
             static_cast<uint8_t>(stagingState_));
-        return;
+        return -1;
     }
 
     constexpr uint64_t NS_TO_MS = 1000000;
@@ -90,11 +90,9 @@ void RSColorPickerDrawable::ScheduleColorPickIfReady(uint64_t vsyncTime)
                                " scheduling pick with delay %" PRId64 "ms",
         stagingNodeId_, delayTime);
 
-    // Notify state transition callback which will trigger on main thread after delay
-    // Transition to COLOR_PICK_THIS_FRAME after the appropriate delay
-    RSColorPickerThread::Instance().TransitionState(
-        stagingNodeId_, DrawableV2::ColorPickerState::COLOR_PICK_THIS_FRAME, delayTime);
+    // Transition to SCHEDULED state, caller will post delayed task
     stagingState_ = DrawableV2::ColorPickerState::SCHEDULED;
+    return delayTime;
 }
 
 bool RSColorPickerDrawable::OnUpdate(const RSRenderNode& node)

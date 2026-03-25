@@ -126,6 +126,8 @@ enum class MultiAppStrategyType {
     USE_STRATEGY_NUM,
 };
 
+std::string GetHgmXmlPath();
+
 class PolicyConfigData {
 public:
     PolicyConfigData() = default;

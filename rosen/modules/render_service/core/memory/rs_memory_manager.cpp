@@ -64,7 +64,7 @@
 #endif
 
 #ifdef RS_ENABLE_VK
-#include "feature/gpuComposition/rs_vk_image_manager.h"
+#include "gpuComposition/rs_vk_image_manager.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
 static inline const char* GetThreadName()

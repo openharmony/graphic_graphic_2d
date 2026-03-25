@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_CORE_PIPELINE_RS_BASE_RENDER_UTIL_H
-#define RENDER_SERVICE_CORE_PIPELINE_RS_BASE_RENDER_UTIL_H
+#ifndef RENDER_SERVICE_COMPOSER_SERVICE_EXTERNER_DEPEND_ENGINE_RS_BASE_RENDER_UTIL_H
+#define RENDER_SERVICE_COMPOSER_SERVICE_EXTERNER_DEPEND_ENGINE_RS_BASE_RENDER_UTIL_H
 
 #include <atomic>
 #include <vector>
@@ -164,24 +164,6 @@ public:
     static Drawing::BitmapFormat GenerateDrawingBitmapFormat(const sptr<OHOS::SurfaceBuffer>& buffer,
         const Drawing::AlphaType alphaType = Drawing::AlphaType::ALPHATYPE_PREMUL);
 
-    // Configuration for drop frame by PID feature
-    struct DropFrameConfig {
-        bool enable = false;        // Enable drop frame by PID
-        int32_t level = 0;          // Drop frame level: 0=no drop, >0=keep latest N frames
-
-        // Check if dropping should occur
-        bool ShouldDrop() const { return enable && level > 0; }
-
-        // Factory methods for common configurations
-        static DropFrameConfig NoDrop() { return {false, 0}; }
-        static DropFrameConfig Level(int32_t l) { return {true, l}; }
-    };
-
-    static GSError DropFrameProcess(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen = 0);
-
-    static bool ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen = CONSUME_DIRECTLY,
-        const DropFrameConfig& dropFrameConfig = DropFrameConfig::NoDrop(),
-        uint64_t parentNodeId = 0, bool dropFrameByScreenFrozen = false);
     static bool ReleaseBuffer(RSSurfaceHandler& surfaceHandler);
 
     static std::unique_ptr<RSTransactionData> ParseTransactionData(MessageParcel& parcel, uint32_t parcelNumber);
@@ -220,8 +202,6 @@ public:
     static int RotateEnumToInt(GraphicTransformType rotation);
     static GraphicTransformType RotateEnumToInt(int angle,
         GraphicTransformType flip = GraphicTransformType::GRAPHIC_ROTATE_NONE);
-    static Rect MergeBufferDamages(const std::vector<Rect>& damages);
-    static void MergeBufferDamages(Rect& surfaceDamage, const std::vector<Rect>& damages);
     static bool WriteCacheImageRenderNodeToPng(std::shared_ptr<Drawing::Surface> surface, std::string debugInfo);
     static bool WriteCacheImageRenderNodeToPng(std::shared_ptr<Drawing::Image> image, std::string debugInfo);
     static bool WriteCacheImageRenderNodeToPng(std::shared_ptr<Drawing::Bitmap> bitmap, std::string debugInfo);
@@ -236,6 +216,8 @@ private:
         const std::vector<GraphicHDRMetaData>& metaDatas = {});
     static bool CreateBitmap(sptr<OHOS::SurfaceBuffer> buffer, Drawing::Bitmap& bitmap);
     static bool WriteToPng(const std::string &filename, const WriteToPngParam &param);
+    static bool GetMultimediaEnableCameraRotationCompensation();
+    static int32_t GetWindowScreenScanType();
 
     static bool enableClient;
 
@@ -244,4 +226,4 @@ private:
 };
 } // namespace Rosen
 } // namespace OHOS
-#endif // RENDER_SERVICE_CORE_PIPELINE_RS_BASE_RENDER_UTIL_H
+#endif // RENDER_SERVICE_COMPOSER_SERVICE_EXTERNER_DEPEND_ENGINE_RS_BASE_RENDER_UTIL_H

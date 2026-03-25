@@ -18,7 +18,6 @@
 #include <memory>
 
 #include "common/rs_common_def.h"
-#include "feature/gpuComposition/rs_gpu_cache_manager.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
@@ -28,6 +27,7 @@
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "metadata_helper.h"
+#include "gpuComposition/rs_gpu_cache_manager.h"
 #include "params/rs_render_params.h"
 #include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
 #include "pipeline/main_thread/rs_uni_render_listener.h"
@@ -1074,7 +1074,7 @@ RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(DrawableV2::RSScreenRenderNod
         }
     }
     surfaceHandler->ResetCurrentFrameBufferConsumed();
-    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler) ||
+    if (!RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(*surfaceHandler) ||
         !surfaceHandler->GetBuffer()) {
         RS_LOGE("RSUniRenderComposerAdapter::CreateLayer RSScreenRenderNodeDrawable consume buffer failed. %{public}d",
             !surfaceHandler->GetBuffer());
@@ -1125,7 +1125,7 @@ RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(RSScreenRenderNode& node)
     }
     RS_LOGD("RSUniRenderComposerAdapter::CreateLayer displayNode id:%{public}" PRIu64 " available buffer:%{public}d",
         node.GetId(), surfaceHandler->GetAvailableBufferCount());
-    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler) ||
+    if (!RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(*surfaceHandler) ||
         !surfaceHandler->GetBuffer()) {
         RS_LOGE("RSUniRenderComposerAdapter::CreateLayer consume buffer failed.");
         return nullptr;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,26 +13,20 @@
  * limitations under the License.
  */
 
-#ifndef RS_VBLANK_IDLE_CORRECTOR_H
-#define RS_VBLANK_IDLE_CORRECTOR_H
+#ifndef SAFUZZ_RS_UNION_NODE_COMMAND_UTILS_H
+#define SAFUZZ_RS_UNION_NODE_COMMAND_UTILS_H
 
-#include <memory>
+#include "command/rs_union_node_command.h"
 
-#include "screen_manager/screen_types.h"
+#include "command/rs_command_utils.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSVBlankIdleCorrector {
+class RSUnionNodeCommandUtils {
 public:
-    RSVBlankIdleCorrector() = default;
-    ~RSVBlankIdleCorrector() noexcept = default;
-
-    void SetScreenVBlankIdle();
-    void ProcessScreenConstraint(ScreenId screenId, uint64_t timestamp, uint64_t constraintRelativeTime);
-private:
-    int32_t idleFrameCount_ = 0;
-    bool isVBlankIdle_ = false;
+    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSUnionNodeCreate, Uint64, Bool);
 };
 } // namespace Rosen
 } // namespace OHOS
-#endif // RS_VBLANK_IDLE_CORRECTOR_H
+
+#endif // SAFUZZ_RS_UNION_NODE_COMMAND_UTILS_H

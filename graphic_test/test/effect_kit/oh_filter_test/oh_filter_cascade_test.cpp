@@ -56,31 +56,31 @@ public:
             return false;
         }
         const auto& data = waterGlassParams[index];
-        params.speed = data[0]; // 0 index
-        params.distortSpeed = data[1]; // 1 index
-        params.refractionSpeed = { data[2],  data[3]}; // 2, 3 index
-        params.progress = data[4]; // 4 index
-        params.shakingDirection1 = {data[5], data[6]}; // 5, 6 index
-        params.shakingDirection2 = {data[7], data[8]}; // 7, 8 idnex
-        params.waveDensityXY = {data[9], data[10]}; // 9, 10 index
-        params.waveStrength = data[11]; // 11 index
-        params.waveRefraction = data[12]; // 12 index
-        params.waveSpecular = data[13]; // 13 index
-        params.waveFrequency = data[14]; // 14 index
-        params.waveShapeDistortion = data[15]; // 15 index
-        params.waveDistortionAngle = data[16]; // 16 index
-        params.rippleXWave = data[17]; // 17 index
-        params.rippleYWave = data[18]; // 18 index
-        params.borderRadius = data[19]; // 19 index
-        params.borderThickness = data[20]; // 20 index
-        params.waveInnerMaskXY = {data[21], data[22]}; // 21, 22 index
-        params.waveInnerMaskRadius = data[23]; // 23 index
-        params.waveInnerMaskSmoothness = data[24]; // 24 index
-        params.waveOuterMaskPadding = data[25]; // 25 index
-        params.waveSpecularPower = data[26]; // 26 index
-        params.refractionDetailDark = data[27]; // 27 index
-        params.refractionDetailWhite = data[28]; // 28 index
-        params.detailStrength = data[29]; // 29 index
+        params.speed = data[0];
+        params.distortSpeed = data[1];
+        params.refractionSpeed = { data[2],  data[3]};
+        params.progress = data[4];
+        params.shakingDirection1 = {data[5], data[6]};
+        params.shakingDirection2 = {data[7], data[8]};
+        params.waveDensityXY = {data[9], data[10]};
+        params.waveStrength = data[11];
+        params.waveRefraction = data[12];
+        params.waveSpecular = data[13];
+        params.waveFrequency = data[14];
+        params.waveShapeDistortion = data[15];
+        params.waveDistortionAngle = data[16];
+        params.rippleXWave = data[17];
+        params.rippleYWave = data[18];
+        params.borderRadius = data[19];
+        params.borderThickness = data[20];
+        params.waveInnerMaskXY = {data[21], data[22]};
+        params.waveInnerMaskRadius = data[23];
+        params.waveInnerMaskSmoothness = data[24];
+        params.waveOuterMaskPadding = data[25];
+        params.waveSpecularPower = data[26];
+        params.refractionDetailDark = data[27];
+        params.refractionDetailWhite = data[28];
+        params.detailStrength = data[29];
         return true;
     }
 
@@ -126,7 +126,7 @@ GRAPHIC_TEST(OHFilterCascadeTest, EFFECT_TEST, All_Effects_Cascade_Test)
         const size_t x = (i % columnCount) * sizeX;
         const size_t y = (i / columnCount) * sizeY;
 
-        auto pixelMapNative = CreateTestPixelMap(BG_TEST_JPG_PATH);
+        auto pixelMapNative = CreateTestPixelMap(FG_TEST_JPG_PATH);
         if (!pixelMapNative) {
             continue;
         }
@@ -158,8 +158,8 @@ GRAPHIC_TEST(OHFilterCascadeTest, EFFECT_TEST, All_Effects_Cascade_Test)
         }
         OH_Filter_ReededGlass(ohFilter, &reededGlassParams);
 
-        auto fgPixelMapNative = CreateTestPixelMap(FG_TEST_JPG_PATH);
-        if (!fgPixelMapNative) {
+        auto bgPixelMapNative = CreateTestPixelMap(BG_TEST_JPG_PATH);
+        if (!bgPixelMapNative) {
             OH_Filter_Release(ohFilter);
             continue;
         }
@@ -172,7 +172,7 @@ GRAPHIC_TEST(OHFilterCascadeTest, EFFECT_TEST, All_Effects_Cascade_Test)
             const_cast<OH_Filter_Vec2*>(maskData.fractionStops.data());
         linearGradientMask.fractionStopsLength = maskData.fractionStops.size();
 
-        OH_Filter_MaskTransition(ohFilter, fgPixelMapNative, &linearGradientMask,
+        OH_Filter_MaskTransition(ohFilter, bgPixelMapNative, &linearGradientMask,
             EffectMaskType::LINEAR_GRADIENT_MASK, maskData.factor, maskData.inverse);
 
         OH_Filter_WaterDropletParams params = {};
@@ -188,7 +188,7 @@ GRAPHIC_TEST(OHFilterCascadeTest, EFFECT_TEST, All_Effects_Cascade_Test)
         params.noiseStrengthY = waterDropletParams[i][9];
         params.progress = waterDropletProgressParams[i];
 
-        OH_Filter_WaterDropletTransition(ohFilter, fgPixelMapNative,
+        OH_Filter_WaterDropletTransition(ohFilter, bgPixelMapNative,
             &params, false);
 
         OH_Filter_GetEffectPixelMap(ohFilter, &pixelMapNative);

@@ -58,7 +58,7 @@ void RSLayerContextTest::SetUpTestCase()
     RsVulkanContext::SetRecyclable(false);
 #endif
     std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
-    sMgr = std::make_shared<RSRenderComposerManager>(handler, nullptr);
+    sMgr = std::make_shared<RSRenderComposerManager>(handler);
 }
 
 void RSLayerContextTest::TearDownTestCase()

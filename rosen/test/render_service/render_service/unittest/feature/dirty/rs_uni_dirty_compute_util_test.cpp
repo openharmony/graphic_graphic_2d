@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -911,48 +911,5 @@ HWTEST_F(RSUniDirtyComputeUtilTest, HasMirrorDisplay001, TestSize.Level1)
     nodeMap.logicalDisplayNodeMap_.emplace(index, nullptr);
     EXPECT_TRUE(RSUniDirtyComputeUtil::HasMirrorDisplay());
     nodeMap.logicalDisplayNodeMap_.clear();
-}
-
-/**
-* @tc.name: UpdatePrepareDirtyRegionClip001
-* @tc.desc: Test UpdatePrepareDirtyRegionClip with no child clip region
-* @tc.type: FUNC
-* @tc.require: issue28860
-*/
-HWTEST_F(RSUniDirtyComputeUtilTest, UpdatePrepareDirtyRegionClip001, TestSize.Level1)
-{
-    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
-    auto node = std::make_shared<RSRenderNode>(1, context->weak_from_this());
-    ASSERT_NE(node, nullptr);
-
-    RectI prepareDirtyRegionClip = {0, 0, 1000, 1000};
-    RectI originalClip = prepareDirtyRegionClip;
-
-    RSUniDirtyComputeUtil::UpdatePrepareDirtyRegionClip(*node, prepareDirtyRegionClip);
-
-    ASSERT_EQ(prepareDirtyRegionClip, originalClip);
-}
-
-/**
-* @tc.name: UpdatePrepareDirtyRegionClip002
-* @tc.desc: Test UpdatePrepareDirtyRegionClip with clipToBounds
-* @tc.type: FUNC
-* @tc.require: issue28860
-*/
-HWTEST_F(RSUniDirtyComputeUtilTest, UpdatePrepareDirtyRegionClip002, TestSize.Level1)
-{
-    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
-    auto node = std::make_shared<RSRenderNode>(1, context->weak_from_this());
-    ASSERT_NE(node, nullptr);
-
-    auto& properties = node->GetMutableRenderProperties();
-    properties.SetClipToBounds(true);
-    properties.SetBounds(Vector4f(0.0f, 0.0f, 400.0f, 400.0f));
-
-    RectI prepareDirtyRegionClip = {0, 0, 1000, 1000};
-    RSUniDirtyComputeUtil::UpdatePrepareDirtyRegionClip(*node, prepareDirtyRegionClip);
-
-    RectI expectedClip = {0, 0, 400, 400};
-    ASSERT_EQ(prepareDirtyRegionClip, expectedClip);
 }
 } // namespace OHOS::Rosen

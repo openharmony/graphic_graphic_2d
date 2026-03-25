@@ -21,12 +21,12 @@
 #include <string>
 #include <unistd.h>
 
-#include "config_policy_utils.h"
 #include "hgm_config_callback_manager.h"
 #include "hgm_frame_rate_manager.h"
 #include "hgm_log.h"
 #include "hgm_screen_info.h"
 #include "platform/common/rs_system_properties.h"
+#include "screen_manager/rs_screen_mode_info.h"
 #include "syspara/parameter.h"
 #include "vsync_generator.h"
 
@@ -34,28 +34,10 @@ namespace OHOS::Rosen {
 namespace {
 constexpr int64_t RENDER_VSYNC_OFFSET_DELAY_MIN = -16000000; // ns
 constexpr int64_t RENDER_VSYNC_OFFSET_DELAY_MAX = 16000000; // ns
-constexpr char CONFIG_FILE_PRODUCT[] = "/sys_prod/etc/graphic/hgm_policy_config.xml";
 
 int64_t GetFixedVsyncOffset(int64_t value)
 {
     return (value >= RENDER_VSYNC_OFFSET_DELAY_MIN && value <= RENDER_VSYNC_OFFSET_DELAY_MAX) ? value : 0;
-}
-
-std::string GetXmlPath()
-{
-    std::string fileSuffix = "etc/graphic/hgm_policy_config.xml";
-    char pathBuff[MAX_PATH_LEN] = {'\0'};
-    char* flexConfigPath = GetOneCfgFile(fileSuffix.c_str(), pathBuff, MAX_PATH_LEN);
-    if (flexConfigPath == nullptr) {
-        return CONFIG_FILE_PRODUCT;
-    }
-    std::string resPath(flexConfigPath);
-    std::string targetPrefix("/sys_prod");
-    if (resPath.substr(0, targetPrefix.size()) == targetPrefix) {
-        HGM_LOGI("flex hgm config path is %{public}s", resPath.c_str());
-        return resPath;
-    }
-    return CONFIG_FILE_PRODUCT;
 }
 } // namespace
 
@@ -165,7 +147,7 @@ int32_t HgmCore::InitXmlConfig()
         mParser_ = std::make_unique<XMLParser>();
     }
 
-    if (mParser_->LoadConfiguration(GetXmlPath().c_str()) != EXEC_SUCCESS) {
+    if (mParser_->LoadConfiguration(GetHgmXmlPath().c_str()) != EXEC_SUCCESS) {
         HGM_LOGW("failed to load prod xml configuration file");
     }
     if (mParser_->Parse() != EXEC_SUCCESS) {
@@ -623,5 +605,64 @@ int64_t HgmCore::GetIdealPeriod(uint32_t rate)
         return iter->second;
     }
     return 0;
+}
+
+void HgmCore::RegisterScreenManagerCallbacks(
+    const GetDefaultScreenIdCallback& getDefaultScreenIdCb,
+    const GetScreenPowerStatusCallback& getScreenPowerStatusCb,
+    const GetScreenSupportedModesCallback& getScreenSupportedModesCb,
+    const SetScreenConstraintCallback& setScreenConstraintCb,
+    const SetScreenActiveModeCallback& setScreenActiveModeCb)
+{
+    getDefaultScreenIdCb_ = getDefaultScreenIdCb;
+    getScreenPowerStatusCb_ = getScreenPowerStatusCb;
+    getScreenSupportedModesCb_ = getScreenSupportedModesCb;
+    setScreenConstraintCb_ = setScreenConstraintCb;
+    setScreenActiveModeCb_ = setScreenActiveModeCb;
+}
+
+ScreenId HgmCore::GetDefaultScreenId() const
+{
+    if (LIKELY(getDefaultScreenIdCb_ != nullptr)) {
+        return getDefaultScreenIdCb_();
+    }
+    HGM_LOGE("getDefaultScreenIdCB is null");
+    return INVALID_SCREEN_ID;
+}
+
+ScreenPowerStatus HgmCore::GetScreenPowerStatus(ScreenId id) const
+{
+    if (LIKELY(getScreenPowerStatusCb_ != nullptr)) {
+        return getScreenPowerStatusCb_(id);
+    }
+    HGM_LOGE("getScreenPowerStatusCb is null");
+    return INVALID_POWER_STATUS;
+}
+
+std::vector<RSScreenModeInfo> HgmCore::GetScreenSupportedModes(ScreenId id) const
+{
+    if (LIKELY(getScreenSupportedModesCb_ != nullptr)) {
+        return getScreenSupportedModesCb_(id);
+    }
+    HGM_LOGE("getScreenSupportedModesCb is null");
+    return {};
+}
+
+int32_t HgmCore::SetScreenConstraint(ScreenId id, uint64_t timestamp, ScreenConstraintType type)
+{
+    if (LIKELY(setScreenConstraintCb_ != nullptr)) {
+        return setScreenConstraintCb_(id, timestamp, type);
+    }
+    HGM_LOGE("setScreenConstraintCb is null");
+    return StatusCode::SCREEN_NOT_FOUND;
+}
+
+uint32_t HgmCore::SetScreenActiveMode(ScreenId id, uint32_t modeId)
+{
+    if (LIKELY(setScreenActiveModeCb_ != nullptr)) {
+        return setScreenActiveModeCb_(id, modeId);
+    }
+    HGM_LOGE("setScreenActiveModeCb is null");
+    return StatusCode::SCREEN_NOT_FOUND;
 }
 } // namespace OHOS::Rosen

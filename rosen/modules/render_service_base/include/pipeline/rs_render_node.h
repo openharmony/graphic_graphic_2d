@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -233,7 +233,7 @@ public:
         isOnlyBasicGeoTransform_ = true;
     }
     bool IsOnlyBasicGeoTransform() const;
-    void ForceMergeSubTreeDirtyRegion(RSDirtyRegionManager& dirtyManager);
+    void ForceMergeSubTreeDirtyRegion(RSDirtyRegionManager& dirtyManager, const RectI& clipRect);
     void SubTreeSkipPrepare(RSDirtyRegionManager& dirtymanager, bool isDirty, bool accumGeoDirty,
         const RectI& clipRect);
     inline bool LastFrameSubTreeSkipped() const
@@ -601,7 +601,6 @@ public:
     void SetNodeName(const std::string& nodeName);
     const std::string& GetNodeName() const;
     bool HasSubSurface() const;
-    bool IsClipRectInsideNodeSelfDrawRegion() const;
 
     bool IsPureContainer() const;
     bool IsContentNode() const;
@@ -671,7 +670,7 @@ public:
         bool rotationStatusChanged = false);
     void UpdateLastFilterCacheRegion();
     void UpdateFilterRegionInSkippedSubTree(RSDirtyRegionManager& dirtyManager,
-        const RSRenderNode& subTreeRoot, RectI& filterRect, const RectI& clipRect, const RectI& dirtyRegionClipRect,
+        const RSRenderNode& subTreeRoot, RectI& filterRect, const RectI& clipRect,
         const std::optional<RectI>& surfaceClipRect);
     void FilterRectMergeDirtyRectInSkippedSubtree(RSDirtyRegionManager& dirtyManager,
         const RectI& filterRect);
@@ -1077,8 +1076,6 @@ public:
     // returns true if node only has ColorPickerDrawable without any real filter
     bool IsColorPickerOnlyNode() const;
 
-    std::shared_ptr<RectF> GetChildClipRegion() const;
-
 protected:
     void ResetDirtyStatus();
 
@@ -1422,7 +1419,7 @@ private:
     bool UpdateSelfDrawRect();
     void UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, const RectI& clipRect);
     void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool geoDirty, const std::optional<RectI>& clipRect);
-    void UpdateDrawRect(bool& accumGeoDirty, const Drawing::Matrix& parentSurfaceMatrix);
+    void UpdateDrawRect(bool& accumGeoDirty, const RectI& clipRect, const Drawing::Matrix& parentSurfaceMatrix);
     void UpdateFullScreenFilterCacheRect(RSDirtyRegionManager& dirtyManager, bool isForeground) const;
     void ValidateLightResources();
     void UpdateShouldPaint(); // update node should paint state in apply modifier stage

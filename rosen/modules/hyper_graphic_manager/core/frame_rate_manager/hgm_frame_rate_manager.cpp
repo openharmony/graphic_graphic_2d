@@ -703,6 +703,7 @@ uint32_t HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRate
         }
     } else if (stylusFlag) {
         supportRefreshRateVec = stylusVec_;
+        RS_TRACE_NAME_FMT("%s: stylusVec size = %zu", __func__, stylusVec_.size());
         HGM_LOGD("stylusVec size = %{public}zu", stylusVec_.size());
     } else {
         supportRefreshRateVec = HgmCore::Instance().GetScreenSupportedRefreshRates(id);
@@ -1318,7 +1319,10 @@ VoteInfo HgmFrameRateManager::ProcessRefreshRateVote()
 
 int32_t HgmFrameRateManager::AdaptiveStatus() const
 {
-    return asStateForFps_.load() ? isAdaptive_.load() : SupportASStatus::NOT_SUPPORT;
+    if (auto isAdaptive = isAdaptive_.load(); isAdaptive != SupportASStatus::SUPPORT_AS) {
+        return isAdaptive;
+    }
+    return asStateForFps_.load() ? SupportASStatus::SUPPORT_AS : SupportASStatus::NOT_SUPPORT;
 }
 
 void HgmFrameRateManager::UpdateASStateForFps(bool state)
@@ -1658,6 +1662,16 @@ void HgmFrameRateManager::TriggerAdaptiveVsyncUpdateCallback()
 bool HgmFrameRateManager::IsNeedAdaptiveAfterUpdateMode()
 {
     return controller_ != nullptr && controller_->IsNeedAdaptiveAfterUpdateMode();
+}
+
+void HgmFrameRateManager::AddScreenInit()
+{
+    SyncHgmConfigUpdateCallback();
+    if (auto configData = HgmCore::Instance().GetPolicyConfigData()) {
+        GetLowBrightVec(configData);
+        GetAncoLowBrightVec(configData);
+        GetStylusVec(configData);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

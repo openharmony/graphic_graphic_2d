@@ -1071,13 +1071,19 @@ bool AniCanvas::GetTexs(ani_env* env, ani_int vertexCount,
     ani_object texsObj, std::vector<Drawing::Point>& pointTexs)
 {
     ani_boolean isNull = ANI_TRUE;
-    env->Reference_IsNull(texsObj, &isNull);
+    if (env->Reference_IsNull(texsObj, &isNull) != ANI_OK) {
+        ROSEN_LOGE("Reference_IsNull failed");
+        return false;
+    }
     if (isNull) {
         return true;
     }
     ani_size aniTexsLength = 0;
     ani_array arrayObj = reinterpret_cast<ani_array>(texsObj);
-    env->Array_GetLength(arrayObj, &aniTexsLength);
+    if (env->Array_GetLength(arrayObj, &aniTexsLength) != ANI_OK) {
+        ROSEN_LOGE("Array_GetLength failed");
+        return false;
+    }
     uint32_t texsSize = static_cast<uint32_t>(aniTexsLength);
     if (texsSize != 0) {
         if (static_cast<ani_int>(aniTexsLength) != vertexCount) {
@@ -1099,13 +1105,19 @@ bool AniCanvas::GetColors(ani_env* env, ani_int vertexCount,
     ani_object colorsObj, std::unique_ptr<uint32_t[]>& colors)
 {
     ani_boolean isNull = ANI_TRUE;
-    env->Reference_IsNull(colorsObj, &isNull);
+    if (env->Reference_IsNull(colorsObj, &isNull) != ANI_OK) {
+        ROSEN_LOGE("Reference_IsNull failed");
+        return false;
+    }
     if (isNull) {
         return true;
     }
     ani_size aniColorsLength = 0;
     ani_array arrayObj = reinterpret_cast<ani_array>(colorsObj);
-    env->Array_GetLength(arrayObj, &aniColorsLength);
+    if (env->Array_GetLength(arrayObj, &aniColorsLength) != ANI_OK) {
+        ROSEN_LOGE("Array_GetLength failed");
+        return false;
+    }
     int32_t colorsSize = static_cast<int32_t>(aniColorsLength);
     if (colorsSize != 0) {
         if (colorsSize != vertexCount) {
@@ -1127,13 +1139,19 @@ bool AniCanvas::GetIndices(ani_env* env, ani_int indexCount,
     ani_object indicesObj, std::unique_ptr<uint16_t[]>& indices)
 {
     ani_boolean isNull = ANI_TRUE;
-    env->Reference_IsNull(indicesObj, &isNull);
+    if (env->Reference_IsNull(indicesObj, &isNull) != ANI_OK) {
+        ROSEN_LOGE("Reference_IsNull failed");
+        return false;
+    }
     if (isNull) {
         return true;
     }
     ani_size aniIndicesLength = 0;
     ani_array arrayObj = reinterpret_cast<ani_array>(indicesObj);
-    env->Array_GetLength(arrayObj, &aniIndicesLength);
+    if (env->Array_GetLength(arrayObj, &aniIndicesLength) != ANI_OK) {
+        ROSEN_LOGE("Array_GetLength failed");
+        return false;
+    }
     int32_t indicesSize = static_cast<int32_t>(aniIndicesLength);
     if (indicesSize != 0) {
         if (indicesSize != indexCount) {
@@ -1425,7 +1443,10 @@ void AniCanvas::DrawSingleCharacter(ani_env* env, ani_object obj, ani_string tex
     }
 
     ani_size len = 0;
-    env->String_GetUTF8Size(text, &len);
+    if (env->String_GetUTF8Size(text, &len) != ANI_OK) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type.");
+        return;
+    }
     if (len == 0 || len > 4) { // 4 is the maximum length of a character encoded in UTF8.
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
             "AniCanvas::DrawSingleCharacter Parameter verification failed. text should be single character.");
@@ -1434,7 +1455,10 @@ void AniCanvas::DrawSingleCharacter(ani_env* env, ani_object obj, ani_string tex
 
     char str[len + 1];
     ani_size realLen = 0;
-    env->String_GetUTF8(text, str, len + 1, &realLen);
+    if (env->String_GetUTF8(text, str, len + 1, &realLen) != ANI_OK) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type.");
+        return;
+    }
     str[realLen] = '\0';
     const char* currentStr = str;
     int32_t unicode = SkUTF::NextUTF8(&currentStr, currentStr + len);
@@ -1560,7 +1584,10 @@ bool GetPoints(ani_env* env, ani_array pointsObj, uint32_t size, Drawing::Point*
                 ROSEN_LOGE("[ANI] can't find class %{public}s", ANI_CLASS_POINT_NAME);
                 return false;
             }
-            env->Object_InstanceOf(static_cast<ani_object>(pointRef), pointClass, &isPointClass);
+            if (env->Object_InstanceOf(static_cast<ani_object>(pointRef), pointClass, &isPointClass) != ANI_OK) {
+                ROSEN_LOGE("GetPoints Object_InstanceOf failed");
+                return false;
+            }
         }
         if (!isPointClass || GetPointFromPointObj(env, static_cast<ani_object>(pointRef), point[i]) != ANI_OK) {
             ROSEN_LOGE("GetPoints points are invalid");
@@ -2222,11 +2249,14 @@ void AniCanvas::DrawSingleCharacterWithFeatures(ani_env* env, ani_object obj, an
         return;
     }
 
-    char str[len + 1];
+    std::vector<char> str(len + 1);
     ani_size realLen = 0;
-    env->String_GetUTF8(text, str, len + 1, &realLen);
+    if (env->String_GetUTF8(text, str.data(), len + 1, &realLen) != ANI_OK) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid parameter0 type.");
+        return;
+    }
     str[realLen] = '\0';
-    const char* currentStr = str;
+    const char* currentStr = str.data();
     int32_t unicode = SkUTF::NextUTF8(&currentStr, currentStr + len);
 
     std::shared_ptr<Font> font = aniFont->GetFont();
@@ -2234,7 +2264,7 @@ void AniCanvas::DrawSingleCharacterWithFeatures(ani_env* env, ani_object obj, an
     if (themeFont != nullptr) {
         font = themeFont;
     }
-    size_t byteLen = currentStr - str;
+    size_t byteLen = currentStr - str.data();
     if (byteLen != len) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED,
             "AniCanvas::DrawSingleCharacterWithFeatures Parameter verification failed");
@@ -2247,7 +2277,7 @@ void AniCanvas::DrawSingleCharacterWithFeatures(ani_env* env, ani_object obj, an
         return;
     }
 
-    aniCanvas->GetCanvas()->DrawSingleCharacterWithFeatures(str, *font, x, y, drawingFontFeatures);
+    aniCanvas->GetCanvas()->DrawSingleCharacterWithFeatures(str.data(), *font, x, y, drawingFontFeatures);
     aniCanvas->NotifyDirty();
 }
 
@@ -2285,7 +2315,10 @@ ani_object AniCanvas::CreateAniCanvas(ani_env* env, Canvas* canvas)
     }
 
     ani_ref aniRef;
-    env->GetUndefined(&aniRef);
+    if (env->GetUndefined(&aniRef) != ANI_OK) {
+        ROSEN_LOGE("CreateAniCanvas GetUndefined failed");
+        return CreateAniUndefined(env);
+    }
     ani_class aniClass;
     if (env->FindClass(ANI_CLASS_CANVAS_NAME, &aniClass) != ANI_OK) {
         ROSEN_LOGE("CreateAniCanvas FindClass failed");
@@ -2339,7 +2372,11 @@ ani_object AniCanvas::CanvasTransferStatic(ani_env* env, [[maybe_unused]]ani_obj
     aniCanvas->mPixelMap_ = jsCanvas->GetPixelMap();
 #endif
     ani_ref aniRef;
-    env->GetUndefined(&aniRef);
+    if (env->GetUndefined(&aniRef) != ANI_OK) {
+        ROSEN_LOGE("AniCanvas::CanvasTransferStatic GetUndefined failed");
+        delete aniCanvas;
+        return CreateAniUndefined(env);
+    }
     ani_object aniCanvasObj = CreateAniObject(env, AniGlobalClass::GetInstance().canvas,
         AniGlobalMethod::GetInstance().canvasCtor, aniRef);
     if (ANI_OK != env->Object_SetField_Long(

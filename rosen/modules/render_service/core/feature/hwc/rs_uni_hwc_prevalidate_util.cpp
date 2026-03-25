@@ -19,9 +19,9 @@
 #include <functional>
 #include <string>
 
+#include "engine/rs_base_render_util.h"
 #include "feature/hwc/rs_uni_hwc_compute_util.h"
 #include "feature/pointer_window_manager/rs_pointer_window_manager.h"
-#include "pipeline/render_thread/rs_base_render_util.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 
 #include "common/rs_common_hook.h"

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,6 +27,7 @@
 #include "drawable/rs_logical_display_render_node_drawable.h"
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "engine/rs_base_render_util.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
 #endif
@@ -36,7 +37,6 @@
 #include "params/rs_screen_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "pipeline/render_thread/rs_base_render_util.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -601,14 +601,6 @@ bool RSUniDirtyComputeUtil::HasMirrorDisplay()
             }
     });
     return hasMirrorDisplay;
-}
-
-void RSUniDirtyComputeUtil::UpdatePrepareDirtyRegionClip(RSRenderNode& node, RectI& prepareDirtyRegionClip)
-{
-    if (auto clipRect = node.GetChildClipRegion()) {
-        auto& geoptr = node.GetRenderProperties().GetBoundsGeometry();
-        prepareDirtyRegionClip = prepareDirtyRegionClip.IntersectRect(geoptr->MapAbsRect(*clipRect));
-    }
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -422,11 +422,8 @@ HWTEST_F(RSUifirstManagerTest, CheckVisibleDirtyRegionIsEmpty001, TestSize.Level
 {
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
-
-    uifirstManager_.SetUiFirstType((int)UiFirstCcmType::SINGLE);
-    ASSERT_FALSE(uifirstManager_.CheckVisibleDirtyRegionIsEmpty(surfaceNode));
-
-    uifirstManager_.SetUiFirstType((int)UiFirstCcmType::MULTI);
+    auto visibleRegion = Occlusion::Region({0, 0, 100, 100});
+    surfaceNode->SetVisibleRegion(visibleRegion);
 
     // lockscreen to launcher anim
     surfaceNode->SetGlobalAlpha(0.f);
@@ -449,14 +446,13 @@ HWTEST_F(RSUifirstManagerTest, CheckVisibleDirtyRegionIsEmpty001, TestSize.Level
  */
 HWTEST_F(RSUifirstManagerTest, CheckVisibleDirtyRegionIsEmpty002, TestSize.Level1)
 {
-    uifirstManager_.SetUiFirstType((int)UiFirstCcmType::MULTI);
-
     auto emptyRegion = Occlusion::Region();
+    auto visibleRegion = Occlusion::Region({0, 0, 100, 100});
     auto leashWindow = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(leashWindow, nullptr);
     leashWindow->SetGlobalAlpha(1.f);
     leashWindow->uifirstContentDirty_ = false;
-    leashWindow->SetVisibleRegion(emptyRegion);
+    leashWindow->SetVisibleRegion(visibleRegion);
 
     auto appWindow = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(appWindow, nullptr);
@@ -468,7 +464,7 @@ HWTEST_F(RSUifirstManagerTest, CheckVisibleDirtyRegionIsEmpty002, TestSize.Level
     appWindow->SetVisibleRegion(emptyRegion);
     ASSERT_TRUE(uifirstManager_.CheckVisibleDirtyRegionIsEmpty(leashWindow));
 
-    auto visibleRegion = Occlusion::Region({ 100, 100, 1440, 1000 });
+    visibleRegion = Occlusion::Region({ 100, 100, 1440, 1000 });
     appWindow->SetVisibleRegion(visibleRegion);
 
     auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(appWindow->GetRenderDrawable());
@@ -496,6 +492,32 @@ HWTEST_F(RSUifirstManagerTest, CheckVisibleDirtyRegionIsEmpty002, TestSize.Level
 
     dirtyManager->SetUifirstFrameDirtyRect({ 200, 200, 200, 200 });
     // has visible dirty region
+    ASSERT_FALSE(uifirstManager_.CheckVisibleDirtyRegionIsEmpty(leashWindow));
+}
+
+/**
+ * @tc.name: CheckVisibleDirtyRegionIsEmpty003
+ * @tc.desc: Test CheckVisibleDirtyRegionIsEmpty for LeashOrMainWindow with empty visible region
+ * @tc.type: FUNC
+ * @tc.require: issue22763
+ */
+HWTEST_F(RSUifirstManagerTest, CheckVisibleDirtyRegionIsEmpty003, TestSize.Level1)
+{
+    auto emptyRegion = Occlusion::Region();
+    auto visibleRegion = Occlusion::Region({0, 0, 100, 100});
+
+    // Test 1: Leash Window with empty visible region should return true
+    auto leashWindow = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(leashWindow, nullptr);
+    leashWindow->SetSurfaceNodeType(RSSurfaceNodeType::ABILITY_COMPONENT_NODE);
+    ASSERT_FALSE(uifirstManager_.CheckVisibleDirtyRegionIsEmpty(leashWindow));
+
+    // Test 2: Leash Window with non-empty visible region should return false
+    leashWindow->SetVisibleRegion(emptyRegion);
+    ASSERT_TRUE(uifirstManager_.CheckVisibleDirtyRegionIsEmpty(leashWindow));
+
+    leashWindow->SetVisibleRegion(visibleRegion);
+    leashWindow->uifirstContentDirty_ = true;
     ASSERT_FALSE(uifirstManager_.CheckVisibleDirtyRegionIsEmpty(leashWindow));
 }
 

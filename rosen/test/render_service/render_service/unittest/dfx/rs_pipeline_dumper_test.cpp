@@ -25,6 +25,7 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+static constexpr int TEAR_DOWN_WAIT_SECONDS = 5;
 
 class RSPipelineDumperTest : public testing::Test {
 public:
@@ -47,6 +48,9 @@ void RSPipelineDumperTest::SetUp()
 }
 void RSPipelineDumperTest::TearDown()
 {
+    // Prevent the null pointer issue caused by the
+    // dump not being completed when the test case ends
+    sleep(TEAR_DOWN_WAIT_SECONDS);
     dumper_.reset();
     dumpManager_.reset();
 }

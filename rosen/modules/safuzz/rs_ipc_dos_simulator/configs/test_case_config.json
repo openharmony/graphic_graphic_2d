@@ -185,7 +185,7 @@
     "inputParams": "WriteRSTransactionData",
     "writeInterfaceToken": false,
     "messageOption": "TF_ASYNC",
-    "commandList": "RSUpdatePropertyVectorVector2f*100",
+    "commandList": "RSWindowKeyFrameNodeLinkNode*100",
     "commandListRepeat": 1
   },
   {
@@ -356,7 +356,7 @@
     "inputParams": "WriteRSTransactionData",
     "writeInterfaceToken": false,
     "messageOption": "TF_ASYNC",
-    "commandList": "RSColorPickerCallback*10000",
+    "commandList": "RSColorPickerCallback*100",
     "commandListRepeat": 1
   },
   {
@@ -1166,7 +1166,7 @@
     "inputParams": "WriteRSTransactionData",
     "writeInterfaceToken": false,
     "messageOption": "TF_ASYNC",
-    "commandList": "RSAnimationCreateParticleNG*10",
+    "commandList": "RSAnimationCreateParticleNG*100",
     "commandListRepeat": 1
   },
   {
@@ -1601,7 +1601,7 @@
     "commandList": "RSSetTakeSurfaceForUIFlag*100",
     "commandListRepeat": 1
   },
-   {
+  {
     "testCaseDesc": "COMMIT_TRANSACTION_TEST_179",
     "interfaceName": "COMMIT_TRANSACTION",
     "inputParams": "WriteRSTransactionData",
@@ -1611,24 +1611,60 @@
     "commandListRepeat": 1
   },
   {
+    "testCaseDesc": "COMMIT_TRANSACTION_TEST_180",
+    "interfaceName": "COMMIT_TRANSACTION",
+    "inputParams": "WriteRSTransactionData",
+    "writeInterfaceToken": false,
+    "messageOption": "TF_ASYNC",
+    "commandList": "RSDisplayNodeSetDisplayContentRect*100",
+    "commandListRepeat": 1
+  },
+  {
+    "testCaseDesc": "COMMIT_TRANSACTION_TEST_181",
+    "interfaceName": "COMMIT_TRANSACTION",
+    "inputParams": "WriteRSTransactionData",
+    "writeInterfaceToken": false,
+    "messageOption": "TF_ASYNC",
+    "commandList": "RSUnionNodeCreate*100",
+    "commandListRepeat": 1
+  },
+  {
+    "testCaseDesc": "COMMIT_TRANSACTION_TEST_182",
+    "interfaceName": "COMMIT_TRANSACTION",
+    "inputParams": "WriteRSTransactionData",
+    "writeInterfaceToken": false,
+    "messageOption": "TF_ASYNC",
+    "commandList": "RSWindowKeyFrameNodeCreate*100",
+    "commandListRepeat": 1
+  },
+  {
+    "testCaseDesc": "COMMIT_TRANSACTION_TEST_183",
+    "interfaceName": "COMMIT_TRANSACTION",
+    "inputParams": "WriteRSTransactionData",
+    "writeInterfaceToken": false,
+    "messageOption": "TF_ASYNC",
+    "commandList": "RSMarkLayerPartRender*100",
+    "commandListRepeat": 1
+  },
+  {
     "testCaseDesc": "GET_UNI_RENDER_ENABLED_TEST_001",
     "interfaceName": "GET_UNI_RENDER_ENABLED",
     "inputParams": "",
-    "writeInterfaceToken": false,
+    "writeInterfaceToken": true,
     "messageOption": "TF_SYNC"
   },
   {
     "testCaseDesc": "CREATE_NODE_TEST_001",
     "interfaceName": "CREATE_NODE",
     "inputParams": "WriteUint64;WriteString",
-    "writeInterfaceToken": false,
+    "writeInterfaceToken": true,
     "messageOption": "TF_SYNC"
   },
   {
     "testCaseDesc": "CREATE_NODE_AND_SURFACE_TEST_001",
     "interfaceName": "CREATE_NODE_AND_SURFACE",
     "inputParams": "WriteUint64;WriteString;WriteUint8;WriteBool;WriteBool;WriteUint8;WriteBool",
-    "writeInterfaceToken": false,
+    "writeInterfaceToken": true,
     "messageOption": "TF_SYNC"
   },
   {
@@ -1916,34 +1952,34 @@
     "interfaceName": "SET_ROG_SCREEN_RESOLUTION",
     "inputParams": "WriteUint64;WriteUint32;WriteUint32",
     "writeInterfaceToken": true,
-    "messageOption": "TF_ASYNC"
+    "messageOption": "TF_SYNC"
   },
   {
     "testCaseDesc": "TAKE_SURFACE_CAPTURE_TEST_001",
     "interfaceName": "TAKE_SURFACE_CAPTURE",
-    "inputParams": "WriteUint64;WriteSurfaceCaptureCallbackSptr;WriteFloat;WriteFloat;WriteBool;WriteBool;WriteUint8;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteBool;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteFloat",
-    "writeInterfaceToken": false,
+    "inputParams": "WriteUint64;WriteSurfaceCaptureCallbackSptr;WriteFloat;WriteFloat;WriteBool;WriteBool;WriteUint8;WriteBool;WriteBool;WriteBool;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteUint64;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteUInt64Vector;WriteUint32;WriteUint32;WriteBool;WriteUint32;WriteBool;WriteBool;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat",
+    "writeInterfaceToken": true,
     "messageOption": "TF_ASYNC"
   },
   {
     "testCaseDesc": "SET_WINDOW_FREEZE_IMMEDIATELY_TEST_001",
     "interfaceName": "SET_WINDOW_FREEZE_IMMEDIATELY",
-    "inputParams": "WriteUint64;WriteBool;WriteSurfaceCaptureCallbackSptr;WriteFloat;WriteFloat;WriteBool;WriteBool;WriteUint8;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteBool;WriteFloat",
-    "writeInterfaceToken": false,
+    "inputParams": "WriteUint64;WriteBool;WriteSurfaceCaptureCallbackSptr;WriteFloat;WriteFloat;WriteBool;WriteBool;WriteUint8;WriteBool;WriteBool;WriteBool;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteUint64;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteUInt64Vector;WriteUint32;WriteUint32;WriteBool;WriteUint32;WriteBool;WriteBool;WriteBool;WriteFloat",
+    "writeInterfaceToken": true,
     "messageOption": "TF_ASYNC"
   },
   {
     "testCaseDesc": "SET_POINTER_POSITION_TEST_001",
     "interfaceName": "SET_POINTER_POSITION",
     "inputParams": "WriteUint64;WriteFloat;WriteFloat;WriteFloat;WriteFloat",
-    "writeInterfaceToken": false,
+    "writeInterfaceToken": true,
     "messageOption": "TF_ASYNC"
   },
   {
     "testCaseDesc": "GET_PIXELMAP_BY_PROCESSID_TEST_001",
     "interfaceName": "GET_PIXELMAP_BY_PROCESSID",
     "inputParams": "WriteUint64",
-    "writeInterfaceToken": false,
+    "writeInterfaceToken": true,
     "messageOption": "TF_SYNC"
   },
   {
@@ -1999,7 +2035,7 @@
     "testCaseDesc": "REGISTER_APPLICATION_AGENT_TEST_001",
     "interfaceName": "REGISTER_APPLICATION_AGENT",
     "inputParams": "WriteApplicationAgentSptr",
-    "writeInterfaceToken": false,
+    "writeInterfaceToken": true,
     "messageOption": "TF_ASYNC"
   },
   {
@@ -2090,7 +2126,7 @@
     "testCaseDesc": "CREATE_VSYNC_CONNECTION_TEST_001",
     "interfaceName": "CREATE_VSYNC_CONNECTION",
     "inputParams": "WriteString;WriteVSyncIConnectionToken;WriteUint64;WriteUint64;WriteBool",
-    "writeInterfaceToken": false,
+    "writeInterfaceToken": true,
     "messageOption": "TF_SYNC"
   },
   {
@@ -2411,7 +2447,7 @@
   {
     "testCaseDesc": "DROP_FRAME_BY_PID_TEST_001",
     "interfaceName": "DROP_FRAME_BY_PID",
-    "inputParams": "WriteInt32Vector",
+    "inputParams": "WriteInt32Vector;WriteInt32",
     "writeInterfaceToken": true,
     "messageOption": "TF_ASYNC"
   },
@@ -2705,7 +2741,7 @@
   {
     "testCaseDesc": "REGISTER_TRANSACTION_DATA_CALLBACK_TEST_001",
     "interfaceName": "REGISTER_TRANSACTION_DATA_CALLBACK",
-    "inputParams": "WriteInt32;WriteUint64;WriteTransactionDataCallbackSptr",
+    "inputParams": "WriteUint64;WriteUint64;WriteTransactionDataCallbackSptr",
     "writeInterfaceToken": true,
     "messageOption": "TF_ASYNC"
   },
@@ -2775,29 +2811,29 @@
   {
     "testCaseDesc": "TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOWS_TEST_001",
     "interfaceName": "TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOWS",
-    "inputParams": "WriteUint64;WriteBool;WriteSurfaceCaptureCallbackSptr;WriteFloat;WriteFloat;WriteBool;WriteBool;WriteUint8;WriteBool;WriteBool;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteUint64;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteUInt64Vector;WriteUint32",
+    "inputParams": "WriteUint64;WriteBool;WriteSurfaceCaptureCallbackSptr;WriteFloat;WriteFloat;WriteBool;WriteBool;WriteUint8;WriteBool;WriteBool;WriteBool;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteUint64;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteUInt64Vector;WriteUint32;WriteUint32;WriteBool;WriteUint32;WriteBool;WriteBool",
     "writeInterfaceToken": true,
     "messageOption": "TF_ASYNC"
   },
   {
     "testCaseDesc": "TAKE_UI_CAPTURE_IN_RANGE_TEST_001",
     "interfaceName": "TAKE_UI_CAPTURE_IN_RANGE",
-    "inputParams": "WriteUint64;WriteSurfaceCaptureCallbackSptr;WriteFloat;WriteFloat;WriteBool;WriteBool;WriteUint8;WriteBool;WriteBool;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteUint64;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteUInt64Vector;WriteUint32",
-    "writeInterfaceToken": false,
+    "inputParams": "WriteUint64;WriteSurfaceCaptureCallbackSptr;WriteFloat;WriteFloat;WriteBool;WriteBool;WriteUint8;WriteBool;WriteBool;WriteBool;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteUint64;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteUInt64Vector;WriteUint32;WriteUint32;WriteBool;WriteUint32;WriteBool;WriteBool",
+    "writeInterfaceToken": true,
     "messageOption": "TF_ASYNC"
   },
   {
     "testCaseDesc": "TAKE_SURFACE_CAPTURE_SOLO_TEST_001",
     "interfaceName": "TAKE_SURFACE_CAPTURE_SOLO",
-    "inputParams": "WriteUint64;WriteFloat;WriteFloat;WriteBool;WriteBool;WriteUint8;WriteBool;WriteBool;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteUint64;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteUInt64Vector;WriteUint32",
-    "writeInterfaceToken": false,
+    "inputParams": "WriteUint64;WriteFloat;WriteFloat;WriteBool;WriteBool;WriteUint8;WriteBool;WriteBool;WriteBool;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteUint64;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteUInt64Vector;WriteUint32;WriteUint32;WriteBool;WriteUint32;WriteBool;WriteBool",
+    "writeInterfaceToken": true,
     "messageOption": "TF_SYNC"
   },
   {
     "testCaseDesc": "TAKE_SELF_SURFACE_CAPTURE_TEST_001",
     "interfaceName": "TAKE_SELF_SURFACE_CAPTURE",
-    "inputParams": "WriteUint64;WriteSurfaceCaptureCallbackSptr;WriteFloat;WriteFloat;WriteBool;WriteBool;WriteUint8;WriteBool;WriteBool;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteUint64;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteUInt64Vector;WriteUint32",
-    "writeInterfaceToken": false,
+    "inputParams": "WriteUint64;WriteSurfaceCaptureCallbackSptr;WriteFloat;WriteFloat;WriteBool;WriteBool;WriteUint8;WriteBool;WriteBool;WriteBool;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteUint64;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteUInt64Vector;WriteUint32;WriteUint32;WriteBool;WriteUint32;WriteBool;WriteBool",
+    "writeInterfaceToken": true,
     "messageOption": "TF_ASYNC"
   },
   {
@@ -2812,7 +2848,7 @@
     "interfaceName": "GET_BRIGHTNESS_INFO",
     "inputParams": "WriteUint64",
     "writeInterfaceToken": true,
-    "messageOption": "TF_ASYNC"
+    "messageOption": "TF_SYNC"
   },
   {
     "testCaseDesc": "FREEZE_SCREEN_TEST_001",
@@ -2824,9 +2860,9 @@
   {
     "testCaseDesc": "GET_HIGH_CONTRAST_TEXT_STATE_TEST_001",
     "interfaceName": "GET_HIGH_CONTRAST_TEXT_STATE",
-    "inputParams": "WriteBool",
+    "inputParams": "",
     "writeInterfaceToken": true,
-    "messageOption": "TF_ASYNC"
+    "messageOption": "TF_SYNC"
   },
   {
     "testCaseDesc": "SET_COLOR_FOLLOW_TEST_001",
@@ -2853,7 +2889,7 @@
     "testCaseDesc": "SET_BEHIND_WINDOW_FILTER_ENABLED_TEST_001",
     "interfaceName": "SET_BEHIND_WINDOW_FILTER_ENABLED",
     "inputParams": "WriteBool",
-    "writeInterfaceToken": false,
+    "writeInterfaceToken": true,
     "messageOption": "TF_SYNC"
   },
   {
@@ -2887,7 +2923,7 @@
   {
     "testCaseDesc": "SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER_TEST_001",
     "interfaceName": "SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER",
-    "inputParams": "WriteUint64;WriteUint32;WriteUint32;WriteBool;WriteSurfaceBufferSptr",
+    "inputParams": "WriteUint64;WriteUint32;WriteSurfaceBufferSptr",
     "writeInterfaceToken": true,
     "messageOption": "TF_SYNC"
   },
@@ -2903,26 +2939,47 @@
     "interfaceName": "SET_LAYER_TOP_FOR_HARDWARE_COMPOSER",
     "inputParams": "WriteUint64;WriteBool;WriteUint32",
     "writeInterfaceToken": true,
-    "messageOption": "TF_SYNC"
+    "messageOption": "TF_ASYNC"
   },
   {
     "testCaseDesc": "CLEAR_SURFACE_WATERMARK_TEST_001",
     "interfaceName": "CLEAR_SURFACE_WATERMARK",
     "inputParams": "WriteInt32;WriteString",
     "writeInterfaceToken": true,
-    "messageOption": "TF_SYNC"
+    "messageOption": "TF_ASYNC"
   },
   {
     "testCaseDesc": "CLEAR_SURFACE_WATERMARK_FOR_NODES_TEST_001",
     "interfaceName": "CLEAR_SURFACE_WATERMARK_FOR_NODES",
     "inputParams": "WriteInt32;WriteString;WriteUInt64Vector",
     "writeInterfaceToken": true,
-    "messageOption": "TF_SYNC"
+    "messageOption": "TF_ASYNC"
   },
   {
     "testCaseDesc": "SET_SURFACE_WATERMARK_TEST_001",
     "interfaceName": "SET_SURFACE_WATERMARK",
     "inputParams": "WriteInt32;WriteString;WriteBool;WritePixelMapSharedPtr;WriteUInt64Vector;WriteUint8",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC"
+  },
+  {
+    "testCaseDesc": "GET_ROG_SCREEN_RESOLUTION_TEST_001",
+    "interfaceName": "GET_ROG_SCREEN_RESOLUTION",
+    "inputParams": "WriteUint64",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC"
+  },
+  {
+    "testCaseDesc": "SET_OVERLAY_DISPLAY_MODE_TEST_001",
+    "interfaceName": "SET_OVERLAY_DISPLAY_MODE",
+    "inputParams": "WriteInt32",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC"
+  },
+  {
+    "testCaseDesc": "SET_SCREEN_SWITCHING_NOTIFY_CALLBACK_TEST_001",
+    "interfaceName": "SET_SCREEN_SWITCHING_NOTIFY_CALLBACK",
+    "inputParams": "WriteBool;WriteScreenSwitchingNotifyCallbackSptr",
     "writeInterfaceToken": true,
     "messageOption": "TF_SYNC"
   }

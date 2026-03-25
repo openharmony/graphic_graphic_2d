@@ -13,15 +13,14 @@
  * limitations under the License.
  */
 
-#include "rs_base_render_engine.h"
+#include "engine/rs_base_render_engine.h"
 
 #include <memory>
 #include "v2_2/cm_color_space.h"
 
 #include "common/rs_optional_trace.h"
 #include "display_engine/rs_luminance_control.h"
-#include "feature/gpuComposition/rs_gpu_cache_manager.h"
-#include "graphic_feature_param_manager.h"
+#include "gpuComposition/rs_gpu_cache_manager.h"
 #include "memory/rs_tag_tracker.h"
 #include "metadata_helper.h"
 #include "pipeline/render_thread/rs_divided_render_util.h"
@@ -37,8 +36,8 @@
 #endif
 
 #if (defined(RS_ENABLE_GPU) && defined(RS_ENABLE_GL))
+#include "gpuComposition/rs_image_manager.h"
 #include "platform/ohos/backend/rs_surface_ohos_gl.h"
-#include "feature/gpuComposition/rs_image_manager.h"
 #endif
 
 #ifdef HETERO_HDR_ENABLE
@@ -483,7 +482,7 @@ bool RSBaseRenderEngine::SetColorSpaceConverterDisplayParameter(
     RSColorSpaceConvert::Instance().GetHDRDynamicMetadata(params.buffer, parameter.dynamicMetadata, ret);
     RSColorSpaceConvert::Instance().GetFOVMetadata(params.buffer, parameter.adaptiveFOVMetadata);
     RSColorSpaceConvert::Instance().GetAIHDRVideoMetadata(params.buffer, parameter.aihdrVideoMetadata, ret);
-    if (RSHdrUtil::CheckIsHDRSelfProcessingBuffer(params.buffer)) {
+    if (RSBaseHdrUtil::CheckIsHDRSelfProcessingBuffer(params.buffer)) {
         RS_LOGD("RSBaseRenderEngine::ColorSpaceConvertor CheckIsHDRSelfProcessingBuffer is true");
         parameter.inputColorSpace.metadataType = static_cast<CM_HDR_Metadata_Type>(HDR_SELF_PROCESSING_TYPE);
         parameter.outputColorSpace.metadataType = static_cast<CM_HDR_Metadata_Type>(HDR_SELF_PROCESSING_TYPE);
@@ -802,7 +801,9 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
 #ifdef HETERO_HDR_ENABLE
         bool needHetero = (params.hdrHeteroType & RSHeteroHDRUtilConst::HDR_HETERO) && !ROSEN_LE(params.sdrNits, 0.0f);
         if (needHetero) {
-            RSHeteroHDRManager::Instance().GenerateHDRHeteroShader(params, imageShader);
+            if (generateHDRHeteroShaderCallback_) {
+                generateHDRHeteroShaderCallback_(params, imageShader);
+            }
         } else {
             params.paint.SetShaderEffect(imageShader);
             ColorSpaceConvertor(imageShader, params, videoInfo.parameter_, canvas.GetHDRProperties());
@@ -923,5 +924,25 @@ void RSBaseRenderEngine::ClearCacheSet(const std::unordered_set<uint64_t>& unmap
         }
     }
 }
+
+void RSBaseRenderEngine::RegisterUniRenderUtilCallback(
+    const CreateLayerBufferDrawParamFunc createLayerBufferDrawParamCallback,
+    const DrawRectForDfxFunc drawRectForDfxCallback)
+{
+    createLayerBufferDrawParamCallback_ = createLayerBufferDrawParamCallback;
+    drawRectForDfxCallback_ = drawRectForDfxCallback;
+}
+
+#ifdef HETERO_HDR_ENABLE
+void RSBaseRenderEngine::RegisterHeteroHDRCallback(
+    const GenerateHDRHeteroShaderFunc generateHDRHeteroShaderCallback,
+    const UpdateHDRHeteroParamsFunc updateHDRHeteroParamsCallback,
+    const GetHDRSurfaceHandlerFunc getHDRSurfaceHandlerCallback)
+{
+    generateHDRHeteroShaderCallback_ = generateHDRHeteroShaderCallback;
+    updateHDRHeteroParamsCallback_ = updateHDRHeteroParamsCallback;
+    getHDRSurfaceHandlerCallback_ = getHDRSurfaceHandlerCallback;
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

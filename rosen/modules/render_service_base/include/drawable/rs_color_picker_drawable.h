@@ -61,14 +61,15 @@ public:
     /**
      * @brief Called only when color picker node intersects with dirty region
      * @param vsyncTime Current vsync time in nanoseconds
+     * @return Delay time in milliseconds, -1 if no scheduling needed
      *
      * Schedules color pick when in PREPARING state.
      * Calculates delay based on cooldown interval:
      * - If cooldown passed: execute immediately (delay = 0)
      * - If cooldown not passed: delay = lastUpdateTime + interval - currentTime
-     * Transitions from PREPARING to SCHEDULED state and posts delayed task.
+     * Transitions from PREPARING to SCHEDULED state.
      */
-    void ScheduleColorPickIfReady(uint64_t vsyncTime);
+    int64_t ScheduleColorPickIfReady(uint64_t vsyncTime);
 
     void ResetColorMemory();
 

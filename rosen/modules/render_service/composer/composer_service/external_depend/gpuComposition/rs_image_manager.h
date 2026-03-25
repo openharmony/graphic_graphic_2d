@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef RS_IMAGE_MANAGER_H
-#define RS_IMAGE_MANAGER_H
+#ifndef RENDER_SERVICE_COMPOSER_SERVICE_EXTERNER_DEPEND_GPU_COMPOSITION_RS_IMAGE_MANAGER_H
+#define RENDER_SERVICE_COMPOSER_SERVICE_EXTERNER_DEPEND_GPU_COMPOSITION_RS_IMAGE_MANAGER_H
 
 #include <memory>
 #include <mutex>
@@ -25,8 +25,8 @@
 #include <unordered_map>
 #include <surface.h>
 
+#include "engine/rs_base_render_util.h"
 #include "render_context/render_context.h"
-#include "pipeline/render_thread/rs_base_render_util.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 
 namespace OHOS {
@@ -57,4 +57,4 @@ protected:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RS_IMAGE_MANAGER_H
+#endif // RENDER_SERVICE_COMPOSER_SERVICE_EXTERNER_DEPEND_GPU_COMPOSITION_RS_IMAGE_MANAGER_H

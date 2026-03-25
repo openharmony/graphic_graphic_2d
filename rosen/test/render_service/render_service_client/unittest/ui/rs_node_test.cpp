@@ -8506,6 +8506,144 @@ HWTEST_F(RSNodeTest, SetRSUIContext007, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetDescendantCount001
+ * @tc.desc: test for function : GetDescendantCount with no children
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, GetDescendantCount001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
+    EXPECT_EQ(rsNode->GetDescendantCount(), 0U);
+}
+
+/**
+ * @tc.name: GetDescendantCount002
+ * @tc.desc: test for function : GetDescendantCount with direct children only
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, GetDescendantCount002, TestSize.Level1)
+{
+    auto rootNode = RSCanvasNode::Create();
+    ASSERT_NE(rootNode, nullptr);
+    
+    auto child1 = RSCanvasNode::Create();
+    auto child2 = RSCanvasNode::Create();
+    auto child3 = RSCanvasNode::Create();
+    
+    rootNode->AddChild(child1, -1);
+    rootNode->AddChild(child2, -1);
+    rootNode->AddChild(child3, -1);
+    
+    EXPECT_EQ(rootNode->GetDescendantCount(), 3U);
+}
+
+/**
+ * @tc.name: GetDescendantCount003
+ * @tc.desc: test for function : GetDescendantCount with nested children (recursive)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, GetDescendantCount003, TestSize.Level1)
+{
+    auto rootNode = RSCanvasNode::Create();
+    ASSERT_NE(rootNode, nullptr);
+    
+    auto child1 = RSCanvasNode::Create();
+    auto child2 = RSCanvasNode::Create();
+    auto grandChild1 = RSCanvasNode::Create();
+    auto grandChild2 = RSCanvasNode::Create();
+    auto greatGrandChild = RSCanvasNode::Create();
+    
+    rootNode->AddChild(child1, -1);
+    rootNode->AddChild(child2, -1);
+    child1->AddChild(grandChild1, -1);
+    child1->AddChild(grandChild2, -1);
+    grandChild1->AddChild(greatGrandChild, -1);
+    
+    EXPECT_EQ(rootNode->GetDescendantCount(), 5U);
+    EXPECT_EQ(child1->GetDescendantCount(), 3U);
+    EXPECT_EQ(child2->GetDescendantCount(), 0U);
+    EXPECT_EQ(grandChild1->GetDescendantCount(), 1U);
+    EXPECT_EQ(grandChild2->GetDescendantCount(), 0U);
+    EXPECT_EQ(greatGrandChild->GetDescendantCount(), 0U);
+}
+
+/**
+ * @tc.name: GetDescendantCount004
+ * @tc.desc: test for function : GetDescendantCount after removing children
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, GetDescendantCount004, TestSize.Level1)
+{
+    auto rootNode = RSCanvasNode::Create();
+    ASSERT_NE(rootNode, nullptr);
+    
+    auto child1 = RSCanvasNode::Create();
+    auto child2 = RSCanvasNode::Create();
+    auto grandChild = RSCanvasNode::Create();
+    
+    rootNode->AddChild(child1, -1);
+    rootNode->AddChild(child2, -1);
+    child1->AddChild(grandChild, -1);
+    
+    EXPECT_EQ(rootNode->GetDescendantCount(), 3U);
+    
+    rootNode->RemoveChild(child2);
+    EXPECT_EQ(rootNode->GetDescendantCount(), 2U);
+    
+    rootNode->ClearChildren();
+    EXPECT_EQ(rootNode->GetDescendantCount(), 0U);
+}
+
+/**
+ * @tc.name: GetDescendantCount005
+ * @tc.desc: test for function : GetDescendantCount with deep tree structure
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, GetDescendantCount005, TestSize.Level1)
+{
+    auto rootNode = RSCanvasNode::Create();
+    ASSERT_NE(rootNode, nullptr);
+    
+    auto level1Child = RSCanvasNode::Create();
+    auto level2Child = RSCanvasNode::Create();
+    auto level3Child = RSCanvasNode::Create();
+    auto level4Child = RSCanvasNode::Create();
+    
+    rootNode->AddChild(level1Child, -1);
+    level1Child->AddChild(level2Child, -1);
+    level2Child->AddChild(level3Child, -1);
+    level3Child->AddChild(level4Child, -1);
+    
+    EXPECT_EQ(rootNode->GetDescendantCount(), 4U);
+    EXPECT_EQ(level1Child->GetDescendantCount(), 3U);
+    EXPECT_EQ(level2Child->GetDescendantCount(), 2U);
+    EXPECT_EQ(level3Child->GetDescendantCount(), 1U);
+    EXPECT_EQ(level4Child->GetDescendantCount(), 0U);
+}
+
+/**
+ * @tc.name: GetDescendantCount006
+ * @tc.desc: test for function : GetDescendantCount with expired weak_ptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, GetDescendantCount006, TestSize.Level1)
+{
+    auto rootNode = RSCanvasNode::Create();
+    ASSERT_NE(rootNode, nullptr);
+    
+    {
+        auto child1 = RSCanvasNode::Create();
+        auto child2 = RSCanvasNode::Create();
+        rootNode->AddChild(child1, -1);
+        rootNode->AddChild(child2, -1);
+        EXPECT_EQ(rootNode->GetDescendantCount(), 2U);
+    }
+    
+    EXPECT_EQ(rootNode->GetDescendantCount(), 0U);
+}
+
+/**
  * @tc.name: SetBackgroundColorHeadroomTest
  * @tc.desc: test SetBackgroundColor set headroom
  * @tc.type:FUNC

@@ -229,7 +229,7 @@ void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, std::share
 
 void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, const RRect& value)
 {
-    hash = hashFunc_(&value, sizeof(RRect), hash);
+    hash = hashFunc_(&value, sizeof(value), hash);
 }
 
 void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, const Matrix3f& value)

@@ -37,7 +37,11 @@ namespace OHOS {
 constexpr int NUMBER_TWO = 2;
 constexpr int READ_SIZE = 8192;
 constexpr int MAX_FILE_NAME = 512;
+#ifdef VERIFY_PLAT_FPGA
+constexpr int SLEEP_TIME_US = 600000;
+#else
 constexpr int SLEEP_TIME_US = 30000;
+#endif
 constexpr int SLEEP_TIME_US_10 = 10000;
 constexpr int INVALID_VOLUME = -1;
 constexpr int MIN_VOLUME = 0;

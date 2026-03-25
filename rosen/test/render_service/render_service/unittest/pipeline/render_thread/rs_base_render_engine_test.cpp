@@ -19,13 +19,13 @@
 #ifdef RS_ENABLE_VK
 #include <parameter.h>
 #include <parameters.h>
-#include "feature/gpuComposition/rs_vk_image_manager.h"
+#include "gpuComposition/rs_vk_image_manager.h"
 #else
-#include "feature/gpuComposition/rs_egl_image_manager.h"
+#include "gpuComposition/rs_egl_image_manager.h"
 #endif
-#include "feature/gpuComposition/rs_gpu_cache_manager.h"
+#include "gpuComposition/rs_gpu_cache_manager.h"
 #include "feature/hdr/rs_hdr_util.h"
-#include "pipeline/render_thread/rs_base_render_engine.h"
+#include "engine/rs_base_render_engine.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/rs_test_util.h"
 #include "recording/recording_canvas.h"
@@ -782,12 +782,12 @@ HWTEST_F(RSBaseRenderEngineUnitTest, SetColorSpaceConverterDisplayParameterTest,
 
     Media::VideoProcessingEngine::HdrStaticMetadata staticMetadata;
     MetadataHelper::SetHDRStaticMetadata(params.buffer, staticMetadata);
-    bool ret = RSHdrUtil::CheckIsHDRSelfProcessingBuffer(params.buffer);
+    bool ret = RSBaseHdrUtil::CheckIsHDRSelfProcessingBuffer(params.buffer);
     EXPECT_EQ(ret, false);
 
     staticMetadata.cta861.maxContentLightLevel = 400.0f;
     MetadataHelper::SetHDRStaticMetadata(params.buffer, staticMetadata);
-    ret = RSHdrUtil::CheckIsHDRSelfProcessingBuffer(params.buffer);
+    ret = RSBaseHdrUtil::CheckIsHDRSelfProcessingBuffer(params.buffer);
     renderEngine->SetColorSpaceConverterDisplayParameter(params, parameter);
     EXPECT_EQ(ret, true);
 #endif

@@ -2751,13 +2751,15 @@ void RSNode::SetGreyCoef(const Vector2f greyCoef)
 
 void RSNode::SetCompositingNGFilter(const std::shared_ptr<RSNGFilterBase>& compositingFilter)
 {
-    auto filter = compositingFilter;
-    if (filter == nullptr) {
-        MaterialParam materialParam = { 0.0, 1.0, 1.0, RSColor(), false };
-        filter = RSNGFilterHelper::CreateNGMaterialBlurFilter(materialParam);
+    if (!compositingFilter) {
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::COMPOSITING_FILTER);
+        if (modifier != nullptr) {
+            modifier->DetachProperty(ModifierNG::RSPropertyType::COMPOSITING_NG_FILTER);
+        }
+        return;
     }
     SetPropertyNG<ModifierNG::RSCompositingFilterModifier,
-        &ModifierNG::RSCompositingFilterModifier::SetNGFilterBase>(filter);
+        &ModifierNG::RSCompositingFilterModifier::SetNGFilterBase>(compositingFilter);
 }
 
 void RSNode::SetShadowColor(uint32_t colorValue)
@@ -4298,6 +4300,18 @@ RSNode::SharedPtr RSNode::GetChildByIndex(int index) const
         return children_.back().lock();
     }
     return children_.at(index).lock();
+}
+
+size_t RSNode::GetDescendantCount() const
+{
+    size_t count = children_.size();
+    for (const auto& child : children_) {
+        auto childNode = child.lock();
+        if (childNode) {
+            count += childNode->GetDescendantCount();
+        }
+    }
+    return count;
 }
 
 void RSNode::SetParent(WeakPtr parent)

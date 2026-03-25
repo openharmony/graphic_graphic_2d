@@ -15,7 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "limit_number.h"
-#include "pipeline/render_thread/rs_uni_render_engine.h"
+#include "engine/rs_uni_render_engine.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_processor_factory.h"
 #include "pipeline/render_thread/rs_virtual_screen_processor.h"
