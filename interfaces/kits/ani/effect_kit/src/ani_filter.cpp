@@ -124,7 +124,7 @@ ani_object AniFilter::EllipticalGradientBlur(ani_env *env, ani_object obj, ani_d
     }
     ani_double degreeParam;
     auto ret = env->Object_CallMethodByName_Double(
-        static_cast<ani_object>(degreeRef), 
+        static_cast<ani_object>(degreeRef),
         "toDouble", ":d", &degreeParam);
     if (ret != ANI_OK) {
         return;
