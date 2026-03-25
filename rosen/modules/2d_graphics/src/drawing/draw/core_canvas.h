@@ -473,10 +473,11 @@ public:
      * ColorFilter, MaskFilter, PathEffect, Shader, and Brush::Style; apply to blob.
      * If attach pen to draw text, set Pen::Cap, Pen::Join, and stroke width;
      * apply to Path created from blob.
-     * @param count Number of glyphs
-     * @param glyphs Array of glyphIDs
-     * @param positions offset of each glyphs to origin
-     * @param font Typeface, font size, skew or more other styles
+     * @param count Number of glyphs.
+     * @param glyphs Array of glyphIDs.
+     * @param positions offset of each glyphs to origin.
+     * @param origin origin of all pos. 
+     * @param font Typeface, font size, skew or more other styles.
      */
     virtual void DrawGlyphs(int count, const uint16_t glyphs[], const Point positions[],
                             Point origin, const Font* font);
