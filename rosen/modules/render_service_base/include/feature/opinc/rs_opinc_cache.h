@@ -65,6 +65,7 @@ public:
 
     bool GetCurNodeTreeSupportFlag() const { return curNodeTreeSupportFlag_; }
     void SetCurNodeTreeSupportFlag(bool curNodeTreeSupportFlag) { curNodeTreeSupportFlag_ = curNodeTreeSupportFlag; }
+    void OpincSubTreeSkip();
 
     void MarkSuggestLayerPartRenderNode(bool isLayerPartRender);
     bool IsSuggestLayerPartRenderNode() const;

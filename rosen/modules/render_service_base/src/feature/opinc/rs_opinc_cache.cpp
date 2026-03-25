@@ -183,6 +183,16 @@ void RSOpincCache::NodeCacheStateReset(NodeCacheState nodeCacheState)
     isOpincRootFlag_ = false;
 }
 
+void RSOpincCache::OpincSubTreeSkip()
+{
+    if (!IsSuggestOpincNode() || nodeCacheState_ == NodeCacheState::STATE_UNCHANGE ||
+        unchangeCount_ >= unchangeCountUpper_) {
+        return;
+    }
+
+    unchangeCount_ = unchangeCountUpper_;
+}
+
 void RSOpincCache::MarkSuggestLayerPartRenderNode(bool isLayerPartRender)
 {
     isSuggestLayerPartRenderNode_ = isLayerPartRender;

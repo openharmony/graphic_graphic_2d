@@ -139,6 +139,17 @@ void RSOpincManager::UpdateRootFlag(RSRenderNode& node, bool& unchangeMarkEnable
     }
 }
 
+void RSOpincManager::OpincSubTreeSkipPrepare(RSRenderNode& node, bool& unchangeMarkEnable)
+{
+    if (!unchangeMarkEnable || !OpincGetNodeSupportFlag(node)) {
+        return;
+    }
+
+    RS_OPTIONAL_TRACE_FMT("%s, node: %" PRIu64, __func__, node.GetId());
+    auto& opincCache = node.GetOpincCache();
+    opincCache.OpincSubTreeSkip();
+}
+
 OpincUnsupportType RSOpincManager::GetUnsupportReason(RSRenderNode& node)
 {
     if (!node.GetOpincCache().GetSubTreeSupportFlag()) {
