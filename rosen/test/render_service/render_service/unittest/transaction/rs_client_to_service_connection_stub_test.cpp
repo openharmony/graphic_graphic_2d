@@ -4208,4 +4208,19 @@ HWTEST_F(RSClientToServiceConnectionStubTest, GetConnectionTest, TestSize.Level1
             renderService_.vsyncManager_->GetVsyncManagerAgent());
     EXPECT_EQ(connection != nullptr, true);
 }
+
+/**
+ * @tc.name: ATC_NotifyRefreshRateEvent
+ * @tc.desc: Test ATC_NotifyRefreshRateEvent
+ * @tc.type: FUNC
+ * @tc.require: issue20726
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, ATC_NotifyRefreshRateEvent, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    EventInfo eventInfo;
+    eventInfo.eventName = "GPU_FREQ_PREF";
+    connectionStub_->NotifyRefreshRateEvent(eventInfo);
+    ASSERT_EQ(eventInfo.eventName, "GPU_FREQ_PREF");
+}
 } // namespace OHOS::Rosen

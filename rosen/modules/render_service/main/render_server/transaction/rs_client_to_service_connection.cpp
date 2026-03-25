@@ -106,6 +106,7 @@ constexpr uint64_t MAX_TIME_OUT_NS = 1e9;
 constexpr int64_t MAX_FREEZE_SCREEN_TIME = 3000;
 const std::string UNFREEZE_SCREEN_TASK_NAME = "UNFREEZE_SCREEN_TASK";
 }
+const std::string RSClientToServiceConnection::GPU_FREQ_PREF = "GPU_FREQ_PREF";
 // we guarantee that when constructing this object,
 // all these pointers are valid, so will not check them.
 RSClientToServiceConnection::RSClientToServiceConnection(

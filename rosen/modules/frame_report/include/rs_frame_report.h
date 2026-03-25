@@ -20,9 +20,8 @@
 #include <string>
 #include <unordered_map>
 #if defined (RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
-#include "vulkan/vulkan_core.h"
-#include "vulkan/vulkan_xeg.h"
 #include "vulkan/vulkan.h"
+#include "vulkan/vulkan_xeg.h"
 #endif
 
 namespace OHOS {
@@ -58,6 +57,18 @@ public:
     static void ReportWindowInfo(VkDevice device, bool isSingleFullScreenApp, const char* firstFrontBundleName);
 #endif
 private:
+#ifdef RS_ENABLE_VK
+    struct VkHandleDeleter {
+        void operator()(void* ptr) const;
+    };
+    static bool InitializeVulkanExtensions(VkDevice device);
+    static std::atomic<bool> isInit;
+    static PFN_vkSetFrontWindowStatusHUAWEI mSetFrontWindowStatusHUAWEI;
+    static PFN_vkGetDeviceProcAddr vkGetDeviceProcAddr;
+    static std::unique_ptr<void, VkHandleDeleter> vkhandle;
+    static std::function<void*(const char*, int)> dlopenFunc;
+    static std::function<void*(void*, const char*)> dlsymFunc;
+#endif
     static void InitSched();
     static std::once_flag initFlag_;
     static bool inited;

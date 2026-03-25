@@ -414,7 +414,7 @@ private:
     bool cleanDone_ = false;
     const std::string VOTER_SCENE_BLUR = "VOTER_SCENE_BLUR";
     const std::string VOTER_SCENE_GPU = "VOTER_SCENE_GPU";
-    const std::string GPU_FREQ_PREF = "GPU_FREQ_PREF";
+    static const std::string GPU_FREQ_PREF;
     sptr<RSVsyncManagerAgent> vsyncManagerAgent_ = nullptr;
 
 #ifdef RS_PROFILER_ENABLED
