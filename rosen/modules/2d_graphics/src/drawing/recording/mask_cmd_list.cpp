@@ -144,10 +144,13 @@ void MaskBrushOpItem::Playback(Brush& brush, const CmdList& cmdList) const
     filter.SetMaskFilter(maskFilter);
     filter.SetFilterQuality(brushHandle_.filterQuality);
 
-    const Color4f color4f = { brushHandle_.color.GetRedF(), brushHandle_.color.GetGreenF(),
-        brushHandle_.color.GetBlueF(), brushHandle_.color.GetAlphaF() };
-
-    brush.SetColor(color4f, colorSpace);
+    if (brushHandle_.isUIColor) {
+        brush.SetUIColor(brushHandle_.uiColor, colorSpace);
+    } else {
+        const Color4f color4f = { brushHandle_.color.GetRedF(), brushHandle_.color.GetGreenF(),
+            brushHandle_.color.GetBlueF(), brushHandle_.color.GetAlphaF() };
+        brush.SetColor(color4f, colorSpace);
+    }
     brush.SetShaderEffect(shaderEffect);
     brush.SetBlender(blender);
     brush.SetBlendMode(brushHandle_.mode);
@@ -192,7 +195,11 @@ void MaskPenOpItem::Playback(Pen& pen, const CmdList& cmdList) const
 
     auto pathEffect = CmdListHelper::GetPathEffectFromCmdList(cmdList, penHandle_.pathEffectHandle);
     pen.SetPathEffect(pathEffect);
-    pen.SetColor(penHandle_.color);
+    if (penHandle_.isUIColor) {
+        pen.SetUIColor(penHandle_.uiColor, nullptr);
+    } else {
+        pen.SetColor(penHandle_.color);
+    }
 }
 } // namespace Drawing
 } // namespace Rosen
