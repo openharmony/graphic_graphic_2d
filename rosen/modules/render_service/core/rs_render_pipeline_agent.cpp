@@ -1419,6 +1419,7 @@ void RSRenderPipelineAgent::CollectSurfaceBuffersByProcessId(
     }
 
     // Step 2: Get texture mode buffers from RSSurfaceBufferCallbackManager
+    std::vector<std::tuple<sptr<SurfaceBuffer>, std::string, RectI>> textureBufferVector;
     auto textureBufferInfoList = RSSurfaceBufferCallbackManager::Instance().GetSurfaceBufferInfoByPid(pid);
     for (const auto& bufferInfo : textureBufferInfoList) {
         if (bufferInfo.surfaceBuffer_ != nullptr) {
@@ -1438,13 +1439,13 @@ void RSRenderPipelineAgent::CollectSurfaceBuffersByProcessId(
                     bufferInfo.surfaceBuffer_->GetHeight());
         }
     }
-    for (const auto& bufferInfo : textureBufferInfoList) {
+    for (const auto &bufferInfo : textureBufferInfoList) {
         RSSurfaceBufferCallbackManager::Instance().RemoveAllSurfaceBufferInfo(pid, bufferInfo.uid_);
     }
 
-    std::sort(textureBufferVector.begin(), textureBufferVector.end(), [](const auto& a, const auto& b) {
-        const auto& bufferA = std::get<0>(a);
-        const auto& bufferB = std::get<0>(b);
+    std::sort(textureBufferVector.begin(), textureBufferVector.end(), [](const auto &a, const auto &b) {
+        const auto &bufferA = std::get<0>(a);
+        const auto &bufferB = std::get<0>(b);
         if (bufferA == nullptr) {
             return false;
         }
