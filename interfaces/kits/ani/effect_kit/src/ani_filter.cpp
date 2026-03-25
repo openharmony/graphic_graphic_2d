@@ -112,27 +112,47 @@ ani_object AniFilter::EllipticalGradientBlur(ani_env *env, ani_object obj, ani_d
     std::vector<float> positionsParam;
     std::vector<float> degreesParam;
     ani_size arrayLength = 0;
-    env->Array_GetLength(fractionStops, &arrayLength);
+    if (env->Array_GetLength(fractionStops, &arrayLength) != ANI_OK) {
+        return;
+    }
+    ani_double positionParam;
+    auto ret = env->Object_CallMethodByName_Double(
+        static_cast<ani_object>(positionRef),
+        "toDouble", ":d", &positionParam);
+    if (ret != ANI_OK) {
+        return;
+    }
+    ani_double degreeParam;
+    auto ret = env->Object_CallMethodByName_Double(
+        static_cast<ani_object>(degreeRef), 
+        "toDouble", ":d", &degreeParam);
+    if (ret != ANI_OK) {
+        return;
+    }
     for (ani_size i = 0; i < arrayLength; ++i) {
         ani_ref positionAndDegreeRef;
         ani_array positionAndDegree;
-        env->Array_Get(fractionStops, i, &positionAndDegreeRef);
+        if (env->Array_Get(fractionStops, i, &positionAndDegreeRef) != ANI_OK) {
+            return;
+        }
         positionAndDegree = static_cast<ani_array>(positionAndDegreeRef);
         ani_size positionAndDegreeArrayLength = 0;
-        env->Array_GetLength(positionAndDegree, &positionAndDegreeArrayLength);
+        if (env->Array_GetLength(positionAndDegree, &positionAndDegreeArrayLength) != ANI_OK) {
+            return;
+        }
         if (positionAndDegreeArrayLength != 2) {
             continue;
         }
         if (positionAndDegreeArrayLength == 2) {
             ani_ref positionRef;
-            env->Array_Get(positionAndDegree, 0, &positionRef);
-            ani_double positionParam;
-            env->Object_CallMethodByName_Double(static_cast<ani_object>(positionRef), "toDouble", ":d", &positionParam);
+            if (env->Array_Get(positionAndDegree, 0, &positionRef) != ANI_OK) {
+                return;
+            }
             positionsParam.emplace_back(static_cast<float>(positionParam));
             ani_ref degreeRef;
-            env->Array_Get(positionAndDegree, 1, &degreeRef);
-            ani_double degreeParam;
-            env->Object_CallMethodByName_Double(static_cast<ani_object>(degreeRef), "toDouble", ":d", &degreeParam);
+            if (env->Array_Get(positionAndDegree, 1, &degreeRef) != ANI_OK) {
+                return;
+            }
             degreesParam.emplace_back(static_cast<float>(degreeParam));
         }
     }
