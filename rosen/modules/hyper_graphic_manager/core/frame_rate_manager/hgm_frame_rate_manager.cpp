@@ -1388,7 +1388,7 @@ bool HgmFrameRateManager::UpdateUIFrameworkDirtyNodes(
         if (renderNode == nullptr) {
             iter = uiFwkDirtyNodes.erase(iter);
         } else {
-            if (renderNode->IsOnTheTree() && renderNode->IsDirty()) {
+            if (renderNode->IsDirty()) {
                 uiFrameworkDirtyNodeName[renderNode->GetNodeName()] = ExtractPid(renderNode->GetId());
             }
             ++iter;
