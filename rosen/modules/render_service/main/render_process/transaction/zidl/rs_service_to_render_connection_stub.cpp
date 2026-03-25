@@ -81,10 +81,18 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                     renderToComposerConn = iface_cast<IRSRenderToComposerConnection>(remoteObj1);
                 }
             }
+            bool hasComposerToRenderConn{false};
+            if (!data.ReadBool(hasComposerToRenderConn)) {
+                RS_LOGE("%{public}s::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER ReadBool failed", __func__);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             sptr<IRSComposerToRenderConnection> composerToRenderConn = nullptr;
-            auto remoteObj2 = data.ReadRemoteObject();
-            if (remoteObj2 != nullptr) {
-                composerToRenderConn = iface_cast<IRSComposerToRenderConnection>(remoteObj2);
+            if (hasComposerToRenderConn) {
+                auto remoteObj2 = data.ReadRemoteObject();
+                if (remoteObj2 != nullptr) {
+                    composerToRenderConn = iface_cast<IRSComposerToRenderConnection>(remoteObj2);
+                }
             }
             auto replyMessage = NotifyScreenConnectInfoToRender(screenProperty, renderToComposerConn, composerToRenderConn);
             if (!reply.WriteInt32(replyMessage)) {
