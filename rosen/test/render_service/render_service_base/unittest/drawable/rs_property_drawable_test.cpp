@@ -38,6 +38,14 @@ public:
     void TearDown() override;
 };
 
+class ConcreteRSRenderNodeDrawableAdapter : public DrawableV2::RSRenderNodeDrawableAdapter {
+public:
+    explicit ConcreteRSRenderNodeDrawableAdapter(std::shared_ptr<const RSRenderNode> node)
+        : RSRenderNodeDrawableAdapter(std::move(node))
+    {}
+    void Draw(Drawing::Canvas& canvas) {}
+};
+
 void RSPropertyDrawableTest::SetUpTestCase() {}
 void RSPropertyDrawableTest::TearDownTestCase() {}
 void RSPropertyDrawableTest::SetUp() {}
@@ -410,7 +418,7 @@ HWTEST_F(RSPropertyDrawableTest, RSFilterDrawableTest010, TestSize.Level1)
 
 /**
  * @tc.name: RSFilterDrawableTest011
- * @tc.desc: IsFilterCacheValidForOcclusion
+ * @tc.desc: IsFilterCacheValidForOcclusion/IsFilterCacheValidForPartialRender
  * @tc.type: FUNC
  */
 HWTEST_F(RSPropertyDrawableTest, RSFilterDrawableTest011, TestSize.Level1)
@@ -422,6 +430,7 @@ HWTEST_F(RSPropertyDrawableTest, RSFilterDrawableTest011, TestSize.Level1)
 
     cacheManager = nullptr;
     EXPECT_FALSE(filterDrawable->IsFilterCacheValidForOcclusion());
+    EXPECT_FALSE(filterDrawable->IsFilterCacheValidForPartialRender());
 
     cacheManager = std::make_unique<RSFilterCacheManager>();
     ASSERT_NE(cacheManager, nullptr);
@@ -430,12 +439,14 @@ HWTEST_F(RSPropertyDrawableTest, RSFilterDrawableTest011, TestSize.Level1)
     cacheManager->cachedSnapshot_ = nullptr;
     cacheManager->cachedFilteredSnapshot_ = nullptr;
     EXPECT_FALSE(filterDrawable->IsFilterCacheValidForOcclusion());
+    EXPECT_FALSE(filterDrawable->IsFilterCacheValidForPartialRender());
 
     // cacheType: FilterCacheType::SNAPSHOT
     cacheManager->cachedSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
     ASSERT_NE(cacheManager->cachedSnapshot_, nullptr);
     cacheManager->cachedFilteredSnapshot_ = nullptr;
     EXPECT_TRUE(filterDrawable->IsFilterCacheValidForOcclusion());
+    EXPECT_FALSE(filterDrawable->IsFilterCacheValidForPartialRender());
 
     // cacheType: FilterCacheType::BOTH
     cacheManager->cachedSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
@@ -443,12 +454,60 @@ HWTEST_F(RSPropertyDrawableTest, RSFilterDrawableTest011, TestSize.Level1)
     cacheManager->cachedFilteredSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
     ASSERT_NE(cacheManager->cachedFilteredSnapshot_, nullptr);
     EXPECT_TRUE(filterDrawable->IsFilterCacheValidForOcclusion());
+    EXPECT_FALSE(filterDrawable->IsFilterCacheValidForPartialRender());
 
     // cacheType: FilterCacheType::FILTERED_SNAPSHOT
     cacheManager->cachedSnapshot_ = nullptr;
     cacheManager->cachedFilteredSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
     ASSERT_NE(cacheManager->cachedFilteredSnapshot_, nullptr);
     EXPECT_TRUE(filterDrawable->IsFilterCacheValidForOcclusion());
+    EXPECT_TRUE(filterDrawable->IsFilterCacheValidForPartialRender());
+}
+
+/**
+ * @tc.name: IsFilterCacheValidForPartialRender_WithFilterDrawable
+ * @tc.desc: Test IsFilterCacheValidForPartialRender with valid filter drawable
+ * @tc.type: FUNC
+ * @tc.require: issue22993
+ */
+HWTEST_F(RSPropertyDrawableTest, IsFilterCacheValidForPartialRender_WithFilterDrawable, TestSize.Level1)
+{
+    NodeId id = 18;
+    auto node = std::make_shared<RSRenderNode>(id);
+    std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter> adapter =
+        std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(node);
+    ASSERT_NE(adapter, nullptr);
+    
+    auto filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    filterDrawable->cacheManager_ = std::make_unique<RSFilterCacheManager>();
+    filterDrawable->cacheManager_->cachedFilteredSnapshot_ =
+        std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
+    adapter->filterDrawables_ = { filterDrawable };
+    
+    EXPECT_TRUE(adapter->IsFilterCacheValidForPartialRender());
+}
+
+/**
+ * @tc.name: IsFilterCacheValidForPartialRender_WithInvalidCache
+ * @tc.desc: Test IsFilterCacheValidForPartialRender with invalid cache type
+ * @tc.type: FUNC
+ * @tc.require: issue22993
+ */
+HWTEST_F(RSPropertyDrawableTest, IsFilterCacheValidForPartialRender_WithInvalidCache, TestSize.Level1)
+{
+    NodeId id = 18;
+    auto node = std::make_shared<RSRenderNode>(id);
+    std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter> adapter =
+        std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(node);
+    ASSERT_NE(adapter, nullptr);
+    
+    auto filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    filterDrawable->cacheManager_ = std::make_unique<RSFilterCacheManager>();
+    filterDrawable->cacheManager_->cachedSnapshot_ =
+        std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
+    adapter->filterDrawables_ = { filterDrawable };
+    
+    EXPECT_FALSE(adapter->IsFilterCacheValidForPartialRender());
 }
 
 /*

@@ -1114,7 +1114,7 @@ HWTEST_F(RSUniRenderVisitorTest, CheckMergeFilterDirtyWithPreDirty_003, TestSize
     dirtyManager->GetFilterCollector().CollectFilterDirtyRegionInfo(filterInfo1, false);
     rsUniRenderVisitor->CheckMergeFilterDirtyWithPreDirty(
         dirtyManager, Occlusion::Region(Occlusion::Rect(DEFAULT_RECT)), FilterDirtyType::TRANSPARENT_SURFACE_FILTER);
-    ASSERT_FALSE(dirtyManager->GetCurrentFrameDirtyRegion().IsEmpty());
+    ASSERT_TRUE(dirtyManager->GetCurrentFrameDirtyRegion().IsEmpty());
     nodeMap.UnregisterRenderNode(id);
 }
 

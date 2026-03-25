@@ -627,6 +627,15 @@ bool RSFilterDrawable::IsFilterCacheValidForOcclusion()
     return cacheManager_->IsFilterCacheValidForOcclusion();
 }
 
+bool RSFilterDrawable::IsFilterCacheValidForPartialRender() const
+{
+    if (cacheManager_ == nullptr) {
+        ROSEN_LOGD("RSFilterDrawable::IsFilterCacheValidForPartialRender cacheManager not available");
+        return false;
+    }
+    return cacheManager_->IsFilterCacheValidForPartialRender();
+}
+
 bool RSFilterDrawable::IsAIBarFilter() const
 {
     if (stagingCacheManager_ == nullptr) {

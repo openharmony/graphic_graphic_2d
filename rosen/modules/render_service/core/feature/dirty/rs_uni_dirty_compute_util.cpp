@@ -173,8 +173,9 @@ void RSUniFilterDirtyComputeUtil::DealWithFilterDirtyRegion(Occlusion::Region& d
         return;
     }
     auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable.GetRenderParams().get());
-    // If screen zoomed, filter cache is globally disabled, thus partial render of filter cache should be disabled.
-    RSFilterDirtyCollector::SetValidCachePartialRender(!screenParams->GetZoomed());
+    // If screen zoomed or has mirror screen,
+    // filter cache is globally disabled, thus partial render of filter cache should be disabled.
+    RSFilterDirtyCollector::SetValidCachePartialRender(!screenParams->GetZoomed() && !screenParams->HasMirrorScreen());
     auto& surfaceDrawables = screenParams->GetAllMainAndLeashSurfaceDrawables();
     // Iteratively process filters recorded in screen manager and surface manager, until convergence.
     bool elementChanged = false;
@@ -226,17 +227,30 @@ bool RSUniFilterDirtyComputeUtil::DealWithFilterDirtyForSurface(Occlusion::Regio
     return elementChanged;
 }
 
+bool RSUniFilterDirtyComputeUtil::FilterCachePartialRenderEnabled(const FilterDirtyRegionInfo& info)
+{
+    // The following are dynamic switch, disable partial render screen conditions and effects
+    if (!RSSystemProperties::GetCachedBlurPartialRenderEnabled() ||
+        !RSFilterDirtyCollector::GetValidCachePartialRender() || info.forceDisablePartialRender_) {
+            RS_TRACE_NAME("RSUniFilterDirtyComputeUtil::FilterCachePartialRenderEnabled disable");
+        return false;
+    }
+    auto drawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(info.id_);
+    auto filterNodeDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(drawableAdapter);
+    if (filterNodeDrawable == nullptr) {
+        return false;
+    }
+    return filterNodeDrawable->IsFilterCacheValidForPartialRender();
+}
+
 bool RSUniFilterDirtyComputeUtil::CheckMergeFilterDirty(Occlusion::Region& damageRegion, Occlusion::Region& drawRegion,
     RSDirtyRegionManager& dirtyManager, const std::optional<Drawing::Matrix>& matrix,
     const std::optional<Occlusion::Region>& visibleRegion)
 {
     auto& collector = dirtyManager.GetFilterCollector();
-    bool filterCachePartialRender =
-        !dirtyManager.IsCurrentFrameDirty() && RSFilterDirtyCollector::GetValidCachePartialRender();
     auto addDirtyInIntersect = [&] (FilterDirtyRegionInfo& info) {
         // case - 0. If this filter satisfied certain partial render conditions, skip it.
-        if (filterCachePartialRender &&
-                !info.forceDisablePartialRender_ && RSFilterDirtyCollector::GetFilterCacheValidForOcclusion(info.id_)) {
+        if (FilterCachePartialRenderEnabled(info)) {
             RS_TRACE_NAME_FMT("Filter [%" PRIu64 "], partial render enabled, skip dirty expanding.", info.id_);
             return false;
         }
@@ -290,36 +304,31 @@ void RSUniFilterDirtyComputeUtil::ResetFilterInfoStatus(DrawableV2::RSScreenRend
             std::for_each(surfaceFilterList.begin(), surfaceFilterList.end(), resetFilterStatus);
         }
     }
-    RSFilterDirtyCollector::ResetFilterCacheValidForOcclusion();
 }
 
 FilterDirtyRegionInfo RSUniFilterDirtyComputeUtil::GenerateFilterDirtyRegionInfo(
     RSRenderNode& filterNode, const std::optional<Occlusion::Region>& preDirty, bool isSurface)
 {
-    bool effectNodeExpandDirty =
-        filterNode.IsInstanceOf<RSEffectRenderNode>() && !filterNode.FirstFrameHasEffectChildren();
-    RectI filterRect = filterNode.GetOldDirtyInSurface().JoinRect(filterNode.GetFilterRegion());
-    auto filterRegion = effectNodeExpandDirty ?
-        GetVisibleEffectRegion(filterNode) : Occlusion::Region(Occlusion::Rect(filterRect));
-    auto dirtyRegion = effectNodeExpandDirty ?
-        filterRegion.Or(Occlusion::Region(Occlusion::Rect(filterNode.GetFilterRect()))) :
-        Occlusion::Region(Occlusion::Rect(filterRect));
-    if (filterNode.NeedDrawBehindWindow()) {
-        filterRegion = Occlusion::Region(Occlusion::Rect(filterNode.GetFilterRect()));
-        dirtyRegion = filterRegion;
-    }
+    RectI filterRect = (filterNode.NeedDrawBehindWindow() || filterNode.IsInstanceOf<RSEffectRenderNode>()) ?
+        filterNode.GetFilterRect() : filterNode.GetOldDirtyInSurface().JoinRect(filterNode.GetFilterRegion());
+    auto filterRegion = Occlusion::Region(Occlusion::Rect(filterRect));
+
+    filterRegion = filterNode.IsInstanceOf<RSEffectRenderNode>() ?
+        filterRegion.OrSelf(GetVisibleEffectRegion(filterNode)) : filterRegion;
+
     // Subtree dirty region doesn't need to be considered for background filter.
     auto& filterProperties = filterNode.GetRenderProperties();
     FilterDirtyRegionInfo filterInfo = {
         .id_ = filterNode.GetId(),
-        .intersectRegion_ = isSurface ? filterRegion : dirtyRegion,
-        .filterDirty_ = isSurface ? filterRegion : dirtyRegion,
-        .alignedFilterDirty_ = dirtyRegion.GetAlignedRegion(MAX_DIRTY_ALIGNMENT_SIZE),
+        .intersectRegion_ = filterRegion,
+        .filterDirty_ = filterRegion,
+        .alignedFilterDirty_ = filterRegion.GetAlignedRegion(MAX_DIRTY_ALIGNMENT_SIZE),
         .belowDirty_ = preDirty.value_or(Occlusion::Region()),
         .isBackgroundFilterClean_ =
             (filterProperties.GetBackgroundFilter() || filterProperties.GetNeedDrawBehindWindow()) &&
             !filterNode.IsBackgroundInAppOrNodeSelfDirty(),
-        .forceDisablePartialRender_ = filterNode.IsPixelStretchValid()
+        .forceDisablePartialRender_ = filterNode.IsPixelStretchValid() ||
+            filterNode.GetRenderProperties().NeedDisabledPartialRender()
     };
     return filterInfo;
 }

@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "drawable/rs_misc_drawable.h"
+#include "drawable/rs_property_drawable.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
 #include "drawable/rs_render_node_drawable.h"
 #include "params/rs_render_params.h"
@@ -717,6 +718,43 @@ HWTEST(RSRenderNodeDrawableAdapterTest, IsFilterCacheValidForOcclusionTest, Test
         std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(node);
     ASSERT_NE(adapter, nullptr);
     EXPECT_FALSE(adapter->IsFilterCacheValidForOcclusion());
+}
+
+/**
+ * @tc.name: IsFilterCacheValidForPartialRender
+ * @tc.desc: Test IsFilterCacheValidForPartialRender001 sysProp disable
+ * @tc.type: FUNC
+ * @tc.require: issue22993
+ */
+HWTEST(RSRenderNodeDrawableAdapterTest, IsFilterCacheValidForPartialRender001, TestSize.Level1)
+{
+    NodeId id = 18;
+    auto node = std::make_shared<RSRenderNode>(id);
+    std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter> adapter =
+        std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(node);
+    ASSERT_NE(adapter, nullptr);
+    bool defaultSysProp = RSFilterCacheManager::isCCMFilterCacheEnable_;
+    RSFilterCacheManager::isCCMFilterCacheEnable_ = false;
+
+    EXPECT_FALSE(adapter->IsFilterCacheValidForPartialRender());
+
+    RSFilterCacheManager::isCCMFilterCacheEnable_ = defaultSysProp;
+}
+
+/**
+ * @tc.name: IsFilterCacheValidForPartialRender_Background
+ * @tc.desc: Test IsFilterCacheValidForPartialRender_Background
+ * @tc.type: FUNC
+ * @tc.require: issue22993
+ */
+HWTEST(RSRenderNodeDrawableAdapterTest, IsFilterCacheValidForPartialRender_Background, TestSize.Level1)
+{
+    NodeId id = 18;
+    auto node = std::make_shared<RSRenderNode>(id);
+    std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter> adapter =
+        std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(node);
+    ASSERT_NE(adapter, nullptr);
+    EXPECT_TRUE(adapter->IsFilterCacheValidForPartialRender());
 }
 
 /**

@@ -652,6 +652,35 @@ HWTEST_F(RSFilterCacheManagerTest, IsFilterCacheValidForOcclusionTest, TestSize.
 }
 
 /**
+ * @tc.name: IsFilterCacheValidForPartialRender
+ * @tc.desc: test results of IsFilterCacheValidForPartialRender different FilterCacheType
+ * @tc.type: FUNC
+ * @tc.require: issue22993
+ */
+HWTEST_F(RSFilterCacheManagerTest, IsFilterCacheValidForPartialRenderTest, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    EXPECT_NE(rsFilterCacheManager, nullptr);
+
+    // cacheType: FilterCacheType::NONE
+    rsFilterCacheManager->cachedSnapshot_ = nullptr;
+    rsFilterCacheManager->cachedFilteredSnapshot_ = nullptr;
+    EXPECT_FALSE(rsFilterCacheManager->IsFilterCacheValidForPartialRender());
+
+    // cacheType: FilterCacheType::SNAPSHOT
+    rsFilterCacheManager->cachedSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
+    ASSERT_NE(rsFilterCacheManager->cachedSnapshot_, nullptr);
+    rsFilterCacheManager->cachedFilteredSnapshot_ = nullptr;
+    EXPECT_FALSE(rsFilterCacheManager->IsFilterCacheValidForPartialRender());
+
+    // cacheType: FilterCacheType::FILTERED_SNAPSHOT
+    rsFilterCacheManager->cachedSnapshot_ = nullptr;
+    rsFilterCacheManager->cachedFilteredSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
+    ASSERT_NE(rsFilterCacheManager->cachedFilteredSnapshot_, nullptr);
+    EXPECT_TRUE(rsFilterCacheManager->IsFilterCacheValidForPartialRender());
+}
+
+/**
  * @tc.name: IsForceUseFilterCache
  * @tc.desc: test results of IsForceUseFilterCache
  * @tc.type: FUNC

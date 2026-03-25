@@ -488,6 +488,7 @@ public:
     bool DisableHWCForFilter() const;
     bool NeedClipHoleForRenderGroup() const;
     bool NeedFilter() const;
+    bool NeedDisabledPartialRender() const;
     bool NeedHwcFilter() const;
     bool NeedSkipSubtreeParallel() const;
     void SetGreyCoef(const std::optional<Vector2f>& greyCoef);
@@ -1068,6 +1069,7 @@ private:
     bool isDrawn_ = false;
     bool foregroundEffectDirty_ = false;
     bool needFilter_ = false;
+    bool needDisabledPartialRender_ = false;
     bool needHwcFilter_ = false;
     bool needForceSubmit_ = false;
     bool hasHarmonium_ = false;
