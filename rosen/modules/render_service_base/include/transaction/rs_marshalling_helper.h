@@ -513,6 +513,9 @@ public:
     static bool Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::Data>& val);
     static bool UnmarshallingWithCopy(Parcel& parcel, std::shared_ptr<Drawing::Data>& val);
 
+    static bool Marshalling(Parcel& parcel, sptr<Surface> surface);
+    static bool Unmarshalling(Parcel& parcel, sptr<Surface>& surface);
+
     static void BeginNoSharedMem(std::thread::id tid);
     static void EndNoSharedMem();
     static bool GetUseSharedMem(std::thread::id tid);

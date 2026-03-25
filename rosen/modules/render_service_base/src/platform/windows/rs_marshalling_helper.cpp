@@ -696,5 +696,15 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RSRenderParticleVector& 
 {
     return false;
 }
+
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, sptr<Surface> surface)
+{
+    return false;
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sptr<Surface>& surface)
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS

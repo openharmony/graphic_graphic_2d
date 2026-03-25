@@ -52,10 +52,6 @@ int32_t RSServiceToRenderConnectionProxy::NotifyScreenConnectInfoToRender(const 
         ROSEN_LOGE("%{public}s: WriteParcelable failed", __func__);
         return -1;
     }
-    if (!data.WriteRemoteObject(renderToComposerConn->AsObject())) {
-        ROSEN_LOGE("%{public}s: WriteObject failed", __func__);
-        return -1;
-    }
     if (renderToComposerConn) {
         if (!data.WriteBool(true) || !data.WriteRemoteObject(renderToComposerConn->AsObject())) {
             ROSEN_LOGE("%{public}s: WriteBool or WriteObject failed.", __func__);
@@ -67,9 +63,16 @@ int32_t RSServiceToRenderConnectionProxy::NotifyScreenConnectInfoToRender(const 
             return -1;
         }
     }
-    if (!data.WriteRemoteObject(composerToRenderConn->AsObject())) {
-        ROSEN_LOGE("%{public}s: WriteBool or WriteObject failed", __func__);
-        return -1;
+    if (composerToRenderConn) {
+        if (!data.WriteBool(true) || !data.WriteRemoteObject(composerToRenderConn->AsObject())) {
+            ROSEN_LOGE("%{public}s: WriteBool or WriteObject failed.", __func__);
+            return -1;
+        }
+    } else {
+        if (!data.WriteBool(false)) {
+            ROSEN_LOGE("%{public}s: WriteBool failed.", __func__);
+            return -1;
+        }
     }
     uint32_t code = static_cast<uint32_t>(
         RSIServiceToRenderConnectionInterfaceCode::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER);
