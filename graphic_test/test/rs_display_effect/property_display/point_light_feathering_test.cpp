@@ -41,7 +41,7 @@ GRAPHIC_TEST(PointLightFeatheringTest, CONTENT_DISPLAY_TEST, PointLight_Featheri
     testNode->SetClipToBounds(true);
     testNode->SetLightIntensity(1);
     testNode->SetLightColor(0xffffffff);
-    testNode->SetIlluminatedType(6);
+    testNode->SetIlluminatedType(9);
     testNode->SetLightPosition(200, 200, 0);
     testNode->SetIlluminatedBorderWidth(5);
     GetRootNode()->AddChild(testNode);
@@ -60,7 +60,7 @@ GRAPHIC_TEST(PointLightFeatheringTest, CONTENT_DISPLAY_TEST, PointLight_Featheri
         if (i % 3 == 1) {
             testNode->SetLightIntensity(intensityList[i / 3]);
             testNode->SetLightColor(0xffffffff);
-            testNode->SetIlluminatedType(6);
+            testNode->SetIlluminatedType(9);
             testNode->SetLightPosition(200, 200, 0);
             testNode->SetIlluminatedBorderWidth(5);
         }
@@ -81,7 +81,7 @@ GRAPHIC_TEST(PointLightFeatheringTest, CONTENT_DISPLAY_TEST, PointLight_Featheri
         if (i % 3 == 1) {
             testNode->SetLightIntensity(1);
             testNode->SetLightColor(colorList[i / 3]);
-            testNode->SetIlluminatedType(6);
+            testNode->SetIlluminatedType(9);
             testNode->SetLightPosition(200, 200, 0);
             testNode->SetIlluminatedBorderWidth(5);
         }
@@ -102,7 +102,7 @@ GRAPHIC_TEST(PointLightFeatheringTest, CONTENT_DISPLAY_TEST, PointLight_Featheri
         if (i % 3 == 1) {
             testNode->SetLightIntensity(1);
             testNode->SetLightColor(0xffffffff);
-            testNode->SetIlluminatedType(6);
+            testNode->SetIlluminatedType(9);
             testNode->SetLightPosition(200, 200, 0);
             testNode->SetIlluminatedBorderWidth(borderWidthList[i / 3]);
         }
@@ -124,7 +124,7 @@ GRAPHIC_TEST(PointLightFeatheringTest, CONTENT_DISPLAY_TEST, PointLight_Featheri
         if (i % 3 == 1) {
             testNode->SetLightIntensity(1);
             testNode->SetLightColor(0xffffffff);
-            testNode->SetIlluminatedType(6);
+            testNode->SetIlluminatedType(9);
             testNode->SetLightPosition(positionList[i / 3], positionList[i / 3], zList[i / 3]);
             testNode->SetIlluminatedBorderWidth(5);
         }
@@ -144,7 +144,7 @@ GRAPHIC_TEST(PointLightFeatheringTest, CONTENT_DISPLAY_TEST, PointLight_Featheri
         testNode->SetClipToBounds(true);
         testNode->SetLightIntensity(extremeIntensities[i]);
         testNode->SetLightColor(0xffffffff);
-        testNode->SetIlluminatedType(6);
+        testNode->SetIlluminatedType(9);
         testNode->SetLightPosition(200, 200, 0);
         testNode->SetIlluminatedBorderWidth(5);
         GetRootNode()->AddChild(testNode);
@@ -163,7 +163,7 @@ GRAPHIC_TEST(PointLightFeatheringTest, CONTENT_DISPLAY_TEST, PointLight_Featheri
         testNode->SetClipToBounds(true);
         testNode->SetLightIntensity(1);
         testNode->SetLightColor(0xffffffff);
-        testNode->SetIlluminatedType(6);
+        testNode->SetIlluminatedType(9);
         testNode->SetLightPosition(200, 200, 0);
         testNode->SetIlluminatedBorderWidth(extremeBorderWidths[i]);
         GetRootNode()->AddChild(testNode);
@@ -185,7 +185,7 @@ GRAPHIC_TEST(PointLightFeatheringTest, CONTENT_DISPLAY_TEST, PointLight_Featheri
             testNode->SetClipToBounds(true);
             testNode->SetLightIntensity(intensityList[row]);
             testNode->SetLightColor(colorList[col]);
-            testNode->SetIlluminatedType(6);
+            testNode->SetIlluminatedType(9);
             testNode->SetLightPosition(175, 175, 0);
             testNode->SetIlluminatedBorderWidth(5);
             GetRootNode()->AddChild(testNode);
@@ -208,7 +208,7 @@ GRAPHIC_TEST(PointLightFeatheringTest, CONTENT_DISPLAY_TEST, PointLight_Featheri
             testNode->SetClipToBounds(true);
             testNode->SetLightIntensity(1);
             testNode->SetLightColor(0xffffffff);
-            testNode->SetIlluminatedType(6);
+            testNode->SetIlluminatedType(9);
             testNode->SetLightPosition(175, 175, zList[row]);
             testNode->SetIlluminatedBorderWidth(borderWidthList[col]);
             GetRootNode()->AddChild(testNode);
@@ -232,7 +232,7 @@ GRAPHIC_TEST(PointLightFeatheringTest, CONTENT_DISPLAY_TEST, PointLight_Featheri
         childNode->SetClipToBounds(true);
         childNode->SetLightIntensity(1);
         childNode->SetLightColor(0xffffffff);
-        childNode->SetIlluminatedType(6);
+        childNode->SetIlluminatedType(9);
         childNode->SetLightPosition(150, 150, 0);
         childNode->SetIlluminatedBorderWidth(5);
         parentNode->AddChild(childNode);
@@ -257,7 +257,7 @@ GRAPHIC_TEST(PointLightFeatheringTest, CONTENT_DISPLAY_TEST, PointLight_Featheri
         childNode->SetClipToBounds(true);
         childNode->SetLightIntensity(1);
         childNode->SetLightColor(0xffffffff);
-        childNode->SetIlluminatedType(6);
+        childNode->SetIlluminatedType(9);
         childNode->SetLightPosition(positions[i].first, positions[i].second, 0);
         childNode->SetIlluminatedBorderWidth(5);
         testNode->AddChild(childNode);
@@ -272,7 +272,7 @@ GRAPHIC_TEST(PointLightFeatheringTest, CONTENT_DISPLAY_TEST, PointLight_Featheri
     testNode->SetClipToBounds(true);
     testNode->SetLightIntensity(0);
     testNode->SetLightColor(0xffffffff);
-    testNode->SetIlluminatedType(6);
+    testNode->SetIlluminatedType(9);
     testNode->SetLightPosition(200, 200, 0);
     testNode->SetIlluminatedBorderWidth(5);
     GetRootNode()->AddChild(testNode);
@@ -286,7 +286,7 @@ GRAPHIC_TEST(PointLightFeatheringTest, CONTENT_DISPLAY_TEST, PointLight_Featheri
     testNode->SetClipToBounds(true);
     testNode->SetLightIntensity(1);
     testNode->SetLightColor(0xffffffff);
-    testNode->SetIlluminatedType(6);
+    testNode->SetIlluminatedType(9);
     testNode->SetLightPosition(200, 200, 0);
     testNode->SetIlluminatedBorderWidth(0);
     GetRootNode()->AddChild(testNode);
