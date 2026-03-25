@@ -123,11 +123,16 @@ void RSCaptureData::Serialize(Archive& archive)
     archive.Serialize(size);
 
     if (archive.IsReading()) {
-        std::string first;
-        std::string second;
+        constexpr size_t maxPropertyCount = 1024u;
+        if (size > maxPropertyCount) {
+            return;
+        }
 
         for (size_t i = 0; i < size; i++) {
+            std::string first;
             archive.Serialize(first);
+
+            std::string second;
             archive.Serialize(second);
 
             properties_[first] = second;

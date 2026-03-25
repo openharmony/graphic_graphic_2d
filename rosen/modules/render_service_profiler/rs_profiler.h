@@ -69,6 +69,8 @@
 #define RS_PROFILER_WRITE_PARCEL_DATA(parcel) RSProfiler::WriteParcelData(parcel)
 #define RS_PROFILER_READ_PARCEL_DATA(parcel, size, isMalloc) RSProfiler::ReadParcelData(parcel, size, isMalloc)
 #define RS_PROFILER_SKIP_PARCEL_DATA(parcel, size) RSProfiler::SkipParcelData(parcel, size)
+#define RS_PROFILER_WRITE_SHARED_TYPEFACE(parcel, typeface) RSProfiler::WriteSharedTypeface(parcel, typeface)
+#define RS_PROFILER_READ_SHARED_TYPEFACE(parcel, typeface) RSProfiler::ReadSharedTypeface(parcel, typeface)
 #define RS_PROFILER_GET_FRAME_NUMBER() RSProfiler::GetFrameNumber()
 #define RS_PROFILER_ON_PARALLEL_RENDER_BEGIN() RSProfiler::OnParallelRenderBegin()
 #define RS_PROFILER_ON_PARALLEL_RENDER_END(renderFrameNumber) RSProfiler::OnParallelRenderEnd(renderFrameNumber)
@@ -136,6 +138,9 @@
 #define RS_PROFILER_WRITE_PARCEL_DATA(parcel)
 #define RS_PROFILER_READ_PARCEL_DATA(parcel, size, isMalloc) RSMarshallingHelper::ReadFromAshmem(parcel, size, isMalloc)
 #define RS_PROFILER_SKIP_PARCEL_DATA(parcel, size) false
+#define RS_PROFILER_WRITE_SHARED_TYPEFACE(parcel, typeface)
+#define RS_PROFILER_READ_SHARED_TYPEFACE(parcel, typeface) \
+    ((typeface).fd_ = static_cast<MessageParcel*>(&(parcel))->ReadFileDescriptor())
 #define RS_PROFILER_GET_FRAME_NUMBER() 0
 #define RS_PROFILER_ON_PARALLEL_RENDER_BEGIN()
 #define RS_PROFILER_ON_PARALLEL_RENDER_END(renderFrameNumber)
@@ -479,10 +484,10 @@ public:
     // see RSRenderService::CreateConnection
     static void OnCreateConnection(pid_t pid);
 
-    // see RenderServiceConnection::OnRemoteRequest
     static uint64_t OnRemoteRequest(RSIClientToRenderConnection* connection, uint32_t code, MessageParcel& parcel,
         MessageParcel& reply, MessageOption& option);
-    static uint64_t WriteRemoteRequest(pid_t pid, uint32_t code, MessageParcel& parcel, MessageOption& option);
+    static uint64_t OnRemoteRequest(RSIClientToServiceConnection* connection, uint32_t code, MessageParcel& parcel,
+        MessageParcel& reply, MessageOption& option);
 
     // see UnmarshalThread::RecvParcel
     static void OnRecvParcel(const MessageParcel* parcel, RSTransactionData* data);
@@ -525,6 +530,8 @@ public:
     RSB_EXPORT static void WriteParcelData(Parcel& parcel);
     RSB_EXPORT static const void* ReadParcelData(Parcel& parcel, size_t size, bool& isMalloc);
     RSB_EXPORT static bool SkipParcelData(Parcel& parcel, size_t size);
+    RSB_EXPORT static void WriteSharedTypeface(Parcel& parcel, const Drawing::SharedTypeface& typeface);
+    RSB_EXPORT static void ReadSharedTypeface(Parcel& parcel, Drawing::SharedTypeface& typeface);
     RSB_EXPORT static uint32_t GetFrameNumber();
     RSB_EXPORT static bool ShouldBlockHWCNode();
 
@@ -610,6 +617,11 @@ public:
     RSB_EXPORT static RSProfilerCustomMetrics& GetCustomMetrics();
 
 private:
+    template<class Connection>
+    static uint64_t ProcessRemoteRequest(Connection* connection, uint32_t code, MessageParcel& parcel,
+        MessageParcel& reply, MessageOption& option);
+    static uint64_t WriteRemoteRequest(pid_t pid, uint32_t code, MessageParcel& parcel, MessageOption& option);
+
     static const char* GetProcessNameByPid(int pid);
     RSB_EXPORT static std::shared_ptr<ProfilerMarshallingJob> GetJobForExecution();
     RSB_EXPORT static void MarshalFirstFrameNodesLoop();
@@ -778,8 +790,9 @@ private:
     static void ResetAnimationStamp();
 
     static void CreateMockConnection(pid_t pid);
-    static RSClientToRenderConnection* GetConnection(pid_t pid);
+    static sptr<IRemoteObject> GetConnection(pid_t pid, const std::u16string& type);
     static pid_t GetConnectionPid(RSIClientToRenderConnection* connection);
+    static pid_t GetConnectionPid(RSIClientToServiceConnection* connection);
     static std::vector<pid_t> GetConnectionsPids();
 
     static std::shared_ptr<RSRenderNode> GetRenderNode(uint64_t id);

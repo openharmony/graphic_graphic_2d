@@ -329,6 +329,7 @@ void RSClientToServiceConnectionStub::SetQos()
 int RSClientToServiceConnectionStub::OnRemoteRequest(
     uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
 {
+    RS_PROFILER_ON_REMOTE_REQUEST(this, code, data, reply, option);
     AshmemFdContainer::SetIsUnmarshalThread(false);
     pid_t callingPid = GetCallingPid();
     RSMarshallingHelper::SetCallingPid(callingPid);
