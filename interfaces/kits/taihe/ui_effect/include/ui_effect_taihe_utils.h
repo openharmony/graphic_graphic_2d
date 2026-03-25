@@ -52,6 +52,7 @@ constexpr uint32_t NUM_10 = 10;
 constexpr uint32_t NUM_12 = 12;
 
 bool IsSystemApp();
+bool CheckPermission(const std::string& permission);
 Drawing::TileMode ConvertTileModeFromTaiheTileMode(TileMode tileMode);
 bool ConvertVector4fFromTaiheArray(OHOS::Rosen::Vector4f& vector4f, taihe::array_view<double> stretchSizes);
 bool ParseBrightnessBlender(OHOS::Rosen::BrightnessBlender& blender, const BrightnessBlender& brightnessBlender);

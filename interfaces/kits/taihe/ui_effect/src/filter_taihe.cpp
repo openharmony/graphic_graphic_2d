@@ -25,6 +25,9 @@
 using namespace ANI::UIEffect;
 
 namespace ANI::UIEffect {
+
+static const std::string HDR_BRIGHTNESS_PERMISSION = "ohos.permission.HDR_BRIGHTNESS";
+
 FilterImpl::FilterImpl()
 {
     nativeFilter_ = std::make_shared<OHOS::Rosen::Filter>();
@@ -363,8 +366,8 @@ Filter FilterImpl::VariableRadiusBlur(double radius, ::ohos::graphics::uiEffect:
 
 Filter FilterImpl::HdrBrightnessRatio(double ratio)
 {
-    if (!IsSystemApp()) {
-        UIEFFECT_LOG_E("call hdrBrightnessRatio failed, is not system app");
+    if (!IsSystemApp() && !CheckPermission(HDR_BRIGHTNESS_PERMISSION)) {
+        UIEFFECT_LOG_E("FilterNapi SetHDRBrightnessRatio caller is not system app or lacks the required permission.");
         return make_holder<FilterImpl, Filter>(nativeFilter_);
     }
 

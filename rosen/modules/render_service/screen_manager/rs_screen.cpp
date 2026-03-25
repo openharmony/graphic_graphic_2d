@@ -1172,9 +1172,13 @@ int32_t RSScreen::GetScreenSupportedHDRFormats(std::vector<ScreenHDRFormat>& hdr
         hdrFormats = supportedVirtualHDRFormats_;
     } else {
         hdrFormats = supportedPhysicalHDRFormats_;
-        if (callback && !specialHDRFormatsInit_) {
-            RSBackgroundThread::Instance().PostTask([this, callback]() {
-                GetScreenSupportedHDRFormatsCallBack(callback);
+        if (callback &&
+            GetConnectionType() == ScreenConnectionType::DISPLAY_CONNECTION_TYPE_INTERNAL && !specialHDRFormatsInit_) {
+            RSBackgroundThread::Instance().PostTask([weakThis = weak_from_this(), callback]() {
+                auto rsScreen = weakThis.lock();
+                if (rsScreen) {
+                    rsScreen->GetScreenSupportedHDRFormatsCallBack(callback);
+                }
             });
         }
     }
