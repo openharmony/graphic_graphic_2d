@@ -47,7 +47,6 @@ config("effect_SKeffectChian_config") {
 
 config("effect_SKeffectChian_public_config") {
   include_dirs = [
-    "../egl/include",
     "$graphic_2d_root/utils/log",
     "include",
     "$graphic_2d_root/rosen/modules/2d_graphics",
@@ -84,10 +83,13 @@ if (is_arkui_x) {
       "//base/hiviewdfx/hitrace/interfaces/native/innerkits/include/hitrace_meter",
     ]
 
+    deps = [
+      "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+    ]
+
     public_deps = [
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}",
       "//foundation/arkui/ace_engine/adapter/${target_os}/build:libarkui_${target_os}",
-      "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
     ]
 
     if (target_os == "android") {
@@ -103,20 +105,16 @@ if (is_arkui_x) {
     }
 
     if (target_os == "android") {
-      public_deps +=
-          [ "$graphic_2d_root/rosen/modules/effect/egl:libegl_effect" ]
-
       if (rs_enable_gpu) {
         defines += [ "RS_ENABLE_GPU" ]
         defines += gpu_defines
-        public_deps += [
-          "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+        deps += [
           "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
         ]
       }
     }
 
-    public_external_deps = [
+    external_deps = [
       "c_utils:utilsbase",
       "skia:skia_canvaskit_static",
     ]
@@ -137,26 +135,22 @@ if (is_arkui_x) {
   }
 } else {
   ohos_shared_library("skeffectchain") {
-    public_deps = [
-      "$graphic_2d_root/rosen/modules/effect/egl:libegl_effect",
+    deps = [
       "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+      "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     ]
 
     if (rs_enable_gpu) {
       defines = gpu_defines
-      public_deps += [
+      deps += [
         "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
         "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
       ]
     }
 
-    public_external_deps = [
-      "graphic_surface:surface",
-      "skia:skia_canvaskit",
-    ]
-
     external_deps = [
       "c_utils:utils",
+      "graphic_surface:surface",
       "graphics_effect:graphics_effect_core",
       "hilog:libhilog",
       "hitrace:hitrace_meter",
@@ -167,6 +161,7 @@ if (is_arkui_x) {
       "ipc:ipc_core",
       "napi:ace_napi",
       "samgr:samgr_proxy",
+      "skia:skia_canvaskit",
     ]
 
     sources = [
@@ -177,10 +172,6 @@ if (is_arkui_x) {
     configs = [ ":effect_SKeffectChian_config" ]
 
     public_configs = [ ":effect_SKeffectChian_public_config" ]
-
-    deps = [
-      "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
-    ]
 
     cflags_cc = [ "-std=c++17" ]
 
