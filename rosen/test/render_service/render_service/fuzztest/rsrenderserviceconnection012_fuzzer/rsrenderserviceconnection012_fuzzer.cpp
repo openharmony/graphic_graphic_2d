@@ -37,7 +37,7 @@
 #include "platform/ohos/transaction/zidl/rs_irender_service.h"
 #include "render_server/transaction/zidl/rs_client_to_service_connection_stub.h"
 #include "transaction/rs_transaction_proxy.h"
-
+#
 namespace OHOS {
 namespace Rosen {
 auto g_pid = getpid();
