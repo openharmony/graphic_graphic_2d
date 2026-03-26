@@ -339,8 +339,6 @@ private:
     void PostReclaimMemoryTask(ClearMemoryMoment moment, bool isReclaim);
     void NotifyScreenNodeBufferReleased(ScreenId curScreenId);
 
-    std::vector<std::shared_ptr<RSRenderNode>> layerNodes_;
-
     std::atomic_bool isPostedReclaimMemoryTask_ = false;
     // Those variable is used to manage memory.
     bool clearMemoryFinished_ = true;

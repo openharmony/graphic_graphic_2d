@@ -319,8 +319,6 @@ HWTEST_F(RSUniRenderThreadTest, IfIsMarkLayerEnabledAddToDrawableListTest, TestS
     node->renderIsMarkLayer_ = true;
     instance.IfIsMarkLayerEnabledAddToDrawableList(node);
     EXPECT_FALSE(DrawableV2::RSRenderNodeDrawable::layerNodesDrawable_.empty());
-
-    EXPECT_TRUE(instance.layerNodes_.empty());
 }
 
 #ifdef RES_SCHED_ENABLE

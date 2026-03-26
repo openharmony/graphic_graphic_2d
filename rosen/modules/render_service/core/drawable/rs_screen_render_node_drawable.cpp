@@ -911,7 +911,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (curCanvas_->GetGPUContext()) {
         for (auto drawable : layerNodesDrawable_) {
             auto drawablePtr = drawable.lock();
-            if (drawablePtr) {
+            if (drawablePtr && drawablePtr->renderParams_->OpincIsSuggest() == false) {
                 drawablePtr->TryPrepareLayerCache(*curCanvas_);
             }
         }
