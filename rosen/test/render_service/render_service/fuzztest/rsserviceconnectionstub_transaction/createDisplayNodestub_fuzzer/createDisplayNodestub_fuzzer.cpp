@@ -42,9 +42,11 @@ sptr<OHOS::Rosen::RSScreenManager> screenManagerPtr_ = OHOS::sptr<OHOS::Rosen::R
 [[maybe_unused]] auto& memorySnapshot_ = OHOS::Rosen::MemorySnapshot::Instance();
 [[maybe_unused]] auto& renderNodeGC_ = OHOS::Rosen::RSRenderNodeGC::Instance();
 auto mainThread_ = RSMainThread::Instance();
+
 sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ = nullptr;
 sptr<OHOS::Rosen::RSRenderService> renderService_ = nullptr;
 const uint32_t WAIT_TASK_RUN_TIME_NS = 10000;
+
 namespace {
 
 void DoCreateDisplayNode(FuzzedDataProvider& fdp)
