@@ -202,7 +202,7 @@ GRAPHIC_TEST(PointLightFeatheringTest, CONTENT_DISPLAY_TEST, PointLight_Featheri
             testNode->SetLightColor(colorList[col]);
             testNode->SetIlluminatedType(9);
             testNode->SetLightPosition(175, 175, 300);
-    testNode->SetIlluminatedBorderWidth(10);
+            testNode->SetIlluminatedBorderWidth(10);
             GetRootNode()->AddChild(testNode);
             RegisterNode(testNode);
         }
