@@ -709,7 +709,7 @@ HWTEST_F(BrushTest, CopyConstructorWithUIColor001, TestSize.Level1)
 
     brush1.SetARGB(255, 100, 150, 200);
     Brush brush3(brush1);
-    EXPECT_FALSE(brush2.HasUIColor());
+    EXPECT_FALSE(brush3.HasUIColor());
 }
 
 /**

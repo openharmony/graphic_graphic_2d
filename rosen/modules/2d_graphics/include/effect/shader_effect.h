@@ -118,6 +118,23 @@ public:
     ShaderEffectType GetType() const;
     virtual bool IsLazy() const { return false; };
 
+    static std::shared_ptr<ShaderEffect> CreateLinearGradient(const Point& startPt, const Point& endPt,
+        const std::vector<UIColor>& colors, std::shared_ptr<ColorSpace> colorSpace,
+        const std::vector<scalar>& pos, TileMode mode, const Matrix *matrix = nullptr);
+
+    static std::shared_ptr<ShaderEffect> CreateRadialGradient(const Point& centerPt, scalar radius,
+        const std::vector<UIColor>& colors, std::shared_ptr<ColorSpace> colorSpace,
+        const std::vector<scalar>& pos, TileMode mode, const Matrix *matrix = nullptr);
+
+    static std::shared_ptr<ShaderEffect> CreateTwoPointConical(const Point& startPt, scalar startRadius,
+        const Point& endPt, scalar endRadius, const std::vector<UIColor>& colors,
+        std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos, TileMode mode,
+        const Matrix *matrix = nullptr);
+
+    static std::shared_ptr<ShaderEffect> CreateSweepGradient(const Point& centerPt,
+        const std::vector<UIColor>& colors, std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos,
+        TileMode mode, scalar startAngle, scalar endAngle, const Matrix* matrix = nullptr);
+
 #ifdef ROSEN_OHOS
     virtual bool Marshalling(Parcel& parcel);
     static std::shared_ptr<ShaderEffect> Unmarshalling(Parcel& parcel, bool& isValid);
@@ -203,6 +220,26 @@ public:
     ShaderEffect() noexcept;
 
     std::shared_ptr<ExtendObject> GetExtendObject() { return object_; }
+
+     /* LinearGradient */
+    ShaderEffect(ShaderEffectType t, const Point& startPt, const Point& endPt, const std::vector<UIColor>& colors,
+        std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos, TileMode mode,
+        const Matrix *matrix = nullptr) noexcept;
+
+    /* RadialGradient */
+    ShaderEffect(ShaderEffectType t, const Point& centerPt, scalar radius, const std::vector<UIColor>& colors,
+        std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos, TileMode mode,
+        const Matrix *matrix = nullptr) noexcept;
+
+    /* TwoPointConicalGradient */
+    ShaderEffect(ShaderEffectType t, const Point& startPt, scalar startRadius, const Point& endPt, scalar endRadius,
+        const std::vector<UIColor>& colors, std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos,
+        TileMode mode, const Matrix *matrix = nullptr) noexcept;
+
+    /* SweepGradient */
+    ShaderEffect(ShaderEffectType t, const Point& centerPt, const std::vector<UIColor>& colors,
+        std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos, TileMode mode, scalar startAngle,
+        scalar endAngle, const Matrix *matrix = nullptr) noexcept;
 
 #ifdef RS_ENABLE_GPU
     void SetGPUContext(std::shared_ptr<GPUContext> gpuContext) const;
