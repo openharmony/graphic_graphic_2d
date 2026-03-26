@@ -266,3 +266,19 @@ DECLARE_SHADER(DistortChroma, DISTORT_CHROMA,
     ADD_PROPERTY_TAG(DistortChroma, ColorStrength),
     ADD_PROPERTY_TAG(DistortChroma, VerticalMoveDistance)
 );
+
+DECLARE_SHADER(SDFEdgeLightEffect, SDF_EDGE_LIGHT_EFFECT,
+    ADD_PROPERTY_TAG(SDFEdgeLightEffect, SpreadFactor),
+    ADD_PROPERTY_TAG(SDFEdgeLightEffect, BloomIntensityCutoff),
+    ADD_PROPERTY_TAG(SDFEdgeLightEffect, LightMaxIntensity),
+    ADD_PROPERTY_TAG(SDFEdgeLightEffect, MaxBloomIntensity),
+    ADD_PROPERTY_TAG(SDFEdgeLightEffect, BloomFalloffPow),
+    ADD_PROPERTY_TAG(SDFEdgeLightEffect, MinBorderWidth),
+    ADD_PROPERTY_TAG(SDFEdgeLightEffect, MaxBorderWidth),
+    ADD_PROPERTY_TAG(SDFEdgeLightEffect, InnerBorderBloomWidth),
+    ADD_PROPERTY_TAG(SDFEdgeLightEffect, OuterBorderBloomWidth),
+    ADD_PROPERTY_TAG(SDFEdgeLightEffect, Color),
+    ADD_PROPERTY_TAG(SDFEdgeLightEffect, SDFImage),
+    ADD_PROPERTY_TAG(SDFEdgeLightEffect, LightMask),
+    ADD_PROPERTY_TAG(SDFEdgeLightEffect, SDFShape)
+);
