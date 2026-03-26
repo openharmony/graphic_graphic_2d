@@ -879,8 +879,8 @@ void RSMainThread::OnScreenPropertyChanged(
     }
     HandleScreenPropertyRefreshOneFrame(id, type);
     HandlePowerStatusChanged(id, type, property);
+    HandlePhysicalModeParamsChanged(id, type, property);
     UpdateScreenProperty(id, type, property);
-    RequestNextVSync();
 }
 
 void RSMainThread::ReleaseImageMem()
@@ -5324,6 +5324,7 @@ static bool NeedForceRefreshOneFrame(ScreenPropertyType type)
         case ScreenPropertyType::GAMUT_MAP:
         case ScreenPropertyType::PRODUCER_SURFACE:
         case ScreenPropertyType::RENDER_RESOLUTION:
+        case ScreenPropertyType::SAMPLING_OPTION:
         case ScreenPropertyType::SCREEN_STATUS:
         case ScreenPropertyType::SCREEN_SWITCH_STATUS:
         case ScreenPropertyType::WHITE_LIST:
@@ -5349,6 +5350,7 @@ void RSMainThread::HandleScreenPropertyRefreshOneFrame(ScreenId id, ScreenProper
             }
         });
 
+        SetDirtyFlag();
         ForceRefreshForUni();
     }
 }
@@ -5397,6 +5399,45 @@ void RSMainThread::HandlePowerStatusChanged(ScreenId id,
 
     auto& nodeMap = context_->GetNodeMap();
     nodeMap.TraverseScreenNodes(checkPowerStatus);
+}
+
+void RSMainThread::HandlePhysicalModeParamsChanged(
+    ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property)
+{
+    if (type != ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE) {
+        return;
+    }
+
+    using T = typename PropertyTypeMapper<ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE>::value_type;
+    auto newProperty = static_cast<ScreenProperty<T>*>(property.GetRefPtr());
+    if (!newProperty) {
+        return;
+    }
+
+    bool needTraverseNodeTree = false;
+    auto& nodeMap = context_->GetNodeMap();
+    nodeMap.TraverseScreenNodes([id, newProperty, this, &needTraverseNodeTree](const auto& node) {
+        if (id != node->GetScreenId()) {
+            return;
+        }
+
+        auto [newWidth, newHeight, newRefreshRate] = newProperty->Get();
+        const auto& property = node->GetScreenProperty();
+
+        bool needResetDirty = newWidth != property.GetPhyWidth() || newHeight != property.GetPhyHeight() ||
+            property.GetConnectionType() == ScreenConnectionType::DISPLAY_CONNECTION_TYPE_EXTERNAL;
+        if (needResetDirty) {
+            node->SetScreenDirtyFlag(true);
+            needTraverseNodeTree |= true;
+        } else if (RSRealtimeRefreshRateManager::Instance().GetShowRefreshRateEnabled()) {
+            needTraverseNodeTree |= true;
+        }
+    });
+
+    if (needTraverseNodeTree) {
+        SetDirtyFlag();
+        RequestNextVSync();
+    }
 }
 
 void RSMainThread::DestroyScreenNode(ScreenId screenId)

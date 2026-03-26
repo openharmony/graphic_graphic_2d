@@ -1073,14 +1073,6 @@ bool RSScreenManager::GetVirtualScreenAutoRotation(ScreenId id) const
     return screen->GetVirtualScreenAutoRotation();
 }
 
-int32_t RSScreenManager::SetScreenSwitchingNotifyCallback(const sptr<RSIScreenSwitchingNotifyCallback>& callback)
-{
-    std::lock_guard<std::shared_mutex> lock(screenSwitchingNotifyCallbackMutex_);
-    screenSwitchingNotifyCallback_ = callback;
-    RS_LOGI("%{public}s: set screen switching notify callback succeed.", __func__);
-    return SUCCESS;
-}
-
 void RSScreenManager::DisplayDump(std::string& dumpString)
 {
     std::lock_guard<std::mutex> lock(screenMapMutex_);
@@ -1425,7 +1417,7 @@ void RSScreenManager::SetScreenSwitchStatus(bool status)
     }
     RS_LOGI("%{public}s: set isScreenSwitching_ = %{public}d", __func__, status);
     if (!status) {
-        NotifySwitchingCallback(status);
+        callbackMgr_->NotifySwitchingCallback(status);
     }
 }
 
@@ -1453,18 +1445,6 @@ bool RSScreenManager::AnyScreenFits(std::function<bool(const ScreenNode&)> func)
 {
     std::lock_guard<std::mutex> lock(screenMapMutex_);
     return std::any_of(screens_.cbegin(), screens_.cend(), func);
-}
-
-void RSScreenManager::NotifySwitchingCallback(bool status) const
-{
-    std::shared_lock<std::shared_mutex> lock(screenSwitchingNotifyCallbackMutex_);
-    if (screenSwitchingNotifyCallback_ == nullptr) {
-        RS_LOGI("%{public}s: screenSwitchingNotifyCallback_ is nullptr! status: %{public}d", __func__, status);
-        return;
-    }
-
-    RS_LOGI("%{public}s: status: %{public}d", __func__, status);
-    screenSwitchingNotifyCallback_->OnScreenSwitchingNotify(status);
 }
 
 std::shared_ptr<RSScreen> RSScreenManager::GetScreen(ScreenId id) const

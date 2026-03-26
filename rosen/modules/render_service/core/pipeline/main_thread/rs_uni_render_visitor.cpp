@@ -574,8 +574,7 @@ void RSUniRenderVisitor::ResetDisplayDirtyRegion()
         IsFirstFrameOfOverdrawSwitch() ||
         IsFirstFrameOfDrawingCacheDfxSwitch() ||
         IsAccessibilityConfigChanged() ||
-        curScreenNode_->HasMirroredScreenChanged() ||
-        curScreenNode_->IsScreenResolutionChanged();
+        curScreenNode_->HasMirroredScreenChanged();
 
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     // if overlay display status changed, ......

@@ -454,6 +454,8 @@ private:
     void DestroyScreenNode(ScreenId screenId);
     void HandleScreenPropertyRefreshOneFrame(ScreenId id, ScreenPropertyType type);
     void HandlePowerStatusChanged(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
+    void HandlePhysicalModeParamsChanged(
+        ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
     void UpdateScreenProperty(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
     void UpdateSubSurfaceCnt();
     void HandleGameNode();
