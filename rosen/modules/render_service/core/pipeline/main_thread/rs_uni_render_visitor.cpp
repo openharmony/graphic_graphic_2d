@@ -492,6 +492,9 @@ void RSUniRenderVisitor::ResetCurSurfaceInfoAsUpperSurfaceParent(RSSurfaceRender
     }
     if (auto directParent = node.GetParent().lock()) {
         if (auto parentInstance = directParent->GetInstanceRootNode()) {
+            if (RSAncoManager::Instance()->IsAncoType(curSurfaceNode_->GetName())) {
+                hasAncoDimmer_ = false;
+            }
             // in case leashwindow is not directParent
             auto surfaceParent = parentInstance->ReinterpretCastTo<RSSurfaceRenderNode>();
             if (surfaceParent && (surfaceParent->IsLeashOrMainWindow())) {
@@ -1269,6 +1272,13 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
         CheckIsGpuOverDrawBufferOptimizeNode(node);
     }
     RSHdrUtil::CheckPixelFormatForHdrEffect(node, curScreenNode_);
+
+    if (hasAncoDimmer_ && (node.GetAncoFlags() & static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE))) {
+        node.SetHardwareForcedDisabledState(true);
+        RS_OPTIONAL_TRACE_FMT("anco node debug: name:%s id:%" PRIu64 " disabled by dimming node below.",
+                              node.GetName().c_str(), node.GetId());
+    }
+
     PostPrepare(node, !isSubTreeNeedPrepare);
     if (node.IsHardwareEnabledTopSurface() && node.shared_from_this()) {
         RSUniHwcComputeUtil::UpdateHwcNodeProperty(node.shared_from_this()->ReinterpretCastTo<RSSurfaceRenderNode>());
@@ -1993,6 +2003,10 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
 
     hwcVisitor_->RestoreIsOffscreen(isCurrOffscreen);
 
+    if (RSAncoManager::Instance()->IsAncoDimmer(node.GetNodeName())) {
+        hasAncoDimmer_ = true;
+    }
+
     node.RenderTraceDebug();
     RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
 }
@@ -2256,6 +2270,10 @@ CM_INLINE bool RSUniRenderVisitor::BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderN
         // UpdateCurCornerInfo must process before curSurfaceNode_ update
         node.UpdateCurCornerInfo(curCornerRadius_, curCornerRect_);
         curSurfaceNode_ = node.ReinterpretCastTo<RSSurfaceRenderNode>();
+        // restores the dimmer canvas node tag of the anco window.
+        if (curSurfaceNode_ && RSAncoManager::Instance()->IsAncoType(curSurfaceNode_->GetName())) {
+            hasAncoDimmer_ = false;
+        }
         // dirty manager should not be overrode by cross node in expand screen
         curSurfaceDirtyManager_ = (!curScreenNode_->IsFirstVisitCrossNodeDisplay() && node.IsFirstLevelCrossNode()) ?
             std::make_shared<RSDirtyRegionManager>() : node.GetDirtyManager();
