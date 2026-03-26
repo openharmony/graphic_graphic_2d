@@ -4397,7 +4397,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase003, TestSize.Level
     connection->RepaintEverything();
     // test ForceRefreshOneFrameWithNextVSync
     connection->renderProcessManagerAgent_ = renderProcessManagerAgent;
-    ASSERT_NE(connection->renderProcessManagerAgent_,  );
+    ASSERT_NE(connection->renderProcessManagerAgent_, nullptr);
     connection->ForceRefreshOneFrameWithNextVSync();
     connection->renderProcessManagerAgent_ = nullptr;
     // test DisablePowerOffRenderControl
@@ -4658,12 +4658,12 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase006, TestSize.Level
 }
 
 /**
- * @tc.name: testnullptrCase006
+ * @tc.name: testnullptrCase007
  * @tc.desc: Test testnullptrCase
  * @tc.type: FUNC
  * @tc.require: issue20726
  */
-HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase006, TestSize.Level1)
+HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase007, TestSize.Level1)
 {
     auto connection = sptr<RSClientToServiceConnection>::MakeSptr(0, renderServiceAgent_,
             renderProcessManagerAgent_, screenManagerAgent_, nullptr,
@@ -4698,6 +4698,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase006, TestSize.Level
     connection->SetVirtualScreenStatus(
         INVALID_SCREEN_ID, VirtualScreenStatus::VIRTUAL_SCREEN_INVALID_STATUS, setVirtualScreenStatusRet);
     // test SetLayerTop and SetForceRefresh
+    const std::string pkgName = "";
     connection->SetLayerTop(pkgName, false);
     connection->renderProcessManagerAgent_ = renderProcessManagerAgent;
     ASSERT_NE(connection->renderProcessManagerAgent_, nullptr);
@@ -4714,12 +4715,12 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase006, TestSize.Level
 }	 
 	 
 /**
- * @tc.name: testnullptrCase007
+ * @tc.name: testnullptrCase008
  * @tc.desc: Test testnullptrCase
  * @tc.type: FUNC
  * @tc.require: issue20726
  */
-HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase007, TestSize.Level1)
+HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase008, TestSize.Level1)
 {
     auto connection = sptr<RSClientToServiceConnection>::MakeSptr(0, renderServiceAgent_,
             renderProcessManagerAgent_, screenManagerAgent_, nullptr,
@@ -4742,6 +4743,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase007, TestSize.Level
     connection->RegisterSelfDrawingNodeRectChangeCallback(constraint, nullptr);
     connection->UnRegisterSelfDrawingNodeRectChangeCallback();
     // test NotifyPageName
+    const std::string pkgName = "";
     connection->NotifyPageName(pkgName, pkgName, false);
     connection->hgmContext_ = hgmContext;
     ASSERT_NE(connection->hgmContext_, nullptr);
