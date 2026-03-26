@@ -32,6 +32,7 @@
 #include "rs_ui_context.h"
 
 #include "common/rs_macros.h"
+#include <iremote_object.h>
 
 namespace OHOS {
 namespace Rosen {
@@ -72,7 +73,7 @@ public:
      *
      * @return A shared pointer to the newly created RSUIContext.
      */
-    std::shared_ptr<RSUIContext> CreateRSUIContext();
+    std::shared_ptr<RSUIContext> CreateRSUIContext(sptr<IRemoteObject>& connectToRenderRemote);
 
     /**
      * @brief Destroys the RSUIContext associated with the given token.

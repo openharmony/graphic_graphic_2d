@@ -43,7 +43,7 @@ public:
     /**
      * @brief register application agent to renderService
      */
-    void RegisterRSApplicationAgent();
+    void RegisterRSApplicationAgent(std::shared_ptr<RSUIContext> rsUIContext);
 
     RSApplicationAgentImpl() = default;
     virtual ~RSApplicationAgentImpl() = default;

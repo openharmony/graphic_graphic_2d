@@ -841,6 +841,35 @@ int32_t RSClientToServiceConnectionProxy::SetScreenChangeCallback(sptr<RSIScreen
     return result;
 }
 
+sptr<IRemoteObject> RSClientToServiceConnectionProxy::GetConnectToRenderToken(ScreenId screenId)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+ 
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::GetConnectToRenderToken GetDescriptor err.");
+        return nullptr;
+    }
+ 
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteUint64(screenId)) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy: WriteRemoteObject callback->AsObject() err.");
+        return nullptr;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_CONNECT_TO_RENDER);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::GetConnectToRenderToken: Send Request err.");
+        return nullptr;
+    }
+    sptr<IRemoteObject> rObj = reply.ReadRemoteObject();
+    if (rObj == nullptr) {
+        return nullptr;
+    }
+    return nullptr;
+}
+
 int32_t RSClientToServiceConnectionProxy::SetScreenSwitchingNotifyCallback(
     sptr<RSIScreenSwitchingNotifyCallback> callback)
 {

@@ -381,6 +381,20 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             }
             break;
         }
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_CONNECT_TO_RENDER): {
+            ScreenId id{INVALID_SCREEN_ID};
+            if (!data.ReadUint64(id)) {
+                RS_LOGE("RSClientToServiceConnectionStub::GET_CONNECT_TO_RENDER Read parcel fialed");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            auto connectToRender = GetConnectToRenderToken(id);
+            if (!reply.WriteRemoteObject(connectToRender)) {
+                RS_LOGE("RSClientToServiceConnectionStub::GET_CONNECT_TO_RENDER write status fialed");
+                ret = ERR_INVALID_DATA;
+            }
+            break;
+        }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_ACTIVE_SCREEN_ID): {
             uint64_t screenId = INVALID_SCREEN_ID;
             if (GetActiveScreenId(screenId) != ERR_OK || !reply.WriteUint64(screenId)) {

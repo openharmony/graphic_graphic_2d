@@ -63,7 +63,7 @@
 namespace OHOS {
 namespace Rosen {
 // normal callback functor for client users.
-using ScreenChangeCallback = std::function<void(ScreenId, ScreenEvent, ScreenChangeReason)>;
+using ScreenChangeCallback = std::function<void(ScreenId, ScreenEvent, ScreenChangeReason, sptr<IRemoteObject>)>;
 using BrightnessInfoChangeCallback = std::function<void(ScreenId, BrightnessInfo)>;
 using ScreenSwitchingNotifyCallback = std::function<void(bool)>;
 using ScreenSupportedHDRFormatsCallback = std::function<void(ScreenId,
@@ -92,6 +92,8 @@ public:
     void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
 
     bool GetUniRenderEnabled();
+
+    sptr<IRemoteObject> GetConnectToRenderToken(ScreenId screenId);
 
     std::shared_ptr<VSyncReceiver> CreateVSyncReceiver(
         const std::string& name,

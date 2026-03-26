@@ -32,7 +32,6 @@ using SurfaceOcclusionChangeCallback = std::function<void(float)>;
 class RSC_EXPORT RSRenderInterface {
 
 public:
-    RSRenderInterface();
     ~RSRenderInterface() noexcept;
     /**
      * @brief Get snapshot of surfaceNode.
@@ -217,12 +216,23 @@ public:
 
     bool RegisterTransactionDataCallback(uint64_t token, uint64_t timeStamp, std::function<void()> callback);
 
+    bool RegisterBufferAvailableListener(
+        NodeId id, const BufferAvailableCallback &callback, bool isFromRenderThread = false);
+    
+    bool RegisterBufferClearListener(
+        NodeId id, const BufferClearCallback &callback);
+ 
+    bool UnregisterBufferAvailableListener(NodeId id);
+
     /**
      * @brief Set the focus window information to renderService.
      * @param info Focus window information, Please refer to the definition for the specific content included.
      * @return 0 means success, others failed.
      */
     int32_t SetFocusAppInfo(const FocusAppInfo& info);
+
+    bool GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
+        const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList);
 
     /**
      * @brief Set the process ID list requiring frame dropping. Next time RS triggers rending,
@@ -279,6 +289,8 @@ public:
      * @return True if success, false if failed.
      */
     bool SetGlobalDarkColorMode(bool isDark);
+
+    bool GetBitmap(NodeId id, Drawing::Bitmap& bitmap);
 
     /*
      * @brief Set the system overload Animated Scenes to RS for special load shedding.
@@ -390,7 +402,20 @@ public:
     int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection);
 
 private:
-    std::unique_ptr<RSRenderPipelineClient> renderPipelineClient_;
+    RSRenderInterface(sptr<IRemoteObject>& connectToRenderRemote);
+
+    bool CreateNode(const RSSurfaceRenderNodeConfig& config);
+    bool CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId);
+    std::shared_ptr<RSSurface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, bool unobscured = false);
+    RSInterfaceErrorCode SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent);
+    void SetHardwareEnabled(NodeId id, bool isEnabled,
+        SelfDrawingNodeType selfDrawingType = SelfDrawingNodeType::DEFAULT, bool dynamicHardwareEnable = true);
+    std::shared_ptr<RSRenderPipelineClient> GetRSRenderPipelineClient() const
+    {
+        return renderPipelineClient_;
+    }
+
+    std::shared_ptr<RSRenderPipelineClient> renderPipelineClient_;
     friend class RSUIContext;
     friend class RSApplicationAgentImpl;
     friend class RSDisplayNode;

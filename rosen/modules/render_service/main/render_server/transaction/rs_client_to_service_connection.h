@@ -120,6 +120,8 @@ private:
 
     int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect, bool supportRotation = false) override;
 
+    sptr<IRemoteObject> GetConnectToRenderToken(ScreenId screenId) override;
+
     void ForceRefreshOneFrameWithNextVSync() override;
 
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) override;

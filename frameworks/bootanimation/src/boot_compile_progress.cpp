@@ -131,8 +131,8 @@ bool BootCompileProgress::CreateCanvasNode()
     surfaceNodeConfig.SurfaceNodeName = "BootCompileProgressNode";
     surfaceNodeConfig.isSync = true;
     Rosen::RSSurfaceNodeType surfaceNodeType = Rosen::RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
-    rsUIDirector_ = OHOS::Rosen::RSUIDirector::Create();
-    rsUIDirector_->Init(false, false);
+    rsUIDirector_ = OHOS::Rosen::RSUIDirector::Create(nullptr);
+    // rsUIDirector_->Init(false, false);
     auto rsUIContext = rsUIDirector_->GetRSUIContext();
     rsSurfaceNode_ = Rosen::RSSurfaceNode::Create(surfaceNodeConfig, surfaceNodeType, true, false, rsUIContext);
     if (!rsSurfaceNode_) {

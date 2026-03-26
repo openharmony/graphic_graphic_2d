@@ -38,6 +38,7 @@
 #include "ui/rs_surface_node.h"
 #include "ui/rs_ui_context.h"
 #include "ui/rs_ui_context_manager.h"
+#include "platform/ohos/transaction/zidl/rs_iconnect_to_render_process.h"
 #if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
 #include "modifier_render_thread/rs_modifiers_draw_thread.h"
 #include "modifier_render_thread/rs_modifiers_draw.h"
@@ -63,11 +64,14 @@ namespace Rosen {
 static std::mutex g_vsyncCallbackMutex;
 static std::once_flag g_initDumpNodeTreeProcessorFlag;
 static std::once_flag g_isResidentProcessFlag;
-static std::once_flag g_initHybridCallback;
+// static std::once_flag g_initHybridCallback;
 
-std::shared_ptr<RSUIDirector> RSUIDirector::Create()
+std::shared_ptr<RSUIDirector> RSUIDirector::Create(sptr<IRemoteObject> connectToRenderRemote,
+    std::shared_ptr<RSUIContext> rsUIContext)
 {
-    return std::shared_ptr<RSUIDirector>(new RSUIDirector());
+    std::shared_ptr<RSUIDirector> rsUIDirector = std::shared_ptr<RSUIDirector>(new RSUIDirector());
+    rsUIDirector->Init(connectToRenderRemote, rsUIContext);
+    return rsUIDirector;
 }
 
 RSUIDirector::~RSUIDirector()
@@ -75,7 +79,7 @@ RSUIDirector::~RSUIDirector()
     Destroy();
 }
 
-void RSUIDirector::Init(bool shouldCreateRenderThread, bool isMultiInstance, std::shared_ptr<RSUIContext> rsUIContext)
+void RSUIDirector::Init(sptr<IRemoteObject>& connectToRenderRemote, std::shared_ptr<RSUIContext> rsUIContext)
 {
     AnimationCommandHelper::SetAnimationCallbackProcessor(AnimationCallbackProcessor);
     RSNodeCommandHelper::SetColorPickerCallbackProcessor(ColorPickerCallbackProcessor);
@@ -85,12 +89,12 @@ void RSUIDirector::Init(bool shouldCreateRenderThread, bool isMultiInstance, std
     if (rsUIContext != nullptr) {
         rsUIContext_ = rsUIContext;
         skipDestroyUIContext_ = true;
-    } else if (isMultiInstance) {
-        rsUIContext_ = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    } else {
+        rsUIContext_ = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     }
 
     isUniRenderEnabled_ = RSSystemProperties::GetUniRenderEnabled();
-    if (shouldCreateRenderThread && !isUniRenderEnabled_) {
+    if (!isUniRenderEnabled_) {
         auto renderThreadClient = RSIRenderClient::CreateRenderThreadClient();
         if (rsUIContext_ != nullptr) {
             auto transaction = rsUIContext_->GetRSTransaction();
@@ -118,7 +122,7 @@ void RSUIDirector::Init(bool shouldCreateRenderThread, bool isMultiInstance, std
         RSRenderThread::Instance().SetCacheDir(cacheDir_);
     }
     if (auto rsApplicationAgent = RSApplicationAgentImpl::Instance()) {
-        rsApplicationAgent->RegisterRSApplicationAgent();
+        rsApplicationAgent->RegisterRSApplicationAgent(rsUIContext_);
     }
 
     GoForeground();
@@ -144,72 +148,72 @@ void RSUIDirector::SetFlushEmptyCallback(FlushEmptyCallback flushEmptyCallback)
 void RSUIDirector::InitHybridRender()
 {
 #if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
-    if (RSSystemProperties::GetHybridRenderEnabled()) {
-        CommitTransactionCallback callback =
-            [] (std::shared_ptr<RSIRenderClient> &renderPiplineClient,
-            std::unique_ptr<RSTransactionData>&& rsTransactionData, uint32_t& transactionDataIndex,
-            std::shared_ptr<RSTransactionHandler> transactionHandler) {
-            auto task = [renderPiplineClient, transactionData = std::move(rsTransactionData),
-                &transactionDataIndex, transactionHandler]() mutable {
-                bool isNeedCommit = true;
-                RSModifiersDrawThread::ConvertTransaction(transactionData, renderPiplineClient, isNeedCommit);
-                if (isNeedCommit) {
-                    renderPiplineClient->CommitTransaction(transactionData);
-                }
-                transactionDataIndex = transactionData->GetIndex();
-                // destroy semaphore after commitTransaction for which syncFence was duped
-                RSModifiersDraw::DestroySemaphore();
-                std::shared_ptr<RSUIContext> rsUICtx;
-                {
-                    int32_t instanceId = INSTANCE_ID_UNDEFINED;
-                    if (!transactionHandler) {
-                        for (auto& [id, _, cmd] : transactionData->GetPayload()) {
-                            if (cmd == nullptr) {
-                                continue;
-                            }
-                            if (instanceId == INSTANCE_ID_UNDEFINED) {
-                                NodeId realId = id == 0 ? cmd->GetNodeId() : id;
-                                instanceId = RSNodeMap::Instance().GetNodeInstanceId(realId);
-                                instanceId = (instanceId == INSTANCE_ID_UNDEFINED ?
-                                    RSNodeMap::Instance().GetInstanceIdForReleasedNode(realId) : instanceId);
-                            } else {
-                                break;
-                            }
-                        }
-                    }
-                    auto dataHolder = std::make_shared<TransactionDataHolder>(std::move(transactionData));
-                    std::unique_lock<std::recursive_mutex> lock(RSModifiersDrawThread::transactionDataMutex_);
-                    auto task = [dataHolder]() {
-                        std::unique_lock<std::recursive_mutex> lock(RSModifiersDrawThread::transactionDataMutex_);
-                        (void) dataHolder;
-                    };
-                    (transactionHandler == nullptr) ? RSUIDirector::PostTask(task, instanceId) :
-                        transactionHandler->PostTask(task);
-                }
-            };
-            RSModifiersDrawThread::Instance().ScheduleTask(task);
-        };
-        SetCommitTransactionCallback(callback);
-    }
+    // if (RSSystemProperties::GetHybridRenderEnabled()) {
+    //     CommitTransactionCallback callback =
+    //         [] (std::shared_ptr<RSIRenderClient> &renderPiplineClient,
+    //         std::unique_ptr<RSTransactionData>&& rsTransactionData, uint32_t& transactionDataIndex,
+    //         std::shared_ptr<RSTransactionHandler> transactionHandler) {
+    //         auto task = [renderPiplineClient, transactionData = std::move(rsTransactionData),
+    //             &transactionDataIndex, transactionHandler]() mutable {
+    //             bool isNeedCommit = true;
+    //             RSModifiersDrawThread::ConvertTransaction(transactionData, renderPiplineClient, isNeedCommit);
+    //             if (isNeedCommit) {
+    //                 renderPiplineClient->CommitTransaction(transactionData);
+    //             }
+    //             transactionDataIndex = transactionData->GetIndex();
+    //             // destroy semaphore after commitTransaction for which syncFence was duped
+    //             RSModifiersDraw::DestroySemaphore();
+    //             std::shared_ptr<RSUIContext> rsUICtx;
+    //             {
+    //                 int32_t instanceId = INSTANCE_ID_UNDEFINED;
+    //                 if (!transactionHandler) {
+    //                     for (auto& [id, _, cmd] : transactionData->GetPayload()) {
+    //                         if (cmd == nullptr) {
+    //                             continue;
+    //                         }
+    //                         if (instanceId == INSTANCE_ID_UNDEFINED) {
+    //                             NodeId realId = id == 0 ? cmd->GetNodeId() : id;
+    //                             instanceId = RSNodeMap::Instance().GetNodeInstanceId(realId);
+    //                             instanceId = (instanceId == INSTANCE_ID_UNDEFINED ?
+    //                                 RSNodeMap::Instance().GetInstanceIdForReleasedNode(realId) : instanceId);
+    //                         } else {
+    //                             break;
+    //                         }
+    //                     }
+    //                 }
+    //                 auto dataHolder = std::make_shared<TransactionDataHolder>(std::move(transactionData));
+    //                 std::unique_lock<std::recursive_mutex> lock(RSModifiersDrawThread::transactionDataMutex_);
+    //                 auto task = [dataHolder]() {
+    //                     std::unique_lock<std::recursive_mutex> lock(RSModifiersDrawThread::transactionDataMutex_);
+    //                     (void) dataHolder;
+    //                 };
+    //                 (transactionHandler == nullptr) ? RSUIDirector::PostTask(task, instanceId) :
+    //                     transactionHandler->PostTask(task);
+    //             }
+    //         };
+    //         RSModifiersDrawThread::Instance().ScheduleTask(task);
+    //     };
+    //     SetCommitTransactionCallback(callback);
+    // }
 #endif
 }
 
-void RSUIDirector::SetCommitTransactionCallback(CommitTransactionCallback commitTransactionCallback)
-{
-    if (rsUIContext_) {
-        auto transaction = rsUIContext_->GetRSTransaction();
-        if (transaction != nullptr) {
-            std::call_once(g_initHybridCallback, [commitTransactionCallback]() {
-                    RSTransactionHandler::SetCommitTransactionCallback(commitTransactionCallback);
-            });
-        }
-    } else {
-        auto transactionProxy = RSTransactionProxy::GetInstance();
-        if (transactionProxy != nullptr) {
-            transactionProxy->SetCommitTransactionCallback(commitTransactionCallback);
-        }
-    }
-}
+// void RSUIDirector::SetCommitTransactionCallback(CommitTransactionCallback commitTransactionCallback)
+// {
+//     if (rsUIContext_) {
+//         auto transaction = rsUIContext_->GetRSTransaction();
+//         if (transaction != nullptr) {
+//             std::call_once(g_initHybridCallback, [commitTransactionCallback]() {
+//                     RSTransactionHandler::SetCommitTransactionCallback(commitTransactionCallback);
+//             });
+//         }
+//     } else {
+//         auto transactionProxy = RSTransactionProxy::GetInstance();
+//         if (transactionProxy != nullptr) {
+//             transactionProxy->SetCommitTransactionCallback(commitTransactionCallback);
+//         }
+//     }
+// }
 
 bool RSUIDirector::IsHybridRenderEnabled()
 {
@@ -599,30 +603,15 @@ void RSUIDirector::SendMessages(std::function<void()> callback)
             if (callback != nullptr) {
                 RS_LOGD("RSUIDirector:: multi-intance SendMessages with callback, timeStamp: %{public}"
                     PRIu64 " token: %{public}" PRIu64, timeStamp_, rsUIContext_->GetToken());
-                RSInterfaces::GetInstance().RegisterTransactionDataCallback(rsUIContext_->GetToken(),
-                    timeStamp_, callback);
+                if (auto rsRenderInterface = rsUIContext_->GetRSRenderInterface()) {
+                    rsRenderInterface->RegisterTransactionDataCallback(rsUIContext_->GetToken(), timeStamp_, callback);
+                }
             }
             transaction->FlushImplicitTransaction(timeStamp_, abilityName_, dvsyncUpdate_, dvsyncTime_);
             index_ = transaction->GetTransactionDataIndex();
         } else {
             RS_LOGE_LIMIT(__func__, __line__, "RSUIDirector:: multi-intance SendMessages failed, \
                 transaction is nullptr");
-        }
-        ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
-    } else {
-        ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "SendCommands With Callback");
-        auto transactionProxy = RSTransactionProxy::GetInstance();
-        if (transactionProxy != nullptr && !transactionProxy->IsEmpty()) {
-            if (callback != nullptr) {
-                static const uint64_t pid = static_cast<uint64_t>(getpid());
-                RS_LOGD("RSUIDirector::SendMessages with callback, timeStamp: %{public}"
-                    PRIu64 " pid: %{public}" PRIu64, timeStamp_, pid);
-                RSInterfaces::GetInstance().RegisterTransactionDataCallback(pid, timeStamp_, callback);
-            }
-            transactionProxy->FlushImplicitTransaction(timeStamp_, abilityName_, dvsyncUpdate_, dvsyncTime_);
-            index_ = transactionProxy->GetTransactionDataIndex();
-        } else {
-            RS_LOGE_LIMIT(__func__, __line__, "RSUIDirector::SendMessages failed, transactionProxy is nullptr");
         }
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     }

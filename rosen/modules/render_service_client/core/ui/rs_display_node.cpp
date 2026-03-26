@@ -74,8 +74,12 @@ RSDisplayNode::SharedPtr RSDisplayNode::Create(
 
 bool RSDisplayNode::CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId)
 {
-    return std::static_pointer_cast<RSRenderPipelineClient>(RSIRenderClient::CreateRenderPiplineClient())->
-        CreateNode(displayNodeConfig, nodeId);
+    auto rsUIContext = GetRSUIContext();
+    if (rsUIContext == nullptr || rsUIContext->GetRSRenderInterface() == nullptr) {
+        ROSEN_LOGE("RSDisplayNode::CreateNode uiContext is nullptr");
+        return false;
+    }
+    return rsUIContext->GetRSRenderInterface()->CreateNode(displayNodeConfig, nodeId);
 }
 
 // LCOV_EXCL_START

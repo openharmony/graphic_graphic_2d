@@ -400,6 +400,15 @@ ErrCode RSClientToServiceConnection::GetDefaultScreenId(uint64_t& screenId)
     return screenManagerAgent_->GetDefaultScreenId(screenId);
 }
 
+sptr<IRemoteObject> RSClientToServiceConnection::GetConnectToRenderToken(ScreenId screenId)
+{
+    if (renderServiceAgent_ == nullptr) {
+        RS_LOGE("RSClientToServiceConnection::GetConnectToRenderToken is nullptr");
+        return nullptr;
+    }
+    return renderServiceAgent_->GetConnectToRenderToken(screenId);
+}
+
 ErrCode RSClientToServiceConnection::GetActiveScreenId(uint64_t& screenId)
 {
     if (!screenManagerAgent_) {
