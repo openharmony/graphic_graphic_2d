@@ -26,7 +26,7 @@ constexpr CacheKey RUNMETRICS_KEY{ANI_CLASS_RUNMETRICS, "<ctor>", RUNMETRICS_SIG
 constexpr CacheKey MAP_SET_KEY{ANI_MAP, "set", "YY:C{std.core.Map}"};
 constexpr CacheKey BUSINESS_ERROR_KEY{ANI_BUSINESS_ERROR, "<ctor>", "C{std.core.String}C{escompat.ErrorOptions}:"};
 constexpr CacheKey ARRAY_KEY{ANI_ARRAY, "<ctor>", "i:"};
-constexpr CacheKey MAP_KEY{ANI_MAP, "<ctor>", ":"};
+constexpr CacheKey MAP_KEY{ANI_MAP, "<ctor>", "X{C{std.core.Iterable}C{std.core.Null}C{std.core.ReadonlyArray}}:"};
 constexpr CacheKey DOUBLE_KEY{ANI_DOUBLE, "<ctor>", "d:"};
 constexpr CacheKey INT_KEY{ANI_INT, "<ctor>", "i:"};
 constexpr CacheKey BOOLEAN_KEY{ANI_BOOLEAN, "<ctor>", "z:"};
