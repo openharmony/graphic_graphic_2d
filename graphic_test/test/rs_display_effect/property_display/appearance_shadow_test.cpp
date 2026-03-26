@@ -763,6 +763,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Mask_Strate
         GetRootNode()->AddChild(maskTestNode);
         RegisterNode(maskTestNode);
     }
+}
 
 /*
  * @tc.name: Appearance_Shadow_Radius_Zero_Test01
