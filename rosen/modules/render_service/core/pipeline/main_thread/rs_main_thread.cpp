@@ -1031,6 +1031,15 @@ void RSMainThread::InitGPUCacheManager()
         }
     );
 
+#ifdef HETERO_HDR_ENABLE
+    // Set GPUCacheManager callback to RSHeteroHDRManager (dependency injection)
+    RSHeteroHDRManager::Instance()->RegisterHpaeBufferDeleteCallback(
+        [renderEnginePtr]() -> std::shared_ptr<GPUCacheManager> {
+            return renderEnginePtr->GetGPUCacheManager();
+        }
+    );
+#endif
+
     // Set global GPU cache cleanup callback for RSSurfaceHandler (dependency injection)
     RSSurfaceHandler::SetGPUCacheCleanupCallback(
         [renderEnginePtr](const std::set<uint64_t>& bufferIds) {

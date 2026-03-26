@@ -57,26 +57,13 @@ void RSUniRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas,
     canvas.ConcatMatrix(params.matrix);
     RS_TRACE_NAME_FMT("RSUniRenderEngine::DrawSurfaceNodeWithParams ignoreAlpha[%d]", params.ignoreAlpha);
     if (!params.useCPU) {
-#ifdef HETERO_HDR_ENABLE
-        if (hdrHeteroRet) {
-            if (getHDRSurfaceHandlerCallback_) {
-                std::shared_ptr<RSSurfaceHandler> hdrSurfaceHandler = getHDRSurfaceHandlerCallback_();
-            }
-            DrawImage(canvas, params);
-        } else {
-#else
-        {
-#endif
 #ifdef RS_ENABLE_TV_PQ_METADATA
-            auto& renderParams = surfaceDrawable.GetRenderParams();
-            if (renderParams) {
-                auto& surfaceRenderParams = *(static_cast<RSSurfaceRenderParams*>(renderParams.get()));
-                if (recordTvMetadataCallback_) {
-                    recordTvMetadataCallback_(surfaceRenderParams, params.buffer);
-                }
+        auto& renderParams = surfaceDrawable.GetRenderParams();
+        if (renderParams) {
+            auto& surfaceRenderParams = *(static_cast<RSSurfaceRenderParams*>(renderParams.get()));
+            if (recordTvMetadataCallback_) {
+                recordTvMetadataCallback_(surfaceRenderParams, params.buffer);
             }
-#endif
-            DrawImage(canvas, params);
         }
     } else {
         DrawBuffer(canvas, params);
