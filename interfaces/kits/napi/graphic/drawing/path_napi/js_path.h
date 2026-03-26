@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -68,6 +68,7 @@ public:
     static napi_value ReWind(napi_env env, napi_callback_info info);
     static napi_value GetMatrix(napi_env env, napi_callback_info info);
     static napi_value BuildFromSvgString(napi_env env, napi_callback_info info);
+    static napi_value ConvertToSVGString(napi_env env, napi_callback_info info);
     static napi_value IsClosed(napi_env env, napi_callback_info info);
     static napi_value IsEmpty(napi_env env, napi_callback_info info);
     static napi_value IsRect(napi_env env, napi_callback_info info);
@@ -123,6 +124,7 @@ private:
     napi_value OnIsEmpty(napi_env env, napi_callback_info info);
     napi_value OnGetMatrix(napi_env env, napi_callback_info info);
     napi_value OnBuildFromSvgString(napi_env env, napi_callback_info info);
+    napi_value OnConvertToSVGString(napi_env env, napi_callback_info info);
     napi_value OnIsClosed(napi_env env, napi_callback_info info);
     napi_value OnGetPathIterator(napi_env env, napi_callback_info info);
     napi_value OnApproximate(napi_env env, napi_callback_info info);

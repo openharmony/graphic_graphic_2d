@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -552,6 +552,19 @@ void OH_Drawing_PathAddCircle(OH_Drawing_Path* path, float x, float y, float rad
  * @version 1.0
  */
 bool OH_Drawing_PathBuildFromSvgString(OH_Drawing_Path* path, const char* str);
+
+/**
+ * @brief Convert path to an SVG string.
+ *
+ * @param path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param str Indicates the SVG string. API users are responsible for allocating and freeing memory.
+ * @param strSize Indicates the SVG string memory size in bytes.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if path or strSize is nullptr.
+ * @since 26.0.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_PathConvertToSvgString(OH_Drawing_Path* path, char* str, size_t* strSize);
 
 /**
  * @brief Return the status that point (x, y) is contained by path.

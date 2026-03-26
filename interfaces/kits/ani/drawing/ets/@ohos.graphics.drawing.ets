@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -4738,6 +4738,16 @@ namespace drawing {
      * @since 20
      */
     native buildFromSvgString(str: string): boolean;
+
+    /**
+     * Converts path to an SVG string.
+     *
+     * @returns { string } The SVG string of the path.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @stagemodelonly
+     * @since 26.0.0
+     */
+    native convertToSvgString(): string;
 
     /**
      * Obtains the operation iterator of this path.

@@ -1559,6 +1559,51 @@ HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_PathIsInverseFillType063, 
     OH_Drawing_PathDestroy(path1);
     OH_Drawing_PathDestroy(path2);
 }
+
+/*
+ * @tc.name: NativeDrawingPathTest_PathConvertToSVGString067
+ * @tc.desc: test for OH_Drawing_PathConvertToSvgString.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_PathConvertToSVGString067, TestSize.Level1)
+{
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    ASSERT_TRUE(path != nullptr);
+
+    OH_Drawing_PathMoveTo(path, 150.0f, 0.0f);
+    OH_Drawing_PathLineTo(path, 75.0f, 200.0f);
+    OH_Drawing_PathLineTo(path, 225.0f, 200.0f);
+    OH_Drawing_PathClose(path);
+
+    size_t count = 0;
+    EXPECT_EQ(OH_Drawing_PathConvertToSvgString(path, nullptr, &count), OH_DRAWING_SUCCESS);
+    EXPECT_GT(count, 0u);
+
+    size_t smallCount = 1;
+    char smallBuffer[1] = {0};
+    EXPECT_EQ(
+        OH_Drawing_PathConvertToSvgString(path, smallBuffer, &smallCount), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(smallCount, count);
+
+    char* svgString = new char[count];
+    size_t stringCount = count;
+    EXPECT_EQ(OH_Drawing_PathConvertToSvgString(path, svgString, &stringCount), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(stringCount, count);
+
+    std::string result(svgString);
+    EXPECT_FALSE(result.empty());
+    EXPECT_NE(result.find("M"), std::string::npos);
+    EXPECT_NE(result.find("L"), std::string::npos);
+    EXPECT_NE(result.find("Z"), std::string::npos);
+
+    EXPECT_EQ(OH_Drawing_PathConvertToSvgString(nullptr, nullptr, &count), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PathConvertToSvgString(path, nullptr, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+
+    delete[] svgString;
+    OH_Drawing_PathDestroy(path);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
