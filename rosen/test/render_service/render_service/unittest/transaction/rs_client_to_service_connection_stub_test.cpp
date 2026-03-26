@@ -4235,9 +4235,14 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase001, TestSize.Level
     auto connection = sptr<RSClientToServiceConnection>::MakeSptr(0, renderServiceAgent_,
             renderProcessManagerAgent_, screenManagerAgent_, nullptr,
             renderService_.vsyncManager_->GetVsyncManagerAgent());
-
     ASSERT_NE(connection, nullptr);
+
     auto renderProcessManagerAgent = connection->renderProcessManagerAgent_;
+    auto hgmContext = connection->hgmContext_;
+    auto screenManagerAgent = connection->screenManagerAgent_;
+    auto vsyncManagerAgent = connection->vsyncManagerAgent_;
+    auto renderServiceAgent = connection->renderServiceAgent_;
+
     connection->renderProcessManagerAgent_ = nullptr;
     // test GetPixelMapByProcessId
     std::vector<PixelMapInfo> pixelMapInfoVector = {};
@@ -4253,7 +4258,6 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase001, TestSize.Level
     std::string name("");
     bool success = false;
     connection->SetWatermark(name, nullptr, success);
-    auto screenManagerAgent = connection->screenManagerAgent_;
     connection->screenManagerAgent_ = nullptr;
     // test GetDefaultScreenId
     uint64_t screenId = 0;
@@ -4261,12 +4265,12 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase001, TestSize.Level
     // test GetAllScreenIds
     connection->GetAllScreenIds();
     // test SetVirtualScreenBlackList
-    std::vector<NodeId> blackList = {};
-    connection->SetVirtualScreenBlackList(INVALID_SCREEN_ID, blackList);
+    std::vector<NodeId> virtualScreenBlackList = {};
+    connection->SetVirtualScreenBlackList(INVALID_SCREEN_ID, virtualScreenBlackList);
     // test AddVirtualScreenBlackList
-    connection->AddVirtualScreenBlackList(INVALID_SCREEN_ID, blackList, repCode);
+    connection->AddVirtualScreenBlackList(INVALID_SCREEN_ID, virtualScreenBlackList, repCode);
     // test RemoveVirtualScreenBlackList
-    connection->RemoveVirtualScreenBlackList(INVALID_SCREEN_ID, blackList, repCode);
+    connection->RemoveVirtualScreenBlackList(INVALID_SCREEN_ID, virtualScreenBlackList, repCode);
     // test AddVirtualScreenWhiteList
     std::vector<NodeId> whiteList = {};
     connection->AddVirtualScreenWhiteList(INVALID_SCREEN_ID, whiteList, repCode);
@@ -4295,7 +4299,6 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase001, TestSize.Level
     // test SetScreenActiveMode
     connection->SetScreenActiveMode(INVALID_SCREEN_ID, 0);
     // test SetScreenRefreshRate
-    auto hgmContext = connection->hgmContext_;
     connection->hgmContext_ = nullptr;
     connection->SetScreenRefreshRate(INVALID_SCREEN_ID, 0, 0);
     // test SetRefreshRateMode
@@ -4304,7 +4307,6 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase001, TestSize.Level
     FrameRateLinkerId frameRateLinkerId = 0;
     FrameRateRange range;
     connection->SyncFrameRateRange(frameRateLinkerId, range, 0);
-    auto renderServiceAgent = connection->renderServiceAgent_;
     connection->renderServiceAgent_ = nullptr;
     connection->SyncFrameRateRange(frameRateLinkerId, range, 0);
     connection->hgmContext_ = hgmContext;
@@ -4408,6 +4410,34 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase001, TestSize.Level
     ScreenColorGamut screenColorGamut;
     connection->SetScreenColorGamut(INVALID_SCREEN_ID, 0);
     connection->GetScreenColorGamut(INVALID_SCREEN_ID, screenColorGamut);
+
+    // restore
+    connection->renderProcessManagerAgent_ = renderProcessManagerAgent;
+    connection->hgmContext_ = hgmContext;
+    connection->screenManagerAgent_ = screenManagerAgent;
+    connection->vsyncManagerAgent_ = vsyncManagerAgent;
+    connection->renderServiceAgent_ = renderServiceAgent;
+}
+
+/**
+ * @tc.name: testnullptrCase002
+ * @tc.desc: Test testnullptrCase
+ * @tc.type: FUNC
+ * @tc.require: issue20726
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase002, TestSize.Level1)
+{
+    auto connection = sptr<RSClientToServiceConnection>::MakeSptr(0, renderServiceAgent_,
+            renderProcessManagerAgent_, screenManagerAgent_, nullptr,
+            renderService_.vsyncManager_->GetVsyncManagerAgent());
+    ASSERT_NE(connection, nullptr);
+
+    auto renderProcessManagerAgent = connection->renderProcessManagerAgent_;
+    auto hgmContext = connection->hgmContext_;
+    auto screenManagerAgent = connection->screenManagerAgent_;
+    auto vsyncManagerAgent = connection->vsyncManagerAgent_;
+    auto renderServiceAgent = connection->renderServiceAgent_;
+
     connection->screenManagerAgent_ = screenManagerAgent;
     connection->SetScreenColorGamut(INVALID_SCREEN_ID, 0);
     connection->GetScreenColorGamut(INVALID_SCREEN_ID, screenColorGamut);
@@ -4517,7 +4547,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase001, TestSize.Level
     // test NotifySoftVsyncRateDiscountEvent
     connection->NotifySoftVsyncRateDiscountEvent(0, pkgName, 0);
     // test NotifyTouchEvent
-    auto vsyncManagerAgent = connection->vsyncManagerAgent_;
+
     connection->vsyncManagerAgent_ = nullptr;
     connection->NotifyTouchEvent(0, 0, 0);
     connection->vsyncManagerAgent_ = vsyncManagerAgent;
