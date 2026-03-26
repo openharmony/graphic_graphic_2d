@@ -135,6 +135,7 @@ void RSUniRenderVirtualProcessorTest::SetUp()
     renderNode->InitRenderParams();
     displayDrawable_ =
         std::static_pointer_cast<RSLogicalDisplayRenderNodeDrawable>(renderNode->GetRenderDrawable()).get();
+    screenManager_->Init(nullptr);
     RSTestUtil::InitRenderNodeGC();
 }
 void RSUniRenderVirtualProcessorTest::TearDown()
