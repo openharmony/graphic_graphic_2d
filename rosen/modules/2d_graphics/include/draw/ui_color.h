@@ -56,7 +56,7 @@ public:
 
     void SetRgb(float red, float green, float blue);
 
-    void SetRgbF(float red, float green, float blue, float alpha = 1.0);
+    void SetRgba(float red, float green, float blue, float alpha = 1.0);
 
     bool operator==(const UIColor& that) const;
     bool operator!=(const UIColor& that) const;

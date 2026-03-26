@@ -131,6 +131,8 @@ HWTEST_F(UIColorTest, SetAlpha001, TestSize.Level1)
     UIColor color;
     color.SetAlpha(0.6f);
     EXPECT_FLOAT_EQ(color.GetAlpha(), 0.6f);
+    color.SetAlpha(1.6f);
+    EXPECT_FLOAT_EQ(color.GetAlpha(), 1.0f);
     color.SetAlpha(-0.4f);
     EXPECT_FLOAT_EQ(color.GetAlpha(), 0.0f);
 }
@@ -166,15 +168,15 @@ HWTEST_F(UIColorTest, SetRgb001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetRgbF001
- * @tc.desc: Test SetRgbF
+ * @tc.name: SetRgba001
+ * @tc.desc: Test SetRgba
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(UIColorTest, SetRgbF001, TestSize.Level1)
+HWTEST_F(UIColorTest, SetRgba001, TestSize.Level1)
 {
     UIColor color;
-    color.SetRgbF(0.3f, 0.4f, 0.5f, 0.7f);
+    color.SetRgba(0.3f, 0.4f, 0.5f, 0.7f);
     EXPECT_FLOAT_EQ(color.GetRed(), 0.3f);
     EXPECT_FLOAT_EQ(color.GetGreen(), 0.4f);
     EXPECT_FLOAT_EQ(color.GetBlue(), 0.5f);

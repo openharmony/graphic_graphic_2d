@@ -27,6 +27,17 @@ namespace Drawing {
 
 constexpr float EPSILON = 1e-6f;
 
+static float ClampAlpha(float value)
+{
+    if (value > 1.0) {
+        return 1.0;
+    }
+    if (value < 0.0) {
+        return 0.0;
+    }
+    return value;
+}
+
 UIColor::UIColor() noexcept : red_(0.0), green_(0.0), blue_(0.0), alpha_(1.0), headroom_(1.0)
 {
 }
@@ -45,8 +56,8 @@ UIColor::UIColor(float red, float green, float blue, float alpha, float headroom
     red_ = red < 0.0 ? 0.0 : red;
     green_ = green < 0.0 ? 0.0 : green;
     blue_ = blue < 0.0 ? 0.0 : blue;
-    alpha_ = alpha < 0.0 ? 0.0 : alpha;
-    headroom_ = alpha < 1.0 ? 1.0 : headroom_;
+    alpha_ = ClampAlpha(alpha);
+    headroom_ = headroom < 1.0 ? 1.0 : headroom_;
 }
 
 float UIColor::GetRed() const
@@ -100,10 +111,7 @@ void UIColor::SetBlue(float blue)
 
 void UIColor::SetAlpha(float alpha)
 {
-    alpha_ = alpha;
-    if (alpha_ < 0.0) {
-        alpha_ = 0.0;
-    }
+    alpha_ = ClampAlpha(alpha);
 }
 
 void UIColor::SetHeadroom(float headroom)
@@ -121,19 +129,24 @@ void UIColor::SetRgb(float red, float green, float blue)
     blue_ = blue < 0.0 ? 0.0 : blue;
 }
 
-void UIColor::SetRgbF(float red, float green, float blue, float alpha)
+void UIColor::SetRgba(float red, float green, float blue, float alpha)
 {
     red_ = red < 0.0 ? 0.0 : red;
     green_ = green < 0.0 ? 0.0 : green;
     blue_ = blue < 0.0 ? 0.0 : blue;
-    alpha_ = alpha < 0.0 ? 0.0 : alpha;
+    alpha_ = ClampAlpha(alpha);
 }
 
 bool UIColor::operator==(const UIColor& that) const
 {
-    return std::fabs(red_ - that.red_) < EPSILON && std::fabs(green_ - that.green_) < EPSILON &&
-        std::fabs(blue_ - that.blue_) < EPSILON && std::fabs(alpha_ - that.alpha_) < EPSILON &&
-        std::fabs(headroom_ - that.headroom_) < EPSILON;
+    auto thisRed = red_ * headroom_;
+    auto thisGreen = green_ * headroom_;
+    auto thisBlue = blue_ * headroom_;
+    auto thatRed = that.red_ * that.headroom_;
+    auto thatGreen = that.green_ * that.headroom_;
+    auto thatBlue = that.blue_ * that.headroom_;
+    return std::fabs(thisRed - thatRed) < EPSILON && std::fabs(thisGreen - thatGreen) < EPSILON &&
+        std::fabs(thisBlue - thatBlue) < EPSILON && std::fabs(alpha_ - that.alpha_) < EPSILON;
 }
 
 bool UIColor::operator!=(const UIColor& that) const
