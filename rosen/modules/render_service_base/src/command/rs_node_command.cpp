@@ -356,12 +356,12 @@ void RSNodeCommandHelper::SetColorPickerCallbackProcessor(ColorPickerCallbackPro
     gColorPickerCallbackProcessor = processor;
 }
 
-void RSNodeCommandHelper::MarkLayer(RSContext& context, NodeId nodeId, bool markLayer)
+void RSNodeCommandHelper::MarkLayer(RSContext& context, NodeId nodeId, bool isMarkLayer)
 {
     auto& nodeMap = context.GetNodeMap();
     auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
     if (node) {
-        node->MarkLayer(markLayer);
+        node->MarkLayer(isMarkLayer);
     }
 }
 } // namespace Rosen

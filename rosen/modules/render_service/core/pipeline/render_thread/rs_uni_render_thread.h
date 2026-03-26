@@ -251,19 +251,7 @@ public:
 
     void CollectProcessNodeNum(int num);
 
-    void FromLayerNodesGetDrawables();
-
-    void IfIsMarkLayerEnabledAddToList(std::shared_ptr<RSRenderNode> node)
-    {
-        if (node->IsMarkLayerEnabled()) {
-            layerNodes_.emplace_back(node);
-        }
-    }
-
-    void ClearLastFrameLayerNodes()
-    {
-        layerNodes_.clear();
-    }
+    void IfIsMarkLayerEnabledAddToDrawableList(std::shared_ptr<RSRenderNode> node);
 
     void DumpSurfaceInfo(std::string &dumpString);
     void DumpCurrentFrameLayers();

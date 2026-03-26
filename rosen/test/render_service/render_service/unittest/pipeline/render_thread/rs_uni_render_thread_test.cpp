@@ -303,43 +303,23 @@ HWTEST_F(RSUniRenderThreadTest, Render001, TestSize.Level1)
     instance.Render();
     EXPECT_FALSE(instance.screenPowerOnChanged_);
 }
-
 /**
- * @tc.name: FromLayerNodesGetDrawablesTest
- * @tc.desc: Test FromLayerNodesGetDrawables
+ * @tc.name: IfIsMarkLayerEnabledAddToDrawableListTest
+ * @tc.desc: Test IfIsMarkLayerEnabledAddToDrawableList
  * @tc.type: FUNC
  * @tc.require: issueIAE59W
  */
-HWTEST_F(RSUniRenderThreadTest, FromLayerNodesGetDrawablesTest, TestSize.Level1)
+HWTEST_F(RSUniRenderThreadTest, IfIsMarkLayerEnabledAddToDrawableListTest, TestSize.Level1)
 {
     RSUniRenderThread& instance = RSUniRenderThread::Instance();
-    EXPECT_TRUE(instance.layerNodes_.empty());
-    instance.FromLayerNodesGetDrawables();
-
     auto node = std::make_shared<RSRenderNode>(100, true);
-    instance.layerNodes_.emplace_back(node);
-    EXPECT_FALSE(instance.layerNodes_.empty());
-    instance.FromLayerNodesGetDrawables();
-}
+    EXPECT_FALSE(node->renderIsMarkLayer_);
+    instance.IfIsMarkLayerEnabledAddToDrawableList(node);
+    EXPECT_TRUE(DrawableV2::RSRenderNodeDrawable::layerNodesDrawable_.empty());
+    node->renderIsMarkLayer_ = true;
+    instance.IfIsMarkLayerEnabledAddToDrawableList(node);
+    EXPECT_FALSE(DrawableV2::RSRenderNodeDrawable::layerNodesDrawable_.empty());
 
-/**
- * @tc.name: IfIsMarkLayerEnabledAddToListTest
- * @tc.desc: Test IfIsMarkLayerEnabledAddToList && ClearLastFrameLayerNodes
- * @tc.type: FUNC
- * @tc.require: issueIAE59W
- */
-HWTEST_F(RSUniRenderThreadTest, IfIsMarkLayerEnabledAddToListTest, TestSize.Level1)
-{
-    RSUniRenderThread& instance = RSUniRenderThread::Instance();
-    EXPECT_TRUE(instance.layerNodes_.empty());
-
-    auto node = std::make_shared<RSRenderNode>(100, true);
-    EXPECT_FALSE(node->renderHasMarkLayer_);
-    node->renderHasMarkLayer_ = true;
-    instance.IfIsMarkLayerEnabledAddToList(node);
-    EXPECT_FALSE(instance.layerNodes_.empty());
-
-    instance.ClearLastFrameLayerNodes();
     EXPECT_TRUE(instance.layerNodes_.empty());
 }
 

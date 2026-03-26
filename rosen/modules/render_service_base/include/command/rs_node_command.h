@@ -160,7 +160,7 @@ public:
     static void SetTakeSurfaceForUIFlag(RSContext& context, NodeId nodeId);
     static void SetNeedUseCmdlistDrawRegion(RSContext &context, NodeId nodeId, bool needUseCmdlistDrawRegion);
     static void SetHDRUIBrightness(RSContext& context, NodeId nodeId, float brightness);
-    static void MarkLayer(RSContext& context, NodeId nodeId, bool markLayer);
+    static void MarkLayer(RSContext& context, NodeId nodeId, bool isMarkLayer);
 
     static void RegisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId,
         const bool isInSameWindow);

@@ -363,18 +363,18 @@ HWTEST_F(RSRenderNodeTest, SetBootAnimationTest, TestSize.Level1)
 HWTEST_F(RSRenderNodeTest, MarkLayerTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSRenderNode>(100, true);
-    EXPECT_EQ(node->hasMarkLayer_, false);
+    EXPECT_EQ(node->isLayer_, false);
 
     node->MarkLayer(true);
-    EXPECT_EQ(node->hasMarkLayer_, true);
+    EXPECT_EQ(node->isLayer_, true);
 
     node->MarkLayer(true);
     node->MarkLayer(false);
-    EXPECT_EQ(node->hasMarkLayer_, false);
+    EXPECT_EQ(node->isLayer_, false);
 
     node->GetOpincCache().MarkSuggestOpincNode(true, true);
     node->MarkLayer(true);
-    EXPECT_EQ(node->hasMarkLayer_, false);
+    EXPECT_EQ(node->isLayer_, false);
 }
 
 /**

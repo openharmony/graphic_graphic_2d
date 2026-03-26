@@ -908,15 +908,14 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
-    if (curCanvas_->GetGPUContext() && needHandledInTryPrepareLayerCache_) {
-        needHandledInTryPrepareLayerCache_ = false;
-
+    if (curCanvas_->GetGPUContext()) {
         for (auto drawable : layerNodesDrawable_) {
             auto drawablePtr = drawable.lock();
             if (drawablePtr) {
                 drawablePtr->TryPrepareLayerCache(*curCanvas_);
             }
         }
+        layerNodesDrawable_.clear();
     }
 
     curCanvas_->SetDrawnRegion(params->GetDrawnRegion());

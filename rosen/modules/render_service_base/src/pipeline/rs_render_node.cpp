@@ -3593,24 +3593,16 @@ bool RSRenderNode::GetBootAnimation() const
     return isBootAnimation_;
 }
 
-void RSRenderNode::MarkLayer(bool markLayer)
+void RSRenderNode::MarkLayer(bool isMarkLayer)
 {
-    if (!markLayer) {
-        if (hasMarkLayer_) {
-            MarkNodeGroup(NodeGroupType::GROUPED_BY_LAYER, false, false);
-            hasMarkLayer_ = false;
-        }
+    if (isLayer_ == isMarkLayer) {
         return;
     }
-
-    if (hasMarkLayer_) {
-        return;
-    }
-    // only node is not OpincNode can marklayer 
-    if (GetOpincCache().IsSuggestOpincNode() == false) {
-        MarkNodeGroup(NodeGroupType::GROUPED_BY_LAYER, true, false);
-        hasMarkLayer_ = true;
-    }
+    RS_OPTIONAL_TRACE_NAME_FMT("MarkLayer isMarkLayer:%d id:%llu", isMarkLayer, GetId());
+    RS_LOGI_IF(DEBUG_NODE, "RSRenderNode::MarkLayer isMarkLayer:%{public}d id:%{public}" PRIu64,
+        isMarkLayer, GetId());
+    MarkNodeGroup(NodeGroupType::GROUPED_BY_LAYER, isMarkLayer, false);
+    isLayer_ = isMarkLayer;
 }
 
 bool RSRenderNode::GetGlobalPositionEnabled() const
@@ -4564,7 +4556,7 @@ void RSRenderNode::OnSync()
     addedToPendingSyncList_ = false;
     bool isLeashWindowPartialSkip = false;
 
-    renderHasMarkLayer_ = hasMarkLayer_;
+    renderIsLayer_ = isLayer_;
     if (renderDrawable_ == nullptr) {
         return;
     }

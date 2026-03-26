@@ -838,9 +838,9 @@ public:
     /**
      * @brief Sets the layer mark for the node.
      *
-     * @param markLayer The layer mark value to set (true for layer, false for non-Layer).
+     * @param isMarkLayer The layer mark value to set (true for layer, false for non-Layer).
      */
-    void MarkLayer(bool markLayer);
+    void MarkLayer(bool isMarkLayer);
 
     /**
      * @brief Sets the foreground color of environment.

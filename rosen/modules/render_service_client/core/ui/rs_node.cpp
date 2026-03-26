@@ -1009,13 +1009,13 @@ void RSNode::SetAlphaOffscreen(bool alphaOffscreen)
     SetPropertyNG<ModifierNG::RSAlphaModifier, &ModifierNG::RSAlphaModifier::SetAlphaOffscreen>(alphaOffscreen);
 }
 
-void RSNode::MarkLayer(bool markLayer)
+void RSNode::MarkLayer(bool isMarkLayer)
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-    if (isMarkLayer_ == markLayer) {
+    if (isMarkLayer_ == isMarkLayer) {
         return;
     }
-    isMarkLayer_ = markLayer;
+    isMarkLayer_ = isMarkLayer;
     std::unique_ptr<RSCommand> command = std::make_unique<RSMarkLayer>(GetId(), isMarkLayer_);
     AddCommand(command, IsRenderServiceNode());
 }

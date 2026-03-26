@@ -123,7 +123,6 @@ public:
     void SetDrawExcludedSubTreeForCache(bool value);
     bool IsDrawingExcludedSubTreeForCache();
 
-    inline static bool needHandledInTryPrepareLayerCache_ = false;
     inline static std::vector<std::weak_ptr<RSRenderNodeDrawable>> layerNodesDrawable_;
 
 protected:
