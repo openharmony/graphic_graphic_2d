@@ -1619,4 +1619,74 @@ HWTEST_F(VulkanLoaderUnitTest, SetMetaData_Coverage_Test, TestSize.Level1)
         EXPECT_EQ(err, VK_SUCCESS);
     }
 }
+
+/**
+ * @tc.name: test SetMetaData with vivid dynamic metadata
+ * @tc.desc: test SetMetaData with both static and vivid dynamic metadata to cover pDynamicMetadata branch
+ * @tc.type: FUNC
+ * @tc.require: issueI9EYX2
+ */
+HWTEST_F(VulkanLoaderUnitTest, SetMetaData_Vivid_Dynamic_Metadata_Test, TestSize.Level1)
+{
+    if (isSupportedVulkan_) {
+        EXPECT_NE(fpSetHdrMetadataEXT, nullptr);
+        EXPECT_NE(fpQueuePresentKHR, nullptr);
+        EXPECT_NE(fpAcquireNextImage2KHR, nullptr);
+        EXPECT_NE(device_, nullptr);
+        EXPECT_NE(swapChain2_, VK_NULL_HANDLE);
+        EXPECT_NE(semaphore_, VK_NULL_HANDLE);
+
+        uint8_t vividMetadataData[16] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D,
+            0x0E, 0x0F, 0x10 };
+
+        VkHdrVividDynamicMetadataHUAWEI vividMetadata = {};
+        vividMetadata.sType = VK_STRUCTURE_TYPE_HDR_VIVID_DYNAMIC_METADATA_HUAWEI;
+        vividMetadata.pNext = nullptr;
+        vividMetadata.dynamicMetadataSize = sizeof(vividMetadataData);
+        vividMetadata.pDynamicMetadata = vividMetadataData;
+
+        VkHdrMetadataEXT hdrMetadata = {};
+        hdrMetadata.sType = VK_STRUCTURE_TYPE_HDR_METADATA_EXT;
+        hdrMetadata.pNext = &vividMetadata;
+        hdrMetadata.displayPrimaryRed = { 0.640f, 0.330f };
+        hdrMetadata.displayPrimaryGreen = { 0.300f, 0.600f };
+        hdrMetadata.displayPrimaryBlue = { 0.150f, 0.060f };
+        hdrMetadata.whitePoint = { 0.3127f, 0.3290f };
+        hdrMetadata.maxLuminance = 1000.0f;
+        hdrMetadata.minLuminance = 0.01f;
+        hdrMetadata.maxContentLightLevel = 1000;
+        hdrMetadata.maxFrameAverageLightLevel = 500;
+
+        VkSwapchainKHR swapchains[] = { swapChain2_ };
+        fpSetHdrMetadataEXT(device_, 1, swapchains, &hdrMetadata);
+
+        VkQueue queue = nullptr;
+        PFN_vkGetDeviceQueue vkGetDeviceQueue =
+            reinterpret_cast<PFN_vkGetDeviceQueue>(vkGetInstanceProcAddr(instance_, "vkGetDeviceQueue"));
+        EXPECT_NE(vkGetDeviceQueue, nullptr);
+        vkGetDeviceQueue(device_, 0, 0, &queue);
+        EXPECT_NE(queue, nullptr);
+
+        VkAcquireNextImageInfoKHR pAcquireInfo;
+        pAcquireInfo.swapchain = swapChain2_;
+        pAcquireInfo.timeout = UINT64_MAX;
+        pAcquireInfo.semaphore = semaphore_;
+        pAcquireInfo.fence = (VkFence) nullptr;
+        uint32_t imageIndex = 0;
+        VkResult err = fpAcquireNextImage2KHR(device_, &pAcquireInfo, &imageIndex);
+        EXPECT_EQ(err, VK_SUCCESS);
+
+        VkPresentInfoKHR presentInfo = {};
+        presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+        presentInfo.pNext = nullptr;
+        presentInfo.swapchainCount = 1;
+        presentInfo.pSwapchains = &swapChain2_;
+        presentInfo.pImageIndices = &imageIndex;
+        presentInfo.pWaitSemaphores = &semaphore_;
+        presentInfo.waitSemaphoreCount = 1;
+
+        err = fpQueuePresentKHR(queue, &presentInfo);
+        EXPECT_EQ(err, VK_SUCCESS);
+    }
+}
 } // namespace vulkan::loader
