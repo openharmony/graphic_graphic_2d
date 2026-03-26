@@ -37,11 +37,15 @@
 #include "platform/ohos/transaction/zidl/rs_irender_service.h"
 #include "render_server/transaction/zidl/rs_client_to_service_connection_stub.h"
 #include "transaction/rs_transaction_proxy.h"
-#
+#include "memory/rs_memory_snapshot.h"
+#include "pipeline/rs_render_node_gc.h"
+
 namespace OHOS {
 namespace Rosen {
 auto g_pid = getpid();
 sptr<OHOS::Rosen::RSScreenManager> screenManagerPtr_ = OHOS::sptr<OHOS::Rosen::RSScreenManager>::MakeSptr();
+[[maybe_unused]] auto& memorySnapshot_ = OHOS::Rosen::MemorySnapshot::Instance();
+[[maybe_unused]] auto& renderNodeGC_ = OHOS::Rosen::RSRenderNodeGC::Instance();
 auto mainThread_ = RSMainThread::Instance();
 
 sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ = nullptr;

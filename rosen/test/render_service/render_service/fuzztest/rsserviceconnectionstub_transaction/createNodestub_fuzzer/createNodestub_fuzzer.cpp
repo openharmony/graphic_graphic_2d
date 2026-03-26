@@ -39,8 +39,9 @@ namespace OHOS {
 namespace Rosen {
 auto g_pid = getpid();
 sptr<OHOS::Rosen::RSScreenManager> screenManagerPtr_ = OHOS::sptr<OHOS::Rosen::RSScreenManager>::MakeSptr();
+[[maybe_unused]] auto& memorySnapshot_ = OHOS::Rosen::MemorySnapshot::Instance();
+[[maybe_unused]] auto& renderNodeGC_ = OHOS::Rosen::RSRenderNodeGC::Instance();
 auto mainThread_ = RSMainThread::Instance();
-[]
 sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ = nullptr;
 sptr<OHOS::Rosen::RSRenderService> renderService_ = nullptr;
 
@@ -66,6 +67,8 @@ void DoCreateNode(FuzzedDataProvider& fdp)
     }
     option.SetFlags(MessageOption::TF_SYNC);
     toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
+    auto& nodeMap = mainThread_->GetContext().GetMutableNodeMap();
+    nodeMap.FilterNodeByPid(g_pid, true);
 }
 
 } // namespace
