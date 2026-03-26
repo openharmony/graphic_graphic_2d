@@ -429,6 +429,71 @@ GRAPHIC_TEST(AppearanceTest09, CONTENT_DISPLAY_TEST, Appearance_Alpha_Shadow_mas
     }
 }
 
+// shadow mask with different radius - SetShadowMask(true)
+GRAPHIC_TEST(AppearanceTest09, CONTENT_DISPLAY_TEST, Appearance_Alpha_Shadow_mask_Test_2)
+{
+    const int nodePosX = 500;
+    const int nodePosY = 500;
+    const int nodeOffsetX = 100;
+    const int nodeOffsetY = 100;
+    const int nodeSize = 400;
+    const int columnCount = TWO_;
+
+    const float radiusList[] = {-1.0f, 0.0f, 0.5f, 0.999f, 1.0f, 10.0f};
+    const float offsetXList[] = {-5.0f, 5.0f, 1.0f, 5.0f, 10.0f, 25.0f};
+    const float offsetYList[] = {-4.5f, 5.0f, 0.5f, 5.0f, 10.0f, 30.0f};
+
+    for (int i = 0; i < SIX_; i++) {
+        int x = (i % columnCount) * nodePosX;
+        int y = (i / columnCount) * nodePosY;
+        auto maskTestNode = SetUpNodeBgImage("/data/local/tmp/appearance_test.jpg", { x, y, nodeSize, nodeSize });
+        maskTestNode->SetBackgroundColor(0xffff0000);
+        maskTestNode->SetAlpha(0.1f * i);
+        maskTestNode->SetTranslate(nodeOffsetX, nodeOffsetY, 0);
+        maskTestNode->SetShadowMask(true);
+        maskTestNode->SetShadowRadius(radiusList[i]);
+        maskTestNode->SetShadowAlpha(1.0f);
+        maskTestNode->SetShadowOffsetX(offsetXList[i]);
+        maskTestNode->SetShadowOffsetY(offsetYList[i]);
+        GetRootNode()->AddChild(maskTestNode);
+        RegisterNode(maskTestNode);
+    }
+}
+
+// shadow mask with different radius - SetShadowMask(false)
+GRAPHIC_TEST(AppearanceTest09, CONTENT_DISPLAY_TEST, Appearance_Alpha_Shadow_mask_Test_3)
+{
+    const int nodePosX = 500;
+    const int nodePosY = 500;
+    const int nodeOffsetX = 100;
+    const int nodeOffsetY = 100;
+    const int nodeSize = 400;
+
+    const int columnCount = TWO_;
+
+    const float radiusList[] = {-1.0f, 0.0f, 0.5f, 0.999f, 1.0f, 10.0f};
+    const float offsetXList[] = {-5.0f, 5.0f, 1.0f, 5.0f, 10.0f, 25.0f};
+    const float offsetYList[] = {-4.5f, 5.0f, 0.5f, 5.0f, 10.0f, 30.0f};
+
+    std::vector<uint32_t> colorList = { 0xffff0000, 0xff00ff00, 0xff0000ff };
+
+    for (int i = 0; i < SIX_; i++) {
+        int x = (i % columnCount) * nodePosX;
+        int y = (i / columnCount) * nodePosY;
+        auto maskTestNode = SetUpNodeBgImage("/data/local/tmp/appearance_test.jpg", { x, y, nodeSize, nodeSize });
+        maskTestNode->SetAlpha(0.1f * i);
+        maskTestNode->SetTranslate(nodeOffsetX, nodeOffsetY, 0);
+        maskTestNode->SetShadowColor(colorList[i / columnCount]);
+        maskTestNode->SetShadowMask(false);
+        maskTestNode->SetShadowRadius(radiusList[i]);
+        maskTestNode->SetShadowAlpha(1.0f);
+        maskTestNode->SetShadowOffsetX(offsetXList[i]);
+        maskTestNode->SetShadowOffsetY(offsetYList[i]);
+        GetRootNode()->AddChild(maskTestNode);
+        RegisterNode(maskTestNode);
+    }
+}
+
 // shadow touch
 GRAPHIC_TEST(AppearanceTest09, CONTENT_DISPLAY_TEST, Appearance_Alpha_Shadow_Touch_Test_1)
 {
@@ -516,6 +581,136 @@ GRAPHIC_TEST(AppearanceTest09, CONTENT_DISPLAY_TEST, Appearance_Alpha_Shadow_Fil
         testNode->SetShadowPath(shadowPath);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
+    }
+}
+
+// shadow mask strategy with different radius and alpha - MASK_BLUR (no shadowColor)
+GRAPHIC_TEST(AppearanceTest09, CONTENT_DISPLAY_TEST, Appearance_Alpha_Shadow_Mask_Strategy_Test1)
+{
+    const int nodePosX = 500;
+    const int nodePosY = 500;
+    const int nodeOffsetX = 100;
+    const int nodeOffsetY = 100;
+    const int nodeSize = 400;
+    const int columnCount = TWO_;
+
+    const float radiusList[] = { -1.0f, 0.0f, 0.5f, 0.999f, 1.0f, 10.0f };
+    const float alphaList[] = { 0.2f, 0.4f, 0.6f, 0.8f, 0.3f, 0.7f };
+    const float shadowAlphaList[] = { 0.3f, 0.5f, 0.7f, 0.9f, 0.4f, 0.8f };
+    const float offsetXList[] = {-5.0f, 5.0f, 1.0f, 5.0f, 10.0f, 25.0f};
+    const float offsetYList[] = {-4.5f, 5.0f, 0.5f, 5.0f, 10.0f, 30.0f};
+
+    for (int i = 0; i < SIX_; i++) {
+        int x = (i % columnCount) * nodePosX;
+        int y = (i / columnCount) * nodePosY;
+        auto maskTestNode = SetUpNodeBgImage("/data/local/tmp/appearance_test.jpg", { x, y, nodeSize, nodeSize });
+        maskTestNode->SetAlpha(alphaList[i]);
+        maskTestNode->SetTranslate(nodeOffsetX, nodeOffsetY, 0);
+        maskTestNode->SetShadowMaskStrategy(SHADOW_MASK_STRATEGY::MASK_BLUR);
+        maskTestNode->SetBackgroundColor(0xffff0000);
+        maskTestNode->SetShadowRadius(radiusList[i]);
+        maskTestNode->SetShadowAlpha(shadowAlphaList[i]);
+        maskTestNode->SetShadowOffsetX(offsetXList[i]);
+        maskTestNode->SetShadowOffsetY(offsetYList[i]);
+        GetRootNode()->AddChild(maskTestNode);
+        RegisterNode(maskTestNode);
+    }
+}
+
+// shadow mask strategy with different radius and alpha - MASK_BLUR (with shadowColor)
+GRAPHIC_TEST(AppearanceTest09, CONTENT_DISPLAY_TEST, Appearance_Alpha_Shadow_Mask_Strategy_Test2)
+{
+    const int nodePosX = 500;
+    const int nodePosY = 500;
+    const int nodeOffsetX = 100;
+    const int nodeOffsetY = 100;
+    const int nodeSize = 400;
+    const int columnCount = TWO_;
+
+    const float radiusList[] = { -1.0f, 0.0f, 0.5f, 0.999f, 1.0f, 10.0f };
+    const float alphaList[] = { 0.2f, 0.4f, 0.6f, 0.8f, 0.3f, 0.7f };
+    const float shadowAlphaList[] = { 0.3f, 0.5f, 0.7f, 0.9f, 0.4f, 0.8f };
+
+    for (int i = 0; i < SIX_; i++) {
+        int x = (i % columnCount) * nodePosX;
+        int y = (i / columnCount) * nodePosY;
+        auto maskTestNode = SetUpNodeBgImage("/data/local/tmp/appearance_test.jpg", { x, y, nodeSize, nodeSize });
+        maskTestNode->SetAlpha(alphaList[i]);
+        maskTestNode->SetTranslate(nodeOffsetX, nodeOffsetY, 0);
+        maskTestNode->SetBackgroundColor(0xffff0000);
+        maskTestNode->SetShadowColor(0xff00ff00);
+        maskTestNode->SetShadowMaskStrategy(SHADOW_MASK_STRATEGY::MASK_BLUR);
+        maskTestNode->SetShadowRadius(radiusList[i]);
+        maskTestNode->SetShadowAlpha(shadowAlphaList[i]);
+        GetRootNode()->AddChild(maskTestNode);
+        RegisterNode(maskTestNode);
+    }
+}
+
+// shadow mask strategy with different radius and alpha - MASK_COLOR_BLUR (no shadowColor)
+GRAPHIC_TEST(AppearanceTest09, CONTENT_DISPLAY_TEST, Appearance_Alpha_Shadow_Mask_Strategy_Test3)
+{
+    const int nodePosX = 500;
+    const int nodePosY = 500;
+    const int nodeOffsetX = 100;
+    const int nodeOffsetY = 100;
+    const int nodeSize = 400;
+    const int columnCount = TWO_;
+
+    const float radiusList[] = { -1.0f, 0.0f, 0.5f, 0.999f, 1.0f, 10.0f };
+    const float alphaList[] = { 0.2f, 0.4f, 0.6f, 0.8f, 0.3f, 0.7f };
+    const float shadowAlphaList[] = { 0.3f, 0.5f, 0.7f, 0.9f, 0.4f, 0.8f };
+    const float offsetXList[] = {-5.0f, 5.0f, 1.0f, 5.0f, 10.0f, 25.0f};
+    const float offsetYList[] = {-4.5f, 5.0f, 0.5f, 5.0f, 10.0f, 30.0f};
+
+    for (int i = 0; i < SIX_; i++) {
+        int x = (i % columnCount) * nodePosX;
+        int y = (i / columnCount) * nodePosY;
+        auto maskTestNode = SetUpNodeBgImage("/data/local/tmp/appearance_test.jpg", { x, y, nodeSize, nodeSize });
+        maskTestNode->SetAlpha(alphaList[i]);
+        maskTestNode->SetTranslate(nodeOffsetX, nodeOffsetY, 0);
+        maskTestNode->SetShadowMaskStrategy(SHADOW_MASK_STRATEGY::MASK_COLOR_BLUR);
+        maskTestNode->SetBackgroundColor(0xffff0000);
+        maskTestNode->SetShadowRadius(radiusList[i]);
+        maskTestNode->SetShadowAlpha(shadowAlphaList[i]);
+        maskTestNode->SetShadowOffsetX(offsetXList[i]);
+        maskTestNode->SetShadowOffsetY(offsetYList[i]);
+        GetRootNode()->AddChild(maskTestNode);
+        RegisterNode(maskTestNode);
+    }
+}
+
+// shadow mask strategy with different radius and alpha - MASK_COLOR_BLUR (with shadowColor)
+GRAPHIC_TEST(AppearanceTest09, CONTENT_DISPLAY_TEST, Appearance_Alpha_Shadow_Mask_Strategy_Test4)
+{
+    const int nodePosX = 500;
+    const int nodePosY = 500;
+    const int nodeOffsetX = 100;
+    const int nodeOffsetY = 100;
+    const int nodeSize = 400;
+    const int columnCount = TWO_;
+
+    const float radiusList[] = { -1.0f, 0.0f, 0.5f, 0.999f, 1.0f, 10.0f };
+    const float alphaList[] = { 0.2f, 0.4f, 0.6f, 0.8f, 0.3f, 0.7f };
+    const float shadowAlphaList[] = { 0.3f, 0.5f, 0.7f, 0.9f, 0.4f, 0.8f };
+    const float offsetXList[] = {-5.0f, 5.0f, 1.0f, 5.0f, 10.0f, 25.0f};
+    const float offsetYList[] = {-4.5f, 5.0f, 0.5f, 5.0f, 10.0f, 30.0f};
+
+    for (int i = 0; i < SIX_; i++) {
+        int x = (i % columnCount) * nodePosX;
+        int y = (i / columnCount) * nodePosY;
+        auto maskTestNode = SetUpNodeBgImage("/data/local/tmp/appearance_test.jpg", { x, y, nodeSize, nodeSize });
+        maskTestNode->SetBackgroundColor(0xffff0000);
+        maskTestNode->SetAlpha(alphaList[i]);
+        maskTestNode->SetTranslate(nodeOffsetX, nodeOffsetY, 0);
+        maskTestNode->SetShadowColor(0xff00ff00);
+        maskTestNode->SetShadowMaskStrategy(SHADOW_MASK_STRATEGY::MASK_COLOR_BLUR);
+        maskTestNode->SetShadowRadius(radiusList[i]);
+        maskTestNode->SetShadowAlpha(shadowAlphaList[i]);
+        maskTestNode->SetShadowOffsetX(offsetXList[i]);
+        maskTestNode->SetShadowOffsetY(offsetYList[i]);
+        GetRootNode()->AddChild(maskTestNode);
+        RegisterNode(maskTestNode);
     }
 }
 
