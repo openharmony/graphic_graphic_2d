@@ -4247,7 +4247,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase001, TestSize.Level
     {
         Rect srcRect;
         std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
-        connection->CreatePixelMapFromSurface(nullptr, srcRect, false, pixelMap);
+        connection->CreatePixelMapFromSurface(nullptr, srcRect, pixelMap, false);
     }
     // test SetWatermark
     std::string name("");
@@ -4331,11 +4331,12 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase001, TestSize.Level
     connection->renderProcessManagerAgent_ = nullptr;
     connection->hgmContext_ = nullptr;
     // test GetRefreshInfo
-    connection->GetRefreshInfo(0);
+    std::string GetRefreshInfoEnable = "";
+    connection->GetRefreshInfo(0, GetRefreshInfoEnable);
     // test GetRefreshInfoToSP
-    connection->GetRefreshInfoToSP(INVALID_SCREEN_ID);
+    connection->GetRefreshInfoToSP(INVALID_SCREEN_ID, GetRefreshInfoEnable);
     // test GetRefreshInfoByPidAndUniqueId
-    connection->GetRefreshInfoByPidAndUniqueId(0, 0);
+    connection->GetRefreshInfoByPidAndUniqueId(0, 0, GetRefreshInfoEnable);
     // test GetCurrentRefreshRateMode
     connection->GetCurrentRefreshRateMode();
     // test SetPhysicalScreenResolution
@@ -4378,9 +4379,11 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase001, TestSize.Level
     float gpuMemSize = 0.0;
     connection->GetTotalAppMemSize(cpuMemSize, gpuMemSize);
     // test GetMemoryGraphic
-    connection->GetMemoryGraphic(0);
+    MemoryGraphic memoryGraphic;
+    connection->GetMemoryGraphic(0, memoryGraphic);
     // test GetMemoryGraphics
-    connection->GetMemoryGraphics();
+    std::vector<MemoryGraphic> memoryGraphics = {};
+    connection->GetMemoryGraphics(memoryGraphics);
     // test GetScreenSupportedModes
     connection->GetScreenSupportedModes(INVALID_SCREEN_ID);
     // test GetScreenCapability
@@ -4432,21 +4435,25 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase001, TestSize.Level
     connection->GetScreenHDRCapability(INVALID_SCREEN_ID, screenHdrCapability);
     // test GetPixelFormat and SetPixelFormat
     GraphicPixelFormat pixelFormat = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_CLUT8;
-    connection->SetPixelFormat(INVALID_SCREEN_ID, pixelFormat);
-    connection->GetPixelFormat(INVALID_SCREEN_ID, pixelFormat);
+    int32_t pixelFormatResCode = 0;
+    connection->SetPixelFormat(INVALID_SCREEN_ID, pixelFormat, pixelFormatResCode);
+    connection->GetPixelFormat(INVALID_SCREEN_ID, pixelFormat, pixelFormatResCode);
     // test GetScreenSupportedHDRFormats
     std::vector<ScreenHDRFormat> hdrFormats = {};
-    connection->GetScreenSupportedHDRFormats(INVALID_SCREEN_ID, hdrFormats);
+    int32_t hdrFormatsResCode = 0;
+    connection->GetScreenSupportedHDRFormats(INVALID_SCREEN_ID, hdrFormats, hdrFormatsResCode, nullptr);
     // test GetScreenHDRFormat
     ScreenHDRFormat hdrFormat;
-    connection->GetScreenHDRFormat(INVALID_SCREEN_ID, hdrFormat);
+    int32_t hdrFormatResCode = 0;
+    connection->GetScreenHDRFormat(INVALID_SCREEN_ID, hdrFormat, hdrFormatResCode);
     // test GetScreenSupportedColorSpaces
     std::vector<GraphicCM_ColorSpaceType> colorSpaces;
-    connection->GetScreenSupportedColorSpaces(INVALID_SCREEN_ID, colorSpaces);
+    int32_t colorSpacesResCode = 0;
+    connection->GetScreenSupportedColorSpaces(INVALID_SCREEN_ID, colorSpaces, colorSpacesResCode);
     // test GetScreenColorSpace and SetScreenColorSpace
     GraphicCM_ColorSpaceType colorSpace = GraphicCM_ColorSpaceType::GRAPHIC_CM_COLORSPACE_NONE;
-    connection->SetScreenColorSpace(INVALID_SCREEN_ID, colorSpace);
-    connection->GetScreenColorSpace(INVALID_SCREEN_ID, colorSpace);
+    connection->SetScreenColorSpace(INVALID_SCREEN_ID, colorSpace, colorSpacesResCode);
+    connection->GetScreenColorSpace(INVALID_SCREEN_ID, colorSpace, colorSpacesResCode);
     // test GetScreenType
     RSScreenType screenType;
     connection->GetScreenType(INVALID_SCREEN_ID, screenType);
@@ -4462,12 +4469,12 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase001, TestSize.Level
     // test SetVirtualScreenRefreshRate and SetScreenActiveRect
     int32_t resCode = 0;
     uint32_t actualRefreshRate = 0;
-    connection->SetVirtualScreenRefreshRate(0, 0, resCode, actualRefreshRate);
+    connection->SetVirtualScreenRefreshRate(0, 0, actualRefreshRate, resCode);
     Rect activeRect;
     uint32_t setScreenActiveRectRepCode = 0;
     connection->SetScreenActiveRect(INVALID_SCREEN_ID, activeRect, setScreenActiveRectRepCode);
     connection->screenManagerAgent_ = screenManagerAgent;
-    connection->SetVirtualScreenRefreshRate(0, 0, resCode, actualRefreshRate);
+    connection->SetVirtualScreenRefreshRate(0, 0, actualRefreshRate, resCode);
     connection->SetScreenActiveRect(INVALID_SCREEN_ID, activeRect, setScreenActiveRectRepCode);
     connection->screenManagerAgent_ = nullptr;
     // teset SetScreenOffset
