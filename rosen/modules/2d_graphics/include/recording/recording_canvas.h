@@ -89,6 +89,7 @@ public:
         FilterMode filterMode) override;
 
     void DrawColor(ColorQuad color, BlendMode mode = BlendMode::SRC_OVER) override;
+    void DrawUIColor(UIColor color, BlendMode mode = BlendMode::SRC_OVER) override;
 
     void DrawAtlas(const Image* atlas, const RSXform xform[], const Rect tex[], const ColorQuad colors[],
         int count, BlendMode mode, const SamplingOptions& sampling, const Rect* cullRect) override;

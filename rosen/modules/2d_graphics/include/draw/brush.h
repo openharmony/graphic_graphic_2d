@@ -24,6 +24,7 @@
 #include "effect/shader_effect.h"
 #include "utils/drawing_macros.h"
 #include "utils/rect.h"
+#include "draw/ui_color.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -35,6 +36,7 @@ public:
     Brush(const Color& c) noexcept;
     Brush(const std::shared_ptr<ShaderEffect> e) noexcept;
     Brush(int rgba) noexcept;
+    Brush(const UIColor& c) noexcept;
 
     ~Brush() {}
 
@@ -43,6 +45,19 @@ public:
      * @return unpremultiplied ARGB.
      */
     const Color& GetColor() const;
+
+    /**
+     * @brief Set the UIColor of brush
+     *
+     * @param color UIColor of brush
+     */
+    const UIColor& GetUIColor() const;
+
+    /**
+     * @brief Returns true if hdrColor is enabled.
+     * @return hdrColor state
+     */
+    bool HasUIColor() const { return isHdrColor_; }
 
     /**
      * @brief Sets alpha and RGB used when stroking and filling. The color is a 32-bit value,
@@ -57,6 +72,13 @@ public:
      * @param color    unpremultiplied ARGB
      */
     void SetColor(uint32_t c);
+
+    /**
+     * @brief Set the UIColor of brush
+     *
+     * @param color UIColor object to set
+     */
+    void SetUIColor(const UIColor& color, std::shared_ptr<ColorSpace> s);
 
     /**
      * @brief Sets color used when drawing solid fills. The color components range from 0 to 255.
@@ -311,6 +333,8 @@ private:
     bool antiAlias_;
     bool blenderEnabled_ = true;
     bool hasFilter_ = false;
+    UIColor hdrColor_;
+    bool isHdrColor_;
 };
 } // namespace Drawing
 } // namespace Rosen

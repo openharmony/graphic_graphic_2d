@@ -85,6 +85,7 @@ template("graphics2d_source_set") {
       "$drawing_core_src_dir/draw/path_iterator.cpp",
       "$drawing_core_src_dir/draw/pen.cpp",
       "$drawing_core_src_dir/draw/surface.cpp",
+      "$drawing_core_src_dir/draw/ui_color.cpp",
       "$drawing_core_src_dir/effect/blender.cpp",
       "$drawing_core_src_dir/effect/blur_draw_looper.cpp",
       "$drawing_core_src_dir/effect/color_filter.cpp",

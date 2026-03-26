@@ -299,6 +299,8 @@ bool RSMask::MarshallingPathAndBrush(Parcel& parcel) const
             filter.GetImageFilter()),
         Drawing::CmdListHelper::AddMaskFilterToCmdList(*maskCmdList,
             filter.GetMaskFilter()),
+        maskBrush_.GetUIColor(),
+        maskBrush_.HasUIColor(),
     };
     maskCmdList->AddOp<Drawing::MaskBrushOpItem>(brushHandle);
 
@@ -310,6 +312,8 @@ bool RSMask::MarshallingPathAndBrush(Parcel& parcel) const
         Drawing::CmdListHelper::AddPathEffectToCmdList(*maskCmdList,
             maskPen_.GetPathEffect()),
         maskPen_.GetColor(),
+        maskPen_.GetUIColor(),
+        maskPen_.HasUIColor(),
     };
     maskCmdList->AddOp<Drawing::MaskPenOpItem>(penHandle);
 

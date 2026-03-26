@@ -18,6 +18,7 @@
 #include "recording/draw_cmd.h"
 #include "recording/recording_canvas.h"
 #include "draw/path.h"
+#include "draw/ui_color.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -1413,6 +1414,72 @@ HWTEST_F(RecordingCanvasTest, DrawImageNineTest001, TestSize.Level1)
     image.BuildFromBitmap(bitmap);
     recordingCanvas->DrawImageNine(&image, center, dst, FilterMode::LINEAR, &brush);
     recordingCanvas->DrawImageNine(&image, center, dst, FilterMode::LINEAR, nullptr);
+}
+
+/**
+ * @tc.name: DrawUIColor001
+ * @tc.desc: Test playback of DrawUIColor function.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RecordingCanvasTest, DrawUIColor001, TestSize.Level1)
+{
+    auto recordingCanvas1 = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT);
+    auto recordingCanvas2 = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT, false);
+    EXPECT_TRUE(recordingCanvas1 != nullptr && recordingCanvas2 != nullptr);
+    UIColor color(0.5f, 0.6f, 0.7f, 0.8f, 2.0f);
+    recordingCanvas1->DrawUIColor(color);
+    recordingCanvas2->DrawUIColor(color);
+    auto drawCmdList1 = recordingCanvas1->GetDrawCmdList();
+    auto drawCmdList2 = recordingCanvas2->GetDrawCmdList();
+    EXPECT_TRUE(drawCmdList1 != nullptr && drawCmdList2 != nullptr);
+    Canvas canvas;
+    drawCmdList1->Playback(canvas);
+    drawCmdList2->Playback(canvas);
+}
+
+/**
+ * @tc.name: DrawUIColor002
+ * @tc.desc: Test playback of DrawUIColor function with different blend modes.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RecordingCanvasTest, DrawUIColor002, TestSize.Level1)
+{
+    auto recordingCanvas1 = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT);
+    auto recordingCanvas2 = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT, false);
+    EXPECT_TRUE(recordingCanvas1 != nullptr && recordingCanvas2 != nullptr);
+    UIColor color(0.0f, 1.0f, 0.0f, 0.5f, 1.5f);
+    recordingCanvas1->DrawUIColor(color, BlendMode::MULTIPLY);
+    recordingCanvas2->DrawUIColor(color, BlendMode::MULTIPLY);
+    auto drawCmdList1 = recordingCanvas1->GetDrawCmdList();
+    auto drawCmdList2 = recordingCanvas2->GetDrawCmdList();
+    EXPECT_TRUE(drawCmdList1 != nullptr && drawCmdList2 != nullptr);
+    Canvas canvas;
+    drawCmdList1->Playback(canvas);
+    drawCmdList2->Playback(canvas);
+}
+
+/**
+ * @tc.name: DrawUIColor003
+ * @tc.desc: Test playback of DrawUIColor function with default color.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RecordingCanvasTest, DrawUIColor003, TestSize.Level1)
+{
+    auto recordingCanvas1 = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT);
+    auto recordingCanvas2 = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT, false);
+    EXPECT_TRUE(recordingCanvas1 != nullptr && recordingCanvas2 != nullptr);
+    UIColor color;
+    recordingCanvas1->DrawUIColor(color);
+    recordingCanvas2->DrawUIColor(color);
+    auto drawCmdList1 = recordingCanvas1->GetDrawCmdList();
+    auto drawCmdList2 = recordingCanvas2->GetDrawCmdList();
+    EXPECT_TRUE(drawCmdList1 != nullptr && drawCmdList2 != nullptr);
+    Canvas canvas;
+    drawCmdList1->Playback(canvas);
+    drawCmdList2->Playback(canvas);
 }
 } // namespace Drawing
 } // namespace Rosen

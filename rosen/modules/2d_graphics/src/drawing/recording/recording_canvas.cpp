@@ -292,6 +292,15 @@ void RecordingCanvas::DrawColor(ColorQuad color, BlendMode mode)
     cmdList_->AddDrawOp<DrawColorOpItem::ConstructorHandle>(color, mode);
 }
 
+void RecordingCanvas::DrawUIColor(UIColor color, BlendMode mode)
+{
+    if (!addDrawOpImmediate_) {
+        cmdList_->AddDrawOp(std::make_shared<DrawUIColorOpItem>(color, mode));
+        return;
+    }
+    cmdList_->AddDrawOp<DrawUIColorOpItem::ConstructorHandle>(color, mode);
+}
+
 void RecordingCanvas::DrawAtlas(const Image* atlas, const RSXform xform[], const Rect tex[], const ColorQuad colors[],
     int count, BlendMode mode, const SamplingOptions& sampling, const Rect* cullRect)
 {

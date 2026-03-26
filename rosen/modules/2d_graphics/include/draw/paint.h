@@ -51,8 +51,11 @@ public:
     void SetColor(const Color& c);
     void SetARGB(int a, int r, int g, int b);
     void SetColor(const Color4f& cf, std::shared_ptr<ColorSpace> colorSpace = nullptr);
+    void SetUIColor(const UIColor& color, std::shared_ptr<ColorSpace> colorSpace = nullptr);
     const Color& GetColor() const { return color_; }
     const Color4f& GetColor4f() { return color_.GetColor4f(); }
+    const UIColor& GetUIColor() const { return hdrColor_; }
+    bool HasUIColor() const { return isHdrColor_; }
     const std::shared_ptr<ColorSpace> GetColorSpace() const { return colorSpace_; }
     const ColorSpace* GetColorSpacePtr() const { return colorSpace_.get(); }
 
@@ -129,6 +132,8 @@ private:
 
     Color color_ = Color::COLOR_BLACK;
     Filter filter_;
+    UIColor hdrColor_ = UIColor();
+    bool isHdrColor_ = false;
 };
 } // namespace Drawing
 } // namespace Rosen
