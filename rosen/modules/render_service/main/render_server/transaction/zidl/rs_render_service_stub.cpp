@@ -18,8 +18,8 @@
 #include <iremote_proxy.h>
 #include "message_parcel.h"
 
-#include "render_server/transaction/rs_client_to_service_connection.h"
 #include "platform/ohos/transaction/rs_render_connect_parcel_info.h"
+#include "render_server/transaction/rs_client_to_service_connection.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -102,7 +102,9 @@ int RSRenderServiceStub::OnRemoteRequest(
         case static_cast<uint32_t>(RSIRenderServiceInterfaceCode::REGISTER_RENDER_PROCESS_CONNECTION): {
             auto connectToServiceInfo = sptr<ConnectToServiceInfo>(data.ReadParcelable<ConnectToServiceInfo>());
             auto replyToRenderInfo = RegisterRenderProcessConnection(connectToServiceInfo);
-            reply.WriteParcelable(replyToRenderInfo.GetRefPtr());
+            if (!reply.WriteParcelable(replyToRenderInfo.GetRefPtr())) {
+                ret = ERR_INVALID_STATE;
+            }
             break;
         }
         default: {

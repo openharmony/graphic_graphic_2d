@@ -33,7 +33,7 @@ std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
 {
     if (token == nullptr) {
         ROSEN_LOGE("CreateConnection(): token is null.");
-        return std::make_pair(nullptr, nullptr);;
+        return { nullptr, nullptr };
     }
 
     MessageParcel data;
@@ -42,37 +42,37 @@ std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
     option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIRenderService::GetDescriptor())) {
         ROSEN_LOGE("CreateConnection(): WriteInterfaceToken failed.");
-        return std::make_pair(nullptr, nullptr);;
+        return { nullptr, nullptr };
     }
     if (!data.WriteRemoteObject(token->AsObject())) {
         ROSEN_LOGE("CreateConnection(): WriteRemoteObject failed.");
-        return std::make_pair(nullptr, nullptr);;
+        return { nullptr, nullptr };
     }
 
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceInterfaceCode::CREATE_CONNECTION);
     int32_t err = SendRequestRemote::SendRequest(Remote(), code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("CreateConnection(): SendRequest failed, err is %{public}d.", err);
-        return std::make_pair(nullptr, nullptr);;
+        return { nullptr, nullptr };
     }
 
-    // Reading rsConn from the split file in the system. Subsequent sunset
+    // Reading rsConn from the split file in the car system. Subsequent sunset
     auto remoteToService = reply.ReadRemoteObject();
     if (remoteToService == nullptr || !remoteToService->IsProxyObject()) {
         ROSEN_LOGE("RS CreateConnection(): Reply is not valid.");
-        return {nullptr, nullptr};
+        return { nullptr, nullptr };
     }
     auto conn = iface_cast<RSIClientToServiceConnection>(remoteToService);
 
-    // Reading rsConn from the split file in the system. Subsequent sunset
+    // Reading rsConn from the split file in the car system. Subsequent sunset
     auto remoteToRender = reply.ReadRemoteObject();
     if (remoteToRender == nullptr || !remoteToRender->IsProxyObject()) {
         ROSEN_LOGE("Render CreateConnection(): Reply is not valid.");
-        return {nullptr, nullptr};
+        return { nullptr, nullptr };
     }
     auto renderConn = iface_cast<RSIClientToRenderConnection>(remoteToRender);
 
-    return std::make_pair(conn, renderConn);
+    return { conn, renderConn };
 }
 
 bool RSRenderServiceProxy::RemoveConnection(const sptr<RSIConnectionToken>& token)
@@ -112,22 +112,20 @@ sptr<ReplyToRenderInfo> RSRenderServiceProxy::RegisterRenderProcessConnection(
     MessageOption option;
     option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIRenderService::GetDescriptor())) {
-        RS_LOGE("dmulti_process %{public}s: WriteInterfaceToken failed", __func__);
+        RS_LOGE("%{public}s: WriteInterfaceToken failed", __func__);
         return nullptr;
     }
     if (!data.WriteParcelable(connectToServiceInfo.GetRefPtr())) {
-        RS_LOGE("dmulti_process %{public}s: WriteParcelable failed", __func__);
+        RS_LOGE("%{public}s: WriteParcelable failed", __func__);
         return nullptr;
     }
-    RS_LOGI("dmulti_process conn write in remoteObj successfully");
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceInterfaceCode::REGISTER_RENDER_PROCESS_CONNECTION);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        RS_LOGE("dmulti_process %{public}s: SendRequest failed, err is %{public}d", __func__, err);
+        RS_LOGE("%{public}s: SendRequest failed, err is %{public}d", __func__, err);
         return nullptr;
     }
     auto replyToRenderInfo = sptr<ReplyToRenderInfo>(reply.ReadParcelable<ReplyToRenderInfo>());
-    RS_LOGI("dmulti_process rsRenderServiceProxy read reply successfully");
     return replyToRenderInfo;
 }
 } // namespace Rosen

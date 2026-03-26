@@ -40,19 +40,19 @@ ReplyToRenderInfo* ReplyToRenderInfo::Unmarshalling(Parcel& data)
     auto result = std::make_unique<ReplyToRenderInfo>();
     MessageParcel* message = static_cast<MessageParcel*>(&data);
     result->serviceConnection_ = message->ReadRemoteObject();
-    if (result->serviceConnection_ == nullptr) {
+    if (!result->serviceConnection_) {
         return nullptr;
     }
     result->composeConnection_ = message->ReadRemoteObject();
-    if (result->composeConnection_ == nullptr) {
+    if (!result->composeConnection_) {
         return nullptr;
     }
     result->rsScreenProperty_ = sptr<RSScreenProperty>(data.ReadParcelable<RSScreenProperty>());
-    if (result->rsScreenProperty_ == nullptr) {
+    if (!result->rsScreenProperty_) {
         return nullptr;
     }
     result->vsyncConn_ = message->ReadRemoteObject();
-    if (result->vsyncConn_ == nullptr) {
+    if (!result->vsyncConn_) {
         return nullptr;
     }
     return result.release();
@@ -81,19 +81,19 @@ ConnectToServiceInfo* ConnectToServiceInfo::Unmarshalling(Parcel& data)
     auto result = std::make_unique<ConnectToServiceInfo>();
     MessageParcel* message = static_cast<MessageParcel*>(&data);
     result->serviceToRenderConnection_ = message->ReadRemoteObject();
-    if (result->serviceToRenderConnection_ == nullptr) {
+    if (!result->serviceToRenderConnection_) {
         return nullptr;
     }
     result->composerToRenderConnection_ = message->ReadRemoteObject();
-    if (result->composerToRenderConnection_ == nullptr) {
+    if (!result->composerToRenderConnection_) {
         return nullptr;
     }
     result->connectToRenderConnection_ = message->ReadRemoteObject();
-    if (result->connectToRenderConnection_ == nullptr) {
+    if (!result->connectToRenderConnection_) {
         return nullptr;
     }
     result->vsyncToken_ = message->ReadRemoteObject();
-    if (result->vsyncToken_ == nullptr) {
+    if (!result->vsyncToken_) {
         return nullptr;
     }
     return result.release();
