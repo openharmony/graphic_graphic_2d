@@ -33,17 +33,17 @@ public:
     static sptr<RSRenderProcessManager> Create(RSRenderService& renderService);
 
     explicit RSRenderProcessManager(RSRenderService& renderService) : renderService_(renderService) {}
-    virtual ~RSRenderProcessManager() noexcept = default;
+    ~RSRenderProcessManager() noexcept override = default;
 
-    void OnVBlankIdle(ScreenId id, uint64_t ns) override;
+    void OnVBlankIdle(ScreenId id, uint64_t ns) override {}
     void OnScreenBacklightChanged(ScreenId id, uint32_t level) override;
     void OnGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList) override;
-    void OnActiveScreenIdChanged(ScreenId activeScreenId) override;
+    void OnActiveScreenIdChanged(ScreenId activeScreenId) override {}
     void OnHwcEvent(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData) override;
 
     void OnHwcRestored(ScreenId id, const std::shared_ptr<HdiOutput>& output,
-        const sptr<RSScreenProperty>& property) override;
-    void OnHwcDead(ScreenId id) override;
+        const sptr<RSScreenProperty>& property) override {}
+    void OnHwcDead(ScreenId id) override {}
 
     virtual sptr<RSIServiceToRenderConnection> GetServiceToRenderConn(ScreenId screenId) const = 0;
     virtual std::vector<sptr<RSIServiceToRenderConnection>> GetServiceToRenderConns() const = 0;

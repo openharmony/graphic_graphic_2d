@@ -37,7 +37,7 @@ bool RSRenderToServiceConnection::NotifyRenderProcessInitFinished()
 sptr<HgmServiceToProcessInfo> RSRenderToServiceConnection::NotifyRpHgmFrameRate(uint64_t timestamp,
     uint64_t vsyncId, const sptr<HgmProcessToServiceInfo>& processToServiceInfo)
 {
-    sptr<HgmServiceToProcessInfo> serviceToProcessInfo = sptr<HgmServiceToProcessInfo>::MakeSptr();
+    auto serviceToProcessInfo = sptr<HgmServiceToProcessInfo>::MakeSptr();
     renderServiceAgent_->ProcessHgmFrameRate(timestamp, vsyncId, processToServiceInfo, serviceToProcessInfo);
     return serviceToProcessInfo;
 }

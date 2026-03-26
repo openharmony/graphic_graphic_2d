@@ -30,9 +30,8 @@ public:
         const sptr<IRemoteObject>& composerConnection, const sptr<RSScreenProperty>& rsScreenProperty,
         const sptr<IRemoteObject>& vsyncConn)
         : serviceConnection_(renderToServiceConnection), composeConnection_(composerConnection),
-          rsScreenProperty_(rsScreenProperty), vsyncConn_(vsyncConn)
-    {}
-    ~ReplyToRenderInfo() = default;
+          rsScreenProperty_(rsScreenProperty), vsyncConn_(vsyncConn) {}
+    ~ReplyToRenderInfo() noexcept override = default;
 
     bool Marshalling(Parcel& data) const override;
     [[nodiscard]] static ReplyToRenderInfo* Unmarshalling(Parcel& data);
@@ -40,21 +39,19 @@ public:
     sptr<IRemoteObject> serviceConnection_ = nullptr;
     sptr<IRemoteObject> composeConnection_ = nullptr;
     sptr<RSScreenProperty> rsScreenProperty_ = nullptr;
-    sptr<IRemoteObject> vsyncConn_ = nullptr;
+    sptr<IRemoteObject> vsyncConn_ {};
 };
 
 struct RSB_EXPORT ConnectToServiceInfo : public Parcelable {
 public:
     ConnectToServiceInfo() = default;
     ConnectToServiceInfo(const sptr<IRemoteObject>& serviceToRenderConnection,
-        const sptr<IRemoteObject>& composerToRenderConnection,
-        const sptr<IRemoteObject>& connectToRenderConnection, const sptr<IRemoteObject>& vsyncToken)
+        const sptr<IRemoteObject>& composerToRenderConnection, const sptr<IRemoteObject>& connectToRenderConnection,
+        const sptr<IRemoteObject>& vsyncToken)
         : serviceToRenderConnection_(serviceToRenderConnection),
           composerToRenderConnection_(composerToRenderConnection),
-          connectToRenderConnection_(connectToRenderConnection),
-          vsyncToken_(vsyncToken)
-    {}
-    ~ConnectToServiceInfo() = default;
+          connectToRenderConnection_(connectToRenderConnection), vsyncToken_(vsyncToken) {}
+    ~ConnectToServiceInfo() noexcept override = default;
 
     bool Marshalling(Parcel& data) const override;
     [[nodiscard]] static ConnectToServiceInfo* Unmarshalling(Parcel& data);

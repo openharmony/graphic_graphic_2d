@@ -32,12 +32,12 @@ public:
     virtual ~RSServiceToRenderConnectionProxy() noexcept = default;
 
     // Process Manager
-    int32_t NotifyScreenConnectInfoToRender(const sptr<RSScreenProperty>& screenProperty,
+    bool NotifyScreenConnectInfoToRender(const sptr<RSScreenProperty>& screenProperty,
         const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
         const sptr<IRSComposerToRenderConnection>& composerToRenderConn) override;
-    int32_t NotifyScreenDisconnectInfoToRender(ScreenId screenId) override;
-    int32_t NotifyScreenPropertyChangedInfoToRender(ScreenId id, ScreenPropertyType type,
-        const sptr<ScreenPropertyBase>& screenProperty) override;
+    bool NotifyScreenDisconnectInfoToRender(ScreenId screenId) override;
+    bool NotifyScreenPropertyChangedInfoToRender(
+        ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& screenProperty) override;
 
     // Screen Manager
     int32_t NotifyScreenRefresh(ScreenId screenId) override;

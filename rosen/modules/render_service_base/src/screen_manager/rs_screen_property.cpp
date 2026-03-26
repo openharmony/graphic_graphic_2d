@@ -329,7 +329,7 @@ ScreenInfo RSScreenProperty::GetScreenInfo() const
         break;                                                                                          \
     }
 
-bool ScreenPropertyBase::UnmarshallingData(Parcel& data, ScreenPropertyType type, sptr<ScreenPropertyBase>& property)
+bool ScreenPropertyBase::Unmarshalling(Parcel& data, ScreenPropertyType type, sptr<ScreenPropertyBase>& property)
 {
     switch (type) {
         UNMARSHALL_CASE(ScreenPropertyType::ID)

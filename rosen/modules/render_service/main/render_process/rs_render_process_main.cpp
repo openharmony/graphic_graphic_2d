@@ -25,10 +25,9 @@ int main(int argc, const char* argv[])
 {
     signal(SIGPIPE, SIG_IGN);
 
-    RS_LOGI("dmulti_process render process init");
     auto renderProcess = sptr<RSRenderProcess>::MakeSptr();
     if (!renderProcess->Init()) {
-        RS_LOGE("dmulti_process render process init failed.");
+        RS_LOGE("%{public}s: render process init failed.", __func__);
         return -1;
     }
     renderProcess->Run();

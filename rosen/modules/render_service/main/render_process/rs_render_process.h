@@ -18,18 +18,18 @@
 
 #include <event_handler.h>
 
+#include "platform/ohos/transaction/zidl/rs_irender_service.h"
 #include "render_server/transaction/zidl/rs_irender_to_service_connection.h"
 #include "rs_render_pipeline.h"
-
-#include "platform/ohos/transaction/zidl/rs_irender_service.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSMainThread;
+
 class RSRenderProcess : public RefBase {
 public:
-    RSRenderProcess() {}
-    ~RSRenderProcess() noexcept {}
+    RSRenderProcess() = default;
+    ~RSRenderProcess() noexcept override = default;
 
     RSRenderProcess(const RSRenderProcess&) = delete;
     RSRenderProcess& operator=(const RSRenderProcess&) = delete;
@@ -39,7 +39,8 @@ public:
 
 private:
     sptr<RSIRenderService> GetRenderServer();
-    std::tuple<sptr<RSScreenProperty>, sptr<IRSRenderToComposerConnection>, std::shared_ptr<VSyncReceiver>> ConnectToRenderService(const sptr<RSComposerToRenderConnection>& composerToRenderConn);
+    std::tuple<sptr<RSScreenProperty>, sptr<IRSRenderToComposerConnection>, std::shared_ptr<VSyncReceiver>>
+    ConnectToRenderService(const sptr<IRSComposerToRenderConnection>& composerToRenderConnection);
 
     sptr<RSIRenderService> renderServer_ = nullptr;
     sptr<RSIRenderToServiceConnection> renderToServiceConnection_ = nullptr;
