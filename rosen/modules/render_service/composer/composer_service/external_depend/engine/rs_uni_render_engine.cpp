@@ -65,6 +65,8 @@ void RSUniRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas,
                 recordTvMetadataCallback_(surfaceRenderParams, params.buffer);
             }
         }
+#endif
+        DrawImage(canvas, params);
     } else {
         DrawBuffer(canvas, params);
     }
