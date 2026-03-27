@@ -169,7 +169,7 @@ void ScheduleColorPickWithSemaphore(Drawing::Surface& surface, std::weak_ptr<ICo
         ExecColorPick(infoPtr->manager_, *infoPtr);
         DestroySemaphoreInfo::DestroySemaphore(destroyInfo); // semaphore inits with ref count = 2
         delete infoPtr;
-    });
+        }, false);
 #else
     return;
 #endif
