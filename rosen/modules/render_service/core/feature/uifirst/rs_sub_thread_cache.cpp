@@ -266,15 +266,14 @@ bool RsSubThreadCache::DrawCacheSurface(DrawableV2::RSSurfaceRenderNodeDrawable*
     std::vector<Drawing::RectI> opaqueRects;
     Drawing::Rect imgDrawRect = { translateX, translateY, imageWidth, imageHeight };
     InsertOpaqueRegion(canvas, surfaceDrawable, opaqueRects, imgDrawRect);
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
     DrawBehindWindowBeforeCache(canvas, translateX, translateY, surfaceDrawable);
     if (cacheCompletedSurfaceInfo_.isContainShadow) {
         translateX += cacheCompletedSurfaceRect_.GetLeft();
         translateY += cacheCompletedSurfaceRect_.GetTop();
     }
-    bool isShouldClipShadow = (!surfaceParams->IsUIFirstLeashAllEnable() ||
-        surfaceParams->IsUIFirstLeashAllEnableChange()) && cacheCompletedSurfaceInfo_.isContainShadow;
-    if (isShouldClipShadow) {
+    bool needClipShadow = !IsCacheSizeMatchBound(cacheCompletedSurfaceRect_, boundSize) &&
+        cacheCompletedSurfaceInfo_.isContainShadow;
+    if (needClipShadow) {
         Drawing::Rect rect = { 0, 0, imageWidth, imageHeight };
         canvas.ClipRect(rect);
     }
@@ -1133,7 +1132,7 @@ bool RsSubThreadCache::DealWithUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawa
     }
 
     bool needDrawInUniRenderThread = !cacheCompletedSurfaceInfo_.isContainShadow ||
-        (!surfaceParams.IsUIFirstLeashAllEnable() || surfaceParams.IsUIFirstLeashAllEnableChange());
+        !IsCacheSizeMatchBound(cacheCompletedSurfaceRect_, surfaceParams.GetCacheSize());
     auto stencilVal = surfaceParams.GetStencilVal();
     if (needDrawInUniRenderThread) {
         if (surfaceParams.IsLeashWindow()) {
@@ -1346,4 +1345,8 @@ bool RsSubThreadCache::GetUifirstSurfaceCacheContentStatic() const
     return uifirstSurfaceCacheContentStatic_;
 }
 
+bool RsSubThreadCache::IsCacheSizeMatchBound(const RectF& cacheSize, const Vector2f& boundSize)
+{
+    return ROSEN_EQ(cacheSize.GetWidth(), boundSize.x_) && ROSEN_EQ(cacheSize.GetHeight(), boundSize.y_);
+}
 } // namespace OHOS::Rosen

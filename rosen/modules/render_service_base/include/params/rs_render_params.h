@@ -463,7 +463,6 @@ public:
     RSRenderParams& operator=(RSRenderParams&&) = delete;
 
     virtual void OnSync(const std::unique_ptr<RSRenderParams>& target);
-    virtual void OnPartialSync(const std::unique_ptr<RSRenderParams>& target) {}
 
     // dfx
     virtual std::string ToString() const;

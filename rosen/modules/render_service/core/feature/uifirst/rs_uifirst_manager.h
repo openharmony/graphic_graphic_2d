@@ -329,7 +329,6 @@ private:
 
     bool IsContentAppWindow(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
     void CheckAndBlockFirstFrameCallback(RSSurfaceRenderNode& surfaceNode) const;
-    void UpdateLeashAllEnableChange(NodeId id);
 
     bool rotationChanged_ = false;
     bool isUiFirstOn_ = false;

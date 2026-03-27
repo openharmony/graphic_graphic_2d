@@ -251,6 +251,11 @@ public:
         cacheReuseCount_ = 0;
     }
 
+    bool IsContainShadow() const
+    {
+        return cacheCompletedSurfaceInfo_.isContainShadow;
+    }
+
     const std::unordered_set<NodeId>& GetAllDrawnSubSurfaceNodeIds() const
     {
         return cacheCompletedSurfaceInfo_.processedSubSurfaceNodeIds;
@@ -264,6 +269,7 @@ private:
         RSPaintFilterCanvas& rscanvas, NodeId startingWindowId);
     void DrawUIFirstDfx(RSPaintFilterCanvas& canvas, MultiThreadCacheType enableType,
         RSSurfaceRenderParams& surfaceParams, bool drawCacheSuccess);
+    bool IsCacheSizeMatchBound(const RectF& cacheSize, const Vector2f& boundSize);
 
     NodeId nodeId_ = 0;
     // Cache in RT

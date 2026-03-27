@@ -4601,7 +4601,6 @@ void RSRenderNode::OnSync()
         unobscuredUECChildrenNeedSync_ = false;
     }
     if (!uifirstSkipPartialSync_) {
-        stagingRenderParams_->OnPartialSync(renderDrawable_->renderParams_);
         if (!dirtySlots_.empty()) {
             for (const auto& slot : dirtySlots_) {
                 if (auto& drawable = findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(slot))) {
@@ -4618,7 +4617,6 @@ void RSRenderNode::OnSync()
                                                         renderDrawable_->drawCmdList_.end());
             renderDrawable_->uifirstDrawCmdIndex_ = renderDrawable_->drawCmdIndex_;
             renderDrawable_->renderParams_->OnSync(renderDrawable_->uifirstRenderParams_);
-            renderDrawable_->renderParams_->OnPartialSync(renderDrawable_->uifirstRenderParams_);
             uifirstNeedSync_ = false;
         }
     } else {
