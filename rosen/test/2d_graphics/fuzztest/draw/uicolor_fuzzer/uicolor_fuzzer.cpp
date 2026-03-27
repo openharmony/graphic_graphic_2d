@@ -57,7 +57,7 @@ bool UIColorFuzzTest001(const uint8_t* data, size_t size)
     uiColor.SetHeadroom(headroom);
     
     uiColor.SetRgb(red, green, blue);
-    uiColor.SetRgbF(red, green, blue, alpha);
+    uiColor.SetRgba(red, green, blue, alpha);
 
     uiColor.GetAlpha();
     uiColor.GetRed();
