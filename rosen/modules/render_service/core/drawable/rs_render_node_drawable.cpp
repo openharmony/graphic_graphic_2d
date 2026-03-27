@@ -287,16 +287,22 @@ void RSRenderNodeDrawable::TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas&
     RS_TRACE_NAME_FMT("DrawBlurForCache id:%" PRIu64 "", nodeId_);
 
     DrawBackground(canvas, params.GetBounds());
+    auto matrix = canvas.GetTotalMatrix();
     Drawing::Region filterRegion;
     for (auto& item : filterInfoVec_) {
-        for (auto& rect: item.rectVec_) {
+        for (auto& rect : item.rectVec_) {
+            Drawing::Rect alignedRect = rect;
+            AlignRectToDevicePixels(matrix, alignedRect);
             Drawing::Region region;
-            region.SetRect(rect);
+            region.SetRect(alignedRect.RoundOut());
             filterRegion.Op(region, Drawing::RegionOp::UNION);
         }
     }
     Drawing::Path filetrPath;
     filterRegion.GetBoundaryPath(&filetrPath);
+    matrix.Set(Drawing::Matrix::TRANS_X, std::floor(matrix.Get(Drawing::Matrix::TRANS_X)));
+    matrix.Set(Drawing::Matrix::TRANS_Y, std::floor(matrix.Get(Drawing::Matrix::TRANS_Y)));
+    canvas.SetMatrix(matrix);
     canvas.ClipPath(filetrPath);
     DrawContent(canvas, params.GetFrameRect());
     DrawChildren(canvas, params.GetBounds());
@@ -456,15 +462,15 @@ void RSRenderNodeDrawable::DrawWithNodeGroupCache(Drawing::Canvas& canvas, const
     }
     if (LIKELY(!params.GetDrawingCacheIncludeProperty())) {
         DrawBackground(canvas, params.GetBounds());
-        DrawCachedImage(*curCanvas, params.GetCacheSize());
+        DrawCachedImage(*curCanvas, params.GetCacheSize(), params.GetForegroundFilterCache(), params.GetRSFreezeFlag());
         DrawForeground(canvas, params.GetBounds());
     } else if (params.GetForegroundFilterCache() != nullptr) {
         DrawBeforeCacheWithForegroundFilter(canvas, params.GetBounds());
-        DrawCachedImage(*curCanvas, params.GetCacheSize(), params.GetForegroundFilterCache());
+        DrawCachedImage(*curCanvas, params.GetCacheSize(), params.GetForegroundFilterCache(), params.GetRSFreezeFlag());
         DrawAfterCacheWithForegroundFilter(canvas, params.GetBounds());
     } else {
         DrawBeforeCacheWithProperty(canvas, params.GetBounds());
-        DrawCachedImage(*curCanvas, params.GetCacheSize());
+        DrawCachedImage(*curCanvas, params.GetCacheSize(), params.GetForegroundFilterCache(), params.GetRSFreezeFlag());
         DrawAfterCacheWithProperty(canvas, params.GetBounds());
     }
     ClearDrawingCacheContiUpdateTimeMap();
@@ -823,7 +829,7 @@ std::shared_ptr<Drawing::Image> RSRenderNodeDrawable::GetCacheImageByCapture() c
 }
 
 void RSRenderNodeDrawable::DrawCachedImage(RSPaintFilterCanvas& canvas, const Vector2f& boundSize,
-    const std::shared_ptr<RSFilter>& rsFilter)
+    const std::shared_ptr<RSFilter>& rsFilter, bool freezeFlag)
 {
     auto cacheImage = GetCachedImage(canvas);
     std::lock_guard<std::mutex> lock(freezeByCaptureMutex_);
@@ -854,7 +860,9 @@ void RSRenderNodeDrawable::DrawCachedImage(RSPaintFilterCanvas& canvas, const Ve
     }
 
     Drawing::AutoCanvasRestore arc(canvas, true);
-    canvas.Scale(scaleX, scaleY);
+    if (GetOpincDrawCache().OpincGetCachedMark() || freezeFlag) {
+        canvas.Scale(scaleX, scaleY);
+    }
     Drawing::Brush brush;
     canvas.AttachBrush(brush);
     auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
@@ -864,6 +872,10 @@ void RSRenderNodeDrawable::DrawCachedImage(RSPaintFilterCanvas& canvas, const Ve
         GetOpincDrawCache().DrawAutoCacheDfx(canvas, autoCacheRenderNodeInfos_);
         return;
     }
+    auto matrix = canvas.GetTotalMatrix();
+    matrix.Set(Drawing::Matrix::TRANS_X, std::floor(matrix.Get(Drawing::Matrix::TRANS_X)));
+    matrix.Set(Drawing::Matrix::TRANS_Y, std::floor(matrix.Get(Drawing::Matrix::TRANS_Y)));
+    canvas.SetMatrix(matrix);
     if (rsFilter != nullptr) {
         RS_TRACE_NAME_FMT("RSRenderNodeDrawable::DrawCachedImage image width: %d, height: %d, %s, nodeID = %llu",
             cacheImage->GetWidth(), cacheImage->GetHeight(), rsFilter->GetDescription().c_str(), nodeId_);

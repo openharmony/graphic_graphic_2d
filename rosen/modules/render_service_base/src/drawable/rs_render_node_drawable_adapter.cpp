@@ -538,6 +538,12 @@ void RSRenderNodeDrawableAdapter::SkipDrawSubtreeAndClipHole(
     RS_OPTIONAL_TRACE_NAME_FMT(
         "ClipHoleForBlurOrExcludedSubtree filterRect:[%.2f, %.2f]", filterRect.GetWidth(), filterRect.GetHeight());
     Drawing::AutoCanvasRestore arc(*curCanvas, true);
+    auto matrix = canvas.GetTotalMatrix();
+    AlignRectToDevicePixels(matrix, filterRect);
+    matrix.Set(Drawing::Matrix::TRANS_X, std::floor(matrix.Get(Drawing::Matrix::TRANS_X)));
+    matrix.Set(Drawing::Matrix::TRANS_Y, std::ceil(matrix.Get(Drawing::Matrix::TRANS_Y)));
+    canvas.SetMatrix(matrix);
+    curCanvas->ResetClip();
     curCanvas->ClipRect(filterRect, Drawing::ClipOp::INTERSECT, false);
     curCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
     UpdateFilterInfoForNodeGroup(curCanvas);
@@ -618,6 +624,21 @@ bool RSRenderNodeDrawableAdapter::HasFilterOrEffect(const RSRenderParams& params
            drawCmdIndex_.useEffectIndex_ != -1 ||
            drawCmdIndex_.backgroundNgShaderIndex_ != -1 ||
            params.NeedClipHoleForFilter();
+}
+
+void RSRenderNodeDrawableAdapter::AlignRectToDevicePixels(const Drawing::Matrix& matrix, Drawing::Rect& rect)
+{
+    Drawing::Rect deviceRect;
+    matrix.MapRect(deviceRect, rect);
+    deviceRect.SetLeft(std::floor(deviceRect.GetLeft()));
+    deviceRect.SetTop(std::floor(deviceRect.GetTop()));
+    deviceRect.SetRight(std::ceil(deviceRect.GetRight()));
+    deviceRect.SetBottom(std::ceil(deviceRect.GetBottom()));
+    Drawing::Matrix inverseMatrix;
+    if (!matrix.Invert(inverseMatrix)) {
+        return;
+    }
+    inverseMatrix.MapRect(rect, deviceRect);
 }
 
 void RSRenderNodeDrawableAdapter::ClearResource()
