@@ -238,7 +238,7 @@ void RSRenderComposer::ComposerPrepare(uint32_t& currentRate, int64_t& delayTime
         setHardwareTaskNumCb_(unExecuteTaskNum_.load());
     }
     auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
-    currentRate = hgmCore.GetScreenCurrentRefreshRate(hgmCore.GetActiveScreenId())
+    currentRate = hgmCore.GetScreenCurrentRefreshRate(hgmCore.GetActiveScreenId());
     delayTime = UpdateDelayTime(hgmCore, currentRate, pipelineParam);
     delayTime_ = delayTime;
 }

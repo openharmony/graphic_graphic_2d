@@ -17,6 +17,7 @@
 
 #include "common/rs_optional_trace.h"
 #include "parameters.h"
+#include "params/rs_render_params.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "platform/common/rs_hisysevent.h"
 
@@ -156,7 +157,7 @@ void HgmHardwareUtils::ReportRetryOverLimit(uint64_t vsyncId, uint32_t rate)
 }
 
 void HgmHardwareUtils::SwitchRefreshRate(const std::shared_ptr<HdiOutput>& hdiOutput, int64_t timestamp,
-    const PipelineParam& pipelineParam);
+    const PipelineParam& pipelineParam)
 {
     RS_TRACE_NAME_FMT("%s: rate:%u", __func__, pipelineParam.pendingScreenRefreshRate);
     if (pipelineParam.pendingScreenRefreshRate == 0) {

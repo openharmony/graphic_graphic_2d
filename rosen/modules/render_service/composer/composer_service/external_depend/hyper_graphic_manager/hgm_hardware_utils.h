@@ -23,17 +23,7 @@
 
 namespace OHOS {
 namespace Rosen {
-struct RefreshRateParam {
-    uint32_t rate = 0;
-    uint64_t frameTimestamp = 0;
-    uint64_t constraintRelativeTime = 0;
-    void setParam(uint32_t pendingRefreshRate, uint64_t frameTimestamp, uint64_t pendingConstraintRelativeTime)
-    {
-        rate = pendingRefreshRate;
-        frameTimestamp = frameTimestamp;
-        constraintRelativeTime = pendingConstraintRelativeTime;
-    }
-};
+struct PipelineParam;
 
 struct SetRateRetryParam {
     int32_t retryCount = 0; // Number of retries attempted for frame switching
@@ -110,6 +100,12 @@ private:
         uint32_t rate = 0;
         uint64_t frameTimestamp = 0;
         uint64_t constraintRelativeTime = 0;
+        void setParam(uint32_t pendingRefreshRate, uint64_t timestamp, uint64_t pendingConstraintRelativeTime)
+        {
+            rate = pendingRefreshRate;
+            frameTimestamp = timestamp;
+            constraintRelativeTime = pendingConstraintRelativeTime;
+        }
     };
 
     void ExecuteSwitchRefreshRate(ScreenId screenId);
