@@ -124,10 +124,6 @@ RSClientToRenderConnection::RSClientToRenderConnection(
         RS_LOGW("RSClientToRenderConnection: Failed to set death recipient.");
         return;
     }
-    if (!token_->AddRefreshRecipient(connRefreshRecipient_)) {
-        RS_LOGW("RSClientToRenderConnection: Failed to set refresh recipient.");
-        return;
-    }
 
     if (renderPipelineAgent_ == nullptr) {
         RS_LOGW("RSClientToRenderConnection: renderPipelineAgent_ is nullptr");
