@@ -79,6 +79,7 @@ public:
     LoadSymbolErrorCode LoadSymbolJson(const std::string& familyName, const uint8_t* data, size_t datalen) override;
     void ClearCaches() override;
     bool UnloadFont(const std::string& familyName) override;
+    void UpdateDefaultFamilies() override;
 
 private:
     class FontCallbackGuard {

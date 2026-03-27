@@ -162,6 +162,7 @@ HWTEST_F(AdapterFontCollectionTest, AdapterFontCollectionTest003, TestSize.Level
 HWTEST_F(AdapterFontCollectionTest, AdapterFontCollectionTest004, TestSize.Level0)
 {
     fontCollection_->ClearThemeFont();
+    fontCollection_->UpdateDefaultFamilies();
     LoadSymbolErrorCode res = fontCollection_->LoadSymbolFont("testCustomSymbol", nullptr, 0);
     EXPECT_EQ(res, LoadSymbolErrorCode::LOAD_FAILED);
 
