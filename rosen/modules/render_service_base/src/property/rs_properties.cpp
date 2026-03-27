@@ -5068,7 +5068,7 @@ std::string RSProperties::Dump() const
     // HDRColorMaxHeadroom
     auto maxHeadroom = GetHDRColorMaxHeadroom();
     if (!ROSEN_EQ(maxHeadroom, 1.f)) {
-        dumpInfo.append(", HDRColorMaxHeadroom[" + std::to_string(headroom) + "]");
+        dumpInfo.append(", HDRColorMaxHeadroom[" + std::to_string(maxHeadroom) + "]");
     }
 
     // Contrast
