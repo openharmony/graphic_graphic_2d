@@ -75,6 +75,13 @@ private:
     static ani_status SetArrayBoundaryElement(ani_env* env, ani_object array, int index,
         const Rosen::Boundary& range, const char* errorMsg);
 
+    // Helper functions for InitMethods refactoring
+    static std::vector<ani_native_function> GetLayoutAndPaintMethods();
+    static std::vector<ani_native_function> GetSizeMethods();
+    static std::vector<ani_native_function> GetRangeAndPositionMethods();
+    static std::vector<ani_native_function> GetLineMethods();
+    static std::vector<ani_native_function> GetStyleAndStateMethods();
+
     std::shared_ptr<OHOS::Rosen::Typography> typography_{nullptr};
 };
 } // namespace OHOS::Text::ANI
