@@ -84,7 +84,7 @@ if (is_arkui_x) {
     ]
 
     deps = [
-      "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+      "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     ]
 
     public_deps = [
@@ -109,12 +109,13 @@ if (is_arkui_x) {
         defines += [ "RS_ENABLE_GPU" ]
         defines += gpu_defines
         deps += [
+          "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
           "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
         ]
       }
     }
 
-    external_deps = [
+    public_external_deps = [
       "c_utils:utilsbase",
       "skia:skia_canvaskit_static",
     ]
