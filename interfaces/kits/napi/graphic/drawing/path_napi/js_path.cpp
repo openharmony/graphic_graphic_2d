@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -66,6 +66,7 @@ static const napi_property_descriptor g_properties[] = {
     DECLARE_NAPI_FUNCTION("getSegment", JsPath::GetSegment),
     DECLARE_NAPI_FUNCTION("getMatrix", JsPath::GetMatrix),
     DECLARE_NAPI_FUNCTION("buildFromSvgString", JsPath::BuildFromSvgString),
+    DECLARE_NAPI_FUNCTION("convertToSvgString", JsPath::ConvertToSVGString),
     DECLARE_NAPI_FUNCTION("isClosed", JsPath::IsClosed),
     DECLARE_NAPI_FUNCTION("isEmpty", JsPath::IsEmpty),
     DECLARE_NAPI_FUNCTION("isRect", JsPath::IsRect),
@@ -388,6 +389,12 @@ napi_value JsPath::BuildFromSvgString(napi_env env, napi_callback_info info)
 {
     JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
     return (me != nullptr) ? me->OnBuildFromSvgString(env, info) : nullptr;
+}
+
+napi_value JsPath::ConvertToSVGString(napi_env env, napi_callback_info info)
+{
+    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    return (me != nullptr) ? me->OnConvertToSVGString(env, info) : nullptr;
 }
 
 napi_value JsPath::IsClosed(napi_env env, napi_callback_info info)
@@ -1048,6 +1055,19 @@ napi_value JsPath::OnBuildFromSvgString(napi_env env, napi_callback_info info)
 
     bool result = m_path->BuildFromSVGString(str);
     return CreateJsValue(env, result);
+}
+
+napi_value JsPath::OnConvertToSVGString(napi_env env, napi_callback_info info)
+{
+    if (m_path == nullptr) {
+        ROSEN_LOGE("JsPath::OnConvertToSVGString path is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(nullptr, ARGC_ZERO);
+
+    std::string str = m_path->ConvertToSVGString();
+    return CreateJsValue(env, str);
 }
 
 napi_value JsPath::OnAddOval(napi_env env, napi_callback_info info)

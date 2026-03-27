@@ -607,6 +607,42 @@ void NativeDrawingPathTest014(const uint8_t* data, size_t size)
     OH_Drawing_PathDestroy(otherPath);
 }
 
+void NativeDrawingPathTest015(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return;
+    }
+
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    if (path == nullptr) {
+        return;
+    }
+
+    OH_Drawing_PathMoveTo(path, GetObject<float>(), GetObject<float>());
+    OH_Drawing_PathLineTo(path, GetObject<float>(), GetObject<float>());
+    OH_Drawing_PathQuadTo(path, GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>());
+    OH_Drawing_PathConicTo(path, GetObject<float>(), GetObject<float>(),
+        GetObject<float>(), GetObject<float>(), GetObject<float>());
+    OH_Drawing_PathClose(path);
+
+    size_t svgCount = 0;
+    OH_Drawing_PathConvertToSvgString(nullptr, nullptr, &svgCount);
+    OH_Drawing_PathConvertToSvgString(path, nullptr, nullptr);
+    OH_Drawing_PathConvertToSvgString(path, nullptr, &svgCount);
+    if (svgCount > 0 && svgCount < MAX_ARRAY_SIZE) {
+        char* svgString = new char[svgCount];
+        size_t tmpSvgCount = svgCount;
+        OH_Drawing_PathConvertToSvgString(path, svgString, &tmpSvgCount);
+        size_t smallSvgCount = 1;
+        OH_Drawing_PathConvertToSvgString(path, svgString, &smallSvgCount);
+        delete[] svgString;
+        svgString = nullptr;
+    }
+
+    OH_Drawing_PathDestroy(path);
+}
+
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -634,5 +670,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::NativeDrawingPathTest012(data, size);
     OHOS::Rosen::Drawing::NativeDrawingPathTest013(data, size);
     OHOS::Rosen::Drawing::NativeDrawingPathTest014(data, size);
+    OHOS::Rosen::Drawing::NativeDrawingPathTest015(data, size);
     return 0;
 }

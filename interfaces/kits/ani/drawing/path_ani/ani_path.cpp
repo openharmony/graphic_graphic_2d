@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -64,6 +64,7 @@ static const std::array g_methods = {
     ani_native_function { "addPath", nullptr, reinterpret_cast<void*>(AniPath::AddPath) },
     ani_native_function { "isClosed", nullptr, reinterpret_cast<void*>(AniPath::IsClosed) },
     ani_native_function { "buildFromSvgString", nullptr, reinterpret_cast<void*>(AniPath::BuildFromSVGString) },
+    ani_native_function { "convertToSvgString", nullptr, reinterpret_cast<void*>(AniPath::ConvertToSVGString) },
     ani_native_function { "cubicTo", nullptr, reinterpret_cast<void*>(AniPath::CubicTo) },
     ani_native_function { "quadTo", nullptr, reinterpret_cast<void*>(AniPath::QuadTo) },
     ani_native_function { "lineTo", nullptr, reinterpret_cast<void*>(AniPath::LineTo) },
@@ -671,6 +672,18 @@ ani_boolean AniPath::BuildFromSVGString(ani_env* env, ani_object obj, ani_string
     }
     std::string str = CreateStdString(env, aniStringObj);
     return aniPath->GetPath()->BuildFromSVGString(str);
+}
+
+ani_string AniPath::ConvertToSVGString(ani_env* env, ani_object obj)
+{
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
+    if (aniPath == nullptr || aniPath->GetPath() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return nullptr;
+    }
+
+    std::string str = aniPath->GetPath()->ConvertToSVGString();
+    return CreateAniString(env, str);
 }
 
 void AniPath::CubicTo(ani_env* env, ani_object obj, ani_double ctrlX1, ani_double ctrlY1, ani_double ctrlX2,

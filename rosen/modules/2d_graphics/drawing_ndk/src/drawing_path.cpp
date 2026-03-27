@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -473,6 +473,32 @@ bool OH_Drawing_PathBuildFromSvgString(OH_Drawing_Path* cPath, const char* str)
         return false;
     }
     return path->BuildFromSVGString(str);
+}
+
+OH_Drawing_ErrorCode OH_Drawing_PathConvertToSvgString(
+    OH_Drawing_Path* cPath, char* svgString, size_t* count)
+{
+    Path* path = CastToPath(cPath);
+    if (path == nullptr || count == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+
+    std::string str = path->ConvertToSVGString();
+    size_t requiredSize = str.size() + 1;
+    size_t capacity = *count;
+    *count = requiredSize;
+
+    if (svgString == nullptr) {
+        return OH_DRAWING_SUCCESS;
+    }
+    if (capacity < requiredSize) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+
+    if (memcpy_s(svgString, capacity, str.c_str(), requiredSize) != EOK) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    return OH_DRAWING_SUCCESS;
 }
 
 bool OH_Drawing_PathContains(OH_Drawing_Path* cPath, float x, float y)
