@@ -21,8 +21,8 @@
 #include <unordered_set>
 
 #include "rs_render_mode_config.h"
-#include "rs_render_pipeline.h"
 #include "rs_render_multi_process_manager.h"
+#include "rs_render_pipeline.h"
 #include "rs_render_single_process_manager.h"
 #include "vsync_manager_agent.h"
 #include "vsync_iconnection_token.h"
@@ -37,7 +37,6 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSMainThread;
 class RSRenderComposerManager;
 class RSRenderService : public RSRenderServiceStub {
 public:
@@ -90,7 +89,7 @@ private:
     // Initialization related
     void ParseRenderModeConfig();
     void InitCCMConfig();
-    void CoreComponentsInit();
+    bool CoreComponentsInit();
     void HgmInit();
     void FeatureComponentInit();
     void RenderProcessManagerInit();
@@ -107,7 +106,6 @@ private:
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
-
     sptr<RSScreenManager> screenManager_ = nullptr;
     sptr<RSVsyncManager> vsyncManager_ = nullptr;
     sptr<RSRenderProcessManager> renderProcessManager_ = nullptr;
@@ -123,7 +121,7 @@ private:
     mutable std::mutex mutex_;
     std::map<sptr<IRemoteObject>,
         std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>> connections_;
-    
+
     friend class RSRenderServiceAgent;
     friend class RSRenderProcessManager;
     friend class RSMultiRenderProcessManager;

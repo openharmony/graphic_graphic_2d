@@ -158,10 +158,10 @@ void RSClientToRenderConnection::CleanAll(bool toDelete) noexcept
         cleanDone_ = true;
     }
 
-    if (toDelete) {
-        auto token = iface_cast<RSIConnectionToken>(GetToken());
-        renderPipelineAgent_->RemoveConnection(token);
-    }
+    // if (toDelete) {
+    //     auto token = iface_cast<RSIConnectionToken>(GetToken());
+    //     renderPipelineAgent_->RemoveConnection(token);
+    // }
 }
 
 RSClientToRenderConnection::RSConnectionDeathRecipient::RSConnectionDeathRecipient(

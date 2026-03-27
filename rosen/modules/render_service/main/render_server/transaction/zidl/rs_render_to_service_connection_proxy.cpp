@@ -21,8 +21,8 @@
 
 namespace OHOS {
 namespace Rosen {
-RSRenderToServiceConnectionProxy::RSRenderToServiceConnectionProxy(
-    const sptr<IRemoteObject>& impl) : IRemoteProxy<RSIRenderToServiceConnection>(impl) {}
+RSRenderToServiceConnectionProxy::RSRenderToServiceConnectionProxy(const sptr<IRemoteObject>& impl) :
+    IRemoteProxy<RSIRenderToServiceConnection>(impl) {}
 
 bool RSRenderToServiceConnectionProxy::NotifyRenderProcessInitFinished()
 {
@@ -37,7 +37,7 @@ bool RSRenderToServiceConnectionProxy::NotifyRenderProcessInitFinished()
     uint32_t code = static_cast<uint32_t>(RSIRenderToServiceConnectionInterfaceCode::NOTIFY_RENDER_PROCESS_READY);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("dmulti_process %{public}s: SendRquest failed, err is %{public}d", __func__, err);
+        RS_LOGE("%{public}s: SendRquest failed, err is %{public}d", __func__, err);
         return false;
     }
     bool result = false;

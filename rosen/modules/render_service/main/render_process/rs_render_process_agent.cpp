@@ -17,50 +17,40 @@
 
 // #include "dfx/rs_process_dump_manager.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
-#include "screen_manager/rs_screen_property.h"
 #include "platform/common/rs_log.h"
-#include "platform/common/rs_system_properties.h"
+#include "screen_manager/rs_screen_property.h"
 
 #undef LOG_TAG
 #define LOG_TAG "RSRenderProcessAgent"
 
 namespace OHOS {
 namespace Rosen {
-RSRenderProcessAgent::RSRenderProcessAgent(RSRenderProcess& renderProcess) :
-    renderProcess_(renderProcess) {}
-
-int32_t RSRenderProcessAgent::NotifyScreenConnectInfoToRender(const sptr<RSScreenProperty>& screenProperty,
+bool RSRenderProcessAgent::NotifyScreenConnectInfoToRender(const sptr<RSScreenProperty>& screenProperty,
     const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
     const sptr<IRSComposerToRenderConnection>& composerToRenderConn)
 {
-    auto handler = renderProcess_.handler_;
-    handler->PostTask([this, screenProperty, renderToComposerConn, composerToRenderConn] {
-        RS_LOGI("dmulti_process %{public}s: screenId[%{public}llu] width[%{public}d] height[%{public}d]",
-            __func__, screenProperty->GetScreenId(), screenProperty->GetWidth(), screenProperty->GetHeight());
-        renderProcess_.renderPipeline_->OnScreenConnected(screenProperty,
-            renderToComposerConn, composerToRenderConn, nullptr);
+    return renderProcess_.handler_->PostTask([this, screenProperty, renderToComposerConn, composerToRenderConn] {
+        RS_LOGI("%{public}s: screenId[%{public}" PRIu64 "] width[%{public}d] height[%{public}d]", __func__,
+            screenProperty->GetScreenId(), screenProperty->GetWidth(), screenProperty->GetHeight());
+        renderProcess_.renderPipeline_->OnScreenConnected(
+            screenProperty, renderToComposerConn, composerToRenderConn, nullptr);
     });
-    return 0;
 }
 
-int32_t RSRenderProcessAgent::NotifyScreenDisconnectInfoToRender(ScreenId screenId)
+bool RSRenderProcessAgent::NotifyScreenDisconnectInfoToRender(ScreenId screenId)
 {
-    auto handler = renderProcess_.handler_;
-    handler->PostTask([this, screenId] {
-        RS_LOGI("dmulti_process %{public}s: screenId[%{public}llu]", __func__, screenId);
+    return renderProcess_.handler_->PostTask([this, screenId] {
+        RS_LOGI("%{public}s: screenId[%{public}" PRIu64 "]", __func__, screenId);
         renderProcess_.renderPipeline_->OnScreenDisconnected(screenId);
     });
-    return 0;
 }
 
-int32_t RSRenderProcessAgent::NotifyScreenPropertyChangedInfoToRender(ScreenId id,
-    ScreenPropertyType type, const sptr<RSScreenPropertyBase>& screenProperty)
+bool RSRenderProcessAgent::NotifyScreenPropertyChangedInfoToRender(
+    ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& screenProperty)
 {
-    auto handler = renderProcess_.handler_;
-    handler->PostTask([this, id, type, screenProperty] {
+    return renderProcess_.handler_->PostTask([this, id, type, screenProperty] {
         renderProcess_.renderPipeline_->OnScreenPropertyChanged(id, type, screenProperty);
     });
-    return 0;
 }
 } // namespace Rosen
 } // namespace OHOS

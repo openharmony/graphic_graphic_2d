@@ -41,7 +41,7 @@ public:
 
     // Screen Manager
     void NotifyScreenSwitchFinished(ScreenId screenId) override;
-        
+
 private:
     const sptr<RSRenderServiceAgent> renderServiceAgent_;
     const sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent_;

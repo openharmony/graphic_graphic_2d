@@ -33,10 +33,10 @@
 
 namespace OHOS {
 namespace Rosen {
-RSServiceToRenderConnectionProxy::RSServiceToRenderConnectionProxy(const sptr<IRemoteObject>& impl)
-    : IRemoteProxy<RSIServiceToRenderConnection>(impl) {}
+RSServiceToRenderConnectionProxy::RSServiceToRenderConnectionProxy(const sptr<IRemoteObject>& impl) :
+    IRemoteProxy<RSIServiceToRenderConnection>(impl) {}
 
-int32_t RSServiceToRenderConnectionProxy::NotifyScreenConnectInfoToRender(const sptr<RSScreenProperty>& screenProperty,
+bool RSServiceToRenderConnectionProxy::NotifyScreenConnectInfoToRender(const sptr<RSScreenProperty>& screenProperty,
     const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
     const sptr<IRSComposerToRenderConnection>& composerToRenderConn)
 {
@@ -46,50 +46,50 @@ int32_t RSServiceToRenderConnectionProxy::NotifyScreenConnectInfoToRender(const 
     option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("%{public}s: WriteInterfaceToken failed", __func__);
-        return -1;
+        return false;
     }
     if (!data.WriteParcelable(screenProperty.GetRefPtr())) {
         ROSEN_LOGE("%{public}s: WriteParcelable failed", __func__);
-        return -1;
+        return false;
     }
     if (renderToComposerConn) {
         if (!data.WriteBool(true) || !data.WriteRemoteObject(renderToComposerConn->AsObject())) {
             ROSEN_LOGE("%{public}s: WriteBool or WriteObject failed.", __func__);
-            return -1;
+            return false;
         }
     } else {
         if (!data.WriteBool(false)) {
             ROSEN_LOGE("%{public}s: WriteBool failed.", __func__);
-            return -1;
+            return false;
         }
     }
     if (composerToRenderConn) {
         if (!data.WriteBool(true) || !data.WriteRemoteObject(composerToRenderConn->AsObject())) {
             ROSEN_LOGE("%{public}s: WriteBool or WriteObject failed.", __func__);
-            return -1;
+            return false;
         }
     } else {
         if (!data.WriteBool(false)) {
             ROSEN_LOGE("%{public}s: WriteBool failed.", __func__);
-            return -1;
+            return false;
         }
     }
-    uint32_t code = static_cast<uint32_t>(
-        RSIServiceToRenderConnectionInterfaceCode::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER);
+    uint32_t code =
+        static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("%{public}s: SendRquest failed, err is %{public}d", __func__, err);
-        return -1;
+        return false;
     }
-    int32_t replyMessage{0};
-    if (!reply.ReadInt32(replyMessage)) {
-        ROSEN_LOGE("%{public}s: ReadInt32 failed", __func__);
-        return -1;
+    bool replyMessage = false;
+    if (!reply.ReadBool(replyMessage)) {
+        ROSEN_LOGE("%{public}s: ReadBool failed", __func__);
+        return false;
     }
     return replyMessage;
 }
 
-int32_t RSServiceToRenderConnectionProxy::NotifyScreenDisconnectInfoToRender(ScreenId screenId)
+bool RSServiceToRenderConnectionProxy::NotifyScreenDisconnectInfoToRender(ScreenId screenId)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -97,29 +97,29 @@ int32_t RSServiceToRenderConnectionProxy::NotifyScreenDisconnectInfoToRender(Scr
     option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("%{public}s: WriteInterfaceToken failed", __func__);
-        return -1;
+        return false;
     }
     if (!data.WriteUint64(screenId)) {
         ROSEN_LOGE("%{public}s: WriteUint64 failed", __func__);
-        return -1;
+        return false;
     }
-    uint32_t code = static_cast<uint32_t>(
-        RSIServiceToRenderConnectionInterfaceCode::NOTIFY_SCREEN_DISCONNECT_INFO_TO_RENDER);
+    uint32_t code =
+        static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::NOTIFY_SCREEN_DISCONNECT_INFO_TO_RENDER);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("%{public}s: SendRquest failed, err is %{public}d", __func__, err);
-        return -1;
+        return false;
     }
-    int32_t replyMessage{0};
-    if (!reply.ReadInt32(replyMessage)) {
-        ROSEN_LOGE("%{public}s: ReadInt32 failed", __func__);
-        return -1;
+    bool replyMessage = false;
+    if (!reply.ReadBool(replyMessage)) {
+        ROSEN_LOGE("%{public}s: ReadBool failed", __func__);
+        return false;
     }
     return replyMessage;
 }
 
-int32_t RSServiceToRenderConnectionProxy::NotifyScreenPropertyChangedInfoToRender(ScreenId id, ScreenPropertyType type,
-    const sptr<ScreenPropertyBase>& screenProperty)
+bool RSServiceToRenderConnectionProxy::NotifyScreenPropertyChangedInfoToRender(
+    ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& screenProperty)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -127,31 +127,31 @@ int32_t RSServiceToRenderConnectionProxy::NotifyScreenPropertyChangedInfoToRende
     option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("%{public}s: WriteInterfaceToken failed", __func__);
-        return -1;
+        return false;
     }
     if (!data.WriteUint64(id)) {
         ROSEN_LOGE("%{public}s: WriteUint64 failed", __func__);
-        return -1;
+        return false;
     }
     if (!data.WriteUint32(static_cast<uint32_t>(type))) {
         ROSEN_LOGE("%{public}s: WriteUint32 failed", __func__);
-        return -1;
+        return false;
     }
     if (!screenProperty->Marshalling(data)) {
         ROSEN_LOGE("%{public}s: WriteParcelable failed", __func__);
-        return -1;
+        return false;
     }
-    uint32_t code = static_cast<uint32_t>(
-        RSIServiceToRenderConnectionInterfaceCode::NOTIFY_SCREEN_PROPERTY_CHANGED_INFO_TO_RENDER);
+    uint32_t code =
+        static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::NOTIFY_SCREEN_PROPERTY_CHANGED_INFO_TO_RENDER);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("%{public}s: SendRquest failed, err is %{public}d", __func__, err);
-        return -1;
+        return false;
     }
-    int32_t replyMessage{0};
-    if (!reply.ReadInt32(replyMessage)) {
-        ROSEN_LOGE("%{public}s: ReadInt32 failed", __func__);
-        return -1;
+    bool replyMessage = false;
+    if (!reply.ReadBool(replyMessage)) {
+        ROSEN_LOGE("%{public}s: ReadBool failed", __func__);
+        return false;
     }
     return replyMessage;
 }

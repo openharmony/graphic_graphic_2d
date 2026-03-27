@@ -17,10 +17,8 @@
 #define RENDER_SERVICE_MAIN_RENDER_PROCESS_TRANSACTION_ZIDL_RS_ISERVICE_TO_RENDER_CONNECTION_H
 
 #include <sync_fence.h>
-#include "hdi_output.h"
-#include "ipc_callbacks/dfx/rs_dump_callback.h"
+
 #include "irs_render_to_composer_connection.h"
-#include "platform/ohos/transaction/rs_irender_connection_token.h"
 #include "ipc_callbacks/brightness_info_change_callback.h"
 #include "ipc_callbacks/rs_iself_drawing_node_rect_change_callback.h"
 #include "info_collection/rs_hardware_compose_disabled_reason_collection.h"
@@ -31,6 +29,7 @@
 #include "ipc_callbacks/rs_iuiextension_callback.h"
 #include "feature/capture/rs_ui_capture.h"
 #include "common/rs_self_draw_rect_change_callback_constraint.h"
+#include "ipc_callbacks/dfx/rs_dump_callback.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -43,12 +42,12 @@ public:
     virtual ~RSIServiceToRenderConnection() noexcept = default;
 
     // Process Manager
-    virtual int32_t NotifyScreenConnectInfoToRender(const sptr<RSScreenProperty>& screenProperty,
+    virtual bool NotifyScreenConnectInfoToRender(const sptr<RSScreenProperty>& screenProperty,
         const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
         const sptr<IRSComposerToRenderConnection>& composerToRenderConn) = 0;
-    virtual int32_t NotifyScreenDisconnectInfoToRender(ScreenId screenId) = 0;
-    virtual int32_t NotifyScreenPropertyChangedInfoToRender(ScreenId id, ScreenPropertyType type,
-        const sptr<ScreenPropertyBase>& screenProeprty) = 0;
+    virtual bool NotifyScreenDisconnectInfoToRender(ScreenId screenId) = 0;
+    virtual bool NotifyScreenPropertyChangedInfoToRender(ScreenId id, ScreenPropertyType type,
+        const sptr<ScreenPropertyBase>& screenProperty) = 0;
 
     // Screen Manager
     virtual int32_t NotifyScreenRefresh(ScreenId id) = 0;
@@ -58,7 +57,7 @@ public:
 
     // Partial Render
     virtual int32_t SetBrightnessInfoChangeCallback(pid_t pid, sptr<RSIBrightnessInfoChangeCallback> callback) = 0;
-    
+
     // Performance Logging
     virtual ErrCode ReportJankStats() = 0;
     virtual ErrCode ReportEventResponse(DataBaseRs info) = 0;
@@ -124,7 +123,7 @@ public:
 
     // Game
     virtual void ReportGameStateData(GameStateData info) = 0;
-    
+
     // Behind Window Filter
     virtual ErrCode SetBehindWindowFilterEnabled(bool enabled) = 0;
     virtual ErrCode GetBehindWindowFilterEnabled(bool& enabled) = 0;
