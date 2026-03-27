@@ -111,8 +111,10 @@ void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect
     const std::string& desc, const RRect& value)
 {
     OHOS::Rosen::Drawing::GERRect geRRect{value.rect_.left_, value.rect_.top_,
-                                          value.rect_.width_, value.rect_.height_,
-                                          value.radius_->x_, value.radius_->y_};
+                                          value.rect_.width_, value.rect_.height_};
+    for (uint32_t i = 0; i < OHOS::Rosen::Drawing::GERRect::CORNER_COUNT; i++) {
+        geRRect.radius_[i] = value.radius_[i];
+    }
 
     geFilter.SetParam(desc, geRRect);
 }
