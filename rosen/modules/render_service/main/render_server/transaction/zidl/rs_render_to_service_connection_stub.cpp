@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-#include "gfx/dump/rs_dump_manager.h"
 #include "rs_render_to_service_connection_stub.h"
 
+#include "gfx/dump/rs_dump_manager.h"
 #include "rs_irender_to_service_connection_ipc_interface_code.h"
 
 #undef LOG_TAG

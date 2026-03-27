@@ -21,17 +21,18 @@
 namespace OHOS {
 namespace Rosen {
 class RSScreenProperty;
+
 class RSRenderProcessAgent : public RefBase {
 public:
-    explicit RSRenderProcessAgent(RSRenderProcess& renderProcess);
-    ~RSRenderProcessAgent() = default;
+    explicit RSRenderProcessAgent(RSRenderProcess& renderProcess) : renderProcess_(renderProcess) {}
+    ~RSRenderProcessAgent() override = default;
 
-    int32_t NotifyScreenConnectInfoToRender(const sptr<RSScreenProperty>& screenProperty,
+    bool NotifyScreenConnectInfoToRender(const sptr<RSScreenProperty>& screenProperty,
         const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
         const sptr<IRSComposerToRenderConnection>& composerToRenderConn);
-    int32_t NotifyScreenDisconnectInfoToRender(ScreenId screenId);
-    int32_t NotifyScreenPropertyChangedInfoToRender(ScreenId id,
-        ScreenPropertyType type, const sptr<RSScreenPropertyBase>& screenProperty);
+    bool NotifyScreenDisconnectInfoToRender(ScreenId screenId);
+    bool NotifyScreenPropertyChangedInfoToRender(
+        ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& screenProperty);
 
 private:
     RSRenderProcess& renderProcess_;
