@@ -13,8 +13,8 @@
 * limitations under the License.
 */
 
+#include "parameters.h"
 #include "gtest/gtest.h"
-
 #include "feature/uifirst/rs_frame_control.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
@@ -40,7 +40,7 @@ void RSFrameControlToolTest::TearDown() {}
 
 /**
 * @tc.name: CheckAppWindowNodeId001
-* @tc.desc: test single frame modifier add to list
+* @tc.desc: test set and check AppWindowNodeId
 * @tc.type: FUNC
 * @tc.require:
 */
@@ -57,7 +57,7 @@ HWTEST_F(RSFrameControlToolTest, CheckAppWindowNodeId001, TestSize.Level1)
 
 /**
 * @tc.name: CheckAppWindowNodeId002
-* @tc.desc: test single frame modifier add to list
+* @tc.desc: test SetNodeIdForFrameControl set AppWindowNodeId
 * @tc.type: FUNC
 * @tc.require:
 */
@@ -68,7 +68,7 @@ HWTEST_F(RSFrameControlToolTest, CheckAppWindowNodeId002, TestSize.Level1)
     std::shared_ptr<RSSurfaceRenderNode> node1 = std::make_shared<RSSurfaceRenderNode>(id1);
     RSFrameControlTool::Instance().SetNodeIdForFrameControl(*node1);
 
-    system::SetParameter("const.graphic.subthread.control.framerate", true);
+    system::SetParameter("const.graphic.subthread.control.framerate", "true");
     auto rsContext = std::make_shared<RSContext>();
     std::shared_ptr<RSSurfaceRenderNode> node2 = std::make_shared<RSSurfaceRenderNode>(id1, rsContext);
     node2->firstLevelNodeId_ = id2;
@@ -81,7 +81,7 @@ HWTEST_F(RSFrameControlToolTest, CheckAppWindowNodeId002, TestSize.Level1)
     std::shared_ptr<RSSurfaceRenderNode> node3 = std::make_shared<RSSurfaceRenderNode>(id1, rsContext);
     node3->firstLevelNodeId_ = id2;
     RSFrameControlTool::Instance().SetNodeIdForFrameControl(*node3);
-    system::SetParameter("const.graphic.subthread.control.framerate", false);
+    system::SetParameter("const.graphic.subthread.control.framerate", "false");
     EXPECT_EQ(RSFrameControlTool::Instance().CheckAppWindowNodeId(id2), true);
 }
 }
