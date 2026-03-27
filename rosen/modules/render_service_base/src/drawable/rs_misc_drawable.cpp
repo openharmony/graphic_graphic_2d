@@ -350,7 +350,7 @@ bool RSBeginBlenderDrawable::OnUpdate(const RSRenderNode& node)
         }
         stagingBlender_ = RSPropertyDrawableUtils::MakeHdrDarkenBlender(properties.GetHdrDarkenBlenderParams().value());
         stagingIsDangerous_ = false;
-    }else {
+    } else {
         return false;
     }
 

@@ -1044,10 +1044,8 @@ std::shared_ptr<Drawing::Blender> RSPropertyDrawableUtils::MakeHdrDarkenBlender(
 
             hdrExtraRGB *= s;
             float alpha = srcColor.a + dstColor.a * (1 - srcColor.a);
-            return half4(darkenRGB + hdrExtraRGB , alpha);
-
+            return half4(darkenRGB + hdrExtraRGB, alpha);
         }
-
     )";
     if (hdrDarkenBlenderEffect_ == nullptr) {
         hdrDarkenBlenderEffect_ = Drawing::RuntimeEffect::CreateForBlender(prog);

@@ -67,18 +67,17 @@ public:
         effectNode->SetBackgroundColor(0xFF333333);
         return effectNode;
     }
-
 };
 
 GRAPHIC_TEST(NGHdrDarkenBlenderTest, EFFECT_TEST, Set_NG_HdrDarken_Blender_Test001)
 {
     int columnCount = 6;
     int rowCount = 5;
-    int Count = 4;
+    int count = 4;
     auto sizeX = SCREEN_WIDTH / columnCount;
     auto sizeY = SCREEN_HEIGHT / rowCount;
 
-    for (int i = 0; i < Count; i++) {
+    for (int i = 0; i < count; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
 
@@ -130,11 +129,11 @@ GRAPHIC_TEST(NGHdrDarkenBlenderTest, EFFECT_TEST, Set_NG_HdrDarken_Blender_Test0
 {
     int columnCount = 6;
     int rowCount = 5;
-    int Count = 3;
+    int count = 3;
     auto sizeX = SCREEN_WIDTH / columnCount;
     auto sizeY = SCREEN_HEIGHT / rowCount;
 
-    for (int i = 0; i < Count; i++) {
+    for (int i = 0; i < count; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
 
@@ -176,11 +175,11 @@ GRAPHIC_TEST(NGHdrDarkenBlenderTest, EFFECT_TEST, Set_NG_HdrDarken_Blender_Test0
 {
     int columnCount = 5;
     int rowCount = 4;
-    int Count = 3;
+    int count = 3;
     auto sizeX = SCREEN_WIDTH / columnCount;
     auto sizeY = SCREEN_HEIGHT / rowCount;
 
-    for (int i = 0; i < Count; i++) {
+    for (int i = 0; i < count; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
 
@@ -222,11 +221,11 @@ GRAPHIC_TEST(NGHdrDarkenBlenderTest, EFFECT_TEST, Set_NG_HdrDarken_Blender_Test0
 {
     int columnCount = 5;
     int rowCount = 4;
-    int Count = 4;
+    int count = 4;
     auto sizeX = SCREEN_WIDTH / columnCount;
     auto sizeY = SCREEN_HEIGHT / rowCount;
 
-    for (int i = 0; i < Count; i++) {
+    for (int i = 0; i < count; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
 
@@ -268,11 +267,11 @@ GRAPHIC_TEST(NGHdrDarkenBlenderTest, EFFECT_TEST, Set_NG_HdrDarken_Blender_Test0
 {
     int columnCount = 6;
     int rowCount = 5;
-    int Count = 2;
+    int count = 2;
     auto sizeX = SCREEN_WIDTH / columnCount;
     auto sizeY = SCREEN_HEIGHT / rowCount;
 
-    for (int i = 0; i < Count; i++) {
+    for (int i = 0; i < count; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
 
@@ -314,11 +313,11 @@ GRAPHIC_TEST(NGHdrDarkenBlenderTest, EFFECT_TEST, Set_NG_HdrDarken_Blender_Test0
 {
     int columnCount = 6;
     int rowCount = 4;
-    int Count = 2;
+    int count = 2;
     auto sizeX = SCREEN_WIDTH / columnCount;
     auto sizeY = SCREEN_HEIGHT / rowCount;
 
-    for (int i = 0; i < Count; i++) {
+    for (int i = 0; i < count; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
 
