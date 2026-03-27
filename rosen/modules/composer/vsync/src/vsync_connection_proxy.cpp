@@ -164,7 +164,7 @@ VsyncError VSyncConnectionProxy::SetUiDvsyncConfig(int32_t bufferCount, bool com
 
 VsyncError VSyncConnectionProxy::GetReceiveFd(int32_t &fd)
 {
-    MessageOption opt;
+    MessageOption opt{ MessageOption::TF_IMAGE };
     MessageParcel arg;
     MessageParcel ret;
 

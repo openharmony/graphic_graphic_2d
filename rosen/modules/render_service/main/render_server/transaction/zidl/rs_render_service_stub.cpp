@@ -64,7 +64,6 @@ int RSRenderServiceStub::OnRemoteRequest(
             bool needRefresh = false;
             if (!data.ReadBool(needRefresh)) {
                 RS_LOGE("RSRenderServiceStub::CREATE_CONNECTION Read needRefresh failed!");
-                return false;
             }
             auto token = iface_cast<RSIConnectionToken>(remoteObj);
             auto [newConn, newRenderConn] = CreateConnection(token, needRefresh);
