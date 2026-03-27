@@ -21,7 +21,7 @@ using namespace testing::ext;
 namespace OHOS::Rosen {
 constexpr uint64_t DEFAULT_ID = 100;
 constexpr FrameStabilityTarget DEFAULT_TARGET = { .id = DEFAULT_ID, .type = FrameStabilityTargetType::SCREEN };
-class RSInterfacesTest : public testing::Test {
+class RSInterfacesFrameStabilityTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -29,21 +29,21 @@ public:
     void TearDown() override;
 };
 
-void RSInterfacesTest::SetUpTestCase() {}
-void RSInterfacesTest::TearDownTestCase() {}
-void RSInterfacesTest::SetUp() {}
-void RSInterfacesTest::TearDown() {}
+void RSInterfacesFrameStabilityTest::SetUpTestCase() {}
+void RSInterfacesFrameStabilityTest::TearDownTestCase() {}
+void RSInterfacesFrameStabilityTest::SetUp() {}
+void RSInterfacesFrameStabilityTest::TearDown() {}
 /*
  * @tc.name: RegisterFrameStabilityDetection001
  * @tc.desc: Test RegisterFrameStabilityDetection with valid screenId
  * @tc.type: FUNC
  * @tc.require: issues22734
  */
-HWTEST_F(RSInterfacesTest, RegisterFrameStabilityDetection001, Function | SmallTest | Level2)
+HWTEST_F(RSInterfacesFrameStabilityTest, RegisterFrameStabilityDetection001, Function | SmallTest | Level2)
 {
     RSInterfaces& instance = RSInterfaces::GetInstance();
     FrameStabilityConfig config = {
-        .stableDuration = 1000,
+        .stableDuration = 200,
         .changePercent = 0.1f
     };
     FrameStabilityCallback callback = [](bool isStable) {};
@@ -52,12 +52,56 @@ HWTEST_F(RSInterfacesTest, RegisterFrameStabilityDetection001, Function | SmallT
 }
 
 /*
+ * @tc.name: RegisterFrameStabilityDetection002
+ * @tc.desc: Test RegisterFrameStabilityDetection with invalid stableDuration
+ * @tc.type: FUNC
+ * @tc.require: 22984
+ */
+HWTEST_F(RSInterfacesFrameStabilityTest, RegisterFrameStabilityDetection002, Function | SmallTest | Level2)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    FrameStabilityConfig config = {
+        .stableDuration = MIN_STABLE_DURATION - 1,
+        .changePercent = 0.5f
+    };
+    FrameStabilityCallback callback = [](bool isStable) {};
+    int32_t ret = instance.RegisterFrameStabilityDetection(DEFAULT_TARGET, config, callback);
+    EXPECT_NE(ret, 0);
+
+    config.stableDuration = MAX_STABLE_DURATION + 1;
+    ret = instance.RegisterFrameStabilityDetection(DEFAULT_TARGET, config, callback);
+    EXPECT_NE(ret, 0);
+}
+
+/*
+ * @tc.name: RegisterFrameStabilityDetection003
+ * @tc.desc: Test RegisterFrameStabilityDetection with invalid changePercent
+ * @tc.type: FUNC
+ * @tc.require: 22984
+ */
+HWTEST_F(RSInterfacesFrameStabilityTest, RegisterFrameStabilityDetection003, Function | SmallTest | Level2)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    FrameStabilityConfig config = {
+        .stableDuration = 200,
+        .changePercent = MIN_CHANGE_PERCENT -0.1f
+    };
+    FrameStabilityCallback callback = [](bool isStable) {};
+    int32_t ret = instance.RegisterFrameStabilityDetection(DEFAULT_TARGET, config, callback);
+    EXPECT_NE(ret, 0);
+
+    config.changePercent = MAX_CHANGE_PERCENT + 0.1f;
+    ret = instance.RegisterFrameStabilityDetection(DEFAULT_TARGET, config, callback);
+    EXPECT_NE(ret, 0);
+}
+
+/*
  * @tc.name: UnregisterFrameStabilityDetection001
  * @tc.desc: Test UnregisterFrameStabilityDetection with valid screenId
  * @tc.type: FUNC
  * @tc.require: issues22734
  */
-HWTEST_F(RSInterfacesTest, UnregisterFrameStabilityDetection001, Function | SmallTest | Level2)
+HWTEST_F(RSInterfacesFrameStabilityTest, UnregisterFrameStabilityDetection001, Function | SmallTest | Level2)
 {
     RSInterfaces& instance = RSInterfaces::GetInstance();
     int32_t ret = instance.UnregisterFrameStabilityDetection(DEFAULT_TARGET);
@@ -70,15 +114,57 @@ HWTEST_F(RSInterfacesTest, UnregisterFrameStabilityDetection001, Function | Smal
  * @tc.type: FUNC
  * @tc.require: issues22734
  */
-HWTEST_F(RSInterfacesTest, StartFrameStabilityCollection001, Function | SmallTest | Level2)
+HWTEST_F(RSInterfacesFrameStabilityTest, StartFrameStabilityCollection001, Function | SmallTest | Level2)
 {
     RSInterfaces& instance = RSInterfaces::GetInstance();
     FrameStabilityConfig config = {
-        .stableDuration = 1000,
+        .stableDuration = 200,
         .changePercent = 0.1f
     };
     int32_t ret = instance.StartFrameStabilityCollection(DEFAULT_TARGET, config);
     EXPECT_EQ(ret, 0);
+}
+
+/*
+ * @tc.name: StartFrameStabilityCollection002
+ * @tc.desc: Test StartFrameStabilityCollection with invalid stableDuration
+ * @tc.type: FUNC
+ * @tc.require: 22984
+ */
+HWTEST_F(RSInterfacesFrameStabilityTest, StartFrameStabilityCollection002, Function | SmallTest | Level2)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    FrameStabilityConfig config = {
+        .stableDuration = MIN_STABLE_DURATION - 1,
+        .changePercent = 0.5f
+    };
+    int32_t ret = instance.StartFrameStabilityCollection(DEFAULT_TARGET, config);
+    EXPECT_NE(ret, 0);
+
+    config.stableDuration = MAX_STABLE_DURATION + 1;
+    ret = instance.StartFrameStabilityCollection(DEFAULT_TARGET, config);
+    EXPECT_NE(ret, 0);
+}
+
+/*
+ * @tc.name: StartFrameStabilityCollection003
+ * @tc.desc: Test StartFrameStabilityCollection with invalid changePercent
+ * @tc.type: FUNC
+ * @tc.require: 22984
+ */
+HWTEST_F(RSInterfacesFrameStabilityTest, StartFrameStabilityCollection003, Function | SmallTest | Level2)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    FrameStabilityConfig config = {
+        .stableDuration = 100,
+        .changePercent = MIN_CHANGE_PERCENT - 0.1f
+    };
+    int32_t ret = instance.StartFrameStabilityCollection(DEFAULT_TARGET, config);
+    EXPECT_NE(ret, 0);
+
+    config.changePercent = MAX_CHANGE_PERCENT + 0.1f;
+    ret = instance.StartFrameStabilityCollection(DEFAULT_TARGET, config);
+    EXPECT_NE(ret, 0);
 }
 
 /*
@@ -87,7 +173,7 @@ HWTEST_F(RSInterfacesTest, StartFrameStabilityCollection001, Function | SmallTes
  * @tc.type: FUNC
  * @tc.require: issues22734
  */
-HWTEST_F(RSInterfacesTest, GetFrameStabilityResult001, Function | SmallTest | Level2)
+HWTEST_F(RSInterfacesFrameStabilityTest, GetFrameStabilityResult001, Function | SmallTest | Level2)
 {
     RSInterfaces& instance = RSInterfaces::GetInstance();
     bool result = false;

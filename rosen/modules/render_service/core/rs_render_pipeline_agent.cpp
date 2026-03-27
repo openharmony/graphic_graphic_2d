@@ -86,6 +86,18 @@ constexpr int64_t MAX_FREEZE_SCREEN_TIME = 3000;
 const std::string UNFREEZE_SCREEN_TASK_NAME = "UNFREEZE_SCREEN_TASK";
 }
 
+bool ValidateTargetId(const RSRenderNodeMap& nodeMap, uint64_t id)
+{
+    bool exists = false;
+    nodeMap.TraverseScreenNodes([&exists, id](auto& node) {
+        if (node && node->GetScreenId() == id) {
+            exists = true;
+            return;
+        }
+    });
+    return exists;
+}
+
 RSRenderPipelineAgent::RSRenderPipelineAgent(std::shared_ptr<RSRenderPipeline>& renderPipeline)
     : rsRenderPipeline_(renderPipeline) {}
 
@@ -1767,6 +1779,9 @@ void RSRenderPipelineAgent::CleanAll(pid_t pid)
         std::lock_guard<std::mutex> lock(pidToBundleMutex_);
         pidToBundleName_.clear();
     }
+    rsRenderPipeline_->PostUniRenderThreadSyncTask([pid]() {
+        RSFrameStabilityManager::GetInstance().CleanResourcesByPid(pid);
+    });
     return;
 }
 
@@ -2080,13 +2095,35 @@ int32_t RSRenderPipelineAgent::RegisterFrameStabilityDetection(
     const FrameStabilityConfig& config,
     sptr<RSIFrameStabilityCallback> callback)
 {
-    return RSFrameStabilityManager::GetInstance().RegisterFrameStabilityDetection(
-        pid, target, config, callback);
+    if (rsRenderPipeline_ == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+    int32_t repCode = static_cast<int32_t>(FrameStabilityErrorCode::UNKNOWN);
+    auto task = [renderPipeline = rsRenderPipeline_, pid, target, config, callback, &repCode]() -> void {
+        auto& nodeMap = renderPipeline->GetMainThread()->GetContext().GetNodeMap();
+        if (ValidateTargetId(nodeMap, target.id)) {
+            repCode = RSFrameStabilityManager::GetInstance().RegisterFrameStabilityDetection(
+                pid, target, config, callback);
+        } else {
+            RS_LOGE("RegisterFrameStabilityDetection failed, invalid id: %{public}" PRIu64, target.id);
+            repCode = static_cast<int32_t>(FrameStabilityErrorCode::INVALID_ID);
+        }
+    };
+    rsRenderPipeline_->PostMainThreadSyncTask(task);
+    return repCode;
 }
 
 int32_t RSRenderPipelineAgent::UnregisterFrameStabilityDetection(pid_t pid, const FrameStabilityTarget& target)
 {
-    return RSFrameStabilityManager::GetInstance().UnregisterFrameStabilityDetection(pid, target);
+    if (rsRenderPipeline_ == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+    int32_t repCode = static_cast<int32_t>(FrameStabilityErrorCode::UNKNOWN);
+    auto task = [pid, target, &repCode]() -> void {
+        repCode = RSFrameStabilityManager::GetInstance().UnregisterFrameStabilityDetection(pid, target);
+    };
+    rsRenderPipeline_->PostMainThreadSyncTask(task);
+    return repCode;
 }
 
 int32_t RSRenderPipelineAgent::StartFrameStabilityCollection(
@@ -2094,12 +2131,34 @@ int32_t RSRenderPipelineAgent::StartFrameStabilityCollection(
     const FrameStabilityTarget& target,
     const FrameStabilityConfig& config)
 {
-    return RSFrameStabilityManager::GetInstance().StartFrameStabilityCollection(pid, target, config);
+    if (rsRenderPipeline_ == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+    int32_t repCode = static_cast<int32_t>(FrameStabilityErrorCode::UNKNOWN);
+    auto task = [renderPipeline = rsRenderPipeline_, pid, target, config, &repCode]() -> void {
+        auto& nodeMap = renderPipeline->GetMainThread()->GetContext().GetNodeMap();
+        if (ValidateTargetId(nodeMap, target.id)) {
+            repCode = RSFrameStabilityManager::GetInstance().StartFrameStabilityCollection(pid, target, config);
+        } else {
+            RS_LOGE("StartFrameStabilityCollection failed, invalid id: %{public}" PRIu64, target.id);
+            repCode = static_cast<int32_t>(FrameStabilityErrorCode::INVALID_ID);
+        }
+    };
+    rsRenderPipeline_->PostMainThreadSyncTask(task);
+    return repCode;
 }
 
 int32_t RSRenderPipelineAgent::GetFrameStabilityResult(pid_t pid, const FrameStabilityTarget& target, bool& result)
 {
-    return RSFrameStabilityManager::GetInstance().GetFrameStabilityResult(pid, target, result);
+    if (rsRenderPipeline_ == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+    int32_t repCode = static_cast<int32_t>(FrameStabilityErrorCode::UNKNOWN);
+    auto task = [pid, target, &result, &repCode]() -> void {
+        repCode = RSFrameStabilityManager::GetInstance().GetFrameStabilityResult(pid, target, result);
+    };
+    rsRenderPipeline_->PostMainThreadSyncTask(task);
+    return repCode;
 }
 } // namespace Rosen
 } // namespace OHOS

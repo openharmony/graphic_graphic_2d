@@ -54,6 +54,12 @@ public:
 
     int32_t GetFrameStabilityResult(pid_t pid, const FrameStabilityTarget& target, bool& result);
 
+    // Clean contexts related to the pid, called when process exits
+    void CleanResourcesByPid(pid_t pid);
+
+    // Clean contexts related to the screenId, called when ScreenRenderNodeDrawable is destructed
+    void CleanResourcesByScreenId(ScreenId screenId);
+
     void RecordCurrentFrameDirty(ScreenId screenId, const std::vector<RectI>& damageRegionRects, float screenArea);
 private:
     RSFrameStabilityManager() = default;
