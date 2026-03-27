@@ -91,7 +91,8 @@ public:
 
     void ResetRetryCount(ScreenPowerStatus status);
     void SetScreenVBlankIdle() { vblankIdleCorrector_.SetScreenVBlankIdle(); }
-    void SwitchRefreshRate(const std::shared_ptr<HdiOutput>& hdiOutput, int64_t timestamp, const PipelineParam& pipelineParam);
+    void SwitchRefreshRate(const std::shared_ptr<HdiOutput>& hdiOutput, int64_t timestamp,
+        const PipelineParam& pipelineParam);
 
     void RefreshRateCounts(std::string& dumpString);
     void ClearRefreshRateCounts(std::string& dumpString);
