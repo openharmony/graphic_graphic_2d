@@ -113,16 +113,9 @@ bool DoSetShadowRect()
     rsRenderParams.SetGlobalAlpha(alpha);
     rsRenderParams.NeedSync();
     std::unique_ptr<RSRenderParams> target;
-    rsRenderParams.OnCanvasDrawingSurfaceChange(target);
-    rsRenderParams.GetCanvasDrawingSurfaceChanged();
-    rsRenderParams.SetCanvasDrawingSurfaceChanged(true);
     rsRenderParams.GetForegroundFilterCache();
     std::shared_ptr<RSFilter> foregroundFilterCache;
     rsRenderParams.SetForegroundFilterCache(foregroundFilterCache);
-    rsRenderParams.GetCanvasDrawingSurfaceParams();
-    int width = 1;
-    int height = 2;
-    rsRenderParams.SetCanvasDrawingSurfaceParams(width, height);
     rsRenderParams.ToString();
     rsRenderParams.SetParentSurfaceMatrix(matrix);
     rsRenderParams.GetParentSurfaceMatrix();
