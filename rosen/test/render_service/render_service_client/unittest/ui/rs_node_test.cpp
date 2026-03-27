@@ -8488,6 +8488,7 @@ HWTEST_F(RSNodeTest, SetBackgroundColorHeadroomTest, TestSize.Level1)
 
     constexpr uint32_t colorValue = 0x034123;
     RSColor color = Color::FromArgbInt(colorValue);
+    color.ConvertToP3ColorSpace();
     rsNode->SetBackgroundColor(color);
     EXPECT_FLOAT_EQ(rsNode->GetStagingProperties().GetBackgroundColor().GetHeadroom(), 1.0f);
     color.SetHeadroom(2.0f);

@@ -263,8 +263,8 @@ HWTEST_F(RSCanvasRenderNodeTest, GetHDRNodeMap001, TestSize.Level1)
  */
 HWTEST_F(RSCanvasRenderNodeTest, UpdateHDRNodeOnTreeState, TestSize.Level1)
 {
-    NodeId nodeId = 0;
-    std::weak_ptr<RSContext> context = std::make_shared<RSContext>();
+    NodeId nodeId = 1;
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
     std::shared_ptr<RSCanvasRenderNode> rsCanvasRenderNode = std::make_shared<RSCanvasRenderNode>(nodeId, context, true);
     rsCanvasRenderNode->context_ = context;
     rsCanvasRenderNode->InitRenderParams();
@@ -274,7 +274,7 @@ HWTEST_F(RSCanvasRenderNodeTest, UpdateHDRNodeOnTreeState, TestSize.Level1)
     auto surfaceNode = context->GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(surfaceNodeId);
     rsCanvasRenderNode->instanceRootNodeId_ = surfaceNodeId;
     rsCanvasRenderNode->isOnTheTree_ = true;
-    RSProperties* properties = const_cast<RSProperties*>(&rsCanvasRenderNode.GetRenderProperties());
+    RSProperties* properties = const_cast<RSProperties*>(&rsCanvasRenderNode->GetRenderProperties());
     properties->SetHDRColorHeadroom(2.0f);
     rsCanvasRenderNode->OnTreeStateChanged();
     EXPECT_TRUE(surfaceNode->HDRColorHeadroomEnabled());

@@ -465,6 +465,6 @@ HWTEST_F(RSColorTest, Float16Test, TestSize.Level1)
     EXPECT_EQ(color.Float32ToFloat16(std::numeric_limits<float>::infinity()), 0x7C00);
     EXPECT_EQ(color.Float32ToFloat16(-std::numeric_limits<float>::infinity()), 0xFC00);
     EXPECT_TRUE(color.Float32ToFloat16(std::numeric_limits<float>::quiet_NaN()) == 0x7C01);
-    EXPECT_EQ(color.Float32ToFloat16(5.960464477539063e-8), 0x0001); // subnomal: -5.960464477539063e-8
+    EXPECT_EQ(color.Float32ToFloat16(5.960464477539063e-8), 0x0001); // subnomal: 5.960464477539063e-8
 }
 } // namespace OHOS::Rosen
