@@ -757,7 +757,7 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
     OHOS::sptr<OHOS::Rosen::RSScreenManagerAgent> screenManagerAgent_ =
         new OHOS::Rosen::RSScreenManagerAgent(OHOS::Rosen::screenManagerPtr_);
     OHOS::Rosen::renderService_->rsRenderComposerManager_ = std::make_shared<OHOS::Rosen::RSRenderComposerManager>(
-        OHOS::Rosen::renderService_->handler_, OHOS::Rosen::renderService_->vsyncManager_->GetVsyncManagerAgent());
+        OHOS::Rosen::renderService_->handler_);
 
     OHOS::sptr<OHOS::Rosen::RSRenderPipelineAgent> renderPipelineAgent_ =
         OHOS::sptr<OHOS::Rosen::RSRenderPipelineAgent>::MakeSptr(OHOS::Rosen::renderService_->renderPipeline_);
