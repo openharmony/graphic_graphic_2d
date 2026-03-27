@@ -107,20 +107,11 @@ void RSRealtimeRefreshRateManager::UpdateScreenRefreshRate(const RSScreenPropert
     }
 
     std::unique_lock<std::mutex> lock(realtimeRateMutex_);
-    bool isScreenRefreshRateChange = false;
     auto iter = screenRefreshRateMap_.find(property.GetScreenId());
     if (iter == screenRefreshRateMap_.end()) {
         screenRefreshRateMap_.emplace(property.GetScreenId(), property.GetRefreshRate());
-        isScreenRefreshRateChange = true;
     } else if (iter->second != property.GetRefreshRate()) {
         iter->second = property.GetRefreshRate();
-        isScreenRefreshRateChange = true;
-    }
-    if (isScreenRefreshRateChange) {
-        if (showEnabled_) {
-            RSMainThread::Instance()->SetDirtyFlag();
-            RSMainThread::Instance()->RequestNextVSync();
-        }
     }
 }
 

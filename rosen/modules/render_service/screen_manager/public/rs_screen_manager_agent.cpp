@@ -48,10 +48,31 @@ void RSScreenManagerAgentListener::OnScreenDisconnected(ScreenId id, ScreenChang
     screenChangeCallback_->OnScreenChanged(id, ScreenEvent::DISCONNECTED, reason);
 }
 
+void RSScreenManagerAgentListener::OnScreenSwitchingNotify(bool status)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!screenSwitchingNotifyCallback_) {
+        RS_LOGD("RSScreenManagerAgentListener::%{public}s screenSwitchingNotifyCallback is nullptr.", __func__);
+        return;
+    }
+
+    RS_LOGI("%{public}s: status: %{public}d", __func__, status);
+    screenSwitchingNotifyCallback_->OnScreenSwitchingNotify(status);
+}
+
 void RSScreenManagerAgentListener::SetScreenChangeCallback(sptr<RSIScreenChangeCallback> screenChangeCallback)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     screenChangeCallback_ = screenChangeCallback;
+}
+
+void RSScreenManagerAgentListener::SetScreenSwitchingNotifyCallback(
+    sptr<RSIScreenSwitchingNotifyCallback> screenSwitchingNotifyCallback)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    screenSwitchingNotifyCallback_ = screenSwitchingNotifyCallback;
+    RS_LOGI("%{public}s: set screen switching notify callback succeed.", __func__);
+    RS_OPTIONAL_TRACE_NAME("set screen switching notify callback succeed");
 }
 
 RSScreenManagerAgent::RSScreenManagerAgent(sptr<RSScreenManager> screenManager) : screenManager_(screenManager)
@@ -337,11 +358,8 @@ int32_t RSScreenManagerAgent::RemoveVirtualScreenWhiteList(ScreenId id, const st
 
 int32_t RSScreenManagerAgent::SetScreenSwitchingNotifyCallback(sptr<RSIScreenSwitchingNotifyCallback> callback)
 {
-    if (!screenManager_) {
-        RS_LOGW("%{public}s screenManager_ is nullptr", __func__);
-        return StatusCode::SCREEN_NOT_FOUND;
-    }
-    return screenManager_->SetScreenSwitchingNotifyCallback(callback);
+    agentListener_->SetScreenSwitchingNotifyCallback(callback);
+    return SUCCESS;
 }
 
 int32_t RSScreenManagerAgent::SetVirtualScreenSecurityExemptionList(

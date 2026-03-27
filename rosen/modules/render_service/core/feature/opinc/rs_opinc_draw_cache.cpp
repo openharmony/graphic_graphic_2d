@@ -33,6 +33,7 @@ constexpr float PERCENT = 100.f;
 constexpr int32_t BORDER_WIDTH = 6;
 constexpr int32_t MARGIN = 20;
 constexpr float RECT_PEN_ALPHA = 0.2f;
+constexpr float LAYER_RECT_PEN_ALPHA = 0.5f;
 constexpr float DFX_FONT_SIZE = 30.f;
 }
 
@@ -428,13 +429,14 @@ void RSOpincDrawCache::PushLayerPartRenderDirtyRegion(const RSRenderParams& para
 }
 
 void RSOpincDrawCache::LayerPartRenderClipDirtyRegion(const RSRenderParams& params,
-    bool* isOffScreenWithClipHole, RSPaintFilterCanvas& canvas)
+    RSPaintFilterCanvas& canvas)
 {
     if (!params.GetLayerPartRenderEnabled()) {
         return;
     }
-    *isOffScreenWithClipHole = false;
-    canvas.ClipRect(layerPartRenderDirtyRegion_.GetBounds());
+    if (!layerPartRenderDirtyRegion_.IsEmpty()) {
+        canvas.ClipRect(layerPartRenderDirtyRegion_.GetBounds());
+    }
 }
 
 void RSOpincDrawCache::PopLayerPartRenderDirtyRegion(const RSRenderParams& params,
@@ -459,7 +461,7 @@ void RSOpincDrawCache::LayerDirtyRegionDfx(RSPaintFilterCanvas& canvas, const Dr
     Drawing::Brush brush;
     brush.SetColor(Drawing::Color(0x8090EE90));
     brush.SetAntiAlias(true);
-    brush.SetAlphaF(RECT_PEN_ALPHA);
+    brush.SetAlphaF(LAYER_RECT_PEN_ALPHA);
     std::shared_ptr<Drawing::Typeface> typeFace = nullptr;
     std::string position = "pos:[" + dirtyRect.ToString() + "]";
     // font size 24

@@ -23,6 +23,7 @@
 
 namespace OHOS {
 namespace Rosen {
+constexpr int32_t LAYER_PART_RENDER_DIRTY_MANAGER_BUFFER_AGE = 4;
 
 RSOpincManager& RSOpincManager::Instance()
 {
@@ -193,8 +194,8 @@ void RSOpincManager::InitLayerPartRenderNode(bool isCCMLayerPartRenderEnabled, R
         return;
     }
     auto& opincCache = node.GetOpincCache();
-    if (!opincCache.IsSuggestLayerPartRenderNode()) {
-        opincCache.SetLayerPartRender(false);
+    if (!opincCache.IsSuggestLayerPartRenderNode() &&
+        node.GetOpincCache().GetLayerPartRenderNodeStrategyType() != NodeStrategyType::CACHE_DISABLE) {
         return;
     }
 
@@ -205,50 +206,101 @@ void RSOpincManager::InitLayerPartRenderNode(bool isCCMLayerPartRenderEnabled, R
     opincCache.SetLayerPartRender(true);
 }
 
-void RSOpincManager::CalculateLayerPartRenderDirtyRegion(RSRenderNode& node,
-    std::shared_ptr<RSDirtyRegionManager>& layerPartRenderDirtyManager)
+bool RSOpincManager::CalculateLayerPartRenderDirtyRegion(RSRenderNode& node,
+    std::shared_ptr<RSDirtyRegionManager>& layerPartRenderDirtyManager, const RectI& visibleFilterRect,
+    RectI& layerCurDirty)
 {
-    if (layerPartRenderDirtyManager == nullptr) {
-        return;
-    }
-    auto& stagingRenderParams = node.GetStagingRenderParams();
-    if (stagingRenderParams == nullptr) {
-        return;
-    }
-    if (!node.GetOpincCache().IsLayerPartRender()) {
-        stagingRenderParams->SetLayerPartRenderEnabled(false);
-        return;
-    }
-
     auto& geoPtr = node.GetRenderProperties().GetBoundsGeometry();
     if (geoPtr == nullptr) {
-        return;
+        return false;
     }
     auto matrix = geoPtr->GetAbsMatrix();
     Drawing::Matrix invertMatrix;
     if (!matrix.Invert(invertMatrix)) {
-        return;
+        return false;
     }
 
     auto& opincCache = node.GetOpincCache();
     if (node.GetNodeGroupType() != RSRenderNode::NodeGroupType::GROUPED_BY_USER) {
-        node.MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_USER, true, false);
         opincCache.ResetLayerPartRenderUnchangeState();
     }
 
-    RectI layerCurDirty = layerPartRenderDirtyManager->GetDirtyRegion();
-    {
-        RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", layerCurDirty:[%d,%d,%d,%d]", node.GetId(),
-            layerCurDirty.GetLeft(), layerCurDirty.GetTop(), layerCurDirty.GetRight(), layerCurDirty.GetBottom());
+    const RectI& nodeAbsRect = geoPtr->GetAbsRect();
+    if (!opincCache.IsLayerPartRenderUnchangeState()) {
+        layerCurDirty = nodeAbsRect;
+        layerCurDirty = geoPtr->MapRect(layerCurDirty.ConvertTo<float>(), invertMatrix);
+        RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", UnchangeState convert to layerCurDirty:[%d,%d,%d,%d]", node.GetId(),
+            layerCurDirty.GetLeft(), layerCurDirty.GetTop(), layerCurDirty.GetWidth(), layerCurDirty.GetHeight());
+        return true;
     }
 
-    if (!opincCache.IsLayerPartRenderUnchangeState()) {
-        layerCurDirty = node.GetAbsRect();
+    layerPartRenderDirtyManager->MergeDirtyRectIfIntersect(visibleFilterRect);
+    layerPartRenderDirtyManager->SetBufferAge(LAYER_PART_RENDER_DIRTY_MANAGER_BUFFER_AGE);
+    layerPartRenderDirtyManager->UpdateDirty();
+    layerCurDirty = layerPartRenderDirtyManager->GetDirtyRegion();
+    {
+        RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", layerCurDirty:[%d,%d,%d,%d], visibleFilterRect:[%d,%d,%d,%d]",
+            node.GetId(), layerCurDirty.GetLeft(), layerCurDirty.GetTop(), layerCurDirty.GetWidth(),
+            layerCurDirty.GetHeight(), visibleFilterRect.GetLeft(), visibleFilterRect.GetTop(),
+            visibleFilterRect.GetWidth(), visibleFilterRect.GetHeight());
+    }
+    if (!layerCurDirty.IsInsideOf(nodeAbsRect)) {
+        RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", layerCurDirty:[%d,%d,%d,%d] not inside of nodeAbsRect:[%d,%d,%d,%d]",
+            node.GetId(), layerCurDirty.GetLeft(), layerCurDirty.GetTop(), layerCurDirty.GetWidth(),
+            layerCurDirty.GetHeight(), nodeAbsRect.GetLeft(), nodeAbsRect.GetTop(),
+            nodeAbsRect.GetWidth(), nodeAbsRect.GetHeight());
+        layerCurDirty = nodeAbsRect;
     }
     layerCurDirty = geoPtr->MapRect(layerCurDirty.ConvertTo<float>(), invertMatrix);
     RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", convert to layerCurDirty:[%d,%d,%d,%d]", node.GetId(),
-        layerCurDirty.GetLeft(), layerCurDirty.GetTop(), layerCurDirty.GetRight(), layerCurDirty.GetBottom());
+        layerCurDirty.GetLeft(), layerCurDirty.GetTop(), layerCurDirty.GetWidth(), layerCurDirty.GetHeight());
 
+    return true;
+}
+
+void RSOpincManager::CalculateAndUpdateLayerPartRenderDirtyRegion(RSRenderNode& node,
+    std::shared_ptr<RSDirtyRegionManager>& layerPartRenderDirtyManager, const RectI& visibleFilterRect)
+{
+    if (layerPartRenderDirtyManager == nullptr) {
+        return;
+    }
+
+    auto& stagingRenderParams = node.GetStagingRenderParams();
+    if (stagingRenderParams == nullptr) {
+        return;
+    }
+
+    // mark is cleared, cache need to be cleared.
+    if (node.GetOpincCache().GetLayerPartRenderNodeStrategyType() == NodeStrategyType::CACHE_DISABLE) {
+        RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", LayerPartRender clean cache", node.GetId());
+        node.MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_USER, false, false);
+        stagingRenderParams->SetLayerPartRenderEnabled(false);
+        node.GetOpincCache().SetLayerPartRenderNodeStrategyType(NodeStrategyType::CACHE_NONE);
+        layerPartRenderDirtyManager = nullptr;
+        return;
+    }
+    if (!node.GetOpincCache().IsLayerPartRender()) {
+        return;
+    }
+
+    if (node.GetOpincCache().IsMaterialNode()) {
+        RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", has material node, suspend layer part render", node.GetId());
+        node.GetOpincCache().MarkSuggestLayerPartRenderNode(false);
+        node.GetOpincCache().SetLayerPartRenderNodeStrategyType(NodeStrategyType::CACHE_DISABLE);
+        return;
+    }
+
+    RectI layerCurDirty;
+    if (!CalculateLayerPartRenderDirtyRegion(node, layerPartRenderDirtyManager, visibleFilterRect, layerCurDirty)) {
+        node.MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_USER, false, false);
+        stagingRenderParams->SetLayerPartRenderEnabled(false);
+        RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", Calculate error, clear", node.GetId());
+        return;
+    }
+
+    if (node.GetNodeGroupType() != RSRenderNode::NodeGroupType::GROUPED_BY_USER) {
+        node.MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_USER, true, false);
+    }
     stagingRenderParams->SetLayerPartRenderEnabled(true);
     stagingRenderParams->SetLayerPartRenderCurrentFrameDirtyRegion(layerCurDirty);
     layerPartRenderDirtyManager = nullptr;

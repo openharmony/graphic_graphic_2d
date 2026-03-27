@@ -436,9 +436,9 @@ HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest002, TestSize.Level0)
     OH_Drawing_DestroyFontDescriptor(desc);
     EXPECT_NE(descArr, nullptr);
     if (ExistStylishFontConfigFile()) {
-        EXPECT_EQ(num, 143);
+        EXPECT_EQ(num, 144);
     } else {
-        EXPECT_EQ(num, 142);
+        EXPECT_EQ(num, 143);
     }
     OH_Drawing_DestroyFontDescriptors(descArr, num);
 }
@@ -613,9 +613,9 @@ HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest009, TestSize.Level0)
     ASSERT_NE(fontList, nullptr);
     size_t size = OH_Drawing_GetDrawingArraySize(fontList);
     if (ExistStylishFontConfigFile()) {
-        EXPECT_EQ(size, 142);
+        EXPECT_EQ(size, 143);
     } else {
-        EXPECT_EQ(size, 141);
+        EXPECT_EQ(size, 142);
     }
     for (size_t i = 0; i < size; i++) {
         const OH_Drawing_String *fontFullName = OH_Drawing_GetSystemFontFullNameByIndex(fontList, i);
@@ -672,9 +672,9 @@ HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest011, TestSize.Level0)
     ASSERT_NE(fontList, nullptr);
     size_t size = OH_Drawing_GetDrawingArraySize(fontList);
     if (ExistStylishFontConfigFile()) {
-        EXPECT_EQ(size, 143);
+        EXPECT_EQ(size, 144);
     } else {
-        EXPECT_EQ(size, 141);
+        EXPECT_EQ(size, 142);
     }
     for (size_t i = 0; i < size; i++) {
         const OH_Drawing_String *fontFullName = OH_Drawing_GetSystemFontFullNameByIndex(fontList, i);
@@ -728,9 +728,9 @@ HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest013, TestSize.Level0)
     OH_Drawing_Array *ttfs = OH_Drawing_GetSystemFontFullNamesByType(ALL);
     size_t num = OH_Drawing_GetDrawingArraySize(ttfs);
     if (ExistStylishFontConfigFile()) {
-        EXPECT_EQ(num, 143);
+        EXPECT_EQ(num, 144);
     } else {
-        EXPECT_EQ(num, 141);
+        EXPECT_EQ(num, 142);
     }
     FontDescriptorMgrInstance.ClearFontFileCache();
     OH_Drawing_DestroyFontCollection(fc);
@@ -915,16 +915,16 @@ HWTEST_F(NdkFontDescriptorTest, NdkGetFontPathsByType001, TestSize.Level0)
     };
     if (ExistStylishFontConfigFile()) {
         // 141 = 1 stylish font + 139 generic fonts + 1 rare font + 3 installed fonts but duplicate with generic fonts
-        expectFunc(OH_Drawing_SystemFontType::ALL, 141);
+        expectFunc(OH_Drawing_SystemFontType::ALL, 142);
         // 140 = 139 generic fonts + 1 rare font
-        expectFunc(OH_Drawing_SystemFontType::GENERIC, 140);
+        expectFunc(OH_Drawing_SystemFontType::GENERIC, 141);
         // 1 = 1 stylish font
         expectFunc(OH_Drawing_SystemFontType::STYLISH, 1);
     } else {
         // 140 = generic fonts + 3 installed fonts but duplicate with generic fonts
-        expectFunc(OH_Drawing_SystemFontType::ALL, 140);
+        expectFunc(OH_Drawing_SystemFontType::ALL, 141);
         // 140 = 140 generic font
-        expectFunc(OH_Drawing_SystemFontType::GENERIC, 140);
+        expectFunc(OH_Drawing_SystemFontType::GENERIC, 141);
         expectFunc(OH_Drawing_SystemFontType::STYLISH, 0);
     }
     // 3 = 3 installed fonts

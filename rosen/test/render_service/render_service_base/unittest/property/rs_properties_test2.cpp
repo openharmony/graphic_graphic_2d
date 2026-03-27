@@ -92,6 +92,11 @@ HWTEST_F(PropertiesTest, SetShadowRadiusTest, TestSize.Level1)
     radius = -1.0f;
     properties.SetShadowRadius(radius);
     EXPECT_FALSE(properties.GetEffect().shadow_->IsValid());
+
+    properties.GetEffect().shadow_->elevation_ = -1.f;
+    radius = 0.0f;
+    properties.SetShadowRadius(radius);
+    EXPECT_TRUE(properties.GetEffect().shadow_->IsValid());
 }
 
 /**

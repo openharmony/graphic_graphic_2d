@@ -454,7 +454,7 @@ void RSProfiler::DumpNodePropertiesShadow(const RSProperties& properties, JsonWr
     if (!ROSEN_EQ(properties.GetShadowElevation(), 0.f)) {
         out["ShadowElevation"] = properties.GetShadowElevation();
     }
-    if (!ROSEN_EQ(properties.GetShadowRadius(), 0.f)) {
+    if (!ROSEN_EQ(properties.GetShadowRadius(), DEFAULT_SHADOW_RADIUS)) {
         out["ShadowRadius"] = properties.GetShadowRadius();
     }
     if (!ROSEN_EQ(properties.GetShadowIsFilled(), false)) {

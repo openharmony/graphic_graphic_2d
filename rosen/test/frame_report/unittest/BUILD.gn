@@ -24,6 +24,7 @@ ohos_unittest("graphic_2d_frame_report_test") {
     "hilog:libhilog",
     "vulkan-headers:vulkan_headers",
     "vulkan-loader:vulkan_loader",
+    "googletest:gmock_main",
   ]
 
   if (current_os == "ohos") {
@@ -39,7 +40,15 @@ ohos_unittest("graphic_2d_frame_report_test") {
     "-g3",
     "-Dprivate=public",
     "-Dprotected=public",
+    "-DTEST_ENABLED",
   ]
+
+  defines = []
+  if (graphic_2d_feature_enable_vulkan) {
+    defines += [
+      "RS_ENABLE_VK",
+    ]
+  }
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"

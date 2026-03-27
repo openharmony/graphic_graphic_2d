@@ -89,6 +89,25 @@ void RSTransactionHandler::AddCommandFromRT(std::unique_ptr<RSCommand>& command,
     }
 }
 
+void RSTransactionHandler::MoveCommandByNodeId(std::shared_ptr<RSTransactionHandler> transactionHandler, NodeId nodeId)
+{
+    if (renderPipelineClient_ == nullptr && renderThreadClient_ == nullptr) {
+        RS_LOGE("RSTransactionHandler::MoveCommandByNodeId GetCommand fail, (renderPipelineClient_ and "
+                "renderThreadClient_ is nullptr)");
+        return;
+    }
+
+    std::unique_lock<std::mutex> cmdLock(mutex_);
+    if (renderPipelineClient_ != nullptr) {
+        // Add a lock to the destination handler to prevent multiple threads from reading and writing commands.
+        std::unique_lock<std::mutex> dstHandlerCmdLock(transactionHandler->mutex_);
+        MoveRemoteCommandByNodeId(transactionHandler, nodeId);
+    }
+    if (renderThreadClient_ != nullptr) {
+        MoveCommonCommandByNodeId(transactionHandler, nodeId);
+    }
+}
+
 void RSTransactionHandler::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task, bool isRenderServiceTask)
 {
     if (!task) {
@@ -192,12 +211,6 @@ bool RSTransactionHandler::IsEmpty() const
     isEmpty &= implicitCommonTransactionDataStack_.empty();
     isEmpty &= implicitRemoteTransactionDataStack_.empty();
     return isEmpty;
-}
-
-bool RSTransactionHandler::HasStackData() const
-{
-    std::unique_lock<std::mutex> cmdLock(mutex_);
-    return !implicitCommonTransactionDataStack_.empty() || !implicitRemoteTransactionDataStack_.empty();
 }
 
 void RSTransactionHandler::FlushImplicitTransactionFromRT(uint64_t timestamp)
@@ -426,6 +439,17 @@ void RSTransactionHandler::AddCommonCommand(std::unique_ptr<RSCommand>& command)
     implicitCommonTransactionData_->AddCommand(command, 0, FollowType::NONE);
 }
 
+void RSTransactionHandler::MoveCommonCommandByNodeId(
+    std::shared_ptr<RSTransactionHandler> transactionHandler, NodeId nodeId)
+{
+    if (!implicitCommonTransactionDataStack_.empty() &&
+        !transactionHandler->implicitCommonTransactionDataStack_.empty()) {
+        implicitCommonTransactionDataStack_.top()->MoveCommandByNodeId(
+            transactionHandler->implicitCommonTransactionDataStack_.top(), nodeId);
+    }
+    implicitCommonTransactionData_->MoveCommandByNodeId(transactionHandler->implicitCommonTransactionData_, nodeId);
+}
+
 void RSTransactionHandler::AddRemoteCommand(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType)
 {
     if (!implicitRemoteTransactionDataStack_.empty()) {
@@ -435,27 +459,15 @@ void RSTransactionHandler::AddRemoteCommand(std::unique_ptr<RSCommand>& command,
     implicitRemoteTransactionData_->AddCommand(command, nodeId, followType);
 }
 
-bool RSTransactionHandler::MoveAllCommand(std::shared_ptr<RSTransactionHandler> transactionHandler)
+void RSTransactionHandler::MoveRemoteCommandByNodeId(
+    std::shared_ptr<RSTransactionHandler> transactionHandler, NodeId nodeId)
 {
-    if (transactionHandler == nullptr) {
-        RS_LOGE("RSTransactionHandler::MoveAllCommand transactionHandler is nullptr");
-        return false;
+    if (!implicitRemoteTransactionDataStack_.empty() &&
+        !transactionHandler->implicitRemoteTransactionDataStack_.empty()) {
+        implicitRemoteTransactionDataStack_.top()->MoveCommandByNodeId(
+            transactionHandler->implicitRemoteTransactionDataStack_.top(), nodeId);
     }
-    if (renderPipelineClient_ == nullptr && renderThreadClient_ == nullptr) {
-        RS_LOGE("RSTransactionHandler::MoveAllCommand GetCommand fail, (renderPipelineClient_ and "
-                "renderThreadClient_ is nullptr)");
-        return false;
-    }
-
-    std::unique_lock<std::mutex> srcLock(mutex_);
-    std::unique_lock<std::mutex> dstLock(transactionHandler->mutex_);
-    if (renderPipelineClient_ != nullptr) {
-        implicitRemoteTransactionData_->MoveAllCommand(transactionHandler->implicitRemoteTransactionData_);
-    }
-    if (renderThreadClient_ != nullptr) {
-        implicitCommonTransactionData_->MoveAllCommand(transactionHandler->implicitCommonTransactionData_);
-    }
-    return true;
+    implicitRemoteTransactionData_->MoveCommandByNodeId(transactionHandler->implicitRemoteTransactionData_, nodeId);
 }
 
 void RSTransactionHandler::DumpCommand(std::string& out)

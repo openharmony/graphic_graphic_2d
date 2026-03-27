@@ -296,7 +296,7 @@ void RSPropertiesPainter::GetShadowDirtyRect(RectI& dirtyShadow, const RSPropert
         Drawing::Point3 lightPos = { pt[0].GetX(), pt[0].GetY(), DEFAULT_LIGHT_HEIGHT };
         emptyCanvas->GetLocalShadowBounds(matrix, path, planeParams, lightPos, DEFAULT_LIGHT_RADIUS,
             Drawing::ShadowFlags::TRANSPARENT_OCCLUDER, true, shadowRect);
-    } else {
+    } else if (ROSEN_GNE(properties.GetShadowRadius(), 0.f)) {
         Drawing::Brush brush;
         brush.SetAntiAlias(true);
         Drawing::Filter filter;

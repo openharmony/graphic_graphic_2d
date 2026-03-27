@@ -1497,14 +1497,14 @@ void RSNode::SetSkewZ(float skewZ)
     property->Set(skew);
 }
 
-bool RSNode::SetRSUIContext(std::shared_ptr<RSUIContext> rsUIContext, bool moveCommands)
+void RSNode::SetRSUIContext(std::shared_ptr<RSUIContext> rsUIContext)
 {
     if (rsUIContext == nullptr) {
-        return false;
+        return;
     }
     auto preUIContext = rsUIContext_;
     if ((preUIContext != nullptr) && (preUIContext == rsUIContext)) {
-        return true;
+        return;
     }
 
     // if have old rsContext, should remove nodeId from old nodeMap and travel child
@@ -1513,14 +1513,13 @@ bool RSNode::SetRSUIContext(std::shared_ptr<RSUIContext> rsUIContext, bool moveC
             ROSEN_LOGE("When RSNode has animations, RSUIContext should not be modified! nodeId[%{public}" PRIu64 "], "
                        "preUIContext[%{public}" PRIu64 "], rsUIContext[%{public}" PRIu64 "]",
                         id_, preUIContext->GetToken(), rsUIContext->GetToken());
-            return false;
         }
         // step1 remove node from old context
         preUIContext->GetMutableNodeMap().UnregisterNode(id_);
         // sync child
         for (uint32_t index = 0; index < children_.size(); index++) {
             if (auto childPtr = children_[index].lock()) {
-                childPtr->SetRSUIContext(rsUIContext, false);
+                childPtr->SetRSUIContext(rsUIContext);
             }
         }
     }
@@ -1536,12 +1535,13 @@ bool RSNode::SetRSUIContext(std::shared_ptr<RSUIContext> rsUIContext, bool moveC
     RegisterNodeMap();
     if (preUIContext != nullptr) {
         preUIContext->MoveModifier(rsUIContext, GetId());
-        if (moveCommands && !preUIContext->MoveCommandsIfNeeded(rsUIContext)) {
-            return false;
+        auto preTransaction = preUIContext->GetRSTransaction();
+        auto curTransaction = rsUIContext->GetRSTransaction();
+        if (preTransaction && curTransaction) {
+            preTransaction->MoveCommandByNodeId(curTransaction, id_);
         }
     }
     SetUIContextToken();
-    return true;
 }
 
 void RSNode::SetPersp(float persp)
@@ -2791,7 +2791,7 @@ void RSNode::SetShadowAlpha(float alpha)
 
 void RSNode::SetShadowElevation(float elevation)
 {
-    SetPropertyNG<ModifierNG::RSShadowModifier, &ModifierNG::RSShadowModifier::SetShadowRadius>(0);
+    SetPropertyNG<ModifierNG::RSShadowModifier, &ModifierNG::RSShadowModifier::SetShadowRadius>(DEFAULT_SHADOW_RADIUS);
     SetPropertyNG<ModifierNG::RSShadowModifier, &ModifierNG::RSShadowModifier::SetShadowElevation>(elevation);
 }
 

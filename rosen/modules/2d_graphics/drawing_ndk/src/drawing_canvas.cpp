@@ -1046,6 +1046,16 @@ void OH_Drawing_CanvasResetMatrix(OH_Drawing_Canvas* cCanvas)
     canvas->ResetMatrix();
 }
 
+OH_Drawing_ErrorCode OH_Drawing_CanvasResetClip(OH_Drawing_Canvas* cCanvas)
+{
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    canvas->ResetClip();
+    return OH_DRAWING_SUCCESS;
+}
+
 void OH_Drawing_CanvasDrawImageRectWithSrc(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Image* cImage,
     const OH_Drawing_Rect* src, const OH_Drawing_Rect* dst, const OH_Drawing_SamplingOptions* cSampling,
     OH_Drawing_SrcRectConstraint constraint)

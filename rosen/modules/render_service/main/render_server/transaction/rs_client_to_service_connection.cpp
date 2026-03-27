@@ -106,6 +106,7 @@ constexpr uint64_t MAX_TIME_OUT_NS = 1e9;
 constexpr int64_t MAX_FREEZE_SCREEN_TIME = 3000;
 const std::string UNFREEZE_SCREEN_TASK_NAME = "UNFREEZE_SCREEN_TASK";
 }
+const std::string RSClientToServiceConnection::GPU_FREQ_PREF = "GPU_FREQ_PREF";
 // we guarantee that when constructing this object,
 // all these pointers are valid, so will not check them.
 RSClientToServiceConnection::RSClientToServiceConnection(
@@ -155,7 +156,6 @@ void RSClientToServiceConnection::CleanVirtualScreens() noexcept
         return;
     }
     screenManagerAgent_->CleanVirtualScreens();
-    screenManagerAgent_->SetScreenChangeCallback(nullptr);
 }
 
 void RSClientToServiceConnection::CleanAll(bool toDelete) noexcept
@@ -576,11 +576,7 @@ int32_t RSClientToServiceConnection::SetScreenChangeCallback(sptr<RSIScreenChang
     }
 
     // update
-    int32_t status;
-    renderServiceAgent_->ScheduleTask([this, callback, &status]() {
-        status = screenManagerAgent_->SetScreenChangeCallback(callback);
-    }).wait();
-    return status;
+    return screenManagerAgent_->SetScreenChangeCallback(callback);
 }
 
 int32_t RSClientToServiceConnection::SetScreenSwitchingNotifyCallback(sptr<RSIScreenSwitchingNotifyCallback> callback)
@@ -591,8 +587,7 @@ int32_t RSClientToServiceConnection::SetScreenSwitchingNotifyCallback(sptr<RSISc
     }
 
     // update
-    int32_t status = screenManagerAgent_->SetScreenSwitchingNotifyCallback(callback);
-    return status;
+    return screenManagerAgent_->SetScreenSwitchingNotifyCallback(callback);
 }
 
 int32_t RSClientToServiceConnection::SetBrightnessInfoChangeCallback(sptr<RSIBrightnessInfoChangeCallback> callback)

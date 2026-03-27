@@ -291,4 +291,40 @@ HWTEST_F(RSShadowTest, TestRSShadow003, TestSize.Level1)
     shadow.SetColorStrategy(SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_AVERAGE);
     EXPECT_EQ(shadow.GetColorStrategy(), 1);
 }
+
+/**
+ * @tc.name: TestRSShadow004
+ * @tc.desc: IsValid test with zero radius (should be valid for solid shadow).
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSShadowTest, TestRSShadow004, TestSize.Level1)
+{
+    RSShadow shadow;
+    shadow.SetRadius(0.f);
+    EXPECT_TRUE(shadow.IsValid());
+}
+
+/**
+ * @tc.name: TestRSShadow005
+ * @tc.desc: IsValid test with negative radius (should be invalid).
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSShadowTest, TestRSShadow005, TestSize.Level1)
+{
+    RSShadow shadow;
+    shadow.SetRadius(-1.f);
+    EXPECT_FALSE(shadow.IsValid());
+}
+
+/**
+ * @tc.name: TestRSShadow006
+ * @tc.desc: Default radius value test (should be -1.f).
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSShadowTest, TestRSShadow006, TestSize.Level1)
+{
+    RSShadow shadow;
+    EXPECT_EQ(shadow.GetRadius(), DEFAULT_SHADOW_RADIUS);
+    EXPECT_EQ(shadow.GetRadius(), -1.f);
+}
 } // namespace OHOS::Rosen

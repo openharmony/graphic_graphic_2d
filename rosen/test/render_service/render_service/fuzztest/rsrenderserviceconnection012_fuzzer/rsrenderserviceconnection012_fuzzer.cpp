@@ -27,10 +27,12 @@
 #include <unistd.h>
 #include <unordered_map>
 
+#include "memory/rs_memory_snapshot.h"
 #include "message_parcel.h"
 #include "securec.h"
 
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/rs_render_node_gc.h"
 #include "transaction/rs_client_to_render_connection.h"
 #include "transaction/zidl/rs_client_to_render_connection_stub.h"
 #include "render_server/transaction/rs_client_to_service_connection.h"
@@ -42,6 +44,8 @@ namespace OHOS {
 namespace Rosen {
 auto g_pid = getpid();
 sptr<OHOS::Rosen::RSScreenManager> screenManagerPtr_ = OHOS::sptr<OHOS::Rosen::RSScreenManager>::MakeSptr();
+[[maybe_unused]] auto& memorySnapshot_ = OHOS::Rosen::MemorySnapshot::Instance();
+[[maybe_unused]] auto& renderNodeGC_ = OHOS::Rosen::RSRenderNodeGC::Instance();
 auto mainThread_ = RSMainThread::Instance();
 
 sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ = nullptr;

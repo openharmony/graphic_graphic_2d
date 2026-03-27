@@ -63,7 +63,9 @@ void RSPropertyDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* re
     RSTagTracker tagTracker(canvas ? canvas->GetGPUContext() : nullptr,
         RSTagTracker::SOURCETYPE::SOURCE_RSPROPERTYDRAWABLE);
 #endif
-    drawCmdList_->Playback(*canvas);
+    if (drawCmdList_) {
+        drawCmdList_->Playback(*canvas);
+    }
     if (!propertyDescription_.empty()) {
         RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO, "RSPropertyDrawable:: %s, bounds:%s",
             propertyDescription_.c_str(), rect->ToString().c_str());

@@ -72,6 +72,10 @@ HWTEST_F(RSPropertyDrawableTest, OnSyncAndOnDrawFuncTest001, TestSize.Level1)
     propertyDrawable->OnDraw(&canvas, &rect);
     propertyDrawable->propertyDescription_ = "RSPropertyDrawable test";
     propertyDrawable->OnDraw(&canvas, &rect);
+
+    propertyDrawable->drawCmdList_ = nullptr;
+    propertyDrawable->OnDraw(&canvas, &rect);
+    EXPECT_EQ(propertyDrawable->drawCmdList_, nullptr);
 }
 
 /**

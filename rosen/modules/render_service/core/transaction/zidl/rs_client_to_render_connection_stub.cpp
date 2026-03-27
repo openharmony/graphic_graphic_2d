@@ -470,9 +470,11 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             uint64_t mirrorId{0};
             uint64_t screenId{0};
             bool isMirrored{false};
+            uint32_t mirrorSourceRotation{static_cast<uint32_t>(ScreenRotation::INVALID_SCREEN_ROTATION)};
             if (!data.ReadUint64(mirrorId) ||
                 !data.ReadUint64(screenId) ||
-                !data.ReadBool(isMirrored)) {
+                !data.ReadBool(isMirrored) ||
+                !data.ReadUint32(mirrorSourceRotation)) {
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -481,6 +483,7 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 .isMirrored = isMirrored,
                 .mirrorNodeId = mirrorId,
                 .isSync = true,
+                .mirrorSourceRotation = mirrorSourceRotation,
             };
             bool success;
             if (CreateNode(config, id, success) != ERR_OK || !reply.WriteBool(success)) {

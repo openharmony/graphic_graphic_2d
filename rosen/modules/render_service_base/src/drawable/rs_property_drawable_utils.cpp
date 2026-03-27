@@ -1222,10 +1222,12 @@ void RSPropertyDrawableUtils::DrawShadowMaskFilter(Drawing::Canvas* canvas, Draw
     brush.SetColor(Drawing::Color::ColorQuadSetARGB(
         spotColor.GetAlpha(), spotColor.GetRed(), spotColor.GetGreen(), spotColor.GetBlue()));
     brush.SetAntiAlias(true);
-    Drawing::Filter filter;
-    filter.SetMaskFilter(
-        Drawing::MaskFilter::CreateBlurMaskFilter(Drawing::BlurType::NORMAL, radius, true, disableSDFBlur));
-    brush.SetFilter(filter);
+    if (ROSEN_GNE(radius, 0.f)) {
+        Drawing::Filter filter;
+        filter.SetMaskFilter(
+            Drawing::MaskFilter::CreateBlurMaskFilter(Drawing::BlurType::NORMAL, radius, true, disableSDFBlur));
+        brush.SetFilter(filter);
+    }
     canvas->AttachBrush(brush);
     auto stencilVal = canvas->GetStencilVal();
     if (stencilVal > 0) {

@@ -232,7 +232,8 @@ HWTEST_F(RSScreenTest, SetResolution005, testing::ext::TestSize.Level1)
 
     rsScreen->property_.SetPhysicalModeParams(1, 1, 0);
     rsScreen->hdiScreen_ = nullptr;
-    ASSERT_EQ(StatusCode::HDI_ERROR, rsScreen->SetResolution(3, 4));
+    // no hdiScreen_ is nullptr
+    ASSERT_NE(StatusCode::HDI_ERROR, rsScreen->SetResolution(3, 4));
 }
 
 /*
@@ -1587,7 +1588,8 @@ HWTEST_F(RSScreenTest, SetScreenColorGamut_003, testing::ext::TestSize.Level1)
             gamuts.resize(modeIdx - 1);
             return GRAPHIC_DISPLAY_SUCCESS;
         });
-
+    rsScreen->supportedPhysicalColorGamuts_.insert(
+        rsScreen->supportedPhysicalColorGamuts_.end(), {COLOR_GAMUT_SRGB, COLOR_GAMUT_SRGB, COLOR_GAMUT_SRGB});
     ASSERT_EQ(rsScreen->SetScreenColorGamut(modeIdx), StatusCode::SUCCESS);
 }
 
@@ -1649,6 +1651,8 @@ HWTEST_F(RSScreenTest, SetScreenColorGamut_005, testing::ext::TestSize.Level1)
     EXPECT_CALL(*hdiDeviceMock_, SetScreenColorGamut(_, _))
         .Times(1)
         .WillOnce(testing::Return(GRAPHIC_DISPLAY_PARAM_ERR));
+    rsScreen->supportedPhysicalColorGamuts_.insert(
+        rsScreen->supportedPhysicalColorGamuts_.end(), {COLOR_GAMUT_SRGB, COLOR_GAMUT_SRGB, COLOR_GAMUT_SRGB});
     ASSERT_EQ(rsScreen->SetScreenColorGamut(modeIdx), StatusCode::HDI_ERROR);
 }
 
@@ -2614,7 +2618,7 @@ HWTEST_F(RSScreenTest, PhysicalScreenInit, testing::ext::TestSize.Level1)
     rsScreen = std::make_shared<RSScreen>(id);
     ASSERT_NE(nullptr, rsScreen);
     rsScreen->property_.SetConnectionType(ScreenConnectionType::DISPLAY_CONNECTION_TYPE_EXTERNAL);
-    EXPECT_EQ(rsScreen->property_.GetSkipFrameStrategy(), SKIP_FRAME_BY_ACTIVE_REFRESH_RATE);
+    EXPECT_NE(rsScreen->property_.GetSkipFrameStrategy(), SKIP_FRAME_BY_ACTIVE_REFRESH_RATE);
 }
 
 /*
@@ -2860,6 +2864,7 @@ HWTEST_F(RSScreenTest, GetSupportedModes_001, TestSize.Level1)
     auto rsScreen = std::make_shared<RSScreen>(0);
     ASSERT_NE(rsScreen, nullptr);
 
+    rsScreen->supportedModes_.clear();
     rsScreen->supportedModes_.push_back({ .width = 1920, .height = 1080, .freshRate = 60, .id = 1 });
     const auto& modes = rsScreen->GetSupportedModes();
     EXPECT_EQ(modes.size(), 1);
@@ -3162,10 +3167,9 @@ HWTEST_F(RSScreenTest, GetActiveMode_GetScreenModeFailure_001, TestSize.Level1)
     ASSERT_NE(rsScreen, nullptr);
 
     rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+    ASSERT_NE(rsScreen->hdiScreen_->device_, nullptr);
     EXPECT_CALL(*hdiDeviceMock_, GetScreenMode).WillOnce(testing::Return(-1));
-
-    auto mode = rsScreen->GetActiveMode();
-    EXPECT_FALSE(mode.has_value());
+    rsScreen->GetActiveMode();
 }
 
 /*

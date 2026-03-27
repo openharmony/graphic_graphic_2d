@@ -34,6 +34,8 @@ ohos_shared_library("cj_effect_kit_ffi") {
   }
 
   deps = [
+    "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/effect/color_picker:color_picker",
     "$graphic_2d_root/rosen/modules/effect/effect_common:effect_common",
     "$graphic_2d_root/rosen/modules/effect/skia_effectChain:skeffectchain",

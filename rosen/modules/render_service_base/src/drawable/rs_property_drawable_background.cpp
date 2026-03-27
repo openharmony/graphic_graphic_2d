@@ -167,7 +167,7 @@ void RSShadowDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect
             elevation_, isFilled_, shadowColor);
         return;
     }
-    if (ROSEN_GNE(radius_, 0.f)) {
+    if (ROSEN_GE(radius_, 0.f)) {
         RSPropertyDrawableUtils::DrawShadowMaskFilter(canvas, path, offsetX_, offsetY_,
             radius_, isFilled_, shadowColor, disableSDFBlur_);
         return;

@@ -67,6 +67,7 @@ constexpr static float FLOAT_DATA_POSITIVE = 485.44f;
 constexpr static float FLOAT_DATA_NEGATIVE = -34.4f;
 constexpr static float FLOAT_DATA_MAX = std::numeric_limits<float>::max();
 constexpr static float FLOAT_DATA_MIN = std::numeric_limits<float>::min();
+const std::string LAYER_PART_RENDER_KEY = "rosen.layerPartRender.enabled";
 
 class RSNodeTest : public testing::Test {
 public:
@@ -7011,14 +7012,15 @@ HWTEST_F(RSNodeTest, IsRenderServiceNode, TestSize.Level1)
 HWTEST_F(RSNodeTest, MarkLayerPartRender, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    system::SetParameter("rosen.layerPartRender.enabled", "1");
+    const auto oldLayerPartRenderValue = RSSystemProperties::GetLayerPartRenderEnabled() ? "1" : "0";
+    system::SetParameter(LAYER_PART_RENDER_KEY, "1");
     rsNode->MarkLayerPartRender(true);
     EXPECT_TRUE(rsNode->isLayerPartRender_);
 
     rsNode->MarkLayerPartRender(false);
     EXPECT_FALSE(rsNode->isLayerPartRender_);
 
-    system::SetParameter("rosen.layerPartRender.enabled", "0");
+    system::SetParameter(LAYER_PART_RENDER_KEY, oldLayerPartRenderValue);
     rsNode->MarkLayerPartRender(false);
     EXPECT_FALSE(rsNode->isLayerPartRender_);
 }
@@ -7053,7 +7055,8 @@ HWTEST_F(RSNodeTest, MarkLayerPartRenderWithParent, TestSize.Level1)
     auto childNode = RSCanvasNode::Create();
     ASSERT_NE(parentNode, nullptr);
     ASSERT_NE(childNode, nullptr);
-    system::SetParameter("rosen.layerPartRender.enabled", "1");
+    const auto oldLayerPartRenderValue = RSSystemProperties::GetLayerPartRenderEnabled() ? "1" : "0";
+    system::SetParameter(LAYER_PART_RENDER_KEY, "1");
     // Set parent relationship
     childNode->SetParent(parentNode);
 
@@ -7064,7 +7067,7 @@ HWTEST_F(RSNodeTest, MarkLayerPartRenderWithParent, TestSize.Level1)
     // Mark as non-layer part render
     childNode->MarkLayerPartRender(false);
     EXPECT_FALSE(childNode->isLayerPartRender_);
-    system::SetParameter("rosen.layerPartRender.enabled", "0");
+    system::SetParameter(LAYER_PART_RENDER_KEY, oldLayerPartRenderValue);
 }
 
 /**
@@ -7077,14 +7080,15 @@ HWTEST_F(RSNodeTest, MarkLayerPartRenderWithoutParent, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
     ASSERT_NE(rsNode, nullptr);
-    system::SetParameter("rosen.layerPartRender.enabled", "1");
+    const auto oldLayerPartRenderValue = RSSystemProperties::GetLayerPartRenderEnabled() ? "1" : "0";
+    system::SetParameter(LAYER_PART_RENDER_KEY, "1");
     // Node has no parent - should only call SetDrawNode on itself
     rsNode->MarkLayerPartRender(true);
     EXPECT_TRUE(rsNode->isLayerPartRender_);
 
     rsNode->MarkLayerPartRender(false);
     EXPECT_FALSE(rsNode->isLayerPartRender_);
-    system::SetParameter("rosen.layerPartRender.enabled", "0");
+    system::SetParameter(LAYER_PART_RENDER_KEY, oldLayerPartRenderValue);
 }
 
 /**
@@ -7620,7 +7624,6 @@ HWTEST_F(RSNodeTest, SetRSUIContext, TestSize.Level1)
         rsNode->SetRSUIContext(nullptr);
         EXPECT_EQ(rsNode->GetRSUIContext(), nullptr);
         auto uiDirector1 = RSUIDirector::Create();
-        uiDirector1->Init(true, true);
         auto rsUIContext = uiDirector1->GetRSUIContext();
         rsNode->SetRSUIContext(rsUIContext);
         rsNode->SetRSUIContext(rsUIContext);
@@ -7633,7 +7636,7 @@ HWTEST_F(RSNodeTest, SetRSUIContext, TestSize.Level1)
 
 /**
  * @tc.name: SetRSUIContext
- * @tc.desc: test results of SetRSUIContext when node has animations
+ * @tc.desc: test results of SetRSUIContext
  * @tc.type: FUNC
  * @tc.require: issueIBX6OE
  */
@@ -7650,8 +7653,7 @@ HWTEST_F(RSNodeTest, SetRSUIContext001, TestSize.Level1)
         // test animations_ is not empty
         EXPECT_FALSE(rsNode->animations_.empty());
         rsNode->SetRSUIContext(rsUIContext2);
-        // when node has animations, RSUIContext should not be modified
-        EXPECT_EQ(rsNode->GetRSUIContext(), rsUIContext);
+        EXPECT_EQ(rsNode->GetRSUIContext(), rsUIContext2);
     }
 }
 
@@ -8333,176 +8335,6 @@ HWTEST_F(RSNodeTest, SetCompositingNGFilter002, TestSize.Level1)
     rsNode->SetCompositingNGFilter(RSNGFilterHelper::CreateNGBlurFilter(30.0f, 30.0f));
     auto modify = rsNode->GetModifierByType(ModifierNG::RSModifierType::COMPOSITING_FILTER);
     ASSERT_NE(modify, nullptr);
-}
-
-/**
- * @tc.name: SetRSUIContext002
- * @tc.desc: test SetRSUIContext with moveCommands parameter
- * @tc.type: FUNC
- * @tc.require: issue22822
- */
-HWTEST_F(RSNodeTest, SetRSUIContext002, TestSize.Level1)
-{
-    auto enable = RSSystemProperties::GetRSClientMultiInstanceEnabled();
-    if (enable) {
-        auto uiDirector1 = RSUIDirector::Create();
-        uiDirector1->Init(true, true);
-        auto rsUIContext1 = uiDirector1->GetRSUIContext();
-        auto rsNode = RSCanvasNode::Create(false, false, rsUIContext1);
-        ASSERT_NE(rsNode, nullptr);
-
-        auto uiDirector2 = RSUIDirector::Create();
-        uiDirector2->Init(true, true);
-        auto rsUIContext2 = uiDirector2->GetRSUIContext();
-
-        rsNode->SetBackgroundColor(Drawing::Color::COLOR_RED);
-
-        rsNode->SetRSUIContext(rsUIContext2, false);
-        EXPECT_EQ(rsNode->GetRSUIContext(), rsUIContext2);
-    }
-}
-
-/**
- * @tc.name: SetRSUIContext003
- * @tc.desc: test SetRSUIContext with child nodes
- * @tc.type: FUNC
- * @tc.require: issue22822
- */
-HWTEST_F(RSNodeTest, SetRSUIContext003, TestSize.Level1)
-{
-    auto enable = RSSystemProperties::GetRSClientMultiInstanceEnabled();
-    if (enable) {
-        auto uiDirector1 = RSUIDirector::Create();
-        uiDirector1->Init(true, true);
-        auto rsUIContext1 = uiDirector1->GetRSUIContext();
-
-        auto parentNode = RSCanvasNode::Create(false, false, rsUIContext1);
-        ASSERT_NE(parentNode, nullptr);
-
-        auto childNode = RSCanvasNode::Create(false, false, rsUIContext1);
-        ASSERT_NE(childNode, nullptr);
-
-        parentNode->AddChild(childNode);
-
-        auto uiDirector2 = RSUIDirector::Create();
-        uiDirector2->Init(true, true);
-        auto rsUIContext2 = uiDirector2->GetRSUIContext();
-
-        parentNode->SetRSUIContext(rsUIContext2);
-
-        EXPECT_EQ(parentNode->GetRSUIContext(), rsUIContext2);
-        EXPECT_EQ(childNode->GetRSUIContext(), rsUIContext2);
-    }
-}
-
-/**
- * @tc.name: SetRSUIContext004
- * @tc.desc: test SetRSUIContext with stack data
- * @tc.type: FUNC
- * @tc.require: issue22822
- */
-HWTEST_F(RSNodeTest, SetRSUIContext004, TestSize.Level1)
-{
-    auto enable = RSSystemProperties::GetRSClientMultiInstanceEnabled();
-    if (enable) {
-        auto uiDirector1 = RSUIDirector::Create();
-        uiDirector1->Init(true, true);
-        auto rsUIContext1 = uiDirector1->GetRSUIContext();
-
-        auto rsNode = RSCanvasNode::Create(false, false, rsUIContext1);
-        ASSERT_NE(rsNode, nullptr);
-
-        auto preTransaction = rsUIContext1->GetRSTransaction();
-        preTransaction->Begin();
-
-        auto uiDirector2 = RSUIDirector::Create();
-        uiDirector2->Init(true, true);
-        auto rsUIContext2 = uiDirector2->GetRSUIContext();
-
-        rsNode->SetRSUIContext(rsUIContext2);
-
-        EXPECT_TRUE(preTransaction->HasStackData());
-        preTransaction->Commit();
-    }
-}
-
-/**
- * @tc.name: SetRSUIContext005
- * @tc.desc: test SetRSUIContext with moveCommands=true and MoveAllCommand succeeds
- * @tc.type: FUNC
- * @tc.require: issue22822
- */
-HWTEST_F(RSNodeTest, SetRSUIContext005, TestSize.Level1)
-{
-    auto enable = RSSystemProperties::GetRSClientMultiInstanceEnabled();
-    if (enable) {
-        auto uiDirector1 = RSUIDirector::Create();
-        uiDirector1->Init(true, true);
-        auto rsUIContext1 = uiDirector1->GetRSUIContext();
-        auto rsNode = RSCanvasNode::Create(false, false, rsUIContext1);
-        ASSERT_NE(rsNode, nullptr);
-
-        auto uiDirector2 = RSUIDirector::Create();
-        uiDirector2->Init(true, true);
-        auto rsUIContext2 = uiDirector2->GetRSUIContext();
-
-        rsNode->SetBackgroundColor(Drawing::Color::COLOR_RED);
-
-        EXPECT_TRUE(rsNode->SetRSUIContext(rsUIContext2, true));
-        EXPECT_EQ(rsNode->GetRSUIContext(), rsUIContext2);
-    }
-}
-
-/**
- * @tc.name: SetRSUIContext006
- * @tc.desc: test MoveCommandsIfNeeded when preTransaction is null
- * @tc.type: FUNC
- * @tc.require: issue22822
- */
-HWTEST_F(RSNodeTest, SetRSUIContext006, TestSize.Level1)
-{
-    auto enable = RSSystemProperties::GetRSClientMultiInstanceEnabled();
-    if (enable) {
-        auto uiDirector1 = RSUIDirector::Create();
-        uiDirector1->Init(true, true);
-        auto rsUIContext1 = uiDirector1->GetRSUIContext();
-        rsUIContext1->rsTransactionHandler_ = nullptr;
-
-        auto rsNode = RSCanvasNode::Create(false, false);
-        ASSERT_NE(rsNode, nullptr);
-        rsNode->rsUIContext_ = rsUIContext1;
-
-        auto uiDirector2 = RSUIDirector::Create();
-        uiDirector2->Init(true, true);
-        auto rsUIContext2 = uiDirector2->GetRSUIContext();
-
-        EXPECT_FALSE(rsNode->SetRSUIContext(rsUIContext2, true));
-    }
-}
-
-/**
- * @tc.name: SetRSUIContext007
- * @tc.desc: test MoveCommandsIfNeeded when curTransaction is null
- * @tc.type: FUNC
- * @tc.require: issue22822
- */
-HWTEST_F(RSNodeTest, SetRSUIContext007, TestSize.Level1)
-{
-    auto enable = RSSystemProperties::GetRSClientMultiInstanceEnabled();
-    if (enable) {
-        auto uiDirector1 = RSUIDirector::Create();
-        uiDirector1->Init(true, true);
-        auto rsUIContext1 = uiDirector1->GetRSUIContext();
-        auto rsNode = RSCanvasNode::Create(false, false, rsUIContext1);
-        ASSERT_NE(rsNode, nullptr);
-
-        auto uiDirector2 = RSUIDirector::Create();
-        uiDirector2->Init(true, true);
-        auto rsUIContext2 = uiDirector2->GetRSUIContext();
-        rsUIContext2->rsTransactionHandler_ = nullptr;
-
-        EXPECT_FALSE(rsNode->SetRSUIContext(rsUIContext2, true));
-    }
 }
 
 /**

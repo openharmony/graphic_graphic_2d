@@ -4972,7 +4972,7 @@ std::string RSProperties::Dump() const
     if (ret != EOK) {
         return "Failed to memset_s for ShadowRadius, ret=" + std::to_string(ret);
     }
-    if (!ROSEN_EQ(GetShadowRadius(), 0.f) &&
+    if (!ROSEN_EQ(GetShadowRadius(), DEFAULT_SHADOW_RADIUS) &&
         sprintf_s(buffer, UINT8_MAX, ", ShadowRadius[%.1f]", GetShadowRadius()) != -1) {
         dumpInfo.append(buffer);
     }
