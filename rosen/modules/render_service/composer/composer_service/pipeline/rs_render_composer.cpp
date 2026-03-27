@@ -350,7 +350,7 @@ int64_t RSRenderComposer::UpdateDelayTime(HgmCore& hgmCore,
     // We need to ensure the order of composition frames, postTaskTime(n + 1) must > postTaskTime(n),
     // and we give a delta time more between two composition tasks.
     int64_t currCommitTime = currTime + delayTime * NS_MS_UNIT_CONVERSION;
-    if (currCommitTime <= lastCommitTime_) {
+    if ((currCommitTime - lastCommitTime_) <= COMMIT_DELTA_TIME * NS_MS_UNIT_CONVERSION) {
         delayTime = delayTime +
             std::round((lastCommitTime_ - currCommitTime) * 1.0f / NS_MS_UNIT_CONVERSION) +
             COMMIT_DELTA_TIME;
