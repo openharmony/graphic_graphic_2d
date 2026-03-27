@@ -43,7 +43,8 @@ public:
 
 void RSScreenPreprocessorTest::SetUpTestCase() {}
 void RSScreenPreprocessorTest::TearDownTestCase() {}
-void RSScreenPreprocessorTest::SetUp() {
+void RSScreenPreprocessorTest::SetUp()
+{
     preprocessor_->Init();
 }
 void RSScreenPreprocessorTest::TearDown() {}
