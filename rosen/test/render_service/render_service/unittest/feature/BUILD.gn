@@ -214,6 +214,11 @@ ohos_unittest("RSPointerWindowManagerTest") {
 ## Build RSSurfaceCaptureTaskParallelTest
 ohos_unittest("RSSurfaceCaptureTaskParallelTest") {
   module_out_path = module_output_path
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = true
+  }
   sources = [
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
     "$graphic_2d_root/rosen/modules/render_service_base/src/feature/capture/rs_capture_pixelmap_manager.cpp",
