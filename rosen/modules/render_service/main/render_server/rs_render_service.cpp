@@ -352,7 +352,7 @@ sptr<IRemoteObject> RSRenderService::ScreenManagerListener::OnScreenConnected(Sc
         std::bind(&RSVsyncManagerAgent::SetTaskEndWithTime,
             renderService_.vsyncManager_->GetVsyncManagerAgent(), std::placeholders::_1),
         std::bind(&RSVsyncManagerAgent::GetRealTimeOffsetOfDvsync,
-            renderService_.vsyncManager_->GetVsyncManagerAgent(), std::placeholders::_1));
+            renderService_.vsyncManager_->GetVsyncManagerAgent(), std::placeholders::_1, std::placeholders::_2));
 #ifdef RS_CAR_FEATURES
     if (RSCarMultiDisplayFeatureParam::IsCrossDomainFeatureEnable() &&
         RSCarMultiDisplayFeatureParam::IsScreenInCrossDomain(screenId)) {

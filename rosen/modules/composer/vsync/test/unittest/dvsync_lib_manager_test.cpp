@@ -74,6 +74,7 @@ HWTEST_F(DVSyncLibManagerTest, Initialize001, Function | MediumTest| Level1)
     uint32_t num = 0;
     bool isAppRequested = true;
     int64_t time = 0;
+    int64_t preTime = 0;
     ASSERT_EQ(DVSyncLibManagerTest::dvsyncLibManager.IsAppDVSyncOn(), false);
     ASSERT_EQ(DVSyncLibManagerTest::dvsyncLibManager.SetAppRequestedStatus(vsyncConnection, isAppRequested), false);
     ASSERT_EQ(DVSyncLibManagerTest::dvsyncLibManager.CheckVsyncReceivedAndGetRelTs(timestamp), 0);
@@ -85,7 +86,7 @@ HWTEST_F(DVSyncLibManagerTest, Initialize001, Function | MediumTest| Level1)
     DVSyncLibManagerTest::dvsyncLibManager.SetAppDVSyncSwitch(vsyncConnection, start, isNative);
     ASSERT_EQ(DVSyncLibManagerTest::dvsyncLibManager.GetUiCommandDelayTime(), 0);
     DVSyncLibManagerTest::dvsyncLibManager.UpdatePendingReferenceTime(timeStamp);
-    ASSERT_EQ(DVSyncLibManagerTest::dvsyncLibManager.GetRealTimeOffsetOfDvsync(time), 0);
+    ASSERT_EQ(DVSyncLibManagerTest::dvsyncLibManager.GetRealTimeOffsetOfDvsync(time, preTime), 0);
     DVSyncLibManagerTest::dvsyncLibManager.SetHardwareTaskNum(num);
     DVSyncLibManagerTest::dvsyncLibManager.SetPhysicalScreenNum(num);
     DVSyncLibManagerTest::dvsyncLibManager.SetTaskEndWithTime(timestamp);
@@ -435,6 +436,7 @@ HWTEST_F(DVSyncLibManagerTest, LoadFunction003, Function | MediumTest| Level1)
     int64_t offset = 0;
     uint32_t num = 0;
     int64_t time = 0;
+    int64_t preTime = 0;
     bool success = dvsyncLibManager.Initialize("libdvsync.z.so");
     if (!success) {
         return;
@@ -447,7 +449,7 @@ HWTEST_F(DVSyncLibManagerTest, LoadFunction003, Function | MediumTest| Level1)
     ASSERT_EQ(DVSyncLibManagerTest::dvsyncLibManager.GetOccurRefreshRate(), 0);
     DVSyncLibManagerTest::dvsyncLibManager.MarkRSRendering(true);
     ASSERT_EQ(DVSyncLibManagerTest::dvsyncLibManager.GetUiCommandDelayTime(), 0);
-    ASSERT_EQ(DVSyncLibManagerTest::dvsyncLibManager.GetRealTimeOffsetOfDvsync(time), 0);
+    ASSERT_EQ(DVSyncLibManagerTest::dvsyncLibManager.GetRealTimeOffsetOfDvsync(time, preTime), 0);
     DVSyncLibManagerTest::dvsyncLibManager.SetHardwareTaskNum(num);
     DVSyncLibManagerTest::dvsyncLibManager.SetPhysicalScreenNum(num);
     DVSyncLibManagerTest::dvsyncLibManager.SetTaskEndWithTime(timestamp);

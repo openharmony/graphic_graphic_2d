@@ -354,7 +354,7 @@ public:
         return isOverDrawEnabledOfCurFrame_ != isOverDrawEnabledOfLastFrame_;
     }
 
-    uint64_t GetRealTimeOffsetOfDvsync(int64_t time);
+    uint64_t GetRealTimeOffsetOfDvsync(int64_t time, int64_t& preTime);
 
     bool IsFoldScreenSwitching() const;
     bool IsMultiDisplay() const;

@@ -560,9 +560,10 @@ int64_t RSRenderComposer::CalculateDelayTime(HgmCore& hgmCore, uint32_t currentR
     uint64_t dvsyncOffset = 0;
     int64_t compositionTime = period;
     int64_t delayTime = 0;
+    int64_t preTime = 0;
 
     if (getRealTimeOffsetOfDvsyncCb_ != nullptr) {
-        dvsyncOffset = getRealTimeOffsetOfDvsyncCb_(pipelineParam.frameTimestamp);
+        dvsyncOffset = getRealTimeOffsetOfDvsyncCb_(pipelineParam.frameTimestamp, preTime);
     }
     if (!hgmCore.GetLtpoEnabled()) {
         vsyncOffset = UNI_RENDER_VSYNC_OFFSET_DELAY_MODE;
@@ -586,10 +587,11 @@ int64_t RSRenderComposer::CalculateDelayTime(HgmCore& hgmCore, uint32_t currentR
         if (periodNum * idealPeriod + vsyncOffset + idealPulse < idealPipelineOffset) {
             periodNum = periodNum + 1;
         }
-        frameOffset = periodNum * idealPeriod + vsyncOffset
+        frameOffset = periodNum * idealPeriod + vsyncOffset + static_cast<int64_t>(dvsyncOffset)
             - static_cast<int64_t>(pipelineParam.fastComposeTimeStampDiff);
     }
-    expectCommitTime = pipelineParam.frameTimestamp + frameOffset - compositionTime - RESERVE_TIME;
+    // we use (pipelineParam.frameTimestamp - preTime) to get this frame real vsync timestamp
+    expectCommitTime = pipelineParam.frameTimestamp - preTime + frameOffset - compositionTime - RESERVE_TIME;
     int64_t diffTime = expectCommitTime - currTime;
     if (diffTime > 0 && period > 0) {
         delayTime = std::round(diffTime * 1.0f / NS_MS_UNIT_CONVERSION);
@@ -598,10 +600,10 @@ int64_t RSRenderComposer::CalculateDelayTime(HgmCore& hgmCore, uint32_t currentR
         "expectCommitTime: %" PRId64 ", currTime: %" PRId64 ", diffTime: %" PRId64 ", delayTime: %" PRId64 ", " \
         "frameOffset: %" PRId64 ", dvsyncOffset: %" PRIu64 ", vsyncOffset: %" PRId64 ", idealPeriod: %" PRId64 ", " \
         "period: %" PRId64 ", idealPipelineOffset: %" PRId64 ", fastComposeTimeStampDiff: %" PRIu64 ", " \
-        "frameTimestamp: %" PRId64 "",
+        "frameTimestamp: %" PRId64 ", preTime: %" PRId64 "",
         __func__, pipelineOffset, pipelineParam.actualTimestamp, expectCommitTime, currTime, diffTime, delayTime,
         frameOffset, dvsyncOffset, vsyncOffset, idealPeriod, period,
-        idealPipelineOffset, pipelineParam.fastComposeTimeStampDiff, pipelineParam.frameTimestamp);
+        idealPipelineOffset, pipelineParam.fastComposeTimeStampDiff, pipelineParam.frameTimestamp, preTime);
     RS_LOGD_IF(DEBUG_PIPELINE, "%{public}s period:%{public}" PRId64 " delayTime:%{public}" PRId64 "",
         __func__, period, delayTime);
     return delayTime;

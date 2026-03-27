@@ -1280,9 +1280,9 @@ void VSyncDistributor::UpdatePendingReferenceTime(int64_t &timeStamp)
     DVSyncLibManager::Instance().UpdatePendingReferenceTime(timeStamp);
 }
 
-uint64_t VSyncDistributor::GetRealTimeOffsetOfDvsync(int64_t time)
+uint64_t VSyncDistributor::GetRealTimeOffsetOfDvsync(int64_t time, int64_t& preTime)
 {
-    return DVSyncLibManager::Instance().GetRealTimeOffsetOfDvsync(time);
+    return DVSyncLibManager::Instance().GetRealTimeOffsetOfDvsync(time, preTime);
 }
 
 void VSyncDistributor::SetHardwareTaskNum(uint32_t num)

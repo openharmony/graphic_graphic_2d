@@ -5226,10 +5226,10 @@ void RSMainThread::SetHardwareTaskNum(uint32_t num)
     }
 }
 
-uint64_t RSMainThread::GetRealTimeOffsetOfDvsync(int64_t time)
+uint64_t RSMainThread::GetRealTimeOffsetOfDvsync(int64_t time, int64_t& preTime)
 {
     if (rsVsyncManagerAgent_ != nullptr) {
-        return rsVsyncManagerAgent_->GetRealTimeOffsetOfDvsync(time);
+        return rsVsyncManagerAgent_->GetRealTimeOffsetOfDvsync(time, preTime);
     }
     return 0;
 }

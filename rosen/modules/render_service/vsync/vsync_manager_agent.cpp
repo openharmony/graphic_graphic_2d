@@ -64,12 +64,12 @@ void RSVsyncManagerAgent::SetBufferInfo(const BufferInfo& bufferInfo)
     rsVsyncDistributor_->SetBufferInfo(bufferInfo);
 }
 
-uint64_t RSVsyncManagerAgent::GetRealTimeOffsetOfDvsync(int64_t time)
+uint64_t RSVsyncManagerAgent::GetRealTimeOffsetOfDvsync(int64_t time, int64_t& preTime)
 {
     if (rsVsyncDistributor_ == nullptr) {
         return 0;
     }
-    return rsVsyncDistributor_->GetRealTimeOffsetOfDvsync(time);
+    return rsVsyncDistributor_->GetRealTimeOffsetOfDvsync(time, preTime);
 }
 
 void RSVsyncManagerAgent::SetHardwareTaskNum(uint32_t num)
