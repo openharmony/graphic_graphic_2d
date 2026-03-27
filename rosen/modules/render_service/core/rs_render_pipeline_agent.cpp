@@ -1770,6 +1770,26 @@ void RSRenderPipelineAgent::CleanAll(pid_t pid)
     return;
 }
 
+void RSRenderPipelineAgent::Clean(pid_t pid)
+{
+    if (rsRenderPipeline_ == nullptr) {
+        return;
+    }
+    RS_LOGD("Clean() start, remotePid: %{public}s", std::to_string(pid).c_str());
+    RS_TRACE_NAME("RSRenderPipelineAgent::Clean begin, remotePid: " + std::to_string(pid));
+    RsCommandVerifyHelper::GetInstance().RemoveCntWithPid(pid);
+    rsRenderPipeline_->ScheduleMainThreadTask(
+        [mainThread = rsRenderPipeline_->GetMainThread(), pid]() {
+            if (mainThread == nullptr) {
+                return;
+            }
+            mainThread->ResetResources(pid);
+        }).wait();
+    RSSurfaceBufferCallbackManager::Instance().UnregisterSurfaceBufferCallback(pid);
+    RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(pid);
+    RS_TRACE_NAME("RSRenderPipelineAgent::Clean end, remotePid: " + std::to_string(pid));
+}
+
 ErrCode RSRenderPipelineAgent::SetColorFollow(const std::string& nodeIdStr, bool isColorFollow)
 {
     if (rsRenderPipeline_ == nullptr) {

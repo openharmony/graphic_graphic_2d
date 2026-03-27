@@ -117,10 +117,15 @@ RSClientToRenderConnection::RSClientToRenderConnection(
       renderPipelineAgent_(renderPipelineAgent),
       token_(token),
       connDeathRecipient_(new RSConnectionDeathRecipient(this)),
+      connRefreshRecipient_(new RSConnectionRefreshRecipient(this)),
       applicationDeathRecipient_(new RSApplicationRenderThreadDeathRecipient(this))
 {
     if (token_ == nullptr || !token_->AddDeathRecipient(connDeathRecipient_)) {
         RS_LOGW("RSClientToRenderConnection: Failed to set death recipient.");
+        return;
+    }
+    if (!token_->AddRefreshRecipient(connRefreshRecipient_)) {
+        RS_LOGW("RSClientToRenderConnection: Failed to set refresh recipient.");
         return;
     }
 
@@ -165,6 +170,22 @@ void RSClientToRenderConnection::CleanAll(bool toDelete) noexcept
     }
 }
 
+void RSClientToRenderConnection::Clean() noexpect
+{
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (cleanDone_) {
+            return;
+        }
+    }
+
+    if (renderPipelineAgent_ == nullptr) {
+        return;
+    }
+
+    renderPipelineAgent_->Clean(remotePid_);
+}
+
 RSClientToRenderConnection::RSConnectionDeathRecipient::RSConnectionDeathRecipient(
     wptr<RSClientToRenderConnection> conn) : conn_(conn)
 {
@@ -190,6 +211,34 @@ void RSClientToRenderConnection::RSConnectionDeathRecipient::OnRemoteDied(const 
     }
 
     rsConn->CleanAll(true);
+}
+
+RSClientToRenderConnection::RSConnectionRefreshRecipient::RSConnectionRefreshRecipient(
+    wptr<RSClientToRenderConnection> conn) : conn_(conn)
+{
+}
+
+void RSClientToRenderConnection::RSConnectionRefreshRecipient::OnRemoteRefreshed(const wptr<IRemoteObject>& token)
+{
+    auto tokenSptr = token.promote();
+    if (tokenSptr == nullptr) {
+        RS_LOGW("RSRenderServiceConnection::RSConnectionRefreshRecipient: can't promote remote object");
+        return;
+    }
+
+    auto rsConn = conn_.promote();
+    if (rsConn == nullptr) {
+        RS_LOGW("RSConnectionRefreshRecipient::OnRemoteRefreshed: RSRenderServiceConnection was dead, do not hing");
+        return;
+    }
+
+    if (rsConn->GetToken() != tokenSptr) {
+        RS_LOGI("RSConnectionRefreshRecipient::OnRemoteRefreshed: token  doesn't match, ignore it");
+        return;
+    }
+    RS_LOGI("RSConnectionRefreshRecipient::OnRemoteRefreshed: call clean");
+
+    rsConn->Clean();
 }
 
 RSClientToRenderConnection::RSApplicationRenderThreadDeathRecipient::RSApplicationRenderThreadDeathRecipient(

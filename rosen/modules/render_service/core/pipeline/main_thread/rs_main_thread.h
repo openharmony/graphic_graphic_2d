@@ -178,6 +178,7 @@ public:
     bool SurfaceOcclusionCallBackIfOnTreeStateChanged();
 
     void ClearTransactionDataPidInfo(pid_t remotePid);
+    void ResetTransactionDataPidInfo(pid_t remotePid);
     void AddTransactionDataPidInfo(pid_t remotePid);
 
     void SetFocusAppInfo(const FocusAppInfo& info);
@@ -424,6 +425,7 @@ public:
     bool TransitionDataMutexLockIfNoCommands();
     void TransitionDataMutexUnlock();
     void CleanResources(pid_t pid);
+    void ResetResources(pid_t pid);
     
     const std::shared_ptr<RSHwcContext>& GetHwcContext() const { return hwcContext_; }
 

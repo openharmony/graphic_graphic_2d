@@ -849,6 +849,45 @@ void RSMainThread::CleanResources(pid_t pid)
     }
 }
 
+void RSMainThread::ResetResources(pid_t pid)
+{
+    RS_TRACE_NAME_FMT("ResetResources %d", pid);
+    // 0. CleanRenderNodes
+    {
+        RS_TRACE_BEGIN("CleanRenderNodes");
+        CleanRenderNodes(pid);
+        CleanBrightnessInfoChangeCallbacks(pid);
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+        CleanCanvasCallbacksAndPendingBuffer();
+#endif
+        RS_TRACE_END();
+    }
+
+    {
+        RS_TRACE_BEGIN("ResetTransactionDataPidInfo");
+        ResetTransactionDataPidInfo(pid);
+        if (IsRequestedNextVSync()) {
+            SetDirtyFlag();
+        }
+        RS_TRACE_END();
+    }
+
+    {
+        RS_TRACE_BEGIN("UnRegisterCallback");
+        UnRegisterOcclusionChangeCallback(pid);
+        ClearSurfaceOcclusionChangeCallback(pid);
+        UnRegisterUIExtensionCallback(pid);
+        RS_TRACE_END();
+    }
+
+    ClearSurfaceWatermark(pid);
+
+    if (SelfDrawingNodeMonitor::GetInstance().IsListeningEnabled()) {
+            auto &monitor = SelfDrawingNodeMonitor::GetInstance();
+            monitor.UnRegisterRectChangeCallback(pid);
+    }
+}
+
 void RSMainThread::OnScreenConnected(const sptr<RSScreenProperty>& screenProperty)
 {
     if (!screenProperty) {
@@ -4192,6 +4231,20 @@ void RSMainThread::ClearTransactionDataPidInfo(pid_t remotePid)
         }
 #endif
     }
+}
+
+void RSMainThread::ResetTransactionDataPidInfo(pid_t remotePid)
+{
+    if (!isUniRender_) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(transitionDataMutex_);
+    auto it = effectiveTransactionDataIndexMap_.find(remotePid);
+    if (it != effectiveTransactionDataIndexMap_.end()) {
+        RS_LOGI("ResetTransactionDataPidInfo, remotePid: %{public}d", remotePid);
+        it->second.first = 0;
+    }
+    transactionDataLastWaitTime_.erase(remotePid);
 }
 
 bool RSMainThread::IsResidentProcess(pid_t pid) const
