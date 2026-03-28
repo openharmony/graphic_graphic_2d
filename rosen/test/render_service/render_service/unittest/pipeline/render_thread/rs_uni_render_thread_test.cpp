@@ -313,10 +313,10 @@ HWTEST_F(RSUniRenderThreadTest, IfIsMarkLayerEnabledAddToDrawableListTest, TestS
 {
     RSUniRenderThread& instance = RSUniRenderThread::Instance();
     auto node = std::make_shared<RSRenderNode>(100, true);
-    EXPECT_FALSE(node->renderIsMarkLayer_);
+    EXPECT_FALSE(node->renderIsLayer_);
     instance.IfIsMarkLayerEnabledAddToDrawableList(node);
     EXPECT_TRUE(DrawableV2::RSRenderNodeDrawable::layerNodesDrawable_.empty());
-    node->renderIsMarkLayer_ = true;
+    node->renderIsLayer_ = true;
     instance.IfIsMarkLayerEnabledAddToDrawableList(node);
     EXPECT_FALSE(DrawableV2::RSRenderNodeDrawable::layerNodesDrawable_.empty());
 }
