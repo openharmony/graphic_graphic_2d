@@ -35,6 +35,9 @@ static const std::string FILE_NAME = "/system/fonts/visibility_list.json";
 static const std::string TEST_FONT_PATH = "/system/fonts/NotoSans[wdth,wght].ttf";
 static const std::string TEST_TTC_PATH = "/system/fonts/NotoSansCJK-Regular.ttc";
 static const std::string NON_EXISTENT_PATH = "/system/fonts/nonexistent.ttf";
+static const std::string VARIABLE_FONT_PATH = "/system/fonts/HarmonyOS_Sans_SC.ttf";
+static const std::string UNVARIABLE_FONT_PATH = "/system/fonts/HarmonyOS_Sans.ttf";
+static const std::string ANOTHERVARIABLE_FONT_PATH = "/system/fonts/HarmonyOS_Sans_Naskh_Arabic.ttf";
 
 class FontParserTest : public testing::Test {
 };
@@ -1187,6 +1190,340 @@ HWTEST_F(FontParserTest, FillFontDescriptorWithVariationInfoMultipleLanguagesTes
             // Verify structure is populated
             EXPECT_GT(desc2.variationAxisRecords.size(), 0);
         }
+    }
+
+    testFile.close();
+}
+
+/**
+ * @tc.name: VariableFontAxisTest
+ * @tc.desc: Test variable font axis information for HarmonyOS_Sans_SC.ttf
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontParserTest, VariableFontAxisTest, TestSize.Level0)
+{
+    FontParser fontParser;
+    std::ifstream testFile(VARIABLE_FONT_PATH.c_str());
+    if (!testFile.is_open()) {
+        GTEST_SKIP();
+    }
+
+    auto typeface = Drawing::Typeface::MakeFromFile(VARIABLE_FONT_PATH.c_str());
+    ASSERT_NE(typeface, nullptr);
+
+    FontParser::FontDescriptor desc;
+    std::vector<std::string> bcpTagList = {"en"};
+    FontParser::FillFontDescriptorWithVariationInfo(typeface, desc, bcpTagList);
+
+    // HarmonyOS_Sans_SC.ttf is a variable font, should have variation axes
+    EXPECT_FALSE(desc.variationAxisRecords.empty());
+
+    // Should have exactly 1 axis (wght - weight)
+    EXPECT_EQ(desc.variationAxisRecords.size(), 1);
+
+    // Verify the 'wght' (weight) axis
+    const auto& wghtAxis = desc.variationAxisRecords[0];
+    EXPECT_EQ(wghtAxis.key, "wght");
+    EXPECT_EQ(wghtAxis.minValue, 40);
+    EXPECT_EQ(wghtAxis.defaultValue, 400);
+    EXPECT_EQ(wghtAxis.maxValue, 900);
+    EXPECT_EQ(wghtAxis.name, "Weight");
+
+    testFile.close();
+}
+
+/**
+ * @tc.name: VariableFontInstancesTest
+ * @tc.desc: Test variable font instance information for HarmonyOS_Sans_SC.ttf
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontParserTest, VariableFontInstancesTest, TestSize.Level0)
+{
+    FontParser fontParser;
+    std::ifstream testFile(VARIABLE_FONT_PATH.c_str());
+    if (!testFile.is_open()) {
+        GTEST_SKIP();
+    }
+
+    auto typeface = Drawing::Typeface::MakeFromFile(VARIABLE_FONT_PATH.c_str());
+    ASSERT_NE(typeface, nullptr);
+
+    FontParser::FontDescriptor desc;
+    std::vector<std::string> bcpTagList = {"en"};
+    FontParser::FillFontDescriptorWithVariationInfo(typeface, desc, bcpTagList);
+
+    // HarmonyOS_Sans_SC.ttf should have 9 named instances
+    EXPECT_FALSE(desc.variationInstanceRecords.empty());
+    EXPECT_EQ(desc.variationInstanceRecords.size(), 9);
+
+    // Expected instance data
+    struct ExpectedInstance {
+        std::string name;
+        int wghtValue;
+    };
+    std::vector<ExpectedInstance> expectedInstances = {
+        {"Thin", 100},
+        {"UltraLight", 173},
+        {"Light", 247},
+        {"Regular", 400},
+        {"Medium", 500},
+        {"SemiBold", 603},
+        {"Bold", 706},
+        {"Heavy", 772},
+        {"Black", 844}
+    };
+
+    // Verify each instance
+    for (size_t i = 0; i < expectedInstances.size() && i < desc.variationInstanceRecords.size(); ++i) {
+        const auto& instance = desc.variationInstanceRecords[i];
+        const auto& expected = expectedInstances[i];
+
+        EXPECT_EQ(instance.name, expected.name);
+        EXPECT_FALSE(instance.coordinates.empty());
+        EXPECT_EQ(instance.coordinates.size(), 1);
+
+        // Verify wght coordinate value
+        const auto& coord = instance.coordinates[0];
+        EXPECT_EQ(coord.axis, "wght");
+        EXPECT_EQ(coord.value, expected.wghtValue);
+    }
+
+    testFile.close();
+}
+
+/**
+ * @tc.name: UnvariableFontNoVariationTest
+ * @tc.desc: Test that non-variable font has no variation information
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontParserTest, UnvariableFontNoVariationTest, TestSize.Level0)
+{
+    FontParser fontParser;
+    std::ifstream testFile(UNVARIABLE_FONT_PATH.c_str());
+    if (!testFile.is_open()) {
+        GTEST_SKIP();
+    }
+
+    auto typeface = Drawing::Typeface::MakeFromFile(UNVARIABLE_FONT_PATH.c_str());
+    ASSERT_NE(typeface, nullptr);
+
+    FontParser::FontDescriptor desc;
+    std::vector<std::string> bcpTagList = {"en"};
+    FontParser::FillFontDescriptorWithVariationInfo(typeface, desc, bcpTagList);
+
+    // HarmonyOS_Sans.ttf is not a variable font, should have no variation records
+    EXPECT_TRUE(desc.variationAxisRecords.empty());
+    EXPECT_TRUE(desc.variationInstanceRecords.empty());
+
+    testFile.close();
+}
+
+/**
+ * @tc.name: VariableFontAxisRangeTest
+ * @tc.desc: Test variable font axis range constraints for HarmonyOS_Sans_SC.ttf
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontParserTest, VariableFontAxisRangeTest, TestSize.Level0)
+{
+    FontParser fontParser;
+    std::ifstream testFile(VARIABLE_FONT_PATH.c_str());
+    if (!testFile.is_open()) {
+        GTEST_SKIP();
+    }
+
+    auto typeface = Drawing::Typeface::MakeFromFile(VARIABLE_FONT_PATH.c_str());
+    ASSERT_NE(typeface, nullptr);
+
+    FontParser::FontDescriptor desc;
+    std::vector<std::string> bcpTagList = {"en"};
+    FontParser::FillFontDescriptorWithVariationInfo(typeface, desc, bcpTagList);
+
+    // Verify axis range constraints
+    for (const auto& axis : desc.variationAxisRecords) {
+        // Min should be less than or equal to default
+        EXPECT_LE(axis.minValue, axis.defaultValue);
+        // Default should be less than or equal to max
+        EXPECT_LE(axis.defaultValue, axis.maxValue);
+        // Min should be less than max
+        EXPECT_LE(axis.minValue, axis.maxValue);
+    }
+
+    testFile.close();
+}
+
+/**
+ * @tc.name: VariableFontInstanceCoordinatesTest
+ * @tc.desc: Test that all instance coordinates fall within axis range
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontParserTest, VariableFontInstanceCoordinatesTest, TestSize.Level0)
+{
+    FontParser fontParser;
+    std::ifstream testFile(VARIABLE_FONT_PATH.c_str());
+    if (!testFile.is_open()) {
+        GTEST_SKIP();
+    }
+
+    auto typeface = Drawing::Typeface::MakeFromFile(VARIABLE_FONT_PATH.c_str());
+    ASSERT_NE(typeface, nullptr);
+
+    FontParser::FontDescriptor desc;
+    std::vector<std::string> bcpTagList = {"en"};
+    FontParser::FillFontDescriptorWithVariationInfo(typeface, desc, bcpTagList);
+
+    // Build a map of axis ranges
+    std::map<std::string, std::pair<int, int>> axisRanges;
+    for (const auto& axis : desc.variationAxisRecords) {
+        axisRanges[axis.key] = {axis.minValue, axis.maxValue};
+    }
+
+    // Verify all instance coordinates fall within axis ranges
+    for (const auto& instance : desc.variationInstanceRecords) {
+        for (const auto& coord : instance.coordinates) {
+            auto it = axisRanges.find(coord.axis);
+            EXPECT_NE(it, axisRanges.end());
+
+            int minValue = it->second.first;
+            int maxValue = it->second.second;
+
+            // Coordinate value should be within [minValue, maxValue]
+            EXPECT_GE(coord.value, minValue);
+            EXPECT_LE(coord.value, maxValue);
+        }
+    }
+
+    testFile.close();
+}
+
+/**
+ * @tc.name: VariableFontChineseLocaleTest
+ * @tc.desc: Test variable font with Chinese locale for HarmonyOS_Sans_SC.ttf
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontParserTest, VariableFontChineseLocaleTest, TestSize.Level0)
+{
+    FontParser fontParser;
+    std::ifstream testFile(VARIABLE_FONT_PATH.c_str());
+    if (!testFile.is_open()) {
+        GTEST_SKIP();
+    }
+
+    auto typeface = Drawing::Typeface::MakeFromFile(VARIABLE_FONT_PATH.c_str());
+    ASSERT_NE(typeface, nullptr);
+
+    FontParser::FontDescriptor desc;
+    std::vector<std::string> bcpTagList = {"zh-Hans", "zh"};
+    FontParser::FillFontDescriptorWithVariationInfo(typeface, desc, bcpTagList);
+
+    // Should still have variation data with Chinese locale
+    EXPECT_FALSE(desc.variationAxisRecords.empty());
+    EXPECT_EQ(desc.variationAxisRecords.size(), 1);
+
+    // Axis technical values should be the same regardless of locale
+    const auto& wghtAxis = desc.variationAxisRecords[0];
+    EXPECT_EQ(wghtAxis.key, "wght");
+    EXPECT_EQ(wghtAxis.minValue, 40);
+    EXPECT_EQ(wghtAxis.defaultValue, 400);
+    EXPECT_EQ(wghtAxis.maxValue, 900);
+
+    // Instance data should also be present
+    EXPECT_FALSE(desc.variationInstanceRecords.empty());
+    EXPECT_EQ(desc.variationInstanceRecords.size(), 9);
+
+    testFile.close();
+}
+
+/**
+ * @tc.name: ArabicVariantVariableFontAxisTest
+ * @tc.desc: Test variable font axis information for HarmonyOS_Sans_Naskh_Arabic.ttf
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontParserTest, ArabicVariantVariableFontAxisTest, TestSize.Level0)
+{
+    FontParser fontParser;
+    std::ifstream testFile(ANOTHERVARIABLE_FONT_PATH.c_str());
+    if (!testFile.is_open()) {
+        GTEST_SKIP();
+    }
+
+    auto typeface = Drawing::Typeface::MakeFromFile(ANOTHERVARIABLE_FONT_PATH.c_str());
+    ASSERT_NE(typeface, nullptr);
+
+    FontParser::FontDescriptor desc;
+    std::vector<std::string> bcpTagList = {"en"};
+    FontParser::FillFontDescriptorWithVariationInfo(typeface, desc, bcpTagList);
+
+    // HarmonyOS_Sans_Naskh_Arabic.ttf is a variable font, should have variation axes
+    EXPECT_FALSE(desc.variationAxisRecords.empty());
+
+    // Should have exactly 1 axis (wght - weight)
+    EXPECT_EQ(desc.variationAxisRecords.size(), 1);
+
+    // Verify the 'wght' (weight) axis
+    const auto& wghtAxis = desc.variationAxisRecords[0];
+    EXPECT_EQ(wghtAxis.key, "wght");
+    EXPECT_EQ(wghtAxis.minValue, 100);
+    EXPECT_EQ(wghtAxis.defaultValue, 400);
+    EXPECT_EQ(wghtAxis.maxValue, 900);
+    EXPECT_EQ(wghtAxis.name, "Weight");
+
+    testFile.close();
+}
+
+/**
+ * @tc.name: ArabicVariantVariableFontInstancesTest
+ * @tc.desc: Test variable font instance information for HarmonyOS_Sans_Naskh_Arabic.ttf
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontParserTest, ArabicVariantVariableFontInstancesTest, TestSize.Level0)
+{
+    FontParser fontParser;
+    std::ifstream testFile(ANOTHERVARIABLE_FONT_PATH.c_str());
+    if (!testFile.is_open()) {
+        GTEST_SKIP();
+    }
+
+    auto typeface = Drawing::Typeface::MakeFromFile(ANOTHERVARIABLE_FONT_PATH.c_str());
+    ASSERT_NE(typeface, nullptr);
+
+    FontParser::FontDescriptor desc;
+    std::vector<std::string> bcpTagList = {"en"};
+    FontParser::FillFontDescriptorWithVariationInfo(typeface, desc, bcpTagList);
+
+    // HarmonyOS_Sans_Naskh_Arabic.ttf should have 9 named instances
+    EXPECT_FALSE(desc.variationInstanceRecords.empty());
+    EXPECT_EQ(desc.variationInstanceRecords.size(), 9);
+
+    // Expected instance data
+    struct ExpectedInstance {
+        std::string name;
+        int wghtValue;
+    };
+    std::vector<ExpectedInstance> expectedInstances = {
+        {"Thin", 100},
+        {"UltraLight", 173},
+        {"Light", 247},
+        {"Regular", 400},
+        {"Medium", 500},
+        {"SemiBold", 603},
+        {"Bold", 706},
+        {"Heavy", 772},
+        {"Black", 844}
+    };
+
+    // Verify each instance
+    for (size_t i = 0; i < expectedInstances.size() && i < desc.variationInstanceRecords.size(); ++i) {
+        const auto& instance = desc.variationInstanceRecords[i];
+        const auto& expected = expectedInstances[i];
+
+        EXPECT_EQ(instance.name, expected.name);
+        EXPECT_FALSE(instance.coordinates.empty());
+        EXPECT_EQ(instance.coordinates.size(), 1);
+
+        // Verify wght coordinate value
+        const auto& coord = instance.coordinates[0];
+        EXPECT_EQ(coord.axis, "wght");
+        EXPECT_EQ(coord.value, expected.wghtValue);
     }
 
     testFile.close();

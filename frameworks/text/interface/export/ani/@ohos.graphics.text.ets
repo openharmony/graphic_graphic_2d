@@ -87,6 +87,7 @@ export default namespace text {
       }) as Promise<void>;
     }
     native clearCaches(): void;
+    native setParagraphCachesEnabled(enable: boolean): void;
 
     private static native nativeTransferStatic(input: ESValue): Object;
     static transferStatic(input: Any): Object {

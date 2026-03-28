@@ -62,8 +62,8 @@ public:
     virtual LoadSymbolErrorCode LoadSymbolFont(const std::string& familyName, const uint8_t* data, size_t datalen) = 0;
     virtual LoadSymbolErrorCode LoadSymbolJson(const std::string& familyName, const uint8_t* data, size_t datalen) = 0;
     virtual void ClearCaches() = 0;
+    virtual void SetCachesEnabled(bool enable) = 0;
     virtual bool UnloadFont(const std::string& familyName) = 0;
-    virtual void UpdateDefaultFamilies() = 0;
 
     static void RegisterUnloadFontStartCallback(FontCallbackType cb);
     static void RegisterUnloadFontFinishCallback(FontCallbackType cb);

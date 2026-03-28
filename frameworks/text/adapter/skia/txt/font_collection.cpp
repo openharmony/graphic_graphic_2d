@@ -26,6 +26,7 @@
 #include "txt/platform.h"
 #include "txt/text_style.h"
 #include "txt/variation_font_cache.h"
+#include "utils/text_log.h"
 
 namespace txt {
 FontCollection::FontCollection()
@@ -209,6 +210,25 @@ void FontCollection::RemoveVariationCacheByOriginalUniqueId(uint32_t originalUni
 {
     if (variationFontCache_ != nullptr) {
         variationFontCache_->RemoveByOriginalUniqueId(originalUniqueId);
+    }
+}
+
+void FontCollection::SetCachesEnabled(bool enable)
+{
+    std::unique_lock lock(collectionMutex_);
+    if (sktFontCollection_) {
+        auto* cache = sktFontCollection_->getParagraphCache();
+        if (cache) {
+            cache->turnOn(enable);
+            if (enable) {
+                TEXT_LOGI("Paragraph cache enabled");
+            } else {
+                cache->reset();
+                TEXT_LOGI("Paragraph cache disabled and reset");
+            }
+        } else {
+            TEXT_LOGE("Paragraph cache is null");
+        }
     }
 }
 } // namespace txt
