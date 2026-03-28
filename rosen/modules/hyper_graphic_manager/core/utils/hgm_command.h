@@ -242,7 +242,7 @@ public:
     // vrate <"minifps", "1">
     std::unordered_map<std::string, std::string> vRateControlList_;
     // hover status frame up switch
-    bool hoverFrameUpSwitch_;
+    bool hoverFrameUpSwitch_ = false;
     DynamicSettingMap GetAceSceneDynamicSettingMap(const std::string& screenType, const std::string& settingMode) const;
     int32_t SettingModeId2XmlModeId(int32_t settingModeId) const;
     int32_t XmlModeId2SettingModeId(const std::string& xmlModeId) const;
