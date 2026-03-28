@@ -1330,6 +1330,7 @@ void HgmFrameRateManager::UpdateASStateForFps(bool state)
     if (asStateForFps_.exchange(state) != state) {
         CreateVSyncSampler()->SetAdaptive(AdaptiveStatus() == SupportASStatus::SUPPORT_AS);
         RS_TRACE_NAME_FMT("ASStateForFps change new state: %d", state);
+        TriggerAdaptiveVsyncUpdateCallback();
     }
 }
 
