@@ -231,7 +231,7 @@ bool RSOpincManager::CalculateLayerPartRenderDirtyRegion(RSRenderNode& node,
         layerPartRenderDirtyManager->MergeDirtyRect(layerCurDirty);
         layerPartRenderDirtyManager->UpdateDirty();
         layerCurDirty = geoPtr->MapRect(layerCurDirty.ConvertTo<float>(), invertMatrix);
-        auto nodeAbsRectMap = geoPtr->MapRect(nodeAbsRect.ConvertTo<float>(), invertMatrix);
+        [[maybe_unused]] auto nodeAbsRectMap = geoPtr->MapRect(nodeAbsRect.ConvertTo<float>(), invertMatrix);
         RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", UnchangeState convert to layerCurDirty after Map:[%d,%d,%d,%d], "
             "nodeAbsRectMap:[%d,%d,%d,%d], nodeAbsRect:[%d,%d,%d,%d]", node.GetId(),
             layerCurDirty.GetLeft(), layerCurDirty.GetTop(), layerCurDirty.GetWidth(), layerCurDirty.GetHeight(),
@@ -259,7 +259,7 @@ bool RSOpincManager::CalculateLayerPartRenderDirtyRegion(RSRenderNode& node,
         layerPartRenderDirtyManager->UpdateDirty();
     }
     layerCurDirty = geoPtr->MapRect(layerCurDirty.ConvertTo<float>(), invertMatrix);
-    auto nodeAbsRectMap = geoPtr->MapRect(nodeAbsRect.ConvertTo<float>(), invertMatrix);
+    [[maybe_unused]] auto nodeAbsRectMap = geoPtr->MapRect(nodeAbsRect.ConvertTo<float>(), invertMatrix);
     RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", convert to layerCurDirty after Map:[%d,%d,%d,%d], nodeAbsRectMap:[%d,%d,%d,%d]",
         node.GetId(), layerCurDirty.GetLeft(), layerCurDirty.GetTop(),
         layerCurDirty.GetWidth(), layerCurDirty.GetHeight(),
@@ -284,6 +284,8 @@ void RSOpincManager::CalculateAndUpdateLayerPartRenderDirtyRegion(RSRenderNode& 
     if (node.GetOpincCache().GetLayerPartRenderNodeStrategyType() == NodeStrategyType::CACHE_DISABLE) {
         RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", LayerPartRender clean cache", node.GetId());
         node.MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_USER, false, false);
+        node.CheckDrawingCacheType();
+        stagingRenderParams->SetDrawingCacheType(node.GetDrawingCacheType());
         stagingRenderParams->SetLayerPartRenderEnabled(false);
         node.GetOpincCache().SetLayerPartRenderNodeStrategyType(NodeStrategyType::CACHE_NONE);
         layerPartRenderDirtyManager = nullptr;
@@ -301,10 +303,13 @@ void RSOpincManager::CalculateAndUpdateLayerPartRenderDirtyRegion(RSRenderNode& 
     }
 
     RectI layerCurDirty;
-    if (!CalculateLayerPartRenderDirtyRegion(node, layerPartRenderDirtyManager, visibleFilterRect, layerCurDirty)) {
+    if (!CalculateLayerPartRenderDirtyRegion(node, layerPartRenderDirtyManager, visibleFilterRect, layerCurDirty) || 
+        layerPartRenderDirtyManager->HasUifirstChild()) {
         node.MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_USER, false, false);
+        node.CheckDrawingCacheType();
+        stagingRenderParams->SetDrawingCacheType(node.GetDrawingCacheType());
         stagingRenderParams->SetLayerPartRenderEnabled(false);
-        RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", Calculate error, clear", node.GetId());
+        RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", Calculate error or has uifirst child, clear", node.GetId());
         return;
     }
 

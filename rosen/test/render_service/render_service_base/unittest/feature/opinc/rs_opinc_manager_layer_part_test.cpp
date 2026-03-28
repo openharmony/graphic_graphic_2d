@@ -576,6 +576,7 @@ HWTEST_F(RSOpincManagerLayerPartTest, CalculateAndUpdateLayerPartRenderDirtyRegi
     ASSERT_NE(context.node, nullptr);
     ASSERT_NE(context.dirtyManager, nullptr);
     ASSERT_NE(context.stagingRenderParams, nullptr);
+    context.stagingRenderParams->SetDrawingCacheType(RSDrawingCacheType::FORCED_CACHE);
     context.node->GetOpincCache().SetLayerPartRenderNodeStrategyType(NodeStrategyType::CACHE_DISABLE);
     context.node->GetOpincCache().SetLayerPartRender(true);
 
@@ -584,7 +585,34 @@ HWTEST_F(RSOpincManagerLayerPartTest, CalculateAndUpdateLayerPartRenderDirtyRegi
 
     EXPECT_EQ(context.dirtyManager, nullptr);
     EXPECT_FALSE(context.stagingRenderParams->GetLayerPartRenderEnabled());
+    EXPECT_EQ(context.stagingRenderParams->GetDrawingCacheType(), context.node->GetDrawingCacheType());
     EXPECT_EQ(context.node->GetOpincCache().GetLayerPartRenderNodeStrategyType(), NodeStrategyType::CACHE_NONE);
+}
+
+/**
+ * @tc.name: CalculateAndUpdateLayerPartRenderDirtyRegionHasUifirstChildPathHit
+ * @tc.desc: Verify has-uifirst-child path clears layer-part render and keeps dirty manager for caller
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSOpincManagerLayerPartTest, CalculateAndUpdateLayerPartRenderDirtyRegionHasUifirstChildPathHit,
+    TestSize.Level1)
+{
+    auto context = CreateLayerPartUpdateCaseContext(DEFAULT_NODE_ID + 34, true);
+    ASSERT_NE(context.node, nullptr);
+    ASSERT_NE(context.dirtyManager, nullptr);
+    ASSERT_NE(context.stagingRenderParams, nullptr);
+    context.node->GetOpincCache().SetLayerPartRender(true);
+    context.node->MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_USER, true, false);
+    context.dirtyManager->SetHasUifirstChild(true);
+
+    RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(
+        *context.node, context.dirtyManager, DEFAULT_ABS_RECT);
+
+    EXPECT_NE(context.dirtyManager, nullptr);
+    EXPECT_FALSE(context.stagingRenderParams->GetLayerPartRenderEnabled());
+    EXPECT_EQ(context.node->GetNodeGroupType(), RSRenderNode::NodeGroupType::NONE);
+    EXPECT_EQ(context.stagingRenderParams->GetDrawingCacheType(), context.node->GetDrawingCacheType());
 }
 
 /**

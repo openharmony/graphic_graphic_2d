@@ -1281,6 +1281,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     dirtyFlag_ = dirtyFlag;
     isSkipDrawInVirtualScreen_ = preIsSkipDraw;
     PrepareForUIFirstNode(node);
+    node.UpdateLayerPartRenderStatus(curLayerPartRenderDirtyManager_);
     PrepareForCrossNode(node);
 #ifdef SUBTREE_PARALLEL_ENABLE
     if (node.GetSubThreadAssignable() || !isInFocusSurface_) {
