@@ -31,6 +31,7 @@ ohos_unittest("rosen_text_adapt_test") {
     "typography_character_index_test.cpp",
     "typography_create_test.cpp",
     "typography_ellipsis_test.cpp",
+    "typography_getter_test.cpp",
     "typography_image_test.cpp",
     "typography_relayout_test.cpp",
     "typography_test.cpp",

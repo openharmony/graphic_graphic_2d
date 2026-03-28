@@ -402,7 +402,7 @@ void ParagraphImpl::UpdateColor(size_t from, size_t to, const RSColor& color,
     for (auto paintID : unresolvedPaintID) {
         paints_[paintID].SetColor(color);
     }
-    MARK_ATTRIBUTE_UPDATED();
+    MarkAttributeUpdated();
 }
 
 void ParagraphImpl::UpdatePaintsBySkiaBlock(skt::Block& skiaBlock, const std::optional<RSBrush>& brush)
@@ -415,7 +415,7 @@ void ParagraphImpl::UpdatePaintsBySkiaBlock(skt::Block& skiaBlock, const std::op
         return;
     }
     paints_[foregroundId].brush = brush;
-    MARK_ATTRIBUTE_UPDATED();
+    MarkAttributeUpdated();
 }
 #ifdef USE_M133_SKIA
 void ParagraphImpl::UpdateForegroundBrushWithValidData(skia_private::TArray<skt::Block, true>& skiaTextStyles,
@@ -442,7 +442,7 @@ void ParagraphImpl::UpdateForegroundBrushWithValidData(SkTArray<skt::Block, true
             }
         }
     }
-    MARK_ATTRIBUTE_UPDATED();
+    MarkAttributeUpdated();
 }
 #ifdef USE_M133_SKIA
 void ParagraphImpl::UpdateForegroundBrushWithNullopt(skia_private::TArray<skt::Block, true>& skiaTextStyles)
@@ -458,7 +458,7 @@ void ParagraphImpl::UpdateForegroundBrushWithNullopt(SkTArray<skt::Block, true>&
         }
         UpdatePaintsBySkiaBlock(skiaBlock, std::nullopt);
     }
-    MARK_ATTRIBUTE_UPDATED();
+    MarkAttributeUpdated();
 }
 
 void ParagraphImpl::UpdateForegroundBrush(const TextStyle& spTextStyle)
@@ -478,7 +478,7 @@ void ParagraphImpl::UpdateForegroundBrush(const TextStyle& spTextStyle)
     } else {
         UpdateForegroundBrushWithNullopt(skiaTextStyles);
     }
-    MARK_ATTRIBUTE_UPDATED();
+    MarkAttributeUpdated();
 }
 
 std::vector<TextBlobRecordInfo> ParagraphImpl::GetTextBlobRecordInfo() const

@@ -40,8 +40,6 @@ namespace OHOS {
 namespace Rosen {
 namespace SPText {
 
-#define MARK_ATTRIBUTE_UPDATED() updateAttr = true
-
 namespace skt = skia::textlayout;
 class ParagraphImpl : public Paragraph {
 public:
@@ -222,6 +220,10 @@ private:
         skt::InternalState& state, size_t index);
 
     void BuildFitStrRange(std::vector<TextRange>& fitRanges);
+    void MarkAttributeUpdated()
+    {
+        updateAttr = true;
+    }
 
     std::unique_ptr<skt::Paragraph> paragraph_;
     std::vector<PaintRecord> paints_;
@@ -232,7 +234,6 @@ private:
     uint32_t id_ = 0;
     std::vector<std::shared_ptr<HMSymbolRun>> hmSymbols_;
     std::once_flag initSymbolRunsFlag_;
-private:
     bool updateAttr{false};
 };
 } // namespace SPText

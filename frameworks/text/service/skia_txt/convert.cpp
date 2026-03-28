@@ -330,6 +330,21 @@ TextStyle Convert(const SPText::TextStyle& style)
     return textStyle;
 }
 
+void ConvertStrutStyle(const SPText::ParagraphStyle& style, TypographyStyle& typoStyle)
+{
+    typoStyle.useLineStyle = style.strutEnabled;
+    typoStyle.lineStyleFontFamilies = style.strutFontFamilies;
+    typoStyle.lineStyleFontStyle = static_cast<FontStyle>(style.strutFontStyle);
+    typoStyle.lineStyleFontWidth = static_cast<FontWidth>(style.strutFontWidth);
+    typoStyle.lineStyleFontWeight = static_cast<FontWeight>(style.strutFontWeight);
+    typoStyle.lineStyleFontSize = style.strutFontSize;
+    typoStyle.lineStyleHeightScale = style.strutHeight;
+    typoStyle.lineStyleHeightOnly = style.strutHeightOverride;
+    typoStyle.lineStyleHalfLeading = style.strutHalfLeading;
+    typoStyle.lineStyleSpacingScale = style.strutLeading;
+    typoStyle.lineStyleOnly = style.forceStrutHeight;
+}
+
 TypographyStyle Convert(const SPText::ParagraphStyle& style)
 {
     TypographyStyle typoStyle;
@@ -374,17 +389,7 @@ TypographyStyle Convert(const SPText::ParagraphStyle& style)
     typoStyle.tab.location = style.tab.location;
 
     // Strut style
-    typoStyle.useLineStyle = style.strutEnabled;
-    typoStyle.lineStyleFontFamilies = style.strutFontFamilies;
-    typoStyle.lineStyleFontStyle = static_cast<FontStyle>(style.strutFontStyle);
-    typoStyle.lineStyleFontWidth = static_cast<FontWidth>(style.strutFontWidth);
-    typoStyle.lineStyleFontWeight = static_cast<FontWeight>(style.strutFontWeight);
-    typoStyle.lineStyleFontSize = style.strutFontSize;
-    typoStyle.lineStyleHeightScale = style.strutHeight;
-    typoStyle.lineStyleHeightOnly = style.strutHeightOverride;
-    typoStyle.lineStyleHalfLeading = style.strutHalfLeading;
-    typoStyle.lineStyleSpacingScale = style.strutLeading;
-    typoStyle.lineStyleOnly = style.forceStrutHeight;
+    ConvertStrutStyle(style, typoStyle);
 
     // Text style
     OHOS::Rosen::TextStyle textStyle = Convert(style.spTextStyle);
