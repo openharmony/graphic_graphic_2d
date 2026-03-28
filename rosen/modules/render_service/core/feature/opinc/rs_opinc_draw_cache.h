@@ -141,6 +141,7 @@ public:
     {
         layerPartRenderUnchangeCount_ = 0;
     }
+
 protected:
     thread_local static inline NodeStrategyType nodeCacheType_ = NodeStrategyType::CACHE_NONE;
     static RectI screenRectInfo_;

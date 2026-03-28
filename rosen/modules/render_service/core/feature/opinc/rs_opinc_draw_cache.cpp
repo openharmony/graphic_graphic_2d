@@ -420,6 +420,7 @@ void RSOpincDrawCache::PushLayerPartRenderDirtyRegion(const RSRenderParams& para
     if (!params.GetLayerPartRenderEnabled()) {
         return;
     }
+
     Drawing::RectF absDrawRect = Drawing::RectF(params.GetAbsDrawRect().GetLeft(), params.GetAbsDrawRect().GetTop(),
         params.GetAbsDrawRect().GetRight(), params.GetAbsDrawRect().GetBottom());
     Drawing::Matrix inverseMatrix;
@@ -458,8 +459,8 @@ void RSOpincDrawCache::PushLayerPartRenderDirtyRegion(const RSRenderParams& para
 
     layerPartRenderDirtyRegion_.SetRect(CurrentFrameDirtyResult);
     auto bounds = layerPartRenderDirtyRegion_.GetBounds();
-    RS_OPTIONAL_TRACE_NAME_FMT("id:%" PRIu64 " nodeCount:%d, layerPartRenderDirtyRegion:[%d %d %d %d],"
-        "absDrawRect:[%.1f %.1f %.1f %.1f], cacheSize:[%.1f %.1f]",
+    RS_OPTIONAL_TRACE_NAME_FMT("id:%" PRIu64 ", nodeCount:%d, layerPartRenderDirtyRegion:[%d %d %d %d],"
+        "absDrawRect:[%.1f, %.1f, %.1f, %.1f], cacheSize:[%.1f, %.1f]",
         params.GetId(), nodeCount,
         bounds.GetLeft(), bounds.GetTop(), bounds.GetWidth(), bounds.GetHeight(),
         absDrawRect.GetLeft(), absDrawRect.GetTop(), absDrawRect.GetWidth(), absDrawRect.GetHeight(),

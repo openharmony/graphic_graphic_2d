@@ -309,7 +309,7 @@ void RSOpincManager::CalculateAndUpdateLayerPartRenderDirtyRegion(RSRenderNode& 
         node.CheckDrawingCacheType();
         stagingRenderParams->SetDrawingCacheType(node.GetDrawingCacheType());
         stagingRenderParams->SetLayerPartRenderEnabled(false);
-        RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", Calculate error or has uifirst child, clear", node.GetId());
+        RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", Calculate error or has uifirst node, clear", node.GetId());
         return;
     }
 
