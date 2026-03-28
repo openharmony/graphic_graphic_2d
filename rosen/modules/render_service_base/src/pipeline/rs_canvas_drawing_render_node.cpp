@@ -202,7 +202,8 @@ void RSCanvasDrawingRenderNode::ContentStyleSlotUpdate()
         return;
     }
 #ifdef RS_ENABLE_GPU
-    auto surfaceParams = GetStagingRenderParams()->GetCanvasDrawingSurfaceParams();
+    auto stagingRenderParams = static_cast<RSCanvasDrawingRenderParams*>(GetStagingRenderParams().get());
+    auto surfaceParams = stagingRenderParams->GetCanvasDrawingSurfaceParams();
     if (surfaceParams.width == 0 || surfaceParams.height == 0) {
         RS_LOGI_LIMIT("RSCanvasDrawingRenderNode::ContentStyleSlotUpdate Area Size Error, NodeId[%{public}" PRIu64 "]"
             "width[%{public}d], height[%{public}d]", GetId(), surfaceParams.width, surfaceParams.height);
@@ -698,11 +699,12 @@ void RSCanvasDrawingRenderNode::ResetSurface(int width, int height, uint32_t res
         colorSpace = appSurfaceNode->GetColorSpace();
     }
 #endif
+    auto stagingRenderParams = static_cast<RSCanvasDrawingRenderParams*>(stagingRenderParams_.get());
 #ifdef RS_ENABLE_GPU
-    stagingRenderParams_->SetCanvasDrawingSurfaceChanged(true);
-    stagingRenderParams_->SetCanvasDrawingSurfaceParams(width, height, colorSpace);
+    stagingRenderParams->SetCanvasDrawingSurfaceChanged(true);
+    stagingRenderParams->SetCanvasDrawingSurfaceParams(width, height, colorSpace);
 #endif
-    stagingRenderParams_->SetCanvasDrawingResetSurfaceIndex(resetSurfaceIndex);
+    stagingRenderParams->SetCanvasDrawingResetSurfaceIndex(resetSurfaceIndex);
     lastResetSurfaceTime_ = std::chrono::time_point_cast<std::chrono::milliseconds>(
         std::chrono::system_clock::now()).time_since_epoch().count();
     opCountAfterReset_ = 0;
