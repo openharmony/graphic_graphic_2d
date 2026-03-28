@@ -1034,6 +1034,26 @@ HWTEST_F(RSMemoryManagerTest, InterruptReclaimTaskTest001, testing::ext::TestSiz
 }
 
 /**
+ * @tc.name: InterruptReclaimTaskTest002
+ * @tc.desc: Test RECENT_REALIGN and CLEAR_1_RECENT_ANI scene
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, InterruptReclaimTaskTest002, testing::ext::TestSize.Level1)
+{
+    RSReclaimMemoryManager::Instance().SetReclaimInterrupt(true);
+    RSReclaimMemoryManager::Instance().InterruptReclaimTask("LAUNCHER_DIALER");
+    ASSERT_TRUE(RSReclaimMemoryManager::Instance().IsReclaimInterrupt());
+    RSReclaimMemoryManager::Instance().InterruptReclaimTask("EXIT_RECENT_2_HOME_ANI");
+    ASSERT_TRUE(RSReclaimMemoryManager::Instance().IsReclaimInterrupt());
+    RSReclaimMemoryManager::Instance().SetReclaimInterrupt(false);
+    RSReclaimMemoryManager::Instance().InterruptReclaimTask("RECENT_REALIGN_ANI");
+    ASSERT_FALSE(RSReclaimMemoryManager::Instance().IsReclaimInterrupt());
+    RSReclaimMemoryManager::Instance().InterruptReclaimTask("CLEAR_1_RECENT_ANI");
+    ASSERT_FALSE(RSReclaimMemoryManager::Instance().IsReclaimInterrupt());
+    RSReclaimMemoryManager::Instance().SetReclaimInterrupt(false);
+}
+/**
  * @tc.name: MemoryOverReport001
  * @tc.desc: Test MemoryOverReport
  * @tc.type: FUNC
