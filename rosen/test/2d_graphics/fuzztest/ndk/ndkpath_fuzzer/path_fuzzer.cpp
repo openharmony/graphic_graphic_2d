@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (C) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -607,6 +607,53 @@ void NativeDrawingPathTest014(const uint8_t* data, size_t size)
     OH_Drawing_PathDestroy(otherPath);
 }
 
+namespace {
+void FuzzPathGetPointData(OH_Drawing_Path* path)
+{
+    uint32_t pointCount = 0;
+    OH_Drawing_PathGetPointData(nullptr, nullptr, &pointCount);
+    OH_Drawing_PathGetPointData(path, nullptr, nullptr);
+    OH_Drawing_PathGetPointData(path, nullptr, &pointCount);
+
+    if (pointCount > 0 && pointCount < MAX_ARRAY_SIZE) {
+        OH_Drawing_Point2D* points = new OH_Drawing_Point2D[pointCount];
+        uint32_t tmpPointCount = 0;
+        OH_Drawing_PathGetPointData(path, points, &tmpPointCount);
+        delete[] points;
+    }
+}
+
+void FuzzPathGetVerbData(OH_Drawing_Path* path)
+{
+    uint32_t verbCount = 0;
+    OH_Drawing_PathGetVerbData(nullptr, nullptr, &verbCount);
+    OH_Drawing_PathGetVerbData(path, nullptr, nullptr);
+    OH_Drawing_PathGetVerbData(path, nullptr, &verbCount);
+
+    if (verbCount > 0 && verbCount < MAX_ARRAY_SIZE) {
+        OH_Drawing_PathIteratorVerb* verbs = new OH_Drawing_PathIteratorVerb[verbCount];
+        uint32_t tmpVerbCount = 0;
+        OH_Drawing_PathGetVerbData(path, verbs, &tmpVerbCount);
+        delete[] verbs;
+    }
+}
+
+void FuzzPathGetConicWeightData(OH_Drawing_Path* path)
+{
+    uint32_t weightCount = 0;
+    OH_Drawing_PathGetConicWeightData(nullptr, nullptr, &weightCount);
+    OH_Drawing_PathGetConicWeightData(path, nullptr, nullptr);
+    OH_Drawing_PathGetConicWeightData(path, nullptr, &weightCount);
+
+    if (weightCount > 0 && weightCount < MAX_ARRAY_SIZE) {
+        float* conicWeights = new float[weightCount];
+        uint32_t tmpWeightCount = 0;
+        OH_Drawing_PathGetConicWeightData(path, conicWeights, &tmpWeightCount);
+        delete[] conicWeights;
+    }
+}
+} // namespace
+
 void NativeDrawingPathTest015(const uint8_t* data, size_t size)
 {
     if (data == nullptr || size < DATA_MIN_SIZE) {
@@ -638,10 +685,12 @@ void NativeDrawingPathTest015(const uint8_t* data, size_t size)
         delete[] svgString;
         svgString = nullptr;
     }
+    FuzzPathGetPointData(path);
+    FuzzPathGetVerbData(path);
+    FuzzPathGetConicWeightData(path);
 
     OH_Drawing_PathDestroy(path);
 }
-
 
 } // namespace Drawing
 } // namespace Rosen

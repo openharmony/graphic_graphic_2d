@@ -69,6 +69,9 @@ public:
     static napi_value GetMatrix(napi_env env, napi_callback_info info);
     static napi_value BuildFromSvgString(napi_env env, napi_callback_info info);
     static napi_value ConvertToSVGString(napi_env env, napi_callback_info info);
+    static napi_value GetPointData(napi_env env, napi_callback_info info);
+    static napi_value GetVerbData(napi_env env, napi_callback_info info);
+    static napi_value GetConicWeightData(napi_env env, napi_callback_info info);
     static napi_value IsClosed(napi_env env, napi_callback_info info);
     static napi_value IsEmpty(napi_env env, napi_callback_info info);
     static napi_value IsRect(napi_env env, napi_callback_info info);
@@ -125,6 +128,9 @@ private:
     napi_value OnGetMatrix(napi_env env, napi_callback_info info);
     napi_value OnBuildFromSvgString(napi_env env, napi_callback_info info);
     napi_value OnConvertToSVGString(napi_env env, napi_callback_info info);
+    napi_value OnGetPointData(napi_env env, napi_callback_info info);
+    napi_value OnGetVerbData(napi_env env, napi_callback_info info);
+    napi_value OnGetConicWeightData(napi_env env, napi_callback_info info);
     napi_value OnIsClosed(napi_env env, napi_callback_info info);
     napi_value OnGetPathIterator(napi_env env, napi_callback_info info);
     napi_value OnApproximate(napi_env env, napi_callback_info info);

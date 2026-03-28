@@ -65,6 +65,9 @@ static const std::array g_methods = {
     ani_native_function { "isClosed", nullptr, reinterpret_cast<void*>(AniPath::IsClosed) },
     ani_native_function { "buildFromSvgString", nullptr, reinterpret_cast<void*>(AniPath::BuildFromSVGString) },
     ani_native_function { "convertToSvgString", nullptr, reinterpret_cast<void*>(AniPath::ConvertToSVGString) },
+    ani_native_function { "getPointData", nullptr, reinterpret_cast<void*>(AniPath::GetPointData) },
+    ani_native_function { "getVerbData", nullptr, reinterpret_cast<void*>(AniPath::GetVerbData) },
+    ani_native_function { "getConicWeightData", nullptr, reinterpret_cast<void*>(AniPath::GetConicWeightData) },
     ani_native_function { "cubicTo", nullptr, reinterpret_cast<void*>(AniPath::CubicTo) },
     ani_native_function { "quadTo", nullptr, reinterpret_cast<void*>(AniPath::QuadTo) },
     ani_native_function { "lineTo", nullptr, reinterpret_cast<void*>(AniPath::LineTo) },
@@ -684,6 +687,104 @@ ani_string AniPath::ConvertToSVGString(ani_env* env, ani_object obj)
 
     std::string str = aniPath->GetPath()->ConvertToSVGString();
     return CreateAniString(env, str);
+}
+
+ani_array AniPath::GetPointData(ani_env* env, ani_object obj)
+{
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
+    if (aniPath == nullptr || aniPath->GetPath() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param.");
+        return nullptr;
+    }
+
+    std::vector<Drawing::Point> points = aniPath->GetPath()->GetPointData();
+    ani_array arrayObj = CreateAniArrayWithSize(env, points.size());
+    if (arrayObj == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Create Array Faild");
+        return nullptr;
+    }
+
+    ani_size index = 0;
+    for (const auto& item : points) {
+        ani_object aniPointObj;
+        if (!CreatePointObjAndCheck(env, item, aniPointObj)) {
+            ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Create point object Faild");
+            return nullptr;
+        }
+
+        if (ANI_OK != env->Array_Set(arrayObj, index, aniPointObj)) {
+            ROSEN_LOGE("AniPath::GetPointData Array_Set Faild");
+            ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Set point array item failed.");
+            return nullptr;
+        }
+        index++;
+    }
+    return arrayObj;
+}
+
+ani_array AniPath::GetVerbData(ani_env* env, ani_object obj)
+{
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
+    if (aniPath == nullptr || aniPath->GetPath() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param.");
+        return nullptr;
+    }
+
+    std::vector<PathVerb> verbs = aniPath->GetPath()->GetVerbData();
+    ani_array arrayObj = CreateAniArrayWithSize(env, verbs.size());
+    if (arrayObj == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Create array failed.");
+        return nullptr;
+    }
+
+    for (ani_size index = 0; index < static_cast<ani_size>(verbs.size()); index++) {
+        ani_enum_item enumItem = nullptr;
+        if (!CreateAniEnumByEnumIndex(
+            env, AniGlobalEnum::GetInstance().pathIteratorVerb, static_cast<ani_size>(verbs[index]), enumItem)) {
+            ROSEN_LOGE("AniPath::GetVerbData failed to create enum item");
+            ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Create verb enum item failed.");
+            return nullptr;
+        }
+
+        if (ANI_OK != env->Array_Set(arrayObj, index, enumItem)) {
+            ROSEN_LOGE("AniPath::GetVerbData failed to set verb item");
+            ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Set verb array item failed.");
+            return nullptr;
+        }
+    }
+    return arrayObj;
+}
+
+ani_array AniPath::GetConicWeightData(ani_env* env, ani_object obj)
+{
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
+    if (aniPath == nullptr || aniPath->GetPath() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param.");
+        return nullptr;
+    }
+
+    std::vector<float> weights = aniPath->GetPath()->GetConicWeightData();
+    ani_array arrayObj = CreateAniArrayWithSize(env, weights.size());
+    if (arrayObj == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Create Array Faild");
+        return nullptr;
+    }
+
+    for (ani_size index = 0; index < static_cast<ani_size>(weights.size()); index++) {
+        ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().doubleCls,
+            AniGlobalMethod::GetInstance().doubleCtor, static_cast<double>(weights[index]));
+        if (IsUndefined(env, aniObj)) {
+            ROSEN_LOGE("AniPath::GetConicWeightData Failed to create weight item");
+            ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Create weight item failed.");
+            return nullptr;
+        }
+        if (ANI_OK != env->Array_Set(arrayObj, index, aniObj)) {
+            ROSEN_LOGE("AniPath::GetConicWeightData Failed to set weight item");
+            ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Set weight array item failed.");
+            return nullptr;
+        }
+    }
+    return arrayObj;
 }
 
 void AniPath::CubicTo(ani_env* env, ani_object obj, ani_double ctrlX1, ani_double ctrlY1, ani_double ctrlX2,

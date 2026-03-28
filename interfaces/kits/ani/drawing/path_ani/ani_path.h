@@ -69,6 +69,9 @@ public:
     static ani_boolean IsClosed(ani_env* env, ani_object obj);
     static ani_boolean BuildFromSVGString(ani_env* env, ani_object obj, ani_string aniStringObj);
     static ani_string ConvertToSVGString(ani_env* env, ani_object obj);
+    static ani_array GetPointData(ani_env* env, ani_object obj);
+    static ani_array GetVerbData(ani_env* env, ani_object obj);
+    static ani_array GetConicWeightData(ani_env* env, ani_object obj);
     static void CubicTo(ani_env* env, ani_object obj, ani_double ctrlX1, ani_double ctrlY1, ani_double ctrlX2,
         ani_double ctrlY2, ani_double endX, ani_double endY);
     static void QuadTo(ani_env* env, ani_object obj, ani_double ctrlX, ani_double ctrlY, ani_double ctrlX2,
