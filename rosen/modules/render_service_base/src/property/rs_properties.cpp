@@ -4014,6 +4014,54 @@ bool RSProperties::GetUseUnion() const
     return useUnion_;
 }
 
+void RSProperties::SetSDFUnionMode(int uniModeUC)
+{
+    if (ROSEN_EQ(uniModeUC_, uniModeUC)) {
+        return;
+    }
+    uniModeUC_ = uniModeUC;
+    isDrawn_ = true;
+    filterNeedUpdate_ = true;
+    SetDirty();
+}
+
+int RSProperties::GetSDFUnionMode() const
+{
+    return uniModeUC_;
+}
+
+void RSProperties::SetGravityPullCenterFlag(bool isGravityPullModeCenter)
+{
+    if (ROSEN_EQ(isGravityPullModeCenter_, isGravityPullModeCenter)) {
+        return;
+    }
+    isGravityPullModeCenter_ = isGravityPullModeCenter;
+    isDrawn_ = true;
+    filterNeedUpdate_ = true;
+    SetDirty();
+}
+
+bool RSProperties::GetGravityPullCenterFlag() const
+{
+    return isGravityPullModeCenter_;
+}
+
+void RSProperties::SetGravityPullStrength(float gravityPullStrength)
+{
+    if (ROSEN_EQ(gravityPullStrength_, gravityPullStrength)) {
+        return;
+    }
+    gravityPullStrength_ = gravityPullStrength;
+    isDrawn_ = true;
+    filterNeedUpdate_ = true;
+    SetDirty();
+}
+
+float RSProperties::GetGravityPullStrength() const
+{
+    return gravityPullStrength_;
+}
+
 void RSProperties::SetUnionSpacing(float spacing)
 {
     if (ROSEN_EQ(unionSpacing_, spacing)) {
