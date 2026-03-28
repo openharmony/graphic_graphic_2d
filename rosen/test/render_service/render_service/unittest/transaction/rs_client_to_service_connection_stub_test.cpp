@@ -3250,6 +3250,145 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetPhysicalScreenResolutionTest001
 }
 
 /**
+ * @tc.name: SetAsMainScreenTest001
+ * @tc.desc: Test SetAsMainScreen
+ * @tc.type: FUNC
+ * @tc.require: #23043
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetAsMainScreenTest001, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    uint32_t interfaceCode = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_AS_MAIN_SCREEN);
+
+    // case 1: only write descriptor
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+        auto res = connectionStub_->OnRemoteRequest(interfaceCode, data, reply, option);
+        EXPECT_NE(res, ERR_NONE);
+    }
+
+    // case 2: write descriptor and screenId
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        ScreenId id = 0;
+        data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+        data.WriteUint64(id);
+        auto res = connectionStub_->OnRemoteRequest(interfaceCode, data, reply, option);
+        EXPECT_NE(res, ERR_NONE);
+    }
+
+    // case 3: write descriptor, screenId and isMainScreen
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        ScreenId id = 0;
+        bool isMainScreen = true;
+        data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+        data.WriteUint64(id);
+        data.WriteBool(isMainScreen);
+        auto res = connectionStub_->OnRemoteRequest(interfaceCode, data, reply, option);
+        EXPECT_EQ(res, ERR_NONE);
+    }
+
+    // case 4: reply write failed
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        ScreenId id = 0;
+        bool isMainScreen = true;
+        data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+        data.WriteUint64(id);
+        data.WriteBool(isMainScreen);
+        reply.writable_ = false;
+        reply.data_ = nullptr;
+        auto res = connectionStub_->OnRemoteRequest(interfaceCode, data, reply, option);
+        EXPECT_NE(res, ERR_NONE);
+    }
+}
+
+/**
+ * @tc.name: SetAsMainScreenTest002
+ * @tc.desc: Test SetAsMainScreen with screenManagerAgent null
+ * @tc.type: FUNC
+ * @tc.require: #23043
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetAsMainScreenTest002, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    sptr<RSClientToServiceConnection> connection = iface_cast<RSClientToServiceConnection>(connectionStub_);
+    ASSERT_NE(connection, nullptr);
+    auto screenManagerAgent = connection->screenManagerAgent_;
+    connection->screenManagerAgent_ = nullptr;
+    ScreenId id = 0;
+    int32_t res = connection->SetAsMainScreen(id, false);
+
+    // restore
+    connection->screenManagerAgent_ = screenManagerAgent;
+    EXPECT_NE(res, StatusCode::SUCCESS);
+}
+
+/**
+ * @tc.name: GetMainScreenIdTest001
+ * @tc.desc: Test GetMainScreenId
+ * @tc.type: FUNC
+ * @tc.require: #23043
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, GetMainScreenIdTest001, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    uint32_t interfaceCode = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_MAIN_SCREEN);
+
+    // case 1: only write descriptor
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+        auto res = connectionStub_->OnRemoteRequest(interfaceCode, data, reply, option);
+        EXPECT_EQ(res, ERR_NONE);
+    }
+
+    // case 2: reply write failed
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+        reply.writable_ = false;
+        reply.data_ = nullptr;
+        auto res = connectionStub_->OnRemoteRequest(interfaceCode, data, reply, option);
+        EXPECT_NE(res, ERR_NONE);
+    }
+}
+
+/**
+ * @tc.name: GetMainScreenIdTest002
+ * @tc.desc: Test GetMainScreenId with screenManagerAgent null
+ * @tc.type: FUNC
+ * @tc.require: #23043
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, GetMainScreenIdTest002, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    sptr<RSClientToServiceConnection> connection = iface_cast<RSClientToServiceConnection>(connectionStub_);
+    ASSERT_NE(connection, nullptr);
+    auto screenManagerAgent = connection->screenManagerAgent_;
+    connection->screenManagerAgent_ = nullptr;
+    ScreenId screenId = connection->GetMainScreenId();
+
+    // restore
+    connection->screenManagerAgent_ = screenManagerAgent;
+    EXPECT_NE(screenId, StatusCode::SUCCESS);
+}
+
+/**
  * @tc.name: RemoveVirtualScreenWhiteList001
  * @tc.desc: Test RemoveVirtualScreenWhiteList
  * @tc.type: FUNC

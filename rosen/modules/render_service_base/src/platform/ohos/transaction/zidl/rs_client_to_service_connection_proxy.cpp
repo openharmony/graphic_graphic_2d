@@ -2228,6 +2228,64 @@ int32_t RSClientToServiceConnectionProxy::SetScreenCorrection(ScreenId id, Scree
     return result;
 }
 
+int32_t RSClientToServiceConnectionProxy::SetAsMainScreen(ScreenId screenId, bool isMainScreen)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("SetAsMainScreen: WriteInterfaceToken GetDescriptor err.");
+        return StatusCode::WRITE_PARCEL_ERR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteUint64(screenId)) {
+        ROSEN_LOGE("SetAsMainScreen: WriteUint64 screenId err.");
+        return StatusCode::WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteBool(isMainScreen)) {
+        ROSEN_LOGE("SetAsMainScreen: WriteBool isMainScreen err.");
+        return StatusCode::WRITE_PARCEL_ERR;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_AS_MAIN_SCREEN);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("SetAsMainScreen: SendRequest error: %{public}d", err);
+        return StatusCode::RS_CONNECTION_ERROR;
+    }
+    int32_t ret{0};
+    if (!reply.ReadInt32(ret)) {
+        ROSEN_LOGE("SetAsMainScreen: Read ret failed");
+        return StatusCode::READ_PARCEL_ERR;
+    }
+    return ret;
+}
+
+ScreenId RSClientToServiceConnectionProxy::GetMainScreenId()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("GetMainScreenId: WriteInterfaceToken GetDescriptor err.");
+        return INVALID_SCREEN_ID;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_MAIN_SCREEN);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("GetMainScreenId: SendRequest error: %{public}d", err);
+        return INVALID_SCREEN_ID;
+    }
+    ScreenId mainScreenId{INVALID_SCREEN_ID};
+    if (!reply.ReadUint64(mainScreenId)) {
+        ROSEN_LOGE("GetMainScreenId: Read mainScreenId failed");
+        return INVALID_SCREEN_ID;
+    }
+    return mainScreenId;
+}
+
 int32_t RSClientToServiceConnectionProxy::GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode)
 {
     MessageParcel data;

@@ -269,6 +269,16 @@ int32_t RSRenderServiceClient::SetDualScreenState(ScreenId id, DualScreenStatus 
     return StatusCode::RS_CONNECTION_ERROR;
 }
 
+int32_t RSRenderServiceClient::SetAsMainScreen(ScreenId screenId, bool isMainScreen)
+{
+    return StatusCode::RS_CONNECTION_ERROR;
+}
+
+ScreenId RSRenderServiceClient::GetMainScreenId()
+{
+    return INVALID_SCREEN_ID;
+}
+
 RSScreenModeInfo RSRenderServiceClient::GetScreenActiveMode(ScreenId id)
 {
     return {};

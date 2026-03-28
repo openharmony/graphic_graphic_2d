@@ -848,6 +848,46 @@ int32_t RSScreenManager::SetDualScreenState(ScreenId id, DualScreenStatus status
     return screen->SetDualScreenState(status);
 }
 
+int32_t RSScreenManager::SetAsMainScreen(ScreenId screenId, bool isMainScreen)
+{
+    auto screen = GetScreen(screenId);
+    if (screen == nullptr) {
+        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, screenId);
+        return SCREEN_NOT_FOUND;
+    }
+
+    // Reset other screens before setting the main screen to ensure the main screen is unique.
+    if (isMainScreen) {
+        std::lock_guard<std::mutex> lock(screenMapMutex_);
+        for (const auto& [id, screen] : screens_) {
+            if (screen && id != screenId) {
+                screen->SetAsMainScreen(false);
+            }
+        }
+    }
+
+    RS_LOGI("%{public}s: screenId[%{public}" PRIu64 "] isMainScreen[%{public}d]", __func__, screenId, isMainScreen);
+    return screen->SetAsMainScreen(isMainScreen);
+}
+
+ScreenId RSScreenManager::GetMainScreenId()
+{
+    std::lock_guard<std::mutex> lock(screenMapMutex_);
+    ScreenId mainScreenId = INVALID_SCREEN_ID;
+    for (const auto& [screenId, screen] : screens_) {
+        if (!screen || !screen->IsMainScreen()) {
+            continue;
+        }
+        mainScreenId = screenId;
+    }
+
+    if (mainScreenId == INVALID_SCREEN_ID) {
+        RS_LOGW("%{public}s: No main screen found", __func__);
+    }
+
+    return mainScreenId;
+}
+
 int32_t RSScreenManager::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
     if (width > MAX_VIRTUAL_SCREEN_WIDTH || height > MAX_VIRTUAL_SCREEN_HEIGHT) {

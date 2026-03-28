@@ -126,6 +126,8 @@ public:
     void SetScreenSwitchStatus(bool status);
     void SetScreenFrameGravity(ScreenId id, int32_t gravity);
     int32_t SetDualScreenState(ScreenId id, DualScreenStatus status);
+    int32_t SetAsMainScreen(ScreenId screenId, bool isMainScreen);
+    ScreenId GetMainScreenId();
     PanelPowerStatus GetPanelPowerStatus(ScreenId id) const;
 
 private:

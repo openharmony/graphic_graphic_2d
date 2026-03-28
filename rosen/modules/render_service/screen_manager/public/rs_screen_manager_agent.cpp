@@ -741,6 +741,24 @@ int32_t RSScreenManagerAgent::SetDualScreenState(ScreenId id, DualScreenStatus s
     return screenManager_->SetDualScreenState(id, status);
 }
 
+int32_t RSScreenManagerAgent::SetAsMainScreen(ScreenId screenId, bool isMainScreen)
+{
+    if (!screenManager_) {
+        RS_LOGW("%{public}s screenManager_ is nullptr", __func__);
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    return screenManager_->SetAsMainScreen(screenId, isMainScreen);
+}
+
+ScreenId RSScreenManagerAgent::GetMainScreenId()
+{
+    if (!screenManager_) {
+        RS_LOGW("%{public}s screenManager_ is nullptr", __func__);
+        return INVALID_SCREEN_ID;
+    }
+    return screenManager_->GetMainScreenId();
+}
+
 PanelPowerStatus RSScreenManagerAgent::GetPanelPowerStatus(ScreenId id) const
 {
     if (!screenManager_) {
