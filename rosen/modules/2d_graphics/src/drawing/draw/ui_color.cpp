@@ -57,7 +57,7 @@ UIColor::UIColor(float red, float green, float blue, float alpha, float headroom
     green_ = green < 0.0 ? 0.0 : green;
     blue_ = blue < 0.0 ? 0.0 : blue;
     alpha_ = ClampAlpha(alpha);
-    headroom_ = headroom < 1.0 ? 1.0 : headroom_;
+    headroom_ = headroom < 1.0 ? 1.0 : headroom;
 }
 
 float UIColor::GetRed() const
