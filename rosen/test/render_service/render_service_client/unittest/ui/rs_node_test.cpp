@@ -8521,4 +8521,79 @@ HWTEST_F(RSNodeTest, SetHDRColorHeadroomTest, TestSize.Level1)
     rsNode->SetHDRColorHeadroom(1.0f);
     EXPECT_FLOAT_EQ(rsNode->GetStagingProperties().GetHDRColorHeadroom(), 1.0f);
 }
+
+/**
+ * @tc.name: SetPositionZApplicableCamera3DTest
+ * @tc.desc: test results of SetPositionZApplicableCamera3D
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeTest, SetPositionZApplicableCamera3DTest, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_TRUE(rsNode != nullptr);
+    rsNode->SetPositionZApplicableCamera3D(true);
+    rsNode->SetPositionZApplicableCamera3D(false);
+}
+
+/**
+ * @tc.name: SetCornerApplyTypeTest
+ * @tc.desc: test results of SetCornerApplyType
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeTest, SetCornerApplyTypeTest, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_TRUE(rsNode != nullptr);
+    rsNode->SetCornerApplyType(RSCornerApplyType::FAST);
+    EXPECT_EQ(rsNode->GetStagingProperties().GetCornerApplyType(),
+        static_cast<int>(RSCornerApplyType::FAST));
+    rsNode->SetCornerApplyType(RSCornerApplyType::OFFSCREEN);
+    EXPECT_EQ(rsNode->GetStagingProperties().GetCornerApplyType(),
+        static_cast<int>(RSCornerApplyType::OFFSCREEN));
+}
+
+/**
+ * @tc.name: SetBorderStyleVector4Test
+ * @tc.desc: test results of SetBorderStyle with Vector4<BorderStyle>
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeTest, SetBorderStyleVector4Test, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_TRUE(rsNode != nullptr);
+    constexpr uint32_t solidVal = static_cast<uint32_t>(BorderStyle::SOLID);
+    constexpr uint32_t dashedVal = static_cast<uint32_t>(BorderStyle::DASHED);
+    constexpr uint32_t dottedVal = static_cast<uint32_t>(BorderStyle::DOTTED);
+    constexpr uint32_t noneVal = static_cast<uint32_t>(BorderStyle::NONE);
+    Vector4<BorderStyle> style(BorderStyle::SOLID, BorderStyle::DASHED, BorderStyle::DOTTED, BorderStyle::NONE);
+    rsNode->SetBorderStyle(style);
+    auto result = rsNode->GetStagingProperties().GetBorderStyle();
+    EXPECT_EQ(result.x_, solidVal);
+    EXPECT_EQ(result.y_, dashedVal);
+    EXPECT_EQ(result.z_, dottedVal);
+    EXPECT_EQ(result.w_, noneVal);
+}
+
+/**
+ * @tc.name: GetPropertyByTypeTest
+ * @tc.desc: test results of GetPropertyByType
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeTest, GetPropertyByTypeTest, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_TRUE(rsNode != nullptr);
+    auto property = rsNode->GetPropertyByType(ModifierNG::RSModifierType::BACKGROUND_COLOR,
+        ModifierNG::RSPropertyType::BACKGROUND_COLOR);
+    EXPECT_EQ(property, nullptr);
+    constexpr uint32_t colorValue = 0xffff0000;
+    rsNode->SetBackgroundColor(colorValue);
+    property = rsNode->GetPropertyByType(ModifierNG::RSModifierType::BACKGROUND_COLOR,
+        ModifierNG::RSPropertyType::BACKGROUND_COLOR);
+    EXPECT_NE(property, nullptr);
+}
 } // namespace OHOS::Rosen
