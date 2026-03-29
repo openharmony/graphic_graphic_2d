@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "feature/opinc/rs_opinc_draw_cache.h"
+#include "params/rs_canvas_drawing_render_params.h"
 #include "params/rs_render_params.h"
 #include "parameters.h"
 #include "platform/common/rs_system_properties.h"
@@ -25,7 +26,6 @@ using namespace testing::ext;
 
 namespace OHOS::Rosen {
 namespace {
-constexpr NodeId DEFAULT_ID = 0xFFFF;
 constexpr int32_t DIRTY_LEFT = 10;
 constexpr int32_t DIRTY_TOP = 10;
 constexpr int32_t DIRTY_WIDTH = 100;
@@ -60,9 +60,9 @@ const RectI PARTIAL_CACHE_REGION = {
 
 class RSOpincDrawCacheLayerPartTest : public testing::Test {
 public:
-    static std::unique_ptr<RSRenderParams> CreateRenderParams(bool enabled)
+    static std::shared_ptr<RSCanvasDrawingRenderParams> CreateRenderParams(bool enabled)
     {
-        auto params = std::make_unique<RSRenderParams>(DEFAULT_ID);
+        auto params = std::make_shared<RSCanvasDrawingRenderParams>(GenerateUniqueNodeIdForRS());
         params->SetLayerPartRenderEnabled(enabled);
         params->SetLayerPartRenderCurrentFrameDirtyRegion(DEFAULT_DIRTY_RECT);
         params->SetAbsDrawRect(DEFAULT_DIRTY_RECT);
