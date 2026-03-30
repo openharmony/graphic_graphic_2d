@@ -835,7 +835,6 @@ void HgmFrameRateManager::HandleTouchTask(pid_t pid, int32_t touchStatus, int32_
 
     // if hover frame up switch is open, POINTER_ACTION_PROXIMITY_IN and
     // POINTER_ACTION_PROXIMITY_OUT need to transform to TOUCH_DOWN and TOUCH_UP
-    auto configData = HgmCore::Instance().GetPolicyConfigData();
     if (auto configData = HgmCore::Instance().GetPolicyConfigData();
         configData != nullptr && configData->hoverFrameUpSwitch_) {
         if (touchStatus == POINTER_ACTION_PROXIMITY_IN) {
