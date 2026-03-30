@@ -860,6 +860,16 @@ bool RSSystemProperties::GetDefaultMemClearEnabled()
     return true;
 }
 
+bool RSSystemProperties::GetUnmarshalParallelEnabled()
+{
+    return false;
+}
+
+uint32_t RSSystemProperties::GetUnmarshalParallelMinDataSize()
+{
+    return 0;
+}
+
 bool RSSystemProperties::GetSceneBoardIsPcMode()
 {
     return false;
