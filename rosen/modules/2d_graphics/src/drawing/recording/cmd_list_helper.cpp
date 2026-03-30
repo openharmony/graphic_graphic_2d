@@ -487,7 +487,9 @@ std::shared_ptr<TextBlob> CmdListHelper::GetTextBlobFromCmdList(const CmdList& c
     auto textBlobData = std::make_shared<Data>();
     textBlobData->BuildWithoutCopy(data, textBlobHandle.size);
     auto blob = TextBlob::Deserialize(textBlobData->GetData(), textBlobData->GetSize(), &customCtx);
-    blob->SetSpeedOverQualityPreferred(preferSpeedOverQuality);
+    if (blob != nullptr) {
+        blob->SetSpeedOverQualityPreferred(preferSpeedOverQuality);
+    }
     return blob;
 }
 
