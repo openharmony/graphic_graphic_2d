@@ -965,6 +965,21 @@ namespace drawing {
     native drawTextBlob(blob: TextBlob, x: double, y: double): void;
 
     /**
+     * @param { Array<number> } glyphIds - 
+     * @param { number } glyphIdOffset - 
+     * @param { Array<common2D.Point> } positions -
+     * @param { number } positionOffset -
+     * @param { number } glyphCount - 
+     * @param { Font } font - 
+     * @throws { BusinessError }
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 26.0.0
+     */
+      drawGlyphs(glyphIds: Array<number>, glyphIdOffset: number,
+                 positions: Array<common2D.Point>, positionOffset: number,
+                 glyphCount: number, font: Font): void;
+
+    /**
      * Draws the pixelmap base on the mesh which is evenly distributed across the pixelmap.
      * @param { image.PixelMap } pixelmap - The pixelmap to draw using the mesh.
      * @param { int } meshWidth - The number of columns in the mesh.

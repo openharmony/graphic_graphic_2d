@@ -842,16 +842,16 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasDrawGlyphs(OH_Drawing_Canvas* cCanvas,
                                                  int positionCount,
                                                  int positionOffset,
                                                  int glyphCount,
-                                                 OH_Drawing_Font* cFont)
+                                                 const OH_Drawing_Font* cFont)
 {
-    if ((glyphCount <= 0) || (glyphIdOffset < 0) || (positionOffset < 0) ||
-        (glyphIdCount < (glyphCount + glyphIdOffset)) || (positionCount < (glyphCount + positionOffset))) {
-        return OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
-    }
     Canvas* canvas = CastToCanvas(cCanvas);
     const Font* font = CastToFont(cFont);
     if (canvas == nullptr || font == nullptr || glyphIds == nullptr || positions == nullptr) {
         return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    if ((glyphCount <= 0) || (glyphIdOffset < 0) || (positionOffset < 0) ||
+        (glyphIdCount < (glyphCount + glyphIdOffset)) || (positionCount < (glyphCount + positionOffset))) {
+        return OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
     }
     const Point* glyphPositions = reinterpret_cast<const Point*>(positions);
     const uint16_t* glyphIdsUForm = reinterpret_cast<const uint16_t*>(glyphIds);

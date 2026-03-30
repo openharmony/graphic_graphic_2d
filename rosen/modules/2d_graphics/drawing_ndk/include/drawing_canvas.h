@@ -606,7 +606,7 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasDrawGlyphs(OH_Drawing_Canvas* canvas,
                                                  int positionCount,
                                                  int positionOffset,
                                                  int glyphCount,
-                                                 OH_Drawing_Font* font);
+                                                 const OH_Drawing_Font* font);
 
 /**
  * @brief Enumerates clip op.
