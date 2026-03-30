@@ -26,7 +26,7 @@
 #ifdef ROSEN_OHOS
 #include "ipc_callbacks/rs_application_agent_stub.h"
 #endif
-
+#include "ui/rs_ui_context.h"
 namespace OHOS {
 namespace Rosen {
 #ifdef ROSEN_OHOS
