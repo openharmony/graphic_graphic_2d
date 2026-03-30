@@ -222,6 +222,7 @@ void RSScreenRenderNode::UpdateScreenRenderParams()
     screenParams->hasChildCrossNode_ = HasChildCrossNode();
     screenParams->isMirrorScreen_ = IsMirrorScreen();
     screenParams->isFirstVisitCrossNodeDisplay_ = IsFirstVisitCrossNodeDisplay();
+    screenParams->layerSkipContext_.SyncFrom(*dynamicLayerSkipController_);
 }
 // LCOV_EXCL_STOP
 
@@ -280,6 +281,16 @@ void RSScreenRenderNode::SetDisplayGlobalZOrder(float zOrder)
         return;
     }
     screenParams->SetGlobalZOrder(zOrder);
+}
+
+float RSScreenRenderNode::GetDisplayGlobalZOrder() const
+{
+    auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
+    if (screenParams == nullptr) {
+        RS_LOGE("RSScreenRenderNode::GetDisplayGlobalZOrder screenParams is null");
+        return 0.f;
+    }
+    return screenParams->GetGlobalZOrder();
 }
 
 void RSScreenRenderNode::UpdateDisplayDirtyManager(int32_t bufferage, bool useAlignedDirtyRegion)

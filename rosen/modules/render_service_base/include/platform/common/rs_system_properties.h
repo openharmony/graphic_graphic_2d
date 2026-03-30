@@ -197,6 +197,7 @@ public:
     static bool GetVirtualExpandScreenDirtyEnabled();
     static bool GetVirtualExpandScreenSkipEnabled();
     static bool GetOcclusionEnabled();
+    static bool GetDynamicLayerSkipEnabled();
     static std::string GetRSEventProperty(const std::string &paraName);
     static bool GetHighContrastStatus();
     static uint32_t GetCorrectionMode();
@@ -383,7 +384,6 @@ public:
 
     static bool GetVKImageUseEnabled();
     static bool GetVKImageAdaptationForWallpaperEnabled();
-
     static void SetBehindWindowFilterEnabled(bool enabled);
     static bool GetBehindWindowFilterEnabled();
     static bool GetSubThreadControlFrameRate();

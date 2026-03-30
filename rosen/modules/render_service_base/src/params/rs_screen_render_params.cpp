@@ -290,6 +290,7 @@ void RSScreenRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     targetScreenParams->isVirtualSurfaceChanged_ = std::exchange(isVirtualSurfaceChanged_, false);
     targetScreenParams->cloneNodeMap_ = cloneNodeMap_;
     targetScreenParams->logicalCameraRotationCorrection_ = logicalCameraRotationCorrection_;
+    targetScreenParams->layerSkipContext_ = layerSkipContext_;
 
     RSRenderParams::OnSync(target);
 }

@@ -671,9 +671,9 @@ int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
         if (presentTimeUpdated && uniRenderLayer) {
             RS_TRACE_NAME_FMT("HdiOutput::RecordMergedPresentTime %lld", timestamp);
             uniRenderLayer->RecordMergedPresentTime(timestamp);
-            thirdFrameAheadPresentFenceFd_ = thirdFrameAheadPresentFence_->Get();
-            thirdFrameAheadPresentTime_ = timestamp;
         }
+        thirdFrameAheadPresentFenceFd_ = thirdFrameAheadPresentFence_->Get();
+        thirdFrameAheadPresentTime_ = timestamp;
     }
 
     int32_t ret = GRAPHIC_DISPLAY_SUCCESS;

@@ -1226,6 +1226,11 @@ private:
     bool childHasVisibleEffect_ = false;  // only collect visible children has useeffect
     bool hasChildrenOutOfRect_ = false;
 
+    // for decide whether has true draw content
+    bool hasDrawContent_ = false;
+    bool subTreeHasDrawContent_ = false;
+    bool needUpdateDrawContent_ = false;
+
     bool isSubTreeDirty_ = false;
     bool isTreeStateChangeDirty_ = false;
     bool isContentDirty_ = false;
@@ -1453,6 +1458,7 @@ private:
     friend class ModifierNG::RSRenderModifier;
     friend class ModifierNG::RSForegroundFilterRenderModifier;
     friend class ModifierNG::RSBackgroundFilterRenderModifier;
+    friend class RSDynamicLayerSkipController;
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif

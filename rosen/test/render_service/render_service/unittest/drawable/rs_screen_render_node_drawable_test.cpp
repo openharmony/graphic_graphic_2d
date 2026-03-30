@@ -331,6 +331,42 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, CheckScreenNodeSkipTest, TestSize.Level
 }
 
 /**
+ * @tc.name: CheckScreenNodeSkipTest002
+ * @tc.desc: Test CheckScreenNodeSkip, if uni-render layer is/is not valid layer.
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, CheckScreenNodeSkipTest002, TestSize.Level1)
+{
+    bool sysPropInit = RSSystemProperties::GetDynamicLayerSkipEnabled();
+    ASSERT_NE(renderNode_, nullptr);
+    ASSERT_NE(screenDrawable_, nullptr);
+    ASSERT_NE(screenDrawable_->renderParams_, nullptr);
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
+    auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType(), params->GetScreenId());
+    auto uniProcessor = std::static_pointer_cast<RSUniRenderProcessor>(processor);
+    // case 1 : layer invalid
+    {
+        params->layerSkipContext_.screenLayerInvalid_ = true;
+        system::SetParameter("rosen.dynamiclayerskip.enabled", "1");
+        ASSERT_TRUE(screenDrawable_->CheckScreenNodeSkip(*params, uniProcessor));
+        system::SetParameter("rosen.dynamiclayerskip.enabled", "0");
+        ASSERT_TRUE(screenDrawable_->CheckScreenNodeSkip(*params, uniProcessor));
+    }
+    // case 2 : layer valid
+    {
+        params->layerSkipContext_.screenLayerInvalid_ = false;
+        system::SetParameter("rosen.dynamiclayerskip.enabled", "1");
+        ASSERT_TRUE(screenDrawable_->CheckScreenNodeSkip(*params, uniProcessor));
+        system::SetParameter("rosen.dynamiclayerskip.enabled", "0");
+        ASSERT_TRUE(screenDrawable_->CheckScreenNodeSkip(*params, uniProcessor));
+    }
+    system::SetParameter("rosen.dynamiclayerskip.enabled", std::to_string(sysPropInit));
+}
+
+/**
  * @tc.name: CheckFilterCacheFullyCovered
  * @tc.desc: Test CheckFilterCacheFullyCovered
  * @tc.type: FUNC

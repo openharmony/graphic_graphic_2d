@@ -432,6 +432,14 @@ bool RSSystemProperties::GetOcclusionEnabled()
     return ConvertToInt(enable, 1) != 0;
 }
 
+bool RSSystemProperties::GetDynamicLayerSkipEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.dynamiclayerskip.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
 bool RSSystemProperties::GetHardwareComposerEnabled()
 {
     static bool hardwareComposerEnabled = system::GetParameter(

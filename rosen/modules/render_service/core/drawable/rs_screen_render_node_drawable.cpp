@@ -864,6 +864,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         SetScreenNodeSkipFlag(*uniParam, true);
         return;
     }
+    params->GetLayerSkipContext().Reset();
     SetScreenNodeSkipFlag(*uniParam, false);
     RSMainThread::Instance()->SetFrameIsRender(true);
 

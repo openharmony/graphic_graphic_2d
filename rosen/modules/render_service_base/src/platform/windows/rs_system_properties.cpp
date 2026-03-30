@@ -181,6 +181,11 @@ bool RSSystemProperties::GetOcclusionEnabled()
     return {};
 }
 
+bool RSSystemProperties::GetDynamicLayerSkipEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetVkQueuePriorityEnable()
 {
     return false;
