@@ -64,6 +64,7 @@ public:
     virtual void ClearCaches() = 0;
     virtual void SetCachesEnabled(bool enable) = 0;
     virtual bool UnloadFont(const std::string& familyName) = 0;
+    virtual void UpdateDefaultFamilies() = 0;
 
     static void RegisterUnloadFontStartCallback(FontCallbackType cb);
     static void RegisterUnloadFontFinishCallback(FontCallbackType cb);

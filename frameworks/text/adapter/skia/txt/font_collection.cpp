@@ -216,19 +216,10 @@ void FontCollection::RemoveVariationCacheByOriginalUniqueId(uint32_t originalUni
 void FontCollection::SetCachesEnabled(bool enable)
 {
     std::unique_lock lock(collectionMutex_);
-    if (sktFontCollection_) {
-        auto* cache = sktFontCollection_->getParagraphCache();
-        if (cache) {
-            cache->turnOn(enable);
-            if (enable) {
-                TEXT_LOGI("Paragraph cache enabled");
-            } else {
-                cache->reset();
-                TEXT_LOGI("Paragraph cache disabled and reset");
-            }
-        } else {
-            TEXT_LOGE("Paragraph cache is null");
-        }
+    if (sktFontCollection_ == nullptr) {
+        return;
     }
+    sktFontCollection_->setCachesEnabled(enable);
+    TEXT_LOGI("Paragraph cache enabled: %{public}d", enable);
 }
 } // namespace txt

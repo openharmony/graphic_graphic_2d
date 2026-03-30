@@ -80,6 +80,7 @@ public:
     void ClearCaches() override;
     void SetCachesEnabled(bool enable) override;
     bool UnloadFont(const std::string& familyName) override;
+    void UpdateDefaultFamilies() override;
 
 private:
     class FontCallbackGuard {

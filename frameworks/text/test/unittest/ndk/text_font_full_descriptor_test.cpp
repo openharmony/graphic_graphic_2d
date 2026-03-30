@@ -13,11 +13,14 @@
  * limitations under the License.
  */
 
+#include <fstream>
+
 #include "drawing_text_font_descriptor.h"
 #include "file_ex.h"
 #include "font_parser.h"
 #include "gtest/gtest.h"
 #include "string_ex.h"
+#include "text/font_variation_info.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -29,6 +32,7 @@ constexpr const char* SYMBOL_CONFIG_FILE = "/system/fonts/hm_symbol_config_next.
 constexpr const char* CJK_FILE = "/system/fonts/NotoSansCJK-Regular.ttc";
 constexpr const char* NOTO_SANS_FILE = "/system/fonts/NotoSans[wdth,wght].ttf";
 constexpr const char* FTTOKEN_FILE = "/system/fonts/FTToken.ttf";
+constexpr const char* DUAL_AXIS_VARIABLE_FONT = "/system/fonts/NotoSansTamil[wdth,wght].ttf";
 
 #define CJK_SANS_DESC(lower, upper)                                                                                    \
     {                                                                                                                  \
@@ -149,6 +153,23 @@ std::vector<FontDesc> CJK_DESCS {
     CJK_MONO_DESC(sc, SC),
     CJK_MONO_DESC(tc, TC),
     CJK_MONO_DESC(hk, HK),
+};
+
+std::vector<Rosen::Drawing::FontAxisInfo> DUAL_AXIS_EXPECTED = {
+    {.axisTag = "wght", .minValue = 100.0f, .defaultValue = 400.0f, .maxValue = 900.0f},
+    {.axisTag = "wdth", .minValue = 62.5f, .defaultValue = 100.0f, .maxValue = 100.0f}
+};
+
+std::vector<Rosen::Drawing::FontInstanceInfo> DUAL_AXIS_INSTANCES = {
+    {.subfamilyNameMapForLanguage = {{"en", "Thin"}}, .coordinates = {{"wght", 100.0f}, {"wdth", 100.0f}}},
+    {.subfamilyNameMapForLanguage = {{"en", "ExtraLight"}}, .coordinates = {{"wght", 200.0f}, {"wdth", 100.0f}}},
+    {.subfamilyNameMapForLanguage = {{"en", "Light"}}, .coordinates = {{"wght", 300.0f}, {"wdth", 100.0f}}},
+    {.subfamilyNameMapForLanguage = {{"en", "Regular"}}, .coordinates = {{"wght", 400.0f}, {"wdth", 100.0f}}},
+    {.subfamilyNameMapForLanguage = {{"en", "Medium"}}, .coordinates = {{"wght", 500.0f}, {"wdth", 100.0f}}},
+    {.subfamilyNameMapForLanguage = {{"en", "SemiBold"}}, .coordinates = {{"wght", 600.0f}, {"wdth", 100.0f}}},
+    {.subfamilyNameMapForLanguage = {{"en", "Bold"}}, .coordinates = {{"wght", 700.0f}, {"wdth", 100.0f}}},
+    {.subfamilyNameMapForLanguage = {{"en", "ExtraBold"}}, .coordinates = {{"wght", 800.0f}, {"wdth", 100.0f}}},
+    {.subfamilyNameMapForLanguage = {{"en", "Black"}}, .coordinates = {{"wght", 900.0f}, {"wdth", 100.0f}}}
 };
 } // namespace
 
@@ -566,6 +587,13 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest012, TestSize.Level
  */
 HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest013, TestSize.Level0)
 {
+    // Skip test if FTToken.ttf is not available in the current environment
+    std::ifstream ftTokenFile(FTTOKEN_FILE, std::ios::binary);
+    if (!ftTokenFile.is_open()) {
+        GTEST_SKIP() << "FTToken.ttf not found at " << FTTOKEN_FILE << ", skipping test";
+    }
+    ftTokenFile.close();
+
     OH_Drawing_Array* fontFullDescArr = OH_Drawing_GetFontFullDescriptorsFromPath(FTTOKEN_FILE);
     EXPECT_NE(fontFullDescArr, nullptr);
     size_t size = OH_Drawing_GetDrawingArraySize(fontFullDescArr);
@@ -667,5 +695,119 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest016, TestSize.Level
     free(str.strData);
 
     OH_Drawing_DestroyFontVariationInstance(instanceArray);
+}
+
+/*
+ * @tc.name: NdkFontFullDescriptorTest017
+ * @tc.desc: test for dual-axis variable font axis information
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest017, TestSize.Level0)
+{
+    // Skip test if dual-axis variable font is not available in the current environment
+    std::ifstream dualAxisFontFile(DUAL_AXIS_VARIABLE_FONT, std::ios::binary);
+    if (!dualAxisFontFile.is_open()) {
+        GTEST_SKIP() << "Dual-axis variable font not found, skipping test";
+    }
+    dualAxisFontFile.close();
+
+    OH_Drawing_Array* fontFullDescArr = OH_Drawing_GetFontFullDescriptorsFromPath(DUAL_AXIS_VARIABLE_FONT);
+    ASSERT_NE(fontFullDescArr, nullptr);
+    size_t size = OH_Drawing_GetDrawingArraySize(fontFullDescArr);
+    EXPECT_EQ(size, 1);
+    auto desc = OH_Drawing_GetFontFullDescriptorByIndex(fontFullDescArr, 0);
+    ASSERT_NE(desc, nullptr);
+
+    // Test variation axis array - should have 2 axes (wght and wdth)
+    OH_Drawing_Array* axisArray = OH_Drawing_GetFontFullDescriptorAttributeArray(desc,
+        FULL_DESCRIPTOR_ATTR_O_VARIATION_AXIS);
+    ASSERT_NE(axisArray, nullptr);
+    size_t axisSize = OH_Drawing_GetDrawingArraySize(axisArray);
+    EXPECT_EQ(axisSize, DUAL_AXIS_EXPECTED.size());
+
+    for (size_t i = 0; i < axisSize; i++) {
+        auto axis = OH_Drawing_GetFontVariationAxisByIndex(axisArray, i);
+        ASSERT_NE(axis, nullptr);
+        OH_Drawing_String str;
+        OH_Drawing_GetFontVariationAxisAttributeStr(axis, FONT_VARIATION_AXIS_ATTR_S_KEY, &str);
+        std::string axisKey = OHOS::Str16ToStr8(std::u16string(reinterpret_cast<char16_t*>(str.strData),
+            str.strLen / sizeof(char16_t)));
+        EXPECT_EQ(axisKey, DUAL_AXIS_EXPECTED[i].axisTag);
+        free(str.strData);
+        double doubleValue;
+        OH_Drawing_GetFontVariationAxisAttributeDouble(axis, FONT_VARIATION_AXIS_ATTR_D_MIN_VALUE, &doubleValue);
+        if (axisKey == "wdth") {
+            EXPECT_NEAR(doubleValue, DUAL_AXIS_EXPECTED[i].minValue, 0.01);
+        } else {
+            EXPECT_EQ(doubleValue, DUAL_AXIS_EXPECTED[i].minValue);
+        }
+        OH_Drawing_GetFontVariationAxisAttributeDouble(axis, FONT_VARIATION_AXIS_ATTR_D_DEFAULT_VALUE, &doubleValue);
+        EXPECT_EQ(doubleValue, DUAL_AXIS_EXPECTED[i].defaultValue);
+        OH_Drawing_GetFontVariationAxisAttributeDouble(axis, FONT_VARIATION_AXIS_ATTR_D_MAX_VALUE, &doubleValue);
+        EXPECT_EQ(doubleValue, DUAL_AXIS_EXPECTED[i].maxValue);
+    }
+
+    OH_Drawing_DestroyFontVariationAxis(axisArray);
+    OH_Drawing_DestroyFontFullDescriptors(fontFullDescArr);
+}
+
+/*
+ * @tc.name: NdkFontFullDescriptorTest018
+ * @tc.desc: test for dual-axis variable font instance information
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest018, TestSize.Level0)
+{
+    // Skip test if dual-axis variable font is not available in the current environment
+    std::ifstream dualAxisFontFile(DUAL_AXIS_VARIABLE_FONT, std::ios::binary);
+    if (!dualAxisFontFile.is_open()) {
+        GTEST_SKIP() << "Dual-axis variable font not found, skipping test";
+    }
+    dualAxisFontFile.close();
+
+    OH_Drawing_Array* fontFullDescArr = OH_Drawing_GetFontFullDescriptorsFromPath(DUAL_AXIS_VARIABLE_FONT);
+    ASSERT_NE(fontFullDescArr, nullptr);
+    size_t size = OH_Drawing_GetDrawingArraySize(fontFullDescArr);
+    EXPECT_EQ(size, 1);
+    auto desc = OH_Drawing_GetFontFullDescriptorByIndex(fontFullDescArr, 0);
+    ASSERT_NE(desc, nullptr);
+
+    // Test variation instance array - should have 9 named instances
+    OH_Drawing_Array* instanceArray = OH_Drawing_GetFontFullDescriptorAttributeArray(desc,
+        FULL_DESCRIPTOR_ATTR_O_VARIATION_INSTANCE);
+    ASSERT_NE(instanceArray, nullptr);
+    size_t instanceSize = OH_Drawing_GetDrawingArraySize(instanceArray);
+    EXPECT_EQ(instanceSize, DUAL_AXIS_INSTANCES.size());
+
+    for (size_t i = 0; i < DUAL_AXIS_INSTANCES.size() && i < instanceSize; i++) {
+        auto instance = OH_Drawing_GetFontVariationInstanceByIndex(instanceArray, i);
+        ASSERT_NE(instance, nullptr);
+
+        OH_Drawing_String str;
+        OH_Drawing_GetFontVariationInstanceAttributeStr(instance, FONT_VARIATION_INSTANCE_ATTR_S_NAME, &str);
+        std::string instanceName = OHOS::Str16ToStr8(std::u16string(
+            reinterpret_cast<char16_t*>(str.strData), str.strLen / sizeof(char16_t)));
+        EXPECT_EQ(instanceName, DUAL_AXIS_INSTANCES[i].subfamilyNameMapForLanguage["en"]);
+        free(str.strData);
+
+        size_t coordLength = 0;
+        OH_Drawing_FontVariationInstanceCoordinate* coords =
+            OH_Drawing_GetFontVariationInstanceCoordinate(instance, &coordLength);
+        ASSERT_NE(coords, nullptr);
+        EXPECT_EQ(coordLength, 2);
+
+        // Verify coordinate values - find by axis key instead of relying on position order
+        for (size_t j = 0; j < coordLength; j++) {
+            std::string axisKey(coords[j].axisKey);
+            if (axisKey == "wght") {
+                EXPECT_EQ(coords[j].value, DUAL_AXIS_INSTANCES[i].coordinates.at("wght"));
+            } else if (axisKey == "wdth") {
+                EXPECT_EQ(coords[j].value, DUAL_AXIS_INSTANCES[i].coordinates.at("wdth"));
+            }
+        }
+    }
+
+    OH_Drawing_DestroyFontVariationInstance(instanceArray);
+    OH_Drawing_DestroyFontFullDescriptors(fontFullDescArr);
 }
 } // namespace OHOS
