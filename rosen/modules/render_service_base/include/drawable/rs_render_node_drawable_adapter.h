@@ -151,8 +151,6 @@ public:
     virtual void Draw(Drawing::Canvas& canvas) = 0;
     virtual void DumpDrawableTree(int32_t depth, std::string& out, const RSContext& context) const;
 
-    inline static std::vector<std::weak_ptr<RSRenderNodeDrawableAdapter>> layerNodesDrawable_;
-
 #ifdef SUBTREE_PARALLEL_ENABLE
     void DrawQuickImpl(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
 #endif
