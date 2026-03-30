@@ -24,6 +24,7 @@
 #include "feature/hpae/rs_hpae_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "gfx/performance/rs_perfmonitor_reporter.h"
+#include "layer/rs_layer_cache_manager.h"
 #include "memory/rs_memory_manager.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_render_node_gc.h"
@@ -294,6 +295,7 @@ void RSDrawFrame::Sync()
         pendingSyncNodes.emplace(id, weakPtr);
     }
     stagingSyncCanvasDrawingNodes_.clear();
+    auto& layerCacheManager = RSLayerCacheManager::Instance();
     for (auto& [id, weakPtr] : pendingSyncNodes) {
         if (auto node = weakPtr.lock()) {
             if (!CheckCanvasSkipSync(node)) {
@@ -302,11 +304,13 @@ void RSDrawFrame::Sync()
             }
             if (!RSUifirstManager::Instance().CollectSkipSyncNode(node)) {
                 node->Sync();
+                layerCacheManager.IfIsLayerNodeAddToLayerNodeDrawables(node);
             } else {
                 node->SkipSync();
             }
         }
     }
+    layerCacheManager.ClearLayerNodes();
     pendingSyncNodes.clear();
     HveFilter::GetHveFilter().ClearSurfaceNodeInfo();
 

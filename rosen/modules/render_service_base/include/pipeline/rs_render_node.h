@@ -1370,8 +1370,6 @@ private:
     float absRotation_ = 0.f;
     void ShowSetIsOnetheTreeCntIfNeed(const std::string& funcName, NodeId nodeId, const std::string& nodeName);
 
-    bool isLayer_ = false;
-
     bool enableHdrEffect_ = false;
     static constexpr uint32_t DEFAULT_HEADROOM_VALUE = 0U;
     struct HeadroomInfo {

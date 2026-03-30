@@ -164,8 +164,8 @@ void RSRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 CM_INLINE void RSRenderNodeDrawable::GenerateCacheIfNeed(
     Drawing::Canvas& canvas, RSRenderParams& params)
 {
-    if (isLayerCached) {
-        isLayerCached = false;
+    if (params.IsLayerCached()) {
+        params.SetLayerCached(false);
         return;
     }
     // check if drawing cache enabled

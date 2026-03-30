@@ -40,6 +40,7 @@
 #ifdef RS_MEMORY_INFO_MANAGER
 #include "feature/memory_info_manager/rs_memory_info_manager.h"
 #endif
+#include "layer/rs_layer_cache_manager.h"
 #include "modifier_ng/geometry/rs_transform_render_modifier.h"
 #include "modifier_ng/rs_render_modifier_ng.h"
 #include "params/rs_render_params.h"
@@ -3595,14 +3596,12 @@ bool RSRenderNode::GetBootAnimation() const
 
 void RSRenderNode::MarkLayer(bool isMarkLayer)
 {
-    if (isLayer_ == isMarkLayer) {
-        return;
-    }
     RS_OPTIONAL_TRACE_NAME_FMT("MarkLayer isMarkLayer:%d id:%llu", isMarkLayer, GetId());
     RS_LOGI_IF(DEBUG_NODE, "RSRenderNode::MarkLayer isMarkLayer:%{public}d id:%{public}" PRIu64,
         isMarkLayer, GetId());
     MarkNodeGroup(NodeGroupType::GROUPED_BY_LAYER, isMarkLayer, false);
-    isLayer_ = isMarkLayer;
+    auto& layerCacheManager = RSLayerCacheManager::Instance();
+    layerCacheManager.AddNodeToLayerNodes(shared_from_this());
 }
 
 bool RSRenderNode::GetGlobalPositionEnabled() const
@@ -4577,10 +4576,6 @@ void RSRenderNode::OnSync()
         stagingDrawCmdList_.clear();
         renderDrawable_->drawCmdIndex_ = stagingDrawCmdIndex_;
         drawCmdListNeedSync_ = false;
-    }
-
-    if (isLayer_) {
-        DrawableV2::RSRenderNodeDrawableAdapter::layerNodesDrawable_.emplace_back(renderDrawable_);
     }
 
     if (drawableVecNeedClear_) {

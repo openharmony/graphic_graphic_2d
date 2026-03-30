@@ -25,7 +25,6 @@ public:
 
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);
     void OnDraw(Drawing::Canvas& canvas) override;
-    void TryPrepareLayerCache(Drawing::Canvas& canvas) override;
     void OnCapture(Drawing::Canvas& canvas) override;
     RSRenderNodeDrawableType GetDrawableType() const override
     {
@@ -40,6 +39,7 @@ private:
     bool IsUiRangeCaptureEndNode();
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::CANVAS_NODE, OnGenerate>;
     static Registrar instance_;
+    friend class OHOS::Rosen::RSLayerCacheManager;
 };
 } // namespace OHOS::Rosen::DrawableV2
 #endif // RENDER_SERVICE_DRAWABLE_RS_CANVAS_RENDER_NODE_DRAWABLE_H

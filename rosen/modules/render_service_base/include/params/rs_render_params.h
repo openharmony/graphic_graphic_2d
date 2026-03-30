@@ -316,6 +316,16 @@ public:
         return cacheSize_;
     }
 
+    // used for Layer
+    void SetLayerCached(bool isLayerCached)
+    {
+        isLayerCached_ = isLayerCached;
+    }
+    bool IsLayerCached()
+    {
+        return isLayerCached_;
+    }
+
     // used for RenderGroup
     void SetDrawingCacheChanged(bool isChanged, bool lastFrameSynced);
     bool GetDrawingCacheChanged() const
@@ -672,6 +682,9 @@ private:
 
     // used for DFX
     bool isOnTheTree_ = false;
+
+    // used for Layer
+    bool isLayerCached_ = false;
 
     std::unordered_set<ScreenId> screensWithSubTreeWhitelist_;
 };
