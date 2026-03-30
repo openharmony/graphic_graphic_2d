@@ -930,8 +930,8 @@ public:
         ConstructorHandle(const OpDataHandle& textBlob, const uint64_t& globalUniqueId, bool preferSpeedOverQuality,
             TextContrast textContrast, scalar x, scalar y, const PaintHandle& paintHandle)
             : OpItem(DrawOpItem::TEXT_BLOB_OPITEM), textBlob(textBlob), globalUniqueId(globalUniqueId),
-            preferSpeedOverQuality(preferSpeedOverQuality), textContrast(textContrast), x(x), y(y),
-            paintHandle(paintHandle) {}
+              preferSpeedOverQuality(preferSpeedOverQuality), textContrast(textContrast), x(x), y(y),
+              paintHandle(paintHandle) {}
         ~ConstructorHandle() override = default;
         static bool GenerateCachedOpItem(DrawCmdList& cmdList, const TextBlob* textBlob, scalar x, scalar y, Paint& p);
         bool GenerateCachedOpItem(DrawCmdList& cmdList, Canvas* canvas);
