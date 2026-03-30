@@ -951,7 +951,8 @@ void HgmFrameRateManager::HandleScreenRectFrameRate(ScreenId id, const Rect& act
 {
     RS_TRACE_NAME_FMT("%s: screenId:%d activeRect(%d, %d, %d, %d)",
         __func__, id, activeRect.x, activeRect.y, activeRect.w, activeRect.h);
-    if (auto screen = HgmCore::Instance().GetScreen(id); !screen || !screen->GetSelfOwnedScreenFlag()) {
+    auto& hgmCore = HgmCore::Instance();
+    if (auto screen = hgmCore.GetScreen(id); !screen || !screen->GetSelfOwnedScreenFlag()) {
         return;
     }
     if (hgmCore.GetPolicyConfigData() == nullptr) {
@@ -964,6 +965,7 @@ void HgmFrameRateManager::HandleScreenRectFrameRate(ScreenId id, const Rect& act
 
 void HgmFrameRateManager::HandleScreenEvent(ScreenId id)
 {
+    auto& hgmCore = HgmCore::Instance();
     auto& hgmScreenInfo = HgmScreenInfo::GetInstance();
     auto isLtpo = hgmScreenInfo.IsLtpoType(hgmScreenInfo.GetScreenType(id));
     isLtpo_.store(isLtpo);
