@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -462,7 +462,7 @@ OpDataHandle CmdListHelper::AddTextBlobToCmdList(CmdList& cmdList, const TextBlo
 }
 
 std::shared_ptr<TextBlob> CmdListHelper::GetTextBlobFromCmdList(const CmdList& cmdList,
-    const OpDataHandle& textBlobHandle, uint64_t globalUniqueId)
+    const OpDataHandle& textBlobHandle, uint64_t globalUniqueId, bool preferSpeedOverQuality)
 {
     if (textBlobHandle.size == 0) {
         return nullptr;
@@ -486,7 +486,9 @@ std::shared_ptr<TextBlob> CmdListHelper::GetTextBlobFromCmdList(const CmdList& c
 
     auto textBlobData = std::make_shared<Data>();
     textBlobData->BuildWithoutCopy(data, textBlobHandle.size);
-    return TextBlob::Deserialize(textBlobData->GetData(), textBlobData->GetSize(), &customCtx);
+    auto blob = TextBlob::Deserialize(textBlobData->GetData(), textBlobData->GetSize(), &customCtx);
+    blob->SetSpeedOverQualityPreferred(preferSpeedOverQuality);
+    return blob;
 }
 
 OpDataHandle CmdListHelper::AddDataToCmdList(CmdList& cmdList, const Data* srcData)
