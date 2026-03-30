@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1675,8 +1675,12 @@ DrawTextBlobOpItem::DrawTextBlobOpItem(const DrawCmdList& cmdList, DrawTextBlobO
     : DrawWithPaintOpItem(cmdList, handle->paintHandle, TEXT_BLOB_OPITEM), x_(handle->x), y_(handle->y)
 {
     globalUniqueId_ = handle->globalUniqueId;
+    preferSpeedOverQuality_ = handle->preferSpeedOverQuality;
     textContrast_ = handle->textContrast;
-    textBlob_ = CmdListHelper::GetTextBlobFromCmdList(cmdList, handle->textBlob, handle->globalUniqueId);
+    textBlob_ = CmdListHelper::GetTextBlobFromCmdList(cmdList,
+                                                      handle->textBlob,
+                                                      handle->globalUniqueId,
+                                                      handle->preferSpeedOverQuality);
     if (textBlob_) {
         textBlob_->SetTextContrast(textContrast_);
     }
@@ -1699,10 +1703,10 @@ void DrawTextBlobOpItem::Marshalling(DrawCmdList& cmdList)
         uint32_t typefaceId = ctx.GetTypeface()->GetUniqueID();
         globalUniqueId = (shiftedPid | typefaceId);
     }
-
+    bool preferSpeedOverQuality = textBlob_->IsSpeedOverQualityPreferred();
     if (textBlob_) {
         cmdList.AddOp<ConstructorHandle>(textBlobHandle,
-            globalUniqueId, textBlob_->GetTextContrast(), x_, y_, paintHandle);
+            globalUniqueId, preferSpeedOverQuality, textBlob_->GetTextContrast(), x_, y_, paintHandle);
     }
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.. All rights reserved.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -441,7 +441,7 @@ void RecordingCanvas::DrawTextBlob(const TextBlob* blob, const scalar x, const s
         globalUniqueId = (shiftedPid | ctx.GetTypeface()->GetUniqueID());
     }
     AddDrawOpImmediate<DrawTextBlobOpItem::ConstructorHandle>(textBlobHandle,
-        globalUniqueId, blob->GetTextContrast(), x, y);
+        globalUniqueId, blob->IsSpeedOverQualityPreferred(), blob->GetTextContrast(), x, y);
 }
 
 void RecordingCanvas::DrawSymbol(const DrawingHMSymbolData& symbol, Point locate)

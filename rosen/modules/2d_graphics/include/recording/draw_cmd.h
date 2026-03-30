@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -927,15 +927,17 @@ private:
 class DrawTextBlobOpItem : public DrawWithPaintOpItem {
 public:
     struct ConstructorHandle : public OpItem {
-        ConstructorHandle(const OpDataHandle& textBlob, const uint64_t& globalUniqueId,
+        ConstructorHandle(const OpDataHandle& textBlob, const uint64_t& globalUniqueId, bool preferSpeedOverQuality,
             TextContrast textContrast, scalar x, scalar y, const PaintHandle& paintHandle)
             : OpItem(DrawOpItem::TEXT_BLOB_OPITEM), textBlob(textBlob), globalUniqueId(globalUniqueId),
-            textContrast(textContrast), x(x), y(y), paintHandle(paintHandle) {}
+            preferSpeedOverQuality(preferSpeedOverQuality), textContrast(textContrast), x(x), y(y),
+            paintHandle(paintHandle) {}
         ~ConstructorHandle() override = default;
         static bool GenerateCachedOpItem(DrawCmdList& cmdList, const TextBlob* textBlob, scalar x, scalar y, Paint& p);
         bool GenerateCachedOpItem(DrawCmdList& cmdList, Canvas* canvas);
         OpDataHandle textBlob;
         uint64_t globalUniqueId;
+        bool preferSpeedOverQuality;
         TextContrast textContrast;
         scalar x;
         scalar y;
@@ -965,6 +967,7 @@ private:
     scalar y_;
     std::shared_ptr<TextBlob> textBlob_;
     uint64_t globalUniqueId_;
+    bool preferSpeedOverQuality_ = false;
     TextContrast textContrast_ = TextContrast::FOLLOW_SYSTEM;
     bool IsHighContrastEnable(Canvas* canvas, TextContrast value) const;
 };
