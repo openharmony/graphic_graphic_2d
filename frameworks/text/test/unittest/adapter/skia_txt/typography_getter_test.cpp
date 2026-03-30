@@ -15,11 +15,14 @@
 
 #include "gtest/gtest.h"
 
+#include <bitset>
+#include <cstddef>
+
 #include "font_collection.h"
 #include "impl/paragraph_impl.h"
-#include "modules/skparagraph/include/TextStyle.h"
 #include "ohos/init_data.h"
 #include "paragraph.h"
+#include "text_style.h"
 #include "typography.h"
 #include "typography_create.h"
 
@@ -239,6 +242,9 @@ HWTEST_F(OH_Drawing_TypographyGetterTest, OH_Drawing_TypographyGetProcessState00
     std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
     OHOS::Rosen::TextStyle textStyle;
     textStyle.fontSize = 14;
+    std::bitset<static_cast<size_t>(RelayoutTextStyleAttribute::TEXT_STYLE_ATTRIBUTE_BUTT)> styleBitset;
+    styleBitset.set(static_cast<size_t>(RelayoutTextStyleAttribute::FONT_SIZE));
+    textStyle.relayoutChangeBitmap = styleBitset;
     relayoutTextStyles.push_back(textStyle);
     typography_->Relayout(maxWidth, typographyStyle_, relayoutTextStyles);
 
