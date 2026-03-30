@@ -51,7 +51,6 @@ public:
 
     void Draw(Drawing::Canvas& canvas) override;
     virtual void OnDraw(Drawing::Canvas& canvas);
-
     virtual void OnCapture(Drawing::Canvas& canvas);
 
     // deprecated
