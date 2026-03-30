@@ -17,6 +17,7 @@
 
 #include "platform/common/rs_log.h"
 #include "transaction/rs_interfaces.h"
+#include "ui/rs_ui_context.h"
 #include "ui/rs_root_node.h"
 #include "ui/rs_surface_node.h"
 #include "ui/rs_texture_export.h"
