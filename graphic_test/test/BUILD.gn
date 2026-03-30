@@ -135,6 +135,7 @@ rs_display_effect_sources = [
   "rs_display_effect/property_display/modifier_detach_property_test.cpp",
   "rs_display_effect/property_display/particle_ripple_test.cpp",
   "rs_display_effect/property_display/particle_velocity_test.cpp",
+  "rs_display_effect/property_display/rs_canvas_node_getbitmap_getpixelmap_test.cpp",
   "rs_display_effect/property_display/rs_canvas_node_setpixelmap_test.cpp",
   "rs_display_effect/property_display/rs_node_comprehensive_test.cpp",
   "rs_display_effect/property_display/rs_node_name_colorpicker_test.cpp",
