@@ -228,11 +228,8 @@ HWTEST_F(HgmHardwareUtilsTest, SwitchRefreshRateTest, TestSize.Level1)
             screenManager.GetRefPtr(), std::placeholders::_1, std::placeholders::_2)
     );
 
-    PipelineParam pipelineParam = {
-        .pendingScreenRefreshRate = 0,
-        .frameTimestamp = 0,
-        .pendingConstraintRelativeTime = 0,
-    };
+    PipelineParam pipelineParam =
+        { .pendingScreenRefreshRate = 0, .frameTimestamp = 0, .pendingConstraintRelativeTime = 0, };
     hgmHardwareUtils->SwitchRefreshRate(output, 0, pipelineParam);
 
     pipelineParam.pendingScreenRefreshRate = 60;
