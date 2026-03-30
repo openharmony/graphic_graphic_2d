@@ -277,7 +277,7 @@ bool RSCanvasDrawingNode::GetBitmap(Drawing::Bitmap& bitmap,
             ROSEN_LOGE("RSCanvasDrawingNode::GetBitmap uiContext is nullptr");
             return false;
         }
-        bool ret = renderPipelineClient->GetBitmap(GetId(), bitmap);
+        bool ret = rsUIContext->GetRSRenderInterface()->GetBitmap(GetId(), bitmap);
         if (!ret) {
             ROSEN_LOGE("RSCanvasDrawingNode::GetBitmap GetBitmap failed");
             return ret;
