@@ -261,7 +261,6 @@ HWTEST_F(RSOpincDrawCacheTest, NodeCacheStateDisable, TestSize.Level1)
     ASSERT_EQ(opincDrawCache.opCanCache_, false);
 }
 
-#ifdef RS_ENABLE_GPU
 /**
  * @tc.name: BeforeDrawCacheProcessChildNode
  * @tc.desc: Test result of BeforeDrawCacheProcessChildNode
@@ -274,20 +273,19 @@ HWTEST_F(RSOpincDrawCacheTest, BeforeDrawCacheProcessChildNode, TestSize.Level1)
     RSRenderParams params(id);
     DrawableV2::RSOpincDrawCache::SetNodeCacheType(NodeStrategyType::CACHE_NONE);
     params.isOpincRootFlag_ = true;
-    ASSERT_FALSE(opincDrawCache.BeforeDrawCacheProcessChildNode(params));
+    ASSERT_TRUE(opincDrawCache.BeforeDrawCacheProcessChildNode(params));
 
     DrawableV2::RSOpincDrawCache::SetNodeCacheType(NodeStrategyType::DDGR_OPINC_DYNAMIC);
-    ASSERT_FALSE(opincDrawCache.BeforeDrawCacheProcessChildNode(params));
+    ASSERT_TRUE(opincDrawCache.BeforeDrawCacheProcessChildNode(params));
 
     opincDrawCache.recordState_ = NodeRecordState::RECORD_CACHED;
     opincDrawCache.rootNodeStragyType_ = NodeStrategyType::OPINC_AUTOCACHE;
-    ASSERT_FALSE(opincDrawCache.BeforeDrawCacheProcessChildNode(params));
+    ASSERT_TRUE(opincDrawCache.BeforeDrawCacheProcessChildNode(params));
 
     opincDrawCache.rootNodeStragyType_ = NodeStrategyType::CACHE_DISABLE;
-    ASSERT_FALSE(opincDrawCache.BeforeDrawCacheProcessChildNode(params));
+    ASSERT_TRUE(opincDrawCache.BeforeDrawCacheProcessChildNode(params));
     ASSERT_EQ(opincDrawCache.recordState_, NodeRecordState::RECORD_DISABLE);
 }
-#endif
 
 /**
  * @tc.name: BeforeDrawCacheFindRootNode
@@ -959,7 +957,6 @@ HWTEST_F(RSOpincDrawCacheTest, GetOpincBlockNodeSkip, TestSize.Level1)
     ASSERT_FALSE(DrawableV2::RSOpincDrawCache::GetOpincBlockNodeSkip());
 }
 
-#ifdef RS_ENABLE_GPU
 /**
  * @tc.name: BeforeDrawCacheFindRootNodeWithCacheSize
  * @tc.desc: Test BeforeDrawCacheFindRootNode with various cache sizes
@@ -1006,7 +1003,6 @@ HWTEST_F(RSOpincDrawCacheTest, BeforeDrawCacheFindRootNodeWithCacheSize, TestSiz
 
     DrawableV2::RSOpincDrawCache::SetScreenRectInfo({0, 0, 0, 0});
 }
-#endif
 
 /**
  * @tc.name: DrawAutoCacheWithEmptyRects
