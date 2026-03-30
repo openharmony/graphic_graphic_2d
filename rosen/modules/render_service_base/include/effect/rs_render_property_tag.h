@@ -85,6 +85,7 @@ enum class RSNGEffectType : int16_t {
     VARIABLE_RADIUS_BLUR,
     CONTENT_LIGHT,
     GRID_WARP,
+    HEAT_DISTORTION,
     // mask type
     RIPPLE_MASK,
     DOUBLE_RIPPLE_MASK,
