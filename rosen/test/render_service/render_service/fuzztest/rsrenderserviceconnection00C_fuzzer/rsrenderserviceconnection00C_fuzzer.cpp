@@ -26,10 +26,10 @@
 #include <fuzzer/FuzzedDataProvider.h>
 
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "render_server/transaction/rs_client_to_service_connection.h"
 #include "transaction/rs_client_to_render_connection.h"
+#include "transaction/rs_render_to_service_connection.h"
+#include "render_server/transaction/rs_client_to_service_connection.h"
 #include "platform/ohos/transaction/zidl/rs_irender_service.h"
-#include "render_server/transaction/zidl/rs_client_to_service_connection_stub.h"
 #include "transaction/zidl/rs_client_to_render_connection_stub.h"
 #include "render_server/transaction/zidl/rs_client_to_service_connection_stub.h"
 #include "transaction/rs_transaction_proxy.h"
@@ -37,16 +37,18 @@
 #include "securec.h"
 #include <iservice_registry.h>
 #include <system_ability_definition.h>
+// #include "pipeline/render_thread/rs_uni_render_engine.h"
+#include "pipeline/render_thread/rs_render_engine.h"
+#include "feature/hyper_graphic_manager/hgm_render_context.h"
 
 namespace OHOS {
 namespace Rosen {
 
-auto g_pid = getpid();
+int32_t g_pid;
 sptr<OHOS::Rosen::RSScreenManager> screenManagerPtr_ = OHOS::sptr<OHOS::Rosen::RSScreenManager>::MakeSptr();
-auto mainThread_ = RSMainThread::Instance();
-
-sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ = nullptr;
+RSMainThread* mainThread_ = RSMainThread::Instance();
 sptr<RSClientToRenderConnectionStub> toRenderConnectionStub_ = nullptr;
+sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ = nullptr;
 sptr<OHOS::Rosen::RSRenderService> renderService_ = nullptr;
 namespace {
 const uint8_t DO_NOTIFY_TOUCH_EVENT = 0;
@@ -83,8 +85,6 @@ bool Init(const uint8_t* data, size_t size)
     return true;
 }
 } // namespace
-
-namespace Mock {
 
 void DoNotifyTouchEvent()
 {
@@ -127,7 +127,6 @@ void DoSetHardwareEnabled()
     dataP.WriteBool(dynamicHardwareEnable);
     toRenderConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
-} // namespace Mock
 } // namespace Rosen
 } // namespace OHOS
 
@@ -135,26 +134,28 @@ void DoSetHardwareEnabled()
 extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 {
     OHOS::Rosen::g_pid = getpid();
-    OHOS::Rosen::mainThread_ = OHOS::Rosen::RSMainThread::Instance();
-    OHOS::Rosen::mainThread_->handler_ =
-        std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::AppExecFwk::EventRunner::Create(true));
     OHOS::sptr<OHOS::Rosen::RSIConnectionToken> token_ = new OHOS::IRemoteStub<OHOS::Rosen::RSIConnectionToken>();
-
     OHOS::Rosen::DVSyncFeatureParam dvsyncParam;
     auto generator = OHOS::Rosen::CreateVSyncGenerator();
     auto appVSyncController = new OHOS::Rosen::VSyncController(generator, 0);
     OHOS::sptr<OHOS::Rosen::VSyncDistributor> appVSyncDistributor_ =
         new OHOS::Rosen::VSyncDistributor(appVSyncController, "app", dvsyncParam);
 
-    OHOS::Rosen::renderService_ = OHOS::sptr<OHOS::Rosen::RSRenderService>::MakeSptr();
-    auto vsyncManager = OHOS::sptr<OHOS::Rosen::RSVsyncManager>::MakeSptr();
-    vsyncManager->appVSyncDistributor_ = appVSyncDistributor_;
+    OHOS::Rosen::renderService_ = new OHOS::Rosen::RSRenderService();
 
+    OHOS::Rosen::RSUniRenderThread::Instance().InitGrContext();
+    
     auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
     runner->Run();
     OHOS::Rosen::renderService_->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
+
+    OHOS::Rosen::renderService_->vsyncManager_ = OHOS::sptr<OHOS::Rosen::RSVsyncManager>::MakeSptr();
+    OHOS::Rosen::renderService_->screenManager_ = OHOS::sptr<OHOS::Rosen::RSScreenManager>::MakeSptr();
+    OHOS::Rosen::renderService_->vsyncManager_->init(OHOS::Rosen::renderService_->screenManager_);
+
     OHOS::Rosen::renderService_->renderProcessManager_ =
         OHOS::Rosen::RSRenderProcessManager::Create(*OHOS::Rosen::renderService_);
+
     auto renderServiceAgent_ = OHOS::sptr<OHOS::Rosen::RSRenderServiceAgent>::MakeSptr(*OHOS::Rosen::renderService_);
     OHOS::sptr<OHOS::Rosen::RSRenderProcessManagerAgent> renderProcessManagerAgent_ =
         OHOS::sptr<OHOS::Rosen::RSRenderProcessManagerAgent>::MakeSptr(
@@ -162,20 +163,25 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 
     OHOS::sptr<OHOS::Rosen::RSScreenManagerAgent> screenManagerAgent_ =
         new OHOS::Rosen::RSScreenManagerAgent(OHOS::Rosen::screenManagerPtr_);
+    OHOS::Rosen::renderService_->rsRenderComposerManager_ = std::make_shared<OHOS::Rosen::RSRenderComposerManager>(
+        OHOS::Rosen::renderService_->handler_);
 
     OHOS::Rosen::toServiceConnectionStub_ = new OHOS::Rosen::RSClientToServiceConnection(
         OHOS::Rosen::g_pid, renderServiceAgent_, renderProcessManagerAgent_,
-        screenManagerAgent_, token_->AsObject(), vsyncManager->GetVsyncManagerAgent());
-    
+        screenManagerAgent_, token_->AsObject(), OHOS::Rosen::renderService_->vsyncManager_->GetVsyncManagerAgent());
+
     OHOS::sptr<OHOS::Rosen::RSRenderPipelineAgent> renderPipelineAgent_ =
         OHOS::sptr<OHOS::Rosen::RSRenderPipelineAgent>::MakeSptr(OHOS::Rosen::renderService_->renderPipeline_);
-    
     OHOS::sptr<OHOS::Rosen::RSClientToRenderConnection> toRenderConnection =
         new OHOS::Rosen::RSClientToRenderConnection(OHOS::Rosen::g_pid, renderPipelineAgent_, token_->AsObject());
     OHOS::Rosen::toRenderConnectionStub_ = toRenderConnection;
+    toRenderConnection->cleanDone_ = true;
 
-    // reset recevier, otherwise maybe crash
-    OHOS::Rosen::renderService_->renderPipeline_->uniRenderThread_->uniRenderEngine_ = nullptr;
+    OHOS::sptr<OHOS::Rosen::RSRenderToServiceConnection> g_rsConn =
+        OHOS::sptr<OHOS::Rosen::RSRenderToServiceConnection>::MakeSptr(
+            renderServiceAgent_, renderProcessManagerAgent_, screenManagerAgent_);
+    OHOS::Rosen::RSMainThread::Instance()->hgmRenderContext_ =
+        std::make_shared<OHOS::Rosen::HgmRenderContext>(g_rsConn);
 
     OHOS::Rosen::RSMainThread::Instance()->receiver_->connection_ = nullptr;
     OHOS::Rosen::RSMainThread::Instance()->receiver_ = nullptr;
@@ -193,7 +199,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     uint8_t tarPos = OHOS::Rosen::GetData<uint8_t>() % OHOS::Rosen::TARGET_SIZE;
     switch (tarPos) {
         case OHOS::Rosen::DO_NOTIFY_TOUCH_EVENT:
-            OHOS::Rosen::Mock::DoNotifyTouchEvent();
+            OHOS::Rosen::DoNotifyTouchEvent();
             break;
         default:
             return -1;
