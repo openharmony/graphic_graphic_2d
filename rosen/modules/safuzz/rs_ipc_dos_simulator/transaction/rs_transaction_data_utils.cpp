@@ -100,6 +100,7 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     DECLARE_ADD_RANDOM(RSNodeCommand, RSExcludedFromNodeGroup),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSMarkNodeSingleFrameComposer),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSMarkSuggestOpincNode),
+    DECLARE_ADD_RANDOM(RSNodeCommand, RSMarkLayerPartRender),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSMarkUifirstNode),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSForceUifirstNode),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSSetUIFirstSwitch),
@@ -332,7 +333,7 @@ std::function<bool(std::unique_ptr<RSTransactionData>&)> RSTransactionDataUtils:
 bool RSTransactionDataVariant::Marshalling(Parcel& parcel) const
 {
     bool success = true;
-    parcel.SetMaxCapacity(PARCEL_MAX_CPACITY_VARIANT);
+    parcel.SetMaxCapacity(PARCEL_MAX_CAPACITY_VARIANT);
     // to correct actual marshaled command size later, record its position in parcel
     size_t recordPosition = parcel.GetWritePosition();
     std::unique_lock<std::mutex> lock(commandMutex_);

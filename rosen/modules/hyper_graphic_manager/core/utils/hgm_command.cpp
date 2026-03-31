@@ -14,22 +14,91 @@
  */
 
 #include "hgm_command.h"
-#include "hgm_log.h"
 
+#include "hgm_log.h"
 
 namespace OHOS::Rosen {
 namespace {
 const PolicyConfigData::ScreenSetting NULL_SCREEN_SETTING{};
 }
 
+PolicyConfigData::DynamicSettingMap PolicyConfigData::GetAceSceneDynamicSettingMap(
+    const std::string& screenType, const std::string& settingMode) const
+{
+    auto screenConfigsIter = screenConfigs_.find(screenType);
+    if (screenConfigsIter == screenConfigs_.end()) {
+        return {};
+    }
+    const auto& settingModeMap = screenConfigsIter->second;
+    auto settingModeIter = settingModeMap.find(settingMode);
+    if (settingModeIter == settingModeMap.end()) {
+        return {};
+    }
+    return settingModeIter->second.aceSceneDynamicSettings;
+}
+
+int32_t PolicyConfigData::SettingModeId2XmlModeId(int32_t settingModeId) const
+{
+    // return 0 when input is invalid
+    bool hasAutoConfig = !refreshRateForSettings_.empty() &&
+        refreshRateForSettings_.front().first == HGM_REFRESHRATE_MODE_AUTO;
+    if (settingModeId == HGM_REFRESHRATE_MODE_AUTO) {
+        if (!hasAutoConfig) {
+            return 0;
+        }
+        return refreshRateForSettings_.front().second;
+    }
+    // The settingModeId must be -1 and 1, 2, 3, 4..., no 0. When there is no -1 in refreshRateForSettings_,
+    // 1 corresponds to refreshRateForSettings_[0], and 2 corresponds to refreshRateForSettings_[1] and so on
+    if (!hasAutoConfig) {
+        settingModeId--;
+    }
+    if (settingModeId < 0 || settingModeId >= static_cast<int32_t>(refreshRateForSettings_.size())) {
+        return 0;
+    }
+    return refreshRateForSettings_[settingModeId].second;
+}
+
+int32_t PolicyConfigData::XmlModeId2SettingModeId(const std::string& xmlModeId) const
+{
+    auto refreshRateForSettingsIter = std::find_if(refreshRateForSettings_.begin(), refreshRateForSettings_.end(),
+        [&xmlModeId](auto nameModeId) { return std::to_string(nameModeId.second) == xmlModeId; });
+    if (refreshRateForSettingsIter == refreshRateForSettings_.end()) {
+        return 0;
+    }
+    auto ret = static_cast<int32_t>(refreshRateForSettingsIter - refreshRateForSettings_.begin());
+    // at(0).first == -1 means HGM_REFRESHRATE_MODE_AUTO is configured
+    if (refreshRateForSettings_.front().first != HGM_REFRESHRATE_MODE_AUTO) {
+        return ret + 1;
+    }
+    // HGM_REFRESHRATE_MODE_AUTO must be at(0), Only -1 is usable among negative numbers.
+    if (ret == 0) {
+        return HGM_REFRESHRATE_MODE_AUTO;
+    } else {
+        return ret;
+    }
+}
+
+int32_t PolicyConfigData::GetRefreshRateModeName(int32_t refreshRateModeId) const
+{
+    if (auto iter = std::find_if(refreshRateForSettings_.begin(), refreshRateForSettings_.end(),
+        [refreshRateModeId](auto nameModeId) { return nameModeId.second == refreshRateModeId; });
+        iter != refreshRateForSettings_.end()) {
+        return iter->first;
+    }
+    return 0;
+}
+
+void PolicyConfigData::UpdateRefreshRateForSettings(const std::string& mode)
+{
+    if (auto iter = refreshRateForSettingsMap_.find(mode); iter != refreshRateForSettingsMap_.end()) {
+        refreshRateForSettings_ = iter->second;
+    }
+}
+
 PolicyConfigVisitorImpl::PolicyConfigVisitorImpl(const PolicyConfigData& configData)
     : configData_(configData)
 {
-}
-
-const PolicyConfigData& PolicyConfigVisitorImpl::GetXmlData() const
-{
-    return configData_;
 }
 
 void PolicyConfigVisitorImpl::SetSettingModeId(int32_t settingModeId)
@@ -38,7 +107,7 @@ void PolicyConfigVisitorImpl::SetSettingModeId(int32_t settingModeId)
     // index of non-auto mode is settingModeId
     auto xmlModeId = SettingModeId2XmlModeId(settingModeId);
     if (!xmlModeId.has_value()) {
-        HGM_LOGE("SetSettingModeId %{public}d fail", settingModeId);
+        HGM_LOGE("%{public}d fail", settingModeId);
         return;
     }
     settingModeId_ = settingModeId;
@@ -57,10 +126,10 @@ void PolicyConfigVisitorImpl::SetXmlModeId(const std::string& xmlModeId)
     }
     auto settingModeId = XmlModeId2SettingModeId(xmlModeId);
     if (!settingModeId.has_value()) {
-        HGM_LOGE("SetXmlModeId %{public}s fail", xmlModeId.c_str());
+        HGM_LOGE("%{public}s fail", xmlModeId.c_str());
         return;
     }
-    HILOG_COMM_INFO("SetXmlModeId : %{public}s -> settingModeId: %{public}d", xmlModeId.c_str(), settingModeId.value());
+    HILOG_COMM_INFO("SetXmlModeId: %{public}s -> settingModeId: %{public}d", xmlModeId.c_str(), settingModeId.value());
     xmlModeId_ = xmlModeId;
     settingModeId_ = settingModeId.value();
     OnUpdate();
@@ -68,11 +137,9 @@ void PolicyConfigVisitorImpl::SetXmlModeId(const std::string& xmlModeId)
 
 int32_t PolicyConfigVisitorImpl::GetRefreshRateModeName(int32_t refreshRateModeId) const
 {
-    auto iter = std::find_if(configData_.refreshRateForSettings_.begin(), configData_.refreshRateForSettings_.end(),
-        [&](auto nameModeId) {
-            return nameModeId.second == refreshRateModeId;
-        });
-    if (iter != configData_.refreshRateForSettings_.end()) {
+    if (auto iter = std::find_if(configData_.refreshRateForSettings_.begin(), configData_.refreshRateForSettings_.end(),
+        [refreshRateModeId](auto nameModeId) { return nameModeId.second == refreshRateModeId; });
+        iter != configData_.refreshRateForSettings_.end()) {
         return iter->first;
     }
     return 0;
@@ -80,11 +147,10 @@ int32_t PolicyConfigVisitorImpl::GetRefreshRateModeName(int32_t refreshRateModeI
 
 void PolicyConfigVisitorImpl::ChangeScreen(const std::string& screenConfigType)
 {
-    if (screenConfigType_ == screenConfigType) {
-        return;
+    if (screenConfigType_ != screenConfigType) {
+        screenConfigType_ = screenConfigType;
+        OnUpdate();
     }
-    screenConfigType_ = screenConfigType;
-    OnUpdate();
 }
 
 HgmErrCode PolicyConfigVisitorImpl::GetStrategyConfig(
@@ -121,17 +187,14 @@ const PolicyConfigData::DynamicSettingMap& PolicyConfigVisitorImpl::GetAceSceneD
 std::string PolicyConfigVisitorImpl::GetAppStrategyConfigName(const std::string& pkgName, int32_t appType) const
 {
     const auto& screenSetting = GetScreenSetting();
-
     const auto& appConfigMap = screenSetting.appList;
     if (auto iter = appConfigMap.find(pkgName); iter != appConfigMap.end()) {
         return iter->second;
     }
-
     const auto& appTypes = screenSetting.appTypes;
     if (auto iter = appTypes.find(appType); iter != appTypes.end()) {
         return iter->second;
     }
-
     return screenSetting.strategy;
 }
 

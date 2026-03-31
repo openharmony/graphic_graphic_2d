@@ -793,7 +793,7 @@ static void MarshalRenderModifier(const ModifierNG::RSRenderModifier& modifier, 
         return;
     }
 
-    const_cast<ModifierNG::RSRenderModifier&>(modifier).Marshalling(parcel);
+    const_cast<ModifierNG::RSRenderModifier&>(modifier).Marshalling(parcel, false);
     const size_t dataSize = parcel.GetDataSize();
     data.write(reinterpret_cast<const char*>(&dataSize), sizeof(dataSize));
     data.write(reinterpret_cast<const char*>(parcel.GetData()), dataSize);
@@ -1102,7 +1102,7 @@ static std::shared_ptr<ModifierNG::RSRenderModifier> UnmarshalRenderModifier(
         parcel->RewindRead(0);
     }
 
-    auto ptr = ModifierNG::RSRenderModifier::Unmarshalling(*parcel);
+    auto ptr = ModifierNG::RSRenderModifier::Unmarshalling(*parcel, false);
     if (!ptr) {
         constexpr size_t minBufferSize = 2;
         if (buffer.size() >= minBufferSize) {

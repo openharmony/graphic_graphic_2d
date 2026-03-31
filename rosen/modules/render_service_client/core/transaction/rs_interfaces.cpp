@@ -191,83 +191,19 @@ uint32_t RSInterfaces::SetSurfaceWatermark(pid_t pid, const std::string& name,
     const std::shared_ptr<Media::PixelMap> &watermark,
     const std::vector<NodeId>& nodeIdList, SurfaceWatermarkType watermarkType)
 {
-#ifdef ROSEN_OHOS
-    if (name.length() > WATERMARK_NAME_LENGTH_LIMIT || name.empty()) {
-        ROSEN_LOGE("SetSurfaceWatermark failed, name[%{public}s] is error.", name.c_str());
-        return SurfaceWatermarkStatusCode::WATER_MARK_NAME_ERROR;
-    }
-    if (watermark && watermark->IsAstc()) {
-        ROSEN_LOGE("SetSurfaceWatermark failed, watermark[%{public}d, %{public}u] is error",
-            watermark->IsAstc(), watermark->GetCapacity());
-        return SurfaceWatermarkStatusCode::WATER_MARK_IMG_ASTC_ERROR;
-    }
-
-    if (watermarkType >= SurfaceWatermarkType::INVALID_WATER_MARK) {
-        return SurfaceWatermarkStatusCode::WATER_MARK_INVALID_WATERMARK_TYPE;
-    }
-    return renderServiceClient_->SetSurfaceWatermark(pid, name, watermark, nodeIdList, watermarkType);
-#else
-    return 0;
-#endif
+    return renderInterface_->SetSurfaceWatermark(pid, name, watermark, nodeIdList, watermarkType);
 }
 
 void RSInterfaces::ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,
     const std::vector<NodeId>& nodeIdList)
 {
-#ifdef ROSEN_OHOS
-    if (name.length() > WATERMARK_NAME_LENGTH_LIMIT || name.empty()) {
-        ROSEN_LOGE("ClearSurfaceWatermarkForNodes failed, name[%{public}s] is error.", name.c_str());
-        return;
-    }
-    renderServiceClient_->ClearSurfaceWatermarkForNodes(pid, name, nodeIdList);
-#endif
+    renderInterface_->ClearSurfaceWatermarkForNodes(pid, name, nodeIdList);
 }
 
 void RSInterfaces::ClearSurfaceWatermark(pid_t pid, const std::string& name)
 {
-#ifdef ROSEN_OHOS
-    if (name.length() > WATERMARK_NAME_LENGTH_LIMIT || name.empty()) {
-        ROSEN_LOGE("ClearSurfaceWatermark failed, name[%{public}s] is error.", name.c_str());
-        return;
-    }
-    renderServiceClient_->ClearSurfaceWatermark(pid, name);
-#endif
+    renderInterface_->ClearSurfaceWatermark(pid, name);
 }
-
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-int32_t RSInterfaces::SetPointerColorInversionConfig(float darkBuffer, float brightBuffer,
-    int64_t interval, int32_t rangeSize)
-{
-    if (renderServiceClient_ == nullptr) {
-        return StatusCode::RENDER_SERVICE_NULL;
-    }
-    return renderServiceClient_->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval, rangeSize);
-}
-
-int32_t RSInterfaces::SetPointerColorInversionEnabled(bool enable)
-{
-    if (renderServiceClient_ == nullptr) {
-        return StatusCode::RENDER_SERVICE_NULL;
-    }
-    return renderServiceClient_->SetPointerColorInversionEnabled(enable);
-}
-
-int32_t RSInterfaces::RegisterPointerLuminanceChangeCallback(const PointerLuminanceChangeCallback &callback)
-{
-    if (renderServiceClient_ == nullptr) {
-        return StatusCode::RENDER_SERVICE_NULL;
-    }
-    return renderServiceClient_->RegisterPointerLuminanceChangeCallback(callback);
-}
-
-int32_t RSInterfaces::UnRegisterPointerLuminanceChangeCallback()
-{
-    if (renderServiceClient_ == nullptr) {
-        return StatusCode::RENDER_SERVICE_NULL;
-    }
-    return renderServiceClient_->UnRegisterPointerLuminanceChangeCallback();
-}
-#endif
 
 int32_t RSInterfaces::SetScreenChangeCallback(const ScreenChangeCallback &callback)
 {
@@ -289,7 +225,7 @@ int32_t RSInterfaces::SetBrightnessInfoChangeCallback(const BrightnessInfoChange
 
 int32_t RSInterfaces::GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo)
 {
-    return renderServiceClient_->GetBrightnessInfo(screenId, brightnessInfo);
+    return renderInterface_->GetBrightnessInfo(screenId, brightnessInfo);
 }
 
 int32_t RSInterfaces::GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid)
@@ -498,7 +434,7 @@ bool RSInterfaces::UnRegisterTypeface(uint32_t uniqueId)
 
 bool RSInterfaces::SetGlobalDarkColorMode(bool isDark)
 {
-    return renderServiceClient_->SetGlobalDarkColorMode(isDark);
+    return renderInterface_->SetGlobalDarkColorMode(isDark);
 }
 
 int32_t RSInterfaces::SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height)
@@ -706,9 +642,10 @@ int32_t RSInterfaces::SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat
     return renderServiceClient_->SetPixelFormat(id, pixelFormat);
 }
 
-int32_t RSInterfaces::GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats)
+int32_t RSInterfaces::GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats,
+    const ScreenSupportedHDRFormatsCallback& callback)
 {
-    return renderServiceClient_->GetScreenSupportedHDRFormats(id, hdrFormats);
+    return renderServiceClient_->GetScreenSupportedHDRFormats(id, hdrFormats, callback);
 }
 
 int32_t RSInterfaces::GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat)
@@ -768,7 +705,7 @@ void RSInterfaces::SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offSetY
 
 void RSInterfaces::SetScreenFrameGravity(ScreenId id, int32_t gravity)
 {
-    renderInterface_->SetScreenFrameGravity(id, gravity);
+    renderServiceClient_->SetScreenFrameGravity(id, gravity);
 }
 
 int32_t RSInterfaces::SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate)
@@ -778,23 +715,23 @@ int32_t RSInterfaces::SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefre
 
 bool RSInterfaces::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation)
 {
-    return renderServiceClient_->SetSystemAnimatedScenes(systemAnimatedScenes, isRegularAnimation);
+    return renderInterface_->SetSystemAnimatedScenes(systemAnimatedScenes, isRegularAnimation);
 }
 
 int32_t RSInterfaces::RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback)
 {
-    return renderServiceClient_->RegisterOcclusionChangeCallback(callback);
+    return renderInterface_->RegisterOcclusionChangeCallback(callback);
 }
 
 int32_t RSInterfaces::RegisterSurfaceOcclusionChangeCallback(
     NodeId id, const SurfaceOcclusionChangeCallback& callback, std::vector<float>& partitionPoints)
 {
-    return renderServiceClient_->RegisterSurfaceOcclusionChangeCallback(id, callback, partitionPoints);
+    return renderInterface_->RegisterSurfaceOcclusionChangeCallback(id, callback, partitionPoints);
 }
 
 int32_t RSInterfaces::UnRegisterSurfaceOcclusionChangeCallback(NodeId id)
 {
-    return renderServiceClient_->UnRegisterSurfaceOcclusionChangeCallback(id);
+    return renderInterface_->UnRegisterSurfaceOcclusionChangeCallback(id);
 }
 
 int32_t RSInterfaces::RegisterHgmConfigChangeCallback(const HgmConfigChangeCallback& callback)
@@ -841,6 +778,19 @@ int32_t RSInterfaces::UnRegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t
 {
     return renderServiceClient_->RegisterFrameRateLinkerExpectedFpsUpdateCallback(dstPid, nullptr);
 }
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+void RSRenderInterface::RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback)
+{
+    renderInterface_->RegisterCanvasCallback(callback);
+}
+
+int32_t RSRenderInterface::SubmitCanvasPreAllocatedBuffer(
+    NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex)
+{
+    return renderInterface_->SubmitCanvasPreAllocatedBuffer(nodeId, buffer, resetSurfaceIndex);
+}
+#endif
 
 /**
  * @brief Display safe Watermark
@@ -1133,7 +1083,7 @@ int32_t RSInterfaces::SetOverlayDisplayMode(int32_t mode)
 }
 #endif
 
-void RSInterfaces::NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter)
+void RSInterfaces::NotifyPageName(const std::string& packageName, const std::string& pageName, bool isEnter)
 {
     auto pageNameList = RSFrameRatePolicy::GetInstance()->GetPageNameList();
     auto item = pageNameList.find(pageName);
@@ -1153,7 +1103,7 @@ int32_t RSInterfaces::GetPidGpuMemoryInMB(pid_t pid, float& gpuMemInMB)
 // LCOV_EXCL_START
 bool RSInterfaces::GetHighContrastTextState()
 {
-    return renderServiceClient_->GetHighContrastTextState();
+    return renderInterface_->GetHighContrastTextState();
 }
 // LCOV_EXCL_STOP
 bool RSInterfaces::SetBehindWindowFilterEnabled(bool enabled)
@@ -1191,6 +1141,31 @@ bool RSInterfaces::AvcodecVideoGet(uint64_t uniqueId)
 bool RSInterfaces::AvcodecVideoGetRecent()
 {
     return renderServiceClient_->AvcodecVideoGetRecent();
+}
+
+int32_t RSInterfaces::RegisterFrameStabilityDetection(
+    const FrameStabilityTarget& target,
+    const FrameStabilityConfig& config,
+    const FrameStabilityCallback& callback)
+{
+    return renderInterface_->RegisterFrameStabilityDetection(target, config, callback);
+}
+
+int32_t RSInterfaces::UnregisterFrameStabilityDetection(const FrameStabilityTarget& target)
+{
+    return renderInterface_->UnregisterFrameStabilityDetection(target);
+}
+
+int32_t RSInterfaces::StartFrameStabilityCollection(
+    const FrameStabilityTarget& target,
+    const FrameStabilityConfig& config)
+{
+    return renderInterface_->StartFrameStabilityCollection(target, config);
+}
+
+int32_t RSInterfaces::GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result)
+{
+    return renderInterface_->GetFrameStabilityResult(target, result);
 }
 
 int32_t RSInterfaces::SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection)

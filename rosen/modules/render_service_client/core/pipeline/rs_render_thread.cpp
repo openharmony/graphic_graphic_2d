@@ -52,7 +52,7 @@
 #include "rs_vulkan_context.h"
 #endif
 #endif
-#ifdef ROSEN_IOS
+#if defined(ROSEN_ARKUI_X)
 #include "render_context/new_render_context/render_context_gl.h"
 #endif
 #ifdef OHOS_RSS_CLIENT
@@ -146,6 +146,9 @@ RSRenderThread::RSRenderThread()
         }
         RSRenderNodeGC::Instance().ReleaseNodeMemory();
         ReleasePixelMapInBackgroundThread();
+#if defined(RS_ENABLE_VK) && defined(ROSEN_ARKUI_X) && defined(RS_ENABLE_GPU)
+        ScheduleIdleGpuResourceClean();
+#endif
         context_->pendingSyncNodes_.clear();
 #ifdef ROSEN_OHOS
         FRAME_TRACE::RenderFrameTrace::GetInstance().RenderEndFrameTrace(RT_INTERVAL_NAME);
@@ -209,6 +212,29 @@ RSRenderThread::~RSRenderThread()
     }
 #endif
 }
+
+#if defined(RS_ENABLE_VK) && defined(ROSEN_ARKUI_X) && defined(RS_ENABLE_GPU)
+void RSRenderThread::ScheduleIdleGpuResourceClean()
+{
+    lastRenderEndTimeNs_ = jankDetector_ ? static_cast<int64_t>(jankDetector_->GetSysTimeNs()) : 0;
+    const int64_t scheduledTimeNs = lastRenderEndTimeNs_;
+    constexpr int64_t IDLE_CLEAN_DELAY_MS = 5000;
+    if (!handler_) {
+        return;
+    }
+    handler_->PostTask([this, scheduledTimeNs]() {
+        if (lastRenderEndTimeNs_ > scheduledTimeNs || !renderContext_) {
+            return;
+        }
+        auto gpuContext = renderContext_->GetSharedDrGPUContext();
+        if (!gpuContext) {
+            return;
+        }
+        gpuContext->FlushAndSubmit(true);
+        gpuContext->PurgeUnlockedResources(true);
+        }, IDLE_CLEAN_DELAY_MS);
+}
+#endif
 
 void RSRenderThread::Start()
 {
@@ -299,20 +325,18 @@ void RSRenderThread::CreateAndInitRenderContextIfNeed()
     if (renderContext_ == nullptr) {
         renderContext_ = RenderContext::Create();
         ROSEN_LOGD("Create RenderContext");
-#ifdef ROSEN_IOS
-        auto renderContextGL = std::static_pointer_cast<RenderContextGL>(renderContext_);
-        if (renderContextGL == nullptr) {
-            ROSEN_LOGE("renderContextGL is nullptr");
+#if defined(ROSEN_ARKUI_X)
+        if (renderContext_ == nullptr) {
+            ROSEN_LOGE("renderContext_ is nullptr");
             return;
         }
-        auto cleanupTask = [renderContextGL]() {
-            RSRenderThread::Instance().PostSyncTask([renderContextGL]() {
-                //release egl source
-                renderContextGL->DestroySharedSource();
-            });
-        };
-
-        renderContextGL->SetCleanUpHelper(cleanupTask);
+            auto cleanupTask = [rc = renderContext_]() {
+                RSRenderThread::Instance().PostSyncTask([rc]() {
+                    rc->DestroySharedSource();
+                });
+            };
+            renderContext_->SetCleanUpHelper(cleanupTask);
+        
 #endif
 #ifdef ROSEN_OHOS
 
@@ -559,7 +583,7 @@ void RSRenderThread::Render()
         RSPropertyTrace::GetInstance().RefreshNodeTraceInfo();
     }
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderThread::Render");
-    RsFrameReport::GetInstance().RenderStart(timestamp_);
+    RsFrameReport::RenderStart(timestamp_);
     std::unique_lock<std::mutex> lock(mutex_);
     const auto& rootNode = context_->GetGlobalRootRenderNode();
 
@@ -586,7 +610,7 @@ void RSRenderThread::Render()
 void RSRenderThread::SendCommands()
 {
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderThread::SendCommands");
-    RsFrameReport::GetInstance().SendCommandsStart();
+    RsFrameReport::SendCommandsStart();
 
     RSUIDirector::RecvMessages();
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);

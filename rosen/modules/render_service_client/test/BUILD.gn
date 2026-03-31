@@ -622,6 +622,7 @@ ohos_executable("rs_interface_stable_demo") {
     "hilog:libhilog",
     "image_framework:image_native",
     "window_manager:libwm",
+    "graphic_surface:surface",
   ]
 
   defines = []
@@ -727,6 +728,37 @@ ohos_executable("render_service_client_overlay_demo") {
     "c_utils:utils",
     "hilog:libhilog",
     "zlib:libz",
+  ]
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}
+
+ohos_executable("render_service_client_pixelmap_get_demo") {
+    sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  sources = [ "render_service_client_pixelmap_get_demo.cpp" ]
+  include_dirs = [
+    # render_service_base include
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
+    "//foundation/graphic/graphic_2d/rosen/include",
+  ]
+
+  deps = [
+    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "libpng:libpng",
+    "zlib:libz",
+    "skia:skia_canvaskit",
   ]
 
   part_name = "graphic_2d"

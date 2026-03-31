@@ -24,7 +24,6 @@
 #include "animation/rs_animation_callback.h"
 #include "animation/rs_implicit_animation_param.h"
 #include "animation/rs_implicit_animator.h"
-#include "animation/rs_implicit_animator_map.h"
 #include "animation/rs_transition.h"
 #include "common/rs_vector4.h"
 #include "modifier_ng/appearance/rs_alpha_modifier.h"

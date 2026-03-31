@@ -616,4 +616,77 @@ HWTEST_F(RSSurfaceRenderParamsTest, SetUifirstStartingWindowId, TestSize.Level1)
     params.SetUifirstStartingWindowId(startingWindowId);
     EXPECT_EQ(params.GetUifirstStartingWindowId(), startingWindowId);
 }
+
+/**
+ * @tc.name: SetIsParticipateInOcclusionTest
+ * @tc.desc: Test SetIsParticipateInOcclusion and GetIsParticipateInOcclusion
+ * @tc.type: FUNC
+ * @tc.require: issues22651
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetIsParticipateInOcclusionTest, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(DEFAULT_NODEID);
+
+    // Test set to true - should trigger needSync
+    params.SetIsParticipateInOcclusion(true);
+    EXPECT_EQ(params.GetIsParticipateInOcclusion(), true);
+    EXPECT_EQ(params.needSync_, true);
+
+    // Test set to false - should trigger needSync
+    params.needSync_ = false;
+    params.SetIsParticipateInOcclusion(false);
+    EXPECT_EQ(params.GetIsParticipateInOcclusion(), false);
+    EXPECT_EQ(params.needSync_, true);
+
+    // Test set same value - should not trigger needSync
+    params.needSync_ = false;
+    params.SetIsParticipateInOcclusion(false);
+    EXPECT_EQ(params.needSync_, false);
+}
+
+/**
+ * @tc.name: SwapRelatedRenderParamsTest
+ * @tc.desc: Test SwapRelatedRenderParams swaps occludedByFilterCache, skipDraw, matrix and shouldPaint
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SwapRelatedRenderParamsTest, TestSize.Level1)
+{
+    RSSurfaceRenderParams paramsA(DEFAULT_NODEID);
+    RSSurfaceRenderParams paramsB(DEFAULT_NODEID);
+
+    Drawing::Matrix matrixA;
+    matrixA.SetScale(2.0f, 2.0f);
+    Drawing::Matrix matrixB;
+    matrixB.SetScale(3.0f, 3.0f);
+
+    paramsA.SetOccludedByFilterCache(true);
+    paramsB.SetOccludedByFilterCache(false);
+    paramsA.SetSkipDraw(true);
+    paramsB.SetSkipDraw(false);
+    paramsA.SetMatrix(matrixA);
+    paramsB.SetMatrix(matrixB);
+    paramsA.SetShouldPaint(true);
+    paramsB.SetShouldPaint(false);
+
+    ASSERT_TRUE(paramsA.GetOccludedByFilterCache());
+    ASSERT_FALSE(paramsB.GetOccludedByFilterCache());
+    ASSERT_TRUE(paramsA.GetSkipDraw());
+    ASSERT_FALSE(paramsB.GetSkipDraw());
+    ASSERT_TRUE(paramsA.GetShouldPaint());
+    ASSERT_FALSE(paramsB.GetShouldPaint());
+    ASSERT_EQ(paramsA.GetMatrix().Get(Drawing::Matrix::SCALE_X), 2.0f);
+    ASSERT_EQ(paramsB.GetMatrix().Get(Drawing::Matrix::SCALE_X), 3.0f);
+
+    paramsA.SwapRelatedRenderParams(paramsB);
+
+    ASSERT_FALSE(paramsA.GetOccludedByFilterCache());
+    ASSERT_TRUE(paramsB.GetOccludedByFilterCache());
+    ASSERT_FALSE(paramsA.GetSkipDraw());
+    ASSERT_TRUE(paramsB.GetSkipDraw());
+    ASSERT_FALSE(paramsA.GetShouldPaint());
+    ASSERT_TRUE(paramsB.GetShouldPaint());
+    ASSERT_EQ(paramsA.GetMatrix().Get(Drawing::Matrix::SCALE_X), 3.0f);
+    ASSERT_EQ(paramsB.GetMatrix().Get(Drawing::Matrix::SCALE_X), 2.0f);
+}
 } // namespace OHOS::Rosen

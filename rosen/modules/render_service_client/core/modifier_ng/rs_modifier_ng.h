@@ -25,6 +25,7 @@ namespace OHOS::Rosen {
 class RSModifierExtractor;
 class RSNode;
 class RSCanvasDrawingNode;
+class RSSurfaceNode;
 class RSPropertyBase;
 
 namespace ModifierNG {
@@ -76,11 +77,6 @@ public:
     virtual bool IsDeduplicationEnabled() const
     {
         return false;
-    }
-
-    virtual void SetDeduplicationEnabled(bool enable)
-    {
-        (void)enable;  // Default: do nothing, deduplication not supported
     }
 
 protected:
@@ -164,6 +160,7 @@ private:
     friend class OHOS::Rosen::RSModifierManager;
     friend class OHOS::Rosen::RSNode;
     friend class OHOS::Rosen::RSCanvasDrawingNode;
+    friend class OHOS::Rosen::RSSurfaceNode;
     friend class OHOS::Rosen::RSPropertyBase;
 };
 } // namespace ModifierNG

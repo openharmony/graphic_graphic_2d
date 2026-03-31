@@ -61,9 +61,6 @@ const std::unordered_map<std::string, std::function<bool(MessageParcel&, const T
     DECLARE_WRITE_RANDOM(Uint64AndEventInfoPairVector),
     DECLARE_WRITE_RANDOM(StringAndEventInfoPairVector),
     DECLARE_WRITE_RANDOM(StringAndStringPairVector),
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-    DECLARE_WRITE_RANDOM(PointerLuminanceChangeCallbackSptr),
-#endif
     DECLARE_WRITE_RANDOM(FrameRateLinkerExpectedFpsUpdateCallbackSptr),
     DECLARE_WRITE_RANDOM(OcclusionChangeCallbackSptr),
     DECLARE_WRITE_RANDOM(SurfaceBufferCallbackSptr),
@@ -307,24 +304,6 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomStringAndStringPairVector(Mess
     return true;
 }
 
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-bool MessageParcelCustomizedTypeUtils::WriteRandomPointerLuminanceChangeCallbackSptr(MessageParcel& messageParcel,
-    const TestCaseParams& /* testCaseParams */)
-{
-    PointerLuminanceChangeCallback callback = [](int32_t) {
-        SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomPointerLuminanceChangeCallbackSptr sleep 6s");
-        usleep(DELAY);
-    };
-    sptr<RSIPointerLuminanceChangeCallback> obj = new CustomPointerLuminanceChangeCallback(callback);
-    if (!messageParcel.WriteRemoteObject(obj->AsObject())) {
-        SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomPointerLuminanceChangeCallbackSptr "
-            "WriteRemoteObject failed");
-        return false;
-    }
-    return true;
-}
-#endif
-
 bool MessageParcelCustomizedTypeUtils::WriteRandomFrameRateLinkerExpectedFpsUpdateCallbackSptr(
     MessageParcel& messageParcel, const TestCaseParams& /* testCaseParams */)
 {
@@ -362,7 +341,7 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomOcclusionChangeCallbackSptr(Me
 bool MessageParcelCustomizedTypeUtils::WriteRandomSurfaceBufferCallbackSptr(MessageParcel& messageParcel,
     const TestCaseParams& /* testCaseParams */)
 {
-    RSRenderPipelineClient* rsClient = RSRenderInterface::GetInstance().renderPiplineClient_.get();
+    RSRenderPipelineClient* rsClient = RSInterfaces::GetInstance().renderInterface_->renderPipelineClient_.get();
     if (rsClient == nullptr) {
         SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomSurfaceBufferCallbackSptr "
             "rsClient is nullptr");
@@ -428,7 +407,7 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomScreenChangeCallbackSptr(Messa
 bool MessageParcelCustomizedTypeUtils::WriteRandomSurfaceCaptureCallbackSptr(MessageParcel& messageParcel,
     const TestCaseParams& /* testCaseParams */)
 {
-    RSRenderPipelineClient* rsClient = RSRenderInterface::GetInstance().renderPiplineClient_.get();
+    RSRenderPipelineClient* rsClient = RSInterfaces::GetInstance().renderInterface_->renderPipelineClient_.get();
     if (rsClient == nullptr) {
         SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomSurfaceCaptureCallbackSptr "
             "rsClient is nullptr");
@@ -459,7 +438,7 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomBrightnessInfoChangeCallbackSp
 bool MessageParcelCustomizedTypeUtils::WriteRandomTransactionDataCallbackSptr(MessageParcel& messageParcel,
     const TestCaseParams& /* testCaseParams */)
 {
-    RSRenderPipelineClient* rsClient = RSRenderInterface::GetInstance().renderPiplineClient_.get();
+    RSRenderPipelineClient* rsClient = RSInterfaces::GetInstance().renderInterface_->renderPipelineClient_.get();
     if (rsClient == nullptr) {
         SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomTransactionDataCallbackSptr "
             "rsClient is nullptr");

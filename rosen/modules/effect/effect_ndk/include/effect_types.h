@@ -152,6 +152,32 @@ typedef enum {
 } EffectTileMode;
 
 /**
+ * @brief Defines the scale mode of the sampling optiopns .
+ *
+ * @since 24
+ */
+typedef enum {
+    /** Nearest mode of the scaling mode */
+    SCALE_MODE_NEAREST = 0,
+    /** Linear mode of the scaling mode */
+    SCALE_MODE_LINEAR,
+} OH_Filter_ScaleMode;
+ 
+/**
+ * @brief Defines the mipmap mode of the sampling optiopns .
+ *
+ * @since 24
+ */
+typedef enum {
+    /** Skip the mipmap step */
+    MIPMAP_MODE_NONE = 0,
+    /** Nearest mode of the scaling mode */
+    MIPMAP_MODE_NEAREST,
+    /** Linear mode of the scaling mode */
+    MIPMAP_MODE_LINEAR,
+} OH_Filter_MipmapMode;
+
+/**
  * @brief Defines a effect filter mask type.
  *
  * @since 24
@@ -250,6 +276,8 @@ typedef struct {
  * @version 1.0
  */
 typedef struct {
+    /** the center position of the water droplet, The value range is [-10.0f, 10.0f], truncated beyond the range.*/
+    OH_Filter_Vec2 position;
     /** radius of water droplet, The value range is [0.0f, 10.0f], truncated beyond the range.*/
     float radius;
     /** water droplet transition fade width, The value range is [0.0f, 1.0f], truncated beyond the range. */
@@ -292,24 +320,35 @@ typedef struct {
  * @version 1.0
  */
 typedef struct {
-    /** Wave center position. When = (0.0f, 0.0f), the point is at the center of the control.
-     *  When = (0.5f, 0.5f), the point is at the bottom-right corner of the control.
-     *  Can extend beyond the control.
-     *  Range: No limitation.
+    /** Wave speed, animation progress speed.
+     * Range: [0.0f, +∞)
      */
-    OH_Filter_Vec2 waveCenter;
+    float speed;
 
-    /** Wave motion source position. When = (0.0f, 0.0f), the point is at the center of the control.
-     *  When = (0.5f, 0.5f), the point is at the bottom-right corner of the control.
-     *  Can extend beyond the control.
-     *  Range: No limitation.
+    /** Wave distort speed, wave distort animation progress speed.
+     * Range: [0.0f, +∞)
      */
-    OH_Filter_Vec2 waveSourceXY;
+    float distortSpeed; // speed_1
 
-    /** Degree of waveform distortion in the X and Y directions from the center point.
-     *  Range: [(0.0f, 0.0f), (1.0f, 1.0f)]
+    /** Wave refraction peed, wave refraction animation progress speed.
+     * Range: [(0.0f， 0.0f), (+∞, +∞)]
      */
-    OH_Filter_Vec2 waveDistortXY;
+    OH_Filter_Vec2 refractionSpeed;
+
+    /** Wave progress, animation progress.
+     * Range: [0.0f, +∞)
+     */
+    float progress;
+
+    /** Wave shakingDirection1, refraction animation progress.
+     * Range: [(-1.0f， -1.0f), (1.0f, 1.0f)]
+     */
+    OH_Filter_Vec2 shakingDirection1;
+
+    /** Wave shakingDirection1, refraction animation progress.
+     * Range: [(-1.0f， -1.0f), (1.0f, 1.0f)]
+     */
+    OH_Filter_Vec2 shakingDirection2;
 
     /** Water wave density. Higher density results in more waves, lower density results in fewer and thicker waves.
      *  Range: [(0.0f, 0.0f), (100.0f, 100.0f)]
@@ -320,11 +359,6 @@ typedef struct {
      *  Range: [0.0f, 10.0f]
      */
     float waveStrength;
-
-    /** Water wave lighting strength.
-     *  Range: [0.0f, 10.0f]
-     */
-    float waveLightStrength;
 
     /** Refraction strength. When the background is very blurry, it is recommended to set this parameter to 0.0f.
      *  Range: [0.0f, 10.0f]
@@ -346,23 +380,20 @@ typedef struct {
      */
     float waveShapeDistortion;
 
-    /** Water wave refraction frequency. Higher values result in faster frequency.
+    /** Distortion angle of Wave, the angle from which the wave begin to distort.
      *  Range: [0.0f, 1.0f]
      */
-    float waveNoiseStrength;
+    float waveDistortionAngle;
 
-    /** Inner edge size of the mask. When 0.0f, there is no mask occlusion; when 1.0f, the entire control effect is
-     *  occluded, resulting in no effect.
-     *  Range: [(0.0f, 0.0f), (1.0f, 1.0f)]
+    /** Ripple degree in the X-direction of the wave.
+     *  Range: [0.0f, 1.0f]
      */
-    OH_Filter_Vec2 waveMaskSize;
+    float rippleXWave;
 
-    /** Transition degree of the water wave mask edge. Higher values cause the mask to spread more toward the edges.
-     * When 0.0f, the mask does not spread and has no transition, stopping at waveMaskSize;
-     * when 1.0f, it spreads to the boundary, stopping at [1.0f,1.0f].
-     * Range: [(0.0f,0.0f),(1.0f,1.0f)]
+    /** Ripple degree in the X-direction of the wave.
+     *  Range: [0.0f, 1.0f]
      */
-    float waveMaskRadius;
+    float rippleYWave;
 
     /** Corner radius outside the edge. When 0.0f, it is a rectangle;
      *  when > 0.0f, it is a rounded rectangle.
@@ -370,28 +401,55 @@ typedef struct {
      */
     float borderRadius;
 
-    /** Internal thickness of the edge.
+    /** Internal thickness of the edge, borderThickness ≤ borderRadius is recommended.
      *  Range: [0.0f, 1.0f]
      */
     float borderThickness;
 
-    /** Weakening range of the edge. When 0.0f, there is no edge weakening;
-     *  when 1.0f, the edge weakening range covers the entire control.
-     *  Refers to the distance from the edge to the center.
+    /** Inner edge size of the mask in the X and Y directions.
+     *  When 0.0f, there is no mask occlusion;
+     *  when 1.0f, the entire control effect is occluded, resulting in no effect.
+     *  Range: [(0.0f, 0.0f), (1.0f, 1.0f)]
+     */
+    OH_Filter_Vec2 waveInnerMaskXY;
+
+    /** Radius of the Inner mask rounded corners.
      *  Range: [0.0f, 1.0f]
      */
-    float borderScope;
+    float waveInnerMaskRadius;
 
-    /** Transition degree of weakening within the edge mask weakening range.
-     *  Smaller values result in more obvious weakening; larger values result in less obvious weakening.
+    /** Smoothness of the Inner mask rounded corners.
+     *  when 0.0, the mask edges are clearly visible, without any blurred transitions.
      *  Range: [0.0f, 1.0f]
      */
-    float borderStrength;
+    float waveInnerMaskSmoothness;
 
-    /** Wave progress, animation progress.
-     * Range: [0.0f, +∞)
+    /** Mask transition degree of the outer edge of the entire control.
+     *  when 0.0, no mask transition, wave on the outer edge are clearly visible.
+     *  when 1.0, there is a masked transition, and the ripple effect gradually weakens from the inside out..
+     *  Range: [0.0f, 1.0f]
      */
-    float progress;
+    float waveOuterMaskPadding;
+
+    /** Powe of the wave specula
+     *  Range: [0.0f, 100.0f]
+     */
+    float waveSpecularPower;
+
+    /** The dark strength of Refraction detail.
+     *  Range: [0.0f, 1.0f]
+     */
+    float refractionDetailDark;
+
+    /** The white strength of Refraction detail.
+     *  Range: [0.0f, 1.0f]
+     */
+    float refractionDetailWhite;
+
+    /** The detail strength of Refraction from dark and white.
+     *  Range: [0.0f, 1.0f]
+     */
+    float detailStrength;
 } OH_Filter_WaterGlassDataParams;
 
 /**
@@ -407,31 +465,10 @@ typedef struct {
      */
     float refractionFactor;
 
-    /** Higher values result in stronger dispersion; 0.0f means no dispersion.
-     * Dispersion adjustment has no effect when refractionFactor is 0.0f.
-     * Range: [0.0f, 1.0f]
-     */
-    float dispersionStrength;
-
-    /** Higher values result in greater roughness.
-     *  Range: [0.0f, 1.0f]
-     */
-    float roughness;
-
-    /** Higher frequency results in finer grain.
-     *  Range: [0.0f, 1.0f]
-     */
-    float noiseFrequency;
-
     /** Specifies the number of grids.
      *  Range: [0.0f, 100.0f]
      */
     uint8_t horizontalPatternNumber;
-
-    /** Specifies overall color saturation; 0.0f results in a black-and-white image.
-     *  Range: [0.0f, 2.0f]
-     */
-    float saturationFactor;
 
     /** Specifies the light strength of every grid; 0.0f means no light, 1.0f means light smoothly fills the grid.
      *  Range: [0.0f, 1.0f]
@@ -462,33 +499,6 @@ typedef struct {
      *  Range: [0.0f, 1.0f]
      */
     float gridShadowPositionEnd;
-
-    /** Follows OH_Filter_Color; alpha is meaningless.
-     *  Range: [0.0f, 1.0f]
-     */
-    OH_Filter_Color pointLightColor;
-
-    /** Specifies position of point light 1.0f; within [0.0f,1.0f] is inside the UI component, outside is beyond the UI
-     *  component.
-     *  Range: No limitation
-     */
-    OH_Filter_Vec2 pointLight1Position;
-
-    /** Specifies intensity of point light 1.0f.
-     *  Range: [0.0f, 1.0f]
-     */
-    float pointLight1Strength;
-
-    /** Specifies position of point light 2.0f; within [0.0f,1.0f] is inside the UI component, outside is beyond the UI
-     *  component.
-     *  Range: No limitation
-     */
-    OH_Filter_Vec2 pointLight2Position;
-
-    /** Specifies intensity of point light 2.0f.
-     *  Range: [0.0f, 1.0f]
-     */
-    float pointLight2Strength;
 
     /** Specifies the size of portal light.
      *  Range: [0.0, +∞]

@@ -86,6 +86,7 @@ enum RSNodeCommandType : uint16_t {
     MARK_NODE_SINGLE_FRAME_COMPOSER = 0x0401,
     MARK_SUGGEST_OPINC_NODE = 0x0402,
     EXCLUDED_FROM_NODE_GROUP = 0x403,
+    MARK_LAYER_PART_RENDER = 0x0404,
 
     MARK_UIFIRST_NODE = 0x0500,
     MARK_UIFIRST_NODE_FORCE = 0x0501,
@@ -147,6 +148,7 @@ public:
     static void MarkRepaintBoundary(RSContext& context, NodeId nodeId, bool isRepaintBoundary);
     static void MarkNodeSingleFrameComposer(RSContext& context, NodeId nodeId, bool isNodeFasterDraw, pid_t pid);
     static void MarkSuggestOpincNode(RSContext& context, NodeId nodeId, bool isOpincNode, bool isNeedCalculate);
+    static void MarkLayerPartRender(RSContext& context, NodeId nodeId, bool isLayerPartRender);
 
     static void MarkUifirstNode(RSContext& context, NodeId nodeId, bool isUifirstNode);
     static void ForceUifirstNode(RSContext& context, NodeId nodeId, bool isForceFlag, bool isUifirstEnable);
@@ -355,6 +357,9 @@ ADD_COMMAND(RSMarkNodeSingleFrameComposer,
 ADD_COMMAND(RSMarkSuggestOpincNode,
     ARG(PERMISSION_APP, RS_NODE, MARK_SUGGEST_OPINC_NODE,
         RSNodeCommandHelper::MarkSuggestOpincNode, NodeId, bool, bool))
+ADD_COMMAND(RSMarkLayerPartRender,
+    ARG(PERMISSION_APP, RS_NODE, MARK_LAYER_PART_RENDER,
+        RSNodeCommandHelper::MarkLayerPartRender, NodeId, bool))
 
 ADD_COMMAND(RSMarkUifirstNode,
     ARG(PERMISSION_APP, RS_NODE, MARK_UIFIRST_NODE,

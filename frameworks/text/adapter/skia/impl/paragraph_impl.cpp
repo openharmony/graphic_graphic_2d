@@ -402,6 +402,7 @@ void ParagraphImpl::UpdateColor(size_t from, size_t to, const RSColor& color,
     for (auto paintID : unresolvedPaintID) {
         paints_[paintID].SetColor(color);
     }
+    MarkAttributeUpdated();
 }
 
 void ParagraphImpl::UpdatePaintsBySkiaBlock(skt::Block& skiaBlock, const std::optional<RSBrush>& brush)
@@ -414,6 +415,7 @@ void ParagraphImpl::UpdatePaintsBySkiaBlock(skt::Block& skiaBlock, const std::op
         return;
     }
     paints_[foregroundId].brush = brush;
+    MarkAttributeUpdated();
 }
 #ifdef USE_M133_SKIA
 void ParagraphImpl::UpdateForegroundBrushWithValidData(skia_private::TArray<skt::Block, true>& skiaTextStyles,
@@ -440,6 +442,7 @@ void ParagraphImpl::UpdateForegroundBrushWithValidData(SkTArray<skt::Block, true
             }
         }
     }
+    MarkAttributeUpdated();
 }
 #ifdef USE_M133_SKIA
 void ParagraphImpl::UpdateForegroundBrushWithNullopt(skia_private::TArray<skt::Block, true>& skiaTextStyles)
@@ -455,6 +458,7 @@ void ParagraphImpl::UpdateForegroundBrushWithNullopt(SkTArray<skt::Block, true>&
         }
         UpdatePaintsBySkiaBlock(skiaBlock, std::nullopt);
     }
+    MarkAttributeUpdated();
 }
 
 void ParagraphImpl::UpdateForegroundBrush(const TextStyle& spTextStyle)
@@ -474,6 +478,7 @@ void ParagraphImpl::UpdateForegroundBrush(const TextStyle& spTextStyle)
     } else {
         UpdateForegroundBrushWithNullopt(skiaTextStyles);
     }
+    MarkAttributeUpdated();
 }
 
 std::vector<TextBlobRecordInfo> ParagraphImpl::GetTextBlobRecordInfo() const
@@ -549,29 +554,39 @@ std::string ParagraphImpl::GetDumpInfo() const
 
 ParagraphStyle ParagraphImpl::GetParagraphStyle() const
 {
-    return SkParagraphStyleToParagraphStyle(paragraph_->getParagraphStyle());
+    return SkParagraphStyleToParagraphStyle(paragraph_->getParagraphStyle(), paints_);
 }
 
 TextProcessState ParagraphImpl::GetProcessState() const
 {
     skt::InternalState state = paragraph_->getState();
+    TextProcessState resultState = TextProcessState::INIT;
     switch (state) {
         case skt::InternalState::kUnknown:
-            return TextProcessState::INIT;
+            resultState = TextProcessState::INIT;
+            break;
         case skt::InternalState::kIndexed:
-            return TextProcessState::INDEXED;
+            resultState = TextProcessState::INDEXED;
+            break;
         case skt::InternalState::kShaped:
-            return TextProcessState::SHAPED;
+            resultState = TextProcessState::SHAPED;
+            break;
         case skt::InternalState::kLineBroken:
-            return TextProcessState::LINE_BROKEN;
+            resultState = TextProcessState::LINE_BROKEN;
+            break;
         case skt::InternalState::kFormatted:
-            return TextProcessState::FORMATTED;
+            resultState = TextProcessState::FORMATTED;
+            break;
         case skt::InternalState::kDrawn:
-            return TextProcessState::PAINT;
-        // TODO update attr
+            resultState = TextProcessState::PAINT;
+            break;
         default:
-            return TextProcessState::INIT;
+            resultState = TextProcessState::INIT;
     }
+    if (state < skt::InternalState::kDrawn && updateAttr) {
+        resultState = TextProcessState::UPDATE_ATTRIBUTE;
+    }
+    return resultState;
 }
 
 TextDisplayState ParagraphImpl::GetTextDisplayState() const
@@ -579,8 +594,12 @@ TextDisplayState ParagraphImpl::GetTextDisplayState() const
     if (paragraph_->getState() < skt::kFormatted) {
         return TextDisplayState::UNKNOWN;
     }
-    if (paragraph_->didExceedMaxLines()) {
+    skt::SkRange<size_t> range = paragraph_->getEllipsisTextRange();
+    if (range.start != INFINTE_RANGE_INDEX) {
         return TextDisplayState::OMITTED;
+    }
+    if (paragraph_->didExceedMaxLines()) {
+        return TextDisplayState::CLIP;
     }
     return TextDisplayState::ALL;
 }

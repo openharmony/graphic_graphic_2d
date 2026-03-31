@@ -32,12 +32,15 @@ struct FPSStat {
 
 class RSB_EXPORT RSSurfaceFps {
 public:
-    RSSurfaceFps(std::string name) : name_(name) {};
+    RSSurfaceFps(std::string name, uint64_t uniqueId) : name_(name), uniqueId_(uniqueId) {};
     void RecordBufferTime(uint64_t flushTimestamp, uint64_t presentTimestamp);
     void Dump(std::string& result);
     void ClearDump();
     const std::string& GetName() const {
         return name_;
+    }
+    uint64_t GetUniqueId() {
+        return uniqueId_;
     }
 
 private:
@@ -47,6 +50,7 @@ private:
     uint32_t count_ = 0;
     std::mutex mutex_;
     std::string name_;
+    uint64_t uniqueId_ = 0;
 };
 }
 #endif

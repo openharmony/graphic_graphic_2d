@@ -59,9 +59,16 @@ InterfaceClientFrameTest::InterfaceClientFrameTest()
 
 void InterfaceClientFrameTest::Run()
 {
-    for (auto &[code, func] : execFuncMap) {
+    std::cout << "===== Starting Test Execution =====" << std::endl;
+    std::cout << "Total registered tests: " << execFuncMap.size() << std::endl;
+
+    for (auto &[testName, func] : execFuncMap) {
+        std::cout << "Running test: [" << testName << "]" << std::endl;
         func(*this);
+        std::cout << "Test [" << testName << "] completed" << std::endl;
     }
+
+    std::cout << "===== All Tests Completed =====" << std::endl;
 }
 
 InterfaceClientFrameTest &InterfaceClientFrameTest::GetInstance()

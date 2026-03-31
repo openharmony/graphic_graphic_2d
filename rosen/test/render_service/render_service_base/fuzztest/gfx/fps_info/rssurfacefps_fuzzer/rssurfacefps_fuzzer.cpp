@@ -85,8 +85,10 @@ bool RSSurfaceFpsFuzzTest(const uint8_t* data, size_t size)
     std::string result = GetStringFromData(STR_LEN);
     uint64_t flushTimestamp = GetData<uint64_t>();
     uint64_t presentTimestamp = GetData<uint64_t>();
+    uint64_t uniqueId = GetData<uint64_t>();
 
-    std::shared_ptr<RSSurfaceFps> surfaceFpsPtr = std::make_shared<RSSurfaceFps>(name);
+    std::shared_ptr<RSSurfaceFps> surfaceFpsPtr = std::make_shared<RSSurfaceFps>(name, uniqueId);
+        surfaceFpsPtr->Dump(result);
     surfaceFpsPtr->RecordBufferTime(flushTimestamp, presentTimestamp);
     surfaceFpsPtr->Dump(result);
     surfaceFpsPtr->ClearDump();

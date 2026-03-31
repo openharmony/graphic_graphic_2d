@@ -209,14 +209,13 @@ ColorQuad Color::CastToColorQuad() const
 
 void Color::Dump(std::string& out) const
 {
-    if (placeholder_ != 0) {
-        out += "PH: " + std::to_string(placeholder_);
-        return;
-    }
     constexpr int32_t colorStrWidth = 8;
     std::stringstream ss;
     ss << "[ARGB-0x" << std::hex << std::setfill('0') << std::setw(colorStrWidth) << std::uppercase;
     ss << CastToColorQuad() << ']';
+    if (placeholder_ != 0) {
+        ss << " PH: " << placeholder_;
+    }
     out += ss.str();
 }
 void Color::UpdateValueToFloat()

@@ -62,6 +62,11 @@ public:
     OpincUnsupportType GetUnsupportReason(RSRenderNode& node);
     std::string QuickGetNodeDebugInfo(RSRenderNode& node);
 
+    void InitLayerPartRenderNode(bool isCCMLayerPartRenderEnables, RSRenderNode& node,
+        std::shared_ptr<RSDirtyRegionManager>& layerPartRenderDirtyManager);
+    void CalculateLayerPartRenderDirtyRegion(RSRenderNode& node,
+        std::shared_ptr<RSDirtyRegionManager>& layerPartRenderDirtyManager);
+
 private:
     RSOpincManager() = default;
     ~RSOpincManager() = default;

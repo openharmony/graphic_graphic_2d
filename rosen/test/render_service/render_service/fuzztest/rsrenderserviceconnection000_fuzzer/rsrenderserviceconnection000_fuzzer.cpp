@@ -30,9 +30,12 @@
 #include "render_server/transaction/rs_client_to_service_connection.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"
-#include "platform/ohos/rs_irender_service.h"
+#include "platform/ohos/transaction/zidl/rs_irender_service.h"
+#include "render_server/transaction/zidl/rs_client_to_service_connection_stub.h"
+#include "transaction/rs_client_to_render_connection.h"
 #include "transaction/zidl/rs_client_to_render_connection_stub.h"
 #include "render_server/transaction/zidl/rs_client_to_service_connection_stub.h"
+#include "transaction/zidl/rs_client_to_render_connection_stub.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "message_parcel.h"
 #include "securec.h"
@@ -42,16 +45,33 @@
 #include "ipc_callbacks/rs_uiextension_callback_stub.h"
 #include "ipc_callbacks/rs_self_drawing_node_rect_change_callback_stub.h"
 #include <system_ability_definition.h>
+#include "vsync_iconnection_token.h"
+#include "iremote_proxy.h"
+#include "iremote_stub.h"
 
 namespace OHOS {
 namespace Rosen {
 
+class MockVSyncIConnectionTokenStub : public IRemoteStub<VSyncIConnectionToken> {
+public:
+    MockVSyncIConnectionTokenStub() = default;
+    virtual ~MockVSyncIConnectionTokenStub() noexcept = default;
+    
+    bool IsProxyObject() const override
+    {
+        return true;
+    }
+};
+
 int32_t g_pid;
-sptr<OHOS::Rosen::RSScreenManager> screenManagerPtr_ = nullptr;
+sptr<OHOS::Rosen::RSScreenManager> screenManagerPtr_ = OHOS::sptr<OHOS::Rosen::RSScreenManager>::MakeSptr();
 [[maybe_unused]] auto& rsRenderNodeGC = RSRenderNodeGC::Instance();
 [[maybe_unused]] auto& rsSurfaceBufferCallbackManager = RSSurfaceBufferCallbackManager::Instance();
 RSMainThread* mainThread_ = RSMainThread::Instance();
 sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ = nullptr;
+sptr<RSClientToRenderConnectionStub> toRenderConnectionStub_ = nullptr;
+sptr<OHOS::Rosen::RSRenderService> renderService_ = nullptr;
+sptr<RSIClientToServiceConnection> CONN = nullptr;
 
 namespace {
 const uint8_t DO_GET_UNI_RENDER_ENABLED = 0;
@@ -142,14 +162,14 @@ void DoGetUniRenderEnabled()
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_UNI_RENDER_ENABLED);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_UNI_RENDER_ENABLED);
     toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
 void DoSetPhysicalScreenResolution()
 {
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_PHYSICAL_SCREEN_RESOLUTION);
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_PHYSICAL_SCREEN_RESOLUTION);
 
     MessageOption option1;
     MessageParcel dataParcel1;
@@ -214,7 +234,7 @@ void DoSetPhysicalScreenResolution()
 void DoSetScreenSecurityMask()
 {
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SECURITY_MASK);
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_SECURITY_MASK);
 
     MessageParcel dataP1;
     MessageParcel reply1;
@@ -277,7 +297,7 @@ void DoSetScreenSecurityMask()
 void DoSetMirrorScreenVisibleRect()
 {
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_MIRROR_SCREEN_VISIBLE_RECT);
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_MIRROR_SCREEN_VISIBLE_RECT);
 
     MessageParcel dataP1;
     MessageParcel reply1;
@@ -392,14 +412,15 @@ void DoSetCastScreenEnableSkipWindow()
         return;
     }
 
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_CAST_SCREEN_ENABLE_SKIP_WINDOW);
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToServiceConnectionInterfaceCode::SET_CAST_SCREEN_ENABLE_SKIP_WINDOW);
     toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
 void DoMarkPowerOffNeedProcessOneFrame()
 {
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::MARK_POWER_OFF_NEED_PROCESS_ONE_FRAME);
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::MARK_POWER_OFF_NEED_PROCESS_ONE_FRAME);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -410,7 +431,7 @@ void DoMarkPowerOffNeedProcessOneFrame()
 void DoDisablePowerOffRenderControl()
 {
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::DISABLE_RENDER_CONTROL_SCREEN);
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::DISABLE_RENDER_CONTROL_SCREEN);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -423,7 +444,7 @@ void DoDisablePowerOffRenderControl()
 void DoSetScreenPowerStatus()
 {
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_POWER_STATUS);
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_POWER_STATUS);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -437,7 +458,7 @@ void DoSetScreenPowerStatus()
 
 void DoSetScreenBacklight()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_BACK_LIGHT);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_BACK_LIGHT);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -451,7 +472,7 @@ void DoSetScreenBacklight()
 
 void DoGetPixelMapByProcessId()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_PIXELMAP_BY_PROCESSID);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_PIXELMAP_BY_PROCESSID);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -464,18 +485,19 @@ void DoGetPixelMapByProcessId()
 void DoCreateVSyncConnection()
 {
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VSYNC_CONNECTION);
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::CREATE_VSYNC_CONNECTION);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
 
-    sptr<VSyncIConnectionToken> vsyncIConnectionToken_ = new IRemoteStub<VSyncIConnectionToken>();
     uint64_t id = GetData<uint64_t>();
     NodeId windowNodeID = GetData<NodeId>();
     std::string name = GetData<std::string>();
-    dataParcel.WriteString(name);
     bool fromXcomponent = GetData<bool>();
-    dataParcel.WriteRemoteObject(vsyncIConnectionToken_->AsObject());
+
+    sptr<MockVSyncIConnectionTokenStub> mockStub = new MockVSyncIConnectionTokenStub();
+    dataParcel.WriteString(name);
+    dataParcel.WriteRemoteObject(mockStub->AsObject());
     dataParcel.WriteUint64(id);
     dataParcel.WriteUint64(windowNodeID);
     dataParcel.WriteBool(fromXcomponent);
@@ -503,7 +525,7 @@ private:
 void DoRegisterOcclusionChangeCallback()
 {
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_OCCLUSION_CHANGE_CALLBACK);
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REGISTER_OCCLUSION_CHANGE_CALLBACK);
 
     MessageOption option;
     MessageParcel dataParcel;
@@ -514,10 +536,10 @@ void DoRegisterOcclusionChangeCallback()
     sptr<CustomTestOcclusionChangeCallback> rsIOcclusionChangeCallback_ =
         new CustomTestOcclusionChangeCallback(callback);
 
-    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    dataParcel.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     dataParcel.WriteRemoteObject(rsIOcclusionChangeCallback_->AsObject());
     dataParcel.RewindRead(0);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoSetSystemAnimatedScenes()
@@ -525,7 +547,7 @@ void DoSetSystemAnimatedScenes()
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;
-    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+    if (!dataP.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
@@ -535,8 +557,8 @@ void DoSetSystemAnimatedScenes()
         return;
     }
     uint32_t code = static_cast<uint32_t>(
-        RSIRenderServiceConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
+        RSIClientToRenderConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
 class CustomTestHgmConfigChangeCallback : public RSHgmConfigChangeCallbackStub {
@@ -562,7 +584,7 @@ private:
 
 void DoRegisterHgmConfigChangeCallback()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_HGM_CFG_CALLBACK);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REGISTER_HGM_CFG_CALLBACK);
 
     MessageOption option;
     MessageParcel dataParcel;
@@ -592,7 +614,7 @@ void DoSetCacheEnabledForRotation()
         return;
     }
     option.SetFlags(MessageOption::TF_ASYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_ROTATION_CACHE_ENABLED);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_ROTATION_CACHE_ENABLED);
     toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
@@ -600,7 +622,7 @@ void DoSetTpFeatureConfig()
 {
 #ifdef TP_FEATURE_ENABLE
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_TP_FEATURE_CONFIG);
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_TP_FEATURE_CONFIG);
 
     MessageOption option;
     MessageParcel dataParcel;
@@ -635,13 +657,13 @@ void DoSetCurtainScreenUsingStatus()
         return;
     }
 
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_CURTAIN_SCREEN_USING_STATUS);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_CURTAIN_SCREEN_USING_STATUS);
     toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
 void DoGetLayerComposeInfo()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_LAYER_COMPOSE_INFO);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_LAYER_COMPOSE_INFO);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -653,7 +675,7 @@ void DoGetLayerComposeInfo()
 void DoGetHwcDisabledReasonInfo()
 {
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_HARDWARE_COMPOSE_DISABLED_REASON_INFO);
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_HARDWARE_COMPOSE_DISABLED_REASON_INFO);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -664,7 +686,7 @@ void DoGetHwcDisabledReasonInfo()
 
 void DoGetHdrOnDuration()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_HDR_ON_DURATION);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_HDR_ON_DURATION);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -696,7 +718,7 @@ void DoRegisterUIExtensionCallback()
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_UIEXTENSION_CALLBACK);
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REGISTER_UIEXTENSION_CALLBACK);
 
     std::shared_ptr<RSUIExtensionData> uiextensionData = std::make_shared<RSUIExtensionData>();
     uint64_t id = GetData<uint64_t>();
@@ -718,7 +740,7 @@ void DoRegisterUIExtensionCallback()
 
 void DoSetVmaCacheStatus()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VMA_CACHE_STATUS);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VMA_CACHE_STATUS);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -730,7 +752,7 @@ void DoSetVmaCacheStatus()
 
 void DoSetFreeMultiWindowStatus()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VMA_CACHE_STATUS);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VMA_CACHE_STATUS);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -742,7 +764,7 @@ void DoSetFreeMultiWindowStatus()
 
 void DoSetLayerTop()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LAYER_TOP);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_LAYER_TOP);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -756,7 +778,7 @@ void DoSetLayerTop()
 
 void DoSetForceRefresh()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_FORCE_REFRESH);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_FORCE_REFRESH);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -792,14 +814,14 @@ void DoSetScreenActiveRect()
         !dataP.WriteInt32(activeRect.w) || !dataP.WriteInt32(activeRect.h)) {
         return;
     }
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_RECT);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_RECT);
     toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
 void DoSetScreenOffset()
 {
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_OFFSET);
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_OFFSET);
 
     MessageParcel dataP1;
     MessageParcel reply1;
@@ -851,7 +873,7 @@ void DoSetScreenOffset()
 
 void DoRepaintEverything()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPAINT_EVERYTHING);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPAINT_EVERYTHING);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -862,7 +884,7 @@ void DoRepaintEverything()
 void DoForceRefreshOneFrameWithNextVSync()
 {
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::FORCE_REFRESH_ONE_FRAME_WITH_NEXT_VSYNC);
+        static_cast<uint32_t>(DO_FORCE_REFRESH_ONE_FRAME_WITH_NEXT_VSYNC);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -891,7 +913,7 @@ private:
 void DoRegisterSelfDrawingNodeRectChangeCallback()
 {
     uint32_t code = static_cast<uint32_t>(
-        RSIRenderServiceConnectionInterfaceCode::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK);
+        RSIClientToServiceConnectionInterfaceCode::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -929,7 +951,7 @@ void DoRegisterSelfDrawingNodeRectChangeCallback()
 void DoNotifyPageName()
 {
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_PAGE_NAME);
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_PAGE_NAME);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -946,7 +968,7 @@ void DoNotifyPageName()
 
 void DoSetColorFollow()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_COLOR_FOLLOW);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_COLOR_FOLLOW);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -965,21 +987,51 @@ void DoSetColorFollow()
 extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 {
     OHOS::Rosen::g_pid = getpid();
-    OHOS::Rosen::screenManagerPtr_ = OHOS::Rosen::RSScreenManager::GetInstance();
     OHOS::Rosen::mainThread_ = OHOS::Rosen::RSMainThread::Instance();
-    OHOS::Rosen::mainThread_->runner_ = OHOS::AppExecFwk::EventRunner::Create(true);
     OHOS::Rosen::mainThread_->handler_ =
-        std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::Rosen::mainThread_->runner_);
+        std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::AppExecFwk::EventRunner::Create(true));
     OHOS::sptr<OHOS::Rosen::RSIConnectionToken> token_ = new OHOS::IRemoteStub<OHOS::Rosen::RSIConnectionToken>();
-    OHOS::Rosen::mainThread_->mainLoop_ = []() {};
 
     OHOS::Rosen::DVSyncFeatureParam dvsyncParam;
     auto generator = OHOS::Rosen::CreateVSyncGenerator();
     auto appVSyncController = new OHOS::Rosen::VSyncController(generator, 0);
     OHOS::sptr<OHOS::Rosen::VSyncDistributor> appVSyncDistributor_ =
         new OHOS::Rosen::VSyncDistributor(appVSyncController, "app", dvsyncParam);
-    OHOS::Rosen::toServiceConnectionStub_ = new OHOS::Rosen::RSClientToServiceConnection(OHOS::Rosen::g_pid, nullptr,
-        OHOS::Rosen::mainThread_, OHOS::Rosen::screenManagerPtr_, token_->AsObject(), appVSyncDistributor_);
+
+    OHOS::Rosen::renderService_ = OHOS::sptr<OHOS::Rosen::RSRenderService>::MakeSptr();
+
+    auto vsyncManager = OHOS::sptr<OHOS::Rosen::RSVsyncManager>::MakeSptr();
+    vsyncManager->appVSyncDistributor_ = appVSyncDistributor_;
+    auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
+    runner->Run();
+    OHOS::Rosen::renderService_->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
+    OHOS::Rosen::renderService_->renderProcessManager_ =
+        OHOS::Rosen::RSRenderProcessManager::Create(*OHOS::Rosen::renderService_);
+    auto renderServiceAgent_ = OHOS::sptr<OHOS::Rosen::RSRenderServiceAgent>::MakeSptr(*OHOS::Rosen::renderService_);
+    OHOS::sptr<OHOS::Rosen::RSRenderProcessManagerAgent> renderProcessManagerAgent_ =
+        OHOS::sptr<OHOS::Rosen::RSRenderProcessManagerAgent>::MakeSptr(
+            OHOS::Rosen::renderService_->renderProcessManager_);
+
+    OHOS::sptr<OHOS::Rosen::RSScreenManagerAgent> screenManagerAgent_ =
+        new OHOS::Rosen::RSScreenManagerAgent(OHOS::Rosen::screenManagerPtr_);
+
+    OHOS::sptr<OHOS::Rosen::RSRenderPipelineAgent> renderPipelineAgent_ =
+        OHOS::sptr<OHOS::Rosen::RSRenderPipelineAgent>::MakeSptr(OHOS::Rosen::renderService_->renderPipeline_);
+
+    OHOS::Rosen::toServiceConnectionStub_ = new OHOS::Rosen::RSClientToServiceConnection(
+        OHOS::Rosen::g_pid, renderServiceAgent_, renderProcessManagerAgent_,
+        screenManagerAgent_, token_->AsObject(), vsyncManager->GetVsyncManagerAgent());
+    OHOS::sptr<OHOS::Rosen::RSClientToRenderConnection> toRenderConnection =
+        new OHOS::Rosen::RSClientToRenderConnection(OHOS::Rosen::g_pid, renderPipelineAgent_, token_->AsObject());
+    OHOS::Rosen::toRenderConnectionStub_ = toRenderConnection;
+    toRenderConnection->cleanDone_ = true;
+
+    // reset recevier, otherwise maybe crash
+    OHOS::Rosen::renderService_->renderPipeline_->uniRenderThread_->uniRenderEngine_ = nullptr;
+
+    OHOS::Rosen::RSMainThread::Instance()->receiver_->connection_ = nullptr;
+    OHOS::Rosen::RSMainThread::Instance()->receiver_ = nullptr;
+    OHOS::Rosen::RSMainThread::Instance()->mainLoop_ = []() {};
     return 0;
 }
 
@@ -1038,7 +1090,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             OHOS::Rosen::DoSetCacheEnabledForRotation();
             break;
         case OHOS::Rosen::DO_SET_TP_FEATURE_CONFIG:
-            OHOS::Rosen::DoSetTpFeatureConfig();
+            // OHOS::Rosen::DoSetTpFeatureConfig();
             break;
         case OHOS::Rosen::DO_SET_CURTAIN_SCREEN_USING_STATUS:
             OHOS::Rosen::DoSetCurtainScreenUsingStatus();

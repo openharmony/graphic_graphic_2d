@@ -22,16 +22,48 @@
 
 namespace OHOS {
 namespace Rosen {
+
+GPUCacheCleanupCallback RSSurfaceHandler::s_gpuCacheCleanupCallback = nullptr;
+std::mutex RSSurfaceHandler::s_gpuCacheCleanupCallbackMutex_;
+
+#ifndef ROSEN_CROSS_PLATFORM
+ConsumerDeleteBufferListenerCallback RSSurfaceHandler::s_consumerDeleteBufferListenerCallback = nullptr;
+std::mutex RSSurfaceHandler::s_consumerDeleteBufferListenerCallbackMutex_;
+#endif
+
 #ifndef ROSEN_CROSS_PLATFORM
 const uint32_t MIN_RENDER_FRAMES_AFTER_CLEAN_CACHE = 4;
 #endif
 RSSurfaceHandler::~RSSurfaceHandler() noexcept
 {
+#ifdef RS_ENABLE_GPU
+    // Ensure buffers currently held by this handler are included in cleanup.
+#ifndef ROSEN_CROSS_PLATFORM
+    std::set<uint64_t> bufferIds;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (buffer_.buffer != nullptr) {
+            bufferIds.insert(buffer_.buffer->GetBufferId());
+        }
+        if (preBuffer_.buffer != nullptr) {
+            bufferIds.insert(preBuffer_.buffer->GetBufferId());
+        }
+        if (holdBuffer_ && holdBuffer_->buffer != nullptr) {
+            bufferIds.insert(holdBuffer_->buffer->GetBufferId());
+        }
+    }
+    AddGPUCacheToCleanupSet(bufferIds);
+#endif
+
+    // Flush any pending GPU cache cleanup on destruction.
+    FlushGPUCacheCleanup();
+#endif
 }
 #ifndef ROSEN_CROSS_PLATFORM
 void RSSurfaceHandler::SetConsumer(sptr<IConsumerSurface> consumer)
 {
     consumer_ = consumer;
+    EnsureConsumerDeleteBufferListenerRegistered();
 }
 #endif
 
@@ -56,8 +88,41 @@ float RSSurfaceHandler::GetGlobalZOrder() const
 }
 
 #ifndef ROSEN_CROSS_PLATFORM
+void RSSurfaceHandler::EnsureConsumerDeleteBufferListenerRegistered()
+{
+    ConsumerDeleteBufferListenerCallback callback;
+    {
+        std::lock_guard<std::mutex> lock(s_consumerDeleteBufferListenerCallbackMutex_);
+        callback = s_consumerDeleteBufferListenerCallback;
+    }
+    if (!callback) {
+        return;
+    }
+
+    auto consumer = consumer_;
+    if (consumer == nullptr) {
+        return;
+    }
+
+    const uint64_t surfaceId = consumer->GetUniqueId();
+    if (surfaceId == 0) {
+        return;
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (registeredConsumerDeleteListenerSurfaceId_ == surfaceId) {
+            return;
+        }
+        registeredConsumerDeleteListenerSurfaceId_ = surfaceId;
+    }
+
+    callback(consumer);
+}
+
 void RSSurfaceHandler::ConsumeAndUpdateBuffer(SurfaceBufferEntry buffer)
 {
+    EnsureConsumerDeleteBufferListenerRegistered();
     ConsumeAndUpdateBufferInner(buffer);
 }
 
@@ -71,7 +136,7 @@ void RSSurfaceHandler::ConsumeAndUpdateBufferInner(SurfaceBufferEntry& buffer)
     if (MetadataHelper::GetCropRectMetadata(buffer.buffer, crop) == GSERROR_OK) {
         buffer.buffer->SetCropMetadata({crop.left, crop.top, crop.width, crop.height});
     }
-    UpdateBuffer(buffer.buffer, buffer.acquireFence, buffer.damageRect, buffer.timestamp);
+    UpdateBuffer(buffer.buffer, buffer.acquireFence, buffer.damageRect, buffer.timestamp, buffer.bufferOwnerCount_);
     SetCurrentFrameBufferConsumed();
     RS_LOGD_IF(DEBUG_PIPELINE,
         "RsDebug surfaceHandler(id: %{public}" PRIu64 ") buffer update, "
@@ -80,7 +145,8 @@ void RSSurfaceHandler::ConsumeAndUpdateBufferInner(SurfaceBufferEntry& buffer)
 }
 
 void RSSurfaceHandler::UpdateBuffer(
-    const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence, const Rect& damage, const int64_t timestamp)
+    const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence, const Rect& damage,
+    const int64_t timestamp, std::shared_ptr<BufferOwnerCount> bufferOwnerCount)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (preBuffer_.buffer != nullptr) {
@@ -90,8 +156,12 @@ void RSSurfaceHandler::UpdateBuffer(
     ResetLastBufferInfo();
     preBuffer_ = buffer_;
     buffer_.buffer = buffer;
+    buffer_.bufferOwnerCount_ = bufferOwnerCount;
     if (buffer != nullptr) {
         buffer_.seqNum = buffer->GetBufferId();
+        if (buffer_.bufferOwnerCount_) {
+            buffer_.bufferOwnerCount_->bufferId_ = buffer->GetBufferId();
+        }
         buffer_.buffer->ClearBufferDeletedFlag(BufferDeletedFlag::DELETED_FROM_RS);
     }
     buffer_.acquireFence = acquireFence;

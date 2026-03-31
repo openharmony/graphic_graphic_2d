@@ -424,6 +424,16 @@ const std::vector<std::array<Vector2f, GRID_WARP_ANGLE_PARAMS_COUNT>> gridWarpAn
     }
 };
 
+constexpr int WAVE_DISTURBANCE_PARAMS_COUNT = 8;
+const std::vector<std::array<float, WAVE_DISTURBANCE_PARAMS_COUNT>> disturbanceParams = {
+    {0.5f, -1.0f, -1.0f, 2.5f, 0.7f, 80.0f, 30.0f, 60.0f},
+    {0.5f, 100.0f, 100.0f, 2.5f, 0.7f, 800.0f, 80.0f, 100.0f},
+    {0.0f, 50.0f, 50.0f, 2.5f, 0.7f, 200.0f, 100.0f, 200.0f},
+    {1.5f, 20.0f, 20.0f, 2.5f, 0.7f, 200.0f, 30.0f, 60.0f},
+    {-0.5f, 10.0f, -10.0f, 2.5f, 0.7f, 800.0f, 60.0f, 100.0f},
+    {0.2f, 30.0f, 30.0f, 20.0f, 1.7f, 800.0f, 100.0f, 300.0f},
+};
+
 enum class TestDataGroupParamsType {
     INVALID_DATA_MIN,
     VALID_DATA1,

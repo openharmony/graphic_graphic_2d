@@ -31,8 +31,7 @@ public:
     
     RSVirtualScreenProcessor();
     ~RSVirtualScreenProcessor() noexcept override;
-    bool Init(RSScreenRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
-              std::shared_ptr<RSBaseRenderEngine> renderEngine) override;
+    bool Init(RSScreenRenderNode& node, std::shared_ptr<RSBaseRenderEngine> renderEngine) override;
 
     void ProcessSurface(RSSurfaceRenderNode& node) override;
     void ProcessScreenSurface(RSScreenRenderNode& node) override;

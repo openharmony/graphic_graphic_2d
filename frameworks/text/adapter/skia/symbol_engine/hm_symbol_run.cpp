@@ -14,6 +14,7 @@
  */
 
 #include "hm_symbol_run.h"
+#include "common/rs_common_def.h"
 #include "custom_symbol_config.h"
 #include "default_symbol_config.h"
 #include "draw/path.h"
@@ -29,7 +30,7 @@ static const std::vector<RSEffectStrategy> COMMON_ANIMATION_TYPES = {
     RSEffectStrategy::SCALE, RSEffectStrategy::APPEAR, RSEffectStrategy::DISAPPEAR,
     RSEffectStrategy::BOUNCE, RSEffectStrategy::REPLACE_APPEAR, RSEffectStrategy::QUICK_REPLACE_APPEAR};
 
-static const float SHADOW_EPSILON = 0.999f; // if blur radius less than 1, do not need to draw
+static const float SHADOW_EPSILON = 0.0f; // if blur radius less than 0, do not need to draw
 
 HMSymbolRun::HMSymbolRun(uint64_t symbolId,
     const HMSymbolTxt& symbolTxt,
@@ -421,8 +422,9 @@ void HMSymbolRun::OnDrawSymbol(RSCanvas* canvas, const RSHMSymbolData& symbolDat
         multPaths.push_back(multPath);
     }
 
+    // If a shadow is set and the shadow radius is within the valid range
     if (symbolTxt_.GetSymbolShadow().has_value() &&
-        symbolTxt_.GetSymbolShadow().value().blurRadius > SHADOW_EPSILON) {
+        ROSEN_GE(symbolTxt_.GetSymbolShadow().value().blurRadius, SHADOW_EPSILON)) {
         DrawSymbolShadow(canvas, multPaths);
     }
 

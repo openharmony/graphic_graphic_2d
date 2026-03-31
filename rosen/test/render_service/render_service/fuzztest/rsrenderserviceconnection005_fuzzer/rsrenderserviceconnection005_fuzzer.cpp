@@ -31,10 +31,12 @@
 #include "securec.h"
 
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "transaction/rs_client_to_render_connection.h"
+#include "transaction/zidl/rs_client_to_render_connection_stub.h"
 #include "render_server/transaction/rs_client_to_service_connection.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"
-#include "platform/ohos/rs_irender_service.h"
+#include "platform/ohos/transaction/zidl/rs_irender_service.h"
 #include "render_server/transaction/zidl/rs_client_to_service_connection_stub.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "ipc_callbacks/hgm_config_change_callback_stub.h"
@@ -44,12 +46,13 @@
 namespace OHOS {
 namespace Rosen {
 int32_t g_pid;
-sptr<OHOS::Rosen::RSScreenManager> screenManagerPtr_ = nullptr;
+sptr<OHOS::Rosen::RSScreenManager> screenManagerPtr_ = OHOS::sptr<OHOS::Rosen::RSScreenManager>::MakeSptr();
 [[maybe_unused]] auto& rsRenderNodeGC = RSRenderNodeGC::Instance();
 [[maybe_unused]] auto& rsSurfaceBufferCallbackManager = RSSurfaceBufferCallbackManager::Instance();
 RSMainThread* mainThread_ = RSMainThread::Instance();
 sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ = nullptr;
-
+sptr<RSClientToRenderConnectionStub> toRenderConnectionStub_ = nullptr;
+sptr<OHOS::Rosen::RSRenderService> renderService_ = nullptr;
 namespace {
 const uint8_t DO_SET_SCREEN_CHANGE_CALLBACK = 0;
 const uint8_t DO_SET_SCREEN_ACTIVE_MODE = 1;
@@ -131,7 +134,7 @@ void DoSetScreenChangeCallback()
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_CHANGE_CALLBACK);
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_CHANGE_CALLBACK);
 
     sptr<CustomTestScreenChangeCallback> rsIScreenChangeCallback_ = new CustomTestScreenChangeCallback();
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
@@ -143,7 +146,7 @@ void DoSetScreenChangeCallback()
 void DoSetScreenActiveMode()
 {
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_MODE);
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_MODE);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -157,7 +160,7 @@ void DoSetScreenActiveMode()
 
 void DoSetScreenRefreshRate()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_REFRESH_RATE);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_REFRESH_RATE);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -174,7 +177,7 @@ void DoSetScreenRefreshRate()
 
 void DoSetRefreshRateMode()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_REFRESH_RATE_MODE);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_REFRESH_RATE_MODE);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -188,7 +191,7 @@ void DoSetRefreshRateMode()
 void CreateVSyncConnection(uint64_t id)
 {
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VSYNC_CONNECTION);
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::CREATE_VSYNC_CONNECTION);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -206,7 +209,7 @@ void CreateVSyncConnection(uint64_t id)
 
 void UnregisterFrameRateLinker(uint64_t id)
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_FRAME_RATE_LINKER);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::UNREGISTER_FRAME_RATE_LINKER);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -218,7 +221,7 @@ void UnregisterFrameRateLinker(uint64_t id)
 
 void DoSyncFrameRateRange()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SYNC_FRAME_RATE_RANGE);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SYNC_FRAME_RATE_RANGE);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -266,7 +269,7 @@ void DoSyncFrameRateRange()
 
 void DoUnregisterFrameRateLinker()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_FRAME_RATE_LINKER);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::UNREGISTER_FRAME_RATE_LINKER);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -280,7 +283,7 @@ void DoUnregisterFrameRateLinker()
 
 void DoGetScreenCurrentRefreshRate()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_CURRENT_REFRESH_RATE);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_CURRENT_REFRESH_RATE);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -293,7 +296,7 @@ void DoGetScreenCurrentRefreshRate()
 
 void DoGetCurrentRefreshRateMode()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_CURRENT_REFRESH_RATE_MODE);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_CURRENT_REFRESH_RATE_MODE);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -303,7 +306,8 @@ void DoGetCurrentRefreshRateMode()
 
 void DoGetScreenSupportedRefreshRates()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_REFRESH_RATES);
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_REFRESH_RATES);
 
     MessageOption option;
     MessageParcel dataParcel;
@@ -316,7 +320,7 @@ void DoGetScreenSupportedRefreshRates()
 
 void DoGetShowRefreshRateEnabled()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SHOW_REFRESH_RATE_ENABLED);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SHOW_REFRESH_RATE_ENABLED);
 
     MessageOption option;
     MessageParcel dataParcel;
@@ -327,7 +331,7 @@ void DoGetShowRefreshRateEnabled()
 
 void DoSetShowRefreshRateEnabled()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SHOW_REFRESH_RATE_ENABLED);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SHOW_REFRESH_RATE_ENABLED);
 
     MessageOption option;
     MessageParcel dataParcel;
@@ -342,7 +346,7 @@ void DoSetShowRefreshRateEnabled()
 
 void DoGetRealtimeRefreshRate()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REALTIME_REFRESH_RATE);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_REALTIME_REFRESH_RATE);
 
     MessageOption option;
     MessageParcel dataParcel;
@@ -355,7 +359,7 @@ void DoGetRealtimeRefreshRate()
 
 void DoGetRefreshInfoFuzzer()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_REFRESH_INFO);
 
     MessageOption option;
     MessageParcel dataParcel;
@@ -368,7 +372,7 @@ void DoGetRefreshInfoFuzzer()
 
 void CreateSurfaceNode()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_NODE_AND_SURFACE);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_NODE_AND_SURFACE);
 
     MessageOption option;
     MessageParcel dataParcel;
@@ -381,7 +385,7 @@ void CreateSurfaceNode()
     dataParcel.WriteUint8(GetData<uint8_t>());
     dataParcel.WriteBool(GetData<bool>());
 
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoGetRefreshInfoWithoutSurfaceName()
@@ -427,7 +431,7 @@ private:
 
 void DoRegisterHgmRefreshRateUpdateCallback()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REFRESH_RATE_UPDATE_CALLBACK);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REFRESH_RATE_UPDATE_CALLBACK);
 
     MessageOption option;
     MessageParcel dataParcel;
@@ -468,7 +472,7 @@ private:
 void DoRegisterFrameRateLinkerExpectedFpsUpdateCallback()
 {
     uint32_t code = static_cast<uint32_t>(
-        RSIRenderServiceConnectionInterfaceCode::REGISTER_FRAME_RATE_LINKER_EXPECTED_FPS_CALLBACK);
+        RSIClientToServiceConnectionInterfaceCode::REGISTER_FRAME_RATE_LINKER_EXPECTED_FPS_CALLBACK);
 
     MessageOption option;
     MessageParcel dataParcel;
@@ -497,7 +501,7 @@ void DoRegisterFrameRateLinkerExpectedFpsUpdateCallback()
 void DoRegisterHgmRefreshRateModeChangeCallback()
 {
     uint32_t code = static_cast<uint32_t>(
-        RSIRenderServiceConnectionInterfaceCode::REFRESH_RATE_MODE_CHANGE_CALLBACK);
+        RSIClientToServiceConnectionInterfaceCode::REFRESH_RATE_MODE_CHANGE_CALLBACK);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -514,7 +518,7 @@ void DoRegisterHgmRefreshRateModeChangeCallback()
 
 void DoGetRefreshInfoToSP()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO_TO_SP);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_REFRESH_INFO_TO_SP);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -531,21 +535,51 @@ void DoGetRefreshInfoToSP()
 extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 {
     OHOS::Rosen::g_pid = getpid();
-    OHOS::Rosen::screenManagerPtr_ = OHOS::Rosen::RSScreenManager::GetInstance();
     OHOS::Rosen::mainThread_ = OHOS::Rosen::RSMainThread::Instance();
-    OHOS::Rosen::mainThread_->runner_ = OHOS::AppExecFwk::EventRunner::Create(true);
     OHOS::Rosen::mainThread_->handler_ =
-        std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::Rosen::mainThread_->runner_);
+        std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::AppExecFwk::EventRunner::Create(true));
     OHOS::sptr<OHOS::Rosen::RSIConnectionToken> token_ = new OHOS::IRemoteStub<OHOS::Rosen::RSIConnectionToken>();
 
     OHOS::Rosen::DVSyncFeatureParam dvsyncParam;
     auto generator = OHOS::Rosen::CreateVSyncGenerator();
     auto appVSyncController = new OHOS::Rosen::VSyncController(generator, 0);
-    OHOS::sptr<OHOS::Rosen::VSyncDistributor> appVSyncDistributor =
+    OHOS::sptr<OHOS::Rosen::VSyncDistributor> appVSyncDistributor_ =
         new OHOS::Rosen::VSyncDistributor(appVSyncController, "app", dvsyncParam);
-    OHOS::Rosen::toServiceConnectionStub_ =
-        new OHOS::Rosen::RSClientToServiceConnection(OHOS::Rosen::g_pid, nullptr, OHOS::Rosen::mainThread_,
-            OHOS::Rosen::screenManagerPtr_, token_->AsObject(), appVSyncDistributor);
+
+    OHOS::Rosen::renderService_ = OHOS::sptr<OHOS::Rosen::RSRenderService>::MakeSptr();
+
+    auto vsyncManager = OHOS::sptr<OHOS::Rosen::RSVsyncManager>::MakeSptr();
+    vsyncManager->appVSyncDistributor_ = appVSyncDistributor_;
+    auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
+    runner->Run();
+    OHOS::Rosen::renderService_->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
+    OHOS::Rosen::renderService_->renderProcessManager_ =
+        OHOS::Rosen::RSRenderProcessManager::Create(*OHOS::Rosen::renderService_);
+    auto renderServiceAgent_ = OHOS::sptr<OHOS::Rosen::RSRenderServiceAgent>::MakeSptr(*OHOS::Rosen::renderService_);
+    OHOS::sptr<OHOS::Rosen::RSRenderProcessManagerAgent> renderProcessManagerAgent_ =
+        OHOS::sptr<OHOS::Rosen::RSRenderProcessManagerAgent>::MakeSptr(
+            OHOS::Rosen::renderService_->renderProcessManager_);
+
+    OHOS::sptr<OHOS::Rosen::RSScreenManagerAgent> screenManagerAgent_ =
+        new OHOS::Rosen::RSScreenManagerAgent(OHOS::Rosen::screenManagerPtr_);
+
+    OHOS::sptr<OHOS::Rosen::RSRenderPipelineAgent> renderPipelineAgent_ =
+        OHOS::sptr<OHOS::Rosen::RSRenderPipelineAgent>::MakeSptr(OHOS::Rosen::renderService_->renderPipeline_);
+
+    OHOS::Rosen::toServiceConnectionStub_ = new OHOS::Rosen::RSClientToServiceConnection(
+        OHOS::Rosen::g_pid, renderServiceAgent_, renderProcessManagerAgent_,
+        screenManagerAgent_, token_->AsObject(), vsyncManager->GetVsyncManagerAgent());
+    OHOS::sptr<OHOS::Rosen::RSClientToRenderConnection> toRenderConnection =
+        new OHOS::Rosen::RSClientToRenderConnection(OHOS::Rosen::g_pid, renderPipelineAgent_, token_->AsObject());
+    OHOS::Rosen::toRenderConnectionStub_ = toRenderConnection;
+    toRenderConnection->cleanDone_ = true;
+
+    // reset recevier, otherwise maybe crash
+    OHOS::Rosen::renderService_->renderPipeline_->uniRenderThread_->uniRenderEngine_ = nullptr;
+
+    OHOS::Rosen::RSMainThread::Instance()->receiver_->connection_ = nullptr;
+    OHOS::Rosen::RSMainThread::Instance()->receiver_ = nullptr;
+    OHOS::Rosen::RSMainThread::Instance()->mainLoop_ = []() {};
     return 0;
 }
 

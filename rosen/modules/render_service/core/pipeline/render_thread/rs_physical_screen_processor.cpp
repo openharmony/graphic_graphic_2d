@@ -14,35 +14,39 @@
  */
 
 #include "rs_physical_screen_processor.h"
-
-#include "rs_trace.h"
-#include "string_utils.h"
-
 #include "platform/common/rs_log.h"
+#include "rs_trace.h"
+#include "rs_uni_render_thread.h"
+#include "string_utils.h"
 
 namespace OHOS {
 namespace Rosen {
-RSPhysicalScreenProcessor::RSPhysicalScreenProcessor()
+RSPhysicalScreenProcessor::RSPhysicalScreenProcessor(ScreenId screenId)
     : composerAdapter_(std::make_unique<RSComposerAdapter>())
 {
+    composerClient_ =
+        RSUniRenderThread::Instance().GetComposerClientManager()->GetComposerClient(screenId);
 }
 
 RSPhysicalScreenProcessor::~RSPhysicalScreenProcessor() noexcept
 {
 }
 
-bool RSPhysicalScreenProcessor::Init(RSScreenRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
-                                     std::shared_ptr<RSBaseRenderEngine> renderEngine)
+bool RSPhysicalScreenProcessor::Init(RSScreenRenderNode& node, std::shared_ptr<RSBaseRenderEngine> renderEngine)
 {
+    if (composerClient_ == nullptr) {
+        RS_LOGE("RSPhysicalScreenProcessor::Init client nullptr");
+        return false;
+    }
 #ifdef RS_ENABLE_GPU
     // planning: adapt isRenderThread
-    if (!RSProcessor::Init(node, offsetX, offsetY, mirroredId, renderEngine)) {
+    if (!RSProcessor::Init(node, renderEngine)) {
         return false;
     }
 #endif
 
-    return composerAdapter_->Init(screenInfo_, offsetX, offsetY, mirrorAdaptiveCoefficient_,
-        [this](const auto& surface, const auto& layers) { Redraw(surface, layers); });
+    return composerAdapter_->Init(screenInfo_, mirrorAdaptiveCoefficient_,
+        [this](const auto& surface, const auto& layers) { Redraw(surface, layers); }, composerClient_->GetOutput());
 }
 
 void RSPhysicalScreenProcessor::PostProcess()

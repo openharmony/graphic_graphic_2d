@@ -206,7 +206,7 @@ void RSCanvasDrawingRenderNodeDrawable::DrawRenderContent(Drawing::Canvas& canva
         std::optional<RSTagTracker> tagTracer;
         auto gpuContext = GetGpuContext();
         if (gpuContext && renderParams_) {
-            tagTracer.emplace(gpuContext, renderParams_->GetInstanceRootNodeId(),
+            tagTracer.emplace(gpuContext, GetNodeIdForMemTag(),
                 RSTagTracker::TAGTYPE::TAG_CANVAS_DRAWING_NODE, renderParams_->GetInstanceRootNodeName());
         }
         DrawContent(*canvas_, rect);
@@ -322,7 +322,7 @@ void RSCanvasDrawingRenderNodeDrawable::PostPlaybackInCorrespondThread()
 
         std::optional<RSTagTracker> tagTracer;
         if (auto gpuContext = GetGpuContext()) {
-            tagTracer.emplace(gpuContext, renderParams_->GetInstanceRootNodeId(),
+            tagTracer.emplace(gpuContext, GetNodeIdForMemTag(),
                 RSTagTracker::TAGTYPE::TAG_CANVAS_DRAWING_NODE, renderParams_->GetInstanceRootNodeName());
         }
 
@@ -364,7 +364,7 @@ bool RSCanvasDrawingRenderNodeDrawable::InitSurface(int width, int height, RSPai
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     std::optional<RSTagTracker> tagTracer;
     if (renderParams_) {
-        tagTracer.emplace(canvas.GetGPUContext(), renderParams_->GetInstanceRootNodeId(),
+        tagTracer.emplace(canvas.GetGPUContext(), GetNodeIdForMemTag(),
             RSTagTracker::TAGTYPE::TAG_CANVAS_DRAWING_NODE, renderParams_->GetInstanceRootNodeName());
     }
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
@@ -492,7 +492,7 @@ void RSCanvasDrawingRenderNodeDrawable::Flush(float width, float height, std::sh
     std::optional<RSTagTracker> tagTracer;
     auto gpuContext = GetGpuContext();
     if (gpuContext && renderParams_) {
-        tagTracer.emplace(gpuContext, renderParams_->GetInstanceRootNodeId(),
+        tagTracer.emplace(gpuContext, GetNodeIdForMemTag(),
             RSTagTracker::TAGTYPE::TAG_CANVAS_DRAWING_NODE, renderParams_->GetInstanceRootNodeName());
     }
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
@@ -510,12 +510,11 @@ void RSCanvasDrawingRenderNodeDrawable::ProcessCPURenderInBackgroundThread(std::
 {
     auto surface = surface_;
     auto drawable = RSRenderNodeDrawableAdapter::GetDrawableById(nodeId);
-    auto self = shared_from_this();
-    RSBackgroundThread::Instance().PostTask([self, drawable, cmds, surface, ctx, nodeId]() {
+    RSBackgroundThread::Instance().PostTask([drawable, cmds, surface, ctx, nodeId]() {
         if (!cmds || cmds->IsEmpty() || !surface || !ctx || !drawable) {
             return;
         }
-        RSRenderNodeSingleDrawableLocker singleLocker(self.get());
+        RSRenderNodeSingleDrawableLocker singleLocker(drawable.get());
         if (UNLIKELY(!singleLocker.IsLocked())) {
             singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
             RS_LOGE("RSCanvasDrawingRenderNodeDrawable::ProcessCPURenderInBackgroundThread node %{public}" PRIu64
@@ -822,7 +821,7 @@ void RSCanvasDrawingRenderNodeDrawable::CreateGpuSurface(const Drawing::ImageInf
         return;
     }
     newVulkanCleanupHelper = vulkanCleanupHelper_ == nullptr;
-    if (vulkanCleanupHelper_ == nullptr) {
+    if (newVulkanCleanupHelper) {
         vulkanCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
             vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory, vkTextureInfo->vkAlloc.statName);
     }
@@ -833,20 +832,20 @@ void RSCanvasDrawingRenderNodeDrawable::CreateGpuSurface(const Drawing::ImageInf
     REAL_ALLOC_CONFIG_SET_STATUS(false);
     if (surface_ == nullptr) {
         ResetResource();
-    }
-    if (!isDmaBackendTexture || surface_ != nullptr) {
+    } else {
         return;
     }
-
-    if (preAllocateDmaEnabled_) {
-        dmaFallbackCount_.fetch_add(1, std::memory_order_relaxed);
+    if (isDmaBackendTexture) {
+        if (preAllocateDmaEnabled_) {
+            dmaFallbackCount_.fetch_add(1, std::memory_order_relaxed);
+        }
+        // Create surface from DMA backendTexture fail, try again by GPU backendTexture.
+        // In this case, surface_ and vulkanCleanupHelper_ must be null, so newVulkanCleanupHelper can be reused.
+        if (!CheckBackendTexture(true, width, height, ExtractPid(nodeId_))) {
+            return;
+        }
+        CreateGpuSurface(imageInfo, gpuContext, newVulkanCleanupHelper, false);
     }
-    // Create surface from DMA backendTexture fail, try again by GPU backendTexture.
-    // In this case, surface_ and vulkanCleanupHelper_ must be null, so newVulkanCleanupHelper can be reused.
-    if (!CheckBackendTexture(true, width, height, ExtractPid(nodeId_))) {
-        return;
-    }
-    CreateGpuSurface(imageInfo, gpuContext, newVulkanCleanupHelper, false);
 }
 
 bool RSCanvasDrawingRenderNodeDrawable::CheckBackendTexture(bool needCreateFromGpu, int width, int height, pid_t pid)
@@ -1051,6 +1050,12 @@ std::shared_ptr<Drawing::GPUContext> RSCanvasDrawingRenderNodeDrawable::GetGpuCo
     std::shared_ptr<Drawing::GPUContext> gpuContext = nullptr;
     GetCurrentContext(gpuContext);
     return gpuContext;
+}
+
+NodeId RSCanvasDrawingRenderNodeDrawable::GetNodeIdForMemTag()
+{
+    NodeId id = renderParams_ != nullptr ? renderParams_->GetInstanceRootNodeId() : 0;
+    return id > 0 ? id : nodeId_;
 }
 
 bool RSCanvasDrawingRenderNodeDrawable::GpuContextResetGL(

@@ -533,6 +533,13 @@ std::string RSImage::PixelSamplingDump() const
     return oss.str().c_str();
 }
 
+void RSImage::ImageSamplingDump(uint64_t imageId) const
+{
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    RSImageDetailEnhancerThread::Instance().ImageSamplingDump(imageId);
+#endif
+}
+
 void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas)
 {
     int minX = 0;
@@ -707,11 +714,17 @@ void RSImage::DrawImageOnCanvas(
             DrawImageWithFirMatrixRotateOnCanvas(samplingOptions, canvas);
             return;
         }
+// used for ScaleImageAsync
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
         RSImageParams rsImageParams = {
             pixelMap_, nodeId_, dst_, uniqueid_, image_, false, canvas.GetTotalMatrix().Get(Drawing::Matrix::SCALE_X)
         };
-        if (RSImageDetailEnhancerThread::Instance().EnhanceImageAsync(canvas, samplingOptions, rsImageParams)) {
+        std::shared_ptr<Drawing::Image> dstImage =
+            RSImageDetailEnhancerThread::Instance().EnhanceImageAsync(isScaledImageAsync_, rsImageParams);
+        if (dstImage) {
+            Drawing::Rect newSrcRect(0, 0, dstImage->GetWidth(), dstImage->GetHeight());
+            canvas.DrawImageRect(*dstImage, newSrcRect, dst_, samplingOptions,
+                Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
             return;
         }
 #endif

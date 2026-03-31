@@ -309,7 +309,7 @@ int RSHpaeFilterCacheManager::ProcessHpaeBlur(const Drawing::RectI& clipBounds,
     RS_TRACE_NAME_FMT("ProcessHpaeBlur. radius=%f", curRadius_);
 
     HpaeBackgroundCacheItem blurItem;
-    float radius = curRadius_ / 2.0f; // HpaeBlur using half image size
+    float radius = curRadius_ / RSHpaeBaseData::GetInstance().GetScaleFactor(); // scale radius
     if (radius < 1.0f) {
         // directly process to outputbuffer if radius == 0
         HPAE_LOGD("SmallRadius: %f", radius);

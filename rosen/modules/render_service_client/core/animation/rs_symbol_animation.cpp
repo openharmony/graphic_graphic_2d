@@ -1249,10 +1249,11 @@ std::shared_ptr<RSAnimation> RSSymbolAnimation::KeyframeAlphaSymbolAnimation(con
     if (alphaPropertyStages_.size() == 0 || timePercents.size() != alphaPropertyStages_.size()) {
         return nullptr;
     }
-    auto keyframeAnimation = std::make_shared<RSKeyframeAnimation>(alphaPropertyStages_[0]); // initial the alpha status
-    if (keyframeAnimation == nullptr || rsNode == nullptr) {
+    if (rsNode == nullptr) {
         return nullptr;
     }
+    // initial the alpha status
+    auto keyframeAnimation = std::make_shared<RSKeyframeAnimation>(rsNode->GetRSUIContext(), alphaPropertyStages_[0]);
     keyframeAnimation->SetStartDelay(oneStageParas.delay);
     keyframeAnimation->SetDuration(duration);
     RSAnimationTimingCurve timingCurve;

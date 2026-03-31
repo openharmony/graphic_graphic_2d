@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.. All rights reserved.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -33,7 +33,8 @@ void GetExtraTextStyleAttributes(const skia::textlayout::TextStyle& skStyle, Tex
 TextStyle SkStyleToSPTextStyle(const skia::textlayout::TextStyle& skStyle,
     const std::vector<PaintRecord>& paints);
 
-ParagraphStyle SkParagraphStyleToParagraphStyle(const skia::textlayout::ParagraphStyle& skStyle);
+ParagraphStyle SkParagraphStyleToParagraphStyle(
+    const skia::textlayout::ParagraphStyle& skStyle, const std::vector<PaintRecord>& paints);
 
 } // namespace SPText
 } // namespace Rosen

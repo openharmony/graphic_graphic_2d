@@ -56,24 +56,31 @@ public:
             return false;
         }
         const auto& data = waterGlassParams[index];
-        params.waveCenter = {data[0], data[1]};
-        params.waveSourceXY = {data[2], data[3]};
-        params.waveDistortXY = {data[4], data[5]};
-        params.waveDensityXY = {data[6], data[7]};
-        params.waveStrength = data[8];
-        params.waveLightStrength = data[9];
-        params.waveRefraction = data[10];
-        params.waveSpecular = data[11];
-        params.waveFrequency = data[12];
-        params.waveShapeDistortion = data[13];
-        params.waveNoiseStrength = data[14];
-        params.waveMaskSize = {data[15], data[16]};
-        params.waveMaskRadius = data[17];
-        params.borderRadius = data[18];
-        params.borderThickness = data[19];
-        params.borderScope = data[20];
-        params.borderStrength = data[21];
-        params.progress = data[22];
+        params.speed = data[0]; // 0 index
+        params.distortSpeed = data[1]; // 1 index
+        params.refractionSpeed = { data[2],  data[3]}; // 2, 3 index
+        params.progress = data[4]; // 4 index
+        params.shakingDirection1 = {data[5], data[6]}; // 5, 6 index
+        params.shakingDirection2 = {data[7], data[8]}; // 7, 8 idnex
+        params.waveDensityXY = {data[9], data[10]}; // 9, 10 index
+        params.waveStrength = data[11]; // 11 index
+        params.waveRefraction = data[12]; // 12 index
+        params.waveSpecular = data[13]; // 13 index
+        params.waveFrequency = data[14]; // 14 index
+        params.waveShapeDistortion = data[15]; // 15 index
+        params.waveDistortionAngle = data[16]; // 16 index
+        params.rippleXWave = data[17]; // 17 index
+        params.rippleYWave = data[18]; // 18 index
+        params.borderRadius = data[19]; // 19 index
+        params.borderThickness = data[20]; // 20 index
+        params.waveInnerMaskXY = {data[21], data[22]}; // 21, 22 index
+        params.waveInnerMaskRadius = data[23]; // 23 index
+        params.waveInnerMaskSmoothness = data[24]; // 24 index
+        params.waveOuterMaskPadding = data[25]; // 25 index
+        params.waveSpecularPower = data[26]; // 26 index
+        params.refractionDetailDark = data[27]; // 27 index
+        params.refractionDetailWhite = data[28]; // 28 index
+        params.detailStrength = data[29]; // 29 index
         return true;
     }
 
@@ -83,19 +90,23 @@ public:
             return false;
         }
         const auto& data = reededGlassParams[index];
-        params.refractionFactor = data[0];
-        params.dispersionStrength = data[1];
-        params.roughness = data[2];
-        params.noiseFrequency = data[3];
-        params.horizontalPatternNumber = static_cast<uint8_t>(data[4]);
-        params.saturationFactor = data[5];
-        params.borderLightStrength = data[6];
-        params.borderLightWidth = data[7];
-        params.pointLightColor = {data[8], data[9], data[10], data[11]};
-        params.pointLight1Position = {data[12], data[13]};
-        params.pointLight1Strength = data[14];
-        params.pointLight2Position = {data[15], data[16]};
-        params.pointLight2Strength = data[17];
+        params.refractionFactor = data[REFRACTION_FACTOR_INDEX];
+        params.horizontalPatternNumber = static_cast<uint8_t>(data[HORIZONTAL_PATTERN_NUMBER_INDEX]);
+        params.gridLightStrength = data[GRID_LIGHT_STRENGTH_INDEX];
+        params.gridLightPositionStart = data[GRID_LIGHT_POSITION_START_INDEX];
+        params.gridLightPositionEnd = data[GRID_LIGHT_POSITION_END_INDEX];
+        params.gridShadowStrength = data[GRID_SHADOW_STRENGTH_INDEX];
+        params.gridShadowPositionStart = data[GRID_SHADOW_POSITION_START_INDEX];
+        params.gridShadowPositionEnd = data[GRID_SHADOW_POSITION_END_INDEX];
+        params.portalLightSize = {data[PORTAL_LIGHT_SIZE_X_INDEX], data[PORTAL_LIGHT_SIZE_Y_INDEX]};
+        params.portalLightTilt = {data[PORTAL_LIGHT_TILT_X_INDEX], data[PORTAL_LIGHT_TILT_Y_INDEX]};
+        params.portalLightPosition = {data[PORTAL_LIGHT_POSITION_X_INDEX], data[PORTAL_LIGHT_POSITION_Y_INDEX]};
+        params.portalLightDisperseAttenuation = data[PORTAL_LIGHT_DISPERSE_ATTENUATION_INDEX];
+        params.portalLightDisperse = data[PORTAL_LIGHT_DISPERSE_INDEX];
+        params.portalLightSmoothBorder = data[PORTAL_LIGHT_SMOOTH_BORDER_INDEX];
+        params.portalLightShadowBorder = data[PORTAL_LIGHT_SHADOW_BORDER_INDEX];
+        params.portalLightShadowPositionShift = data[PORTAL_LIGHT_SHADOW_POSITION_SHIFT_INDEX];
+        params.portalLightStrength = data[PORTAL_LIGHT_STRENGTH_INDEX];
         return true;
     }
 };

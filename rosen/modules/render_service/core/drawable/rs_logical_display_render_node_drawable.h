@@ -67,7 +67,7 @@ private:
     void DrawSecurityMask();
     void DrawCurtainScreen() const;
     void ClearCanvasStencil(RSPaintFilterCanvas& canvas, const RSLogicalDisplayRenderParams& params,
-        const RSRenderThreadParams& uniParam, const ScreenInfo& screenInfo);
+        const RSRenderThreadParams& uniParam, const RSScreenProperty& screenProperty);
     void CheckDirtyRefresh(CompositeType type, bool hasSecLayerInVisibleRect);
     void UpdateMainSizeFromContentRect(RSLogicalDisplayRenderParams* params, float& mainWidth, float& mainHeight);
     void ScaleAndRotateMirrorForWiredScreen(RSLogicalDisplayRenderNodeDrawable& mirroredDrawable);
@@ -87,9 +87,9 @@ private:
         bool useCanvasSize = true);
     void FinishOffscreenRender(const Drawing::SamplingOptions& sampling,
         bool isSamplingOn = false, float hdrBrightnessRatio = 1.0f);
-    void UpdateSlrScale(ScreenInfo& screenInfo, float srcWidth, float srcHeight,
+    void UpdateSlrScale(const RSScreenProperty& screenProperty, float srcWidth, float srcHeight,
         RSScreenRenderParams* params = nullptr);
-    void ScaleCanvasIfNeeded(const ScreenInfo& screenInfo);
+    void ScaleCanvasIfNeeded(const RSScreenProperty& screenProperty);
     void ClearTransparentBeforeSaveLayer();
     std::vector<RectI> CalculateVirtualDirtyForWiredScreen(
         RSScreenRenderNodeDrawable& curScreenDrawable, Drawing::Matrix canvasMatrix);

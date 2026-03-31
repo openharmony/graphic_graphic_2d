@@ -309,6 +309,14 @@ PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
     return static_cast<PartialRenderType>(ConvertToInt(enable, DEFAULT_UNI_PARTIAL_RENDER_ENABLED_VALUE));
 }
 
+bool RSSystemProperties::GetRCDForceRedrawEnable()
+{
+    int changed = 0;
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.uni.rcdforceredraw.enabled", "0");
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 0);
+}
+
 bool RSSystemProperties::GetRenderNodeLazyLoadEnabled()
 {
 #ifdef RS_ENABLE_MEMORY_DOWNTREE
@@ -496,14 +504,6 @@ bool RSSystemProperties::GetHighContrastStatus()
     int changed = 0;
     const char *status = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(status, 0) != 0;
-}
-
-bool RSSystemProperties::GetDrmEnabled()
-{
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.drm.enabled", "1");
-    int changed = 0;
-    const char *enabled = CachedParameterGetChanged(g_Handle, &changed);
-    return ConvertToInt(enabled, 0) != 0;
 }
 
 bool RSSystemProperties::GetTargetDirtyRegionDfxEnabled(std::vector<std::string>& dfxTargetSurfaceNames_)
@@ -1240,6 +1240,22 @@ bool RSSystemProperties::GetOpincCacheMemThresholdEnabled()
     return opincCacheMemThresholdEnabled;
 }
 
+bool RSSystemProperties::GetLayerPartRenderEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.layerPartRender.enabled", "0");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 0) != 0;
+}
+
+bool RSSystemProperties::GetLayerPartRenderDebugEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.layerPartRenderDfx.enabled", "0");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
 bool RSSystemProperties::GetFilterCacheMemThresholdEnabled()
 {
     static bool filterCacheMemThresholdEnabled =
@@ -1674,7 +1690,7 @@ bool RSSystemProperties::GetSubThreadControlFrameRate()
 int RSSystemProperties::GetSubThreadDropFrameInterval()
 {
     static int dropFrameInterval =
-        system::GetIntParameter("const.graphic.subthread.dropframe.interval", 1);
+        system::GetIntParameter("const.graphic.subthread.dropframe.interval", 0);
     return dropFrameInterval;
 }
 

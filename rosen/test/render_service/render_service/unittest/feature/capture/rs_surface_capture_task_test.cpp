@@ -113,7 +113,6 @@ public:
     bool CheckSurfaceCaptureCallback();
 
     static RSInterfaces* rsInterfaces_;
-    static RSRenderInterface* rsRenderInterfaces_;
     static std::shared_ptr<RenderContext> renderContext_;
     static RSDisplayNodeConfig defaultConfig_;
     static RSDisplayNodeConfig mirrorConfig_;
@@ -121,7 +120,6 @@ public:
     static std::shared_ptr<CustomizedSurfaceCapture> surfaceCaptureCb_;
 };
 RSInterfaces* RSSurfaceCaptureTaskTest::rsInterfaces_ = nullptr;
-RSRenderInterface* RSSurfaceCaptureTaskTest::rsRenderInterfaces_ = nullptr;
 std::shared_ptr<RenderContext> RSSurfaceCaptureTaskTest::renderContext_ = nullptr;
 RSDisplayNodeConfig RSSurfaceCaptureTaskTest::defaultConfig_ = {INVALID_SCREEN_ID, false, INVALID_SCREEN_ID};
 RSDisplayNodeConfig RSSurfaceCaptureTaskTest::mirrorConfig_ = {INVALID_SCREEN_ID, true, INVALID_SCREEN_ID};
@@ -154,9 +152,8 @@ void RSSurfaceCaptureTaskTest::SetUpTestCase()
 {
     RSTestUtil::InitRenderNodeGC();
     rsInterfaces_ = &(RSInterfaces::GetInstance());
-    rsRenderInterfaces_ = &(RSRenderInterface::GetInstance());
-    if (rsInterfaces_ == nullptr || rsRenderInterfaces_ == nullptr) {
-        HiLog::Error(LOG_LABEL, "%s: rsInterfaces_ == nullptr or rsRenderInterfaces_ == nullptr", __func__);
+    if (rsInterfaces_ == nullptr) {
+        HiLog::Error(LOG_LABEL, "%s: rsInterfaces_ == nullptr or rsInterfaces_ == nullptr", __func__);
         return;
     }
     ScreenId screenId = rsInterfaces_->GetDefaultScreenId();
@@ -372,7 +369,8 @@ HWTEST_F(RSSurfaceCaptureTaskTest, CreatePixelMapByDisplayNode001, Function | Sm
     captureConfig.scaleX = 0.f;
     captureConfig.scaleY = 0.f;
     RSSurfaceCaptureTask task(id, captureConfig);
-    ASSERT_EQ(nullptr, task.CreatePixelMapByDisplayNode(nullptr));
+    std::shared_ptr<Drawing::ColorSpace> colorSpace = nullptr;
+    ASSERT_EQ(nullptr, task.CreatePixelMapByDisplayNode(nullptr, false, colorSpace));
 }
 
 /*
@@ -864,7 +862,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessScreenRenderNode004, Function | SmallT
     int64_t timestamp = 0;
     Rect damage;
     sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
-    surfaceHandler->SetBuffer(buffer, acquireFence, damage, timestamp);
+    surfaceHandler->SetBuffer(buffer, acquireFence, damage, timestamp, nullptr);
     visitor_->ProcessScreenRenderNode(*node);
 }
 
@@ -915,7 +913,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSurfaceCaptureWithBlurTest, Function | Sm
     // test blurRadius is negative
     float blurRadius = -10;
     bool ret =
-        rsRenderInterfaces_->TakeSurfaceCaptureWithBlur(surfaceNode_, surfaceCaptureCb_, captureConfig, blurRadius);
+        rsInterfaces_->TakeSurfaceCaptureWithBlur(surfaceNode_, surfaceCaptureCb_, captureConfig, blurRadius);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
 #if defined(RS_ENABLE_UNI_RENDER)
@@ -924,7 +922,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSurfaceCaptureWithBlurTest, Function | Sm
     surfaceCaptureCb_->Reset();
 
     blurRadius = 10;
-    ret = rsRenderInterfaces_->TakeSurfaceCaptureWithBlur(surfaceNode_, surfaceCaptureCb_, captureConfig, blurRadius);
+    ret = rsInterfaces_->TakeSurfaceCaptureWithBlur(surfaceNode_, surfaceCaptureCb_, captureConfig, blurRadius);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
 #if defined(RS_ENABLE_UNI_RENDER)
@@ -934,7 +932,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSurfaceCaptureWithBlurTest, Function | Sm
 
     // test blurRadius is large
     blurRadius = 100000;
-    ret = rsRenderInterfaces_->TakeSurfaceCaptureWithBlur(surfaceNode_, surfaceCaptureCb_, captureConfig, blurRadius);
+    ret = rsInterfaces_->TakeSurfaceCaptureWithBlur(surfaceNode_, surfaceCaptureCb_, captureConfig, blurRadius);
     ASSERT_EQ(ret, true);
     ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
 #if defined(RS_ENABLE_UNI_RENDER)
@@ -951,13 +949,13 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSelfSurfaceCaptureTest001, Function | Sma
 {
     RSSurfaceCaptureConfig captureConfig;
 
-    bool ret = rsRenderInterfaces_->TakeSelfSurfaceCapture(nullptr, surfaceCaptureCb_, captureConfig);
+    bool ret = rsInterfaces_->TakeSelfSurfaceCapture(nullptr, surfaceCaptureCb_, captureConfig);
     ASSERT_EQ(ret, false);
 
-    ret = rsRenderInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, nullptr, captureConfig);
+    ret = rsInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, nullptr, captureConfig);
     ASSERT_EQ(ret, false);
 
-    ret = rsRenderInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
+    ret = rsInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
     ASSERT_EQ(ret, true);
 }
 
@@ -972,7 +970,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSelfSurfaceCaptureTest002, Function | Sma
 
     captureConfig.scaleX = -1.f;
     captureConfig.scaleY = -1.f;
-    bool ret = rsRenderInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
+    bool ret = rsInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
     ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
@@ -982,7 +980,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSelfSurfaceCaptureTest002, Function | Sma
 
     captureConfig.scaleX = 2.f;
     captureConfig.scaleY = 2.f;
-    ret = rsRenderInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
+    ret = rsInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
     ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
@@ -992,7 +990,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSelfSurfaceCaptureTest002, Function | Sma
 
     captureConfig.scaleX = 0.5;
     captureConfig.scaleY = 0.5;
-    ret = rsRenderInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
+    ret = rsInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
     ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
@@ -1010,7 +1008,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSelfSurfaceCaptureTest003, Function | Sma
     RSSurfaceCaptureConfig captureConfig;
 
     captureConfig.useDma = true;
-    bool ret = rsRenderInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
+    bool ret = rsInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
     ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
@@ -1019,7 +1017,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSelfSurfaceCaptureTest003, Function | Sma
     surfaceCaptureCb_->Reset();
 
     captureConfig.useDma = false;
-    ret = rsRenderInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
+    ret = rsInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
     ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
@@ -1037,7 +1035,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSelfSurfaceCaptureTest004, Function | Sma
     RSSurfaceCaptureConfig captureConfig;
 
     captureConfig.useCurWindow = true;
-    bool ret = rsRenderInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
+    bool ret = rsInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
     ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
@@ -1046,7 +1044,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSelfSurfaceCaptureTest004, Function | Sma
     surfaceCaptureCb_->Reset();
 
     captureConfig.useCurWindow = false;
-    ret = rsRenderInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
+    ret = rsInterfaces_->TakeSelfSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
     ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
@@ -1077,7 +1075,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, TakeSurfaceCaptureTest, Function | SmallTest 
 {
     RSSurfaceCaptureConfig captureConfig;
     captureConfig.useCurWindow = true;
-    bool ret = rsRenderInterfaces_->TakeSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
+    bool ret = rsInterfaces_->TakeSurfaceCapture(surfaceNode_, surfaceCaptureCb_, captureConfig);
     ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(CheckSurfaceCaptureCallback(), true);

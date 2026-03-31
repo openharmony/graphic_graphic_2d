@@ -35,7 +35,7 @@
 
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "render_server/transaction/rs_client_to_service_connection.h"
-#include "platform/ohos/rs_irender_service.h"
+#include "platform/ohos/transaction/zidl/rs_irender_service.h"
 #include "render_server/transaction/zidl/rs_client_to_service_connection_stub.h"
 #include "transaction/rs_transaction_proxy.h"
 
@@ -66,31 +66,62 @@ const uint8_t DO_GET_DISPLAY_IDENTIFICATION_DATA = 19;
 const uint8_t DO_RESIZE_VIRTUAL_SCREEN = 20;
 const uint8_t DO_CLEAN_VIRTUAL_SCREENS = 21;
 constexpr uint8_t DO_SET_ROG_SCREEN_RESOLUTION = 22;
-constexpr uint8_t DO_GET_ROG_SCREEN_RESOLUTION = 23;
-constexpr uint8_t DO_SET_SCREEN_SECURITY_MASK = 24;
-const uint8_t TARGET_SIZE = 25;
+constexpr uint8_t DO_SET_SCREEN_SECURITY_MASK = 23;
+const uint8_t TARGET_SIZE = 24;
 } // namespace
 
+auto g_pid = getpid();
 RSMainThread* g_mainThread = nullptr;
 sptr<RSIConnectionToken> g_token = nullptr;
 sptr<RSClientToServiceConnectionStub> g_toServiceConnectionStub = nullptr;
 sptr<RSClientToServiceConnection> g_toServiceConnection = nullptr;
+sptr<OHOS::Rosen::RSRenderService> renderService_ = nullptr;
+auto mainThread_ = RSMainThread::Instance();
+sptr<RSScreenManager> screenManagerPtr_ = sptr<RSScreenManager>::MakeSptr();
 std::string g_originTag = "";
 
 /* Call once in the Fuzzer Initialize function */
 int Initialize()
 {
-    g_mainThread = RSMainThread::Instance();
-    g_mainThread->runner_ = AppExecFwk::EventRunner::Create(true);
-    g_mainThread->handler_ = std::make_shared<AppExecFwk::EventHandler>(g_mainThread->runner_);
-    g_mainThread->mainLoop_ = []() {};
-    g_token = new IRemoteStub<RSIConnectionToken>();
-    auto generator = impl::VSyncGenerator::GetInstance();
-    auto appVSyncController = new VSyncController(generator, 0);
-    DVSyncFeatureParam dvsyncParam;
-    auto appVSyncDistributor = new VSyncDistributor(appVSyncController, "app", dvsyncParam);
-    g_toServiceConnection = new RSClientToServiceConnection(getpid(), nullptr, nullptr,
-        RSScreenManager::GetInstance(), g_token->AsObject(), appVSyncDistributor);
+    OHOS::Rosen::g_pid = getpid();
+    OHOS::Rosen::mainThread_ = OHOS::Rosen::RSMainThread::Instance();
+    OHOS::Rosen::mainThread_->handler_ =
+        std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::AppExecFwk::EventRunner::Create(true));
+    OHOS::sptr<OHOS::Rosen::RSIConnectionToken> token_ = new OHOS::IRemoteStub<OHOS::Rosen::RSIConnectionToken>();
+
+    OHOS::Rosen::DVSyncFeatureParam dvsyncParam;
+    auto generator = OHOS::Rosen::CreateVSyncGenerator();
+    auto appVSyncController = new OHOS::Rosen::VSyncController(generator, 0);
+    OHOS::sptr<OHOS::Rosen::VSyncDistributor> appVSyncDistributor_ =
+        new OHOS::Rosen::VSyncDistributor(appVSyncController, "app", dvsyncParam);
+
+    OHOS::Rosen::renderService_ = OHOS::sptr<OHOS::Rosen::RSRenderService>::MakeSptr();
+    auto vsyncManager = OHOS::sptr<OHOS::Rosen::RSVsyncManager>::MakeSptr();
+    vsyncManager->appVSyncDistributor_ = appVSyncDistributor_;
+
+    auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
+    runner->Run();
+    OHOS::Rosen::renderService_->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
+    OHOS::Rosen::renderService_->renderProcessManager_ =
+        OHOS::Rosen::RSRenderProcessManager::Create(*OHOS::Rosen::renderService_);
+    auto renderServiceAgent_ = OHOS::sptr<OHOS::Rosen::RSRenderServiceAgent>::MakeSptr(*OHOS::Rosen::renderService_);
+    OHOS::sptr<OHOS::Rosen::RSRenderProcessManagerAgent> renderProcessManagerAgent_ =
+        OHOS::sptr<OHOS::Rosen::RSRenderProcessManagerAgent>::MakeSptr(
+            OHOS::Rosen::renderService_->renderProcessManager_);
+
+    OHOS::sptr<OHOS::Rosen::RSScreenManagerAgent> screenManagerAgent_ =
+        new OHOS::Rosen::RSScreenManagerAgent(OHOS::Rosen::screenManagerPtr_);
+
+    g_toServiceConnection = new OHOS::Rosen::RSClientToServiceConnection(
+        OHOS::Rosen::g_pid, renderServiceAgent_, renderProcessManagerAgent_,
+        screenManagerAgent_, token_->AsObject(), vsyncManager->GetVsyncManagerAgent());
+
+    // reset recevier, otherwise maybe crash
+    OHOS::Rosen::renderService_->renderPipeline_->uniRenderThread_->uniRenderEngine_ = nullptr;
+    OHOS::Rosen::RSMainThread::Instance()->receiver_->connection_ = nullptr;
+    OHOS::Rosen::RSMainThread::Instance()->receiver_ = nullptr;
+    OHOS::Rosen::RSMainThread::Instance()->mainLoop_ = []() {};
+
     g_toServiceConnectionStub = g_toServiceConnection;
 #ifdef RS_ENABLE_VK
     RsVulkanContext::GetSingleton().InitVulkanContextForUniRender("");
@@ -127,13 +158,11 @@ void SetUp(FuzzedDataProvider& fdp)
     std::string tag = enableForAll ? "ENABLED_FOR_ALL" : "DISABLED";
     WriteUnirenderConfig(tag);
     RSUniRenderJudgement::InitUniRenderConfig();
-    g_toServiceConnection->mainThread_ = g_mainThread;
 }
 
 void TearDown()
 {
     WriteUnirenderConfig(g_originTag);
-    g_toServiceConnection->mainThread_ = nullptr;
 }
 
 void DoCreateVirtualScreen(FuzzedDataProvider& fdp)
@@ -141,7 +170,7 @@ void DoCreateVirtualScreen(FuzzedDataProvider& fdp)
     MessageOption option;
     MessageParcel dataP;
     MessageParcel reply;
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VIRTUAL_SCREEN);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::CREATE_VIRTUAL_SCREEN);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("FuzzTest");
     sptr<IBufferProducer> bufferProducer = cSurface->GetProducer();
     if (!bufferProducer) {
@@ -188,7 +217,7 @@ void DoSetVirtualScreenTypeBlackList(FuzzedDataProvider& fdp)
     option.SetFlags(MessageOption::TF_ASYNC);
     dataP.WriteUint64(id);
     dataP.WriteUInt8Vector(typeBlackListVector);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_TYPE_BLACKLIST);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_TYPE_BLACKLIST);
     g_toServiceConnectionStub->OnRemoteRequest(code, dataP, reply, option);
 }
 
@@ -210,9 +239,10 @@ void DoSetScreenSecurityMask(FuzzedDataProvider& fdp)
     std::shared_ptr<Media::PixelMap> securityMask = nullptr;
     g_toServiceConnection->SetScreenSecurityMask(id, securityMask);
 
-    g_toServiceConnection->screenManager_ = nullptr;
+    auto screenMgrAgent = g_toServiceConnection->screenManagerAgent_;
+    g_toServiceConnection->screenManagerAgent_ = nullptr;
     g_toServiceConnection->SetScreenSecurityMask(id, securityMask);
-    g_toServiceConnection->screenManager_ = RSScreenManager::GetInstance();
+    g_toServiceConnection->screenManagerAgent_ = screenMgrAgent;
 }
 
 void DoSetMirrorScreenVisibleRect(FuzzedDataProvider& fdp)
@@ -231,15 +261,16 @@ void DoSetMirrorScreenVisibleRect(FuzzedDataProvider& fdp)
     bool supportRotation = fdp.ConsumeBool();
     g_toServiceConnection->SetMirrorScreenVisibleRect(screenId, mainScreenRect, supportRotation);
 
-    g_toServiceConnection->screenManager_ = nullptr;
+    auto screenMgrAgent = g_toServiceConnection->screenManagerAgent_;
+    g_toServiceConnection->screenManagerAgent_ = nullptr;
     g_toServiceConnection->SetMirrorScreenVisibleRect(screenId, mainScreenRect, supportRotation);
-    g_toServiceConnection->screenManager_ = RSScreenManager::GetInstance();
+    g_toServiceConnection->screenManagerAgent_ = screenMgrAgent;
 }
 
 void DoSetScreenActiveMode(FuzzedDataProvider& fdp)
 {
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_MODE);
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_MODE);
     MessageOption option;
     MessageParcel dataP;
     MessageParcel reply;
@@ -253,7 +284,7 @@ void DoSetScreenActiveMode(FuzzedDataProvider& fdp)
 
 void DoSetRogScreenResolution(FuzzedDataProvider& fdp)
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_ROG_SCREEN_RESOLUTION);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_ROG_SCREEN_RESOLUTION);
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_SYNC);
@@ -269,12 +300,12 @@ void DoSetRogScreenResolution(FuzzedDataProvider& fdp)
 
 void DoGetRogScreenResolution(FuzzedDataProvider& fdp)
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_ROG_SCREEN_RESOLUTION);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_ROG_SCREEN_RESOLUTION);
+    MessageOption option;
     MessageParcel dataP;
     MessageParcel reply;
-    MessageOption option(MessageOption::TF_SYNC);
     dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    uint64_t id = fdp.ConsumeIntegral<uint64_t>();
+    ScreenId id = fdp.ConsumeIntegral<uint64_t>();
     dataP.WriteUint64(id);
     g_toServiceConnectionStub->OnRemoteRequest(code, dataP, reply, option);
 }
@@ -292,13 +323,13 @@ void DoSetVirtualScreenResolution(FuzzedDataProvider& fdp)
     dataP.WriteUint32(width);
     uint32_t height = fdp.ConsumeIntegral<uint32_t>();
     dataP.WriteUint32(height);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_RESOLUTION);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_RESOLUTION);
     g_toServiceConnectionStub->OnRemoteRequest(code, dataP, reply, option);
 }
 
 void DoGetScreenActiveMode(FuzzedDataProvider& fdp)
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_ACTIVE_MODE);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_ACTIVE_MODE);
     MessageOption option;
     MessageParcel dataP;
     MessageParcel reply;
@@ -310,7 +341,7 @@ void DoGetScreenActiveMode(FuzzedDataProvider& fdp)
 
 void DoGetScreenSupportedModes(FuzzedDataProvider& fdp)
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_MODES);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_MODES);
     MessageOption option;
     MessageParcel dataP;
     MessageParcel reply;
@@ -322,7 +353,7 @@ void DoGetScreenSupportedModes(FuzzedDataProvider& fdp)
 
 void DoGetScreenCapability(FuzzedDataProvider& fdp)
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_CAPABILITY);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_CAPABILITY);
     MessageOption option;
     MessageParcel dataP;
     MessageParcel reply;
@@ -334,7 +365,7 @@ void DoGetScreenCapability(FuzzedDataProvider& fdp)
 
 void DoGetScreenPowerStatus(FuzzedDataProvider& fdp)
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_POWER_STATUS);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_POWER_STATUS);
     MessageOption option;
     MessageParcel dataP;
     MessageParcel reply;
@@ -346,7 +377,7 @@ void DoGetScreenPowerStatus(FuzzedDataProvider& fdp)
 
 void DoGetScreenData(FuzzedDataProvider& fdp)
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_DATA);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_DATA);
     MessageOption option;
     MessageParcel dataP;
     MessageParcel reply;
@@ -358,7 +389,7 @@ void DoGetScreenData(FuzzedDataProvider& fdp)
 
 void DoGetScreenBacklight(FuzzedDataProvider& fdp)
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_BACK_LIGHT);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_BACK_LIGHT);
     MessageOption option;
     MessageParcel dataP;
     MessageParcel reply;
@@ -370,7 +401,7 @@ void DoGetScreenBacklight(FuzzedDataProvider& fdp)
 
 void DoSetScreenBacklight(FuzzedDataProvider& fdp)
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_BACK_LIGHT);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_BACK_LIGHT);
     MessageOption option;
     MessageParcel dataP;
     MessageParcel reply;
@@ -384,7 +415,7 @@ void DoSetScreenBacklight(FuzzedDataProvider& fdp)
 
 void DoGetScreenSupportedColorGamuts(FuzzedDataProvider& fdp)
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_GAMUTS);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_GAMUTS);
     MessageOption option;
     MessageParcel dataP;
     MessageParcel reply;
@@ -396,7 +427,7 @@ void DoGetScreenSupportedColorGamuts(FuzzedDataProvider& fdp)
 
 void DoGetScreenSupportedMetaDataKeys(FuzzedDataProvider& fdp)
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_METADATAKEYS);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_METADATAKEYS);
     MessageOption option;
     MessageParcel dataP;
     MessageParcel reply;
@@ -408,7 +439,7 @@ void DoGetScreenSupportedMetaDataKeys(FuzzedDataProvider& fdp)
 
 void DoGetScreenColorGamut(FuzzedDataProvider& fdp)
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_GAMUT);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_GAMUT);
     MessageOption option;
     MessageParcel dataP;
     MessageParcel reply;
@@ -420,7 +451,7 @@ void DoGetScreenColorGamut(FuzzedDataProvider& fdp)
 
 void DoSetScreenColorGamut(FuzzedDataProvider& fdp)
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_GAMUT);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_GAMUT);
     MessageOption option;
     MessageParcel dataP;
     MessageParcel reply;
@@ -434,7 +465,7 @@ void DoSetScreenColorGamut(FuzzedDataProvider& fdp)
 
 void DoSetScreenGamutMap(FuzzedDataProvider& fdp)
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_GAMUT_MAP);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_GAMUT_MAP);
     MessageOption option;
     MessageParcel dataP;
     MessageParcel reply;
@@ -448,7 +479,7 @@ void DoSetScreenGamutMap(FuzzedDataProvider& fdp)
 
 void DoGetScreenGamutMap(FuzzedDataProvider& fdp)
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_GAMUT_MAP);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_GAMUT_MAP);
     MessageOption option;
     MessageParcel dataP;
     MessageParcel reply;
@@ -460,7 +491,7 @@ void DoGetScreenGamutMap(FuzzedDataProvider& fdp)
 
 void DoGetDisplayIdentificationData(FuzzedDataProvider& fdp)
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_DISPLAY_IDENTIFICATION_DATA);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_DISPLAY_IDENTIFICATION_DATA);
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;
@@ -484,26 +515,17 @@ void DoResizeVirtualScreen(FuzzedDataProvider& fdp)
     dataP.WriteUint64(id);
     dataP.WriteUint32(width);
     dataP.WriteUint32(height);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::RESIZE_VIRTUAL_SCREEN);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::RESIZE_VIRTUAL_SCREEN);
     g_toServiceConnectionStub->OnRemoteRequest(code, dataP, reply, option);
 }
 
 void DoCleanVirtualScreens()
 {
-    g_toServiceConnection->screenManager_ = nullptr;
-    g_toServiceConnection->screenChangeCallback_ = nullptr;
+    auto screenManagerAgent = g_toServiceConnection->screenManagerAgent_;
+    g_toServiceConnection->screenManagerAgent_ = nullptr;
     g_toServiceConnection->CleanVirtualScreens();
 
-    g_toServiceConnection->screenManager_ = RSScreenManager::GetInstance();
-    g_toServiceConnection->screenChangeCallback_ = nullptr;
-    g_toServiceConnection->CleanVirtualScreens();
-
-    g_toServiceConnection->screenManager_ = RSScreenManager::GetInstance();
-    g_toServiceConnection->screenChangeCallback_ = sptr<RSIScreenChangeCallback>();
-    g_toServiceConnection->CleanVirtualScreens();
-
-    g_toServiceConnection->screenManager_ = RSScreenManager::GetInstance();
-    g_toServiceConnection->screenChangeCallback_ = nullptr;
+    g_toServiceConnection->screenManagerAgent_ = screenManagerAgent;
     g_toServiceConnection->CleanVirtualScreens();
 }
 
@@ -597,9 +619,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_SET_ROG_SCREEN_RESOLUTION:
             OHOS::Rosen::DoSetRogScreenResolution(fdp);
-            break;
-        case OHOS::Rosen::DO_GET_ROG_SCREEN_RESOLUTION:
-            OHOS::Rosen::DoGetRogScreenResolution(fdp);
             break;
         case OHOS::Rosen::DO_SET_SCREEN_SECURITY_MASK:
             OHOS::Rosen::DoSetScreenSecurityMask(fdp);

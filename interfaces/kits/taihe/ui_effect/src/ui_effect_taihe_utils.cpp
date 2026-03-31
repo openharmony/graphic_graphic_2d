@@ -1,5 +1,5 @@
-/*
- * Copyright (C) 2025 Huawei Device Co., Ltd.
+/**
+ * Copyright (C) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -189,8 +189,7 @@ bool ConvertVector4fFromAniRect(uintptr_t rect, OHOS::Rosen::Vector4f& values)
     }
     ani_object obj = reinterpret_cast<ani_object>(rect);
     ani_boolean isRectClass = false;
-    env->Object_InstanceOf(obj, rectClass, &isRectClass);
-    if (!isRectClass) {
+    if ((env->Object_InstanceOf(obj, rectClass, &isRectClass) != ANI_OK) || !isRectClass) {
         UIEFFECT_LOG_E("ConvertVector4fFromAniRect object is not a rect obj");
         return false;
     }
@@ -311,26 +310,36 @@ bool ConvertVector2fFromAniTuple(OHOS::Rosen::Vector2f& vector2f, uintptr_t opaq
         return false;
     }
 
-    auto tuple = reinterpret_cast<ani_tuple_value>(opaque);
-    ani_size length = 0;
-    ani_status status = env->TupleValue_GetNumberOfItems(tuple, &length);
+    ani_class doubleClass = nullptr;
+    ani_status status = env->FindClass("std.core.Double", &doubleClass);
     if (status != ANI_OK) {
         UIEFFECT_LOG_E("ConvertVector2fFromAniTuple failed, "
-            "TupleValue_GetNumberOfItems failed, status: %{public}d", status);
+            "get std.core.Double class failed, status %{public}d", status);
+        return false;
+    }
+    ani_method method = nullptr;
+    status = env->Class_FindMethod(doubleClass, "toDouble", ":d", &method);
+    if (status != ANI_OK) {
+        UIEFFECT_LOG_E("ConvertVector2fFromAniTuple failed, "
+            "get toDouble method failed, status %{public}d", status);
         return false;
     }
 
-    if (length < OHOS::Rosen::Vector2f::V2SIZE) {
-        UIEFFECT_LOG_E("ConvertVector2fFromAniTuple failed, array size is less than 2");
-        return false;
-    }
-
+    auto tuple = reinterpret_cast<ani_object>(opaque);
+    ani_ref tupleItem = nullptr;
     ani_double itemValue = 0.f;
     for (uint32_t i = 0; i < OHOS::Rosen::Vector2f::V2SIZE; ++i) {
-        ani_status getItemStatus = env->TupleValue_GetItem_Double(tuple, i, &itemValue);
-        if (getItemStatus != ANI_OK) {
+        std::string itemNum = "$" + std::to_string(i);
+        ani_status status = env->Object_GetFieldByName_Ref(tuple, itemNum.c_str(), &tupleItem);
+        if (status != ANI_OK) {
+            UIEFFECT_LOG_E("ConvertVector2fFromAniTuple failed, array size is less than 2");
+            return false;
+        }
+
+        status = env->Object_CallMethod_Double(reinterpret_cast<ani_object>(tupleItem), method, &itemValue);
+        if (status != ANI_OK) {
             UIEFFECT_LOG_E("ConvertVector2fFromAniTuple failed, "
-                "get item as double from tuple value failed, status: %{public}d", getItemStatus);
+                "get item as double from tuple value failed, status: %{public}d", status);
             return false;
         }
         vector2f.data_[i] = itemValue;
@@ -352,26 +361,36 @@ bool ConvertVector3fFromAniTuple(OHOS::Rosen::Vector3f& vector3f, uintptr_t opaq
         return false;
     }
 
-    auto tuple = reinterpret_cast<ani_tuple_value>(opaque);
-    ani_size length = 0;
-    ani_status status = env->TupleValue_GetNumberOfItems(tuple, &length);
+    ani_class doubleClass = nullptr;
+    ani_status status = env->FindClass("std.core.Double", &doubleClass);
     if (status != ANI_OK) {
         UIEFFECT_LOG_E("ConvertVector3fFromAniTuple failed, "
-            "TupleValue_GetNumberOfItems failed, status: %{public}d", status);
+            "get std.core.Double class failed, status %{public}d", status);
+        return false;
+    }
+    ani_method method = nullptr;
+    status = env->Class_FindMethod(doubleClass, "toDouble", ":d", &method);
+    if (status != ANI_OK) {
+        UIEFFECT_LOG_E("ConvertVector3fFromAniTuple failed, "
+            "get toDouble method failed, status %{public}d", status);
         return false;
     }
 
-    if (length < OHOS::Rosen::Vector3f::V3SIZE) {
-        UIEFFECT_LOG_E("ConvertVector3fFromAniTuple failed, array size is less than 3");
-        return false;
-    }
-
+    auto tuple = reinterpret_cast<ani_object>(opaque);
+    ani_ref tupleItem = nullptr;
     ani_double itemValue = 0.f;
     for (uint32_t i = 0; i < OHOS::Rosen::Vector3f::V3SIZE; ++i) {
-        ani_status getItemStatus = env->TupleValue_GetItem_Double(tuple, i, &itemValue);
-        if (getItemStatus != ANI_OK) {
+        std::string itemNum = "$" + std::to_string(i);
+        ani_status status = env->Object_GetFieldByName_Ref(tuple, itemNum.c_str(), &tupleItem);
+        if (status != ANI_OK) {
+            UIEFFECT_LOG_E("ConvertVector3fFromAniTuple failed, array size is less than 3");
+            return false;
+        }
+
+        status = env->Object_CallMethod_Double(reinterpret_cast<ani_object>(tupleItem), method, &itemValue);
+        if (status != ANI_OK) {
             UIEFFECT_LOG_E("ConvertVector3fFromAniTuple failed, "
-                "get item as double from tuple value failed, status: %{public}d", getItemStatus);
+                "get item as double from tuple value failed, status: %{public}d", status);
             return false;
         }
         vector3f.data_[i] = itemValue;
@@ -418,26 +437,36 @@ bool ConvertVector4fFromAniTuple(OHOS::Rosen::Vector4f& vector4f, uintptr_t opaq
         return false;
     }
 
-    auto tuple = reinterpret_cast<ani_tuple_value>(opaque);
-    ani_size length = 0;
-    ani_status status = env->TupleValue_GetNumberOfItems(tuple, &length);
+    ani_class doubleClass = nullptr;
+    ani_status status = env->FindClass("std.core.Double", &doubleClass);
     if (status != ANI_OK) {
         UIEFFECT_LOG_E("ConvertVector4fFromAniTuple failed, "
-            "TupleValue_GetNumberOfItems failed, status: %{public}d", status);
+            "get std.core.Double class failed, status %{public}d", status);
+        return false;
+    }
+    ani_method method = nullptr;
+    status = env->Class_FindMethod(doubleClass, "toDouble", ":d", &method);
+    if (status != ANI_OK) {
+        UIEFFECT_LOG_E("ConvertVector4fFromAniTuple failed, "
+            "get toDouble method failed, status %{public}d", status);
         return false;
     }
 
-    if (length < OHOS::Rosen::Vector4f::V4SIZE) {
-        UIEFFECT_LOG_E("ConvertVector4fFromAniTuple failed, array size is less than 4");
-        return false;
-    }
-
+    auto tuple = reinterpret_cast<ani_object>(opaque);
+    ani_ref tupleItem = nullptr;
     ani_double itemValue = 0.f;
     for (uint32_t i = 0; i < OHOS::Rosen::Vector4f::V4SIZE; ++i) {
-        ani_status getItemStatus = env->TupleValue_GetItem_Double(tuple, i, &itemValue);
-        if (getItemStatus != ANI_OK) {
+        std::string itemNum = "$" + std::to_string(i);
+        status = env->Object_GetFieldByName_Ref(tuple, itemNum.c_str(), &tupleItem);
+        if (status != ANI_OK) {
+            UIEFFECT_LOG_E("ConvertVector4fFromAniTuple failed, array size is less than 4");
+            return false;
+        }
+
+        status = env->Object_CallMethod_Double(reinterpret_cast<ani_object>(tupleItem), method, &itemValue);
+        if (status != ANI_OK) {
             UIEFFECT_LOG_E("ConvertVector4fFromAniTuple failed, "
-                "get item as double from tuple value failed, status: %{public}d", getItemStatus);
+                "get item as double from tuple value failed, status: %{public}d", status);
             return false;
         }
         vector4f.data_[i] = itemValue;

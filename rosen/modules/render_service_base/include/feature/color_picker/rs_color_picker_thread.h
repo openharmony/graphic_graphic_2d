@@ -29,11 +29,16 @@
 
 namespace OHOS::Rosen {
 class RenderContext;
+namespace DrawableV2 {
+class RSColorPickerDrawable;
+enum class ColorPickerState : uint8_t;
+}
 
 class RSB_EXPORT RSColorPickerThread final {
 public:
     using NodeDirtyCallback = std::function<void(uint64_t)>;
     using NotifyClientCallback = std::function<void(uint64_t, uint32_t)>;
+    using StateTransitionCallback = std::function<void(uint64_t, DrawableV2::ColorPickerState, int64_t)>;
 
     static RSColorPickerThread& Instance();
     bool PostTask(const std::function<void()>& task, bool limited = true, int64_t delayTime = 0);
@@ -42,6 +47,9 @@ public:
 
     void RegisterNotifyClientCallback(const NotifyClientCallback& callback);
     void NotifyClient(uint64_t nodeId, uint32_t color);
+
+    void RegisterStateTransitionCallback(const StateTransitionCallback& callback);
+    void TransitionState(uint64_t nodeId, DrawableV2::ColorPickerState state, int64_t delayTime = 0);
 
 #if defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     void InitRenderContext(std::shared_ptr<RenderContext> context);
@@ -60,6 +68,7 @@ private:
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     NodeDirtyCallback callback_ = nullptr;
     NotifyClientCallback notifyClient_ = nullptr;
+    StateTransitionCallback stateTransitionCallback_ = nullptr;
 
     // Rate limiting for PostTask
     std::atomic<uint32_t> taskCount_ { 0 };

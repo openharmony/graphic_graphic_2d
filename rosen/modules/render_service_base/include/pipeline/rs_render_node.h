@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -49,6 +49,7 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_display_sync.h"
 #include "property/rs_properties.h"
+#include "screen_manager/screen_types.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -63,6 +64,7 @@ class RSRenderParams;
 class RSContext;
 class RSNodeVisitor;
 class RSCommand;
+class RSLayer;
 namespace NativeBufferUtils {
 class VulkanCleanupHelper;
 }
@@ -231,7 +233,7 @@ public:
         isOnlyBasicGeoTransform_ = true;
     }
     bool IsOnlyBasicGeoTransform() const;
-    void ForceMergeSubTreeDirtyRegion(RSDirtyRegionManager& dirtyManager, const RectI& clipRect);
+    void ForceMergeSubTreeDirtyRegion(RSDirtyRegionManager& dirtyManager);
     void SubTreeSkipPrepare(RSDirtyRegionManager& dirtymanager, bool isDirty, bool accumGeoDirty,
         const RectI& clipRect);
     inline bool LastFrameSubTreeSkipped() const
@@ -489,6 +491,7 @@ public:
     void UpdateSubTreeSkipDirtyForDFX(RSDirtyRegionManager& dirtyManager, const RectI& rect);
     // update node's local draw region (based on node itself, including childrenRect)
     bool UpdateLocalDrawRect();
+    bool UpdateLayerPartRenderDirtyRegion(std::shared_ptr<RSDirtyRegionManager>& dirtyManager);
 
     bool Update(RSDirtyRegionManager& dirtyManager, const std::shared_ptr<RSRenderNode>& parent, bool parentDirty,
         std::optional<RectI> clipRect = std::nullopt);
@@ -598,6 +601,7 @@ public:
     void SetNodeName(const std::string& nodeName);
     const std::string& GetNodeName() const;
     bool HasSubSurface() const;
+    bool IsClipRectInsideNodeSelfDrawRegion() const;
 
     bool IsPureContainer() const;
     bool IsContentNode() const;
@@ -667,7 +671,7 @@ public:
         bool rotationStatusChanged = false);
     void UpdateLastFilterCacheRegion();
     void UpdateFilterRegionInSkippedSubTree(RSDirtyRegionManager& dirtyManager,
-        const RSRenderNode& subTreeRoot, RectI& filterRect, const RectI& clipRect,
+        const RSRenderNode& subTreeRoot, RectI& filterRect, const RectI& clipRect, const RectI& dirtyRegionClipRect,
         const std::optional<RectI>& surfaceClipRect);
     void FilterRectMergeDirtyRectInSkippedSubtree(RSDirtyRegionManager& dirtyManager,
         const RectI& filterRect);
@@ -703,8 +707,6 @@ public:
     }
     void SetDrawingCacheChanged(bool cacheChanged);
     bool GetDrawingCacheChanged() const;
-    void SetForceDisableNodeGroup(bool forceDisable);
-    bool IsForceDisableNodeGroup() const;
     bool IsForcedDrawInGroup() const;
     bool IsSuggestedDrawInGroup() const;
     void CheckDrawingCacheType();
@@ -742,6 +744,7 @@ public:
 
     // arkui mark
     void MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate);
+    void MarkSuggestLayerPartRenderNode(bool isLayerPartRender);
 
     /////////////////////////////////////////////
 
@@ -1030,12 +1033,17 @@ public:
         return opincCache_;
     }
 
-    void SetHasWhiteListNode(ScreenId screenId, bool hasWhiteListNode)
+    void AddScreensWithSubTreeWhitelist(const std::unordered_set<ScreenId>& screenIds)
     {
-        hasVirtualScreenWhiteList_[screenId] |= hasWhiteListNode;
+        screensWithSubTreeWhitelist_.insert(screenIds.begin(), screenIds.end());
     }
 
-    void UpdateVirtualScreenWhiteListInfo();
+    void SetScreensWithSubTreeWhitelist(const std::unordered_set<ScreenId>& screenIds)
+    {
+        screensWithSubTreeWhitelist_ = screenIds;
+    }
+
+    void SyncWhiteListInfoToParent();
     bool IsForegroundFilterEnable();
     void ResetPixelStretchSlot();
     bool CanFuzePixelStretch();
@@ -1057,15 +1065,28 @@ public:
     virtual void AfterTreeStatueChanged() {}
 
     RectI GetFilterDrawableSnapshotRegion() const;
+    void SetRSLayer(ScreenId screenId, const std::shared_ptr<RSLayer>& layer)
+    {
+        rsLayersPerScreen_[screenId] = layer;
+    }
 
     std::shared_ptr<DrawableV2::RSColorPickerDrawable> GetColorPickerDrawable() const;
-    // returns true if color picker will execute this frame
-    bool PrepareColorPickerForExecution(uint64_t vsyncTime, bool darkMode);
+    // Called every frame to handle state transitions and sync
+    // return true if current state is COLOR_PICK and need to transition back to PREPARING
+    bool PrepareColorPicker(bool darkMode);
     // returns true if node only has ColorPickerDrawable without any real filter
     bool IsColorPickerOnlyNode() const;
 
+    std::shared_ptr<RectF> GetChildClipRegion() const;
+
 protected:
     void ResetDirtyStatus();
+
+    virtual void EmplaceSameTypeModifier(
+        ModifierNGContainer& container, const std::shared_ptr<ModifierNG::RSRenderModifier>& modifier)
+    {
+        container.emplace_back(modifier);
+    }
 
     virtual void OnApplyModifiers() {}
 
@@ -1175,6 +1196,7 @@ protected:
     RSHwcRecorder hwcRecorder_;
 
 private:
+    std::unordered_map<ScreenId, std::shared_ptr<RSLayer>> rsLayersPerScreen_;
     // mark cross node in physical extended screen model
     bool isRepaintBoundary_ = false;
     bool hasForceSubmit_ = false;
@@ -1206,6 +1228,9 @@ private:
     bool childHasVisibleFilter_ = false;  // only collect visible children filter status
     bool childHasVisibleEffect_ = false;  // only collect visible children has useeffect
     bool hasChildrenOutOfRect_ = false;
+
+    // for layer part render
+    bool layerPartRenderDirtyFlag_ = false;
 
     bool isSubTreeDirty_ = false;
     bool isTreeStateChangeDirty_ = false;
@@ -1339,7 +1364,7 @@ private:
     std::unordered_set<NodeId> curCacheFilterRects_ = {};
     std::unordered_set<NodeId> visitedCacheRoots_ = {};
 
-    std::unordered_map<ScreenId, bool> hasVirtualScreenWhiteList_;
+    std::unordered_set<ScreenId> screensWithSubTreeWhitelist_ = {};
 
     RSProperties renderProperties_;
 
@@ -1397,7 +1422,7 @@ private:
     bool UpdateSelfDrawRect();
     void UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, const RectI& clipRect);
     void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool geoDirty, const std::optional<RectI>& clipRect);
-    void UpdateDrawRect(bool& accumGeoDirty, const RectI& clipRect, const Drawing::Matrix& parentSurfaceMatrix);
+    void UpdateDrawRect(bool& accumGeoDirty, const Drawing::Matrix& parentSurfaceMatrix);
     void UpdateFullScreenFilterCacheRect(RSDirtyRegionManager& dirtyManager, bool isForeground) const;
     void ValidateLightResources();
     void UpdateShouldPaint(); // update node should paint state in apply modifier stage
@@ -1414,6 +1439,9 @@ private:
     void ResetAndApplyModifiers();
 
     void InitRenderDrawableAndDrawableVec();
+
+    void DirtySlotsPartialSync();
+
     RSDrawable::Vec& GetDrawableVec(const char*) const;
     void ResetFilterInfo();
     friend class DrawFuncOpItem;

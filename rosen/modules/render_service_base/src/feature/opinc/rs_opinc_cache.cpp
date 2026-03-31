@@ -182,5 +182,47 @@ void RSOpincCache::NodeCacheStateReset(NodeCacheState nodeCacheState)
     cacheChangeFlag_ = true;
     isOpincRootFlag_ = false;
 }
+
+void RSOpincCache::MarkSuggestLayerPartRenderNode(bool isLayerPartRender)
+{
+    isSuggestLayerPartRenderNode_ = isLayerPartRender;
+}
+
+bool RSOpincCache::IsSuggestLayerPartRenderNode() const
+{
+    return isSuggestLayerPartRenderNode_;
+}
+
+void RSOpincCache::SetLayerPartRender(bool isLayerPartRender)
+{
+    isLayerPartRender_ = isLayerPartRender;
+}
+
+bool RSOpincCache::IsLayerPartRender() const
+{
+    return isLayerPartRender_;
+}
+
+bool RSOpincCache::IsLayerPartRenderUnchangeState()
+{
+    if (layerPartRenderUnchangeCount_ <= MIN_UNCHANGE_COUNT) {
+        layerPartRenderUnchangeCount_++;
+        return false;
+    }
+    return true;
+}
+
+void RSOpincCache::ResetLayerPartRenderUnchangeState()
+{
+    layerPartRenderUnchangeCount_ = 0;
+}
+
+std::shared_ptr<RSDirtyRegionManager>& RSOpincCache::GetLayerPartRenderDirtyManager()
+{
+    if (layerPartRenderDirtyManager_ == nullptr) {
+        layerPartRenderDirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+    }
+    return layerPartRenderDirtyManager_;
+}
 } // namespace Rosen
 } // namespace OHOS

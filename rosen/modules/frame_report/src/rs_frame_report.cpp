@@ -20,6 +20,7 @@
 #include <unistd.h>
 
 #include "hilog/log.h"
+#include "frame_ui_intf.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -31,184 +32,120 @@ namespace Rosen {
 #define LOGI(fmt, ...) HILOG_INFO(LOG_CORE, fmt, ##__VA_ARGS__)
 #define LOGE(fmt, ...) HILOG_ERROR(LOG_CORE, fmt, ##__VA_ARGS__)
 namespace {
-const std::string FRAME_AWARE_SO_PATH = "libframe_ui_intf.z.so";
-}
-RsFrameReport& RsFrameReport::GetInstance()
-{
-    static RsFrameReport instance;
-    return instance;
-}
-
-RsFrameReport::RsFrameReport()
-{
-    LOGI("RsFrameReport:[Init] LoadLibrary");
-    int ret = LoadLibrary();
-    if (!ret) {
-        LOGE("RsFrameReport:[Init] dlopen libframe_ui_intf.so failed!");
-        return;
-    }
-    LOGI("RsFrameReport:[Init] dlopen libframe_ui_intf.so success!");
-    initFunc_ = (InitFunc)LoadSymbol("Init");
-    if (initFunc_ != nullptr) {
-        initFunc_();
-        LOGI("RsFrameReport:[Init] Init success");
-    }
+#ifdef RS_ENABLE_VK
+const std::string LIB_VULKAN_PATH = "/system/lib64/libvulkan.so";
+static std::atomic<bool> isInit{false};
+static PFN_vkSetFrontWindowStatusHUAWEI mSetFrontWindowStatusHUAWEI = nullptr;
+static PFN_vkGetDeviceProcAddr vkGetDeviceProcAddr = nullptr;
+#endif
 }
 
-RsFrameReport::~RsFrameReport() {}
+std::once_flag RsFrameReport::initFlag_;
+bool RsFrameReport::inited = false;
 
-void RsFrameReport::Init()
+static void GraphReportSchedEvent(OHOS::RME::FrameSchedEvent event,
+    const std::unordered_map<std::string, std::string> &payload)
 {
-    LOGI("RsFrameReport init");
-    ReportSchedEvent(FrameSchedEvent::INIT, {});
+    OHOS::RME::FrameUiIntf::GetInstance().ReportSchedEvent(event, payload);
 }
 
-bool RsFrameReport::LoadLibrary()
+void RsFrameReport::InitSched()
 {
-    if (!frameSchedSoLoaded_) {
-        frameSchedHandle_ = dlopen(FRAME_AWARE_SO_PATH.c_str(), RTLD_LAZY);
-        if (frameSchedHandle_ == nullptr) {
-            LOGE("RsFrameReport:[LoadLibrary]dlopen libframe_ui_intf.so failed!"
-                " error = %{public}s\n", dlerror());
-            return false;
-        }
-        frameSchedSoLoaded_ = true;
-    }
-    LOGI("RsFrameReport:[LoadLibrary] load library success!");
-    return true;
+    OHOS::RME::FrameUiIntf::GetInstance().Init();
+    inited = true;
 }
 
-void RsFrameReport::CloseLibrary()
+bool RsFrameReport::IsInitSchedCompleted()
 {
-    if (dlclose(frameSchedHandle_) != 0) {
-        LOGE("RsFrameReport:[CloseLibrary]libframe_ui_intf.so failed!\n");
-        return;
-    }
-    frameSchedHandle_ = nullptr;
-    frameSchedSoLoaded_ = false;
-    LOGI("RsFrameReport:[CloseLibrary]libframe_ui_intf.so close success!\n");
+    return inited;
 }
 
-void *RsFrameReport::LoadSymbol(const char *symName)
+void RsFrameReport::InitDeadline()
 {
-    if (!frameSchedSoLoaded_) {
-        LOGE("RsFrameReport:[loadSymbol]libframe_ui_intf.so not loaded.\n");
-        return nullptr;
-    }
-    void *funcSym = dlsym(frameSchedHandle_, symName);
-    if (funcSym == nullptr) {
-        LOGE("RsFrameReport:[loadSymbol]Get %{public}s symbol failed: %{public}s\n", symName, dlerror());
-        return nullptr;
-    }
-    return funcSym;
-}
-
-int RsFrameReport::GetEnable()
-{
-    if (!frameSchedSoLoaded_) {
-        return 0;
-    }
-    if (frameGetEnableFunc_ == nullptr) {
-        frameGetEnableFunc_ = (FrameGetEnableFunc)LoadSymbol("GetSenseSchedEnable");
-    }
-    if (frameGetEnableFunc_ != nullptr) {
-        return frameGetEnableFunc_();
-    } else {
-        LOGE("RsFrameReport:[GetEnable]load GetSenseSchedEnable function failed!");
-        return 0;
-    }
-}
-
-void RsFrameReport::ReportSchedEvent(FrameSchedEvent event, const std::unordered_map<std::string, std::string> &payload)
-{
-    std::lock_guard<std::mutex> lock(reportSchedEventFuncLock_);
-    if (reportSchedEventFunc_ == nullptr) {
-        reportSchedEventFunc_ = (ReportSchedEventFunc)LoadSymbol("ReportSchedEvent");
-    }
-    if (reportSchedEventFunc_ != nullptr) {
-        reportSchedEventFunc_(event, payload);
-    } else {
-        LOGE("RsFrameReport load ReportSchedEvent function failed!");
-    }
+    std::call_once(initFlag_, &RsFrameReport::InitSched);
+    LOGI("RsFrameReport init Deadline");
+    GraphReportSchedEvent(OHOS::RME::FrameSchedEvent::INIT, {});
 }
 
 void RsFrameReport::SetFrameParam(int requestId, int load, int schedFrameNum, int value)
 {
-    if (setFrameParamFunc_ == nullptr) {
-        setFrameParamFunc_ = (SetFrameParamFunc)LoadSymbol("SetFrameParam");
-    }
-
-    if (setFrameParamFunc_ != nullptr) {
-        setFrameParamFunc_(requestId, load, schedFrameNum, value);
-    } else {
-        LOGE("RsFrameReport:[SetFrameParam]load SetFrameParam function failed");
-    }
+    std::call_once(initFlag_, &RsFrameReport::InitSched);
+    std::unordered_map<std::string, std::string> payload;
+    payload["requestId"] = std::to_string(requestId);
+    payload["load"] = std::to_string(load);
+    payload["schedFrameNum"] = std::to_string(schedFrameNum);
+    payload["value"] = std::to_string(value);
+    GraphReportSchedEvent(OHOS::RME::FrameSchedEvent::SET_FRAME_PARAM, payload);
 }
 
 void RsFrameReport::SendCommandsStart()
 {
-    if (sendCommandsStartFunc_ == nullptr) {
-        sendCommandsStartFunc_ = (SendCommandsStartFunc)LoadSymbol("SendCommandsStart");
-    }
-    if (sendCommandsStartFunc_ != nullptr) {
-        sendCommandsStartFunc_();
-    } else {
-        LOGE("RsFrameReport:[SendCommandsStart]load SendCommandsStart function failed!");
-    }
+    std::call_once(initFlag_, &RsFrameReport::InitSched);
+    GraphReportSchedEvent(OHOS::RME::FrameSchedEvent::RS_SEND_COMMANDS_START, {});
 }
 
 void RsFrameReport::RenderStart(uint64_t timestamp, int skipFirstFrame)
 {
+    std::call_once(initFlag_, &RsFrameReport::InitSched);
     std::unordered_map<std::string, std::string> payload = {};
     payload["vsyncTime"] = std::to_string(timestamp);
     payload["skipFirstFrame"] = std::to_string(skipFirstFrame);
-    ReportSchedEvent(FrameSchedEvent::RS_RENDER_START, payload);
+    GraphReportSchedEvent(OHOS::RME::FrameSchedEvent::RS_RENDER_START, payload);
 }
 
 void RsFrameReport::RenderEnd()
 {
-    ReportSchedEvent(FrameSchedEvent::RS_RENDER_END, {});
+    std::call_once(initFlag_, &RsFrameReport::InitSched);
+    GraphReportSchedEvent(OHOS::RME::FrameSchedEvent::RS_RENDER_END, {});
 }
 
 void RsFrameReport::DirectRenderEnd()
 {
-    ReportSchedEvent(FrameSchedEvent::RS_UNI_RENDER_END, {});
+    std::call_once(initFlag_, &RsFrameReport::InitSched);
+    GraphReportSchedEvent(OHOS::RME::FrameSchedEvent::RS_UNI_RENDER_END, {});
 }
 
 void RsFrameReport::UniRenderStart()
 {
-    ReportSchedEvent(FrameSchedEvent::RS_UNI_RENDER_START, {});
+    std::call_once(initFlag_, &RsFrameReport::InitSched);
+    GraphReportSchedEvent(OHOS::RME::FrameSchedEvent::RS_UNI_RENDER_START, {});
 }
 
 void RsFrameReport::UniRenderEnd()
 {
-    ReportSchedEvent(FrameSchedEvent::RS_UNI_RENDER_END, {});
+    std::call_once(initFlag_, &RsFrameReport::InitSched);
+    GraphReportSchedEvent(OHOS::RME::FrameSchedEvent::RS_UNI_RENDER_END, {});
 }
 
 void RsFrameReport::CheckUnblockMainThreadPoint()
 {
-    ReportSchedEvent(FrameSchedEvent::RS_UNBLOCK_MAINTHREAD, {});
+    std::call_once(initFlag_, &RsFrameReport::InitSched);
+    GraphReportSchedEvent(OHOS::RME::FrameSchedEvent::RS_UNBLOCK_MAINTHREAD, {});
 }
 
 void RsFrameReport::CheckPostAndWaitPoint()
 {
-    ReportSchedEvent(FrameSchedEvent::RS_POST_AND_WAIT, {});
+    std::call_once(initFlag_, &RsFrameReport::InitSched);
+    GraphReportSchedEvent(OHOS::RME::FrameSchedEvent::RS_POST_AND_WAIT, {});
 }
 
 void RsFrameReport::CheckBeginFlushPoint()
 {
-    ReportSchedEvent(FrameSchedEvent::RS_BEGIN_FLUSH, {});
+    std::call_once(initFlag_, &RsFrameReport::InitSched);
+    GraphReportSchedEvent(OHOS::RME::FrameSchedEvent::RS_BEGIN_FLUSH, {});
 }
 
 void RsFrameReport::ReportBufferCount(uint32_t count)
 {
-    if (bufferCount_ == count || count == UINT32_MAX) {
+    std::call_once(initFlag_, &RsFrameReport::InitSched);
+    static uint32_t  bufferCount = 0;
+    if (bufferCount == count) {
         return;
     }
-    bufferCount_ = count;
+    bufferCount = count;
     std::unordered_map<std::string, std::string> payload = {};
     payload["bufferCount"] = std::to_string(count);
-    ReportSchedEvent(FrameSchedEvent::RS_BUFFER_COUNT, payload);
+    GraphReportSchedEvent(OHOS::RME::FrameSchedEvent::RS_BUFFER_COUNT, payload);
 }
 
 void RsFrameReport::ReportComposerInfo(const int screenId, const int composerTid)
@@ -216,50 +153,124 @@ void RsFrameReport::ReportComposerInfo(const int screenId, const int composerTid
     std::unordered_map<std::string, std::string> payload;
     payload.emplace("screenId", std::to_string(screenId));
     payload.emplace("composerTid", std::to_string(composerTid));
-    ReportSchedEvent(FrameSchedEvent::RS_COMPOSER_INFO, payload);
-}
-
-void RsFrameReport::ReportHardwareInfo(int tid)
-{
-    if (hardwareTid_ == tid) {
-        return;
-    }
-    hardwareTid_ = tid;
-    std::unordered_map<std::string, std::string> payload = {};
-    payload["hardwareTid"] = std::to_string(tid);
-    ReportSchedEvent(FrameSchedEvent::RS_HARDWARE_INFO, payload);
+    GraphReportSchedEvent(OHOS::RME::FrameSchedEvent::RS_COMPOSER_INFO, payload);
 }
 
 void RsFrameReport::ReportFrameDeadline(int deadline, uint32_t currentRate)
 {
+    std::call_once(initFlag_, &RsFrameReport::InitSched);
     std::unordered_map<std::string, std::string> payload = {};
     payload["rsFrameDeadline"] = std::to_string(deadline);
     payload["currentRate"] = std::to_string(currentRate);
-    ReportSchedEvent(FrameSchedEvent::RS_FRAME_DEADLINE, payload);
+    GraphReportSchedEvent(OHOS::RME::FrameSchedEvent::RS_FRAME_DEADLINE, payload);
 }
 
 void RsFrameReport::ReportUnmarshalData(int unmarshalTid, size_t dataSize)
 {
+    std::call_once(initFlag_, &RsFrameReport::InitSched);
     if (unmarshalTid <= 0) {
         return;
     }
     std::unordered_map<std::string, std::string> payload = {};
     payload["unmarshalTid"] = std::to_string(unmarshalTid);
     payload["dataSize"] = std::to_string(dataSize);
-    ReportSchedEvent(FrameSchedEvent::RS_UNMARSHAL_DATA, payload);
+    GraphReportSchedEvent(OHOS::RME::FrameSchedEvent::RS_UNMARSHAL_DATA, payload);
 }
 
 void RsFrameReport::ReportDDGRTaskInfo()
 {
-    ReportSchedEvent(FrameSchedEvent::RS_DDGR_TASK, {});
+    std::call_once(initFlag_, &RsFrameReport::InitSched);
+    GraphReportSchedEvent(OHOS::RME::FrameSchedEvent::RS_DDGR_TASK, {});
 }
 
 void RsFrameReport::ReportScbSceneInfo(const std::string& description, bool eventStatus)
 {
+    std::call_once(initFlag_, &RsFrameReport::InitSched);
     std::unordered_map<std::string, std::string> payload = {};
     payload["description"] = description;
     payload["eventStatus"] = eventStatus ? "1" : "0"; // true:enter false:exit
-    ReportSchedEvent(FrameSchedEvent::GPU_SCB_SCENE_INFO, payload);
+    GraphReportSchedEvent(OHOS::RME::FrameSchedEvent::GPU_SCB_SCENE_INFO, payload);
 }
+
+void RsFrameReport::BlurPredict(const std::unordered_map<std::string, std::string>& payload)
+{
+    std::call_once(initFlag_, &RsFrameReport::InitSched);
+    GraphReportSchedEvent(OHOS::RME::FrameSchedEvent::RS_BLUR_PREDICT, payload);
+}
+
+void RsFrameReport::ReceiveVSync()
+{
+    std::call_once(initFlag_, &RsFrameReport::InitSched);
+    GraphReportSchedEvent(OHOS::RME::FrameSchedEvent::RS_DDGR_TASK, {});
+}
+
+void RsFrameReport::RequestNextVSync()
+{
+    std::call_once(initFlag_, &RsFrameReport::InitSched);
+    GraphReportSchedEvent(OHOS::RME::FrameSchedEvent::RS_DDGR_TASK, {});
+}
+
+void RsFrameReport::ReportAddScreenId(const int screenId)
+{
+    std::call_once(initFlag_, &RsFrameReport::InitSched);
+    GraphReportSchedEvent(OHOS::RME::FrameSchedEvent::RS_ADD_SCREENID, {});
+}
+
+void RsFrameReport::ReportDelScreenId(const int screenId)
+{
+    std::call_once(initFlag_, &RsFrameReport::InitSched);
+    GraphReportSchedEvent(OHOS::RME::FrameSchedEvent::RS_DEL_SCREENID, {});
+}
+
+#ifdef RS_ENABLE_VK
+bool RsFrameReport::InitializeVulkanExtensions(VkDevice device)
+{
+    if (isInit.load()) {
+        return mSetFrontWindowStatusHUAWEI != nullptr;
+    }
+    if (device == nullptr) {
+        LOGE("Obtain vkdevice fail");
+        return false;
+    }
+
+    auto vkhandle = dlopen(LIB_VULKAN_PATH.c_str(), RTLD_NOW | RTLD_LOCAL);
+    if (vkhandle == nullptr) {
+        LOGE("Failed to load Vulkan library: %{public}s", dlerror());
+        return false;
+    }
+
+    vkGetDeviceProcAddr = reinterpret_cast<PFN_vkGetDeviceProcAddr>(dlsym(vkhandle, "vkGetDeviceProcAddr"));
+    if (vkGetDeviceProcAddr == nullptr) {
+        LOGE("Failed to obtain vkGetDeviceProcAddr");
+        dlclose(vkhandle);
+        return false;
+    }
+
+    mSetFrontWindowStatusHUAWEI = reinterpret_cast<PFN_vkSetFrontWindowStatusHUAWEI>(
+        vkGetDeviceProcAddr(device, "vkSetFrontWindowStatusHUAWEI"));
+    if (mSetFrontWindowStatusHUAWEI == nullptr) {
+        LOGE("Failed to obtain vkSetFrontWindowStatusHUAWEI");
+        dlclose(vkhandle);
+        return false;
+    }
+
+    dlclose(vkhandle);
+    isInit.store(true);
+    return true;
+}
+
+void RsFrameReport::ReportWindowInfo(VkDevice device, bool isSingleFullScreenApp, const char* firstFrontBundleName)
+{
+    if (!InitializeVulkanExtensions(device)) {
+        LOGE("Failed to initialize Vulkan extensions");
+        return;
+    }
+    if (mSetFrontWindowStatusHUAWEI == nullptr) {
+        LOGE("vkSetFrontWindowStatusHUAWEI is null");
+        return;
+    }
+    mSetFrontWindowStatusHUAWEI(nullptr, isSingleFullScreenApp, firstFrontBundleName);
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

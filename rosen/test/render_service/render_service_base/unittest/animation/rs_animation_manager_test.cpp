@@ -173,7 +173,7 @@ HWTEST_F(RSAnimationManagerTest, SetRateDeciderEnableTest, TestSize.Level1)
 {
     RSAnimationManager rsAnimationManager;
     bool enabled = false;
-    FrameRateFunctions func;
+    FrameRateGetFunc func;
     rsAnimationManager.SetRateDeciderEnable(enabled, func);
     EXPECT_FALSE(enabled);
 }

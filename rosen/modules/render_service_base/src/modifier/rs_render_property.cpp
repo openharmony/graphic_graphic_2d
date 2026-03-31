@@ -99,8 +99,8 @@ bool RSRenderPropertyBase::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRende
     uint16_t key = static_cast<uint16_t>(isAnimatable) << 8 | static_cast<uint16_t>(type);
     auto it = UnmarshallingFuncs_.find(key);
     if (it == UnmarshallingFuncs_.end()) {
-        ROSEN_LOGE("RSRenderPropertyBase::Unmarshalling: no unmarshalling function for type %d, isAnimatable %d",
-            static_cast<int>(type), isAnimatable);
+        ROSEN_LOGE("RSRenderPropertyBase::Unmarshalling: no unmarshalling function for type %{public}d, isAnimatable "
+            "%{public}d", static_cast<int>(type), isAnimatable);
         return false;
     }
     return (it->second)(parcel, val);

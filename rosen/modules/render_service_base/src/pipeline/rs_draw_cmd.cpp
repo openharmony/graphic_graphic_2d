@@ -18,6 +18,7 @@
 #include "common/rs_optional_trace.h"
 #include "pipeline/rs_draw_cmd.h"
 #include "pipeline/rs_recording_canvas.h"
+#include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_pixel_map_util.h"
 #include "render/rs_image_cache.h"
@@ -1143,6 +1144,12 @@ void DrawFuncOpItem::Playback(Canvas* canvas, const Rect* rect)
 }
 
 #ifdef ROSEN_OHOS
+namespace {
+    std::function<void(const DrawSurfaceBufferFinishCbData&)> surfaceBufferFinishCb;
+    std::function<void(const DrawSurfaceBufferAfterAcquireCbData&)> surfaceBufferAfterAcquireCb;
+    std::function<NodeId()> getRootNodeIdForRT;
+    bool contextIsUniRender = true;
+}
 /* DrawSurfaceBufferOpItem */
 UNMARSHALLING_REGISTER(DrawSurfaceBuffer, DrawOpItem::SURFACEBUFFER_OPITEM,
     DrawSurfaceBufferOpItem::Unmarshalling, sizeof(DrawSurfaceBufferOpItem::ConstructorHandle));
@@ -1162,6 +1169,11 @@ DrawSurfaceBufferOpItem::DrawSurfaceBufferOpItem(
     if (surfaceBufferEntry) {
         surfaceBufferInfo_.surfaceBuffer_ = surfaceBufferEntry->surfaceBuffer_;
         surfaceBufferInfo_.acquireFence_ = surfaceBufferEntry->acquireFence_;
+
+        // Store the surfaceBufferInfo in RSSurfaceBufferCallbackManager
+        if (contextIsUniRender && surfaceBufferInfo_.pid_ != 0) {
+            RSSurfaceBufferCallbackManager::Instance().StoreSurfaceBufferInfo(surfaceBufferInfo_);
+        }
     }
 }
 
@@ -1188,13 +1200,6 @@ void DrawSurfaceBufferOpItem::Marshalling(DrawCmdList& cmdList)
         surfaceBufferInfo_.dstRect_.GetWidth(), surfaceBufferInfo_.dstRect_.GetHeight(), surfaceBufferInfo_.pid_,
         surfaceBufferInfo_.uid_, surfaceBufferInfo_.transform_, surfaceBufferInfo_.srcRect_,
         surfaceBufferInfo_.isIgnoreAlpha_, paintHandle);
-}
-
-namespace {
-    std::function<void(const DrawSurfaceBufferFinishCbData&)> surfaceBufferFinishCb;
-    std::function<void(const DrawSurfaceBufferAfterAcquireCbData&)> surfaceBufferAfterAcquireCb;
-    std::function<NodeId()> getRootNodeIdForRT;
-    bool contextIsUniRender = true;
 }
 
 void DrawSurfaceBufferOpItem::OnDestruct()
@@ -1348,6 +1353,11 @@ void DrawSurfaceBufferOpItem::Clear()
         nativeWindowBuffer_ = nullptr;
     }
 #endif
+
+    if (surfaceBufferInfo_.surfaceBuffer_ != nullptr) {
+        RSSurfaceBufferCallbackManager::Instance().RemoveSurfaceBufferInfo(
+            surfaceBufferInfo_.surfaceBuffer_->GetSeqNum());
+    }
 }
 
 void DrawSurfaceBufferOpItem::DealWithRotate(Canvas* canvas)

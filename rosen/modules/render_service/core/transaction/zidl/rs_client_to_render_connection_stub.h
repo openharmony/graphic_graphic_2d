@@ -21,8 +21,8 @@
 #include <message_option.h>
 #include <message_parcel.h>
 
-#include "platform/ohos/rs_iclient_to_render_connection.h"
-#include "platform/ohos/rs_irender_service_connection_ipc_interface_code_access_verifier.h"
+#include "platform/ohos/transaction/zidl/rs_iclient_to_render_connection.h"
+#include "platform/ohos/transaction/rs_iclient_to_render_connection_ipc_interface_code_access_verifier.h"
 #include "ipc_security/rs_ipc_interface_code_security_manager.h"
 #include "transaction/rs_render_service_security_utils.h"
 
@@ -37,7 +37,8 @@ public:
 
 private:
     static const RSInterfaceCodeSecurityManager securityManager_;
-
+    virtual std::string GetBundleName(pid_t pid) { return {}; }
+    bool WriteBrightnessInfo(const BrightnessInfo& brightnessInfo, MessageParcel& data);
     bool ReadDataBaseRs(DataBaseRs& info, MessageParcel& data);
     bool ReadSurfaceCaptureConfig(RSSurfaceCaptureConfig& captureConfig, MessageParcel& data);
     bool ReadSurfaceCaptureBlurParam(RSSurfaceCaptureBlurParam& blurParam, MessageParcel& data);

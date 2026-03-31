@@ -236,6 +236,36 @@ public:
         return fastComposeTimeStampDiff_;
     }
 
+    void SetHasGameScene(bool hasGameScene)
+    {
+        hasGameScene_ = hasGameScene;
+    }
+
+    bool GetHasGameScene() const
+    {
+        return hasGameScene_;
+    }
+
+    void SetHasLppVideo(bool hasLppVideo)
+    {
+        hasLppVideo_ = hasLppVideo;
+    }
+
+    bool GetHasLppVideo() const
+    {
+        return hasLppVideo_;
+    }
+
+    void SetDynamicRefreshRate(uint32_t defaultScreenRefreshRate)
+    {
+        defaultScreenRefreshRate_ = defaultScreenRefreshRate;
+    }
+
+    uint32_t GetDynamicRefreshRate() const
+    {
+        return defaultScreenRefreshRate_;
+    }
+
     const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetSelfDrawables() const
     {
         return selfDrawables_;
@@ -412,6 +442,11 @@ public:
         return isMirrorScreenDirty_;
     }
 
+    RSPowerOffRenderController& GetPowerOffRenderController()
+    {
+        return powerOffRenderController_;
+    }
+
     void SetImplicitAnimationEnd(bool isImplicitAnimationEnd)
     {
         isImplicitAnimationEnd_ = isImplicitAnimationEnd;
@@ -564,6 +599,9 @@ private:
     uint32_t pendingScreenRefreshRate_ = 0;
     uint64_t pendingConstraintRelativeTime_ = 0;
     uint64_t fastComposeTimeStampDiff_ = 0;
+    bool hasGameScene_ = false;
+    bool hasLppVideo_ = false;
+    uint32_t defaultScreenRefreshRate_ = 0;
     // RSDirtyRectsDfx dfx
     std::vector<std::string> dfxTargetSurfaceNames_;
     bool hasDisplayHdrOn_ = false;
@@ -604,7 +642,7 @@ private:
     std::shared_ptr<Drawing::Image> watermarkImg_ = nullptr;
     std::unordered_map<std::string, std::pair<std::shared_ptr<Drawing::Image>, pid_t>> surfaceWatermarks_;
     std::shared_ptr<RSSLRScaleFunction> slrManager_ = nullptr;
-
+    RSPowerOffRenderController powerOffRenderController_;
     bool isOverDrawEnabled_ = false;
     bool isDrawingCacheDfxEnabled_ = false;
 

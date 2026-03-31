@@ -69,12 +69,9 @@ public:
     static bool PickColorSyn(Drawing::Canvas* canvas, Drawing::Path& drPath, Drawing::Matrix& matrix,
         RSColor& colorPicked, const int& colorStrategy);
     static bool PickColor(std::shared_ptr<Drawing::GPUContext> context, std::shared_ptr<Drawing::Image> image,
-        Drawing::ColorQuad& colorPicked, void* waitSemaphore = nullptr);
-    // Note: waitSemaphore uses void* instead of VkSemaphore to avoid preprocessor macro guards in
-    // function signatures. This keeps the API consistent across all build configurations. The
-    // implementation reinterpret_casts to VkSemaphore when RS_ENABLE_VK is defined.
+        Drawing::ColorQuad& colorPicked);
     static std::shared_ptr<Drawing::Image> GpuScaleImage(std::shared_ptr<Drawing::GPUContext> context,
-        std::shared_ptr<Drawing::Image> image, void* waitSemaphore = nullptr);
+        std::shared_ptr<Drawing::Image> image);
     static void GetDarkColor(RSColor& color);
     static void BeginForegroundFilter(RSPaintFilterCanvas& canvas, const RectF& bounds);
     static void DrawForegroundFilter(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSFilter>& rsFilter);

@@ -198,6 +198,13 @@ public:
      */
     std::array<int, 2> CalcHpsBluredImageDimension(const Drawing::HpsBlurParameter& blurParams) override;
 
+    /**
+     * @brief insert opaque region to canvas, which can help gpu enable overdraw optimize
+     *
+     * @param opaqueRects the opaque rects to be inserted, which should be in device coordinate.
+     */
+    void InsertOpaqueRegion(const std::vector<Drawing::RectI>& opaqueRects) override;
+
     bool IsClipRect() override;
 
 protected:
@@ -224,6 +231,11 @@ public:
     void PopDirtyRegion();
     bool IsDirtyRegionStackEmpty();
     Drawing::Region& GetCurDirtyRegion();
+
+    void PushLayerPartRenderDirtyRegion(Drawing::Region& dirtyRegion);
+    void PopLayerPartRenderDirtyRegion();
+    bool IsLayerPartRenderDirtyRegionStackEmpty();
+    Drawing::Region& GetCurLayerPartRenderDirtyRegion();
 
     // alpha related
     void MultiplyAlpha(float alpha);
@@ -575,6 +587,7 @@ private:
 
     // save every dirty region of the current surface for quick reject
     std::stack<Drawing::Region> dirtyRegionStack_;
+    std::stack<Drawing::Region> layerPartRenderDirtyRegionStack_;
 
     // greater than 0 indicates canvas currently is drawing on a new layer created offscreen blendmode
     // std::stack<bool> blendOffscreenStack_;

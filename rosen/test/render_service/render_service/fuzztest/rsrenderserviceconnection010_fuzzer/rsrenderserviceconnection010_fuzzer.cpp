@@ -32,23 +32,19 @@
 
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "render_server/transaction/rs_client_to_service_connection.h"
-#include "platform/ohos/rs_irender_service.h"
+#include "platform/ohos/transaction/zidl/rs_irender_service.h"
 #include "render_server/transaction/zidl/rs_client_to_service_connection_stub.h"
 #include "transaction/rs_transaction_proxy.h"
 
 namespace OHOS {
 namespace Rosen {
 auto g_pid = getpid();
-auto screenManagerPtr_ = RSScreenManager::GetInstance();
+sptr<OHOS::Rosen::RSScreenManager> screenManagerPtr_ = OHOS::sptr<OHOS::Rosen::RSScreenManager>::MakeSptr();
 auto mainThread_ = RSMainThread::Instance();
-sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
 
-DVSyncFeatureParam dvsyncParam;
-auto generator = CreateVSyncGenerator();
-auto appVSyncController = new VSyncController(generator, 0);
-sptr<VSyncDistributor> appVSyncDistributor_ = new VSyncDistributor(appVSyncController, "app", dvsyncParam);
-sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ = new RSClientToServiceConnection(
-    g_pid, nullptr, mainThread_, screenManagerPtr_, token_->AsObject(), appVSyncDistributor_);
+sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ = nullptr;
+sptr<OHOS::Rosen::RSRenderService> renderService_ = nullptr;
+
 namespace {
 const uint8_t DO_GET_DISPLAY_IDENTIFICATION_DATA = 0;
 const uint8_t DO_SET_OVERLAY_DISPLAY_MODE = 1;
@@ -107,7 +103,7 @@ bool Init(const uint8_t* data, size_t size)
 
 void DoGetDisplayIdentificationData()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_DISPLAY_IDENTIFICATION_DATA);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_DISPLAY_IDENTIFICATION_DATA);
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     MessageOption option;
@@ -121,7 +117,7 @@ void DoGetDisplayIdentificationData()
 void DoSetOverlayDisplayMode()
 {
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_OVERLAY_DISPLAY_MODE);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_OVERLAY_DISPLAY_MODE);
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     MessageOption option;
@@ -135,7 +131,7 @@ void DoSetOverlayDisplayMode()
 
 bool DoGetBehindWindowFilterEnabled()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_BEHIND_WINDOW_FILTER_ENABLED);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_BEHIND_WINDOW_FILTER_ENABLED);
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     MessageOption option;
@@ -149,7 +145,7 @@ bool DoGetBehindWindowFilterEnabled()
 bool DoNotifyXComponentExpectedFrameRate()
 {
     uint32_t code = static_cast<uint32_t>(
-        RSIRenderServiceConnectionInterfaceCode::NOTIFY_XCOMPONENT_EXPECTED_FRAMERATE);
+        RSIClientToServiceConnectionInterfaceCode::NOTIFY_XCOMPONENT_EXPECTED_FRAMERATE);
 
     MessageOption option;
     MessageParcel dataParcel;
@@ -184,7 +180,7 @@ bool DoSetOptimizeCanvasDirtyPidList()
     }
 
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST);
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST);
     if (toServiceConnectionStub_ == nullptr) {
         return false;
     }
@@ -211,7 +207,7 @@ bool DoSetGpuCrcDirtyEnabledPidList()
         return false;
     }
  
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
     if (toServiceConnectionStub_ == nullptr) {
         return false;
     }
@@ -237,7 +233,7 @@ bool DoSetVirtualScreenAutoRotation()
         return false;
     }
 
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_AUTO_ROTATION);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_AUTO_ROTATION);
     if (toServiceConnectionStub_ == nullptr) {
         return false;
     }
@@ -250,6 +246,45 @@ bool DoSetVirtualScreenAutoRotation()
 /* Fuzzer envirement */
 extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 {
+    OHOS::Rosen::g_pid = getpid();
+    OHOS::Rosen::mainThread_ = OHOS::Rosen::RSMainThread::Instance();
+    OHOS::Rosen::mainThread_->handler_ =
+        std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::AppExecFwk::EventRunner::Create(true));
+    OHOS::sptr<OHOS::Rosen::RSIConnectionToken> token_ = new OHOS::IRemoteStub<OHOS::Rosen::RSIConnectionToken>();
+
+    OHOS::Rosen::DVSyncFeatureParam dvsyncParam;
+    auto generator = OHOS::Rosen::CreateVSyncGenerator();
+    auto appVSyncController = new OHOS::Rosen::VSyncController(generator, 0);
+    OHOS::sptr<OHOS::Rosen::VSyncDistributor> appVSyncDistributor_ =
+        new OHOS::Rosen::VSyncDistributor(appVSyncController, "app", dvsyncParam);
+
+    OHOS::Rosen::renderService_ = OHOS::sptr<OHOS::Rosen::RSRenderService>::MakeSptr();
+    auto vsyncManager = OHOS::sptr<OHOS::Rosen::RSVsyncManager>::MakeSptr();
+    vsyncManager->appVSyncDistributor_ = appVSyncDistributor_;
+
+    auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
+    runner->Run();
+    OHOS::Rosen::renderService_->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
+    OHOS::Rosen::renderService_->renderProcessManager_ =
+        OHOS::Rosen::RSRenderProcessManager::Create(*OHOS::Rosen::renderService_);
+    auto renderServiceAgent_ = OHOS::sptr<OHOS::Rosen::RSRenderServiceAgent>::MakeSptr(*OHOS::Rosen::renderService_);
+    OHOS::sptr<OHOS::Rosen::RSRenderProcessManagerAgent> renderProcessManagerAgent_ =
+        OHOS::sptr<OHOS::Rosen::RSRenderProcessManagerAgent>::MakeSptr(
+            OHOS::Rosen::renderService_->renderProcessManager_);
+
+    OHOS::sptr<OHOS::Rosen::RSScreenManagerAgent> screenManagerAgent_ =
+        new OHOS::Rosen::RSScreenManagerAgent(OHOS::Rosen::screenManagerPtr_);
+
+    OHOS::Rosen::toServiceConnectionStub_ = new OHOS::Rosen::RSClientToServiceConnection(
+        OHOS::Rosen::g_pid, renderServiceAgent_, renderProcessManagerAgent_,
+        screenManagerAgent_, token_->AsObject(), vsyncManager->GetVsyncManagerAgent());
+
+    // reset recevier, otherwise maybe crash
+    OHOS::Rosen::renderService_->renderPipeline_->uniRenderThread_->uniRenderEngine_ = nullptr;
+
+    OHOS::Rosen::RSMainThread::Instance()->receiver_->connection_ = nullptr;
+    OHOS::Rosen::RSMainThread::Instance()->receiver_ = nullptr;
+    OHOS::Rosen::RSMainThread::Instance()->mainLoop_ = []() {};
     return 0;
 }
 

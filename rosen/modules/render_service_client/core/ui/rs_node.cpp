@@ -1497,14 +1497,14 @@ void RSNode::SetSkewZ(float skewZ)
     property->Set(skew);
 }
 
-void RSNode::SetRSUIContext(std::shared_ptr<RSUIContext> rsUIContext)
+bool RSNode::SetRSUIContext(std::shared_ptr<RSUIContext> rsUIContext, bool moveCommands)
 {
     if (rsUIContext == nullptr) {
-        return;
+        return false;
     }
     auto preUIContext = rsUIContext_;
     if ((preUIContext != nullptr) && (preUIContext == rsUIContext)) {
-        return;
+        return true;
     }
 
     // if have old rsContext, should remove nodeId from old nodeMap and travel child
@@ -1513,13 +1513,14 @@ void RSNode::SetRSUIContext(std::shared_ptr<RSUIContext> rsUIContext)
             ROSEN_LOGE("When RSNode has animations, RSUIContext should not be modified! nodeId[%{public}" PRIu64 "], "
                        "preUIContext[%{public}" PRIu64 "], rsUIContext[%{public}" PRIu64 "]",
                         id_, preUIContext->GetToken(), rsUIContext->GetToken());
+            return false;
         }
         // step1 remove node from old context
         preUIContext->GetMutableNodeMap().UnregisterNode(id_);
         // sync child
         for (uint32_t index = 0; index < children_.size(); index++) {
             if (auto childPtr = children_[index].lock()) {
-                childPtr->SetRSUIContext(rsUIContext);
+                childPtr->SetRSUIContext(rsUIContext, false);
             }
         }
     }
@@ -1535,13 +1536,12 @@ void RSNode::SetRSUIContext(std::shared_ptr<RSUIContext> rsUIContext)
     RegisterNodeMap();
     if (preUIContext != nullptr) {
         preUIContext->MoveModifier(rsUIContext, GetId());
-        auto preTransaction = preUIContext->GetRSTransaction();
-        auto curTransaction = rsUIContext->GetRSTransaction();
-        if (preTransaction && curTransaction) {
-            preTransaction->MoveCommandByNodeId(curTransaction, id_);
+        if (moveCommands && !preUIContext->MoveCommandsIfNeeded(rsUIContext)) {
+            return false;
         }
     }
     SetUIContextToken();
+    return true;
 }
 
 void RSNode::SetPersp(float persp)
@@ -1679,7 +1679,7 @@ void RSNode::SetParticleParams(std::vector<ParticleParams>& particleParams, cons
     SetParticleDrawRegion(particleParams);
     auto property = std::make_shared<RSProperty<int>>();
     auto propertyId = property->GetId();
-    auto uiAnimation = std::make_shared<RSDummyAnimation>();
+    auto uiAnimation = std::make_shared<RSDummyAnimation>(rsUIContext_);
     auto animationId = uiAnimation->GetId();
     AddAnimation(uiAnimation);
     if (finishCallback != nullptr) {
@@ -1687,6 +1687,13 @@ void RSNode::SetParticleParams(std::vector<ParticleParams>& particleParams, cons
     }
     auto animation =
         std::make_shared<RSRenderParticleAnimation>(animationId, propertyId, std::move(particlesRenderParams));
+    // set token to RSRenderParticleAnimation
+    if (rsUIContext_ != nullptr) {
+        animation->SetParticleAnimationToken(rsUIContext_->GetToken());
+    } else {
+        ROSEN_LOGE("multi-instance, RSNode [%{public}" PRIu64 "] without RSUIContext "
+            "when creating particle animation [%{public}" PRIu64 "]", GetId(), animationId);
+    }
     ModifierId modifierId = ModifierNG::RSModifier::GenerateModifierId();
     std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCreateParticleNG>(GetId(), modifierId, animation);
     AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
@@ -3287,18 +3294,6 @@ void RSNode::DoFlushModifier()
     }
 }
 
-bool RSNode::IsAnyModifierDeduplicationEnabled() const
-{
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-    // Check if any modifier on this node has deduplication enabled
-    for (const auto& [_, modifier] : modifiersNG_) {
-        if (modifier && modifier->IsDeduplicationEnabled()) {
-            return true;
-        }
-    }
-    return false;
-}
-
 const std::shared_ptr<RSPropertyBase> RSNode::GetProperty(const PropertyId& propertyId)
 {
     std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
@@ -3590,6 +3585,29 @@ void RSNode::MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate)
         isOpincNode, isNeedCalculate);
     AddCommand(command, IsRenderServiceNode());
     if (isSuggestOpincNode_) {
+        SetDrawNode();
+        if (GetParent()) {
+            GetParent()->SetDrawNode();
+        }
+    }
+}
+
+void RSNode::MarkLayerPartRender(bool isLayerPartRender)
+{
+    CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
+    RS_TRACE_NAME_FMT("RSNode::MarkLayerPartRender id:%" PRIu64 ", isLayerPartRender:%d",
+        GetId(), isLayerPartRender);
+    RS_LOGD("RSNode::MarkLayerPartRender id:%{public}" PRIu64 ", isLayerPartRender:%{public}d",
+        GetId(), isLayerPartRender);
+    if (!RSSystemProperties::GetLayerPartRenderEnabled()) {
+        RS_TRACE_NAME_FMT("LayerPartRender is disabled, skip MarkLayerPartRender for node [%" PRIu64 "]",
+            GetId());
+        return;
+    }
+    isLayerPartRender_ = isLayerPartRender;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkLayerPartRender>(GetId(), isLayerPartRender);
+    AddCommand(command, IsRenderServiceNode());
+    if (isLayerPartRender_) {
         SetDrawNode();
         if (GetParent()) {
             GetParent()->SetDrawNode();
@@ -4361,8 +4379,8 @@ void RSNode::Dump(std::string& out) const
         out += "null";
     }
     out += "], outOfParent[" + std::to_string(static_cast<int>(outOfParent_));
-    out += "], hybridRenderCanvas[";
-    out += hybridRenderCanvas_ ? "true" : "false";
+    out += "], hybridRenderCanvas[" + std::string(hybridRenderCanvas_ ? "true" : "false");
+    DumpSubClass(out);
     out += "], animations[";
     for (const auto& [id, anim] : animations_) {
         out += "{id:" + std::to_string(id);

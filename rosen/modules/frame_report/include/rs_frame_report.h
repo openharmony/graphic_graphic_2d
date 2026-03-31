@@ -19,83 +19,48 @@
 #include <mutex>
 #include <string>
 #include <unordered_map>
+#ifdef RS_ENABLE_VK
+#include "vulkan/vulkan_core.h"
+#include "vulkan/vulkan_xeg.h"
+#include "vulkan/vulkan.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
-
-enum class FrameSchedEvent {
-    SCHED_EVENT_BASE = 0,
-    INIT = 1,
-    RS_RENDER_START = 10001,
-    RS_RENDER_END = 10002,
-    RS_UNI_RENDER_START = 10003,
-    RS_UNI_RENDER_END = 10004,
-    RS_HARDWARE_START = 10005,
-    RS_HARDWARE_END = 10006,
-    RS_HARDWARE_INFO = 10007,
-    RS_BUFFER_COUNT = 10008,
-    RS_FRAME_DEADLINE = 10009,
-    RS_UNBLOCK_MAINTHREAD = 10010,
-    RS_POST_AND_WAIT = 10011,
-    RS_BEGIN_FLUSH = 10012,
-    RS_BLUR_PREDICT = 10013,
-    RS_UNMARSHAL_DATA = 10014,
-    RS_DDGR_TASK = 10017,
-    RS_COMPOSER_INFO = 10018,
-    GPU_SCB_SCENE_INFO = 40001,
-    SCHED_EVENT_MAX,
-};
-
-using InitFunc = void (*)();
-using FrameGetEnableFunc = int (*)();
-using ReportSchedEventFunc = void (*)(FrameSchedEvent, const std::unordered_map<std::string, std::string>&);
-using SendCommandsStartFunc = void(*)();
-using SetFrameParamFunc = void(*)(int, int, int, int);
-
 class RsFrameReport final {
 public:
-    static RsFrameReport& GetInstance();
-    void Init();
-    int GetEnable();
-    void ReportSchedEvent(FrameSchedEvent event, const std::unordered_map<std::string, std::string> &payload);
-    void SendCommandsStart();
-    void SetFrameParam(int requestId, int load, int schedFrameNum, int value);
-    void RenderStart(uint64_t timestamp, int skipFirstFrame = 0);
-    void RenderEnd();
-    void DirectRenderEnd();
-    void UniRenderStart();
-    void UniRenderEnd();
-    void CheckUnblockMainThreadPoint();
-    void CheckPostAndWaitPoint();
-    void CheckBeginFlushPoint();
-    void ReportBufferCount(uint32_t count);
-    void ReportHardwareInfo(int tid);
-    void ReportFrameDeadline(int deadline, uint32_t currentRate);
-    void ReportUnmarshalData(int unmarshalTid, size_t dataSize);
-    void ReportDDGRTaskInfo();
-    void ReportComposerInfo(const int screenId, const int composerTid);
-    void ReportScbSceneInfo(const std::string& description, bool eventStatus);
-
+    RsFrameReport() = delete;
+    ~RsFrameReport() = delete;
+    static void InitDeadline();
+    static void SendCommandsStart();
+    static void SetFrameParam(int requestId, int load, int schedFrameNum, int value);
+    static void RenderStart(uint64_t timestamp, int skipFirstFrame = 0);
+    static void RenderEnd();
+    static void DirectRenderEnd();
+    static void UniRenderStart();
+    static void UniRenderEnd();
+    static void CheckUnblockMainThreadPoint();
+    static void CheckPostAndWaitPoint();
+    static void CheckBeginFlushPoint();
+    static void ReportBufferCount(uint32_t count);
+    static void ReportComposerInfo(const int screenId, const int composerTid);
+    static void ReportFrameDeadline(int deadline, uint32_t currentRate);
+    static void ReportUnmarshalData(int unmarshalTid, size_t dataSize);
+    static void ReportDDGRTaskInfo();
+    static void ReportScbSceneInfo(const std::string& description, bool eventStatus);
+    static void BlurPredict(const std::unordered_map<std::string, std::string>& payload);
+    static void ReceiveVSync();
+    static void RequestNextVSync();
+    static void ReportAddScreenId(const int screenId);
+    static void ReportDelScreenId(const int screenId);
+    static bool IsInitSchedCompleted();
+#ifdef RS_ENABLE_VK
+    static void ReportWindowInfo(VkDevice device, bool isSingleFullScreenApp, const char* firstFrontBundleName);
+#endif
 private:
-    RsFrameReport();
-    ~RsFrameReport();
-    bool LoadLibrary();
-    void CloseLibrary();
-    void *LoadSymbol(const char *symName);
-
-    void *frameSchedHandle_ = nullptr;
-    bool frameSchedSoLoaded_ = false;
-
-    InitFunc initFunc_ = nullptr;
-    FrameGetEnableFunc frameGetEnableFunc_ = nullptr;
-    ReportSchedEventFunc reportSchedEventFunc_ = nullptr;
-    SendCommandsStartFunc sendCommandsStartFunc_ = nullptr;
-    SetFrameParamFunc setFrameParamFunc_ = nullptr;
-
-    std::mutex reportSchedEventFuncLock_;
-
-    uint32_t bufferCount_ = 0;
-    int hardwareTid_ = 0;
+    static void InitSched();
+    static std::once_flag initFlag_;
+    static bool inited;
 };
 } // namespace Rosen
 } // namespace OHOS

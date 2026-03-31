@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -50,21 +50,18 @@ public:
                                const FrameRateLinkerMap& appFrameRateLinkers);
     void InitController(std::weak_ptr<HgmVSyncGeneratorController> controller,
                         sptr<VSyncDistributor> appDistributor);
-    void ChangePerformanceFirst(bool isPerformanceFirst)
-    {
-        isPerformanceFirst_.store(isPerformanceFirst);
-    }
-    uint32_t GetControllerRate() const
-    {
-        return controllerRate_;
-    }
+    void ChangePerformanceFirst(bool isPerformanceFirst) { isPerformanceFirst_.store(isPerformanceFirst); }
+    uint32_t GetControllerRate() const { return controllerRate_; }
+
     // called by hgmFrameRateManager
     void SetVsyncRateDiscountLTPO(const std::vector<uint64_t>& linkerIds, uint32_t rateDiscount);
     void SetQosVSyncRate(const uint32_t currRefreshRate, const FrameRateLinkerMap& appFrameRateLinkers);
+
     // Vrate
     void GetVRateMiniFPS(const std::shared_ptr<PolicyConfigData>& configData);
     void EraseGameRateDiscountMap(pid_t pid);
     void SetUpdateSoftVSyncFunc(const std::function<void(bool)>& func) { updateSoftVSyncFunc_ = func; }
+
 private:
     void Reset();
     void HandleLinkers();
@@ -76,12 +73,9 @@ private:
     static uint32_t GetDrawingFrameRate(const uint32_t refreshRate, const FrameRateRange& range);
     void CalcAppFrameRate(
         const std::pair<FrameRateLinkerId, std::shared_ptr<RSRenderFrameRateLinker>>& linker,
-        FrameRateRange& expectedRange,
-        bool& frameRateChanged,
-        bool controllerRateChanged,
-        const uint32_t currRefreshRate);
-    void UpdateSoftVSync(bool followRs)
-    {
+        FrameRateRange& expectedRange, bool& frameRateChanged,
+        bool controllerRateChanged, const uint32_t currRefreshRate);
+    void UpdateSoftVSync(bool followRs) {
         if (updateSoftVSyncFunc_) {
             updateSoftVSyncFunc_(followRs);
         }
@@ -94,6 +88,7 @@ private:
     std::unordered_map<FrameRateLinkerId, std::pair<uint32_t, bool>> appVoteData_;
     std::unordered_map<FrameRateLinkerId, uint32_t> appChangeData_;
     std::weak_ptr<HgmVSyncGeneratorController> controller_;
+
     // linkerid is key, vrate is value
     std::map<uint64_t, int> vRatesMap_;
     // Vrate

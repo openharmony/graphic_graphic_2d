@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -362,22 +362,18 @@ RectI RSUniFilterDirtyComputeUtil::GetVisibleFilterRect(const RSSurfaceRenderNod
 }
 
 void RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(
-    RSScreenRenderParams& params, DrawableV2::RSScreenRenderNodeDrawable& screenDrawable,
-    const sptr<RSScreenManager>& screenManager)
+    RSScreenRenderParams& params, bool isCurrentFrameDirty)
 {
     // All other factors that may prevent skipping virtual expand display need to be considered
     // update accumulated dirty region
     params.SetAccumulatedDirty(params.GetAccumulatedDirty() ||
-        (screenDrawable.GetSyncDirtyManager()->IsCurrentFrameDirty() || params.GetMainAndLeashSurfaceDirty()));
+        (isCurrentFrameDirty || params.GetMainAndLeashSurfaceDirty()));
 
     // update accumulated hdr status changed
     params.SetAccumulatedHdrStatusChanged(params.GetAccumulatedHdrStatusChanged() || params.IsHDRStatusChanged());
 
     // update accumulated special layer status changed
-    if (screenManager == nullptr) {
-        return;
-    }
-    auto currentBlackList = screenManager->GetVirtualScreenBlackList(params.GetScreenId());
+    auto currentBlackList = RSSpecialLayerUtils::GetMergeBlackList(params.GetScreenProperty());
     if (currentBlackList != params.GetLastBlackList()) {
         params.SetLastBlackList(currentBlackList);
         params.SetAccumulatedSpecialLayerStatusChanged(true);
@@ -444,11 +440,6 @@ bool RSUniDirtyComputeUtil::CheckCurrentFrameHasDirtyInVirtual(
         RS_LOGD("CheckCurrentFrameHasDirtyInVirtual, failed to get mirroredRenderParams!");
         return false;
     }
-    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
-    if (screenManager == nullptr) {
-        RS_LOGD("CheckCurrentFrameHasDirtyInVirtual, failed to get screen manager!");
-        return false;
-    }
 
     auto screenDirtyManager = mainDrawable->GetSyncDirtyManager();
     if (screenDirtyManager == nullptr) {
@@ -463,6 +454,8 @@ bool RSUniDirtyComputeUtil::CheckCurrentFrameHasDirtyInVirtual(
     }
     const auto& displayDrawables = mirrorScreenParams->GetDisplayDrawables();
     auto& curAllSurfaceDrawables = mainScreenParams->GetAllMainAndLeashSurfaceDrawables();
+    auto curBlackList = RSSpecialLayerUtils::GetMergeBlackList(mirrorScreenParams->GetScreenProperty());
+    auto curTypeBlackList = mirrorScreenParams->GetScreenProperty().GetTypeBlackList();
     for (const auto& drawable : displayDrawables) {
         if (drawable == nullptr) {
             continue;
@@ -472,8 +465,6 @@ bool RSUniDirtyComputeUtil::CheckCurrentFrameHasDirtyInVirtual(
             continue;
         }
         ScreenId screenId = displayParams->GetScreenId();
-        auto curTypeBlackList = screenManager->GetVirtualScreenTypeBlackList(screenId);
-
         const std::map<RSSurfaceNodeType, RectI>& typeHwcRectList =
             screenDirtyManager->GetTypeHwcDirtyRegion();
         for (auto& typeHwcRect : typeHwcRectList) {
@@ -610,6 +601,14 @@ bool RSUniDirtyComputeUtil::HasMirrorDisplay()
             }
     });
     return hasMirrorDisplay;
+}
+
+void RSUniDirtyComputeUtil::UpdatePrepareDirtyRegionClip(RSRenderNode& node, RectI& prepareDirtyRegionClip)
+{
+    if (auto clipRect = node.GetChildClipRegion()) {
+        auto& geoptr = node.GetRenderProperties().GetBoundsGeometry();
+        prepareDirtyRegionClip = prepareDirtyRegionClip.IntersectRect(geoptr->MapAbsRect(*clipRect));
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

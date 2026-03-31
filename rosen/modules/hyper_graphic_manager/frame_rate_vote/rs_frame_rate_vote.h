@@ -25,6 +25,7 @@
 
 namespace OHOS {
 namespace Rosen {
+using VideoVoterFunc = std::function<void(const std::string& key, const std::string& value)>;
 class RSFrameRateVote {
     DECLARE_DELAYED_SINGLETON(RSFrameRateVote);
 
@@ -38,14 +39,15 @@ public:
      */
     void VideoFrameRateVote(uint64_t surfaceNodeId, OHSurfaceSource sourceType, sptr<SurfaceBuffer>& buffer);
     void SetTransactionFlags(const std::string& transactionFlags);
-    void CheckSurfaceAndUi();
+    void CheckSurfaceAndUi(uint64_t timestamp);
+    void SetVoterRateFunc(VideoVoterFunc func);
+    void SetVideoFrameRateSwtich(bool isSwitchOn);
 
 private:
     void ReleaseSurfaceMap(uint64_t surfaceNodeId);
     void SurfaceVideoVote(uint64_t surfaceNodeId, uint32_t rate);
     void VoteRate(pid_t pid, std::string eventName, uint32_t rate);
     void CancelVoteRate(pid_t pid, std::string eventName);
-    void NotifyRefreshRateEvent(pid_t pid, EventInfo eventInfo);
 
     bool isSwitchOn_{ false };
     pid_t lastVotedPid_{ DEFAULT_PID };
@@ -61,6 +63,7 @@ private:
     std::shared_ptr<ffrt::queue> ffrtQueue_{ nullptr };
     ffrt::mutex ffrtMutex_;
     ffrt::task_handle taskHandler_{ nullptr };
+    VideoVoterFunc voterRateFunc_ = nullptr;
     static std::atomic<bool> isVideoApp_;
 
     friend class HgmEnergyConsumptionPolicy;

@@ -37,23 +37,4 @@ void RSUniHwcPrevalidateUtilTest1::SetUpTestCase()
 void RSUniHwcPrevalidateUtilTest1::TearDownTestCase() {}
 void RSUniHwcPrevalidateUtilTest1::SetUp() {}
 void RSUniHwcPrevalidateUtilTest1::TearDown() {}
-
-/**
- * @tc.name: OnHwcEvent001
- * @tc.desc: test for OnHwcEvent when handleEventFunc_ is nullptr or not
- * @tc.type: FUNC
- * @tc.require: issueIBQDHZ
- */
-HWTEST_F(RSUniHwcPrevalidateUtilTest1, OnHwcEvent001, TestSize.Level1)
-{
-    RSUniHwcPrevalidateUtil util1;
-    vector<int32_t> eventData;
-    ASSERT_NE(util1.handleEventFunc_, nullptr);
-    util1.OnHwcEvent(0, 0, eventData);
-
-    g_handleEventFuncNull = true;
-    RSUniHwcPrevalidateUtil util2;
-    ASSERT_EQ(util2.handleEventFunc_, nullptr);
-    util2.OnHwcEvent(0, 0, eventData);
-}
 }

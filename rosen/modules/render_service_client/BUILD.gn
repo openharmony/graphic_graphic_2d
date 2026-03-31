@@ -153,6 +153,8 @@ template("render_service_client_source_set") {
       "core/modifier_ng/geometry/rs_transform_modifier.cpp",
       "core/modifier_ng/overlay/rs_overlay_style_modifier.cpp",
       "core/modifier_ng/rs_modifier_ng.cpp",
+      "core/modifier_ng/shadow_modifier/rs_bounds_shadow_modifier.cpp",
+      "core/modifier_ng/shadow_modifier/rs_frame_shadow_modifier.cpp",
 
       #pipeline
       "core/pipeline/rs_node_map.cpp",
@@ -303,6 +305,7 @@ template("render_service_client_source_set") {
         "bundle_framework:appexecfwk_base",
         "bundle_framework:appexecfwk_core",
         "c_utils:utils",
+        "frame_aware_sched:frame_ui_intf",
         "ffrt:libffrt",
         "hisysevent:libhisysevent",
         "hitrace:hitrace_meter",

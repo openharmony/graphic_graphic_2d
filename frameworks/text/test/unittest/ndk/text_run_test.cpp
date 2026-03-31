@@ -912,13 +912,13 @@ HWTEST_F(NdkRunTest, GlyDrawingTest008, TestSize.Level0)
     OH_Drawing_Font_Metrics fontMetrics;
     OH_Drawing_FontGetMetrics(font, &fontMetrics);
     EXPECT_EQ(fontMetrics.flags, 31);
-    EXPECT_NEAR(fontMetrics.top, -100.899994, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(fontMetrics.ascent, -106.099998, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(fontMetrics.descent, 45.000000, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(fontMetrics.bottom, 43.299999, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.top, -105.599998, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.ascent, -106.400002, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.descent, 53.399998, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.bottom, 47.200000, FLOAT_DATA_EPSILON);
     EXPECT_NEAR(fontMetrics.leading, 0.0, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(fontMetrics.avgCharWidth, 55.800003, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(fontMetrics.maxCharWidth, 165.100006, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.avgCharWidth, 58.000000, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(fontMetrics.maxCharWidth, 177.399994, FLOAT_DATA_EPSILON);
 
     OH_Drawing_TextDirection direction = OH_Drawing_GetRunTextDirection(run);
     EXPECT_EQ(direction, TEXT_DIRECTION_LTR);
@@ -932,7 +932,7 @@ HWTEST_F(NdkRunTest, GlyDrawingTest008, TestSize.Level0)
     EXPECT_NE(advance, nullptr);
     float x = 0.0;
     OH_Drawing_PointGetX(advance, &x);
-    EXPECT_NEAR(x, 59.999939, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(x, 60.999939, FLOAT_DATA_EPSILON);
 
     advance = OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 1);
     EXPECT_NE(advance, nullptr);
@@ -942,16 +942,16 @@ HWTEST_F(NdkRunTest, GlyDrawingTest008, TestSize.Level0)
     advance = OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 2);
     EXPECT_NE(advance, nullptr);
     OH_Drawing_PointGetX(advance, &x);
-    EXPECT_NEAR(x, 40.599960, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(x, 49.199951, FLOAT_DATA_EPSILON);
         advance = OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 3);
     EXPECT_NE(advance, nullptr);
     OH_Drawing_PointGetX(advance, &x);
-    EXPECT_NEAR(x, 56.799942, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(x, 65.199936, FLOAT_DATA_EPSILON);
 
     advance = OH_Drawing_GetRunGlyphAdvanceByIndex(advances, 4);
     EXPECT_NE(advance, nullptr);
     OH_Drawing_PointGetX(advance, &x);
-    EXPECT_NEAR(x, 59.999939, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(x, 60.999939, FLOAT_DATA_EPSILON);
 
     OH_Drawing_DestroyRunGlyphAdvances(advances);
     OH_Drawing_FontDestroy(font);

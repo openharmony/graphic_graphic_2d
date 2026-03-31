@@ -20,10 +20,10 @@
 #include "common/rs_optional_trace.h"
 #include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "feature/power_off_render_skip/rs_power_off_render_controller.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/uifirst/rs_uifirst_frame_rate_control.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
-#include "feature_cfg/graphic_feature_param_manager.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
 #endif
@@ -114,7 +114,7 @@ void RSUifirstManager::AddProcessDoneNode(NodeId id)
         return;
     }
     RS_OPTIONAL_TRACE_NAME_FMT("sub done %" PRIu64"", id);
-    std::lock_guard<std::mutex> lock(childernDrawableMutex_);
+    std::lock_guard<std::mutex> lock(childrenDrawableMutex_);
     subthreadProcessDoneNode_.push_back(id);
 }
 
@@ -350,7 +350,7 @@ void RSUifirstManager::ProcessDoneNodeInner()
 {
     std::vector<NodeId> tmp;
     {
-        std::lock_guard<std::mutex> lock(childernDrawableMutex_);
+        std::lock_guard<std::mutex> lock(childrenDrawableMutex_);
         if (subthreadProcessDoneNode_.size() == 0) {
             return;
         }
@@ -367,9 +367,37 @@ void RSUifirstManager::ProcessDoneNodeInner()
             SetNodeNeedForceUpdateFlag(true);
             pendingForceUpdateNode_.push_back(id);
         }
+        UpdateLeashAllEnableChange(id);
         NotifyUIStartingWindow(id, false, drawable, true);
         subthreadProcessingNode_.erase(id);
     }
+}
+
+void RSUifirstManager::UpdateLeashAllEnableChange(NodeId id)
+{
+    auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
+        mainThread_->GetContext().GetNodeMap().GetRenderNode(id));
+    if (!surfaceNode) {
+        RS_LOGE("UpdateLeashAllEnableChange surfaceNode is nullptr");
+        return;
+    }
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetStagingRenderParams().get());
+    if (!surfaceParams) {
+        RS_LOGE("UpdateLeashAllEnableChange surfaceParams is nullptr");
+        return;
+    }
+    surfaceParams->SetUIFirstLeashAllEnableChange(false);
+    auto drawable = GetSurfaceDrawableByID(id);
+    if (!drawable) {
+        RS_LOGE("UpdateLeashAllEnableChange surfaceDrawable is nullptr");
+        return;
+    }
+    auto uifirstParams = static_cast<RSSurfaceRenderParams*>(drawable->GetUifirstRenderParams().get());
+    if (!uifirstParams) {
+        RS_LOGE("UpdateLeashAllEnableChange uifirstParams is nullptr");
+        return;
+    }
+    uifirstParams->SetUIFirstLeashAllEnableChange(false);
 }
 
 void RSUifirstManager::ProcessPurgedNode()
@@ -731,7 +759,7 @@ void RSUifirstManager::OnPurgePendingPostNodesInner(std::shared_ptr<RSSurfaceRen
 bool RSUifirstManager::CommonPendingNodePurge(PendingPostNodeMap::iterator& it)
 {
     auto& [id, node] = *it;
-    bool needPurge = RSUniRenderUtil::CheckRenderSkipIfScreenOff();
+    bool needPurge = allScreenPowerOffNeedPurge_;
     if (needPurge) {
         AddPurgedNode(id);
     }
@@ -2341,10 +2369,12 @@ void RSUifirstManager::ReadUIFirstCcmParam()
     uifirstWindowsNumThreshold_ = UIFirstParam::GetUIFirstEnableWindowThreshold();
     clearCacheThreshold_ = UIFirstParam::GetClearCacheThreshold();
     sizeChangedThreshold_ = UIFirstParam::GetSizeChangedThreshold();
+    isUIFirstLeashAllEnable_ = UIFirstParam::IsUIFirstLeashAllEnable();
     RS_LOGI("ReadUIFirstCcmParam isUiFirstOn=%{public}d isCardUiFirstOn=%{public}d uifirstType=%{public}d"
-        " enableWindowThreshold=%{public}d clearCacheThreshold=%{public}d sizeChangedThreshold=%{public}f",
+        " enableWindowThreshold=%{public}d clearCacheThreshold=%{public}d sizeChangedThreshold=%{public}f"
+        " isUIFirstLeashAllEnable=%{public}d",
         isUiFirstOn_, isCardUiFirstOn_, static_cast<int>(uifirstType_), uifirstWindowsNumThreshold_,
-        clearCacheThreshold_, sizeChangedThreshold_);
+        clearCacheThreshold_, sizeChangedThreshold_, isUIFirstLeashAllEnable_);
 }
 
 void RSUifirstManager::SetUiFirstType(int type)
@@ -2364,8 +2394,8 @@ void RSUifirstManager::SetUiFirstType(int type)
 void RSUifirstManager::RefreshUIFirstParam()
 {
     RSUifirstManager::Instance().SetPurgeEnable(RSSystemParameters::GetUIFirstPurgeEnabled());
-    const std::shared_ptr<RSBaseRenderNode> rootNode = RSMainThread::Instance()->GetContext()
-        .GetGlobalRootRenderNode();
+    RSContext& context = RSMainThread::Instance()->GetContext();
+    const std::shared_ptr<RSBaseRenderNode> rootNode = context.GetGlobalRootRenderNode();
     if (!rootNode) {
         return;
     }
@@ -2378,6 +2408,7 @@ void RSUifirstManager::RefreshUIFirstParam()
         return;
     }
     isUiFirstSupportFlag_ = true;
+    allScreenPowerOffNeedPurge_ = context.GetPowerOffRenderController().GetAllScreenRenderSkipped();
 }
 
 bool RSUifirstManager::IsSubTreeNeedPrepareForSnapshot(RSSurfaceRenderNode& node)
@@ -2553,6 +2584,32 @@ void RSUifirstManager::ProcessMarkedNodeSubThreadCache()
 bool RSUifirstManager::IsContentAppWindow(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const
 {
     return surfaceNode->IsAppWindow() && surfaceNode->GetLeashPersistentId() == INVALID_LEASH_PERSISTENTID;
+}
+
+void RSUifirstManager::SetUIFirstLeashAllEnable(RSSurfaceRenderNode& surfaceNode)
+{
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNode.GetStagingRenderParams().get());
+    if (!stagingSurfaceParams) {
+        RS_LOGE("SetUIFirstLeashAllEnable stagingSurfaceParams is nullptr");
+        return;
+    }
+    if (surfaceNode.GetLastFrameUifirstFlag() != MultiThreadCacheType::NONFOCUS_WINDOW) {
+        stagingSurfaceParams->SetUIFirstLeashAllEnable(false);
+        return;
+    }
+    const auto& cachedSize = stagingSurfaceParams->GetCacheSize();
+    const auto& lastCachedSize = stagingSurfaceParams->GetLastCacheSize();
+    bool cacheSizeChanged = ROSEN_NE(cachedSize.x_, lastCachedSize.x_) || ROSEN_NE(cachedSize.y_, lastCachedSize.y_);
+    bool enable = isUIFirstLeashAllEnable_ && !stagingSurfaceParams->IsAttractionValid() &&
+        !cacheSizeChanged && !surfaceNode.GetCurFrameHasAnimation();
+    RS_TRACE_NAME_FMT("RSUifirstManager::SetUIFirstLeashAllEnable name[%s], isUIFirstLeashAllEnable[%d],"
+        "isAttractionValid[%d], cacheSizeChanged[%d], hasAnimation[%d]",
+        surfaceNode.GetName().c_str(), isUIFirstLeashAllEnable_, stagingSurfaceParams->IsAttractionValid(),
+        cacheSizeChanged, surfaceNode.GetCurFrameHasAnimation());
+    stagingSurfaceParams->SetUIFirstLeashAllEnable(enable);
+    if (stagingSurfaceParams->NeedSync()) {
+        surfaceNode.AddToPendingSyncList();
+    }
 }
 
 void RSUifirstManager::CheckAndBlockFirstFrameCallback(RSSurfaceRenderNode& surfaceNode) const

@@ -155,6 +155,19 @@ EffectErrorCode OH_Filter_Invert(OH_Filter* filter);
 EffectErrorCode OH_Filter_SetColorMatrix(OH_Filter* filter, OH_Filter_ColorMatrix* matrix);
 
 /**
+* @brief Creates a scale filter and then add to the filter
+*
+* @param filter The OH_Filter pointer will be operated.
+* @param radius The scaleX.
+* @param radius The scaleY.
+* @return Returns {@link EffectErrorCode}.
+* @since 24
+* @version 1.0
+*/
+EffectErrorCode OH_Filter_Scale(
+    OH_Filter* filter, float scaleX, float scaleY, OH_Filter_ScaleMode filterMode, OH_Filter_MipmapMode mipmapMode);
+
+/**
  * @brief Creates an effect blend the original image and transition image based on different types of masks.
  *        different mask types correspond to different structures,
  *        and generate different types of transition effects.

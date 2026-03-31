@@ -25,6 +25,7 @@
 
 #include "common/rs_background_thread.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "drawable/rs_canvas_render_node_drawable.h"
 #include "feature/capture/rs_surface_capture_task_parallel.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "feature/hdr/rs_colorspace_util.h"
@@ -32,13 +33,12 @@
 #include "feature_cfg/graphic_feature_param_manager.h"
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_surface_render_params.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_base_render_node.h"
+#include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
-#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_paint_filter_canvas.h"
-#include "transaction/rs_client_to_render_connection.h"
-#include "render_server/transaction/rs_client_to_service_connection.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_hisysevent.h"
@@ -46,10 +46,7 @@
 #include "platform/drawing/rs_surface.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_skia_filter.h"
-#include "screen_manager/rs_screen_manager.h"
-#include "screen_manager/rs_screen_mode_info.h"
-#include "drawable/rs_canvas_render_node_drawable.h"
-#include "pipeline/rs_canvas_render_node.h"
+#include "transaction/rs_client_to_service_connection.h"
 #include <unistd.h>
 #include "utils/matrix.h"
 #include <sys/stat.h>
@@ -459,10 +456,8 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
     // execute "param set rosen.dumpsurfacetype.enabled 3 && setenforce 0"
     RSBaseRenderUtil::WritePixelMapToPng(*pixelMap_);
     RS_LOGI("RSUiCaptureTaskParallel::Capture DMADisable capture success nodeId:[%{public}" PRIu64
-            "], pixelMap width: %{public}d, height: %{public}d, colorspace: %{public}d",
-        nodeId_, pixelMap_->GetWidth(), pixelMap_->GetHeight(),
-        pixelMap_->InnerGetGrColorSpace().GetColorSpaceName());
-    errorCode_ = CaptureError::CAPTURE_OK;
+            "], pixelMap width: %{public}d, height: %{public}d, colorSpace:%{public}d",
+        nodeId_, pixelMap_->GetWidth(), pixelMap_->GetHeight(), pixelMap_->InnerGetGrColorSpace().GetColorSpaceName());
     ProcessUiCaptureCallback(callback, nodeId_, captureConfig_, pixelMap_.get(), errorCode_);
     return true;
 }
@@ -797,7 +792,8 @@ bool RSUiCaptureTaskParallel::UpdateStartAndEndNodeRect()
     }
 
     endRect_ = endNode->GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
-    RS_LOGI("RSUiCaptureTaskParallel::UpdateStartAndEndNodeRect endRect %{public}s", endRect_.ToString().c_str());
+    RS_LOGI("RSUiCaptureTaskParallel::UpdateStartAndEndNodeRect endRect %{public}s, endNodeId: %{public}" PRIu64,
+        endRect_.ToString().c_str(), endNodeId);
     startMatrix_ = startNode->GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix();
     endMatrix_ = endNode->GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix();
 

@@ -979,7 +979,7 @@ namespace drawing {
      * @since 20
      */
     native drawPixelMapMesh(pixelmap: image.PixelMap, meshWidth: int, meshHeight: int,
-      vertices: Array<double>, vertOffset: int, colors: Array<int>, colorOffset: int): void;
+      vertices: Array<double>, vertOffset: int, colors: Array<int> | null, colorOffset: int): void;
 
     /**
      * Used to draw a triangle mesh defined by an array of vertices.
@@ -3353,11 +3353,11 @@ namespace drawing {
 
     /**
      * Checks whether this matrix is an identity matrix.
-     * @returns { Boolean } Returns true if matrix is identity; returns false otherwise.
+     * @returns { boolean } Returns true if matrix is identity; returns false otherwise.
      * @syscap SystemCapability.Graphics.Drawing
      * @since 20
      */
-    native isIdentity(): Boolean;
+    native isIdentity(): boolean;
 
     /**
      * Obtains the value of a given index in this matrix. The index ranges from 0 to 8.

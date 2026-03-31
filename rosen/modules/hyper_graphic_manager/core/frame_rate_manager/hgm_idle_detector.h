@@ -36,28 +36,24 @@ public:
     ~HgmIdleDetector() = default;
 
     void SetAppSupportedState(bool appSupported);
-    bool GetAppSupportedState() const
-    {
+    bool GetAppSupportedState() const {
         return appSupported_;
     }
 
-    void SetBufferFpsMap(std::unordered_map<std::string, int32_t> bufferFpsMap)
-    {
+    void SetBufferFpsMap(std::unordered_map<std::string, int32_t> bufferFpsMap) {
         bufferFpsMap_ = std::move(bufferFpsMap);
     }
 
     int32_t GetTouchUpExpectedFPS();
 
     void SetAceAnimatorIdleState(bool aceAnimatorIdleState);
-    bool GetAceAnimatorIdleState() const
-    {
+    bool GetAceAnimatorIdleState() const {
         return aceAnimatorIdleState_;
     }
 
     void UpdateAceAnimatorExpectedFrameRate(int32_t aceAnimatorExpectedFrameRate);
 
-    void ResetAceAnimatorExpectedFrameRate()
-    {
+    void ResetAceAnimatorExpectedFrameRate() {
         aceAnimatorExpectedFrameRate_ = ANIMATOR_NOT_RUNNING;
     }
 
@@ -66,8 +62,7 @@ public:
 
     void UpdateSurfaceState(uint64_t timestamp);
 
-    bool GetSurfaceIdleState() const
-    {
+    bool GetSurfaceIdleState() const {
         return surfaceTimeMap_.empty();
     }
 

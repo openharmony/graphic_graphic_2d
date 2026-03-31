@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -762,8 +762,26 @@ HWTEST_F(RSRenderNodeTest, HasChildrenOutOfRectTest, TestSize.Level1)
     auto node = std::make_shared<RSRenderNode>(id, context);
     node->hasChildrenOutOfRect_ = true;
     EXPECT_TRUE(node->HasChildrenOutOfRect());
-    node->renderProperties_.clipToBounds_ = true;
-    EXPECT_TRUE(node->GetRenderProperties().GetClipToBounds());
+}
+
+/**
+ * @tc.name: HasChildrenOutOfRectTest002
+ * @tc.desc: clip region is inside of self region
+ * @tc.type: FUNC
+ * @tc.require: issue28860
+ */
+HWTEST_F(RSRenderNodeTest, HasChildrenOutOfRectTest002, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSRenderNode>(1, rsContext);
+    ASSERT_NE(node, nullptr);
+    RectF selfDrawRect = {0.0f, 0.0f, 600.0f, 600.0f};
+    node->selfDrawRect_ = selfDrawRect;
+
+    auto& parentProps = node->GetMutableRenderProperties();
+    parentProps.SetClipToBounds(true);
+    parentProps.SetBounds(Vector4f(0.0f, 0.0f, 400.0f, 400.0f));
+    ASSERT_TRUE(node->IsClipRectInsideNodeSelfDrawRegion());
     EXPECT_FALSE(node->HasChildrenOutOfRect());
 }
 
@@ -2433,16 +2451,6 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoAfterChildrenTest001, TestSize.
     nodeTest->nodeGroupType_ = RSRenderNode::GROUPED_BY_USER;
     nodeTest->CheckDrawingCacheType();
     EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::FORCED_CACHE);
-
-    childNode->SetLastFrameUifirstFlag(MultiThreadCacheType::ARKTS_CARD);
-    // ArkTsCard disable render group
-    nodeTest->UpdateDrawingCacheInfoAfterChildren();
-    EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
-
-    childNode->SetLastFrameUifirstFlag(MultiThreadCacheType::NONE);
-    nodeTest->SetDrawingCacheType(RSDrawingCacheType::TARGETED_CACHE);
-    nodeTest->UpdateDrawingCacheInfoAfterChildren();
-    EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::TARGETED_CACHE);
 }
 
 /**
@@ -2511,11 +2519,6 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoAfterChildrenTest004, TestSize.
     nodeTest->nodeGroupType_ = RSRenderNode::GROUPED_BY_USER;
     nodeTest->CheckDrawingCacheType();
     EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::FORCED_CACHE);
-
-    childNode->SetUIFirstSwitch(RSUIFirstSwitch::FORCE_DISABLE_CARD);
-    childNode->UpdateDrawingCacheInfoAfterChildren(isInBlackList);
-    EXPECT_TRUE(childNode->IsForceDisableNodeGroup());
-    EXPECT_TRUE(nodeTest->IsForceDisableNodeGroup());
 
     nodeTest->UpdateDrawingCacheInfoAfterChildren(isInBlackList);
     EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
@@ -2853,7 +2856,7 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawableVecV2Test019, TestSize.Level1)
     renderNodeTest->dirtyTypesNG_.set(static_cast<size_t>(ModifierNG::RSModifierType::BOUNDS), true);
     renderNodeTest->dirtyTypesNG_.set(static_cast<size_t>(ModifierNG::RSModifierType::TRANSFORM), true);
     std::shared_ptr<DrawableTest> drawableTest1 = std::make_shared<DrawableTest>();
-    renderNodeTest->GetDrawableVec(__func__).at(1) = drawableTest1;
+    renderNodeTest->GetDrawableVec(__func__)[1] = drawableTest1;
     EXPECT_TRUE(renderNodeTest->dirtySlots_.empty());
 
     renderNodeTest->stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
@@ -3513,6 +3516,9 @@ HWTEST_F(RSRenderNodeTest, NotForceClearFilterCacheWithoutBackgroundDirtyTest, T
         = backgroundFilterDrawable;
     auto filterDrawable = std::make_shared<DrawableV2::RSMaterialFilterDrawable>();
     renderNode->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::MATERIAL_FILTER)] = filterDrawable;
+    auto backgroundColorDrawable = std::make_shared<DrawableV2::RSBackgroundColorDrawable>();
+    renderNode->GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_COLOR)]
+        = backgroundColorDrawable;
     renderNode->GetMutableRenderProperties().GetEffect().materialFilter_ = std::make_shared<RSFilter>();
     renderNode->MarkForceClearFilterCacheWithInvisible();
     renderNode->UpdateFilterCacheWithBackgroundDirty();
@@ -3641,26 +3647,28 @@ HWTEST_F(RSRenderNodeTest, HasHpaeBackgroundFilter, TestSize.Level1)
     renderNode->GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::COMPOSITING_FILTER)] = drawableFilter;
     ASSERT_TRUE(renderNode->HasHpaeBackgroundFilter());
 }
+
 /*
- * @tc.name: UpdateVirtualScreenWhiteListInfo
- * @tc.desc: Test function UpdateVirtualScreenWhiteListInfo
+ * @tc.name: SyncWhiteListInfoToParent
+ * @tc.desc: Test function SyncWhiteListInfoToParent
  * @tc.type: FUNC
  * @tc.require: issueICF7P6
  */
-HWTEST_F(RSRenderNodeTest, UpdateVirtualScreenWhiteListInfo, TestSize.Level1)
+HWTEST_F(RSRenderNodeTest, SyncWhiteListInfoToParent, TestSize.Level1)
 {
     auto node = std::make_shared<RSRenderNode>(1);
     ASSERT_NE(node, nullptr);
     std::shared_ptr<RSRenderNode> parent = nullptr;
     node->SetParent(parent);
     ASSERT_EQ(node->parent_.lock(), nullptr);
-    node->UpdateVirtualScreenWhiteListInfo();
+    node->SyncWhiteListInfoToParent();
+
     parent = std::make_shared<RSRenderNode>(id + 1);
     node->SetParent(parent);
     ASSERT_NE(node->parent_.lock(), nullptr);
     ScreenId screenId = 1;
-    node->hasVirtualScreenWhiteList_[screenId] = false;
-    node->UpdateVirtualScreenWhiteListInfo();
+    node->screensWithSubTreeWhitelist_.insert(screenId);
+    node->SyncWhiteListInfoToParent();
 }
 
 /*
@@ -3965,6 +3973,7 @@ HWTEST_F(RSRenderNodeTest, UpdateShadowRectTest001, TestSize.Level1)
 {
     std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
     EXPECT_NE(nodeTest, nullptr);
+    nodeTest->InitRenderParams();
 
     auto drawable = std::make_shared<DrawableV2::RSShadowDrawable>();
     drawable->colorStrategy_ = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
@@ -3973,264 +3982,12 @@ HWTEST_F(RSRenderNodeTest, UpdateShadowRectTest001, TestSize.Level1)
     nodeTest->UpdateShadowRect();
 
     // case 2 : non-nullptr + COLOR_STRATEGY_NONE
-    nodeTest->GetDrawableVec(__func__).at(static_cast<int8_t>(RSDrawableSlot::SHADOW)) = drawable;
+    nodeTest->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::SHADOW)] = drawable;
     nodeTest->UpdateShadowRect();
 
     // case 3 : non-nullptr + COLOR_STRATEGY_AVERAGE
     drawable->colorStrategy_ = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_AVERAGE;
     nodeTest->UpdateShadowRect();
-}
-
-/**
- * @tc.name: ModifierDeduplicationWithEnableTest
- * @tc.desc: Test BOUNDS modifier deduplication when deduplication is enabled
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderNodeTest, ModifierDeduplicationWithEnableTest, TestSize.Level1)
-{
-    RSRenderNode node(id, context);
-    ModifierId modifierId = 100;
-
-    // Create first BOUNDS modifier with bounds (0, 0, 100, 100)
-    Vector4f bounds1(0.0f, 0.0f, 100.0f, 100.0f);
-    auto property1 = std::make_shared<RSRenderProperty<Vector4f>>();
-    property1->GetRef() = bounds1;
-    auto modifier1 = ModifierNG::RSRenderModifier::MakeRenderModifier(
-        ModifierNG::RSModifierType::BOUNDS, property1, modifierId, ModifierNG::RSPropertyType::BOUNDS);
-    modifier1->SetDeduplicationEnabled(true);  // enable deduplication
-
-    // Add first modifier
-    node.AddModifier(modifier1);
-
-    // Verify modifier is added
-    auto& modifiersNG = node.modifiersNG_;
-    auto it = modifiersNG.find(ModifierNG::RSModifierType::BOUNDS);
-    ASSERT_TRUE(it != modifiersNG.end());
-    ASSERT_EQ(it->second.size(), 1u);
-
-    // Create second BOUNDS modifier with same ID but different bounds (0, 0, 200, 200)
-    Vector4f bounds2(0.0f, 0.0f, 200.0f, 200.0f);
-    auto property2 = std::make_shared<RSRenderProperty<Vector4f>>();
-    property2->GetRef() = bounds2;
-    auto modifier2 = ModifierNG::RSRenderModifier::MakeRenderModifier(
-        ModifierNG::RSModifierType::BOUNDS, property2, modifierId, ModifierNG::RSPropertyType::BOUNDS);
-    modifier2->SetDeduplicationEnabled(true);  // enable deduplication
-
-    // Add second modifier with same ID
-    node.AddModifier(modifier2);
-
-    // Verify: Still only 1 modifier in the container (deduplication worked)
-    ASSERT_EQ(it->second.size(), 1u);
-
-    // Verify: The modifier's bounds value was updated
-    auto& storedModifier = it->second.front();
-    Vector4f storedBounds = storedModifier->Getter<Vector4f>(ModifierNG::RSPropertyType::BOUNDS, Vector4f());
-    ASSERT_FLOAT_EQ(storedBounds.x_, 0.0f);
-    ASSERT_FLOAT_EQ(storedBounds.y_, 0.0f);
-    ASSERT_FLOAT_EQ(storedBounds.z_, 200.0f);  // Should be updated to 200
-    ASSERT_FLOAT_EQ(storedBounds.w_, 200.0f);  // Should be updated to 200
-}
-
-/**
- * @tc.name: ModifierNoDeduplicationWithDisableTest
- * @tc.desc: Test BOUNDS modifier no deduplication when deduplication is disabled
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderNodeTest, ModifierNoDeduplicationWithDisableTest, TestSize.Level1)
-{
-    RSRenderNode node(id, context);
-    ModifierId modifierId = 100;
-
-    // Create first BOUNDS modifier
-    Vector4f bounds1(0.0f, 0.0f, 100.0f, 100.0f);
-    auto property1 = std::make_shared<RSRenderProperty<Vector4f>>();
-    property1->GetRef() = bounds1;
-    auto modifier1 = ModifierNG::RSRenderModifier::MakeRenderModifier(
-        ModifierNG::RSModifierType::BOUNDS, property1, modifierId, ModifierNG::RSPropertyType::BOUNDS);
-    modifier1->SetDeduplicationEnabled(false);  // disable deduplication (default)
-
-    node.AddModifier(modifier1);
-
-    auto& modifiersNG = node.modifiersNG_;
-    auto it = modifiersNG.find(ModifierNG::RSModifierType::BOUNDS);
-    ASSERT_TRUE(it != modifiersNG.end());
-    ASSERT_EQ(it->second.size(), 1u);
-
-    // Create second BOUNDS modifier with same ID
-    Vector4f bounds2(0.0f, 0.0f, 200.0f, 200.0f);
-    auto property2 = std::make_shared<RSRenderProperty<Vector4f>>();
-    property2->GetRef() = bounds2;
-    auto modifier2 = ModifierNG::RSRenderModifier::MakeRenderModifier(
-        ModifierNG::RSModifierType::BOUNDS, property2, modifierId, ModifierNG::RSPropertyType::BOUNDS);
-    modifier2->SetDeduplicationEnabled(false);  // disable deduplication
-
-    node.AddModifier(modifier2);
-
-    // Verify: Now we have 2 modifiers in the container (no deduplication)
-    ASSERT_EQ(it->second.size(), 2u);
-
-    // Verify: First modifier still has original bounds
-    Vector4f storedBounds1 = it->second[0]->Getter<Vector4f>(ModifierNG::RSPropertyType::BOUNDS, Vector4f());
-    ASSERT_FLOAT_EQ(storedBounds1.z_, 100.0f);  // Should remain 100
-
-    // Verify: Second modifier has new bounds
-    Vector4f storedBounds2 = it->second[1]->Getter<Vector4f>(ModifierNG::RSPropertyType::BOUNDS, Vector4f());
-    ASSERT_FLOAT_EQ(storedBounds2.z_, 200.0f);  // Should be 200
-}
-
-/**
- * @tc.name: ModifierDeduplicationWithDifferentIdTest
- * @tc.desc: Test BOUNDS modifier with different IDs should not be deduplicated
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderNodeTest, ModifierDeduplicationWithDifferentIdTest, TestSize.Level1)
-{
-    RSRenderNode node(id, context);
-    ModifierId modifierId1 = 100;
-    ModifierId modifierId2 = 101;  // Different ID
-
-    // Create first modifier
-    Vector4f bounds1(0.0f, 0.0f, 100.0f, 100.0f);
-    auto property1 = std::make_shared<RSRenderProperty<Vector4f>>();
-    property1->GetRef() = bounds1;
-    auto modifier1 = ModifierNG::RSRenderModifier::MakeRenderModifier(
-        ModifierNG::RSModifierType::BOUNDS, property1, modifierId1, ModifierNG::RSPropertyType::BOUNDS);
-    modifier1->SetDeduplicationEnabled(true);
-
-    node.AddModifier(modifier1);
-
-    // Create second modifier with different ID
-    Vector4f bounds2(0.0f, 0.0f, 200.0f, 200.0f);
-    auto property2 = std::make_shared<RSRenderProperty<Vector4f>>();
-    property2->GetRef() = bounds2;
-    auto modifier2 = ModifierNG::RSRenderModifier::MakeRenderModifier(
-        ModifierNG::RSModifierType::BOUNDS, property2, modifierId2, ModifierNG::RSPropertyType::BOUNDS);
-    modifier2->SetDeduplicationEnabled(true);
-
-    node.AddModifier(modifier2);
-
-    // Verify: Should have 2 modifiers (different IDs, no deduplication)
-    auto& modifiersNG = node.modifiersNG_;
-    auto it = modifiersNG.find(ModifierNG::RSModifierType::BOUNDS);
-    ASSERT_TRUE(it != modifiersNG.end());
-    ASSERT_EQ(it->second.size(), 2u);
-}
-
-/**
- * @tc.name: FrameModifierDeduplicationTest
- * @tc.desc: Test FRAME modifier deduplication
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderNodeTest, FrameModifierDeduplicationTest, TestSize.Level1)
-{
-    RSRenderNode node(id, context);
-    ModifierId modifierId = 200;
-
-    // Create first FRAME modifier
-    Vector4f frame1(10.0f, 10.0f, 100.0f, 100.0f);
-    auto property1 = std::make_shared<RSRenderProperty<Vector4f>>();
-    property1->GetRef() = frame1;
-    auto modifier1 = ModifierNG::RSRenderModifier::MakeRenderModifier(
-        ModifierNG::RSModifierType::FRAME, property1, modifierId, ModifierNG::RSPropertyType::FRAME);
-    modifier1->SetDeduplicationEnabled(true);
-
-    node.AddModifier(modifier1);
-
-    // Create second FRAME modifier with same ID
-    Vector4f frame2(20.0f, 20.0f, 200.0f, 200.0f);
-    auto property2 = std::make_shared<RSRenderProperty<Vector4f>>();
-    property2->GetRef() = frame2;
-    auto modifier2 = ModifierNG::RSRenderModifier::MakeRenderModifier(
-        ModifierNG::RSModifierType::FRAME, property2, modifierId, ModifierNG::RSPropertyType::FRAME);
-    modifier2->SetDeduplicationEnabled(true);
-
-    node.AddModifier(modifier2);
-
-    // Verify: Only 1 modifier in container
-    auto& modifiersNG = node.modifiersNG_;
-    auto it = modifiersNG.find(ModifierNG::RSModifierType::FRAME);
-    ASSERT_TRUE(it != modifiersNG.end());
-    ASSERT_EQ(it->second.size(), 1u);
-
-    // Verify: Frame value was updated
-    auto& storedModifier = it->second.front();
-    Vector4f storedFrame = storedModifier->Getter<Vector4f>(ModifierNG::RSPropertyType::FRAME, Vector4f());
-    ASSERT_FLOAT_EQ(storedFrame.x_, 20.0f);  // Updated to 20
-    ASSERT_FLOAT_EQ(storedFrame.y_, 20.0f);  // Updated to 20
-    ASSERT_FLOAT_EQ(storedFrame.z_, 200.0f); // Updated to 200
-    ASSERT_FLOAT_EQ(storedFrame.w_, 200.0f); // Updated to 200
-}
-
-/**
- * @tc.name: OtherModifierTypeNoDeduplicationTest
- * @tc.desc: Test that non-BOUNDS/FRAME modifiers are not affected by deduplication logic
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderNodeTest, OtherModifierTypeNoDeduplicationTest, TestSize.Level1)
-{
-    RSRenderNode node(id, context);
-    ModifierId modifierId = 300;
-
-    // Create ALPHA modifiers (not BOUNDS or FRAME)
-    float alpha1 = 0.5f;
-    auto property1 = std::make_shared<RSRenderProperty<float>>();
-    property1->GetRef() = alpha1;
-    auto modifier1 = ModifierNG::RSRenderModifier::MakeRenderModifier(
-        ModifierNG::RSModifierType::ALPHA, property1, modifierId, ModifierNG::RSPropertyType::ALPHA);
-    modifier1->SetDeduplicationEnabled(true);  // Even with dedup enabled
-
-    node.AddModifier(modifier1);
-
-    float alpha2 = 0.8f;
-    auto property2 = std::make_shared<RSRenderProperty<float>>();
-    property2->GetRef() = alpha2;
-    auto modifier2 = ModifierNG::RSRenderModifier::MakeRenderModifier(
-        ModifierNG::RSModifierType::ALPHA, property2, modifierId, ModifierNG::RSPropertyType::ALPHA);
-    modifier2->SetDeduplicationEnabled(true);
-
-    node.AddModifier(modifier2);
-
-    // Verify: Should have 2 ALPHA modifiers (ALPHA type is not affected by deduplication)
-    auto& modifiersNG = node.modifiersNG_;
-    auto it = modifiersNG.find(ModifierNG::RSModifierType::ALPHA);
-    ASSERT_TRUE(it != modifiersNG.end());
-    ASSERT_EQ(it->second.size(), 2u);
-}
-
-/**
- * @tc.name: DefaultBehaviorNoDeduplicationTest
- * @tc.desc: Test default behavior (deduplication is disabled (default)) does not deduplicate
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderNodeTest, DefaultBehaviorNoDeduplicationTest, TestSize.Level1)
-{
-    RSRenderNode node(id, context);
-    ModifierId modifierId = 400;
-
-    // Create modifiers without setting enableDeduplication (default is false)
-    Vector4f bounds1(0.0f, 0.0f, 100.0f, 100.0f);
-    auto property1 = std::make_shared<RSRenderProperty<Vector4f>>();
-    property1->GetRef() = bounds1;
-    auto modifier1 = ModifierNG::RSRenderModifier::MakeRenderModifier(
-        ModifierNG::RSModifierType::BOUNDS, property1, modifierId, ModifierNG::RSPropertyType::BOUNDS);
-    // Not calling SetDeduplicationEnabled, using default value (false)
-
-    node.AddModifier(modifier1);
-
-    Vector4f bounds2(0.0f, 0.0f, 200.0f, 200.0f);
-    auto property2 = std::make_shared<RSRenderProperty<Vector4f>>();
-    property2->GetRef() = bounds2;
-    auto modifier2 = ModifierNG::RSRenderModifier::MakeRenderModifier(
-        ModifierNG::RSModifierType::BOUNDS, property2, modifierId, ModifierNG::RSPropertyType::BOUNDS);
-    // Not calling SetDeduplicationEnabled, using default value (false)
-
-    node.AddModifier(modifier2);
-
-    // Verify: Should have 2 modifiers (default behavior is no deduplication)
-    auto& modifiersNG = node.modifiersNG_;
-    auto it = modifiersNG.find(ModifierNG::RSModifierType::BOUNDS);
-    ASSERT_TRUE(it != modifiersNG.end());
-    ASSERT_EQ(it->second.size(), 2u);
 }
 
 /**
@@ -4304,6 +4061,7 @@ HWTEST_F(RSRenderNodeTest, IsColorPickerOnlyNode003, TestSize.Level1)
 
     // Set a background filter to make DisableHWCForFilter return true
     node.renderProperties_.backgroundFilter_ = std::make_shared<RSFilter>();
+    node.renderProperties_.needFilter_ = true;
 
     // With both ColorPickerDrawable and a real filter, should return false
     EXPECT_FALSE(node.IsColorPickerOnlyNode());

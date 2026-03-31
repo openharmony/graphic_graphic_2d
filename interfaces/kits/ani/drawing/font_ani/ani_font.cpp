@@ -301,7 +301,7 @@ ani_double AniFont::MeasureSingleCharacterWithFeatures(ani_env* env, ani_object 
     ani_size len = 0;
     ani_status status = env->String_GetUTF8Size(text, &len);
     if (status != ANI_OK || len == 0 || len > ARGC_FOUR) {
-        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED,
             "AniFont::MeasureSingleCharacterWithFeatures text should be single character.");
         return -1;
     }
@@ -314,7 +314,7 @@ ani_double AniFont::MeasureSingleCharacterWithFeatures(ani_env* env, ani_object 
     int32_t unicode = SkUTF::NextUTF8(&currentStr, currentStr + len);
     size_t byteLen = currentStr - str;
     if (byteLen != len) {
-        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED,
             "AniFont::MeasureSingleCharacterWithFeatures text should be single character.");
         return -1;
     }

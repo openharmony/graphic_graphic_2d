@@ -1429,12 +1429,12 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest013, TestSi
     double firstLineHeight = skiaParagraph->lines()[0].height();
     double middleLineHeight = skiaParagraph->lines()[1].height();
     double lastLineHeight = skiaParagraph->lines()[lineCount - 1].height();
-    // First line expect height is 141
-    EXPECT_DOUBLE_EQ(firstLineHeight, 141);
-    // Second line expect height is 121
-    EXPECT_DOUBLE_EQ(middleLineHeight, 121);
-    // Last line expect height is 130
-    EXPECT_DOUBLE_EQ(lastLineHeight, 130);
+    // First line expect height is 148
+    EXPECT_DOUBLE_EQ(firstLineHeight, 148);
+    // Second line expect height is 128
+    EXPECT_DOUBLE_EQ(middleLineHeight, 128);
+    // Last line expect height is 136
+    EXPECT_DOUBLE_EQ(lastLineHeight, 136);
     OH_Drawing_DestroyTypography(typography);
 }
 
@@ -1509,10 +1509,10 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest016, TestSi
     double runHeight = skiaParagraph->runs()[0].calculateHeight(skia::textlayout::LineMetricStyle::Typographic,
         skia::textlayout::LineMetricStyle::Typographic);
     double lineHeight = skiaParagraph->lines()[0].height();
-    // Expect line height is 26
-    EXPECT_DOUBLE_EQ(lineHeight, 26);
-    // Expect run height is 21.153999328613281
-    EXPECT_DOUBLE_EQ(runHeight, 21.153999328613281);
+    // Expect line height is 27
+    EXPECT_DOUBLE_EQ(lineHeight, 27);
+    // Expect run height is 22.371999740600586
+    EXPECT_DOUBLE_EQ(runHeight, 22.371999740600586);
     OH_Drawing_DestroyTypography(typography);
 }
 
@@ -2217,8 +2217,8 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleFallbackLineSpacing014, TestSize.
     size_t totalLineCnt = skiaParagraph->lineNumber();
     double runHeight = skiaParagraph->runs()[0].calculateHeight(skia::textlayout::LineMetricStyle::CSS,
         skia::textlayout::LineMetricStyle::CSS);
-    // Expect line height is 76
-    double expectLineHeight = 76;
+    // Expect line height is 80
+    double expectLineHeight = 80;
     EXPECT_DOUBLE_EQ(std::ceil(runHeight), expectLineHeight);
     for (size_t lineIndex = 0; lineIndex < totalLineCnt; ++lineIndex) {
         EXPECT_DOUBLE_EQ(skiaParagraph->lines()[lineIndex].height(), expectLineHeight);

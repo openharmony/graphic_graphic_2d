@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "feature_cfg/graphic_feature_param_manager.h"
 #include "pipeline/rs_processor.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -214,9 +215,18 @@ public:
         return !subthreadProcessingNode_.empty();
     }
 
+    void SetUIFirstLeashAllEnable(RSSurfaceRenderNode& surfaceNode);
+
     bool IsUIFirstDirtyEnabled() const
     {
         return GetUiFirstType() == UiFirstCcmType::MULTI && RSSystemProperties::GetUIFirstDirtyEnabled();
+    }
+
+    bool IsOcclusionEnabled() const
+    {
+        return RSUifirstManager::Instance().GetUiFirstMode() == UiFirstModeType::MULTI_WINDOW_MODE &&
+            UIFirstParam::IsOcclusionEnabled() &&
+            RSSystemParameters::GetUIFirstOcclusionEnabled();
     }
 private:
     struct NodeDataBehindWindow {
@@ -319,6 +329,7 @@ private:
 
     bool IsContentAppWindow(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
     void CheckAndBlockFirstFrameCallback(RSSurfaceRenderNode& surfaceNode) const;
+    void UpdateLeashAllEnableChange(NodeId id);
 
     bool rotationChanged_ = false;
     bool isUiFirstOn_ = false;
@@ -364,7 +375,7 @@ private:
     std::unordered_map<NodeId, std::vector<std::shared_ptr<RSRenderNode>>> pendingSyncForSkipBefore_;
 
     // use in RT & subThread
-    std::mutex childernDrawableMutex_;
+    std::mutex childrenDrawableMutex_;
     std::vector<NodeId> subthreadProcessDoneNode_;
     std::mutex skippedNodeMutex_;
     std::unordered_set<NodeId> subthreadProcessSkippedNode_;
@@ -422,8 +433,12 @@ private:
 
     // auto clear the cache when cache reuse count reach threshold
     int clearCacheThreshold_ = 0;
+    // when all screens are power off, uifirst pending post nodes need purge.
+    bool allScreenPowerOffNeedPurge_ = false;
 
     float sizeChangedThreshold_ = 0.1f;
+
+    bool isUIFirstLeashAllEnable_ = false;
 };
 
 // If a subnode is delivered directly

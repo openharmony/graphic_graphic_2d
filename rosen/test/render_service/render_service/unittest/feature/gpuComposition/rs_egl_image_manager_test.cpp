@@ -99,7 +99,7 @@ HWTEST_F(RSEglImageManagerTest, CreateAndShrinkImageCacheFromBuffer001, TestSize
         int64_t timestamp = 0;
         Rect damage;
         sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
-        surfaceHandler->SetBuffer(buffer, acquireFence, damage, timestamp);
+        surfaceHandler->SetBuffer(buffer, acquireFence, damage, timestamp, nullptr);
         ASSERT_NE(node, nullptr);
         if (auto displayNode = node->ReinterpretCastTo<RSScreenRenderNode>()) {
             sptr<OHOS::SurfaceBuffer> buffer = surfaceHandler->GetBuffer();
@@ -134,7 +134,7 @@ HWTEST_F(RSEglImageManagerTest, MapImageFromSurfaceBuffer001, TestSize.Level1)
         int64_t timestamp = 0;
         Rect damage;
         sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
-        surfaceHandler->SetBuffer(buffer, acquireFence, damage, timestamp);
+        surfaceHandler->SetBuffer(buffer, acquireFence, damage, timestamp, nullptr);
         ASSERT_NE(node, nullptr);
         if (auto displayNode = node->ReinterpretCastTo<RSScreenRenderNode>()) {
             sptr<OHOS::SurfaceBuffer> buffer = surfaceHandler->GetBuffer();
@@ -331,7 +331,7 @@ HWTEST_F(RSEglImageManagerTest, CreateImageFromBufferTest003, TestSize.Level1)
         int64_t timestamp = 0;
         Rect damage;
         sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
-        surfaceHandler->SetBuffer(buffer, acquireFence, damage, timestamp);
+        surfaceHandler->SetBuffer(buffer, acquireFence, damage, timestamp, nullptr);
         ASSERT_NE(node, nullptr);
         if (auto displayNode = node->ReinterpretCastTo<RSScreenRenderNode>()) {
             sptr<OHOS::SurfaceBuffer> buffer = surfaceHandler->GetBuffer();
@@ -428,7 +428,7 @@ HWTEST_F(RSEglImageManagerTest, GetIntersectImageTest002, TestSize.Level1)
             .timeout = 0,
         };
         buffer->Alloc(requestConfig);
-        surfaceHandler->SetBuffer(buffer, params.acquireFence, damage, timestamp);
+        surfaceHandler->SetBuffer(buffer, params.acquireFence, damage, timestamp, nullptr);
         ASSERT_NE(node, nullptr);
         if (auto displayNode = node->ReinterpretCastTo<RSScreenRenderNode>()) {
             params.buffer = surfaceHandler->GetBuffer();
@@ -478,7 +478,7 @@ HWTEST_F(RSEglImageManagerTest, CreateImageFromBufferWithRGB565Test, TestSize.Le
             .timeout = 0,
         };
         buffer->Alloc(requestConfig);
-        surfaceHandler->SetBuffer(buffer, acquireFence, damage, timestamp);
+        surfaceHandler->SetBuffer(buffer, acquireFence, damage, timestamp, nullptr);
 
         ASSERT_NE(node, nullptr);
         if (auto displayNode = node->ReinterpretCastTo<RSScreenRenderNode>()) {

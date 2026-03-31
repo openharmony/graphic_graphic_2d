@@ -17,17 +17,17 @@
 #define HGM_COMMAND_H
 
 #include <cinttypes>
+#include <map>
 #include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
+#include "animation/rs_frame_rate_range.h"
 #include "hgm_update_callback.h"
 #include "screen_manager/screen_types.h"
-#include "animation/rs_frame_rate_range.h"
 
 namespace OHOS::Rosen {
-
 constexpr int UNI_APP_PID = -1;
 constexpr int32_t HGM_REFRESHRATE_MODE_AUTO = -1;
 constexpr pid_t DEFAULT_PID = 0;
@@ -59,6 +59,24 @@ enum OledRefreshRate {
     OLED_120_HZ = 120,
     OLED_144_HZ = 144,
     OLED_MAX_HZ = 1000,
+};
+
+inline std::map<uint32_t, int64_t> IDEAL_PERIOD = {
+    { 144, 6944444 },
+    { 120, 8333333 },
+    { 90, 11111111 },
+    { 80, 12500000 },
+    { 72, 13888888 },
+    { 60, 16666666 },
+    { 48, 20833333 },
+    { 45, 22222222 },
+    { 40, 25000000 },
+    { 36, 27777777 },
+    { 30, 33333333 },
+    { 24, 41666666 },
+    { 20, 50000000 },
+    { 15, 66666666 },
+    { 10, 100000000 },
 };
 
 enum HgmErrCode {
@@ -99,7 +117,7 @@ enum class DynamicModeType : int32_t {
     TOUCH_DISENABLED = 0,
     TOUCH_ENABLED = 1,
     TOUCH_EXT_ENABLED = 2, // touch extend program
-    TOUCH_EXT_ENABLED_LTPO_FIRST = 4, // diff with 2:touch up 100ms period if has VOTER_LTPO then skip VOTER_TOUCH
+    TOUCH_EXT_ENABLED_LTPO_FIRST = 4, // diff with 2: touch up 100ms period if has VOTER_LTPO then skip VOTER_TOUCH
 };
 
 enum class MultiAppStrategyType {
@@ -222,74 +240,11 @@ public:
     // vrate <"minifps", "1">
     std::unordered_map<std::string, std::string> vRateControlList_;
 
-    DynamicSettingMap GetAceSceneDynamicSettingMap(const std::string& screenType, const std::string& settingMode)
-    {
-        if (screenConfigs_.count(screenType) && screenConfigs_[screenType].count(settingMode)) {
-            return screenConfigs_[screenType][settingMode].aceSceneDynamicSettings;
-        } else {
-            return {};
-        }
-    }
-
-    int32_t SettingModeId2XmlModeId(int32_t settingModeId) const
-    {
-        // return 0 when input is invalid
-        bool hasAutoConfig = refreshRateForSettings_.size() > 0 &&
-            refreshRateForSettings_.at(0).first == HGM_REFRESHRATE_MODE_AUTO;
-        if (settingModeId == HGM_REFRESHRATE_MODE_AUTO) {
-            if (!hasAutoConfig) {
-                return 0;
-            }
-            return refreshRateForSettings_.at(0).second;
-        }
-        // The settingModeId must be -1 and 1, 2, 3, 4..., no 0. When there is no -1 in refreshRateForSettings_,
-        // 1 corresponds to refreshRateForSettings_[0], and 2 corresponds to refreshRateForSettings_[1] and so on
-        if (!hasAutoConfig) {
-            settingModeId--;
-        }
-        if (settingModeId < 0 || settingModeId >= static_cast<int32_t>(refreshRateForSettings_.size())) {
-            return 0;
-        }
-        return refreshRateForSettings_[settingModeId].second;
-    }
-
-    int32_t XmlModeId2SettingModeId(const std::string& xmlModeId) const
-    {
-        auto iter = std::find_if(refreshRateForSettings_.begin(), refreshRateForSettings_.end(),
-            [=] (auto nameModeId) { return std::to_string(nameModeId.second) == xmlModeId; });
-        if (iter == refreshRateForSettings_.end()) {
-            return 0;
-        }
-        auto ret = static_cast<int32_t>(iter - refreshRateForSettings_.begin());
-        // at(0).first == -1 means HGM_REFRESHRATE_MODE_AUTO is configured
-        if (refreshRateForSettings_.at(0).first != HGM_REFRESHRATE_MODE_AUTO) {
-            return ret + 1;
-        }
-        // HGM_REFRESHRATE_MODE_AUTO must be at(0), Only -1 is usable among negative numbers.
-        if (ret == 0) {
-            return HGM_REFRESHRATE_MODE_AUTO;
-        } else {
-            return ret;
-        }
-    }
-
-    int32_t GetRefreshRateModeName(int32_t refreshRateModeId)
-    {
-        auto iter = std::find_if(refreshRateForSettings_.begin(), refreshRateForSettings_.end(),
-            [&](auto nameModeId) { return nameModeId.second == refreshRateModeId; });
-        if (iter != refreshRateForSettings_.end()) {
-            return iter->first;
-        }
-        return 0;
-    }
-
-    void UpdateRefreshRateForSettings(const std::string mode)
-    {
-        auto it = refreshRateForSettingsMap_.find(mode);
-        if (it != refreshRateForSettingsMap_.end()) {
-            refreshRateForSettings_ = it->second;
-        }
-    }
+    DynamicSettingMap GetAceSceneDynamicSettingMap(const std::string& screenType, const std::string& settingMode) const;
+    int32_t SettingModeId2XmlModeId(int32_t settingModeId) const;
+    int32_t XmlModeId2SettingModeId(const std::string& xmlModeId) const;
+    int32_t GetRefreshRateModeName(int32_t refreshRateModeId) const;
+    void UpdateRefreshRateForSettings(const std::string& mode);
 };
 
 class PolicyConfigVisitor : public HgmUpdateCallback {
@@ -308,8 +263,7 @@ public:
     virtual const PolicyConfigData::ScreenSetting& GetScreenSetting() const = 0;
     virtual const PolicyConfigData::DynamicSettingMap& GetAceSceneDynamicSettingMap() const = 0;
 
-    virtual HgmErrCode GetAppStrategyConfig(const std::string& pkgName,
-                                            int32_t appType,
+    virtual HgmErrCode GetAppStrategyConfig(const std::string& pkgName, int32_t appType,
                                             PolicyConfigData::StrategyConfig& strategyRes) const = 0;
 
     virtual HgmErrCode GetDynamicAppStrategyConfig(const std::string& pkgName,
@@ -323,7 +277,7 @@ public:
     explicit PolicyConfigVisitorImpl(const PolicyConfigData& configData);
     ~PolicyConfigVisitorImpl() override = default;
 
-    const PolicyConfigData& GetXmlData() const override;
+    const PolicyConfigData& GetXmlData() const override { return configData_; }
     void SetSettingModeId(int32_t settingModeId) override;
     void SetXmlModeId(const std::string& xmlModeId) override;
     void ChangeScreen(const std::string& screenConfigType) override;
@@ -334,8 +288,7 @@ public:
     const PolicyConfigData::ScreenSetting& GetScreenSetting() const override;
     const PolicyConfigData::DynamicSettingMap& GetAceSceneDynamicSettingMap() const override;
 
-    HgmErrCode GetAppStrategyConfig(const std::string& pkgName,
-                                    int32_t appType,
+    HgmErrCode GetAppStrategyConfig(const std::string& pkgName, int32_t appType,
                                     PolicyConfigData::StrategyConfig& strategyRes) const override;
 
     HgmErrCode GetDynamicAppStrategyConfig(const std::string& pkgName,
