@@ -200,6 +200,14 @@ public:
     int32_t SetScreenSwitchingNotifyCallback(const ScreenSwitchingNotifyCallback &callback);
 
     /**
+     * @brief Set active screen id changed callback.
+     * on active screen id is changed.
+     * @param callback Callback of the active screen id changed.
+     * @return Returns int32_t, return value == 0 success, otherwise, failed.
+     */
+    int32_t SetActiveScreenIdChangedCallback(const ActiveScreenIdChangedCallback &callback);
+
+    /**
      * @brief Set brightness info change callback.
      * when the brightness info is changed.
      * @param callback Callback of the brightness info changed.
