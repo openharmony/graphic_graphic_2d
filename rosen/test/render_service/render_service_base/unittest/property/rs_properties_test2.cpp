@@ -1831,5 +1831,30 @@ HWTEST_F(PropertiesTest, UpdateHDRColorMaxHeadroomTest1, TestSize.Level1)
     properties.SetHDRColorHeadroom(2.0f);
     EXPECT_TRUE(properties.HDRColorHeadroomEnabled());
 }
+
+/**
+ * @tc.name: SetLastEquivalentDarkMode001
+ * @tc.desc: test results of SetLastEquivalentDarkMode
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetLastEquivalentDarkMode001, TestSize.Level1)
+{
+    RSProperties properties;
+
+    properties.SetLastEquivalentDarkMode(EquivalentDarkMode::LIGHT);
+    auto colorPicker = properties.GetColorPicker();
+    ASSERT_NE(colorPicker, nullptr);
+    EXPECT_EQ(colorPicker->lastEquivalentDarkMode, EquivalentDarkMode::LIGHT);
+
+    properties.SetLastEquivalentDarkMode(EquivalentDarkMode::DARK);
+    colorPicker = properties.GetColorPicker();
+    ASSERT_NE(colorPicker, nullptr);
+    EXPECT_EQ(colorPicker->lastEquivalentDarkMode, EquivalentDarkMode::DARK);
+
+    properties.SetLastEquivalentDarkMode(EquivalentDarkMode::INVALID);
+    colorPicker = properties.GetColorPicker();
+    ASSERT_NE(colorPicker, nullptr);
+    EXPECT_EQ(colorPicker->lastEquivalentDarkMode, EquivalentDarkMode::INVALID);
+}
 } // namespace Rosen
 } // namespace OHOS

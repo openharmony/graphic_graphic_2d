@@ -646,4 +646,21 @@ HWTEST_F(RSColorPickerDrawableTest, RSColorPickerDrawable024, TestSize.Level1)
     EXPECT_TRUE(result);
     EXPECT_TRUE(colorPickerDrawable->stagingNeedColorPick_);
 }
+
+/**
+ * @tc.name: RSColorPickerDrawable025
+ * @tc.desc: Test GetLastEquivalentDarkMode returns INVALID when manager is null
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSColorPickerDrawableTest, RSColorPickerDrawable025, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, id);
+    ASSERT_NE(drawable, nullptr);
+
+    drawable->colorPickerManager_ = nullptr;
+    auto mode = drawable->GetLastEquivalentDarkMode();
+    EXPECT_EQ(mode, EquivalentDarkMode::INVALID);
+}
 } // namespace OHOS::Rosen
