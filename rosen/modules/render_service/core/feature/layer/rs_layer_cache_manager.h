@@ -41,7 +41,8 @@ public:
 
     void CollectLayerNodeDrawables(std::shared_ptr<RSRenderNode> node);
     void HandleLayerDrawables(Drawing::Canvas& canvas);
-    void TryPrepareLayerCache(std::shared_ptr<DrawableV2::RSCanvasRenderNodeDrawable> drawable, Drawing::Canvas& canvas);
+    void TryPrepareLayerCache(
+        std::shared_ptr<DrawableV2::RSCanvasRenderNodeDrawable> drawable, Drawing::Canvas& canvas);
     void AddNodeToLayerNodes(std::shared_ptr<RSRenderNode> node) override
     {
         layerNodes_.emplace_back(node);

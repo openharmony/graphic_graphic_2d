@@ -37,7 +37,8 @@ void RSLayerCacheManager::CollectLayerNodeDrawables(std::shared_ptr<RSRenderNode
     }
 }
 
-void RSLayerCacheManager::TryPrepareLayerCache(std::shared_ptr<DrawableV2::RSCanvasRenderNodeDrawable> drawable, Drawing::Canvas& canvas)
+void RSLayerCacheManager::TryPrepareLayerCache(
+    std::shared_ptr<DrawableV2::RSCanvasRenderNodeDrawable> drawable, Drawing::Canvas& canvas)
 {
     if (UNLIKELY(!drawable->isDrawingCacheEnabled_)) {
         return;
@@ -86,11 +87,10 @@ void RSLayerCacheManager::HandleLayerDrawables(Drawing::Canvas& canvas)
     for (auto drawableAdapter : layerNodeDrawables_) {
         auto drawablePtr = std::static_pointer_cast<DrawableV2::RSCanvasRenderNodeDrawable>(drawableAdapter);
         RS_TRACE_NAME_FMT("LayerDrawable TryPrepareLayerCache, isOpinc:%d, id: %" PRId64 "",
-                    drawablePtr->GetRenderParams()->OpincIsSuggest(), drawablePtr->GetId());
+            drawablePtr->GetRenderParams()->OpincIsSuggest(), drawablePtr->GetId());
         if (drawablePtr->GetRenderParams()->OpincIsSuggest() == false) {
             TryPrepareLayerCache(drawablePtr, canvas);
         }
-        
     }
     layerNodeDrawables_.clear();
 }
