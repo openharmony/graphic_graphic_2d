@@ -23,6 +23,7 @@ group("unittest") {
     ":RSDrawWindowCacheTest",
     ":RSDrmUtilTest",
     ":RSHdrUtilTest",
+    ":RSLayerCacheManagerTest",
     ":RSOcclusionHandlerTest",
     ":RSOcclusionNodeTest",
     ":RSOpincDrawCacheTest",
