@@ -13,10 +13,11 @@
  * limitations under the License.
  */
 
-#include "layer/rs_layer_cache_manager.h"
+#include "feature/layer/rs_layer_cache_manager.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "params/rs_render_params.h"
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -28,6 +29,9 @@ RSLayerCacheManager& RSLayerCacheManager::Instance()
 
 void RSLayerCacheManager::IfIsLayerNodeAddToLayerNodeDrawables(std::shared_ptr<RSRenderNode> node)
 {
+    if (layerNodes_.empty()) {
+        return;
+    }
     if (std::find(layerNodes_.begin(), layerNodes_.end(), node) != layerNodes_.end()) {
         layerNodeDrawables_.emplace_back(node->GetRenderDrawable());
     }
@@ -82,7 +86,7 @@ void RSLayerCacheManager::HandleLayerDrawables(Drawing::Canvas& canvas)
     for (auto drawableAdapter : layerNodeDrawables_) {
         auto drawablePtr = std::static_pointer_cast<DrawableV2::RSCanvasRenderNodeDrawable>(drawableAdapter);
         RS_TRACE_NAME_FMT("LayerDrawable TryPrepareLayerCache, isOpinc:%d, id: %" PRId64 "",
-                    drawablePtr->GetRenderParams()->OpincIsSuggest(), GetId());
+                    drawablePtr->GetRenderParams()->OpincIsSuggest(), drawablePtr->GetId());
         if (drawablePtr->GetRenderParams()->OpincIsSuggest() == false) {
             TryPrepareLayerCache(drawablePtr, canvas);
         }

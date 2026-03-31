@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "drawable/rs_canvas_render_node_drawable.h"
+#include "feature/layer/rs_layer_cache_manager_base.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -28,7 +29,7 @@ namespace DrawableV2 {
 class RSRenderNodeDrawable;
 }
 
-class RSLayerCacheManager {
+class RSLayerCacheManager : public RSLayerCacheManagerBase {
 public:
     static RSLayerCacheManager& Instance();
 
@@ -41,7 +42,7 @@ public:
     void IfIsLayerNodeAddToLayerNodeDrawables(std::shared_ptr<RSRenderNode> node);
     void HandleLayerDrawables(Drawing::Canvas& canvas);
     void TryPrepareLayerCache(std::shared_ptr<DrawableV2::RSCanvasRenderNodeDrawable> drawable, Drawing::Canvas& canvas);
-    void AddNodeToLayerNodes(std::shared_ptr<RSRenderNode> node)
+    void AddNodeToLayerNodes(std::shared_ptr<RSRenderNode> node) override
     {
         layerNodes_.emplace_back(node);
     }
@@ -52,10 +53,8 @@ public:
     }
 
     std::vector<std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter>> layerNodeDrawables_;
-    std::vector<std::shared_ptr<RSRenderNode>> layerNodes_;
 private:
-    RSLayerCacheManager() {};
-    ~RSLayerCacheManager() noexcept {};
+    RSLayerCacheManager() = default;
 };
 } // namespace Rosen
 } // namespace OHOS
