@@ -25,6 +25,7 @@
 #include "engine/rs_base_render_engine.h"
 #include "system/rs_system_parameters.h"
 
+#include "feature/anco_manager/rs_anco_manager.h"
 #include "feature/hwc/rs_uni_hwc_prevalidate_util.h"
 #include "feature/pointer_window_manager/rs_pointer_window_manager.h"
 #include "feature/round_corner_display/rs_rcd_render_manager.h"
@@ -289,8 +290,9 @@ private:
 
     bool ForcePrepareSubTree()
     {
-        return (curSurfaceNode_ && curSurfaceNode_->GetNeedCollectHwcNode()) || IsAccessibilityConfigChanged() ||
-               isFirstFrameAfterScreenRotation_ || isCurSubTreeForcePrepare_;
+        return (curSurfaceNode_ && (curSurfaceNode_->GetNeedCollectHwcNode() ||
+                                    RSAncoManager::Instance()->IsAncoType(curSurfaceNode_->GetName()))) ||
+               IsAccessibilityConfigChanged() || isFirstFrameAfterScreenRotation_ || isCurSubTreeForcePrepare_;
     }
     // Wish to force prepare specific subtrees? Add conditions here
     bool IsCurrentSubTreeForcePrepare(RSRenderNode& node);
@@ -542,6 +544,9 @@ private:
 
     // used for force prepare current subtree this frame
     bool isCurSubTreeForcePrepare_ = false;
+
+    // used for check whether anco has dimmer
+    bool hasAncoDimmer_ = false;
 };
 
 class RSSubTreePrepareController {
