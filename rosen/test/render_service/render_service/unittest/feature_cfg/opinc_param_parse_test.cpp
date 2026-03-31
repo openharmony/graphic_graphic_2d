@@ -73,6 +73,12 @@ HWTEST_F(OpincParamParseTest, ParseFeatureParamTest, TestSize.Level1)
     ASSERT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
     ASSERT_EQ(OPIncParam::IsImageAliasEnable(), false);
 
+    xmlSetProp(&nextNode, (const xmlChar*)("name"), (const xmlChar*)("LayerPartRenderEnabled"));
+    xmlSetProp(&nextNode, (const xmlChar*)("value"), (const xmlChar*)("true"));
+    res = paramParse.ParseFeatureParam(paramMapType, node);
+    ASSERT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
+    ASSERT_EQ(OPIncParam::IsLayerPartRenderEnable(), true);
+
     name = "FeatureSingleParam";
     nextNode.name = reinterpret_cast<const xmlChar*>(name.c_str());
     node.xmlChildrenNode->next = &nextNode;

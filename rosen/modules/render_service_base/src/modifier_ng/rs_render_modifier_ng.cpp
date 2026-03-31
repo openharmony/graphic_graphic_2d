@@ -232,13 +232,13 @@ void RSRenderModifier::OnSetDirty()
     }
 }
 
-bool RSRenderModifier::Marshalling(Parcel& parcel) const
+bool RSRenderModifier::Marshalling(Parcel& parcel, bool includeEnableDeduplication) const
 {
     auto ret = RSMarshallingHelper::Marshalling(parcel, GetType());
     if (ret) {
         ret = RSMarshallingHelper::Marshalling(parcel, id_);
     }
-    if (ret) {
+    if (includeEnableDeduplication && ret) {
         ret = DeduplicationMarshalling(parcel);
     }
     if (ret) {
@@ -247,7 +247,7 @@ bool RSRenderModifier::Marshalling(Parcel& parcel) const
     return ret;
 }
 
-std::shared_ptr<RSRenderModifier> RSRenderModifier::Unmarshalling(Parcel& parcel)
+std::shared_ptr<RSRenderModifier> RSRenderModifier::Unmarshalling(Parcel& parcel, bool includeEnableDeduplication)
 {
     RSModifierType type = RSModifierType::MAX;
     if (!RSMarshallingHelper::Unmarshalling(parcel, type)) {
@@ -265,7 +265,7 @@ std::shared_ptr<RSRenderModifier> RSRenderModifier::Unmarshalling(Parcel& parcel
     if (!RSMarshallingHelper::UnmarshallingPidPlusId(parcel, ret->id_)) {
         return nullptr;
     }
-    if (!ret->DeduplicationUnmarshalling(parcel)) {
+    if (includeEnableDeduplication && !ret->DeduplicationUnmarshalling(parcel)) {
         return nullptr;
     }
     if (!RSMarshallingHelper::Unmarshalling(parcel, ret->properties_)) {

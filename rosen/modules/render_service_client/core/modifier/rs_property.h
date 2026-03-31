@@ -284,6 +284,7 @@ private:
     friend class RSPathAnimation;
     friend class ModifierNG::RSModifier;
     friend class RSNode;
+    friend class RSSurfaceNode;
     friend class RSKeyframeAnimation;
     friend class RSInterpolatingSpringAnimation;
     friend class RSImplicitTransitionParam;

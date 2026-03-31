@@ -20,8 +20,8 @@
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
-#include "screen_manager/rs_screen_manager.h"
 #include "render/rs_pixel_map_util.h"
+#include "screen_manager/rs_screen_property.h"
 namespace OHOS {
 namespace Rosen {
 

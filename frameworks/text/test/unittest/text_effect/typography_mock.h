@@ -93,6 +93,9 @@ public:
     MOCK_METHOD(std::shared_ptr<OHOS::Media::PixelMap>, GetTextPathImageByIndex,
         (size_t start, size_t end, const ImageOptions& options, bool fill), (const, override));
     MOCK_METHOD(TextLayoutResult, LayoutWithConstraints, (const TextRectSize& constraint));
+    MOCK_METHOD(TextProcessState, GetProcessState, (), (const, override));
+    MOCK_METHOD(TextDisplayState, GetTextDisplayState, (), (const, override));
+    MOCK_METHOD(TypographyStyle, GetParagraphStyle, (), (const, override));
 };
 } // namespace OHOS::Rosen
 #endif

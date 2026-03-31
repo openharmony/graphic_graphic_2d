@@ -61,15 +61,16 @@ HWTEST_F(RSColorPickerDrawableTest, RSColorPickerDrawable001, TestSize.Level1)
     auto canvas = std::make_shared<Drawing::Canvas>();
     auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(canvas.get());
     auto rect = std::make_shared<Drawing::Rect>();
+
+    // Test OnDraw with valid canvas - should not crash
     drawable->OnDraw(filterCanvas.get(), rect.get());
-    ASSERT_TRUE(true);
 
+    // Test OnDraw with null canvas - should handle gracefully
     drawable->OnDraw(nullptr, rect.get());
-    ASSERT_TRUE(true);
 
+    // Test OnDraw with null colorPickerManager - should handle gracefully
     drawable->colorPickerManager_ = nullptr;
     drawable->OnDraw(filterCanvas.get(), rect.get());
-    ASSERT_TRUE(true);
 }
 
 /**
@@ -99,8 +100,8 @@ HWTEST_F(RSColorPickerDrawableTest, RSColorPickerDrawable002, TestSize.Level1)
     auto canvas = std::make_shared<Drawing::Canvas>();
     auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(canvas.get());
     auto rect = std::make_shared<Drawing::Rect>();
+    // Test OnDraw with CLIENT_CALLBACK strategy - should not crash
     drawable->OnDraw(filterCanvas.get(), rect.get());
-    ASSERT_TRUE(true);
 }
 
 /**
@@ -212,166 +213,337 @@ HWTEST_F(RSColorPickerDrawableTest, RSColorPickerDrawable006, TestSize.Level1)
     auto canvas = std::make_shared<Drawing::Canvas>();
     auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(canvas.get());
     auto rect = std::make_shared<Drawing::Rect>();
+    // Test OnDraw with SURFACE_CONTRAST placeholder - should not crash
     drawable->OnDraw(filterCanvas.get(), rect.get());
-    ASSERT_TRUE(true);
 }
+
+// ============================================================================
+// State Machine Tests (OnPrepare, ScheduleColorPickIfReady, SetState, GetState)
+// ============================================================================
 
 /**
  * @tc.name: RSColorPickerDrawable007
- * @tc.desc: Test Prepare with nullptr stagingColorPicker
+ * @tc.desc: Test OnPrepare with COLOR_PICK_THIS_FRAME state
  * @tc.type:FUNC
  * @tc.require:
  */
 HWTEST_F(RSColorPickerDrawableTest, RSColorPickerDrawable007, TestSize.Level1)
 {
     NodeId id = 1;
-    RSRenderNode node(id);
-
     auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, id);
     ASSERT_NE(drawable, nullptr);
 
-    // Clear stagingColorPicker_ to test nullptr branch
-    drawable->stagingColorPicker_ = nullptr;
+    // Set state to COLOR_PICK_THIS_FRAME
+    drawable->stagingState_ = DrawableV2::ColorPickerState::COLOR_PICK_THIS_FRAME;
+    drawable->stagingNeedColorPick_ = false;
 
-    // Prepare should return early and not set needColorPick
-    uint64_t vsyncTime = 1000000000; // 1 second in nanoseconds
-    auto [needColorPick, needSync] = drawable->PrepareForExecution(vsyncTime, false);
-
-    EXPECT_FALSE(needColorPick);
-    EXPECT_FALSE(needSync);
+    bool needSync = drawable->OnPrepare(false);
+    EXPECT_TRUE(needSync);
+    EXPECT_TRUE(drawable->stagingNeedColorPick_);
 }
 
 /**
  * @tc.name: RSColorPickerDrawable008
- * @tc.desc: Test Prepare with NONE strategy
+ * @tc.desc: Test OnPrepare with PREPARING state (needColorPick should be false)
  * @tc.type:FUNC
  * @tc.require:
  */
 HWTEST_F(RSColorPickerDrawableTest, RSColorPickerDrawable008, TestSize.Level1)
 {
     NodeId id = 1;
-    RSRenderNode node(id);
-
     auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, id);
     ASSERT_NE(drawable, nullptr);
 
-    // Create a ColorPickerParam with NONE strategy
-    auto params = std::make_shared<ColorPickerParam>();
-    params->strategy = ColorPickStrategyType::NONE;
-    params->placeholder = ColorPlaceholder::NONE;
-    params->interval = 0;
-    drawable->stagingColorPicker_ = params;
+    // Set state to PREPARING
+    drawable->stagingState_ = DrawableV2::ColorPickerState::PREPARING;
+    drawable->stagingNeedColorPick_ = true; // Was true before
 
-    // Prepare should return early and not set needColorPick
-    uint64_t vsyncTime = 1000000000;
-    auto [needColorPick, needSync] = drawable->PrepareForExecution(vsyncTime, false);
-
-    EXPECT_FALSE(needColorPick);
-    EXPECT_FALSE(needSync);
+    bool needSync = drawable->OnPrepare(false);
+    EXPECT_TRUE(needSync); // Changed from true to false
+    EXPECT_FALSE(drawable->stagingNeedColorPick_);
 }
 
 /**
  * @tc.name: RSColorPickerDrawable009
- * @tc.desc: Test Prepare when interval not elapsed
+ * @tc.desc: Test OnPrepare with darkMode change
  * @tc.type:FUNC
  * @tc.require:
  */
 HWTEST_F(RSColorPickerDrawableTest, RSColorPickerDrawable009, TestSize.Level1)
 {
     NodeId id = 1;
-    RSRenderNode node(id);
-
     auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, id);
     ASSERT_NE(drawable, nullptr);
 
-    // Create a ColorPickerParam with 2000ms interval
-    auto params = std::make_shared<ColorPickerParam>();
-    params->strategy = ColorPickStrategyType::AVERAGE;
-    params->placeholder = ColorPlaceholder::TEXT_CONTRAST;
-    params->interval = 2000;
-    drawable->stagingColorPicker_ = params;
-    drawable->lastUpdateTime_ = 1000; // Last update at 1000ms
+    // Set initial dark mode to false
+    drawable->stagingIsSystemDarkColorMode_ = false;
 
-    // vsyncTime is 1500ms (1000000000 ns = 1000ms), interval not elapsed
-    uint64_t vsyncTime = 1500000000;
-    auto [needColorPick, needSync] = drawable->PrepareForExecution(vsyncTime, false);
-
-    EXPECT_FALSE(needColorPick);
-    EXPECT_FALSE(needSync);
+    // Call OnPrepare with darkMode = true
+    bool needSync = drawable->OnPrepare(true);
+    EXPECT_TRUE(needSync); // Dark mode changed
+    EXPECT_TRUE(drawable->stagingIsSystemDarkColorMode_);
 }
 
 /**
  * @tc.name: RSColorPickerDrawable010
- * @tc.desc: Test Prepare when interval elapsed
+ * @tc.desc: Test ScheduleColorPickIfReady returns early with nullptr stagingColorPicker
  * @tc.type:FUNC
  * @tc.require:
  */
 HWTEST_F(RSColorPickerDrawableTest, RSColorPickerDrawable010, TestSize.Level1)
 {
     NodeId id = 1;
-    RSRenderNode node(id);
-
     auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, id);
     ASSERT_NE(drawable, nullptr);
 
-    // Create a ColorPickerParam with 1000ms interval
-    auto params = std::make_shared<ColorPickerParam>();
-    params->strategy = ColorPickStrategyType::AVERAGE;
-    params->placeholder = ColorPlaceholder::TEXT_CONTRAST;
-    params->interval = 1000;
-    drawable->stagingColorPicker_ = params;
-    drawable->lastUpdateTime_ = 1000; // Last update at 1000ms
+    drawable->stagingColorPicker_ = nullptr;
+    drawable->stagingState_ = DrawableV2::ColorPickerState::PREPARING;
 
-    // vsyncTime is 2500ms (2500000000 ns), interval has elapsed (2500 >= 1000 + 1000)
-    uint64_t vsyncTime = 2500000000;
-    auto [needColorPick, needSync] = drawable->PrepareForExecution(vsyncTime, false);
-
-    EXPECT_TRUE(needColorPick);
-    EXPECT_TRUE(needSync); // stagingNeedColorPick_ changed from false to true
-    EXPECT_EQ(drawable->lastUpdateTime_, 2500u); // lastUpdateTime_ should be updated
+    // Should return early without scheduling
+    drawable->ScheduleColorPickIfReady(1000000000);
+    EXPECT_EQ(drawable->stagingState_, DrawableV2::ColorPickerState::PREPARING);
 }
 
 /**
  * @tc.name: RSColorPickerDrawable011
- * @tc.desc: Test Prepare with task scheduling
+ * @tc.desc: Test ScheduleColorPickIfReady returns early with NONE strategy
  * @tc.type:FUNC
  * @tc.require:
  */
 HWTEST_F(RSColorPickerDrawableTest, RSColorPickerDrawable011, TestSize.Level1)
 {
     NodeId id = 1;
-    RSRenderNode node(id);
-
     auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, id);
     ASSERT_NE(drawable, nullptr);
 
-    // Create a ColorPickerParam with 1000ms interval
     auto params = std::make_shared<ColorPickerParam>();
-    params->strategy = ColorPickStrategyType::DOMINANT;
-    params->placeholder = ColorPlaceholder::FOREGROUND;
-    params->interval = 1000;
+    params->strategy = ColorPickStrategyType::NONE;
     drawable->stagingColorPicker_ = params;
-    drawable->lastUpdateTime_ = 1000;
-    drawable->isTaskScheduled_ = false;
+    drawable->stagingState_ = DrawableV2::ColorPickerState::PREPARING;
 
-    // vsyncTime is 1500ms, interval not elapsed (1500 < 1000 + 1000) so task should be scheduled
-    uint64_t vsyncTime = 1500000000;
-    auto [needColorPick, needSync] = drawable->PrepareForExecution(vsyncTime, false);
-
-    // Task should be scheduled (isTaskScheduled_ set to true)
-    // Note: We can't easily verify the actual task was posted without mocking
-    EXPECT_FALSE(needColorPick);
-    EXPECT_FALSE(needSync); // stagingNeedColorPick_ stays false, darkMode unchanged
-    EXPECT_TRUE(drawable->isTaskScheduled_);
+    drawable->ScheduleColorPickIfReady(1000000000);
+    EXPECT_EQ(drawable->stagingState_, DrawableV2::ColorPickerState::PREPARING);
 }
 
 /**
  * @tc.name: RSColorPickerDrawable012
- * @tc.desc: Test OnDraw with needColorPick logic and OnSync
+ * @tc.desc: Test ScheduleColorPickIfReady returns early when not in PREPARING state
  * @tc.type:FUNC
  * @tc.require:
  */
 HWTEST_F(RSColorPickerDrawableTest, RSColorPickerDrawable012, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, id);
+    ASSERT_NE(drawable, nullptr);
+
+    auto params = std::make_shared<ColorPickerParam>();
+    params->strategy = ColorPickStrategyType::AVERAGE;
+    params->interval = 1000;
+    drawable->stagingColorPicker_ = params;
+    drawable->stagingState_ = DrawableV2::ColorPickerState::SCHEDULED;
+
+    // Should return early because state is not PREPARING
+    drawable->ScheduleColorPickIfReady(1000000000);
+    EXPECT_EQ(drawable->stagingState_, DrawableV2::ColorPickerState::SCHEDULED);
+}
+
+/**
+ * @tc.name: RSColorPickerDrawable013
+ * @tc.desc: Test ScheduleColorPickIfReady schedules with delay when cooldown not elapsed
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSColorPickerDrawableTest, RSColorPickerDrawable013, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, id);
+    ASSERT_NE(drawable, nullptr);
+
+    auto params = std::make_shared<ColorPickerParam>();
+    params->strategy = ColorPickStrategyType::AVERAGE;
+    params->interval = 2000;
+    drawable->stagingColorPicker_ = params;
+    drawable->stagingState_ = DrawableV2::ColorPickerState::PREPARING;
+    drawable->lastUpdateTime_ = 1000; // Last update at 1000ms
+
+    // vsyncTime is 1500ms (cooldown not elapsed: 1500 < 1000 + 2000)
+    uint64_t vsyncTime = 1500000000;
+    drawable->ScheduleColorPickIfReady(vsyncTime);
+
+    // State should transition to SCHEDULED
+    EXPECT_EQ(drawable->stagingState_, DrawableV2::ColorPickerState::SCHEDULED);
+}
+
+/**
+ * @tc.name: RSColorPickerDrawable014
+ * @tc.desc: Test ScheduleColorPickIfReady schedules immediately when cooldown elapsed
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSColorPickerDrawableTest, RSColorPickerDrawable014, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, id);
+    ASSERT_NE(drawable, nullptr);
+
+    auto params = std::make_shared<ColorPickerParam>();
+    params->strategy = ColorPickStrategyType::AVERAGE;
+    params->interval = 1000;
+    drawable->stagingColorPicker_ = params;
+    drawable->stagingState_ = DrawableV2::ColorPickerState::PREPARING;
+    drawable->lastUpdateTime_ = 1000;
+
+    // vsyncTime is 2500ms (cooldown elapsed: 2500 >= 1000 + 1000)
+    uint64_t vsyncTime = 2500000000;
+    drawable->ScheduleColorPickIfReady(vsyncTime);
+
+    EXPECT_EQ(drawable->stagingState_, DrawableV2::ColorPickerState::SCHEDULED);
+    EXPECT_EQ(drawable->lastUpdateTime_, 2500u);
+}
+
+/**
+ * @tc.name: RSColorPickerDrawable015
+ * @tc.desc: Test SetState valid transition from PREPARING to SCHEDULED
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSColorPickerDrawableTest, RSColorPickerDrawable015, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, id);
+    ASSERT_NE(drawable, nullptr);
+
+    drawable->stagingState_ = DrawableV2::ColorPickerState::PREPARING;
+    drawable->SetState(DrawableV2::ColorPickerState::SCHEDULED);
+
+    EXPECT_EQ(drawable->stagingState_, DrawableV2::ColorPickerState::SCHEDULED);
+}
+
+/**
+ * @tc.name: RSColorPickerDrawable016
+ * @tc.desc: Test SetState valid transition from SCHEDULED to COLOR_PICK_THIS_FRAME
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSColorPickerDrawableTest, RSColorPickerDrawable016, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, id);
+    ASSERT_NE(drawable, nullptr);
+
+    drawable->stagingState_ = DrawableV2::ColorPickerState::SCHEDULED;
+    drawable->SetState(DrawableV2::ColorPickerState::COLOR_PICK_THIS_FRAME);
+
+    EXPECT_EQ(drawable->stagingState_, DrawableV2::ColorPickerState::COLOR_PICK_THIS_FRAME);
+}
+
+/**
+ * @tc.name: RSColorPickerDrawable017
+ * @tc.desc: Test SetState valid transition from COLOR_PICK_THIS_FRAME to PREPARING
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSColorPickerDrawableTest, RSColorPickerDrawable017, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, id);
+    ASSERT_NE(drawable, nullptr);
+
+    drawable->stagingState_ = DrawableV2::ColorPickerState::COLOR_PICK_THIS_FRAME;
+    drawable->SetState(DrawableV2::ColorPickerState::PREPARING);
+
+    EXPECT_EQ(drawable->stagingState_, DrawableV2::ColorPickerState::PREPARING);
+}
+
+/**
+ * @tc.name: RSColorPickerDrawable018
+ * @tc.desc: Test SetState invalid transition from PREPARING to COLOR_PICK_THIS_FRAME
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSColorPickerDrawableTest, RSColorPickerDrawable018, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, id);
+    ASSERT_NE(drawable, nullptr);
+
+    drawable->stagingState_ = DrawableV2::ColorPickerState::PREPARING;
+    drawable->SetState(DrawableV2::ColorPickerState::COLOR_PICK_THIS_FRAME);
+
+    // Should not change state (invalid transition)
+    EXPECT_EQ(drawable->stagingState_, DrawableV2::ColorPickerState::PREPARING);
+}
+
+/**
+ * @tc.name: RSColorPickerDrawable019
+ * @tc.desc: Test SetState invalid transition from SCHEDULED to PREPARING
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSColorPickerDrawableTest, RSColorPickerDrawable019, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, id);
+    ASSERT_NE(drawable, nullptr);
+
+    drawable->stagingState_ = DrawableV2::ColorPickerState::SCHEDULED;
+    drawable->SetState(DrawableV2::ColorPickerState::PREPARING);
+
+    // Should not change state (invalid transition)
+    EXPECT_EQ(drawable->stagingState_, DrawableV2::ColorPickerState::SCHEDULED);
+}
+
+/**
+ * @tc.name: RSColorPickerDrawable020
+ * @tc.desc: Test GetState returns current state
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSColorPickerDrawableTest, RSColorPickerDrawable020, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, id);
+    ASSERT_NE(drawable, nullptr);
+
+    drawable->stagingState_ = DrawableV2::ColorPickerState::PREPARING;
+    EXPECT_EQ(drawable->GetState(), DrawableV2::ColorPickerState::PREPARING);
+
+    drawable->stagingState_ = DrawableV2::ColorPickerState::SCHEDULED;
+    EXPECT_EQ(drawable->GetState(), DrawableV2::ColorPickerState::SCHEDULED);
+
+    drawable->stagingState_ = DrawableV2::ColorPickerState::COLOR_PICK_THIS_FRAME;
+    EXPECT_EQ(drawable->GetState(), DrawableV2::ColorPickerState::COLOR_PICK_THIS_FRAME);
+}
+
+/**
+ * @tc.name: RSColorPickerDrawable021
+ * @tc.desc: Test ResetColorMemory resets state to PREPARING
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSColorPickerDrawableTest, RSColorPickerDrawable021, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, id);
+    ASSERT_NE(drawable, nullptr);
+
+    drawable->stagingState_ = DrawableV2::ColorPickerState::COLOR_PICK_THIS_FRAME;
+    drawable->stagingNeedColorPick_ = true;
+
+    drawable->ResetColorMemory();
+
+    EXPECT_EQ(drawable->stagingState_, DrawableV2::ColorPickerState::PREPARING);
+    EXPECT_FALSE(drawable->stagingNeedColorPick_);
+}
+
+/**
+ * @tc.name: RSColorPickerDrawable022
+ * @tc.desc: Test OnDraw with needColorPick logic and OnSync
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSColorPickerDrawableTest, RSColorPickerDrawable022, TestSize.Level1)
 {
     NodeId id = 1;
     RSRenderNode node(id);
@@ -401,17 +573,77 @@ HWTEST_F(RSColorPickerDrawableTest, RSColorPickerDrawable012, TestSize.Level1)
     auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(canvas.get());
     auto rect = std::make_shared<Drawing::Rect>();
 
-    // OnDraw should execute color picking when needColorPick is true
+    // OnDraw should execute color picking when needColorPick is true - should not crash
     drawable->OnDraw(filterCanvas.get(), rect.get());
-    ASSERT_TRUE(true);
 
-    // Set needColorPick to false and test again
+    // Set needColorPick to false and test again - should skip color picking
     drawable->needColorPick_ = false;
     drawable->OnDraw(filterCanvas.get(), rect.get());
-    ASSERT_TRUE(true);
 
-    // Test with null paintFilterCanvas
+    // Test with null paintFilterCanvas - should handle gracefully
     drawable->OnDraw(nullptr, rect.get());
-    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: RSColorPickerDrawable023
+ * @tc.desc: Test SetState with same state (no-op transition)
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSColorPickerDrawableTest, RSColorPickerDrawable023, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, id);
+    ASSERT_NE(drawable, nullptr);
+
+    // Test PREPARING to PREPARING (same state - should be allowed)
+    drawable->stagingState_ = DrawableV2::ColorPickerState::PREPARING;
+    drawable->SetState(DrawableV2::ColorPickerState::PREPARING);
+    EXPECT_EQ(drawable->stagingState_, DrawableV2::ColorPickerState::PREPARING);
+
+    // Test SCHEDULED to SCHEDULED (same state - should be allowed)
+    drawable->stagingState_ = DrawableV2::ColorPickerState::SCHEDULED;
+    drawable->SetState(DrawableV2::ColorPickerState::SCHEDULED);
+    EXPECT_EQ(drawable->stagingState_, DrawableV2::ColorPickerState::SCHEDULED);
+}
+
+/**
+ * @tc.name: RSColorPickerDrawable024
+ * @tc.desc: Test RSRenderNode::PrepareColorPicker function
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSColorPickerDrawableTest, RSColorPickerDrawable024, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+
+    // Test 1: Returns false when no color picker drawable exists
+    bool result = node.PrepareColorPicker(false);
+    EXPECT_FALSE(result);
+
+    // Set up color picker properties to create drawable
+    node.GetMutableRenderProperties().SetColorPickerPlaceholder(
+        static_cast<int>(ColorPlaceholder::TEXT_CONTRAST));
+    node.GetMutableRenderProperties().SetColorPickerStrategy(
+        static_cast<int>(ColorPickStrategyType::AVERAGE));
+    node.GetMutableRenderProperties().SetColorPickerInterval(1000);
+
+    // Force drawable generation
+    auto drawable = DrawableV2::RSColorPickerDrawable::OnGenerate(node);
+    ASSERT_NE(drawable, nullptr);
+    node.GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = drawable;
+
+    // Test 2: Returns false when state is PREPARING (not COLOR_PICK_THIS_FRAME)
+    auto colorPickerDrawable = std::static_pointer_cast<DrawableV2::RSColorPickerDrawable>(drawable);
+    colorPickerDrawable->stagingState_ = DrawableV2::ColorPickerState::PREPARING;
+    result = node.PrepareColorPicker(false);
+    EXPECT_FALSE(result);
+
+    // Test 3: Returns true when state is COLOR_PICK_THIS_FRAME
+    colorPickerDrawable->stagingState_ = DrawableV2::ColorPickerState::COLOR_PICK_THIS_FRAME;
+    result = node.PrepareColorPicker(false);
+    EXPECT_TRUE(result);
+    EXPECT_TRUE(colorPickerDrawable->stagingNeedColorPick_);
 }
 } // namespace OHOS::Rosen

@@ -645,7 +645,7 @@ TypographyStyle Typography::GetParagraphStyle() const
 {
     std::shared_lock<std::shared_mutex> readLock(mutex_);
     if (paragraph_ == nullptr) {
-        return typographyStyle_;
+        return {};
     }
     return Convert(paragraph_->GetParagraphStyle());
 }

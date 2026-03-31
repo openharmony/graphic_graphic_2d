@@ -32,6 +32,7 @@ public:
     virtual void HandleSceneEvent(pid_t pid, const EventInfo& eventInfo) {}
     virtual void HandleAppStrategyConfigEvent(const std::string& pkgName,
         const std::vector<std::pair<std::string, std::string>>& newConfig) {}
+
 private:
     wptr<HgmEventDistributor> eventDistributor_;
 };
@@ -40,16 +41,14 @@ class HgmEventDistributor : public RefBase {
 public:
     static sptr<HgmEventDistributor> Instance();
 
-    void HandlePackageEvent(const std::vector<std::string>& packageList)
-    {
+    void HandlePackageEvent(const std::vector<std::string>& packageList) {
         std::lock_guard<std::mutex> lock(mutex_);
         for (auto& event : events_) {
             event->HandlePackageEvent(packageList);
         }
     }
 
-    void HandleSceneEvent(pid_t pid, const EventInfo& eventInfo)
-    {
+    void HandleSceneEvent(pid_t pid, const EventInfo& eventInfo) {
         std::lock_guard<std::mutex> lock(mutex_);
         for (auto& event : events_) {
             event->HandleSceneEvent(pid, eventInfo);
@@ -57,8 +56,7 @@ public:
     }
 
     void HandleAppStrategyConfigEvent(const std::string& pkgName,
-        const std::vector<std::pair<std::string, std::string>>& newConfig)
-    {
+        const std::vector<std::pair<std::string, std::string>>& newConfig) {
         std::lock_guard<std::mutex> lock(mutex_);
         for (auto& event : events_) {
             event->HandleAppStrategyConfigEvent(pkgName, newConfig);

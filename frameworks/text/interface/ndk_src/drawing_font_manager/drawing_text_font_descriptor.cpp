@@ -301,6 +301,14 @@ void OH_Drawing_DestroyFontFullDescriptors(OH_Drawing_Array* descriptorArray)
     delete descriptorList;
 }
 
+void OH_Drawing_DestroyFontFullDescriptor(const OH_Drawing_FontFullDescriptor* descriptor)
+{
+    if (descriptor == nullptr) {
+        return;
+    }
+    delete reinterpret_cast<const Drawing::FontParser::FontDescriptor*>(descriptor);
+}
+
 OH_Drawing_ErrorCode GetUnicodeArray(const std::vector<uint32_t>& fontUnicodeArray,
     int32_t** unicodeArray, int32_t* arrayLength)
 {

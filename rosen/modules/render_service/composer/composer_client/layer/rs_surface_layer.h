@@ -17,23 +17,30 @@
 #define RENDER_SERVICE_COMPOSER_CLIENT_LAYER_RS_SURFACE_LAYER_H
 
 #include <string>
-#include "surface.h"
-#include "sync_fence.h"
-#include "hdi_display_type.h"
 #include "common/rs_anco_type.h"
+#include "hdi_display_type.h"
 #include "iconsumer_surface.h"
 #include "rs_layer.h"
-#include "rs_render_composer_client.h"
-
+#include "rs_composer_client.h"
+#include "rs_render_layer_cmd.h"
+#include "rs_render_layer_cmd_property.h"
+#include "surface.h"
+#include "sync_fence.h"
 namespace OHOS {
 namespace Rosen {
-class RSLayerContext;
+class RSLayerTransactionHandler;
+class RSLayerParcel;
+class RSComposerContext;
+class RSRenderLayerCmd;
 
 class RSSurfaceLayer : public RSLayer {
 public:
-    RSSurfaceLayer() = default;
-    ~RSSurfaceLayer() = default;
-    static std::shared_ptr<RSLayer> CreateLayer(const std::shared_ptr<RSRenderComposerClient>& client);
+    ~RSSurfaceLayer();
+    static std::shared_ptr<RSLayer> Create(RSLayerId rsLayerId, const std::shared_ptr<RSComposerContext>& context);
+
+    RSLayerId GetRSLayerId() const override;
+    void SetRSLayerId(RSLayerId rsLayerId) override;
+    void UpdateRSLayerCmd(const std::shared_ptr<RSRenderLayerCmd>& command) override {}
 
     void SetAlpha(const GraphicLayerAlpha& alpha) override;
     const GraphicLayerAlpha& GetAlpha() const override;
@@ -42,9 +49,14 @@ public:
     void SetType(const GraphicLayerType layerType) override;
     GraphicLayerType GetType() const override;
     void SetTransform(GraphicTransformType type) override;
-    GraphicTransformType GetTransformType() const override;
+    GraphicTransformType GetTransform() const override;
     void SetCompositionType(GraphicCompositionType type) override;
     GraphicCompositionType GetCompositionType() const override;
+    void SetHdiCompositionType(GraphicCompositionType type) override {}
+    GraphicCompositionType GetHdiCompositionType() const override
+    {
+        return GraphicCompositionType::GRAPHIC_COMPOSITION_BUTT;
+    }
     void SetVisibleRegions(const std::vector<GraphicIRect>& visibleRegions) override;
     const std::vector<GraphicIRect>& GetVisibleRegions() const override;
     void SetDirtyRegions(const std::vector<GraphicIRect>& dirtyRegions) override;
@@ -73,7 +85,7 @@ public:
     const std::vector<GraphicHDRMetaData>& GetMetaData() const override;
     void SetMetaDataSet(const GraphicHDRMetaDataSet& metaDataSet) override;
     const GraphicHDRMetaDataSet& GetMetaDataSet() const override;
-    void SetMatrix(GraphicMatrix matrix) override;
+    void SetMatrix(const GraphicMatrix& matrix) override;
     const GraphicMatrix& GetMatrix() const override;
     void SetGravity(int32_t gravity) override;
     int32_t GetGravity() const override;
@@ -88,7 +100,7 @@ public:
     void SetTunnelLayerProperty(uint32_t tunnelLayerProperty) override;
     uint32_t GetTunnelLayerProperty() const override;
     void SetIsSupportedPresentTimestamp(bool isSupported) override;
-    bool IsSupportedPresentTimestamp() const override;
+    bool GetIsSupportedPresentTimestamp() const override;
     void SetPresentTimestamp(const GraphicPresentTimestamp& timestamp) override;
     const GraphicPresentTimestamp& GetPresentTimestamp() const override;
     void SetSdrNit(float sdrNit) override;
@@ -112,10 +124,10 @@ public:
     void SetNeedBilinearInterpolation(bool need) override;
     bool GetNeedBilinearInterpolation() const override;
     void SetIsMaskLayer(bool isMaskLayer) override;
-    bool IsMaskLayer() const override;
+    bool GetIsMaskLayer() const override;
     void SetNodeId(uint64_t nodeId) override;
     uint64_t GetNodeId() const override;
-    void SetAncoFlags(const uint32_t ancoFlags) override;
+    void SetAncoFlags(uint32_t ancoFlags) override;
     uint32_t GetAncoFlags() const override;
     bool IsAncoNative() const override;
     void SetLayerMaskInfo(LayerMask mask) override;
@@ -123,6 +135,8 @@ public:
 
     void SetSurface(const sptr<IConsumerSurface>& surface) override;
     sptr<IConsumerSurface> GetSurface() const override;
+    void SetSurfaceUniqueId(uint64_t uniqueId) override;
+    uint64_t GetSurfaceUniqueId() const override;
     void SetBuffer(const sptr<SurfaceBuffer>& sbuffer, const sptr<SyncFence>& acquireFence) override;
     void SetBuffer(const sptr<SurfaceBuffer>& sbuffer) override;
     sptr<SurfaceBuffer> GetBuffer() const override;
@@ -130,40 +144,60 @@ public:
     sptr<SurfaceBuffer> GetPreBuffer() const override;
     void SetAcquireFence(const sptr<SyncFence>& acquireFence) override;
     sptr<SyncFence> GetAcquireFence() const override;
+    void SetCycleBuffersNum(uint32_t cycleBuffersNum) override;
+    uint32_t GetCycleBuffersNum() const override;
+    void SetSurfaceName(std::string surfaceName) override;
+    std::string GetSurfaceName() const override;
+    void SetBufferOwnerCount(const std::shared_ptr<RSSurfaceHandler::BufferOwnerCount>& bufferOwnerCount,
+        bool needUpdate) override;
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> PopBufferOwnerCountById(uint64_t bufferId) override;
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetBufferOwnerCount() const override;
+    void SetSolidColorLayerProperty(GraphicSolidColorLayerProperty solidColorLayerProperty) override;
+    GraphicSolidColorLayerProperty GetSolidColorLayerProperty() const override;
+    void SetIsNeedComposition(bool isNeedComposition) override;
+    bool GetIsNeedComposition() const override;
     void SetUseDeviceOffline(bool useOffline) override;
     bool GetUseDeviceOffline() const override;
     void SetIgnoreAlpha(bool ignoreAlpha) override;
     bool GetIgnoreAlpha() const override;
     void SetAncoSrcRect(const GraphicIRect& ancoSrcRect) override;
     const GraphicIRect& GetAncoSrcRect() const override;
+    void SetDeleteLayer(bool isDeleteLayer) const override {}
 
-    void CopyLayerInfo(const std::shared_ptr<RSLayer>& rsLayer) override;
+    void CopyLayerInfo(const std::shared_ptr<RSLayer>& rsLayer) override {};
     void Dump(std::string& result) const override;
     void DumpCurrentFrameLayer() const override;
 
+protected:
+    bool AddRSLayerParcel(RSLayerId layerId, std::shared_ptr<RSLayerParcel>& layerParcel);
+
 private:
+    RSSurfaceLayer(RSLayerId rsLayerId, std::shared_ptr<RSComposerContext> rsComposerContext);
+    template<typename RSRenderLayerCmdName, typename T>
+    void SetRSLayerCmd(const T& value);
     // rs layer pipeline info
-    std::weak_ptr<RSLayerContext> rsLayerContext_;
-    mutable std::mutex mutex_;
+    std::weak_ptr<RSComposerContext> rsComposerContext_;
+    RSLayerId rsLayerId_ = 0;
+    bool isNeedComposition_ = false;
 
     // rs layer property info
-    uint32_t zOrder_ = 0;
+    int32_t zOrder_ = 0;
     GraphicLayerType layerType_ = GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC;
-    GraphicIRect layerRect_;
-    GraphicIRect boundRect_; // node's bound width and height related to this layer, used for uni render redraw
+    GraphicIRect layerRect_ = {0};
+    GraphicIRect boundRect_ = {0}; // node's bound width and height related to this layer, used for uni render redraw
     std::vector<GraphicIRect> visibleRegions_;
     std::vector<GraphicIRect> dirtyRegions_;
-    GraphicIRect cropRect_;
-    GraphicMatrix matrix_; // matrix used for uni render redraw
+    GraphicIRect cropRect_ = {0};
+    GraphicMatrix matrix_ = {0.0}; // matrix used for uni render redraw
     int32_t gravity_ = 0; // used for uni render redraw
     bool isUniRender_ = false; // true for uni render layer (DisplayNode)
-    GraphicLayerAlpha layerAlpha_;
+    GraphicLayerAlpha layerAlpha_ = {0};
     GraphicTransformType transformType_ = GraphicTransformType::GRAPHIC_ROTATE_BUTT;
-    GraphicCompositionType compositionType_;
-    GraphicBlendType blendType_;
+    GraphicCompositionType compositionType_ = GraphicCompositionType::GRAPHIC_COMPOSITION_BUTT;
+    GraphicBlendType blendType_ = GraphicBlendType::GRAPHIC_BLEND_NONE;
     std::vector<float> colorTransformMatrix_;
-    GraphicLayerColor layerColor_;
-    GraphicLayerColor backgroundColor_;
+    GraphicLayerColor layerColor_ = {0};
+    GraphicLayerColor backgroundColor_ = {0};
     GraphicColorDataSpace colorSpace_ = GraphicColorDataSpace::GRAPHIC_COLOR_DATA_SPACE_UNKNOWN;
     std::vector<GraphicHDRMetaData> metaData_;
     GraphicHDRMetaDataSet metaDataSet_;
@@ -174,8 +208,11 @@ private:
     GraphicPresentTimestamp presentTimestamp_ = {GRAPHIC_DISPLAY_PTS_UNSUPPORTED, 0};
     sptr<IConsumerSurface> cSurface_ = nullptr;
     sptr<SyncFence> acquireFence_ = SyncFence::InvalidFence();
-    sptr<SurfaceBuffer> sbuffer_ = nullptr;
-    sptr<SurfaceBuffer> pbuffer_ = nullptr;
+    wptr<SurfaceBuffer> sbuffer_ = nullptr;
+    wptr<SurfaceBuffer> pbuffer_ = nullptr;
+    mutable std::mutex ownerCountMutex_;
+    std::map<uint64_t, std::shared_ptr<RSSurfaceHandler::BufferOwnerCount>> bufferOwnerCounts_;
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount_;
     bool preMulti_ = false;
     bool needBilinearInterpolation_ = false;
     LayerMask layerMask_ = LayerMask::LAYER_MASK_NORMAL;
@@ -194,9 +231,15 @@ private:
     std::vector<float> drmCornerRadiusInfo_;
     bool isMaskLayer_ = false;
     uint32_t ancoFlags_ = 0;
+    uint32_t cycleBuffersNum_ = 0;
+    std::string surfaceName_ = "";
+    uint64_t surfaceUniqueId_ = 0;
+    GraphicSolidColorLayerProperty solidColorLayerProperty_;
     bool useDeviceOffline_ = false;
     bool ignoreAlpha_ = false;
     GraphicIRect ancoSrcRect_ {-1, -1, -1, -1};
+    friend class RSSurfaceRCDLayer;
+    friend std::shared_ptr<RSLayer> Create(RSLayerId rsLayerId, const std::shared_ptr<RSComposerContext>& context);
 };
 } // namespace Rosen
 } // namespace OHOS

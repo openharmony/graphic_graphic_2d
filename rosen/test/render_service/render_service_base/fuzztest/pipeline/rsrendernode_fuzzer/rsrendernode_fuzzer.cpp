@@ -394,9 +394,6 @@ bool RSRenderNodeMapFuzzerTest(const uint8_t* data, size_t size)
 
     pid_t pidnew = GetData<pid_t>();
     nodeMap->GetSelfDrawingNodeInProcess(pidnew);
-    nodeMap->GetSelfDrawSurfaceNameByPid(pidnew);
-    uint64_t uniqueId = GetData<uint64_t>();
-    nodeMap->GetSelfDrawSurfaceNameByPidAndUniqueId(pidnew, uniqueId);
     return true;
 }
 
@@ -456,9 +453,9 @@ bool RSSurfaceHandleFuzzerTest(const uint8_t* data, size_t size)
     sptr<SurfaceBuffer> surfaceBuffer;
     sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
     buffer.buffer = surfaceBuffer;
-    surfaceHandler->SetBuffer(surfaceBuffer, acquireFence, damage, timestamp);
+    surfaceHandler->SetBuffer(surfaceBuffer, acquireFence, damage, timestamp, nullptr);
     surfaceHandler->ConsumeAndUpdateBufferInner(buffer);
-    surfaceHandler->UpdateBuffer(surfaceBuffer, acquireFence, damage, timestamp);
+    surfaceHandler->UpdateBuffer(surfaceBuffer, acquireFence, damage, timestamp, nullptr);
     return true;
 }
 

@@ -20,6 +20,7 @@ namespace Rosen {
 namespace {
 const std::string_view FORCE_USE_APP_VSYNC = "FORCE_USE_APP_VSYNC";
 }
+
 HgmVoter::HgmVoter(const std::vector<std::string>& voters) : voters_(voters)
 {
     HGM_LOGI("Construction of HgmVoter");

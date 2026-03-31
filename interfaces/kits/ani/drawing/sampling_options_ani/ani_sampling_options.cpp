@@ -74,7 +74,7 @@ void AniSamplingOptions::ConstructorWithFilterMode(ani_env* env, ani_object obj,
 {
     ani_int filterMode;
     if (ANI_OK != env->EnumItem_GetValue_Int(filterModeObj, &filterMode)) {
-        AniThrowError(env, "Invalid params.");
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
     }
 

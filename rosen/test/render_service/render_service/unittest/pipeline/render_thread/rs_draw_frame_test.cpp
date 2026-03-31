@@ -190,4 +190,32 @@ HWTEST_F(RSDrawFrameTest, ClearDrawableResourceTest, TestSize.Level1)
     drawFrame.ClearDrawableResource();
     ASSERT_TRUE(DrawableV2::RSRenderNodeDrawableAdapter::toClearCmdListVec_.empty());
 }
+
+/**
+ * @tc.name: StartEndCheckShortPathTest
+ * @tc.desc: StartCheck then EndCheck quickly should not increase longFrameCount_
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDrawFrameTest, StartEndCheckShortPathTest, TestSize.Level1)
+{
+    RSDrawFrame drawFrame;
+    drawFrame.StartCheck();
+    drawFrame.EndCheck();
+    // When EndCheck runs quickly, longFrameCount_ should reset to 0
+    ASSERT_EQ(drawFrame.longFrameCount_, 0);
+}
+
+/**
+ * @tc.name: SetEarlyZEnabled_NullContext
+ * @tc.desc: SetEarlyZEnabled should early return when GPUContext is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDrawFrameTest, SetEarlyZEnabled_NullContext, TestSize.Level1)
+{
+    RSDrawFrame drawFrame;
+    // Private method exposed in test due to access relaxation
+    drawFrame.SetEarlyZEnabled(nullptr);
+    // early return should not mutate internal counters
+    ASSERT_EQ(drawFrame.longFrameCount_, 0);
+}
 }

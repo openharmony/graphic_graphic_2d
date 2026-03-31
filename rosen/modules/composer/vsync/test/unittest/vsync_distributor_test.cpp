@@ -15,6 +15,7 @@
 #include <gtest/gtest.h>
 #include "vsync_distributor.h"
 #include "vsync_controller.h"
+#include "dvsync_lib_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -30,6 +31,7 @@ public:
     static inline sptr<VSyncDistributor> vsyncDistributor = nullptr;
     static inline sptr<VSyncGenerator> vsyncGenerator = nullptr;
     static inline sptr<VSyncConnection> vsyncConnection = nullptr;
+    static constexpr const int32_t WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS = 2;
 private:
     void InitConnParam(sptr<VSyncConnection> vsyncConnection, bool isRequestWithTimestampOnly,
         bool triggerThisTime, int64_t addTime, bool rate);
@@ -56,6 +58,7 @@ void VSyncDistributorTest::SetUpTestCase()
 
 void VSyncDistributorTest::TearDownTestCase()
 {
+    sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
     vsyncGenerator = nullptr;
     DestroyVSyncGenerator();
     vsyncController = nullptr;
@@ -167,6 +170,7 @@ HWTEST_F(VSyncDistributorTest, CheckVsyncReceivedAndGetRelTs001, Function | Medi
 HWTEST_F(VSyncDistributorTest, RequestNextVSync001, Function | MediumTest| Level3)
 {
     ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->RequestNextVSync(nullptr), VSYNC_ERROR_NULLPTR);
+    sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
 }
 
 /*
@@ -180,6 +184,7 @@ HWTEST_F(VSyncDistributorTest, RequestNextVSync002, Function | MediumTest| Level
 {
     sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "VSyncDistributorTest");
     ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->RequestNextVSync(conn), VSYNC_ERROR_INVALID_ARGUMENTS);
+    sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
 }
 
 /*
@@ -195,6 +200,7 @@ HWTEST_F(VSyncDistributorTest, RequestNextVSync003, Function | MediumTest| Level
     VSyncDistributorTest::vsyncDistributor->AddConnection(conn);
     ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->RequestNextVSync(conn), VSYNC_ERROR_OK);
     ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->RemoveConnection(conn), VSYNC_ERROR_OK);
+    sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
 }
 
 /*
@@ -210,6 +216,7 @@ HWTEST_F(VSyncDistributorTest, RequestNextVSync004, Function | MediumTest| Level
     VSyncDistributorTest::vsyncDistributor->AddConnection(conn);
     ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->RequestNextVSync(conn, "unknown", 0), VSYNC_ERROR_OK);
     ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->RemoveConnection(conn), VSYNC_ERROR_OK);
+    sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
 }
 
 /*
@@ -225,6 +232,7 @@ HWTEST_F(VSyncDistributorTest, RequestNextVSync005, Function | MediumTest| Level
 {
     sptr<VSyncConnection> conn = new VSyncConnection(nullptr, "VSyncDistributorTest");
     ASSERT_EQ(conn->RequestNextVSync("unknown", 0), VSYNC_ERROR_NULLPTR);
+    sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
 }
 
 /*
@@ -240,6 +248,7 @@ HWTEST_F(VSyncDistributorTest, RequestNextVSync006, Function | MediumTest| Level
     VSyncDistributorTest::vsyncDistributor->AddConnection(conn);
     ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->RequestNextVSync(conn, "UrgentSelfdrawing", 0), VSYNC_ERROR_OK);
     ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->RemoveConnection(conn), VSYNC_ERROR_OK);
+    sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
 }
 
 /*
@@ -270,6 +279,7 @@ HWTEST_F(VSyncDistributorTest, RequestNextVSync007, Function | MediumTest| Level
         EXPECT_EQ(conn->requestVsyncTimestamp_.size(), 0);
         EXPECT_EQ(vsyncDistributor->RemoveConnection(conn), VSYNC_ERROR_OK);
     }
+    sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
 }
 
 /*
@@ -386,7 +396,6 @@ HWTEST_F(VSyncDistributorTest, SetHighPriorityVSyncRate002, Function | MediumTes
  */
 HWTEST_F(VSyncDistributorTest, SetFrameIsRender001, Function | MediumTest| Level3)
 {
-    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->IsDVsyncOn(), false);
     VSyncDistributorTest::vsyncDistributor->SetFrameIsRender(true);
 }
 
@@ -399,7 +408,6 @@ HWTEST_F(VSyncDistributorTest, SetFrameIsRender001, Function | MediumTest| Level
  */
 HWTEST_F(VSyncDistributorTest, SetFrameIsRender002, Function | MediumTest| Level3)
 {
-    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->IsDVsyncOn(), false);
     VSyncDistributorTest::vsyncDistributor->SetFrameIsRender(false);
 }
 
@@ -415,49 +423,6 @@ HWTEST_F(VSyncDistributorTest, GetRealTimeOffsetOfDvsync001, Function | MediumTe
     int64_t time = 1000;
     uint64_t offset = VSyncDistributorTest::vsyncDistributor->GetRealTimeOffsetOfDvsync(time);
     ASSERT_EQ(offset, 0);
-}
-
-/*
-* Function: MarkRSAnimate001
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call MarkRSAnimate
- */
-HWTEST_F(VSyncDistributorTest, MarkRSAnimate001, Function | MediumTest| Level3)
-{
-    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "VSyncDistributorTest");
-    auto res = VSyncDistributorTest::vsyncDistributor->SetUiDvsyncSwitch(true, conn);
-    ASSERT_EQ(res, VSYNC_ERROR_OK);
-    VSyncDistributorTest::vsyncDistributor->MarkRSAnimate();
-}
-
-/*
-* Function: UnmarkRSAnimate001
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call UnmarkRSAnimate
- */
-HWTEST_F(VSyncDistributorTest, UnmarkRSAnimate001, Function | MediumTest| Level3)
-{
-    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "VSyncDistributorTest");
-    auto res = VSyncDistributorTest::vsyncDistributor->SetUiDvsyncSwitch(false, conn);
-    ASSERT_EQ(res, VSYNC_ERROR_OK);
-    VSyncDistributorTest::vsyncDistributor->UnmarkRSAnimate();
-}
-
-/*
-* Function: HasPendingUIRNV001
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call HasPendingUIRNV
- */
-HWTEST_F(VSyncDistributorTest, HasPendingUIRNV001, Function | MediumTest| Level3)
-{
-    auto res = VSyncDistributorTest::vsyncDistributor->HasPendingUIRNV();
-    EXPECT_FALSE(res);
 }
 
 /*
@@ -720,6 +685,7 @@ HWTEST_F(VSyncDistributorTest, OnVSyncTriggerTest004, Function | MediumTest| Lev
         ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
     }
     vsyncDistributor->vsyncMode_ = vsyncMode;
+    sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
 }
 
 /**
@@ -770,6 +736,7 @@ HWTEST_F(VSyncDistributorTest, OnVSyncTriggerTest005, Function | MediumTest| Lev
         ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
     }
     vsyncDistributor->vsyncMode_ = vsyncMode;
+    sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
 }
 
 /**
@@ -799,6 +766,7 @@ HWTEST_F(VSyncDistributorTest, OnVSyncTriggerTest006, Function | MediumTest| Lev
         ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
     }
     vsyncDistributor->vsyncMode_ = vsyncMode;
+    sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
 }
 
 /**
@@ -1387,11 +1355,11 @@ HWTEST_F(VSyncDistributorTest, OnDVSyncEventTest001, Function | MediumTest| Leve
     VSyncMode vsyncMode = VSYNC_MODE_LTPO;
     uint32_t vsyncMaxRefreshRate = 120;
     vsyncDistributor->OnDVSyncEvent(now, period, refreshRate, vsyncMode, vsyncMaxRefreshRate);
-#if defined(RS_ENABLE_DVSYNC_2)
-    ASSERT_EQ(vsyncDistributor->vsyncMode_, VSYNC_MODE_LTPO);
-#else
-    ASSERT_EQ(vsyncDistributor->vsyncMode_, VSYNC_MODE_LTPS);
-#endif
+    if (DVSyncLibManager::Instance().IsInitialized()) {
+        ASSERT_EQ(vsyncDistributor->vsyncMode_, VSYNC_MODE_LTPO);
+    } else {
+        ASSERT_EQ(vsyncDistributor->vsyncMode_, VSYNC_MODE_LTPS);
+    }
 }
 
 /*

@@ -204,7 +204,6 @@ public:
 private:
     void AddCommand(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType);
     void AddCommand(std::unique_ptr<RSCommand>&& command, NodeId nodeId, FollowType followType);
-    void MoveCommandByNodeId(std::unique_ptr<RSTransactionData>& transactionData, NodeId nodeId);
     void MoveAllCommand(std::unique_ptr<RSTransactionData>& transactionData);
 
     bool UnmarshallingCommand(Parcel& parcel);

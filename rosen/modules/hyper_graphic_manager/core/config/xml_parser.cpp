@@ -803,7 +803,7 @@ int32_t XMLParser::ParsePageUrlStrategy(xmlNode& node,
     return EXEC_SUCCESS;
 }
 
-bool XMLParser::BuildStrategyConfig(xmlNode &currNode, PolicyConfigData::StrategyConfig &strategy)
+bool XMLParser::BuildStrategyConfig(xmlNode& currNode, PolicyConfigData::StrategyConfig& strategy)
 {
     auto min = ExtractPropertyValue("min", currNode);
     auto max = ExtractPropertyValue("max", currNode);

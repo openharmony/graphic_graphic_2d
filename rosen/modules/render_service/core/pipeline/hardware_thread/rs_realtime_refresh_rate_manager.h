@@ -23,8 +23,7 @@
 #include <thread>
 #include <unordered_map>
 
-#include "hgm_frame_rate_manager.h"
-#include "screen_manager/screen_types.h"
+#include "screen_manager/rs_screen_property.h"
 
 namespace OHOS::Rosen {
 enum class RealtimeRefreshRateType : int32_t {
@@ -38,43 +37,45 @@ class RSRealtimeRefreshRateManager {
 public:
     static RSRealtimeRefreshRateManager& Instance();
 
-    bool GetShowRefreshRateEnabled() const
+    bool GetShowRefreshRateEnabled()
     {
+        std::unique_lock<std::mutex> lock(realtimeRateMutex_);
         return showEnabled_;
     }
     void SetShowRefreshRateEnabled(bool enabled, int32_t type);
-    uint32_t GetRealtimeRefreshRate(ScreenId screenId);
-    uint32_t GetScreenCurrentRefreshRate(ScreenId screenId);
+    void UpdateScreenRefreshRate(const RSScreenProperty& property, ScreenPropertyType type);
+    std::pair<uint32_t, uint32_t> GetRefreshRateByScreenId(ScreenId screenId);
+    uint32_t GetRealtimeRefreshRateByScreenId(ScreenId screenId);
+
 private:
-    friend class RSRenderComposer;
-    RSRealtimeRefreshRateManager() = default;
+    friend class RSUniRenderComposerAdapter;
+    RSRealtimeRefreshRateManager();
     ~RSRealtimeRefreshRateManager() = default;
 
     inline void CountRealtimeFrame(const ScreenId screenId)
     {
+        std::unique_lock<std::mutex> lock(realtimeRateMutex_);
         if (showEnabled_ || collectEnabled_) {
-            std::unique_lock<std::mutex> lock(showRealtimeFrameMutex_);
             realtimeFrameCountMap_[screenId]++;
         }
     }
-    void StatisticsRefreshRateDataLocked(std::shared_ptr<HgmFrameRateManager> frameRateMgr);
 
-    std::atomic<bool> showEnabled_ = false;
-    std::atomic<bool> collectEnabled_ = false;
-    std::atomic<bool> isCollectRefreshRateTaskRunning_ = false;
+    bool showEnabled_ = false;
+    bool collectEnabled_ = false;
+    bool isCollectRefreshRateTaskRunning_ = false;
+    std::unordered_map<ScreenId, uint32_t> screenRefreshRateMap_;
     std::unordered_map<ScreenId, uint32_t> currRealtimeRefreshRateMap_;
     std::unordered_map<ScreenId, uint32_t> realtimeFrameCountMap_;
-    std::mutex showRealtimeFrameMutex_;
-    std::mutex threadMutex_;
     std::chrono::steady_clock::time_point startTime_;
-    uint32_t lastRefreshRate_ = 0;
-    bool isRealtimeRefreshRateChange_ = false;
-    std::function<void()> showRefreshRateTask_ = nullptr;
-    const std::string EVENT_ID = "SHOW_REFRESH_RATE";
+    std::mutex realtimeRateMutex_;
 
+    std::function<void()> showRefreshRateTask_ = nullptr;
+
+    static constexpr char EVENT_ID[] = "SHOW_REFRESH_RATE";
     static constexpr uint8_t IDLE_FPS_THRESHOLD = 8;
     static constexpr auto NS_PER_S =
         std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::seconds(1)).count();
+    static constexpr uint8_t DEFAULT_SCREEN_REFRESH_RATE = 60;
     static constexpr uint8_t DEFAULT_REALTIME_REFRESH_RATE = 1;
     static constexpr uint32_t EVENT_INTERVAL = 250; // 250ms
 };

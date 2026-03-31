@@ -48,6 +48,8 @@ public:
 
     void SetFocusedNodeId(NodeId focusedNodeId);
     void PushWindowNodeId(NodeId nodeId);
+    void ClearLastVisMapForVsyncRate();
+    bool CheckNeedNotify();
     bool GetVRateReduceEnabled() const
     {
         return vRateReduceEnabled_;
@@ -56,19 +58,15 @@ public:
     void FrameDurationBegin();
     void FrameDurationEnd();
 
-    void Init(const sptr<VSyncDistributor>& appVSyncDistributor);
+    void SetIsReduceBySystemAnimatedScenes(bool isReduceBySystemAnimatedScenes);
+    void Init();
     void ResetFrameValues(uint32_t rsRefreshRate);
     void CollectSurfaceVsyncInfo(const ScreenInfo& screenInfo, RSSurfaceRenderNode& node);
     void SetUniVsync();
 
-    std::map<uint64_t, int> GetVrateMap()
+    const std::unordered_map<NodeId, int> GetVrateMap() const
     {
-        return linkersRateMap_;
-    }
-
-    bool SetVSyncRatesChangeStatus(bool newState)
-    {
-        return needPostTask_.exchange(newState);
+        return vSyncRateMap_;
     }
 
     bool GetVRateDeviceSupport() const
@@ -76,10 +74,8 @@ public:
         return isDeviceSupprotVRate_;
     }
 private:
-    void NotifyVRates();
     int UpdateRatesLevel();
     void CalcRates();
-    bool CheckNeedNotify();
     int GetRateByBalanceLevel(double vVal);
     void EnqueueFrameDuration(float duration);
     static inline Occlusion::Rect GetMaxVerticalRect(const Occlusion::Region& region);
@@ -95,10 +91,12 @@ private:
     bool vRateReduceEnabled_ = false;
     std::atomic<bool> vRateConditionQualified_ = false;
     bool vSyncRatesChanged_ = false;
-    std::map<NodeId, int> vSyncRateMap_;
-    std::map<NodeId, int> lastVSyncRateMap_;
+    std::unordered_map<NodeId, int> vSyncRateMap_;
+    std::unordered_map<NodeId, int> lastVSyncRateMap_;
     std::vector<NodeId> curAllMainAndLeashWindowNodesIds_;
     std::vector<NodeId> lastAllMainAndLeashWindowNodesIds_;
+    std::map<NodeId, RSVisibleLevel> visMapForVSyncVisLevel_;
+    std::map<NodeId, RSVisibleLevel> lastVisMapForVSyncVisLevel_;
 
     NodeId focusedNodeId_ = 0;
     NodeId lastFocusedNodeId_ = 0;
@@ -112,15 +110,25 @@ private:
     std::deque<float> frameDurations_;
 
     bool isSystemAnimatedScenes_ = false;
+    bool isReduceBySystemAnimatedScenes_ = false;
 
     bool isDeviceSupprotVRate_ = false;
     std::map<NodeId, SurfaceVRateInfo> surfaceVRateMap_;
-    sptr<VSyncDistributor> appVSyncDistributor_ = nullptr;
     std::map<NodeId, uint64_t> windowLinkerMap_;
     std::map<uint64_t, int> linkersRateMap_;
-    std::atomic<bool> needPostTask_{ false };
 };
 
+class RSVsyncRateReduceUtil {
+public:
+    static void TransformNodeToLinkersRateMap(const std::unordered_map<NodeId, int>& vRateMap,
+        bool isNeedRefreshVRate, sptr<VSyncDistributor> appVSyncDistributor);
+    static bool SetVSyncRatesChangeStatus(bool newState);
+    static std::map<uint64_t, int> GetLinkersRateMap();
+private:
+        static inline std::map<uint64_t, int> linkersRateMap_;
+        static inline std::unordered_map<NodeId, int> lastVSyncRateMap_;
+        static inline std::atomic<bool> needPostTask_ { false };
+};
 } // namespace Rosen
 } // namespace OHOS
 

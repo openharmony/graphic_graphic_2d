@@ -44,7 +44,8 @@ HWTEST_F(RSSurfaceFpsManagerTest, RegisterAndUnregister, TestSize.Level1)
     RSSurfaceFpsManager& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
     NodeId id = 1000;
     std::string name = "surfacefps0";
-    surfaceFpsManager.RegisterSurfaceFps(id, name);
+    uint64_t uniqueId = 0;
+    surfaceFpsManager.RegisterSurfaceFps(id, name, uniqueId);
     size_t size = 1;
     EXPECT_EQ(size, surfaceFpsManager.GetSurfaceFpsMap().size());
     surfaceFpsManager.UnregisterSurfaceFps(id);
@@ -68,7 +69,8 @@ HWTEST_F(RSSurfaceFpsManagerTest, GetSurfaceFps, TestSize.Level1)
     NodeId uid = 2ull << 32;
     std::string uname = "surfacefps1";
     bool isUnique = false;
-    surfaceFpsManager.RegisterSurfaceFps(id, name);
+    uint64_t uniqueId = 0;
+    surfaceFpsManager.RegisterSurfaceFps(id, name, uniqueId);
     EXPECT_NE(nullptr, surfaceFpsManager.GetSurfaceFps(id));
     EXPECT_EQ(nullptr, surfaceFpsManager.GetSurfaceFps(uid));
     EXPECT_NE(nullptr, surfaceFpsManager.GetSurfaceFps(name, isUnique));
@@ -93,7 +95,8 @@ HWTEST_F(RSSurfaceFpsManagerTest, DumpAndClearDump, TestSize.Level1)
     pid_t upid = 2;
     NodeId uid = 2ull << 32;
     std::string uname = "surfacefps1";
-    surfaceFpsManager.RegisterSurfaceFps(id, name);
+    uint64_t uniqueId = 0;
+    surfaceFpsManager.RegisterSurfaceFps(id, name, uniqueId);
     std::string result("");
     surfaceFpsManager.Dump(result, id);
     EXPECT_TRUE(result.find("surface") != std::string::npos);
@@ -204,7 +207,8 @@ HWTEST_F(RSSurfaceFpsManagerTest, RecordPresentTimeOnceTest, TestSize.Level1)
     NodeId id = 1000; // id 1000
     uint64_t vsyncId = 1; // vsyncid 1
     std::string name = "surfacefps0";
-    surfaceFpsManager.RegisterSurfaceFps(id, name);
+    uint64_t uniqueId = 0;
+    surfaceFpsManager.RegisterSurfaceFps(id, name, uniqueId);
     uint64_t flushTimestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count();
     surfaceFpsManager.RecordFlushTime(id, vsyncId, flushTimestamp);
@@ -232,7 +236,8 @@ HWTEST_F(RSSurfaceFpsManagerTest, RecordPresentTimeLoopTest, TestSize.Level1)
     std::string name = "surfacefps0";
     uint32_t count = 400; // 400 次
     int32_t presentFd = 10; // fd 10
-    surfaceFpsManager.RegisterSurfaceFps(id, name);
+    uint64_t uniqueId = 0;
+    surfaceFpsManager.RegisterSurfaceFps(id, name, uniqueId);
     uint64_t flushTimestamp, presentTimestamp;
     uint64_t firstFlushTimestamp, firstPresentTimestamp;
 
@@ -273,12 +278,13 @@ HWTEST_F(RSSurfaceFpsManagerTest, RecordPresentTimeForNoSurface, TestSize.Level1
     RSSurfaceFpsManager& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
     NodeId id1 = 1000; // id 1000
     NodeId id2 = 2000; // id 2000
+    uint64_t uniqueId = 0;
 
     uint64_t vsyncId = 1; // vsyncid 1
     std::string name1 = "surfacefps0";
     std::string name2 = "surfacefps1";
-    surfaceFpsManager.RegisterSurfaceFps(id1, name1);
-    surfaceFpsManager.RegisterSurfaceFps(id2, name2);
+    surfaceFpsManager.RegisterSurfaceFps(id1, name1, uniqueId);
+    surfaceFpsManager.RegisterSurfaceFps(id2, name2, uniqueId);
     uint64_t flushTimestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count();
     surfaceFpsManager.RecordFlushTime(id1, vsyncId, flushTimestamp);
@@ -300,5 +306,58 @@ HWTEST_F(RSSurfaceFpsManagerTest, RecordPresentTimeForNoSurface, TestSize.Level1
     EXPECT_TRUE(result.find(std::to_string(flushTimestamp)) != std::string::npos);
     EXPECT_TRUE(result.find(std::to_string(presentTimestamp)) != std::string::npos);
     surfaceFpsManager.UnregisterSurfaceFps(id1);
+}
+
+/**
+ * @tc.name: GetSelfDrawSurfaceNameByPidAndUniqueId
+ * @tc.desc: test results of GetSelfDrawSurfaceNameByPidAndUniqueId
+ * @tc.type:FUNC
+ * @tc.require: IC1APD
+ */
+HWTEST_F(RSSurfaceFpsManagerTest, GetSelfDrawSurfaceNameByPidAndUniqueId, TestSize.Level1)
+{
+    RSSurfaceFpsManager& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
+    pid_t upid = 2;
+    uint64_t uniqueId = 2000;
+    EXPECT_EQ(surfaceFpsManager.GetSelfDrawSurfaceNameByPidAndUniqueId(upid, uniqueId), "");
+
+    NodeId uid = 2ull << 32;
+    std::string name = "surfacefps0";
+    surfaceFpsManager.RegisterSurfaceFps(uid, name, uniqueId);
+    EXPECT_EQ(surfaceFpsManager.GetSelfDrawSurfaceNameByPidAndUniqueId(upid, uniqueId), name);
+    
+    EXPECT_EQ(surfaceFpsManager.GetSelfDrawSurfaceNameByPidAndUniqueId(1, uniqueId), "");
+    EXPECT_EQ(surfaceFpsManager.GetSelfDrawSurfaceNameByPidAndUniqueId(upid, 3000), "");
+
+    surfaceFpsManager.UnregisterSurfaceFps(uid);
+    surfaceFpsManager.RegisterSurfaceFps(uid, "RosenWeb", uniqueId);
+    EXPECT_EQ(surfaceFpsManager.GetSelfDrawSurfaceNameByPidAndUniqueId(upid, uniqueId), "");
+}
+
+/**
+ * @tc.name: GetSelfDrawSurfaceNameByPid
+ * @tc.desc: test results of GetSelfDrawSurfaceNameByPid
+ * @tc.type:FUNC
+ * @tc.require: IBE7GI
+ */
+HWTEST_F(RSSurfaceFpsManagerTest, GetSelfDrawSurfaceNameByPid, TestSize.Level1)
+{
+    RSSurfaceFpsManager& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
+
+    pid_t upid = 3;
+    uint64_t uniqueId = 3000;
+    EXPECT_EQ(surfaceFpsManager.GetSelfDrawSurfaceNameByPid(upid), "");
+
+    NodeId uid = 3ull << 32;
+    std::string name = "surfacefps1";
+    surfaceFpsManager.RegisterSurfaceFps(uid, name, uniqueId);
+    EXPECT_EQ(surfaceFpsManager.GetSelfDrawSurfaceNameByPid(upid), name);
+
+    EXPECT_EQ(surfaceFpsManager.GetSelfDrawSurfaceNameByPid(1), "");
+
+    surfaceFpsManager.UnregisterSurfaceFps(uid);
+    surfaceFpsManager.RegisterSurfaceFps(uid, "RosenWeb", uniqueId);
+    EXPECT_EQ(surfaceFpsManager.GetSelfDrawSurfaceNameByPid(upid), "");
+    surfaceFpsManager.UnregisterSurfaceFps(uid);
 }
 }

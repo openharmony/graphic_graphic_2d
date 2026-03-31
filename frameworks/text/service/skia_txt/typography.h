@@ -111,7 +111,6 @@ private:
     std::optional<std::vector<LineMetrics>> lineMetrics_;
     bool textEffectAssociation_{false};
     mutable std::shared_mutex mutex_;
-    TypographyStyle typographyStyle_;
     std::vector<LineMetrics> GetAllLineMetrics();
 };
 } // namespace AdapterTxt

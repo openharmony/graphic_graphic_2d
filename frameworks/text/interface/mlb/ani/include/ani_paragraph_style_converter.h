@@ -34,7 +34,10 @@ public:
         ani_env* env, ani_object obj, std::unique_ptr<OHOS::Rosen::TypographyStyle>& paragraphStyle);
     static void ParseTextTabToNative(ani_env* env, ani_object obj, OHOS::Rosen::TextTab& textTab);
     static void ParseFontFamiliesToNative(ani_env* env, ani_array obj, std::vector<std::string>& fontFamilies);
-    static void ParseTypographyStyleToAni(ani_env* env, const OHOS::Rosen::TypographyStyle& style, ani_object& obj);
+    static void ParseTypographyStyleToAni(
+        ani_env* env, const OHOS::Rosen::TypographyStyle& style, ani_object& obj);
+    static ani_object ParseStrutStyleToAni(ani_env* env, const OHOS::Rosen::TypographyStyle& style);
+    static ani_object ParseTextTabToAni(ani_env* env, const OHOS::Rosen::TextTab& textTab);
 };
 } // namespace OHOS::Text::ANI
 #endif // OHOS_TEXT_ANI_PARAGRAPH_STYLE_CONVERTER_H

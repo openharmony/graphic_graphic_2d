@@ -46,6 +46,8 @@ public:
         const std::shared_ptr<Drawing::GEWaterGlassDataParams>& params);
     static std::shared_ptr<EffectImageFilter> ReededGlass(
         const std::shared_ptr<Drawing::GEReededGlassDataParams>& params);
+    static std::shared_ptr<EffectImageFilter> Scale(float scaleX, float scaleY,
+        Drawing::FilterMode filterMode, Drawing::MipmapMode mipmapMode);
     virtual DrawingError Apply(const std::shared_ptr<EffectImageChain>& image) = 0;
 };
 
@@ -193,6 +195,21 @@ public:
 
 private:
     std::shared_ptr<Drawing::GEReededGlassDataParams> reededGlassData_;
+};
+
+class EffectImageScaleFilter : public EffectImageFilter {
+public:
+    EffectImageScaleFilter(float scaleX, float scaleY, Drawing::FilterMode filterMode, Drawing::MipmapMode mipmapMode)
+        : scaleX_(scaleX), scaleY_(scaleY), filterMode_(filterMode), mipmapMode_(mipmapMode) {}
+    ~EffectImageScaleFilter() override = default;
+
+    DrawingError Apply(const std::shared_ptr<EffectImageChain>& image) override;
+
+private:
+    float scaleX_;
+    float scaleY_;
+    Drawing::FilterMode filterMode_ = Drawing::FilterMode::LINEAR;
+    Drawing::MipmapMode mipmapMode_ = Drawing::MipmapMode::LINEAR;
 };
 
 class EffectImageRender {

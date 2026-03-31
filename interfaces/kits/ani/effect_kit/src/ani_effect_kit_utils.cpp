@@ -43,7 +43,10 @@ ani_object AniEffectKitUtils::CreateAniObject(
 ani_object AniEffectKitUtils::CreateAniUndefined(ani_env* env)
 {
     ani_ref aniRef;
-    env->GetUndefined(&aniRef);
+    if (env->GetUndefined(&aniRef) != ANI_OK) {
+        EFFECT_LOG_E("GetUndefined Failed.");
+        return nullptr;
+    }
     return static_cast<ani_object>(aniRef);
 }
 

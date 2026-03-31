@@ -191,6 +191,7 @@ public:
     bool HasTaskRunner();
 
     void MoveModifier(std::shared_ptr<RSUIContext> dstUIContext, NodeId nodeId);
+    bool MoveCommandsIfNeeded(const std::shared_ptr<RSUIContext>& newUIContext);
 
 private:
     RSUIContext();

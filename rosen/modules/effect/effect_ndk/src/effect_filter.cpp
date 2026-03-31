@@ -107,6 +107,17 @@ EffectErrorCode OH_Filter_GrayScale(OH_Filter* filter)
     return EFFECT_SUCCESS;
 }
 
+EffectErrorCode OH_Filter_Scale(
+    OH_Filter* filter, float scaleX, float scaleY, OH_Filter_ScaleMode filterMode, OH_Filter_MipmapMode mipmapMode)
+{
+    Drawing::FilterMode drawingFilterMode = static_cast<Drawing::FilterMode>(filterMode);
+    Drawing::MipmapMode drawingMipmapMode = static_cast<Drawing::MipmapMode>(mipmapMode);
+    if (!filter || !(CastToFilter(filter)->Scale(scaleX, scaleY, drawingFilterMode, drawingMipmapMode))) {
+        return EFFECT_BAD_PARAMETER;
+    }
+    return EFFECT_SUCCESS;
+}
+
 EffectErrorCode OH_Filter_Invert(OH_Filter* filter)
 {
     if (!filter || !(CastToFilter(filter)->Invert())) {
@@ -264,6 +275,7 @@ EffectErrorCode OH_Filter_WaterDropletTransition(OH_Filter* filter,
 
     geWaterDropletParams->inverse = inverse;
     geWaterDropletParams->progress = waterDropletParams->progress;
+    geWaterDropletParams->position = { waterDropletParams->position.x, waterDropletParams->position.y };
     geWaterDropletParams->radius = waterDropletParams->radius;
     geWaterDropletParams->transitionFadeWidth = waterDropletParams->transitionFadeWidth;
     geWaterDropletParams->distortionIntensity = waterDropletParams->distortionIntensity;
@@ -277,6 +289,10 @@ EffectErrorCode OH_Filter_WaterDropletTransition(OH_Filter* filter,
 
     geWaterDropletParams->progress = geWaterDropletParams->progress < 0.0f ? 0.0f : geWaterDropletParams->progress;
     geWaterDropletParams->radius = std::clamp(geWaterDropletParams->radius, 0.0f, WATER_DROPLET_RADIUS_MAX);
+    geWaterDropletParams->position.x_ = std::clamp(geWaterDropletParams->position.x_,
+        -WATER_DROPLET_RADIUS_MAX, WATER_DROPLET_RADIUS_MAX);
+        geWaterDropletParams->position.y_ = std::clamp(geWaterDropletParams->position.y_,
+        -WATER_DROPLET_RADIUS_MAX, WATER_DROPLET_RADIUS_MAX);
     geWaterDropletParams->transitionFadeWidth = std::clamp(geWaterDropletParams->transitionFadeWidth, 0.0f, 1.0f);
     geWaterDropletParams->distortionIntensity = std::clamp(geWaterDropletParams->distortionIntensity, 0.0f, 1.0f);
     geWaterDropletParams->distortionThickness = std::clamp(geWaterDropletParams->distortionThickness, 0.0f, 1.0f);
@@ -314,31 +330,31 @@ EffectErrorCode OH_Filter_WaterGlass(OH_Filter* filter, OH_Filter_WaterGlassData
     std::shared_ptr<Drawing::GEWaterGlassDataParams> geWaterParams =
         std::make_shared<Drawing::GEWaterGlassDataParams>();
 
-    static constexpr float waveRefractionK = 3.f;
-
-    geWaterParams->waveCenter.SetX(waterGlassParams->waveCenter.x);
-    geWaterParams->waveCenter.SetY(waterGlassParams->waveCenter.y);
-    geWaterParams->waveSourceXY.SetX(waterGlassParams->waveSourceXY.x);
-    geWaterParams->waveSourceXY.SetY(waterGlassParams->waveSourceXY.y);
-    geWaterParams->waveDistortXY.SetX(waterGlassParams->waveDistortXY.x);
-    geWaterParams->waveDistortXY.SetY(waterGlassParams->waveDistortXY.y);
-    geWaterParams->waveDensityXY.SetX(waterGlassParams->waveDensityXY.x);
-    geWaterParams->waveDensityXY.SetY(waterGlassParams->waveDensityXY.y);
+    geWaterParams->speed = waterGlassParams->speed;
+    geWaterParams->distortSpeed =waterGlassParams->distortSpeed;
+    geWaterParams->refractionSpeed = {waterGlassParams->refractionSpeed.x, waterGlassParams->refractionSpeed.y};
+    geWaterParams->progress = waterGlassParams->progress;
+    geWaterParams->shakingDirection1 = {waterGlassParams->shakingDirection1.x, waterGlassParams->shakingDirection1.y};
+    geWaterParams->shakingDirection2 = {waterGlassParams->shakingDirection2.x, waterGlassParams->shakingDirection2.y};
+    geWaterParams->waveDensityXY = {waterGlassParams->waveDensityXY.x, waterGlassParams->waveDensityXY.y};
     geWaterParams->waveStrength = waterGlassParams->waveStrength;
-    geWaterParams->waveLightStrength = waterGlassParams->waveLightStrength;
-    geWaterParams->waveRefraction = waterGlassParams->waveRefraction * waveRefractionK;
+    geWaterParams->waveRefraction = waterGlassParams->waveRefraction;
     geWaterParams->waveSpecular = waterGlassParams->waveSpecular;
     geWaterParams->waveFrequency = waterGlassParams->waveFrequency;
     geWaterParams->waveShapeDistortion = waterGlassParams->waveShapeDistortion;
-    geWaterParams->waveNoiseStrength = waterGlassParams->waveNoiseStrength;
-    geWaterParams->waveMaskSize.SetX(waterGlassParams->waveMaskSize.x);
-    geWaterParams->waveMaskSize.SetY(waterGlassParams->waveMaskSize.y);
-    geWaterParams->waveMaskRadius = waterGlassParams->waveMaskRadius;
+    geWaterParams->waveDistortionAngle = waterGlassParams->waveDistortionAngle;
+    geWaterParams->rippleXWave = waterGlassParams->rippleXWave;
+    geWaterParams->rippleYWave = waterGlassParams->rippleYWave;
     geWaterParams->borderRadius = waterGlassParams->borderRadius;
     geWaterParams->borderThickness = waterGlassParams->borderThickness;
-    geWaterParams->borderScope = waterGlassParams->borderScope;
-    geWaterParams->borderStrength = waterGlassParams->borderStrength;
-    geWaterParams->progress = waterGlassParams->progress;
+    geWaterParams->waveInnerMaskXY = {waterGlassParams->waveInnerMaskXY.x, waterGlassParams->waveInnerMaskXY.y};
+    geWaterParams->waveInnerMaskRadius = waterGlassParams->waveInnerMaskRadius;
+    geWaterParams->waveInnerMaskSmoothness = waterGlassParams->waveInnerMaskSmoothness;
+    geWaterParams->waveOuterMaskPadding = waterGlassParams->waveOuterMaskPadding;
+    geWaterParams->waveSpecularPower = waterGlassParams->waveSpecularPower;
+    geWaterParams->refractionDetailDark = waterGlassParams->refractionDetailDark;
+    geWaterParams->refractionDetailWhite = waterGlassParams->refractionDetailWhite;
+    geWaterParams->detailStrength = waterGlassParams->detailStrength;
     CastToFilter(filter)->WaterGlass(geWaterParams);
 
     return EFFECT_SUCCESS;
@@ -353,30 +369,13 @@ EffectErrorCode OH_Filter_ReededGlass(OH_Filter* filter, OH_Filter_ReededGlassDa
         std::make_shared<Drawing::GEReededGlassDataParams>();
 
     geReededparams->refractionFactor = reededGlassParams->refractionFactor;
-    geReededparams->dispersionStrength = reededGlassParams->dispersionStrength;
-    geReededparams->roughness = reededGlassParams->roughness;
-    geReededparams->noiseFrequency = reededGlassParams->noiseFrequency;
     geReededparams->horizontalPatternNumber = reededGlassParams->horizontalPatternNumber;
-    geReededparams->saturationFactor = reededGlassParams->saturationFactor;
-
     geReededparams->gridLightStrength = reededGlassParams->gridLightStrength;
     geReededparams->gridLightPositionStart = reededGlassParams->gridLightPositionStart;
     geReededparams->gridLightPositionEnd = reededGlassParams->gridLightPositionEnd;
-
     geReededparams->gridShadowStrength = reededGlassParams->gridShadowStrength;
     geReededparams->gridShadowPositionStart = reededGlassParams->gridShadowPositionStart;
     geReededparams->gridShadowPositionEnd = reededGlassParams->gridShadowPositionEnd;
-
-    geReededparams->pointLightColor.redF_ = reededGlassParams->pointLightColor.red;
-    geReededparams->pointLightColor.greenF_ = reededGlassParams->pointLightColor.green;
-    geReededparams->pointLightColor.blueF_ = reededGlassParams->pointLightColor.blue;
-    geReededparams->pointLight1Position.SetX(reededGlassParams->pointLight1Position.x);
-    geReededparams->pointLight1Position.SetY(reededGlassParams->pointLight1Position.y);
-    geReededparams->pointLight1Strength = reededGlassParams->pointLight1Strength;
-    geReededparams->pointLight2Position.SetX(reededGlassParams->pointLight2Position.x);
-    geReededparams->pointLight2Position.SetY(reededGlassParams->pointLight2Position.y);
-    geReededparams->pointLight2Strength = reededGlassParams->pointLight2Strength;
-
     geReededparams->portalLightSize.SetX(reededGlassParams->portalLightSize.x);
     geReededparams->portalLightSize.SetY(reededGlassParams->portalLightSize.y);
     geReededparams->portalLightTilt.SetX(reededGlassParams->portalLightTilt.x);

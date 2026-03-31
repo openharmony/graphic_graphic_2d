@@ -1468,6 +1468,11 @@ std::array<int, 2> SkiaCanvas::CalcHpsBluredImageDimension(const Drawing::HpsBlu
     return skCanvas_->CalcHpsBluredImageDimension(blurArg);
 #endif
 }
+
+void SkiaCanvas::InsertOpaqueRegion(const std::vector<RectI>& opaqueRects)
+{
+    LOGD("skia does not support InsertOpaqueRegion");
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

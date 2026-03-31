@@ -117,15 +117,15 @@ rosen/modules/render_service_base/src/modifier_ng/foreground/rs_foreground_shade
 
 rosen/modules/render_service_base/include/property/ @xiaojianfeng_jeffery
 rosen/modules/render_service_base/include/property/rs_color_picker_def.h @hanamaru
-rosen/modules/render_service_base/include/drawable/rs_color_picker_drawable.h @hanamaru
 rosen/modules/render_service_base/include/property/rs_point_light_manager.h @hanamaru
 
 rosen/modules/render_service_base/src/property/ @xiaojianfeng_jeffery
-rosen/modules/render_service_base/src/drawable/rs_color_picker_drawable.cpp @hanamaru
 rosen/modules/render_service_base/src/property/rs_point_light_manager.cpp @hanamaru
 
 rosen/modules/render_service_base/include/drawable/ @xiaojianfeng_jeffery
 rosen/modules/render_service_base/src/drawable/ @xiaojianfeng_jeffery
+rosen/modules/render_service_base/include/drawable/rs_color_picker_drawable.h @hanamaru
+rosen/modules/render_service_base/src/drawable/rs_color_picker_drawable.cpp @hanamaru
 
 [effect]
 rosen/modules/render_service_client/core/ui_effect/ @hanamaru
@@ -214,7 +214,7 @@ rosen/modules/render_service/core/pipeline/render_thread/rs_uni_render_util.h @c
 rosen/modules/render_service_profiler/ @huang_kaixing
 rosen/test/render_service/render_service_profiler/unittest/ @huang_kaixing
 rosen/modules/render_service_base/include/common/rs_common_def.h @huang_kaixing
-rosen/modules/render_service_base/include/platform/ohos/rs_irender_service_connection_ipc_interface_code.h @huang_kaixing
+rosen/modules/render_service_base/include/platform/ohos/rs_iclient_to_service_connection_ipc_interface_code.h @huang_kaixing
 
 [HWC]
 rosen/modules/render_service/core/pipeline/hwc/ @wh_qwe

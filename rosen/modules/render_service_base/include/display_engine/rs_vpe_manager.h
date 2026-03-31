@@ -29,6 +29,8 @@ public:
 
     RSB_EXPORT sptr<Surface> CheckAndGetSurface(const sptr<Surface>& surface, const RSSurfaceRenderNodeConfig& config);
     RSB_EXPORT void ReleaseVpeVideo(uint64_t nodeId);
+    RSB_EXPORT void EnableVpeVideo(const RSSurfaceRenderNodeConfig& config);
+    RSB_EXPORT void DisableVpeVideo(const RSSurfaceRenderNodeConfig& config);
 
 private:
     sptr<Surface> GetVpeVideoSurface(uint32_t type, const sptr<Surface>& RSSurface,

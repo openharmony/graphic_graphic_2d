@@ -24,7 +24,9 @@
 #define UTILS_BASE_ASHMEM_H
 
 #include <cstddef>
+#if !defined(__APPLE__) && !defined(_WIN32) && !defined(__gnu_linux__)
 #include <linux/ashmem.h>
+#endif
 #include "refbase.h"
 #include "parcel.h"
 

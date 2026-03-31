@@ -71,11 +71,12 @@ static ani_object BuildColor(ani_env* env, const ColorManager::Color &color)
     ani_int colorGreen = static_cast<ani_int>(color.g * 255.0f);
     ani_int colorBlue = static_cast<ani_int>(color.b * 255.0f);
     ani_int colorAlpha = static_cast<ani_int>(color.a * 255.0f);
-    env->Object_SetPropertyByName_Int(result, "red", colorRed);
-    env->Object_SetPropertyByName_Int(result, "green", colorGreen);
-    env->Object_SetPropertyByName_Int(result, "blue", colorBlue);
-    env->Object_SetPropertyByName_Int(result, "alpha", colorAlpha);
-
+    if ((env->Object_SetPropertyByName_Int(result, "red", colorRed) != ANI_OK) ||
+        (env->Object_SetPropertyByName_Int(result, "green", colorGreen) != ANI_OK) ||
+        (env->Object_SetPropertyByName_Int(result, "blue", colorBlue) != ANI_OK) ||
+        (env->Object_SetPropertyByName_Int(result, "alpha", colorAlpha) != ANI_OK)) {
+        EFFECT_LOG_E("build color is fail, set color value fail.");
+    }
     return result;
 }
 

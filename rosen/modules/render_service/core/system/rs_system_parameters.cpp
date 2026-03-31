@@ -302,14 +302,6 @@ bool RSSystemParameters::GetUIFirstPurgeEnabled()
     return ConvertToInt(enable, 0) != 0;
 }
 
-bool RSSystemParameters::GetUIFirstOcclusionEnabled()
-{
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.uni.uifirst.occlusion.enable", "1");
-    int changed = 0;
-    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return ConvertToInt(enable, 0);
-}
-
 bool RSSystemParameters::GetUIFirstCaptrueReuseEnabled()
 {
     static bool enable =
@@ -322,6 +314,22 @@ bool RSSystemParameters::GetUIFirstStartingWindowCacheEnabled()
     static bool enable =
         std::atoi((system::GetParameter("persist.sys.graphic.uifirst.startingWindow.cache.enable", "1")).c_str()) != 0;
     return enable;
+}
+
+bool RSSystemParameters::GetUIFirstOcclusionEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.uifirst.occlusion.enable", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 0) != 0;
+}
+
+bool RSSystemParameters::GetUIFirstOcclusionDebugEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.uifirst.occlusion.dfx.enable", "0");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 0) != 0;
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -750,7 +750,7 @@ ani_object AniPath::Approximate(ani_env* env, ani_object obj, ani_double accepta
         return CreateAniUndefined(env);
     }
     if (acceptableErrorobj < 0.0) {
-        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED,
             "AniPath::approximate acceptableError is invaild.");
         return CreateAniUndefined(env);
     }
@@ -763,7 +763,7 @@ ani_object AniPath::Approximate(ani_env* env, ani_object obj, ani_double accepta
         return CreateAniUndefined(env);
     }
     
-    for (int32_t i = 0; i < points.size(); ++i) {
+    for (int32_t i = 0; i < arrayLength; ++i) {
         ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().doubleCls,
             AniGlobalMethod::GetInstance().doubleCtor, points[i]);
         if (IsUndefined(env, aniObj)) {
@@ -813,6 +813,11 @@ ani_boolean AniPath::Interpolate(ani_env* env, ani_object obj, ani_object othero
     auto other = GetNativeFromObj<AniPath>(env, otherobj, AniGlobalField::GetInstance().pathNativeObj);
     if (other == nullptr || other->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param dst.");
+        return false;
+    }
+    
+    if (weight < 0.0 || weight > 1.0) { // 1.0: upper limit of weight; 0.0: lower limit of weight
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED, "weight is Invalid.");
         return false;
     }
 

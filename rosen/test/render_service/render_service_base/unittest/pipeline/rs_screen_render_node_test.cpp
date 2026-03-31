@@ -271,26 +271,6 @@ HWTEST_F(RSScreenRenderNodeTest, SetIsMirrorScreenTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetReleaseTaskTest
- * @tc.desc: test result for SetReleaseTask
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSScreenRenderNodeTest, SetReleaseTaskTest, TestSize.Level1)
-{
-    auto node = std::make_shared<RSScreenRenderNode>(id, 0, context);
-    EXPECT_NE(node, nullptr);
-    node->releaseScreenDmaBufferTask_ = nullptr;
-    node->SetReleaseTask([](ScreenId id) {});
-    node->SetReleaseTask(nullptr);
-
-    auto task = [](ScreenId id) {};
-    node->releaseScreenDmaBufferTask_ = task;
-    node->SetReleaseTask([](ScreenId id) {});
-    node->SetReleaseTask(task);
-}
-
-/**
  * @tc.name: ResetMirrorSourceTest
  * @tc.desc: test results of ResetMirrorSource
  * @tc.type:FUNC
@@ -1065,98 +1045,25 @@ HWTEST_F(RSScreenRenderNodeTest, SetForceFreeze, TestSize.Level1)
 }
 
 /**
- * @tc.name: CheckSurfaceChangedTest001
- * @tc.desc: test results of CheckSurfaceChanged
+ * @tc.name: SetVirtualSurfaceChangedTest
+ * @tc.desc: test results of SetVirtualSurfaceChanged
  * @tc.type: FUNC
+ * @tc.require: issuesICQ74B
  */
-HWTEST_F(RSScreenRenderNodeTest, CheckSurfaceChangedTest001, TestSize.Level1)
+HWTEST_F(RSScreenRenderNodeTest, SetVirtualSurfaceChangedTest, TestSize.Level1)
 {
     NodeId id = 1;
     auto screenNode = std::make_shared<RSScreenRenderNode>(id, 1, context);
     ASSERT_NE(screenNode, nullptr);
-    screenNode->screenProperty_.isVirtual_ = true;
+    screenNode->SetVirtualSurfaceChanged(true);
 
-    auto csurface = IConsumerSurface::Create();
-    auto producer = csurface->GetProducer();
-    auto psurface = Surface::CreateSurfaceAsProducer(producer);
-    screenNode->screenProperty_.producerSurface_ = psurface;
-    screenNode->CheckSurfaceChanged();
-    EXPECT_TRUE(screenNode->isVirtualSurfaceChanged_);
-}
+    screenNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(screenNode->GetId());
+    ASSERT_NE(screenNode->stagingRenderParams_, nullptr);
+    screenNode->stagingRenderParams_->needSync_ = false;
+    screenNode->SetVirtualSurfaceChanged(true);
 
-/**
- * @tc.name: CheckSurfaceChangedTest002
- * @tc.desc: test results of CheckSurfaceChanged
- * @tc.type: FUNC
- */
-HWTEST_F(RSScreenRenderNodeTest, CheckSurfaceChangedTest002, TestSize.Level1)
-{
-    NodeId id = 1;
-    auto screenNode = std::make_shared<RSScreenRenderNode>(id, 1, context);
-    ASSERT_NE(screenNode, nullptr);
-    screenNode->screenProperty_.isVirtual_ = true;
-
-    screenNode->virtualSurfaceState_ = { true, UINT64_MAX };
-    screenNode->CheckSurfaceChanged();
-    EXPECT_TRUE(screenNode->isVirtualSurfaceChanged_);
-}
-
-/**
- * @tc.name: CheckSurfaceChangedTest003
- * @tc.desc: test results of CheckSurfaceChanged
- * @tc.type: FUNC
- */
-HWTEST_F(RSScreenRenderNodeTest, CheckSurfaceChangedTest003, TestSize.Level1)
-{
-    NodeId id = 1;
-    auto screenNode = std::make_shared<RSScreenRenderNode>(id, 1, context);
-    ASSERT_NE(screenNode, nullptr);
-    screenNode->screenProperty_.isVirtual_ = true;
-
-    screenNode->CheckSurfaceChanged();
-    EXPECT_FALSE(screenNode->isVirtualSurfaceChanged_);
-}
-
-/**
- * @tc.name: CheckSurfaceChangedTest004
- * @tc.desc: test results of CheckSurfaceChanged
- * @tc.type: FUNC
- */
-HWTEST_F(RSScreenRenderNodeTest, CheckSurfaceChangedTest004, TestSize.Level1)
-{
-    NodeId id = 1;
-    auto screenNode = std::make_shared<RSScreenRenderNode>(id, 1, context);
-    ASSERT_NE(screenNode, nullptr);
-    screenNode->screenProperty_.isVirtual_ = true;
-
-    screenNode->virtualSurfaceState_ = { true, UINT64_MAX };
-    auto csurface = IConsumerSurface::Create();
-    auto producer = csurface->GetProducer();
-    auto psurface = Surface::CreateSurfaceAsProducer(producer);
-    screenNode->screenProperty_.producerSurface_ = psurface;
-    screenNode->CheckSurfaceChanged();
-    EXPECT_TRUE(screenNode->isVirtualSurfaceChanged_);
-}
-
-/**
- * @tc.name: CheckSurfaceChangedTest005
- * @tc.desc: test results of CheckSurfaceChanged
- * @tc.type: FUNC
- */
-HWTEST_F(RSScreenRenderNodeTest, CheckSurfaceChangedTest005, TestSize.Level1)
-{
-    NodeId id = 1;
-    auto screenNode = std::make_shared<RSScreenRenderNode>(id, 1, context);
-    ASSERT_NE(screenNode, nullptr);
-    screenNode->screenProperty_.isVirtual_ = true;
-
-    auto csurface = IConsumerSurface::Create();
-    auto producer = csurface->GetProducer();
-    auto psurface = Surface::CreateSurfaceAsProducer(producer);
-    screenNode->virtualSurfaceState_ = { true, psurface->GetUniqueId() };
-    screenNode->screenProperty_.producerSurface_ = psurface;
-    screenNode->CheckSurfaceChanged();
-    EXPECT_FALSE(screenNode->isVirtualSurfaceChanged_);
+    screenNode->stagingRenderParams_->needSync_ = true;
+    screenNode->SetVirtualSurfaceChanged(true);
 }
 
 void RSScreenRenderNodeTest::CheckWithStatusLevel(const RSScreenRenderNode::HeadroomMap &map,

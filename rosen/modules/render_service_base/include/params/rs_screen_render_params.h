@@ -25,6 +25,7 @@
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "screen_manager/rs_screen_info.h"
+#include "screen_manager/rs_screen_property.h"
 #include "pipeline/rs_surface_render_node.h"
 namespace OHOS::Rosen {
 class RSB_EXPORT RSScreenRenderParams : public RSRenderParams {
@@ -221,6 +222,7 @@ public:
     bool GetHasMirroredScreenChanged() const;
     void SetHasMirroredScreenChanged(bool hasMirroredScreenChanged);
 
+    void SetVirtualSurfaceChanged(bool isChanged) { isVirtualSurfaceChanged_ = isChanged; }
     bool IsVirtualSurfaceChanged() const { return isVirtualSurfaceChanged_; }
 
     void SetIsEqualVsyncPeriod(bool isEqualVsyncPeriod) { isEqualVsyncPeriod_ = isEqualVsyncPeriod; }

@@ -12,12 +12,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "rs_test_util.h"
+
+#include "feature/hyper_graphic_manager/hgm_render_context.h"
 #include "feature/round_corner_display/rs_rcd_render_listener.h"
+#include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/render_thread/rs_uni_render_thread.h"
+#include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_render_node_gc.h"
 
 namespace OHOS::Rosen {
 NodeId RSTestUtil::id = 0;
+std::shared_ptr<RSUniRenderThread> RSTestUtil::uniRenderThread_ = nullptr;
 std::shared_ptr<RSSurfaceRenderNode> RSTestUtil::CreateSurfaceNode(const RSSurfaceRenderNodeConfig surfaceConfig)
 {
     id++;
@@ -33,9 +40,19 @@ std::shared_ptr<RSSurfaceRenderNode> RSTestUtil::CreateSurfaceNode(const RSSurfa
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(csurf);
     rsSurfaceRenderNode->InitRenderParams();
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode(rsSurfaceRenderNode);
-    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(surfaceRenderNode);
+    if (uniRenderThread_ == nullptr) {
+        uniRenderThread_ = std::make_shared<RSUniRenderThread>();
+        uniRenderThread_->composerClientManager_ = std::make_shared<RSComposerClientManager>();
+    }
+    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(surfaceRenderNode,
+        uniRenderThread_->GetComposerClientManager());
     csurf->RegisterConsumerListener(listener);
     return rsSurfaceRenderNode;
+}
+
+void RSTestUtil::UnregisterConsumerListener()
+{
+    csurf->UnregisterConsumerListener();
 }
 
 std::shared_ptr<RSSurfaceRenderNode> RSTestUtil::CreateSurfaceNodeWithBuffer()
@@ -49,6 +66,7 @@ std::shared_ptr<RSSurfaceRenderNode> RSTestUtil::CreateSurfaceNodeWithBuffer()
     sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
     [[maybe_unused]] GSError ret = psurf->RequestBuffer(buffer, requestFence, requestConfig);
     sptr<SyncFence> flushFence = SyncFence::INVALID_FENCE;
+    RSMainThread::Instance()->hgmRenderContext_ = std::make_shared<HgmRenderContext>(nullptr);
     ret = psurf->FlushBuffer(buffer, flushFence, flushConfig);
     OHOS::sptr<SurfaceBuffer> cbuffer;
     Rect damage;
@@ -56,7 +74,8 @@ std::shared_ptr<RSSurfaceRenderNode> RSTestUtil::CreateSurfaceNodeWithBuffer()
     int64_t timestamp = 0;
     ret = surfaceConsumer->AcquireBuffer(cbuffer, acquireFence, timestamp, damage);
     auto& surfaceHandler = *rsSurfaceRenderNode->GetRSSurfaceHandler();
-    surfaceHandler.SetBuffer(cbuffer, acquireFence, damage, timestamp);
+    auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    surfaceHandler.SetBuffer(cbuffer, acquireFence, damage, timestamp, bufferOwnerCount);
     auto drGPUContext = std::make_shared<Drawing::GPUContext>();
     rsSurfaceRenderNode->SetDrawingGPUContext(drGPUContext.get());
     return rsSurfaceRenderNode;
@@ -84,13 +103,15 @@ std::shared_ptr<RSRcdSurfaceRenderNode> RSTestUtil::CreateRcdNodeWithBuffer()
     sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
     [[maybe_unused]] GSError ret = psurf->RequestBuffer(buffer, requestFence, requestConfig);
     sptr<SyncFence> flushFence = SyncFence::INVALID_FENCE;
+    RSMainThread::Instance()->hgmRenderContext_ = std::make_shared<HgmRenderContext>(nullptr);
     ret = psurf->FlushBuffer(buffer, flushFence, flushConfig);
     OHOS::sptr<SurfaceBuffer> cbuffer;
     Rect damage;
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
     int64_t timestamp = 0;
     ret = surfaceConsumer->AcquireBuffer(cbuffer, acquireFence, timestamp, damage);
-    rcdNode->SetBuffer(cbuffer, acquireFence, damage, timestamp);
+    auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    rcdNode->SetBuffer(cbuffer, acquireFence, damage, timestamp, bufferOwnerCount);
     return rcdNode;
 }
 

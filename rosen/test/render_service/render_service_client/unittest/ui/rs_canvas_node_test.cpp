@@ -14,7 +14,6 @@
  */
 
 #include "gtest/gtest.h"
-
 #include "animation/rs_animation.h"
 #include "core/transaction/rs_interfaces.h"
 #include "ui/rs_canvas_node.h"
@@ -3788,8 +3787,8 @@ HWTEST_F(RSCanvasNodeTest, SetRSUIContextTest001, TestSize.Level1)
     auto enable = RSSystemProperties::GetRSClientMultiInstanceEnabled();
     if (enable) {
         auto uiDirector1 = RSUIDirector::Create();
-        uiDirector1->Init(true, true);
         auto uiDirector2 = RSUIDirector::Create();
+        uiDirector1->Init(true, true);
         uiDirector2->Init(true, true);
         auto node = RSCanvasNode::Create();
         ASSERT_EQ(node->GetRSUIContext(), nullptr);
@@ -3815,8 +3814,8 @@ HWTEST_F(RSCanvasNodeTest, SetRSUIContextTest002, TestSize.Level1)
     auto enable = RSSystemProperties::GetRSClientMultiInstanceEnabled();
     if (enable) {
         auto uiDirector1 = RSUIDirector::Create();
-        uiDirector1->Init(true, true);
         auto uiDirector2 = RSUIDirector::Create();
+        uiDirector1->Init(true, true);
         uiDirector2->Init(true, true);
         auto node = RSCanvasNode::Create();
         ASSERT_EQ(node->GetRSUIContext(), nullptr);
@@ -3841,8 +3840,8 @@ HWTEST_F(RSCanvasNodeTest, SetRSUIContextTest003, TestSize.Level1)
     auto enable = RSSystemProperties::GetRSClientMultiInstanceEnabled();
     if (enable) {
         auto uiDirector1 = RSUIDirector::Create();
-        uiDirector1->Init(true, true);
         auto uiDirector2 = RSUIDirector::Create();
+        uiDirector1->Init(true, true);
         uiDirector2->Init(true, true);
         auto node = RSCanvasNode::Create();
         ASSERT_EQ(node->GetRSUIContext(), nullptr);
@@ -3867,8 +3866,8 @@ HWTEST_F(RSCanvasNodeTest, SetRSUIContextTest004, TestSize.Level1)
     auto enable = RSSystemProperties::GetRSClientMultiInstanceEnabled();
     if (enable) {
         auto uiDirector1 = RSUIDirector::Create();
-        uiDirector1->Init(true, true);
         auto uiDirector2 = RSUIDirector::Create();
+        uiDirector1->Init(true, true);
         uiDirector2->Init(true, true);
         auto node = RSCanvasNode::Create();
         ASSERT_EQ(node->GetRSUIContext(), nullptr);

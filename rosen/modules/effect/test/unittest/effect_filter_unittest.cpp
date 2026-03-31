@@ -714,7 +714,7 @@ HWTEST_F(EffectFilterUnittest, OH_Filter_WaterDropletTransition001, TestSize.Lev
     ASSERT_TRUE(OH_Filter_CreateEffect(*pixMap, &filter) == EFFECT_SUCCESS);
 
     OH_Filter_WaterDropletParams params = {
-        5.0f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.5f
+        {0.5f, 0.5f}, 5.0f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.5f
     };
 
     // Test null filter
@@ -759,32 +759,32 @@ HWTEST_F(EffectFilterUnittest, OH_Filter_WaterDropletTransition002, TestSize.Lev
 
     // Test with negative progress (should be clamped to 0.0f)
     OH_Filter_WaterDropletParams params1 = {
-        -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f
+        {0.5f, 0.5f}, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f
     };
     // Should succeed due to clamping
     EXPECT_TRUE(OH_Filter_WaterDropletTransition(filter, *transPixMap, &params1, false) == EFFECT_SUCCESS);
 
     // Test with out of range radius
     OH_Filter_WaterDropletParams params2 = {
-        0.5f, 20.0f, 0.5f, 0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.5f
+        {0.5f, 0.5f}, 0.5f, 20.0f, 0.5f, 0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.5f
     };
     EXPECT_TRUE(OH_Filter_WaterDropletTransition(filter, *transPixMap, &params2, false) == EFFECT_SUCCESS);
 
     // Test with out of range transitionFadeWidth
     OH_Filter_WaterDropletParams params3 = {
-        0.5f, 5.0f, 2.0f, 0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.5f
+        {0.5f, 0.5f}, 0.5f, 5.0f, 2.0f, 0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.5f
     };
     EXPECT_TRUE(OH_Filter_WaterDropletTransition(filter, *transPixMap, &params3, false) == EFFECT_SUCCESS);
 
     // Test with out of range distortionIntensity
     OH_Filter_WaterDropletParams params4 = {
-        0.5f, 5.0f, 0.5f, 2.0f, 0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.5f
+        {0.5f, 0.5f}, 0.5f, 5.0f, 0.5f, 2.0f, 0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.5f
     };
     EXPECT_TRUE(OH_Filter_WaterDropletTransition(filter, *transPixMap, &params4, false) == EFFECT_SUCCESS);
 
     // Test with out of range noise
     OH_Filter_WaterDropletParams params5 = {
-        0.5f, 5.0f, 0.5f, 0.5f, 0.5f, 0.5f, 1.0f, 20.0f, 20.0f, 20.0f, 20.0f
+        {0.5f, 0.5f}, 0.5f, 5.0f, 0.5f, 0.5f, 0.5f, 0.5f, 1.0f, 20.0f, 20.0f, 20.0f, 20.0f
     };
     EXPECT_TRUE(OH_Filter_WaterDropletTransition(filter, *transPixMap, &params5, false) == EFFECT_SUCCESS);
 
@@ -817,7 +817,7 @@ HWTEST_F(EffectFilterUnittest, OH_Filter_WaterDropletTransition003, TestSize.Lev
     ASSERT_TRUE(OH_Filter_CreateEffect(*pixMap, &filter) == EFFECT_SUCCESS);
 
     OH_Filter_WaterDropletParams params = {
-        5.0f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.5f
+        {0.5f, 0.5f}, 5.0f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.5f
     };
 
     // Test with inverse = true

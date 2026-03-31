@@ -30,6 +30,7 @@ static uint32_t g_removeCallbackLastId = 0;
 static uint32_t g_registerCallbackCount = 0;
 static std::shared_ptr<RSTypeface> g_registerCallbackLastFace = nullptr;
 constexpr uint32_t WGHT_AXIS = 2003265652;
+constexpr uint32_t WDTH_AXIS = 2003072104;
 
 void TestRemoveCallback(uint32_t uniqueId)
 {
@@ -221,5 +222,29 @@ HWTEST_F(VariationFontCacheTest, RemoveByOriginalUniqueId002, TestSize.Level0)
     EXPECT_EQ(g_removeCallbackCount, 0);
     cache_->RemoveByOriginalUniqueId(nonExistId);
     EXPECT_EQ(g_removeCallbackCount, 0);
+}
+
+/**
+ * @tc.name: FontArgumentsHash001
+ * @tc.desc: Different hash for exchange coordinate axis and value
+ * @tc.type:FUNC
+ */
+HWTEST_F(VariationFontCacheTest, FontArgumentsHash001, TestSize.Level0)
+{
+    std::vector<SkFontArguments::VariationPosition::Coordinate> coordinates1{{WGHT_AXIS, 100.0}, {WDTH_AXIS, 50.0}};
+    SkFontArguments::VariationPosition position1{coordinates1.data(), static_cast<int>(coordinates1.size())};
+    SkFontArguments skFontArgs1;
+    skFontArgs1.setVariationDesignPosition(position1);
+    skia::textlayout::FontArguments fontArgs1(skFontArgs1);
+    uint32_t hash1 = std::hash<skia::textlayout::FontArguments>()(fontArgs1);
+
+    std::vector<SkFontArguments::VariationPosition::Coordinate> coordinates2{{WGHT_AXIS, 50.0}, {WDTH_AXIS, 100}};
+    SkFontArguments::VariationPosition position2{coordinates2.data(), static_cast<int>(coordinates2.size())};
+    SkFontArguments skFontArgs2;
+    skFontArgs2.setVariationDesignPosition(position2);
+    skia::textlayout::FontArguments fontArgs2(skFontArgs2);
+    uint32_t hash2 = std::hash<skia::textlayout::FontArguments>()(fontArgs2);
+
+    EXPECT_NE(hash1, hash2);
 }
 } // namespace txt

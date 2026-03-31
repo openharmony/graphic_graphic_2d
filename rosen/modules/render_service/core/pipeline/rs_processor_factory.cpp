@@ -23,16 +23,16 @@
 namespace OHOS {
 namespace Rosen {
 
-std::shared_ptr<RSProcessor> RSProcessorFactory::CreateProcessor(CompositeType type)
+std::shared_ptr<RSProcessor> RSProcessorFactory::CreateProcessor(CompositeType type, ScreenId screenId)
 {
     switch (type) {
         case CompositeType::SOFTWARE_COMPOSITE:
             return std::make_shared<RSVirtualScreenProcessor>();
         case CompositeType::HARDWARE_COMPOSITE:
-            return std::make_shared<RSPhysicalScreenProcessor>();
+            return std::make_shared<RSPhysicalScreenProcessor>(screenId);
 #ifdef RS_ENABLE_GPU
         case CompositeType::UNI_RENDER_COMPOSITE:
-            return std::make_shared<RSUniRenderProcessor>();
+            return std::make_shared<RSUniRenderProcessor>(screenId);
 #endif
         case CompositeType::UNI_RENDER_MIRROR_COMPOSITE:
         case CompositeType::UNI_RENDER_EXPAND_COMPOSITE:

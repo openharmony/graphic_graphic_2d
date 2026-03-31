@@ -19,13 +19,13 @@
 #include <memory>
 
 #include "command/rs_command.h"
-#include "transaction/rs_render_service_client.h"
+#include "transaction/rs_render_pipeline_client.h"
 
 namespace OHOS {
 namespace Rosen {
 
-// Global RSRenderServiceClient instance, initialized in LLVMFuzzerInitialize
-std::shared_ptr<RSRenderServiceClient> g_renderServiceClient = nullptr;
+// Global RSRenderPipelineClient instance, initialized in LLVMFuzzerInitialize
+std::shared_ptr<RSRenderPipelineClient> g_renderPipelineClient = nullptr;
 
 namespace {
 const uint8_t DO_EXECUTE_SYNCHRONOUS_TASK = 0;
@@ -58,7 +58,7 @@ void DoExecuteSynchronousTask(FuzzedDataProvider& fdp)
 {
     uint64_t timeoutNS = fdp.ConsumeIntegral<uint64_t>();
     auto task = std::make_shared<TestRSSyncTask>(timeoutNS);
-    g_renderServiceClient->ExecuteSynchronousTask(task);
+    g_renderPipelineClient->ExecuteSynchronousTask(task);
 }
 
 } // anonymous namespace
@@ -68,15 +68,15 @@ void DoExecuteSynchronousTask(FuzzedDataProvider& fdp)
 /* Fuzzer environment initialization */
 extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
 {
-    // Initialize RSRenderServiceClient using std::make_shared (consistent with business code)
-    OHOS::Rosen::g_renderServiceClient = std::make_shared<OHOS::Rosen::RSRenderServiceClient>();
+    // Initialize RSRenderPipelineClient using std::make_shared (consistent with business code and TDD)
+    OHOS::Rosen::g_renderPipelineClient = std::make_shared<OHOS::Rosen::RSRenderPipelineClient>();
     return 0;
 }
 
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
-    if (!OHOS::Rosen::g_renderServiceClient || data == nullptr) {
+    if (!OHOS::Rosen::g_renderPipelineClient || data == nullptr) {
         return -1;
     }
 

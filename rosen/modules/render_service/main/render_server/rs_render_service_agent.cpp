@@ -14,7 +14,7 @@
  */
 
 #include "rs_render_service_agent.h"
-#include "rs_trace.h"
+#include "hgm_core.h"
 
 #undef LOG_TAG
 #define LOG_TAG "RSRenderServiceAgent"
@@ -24,18 +24,12 @@ namespace Rosen {
 void RSRenderServiceAgent::PostTaskImmediate(const std::function<void()>& task)
 {
     auto& handler = renderService_.handler_;
-    if (handler == nullptr) {
-        return;
-    }
     handler->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
 }
 
 void RSRenderServiceAgent::PostTaskImmediateInPlace(const std::function<void()>& task)
 {
     auto& handler = renderService_.handler_;
-    if (handler == nullptr) {
-        return;
-    }
     if (handler->GetEventRunner()->IsCurrentRunnerThread()) {
         task();
         return;
@@ -46,10 +40,47 @@ void RSRenderServiceAgent::PostTaskImmediateInPlace(const std::function<void()>&
 void RSRenderServiceAgent::PostSyncTaskImmediate(const std::function<void()>& task)
 {
     auto& handler = renderService_.handler_;
-    if (handler == nullptr) {
-        return;
-    }
     handler->PostSyncTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+}
+
+sptr<IRemoteObject> RSRenderServiceAgent::GetConnectToRenderToken(ScreenId screenId)
+{
+    auto renderProcessManager = renderService_.renderProcessManager_;
+    if (auto remoteObj = renderProcessManager->GetConnectToRenderConnection(screenId)) {
+        return remoteObj->AsObject();
+    }
+    return nullptr;
+}
+
+void RSRenderServiceAgent::GetRefreshInfoToSP(std::string& dumpString, NodeId nodeId)
+{
+    RS_LOGI("RSRenderServiceAgent::GetRefreshInfoToSP");
+    renderService_.GetRefreshInfoToSP(dumpString, nodeId);
+}
+
+void RSRenderServiceAgent::FpsDump(std::string& dumpString, const std::string& arg)
+{
+    RS_LOGI("RSRenderServiceAgent::FpsDump");
+    renderService_.FpsDump(dumpString, arg);
+}
+
+void RSRenderServiceAgent::ProcessHgmFrameRate(uint64_t timestamp, uint64_t vsyncId,
+    const sptr<HgmProcessToServiceInfo>& processToServiceInfo,
+    const sptr<HgmServiceToProcessInfo>& serviceToProcessInfo)
+{
+    if (auto hgmContext = GetHgmContext()) {
+        hgmContext->ProcessHgmFrameRate(timestamp, vsyncId, processToServiceInfo, serviceToProcessInfo);
+    }
+}
+
+void RSRenderServiceAgent::HandlePowerStatus(ScreenId screenId, ScreenPowerStatus status)
+{
+    renderService_.HandlePowerStatus(screenId, status);
+}
+
+void RSRenderServiceAgent::RemoveToken(const sptr<RSIConnectionToken>& token)
+{
+    renderService_.RemoveConnection(token);
 }
 } // namespace Rosen
 } // namespace OHOS

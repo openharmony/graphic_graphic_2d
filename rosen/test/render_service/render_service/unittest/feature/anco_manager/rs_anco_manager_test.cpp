@@ -87,7 +87,7 @@ HWTEST_F(RSAncoManagerTest, AncoOptimizeScreenNode_02, TestSize.Level2)
     sptr<SyncFence> fence = SyncFence::InvalidFence();
     Rect damage = {10, 10, 100, 100};
     int64_t timestamp = 0;
-    surfaceHandler->SetBuffer(surfaceBuffer, fence, damage, timestamp);
+    surfaceHandler->SetBuffer(surfaceBuffer, fence, damage, timestamp, nullptr);
 
     std::unique_ptr<Mock::MockRSAncoManager> mock = std::make_unique<Mock::MockRSAncoManager>();
     EXPECT_CALL(*mock, IsAncoOptimize(_)).WillRepeatedly(testing::Return(true));
@@ -135,7 +135,7 @@ HWTEST_F(RSAncoManagerTest, AncoOptimizeScreenNode_04, TestSize.Level2)
     sptr<SyncFence> fence = SyncFence::InvalidFence();
     Rect damage = {10, 10, 100, 100};
     int64_t timestamp = 0;
-    surfaceHandler->SetBuffer(surfaceBuffer, fence, damage, timestamp);
+    surfaceHandler->SetBuffer(surfaceBuffer, fence, damage, timestamp, nullptr);
     
     std::unique_ptr<Mock::MockRSAncoManager> mock = std::make_unique<Mock::MockRSAncoManager>();
     EXPECT_CALL(*mock, IsAncoOptimize(_)).WillRepeatedly(testing::Return(true));
@@ -152,13 +152,13 @@ HWTEST_F(RSAncoManagerTest, AncoOptimizeScreenNode_04, TestSize.Level2)
     EXPECT_NE(surfaceNode2, nullptr);
     surfaceNode2->SetAncoFlags(static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE));
     surfaceNode2->SetGlobalAlpha(0.0f);
-    surfaceNode2->GetRSSurfaceHandler()->SetBuffer(surfaceBuffer, fence, damage, timestamp);
+    surfaceNode2->GetRSSurfaceHandler()->SetBuffer(surfaceBuffer, fence, damage, timestamp, nullptr);
     EXPECT_EQ(surfaceNode2->GetAncoFlags(), 1);
 
     auto surfaceNode3 = std::make_shared<RSSurfaceRenderNode>(config);
     surfaceNode3->SetAncoFlags(static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE));
     surfaceNode3->SetGlobalAlpha(1.8f);
-    surfaceNode3->GetRSSurfaceHandler()->SetBuffer(surfaceBuffer, fence, damage, timestamp);
+    surfaceNode3->GetRSSurfaceHandler()->SetBuffer(surfaceBuffer, fence, damage, timestamp, nullptr);
     surfaceNode3->InitRenderParams();
     EXPECT_EQ(surfaceNode3->GetAncoFlags(), 1);
 
@@ -185,7 +185,7 @@ HWTEST_F(RSAncoManagerTest, AncoOptimizeScreenNode_05, TestSize.Level2)
     sptr<SyncFence> fence = SyncFence::InvalidFence();
     Rect damage = {10, 10, 100, 100};
     int64_t timestamp = 0;
-    surfaceHandler->SetBuffer(surfaceBuffer, fence, damage, timestamp);
+    surfaceHandler->SetBuffer(surfaceBuffer, fence, damage, timestamp, nullptr);
 
     std::unique_ptr<Mock::MockRSAncoManager> mock = std::make_unique<Mock::MockRSAncoManager>();
     EXPECT_CALL(*mock, IsAncoOptimize(_)).WillRepeatedly(testing::Return(true));
@@ -202,13 +202,13 @@ HWTEST_F(RSAncoManagerTest, AncoOptimizeScreenNode_05, TestSize.Level2)
     EXPECT_NE(surfaceNode2, nullptr);
     surfaceNode2->SetAncoFlags(static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE));
     surfaceNode2->SetGlobalAlpha(0.0f);
-    surfaceNode2->GetRSSurfaceHandler()->SetBuffer(surfaceBuffer, fence, damage, timestamp);
+    surfaceNode2->GetRSSurfaceHandler()->SetBuffer(surfaceBuffer, fence, damage, timestamp, nullptr);
     EXPECT_EQ(surfaceNode2->GetAncoFlags(), 1);
 
     auto surfaceNode3 = std::make_shared<RSSurfaceRenderNode>(config);
     surfaceNode3->SetAncoFlags(static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE));
     surfaceNode3->SetGlobalAlpha(1.8f);
-    surfaceNode3->GetRSSurfaceHandler()->SetBuffer(surfaceBuffer, fence, damage, timestamp);
+    surfaceNode3->GetRSSurfaceHandler()->SetBuffer(surfaceBuffer, fence, damage, timestamp, nullptr);
     EXPECT_EQ(surfaceNode3->GetAncoFlags(), 1);
 
     hardwareEnabledNodes.push_back(surfaceNode1);

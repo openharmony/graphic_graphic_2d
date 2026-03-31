@@ -60,6 +60,36 @@ bool RenderContextVK::SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawi
     return true;
 }
 
+void RenderContextVK::SetRenderContextType(uint8_t type)
+{
+    RenderContextVKType renderContextType = static_cast<RenderContextVKType>(type);
+    if (renderContextType == RenderContextVKType::PROTECTED_REDRAW) {
+        isProtected_.store(true, std::memory_order_release);
+        RsVulkanContext::GetSingleton().SetIsProtected(true);
+    } else if (renderContextType == RenderContextVKType::UNPROTECTED_REDRAW) {
+        isProtected_.store(false, std::memory_order_release);
+        RsVulkanContext::GetSingleton().SetIsProtected(false);
+    }
+    // if RsVulkanContext Singleton not call SetIsProtected, it means RenderContextVKType is BASIC_RENDER.
+}
+
+void RenderContextVK::ChangeProtectedState(bool isProtected)
+{
+    RsVulkanContext::GetSingleton().SetIsProtected(isProtected);
+
+    // Use compare_exchange_strong to avoid race condition
+    // Only update drGPUContext_ if the value actually changes
+    bool expected = !isProtected;
+    if (isProtected_.compare_exchange_strong(expected, isProtected, std::memory_order_acq_rel,
+                                             std::memory_order_acquire)) {
+        // The value was different from expected, so it actually changed
+        drGPUContext_ = RsVulkanContext::GetSingleton().GetDrawingContext();
+    }
+    // If compare_exchange_strong returns false, expected now contains the current value
+    // In this case, we just need to ensure isProtected_ is set to the correct value
+    isProtected_.store(isProtected, std::memory_order_release);
+}
+
 std::string RenderContextVK::GetShaderCacheSize() const
 {
     if (RsVulkanContext::GetSingleton().GetMemoryHandler()) {

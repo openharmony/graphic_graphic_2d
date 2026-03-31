@@ -33,7 +33,7 @@ class RSRenderKeyframeAnimation;
 
 class RSC_EXPORT RSKeyframeAnimation : public RSPropertyAnimation {
 public:
-    RSKeyframeAnimation(std::shared_ptr<RSPropertyBase> property);
+    RSKeyframeAnimation(const std::shared_ptr<RSUIContext>& rsUIContext, std::shared_ptr<RSPropertyBase> property);
     virtual ~RSKeyframeAnimation() = default;
 
     void AddKeyFrame(float fraction, const std::shared_ptr<RSPropertyBase>& value,

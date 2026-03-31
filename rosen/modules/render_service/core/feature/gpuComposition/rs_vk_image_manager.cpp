@@ -15,6 +15,8 @@
 
 #include "rs_vk_image_manager.h"
 
+#include <vector>
+
 #include <parameter.h>
 #include <parameters.h>
 #include "common/rs_optional_trace.h"
@@ -306,25 +308,22 @@ void RSVkImageManager::UnMapImageFromSurfaceBuffer(const std::set<uint64_t>& unm
 void RSVkImageManager::UnMapImageFromSurfaceBuffer(uint64_t seqNum)
 {
     DFX_LOG(ENABLE_VKIMAGE_DFX, "RSVkImageManagerDfx: tryUnmapImage, bufferId=%{public}" PRIu64 "", seqNum);
+    std::shared_ptr<VkImageResource> resource;
     pid_t threadIndex = UNI_RENDER_THREAD_INDEX;
     {
         std::lock_guard<std::mutex> lock(opMutex_);
-        if (imageCacheSeqs_.count(seqNum) == 0) {
-            return;
-        }
-        threadIndex = imageCacheSeqs_[seqNum]->GetThreadIndex();
-    }
-    auto func = [this, seqNum]() {
-        std::lock_guard<std::mutex> lock(opMutex_);
         auto iter = imageCacheSeqs_.find(seqNum);
-        if (iter == imageCacheSeqs_.end()) {
+        if (iter == imageCacheSeqs_.end() || !iter->second) {
             return;
         }
-        RS_TRACE_NAME_FMT("RSVkImageManagerDfx: unmap image, bufferId=%" PRIu64 "", seqNum);
+        threadIndex = iter->second->GetThreadIndex();
+        resource = std::move(iter->second);
         imageCacheSeqs_.erase(iter);
-        DFX_LOGD(ENABLE_VKIMAGE_DFX, "RSVkImageManagerDfx: UnmapImage, bufferId=%{public}" PRIu64 ", "
-            "cacheSeq=[%{public}lu]",
-            seqNum, imageCacheSeqs_.size());
+    }
+    auto func = [resource = std::move(resource), seqNum]() mutable {
+        RS_TRACE_NAME_FMT("RSVkImageManagerDfx: unmap image, bufferId=%" PRIu64, seqNum);
+        // VkImageResource will be released on this thread.
+        resource.reset();
     };
     DFX_LOGD(ENABLE_VKIMAGE_DFX, "RSVkImageManagerDfx: findImageToUnmap, bufferId=%{public}" PRIu64 "", seqNum);
     RSTaskDispatcher::GetInstance().PostTask(threadIndex, func);

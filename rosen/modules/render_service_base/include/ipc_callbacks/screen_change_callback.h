@@ -30,6 +30,11 @@ public:
 
     virtual void OnScreenChanged(ScreenId id, ScreenEvent event,
         ScreenChangeReason reason = ScreenChangeReason::DEFAULT, sptr<IRemoteObject> obj = nullptr) = 0;
+    void SetRemotePid(pid_t pid) { remotePid_ = pid; }
+    pid_t GetRemotePid() const { return remotePid_; }
+
+private:
+    pid_t remotePid_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

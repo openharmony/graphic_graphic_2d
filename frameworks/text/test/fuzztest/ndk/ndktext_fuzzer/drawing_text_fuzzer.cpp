@@ -177,29 +177,6 @@ void OHDrawingTextTabTest(const uint8_t* data, size_t size)
     OH_Drawing_DestroyTypographyStyle(typoStyle);
     OH_Drawing_DestroyTextTab(tab);
 }
-void OHDrawingCreateSharedFontCollectionTest(const uint8_t* data, size_t size)
-{
-    FuzzedDataProvider fdp(data, size);
-    OH_Drawing_DisableFontCollectionFallback(nullptr);
-    OH_Drawing_DestroyFontCollection(nullptr);
-    OH_Drawing_DisableFontCollectionSystemFont(nullptr);
-    OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateSharedFontCollection();
-    OH_Drawing_DisableFontCollectionFallback(fontCollection);
-    OH_Drawing_DisableFontCollectionSystemFont(fontCollection);
-    OH_Drawing_ClearFontCaches(fontCollection);
-    OH_Drawing_ClearFontCaches(nullptr);
-    OH_Drawing_DestroyFontCollection(fontCollection);
-}
-
-void OHDrawingCreateFontCollectionGlobalInstanceTest(const uint8_t* data, size_t size)
-{
-    FuzzedDataProvider fdp(data, size);
-    OH_Drawing_FontCollection* fontCollection = OH_Drawing_GetFontCollectionGlobalInstance();
-    OH_Drawing_DisableFontCollectionFallback(fontCollection);
-    OH_Drawing_DisableFontCollectionSystemFont(fontCollection);
-    OH_Drawing_ClearFontCaches(fontCollection);
-    OH_Drawing_ClearFontCaches(nullptr);
-}
 } // namespace OHOS::Rosen::Drawing
 
 /* Fuzzer entry point */
@@ -210,7 +187,5 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::OHDrawingLineTypographyTest(data, size);
     OHOS::Rosen::Drawing::NativeDrawingTextStyleDecorationTest(data, size);
     OHOS::Rosen::Drawing::OHDrawingTextTabTest(data, size);
-    OHOS::Rosen::Drawing::OHDrawingCreateSharedFontCollectionTest(data, size);
-    OHOS::Rosen::Drawing::OHDrawingCreateFontCollectionGlobalInstanceTest(data, size);
     return 0;
 }

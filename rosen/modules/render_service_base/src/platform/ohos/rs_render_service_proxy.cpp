@@ -33,7 +33,7 @@ std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
 {
     if (token == nullptr) {
         ROSEN_LOGE("CreateConnection(): token is null.");
-        return {nullptr, nullptr};
+        return std::make_pair(nullptr, nullptr);;
     }
 
     MessageParcel data;
@@ -42,18 +42,18 @@ std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
     option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIRenderService::GetDescriptor())) {
         ROSEN_LOGE("CreateConnection(): WriteInterfaceToken failed.");
-        return {nullptr, nullptr};
+        return std::make_pair(nullptr, nullptr);;
     }
     if (!data.WriteRemoteObject(token->AsObject())) {
         ROSEN_LOGE("CreateConnection(): WriteRemoteObject failed.");
-        return {nullptr, nullptr};
+        return std::make_pair(nullptr, nullptr);;
     }
 
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceInterfaceCode::CREATE_CONNECTION);
     int32_t err = SendRequestRemote::SendRequest(Remote(), code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("CreateConnection(): SendRequest failed, err is %{public}d.", err);
-        return {nullptr, nullptr};
+        return std::make_pair(nullptr, nullptr);;
     }
 
     // Reading rsConn from the split file in the system. Subsequent sunset
@@ -72,7 +72,7 @@ std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
     }
     auto renderConn = iface_cast<RSIClientToRenderConnection>(remoteToRender);
 
-    return {conn, renderConn};
+    return std::make_pair(conn, renderConn);
 }
 
 bool RSRenderServiceProxy::RemoveConnection(const sptr<RSIConnectionToken>& token)

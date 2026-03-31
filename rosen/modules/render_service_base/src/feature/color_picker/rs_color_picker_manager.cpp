@@ -71,9 +71,9 @@ void RSColorPickerManager::HandleColorUpdate(Drawing::ColorQuad newColor)
     Drawing::ColorQuad prevColor = GetColorOrDefault(prevColor_.load(std::memory_order_relaxed), darkMode);
     Drawing::ColorQuad curColor = GetColorOrDefault(colorPicked_.load(std::memory_order_relaxed), darkMode);
     RS_OPTIONAL_TRACE_NAME_FMT(
-        "RSColorPickerManager::extracted isSystemDarkColorMode: %d background color = %x, prevColor = %x"
-        ", nodeId = %lu",
-        darkMode, newColor, prevColor, nodeId_);
+        "RSColorPickerManager::extracted isSystemDarkColorMode: %d background color = %x, current foreground = %x"
+        ", nodeId = %" PRIu64,
+        darkMode, newColor, curColor, nodeId_);
     newColor = GetContrastColor(newColor, curColor == Drawing::Color::COLOR_BLACK);
     if (newColor == curColor) {
         return;

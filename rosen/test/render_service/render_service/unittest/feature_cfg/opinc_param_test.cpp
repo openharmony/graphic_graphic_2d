@@ -78,5 +78,20 @@ HWTEST_F(OPIncParamTest, SetImageAliasEnable, Function | SmallTest | Level1)
     opincParam.SetImageAliasEnable(false);
     EXPECT_EQ(opincParam.IsImageAliasEnable(), false);
 }
+
+/**
+ * @tc.name: SetLayerPartRenderEnable
+ * @tc.desc: Verify the SetLayerPartRenderEnable function
+ * @tc.type: FUNC
+ * @tc.require: #IBOKAG
+ */
+HWTEST_F(OPIncParamTest, SetLayerPartRenderEnable, Function | SmallTest | Level1)
+{
+    OPIncParam opincParam;
+    opincParam.SetLayerPartRenderEnable(true);
+    EXPECT_EQ(opincParam.IsLayerPartRenderEnable(), true);
+    opincParam.SetLayerPartRenderEnable(false);
+    EXPECT_EQ(opincParam.IsLayerPartRenderEnable(), false);
+}
 } // namespace Rosen
 } // namespace OHOS

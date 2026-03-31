@@ -62,7 +62,9 @@ bool RSProcessor::InitForRenderThread(DrawableV2::RSScreenRenderNodeDrawable& sc
     screenInfo_ = screenProperty.GetScreenInfo();
 
     // set default render frame config
-    renderFrameConfig_ = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo_);
+    ComposerScreenInfo composerScreenInfo;
+    RSComposerClient::ConvertScreenInfo(screenInfo_, composerScreenInfo);
+    renderFrameConfig_ = RSBaseRenderUtil::GetFrameBufferRequestConfig(composerScreenInfo);
 #endif
     return true;
 }
@@ -89,23 +91,17 @@ bool RSProcessor::UpdateMirrorInfo(DrawableV2::RSLogicalDisplayRenderNodeDrawabl
     return true;
 }
 
-bool RSProcessor::Init(RSScreenRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
-    std::shared_ptr<RSBaseRenderEngine> renderEngine)
+bool RSProcessor::Init(RSScreenRenderNode& node, std::shared_ptr<RSBaseRenderEngine> renderEngine)
 {
     if (renderEngine == nullptr) {
         RS_LOGE("renderEngine is nullptr");
         return false;
     }
-    auto screenManager = CreateOrGetScreenManager();
-    if (screenManager == nullptr) {
-        RS_LOGE("RSPhysicalScreenProcessor::Init: ScreenManager is nullptr");
-        return false;
-    }
     renderEngine_ = renderEngine;
-    offsetX_ = offsetX;
-    offsetY_ = offsetY;
-    mirroredId_ = mirroredId;
-    screenInfo_ = screenManager->QueryScreenInfo(node.GetScreenId());
+    const auto& screenProperty = node.GetScreenProperty();
+    offsetX_ = screenProperty.GetOffsetX();
+    offsetY_ = screenProperty.GetOffsetY();
+    screenInfo_ = screenProperty.GetScreenInfo();
 
     auto children = node.GetChildrenList();
     std::shared_ptr<RSLogicalDisplayRenderNode> displayNode = nullptr;
@@ -123,29 +119,21 @@ bool RSProcessor::Init(RSScreenRenderNode& node, int32_t offsetX, int32_t offset
     }
     if (displayNode) {
         screenInfo_.rotation = displayNode->GetRotation();
-        auto mirrorNode = displayNode->GetMirrorSource().lock();
-        CalculateScreenTransformMatrix(mirrorNode ? *mirrorNode : *displayNode);
+        auto mirrorSource = displayNode->GetMirrorSource().lock();
+        CalculateScreenTransformMatrix(mirrorSource ? *mirrorSource : *displayNode);
+        if (auto mirroredScreenNode = node.GetMirrorSource().lock()) {
+            mirroredScreenInfo_ = mirroredScreenNode->GetScreenProperty().GetScreenInfo();
+            CalculateMirrorAdaptiveMatrix();
+        }
     } else {
         RS_LOGE("RSProcessor::Init screenNode has no children");
     }
 
-    if (mirroredId_ != INVALID_SCREEN_ID) {
-        mirroredScreenInfo_ = screenManager->QueryScreenInfo(mirroredId_);
-        CalculateMirrorAdaptiveMatrix();
-    }
-
     // set default render frame config
-    renderFrameConfig_ = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo_);
+    ComposerScreenInfo composerScreenInfo;
+    RSComposerClient::ConvertScreenInfo(screenInfo_, composerScreenInfo);
+    renderFrameConfig_ = RSBaseRenderUtil::GetFrameBufferRequestConfig(composerScreenInfo);
     return true;
-}
-
-void RSProcessor::SetMirrorScreenSwap(const RSScreenRenderNode& node)
-{
-    auto mirroredNode = node.GetMirrorSource().lock();
-    if (mirroredNode == nullptr) {
-        RS_LOGE("RSProcessor::Init: Get mirroredNode failed");
-        return;
-    }
 }
 
 void RSProcessor::CalculateScreenTransformMatrix(const RSLogicalDisplayRenderNode& node)

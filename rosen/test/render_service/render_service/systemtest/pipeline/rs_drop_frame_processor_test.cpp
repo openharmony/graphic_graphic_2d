@@ -92,7 +92,8 @@ HWTEST_F(RSDropFrameProcessorTest, TestDropFrame001, TestSize.Level1)
     ASSERT_NE(csurf, nullptr);
     rsNode->GetRSSurfaceHandler()->SetConsumer(csurf);
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode(rsNode);
-    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(surfaceRenderNode);
+    auto clientComposer = std::make_shared<RSComposerClientManager>();
+    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(surfaceRenderNode, clientComposer);
     ASSERT_NE(listener, nullptr);
     SurfaceError ret = csurf->RegisterConsumerListener(listener);
     ASSERT_EQ(ret, SURFACE_ERROR_OK);

@@ -18,7 +18,6 @@
 #include "limit_number.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "feature/vrate/rs_vsync_rate_reduce_manager.h"
-#include "pipeline/rs_test_util.h"
 #include "system/rs_system_parameters.h"
 
 using namespace testing;
@@ -41,12 +40,6 @@ constexpr float CONTINUOUS_RATIO_LEVEL_4 = 1.0f / 10.0f;
 constexpr float CONTINUOUS_RATIO_LEVEL_5 = 1.0f / 12.0f;
 constexpr int32_t DEFAULT_RATE = 1;
 }
-
-class MockVSyncDistributor : public VSyncDistributor {
-public:
-    MockVSyncDistributor(): VSyncDistributor(nullptr, "") {}
-    MOCK_METHOD3(SetQosVSyncRate, VsyncError(uint64_t, int32_t, bool));
-};
 
 class RSVsyncRateReduceManagerTest : public testing::Test {
 public:
@@ -94,12 +87,10 @@ HWTEST_F(RSVsyncRateReduceManagerTest, EnqueueFrameDuration001, TestSize.Level1)
 HWTEST_F(RSVsyncRateReduceManagerTest, Init001, TestSize.Level1)
 {
     RSVsyncRateReduceManager rateReduceManager;
-    sptr<MockVSyncDistributor> vSyncDistributor = new MockVSyncDistributor();
-    rateReduceManager.Init(vSyncDistributor);
+    rateReduceManager.Init();
     if (rateReduceManager.GetVRateDeviceSupport()) {
         EXPECT_EQ(true, rateReduceManager.GetVRateReduceEnabled());
     }
-    EXPECT_NE(nullptr, rateReduceManager.appVSyncDistributor_);
 }
 
 /**
@@ -111,7 +102,6 @@ HWTEST_F(RSVsyncRateReduceManagerTest, Init001, TestSize.Level1)
 HWTEST_F(RSVsyncRateReduceManagerTest, ResetFrameValues001, TestSize.Level1)
 {
     RSVsyncRateReduceManager rateReduceManager;
-    sptr<MockVSyncDistributor> vSyncDistributor = new MockVSyncDistributor();
     auto rsContext = std::make_shared<RSContext>();
     ASSERT_NE(rsContext, nullptr);
     RSSurfaceRenderNodeConfig config;
@@ -127,7 +117,6 @@ HWTEST_F(RSVsyncRateReduceManagerTest, ResetFrameValues001, TestSize.Level1)
     ScreenInfo screenInfo;
 
     NodeId nodeId = 1;
-    rateReduceManager.appVSyncDistributor_ = vSyncDistributor;
     rateReduceManager.vRateReduceEnabled_ = false;
     rateReduceManager.ResetFrameValues(120);
     EXPECT_EQ(false, rateReduceManager.vRateConditionQualified_);
@@ -161,7 +150,6 @@ HWTEST_F(RSVsyncRateReduceManagerTest, ResetFrameValues001, TestSize.Level1)
 HWTEST_F(RSVsyncRateReduceManagerTest, ResetFrameValues002, TestSize.Level1)
 {
     RSVsyncRateReduceManager rateReduceManager;
-    sptr<MockVSyncDistributor> vSyncDistributor = new MockVSyncDistributor();
     auto rsContext = std::make_shared<RSContext>();
     ASSERT_NE(rsContext, nullptr);
     RSSurfaceRenderNodeConfig config;
@@ -177,7 +165,6 @@ HWTEST_F(RSVsyncRateReduceManagerTest, ResetFrameValues002, TestSize.Level1)
     ScreenInfo screenInfo;
 
     NodeId nodeId = 1;
-    rateReduceManager.appVSyncDistributor_ = vSyncDistributor;
     rateReduceManager.vRateReduceEnabled_ = true;
     rateReduceManager.ResetFrameValues(120);
     EXPECT_EQ(true, rateReduceManager.vRateConditionQualified_);
@@ -276,50 +263,6 @@ HWTEST_F(RSVsyncRateReduceManagerTest, CheckNeedNotify001, TestSize.Level1)
     EXPECT_NE(vSyncRateMap.end(), vSyncRateMap.find(nodeId2));
     EXPECT_EQ(true, rateReduceManager.CheckNeedNotify());
     EXPECT_NE(vSyncRateMap.end(), vSyncRateMap.find(nodeId));
-}
-
-/**
- * @tc.name: NotifyVRates001
- * @tc.desc: Test NotifyVRates processing.
- * @tc.type: FUNC
- * @tc.require: issueIAWXLO
- */
-HWTEST_F(RSVsyncRateReduceManagerTest, NotifyVRates001, TestSize.Level1)
-{
-    RSVsyncRateReduceManager rateReduceManager;
-    sptr<MockVSyncDistributor> vSyncDistributor = new MockVSyncDistributor();
-    rateReduceManager.appVSyncDistributor_ = vSyncDistributor;
-
-    VsyncError error = VsyncError::GSERROR_OK;
-    EXPECT_CALL(*vSyncDistributor, SetQosVSyncRate(0, 0, false)).WillRepeatedly(testing::Return(error));
-    vSyncDistributor->SetQosVSyncRate(0, 0, false);
-
-    rateReduceManager.vRateReduceEnabled_ = true;
-    rateReduceManager.vRateConditionQualified_ = true;
-    rateReduceManager.SetUniVsync();
-
-    NodeId nodeId = 1;
-    NodeId nodeId2 = 2;
-    int rate1 = 2;
-    int rate2 = 3;
-    rateReduceManager.lastFocusedNodeId_ = 0;
-    rateReduceManager.focusedNodeId_ = nodeId;
-    rateReduceManager.lastVSyncRateMap_.emplace(nodeId, rate1);
-    rateReduceManager.lastVSyncRateMap_.emplace(nodeId2, rate1);
-    rateReduceManager.vSyncRateMap_.emplace(nodeId, rate1);
-    rateReduceManager.vSyncRateMap_.emplace(nodeId2, rate2);
-    rateReduceManager.NotifyVRates();
-    EXPECT_EQ(rateReduceManager.lastVSyncRateMap_, rateReduceManager.vSyncRateMap_);
-
-    rateReduceManager.lastVSyncRateMap_.clear();
-    rateReduceManager.vSyncRateMap_.clear();
-    rateReduceManager.lastFocusedNodeId_ = 0;
-    rateReduceManager.focusedNodeId_ = nodeId;
-    rateReduceManager.lastVSyncRateMap_.emplace(nodeId, rate1);
-    rateReduceManager.lastVSyncRateMap_.emplace(nodeId2, rate1);
-    rateReduceManager.vSyncRateMap_.emplace(nodeId, rate1);
-    rateReduceManager.NotifyVRates();
-    EXPECT_EQ(rateReduceManager.lastVSyncRateMap_, rateReduceManager.vSyncRateMap_);
 }
 
 /**

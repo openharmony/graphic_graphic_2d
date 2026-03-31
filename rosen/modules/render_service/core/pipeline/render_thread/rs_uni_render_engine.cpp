@@ -19,9 +19,6 @@
 #include "info_collection/rs_layer_compose_collection.h"
 #include "rs_uni_render_engine.h"
 #include "rs_uni_render_util.h"
-#ifdef RS_ENABLE_GPU
-#include "feature/round_corner_display/rs_round_corner_display_manager.h"
-#endif
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 #include "metadata_helper.h"
 #endif
@@ -37,7 +34,6 @@
 namespace OHOS {
 namespace Rosen {
 
-using RSRcdManager = RSSingleton<RoundCornerDisplayManager>;
 namespace {
 const float REDRAW_DFX_ALPHA = 0.4f; // redraw dfx drawrect alpha
 }
@@ -61,13 +57,11 @@ void RSUniRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas,
 #ifdef HETERO_HDR_ENABLE
         if (hdrHeteroRet) {
             std::shared_ptr<RSSurfaceHandler> hdrSurfaceHandler = RSHeteroHDRManager::Instance().GetHDRSurfaceHandler();
-            RegisterDeleteBufferListener(hdrSurfaceHandler->GetConsumer());
             DrawImage(canvas, params);
         } else {
 #else
         {
 #endif
-            RegisterDeleteBufferListener(surfaceDrawable.GetConsumerOnDraw());
 #ifdef RS_ENABLE_TV_PQ_METADATA
             auto& renderParams = surfaceDrawable.GetRenderParams();
             if (renderParams) {
@@ -85,19 +79,19 @@ void RSUniRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas,
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<RSLayerPtr>& layers, bool forceCPU,
-    const ScreenInfo& screenInfo, GraphicColorGamut colorGamut)
+    const ComposerScreenInfo& composerScreenInfo, GraphicColorGamut colorGamut)
 #else
 void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<RSLayerPtr>& layers, bool forceCPU,
-    const ScreenInfo& screenInfo)
+    const ComposerScreenInfo& composerScreenInfo)
 #endif
 {
     for (const auto& layer : layers) {
         if (layer == nullptr) {
             continue;
         }
-        if (layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE ||
-            layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE_CLEAR ||
-            layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR) {
+        if (layer->GetHdiCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE ||
+            layer->GetHdiCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE_CLEAR ||
+            layer->GetHdiCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR) {
             continue;
         }
         GraphicLayerColor layerBlackColor = {
@@ -106,8 +100,7 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
             .b = 0,
             .a = 0
         };
-        auto layerSurface = layer->GetSurface();
-        if (layerSurface == nullptr) {
+        if (layer->GetBuffer() == nullptr) {
             const auto& layerColor = layer->GetLayerColor();
             if (layerColor.a != layerBlackColor.a || layerColor.r != layerBlackColor.r ||
                 layerColor.g != layerBlackColor.g || layerColor.b != layerBlackColor.b) {
@@ -121,54 +114,39 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
                 canvas.DrawColor(color);
             }
             continue;
-        } else if (RSRcdManager::GetInstance().CheckLayerIsRCD(layerSurface->GetName())) {
+        } else if (layer->IsScreenRCDLayer()) {
             continue; // current flow skip rcd layer wich not have resource to canvas draw
         }
         Drawing::AutoCanvasRestore acr(canvas, true);
-        DrawLayerPreProcess(canvas, layer, screenInfo);
+        DrawLayerPreProcess(canvas, layer, composerScreenInfo);
         // prepare BufferDrawParam
         auto params = RSUniRenderUtil::CreateLayerBufferDrawParam(layer, forceCPU);
         // if rotation fixed or use hpae offline, no further scaling will be performed
         bool rotationFixed = layer->GetRotationFixed() || layer->GetUseDeviceOffline();
         if (!rotationFixed) {
-            params.matrix.PostScale(screenInfo.GetRogWidthRatio(), screenInfo.GetRogHeightRatio());
+            params.matrix.PostScale(composerScreenInfo.GetRogWidthRatio(), composerScreenInfo.GetRogHeightRatio());
         }
-        params.screenId = screenInfo.id;
+        params.screenId = composerScreenInfo.id;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
         params.targetColorGamut = colorGamut;
-        auto screenManager = CreateOrGetScreenManager();
-        if (screenManager != nullptr) {
-            params.sdrNits = layer->GetSdrNit();
-            params.tmoNits = layer->GetDisplayNit();
-            params.displayNits = params.tmoNits / std::pow(layer->GetBrightnessRatio(), 2.2f); // gamma 2.2
-            // color temperature
-            params.layerLinearMatrix = layer->GetLayerLinearMatrix();
-        }
-        if (RSHdrUtil::CheckIsHdrSurfaceBuffer(layer->GetBuffer()) == HdrStatus::NO_HDR) {
-            params.brightnessRatio = layer->GetBrightnessRatio();
-            if (RSHdrUtil::CheckIsSurfaceBufferWithMetadata(layer->GetBuffer())) {
-                params.hasMetadata = true;
-            }
-        } else {
-            params.isHdrRedraw = true;
-        }
+        RSHdrUtil::SetBufferHDRParam(params, layer);
 #endif
-        RS_TRACE_NAME_FMT("DrawLayerWithParams, surface name: %s", layerSurface->GetName().c_str());
-        DrawHdiLayerWithParams(canvas, layer, params);
+        RS_TRACE_NAME_FMT("DrawLayerWithParams, surface name: %s", layer->GetSurfaceName().c_str());
+        DrawHdiLayerWithParams(canvas, params);
         // Dfx for redraw region
         auto dstRect = layer->GetLayerSize();
         if (RSSystemProperties::GetHwcRegionDfxEnabled()) {
             RectI dst(dstRect.x, dstRect.y, dstRect.w, dstRect.h);
             RSUniRenderUtil::DrawRectForDfx(canvas, dst, Drawing::Color::COLOR_YELLOW, REDRAW_DFX_ALPHA,
-                layerSurface->GetName());
+                layer->GetSurfaceName());
         }
     }
 
-    LayerComposeCollection::GetInstance().UpdateRedrawFrameNumberForDFX();
+    REDRAW_FRAME_NUMBER.fetch_add(1);
 }
 
 void RSUniRenderEngine::DrawLayerPreProcess(RSPaintFilterCanvas& canvas, const RSLayerPtr& layer,
-    const ScreenInfo& screenInfo)
+    const ComposerScreenInfo& composerScreenInfo)
 {
     const auto& dstRect = layer->GetLayerSize();
     const auto& drmCornerRadiusInfo = layer->GetCornerRadiusInfoForDRM();
@@ -201,8 +179,8 @@ void RSUniRenderEngine::DrawLayerPreProcess(RSPaintFilterCanvas& canvas, const R
         auto skMatrix = Drawing::Matrix();
         skMatrix.SetMatrix(layerMatrix.scaleX, layerMatrix.skewX, layerMatrix.transX, layerMatrix.skewY,
             layerMatrix.scaleY, layerMatrix.transY, layerMatrix.pers0, layerMatrix.pers1, layerMatrix.pers2);
-        skMatrix.PostTranslate(screenInfo.samplingTranslateX, screenInfo.samplingTranslateY);
-        skMatrix.PostScale(screenInfo.samplingScale, screenInfo.samplingScale);
+        skMatrix.PostTranslate(composerScreenInfo.samplingTranslateX, composerScreenInfo.samplingTranslateY);
+        skMatrix.PostScale(composerScreenInfo.samplingScale, composerScreenInfo.samplingScale);
         Drawing::AutoCanvasRestore acr(canvas, true);
         canvas.ConcatMatrix(skMatrix);
         Drawing::Rect drawRect = Drawing::Rect(0.f, 0.f,
@@ -219,8 +197,7 @@ void RSUniRenderEngine::DrawLayerPreProcess(RSPaintFilterCanvas& canvas, const R
     canvas.ClipRect(clipRect, Drawing::ClipOp::INTERSECT, false);
 }
 
-void RSUniRenderEngine::DrawHdiLayerWithParams(RSPaintFilterCanvas& canvas, const RSLayerPtr& layer,
-    BufferDrawParam& params)
+void RSUniRenderEngine::DrawHdiLayerWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam& params)
 {
     RS_LOGD_IF(DEBUG_COMPOSER, "RSUniRenderEngine::DrawHdiLayerWithParams: matrix=[%{public}.2f, %{public}.2f, "
         "%{public}.2f, %{public}.2f, %{public}.2f, %{public}.2f, %{public}.2f, %{public}.2f, %{public}.2f]",
@@ -231,7 +208,6 @@ void RSUniRenderEngine::DrawHdiLayerWithParams(RSPaintFilterCanvas& canvas, cons
         params.matrix.Get(Drawing::Matrix::PERSP_2));
     canvas.ConcatMatrix(params.matrix);
     if (!params.useCPU) {
-        RegisterDeleteBufferListener(layer->GetSurface(), !RSSystemProperties::GetVKImageUseEnabled());
         DrawImage(canvas, params);
     } else {
         DrawBuffer(canvas, params);

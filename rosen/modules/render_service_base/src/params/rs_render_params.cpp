@@ -185,15 +185,6 @@ void RSRenderParams::SetDrawingCacheChanged(bool isChanged, bool lastFrameSynced
     }
 }
 
-void RSRenderParams::SetForceDisableNodeGroup(bool forceDisable)
-{
-    if (isForceDisableNodeGroup_ == forceDisable) {
-        return;
-    }
-    isForceDisableNodeGroup_ = forceDisable;
-    needSync_ = true;
-}
-
 void RSRenderParams::SetDrawingCacheType(RSDrawingCacheType cacheType)
 {
     if (drawingCacheType_ == cacheType) {
@@ -299,6 +290,27 @@ bool RSRenderParams::ChildHasTranslateOnSqueeze() const
     return false;
 }
 
+void RSRenderParams::SetNeedClipHoleForFilter(bool val)
+{
+    if (NeedClipHoleForFilter() == val) {
+        return;
+    }
+    if (!renderGroupCache_) {
+        renderGroupCache_ = std::make_unique<RSRenderGroupCache>();
+    }
+    if (renderGroupCache_ && renderGroupCache_->SetNeedClipHoleForFilter(val)) {
+        needSync_ = true;
+    }
+}
+
+bool RSRenderParams::NeedClipHoleForFilter() const
+{
+    if (renderGroupCache_) {
+        return renderGroupCache_->NeedClipHoleForFilter();
+    }
+    return false;
+}
+
 void RSRenderParams::SetDrawingCacheIncludeProperty(bool includeProperty)
 {
     if (drawingCacheIncludeProperty_ == includeProperty) {
@@ -353,6 +365,34 @@ void RSRenderParams::OpincSetCacheChangeFlag(bool state, bool lastFrameSynced)
         needSync_ = needSync_ || (isOpincStateChanged_ || (isOpincStateChanged_ != state));
         isOpincStateChanged_ = isOpincStateChanged_ || state;
     }
+}
+
+void RSRenderParams::SetLayerPartRenderEnabled(bool enable)
+{
+    if (isLayerPartRenderEnable_ == enable) {
+        return;
+    }
+    isLayerPartRenderEnable_ = enable;
+    needSync_ = true;
+}
+
+bool RSRenderParams::GetLayerPartRenderEnabled() const
+{
+    return isLayerPartRenderEnable_;
+}
+
+void RSRenderParams::SetLayerPartRenderCurrentFrameDirtyRegion(const RectI& dirtyRegion)
+{
+    if (layerPartRenderCurrentFrameDirtyRegion_ == dirtyRegion) {
+        return;
+    }
+    layerPartRenderCurrentFrameDirtyRegion_ = dirtyRegion;
+    needSync_ = true;
+}
+
+const RectI& RSRenderParams::GetLayerPartRenderCurrentFrameDirtyRegion() const
+{
+    return layerPartRenderCurrentFrameDirtyRegion_;
 }
 
 void RSRenderParams::SetShadowRect(Drawing::Rect rect)
@@ -480,12 +520,12 @@ void RSRenderParams::SetGlobalAlpha(float alpha)
     needSync_ = true;
 }
 
-void RSRenderParams::SetVirtualScreenWhiteListInfo(const std::unordered_map<ScreenId, bool>& info)
+void RSRenderParams::SetScreensWithSubTreeWhitelist(const std::unordered_set<ScreenId>& screenIds)
 {
-    if (info == hasVirtualScreenWhiteList_) {
+    if (screensWithSubTreeWhitelist_ == screenIds) {
         return;
     }
-    hasVirtualScreenWhiteList_ = info;
+    screensWithSubTreeWhitelist_ = screenIds;
     needSync_ = true;
 }
 
@@ -573,7 +613,6 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     // use flag in render param and staging render param to determine if cache should be updated
     // (flag in render param may be not used because of occlusion skip, so we need to update cache in next frame)
     target->isDrawingCacheChanged_ = target->isDrawingCacheChanged_ || isDrawingCacheChanged_;
-    target->isForceDisableNodeGroup_ = isForceDisableNodeGroup_;
     target->shadowRect_ = shadowRect_;
     target->drawingCacheIncludeProperty_ = drawingCacheIncludeProperty_;
     target->isNodeGroupHasChildInBlacklist_ = isNodeGroupHasChildInBlacklist_;
@@ -601,6 +640,8 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->isOpincSupportFlag_ = isOpincSupportFlag_;
     target->isOpincRootFlag_ = isOpincRootFlag_;
     target->isOpincStateChanged_ = target->isOpincStateChanged_ || isOpincStateChanged_;
+    target->isLayerPartRenderEnable_ = isLayerPartRenderEnable_;
+    target->layerPartRenderCurrentFrameDirtyRegion_ = layerPartRenderCurrentFrameDirtyRegion_;
     target->startingWindowFlag_ = startingWindowFlag_;
     target->freezeFlag_ = freezeFlag_;
     target->absDrawRect_ = absDrawRect_;
@@ -620,7 +661,7 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     // used for DFX
     target->isOnTheTree_ = isOnTheTree_;
 
-    target->hasVirtualScreenWhiteList_ = hasVirtualScreenWhiteList_;
+    target->screensWithSubTreeWhitelist_ = screensWithSubTreeWhitelist_;
     needSync_ = false;
 }
 
@@ -738,5 +779,11 @@ void RSRenderParams::SetIsOnTheTree(bool isOnTheTree)
 bool RSRenderParams::GetIsOnTheTree() const
 {
     return isOnTheTree_;
+}
+
+void RSRenderParams::SwapRelatedRenderParams(RSRenderParams& relatedRenderParams)
+{
+    matrix_.Swap(relatedRenderParams.matrix_);
+    std::swap(shouldPaint_, relatedRenderParams.shouldPaint_);
 }
 } // namespace OHOS::Rosen

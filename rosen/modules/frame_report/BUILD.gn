@@ -40,10 +40,14 @@ ohos_static_library("frame_report") {
   ]
   sources = []
   include_dirs = []
-  external_deps = []
+  external_deps = [
+    "vulkan-headers:vulkan_headers",
+    "vulkan-loader:vulkan_loader",
+  ]
 
   if (current_os == "ohos") {
     sources += [ "src/rs_frame_report.cpp" ]
+    external_deps += [ "frame_aware_sched:frame_ui_intf"]
   } else {
     sources += [ "src/mingw/rs_frame_report.cpp" ]
   }

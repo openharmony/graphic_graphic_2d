@@ -32,43 +32,43 @@ namespace Rosen {
 const std::string TEST_GRAPHIC_CONFIG_XML = (R"(<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
     <FeatureModule version = "1.0" xmlns:xi="http://www.w3.org/2001/XInclude" name="ImageEnhanceConfig">
         <FeatureMultiParam name = "ImageEnhance">
-            <App name="com.target.app"/>
-            <App name="com.target2.app"/>
-            <App name=""/>
+            <App name = "com.target.app"/>
+            <App name = "com.target2.app"/>
+            <App name = ""/>
         </FeatureMultiParam>
         <FeatureMultiParam name = "ImageEnhanceParam">
-            <param name="MinSize" value="500"/>
-            <param name="MaxSize" value="3000"/>
-            <param name="MinScaleRatio" value="0.5"/>
-            <param name="MaxScaleRatio" value="5"/>
+            <param name = "MinSize" value = "500"/>
+            <param name = "MaxSize" value = "3000"/>
+            <param name = "MinScaleRatio" value = "0.5"/>
+            <param name = "MaxScaleRatio" value = "5"/>
         </FeatureMultiParam>
         <FeatureMultiParam name = "SLR">
-            <param name="RangeMin" value="0.0"/>
-            <param name="RangeMax" value="0.5"/>
-            <param name="param" value="0.3"/>
-            <param name="MinSize" value="360000"/>
-            <param name="MaxSize" value="640000"/>
+            <param name = "RangeMin" value = "0.0"/>
+            <param name = "RangeMax" value = "0.5"/>
+            <param name = "param" value = "0.3"/>
+            <param name = "MinSize" value = "360000"/>
+            <param name = "MaxSize" value = "640000"/>
         </FeatureMultiParam>
         <FeatureMultiParam name = "ESR">
-            <param name="RangeMin" value="1.0"/>
-            <param name="RangeMax" value="2.0"/>
-            <param name="param" value="0.3"/>
-            <param name="MinSize" value="360000"/>
-            <param name="MaxSize" value="9000000"/>
+            <param name = "RangeMin" value = "1.0"/>
+            <param name = "RangeMax" value = "2.0"/>
+            <param name = "param" value = "0.3"/>
+            <param name = "MinSize" value = "360000"/>
+            <param name = "MaxSize" value = "9000000"/>
         </FeatureMultiParam>
     </FeatureModule>)");
 
 const std::string TEST_GRAPHIC_CONFIG_XML_2 = (R"(<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
     <FeatureModule version = "1.0" xmlns:xi="http://www.w3.org/2001/XInclude" name="ImageEnhanceConfig">
         <FeatureMultiParam name = "SLR">
-            <param name="WrongName" value="0.0"/>
+            <param name = "WrongName" value = "0.0"/>
         </FeatureMultiParam>
     </FeatureModule>)");
 
 const std::string TEST_GRAPHIC_CONFIG_XML_3 = (R"(<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
     <FeatureModule version = "1.0" xmlns:xi="http://www.w3.org/2001/XInclude" name="ImageEnhanceConfig">
         <FeatureMultiParam name = "ESR">
-            <param name="WrongName" value="0.0"/>
+            <param name = "WrongName" value = "0.0"/>
         </FeatureMultiParam>
     </FeatureModule>)");
 
@@ -218,6 +218,46 @@ HWTEST_F(ImageEnhanceParamParseTest, ParseESRParam, Function | SmallTest | Level
     EXPECT_NE(result4, PARSE_EXEC_SUCCESS);
     xmlFreeDoc(doc);
     doc = nullptr;
+}
+
+/**
+ * @tc.name: CheckParams
+ * @tc.desc: Verify the CheckParams
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(ImageEnhanceParamParseTest, CheckParams, Function | SmallTest | Level1)
+{
+    ImageEnhanceParamParse imageEnhanceParamParse;
+    imageEnhanceParamParse.params_ = { false, 0, 1, 0.1, 1.1 };
+    EXPECT_TRUE(imageEnhanceParamParse.CheckParams());
+    imageEnhanceParamParse.params_ = { false, 1, 1, 0.1, 1.1 };
+    EXPECT_FALSE(imageEnhanceParamParse.CheckParams());
+    imageEnhanceParamParse.params_ = { false, 0, 1, 0.1, 0.1 };
+    EXPECT_FALSE(imageEnhanceParamParse.CheckParams());
+    imageEnhanceParamParse.params_ = { false, 1, 1, 0.1, 0.1 };
+    EXPECT_FALSE(imageEnhanceParamParse.CheckParams());
+}
+
+/**
+ * @tc.name: CheckAlgoParams
+ * @tc.desc: Verify the CheckAlgoParams
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(ImageEnhanceParamParseTest, CheckAlgoParams, Function | SmallTest | Level1)
+{
+    ImageEnhanceParamParse imageEnhanceParamParse;
+    RSImageDetailEnhanceAlgoParams algoParams = { false, {{ 0.1, 0.2, 0.3 }}, 0, 200 };
+    EXPECT_TRUE(imageEnhanceParamParse.CheckAlgoParams(algoParams));
+    algoParams = { false, {{ 0.1, 0.2, 0.3 }}, 200, 200 };
+    EXPECT_FALSE(imageEnhanceParamParse.CheckAlgoParams(algoParams));
+    algoParams = { false, {}, 0, 200 };
+    EXPECT_FALSE(imageEnhanceParamParse.CheckAlgoParams(algoParams));
+    algoParams = { false, {{ 0.2, 0.2, 0.3 }}, 0, 200 };
+    EXPECT_FALSE(imageEnhanceParamParse.CheckAlgoParams(algoParams));
+    algoParams = { false, {{ 0.1, 0.3, 0.3 }, { 0.2, 0.4, 0.3 }}, 0, 200 };
+    EXPECT_FALSE(imageEnhanceParamParse.CheckAlgoParams(algoParams));
 }
 } // namespace Rosen
 } // namespace OHOS

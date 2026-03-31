@@ -1864,8 +1864,14 @@ public:
      * @brief Sets the context for the RSUI.
      *
      * @param rsUIContext A shared pointer to the RSUIContext object.
+     * @param moveCommands Whether to move commands from old context to new context.
+     *
+     * @return Returns true if no change is needed, or RSUIContext is successfully changed
+     *         and commands are correctly moved to the new RSUIContext. Returns false if
+     *         rsUIContext is nullptr, the node has animations (RSUIContext will not be changed),
+     *         or command movement fails.
      */
-    void SetRSUIContext(std::shared_ptr<RSUIContext> rsUIContext);
+    bool SetRSUIContext(std::shared_ptr<RSUIContext> rsUIContext, bool moveCommands = true);
 
     /**
      * @brief Sets whether to skip check in multi-instance.
@@ -1918,12 +1924,21 @@ public:
      */
     void UpdateOcclusionCullingStatus(bool enable, NodeId keyOcclusionNodeId);
 
+    /**
+     * @brief Mark the node for layer part rendering optimization
+     *
+     * @param isLayerPartRender true to enable layer part rendering optimization; false to disable
+     */
+    void MarkLayerPartRender(bool isLayerPartRender);
+
 protected:
     explicit RSNode(
         bool isRenderServiceNode, bool isTextureExportNode = false, std::shared_ptr<RSUIContext> rsUIContext = nullptr,
         bool isOnTheTree = false);
     explicit RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode = false,
         std::shared_ptr<RSUIContext> rsUIContext = nullptr, bool isOnTheTree = false);
+
+    virtual void DumpSubClass(std::string& out) const {}
 
     void DumpModifiers(std::string& out) const;
 
@@ -1960,7 +1975,7 @@ protected:
     void DoFlushModifier();
 
     std::vector<PropertyId> GetModifierIds() const;
-    bool IsAnyModifierDeduplicationEnabled() const;
+
     bool isCustomTextType_ = false;
     bool isCustomTypeface_ = false;
 
@@ -2192,6 +2207,7 @@ private:
     bool isNodeSingleFrameComposer_ = false;
 
     bool isSuggestOpincNode_ = false;
+    bool isLayerPartRender_ = false;
     bool isDrawNode_ = false;
     // Used to identify whether the node has real drawing property
     DrawNodeType drawNodeType_ = DrawNodeType::PureContainerType;
@@ -2272,6 +2288,7 @@ private:
     template<typename T>
     friend class RSAnimatableProperty;
     friend class RSInteractiveImplictAnimator;
+    friend class RSSurfaceNode;
 };
 // backward compatibility
 using RSBaseNode = RSNode;

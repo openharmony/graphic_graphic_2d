@@ -20,7 +20,7 @@
 
 #include "common/rs_optional_trace.h"
 #include "display_engine/rs_luminance_control.h"
-#include "feature/hdr/rs_hdr_util.h"
+#include "feature/gpuComposition/rs_gpu_cache_manager.h"
 #include "graphic_feature_param_manager.h"
 #include "memory/rs_tag_tracker.h"
 #include "metadata_helper.h"
@@ -86,11 +86,12 @@ RSBaseRenderEngine::~RSBaseRenderEngine() noexcept
 {
 }
 
-void RSBaseRenderEngine::Init()
+void RSBaseRenderEngine::Init(RenderEngineType type)
 {
 #if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
     renderContext_ = RenderContext::Create();
     renderContext_->Init();
+    renderContext_->SetRenderContextType(static_cast<uint8_t>(type));
     if (RSUniRenderJudgement::IsUniRender()) {
         RS_LOGI("RSRenderEngine::RSRenderEngine set new cacheDir");
         renderContext_->SetUniRenderMode(true);
@@ -319,8 +320,6 @@ void RSBaseRenderEngine::DrawScreenNodeWithParams(RSPaintFilterCanvas& canvas, R
         if (!drawable) {
             return;
         }
-        auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(drawable);
-        RegisterDeleteBufferListener(screenDrawable->GetRSSurfaceHandlerOnDraw()->GetConsumer());
         DrawImage(canvas, params);
     }
 #endif
@@ -332,7 +331,6 @@ void RSBaseRenderEngine::DrawScreenNodeWithParams(RSPaintFilterCanvas& canvas, R
     if (params.useCPU) {
         DrawBuffer(canvas, params);
     } else {
-        RegisterDeleteBufferListener(surfaceHandler.GetConsumer());
         DrawImage(canvas, params);
     }
 }
@@ -772,7 +770,6 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
     // Fix tonemapping: all xxxNits reset to 500, layerLinearMatrix reset to 3x3 Identity matrix
     params.isTmoNitsFixed = canvas.IsOnMultipleScreen() ||
         (!canvas.GetHdrOn() &&
-        !params.hasMetadata &&
         !rsLuminance.IsScreenNoHeadroom(canvas.GetScreenId())) ||
         !RSSystemProperties::GetHdrVideoEnabled();
     auto shotType = canvas.GetScreenshotType();
@@ -874,11 +871,15 @@ bool RSBaseRenderEngine::NeedBilinearInterpolation(const BufferDrawParam& params
 
 void RSBaseRenderEngine::RegisterDeleteBufferListener(const sptr<IConsumerSurface>& consumer, bool isForUniRedraw)
 {
+    if (!gpuCacheManager_) {
+        RS_LOGE("RSBaseRenderEngine::RegisterDeleteBufferListener: gpuCacheManager_ is nullptr");
+        return;
+    }
+
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::IsUseVulkan()) {
-        auto regUnMapVkImageFunc = [this, isForUniRedraw](uint64_t bufferId) {
-            RSMainThread::Instance()->AddToUnmappedCacheSet(bufferId);
-        };
+        // Use GPUCacheManager instance method to create callback
+        auto regUnMapVkImageFunc = gpuCacheManager_->CreateBufferDeleteCallback();
         if (consumer == nullptr ||
             (consumer->RegisterDeleteBufferListener(regUnMapVkImageFunc, isForUniRedraw) != GSERROR_OK)) {
             RS_LOGE("RSBaseRenderEngine::RegisterDeleteBufferListener: failed to register UnMapVkImage callback.");
@@ -888,9 +889,8 @@ void RSBaseRenderEngine::RegisterDeleteBufferListener(const sptr<IConsumerSurfac
 #endif // #ifdef RS_ENABLE_VK
 
 #if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU))
-    auto regUnMapEglImageFunc = [this, isForUniRedraw](uint64_t bufferId) {
-        RSMainThread::Instance()->AddToUnmappedCacheSet(bufferId);
-    };
+    // Use GPUCacheManager instance method to create callback
+    auto regUnMapEglImageFunc = gpuCacheManager_->CreateBufferDeleteCallback();
     if (consumer == nullptr ||
         (consumer->RegisterDeleteBufferListener(regUnMapEglImageFunc, isForUniRedraw) != GSERROR_OK)) {
         RS_LOGE("RSBaseRenderEngine::RegisterDeleteBufferListener: failed to register UnMapEglImage callback.");
@@ -898,24 +898,12 @@ void RSBaseRenderEngine::RegisterDeleteBufferListener(const sptr<IConsumerSurfac
 #endif // #ifdef RS_ENABLE_EGLIMAGE
 }
 
-void RSBaseRenderEngine::RegisterDeleteBufferListener(RSSurfaceHandler& handler)
+std::function<void(uint64_t)> RSBaseRenderEngine::CreateBufferDeleteCallback() const
 {
-#ifdef RS_ENABLE_VK
-    if (RSSystemProperties::IsUseVulkan()) {
-        auto regUnMapVkImageFunc = [this](uint64_t bufferId) {
-            RSMainThread::Instance()->AddToUnmappedCacheSet(bufferId);
-        };
-        handler.RegisterDeleteBufferListener(regUnMapVkImageFunc);
-        return;
+    if (!gpuCacheManager_) {
+        return nullptr;
     }
-#endif // #ifdef RS_ENABLE_VK
-
-#if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU))
-    auto regUnMapEglImageFunc = [this](uint64_t bufferId) {
-        RSMainThread::Instance()->AddToUnmappedCacheSet(bufferId);
-    };
-    handler.RegisterDeleteBufferListener(regUnMapEglImageFunc);
-#endif // #ifdef RS_ENABLE_EGLIMAGE
+    return gpuCacheManager_->CreateBufferDeleteCallback();
 }
 
 void RSBaseRenderEngine::ShrinkCachesIfNeeded(bool isForUniRedraw)
@@ -927,15 +915,11 @@ void RSBaseRenderEngine::ShrinkCachesIfNeeded(bool isForUniRedraw)
 #endif // RS_ENABLE_EGLIMAGE
 }
 
-void RSBaseRenderEngine::ClearCacheSet(const std::set<uint64_t>& unmappedCache)
+void RSBaseRenderEngine::ClearCacheSet(const std::unordered_set<uint64_t>& unmappedCache)
 {
     if (imageManager_ != nullptr) {
-        if (RSSystemProperties::GetReleaseImageOneByOneFlag()) {
-            imageManager_->UnMapImageFromSurfaceBuffer(unmappedCache);
-        } else {
-            for (auto id : unmappedCache) {
-                imageManager_->UnMapImageFromSurfaceBuffer(id);
-            }
+        for (auto id : unmappedCache) {
+            imageManager_->UnMapImageFromSurfaceBuffer(id);
         }
     }
 }

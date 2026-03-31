@@ -69,7 +69,8 @@ void AniRoundRect::ConstructorWithRect(ani_env* env, ani_object obj, ani_object 
 {
     Drawing::Rect drawingRect;
     if (!GetRectFromAniRectObj(env, aniRectObj, drawingRect)) {
-        AniThrowError(env, "Invalid params. ");
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Incorrect parameter0 type. The type of left, top, right and bottom must be number.");
         return;
     }
     AniRoundRect* aniRoundRect = new AniRoundRect(drawingRect, xRadii, yRadii);
@@ -86,7 +87,8 @@ void AniRoundRect::ConstructorWithRoundRect(ani_env* env, ani_object obj, ani_ob
     auto aniRoundRect = GetNativeFromObj<AniRoundRect>(env, aniRoundRectObj,
         AniGlobalField::GetInstance().roundRectNativeObj);
     if (aniRoundRect == nullptr) {
-        AniThrowError(env, "Invalid params. "); // message length must be a multiple of 4, for example 16, 20, etc
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "AniRoundRect::ConstructorWithRoundRect roundRect is nullptr.");
         return;
     }
     std::shared_ptr<RoundRect> other = aniRoundRect->GetRoundRect();

@@ -18,16 +18,18 @@
 
 #include "hdi_backend.h"
 
+#include <functional>
+#include <memory>
+
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "rs_base_render_util.h"
-#include "screen_manager/rs_screen_manager.h"
 
 namespace OHOS {
 namespace Rosen {
 
-class RSRenderComposerClient;
 using FallbackCallback = std::function<void(const sptr<Surface>& surface, const std::vector<RSLayerPtr>& layers)>;
+
 class RSComposerAdapter {
 public:
     RSComposerAdapter() = default;
@@ -37,8 +39,8 @@ public:
     RSComposerAdapter(const RSComposerAdapter&) = delete;
     void operator=(const RSComposerAdapter&) = delete;
 
-    bool Init(const ScreenInfo& screenInfo, int32_t offsetX, int32_t offsetY, float mirrorAdaptiveCoefficient,
-        const FallbackCallback& cb);
+    bool Init(const ScreenInfo& screenInfo, float mirrorAdaptiveCoefficient,
+        const FallbackCallback& cb, const std::shared_ptr<HdiOutput>& output);
 
     RSLayerPtr CreateLayer(RSSurfaceRenderNode& node) const;
     RSLayerPtr CreateLayer(RSScreenRenderNode& node) const;
@@ -84,7 +86,6 @@ private:
 
     float mirrorAdaptiveCoefficient_ = 1.0f;
     FallbackCallback fallbackCb_;
-    std::shared_ptr<RSRenderComposerClient> composerClient_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

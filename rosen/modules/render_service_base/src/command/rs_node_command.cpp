@@ -90,6 +90,14 @@ void RSNodeCommandHelper::MarkSuggestOpincNode(RSContext& context, NodeId nodeId
     }
 }
 
+void RSNodeCommandHelper::MarkLayerPartRender(RSContext& context, NodeId nodeId, bool isLayerPartRender)
+{
+    auto& nodeMap = context.GetNodeMap();
+    if (auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId)) {
+        node->MarkSuggestLayerPartRenderNode(isLayerPartRender);
+    }
+}
+
 void RSNodeCommandHelper::MarkUifirstNode(RSContext& context, NodeId nodeId, bool isUifirstNode)
 {
     auto& nodeMap = context.GetNodeMap();

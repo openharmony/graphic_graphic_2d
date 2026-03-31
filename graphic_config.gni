@@ -263,7 +263,6 @@ check_mhc_ext_file_args = [
 
 if (path_exists("//foundation/graphic/graphic_2d_ext/dvsync/BUILD.gn")) {
   graphic_2d_feature_enable_dvsync = true
-  gpu_defines += [ "RS_ENABLE_DVSYNC_2" ]
 }
 
 if (path_exists("//foundation/graphic/graphic_2d_ext/ddgr/config.gni")) {

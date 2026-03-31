@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -650,11 +650,10 @@ HWTEST_F(RSRenderNodeTest2, UpdateDrawRectAndDirtyRegion002, TestSize.Level1)
 HWTEST_F(RSRenderNodeTest2, UpdateDrawRect001, TestSize.Level1)
 {
     RSRenderNode node(id, context);
-    RectI clipRect{0, 0, 1000, 1000};
     Drawing::Matrix matrix;
     RSRenderNode parentNode(id + 1, context);
     bool accumGeoDirty = true;
-    node.UpdateDrawRect(accumGeoDirty, clipRect, matrix);
+    node.UpdateDrawRect(accumGeoDirty, matrix);
     ASSERT_TRUE(true);
 }
 
@@ -667,12 +666,11 @@ HWTEST_F(RSRenderNodeTest2, UpdateDrawRect001, TestSize.Level1)
 HWTEST_F(RSRenderNodeTest2, UpdateDrawRect002, TestSize.Level1)
 {
     RSRenderNode node(id, context);
-    RectI clipRect{0, 0, 1000, 1000};
     Drawing::Matrix matrix;
     auto& properties = node.GetMutableRenderProperties();
     properties.sandbox_ = std::make_unique<Sandbox>();
     bool accumGeoDirty = true;
-    node.UpdateDrawRect(accumGeoDirty, clipRect, matrix);
+    node.UpdateDrawRect(accumGeoDirty, matrix);
     ASSERT_TRUE(true);
 }
 
@@ -1046,7 +1044,9 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterRegionInSkippedSubTree001, TestSize.Leve
     RSBaseRenderNode subTreeRoot(id + 1, context);
     RectI filterRect{0, 0, 1000, 1000};
     RectI clipRect{0, 0, 1000, 1000};
-    node.UpdateFilterRegionInSkippedSubTree(*rsDirtyManager, subTreeRoot, filterRect, clipRect, clipRect);
+    RectI dirtyRegionClipRect{0, 0, 1000, 1000};
+    node.UpdateFilterRegionInSkippedSubTree(*rsDirtyManager, subTreeRoot, filterRect,
+        clipRect, dirtyRegionClipRect, clipRect);
     ASSERT_TRUE(true);
 }
 
@@ -1064,8 +1064,50 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterRegionInSkippedSubTree002, TestSize.Leve
     RectI filterRect{0, 0, 1000, 1000};
     node.lastFilterRegion_ = filterRect;
     RectI clipRect{0, 0, 1000, 1000};
-    node.UpdateFilterRegionInSkippedSubTree(*rsDirtyManager, subTreeRoot, filterRect, clipRect, clipRect);
+    RectI dirtyRegionClipRect{0, 0, 1000, 1000};
+    node.UpdateFilterRegionInSkippedSubTree(*rsDirtyManager, subTreeRoot, filterRect,
+        clipRect, dirtyRegionClipRect, clipRect);
     ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: UpdateFilterRegionInSkippedSubTree003
+ * @tc.desc: test UpdateFilterRegionInSkippedSubTree with boundsGeometry not null and GetAbsMatrixReverse success
+ * @tc.type: FUNC
+ * @tc.require: issue22644
+ */
+HWTEST_F(RSRenderNodeTest2, UpdateFilterRegionInSkippedSubTree003, TestSize.Level1)
+{
+    // init tree state.
+    auto node = std::make_shared<RSRenderNode>(id, context);
+    node->GetMutableRenderProperties().boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    auto subTreeRoot = std::make_shared<RSRenderNode>(id + 1, context);
+    subTreeRoot->GetMutableRenderProperties().boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    auto parentNode = std::make_shared<RSRenderNode>(id + 2, context);
+    parentNode->GetMutableRenderProperties().boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    parentNode->AddChild(node);
+    subTreeRoot->AddChild(parentNode);
+    
+    // assign matrix.
+    auto& nodeMatrix = node->GetMutableRenderProperties().boundsGeo_->matrix_;
+    auto& nodeAbsMatrix = node->GetMutableRenderProperties().boundsGeo_->absMatrix_;
+    auto& parentNodeMatrix = parentNode->GetMutableRenderProperties().boundsGeo_->matrix_;
+    auto& subTreeRootAbsMatrix = subTreeRoot->GetMutableRenderProperties().boundsGeo_->absMatrix_;
+
+    Drawing::Matrix identityMatrix;
+    nodeMatrix = identityMatrix;
+    nodeAbsMatrix = identityMatrix;
+    parentNodeMatrix = identityMatrix;
+    subTreeRootAbsMatrix = identityMatrix;
+    subTreeRootAbsMatrix->SetScale(100.0f, 100.0f);
+
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    RectI filterRect;
+    RectI clipRect;
+    RectI dirtyRegionClipRect;
+    node->UpdateFilterRegionInSkippedSubTree(*rsDirtyManager, *subTreeRoot, filterRect,
+        clipRect, dirtyRegionClipRect, clipRect);
+    ASSERT_NE(nodeAbsMatrix->Get(0), identityMatrix.Get(0));
 }
 
 /**
@@ -1451,6 +1493,259 @@ HWTEST_F(RSRenderNodeTest2, UpdatePendingPurgeFilterDirtyRect006, TestSize.Level
 }
 
 /**
+* @tc.name: GetChildClipRegion001
+* @tc.desc: Test GetChildClipRegion returns nullptr when no clip properties set
+* @tc.type: FUNC
+* @tc.require: issue28860
+*/
+HWTEST_F(RSRenderNodeTest2, GetChildClipRegion001, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    ASSERT_NE(node, nullptr);
+
+    auto clipRegion = node->GetChildClipRegion();
+    ASSERT_EQ(clipRegion, nullptr);
+}
+
+/**
+* @tc.name: GetChildClipRegion002
+* @tc.desc: Test GetChildClipRegion with clipToBounds
+* @tc.type: FUNC
+* @tc.require: issue28860
+*/
+HWTEST_F(RSRenderNodeTest2, GetChildClipRegion002, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    ASSERT_NE(node, nullptr);
+
+    auto& properties = node->GetMutableRenderProperties();
+    properties.SetClipToBounds(true);
+    properties.SetBounds(Vector4f(0.0f, 0.0f, 400.0f, 400.0f));
+
+    auto clipRegion = node->GetChildClipRegion();
+    ASSERT_NE(clipRegion, nullptr);
+    ASSERT_EQ(*clipRegion, RectF(0.0f, 0.0f, 400.0f, 400.0f));
+}
+
+/**
+* @tc.name: GetChildClipRegion003
+* @tc.desc: Test GetChildClipRegion with clipToRRect
+* @tc.type: FUNC
+* @tc.require: issue28860
+*/
+HWTEST_F(RSRenderNodeTest2, GetChildClipRegion003, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    ASSERT_NE(node, nullptr);
+
+    auto& properties = node->GetMutableRenderProperties();
+    properties.clipRRect_ = RRect({150.0f, 150.0f, 350.0f, 350.0f}, 20.0f, 20.f);
+
+    auto clipRegion = node->GetChildClipRegion();
+    ASSERT_NE(clipRegion, nullptr);
+    ASSERT_EQ(*clipRegion, RectF(150.0f, 150.0f, 350.0f, 350.0f));
+}
+
+/**
+* @tc.name: GetChildClipRegion004
+* @tc.desc: Test GetChildClipRegion with clipToFrame
+* @tc.type: FUNC
+* @tc.require: issue28860
+*/
+HWTEST_F(RSRenderNodeTest2, GetChildClipRegion004, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    ASSERT_NE(node, nullptr);
+
+    auto& properties = node->GetMutableRenderProperties();
+    properties.SetClipToFrame(true);
+    properties.frameOffsetX_ = 50.0f;
+    properties.frameOffsetY_ = 50.0f;
+    properties.SetFrameWidth(300.0f);
+    properties.SetFrameHeight(300.0f);
+
+    auto clipRegion = node->GetChildClipRegion();
+    ASSERT_NE(clipRegion, nullptr);
+    ASSERT_EQ(*clipRegion, RectF(50.0f, 50.0f, 300.0f, 300.0f));
+}
+
+/**
+* @tc.name: GetChildClipRegion005
+* @tc.desc: Test GetChildClipRegion with both clipToBounds and clipToFrame
+* @tc.type: FUNC
+* @tc.require: issue28860
+*/
+HWTEST_F(RSRenderNodeTest2, GetChildClipRegion005, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    ASSERT_NE(node, nullptr);
+
+    auto& properties = node->GetMutableRenderProperties();
+    properties.SetClipToBounds(true);
+    properties.SetBounds(Vector4f(0.0f, 0.0f, 400.0f, 400.0f));
+
+    properties.SetClipToFrame(true);
+    properties.frameOffsetX_ = 150.0f;
+    properties.frameOffsetY_ = 150.0f;
+    properties.SetFrameWidth(200.0f);
+    properties.SetFrameHeight(200.0f);
+
+    auto clipRegion = node->GetChildClipRegion();
+    ASSERT_NE(clipRegion, nullptr);
+    ASSERT_EQ(*clipRegion, RectF(150.0f, 150.0f, 200.0f, 200.0f));
+}
+
+/**
+* @tc.name: GetChildClipRegion006
+* @tc.desc: Test GetChildClipRegion with SDF shape
+* @tc.type: FUNC
+* @tc.require: issue28860
+*/
+HWTEST_F(RSRenderNodeTest2, GetChildClipRegion006, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    ASSERT_NE(node, nullptr);
+
+    auto& properties = node->GetMutableRenderProperties();
+    properties.SetSDFShape(std::make_shared<RSNGRenderSDFRRectShape>());
+
+    auto clipRegion = node->GetChildClipRegion();
+    ASSERT_EQ(clipRegion, nullptr);
+}
+
+/**
+* @tc.name: GetChildClipRegion007
+* @tc.desc: Test GetChildClipRegion with clipBounds path
+* @tc.type: FUNC
+* @tc.require: issue28860
+*/
+HWTEST_F(RSRenderNodeTest2, GetChildClipRegion007, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    ASSERT_NE(node, nullptr);
+
+    auto& properties = node->GetMutableRenderProperties();
+    properties.SetClipBounds(std::make_shared<RSPath>());
+
+    auto clipRegion = node->GetChildClipRegion();
+    ASSERT_EQ(clipRegion, nullptr);
+}
+
+/**
+* @tc.name: GetChildClipRegion008
+* @tc.desc: Test GetChildClipRegion with non-zero corner radius
+* @tc.type: FUNC
+* @tc.require: issue28860
+*/
+HWTEST_F(RSRenderNodeTest2, GetChildClipRegion008, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    ASSERT_NE(node, nullptr);
+
+    auto& properties = node->GetMutableRenderProperties();
+    properties.SetCornerRadius(Vector4f(10.0f, 10.0f, 10.0f, 10.0f));
+
+    auto clipRegion = node->GetChildClipRegion();
+    ASSERT_EQ(clipRegion, nullptr);
+}
+
+/**
+* @tc.name: GetChildClipRegion009
+* @tc.desc: Test GetChildClipRegion with surface node app window rotation
+* @tc.type: FUNC
+* @tc.require: issue28860
+*/
+HWTEST_F(RSRenderNodeTest2, GetChildClipRegion009, TestSize.Level1)
+{
+    bool cacheEnabledForRotation = RSSystemProperties::GetCacheEnabledForRotation();
+    auto rsContext = std::make_shared<RSContext>();
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0, rsContext);
+    ASSERT_NE(surfaceNode, nullptr);
+
+    RSSystemProperties::SetCacheEnabledForRotation(true);
+    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    auto clipRegion = surfaceNode->GetChildClipRegion();
+    ASSERT_EQ(clipRegion, nullptr);
+
+    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    clipRegion = surfaceNode->GetChildClipRegion();
+    ASSERT_EQ(clipRegion, nullptr);
+
+    RSSystemProperties::SetCacheEnabledForRotation(false);
+    clipRegion = surfaceNode->GetChildClipRegion();
+    ASSERT_EQ(clipRegion, nullptr);
+
+    RSSystemProperties::SetCacheEnabledForRotation(cacheEnabledForRotation);
+}
+
+/**
+* @tc.name: IsClipRectInsideNodeSelfDrawRegion001
+* @tc.desc: Test IsClipRectInsideNodeSelfDrawRegion returns false when node has no clip
+* @tc.type: FUNC
+* @tc.require: issue28860
+*/
+HWTEST_F(RSRenderNodeTest2, IsClipRectInsideNodeSelfDrawRegion001, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSRenderNode>(1, rsContext);
+    ASSERT_NE(node, nullptr);
+
+    ASSERT_FALSE(node->IsClipRectInsideNodeSelfDrawRegion());
+}
+
+/**
+* @tc.name: IsClipRectInsideNodeSelfDrawRegion002
+* @tc.desc: Test IsClipRectInsideNodeSelfDrawRegion returns true when clip is inside self draw rect
+* @tc.type: FUNC
+* @tc.require: issue28860
+*/
+HWTEST_F(RSRenderNodeTest2, IsClipRectInsideNodeSelfDrawRegion002, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSRenderNode>(1, rsContext);
+    ASSERT_NE(node, nullptr);
+    RectF selfDrawRect = {0.0f, 0.0f, 600.0f, 600.0f};
+    node->selfDrawRect_ = selfDrawRect;
+
+    auto& parentProps = node->GetMutableRenderProperties();
+    parentProps.SetClipToBounds(true);
+    parentProps.SetBounds(Vector4f(0.0f, 0.0f, 400.0f, 400.0f));
+    ASSERT_TRUE(node->IsClipRectInsideNodeSelfDrawRegion());
+}
+
+/**
+* @tc.name: IsClipRectInsideNodeSelfDrawRegion004
+* @tc.desc: Test IsClipRectInsideNodeSelfDrawRegion returns false when clip is not inside self draw rect
+* @tc.type: FUNC
+* @tc.require: issue28860
+*/
+HWTEST_F(RSRenderNodeTest2, IsClipRectInsideNodeSelfDrawRegion004, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto parentNode = std::make_shared<RSRenderNode>(1, rsContext);
+    ASSERT_NE(parentNode, nullptr);
+    RectF selfDrawRect = {0.0f, 0.0f, 300.0f, 300.0f};
+    parentNode->selfDrawRect_ = selfDrawRect;
+    auto childNode = std::make_shared<RSRenderNode>(2, rsContext);
+    ASSERT_NE(childNode, nullptr);
+
+    auto& parentProps = parentNode->GetMutableRenderProperties();
+    parentProps.SetClipToBounds(true);
+    parentProps.SetBounds(Vector4f(0.0f, 0.0f, 400.0f, 400.0f));
+
+    parentNode->AddChild(childNode);
+    ASSERT_FALSE(childNode->IsClipRectInsideNodeSelfDrawRegion());
+}
+
+/**
  * @tc.name: IsBackgroundInAppOrNodeSelfDirty
  * @tc.desc: test
  * @tc.type: FUNC
@@ -1598,10 +1893,9 @@ HWTEST_F(RSRenderNodeTest2, ForceMergeSubTreeDirtyRegionTest033, TestSize.Level1
     nodeTest->InitRenderParams();
 
     RSDirtyRegionManager dirtyManagerTest1;
-    RectI clipRectTest1 = RectI { 0, 0, 1, 1 };
     nodeTest->lastFrameSubTreeSkipped_ = true;
     nodeTest->geoUpdateDelay_ = true;
-    nodeTest->ForceMergeSubTreeDirtyRegion(dirtyManagerTest1, clipRectTest1);
+    nodeTest->ForceMergeSubTreeDirtyRegion(dirtyManagerTest1);
     EXPECT_FALSE(nodeTest->lastFrameSubTreeSkipped_);
 
     RSDirtyRegionManager dirtyManagerTest2;
@@ -2258,10 +2552,9 @@ HWTEST_F(RSRenderNodeTest2, ForceMergeSubTreeDirtyRegionTest02, TestSize.Level1)
     EXPECT_NE(nodeTest, nullptr);
 
     RSDirtyRegionManager dirtyManagerTest1;
-    RectI clipRectTest1 = RectI { 0, 0, 1, 1 };
     nodeTest->lastFrameSubTreeSkipped_ = true;
     nodeTest->geoUpdateDelay_ = false;
-    nodeTest->ForceMergeSubTreeDirtyRegion(dirtyManagerTest1, clipRectTest1);
+    nodeTest->ForceMergeSubTreeDirtyRegion(dirtyManagerTest1);
     EXPECT_FALSE(nodeTest->lastFrameSubTreeSkipped_);
 
     RSDirtyRegionManager dirtyManagerTest2;
@@ -2340,10 +2633,9 @@ HWTEST_F(RSRenderNodeTest2, ForceMergeSubTreeDirtyRegionTest03, TestSize.Level1)
     EXPECT_NE(nodeTest, nullptr);
 
     RSDirtyRegionManager dirtyManagerTest1;
-    RectI clipRectTest1 = RectI { 0, 0, 1, 1 };
     nodeTest->lastFrameSubTreeSkipped_ = true;
     nodeTest->geoUpdateDelay_ = false;
-    nodeTest->ForceMergeSubTreeDirtyRegion(dirtyManagerTest1, clipRectTest1);
+    nodeTest->ForceMergeSubTreeDirtyRegion(dirtyManagerTest1);
     EXPECT_FALSE(nodeTest->lastFrameSubTreeSkipped_);
 
     RSDirtyRegionManager dirtyManagerTest2;
@@ -2377,10 +2669,9 @@ HWTEST_F(RSRenderNodeTest2, ForceMergeSubTreeDirtyRegionTest04, TestSize.Level1)
     EXPECT_NE(nodeTest4, nullptr);
 
     RSDirtyRegionManager dirtyManagerTest1;
-    RectI clipRectTest1 = RectI { 0, 0, 1, 1 };
     nodeTest4->lastFrameSubTreeSkipped_ = true;
     nodeTest4->geoUpdateDelay_ = false;
-    nodeTest4->ForceMergeSubTreeDirtyRegion(dirtyManagerTest1, clipRectTest1);
+    nodeTest4->ForceMergeSubTreeDirtyRegion(dirtyManagerTest1);
     EXPECT_FALSE(nodeTest4->lastFrameSubTreeSkipped_);
 
     RSDirtyRegionManager dirtyManagerTest2;
@@ -3578,6 +3869,23 @@ HWTEST_F(RSRenderNodeTest2, ResetColorPickerAltMemoryOnTreeStateChange, TestSize
     // Verify that pickedLuminance_ was reset to RGBA_MAX + 1 (invalid initial value)
     EXPECT_EQ(altManager->pickedLuminance_.load(std::memory_order_relaxed),
         static_cast<uint32_t>(RGBA_MAX + 1));
+}
+
+/**
+ * @tc.name: DirtySlotsPartialSync001
+ * @tc.desc: test DirtySlotsPartialSync
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest2, DirtySlotsPartialSync001, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    node->dirtySlots_.insert(RSDrawableSlot::CONTENT_STYLE);
+    node->dirtySlots_.insert(RSDrawableSlot::CHILDREN);
+    node->dirtySlots_.insert(RSDrawableSlot::INVALID);
+    node->dirtySlots_.insert(RSDrawableSlot::MATERIAL_FILTER);
+    node->DirtySlotsPartialSync();
+    EXPECT_EQ(node->dirtySlots_.size(), 2);
 }
 } // namespace Rosen
 } // namespace OHOS

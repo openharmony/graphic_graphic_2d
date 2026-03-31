@@ -186,16 +186,16 @@ std::tuple<bool, bool, bool> RSAnimationManager::Animate(
         }
         return isFinished;
     });
-    rateDecider_.MakeDecision(frameRateFunctions_);
+    rateDecider_.MakeDecision(frameRateGetFunc_);
     isCalculateAnimationValue = isCalculateAnimationValue && nodeIsOnTheTree;
 
     return { hasRunningAnimation, needRequestNextVsync, isCalculateAnimationValue };
 }
 
-void RSAnimationManager::SetRateDeciderEnable(bool enabled, const FrameRateFunctions& func)
+void RSAnimationManager::SetRateDeciderEnable(bool enabled, const FrameRateGetFunc& func)
 {
     rateDecider_.SetEnable(enabled);
-    frameRateFunctions_ = func;
+    frameRateGetFunc_ = func;
 }
 
 void RSAnimationManager::SetRateDeciderSize(float width, float height)
@@ -221,6 +221,11 @@ const FrameRateRange& RSAnimationManager::GetDecideFrameRateRange() const
 const FrameRateRange& RSAnimationManager::GetFrameRateRange() const
 {
     return rsRange_;
+}
+
+const std::unordered_map<AnimationId, std::shared_ptr<RSRenderAnimation>>& RSAnimationManager::GetAnimations() const
+{
+    return animations_;
 }
 
 const std::shared_ptr<RSRenderAnimation> RSAnimationManager::GetAnimation(AnimationId id) const

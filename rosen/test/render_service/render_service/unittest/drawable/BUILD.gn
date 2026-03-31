@@ -24,6 +24,7 @@ group("unittest") {
     ":RSCanvasRenderNodeDrawableTest",
     ":RSDirtyRectsDFXTest",
     ":RSEffectRenderNodeDrawableTest",
+    ":RSLogicalDisplayRenderNodeDrawableTest",
     ":RSRenderNodeDrawableAdapterTest",
     ":RSRenderNodeDrawableTest",
     ":RSRootRenderNodeDrawableTest",
@@ -42,7 +43,10 @@ config("drawable_test") {
 ohos_unittest("RSCanvasDrawingRenderNodeDrawableTest") {
   module_out_path = module_output_path
   sources = [ "rs_canvas_drawing_render_node_drawable_test.cpp" ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
@@ -61,7 +65,10 @@ ohos_unittest("RSCanvasRenderNodeDrawableTest") {
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
     "rs_canvas_render_node_drawable_test.cpp",
   ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
@@ -80,7 +87,11 @@ ohos_unittest("RSScreenRenderNodeDrawableTest") {
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
     "rs_screen_render_node_drawable_test.cpp",
   ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
@@ -101,12 +112,17 @@ ohos_unittest("RSLogicalDisplayRenderNodeDrawableTest") {
   }
   include_dirs = ["$graphic_2d_root/rosen/modules/render_service_profiler"]
   sources = [ "rs_logical_display_render_node_drawable_test.cpp" ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
     "ffrt:libffrt",
     "graphic_surface:surface_headers",
+    "samgr:samgr_proxy",
+    "hisysevent:libhisysevent",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
@@ -117,7 +133,10 @@ ohos_unittest("RSLogicalDisplayRenderNodeDrawableTest") {
 ohos_unittest("RSEffectRenderNodeDrawableTest") {
   module_out_path = module_output_path
   sources = [ "rs_effect_render_node_drawable_test.cpp" ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
@@ -155,7 +174,10 @@ ohos_unittest("RSRenderNodeDrawableAdapterTest") {
 ohos_unittest("RSRenderNodeDrawableTest") {
   module_out_path = module_output_path
   sources = [ "rs_render_node_drawable_test.cpp" ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
@@ -182,7 +204,10 @@ ohos_unittest("RSRootRenderNodeDrawableTest") {
 ohos_unittest("RSSurfaceRenderNodeDrawableTest") {
   module_out_path = module_output_path
   sources = [ "rs_surface_render_node_drawable_test.cpp" ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
@@ -198,7 +223,10 @@ ohos_unittest("RSSurfaceRenderNodeDrawableTest") {
 ohos_unittest("RSDirtyRectsDFXTest") {
   module_out_path = module_output_path
   sources = [ "dfx/rs_dirty_rects_dfx_test.cpp" ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
@@ -223,7 +251,10 @@ ohos_unittest("RSSkpCaptureDFXTest") {
     "-Dprivate=public",
     "-Dprotected=public",
   ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
@@ -258,7 +289,18 @@ config("rs_test_common_public_config") {
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/soft_vsync_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
-    "$graphic_2d_root/rosen/modules/render_service/main",
+    "$graphic_2d_root/rosen/modules/render_service",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/layer",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/command",
     "$graphic_2d_root/rosen/modules/render_service/core",
     "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg",
     "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param",
@@ -267,19 +309,14 @@ config("rs_test_common_public_config") {
     "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser",
     "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser/extend_feature_parser",
     "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser/performance_feature_parser",
-    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/rosen/modules/render_service/main",
+    "$graphic_2d_root/rosen/modules/render_service/main/render_server",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
-    "$graphic_2d_root/utils/socketpair/export",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
     "$graphic_2d_root/rosen/test/include",
     "$graphic_2d_root/rosen/test/render_service/render_service/unittest",
     "$graphic_2d_root/utils/socketpair/export",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/layer_backend",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/render_layer",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/pipeline",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/transaction",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/connection",
-    
+    "$graphic_2d_root/rosen/modules/render_service/vsync",
   ]
 
   if (graphic_2d_feature_subtree_parallel_enable) {
@@ -340,6 +377,18 @@ ohos_static_library("rs_test_common") {
   }
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
+  }
+
+  if (accessibility_enable) {
+    external_deps += [ "accessibility:accessibilityconfig" ]
+    external_deps += [ "accessibility:accessibility_common" ]
+    defines += accessibility_defines
+  }
+
+  if (defined(global_parts_info) &&
+    defined(global_parts_info.resourceschedule_resource_schedule_service)) {
+    external_deps += [ "resource_schedule_service:ressched_client" ]
+    defines += [ "RES_SCHED_ENABLE" ]
   }
 
   subsystem_name = "graphic"

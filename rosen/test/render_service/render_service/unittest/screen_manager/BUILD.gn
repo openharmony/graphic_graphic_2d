@@ -17,49 +17,195 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 module_output_path = "graphic_2d/graphic_2d/rosen_engine/render_service/screen_manager"
 
-##############################  VsyncEnabledScreenIdTest  ##################################
-ohos_unittest("VsyncEnabledScreenIdTest") {
+##############################  RSScreenManagerTest  ##################################
+ohos_unittest("RSScreenManagerTest") {
   module_out_path = module_output_path
 
-  sources = [ "vsync_enabled_screen_id_test.cpp" ]
+  sources = [
+    "../pipeline/mock/mock_hdi_device.cpp",
+    "rs_screen_manager_test.cpp",
+  ]
+
+  configs = [ ":screen_manager_test" ]
 
   include_dirs = [
-    "$graphic_2d_root/rosen/modules/render_service/core",
-    "$graphic_2d_root/rosen/modules/render_service_base/src",
-    "$graphic_2d_root/rosen/modules/render_service_client/core",
-    "$graphic_2d_root/rosen/include",
-    "$graphic_2d_root/rosen/test/include",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/layer_backend",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/render_layer",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/pipeline",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/transaction",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/connection",
-    "$graphic_2d_root/rosen/modules/render_service_base/include",
-    "$graphic_2d_root/rosen/modules/hyper_graphic_manager",
-    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
-    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/soft_vsync_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
+    "$graphic_2d_root/rosen/modules/render_service",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/connection",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/command",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/frame_rate_vote",
+    "$graphic_2d_root/rosen/modules/render_service/vsync",
   ]
 
   deps = [
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
   ]
 
   external_deps = [
+    "accessibility:accessibilityconfig",
     "c_utils:utils",
     "eventhandler:libeventhandler",
+    "googletest:gmock_main",
     "googletest:gtest_main",
     "hilog:libhilog",
     "init:libbegetutil",
+    "samgr:samgr_proxy",
+    "hisysevent:libhisysevent",
+  ]
+
+  # Add memmgr client dependency when memory manager integration is enabled so
+  # headers like app_state_subscriber.h are available to unit tests.
+  if (use_memmgr_plugin || use_memmgr) {
+    external_deps += [ "memmgr:memmgrclient" ]
+  }
+
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+    defines = [ "RS_SUBSCRIBE_SENSOR_ENABLE" ]
+  }
+
+  if (defined(global_parts_info) &&
+      defined(global_parts_info.resourceschedule_resource_schedule_service)) {
+    external_deps += [ "resource_schedule_service:ressched_client" ]
+    defines += [ "RES_SCHED_ENABLE" ]
+  }
+
+  subsystem_name = "graphic"
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+}
+
+##############################  RSScreenCallbackManagerTest  ##################################
+ohos_unittest("RSScreenCallbackManagerTest") {
+  module_out_path = module_output_path
+
+  sources = [
+    "rs_screen_callback_manager_test.cpp",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/command",
+    "$graphic_2d_root/rosen/modules/render_service/screen_manager",
+    "$graphic_2d_root/rosen/modules/render_service/screen_manager/public",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/composer:libcomposer",
+    "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+  ]
+
+  external_deps = [
+    "eventhandler:libeventhandler",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
+    "samgr:samgr_proxy",
+  ]
+
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+    defines = [ "RS_SUBSCRIBE_SENSOR_ENABLE" ]
+  }
+
+  subsystem_name = "graphic"
+  part_name = "graphic_2d"
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+}
+
+##############################  RSScreenManagerAgentTest  ##################################
+ohos_unittest("RSScreenManagerAgentTest") {
+  module_out_path = module_output_path
+
+  sources = [
+    "rs_screen_manager_agent_test.cpp",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service",
+    "$graphic_2d_root/rosen/modules/render_service/core",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/command",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/connection",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl",
+    "$graphic_2d_root/rosen/modules/render_service/screen_manager",
+    "$graphic_2d_root/rosen/modules/render_service/screen_manager/public",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/soft_vsync_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/frame_rate_vote",
+    "$graphic_2d_root/rosen/modules/render_service/vsync",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/composer:libcomposer",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
+    "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+  ]
+
+  external_deps = [
+    "accessibility:accessibilityconfig",
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "init:libbegetutil",
+    "samgr:samgr_proxy",
     "hisysevent:libhisysevent",
   ]
 
@@ -89,37 +235,118 @@ ohos_unittest("VsyncEnabledScreenIdTest") {
   ]
 }
 
-##############################  RSScreenManagerTest  ##################################
-ohos_unittest("RSScreenManagerTest") {
+##############################  RSScreenPreprocessorTest  ##################################
+ohos_unittest("RSScreenPreprocessorTest") {
   module_out_path = module_output_path
 
   sources = [
-    "../pipeline/mock/mock_hdi_device.cpp",
-    "rs_screen_manager_test.cpp",
+    "rs_screen_preprocessor_test.cpp",
   ]
 
-  configs = [ ":screen_manager_test" ]
-
   include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service",
+    "$graphic_2d_root/rosen/modules/render_service/core",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/command",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/connection",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/soft_vsync_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/frame_rate_vote",
+    "$graphic_2d_root/rosen/modules/render_service/vsync",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/composer:libcomposer",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
+    "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+  ]
+
+  external_deps = [
+    "accessibility:accessibilityconfig",
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "init:libbegetutil",
+    "samgr:samgr_proxy",
+    "hisysevent:libhisysevent",
+  ]
+
+  # Add memmgr client dependency when memory manager integration is enabled so
+  # headers like app_state_subscriber.h are available to unit tests.
+  if (use_memmgr_plugin || use_memmgr) {
+    external_deps += [ "memmgr:memmgrclient" ]
+  }
+
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+    defines = [ "RS_SUBSCRIBE_SENSOR_ENABLE" ]
+  }
+
+  if (defined(global_parts_info) &&
+      defined(global_parts_info.resourceschedule_resource_schedule_service)) {
+    external_deps += [ "resource_schedule_service:ressched_client" ]
+    defines += [ "RES_SCHED_ENABLE" ]
+  }
+
+  subsystem_name = "graphic"
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+}
+
+##############################  RSFoldScreenManagerTest  ##################################
+ohos_unittest("RSFoldScreenManagerTest") {
+  module_out_path = module_output_path
+
+  sources = [
+    "rs_fold_screen_manager_test.cpp",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service",
     "$graphic_2d_root/rosen/modules/render_service/core",
-    "$graphic_2d_root/rosen/modules/render_service_base/src",
-    "$graphic_2d_root/rosen/modules/render_service_client/core",
-    "$graphic_2d_root/rosen/include",
-    "$graphic_2d_root/rosen/test/include",
-    "$graphic_2d_root/rosen/test/render_service/render_service/unittest/pipeline/mock",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/layer_backend",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/render_layer",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/pipeline",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/transaction",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/command",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/connection",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/soft_vsync_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/frame_rate_vote",
   ]
 
@@ -130,6 +357,7 @@ ohos_unittest("RSScreenManagerTest") {
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
   ]
 
   external_deps = [
@@ -182,12 +410,27 @@ ohos_unittest("TouchScreenTest") {
     "$graphic_2d_root/rosen/include",
     "$graphic_2d_root/rosen/test/include",
     "$graphic_2d_root/rosen/modules/render_service/core",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/layer_backend",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/render_layer",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/pipeline",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/transaction",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/connection",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection",
+    "$graphic_2d_root/rosen/modules/render_service/main",
+    "$graphic_2d_root/rosen/modules/render_service/main/render_server",
+    "$graphic_2d_root/rosen/modules/render_service/main/render_server/transaction/zidl",
+    "$graphic_2d_root/rosen/modules/render_service/main/render_process/transaction/zidl",
+    "$graphic_2d_root/rosen/modules/render_service/main/render_process",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/layer",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction",
+    "$graphic_2d_root/rosen/modules/render_service/screen_manager",
+    "$graphic_2d_root/rosen/modules/render_service/screen_manager/callback",
+    "$graphic_2d_root/rosen/modules/render_service/screen_manager/public",
   ]
 
   deps = [ "$graphic_2d_root/rosen/modules/render_service:librender_service" ]
@@ -232,12 +475,30 @@ ohos_unittest("RSScreenTest") {
     "$graphic_2d_root/rosen/include",
     "$graphic_2d_root/rosen/test/include",
     "$graphic_2d_root/rosen/test/render_service/render_service/unittest/pipeline/mock",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/layer_backend",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/render_layer",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/pipeline",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/transaction",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection",
+    "$graphic_2d_root/rosen/modules/render_service/main",
+    "$graphic_2d_root/rosen/modules/render_service/main/render_server",
+    "$graphic_2d_root/rosen/modules/render_service/main/render_server/transaction/zidl",
+    "$graphic_2d_root/rosen/modules/render_service/main/render_process/transaction/zidl",
+    "$graphic_2d_root/rosen/modules/render_service/main/render_process",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/layer",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/connection",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/layer_backend",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/render_layer",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/transaction",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/command",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl",
+    "$graphic_2d_root/rosen/modules/render_service/screen_manager",
+    "$graphic_2d_root/rosen/modules/render_service/screen_manager/callback",
+    "$graphic_2d_root/rosen/modules/render_service/screen_manager/public",
   ]
 
   deps = [
@@ -246,6 +507,7 @@ ohos_unittest("RSScreenTest") {
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
   ]
 
   external_deps = [
@@ -273,7 +535,31 @@ ohos_unittest("RSScreenTest") {
 ###############################################################################
 config("screen_manager_test") {
   #visibility = [ ":*" ]
-  include_dirs = [ "$graphic_2d_root/rosen/modules/render_service/core" ]
+  include_dirs = [
+  "$graphic_2d_root/rosen/modules/render_service/core",
+  "$graphic_2d_root/rosen/modules/render_service_base/src",
+  "$graphic_2d_root/rosen/modules/render_service_client/core",
+  "$graphic_2d_root/rosen/include",
+  "$graphic_2d_root/rosen/test/include",
+  "$graphic_2d_root/rosen/test/render_service/render_service/unittest/pipeline/mock",
+  "$graphic_2d_root/rosen/modules/render_service/main",
+  "$graphic_2d_root/rosen/modules/render_service/main/render_server",
+  "$graphic_2d_root/rosen/modules/render_service/main/render_server/transaction/zidl",
+  "$graphic_2d_root/rosen/modules/render_service/main/render_process/transaction/zidl",
+  "$graphic_2d_root/rosen/modules/render_service/main/render_process",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/layer",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/pipeline",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl",
+  "$graphic_2d_root/rosen/modules/render_servic", 
+  "$graphic_2d_root/rosen/modules/render_service/screen_manager",
+  "$graphic_2d_root/rosen/modules/render_service/screen_manager/callback",
+  ]
 }
 
 ###############################################################################
@@ -292,9 +578,12 @@ group("unittest") {
   testonly = true
 
   deps = [
+    ":RSFoldScreenManagerTest",
+    ":RSScreenCallbackManagerTest",
+    ":RSScreenManagerAgentTest",
     ":RSScreenManagerTest",
+    ":RSScreenPreprocessorTest",
     ":RSScreenTest",
-    ":VsyncEnabledScreenIdTest",
   ]
   if (tp_feature_enable) {
     deps += [ ":TouchScreenTest" ]

@@ -886,6 +886,11 @@ std::array<int, 2> CoreCanvas::CalcHpsBluredImageDimension(const Drawing::HpsBlu
 {
     return impl_->CalcHpsBluredImageDimension(blurParams);
 }
+
+void CoreCanvas::InsertOpaqueRegion(const std::vector<RectI>& rects)
+{
+    impl_->InsertOpaqueRegion(rects);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

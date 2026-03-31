@@ -16,12 +16,18 @@
 #ifndef RS_CORE_PIPELINE_BASE_RENDER_ENGINE_H
 #define RS_CORE_PIPELINE_BASE_RENDER_ENGINE_H
 
+#include <atomic>
+#include <functional>
+#include <map>
 #include <memory>
+#include <mutex>
+#include <set>
 
 #include "hdi_layer_info.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "rs_layer.h"
 #include "sync_fence.h"
 #ifdef RS_ENABLE_VK
 #include "feature/gpuComposition/rs_vk_image_manager.h"
@@ -34,6 +40,7 @@
 #include "include/gpu/GrDirectContext.h"
 #endif
 #include "rs_base_render_util.h"
+#include "rs_layer_transaction_data.h"
 
 #include "platform/drawing/rs_surface_frame.h"
 #include "platform/ohos/rs_surface_ohos.h"
@@ -49,6 +56,11 @@
 
 namespace OHOS {
 namespace Rosen {
+
+// Forward declarations
+class RSRenderComposerClient;
+class GPUCacheManager;
+
 namespace DrawableV2 {
 class RSSurfaceRenderNodeDrawable;
 }
@@ -172,12 +184,19 @@ struct VideoInfo {
 #endif
 };
 
+enum class RenderEngineType : uint8_t {
+    BASIC_RENDER = 0,
+    PROTECTED_REDRAW,
+    UNPROTECTED_REDRAW,
+    MAX_INTERFACE_TYPE,
+};
+
 // This render engine aims to do the client composition for all surfaces that hardware can't handle.
 class RSBaseRenderEngine {
 public:
     RSBaseRenderEngine();
     virtual ~RSBaseRenderEngine() noexcept;
-    void Init();
+    void Init(RenderEngineType type = RenderEngineType::BASIC_RENDER);
     RSBaseRenderEngine(const RSBaseRenderEngine&) = delete;
     void operator=(const RSBaseRenderEngine&) = delete;
 
@@ -210,21 +229,26 @@ public:
     void DrawScreenNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceHandler& surfaceHandler,
         BufferDrawParam& params);
     void RegisterDeleteBufferListener(const sptr<IConsumerSurface>& consumer, bool isForUniRedraw = false);
-    void RegisterDeleteBufferListener(RSSurfaceHandler& handler);
+    std::function<void(uint64_t)> CreateBufferDeleteCallback() const;
+
+    // GPU cache management
+    std::shared_ptr<GPUCacheManager> GetGPUCacheManager() const { return gpuCacheManager_; }
+    void SetGPUCacheManager(std::shared_ptr<GPUCacheManager> manager) { gpuCacheManager_ = std::move(manager); }
     std::shared_ptr<Drawing::Image> CreateImageFromBuffer(RSPaintFilterCanvas& canvas,
         BufferDrawParam& params, VideoInfo& videoInfo);
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     virtual void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<RSLayerPtr>& layers, bool forceCPU = false,
-        const ScreenInfo& screenInfo = {}, GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB) = 0;
+        const ComposerScreenInfo& composerScreenInfo = {},
+        GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB) = 0;
 #else
     virtual void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<RSLayerPtr>& layers, bool forceCPU = false,
-        const ScreenInfo& screenInfo = {}) = 0;
+        const ComposerScreenInfo& composerScreenInfo = {}) = 0;
 #endif
 
     static void DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
 
     void ShrinkCachesIfNeeded(bool isForUniRedraw = false);
-    void ClearCacheSet(const std::set<uint64_t>& unmappedCache);
+    void ClearCacheSet(const std::unordered_set<uint64_t>& unmappedCache);
     static void SetColorFilterMode(ColorFilterMode mode);
     static ColorFilterMode GetColorFilterMode();
     static void SetHighContrast(bool enabled);
@@ -259,6 +283,7 @@ public:
     }
 #endif
     void DumpVkImageInfo(std::string &dumpString);
+
 protected:
     void DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
 
@@ -279,7 +304,9 @@ private:
     std::shared_ptr<Drawing::GPUContext> skContext_ = nullptr;
 #endif
     std::shared_ptr<RSImageManager> imageManager_ = nullptr;
+    std::shared_ptr<GPUCacheManager> gpuCacheManager_ = nullptr;
     using SurfaceId = uint64_t;
+
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     static bool SetColorSpaceConverterDisplayParameter(
         const BufferDrawParam& params, Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter& parameter);

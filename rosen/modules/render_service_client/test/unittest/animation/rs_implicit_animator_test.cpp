@@ -20,6 +20,7 @@
 #include "animation/rs_implicit_animation_param.h"
 #include "animation/rs_motion_path_option.h"
 #include "ui/rs_canvas_node.h"
+#include "ui/rs_ui_director.h"
 
 using namespace testing;
 using namespace testing::ext;

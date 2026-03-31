@@ -148,4 +148,41 @@ HWTEST_F(UIFirstParamParseTest, ParseSizeChangedThresholdTest, TestSize.Level1)
     ASSERT_EQ(UIFirstParam::GetSizeChangedThreshold(), 0.0f);
     ASSERT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
 }
+
+/**
+ * @tc.name: ParseOcclusionEnabledTest
+ * @tc.desc: Test parse OcclusionEnabled param
+ * @tc.type: FUNC
+ * @tc.require: issues22651
+ */
+HWTEST_F(UIFirstParamParseTest, ParseOcclusionEnabledTest, TestSize.Level1)
+{
+    UIFirstParamParse uifirstParamParse;
+    string name = "FeatureSwitch";
+    string value = "1";
+
+    // Test OcclusionEnabled with enabled=1
+    auto res = uifirstParamParse.ParseUIFirstSingleParam(name, value);
+    ASSERT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
+
+    // Test OcclusionEnabled with enabled=0
+    value = "0";
+    res = uifirstParamParse.ParseUIFirstSingleParam(name, value);
+    ASSERT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
+}
+
+/**
+ * @tc.name: GetUIFirstSwitchTypeOcclusionEnabledTest
+ * @tc.desc: Test GetUIFirstSwitchType for OCCLUSION_ENABLED
+ * @tc.type: FUNC
+ * @tc.require: issues22651
+ */
+HWTEST_F(UIFirstParamParseTest, GetUIFirstSwitchTypeOcclusionEnabledTest, TestSize.Level1)
+{
+    UIFirstParamParse uifirstParamParse;
+
+    // Test OcclusionEnabled type
+    auto res = uifirstParamParse.GetUIFirstSwitchType("OcclusionEnabled");
+    ASSERT_EQ(res, UIFirstSwitchType::OCCLUSION_ENABLED);
+}
 }

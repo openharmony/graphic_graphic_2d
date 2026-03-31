@@ -30,8 +30,8 @@
 
 #include "command/rs_animation_command.h"
 #include "command/rs_node_showing_command.h"
-#include "platform/ohos/rs_client_to_service_connection_proxy.h"
-#include "platform/ohos/rs_client_to_render_connection_proxy.h"
+#include "platform/ohos/transaction/zidl/rs_client_to_service_connection_proxy.h"
+#include "platform/ohos/transaction/zidl/rs_client_to_render_connection_proxy.h"
 #include "ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_proxy.h"
 
 namespace OHOS {
@@ -182,15 +182,16 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     bool success = GetData<bool>();
     int32_t expectedFrameRate = GetData<int32_t>();
 
-    rsClientToServiceConnectionProxy.CommitTransaction(transactionData);
-    rsClientToServiceConnectionProxy.ExecuteSynchronousTask(task);
+    rsClientToRenderConnectionProxy.CommitTransaction(transactionData);
+    rsClientToRenderConnectionProxy.ExecuteSynchronousTask(task);
     rsClientToServiceConnectionProxy.GetMemoryGraphic(pid, memoryGraphic);
     rsClientToServiceConnectionProxy.GetMemoryGraphics(memoryGraphics);
     rsClientToServiceConnectionProxy.GetTotalAppMemSize(cpuMemSize, gpuMemSize);
     rsClientToServiceConnectionProxy.GetUniRenderEnabled(getUniRenderEnable);
-    rsClientToServiceConnectionProxy.CreateNode(config, createNodeSuccess);
+    rsClientToRenderConnectionProxy.CreateNode(config, createNodeSuccess);
     sptr<Surface> sface = nullptr;
-    rsClientToServiceConnectionProxy.CreateNodeAndSurface(config, sface);
+    bool unobscure = false;
+    rsClientToRenderConnectionProxy.CreateNodeAndSurface(config, sface, unobscure);
     sptr<IVSyncConnection> conn = nullptr;
     VSyncConnParam vsyncConnParam = {id1, windowNodeId, false};
     bool enable = GetData<bool>();
@@ -229,7 +230,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsClientToServiceConnectionProxy.SetVirtualScreenResolution(id1, width, height);
     rsClientToServiceConnectionProxy.SetRogScreenResolution(id1, width, height);
     rsClientToServiceConnectionProxy.SetScreenPowerStatus(id1, status);
-    rsClientToServiceConnectionProxy.RegisterApplicationAgent(width, app);
+    rsClientToRenderConnectionProxy.RegisterApplicationAgent(width, app);
     rsClientToServiceConnectionProxy.GetVirtualScreenResolution(id1);
     rsClientToServiceConnectionProxy.GetScreenActiveMode(id1, modeInfo);
     rsClientToServiceConnectionProxy.GetScreenSupportedModes(id1);
@@ -238,8 +239,8 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsClientToServiceConnectionProxy.GetScreenData(id1);
     rsClientToServiceConnectionProxy.GetScreenBacklight(id1, backlightlevel);
     rsClientToServiceConnectionProxy.SetScreenBacklight(id1, width);
-    rsClientToServiceConnectionProxy.RegisterBufferAvailableListener(id1, callback2, true);
-    rsClientToServiceConnectionProxy.RegisterBufferClearListener(id1, callback3);
+    rsClientToRenderConnectionProxy.RegisterBufferAvailableListener(id1, callback2, true);
+    rsClientToRenderConnectionProxy.RegisterBufferClearListener(id1, callback3);
     rsClientToServiceConnectionProxy.GetScreenSupportedColorGamuts(id1, mode);
     rsClientToServiceConnectionProxy.GetScreenSupportedMetaDataKeys(id1, keys);
     rsClientToServiceConnectionProxy.GetScreenColorGamut(id1, screenColorGamut);
@@ -255,19 +256,16 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsClientToServiceConnectionProxy.GetScreenColorSpace(id1, colorSpace, resCode);
     rsClientToServiceConnectionProxy.SetScreenColorSpace(id1, colorSpace, resCode);
     rsClientToServiceConnectionProxy.GetScreenType(id1, screenType);
-    rsClientToServiceConnectionProxy.GetBitmap(id1, bitmap, getBitmapSuccess);
-    rsClientToServiceConnectionProxy.GetPixelmap(id1, pixelmap, &rect, drawCmdList, getPixelmapSuccess);
+    rsClientToRenderConnectionProxy.GetBitmap(id1, bitmap, getBitmapSuccess);
+    rsClientToRenderConnectionProxy.GetPixelmap(id1, pixelmap, &rect, drawCmdList, getPixelmapSuccess);
     rsClientToServiceConnectionProxy.RegisterTypeface(id1, typeface);
     rsClientToServiceConnectionProxy.UnRegisterTypeface(id1);
     rsClientToServiceConnectionProxy.SetScreenSkipFrameInterval(id1, width, resCode);
-    rsClientToServiceConnectionProxy.RegisterOcclusionChangeCallback(rsIOcclusionChangeCallback, repCode);
-    rsClientToServiceConnectionProxy.RegisterSurfaceOcclusionChangeCallback(id1, callbackTwo, partitionPoints);
-    rsClientToServiceConnectionProxy.UnRegisterSurfaceOcclusionChangeCallback(id1);
     rsClientToServiceConnectionProxy.RegisterHgmConfigChangeCallback(rsIHgmConfigChangeCallback);
     rsClientToServiceConnectionProxy.RegisterHgmRefreshRateModeChangeCallback(rsIHgmConfigChangeCallback);
     rsClientToServiceConnectionProxy.RegisterHgmRefreshRateUpdateCallback(rsIHgmConfigChangeCallback);
     rsClientToServiceConnectionProxy.RegisterFirstFrameCommitCallback(rsIFirstFrameCommitCallback);
-    rsClientToServiceConnectionProxy.SetSystemAnimatedScenes(systemAnimatedScenes, false, success);
+    rsClientToRenderConnectionProxy.SetSystemAnimatedScenes(systemAnimatedScenes, false, success);
     rsClientToServiceConnectionProxy.ShowWatermark(watermarkImg, true);
     rsClientToServiceConnectionProxy.ResizeVirtualScreen(id1, width, height);
     rsClientToServiceConnectionProxy.ReportJankStats();
@@ -283,7 +281,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsClientToServiceConnectionProxy.ReportEventComplete(info);
     rsClientToServiceConnectionProxy.ReportEventJankFrame(info);
     rsClientToServiceConnectionProxy.ReportGameStateData(gameStateDataInfo);
-    rsClientToServiceConnectionProxy.SetHardwareEnabled(id1, true, SelfDrawingNodeType::DEFAULT, true);
+    rsClientToRenderConnectionProxy.SetHardwareEnabled(id1, true, SelfDrawingNodeType::DEFAULT, true);
     rsClientToServiceConnectionProxy.SetCacheEnabledForRotation(true);
     rsClientToServiceConnectionProxy.SetOnRemoteDiedCallback(onRemoteDiedCallback);
     rsClientToServiceConnectionProxy.RunOnRemoteDiedCallback();
@@ -297,7 +295,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsClientToServiceConnectionProxy.SetVirtualScreenUsingStatus(true);
     rsClientToServiceConnectionProxy.SetVirtualScreenUsingStatus(false);
     rsClientToServiceConnectionProxy.SetCurtainScreenUsingStatus(true);
-    rsClientToServiceConnectionProxy.FillParcelWithTransactionData(transactionData, parcel);
+    rsClientToRenderConnectionProxy.FillParcelWithTransactionData(transactionData, parcel);
     rsClientToServiceConnectionProxy.ReportDataBaseRs(messageParcel, reply, option, info);
     rsClientToServiceConnectionProxy.ReportGameStateDataRs(messageParcel, reply, option, gameStateDataInfo);
     rsClientToServiceConnectionProxy.SetFreeMultiWindowStatus(true);

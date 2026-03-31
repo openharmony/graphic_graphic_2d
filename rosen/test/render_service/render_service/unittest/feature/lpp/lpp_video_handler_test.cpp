@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 #include "consumer_surface.h"
-#include "feature/lpp/lpp_video_handler.h"
+#include "feature/lpp/render_process/lpp_video_handler.h"
 #include "gtest/gtest.h"
 #include "rs_surface_layer.h"
 
@@ -61,7 +61,7 @@ void LppVideoHandlerTest::TearDown()
 HWTEST_F(LppVideoHandlerTest, SetHasVirtualMirrorDisplay, TestSize.Level1)
 {
     bool hasVirtualMirrorDisplay = false;
-    auto& lppVideoHandler = LppVideoHandler::Instance();
+    LppVideoHandler lppVideoHandler;
     lppVideoHandler.SetHasVirtualMirrorDisplay(hasVirtualMirrorDisplay);
     ASSERT_EQ(lppVideoHandler.hasVirtualMirrorDisplay_.load(), hasVirtualMirrorDisplay);
 }
@@ -73,7 +73,7 @@ HWTEST_F(LppVideoHandlerTest, SetHasVirtualMirrorDisplay, TestSize.Level1)
  */
 HWTEST_F(LppVideoHandlerTest, ConsumeAndUpdateLppBuffer001, TestSize.Level1)
 {
-    auto& lppVideoHandler = LppVideoHandler::Instance();
+    LppVideoHandler lppVideoHandler;
     lppVideoHandler.lppConsumerMap_.clear();
     // isInvalidNode is true
     lppVideoHandler.ConsumeAndUpdateLppBuffer(0, nullptr);
@@ -131,7 +131,7 @@ HWTEST_F(LppVideoHandlerTest, ConsumeAndUpdateLppBuffer002, TestSize.Level1)
         .config = {}, .fence = SyncFence::InvalidFence()};
     bufferQueue->bufferQueueCache_[100] = ele;
 
-    auto& lppVideoHandler = LppVideoHandler::Instance();
+    LppVideoHandler lppVideoHandler;
     lppVideoHandler.lppConsumerMap_.clear();
     lppVideoHandler.ConsumeAndUpdateLppBuffer(0, surfaceNode_);
     EXPECT_FALSE(lppVideoHandler.lppConsumerMap_.empty());
@@ -167,7 +167,7 @@ HWTEST_F(LppVideoHandlerTest, ConsumeAndUpdateLppBuffer002, TestSize.Level1)
 HWTEST_F(LppVideoHandlerTest, JudgeRequestVsyncForLpp001, TestSize.Level1)
 {
     // not find vsyncId
-    auto& lppVideoHandler = LppVideoHandler::Instance();
+    LppVideoHandler lppVideoHandler;
     lppVideoHandler.lppConsumerMap_.clear();
     lppVideoHandler.JudgeRequestVsyncForLpp(0);
     EXPECT_TRUE(lppVideoHandler.lppConsumerMap_.empty());
@@ -195,7 +195,7 @@ HWTEST_F(LppVideoHandlerTest, JudgeRequestVsyncForLpp001, TestSize.Level1)
  */
 HWTEST_F(LppVideoHandlerTest, JudgeRequestVsyncForLpp002, TestSize.Level1)
 {
-    auto& lppVideoHandler = LppVideoHandler::Instance();
+    LppVideoHandler lppVideoHandler;
     lppVideoHandler.lppConsumerMap_.clear();
 
     ASSERT_NE(surfaceNode_, nullptr);
@@ -218,7 +218,7 @@ HWTEST_F(LppVideoHandlerTest, JudgeRequestVsyncForLpp002, TestSize.Level1)
  */
 HWTEST_F(LppVideoHandlerTest, JudgeRequestVsyncForLpp003, TestSize.Level1)
 {
-    auto& lppVideoHandler = LppVideoHandler::Instance();
+    LppVideoHandler lppVideoHandler;
     lppVideoHandler.lppConsumerMap_.clear();
 
     ASSERT_NE(surfaceNode_, nullptr);
@@ -267,162 +267,6 @@ HWTEST_F(LppVideoHandlerTest, JudgeRequestVsyncForLpp003, TestSize.Level1)
 }
 
 /**
- * @tc.name: AddLppLayerId001
- * @tc.desc: AddLppLayerId001
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(LppVideoHandlerTest, AddLppLayerId001, TestSize.Level1)
-{
-    std::vector<RSLayerPtr> layers;
-    auto& lppVideoHandler = LppVideoHandler::Instance();
-    RSLayerPtr ptr = std::make_shared<RSSurfaceLayer>();
-    ASSERT_NE(ptr, nullptr);
-    ptr->SetSurface(nullptr);
-    layers.emplace_back(ptr);
-
-    lppVideoHandler.lppLayerId_.clear();
-    lppVideoHandler.AddLppLayerId({ nullptr });
-    EXPECT_TRUE(lppVideoHandler.lppLayerId_.empty());
-
-    lppVideoHandler.lppLayerId_.clear();
-    lppVideoHandler.AddLppLayerId(layers);
-    EXPECT_TRUE(lppVideoHandler.lppLayerId_.empty());
-}
-
-/**
- * @tc.name: AddLppLayerId002
- * @tc.desc: AddLppLayerId002
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(LppVideoHandlerTest, AddLppLayerId002, TestSize.Level1)
-{
-    std::vector<RSLayerPtr> layers;
-    auto& lppVideoHandler = LppVideoHandler::Instance();
-    RSLayerPtr ptr = std::make_shared<RSSurfaceLayer>();
-    ASSERT_NE(ptr, nullptr);
-    auto csurface = IConsumerSurface::Create();
-    ASSERT_NE(csurface, nullptr);
-    ptr->SetSurface(csurface);
-    ptr->SetTunnelLayerId(0);
-    layers.emplace_back(ptr);
-
-    lppVideoHandler.lppLayerId_.clear();
-    lppVideoHandler.AddLppLayerId(layers);
-    EXPECT_TRUE(lppVideoHandler.lppLayerId_.empty());
-
-    ptr->SetTunnelLayerId(1);
-    ptr->SetTunnelLayerProperty(12345);
-    lppVideoHandler.lppLayerId_.clear();
-    lppVideoHandler.AddLppLayerId(layers);
-    EXPECT_TRUE(lppVideoHandler.lppLayerId_.empty());
-}
-
-/**
- * @tc.name: AddLppLayerId003
- * @tc.desc: AddLppLayerId003
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(LppVideoHandlerTest, AddLppLayerId003, TestSize.Level1)
-{
-    std::vector<RSLayerPtr> layers;
-    auto& lppVideoHandler = LppVideoHandler::Instance();
-    RSLayerPtr ptr = std::make_shared<RSSurfaceLayer>();
-    ASSERT_NE(ptr, nullptr);
-    ptr->SetTunnelLayerId(1);
-    ptr->SetTunnelLayerProperty(LPP_LAYER_PROPERTY);
-    auto csurface = IConsumerSurface::Create();
-    ASSERT_NE(csurface, nullptr);
-    ptr->SetSurface(csurface);
-    layers.emplace_back(ptr);
-
-    lppVideoHandler.lppLayerId_.clear();
-    lppVideoHandler.AddLppLayerId(layers);
-    EXPECT_FALSE(lppVideoHandler.lppLayerId_.empty());
-    lppVideoHandler.lppLayerId_.clear();
-}
-
-/**
- * @tc.name: RemoveLayerId001
- * @tc.desc: RemoveLayerId001
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(LppVideoHandlerTest, RemoveLayerId001, TestSize.Level1)
-{
-    std::vector<RSLayerPtr> layers;
-    auto& lppVideoHandler = LppVideoHandler::Instance();
-    RSLayerPtr ptr = std::make_shared<RSSurfaceLayer>();
-    ASSERT_NE(ptr, nullptr);
-    ptr->SetSurface(nullptr);
-    layers.emplace_back(ptr);
-
-    lppVideoHandler.lppLayerId_.clear();
-    lppVideoHandler.RemoveLayerId(layers);
-    EXPECT_TRUE(lppVideoHandler.lppLayerId_.empty());
-
-    lppVideoHandler.lppLayerId_.clear();
-    lppVideoHandler.RemoveLayerId({ nullptr });
-    EXPECT_TRUE(lppVideoHandler.lppLayerId_.empty());
-}
-
-/**
- * @tc.name: RemoveLayerId002
- * @tc.desc: RemoveLayerId002
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(LppVideoHandlerTest, RemoveLayerId002, TestSize.Level1)
-{
-    std::vector<RSLayerPtr> layers;
-    auto& lppVideoHandler = LppVideoHandler::Instance();
-    RSLayerPtr ptr = std::make_shared<RSSurfaceLayer>();
-    ASSERT_NE(ptr, nullptr);
-    auto csurface = IConsumerSurface::Create();
-    ASSERT_NE(csurface, nullptr);
-    ptr->SetSurface(csurface);
-    ptr->SetTunnelLayerId(0);
-    layers.emplace_back(ptr);
-
-    lppVideoHandler.lppLayerId_.clear();
-    lppVideoHandler.RemoveLayerId(layers);
-    EXPECT_TRUE(lppVideoHandler.lppLayerId_.empty());
-
-    ptr->SetTunnelLayerId(0);
-    ptr->SetTunnelLayerProperty(12345);
-    lppVideoHandler.lppLayerId_.clear();
-    lppVideoHandler.RemoveLayerId(layers);
-    EXPECT_TRUE(lppVideoHandler.lppLayerId_.empty());
-}
-
-/**
- * @tc.name: RemoveLayerId003
- * @tc.desc: RemoveLayerId003
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(LppVideoHandlerTest, RemoveLayerId003, TestSize.Level1)
-{
-    std::vector<RSLayerPtr> layers;
-    auto& lppVideoHandler = LppVideoHandler::Instance();
-    RSLayerPtr ptr = std::make_shared<RSSurfaceLayer>();
-    ASSERT_NE(ptr, nullptr);
-    ptr->SetTunnelLayerId(1);
-    ptr->SetTunnelLayerProperty(LPP_LAYER_PROPERTY);
-    auto csurface = IConsumerSurface::Create();
-    ASSERT_NE(csurface, nullptr);
-    ptr->SetSurface(csurface);
-    layers.emplace_back(ptr);
-
-    lppVideoHandler.lppLayerId_.clear();
-    lppVideoHandler.RemoveLayerId(layers);
-    EXPECT_TRUE(lppVideoHandler.lppLayerId_.empty());
-    lppVideoHandler.lppLayerId_.clear();
-}
-
-/**
  * @tc.name: JudgeLppLayer001
  * @tc.desc: JudgeLppLayer001
  * @tc.type: FUNC
@@ -430,9 +274,10 @@ HWTEST_F(LppVideoHandlerTest, RemoveLayerId003, TestSize.Level1)
  */
 HWTEST_F(LppVideoHandlerTest, JudgeLppLayer001, TestSize.Level1)
 {
-    auto& lppVideoHandler = LppVideoHandler::Instance();
+    LppVideoHandler lppVideoHandler;
     lppVideoHandler.lppConsumerMap_.clear();
-    lppVideoHandler.JudgeLppLayer(0);
+    std::unordered_set<uint64_t> lppLayerIds {};
+    lppVideoHandler.JudgeLppLayer(0, lppLayerIds);
     EXPECT_TRUE(lppVideoHandler.lppConsumerMap_.empty());
 }
 
@@ -444,9 +289,8 @@ HWTEST_F(LppVideoHandlerTest, JudgeLppLayer001, TestSize.Level1)
  */
 HWTEST_F(LppVideoHandlerTest, JudgeLppLayer002, TestSize.Level1)
 {
-    auto& lppVideoHandler = LppVideoHandler::Instance();
+    LppVideoHandler lppVideoHandler;
     lppVideoHandler.lppConsumerMap_.clear();
-    lppVideoHandler.lppLayerId_.clear();
 
     ASSERT_NE(surfaceNode_, nullptr);
     surfaceNode_->surfaceHandler_->SetConsumer(nullptr);
@@ -454,7 +298,8 @@ HWTEST_F(LppVideoHandlerTest, JudgeLppLayer002, TestSize.Level1)
     lppVideoHandler.lppConsumerMap_[0].push_back(nullConsumer);
 
     lppVideoHandler.lppRsState_ = LppState::LPP_LAYER;
-    lppVideoHandler.JudgeLppLayer(0);
+    std::unordered_set<uint64_t> lppLayerIds {};
+    lppVideoHandler.JudgeLppLayer(0, lppLayerIds);
     // isInvalidNode is true
     EXPECT_TRUE(lppVideoHandler.lppConsumerMap_.empty());
 
@@ -467,21 +312,21 @@ HWTEST_F(LppVideoHandlerTest, JudgeLppLayer002, TestSize.Level1)
     bufferQueue->lppSkipCount_ = 11;
 
     lppVideoHandler.lppConsumerMap_[0].push_back(consumer_);
-    lppVideoHandler.JudgeLppLayer(0);
+    lppVideoHandler.JudgeLppLayer(0, lppLayerIds);
     // ret == GSERROR_OUT_OF_RANGE
     EXPECT_TRUE(lppVideoHandler.lppConsumerMap_.empty());
 
     lppVideoHandler.lppConsumerMap_[0].push_back(consumer_);
     bufferQueue->lppSkipCount_ = 0;
     // ret == GSERROR_OK
-    lppVideoHandler.JudgeLppLayer(0);
+    lppVideoHandler.JudgeLppLayer(0, lppLayerIds);
     EXPECT_TRUE(lppVideoHandler.lppConsumerMap_.empty());
 
     // lpp -> uni
     lppVideoHandler.lppRsState_ = LppState::LPP_LAYER;
     lppVideoHandler.lppConsumerMap_[0].push_back(consumer_);
     bufferQueue->lppSkipCount_ = 0;
-    lppVideoHandler.JudgeLppLayer(0);
+    lppVideoHandler.JudgeLppLayer(0, lppLayerIds);
     EXPECT_TRUE(lppVideoHandler.lppConsumerMap_.empty());
 
     // uni->uni
@@ -489,10 +334,28 @@ HWTEST_F(LppVideoHandlerTest, JudgeLppLayer002, TestSize.Level1)
     lppVideoHandler.lppConsumerMap_[0].push_back(consumer_);
     lppVideoHandler.lppConsumerMap_[1].push_back(consumer_);
     bufferQueue->lppSkipCount_ = 0;
-    lppVideoHandler.JudgeLppLayer(0);
+    lppVideoHandler.JudgeLppLayer(0, lppLayerIds);
     EXPECT_FALSE(lppVideoHandler.lppConsumerMap_.empty());
     lppVideoHandler.lppConsumerMap_.clear();
     delete bufferQueue->lppSlotInfo_;
     bufferQueue->lppSlotInfo_ = nullptr;
+}
+
+/**
+ * @tc.name: JudgeLppLayer002
+ * @tc.desc: JudgeLppLayer002
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(LppVideoHandlerTest, JudgeLppLayer003, TestSize.Level1)
+{
+    LppVideoHandler lppVideoHandler;
+    lppVideoHandler.hasLppVideo_ = true;
+    EXPECT_TRUE(lppVideoHandler.HasLppVideo());
+    EXPECT_FALSE(lppVideoHandler.hasLppVideo_);
+
+    lppVideoHandler.hasLppVideo_ = false;
+    EXPECT_FALSE(lppVideoHandler.HasLppVideo());
+    EXPECT_FALSE(lppVideoHandler.hasLppVideo_);
 }
 } // namespace OHOS::Rosen

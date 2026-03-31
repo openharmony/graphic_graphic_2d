@@ -2119,5 +2119,21 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingDrawCmdListObjectCreationFailureT
             static_cast<int32_t>(Drawing::Object::ObjectType::SHADER_EFFECT), 888, originalFunc);
     }
 }
+
+/**
+ * @tc.name: TransactionVersionCheckTest
+ * @tc.desc: Verify function TransactionVersionCheck
+ * @tc.type: FUNC
+ * @tc.require: 2267
+ */
+HWTEST_F(RSMarshallingHelperTest, TransactionVersionCheckTest, TestSize.Level1)
+{
+    const int32_t dataNumber = 100;
+    MessageParcel parcel;
+    for (int i = 0; i < dataNumber; i++) {
+        parcel.WriteInt64(0);
+    }
+    ASSERT_FALSE(RSMarshallingHelper::TransactionVersionCheck(parcel, 0));
+}
 } // namespace Rosen
 } // namespace OHOS

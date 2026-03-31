@@ -110,6 +110,7 @@ bool GetTileMode(ani_env* env, ani_enum_item aniTileMode, TileMode& mode)
 
     mode = static_cast<TileMode>(tileMode);
     if (mode < TileMode::CLAMP || mode > TileMode::DECAL) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED, "get incorrect tilemode.");
         return false;
     }
     return true;
@@ -420,6 +421,11 @@ ani_object AniShaderEffect::CreateComposeShader(ani_env* env, ani_object obj, an
     ani_int blendMode;
     if (ANI_OK != env->EnumItem_GetValue_Int(blendModeobj, &blendMode)) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params. ");
+        return CreateAniUndefined(env);
+    }
+    BlendMode mode = static_cast<BlendMode>(blendMode);
+    if (mode < BlendMode::CLEAR || mode > BlendMode::LUMINOSITY) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED, "Invalid BlendMode.");
         return CreateAniUndefined(env);
     }
 

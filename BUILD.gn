@@ -44,7 +44,6 @@ group("graphic_common_test") {
     "rosen/test/render_frame_trace:test",
     "rosen/test/render_service:test",
     "utils/color_manager:test",
-    "utils/rs_frame_report_ext:test",
     "utils/scoped_bytrace:test",
     "utils/socketpair:test",
   ]
@@ -65,7 +64,7 @@ group("libvulkan") {
 }
 
 group("libnative_image") {
-  public_deps = [ "frameworks/surfaceimage:libnative_image" ]
+  deps = [ "frameworks/surfaceimage:libnative_image" ]
 }
 
 group("libbootanimation_utils") {

@@ -35,9 +35,21 @@ ohos_unittest("native_image_test") {
     ":surface_test_common",
     "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
     "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
+    "$graphic_2d_root:libnative_image",
   ]
-  external_deps =
-      [ "drivers_interface_display:libdisplay_commontype_proxy_1.0" ]
+
+  include_dirs = [
+    "$graphic_2d_root/interfaces/inner_api/surface",
+    "$graphic_2d_root/frameworks/surfaceimage/include",
+  ]
+  external_deps = [
+    "bounds_checking_function:libsec_shared",
+    "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+    "hilog:libhilog",
+    "ipc:ipc_core",
+    "samgr:samgr_proxy",
+    "graphic_surface:surface",
+  ]
 }
 
 ## UnitTest native_image_test }}}
@@ -55,12 +67,12 @@ ohos_static_library("surface_test_common") {
     "-Dprotected=public",
   ]
 
-  public_deps = [
+  deps = [
     "$graphic_2d_root:libnative_image",
     "$graphic_2d_root/utils:libgraphic_utils",
   ]
 
-  public_external_deps = [
+  external_deps = [
     "access_token:libaccesstoken_sdk",
     "c_utils:utils",
     "graphic_surface:buffer_handle",

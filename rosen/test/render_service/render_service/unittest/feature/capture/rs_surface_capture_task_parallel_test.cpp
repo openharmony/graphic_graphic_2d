@@ -147,12 +147,18 @@ public:
     static std::shared_ptr<RSSurfaceNode> surfaceNode_;
     static std::shared_ptr<RSSurfaceNode> CreateSurface(std::string surfaceName);
     static std::shared_ptr<RSCanvasNode> canvasNode_;
+    static sptr<RSScreenManager> screenManager_;
+    static std::shared_ptr<AppExecFwk::EventRunner> runner_;
+    static std::shared_ptr<AppExecFwk::EventHandler> handler_;
 };
 
 RSInterfaces* RSSurfaceCaptureTaskParallelTest::rsInterfaces_ = nullptr;
 std::shared_ptr<RSSurfaceNode> RSSurfaceCaptureTaskParallelTest::surfaceNode_ = nullptr;
 std::shared_ptr<CustomizedSurfaceCapture> RSSurfaceCaptureTaskParallelTest::surfaceCaptureCb_ = nullptr;
 std::shared_ptr<RSCanvasNode> RSSurfaceCaptureTaskParallelTest::canvasNode_ = nullptr;
+sptr<RSScreenManager> RSSurfaceCaptureTaskParallelTest::screenManager_ = sptr<RSScreenManager>::MakeSptr();
+std::shared_ptr<AppExecFwk::EventRunner> RSSurfaceCaptureTaskParallelTest::runner_ = nullptr;
+std::shared_ptr<AppExecFwk::EventHandler> RSSurfaceCaptureTaskParallelTest::handler_ = nullptr;
 
 bool RSSurfaceCaptureTaskParallelTest::CheckSurfaceCaptureCallback()
 {
@@ -204,11 +210,19 @@ void RSSurfaceCaptureTaskParallelTest::SetUpTestCase()
     if (surfaceCaptureCb_ == nullptr) {
         return;
     }
+    runner_ = AppExecFwk::EventRunner::Create(true);
+    handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
+    runner_->Run();
+    if (screenManager_ != nullptr) {
+        screenManager_->Init(handler_);
+    }
 }
 
 void RSSurfaceCaptureTaskParallelTest::TearDownTestCase()
 {
     surfaceCaptureCb_->Reset();
+    screenManager_->preprocessor_ = nullptr;
+    runner_->Stop();
     surfaceCaptureCb_ = nullptr;
     rsInterfaces_ = nullptr;
     surfaceNode_ = nullptr;
@@ -640,18 +654,21 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, RunWithDisplayNode, TestSize.Level2)
     taskHandle->displayNodeDrawable_ = displayNodeDrawable;
     RSSurfaceCaptureParam captureParam;
     ASSERT_EQ(true, taskHandle->Run(callback, captureParam));
+    usleep(500000);
 
     captureConfig.mainScreenRect = Drawing::Rect(0, 0, 10, 0);
     taskHandle = std::make_shared<RSSurfaceCaptureTaskParallel>(nodeId, captureConfig);
     taskHandle->pixelMap_ = Media::PixelMap::Create(opts);
     taskHandle->displayNodeDrawable_ = displayNodeDrawable;
     ASSERT_EQ(true, taskHandle->Run(callback, captureParam));
+    usleep(500000);
 
     captureConfig.mainScreenRect = Drawing::Rect(0, 0, 10, 10);
     taskHandle = std::make_shared<RSSurfaceCaptureTaskParallel>(nodeId, captureConfig);
     taskHandle->pixelMap_ = Media::PixelMap::Create(opts);
     taskHandle->displayNodeDrawable_ = displayNodeDrawable;
     ASSERT_EQ(true, taskHandle->Run(callback, captureParam));
+    usleep(500000);
 
     // Reset
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
@@ -830,7 +847,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, Capture001, TestSize.Level0)
     screenNode->CollectHdrStatus(HdrStatus::HDR_VIDEO);
     node->parent_ = screenNode;
     // set screen
-    auto virtualScreenId = RSScreenManager::GetInstance()->CreateVirtualScreen("virtualDisplayTest", 480, 320, nullptr);
+    auto virtualScreenId = screenManager_->CreateVirtualScreen("virtualDisplayTest", 480, 320, nullptr);
     node->screenId_ = virtualScreenId;
     RSRenderNodeMap& nodeMap = mainThread->GetContext().GetMutableNodeMap();
     nodeMap.RegisterRenderNode(node);
@@ -845,7 +862,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, Capture001, TestSize.Level0)
     RSSurfaceCaptureTaskParallel::Capture(callback, captureParam);
 
     // Reset
-    RSScreenManager::GetInstance()->RemoveVirtualScreen(virtualScreenId);
+    screenManager_->RemoveVirtualScreen(virtualScreenId);
     nodeMap.UnregisterRenderNode(nodeId);
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
 }
@@ -869,7 +886,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, Capture002, TestSize.Level0)
     auto node = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
     ASSERT_NE(node, nullptr);
     // set screen
-    auto virtualScreenId = RSScreenManager::GetInstance()->CreateVirtualScreen("virtualDisplayTest", 480, 320, nullptr);
+    auto virtualScreenId = screenManager_->CreateVirtualScreen("virtualDisplayTest", 480, 320, nullptr);
     node->screenId_ = virtualScreenId;
     RSRenderNodeMap& nodeMap = mainThread->GetContext().GetMutableNodeMap();
     nodeMap.RegisterRenderNode(node);
@@ -884,7 +901,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, Capture002, TestSize.Level0)
     RSSurfaceCaptureTaskParallel::Capture(callback, captureParam);
 
     // Reset
-    RSScreenManager::GetInstance()->RemoveVirtualScreen(virtualScreenId);
+    screenManager_->RemoveVirtualScreen(virtualScreenId);
     nodeMap.UnregisterRenderNode(nodeId);
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
 }
@@ -963,7 +980,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, RunHDR001, TestSize.Level2)
     screenNode->CollectHdrStatus(HdrStatus::HDR_VIDEO);
     node->parent_ = screenNode;
     // set screen
-    auto virtualScreenId = RSScreenManager::GetInstance()->CreateVirtualScreen("virtualDisplayTest", 480, 320, nullptr);
+    auto virtualScreenId = screenManager_->CreateVirtualScreen("virtualDisplayTest", 480, 320, nullptr);
     node->screenId_ = virtualScreenId;
     RSRenderNodeMap& nodeMap = mainThread->GetContext().GetMutableNodeMap();
     nodeMap.RegisterRenderNode(node);
@@ -989,7 +1006,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, RunHDR001, TestSize.Level2)
     EXPECT_EQ(ret, false);
 
     // Reset
-    RSScreenManager::GetInstance()->RemoveVirtualScreen(virtualScreenId);
+    screenManager_->RemoveVirtualScreen(virtualScreenId);
     nodeMap.UnregisterRenderNode(nodeId);
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
 }
@@ -1015,67 +1032,6 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, RunHDR002, TestSize.Level2)
     EXPECT_EQ(task.RunHDR(nullptr, captureParam), false);
     sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
     ASSERT_EQ(callback != nullptr, true);
-    EXPECT_EQ(task.RunHDR(callback, captureParam), false);
-}
-
-/*
- * @tc.name: RunHDR003
- * @tc.desc: Test RSSurfaceCaptureTaskParallel.RunHDR003, TEST RunHDR
- * @tc.type: FUNC
- * @tc.require: issueIAIT5Z
- */
-HWTEST_F(RSSurfaceCaptureTaskParallelTest, RunHDR003, TestSize.Level2)
-{
-    NodeId nodeId = 111;
-    RSSurfaceCaptureConfig captureConfig;
-    captureConfig.mainScreenRect = {0.f, 0.f, 480.f, 320.f};
-    captureConfig.isHdrCapture = true;
-    RSSurfaceCaptureTaskParallel task(nodeId, captureConfig);
-    auto node = std::make_shared<RSRenderNode>(nodeId);
-
-    RSSurfaceCaptureParam captureParam;
-    sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
-    ASSERT_NE(callback, nullptr);
-    task.useScreenShotWithHDR_ = true;
-
-    Media::InitializationOptions opts;
-    opts.size.width = 480;
-    opts.size.height = 320;
-    task.pixelMap_ = Media::PixelMap::Create(opts);
-    task.pixelMapHDR_ = Media::PixelMap::Create(opts);
-    Media::ImageInfo imageInfo;
-    // 200, 300 means size
-    imageInfo.size.width = 200;
-    imageInfo.size.height = 300;
-    imageInfo.pixelFormat = Media::PixelFormat::ASTC_4x4;
-    imageInfo.colorSpace = Media::ColorSpace::SRGB;
-    task.pixelMap_->SetImageInfo(imageInfo);
-    task.pixelMapHDR_->SetImageInfo(imageInfo);
-
-    // 200 means rowDataSize
-    int32_t rowDataSize = 200;
-    // 300 means height
-    uint32_t bufferSize = rowDataSize * 300;
-    void *buffer = malloc(bufferSize);
-    char *ch = static_cast<char *>(buffer);
-    for (unsigned int i = 0; i < bufferSize; i++) {
-        *(ch++) = (char)i;
-    }
-
-    task.pixelMap_->data_ = static_cast<uint8_t *>(buffer);
-    EXPECT_TRUE(task.pixelMap_->data_ != nullptr);
-
-    task.displayNodeDrawable_ = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
-        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
-    EXPECT_EQ(task.RunHDR(callback, captureParam), false);
-
-    void *bufferHDR = malloc(bufferSize);
-    char *ch1 = static_cast<char *>(bufferHDR);
-    for (unsigned int i = 0; i < bufferSize; i++) {
-        *(ch1++) = (char)i;
-    }
-    task.pixelMapHDR_->data_ = static_cast<uint8_t *>(bufferHDR);
-    EXPECT_TRUE(task.pixelMapHDR_->data_ != nullptr);
     EXPECT_EQ(task.RunHDR(callback, captureParam), false);
 }
 

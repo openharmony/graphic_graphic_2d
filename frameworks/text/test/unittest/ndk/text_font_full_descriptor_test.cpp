@@ -464,6 +464,7 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest008, TestSize.Level
     };
     desc = OH_Drawing_GetFontFullDescriptorByFullName(&fullNameStr, OH_Drawing_SystemFontType::ALL);
     EXPECT_EQ(desc, nullptr);
+    OH_Drawing_DestroyFontFullDescriptor(desc);
 
     std::string Existent = "Noto Sans Telugu Regular";
     std::u16string u16Existent = OHOS::Str8ToStr16(Existent);
@@ -502,6 +503,7 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest008, TestSize.Level
     EXPECT_EQ(doubleValue, 100);
 
     OH_Drawing_DestroyFontVariationAxis(axisArray);
+    OH_Drawing_DestroyFontFullDescriptor(desc);
 }
 
 /*

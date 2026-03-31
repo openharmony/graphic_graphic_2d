@@ -204,9 +204,9 @@ bool RSPropertyDrawableUtils::PickColorSyn(Drawing::Canvas* canvas, Drawing::Pat
 }
 
 bool RSPropertyDrawableUtils::PickColor(std::shared_ptr<Drawing::GPUContext> context,
-    std::shared_ptr<Drawing::Image> image, Drawing::ColorQuad& colorPicked, void* waitSemaphore)
+    std::shared_ptr<Drawing::Image> image, Drawing::ColorQuad& colorPicked)
 {
-    image = GpuScaleImage(context, image, waitSemaphore);
+    image = GpuScaleImage(context, image);
     if (image == nullptr) {
         RS_LOGE("RSPropertyDrawableUtils::PickColor GpuScaleImage failed");
         return false;
@@ -263,7 +263,7 @@ constexpr int LARGE_SCALED_IMAGE_SIZE = 64;
 } // namespace
 
 std::shared_ptr<Drawing::Image> RSPropertyDrawableUtils::GpuScaleImage(
-    std::shared_ptr<Drawing::GPUContext> context, std::shared_ptr<Drawing::Image> image, void* waitSemaphore)
+    std::shared_ptr<Drawing::GPUContext> context, std::shared_ptr<Drawing::Image> image)
 {
     if (!image || !IsImageValid(*image)) {
         return nullptr;
@@ -290,12 +290,6 @@ std::shared_ptr<Drawing::Image> RSPropertyDrawableUtils::GpuScaleImage(
         ROSEN_LOGE("RSPropertyDrawableUtils::GpuScaleImage failed to create offscreen surface");
         return nullptr;
     }
-#ifdef RS_ENABLE_VK
-    // Wait for snapshot to complete before starting GPU scale
-    if (waitSemaphore != nullptr) {
-        offscreenSurface->Wait(-1, reinterpret_cast<VkSemaphore>(waitSemaphore));
-    }
-#endif
     auto canvas = offscreenSurface->GetCanvas();
     effectBuilder->SetChild("imageInput",
         Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP,
@@ -499,6 +493,7 @@ void RSPropertyDrawableUtils::BeginForegroundFilter(RSPaintFilterCanvas& canvas,
     canvas.RemoveAll();
     canvas.AddCanvas(offscreenCanvas.get());
     canvas.SetEffectData(offscreenCanvas->GetEffectData());
+    canvas.SetFilterClipBounds(offscreenCanvas->GetFilterClipBounds());
 }
 
 void RSPropertyDrawableUtils::DrawForegroundFilter(RSPaintFilterCanvas& canvas,

@@ -22,27 +22,23 @@
 
 #include "animation/rs_frame_rate_range.h"
 #include "common/rs_common_def.h"
+#include "feature/hyper_graphic_manager/rs_render_frame_rate_linker.h"
 #include "hgm_app_page_url_strategy.h"
 #include "hgm_command.h"
 #include "hgm_frame_voter.h"
 #include "hgm_idle_detector.h"
 #include "hgm_multi_app_strategy.h"
-#include "hgm_soft_vsync_manager.h"
 #include "hgm_one_shot_timer.h"
-#include "hgm_screen.h"
-#include "hgm_task_handle_thread.h"
-#include "hgm_touch_manager.h"
 #include "hgm_pointer_manager.h"
+#include "hgm_soft_vsync_manager.h"
+#include "hgm_touch_manager.h"
+#include "hgm_user_define.h"
 #include "hgm_voter.h"
 #include "hgm_vsync_generator_controller.h"
-#include "hgm_user_define.h"
-#include "vsync_distributor.h"
-#include "feature/hyper_graphic_manager/rs_render_frame_rate_linker.h"
-#include "pipeline/rs_render_node.h"
-#include "pipeline/rs_render_node_map.h"
 #include "screen_manager/screen_types.h"
 #include "transaction/rp_hgm_config_data.h"
 #include "variable_frame_rate/rs_variable_frame_rate.h"
+#include "vsync_distributor.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -104,88 +100,88 @@ enum SupportASStatus : int32_t {
 class HgmFrameRateManager {
 public:
     HgmFrameRateManager();
-    ~HgmFrameRateManager() = default;
+    ~HgmFrameRateManager() noexcept = default;
 
     void HandleLightFactorStatus(pid_t pid, int32_t state);
     void HandlePackageEvent(pid_t pid, const std::vector<std::string>& packageList);
     void HandleRefreshRateEvent(pid_t pid, const EventInfo& eventInfo);
     void HandleTouchEvent(pid_t pid, int32_t touchStatus, int32_t touchCnt, int32_t sourceType);
     void HandleDynamicModeEvent(bool enableDynamicModeEvent);
+    void HandleRefreshRateMode(int32_t refreshRateMode);
+    void HandleAppStrategyConfigEvent(pid_t pid, const std::string& pkgName,
+        const std::vector<std::pair<std::string, std::string>>& newConfig);
 
     void CleanVote(pid_t pid);
-    int32_t GetCurRefreshRateMode() const { return curRefreshRateMode_; };
+    HgmFrameVoter& FrameVoterRef() { return frameVoter_; }
+
+    int32_t GetCurRefreshRateMode() const { return curRefreshRateMode_; }
     uint32_t GetCurrRefreshRate() { return currRefreshRate_; }
-    ScreenId GetCurScreenId() const { return curScreenId_.load(); };
-    ScreenId GetLastCurScreenId() const { return lastCurScreenId_.load(); };
-    void SetLastCurScreenId(ScreenId screenId)
-    {
-        lastCurScreenId_.store(screenId);
-    }
-    std::string GetCurScreenStrategyId() const { return curScreenStrategyId_; };
-    void HandleRefreshRateMode(int32_t refreshRateMode);
+
+    ScreenId GetCurScreenId() const { return curScreenId_.load(); }
+    ScreenId GetLastCurScreenId() const { return lastCurScreenId_.load(); }
+    std::string GetCurScreenStrategyId() const { return curScreenStrategyId_; }
+    void SetLastCurScreenId(ScreenId screenId) { lastCurScreenId_.store(screenId); }
     void HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
-    void HandleScreenRectFrameRate(ScreenId id, const GraphicIRect& activeRect);
+    void HandleScreenRectFrameRate(ScreenId id, const Rect& activeRect);
     void HandleScreenExtStrategyChange(bool status, const std::string& suffix);
     std::string GetCurScreenExtStrategyId();
     void UpdateScreenExtStrategyConfig(const PolicyConfigData::ScreenConfigMap& screenConfigs);
 
     // called by RSHardwareThread
     void HandleRsFrame();
+
     bool IsLtpo() const { return isLtpo_.load(); }
-    int32_t AdaptiveStatus() const { return isAdaptive_.load(); }
+
+    // Adaptive Vsync
+    int32_t AdaptiveStatus() const;
+    bool IsSupportASConfig() const { return isAdaptive_.load() == SupportASStatus::SUPPORT_AS; }
+    void UpdateASStateForFps(bool state);
+    bool IsNeedAdaptiveAfterUpdateMode();
     // called by RSHardwareThread
-    bool IsGameNodeOnTree() const { return isGameNodeOnTree_.load(); };
+    bool IsGameNodeOnTree() const { return isGameNodeOnTree_.load(); }
+    void SetIsGameNodeOnTree(bool isGameNodeOnTree) { isGameNodeOnTree_.store(isGameNodeOnTree); }
+    void SetAdaptiveVsyncUpdateCallback(std::function<void(bool, const std::string&)> adaptiveVsyncUpdateCallback);
+
     void UniProcessDataForLtpo(uint64_t timestamp, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
         const FrameRateLinkerMap& appFrameRateLinkers, const std::map<uint64_t, int>& vRatesMap);
-
-    void SetForceUpdateCallback(std::function<void(bool, bool)> forceUpdateCallback)
-    {
-        forceUpdateCallback_ = forceUpdateCallback;
-    }
-
+    void SetForceUpdateCallback(std::function<void(bool)> forceUpdateCallback);
     void Init(sptr<VSyncController> rsController, sptr<VSyncController> appController,
         sptr<VSyncGenerator> vsyncGenerator, sptr<VSyncDistributor> appDistributor);
     void SetTimeoutParamsFromConfig(const std::shared_ptr<PolicyConfigData>& configData);
+
     // called by RSMainThread
     void ProcessPendingRefreshRate(uint64_t timestamp, int64_t vsyncId, uint32_t rsRate, bool isUiDvsyncOn);
+
     HgmMultiAppStrategy& GetMultiAppStrategy() { return multiAppStrategy_; }
     HgmTouchManager& GetTouchManager() { return touchManager_; }
     HgmIdleDetector& GetIdleDetector() { return idleDetector_; }
-    // only called by RSMainThread
-    void UpdateSurfaceTime(const std::string& surfaceName, pid_t pid, UIFWKType uiFwkType);
-    void SetSchedulerPreferredFps(uint32_t schedulePreferredFps)
-    {
-        if (schedulePreferredFps_ != schedulePreferredFps) {
-            schedulePreferredFps_ = schedulePreferredFps;
-            schedulePreferredFpsChange_ = true;
-        }
-    }
-
-    void SetIsNeedUpdateAppOffset(bool isNeedUpdateAppOffset)
-    {
-        isNeedUpdateAppOffset_ = isNeedUpdateAppOffset;
-    }
 
     // only called by RSMainThread
-    bool UpdateUIFrameworkDirtyNodes(std::vector<std::weak_ptr<RSRenderNode>>& uiFwkDirtyNodes, uint64_t timestamp);
-    // only called by RSMainThread
-    bool HandleGameNode(const RSRenderNodeMap& nodeMap);
+    void UpdateSurfaceTime(const std::vector<std::tuple<std::string, pid_t>>& surfaceData);
 
-    HgmSimpleTimer& GetRsFrameRateTimer() { return rsFrameRateTimer_; };
+    void SetSchedulerPreferredFps(uint32_t schedulePreferredFps);
+    void SetIsNeedUpdateAppOffset(bool isNeedUpdateAppOffset) { isNeedUpdateAppOffset_ = isNeedUpdateAppOffset; }
+
+    // only called by RenderService
+    bool UpdateUIFrameworkDirtyNodes(
+        const std::unordered_map<std::string, pid_t>& uIFrameworkDirtyNodeNameMap, uint64_t timestamp);
+
+    HgmSimpleTimer& GetRsFrameRateTimer() { return rsFrameRateTimer_; }
 
     void ProcessPageUrlVote(pid_t pid, std::string strategy, const bool isAddVoter);
     void CleanPageUrlVote(pid_t pid);
     void HandlePageUrlEvent();
     void NotifyPageName(pid_t pid, const std::string& packageName, const std::string& pageName, bool isEnter);
+
     // called by OS_IPC thread
     bool SetVsyncRateDiscountLTPO(const std::vector<uint64_t>& linkerIds, uint32_t rateDiscount);
-    HgmSoftVSyncManager& SoftVSyncMgrRef() { return softVSyncManager_; };
-    void HandleAppStrategyConfigEvent(pid_t pid, const std::string& pkgName,
-        const std::vector<std::pair<std::string, std::string>>& newConfig);
-    HgmFrameVoter& FrameVoterRef() { return frameVoter_; }
+    HgmSoftVSyncManager& SoftVSyncMgrRef() { return softVSyncManager_; }
     void UpdateSoftVSync(bool followRs);
+
     void SetHgmConfigUpdateCallback(
         std::function<void(std::shared_ptr<RPHgmConfigData>, bool, bool, int32_t)> hgmConfigUpdateCallback);
+    void SyncHgmConfigUpdateCallback();
+
     const VoteInfo& GetLastVoteInfo() const { return lastVoteInfo_; }
 
 private:
@@ -238,33 +234,14 @@ private:
     void CheckRefreshRateChange(
         bool followRs, bool frameRateChanged, uint32_t refreshRate, bool needChangeDssRefreshRate);
     uint32_t UpdateFrameRateWithDelay(uint32_t refreshRate);
-    std::string GetGameNodeName() const
-    {
-        std::lock_guard<std::mutex> lock(pendingMutex_);
-        return curGameNodeName_;
-    }
-    void SetGameNodeName(std::string nodeName)
-    {
-        std::lock_guard<std::mutex> lock(pendingMutex_);
-        curGameNodeName_ = nodeName;
-    }
+    void SetGameNodeName(std::string nodeName) { curGameNodeName_ = std::move(nodeName); }
     void FrameRateReportTask(uint32_t leftRetryTimes);
     void CheckNeedUpdateAppOffset(uint32_t refreshRate, uint32_t controllerRate);
-    void CheckForceUpdateCallback(uint32_t refreshRate)
-    {
-        if (needForceUpdateUniRender_ && refreshRate != currRefreshRate_.load() && forceUpdateCallback_) {
-            forceUpdateCallback_(false, true);
-        }
-    }
+    void CheckForceUpdateCallback(uint32_t refreshRate);
     void HandleLowPowerSlideSceneEvent(const std::string& sceneName, bool eventStatus);
-    void TriggerHgmConfigUpdateCallback(std::shared_ptr<RPHgmConfigData> configData,
-        bool ltpoEnabled, bool isDelayMode, int32_t pipelineOffsetPulseNum)
-    {
-        if (hgmConfigUpdateCallback_) {
-            hgmConfigUpdateCallback_(configData, ltpoEnabled, isDelayMode, pipelineOffsetPulseNum);
-        }
-    }
-    void SyncHgmConfigUpdateCallback();
+    void TriggerHgmConfigUpdateCallback(std::shared_ptr<RPHgmConfigData> configData, bool ltpoEnabled, bool isDelayMode,
+        int32_t pipelineOffsetPulseNum);
+    void TriggerAdaptiveVsyncUpdateCallback();
 
     std::atomic<uint32_t> currRefreshRate_ = 0;
 
@@ -277,8 +254,6 @@ private:
     int64_t vsyncCountOfChangeGeneratorRate_ = -1; // default vsyncCount
     std::atomic<bool> changeGeneratorRateValid_{ true };
     HgmSimpleTimer changeGeneratorRateValidTimer_;
-    // if current game's self drawing node is on tree,default false
-    std::atomic<bool> isGameNodeOnTree_ = false;
     // current game app's self drawing node name
     std::string curGameNodeName_;
     // concurrency protection <<<
@@ -288,7 +263,7 @@ private:
     std::vector<uint32_t> ancoLowBrightVec_;
     std::vector<uint32_t> stylusVec_;
 
-    std::function<void(bool, bool)> forceUpdateCallback_ = nullptr;
+    std::function<void(bool)> forceUpdateCallback_ = nullptr;
     HgmSimpleTimer rsFrameRateTimer_;
 
     std::unordered_map<pid_t, std::unordered_set<CleanPidCallbackType>> cleanPidCallback_;
@@ -314,6 +289,8 @@ private:
     HgmSoftVSyncManager softVSyncManager_;
     HgmFrameVoter frameVoter_;
     HgmUserDefine userDefine_;
+    HgmAppPageUrlStrategy appPageUrlStrategy_;
+
     std::atomic<bool> voterTouchEffective_ = false;
     // For the power consumption module, only monitor touch up 3s and 600ms without flashing frames
     std::atomic<bool> startCheck_ = false;
@@ -326,22 +303,31 @@ private:
     bool isNeedUpdateAppOffset_ = false;
     uint32_t schedulePreferredFps_ = 60;
     int32_t schedulePreferredFpsChange_ = false;
+
+    // Adaptive Sync
     std::atomic<int32_t> isAdaptive_ = SupportASStatus::NOT_SUPPORT;
+    std::atomic<bool> asStateForFps_ = false;
     // Does current game require Adaptive Sync
     int32_t isGameSupportAS_ = SupportASStatus::NOT_SUPPORT;
+    std::atomic<int32_t> lastIsAdaptive_ = SupportASStatus::NOT_SUPPORT;
+    std::string lastGameNodeName_;
+    std::function<void(bool, const std::string&)> adaptiveVsyncUpdateCallback_ = nullptr;
+    // if current game's self drawing node is on tree,default false
+    std::atomic<bool> isGameNodeOnTree_ = false;
 
     std::atomic<uint64_t> timestamp_ = 0;
+
     std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker_ = nullptr;
     FrameRateLinkerMap appFrameRateLinkers_;
-    HgmAppPageUrlStrategy appPageUrlStrategy_;
 
     uint32_t lastLTPORefreshRate_ = 0;
     long lastLTPOVoteTime_ = 0;
 
     bool needForceUpdateUniRender_ = false;
-    
+
     bool isLowPowerSlide_ = false;
     bool slideModeChange_ = false;
+
     std::function<void(std::shared_ptr<RPHgmConfigData>, bool, bool, int32_t)> hgmConfigUpdateCallback_ = nullptr;
 };
 } // namespace Rosen

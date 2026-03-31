@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -54,7 +54,7 @@ struct OffscreenRotationInfo {
 
 class RSSurfaceRenderNodeDrawable : public RSRenderNodeDrawable {
 public:
-    ~RSSurfaceRenderNodeDrawable() = default;
+    ~RSSurfaceRenderNodeDrawable();
 
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);
     void OnDraw(Drawing::Canvas& canvas) override;
@@ -114,7 +114,6 @@ public:
     {
         return consumerOnDraw_;
     }
-    void RegisterDeleteBufferListenerOnSync(sptr<IConsumerSurface> consumer) override;
 #endif
 
     bool IsHardwareEnabledTopSurface() const;
@@ -146,7 +145,8 @@ private:
         RSRenderThreadParams& uniParams, bool isSelfDrawingSurface);
     bool IsVisibleRegionEqualOnPhysicalAndVirtual(RSSurfaceRenderParams& surfaceParams);
     void CaptureSurface(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
-    bool DrawSpecialLayer(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
+    bool DrawSpecialLayer(RSPaintFilterCanvas& canvas,
+        const RSSurfaceRenderParams& surfaceParams, const RSRenderThreadParams& uniParams);
 
     Drawing::Region CalculateVisibleDirtyRegion(RSSurfaceRenderParams& surfaceParams,
         RSSurfaceRenderNodeDrawable& surfaceDrawable, bool isOffscreen) const;
@@ -180,6 +180,8 @@ private:
     // Draw cloneNode source isRelated
     bool DrawRelatedSourceNode(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
     void ApplyCrossScreenOffset(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams);
+    void DrawRectWithColor(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams,
+        const Drawing::Color& color, bool applyCrossScreenOffset = false);
 
     // Watermark
     void DrawCommSurfaceWatermark(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& params);
@@ -198,12 +200,22 @@ private:
     void ApplyCanvasScalingIfDownscaleEnabled();
     void SetCulledNodesToCanvas(RSPaintFilterCanvas* canvas, const RSSurfaceRenderParams* surfaceParams);
     NodeId GetWhiteListPersistentId(const RSSurfaceRenderParams& surfaceParam, const RSPaintFilterCanvas& canvas);
+
+    bool IsSelfDrawingType() const
+    {
+        return surfaceNodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE ||
+                surfaceNodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE ||
+                surfaceNodeType_ == RSSurfaceNodeType::CURSOR_NODE;
+    }
+    void UpdatePipelineParamForSelfDraw(SurfaceFpsOpType surfaceFpsOpType);
+
     void TryResumeLastBuffer(sptr<SurfaceBuffer> buffer);
 #ifdef SUBTREE_PARALLEL_ENABLE
     bool QuickGetDrawState(RSPaintFilterCanvas* rscanvas, Drawing::Region& curSurfaceDrawRegion,
         RSSurfaceRenderParams* surfaceParams);
 #endif
     std::string name_;
+    uint64_t uniqueId_ = 0;
     RSSurfaceNodeType surfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<IBufferConsumerListener> consumerListener_ = nullptr;
@@ -239,6 +251,7 @@ private:
 
     Drawing::Region curSurfaceDrawRegion_ {};
     mutable std::mutex drawRegionMutex_;
+    NodeId id_;
     bool needCacheRelatedSourceNode_ = false;
     std::shared_ptr<Drawing::Image> relatedSourceNodeCache_ = nullptr;
 };

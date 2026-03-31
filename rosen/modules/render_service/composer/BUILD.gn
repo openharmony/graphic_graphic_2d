@@ -1,0 +1,195 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+import("$graphic_2d_root/rosen/modules/render_service_base/config.gni")
+
+config("render_service_link_config") {
+  if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
+    ldflags = [
+      "-Wl,--lto-O2",
+      "-Wl,-mllvm",
+      "-Wl,-wholeprogramdevirt-check=fallback",
+      "-Wl,-Bsymbolic",
+    ]
+
+    if (graphic_2d_feature_enable_pgo && enable_enhanced_opt) {
+      ldflags += [
+        "-Wl,--aarch64-inline-plt",
+        "-Wl,-mllvm,-enable-partial-inlining",
+      ]
+      if (graphic_2d_feature_enable_codemerge) {
+        ldflags += [
+          "-Wl,-plugin-opt=-split-machine-functions",
+          "-Wl,-mllvm",
+          "-Wl,-fixup-unconditional-branch-unsafely",
+          "-Wl,--no-create-thunks-introduced-by-mfs",
+          "-Wl,-mllvm",
+          "-Wl,-mfs-psi-cutoff=999500",
+          "-Wl,-z",
+          "-Wl,keep-text-section-prefix",
+          "-Wl,--symbol-ordering-file=" + rebase_path(
+                  "${graphic_2d_feature_pgo_path}/librender_service_base.txt",
+                  root_build_dir),
+          "-Wl,--no-warn-symbol-ordering",
+        ]
+      }
+    }
+  }
+}
+
+## Build render_composer
+ohos_source_set("render_composer") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+  if (enhanced_opt) {
+    configs = [ ":render_service_link_config" ]
+  }
+
+  defines = []
+  if (use_video_processing_engine) {
+    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
+  }
+  defines += gpu_defines
+
+  if (graphic_2d_feature_product != "wearable") {
+    defines += [ "IS_ENABLE_DRM" ]
+  }
+
+  cflags = [ "-DIMAGE_COLORSPACE_FLAG" ]
+  if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
+    defines += [ "IS_OHOS" ]
+    if (!use_libfuzzer) {
+      cflags += [ "-flto=thin" ]
+    }
+    if (enhanced_opt) {
+      if (!use_libfuzzer) {
+        cflags += [ "-fwhole-program-vtables" ]
+      }
+      if (graphic_2d_feature_enable_pgo &&
+          graphic_2d_feature_product != "default") {
+        if (graphic_2d_feature_enable_codemerge) {
+          defines += [ "CM_FEATURE_ENABLE" ]
+        }
+        cflags += [
+          "-fprofile-use=" + rebase_path(
+                  "${graphic_2d_feature_pgo_path}/librender_service.profdata",
+                  root_build_dir),
+          "-Wno-error=backend-plugin",
+          "-Wno-profile-instr-out-of-date",
+          "-Wno-profile-instr-unprofiled",
+          "-mllvm",
+          "-enable-partial-inlining",
+        ]
+        inputs = [ "${graphic_2d_feature_pgo_path}/librender_service.profdata" ]
+      }
+      if (graphic_2d_feature_product == "pc" && target_cpu == "arm64") {
+        cflags += [ "-moutline-atomics" ]
+      }
+    }
+  }
+
+  sources = [
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/rs_composer_to_render_connection.cpp",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl/rs_composer_to_render_connection_proxy.cpp",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl/rs_composer_to_render_connection_stub.cpp",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/layer/rs_surface_layer.cpp",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/layer/rs_surface_rcd_layer.cpp",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline/rs_composer_client_manager.cpp",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline/rs_composer_client.cpp",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline/rs_composer_context.cpp",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl/rs_render_to_composer_connection_proxy.cpp",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl/rs_render_to_composer_connection_stub.cpp",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend/hdi_backend.cpp",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend/hdi_layer.cpp",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend/hdi_output.cpp",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/pipeline/rs_render_composer_context.cpp",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer/rs_render_surface_layer.cpp",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer/rs_render_surface_rcd_layer.cpp",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/command/rs_layer_parcel_factory.cpp",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/command/rs_layer_parcel.cpp",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/command/rs_render_layer_cmd.cpp",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/rs_layer_marshalling_helper.cpp",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/rs_layer_transaction_data.cpp",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/rs_layer_transaction_handler.cpp",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/frame_report/include",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/soft_vsync_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/frame_rate_vote",
+    "$graphic_2d_root/rosen/modules/utils",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/modules/render_service/vsync",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/command",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/layer",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/main/render_process/transaction/zidl",
+    "$graphic_2d_root/utils/log",
+    "$graphic_2d_root/rosen/modules/composer/hdi_backend/include",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/composer:libcomposer",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+  ]
+  
+  external_deps = [
+    "c_utils:utils",
+    "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+    "drivers_interface_display:libdisplay_commontype_proxy_2.2",
+    "eventhandler:libeventhandler",
+    "ffrt:libffrt",
+    "graphic_surface:surface",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "hitrace:hitrace_meter",
+    "libxml2:libxml2",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+    "samgr:samgr_proxy",
+  ]
+
+  if (defined(global_parts_info) &&
+      defined(global_parts_info.resourceschedule_resource_schedule_service)) {
+    external_deps += [ "resource_schedule_service:ressched_client" ]
+    defines += [ "RES_SCHED_ENABLE" ]
+  }
+
+  if (rosen_is_ohos && defined(enable_ipc_security) && enable_ipc_security) {
+    defines += [ "ENABLE_IPC_SECURITY" ]
+    external_deps += [ "access_token:libaccesstoken_sdk" ]
+  }
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}

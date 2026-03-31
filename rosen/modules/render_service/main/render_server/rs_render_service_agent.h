@@ -13,9 +13,10 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_MAIN_RENDER_SERVICE_RS_RENDER_SERVICE_AGENT_H
-#define RENDER_SERVICE_MAIN_RENDER_SERVICE_RS_RENDER_SERVICE_AGENT_H
+#ifndef RENDER_SERVICE_MAIN_RENDER_SERVER_RS_RENDER_SERVICE_AGENT_H
+#define RENDER_SERVICE_MAIN_RENDER_SERVER_RS_RENDER_SERVICE_AGENT_H
 
+#include "feature/hyper_graphic_manager/hgm_context.h"
 #include "rs_render_service.h"
 
 namespace OHOS {
@@ -44,7 +45,7 @@ private:
 class RSRenderServiceAgent : public RefBase {
 public:
     explicit RSRenderServiceAgent(RSRenderService& renderService) : renderService_(renderService) {}
-    ~RSRenderServiceAgent() = default;
+    ~RSRenderServiceAgent() noexcept = default;
 
     void PostTaskImmediate(const std::function<void()>& task);
     void PostTaskImmediateInPlace(const std::function<void()>& task);
@@ -57,10 +58,25 @@ public:
         return std::move(taskFuture);
     }
 
+    sptr<IRemoteObject> GetConnectToRenderToken(ScreenId screenId);
+    void RemoveToken(const sptr<RSIConnectionToken>& token);
+
+    // Hgm
+    void ProcessHgmFrameRate(uint64_t timestamp, uint64_t vsyncId,
+        const sptr<HgmProcessToServiceInfo>& processToServiceInfo,
+        const sptr<HgmServiceToProcessInfo>& ServiceToProcessInfo);
+    const std::shared_ptr<HgmContext>& GetHgmContext() const { return renderService_.GetHgmContext(); }
+    void HandlePowerStatus(ScreenId screenId, ScreenPowerStatus status);
+
+    // Dfx
+    void GetRefreshInfoToSP(std::string& dumpString, NodeId nodeId);
+    void FpsDump(std::string& dumpString, const std::string& arg);
+    void CollectDump(std::string& dumpString);
+
 private:
     RSRenderService& renderService_;
 };
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_SERVICE_MAIN_RENDER_SERVICE_RS_RENDER_SERVICE_AGENT_H
+#endif // RENDER_SERVICE_MAIN_RENDER_SERVER_RS_RENDER_SERVICE_AGENT_H

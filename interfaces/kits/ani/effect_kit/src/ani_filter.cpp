@@ -207,7 +207,10 @@ ani_object AniFilter::Blur(ani_env* env, ani_object obj, ani_double param, ani_e
     }
 
     ani_size enumIndex;
-    env->EnumItem_GetIndex(enumItem, &enumIndex);
+    if (env->EnumItem_GetIndex(enumItem, &enumIndex) != ANI_OK) {
+        EFFECT_LOG_E("get enume item index failed");
+        return AniEffectKitUtils::CreateAniUndefined(env);
+    }
     Drawing::TileMode tileMode = static_cast<Drawing::TileMode>(enumIndex);
 
     auto blur = EffectImageFilter::Blur(radius, tileMode);

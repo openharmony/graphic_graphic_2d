@@ -18,6 +18,7 @@
 
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
+#include "pipeline/rs_dirty_region_manager.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -65,6 +66,14 @@ public:
     bool GetCurNodeTreeSupportFlag() const { return curNodeTreeSupportFlag_; }
     void SetCurNodeTreeSupportFlag(bool curNodeTreeSupportFlag) { curNodeTreeSupportFlag_ = curNodeTreeSupportFlag; }
 
+    void MarkSuggestLayerPartRenderNode(bool isLayerPartRender);
+    bool IsSuggestLayerPartRenderNode() const;
+    void SetLayerPartRender(bool isLayerPartRender);
+    bool IsLayerPartRender() const;
+    bool IsLayerPartRenderUnchangeState();
+    void ResetLayerPartRenderUnchangeState();
+    std::shared_ptr<RSDirtyRegionManager>& GetLayerPartRenderDirtyManager();
+
 private:
     // opinc state
     NodeCacheState nodeCacheState_ = NodeCacheState::STATE_INIT;
@@ -81,6 +90,13 @@ private:
     int unchangeCountUpper_ = 3; // 3 time is the default to cache
     bool cacheChangeFlag_ = false;
     int waitCount_ = 0;
+
+    // layer part render
+    bool isSuggestLayerPartRenderNode_ = false;
+    bool isLayerPartRender_ = false;
+    int layerPartRenderUnchangeCount_ = 0;
+    std::shared_ptr<RSDirtyRegionManager> layerPartRenderDirtyManager_ = nullptr;
+
     // opinc state func
     void NodeCacheStateChange(NodeChangeType type);
     void SetCacheStateByRetrytime();

@@ -31,7 +31,7 @@
 #include <ffrt.h>
 #include "ipc_callbacks/rs_canvas_surface_buffer_callback_stub.h"
 #include "platform/ohos/backend/surface_buffer_utils.h"
-#include "transaction/rs_render_interface.h"
+#include "transaction/rs_interfaces.h"
 #include "ui/rs_canvas_callback_router.h"
 #endif
 
@@ -121,7 +121,7 @@ RSCanvasDrawingNode::SharedPtr RSCanvasDrawingNode::Create(
         static std::once_flag callbackFlag;
         std::call_once(callbackFlag, []() {
             sptr<RSICanvasSurfaceBufferCallback> globalCallback = new GlobalCanvasSurfaceBufferCallback();
-            RSRenderInterface::GetInstance().RegisterCanvasCallback(globalCallback);
+            RSInterfaces::GetInstance().RegisterCanvasCallback(globalCallback);
         });
     }
 #endif
@@ -195,14 +195,18 @@ void RSCanvasDrawingNode::PreAllocateDMABuffer(
         return;
     }
 
-    auto result = RSRenderInterface::GetInstance().SubmitCanvasPreAllocatedBuffer(nodeId, buffer, resetSurfaceIndex);
+    auto result = RSInterfaces::GetInstance().SubmitCanvasPreAllocatedBuffer(nodeId, buffer, resetSurfaceIndex);
     if (!CheckNodeAndSurfaceBufferState(weakNode, nodeId, resetSurfaceIndex)) {
         RS_LOGE(
             "PreAllocateDMABuffer: CheckNodeAndSurfaceBufferState fail, skip update, nodeId=%{public}" PRIu64, nodeId);
         return;
     }
 
-    auto node = weakNode.lock(); // After CheckNodeAndSurfaceBufferState, node not be nullptr
+    auto node = weakNode.lock();
+    if (node == nullptr) {
+        RS_LOGE("PreAllocateDMABuffer: null node, nodeId=%{public}" PRIu64, nodeId);
+        return;
+    }
     if (result == StatusCode::SUCCESS) {
         std::lock_guard<ffrt::mutex> lock(*node->surfaceBufferMutex_);
         node->canvasSurfaceBuffer_ = buffer;
@@ -268,13 +272,13 @@ bool RSCanvasDrawingNode::GetBitmap(Drawing::Bitmap& bitmap,
     std::shared_ptr<Drawing::DrawCmdList> drawCmdList, const Drawing::Rect* rect)
 {
     if (IsRenderServiceNode()) {
-        auto renderServiceClient =
-            std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
-        if (renderServiceClient == nullptr) {
+        auto renderPipelineClient = std::static_pointer_cast<RSRenderPipelineClient>(
+            RSIRenderClient::CreateRenderPiplineClient());
+        if (renderPipelineClient == nullptr) {
             ROSEN_LOGE("RSCanvasDrawingNode::GetBitmap renderServiceClient is nullptr!");
             return false;
         }
-        bool ret = renderServiceClient->GetBitmap(GetId(), bitmap);
+        bool ret = renderPipelineClient->GetBitmap(GetId(), bitmap);
         if (!ret) {
             ROSEN_LOGE("RSCanvasDrawingNode::GetBitmap GetBitmap failed");
             return ret;
@@ -314,13 +318,13 @@ bool RSCanvasDrawingNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pixelmap,
         return false;
     }
     if (IsRenderServiceNode()) {
-        auto renderServiceClient =
-            std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
-        if (renderServiceClient == nullptr) {
+        auto rendePipelineClient =
+            std::static_pointer_cast<RSRenderPipelineClient>(RSIRenderClient::CreateRenderPiplineClient());
+        if (rendePipelineClient == nullptr) {
             ROSEN_LOGE("RSCanvasDrawingNode::GetPixelmap: renderServiceClient is nullptr!");
             return false;
         }
-        bool ret = renderServiceClient->GetPixelmap(GetId(), pixelmap, rect, drawCmdList);
+        bool ret = rendePipelineClient->GetPixelmap(GetId(), pixelmap, rect, drawCmdList);
         if (!ret || !pixelmap) {
             ROSEN_LOGD("RSCanvasDrawingNode::GetPixelmap: GetPixelmap failed");
             return false;

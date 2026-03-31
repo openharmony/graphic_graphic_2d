@@ -55,8 +55,7 @@ private:
 class HgmTaskHandleThread {
 public:
     static HgmTaskHandleThread& Instance();
-    const std::shared_ptr<ffrt::queue> GetQueue() const
-    {
+    const std::shared_ptr<ffrt::queue> GetQueue() const {
         return queue_;
     }
     // IMPORTANT: std::move transfers ownership of the task to the queue_

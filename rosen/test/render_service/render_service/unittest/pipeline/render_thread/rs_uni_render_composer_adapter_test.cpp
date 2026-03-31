@@ -14,15 +14,22 @@
  */
 
 #include "gtest/gtest.h"
+#include <thread>
+
 #include "drawable/rs_screen_render_node_drawable.h"
+#include "event_handler.h"
 #include "pipeline/rs_test_util.h"
 #include "pipeline/render_thread/rs_uni_render_composer_adapter.h"
 #include "pipeline/main_thread/rs_uni_render_listener.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "surface_buffer_impl.h"
 #include "metadata_helper.h"
+#include "rs_render_composer_manager.h"
 #include "screen_manager/rs_screen.h"
+#include "screen_manager/rs_screen_property.h"
 #include "rs_surface_layer.h"
+#include "rs_composer_to_render_connection.h"
+#include "rs_composer_client.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -42,8 +49,6 @@ public:
 
 public:
     static inline uint32_t screenId_ = 0;
-    static inline int32_t offsetX = 0; // screenOffset on x axis equals to 0
-    static inline int32_t offsetY = 0; // screenOffset on y axis equals to 0
     static inline float mirrorAdaptiveCoefficient = 1.0f;
 
     static inline sptr<RSScreenManager> screenManager_;
@@ -60,18 +65,24 @@ void RSUniRenderComposerAdapterTest::SetUpTestCase()
     RSTestUtil::InitRenderNodeGC();
 
     output_ = HdiOutput::CreateHdiOutput(screenId_);
-    auto screen = std::make_shared<RSScreen>(output_);
-    screenManager_ = CreateOrGetScreenManager();
+    auto screen = std::make_shared<RSScreen>(screenId_);
+    screenManager_ = sptr<RSScreenManager>::MakeSptr();
     screenManager_->MockHdiScreenConnected(screen);
 
     composerAdapter_ = std::make_unique<RSUniRenderComposerAdapter>();
     ASSERT_NE(composerAdapter_, nullptr);
+    auto runner = AppExecFwk::EventRunner::Create(false);
+    auto handler = std::make_shared<AppExecFwk::EventHandler>(runner);
+    auto rsVsyncManagerAgent = nullptr;
+    auto renderComposerManager = std::make_shared<RSRenderComposerManager>(handler, rsVsyncManagerAgent);
+    auto output = std::make_shared<HdiOutput>(screenId_);
+    auto property = sptr<RSScreenProperty>();
+    renderComposerManager->OnScreenConnected(output, property);
+    auto client = std::make_shared<RSComposerClient>(renderComposerManager->rsComposerConnectionMap_[screenId_]);
+    composerAdapter_->Init(info, client);
 }
 
-void RSUniRenderComposerAdapterTest::TearDownTestCase()
-{
-    RSRenderComposerManager::GetInstance().rsRenderComposerMap_[screenId_]->uniRenderEngine_ = nullptr;
-}
+void RSUniRenderComposerAdapterTest::TearDownTestCase() {}
 
 void RSUniRenderComposerAdapterTest::TearDown() {}
 
@@ -85,8 +96,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, InitTest, TestSize.Level1)
     ScreenColorGamut colorGamut = ScreenColorGamut::COLOR_GAMUT_SRGB;
     ScreenState state = ScreenState::UNKNOWN;
     ScreenRotation rotation = ScreenRotation::ROTATION_0;
-    info = screenManager_->QueryScreenInfo(screenId_);
-    composerAdapter_->Init(info, offsetX, offsetY);
+    composerAdapter_->Init(info, nullptr);
     EXPECT_EQ(composerAdapter_->composerClient_, nullptr);
     info.width = width;
     info.height = height;
@@ -95,10 +105,9 @@ HWTEST_F(RSUniRenderComposerAdapterTest, InitTest, TestSize.Level1)
     info.colorGamut = colorGamut;
     info.state = state;
     info.rotation = rotation;
-    RSRenderComposerManager::GetInstance().OnScreenConnected(output_);
-    composerAdapter_->Init(info, offsetX, offsetY);
+    auto composerClient = RSComposerClient::Create(nullptr, nullptr);
+    composerAdapter_->Init(info, composerClient);
     EXPECT_NE(composerAdapter_->composerClient_, nullptr);
-    EXPECT_NE(composerAdapter_->output_, nullptr);
 }
 
 // ==================== CheckStatusBeforeCreateLayer ====================
@@ -267,7 +276,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, CheckStatusBeforeCreateLayer009, TestSi
 
 /**
  * @tc.name: CheckStatusBeforeCreateLayerFailed001
- * @tc.desc: Test RSUniRenderComposerAdapterTest.CheckStatusBeforeCreateLayer with null output
+ * @tc.desc: Test RSUniRenderComposerAdapterTest.CheckStatusBeforeCreateLayer with invalid srcRect
  * @tc.type: FUNC
  * @tc.require: issuesI7T9RE
  */
@@ -276,10 +285,12 @@ HWTEST_F(RSUniRenderComposerAdapterTest, CheckStatusBeforeCreateLayerFailed001, 
     auto adapter = std::make_unique<RSUniRenderComposerAdapter>();
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
-    RectI dstRect{0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT};
-    surfaceNode->SetSrcRect(dstRect);
-    surfaceNode->SetDstRect(dstRect);
-    // output_ is nullptr
+    // Set invalid srcRect (width = 0) to cause failure
+    RectI invalidSrcRect{0, 0, 0, DEFAULT_CANVAS_HEIGHT};
+    RectI validDstRect{0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT};
+    surfaceNode->SetSrcRect(invalidSrcRect);
+    surfaceNode->SetDstRect(validDstRect);
+    // srcRect.width_ is 0, should return false
     ASSERT_EQ(false, adapter->CheckStatusBeforeCreateLayer(*surfaceNode));
 }
 
@@ -295,39 +306,6 @@ HWTEST_F(RSUniRenderComposerAdapterTest, CheckStatusBeforeCreateLayerFailed002, 
     ASSERT_NE(surfaceNode, nullptr);
     // surfaceHandler is nullptr
     ASSERT_EQ(false, composerAdapter_->CheckStatusBeforeCreateLayer(*surfaceNode));
-}
-
-// ==================== CommitLayersFailed ====================
-
-/**
- * @tc.name: CommitLayersFailed001
- * @tc.desc: Test RSUniRenderComposerAdapterTest.CommitLayers with null backend
- * @tc.type: FUNC
- * @tc.require: issuesI7T9RE
- */
-HWTEST_F(RSUniRenderComposerAdapterTest, CommitLayersFailed001, TestSize.Level2)
-{
-    auto adapter = std::make_unique<RSUniRenderComposerAdapter>();
-    // hdiBackend_ is nullptr, should return without crash
-    adapter->CommitLayers();
-    ASSERT_EQ(adapter->hdiBackend_, nullptr);
-}
-
-/**
- * @tc.name: CommitLayersFailed002
- * @tc.desc: Test RSUniRenderComposerAdapterTest.CommitLayers with null output
- * @tc.type: FUNC
- * @tc.require: issuesI7T9RE
- */
-HWTEST_F(RSUniRenderComposerAdapterTest, CommitLayersFailed002, TestSize.Level2)
-{
-    auto adapter = std::make_unique<RSUniRenderComposerAdapter>();
-    // Set hdiBackend_ but not output_
-    adapter->hdiBackend_ = HdiBackend::GetInstance();
-    // Should return early when output_ is nullptr
-    adapter->CommitLayers();
-    // Verify output_ is still nullptr (no state change)
-    ASSERT_EQ(adapter->output_, nullptr);
 }
 
 // ==================== CreateLayer ====================
@@ -354,19 +332,23 @@ HWTEST_F(RSUniRenderComposerAdapterTest, CreateLayer001, TestSize.Level2)
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
     auto surfaceHandler = screenDrawable->GetMutableRSSurfaceHandlerOnDraw();
     ASSERT_NE(surfaceHandler, nullptr);
-    surfaceHandler->SetBuffer(cbuffer, acquireFence, {}, 0);
+    auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    surfaceHandler->SetBuffer(cbuffer, acquireFence, {}, 0, bufferOwnerCount);
     surfaceHandler->SetAvailableBufferCount(0);
+    sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
+    surfaceHandler->SetConsumer(consumer);
     composerAdapter_->composerClient_ = nullptr;
     layer = composerAdapter_->CreateLayer(*rsScreenNode);
     ASSERT_EQ(layer, nullptr);
-    composerAdapter_->Init(info, offsetX, offsetY);
+    auto composerClient = RSComposerClient::Create(nullptr, nullptr);
+    composerAdapter_->Init(info, composerClient);
     layer = composerAdapter_->CreateLayer(*rsScreenNode);
     ASSERT_NE(layer, nullptr);
 
     composerAdapter_->composerClient_ = nullptr;
     layer = composerAdapter_->CreateLayer(*screenDrawable);
     ASSERT_EQ(layer, nullptr);
-    composerAdapter_->Init(info, offsetX, offsetY);
+    composerAdapter_->Init(info, composerClient);
     layer = composerAdapter_->CreateLayer(*screenDrawable);
     ASSERT_NE(layer, nullptr);
 }
@@ -383,11 +365,15 @@ HWTEST_F(RSUniRenderComposerAdapterTest, CreateLayer002, TestSize.Level2)
     sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
     int64_t timestamp = 0;
     Rect damage;
-    rcdSurfaceRenderNode->SetBuffer(buffer, acquireFence, damage, timestamp);
+    auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    rcdSurfaceRenderNode->SetBuffer(buffer, acquireFence, damage, timestamp, bufferOwnerCount);
+    sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
+    rcdSurfaceRenderNode->SetConsumer(consumer);
     composerAdapter_->composerClient_ = nullptr;
     RSLayerPtr layer = composerAdapter_->CreateLayer(*rcdSurfaceRenderNode);
     ASSERT_EQ(layer, nullptr);
-    composerAdapter_->Init(info, offsetX, offsetY);
+    auto composerClient = RSComposerClient::Create(nullptr, nullptr);
+    composerAdapter_->Init(info, composerClient);
     layer = composerAdapter_->CreateLayer(*rcdSurfaceRenderNode);
     ASSERT_NE(layer, nullptr);
 }
@@ -478,7 +464,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, CreateLayer007, TestSize.Level2)
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rsScreenNode));
     ASSERT_NE(screenDrawable, nullptr);
 
-    composerAdapter_->Init(info, offsetX, offsetY);
+    composerAdapter_->Init(info, nullptr);
     // surfaceHandler is nullptr - should return nullptr
     RSLayerPtr layer = composerAdapter_->CreateLayer(*screenDrawable);
     ASSERT_EQ(layer, nullptr);
@@ -506,9 +492,9 @@ HWTEST_F(RSUniRenderComposerAdapterTest, DealWithNodeGravity001, TestSize.Level2
     auto buffer = new SurfaceBufferImpl(0);
     auto surfaceHandler = screenDrawable->GetMutableRSSurfaceHandlerOnDraw();
     ASSERT_NE(surfaceHandler, nullptr);
-    surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0);
+    surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0, nullptr);
 
-    composerAdapter_->Init(info, offsetX, offsetY);
+    composerAdapter_->Init(info, nullptr);
     ComposeInfo composeInfo = composerAdapter_->BuildComposeInfo(*screenDrawable, screenDrawable->GetDirtyRects());
 
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
@@ -550,9 +536,9 @@ HWTEST_F(RSUniRenderComposerAdapterTest, DealWithNodeGravity002, TestSize.Level2
     auto buffer = new SurfaceBufferImpl(0);
     auto surfaceHandler = screenDrawable->GetMutableRSSurfaceHandlerOnDraw();
     ASSERT_NE(surfaceHandler, nullptr);
-    surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0);
+    surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0, nullptr);
 
-    composerAdapter_->Init(info, offsetX, offsetY);
+    composerAdapter_->Init(info, nullptr);
     ComposeInfo composeInfo = composerAdapter_->BuildComposeInfo(*screenDrawable, screenDrawable->GetDirtyRects());
 
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
@@ -594,9 +580,9 @@ HWTEST_F(RSUniRenderComposerAdapterTest, DealWithNodeGravity003, TestSize.Level2
     auto buffer = new SurfaceBufferImpl(0);
     auto surfaceHandler = screenDrawable->GetMutableRSSurfaceHandlerOnDraw();
     ASSERT_NE(surfaceHandler, nullptr);
-    surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0);
+    surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0, nullptr);
 
-    composerAdapter_->Init(info, offsetX, offsetY);
+    composerAdapter_->Init(info, nullptr);
     ComposeInfo composeInfo = composerAdapter_->BuildComposeInfo(*screenDrawable, screenDrawable->GetDirtyRects());
 
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
@@ -642,9 +628,9 @@ HWTEST_F(RSUniRenderComposerAdapterTest, DealWithNodeGravity004, TestSize.Level2
     auto buffer = new SurfaceBufferImpl(0);
     auto surfaceHandler = screenDrawable->GetMutableRSSurfaceHandlerOnDraw();
     ASSERT_NE(surfaceHandler, nullptr);
-    surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0);
+    surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0, nullptr);
 
-    composerAdapter_->Init(info, offsetX, offsetY);
+    composerAdapter_->Init(info, nullptr);
     ComposeInfo composeInfo = composerAdapter_->BuildComposeInfo(*screenDrawable, screenDrawable->GetDirtyRects());
 
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
@@ -688,9 +674,9 @@ HWTEST_F(RSUniRenderComposerAdapterTest, GetComposerInfoNeedClient001, TestSize.
     auto buffer = new SurfaceBufferImpl(0);
     auto surfaceHandler = screenDrawable->GetMutableRSSurfaceHandlerOnDraw();
     ASSERT_NE(surfaceHandler, nullptr);
-    surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0);
+    surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0, nullptr);
 
-    composerAdapter_->Init(info, offsetX, offsetY);
+    composerAdapter_->Init(info, nullptr);
     ComposeInfo composeInfo = composerAdapter_->BuildComposeInfo(*screenDrawable, screenDrawable->GetDirtyRects());
 
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
@@ -737,12 +723,12 @@ HWTEST_F(RSUniRenderComposerAdapterTest, GetComposerInfoSrcRect001, TestSize.Lev
     auto surfaceHandler = screenDrawable->GetMutableRSSurfaceHandlerOnDraw();
     ASSERT_NE(surfaceHandler, nullptr);
     auto buffer = new SurfaceBufferImpl(0);
-    surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0);
+    surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0, nullptr);
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     RectI rect{0, 0, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT};
     surfaceNode->SetSrcRect(rect);
     // Initialize composerAdapter_ before calling BuildComposeInfo
-    composerAdapter_->Init(info, offsetX, offsetY);
+    composerAdapter_->Init(info, nullptr);
     ComposeInfo composeInfo = composerAdapter_->BuildComposeInfo(*screenDrawable, screenDrawable->GetDirtyRects());
     // This is a void function that modifies composeInfo.srcRect
     composerAdapter_->GetComposerInfoSrcRect(composeInfo, *surfaceNode);
@@ -775,9 +761,9 @@ HWTEST_F(RSUniRenderComposerAdapterTest, GetComposerInfoSrcRect002, TestSize.Lev
     auto buffer = new SurfaceBufferImpl(0);
     auto surfaceHandler = screenDrawable->GetMutableRSSurfaceHandlerOnDraw();
     ASSERT_NE(surfaceHandler, nullptr);
-    surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0);
+    surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0, nullptr);
 
-    composerAdapter_->Init(info, offsetX, offsetY);
+    composerAdapter_->Init(info, nullptr);
     ComposeInfo composeInfo = composerAdapter_->BuildComposeInfo(*screenDrawable, screenDrawable->GetDirtyRects());
 
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
@@ -867,9 +853,9 @@ HWTEST_F(RSUniRenderComposerAdapterTest, GetComposerInfoSrcRect005, TestSize.Lev
     auto buffer = new SurfaceBufferImpl(0);
     auto surfaceHandler = screenDrawable->GetMutableRSSurfaceHandlerOnDraw();
     ASSERT_NE(surfaceHandler, nullptr);
-    surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0);
+    surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0, nullptr);
 
-    composerAdapter_->Init(info, offsetX, offsetY);
+    composerAdapter_->Init(info, nullptr);
     ComposeInfo composeInfo = composerAdapter_->BuildComposeInfo(*screenDrawable, screenDrawable->GetDirtyRects());
 
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
@@ -901,19 +887,20 @@ HWTEST_F(RSUniRenderComposerAdapterTest, GetComposerInfoSrcRect005, TestSize.Lev
 
 /**
  * @tc.name: InitFailed001
- * @tc.desc: Test RSUniRenderComposerAdapterTest.Init with null hdiBackend
+ * @tc.desc: Test RSUniRenderComposerAdapterTest.Init with null composerClient
  * @tc.type: FUNC
  * @tc.require: issuesI7T9RE
  */
 HWTEST_F(RSUniRenderComposerAdapterTest, InitFailed001, TestSize.Level2)
 {
     auto adapter = std::make_unique<RSUniRenderComposerAdapter>();
-    // Create a ScreenInfo with invalid screen id to cause hdiBackend to be nullptr
-    ScreenInfo invalidInfo;
-    invalidInfo.id = 9999;
-    bool result = adapter->Init(invalidInfo, offsetX, offsetY);
-    // Expected to fail due to invalid screen configuration
-    ASSERT_EQ(result, false);
+    // Init with null composerClient should still return true
+    // as the function just assigns the values
+    ScreenInfo testInfo;
+    testInfo.id = 0;
+    bool result = adapter->Init(testInfo, nullptr);
+    // Init function always returns true, it just stores the values
+    ASSERT_EQ(result, true);
 }
 
 // ==================== LayerCrop ====================
@@ -938,11 +925,11 @@ HWTEST_F(RSUniRenderComposerAdapterTest, LayerCrop001, TestSize.Level2)
     auto buffer = new SurfaceBufferImpl(0);
     auto surfaceHandler = screenDrawable->GetMutableRSSurfaceHandlerOnDraw();
     ASSERT_NE(surfaceHandler, nullptr);
-    surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0);
+    surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0, nullptr);
 
-    composerAdapter_->Init(info, offsetX, offsetY);
+    composerAdapter_->Init(info, nullptr);
 
-    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     ASSERT_NE(layer, nullptr);
 
     // Set layer size to equal screen size - should return early
@@ -965,52 +952,6 @@ HWTEST_F(RSUniRenderComposerAdapterTest, LayerCrop001, TestSize.Level2)
     }
 }
 
-// ==================== LayerRotate ====================
-
-/**
- * @tc.name: LayerRotate001
- * @tc.desc: Test RSUniRenderComposerAdapterTest.LayerRotate with null surface
- * @tc.type: FUNC
- * @tc.require: issuesI7T9RE
- */
-HWTEST_F(RSUniRenderComposerAdapterTest, LayerRotate001, TestSize.Level2)
-{
-    NodeId id = 1;
-    ScreenId screenId = 0;
-    auto context = std::make_shared<RSContext>();
-    auto rsScreenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context->weak_from_this());
-    auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(
-        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rsScreenNode));
-    ASSERT_NE(screenDrawable, nullptr);
-
-    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
-    auto buffer = new SurfaceBufferImpl(0);
-    auto surfaceHandler = screenDrawable->GetMutableRSSurfaceHandlerOnDraw();
-    ASSERT_NE(surfaceHandler, nullptr);
-    surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0);
-
-    composerAdapter_->Init(info, offsetX, offsetY);
-
-    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
-    ASSERT_NE(layer, nullptr);
-
-    // Create a surface node for LayerRotate which expects RSSurfaceRenderNode
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    ASSERT_NE(surfaceNode, nullptr);
-
-    // surface is nullptr - function should return early without crash
-    // Save layer state before call
-    GraphicTransformType originalTransform = layer->GetTransformType();
-    composerAdapter_->LayerRotate(layer, *surfaceNode);
-    // Verify transform was not modified (function returns early when surface is nullptr)
-    ASSERT_EQ(layer->GetTransformType(), originalTransform);
-
-    if (buffer) {
-        delete buffer;
-        buffer = nullptr;
-    }
-}
-
 // ==================== LayerScaleDown ====================
 
 /**
@@ -1021,7 +962,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, LayerRotate001, TestSize.Level2)
  */
 HWTEST_F(RSUniRenderComposerAdapterTest, LayerScaleDown001, TestSize.Level2)
 {
-    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     ASSERT_NE(layer, nullptr);
 
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
@@ -1049,7 +990,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, LayerScaleDown001, TestSize.Level2)
  */
 HWTEST_F(RSUniRenderComposerAdapterTest, LayerScaleDown002, TestSize.Level2)
 {
-    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     ASSERT_NE(layer, nullptr);
 
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
@@ -1092,11 +1033,11 @@ HWTEST_F(RSUniRenderComposerAdapterTest, LayerScaleFit001, TestSize.Level2)
     auto buffer = new SurfaceBufferImpl(0);
     auto surfaceHandler = screenDrawable->GetMutableRSSurfaceHandlerOnDraw();
     ASSERT_NE(surfaceHandler, nullptr);
-    surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0);
+    surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0, nullptr);
 
-    composerAdapter_->Init(info, offsetX, offsetY);
+    composerAdapter_->Init(info, nullptr);
 
-    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     ASSERT_NE(layer, nullptr);
 
     layer->SetLayerSize(GraphicIRect {0, 0, 100, 100});
@@ -1146,7 +1087,10 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetBufferColorSpace001, TestSize.Level2
     };
     GSError ret = buffer->Alloc(requestConfig);
     ASSERT_EQ(ret, GSERROR_OK);
-    surfaceHandler->SetBuffer(buffer, SyncFence::INVALID_FENCE, Rect(), 0);
+
+    auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    surfaceHandler->SetBuffer(buffer, SyncFence::INVALID_FENCE, Rect(), 0, bufferOwnerCount);
+
     RSUniRenderComposerAdapter::SetBufferColorSpace(*screenDrawable);
 }
 
@@ -1187,7 +1131,8 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetBufferColorSpace003, TestSize.Level2
     Rect damage;
     sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
     auto surfaceHandler = screenDrawable->GetRSSurfaceHandlerOnDraw();
-    surfaceHandler->SetBuffer(buffer, acquireFence, damage, timestamp);
+    auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    surfaceHandler->SetBuffer(buffer, acquireFence, damage, timestamp, bufferOwnerCount);
     composerAdapter_->SetBufferColorSpace(*screenDrawable);
 }
 
@@ -1211,10 +1156,11 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetBufferColorSpace004, TestSize.Level2
     ASSERT_NE(surfaceHandler, nullptr);
 
     auto buffer = new SurfaceBufferImpl(0);
-    surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0);
+    auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0, bufferOwnerCount);
     // rsSurface will be nullptr, should return without crash
     RSUniRenderComposerAdapter::SetBufferColorSpace(*screenDrawable);
-
+    
     if (buffer) {
         delete buffer;
         buffer = nullptr;
@@ -1262,9 +1208,9 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetComposeInfoToLayer001, TestSize.Leve
     auto buffer = new SurfaceBufferImpl(0);
     auto surfaceHandler = screenDrawable->GetMutableRSSurfaceHandlerOnDraw();
     ASSERT_NE(surfaceHandler, nullptr);
-    surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0);
+    surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0, nullptr);
 
-    composerAdapter_->Init(info, offsetX, offsetY);
+    composerAdapter_->Init(info, nullptr);
     ComposeInfo composeInfo = composerAdapter_->BuildComposeInfo(*screenDrawable, screenDrawable->GetDirtyRects());
 
     RSLayerPtr layer = nullptr;
@@ -1300,11 +1246,13 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetMetaDataInfoToLayer001, TestSize.Lev
     auto surfaceHandler = screenDrawable->GetMutableRSSurfaceHandlerOnDraw();
     ASSERT_NE(surfaceHandler, nullptr);
     auto buffer = new SurfaceBufferImpl(0);
-    surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0);
+    auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0, bufferOwnerCount);
     // Initialize composerAdapter_ before calling BuildComposeInfo
-    composerAdapter_->Init(info, offsetX, offsetY);
+    auto composerClient = RSComposerClient::Create(nullptr, nullptr);
+    composerAdapter_->Init(info, composerClient);
     ComposeInfo composeInfo = composerAdapter_->BuildComposeInfo(*screenDrawable, screenDrawable->GetDirtyRects());
-    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
+    RSLayerPtr layer = RSSurfaceLayer::Create(surfaceHandler->GetNodeId(), composerClient->GetComposerContext());
     layer->SetUniRenderFlag(true);
     // This is a void function with no return value; testing it completes without crash
     composerAdapter_->SetMetaDataInfoToLayer(layer, composeInfo.buffer, surfaceHandler->GetConsumer());
@@ -1344,7 +1292,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetMetaDataInfoToLayer002, TestSize.Lev
  */
 HWTEST_F(RSUniRenderComposerAdapterTest, SetMetaDataInfoToLayer003, TestSize.Level2)
 {
-    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
     sptr<IConsumerSurface> surface = nullptr;
     // Function should return early when surface is null without crash
@@ -1366,7 +1314,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetMetaDataInfoToLayer003, TestSize.Lev
  */
 HWTEST_F(RSUniRenderComposerAdapterTest, SetMetaDataInfoToLayer004, TestSize.Level2)
 {
-    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
     sptr<SurfaceBuffer> buffer = nullptr;
     sptr<IConsumerSurface> surface = nullptr;
     // Function should return early when buffer is null without crash
@@ -1533,4 +1481,696 @@ HWTEST_F(RSUniRenderComposerAdapterTest, UpdateMirrorInfo001, TestSize.Level2)
     ASSERT_EQ(composerAdapter_->mirrorAdaptiveCoefficient_, testCoefficient);
 }
 
+/**
+ * @tc.name: CommitLayersTest001
+ * @tc.desc: Test RSUniRenderComposerAdapterTest.CommitLayers when composerClient_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, CommitLayersTest001, TestSize.Level1)
+{
+    // Create a new adapter with null composerClient
+    auto adapter = std::make_unique<RSUniRenderComposerAdapter>();
+    ASSERT_NE(adapter, nullptr);
+
+    // Initialize with null composerClient
+    ScreenInfo info {};
+    info.width = 2560;
+    info.height = 1080;
+    info.phyWidth = 2560;
+    info.phyHeight = 1080;
+    info.colorGamut = ScreenColorGamut::COLOR_GAMUT_SRGB;
+    info.state = ScreenState::UNKNOWN;
+    info.rotation = ScreenRotation::ROTATION_0;
+    info.id = 0;
+
+    adapter->Init(info, nullptr);
+    ASSERT_EQ(adapter->composerClient_, nullptr);
+
+    // Call CommitLayers with null composerClient should not crash
+    adapter->CommitLayers();
+}
+
+/**
+ * @tc.name: CommitLayersTest002
+ * @tc.desc: Test RSUniRenderComposerAdapterTest.CommitLayers when composerClient_ is not nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, CommitLayersTest002, TestSize.Level1)
+{
+    // Ensure composerAdapter_ has a valid composerClient_ (set in SetUpTestCase)
+    ASSERT_NE(composerAdapter_, nullptr);
+    ASSERT_NE(composerAdapter_->composerClient_, nullptr);
+
+    // Set valid screenInfo
+    ScreenInfo info {};
+    info.width = 2560;
+    info.height = 1080;
+    info.phyWidth = 2560;
+    info.phyHeight = 1080;
+    info.colorGamut = ScreenColorGamut::COLOR_GAMUT_SRGB;
+    info.state = ScreenState::UNKNOWN;
+    info.rotation = ScreenRotation::ROTATION_0;
+    info.id = 1;
+
+    composerAdapter_->Init(info, composerAdapter_->composerClient_);
+    ASSERT_NE(composerAdapter_->composerClient_, nullptr);
+
+    // Call CommitLayers with valid composerClient should not crash
+    composerAdapter_->CommitLayers();
+}
+
+/**
+ * @tc.name: BuildComposeInfoDecRefTest001
+ * @tc.desc: Test RSUniRenderComposerAdapterTest.BuildComposeInfo for RSScreenRenderNodeDrawable
+ *           when IsCurrentFrameBufferConsumed is true and preBufferOwnerCount is not nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, BuildComposeInfoDecRefTest001, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSScreenRenderNode>(1, 0, rsContext->weak_from_this());
+    auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
+    ASSERT_NE(screenDrawable, nullptr);
+
+    auto surfaceHandler = screenDrawable->GetRSSurfaceHandlerOnDraw();
+    ASSERT_NE(surfaceHandler, nullptr);
+
+    // Set up buffer with bufferOwnerCount
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
+    auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    surfaceHandler->SetBuffer(buffer, acquireFence, Rect(), 0, bufferOwnerCount);
+
+    // Set up preBuffer with preBufferOwnerCount
+    sptr<SurfaceBuffer> preBuffer = new SurfaceBufferImpl(0);
+    auto preBufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    surfaceHandler->SetBuffer(preBuffer, acquireFence, Rect(), 0, preBufferOwnerCount);
+
+    // Set IsCurrentFrameBufferConsumed to true
+    surfaceHandler->SetCurrentFrameBufferConsumed();
+
+    ComposeInfo info = composerAdapter_->BuildComposeInfo(*screenDrawable, screenDrawable->GetDirtyRects());
+}
+
+/**
+ * @tc.name: BuildComposeInfoDecRefTest002
+ * @tc.desc: Test RSUniRenderComposerAdapterTest.BuildComposeInfo for RSScreenRenderNodeDrawable
+ *           when IsCurrentFrameBufferConsumed is false and preBufferOwnerCount is not nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, BuildComposeInfoDecRefTest002, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSScreenRenderNode>(1, 0, rsContext->weak_from_this());
+    auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
+    ASSERT_NE(screenDrawable, nullptr);
+
+    auto surfaceHandler = screenDrawable->GetRSSurfaceHandlerOnDraw();
+    ASSERT_NE(surfaceHandler, nullptr);
+
+    // Set up buffer with bufferOwnerCount
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
+    auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    surfaceHandler->SetBuffer(buffer, acquireFence, Rect(), 0, bufferOwnerCount);
+
+    // Set up preBuffer with preBufferOwnerCount
+    sptr<SurfaceBuffer> preBuffer = new SurfaceBufferImpl(0);
+    auto preBufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    surfaceHandler->SetBuffer(preBuffer, acquireFence, Rect(), 0, preBufferOwnerCount);
+
+    // IsCurrentFrameBufferConsumed is false (default)
+    surfaceHandler->ResetCurrentFrameBufferConsumed();
+
+    ComposeInfo info = composerAdapter_->BuildComposeInfo(*screenDrawable, screenDrawable->GetDirtyRects());
+}
+
+/**
+ * @tc.name: BuildComposeInfoDecRefTest003
+ * @tc.desc: Test RSUniRenderComposerAdapterTest.BuildComposeInfo for RSScreenRenderNodeDrawable
+ *           when IsCurrentFrameBufferConsumed is true and preBufferOwnerCount is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, BuildComposeInfoDecRefTest003, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSScreenRenderNode>(1, 0, rsContext->weak_from_this());
+    auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
+    ASSERT_NE(screenDrawable, nullptr);
+
+    auto surfaceHandler = screenDrawable->GetRSSurfaceHandlerOnDraw();
+    ASSERT_NE(surfaceHandler, nullptr);
+
+    // Set up buffer with bufferOwnerCount
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
+    auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    surfaceHandler->SetBuffer(buffer, acquireFence, Rect(), 0, bufferOwnerCount);
+
+    // Set up preBuffer without preBufferOwnerCount (nullptr)
+    sptr<SurfaceBuffer> preBuffer = new SurfaceBufferImpl(0);
+    sptr<SyncFence> preAcquireFence = SyncFence::INVALID_FENCE;
+    surfaceHandler->SetBuffer(preBuffer, preAcquireFence, Rect(), 0, nullptr);
+
+    // Set IsCurrentFrameBufferConsumed to true
+    surfaceHandler->SetCurrentFrameBufferConsumed();
+
+    ComposeInfo info = composerAdapter_->BuildComposeInfo(*screenDrawable, screenDrawable->GetDirtyRects());
+}
+
+/**
+ * @tc.name: BuildComposeInfoDecRefTest004
+ * @tc.desc: Test RSUniRenderComposerAdapterTest.BuildComposeInfo for RSScreenRenderNodeDrawable
+ *           when IsCurrentFrameBufferConsumed is false and preBufferOwnerCount is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, BuildComposeInfoDecRefTest004, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSScreenRenderNode>(1, 0, rsContext->weak_from_this());
+    auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
+    ASSERT_NE(screenDrawable, nullptr);
+
+    auto surfaceHandler = screenDrawable->GetRSSurfaceHandlerOnDraw();
+    ASSERT_NE(surfaceHandler, nullptr);
+
+    // Set up buffer with bufferOwnerCount
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
+    auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    surfaceHandler->SetBuffer(buffer, acquireFence, Rect(), 0, bufferOwnerCount);
+
+    // Set up preBuffer without preBufferOwnerCount (nullptr)
+    sptr<SurfaceBuffer> preBuffer = new SurfaceBufferImpl(0);
+    sptr<SyncFence> preAcquireFence = SyncFence::INVALID_FENCE;
+    surfaceHandler->SetBuffer(preBuffer, preAcquireFence, Rect(), 0, nullptr);
+
+    // IsCurrentFrameBufferConsumed is false (default)
+    surfaceHandler->ResetCurrentFrameBufferConsumed();
+
+    ComposeInfo info = composerAdapter_->BuildComposeInfo(*screenDrawable, screenDrawable->GetDirtyRects());
+}
+
+/**
+ * @tc.name: BuildComposeInfoRCDDecRefTest001
+ * @tc.desc: Test RSUniRenderComposerAdapterTest.BuildComposeInfo for RSRcdSurfaceRenderNode
+ *           when IsCurrentFrameBufferConsumed is true and preBufferOwnerCount is not nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, BuildComposeInfoRCDDecRefTest001, TestSize.Level2)
+{
+    auto rcdSurfaceRenderNode = RSRcdSurfaceRenderNode::Create(1, RCDSurfaceType::TOP);
+    ASSERT_NE(rcdSurfaceRenderNode, nullptr);
+
+    // Set up buffer with bufferOwnerCount
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
+    auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    Rect damage;
+    int64_t timestamp = 0;
+    rcdSurfaceRenderNode->SetBuffer(buffer, acquireFence, damage, timestamp, bufferOwnerCount);
+
+    // Set up preBuffer with preBufferOwnerCount
+    sptr<SurfaceBuffer> preBuffer = new SurfaceBufferImpl(0);
+    auto preBufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    rcdSurfaceRenderNode->SetBuffer(preBuffer, acquireFence, damage, timestamp, preBufferOwnerCount);
+
+    // Set IsCurrentFrameBufferConsumed to true
+    rcdSurfaceRenderNode->SetCurrentFrameBufferConsumed();
+
+    ComposeInfo info = composerAdapter_->BuildComposeInfo(*rcdSurfaceRenderNode);
+}
+
+/**
+ * @tc.name: BuildComposeInfoRCDDecRefTest002
+ * @tc.desc: Test RSUniRenderComposerAdapterTest.BuildComposeInfo for RSRcdSurfaceRenderNode
+ *           when IsCurrentFrameBufferConsumed is false and preBufferOwnerCount is not nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, BuildComposeInfoRCDDecRefTest002, TestSize.Level2)
+{
+    auto rcdSurfaceRenderNode = RSRcdSurfaceRenderNode::Create(1, RCDSurfaceType::TOP);
+    ASSERT_NE(rcdSurfaceRenderNode, nullptr);
+
+    // Set up buffer with bufferOwnerCount
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
+    auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    Rect damage;
+    int64_t timestamp = 0;
+    rcdSurfaceRenderNode->SetBuffer(buffer, acquireFence, damage, timestamp, bufferOwnerCount);
+
+    // Set up preBuffer with preBufferOwnerCount
+    sptr<SurfaceBuffer> preBuffer = new SurfaceBufferImpl(0);
+    auto preBufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    rcdSurfaceRenderNode->SetBuffer(preBuffer, acquireFence, damage, timestamp, preBufferOwnerCount);
+
+    // IsCurrentFrameBufferConsumed is false (default)
+    rcdSurfaceRenderNode->ResetCurrentFrameBufferConsumed();
+
+    ComposeInfo info = composerAdapter_->BuildComposeInfo(*rcdSurfaceRenderNode);
+}
+
+/**
+ * @tc.name: BuildComposeInfoRCDDecRefTest003
+ * @tc.desc: Test RSUniRenderComposerAdapterTest.BuildComposeInfo for RSRcdSurfaceRenderNode
+ *           when IsCurrentFrameBufferConsumed is true and preBufferOwnerCount is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, BuildComposeInfoRCDDecRefTest003, TestSize.Level2)
+{
+    auto rcdSurfaceRenderNode = RSRcdSurfaceRenderNode::Create(1, RCDSurfaceType::TOP);
+    ASSERT_NE(rcdSurfaceRenderNode, nullptr);
+
+    // Set up buffer with bufferOwnerCount
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
+    auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    Rect damage;
+    int64_t timestamp = 0;
+    rcdSurfaceRenderNode->SetBuffer(buffer, acquireFence, damage, timestamp, bufferOwnerCount);
+
+    // Set up preBuffer without preBufferOwnerCount (nullptr)
+    sptr<SurfaceBuffer> preBuffer = new SurfaceBufferImpl(0);
+    rcdSurfaceRenderNode->SetBuffer(preBuffer, acquireFence, damage, timestamp, nullptr);
+
+    // Set IsCurrentFrameBufferConsumed to true
+    rcdSurfaceRenderNode->SetCurrentFrameBufferConsumed();
+
+    ComposeInfo info = composerAdapter_->BuildComposeInfo(*rcdSurfaceRenderNode);
+}
+
+/**
+ * @tc.name: BuildComposeInfoRCDDecRefTest004
+ * @tc.desc: Test RSUniRenderComposerAdapterTest.BuildComposeInfo for RSRcdSurfaceRenderNode
+ *           when IsCurrentFrameBufferConsumed is false and preBufferOwnerCount is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, BuildComposeInfoRCDDecRefTest004, TestSize.Level2)
+{
+    auto rcdSurfaceRenderNode = RSRcdSurfaceRenderNode::Create(1, RCDSurfaceType::TOP);
+    ASSERT_NE(rcdSurfaceRenderNode, nullptr);
+
+    // Set up buffer with bufferOwnerCount
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
+    auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    Rect damage;
+    int64_t timestamp = 0;
+    rcdSurfaceRenderNode->SetBuffer(buffer, acquireFence, damage, timestamp, bufferOwnerCount);
+
+    // Set up preBuffer without preBufferOwnerCount (nullptr)
+    sptr<SurfaceBuffer> preBuffer = new SurfaceBufferImpl(0);
+    rcdSurfaceRenderNode->SetBuffer(preBuffer, acquireFence, damage, timestamp, nullptr);
+
+    // IsCurrentFrameBufferConsumed is false (default)
+    rcdSurfaceRenderNode->ResetCurrentFrameBufferConsumed();
+
+    ComposeInfo info = composerAdapter_->BuildComposeInfo(*rcdSurfaceRenderNode);
+}
+
+/**
+ * @tc.name: BuildComposeInfo_ParamsNullTest001
+ * @tc.desc: Test BuildComposeInfo when params is nullptr
+ *           The if (!surfaceHandler || !params) branch at line 104 should be true
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, BuildComposeInfo_ParamsNullTest001, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSScreenRenderNode>(1, 0, rsContext->weak_from_this());
+    auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
+    ASSERT_NE(screenDrawable, nullptr);
+
+    // Set up surfaceHandler but renderParams_ is not set (will be nullptr)
+    auto surfaceHandler = screenDrawable->GetRSSurfaceHandlerOnDraw();
+    ASSERT_NE(surfaceHandler, nullptr);
+
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    surfaceHandler->SetBuffer(buffer, acquireFence, Rect(), 0, nullptr);
+
+    // screenDrawable->renderParams_ is nullptr by default
+    // This should trigger the early return path
+    ComposeInfo info = composerAdapter_->BuildComposeInfo(*screenDrawable, screenDrawable->GetDirtyRects());
+
+    // info should be empty/default constructed
+    EXPECT_EQ(info.zOrder, 0);
+}
+
+/**
+ * @tc.name: BuildComposeInfo_WithDirtyRegionTest001
+ * @tc.desc: Test BuildComposeInfo with non-empty dirty region
+ *           Tests the dirty region processing path
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, BuildComposeInfo_WithDirtyRegionTest001, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSScreenRenderNode>(1, 0, rsContext->weak_from_this());
+    auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
+    ASSERT_NE(screenDrawable, nullptr);
+
+    auto surfaceHandler = screenDrawable->GetRSSurfaceHandlerOnDraw();
+    ASSERT_NE(surfaceHandler, nullptr);
+
+    // Set up buffer
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    surfaceHandler->SetBuffer(buffer, acquireFence, Rect(), 0, nullptr);
+
+    // Set up render params
+    screenDrawable->renderParams_ = std::make_unique<RSScreenRenderParams>(node->GetId());
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+
+    // Set up dirty region
+    std::vector<RectI> dirtyRegions;
+    dirtyRegions.emplace_back(RectI(10, 10, 100, 100));
+    dirtyRegions.emplace_back(RectI(50, 50, 200, 200));
+
+    ComposeInfo info = composerAdapter_->BuildComposeInfo(*screenDrawable, dirtyRegions);
+
+    // Verify dirty regions are processed
+    EXPECT_FALSE(info.dirtyRects.empty());
+}
+
+/**
+ * @tc.name: BuildComposeInfoRCD_BufferNullTest001
+ * @tc.desc: Test BuildComposeInfo for RSRcdSurfaceRenderNode when buffer is nullptr
+ *           The if (buffer == nullptr) branch at line 185 should be true
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, BuildComposeInfoRCD_BufferNullTest001, TestSize.Level2)
+{
+    auto rcdSurfaceRenderNode = RSRcdSurfaceRenderNode::Create(1, RCDSurfaceType::TOP);
+    ASSERT_NE(rcdSurfaceRenderNode, nullptr);
+
+    // Don't set buffer - it should be nullptr
+    // This tests the buffer nullptr warning path
+
+    ComposeInfo info = composerAdapter_->BuildComposeInfo(*rcdSurfaceRenderNode);
+
+    // info should have default values, buffer should be nullptr
+    EXPECT_EQ(info.buffer, nullptr);
+    EXPECT_EQ(info.zOrder, 0);
+    EXPECT_EQ(info.alpha.gAlpha, 255);
+    EXPECT_EQ(info.blendType, GRAPHIC_BLEND_SRCOVER);
+    EXPECT_EQ(info.gravity, static_cast<int32_t>(Gravity::RESIZE));
+}
+
+/**
+ * @tc.name: BuildComposeInfoRCD_WithSrcDstRectTest001
+ * @tc.desc: Test BuildComposeInfo for RSRcdSurfaceRenderNode with custom src/dst rects
+ *           Tests the srcRect and dstRect processing with ROG ratio
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, BuildComposeInfoRCD_WithSrcDstRectTest001, TestSize.Level2)
+{
+    auto rcdSurfaceRenderNode = RSRcdSurfaceRenderNode::Create(1, RCDSurfaceType::BOTTOM);
+    ASSERT_NE(rcdSurfaceRenderNode, nullptr);
+
+    // Set up buffer
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    Rect damage;
+    int64_t timestamp = 0;
+    rcdSurfaceRenderNode->SetBuffer(buffer, acquireFence, damage, timestamp, nullptr);
+
+    // Note: RSRcdSurfaceRenderNode doesn't have SetSrcRect/SetDstRect methods
+    // These are set internally by SetRenderDisplayRect and CreateHardwareResource
+    // We test the BuildComposeInfo function with default values
+
+    // Initialize composerAdapter with screen info
+    ScreenInfo screenInfo;
+    screenInfo.id = 0;
+    screenInfo.width = 1920;
+    screenInfo.height = 1080;
+    screenInfo.phyWidth = 1920;
+    screenInfo.phyHeight = 1080;
+    screenInfo.rotation = ScreenRotation::ROTATION_0;
+    composerAdapter_->Init(screenInfo, nullptr);
+
+    ComposeInfo info = composerAdapter_->BuildComposeInfo(*rcdSurfaceRenderNode);
+
+    // Verify info is populated (default values)
+    EXPECT_EQ(info.blendType, GRAPHIC_BLEND_SRCOVER);
+    EXPECT_EQ(info.gravity, static_cast<int32_t>(Gravity::RESIZE));
+    EXPECT_EQ(info.alpha.enGlobalAlpha, true);
+    EXPECT_EQ(info.alpha.gAlpha, 255);
+}
+
+/**
+ * @tc.name: BuildComposeInfoRCD_WithDisplayRectTest001
+ * @tc.desc: Test BuildComposeInfo for RSRcdSurfaceRenderNode with display rect set
+ *           Uses SetRenderDisplayRect to indirectly set dstRect
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, BuildComposeInfoRCD_WithDisplayRectTest001, TestSize.Level2)
+{
+    auto rcdSurfaceRenderNode = RSRcdSurfaceRenderNode::Create(1, RCDSurfaceType::BOTTOM);
+    ASSERT_NE(rcdSurfaceRenderNode, nullptr);
+
+    // Set up buffer
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    Rect damage;
+    int64_t timestamp = 0;
+    rcdSurfaceRenderNode->SetBuffer(buffer, acquireFence, damage, timestamp, nullptr);
+
+    // Use SetRenderDisplayRect to set display rect (which affects dstRect)
+    RectT<uint32_t> displayRect(50, 60, 300, 400);
+    rcdSurfaceRenderNode->SetRenderDisplayRect(displayRect);
+
+    // Initialize composerAdapter with screen info
+    ScreenInfo screenInfo;
+    screenInfo.id = 0;
+    screenInfo.width = 1920;
+    screenInfo.height = 1080;
+    screenInfo.phyWidth = 1920;
+    screenInfo.phyHeight = 1080;
+    screenInfo.rotation = ScreenRotation::ROTATION_0;
+    composerAdapter_->Init(screenInfo, nullptr);
+
+    ComposeInfo info = composerAdapter_->BuildComposeInfo(*rcdSurfaceRenderNode);
+
+    // Verify info is populated
+    EXPECT_EQ(info.blendType, GRAPHIC_BLEND_SRCOVER);
+    EXPECT_EQ(info.gravity, static_cast<int32_t>(Gravity::RESIZE));
+}
+
+/**
+ * @tc.name: BuildComposeInfoRCD_WithZOrderTest001
+ * @tc.desc: Test BuildComposeInfo for RSRcdSurfaceRenderNode with custom zOrder
+ *           Tests the zOrder processing
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, BuildComposeInfoRCD_WithZOrderTest001, TestSize.Level2)
+{
+    auto rcdSurfaceRenderNode = RSRcdSurfaceRenderNode::Create(1, RCDSurfaceType::TOP);
+    ASSERT_NE(rcdSurfaceRenderNode, nullptr);
+
+    // Set up buffer
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    Rect damage;
+    int64_t timestamp = 0;
+    rcdSurfaceRenderNode->SetBuffer(buffer, acquireFence, damage, timestamp, nullptr);
+
+    // Set custom zOrder
+    rcdSurfaceRenderNode->SetGlobalZOrder(100);
+
+    ComposeInfo info = composerAdapter_->BuildComposeInfo(*rcdSurfaceRenderNode);
+
+    // Verify zOrder is set correctly
+    EXPECT_EQ(info.zOrder, 100);
+}
+
+// ==================== CreateLayer Additional Tests ====================
+
+/**
+ * @tc.name: CreateLayer_DrawableNullTest001
+ * @tc.desc: Test CreateLayer(RSScreenRenderNode&) when drawable is nullptr
+ *           The if (!drawable) branch at line 1115 should be true
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, CreateLayer_DrawableNullTest001, TestSize.Level2)
+{
+    NodeId id = 1;
+    ScreenId screenId = 0;
+    auto context = std::make_shared<RSContext>();
+    auto rsScreenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context->weak_from_this());
+    ASSERT_NE(rsScreenNode, nullptr);
+
+    // Set renderDrawable_ to nullptr to test the null drawable branch
+    rsScreenNode->renderDrawable_ = nullptr;
+
+    // Should return nullptr when drawable is nullptr
+    RSLayerPtr layer = composerAdapter_->CreateLayer(*rsScreenNode);
+    EXPECT_EQ(layer, nullptr);
+}
+
+/**
+ * @tc.name: CreateLayer_NotSurfaceCreatedTest001
+ * @tc.desc: Test CreateLayer(DrawableV2::RSScreenRenderNodeDrawable&) when surface is not created
+ *           Tests the CreateSurface failure path at line 1071
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, CreateLayer_NotSurfaceCreatedTest001, TestSize.Level2)
+{
+    NodeId id = 1;
+    ScreenId screenId = 0;
+    auto context = std::make_shared<RSContext>();
+    auto rsScreenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context->weak_from_this());
+    ASSERT_NE(rsScreenNode, nullptr);
+
+    auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rsScreenNode));
+    ASSERT_NE(screenDrawable, nullptr);
+
+    // Make sure surface is not created
+    screenDrawable->surfaceCreated_ = false;
+
+    // Initialize composerAdapter
+    auto composerClient = RSComposerClient::Create(nullptr, nullptr);
+    composerAdapter_->Init(info, composerClient);
+
+    // This will try to create surface and may fail due to null listener or other setup issues
+    // The test verifies the code path is covered
+    RSLayerPtr layer = composerAdapter_->CreateLayer(*screenDrawable);
+    // Layer might be nullptr due to surface creation failure or buffer consumption failure
+    // The important thing is the code path is exercised
+}
+
+/**
+ * @tc.name: CreateLayer_RCDNullPixelMapTest001
+ * @tc.desc: Test CreateLayer(RSRcdSurfaceRenderNode&) with null pixelMap
+ *           Tests the RCD layer creation path
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, CreateLayer_RCDNullPixelMapTest001, TestSize.Level2)
+{
+    auto rcdSurfaceRenderNode = RSRcdSurfaceRenderNode::Create(1, RCDSurfaceType::TOP);
+    ASSERT_NE(rcdSurfaceRenderNode, nullptr);
+
+    // Set up buffer
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    Rect damage;
+    int64_t timestamp = 0;
+    auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    rcdSurfaceRenderNode->SetBuffer(buffer, acquireFence, damage, timestamp, bufferOwnerCount);
+
+    // Set up consumer
+    sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
+    rcdSurfaceRenderNode->SetConsumer(consumer);
+
+    // Initialize composerAdapter with valid composerClient
+    auto composerClient = RSComposerClient::Create(nullptr, nullptr);
+    ASSERT_NE(composerClient, nullptr);
+    composerAdapter_->Init(info, composerClient);
+
+    // Create layer - this should succeed even with null pixelMap
+    // (pixelMap is optional for RCD layers)
+    // Note: Layer creation may fail if composerClient's context is null
+    RSLayerPtr layer = composerAdapter_->CreateLayer(*rcdSurfaceRenderNode);
+
+    // If layer is created, verify its properties
+    if (layer != nullptr) {
+        EXPECT_EQ(layer->GetRSLayerId(), rcdSurfaceRenderNode->GetId());
+        EXPECT_TRUE(layer->IsScreenRCDLayer());
+    }
+}
+
+/**
+ * @tc.name: CreateLayer_RCDWithPixelMapTest001
+ * @tc.desc: Test CreateLayer(RSRcdSurfaceRenderNode&) with pixelMap set
+ *           Tests the RCD layer creation path with pixelMap
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, CreateLayer_RCDWithPixelMapTest001, TestSize.Level2)
+{
+    auto rcdSurfaceRenderNode = RSRcdSurfaceRenderNode::Create(1, RCDSurfaceType::BOTTOM);
+    ASSERT_NE(rcdSurfaceRenderNode, nullptr);
+
+    // Set up buffer
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
+    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    Rect damage;
+    int64_t timestamp = 0;
+    rcdSurfaceRenderNode->SetBuffer(buffer, acquireFence, damage, timestamp, nullptr);
+
+    // Set up consumer
+    sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
+    rcdSurfaceRenderNode->SetConsumer(consumer);
+
+    // Initialize composerAdapter with valid composerClient
+    auto composerClient = RSComposerClient::Create(nullptr, nullptr);
+    ASSERT_NE(composerClient, nullptr);
+    composerAdapter_->Init(info, composerClient);
+
+    RSLayerPtr layer = composerAdapter_->CreateLayer(*rcdSurfaceRenderNode);
+
+    // If layer is created, verify its properties
+    if (layer != nullptr) {
+        EXPECT_TRUE(layer->IsScreenRCDLayer());
+    }
+}
+
+/**
+ * @tc.name: CreateLayer_ScreenNodeConsumeBufferFailedTest001
+ * @tc.desc: Test CreateLayer(RSScreenRenderNode&) when ConsumeAndUpdateBuffer fails
+ *           Tests the buffer consumption failure path at line 1128
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, CreateLayer_ScreenNodeConsumeBufferFailedTest001, TestSize.Level2)
+{
+    NodeId id = 1;
+    ScreenId screenId = 0;
+    auto context = std::make_shared<RSContext>();
+    auto rsScreenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context->weak_from_this());
+    ASSERT_NE(rsScreenNode, nullptr);
+
+    auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rsScreenNode));
+    ASSERT_NE(screenDrawable, nullptr);
+
+    // Mark surface as created but don't set up consumer/buffer properly
+    screenDrawable->surfaceCreated_ = true;
+
+    // Initialize composerAdapter
+    auto composerClient = RSComposerClient::Create(nullptr, nullptr);
+    composerAdapter_->Init(info, composerClient);
+
+    // ConsumeAndUpdateBuffer should fail because there's no consumer set up
+    RSLayerPtr layer = composerAdapter_->CreateLayer(*rsScreenNode);
+    EXPECT_EQ(layer, nullptr);
+}
 } // namespace

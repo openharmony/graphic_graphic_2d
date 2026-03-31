@@ -18,13 +18,13 @@
 #include <fuzzer/FuzzedDataProvider.h>
 #include <memory>
 
-#include "transaction/rs_render_service_client.h"
+#include "transaction/rs_render_pipeline_client.h"
 
 namespace OHOS {
 namespace Rosen {
 
-// Global RSRenderServiceClient instance, initialized in LLVMFuzzerInitialize
-std::shared_ptr<RSRenderServiceClient> g_renderServiceClient = nullptr;
+// Global RSRenderPipelineClient instance, initialized in LLVMFuzzerInitialize
+std::shared_ptr<RSRenderPipelineClient> g_renderPipelineClient = nullptr;
 
 namespace {
 const uint8_t DO_SET_HIDE_PRIVACY_CONTENT = 0;
@@ -35,7 +35,7 @@ void DoSetHidePrivacyContent(FuzzedDataProvider& fdp)
     uint64_t id = fdp.ConsumeIntegral<uint64_t>();
     bool needHidePrivacyContent = fdp.ConsumeBool();
 
-    g_renderServiceClient->SetHidePrivacyContent(static_cast<NodeId>(id), needHidePrivacyContent);
+    g_renderPipelineClient->SetHidePrivacyContent(static_cast<NodeId>(id), needHidePrivacyContent);
 }
 
 } // anonymous namespace
@@ -45,15 +45,15 @@ void DoSetHidePrivacyContent(FuzzedDataProvider& fdp)
 /* Fuzzer environment initialization */
 extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
 {
-    // Initialize RSRenderServiceClient using std::make_shared (consistent with business code and TDD)
-    OHOS::Rosen::g_renderServiceClient = std::make_shared<OHOS::Rosen::RSRenderServiceClient>();
+    // Initialize RSRenderPipelineClient using std::make_shared (consistent with business code and TDD)
+    OHOS::Rosen::g_renderPipelineClient = std::make_shared<OHOS::Rosen::RSRenderPipelineClient>();
     return 0;
 }
 
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
-    if (OHOS::Rosen::g_renderServiceClient == nullptr || data == nullptr) {
+    if (OHOS::Rosen::g_renderPipelineClient == nullptr || data == nullptr) {
         return -1;
     }
 

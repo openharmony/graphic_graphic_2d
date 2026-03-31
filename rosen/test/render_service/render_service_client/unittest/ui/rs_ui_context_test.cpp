@@ -533,4 +533,59 @@ HWTEST_F(RSUIContextTest, UiPiplineNum006, TestSize.Level1)
     newContext->DetachFromUI();
     ASSERT_EQ(newContext->GetUiPiplineNum(), 0);
 }
+
+/**
+ * @tc.name: MoveCommandsIfNeeded001
+ * @tc.desc: test MoveCommandsIfNeeded when preTransaction is null
+ * @tc.type: FUNC
+ * @tc.require: issue22822
+ */
+HWTEST_F(RSUIContextTest, MoveCommandsIfNeeded001, TestSize.Level1)
+{
+    auto enable = RSSystemProperties::GetRSClientMultiInstanceEnabled();
+    if (enable) {
+        auto preContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+        preContext->rsTransactionHandler_ = nullptr;
+
+        auto newContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+
+        EXPECT_FALSE(preContext->MoveCommandsIfNeeded(newContext));
+    }
+}
+
+/**
+ * @tc.name: MoveCommandsIfNeeded002
+ * @tc.desc: test MoveCommandsIfNeeded when newContext transaction is null
+ * @tc.type: FUNC
+ * @tc.require: issue22822
+ */
+HWTEST_F(RSUIContextTest, MoveCommandsIfNeeded002, TestSize.Level1)
+{
+    auto enable = RSSystemProperties::GetRSClientMultiInstanceEnabled();
+    if (enable) {
+        auto preContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+
+        auto newContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+        newContext->rsTransactionHandler_ = nullptr;
+
+        EXPECT_FALSE(preContext->MoveCommandsIfNeeded(newContext));
+    }
+}
+
+/**
+ * @tc.name: MoveCommandsIfNeeded003
+ * @tc.desc: test MoveCommandsIfNeeded success
+ * @tc.type: FUNC
+ * @tc.require: issue22822
+ */
+HWTEST_F(RSUIContextTest, MoveCommandsIfNeeded003, TestSize.Level1)
+{
+    auto enable = RSSystemProperties::GetRSClientMultiInstanceEnabled();
+    if (enable) {
+        auto preContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+        auto newContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+
+        EXPECT_TRUE(preContext->MoveCommandsIfNeeded(newContext));
+    }
+}
 } // namespace OHOS::Rosen

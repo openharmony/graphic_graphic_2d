@@ -25,6 +25,7 @@
 #include "feature/round_corner_display/rs_rcd_render_manager.h"
 #include "feature/round_corner_display/rs_round_corner_config.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
+#include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/rs_processor_factory.h"
 #include "securec.h"
 
@@ -267,7 +268,9 @@ bool RSRoundCornerAPIsTest(
     Rosen::RSContext context;
     auto topLayer = std::make_shared<Rosen::rs_rcd::RoundCornerLayer>();
     auto bottomLayer = std::make_shared<Rosen::rs_rcd::RoundCornerLayer>();
-    auto uniProcessor = Rosen::RSProcessorFactory::CreateProcessor(Rosen::CompositeType::UNI_RENDER_COMPOSITE);
+    auto rsComposerClientMgr = std::make_shared<Rosen::RSComposerClientManager>();
+    Rosen::RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
+    auto uniProcessor = Rosen::RSProcessorFactory::CreateProcessor(Rosen::CompositeType::UNI_RENDER_COMPOSITE, 0);
 
     topLayer->offsetX = GetData<int>();
     topLayer->offsetY = GetData<int>();

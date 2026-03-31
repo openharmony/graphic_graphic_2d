@@ -44,6 +44,7 @@ enum class ApiHDRFormat : uint32_t {
     IMAGE_HDR_VIVID_SINGLE = 5,
     IMAGE_HDR_ISO_DUAL = 6,
     IMAGE_HDR_ISO_SINGLE = 7,
+    VIDEO_AIHDR = 8,
 };
 
 const std::map<std::string, ApiHDRFormat> STRING_TO_JS_MAP = {
@@ -55,6 +56,7 @@ const std::map<std::string, ApiHDRFormat> STRING_TO_JS_MAP = {
     { "IMAGE_HDR_VIVID_SINGLE", ApiHDRFormat::IMAGE_HDR_VIVID_SINGLE },
     { "IMAGE_HDR_ISO_DUAL", ApiHDRFormat::IMAGE_HDR_ISO_DUAL },
     { "IMAGE_HDR_ISO_SINGLE", ApiHDRFormat::IMAGE_HDR_ISO_SINGLE },
+    { "VIDEO_AIHDR", ApiHDRFormat::VIDEO_AIHDR },
 };
 
 napi_value HDRFormatInit(napi_env env);

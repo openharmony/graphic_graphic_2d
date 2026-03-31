@@ -125,4 +125,149 @@ HWTEST_F(RSRenderFrameRateLinkerMapTest, GetFrameRateLinker, TestSize.Level1)
     FrameRateLinkerId id2 = 2;
     EXPECT_EQ(frameRateLinkerMap.GetFrameRateLinker(id2), nullptr);
 }
+
+/**
+ * @tc.name: RegisterFrameRateLinkerExpectedFpsUpdateCallbackTest001
+ * @tc.desc: test RegisterFrameRateLinkerExpectedFpsUpdateCallback when ExtractPid(id) != dstPid
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderFrameRateLinkerMapTest, RegisterFrameRateLinkerExpectedFpsUpdateCallbackTest001, TestSize.Level1)
+{
+    RSRenderFrameRateLinkerMap frameRateLinkerMap;
+    FrameRateLinkerId id1 = 1;
+    auto frameRateLinker = std::make_shared<RSRenderFrameRateLinker>(id1);
+    ASSERT_NE(frameRateLinker, nullptr);
+
+    frameRateLinkerMap.RegisterFrameRateLinker(frameRateLinker);
+    EXPECT_EQ(frameRateLinkerMap.GetFrameRateLinker(id1), frameRateLinker);
+
+    EXPECT_FALSE(frameRateLinkerMap.RegisterFrameRateLinkerExpectedFpsUpdateCallback(1, 1, nullptr));
+}
+
+/**
+ * @tc.name: RegisterFrameRateLinkerExpectedFpsUpdateCallbackTest002
+ * @tc.desc: test RegisterFrameRateLinkerExpectedFpsUpdateCallback when linker == nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderFrameRateLinkerMapTest, RegisterFrameRateLinkerExpectedFpsUpdateCallbackTest002, TestSize.Level1)
+{
+    RSRenderFrameRateLinkerMap frameRateLinkerMap;
+    FrameRateLinkerId id1 = 1;
+    auto [iter, _] = frameRateLinkerMap.frameRateLinkerMap_.emplace(id1, nullptr);
+    ASSERT_EQ(iter->second, nullptr);
+
+    EXPECT_FALSE(
+        frameRateLinkerMap.RegisterFrameRateLinkerExpectedFpsUpdateCallback(1, static_cast<int32_t>(id1), nullptr));
+}
+
+/**
+ * @tc.name: RegisterFrameRateLinkerExpectedFpsUpdateCallbackTest003
+ * @tc.desc: test RegisterFrameRateLinkerExpectedFpsUpdateCallback when success
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderFrameRateLinkerMapTest, RegisterFrameRateLinkerExpectedFpsUpdateCallbackTest003, TestSize.Level1)
+{
+    RSRenderFrameRateLinkerMap frameRateLinkerMap;
+    FrameRateLinkerId id1 = 0;
+    auto frameRateLinker = std::make_shared<RSRenderFrameRateLinker>(id1);
+    ASSERT_NE(frameRateLinker, nullptr);
+
+    frameRateLinkerMap.RegisterFrameRateLinker(frameRateLinker);
+    EXPECT_EQ(frameRateLinkerMap.GetFrameRateLinker(id1), frameRateLinker);
+
+    EXPECT_TRUE(
+        frameRateLinkerMap.RegisterFrameRateLinkerExpectedFpsUpdateCallback(1, static_cast<int32_t>(id1), nullptr));
+}
+
+/**
+ * @tc.name: UnRegisterExpectedFpsUpdateCallbackByListenerTest001
+ * @tc.desc: test UnRegisterExpectedFpsUpdateCallbackByListener when linker is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderFrameRateLinkerMapTest, UnRegisterExpectedFpsUpdateCallbackByListenerTest001, TestSize.Level1)
+{
+    RSRenderFrameRateLinkerMap frameRateLinkerMap;
+    FrameRateLinkerId id1 = 1;
+    auto [iter, _] = frameRateLinkerMap.frameRateLinkerMap_.emplace(id1, nullptr);
+    ASSERT_EQ(iter->second, nullptr);
+
+    frameRateLinkerMap.UnRegisterExpectedFpsUpdateCallbackByListener(1);
+}
+
+/**
+ * @tc.name: UnRegisterExpectedFpsUpdateCallbackByListenerTest002
+ * @tc.desc: test UnRegisterExpectedFpsUpdateCallbackByListener when linker is not nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderFrameRateLinkerMapTest, UnRegisterExpectedFpsUpdateCallbackByListenerTest002, TestSize.Level1)
+{
+    RSRenderFrameRateLinkerMap frameRateLinkerMap;
+    FrameRateLinkerId id1 = 1;
+    auto frameRateLinker = std::make_shared<RSRenderFrameRateLinker>(id1);
+    ASSERT_NE(frameRateLinker, nullptr);
+
+    frameRateLinkerMap.RegisterFrameRateLinker(frameRateLinker);
+    EXPECT_EQ(frameRateLinkerMap.GetFrameRateLinker(id1), frameRateLinker);
+
+    pid_t listenerPid = 1;
+    auto cb = sptr<CustomFrameRateLinkerCallback>::MakeSptr();
+    EXPECT_TRUE(frameRateLinkerMap.RegisterFrameRateLinkerExpectedFpsUpdateCallback(
+        listenerPid, static_cast<int32_t>(id1), cb));
+    EXPECT_NE(frameRateLinker->expectedFpsChangeCallbacks_.find(listenerPid),
+        frameRateLinker->expectedFpsChangeCallbacks_.end());
+
+    frameRateLinkerMap.UnRegisterExpectedFpsUpdateCallbackByListener(listenerPid);
+    EXPECT_EQ(frameRateLinker->expectedFpsChangeCallbacks_.find(listenerPid),
+        frameRateLinker->expectedFpsChangeCallbacks_.end());
+}
+
+/**
+ * @tc.name: UpdateFrameRateLinkersTest001
+ * @tc.desc: test UpdateFrameRateLinkers when linker is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderFrameRateLinkerMapTest, UpdateFrameRateLinkersTest001, TestSize.Level1)
+{
+    RSRenderFrameRateLinkerMap frameRateLinkerMap;
+    FrameRateLinkerId id1 = 1;
+    FrameRateLinkerUpdateInfo info;
+    FrameRateLinkerUpdateInfoMap map {
+        { id1, info },
+    };
+    ASSERT_EQ(frameRateLinkerMap.GetFrameRateLinker(id1), nullptr);
+
+    frameRateLinkerMap.UpdateFrameRateLinkers(map);
+}
+
+/**
+ * @tc.name: UpdateFrameRateLinkersTest002
+ * @tc.desc: test UpdateFrameRateLinkers when linker is not nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderFrameRateLinkerMapTest, UpdateFrameRateLinkersTest002, TestSize.Level1)
+{
+    RSRenderFrameRateLinkerMap frameRateLinkerMap;
+    FrameRateLinkerId id1 = 1;
+    auto frameRateLinker = std::make_shared<RSRenderFrameRateLinker>(id1);
+    ASSERT_NE(frameRateLinker, nullptr);
+
+    frameRateLinkerMap.RegisterFrameRateLinker(frameRateLinker);
+    EXPECT_EQ(frameRateLinkerMap.GetFrameRateLinker(id1), frameRateLinker);
+
+    FrameRateRange range;
+    int32_t animatorExpectedFrameRate = 120;
+    FrameRateLinkerUpdateInfo info { range, animatorExpectedFrameRate };
+    FrameRateLinkerUpdateInfoMap map {
+        { id1, info },
+    };
+    frameRateLinkerMap.UpdateFrameRateLinkers(map);
+    EXPECT_EQ(frameRateLinker->animatorExpectedFrameRate_, animatorExpectedFrameRate);
+}
 } // namespace OHOS::Rosen

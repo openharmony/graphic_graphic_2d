@@ -48,6 +48,7 @@ public:
     MOCK_METHOD(VPEAlgoErrCode, Stop, (), (override));
     MOCK_METHOD(VPEAlgoErrCode, Release, (), (override));
     MOCK_METHOD(VPEAlgoErrCode, Enable, (), (override));
+    MOCK_METHOD(VPEAlgoErrCode, Disable, (), (override));
     MOCK_METHOD(VPEAlgoErrCode, NotifyEos, (), (override));
     MOCK_METHOD(VPEAlgoErrCode, ReleaseOutputBuffer, (uint32_t index, bool render), (override));
     MOCK_METHOD(VPEAlgoErrCode, IsSupported, (uint32_t type, const Format& parameter));
@@ -287,6 +288,106 @@ HWTEST_F(RSVpeManagerTest, CheckAndGetSurface005, TestSize.Level1)
     g_isProductSupportReset = true;
     sptr<Surface> result = manager.CheckAndGetSurface(RSSurface, config);
     EXPECT_NE(result, RSSurface);
+}
+
+HWTEST_F(RSVpeManagerTest, EnableVpe_NodeNotFound, TestSize.Level1)
+{
+    RSVpeManager manager;
+    RSSurfaceRenderNodeConfig config;
+    config.id = 123;
+
+    manager.EnableVpeVideo(config);
+    EXPECT_EQ(manager.allVpeVideo_.find(config.id), manager.allVpeVideo_.end());
+}
+
+HWTEST_F(RSVpeManagerTest, EnableVpe_VpeVideoIsNull, TestSize.Level1)
+{
+    RSVpeManager manager;
+    RSSurfaceRenderNodeConfig config;
+    config.id = 123;
+
+    manager.allVpeVideo_[config.id] = nullptr;
+    manager.EnableVpeVideo(config);
+    EXPECT_NE(manager.allVpeVideo_.find(config.id), manager.allVpeVideo_.end());
+    EXPECT_EQ(manager.allVpeVideo_[config.id], nullptr);
+}
+
+HWTEST_F(RSVpeManagerTest, EnableVpe_Success, TestSize.Level1)
+{
+    RSVpeManager manager;
+    RSSurfaceRenderNodeConfig config;
+    config.id = 123;
+
+    auto mockVpeVideo = std::make_shared<MockVpeVideo>();
+    EXPECT_CALL(*mockVpeVideo, Enable()).WillOnce(Return(VPE_ALGO_ERR_OK));
+
+    manager.allVpeVideo_[config.id] = mockVpeVideo;
+    manager.EnableVpeVideo(config);
+    EXPECT_NE(manager.allVpeVideo_.find(config.id), manager.allVpeVideo_.end());
+}
+
+HWTEST_F(RSVpeManagerTest, EnableVpe_EnableFailed, TestSize.Level1)
+{
+    RSVpeManager manager;
+    RSSurfaceRenderNodeConfig config;
+    config.id = 123;
+
+    auto mockVpeVideo = std::make_shared<MockVpeVideo>();
+    EXPECT_CALL(*mockVpeVideo, Enable()).WillOnce(Return(VPE_ALGO_ERR_INVALID_PARAM));
+
+    manager.allVpeVideo_[config.id] = mockVpeVideo;
+    manager.EnableVpeVideo(config);
+    EXPECT_NE(manager.allVpeVideo_.find(config.id), manager.allVpeVideo_.end());
+}
+
+HWTEST_F(RSVpeManagerTest, DisableVpe_NodeNotFound, TestSize.Level1)
+{
+    RSVpeManager manager;
+    RSSurfaceRenderNodeConfig config;
+    config.id = 456;
+
+    manager.DisableVpeVideo(config);
+    EXPECT_EQ(manager.allVpeVideo_.find(config.id), manager.allVpeVideo_.end());
+}
+
+HWTEST_F(RSVpeManagerTest, DisableVpe_VpeVideoIsNull, TestSize.Level1)
+{
+    RSVpeManager manager;
+    RSSurfaceRenderNodeConfig config;
+    config.id = 456;
+
+    manager.allVpeVideo_[config.id] = nullptr;
+    manager.DisableVpeVideo(config);
+    EXPECT_NE(manager.allVpeVideo_.find(config.id), manager.allVpeVideo_.end());
+    EXPECT_EQ(manager.allVpeVideo_[config.id], nullptr);
+}
+
+HWTEST_F(RSVpeManagerTest, DisableVpe_Success, TestSize.Level1)
+{
+    RSVpeManager manager;
+    RSSurfaceRenderNodeConfig config;
+    config.id = 456;
+
+    auto mockVpeVideo = std::make_shared<MockVpeVideo>();
+    EXPECT_CALL(*mockVpeVideo, Disable()).WillOnce(Return(VPE_ALGO_ERR_OK));
+
+    manager.allVpeVideo_[config.id] = mockVpeVideo;
+    manager.DisableVpeVideo(config);
+    EXPECT_NE(manager.allVpeVideo_.find(config.id), manager.allVpeVideo_.end());
+}
+
+HWTEST_F(RSVpeManagerTest, DisableVpe_DisableFailed, TestSize.Level1)
+{
+    RSVpeManager manager;
+    RSSurfaceRenderNodeConfig config;
+    config.id = 456;
+
+    auto mockVpeVideo = std::make_shared<MockVpeVideo>();
+    EXPECT_CALL(*mockVpeVideo, Disable()).WillOnce(Return(VPE_ALGO_ERR_INVALID_PARAM));
+
+    manager.allVpeVideo_[config.id] = mockVpeVideo;
+    manager.DisableVpeVideo(config);
+    EXPECT_NE(manager.allVpeVideo_.find(config.id), manager.allVpeVideo_.end());
 }
 }
 }

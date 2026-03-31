@@ -45,6 +45,7 @@ public:
 
     bool DeduplicationMarshalling(Parcel& parcel) const override;
     bool DeduplicationUnmarshalling(Parcel& parcel) override;
+
 private:
     static const LegacyPropertyApplierMap LegacyPropertyApplierMap_;
     // LCOV_EXCL_START

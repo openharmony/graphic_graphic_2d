@@ -26,6 +26,9 @@
 #include "feature/round_corner_display/rs_rcd_render_listener.h"
 #include "feature/round_corner_display/rs_rcd_render_visitor.h"
 #include "pipeline/rs_screen_render_node.h"
+#include "render/rs_pixel_map_util.h"
+#include "rs_render_surface_rcd_layer.h"
+#include "pipeline/render_thread/rs_uni_render_engine.h"
 #include "surface_buffer_impl.h"
 #include "rs_test_util.h"
 
@@ -409,22 +412,15 @@ HWTEST_F(RSRoundCornerDisplayTest, DrawRoundCorner, TestSize.Level1)
 
 rs_rcd::ROGSetting* GetRogFromLcdModel(rs_rcd::LCDModel* lcdModel, int& width, int& height)
 {
-    if (lcdModel == nullptr) {
+    if (lcdModel == nullptr || lcdModel->rogs.empty()) {
         return nullptr;
     }
-    int widthMate40 = 1344;
-    int heightMate40 = 2772;
-    int widthMate60 = 1260;
-    int heightMate60 = 2720;
-    width = widthMate40;
-    height = heightMate40;
-    rs_rcd::ROGSetting* rog = lcdModel->GetRog(width, height);
-    if (rog == nullptr) {
-        rog = lcdModel->GetRog(widthMate60, heightMate60);
-        width = widthMate60;
-        height = heightMate60;
+    if (lcdModel->rogs[0] == nullptr) {
+        return nullptr;
     }
-    return rog;
+    width = lcdModel->rogs[0]->width;
+    height = lcdModel->rogs[0]->height;
+    return lcdModel->rogs[0];
 }
 
 /*
@@ -556,8 +552,10 @@ HWTEST_F(RSRoundCornerDisplayTest, ConsumeAndUpdateBufferTest, TestSize.Level1)
     visitor->ProcessRcdSurfaceRenderNodeMainThread(*topSurfaceNode, true);
 
     // 2 invalid node
+    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
     processorPtr =
-        RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE);
+        RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, 0);
     visitor->SetUniProcessor(processorPtr);
     visitor->ProcessRcdSurfaceRenderNode(*inValidSurfaceNode, hardInfo.bottomLayer, true);
     visitor->ProcessRcdSurfaceRenderNodeMainThread(*inValidSurfaceNode, true);
@@ -1271,119 +1269,9 @@ HWTEST_F(RSRoundCornerDisplayTest, ProcessFillHardwareResource, TestSize.Level1)
     HardwareLayerInfo info{};
     sptr<SurfaceBufferImpl> surfaceBufferImpl = new SurfaceBufferImpl();
     bottomSurfaceNode->buffer_.buffer = nullptr;
-    bool flag1 = bottomSurfaceNode->FillHardwareResource(info, 2, 2);
+    bool flag1 = bottomSurfaceNode->FillHardwareResource(info, -1, 0);
     bottomSurfaceNode->buffer_.buffer = surfaceBufferImpl;
     EXPECT_TRUE(flag1 == false);
-
-    BufferHandle* bufferHandle = AllocateBufferHandle(64, 128);
-    EXPECT_TRUE(bufferHandle != nullptr);
-    surfaceBufferImpl->SetBufferHandle(bufferHandle);
-    surfaceBufferImpl->handle_->stride = 1;
-    surfaceBufferImpl->handle_->size = 64 + 128 + sizeof(BufferHandle);
-
-    bool flag2 = true;
-    info.bufferSize = -1;
-    flag2 = flag2 && !bottomSurfaceNode->FillHardwareResource(info, 2, 2);
-    info.bufferSize = 10000;
-    info.cldWidth = -1;
-    flag2 = flag2 && !bottomSurfaceNode->FillHardwareResource(info, 2, 2);
-    info.cldWidth = 2;
-    info.cldHeight = -1;
-    flag2 = flag2 && !bottomSurfaceNode->FillHardwareResource(info, 2, 2);
-    info.cldHeight = 2;
-    flag2 = flag2 && !bottomSurfaceNode->FillHardwareResource(info, -1, 2);
-    flag2 = flag2 && !bottomSurfaceNode->FillHardwareResource(info, 2, -1);
-    info.pathBin = "";
-    EXPECT_TRUE(flag2);
-
-    bool flag3 = true;
-    flag3 = flag3 && !bottomSurfaceNode->FillHardwareResource(info, 2, 2);
-    std::shared_ptr<uint8_t> buffer = std::make_shared<uint8_t>(10000);
-    surfaceBufferImpl->handle_->virAddr = static_cast<void*>(buffer.get());
-    surfaceBufferImpl->handle_->stride = -1;
-    flag3 = flag3 && !bottomSurfaceNode->FillHardwareResource(info, 2, 2);
-    surfaceBufferImpl->handle_->stride = 1;
-    surfaceBufferImpl->handle_->size = 0;
-    flag3 = flag3 && !bottomSurfaceNode->FillHardwareResource(info, 2, 2);
-    EXPECT_TRUE(flag3);
-
-    surfaceBufferImpl->handle_= nullptr;
-    FreeBufferHandle(bufferHandle);
-}
-
-/*
- * @tc.name: ProcessFillHardwareResourceInvalid
- * @tc.desc: Test RSRoundCornerDisplayTest.ProcessFillHardwareResourceInvalid
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRoundCornerDisplayTest, ProcessFillHardwareResourceInvalid, TestSize.Level1)
-{
-    // prepare test
-    std::shared_ptr<RSRcdSurfaceRenderNode> bottomSurfaceNode =
-        std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::BOTTOM);
-    if (bottomSurfaceNode == nullptr) {
-        std::cout << "RSRoundCornerDisplayTest: current os less bottomSurfaceNode source" << std::endl;
-        return;
-    }
-
-    HardwareLayerInfo info{};
-    sptr<SurfaceBufferImpl> surfaceBufferImpl = new SurfaceBufferImpl();
-    bottomSurfaceNode->buffer_.buffer = surfaceBufferImpl;
-
-    InitRcdRenderParamsInvalid01(&info, nullptr);
-    EXPECT_TRUE(bottomSurfaceNode->FillHardwareResource(info, 2, 2) == false);
-
-    InitRcdRenderParamsInvalid02(&info, nullptr);
-    EXPECT_TRUE(bottomSurfaceNode->FillHardwareResource(info, 2, 2) == false);
-
-    InitRcdRenderParamsInvalid03(&info, nullptr);
-    EXPECT_TRUE(bottomSurfaceNode->FillHardwareResource(info, 2, 2) == false);
-
-    InitRcdRenderParamsInvalid04(&info, nullptr);
-    EXPECT_TRUE(bottomSurfaceNode->FillHardwareResource(info, 2, 2) == false);
-
-    delete surfaceBufferImpl;
-}
-
-/*
- * @tc.name: ProcessSetRCDMetaDataInvalid
- * @tc.desc: Test RSRoundCornerDisplayTest.ProcessSetRCDMetaDataInvalid
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRoundCornerDisplayTest, ProcessSetRCDMetaDataInvalid, TestSize.Level1)
-{
-    // prepare test
-    std::shared_ptr<RSRcdSurfaceRenderNode> bottomSurfaceNode =
-        std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::BOTTOM);
-    if (bottomSurfaceNode == nullptr) {
-        std::cout << "RSRoundCornerDisplayTest: current os less bottomSurfaceNode source" << std::endl;
-        return;
-    }
-
-    // buffer is nullptr
-    bottomSurfaceNode->buffer_.buffer = nullptr;
-    EXPECT_TRUE(bottomSurfaceNode->SetRCDMetaData() == false);
-
-    // SetMetaData success
-    sptr<SurfaceBufferImpl> surfaceBufferImpl = new SurfaceBufferImpl();
-    BufferRequestConfig requestConfig = {
-        .width = 896,
-        .height = 1848,
-        .strideAlignment = 0x8,
-        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
-        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
-        .timeout = 0,
-        .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB,
-    };
-    surfaceBufferImpl->Alloc(requestConfig, nullptr);
-    bottomSurfaceNode->buffer_.buffer = surfaceBufferImpl;
-    EXPECT_TRUE(bottomSurfaceNode->SetRCDMetaData() == false);
-
-    // SetMetaData fail
-    surfaceBufferImpl->handle_ = nullptr;
-    EXPECT_TRUE(bottomSurfaceNode->SetRCDMetaData() == false);
 }
 
 /*
@@ -1586,8 +1474,10 @@ HWTEST_F(RSRoundCornerDisplayTest, RSRcdRenderManager, TestSize.Level1)
         Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
     rs_rcd::RoundCornerLayer layerTmp{"top.png", 0, 0, "top.bin", 8112, 2028, 1, bitMap.get()};
     std::shared_ptr<rs_rcd::RoundCornerLayer> topPtr = std::make_shared<rs_rcd::RoundCornerLayer>(layerTmp);
+    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
     auto rsHardwareProcessor =
-        RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE);
+        RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, 0);
     RectU displayRect{0, 0, 896, 1848};
     info = {rsHardwareProcessor, topPtr, topPtr, displayRect, true};
     rcdManagerInstance.DoProcessRenderMainThreadTask(id, info);
@@ -1678,5 +1568,753 @@ HWTEST_F(RSRoundCornerDisplayTest, RoundCornerDisplayPrintRCD, TestSize.Level1)
     rcdInstance.lcdModel_ = nullptr;
     delete rcdInstance.rog_;
     rcdInstance.rog_ = nullptr;
+}
+
+/*
+ * @tc.name: FillHardwareResourceNullImgAddr
+ * @tc.desc: Test RSRcdSurfaceRenderNode::FillHardwareResource with null virtual address
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, FillHardwareResourceNullImgAddr, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::BOTTOM);
+    if (surfaceNode == nullptr) {
+        return;
+    }
+
+    HardwareLayerInfo info{};
+    info.pathBin = "/sys_prod/etc/display/RoundCornerDisplay/test.bin";
+    info.bufferSize = 1000;
+    info.cldWidth = 100;
+    info.cldHeight = 50;
+
+    sptr<SurfaceBufferImpl> surfaceBufferImpl = new SurfaceBufferImpl();
+    BufferRequestConfig requestConfig = {
+        .width = 100,
+        .height = 200,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+        .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB,
+    };
+    surfaceBufferImpl->Alloc(requestConfig, nullptr);
+    surfaceNode->buffer_.buffer = surfaceBufferImpl;
+
+    BufferHandle* bufferHandle = AllocateBufferHandle(100, 200);
+    ASSERT_TRUE(bufferHandle != nullptr);
+    surfaceBufferImpl->SetBufferHandle(bufferHandle);
+    surfaceBufferImpl->handle_->stride = 400;
+    surfaceBufferImpl->handle_->size = 100000;
+    surfaceBufferImpl->handle_->virAddr = nullptr;
+
+    bool result = surfaceNode->FillHardwareResource(info, 50, 100);
+    EXPECT_FALSE(result);
+
+    if (surfaceBufferImpl->handle_ != nullptr) {
+        surfaceBufferImpl->handle_->virAddr = nullptr;
+    }
+    FreeBufferHandle(bufferHandle);
+}
+
+/*
+ * @tc.name: FillHardwareResourceInvalidStride
+ * @tc.desc: Test RSRcdSurfaceRenderNode::FillHardwareResource with negative stride
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, FillHardwareResourceInvalidStride, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::BOTTOM);
+    if (surfaceNode == nullptr) {
+        return;
+    }
+
+    HardwareLayerInfo info{};
+    info.pathBin = "/sys_prod/etc/display/RoundCornerDisplay/test.bin";
+    info.bufferSize = 1000;
+    info.cldWidth = 100;
+    info.cldHeight = 50;
+
+    sptr<SurfaceBufferImpl> surfaceBufferImpl = new SurfaceBufferImpl();
+    BufferRequestConfig requestConfig = {
+        .width = 100,
+        .height = 200,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+        .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB,
+    };
+    surfaceBufferImpl->Alloc(requestConfig, nullptr);
+    surfaceNode->buffer_.buffer = surfaceBufferImpl;
+
+    BufferHandle* bufferHandle = AllocateBufferHandle(100, 200);
+    ASSERT_TRUE(bufferHandle != nullptr);
+    surfaceBufferImpl->SetBufferHandle(bufferHandle);
+    surfaceBufferImpl->handle_->stride = -1;
+    surfaceBufferImpl->handle_->size = 100000;
+
+    std::shared_ptr<uint8_t> buffer(new uint8_t[100000](), std::default_delete<uint8_t[]>());
+    surfaceBufferImpl->handle_->virAddr = static_cast<void*>(buffer.get());
+
+    bool result = surfaceNode->FillHardwareResource(info, 50, 100);
+    EXPECT_FALSE(result);
+
+    if (surfaceBufferImpl->handle_ != nullptr) {
+        surfaceBufferImpl->handle_->virAddr = nullptr;
+    }
+    FreeBufferHandle(bufferHandle);
+}
+
+/*
+ * @tc.name: FillHardwareResourceInsufficientBuffer
+ * @tc.desc: Test RSRcdSurfaceRenderNode::FillHardwareResource with insufficient buffer size
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, FillHardwareResourceInsufficientBuffer, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::BOTTOM);
+    if (surfaceNode == nullptr) {
+        return;
+    }
+
+    HardwareLayerInfo info{};
+    info.pathBin = "/sys_prod/etc/display/RoundCornerDisplay/test.bin";
+    info.bufferSize = 1000;
+    info.cldWidth = 100;
+    info.cldHeight = 50;
+
+    sptr<SurfaceBufferImpl> surfaceBufferImpl = new SurfaceBufferImpl();
+    BufferRequestConfig requestConfig = {
+        .width = 100,
+        .height = 200,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+        .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB,
+    };
+    surfaceBufferImpl->Alloc(requestConfig, nullptr);
+    surfaceNode->buffer_.buffer = surfaceBufferImpl;
+
+    BufferHandle* bufferHandle = AllocateBufferHandle(100, 200);
+    ASSERT_TRUE(bufferHandle != nullptr);
+    surfaceBufferImpl->SetBufferHandle(bufferHandle);
+    surfaceBufferImpl->handle_->stride = 400;
+    surfaceBufferImpl->handle_->size = 100;
+
+    std::shared_ptr<uint8_t> buffer(new uint8_t[100](), std::default_delete<uint8_t[]>());
+    surfaceBufferImpl->handle_->virAddr = static_cast<void*>(buffer.get());
+
+    bool result = surfaceNode->FillHardwareResource(info, 50, 100);
+    EXPECT_FALSE(result);
+
+    if (surfaceBufferImpl->handle_ != nullptr) {
+        surfaceBufferImpl->handle_->virAddr = nullptr;
+    }
+    FreeBufferHandle(bufferHandle);
+}
+
+/*
+ * @tc.name: FillHardwareResourceFileNotExist
+ * @tc.desc: Test RSRcdSurfaceRenderNode::FillHardwareResource with non-existent file path
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, FillHardwareResourceFileNotExist, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::BOTTOM);
+    if (surfaceNode == nullptr) {
+        return;
+    }
+
+    HardwareLayerInfo info{};
+    info.pathBin = "/sys_prod/etc/display/RoundCornerDisplay/nonexistent_test.bin";
+    info.bufferSize = 1000;
+    info.cldWidth = 100;
+    info.cldHeight = 50;
+
+    sptr<SurfaceBufferImpl> surfaceBufferImpl = new SurfaceBufferImpl();
+    BufferRequestConfig requestConfig = {
+        .width = 100,
+        .height = 200,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+        .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB,
+    };
+    surfaceBufferImpl->Alloc(requestConfig, nullptr);
+    surfaceNode->buffer_.buffer = surfaceBufferImpl;
+
+    BufferHandle* bufferHandle = AllocateBufferHandle(100, 200);
+    ASSERT_TRUE(bufferHandle != nullptr);
+    surfaceBufferImpl->SetBufferHandle(bufferHandle);
+    surfaceBufferImpl->handle_->stride = 400;
+    surfaceBufferImpl->handle_->size = 100000;
+
+    std::shared_ptr<uint8_t> buffer(new uint8_t[100000](), std::default_delete<uint8_t[]>());
+    surfaceBufferImpl->handle_->virAddr = static_cast<void*>(buffer.get());
+
+    bool result = surfaceNode->FillHardwareResource(info, 50, 100);
+    EXPECT_FALSE(result);
+
+    if (surfaceBufferImpl->handle_ != nullptr) {
+        surfaceBufferImpl->handle_->virAddr = nullptr;
+    }
+    FreeBufferHandle(bufferHandle);
+}
+
+/*
+ * @tc.name: FillHardwareResourceTopSurface
+ * @tc.desc: Test RSRcdSurfaceRenderNode::FillHardwareResource with TOP surface type
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, FillHardwareResourceTopSurface, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::TOP);
+    if (surfaceNode == nullptr) {
+        return;
+    }
+
+    HardwareLayerInfo info{};
+    info.pathBin = "/sys_prod/etc/display/RoundCornerDisplay/test.bin";
+    info.bufferSize = 1000;
+    info.cldWidth = 100;
+    info.cldHeight = 50;
+
+    sptr<SurfaceBufferImpl> surfaceBufferImpl = new SurfaceBufferImpl();
+    BufferRequestConfig requestConfig = {
+        .width = 100,
+        .height = 200,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+        .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB,
+    };
+    surfaceBufferImpl->Alloc(requestConfig, nullptr);
+    surfaceNode->buffer_.buffer = surfaceBufferImpl;
+
+    BufferHandle* bufferHandle = AllocateBufferHandle(100, 200);
+    ASSERT_TRUE(bufferHandle != nullptr);
+    surfaceBufferImpl->SetBufferHandle(bufferHandle);
+    surfaceBufferImpl->handle_->stride = 400;
+    surfaceBufferImpl->handle_->size = 100000;
+
+    std::shared_ptr<uint8_t> buffer(new uint8_t[100000](), std::default_delete<uint8_t[]>());
+    surfaceBufferImpl->handle_->virAddr = static_cast<void*>(buffer.get());
+
+    bool result = surfaceNode->FillHardwareResource(info, 50, 100);
+    EXPECT_FALSE(result);
+
+    if (surfaceBufferImpl->handle_ != nullptr) {
+        surfaceBufferImpl->handle_->virAddr = nullptr;
+    }
+    FreeBufferHandle(bufferHandle);
+}
+
+/*
+ * @tc.name: FillHardwareResourceInvalidSurface
+ * @tc.desc: Test RSRcdSurfaceRenderNode::FillHardwareResource with INVALID surface type
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, FillHardwareResourceInvalidSurface, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::INVALID);
+    if (surfaceNode == nullptr) {
+        return;
+    }
+
+    HardwareLayerInfo info{};
+    info.pathBin = "/sys_prod/etc/display/RoundCornerDisplay/test.bin";
+    info.bufferSize = 1000;
+    info.cldWidth = 100;
+    info.cldHeight = 50;
+
+    sptr<SurfaceBufferImpl> surfaceBufferImpl = new SurfaceBufferImpl();
+    BufferRequestConfig requestConfig = {
+        .width = 100,
+        .height = 200,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+        .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB,
+    };
+    surfaceBufferImpl->Alloc(requestConfig, nullptr);
+    surfaceNode->buffer_.buffer = surfaceBufferImpl;
+
+    BufferHandle* bufferHandle = AllocateBufferHandle(100, 200);
+    ASSERT_TRUE(bufferHandle != nullptr);
+    surfaceBufferImpl->SetBufferHandle(bufferHandle);
+    surfaceBufferImpl->handle_->stride = 400;
+    surfaceBufferImpl->handle_->size = 100000;
+
+    std::shared_ptr<uint8_t> buffer(new uint8_t[100000](), std::default_delete<uint8_t[]>());
+    surfaceBufferImpl->handle_->virAddr = static_cast<void*>(buffer.get());
+
+    bool result = surfaceNode->FillHardwareResource(info, 50, 100);
+    EXPECT_FALSE(result);
+
+    if (surfaceBufferImpl->handle_ != nullptr) {
+        surfaceBufferImpl->handle_->virAddr = nullptr;
+    }
+    FreeBufferHandle(bufferHandle);
+}
+
+/*
+ * @tc.name: CreatePixelMapFromBitmapValid
+ * @tc.desc: Test RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap with valid bitmap
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, CreatePixelMapFromBitmapValid, TestSize.Level1)
+{
+    Drawing::Bitmap bitmap;
+    const int width = 100;
+    const int height = 100;
+    bitmap.Build(width, height,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
+    auto pixelMap = RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap(bitmap);
+    ASSERT_NE(pixelMap, nullptr);
+    EXPECT_EQ(pixelMap->GetWidth(), width);
+    EXPECT_EQ(pixelMap->GetHeight(), height);
+}
+
+/*
+ * @tc.name: CreatePixelMapFromBitmapNullPixels
+ * @tc.desc: Test RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap with null pixels
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, CreatePixelMapFromBitmapNullPixels, TestSize.Level1)
+{
+    Drawing::Bitmap bitmap;
+    const int width = 100;
+    const int height = 100;
+    bitmap.Build(width, height,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
+    bitmap.SetPixels(nullptr);
+    auto pixelMap = RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap(bitmap);
+    EXPECT_EQ(pixelMap, nullptr);
+}
+
+/*
+ * @tc.name: CreatePixelMapFromBitmapInvalidWidth
+ * @tc.desc: Test RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap with invalid width
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, CreatePixelMapFromBitmapInvalidWidth, TestSize.Level1)
+{
+    Drawing::Bitmap bitmap;
+    bitmap.Build(0, 100,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
+
+    auto pixelMap = RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap(bitmap);
+    EXPECT_EQ(pixelMap, nullptr);
+}
+
+/*
+ * @tc.name: CreatePixelMapFromBitmapInvalidHeight
+ * @tc.desc: Test RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap with invalid height
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, CreatePixelMapFromBitmapInvalidHeight, TestSize.Level1)
+{
+    Drawing::Bitmap bitmap;
+    bitmap.Build(100, 0,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
+
+    auto pixelMap = RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap(bitmap);
+    EXPECT_EQ(pixelMap, nullptr);
+}
+
+/*
+ * @tc.name: CreatePixelMapFromBitmapSmallDimensions
+ * @tc.desc: Test RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap with small dimensions (1x1)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, CreatePixelMapFromBitmapSmallDimensions, TestSize.Level1)
+{
+    Drawing::Bitmap bitmap;
+    const int width = 1;
+    const int height = 1;
+    bitmap.Build(width, height,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
+
+    auto pixelMap = RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap(bitmap);
+    ASSERT_NE(pixelMap, nullptr);
+    EXPECT_EQ(pixelMap->GetWidth(), width);
+    EXPECT_EQ(pixelMap->GetHeight(), height);
+}
+
+/*
+ * @tc.name: CreatePixelMapFromBitmapLargeDimensions
+ * @tc.desc: Test RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap with large dimensions
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, CreatePixelMapFromBitmapLargeDimensions, TestSize.Level1)
+{
+    Drawing::Bitmap bitmap;
+    const int width = 1920;
+    const int height = 1080;
+    bitmap.Build(width, height,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
+
+    auto pixelMap = RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap(bitmap);
+    ASSERT_NE(pixelMap, nullptr);
+    EXPECT_EQ(pixelMap->GetWidth(), width);
+    EXPECT_EQ(pixelMap->GetHeight(), height);
+}
+
+/*
+ * @tc.name: DrawRsRCDLayerValid
+ * @tc.desc: Test RSRcdSurfaceRenderNode::DrawRsRCDLayer with valid canvas and layer
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, DrawRsRCDLayerValid, TestSize.Level1)
+{
+    Drawing::Bitmap bitmap;
+    const int width = 100;
+    const int height = 100;
+    bitmap.Build(width, height,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
+
+    auto pixelMap = RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap(bitmap);
+    ASSERT_NE(pixelMap, nullptr);
+
+    auto rcdLayer = std::make_shared<RSRenderSurfaceRCDLayer>();
+    ASSERT_NE(rcdLayer, nullptr);
+    rcdLayer->SetPixelMap(pixelMap);
+    rcdLayer->SetLayerSize(GraphicIRect{0, 0, width, height});
+
+    Drawing::Canvas drawingCanvas(width, height);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+
+    RSRcdSurfaceRenderNode::DrawRsRCDLayer(canvas, rcdLayer);
+}
+
+/*
+ * @tc.name: DrawRsRCDLayerNullPixelMap
+ * @tc.desc: Test RSRcdSurfaceRenderNode::DrawRsRCDLayer with null pixelMap
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, DrawRsRCDLayerNullPixelMap, TestSize.Level1)
+{
+    Drawing::Canvas drawingCanvas(100, 100);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    RSRcdSurfaceRenderNode::DrawRsRCDLayer(canvas, nullptr);
+
+    auto rcdLayer = std::make_shared<RSRenderSurfaceRCDLayer>();
+    ASSERT_NE(rcdLayer, nullptr);
+
+    RSRcdSurfaceRenderNode::DrawRsRCDLayer(canvas, rcdLayer);
+}
+
+/*
+ * @tc.name: DrawRsRCDLayerNullPixelMapPixels
+ * @tc.desc: Test RSRcdSurfaceRenderNode::DrawRsRCDLayer with null pixelMap pixels
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, DrawRsRCDLayerNullPixelMapPixels, TestSize.Level1)
+{
+    Drawing::Bitmap bitmap;
+    bitmap.Build(100, 100,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
+
+    auto pixelMap = RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap(bitmap);
+    ASSERT_NE(pixelMap, nullptr);
+
+    auto rcdLayer = std::make_shared<RSRenderSurfaceRCDLayer>();
+    ASSERT_NE(rcdLayer, nullptr);
+
+    Drawing::Canvas drawingCanvas(100, 100);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+
+    RSRcdSurfaceRenderNode::DrawRsRCDLayer(canvas, rcdLayer);
+}
+
+/*
+ * @tc.name: DrawRsRCDLayerInvalidWidth
+ * @tc.desc: Test RSRcdSurfaceRenderNode::DrawRsRCDLayer with invalid width (< 1)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, DrawRsRCDLayerInvalidWidth, TestSize.Level1)
+{
+    Drawing::Bitmap bitmap;
+    bitmap.Build(100, 100,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
+
+    auto pixelMap = RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap(bitmap);
+    ASSERT_NE(pixelMap, nullptr);
+
+    auto rcdLayer = std::make_shared<RSRenderSurfaceRCDLayer>();
+    ASSERT_NE(rcdLayer, nullptr);
+    rcdLayer->SetPixelMap(pixelMap);
+
+    Drawing::Canvas drawingCanvas(100, 100);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+
+    RSRcdSurfaceRenderNode::DrawRsRCDLayer(canvas, rcdLayer);
+}
+
+/*
+ * @tc.name: DrawRsRCDLayerInvalidHeight
+ * @tc.desc: Test RSRcdSurfaceRenderNode::DrawRsRCDLayer with invalid height (< 1)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, DrawRsRCDLayerInvalidHeight, TestSize.Level1)
+{
+    Drawing::Bitmap bitmap;
+    bitmap.Build(100, 100,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
+
+    auto pixelMap = RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap(bitmap);
+    ASSERT_NE(pixelMap, nullptr);
+
+    auto rcdLayer = std::make_shared<RSRenderSurfaceRCDLayer>();
+    ASSERT_NE(rcdLayer, nullptr);
+    rcdLayer->SetPixelMap(pixelMap);
+
+    Drawing::Canvas drawingCanvas(100, 100);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+
+    RSRcdSurfaceRenderNode::DrawRsRCDLayer(canvas, rcdLayer);
+}
+
+/*
+ * @tc.name: DrawRsRCDLayerInvalidRowBytes
+ * @tc.desc: Test RSRcdSurfaceRenderNode::DrawRsRCDLayer with invalid row bytes (< 1)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, DrawRsRCDLayerInvalidRowBytes, TestSize.Level1)
+{
+    Drawing::Bitmap bitmap;
+    bitmap.Build(100, 100,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
+
+    auto pixelMap = RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap(bitmap);
+    ASSERT_NE(pixelMap, nullptr);
+
+    auto rcdLayer = std::make_shared<RSRenderSurfaceRCDLayer>();
+    ASSERT_NE(rcdLayer, nullptr);
+    rcdLayer->SetPixelMap(pixelMap);
+
+    Drawing::Canvas drawingCanvas(100, 100);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+
+    RSRcdSurfaceRenderNode::DrawRsRCDLayer(canvas, rcdLayer);
+}
+
+/*
+ * @tc.name: DrawRsRCDLayerValidMultiple
+ * @tc.desc: Test RSRcdSurfaceRenderNode::DrawRsRCDLayer with multiple valid layers
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, DrawRsRCDLayerValidMultiple, TestSize.Level1)
+{
+    Drawing::Bitmap bitmap1;
+    const int width1 = 100;
+    const int height1 = 50;
+    bitmap1.Build(width1, height1,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
+
+    auto pixelMap1 = RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap(bitmap1);
+    ASSERT_NE(pixelMap1, nullptr);
+
+    auto rcdLayer1 = std::make_shared<RSRenderSurfaceRCDLayer>();
+    ASSERT_NE(rcdLayer1, nullptr);
+    rcdLayer1->SetPixelMap(pixelMap1);
+    rcdLayer1->SetLayerSize(GraphicIRect{0, 0, width1, height1});
+
+    Drawing::Bitmap bitmap2;
+    const int width2 = 50;
+    const int height2 = 100;
+    bitmap2.Build(width2, height2,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
+    
+    auto pixelMap2 = RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap(bitmap2);
+    ASSERT_NE(pixelMap2, nullptr);
+
+    auto rcdLayer2 = std::make_shared<RSRenderSurfaceRCDLayer>();
+    ASSERT_NE(rcdLayer2, nullptr);
+    rcdLayer2->SetPixelMap(pixelMap2);
+    rcdLayer2->SetLayerSize(GraphicIRect{50, 0, width2, height2});
+
+    Drawing::Canvas drawingCanvas(150, 100);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+
+    RSRcdSurfaceRenderNode::DrawRsRCDLayer(canvas, rcdLayer1);
+    RSRcdSurfaceRenderNode::DrawRsRCDLayer(canvas, rcdLayer2);
+}
+
+/*
+ * @tc.name: DrawRsRCDLayerSmallDimensions
+ * @tc.desc: Test RSRcdSurfaceRenderNode::DrawRsRCDLayer with 1x1 dimensions
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, DrawRsRCDLayerSmallDimensions, TestSize.Level1)
+{
+    Drawing::Bitmap bitmap;
+    const int width = 1;
+    const int height = 1;
+    bitmap.Build(width, height,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
+
+    auto pixelMap = RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap(bitmap);
+    ASSERT_NE(pixelMap, nullptr);
+
+    auto rcdLayer = std::make_shared<RSRenderSurfaceRCDLayer>();
+    ASSERT_NE(rcdLayer, nullptr);
+    rcdLayer->SetPixelMap(pixelMap);
+    rcdLayer->SetLayerSize(GraphicIRect{0, 0, width, height});
+
+    Drawing::Canvas drawingCanvas(width, height);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+
+    RSRcdSurfaceRenderNode::DrawRsRCDLayer(canvas, rcdLayer);
+}
+
+/*
+ * @tc.name: DrawRsRCDLayerLargeDimensions
+ * @tc.desc: Test RSRcdSurfaceRenderNode::DrawRsRCDLayer with large dimensions (1920x1080)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, DrawRsRCDLayerLargeDimensions, TestSize.Level1)
+{
+    Drawing::Bitmap bitmap;
+    const int width = 1920;
+    const int height = 1080;
+    bitmap.Build(width, height,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
+
+    auto pixelMap = RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap(bitmap);
+    ASSERT_NE(pixelMap, nullptr);
+
+    auto rcdLayer = std::make_shared<RSRenderSurfaceRCDLayer>();
+    ASSERT_NE(rcdLayer, nullptr);
+    rcdLayer->SetPixelMap(pixelMap);
+    rcdLayer->SetLayerSize(GraphicIRect{0, 0, width, height});
+
+    Drawing::Canvas drawingCanvas(width, height);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+
+    RSRcdSurfaceRenderNode::DrawRsRCDLayer(canvas, rcdLayer);
+}
+
+/*
+ * @tc.name: RSRcdRenderManager
+ * @tc.desc: Test RSRcdRenderManager_DrawRCD
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, RSRcdRenderManager_DrawRCD, TestSize.Level1)
+{
+    auto& rcdManagerInstance = RSRcdRenderManager::GetInstance();
+    rcdManagerInstance.InitInstance(); // register
+    rcdManagerInstance.InitInstance(); // already register
+
+    Drawing::Canvas drawingCanvas(2, 2);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+
+    RSLayerPtr nullLayer = nullptr;
+    RSLayerPtr ngRcdLayer = std::make_shared<RSRenderSurfaceLayer>();
+    ASSERT_NE(ngRcdLayer, nullptr);
+    std::vector<RSLayerPtr> layers = {nullLayer, ngRcdLayer};
+    RSRcdRenderManager::DrawRoundCorner(canvas, layers);
+    EXPECT_TRUE(rcdManagerInstance.isRcdServiceRegister_);
+}
+
+/*
+ * @tc.name: ConsumeAndUpdateBufferTest001
+ * @tc.desc: Test RSRoundCornerDisplayTest.ConsumeAndUpdateBufferTest001
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, ConsumeAndUpdateBufferTest001, TestSize.Level1)
+{
+    auto topSurfaceNode = std::make_shared<RSRcdSurfaceRenderNode>(0, RCDSurfaceType::TOP);
+    auto visitor = std::make_shared<RSRcdRenderVisitor>();
+    sptr<IBufferConsumerListener> listener = new RSRcdRenderListener(topSurfaceNode);
+    topSurfaceNode->CreateSurface(listener);
+
+    topSurfaceNode->SetAvailableBufferCount(3);
+    bool result = visitor->ConsumeAndUpdateBuffer(*topSurfaceNode);
+    EXPECT_EQ(true, result);
+}
+
+/*
+ * @tc.name: ProcessRcdSurfaceRenderNode3
+ * @tc.desc: Test ProcessRcdSurfaceRenderNode with resourceChanged=true and valid processor
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, ProcessRcdSurfaceRenderNode3, TestSize.Level1)
+{
+    Drawing::Bitmap bitmapBottomPortrait;
+    const char* path = "port_down.png";
+    auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();
+    rcdInstance.Init();
+    if (!LoadBitmapFromFile(path, bitmapBottomPortrait)) {
+        std::cout << "RSRoundCornerDisplayTest: current os less rcd source" << std::endl;
+        return;
+    }
+
+    auto& rcdCfg = RSSingleton<rs_rcd::RCDConfig>::GetInstance();
+    rcdCfg.Load(std::string(rs_rcd::PATH_CONFIG_FILE));
+    rs_rcd::LCDModel* lcdModel = rcdCfg.GetLcdModel(std::string(rs_rcd::ATTR_DEFAULT));
+    ASSERT_TRUE(lcdModel != nullptr);
+    int width = 0;
+    int height = 0;
+    rs_rcd::ROGSetting* rog = GetRogFromLcdModel(lcdModel, width, height);
+    ASSERT_TRUE(rog != nullptr);
+
+    rs_rcd::RoundCornerHardware hardInfo;
+    auto portrait = rog->GetPortrait(std::string(rs_rcd::NODE_PORTRAIT));
+    ASSERT_TRUE(portrait != std::nullopt);
+
+    hardInfo.bottomLayer = std::make_shared<rs_rcd::RoundCornerLayer>(portrait->layerDown);
+    hardInfo.displayRect = RectU(0, 0, width, height);
+    hardInfo.bottomLayer->curBitmap = &bitmapBottomPortrait;
+
+    auto bottomSurfaceNode = RSRcdSurfaceRenderNode::Create(0, RCDSurfaceType::BOTTOM);
+    HardwareLayerInfo info{};
+    bottomSurfaceNode->FillHardwareResource(info, 0, 0);
+
+    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
+    auto visitor = std::make_shared<RSRcdRenderVisitor>();
+
+    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
+    std::shared_ptr<RSProcessor> processorPtr =
+        RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_COMPOSITE, 0);
+    visitor->SetUniProcessor(processorPtr);
+    ASSERT_TRUE(visitor->uniProcessor_ != nullptr);
+    ASSERT_FALSE(bottomSurfaceNode->IsInvalidSurface());
+    ASSERT_TRUE(visitor->renderEngine_ != nullptr);
+    ASSERT_TRUE(bottomSurfaceNode->GetBuffer() == nullptr);
+    auto res1 = visitor->ProcessRcdSurfaceRenderNode(*bottomSurfaceNode, hardInfo.bottomLayer, false);
+    EXPECT_FALSE(res1);
+    auto res2 = visitor->ProcessRcdSurfaceRenderNode(*bottomSurfaceNode, hardInfo.bottomLayer, true);
+    EXPECT_FALSE(res2);
 }
 } // OHOS::Rosen

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -37,8 +37,7 @@ public:
     static std::vector<RectI> GetFilpDirtyRects(const std::vector<RectI>& srcRects, const ScreenInfo& screenInfo);
     static std::vector<RectI> FilpRects(const std::vector<RectI>& srcRects, const ScreenInfo& screenInfo);
     static GraphicIRect IntersectRect(const GraphicIRect& first, const GraphicIRect& second);
-    static void UpdateVirtualExpandScreenAccumulatedParams(RSScreenRenderParams& params,
-        DrawableV2::RSScreenRenderNodeDrawable& screenDrawable, const sptr<RSScreenManager>& screenManager);
+    static void UpdateVirtualExpandScreenAccumulatedParams(RSScreenRenderParams& params, bool isCurrentFrameDirty);
     static bool CheckVirtualExpandScreenSkip(
         RSScreenRenderParams& params, DrawableV2::RSScreenRenderNodeDrawable& screenDrawable);
     static bool CheckCurrentFrameHasDirtyInVirtual(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable);
@@ -49,6 +48,7 @@ public:
     static void ClearVirtualExpandScreenAccumulatedDirtyRegions(
         DrawableV2::RSScreenRenderNodeDrawable& screenDrawable, RSScreenRenderParams& params);
     static bool HasMirrorDisplay();
+    static void UpdatePrepareDirtyRegionClip(RSRenderNode& node, RectI& prepareDirtyRegionClip);
 };
 
 class DirtyStatusAutoUpdate {

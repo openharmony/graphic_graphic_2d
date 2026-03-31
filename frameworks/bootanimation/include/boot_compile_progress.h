@@ -60,6 +60,9 @@ private:
     void SetFrame();
     void SetSpecialProgressFrame(int32_t maxLength, int32_t screenId);
     void RegisterDeathRecipientInner();
+    std::string GetFirmwareUpdateState();
+    void UpdateText();
+    void DrawCircle(Rosen::Drawing::RecordingCanvas* canvas);
 
     int32_t windowWidth_ = 0;
     int32_t windowHeight_ = 0;
@@ -78,6 +81,7 @@ private:
     volatile bool isUpdateOptEnd_ = false;
     bool isWearable_ = false;
     bool isOther_ = false;
+    bool isUpdateText_ = false;
 
     std::shared_ptr<Rosen::RSSurfaceNode> rsSurfaceNode_;
     std::shared_ptr<Rosen::RSCanvasNode> rsCanvasNode_;

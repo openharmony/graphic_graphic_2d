@@ -64,6 +64,79 @@ HWTEST_F(RSRenderFrameRateLinkerTest, SetExpectedRange, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetExpectedRangeTest002
+ * @tc.desc: test SetExpectedRange when expectedFpsChangeCallbacks_ is not empty and cb is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderFrameRateLinkerTest, SetExpectedRangeTest002, TestSize.Level1)
+{
+    auto frameRateLinker = std::make_shared<RSRenderFrameRateLinker>();
+    ASSERT_NE(frameRateLinker, nullptr);
+
+    auto [iter, _] = frameRateLinker->expectedFpsChangeCallbacks_.emplace(1, nullptr);
+    ASSERT_EQ(iter->second, nullptr);
+
+    FrameRateRange range(60, 144, 120); // 60、 144、 120Hz
+    frameRateLinker->SetExpectedRange(range);
+    EXPECT_EQ(frameRateLinker->GetExpectedRange(), range);
+}
+
+/**
+ * @tc.name: SetExpectedRangeTest003
+ * @tc.desc: test SetExpectedRange when expectedFpsChangeCallbacks_ is not empty and cb is not nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderFrameRateLinkerTest, SetExpectedRangeTest003, TestSize.Level1)
+{
+    auto frameRateLinker = std::make_shared<RSRenderFrameRateLinker>();
+    ASSERT_NE(frameRateLinker, nullptr);
+
+    auto cb = sptr<CustomFrameRateLinkerCallback>::MakeSptr();
+    auto [iter, _] = frameRateLinker->expectedFpsChangeCallbacks_.emplace(1, cb);
+    ASSERT_NE(iter->second, nullptr);
+
+    FrameRateRange range(60, 144, 120); // 60、 144、 120Hz
+    frameRateLinker->SetExpectedRange(range);
+    EXPECT_EQ(frameRateLinker->GetExpectedRange(), range);
+}
+
+/**
+ * @tc.name: RegisterExpectedFpsUpdateCallbackTest001
+ * @tc.desc: test RegisterExpectedFpsUpdateCallback when callback is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderFrameRateLinkerTest, RegisterExpectedFpsUpdateCallbackTest001, TestSize.Level1)
+{
+    auto frameRateLinker = std::make_shared<RSRenderFrameRateLinker>();
+    ASSERT_NE(frameRateLinker, nullptr);
+
+    auto [iter, _] = frameRateLinker->expectedFpsChangeCallbacks_.emplace(1, nullptr);
+    ASSERT_EQ(iter->second, nullptr);
+
+    frameRateLinker->RegisterExpectedFpsUpdateCallback(1, nullptr);
+    EXPECT_EQ(frameRateLinker->expectedFpsChangeCallbacks_.find(1), frameRateLinker->expectedFpsChangeCallbacks_.end());
+}
+
+/**
+ * @tc.name: RegisterExpectedFpsUpdateCallbackTest002
+ * @tc.desc: test RegisterExpectedFpsUpdateCallback when callback is not nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderFrameRateLinkerTest, RegisterExpectedFpsUpdateCallbackTest002, TestSize.Level1)
+{
+    auto frameRateLinker = std::make_shared<RSRenderFrameRateLinker>();
+    ASSERT_NE(frameRateLinker, nullptr);
+
+    auto cb = sptr<CustomFrameRateLinkerCallback>::MakeSptr();
+    frameRateLinker->RegisterExpectedFpsUpdateCallback(1, cb);
+    EXPECT_NE(frameRateLinker->expectedFpsChangeCallbacks_.find(1), frameRateLinker->expectedFpsChangeCallbacks_.end());
+}
+
+/**
  * @tc.name: SetFrameRate
  * @tc.desc: Test SetFrameRate
  * @tc.type: FUNC
@@ -114,12 +187,11 @@ HWTEST_F(RSRenderFrameRateLinkerTest, SetAnimatorExpectedFrameRate, TestSize.Lev
     EXPECT_EQ(frameRateLinker->GetAceAnimatorExpectedFrameRate(), animatorExpectedFrameRate);
 
     frameRateLinker = std::make_shared<RSRenderFrameRateLinker>();
-    frameRateLinker = std::make_shared<RSRenderFrameRateLinker>([] (const RSRenderFrameRateLinker& linker) {});
-    frameRateLinker = std::make_shared<RSRenderFrameRateLinker>(id, [] (const RSRenderFrameRateLinker& linker) {});
+    frameRateLinker = std::make_shared<RSRenderFrameRateLinker>(id, [] {});
     frameRateLinker->SetAnimatorExpectedFrameRate(animatorExpectedFrameRate);
     EXPECT_EQ(frameRateLinker->GetAceAnimatorExpectedFrameRate(), animatorExpectedFrameRate);
 
-    RSRenderFrameRateLinker rsRenderFrameRateLinker([] (const RSRenderFrameRateLinker& linker) {});
+    RSRenderFrameRateLinker rsRenderFrameRateLinker;
     rsRenderFrameRateLinker.SetAnimatorExpectedFrameRate(animatorExpectedFrameRate);
     EXPECT_EQ(rsRenderFrameRateLinker.GetAceAnimatorExpectedFrameRate(), animatorExpectedFrameRate);
 

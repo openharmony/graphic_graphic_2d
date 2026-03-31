@@ -208,7 +208,7 @@ HWTEST_F(TextStyleTest, TextStyleTest009, TestSize.Level0)
 
 /*
  * @tc.name: TextStyleTest010
- * @tc.desc: test for fontEdging in paragraph builder
+ * @tc.desc: test for fontEdging and isFakeBoldEnabled in paragraph builder
  * @tc.type: FUNC
  */
 HWTEST_F(TextStyleTest, TextStyleTest010, TestSize.Level0)
@@ -223,6 +223,7 @@ HWTEST_F(TextStyleTest, TextStyleTest010, TestSize.Level0)
 
     OHOS::Rosen::SPText::TextStyle style;
     style.fontEdging = Drawing::FontEdging::SUBPIXEL_ANTI_ALIAS;
+    style.isFakeBoldEnabled = false;
     style.fontSize = FONT_SIZE;
     paragraphBuilder->PushStyle(style);
     paragraphBuilder->AddText(u"Hello World");
@@ -234,6 +235,7 @@ HWTEST_F(TextStyleTest, TextStyleTest010, TestSize.Level0)
     paragraph->GetLineMetricsAt(0, &lineMetrics);
     for (const auto& lineMetric : lineMetrics.fLineMetrics) {
         const auto& runMetricsStyle = lineMetric.second.text_style;
+        EXPECT_FALSE(runMetricsStyle->isFakeBoldEnabled());
         EXPECT_EQ(runMetricsStyle->getFontEdging(), Drawing::FontEdging::SUBPIXEL_ANTI_ALIAS);
     }
 }

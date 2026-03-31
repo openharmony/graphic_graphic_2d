@@ -66,6 +66,8 @@ public:
 
     static bool IsRcdProcessInfoValid(const RcdProcessInfo& info);
 
+    static void DrawRoundCorner(RSPaintFilterCanvas& canvas, const std::vector<RSLayerPtr>& layers);
+
     RSRcdRenderManager() = default;
     virtual ~RSRcdRenderManager() = default;
 
@@ -76,8 +78,7 @@ private:
     void RemoveRcdResource(NodeId id);
 
     bool rcdRenderEnabled_ = false;
-    constexpr static NodeId TOP_RCD_NODE_ID = 1;
-    constexpr static NodeId BACKGROUND_RCD_NODE_ID = 2;
+    static bool isRcdServiceRegister_;
 
     std::mutex topNodeMapMut_;
     std::mutex bottomNodeMapMut_;
@@ -89,4 +90,4 @@ private:
 };
 } // namespace Rosen
 } // namespace OHOS
-#endif // RENDER_SERVICE_CORE_RS_RCD_RENDER_MANAGER_H
+#endif // RENDER_SERVICE_CORE_RS_RCD_RENDER_MANAGER_H

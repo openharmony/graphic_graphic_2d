@@ -35,28 +35,17 @@ RSVirtualScreenProcessor::~RSVirtualScreenProcessor() noexcept
 {
 }
 
-bool RSVirtualScreenProcessor::Init(RSScreenRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
-                                    std::shared_ptr<RSBaseRenderEngine> renderEngine)
+bool RSVirtualScreenProcessor::Init(RSScreenRenderNode& node, std::shared_ptr<RSBaseRenderEngine> renderEngine)
 {
 #ifdef RS_ENABLE_GPU
-    if (!RSProcessor::Init(node, offsetX, offsetY, mirroredId, renderEngine)) {
+    if (!RSProcessor::Init(node, renderEngine)) {
         return false;
     }
 #endif
 
-    if (mirroredId != INVALID_SCREEN_ID) {
-        SetMirrorScreenSwap(node);
-    }
-
     renderFrameConfig_.usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_MEM_DMA;
 
-    auto screenManager = CreateOrGetScreenManager();
-    if (screenManager == nullptr) {
-        RS_LOGE("RSVirtualScreenProcessor::Init for Screen(id %{public}" PRIu64 "): screenManager is null!",
-            node.GetScreenId());
-        return false;
-    }
-    producerSurface_ = screenManager->GetProducerSurface(node.GetScreenId());
+    producerSurface_ = node.GetScreenProperty().GetProducerSurface();
     if (producerSurface_ == nullptr) {
         RS_LOGE("RSVirtualScreenProcessor::Init for Screen(id %{public}" PRIu64 "): ProducerSurface is null!",
             node.GetScreenId());

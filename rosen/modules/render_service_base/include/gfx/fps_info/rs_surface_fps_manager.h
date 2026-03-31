@@ -88,7 +88,7 @@ public:
 class RSB_EXPORT RSSurfaceFpsManager {
 public:
     static RSSurfaceFpsManager &GetInstance();
-    bool RegisterSurfaceFps(NodeId id, const std::string& name);
+    bool RegisterSurfaceFps(NodeId id, const std::string& name, uint64_t uniqueId);
     bool UnregisterSurfaceFps(NodeId id);
     void RecordFlushTime(NodeId id, uint64_t vsyncId, uint64_t timestamp);
     void RecordPresentFd(uint64_t vsyncId, int32_t presentFd);
@@ -105,6 +105,8 @@ public:
     void DumpSurfaceNodeFps(std::string& dumpString, const std::string& option, const std::string& arg);
     void ClearSurfaceNodeFps(std::string& dumpString, const std::string& option, const std::string& arg);
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceFps>> GetSurfaceFpsMap() const;
+    const std::string GetSelfDrawSurfaceNameByPid(pid_t nodePid);
+    const std::string GetSelfDrawSurfaceNameByPidAndUniqueId(pid_t nodePid, uint64_t uniqueId);
 private:
     RSSurfaceFpsManager()
     {

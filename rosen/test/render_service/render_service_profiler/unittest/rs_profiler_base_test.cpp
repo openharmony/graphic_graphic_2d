@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -523,13 +523,16 @@ RSMainThread* RecorRsProfileRecordTest::mainThread_ = nullptr;
 
 void RecorRsProfileRecordTest::SetUpTestCase()
 {
+    auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
     mainThread_ = RSMainThread::Instance();
-    mainThread_->runner_ = AppExecFwk::EventRunner::Create(true);
-    mainThread_->handler_ = std::make_shared<AppExecFwk::EventHandler>(mainThread_->runner_);
+    mainThread_->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
+    mainThread_->handler_->eventRunner_->Run();
+
+    auto pipeline = std::make_shared<RSRenderPipeline>();
+    pipeline->mainThread_ = mainThread_;
 
     renderService_ = new RSRenderService();
-    renderService_->mainThread_ = mainThread_;
-    renderService_->screenManager_ = CreateOrGetScreenManager();
+    renderService_->renderPipeline_ = pipeline;
 
     RSProfiler::Init(renderService_);
 }

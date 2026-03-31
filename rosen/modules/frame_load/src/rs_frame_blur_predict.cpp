@@ -85,7 +85,7 @@ void RsFrameBlurPredict::GetCurrentFrameDrawLargeAreaBlurPredictively()
     if (!predictBegin_.load()) {
         RS_TRACE_NAME("predict invalid frame");
         param["frameBlurPredict"] = RS_BLUR_PREDICT_INVALID;
-        RsFrameReport::GetInstance().ReportSchedEvent(FrameSchedEvent::RS_BLUR_PREDICT, param);
+        RsFrameReport::BlurPredict(param);
         return;
     }
     RS_TRACE_NAME_FMT("predict current %d frame", predictDrawLargeAreaBlur_.first);
@@ -94,7 +94,7 @@ void RsFrameBlurPredict::GetCurrentFrameDrawLargeAreaBlurPredictively()
     } else {
         param["frameBlurPredict"] = RS_BLUR_PREDICT_SHORT;
     }
-    RsFrameReport::GetInstance().ReportSchedEvent(FrameSchedEvent::RS_BLUR_PREDICT, param);
+    RsFrameReport::BlurPredict(param);
     predictDrawLargeAreaBlur_.first = false;
 }
 
@@ -108,7 +108,7 @@ void RsFrameBlurPredict::GetCurrentFrameDrawLargeAreaBlurPrecisely()
     } else {
         param["frameBlurPredict"] = RS_BLUR_PREDICT_SHORT;
     }
-    RsFrameReport::GetInstance().ReportSchedEvent(FrameSchedEvent::RS_BLUR_PREDICT, param);
+    RsFrameReport::BlurPredict(param);
     predictDrawLargeAreaBlur_.second = false;
 }
 

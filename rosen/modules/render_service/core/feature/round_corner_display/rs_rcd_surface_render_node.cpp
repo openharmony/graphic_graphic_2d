@@ -1,4 +1,4 @@
-/*
+ /*
  * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,9 @@
 #include "platform/common/rs_log.h"
 #include "transaction/rs_render_service_client.h"
 #include "pipeline/rs_canvas_render_node.h"
+#include "render/rs_pixel_map_util.h"
 #include "rs_round_corner_display_manager.h"
+#include "rs_render_surface_rcd_layer.h"
 #include "v2_3/buffer_handle_meta_key_type.h"
 
 namespace OHOS {
@@ -83,19 +85,20 @@ bool RSRcdSurfaceRenderNode::CreateSurface(sptr<IBufferConsumerListener> listene
         surfaceName = "RCDBottomSurfaceNode" + std::to_string(renerTargetId_);
         type = RoundCornerDisplayManager::RCDLayerType::BOTTOM;
     }
-    consumer_ = IConsumerSurface::Create(surfaceName.c_str());
+    auto consumer = IConsumerSurface::Create(surfaceName.c_str());
+    SetConsumer(consumer);
     RSSingleton<RoundCornerDisplayManager>::GetInstance().AddLayer(surfaceName, renerTargetId_, type);
-    if (consumer_ == nullptr) {
+    if (consumer == nullptr) {
         RS_LOGE("RSRcdSurfaceRenderNode::CreateSurface get consumer surface fail");
         return false;
     }
-    SurfaceError ret = consumer_->RegisterConsumerListener(listener);
+    SurfaceError ret = consumer->RegisterConsumerListener(listener);
     if (ret != SURFACE_ERROR_OK) {
         RS_LOGE("RSRcdSurfaceRenderNode::CreateSurface RegisterConsumerListener fail");
         return false;
     }
     consumerListener_ = listener;
-    auto producer = consumer_->GetProducer();
+    auto producer = consumer->GetProducer();
     sptr<Surface> surface = Surface::CreateSurfaceAsProducer(producer);
     auto client = std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
     surface_ = client->CreateRSSurface(surface);
@@ -194,6 +197,44 @@ bool RSRcdSurfaceRenderNode::PrepareHardwareResourceBuffer(const std::shared_ptr
     return true;
 }
 
+RSRcdSurfaceRenderNode::PixelMapPtr RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap(const Drawing::Bitmap& src)
+{
+    if (src.GetPixels() == nullptr) {
+        RS_LOGE("RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap Bitmap error");
+        return nullptr;
+    }
+    Media::InitializationOptions opts;
+    opts.size.width = src.GetWidth();
+    opts.size.height = src.GetHeight();
+    opts.allocatorType = Media::AllocatorType::DMA_ALLOC;
+    RSRcdSurfaceRenderNode::PixelMapPtr pixelMap = Media::PixelMap::Create(opts);
+    auto size = pixelMap->GetRowBytes() * pixelMap->GetHeight();
+    errno_t ret = memcpy_s(reinterpret_cast<void*>(pixelMap->GetWritablePixels()), size,
+        reinterpret_cast<void*>(src.GetPixels()), size);
+    if (ret != EOK) {
+        RS_LOGE("[%{public}s] memcpy_s failed", __func__);
+        return nullptr;
+    }
+    return pixelMap;
+}
+
+void RSRcdSurfaceRenderNode::DrawRsRCDLayer(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSLayer>& layer)
+{
+    if (layer == nullptr) {
+        RS_LOGE("RSRcdSurfaceRenderNode::DrawRsRCDLayer layer is null");
+        return;
+    }
+    auto rcdLayer = std::static_pointer_cast<RSRenderSurfaceRCDLayer>(layer);
+    auto pixelMap = rcdLayer->GetPixelMap();
+    if (pixelMap == nullptr || pixelMap->GetPixels() == nullptr ||
+        pixelMap->GetWidth() < 1 || pixelMap->GetHeight() < 1) {
+        RS_LOGE("RSRcdSurfaceRenderNode::DrawRsRCDLayer pixelmap error");
+        return;
+    }
+    auto rect = rcdLayer->GetLayerSize();
+    RSPixelMapUtil::DrawPixelMap(canvas, *pixelMap, rect.x, rect.y);
+}
+
 bool RSRcdSurfaceRenderNode::SetHardwareResourceToBuffer()
 {
     RS_LOGD("RCD: Start RSRcdSurfaceRenderNode::SetHardwareResourceToBuffer");
@@ -220,6 +261,7 @@ bool RSRcdSurfaceRenderNode::SetHardwareResourceToBuffer()
         RS_LOGE("RSRcdSurfaceRenderNode:: set hardware resource to buffer metadata failed");
         return false;
     }
+    pixelMap_ = CreatePixelMapFromBitmap(layerBitmap);
     return true;
 }
 
@@ -253,12 +295,12 @@ bool RSRcdSurfaceRenderNode::FillHardwareResource(HardwareLayerInfo &cldLayerInf
     uint8_t *img = static_cast<uint8_t*>(nodeBuffer->GetVirAddr());
     uint32_t bufferSize = nodeBuffer->GetSize();
     if (img == nullptr || offsetCldInfo < 0 || bufferSize < static_cast<uint32_t>(offsetCldInfo) + sizeof(cldInfo_)) {
-        RS_LOGE("[%s] check nodebuffer failed", __func__);
+        RS_LOGE("[%{public}s] check nodebuffer failed", __func__);
         return false;
     }
     errno_t ret = memcpy_s(reinterpret_cast<void*>(img + offsetCldInfo), sizeof(cldInfo_), &cldInfo_, sizeof(cldInfo_));
     if (ret != EOK) {
-        RS_LOGE("[%s] memcpy_s failed", __func__);
+        RS_LOGE("[%{public}s] memcpy_s failed", __func__);
         return false;
     }
     std::ifstream addBufferFile(cldLayerInfo.pathBin, std::ifstream::binary | std::ifstream::in);

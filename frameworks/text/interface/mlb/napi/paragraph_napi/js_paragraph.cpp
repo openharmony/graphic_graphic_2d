@@ -1212,8 +1212,8 @@ napi_value JsParagraph::OnGetParagraphStyle(napi_env env, napi_callback_info inf
         TEXT_LOGE("Null paragraph");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
-    // TODO: Implement paragraph style return
-    return NapiGetUndefined(env);
+    TypographyStyle typographyStyle = paragraph_->GetParagraphStyle();
+    return CreateTypographyStyleJsValue(env, typographyStyle);
 }
 
 napi_value JsParagraph::IsStrutStyleEqual(napi_env env, napi_callback_info info)

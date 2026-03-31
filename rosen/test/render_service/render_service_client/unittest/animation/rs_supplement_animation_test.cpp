@@ -201,7 +201,7 @@ public:
 };
 class MockRSAnimation : public RSAnimation {
 public:
-    MockRSAnimation() : RSAnimation() {}
+    MockRSAnimation(const std::shared_ptr<RSUIContext>& rsUIContext) : RSAnimation(rsUIContext) {}
     ~MockRSAnimation() = default;
 
     void OnReverse() override

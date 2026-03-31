@@ -31,6 +31,7 @@ namespace {
     constexpr uint32_t BIG_COLOR_LENTH = BIG_PIXELMAP_WIDTH * BIG_PIXELMAP_HEIGHT;
     constexpr uint32_t PIXELMAP_DEFUALT_COLOR = 0xCCFFCC;
     constexpr uint32_t MAX_PIXELMAP_SIZE = 1000;
+    constexpr uint32_t AFTEREACH_TIME = 10;
 }
 
 class WatermarktTest : public RSGraphicTest {
@@ -42,6 +43,7 @@ public:
     {
         RSInterfaces::GetInstance().ClearSurfaceWatermark(getpid(), watermarkName_);
         RSInterfaces::GetInstance().ShowWatermark(displayWaterMarkpixelMap_, false);
+        usleep(AFTEREACH_TIME);
     }
 
     RSSurfaceNode::SharedPtr CreateTestSurfaceNode()

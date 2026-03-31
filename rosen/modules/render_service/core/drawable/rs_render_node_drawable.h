@@ -120,8 +120,6 @@ public:
     bool IsDrawingBlurForCache();
     void SetDrawExcludedSubTreeForCache(bool value);
     bool IsDrawingExcludedSubTreeForCache();
-    void SetCanceledByParentRenderGroup(bool value);
-    bool IsCanceledByParentRenderGroup();
 
 protected:
     explicit RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
@@ -160,7 +158,7 @@ protected:
     bool NeedInitCachedSurface(const Vector2f& newSize);
     std::shared_ptr<Drawing::Image> GetCachedImage(RSPaintFilterCanvas& canvas);
     void DrawCachedImage(RSPaintFilterCanvas& canvas, const Vector2f& boundSize,
-    const std::shared_ptr<RSFilter>& rsFilter = nullptr);
+    const std::shared_ptr<RSFilter>& rsFilter = nullptr, bool freezeFlag = false);
     void ClearCachedSurface();
 
     bool CheckIfNeedUpdateCache(RSRenderParams& params, int32_t& updateTimes);

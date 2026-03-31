@@ -149,24 +149,6 @@ private:
     HgmRefreshRateUpdateCallback cb_;
 };
 
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-class CustomPointerLuminanceChangeCallback : public RSPointerLuminanceChangeCallbackStub {
-public:
-    explicit CustomPointerLuminanceChangeCallback(const PointerLuminanceChangeCallback &callback) : cb_(callback) {}
-    ~CustomPointerLuminanceChangeCallback() override {};
- 
-    void OnPointerLuminanceChanged(int32_t brightness) override
-    {
-        if (cb_ != nullptr) {
-            cb_(brightness);
-        }
-    }
- 
-private:
-    PointerLuminanceChangeCallback cb_;
-};
-#endif
-
 class CustomFrameRateLinkerExpectedFpsUpdateCallback : public RSFrameRateLinkerExpectedFpsUpdateCallbackStub {
 public:
     explicit CustomFrameRateLinkerExpectedFpsUpdateCallback(

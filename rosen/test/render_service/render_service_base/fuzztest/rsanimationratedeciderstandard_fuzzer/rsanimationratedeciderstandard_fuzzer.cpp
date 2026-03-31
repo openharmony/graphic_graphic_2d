@@ -87,11 +87,9 @@ void MakeDecision(FuzzedDataProvider& FD, RSAnimationRateDecider& decider)
         int32_t frameRate = FD.ConsumeIntegral<int32_t>();
         auto frameRateGetFunc = [frameRate](const RSPropertyUnit unit, float velocity, int32_t area,
                                     int32_t length) -> int32_t { return frameRate; };
-        auto componentFrameRateFunc = [](pid_t pid, FrameRateRange& range) {};
-        decider.MakeDecision({.frameRateGetFunc = frameRateGetFunc, .componentFrameRateFunc = componentFrameRateFunc});
+        decider.MakeDecision(frameRateGetFunc);
     } else {
-        FrameRateFunctions func;
-        decider.MakeDecision(func);
+        decider.MakeDecision(nullptr);
     }
 }
 

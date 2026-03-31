@@ -168,20 +168,20 @@ HWTEST_F(RSRenderEngineTest, DrawLayers001, TestSize.Level1)
     }
     std::vector<RSLayerPtr> layers;
     layers.emplace_back(nullptr);
-    RSLayerPtr layer1 = std::make_shared<RSSurfaceLayer>();
+    RSLayerPtr layer1 = std::make_shared<RSSurfaceLayer>(0, nullptr);
     layer1->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
     layers.emplace_back(layer1);
-    RSLayerPtr layer2 = std::make_shared<RSSurfaceLayer>();
+    RSLayerPtr layer2 = std::make_shared<RSSurfaceLayer>(0, nullptr);
     layer2->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE_CLEAR);
     layers.emplace_back(layer2);
-    RSLayerPtr layer3 = std::make_shared<RSSurfaceLayer>();
+    RSLayerPtr layer3 = std::make_shared<RSSurfaceLayer>(0, nullptr);
     layer3->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     RSRenderNodeMap& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
     nodeMap.RegisterRenderNode(surfaceNode);
     layer3->SetNodeId(surfaceNode->GetId());
     layers.emplace_back(layer3);
-    ScreenInfo screenInfo;
+    ComposerScreenInfo screenInfo;
     renderEngine->DrawLayers(*canvas, layers, false, screenInfo);
     ASSERT_NE(canvas, nullptr);
     nodeMap.UnregisterRenderNode(surfaceNode->GetId());
@@ -477,5 +477,155 @@ HWTEST_F(RSRenderEngineTest, ProcessSurfaceRenderNode008, Function | SmallTest |
             visitor_->ProcessSurfaceRenderNode(*surfaceNode);
         }
     }
+}
+
+/**
+ * @tc.name: DrawLayers_NodePtrNullTest001
+ * @tc.desc: Test DrawLayers when nodePtr is nullptr (node not found in nodeMap)
+ *           The if (nodePtr == nullptr) branch at line 86 should be true
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSRenderEngineTest, DrawLayers_NodePtrNullTest001, TestSize.Level2)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    renderEngine->Init();
+    auto drawingCanvas = std::make_unique<Drawing::Canvas>(DEFAULT_DRAWING_CANVAS_WIDTH, DEFAULT_DRAWING_CANVAS_HEIGHT);
+    std::shared_ptr<RSPaintFilterCanvas> canvas = nullptr;
+    if (Drawing::SystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        Drawing::SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        auto drawingRecordingCanvas =
+            std::make_unique<Drawing::RecordingCanvas>(DEFAULT_DRAWING_CANVAS_WIDTH, DEFAULT_DRAWING_CANVAS_HEIGHT);
+        drawingRecordingCanvas->SetGrRecordingContext(renderEngine->GetRenderContext()->GetSharedDrGPUContext());
+        canvas = std::make_shared<RSPaintFilterCanvas>(drawingRecordingCanvas.release());
+    } else {
+        canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+    }
+
+    std::vector<RSLayerPtr> layers;
+    // Create a layer with a node ID that doesn't exist in nodeMap
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    layer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
+    layer->SetNodeId(99999); // Non-existent node ID
+    layers.emplace_back(layer);
+
+    ComposerScreenInfo screenInfo;
+    // Should not crash, should log error and continue
+    EXPECT_NO_FATAL_FAILURE(renderEngine->DrawLayers(*canvas, layers, false, screenInfo));
+    ASSERT_NE(canvas, nullptr);
+}
+
+/**
+ * @tc.name: DrawLayers_ClientClearCompositionTest001
+ * @tc.desc: Test DrawLayers with GRAPHIC_COMPOSITION_CLIENT_CLEAR composition type
+ *           The if (CLIENT_CLEAR || TUNNEL) branch at line 94 should be true
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSRenderEngineTest, DrawLayers_ClientClearCompositionTest001, TestSize.Level2)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    renderEngine->Init();
+    auto drawingCanvas = std::make_unique<Drawing::Canvas>(DEFAULT_DRAWING_CANVAS_WIDTH, DEFAULT_DRAWING_CANVAS_HEIGHT);
+    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+
+    std::vector<RSLayerPtr> layers;
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    layer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT_CLEAR);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    RSRenderNodeMap& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(surfaceNode);
+    layer->SetNodeId(surfaceNode->GetId());
+    layers.emplace_back(layer);
+
+    ComposerScreenInfo screenInfo;
+    EXPECT_NO_FATAL_FAILURE(renderEngine->DrawLayers(*canvas, layers, false, screenInfo));
+    ASSERT_NE(canvas, nullptr);
+
+    nodeMap.UnregisterRenderNode(surfaceNode->GetId());
+}
+
+/**
+ * @tc.name: DrawLayers_TunnelCompositionTest001
+ * @tc.desc: Test DrawLayers with GRAPHIC_COMPOSITION_TUNNEL composition type
+ *           The if (CLIENT_CLEAR || TUNNEL) branch at line 94 should be true
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSRenderEngineTest, DrawLayers_TunnelCompositionTest001, TestSize.Level2)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    renderEngine->Init();
+    auto drawingCanvas = std::make_unique<Drawing::Canvas>(DEFAULT_DRAWING_CANVAS_WIDTH, DEFAULT_DRAWING_CANVAS_HEIGHT);
+    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+
+    std::vector<RSLayerPtr> layers;
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    layer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_TUNNEL);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    RSRenderNodeMap& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(surfaceNode);
+    layer->SetNodeId(surfaceNode->GetId());
+    layers.emplace_back(layer);
+
+    ComposerScreenInfo screenInfo;
+    EXPECT_NO_FATAL_FAILURE(renderEngine->DrawLayers(*canvas, layers, false, screenInfo));
+    ASSERT_NE(canvas, nullptr);
+
+    nodeMap.UnregisterRenderNode(surfaceNode->GetId());
+}
+
+/**
+ * @tc.name: DrawLayers_MixedLayersTest001
+ * @tc.desc: Test DrawLayers with mixed layer types covering all branches
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSRenderEngineTest, DrawLayers_MixedLayersTest001, TestSize.Level2)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    renderEngine->Init();
+    auto drawingCanvas = std::make_unique<Drawing::Canvas>(DEFAULT_DRAWING_CANVAS_WIDTH, DEFAULT_DRAWING_CANVAS_HEIGHT);
+    std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+
+    std::vector<RSLayerPtr> layers;
+
+    // Layer 1: nullptr (line 78 branch)
+    layers.emplace_back(nullptr);
+
+    // Layer 2: DEVICE composition (line 81 branch)
+    RSLayerPtr layer2 = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    layer2->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
+    layers.emplace_back(layer2);
+
+    // Layer 3: CLIENT_CLEAR composition (line 94 branch)
+    RSLayerPtr layer3 = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    layer3->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT_CLEAR);
+    auto surfaceNode1 = RSTestUtil::CreateSurfaceNode();
+    RSRenderNodeMap& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(surfaceNode1);
+    layer3->SetNodeId(surfaceNode1->GetId());
+    layers.emplace_back(layer3);
+
+    // Layer 4: CLIENT composition (normal path, line 124)
+    RSLayerPtr layer4 = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    layer4->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
+    auto surfaceNode2 = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    nodeMap.RegisterRenderNode(surfaceNode2);
+    layer4->SetNodeId(surfaceNode2->GetId());
+    layers.emplace_back(layer4);
+
+    // Layer 5: Non-existent nodeId (line 86 branch)
+    RSLayerPtr layer5 = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    layer5->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
+    layer5->SetNodeId(88888);
+    layers.emplace_back(layer5);
+
+    ComposerScreenInfo screenInfo;
+    EXPECT_NO_FATAL_FAILURE(renderEngine->DrawLayers(*canvas, layers, false, screenInfo));
+    ASSERT_NE(canvas, nullptr);
+
+    nodeMap.UnregisterRenderNode(surfaceNode1->GetId());
+    nodeMap.UnregisterRenderNode(surfaceNode2->GetId());
 }
 }

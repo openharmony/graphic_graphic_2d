@@ -137,5 +137,22 @@ HWTEST_F(UIFirstParamTest, SetSizeChangedThreshold, Function | SmallTest | Level
     uifirstParam.SetSizeChangedThreshold(1);
     EXPECT_EQ(uifirstParam.GetSizeChangedThreshold(), 1);
 }
+
+/**
+ * @tc.name: SetOcclusionEnabled
+ * @tc.desc: Verify the SetOcclusionEnabled function
+ * @tc.type: FUNC
+ * @tc.require: issues22651
+ */
+HWTEST_F(UIFirstParamTest, SetOcclusionEnabled, Function | SmallTest | Level1)
+{
+    // Test enable occlusion
+    UIFirstParam::SetOcclusionEnabled(true);
+    EXPECT_EQ(UIFirstParam::IsOcclusionEnabled(), true);
+
+    // Test disable occlusion
+    UIFirstParam::SetOcclusionEnabled(false);
+    EXPECT_EQ(UIFirstParam::IsOcclusionEnabled(), false);
+}
 } // namespace Rosen
 } // namespace OHOS

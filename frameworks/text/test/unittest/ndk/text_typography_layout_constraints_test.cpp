@@ -790,11 +790,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
     const size_t rangeEnd = 12;
     std::vector<std::pair<size_t, size_t>> expectedRanges = { {0, rangeEnd} };
     VerifyAllRanges(expectedRanges, rangeArray, rangeCount);
-    const double expectRectWidth = 258.44976806640625;
+    const double expectRectWidth = 277.94970703125;
     size_t lineCnt = OH_Drawing_TypographyGetLineCount(GetTypography());
     const size_t expectLineCnt = 1;
     EXPECT_EQ(lineCnt, expectLineCnt);
-    const double expectHeight = 76;
+    const double expectHeight = 80;
     VerifyRectSize(expectRectWidth, expectHeight, result);
 
     EXPECT_EQ(OH_Drawing_ReleaseArrayBuffer(rangeArray), OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);

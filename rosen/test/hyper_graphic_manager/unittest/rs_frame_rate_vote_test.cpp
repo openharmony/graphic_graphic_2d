@@ -58,60 +58,6 @@ HWTEST_F(RSFrameRateVoteTest, SetTransactionFlags001, Function | SmallTest | Lev
     ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->transactionFlags_, transactionFlags);
 }
 
-/**
- * @tc.name: CheckSurfaceAndUi001
- * @tc.desc: Verify the result of CheckSurfaceAndUi function
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSFrameRateVoteTest, CheckSurfaceAndUi001, Function | SmallTest | Level0)
-{
-    std::shared_ptr<RSVideoFrameRateVote> rsVideoFrameRateVote = std::make_shared<RSVideoFrameRateVote>(0,
-        nullptr, nullptr);
-    RSFrameRateVote::isVideoApp_.store(false);
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->hasUiOrSurface = false;
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi();
-    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->hasUiOrSurface, false);
-    RSFrameRateVote::isVideoApp_.store(true);
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->lastSurfaceNodeId_ = 1002;
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedRate_ = 100;
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi();
-    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->hasUiOrSurface, false);
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->hasUiOrSurface = true;
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi();
-    usleep(1000000);
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->hasUiOrSurface = true;
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi();
-    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedRate_, 0);
-    usleep(40000);
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->hasUiOrSurface = true;
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi();
-    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedRate_, 0);
-    usleep(40000);
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedRate_ = 100;
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->hasUiOrSurface = true;
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.insert(
-        std::pair<uint64_t, std::shared_ptr<RSVideoFrameRateVote>>(1002, nullptr));
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi();
-    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedRate_, 0);
-    usleep(40000);
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->ReleaseSurfaceMap(1002);
-    sleep(1);
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->hasUiOrSurface = true;
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->surfaceVideoFrameRateVote_.insert(
-        std::pair<uint64_t, std::shared_ptr<RSVideoFrameRateVote>>(1002, rsVideoFrameRateVote));
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedRate_ = 100;
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi();
-    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedRate_, 0);
-    usleep(40000);
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->hasUiOrSurface = true;
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedRate_ = 0;
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi();
-    ASSERT_EQ(DelayedSingleton<RSFrameRateVote>::GetInstance()->lastVotedRate_, 0);
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->ReleaseSurfaceMap(1002);
-}
-
-
 HWTEST_F(RSFrameRateVoteTest, VideoFrameRateVote001, Function | SmallTest | Level0)
 {
     sptr<SurfaceBuffer> nullBuffer = nullptr;
@@ -281,6 +227,28 @@ HWTEST_F(RSFrameRateVoteTest, VoteRate001, Function | SmallTest | Level0)
 }
 
 /**
+ * @tc.name: VoteRate002
+ * @tc.desc: test when voterRateFunc_ is not nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSFrameRateVoteTest, VoteRate002, Function | SmallTest | Level0)
+{
+    VideoVoterFunc oriVoterRateFunc = DelayedSingleton<RSFrameRateVote>::GetInstance()->voterRateFunc_;
+
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->isVoted_ = false;
+    ASSERT_FALSE(DelayedSingleton<RSFrameRateVote>::GetInstance()->isVoted_);
+    VideoVoterFunc voterRateFunc = [](const std::string& key, const std::string& value) {};
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->voterRateFunc_ = voterRateFunc;
+    ASSERT_NE(DelayedSingleton<RSFrameRateVote>::GetInstance()->voterRateFunc_, nullptr);
+
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->VoteRate(DEFAULT_PID, "VOTER_VIDEO", 30);
+    EXPECT_TRUE(DelayedSingleton<RSFrameRateVote>::GetInstance()->isVoted_);
+
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->voterRateFunc_ = oriVoterRateFunc;
+}
+
+/**
  * @tc.name: CancelVoteRate001
  * @tc.desc: Verify the result of CancelVoteRate function
  * @tc.type: FUNC
@@ -295,33 +263,39 @@ HWTEST_F(RSFrameRateVoteTest, CancelVoteRate001, Function | SmallTest | Level0)
 }
 
 /**
- * @tc.name: NotifyRefreshRateEvent001
- * @tc.desc: Verify the result of NotifyRefreshRateEvent function
+ * @tc.name: CancelVoteRate002
+ * @tc.desc: test when isVoted_ is false
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSFrameRateVoteTest, NotifyRefreshRateEvent001, Function | SmallTest | Level0)
+HWTEST_F(RSFrameRateVoteTest, CancelVoteRate002, Function | SmallTest | Level0)
 {
-    EventInfo eventInfo1 = {
-        .eventName = "VOTER_VIDEO",
-        .eventStatus = true,
-        .minRefreshRate = 60,
-        .maxRefreshRate = 60,
-    };
-    if (DelayedSingleton<RSFrameRateVote>::GetInstance() == nullptr) {
-        return;
-    }
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->NotifyRefreshRateEvent(DEFAULT_PID, eventInfo1);
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->isVoted_ = false;
     ASSERT_FALSE(DelayedSingleton<RSFrameRateVote>::GetInstance()->isVoted_);
-    EventInfo eventInfo2 = {
-        .eventName = "VOTER_VIDEO",
-        .eventStatus = false,
-    };
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->NotifyRefreshRateEvent(DEFAULT_PID, eventInfo2);
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->CancelVoteRate(DEFAULT_PID, "VOTER_VIDEO");
     ASSERT_FALSE(DelayedSingleton<RSFrameRateVote>::GetInstance()->isVoted_);
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->NotifyRefreshRateEvent(DEFAULT_PID, eventInfo2);
-    pid_t pid1 = 1;
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->NotifyRefreshRateEvent(pid1, eventInfo2);
+}
+
+/**
+ * @tc.name: CancelVoteRate003
+ * @tc.desc: test when isVoted_ is false
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSFrameRateVoteTest, CancelVoteRate003, Function | SmallTest | Level0)
+{
+    VideoVoterFunc oriVoterRateFunc = DelayedSingleton<RSFrameRateVote>::GetInstance()->voterRateFunc_;
+
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->isVoted_ = true;
+    ASSERT_TRUE(DelayedSingleton<RSFrameRateVote>::GetInstance()->isVoted_);
+    VideoVoterFunc voterRateFunc = [](const std::string& key, const std::string& value) {};
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->voterRateFunc_ = voterRateFunc;
+    ASSERT_NE(DelayedSingleton<RSFrameRateVote>::GetInstance()->voterRateFunc_, nullptr);
+
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->CancelVoteRate(DEFAULT_PID, "VOTER_VIDEO");
+    EXPECT_FALSE(DelayedSingleton<RSFrameRateVote>::GetInstance()->isVoted_);
+
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->voterRateFunc_ = oriVoterRateFunc;
 }
 } // namespace Rosen
 } // namespace OHOS

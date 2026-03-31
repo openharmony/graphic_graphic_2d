@@ -24,6 +24,7 @@
 #include "animation/rs_transition.h"
 #include "render/rs_path.h"
 #include "ui/rs_canvas_node.h"
+#include "ui/rs_ui_context_manager.h"
 #include "modifier_ng/geometry/rs_bounds_modifier.h"
 using namespace testing;
 using namespace testing::ext;
@@ -395,9 +396,7 @@ HWTEST_F(RSAnimationTest, AnimationStatus004, TestSize.Level1)
     animation->OnReverse();
     animation->OnSetFraction(0.5);
 
-    auto propAnimation = std::make_shared<RSPropertyAnimation>(nullptr);
-    auto propId = propAnimation->GetPropertyId();
-    EXPECT_TRUE(propId == 0);
+    auto propAnimation = std::make_shared<RSPropertyAnimation>(canvasNode->GetRSUIContext(), nullptr);
     propAnimation->uiAnimation_ = std::make_shared<RSRenderAnimation>();
     propAnimation->property_ = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
     propAnimation->UpdateStagingValueOnInteractiveFinish(RSInteractiveAnimationPosition::CURRENT);

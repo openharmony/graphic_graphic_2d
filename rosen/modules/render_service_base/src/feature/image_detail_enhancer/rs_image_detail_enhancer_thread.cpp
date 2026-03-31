@@ -142,7 +142,7 @@ bool RSImageDetailEnhancerThread::GetSharpness(RSImageDetailEnhanceAlgoParams& p
 {
     for (size_t i = 0; i < param.rangeParams.size(); i++) {
         if (scaleRatio <= param.rangeParams[i].rangeMax && scaleRatio >= param.rangeParams[i].rangeMin) {
-            sharpness =  param.rangeParams[i].effectParam;
+            sharpness = param.rangeParams[i].effectParam;
             return true;
         }
     }
@@ -600,6 +600,10 @@ std::shared_ptr<Drawing::Image> DetailEnhancerUtils::MakeImageFromSurfaceBuffer(
     NativeBufferUtils::VulkanCleanupHelper* cleanUpHelper = new NativeBufferUtils::VulkanCleanupHelper(
         RsVulkanContext::GetSingleton(), vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
     std::shared_ptr<Drawing::Image> dmaImage = std::make_shared<Drawing::Image>();
+    if (cleanUpHelper == nullptr || dmaImage == nullptr) {
+        RS_LOGE("DetailEnhancerUtils MakeImageFromSurfaceBuffer failed, cleanUpHelper is invalid!");
+        return nullptr;
+    }
     Drawing::TextureOrigin origin = Drawing::TextureOrigin::TOP_LEFT;
     image->GetBackendTexture(false, &origin);
     Drawing::BitmapFormat bitmapFormat = {GetColorTypeWithVKFormat(vkTextureInfo->format), image->GetAlphaType()};
@@ -673,7 +677,7 @@ void DetailEnhancerUtils::SavePixelmapToFile(Drawing::Bitmap& bitmap, const std:
     int32_t w = bitmap.GetWidth();
     int32_t h = bitmap.GetHeight();
     int32_t rowStride = bitmap.GetRowBytes();
-    int32_t totalSize = rowStride * h;
+    uint32_t totalSize = rowStride * h;
     std::string localTime = CommonTools::GetLocalTime();
     std::string fileName = dst + localTime + "_w" + std::to_string(w) + "_h" + std::to_string(h) +
         "_stride" + std::to_string(rowStride) + ".dat";

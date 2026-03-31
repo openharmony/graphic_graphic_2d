@@ -24,7 +24,11 @@ static std::unordered_map<RSNGEffectType, MaskCreator> creatorMask = {
     {RSNGEffectType::DOUBLE_RIPPLE_MASK,
      [] {
          return std::make_shared<RSNGDoubleRippleMask>();
-     }}
+     }},
+    {RSNGEffectType::WAVE_DISTURBANCE_MASK,
+     [] {
+         return std::make_shared<RSNGWaveDisturbanceMask>();
+     }},
 };
 
 static std::unordered_map<RSNGEffectType, FilterCreator> creatorFilter = {

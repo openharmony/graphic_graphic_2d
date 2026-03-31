@@ -98,7 +98,7 @@ public:
     RSVkImageManager() = default;
     ~RSVkImageManager() noexcept override = default;
 
-    void UnMapImageFromSurfaceBuffer(const std::set<uint64_t>& unmappedCache) override;
+    void UnMapImageFromSurfaceBuffer(const std::unordered_set<uint64_t>& unmappedCache) override;
     void UnMapImageFromSurfaceBuffer(uint64_t seqNum) override;
     std::shared_ptr<Drawing::Image> CreateImageFromBuffer(
         RSPaintFilterCanvas& canvas, const BufferDrawParam& params,

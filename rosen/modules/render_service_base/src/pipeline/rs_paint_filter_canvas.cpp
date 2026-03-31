@@ -1072,6 +1072,21 @@ std::array<int, 2> RSPaintFilterCanvasBase::CalcHpsBluredImageDimension(const Dr
     return result;
 }
 
+void RSPaintFilterCanvasBase::InsertOpaqueRegion(const std::vector<Drawing::RectI>& opaqueRects)
+{
+#ifdef SKP_RECORDING_ENABLED
+    for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
+        if ((*iter) != nullptr) {
+            (*iter)->InsertOpaqueRegion(opaqueRects);
+        }
+    }
+#else
+    if (canvas_ != nullptr) {
+        canvas_->InsertOpaqueRegion(opaqueRects);
+    }
+#endif
+}
+
 bool RSPaintFilterCanvasBase::IsClipRect()
 {
     bool result = false;
@@ -1499,6 +1514,29 @@ Drawing::Region& RSPaintFilterCanvas::GetCurDirtyRegion()
 bool RSPaintFilterCanvas::IsDirtyRegionStackEmpty()
 {
     return dirtyRegionStack_.empty();
+}
+
+void RSPaintFilterCanvas::PushLayerPartRenderDirtyRegion(Drawing::Region& dirtyRegion)
+{
+    layerPartRenderDirtyRegionStack_.push(std::move(dirtyRegion));
+}
+
+void RSPaintFilterCanvas::PopLayerPartRenderDirtyRegion()
+{
+    if (layerPartRenderDirtyRegionStack_.empty()) {
+        return;
+    }
+    layerPartRenderDirtyRegionStack_.pop();
+}
+
+Drawing::Region& RSPaintFilterCanvas::GetCurLayerPartRenderDirtyRegion()
+{
+    return layerPartRenderDirtyRegionStack_.top();
+}
+
+bool RSPaintFilterCanvas::IsLayerPartRenderDirtyRegionStackEmpty()
+{
+    return layerPartRenderDirtyRegionStack_.empty();
 }
 
 void RSPaintFilterCanvas::CopyHDRConfiguration(const RSPaintFilterCanvas& other)

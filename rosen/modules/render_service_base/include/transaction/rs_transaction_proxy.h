@@ -28,6 +28,7 @@
 #include "common/rs_singleton.h"
 #include "common/rs_macros.h"
 #include "transaction/rs_irender_client.h"
+#include "transaction/rs_render_pipeline_client.h"
 #include "transaction/rs_transaction_data.h"
 
 namespace OHOS {
@@ -42,7 +43,6 @@ class RSB_EXPORT RSTransactionProxy final {
 public:
     static RSB_EXPORT RSTransactionProxy* GetInstance();
     void SetRenderThreadClient(std::unique_ptr<RSIRenderClient>& renderThreadClient);
-    void SetRenderServiceClient(const std::shared_ptr<RSIRenderClient>& renderServiceClient);
 
     void AddCommand(std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand = false,
                     FollowType followType = FollowType::NONE, NodeId nodeId = 0);
@@ -113,7 +113,7 @@ private:
     std::mutex mutexForRT_;
     std::unique_ptr<RSTransactionData> implicitTransactionDataFromRT_{std::make_unique<RSTransactionData>()};
 
-    std::shared_ptr<RSIRenderClient> renderServiceClient_ = RSIRenderClient::CreateRenderServiceClient();
+    std::shared_ptr<RSIRenderClient> renderPipelineClient_ = RSIRenderClient::CreateRenderPiplineClient();
     std::unique_ptr<RSIRenderClient> renderThreadClient_ = nullptr;
     uint64_t timestamp_ = 0;
     static std::once_flag flag_;

@@ -480,7 +480,7 @@ public:
     static void OnCreateConnection(pid_t pid);
 
     // see RenderServiceConnection::OnRemoteRequest
-    static uint64_t OnRemoteRequest(RSIClientToServiceConnection* connection, uint32_t code, MessageParcel& parcel,
+    static uint64_t OnRemoteRequest(RSIClientToRenderConnection* connection, uint32_t code, MessageParcel& parcel,
         MessageParcel& reply, MessageOption& option);
     static uint64_t WriteRemoteRequest(pid_t pid, uint32_t code, MessageParcel& parcel, MessageOption& option);
 
@@ -639,6 +639,7 @@ private:
     static void LaunchBetaRecordNotificationThread();
     static void LaunchBetaRecordMetricsUpdateThread();
     static void LaunchBetaRecordFileSplitThread();
+    static void ClearBetaRecordFiles();
     static bool OpenBetaRecordFile(RSFile& file);
     static bool SaveBetaRecordFile(RSFile& file);
     static void WriteBetaRecordMetrics(RSFile& file, double time);
@@ -777,8 +778,8 @@ private:
     static void ResetAnimationStamp();
 
     static void CreateMockConnection(pid_t pid);
-    static RSClientToServiceConnection* GetConnection(pid_t pid);
-    static pid_t GetConnectionPid(RSIClientToServiceConnection* connection);
+    static RSClientToRenderConnection* GetConnection(pid_t pid);
+    static pid_t GetConnectionPid(RSIClientToRenderConnection* connection);
     static std::vector<pid_t> GetConnectionsPids();
 
     static std::shared_ptr<RSRenderNode> GetRenderNode(uint64_t id);

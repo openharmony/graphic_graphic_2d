@@ -34,7 +34,7 @@
 #include "ipc/message_parcel_utils.h"
 #include "ipc/rs_irender_service_connection_ipc_interface_code_utils.h"
 #include "pipeline/safuzz_thread.h"
-#include "platform/ohos/rs_irender_service_ipc_interface_code.h"
+#include "platform/ohos/transaction/rs_irender_service_ipc_interface_code.h"
 #include "tools/token_utils.h"
 
 namespace OHOS {

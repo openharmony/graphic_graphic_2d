@@ -63,7 +63,7 @@ public:
 private:
     void CreateCanvas(int32_t width, int32_t height, bool isMirrored = false);
     bool CreateProcessor(RSScreenRenderNode& node);
-    void UpdateScreenNodeCompositeType(RSScreenRenderNode& node, const ScreenInfo& screenInfo);
+    void UpdateScreenNodeCompositeType(RSScreenRenderNode& node, const RSScreenProperty& property);
     void StoreSurfaceNodeAttrsToScreenNode(RSScreenRenderNode& screenNode, const RSSurfaceRenderNode& surfaceNode);
     void RestoreSurfaceNodeAttrsFromScreenNode(
         const RSScreenRenderNode& screenNode, RSSurfaceRenderNode& surfaceNode);

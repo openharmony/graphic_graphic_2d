@@ -48,4 +48,14 @@ void OPIncParam::SetImageAliasEnable(bool isEnable)
 {
     isImageAliasEnable_ = isEnable;
 }
+
+bool OPIncParam::IsLayerPartRenderEnable()
+{
+    return isLayerPartRenderEnable_;
+}
+
+void OPIncParam::SetLayerPartRenderEnable(bool isEnable)
+{
+    isLayerPartRenderEnable_ = isEnable;
+}
 } // namespace OHOS::Rosen

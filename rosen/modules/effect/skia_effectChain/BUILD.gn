@@ -96,7 +96,10 @@ if (is_arkui_x) {
         "ROSEN_ARKUI_X",
       ]
     } else if (target_os == "ios") {
-      defines = [ "IOS_PLATFORM" ]
+      defines = [
+        "IOS_PLATFORM",
+        "ROSEN_IOS"
+      ]
     }
 
     if (target_os == "android") {
@@ -122,14 +125,6 @@ if (is_arkui_x) {
       "src/effect_image_chain.cpp",
       "src/effect_image_render.cpp",
     ]
-
-    if (rs_enable_gpu) {
-      if (graphic_2d_feature_enable_vulkan) {
-        sources += [
-          "src/effect_vulkan_context.cpp",
-        ]
-      }
-    }
 
     configs = [ ":effect_SKeffectChian_config" ]
 
@@ -178,13 +173,6 @@ if (is_arkui_x) {
       "src/effect_image_chain.cpp",
       "src/effect_image_render.cpp",
     ]
-    if (rs_enable_gpu) {
-      if (graphic_2d_feature_enable_vulkan) {
-        sources += [
-          "src/effect_vulkan_context.cpp",
-        ]
-      }
-    }
 
     configs = [ ":effect_SKeffectChian_config" ]
 

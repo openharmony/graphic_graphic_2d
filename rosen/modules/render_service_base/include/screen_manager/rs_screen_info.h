@@ -19,25 +19,23 @@
 #include <string>
 #include <surface_type.h>
 #include <unordered_set>
-
+#include "message_parcel.h"
 #include "common/rs_rect.h"
 #include "screen_types.h"
-#include "platform/common/rs_log.h"
 
 namespace OHOS::Rosen {
 enum class ScreenState : uint8_t {
     HDI_OUTPUT_ENABLE,
     PRODUCER_SURFACE_ENABLE,
     DISABLED,
-    NOT_EXISTED,
     UNKNOWN,
 };
 
 struct ScreenInfo {
     ScreenId id = INVALID_SCREEN_ID;
-    uint32_t width = 0; // render resolution
+    uint32_t width = 0;  // render resolution
     uint32_t height = 0;
-    uint32_t phyWidth = 0; // physical screen resolution
+    uint32_t phyWidth = 0;  // physical screen resolution
     uint32_t phyHeight = 0;
     int32_t offsetX = 0;
     int32_t offsetY = 0;
@@ -77,14 +75,14 @@ struct ScreenInfo {
     }
     uint32_t GetRotatedPhyWidth() const
     {
-        return (rotation == ScreenRotation::ROTATION_0 ||
-            rotation == ScreenRotation::ROTATION_180) ? phyWidth : phyHeight;
+        return (rotation == ScreenRotation::ROTATION_0 || rotation == ScreenRotation::ROTATION_180) ? phyWidth
+                                                                                                    : phyHeight;
     }
 
     uint32_t GetRotatedPhyHeight() const
     {
-        return (rotation == ScreenRotation::ROTATION_0 ||
-            rotation == ScreenRotation::ROTATION_180) ? phyHeight : phyWidth;
+        return (rotation == ScreenRotation::ROTATION_0 || rotation == ScreenRotation::ROTATION_180) ? phyHeight
+                                                                                                    : phyWidth;
     }
 
     float GetRogWidthRatio() const
@@ -108,5 +106,6 @@ struct ScreenInfo {
         return ret;
     }
 };
-} // namespace OHOS::Rosen
-#endif // RENDER_SERVICE_BASE_SCREEN_MANAGER_RS_SCREEN_INFO_H
+
+}  // namespace OHOS::Rosen
+#endif  // RENDER_SERVICE_BASE_SCREEN_MANAGER_RS_SCREEN_INFO_H

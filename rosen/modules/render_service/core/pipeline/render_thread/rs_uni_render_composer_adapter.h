@@ -24,13 +24,13 @@
 #include "rs_base_render_util.h"
 #include "rs_composer_adapter.h"
 #include "rs_render_composer_manager.h"
-#include "screen_manager/rs_screen_manager.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSComposerAdapter;
 class RSRcdSurfaceRenderNode;
-class RSRenderComposerClient;
+class RSComposerContext;
+class RSComposerClient;
 namespace DrawableV2 {
 class RSScreenRenderNodeDrawable;
 class RSSurfaceRenderNodeDrawable;
@@ -42,7 +42,7 @@ public:
     ~RSUniRenderComposerAdapter() noexcept = default;
     RSLayerPtr CreateLayer(RSScreenRenderNode& node);
     RSLayerPtr CreateLayer(RSRcdSurfaceRenderNode& node);
-    bool Init(const ScreenInfo& screenInfo, int32_t offsetX, int32_t offsetY);
+    bool Init(const ScreenInfo& screenInfo, const std::shared_ptr<RSComposerClient>& composerClient);
     bool UpdateMirrorInfo(float mirrorAdaptiveCoefficient);
 
     RSLayerPtr CreateLayer(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable);
@@ -84,14 +84,9 @@ private:
     bool CheckStatusBeforeCreateLayer(DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) const;
     void SetPreBufferInfo(RSSurfaceHandler& surfaceHandler, ComposeInfo& info) const;
 
-    std::shared_ptr<HdiOutput> output_;
     ScreenInfo screenInfo_;
-    HdiBackend *hdiBackend_ = nullptr;
-    // The offset on dst screen for all layers.
-    int32_t offsetX_ = 0;
-    int32_t offsetY_ = 0;
     float mirrorAdaptiveCoefficient_ = 1.0f;
-    std::shared_ptr<RSRenderComposerClient> composerClient_ = nullptr;
+    std::shared_ptr<RSComposerClient> composerClient_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

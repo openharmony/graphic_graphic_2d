@@ -130,58 +130,102 @@ ani_object AniParagraph::SetTypography(ani_env* env, OHOS::Rosen::Typography* ty
     return paragraphObj;
 }
 
-std::vector<ani_native_function> AniParagraph::InitMethods(ani_env* env)
+std::vector<ani_native_function> AniParagraph::GetLayoutAndPaintMethods()
 {
-    std::vector<ani_native_function> methods = {
-        ani_native_function{"layoutSync", "d:", reinterpret_cast<void*>(LayoutSync)},
-        ani_native_function{
+    return {
+        ani_native_function { "layoutSync", "d:", reinterpret_cast<void*>(LayoutSync) },
+        ani_native_function {
             "layoutWithConstraints",
             "C{" ANI_INTERFACE_TEXT_RECT_SIZE "}:C{" ANI_INTERFACE_TEXT_LAYOUT_RESULT "}",
             reinterpret_cast<void*>(LayoutWithConstraints)
         },
-        ani_native_function{"paint", PAINT_SIGN.c_str(), reinterpret_cast<void*>(Paint)},
-        ani_native_function{"paintOnPath", PAINT_ON_PATH_SIGN.c_str(), reinterpret_cast<void*>(PaintOnPath)},
-        ani_native_function{"getMaxWidth", ":d", reinterpret_cast<void*>(GetMaxWidth)},
-        ani_native_function{"getHeight", ":d", reinterpret_cast<void*>(GetHeight)},
-        ani_native_function{"getLongestLine", ":d", reinterpret_cast<void*>(GetLongestLine)},
-        ani_native_function{"getLongestLineWithIndent", ":d", reinterpret_cast<void*>(GetLongestLineWithIndent)},
-        ani_native_function{"getMinIntrinsicWidth", ":d", reinterpret_cast<void*>(GetMinIntrinsicWidth)},
-        ani_native_function{"getMaxIntrinsicWidth", ":d", reinterpret_cast<void*>(GetMaxIntrinsicWidth)},
-        ani_native_function{"getAlphabeticBaseline", ":d", reinterpret_cast<void*>(GetAlphabeticBaseline)},
-        ani_native_function{"getIdeographicBaseline", ":d", reinterpret_cast<void*>(GetIdeographicBaseline)},
-        ani_native_function{"getRectsForRange", GET_RECTS_SIGN.c_str(), reinterpret_cast<void*>(GetRectsForRange)},
-        ani_native_function{
-            "getRectsForPlaceholders", ":C{std.core.Array}", reinterpret_cast<void*>(GetRectsForPlaceholders)},
-        ani_native_function{"getGlyphPositionAtCoordinate", GET_GLYPH_POSITION_AT_COORDINATE_SIGN.c_str(),
-            reinterpret_cast<void*>(GetGlyphPositionAtCoordinate)},
-        ani_native_function{
-            "getWordBoundary", GET_WORD_BOUNDARY_SIGN.c_str(), reinterpret_cast<void*>(GetWordBoundary)},
-        ani_native_function{"getLineCount", ":i", reinterpret_cast<void*>(GetLineCount)},
-        ani_native_function{"getLineHeight", "i:d", reinterpret_cast<void*>(GetLineHeight)},
-        ani_native_function{"getLineWidth", "i:d", reinterpret_cast<void*>(GetLineWidth)},
-        ani_native_function{"didExceedMaxLines", ":z", reinterpret_cast<void*>(DidExceedMaxLines)},
-        ani_native_function{
-            "getActualTextRange", GET_ACTUAL_TEXT_RANGE_SIGN.c_str(), reinterpret_cast<void*>(GetActualTextRange)},
-        ani_native_function{"getTextLines", GET_TEXT_LINES_SIGN.c_str(), reinterpret_cast<void*>(GetTextLines)},
-        ani_native_function{"getLineMetrics", ":C{std.core.Array}", reinterpret_cast<void*>(GetLineMetrics)},
-        ani_native_function{"nativeGetLineMetricsAt", "i:C{@ohos.graphics.text.text.LineMetrics}",
-            reinterpret_cast<void*>(GetLineMetricsAt)},
-        ani_native_function{"updateColor", UPDATE_COLOR_SIGN.c_str(), reinterpret_cast<void*>(UpdateColor)},
-        ani_native_function{
-            "updateDecoration", UPDATE_DECORATION_SIGN.c_str(), reinterpret_cast<void*>(UpdateDecoration)},
-        ani_native_function{
-            "getProcessState", GET_PROCESS_STATE_SIGN.c_str(), reinterpret_cast<void*>(GetProcessState)},
-        ani_native_function{
-            "getTextDisplayState", GET_TEXT_DISPLAY_STATE_SIGN.c_str(), reinterpret_cast<void*>(GetTextDisplayState)},
-        ani_native_function{
-            "getParagraphStyle", GET_PARAGRAPH_STYLE_SIGN.c_str(), reinterpret_cast<void*>(GetParagraphStyle)},
-        ani_native_function{"getCharacterRangeForGlyphRange", GET_CHARACTER_RANGE_FOR_GLYPH_RANGE_SIGN.c_str(),
-            reinterpret_cast<void*>(GetCharacterRangeForGlyphRange)},
-        ani_native_function{"getGlyphRangeForCharacterRange", GET_GLYPH_RANGE_FOR_CHARACTER_RANGE_SIGN.c_str(),
-            reinterpret_cast<void*>(GetGlyphRangeForCharacterRange)},
-        ani_native_function{"getCharacterPositionAtCoordinate", GET_CHARACTER_POSITION_AT_COORDINATE_SIGN.c_str(),
-            reinterpret_cast<void*>(GetCharacterPositionAtCoordinate)},
+        ani_native_function { "paint", PAINT_SIGN.c_str(), reinterpret_cast<void*>(Paint) },
+        ani_native_function { "paintOnPath", PAINT_ON_PATH_SIGN.c_str(), reinterpret_cast<void*>(PaintOnPath) },
     };
+}
+
+std::vector<ani_native_function> AniParagraph::GetSizeMethods()
+{
+    return {
+        ani_native_function { "getMaxWidth", ":d", reinterpret_cast<void*>(GetMaxWidth) },
+        ani_native_function { "getHeight", ":d", reinterpret_cast<void*>(GetHeight) },
+        ani_native_function { "getLongestLine", ":d", reinterpret_cast<void*>(GetLongestLine) },
+        ani_native_function { "getLongestLineWithIndent", ":d", reinterpret_cast<void*>(GetLongestLineWithIndent) },
+        ani_native_function { "getMinIntrinsicWidth", ":d", reinterpret_cast<void*>(GetMinIntrinsicWidth) },
+        ani_native_function { "getMaxIntrinsicWidth", ":d", reinterpret_cast<void*>(GetMaxIntrinsicWidth) },
+        ani_native_function { "getAlphabeticBaseline", ":d", reinterpret_cast<void*>(GetAlphabeticBaseline) },
+        ani_native_function { "getIdeographicBaseline", ":d", reinterpret_cast<void*>(GetIdeographicBaseline) },
+    };
+}
+
+std::vector<ani_native_function> AniParagraph::GetRangeAndPositionMethods()
+{
+    return {
+        ani_native_function { "getRectsForRange", GET_RECTS_SIGN.c_str(), reinterpret_cast<void*>(GetRectsForRange) },
+        ani_native_function {
+            "getRectsForPlaceholders", ":C{std.core.Array}", reinterpret_cast<void*>(GetRectsForPlaceholders) },
+        ani_native_function { "getGlyphPositionAtCoordinate", GET_GLYPH_POSITION_AT_COORDINATE_SIGN.c_str(),
+            reinterpret_cast<void*>(GetGlyphPositionAtCoordinate) },
+        ani_native_function {
+            "getWordBoundary", GET_WORD_BOUNDARY_SIGN.c_str(), reinterpret_cast<void*>(GetWordBoundary) },
+        ani_native_function {
+            "getActualTextRange", GET_ACTUAL_TEXT_RANGE_SIGN.c_str(), reinterpret_cast<void*>(GetActualTextRange) },
+        ani_native_function { "getCharacterRangeForGlyphRange", GET_CHARACTER_RANGE_FOR_GLYPH_RANGE_SIGN.c_str(),
+            reinterpret_cast<void*>(GetCharacterRangeForGlyphRange) },
+        ani_native_function { "getGlyphRangeForCharacterRange", GET_GLYPH_RANGE_FOR_CHARACTER_RANGE_SIGN.c_str(),
+            reinterpret_cast<void*>(GetGlyphRangeForCharacterRange) },
+        ani_native_function { "getCharacterPositionAtCoordinate", GET_CHARACTER_POSITION_AT_COORDINATE_SIGN.c_str(),
+            reinterpret_cast<void*>(GetCharacterPositionAtCoordinate) },
+    };
+}
+
+std::vector<ani_native_function> AniParagraph::GetLineMethods()
+{
+    return {
+        ani_native_function { "getLineCount", ":i", reinterpret_cast<void*>(GetLineCount) },
+        ani_native_function { "getLineHeight", "i:d", reinterpret_cast<void*>(GetLineHeight) },
+        ani_native_function { "getLineWidth", "i:d", reinterpret_cast<void*>(GetLineWidth) },
+        ani_native_function { "didExceedMaxLines", ":z", reinterpret_cast<void*>(DidExceedMaxLines) },
+        ani_native_function { "getTextLines", GET_TEXT_LINES_SIGN.c_str(), reinterpret_cast<void*>(GetTextLines) },
+        ani_native_function { "getLineMetrics", ":C{std.core.Array}", reinterpret_cast<void*>(GetLineMetrics) },
+        ani_native_function { "nativeGetLineMetricsAt", "i:C{@ohos.graphics.text.text.LineMetrics}",
+            reinterpret_cast<void*>(GetLineMetricsAt) },
+    };
+}
+
+std::vector<ani_native_function> AniParagraph::GetStyleAndStateMethods()
+{
+    return {
+        ani_native_function { "updateColor", UPDATE_COLOR_SIGN.c_str(), reinterpret_cast<void*>(UpdateColor) },
+        ani_native_function {
+            "updateDecoration", UPDATE_DECORATION_SIGN.c_str(), reinterpret_cast<void*>(UpdateDecoration) },
+        ani_native_function {
+            "getProcessState", GET_PROCESS_STATE_SIGN.c_str(), reinterpret_cast<void*>(GetProcessState) },
+        ani_native_function {
+            "getTextDisplayState", GET_TEXT_DISPLAY_STATE_SIGN.c_str(), reinterpret_cast<void*>(GetTextDisplayState) },
+        ani_native_function {
+            "getParagraphStyle", GET_PARAGRAPH_STYLE_SIGN.c_str(), reinterpret_cast<void*>(GetParagraphStyle) },
+    };
+}
+
+std::vector<ani_native_function> AniParagraph::InitMethods(ani_env* env)
+{
+    std::vector<ani_native_function> methods;
+    auto layoutAndPaint = GetLayoutAndPaintMethods();
+    auto sizeMethods = GetSizeMethods();
+    auto rangeAndPosition = GetRangeAndPositionMethods();
+    auto lineMethods = GetLineMethods();
+    auto styleAndState = GetStyleAndStateMethods();
+
+    methods.reserve(layoutAndPaint.size() + sizeMethods.size() + rangeAndPosition.size() + lineMethods.size() +
+                    styleAndState.size());
+
+    methods.insert(methods.end(), layoutAndPaint.begin(), layoutAndPaint.end());
+    methods.insert(methods.end(), sizeMethods.begin(), sizeMethods.end());
+    methods.insert(methods.end(), rangeAndPosition.begin(), rangeAndPosition.end());
+    methods.insert(methods.end(), lineMethods.begin(), lineMethods.end());
+    methods.insert(methods.end(), styleAndState.begin(), styleAndState.end());
+
     return methods;
 }
 
@@ -714,21 +758,27 @@ ani_object AniParagraph::GetCharacterRangeForGlyphRange(ani_env* env, ani_object
         AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, AniGlobalMethod::GetInstance().paragraphGetNative);
     if (aniParagraph == nullptr || aniParagraph->typography_ == nullptr) {
         TEXT_LOGE("Paragraph is null");
+        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return AniTextUtils::CreateAniArray(env, 0);
     }
     RectRange glyphRangeNative;
     if (AniTextRectConverter::ParseRangeToNative(env, glyphRange, glyphRangeNative) != ANI_OK) {
         TEXT_LOGE("Failed to parse glyph range");
+        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return AniTextUtils::CreateAniArray(env, 0);
     }
     // Validate range: start should not be greater than or equal to end
     if (glyphRangeNative.start >= glyphRangeNative.end) {
         TEXT_LOGE("Invalid glyph range: start %{public}" PRId64 ", end %{public}" PRId64,
             glyphRangeNative.start, glyphRangeNative.end);
+        AniTextUtils::ThrowBusinessError(env,
+            static_cast<TextErrorCode>(MLB::ERROR_INVALID_PARAM), "Invalid parameters");
         return AniTextUtils::CreateAniArray(env, 0);
     }
     Drawing::TextEncoding encodeType;
     if (!ParseTextEncoding(env, encoding, encodeType)) {
+        AniTextUtils::ThrowBusinessError(env,
+            static_cast<TextErrorCode>(MLB::ERROR_INVALID_PARAM), "Invalid parameters");
         return AniTextUtils::CreateAniArray(env, 0);
     }
     Boundary actualGlyphRange = {0, 0};
@@ -758,21 +808,27 @@ ani_object AniParagraph::GetGlyphRangeForCharacterRange(ani_env* env, ani_object
         AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, AniGlobalMethod::GetInstance().paragraphGetNative);
     if (aniParagraph == nullptr || aniParagraph->typography_ == nullptr) {
         TEXT_LOGE("Paragraph is null");
+        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return AniTextUtils::CreateAniArray(env, 0);
     }
     RectRange charRangeNative;
     if (AniTextRectConverter::ParseRangeToNative(env, characterRange, charRangeNative) != ANI_OK) {
         TEXT_LOGE("Failed to parse character range");
+        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return AniTextUtils::CreateAniArray(env, 0);
     }
     // Validate range: start should not be greater than or equal to end
     if (charRangeNative.start >= charRangeNative.end) {
         TEXT_LOGE("Invalid character range: start %{public}" PRId64 ", end %{public}" PRId64,
             charRangeNative.start, charRangeNative.end);
+        AniTextUtils::ThrowBusinessError(env,
+            static_cast<TextErrorCode>(MLB::ERROR_INVALID_PARAM), "Invalid parameters");
         return AniTextUtils::CreateAniArray(env, 0);
     }
     Drawing::TextEncoding encodeType;
     if (!ParseTextEncoding(env, encoding, encodeType)) {
+        AniTextUtils::ThrowBusinessError(env,
+            static_cast<TextErrorCode>(MLB::ERROR_INVALID_PARAM), "Invalid parameters");
         return AniTextUtils::CreateAniArray(env, 0);
     }
     Boundary actualCharRange = {0, 0};
@@ -802,10 +858,13 @@ ani_object AniParagraph::GetCharacterPositionAtCoordinate(ani_env* env, ani_obje
         AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, AniGlobalMethod::GetInstance().paragraphGetNative);
     if (aniParagraph == nullptr || aniParagraph->typography_ == nullptr) {
         TEXT_LOGE("Paragraph is null");
+        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return AniTextUtils::CreateAniUndefined(env);
     }
     Drawing::TextEncoding encodeType;
     if (!ParseTextEncoding(env, encoding, encodeType)) {
+        AniTextUtils::ThrowBusinessError(env,
+            static_cast<TextErrorCode>(MLB::ERROR_INVALID_PARAM), "Invalid parameters");
         return AniTextUtils::CreateAniUndefined(env);
     }
     IndexAndAffinity indexAndAffinity = aniParagraph->typography_->GetCharacterIndexByCoordinate(

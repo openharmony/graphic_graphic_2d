@@ -17,7 +17,6 @@
 #define FILTER_CACHE_PARAM_PARSE_H
 
 #include "xml_parser_base.h"
-#include "filter_param.h"
 
 namespace OHOS::Rosen {
 class FilterParamParse : public XMLParserBase {
@@ -29,6 +28,7 @@ public:
 
 private:
     int32_t ParseFilterCacheInternal(xmlNode &node);
+    void FilterCCMInit();
 };
 } // namespace OHOS::Rosen
 #endif // FILTER_CACHE_PARAM_PARSE_H

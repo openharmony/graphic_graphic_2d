@@ -56,6 +56,14 @@ struct GlobalDirtyRegionInfo {
           skipProcessFramesNumber(skipProcessFramesNumber_), commandCount(commandCount_),
           consumeBufferSize(consumeBufferSize_), frameAnimationCount(frameAnimationCount_),
           mostSendingPidWhenDisplayNodeSkip(mostSendingPidWhenDisplayNodeSkip_) {}
+    GlobalDirtyRegionInfo& operator+=(const GlobalDirtyRegionInfo& other) noexcept
+    {
+        globalDirtyRegionAreas += other.globalDirtyRegionAreas;
+        globalFramesNumber += other.globalFramesNumber;
+        skipProcessFramesNumber += other.skipProcessFramesNumber;
+        mostSendingPidWhenDisplayNodeSkip += other.mostSendingPidWhenDisplayNodeSkip;
+        return *this;
+    }
 };
 
 class RSB_EXPORT GpuDirtyRegionCollection {

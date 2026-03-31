@@ -12,10 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #ifndef RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_RENDER_FRAME_RATE_LINKER_MAP_H
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_RENDER_FRAME_RATE_LINKER_MAP_H
 
 #include <unordered_map>
+#include <unordered_set>
 
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
@@ -23,27 +25,38 @@
 
 namespace OHOS {
 namespace Rosen {
+struct FrameRateLinkerUpdateInfo {
+    FrameRateRange range;
+    int32_t animatorExpectedFrameRate;
+};
+using FrameRateLinkerUpdateInfoMap = std::unordered_map<FrameRateLinkerId, FrameRateLinkerUpdateInfo>;
+
 class RSRenderFrameRateLinker;
+
 class RSB_EXPORT RSRenderFrameRateLinkerMap final {
 public:
+    RSRenderFrameRateLinkerMap() = default;
+    ~RSRenderFrameRateLinkerMap() noexcept = default;
+
     bool RegisterFrameRateLinker(const std::shared_ptr<RSRenderFrameRateLinker>& linkerPtr);
     void UnregisterFrameRateLinker(FrameRateLinkerId id);
+    void UnregisterFrameRateLinker(const std::unordered_set<FrameRateLinkerId>& unregisterIds);
+    void UpdateFrameRateLinkers(const FrameRateLinkerUpdateInfoMap& updateInfoMap);
     void FilterFrameRateLinkerByPid(pid_t pid);
     std::shared_ptr<RSRenderFrameRateLinker> GetFrameRateLinker(FrameRateLinkerId id);
 
-    const std::unordered_map<FrameRateLinkerId, std::shared_ptr<RSRenderFrameRateLinker>>& Get() const
-    {
-        return frameRateLinkerMap_;
-    }
+    const std::unordered_map<FrameRateLinkerId, std::shared_ptr<RSRenderFrameRateLinker>>& Get() const;
+
+    bool RegisterFrameRateLinkerExpectedFpsUpdateCallback(pid_t listenerPid,
+        int32_t dstPid, sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback);
+    void UnRegisterExpectedFpsUpdateCallbackByListener(pid_t listenerPid);
+
 private:
-    explicit RSRenderFrameRateLinkerMap();
-    ~RSRenderFrameRateLinkerMap() = default;
     RSRenderFrameRateLinkerMap(const RSRenderFrameRateLinkerMap&) = delete;
     RSRenderFrameRateLinkerMap(const RSRenderFrameRateLinkerMap&&) = delete;
     RSRenderFrameRateLinkerMap& operator=(const RSRenderFrameRateLinkerMap&) = delete;
     RSRenderFrameRateLinkerMap& operator=(const RSRenderFrameRateLinkerMap&&) = delete;
 
-private:
     std::unordered_map<FrameRateLinkerId, std::shared_ptr<RSRenderFrameRateLinker>> frameRateLinkerMap_;
 
     friend class RSContext;

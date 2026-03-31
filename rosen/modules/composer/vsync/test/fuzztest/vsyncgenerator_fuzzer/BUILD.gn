@@ -22,10 +22,6 @@ ohos_fuzztest("VsyncGeneratorFuzzTest") {
   fuzz_config_file = "${graphic_2d_root}/rosen/modules/composer/vsync/test/fuzztest/vsyncgenerator_fuzzer"
   module_out_path = module_output_path
 
-  if (graphic_2d_feature_enable_dvsync) {
-    gpu_defines += [ "RS_ENABLE_DVSYNC_2" ]
-  }
-
   defines = []
   defines += gpu_defines
 
@@ -46,6 +42,7 @@ ohos_fuzztest("VsyncGeneratorFuzzTest") {
            "$graphic_2d_root/utils:socketpair", ]
   external_deps = [
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
   ]

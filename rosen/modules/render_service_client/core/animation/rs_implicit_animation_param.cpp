@@ -146,10 +146,10 @@ bool RSImplicitCancelAnimationParam::ExecuteSyncPropertiesTask(
 }
 
 std::shared_ptr<RSAnimation> RSImplicitCancelAnimationParam::CreateEmptyAnimation(
-    std::shared_ptr<RSPropertyBase> property, const std::shared_ptr<RSPropertyBase>& startValue,
-    const std::shared_ptr<RSPropertyBase>& endValue) const
+    const std::shared_ptr<RSUIContext>& rsUIContext, std::shared_ptr<RSPropertyBase> property,
+    const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue) const
 {
-    auto curveAnimation = std::make_shared<RSCurveAnimation>(property, endValue - startValue);
+    auto curveAnimation = std::make_shared<RSCurveAnimation>(rsUIContext, property, endValue - startValue);
     curveAnimation->SetDuration(0);
     return curveAnimation;
 }
@@ -159,14 +159,15 @@ RSImplicitCurveAnimationParam::RSImplicitCurveAnimationParam(
     : RSImplicitAnimationParam(timingProtocol, ImplicitAnimationParamType::CURVE), timingCurve_(timingCurve)
 {}
 
-std::shared_ptr<RSAnimation> RSImplicitCurveAnimationParam::CreateAnimation(std::shared_ptr<RSPropertyBase> property,
+std::shared_ptr<RSAnimation> RSImplicitCurveAnimationParam::CreateAnimation(
+    const std::shared_ptr<RSUIContext>& rsUIContext, std::shared_ptr<RSPropertyBase> property,
     const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue) const
 {
     std::shared_ptr<RSCurveAnimation> curveAnimation;
     if (property->GetPropertyType() == RSPropertyType::DRAW_CMD_LIST) {
-        curveAnimation = std::make_shared<RSCurveAnimation>(property, startValue, endValue);
+        curveAnimation = std::make_shared<RSCurveAnimation>(rsUIContext, property, startValue, endValue);
     } else {
-        curveAnimation = std::make_shared<RSCurveAnimation>(property, endValue - startValue);
+        curveAnimation = std::make_shared<RSCurveAnimation>(rsUIContext, property, endValue - startValue);
     }
     curveAnimation->SetTimingCurve(timingCurve_);
     curveAnimation->SetIsCustom(property->GetIsCustom());
@@ -182,10 +183,11 @@ RSImplicitKeyframeAnimationParam::RSImplicitKeyframeAnimationParam(
 {}
 
 std::shared_ptr<RSAnimation> RSImplicitKeyframeAnimationParam::CreateAnimation(
-    std::shared_ptr<RSPropertyBase> property, const bool& isCreateDurationKeyframe, const int& startDuration,
-    const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue) const
+    const std::shared_ptr<RSUIContext>& rsUIContext, std::shared_ptr<RSPropertyBase> property,
+    const bool isCreateDurationKeyframe, const int startDuration, const std::shared_ptr<RSPropertyBase>& startValue,
+    const std::shared_ptr<RSPropertyBase>& endValue) const
 {
-    auto keyFrameAnimation = std::make_shared<RSKeyframeAnimation>(property);
+    auto keyFrameAnimation = std::make_shared<RSKeyframeAnimation>(rsUIContext, property);
     keyFrameAnimation->SetDurationKeyframe(isCreateDurationKeyframe);
     if (isCreateDurationKeyframe) {
         if (startDuration > INT32_MAX - duration_) {
@@ -240,7 +242,8 @@ RSImplicitPathAnimationParam::RSImplicitPathAnimationParam(const RSAnimationTimi
       motionPathOption_(motionPathOption)
 {}
 
-std::shared_ptr<RSAnimation> RSImplicitPathAnimationParam::CreateAnimation(std::shared_ptr<RSPropertyBase> property,
+std::shared_ptr<RSAnimation> RSImplicitPathAnimationParam::CreateAnimation(
+    const std::shared_ptr<RSUIContext>& rsUIContext, std::shared_ptr<RSPropertyBase> property,
     const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue) const
 {
     if (motionPathOption_ == nullptr) {
@@ -249,7 +252,7 @@ std::shared_ptr<RSAnimation> RSImplicitPathAnimationParam::CreateAnimation(std::
     }
 
     auto pathAnimation =
-        std::make_shared<RSPathAnimation>(property, motionPathOption_->GetPath(), startValue, endValue);
+        std::make_shared<RSPathAnimation>(rsUIContext, property, motionPathOption_->GetPath(), startValue, endValue);
     pathAnimation->SetBeginFraction(motionPathOption_->GetBeginFraction());
     pathAnimation->SetEndFraction(motionPathOption_->GetEndFraction());
     pathAnimation->SetRotationMode(motionPathOption_->GetRotationMode());
@@ -264,10 +267,11 @@ RSImplicitSpringAnimationParam::RSImplicitSpringAnimationParam(
     : RSImplicitAnimationParam(timingProtocol, ImplicitAnimationParamType::SPRING), timingCurve_(timingCurve)
 {}
 
-std::shared_ptr<RSAnimation> RSImplicitSpringAnimationParam::CreateAnimation(std::shared_ptr<RSPropertyBase> property,
+std::shared_ptr<RSAnimation> RSImplicitSpringAnimationParam::CreateAnimation(
+    const std::shared_ptr<RSUIContext>& rsUIContext, std::shared_ptr<RSPropertyBase> property,
     const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue) const
 {
-    auto springAnimation = std::make_shared<RSSpringAnimation>(property, startValue, endValue);
+    auto springAnimation = std::make_shared<RSSpringAnimation>(rsUIContext, property, startValue, endValue);
     springAnimation->SetTimingCurve(timingCurve_);
     springAnimation->SetIsCustom(property->GetIsCustom());
     ApplyTimingProtocol(springAnimation);
@@ -281,11 +285,11 @@ RSImplicitInterpolatingSpringAnimationParam::RSImplicitInterpolatingSpringAnimat
 {}
 
 std::shared_ptr<RSAnimation> RSImplicitInterpolatingSpringAnimationParam::CreateAnimation(
-    std::shared_ptr<RSPropertyBase> property, const std::shared_ptr<RSPropertyBase>& startValue,
-    const std::shared_ptr<RSPropertyBase>& endValue) const
+    const std::shared_ptr<RSUIContext>& rsUIContext, std::shared_ptr<RSPropertyBase> property,
+    const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue) const
 {
     auto interpolatingSpringAnimation =
-        std::make_shared<RSInterpolatingSpringAnimation>(property, startValue, endValue);
+        std::make_shared<RSInterpolatingSpringAnimation>(rsUIContext, property, startValue, endValue);
     interpolatingSpringAnimation->SetTimingCurve(timingCurve_);
     interpolatingSpringAnimation->SetIsCustom(property->GetIsCustom());
     ApplyTimingProtocol(interpolatingSpringAnimation);
@@ -299,10 +303,10 @@ RSImplicitTransitionParam::RSImplicitTransitionParam(const RSAnimationTimingProt
       isTransitionIn_(isTransitionIn), effect_(effect)
 {}
 
-std::shared_ptr<RSAnimation> RSImplicitTransitionParam::CreateAnimation()
+std::shared_ptr<RSAnimation> RSImplicitTransitionParam::CreateAnimation(const std::shared_ptr<RSUIContext>& rsUIContext)
 {
     if (transition_ == nullptr) {
-        transition_ = std::make_shared<RSTransition>(effect_, isTransitionIn_);
+        transition_ = std::make_shared<RSTransition>(rsUIContext, effect_, isTransitionIn_);
         transition_->SetTimingCurve(timingCurve_);
         ApplyTimingProtocol(transition_);
     }

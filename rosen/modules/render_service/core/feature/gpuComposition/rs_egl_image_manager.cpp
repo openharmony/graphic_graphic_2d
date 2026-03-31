@@ -15,12 +15,14 @@
 
 #include "rs_egl_image_manager.h"
 
+#include <memory>
+#include <vector>
+
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include <native_window.h>
 #include <platform/common/rs_log.h>
 #include "sync_fence.h"
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "rs_render_composer_manager.h"
 #include "rs_trace.h"
 #include "common/rs_optional_trace.h"
 #include "pipeline/rs_task_dispatcher.h"
@@ -300,26 +302,21 @@ void RSEglImageManager::ShrinkCachesIfNeeded(bool isForUniRedraw)
 
 void RSEglImageManager::UnMapImageFromSurfaceBuffer(uint64_t seqNum)
 {
+    std::unique_ptr<EglImageResource> resource;
     pid_t threadIndex = 0;
     {
         std::lock_guard<std::mutex> lock(opMutex_);
-        if (imageCacheSeqs_.count(seqNum) == 0) {
+        auto iter = imageCacheSeqs_.find(seqNum);
+        if (iter == imageCacheSeqs_.end() || !iter->second) {
             return;
         }
-        if (imageCacheSeqs_[seqNum]) {
-            threadIndex = imageCacheSeqs_[seqNum]->GetThreadIndex();
-        }
+        threadIndex = iter->second->GetThreadIndex();
+        resource = std::move(iter->second);
+        imageCacheSeqs_.erase(iter);
     }
-    auto func = [this, seqNum]() {
-        std::unique_ptr<EglImageResource> imageCacheSeq;
-        {
-            std::lock_guard<std::mutex> lock(opMutex_);
-            if (imageCacheSeqs_.count(seqNum) == 0) {
-                return;
-            }
-            imageCacheSeq = std::move(imageCacheSeqs_[seqNum]);
-        }
-        imageCacheSeq.reset();
+    auto resourceHolder = std::make_shared<std::unique_ptr<EglImageResource>>(std::move(resource));
+    auto func = [resourceHolder = std::move(resourceHolder), seqNum]() mutable {
+        resourceHolder->reset();
         RS_OPTIONAL_TRACE_NAME_FMT("UnmapEglImage seqNum: %" PRIu64 "", seqNum);
         RS_LOGD("RSEglImageManager::UnMapEglImageFromSurfaceBuffer: %{public}" PRIu64 "", seqNum);
     };
@@ -328,14 +325,12 @@ void RSEglImageManager::UnMapImageFromSurfaceBuffer(uint64_t seqNum)
 
 void RSEglImageManager::UnMapEglImageFromSurfaceBufferForUniRedraw(uint64_t seqNum)
 {
-    RSRenderComposerManager::GetInstance().PostTaskToAllScreens([this, seqNum]() {
-        std::lock_guard<std::mutex> lock(opMutex_);
-        if (imageCacheSeqs_.count(seqNum) == 0) {
-            return;
-        }
-        (void)imageCacheSeqs_.erase(seqNum);
-        RS_LOGD("RSEglImageManager::UnMapEglImageFromSurfaceBufferForRedraw");
-    });
+    std::lock_guard<std::mutex> lock(opMutex_);
+    if (imageCacheSeqs_.count(seqNum) == 0) {
+        return;
+    }
+    (void)imageCacheSeqs_.erase(seqNum);
+    RS_LOGD("RSEglImageManager::UnMapEglImageFromSurfaceBufferForRedraw");
 }
 
 std::shared_ptr<Drawing::Image> RSEglImageManager::CreateImageFromBuffer(

@@ -24,6 +24,21 @@
 #include "animation/rs_animation_timing_protocol.h"
 #include "common/rs_macros.h"
 
+#ifdef _WIN32
+#include <windows.h>
+#define gettid GetCurrentThreadId
+#endif
+
+#ifdef __APPLE__
+#define gettid getpid
+#endif
+
+#ifdef __gnu_linux__
+#include <sys/types.h>
+#include <sys/syscall.h>
+#define gettid []() -> int32_t { return static_cast<int32_t>(syscall(SYS_gettid)); }
+#endif
+
 namespace OHOS {
 namespace Rosen {
 class AnimationFinishCallback;
@@ -39,7 +54,7 @@ enum class CancelAnimationStatus;
 
 class RSC_EXPORT RSImplicitAnimator {
 public:
-    RSImplicitAnimator() = default;
+    RSImplicitAnimator(pid_t tid = gettid()) : tid_(tid) {}
     virtual ~RSImplicitAnimator() = default;
 
     // open implicit animation with given animation options, finish callback and repeatcallback
@@ -95,6 +110,8 @@ public:
     
     void ApplyAnimationSpeedMultiplier(float multiplier = 1.0f);
 
+    pid_t GetTid() const { return tid_; }
+
 private:
     void EndImplicitAnimation();
     void BeginImplicitCurveAnimation();
@@ -129,6 +146,7 @@ private:
     std::stack<std::tuple<bool, int, int>> durationKeyframeParams_;
 
     bool implicitAnimationDisabled_ { false };
+    pid_t tid_ { 0 };
 
     std::stack<std::vector<std::pair<std::shared_ptr<RSAnimation>, NodeId>>> interactiveImplicitAnimations_;
     bool isAddInteractiveAnimator_ { false };

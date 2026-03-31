@@ -23,6 +23,9 @@
 namespace OHOS {
 namespace Rosen {
 constexpr uint64_t SURFACE_BUFFER_CALLBACK_LIMIT = 10000;
+#ifdef ROSEN_OHOS
+constexpr size_t MAX_BUFFERS_PER_PROCESS = 5;
+#endif
 RSSurfaceBufferCallbackManager& RSSurfaceBufferCallbackManager::Instance()
 {
     static RSSurfaceBufferCallbackManager surfaceBufferCallbackMgr;
@@ -99,6 +102,23 @@ void RSSurfaceBufferCallbackManager::UnregisterSurfaceBufferCallback(pid_t pid)
     EraseIf(surfaceBufferCallbacks_, [pid](const auto& pair) {
         return pair.first.first == pid;
     });
+    lock.unlock();
+#ifdef ROSEN_OHOS
+    std::lock_guard<std::mutex> bufferLock(surfaceBufferInfoMutex_);
+    auto it = surfaceBufferInfoMap_.begin();
+    while (it != surfaceBufferInfoMap_.end()) {
+        // Extract pid from the composite key
+        pid_t entryPid = static_cast<pid_t>(it->first >> 32);
+        if (entryPid == pid) {
+            RS_LOGD("RSSurfaceBufferCallbackManager::UnregisterSurfaceBufferCallback: "
+                    "Removing %{public}zu buffers for pid=%{public}d",
+                    it->second.size(), pid);
+            it = surfaceBufferInfoMap_.erase(it);
+        } else {
+            ++it;
+        }
+    }
+#endif
 }
 
 void RSSurfaceBufferCallbackManager::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
@@ -115,6 +135,10 @@ void RSSurfaceBufferCallbackManager::UnregisterSurfaceBufferCallback(pid_t pid, 
         }
         surfaceBufferCallbacks_.erase(iter);
     }
+    lock.unlock();
+#ifdef ROSEN_OHOS
+    RemoveAllSurfaceBufferInfo(pid, uid);
+#endif
 }
 
 #ifdef ROSEN_OHOS
@@ -342,6 +366,100 @@ void RSSurfaceBufferCallbackManager::RunSurfaceBufferSubCallbackForVulkan(NodeId
     if (isNeedRequestNextVSync) {
         RequestNextVSync();
     }
+}
+#endif
+
+#ifdef ROSEN_OHOS
+void RSSurfaceBufferCallbackManager::StoreSurfaceBufferInfo(const DrawingSurfaceBufferInfo& info)
+{
+    if (info.surfaceBuffer_ == nullptr) {
+        RS_LOGD("RSSurfaceBufferCallbackManager::StoreSurfaceBufferInfo: surfaceBuffer is nullptr, skipping");
+        return;
+    }
+
+    std::lock_guard<std::mutex> lock(surfaceBufferInfoMutex_);
+    uint64_t key = (static_cast<uint64_t>(info.pid_) << 32) | info.uid_;
+    uint32_t bufferId = info.surfaceBuffer_->GetSeqNum();
+
+    auto& bufferList = surfaceBufferInfoMap_[key];
+
+    auto it = std::find_if(bufferList.begin(), bufferList.end(),
+        [bufferId](const SurfaceBufferInfoEntry& entry) {
+            return entry.bufferId == bufferId;
+        });
+
+    if (it != bufferList.end()) {
+        bufferList.erase(it);
+    }
+
+    SurfaceBufferInfoEntry entry;
+    entry.surfaceBuffer = info.surfaceBuffer_;
+    entry.bufferId = bufferId;
+    entry.pid = info.pid_;
+    entry.uid = info.uid_;
+    entry.dstRect = info.dstRect_;
+    bufferList.push_front(entry);
+
+    while (bufferList.size() > MAX_BUFFERS_PER_PROCESS) {
+        RS_LOGD("RSSurfaceBufferCallbackManager::StoreSurfaceBufferInfo: "
+                "Removing oldest buffer, current count=%{public}zu", bufferList.size());
+        bufferList.pop_back();
+    }
+}
+
+
+void RSSurfaceBufferCallbackManager::RemoveSurfaceBufferInfo(uint32_t bufferId)
+{
+    std::lock_guard<std::mutex> lock(surfaceBufferInfoMutex_);
+
+    for (auto& [key, bufferList] : surfaceBufferInfoMap_) {
+        auto it = std::find_if(bufferList.begin(), bufferList.end(),
+            [bufferId](const SurfaceBufferInfoEntry& entry) {
+                return entry.bufferId == bufferId;
+            });
+        if (it != bufferList.end()) {
+            RS_LOGD("RSSurfaceBufferCallbackManager::RemoveSurfaceBufferInfo:"
+                    "Removed bufferId=%{public}u", bufferId);
+            bufferList.erase(it);
+            break;
+        }
+    }
+}
+
+void RSSurfaceBufferCallbackManager::RemoveAllSurfaceBufferInfo(pid_t pid, uint64_t uid)
+{
+    std::lock_guard<std::mutex> lock(surfaceBufferInfoMutex_);
+
+    uint64_t key = (static_cast<uint64_t>(pid) << 32) | uid;
+    auto it = surfaceBufferInfoMap_.find(key);
+    if (it != surfaceBufferInfoMap_.end()) {
+        RS_LOGD("RSSurfaceBufferCallbackManager::RemoveAllSurfaceBufferInfo:"
+                "Removed %{public}zu buffers for pid=%{public}d, uid=%{public}llu",
+                it->second.size(), pid, uid);
+        surfaceBufferInfoMap_.erase(it);
+    }
+}
+
+std::vector<DrawingSurfaceBufferInfo> RSSurfaceBufferCallbackManager::GetSurfaceBufferInfoByPid(pid_t pid)
+{
+    std::lock_guard<std::mutex> lock(surfaceBufferInfoMutex_);
+
+    std::vector<DrawingSurfaceBufferInfo> result;
+    for (const auto& [key, bufferList] : surfaceBufferInfoMap_) {
+        pid_t entryPid = static_cast<pid_t>(key >> 32);
+        if (entryPid == pid && !bufferList.empty()) {
+            const auto& entry = bufferList.front();
+            if (entry.surfaceBuffer != nullptr) {
+                DrawingSurfaceBufferInfo info;
+                info.surfaceBuffer_ = entry.surfaceBuffer;
+                info.pid_ = entry.pid;
+                info.uid_ = entry.uid;
+                info.dstRect_ = entry.dstRect;
+                result.push_back(info);
+            }
+        }
+    }
+    return result;
 }
 #endif
 } // namespace Rosen

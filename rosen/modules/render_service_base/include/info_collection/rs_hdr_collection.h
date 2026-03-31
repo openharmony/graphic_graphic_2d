@@ -27,7 +27,7 @@ namespace OHOS {
 namespace Rosen {
 
 class RSB_EXPORT RsHdrCollection : public DelayedSingleton<RsHdrCollection> {
-    DECLARE_DELAYED_SINGLETON(RsHdrCollection);
+    DECLARE_DELAYED_SINGLETON(RsHdrCollection)
 
 public:
     void HandleHdrState(bool isHdrOn);

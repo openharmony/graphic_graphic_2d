@@ -14,17 +14,14 @@
  */
 #ifndef RENDER_SERVICE_UI_PATTEN_VEC_H
 #define RENDER_SERVICE_UI_PATTEN_VEC_H
-#include <set>
+
 #include <string>
 
 namespace OHOS {
 namespace Rosen {
-extern const std::set<std::string> g_rbPattenVec;
 
-inline bool CheckRbPatten(const std::string& tag)
-{
-    return g_rbPattenVec.find(tag) != g_rbPattenVec.end();
-}
+bool CheckRbPatten(const std::string& tag);
+
 } // namespace Rosen
 } // namespace OHOS
 
