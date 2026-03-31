@@ -604,7 +604,7 @@ TextDisplayState ParagraphImpl::GetTextDisplayState() const
         return TextDisplayState::UNKNOWN;
     }
     skt::SkRange<size_t> range = paragraph_->getEllipsisTextRange();
-    if (range.start != INFINTE_RANGE_INDEX) {
+    if (range.start != INFINITE_RANGE_INDEX) {
         return TextDisplayState::OMITTED;
     }
     if (paragraph_->didExceedMaxLines()) {
