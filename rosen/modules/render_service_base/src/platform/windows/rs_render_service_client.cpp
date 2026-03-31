@@ -152,6 +152,11 @@ int32_t RSRenderServiceClient::SetScreenSwitchingNotifyCallback(const ScreenSwit
     return 0;
 }
 
+int32_t RSRenderServiceClient::SetActiveScreenIdChangedCallback(const ActiveScreenIdChangedCallback& callback)
+{
+    return 0;
+}
+
 int32_t RSRenderServiceClient::SetBrightnessInfoChangeCallback(const BrightnessInfoChangeCallback& callback)
 {
     return 0;
