@@ -22,11 +22,11 @@
 
 #include "common/rs_thread_handler.h"
 #include "common/rs_thread_looper.h"
+#include "engine/rs_base_render_engine.h"
 #include "event_handler.h"
 #include "params/rs_render_thread_params.h"
 #include "pipeline/buffer_manager/rs_buffer_manager.h"
 #include "pipeline/rs_context.h"
-#include "rs_base_render_engine.h"
 #include "rs_composer_client_manager.h"
 #ifdef RES_SCHED_ENABLE
 #include "vsync_system_ability_listener.h"

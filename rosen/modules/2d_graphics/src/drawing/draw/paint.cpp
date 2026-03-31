@@ -50,7 +50,13 @@ Paint::Paint(const Paint& other) noexcept
     pathEffect_ = other.pathEffect_;
     blender_ = other.blender_;
     blurDrawLooper_ = other.blurDrawLooper_;
-    color_ = other.color_;
+    if (other.HasUIColor()) {
+        hdrColor_ = other.GetUIColor();
+        isHdrColor_ = other.HasUIColor();
+    } else {
+        color_ = other.color_;
+        isHdrColor_ = false;
+    }
     if (other.hasFilter_) {
         filter_ = other.filter_;
     } else {
@@ -88,7 +94,13 @@ Paint& Paint::operator=(const Paint& other)
     pathEffect_ = other.pathEffect_;
     blender_ = other.blender_;
     blurDrawLooper_ = other.blurDrawLooper_;
-    color_ = other.color_;
+    if (other.HasUIColor()) {
+        hdrColor_ = other.GetUIColor();
+        isHdrColor_ = other.HasUIColor();
+    } else {
+        color_ = other.color_;
+        isHdrColor_ = false;
+    }
     if (other.hasFilter_) {
         filter_ = other.filter_;
     } else {
@@ -108,13 +120,21 @@ bool Paint::CanCombinePaint(const Paint& pen, const Paint& brush)
         pen.shaderEffect_ == brush.shaderEffect_ &&
         pen.blender_ == brush.blender_ &&
         pen.blenderEnabled_ == brush.blenderEnabled_ &&
-        pen.blurDrawLooper_ == brush.blurDrawLooper_;
+        pen.blurDrawLooper_ == brush.blurDrawLooper_ &&
+        pen.hdrColor_ == brush.hdrColor_ &&
+        pen.isHdrColor_ == brush.isHdrColor_;
 }
 
 void Paint::AttachBrush(const Brush& brush)
 {
     antiAlias_ = brush.IsAntiAlias();
-    color_ = brush.GetColor();
+    if (brush.HasUIColor()) {
+        hdrColor_ = brush.GetUIColor();
+        isHdrColor_ = brush.HasUIColor();
+    } else {
+        color_ = brush.GetColor();
+        isHdrColor_ = false;
+    }
     blendMode_ = brush.GetBlendMode();
     style_ = PaintStyle::PAINT_FILL;
     if (brush.HasFilter()) {
@@ -134,7 +154,13 @@ void Paint::AttachBrush(const Brush& brush)
 void Paint::AttachPen(const Pen& pen)
 {
     antiAlias_ = pen.IsAntiAlias();
+    if (pen.HasUIColor()) {
+        hdrColor_ = pen.GetUIColor();
+        isHdrColor_ = pen.HasUIColor();
+    } else {
     color_ = pen.GetColor();
+        isHdrColor_ = false;
+    }
     blendMode_ = pen.GetBlendMode();
     style_ = PaintStyle::PAINT_STROKE;
     width_ = pen.GetWidth();
@@ -169,17 +195,27 @@ bool Paint::HasStrokeStyle() const
 void Paint::SetColor(const Color& c)
 {
     color_ = c;
+    isHdrColor_ = false;
 }
 
 void Paint::SetARGB(int a, int r, int g, int b)
 {
     color_.SetRgb(r, g, b, a);
+    isHdrColor_ = false;
 }
 
 void Paint::SetColor(const Color4f& cf, std::shared_ptr<ColorSpace> s)
 {
     color_.SetRgbF(cf.redF_, cf.greenF_, cf.blueF_, cf.alphaF_);
     colorSpace_ = s;
+    isHdrColor_ = false;
+}
+
+void Paint::SetUIColor(const UIColor& color, std::shared_ptr<ColorSpace> colorSpace)
+{
+    hdrColor_ = color;
+    colorSpace_ = colorSpace;
+    isHdrColor_ = true;
 }
 
 void Paint::SetAlpha(uint32_t a)
@@ -295,6 +331,9 @@ void Paint::Reset()
     shaderEffect_ = nullptr;
     pathEffect_ = nullptr;
     blurDrawLooper_ = nullptr;
+
+    hdrColor_ = UIColor();
+    isHdrColor_ = false;
 }
 
 void Paint::Disable()
@@ -323,7 +362,9 @@ bool operator==(const Paint& p1, const Paint& p2)
         p1.pathEffect_ == p2.pathEffect_ &&
         p1.blender_ == p2.blender_ &&
         p1.blenderEnabled_ == p2.blenderEnabled_ &&
-        p1.blurDrawLooper_ == p2.blurDrawLooper_;
+        p1.blurDrawLooper_ == p2.blurDrawLooper_ &&
+        p1.hdrColor_ == p2.hdrColor_ &&
+        p1.isHdrColor_ == p2.isHdrColor_;
 }
 
 bool operator!=(const Paint& p1, const Paint& p2)
@@ -342,7 +383,9 @@ bool operator!=(const Paint& p1, const Paint& p2)
         p1.pathEffect_ != p2.pathEffect_ ||
         p1.blender_ != p2.blender_ ||
         p1.blenderEnabled_ != p2.blenderEnabled_ ||
-        p1.blurDrawLooper_ != p2.blurDrawLooper_;
+        p1.blurDrawLooper_ != p2.blurDrawLooper_ ||
+        p1.hdrColor_ != p2.hdrColor_ ||
+        p1.isHdrColor_ != p2.isHdrColor_;
 }
 
 void Paint::Dump(std::string& out) const
@@ -358,6 +401,9 @@ void Paint::Dump(std::string& out) const
     out += " cap:" + std::to_string(static_cast<int>(cap_));
     out += " blenderEnabled:" + std::string(blenderEnabled_ ? "true" : "false");
     out += " hasFilter:" + std::string(hasFilter_ ? "true" : "false");
+    out += " UIColor";
+    hdrColor_.Dump(out);
+    out += " isHdrColor:" + std::string(isHdrColor_ ? "true" : "false");
     out += ']';
 }
 

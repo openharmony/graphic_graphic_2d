@@ -45,6 +45,7 @@
 #include "ipc_callbacks/buffer_clear_callback_stub.h"
 #include "ipc_callbacks/hgm_config_change_callback_stub.h"
 #include "ipc_callbacks/rs_first_frame_commit_callback_stub.h"
+#include "ipc_callbacks/rs_frame_stability_callback_stub.h"
 #include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
 #include "ipc_callbacks/rs_self_drawing_node_rect_change_callback_stub.h"
 #include "ipc_callbacks/rs_surface_buffer_callback_stub.h"
@@ -988,6 +989,86 @@ int32_t RSRenderPipelineClient::SetLogicalCameraRotationCorrection(ScreenId id, 
     RS_LOGD("RSRenderPipelineClient::SetLogicalCameraRotationCorrection, screenId: %{public}"
         PRIu64 ", logicalCorrection: %{public}u", id, logicalCorrection);
     return renderPipeline->SetLogicalCameraRotationCorrection(id, logicalCorrection);
+}
+
+class CustomFrameStabilityCallback : public RSFrameStabilityCallbackStub {
+public:
+    explicit CustomFrameStabilityCallback(const FrameStabilityCallback &callback) : cb_(callback) {}
+    ~CustomFrameStabilityCallback() override {};
+
+    void OnFrameStabilityChanged(bool isStable) override
+    {
+        if (cb_ != nullptr) {
+            cb_(isStable);
+        }
+    }
+
+private:
+    FrameStabilityCallback cb_;
+};
+
+int32_t RSRenderPipelineClient::RegisterFrameStabilityDetection(
+    const FrameStabilityTarget& target,
+    const FrameStabilityConfig& config,
+    const FrameStabilityCallback& callback)
+{
+    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
+    if (renderPipeline == nullptr) {
+        ROSEN_LOGE("RegisterFrameStabilityDetection renderPipeline == nullptr!");
+        return RENDER_SERVICE_NULL;
+    }
+    if (config.stableDuration < MIN_STABLE_DURATION || config.stableDuration > MAX_STABLE_DURATION) {
+        ROSEN_LOGE("RegisterFrameStabilityDetection invalid stableDuration: %{public}u", config.stableDuration);
+        return INVALID_ARGUMENTS;
+    }
+    if (ROSEN_LNE(config.changePercent, MIN_CHANGE_PERCENT) ||
+        ROSEN_GNE(config.changePercent, MAX_CHANGE_PERCENT)) {
+        ROSEN_LOGE("RegisterFrameStabilityDetection invalid changePercent: %{public}f", config.changePercent);
+        return INVALID_ARGUMENTS;
+    }
+    sptr<CustomFrameStabilityCallback> cb = new CustomFrameStabilityCallback(callback);
+    return renderPipeline->RegisterFrameStabilityDetection(target, config, cb);
+}
+
+int32_t RSRenderPipelineClient::UnregisterFrameStabilityDetection(const FrameStabilityTarget& target)
+{
+    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
+    if (renderPipeline == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::UnregisterFrameStabilityDetection renderPipeline == nullptr!");
+        return RENDER_SERVICE_NULL;
+    }
+    return renderPipeline->UnregisterFrameStabilityDetection(target);
+}
+
+int32_t RSRenderPipelineClient::StartFrameStabilityCollection(
+    const FrameStabilityTarget& target,
+    const FrameStabilityConfig& config)
+{
+    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
+    if (renderPipeline == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::StartFrameStabilityCollection renderPipeline == nullptr!");
+        return RENDER_SERVICE_NULL;
+    }
+    if (config.stableDuration < MIN_STABLE_DURATION || config.stableDuration > MAX_STABLE_DURATION) {
+        ROSEN_LOGE("StartFrameStabilityCollection invalid stableDuration: %{public}u", config.stableDuration);
+        return INVALID_ARGUMENTS;
+    }
+    if (ROSEN_LNE(config.changePercent, MIN_CHANGE_PERCENT) ||
+        ROSEN_GNE(config.changePercent, MAX_CHANGE_PERCENT)) {
+        ROSEN_LOGE("StartFrameStabilityCollection invalid changePercent: %{public}f", config.changePercent);
+        return INVALID_ARGUMENTS;
+    }
+    return renderPipeline->StartFrameStabilityCollection(target, config);
+}
+
+int32_t RSRenderPipelineClient::GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result)
+{
+    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
+    if (renderPipeline == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::GetFrameStabilityResult renderPipeline == nullptr!");
+        return RENDER_SERVICE_NULL;
+    }
+    return renderPipeline->GetFrameStabilityResult(target, result);
 }
 } // namespace Rosen
 } // namespace OHOS

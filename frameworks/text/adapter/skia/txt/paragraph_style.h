@@ -111,6 +111,7 @@ public:
     LineHeightStyle lineHeightStyle{LineHeightStyle::kFontSize};
     bool includeFontPadding{false};
     bool fallbackLineSpacing{false};
+    bool orphanCharOptimization{false};
 };
 } // namespace SPText
 } // namespace Rosen

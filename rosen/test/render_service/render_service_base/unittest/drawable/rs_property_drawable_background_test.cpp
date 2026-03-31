@@ -94,7 +94,7 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawable001, TestSize.Level1)
 
 /**
  * @tc.name: RSShadowDrawable002
- * @tc.desc: Test OnDraw
+ * @tc.desc: Test OnDraw with various radius and elevation combinations
  * @tc.type:FUNC
  * @tc.require: issueI9QIQO
  */
@@ -155,6 +155,56 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawable003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RSShadowDrawable004
+ * @tc.desc: Test OnDraw with zero radius (solid shadow without blur)
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawable004, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSShadowDrawable>();
+    auto canvas = std::make_shared<Drawing::Canvas>();
+    auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(canvas.get());
+    auto rect = std::make_shared<Drawing::Rect>();
+
+    drawable->elevation_ = 0.f;
+    drawable->radius_ = 0.f;
+    drawable->offsetX_ = 5.f;
+    drawable->offsetY_ = 5.f;
+    drawable->color_ = Color(255, 0, 0, 255);
+    drawable->colorStrategy_ = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
+    drawable->isFilled_ = false;
+    drawable->disableSDFBlur_ = false;
+
+    drawable->OnDraw(filterCanvas.get(), rect.get());
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: RSShadowDrawable005
+ * @tc.desc: Test OnDraw with negative radius (no shadow should be drawn)
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawable005, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSShadowDrawable>();
+    auto canvas = std::make_shared<Drawing::Canvas>();
+    auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(canvas.get());
+    auto rect = std::make_shared<Drawing::Rect>();
+
+    drawable->elevation_ = 0.f;
+    drawable->radius_ = -1.f;
+    drawable->offsetX_ = 0.f;
+    drawable->offsetY_ = 0.f;
+    drawable->color_ = Color(0, 0, 0, 255);
+    drawable->colorStrategy_ = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
+
+    drawable->OnDraw(filterCanvas.get(), rect.get());
+    ASSERT_TRUE(true);
+}
+
+/**
  * @tc.name: RSMaskDrawable
  * @tc.desc: Test OnGenerate
  * @tc.type:FUNC
@@ -192,6 +242,23 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSMaskDrawable, TestSize.Level1)
     node.GetMutableRenderProperties().GetEffect().mask_.reset();
     node.GetMutableRenderProperties().SetMask(mask);
     ASSERT_NE(DrawableV2::RSMaskDrawable::OnGenerate(node), nullptr);
+}
+
+/**
+ * @tc.name: RSBackgroundColorDrawable1
+ * @tc.desc: Test OnGenerate
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundColorDrawable1, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    std::shared_ptr<RSDrawable> drawable = DrawableV2::RSBackgroundColorDrawable::OnGenerate(node);
+    ASSERT_EQ(drawable, nullptr);
+    Color color = Color(1, 1, 1, 1);
+    color.SetHeadroom(2.5f);
+    node.GetMutableRenderProperties().SetBackgroundColor(color);
+    ASSERT_NE(DrawableV2::RSBackgroundColorDrawable::OnGenerate(node), nullptr);
 }
 
 /**

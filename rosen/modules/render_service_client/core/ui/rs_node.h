@@ -165,6 +165,17 @@ public:
     {
         return children_;
     }
+
+    /**
+     * @brief Gets the total count of all descendant nodes recursively.
+     *
+     * This method traverses the entire child tree recursively and returns
+     * the total number of all descendant nodes, including direct children,
+     * grandchildren, and all deeper levels.
+     *
+     * @return The total count of all descendant nodes.
+     */
+    size_t GetDescendantCount() const;
     // ONLY support index in [0, childrenTotal) or index = -1, otherwise return std::nullopt
     RSNode::SharedPtr GetChildByIndex(int index) const;
 
@@ -1454,7 +1465,7 @@ public:
     /**
      * @brief Sets the radius of the shadow.
      *
-     * @param radius Indicates the radius value to be set.
+     * @param radius Indicates the radius value to be set, whose effective value is non-negative.
      */
     void SetShadowRadius(float radius);
 
@@ -1566,6 +1577,13 @@ public:
      * @param factor The HDR brightness factor to set.
      */
     void SetHDRBrightnessFactor(float factor);
+
+    /**
+     * @brief Sets the headroom of HDR Color (High Dynamic Range).
+     *
+     * @param headroom The HDR headroom to set.
+     */
+    void SetHDRColorHeadroom(const float& headroom);
 
     /**
      * @brief Sets the visibility of the node.

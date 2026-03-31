@@ -3617,5 +3617,22 @@ HWTEST_F(RSRenderNodeTest2, ResetColorPickerAltMemoryOnTreeStateChange, TestSize
     EXPECT_EQ(altManager->pickedLuminance_.load(std::memory_order_relaxed),
         static_cast<uint32_t>(RGBA_MAX + 1));
 }
+
+/**
+ * @tc.name: DirtySlotsPartialSync001
+ * @tc.desc: test DirtySlotsPartialSync
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest2, DirtySlotsPartialSync001, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    node->dirtySlots_.insert(RSDrawableSlot::CONTENT_STYLE);
+    node->dirtySlots_.insert(RSDrawableSlot::CHILDREN);
+    node->dirtySlots_.insert(RSDrawableSlot::INVALID);
+    node->dirtySlots_.insert(RSDrawableSlot::MATERIAL_FILTER);
+    node->DirtySlotsPartialSync();
+    EXPECT_EQ(node->dirtySlots_.size(), 2);
+}
 } // namespace Rosen
 } // namespace OHOS

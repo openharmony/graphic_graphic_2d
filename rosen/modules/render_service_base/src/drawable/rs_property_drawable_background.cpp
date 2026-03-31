@@ -167,7 +167,7 @@ void RSShadowDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect
             elevation_, isFilled_, shadowColor);
         return;
     }
-    if (ROSEN_GNE(radius_, 0.f)) {
+    if (ROSEN_GE(radius_, 0.f)) {
         RSPropertyDrawableUtils::DrawShadowMaskFilter(canvas, path, offsetX_, offsetY_,
             radius_, isFilled_, shadowColor, disableSDFBlur_);
         return;
@@ -276,8 +276,15 @@ bool RSBackgroundColorDrawable::OnUpdate(const RSRenderNode& node)
         brush.SetColor(bgColor.ConvertToDrawingColor());
     } else {
         // Currently, only P3 wide color space is supported, and it will be expanded soon.
-        brush.SetColor(bgColor.GetColor4f(),
-            Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3));
+        if (ROSEN_GNE(bgColor.GetHeadroom(), 1.0f)) {
+            Drawing::UIColor uiColor(bgColor.GetRedF(), bgColor.GetGreenF(), bgColor.GetBlueF(),
+                                     bgColor.GetAlphaF(), bgColor.GetHeadroom());
+            brush.SetUIColor(uiColor,
+                Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3));
+        } else {
+            brush.SetColor(bgColor.GetColor4f(),
+                Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3));
+        }
     }
     if (properties.IsBgBrightnessValid()) {
         if (Rosen::RSSystemProperties::GetDebugTraceLevel() >= TRACE_LEVEL_TWO) {

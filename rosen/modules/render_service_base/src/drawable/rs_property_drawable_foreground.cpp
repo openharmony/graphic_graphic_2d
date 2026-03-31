@@ -495,6 +495,7 @@ void RSBorderDrawable::DrawBorder(const RSProperties& properties, Drawing::Canva
         borderParam.color = Drawing::Color(
             borderColor.GetRed(), borderColor.GetGreen(), borderColor.GetBlue(), borderColor.GetAlpha());
         borderParam.width = border->GetWidth();
+        borderParam.isOutline = isOutline;
         geFilter->SetParam(Drawing::GE_SHADER_SDF_BORDER_BORDER, borderParam);
         std::shared_ptr<Drawing::GEVisualEffectContainer> geContainer_ =
             std::make_shared<Drawing::GEVisualEffectContainer>();

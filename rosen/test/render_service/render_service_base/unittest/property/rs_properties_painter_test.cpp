@@ -346,6 +346,86 @@ HWTEST_F(RSPropertiesPainterTest, GetShadowDirtyRect006, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetShadowDirtyRect007
+ * @tc.desc: test results of GetShadowDirtyRect with zero radius (solid shadow, no blur expansion)
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesPainterTest, GetShadowDirtyRect007, TestSize.Level1)
+{
+    RectI dirtyShadow;
+    RSProperties properties;
+    properties.SetShadowElevation(0.f);
+    properties.SetShadowRadius(0.f);
+    properties.SetShadowOffsetX(5.f);
+    properties.SetShadowOffsetY(5.f);
+    Color color(255, 0, 0, 255);
+    properties.SetShadowColor(color);
+    RectF rect;
+    rect.SetAll(10.f, 10.f, 100.f, 100.f);
+    RRect rrect(rect, 5.f, 5.f);
+    RSPropertiesPainter::GetShadowDirtyRect(dirtyShadow, properties, &rrect);
+    EXPECT_TRUE(properties.IsShadowValid());
+}
+
+/**
+ * @tc.name: GetShadowDirtyRect008
+ * @tc.desc: test results of GetShadowDirtyRect with negative radius (invalid shadow)
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesPainterTest, GetShadowDirtyRect008, TestSize.Level1)
+{
+    RectI dirtyShadow;
+    RSProperties properties;
+    properties.SetShadowElevation(0.f);
+    properties.SetShadowRadius(-1.f);
+    Color color(10, 10, 10, 10);
+    properties.SetShadowColor(color);
+    RectF rect;
+    rect.SetAll(1.f, 1.f, 1.f, 1.f);
+    RRect rrect(rect, 1.f, 1.f);
+    RSPropertiesPainter::GetShadowDirtyRect(dirtyShadow, properties, &rrect);
+    EXPECT_FALSE(properties.IsShadowValid());
+}
+
+/**
+ * @tc.name: GetShadowDirtyRect009
+ * @tc.desc: test results of GetShadowDirtyRect comparing radius=0 vs radius>0 dirty rect expansion
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesPainterTest, GetShadowDirtyRect009, TestSize.Level1)
+{
+    RectI dirtyShadowZero;
+    RectI dirtyShadowPositive;
+    RectF rect;
+    rect.SetAll(10.f, 10.f, 50.f, 50.f);
+    RRect rrect(rect, 0.f, 0.f);
+
+    RSProperties propertiesZero;
+    propertiesZero.SetShadowElevation(0.f);
+    propertiesZero.SetShadowRadius(0.f);
+    propertiesZero.SetShadowOffsetX(0.f);
+    propertiesZero.SetShadowOffsetY(0.f);
+    propertiesZero.SetShadowColor(Color(0, 0, 0, 255));
+    RSPropertiesPainter::GetShadowDirtyRect(dirtyShadowZero, propertiesZero, &rrect);
+
+    RSProperties propertiesPositive;
+    propertiesPositive.SetShadowElevation(0.f);
+    propertiesPositive.SetShadowRadius(20.f);
+    propertiesPositive.SetShadowOffsetX(0.f);
+    propertiesPositive.SetShadowOffsetY(0.f);
+    propertiesPositive.SetShadowColor(Color(0, 0, 0, 255));
+    RSPropertiesPainter::GetShadowDirtyRect(dirtyShadowPositive, propertiesPositive, &rrect);
+
+    EXPECT_TRUE(propertiesZero.IsShadowValid());
+    EXPECT_TRUE(propertiesPositive.IsShadowValid());
+    EXPECT_TRUE(dirtyShadowPositive.width_ >= dirtyShadowZero.width_);
+    EXPECT_TRUE(dirtyShadowPositive.height_ >= dirtyShadowZero.height_);
+}
+
+/**
  * @tc.name: DrawShadow001
  * @tc.desc: test results of DrawShadow
  * @tc.type:FUNC

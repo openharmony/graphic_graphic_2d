@@ -15,11 +15,30 @@
 
 #include "hgm_command.h"
 
+#include "config_policy_utils.h"
 #include "hgm_log.h"
 
 namespace OHOS::Rosen {
 namespace {
 const PolicyConfigData::ScreenSetting NULL_SCREEN_SETTING{};
+constexpr char CONFIG_FILE_PRODUCT[] = "/sys_prod/etc/graphic/hgm_policy_config.xml";
+}
+
+std::string GetHgmXmlPath()
+{
+    std::string fileSuffix = "etc/graphic/hgm_policy_config.xml";
+    char pathBuff[MAX_PATH_LEN] = {'\0'};
+    char* flexConfigPath = GetOneCfgFile(fileSuffix.c_str(), pathBuff, MAX_PATH_LEN);
+    if (flexConfigPath == nullptr) {
+        return CONFIG_FILE_PRODUCT;
+    }
+    std::string resPath(flexConfigPath);
+    std::string targetPrefix("/sys_prod");
+    if (resPath.substr(0, targetPrefix.size()) == targetPrefix) {
+        HGM_LOGI("flex hgm config path is %{public}s", resPath.c_str());
+        return resPath;
+    }
+    return CONFIG_FILE_PRODUCT;
 }
 
 PolicyConfigData::DynamicSettingMap PolicyConfigData::GetAceSceneDynamicSettingMap(

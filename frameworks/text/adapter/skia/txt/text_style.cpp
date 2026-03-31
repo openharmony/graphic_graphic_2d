@@ -117,7 +117,8 @@ bool TextStyle::operator==(TextStyle const& other) const
         skt::nearlyEqual(minLineHeight, other.minLineHeight) &&
         lineHeightStyle == other.lineHeightStyle &&
         badgeType == other.badgeType &&
-        fontEdging == other.fontEdging;
+        fontEdging == other.fontEdging &&
+        isFakeBoldEnabled == other.isFakeBoldEnabled;
 }
 
 bool TextStyle::operator!=(TextStyle const& other) const

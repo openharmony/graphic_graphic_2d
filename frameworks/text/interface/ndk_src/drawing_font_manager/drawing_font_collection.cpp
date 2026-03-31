@@ -36,6 +36,7 @@ inline T1* ConvertToFontCollection(T2* ptr)
     return reinterpret_cast<T1*>(ptr);
 }
 
+// LCOV_EXCL_START
 OH_Drawing_FontCollection* OH_Drawing_CreateFontCollection(void)
 {
     OH_Drawing_FontCollection* fc =
@@ -114,3 +115,4 @@ OH_Drawing_FontCollection* OH_Drawing_GetFontCollectionGlobalInstance(void)
     }
     return pointer;
 }
+// LCOV_EXCL_STOP

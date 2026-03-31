@@ -105,6 +105,7 @@ constexpr uint64_t MAX_TIME_OUT_NS = 1e9;
 constexpr int64_t MAX_FREEZE_SCREEN_TIME = 3000;
 const std::string UNFREEZE_SCREEN_TASK_NAME = "UNFREEZE_SCREEN_TASK";
 }
+const std::string RSClientToRenderConnection::GPU_FREQ_PREF = "GPU_FREQ_PREF";
 
 // we guarantee that when constructing this object,
 // all these pointers are valid, so will not check them.
@@ -630,6 +631,43 @@ int32_t RSClientToRenderConnection::SetLogicalCameraRotationCorrection(
         return ERR_INVALID_VALUE;
     }
     return renderPipelineAgent_->SetLogicalCameraRotationCorrection(screenId, logicalCorrection);
+}
+
+int32_t RSClientToRenderConnection::RegisterFrameStabilityDetection(
+    const FrameStabilityTarget& target,
+    const FrameStabilityConfig& config,
+    sptr<RSIFrameStabilityCallback> callback)
+{
+    if (renderPipelineAgent_ == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+    return renderPipelineAgent_->RegisterFrameStabilityDetection(remotePid_, target, config, callback);
+}
+
+int32_t RSClientToRenderConnection::UnregisterFrameStabilityDetection(const FrameStabilityTarget& target)
+{
+    if (renderPipelineAgent_ == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+    return renderPipelineAgent_->UnregisterFrameStabilityDetection(remotePid_, target);
+}
+
+int32_t RSClientToRenderConnection::StartFrameStabilityCollection(
+    const FrameStabilityTarget& target,
+    const FrameStabilityConfig& config)
+{
+    if (renderPipelineAgent_ == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+    return renderPipelineAgent_->StartFrameStabilityCollection(remotePid_, target, config);
+}
+
+int32_t RSClientToRenderConnection::GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result)
+{
+    if (renderPipelineAgent_ == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+    return renderPipelineAgent_->GetFrameStabilityResult(remotePid_, target, result);
 }
 } // namespace Rosen
 } // namespace OHOS

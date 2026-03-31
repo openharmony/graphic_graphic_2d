@@ -404,6 +404,50 @@ HWTEST_F(RSOpincCacheTest, UpdateSubTreeSupportFlag, TestSize.Level1)
 }
 
 /**
+ * @tc.name: OpincSubTreeSkip001
+ * @tc.desc: test results of OpincSubTreeSkip
+ * @tc.type: FUNC
+ * @tc.require: issue22996
+ */
+HWTEST_F(RSOpincCacheTest, OpincSubTreeSkip001, TestSize.Level1)
+{
+    RSRenderNode renderNode(0);
+    auto& opincCache = renderNode.GetOpincCache();
+    opincCache.unchangeCount_ = 0;
+    opincCache.unchangeCountUpper_ = 3;
+    {
+        opincCache.isSuggestOpincNode_ = false;
+        opincCache.OpincSubTreeSkip();
+        EXPECT_EQ(opincCache.unchangeCount_, 0);
+    }
+
+    {
+        opincCache.isSuggestOpincNode_ = true;
+        opincCache.nodeCacheState_ = NodeCacheState::STATE_UNCHANGE;
+        opincCache.OpincSubTreeSkip();
+        EXPECT_EQ(opincCache.unchangeCount_, 0);
+    }
+
+    {
+        opincCache.isSuggestOpincNode_ = true;
+        opincCache.nodeCacheState_ = NodeCacheState::STATE_CHANGE;
+        opincCache.unchangeCount_ = 4;
+        opincCache.unchangeCountUpper_ = 3;
+        opincCache.OpincSubTreeSkip();
+        EXPECT_EQ(opincCache.unchangeCount_, 4);
+    }
+
+    {
+        opincCache.isSuggestOpincNode_ = true;
+        opincCache.nodeCacheState_ = NodeCacheState::STATE_CHANGE;
+        opincCache.unchangeCount_ = 0;
+        opincCache.unchangeCountUpper_ = 3;
+        opincCache.OpincSubTreeSkip();
+        EXPECT_EQ(opincCache.unchangeCount_, opincCache.unchangeCountUpper_);
+    }
+}
+
+/**
  * @tc.name: SetCurNodeTreeSupportFlag
  * @tc.desc: test results of SetCurNodeTreeSupportFlag
  * @tc.type: FUNC
@@ -591,6 +635,46 @@ HWTEST_F(RSOpincCacheTest, GetLayerPartRenderDirtyManager002, TestSize.Level1)
 
     auto& dirtyManager2 = opincCache.GetLayerPartRenderDirtyManager();
     ASSERT_EQ(dirtyManager1.get(), dirtyManager2.get());
+}
+
+/**
+ * @tc.name: SetLayerPartRenderDirtyFlag001
+ * @tc.desc: test results of SetLayerPartRenderDirtyFlag and GetLayerPartRenderDirtyFlag
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSOpincCacheTest, SetLayerPartRenderDirtyFlag001, TestSize.Level1)
+{
+    RSRenderNode renderNode(0);
+    auto& opincCache = renderNode.GetOpincCache();
+
+    opincCache.SetLayerPartRenderDirtyFlag(true);
+    ASSERT_TRUE(opincCache.GetLayerPartRenderDirtyFlag());
+
+    opincCache.SetLayerPartRenderDirtyFlag(false);
+    ASSERT_FALSE(opincCache.GetLayerPartRenderDirtyFlag());
+}
+
+/**
+ * @tc.name: SetLayerPartRenderOldAbsDrawRect001
+ * @tc.desc: test results of SetLayerPartRenderOldAbsDrawRect and GetLayerPartRenderOldAbsDrawRect
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSOpincCacheTest, SetLayerPartRenderOldAbsDrawRect001, TestSize.Level1)
+{
+    constexpr int32_t rectLeft = 10;
+    constexpr int32_t rectTop = 10;
+    constexpr int32_t rectWidth = 100;
+    constexpr int32_t rectHeight = 100;
+
+    RSRenderNode renderNode(0);
+    auto& opincCache = renderNode.GetOpincCache();
+    RectI absDrawRect = { rectLeft, rectTop, rectWidth, rectHeight };
+
+    opincCache.SetLayerPartRenderOldAbsDrawRect(absDrawRect);
+
+    ASSERT_EQ(opincCache.GetLayerPartRenderOldAbsDrawRect(), absDrawRect);
 }
 
 /**

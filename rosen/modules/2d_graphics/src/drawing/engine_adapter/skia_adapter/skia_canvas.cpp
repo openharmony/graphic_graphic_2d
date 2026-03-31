@@ -545,6 +545,11 @@ void SkiaCanvas::DrawColor(ColorQuad color, BlendMode mode)
     skCanvas_->drawColor(static_cast<SkColor>(color), static_cast<SkBlendMode>(mode));
 }
 
+void SkiaCanvas::DrawUIColor(UIColor color, BlendMode mode)
+{
+    LOGD("SKIA does not support HDR color. %{public}d", __LINE__);
+}
+
 void SkiaCanvas::DrawRegion(const Region& region, const Paint& paint)
 {
     if (!skCanvas_) {

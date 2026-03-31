@@ -401,6 +401,35 @@ void SkiaShaderEffect::InitWithSdf(const SDFShapeBase& shape)
     shader_ = skShader;
 }
 
+void SkiaShaderEffect::InitWithLinearGradient(const Point& startPt, const Point& endPt,
+    const std::vector<UIColor>& colors, std::shared_ptr<ColorSpace> colorSpace,
+    const std::vector<scalar>& pos, TileMode mode, const Matrix *matrix)
+{
+    LOGD("SKIA LinearGradient does not support HDR color. %{public}d", __LINE__);
+}
+
+void SkiaShaderEffect::InitWithRadialGradient(const Point& centerPt, scalar radius, const std::vector<UIColor>& colors,
+    std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos, TileMode mode, const Matrix *matrix)
+{
+    LOGD("SKIA RadialGradient does not support HDR color. %{public}d", __LINE__);
+}
+
+void SkiaShaderEffect::InitWithTwoPointConical(const Point& startPt, scalar startRadius, const Point& endPtr,
+    scalar endRadius, const std::vector<UIColor>& colors, std::shared_ptr<ColorSpace> colorSpace,
+    const std::vector<scalar>& pos, TileMode mode,
+    const Matrix *matrix)
+{
+    LOGD("SKIA ConicalGradient does not support HDR color. %{public}d", __LINE__);
+}
+
+void SkiaShaderEffect::InitWithSweepGradient(const Point& centerPt, const std::vector<UIColor>& colors,
+    std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos, TileMode mode, scalar startAngle,
+    scalar endAngle, const Matrix *matrix)
+{
+    LOGD("SKIA SweepGradient does not support HDR color. %{public}d", __LINE__);
+}
+
+
 sk_sp<SkShader> SkiaShaderEffect::GetShader() const
 {
     return shader_;

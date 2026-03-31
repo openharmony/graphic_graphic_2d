@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,6 +19,7 @@
 #include "include/pathops/SkPathOps.h"
 #include "include/utils/SkParsePath.h"
 #include "include/core/SkString.h"
+#include "securec.h"
 #include "skia_matrix.h"
 
 #include "src/core/SkReadBuffer.h"
@@ -27,6 +28,9 @@
 #include "draw/path.h"
 #include "utils/data.h"
 #include "utils/log.h"
+
+#include "utils/point.h"
+#include "src/core/SkPathPriv.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -332,6 +336,66 @@ bool SkiaPath::IsInterpolate(const Path& other)
         isSuccess = path_.isInterpolatable(skPathImpl->GetPath());
     }
     return isSuccess;
+}
+
+std::vector<Point> SkiaPath::GetPointData() const
+{
+    int32_t count = path_.countPoints();
+    std::vector<Point> result;
+    result.resize(count);
+
+    const SkPoint* pts = SkPathPriv::PointData(path_);
+    if (pts == nullptr) {
+        return result;
+    }
+
+    errno_t ret = memcpy_s(result.data(), sizeof(Point) * count, pts, sizeof(SkPoint) * count);
+    if (ret != EOK) {
+        LOGE("SkiaPath::GetPointData memcpy_s failed!");
+        return {};
+    }
+
+    return result;
+}
+
+std::vector<PathVerb> SkiaPath::GetVerbData() const
+{
+    int32_t count = path_.countVerbs();
+    std::vector<PathVerb> result;
+    result.resize(count);
+
+    const uint8_t* verbs = SkPathPriv::VerbData(path_);
+    if (verbs == nullptr) {
+        return result;
+    }
+
+    errno_t ret = memcpy_s(result.data(), sizeof(PathVerb) * count, verbs, sizeof(uint8_t) * count);
+    if (ret != EOK) {
+        LOGE("SkiaPath::GetVerbData memcpy_s failed!");
+        return {};
+    }
+
+    return result;
+}
+
+std::vector<float> SkiaPath::GetConicWeightData() const
+{
+    int32_t count = SkPathPriv::ConicWeightCnt(path_);
+    std::vector<float> result;
+    result.resize(count);
+
+    const SkScalar* weights = SkPathPriv::ConicWeightData(path_);
+    if (weights == nullptr) {
+        return result;
+    }
+
+    errno_t ret = memcpy_s(result.data(), sizeof(float) * count, weights, sizeof(float) * count);
+    if (ret != EOK) {
+        LOGE("SkiaPath::GetConicWeightData memcpy_s failed!");
+        return {};
+    }
+
+    return result;
 }
 
 bool SkiaPath::InitWithInterpolate(const Path& srcPath, const Path& endingPath, scalar weight)

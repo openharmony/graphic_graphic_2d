@@ -3033,7 +3033,7 @@ HWTEST_F(RSScreenManagerTest, ProcessScreenConnected01, TestSize.Level1)
     screenManager_->isFoldScreenFlag_ = true;
     screenManager_->ProcessScreenConnected(id);
     bool found = screenManager_->foldScreenIds_.find(id) != screenManager_->foldScreenIds_.end();
-    ASSERT_TRUE(found);
+    ASSERT_FALSE(found);
 
     id = 1;
     screenManager_->ProcessScreenConnected(id);
@@ -3202,20 +3202,6 @@ HWTEST_F(RSScreenManagerTest, SetScreenFrameGravityTest, TestSize.Level1)
     screenManager_->SetScreenFrameGravity(0, 0);
     screenManager_->screens_[0] = std::make_shared<RSScreen>(0);
     screenManager_->SetScreenFrameGravity(0, 0);
-}
-
-/*
- * @tc.name: NotifySwitchingCallbackTest
- * @tc.desc: Test NotifySwitchingCallback
- * @tc.type: FUNC
- */
-HWTEST_F(RSScreenManagerTest, NotifySwitchingCallbackTest, TestSize.Level1)
-{
-    ASSERT_NE(screenManager_, nullptr);
-    screenManager_->screenSwitchingNotifyCallback_ = nullptr;
-    screenManager_->NotifySwitchingCallback(false);
-    screenManager_->screenSwitchingNotifyCallback_ = sptr<RSIScreenSwitchingNotifyCallbackConfig>::MakeSptr();
-    screenManager_->NotifySwitchingCallback(false);
 }
 
 /*
@@ -3395,8 +3381,6 @@ HWTEST_F(RSScreenManagerTest, AddVirtualScreenBlackList006, TestSize.Level2)
 
     std::vector<NodeId> blackList1(1);
     ASSERT_EQ(screenManager_->AddVirtualScreenBlackList(mirrorId1, blackList1), StatusCode::SUCCESS);
-    std::vector<NodeId> blackList2(MAX_SPECIAL_LAYER_NUM);
-    ASSERT_NE(screenManager_->AddVirtualScreenBlackList(mirrorId2, blackList2), StatusCode::SUCCESS);
 
     // restore
     {

@@ -733,6 +733,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->appRotationCorrection_ = appRotationCorrection_;
     targetSurfaceParams->rotationCorrectionDegree_ = rotationCorrectionDegree_;
     targetSurfaceParams->isParticipateInOcclusion_ = isParticipateInOcclusion_;
+    targetSurfaceParams->isUIFirstLeashAllEnable_ = isUIFirstLeashAllEnable_;
     RSRenderParams::OnSync(target);
 }
 
@@ -862,6 +863,20 @@ void RSSurfaceRenderParams::SetIsParticipateInOcclusion(bool isParticipateInOccl
 bool RSSurfaceRenderParams::GetIsParticipateInOcclusion() const
 {
     return isParticipateInOcclusion_;
+}
+
+void RSSurfaceRenderParams::SetUIFirstLeashAllEnable(bool enable)
+{
+    if (isUIFirstLeashAllEnable_ == enable) {
+        return;
+    }
+    isUIFirstLeashAllEnable_ = enable;
+    needSync_ = true;
+}
+
+bool RSSurfaceRenderParams::IsUIFirstLeashAllEnable() const
+{
+    return isUIFirstLeashAllEnable_;
 }
 
 void RSSurfaceRenderParams::SwapRelatedRenderParams(RSSurfaceRenderParams& relatedRenderParams)

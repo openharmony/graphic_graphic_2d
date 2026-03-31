@@ -525,7 +525,7 @@ void RSFile::ReadLogEventRestart(uint32_t layer)
 double RSFile::GetEOFTime()
 {
     const RSFileLayer& layerData = layerData_[0];
-    int lastRecordIndex = layerData.rsData.size();
+    int lastRecordIndex = static_cast<int>(layerData.rsData.size());
     lastRecordIndex--;
     if (lastRecordIndex >= 0) {
         double readTime;

@@ -40,6 +40,10 @@ static std::unordered_map<RSNGEffectType, ShapeCreator> creatorLUT = {
             return std::make_shared<RSNGRenderSDFRRectShape>();
         }
     },
+    {RSNGEffectType::SDF_TRIANGLE_SHAPE, [] {
+            return std::make_shared<RSNGRenderSDFTriangleShape>();
+        }
+    },
     {RSNGEffectType::SDF_PIXELMAP_SHAPE, [] {
             return std::make_shared<RSNGRenderSDFPixelmapShape>();
         }

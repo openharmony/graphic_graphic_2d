@@ -204,9 +204,9 @@ bool RSPropertyDrawableUtils::PickColorSyn(Drawing::Canvas* canvas, Drawing::Pat
 }
 
 bool RSPropertyDrawableUtils::PickColor(std::shared_ptr<Drawing::GPUContext> context,
-    std::shared_ptr<Drawing::Image> image, Drawing::ColorQuad& colorPicked, void* waitSemaphore)
+    std::shared_ptr<Drawing::Image> image, Drawing::ColorQuad& colorPicked)
 {
-    image = GpuScaleImage(context, image, waitSemaphore);
+    image = GpuScaleImage(context, image);
     if (image == nullptr) {
         RS_LOGE("RSPropertyDrawableUtils::PickColor GpuScaleImage failed");
         return false;
@@ -263,7 +263,7 @@ constexpr int LARGE_SCALED_IMAGE_SIZE = 64;
 } // namespace
 
 std::shared_ptr<Drawing::Image> RSPropertyDrawableUtils::GpuScaleImage(
-    std::shared_ptr<Drawing::GPUContext> context, std::shared_ptr<Drawing::Image> image, void* waitSemaphore)
+    std::shared_ptr<Drawing::GPUContext> context, std::shared_ptr<Drawing::Image> image)
 {
     if (!image || !IsImageValid(*image)) {
         return nullptr;
@@ -290,12 +290,6 @@ std::shared_ptr<Drawing::Image> RSPropertyDrawableUtils::GpuScaleImage(
         ROSEN_LOGE("RSPropertyDrawableUtils::GpuScaleImage failed to create offscreen surface");
         return nullptr;
     }
-#ifdef RS_ENABLE_VK
-    // Wait for snapshot to complete before starting GPU scale
-    if (waitSemaphore != nullptr) {
-        offscreenSurface->Wait(-1, reinterpret_cast<VkSemaphore>(waitSemaphore));
-    }
-#endif
     auto canvas = offscreenSurface->GetCanvas();
     effectBuilder->SetChild("imageInput",
         Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP,
@@ -1228,10 +1222,12 @@ void RSPropertyDrawableUtils::DrawShadowMaskFilter(Drawing::Canvas* canvas, Draw
     brush.SetColor(Drawing::Color::ColorQuadSetARGB(
         spotColor.GetAlpha(), spotColor.GetRed(), spotColor.GetGreen(), spotColor.GetBlue()));
     brush.SetAntiAlias(true);
-    Drawing::Filter filter;
-    filter.SetMaskFilter(
-        Drawing::MaskFilter::CreateBlurMaskFilter(Drawing::BlurType::NORMAL, radius, true, disableSDFBlur));
-    brush.SetFilter(filter);
+    if (ROSEN_GNE(radius, 0.f)) {
+        Drawing::Filter filter;
+        filter.SetMaskFilter(
+            Drawing::MaskFilter::CreateBlurMaskFilter(Drawing::BlurType::NORMAL, radius, true, disableSDFBlur));
+        brush.SetFilter(filter);
+    }
     canvas->AttachBrush(brush);
     auto stencilVal = canvas->GetStencilVal();
     if (stencilVal > 0) {

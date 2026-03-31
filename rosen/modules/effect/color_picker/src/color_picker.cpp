@@ -266,7 +266,7 @@ double ColorPicker::CalcContrastRatioWithWhite() const
 }
 
 // Discriminate wallpaper color shade mode
-uint32_t ColorPicker::DiscriminatePitureLightDegree(PictureLightColorDegree &degree) const
+uint32_t ColorPicker::DiscriminatePictureLightDegree(PictureLightColorDegree &degree) const
 {
     if (featureColors_.empty()) {
         return ERR_EFFECT_INVALID_VALUE;
@@ -302,7 +302,7 @@ uint32_t ColorPicker::DiscriminatePitureLightDegree(PictureLightColorDegree &deg
 uint32_t ColorPicker::GetReverseColor(ColorManager::Color &color) const
 {
     PictureLightColorDegree lightColorDegree;
-    bool rst = DiscriminatePitureLightDegree(lightColorDegree);
+    bool rst = DiscriminatePictureLightDegree(lightColorDegree);
     if (rst != SUCCESS) {
         return ERR_EFFECT_INVALID_VALUE;
     }

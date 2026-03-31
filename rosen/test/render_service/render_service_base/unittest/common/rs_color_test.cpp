@@ -429,4 +429,42 @@ HWTEST_F(RSColorTest, PlaceholderOperatorsTest, TestSize.Level1)
     // operator* should early-return when left operand is a placeholder
     EXPECT_TRUE(ph == (ph * 2.0f));
 }
+
+/**
+ * @tc.name: HeadroomTest
+ * @tc.desc: Verify function GetHeadroom SetHeadroom
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSColorTest, HeadroomTest, TestSize.Level1)
+{
+    RSColor color;
+    EXPECT_FLOAT_EQ(color.GetHeadroom(), 1.0f);
+    color.SetHeadroom(3.5f);
+    std::string out;
+    color.Dump(out);
+    EXPECT_FLOAT_EQ(color.GetHeadroom(), 3.5f);
+}
+
+/**
+ * @tc.name: Float16Test
+ * @tc.desc: Verify function Float16ToFloat32 Float32ToFloat16
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSColorTest, Float16Test, TestSize.Level1)
+{
+    RSColor color;
+    EXPECT_EQ(color.Float16ToFloat32(0x416F), 2.71679688f); // 2.717 ~= 2.71679688
+    EXPECT_EQ(color.Float16ToFloat32(0x7C00), std::numeric_limits<float>::infinity());
+    EXPECT_EQ(color.Float16ToFloat32(0xFC00), -std::numeric_limits<float>::infinity());
+    EXPECT_FALSE(std::isfinite(color.Float16ToFloat32(0x7C01)));
+    EXPECT_EQ(color.Float16ToFloat32(0x8001), -5.960464477539063e-8); // subnomal: -5.960464477539063e-8
+
+    EXPECT_EQ(color.Float32ToFloat16(0.453f), 0x373F); // 0.453 for test
+    EXPECT_EQ(color.Float32ToFloat16(std::numeric_limits<float>::infinity()), 0x7C00);
+    EXPECT_EQ(color.Float32ToFloat16(-std::numeric_limits<float>::infinity()), 0xFC00);
+    EXPECT_TRUE(color.Float32ToFloat16(std::numeric_limits<float>::quiet_NaN()) == 0x7C01);
+    EXPECT_EQ(color.Float32ToFloat16(5.960464477539063e-8), 0x0001); // subnomal: 5.960464477539063e-8
+}
 } // namespace OHOS::Rosen

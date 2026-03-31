@@ -111,12 +111,6 @@ public:
             sizeof(*this), MEMORY_TYPE::MEM_RENDER_DRAWABLE_NODE);
     }
 
-    struct SurfaceParam {
-        int width = 0;
-        int height = 0;
-        GraphicColorGamut colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-    };
-
     void SetDirtyType(RSRenderParamsDirtyType dirtyType);
 
     void SetAlpha(float alpha);
@@ -404,28 +398,6 @@ public:
         return shadowRect_;
     }
 
-    // One-time trigger, needs to be manually reset false in main/RT thread after each sync operation
-    void OnCanvasDrawingSurfaceChange(const std::unique_ptr<RSRenderParams>& target);
-    bool GetCanvasDrawingSurfaceChanged() const
-    {
-        return canvasDrawingNodeSurfaceChanged_;
-    }
-    void SetCanvasDrawingSurfaceChanged(bool changeFlag);
-
-    uint32_t GetCanvasDrawingResetSurfaceIndex() const
-    {
-        return canvasDrawingResetSurfaceIndex_;
-    }
-
-    void SetCanvasDrawingResetSurfaceIndex(uint32_t index);
-
-    SurfaceParam GetCanvasDrawingSurfaceParams()
-    {
-        return surfaceParams_;
-    }
-    void SetCanvasDrawingSurfaceParams(int width, int height,
-        GraphicColorGamut colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
-
     void SetStartingWindowFlag(bool b)
     {
         if (startingWindowFlag_ == b) {
@@ -563,9 +535,6 @@ public:
         return cloneSourceDrawable_;
     }
     void SetCloneSourceDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable);
-    // canvas drawing node
-    virtual bool IsNeedProcess() const { return true; }
-    virtual void SetNeedProcess(bool isNeedProcess) {}
     virtual bool IsFirstLevelCrossNode() const { return isFirstLevelCrossNode_; }
     virtual void SetFirstLevelCrossNode(bool firstLevelCrossNode) { isFirstLevelCrossNode_ = firstLevelCrossNode; }
     CrossNodeOffScreenRenderDebugType GetCrossNodeOffScreenStatus() const
@@ -609,6 +578,11 @@ public:
     void SetIsOnTheTree(bool isOnTheTree);
     bool GetIsOnTheTree() const;
 
+    virtual bool IsUIFirstLeashAllEnable() const
+    {
+        return false;
+    }
+
     void SwapRelatedRenderParams(RSRenderParams& relatedRenderParams);
 
 protected:
@@ -645,8 +619,6 @@ private:
     bool isSnapshotSkipLayer_ = false;
     bool shouldPaint_ = false;
     bool contentEmpty_  = false;
-    std::atomic_bool canvasDrawingNodeSurfaceChanged_ = false;
-    std::atomic_uint32_t canvasDrawingResetSurfaceIndex_ = 0;
     bool alphaOffScreen_ = false;
     Drawing::Rect shadowRect_;
     RSDrawingCacheType drawingCacheType_ = RSDrawingCacheType::DISABLED_CACHE;
@@ -664,7 +636,6 @@ private:
     bool effectNodeShouldPaint_ = false;
     bool hasGlobalCorner_ = false;
     bool hasBlurFilter_ = false;
-    SurfaceParam surfaceParams_;
     NodeId firstLevelNodeId_ = INVALID_NODEID;
     NodeId uifirstRootNodeId_ = INVALID_NODEID;
     NodeId instanceRootNodeId_ = INVALID_NODEID;

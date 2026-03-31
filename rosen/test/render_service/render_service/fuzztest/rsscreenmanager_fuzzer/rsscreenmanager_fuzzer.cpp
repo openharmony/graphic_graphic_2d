@@ -81,7 +81,9 @@ bool Init(const uint8_t* data, size_t size)
 
 void InitScreenManger()
 {
-    screenManager_->Init(nullptr);
+    auto runner = AppExecFwk::EventRunner::Create(false);
+    auto handler = std::make_shared<AppExecFwk::EventHandler>(runner);
+    screenManager_->Init(handler);
 }
 
 void GetActiveScreenId()
@@ -475,6 +477,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     if (!OHOS::Rosen::Init(data, size)) {
         return 0;
     }
+    OHOS::Rosen::InitScreenManger();
     using FunctionPtr = void (*)();
     std::vector<FunctionPtr> funcVector = {
         OHOS::Rosen::InitScreenManger,

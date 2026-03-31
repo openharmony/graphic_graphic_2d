@@ -32,6 +32,8 @@
 #include "command/rs_proxy_node_command_utils.h"
 #include "command/rs_root_node_command_utils.h"
 #include "command/rs_surface_node_command_utils.h"
+#include "command/rs_union_node_command_utils.h"
+#include "command/rs_window_keyframe_node_command_utils.h"
 #include "common/safuzz_log.h"
 #include "random/random_engine.h"
 #include "tools/common_utils.h"
@@ -195,6 +197,7 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     /********** RSDisplayNodeCommand **********/
     DECLARE_ADD_RANDOM(RSDisplayNodeCommand, RSDisplayNodeCreate),
     DECLARE_ADD_RANDOM(RSDisplayNodeCommand, RSDisplayNodeSetScreenId),
+    DECLARE_ADD_RANDOM(RSDisplayNodeCommand, RSDisplayNodeSetDisplayContentRect),
     DECLARE_ADD_RANDOM(RSDisplayNodeCommand, RSDisplayNodeSetSecurityDisplay),
     DECLARE_ADD_RANDOM(RSDisplayNodeCommand, RSDisplayNodeSetVirtualScreenMuteStatus),
     DECLARE_ADD_RANDOM(RSDisplayNodeCommand, RSDisplayNodeSetDisplayMode),
@@ -244,6 +247,13 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     /********** RSFrameRateLinkerCommand **********/
     DECLARE_ADD_RANDOM(RSFrameRateLinkerCommand, RSFrameRateLinkerDestroy),
     DECLARE_ADD_RANDOM(RSFrameRateLinkerCommand, RSFrameRateLinkerUpdateRange),
+
+    /********** RSUnionNodeCommand **********/
+    DECLARE_ADD_RANDOM(RSUnionNodeCommand, RSUnionNodeCreate),
+
+    /********** RSWindowKeyFrameNodeCommand **********/
+    DECLARE_ADD_RANDOM(RSWindowKeyFrameNodeCommand, RSWindowKeyFrameNodeCreate),
+    DECLARE_ADD_RANDOM(RSWindowKeyFrameNodeCommand, RSWindowKeyFrameNodeLinkNode),
 };
 }
 

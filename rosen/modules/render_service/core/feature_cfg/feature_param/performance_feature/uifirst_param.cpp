@@ -108,4 +108,14 @@ void UIFirstParam::SetOcclusionEnabled(bool isEnable)
 {
     isOcclusionEnabled_ = isEnable;
 }
+
+bool UIFirstParam::IsUIFirstLeashAllEnable()
+{
+    return isUIFirstLeashAllEnable_;
+}
+
+void UIFirstParam::SetUIFirstLeashAllEnable(bool isEnable)
+{
+    isUIFirstLeashAllEnable_ = isEnable;
+}
 } // namespace OHOS::Rosen

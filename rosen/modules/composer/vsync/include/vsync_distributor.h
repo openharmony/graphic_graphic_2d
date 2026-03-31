@@ -171,7 +171,7 @@ public:
     void SetHardwareTaskNum(uint32_t num);
     void SetPhysicalScreenNum(uint32_t num);
     int64_t GetVsyncCount();
-    uint64_t GetRealTimeOffsetOfDvsync(int64_t time);
+    uint64_t GetRealTimeOffsetOfDvsync(int64_t time, int64_t& preTime);
     VsyncError SetNativeDVSyncSwitch(bool dvsyncSwitch, const sptr<VSyncConnection> &connection);
     void PrintConnectionsStatus();
     void FirstRequestVsync();

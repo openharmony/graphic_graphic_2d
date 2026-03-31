@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1559,6 +1559,304 @@ HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_PathIsInverseFillType063, 
     OH_Drawing_PathDestroy(path1);
     OH_Drawing_PathDestroy(path2);
 }
+
+/*
+ * @tc.name: NativeDrawingPathTest_PathConvertToSVGString067
+ * @tc.desc: test for OH_Drawing_PathConvertToSvgString.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_PathConvertToSVGString067, TestSize.Level1)
+{
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    ASSERT_TRUE(path != nullptr);
+
+    OH_Drawing_PathMoveTo(path, 150.0f, 0.0f);
+    OH_Drawing_PathLineTo(path, 75.0f, 200.0f);
+    OH_Drawing_PathLineTo(path, 225.0f, 200.0f);
+    OH_Drawing_PathClose(path);
+
+    size_t count = 0;
+    EXPECT_EQ(OH_Drawing_PathConvertToSvgString(path, nullptr, &count), OH_DRAWING_SUCCESS);
+    EXPECT_GT(count, 0u);
+
+    size_t smallCount = 1;
+    char smallBuffer[1] = {0};
+    EXPECT_EQ(
+        OH_Drawing_PathConvertToSvgString(path, smallBuffer, &smallCount), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(smallCount, count);
+
+    char* svgString = new char[count];
+    size_t stringCount = count;
+    EXPECT_EQ(OH_Drawing_PathConvertToSvgString(path, svgString, &stringCount), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(stringCount, count);
+
+    std::string result(svgString);
+    EXPECT_FALSE(result.empty());
+    EXPECT_NE(result.find("M"), std::string::npos);
+    EXPECT_NE(result.find("L"), std::string::npos);
+    EXPECT_NE(result.find("Z"), std::string::npos);
+
+    EXPECT_EQ(OH_Drawing_PathConvertToSvgString(nullptr, nullptr, &count), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PathConvertToSvgString(path, nullptr, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+
+    delete[] svgString;
+    OH_Drawing_PathDestroy(path);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_PathGetPointData064
+ * @tc.desc: test for OH_Drawing_PathGetPointData with normal path.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_PathGetPointData064, TestSize.Level1)
+{
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    ASSERT_TRUE(path != nullptr);
+
+    OH_Drawing_PathMoveTo(path, 1.0f, 2.0f);
+    OH_Drawing_PathLineTo(path, 3.0f, 4.0f);
+    OH_Drawing_PathQuadTo(path, 5.0f, 6.0f, 7.0f, 8.0f);
+    OH_Drawing_PathConicTo(path, 9.0f, 10.0f, 11.0f, 12.0f, 0.7f);
+    OH_Drawing_PathClose(path);
+
+    uint32_t count = 0;
+    EXPECT_EQ(OH_Drawing_PathGetPointData(path, nullptr, &count), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(count, 6u);
+
+    OH_Drawing_Point2D points[6];
+    uint32_t pointCount = 0;
+    EXPECT_EQ(OH_Drawing_PathGetPointData(path, points, &pointCount), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(pointCount, 6u);
+
+    Point* pointData = reinterpret_cast<Point*>(points);
+    EXPECT_TRUE(IsScalarAlmostEqual(pointData[0].GetX(), 1.0f));
+    EXPECT_TRUE(IsScalarAlmostEqual(pointData[0].GetY(), 2.0f));
+    EXPECT_TRUE(IsScalarAlmostEqual(pointData[1].GetX(), 3.0f));
+    EXPECT_TRUE(IsScalarAlmostEqual(pointData[1].GetY(), 4.0f));
+    EXPECT_TRUE(IsScalarAlmostEqual(pointData[2].GetX(), 5.0f));
+    EXPECT_TRUE(IsScalarAlmostEqual(pointData[2].GetY(), 6.0f));
+    EXPECT_TRUE(IsScalarAlmostEqual(pointData[3].GetX(), 7.0f));
+    EXPECT_TRUE(IsScalarAlmostEqual(pointData[3].GetY(), 8.0f));
+    EXPECT_TRUE(IsScalarAlmostEqual(pointData[4].GetX(), 9.0f));
+    EXPECT_TRUE(IsScalarAlmostEqual(pointData[4].GetY(), 10.0f));
+    EXPECT_TRUE(IsScalarAlmostEqual(pointData[5].GetX(), 11.0f));
+    EXPECT_TRUE(IsScalarAlmostEqual(pointData[5].GetY(), 12.0f));
+
+    OH_Drawing_PathDestroy(path);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_PathGetPointData065
+ * @tc.desc: test for OH_Drawing_PathGetPointData with empty path.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_PathGetPointData065, TestSize.Level1)
+{
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    ASSERT_TRUE(path != nullptr);
+
+    uint32_t count = 123;
+    EXPECT_EQ(OH_Drawing_PathGetPointData(path, nullptr, &count), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(count, 0u);
+
+    OH_Drawing_Point2D points[1];
+    uint32_t pointCount = 123;
+    EXPECT_EQ(OH_Drawing_PathGetPointData(path, points, &pointCount), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(pointCount, 0u);
+
+    OH_Drawing_PathDestroy(path);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_PathGetPointData066
+ * @tc.desc: test for OH_Drawing_PathGetPointData with invalid params.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_PathGetPointData066, TestSize.Level1)
+{
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    ASSERT_TRUE(path != nullptr);
+
+    uint32_t count = 0;
+    OH_Drawing_Point2D points[1];
+
+    EXPECT_EQ(OH_Drawing_PathGetPointData(nullptr, nullptr, &count), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PathGetPointData(path, points, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PathGetPointData(nullptr, points, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+
+    OH_Drawing_PathDestroy(path);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_PathGetVerbData067
+ * @tc.desc: test for OH_Drawing_PathGetVerbData with normal path.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_PathGetVerbData067, TestSize.Level1)
+{
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    ASSERT_TRUE(path != nullptr);
+
+    OH_Drawing_PathMoveTo(path, 1.0f, 2.0f);
+    OH_Drawing_PathLineTo(path, 3.0f, 4.0f);
+    OH_Drawing_PathQuadTo(path, 5.0f, 6.0f, 7.0f, 8.0f);
+    OH_Drawing_PathConicTo(path, 9.0f, 10.0f, 11.0f, 12.0f, 0.7f);
+    OH_Drawing_PathClose(path);
+
+    uint32_t count = 0;
+    EXPECT_EQ(OH_Drawing_PathGetVerbData(path, nullptr, &count), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(count, 5u);
+
+    OH_Drawing_PathIteratorVerb verbs[5];
+    uint32_t verbCount = 0;
+    EXPECT_EQ(OH_Drawing_PathGetVerbData(path, verbs, &verbCount), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(verbCount, 5u);
+
+    EXPECT_EQ(verbs[0], MOVE);
+    EXPECT_EQ(verbs[1], LINE);
+    EXPECT_EQ(verbs[2], QUAD);
+    EXPECT_EQ(verbs[3], CONIC);
+    EXPECT_EQ(verbs[4], CLOSE);
+
+    OH_Drawing_PathDestroy(path);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_PathGetVerbData068
+ * @tc.desc: test for OH_Drawing_PathGetVerbData with empty path.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_PathGetVerbData068, TestSize.Level1)
+{
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    ASSERT_TRUE(path != nullptr);
+
+    uint32_t count = 123;
+    EXPECT_EQ(OH_Drawing_PathGetVerbData(path, nullptr, &count), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(count, 0u);
+
+    OH_Drawing_PathIteratorVerb verbs[1];
+    uint32_t verbCount = 123;
+    EXPECT_EQ(OH_Drawing_PathGetVerbData(path, verbs, &verbCount), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(verbCount, 0u);
+
+    OH_Drawing_PathDestroy(path);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_PathGetVerbData069
+ * @tc.desc: test for OH_Drawing_PathGetVerbData with invalid params.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_PathGetVerbData069, TestSize.Level1)
+{
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    ASSERT_TRUE(path != nullptr);
+
+    uint32_t count = 0;
+    OH_Drawing_PathIteratorVerb verbs[1];
+
+    EXPECT_EQ(OH_Drawing_PathGetVerbData(nullptr, nullptr, &count), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PathGetVerbData(path, verbs, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PathGetVerbData(nullptr, verbs, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+
+    OH_Drawing_PathDestroy(path);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_PathGetConicWeightData070
+ * @tc.desc: test for OH_Drawing_PathGetConicWeightData with normal path.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_PathGetConicWeightData070, TestSize.Level1)
+{
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    ASSERT_TRUE(path != nullptr);
+
+    OH_Drawing_PathMoveTo(path, 1.0f, 2.0f);
+    OH_Drawing_PathConicTo(path, 9.0f, 10.0f, 11.0f, 12.0f, 0.7f);
+    OH_Drawing_PathClose(path);
+
+    uint32_t count = 0;
+    EXPECT_EQ(OH_Drawing_PathGetConicWeightData(path, nullptr, &count), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(count, 1u);
+
+    float conicWeights[1] = {0.0f};
+    uint32_t weightCount = 0;
+    EXPECT_EQ(OH_Drawing_PathGetConicWeightData(path, conicWeights, &weightCount), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(weightCount, 1u);
+    EXPECT_TRUE(IsScalarAlmostEqual(conicWeights[0], 0.7f));
+
+    OH_Drawing_PathDestroy(path);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_PathGetConicWeightData071
+ * @tc.desc: test for OH_Drawing_PathGetConicWeightData with empty path and no conic path.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_PathGetConicWeightData071, TestSize.Level1)
+{
+    OH_Drawing_Path* emptyPath = OH_Drawing_PathCreate();
+    ASSERT_TRUE(emptyPath != nullptr);
+
+    uint32_t count = 123;
+    EXPECT_EQ(OH_Drawing_PathGetConicWeightData(emptyPath, nullptr, &count), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(count, 0u);
+
+    float conicWeights[1] = {0.0f};
+    uint32_t weightCount = 123;
+    EXPECT_EQ(OH_Drawing_PathGetConicWeightData(emptyPath, conicWeights, &weightCount), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(weightCount, 0u);
+
+    OH_Drawing_PathDestroy(emptyPath);
+
+    OH_Drawing_Path* noConicPath = OH_Drawing_PathCreate();
+    ASSERT_TRUE(noConicPath != nullptr);
+    OH_Drawing_PathMoveTo(noConicPath, 1.0f, 2.0f);
+    OH_Drawing_PathLineTo(noConicPath, 3.0f, 4.0f);
+
+    count = 123;
+    EXPECT_EQ(OH_Drawing_PathGetConicWeightData(noConicPath, nullptr, &count), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(count, 0u);
+
+    weightCount = 123;
+    EXPECT_EQ(OH_Drawing_PathGetConicWeightData(noConicPath, conicWeights, &weightCount), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(weightCount, 0u);
+
+    OH_Drawing_PathDestroy(noConicPath);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_PathGetConicWeightData072
+ * @tc.desc: test for OH_Drawing_PathGetConicWeightData with invalid params.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_PathGetConicWeightData072, TestSize.Level1)
+{
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    ASSERT_TRUE(path != nullptr);
+
+    uint32_t count = 0;
+    float conicWeights[1] = {0.0f};
+
+    EXPECT_EQ(OH_Drawing_PathGetConicWeightData(nullptr, nullptr, &count), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PathGetConicWeightData(path, conicWeights, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PathGetConicWeightData(nullptr, conicWeights, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+
+    OH_Drawing_PathDestroy(path);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

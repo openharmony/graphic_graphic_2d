@@ -3239,6 +3239,19 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawSingleCharacterWit
     free(buffer);
     OH_PixelmapInitializationOptions_Release(options);
 }
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_ResetClip001
+ * @tc.desc: test for ResetClip
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_ResetClip001, TestSize.Level1)
+{
+    EXPECT_EQ(OH_Drawing_CanvasResetClip(nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_CanvasResetClip(canvas_), OH_DRAWING_SUCCESS);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

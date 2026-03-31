@@ -47,8 +47,42 @@ public:
 
     void CopyLayerInfo(const std::shared_ptr<RSLayer>& rsLayer) override;
 
+    void CacheImageWithId(uint32_t id, const std::shared_ptr<Drawing::Image>& image)
+    {
+        image_ = image;
+        id_ = id;
+    }
+
+    void ClearCacheImage()
+    {
+        image_ = nullptr;
+        id_ = 0;
+    }
+
+    std::shared_ptr<Drawing::Image> GetCacheImage() const
+    {
+        return image_;
+    }
+
+    uint32_t GetCachedId() const
+    {
+        return id_;
+    }
+
+    void SetRedrawState(bool isRedraw)
+    {
+        isRedraw_ = isRedraw;
+    }
+
+    bool GetRedrawState() const
+    {
+        return isRedraw_;
+    }
 private:
     std::shared_ptr<Media::PixelMap> pixelMap_ = nullptr;
+    std::shared_ptr<Drawing::Image> image_ = nullptr; // cached for redraw
+    bool isRedraw_ = false;
+    uint32_t id_ = 0; // cached pixelmapId
 };
 } // namespace Rosen
 } // namespace OHOS

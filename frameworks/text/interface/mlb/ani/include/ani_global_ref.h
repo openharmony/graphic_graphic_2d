@@ -198,6 +198,7 @@ public:
     ani_method paragraphStyleVerticalAlign;
     ani_method paragraphStyleIncludeFontPadding;
     ani_method paragraphStyleFallbackLineSpacing;
+    ani_method paragraphStyleOrphanCharOptimization;
     ani_method paragraphStyleLineSpacing;
     ani_method strutStyleFontStyle;
     ani_method strutStyleFontWidth;

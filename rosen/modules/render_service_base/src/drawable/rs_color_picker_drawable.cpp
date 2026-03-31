@@ -46,23 +46,53 @@ RSDrawable::Ptr RSColorPickerDrawable::OnGenerate(const RSRenderNode& node)
     return nullptr;
 }
 
-std::pair<bool, bool> RSColorPickerDrawable::PrepareForExecution(uint64_t vsyncTime, bool darkMode)
+bool RSColorPickerDrawable::OnPrepare(bool darkMode)
 {
-    RS_OPTIONAL_TRACE_NAME_FMT("RSColorPickerDrawable::Preparing node %" PRIu64 " darkMode=%d", nodeId_, darkMode);
+    RS_OPTIONAL_TRACE_NAME_FMT(
+        "RSColorPickerDrawable::OnPrepareFrame node %" PRIu64 " darkMode = %d", stagingNodeId_, darkMode);
     const bool darkModeChanged = std::exchange(stagingIsSystemDarkColorMode_, darkMode) != darkMode;
-    const bool prev = std::exchange(stagingNeedColorPick_, false);
+
+    // Derive stagingNeedColorPick_ directly from state
+    const bool prevNeedColorPick =
+        std::exchange(stagingNeedColorPick_, stagingState_ == DrawableV2::ColorPickerState::COLOR_PICK_THIS_FRAME);
+
+    // Return true if sync is needed
+    return prevNeedColorPick != stagingNeedColorPick_ || darkModeChanged;
+}
+
+int64_t RSColorPickerDrawable::ScheduleColorPickIfReady(uint64_t vsyncTime)
+{
     if (!stagingColorPicker_ || stagingColorPicker_->strategy == ColorPickStrategyType::NONE) {
-        return { false, prev != stagingNeedColorPick_ || darkModeChanged };
+        return -1;
     }
 
-    constexpr uint64_t NS_TO_MS = 1000000; // Convert nanoseconds to milliseconds
-    uint64_t interval = stagingColorPicker_->interval;
-    uint64_t vsyncTimeMs = vsyncTime / NS_TO_MS;
-    if (vsyncTimeMs >= interval + lastUpdateTime_) {
-        stagingNeedColorPick_ = true;
+    // Only schedule if in PREPARING state
+    if (stagingState_ != ColorPickerState::PREPARING) {
+        RS_OPTIONAL_TRACE_NAME_FMT(
+            "RSColorPickerDrawable::ScheduleColorPickIfReady: Invalid state %u (only PREPARING allowed)",
+            static_cast<uint8_t>(stagingState_));
+        return -1;
+    }
+
+    constexpr uint64_t NS_TO_MS = 1000000;
+    const uint64_t interval = stagingColorPicker_->interval;
+    const uint64_t vsyncTimeMs = vsyncTime / NS_TO_MS;
+
+    // Always schedule color pick when in PREPARING state, adjust delay based on cooldown
+    int64_t delayTime = 0;
+    if (vsyncTimeMs < interval + lastUpdateTime_) {
+        delayTime = interval + lastUpdateTime_ - vsyncTimeMs;
+        lastUpdateTime_ += interval;
+    } else {
         lastUpdateTime_ = vsyncTimeMs;
     }
-    return { stagingNeedColorPick_, prev != stagingNeedColorPick_ || darkModeChanged };
+    RS_OPTIONAL_TRACE_NAME_FMT("RSColorPickerDrawable::ScheduleColorPickIfReady node %" PRIu64
+                               " scheduling pick with delay %" PRId64 "ms",
+        stagingNodeId_, delayTime);
+
+    // Transition to SCHEDULED state, caller will post delayed task
+    stagingState_ = DrawableV2::ColorPickerState::SCHEDULED;
+    return delayTime;
 }
 
 bool RSColorPickerDrawable::OnUpdate(const RSRenderNode& node)
@@ -115,6 +145,55 @@ void RSColorPickerDrawable::ResetColorMemory()
     if (colorPickerManager_) {
         colorPickerManager_->ResetColorMemory();
     }
+    stagingState_ = DrawableV2::ColorPickerState::PREPARING;
+    stagingNeedColorPick_ = false;
+}
+
+void RSColorPickerDrawable::SetState(DrawableV2::ColorPickerState state)
+{
+    const DrawableV2::ColorPickerState currentState = stagingState_;
+
+    // Validate state transitions
+    switch (currentState) {
+        case DrawableV2::ColorPickerState::PREPARING:
+            // Can transition to SCHEDULED, or stay in PREPARING (no-op)
+            if (state != DrawableV2::ColorPickerState::SCHEDULED && state != DrawableV2::ColorPickerState::PREPARING) {
+                RS_LOGD("Invalid state transition from PREPARING to %u (only SCHEDULED or PREPARING allowed)",
+                    static_cast<uint8_t>(state));
+                return;
+            }
+            break;
+
+        case DrawableV2::ColorPickerState::SCHEDULED:
+            // Can only transition to COLOR_PICK_THIS_FRAME
+            if (state != DrawableV2::ColorPickerState::COLOR_PICK_THIS_FRAME) {
+                RS_LOGD("Invalid state transition from SCHEDULED to %u (only COLOR_PICK_THIS_FRAME allowed)",
+                    static_cast<uint8_t>(state));
+                return;
+            }
+            break;
+
+        case DrawableV2::ColorPickerState::COLOR_PICK_THIS_FRAME:
+            // Can only transition back to PREPARING
+            if (state != DrawableV2::ColorPickerState::PREPARING) {
+                RS_LOGD("Invalid state transition from COLOR_PICK_THIS_FRAME to %u (only PREPARING allowed)",
+                    static_cast<uint8_t>(state));
+                return;
+            }
+            break;
+
+        default:
+            RS_LOGD("Unknown current state %u during transition to %u", static_cast<uint8_t>(currentState),
+                static_cast<uint8_t>(state));
+            return;
+    }
+
+    stagingState_ = state;
+}
+
+ColorPickerState RSColorPickerDrawable::GetState() const
+{
+    return stagingState_;
 }
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

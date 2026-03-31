@@ -119,6 +119,9 @@ public:
     // color
     virtual void DrawColor(ColorQuad color, BlendMode mode) = 0;
 
+    // UIColor
+    virtual void DrawUIColor(UIColor color, BlendMode mode) = 0;
+
     // opinc calculate realdraw rect
     virtual bool OpCalculateBefore(const Matrix& matrix) = 0;
     virtual std::shared_ptr<Drawing::OpListHandle> OpCalculateAfter(const Rect& bound) = 0;

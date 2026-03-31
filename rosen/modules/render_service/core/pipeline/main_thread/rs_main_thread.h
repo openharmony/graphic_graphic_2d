@@ -25,7 +25,6 @@
 #include <thread>
 
 #include "refbase.h"
-#include "pipeline/render_thread/rs_base_render_engine.h"
 #include "pipeline/render_thread/rs_draw_frame.h"
 #include "vsync_manager_agent.h"
 #include "vsync_receiver.h"
@@ -35,6 +34,7 @@
 #include "common/rs_thread_handler.h"
 #include "common/rs_thread_looper.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
+#include "engine/rs_base_render_engine.h"
 #include "ipc_callbacks/iapplication_agent.h"
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
 #include "ipc_callbacks/rs_isurface_occlusion_change_callback.h"
@@ -354,7 +354,7 @@ public:
         return isOverDrawEnabledOfCurFrame_ != isOverDrawEnabledOfLastFrame_;
     }
 
-    uint64_t GetRealTimeOffsetOfDvsync(int64_t time);
+    uint64_t GetRealTimeOffsetOfDvsync(int64_t time, int64_t& preTime);
 
     bool IsFoldScreenSwitching() const;
     bool IsMultiDisplay() const;
@@ -454,6 +454,8 @@ private:
     void DestroyScreenNode(ScreenId screenId);
     void HandleScreenPropertyRefreshOneFrame(ScreenId id, ScreenPropertyType type);
     void HandlePowerStatusChanged(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
+    void HandlePhysicalModeParamsChanged(
+        ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
     void UpdateScreenProperty(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
     void UpdateSubSurfaceCnt();
     void HandleGameNode();
@@ -576,9 +578,6 @@ private:
 #endif
 
     void ProcessNeedAttachedNodes();
-    void AddUICaptureNode(NodeId nodeId);
-    void RemoveUICaptureNode(NodeId nodeId);
-    bool CheckUICaptureNode(NodeId nodeId);
     void PostTryReclaimLastBuffer(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
         std::shared_ptr<RSSurfaceHandler> surfaceHandler);
     bool isUniRender_ = RSUniRenderJudgement::IsUniRender();
@@ -823,8 +822,6 @@ private:
     std::shared_ptr<HgmRenderContext> hgmRenderContext_ = nullptr;
     std::shared_ptr<RSComposerClientManager> composerClientManager_ = nullptr;
     uint32_t curFrameBufferReclaimCount_ = 0;
-    std::mutex uiCaptureNodeMapMutex_;
-    std::map<uint32_t, std::map<NodeId, uint32_t>> uiCaptureNodeMap_;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

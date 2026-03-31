@@ -22,20 +22,17 @@
 #include "common/rs_optional_trace.h"
 #include "common/rs_singleton.h"
 #include "concurrent_task_client.h"
+#include "engine/rs_base_render_util.h"
+#include "engine/rs_uni_render_engine.h"
 #ifdef RS_ENABLE_EGLIMAGE
-#include "feature/gpuComposition/rs_egl_image_manager.h"
+#include "gpuComposition/rs_egl_image_manager.h"
 #endif // RS_ENABLE_EGLIMAGE
-#include "feature/hdr/rs_hdr_util.h"
-#include "feature/lpp/render_process/lpp_video_handler.h"
-#include "feature/round_corner_display/rs_rcd_render_manager.h"
-#include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #ifdef RS_ENABLE_TV_PQ_METADATA
 #include "feature/tv_metadata/rs_tv_metadata_manager.h"
 #endif
 #include "frame_report.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
 #include "gfx/first_frame_notifier/rs_first_frame_notifier.h"
-#include "graphic_feature_param_manager.h"
 #include "hgm_frame_rate_manager.h"
 #include "hisysevent.h"
 
@@ -49,14 +46,13 @@
 #include "platform/ohos/backend/rs_surface_ohos_gl.h"
 #include "platform/ohos/backend/rs_surface_ohos_raster.h"
 #include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
-#include "pipeline/render_thread/rs_base_render_util.h"
-#include "pipeline/render_thread/rs_uni_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
-
+#include "rcd/rs_render_rcd_draw.h"
 #include "rs_frame_report.h"
 #include "rs_trace.h"
 #include "rs_layer_cmd_type.h"
 #include "rs_render_surface_layer.h"
+#include "rs_render_surface_rcd_layer.h"
 #include "rs_surface_layer.h"
 #ifdef RS_ENABLE_EGLIMAGE
 #ifdef USE_M133_SKIA
@@ -68,8 +64,8 @@
 #include "vsync_sampler.h"
 
 #ifdef RS_ENABLE_VK
+#include "gpuComposition/rs_vk_image_manager.h"
 #include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
-#include "feature/gpuComposition/rs_vk_image_manager.h"
 #endif
 
 #ifdef RES_SCHED_ENABLE
@@ -220,6 +216,11 @@ void RSRenderComposer::HandlePowerStatus(ScreenPowerStatus status)
     PostTask([this, status]() { hgmHardwareUtils_->ResetRetryCount(status); });
 }
 
+void RSRenderComposer::SetAFBCEnabled(bool enabled)
+{
+    enableAFBC_ = enabled;
+}
+
 void PrintHiperfSurfaceLog(const std::string& counterContext, uint64_t counter)
 {
 #ifdef HIPERF_TRACE_ENABLE
@@ -235,8 +236,8 @@ void RSRenderComposer::ComposerPrepare(uint32_t& currentRate, int64_t& delayTime
     ResschedEventListener::GetInstance()->ReportFrameToRSS();
 #endif
     unExecuteTaskNum_++;
-    if (rsVsyncManagerAgent_ != nullptr) {
-        rsVsyncManagerAgent_->SetHardwareTaskNum(unExecuteTaskNum_.load());
+    if (setHardwareTaskNumCb_ != nullptr) {
+        setHardwareTaskNumCb_(unExecuteTaskNum_.load());
     }
     auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
     delayTime = UpdateDelayTime(hgmCore, currentRate, pipelineParam);
@@ -286,10 +287,11 @@ void RSRenderComposer::ProcessComposerFrame(uint32_t currentRate, const Pipeline
         }
         lppLayerCollector_.AddLppLayerId(layers);
     }
+    ResetScreenRCDRedrawState(layers);
     bool doRepaint = hdiOutput_->IsDeviceValid() && !shouldDropFrame && !isHwcDead_;
     if (doRepaint) {
 #ifdef RS_ENABLE_TV_PQ_METADATA
-        RSTvMetadataManager::CombineMetadataForAllLayers(layers);
+        RSTvMetadataUtil::CombineMetadataForAllLayers(layers);
 #endif
         hdiOutput_->Repaint();
         RecordTimestamp(pipelineParam.vsyncId);
@@ -305,8 +307,8 @@ void RSRenderComposer::ProcessComposerFrame(uint32_t currentRate, const Pipeline
     }
     unExecuteTaskNum_--;
 
-    if (rsVsyncManagerAgent_ != nullptr) {
-        rsVsyncManagerAgent_->SetTaskEndWithTime(SystemTime() - lastActualTime_);
+    if (setTaskEndWithTimeCb_ != nullptr) {
+        setTaskEndWithTimeCb_(SystemTime() - lastActualTime_);
     }
     lastActualTime_ = pipelineParam.actualTimestamp;
     int64_t endTime = GetCurTimeCount();
@@ -348,7 +350,7 @@ int64_t RSRenderComposer::UpdateDelayTime(HgmCore& hgmCore,
     // We need to ensure the order of composition frames, postTaskTime(n + 1) must > postTaskTime(n),
     // and we give a delta time more between two composition tasks.
     int64_t currCommitTime = currTime + delayTime * NS_MS_UNIT_CONVERSION;
-    if (currCommitTime <= lastCommitTime_) {
+    if ((currCommitTime - lastCommitTime_) <= COMMIT_DELTA_TIME * NS_MS_UNIT_CONVERSION) {
         delayTime = delayTime +
             std::round((lastCommitTime_ - currCommitTime) * 1.0f / NS_MS_UNIT_CONVERSION) +
             COMMIT_DELTA_TIME;
@@ -558,9 +560,10 @@ int64_t RSRenderComposer::CalculateDelayTime(HgmCore& hgmCore, uint32_t currentR
     uint64_t dvsyncOffset = 0;
     int64_t compositionTime = period;
     int64_t delayTime = 0;
+    int64_t preTime = 0;
 
-    if (rsVsyncManagerAgent_ != nullptr) {
-        dvsyncOffset = rsVsyncManagerAgent_->GetRealTimeOffsetOfDvsync(pipelineParam.frameTimestamp);
+    if (getRealTimeOffsetOfDvsyncCb_ != nullptr) {
+        dvsyncOffset = getRealTimeOffsetOfDvsyncCb_(pipelineParam.frameTimestamp, preTime);
     }
     if (!hgmCore.GetLtpoEnabled()) {
         vsyncOffset = UNI_RENDER_VSYNC_OFFSET_DELAY_MODE;
@@ -584,10 +587,11 @@ int64_t RSRenderComposer::CalculateDelayTime(HgmCore& hgmCore, uint32_t currentR
         if (periodNum * idealPeriod + vsyncOffset + idealPulse < idealPipelineOffset) {
             periodNum = periodNum + 1;
         }
-        frameOffset = periodNum * idealPeriod + vsyncOffset
+        frameOffset = periodNum * idealPeriod + vsyncOffset + static_cast<int64_t>(dvsyncOffset)
             - static_cast<int64_t>(pipelineParam.fastComposeTimeStampDiff);
     }
-    expectCommitTime = pipelineParam.frameTimestamp + frameOffset - compositionTime - RESERVE_TIME;
+    // we use (pipelineParam.frameTimestamp - preTime) to get this frame real vsync timestamp
+    expectCommitTime = pipelineParam.frameTimestamp - preTime + frameOffset - compositionTime - RESERVE_TIME;
     int64_t diffTime = expectCommitTime - currTime;
     if (diffTime > 0 && period > 0) {
         delayTime = std::round(diffTime * 1.0f / NS_MS_UNIT_CONVERSION);
@@ -596,10 +600,10 @@ int64_t RSRenderComposer::CalculateDelayTime(HgmCore& hgmCore, uint32_t currentR
         "expectCommitTime: %" PRId64 ", currTime: %" PRId64 ", diffTime: %" PRId64 ", delayTime: %" PRId64 ", " \
         "frameOffset: %" PRId64 ", dvsyncOffset: %" PRIu64 ", vsyncOffset: %" PRId64 ", idealPeriod: %" PRId64 ", " \
         "period: %" PRId64 ", idealPipelineOffset: %" PRId64 ", fastComposeTimeStampDiff: %" PRIu64 ", " \
-        "frameTimestamp: %" PRId64 "",
+        "frameTimestamp: %" PRId64 ", preTime: %" PRId64 "",
         __func__, pipelineOffset, pipelineParam.actualTimestamp, expectCommitTime, currTime, diffTime, delayTime,
         frameOffset, dvsyncOffset, vsyncOffset, idealPeriod, period,
-        idealPipelineOffset, pipelineParam.fastComposeTimeStampDiff, pipelineParam.frameTimestamp);
+        idealPipelineOffset, pipelineParam.fastComposeTimeStampDiff, pipelineParam.frameTimestamp, preTime);
     RS_LOGD_IF(DEBUG_PIPELINE, "%{public}s period:%{public}" PRId64 " delayTime:%{public}" PRId64 "",
         __func__, period, delayTime);
     return delayTime;
@@ -856,7 +860,26 @@ void RSRenderComposer::RedrawScreenRCD(RSPaintFilterCanvas& canvas, const std::v
             continue;
         }
     }
-    RSRcdRenderManager::DrawRoundCorner(canvas, rcdLayerInfoList);
+    RSRenderRcdDraw::DrawRoundCorner(canvas, rcdLayerInfoList);
+}
+
+void RSRenderComposer::ResetScreenRCDRedrawState(std::vector<std::shared_ptr<RSLayer>>& layers)
+{
+    RS_TRACE_NAME_FMT("%s screenId : %" PRIu64, __func__, screenId_);
+    for (auto& layer : layers) {
+        if (layer == nullptr) {
+            continue;
+        }
+        if (layer->IsScreenRCDLayer()) {
+            auto rcdLayer = std::static_pointer_cast<RSRenderSurfaceRCDLayer>(layer);
+            if (!rcdLayer->GetRedrawState() && rcdLayer->GetCacheImage()) {
+                RS_TRACE_NAME_FMT("%s clear Rcd image : %d, %d", __func__, rcdLayer->GetCacheImage()->GetWidth(),
+                    rcdLayer->GetCacheImage()->GetHeight());
+                rcdLayer->ClearCacheImage();
+            }
+            rcdLayer->SetRedrawState(false);
+        }
+    }
 }
 
 void RSRenderComposer::Redraw(const sptr<Surface>& surface, const std::vector<std::shared_ptr<RSLayer>>& layers)
@@ -925,7 +948,7 @@ void RSRenderComposer::Redraw(const sptr<Surface>& surface, const std::vector<st
     FrameContextConfig frameContextConfig = FrameContextConfig(isProtected);
     std::lock_guard<std::mutex> ohosSurfaceLock(surfaceMutex_);
     auto renderFrame = uniRenderEngine_->RequestFrame(frameBufferSurfaceOhos, renderFrameConfig,
-        forceCPU, true, frameContextConfig);
+        forceCPU, enableAFBC_, frameContextConfig);
     if (renderFrame == nullptr) {
         RS_LOGE("RsDebug Redraw failed to request frame.");
         return;
@@ -949,7 +972,7 @@ void RSRenderComposer::Redraw(const sptr<Surface>& surface, const std::vector<st
     RedrawScreenRCD(*canvas, layers);
 #ifdef RS_ENABLE_TV_PQ_METADATA
     auto rsSurface = renderFrame->GetSurface();
-    RSTvMetadataManager::CopyFromLayersToSurface(layers, rsSurface);
+    RSTvMetadataUtil::CopyFromLayersToSurface(layers, rsSurface);
 #endif
     renderFrame->Flush();
     RS_LOGD("RsDebug Redraw flush frame buffer end");
@@ -1059,7 +1082,7 @@ GraphicPixelFormat RSRenderComposer::ComputeTargetPixelFormat(const std::vector<
         auto bufferPixelFormat = buffer->GetFormat();
         if (bufferPixelFormat == GRAPHIC_PIXEL_FMT_RGBA_1010108) {
             pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_1010102;
-            if (!allRedraw && RSHdrUtil::GetRGBA1010108Enabled()) {
+            if (!allRedraw && RSBaseHdrUtil::GetRGBA1010108Enabled()) {
                 pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_1010108;
                 RS_LOGD("%{public}s pixelformat is set to GRAPHIC_PIXEL_FMT_RGBA_1010108", __func__);
             }
@@ -1312,11 +1335,6 @@ void RSRenderComposer::CleanLayerBufferBySurfaceId(uint64_t surfaceId)
     hdiOutput_->CleanLayerBufferBySurfaceId(surfaceId);
 }
 
-void RSRenderComposer::InitRsVsyncManagerAgent(const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent)
-{
-    rsVsyncManagerAgent_ = rsVsyncManagerAgent;
-}
-
 void RSRenderComposer::SurfaceDump(std::string& dumpString)
 {
     if (hdiOutput_ == nullptr) {
@@ -1370,5 +1388,14 @@ void RSRenderComposer::SetScreenBacklight(uint32_t level)
 int64_t RSRenderComposer::GetDelayTime() const
 {
     return delayTime_.load();
+}
+
+void RSRenderComposer::SetVsyncManagerCallbacks(const SetHardwareTaskNumCallback& setHardwareTaskNumCb,
+    const SetTaskEndWithTimeCallback& setTaskEndWithTimeCb,
+    const GetRealTimeOffsetOfDvsyncCallback& getRealTimeOffsetOfDvsyncCb)
+{
+    setHardwareTaskNumCb_ = setHardwareTaskNumCb;
+    setTaskEndWithTimeCb_ = setTaskEndWithTimeCb;
+    getRealTimeOffsetOfDvsyncCb_ = getRealTimeOffsetOfDvsyncCb;
 }
 }

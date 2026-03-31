@@ -235,7 +235,7 @@ public:
     bool IsOnlyBasicGeoTransform() const;
     void ForceMergeSubTreeDirtyRegion(RSDirtyRegionManager& dirtyManager, const RectI& clipRect);
     void SubTreeSkipPrepare(RSDirtyRegionManager& dirtymanager, bool isDirty, bool accumGeoDirty,
-        const RectI& clipRect);
+        const RectI& clipRect, const std::shared_ptr<RSDirtyRegionManager>& layerPartRenderDirtyManager = nullptr);
     inline bool LastFrameSubTreeSkipped() const
     {
         return lastFrameSubTreeSkipped_;
@@ -1072,8 +1072,9 @@ public:
     }
 
     std::shared_ptr<DrawableV2::RSColorPickerDrawable> GetColorPickerDrawable() const;
-    // returns true if color picker will execute this frame
-    bool PrepareColorPickerForExecution(uint64_t vsyncTime, bool darkMode);
+    // Called every frame to handle state transitions and sync
+    // return true if current state is COLOR_PICK and need to transition back to PREPARING
+    bool PrepareColorPicker(bool darkMode);
     // returns true if node only has ColorPickerDrawable without any real filter
     bool IsColorPickerOnlyNode() const;
 
@@ -1226,9 +1227,6 @@ private:
     bool childHasVisibleFilter_ = false;  // only collect visible children filter status
     bool childHasVisibleEffect_ = false;  // only collect visible children has useeffect
     bool hasChildrenOutOfRect_ = false;
-
-    // for layer part render
-    bool layerPartRenderDirtyFlag_ = false;
 
     bool isSubTreeDirty_ = false;
     bool isTreeStateChangeDirty_ = false;
@@ -1437,6 +1435,9 @@ private:
     void ResetAndApplyModifiers();
 
     void InitRenderDrawableAndDrawableVec();
+
+    void DirtySlotsPartialSync();
+
     RSDrawable::Vec& GetDrawableVec(const char*) const;
     void ResetFilterInfo();
     friend class DrawFuncOpItem;

@@ -65,19 +65,29 @@ public:
 
     bool GetCurNodeTreeSupportFlag() const { return curNodeTreeSupportFlag_; }
     void SetCurNodeTreeSupportFlag(bool curNodeTreeSupportFlag) { curNodeTreeSupportFlag_ = curNodeTreeSupportFlag; }
+    void OpincSubTreeSkip();
 
     void MarkSuggestLayerPartRenderNode(bool isLayerPartRender);
     bool IsSuggestLayerPartRenderNode() const;
+    void MarkMaterialNode(bool isMaterialNode);
+    bool IsMaterialNode() const;
     void SetLayerPartRender(bool isLayerPartRender);
     bool IsLayerPartRender() const;
+    void SetLayerPartRenderNodeStrategyType(NodeStrategyType type);
+    NodeStrategyType GetLayerPartRenderNodeStrategyType() const;
     bool IsLayerPartRenderUnchangeState();
     void ResetLayerPartRenderUnchangeState();
+    void SetLayerPartRenderDirtyFlag(bool dirtyFlag);
+    bool GetLayerPartRenderDirtyFlag() const;
+    void SetLayerPartRenderOldAbsDrawRect(RectI& oldAbsDrawRect);
+    const RectI& GetLayerPartRenderOldAbsDrawRect() const;
     std::shared_ptr<RSDirtyRegionManager>& GetLayerPartRenderDirtyManager();
 
 private:
     // opinc state
     NodeCacheState nodeCacheState_ = NodeCacheState::STATE_INIT;
     bool isSuggestOpincNode_ = false;
+    bool isMaterialNode_ = false;
     bool subTreeSupportFlag_ = true;
     bool curNodeTreeSupportFlag_ = false;
     bool isOpincRootFlag_ = false;
@@ -94,7 +104,10 @@ private:
     // layer part render
     bool isSuggestLayerPartRenderNode_ = false;
     bool isLayerPartRender_ = false;
+    NodeStrategyType layerPartRenderNodeStrategyType_ = NodeStrategyType::CACHE_NONE;
     int layerPartRenderUnchangeCount_ = 0;
+    bool layerPartRenderDirtyFlag_ = false;
+    RectI oldAbsDrawRect_;
     std::shared_ptr<RSDirtyRegionManager> layerPartRenderDirtyManager_ = nullptr;
 
     // opinc state func

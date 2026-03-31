@@ -112,11 +112,19 @@ ohos_unittest("RSFrameControlToolTest") {
 
   include_dirs = [
     "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
   ]
 
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "googletest:gtest_main",
+    "init:libbegetutil",
   ]
 
   subsystem_name = "graphic"
@@ -238,7 +246,10 @@ ohos_unittest("RSColorPickerTest") {
     "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
   ]
 
-  external_deps = [ "googletest:gmock_main" ]
+  external_deps = [
+    "googletest:gmock_main",
+    "ffrt:libffrt"
+  ]
 
   subsystem_name = "graphic"
 }
@@ -380,6 +391,42 @@ ohos_unittest("RSWindowKeyFrameRenderNodeTest") {
   ]
 }
 
+##############################  RSBufferReclaimTest  ##################################
+ohos_unittest("RSBufferReclaimTest") {
+  module_out_path = module_output_path
+
+  sources = [
+    "buffer_reclaim/rs_buffer_reclaim_test.cpp",
+  ]
+
+  cflags = [
+    "-Dprivate = public",
+    "-Dprotected = public",
+  ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
+  ]
+
+  subsystem_name = "graphic"
+  external_deps = [
+    "c_utils:utils",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+  ]
+}
+
 ##############################  RSPowerOffRenderSkipTest  ##################################
 ohos_unittest("RSPowerOffRenderSkipTest") {
   module_out_path = module_output_path
@@ -441,6 +488,7 @@ group("unittest") {
     ":RSSingleFrameComposerTest",
     ":RSMemoryInfoManagerTest",
     ":RSWindowKeyFrameRenderNodeTest",
+    ":RSBufferReclaimTest",
     ":RSPowerOffRenderSkipTest",
   ]
 }

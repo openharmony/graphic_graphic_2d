@@ -808,7 +808,7 @@ sptr<SurfaceBuffer> RSSurfaceLayer::GetBuffer() const
 {
     auto sbuffer = sbuffer_.promote();
     if (sbuffer == nullptr) {
-        ROSEN_LOGE("%{public}s layer id: %{public}" PRIu64 "buffer is released", __func__, rsLayerId_);
+        ROSEN_LOGE("%{public}s layer id: %{public}" PRIu64 " buffer is released", __func__, rsLayerId_);
         return nullptr;
     }
     return sbuffer;
@@ -827,7 +827,7 @@ sptr<SurfaceBuffer> RSSurfaceLayer::GetPreBuffer() const
 {
     auto pbuffer = pbuffer_.promote();
     if (pbuffer == nullptr) {
-        ROSEN_LOGE("%{public}s layer id: %{public}" PRIu64 "buffer is released", __func__, rsLayerId_);
+        ROSEN_LOGE("%{public}s layer id: %{public}" PRIu64 " buffer is released", __func__, rsLayerId_);
         return nullptr;
     }
     return pbuffer;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,6 +27,49 @@ namespace OHOS::Rosen {
 
 bool CheckConsistencyWithPixelMap(std::shared_ptr<Media::PixelMap> pixelMap, size_t position, size_t skipFromParcel)
 {
+    Parcel parcel;
+
+    EXPECT_EQ(parcel.GetReadPosition(), 0);
+    EXPECT_EQ(parcel.GetWritePosition(), 0);
+
+    EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel, pixelMap));
+
+    EXPECT_EQ(parcel.GetReadPosition(), 0);
+    EXPECT_EQ(parcel.GetWritePosition(), position);
+
+    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, pixelMap));
+
+    EXPECT_EQ(parcel.GetReadPosition(), position);
+    EXPECT_EQ(parcel.GetWritePosition(), position);
+
+    parcel.FlushBuffer();
+
+    EXPECT_EQ(parcel.GetReadPosition(), 0);
+    EXPECT_EQ(parcel.GetWritePosition(), 0);
+
+    EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel, pixelMap));
+
+    EXPECT_EQ(parcel.GetReadPosition(), 0);
+    EXPECT_EQ(parcel.GetWritePosition(), position);
+
+    EXPECT_TRUE(RSMarshallingHelper::SkipPixelMap(parcel));
+
+    EXPECT_EQ(parcel.GetReadPosition(), position);
+    EXPECT_EQ(parcel.GetWritePosition(), position);
+
+    parcel.FlushBuffer();
+
+    EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel, pixelMap));
+
+    EXPECT_EQ(parcel.GetReadPosition(), 0);
+    EXPECT_EQ(parcel.GetWritePosition(), position);
+
+    EXPECT_TRUE(RSMarshallingHelper::SkipFromParcel(parcel, skipFromParcel));
+
+    EXPECT_EQ(parcel.GetReadPosition(), position);
+    EXPECT_EQ(parcel.GetWritePosition(), position);
+
+    parcel.FlushBuffer();
     return true;
 }
 

@@ -2358,7 +2358,7 @@ void RSProfiler::PlaybackStart(const ArgList& args)
         double eofTime = g_playbackFile.GetEOFTime();
         while (IsPlaying()) {
             int64_t nextPacketTimeNano =
-                Utils::ToNanoseconds(PlaybackUpdate(PlaybackDeltaTime(), eofTime, advanceTime));
+                static_cast<int64_t>(Utils::ToNanoseconds(PlaybackUpdate(PlaybackDeltaTime(), eofTime, advanceTime)));
             // timeout - sleep time to next packet
             int64_t timeout = nextPacketTimeNano - PlaybackDeltaTimeNano();
             if (timeout < 0) {

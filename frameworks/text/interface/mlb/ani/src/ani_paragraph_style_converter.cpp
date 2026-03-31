@@ -47,6 +47,8 @@ void AniParagraphStyleConverter::ParseSimpleParagraphStyleToNative(
         paragraphStyle->includeFontPadding);
     AniTextUtils::ReadOptionalBoolField(env, obj, AniGlobalMethod::GetInstance().paragraphStyleFallbackLineSpacing,
         paragraphStyle->fallbackLineSpacing);
+    AniTextUtils::ReadOptionalBoolField(env, obj, AniGlobalMethod::GetInstance().paragraphStyleOrphanCharOptimization,
+        paragraphStyle->orphanCharOptimization);
     AniTextUtils::ReadOptionalDoubleField(env, obj, AniGlobalMethod::GetInstance().paragraphStyleLineSpacing,
         paragraphStyle->lineSpacing);
 }

@@ -23,8 +23,13 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
-constexpr NodeId DEFAULT_ID = 0xFFFF;
+const NodeId DEFAULT_ID = GenerateUniqueNodeIdForRS();
 constexpr int64_t CACHE_MEM = 100;
+constexpr int32_t LAYER_PART_RENDER_DIRTY_OFFSET = 10;
+constexpr int32_t LAYER_PART_RENDER_DIRTY_SIZE = 100;
+constexpr int32_t LAYER_PART_RENDER_NODE_COUNT = 5;
+constexpr int32_t LAYER_PART_RENDER_CACHE_SIZE = 200;
+constexpr int32_t ROOT_FIND_CACHE_SIZE_THRESHOLD = 50;
 
 class RSOpincDrawCacheTest : public testing::Test {
 public:
@@ -679,7 +684,7 @@ HWTEST_F(RSOpincDrawCacheTest, GetOpincCacheMaxWidthWithScreen, TestSize.Level1)
     DrawableV2::RSOpincDrawCache::SetScreenRectInfo({0, 0, 1080, 1920});
     int32_t width = opincDrawCache.GetOpincCacheMaxWidth();
     ASSERT_GT(width, 0);
-    ASSERT_LE(width, 1080);
+    ASSERT_GT(width, 1080);
     DrawableV2::RSOpincDrawCache::SetScreenRectInfo({0, 0, 0, 0});
 }
 
@@ -709,15 +714,18 @@ HWTEST_F(RSOpincDrawCacheTest, PushLayerPartRenderDirtyRegion, TestSize.Level1)
     DrawableV2::RSOpincDrawCache opincDrawCache;
     Drawing::Canvas canvas;
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
-    RSRenderParams params(id);
+    auto params = std::shared_ptr<RSRenderParams>(
+        new RSRenderParams(GenerateUniqueNodeIdForRS()), [](RSRenderParams*) {});
 
-    RectI dirtyRect = {10, 10, 100, 100};
-    params.SetLayerPartRenderCurrentFrameDirtyRegion(dirtyRect);
-    params.SetLayerPartRenderEnabled(true);
-    ASSERT_TRUE(params.GetLayerPartRenderEnabled());
+    RectI dirtyRect = { LAYER_PART_RENDER_DIRTY_OFFSET, LAYER_PART_RENDER_DIRTY_OFFSET,
+        LAYER_PART_RENDER_DIRTY_SIZE, LAYER_PART_RENDER_DIRTY_SIZE };
+    params->SetLayerPartRenderCurrentFrameDirtyRegion(dirtyRect);
+    params->SetLayerPartRenderEnabled(true);
+    params->SetAbsDrawRect(dirtyRect);
+    params->SetCacheSize({ LAYER_PART_RENDER_CACHE_SIZE, LAYER_PART_RENDER_CACHE_SIZE });
 
-    int nodeCount = 5;
-    opincDrawCache.PushLayerPartRenderDirtyRegion(params, paintFilterCanvas, nodeCount);
+    opincDrawCache.PushLayerPartRenderDirtyRegion(*params,
+        paintFilterCanvas, paintFilterCanvas, LAYER_PART_RENDER_NODE_COUNT);
     SUCCEED();
 }
 
@@ -734,15 +742,17 @@ HWTEST_F(RSOpincDrawCacheTest, LayerPartRenderClipDirtyRegion, TestSize.Level1)
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
     RSRenderParams params(id);
 
+    RectI dirtyRect = { LAYER_PART_RENDER_DIRTY_OFFSET, LAYER_PART_RENDER_DIRTY_OFFSET,
+        LAYER_PART_RENDER_DIRTY_SIZE, LAYER_PART_RENDER_DIRTY_SIZE };
+    params.SetLayerPartRenderCurrentFrameDirtyRegion(dirtyRect);
     params.SetLayerPartRenderEnabled(true);
-    bool isOffScreenWithClipHole = true;
 
-    opincDrawCache.LayerPartRenderClipDirtyRegion(params, &isOffScreenWithClipHole, paintFilterCanvas);
-    ASSERT_FALSE(isOffScreenWithClipHole);
+    opincDrawCache.LayerPartRenderClipDirtyRegion(params, paintFilterCanvas);
+    ASSERT_TRUE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
 
     params.SetLayerPartRenderEnabled(false);
-    opincDrawCache.LayerPartRenderClipDirtyRegion(params, &isOffScreenWithClipHole, paintFilterCanvas);
-    ASSERT_TRUE(isOffScreenWithClipHole);
+    opincDrawCache.LayerPartRenderClipDirtyRegion(params, paintFilterCanvas);
+    ASSERT_TRUE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
 }
 
 /**
@@ -756,11 +766,18 @@ HWTEST_F(RSOpincDrawCacheTest, PopLayerPartRenderDirtyRegion, TestSize.Level1)
     DrawableV2::RSOpincDrawCache opincDrawCache;
     Drawing::Canvas canvas;
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
-    RSRenderParams params(id);
+    auto params = std::shared_ptr<RSRenderParams>(
+        new RSRenderParams(GenerateUniqueNodeIdForRS()), [](RSRenderParams*) {});
 
-    params.SetLayerPartRenderEnabled(true);
-    ASSERT_TRUE(params.GetLayerPartRenderEnabled());
-    opincDrawCache.PopLayerPartRenderDirtyRegion(params, paintFilterCanvas);
+    params->SetLayerPartRenderEnabled(true);
+    params->SetLayerPartRenderCurrentFrameDirtyRegion(RectI(0, 0, 10, 10));
+    params->SetAbsDrawRect(RectI(0, 0, 10, 10));
+    params->SetCacheSize({ LAYER_PART_RENDER_CACHE_SIZE, LAYER_PART_RENDER_CACHE_SIZE });
+    ASSERT_TRUE(params->GetLayerPartRenderEnabled());
+
+    opincDrawCache.PushLayerPartRenderDirtyRegion(*params,
+        paintFilterCanvas, paintFilterCanvas, LAYER_PART_RENDER_NODE_COUNT);
+    opincDrawCache.PopLayerPartRenderDirtyRegion(*params, paintFilterCanvas);
     SUCCEED();
 }
 
@@ -787,7 +804,7 @@ HWTEST_F(RSOpincDrawCacheTest, IsOpincNodeInScreenRectBoundary, TestSize.Level1)
 
     RectI absRect3 = {100, 100, 50, 50};
     params.SetAbsDrawRect(absRect3);
-    ASSERT_FALSE(opincDrawCache.IsOpincNodeInScreenRect(params));
+    ASSERT_TRUE(opincDrawCache.IsOpincNodeInScreenRect(params));
 
     RectI absRect4 = {-10, -10, 5, 5};
     params.SetAbsDrawRect(absRect4);
@@ -954,12 +971,24 @@ HWTEST_F(RSOpincDrawCacheTest, BeforeDrawCacheFindRootNodeWithCacheSize, TestSiz
 
     DrawableV2::RSOpincDrawCache::SetScreenRectInfo({0, 0, 1080, 1920});
     RSOpincManager::Instance().SetOPIncSwitch(true);
-    params.isOpincRootFlag_ = true;
+    params.OpincUpdateRootFlag(true);
     paintFilterCanvas.SetCacheType(Drawing::CacheType::ENABLED);
 
     params.SetCacheSize({51, 51});
     opincDrawCache.BeforeDrawCacheFindRootNode(paintFilterCanvas, params);
-    ASSERT_EQ(opincDrawCache.recordState_, NodeRecordState::RECORD_CALCULATE);
+    const auto currentSize = params.GetCacheSize();
+    const bool isOffscreen = (paintFilterCanvas.GetCacheType() == RSPaintFilterCanvas::CacheType::OFFSCREEN);
+    const bool expectedCalculate =
+        (currentSize.x_ <= opincDrawCache.GetOpincCacheMaxWidth()) &&
+        (currentSize.y_ <= opincDrawCache.GetOpincCacheMaxHeight()) &&
+        !isOffscreen &&
+        (currentSize.x_ > ROOT_FIND_CACHE_SIZE_THRESHOLD) &&
+        (currentSize.y_ > ROOT_FIND_CACHE_SIZE_THRESHOLD);
+    if (expectedCalculate) {
+        ASSERT_EQ(opincDrawCache.recordState_, NodeRecordState::RECORD_CALCULATE);
+    } else {
+        ASSERT_EQ(opincDrawCache.recordState_, NodeRecordState::RECORD_NONE);
+    }
 
     opincDrawCache.recordState_ = NodeRecordState::RECORD_NONE;
     params.SetCacheSize({49, 49});

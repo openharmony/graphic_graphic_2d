@@ -39,6 +39,7 @@ ohos_unittest("text_ndk_test") {
     "text_typography_alignment_test.cpp",
     "text_typography_character_index_test.cpp",
     "text_typography_layout_constraints_test.cpp",
+    "text_typography_line_layout_test.cpp",
     "text_typography_paint_attribute_test.cpp",
     "text_typography_strut_style_test.cpp",
     "text_typography_style_ellipsis_test.cpp",
@@ -85,6 +86,7 @@ ohos_unittest("text_ndk_test") {
     "hilog:libhilog",
     "icu:shared_icuuc",
     "image_framework:image_native",
+    "ipc:ipc_single",
   ]
 
   platform = current_os

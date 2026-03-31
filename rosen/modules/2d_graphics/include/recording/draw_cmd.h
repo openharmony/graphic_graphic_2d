@@ -72,6 +72,7 @@ public:
         CLIP_ROUND_RECT_OPITEM,
         CLIP_PATH_OPITEM,
         CLIP_REGION_OPITEM,
+        RESET_CLIP_OPITEM,
         SET_MATRIX_OPITEM,
         RESET_MATRIX_OPITEM,
         CONCAT_MATRIX_OPITEM,
@@ -101,6 +102,7 @@ public:
         RECORD_CMD_OPITEM,
         HYBRID_RENDER_PIXELMAP_OPITEM,
         HYBRID_RENDER_PIXELMAP_SIZE_OPITEM,
+        UICOLOR_OPITEM,
     };
 
     static void BrushHandleToBrush(const BrushHandle& brushHandle, const DrawCmdList& cmdList, Brush& brush);
@@ -644,6 +646,29 @@ private:
     BlendMode mode_;
 };
 
+class DrawUIColorOpItem : public DrawOpItem {
+public:
+    struct ConstructorHandle : public OpItem {
+        ConstructorHandle(UIColor color, BlendMode mode)
+            : OpItem(DrawOpItem::UICOLOR_OPITEM), color(color), mode(mode) {}
+        ~ConstructorHandle() override = default;
+        UIColor color;
+        BlendMode mode;
+    };
+    explicit DrawUIColorOpItem(ConstructorHandle* handle);
+    DrawUIColorOpItem(UIColor color, BlendMode mode)
+        : DrawOpItem(DrawOpItem::UICOLOR_OPITEM), color_(color), mode_(mode) {}
+    ~DrawUIColorOpItem() override = default;
+
+    static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
+    void Marshalling(DrawCmdList& cmdList) override;
+    void Playback(Canvas* canvas, const Rect* rect) override;
+    void Dump(std::string& out) const override;
+private:
+    UIColor color_;
+    BlendMode mode_;
+};
+
 class DrawImageNineOpItem : public DrawOpItem {
 public:
     struct ConstructorHandle : public OpItem {
@@ -1090,6 +1115,20 @@ public:
 private:
     ClipOp clipOp_;
     std::shared_ptr<Region> region_;
+};
+
+class ResetClipOpItem : public DrawOpItem {
+public:
+    struct ConstructorHandle : public OpItem {
+        ConstructorHandle() : OpItem(DrawOpItem::RESET_CLIP_OPITEM) {}
+        ~ConstructorHandle() override = default;
+    };
+    ResetClipOpItem();
+    ~ResetClipOpItem() override = default;
+
+    static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
+    void Marshalling(DrawCmdList& cmdList) override;
+    void Playback(Canvas* canvas, const Rect* rect) override;
 };
 
 class SetMatrixOpItem : public DrawOpItem {

@@ -21,6 +21,7 @@
 
 #include "get_object.h"
 #include "recording/recording_canvas.h"
+#include "draw/ui_color.h"
 
 #include "utils/scalar.h"
 
@@ -289,6 +290,8 @@ void RecordingCanvasFuzzTest006(const uint8_t* data, size_t size)
     recordcanvas1.SetMatrix(matrix);
     recordcanvas.ResetMatrix();
     recordcanvas1.ResetMatrix();
+    recordcanvas.ResetClip();
+    recordcanvas1.ResetClip();
     recordcanvas.ConcatMatrix(matrix);
     matrix.Reset();
     recordcanvas1.ConcatMatrix(matrix);
@@ -352,6 +355,24 @@ void RecordingCanvasFuzzTest008(const uint8_t* data, size_t size)
     Rect rect(dx, dy, dz, df);
     recordcanvas.DrawImageLattice(&image, lattice, rect, Drawing::FilterMode::LINEAR);
 }
+
+void RecordingCanvasFuzzTest009(const uint8_t* data, size_t size)
+{
+    int32_t width = GetObject<int32_t>();
+    int32_t height = GetObject<int32_t>();
+    bool addDrawOpImmediate = GetObject<bool>();
+    float red = GetObject<float>();
+    float green = GetObject<float>();
+    float blue = GetObject<float>();
+    float alpha = GetObject<float>();
+    float headroom = GetObject<float>();
+    UIColor color = UIColor(red, green, blue, alpha, headroom);
+    RecordingCanvas recordcanvas = RecordingCanvas(width, height);
+    RecordingCanvas recordcanvas1 = RecordingCanvas(width, height, addDrawOpImmediate);
+    BlendMode blendMode = GetObject<BlendMode>();
+    recordcanvas.DrawUIColor(color);
+    recordcanvas1.DrawUIColor(color, blendMode);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -374,5 +395,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::RecordingCanvasFuzzTest006(data, size);
     OHOS::Rosen::Drawing::RecordingCanvasFuzzTest007(data, size);
     OHOS::Rosen::Drawing::RecordingCanvasFuzzTest008(data, size);
+    OHOS::Rosen::Drawing::RecordingCanvasFuzzTest009(data, size);
     return 0;
 }

@@ -115,22 +115,22 @@ HWTEST_F(RSHdrUtilTest, CheckIsHdrSurfaceBufferTest, TestSize.Level1)
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_TRUE(node->GetRSSurfaceHandler() != nullptr);
     sptr<SurfaceBuffer> buffer = nullptr;
-    HdrStatus ret = RSHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
+    HdrStatus ret = RSBaseHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
     ASSERT_EQ(ret, HdrStatus::NO_HDR);
     buffer = node->GetRSSurfaceHandler()->GetBuffer();
     ASSERT_TRUE(buffer != nullptr);
     ASSERT_TRUE(buffer->GetBufferHandle() != nullptr);
     buffer->GetBufferHandle()->format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_YCBCR_420_SP;
-    ret = RSHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
+    ret = RSBaseHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
     ASSERT_EQ(ret, HdrStatus::NO_HDR);
     buffer->GetBufferHandle()->format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_YCBCR_P010;
-    ret = RSHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
+    ret = RSBaseHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
     ASSERT_EQ(ret, HdrStatus::NO_HDR);
     HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceInfo colorSpaceInfo = {
         .transfunc = HDI::Display::Graphic::Common::V1_0::TRANSFUNC_HLG
     };
     EXPECT_EQ(MetadataHelper::SetColorSpaceInfo(buffer, colorSpaceInfo), GSERROR_OK);
-    ret = RSHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
+    ret = RSBaseHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
     EXPECT_EQ(ret, HdrStatus::HDR_VIDEO);
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     uint32_t hdrType = HDI::Display::Graphic::Common::V2_2::CM_VIDEO_AI_HDR;
@@ -138,21 +138,21 @@ HWTEST_F(RSHdrUtilTest, CheckIsHdrSurfaceBufferTest, TestSize.Level1)
     metadataType.resize(sizeof(hdrType));
     memcpy_s(metadataType.data(), metadataType.size(), &hdrType, sizeof(hdrType));
     buffer->SetMetadata(HDI::Display::Graphic::Common::V1_0::ATTRKEY_HDR_METADATA_TYPE, metadataType);
-    ret = RSHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
+    ret = RSBaseHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
     ASSERT_EQ(ret, HdrStatus::AI_HDR_VIDEO_GTM);
  
     hdrType = HDI::Display::Graphic::Common::V2_2::CM_VIDEO_AI_HDR_HIGH_LIGHT;
     metadataType.resize(sizeof(hdrType));
     memcpy_s(metadataType.data(), metadataType.size(), &hdrType, sizeof(hdrType));
     buffer->SetMetadata(Media::VideoProcessingEngine::ATTRKEY_HDR_METADATA_TYPE, metadataType);
-    ret = RSHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
+    ret = RSBaseHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
     ASSERT_EQ(ret, HdrStatus::AI_HDR_VIDEO_GAINMAP);
 
     hdrType = HDI::Display::Graphic::Common::V2_2::CM_VIDEO_AI_HDR_COLOR_ENHANCE;
     metadataType.resize(sizeof(hdrType));
     memcpy_s(metadataType.data(), metadataType.size(), &hdrType, sizeof(hdrType));
     buffer->SetMetadata(Media::VideoProcessingEngine::ATTRKEY_HDR_METADATA_TYPE, metadataType);
-    ret = RSHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
+    ret = RSBaseHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
     ASSERT_EQ(ret, HdrStatus::AI_HDR_VIDEO_GAINMAP);
 #endif
 }
@@ -172,15 +172,15 @@ HWTEST_F(RSHdrUtilTest, CheckIsHdrSurfaceBufferTest001, TestSize.Level1)
     auto buffer = node->GetRSSurfaceHandler()->GetBuffer();
     ASSERT_TRUE(buffer != nullptr);
     ASSERT_TRUE(buffer->GetBufferHandle() != nullptr);
-    RSHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
+    RSBaseHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
 
     Media::VideoProcessingEngine::HdrStaticMetadata staticMetadata;
     MetadataHelper::SetHDRStaticMetadata(buffer, staticMetadata);
-    HdrStatus ret = RSHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
+    HdrStatus ret = RSBaseHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
     
     staticMetadata.cta861.maxContentLightLevel = 400.0f;
     MetadataHelper::SetHDRStaticMetadata(buffer, staticMetadata);
-    ret = RSHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
+    ret = RSBaseHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
     EXPECT_EQ(ret, HdrStatus::HDR_VIDEO);
 }
 
@@ -200,30 +200,30 @@ HWTEST_F(RSHdrUtilTest, CheckIsHDRSelfProcessingBufferTest001, TestSize.Level1)
     auto buffer = node->GetRSSurfaceHandler()->GetBuffer();
     ASSERT_TRUE(buffer != nullptr);
     ASSERT_TRUE(buffer->GetBufferHandle() != nullptr);
-    RSHdrUtil::CheckIsHDRSelfProcessingBuffer(buffer);
+    RSBaseHdrUtil::CheckIsHDRSelfProcessingBuffer(buffer);
 
     Media::VideoProcessingEngine::HdrStaticMetadata staticMetadata;
     MetadataHelper::SetHDRStaticMetadata(buffer, staticMetadata);
-    bool ret = RSHdrUtil::CheckIsHDRSelfProcessingBuffer(buffer);
+    bool ret = RSBaseHdrUtil::CheckIsHDRSelfProcessingBuffer(buffer);
     EXPECT_EQ(ret, false);
 
     CM_HDR_Metadata_Type hdrMetadataType = CM_IMAGE_HDR_VIVID_SINGLE;
     MetadataHelper::SetHDRMetadataType(buffer, hdrMetadataType);
-    ret = RSHdrUtil::CheckIsHDRSelfProcessingBuffer(buffer);
+    ret = RSBaseHdrUtil::CheckIsHDRSelfProcessingBuffer(buffer);
     EXPECT_EQ(ret, false);
 
     hdrMetadataType = CM_METADATA_NONE;
     staticMetadata.cta861.maxContentLightLevel = 400.0f;
     MetadataHelper::SetHDRMetadataType(buffer, hdrMetadataType);
     MetadataHelper::SetHDRStaticMetadata(buffer, staticMetadata);
-    ret = RSHdrUtil::CheckIsHDRSelfProcessingBuffer(buffer);
+    ret = RSBaseHdrUtil::CheckIsHDRSelfProcessingBuffer(buffer);
     EXPECT_EQ(ret, true);
 
     CM_ColorSpaceInfo colorSpaceInfo = {
         .transfunc = HDI::Display::Graphic::Common::V1_0::TRANSFUNC_HLG
     };
     MetadataHelper::SetColorSpaceInfo(buffer, colorSpaceInfo);
-    ret = RSHdrUtil::CheckIsHDRSelfProcessingBuffer(buffer);
+    ret = RSBaseHdrUtil::CheckIsHDRSelfProcessingBuffer(buffer);
     EXPECT_EQ(ret, false);
 }
 
@@ -247,7 +247,7 @@ HWTEST_F(RSHdrUtilTest, SetBufferHDRParamTest, TestSize.Level1)
     metadataType.resize(sizeof(hdrType));
     memcpy_s(metadataType.data(), metadataType.size(), &hdrType, sizeof(hdrType));
     buffer->SetMetadata(Media::VideoProcessingEngine::ATTRKEY_HDR_METADATA_TYPE, metadataType);
-    RSHdrUtil::SetBufferHDRParam(param, layer);
+    RSBaseHdrUtil::SetBufferHDRParam(param, layer);
     hdrType = OHOS::HDI::Display::Graphic::Common::V2_0::ATTRKEY_EXTERNAL_METADATA_002;
     metadataType.resize(sizeof(hdrType));
     memcpy_s(metadataType.data(), metadataType.size(), &hdrType, sizeof(hdrType));
@@ -260,13 +260,13 @@ HWTEST_F(RSHdrUtilTest, SetBufferHDRParamTest, TestSize.Level1)
     metadataType = {1.0f, 1.0f, 1.0f};
     buffer->SetMetadata(OHOS::HDI::Display::Graphic::Common::V2_0::ATTRKEY_EXTERNAL_METADATA_002, metadataType);
     layer->SetBuffer(buffer);
-    RSHdrUtil::SetBufferHDRParam(param, layer);
+    RSBaseHdrUtil::SetBufferHDRParam(param, layer);
     hdrType = HDI::Display::Graphic::Common::V2_2::CM_VIDEO_AI_HDR;
     metadataType.resize(sizeof(hdrType));
     memcpy_s(metadataType.data(), metadataType.size(), &hdrType, sizeof(hdrType));
     buffer->SetMetadata(Media::VideoProcessingEngine::ATTRKEY_HDR_METADATA_TYPE, metadataType);
     layer->SetBuffer(buffer);
-    RSHdrUtil::SetBufferHDRParam(param, layer);
+    RSBaseHdrUtil::SetBufferHDRParam(param, layer);
 #endif
 }
 
@@ -310,26 +310,26 @@ HWTEST_F(RSHdrUtilTest, CheckIsSurfaceBufferWithAiHdrMetadataTest, TestSize.Leve
     auto buffer = node->GetRSSurfaceHandler()->GetBuffer();
     ASSERT_TRUE(buffer != nullptr);
     ASSERT_TRUE(buffer->GetBufferHandle() != nullptr);
-    bool ret = RSHdrUtil::CheckIsSurfaceBufferWithAiHdrMetadata(buffer);
+    bool ret = RSBaseHdrUtil::CheckIsSurfaceBufferWithAiHdrMetadata(buffer);
     ASSERT_EQ(ret, false);
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     std::vector<uint8_t> metadataType;
     uint32_t hdrType = HDI::Display::Graphic::Common::V2_2::CM_METADATA_NONE;
     metadataType.resize(sizeof(hdrType));
     memcpy_s(metadataType.data(), metadataType.size(), &hdrType, sizeof(hdrType));
-    ret = RSHdrUtil::CheckIsSurfaceBufferWithAiHdrMetadata(buffer);
+    ret = RSBaseHdrUtil::CheckIsSurfaceBufferWithAiHdrMetadata(buffer);
     ASSERT_EQ(ret, false);
     buffer->SetMetadata(Media::VideoProcessingEngine::ATTRKEY_HDR_METADATA_TYPE, metadataType);
-    ret = RSHdrUtil::CheckIsSurfaceBufferWithAiHdrMetadata(buffer);
+    ret = RSBaseHdrUtil::CheckIsSurfaceBufferWithAiHdrMetadata(buffer);
     ASSERT_EQ(ret, false);
 
     hdrType = HDI::Display::Graphic::Common::V2_2::CM_VIDEO_AI_HDR;
     metadataType.resize(sizeof(hdrType));
     memcpy_s(metadataType.data(), metadataType.size(), &hdrType, sizeof(hdrType));
-    ret = RSHdrUtil::CheckIsSurfaceBufferWithAiHdrMetadata(buffer);
+    ret = RSBaseHdrUtil::CheckIsSurfaceBufferWithAiHdrMetadata(buffer);
     ASSERT_EQ(ret, false);
     buffer->SetMetadata(Media::VideoProcessingEngine::ATTRKEY_HDR_METADATA_TYPE, metadataType);
-    ret = RSHdrUtil::CheckIsSurfaceBufferWithAiHdrMetadata(buffer);
+    ret = RSBaseHdrUtil::CheckIsSurfaceBufferWithAiHdrMetadata(buffer);
     ASSERT_EQ(ret, true);
 #endif
 }
@@ -368,7 +368,7 @@ HWTEST_F(RSHdrUtilTest, CheckIsSurfaceBufferWithMetadataTest, TestSize.Level1)
     auto buffer = node->GetRSSurfaceHandler()->GetBuffer();
     ASSERT_TRUE(buffer != nullptr);
     ASSERT_TRUE(buffer->GetBufferHandle() != nullptr);
-    bool ret = RSHdrUtil::CheckIsSurfaceBufferWithMetadata(buffer);
+    bool ret = RSBaseHdrUtil::CheckIsSurfaceBufferWithMetadata(buffer);
     ASSERT_EQ(ret, false);
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     using namespace OHOS::HDI::Display::Graphic::Common::V1_0;
@@ -379,7 +379,7 @@ HWTEST_F(RSHdrUtilTest, CheckIsSurfaceBufferWithMetadataTest, TestSize.Level1)
     EXPECT_EQ(retSet, GSERROR_OK);
     std::vector<uint8_t> metadata = {1.0f, 1.0f, 1.0f};
     buffer->SetMetadata(OHOS::HDI::Display::Graphic::Common::V2_0::ATTRKEY_EXTERNAL_METADATA_002, metadata);
-    ret = RSHdrUtil::CheckIsSurfaceBufferWithMetadata(buffer);
+    ret = RSBaseHdrUtil::CheckIsSurfaceBufferWithMetadata(buffer);
     ASSERT_EQ(ret, true);
 #endif
 }
@@ -479,9 +479,9 @@ HWTEST_F(RSHdrUtilTest, GetRGBA1010108EnabledTest, TestSize.Level1)
     bool rgba1010108 = system::GetBoolParameter("const.graphics.rgba_1010108_supported", false);
     bool debugSwitch = system::GetBoolParameter("persist.sys.graphic.rgba_1010108.enabled", true);
     bool result = isDDGR && rgba1010108 && debugSwitch;
-    EXPECT_EQ(RSHdrUtil::GetRGBA1010108Enabled(), result);
+    EXPECT_EQ(RSBaseHdrUtil::GetRGBA1010108Enabled(), result);
     system::SetParameter("persist.sys.graphic.rgba_1010108.enabled", "false");
-    EXPECT_EQ(RSHdrUtil::GetRGBA1010108Enabled(), false);
+    EXPECT_EQ(RSBaseHdrUtil::GetRGBA1010108Enabled(), false);
     system::SetParameter("persist.sys.graphic.rgba_1010108.enabled", debugSwitch ? "true" : "false");
 }
 
@@ -576,7 +576,7 @@ HWTEST_F(RSHdrUtilTest, UpdateSurfaceNodeNitTest003, TestSize.Level1)
     metadataType.resize(sizeof(hdrType));
     memcpy_s(metadataType.data(), metadataType.size(), &hdrType, sizeof(hdrType));
     buffer->SetMetadata(Media::VideoProcessingEngine::ATTRKEY_HDR_METADATA_TYPE, metadataType);
-    HdrStatus ret = RSHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
+    HdrStatus ret = RSBaseHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
     ASSERT_EQ(ret, HdrStatus::AI_HDR_VIDEO_GTM);
     float scaler;
     RSHdrUtil::UpdateSurfaceNodeNit(*node, 0, scaler);
@@ -585,7 +585,7 @@ HWTEST_F(RSHdrUtilTest, UpdateSurfaceNodeNitTest003, TestSize.Level1)
     metadataType.resize(sizeof(hdrType));
     memcpy_s(metadataType.data(), metadataType.size(), &hdrType, sizeof(hdrType));
     buffer->SetMetadata(Media::VideoProcessingEngine::ATTRKEY_HDR_METADATA_TYPE, metadataType);
-    ret = RSHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
+    ret = RSBaseHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
     ASSERT_EQ(ret, HdrStatus::AI_HDR_VIDEO_GAINMAP);
     RSHdrUtil::UpdateSurfaceNodeNit(*node, 0, scaler);
 
@@ -1164,6 +1164,30 @@ HWTEST_F(RSHdrUtilTest, CheckPixelFormatForHdrEffect001, TestSize.Level2)
     surfaceNode->hdrEffectNum_ = 1;
     RSHdrUtil::CheckPixelFormatForHdrEffect(*surfaceNode, screenNode);
     EXPECT_EQ(static_cast<int>(screenNode->GetDisplayHdrStatus()), static_cast<int>(HdrStatus::HDR_EFFECT));
+}
+
+/*
+ * @tc.name: CheckPixelFormatForHdrEffect002
+ * @tc.desc: Test function CheckPixelFormatForHdrEffect
+ * @tc.type: FUNC
+ * @tc.require: issueI9NLRF
+ */
+HWTEST_F(RSHdrUtilTest, CheckPixelFormatForHdrEffect002, TestSize.Level2)
+{
+    NodeId id = 1;
+    ScreenId screenId = 1;
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    ASSERT_NE(screenNode, nullptr);
+    screenNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(screenNode->GetId());
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    RSHdrUtil::CheckPixelFormatForHdrEffect(*surfaceNode, nullptr);
+    EXPECT_NE(static_cast<int>(screenNode->GetDisplayHdrStatus()), static_cast<int>(HdrStatus::HDR_COLOR));
+    RSHdrUtil::CheckPixelFormatForHdrEffect(*surfaceNode, screenNode);
+    EXPECT_NE(static_cast<int>(screenNode->GetDisplayHdrStatus()), static_cast<int>(HdrStatus::HDR_COLOR));
+    surfaceNode->hdrColorNum_ = 1;
+    RSHdrUtil::CheckPixelFormatForHdrEffect(*surfaceNode, screenNode);
+    EXPECT_EQ(static_cast<int>(screenNode->GetDisplayHdrStatus()), static_cast<int>(HdrStatus::HDR_COLOR));
 }
 #endif
 } // namespace OHOS::Rosen

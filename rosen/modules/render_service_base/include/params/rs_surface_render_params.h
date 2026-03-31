@@ -828,6 +828,9 @@ public:
     void SetIsParticipateInOcclusion(bool isParticipateInOcclusion);
     bool GetIsParticipateInOcclusion() const;
 
+    void SetUIFirstLeashAllEnable(bool isEnable);
+    bool IsUIFirstLeashAllEnable() const override;
+
     void SwapRelatedRenderParams(RSSurfaceRenderParams& relatedRenderParams);
 private:
     RSSurfaceNodeType rsSurfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
@@ -970,6 +973,7 @@ private:
     bool isFrameGravityNewVersionEnabled_ = false;
     bool isSurfaceBufferOpaque_ = false;
     bool isParticipateInOcclusion_ = false;
+    bool isUIFirstLeashAllEnable_ = false;
 
     // only used for window capture
     sptr<RSISurfaceCaptureCallback> captureCallback_;

@@ -214,6 +214,7 @@ static const napi_property_descriptor g_properties[] = {
     DECLARE_NAPI_FUNCTION("clipRoundRect", JsCanvas::ClipRoundRect),
     DECLARE_NAPI_FUNCTION("setMatrix", JsCanvas::SetMatrix),
     DECLARE_NAPI_FUNCTION("resetMatrix", JsCanvas::ResetMatrix),
+    DECLARE_NAPI_FUNCTION("resetClip", JsCanvas::ResetClip),
     DECLARE_NAPI_FUNCTION("translate", JsCanvas::Translate),
     DECLARE_NAPI_FUNCTION("isClipEmpty", JsCanvas::IsClipEmpty),
     DECLARE_NAPI_FUNCTION("quickRejectPath", JsCanvas::QuickRejectPath),
@@ -2613,6 +2614,22 @@ napi_value JsCanvas::OnResetMatrix(napi_env env, napi_callback_info info)
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     m_canvas->ResetMatrix();
+    return nullptr;
+}
+
+napi_value JsCanvas::ResetClip(napi_env env, napi_callback_info info)
+{
+    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    return (me != nullptr) ? me->OnResetClip(env, info) : nullptr;
+}
+
+napi_value JsCanvas::OnResetClip(napi_env env, napi_callback_info info)
+{
+    if (m_canvas == nullptr) {
+        ROSEN_LOGE("JsCanvas::OnResetClip m_canvas is null");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    m_canvas->ResetClip();
     return nullptr;
 }
 

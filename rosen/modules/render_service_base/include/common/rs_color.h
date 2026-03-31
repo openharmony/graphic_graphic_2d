@@ -28,6 +28,7 @@
 namespace OHOS {
 namespace Rosen {
 using scalar = Drawing::scalar;
+using float16 = uint16_t;
 namespace {
 constexpr static uint8_t RGB_MAX_VALUE = 255;
 constexpr static uint8_t COLOR_ARRAY_RED_INDEX = 0;
@@ -51,6 +52,7 @@ public:
         alpha_ = rhs.alpha_;
         colorSpace_ = rhs.colorSpace_;
         placeholder_ = rhs.placeholder_;
+        headroom_ = rhs.headroom_;
     }
 
     RSColor& operator=(const RSColor& rhs) noexcept
@@ -61,6 +63,7 @@ public:
         alpha_ = rhs.alpha_;
         colorSpace_ = rhs.colorSpace_;
         placeholder_ = rhs.placeholder_;
+        headroom_ = rhs.headroom_;
         return *this;
     }
 
@@ -120,15 +123,22 @@ public:
         return sizeof(int64_t);
     }
 
+    float GetHeadroom() const;
+    void SetHeadroom(float headroom);
+
 private:
+    float Float16ToFloat32(float16 half) const;
+    float16 Float32ToFloat16(float value) const;
+
     struct {
         int16_t alpha_ : 16;
         int16_t blue_ : 16;
         int16_t green_ : 16;
         int16_t red_ : 16;
     };
-    int16_t colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-    uint16_t placeholder_ = 0; // enum ColorPlaceholder
+    int8_t colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    uint8_t placeholder_ = 0; // enum ColorPlaceholder
+    float16 headroom_ = Float32ToFloat16(1.0f); // brightness ratio, range [1, 1+]
 };
 } // namespace Rosen
 } // namespace OHOS

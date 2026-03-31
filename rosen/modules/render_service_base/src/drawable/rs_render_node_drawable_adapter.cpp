@@ -388,6 +388,49 @@ void RSRenderNodeDrawableAdapter::DrawUifirstContentChildren(Drawing::Canvas& ca
     }
 }
 
+void RSRenderNodeDrawableAdapter::DrawAllUifirst(
+    Drawing::Canvas& canvas, const Drawing::Rect& rect)
+{
+    if (uifirstDrawCmdList_.empty()) {
+        return;
+    }
+
+    const auto& drawCmdList = uifirstDrawCmdList_;
+
+    auto end = uifirstDrawCmdIndex_.endIndex_;
+    if (UNLIKELY(skipType_ != SkipType::NONE)) {
+        auto skipIndex_ = GetSkipIndex();
+        if (0 <= skipIndex_ && end > skipIndex_) {
+            // skip index is in the range
+            for (auto i = 0; i < skipIndex_; i++) {
+                drawCmdList[i]->OnDraw(&canvas, &rect);
+            }
+            for (auto i = skipIndex_ + 1; i < end; i++) {
+                drawCmdList[i]->OnDraw(&canvas, &rect);
+            }
+            return;
+        }
+        // skip index is not in the range, fall back to normal drawing
+    }
+
+    for (auto i = 0; i < end; i++) {
+#ifdef RS_ENABLE_PREFETCH
+        int prefetchIndex = i + 2;
+        if (prefetchIndex < end) {
+            __builtin_prefetch(&drawCmdList[prefetchIndex], 0, 1);
+        }
+#endif
+        drawCmdList[i]->OnDraw(&canvas, &rect);
+    }
+}
+
+void RSRenderNodeDrawableAdapter::DrawClipBounds(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
+{
+    if (!drawCmdList_.empty() && drawCmdIndex_.clipToBoundsIndex_ != -1) {
+        drawCmdList_[drawCmdIndex_.clipToBoundsIndex_]->OnDraw(&canvas, &rect);
+    }
+}
+
 void RSRenderNodeDrawableAdapter::DrawForeground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
 {
     DrawRangeImpl(canvas, rect, drawCmdIndex_.foregroundBeginIndex_, drawCmdIndex_.endIndex_);
@@ -548,6 +591,7 @@ void RSRenderNodeDrawableAdapter::SkipDrawSubtreeAndClipHole(
         "ClipHoleForBlurOrExcludedSubtree Rect:[%.2f, %.2f]", filterRect.GetWidth(), filterRect.GetHeight());
     Drawing::AutoCanvasRestore arc(*curCanvas, true);
     auto matrix = canvas.GetTotalMatrix();
+    AlignRectToDevicePixels(matrix, filterRect);
     matrix.Set(Drawing::Matrix::TRANS_X, std::floor(matrix.Get(Drawing::Matrix::TRANS_X)));
     matrix.Set(Drawing::Matrix::TRANS_Y, std::ceil(matrix.Get(Drawing::Matrix::TRANS_Y)));
     canvas.SetMatrix(matrix);
@@ -632,6 +676,21 @@ bool RSRenderNodeDrawableAdapter::HasFilterOrEffect(const RSRenderParams& params
            drawCmdIndex_.useEffectIndex_ != -1 ||
            drawCmdIndex_.backgroundNgShaderIndex_ != -1 ||
            params.NeedClipHoleForFilter();
+}
+
+void RSRenderNodeDrawableAdapter::AlignRectToDevicePixels(const Drawing::Matrix& matrix, Drawing::Rect& rect)
+{
+    Drawing::Rect deviceRect;
+    matrix.MapRect(deviceRect, rect);
+    deviceRect.SetLeft(std::floor(deviceRect.GetLeft()));
+    deviceRect.SetTop(std::floor(deviceRect.GetTop()));
+    deviceRect.SetRight(std::ceil(deviceRect.GetRight()));
+    deviceRect.SetBottom(std::ceil(deviceRect.GetBottom()));
+    Drawing::Matrix inverseMatrix;
+    if (!matrix.Invert(inverseMatrix)) {
+        return;
+    }
+    inverseMatrix.MapRect(rect, deviceRect);
 }
 
 void RSRenderNodeDrawableAdapter::ClearResource()

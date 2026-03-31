@@ -535,7 +535,7 @@ sptr<SurfaceBuffer> RSRenderSurfaceLayer::GetBuffer() const
 {
     auto sbuffer = sbuffer_.promote();
     if (sbuffer == nullptr) {
-        RS_LOGE("%{public}s layer id: %{public}" PRIu64 "buffer is released", __func__, rsLayerId_);
+        RS_LOGE("%{public}s layer id: %{public}" PRIu64 " buffer is released", __func__, rsLayerId_);
         return nullptr;
     }
     return sbuffer;
@@ -550,7 +550,7 @@ sptr<SurfaceBuffer> RSRenderSurfaceLayer::GetPreBuffer() const
 {
     auto pbuffer = pbuffer_.promote();
     if (pbuffer == nullptr) {
-        RS_LOGE("%{public}s layer id: %{public}" PRIu64 "buffer is released", __func__, rsLayerId_);
+        RS_LOGD("%{public}s layer id: %{public}" PRIu64 " buffer is released", __func__, rsLayerId_);
         return nullptr;
     }
     return pbuffer;

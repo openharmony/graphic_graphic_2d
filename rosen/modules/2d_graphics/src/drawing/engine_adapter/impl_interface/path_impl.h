@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,7 +17,7 @@
 #define PATH_IMPL_H
 
 #include <memory>
-
+#include <vector>
 #include "base_impl.h"
 
 #include "utils/matrix.h"
@@ -37,6 +37,7 @@ enum class PathOp;
 enum class ArcSize;
 enum class PathAddMode;
 enum class PathMeasureMatrixFlags;
+enum class PathVerb : uint8_t;
 class PathImpl : public BaseImpl {
 public:
     PathImpl() noexcept {}
@@ -57,6 +58,10 @@ public:
         scalar ctrlPt1X, scalar ctrlPt1Y, scalar ctrlPt2X, scalar ctrlPt2Y, scalar endPtX, scalar endPtY) = 0;
     virtual void QuadTo(scalar ctrlPtX, scalar ctrlPtY, scalar endPtX, scalar endPtY) = 0;
     virtual void ConicTo(scalar ctrlX, scalar ctrlY, scalar endX, scalar endY, scalar weight) = 0;
+
+    virtual std::vector<Point> GetPointData() const = 0;
+    virtual std::vector<PathVerb> GetVerbData() const = 0;
+    virtual std::vector<float> GetConicWeightData() const =0;
 
     virtual void RMoveTo(scalar dx, scalar dy) = 0;
     virtual void RLineTo(scalar dx, scalar dy) = 0;

@@ -30,6 +30,13 @@ DECLARE_SHAPE(SDFRRectShape, SDF_RRECT_SHAPE,
     ADD_PROPERTY_TAG(SDFRRectShape, RRect)
 );
 
+DECLARE_SHAPE(SDFTriangleShape, SDF_TRIANGLE_SHAPE,
+    ADD_PROPERTY_TAG(SDFTriangleShape, Vertex0),
+    ADD_PROPERTY_TAG(SDFTriangleShape, Vertex1),
+    ADD_PROPERTY_TAG(SDFTriangleShape, Vertex2),
+    ADD_PROPERTY_TAG(SDFTriangleShape, Radius)
+);
+
 DECLARE_SHAPE(SDFTransformShape, SDF_TRANSFORM_SHAPE,
     ADD_PROPERTY_TAG(SDFTransformShape, Matrix),
     ADD_PROPERTY_TAG(SDFTransformShape, Shape)

@@ -156,22 +156,27 @@ HWTEST_F(RSUifirstManagerTest2, CommonPendingNodePurgeTest, TestSize.Level1)
  */
 HWTEST_F(RSUifirstManagerTest2, NeedPurgePendingPostNodesInner, TestSize.Level1)
 {
-    NodeId nodeId = 1;
-    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(nodeId);
-    auto adapter = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+    auto surfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    auto drawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceRenderNode));
 
-    std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> map = {{nodeId, surfaceRenderNode}};
+    std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> map = {
+        {surfaceRenderNode->GetId(), surfaceRenderNode}
+    };
     auto iter = map.begin();
-    auto ret = uifirstManager_.NeedPurgePendingPostNodesInner(iter, adapter, false);
+    auto ret = uifirstManager_.NeedPurgePendingPostNodesInner(iter, drawable, false);
     EXPECT_FALSE(ret);
 
     uifirstManager_.purgeEnable_ = true;
-    auto& subThreadCache = adapter->GetRsSubThreadCache();
+    auto& subThreadCache = drawable->GetRsSubThreadCache();
     subThreadCache.isCacheCompletedValid_ = true;
     subThreadCache.SetSubThreadSkip(false);
-    ret = uifirstManager_.NeedPurgePendingPostNodesInner(iter, adapter, true);
+    ret = uifirstManager_.NeedPurgePendingPostNodesInner(iter, drawable, true);
     EXPECT_TRUE(ret);
+
+    subThreadCache.cacheCompletedSurfaceInfo_.isContainShadow = true;
+    ret = uifirstManager_.NeedPurgePendingPostNodesInner(iter, drawable, true);
+    EXPECT_FALSE(ret);
 }
 
 /**
@@ -1143,7 +1148,7 @@ HWTEST_F(RSUifirstManagerTest2, GetCacheSurfaceProcessedStatusTest, TestSize.Lev
 HWTEST_F(RSUifirstManagerTest2, SubThreadControlFrameRate, TestSize.Level1)
 {
     NodeId id = 100;
-    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(0);
+    auto node = RSTestUtil::CreateSurfaceNode();
     auto rsSubThreadManager = RSSubThreadManager::Instance();
     std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> drawable = nullptr;
     rsSubThreadManager->ScheduleRenderNodeDrawable(drawable);

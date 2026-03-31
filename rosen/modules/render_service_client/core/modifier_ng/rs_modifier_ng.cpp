@@ -179,6 +179,7 @@ static const std::unordered_map<RSPropertyType, ThresholdType> g_propertyTypeToT
     { RSPropertyType::HDR_BRIGHTNESS, ThresholdType::DEFAULT },
     { RSPropertyType::HDR_UI_BRIGHTNESS, ThresholdType::COARSE },
     { RSPropertyType::HDR_BRIGHTNESS_FACTOR, ThresholdType::COARSE },
+    { RSPropertyType::HDR_COLOR_HEADROOM, ThresholdType::COARSE },
     { RSPropertyType::BEHIND_WINDOW_FILTER_RADIUS, ThresholdType::COARSE },
     { RSPropertyType::BEHIND_WINDOW_FILTER_SATURATION, ThresholdType::COARSE },
     { RSPropertyType::BEHIND_WINDOW_FILTER_BRIGHTNESS, ThresholdType::COARSE },

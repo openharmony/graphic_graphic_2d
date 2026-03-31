@@ -28,6 +28,7 @@ public:
     virtual ~RSIScreenManagerAgentListener() = default;
     virtual void OnScreenConnected(ScreenId id, ScreenChangeReason reason, sptr<IRemoteObject> remoteConn) = 0;
     virtual void OnScreenDisconnected(ScreenId id, ScreenChangeReason reason) = 0;
+    virtual void OnScreenSwitchingNotify(bool status) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

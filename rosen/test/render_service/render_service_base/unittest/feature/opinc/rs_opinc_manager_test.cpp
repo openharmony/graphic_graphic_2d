@@ -247,6 +247,40 @@ HWTEST_F(RSOpincManagerTest, UpdateRootFlag, Function | SmallTest | Level1)
 }
 
 /**
+ * @tc.name: OpincSubTreeSkipPrepare001
+ * @tc.desc: Verify the OpincSubTreeSkipPrepare function
+ * @tc.type: FUNC
+ * @tc.require: #22996
+ */
+HWTEST_F(RSOpincManagerTest, OpincSubTreeSkipPrepare001, Function | SmallTest | Level1)
+{
+    NodeId id = 0;
+    auto rsCanvasRenderNode = std::make_shared<RSCanvasRenderNode>(id);
+    ASSERT_NE(rsCanvasRenderNode, nullptr);
+    auto& opincCache = rsCanvasRenderNode->GetOpincCache();
+    opincCache.isSuggestOpincNode_ = true;
+    opincCache.nodeCacheState_ = NodeCacheState::STATE_CHANGE;
+    opincCache.unchangeCount_ = 0;
+    opincCache.unchangeCountUpper_ = 3;
+
+    bool unchangeMarkEnable = false;
+    opincManager_.OpincSubTreeSkipPrepare(*rsCanvasRenderNode, unchangeMarkEnable);
+    EXPECT_EQ(opincCache.unchangeCount_, 0);
+
+    unchangeMarkEnable = true;
+    rsCanvasRenderNode->childHasVisibleFilter_ = true;
+    EXPECT_FALSE(opincManager_.OpincGetNodeSupportFlag(*rsCanvasRenderNode));
+    opincManager_.OpincSubTreeSkipPrepare(*rsCanvasRenderNode, unchangeMarkEnable);
+    EXPECT_EQ(opincCache.unchangeCount_, 0);
+
+    unchangeMarkEnable = true;
+    rsCanvasRenderNode->childHasVisibleFilter_ = false;
+    EXPECT_TRUE(opincManager_.OpincGetNodeSupportFlag(*rsCanvasRenderNode));
+    opincManager_.OpincSubTreeSkipPrepare(*rsCanvasRenderNode, unchangeMarkEnable);
+    EXPECT_EQ(opincCache.unchangeCount_, opincCache.unchangeCountUpper_);
+}
+
+/**
  * @tc.name: GetUnsupportReason
  * @tc.desc: Verify the GetUnsupportReason function
  * @tc.type: FUNC

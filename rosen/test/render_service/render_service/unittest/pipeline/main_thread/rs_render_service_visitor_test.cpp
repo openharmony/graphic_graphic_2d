@@ -18,7 +18,7 @@
 #include "pipeline/rs_test_util.h"
 
 #include "common/rs_obj_abs_geometry.h"
-#include "pipeline/render_thread/rs_uni_render_engine.h"
+#include "engine/rs_uni_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_logical_display_render_node.h"

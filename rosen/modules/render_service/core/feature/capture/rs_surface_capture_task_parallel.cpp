@@ -25,6 +25,7 @@
 
 #include "common/rs_background_thread.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "engine/rs_base_render_engine.h"
 #include "feature/hdr/rs_hdr_util.h"
 #include "feature/pointer_window_manager/rs_pointer_window_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
@@ -34,7 +35,6 @@
 #include "ge_visual_effect_container.h"
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_surface_render_params.h"
-#include "pipeline/render_thread/rs_base_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
@@ -371,6 +371,7 @@ bool RSSurfaceCaptureTaskParallel::DrawHDRSurfaceContent(
         RS_LOGE("RSSurfaceCaptureTaskParallel::DrawHDRSurfaceContent surface is nullptr!");
         return false;
     }
+    RSUniRenderThread::BufferManagerGuard bufferGuard;
     RSPaintFilterCanvas canvas(surface.get());
     canvas.Scale(captureConfig_.scaleX, captureConfig_.scaleY);
     const Drawing::Rect& rect = captureConfig_.mainScreenRect;
@@ -393,8 +394,10 @@ bool RSSurfaceCaptureTaskParallel::DrawHDRSurfaceContent(
     RSUniRenderThread::ResetCaptureParam();
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)) && \
     (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_UNI_RENDER))
-    RSUniRenderUtil::OptimizedFlushAndSubmit(surface, gpuContext_.get(), GetFeatureParamValue("CaptureConfig",
-        &CaptureBaseParam::IsSnapshotWithDMAEnabled).value_or(false));
+    sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
+    RSUniRenderUtil::OptimizedFlushAndSubmit(surface, gpuContext_.get(), acquireFence,
+        GetFeatureParamValue("CaptureConfig", &CaptureBaseParam::IsSnapshotWithDMAEnabled).value_or(false));
+    bufferGuard.SetAcquireFence(acquireFence);
 #endif
     return true;
 }

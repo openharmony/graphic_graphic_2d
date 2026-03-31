@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,6 +26,7 @@
 
 #include "common/rs_common_def.h"
 #include "render_server/rs_render_service.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_render_node_gc.h"
@@ -104,14 +105,16 @@ RSRenderService* GetAndInitRenderService()
     MemorySnapshot::Instance();
     RSRenderNodeGC::Instance();
 
-    auto renderService(new RSRenderService());
-    if (renderService) {
-        renderService->mainThread_ = new RSMainThread();
-    }
-    if (renderService->mainThread_) {
-        renderService->mainThread_->context_ = std::make_shared<RSContext>();
-        renderService->mainThread_->context_->Initialize();
-    }
+    auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
+    auto mainThread = RSMainThread::Instance();
+    mainThread->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
+    mainThread->handler_->eventRunner_->Run();
+
+    auto pipeline = std::make_shared<RSRenderPipeline>();
+    pipeline->mainThread_ = mainThread;
+
+    auto renderService = new RSRenderService();
+    renderService->renderPipeline_ = pipeline;
     return renderService;
 }
 

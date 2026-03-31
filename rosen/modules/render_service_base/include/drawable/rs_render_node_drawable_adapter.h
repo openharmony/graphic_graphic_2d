@@ -303,10 +303,13 @@ protected:
     std::string DumpDrawableVec(const std::shared_ptr<RSRenderNode>& renderNode) const;
     bool QuickReject(Drawing::Canvas& canvas, const RectF& localDrawRect);
     bool HasFilterOrEffect(const RSRenderParams& params) const;
+    void AlignRectToDevicePixels(const Drawing::Matrix& matrix, Drawing::Rect& rect);
 
     // Draw functions
     void DrawAll(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawUifirstContentChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect);
+    void DrawAllUifirst(Drawing::Canvas& canvas, const Drawing::Rect& rect);
+    void DrawClipBounds(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawBackground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawBackgroundWithOutSaveAll(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawLeashWindowBackground(Drawing::Canvas& canvas, const Drawing::Rect& rect,

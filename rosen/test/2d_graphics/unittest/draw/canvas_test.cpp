@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "draw/canvas.h"
+#include "draw/ui_color.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -1224,6 +1225,20 @@ HWTEST_F(CanvasTest, RecordStateGPUContextTest, TestSize.Level1)
 {
     auto stateRecordCanvas = std::make_shared<StateRecordCanvas>(1316, 1962);
     ASSERT_TRUE(stateRecordCanvas->GetGPUContext() == nullptr);
+}
+
+/**
+ * @tc.name: CanvasDrawUIColorTest
+ * @tc.desc: Test for DrawUIColor function.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(CanvasTest, CanvasDrawUIColorTest, TestSize.Level1)
+{
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    UIColor color(0.5f, 0.6f, 0.7f, 0.8f, 2.0f);
+    canvas->DrawUIColor(color);
 }
 
 } // namespace Drawing

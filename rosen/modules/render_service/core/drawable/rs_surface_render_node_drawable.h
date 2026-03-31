@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,9 +26,9 @@
 
 #include "common/rs_common_def.h"
 #include "drawable/rs_render_node_drawable.h"
+#include "engine/rs_base_render_engine.h"
 #include "params/rs_surface_render_params.h"
 #include "params/rs_screen_render_params.h"
-#include "pipeline/render_thread/rs_base_render_engine.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "feature/uifirst/rs_draw_window_cache.h"
 #include "feature/uifirst/rs_sub_thread_cache.h"
@@ -145,7 +145,8 @@ private:
         RSRenderThreadParams& uniParams, bool isSelfDrawingSurface);
     bool IsVisibleRegionEqualOnPhysicalAndVirtual(RSSurfaceRenderParams& surfaceParams);
     void CaptureSurface(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
-    bool DrawSpecialLayer(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
+    bool DrawSpecialLayer(RSPaintFilterCanvas& canvas,
+        const RSSurfaceRenderParams& surfaceParams, const RSRenderThreadParams& uniParams);
 
     Drawing::Region CalculateVisibleDirtyRegion(RSSurfaceRenderParams& surfaceParams,
         RSSurfaceRenderNodeDrawable& surfaceDrawable, bool isOffscreen) const;
@@ -179,6 +180,8 @@ private:
     // Draw cloneNode source isRelated
     bool DrawRelatedSourceNode(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
     void ApplyCrossScreenOffset(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams);
+    void DrawRectWithColor(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams,
+        const Drawing::Color& color, bool applyCrossScreenOffset = false);
 
     // Watermark
     void DrawCommSurfaceWatermark(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& params);

@@ -309,6 +309,7 @@ export default namespace text {
   }
 
   export interface ParagraphStyle {
+    orphanCharOptimization?: boolean;
     fallbackLineSpacing?: boolean;
     includeFontPadding?: boolean;
     textStyle?: TextStyle;

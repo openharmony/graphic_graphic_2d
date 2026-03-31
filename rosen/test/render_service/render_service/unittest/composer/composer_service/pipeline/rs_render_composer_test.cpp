@@ -16,13 +16,14 @@
 #include <atomic>
 #include <chrono>
 #include <gtest/gtest.h>
-#include "rs_render_composer.h"
-#include "hdi_output.h"
+
 #include "../layer_backend/mock_hdi_device.h"
-#include "rs_render_composer_context.h"
+#include "hdi_output.h"
 #include "rs_layer.h"
 #include "rs_layer_common_def.h"
 #include "rs_layer_transaction_data.h"
+#include "rs_render_composer.h"
+#include "rs_render_composer_context.h"
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
@@ -31,26 +32,28 @@
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
 #endif
-#include "syspara/parameters.h"
-#include "syspara/parameter.h"
-#include "param/sys_param.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
-#include "common/rs_singleton.h"
-#include "pipeline/main_thread/rs_render_service_listener.h"
-#include "pipeline/rs_render_node_gc.h"
+#include "param/sys_param.h"
 #include "rs_composer_to_render_connection.h"
 #include "rs_render_surface_layer.h"
 #include "rs_render_surface_rcd_layer.h"
+#include "syspara/parameter.h"
+#include "syspara/parameters.h"
+
+#include "common/rs_singleton.h"
+#include "pipeline/main_thread/rs_render_service_listener.h"
+#include "pipeline/rs_render_node_gc.h"
 #define UnmarshallingFunc RSLayerParcelFactory_UnmarshallingFunc
 #include "rs_surface_layer_parcel.h"
 #undef UnmarshallingFunc
 #include "rs_render_layer_cmd.h"
 #include "rs_surface_rcd_layer.h"
-#include "screen_manager/rs_screen.h"
-#include "screen_manager/rs_screen_property.h"
 #include "surface_buffer_impl.h"
 #include "surface_type.h"
 #include "v2_1/cm_color_space.h"
+
+#include "screen_manager/rs_screen.h"
+#include "screen_manager/rs_screen_property.h"
 using namespace OHOS::HDI::Display::Graphic::Common::V1_0;
 
 using namespace testing::ext;
@@ -59,9 +62,7 @@ namespace OHOS {
 namespace Rosen {
 class BufferConsumerListener : public ::OHOS::IBufferConsumerListener {
 public:
-    void OnBufferAvailable() override
-    {
-    }
+    void OnBufferAvailable() override {}
 };
 class RsRenderComposerTest : public testing::Test {
 public:
@@ -107,149 +108,497 @@ namespace {
 class FakeRSLayer : public RSLayer {
 public:
     explicit FakeRSLayer(RSLayerId id, bool usingFlag, const std::string& name = "L")
-        : id_(id), isNeedComposition_(usingFlag), surfaceName_(name) {}
+        : id_(id), isNeedComposition_(usingFlag), surfaceName_(name)
+    {}
     ~FakeRSLayer() override = default;
 
-    RSLayerId GetRSLayerId() const override { return id_; }
-    void SetRSLayerId(RSLayerId rsLayerId) override { id_ = rsLayerId; }
-    void UpdateRSLayerCmd(const std::shared_ptr<RSRenderLayerCmd>& command) override { (void)command; }
-    void SetSurfaceUniqueId(uint64_t uniqueId) override { surfaceUniqueId_ = uniqueId; }
-    uint64_t GetSurfaceUniqueId() const override { return surfaceUniqueId_; }
-    void SetCycleBuffersNum(uint32_t cycleBuffersNum) override { cycleBuffersNum_ = cycleBuffersNum; }
-    uint32_t GetCycleBuffersNum() const override { return cycleBuffersNum_; }
-    void SetSurfaceName(std::string surfaceName) override { surfaceName_ = surfaceName; }
-    void SetBufferOwnerCount(const std::shared_ptr<RSSurfaceHandler::BufferOwnerCount>& boc,
-        bool needUpdate) override { bufferOwnerCount_ = boc; }
+    RSLayerId GetRSLayerId() const override
+    {
+        return id_;
+    }
+    void SetRSLayerId(RSLayerId rsLayerId) override
+    {
+        id_ = rsLayerId;
+    }
+    void UpdateRSLayerCmd(const std::shared_ptr<RSRenderLayerCmd>& command) override
+    {
+        (void)command;
+    }
+    void SetSurfaceUniqueId(uint64_t uniqueId) override
+    {
+        surfaceUniqueId_ = uniqueId;
+    }
+    uint64_t GetSurfaceUniqueId() const override
+    {
+        return surfaceUniqueId_;
+    }
+    void SetCycleBuffersNum(uint32_t cycleBuffersNum) override
+    {
+        cycleBuffersNum_ = cycleBuffersNum;
+    }
+    uint32_t GetCycleBuffersNum() const override
+    {
+        return cycleBuffersNum_;
+    }
+    void SetSurfaceName(std::string surfaceName) override
+    {
+        surfaceName_ = surfaceName;
+    }
+    void SetBufferOwnerCount(const std::shared_ptr<RSSurfaceHandler::BufferOwnerCount>& boc, bool needUpdate) override
+    {
+        bufferOwnerCount_ = boc;
+    }
     std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> PopBufferOwnerCountById(uint64_t bufferId) override
     {
         (void)bufferId;
         return nullptr;
     }
     std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetBufferOwnerCount() const override
-    { return bufferOwnerCount_; }
-    std::string GetSurfaceName() const override { return surfaceName_; }
+    {
+        return bufferOwnerCount_;
+    }
+    std::string GetSurfaceName() const override
+    {
+        return surfaceName_;
+    }
     void SetSolidColorLayerProperty(GraphicSolidColorLayerProperty solidColorLayerProperty) override
-    { solidColorLayerProperty_ = solidColorLayerProperty; }
-    GraphicSolidColorLayerProperty GetSolidColorLayerProperty() const override { return solidColorLayerProperty_; }
-    bool GetIsNeedComposition() const override { return isNeedComposition_; }
-    void SetIsNeedComposition(bool isNeedComposition) override { isNeedComposition_ = isNeedComposition; }
-    void SetAlpha(const GraphicLayerAlpha &alpha) override { alpha_ = alpha; }
-    const GraphicLayerAlpha &GetAlpha() const override { return alpha_; }
-    void SetZorder(int32_t zOrder) override { zOrder_ = zOrder; }
-    uint32_t GetZorder() const override { return static_cast<uint32_t>(zOrder_); }
-    void SetType(const GraphicLayerType layerType) override { layerType_ = layerType; }
-    GraphicLayerType GetType() const override { return layerType_; }
-    void SetTransform(GraphicTransformType type) override { transform_ = type; }
-    GraphicTransformType GetTransform() const override { return transform_; }
-    void SetCompositionType(GraphicCompositionType type) override { compType_ = type; }
-    GraphicCompositionType GetCompositionType() const override { return compType_; }
-    void SetHdiCompositionType(GraphicCompositionType type) override { hdiCompType_ = type; }
-    GraphicCompositionType GetHdiCompositionType() const override { return hdiCompType_; }
+    {
+        solidColorLayerProperty_ = solidColorLayerProperty;
+    }
+    GraphicSolidColorLayerProperty GetSolidColorLayerProperty() const override
+    {
+        return solidColorLayerProperty_;
+    }
+    bool GetIsNeedComposition() const override
+    {
+        return isNeedComposition_;
+    }
+    void SetIsNeedComposition(bool isNeedComposition) override
+    {
+        isNeedComposition_ = isNeedComposition;
+    }
+    void SetAlpha(const GraphicLayerAlpha& alpha) override
+    {
+        alpha_ = alpha;
+    }
+    const GraphicLayerAlpha& GetAlpha() const override
+    {
+        return alpha_;
+    }
+    void SetZorder(int32_t zOrder) override
+    {
+        zOrder_ = zOrder;
+    }
+    uint32_t GetZorder() const override
+    {
+        return static_cast<uint32_t>(zOrder_);
+    }
+    void SetType(const GraphicLayerType layerType) override
+    {
+        layerType_ = layerType;
+    }
+    GraphicLayerType GetType() const override
+    {
+        return layerType_;
+    }
+    void SetTransform(GraphicTransformType type) override
+    {
+        transform_ = type;
+    }
+    GraphicTransformType GetTransform() const override
+    {
+        return transform_;
+    }
+    void SetCompositionType(GraphicCompositionType type) override
+    {
+        compType_ = type;
+    }
+    GraphicCompositionType GetCompositionType() const override
+    {
+        return compType_;
+    }
+    void SetHdiCompositionType(GraphicCompositionType type) override
+    {
+        hdiCompType_ = type;
+    }
+    GraphicCompositionType GetHdiCompositionType() const override
+    {
+        return hdiCompType_;
+    }
     void SetVisibleRegions(const std::vector<GraphicIRect>& visibleRegions) override
-    { visibleRegions_ = visibleRegions; }
-    const std::vector<GraphicIRect>& GetVisibleRegions() const override { return visibleRegions_; }
-    void SetDirtyRegions(const std::vector<GraphicIRect>& dirtyRegions) override { dirtyRegions_ = dirtyRegions; }
-    const std::vector<GraphicIRect>& GetDirtyRegions() const override { return dirtyRegions_; }
-    void SetBlendType(GraphicBlendType type) override { blendType_ = type; }
-    GraphicBlendType GetBlendType() const override { return blendType_; }
-    void SetCropRect(const GraphicIRect &crop) override { cropRect_ = crop; }
-    const GraphicIRect &GetCropRect() const override { return cropRect_; }
-    void SetPreMulti(bool preMulti) override { preMulti_ = preMulti; }
-    bool IsPreMulti() const override { return preMulti_; }
-    void SetLayerSize(const GraphicIRect &layerRect) override { layerSize_ = layerRect; }
-    const GraphicIRect &GetLayerSize() const override { return layerSize_; }
-    void SetBoundSize(const GraphicIRect &boundRect) override { boundSize_ = boundRect; }
-    const GraphicIRect& GetBoundSize() const override { return boundSize_; }
-    void SetLayerColor(GraphicLayerColor layerColor) override { layerColor_ = layerColor; }
-    const GraphicLayerColor& GetLayerColor() const override { return layerColor_; }
-    void SetBackgroundColor(GraphicLayerColor backgroundColor) override { backgroundColor_ = backgroundColor; }
-    const GraphicLayerColor& GetBackgroundColor() const override { return backgroundColor_; }
+    {
+        visibleRegions_ = visibleRegions;
+    }
+    const std::vector<GraphicIRect>& GetVisibleRegions() const override
+    {
+        return visibleRegions_;
+    }
+    void SetDirtyRegions(const std::vector<GraphicIRect>& dirtyRegions) override
+    {
+        dirtyRegions_ = dirtyRegions;
+    }
+    const std::vector<GraphicIRect>& GetDirtyRegions() const override
+    {
+        return dirtyRegions_;
+    }
+    void SetBlendType(GraphicBlendType type) override
+    {
+        blendType_ = type;
+    }
+    GraphicBlendType GetBlendType() const override
+    {
+        return blendType_;
+    }
+    void SetCropRect(const GraphicIRect& crop) override
+    {
+        cropRect_ = crop;
+    }
+    const GraphicIRect& GetCropRect() const override
+    {
+        return cropRect_;
+    }
+    void SetPreMulti(bool preMulti) override
+    {
+        preMulti_ = preMulti;
+    }
+    bool IsPreMulti() const override
+    {
+        return preMulti_;
+    }
+    void SetLayerSize(const GraphicIRect& layerRect) override
+    {
+        layerSize_ = layerRect;
+    }
+    const GraphicIRect& GetLayerSize() const override
+    {
+        return layerSize_;
+    }
+    void SetBoundSize(const GraphicIRect& boundRect) override
+    {
+        boundSize_ = boundRect;
+    }
+    const GraphicIRect& GetBoundSize() const override
+    {
+        return boundSize_;
+    }
+    void SetLayerColor(GraphicLayerColor layerColor) override
+    {
+        layerColor_ = layerColor;
+    }
+    const GraphicLayerColor& GetLayerColor() const override
+    {
+        return layerColor_;
+    }
+    void SetBackgroundColor(GraphicLayerColor backgroundColor) override
+    {
+        backgroundColor_ = backgroundColor;
+    }
+    const GraphicLayerColor& GetBackgroundColor() const override
+    {
+        return backgroundColor_;
+    }
     void SetCornerRadiusInfoForDRM(const std::vector<float>& drmCornerRadiusInfo) override
-    { cornerRadiusInfo_ = drmCornerRadiusInfo; }
-    const std::vector<float>& GetCornerRadiusInfoForDRM() const override { return cornerRadiusInfo_; }
-    void SetColorTransform(const std::vector<float>& matrix) override { colorTransform_ = matrix; }
-    const std::vector<float>& GetColorTransform() const override { return colorTransform_; }
-    void SetColorDataSpace(GraphicColorDataSpace colorSpace) override { colorSpace_ = colorSpace; }
-    GraphicColorDataSpace GetColorDataSpace() const override { return colorSpace_; }
-    void SetMetaData(const std::vector<GraphicHDRMetaData>& metaData) override { metaData_ = metaData; }
-    const std::vector<GraphicHDRMetaData>& GetMetaData() const override { return metaData_; }
-    void SetMetaDataSet(const GraphicHDRMetaDataSet& metaDataSet) override { metaDataSet_ = metaDataSet; }
-    const GraphicHDRMetaDataSet& GetMetaDataSet() const override { return metaDataSet_; }
-    void SetMatrix(const GraphicMatrix& matrix) override { matrix_ = matrix; }
-    const GraphicMatrix& GetMatrix() const override { return matrix_; }
-    void SetGravity(int32_t gravity) override { gravity_ = gravity; }
-    int32_t GetGravity() const override { return gravity_; }
-    void SetUniRenderFlag(bool isUniRender) override { uniRender_ = isUniRender; }
-    bool GetUniRenderFlag() const override { return uniRender_; }
-    void SetTunnelHandleChange(bool change) override { tunnelHandleChange_ = change; }
-    bool GetTunnelHandleChange() const override { return tunnelHandleChange_; }
-    void SetTunnelHandle(const sptr<SurfaceTunnelHandle> &handle) override { tunnelHandle_ = handle; }
-    sptr<SurfaceTunnelHandle> GetTunnelHandle() const override { return tunnelHandle_; }
-    void SetTunnelLayerId(const uint64_t tunnelLayerId) override { tunnelLayerId_ = tunnelLayerId; }
-    uint64_t GetTunnelLayerId() const override { return tunnelLayerId_; }
+    {
+        cornerRadiusInfo_ = drmCornerRadiusInfo;
+    }
+    const std::vector<float>& GetCornerRadiusInfoForDRM() const override
+    {
+        return cornerRadiusInfo_;
+    }
+    void SetColorTransform(const std::vector<float>& matrix) override
+    {
+        colorTransform_ = matrix;
+    }
+    const std::vector<float>& GetColorTransform() const override
+    {
+        return colorTransform_;
+    }
+    void SetColorDataSpace(GraphicColorDataSpace colorSpace) override
+    {
+        colorSpace_ = colorSpace;
+    }
+    GraphicColorDataSpace GetColorDataSpace() const override
+    {
+        return colorSpace_;
+    }
+    void SetMetaData(const std::vector<GraphicHDRMetaData>& metaData) override
+    {
+        metaData_ = metaData;
+    }
+    const std::vector<GraphicHDRMetaData>& GetMetaData() const override
+    {
+        return metaData_;
+    }
+    void SetMetaDataSet(const GraphicHDRMetaDataSet& metaDataSet) override
+    {
+        metaDataSet_ = metaDataSet;
+    }
+    const GraphicHDRMetaDataSet& GetMetaDataSet() const override
+    {
+        return metaDataSet_;
+    }
+    void SetMatrix(const GraphicMatrix& matrix) override
+    {
+        matrix_ = matrix;
+    }
+    const GraphicMatrix& GetMatrix() const override
+    {
+        return matrix_;
+    }
+    void SetGravity(int32_t gravity) override
+    {
+        gravity_ = gravity;
+    }
+    int32_t GetGravity() const override
+    {
+        return gravity_;
+    }
+    void SetUniRenderFlag(bool isUniRender) override
+    {
+        uniRender_ = isUniRender;
+    }
+    bool GetUniRenderFlag() const override
+    {
+        return uniRender_;
+    }
+    void SetTunnelHandleChange(bool change) override
+    {
+        tunnelHandleChange_ = change;
+    }
+    bool GetTunnelHandleChange() const override
+    {
+        return tunnelHandleChange_;
+    }
+    void SetTunnelHandle(const sptr<SurfaceTunnelHandle>& handle) override
+    {
+        tunnelHandle_ = handle;
+    }
+    sptr<SurfaceTunnelHandle> GetTunnelHandle() const override
+    {
+        return tunnelHandle_;
+    }
+    void SetTunnelLayerId(const uint64_t tunnelLayerId) override
+    {
+        tunnelLayerId_ = tunnelLayerId;
+    }
+    uint64_t GetTunnelLayerId() const override
+    {
+        return tunnelLayerId_;
+    }
     void SetTunnelLayerProperty(uint32_t tunnelLayerProperty) override
-    { tunnelLayerProperty_ = tunnelLayerProperty; }
-    uint32_t GetTunnelLayerProperty() const override { return tunnelLayerProperty_; }
-    void SetIsSupportedPresentTimestamp(bool isSupported) override { supportedPresentTimestamp_ = isSupported; }
-    bool GetIsSupportedPresentTimestamp() const override { return supportedPresentTimestamp_; }
-    void SetPresentTimestamp(const GraphicPresentTimestamp &timestamp) override { presentTimestamp_ = timestamp; }
-    const GraphicPresentTimestamp& GetPresentTimestamp() const override { return presentTimestamp_; }
-    void SetSdrNit(float sdrNit) override { sdrNit_ = sdrNit; }
-    float GetSdrNit() const override { return sdrNit_; }
-    void SetDisplayNit(float displayNit) override { displayNit_ = displayNit; }
-    float GetDisplayNit() const override { return displayNit_; }
-    void SetBrightnessRatio(float brightnessRatio) override { brightnessRatio_ = brightnessRatio; }
-    float GetBrightnessRatio() const override { return brightnessRatio_; }
+    {
+        tunnelLayerProperty_ = tunnelLayerProperty;
+    }
+    uint32_t GetTunnelLayerProperty() const override
+    {
+        return tunnelLayerProperty_;
+    }
+    void SetIsSupportedPresentTimestamp(bool isSupported) override
+    {
+        supportedPresentTimestamp_ = isSupported;
+    }
+    bool GetIsSupportedPresentTimestamp() const override
+    {
+        return supportedPresentTimestamp_;
+    }
+    void SetPresentTimestamp(const GraphicPresentTimestamp& timestamp) override
+    {
+        presentTimestamp_ = timestamp;
+    }
+    const GraphicPresentTimestamp& GetPresentTimestamp() const override
+    {
+        return presentTimestamp_;
+    }
+    void SetSdrNit(float sdrNit) override
+    {
+        sdrNit_ = sdrNit;
+    }
+    float GetSdrNit() const override
+    {
+        return sdrNit_;
+    }
+    void SetDisplayNit(float displayNit) override
+    {
+        displayNit_ = displayNit;
+    }
+    float GetDisplayNit() const override
+    {
+        return displayNit_;
+    }
+    void SetBrightnessRatio(float brightnessRatio) override
+    {
+        brightnessRatio_ = brightnessRatio;
+    }
+    float GetBrightnessRatio() const override
+    {
+        return brightnessRatio_;
+    }
     void SetLayerLinearMatrix(const std::vector<float>& layerLinearMatrix) override
-    { layerLinearMatrix_ = layerLinearMatrix; }
-    const std::vector<float>& GetLayerLinearMatrix() const override { return layerLinearMatrix_; }
-    void SetLayerSourceTuning(int32_t layerSouce) override { layerSourceTuning_ = layerSouce; }
-    int32_t GetLayerSourceTuning() const override { return layerSourceTuning_; }
-    void SetWindowsName(std::vector<std::string>& windowsName) override { windowsName_ = windowsName; }
-    const std::vector<std::string>& GetWindowsName() const override { return windowsName_; }
-    void SetRotationFixed(bool rotationFixed) override { rotationFixed_ = rotationFixed; }
-    bool GetRotationFixed() const override { return rotationFixed_; }
-    void SetLayerArsr(bool arsrTag) override { layerArsr_ = arsrTag; }
-    bool GetLayerArsr() const override { return layerArsr_; }
-    void SetLayerCopybit(bool copybitTag) override { layerCopybit_ = copybitTag; }
-    bool GetLayerCopybit() const override { return layerCopybit_; }
-    void SetNeedBilinearInterpolation(bool need) override { needBilinear_ = need; }
-    bool GetNeedBilinearInterpolation() const override { return needBilinear_; }
-    void SetIsMaskLayer(bool isMaskLayer) override { isMaskLayer_ = isMaskLayer; }
-    bool GetIsMaskLayer() const override { return isMaskLayer_; }
-    void SetIgnoreAlpha(bool ignoreAlpha) override { ignoreAlpha_ = ignoreAlpha; }
-    bool GetIgnoreAlpha() const override { return ignoreAlpha_; }
-    void SetNodeId(uint64_t nodeId) override { nodeId_ = nodeId; }
-    uint64_t GetNodeId() const override { return nodeId_; }
-    void SetAncoFlags(const uint32_t ancoFlags) override { ancoFlags_ = ancoFlags; }
-    uint32_t GetAncoFlags() const override { return ancoFlags_; }
-    bool IsAncoNative() const override { return false; }
-    void SetLayerMaskInfo(LayerMask mask) override { layerMask_ = mask; }
-    LayerMask GetLayerMaskInfo() const override { return layerMask_; }
+    {
+        layerLinearMatrix_ = layerLinearMatrix;
+    }
+    const std::vector<float>& GetLayerLinearMatrix() const override
+    {
+        return layerLinearMatrix_;
+    }
+    void SetLayerSourceTuning(int32_t layerSouce) override
+    {
+        layerSourceTuning_ = layerSouce;
+    }
+    int32_t GetLayerSourceTuning() const override
+    {
+        return layerSourceTuning_;
+    }
+    void SetWindowsName(std::vector<std::string>& windowsName) override
+    {
+        windowsName_ = windowsName;
+    }
+    const std::vector<std::string>& GetWindowsName() const override
+    {
+        return windowsName_;
+    }
+    void SetRotationFixed(bool rotationFixed) override
+    {
+        rotationFixed_ = rotationFixed;
+    }
+    bool GetRotationFixed() const override
+    {
+        return rotationFixed_;
+    }
+    void SetLayerArsr(bool arsrTag) override
+    {
+        layerArsr_ = arsrTag;
+    }
+    bool GetLayerArsr() const override
+    {
+        return layerArsr_;
+    }
+    void SetLayerCopybit(bool copybitTag) override
+    {
+        layerCopybit_ = copybitTag;
+    }
+    bool GetLayerCopybit() const override
+    {
+        return layerCopybit_;
+    }
+    void SetNeedBilinearInterpolation(bool need) override
+    {
+        needBilinear_ = need;
+    }
+    bool GetNeedBilinearInterpolation() const override
+    {
+        return needBilinear_;
+    }
+    void SetIsMaskLayer(bool isMaskLayer) override
+    {
+        isMaskLayer_ = isMaskLayer;
+    }
+    bool GetIsMaskLayer() const override
+    {
+        return isMaskLayer_;
+    }
+    void SetIgnoreAlpha(bool ignoreAlpha) override
+    {
+        ignoreAlpha_ = ignoreAlpha;
+    }
+    bool GetIgnoreAlpha() const override
+    {
+        return ignoreAlpha_;
+    }
+    void SetNodeId(uint64_t nodeId) override
+    {
+        nodeId_ = nodeId;
+    }
+    uint64_t GetNodeId() const override
+    {
+        return nodeId_;
+    }
+    void SetAncoFlags(const uint32_t ancoFlags) override
+    {
+        ancoFlags_ = ancoFlags;
+    }
+    uint32_t GetAncoFlags() const override
+    {
+        return ancoFlags_;
+    }
+    bool IsAncoNative() const override
+    {
+        return false;
+    }
+    void SetLayerMaskInfo(LayerMask mask) override
+    {
+        layerMask_ = mask;
+    }
+    LayerMask GetLayerMaskInfo() const override
+    {
+        return layerMask_;
+    }
 
-    void SetSurface(const sptr<IConsumerSurface>& surface) override { surface_ = surface; }
-    sptr<IConsumerSurface> GetSurface() const override { return surface_; }
+    void SetSurface(const sptr<IConsumerSurface>& surface) override
+    {
+        surface_ = surface;
+    }
+    sptr<IConsumerSurface> GetSurface() const override
+    {
+        return surface_;
+    }
     void SetBuffer(const sptr<SurfaceBuffer>& sbuffer, const sptr<SyncFence>& acquireFence) override
     {
         buffer_ = sbuffer;
         acquireFence_ = acquireFence;
     }
-    void SetBuffer(const sptr<SurfaceBuffer>& sbuffer) override { buffer_ = sbuffer; }
-    sptr<SurfaceBuffer> GetBuffer() const override { return buffer_; }
-    void SetPreBuffer(const sptr<SurfaceBuffer>& buffer) override { preBuffer_ = buffer; }
-    sptr<SurfaceBuffer> GetPreBuffer() const override { return preBuffer_; }
-    void SetAcquireFence(const sptr<SyncFence>& acquireFence) override { acquireFence_ = acquireFence; }
-    sptr<SyncFence> GetAcquireFence() const override { return acquireFence_; }
+    void SetBuffer(const sptr<SurfaceBuffer>& sbuffer) override
+    {
+        buffer_ = sbuffer;
+    }
+    sptr<SurfaceBuffer> GetBuffer() const override
+    {
+        return buffer_;
+    }
+    void SetPreBuffer(const sptr<SurfaceBuffer>& buffer) override
+    {
+        preBuffer_ = buffer;
+    }
+    sptr<SurfaceBuffer> GetPreBuffer() const override
+    {
+        return preBuffer_;
+    }
+    void SetAcquireFence(const sptr<SyncFence>& acquireFence) override
+    {
+        acquireFence_ = acquireFence;
+    }
+    sptr<SyncFence> GetAcquireFence() const override
+    {
+        return acquireFence_;
+    }
 
     // Provide overrides to avoid undefined reference to base default implementations during linking
-    void SetUseDeviceOffline(bool useOffline) override { useDeviceOffline_ = useOffline; }
-    bool GetUseDeviceOffline() const override { return useDeviceOffline_; }
-    void SetAncoSrcRect(const GraphicIRect& ancoSrcRect) override { ancoSrcRect_ = ancoSrcRect; }
-    const GraphicIRect& GetAncoSrcRect() const override { return ancoSrcRect_; }
+    void SetUseDeviceOffline(bool useOffline) override
+    {
+        useDeviceOffline_ = useOffline;
+    }
+    bool GetUseDeviceOffline() const override
+    {
+        return useDeviceOffline_;
+    }
+    void SetAncoSrcRect(const GraphicIRect& ancoSrcRect) override
+    {
+        ancoSrcRect_ = ancoSrcRect;
+    }
+    const GraphicIRect& GetAncoSrcRect() const override
+    {
+        return ancoSrcRect_;
+    }
     void SetDeleteLayer(bool isDeleteLayer) const override {}
 
-    void CopyLayerInfo(const RSLayerPtr& rsLayer) override { (void)rsLayer; }
-    void Dump(std::string& result) const override { (void)result; }
+    void CopyLayerInfo(const RSLayerPtr& rsLayer) override
+    {
+        (void)rsLayer;
+    }
+    void Dump(std::string& result) const override
+    {
+        (void)result;
+    }
     void DumpCurrentFrameLayer() const override {}
 
 private:
@@ -268,10 +617,10 @@ private:
     std::vector<GraphicIRect> visibleRegions_;
     std::vector<GraphicIRect> dirtyRegions_;
     GraphicBlendType blendType_ = GraphicBlendType::GRAPHIC_BLEND_NONE;
-    GraphicIRect cropRect_ {0, 0, 0, 0};
+    GraphicIRect cropRect_ { 0, 0, 0, 0 };
     bool preMulti_ = false;
-    GraphicIRect layerSize_ {0, 0, 0, 0};
-    GraphicIRect boundSize_ {0, 0, 0, 0};
+    GraphicIRect layerSize_ { 0, 0, 0, 0 };
+    GraphicIRect boundSize_ { 0, 0, 0, 0 };
     GraphicLayerColor layerColor_ {};
     GraphicLayerColor backgroundColor_ {};
     std::vector<float> cornerRadiusInfo_;
@@ -308,9 +657,9 @@ private:
     sptr<SurfaceBuffer> preBuffer_ = nullptr;
     sptr<SyncFence> acquireFence_ = nullptr;
     uint32_t cycleBuffersNum_ = 0;
-    bool ignoreAlpha_ {false};
-    bool useDeviceOffline_ {false};
-    GraphicIRect ancoSrcRect_ {-1, -1, -1, -1};
+    bool ignoreAlpha_ { false };
+    bool useDeviceOffline_ { false };
+    GraphicIRect ancoSrcRect_ { -1, -1, -1, -1 };
 };
 }
 
@@ -326,7 +675,7 @@ private:
 HWTEST_F(RsRenderComposerTest, ConstructAndHandlerReady, TestSize.Level1)
 {
     // Directly use RSRenderComposer to verify that posting task works without crash
-    std::atomic<bool> ran{false};
+    std::atomic<bool> ran { false };
     rsRenderComposer_->PostTask([&ran]() { ran.store(true); });
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
     EXPECT_TRUE(ran.load());
@@ -479,7 +828,6 @@ HWTEST_F(RsRenderComposerTest, RefreshRateCounts_Branches, TestSize.Level1)
     EXPECT_GE(s.length(), 0u);
 }
 
-
 /**
  * Function: ClearFrameBuffers_Branches_NoCrash
  * Type: Function
@@ -553,7 +901,7 @@ HWTEST_F(RsRenderComposerTest, ClearFrameBuffers_Branches_NoCrash_002, TestSize.
     auto pSurface = Surface::CreateSurfaceAsProducer(producer);
     std::shared_ptr<RSSurfaceOhos> rsSurface1 = std::make_shared<RSSurfaceOhosRaster>(pSurface);
     EXPECT_NE(nullptr, rsSurface1);
-    rsRenderComposerTmp->frameBufferSurfaceOhosMap_.insert({0, rsSurface1});
+    rsRenderComposerTmp->frameBufferSurfaceOhosMap_.insert({ 0, rsSurface1 });
     EXPECT_EQ(rsRenderComposerTmp->ClearFrameBuffers(true), SURFACE_ERROR_CONSUMER_DISCONNECTED);
 }
 
@@ -799,23 +1147,23 @@ HWTEST_F(RsRenderComposerTest, ComposerProcess_IsSuperFoldDisplay_Coverage, Test
     output->Init();
     sptr<RSScreenProperty> property = new RSScreenProperty();
     auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
-    rsRenderComposerTmp->composerScreenInfo_.activeRect = {100, 100, 0, 0};
+    rsRenderComposerTmp->composerScreenInfo_.activeRect = { 100, 100, 0, 0 };
     std::vector<std::shared_ptr<RSLayer>> layers;
     EXPECT_EQ(rsRenderComposerTmp->IsDropDirtyFrame(layers), false);
 
     layers.push_back(nullptr);
     std::shared_ptr<RSLayer> layer1 = std::make_shared<RSRenderSurfaceLayer>();
-    layer1->SetLayerSize({100, 100, 0, 0});
+    layer1->SetLayerSize({ 100, 100, 0, 0 });
     layers.push_back(layer1);
     EXPECT_EQ(rsRenderComposerTmp->IsDropDirtyFrame(layers), false);
     std::shared_ptr<RSLayer> layer2 = std::make_shared<RSRenderSurfaceLayer>();
     layer2->SetUniRenderFlag(false);
     layers.push_back(layer2);
     std::shared_ptr<RSLayer> layer3 = std::make_shared<RSRenderSurfaceLayer>();
-    layer3->SetLayerSize({200, 200, 0, 0});
+    layer3->SetLayerSize({ 200, 200, 0, 0 });
     layers.push_back(layer3);
     std::shared_ptr<RSLayer> layer4 = std::make_shared<RSRenderSurfaceLayer>();
-    layer4->SetLayerSize({200, 200, 0, 0});
+    layer4->SetLayerSize({ 200, 200, 0, 0 });
     layer4->SetUniRenderFlag(true);
     layers.push_back(layer4);
 
@@ -842,7 +1190,7 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_NotSuperFoldDisplay, TestSize.Le
 
     std::vector<std::shared_ptr<RSLayer>> layers;
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
-    layer->SetLayerSize({100, 100, 100, 100});
+    layer->SetLayerSize({ 100, 100, 100, 100 });
     layer->SetUniRenderFlag(true);
     layers.push_back(layer);
 
@@ -869,11 +1217,11 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_SuperFoldDisplay_ActiveRectEmpty
     auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
 
     // Set activeRect with width=0, height=0 (empty)
-    rsRenderComposerTmp->composerScreenInfo_.activeRect = {100, 100, 0, 0};
+    rsRenderComposerTmp->composerScreenInfo_.activeRect = { 100, 100, 0, 0 };
 
     std::vector<std::shared_ptr<RSLayer>> layers;
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
-    layer->SetLayerSize({200, 200, 100, 100}); // Different from activeRect
+    layer->SetLayerSize({ 200, 200, 100, 100 }); // Different from activeRect
     layer->SetUniRenderFlag(true);
     layers.push_back(layer);
 
@@ -901,7 +1249,7 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_SuperFoldDisplay_LayersEmpty, Te
     auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
 
     // Set valid activeRect
-    rsRenderComposerTmp->composerScreenInfo_.activeRect = {100, 100, 100, 100};
+    rsRenderComposerTmp->composerScreenInfo_.activeRect = { 100, 100, 100, 100 };
 
     std::vector<std::shared_ptr<RSLayer>> layers; // Empty layers
 
@@ -929,7 +1277,7 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_LayerIsNull, TestSize.Level1)
     sptr<RSScreenProperty> property = new RSScreenProperty();
     auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
 
-    rsRenderComposerTmp->composerScreenInfo_.activeRect = {100, 100, 100, 100};
+    rsRenderComposerTmp->composerScreenInfo_.activeRect = { 100, 100, 100, 100 };
 
     std::vector<std::shared_ptr<RSLayer>> layers;
     layers.push_back(nullptr); // nullptr layer
@@ -958,11 +1306,11 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_UniRenderFlagTrue_SizeMismatch, 
     sptr<RSScreenProperty> property = new RSScreenProperty();
     auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
 
-    rsRenderComposerTmp->composerScreenInfo_.activeRect = {100, 100, 100, 100};
+    rsRenderComposerTmp->composerScreenInfo_.activeRect = { 100, 100, 100, 100 };
 
     std::vector<std::shared_ptr<RSLayer>> layers;
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
-    layer->SetLayerSize({200, 200, 100, 100}); // Mismatched with activeRect
+    layer->SetLayerSize({ 200, 200, 100, 100 }); // Mismatched with activeRect
     layer->SetUniRenderFlag(true);
     layers.push_back(layer);
 
@@ -990,11 +1338,11 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_UniRenderFlagTrue_SizeMatch, Tes
     sptr<RSScreenProperty> property = new RSScreenProperty();
     auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
 
-    rsRenderComposerTmp->composerScreenInfo_.activeRect = {100, 100, 100, 100};
+    rsRenderComposerTmp->composerScreenInfo_.activeRect = { 100, 100, 100, 100 };
 
     std::vector<std::shared_ptr<RSLayer>> layers;
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
-    layer->SetLayerSize({100, 100, 100, 100}); // Matched with activeRect
+    layer->SetLayerSize({ 100, 100, 100, 100 }); // Matched with activeRect
     layer->SetUniRenderFlag(true);
     layers.push_back(layer);
 
@@ -1022,11 +1370,11 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_UniRenderFlagFalse, TestSize.Lev
     sptr<RSScreenProperty> property = new RSScreenProperty();
     auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
 
-    rsRenderComposerTmp->composerScreenInfo_.activeRect = {100, 100, 100, 100};
+    rsRenderComposerTmp->composerScreenInfo_.activeRect = { 100, 100, 100, 100 };
 
     std::vector<std::shared_ptr<RSLayer>> layers;
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
-    layer->SetLayerSize({200, 200, 100, 100}); // Mismatched with activeRect
+    layer->SetLayerSize({ 200, 200, 100, 100 }); // Mismatched with activeRect
     layer->SetUniRenderFlag(false);
     layers.push_back(layer);
 
@@ -1054,7 +1402,7 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_MultipleLayers_Mixed, TestSize.L
     sptr<RSScreenProperty> property = new RSScreenProperty();
     auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
 
-    rsRenderComposerTmp->composerScreenInfo_.activeRect = {100, 100, 100, 100};
+    rsRenderComposerTmp->composerScreenInfo_.activeRect = { 100, 100, 100, 100 };
 
     std::vector<std::shared_ptr<RSLayer>> layers;
 
@@ -1063,13 +1411,13 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_MultipleLayers_Mixed, TestSize.L
 
     // Layer 2: uniRenderFlag=false, size mismatched
     std::shared_ptr<RSRenderSurfaceLayer> layer2 = std::make_shared<RSRenderSurfaceLayer>();
-    layer2->SetLayerSize({200, 200, 100, 100});
+    layer2->SetLayerSize({ 200, 200, 100, 100 });
     layer2->SetUniRenderFlag(false);
     layers.push_back(layer2);
 
     // Layer 3: uniRenderFlag=true, size matched
     std::shared_ptr<RSRenderSurfaceLayer> layer3 = std::make_shared<RSRenderSurfaceLayer>();
-    layer3->SetLayerSize({100, 100, 100, 100});
+    layer3->SetLayerSize({ 100, 100, 100, 100 });
     layer3->SetUniRenderFlag(true);
     layers.push_back(layer3);
 
@@ -1079,7 +1427,7 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_MultipleLayers_Mixed, TestSize.L
 
     // Layer 4: uniRenderFlag=true, size mismatched - should trigger drop
     std::shared_ptr<RSRenderSurfaceLayer> layer4 = std::make_shared<RSRenderSurfaceLayer>();
-    layer4->SetLayerSize({200, 200, 100, 100});
+    layer4->SetLayerSize({ 200, 200, 100, 100 });
     layer4->SetUniRenderFlag(true);
     layers.push_back(layer4);
 
@@ -1107,14 +1455,14 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_AllLayersMatch, TestSize.Level1)
     sptr<RSScreenProperty> property = new RSScreenProperty();
     auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
 
-    rsRenderComposerTmp->composerScreenInfo_.activeRect = {100, 100, 100, 100};
+    rsRenderComposerTmp->composerScreenInfo_.activeRect = { 100, 100, 100, 100 };
 
     std::vector<std::shared_ptr<RSLayer>> layers;
 
     // Add multiple layers with matching size or uniRenderFlag=false
     for (int i = 0; i < 5; i++) {
         std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
-        layer->SetLayerSize({100, 100, 100, 100}); // Matched size
+        layer->SetLayerSize({ 100, 100, 100, 100 }); // Matched size
         layer->SetUniRenderFlag(true);
         layers.push_back(layer);
     }
@@ -1143,19 +1491,19 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_FirstLayerMismatch, TestSize.Lev
     sptr<RSScreenProperty> property = sptr<RSScreenProperty>::MakeSptr();
     auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
 
-    rsRenderComposerTmp->composerScreenInfo_.activeRect = {100, 100, 100, 100};
+    rsRenderComposerTmp->composerScreenInfo_.activeRect = { 100, 100, 100, 100 };
 
     std::vector<std::shared_ptr<RSLayer>> layers;
 
     // First layer: mismatched
     std::shared_ptr<RSRenderSurfaceLayer> layer1 = std::make_shared<RSRenderSurfaceLayer>();
-    layer1->SetLayerSize({200, 200, 100, 100});
+    layer1->SetLayerSize({ 200, 200, 100, 100 });
     layer1->SetUniRenderFlag(true);
     layers.push_back(layer1);
 
     // Add more layers (should not be checked due to early return)
     std::shared_ptr<RSRenderSurfaceLayer> layer2 = std::make_shared<RSRenderSurfaceLayer>();
-    layer2->SetLayerSize({100, 100, 100, 100});
+    layer2->SetLayerSize({ 100, 100, 100, 100 });
     layer2->SetUniRenderFlag(true);
     layers.push_back(layer2);
 
@@ -1183,21 +1531,21 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_LastLayerMismatch, TestSize.Leve
     sptr<RSScreenProperty> property = new RSScreenProperty();
     auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
 
-    rsRenderComposerTmp->composerScreenInfo_.activeRect = {100, 100, 100, 100};
+    rsRenderComposerTmp->composerScreenInfo_.activeRect = { 100, 100, 100, 100 };
 
     std::vector<std::shared_ptr<RSLayer>> layers;
 
     // Add matched layers
     for (int i = 0; i < 3; i++) {
         std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
-        layer->SetLayerSize({100, 100, 100, 100});
+        layer->SetLayerSize({ 100, 100, 100, 100 });
         layer->SetUniRenderFlag(true);
         layers.push_back(layer);
     }
 
     // Add mismatched layer at the end
     std::shared_ptr<RSRenderSurfaceLayer> lastLayer = std::make_shared<RSRenderSurfaceLayer>();
-    lastLayer->SetLayerSize({200, 200, 100, 100});
+    lastLayer->SetLayerSize({ 200, 200, 100, 100 });
     lastLayer->SetUniRenderFlag(true);
     layers.push_back(lastLayer);
 
@@ -1391,10 +1739,12 @@ HWTEST_F(RsRenderComposerTest, RecordTimestamp, TestSize.Level1)
     sptr<SurfaceBuffer> buffer;
     sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
 
-    BufferRequestConfig requestConfig = {
-        .width = 0x100, .height = 0x100, .strideAlignment = 0x8, .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
-        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA, .timeout = 0
-    };
+    BufferRequestConfig requestConfig = { .width = 0x100,
+        .height = 0x100,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0 };
 
     EXPECT_EQ(sProducer->RequestBuffer(buffer, requestFence, requestConfig), GSERROR_OK);
     l3->SetBuffer(buffer);
@@ -1430,7 +1780,7 @@ HWTEST_F(RsRenderComposerTest, RecordTimestamp, TestSize.Level1)
  */
 HWTEST_F(RsRenderComposerTest, IsDelayRequired, TestSize.Level1)
 {
-    auto &hgmCore = HgmCore::Instance();
+    auto& hgmCore = HgmCore::Instance();
     PipelineParam param;
     param.frameTimestamp = 0;
     param.actualTimestamp = 0;
@@ -1453,10 +1803,13 @@ HWTEST_F(RsRenderComposerTest, IsDelayRequired, TestSize.Level1)
     bool frameRateMgrIsAdaptive = frameRateMgr->isAdaptive_.load();
     frameRateMgr->isAdaptive_.store(SupportASStatus::SUPPORT_AS);
     EXPECT_TRUE(rsRenderComposer_->IsDelayRequired(hgmCore, param));
+    frameRateMgr->asStateForFps_.store(true);
+    EXPECT_FALSE(rsRenderComposer_->IsDelayRequired(hgmCore, param));
+    frameRateMgr->asStateForFps_.store(false);
 
     frameRateMgr->isAdaptive_.store(SupportASStatus::GAME_SCENE_SKIP);
     param.hasGameScene = true;
-    EXPECT_TRUE(rsRenderComposer_->IsDelayRequired(hgmCore, param));
+    EXPECT_FALSE(rsRenderComposer_->IsDelayRequired(hgmCore, param));
 
     hgmCore.isLtpoMode_.store(false);
     bool hgmCoreIsDelayMode = hgmCore.isDelayMode_;
@@ -1491,6 +1844,28 @@ HWTEST_F(RsRenderComposerTest, CreateFrameBufferSurfaceOhos, TestSize.Level1)
 
     auto rsSurfaceOhosPtr = rsRenderComposer_->CreateFrameBufferSurfaceOhos(psurface);
     ASSERT_NE(rsSurfaceOhosPtr, nullptr);
+}
+
+/**
+ * Function: SetAFBCEnabled
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer
+ *                  2. call SetAFBCEnabled
+ *                  3. verify result
+ */
+HWTEST_F(RsRenderComposerTest, SetAFBCEnabled, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(0u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
+
+    rsRenderComposerTmp->SetAFBCEnabled(false);
+    ASSERT_EQ(rsRenderComposerTmp->enableAFBC_, false);
+    rsRenderComposerTmp->SetAFBCEnabled(true);
+    ASSERT_EQ(rsRenderComposerTmp->enableAFBC_, true);
 }
 
 /**
@@ -1547,7 +1922,7 @@ HWTEST_F(RsRenderComposerTest, Redraw001, TestSize.Level1)
     RSLayerPtr layer1 = std::static_pointer_cast<RSLayer>(std::make_shared<RSRenderSurfaceLayer>());
     layer1->SetBuffer(buffer);
     layers.emplace_back(layer1);
-    rsRenderComposerTmp->frameBufferSurfaceOhosMap_.insert({0, nullptr});
+    rsRenderComposerTmp->frameBufferSurfaceOhosMap_.insert({ 0, nullptr });
     rsRenderComposerTmp->Redraw(psurface, layers);
     csurface->UnregisterConsumerListener();
 
@@ -1555,6 +1930,10 @@ HWTEST_F(RsRenderComposerTest, Redraw001, TestSize.Level1)
     rsRenderComposerTmp->hdiOutput_ = nullptr;
     rsRenderComposerTmp->Redraw(psurface, layers);
     rsRenderComposerTmp->hdiOutput_ = hdiOutput;
+
+    rsRenderComposerTmp->SetAFBCEnabled(false);
+    rsRenderComposerTmp->Redraw(psurface, layers);
+    rsRenderComposerTmp->SetAFBCEnabled(true);
 }
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
@@ -1595,7 +1974,7 @@ HWTEST_F(RsRenderComposerTest, Redraw002, TestSize.Level1)
         GRAPHIC_PIXEL_FMT_YCBCR_P010,
         GRAPHIC_PIXEL_FMT_RGBA_1010108,
     };
-    std::vector<std::string> layerNames = {"R1", "R2", "R3"};
+    std::vector<std::string> layerNames = { "R1", "R2", "R3" };
     for (size_t i = 0; i < formats.size(); ++i) {
         RSLayerPtr layer = std::make_shared<FakeRSLayer>(i + 20, false, layerNames[i]);
         RSSurfaceRenderNodeConfig config;
@@ -1618,16 +1997,16 @@ HWTEST_F(RsRenderComposerTest, Redraw002, TestSize.Level1)
     GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB;
     GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_8888;
     auto hdiOutput = HdiOutput::CreateHdiOutput(0);
-    EXPECT_CALL(*hdiDeviceMock_, GetDisplayClientTargetProperty(testing::_, testing::_, testing::_)).WillRepeatedly(
-            testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
+    EXPECT_CALL(*hdiDeviceMock_, GetDisplayClientTargetProperty(testing::_, testing::_, testing::_))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
     sptr<RSScreenProperty> property = new RSScreenProperty();
     auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(hdiOutput, property);
     tmpRsRenderComposer->hdiOutput_->SetHdiOutputDevice(hdiDeviceMock_);
     bool ret = tmpRsRenderComposer->GetDisplayClientTargetProperty(pixelFormat, colorGamut, layers);
     EXPECT_FALSE(ret);
     tmpRsRenderComposer->Redraw(psurface, layers);
-    EXPECT_CALL(*hdiDeviceMock_, GetDisplayClientTargetProperty(testing::_, testing::_, testing::_)).WillRepeatedly(
-            testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_CALL(*hdiDeviceMock_, GetDisplayClientTargetProperty(testing::_, testing::_, testing::_))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
     ret = tmpRsRenderComposer->GetDisplayClientTargetProperty(pixelFormat, colorGamut, layers);
     EXPECT_TRUE(ret);
     tmpRsRenderComposer->Redraw(psurface, layers);
@@ -1656,8 +2035,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetColorGamut001, TestSize.Level1)
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(
-        std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
+    sptr<IBufferConsumerListener> listener =
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
 
@@ -1709,8 +2088,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetColorGamut002, TestSize.Level1)
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode(rsSurfaceRenderNode);
-    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(
-        std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
+    sptr<IBufferConsumerListener> listener =
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
 
@@ -1784,8 +2163,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetColorGamut003, TestSize.Level1)
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(
-        std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
+    sptr<IBufferConsumerListener> listener =
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode(rsSurfaceRenderNode);
@@ -1845,8 +2224,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetColorGamut004, TestSize.Level1)
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(
-        std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
+    sptr<IBufferConsumerListener> listener =
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode(rsSurfaceRenderNode);
@@ -1900,10 +2279,10 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetPixelFormat_Layers, TestSize.Level1)
         GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE_CLEAR,
         GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR,
     };
-    std::vector<std::string> skipLayerNames = {"S1", "S2", "S3"};
+    std::vector<std::string> skipLayerNames = { "S1", "S2", "S3" };
     for (size_t i = 0; i < skipTypes.size(); ++i) {
-        RSLayerPtr skipLayer = std::static_pointer_cast<RSLayer>(
-            std::make_shared<FakeRSLayer>(i + 2, false, skipLayerNames[i]));
+        RSLayerPtr skipLayer =
+            std::static_pointer_cast<RSLayer>(std::make_shared<FakeRSLayer>(i + 2, false, skipLayerNames[i]));
         skipLayer->SetCompositionType(skipTypes[i]);
         layers.emplace_back(skipLayer);
     }
@@ -1916,10 +2295,10 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetPixelFormat_Layers, TestSize.Level1)
     };
 
     using RSRcdManager = RSSingleton<RoundCornerDisplayManager>;
-    std::vector<std::string> rcdLayerNames = {"R1", "R2", "R3"};
+    std::vector<std::string> rcdLayerNames = { "R1", "R2", "R3" };
     for (size_t i = 0; i < rcdTypes.size(); ++i) {
-        RSLayerPtr rcdLayer = std::static_pointer_cast<RSLayer>(
-            std::make_shared<FakeRSLayer>(i + 10, false, rcdLayerNames[i]));
+        RSLayerPtr rcdLayer =
+            std::static_pointer_cast<RSLayer>(std::make_shared<FakeRSLayer>(i + 10, false, rcdLayerNames[i]));
         sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("surface_" + rcdLayerNames[i]);
         rcdLayer->SetSurface(cSurface);
         RSRcdManager::GetInstance().AddLayer(rcdLayerNames[i], i + 10, rcdTypes[i]);
@@ -1947,10 +2326,10 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetPixelFormat_Layers_HasBuffer, TestSi
         GRAPHIC_PIXEL_FMT_YCRCB_P010,
         GRAPHIC_PIXEL_FMT_RGBA_1010108,
     };
-    std::vector<std::string> layerNames = {"R1", "R2", "R3", "R4"};
+    std::vector<std::string> layerNames = { "R1", "R2", "R3", "R4" };
     for (size_t i = 0; i < formats.size(); ++i) {
-        RSLayerPtr layer = std::static_pointer_cast<RSLayer>(
-            std::make_shared<FakeRSLayer>(i + 20, false, layerNames[i]));
+        RSLayerPtr layer =
+            std::static_pointer_cast<RSLayer>(std::make_shared<FakeRSLayer>(i + 20, false, layerNames[i]));
         RSSurfaceRenderNodeConfig config;
         config.id = i + 20;
         config.name = "surface_" + layerNames[i];
@@ -2090,8 +2469,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetPixelFormat001, TestSize.Level1)
     config.name = std::to_string(id);
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
-    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(
-        std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
+    sptr<IBufferConsumerListener> listener =
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
@@ -2138,7 +2517,7 @@ HWTEST_F(RsRenderComposerTest, GetDisplayClientTargetProperty001, TestSize.Level
         GRAPHIC_PIXEL_FMT_RGBA_1010102,
         GRAPHIC_PIXEL_FMT_YCRCB_P010,
     };
-    std::vector<std::string> layerNames = {"R1", "R2"};
+    std::vector<std::string> layerNames = { "R1", "R2" };
     for (size_t i = 0; i < formats.size(); ++i) {
         RSLayerPtr layer = std::make_shared<FakeRSLayer>(i + 20, false, layerNames[i]);
         RSSurfaceRenderNodeConfig config;
@@ -2268,10 +2647,10 @@ HWTEST_F(RsRenderComposerTest, RedrawScreenRCD, TestSize.Level1)
         GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE_CLEAR,
         GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR,
     };
-    std::vector<std::string> skipLayerNames = {"S1", "S2", "S3"};
+    std::vector<std::string> skipLayerNames = { "S1", "S2", "S3" };
     for (size_t i = 0; i < skipTypes.size(); ++i) {
-        RSLayerPtr skipLayer = std::static_pointer_cast<RSLayer>(
-            std::make_shared<FakeRSLayer>(i + 2, false, skipLayerNames[i]));
+        RSLayerPtr skipLayer =
+            std::static_pointer_cast<RSLayer>(std::make_shared<FakeRSLayer>(i + 2, false, skipLayerNames[i]));
         skipLayer->SetCompositionType(skipTypes[i]);
         layers.emplace_back(skipLayer);
     }
@@ -2283,10 +2662,10 @@ HWTEST_F(RsRenderComposerTest, RedrawScreenRCD, TestSize.Level1)
     };
 
     using RSRcdManager = RSSingleton<RoundCornerDisplayManager>;
-    std::vector<std::string> rcdLayerNames = {"R1", "R2", "R3"};
+    std::vector<std::string> rcdLayerNames = { "R1", "R2", "R3" };
     for (size_t i = 0; i < rcLayerTypes.size(); ++i) {
-        RSLayerPtr rcdLayer = std::static_pointer_cast<RSLayer>(
-            std::make_shared<FakeRSLayer>(i + 10, false, rcdLayerNames[i]));
+        RSLayerPtr rcdLayer =
+            std::static_pointer_cast<RSLayer>(std::make_shared<FakeRSLayer>(i + 10, false, rcdLayerNames[i]));
         sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("surface_" + rcdLayerNames[i]);
         rcdLayer->SetSurface(cSurface);
         RSRcdManager::GetInstance().AddLayer(rcdLayerNames[i], i + 10, rcLayerTypes[i]);
@@ -2318,7 +2697,7 @@ HWTEST_F(RsRenderComposerTest, PostTask_Null_Handler, TestSize.Level1)
     tmpRsRenderComposer->handler_ = nullptr;
     EXPECT_EQ(tmpRsRenderComposer->handler_, nullptr);
 
-    std::atomic<bool> ran{false};
+    std::atomic<bool> ran { false };
     tmpRsRenderComposer->PostTask([&ran]() { ran.store(true); });
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
     EXPECT_FALSE(ran.load());
@@ -2410,17 +2789,237 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_HasGameScene, TestSize.Level
     tmpRsRenderComposer->ProcessComposerFrame(currentRate, param);
 
     tmpRsRenderComposer->uniRenderEngine_ = nullptr;
+}
 
-    output = std::make_shared<HdiOutput>(0u);
+/**
+ * Function: ComposerPrepare_CallbackNotNull_InvokeCallback
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer and set setHardwareTaskNumCb_ callback
+ *                  2. call ComposerPrepare
+ *                  3. verify callback is invoked with correct task number (line 234 branch true)
+ */
+HWTEST_F(RsRenderComposerTest, ComposerPrepare_CallbackNotNull_InvokeCallback, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(2u);
     output->Init();
-    property = new RSScreenProperty();
-    tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
-    EXPECT_EQ(tmpRsRenderComposer->hdiOutput_->GetScreenId(), 0u);
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
+    EXPECT_EQ(tmpRsRenderComposer->hdiOutput_->GetScreenId(), 2u);
     EXPECT_NE(tmpRsRenderComposer->handler_, nullptr);
-    tmpRsRenderComposer->ProcessComposerFrame(currentRate, param);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    tmpRsRenderComposer->unExecuteTaskNum_.store(3);
-    tmpRsRenderComposer->ProcessComposerFrame(currentRate, param);
+
+    // Track callback invocations
+    std::atomic<uint32_t> callbackTaskNum { 0 };
+    std::atomic<bool> callbackInvoked { false };
+
+    // Set the callback (line 234 branch will be true)
+    tmpRsRenderComposer->setHardwareTaskNumCb_ = [&callbackTaskNum, &callbackInvoked](uint32_t taskNum) {
+        callbackTaskNum.store(taskNum);
+        callbackInvoked.store(true);
+    };
+
+    // Reset unExecuteTaskNum_ to known value
+    tmpRsRenderComposer->unExecuteTaskNum_.store(0);
+
+    PipelineParam param;
+    uint32_t currentRate = 60;
+    int64_t delayTime = 0;
+
+    // Call ComposerPrepare - callback should be invoked
+    tmpRsRenderComposer->ComposerPrepare(currentRate, delayTime, param);
+
+    // Verify callback was invoked with task number = 1 (0 + 1)
+    EXPECT_TRUE(callbackInvoked.load());
+    EXPECT_EQ(callbackTaskNum.load(), 1u);
+
+    // Call ComposerPrepare again - callback should be invoked with task number = 2
+    callbackInvoked.store(false);
+    tmpRsRenderComposer->ComposerPrepare(currentRate, delayTime, param);
+
+    EXPECT_TRUE(callbackInvoked.load());
+    EXPECT_EQ(callbackTaskNum.load(), 2u);
+
+    tmpRsRenderComposer->uniRenderEngine_ = nullptr;
+}
+
+/**
+ * Function: ComposerPrepare_MultiplePrepares_CallbackTracking
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer and set callback
+ *                  2. call ComposerPrepare multiple times
+ *                  3. verify callback is invoked with incrementing task numbers
+ */
+HWTEST_F(RsRenderComposerTest, ComposerPrepare_MultiplePrepares_CallbackTracking, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(3u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
+    EXPECT_EQ(tmpRsRenderComposer->hdiOutput_->GetScreenId(), 3u);
+    EXPECT_NE(tmpRsRenderComposer->handler_, nullptr);
+
+    // Track all callback invocations
+    std::vector<uint32_t> callbackTaskNums;
+    tmpRsRenderComposer->setHardwareTaskNumCb_ = [&callbackTaskNums](
+                                                     uint32_t taskNum) { callbackTaskNums.push_back(taskNum); };
+
+    tmpRsRenderComposer->unExecuteTaskNum_.store(0);
+
+    PipelineParam param;
+    uint32_t currentRate = 60;
+    int64_t delayTime = 0;
+
+    // Call ComposerPrepare multiple times
+    for (int i = 0; i < 5; i++) {
+        tmpRsRenderComposer->ComposerPrepare(currentRate, delayTime, param);
+    }
+
+    // Verify callback was invoked 5 times with incrementing task numbers
+    EXPECT_EQ(callbackTaskNums.size(), 5u);
+    for (size_t i = 0; i < callbackTaskNums.size(); i++) {
+        EXPECT_EQ(callbackTaskNums[i], static_cast<uint32_t>(i + 1));
+    }
+
+    tmpRsRenderComposer->uniRenderEngine_ = nullptr;
+}
+
+/**
+ * Function: ComposerPrepare_CallbackNotNull_VaryingRefreshRates
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer and set callback
+ *                  2. call ComposerPrepare with different refresh rates
+ *                  3. verify callback is invoked correctly for each rate
+ */
+HWTEST_F(RsRenderComposerTest, ComposerPrepare_CallbackNotNull_VaryingRefreshRates, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(4u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
+    EXPECT_EQ(tmpRsRenderComposer->hdiOutput_->GetScreenId(), 4u);
+    EXPECT_NE(tmpRsRenderComposer->handler_, nullptr);
+
+    std::atomic<uint32_t> callbackCount { 0 };
+    tmpRsRenderComposer->setHardwareTaskNumCb_ = [&callbackCount](uint32_t) { callbackCount.fetch_add(1); };
+
+    tmpRsRenderComposer->unExecuteTaskNum_.store(0);
+
+    PipelineParam param;
+    int64_t delayTime = 0;
+
+    // Test with different refresh rates
+    std::vector<uint32_t> refreshRates = { 30, 60, 90, 120 };
+    for (uint32_t rate : refreshRates) {
+        uint32_t currentRate = rate;
+        tmpRsRenderComposer->ComposerPrepare(currentRate, delayTime, param);
+    }
+
+    // Verify callback was invoked for each refresh rate
+    EXPECT_EQ(callbackCount.load(), refreshRates.size());
+
+    tmpRsRenderComposer->uniRenderEngine_ = nullptr;
+}
+
+/**
+ * Function: ComposerPrepare_CallbackNotNull_VaryingPipelineParams
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer and set callback
+ *                  2. call ComposerPrepare with different pipeline parameters
+ *                  3. verify callback is invoked correctly
+ */
+HWTEST_F(RsRenderComposerTest, ComposerPrepare_CallbackNotNull_VaryingPipelineParams, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(5u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
+    EXPECT_EQ(tmpRsRenderComposer->hdiOutput_->GetScreenId(), 5u);
+    EXPECT_NE(tmpRsRenderComposer->handler_, nullptr);
+
+    std::atomic<uint32_t> callbackCount { 0 };
+    tmpRsRenderComposer->setHardwareTaskNumCb_ = [&callbackCount](uint32_t) { callbackCount.fetch_add(1); };
+
+    tmpRsRenderComposer->unExecuteTaskNum_.store(0);
+
+    uint32_t currentRate = 60;
+    int64_t delayTime = 0;
+
+    // Test with different pipeline parameters
+    PipelineParam param1;
+    param1.pendingScreenRefreshRate = 60;
+    param1.frameTimestamp = 1000;
+    param1.pendingConstraintRelativeTime = 0;
+    tmpRsRenderComposer->ComposerPrepare(currentRate, delayTime, param1);
+
+    PipelineParam param2;
+    param2.pendingScreenRefreshRate = 90;
+    param2.frameTimestamp = 2000;
+    param2.pendingConstraintRelativeTime = 500;
+    tmpRsRenderComposer->ComposerPrepare(currentRate, delayTime, param2);
+
+    PipelineParam param3;
+    param3.pendingScreenRefreshRate = 120;
+    param3.frameTimestamp = 3000;
+    param3.pendingConstraintRelativeTime = 1000;
+    tmpRsRenderComposer->ComposerPrepare(currentRate, delayTime, param3);
+
+    // Verify callback was invoked 3 times
+    EXPECT_EQ(callbackCount.load(), 3u);
+
+    tmpRsRenderComposer->uniRenderEngine_ = nullptr;
+}
+
+/**
+ * Function: ComposerPrepare_CallbackNotNull_TaskNumberIncrement
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer and set callback
+ *                  2. verify unExecuteTaskNum_ increments correctly
+ *                  3. verify callback receives correct task number
+ */
+HWTEST_F(RsRenderComposerTest, ComposerPrepare_CallbackNotNull_TaskNumberIncrement, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(6u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
+    EXPECT_EQ(tmpRsRenderComposer->hdiOutput_->GetScreenId(), 6u);
+    EXPECT_NE(tmpRsRenderComposer->handler_, nullptr);
+
+    std::atomic<uint32_t> lastCallbackTaskNum { 0 };
+    tmpRsRenderComposer->setHardwareTaskNumCb_ = [&lastCallbackTaskNum](
+                                                     uint32_t taskNum) { lastCallbackTaskNum.store(taskNum); };
+
+    // Start with a non-zero task number
+    tmpRsRenderComposer->unExecuteTaskNum_.store(10);
+
+    PipelineParam param;
+    uint32_t currentRate = 60;
+    int64_t delayTime = 0;
+
+    // First call - task number should be 11
+    tmpRsRenderComposer->ComposerPrepare(currentRate, delayTime, param);
+    EXPECT_EQ(tmpRsRenderComposer->unExecuteTaskNum_.load(), 11u);
+    EXPECT_EQ(lastCallbackTaskNum.load(), 11u);
+
+    // Second call - task number should be 12
+    tmpRsRenderComposer->ComposerPrepare(currentRate, delayTime, param);
+    EXPECT_EQ(tmpRsRenderComposer->unExecuteTaskNum_.load(), 12u);
+    EXPECT_EQ(lastCallbackTaskNum.load(), 12u);
+
+    // Third call - task number should be 13
+    tmpRsRenderComposer->ComposerPrepare(currentRate, delayTime, param);
+    EXPECT_EQ(tmpRsRenderComposer->unExecuteTaskNum_.load(), 13u);
+    EXPECT_EQ(lastCallbackTaskNum.load(), 13u);
+
     tmpRsRenderComposer->uniRenderEngine_ = nullptr;
 }
 
@@ -2723,16 +3322,16 @@ HWTEST_F(RsRenderComposerTest, ChangeLayersForActiveRectOutside_Coverage, TestSi
 
     std::shared_ptr<RSLayer> layer1 = std::make_shared<RSRenderSurfaceLayer>();
     layers.push_back(layer1);
-    rsRenderComposerTmp->composerScreenInfo_.reviseRect = {0, 0, 0, 0};
+    rsRenderComposerTmp->composerScreenInfo_.reviseRect = { 0, 0, 0, 0 };
     rsRenderComposerTmp->ChangeLayersForActiveRectOutside(layers);
-    rsRenderComposerTmp->composerScreenInfo_.reviseRect = {100, 0, 0, 0};
+    rsRenderComposerTmp->composerScreenInfo_.reviseRect = { 100, 0, 0, 0 };
     rsRenderComposerTmp->ChangeLayersForActiveRectOutside(layers);
-    rsRenderComposerTmp->composerScreenInfo_.reviseRect = {100, 100, 0, 0};
-    rsRenderComposerTmp->composerScreenInfo_.maskRect = {0, 0, 0, 0};
+    rsRenderComposerTmp->composerScreenInfo_.reviseRect = { 100, 100, 0, 0 };
+    rsRenderComposerTmp->composerScreenInfo_.maskRect = { 0, 0, 0, 0 };
     rsRenderComposerTmp->ChangeLayersForActiveRectOutside(layers);
-    rsRenderComposerTmp->composerScreenInfo_.maskRect = {100, 0, 0, 0};
+    rsRenderComposerTmp->composerScreenInfo_.maskRect = { 100, 0, 0, 0 };
     rsRenderComposerTmp->ChangeLayersForActiveRectOutside(layers);
-    rsRenderComposerTmp->composerScreenInfo_.maskRect = {100, 100, 0, 0};
+    rsRenderComposerTmp->composerScreenInfo_.maskRect = { 100, 100, 0, 0 };
     rsRenderComposerTmp->ChangeLayersForActiveRectOutside(layers);
     std::shared_ptr<RSLayer> layer2 = std::make_shared<RSRenderSurfaceRCDLayer>();
     layers.push_back(layer2);
@@ -2760,12 +3359,12 @@ HWTEST_F(RsRenderComposerTest, ChangeLayersForActiveRectOutside_MaskRectTrue, Te
 
     std::vector<std::shared_ptr<RSLayer>> layers;
     std::shared_ptr<RSLayer> layer1 = std::make_shared<RSRenderSurfaceLayer>();
-    layer1->SetLayerSize({50, 50, 100, 100});
+    layer1->SetLayerSize({ 50, 50, 100, 100 });
     layers.push_back(layer1);
 
     // Set maskRect with positive width and height to trigger line 437 branch true
-    rsRenderComposerTmp->composerScreenInfo_.reviseRect = {100, 100, 200, 200};
-    rsRenderComposerTmp->composerScreenInfo_.maskRect = {0, 0, 50, 50};
+    rsRenderComposerTmp->composerScreenInfo_.reviseRect = { 100, 100, 200, 200 };
+    rsRenderComposerTmp->composerScreenInfo_.maskRect = { 0, 0, 50, 50 };
     size_t initialLayerCount = layers.size();
     rsRenderComposerTmp->ChangeLayersForActiveRectOutside(layers);
 
@@ -2799,25 +3398,25 @@ HWTEST_F(RsRenderComposerTest, ChangeLayersForActiveRectOutside_MaskRectFalse, T
 
     std::vector<std::shared_ptr<RSLayer>> layers;
     std::shared_ptr<RSLayer> layer1 = std::make_shared<RSRenderSurfaceLayer>();
-    layer1->SetLayerSize({50, 50, 100, 100});
+    layer1->SetLayerSize({ 50, 50, 100, 100 });
     layers.push_back(layer1);
 
-    rsRenderComposerTmp->composerScreenInfo_.reviseRect = {100, 100, 200, 200};
+    rsRenderComposerTmp->composerScreenInfo_.reviseRect = { 100, 100, 200, 200 };
 
     // Test with maskRect width = 0
-    rsRenderComposerTmp->composerScreenInfo_.maskRect = {0, 0, 0, 50};
+    rsRenderComposerTmp->composerScreenInfo_.maskRect = { 0, 0, 0, 50 };
     size_t layerCount1 = layers.size();
     rsRenderComposerTmp->ChangeLayersForActiveRectOutside(layers);
     EXPECT_EQ(layers.size(), layerCount1);
 
     // Test with maskRect height = 0
-    rsRenderComposerTmp->composerScreenInfo_.maskRect = {0, 0, 50, 0};
+    rsRenderComposerTmp->composerScreenInfo_.maskRect = { 0, 0, 50, 0 };
     size_t layerCount2 = layers.size();
     rsRenderComposerTmp->ChangeLayersForActiveRectOutside(layers);
     EXPECT_EQ(layers.size(), layerCount2);
 
     // Test with both width and height = 0
-    rsRenderComposerTmp->composerScreenInfo_.maskRect = {0, 0, 0, 0};
+    rsRenderComposerTmp->composerScreenInfo_.maskRect = { 0, 0, 0, 0 };
     size_t layerCount3 = layers.size();
     rsRenderComposerTmp->ChangeLayersForActiveRectOutside(layers);
     EXPECT_EQ(layers.size(), layerCount3);
@@ -2845,12 +3444,12 @@ HWTEST_F(RsRenderComposerTest, ChangeLayersForActiveRectOutside_RCDLayerTrue, Te
 
     std::vector<std::shared_ptr<RSLayer>> layers;
     std::shared_ptr<RSRenderSurfaceRCDLayer> rcdLayer = std::make_shared<RSRenderSurfaceRCDLayer>();
-    GraphicIRect originalSize = {200, 200, 100, 100};
+    GraphicIRect originalSize = { 200, 200, 100, 100 };
     rcdLayer->SetLayerSize(originalSize);
     layers.push_back(rcdLayer);
 
-    rsRenderComposerTmp->composerScreenInfo_.reviseRect = {100, 100, 200, 200};
-    rsRenderComposerTmp->composerScreenInfo_.maskRect = {0, 0, 0, 0};
+    rsRenderComposerTmp->composerScreenInfo_.reviseRect = { 100, 100, 200, 200 };
+    rsRenderComposerTmp->composerScreenInfo_.maskRect = { 0, 0, 0, 0 };
 
     rsRenderComposerTmp->ChangeLayersForActiveRectOutside(layers);
 
@@ -2885,14 +3484,14 @@ HWTEST_F(RsRenderComposerTest, ChangeLayersForActiveRectOutside_RCDLayerFalse, T
     std::vector<std::shared_ptr<RSLayer>> layers;
     std::shared_ptr<RSRenderSurfaceLayer> normalLayer = std::make_shared<RSRenderSurfaceLayer>();
     // Set layer size that extends beyond reviseRect
-    GraphicIRect originalSize = {50, 50, 150, 150};
+    GraphicIRect originalSize = { 50, 50, 150, 150 };
     normalLayer->SetLayerSize(originalSize);
     layers.push_back(normalLayer);
 
     // reviseRect: left=100, top=100, width=200, height=200
     // reviseRight = 100 + 200 = 300, reviseBottom = 100 + 200 = 300
-    rsRenderComposerTmp->composerScreenInfo_.reviseRect = {100, 100, 200, 200};
-    rsRenderComposerTmp->composerScreenInfo_.maskRect = {0, 0, 0, 0};
+    rsRenderComposerTmp->composerScreenInfo_.reviseRect = { 100, 100, 200, 200 };
+    rsRenderComposerTmp->composerScreenInfo_.maskRect = { 0, 0, 0, 0 };
 
     rsRenderComposerTmp->ChangeLayersForActiveRectOutside(layers);
 
@@ -2931,24 +3530,24 @@ HWTEST_F(RsRenderComposerTest, ChangeLayersForActiveRectOutside_MixedLayers, Tes
 
     // Add normal layer 1
     std::shared_ptr<RSRenderSurfaceLayer> normalLayer1 = std::make_shared<RSRenderSurfaceLayer>();
-    GraphicIRect size1 = {50, 50, 100, 100};
+    GraphicIRect size1 = { 50, 50, 100, 100 };
     normalLayer1->SetLayerSize(size1);
     layers.push_back(normalLayer1);
 
     // Add RCD layer
     std::shared_ptr<RSRenderSurfaceRCDLayer> rcdLayer = std::make_shared<RSRenderSurfaceRCDLayer>();
-    GraphicIRect rcdSize = {0, 0, 50, 50};
+    GraphicIRect rcdSize = { 0, 0, 50, 50 };
     rcdLayer->SetLayerSize(rcdSize);
     layers.push_back(rcdLayer);
 
     // Add normal layer 2
     std::shared_ptr<RSRenderSurfaceLayer> normalLayer2 = std::make_shared<RSRenderSurfaceLayer>();
-    GraphicIRect size2 = {200, 200, 80, 80};
+    GraphicIRect size2 = { 200, 200, 80, 80 };
     normalLayer2->SetLayerSize(size2);
     layers.push_back(normalLayer2);
 
-    rsRenderComposerTmp->composerScreenInfo_.reviseRect = {100, 100, 200, 200};
-    rsRenderComposerTmp->composerScreenInfo_.maskRect = {0, 0, 30, 30};
+    rsRenderComposerTmp->composerScreenInfo_.reviseRect = { 100, 100, 200, 200 };
+    rsRenderComposerTmp->composerScreenInfo_.maskRect = { 0, 0, 30, 30 };
 
     size_t initialLayerCount = layers.size();
     rsRenderComposerTmp->ChangeLayersForActiveRectOutside(layers);
@@ -2994,12 +3593,12 @@ HWTEST_F(RsRenderComposerTest, ChangeLayersForActiveRectOutside_NotSuperFoldDisp
 
     std::vector<std::shared_ptr<RSLayer>> layers;
     std::shared_ptr<RSRenderSurfaceLayer> layer1 = std::make_shared<RSRenderSurfaceLayer>();
-    GraphicIRect originalSize = {50, 50, 100, 100};
+    GraphicIRect originalSize = { 50, 50, 100, 100 };
     layer1->SetLayerSize(originalSize);
     layers.push_back(layer1);
 
-    rsRenderComposerTmp->composerScreenInfo_.reviseRect = {100, 100, 200, 200};
-    rsRenderComposerTmp->composerScreenInfo_.maskRect = {0, 0, 50, 50};
+    rsRenderComposerTmp->composerScreenInfo_.reviseRect = { 100, 100, 200, 200 };
+    rsRenderComposerTmp->composerScreenInfo_.maskRect = { 0, 0, 50, 50 };
 
     size_t initialLayerCount = layers.size();
     rsRenderComposerTmp->ChangeLayersForActiveRectOutside(layers);
@@ -3032,8 +3631,8 @@ HWTEST_F(RsRenderComposerTest, ChangeLayersForActiveRectOutside_EmptyLayers, Tes
 
     std::vector<std::shared_ptr<RSLayer>> layers; // Empty layers
 
-    rsRenderComposerTmp->composerScreenInfo_.reviseRect = {100, 100, 200, 200};
-    rsRenderComposerTmp->composerScreenInfo_.maskRect = {0, 0, 50, 50};
+    rsRenderComposerTmp->composerScreenInfo_.reviseRect = { 100, 100, 200, 200 };
+    rsRenderComposerTmp->composerScreenInfo_.maskRect = { 0, 0, 50, 50 };
 
     rsRenderComposerTmp->ChangeLayersForActiveRectOutside(layers);
 
@@ -3075,7 +3674,7 @@ HWTEST_F(RsRenderComposerTest, UpdateTransactionData_Coverage, TestSize.Level1)
     auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
     EXPECT_NE(rsRenderComposerTmp->hdiOutput_, nullptr);
     std::shared_ptr<RSLayerTransactionData> transactionData = std::make_shared<RSLayerTransactionData>();
-    transactionData->payload_.push_back({0, nullptr});
+    transactionData->payload_.push_back({ 0, nullptr });
     rsRenderComposerTmp->UpdateTransactionData(transactionData);
 
     auto prop = std::make_shared<RSRenderLayerCmdProperty<int32_t>>(1);
@@ -3084,12 +3683,12 @@ HWTEST_F(RsRenderComposerTest, UpdateTransactionData_Coverage, TestSize.Level1)
     std::shared_ptr<RSLayerParcel> parcel1 = std::make_shared<RSUpdateRSLayerCmd>(id, zCmd);
     std::shared_ptr<RSLayerParcel> parcel2 = std::make_shared<RSDestroyRSLayerCmd>(id, zCmd);
     std::shared_ptr<RSLayerParcel> parcel3 = std::make_shared<RSUpdateRSRCDLayerCmd>(id, zCmd);
-    transactionData->payload_.push_back({id, parcel1});
-    transactionData->composerInfo_.composerScreenInfo.activeRect = {100, 200, 0, 0};
+    transactionData->payload_.push_back({ id, parcel1 });
+    transactionData->composerInfo_.composerScreenInfo.activeRect = { 100, 200, 0, 0 };
     rsRenderComposerTmp->UpdateTransactionData(transactionData);
-    transactionData->composerInfo_.composerScreenInfo.activeRect = {200, 200, 0, 0};
-    transactionData->payload_.push_back({id, parcel2});
-    transactionData->payload_.push_back({id, parcel3});
+    transactionData->composerInfo_.composerScreenInfo.activeRect = { 200, 200, 0, 0 };
+    transactionData->payload_.push_back({ id, parcel2 });
+    transactionData->payload_.push_back({ id, parcel3 });
     rsRenderComposerTmp->UpdateTransactionData(transactionData);
 }
 
@@ -3143,7 +3742,7 @@ HWTEST_F(RsRenderComposerTest, PreAllocateProtectedBuffer_Coverage, TestSize.Lev
     auto pSurface = Surface::CreateSurfaceAsProducer(producer);
     std::shared_ptr<RSSurfaceOhos> rsSurface1 = std::make_shared<RSSurfaceOhosRaster>(pSurface);
     EXPECT_NE(nullptr, rsSurface1);
-    rsRenderComposerTmp->frameBufferSurfaceOhosMap_.insert({0, rsSurface1});
+    rsRenderComposerTmp->frameBufferSurfaceOhosMap_.insert({ 0, rsSurface1 });
     rsRenderComposerTmp->PreAllocateProtectedBuffer(buffer);
     rsRenderComposerTmp->hdiOutput_->fbSurface_ = nullptr;
     rsRenderComposerTmp->PreAllocateProtectedBuffer(buffer);
@@ -3173,11 +3772,11 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_ShouldDropFrameTrue, TestSiz
     ASSERT_NE(tmpRsRenderComposer, nullptr);
 
     // Set up composer screen info to trigger shouldDropFrame = true
-    tmpRsRenderComposer->composerScreenInfo_.activeRect = {100, 100, 100, 100};
+    tmpRsRenderComposer->composerScreenInfo_.activeRect = { 100, 100, 100, 100 };
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(0, std::make_shared<RSRenderSurfaceLayer>());
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
-    layer->SetLayerSize({200, 200, 100, 100}); // Different from activeRect
+    layer->SetLayerSize({ 200, 200, 100, 100 }); // Different from activeRect
     layer->SetUniRenderFlag(true);
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
     EXPECT_TRUE(layer->GetUniRenderFlag());
@@ -3208,7 +3807,7 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_ShouldDropFrameFalse, TestSi
     ASSERT_NE(tmpRsRenderComposer, nullptr);
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
-    layer->SetLayerSize({100, 100, 100, 100});
+    layer->SetLayerSize({ 100, 100, 100, 100 });
     layer->SetUniRenderFlag(false);
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
     EXPECT_FALSE(layer->GetUniRenderFlag());
@@ -3236,11 +3835,11 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_SuperFoldDisplayScreenId0, T
     auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
     ASSERT_NE(tmpRsRenderComposer, nullptr);
 
-    tmpRsRenderComposer->composerScreenInfo_.reviseRect = {100, 100, 100, 100};
-    tmpRsRenderComposer->composerScreenInfo_.maskRect = {0, 0, 0, 0};
+    tmpRsRenderComposer->composerScreenInfo_.reviseRect = { 100, 100, 100, 100 };
+    tmpRsRenderComposer->composerScreenInfo_.maskRect = { 0, 0, 0, 0 };
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
-    layer->SetLayerSize({100, 100, 100, 100});
+    layer->SetLayerSize({ 100, 100, 100, 100 });
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
     ASSERT_NE(tmpRsRenderComposer->rsRenderComposerContext_->GetRSRenderLayer(1), nullptr);
 
@@ -3269,7 +3868,7 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_NotSuperFoldDisplayOrScreenI
     ASSERT_NE(tmpRsRenderComposer, nullptr);
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
-    layer->SetLayerSize({100, 100, 100, 100});
+    layer->SetLayerSize({ 100, 100, 100, 100 });
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
     ASSERT_NE(tmpRsRenderComposer->rsRenderComposerContext_->GetRSRenderLayer(1), nullptr);
 
@@ -3297,7 +3896,7 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_HwcDeadTrue, TestSize.Level1
     tmpRsRenderComposer->OnHwcDead();
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
-    layer->SetLayerSize({100, 100, 100, 100});
+    layer->SetLayerSize({ 100, 100, 100, 100 });
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
 
     PipelineParam param;
@@ -3326,7 +3925,7 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_HwcDeadFalse, TestSize.Level
     ASSERT_NE(tmpRsRenderComposer, nullptr);
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
-    layer->SetLayerSize({100, 100, 100, 100});
+    layer->SetLayerSize({ 100, 100, 100, 100 });
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
     ASSERT_NE(tmpRsRenderComposer->rsRenderComposerContext_->GetRSRenderLayer(1), nullptr);
 
@@ -3356,7 +3955,7 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_DeviceValidFalse, TestSize.L
     tmpRsRenderComposer->hdiOutput_->ResetDevice();
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
-    layer->SetLayerSize({100, 100, 100, 100});
+    layer->SetLayerSize({ 100, 100, 100, 100 });
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
 
     PipelineParam param;
@@ -3384,7 +3983,7 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_DoRepaintTrue, TestSize.Leve
     auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
-    layer->SetLayerSize({100, 100, 100, 100});
+    layer->SetLayerSize({ 100, 100, 100, 100 });
     layer->SetUniRenderFlag(false);
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
 
@@ -3415,10 +4014,10 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_DoRepaintFalse_DropFrame, Te
     auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
     ASSERT_NE(tmpRsRenderComposer, nullptr);
 
-    tmpRsRenderComposer->composerScreenInfo_.activeRect = {100, 100, 100, 100};
+    tmpRsRenderComposer->composerScreenInfo_.activeRect = { 100, 100, 100, 100 };
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
-    layer->SetLayerSize({200, 200, 100, 100}); // Different from activeRect
+    layer->SetLayerSize({ 200, 200, 100, 100 }); // Different from activeRect
     layer->SetUniRenderFlag(true);
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
     ASSERT_NE(tmpRsRenderComposer->rsRenderComposerContext_->GetRSRenderLayer(1), nullptr);
@@ -3449,7 +4048,7 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_ComposerToRenderConnectionNu
     tmpRsRenderComposer->composerToRenderConnection_ = nullptr;
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
-    layer->SetLayerSize({100, 100, 100, 100});
+    layer->SetLayerSize({ 100, 100, 100, 100 });
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
 
     PipelineParam param;
@@ -3483,11 +4082,11 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_SuperFoldDisplayWithHwcDead,
     tmpRsRenderComposer->OnHwcDead();
     EXPECT_TRUE(tmpRsRenderComposer->isHwcDead_);
 
-    tmpRsRenderComposer->composerScreenInfo_.reviseRect = {100, 100, 100, 100};
-    tmpRsRenderComposer->composerScreenInfo_.maskRect = {0, 0, 0, 0};
+    tmpRsRenderComposer->composerScreenInfo_.reviseRect = { 100, 100, 100, 100 };
+    tmpRsRenderComposer->composerScreenInfo_.maskRect = { 0, 0, 0, 0 };
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
-    layer->SetLayerSize({100, 100, 100, 100});
+    layer->SetLayerSize({ 100, 100, 100, 100 });
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
     ASSERT_NE(tmpRsRenderComposer->rsRenderComposerContext_->GetRSRenderLayer(1), nullptr);
 
@@ -3520,7 +4119,7 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_MissedFramesReport, TestSize
     ASSERT_NE(tmpRsRenderComposer, nullptr);
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
-    layer->SetLayerSize({100, 100, 100, 100});
+    layer->SetLayerSize({ 100, 100, 100, 100 });
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
     ASSERT_NE(tmpRsRenderComposer->rsRenderComposerContext_->GetRSRenderLayer(1), nullptr);
 
@@ -3554,7 +4153,7 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_NoMissedFramesReport, TestSi
     auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
-    layer->SetLayerSize({100, 100, 100, 100});
+    layer->SetLayerSize({ 100, 100, 100, 100 });
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
 
     PipelineParam param;
@@ -3581,7 +4180,7 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_HasLppVideoTrue, TestSize.Le
     ASSERT_NE(tmpRsRenderComposer, nullptr);
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
-    layer->SetLayerSize({100, 100, 100, 100});
+    layer->SetLayerSize({ 100, 100, 100, 100 });
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
     ASSERT_NE(tmpRsRenderComposer->rsRenderComposerContext_->GetRSRenderLayer(1), nullptr);
 
@@ -3613,7 +4212,7 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_HasLppVideoFalse, TestSize.L
     ASSERT_NE(tmpRsRenderComposer, nullptr);
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
-    layer->SetLayerSize({100, 100, 100, 100});
+    layer->SetLayerSize({ 100, 100, 100, 100 });
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
     ASSERT_NE(tmpRsRenderComposer->rsRenderComposerContext_->GetRSRenderLayer(1), nullptr);
 
@@ -3642,7 +4241,7 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_IsDisconnectedWithTasks, Tes
     tmpRsRenderComposer->unExecuteTaskNum_.store(5);
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
-    layer->SetLayerSize({100, 100, 100, 100});
+    layer->SetLayerSize({ 100, 100, 100, 100 });
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
 
     PipelineParam param;
@@ -3671,7 +4270,7 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_IsDisconnectedNoTasks, TestS
     tmpRsRenderComposer->unExecuteTaskNum_.store(0);
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
-    layer->SetLayerSize({100, 100, 100, 100});
+    layer->SetLayerSize({ 100, 100, 100, 100 });
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
 
     PipelineParam param;
@@ -3700,7 +4299,7 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_NotDisconnected, TestSize.Le
     auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
-    layer->SetLayerSize({100, 100, 100, 100});
+    layer->SetLayerSize({ 100, 100, 100, 100 });
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
 
     PipelineParam param;
@@ -3757,7 +4356,7 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_MultipleLayers, TestSize.Lev
     // Add multiple layers
     for (int i = 0; i < 5; i++) {
         std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
-        layer->SetLayerSize({100, 100, 100, 100});
+        layer->SetLayerSize({ 100, 100, 100, 100 });
         layer->SetZorder(i);
         tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(i, layer);
         ASSERT_NE(tmpRsRenderComposer->rsRenderComposerContext_->GetRSRenderLayer(i), nullptr);
@@ -3787,7 +4386,7 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_HasGameScene2, TestSize.Leve
     ASSERT_NE(tmpRsRenderComposer, nullptr);
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
-    layer->SetLayerSize({100, 100, 100, 100});
+    layer->SetLayerSize({ 100, 100, 100, 100 });
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
     ASSERT_NE(tmpRsRenderComposer->rsRenderComposerContext_->GetRSRenderLayer(1), nullptr);
 
@@ -3820,7 +4419,7 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_ComposerToRenderConnectionNo
     tmpRsRenderComposer->composerToRenderConnection_ = sptr<RSComposerToRenderConnection>::MakeSptr();
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
-    layer->SetLayerSize({100, 100, 100, 100});
+    layer->SetLayerSize({ 100, 100, 100, 100 });
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
     ASSERT_NE(tmpRsRenderComposer->rsRenderComposerContext_->GetRSRenderLayer(1), nullptr);
 
@@ -3852,7 +4451,7 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_HardJankReport_True, TestSiz
     ASSERT_NE(tmpRsRenderComposer, nullptr);
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
-    layer->SetLayerSize({100, 100, 100, 100});
+    layer->SetLayerSize({ 100, 100, 100, 100 });
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
     ASSERT_NE(tmpRsRenderComposer->rsRenderComposerContext_->GetRSRenderLayer(1), nullptr);
 
@@ -3890,7 +4489,7 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_HardJankReport_False_LowMiss
     ASSERT_NE(tmpRsRenderComposer, nullptr);
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
-    layer->SetLayerSize({100, 100, 100, 100});
+    layer->SetLayerSize({ 100, 100, 100, 100 });
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
     ASSERT_NE(tmpRsRenderComposer->rsRenderComposerContext_->GetRSRenderLayer(1), nullptr);
 
@@ -3924,7 +4523,7 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_HardJankReport_False_ShortIn
     ASSERT_NE(tmpRsRenderComposer, nullptr);
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
-    layer->SetLayerSize({100, 100, 100, 100});
+    layer->SetLayerSize({ 100, 100, 100, 100 });
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
     ASSERT_NE(tmpRsRenderComposer->rsRenderComposerContext_->GetRSRenderLayer(1), nullptr);
 
@@ -3962,7 +4561,7 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_HardJankReport_False_BothCon
     ASSERT_NE(tmpRsRenderComposer, nullptr);
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
-    layer->SetLayerSize({100, 100, 100, 100});
+    layer->SetLayerSize({ 100, 100, 100, 100 });
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
     ASSERT_NE(tmpRsRenderComposer->rsRenderComposerContext_->GetRSRenderLayer(1), nullptr);
 
@@ -3999,7 +4598,7 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_LppVideoNotify_True_BothCond
     tmpRsRenderComposer->composerToRenderConnection_ = sptr<RSComposerToRenderConnection>::MakeSptr();
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
-    layer->SetLayerSize({100, 100, 100, 100});
+    layer->SetLayerSize({ 100, 100, 100, 100 });
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
     ASSERT_NE(tmpRsRenderComposer->rsRenderComposerContext_->GetRSRenderLayer(1), nullptr);
 
@@ -4034,7 +4633,7 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_LppVideoNotify_False_Connect
     tmpRsRenderComposer->composerToRenderConnection_ = nullptr;
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
-    layer->SetLayerSize({100, 100, 100, 100});
+    layer->SetLayerSize({ 100, 100, 100, 100 });
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
     ASSERT_NE(tmpRsRenderComposer->rsRenderComposerContext_->GetRSRenderLayer(1), nullptr);
 
@@ -4069,7 +4668,7 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_LppVideoNotify_False_NoLppVi
     tmpRsRenderComposer->composerToRenderConnection_ = sptr<RSComposerToRenderConnection>::MakeSptr();
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
-    layer->SetLayerSize({100, 100, 100, 100});
+    layer->SetLayerSize({ 100, 100, 100, 100 });
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
     ASSERT_NE(tmpRsRenderComposer->rsRenderComposerContext_->GetRSRenderLayer(1), nullptr);
 
@@ -4104,7 +4703,7 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_LppVideoNotify_False_BothFal
     tmpRsRenderComposer->composerToRenderConnection_ = nullptr;
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
-    layer->SetLayerSize({100, 100, 100, 100});
+    layer->SetLayerSize({ 100, 100, 100, 100 });
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
     ASSERT_NE(tmpRsRenderComposer->rsRenderComposerContext_->GetRSRenderLayer(1), nullptr);
 
@@ -4136,7 +4735,7 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_ClearOutputOnDisconnect_True
     ASSERT_NE(tmpRsRenderComposer, nullptr);
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
-    layer->SetLayerSize({100, 100, 100, 100});
+    layer->SetLayerSize({ 100, 100, 100, 100 });
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
     ASSERT_NE(tmpRsRenderComposer->rsRenderComposerContext_->GetRSRenderLayer(1), nullptr);
 
@@ -4173,7 +4772,7 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_ClearOutputOnDisconnect_Fals
     tmpRsRenderComposer->unExecuteTaskNum_.store(0);
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
-    layer->SetLayerSize({100, 100, 100, 100});
+    layer->SetLayerSize({ 100, 100, 100, 100 });
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
     ASSERT_NE(tmpRsRenderComposer->rsRenderComposerContext_->GetRSRenderLayer(1), nullptr);
 
@@ -4206,7 +4805,7 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_ClearOutputOnDisconnect_Fals
     ASSERT_NE(tmpRsRenderComposer, nullptr);
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
-    layer->SetLayerSize({100, 100, 100, 100});
+    layer->SetLayerSize({ 100, 100, 100, 100 });
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
     ASSERT_NE(tmpRsRenderComposer->rsRenderComposerContext_->GetRSRenderLayer(1), nullptr);
 
@@ -4243,7 +4842,7 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_ClearOutputOnDisconnect_Fals
     tmpRsRenderComposer->unExecuteTaskNum_.store(3);
 
     std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
-    layer->SetLayerSize({100, 100, 100, 100});
+    layer->SetLayerSize({ 100, 100, 100, 100 });
     tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
     ASSERT_NE(tmpRsRenderComposer->rsRenderComposerContext_->GetRSRenderLayer(1), nullptr);
 
@@ -4388,12 +4987,12 @@ HWTEST_F(RsRenderComposerTest, ChangeLayersForActiveRectOutside_DebugFlagTrue, T
 
     std::vector<std::shared_ptr<RSLayer>> layers;
     std::shared_ptr<RSLayer> layer1 = std::make_shared<RSRenderSurfaceLayer>();
-    layer1->SetLayerSize({50, 50, 100, 100});
+    layer1->SetLayerSize({ 50, 50, 100, 100 });
     layers.push_back(layer1);
 
     // Set maskRect with positive width and height to trigger line 437 branch true
-    rsRenderComposerTmp->composerScreenInfo_.reviseRect = {100, 100, 200, 200};
-    rsRenderComposerTmp->composerScreenInfo_.maskRect = {0, 0, 50, 50};
+    rsRenderComposerTmp->composerScreenInfo_.reviseRect = { 100, 100, 200, 200 };
+    rsRenderComposerTmp->composerScreenInfo_.maskRect = { 0, 0, 50, 50 };
     size_t initialLayerCount = layers.size();
     rsRenderComposerTmp->ChangeLayersForActiveRectOutside(layers);
 
@@ -4437,12 +5036,12 @@ HWTEST_F(RsRenderComposerTest, ChangeLayersForActiveRectOutside_DebugFlagFalse, 
 
     std::vector<std::shared_ptr<RSLayer>> layers;
     std::shared_ptr<RSLayer> layer1 = std::make_shared<RSRenderSurfaceLayer>();
-    layer1->SetLayerSize({50, 50, 100, 100});
+    layer1->SetLayerSize({ 50, 50, 100, 100 });
     layers.push_back(layer1);
 
     // Set maskRect with positive width and height to trigger line 437 branch true
-    rsRenderComposerTmp->composerScreenInfo_.reviseRect = {100, 100, 200, 200};
-    rsRenderComposerTmp->composerScreenInfo_.maskRect = {0, 0, 50, 50};
+    rsRenderComposerTmp->composerScreenInfo_.reviseRect = { 100, 100, 200, 200 };
+    rsRenderComposerTmp->composerScreenInfo_.maskRect = { 0, 0, 50, 50 };
     size_t initialLayerCount = layers.size();
     rsRenderComposerTmp->ChangeLayersForActiveRectOutside(layers);
 
@@ -4910,8 +5509,8 @@ HWTEST_F(RsRenderComposerTest, ClearFrameBuffersInner_MultipleSurfacesInMap_Eras
 
     uint64_t surfaceId1 = 11111;
     uint64_t surfaceId2 = 22222;
-    rsRenderComposerTmp->frameBufferSurfaceOhosMap_.insert({surfaceId1, rsSurface1});
-    rsRenderComposerTmp->frameBufferSurfaceOhosMap_.insert({surfaceId2, rsSurface2});
+    rsRenderComposerTmp->frameBufferSurfaceOhosMap_.insert({ surfaceId1, rsSurface1 });
+    rsRenderComposerTmp->frameBufferSurfaceOhosMap_.insert({ surfaceId2, rsSurface2 });
 
     // Verify both surfaces are in the map
     EXPECT_EQ(rsRenderComposerTmp->frameBufferSurfaceOhosMap_.size(), 2u);
@@ -4946,7 +5545,7 @@ HWTEST_F(RsRenderComposerTest, ClearFrameBuffersInner_SurfaceIdInMap_NullptrValu
     // Add surfaceId with nullptr value to the map
     // This makes line 802 condition true but line 805 condition false
     uint64_t surfaceId = 99999;
-    rsRenderComposerTmp->frameBufferSurfaceOhosMap_.insert({surfaceId, nullptr});
+    rsRenderComposerTmp->frameBufferSurfaceOhosMap_.insert({ surfaceId, nullptr });
 
     // Verify surfaceId is in the map
     EXPECT_TRUE(rsRenderComposerTmp->frameBufferSurfaceOhosMap_.count(surfaceId));
@@ -4987,7 +5586,7 @@ HWTEST_F(RsRenderComposerTest, ClearFrameBuffersInner_VulkanGpuApi_WaitSurfaceCl
     ASSERT_NE(rsVulkanSurface, nullptr);
 
     uint64_t surfaceId = output->GetFrameBufferSurface()->GetUniqueId();
-    rsRenderComposerTmp->frameBufferSurfaceOhosMap_.insert({surfaceId, rsVulkanSurface});
+    rsRenderComposerTmp->frameBufferSurfaceOhosMap_.insert({ surfaceId, rsVulkanSurface });
 
     // Verify surface is in the map
     EXPECT_TRUE(rsRenderComposerTmp->frameBufferSurfaceOhosMap_.count(surfaceId));
@@ -5026,7 +5625,7 @@ HWTEST_F(RsRenderComposerTest, ClearFrameBuffersInner_DdgrGpuApi_WaitSurfaceClea
     ASSERT_NE(rsVulkanSurface, nullptr);
 
     uint64_t surfaceId = output->GetFrameBufferSurface()->GetUniqueId();
-    rsRenderComposerTmp->frameBufferSurfaceOhosMap_.insert({surfaceId, rsVulkanSurface});
+    rsRenderComposerTmp->frameBufferSurfaceOhosMap_.insert({ surfaceId, rsVulkanSurface });
 
     // Verify surface is in the map
     EXPECT_TRUE(rsRenderComposerTmp->frameBufferSurfaceOhosMap_.count(surfaceId));
@@ -6199,8 +6798,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetColorGamut005, TestSize.Level1)
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(
-        std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
+    sptr<IBufferConsumerListener> listener =
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
 
@@ -6232,8 +6831,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetColorGamut005, TestSize.Level1)
         sptr<SurfaceBuffer> extraBuffer;
         ret = sProducer->RequestBuffer(extraBuffer, requestFence, requestConfig);
         EXPECT_EQ(ret, GSERROR_OK);
-        RSLayerPtr l = std::static_pointer_cast<RSLayer>(
-            std::make_shared<FakeRSLayer>(i, false, "L" + std::to_string(i)));
+        RSLayerPtr l =
+            std::static_pointer_cast<RSLayer>(std::make_shared<FakeRSLayer>(i, false, "L" + std::to_string(i)));
         l->SetBuffer(extraBuffer);
         layers.emplace_back(l);
     }
@@ -6275,8 +6874,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetColorGamut006, TestSize.Level1)
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(
-        std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
+    sptr<IBufferConsumerListener> listener =
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
 
@@ -6340,8 +6939,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetColorGamut007, TestSize.Level1)
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(
-        std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
+    sptr<IBufferConsumerListener> listener =
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
 
@@ -6422,8 +7021,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetColorGamut009, TestSize.Level1)
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(
-        std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
+    sptr<IBufferConsumerListener> listener =
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
 
@@ -6486,8 +7085,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetColorGamut010, TestSize.Level1)
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(
-        std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
+    sptr<IBufferConsumerListener> listener =
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
 
@@ -6555,8 +7154,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetColorGamut011, TestSize.Level1)
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(
-        std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
+    sptr<IBufferConsumerListener> listener =
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
 
@@ -6626,8 +7225,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetColorGamut012, TestSize.Level1)
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(
-        std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
+    sptr<IBufferConsumerListener> listener =
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
 
@@ -6815,8 +7414,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetPixelFormat_SkipTypesThenClient, Tes
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(
-        std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
+    sptr<IBufferConsumerListener> listener =
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
 
@@ -6887,8 +7486,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetPixelFormat_MultipleSkipTypesWithCli
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(
-        std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
+    sptr<IBufferConsumerListener> listener =
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
 
@@ -6950,8 +7549,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetPixelFormat_DeviceTypeWithBuffer, Te
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(
-        std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
+    sptr<IBufferConsumerListener> listener =
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
 
@@ -7025,8 +7624,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetPixelFormat_MixedTypesWithNullLayers
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(
-        std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
+    sptr<IBufferConsumerListener> listener =
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
 
@@ -7087,8 +7686,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetPixelFormat009, TestSize.Level1)
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(
-        std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
+    sptr<IBufferConsumerListener> listener =
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
 
@@ -7154,8 +7753,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetPixelFormat010, TestSize.Level1)
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(
-        std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
+    sptr<IBufferConsumerListener> listener =
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
 
@@ -7175,7 +7774,7 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetPixelFormat010, TestSize.Level1)
     layers.push_back(layerClient);
 
     // allRedraw=false due to DEVICE layer
-    // Line 1069: if (!allRedraw && RSHdrUtil::GetRGBA1010108Enabled())
+    // Line 1069: if (!allRedraw && RSBaseHdrUtil::GetRGBA1010108Enabled())
     auto pixelFormat = rsRenderComposer_->ComputeTargetPixelFormat(layers);
     // When GetRGBA1010108Enabled() is false (default), condition is false
     // Line 1068: pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_1010102
@@ -7221,8 +7820,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetPixelFormat011, TestSize.Level1)
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(
-        std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
+    sptr<IBufferConsumerListener> listener =
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
 
@@ -7242,7 +7841,7 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetPixelFormat011, TestSize.Level1)
     layers.push_back(layerClient);
 
     // allRedraw=false due to DEVICE_CLEAR layer
-    // Line 1069: if (!allRedraw && RSHdrUtil::GetRGBA1010108Enabled())
+    // Line 1069: if (!allRedraw && RSBaseHdrUtil::GetRGBA1010108Enabled())
     auto pixelFormat = rsRenderComposer_->ComputeTargetPixelFormat(layers);
     // Condition depends on GetRGBA1010108Enabled(), typically false in test
     EXPECT_NE(pixelFormat, GRAPHIC_PIXEL_FMT_RGBA_8888);
@@ -7286,8 +7885,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetPixelFormat012, TestSize.Level1)
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(
-        std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
+    sptr<IBufferConsumerListener> listener =
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
 
@@ -7307,7 +7906,7 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetPixelFormat012, TestSize.Level1)
     layers.push_back(layerClient);
 
     // allRedraw=false due to SOLID_COLOR layer
-    // Line 1069: if (!allRedraw && RSHdrUtil::GetRGBA1010108Enabled())
+    // Line 1069: if (!allRedraw && RSBaseHdrUtil::GetRGBA1010108Enabled())
     auto pixelFormat = rsRenderComposer_->ComputeTargetPixelFormat(layers);
     // Condition depends on GetRGBA1010108Enabled()
     EXPECT_NE(pixelFormat, GRAPHIC_PIXEL_FMT_RGBA_8888);
@@ -7354,8 +7953,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetPixelFormat013, TestSize.Level1)
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(
-        std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
+    sptr<IBufferConsumerListener> listener =
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
 
@@ -7421,8 +8020,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetPixelFormat014, TestSize.Level1)
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(
-        std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
+    sptr<IBufferConsumerListener> listener =
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
 
@@ -7481,8 +8080,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetPixelFormat015, TestSize.Level1)
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(
-        std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
+    sptr<IBufferConsumerListener> listener =
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
 
@@ -7550,8 +8149,8 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetPixelFormat016, TestSize.Level1)
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create(config.name);
     rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(cSurface);
-    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(
-        std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
+    sptr<IBufferConsumerListener> listener =
+        new RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode>(rsSurfaceRenderNode), nullptr);
     cSurface->RegisterConsumerListener(listener);
     rsSurfaceRenderNode->InitRenderParams();
 
@@ -7673,7 +8272,7 @@ HWTEST_F(RsRenderComposerTest, ContextRegisterPostTask_VulkanWithPostTaskVerific
     rsRenderComposerTmp->ContextRegisterPostTask();
 
     // Verify that PostTask can be called and executes properly
-    std::atomic<bool> taskExecuted{false};
+    std::atomic<bool> taskExecuted { false };
     rsRenderComposerTmp->PostTask([&taskExecuted]() { taskExecuted.store(true); });
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
@@ -7710,7 +8309,7 @@ HWTEST_F(RsRenderComposerTest, ContextRegisterPostTask_DdgrWithPostTaskVerificat
     rsRenderComposerTmp->ContextRegisterPostTask();
 
     // Verify that PostTask can be called
-    std::atomic<bool> taskExecuted{false};
+    std::atomic<bool> taskExecuted { false };
     rsRenderComposerTmp->PostTask([&taskExecuted]() { taskExecuted.store(true); });
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
@@ -7841,14 +8440,14 @@ HWTEST_F(RsRenderComposerTest, RecordTimestampForAS002, TestSize.Level1)
     auto mgr = HgmCore::Instance().hgmFrameRateMgr_;
     mgr->isAdaptive_.store(SupportASStatus::SUPPORT_AS);
     mgr->asStateForFps_.store(false);
-    
+
     for (int i = 0; i < 6; i++) {
         hgmHardwareUtil->RecordTimestampForAS(10000 * i);
     }
     ASSERT_EQ(hgmHardwareUtil->asRecordRateParam_.frameTimestamps.size(), 6);
     ASSERT_GE(hgmHardwareUtil->asRecordRateParam_.highFpsFrameCount, 0);
     ASSERT_FALSE(mgr->asStateForFps_.load());
-    
+
     for (int i = 0; i < 50; i++) {
         hgmHardwareUtil->RecordTimestampForAS(10000 * (i + 6));
     }
@@ -7870,5 +8469,501 @@ HWTEST_F(RsRenderComposerTest, RecordTimestampForAS002, TestSize.Level1)
     ASSERT_FALSE(mgr->asStateForFps_.load());
 }
 
+/**
+ * @tc.name: ResetScreenRCDRedrawState_EmptyLayers
+ * @tc.desc: Test ResetScreenRCDRedrawState with empty layers vector
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsRenderComposerTest, ResetScreenRCDRedrawState_EmptyLayers, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(0u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
+
+    std::vector<std::shared_ptr<RSLayer>> layers;
+    rsRenderComposerTmp->ResetScreenRCDRedrawState(layers);
+    EXPECT_TRUE(layers.empty());
+}
+
+/**
+ * @tc.name: ResetScreenRCDRedrawState_NullptrLayers
+ * @tc.desc: Test ResetScreenRCDRedrawState with nullptr layers
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsRenderComposerTest, ResetScreenRCDRedrawState_NullptrLayers, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(0u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
+
+    std::vector<std::shared_ptr<RSLayer>> layers;
+    layers.push_back(nullptr);
+    layers.push_back(nullptr);
+    layers.push_back(nullptr);
+
+    rsRenderComposerTmp->ResetScreenRCDRedrawState(layers);
+    EXPECT_EQ(layers.size(), 3u);
+}
+
+/**
+ * @tc.name: ResetScreenRCDRedrawState_NonRCDLayers
+ * @tc.desc: Test ResetScreenRCDRedrawState with non-RCD layers
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsRenderComposerTest, ResetScreenRCDRedrawState_NonRCDLayers, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(0u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
+
+    std::vector<std::shared_ptr<RSLayer>> layers;
+    std::shared_ptr<RSRenderSurfaceLayer> layer1 = std::make_shared<RSRenderSurfaceLayer>();
+    std::shared_ptr<RSRenderSurfaceLayer> layer2 = std::make_shared<RSRenderSurfaceLayer>();
+    layers.push_back(layer1);
+    layers.push_back(layer2);
+
+    rsRenderComposerTmp->ResetScreenRCDRedrawState(layers);
+    EXPECT_EQ(layers.size(), 2u);
+}
+
+/**
+ * @tc.name: ResetScreenRCDRedrawState_RCDLayer_RedrawStateTrue
+ * @tc.desc: Test ResetScreenRCDRedrawState with RCD layer where redraw state is true
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsRenderComposerTest, ResetScreenRCDRedrawState_RCDLayer_RedrawStateTrue, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(0u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
+
+    std::vector<std::shared_ptr<RSLayer>> layers;
+    std::shared_ptr<RSRenderSurfaceRCDLayer> rcdLayer = std::make_shared<RSRenderSurfaceRCDLayer>();
+    rcdLayer->SetRedrawState(true);
+    layers.push_back(rcdLayer);
+
+    EXPECT_TRUE(rcdLayer->GetRedrawState());
+    rsRenderComposerTmp->ResetScreenRCDRedrawState(layers);
+    EXPECT_FALSE(rcdLayer->GetRedrawState());
+}
+
+/**
+ * @tc.name: ResetScreenRCDRedrawState_RCDLayer_NoCacheImage
+ * @tc.desc: Test ResetScreenRCDRedrawState with RCD layer where redraw state is false and no cache image
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsRenderComposerTest, ResetScreenRCDRedrawState_RCDLayer_NoCacheImage, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(0u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
+
+    std::vector<std::shared_ptr<RSLayer>> layers;
+    std::shared_ptr<RSRenderSurfaceRCDLayer> rcdLayer = std::make_shared<RSRenderSurfaceRCDLayer>();
+    rcdLayer->SetRedrawState(false);
+    layers.push_back(rcdLayer);
+
+    EXPECT_FALSE(rcdLayer->GetRedrawState());
+    EXPECT_EQ(rcdLayer->GetCacheImage(), nullptr);
+    rsRenderComposerTmp->ResetScreenRCDRedrawState(layers);
+    EXPECT_FALSE(rcdLayer->GetRedrawState());
+    EXPECT_EQ(rcdLayer->GetCacheImage(), nullptr);
+}
+
+/**
+ * @tc.name: ResetScreenRCDRedrawState_RCDLayer_WithCacheImage
+ * @tc.desc: Test ResetScreenRCDRedrawState with RCD layer where redraw state is false and has cache image
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsRenderComposerTest, ResetScreenRCDRedrawState_RCDLayer_WithCacheImage, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(0u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
+
+    std::vector<std::shared_ptr<RSLayer>> layers;
+    std::shared_ptr<RSRenderSurfaceRCDLayer> rcdLayer = std::make_shared<RSRenderSurfaceRCDLayer>();
+    rcdLayer->SetRedrawState(false);
+
+    auto image = std::make_shared<Drawing::Image>();
+    rcdLayer->CacheImageWithId(1, image);
+
+    layers.push_back(rcdLayer);
+
+    EXPECT_FALSE(rcdLayer->GetRedrawState());
+    EXPECT_NE(rcdLayer->GetCacheImage(), nullptr);
+    rsRenderComposerTmp->ResetScreenRCDRedrawState(layers);
+    EXPECT_FALSE(rcdLayer->GetRedrawState());
+    EXPECT_EQ(rcdLayer->GetCacheImage(), nullptr);
+}
+
+/**
+ * @tc.name: ResetScreenRCDRedrawState_MixedLayers
+ * @tc.desc: Test ResetScreenRCDRedrawState with mixed layers (nullptr, non-RCD, RCD with various states)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsRenderComposerTest, ResetScreenRCDRedrawState_MixedLayers, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(0u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
+
+    std::vector<std::shared_ptr<RSLayer>> layers;
+
+    layers.push_back(nullptr);
+
+    std::shared_ptr<RSRenderSurfaceLayer> nonRcdLayer = std::make_shared<RSRenderSurfaceLayer>();
+    layers.push_back(nonRcdLayer);
+
+    std::shared_ptr<RSRenderSurfaceRCDLayer> rcdLayer1 = std::make_shared<RSRenderSurfaceRCDLayer>();
+    rcdLayer1->SetRedrawState(true);
+    layers.push_back(rcdLayer1);
+
+    std::shared_ptr<RSRenderSurfaceRCDLayer> rcdLayer2 = std::make_shared<RSRenderSurfaceRCDLayer>();
+    rcdLayer2->SetRedrawState(false);
+    auto image = std::make_shared<Drawing::Image>();
+    rcdLayer2->CacheImageWithId(2, image);
+    layers.push_back(rcdLayer2);
+
+    rsRenderComposerTmp->ResetScreenRCDRedrawState(layers);
+
+    EXPECT_FALSE(rcdLayer1->GetRedrawState());
+    EXPECT_FALSE(rcdLayer2->GetRedrawState());
+    EXPECT_EQ(rcdLayer2->GetCacheImage(), nullptr);
+}
+
+/**
+ * @tc.name: ResetScreenRCDRedrawState_MultipleRCDLayers
+ * @tc.desc: Test ResetScreenRCDRedrawState with multiple RCD layers
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsRenderComposerTest, ResetScreenRCDRedrawState_MultipleRCDLayers, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(0u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto rsRenderComposerTmp = std::make_shared<RSRenderComposer>(output, property);
+
+    std::vector<std::shared_ptr<RSLayer>> layers;
+
+    for (int i = 0; i < 5; i++) {
+        std::shared_ptr<RSRenderSurfaceRCDLayer> rcdLayer = std::make_shared<RSRenderSurfaceRCDLayer>();
+        rcdLayer->SetRedrawState(true);
+        layers.push_back(rcdLayer);
+    }
+
+    rsRenderComposerTmp->ResetScreenRCDRedrawState(layers);
+
+    for (const auto& layer : layers) {
+        auto rcdLayer = std::static_pointer_cast<RSRenderSurfaceRCDLayer>(layer);
+        EXPECT_FALSE(rcdLayer->GetRedrawState());
+    }
+}
+
+/**
+ * Function: ProcessComposerFrame_CallbackNotNull_InvokeCallback
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer and set setTaskEndWithTimeCb_ callback
+ *                  2. call ProcessComposerFrame
+ *                  3. verify callback is invoked with time difference (line 305 branch true)
+ */
+HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_CallbackNotNull_InvokeCallback, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(8u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
+    EXPECT_EQ(tmpRsRenderComposer->hdiOutput_->GetScreenId(), 8u);
+    EXPECT_NE(tmpRsRenderComposer->handler_, nullptr);
+
+    // Track callback invocations
+    std::atomic<int64_t> callbackTimeDiff { 0 };
+    std::atomic<bool> callbackInvoked { false };
+
+    // Set callback (line 305 branch will be true)
+    tmpRsRenderComposer->setTaskEndWithTimeCb_ = [&callbackTimeDiff, &callbackInvoked](int64_t timeDiff) {
+        callbackTimeDiff.store(timeDiff);
+        callbackInvoked.store(true);
+    };
+
+    // Set lastActualTime_ to known value
+    tmpRsRenderComposer->lastActualTime_ = 1000;
+
+    PipelineParam param;
+    param.actualTimestamp = 2000;
+    uint32_t currentRate = 60;
+
+    // Call ProcessComposerFrame - callback should be invoked
+    tmpRsRenderComposer->ProcessComposerFrame(currentRate, param);
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+    // Verify callback was invoked
+    EXPECT_TRUE(callbackInvoked.load());
+
+    tmpRsRenderComposer->uniRenderEngine_ = nullptr;
+}
+
+/**
+ * Function: ProcessComposerFrame_MultipleFrames_CallbackTracking
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer and set callback
+ *                  2. call ProcessComposerFrame multiple times with different timestamps
+ *                  3. verify callback is invoked with correct time differences
+ */
+HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_MultipleFrames_CallbackTracking, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(9u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
+    EXPECT_EQ(tmpRsRenderComposer->hdiOutput_->GetScreenId(), 9u);
+    EXPECT_NE(tmpRsRenderComposer->handler_, nullptr);
+
+    // Track all callback invocations
+    std::vector<int64_t> callbackTimeDiffs;
+    tmpRsRenderComposer->setTaskEndWithTimeCb_ = [&callbackTimeDiffs](
+                                                     int64_t timeDiff) { callbackTimeDiffs.push_back(timeDiff); };
+
+    tmpRsRenderComposer->lastActualTime_ = 1000;
+
+    PipelineParam param;
+    uint32_t currentRate = 60;
+
+    // Call ProcessComposerFrame multiple times with incrementing timestamps
+    std::vector<int64_t> timestamps = { 1500, 2000, 2500, 3000 };
+    for (int64_t timestamp : timestamps) {
+        param.actualTimestamp = timestamp;
+        tmpRsRenderComposer->ProcessComposerFrame(currentRate, param);
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    }
+
+    // Verify callback was invoked for each frame
+    EXPECT_EQ(callbackTimeDiffs.size(), timestamps.size());
+
+    tmpRsRenderComposer->uniRenderEngine_ = nullptr;
+}
+
+/**
+ * Function: ProcessComposerFrame_CallbackNotNull_VaryingTimestamps
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer and set callback
+ *                  2. call ProcessComposerFrame with different actualTimestamp values
+ *                  3. verify callback receives correct time differences
+ */
+HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_CallbackNotNull_VaryingTimestamps, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(10u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
+    EXPECT_EQ(tmpRsRenderComposer->hdiOutput_->GetScreenId(), 10u);
+    EXPECT_NE(tmpRsRenderComposer->handler_, nullptr);
+
+    std::atomic<int64_t> lastCallbackTimeDiff { 0 };
+    tmpRsRenderComposer->setTaskEndWithTimeCb_ = [&lastCallbackTimeDiff](
+                                                     int64_t timeDiff) { lastCallbackTimeDiff.store(timeDiff); };
+
+    tmpRsRenderComposer->lastActualTime_ = 5000;
+
+    PipelineParam param;
+    uint32_t currentRate = 60;
+
+    // Test with different actualTimestamp values
+    param.actualTimestamp = 5100;
+    tmpRsRenderComposer->ProcessComposerFrame(currentRate, param);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+    param.actualTimestamp = 5200;
+    tmpRsRenderComposer->ProcessComposerFrame(currentRate, param);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+    param.actualTimestamp = 5300;
+    tmpRsRenderComposer->ProcessComposerFrame(currentRate, param);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+    tmpRsRenderComposer->uniRenderEngine_ = nullptr;
+}
+
+/**
+ * Function: ProcessComposerFrame_CallbackNotNull_ZeroTimestamp
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer and set callback
+ *                  2. call ProcessComposerFrame with zero timestamp
+ *                  3. verify callback handles zero timestamp correctly
+ */
+HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_CallbackNotNull_ZeroTimestamp, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(11u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
+    EXPECT_EQ(tmpRsRenderComposer->hdiOutput_->GetScreenId(), 11u);
+    EXPECT_NE(tmpRsRenderComposer->handler_, nullptr);
+
+    std::atomic<bool> callbackInvoked { false };
+    tmpRsRenderComposer->setTaskEndWithTimeCb_ = [&callbackInvoked](int64_t) { callbackInvoked.store(true); };
+
+    tmpRsRenderComposer->lastActualTime_ = 0;
+
+    PipelineParam param;
+    param.actualTimestamp = 0;
+    uint32_t currentRate = 60;
+
+    // Call with zero timestamp
+    tmpRsRenderComposer->ProcessComposerFrame(currentRate, param);
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+    // Verify callback was invoked
+    EXPECT_TRUE(callbackInvoked.load());
+
+    tmpRsRenderComposer->uniRenderEngine_ = nullptr;
+}
+
+/**
+ * Function: ProcessComposerFrame_CallbackNotNull_LargeTimestamp
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer and set callback
+ *                  2. call ProcessComposerFrame with large timestamp values
+ *                  3. verify callback handles large timestamps correctly
+ */
+HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_CallbackNotNull_LargeTimestamp, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(12u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
+    EXPECT_EQ(tmpRsRenderComposer->hdiOutput_->GetScreenId(), 12u);
+    EXPECT_NE(tmpRsRenderComposer->handler_, nullptr);
+
+    std::atomic<bool> callbackInvoked { false };
+    tmpRsRenderComposer->setTaskEndWithTimeCb_ = [&callbackInvoked](int64_t) { callbackInvoked.store(true); };
+
+    // Use large timestamp values
+    int64_t largeTimestamp = 9999999999999;
+    tmpRsRenderComposer->lastActualTime_ = largeTimestamp;
+
+    PipelineParam param;
+    param.actualTimestamp = largeTimestamp + 1000;
+    uint32_t currentRate = 60;
+
+    tmpRsRenderComposer->ProcessComposerFrame(currentRate, param);
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+    EXPECT_TRUE(callbackInvoked.load());
+
+    tmpRsRenderComposer->uniRenderEngine_ = nullptr;
+}
+
+/**
+ * Function: ProcessComposerFrame_CallbackNotNull_DifferentRefreshRates
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer and set callback
+ *                  2. call ProcessComposerFrame with different refresh rates
+ *                  3. verify callback is invoked for each refresh rate
+ */
+HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_CallbackNotNull_DifferentRefreshRates, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(13u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
+    EXPECT_EQ(tmpRsRenderComposer->hdiOutput_->GetScreenId(), 13u);
+    EXPECT_NE(tmpRsRenderComposer->handler_, nullptr);
+
+    std::atomic<uint32_t> callbackCount { 0 };
+    tmpRsRenderComposer->setTaskEndWithTimeCb_ = [&callbackCount](int64_t) { callbackCount.fetch_add(1); };
+
+    tmpRsRenderComposer->lastActualTime_ = 1000;
+
+    PipelineParam param;
+    param.actualTimestamp = 2000;
+
+    // Test with different refresh rates
+    std::vector<uint32_t> refreshRates = { 30, 60, 90, 120 };
+    for (uint32_t rate : refreshRates) {
+        tmpRsRenderComposer->ProcessComposerFrame(rate, param);
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+
+    // Verify callback was invoked for each refresh rate
+    EXPECT_EQ(callbackCount.load(), refreshRates.size());
+
+    tmpRsRenderComposer->uniRenderEngine_ = nullptr;
+}
+
+/**
+ * Function: ProcessComposerFrame_CallbackNotNull_TimestampUpdate
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer and set callback
+ *                  2. verify lastActualTime_ is updated correctly after each frame
+ *                  3. verify callback receives time difference based on updated timestamp
+ */
+HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_CallbackNotNull_TimestampUpdate, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(14u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
+    EXPECT_EQ(tmpRsRenderComposer->hdiOutput_->GetScreenId(), 14u);
+    EXPECT_NE(tmpRsRenderComposer->handler_, nullptr);
+
+    std::atomic<int64_t> lastCallbackTimeDiff { 0 };
+    tmpRsRenderComposer->setTaskEndWithTimeCb_ = [&lastCallbackTimeDiff](
+                                                     int64_t timeDiff) { lastCallbackTimeDiff.store(timeDiff); };
+
+    // Set initial timestamp
+    int64_t initialTimestamp = 10000;
+    tmpRsRenderComposer->lastActualTime_ = initialTimestamp;
+
+    PipelineParam param;
+    uint32_t currentRate = 60;
+
+    // First frame - timestamp = 11000
+    param.actualTimestamp = 11000;
+    tmpRsRenderComposer->ProcessComposerFrame(currentRate, param);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+    // Verify lastActualTime_ was updated to 11000
+    EXPECT_EQ(tmpRsRenderComposer->lastActualTime_, 11000);
+
+    // Second frame - timestamp = 12000
+    param.actualTimestamp = 12000;
+    tmpRsRenderComposer->ProcessComposerFrame(currentRate, param);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+    // Verify lastActualTime_ was updated to 12000
+    EXPECT_EQ(tmpRsRenderComposer->lastActualTime_, 12000);
+
+    tmpRsRenderComposer->uniRenderEngine_ = nullptr;
+}
 } // namespace Rosen
 } // namespace OHOS

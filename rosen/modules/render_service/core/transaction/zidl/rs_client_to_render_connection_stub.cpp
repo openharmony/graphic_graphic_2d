@@ -31,9 +31,9 @@
 #include "command/rs_command_factory.h"
 #include "command/rs_command_verify_helper.h"
 #include "common/rs_xcollie.h"
+#include "engine/rs_base_render_util.h"
 #include "hgm_frame_rate_manager.h"
 #include "memory/rs_memory_flow_control.h"
-#include "pipeline/render_thread/rs_base_render_util.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_log.h"
@@ -46,6 +46,9 @@
 #include "rs_profiler.h"
 #include "app_mgr_client.h"
 
+#undef LOG_TAG
+#define LOG_TAG "RSClientToRenderConnectionStub"
+
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -57,10 +60,12 @@ static constexpr int MAX_SECURITY_EXEMPTION_LIST_NUMBER = 1024; // securityExemp
 const uint32_t MAX_VOTER_SIZE = 100;
 constexpr uint32_t MAX_PID_SIZE_NUMBER = 100000;
 constexpr uint32_t MAX_DROP_FRAME_PID_LIST_SIZE = 1024;
+
 #ifdef RES_SCHED_ENABLE
 const uint32_t RS_IPC_QOS_LEVEL = 7;
 constexpr const char* RS_BUNDLE_NAME = "client_to_render";
 #endif
+
 static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_FOCUS_APP_INFO),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_BRIGHTNESS_INFO),
@@ -105,6 +110,10 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER),
 #endif
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_LOGICAL_CAMERA_ROTATION_CORRECTION),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_FRAME_STABILITY_DETECTION),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::UNREGISTER_FRAME_STABILITY_DETECTION),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::START_FRAME_STABILITY_COLLECTION),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_FRAME_STABILITY_RESULT),
 };
 
 void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
@@ -461,9 +470,11 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             uint64_t mirrorId{0};
             uint64_t screenId{0};
             bool isMirrored{false};
+            uint32_t mirrorSourceRotation{static_cast<uint32_t>(ScreenRotation::INVALID_SCREEN_ROTATION)};
             if (!data.ReadUint64(mirrorId) ||
                 !data.ReadUint64(screenId) ||
-                !data.ReadBool(isMirrored)) {
+                !data.ReadBool(isMirrored) ||
+                !data.ReadUint32(mirrorSourceRotation)) {
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -472,6 +483,7 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 .isMirrored = isMirrored,
                 .mirrorNodeId = mirrorId,
                 .isSync = true,
+                .mirrorSourceRotation = mirrorSourceRotation,
             };
             bool success;
             if (CreateNode(config, id, success) != ERR_OK || !reply.WriteBool(success)) {
@@ -1503,6 +1515,141 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             if (!reply.WriteInt32(result)) {
                 RS_LOGE("RSClientToRenderConnectionStub::SET_LOGICAL_CAMERA_ROTATION_CORRECTION Write parcel failed!");
                 ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(
+            RSIClientToRenderConnectionInterfaceCode::REGISTER_FRAME_STABILITY_DETECTION): {
+            FrameStabilityTarget target;
+            if (!data.ReadUint64(target.id)) {
+                RS_LOGE("REGISTER_FRAME_STABILITY_DETECTION Read target.id failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            uint32_t typeValue;
+            if (!data.ReadUint32(typeValue)) {
+                RS_LOGE("REGISTER_FRAME_STABILITY_DETECTION Read typeValue failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            target.type = static_cast<FrameStabilityTargetType>(typeValue);
+            FrameStabilityConfig config;
+            if (!data.ReadUint32(config.stableDuration)) {
+                RS_LOGE("REGISTER_FRAME_STABILITY_DETECTION Read stableDuration failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (!data.ReadFloat(config.changePercent)) {
+                RS_LOGE("REGISTER_FRAME_STABILITY_DETECTION Read changePercent failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            auto remoteObject = data.ReadRemoteObject();
+            if (remoteObject == nullptr) {
+                RS_LOGE("REGISTER_FRAME_STABILITY_DETECTION Read remoteObject failed!");
+                ret = ERR_NULL_OBJECT;
+                break;
+            }
+            sptr<RSIFrameStabilityCallback> callback = iface_cast<RSIFrameStabilityCallback>(remoteObject);
+            if (callback == nullptr) {
+                RS_LOGE("REGISTER_FRAME_STABILITY_DETECTION iface_cast callback failed!");
+                ret = ERR_NULL_OBJECT;
+                break;
+            }
+            int32_t repCode = RegisterFrameStabilityDetection(target, config, callback);
+            if (repCode != 0) {
+                RS_LOGE("REGISTER_FRAME_STABILITY_DETECTION failed, repCode: %{public}d", repCode);
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(
+            RSIClientToRenderConnectionInterfaceCode::UNREGISTER_FRAME_STABILITY_DETECTION): {
+            FrameStabilityTarget target;
+            if (!data.ReadUint64(target.id)) {
+                RS_LOGE("UNREGISTER_FRAME_STABILITY_DETECTION Read target.id failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            uint32_t typeValue;
+            if (!data.ReadUint32(typeValue)) {
+                RS_LOGE("UNREGISTER_FRAME_STABILITY_DETECTION Read typeValue failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            target.type = static_cast<FrameStabilityTargetType>(typeValue);
+            int32_t repCode = UnregisterFrameStabilityDetection(target);
+            if (repCode != 0) {
+                RS_LOGE("UNREGISTER_FRAME_STABILITY_DETECTION failed, repCode: %{public}d", repCode);
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+
+        case static_cast<uint32_t>(
+            RSIClientToRenderConnectionInterfaceCode::START_FRAME_STABILITY_COLLECTION): {
+            FrameStabilityTarget target;
+            if (!data.ReadUint64(target.id)) {
+                RS_LOGE("START_FRAME_STABILITY_COLLECTION Read target.id failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            uint32_t typeValue;
+            if (!data.ReadUint32(typeValue)) {
+                RS_LOGE("START_FRAME_STABILITY_COLLECTION Read typeValue failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            target.type = static_cast<FrameStabilityTargetType>(typeValue);
+            FrameStabilityConfig config;
+            if (!data.ReadUint32(config.stableDuration)) {
+                RS_LOGE("START_FRAME_STABILITY_COLLECTION Read stableDuration failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (!data.ReadFloat(config.changePercent)) {
+                RS_LOGE("START_FRAME_STABILITY_COLLECTION Read changePercent failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            int32_t repCode = StartFrameStabilityCollection(target, config);
+            if (repCode != 0) {
+                RS_LOGE("START_FRAME_STABILITY_COLLECTION failed, repCode: %{public}d", repCode);
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(
+            RSIClientToRenderConnectionInterfaceCode::GET_FRAME_STABILITY_RESULT): {
+            FrameStabilityTarget target;
+            if (!data.ReadUint64(target.id)) {
+                RS_LOGE("GET_FRAME_STABILITY_RESULT Read target.id failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            uint32_t typeValue;
+            if (!data.ReadUint32(typeValue)) {
+                RS_LOGE("GET_FRAME_STABILITY_RESULT Read typeValue failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            target.type = static_cast<FrameStabilityTargetType>(typeValue);
+            bool result;
+            int32_t repCode = GetFrameStabilityResult(target, result);
+            if (repCode != 0) {
+                RS_LOGE("GET_FRAME_STABILITY_RESULT Get result failed!");
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
+            if (!reply.WriteInt32(repCode)) {
+                RS_LOGE("GET_FRAME_STABILITY_RESULT Write repCode failed!");
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
+            if (!reply.WriteBool(result)) {
+                RS_LOGE("GET_FRAME_STABILITY_RESULT Write result failed!");
+                ret = ERR_INVALID_REPLY;
+                break;
             }
             break;
         }

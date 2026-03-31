@@ -26,6 +26,7 @@
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_property_drawable_utils.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "engine/rs_uni_render_engine.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/hpae/rs_hpae_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
@@ -48,7 +49,6 @@
 #include "platform/ohos/rs_node_stats.h"
 #include "rs_render_composer_manager.h"
 #include "rs_trace.h"
-#include "rs_uni_render_engine.h"
 #include "rs_uni_render_util.h"
 #include "static_factory.h"
 #include "surface.h"
@@ -990,6 +990,7 @@ void RSUniRenderThread::ResetClearMemoryTask(bool isDoDirectComposition)
         RemoveTask(RECLAIM_MEMORY);
         SetIsPostedReclaimMemoryTask(false);
         if (ifInterrupt) {
+            RS_LOGE("RSUniRenderThread::ResetClearMemoryTask happen interrupt");
             isTimeToReclaim_.store(false);
             RSReclaimMemoryManager::Instance().SetReclaimInterrupt(false);
         } else if (!isDoDirectComposition) {

@@ -25,6 +25,10 @@
 #include <unistd.h>
 
 #include "dfx/rs_service_dump_manager.h"
+#include "engine/rs_base_render_engine.h"
+#ifdef RS_CAR_FEATURES
+#include "rs_car_multi_display_feature_param.h"
+#endif
 #include "gfx/fps_info/rs_surface_fps_manager.h"
 #include "hgm_core.h"
 #include "parameter.h"
@@ -32,6 +36,7 @@
 #include "rs_profiler.h"
 
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/render_thread/rs_uni_render_util.h"
 #include "transaction/rs_client_to_render_connection.h"
 
 #include "graphic_feature_param_manager.h"
@@ -116,6 +121,10 @@ void RSRenderService::InitCCMConfig()
 {
     // feature param parse
     GraphicFeatureParamManager::GetInstance().Init();
+
+#ifdef RS_CAR_FEATURES
+    RSCarMultiDisplayFeatureParam::Load();
+#endif
 }
 
 void RSRenderService::CoreComponentsInit()
@@ -131,9 +140,10 @@ void RSRenderService::CoreComponentsInit()
         RS_LOGE("%{public}s: vsync init failed", __func__);
     }
 
+    RSBaseRenderEngine::RegisterUniRenderUtilCallback(RSUniRenderUtil::CreateLayerBufferDrawParam,
+        RSUniRenderUtil::DrawRectForDfx);
     // composerManager init
-    rsRenderComposerManager_ =
-        std::make_shared<RSRenderComposerManager>(handler_, vsyncManager_->GetVsyncManagerAgent());
+    rsRenderComposerManager_ = std::make_shared<RSRenderComposerManager>(handler_);
 
     // hgm init
     HgmInit();
@@ -144,6 +154,15 @@ void RSRenderService::CoreComponentsInit()
 
 void RSRenderService::HgmInit()
 {
+    HgmCore::Instance().RegisterScreenManagerCallbacks(
+        std::bind(&RSScreenManager::GetDefaultScreenId, screenManager_.GetRefPtr()),
+        std::bind(&RSScreenManager::GetScreenPowerStatus, screenManager_.GetRefPtr(), std::placeholders::_1),
+        std::bind(&RSScreenManager::GetScreenSupportedModes, screenManager_.GetRefPtr(), std::placeholders::_1),
+        std::bind(&RSScreenManager::SetScreenConstraint,
+            screenManager_.GetRefPtr(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3),
+        std::bind(&RSScreenManager::SetScreenActiveMode,
+            screenManager_.GetRefPtr(), std::placeholders::_1, std::placeholders::_2)
+    );
     HgmCore::Instance().SetScreenManager(screenManager_.GetRefPtr());
     if (auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr()) {
         auto callbackFunc = [this](bool forceUpdate, ScreenId activeScreenId) {
@@ -327,6 +346,20 @@ sptr<IRemoteObject> RSRenderService::ScreenManagerListener::OnScreenConnected(Sc
     RS_LOGD("%{public}s: rsScreenProperty.id[%{public}" PRIu64 "] .width[%{public}d] .height[%{public}d]",
         __func__, property->GetScreenId(), property->GetWidth(), property->GetHeight());
     renderService_.rsRenderComposerManager_->OnScreenConnected(output, property);
+    renderService_.rsRenderComposerManager_->RegisterVsyncManagerCallbacks(screenId,
+        std::bind(&RSVsyncManagerAgent::SetHardwareTaskNum,
+            renderService_.vsyncManager_->GetVsyncManagerAgent(), std::placeholders::_1),
+        std::bind(&RSVsyncManagerAgent::SetTaskEndWithTime,
+            renderService_.vsyncManager_->GetVsyncManagerAgent(), std::placeholders::_1),
+        std::bind(&RSVsyncManagerAgent::GetRealTimeOffsetOfDvsync,
+            renderService_.vsyncManager_->GetVsyncManagerAgent(), std::placeholders::_1, std::placeholders::_2));
+#ifdef RS_CAR_FEATURES
+    if (RSCarMultiDisplayFeatureParam::IsCrossDomainFeatureEnable() &&
+        RSCarMultiDisplayFeatureParam::IsScreenInCrossDomain(screenId)) {
+        renderService_.rsRenderComposerManager_->SetAFBCEnabled(screenId, false);
+        RS_LOGI("%{public}s: ScreenId[%{public}" PRIu64 "] SetAFBCEnabled[false]", __func__, screenId);
+    }
+#endif
     if (const auto& hgmContext = renderService_.GetHgmContext()) {
         hgmContext->AddScreenToHgm(property);
     }

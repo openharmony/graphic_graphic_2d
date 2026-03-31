@@ -655,7 +655,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, GetShadowRegionImageTest018, testing::ext:
 
 /**
  * @tc.name: DrawShadowMaskFilterTest019
- * @tc.desc: DrawShadowMaskFilter test
+ * @tc.desc: DrawShadowMaskFilter test with positive radius (blur shadow)
  * @tc.type: FUNC
  * @tc.require:issueIA5Y41
  */
@@ -667,6 +667,42 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowMaskFilterTest019, testing::ext:
     Drawing::Path path;
     path.AddRect({0, 0, 5, 5});
     rsPropertyDrawableUtilsTest->DrawShadowMaskFilter(&canvasTest, path, 1.f, 1.f, 1.f, false,
+        Color(255, 255, 255, 255), false);
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: DrawShadowMaskFilterTest020
+ * @tc.desc: DrawShadowMaskFilter test with zero radius (solid shadow, no blur)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowMaskFilterTest020, testing::ext::TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(rsPropertyDrawableUtilsTest, nullptr);
+    Drawing::Canvas canvasTest;
+    Drawing::Path path;
+    path.AddRect({0, 0, 5, 5});
+    rsPropertyDrawableUtilsTest->DrawShadowMaskFilter(&canvasTest, path, 1.f, 1.f, 0.f, false,
+        Color(255, 0, 0, 255), false);
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: DrawShadowMaskFilterTest021
+ * @tc.desc: DrawShadowMaskFilter test with negative radius (no shadow expected)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowMaskFilterTest021, testing::ext::TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(rsPropertyDrawableUtilsTest, nullptr);
+    Drawing::Canvas canvasTest;
+    Drawing::Path path;
+    path.AddRect({0, 0, 5, 5});
+    rsPropertyDrawableUtilsTest->DrawShadowMaskFilter(&canvasTest, path, 1.f, 1.f, -1.f, false,
         Color(255, 255, 255, 255), false);
     ASSERT_TRUE(true);
 }
@@ -1559,9 +1595,8 @@ HWTEST_F(RSPropertyDrawableUtilsTest, PickColorAndGpuScaleImageTest001, testing:
     EXPECT_EQ(utils->GpuScaleImage(gpuContext, nullptr), nullptr);
     EXPECT_EQ(utils->GpuScaleImage(gpuContext, image), nullptr); // invalid dims
 
-    // void* semaphore parameter (default nullptr, works on all backends)
-    utils->PickColor(gpuContext, image, color, nullptr);
-    utils->GpuScaleImage(gpuContext, image, nullptr);
+    utils->PickColor(gpuContext, image, color);
+    utils->GpuScaleImage(gpuContext, image);
 }
 
 } // namespace OHOS::Rosen

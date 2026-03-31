@@ -23,6 +23,8 @@
 
 #include "common/rs_singleton.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
+#include "engine/rs_base_render_engine.h"
+#include "engine/rs_uni_render_engine.h"
 #include "feature/hwc/rs_uni_hwc_prevalidate_util.h"
 #ifdef RS_ENABLE_GPU
 #include "feature/uifirst/rs_sub_thread_manager.h"
@@ -32,6 +34,9 @@
 #endif
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
+#endif
+#ifdef RS_ENABLE_TV_PQ_METADATA
+#include "feature/tv_metadata/rs_tv_metadata_manager.h"
 #endif
 
 #include "dfx/rs_pipeline_dumper.h"
@@ -43,9 +48,13 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/main_thread/rs_render_service_listener.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
+#include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include <platform/common/rs_log.h>
 #include "platform/common/rs_system_properties.h"
+#ifdef HETERO_HDR_ENABLE
+#include "rs_hetero_hdr_manager.h"
+#endif
 #include "rs_profiler.h"
 #include "rs_trace.h"
 #include "screen_manager/rs_screen_property.h"
@@ -268,6 +277,25 @@ void RSRenderPipeline::InitMainThread(const std::shared_ptr<AppExecFwk::EventHan
 
 void RSRenderPipeline::InitUniRenderThread()
 {
+    RSBaseRenderEngine::RegisterUniRenderUtilCallback(RSUniRenderUtil::CreateLayerBufferDrawParam,
+        RSUniRenderUtil::DrawRectForDfx);
+#ifdef HETERO_HDR_ENABLE
+    RSBaseRenderEngine::RegisterHeteroHDRCallback(
+        [](BufferDrawParam& params, std::shared_ptr<Drawing::ShaderEffect>& imageShader) {
+            RSHeteroHDRManager::Instance().GenerateHDRHeteroShader(params, imageShader);
+        },
+        [](RSPaintFilterCanvas& canvas, const DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable,
+            BufferDrawParam& params) -> bool {
+            return RSHeteroHDRManager::Instance().UpdateHDRHeteroParams(canvas, surfaceDrawable, params);
+        },
+        []() -> std::shared_ptr<RSSurfaceHandler> { return RSHeteroHDRManager::Instance().GetHDRSurfaceHandler(); });
+#endif
+#ifdef RS_ENABLE_TV_PQ_METADATA
+    RSUniRenderEngine::RegisterTvMetadataCallback(
+        [](const RSSurfaceRenderParams& params, const sptr<SurfaceBuffer>& buffer) {
+            RSTvMetadataManager::Instance().RecordTvMetadata(params, buffer);
+        });
+#endif
     uniRenderThread_ = &(RSUniRenderThread::Instance());
     composerClientManager_ = std::make_shared<RSComposerClientManager>();
     uniRenderThread_->Start(composerClientManager_);

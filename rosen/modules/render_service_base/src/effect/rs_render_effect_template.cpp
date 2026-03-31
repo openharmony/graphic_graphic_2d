@@ -72,8 +72,8 @@ void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect
     const std::string& desc, std::shared_ptr<RSNGRenderShapeBase> value)
 {
     std::shared_ptr<Drawing::GEVisualEffect> geVisualEffect = value ? value->GenerateGEVisualEffect() : nullptr;
-    std::shared_ptr<Drawing::GEShaderShape> geShap = geVisualEffect ? geVisualEffect->GenerateShaderShape() : nullptr;
-    geFilter.SetParam(desc, geShap);
+    std::shared_ptr<Drawing::GEShaderShape> geShape = geVisualEffect ? geVisualEffect->GenerateShaderShape() : nullptr;
+    geFilter.SetParam(desc, geShape);
 }
 
 void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
@@ -102,19 +102,19 @@ void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect
 }
 
 void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
-    const std::string& desc, const RRect& value)
-{
-    OHOS::Rosen::Drawing::GERRect geRRect(value.rect_.left_, value.rect_.top_,
-                                          value.rect_.width_, value.rect_.height_,
-                                          value.radius_->x_, value.radius_->y_);
-
-    geFilter.SetParam(desc, geRRect);
-}
-
-void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
     const std::string& desc, std::shared_ptr<Drawing::Image> value)
 {
     geFilter.SetParam(desc, value);
+}
+
+void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
+    const std::string& desc, const RRect& value)
+{
+    OHOS::Rosen::Drawing::GERRect geRRect{value.rect_.left_, value.rect_.top_,
+                                          value.rect_.width_, value.rect_.height_,
+                                          value.radius_->x_, value.radius_->y_};
+
+    geFilter.SetParam(desc, geRRect);
 }
 
 void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
@@ -218,15 +218,18 @@ void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, const std:
     }
 }
 
-void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, const RRect& value)
-{
-    hash = hashFunc_(&value, sizeof(RRect), hash);
-}
-
 void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, std::shared_ptr<Drawing::Image> value)
 {
+    if (value == nullptr) {
+        return;
+    }
     auto imageUniqueID = value->GetUniqueID();
     hash = hashFunc_(&imageUniqueID, sizeof(imageUniqueID), hash);
+}
+
+void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, const RRect& value)
+{
+    hash = hashFunc_(&value, sizeof(value), hash);
 }
 
 void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, const Matrix3f& value)

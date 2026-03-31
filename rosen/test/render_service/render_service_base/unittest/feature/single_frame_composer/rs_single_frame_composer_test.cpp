@@ -101,4 +101,19 @@ HWTEST_F(RSSingleFrameComposerTest, IsShouldProcessByIpcThread001, TestSize.Leve
     EXPECT_TRUE(ret);
 }
 
+ /**
+  * @tc.name: GetSetVisibleWinCountTest001
+  * @tc.desc: GetSetVisibleWinCountTest test.
+  * @tc.type: FUNC
+  * @tc.require: issueI9IUKU
+  */
+HWTEST_F(RSSingleFrameComposerTest, GetSetVisibleWinCountTest001, TestSize.Level1)
+{
+    uint32_t testCount = 1;
+    uint32_t testReturn = 0;
+    RSSingleFrameComposer::SetVisibleWinCount(testCount);
+    testReturn = RSSingleFrameComposer::GetVisibleWinCount();
+    EXPECT_EQ(testReturn, testCount);
+}
+
 } // namespace OHOS::Rosen

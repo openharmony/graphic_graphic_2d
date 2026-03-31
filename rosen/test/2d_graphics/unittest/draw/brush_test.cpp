@@ -655,6 +655,133 @@ HWTEST_F(BrushTest, IsNotEquals002, TestSize.Level1)
     auto newBrush = brush;
     EXPECT_FALSE(brush != newBrush);
 }
+
+/**
+ * @tc.name: CreateBrushWithUIColor001
+ * @tc.desc: Test Create Brush With UIColor
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(BrushTest, CreateBrushWithUIColor001, TestSize.Level1)
+{
+    UIColor color(0.5f, 0.6f, 0.7f, 0.8f, 2.0f);
+    Brush brush(color);
+    EXPECT_TRUE(brush.HasUIColor());
+    EXPECT_FLOAT_EQ(brush.GetUIColor().GetRed(), 0.5f);
+    EXPECT_FLOAT_EQ(brush.GetUIColor().GetGreen(), 0.6f);
+    EXPECT_FLOAT_EQ(brush.GetUIColor().GetBlue(), 0.7f);
+    EXPECT_FLOAT_EQ(brush.GetUIColor().GetAlpha(), 0.8f);
+    EXPECT_FLOAT_EQ(brush.GetUIColor().GetHeadroom(), 2.0f);
+}
+
+/**
+ * @tc.name: SetUIColorThenSetColor001
+ * @tc.desc: Test SetUIColor Then SetColor
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(BrushTest, SetUIColorThenSetColor001, TestSize.Level1)
+{
+    Brush brush;
+    UIColor uiColor(0.5f, 0.6f, 0.7f, 0.8f, 2.0f);
+    brush.SetUIColor(uiColor, nullptr);
+    EXPECT_TRUE(brush.HasUIColor());
+    Color normalColor(100, 150, 200, 255);
+    brush.SetColor(normalColor);
+    EXPECT_FALSE(brush.HasUIColor());
+}
+
+/**
+ * @tc.name: CopyConstructorWithUIColor001
+ * @tc.desc: Test Copy Constructor With UIColor
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(BrushTest, CopyConstructorWithUIColor001, TestSize.Level1)
+{
+    Brush brush1;
+    UIColor color(0.5f, 0.6f, 0.7f, 0.8f, 2.0f);
+    brush1.SetUIColor(color, nullptr);
+    Brush brush2(brush1);
+    EXPECT_TRUE(brush2.HasUIColor());
+    EXPECT_FLOAT_EQ(brush2.GetUIColor().GetRed(), 0.5f);
+    EXPECT_FLOAT_EQ(brush2.GetUIColor().GetGreen(), 0.6f);
+
+    brush1.SetARGB(255, 100, 150, 200);
+    Brush brush3(brush1);
+    EXPECT_FALSE(brush3.HasUIColor());
+}
+
+/**
+ * @tc.name: AssignmentOperatorWithUIColor001
+ * @tc.desc: Test Assignment Operator With UIColor
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(BrushTest, AssignmentOperatorWithUIColor001, TestSize.Level1)
+{
+    Brush brush1;
+    UIColor color(0.5f, 0.6f, 0.7f, 0.8f, 2.0f);
+    brush1.SetUIColor(color, nullptr);
+    Brush brush2;
+    brush2 = brush1;
+    EXPECT_TRUE(brush2.HasUIColor());
+    EXPECT_FLOAT_EQ(brush2.GetUIColor().GetRed(), 0.5f);
+    EXPECT_FLOAT_EQ(brush2.GetUIColor().GetGreen(), 0.6f);
+}
+
+/**
+ * @tc.name: OperatorEqualWithUIColor001
+ * @tc.desc: Test Operator Equal With UIColor
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(BrushTest, OperatorEqualWithUIColor001, TestSize.Level1)
+{
+    Brush brush1;
+    Brush brush2;
+    UIColor color(0.5f, 0.6f, 0.7f, 0.8f, 2.0f);
+    brush1.SetUIColor(color, nullptr);
+    brush2.SetUIColor(color, nullptr);
+    EXPECT_TRUE(brush1 == brush2);
+    UIColor color3(0.5f, 0.6f, 0.7f, 0.8f, 2.0f);
+    UIColor color4(0.3f, 0.4f, 0.5f, 0.6f, 1.5f);
+    brush1.SetUIColor(color3, nullptr);
+    brush2.SetUIColor(color4, nullptr);
+    EXPECT_TRUE(color3 != color4);
+}
+
+/**
+ * @tc.name: Reset001
+ * @tc.desc: Test Reset
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(BrushTest, Reset001, TestSize.Level1)
+{
+    Brush brush;
+    UIColor color(0.5f, 0.6f, 0.7f, 0.8f, 2.0f);
+    brush.SetUIColor(color, nullptr);
+    EXPECT_TRUE(brush.HasUIColor());
+    brush.Reset();
+    EXPECT_FALSE(brush.HasUIColor());
+}
+
+/**
+ * @tc.name: Dump001
+ * @tc.desc: Test Dump
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(BrushTest, Dump001, TestSize.Level1)
+{
+    Brush brush;
+    UIColor color(0.5f, 0.6f, 0.7f, 0.8f, 2.0f);
+    brush.SetUIColor(color, nullptr);
+    std::string out;
+    brush.Dump(out);
+    EXPECT_FALSE(out.empty());
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

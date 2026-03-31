@@ -233,4 +233,118 @@ HWTEST_F(MaskPenOpItemTest, PlaybackTest005, TestSize.Level1)
     maskPenOpItem->Playback(pen, list);
     ASSERT_TRUE(opItem != nullptr);
 }
+
+/**
+ * @tc.name: PlaybackTest006
+ * @tc.desc: Test Playback function with isUIColor.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(MaskBrushOpItemTest, PlaybackTest006, TestSize.Level1)
+{
+    BrushHandle brushHandle;
+    brushHandle.isUIColor = true;
+    brushHandle.uiColor = UIColor(128.0f, 64.0f, 32.0f, 255.0f);
+    auto maskBrushOpItem = std::make_shared<MaskBrushOpItem>(brushHandle);
+    auto path = std::make_shared<Path>();
+    Brush brush;
+    const CmdList list;
+    auto maskPlayer = std::make_shared<MaskPlayer>(path, brush, list);
+    const void* opItem = maskBrushOpItem.get();
+    size_t leftOpAllocatorSize = 0;
+    MaskBrushOpItem::Playback(*maskPlayer, opItem, leftOpAllocatorSize);
+
+    leftOpAllocatorSize = sizeof(MaskBrushOpItem);
+    MaskBrushOpItem::Playback(*maskPlayer, opItem, leftOpAllocatorSize);
+    const void* item = nullptr;
+    MaskBrushOpItem::Playback(*maskPlayer, item, leftOpAllocatorSize);
+    maskBrushOpItem->Playback(brush, list);
+    ASSERT_TRUE(opItem != nullptr);
+}
+
+/**
+ * @tc.name: PlaybackTest007
+ * @tc.desc: Test Playback function without isUIColor.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(MaskBrushOpItemTest, PlaybackTest007, TestSize.Level1)
+{
+    BrushHandle brushHandle;
+    brushHandle.isUIColor = false;
+    brushHandle.color = Color::COLOR_RED;
+    auto maskBrushOpItem = std::make_shared<MaskBrushOpItem>(brushHandle);
+    auto path = std::make_shared<Path>();
+    Brush brush;
+    const CmdList list;
+    auto maskPlayer = std::make_shared<MaskPlayer>(path, brush, list);
+    const void* opItem = maskBrushOpItem.get();
+    size_t leftOpAllocatorSize = 0;
+    MaskBrushOpItem::Playback(*maskPlayer, opItem, leftOpAllocatorSize);
+
+    leftOpAllocatorSize = sizeof(MaskBrushOpItem);
+    MaskBrushOpItem::Playback(*maskPlayer, opItem, leftOpAllocatorSize);
+    const void* item = nullptr;
+    MaskBrushOpItem::Playback(*maskPlayer, item, leftOpAllocatorSize);
+    maskBrushOpItem->Playback(brush, list);
+    ASSERT_TRUE(opItem != nullptr);
+}
+
+/**
+ * @tc.name: PlaybackTest008
+ * @tc.desc: Test Playback function with isUIColor.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(MaskPenOpItemTest, PlaybackTest008, TestSize.Level1)
+{
+    PenHandle penHandle;
+    penHandle.isUIColor = true;
+    penHandle.uiColor = UIColor(64.0f, 128.0f, 192.0f, 255.0f);
+    auto maskPenOpItem = std::make_shared<MaskPenOpItem>(penHandle);
+    auto path = std::make_shared<Path>();
+    Brush brush;
+    const CmdList list;
+    auto maskPlayer = std::make_shared<MaskPlayer>(path, brush, list);
+    const void* opItem = maskPenOpItem.get();
+    size_t leftOpAllocatorSize = 0;
+    MaskPenOpItem::Playback(*maskPlayer, opItem, leftOpAllocatorSize);
+
+    leftOpAllocatorSize = sizeof(MaskPenOpItem);
+    MaskPenOpItem::Playback(*maskPlayer, opItem, leftOpAllocatorSize);
+    const void* item = nullptr;
+    MaskPenOpItem::Playback(*maskPlayer, item, leftOpAllocatorSize);
+    Pen pen;
+    maskPenOpItem->Playback(pen, list);
+    ASSERT_TRUE(opItem != nullptr);
+}
+
+/**
+ * @tc.name: PlaybackTest009
+ * @tc.desc: Test Playback function without isUIColor.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(MaskPenOpItemTest, PlaybackTest009, TestSize.Level1)
+{
+    PenHandle penHandle;
+    penHandle.isUIColor = false;
+    penHandle.color = Color::COLOR_BLUE;
+    auto maskPenOpItem = std::make_shared<MaskPenOpItem>(penHandle);
+    auto path = std::make_shared<Path>();
+    Brush brush;
+    const CmdList list;
+    auto maskPlayer = std::make_shared<MaskPlayer>(path, brush, list);
+    const void* opItem = maskPenOpItem.get();
+    size_t leftOpAllocatorSize = 0;
+    MaskPenOpItem::Playback(*maskPlayer, opItem, leftOpAllocatorSize);
+
+    leftOpAllocatorSize = sizeof(MaskPenOpItem);
+    MaskPenOpItem::Playback(*maskPlayer, opItem, leftOpAllocatorSize);
+    const void* item = nullptr;
+    MaskPenOpItem::Playback(*maskPlayer, item, leftOpAllocatorSize);
+    Pen pen;
+    maskPenOpItem->Playback(pen, list);
+    ASSERT_TRUE(opItem != nullptr);
+}
 } // namespace OHOS::Rosen::Drawing

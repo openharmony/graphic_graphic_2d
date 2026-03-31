@@ -215,6 +215,8 @@ public:
         return !subthreadProcessingNode_.empty();
     }
 
+    void SetUIFirstLeashAllEnable(RSSurfaceRenderNode& surfaceNode);
+
     bool IsUIFirstDirtyEnabled() const
     {
         return GetUiFirstType() == UiFirstCcmType::MULTI && RSSystemProperties::GetUIFirstDirtyEnabled();
@@ -434,6 +436,8 @@ private:
     bool allScreenPowerOffNeedPurge_ = false;
 
     float sizeChangedThreshold_ = 0.1f;
+
+    bool isUIFirstLeashAllEnable_ = false;
 };
 
 // If a subnode is delivered directly
