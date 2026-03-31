@@ -26,10 +26,13 @@ public:
     explicit RSRenderProcessManagerAgent(sptr<RSRenderProcessManager> renderProcessManager);
     ~RSRenderProcessManagerAgent() noexcept override = default;
 
-    void SetRenderProcessReadyPromise(pid_t pid);
+    void SetRenderProcessReadyPromise(pid_t pid, const sptr<RSIServiceToRenderConnection>& serviceToRenderConnection,
+        const sptr<RSIConnectToRenderProcess>& connectToRenderConnection);
 
     sptr<RSIServiceToRenderConnection> GetServiceToRenderConn(ScreenId screenId) const;
     std::vector<sptr<RSIServiceToRenderConnection>> GetServiceToRenderConns() const;
+
+    std::shared_ptr<RSIpcReplayManager> GetIpcReplayManager() const;
 
 private:
     const sptr<RSRenderProcessManager> renderProcessManager_;

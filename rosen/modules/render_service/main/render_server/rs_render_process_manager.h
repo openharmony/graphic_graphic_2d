@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "irs_composer_to_render_connection.h"
+#include "platform/ohos/transaction/ipc_replay/rs_ipc_replay_manager.h"
 #include "platform/ohos/transaction/zidl/rs_iconnect_to_render_process.h"
 #include "render_process/transaction/zidl/rs_iservice_to_render_connection.h"
 #include "render_server/transaction/zidl/rs_irender_to_service_connection.h"
@@ -40,7 +41,6 @@ public:
     void OnGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList) override;
     void OnActiveScreenIdChanged(ScreenId activeScreenId) override {}
     void OnHwcEvent(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData) override;
-
     void OnHwcRestored(ScreenId id, const std::shared_ptr<HdiOutput>& output,
         const sptr<RSScreenProperty>& property) override {}
     void OnHwcDead(ScreenId id) override {}
@@ -48,6 +48,8 @@ public:
     virtual sptr<RSIServiceToRenderConnection> GetServiceToRenderConn(ScreenId screenId) const = 0;
     virtual std::vector<sptr<RSIServiceToRenderConnection>> GetServiceToRenderConns() const = 0;
     virtual sptr<RSIConnectToRenderProcess> GetConnectToRenderConnection(ScreenId screenId) const = 0;
+
+    virtual std::shared_ptr<RSIpcReplayManager> GetIpcReplayManager() const { return nullptr; };
 
 protected:
     RSRenderService& renderService_;

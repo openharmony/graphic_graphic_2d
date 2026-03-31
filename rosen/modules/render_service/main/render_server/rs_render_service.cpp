@@ -46,6 +46,8 @@
 #include "vsync_generator.h"
 #include "xcollie/watchdog.h"
 
+#include "platform/ohos/transaction/rs_render_connect_parcel_info.h"
+
 #ifdef RS_ENABLE_RDO
 #include "feature/rdo/rs_rdo.h"
 #endif
@@ -56,8 +58,6 @@
 #include "text/font_mgr.h"
 #include "transaction/rs_client_to_render_connection.h"
 #include "vsync_generator.h"
-
-#include "platform/ohos/transaction/rs_render_connect_parcel_info.h"
 
 #undef LOG_TAG
 #define LOG_TAG "RSRenderService"
@@ -71,9 +71,7 @@ constexpr uint32_t WATCHDOG_TIMEVAL = 5000;
 bool IsInvalidConnectInfo(const sptr<ConnectToServiceInfo>& result)
 {
     return !result ||
-           !result->serviceToRenderConnection_ ||
            !result->composerToRenderConnection_ ||
-           !result->connectToRenderConnection_ ||
            !result->vsyncToken_;
 }
 }
@@ -261,14 +259,10 @@ sptr<ReplyToRenderInfo> RSRenderService::RegisterRenderProcessConnection(
         return nullptr;
     }
     const auto remotePid = GetCallingPid();
-    auto serviceToRenderConn =
-        iface_cast<RSIServiceToRenderConnection>(connectToServiceInfo->serviceToRenderConnection_);
     auto composerToRenderConn =
         iface_cast<IRSComposerToRenderConnection>(connectToServiceInfo->composerToRenderConnection_);
-    auto connectToRenderConn = iface_cast<RSIConnectToRenderProcess>(connectToServiceInfo->connectToRenderConnection_);
     auto renderMultiProcessManager = static_cast<RSMultiRenderProcessManager*>(renderProcessManager_.GetRefPtr());
-    renderMultiProcessManager->RecordRenderProcessConnection(
-        remotePid, serviceToRenderConn, composerToRenderConn, connectToRenderConn);
+    renderMultiProcessManager->RecordComposerToRenderConnection(remotePid, composerToRenderConn);
 
     // preparing required infos
     auto rsScreenProperty = renderMultiProcessManager->GetPendingScreenProperty(remotePid);
@@ -283,8 +277,11 @@ sptr<ReplyToRenderInfo> RSRenderService::RegisterRenderProcessConnection(
     auto vsyncConn = sptr<VSyncConnection>::MakeSptr(
         vsyncManager_->GetVSyncRSDistributor(), "render_process", connectToServiceInfo->vsyncToken_);
     vsyncManager_->GetVSyncRSDistributor()->AddConnection(vsyncConn);
-    return sptr<ReplyToRenderInfo>::MakeSptr(
-        renderToServiceConnection->AsObject(), composerConn->AsObject(), rsScreenProperty, vsyncConn->AsObject());
+
+    auto replayData =
+        std::make_shared<IpcReplayTypeToDataMap>(renderProcessManager_->GetIpcReplayManager()->GetReplayData());
+    return sptr<ReplyToRenderInfo>::MakeSptr(renderToServiceConnection->AsObject(), composerConn->AsObject(),
+        rsScreenProperty, vsyncConn->AsObject(), replayData);
 }
 
 std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> RSRenderService::GetConnection(

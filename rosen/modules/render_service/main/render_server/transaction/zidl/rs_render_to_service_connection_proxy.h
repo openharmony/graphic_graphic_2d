@@ -29,7 +29,8 @@ public:
     virtual ~RSRenderToServiceConnectionProxy() noexcept = default;
 
     // Process Manager
-    bool NotifyRenderProcessInitFinished() override;
+    bool NotifyRenderProcessInitFinished(const sptr<IRemoteObject>& serviceToRenderConnection,
+        const sptr<IRemoteObject>& connectToRenderConnection) override;
 
     // Hgm
     sptr<HgmServiceToProcessInfo> NotifyRpHgmFrameRate(uint64_t timestamp, uint64_t vsyncId,

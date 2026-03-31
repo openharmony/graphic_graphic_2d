@@ -24,7 +24,8 @@ namespace Rosen {
 RSRenderToServiceConnectionProxy::RSRenderToServiceConnectionProxy(const sptr<IRemoteObject>& impl) :
     IRemoteProxy<RSIRenderToServiceConnection>(impl) {}
 
-bool RSRenderToServiceConnectionProxy::NotifyRenderProcessInitFinished()
+bool RSRenderToServiceConnectionProxy::NotifyRenderProcessInitFinished(
+    const sptr<IRemoteObject>& serviceToRenderConnection, const sptr<IRemoteObject>& connectToRenderConnection)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -32,6 +33,14 @@ bool RSRenderToServiceConnectionProxy::NotifyRenderProcessInitFinished()
     option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIRenderToServiceConnection::GetDescriptor())) {
         RS_LOGE("%{public}s: WriteInterfaceToken failed", __func__);
+        return false;
+    }
+    if (!data.WriteRemoteObject(serviceToRenderConnection)) {
+        RS_LOGE("%{public}s: Write serviceToRenderConnection failed", __func__);
+        return false;
+    }
+    if (!data.WriteRemoteObject(connectToRenderConnection)) {
+        RS_LOGE("%{public}s: Write connectToRenderConnection failed", __func__);
         return false;
     }
     uint32_t code = static_cast<uint32_t>(RSIRenderToServiceConnectionInterfaceCode::NOTIFY_RENDER_PROCESS_READY);

@@ -61,6 +61,8 @@ public:
     sptr<IRemoteObject> GetConnectToRenderToken(ScreenId screenId);
     void RemoveToken(const sptr<RSIConnectionToken>& token);
 
+    const std::shared_ptr<const RenderModeConfig>& GetRenderModeConfig() const;
+
     // Hgm
     void ProcessHgmFrameRate(uint64_t timestamp, uint64_t vsyncId,
         const sptr<HgmProcessToServiceInfo>& processToServiceInfo,
