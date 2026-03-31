@@ -1100,6 +1100,13 @@ int32_t RSInterfaces::GetPidGpuMemoryInMB(pid_t pid, float& gpuMemInMB)
     auto ret = renderServiceClient_->GetPidGpuMemoryInMB(pid, gpuMemInMB);
     return ret;
 }
+
+int32_t RSInterfaces::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
+{
+    RS_LOGI("RSInterfaces::GetMaxGpuBufferSize called");
+    return renderInterface_->GetMaxGpuBufferSize(maxWidth, maxHeight);
+}
+
 // LCOV_EXCL_START
 bool RSInterfaces::GetHighContrastTextState()
 {

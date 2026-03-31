@@ -272,6 +272,14 @@ public:
      */
     int32_t GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus);
 
+    /**
+     * @brief Get the maximum GPU buffer size.
+     * @param maxWidth The maximum width of GPU buffer.
+     * @param maxHeight The maximum height of GPU buffer.
+     * @return 0 success, others failed.
+     */
+    int32_t GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight);
+
     // WMS set dark color display mode to RS
     /**
      * @brief Notify if system themes switch to dark mode.

@@ -677,6 +677,76 @@ HWTEST_F(RSPipelineClientTest, SubmitCanvasPreAllocatedBufferTest, TestSize.Leve
 #endif
 
 /**
+ * @tc.name: GetMaxGpuBufferSize001
+ * @tc.desc: Test GetMaxGpuBufferSize with zero initial values
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPipelineClientTest, GetMaxGpuBufferSize001, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    uint32_t maxWidth = 0;
+    uint32_t maxHeight = 0;
+    int32_t ret = rsClient->GetMaxGpuBufferSize(maxWidth, maxHeight);
+    EXPECT_LE(ret, RENDER_SERVICE_NULL);
+}
+
+/**
+ * @tc.name: GetMaxGpuBufferSize002
+ * @tc.desc: Test GetMaxGpuBufferSize with null render service
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPipelineClientTest, GetMaxGpuBufferSize002, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    uint32_t maxWidth = 0;
+    uint32_t maxHeight = 0;
+    auto renderServiceConnectHub = RSRenderServiceConnectHub::GetInstance();
+    RSRenderServiceConnectHub::instance_ = nullptr;
+    int32_t ret = rsClient->GetMaxGpuBufferSize(maxWidth, maxHeight);
+    ASSERT_EQ(ret, RENDER_SERVICE_NULL);
+    RSRenderServiceConnectHub::instance_ = renderServiceConnectHub;
+}
+
+/**
+ * @tc.name: GetMaxGpuBufferSize003
+ * @tc.desc: Test GetMaxGpuBufferSize multiple calls
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPipelineClientTest, GetMaxGpuBufferSize003, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    uint32_t maxWidth1 = 0;
+    uint32_t maxHeight1 = 0;
+    int32_t ret1 = rsClient->GetMaxGpuBufferSize(maxWidth1, maxHeight1);
+    
+    uint32_t maxWidth2 = 0;
+    uint32_t maxHeight2 = 0;
+    int32_t ret2 = rsClient->GetMaxGpuBufferSize(maxWidth2, maxHeight2);
+    
+    EXPECT_EQ(ret1, ret2);
+    EXPECT_EQ(maxWidth1, maxWidth2);
+    EXPECT_EQ(maxHeight1, maxHeight2);
+}
+
+/**
+ * @tc.name: GetMaxGpuBufferSize004
+ * @tc.desc: Test GetMaxGpuBufferSize with preset values
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPipelineClientTest, GetMaxGpuBufferSize004, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    uint32_t maxWidth = 2048;
+    uint32_t maxHeight = 2048;
+    int32_t ret = rsClient->GetMaxGpuBufferSize(maxWidth, maxHeight);
+    EXPECT_LE(ret, RENDER_SERVICE_NULL);
+}
+
+/**
  * @tc.name: SetLogicalCameraRotationCorrection Test
  * @tc.desc: SetLogicalCameraRotationCorrection
  * @tc.type:FUNC
