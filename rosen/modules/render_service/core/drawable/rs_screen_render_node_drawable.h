@@ -29,6 +29,8 @@
 #include "pipeline/rs_surface_handler.h"
 #include "rs_composer_client_manager.h"
 
+inline const std::string RENDER_NODE_NAME = "ScreenNode";
+
 namespace OHOS::Rosen {
 namespace DrawableV2 {
 class RSScreenRenderNodeDrawable : public RSRenderNodeDrawable {
