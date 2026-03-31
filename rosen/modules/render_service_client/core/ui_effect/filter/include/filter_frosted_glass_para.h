@@ -389,7 +389,7 @@ private:
     Vector2f blurParams_ = Vector2f(0.0f, 0.0f);
     Vector2f weightsEmboss_ = Vector2f(0.0f, 0.0f); // (envLight, sd)
     Vector2f weightsEdl_ = Vector2f(0.0f, 0.0f);
-    Vector2f maxColor_ = 10.0f;
+    float maxColor_ = 10.0f;
     // Background darken parameters
     Vector2f bgRates_ = Vector2f(0.0f, 0.0f);
     Vector3f bgKBS_ = Vector3f(0.0f, 0.0f, 0.0f);
