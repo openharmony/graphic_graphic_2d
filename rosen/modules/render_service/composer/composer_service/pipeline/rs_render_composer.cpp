@@ -230,8 +230,6 @@ void PrintHiperfSurfaceLog(const std::string& counterContext, uint64_t counter)
 
 void RSRenderComposer::ComposerPrepare(uint32_t& currentRate, int64_t& delayTime, const PipelineParam& pipelineParam)
 {
-    hgmHardwareUtils_->TransactRefreshRateParam(currentRate, pipelineParam.pendingScreenRefreshRate,
-        pipelineParam.frameTimestamp, pipelineParam.pendingConstraintRelativeTime);
 #ifdef RES_SCHED_ENABLE
     ResschedEventListener::GetInstance()->ReportFrameToRSS();
 #endif
@@ -240,6 +238,7 @@ void RSRenderComposer::ComposerPrepare(uint32_t& currentRate, int64_t& delayTime
         setHardwareTaskNumCb_(unExecuteTaskNum_.load());
     }
     auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
+    currentRate = hgmCore.GetScreenCurrentRefreshRate(hgmCore.GetActiveScreenId());
     delayTime = UpdateDelayTime(hgmCore, currentRate, pipelineParam);
     delayTime_ = delayTime;
 }
@@ -271,7 +270,7 @@ void RSRenderComposer::ProcessComposerFrame(uint32_t currentRate, const Pipeline
 
     bool shouldDropFrame = IsDropDirtyFrame(layers);
     if (!shouldDropFrame) {
-        hgmHardwareUtils_->SwitchRefreshRate(hdiOutput_, startTime);
+        hgmHardwareUtils_->SwitchRefreshRate(hdiOutput_, startTime, pipelineParam);
     }
 
     if (RSSystemProperties::IsSuperFoldDisplay() && screenId_ == 0) {
