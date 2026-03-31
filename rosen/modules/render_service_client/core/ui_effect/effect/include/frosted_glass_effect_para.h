@@ -52,6 +52,26 @@ public:
         return weightsEdl_;
     }
 
+    void SetAntiAlias(Vector2f& antiAlias)
+    {
+        antiAlias_ = antiAlias;
+    }
+
+    const Vector2f GetAntiAlias() const
+    {
+        return antiAlias_;
+    }
+
+    void SetMaxColor(float maxColor)
+    {
+        maxColor_ = maxColor;
+    }
+
+    float GetMaxColor() const
+    {
+        return maxColor_;
+    }
+
     void SetBgRates(Vector2f& bgRates)
     {
         bgRates_ = bgRates;
@@ -305,6 +325,8 @@ public:
 private:
     Vector2f weightsEmboss_ = Vector2f(0.0f, 0.0f);
     Vector2f weightsEdl_ = Vector2f(0.0f, 0.0f);
+    Vector2f antiAlias_ = Vector2f(-1.0f, 1.0f);
+    float maxColor_ = 15.0f;
     // Background darken parameters
     Vector2f bgRates_ = Vector2f(0.0f, 0.0f);
     Vector3f bgKBS_ = Vector3f(0.0f, 0.0f, 0.0f);
