@@ -134,4 +134,11 @@ Drawing::ColorQuad RSColorPickerManager::GetContrastColor(Drawing::ColorQuad col
     const float threshold = prevDark ? THRESHOLD_LOW : THRESHOLD_HIGH;
     return luminance > threshold ? Drawing::Color::COLOR_BLACK : Drawing::Color::COLOR_WHITE;
 }
+
+EquivalentDarkMode RSColorPickerManager::GetLastEquivalentDarkMode()
+{
+    const bool darkMode = isSystemDarkColorMode_.load(std::memory_order_relaxed);
+    auto curColor = GetColorOrDefault(colorPicked_.load(std::memory_order_relaxed), darkMode);
+    return curColor == Drawing::Color::COLOR_BLACK ? EquivalentDarkMode::LIGHT : EquivalentDarkMode::DARK;
+}
 } // namespace OHOS::Rosen

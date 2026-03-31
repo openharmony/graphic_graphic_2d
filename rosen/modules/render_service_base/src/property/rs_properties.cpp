@@ -1339,6 +1339,14 @@ void RSProperties::SetColorPickerRect(const Vector4f& rect)
     SetDirty();
 }
 
+void RSProperties::SetLastEquivalentDarkMode(EquivalentDarkMode darkMode)
+{
+    if (!colorPicker_) {
+        colorPicker_ = std::make_shared<ColorPickerParam>();
+    }
+    colorPicker_->lastEquivalentDarkMode = darkMode;
+}
+
 std::shared_ptr<ColorPickerParam> RSProperties::GetColorPicker() const
 {
     return colorPicker_;

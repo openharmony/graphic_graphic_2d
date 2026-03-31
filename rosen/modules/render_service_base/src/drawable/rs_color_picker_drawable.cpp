@@ -149,6 +149,11 @@ void RSColorPickerDrawable::ResetColorMemory()
     stagingNeedColorPick_ = false;
 }
 
+EquivalentDarkMode RSColorPickerDrawable::GetLastEquivalentDarkMode()
+{
+    return colorPickerManager_ ? colorPickerManager_->GetLastEquivalentDarkMode() : EquivalentDarkMode::INVALID;
+}
+
 void RSColorPickerDrawable::SetState(DrawableV2::ColorPickerState state)
 {
     const DrawableV2::ColorPickerState currentState = stagingState_;

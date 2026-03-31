@@ -404,6 +404,7 @@ public:
     void SetColorPickerInterval(int interval);
     void SetColorPickerNotifyThreshold(int packedThresholds); // packed: lower 16 bits = dark, upper 16 bits = light
     void SetColorPickerRect(const Vector4f& rect); // [left, top, right, bottom]
+    void SetLastEquivalentDarkMode(EquivalentDarkMode darkMode);
     std::shared_ptr<ColorPickerParam> GetColorPicker() const;
 
     void SetFgBrightnessRates(const Vector4f& rates);
