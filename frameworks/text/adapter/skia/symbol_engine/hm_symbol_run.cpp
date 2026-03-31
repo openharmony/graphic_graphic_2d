@@ -32,25 +32,6 @@ static const std::vector<RSEffectStrategy> COMMON_ANIMATION_TYPES = {
 
 static const float SHADOW_EPSILON = 0.0f; // if blur radius less than 0, do not need to draw
 
-// namespace {
-// // Helper for DrawPaths fallback: applies UIColor to brush/pen directly when
-// // gradient doesn't have UIColor but symbolTxt does (e.g., ArkUI gradient path).
-// std::shared_ptr<Drawing::ColorSpace> CreateColorSpaceFromEnum(SymbolColorSpace colorSpaceEnum)
-// {
-//     switch (colorSpaceEnum) {
-//         case SymbolColorSpace::DISPLAY_P3:
-//             return Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB,
-//                 Drawing::CMSMatrixType::DCIP3);
-//         case SymbolColorSpace::BT2020:
-//             return Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB,
-//                 Drawing::CMSMatrixType::REC2020);
-//         case SymbolColorSpace::SRGB:
-//         default:
-//             return Drawing::ColorSpace::CreateSRGB();
-//     }
-// }
-// } // anonymous namespace
-
 HMSymbolRun::HMSymbolRun(uint64_t symbolId,
     const HMSymbolTxt& symbolTxt,
     const std::shared_ptr<RSTextBlob>& textBlob,
@@ -109,6 +90,78 @@ RSSymbolLayers HMSymbolRun::GetSymbolLayers(uint16_t glyphId, const HMSymbolTxt&
 
 void HMSymbolRun::SetRenderColor(const RSSymbolRenderingStrategy& renderMode, RSSymbolLayers& symbolInfo)
 {
+    std::vector<std::shared_ptr<SymbolGradient>> gradients;
+    if (!symbolTxt_.GetUIColors().empty()){
+        // symbolTxt_.GetUIColors
+        SetRenderUIColor(renderMode, symbolInfo, gradients); 
+    } else {
+        SetRenderRSColor(renderMode, symbolInfo, gradients);
+    }
+    gradients_ = std::move(gradients);
+}
+
+void HMSymbolRun::SetRenderUIColor(const RSSymbolRenderingStrategy& renderMode, RSSymbolLayers& symbolInfo,
+    std::vector<std::shared_ptr<SymbolGradient>>& gradients)
+{
+    std::vector<Drawing::UIColor> uiColorList = symbolTxt_.GetUIColors();
+    std::vector<SymbolColorSpace> colorSpaces = symbolTxt_.GetColorSpaces();
+
+    std::vector<Drawing::UIColor> effectiveUIColors;
+    std::vector<SymbolColorSpace> effectiveColorSpaces;
+    if (!uiColorList.empty()) {
+        switch (renderMode) {
+            // SINGLE and HIERARCHICAL: Supports single uiColor setting
+            case RSSymbolRenderingStrategy::SINGLE:
+                for (size_t i = 0; i < symbolInfo.renderGroups.size(); ++i) {
+                    effectiveUIColors.push_back(uiColorList[0]);
+                    effectiveColorSpaces.push_back(colorSpaces.empty() ? SymbolColorSpace::SRGB : colorSpaces[0]);
+                }
+                break;
+            // MULTIPLE_OPACITY: Supports rgb replace and alphia overlay setting by the first uiColor
+            case RSSymbolRenderingStrategy::MULTIPLE_OPACITY:
+                for (size_t i = 0; i < symbolInfo.renderGroups.size(); ++i) {
+                    float alpha = symbolInfo.renderGroups[i].color.a * uiColorList[0].GetAlpha();
+                    // the 0 indicates the the first color is used. Alpha: 0.0: min, 1.0: max
+                    auto uiColor = Drawing::UIColor(uiColorList[0].GetRed(), uiColorList[0].GetGreen(),
+                        uiColorList[0].GetBlue(), std::clamp(alpha, 0.0f, 1.0f));
+                    // the 0 indicates the the first color is used
+                    uiColor.SetHeadroom(uiColorList[0].GetHeadroom());
+                    effectiveUIColors.push_back(uiColor);
+                    effectiveColorSpaces.push_back(colorSpaces.empty() ? SymbolColorSpace::SRGB : colorSpaces[0]);
+                }
+                break;
+            // MULTIPLE_COLOR: Supports mutiple uiColor setting
+            case RSSymbolRenderingStrategy::MULTIPLE_COLOR:
+                for (size_t i = 0; i < symbolInfo.renderGroups.size(); ++i) {
+                    if (i < uiColorList.size()) {
+                        effectiveUIColors.push_back(uiColorList[i]);
+                        effectiveColorSpaces.push_back((i < colorSpaces.size()) ? colorSpaces[i] :
+                            SymbolColorSpace::SRGB);
+                    } else {
+                        // Use default symbol color
+                        auto uiColor = Drawing::UIColor(symbolInfo.renderGroups[i].color.r,
+                            symbolInfo.renderGroups[i].color.g,symbolInfo.renderGroups[i].color.b,
+                            symbolInfo.renderGroups[i].color.a);
+                        effectiveUIColors.push_back(uiColor);
+                        effectiveColorSpaces.push_back(SymbolColorSpace::SRGB);
+                    }
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
+    for (size_t i = 0; i < symbolInfo.renderGroups.size(); ++i) {
+        auto gradient = std::make_shared<SymbolGradient>();
+        gradient->SetUIColors({ effectiveUIColors[i] }, effectiveColorSpaces[i]);
+        gradients.push_back(gradient);
+    }
+}
+
+void HMSymbolRun::SetRenderRSColor(const RSSymbolRenderingStrategy& renderMode, RSSymbolLayers& symbolInfo,
+    std::vector<std::shared_ptr<SymbolGradient>>& gradients)
+{
     std::vector<RSSColor> colorList = symbolTxt_.GetRenderColor();
 
     if (!colorList.empty()) {
@@ -116,7 +169,7 @@ void HMSymbolRun::SetRenderColor(const RSSymbolRenderingStrategy& renderMode, RS
     }
 
     auto placeholderList = symbolTxt_.GetRenderColorPlaceholder();
-    std::vector<std::shared_ptr<SymbolGradient>> gradients;
+
     for (size_t i = 0; i < symbolInfo.renderGroups.size(); ++i) {
         auto gradient = std::make_shared<SymbolGradient>();
         auto groupColor = symbolInfo.renderGroups[i].color;
@@ -129,7 +182,6 @@ void HMSymbolRun::SetRenderColor(const RSSymbolRenderingStrategy& renderMode, RS
         gradient->SetColors({ color });
         gradients.push_back(gradient);
     }
-    gradients_ = std::move(gradients);
 }
 
 void HMSymbolRun::SetGradientColor(const RSSymbolRenderingStrategy& renderMode, const RSSymbolLayers& symbolInfo)
@@ -389,11 +441,6 @@ void HMSymbolRun::DrawPaths(RSCanvas* canvas, const std::vector<RSPath>& multPat
     brush.SetAntiAlias(true);
     pen.SetAntiAlias(true);
 
-    // // Check UIColor for HDR color support
-    // auto uiColors = symbolTxt_.GetUIColors();
-    // auto colorSpaceEnums = symbolTxt_.GetColorSpaces();
-    // bool hasUIColor = !uiColors.empty();
-
     size_t n = gradients_.size();
     bool isSingle = symbolTxt_.GetRenderMode() == RSSymbolRenderingStrategy::SINGLE && n > 0 &&
         gradients_[0] != nullptr;
@@ -401,13 +448,6 @@ void HMSymbolRun::DrawPaths(RSCanvas* canvas, const std::vector<RSPath>& multPat
         gradients_[0]->Make(path.GetBounds());
         brush = gradients_[0]->CreateGradientBrush();
         pen = gradients_[0]->CreateGradientPen();
-        // // Apply UIColor if gradient doesn't have one but symbolTxt does
-        // if (hasUIColor && !gradients_[0]->HasUIColor()) {
-        //     auto csEnum = colorSpaceEnums.empty() ? SymbolColorSpace::SRGB : colorSpaceEnums[0];
-        //     auto colorSpace = CreateColorSpaceFromEnum(csEnum);
-        //     brush.SetUIColor(uiColors[0], colorSpace);
-        //     pen.SetUIColor(uiColors[0], colorSpace);
-        // }
     }
 
     size_t i = 0;
@@ -418,14 +458,6 @@ void HMSymbolRun::DrawPaths(RSCanvas* canvas, const std::vector<RSPath>& multPat
             gradients_[i]->Make(multPath.GetBounds());
             brush = gradients_[i]->CreateGradientBrush();
             pen = gradients_[i]->CreateGradientPen();
-            // // Apply UIColor if gradient doesn't have one but symbolTxt does
-            // if (hasUIColor && !gradients_[i]->HasUIColor()) {
-            //     size_t uiIdx = std::min(i, uiColors.size() - 1);
-            //     size_t csIdx = std::min(i, colorSpaceEnums.size() - 1);
-            //     auto colorSpace = CreateColorSpaceFromEnum(colorSpaceEnums[csIdx]);
-            //     brush.SetUIColor(uiColors[uiIdx], colorSpace);
-            //     pen.SetUIColor(uiColors[uiIdx], colorSpace);
-            // }
             i = i + 1 < n ? i + 1 : i;
         }
         canvas->AttachPen(pen);
