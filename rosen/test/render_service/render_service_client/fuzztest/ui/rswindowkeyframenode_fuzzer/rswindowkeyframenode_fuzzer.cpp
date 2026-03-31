@@ -17,135 +17,118 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <fuzzer/FuzzedDataProvider.h>
+#include <optional>
 #include <securec.h>
 
+
 #include "feature/window_keyframe/rs_window_keyframe_node.h"
-#include "ui/rs_ui_context.h"
 #include "pipeline/rs_render_node_gc.h"
+#include "ui/rs_ui_context.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace {
-const uint8_t* DATA = nullptr;
-size_t g_size = 0;
-size_t g_pos;
+const uint8_t DO_SET_FREEZE = 0;
+const uint8_t DO_SET_LINKED_NODE_ID = 1;
+const uint8_t DO_READ_FROM_PARCEL_AND_WRITE_TO_PARCEL = 2;
+const uint8_t TARGET_SIZE = 3;
+RSWindowKeyFrameNode::SharedPtr g_keyframeNode = nullptr;
+std::optional<std::reference_wrapper<FuzzedDataProvider>> g_fdp;
 } // namespace
 
-/*
- * describe: get data from outside untrusted data(DATA) which size is according to sizeof(T)
- * tips: only support basic type
- */
-template<class T>
-T GetData()
+bool DoSetFreeze()
 {
-    T object {};
-    size_t objectSize = sizeof(object);
-    if (DATA == nullptr || objectSize > g_size - g_pos) {
-        return object;
-    }
-    errno_t ret = memcpy_s(&object, objectSize, DATA + g_pos, objectSize);
-    if (ret != EOK) {
-        return {};
-    }
-    g_pos += objectSize;
-    return object;
-}
-
-bool Init(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
+    // test
+    if (!g_fdp || !OHOS::Rosen::g_keyframeNode) {
         return false;
     }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
+    bool freeze = g_fdp->get().ConsumeBool();
+    g_keyframeNode->SetFreeze(freeze);
     return true;
 }
 
-bool DoGetType(const uint8_t* data, size_t size)
+bool DoSetLinkedNodeId()
 {
     // test
-    bool isRenderServiceNode = GetData<bool>();
-    bool isTextureExportNode = GetData<bool>();
-    RSWindowKeyFrameNode keyFrameNode(isRenderServiceNode, isTextureExportNode);
-    keyFrameNode.GetType();
+    if (!g_fdp || !OHOS::Rosen::g_keyframeNode) {
+        return false;
+    }
+    NodeId id = g_fdp->get().ConsumeIntegral<uint64_t>();
+    g_keyframeNode->SetLinkedNodeId(id);
     return true;
 }
 
-bool DoCreate(const uint8_t* data, size_t size, std::shared_ptr<RSUIContext>& rsUIContext)
+bool DoReadFromParcelAndWriteToParcel()
 {
     // test
-    bool isRenderServiceNode = GetData<bool>();
-    bool isTextureExportNode = GetData<bool>();
-    RSWindowKeyFrameNode::SharedPtr keyframeNode = RSWindowKeyFrameNode::Create(isRenderServiceNode,
-        isTextureExportNode, rsUIContext);
-    return true;
-}
-
-bool DoSetFreeze(const uint8_t* data, size_t size)
-{
-    // test
-    bool isRenderServiceNode = GetData<bool>();
-    bool isTextureExportNode = GetData<bool>();
-    RSWindowKeyFrameNode keyFrameNode(isRenderServiceNode, isTextureExportNode);
-    keyFrameNode.SetFreeze(GetData<bool>());
-    return true;
-}
-
-bool DoSetLinkedNodeId(const uint8_t* data, size_t size)
-{
-    // test
-    bool isRenderServiceNode = GetData<bool>();
-    bool isTextureExportNode = GetData<bool>();
-    NodeId id = GetData<NodeId>();
-    RSWindowKeyFrameNode keyFrameNode(isRenderServiceNode, isTextureExportNode);
-    keyFrameNode.SetLinkedNodeId(id);
-    return true;
-}
-
-bool DoGetLinkedNodeId(const uint8_t* data, size_t size)
-{
-    // test
-    bool isRenderServiceNode = GetData<bool>();
-    bool isTextureExportNode = GetData<bool>();
-    RSWindowKeyFrameNode keyFrameNode(isRenderServiceNode, isTextureExportNode);
-    keyFrameNode.GetLinkedNodeId();
-    return true;
-}
-
-bool DoReadFromParcelAndWriteToParcel(const uint8_t* data, size_t size)
-{
-    // test
+    if (!g_fdp || !OHOS::Rosen::g_keyframeNode) {
+        return false;
+    }
     Parcel parcel1;
     Parcel parcel2;
-    bool isRenderServiceNode = GetData<bool>();
-    bool isTextureExportNode = GetData<bool>();
-    auto keyframeNode = RSWindowKeyFrameNode(isRenderServiceNode, isTextureExportNode);
-    keyframeNode.WriteToParcel(parcel1);
-    keyframeNode.ReadFromParcel(parcel2);
+    g_keyframeNode->WriteToParcel(parcel1);
+    g_keyframeNode->ReadFromParcel(parcel1);
+
+    g_keyframeNode->ReadFromParcel(parcel2);
+    if (!RSNodeMap::MutableInstance().RegisterNode(g_keyframeNode)) {
+        return false;
+    }
+    uint64_t linkedNodeId = g_fdp->get().ConsumeIntegral<uint64_t>();
+    bool ret = parcel2.WriteUint64(g_keyframeNode->GetId()) && parcel2.WriteBool(g_fdp->get().ConsumeBool()) &&
+        parcel2.WriteUint64(linkedNodeId);
+    if (!ret) {
+        return false;
+    }
+    g_keyframeNode->ReadFromParcel(parcel2);
+    uint64_t id = g_fdp->get().ConsumeIntegral<uint64_t>();
+    linkedNodeId = g_fdp->get().ConsumeIntegral<uint64_t>();
+    ret = parcel2.WriteUint64(id) && parcel2.WriteBool(g_fdp->get().ConsumeBool()) &&
+        parcel2.WriteUint64(linkedNodeId);
+    if (!ret) {
+        return false;
+    }
+    g_keyframeNode->ReadFromParcel(parcel2);
     return true;
 }
 } // namespace Rosen
 } // namespace OHOS
 
-/* Fuzzer entry point */
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
+/* Fuzzer environment initialization */
+extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
 {
-    if (!OHOS::Rosen::Init(data, size)) {
-        return -1;
-    }
-
-    /* Run your code on data */
-    OHOS::Rosen::DoGetType(data, size);
-    auto rsUiCtx = std::make_shared<OHOS::Rosen::RSUIContext>();
-    OHOS::Rosen::DoCreate(data, size, rsUiCtx);
-    OHOS::Rosen::DoSetFreeze(data, size);
-    OHOS::Rosen::DoSetLinkedNodeId(data, size);
-    OHOS::Rosen::DoGetLinkedNodeId(data, size);
-    OHOS::Rosen::DoReadFromParcelAndWriteToParcel(data, size);
-    OHOS::Rosen::RSRenderNodeGC::Instance().ReleaseNodeMemory();
     return 0;
 }
 
+/* Fuzzer entry point */
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
+{
+    FuzzedDataProvider fdp(data, size);
+    OHOS::Rosen::g_fdp = std::ref(fdp);
+    bool isRenderServiceNode = fdp.ConsumeBool();
+    bool isTextureExportNode = fdp.ConsumeBool();
+    auto rsUIContext = std::make_shared<OHOS::Rosen::RSUIContext>();
+    OHOS::Rosen::g_keyframeNode = OHOS::Rosen::RSWindowKeyFrameNode::Create(isRenderServiceNode,
+        isTextureExportNode, rsUIContext);
+    if (data == nullptr) {
+        return -1;
+    }
+    /* Run your code on data */
+    uint8_t tarPos = fdp.ConsumeIntegral<uint8_t>() % OHOS::Rosen::TARGET_SIZE;
+    switch (tarPos) {
+        case OHOS::Rosen::DO_SET_FREEZE:
+            OHOS::Rosen::DoSetFreeze();
+            break;
+        case OHOS::Rosen::DO_SET_LINKED_NODE_ID:
+            OHOS::Rosen::DoSetLinkedNodeId();
+            break;
+        case OHOS::Rosen::DO_READ_FROM_PARCEL_AND_WRITE_TO_PARCEL:
+            OHOS::Rosen::DoReadFromParcelAndWriteToParcel();
+            break;
+        default:
+            OHOS::Rosen::RSRenderNodeGC::Instance().ReleaseNodeMemory();
+            return -1;
+    }
+    OHOS::Rosen::RSRenderNodeGC::Instance().ReleaseNodeMemory();
+    return 0;
+}
