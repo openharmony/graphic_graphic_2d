@@ -32,6 +32,9 @@ bool ReplyToRenderInfo::Marshalling(Parcel& data) const
     if (!message->WriteRemoteObject(vsyncConn_)) {
         return false;
     }
+    if (!RSIpcReplayManager::Marshalling(data, *replayData_)) {
+        return false;
+    }
     return true;
 }
 
@@ -55,19 +58,18 @@ ReplyToRenderInfo* ReplyToRenderInfo::Unmarshalling(Parcel& data)
     if (!result->vsyncConn_) {
         return nullptr;
     }
+    auto typeToDataMap = RSIpcReplayManager::Unmarshalling(data);
+    if (!typeToDataMap.has_value()) {
+        return nullptr;
+    }
+    result->replayData_ = std::make_shared<IpcReplayTypeToDataMap>(typeToDataMap.value());
     return result.release();
 }
 
 bool ConnectToServiceInfo::Marshalling(Parcel& data) const
 {
     MessageParcel* message = static_cast<MessageParcel*>(&data);
-    if (!message->WriteRemoteObject(serviceToRenderConnection_)) {
-        return false;
-    }
     if (!message->WriteRemoteObject(composerToRenderConnection_)) {
-        return false;
-    }
-    if (!message->WriteRemoteObject(connectToRenderConnection_)) {
         return false;
     }
     if (!message->WriteRemoteObject(vsyncToken_)) {
@@ -80,16 +82,8 @@ ConnectToServiceInfo* ConnectToServiceInfo::Unmarshalling(Parcel& data)
 {
     auto result = std::make_unique<ConnectToServiceInfo>();
     MessageParcel* message = static_cast<MessageParcel*>(&data);
-    result->serviceToRenderConnection_ = message->ReadRemoteObject();
-    if (!result->serviceToRenderConnection_) {
-        return nullptr;
-    }
     result->composerToRenderConnection_ = message->ReadRemoteObject();
     if (!result->composerToRenderConnection_) {
-        return nullptr;
-    }
-    result->connectToRenderConnection_ = message->ReadRemoteObject();
-    if (!result->connectToRenderConnection_) {
         return nullptr;
     }
     result->vsyncToken_ = message->ReadRemoteObject();

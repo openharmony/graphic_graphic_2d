@@ -75,6 +75,7 @@
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "platform/ohos/rs_jank_stats_helper.h"
+#include "platform/ohos/transaction/ipc_replay/rs_ipc_replay_data.h"
 #include "render/rs_typeface_cache.h"
 #include "transaction/rs_unmarshal_thread.h"
 #include "transaction/rs_transaction_data_callback_manager.h"
@@ -379,6 +380,10 @@ ErrCode RSClientToServiceConnection::SetWatermark(
         return ERR_INVALID_VALUE;
     }
     auto callingPid = GetCallingPid();
+    if (auto ipcReplayManager = renderProcessManagerAgent_->GetIpcReplayManager()) {
+        auto data = std::make_shared<SetWatermarkReplayData>(callingPid, name, watermark, success);
+        ipcReplayManager->Register(callingPid, data);
+    }
     for (auto conn : serviceToRenderConns) {
         bool successTmp = true;
         if (conn->SetWatermark(callingPid, name, watermark, successTmp) != ERR_OK || successTmp != true) {

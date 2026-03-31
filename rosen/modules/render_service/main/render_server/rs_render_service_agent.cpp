@@ -68,9 +68,18 @@ void RSRenderServiceAgent::ProcessHgmFrameRate(uint64_t timestamp, uint64_t vsyn
     const sptr<HgmProcessToServiceInfo>& processToServiceInfo,
     const sptr<HgmServiceToProcessInfo>& serviceToProcessInfo)
 {
-    if (auto hgmContext = GetHgmContext()) {
-        hgmContext->ProcessHgmFrameRate(timestamp, vsyncId, processToServiceInfo, serviceToProcessInfo);
+    auto hgmContext = GetHgmContext();
+    if (!hgmContext) {
+        return;
     }
+    if (!GetRenderModeConfig()->GetIsMultiProcessModeEnabled()) {
+        hgmContext->ProcessHgmFrameRate(timestamp, vsyncId, processToServiceInfo, serviceToProcessInfo);
+        return;
+    }
+    // TODO: 需要判断是不是自有屏
+    PostSyncTaskImmediate([this, timestamp, vsyncId, processToServiceInfo, serviceToProcessInfo] {
+        GetHgmContext()->ProcessHgmFrameRate(timestamp, vsyncId, processToServiceInfo, serviceToProcessInfo);
+    });
 }
 
 void RSRenderServiceAgent::HandlePowerStatus(ScreenId screenId, ScreenPowerStatus status)
@@ -81,6 +90,11 @@ void RSRenderServiceAgent::HandlePowerStatus(ScreenId screenId, ScreenPowerStatu
 void RSRenderServiceAgent::RemoveToken(const sptr<RSIConnectionToken>& token)
 {
     renderService_.RemoveConnection(token);
+}
+
+const std::shared_ptr<const RenderModeConfig>& RSRenderServiceAgent::GetRenderModeConfig() const
+{
+    return renderService_.GetRenderModeConfig();
 }
 } // namespace Rosen
 } // namespace OHOS

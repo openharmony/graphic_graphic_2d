@@ -18,9 +18,10 @@
 
 #include <event_handler.h>
 
+#include "platform/ohos/transaction/ipc_replay/rs_ipc_replay_data.h"
 #include "platform/ohos/transaction/zidl/rs_irender_service.h"
 #include "render_server/transaction/zidl/rs_irender_to_service_connection.h"
-#include "rs_render_pipeline.h"
+#include "rs_render_pipeline_agent.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -39,8 +40,9 @@ public:
 
 private:
     sptr<RSIRenderService> GetRenderServer();
-    std::tuple<sptr<RSScreenProperty>, sptr<IRSRenderToComposerConnection>, std::shared_ptr<VSyncReceiver>>
-    ConnectToRenderService(const sptr<IRSComposerToRenderConnection>& composerToRenderConnection);
+    sptr<ReplyToRenderInfo> ConnectToRenderService(
+        const sptr<IRSComposerToRenderConnection>& composerToRenderConnection,
+        const sptr<RSRenderPipelineAgent>& renderPipelineAgent, const sptr<VSyncIConnectionToken>& vsyncToken);
 
     sptr<RSIRenderService> renderServer_ = nullptr;
     sptr<RSIRenderToServiceConnection> renderToServiceConnection_ = nullptr;
@@ -48,8 +50,6 @@ private:
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
 
-    // TODO: DO NOT USE. Will be removed asap
-    RSMainThread* mainThread_ = nullptr;
     std::shared_ptr<RSRenderPipeline> renderPipeline_ = nullptr;
 
     friend class RSRenderProcessAgent;

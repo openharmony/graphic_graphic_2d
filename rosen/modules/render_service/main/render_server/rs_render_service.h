@@ -49,6 +49,8 @@ public:
     bool Init();
     void Run();
 
+    const std::shared_ptr<const RenderModeConfig>& GetRenderModeConfig() const { return renderModeConfig_; }
+
 private:
     class ScreenManagerListener : public RSIScreenManagerListener {
     public:

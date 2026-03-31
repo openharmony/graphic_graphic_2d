@@ -23,10 +23,12 @@ namespace Rosen {
 RSRenderProcessManagerAgent::RSRenderProcessManagerAgent(sptr<RSRenderProcessManager> renderProcessManager)
     : renderProcessManager_(renderProcessManager) {}
 
-void RSRenderProcessManagerAgent::SetRenderProcessReadyPromise(pid_t pid)
+void RSRenderProcessManagerAgent::SetRenderProcessReadyPromise(pid_t pid,
+    const sptr<RSIServiceToRenderConnection>& serviceToRenderConnection,
+    const sptr<RSIConnectToRenderProcess>& connectToRenderConnection)
 {
     auto renderProcessManager = static_cast<RSMultiRenderProcessManager*>(renderProcessManager_.GetRefPtr());
-    renderProcessManager->SetRenderProcessReadyPromise(pid);
+    renderProcessManager->SetRenderProcessReadyPromise(pid, serviceToRenderConnection, connectToRenderConnection);
 }
 
 sptr<RSIServiceToRenderConnection> RSRenderProcessManagerAgent::GetServiceToRenderConn(ScreenId screenId) const
@@ -37,6 +39,11 @@ sptr<RSIServiceToRenderConnection> RSRenderProcessManagerAgent::GetServiceToRend
 std::vector<sptr<RSIServiceToRenderConnection>> RSRenderProcessManagerAgent::GetServiceToRenderConns() const
 {
     return renderProcessManager_->GetServiceToRenderConns();
+}
+
+std::shared_ptr<RSIpcReplayManager> RSRenderProcessManagerAgent::GetIpcReplayManager() const
+{
+    return renderProcessManager_->GetIpcReplayManager();
 }
 } // namespace Rosen
 } // namespace OHOS
