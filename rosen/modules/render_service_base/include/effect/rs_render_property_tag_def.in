@@ -344,6 +344,7 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(GradientFlowColors, Progress, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, BlurParams, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, WeightsEmboss, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, WeightsEdl, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, MaxColor, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, BgRates, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, BgKBS, Vector3f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, BgPos, Vector3f);
@@ -398,6 +399,8 @@ DECLARE_NONANIMATABLE_PROPERTY_TAG(CircleFlowlight, Mask, MASK_PTR);
 
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, WeightsEmboss, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, WeightsEdl, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, AntiAlias, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, MaxColor, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, BgRates, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, BgKBS, Vector3f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, BgPos, Vector3f);
