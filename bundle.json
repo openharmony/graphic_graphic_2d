@@ -499,6 +499,14 @@
               "header_files": [ "canvas_ani/ani_canvas.h" ],
               "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/ani/drawing"
             }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/frameworks/text/interface/mlb/ani:text_engine_ani",
+            "header": {
+              "header_files": [ "ani_paragraph.h" ],
+              "header_base": "//foundation/graphic/graphic_2d/frameworks/text/interface/mlb/ani/include"
+            }
           }
         ],
         "test": [
