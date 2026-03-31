@@ -58,7 +58,8 @@ public:
         Boundary* actualGlyphRange, TextEncoding encodeType), (const, override));
     MOCK_METHOD(Boundary, GetWordBoundaryByIndex, (size_t index), (override));
     MOCK_METHOD(Boundary, GetActualTextRange, (int lineNumber, bool includeSpaces), (override));
-    MOCK_METHOD(Boundary, GetEllipsisTextRange, (), (override));
+    MOCK_METHOD(Boundary, GetEllipsisTextRange, (), (const, override));
+    MOCK_METHOD(std::vector<TextRange>, GetVisibleTextRanges, (), (const, override));
     MOCK_METHOD(double, GetLineHeight, (int lineNumber), (override));
     MOCK_METHOD(double, GetLineWidth, (int lineNumber), (override));
     MOCK_METHOD(void, SetAnimation,

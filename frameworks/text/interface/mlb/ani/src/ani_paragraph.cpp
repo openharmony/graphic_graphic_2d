@@ -158,6 +158,8 @@ std::vector<ani_native_function> AniParagraph::InitMethods(ani_env* env)
         ani_native_function{"didExceedMaxLines", ":z", reinterpret_cast<void*>(DidExceedMaxLines)},
         ani_native_function{
             "getActualTextRange", GET_ACTUAL_TEXT_RANGE_SIGN.c_str(), reinterpret_cast<void*>(GetActualTextRange)},
+        ani_native_function{
+            "getVisibleTextRanges", ":C{std.core.Array}", reinterpret_cast<void*>(GetVisibleTextRanges)},
         ani_native_function{"getTextLines", GET_TEXT_LINES_SIGN.c_str(), reinterpret_cast<void*>(GetTextLines)},
         ani_native_function{"getLineMetrics", ":C{std.core.Array}", reinterpret_cast<void*>(GetLineMetrics)},
         ani_native_function{"nativeGetLineMetricsAt", "i:C{@ohos.graphics.text.text.LineMetrics}",
@@ -583,6 +585,54 @@ ani_object AniParagraph::GetActualTextRange(
         return AniTextUtils::CreateAniUndefined(env);
     }
     return boundaryObj;
+}
+
+ani_ref AniParagraph::GetVisibleTextRanges(ani_env* env, ani_object object)
+{
+    ani_object arrayObj = AniTextUtils::CreateAniUndefined(env);
+    AniParagraph* aniParagraph =
+        AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, AniGlobalMethod::GetInstance().paragraphGetNative);
+    if (aniParagraph == nullptr || aniParagraph->typography_ == nullptr) {
+        TEXT_LOGE("Paragraph is null");
+        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return arrayObj;
+    }
+
+    std::vector<TextRange> visibleRanges = aniParagraph->typography_->GetVisibleTextRanges();
+
+    // Handle empty ranges case early
+    if (visibleRanges.empty()) {
+        arrayObj = AniTextUtils::CreateAniArray(env, 0);
+        return arrayObj;
+    }
+
+    arrayObj = AniTextUtils::CreateAniArray(env, visibleRanges.size());
+    ani_boolean isUndefined;
+    env->Reference_IsUndefined(arrayObj, &isUndefined);
+    if (isUndefined) {
+        TEXT_LOGE("Failed to create arrayObject");
+        return arrayObj;
+    }
+
+    ani_size index = 0;
+    for (const auto& textRange : visibleRanges) {
+        Boundary range {textRange.start, textRange.end};
+        ani_object aniObj = nullptr;
+        ani_status ret = AniTextRectConverter::ParseBoundaryToAni(env, range, aniObj);
+        if (ret != ANI_OK) {
+            TEXT_LOGE("Failed to parse text range to ani object at index %{public}zu, ret %{public}d", index, ret);
+            arrayObj = AniTextUtils::CreateAniArray(env, 0);
+            return arrayObj;
+        }
+        ret = env->Object_CallMethod_Void(arrayObj, AniGlobalMethod::GetInstance().arraySet, index, aniObj);
+        if (ret != ANI_OK) {
+            TEXT_LOGE("Failed to set textRange item %{public}zu, ret %{public}d", index, ret);
+            arrayObj = AniTextUtils::CreateAniArray(env, 0);
+            return arrayObj;
+        }
+        index++;
+    }
+    return arrayObj;
 }
 
 ani_ref AniParagraph::GetTextLines(ani_env* env, ani_object object)

@@ -66,7 +66,8 @@ public:
         TextEncoding encodeType = TextEncoding::UTF8) const override;
     Boundary GetWordBoundaryByIndex(size_t index) override;
     Boundary GetActualTextRange(int lineNumber, bool includeSpaces) override;
-    Boundary GetEllipsisTextRange() override;
+    Boundary GetEllipsisTextRange() const override;
+    std::vector<TextRange> GetVisibleTextRanges() const override;
     double GetLineHeight(int lineNumber) override;
     double GetLineWidth(int lineNumber) override;
     void SetAnimation(
