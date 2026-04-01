@@ -730,7 +730,7 @@ HWTEST_F(RSUnionRenderNodeTest, ProcessSDFShape005, TestSize.Level1)
 
     RSDirtyRegionManager dirtyManager;
     unionNode->ProcessSDFShape(dirtyManager);
-    ASSERT_TRUE(unionNode->renderProperties_.renderSDFShape_->Type() == RSNGEffectType::SDF_EMPTY_SHAPE);
+    ASSERT_TRUE(unionNode->renderProperties_.renderSDFShape_->GetType() == RSNGEffectType::SDF_EMPTY_SHAPE);
 }
 
 /**
