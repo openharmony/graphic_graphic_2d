@@ -190,19 +190,7 @@ DECLARE_FILTER(HeatDistortion, HEAT_DISTORTION,
     ADD_PROPERTY_TAG(HeatDistortion, RiseSpeed),
     ADD_PROPERTY_TAG(HeatDistortion, NoiseScale),
     ADD_PROPERTY_TAG(HeatDistortion, NoiseSpeed),
-    ADD_PROPERTY_TAG(HeatDistortion, TurbulenceOctaves),
-    ADD_PROPERTY_TAG(HeatDistortion, TurbulenceGain),
-    ADD_PROPERTY_TAG(HeatDistortion, TurbulenceLacunarity),
-    ADD_PROPERTY_TAG(HeatDistortion, BaseDistortionX),
-    ADD_PROPERTY_TAG(HeatDistortion, BaseDistortionY),
-    ADD_PROPERTY_TAG(HeatDistortion, DetailDistortionX),
-    ADD_PROPERTY_TAG(HeatDistortion, DetailDistortionY),
-    ADD_PROPERTY_TAG(HeatDistortion, TurbulenceWeight),
-    ADD_PROPERTY_TAG(HeatDistortion, RiseWeight),
-    ADD_PROPERTY_TAG(HeatDistortion, RiseFrequency),
-    ADD_PROPERTY_TAG(HeatDistortion, RiseAmplitude),
-    ADD_PROPERTY_TAG(HeatDistortion, RiseOffset),
-    ADD_PROPERTY_TAG(HeatDistortion, TimeScale)
+    ADD_PROPERTY_TAG(HeatDistortion, RiseWeight)
 );
 
 DECLARE_FILTER(Magnifier, MAGNIFIER,

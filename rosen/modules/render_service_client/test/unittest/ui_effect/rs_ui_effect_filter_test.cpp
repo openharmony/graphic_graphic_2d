@@ -20,6 +20,7 @@
 #include "filter/include/filter_content_light_para.h"
 #include "filter/include/filter_dispersion_para.h"
 #include "filter/include/filter_displacement_distort_para.h"
+#include "filter/include/filter_heat_distortion_para.h"
 #include "filter/include/filter_water_ripple_para.h"
 #include "filter/include/filter_mask_transition_para.h"
 #include "filter/include/filter_unmarshalling_singleton.h"
@@ -45,6 +46,7 @@ void RSUIEffectFilterTest::TearDownTestCase() {}
 void RSUIEffectFilterTest::SetUp()
 {
     ContentLightPara::RegisterUnmarshallingCallback();
+    HeatDistortionPara::RegisterUnmarshallingCallback();
     DispersionPara::RegisterUnmarshallingCallback();
     DisplacementDistortPara::RegisterUnmarshallingCallback();
     MaskTransitionPara::RegisterUnmarshallingCallback();
@@ -107,6 +109,47 @@ HWTEST_F(RSUIEffectFilterTest, RSUIEffectContentLightParaTest, TestSize.Level1)
     parcelTest.FlushBuffer();
     parcelTest.WriteUint16(666);
     EXPECT_EQ(false, ContentLightPara::OnUnmarshalling(parcelTest, valTest));
+}
+
+/**
+ * @tc.name: RSUIEffectHeatDistortionParaTest
+ * @tc.desc: Verify the HeatDistortionPara func
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIEffectFilterTest, RSUIEffectHeatDistortionParaTest, TestSize.Level1)
+{
+    auto para = std::make_shared<HeatDistortionPara>();
+    constexpr float intensity = 1.2f;
+    constexpr float riseSpeed = 0.9f;
+    constexpr float noiseScale = 2.0f;
+    constexpr float noiseSpeed = 0.3f;
+    constexpr float riseWeight = 0.4f;
+    para->SetIntensity(intensity);
+    para->SetRiseSpeed(riseSpeed);
+    para->SetNoiseScale(noiseScale);
+    para->SetNoiseSpeed(noiseSpeed);
+    para->SetRiseWeight(riseWeight);
+
+    Parcel parcel;
+    EXPECT_TRUE(para->Marshalling(parcel));
+
+    std::shared_ptr<FilterPara> val = nullptr;
+    EXPECT_TRUE(FilterPara::Unmarshalling(parcel, val));
+    EXPECT_NE(nullptr, val);
+    auto heatDistortionPara = std::static_pointer_cast<HeatDistortionPara>(val);
+    EXPECT_EQ(intensity, heatDistortionPara->GetIntensity());
+    EXPECT_EQ(riseSpeed, heatDistortionPara->GetRiseSpeed());
+    EXPECT_EQ(noiseScale, heatDistortionPara->GetNoiseScale());
+    EXPECT_EQ(noiseSpeed, heatDistortionPara->GetNoiseSpeed());
+    EXPECT_EQ(riseWeight, heatDistortionPara->GetRiseWeight());
+    EXPECT_NE(nullptr, para->Clone());
+
+    std::shared_ptr<FilterPara> valTest = nullptr;
+    Parcel parcelTest;
+    EXPECT_EQ(false, HeatDistortionPara::OnUnmarshalling(parcelTest, valTest));
+    parcelTest.FlushBuffer();
+    parcelTest.WriteUint16(666);
+    EXPECT_EQ(false, HeatDistortionPara::OnUnmarshalling(parcelTest, valTest));
 }
 
 /**

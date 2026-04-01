@@ -31,6 +31,7 @@
 #include "filter/include/filter_fly_out_para.h"
 #include "filter/include/filter_frosted_glass_para.h"
 #include "filter/include/filter_frosted_glass_blur_para.h"
+#include "filter/include/filter_heat_distortion_para.h"
 #include "filter/include/filter_hdr_para.h"
 #include "filter/include/filter_mask_transition_para.h"
 #include "filter/include/filter_pixel_stretch_para.h"
@@ -82,6 +83,7 @@ private:
     static GradientDirection ParserGradientDirection(napi_env env, napi_value argv);
     static napi_value SetHDRBrightnessRatio(napi_env env, napi_callback_info info);
     static napi_value SetContentLight(napi_env env, napi_callback_info info);
+    static napi_value SetHeatDistortion(napi_env env, napi_callback_info info);
     static napi_value SetMaskTransition(napi_env env, napi_callback_info info);
     static napi_value SetVariableRadiusBlur(napi_env env, napi_callback_info info);
     static napi_value SetFrostedGlass(napi_env env, napi_callback_info info);

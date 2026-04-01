@@ -81,6 +81,7 @@ bool FilterPara::IsWhitelistPara(uint16_t type)
         static_cast<uint16_t>(ParaType::GASIFY_SCALE_TWIST),
         static_cast<uint16_t>(ParaType::GASIFY),
         static_cast<uint16_t>(ParaType::MAGNIFIER),
+        static_cast<uint16_t>(ParaType::HEAT_DISTORTION),
     };
 
     auto find = whitelist.find(type);

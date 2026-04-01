@@ -30,6 +30,7 @@
 #include "ui_effect/filter/include/filter_gasify_blur_para.h"
 #include "ui_effect/filter/include/filter_gasify_para.h"
 #include "ui_effect/filter/include/filter_gasify_scale_twist_para.h"
+#include "ui_effect/filter/include/filter_heat_distortion_para.h"
 #include "ui_effect/filter/include/filter_magnifier_para.h"
 #include "ui_effect/filter/include/filter_mask_transition_para.h"
 #include "ui_effect/filter/include/filter_variable_radius_blur_para.h"
@@ -314,6 +315,23 @@ std::shared_ptr<RSNGFilterBase> ConvertContentLightFilterPara(std::shared_ptr<Fi
     return contentLightFilter;
 }
 
+std::shared_ptr<RSNGFilterBase> ConvertHeatDistortionFilterPara(std::shared_ptr<FilterPara> filterPara)
+{
+    auto filter = RSNGFilterBase::Create(RSNGEffectType::HEAT_DISTORTION);
+    if (filter == nullptr || filterPara == nullptr) {
+        ROSEN_LOGE("ConvertHeatDistortionFilterPara filter or filterPara is nullptr");
+        return nullptr;
+    }
+    auto heatDistortionFilter = std::static_pointer_cast<RSNGHeatDistortionFilter>(filter);
+    auto heatDistortionFilterPara = std::static_pointer_cast<HeatDistortionPara>(filterPara);
+    heatDistortionFilter->Setter<HeatDistortionIntensityTag>(heatDistortionFilterPara->GetIntensity());
+    heatDistortionFilter->Setter<HeatDistortionRiseSpeedTag>(heatDistortionFilterPara->GetRiseSpeed());
+    heatDistortionFilter->Setter<HeatDistortionNoiseScaleTag>(heatDistortionFilterPara->GetNoiseScale());
+    heatDistortionFilter->Setter<HeatDistortionNoiseSpeedTag>(heatDistortionFilterPara->GetNoiseSpeed());
+    heatDistortionFilter->Setter<HeatDistortionRiseWeightTag>(heatDistortionFilterPara->GetRiseWeight());
+    return heatDistortionFilter;
+}
+
 void ConvertOptionalAdaptivePara(FrostedGlassPara const* para, RSNGFrostedGlassFilter* frostedGlassFilter)
 {
     if (auto darkMode = para->GetDarkAdaptiveParams(); darkMode) {
@@ -427,6 +445,7 @@ static std::unordered_map<FilterPara::ParaType, FilterConvertor> convertorLUT = 
     { FilterPara::ParaType::FROSTED_GLASS, ConvertFrostedGlassPara },
     { FilterPara::ParaType::FROSTED_GLASS_BLUR, ConvertFrostedGlassBlurPara },
     { FilterPara::ParaType::MAGNIFIER, ConvertMagnifierPara },
+    { FilterPara::ParaType::HEAT_DISTORTION, ConvertHeatDistortionFilterPara },
 };
 
 std::shared_ptr<RSNGFilterBase> RSNGFilterBase::Create(RSNGEffectType type)
