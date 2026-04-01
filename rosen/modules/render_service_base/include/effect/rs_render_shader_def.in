@@ -266,3 +266,11 @@ DECLARE_SHADER(DistortChroma, DISTORT_CHROMA,
     ADD_PROPERTY_TAG(DistortChroma, ColorStrength),
     ADD_PROPERTY_TAG(DistortChroma, VerticalMoveDistance)
 );
+
+DECLARE_SHADER(SpatialPointLight, SPATIAL_POINT_LIGHT,
+    ADD_PROPERTY_TAG(SpatialPointLight, LightIntensity),
+    ADD_PROPERTY_TAG(SpatialPointLight, LightPosition),
+    ADD_PROPERTY_TAG(SpatialPointLight, Attenuation),
+    ADD_PROPERTY_TAG(SpatialPointLight, LightColor),
+    ADD_PROPERTY_TAG(SpatialPointLight, Mask)
+);

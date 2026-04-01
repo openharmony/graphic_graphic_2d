@@ -113,6 +113,7 @@ public:
             case RSNGEffectType::NOISY_FRAME_GRADIENT_MASK: return "NoisyFrameGradientMask";
             case RSNGEffectType::SDF_EDGE_LIGHT: return "SDFEdgeLight";
             case RSNGEffectType::MAGNIFIER: return "Magnifier";
+            case RSNGEffectType::SPATIAL_POINT_LIGHT: return "SpatialPointLight";
             default: return "UNKNOWN";
         }
     }
