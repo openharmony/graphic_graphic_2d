@@ -2510,7 +2510,8 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             if (readRemoteObject) {
-                if (!data.ReadRemoteObject(remoteObject)) {
+                remoteObject = data.ReadRemoteObject();
+                if (remoteObject == nullptr) {
                     ret = ERR_INVALID_DATA;
                     break;
                 }
@@ -2558,7 +2559,8 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             if (readRemoteObject) {
-                if (!data.ReadRemoteObject(remoteObject)) {
+                remoteObject = data.ReadRemoteObject();
+                if (remoteObject == nullptr) {
                     ret = ERR_INVALID_DATA;
                     break;
                 }
