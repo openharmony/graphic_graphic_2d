@@ -246,7 +246,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeUnitTest, ContentStyleSlotUpdateTest003, TestS
 }
 
 /**
- * @tc.name: ContentStyle:SlotUpdateTest004
+ * @tc.name: ContentStyleSlotUpdateTest004
  * @tc.desc: Test ContentStyleSlotUpdate with waitSync true
  * @tc.type: FUNC
  */
