@@ -18,6 +18,7 @@
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "params/rs_render_params.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
+#include "render/rs_blur_filter.h"
 
 #ifdef SUBTREE_PARALLEL_ENABLE
 #include "rs_parallel_manager.h"
@@ -392,22 +393,20 @@ HWTEST_F(RSRenderNodeDrawableTest, DrawCachedImageTest, TestSize.Level1)
     Drawing::Canvas canvas;
     RSRenderParams params(RSRenderNodeDrawableTest::id);
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
-    drawable->DrawCachedImage(paintFilterCanvas, params.GetCacheSize());
+    drawable->DrawCachedImage(paintFilterCanvas, params);
     drawable->ClearCachedSurface();
 
     Drawing::Canvas canvas1(0, 0); // width and height
     RSPaintFilterCanvas paintFilterCanvas1(&canvas1);
-    drawable->DrawCachedImage(paintFilterCanvas1, params.GetCacheSize());
+    drawable->DrawCachedImage(paintFilterCanvas1, params);
     drawable->ClearCachedSurface();
 
     Drawing::Canvas canvas2(10, 10); // width and height
     RSPaintFilterCanvas paintFilterCanvas2(&canvas2);
-    drawable->DrawCachedImage(paintFilterCanvas2, params.GetCacheSize());
+    drawable->DrawCachedImage(paintFilterCanvas2, params);
 
-    auto rsFilter = std::make_shared<RSFilter>();
-    drawable->DrawCachedImage(paintFilterCanvas2, params.GetCacheSize(), rsFilter);
     drawable->opincDrawCache_.isDrawAreaEnable_ = DrawAreaEnableState::DRAW_AREA_ENABLE;
-    drawable->DrawCachedImage(paintFilterCanvas2, params.GetCacheSize());
+    drawable->DrawCachedImage(paintFilterCanvas2, params);
     drawable->ClearCachedSurface();
     drawable->opincDrawCache_.isDrawAreaEnable_ = DrawAreaEnableState::DRAW_AREA_INIT;
 
@@ -416,7 +415,7 @@ HWTEST_F(RSRenderNodeDrawableTest, DrawCachedImageTest, TestSize.Level1)
     auto drawingCanvas = std::make_shared<Drawing::Canvas>();
     paintFilterCanvas.canvas_ = drawingCanvas.get();
     paintFilterCanvas.canvas_->gpuContext_ = std::make_shared<Drawing::GPUContext>();
-    drawable->DrawCachedImage(paintFilterCanvas, params.GetCacheSize());
+    drawable->DrawCachedImage(paintFilterCanvas, params);
     drawable->opincDrawCache_.isAdd_ = true;
     drawable->ClearCachedSurface();
     ASSERT_FALSE(RSSystemProperties::GetRecordingEnabled());
@@ -1167,7 +1166,7 @@ HWTEST_F(RSRenderNodeDrawableTest, DrawCachedImageWithScaleBranchTest001, TestSi
     ASSERT_NE(drawable->cachedSurface_, nullptr);
 
     drawable->opincDrawCache_.isOpincMarkCached_ = true;
-    drawable->DrawCachedImage(paintFilterCanvas, params.GetCacheSize(), nullptr, params.GetRSFreezeFlag());
+    drawable->DrawCachedImage(paintFilterCanvas, params);
     drawable->ClearCachedSurface();
     ASSERT_FALSE(RSSystemProperties::GetRecordingEnabled());
 }
@@ -1205,7 +1204,7 @@ HWTEST_F(RSRenderNodeDrawableTest, DrawCachedImageWithScaleBranchTest002, TestSi
     ASSERT_NE(drawable->cachedSurface_, nullptr);
 
     drawable->opincDrawCache_.isOpincMarkCached_ = false;
-    drawable->DrawCachedImage(paintFilterCanvas, params.GetCacheSize(), nullptr, params.GetRSFreezeFlag());
+    drawable->DrawCachedImage(paintFilterCanvas, params);
     drawable->ClearCachedSurface();
     ASSERT_FALSE(RSSystemProperties::GetRecordingEnabled());
 }
@@ -1243,7 +1242,7 @@ HWTEST_F(RSRenderNodeDrawableTest, DrawCachedImageWithScaleBranchTest003, TestSi
     ASSERT_NE(drawable->cachedSurface_, nullptr);
 
     drawable->opincDrawCache_.isOpincMarkCached_ = true;
-    drawable->DrawCachedImage(paintFilterCanvas, params.GetCacheSize(), nullptr, params.GetRSFreezeFlag());
+    drawable->DrawCachedImage(paintFilterCanvas, params);
     drawable->ClearCachedSurface();
     ASSERT_FALSE(RSSystemProperties::GetRecordingEnabled());
 }
@@ -1281,8 +1280,58 @@ HWTEST_F(RSRenderNodeDrawableTest, DrawCachedImageWithScaleBranchTest004, TestSi
     ASSERT_NE(drawable->cachedSurface_, nullptr);
 
     drawable->opincDrawCache_.isOpincMarkCached_ = false;
-    drawable->DrawCachedImage(paintFilterCanvas, params.GetCacheSize(), nullptr, params.GetRSFreezeFlag());
+    drawable->DrawCachedImage(paintFilterCanvas, params);
     drawable->ClearCachedSurface();
+    ASSERT_FALSE(RSSystemProperties::GetRecordingEnabled());
+}
+
+/**
+ * @tc.name: DrawCachedImageWithFilterTest
+ * @tc.desc: Test DrawCachedImage with hasFilter=true
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSRenderNodeDrawableTest, DrawCachedImageWithFilterTest, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    params.SetCacheSize({100.0f, 100.0f});
+
+    auto surface = Drawing::Surface::MakeRasterN32Premul(100, 100);
+    ASSERT_TRUE(surface);
+    auto canvasPtr = surface->GetCanvas();
+    ASSERT_NE(canvasPtr, nullptr);
+    canvasPtr->Clear(Drawing::Color::COLOR_BLUE);
+    auto image = surface->GetImageSnapshot();
+    ASSERT_NE(image, nullptr);
+    drawable->cachedImage_ = image;
+    drawable->SetCacheImageByCapture(image);
+
+    drawable->cachedSurface_ = std::make_shared<Drawing::Surface>();
+    drawable->cachedImage_ = std::make_shared<Drawing::Image>();
+    auto drawingCanvas = std::make_shared<Drawing::Canvas>();
+    paintFilterCanvas.canvas_ = drawingCanvas.get();
+    paintFilterCanvas.canvas_->gpuContext_ = std::make_shared<Drawing::GPUContext>();
+    ASSERT_NE(drawable->cachedSurface_, nullptr);
+
+    auto rsFilter = std::make_shared<RSBlurFilter>(0.0f, 0.0f);
+    drawable->DrawCachedImage(paintFilterCanvas, params, rsFilter);
+
+    params.SetChildHasVisibleFilter(true);
+    drawable->DrawCachedImage(paintFilterCanvas, params);
+
+    params.SetChildHasVisibleFilter(false);
+    params.SetChildHasVisibleEffect(true);
+    drawable->DrawCachedImage(paintFilterCanvas, params);
+
+    params.SetChildHasVisibleEffect(false);
+    params.SetHasChildExcludedFromNodeGroup(true);
+    drawable->DrawCachedImage(paintFilterCanvas, params);
+
+    params.SetHasChildExcludedFromNodeGroup(false);
     ASSERT_FALSE(RSSystemProperties::GetRecordingEnabled());
 }
 
