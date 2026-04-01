@@ -22,6 +22,7 @@
 #include <unistd.h>
 #include <unordered_set>
 
+#include "drawable/rs_screen_render_node_drawable.h"
 #include "pipeline/rs_surface_handler.h"
 #include "platform/common/rs_log.h"
 #include "platform/ohos/rs_jank_stats.h"
