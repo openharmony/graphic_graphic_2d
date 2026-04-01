@@ -116,7 +116,8 @@ HWTEST_F(ParagraphPathTest, ParagraphPathTestgetTextPathByClusterRange001, TestS
     ASSERT_NE(skParagraph, nullptr);
     skParagraph->layout(200);
     skt::SkRange<skt::TextIndex> range{0, 11};
-    std::vector<skt::PathInfo> paths = skParagraph->getTextPathByClusterRange(range);
+    auto [paths, allSuccess] = skParagraph->getTextPathByClusterRange(range);
+    EXPECT_TRUE(allSuccess);
     EXPECT_EQ(paths.size(), 11);
     EXPECT_EQ(paths[0].textStyle.getFontSize(), 15.0);
     EXPECT_EQ(paths[2].textStyle.getFontSize(), 15.0);
@@ -155,7 +156,8 @@ HWTEST_F(ParagraphPathTest, ParagraphPathTestgetTextPathByClusterRange002, TestS
     ASSERT_NE(skParagraph, nullptr);
     skParagraph->layout(200);
     skt::SkRange<skt::TextIndex> range{0, 20};
-    std::vector<skt::PathInfo> paths = skParagraph->getTextPathByClusterRange(range);
+    auto [paths, allSuccess] = skParagraph->getTextPathByClusterRange(range);
+    EXPECT_TRUE(allSuccess);
     EXPECT_EQ(paths.size(), 14);
     EXPECT_EQ(paths[0].textStyle.getFontSize(), 15.0);
     EXPECT_EQ(paths[2].textStyle.getFontSize(), 15.0);
@@ -188,7 +190,8 @@ HWTEST_F(ParagraphPathTest, ParagraphPathTestgetTextPathByClusterRange003, TestS
     ASSERT_NE(skParagraph, nullptr);
     skParagraph->layout(200);
     skt::SkRange<skt::TextIndex> range{0, 20};
-    std::vector<skt::PathInfo> pathInfos = skParagraph->getTextPathByClusterRange(range);
+    auto [pathInfos, allSuccess] = skParagraph->getTextPathByClusterRange(range);
+    EXPECT_TRUE(allSuccess);
     EXPECT_EQ(pathInfos.size(), 20);
     EXPECT_NEAR(pathInfos[0].point.GetX(), 19.8901367, FLOAT_DATA_EPSILON);
     EXPECT_NEAR(pathInfos[2].point.GetX(), 29.7901917, FLOAT_DATA_EPSILON);

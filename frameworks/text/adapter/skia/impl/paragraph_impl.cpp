@@ -632,13 +632,16 @@ std::shared_ptr<OHOS::Media::PixelMap> ParagraphImpl::GetTextPathImageByIndex(
         return nullptr;
     }
     
+    // If not all glyph paths in the range are successfully obtained, return nullptr to avoid
+    // returning an incomplete path result that could lead to rendering anomalies.
     skt::SkRange<size_t> range{start, end};
-    std::vector<skt::PathInfo> pathInfos = paragraph_->getTextPathByClusterRange(range);
-    if (pathInfos.empty()) {
-        TEXT_LOGD("No path info found for range: [%{public}zu, %{public}zu)", start, end);
+    auto [pathInfos, allSuccess] = paragraph_->getTextPathByClusterRange(range);
+    if (!allSuccess || pathInfos.empty()) {
+        TEXT_LOGD("Failed to get all path info for range: [%{public}zu, %{public}zu) path size: %{public}zu", start,
+            end, pathInfos.size());
         return nullptr;
     }
-    
+
     if (fill) {
         for (size_t i = 0; i < pathInfos.size(); i++) {
             auto& pathInfo = pathInfos[i];
