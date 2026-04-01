@@ -29,6 +29,7 @@
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "feature/buffer_reclaim/rs_buffer_reclaim.h"
 #include "feature/dirty/rs_uni_dirty_occlusion_util.h"
+#include "params/rs_render_params.h"
 #include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "feature/hyper_graphic_manager/hgm_render_context.h"
@@ -6336,5 +6337,96 @@ HWTEST_F(RSMainThreadTest, CheckUiCaptureNodeTest, TestSize.Level1)
     mainThread->ProcessUiCaptureTasks();
 
     BufferReclaimParam::GetInstance().SetBufferReclaimEnable(enable);
+}
+
+/**
+ * @tc.name: AddSurfaceFpsOpTest
+ * @tc.desc: Test Func AddSurfaceFpsOp
+ * @tc.type: FUNC
+ * @tc.require: issue22921
+ */
+HWTEST_F(RSMainThreadTest, AddSurfaceFpsOpTest, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    
+    SurfaceFpsOp addOp {static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_ADD), 1, "test_surface", 100};
+    SurfaceFpsOp removeOp {static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_REMOVE), 2, "test_surface2", 200};
+    SurfaceFpsOp otherOp {static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_DEFAULT), 3, "test_surface3", 300};
+    mainThread->AddSurfaceFpsOp(addOp);
+    mainThread->AddSurfaceFpsOp(removeOp);
+    mainThread->AddSurfaceFpsOp(otherOp);
+    
+    auto surfaceFpsOpList = mainThread->GetSurfaceFpsOpList();
+    EXPECT_EQ(surfaceFpsOpList.size(), 2u);
+    
+    bool foundAdd = false;
+    bool foundRemove = false;
+    for (const auto& op : surfaceFpsOpList) {
+        if (op.surfaceNodeId == 1) {
+            foundAdd = true;
+            EXPECT_EQ(op.surfaceFpsOpType, static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_ADD));
+            EXPECT_EQ(op.surfaceName, "test_surface");
+            EXPECT_EQ(op.uniqueId, 100u);
+        } else if (op.surfaceNodeId == 2) {
+            foundRemove = true;
+            EXPECT_EQ(op.surfaceFpsOpType, static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_REMOVE));
+            EXPECT_EQ(op.surfaceName, "test_surface2");
+            EXPECT_EQ(op.uniqueId, 200u);
+        }
+    }
+    EXPECT_TRUE(foundAdd);
+    EXPECT_TRUE(foundRemove);
+}
+
+/**
+ * @tc.name: RmvSurfaceFpsOpTest
+ * @tc.desc: Test Func RmvSurfaceFpsOp with removal
+ * @tc.type: FUNC
+ * @tc.require: issue22921
+ */
+HWTEST_F(RSMainThreadTest, RmvSurfaceFpsOpTest, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    
+    SurfaceFpsOp addOp1 {static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_ADD), 1, "test_surface", 100};
+    SurfaceFpsOp addOp2 {static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_ADD), 2, "test_surface2", 200};
+    SurfaceFpsOp removeOp {static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_REMOVE), 3, "test_surface3", 300};
+    SurfaceFpsOp otherOp {static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_DEFAULT), 4, "test_surface4", 400};
+    mainThread->AddSurfaceFpsOp(addOp1);
+    mainThread->AddSurfaceFpsOp(addOp2);
+    mainThread->AddSurfaceFpsOp(removeOp);
+    mainThread->AddSurfaceFpsOp(otherOp);
+
+    std::vector<SurfaceFpsOp> rmvList;
+    rmvList.push_back(addOp1);
+
+    mainThread->RmvSurfaceFpsOp(rmvList);
+    auto surfaceFpsOpList = mainThread->GetSurfaceFpsOpList();
+    EXPECT_EQ(surfaceFpsOpList.size(), 2u);
+
+    bool foundAdd1 = false;
+    bool foundAdd2 = false;
+    bool foundRemove = false;
+    for (const auto& op : surfaceFpsOpList) {
+        if (op.surfaceNodeId == 1) {
+            foundAdd1 = true;
+        } else if (op.surfaceNodeId == 2) {
+            foundAdd2 = true;
+        } else if (op.surfaceNodeId == 3) {
+            foundRemove = true;
+        }
+    }
+    EXPECT_FALSE(foundAdd1);
+    EXPECT_TRUE(foundAdd2);
+    EXPECT_TRUE(foundRemove);
+
+    rmvList.push_back(addOp2);
+    rmvList.push_back(removeOp);
+    rmvList.push_back(otherOp);
+    mainThread->RmvSurfaceFpsOp(rmvList);
+    surfaceFpsOpList = mainThread->GetSurfaceFpsOpList();
+    EXPECT_EQ(surfaceFpsOpList.size(), 0u);
 }
 } // namespace OHOS::Rosen

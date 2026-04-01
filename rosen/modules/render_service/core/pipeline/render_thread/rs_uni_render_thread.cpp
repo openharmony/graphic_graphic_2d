@@ -510,6 +510,18 @@ uint32_t RSUniRenderThread::GetDefaultScreenRefreshRate() const
     return renderThreadParams ? renderThreadParams->GetDynamicRefreshRate() : 0;
 }
 
+uint32_t RSUniRenderThread::GetSurfaceFpsOpNum() const
+{
+    auto& renderThreadParams = GetRSRenderThreadParams();
+    return renderThreadParams ? renderThreadParams->GetSurfaceFpsOpNum() : 0;
+}
+
+std::vector<SurfaceFpsOp> RSUniRenderThread::GetSurfaceFpsOpList() const
+{
+    auto& renderThreadParams = GetRSRenderThreadParams();
+    return renderThreadParams ? renderThreadParams->GetSurfaceFpsOpList() : std::vector<SurfaceFpsOp>();
+}
+
 #ifdef RES_SCHED_ENABLE
 void RSUniRenderThread::SubScribeSystemAbility()
 {

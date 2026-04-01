@@ -1895,6 +1895,9 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         };
     }
     nodeMap.TraverseSurfaceNodes(consumeAndUpdateNode_);
+    auto surfaceFpsOpList = GetSurfaceFpsOpList();
+    pipelineParam_.SurfaceFpsOpNum = static_cast<uint32_t>(surfaceFpsOpList.size());
+    pipelineParam_.SurfaceFpsOpList = std::move(surfaceFpsOpList);
     lppVideoHandler_.JudgeRequestVsyncForLpp(vsyncId_);
     DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi(timestamp_);
     RSJankStats::GetInstance().AvcodecVideoCollectFinish();
@@ -2785,6 +2788,7 @@ void RSMainThread::Render()
         renderThreadParams_->SetUIFirstCurrentFrameCanSkipFirstWait(
             RSUifirstManager::Instance().GetCurrentFrameSkipFirstWait());
         renderThreadParams_->SetHasLppVideo(lppVideoHandler_.HasLppVideo());
+        renderThreadParams_->SetSurfaceFpsOp(pipelineParam_.SurfaceFpsOpNum, pipelineParam_.SurfaceFpsOpList);
 #ifdef RS_ENABLE_TV_PQ_METADATA
         RSTvMetadataManager::Instance().SetUniRenderThreadParam(renderThreadParams_);
 #endif
@@ -5589,6 +5593,44 @@ void RSMainThread::TransitionDataMutexUnlock()
 void RSMainThread::CheckPackageInConfigList(const std::vector<std::string>& packageList)
 {
     hwcContext_->CheckPackageInConfigList(packageList);
+}
+
+void RSMainThread::AddSurfaceFpsOp(const SurfaceFpsOp& op)
+{
+    std::lock_guard<std::mutex> lock(surfaceFpsOpMutex_);
+    if (op.surfaceFpsOpType == static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_ADD)) {
+        addSurfaceFpsOpMap_[op.surfaceNodeId] = op;
+    } else if (op.surfaceFpsOpType == static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_REMOVE)) {
+        rmvSurfaceFpsOpMap_[op.surfaceNodeId] = op;
+    }
+}
+
+std::vector<SurfaceFpsOp> RSMainThread::GetSurfaceFpsOpList()
+{
+    std::vector<SurfaceFpsOp> surfaceFpsOpList;
+    {
+        std::lock_guard<std::mutex> lock(surfaceFpsOpMutex_);
+        surfaceFpsOpList.reserve(addSurfaceFpsOpMap_.size() + rmvSurfaceFpsOpMap_.size());
+        for (const auto& [_, op] : addSurfaceFpsOpMap_) {
+            surfaceFpsOpList.push_back(op);
+        }
+        for (const auto& [_, op] : rmvSurfaceFpsOpMap_) {
+            surfaceFpsOpList.push_back(op);
+        }
+    }
+    return surfaceFpsOpList;
+}
+
+void RSMainThread::RmvSurfaceFpsOp(const std::vector<SurfaceFpsOp>& rmvList)
+{
+    std::lock_guard<std::mutex> lock(surfaceFpsOpMutex_);
+    for (const auto& op : rmvList) {
+        if (op.surfaceFpsOpType == static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_ADD)) {
+            addSurfaceFpsOpMap_.erase(op.surfaceNodeId);
+        } else if (op.surfaceFpsOpType == static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_REMOVE)) {
+            rmvSurfaceFpsOpMap_.erase(op.surfaceNodeId);
+        }
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

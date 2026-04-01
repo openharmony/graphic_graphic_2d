@@ -683,16 +683,19 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     if (!screenProperty.IsVirtual()) {
         if (auto composerClientManager = RSUniRenderThread::Instance().GetComposerClientManager()) {
-            PipelineParam param = composerClientManager->GetPipelineParam(paramScreenId);
-            param.frameTimestamp = RSUniRenderThread::Instance().GetCurrentTimestamp();
-            param.actualTimestamp = RSUniRenderThread::Instance().GetActualTimestamp();
-            param.fastComposeTimeStampDiff = RSUniRenderThread::Instance().GetFastComposeTimeStampDiff();
-            param.vsyncId = RSUniRenderThread::Instance().GetVsyncId();
-            param.pendingConstraintRelativeTime = RSUniRenderThread::Instance().GetPendingConstraintRelativeTime();
-            param.pendingScreenRefreshRate = RSUniRenderThread::Instance().GetPendingScreenRefreshRate();
-            param.isForceRefresh = RSUniRenderThread::Instance().GetForceRefreshFlag();
-            param.hasGameScene = RSUniRenderThread::Instance().GetHasGameScene();
-            param.hasLppVideo = RSUniRenderThread::Instance().GetHasLppVideo();
+            PipelineParam param = {
+                .frameTimestamp = RSUniRenderThread::Instance().GetCurrentTimestamp(),
+                .actualTimestamp = RSUniRenderThread::Instance().GetActualTimestamp(),
+                .fastComposeTimeStampDiff = RSUniRenderThread::Instance().GetFastComposeTimeStampDiff(),
+                .vsyncId = RSUniRenderThread::Instance().GetVsyncId(),
+                .pendingConstraintRelativeTime = RSUniRenderThread::Instance().GetPendingConstraintRelativeTime(),
+                .pendingScreenRefreshRate = RSUniRenderThread::Instance().GetPendingScreenRefreshRate(),
+                .isForceRefresh = RSUniRenderThread::Instance().GetForceRefreshFlag(),
+                .hasGameScene = RSUniRenderThread::Instance().GetHasGameScene(),
+                .hasLppVideo = RSUniRenderThread::Instance().GetHasLppVideo(),
+                .SurfaceFpsOpNum = RSUniRenderThread::Instance().GetSurfaceFpsOpNum(),
+                .SurfaceFpsOpList = RSUniRenderThread::Instance().GetSurfaceFpsOpList(),
+            };
             composerClientManager->UpdatePipelineParam(paramScreenId, param);
         }
     }

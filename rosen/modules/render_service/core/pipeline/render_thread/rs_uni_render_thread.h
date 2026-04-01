@@ -84,6 +84,8 @@ public:
     uint64_t GetPendingConstraintRelativeTime() const;
     uint32_t GetDefaultScreenRefreshRate() const;
     uint64_t GetFastComposeTimeStampDiff() const;
+    uint32_t GetSurfaceFpsOpNum() const;
+    std::vector<SurfaceFpsOp> GetSurfaceFpsOpList() const;
 
     void PurgeCacheBetweenFrames();
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t pid = -1);
