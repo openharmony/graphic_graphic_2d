@@ -287,6 +287,7 @@ public:
     {
         return false;
     }
+
     virtual void SetWaitSync(bool waitSync) {}
 
     inline RectI GetFilterRegion() const
