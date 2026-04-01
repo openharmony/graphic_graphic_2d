@@ -16,6 +16,8 @@
 #include "gtest/gtest.h"
 
 #include "effect/rs_render_filter_base.h"
+#include "ge_visual_effect.h"
+#include "ge_visual_effect_impl.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -63,14 +65,20 @@ HWTEST_F(RSRenderHeatDistortionFilterTest, HeatDistortionSetterGetter001, TestSi
     constexpr float intensity = 1.5f;
     constexpr float riseSpeed = 1.2f;
     constexpr float noiseScale = 2.5f;
+    constexpr float noiseSpeed = 0.7f;
+    constexpr float riseWeight = 0.35f;
 
     filter->Setter<HeatDistortionIntensityRenderTag>(intensity);
     filter->Setter<HeatDistortionRiseSpeedRenderTag>(riseSpeed);
     filter->Setter<HeatDistortionNoiseScaleRenderTag>(noiseScale);
+    filter->Setter<HeatDistortionNoiseSpeedRenderTag>(noiseSpeed);
+    filter->Setter<HeatDistortionRiseWeightRenderTag>(riseWeight);
 
     EXPECT_FLOAT_EQ(filter->Getter<HeatDistortionIntensityRenderTag>()->Get(), intensity);
     EXPECT_FLOAT_EQ(filter->Getter<HeatDistortionRiseSpeedRenderTag>()->Get(), riseSpeed);
     EXPECT_FLOAT_EQ(filter->Getter<HeatDistortionNoiseScaleRenderTag>()->Get(), noiseScale);
+    EXPECT_FLOAT_EQ(filter->Getter<HeatDistortionNoiseSpeedRenderTag>()->Get(), noiseSpeed);
+    EXPECT_FLOAT_EQ(filter->Getter<HeatDistortionRiseWeightRenderTag>()->Get(), riseWeight);
 }
 
 /**
@@ -86,12 +94,15 @@ HWTEST_F(RSRenderHeatDistortionFilterTest, HeatDistortionGenerateGEVisualEffect0
     filter->Setter<HeatDistortionIntensityRenderTag>(1.0f);
     filter->Setter<HeatDistortionRiseSpeedRenderTag>(1.0f);
     filter->Setter<HeatDistortionNoiseScaleRenderTag>(1.0f);
+    filter->Setter<HeatDistortionNoiseSpeedRenderTag>(0.5f);
+    filter->Setter<HeatDistortionRiseWeightRenderTag>(0.3f);
 
     std::shared_ptr<RSNGRenderFilterBase> baseFilter = filter;
     RSNGRenderFilterHelper::GenerateGEVisualEffect(baseFilter);
 
     ASSERT_NE(baseFilter->geFilter_, nullptr);
     ASSERT_NE(baseFilter->geFilter_->GetImpl(), nullptr);
-    EXPECT_EQ(baseFilter->geFilter_->GetImpl()->GetFilterType(), Drawing::GEFilterType::HEAT_DISTORTION);
+    EXPECT_EQ(baseFilter->geFilter_->GetImpl()->GetFilterType(),
+        Drawing::GEVisualEffectImpl::FilterType::HEAT_DISTORTION);
 }
 } // namespace OHOS::Rosen

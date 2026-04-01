@@ -173,6 +173,7 @@ napi_value FilterNapi::CreateFilter(napi_env env, napi_callback_info info)
         DECLARE_NAPI_FUNCTION("maskDispersion", SetMaskDispersion),
         DECLARE_NAPI_FUNCTION("hdrBrightnessRatio", SetHDRBrightnessRatio),
         DECLARE_NAPI_FUNCTION("contentLight", SetContentLight),
+        DECLARE_NAPI_FUNCTION("heatDistortion", SetHeatDistortion),
         DECLARE_NAPI_FUNCTION("maskTransition", SetMaskTransition),
         DECLARE_NAPI_FUNCTION("variableRadiusBlur", SetVariableRadiusBlur),
         DECLARE_NAPI_FUNCTION("frostedGlass", SetFrostedGlass),
@@ -427,6 +428,63 @@ napi_value FilterNapi::SetContentLight(napi_env env, napi_callback_info info)
         FILTER_LOG_E("FilterNapi SetContentLight napi_unwrap fail"));
     filterObj->AddPara(para);
 
+    return thisVar;
+}
+
+napi_value FilterNapi::SetHeatDistortion(napi_env env, napi_callback_info info)
+{
+    if (!UIEffectNapiUtils::IsSystemApp()) {
+        FILTER_LOG_E("SetHeatDistortion failed");
+        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
+            "FilterNapi heatDistortion failed, is not system app");
+        return nullptr;
+    }
+
+    static const size_t maxArgc = NUM_5;
+    static const size_t minArgc = NUM_1;
+    size_t argCount = maxArgc;
+    napi_status status;
+    napi_value thisVar = nullptr;
+    napi_value argValue[NUM_5] = {0};
+    UIEFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && argCount >= minArgc && argCount <= maxArgc, nullptr,
+        FILTER_LOG_E("FilterNapi SetHeatDistortion parsing input fail"));
+
+    auto para = std::make_shared<HeatDistortionPara>();
+    UIEFFECT_NAPI_CHECK_RET_D(para != nullptr, nullptr,
+        FILTER_LOG_E("FilterNapi SetHeatDistortion para is nullptr"));
+
+    float intensity = 1.0f;
+    float riseSpeed = 1.0f;
+    float noiseScale = 1.0f;
+    float noiseSpeed = 0.4f;
+    float riseWeight = 0.2f;
+    if (argCount >= NUM_1) {
+        intensity = GetSpecialValue(env, argValue[NUM_0]);
+    }
+    if (argCount >= NUM_2) {
+        riseSpeed = GetSpecialValue(env, argValue[NUM_1]);
+    }
+    if (argCount >= NUM_3) {
+        noiseScale = GetSpecialValue(env, argValue[NUM_2]);
+    }
+    if (argCount >= NUM_4) {
+        noiseSpeed = GetSpecialValue(env, argValue[NUM_3]);
+    }
+    if (argCount >= NUM_5) {
+        riseWeight = GetSpecialValue(env, argValue[NUM_4]);
+    }
+    para->SetIntensity(intensity);
+    para->SetRiseSpeed(riseSpeed);
+    para->SetNoiseScale(noiseScale);
+    para->SetNoiseSpeed(noiseSpeed);
+    para->SetRiseWeight(riseWeight);
+
+    Filter* filterObj = nullptr;
+    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
+        FILTER_LOG_E("FilterNapi SetHeatDistortion napi_unwrap fail"));
+    filterObj->AddPara(para);
     return thisVar;
 }
 
@@ -1050,6 +1108,7 @@ napi_value FilterNapi::SetMaskTransition(napi_env env, napi_callback_info info)
 void FilterNapi::RegisterFilterParaUnmarshallingCallback()
 {
     ContentLightPara::RegisterUnmarshallingCallback();
+    HeatDistortionPara::RegisterUnmarshallingCallback();
     DispersionPara::RegisterUnmarshallingCallback();
     DisplacementDistortPara::RegisterUnmarshallingCallback();
     MaskTransitionPara::RegisterUnmarshallingCallback();
