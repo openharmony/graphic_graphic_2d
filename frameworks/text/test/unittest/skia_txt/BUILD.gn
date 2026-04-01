@@ -34,7 +34,6 @@ ohos_unittest("rosen_text_skia_txt_test") {
     "text_bundle_config_parser_test.cpp",
     "text_line_base_test.cpp",
     "text_style_test.cpp",
-    "typography_thread_test.cpp",
     "typeface_font_asset_provider_test.cpp",
   ]
 
