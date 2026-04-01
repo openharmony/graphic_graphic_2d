@@ -845,6 +845,32 @@ void RSMainThread::CleanResources(pid_t pid)
     }
 }
 
+bool RSMainThread::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
+{
+    RS_LOGI("GetMaxGpuBufferSize: start query GPU buffer size limits");
+
+#if !defined(RS_ENABLE_GL) && !defined(RS_ENABLE_VK)
+    RS_LOGE("GetMaxGpuBufferSize: No GPU backend enabled");
+    return false;
+#endif
+
+    bool querySuccess = false;
+    auto queryGpuLimits = [this, &maxWidth, &maxHeight, &querySuccess]() {
+        auto renderContext = isUniRender_ ? GetRenderEngine()->GetRenderContext() : renderEngine_->GetRenderContext();
+        if (renderContext) {
+            RS_TRACE_NAME_FMT("GetMaxGpuBufferSize task");
+            querySuccess = renderContext->QueryMaxGpuBufferSize(maxWidth, maxHeight);
+        }
+    };
+
+    if (isUniRender_) {
+        RSUniRenderThread::Instance().PostSyncTask(queryGpuLimits);
+    } else {
+        PostSyncTask(queryGpuLimits);
+    }
+    return querySuccess;
+}
+
 void RSMainThread::OnScreenConnected(const sptr<RSScreenProperty>& screenProperty)
 {
     if (!screenProperty) {

@@ -99,4 +99,21 @@ HWTEST_F(RSRenderPipelineAgentTest, DropFrameByPid_ValidPipeline_ReturnOk, TestS
     ErrCode ret = agent->DropFrameByPid(pidList, DROP_FRAME_LEVEL);
     EXPECT_EQ(ret, ERR_OK);
 }
+
+ /**
+  * @tc.name: GetMaxGpuBufferSize_NullPipeline
+  * @tc.desc: Verify GetMaxGpuBufferSize returns ERR_INVALID_VALUE when pipeline is null
+  * @tc.type: FUNC
+  */
+HWTEST_F(RSRenderPipelineAgentTest, GetMaxGpuBufferSize_NullPipeline, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    uint32_t maxWidth = 0;
+    uint32_t maxHeight = 0;
+    ErrCode ret = agent->GetMaxGpuBufferSize(maxWidth, maxHeight);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
 } // namespace OHOS::Rosen

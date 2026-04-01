@@ -61,5 +61,82 @@ HWTEST_F(RSRenderInterfaceTest, SubmitCanvasPreAllocatedBufferTest, TestSize.Lev
     ret = RSRenderInterface::GetInstance().SubmitCanvasPreAllocatedBuffer(1, nullptr, 1);
     ASSERT_NE(ret, 0);
 }
+
+/**
+ * @tc.name: GetMaxGpuBufferSize001
+ * @tc.desc: test GetMaxGpuBufferSize with zero initial values
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderInterfaceTest, GetMaxGpuBufferSize001, TestSize.Level1)
+{
+    uint32_t maxWidth = 0;
+    uint32_t maxHeight = 0;
+    int32_t ret = RSRenderInterface::GetInstance().GetMaxGpuBufferSize(maxWidth, maxHeight);
+    EXPECT_GE(ret, -1);
+    RSSystemProperties::isUniRenderEnabled_ = false;
+    ret = RSRenderInterface::GetInstance().GetMaxGpuBufferSize(maxWidth, maxHeight);
+    RSSystemProperties::isUniRenderEnabled_ = true;
+}
+
+/**
+ * @tc.name: GetMaxGpuBufferSize002
+ * @tc.desc: test GetMaxGpuBufferSize with preset values
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderInterfaceTest, GetMaxGpuBufferSize002, TestSize.Level1)
+{
+    uint32_t maxWidth = 2048;
+    uint32_t maxHeight = 2048;
+    int32_t ret = RSRenderInterface::GetInstance().GetMaxGpuBufferSize(maxWidth, maxHeight);
+    EXPECT_GE(ret, -1);
+}
+
+/**
+ * @tc.name: GetMaxGpuBufferSize003
+ * @tc.desc: test GetMaxGpuBufferSize with UINT32_MAX
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderInterfaceTest, GetMaxGpuBufferSize003, TestSize.Level1)
+{
+    uint32_t maxWidth = UINT32_MAX;
+    uint32_t maxHeight = UINT32_MAX;
+    int32_t ret = RSRenderInterface::GetInstance().GetMaxGpuBufferSize(maxWidth, maxHeight);
+    EXPECT_GE(ret, -1);
+}
+
+/**
+ * @tc.name: GetMaxGpuBufferSize004
+ * @tc.desc: test GetMaxGpuBufferSize multiple calls consistency
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderInterfaceTest, GetMaxGpuBufferSize004, TestSize.Level1)
+{
+    uint32_t maxWidth1 = 0;
+    uint32_t maxHeight1 = 0;
+    int32_t ret1 = RSRenderInterface::GetInstance().GetMaxGpuBufferSize(maxWidth1, maxHeight1);
+
+    uint32_t maxWidth2 = 0;
+    uint32_t maxHeight2 = 0;
+    int32_t ret2 = RSRenderInterface::GetInstance().GetMaxGpuBufferSize(maxWidth2, maxHeight2);
+    EXPECT_EQ(ret1, ret2);
+}
+
+/**
+ * @tc.name: GetMaxGpuBufferSize005
+ * @tc.desc: test GetMaxGpuBufferSize return value
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderInterfaceTest, GetMaxGpuBufferSize005, TestSize.Level1)
+{
+    uint32_t maxWidth = 0;
+    uint32_t maxHeight = 0;
+    int32_t ret = RSRenderInterface::GetInstance().GetMaxGpuBufferSize(maxWidth, maxHeight);
+    EXPECT_GE(ret, -1);
+}
 #endif
 } // namespace OHOS::Rosen
