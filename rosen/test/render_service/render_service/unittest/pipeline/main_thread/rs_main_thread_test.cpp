@@ -6194,4 +6194,123 @@ HWTEST_F(RSMainThreadTest, CheckUiCaptureNodeTest, TestSize.Level1)
 
     BufferReclaimParam::GetInstance().SetBufferReclaimEnable(enable);
 }
+
+/**
+ * @tc.name: ClearTransactionDataPidInfo003
+ * @tc.desc: ClearTransactionDataPidInfo Test with forRefresh=true, verify counter reset
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, ClearTransactionDataPidInfo003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto isUniRender = mainThread->isUniRender_;
+    mainThread->isUniRender_ = true;
+    pid_t remotePid = 12345;
+
+    // Setup: Add entry to effectiveTransactionDataIndexMap_
+    mainThread->effectiveTransactionDataIndexMap_[remotePid] =
+        std::make_pair(100, std::vector<std::unique_ptr<RSTransactionData>>());
+    mainThread->transactionDataLastWaitTime_[remotePid] = 12345678;
+
+    // Execute: forRefresh=true
+    mainThread->ClearTransactionDataPidInfo(remotePid, true);
+
+    // Verify: Counter reset to 0, map entry preserved
+    auto it = mainThread->effectiveTransactionDataIndexMap_.find(remotePid);
+    ASSERT_NE(it, mainThread->effectiveTransactionDataIndexMap_.end());
+    EXPECT_EQ(it->second.first, 0);
+    // transactionDataLastWaitTime_ should still be erased
+    EXPECT_EQ(mainThread->transactionDataLastWaitTime_.find(remotePid),
+        mainThread->transactionDataLastWaitTime_.end());
+
+    // Cleanup
+    mainThread->effectiveTransactionDataIndexMap_.erase(remotePid);
+    mainThread->isUniRender_ = isUniRender;
+}
+
+/**
+ * @tc.name: ClearTransactionDataPidInfo004
+ * @tc.desc: ClearTransactionDataPidInfo Test with forRefresh=true and non-existent pid
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, ClearTransactionDataPidInfo004, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto isUniRender = mainThread->isUniRender_;
+    mainThread->isUniRender_ = true;
+    pid_t remotePid = 99999;
+
+    // Ensure pid doesn't exist in map
+    mainThread->effectiveTransactionDataIndexMap_.erase(remotePid);
+
+    // Execute: forRefresh=true with non-existent pid, should not crash
+    mainThread->ClearTransactionDataPidInfo(remotePid, true);
+
+    // Verify: Map still doesn't contain the pid
+    EXPECT_EQ(mainThread->effectiveTransactionDataIndexMap_.find(remotePid),
+        mainThread->effectiveTransactionDataIndexMap_.end());
+
+    mainThread->isUniRender_ = isUniRender;
+}
+
+/**
+ * @tc.name: ClearTransactionDataPidInfo005
+ * @tc.desc: ClearTransactionDataPidInfo Test with forRefresh=false and !isUniRender_
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, ClearTransactionDataPidInfo005, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto isUniRender = mainThread->isUniRender_;
+    mainThread->isUniRender_ = false;
+    pid_t remotePid = 12345;
+
+    // Setup: Add entry to map
+    mainThread->effectiveTransactionDataIndexMap_[remotePid] =
+        std::make_pair(100, std::vector<std::unique_ptr<RSTransactionData>>());
+
+    // Execute: forRefresh=false but !isUniRender_, should return early
+    mainThread->ClearTransactionDataPidInfo(remotePid, false);
+
+    // Verify: Map entry should still exist (early return)
+    EXPECT_NE(mainThread->effectiveTransactionDataIndexMap_.find(remotePid),
+        mainThread->effectiveTransactionDataIndexMap_.end());
+
+    // Cleanup
+    mainThread->effectiveTransactionDataIndexMap_.erase(remotePid);
+    mainThread->isUniRender_ = isUniRender;
+}
+
+/**
+ * @tc.name: CleanResourcesForRefreshTest
+ * @tc.desc: CleanResources Test with forRefresh=true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, CleanResourcesForRefreshTest, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto isUniRender = mainThread->isUniRender_;
+    mainThread->isUniRender_ = true;
+    pid_t remotePid = 12345;
+
+    // Setup: Add entry to effectiveTransactionDataIndexMap_
+    mainThread->effectiveTransactionDataIndexMap_[remotePid] =
+        std::make_pair(100, std::vector<std::unique_ptr<RSTransactionData>>());
+
+    // Execute: CleanResources with forRefresh=true
+    mainThread->CleanResources(remotePid, true);
+
+    // Verify: Counter reset to 0, map entry preserved
+    auto it = mainThread->effectiveTransactionDataIndexMap_.find(remotePid);
+    ASSERT_NE(it, mainThread->effectiveTransactionDataIndexMap_.end());
+    EXPECT_EQ(it->second.first, 0);
+
+    // Cleanup
+    mainThread->effectiveTransactionDataIndexMap_.erase(remotePid);
+    mainThread->isUniRender_ = isUniRender;
+}
 }

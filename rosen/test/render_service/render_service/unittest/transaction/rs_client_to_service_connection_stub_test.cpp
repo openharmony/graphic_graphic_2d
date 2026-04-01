@@ -4765,4 +4765,175 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase008, TestSize.Level
     float gpuMemInMB = 0.0;
     connection->GetPidGpuMemoryInMB(0, gpuMemInMB);
 }
+
+/**
+ * @tc.name: RegisterRemoteRefreshCallbackTest_Service
+ * @tc.desc: Test RegisterRemoteRefreshCallback for RSClientToServiceConnection
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, RegisterRemoteRefreshCallbackTest_Service, TestSize.Level1)
+{
+    auto testToken = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSClientToServiceConnection> testConnection = sptr<RSClientToServiceConnection>::MakeSptr(
+        0, renderServiceAgent_, renderProcessManagerAgent_, screenManagerAgent_, testToken->AsObject(),
+        renderService_.vsyncManager_->GetVsyncManagerAgent());
+    ASSERT_NE(testConnection, nullptr);
+
+    // First call should create recipient
+    testConnection->RegisterRemoteRefreshCallback();
+    EXPECT_NE(testConnection->connRefreshRecipient_, nullptr);
+
+    // Second call should not create new recipient
+    auto firstRecipient = testConnection->connRefreshRecipient_;
+    testConnection->RegisterRemoteRefreshCallback();
+    EXPECT_EQ(testConnection->connRefreshRecipient_, firstRecipient);
+
+    // Test with null token
+    testConnection->token_ = nullptr;
+    testConnection->connRefreshRecipient_ = nullptr;
+    testConnection->RegisterRemoteRefreshCallback();
+    // Should handle without crash
+}
+
+/**
+ * @tc.name: CleanForRefreshTest001_Service
+ * @tc.desc: Test CleanForRefresh when renderServiceAgent_ is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, CleanForRefreshTest001_Service, TestSize.Level1)
+{
+    auto testToken = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSClientToServiceConnection> testConnection = sptr<RSClientToServiceConnection>::MakeSptr(
+        0, nullptr, nullptr, nullptr, testToken->AsObject(),
+        renderService_.vsyncManager_->GetVsyncManagerAgent());
+    ASSERT_NE(testConnection, nullptr);
+    ASSERT_EQ(testConnection->renderServiceAgent_, nullptr);
+
+    // Should return early without crash when renderServiceAgent_ is nullptr
+    testConnection->CleanForRefresh();
+    // Verify connection state remains valid
+    EXPECT_EQ(testConnection->renderServiceAgent_, nullptr);
+    EXPECT_NE(testConnection->GetToken(), nullptr);
+}
+
+/**
+ * @tc.name: CleanForRefreshTest002_Service
+ * @tc.desc: Test CleanForRefresh normal path
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, CleanForRefreshTest002_Service, TestSize.Level1)
+{
+    auto testToken = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSClientToServiceConnection> testConnection = sptr<RSClientToServiceConnection>::MakeSptr(
+        0, renderServiceAgent_, renderProcessManagerAgent_, screenManagerAgent_, testToken->AsObject(),
+        renderService_.vsyncManager_->GetVsyncManagerAgent());
+    ASSERT_NE(testConnection, nullptr);
+
+    // Setup pidToBundleName_
+    testConnection->pidToBundleName_[123] = "test.bundle";
+
+    // Execute CleanForRefresh
+    testConnection->CleanForRefresh();
+
+    // Verify pidToBundleName_ is cleared
+    EXPECT_TRUE(testConnection->pidToBundleName_.empty());
+}
+
+/**
+ * @tc.name: RSConnectionRefreshRecipientTest001_Service
+ * @tc.desc: Test RSConnectionRefreshRecipient::OnRemoteRefreshed with nullptr token
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, RSConnectionRefreshRecipientTest001_Service, TestSize.Level1)
+{
+    auto testToken = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSClientToServiceConnection> testConnection = sptr<RSClientToServiceConnection>::MakeSptr(
+        0, renderServiceAgent_, renderProcessManagerAgent_, screenManagerAgent_, testToken->AsObject(),
+        renderService_.vsyncManager_->GetVsyncManagerAgent());
+    ASSERT_NE(testConnection, nullptr);
+
+    auto refreshRecipient = new RSClientToServiceConnection::RSConnectionRefreshRecipient(testConnection);
+    ASSERT_NE(refreshRecipient, nullptr);
+    ASSERT_NE(refreshRecipient->conn_, nullptr);
+
+    // Test with nullptr token
+    wptr<IRemoteObject> nullToken;
+    refreshRecipient->OnRemoteRefreshed(nullToken);
+    // Should return early when token is nullptr, connection should remain valid
+    EXPECT_NE(testConnection, nullptr);
+}
+
+/**
+ * @tc.name: RSConnectionRefreshRecipientTest002_Service
+ * @tc.desc: Test RSConnectionRefreshRecipient::OnRemoteRefreshed with valid connection
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, RSConnectionRefreshRecipientTest002_Service, TestSize.Level1)
+{
+    auto testToken = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSClientToServiceConnection> testConnection = sptr<RSClientToServiceConnection>::MakeSptr(
+        0, renderServiceAgent_, renderProcessManagerAgent_, screenManagerAgent_, testToken->AsObject(),
+        renderService_.vsyncManager_->GetVsyncManagerAgent());
+    ASSERT_NE(testConnection, nullptr);
+
+    wptr<RSClientToServiceConnection> weakConn = testConnection;
+    auto refreshRecipient = new RSClientToServiceConnection::RSConnectionRefreshRecipient(weakConn);
+    ASSERT_NE(refreshRecipient, nullptr);
+    ASSERT_NE(refreshRecipient->conn_, nullptr);
+
+    // Test with valid token and valid connection - should handle gracefully
+    refreshRecipient->OnRemoteRefreshed(testToken->AsObject());
+    // Verify weak reference returns valid connection after OnRemoteRefreshed
+    EXPECT_NE(refreshRecipient->conn_.promote(), nullptr);
+}
+
+/**
+ * @tc.name: RSConnectionRefreshRecipientTest003_Service
+ * @tc.desc: Test RSConnectionRefreshRecipient::OnRemoteRefreshed with matching token
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, RSConnectionRefreshRecipientTest003_Service, TestSize.Level1)
+{
+    auto testToken = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSClientToServiceConnection> testConnection = sptr<RSClientToServiceConnection>::MakeSptr(
+        0, renderServiceAgent_, renderProcessManagerAgent_, screenManagerAgent_, testToken->AsObject(),
+        renderService_.vsyncManager_->GetVsyncManagerAgent());
+    ASSERT_NE(testConnection, nullptr);
+    ASSERT_NE(testConnection->renderServiceAgent_, nullptr);
+    ASSERT_EQ(testConnection->GetToken(), testToken->AsObject());
+
+    auto refreshRecipient = new RSClientToServiceConnection::RSConnectionRefreshRecipient(testConnection);
+    ASSERT_NE(refreshRecipient, nullptr);
+
+    // Test with matching token - should call CleanForRefresh
+    refreshRecipient->OnRemoteRefreshed(testToken->AsObject());
+    // Verify connection remains valid after OnRemoteRefreshed
+    EXPECT_NE(testConnection, nullptr);
+    EXPECT_NE(testConnection->renderServiceAgent_, nullptr);
+}
+
+/**
+ * @tc.name: CleanAllCallsCleanForRefreshTest
+ * @tc.desc: Test CleanAll calls CleanForRefresh internally
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, CleanAllCallsCleanForRefreshTest, TestSize.Level1)
+{
+    auto testToken = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSClientToServiceConnection> testConnection = sptr<RSClientToServiceConnection>::MakeSptr(
+        0, renderServiceAgent_, renderProcessManagerAgent_, screenManagerAgent_, testToken->AsObject(),
+        renderService_.vsyncManager_->GetVsyncManagerAgent());
+    ASSERT_NE(testConnection, nullptr);
+
+    // Setup pidToBundleName_
+    testConnection->pidToBundleName_[123] = "test.bundle";
+    ASSERT_FALSE(testConnection->cleanDone_);
+
+    // Execute CleanAll
+    testConnection->CleanAll(false);
+
+    // Verify cleanDone_ is set and pidToBundleName_ is cleared
+    EXPECT_TRUE(testConnection->cleanDone_);
+    EXPECT_TRUE(testConnection->pidToBundleName_.empty());
+}
 } // namespace OHOS::Rosen

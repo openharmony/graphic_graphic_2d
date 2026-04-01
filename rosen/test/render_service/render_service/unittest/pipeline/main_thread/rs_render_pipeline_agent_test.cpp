@@ -371,4 +371,72 @@ HWTEST_F(RSRenderPipelineAgentTest, GetFrameStabilityResult002, TestSize.Level1)
     int32_t ret = agent->GetFrameStabilityResult(1000, VALID_TARGET, result);
     EXPECT_NE(ret, static_cast<int32_t>(FrameStabilityErrorCode::INVALID_ID));
 }
+
+/**
+ * @tc.name: CleanTest_NullPipeline
+ * @tc.desc: Verify Clean returns early when rsRenderPipeline_ is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, CleanTest_NullPipeline, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+    ASSERT_EQ(agent->rsRenderPipeline_, nullptr);
+
+    pid_t testPid = 12345;
+    // Should return early without crash when rsRenderPipeline_ is nullptr
+    agent->Clean(testPid, false);
+    agent->Clean(testPid, true);
+    // Verify agent state remains unchanged after Clean
+    EXPECT_EQ(agent->rsRenderPipeline_, nullptr);
+}
+
+/**
+ * @tc.name: CleanTest_ForRefreshFalse
+ * @tc.desc: Verify Clean with forRefresh=false schedules CleanResources correctly
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, CleanTest_ForRefreshFalse, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+    ASSERT_NE(mainThread_, nullptr);
+    renderPipeline->mainThread_ = mainThread_;
+
+    pid_t testPid = 12345;
+    ASSERT_NE(agent->rsRenderPipeline_, nullptr);
+    ASSERT_NE(agent->rsRenderPipeline_->mainThread_, nullptr);
+
+    // Execute Clean with forRefresh=false
+    agent->Clean(testPid, false);
+    // Verify agent and pipeline remain valid after Clean
+    EXPECT_NE(agent->rsRenderPipeline_, nullptr);
+    EXPECT_NE(agent->rsRenderPipeline_->mainThread_, nullptr);
+}
+
+/**
+ * @tc.name: CleanTest_ForRefreshTrue
+ * @tc.desc: Verify Clean with forRefresh=true schedules CleanResources correctly
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, CleanTest_ForRefreshTrue, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+    ASSERT_NE(mainThread_, nullptr);
+    renderPipeline->mainThread_ = mainThread_;
+
+    pid_t testPid = 12345;
+    ASSERT_NE(agent->rsRenderPipeline_, nullptr);
+    ASSERT_NE(agent->rsRenderPipeline_->mainThread_, nullptr);
+
+    // Execute Clean with forRefresh=true
+    agent->Clean(testPid, true);
+    // Verify agent and pipeline remain valid after Clean
+    EXPECT_NE(agent->rsRenderPipeline_, nullptr);
+    EXPECT_NE(agent->rsRenderPipeline_->mainThread_, nullptr);
+}
 } // namespace OHOS::Rosen

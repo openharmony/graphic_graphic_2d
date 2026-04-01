@@ -194,6 +194,8 @@ void RSClientToServiceConnection::CleanForRefresh() noexcept
         std::lock_guard<std::mutex> lock(pidToBundleMutex_);
         pidToBundleName_.clear();
     }
+    RS_LOGD("CleanForRefresh() end.");
+    RS_TRACE_NAME("RSClientToServiceConnection CleanForRefresh end, remotePid: " + std::to_string(remotePid_));
 }
 
 void RSClientToServiceConnection::CleanAll(bool toDelete) noexcept
@@ -204,6 +206,12 @@ void RSClientToServiceConnection::CleanAll(bool toDelete) noexcept
             return;
         }
     }
+    if (!renderServiceAgent_) {
+        return;
+    }
+
+    RS_LOGD("CleanAll() start.");
+    RS_TRACE_NAME("RSClientToServiceConnection CleanAll begin, remotePid: " + std::to_string(remotePid_));
 
     CleanForRefresh();
 
