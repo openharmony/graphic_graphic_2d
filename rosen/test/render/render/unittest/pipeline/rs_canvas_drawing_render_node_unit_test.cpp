@@ -18,6 +18,7 @@
 #include "common/rs_obj_geometry.h"
 #include "draw/canvas.h"
 #include "modifier_ng/rs_render_modifier_ng.h"
+#include "params/rs_canvas_drawing_render_params.h"
 #include "params/rs_render_params.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_context.h"
@@ -459,7 +460,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeUnitTest, ResetSurfaceTest002, TestSize.Level1
     NodeId rootNodeId = 2;
     auto context = std::make_shared<RSContext>();
     RSCanvasDrawingRenderNode rsCanvasDrawingRenderNode(nodeId, context);
-    rsCanvasDrawingRenderNode.stagingRenderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    rsCanvasDrawingRenderNode.stagingRenderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(nodeId);
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(rootNodeId);
     surfaceNode->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
     context->GetMutableNodeMap().RegisterRenderNode(surfaceNode);
@@ -469,7 +470,9 @@ HWTEST_F(RSCanvasDrawingRenderNodeUnitTest, ResetSurfaceTest002, TestSize.Level1
         RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(rsCanvasDrawingRenderNode.GetInstanceRootNode());
     EXPECT_NE(appSurfaceNode, nullptr);
     rsCanvasDrawingRenderNode.ResetSurface(width, height, height);
-    ASSERT_EQ(rsCanvasDrawingRenderNode.stagingRenderParams_->surfaceParams_.colorSpace,
+    auto stagingRenderParams =
+        static_cast<RSCanvasDrawingRenderParams*>(rsCanvasDrawingRenderNode.stagingRenderParams_.get());
+    ASSERT_EQ(stagingRenderParams->surfaceParams_.colorSpace,
         GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
 }
 
