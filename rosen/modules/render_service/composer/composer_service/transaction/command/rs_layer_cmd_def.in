@@ -88,3 +88,10 @@ DECLARE_RSLAYER_CMD(LayerMaskInfo, LayerMask, LAYER_MASK_INFO)
 DECLARE_RSLAYER_CMD(Buffer, sptr<SurfaceBuffer>, BUFFER)
 DECLARE_RSLAYER_CMD(AcquireFence, sptr<SyncFence>, ACQUIRE_FENCE)
 DECLARE_RSLAYER_CMD(PreBuffer, sptr<SurfaceBuffer>, PRE_BUFFER)
+
+// hpae_offline command
+DECLARE_RSLAYER_CMD(OriginalBuffer, sptr<SurfaceBuffer>, ORIGINAL_BUFFER)
+DECLARE_RSLAYER_CMD(OriginalPreBuffer, sptr<SurfaceBuffer>, ORIGINAL_PRE_BUFFER)
+DECLARE_RSLAYER_CMD(OriginalTransformType, GraphicTransformType, ORIGINAL_TRANSFORM_TYPE)
+DECLARE_RSLAYER_CMD(OriginalAcquireFence, sptr<SyncFence>, ORIGINAL_ACQUIRE_FENCE)
+DECLARE_RSLAYER_CMD(OriginalCropRect, GraphicIRect, ORIGINAL_CROP_RECT)
