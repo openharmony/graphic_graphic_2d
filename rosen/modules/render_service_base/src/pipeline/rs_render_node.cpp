@@ -3358,7 +3358,12 @@ void RSRenderNode::UpdateDrawableVecV2()
         dirtySlots_.insert(dirtySlots.begin(), dirtySlots.end());
     }
 
-    waitSync_ = true;
+    if (GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
+        auto canvasDrawingNode = RSRenderNode::ReinterpretCast<RSCanvasDrawingRenderNode>(shared_from_this());
+        if (canvasDrawingNode) {
+            canvasDrawingNode->SetWaitSync(true);
+        }
+    }
 #endif
 }
 
@@ -4640,10 +4645,15 @@ void RSRenderNode::OnSync()
 
     // Reset Sync Flag
     // only canvas drawing node use SetNeedDraw function
-    if (GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE && waitSync_) {
-        renderDrawable_->SetNeedDraw(true);
+    if (GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
+        auto canvasDrawingNode = RSRenderNode::ReinterpretCast<RSCanvasDrawingRenderNode>(shared_from_this());
+        if (canvasDrawingNode && canvasDrawingNode->IsWaitSync()) {
+            renderDrawable_->SetNeedDraw(true);
+        }
+        if (canvasDrawingNode) {
+            canvasDrawingNode->SetWaitSync(false);
+        }
     }
-    waitSync_ = false;
 
     lastFrameSynced_ = !isLeashWindowPartialSkip;
 }

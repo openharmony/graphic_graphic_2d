@@ -72,6 +72,14 @@ public:
     void ApplyModifiers() override;
     bool CheckCachedOp();
     bool HasCachedOp() const;
+    bool IsWaitSync() const
+    {
+        return waitSync_;
+    }
+    void SetWaitSync(bool waitSync)
+    {
+        waitSync_ = waitSync;
+    }
 
 protected:
     void OnSync() override;
@@ -101,6 +109,7 @@ private:
     bool isPostPlaybacked_ = false;
     bool lastOverflowStatus_ = false;
     std::atomic<bool> isNeedProcess_ = false;
+    bool waitSync_ = false;
     // Used in uni render thread.
     uint32_t drawingNodeRenderID = UNI_MAIN_THREAD_INDEX;
     std::shared_ptr<Drawing::Surface> surface_;
