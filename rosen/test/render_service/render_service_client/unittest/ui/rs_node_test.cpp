@@ -1962,13 +1962,13 @@ HWTEST_F(RSNodeTest, SetandGetAlpha005, TestSize.Level1)
 HWTEST_F(RSNodeTest, MarkLayerTest, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    EXPECT_EQ(rsNode->isMarkLayer_, false);
+    EXPECT_EQ(rsNode->isLayer_, false);
     rsNode->MarkLayer(true);
-    EXPECT_EQ(rsNode->isMarkLayer_, true);
+    EXPECT_EQ(rsNode->isLayer_, true);
     rsNode->MarkLayer(false);
-    EXPECT_EQ(rsNode->isMarkLayer_, false);
+    EXPECT_EQ(rsNode->isLayer_, false);
     rsNode->MarkLayer(false);
-    EXPECT_EQ(rsNode->isMarkLayer_, false);
+    EXPECT_EQ(rsNode->isLayer_, false);
 }
 
 /**

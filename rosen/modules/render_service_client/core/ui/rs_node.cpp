@@ -1012,11 +1012,11 @@ void RSNode::SetAlphaOffscreen(bool alphaOffscreen)
 void RSNode::MarkLayer(bool isLayer)
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-    if (isMarkLayer_ == isLayer) {
+    if (isLayer_ == isLayer) {
         return;
     }
-    isMarkLayer_ = isLayer;
-    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkLayer>(GetId(), isMarkLayer_);
+    isLayer_ = isLayer;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkLayer>(GetId(), isLayer_);
     AddCommand(command, IsRenderServiceNode());
 }
 
