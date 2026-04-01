@@ -847,6 +847,10 @@ public:
     {
         uifirstSkipPartialSync_ = skip;
     }
+    bool IsUifirstSkipPartialSync() const
+    {
+        return uifirstSkipPartialSync_;
+    }
 
     void SetForceUpdateByUifirst(bool b)
     {

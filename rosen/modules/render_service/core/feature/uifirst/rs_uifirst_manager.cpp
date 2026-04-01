@@ -24,6 +24,7 @@
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/uifirst/rs_uifirst_frame_rate_control.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
+#include "feature_cfg/graphic_feature_param_manager.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
 #endif
@@ -2323,7 +2324,7 @@ CacheProcessStatus RSUifirstManager::GetCacheSurfaceProcessedStatus(const RSSurf
     return curRootIdState;
 }
 
-UiFirstModeType RSUifirstManager::GetUiFirstMode()
+UiFirstModeType RSUifirstManager::GetUiFirstMode() const
 {
     if (uifirstType_ == UiFirstCcmType::SINGLE) {
         return UiFirstModeType::SINGLE_WINDOW_MODE;
@@ -2611,6 +2612,12 @@ void RSUifirstManager::CheckAndBlockFirstFrameCallback(RSSurfaceRenderNode& surf
             return;
         }
     }
+}
+
+bool RSUifirstManager::IsOcclusionEnabled() const
+{
+    return GetUiFirstMode() == UiFirstModeType::MULTI_WINDOW_MODE && UIFirstParam::IsOcclusionEnabled() &&
+        RSSystemParameters::GetUIFirstOcclusionEnabled();
 }
 } // namespace Rosen
 } // namespace OHOS

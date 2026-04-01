@@ -183,6 +183,35 @@ bool CanvasFuzzTestHpsEdgeLight(const uint8_t* data, size_t size)
     return true;
 }
 
+bool CanvasFuzzTestInsertOpaqueRegion(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    Canvas canvas;
+
+    // Generate random opaque rects count (0-10)
+    uint32_t rectCount = GetObject<uint32_t>() % 11;
+    std::vector<RectI> opaqueRects;
+
+    for (uint32_t i = 0; i < rectCount; i++) {
+        int32_t left = GetObject<int32_t>() % 1000;
+        int32_t top = GetObject<int32_t>() % 1000;
+        int32_t right = GetObject<int32_t>() % 1000;
+        int32_t bottom = GetObject<int32_t>() % 1000;
+        opaqueRects.emplace_back(left, top, right, bottom);
+    }
+
+    // Call InsertOpaqueRegion with generated rects
+    canvas.InsertOpaqueRegion(opaqueRects);
+
+    // Test with empty rects
+    std::vector<RectI> emptyRects;
+    canvas.InsertOpaqueRegion(emptyRects);
+
+    return true;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -200,5 +229,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::CanvasFuzzTest001(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTest002(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTestHpsEdgeLight(data, size);
+    OHOS::Rosen::Drawing::CanvasFuzzTestInsertOpaqueRegion(data, size);
     return 0;
 }

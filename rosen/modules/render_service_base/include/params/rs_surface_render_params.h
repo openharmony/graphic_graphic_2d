@@ -830,6 +830,8 @@ public:
 
     void SetUIFirstLeashAllEnable(bool isEnable);
     bool IsUIFirstLeashAllEnable() const override;
+    void SetPartialSynced(bool isPartialSynced);
+    bool IsPartialSynced() const;
 
     void SwapRelatedRenderParams(RSSurfaceRenderParams& relatedRenderParams);
 private:
@@ -974,6 +976,9 @@ private:
     bool isSurfaceBufferOpaque_ = false;
     bool isParticipateInOcclusion_ = false;
     bool isUIFirstLeashAllEnable_ = false;
+    // When onSync is triggered on the uifirst root node and the child thread drawing task
+    // is incomplete, partial synchronization is executed instead.
+    bool isPartialSynced_ = false;
 
     // only used for window capture
     sptr<RSISurfaceCaptureCallback> captureCallback_;
