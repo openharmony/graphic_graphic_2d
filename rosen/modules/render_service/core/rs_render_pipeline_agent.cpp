@@ -894,6 +894,19 @@ int32_t RSRenderPipelineAgent::SetLogicalCameraRotationCorrection(ScreenId scree
     return ERR_OK;
 }
 
+ErrCode RSRenderPipelineAgent::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
+{
+    if (rsRenderPipeline_ == nullptr) {
+        RS_LOGE("GetMaxGpuBufferSize: rsRenderPipeline_ is nullptr");
+        return ERR_INVALID_VALUE;
+    }
+    auto task = [renderPipeline = rsRenderPipeline_, &maxWidth, &maxHeight]() -> ErrCode {
+        bool result = renderPipeline->GetMainThread()->GetMaxGpuBufferSize(maxWidth, maxHeight);
+        return result ? ERR_OK : ERR_INVALID_VALUE;
+    };
+    return rsRenderPipeline_->GetMainThread()->ScheduleTask(task).get();
+}
+
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 void RSRenderPipelineAgent::RegisterCanvasCallback(pid_t remotePid, sptr<RSICanvasSurfaceBufferCallback> callback)
 {
