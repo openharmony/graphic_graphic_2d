@@ -150,8 +150,24 @@ public:
     virtual std::string GetSurfaceName() const = 0;
     virtual void SetSolidColorLayerProperty(GraphicSolidColorLayerProperty solidColorLayerProperty) = 0;
     virtual GraphicSolidColorLayerProperty GetSolidColorLayerProperty() const = 0;
+    // hpae_offline begin
     virtual void SetUseDeviceOffline(bool useOffline) = 0;
     virtual bool GetUseDeviceOffline() const = 0;
+    virtual void SetOriginalBuffer(const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence) = 0;
+    virtual void SetOriginalBuffer(const sptr<SurfaceBuffer>& buffer) = 0;
+    virtual sptr<SurfaceBuffer> GetOriginalBuffer() const = 0;
+    virtual void SetOriginalAcquireFence(const sptr<SyncFence>& acquireFence) = 0;
+    virtual sptr<SyncFence> GetOriginalAcquireFence() const = 0;
+    virtual void SetOriginalPreBuffer(const sptr<SurfaceBuffer>& buffer) = 0;
+    virtual sptr<SurfaceBuffer> GetOriginalPreBuffer() const = 0;
+    virtual void SetOriginalTransformType(GraphicTransformType type) = 0;
+    virtual GraphicTransformType GetOriginalTransformType() const = 0;
+    virtual void SetOriginalCropRect(const GraphicIRect& cropRect) = 0;
+    virtual GraphicIRect GetOriginalCropRect() const = 0;
+    virtual void SetOriginalBufferOwnerCount(
+        const std::shared_ptr<RSSurfaceHandler::BufferOwnerCount>& bufferOwnerCount) = 0;
+    virtual std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetOriginalBufferOwnerCount() const = 0;
+    // hpae_offline end
     virtual void SetIgnoreAlpha(bool ignoreAlpha) = 0;
     virtual bool GetIgnoreAlpha() const = 0;
     virtual void SetAncoSrcRect(const GraphicIRect& ancoSrcRect) = 0;

@@ -581,6 +581,33 @@ public:
     {
         return useDeviceOffline_;
     }
+
+    // Original buffer related for AAE offline
+    void SetOriginalBuffer(const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence) override
+    {
+        originalBuffer_ = buffer;
+        originalAcquireFence_ = acquireFence;
+    }
+    void SetOriginalBuffer(const sptr<SurfaceBuffer>& buffer) override { originalBuffer_ = buffer; }
+    sptr<SurfaceBuffer> GetOriginalBuffer() const override { return originalBuffer_.promote(); }
+    void SetOriginalAcquireFence(const sptr<SyncFence>& acquireFence) override { originalAcquireFence_ = acquireFence; }
+    sptr<SyncFence> GetOriginalAcquireFence() const override { return originalAcquireFence_; }
+    void SetOriginalPreBuffer(const sptr<SurfaceBuffer>& buffer) override { originalPreBuffer_ = buffer; }
+    sptr<SurfaceBuffer> GetOriginalPreBuffer() const override { return originalPreBuffer_.promote(); }
+    void SetOriginalTransformType(GraphicTransformType type) override { originalTransformType_ = type; }
+    GraphicTransformType GetOriginalTransformType() const override { return originalTransformType_; }
+    void SetOriginalCropRect(const GraphicIRect& cropRect) override { originalCropRect_ = cropRect; }
+    GraphicIRect GetOriginalCropRect() const override { return originalCropRect_; }
+    void SetOriginalBufferOwnerCount(
+        const std::shared_ptr<RSSurfaceHandler::BufferOwnerCount>& bufferOwnerCount) override
+    {
+        originalBufferOwnerCount_ = bufferOwnerCount;
+    }
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetOriginalBufferOwnerCount() const override
+    {
+        return originalBufferOwnerCount_;
+    }
+
     void SetAncoSrcRect(const GraphicIRect& ancoSrcRect) override
     {
         ancoSrcRect_ = ancoSrcRect;
@@ -659,6 +686,13 @@ private:
     uint32_t cycleBuffersNum_ = 0;
     bool ignoreAlpha_ { false };
     bool useDeviceOffline_ { false };
+    // Original buffer related for AAE offline
+    wptr<SurfaceBuffer> originalBuffer_ = nullptr;
+    wptr<SurfaceBuffer> originalPreBuffer_ = nullptr;
+    GraphicTransformType originalTransformType_ = GraphicTransformType::GRAPHIC_ROTATE_BUTT;
+    sptr<SyncFence> originalAcquireFence_ = SyncFence::InvalidFence();
+    GraphicIRect originalCropRect_ = { 0, 0, 0, 0 };
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> originalBufferOwnerCount_ = nullptr;
     GraphicIRect ancoSrcRect_ { -1, -1, -1, -1 };
 };
 }
