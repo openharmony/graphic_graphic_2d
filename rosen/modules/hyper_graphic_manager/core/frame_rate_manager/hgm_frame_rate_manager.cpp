@@ -39,7 +39,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr int32_t IDLE_TIMER_EXPIRED = 200; // ms
+constexpr int32_t IDLE_TIMER_EXPIRED = 300; // ms
 constexpr int32_t CHANGE_GENERATOR_RATE_VALID_TIMEOUT = 20; // ms
 constexpr int64_t UNI_RENDER_VSYNC_OFFSET = 5000000; // ns
 constexpr int64_t UNI_RENDER_VSYNC_OFFSET_DELAY_MODE = -3300000; // ns
