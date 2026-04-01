@@ -22,7 +22,6 @@
 
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
 #include "feature/hpae/rs_hpae_manager.h"
-#include "feature/layer/rs_layer_cache_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "gfx/performance/rs_perfmonitor_reporter.h"
 #include "gpuComposition/rs_gpu_cache_manager.h"
