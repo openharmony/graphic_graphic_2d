@@ -72,11 +72,11 @@ public:
     void ApplyModifiers() override;
     bool CheckCachedOp();
     bool HasCachedOp() const;
-    bool IsWaitSync() const
+    bool IsWaitSync() const override
     {
         return waitSync_;
     }
-    void SetWaitSync(bool waitSync)
+    void SetWaitSync(bool waitSync) override
     {
         waitSync_ = waitSync;
     }

@@ -283,6 +283,12 @@ public:
         return isTextureExportNode_;
     }
 
+    virtual bool IsWaitSync() const
+    {
+        return false;
+    }
+    virtual void SetWaitSync(bool waitSync) {}
+
     inline RectI GetFilterRegion() const
     {
         return filterRegionInfo_ != nullptr ? filterRegionInfo_->filterRegion_ : RectI();
