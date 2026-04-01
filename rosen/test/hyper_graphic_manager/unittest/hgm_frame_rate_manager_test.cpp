@@ -1491,6 +1491,17 @@ HWTEST_F(HgmFrameRateMgrTest, TestHandleTouchEvent, Function | SmallTest | Level
     mgr.touchManager_.state_.store(TouchState::IDLE_STATE);
     mgr.HandleTouchEvent(0, TOUCH_MOVE, 1, TouchSourceType::SOURCE_TYPE_MOUSE);
     sleep(1);
+
+    // hover 120hz
+    auto& hgmCore = HgmCore::Instance();
+    auto frameRateMgr = hgmCore.GetFrameRateMgr();
+    if (frameRateMgr == nullptr || hgmCore.mPolicyConfigData_ == nullptr) {
+        return;
+    }
+    hgmCore.mPolicyConfigData_->hoverFrameUpSwitch_ = true;
+    frameRateMgr->HandleTouchTask(DEFAULT_PID, POINTER_ACTION_PROXIMITY_IN, 1);
+    frameRateMgr->HandleTouchTask(DEFAULT_PID, POINTER_ACTION_PROXIMITY_OUT, 1);
+
     EXPECT_EQ(mgr.touchManager_.pkgName_, "");
 }
 

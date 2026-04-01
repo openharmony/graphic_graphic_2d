@@ -62,6 +62,8 @@ enum TouchStatus : uint32_t {
     TOUCH_PULL_DOWN = 12,
     TOUCH_PULL_MOVE = 13,
     TOUCH_PULL_UP = 14,
+    POINTER_ACTION_PROXIMITY_IN = 35,
+    POINTER_ACTION_PROXIMITY_OUT = 36,
 };
 
 enum TouchSourceType : int32_t {
