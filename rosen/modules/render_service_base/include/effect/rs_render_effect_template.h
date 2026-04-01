@@ -84,6 +84,7 @@ public:
             case RSNGEffectType::LIGHT_CAVE: return "LightCave";
             case RSNGEffectType::CONTENT_LIGHT: return "ContentLight";
             case RSNGEffectType::HEAT_DISTORTION: return "HeatDistortion";
+            case RSNGEffectType::BLUR_BUBBLES_RISE: return "BlurBubblesRise";
             case RSNGEffectType::BORDER_LIGHT: return "BorderLight";
             case RSNGEffectType::GASIFY_SCALE_TWIST: return "GasifyScaleTwist";
             case RSNGEffectType::GASIFY_BLUR: return "GasifyBlur";

@@ -174,6 +174,7 @@ napi_value FilterNapi::CreateFilter(napi_env env, napi_callback_info info)
         DECLARE_NAPI_FUNCTION("hdrBrightnessRatio", SetHDRBrightnessRatio),
         DECLARE_NAPI_FUNCTION("contentLight", SetContentLight),
         DECLARE_NAPI_FUNCTION("heatDistortion", SetHeatDistortion),
+        DECLARE_NAPI_FUNCTION("blurBubblesRise", SetBlurBubblesRise),
         DECLARE_NAPI_FUNCTION("maskTransition", SetMaskTransition),
         DECLARE_NAPI_FUNCTION("variableRadiusBlur", SetVariableRadiusBlur),
         DECLARE_NAPI_FUNCTION("frostedGlass", SetFrostedGlass),
@@ -484,6 +485,63 @@ napi_value FilterNapi::SetHeatDistortion(napi_env env, napi_callback_info info)
     status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
         FILTER_LOG_E("FilterNapi SetHeatDistortion napi_unwrap fail"));
+    filterObj->AddPara(para);
+    return thisVar;
+}
+
+napi_value FilterNapi::SetBlurBubblesRise(napi_env env, napi_callback_info info)
+{
+    if (!UIEffectNapiUtils::IsSystemApp()) {
+        FILTER_LOG_E("SetBlurBubblesRise failed");
+        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
+            "FilterNapi blurBubblesRise failed, is not system app");
+        return nullptr;
+    }
+
+    static const size_t maxArgc = NUM_5;
+    static const size_t minArgc = NUM_1;
+    size_t argCount = maxArgc;
+    napi_status status;
+    napi_value thisVar = nullptr;
+    napi_value argValue[NUM_5] = {0};
+    UIEFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && argCount >= minArgc && argCount <= maxArgc, nullptr,
+        FILTER_LOG_E("FilterNapi SetBlurBubblesRise parsing input fail"));
+
+    auto para = std::make_shared<BlurBubblesRisePara>();
+    UIEFFECT_NAPI_CHECK_RET_D(para != nullptr, nullptr,
+        FILTER_LOG_E("FilterNapi SetBlurBubblesRise para is nullptr"));
+
+    float blurRadius = 3.0f;
+    float mixStrength = 1.0f;
+    uint32_t invertMask = 0;
+    uint32_t maskChannel = 0;
+    float maskScrollSpeed = 0.07f;
+    if (argCount >= NUM_1) {
+        blurRadius = GetSpecialValue(env, argValue[NUM_0]);
+    }
+    if (argCount >= NUM_2) {
+        mixStrength = GetSpecialValue(env, argValue[NUM_1]);
+    }
+    if (argCount >= NUM_3) {
+        invertMask = GetSpecialIntValue(env, argValue[NUM_2]);
+    }
+    if (argCount >= NUM_4) {
+        maskChannel = GetSpecialIntValue(env, argValue[NUM_3]);
+    }
+    if (argCount >= NUM_5) {
+        maskScrollSpeed = GetSpecialValue(env, argValue[NUM_4]);
+    }
+    para->SetBlurRadius(blurRadius);
+    para->SetMixStrength(mixStrength);
+    para->SetInvertMask(invertMask);
+    para->SetMaskChannel(maskChannel);
+    para->SetMaskScrollSpeed(maskScrollSpeed);
+
+    Filter* filterObj = nullptr;
+    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
+        FILTER_LOG_E("FilterNapi SetBlurBubblesRise napi_unwrap fail"));
     filterObj->AddPara(para);
     return thisVar;
 }
@@ -1109,6 +1167,7 @@ void FilterNapi::RegisterFilterParaUnmarshallingCallback()
 {
     ContentLightPara::RegisterUnmarshallingCallback();
     HeatDistortionPara::RegisterUnmarshallingCallback();
+    BlurBubblesRisePara::RegisterUnmarshallingCallback();
     DispersionPara::RegisterUnmarshallingCallback();
     DisplacementDistortPara::RegisterUnmarshallingCallback();
     MaskTransitionPara::RegisterUnmarshallingCallback();

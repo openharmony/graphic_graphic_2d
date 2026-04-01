@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 
 #include "filter/include/filter.h"
+#include "filter/include/filter_blur_bubbles_rise_para.h"
 #include "filter/include/filter_para.h"
 #include "filter/include/filter_content_light_para.h"
 #include "filter/include/filter_dispersion_para.h"
@@ -47,6 +48,7 @@ void RSUIEffectFilterTest::SetUp()
 {
     ContentLightPara::RegisterUnmarshallingCallback();
     HeatDistortionPara::RegisterUnmarshallingCallback();
+    BlurBubblesRisePara::RegisterUnmarshallingCallback();
     DispersionPara::RegisterUnmarshallingCallback();
     DisplacementDistortPara::RegisterUnmarshallingCallback();
     MaskTransitionPara::RegisterUnmarshallingCallback();
@@ -150,6 +152,47 @@ HWTEST_F(RSUIEffectFilterTest, RSUIEffectHeatDistortionParaTest, TestSize.Level1
     parcelTest.FlushBuffer();
     parcelTest.WriteUint16(666);
     EXPECT_EQ(false, HeatDistortionPara::OnUnmarshalling(parcelTest, valTest));
+}
+
+/**
+ * @tc.name: RSUIEffectBlurBubblesRiseParaTest
+ * @tc.desc: Verify the BlurBubblesRisePara func
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIEffectFilterTest, RSUIEffectBlurBubblesRiseParaTest, TestSize.Level1)
+{
+    auto para = std::make_shared<BlurBubblesRisePara>();
+    constexpr float blurRadius = 2.8f;
+    constexpr float mixStrength = 0.7f;
+    constexpr uint32_t invertMask = 1;
+    constexpr uint32_t maskChannel = 3;
+    constexpr float maskScrollSpeed = 0.15f;
+    para->SetBlurRadius(blurRadius);
+    para->SetMixStrength(mixStrength);
+    para->SetInvertMask(invertMask);
+    para->SetMaskChannel(maskChannel);
+    para->SetMaskScrollSpeed(maskScrollSpeed);
+
+    Parcel parcel;
+    EXPECT_TRUE(para->Marshalling(parcel));
+
+    std::shared_ptr<FilterPara> val = nullptr;
+    EXPECT_TRUE(FilterPara::Unmarshalling(parcel, val));
+    EXPECT_NE(nullptr, val);
+    auto blurBubblesRisePara = std::static_pointer_cast<BlurBubblesRisePara>(val);
+    EXPECT_EQ(blurRadius, blurBubblesRisePara->GetBlurRadius());
+    EXPECT_EQ(mixStrength, blurBubblesRisePara->GetMixStrength());
+    EXPECT_EQ(invertMask, blurBubblesRisePara->GetInvertMask());
+    EXPECT_EQ(maskChannel, blurBubblesRisePara->GetMaskChannel());
+    EXPECT_EQ(maskScrollSpeed, blurBubblesRisePara->GetMaskScrollSpeed());
+    EXPECT_NE(nullptr, para->Clone());
+
+    std::shared_ptr<FilterPara> valTest = nullptr;
+    Parcel parcelTest;
+    EXPECT_EQ(false, BlurBubblesRisePara::OnUnmarshalling(parcelTest, valTest));
+    parcelTest.FlushBuffer();
+    parcelTest.WriteUint16(666);
+    EXPECT_EQ(false, BlurBubblesRisePara::OnUnmarshalling(parcelTest, valTest));
 }
 
 /**
