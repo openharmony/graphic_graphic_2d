@@ -238,6 +238,7 @@ constexpr uint32_t EXT_INFO_MAX_LENGTH = 100;
 constexpr uint32_t HIGH_32BIT = 32;
 constexpr uint64_t PERIOD_MAX_OFFSET = 1000000; // 1ms
 constexpr uint64_t FASTCOMPOSE_OFFSET = 600000; // 600us fastcompose threshold
+constexpr int64_t REQUEST_NEXT_FRAME_ADVANCE_NS = 500000; // 500us
 constexpr const char* WALLPAPER_VIEW = "WallpaperView";
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
 constexpr const char* DESKTOP_NAME_FOR_ROTATION = "SCBDesktop";
@@ -3573,12 +3574,13 @@ void RSMainThread::Animate(uint64_t timestamp)
     uint32_t totalAnimationSize = 0;
     uint32_t animatingNodeSize = context_->animatingNodeList_.size();
     bool needPrintAnimationDFX = IsTagEnabled(HITRACE_TAG_GRAPHIC_AGP) ? true : false;
+    int64_t minNextFrameTime = INT64_MAX;
     std::set<pid_t> animationPids;
     // iterate and animate all animating nodes, remove if animation finished
     EraseIf(context_->animatingNodeList_,
         [this, timestamp, period, isDisplaySyncEnabled, isRateDeciderEnabled, &totalAnimationSize,
         &curWinAnim, &needRequestNextVsync, &isCalculateAnimationValue, &needPrintAnimationDFX, &minLeftDelayTime,
-        &animationPids](const auto& iter) -> bool {
+        &animationPids, &minNextFrameTime](const auto& iter) -> bool {
         auto node = iter.second.lock();
         if (node == nullptr) {
             RS_LOGD("Animate removing expired animating node");
@@ -3646,7 +3648,9 @@ void RSMainThread::Animate(uint64_t timestamp)
             PostTask(RequestNextVSyncTask, "animate_request_next_vsync", minLeftDelayTime - oneFrameTimeInFPS60,
                 AppExecFwk::EventQueue::Priority::IMMEDIATE);
         } else {
-            RequestNextVSync("animate", timestamp_);
+            int64_t requestNextFrameTime = (minNextFrameTime == INT64_MAX) ? 0 : minNextFrameTime;
+            requestNextFrameTime -= REQUEST_NEXT_FRAME_ADVANCE_NS;
+            RequestNextVSync("animate", timestamp_, requestNextFrameTime);
         }
     } else if (isUniRender_) {
 #ifdef RS_ENABLE_GPU

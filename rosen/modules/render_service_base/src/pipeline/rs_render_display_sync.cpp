@@ -79,15 +79,21 @@ std::tuple<bool, bool, bool> RSRenderDisplaySync::GetAnimateResult() const
 bool RSRenderDisplaySync::OnFrameSkip(uint64_t timestamp, int64_t period, bool isDisplaySyncEnabled)
 {
     if (!isDisplaySyncEnabled) {
+        nextFrameTime_ = 0;
         referenceCount_ = 0;
         return false;
     }
     if (period <= 0 || timestamp_ == timestamp || expectedFrameRateRange_.preferred_ == 0) {
+        nextFrameTime_ = 0;
         return false;
     }
     bool isFrameSkip = false;
-    referenceCount_++;
+    int64_t frameCount = round(static_cast<double>((timestamp - timestamp_) * currentFrameRate_) /
+        static_cast<double>(NS_TO_S));
+    int64_t lastDrawReferenceCount = (referenceCount_ / skipRateCount_) * skipRateCount_;
+    referenceCount_+= frameCount;
     timestamp_ = timestamp;
+    bool isMaxStep = (referenceCount_ - lastDrawReferenceCount) >= skipRateCount_;
 
     if (currentPeriod_ != period) {
         currentPeriod_ = period;
@@ -109,8 +115,19 @@ bool RSRenderDisplaySync::OnFrameSkip(uint64_t timestamp, int64_t period, bool i
     }
 
     if (referenceCount_ % skipRateCount_ != 0) {
+        int64_t nextCount = ((referenceCount_ / skipRateCount_) + 1) * skipRateCount_;
+        int64_t deltaTime = (nextCount - referenceCount_) * NS_TO_S / currentFrameRate_;
+        nextFrameTime_ = timestamp_ + static_cast<uint64_t>(deltaTime);
         isFrameSkip = true;
+    } else {
+        int64_t deltaTime = static_cast<int64_t>(skipRateCount_) * NS_TO_S / currentFrameRate_;
+        nextFrameTime_ = timestamp_ + static_cast<uint64_t>(deltaTime);
     }
+
+    if (isMaxStep) {
+	    isFrameSkip = false;
+    }
+
     RS_OPTIONAL_TRACE_NAME_FMT(
         "RSRenderDisplaySync::OnFrameSkip preferred: [%d] currentPeroid: [%d] isFrameSkip:[%d]",
         expectedFrameRateRange_.preferred_, currentPeriod_, isFrameSkip);
@@ -127,7 +144,7 @@ int32_t RSRenderDisplaySync::CalcSkipRateCount(int32_t frameRate)
         return count;
     }
     std::vector<int32_t> divisorRates;
-    for (int i = 1; i <= MAX_DIVISOR_NUM; i++) {
+    for (int i = 1; i <= (frameRate / MIN_DIVISOR_FRAME_RATE); i++) {
         if (frameRate % i == 0 && frameRate / i >= MIN_DIVISOR_FRAME_RATE) {
             divisorRates.emplace_back(frameRate / i);
         }
