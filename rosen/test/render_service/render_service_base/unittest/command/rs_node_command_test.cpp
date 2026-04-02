@@ -85,6 +85,10 @@ HWTEST_F(RSNodeCommandTest, MarkLayerTest, TestSize.Level1)
     RSNodeCommandHelper::MarkLayer(context, nodeId, isLayer);
     auto canvasNode = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
     ASSERT_NE(canvasNode, nullptr);
+    NodeId id1 = 1;
+    auto node1 = std::make_shared<RSRenderNode>(id1);
+    context.GetMutableNodeMap().RegisterRenderNode();
+    RSNodeCommandHelper::MarkLayer(context, nodeId, isLayer);
 }
 
 /**

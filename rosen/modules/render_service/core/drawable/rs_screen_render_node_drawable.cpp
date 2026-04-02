@@ -928,10 +928,8 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
-    if (curCanvas_->GetGPUContext()) {
-        auto& layerCacheManager = RSLayerCacheManager::Instance();
-        layerCacheManager.HandleLayerDrawables(*curCanvas_);
-    }
+    auto& layerCacheManager = RSLayerCacheManager::Instance();
+    layerCacheManager.HandleLayerDrawables(*curCanvas_);
 
     curCanvas_->SetDrawnRegion(params->GetDrawnRegion());
     curCanvas_->SetTargetColorGamut(params->GetNewColorSpace());

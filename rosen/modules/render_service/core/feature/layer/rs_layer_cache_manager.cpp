@@ -70,6 +70,10 @@ void RSLayerCacheManager::TryPrepareLayerCache(
 
 void RSLayerCacheManager::HandleLayerDrawables(Drawing::Canvas& canvas)
 {
+    if (!canvas.GetGPUContext()) {
+        layerDrawables_.clear();
+        return;
+    }
     for (auto drawableAdapter : layerDrawables_) {
         auto drawablePtr = std::static_pointer_cast<DrawableV2::RSCanvasRenderNodeDrawable>(drawableAdapter);
         if (!drawablePtr->GetRenderParams()) {

@@ -357,24 +357,6 @@ HWTEST_F(RSRenderNodeTest, SetBootAnimationTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: MarkLayerTest
- * @tc.desc: TEST MarkLayer
- * @tc.type: FUNC
- * @tc.require: SR000HSUII
- */
-HWTEST_F(RSRenderNodeTest, MarkLayerTest, TestSize.Level1)
-{
-    auto node = std::make_shared<RSRenderNode>(100, true);
-    node->MarkLayer(true);
-
-    auto canvasNode = std::make_shared<RSCanvasRenderNode>(DEFAULT_NODE_ID, context);
-    canvasNode->InitRenderParams();
-
-    canvasNode->MarkLayer(true);
-    EXPECT_EQ(canvasNode == nullptr, false);
-}
-
-/**
  * @tc.name: OnlyBasicGeoTransfromTest01
  * @tc.desc: Check node only contains BasicGeoTransfrom by default
  * @tc.type: FUNC

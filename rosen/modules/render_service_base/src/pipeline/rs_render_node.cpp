@@ -3592,18 +3592,6 @@ bool RSRenderNode::GetBootAnimation() const
     return isBootAnimation_;
 }
 
-void RSRenderNode::MarkLayer(bool isLayer)
-{
-    // only support canvas node mark
-    if (GetType() != RSRenderNodeType::CANVAS_NODE) {
-        return;
-    }
-    RS_OPTIONAL_TRACE_NAME_FMT("MarkLayer isLayer:%d id:%llu", isLayer, GetId());
-    RS_LOGI_IF(DEBUG_NODE, "RSRenderNode::MarkLayer isLayer:%{public}d id:%{public}" PRIu64,
-        isLayer, GetId());
-    MarkNodeGroup(NodeGroupType::GROUPED_BY_LAYER, isLayer, false);
-}
-
 bool RSRenderNode::GetGlobalPositionEnabled() const
 {
     return false;
