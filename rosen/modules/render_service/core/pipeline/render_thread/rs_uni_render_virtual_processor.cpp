@@ -72,15 +72,20 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSScreenRender
     auto mirroredScreenDrawable =
         std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(params->GetMirrorSourceDrawable().lock());
     auto virtualScreenColorSpace = params->GetNewColorSpace();
+    auto childDrawables = params->GetDisplayDrawables();
+    if (childDrawables.empty() || childDrawables.front() == nullptr) {
+        RS_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::InitForRenderThread: no child display under screen");
+        RS_LOGE("RSUniRenderVirtualProcessor::InitForRenderThread: no child display under screen");
+        return false;
+    }
+    auto displayDrawable = childDrawables.front();
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable->GetRenderParams().get());
+    if (!displayParams) {
+        RS_LOGE("RSUniRenderVirtualProcessor::InitForRenderThread: displayParams is nullptr");
+        return false;
+    }
     if (mirroredScreenDrawable) {
         mirroredScreenNodeId_ = mirroredScreenDrawable->GetId();
-        auto childDrawables = params->GetDisplayDrawables();
-        if (childDrawables.empty() || childDrawables.front() == nullptr) {
-            RS_LOGE("RSUniRenderVirtualProcessor::InitForRenderThread: no child display in mirror screen");
-            return false;
-        }
-        auto displayDrawable = childDrawables.front();
-        auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable->GetRenderParams().get());
         auto mirroredDisplayDrawable = std::static_pointer_cast<DrawableV2::RSLogicalDisplayRenderNodeDrawable>(
             displayParams->GetMirrorSourceDrawable().lock());
         if (!mirroredDisplayDrawable) {
@@ -107,6 +112,16 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSScreenRender
         }
         expandScreenHDR = RSHdrUtil::IsHDRCast(params, renderFrameConfig_);
         RS_LOGD("RSUniRenderVirtualProcessor::Init HDRCast expandScreenHDR: %{public}d", expandScreenHDR);
+        float displayWidth = displayParams->GetFixedWidth();
+        float displayHeight = displayParams->GetFixedHeight();
+        float screenWidth = static_cast<float>(screenProperty.GetWidth());
+        float screenHeight = static_cast<float>(screenProperty.GetHeight());
+        if ((ROSEN_NE(displayWidth, screenWidth) || ROSEN_NE(displayHeight, screenHeight)) &&
+            ROSEN_GNE(displayWidth, 0.0f) && ROSEN_GNE(displayHeight, 0.0f)) {
+            isVirtualExpandScale_ = true;
+            virtualExpandScaleX_ = screenWidth / displayWidth;
+            virtualExpandScaleY_ = screenHeight / displayHeight;
+        }
     }
 
     SetVirtualScreenSize(screenDrawable);
@@ -455,6 +470,17 @@ void RSUniRenderVirtualProcessor::ScaleMirrorIfNeed(const ScreenRotation angle, 
     } else {
         canvas.Translate(-mirroredTranslateX_, -mirroredTranslateY_);
     }
+}
+
+void RSUniRenderVirtualProcessor::ScaleExpandIfNeed(RSPaintFilterCanvas* canvas)
+{
+    if (!isVirtualExpandScale_) {
+        return;
+    }
+
+    canvas->Scale(virtualExpandScaleX_, virtualExpandScaleY_);
+    RS_LOGD("RSUniRenderVirtualProcessor::ScaleExpandIfNeed: scaleX: %{public}f, scaleY: %{public}f",
+        virtualExpandScaleX_, virtualExpandScaleY_);
 }
 
 void RSUniRenderVirtualProcessor::MergeMirrorFenceToHardwareEnabledDrawables()

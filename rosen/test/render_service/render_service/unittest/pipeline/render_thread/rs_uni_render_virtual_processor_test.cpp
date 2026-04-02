@@ -471,6 +471,83 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, OriginScreenRotation, TestSize.Level2)
 }
 
 /**
+ * @tc.name: InitForRenderThreadTest001
+ * @tc.desc: Test RSUniRenderVirtualProcessor.InitForRenderThread
+ * @tc.type: FUNC
+ * @tc.require: #23004
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, InitForRenderThreadTest001, TestSize.Level1)
+{
+    ScreenId screenId = screenManager_->CreateVirtualScreen("InitForRenderThreadTest001", 1920, 1080,
+        nullptr, INVALID_SCREEN_ID, 0, {});
+    screenManager_->SetVirtualScreenStatus(screenId, VirtualScreenStatus::VIRTUAL_SCREEN_PLAY);
+
+    NodeId screenNodeId = 100;
+    auto screenRenderNode = std::make_shared<RSScreenRenderNode>(screenNodeId, screenId);
+    screenRenderNode->InitRenderParams();
+
+    auto screenDrawable = std::static_pointer_cast<RSScreenRenderNodeDrawable>(screenRenderNode->GetRenderDrawable());
+    ASSERT_NE(screenDrawable, nullptr);
+    auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable->GetRenderParams().get());
+    ASSERT_NE(screenParams, nullptr);
+
+    auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
+    ASSERT_NE(renderEngine, nullptr);
+
+    RSUniRenderVirtualProcessor processor;
+    screenParams->logicalDisplayNodeDrawables_.clear();
+    ASSERT_TRUE(screenParams->GetDisplayDrawables().empty());
+    processor.InitForRenderThread(*screenDrawable, renderEngine);
+
+    screenParams->logicalDisplayNodeDrawables_.clear();
+    screenParams->logicalDisplayNodeDrawables_.emplace_back(nullptr);
+    ASSERT_FALSE(screenParams->GetDisplayDrawables().empty());
+    ASSERT_EQ(screenParams->GetDisplayDrawables().front(), nullptr);
+    processor.InitForRenderThread(*screenDrawable, renderEngine);
+
+    NodeId displayNodeId = 200;
+    RSDisplayNodeConfig config;
+    auto displayRenderNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config);
+    displayRenderNode->InitRenderParams();
+    auto displayDrawable =
+        std::static_pointer_cast<RSLogicalDisplayRenderNodeDrawable>(displayRenderNode->GetRenderDrawable());
+    ASSERT_NE(displayDrawable, nullptr);
+
+    screenParams->logicalDisplayNodeDrawables_.clear();
+    screenParams->logicalDisplayNodeDrawables_.emplace_back(displayDrawable);
+    ASSERT_FALSE(screenParams->GetDisplayDrawables().empty());
+    ASSERT_NE(screenParams->GetDisplayDrawables().front(), nullptr);
+    processor.InitForRenderThread(*screenDrawable, renderEngine);
+
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable->GetRenderParams().get());
+    ASSERT_NE(displayParams, nullptr);
+
+    displayParams->fixedWidth_ = 960.0f;
+    displayParams->fixedHeight_ = 540.0f;
+    screenParams->screenProperty_.Set<ScreenPropertyType::RENDER_RESOLUTION>({960.0f, 540.0f});
+    processor.InitForRenderThread(*screenDrawable, renderEngine);
+
+    displayParams->fixedWidth_ = 0.0f;
+    displayParams->fixedHeight_ = 1080.0f;
+    screenParams->screenProperty_.Set<ScreenPropertyType::RENDER_RESOLUTION>({960.0f, 540.0f});
+    processor.InitForRenderThread(*screenDrawable, renderEngine);
+
+    displayParams->fixedWidth_ = 960.0f;
+    displayParams->fixedHeight_ = 0.0f;
+    screenParams->screenProperty_.Set<ScreenPropertyType::RENDER_RESOLUTION>({960.0f, 540.0f});
+    processor.InitForRenderThread(*screenDrawable, renderEngine);
+
+    displayParams->fixedWidth_ = 1920.0f;
+    displayParams->fixedHeight_ = 1080.0f;
+    screenParams->screenProperty_.Set<ScreenPropertyType::RENDER_RESOLUTION>({960.0f, 540.0f});
+    processor.InitForRenderThread(*screenDrawable, renderEngine);
+
+    displayDrawable->renderParams_ = nullptr;
+    bool res = processor.InitForRenderThread(*screenDrawable, renderEngine);
+    ASSERT_FALSE(res);
+}
+
+/**
  * @tc.name: Fill
  * @tc.desc: Fill Test
  * @tc.type: FUNC
@@ -1017,6 +1094,27 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, ScaleMirrorIfNeedTest, TestSize.Level2
     screenManager_->SetMirrorScreenVisibleRect(screenId, rect, false);
     virtualProcessor->ScaleMirrorIfNeed(ScreenRotation::ROTATION_90, *canvas);
     screenManager_->RemoveVirtualScreen(screenId);
+}
+
+/**
+ * @tc.name: ScaleExpandIfNeedTest001
+ * @tc.desc: test ScaleExpandIfNeed
+ * @tc.type: FUNC
+ * @tc.require: #23004
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, ScaleExpandIfNeedTest001, TestSize.Level2)
+{
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas paintCanvas(&canvas);
+
+    RSUniRenderVirtualProcessor processor;
+    processor.isVirtualExpandScale_ = true;
+    processor.ScaleExpandIfNeed(&paintCanvas);
+    EXPECT_TRUE(processor.isVirtualExpandScale_);
+
+    processor.isVirtualExpandScale_ = false;
+    processor.ScaleExpandIfNeed(&paintCanvas);
+    EXPECT_FALSE(processor.isVirtualExpandScale_);
 }
 
 /**
