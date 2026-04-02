@@ -147,9 +147,12 @@ public:
         }
     }
 
-    static std::shared_ptr<colorSpace_>skColorSpaceToDrawingColorSpace(sk_sp<SkColorSpace>& skSpace)
+    static std::shared_ptr<ColorSpace>skColorSpaceToDrawingColorSpace(sk_sp<SkColorSpace> skSpace)
     {
-        skcms_TransferFuncation skFn;
+        if(!skSpace) {
+            return nullptr;
+        }
+        skcms_TransferFunction skFn;
         skSpace->transferFn(&skFn);
         skcms_Matrix3x3 skMat;
         skSpace->toXYZD50(&skMat);
@@ -166,7 +169,7 @@ public:
             {skMat.vals[0][0], skMat.vals[0][1], skMat.vals[0][2]},
             {skMat.vals[1][0], skMat.vals[1][1], skMat.vals[1][2]},
             {skMat.vals[2][0], skMat.vals[2][1], skMat.vals[2][2]},
-        }}
+        }};
         std::shared_ptr<ColorSpace> colorSpace =
             std::make_shared<ColorSpace>(ColorSpace::ColorSpaceType::NO_TYPE, drawingFn, drawingMat);
         return colorSpace;
