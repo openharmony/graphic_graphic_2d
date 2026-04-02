@@ -361,11 +361,8 @@ void RSNodeCommandHelper::MarkLayer(RSContext& context, NodeId nodeId, bool isLa
 {
     auto& nodeMap = context.GetNodeMap();
     auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
-    if (node) {
-        // only support canvas node mark
-        if (node->GetType() != RSRenderNodeType::CANVAS_NODE) {
-            return;
-        }
+    // only support canvas node mark
+    if (node && (node->GetType() == RSRenderNodeType::CANVAS_NODE)) {
         RS_OPTIONAL_TRACE_NAME_FMT("MarkLayer isLayer:%d id:%llu", isLayer, node->GetId());
         RS_LOGI_IF(
             DEBUG_NODE, "RSRenderNode::MarkLayer isLayer:%{public}d id:%{public}" PRIu64 "", isLayer, node->GetId());
