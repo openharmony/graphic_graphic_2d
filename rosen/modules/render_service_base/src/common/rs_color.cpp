@@ -76,7 +76,11 @@ RSColor::RSColor(float red, float green, float blue, float alpha,
             static_cast<int16_t>(round(blue * RGB_MAX_VALUE)), 0, UINT8_MAX);
     }
     colorSpace_ = static_cast<int8_t>(colorSpace);
-    headroom_ = Float32ToFloat16(headroom);
+    if (headroom < 1.0f) {
+        headroom_ = Float32ToFloat16(1.0f);
+    } else {
+        headroom_ = Float32ToFloat16(headroom);
+    }
 }
 
 bool RSColor::operator==(const RSColor& rhs) const
