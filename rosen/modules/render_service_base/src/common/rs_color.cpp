@@ -199,10 +199,10 @@ RSColor RSColor::operator*(float scale) const
 RSColor& RSColor::operator*=(float scale)
 {
     if (GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020) {
-        redF_ = Float32ToFloat16(std::clamp<float>(GetRedF(), 0.0f, 1.0f));
-        greenF_ = Float32ToFloat16(std::clamp<float>(GetGreenF(), 0.0f, 1.0f));
-        blueF_ = Float32ToFloat16(std::clamp<float>(GetBlueF(), 0.0f, 1.0f));
-        alphaF_ = Float32ToFloat16(std::clamp<float>(GetAlphaF(), 0.0f, 1.0f));
+        redF_ = Float32ToFloat16(std::clamp<float>(GetRedF() * scale, 0.0f, 1.0f));
+        greenF_ = Float32ToFloat16(std::clamp<float>(GetGreenF() * scale, 0.0f, 1.0f));
+        blueF_ = Float32ToFloat16(std::clamp<float>(GetBlueF() * scale, 0.0f, 1.0f));
+        alphaF_ = Float32ToFloat16(std::clamp<float>(GetAlphaF() * scale, 0.0f, 1.0f));
     } else {
         red_ = std::clamp<int16_t>(round(red_ * scale), 0, UINT8_MAX);
         green_ = std::clamp<int16_t>(round(green_ * scale), 0, UINT8_MAX);
