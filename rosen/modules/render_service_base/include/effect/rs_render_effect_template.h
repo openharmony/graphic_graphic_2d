@@ -112,6 +112,7 @@ public:
             case RSNGEffectType::DUPOLI_NOISE_MASK : return "DupoliNoiseMask";
             case RSNGEffectType::NOISY_FRAME_GRADIENT_MASK: return "NoisyFrameGradientMask";
             case RSNGEffectType::SDF_EDGE_LIGHT: return "SDFEdgeLight";
+            case RSNGEffectType::SDF_EDGE_LIGHT_EFFECT: return "SDFEdgeLightEffect";
             case RSNGEffectType::MAGNIFIER: return "Magnifier";
             default: return "UNKNOWN";
         }
