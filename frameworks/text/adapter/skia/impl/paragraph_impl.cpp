@@ -46,8 +46,6 @@ namespace SPText {
 using PaintID = skt::ParagraphPainter::PaintID;
 constexpr double INFINITE_WIDTH = std::numeric_limits<double>::max();
 constexpr size_t INFINITE_RANGE_INDEX = std::numeric_limits<size_t>::max();
-// Invalid text range representing an invalid or empty range
-constexpr TextRange INVALID_TEXT_RANGE = {0, 0};
 
 namespace {
 std::vector<TextBox> GetTxtTextBoxes(const std::vector<skt::TextBox>& skiaBoxes)
@@ -687,13 +685,18 @@ void ParagraphImpl::BuildFitStrRange(std::vector<TextRange>& fitRanges) const
         return;
     }
 
+    // In MIDDLE ellipsis mode with text ending in \n followed by more characters,
+    // ellipsisRange is based on fGhostClusterRange (including \n cluster) while
+    // lastLineTextRange is based on fText (ending before \n), causing ellipsisRange.end
+    // to potentially exceed lastLineTextRange.end.
+    if (ellipsisRange.end > lastLineTextRange.end) {
+        ellipsisRange.end = lastLineTextRange.end;
+    }
+
     // If there is one line head ellipsis, the fit range is the text range after ellipsis.
-    if (ellipsisRange.start == 0) {
-        if (ellipsisRange.end < lastLineTextRange.end) {
-            fitRanges.push_back({ellipsisRange.end, lastLineTextRange.end});
-        } else {
-            fitRanges.push_back(INVALID_TEXT_RANGE);
-        }
+    if (ellipsisRange.start == 0 &&
+        paragraph_->getParagraphStyle().getEllipsisMod() == skt::EllipsisModal::HEAD) {
+        fitRanges.push_back({ellipsisRange.end, lastLineTextRange.end});
     } else {
         fitRanges.push_back({textRange.start, ellipsisRange.start});
         // If there is middle ellipsis or multiple line head ellipsis, the fit ranges are 2 ranges.
