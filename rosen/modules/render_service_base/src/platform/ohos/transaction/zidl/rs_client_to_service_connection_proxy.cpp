@@ -1164,7 +1164,7 @@ std::vector<int32_t> RSClientToServiceConnectionProxy::GetScreenSupportedRefresh
         int32_t rateValue;
         if (!reply.ReadInt32(rateValue)) {
             RS_LOGE("RSClientToServiceConnectionProxy::GetScreenSupportedRefreshRates ReadInt32 failed");
-            break;
+            return {};
         }
         screenSupportedRates[rateIndex] = rateValue;
     }
