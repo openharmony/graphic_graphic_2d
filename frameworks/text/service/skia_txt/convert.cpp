@@ -111,6 +111,9 @@ SPText::ParagraphStyle Convert(const TypographyStyle& style)
     paragraphStyle.maxLineHeight = style.maxLineHeight;
     paragraphStyle.minLineHeight= style.minLineHeight;
     paragraphStyle.lineSpacing = style.lineSpacing;
+    paragraphStyle.firstLineIndent = style.firstLineIndent;
+    paragraphStyle.tailIndents = style.tailIndents;
+    paragraphStyle.headIndents = style.headIndents;
     paragraphStyle.lineHeightStyle = style.lineHeightStyle;
     paragraphStyle.includeFontPadding = style.includeFontPadding;
     paragraphStyle.fallbackLineSpacing = style.fallbackLineSpacing;

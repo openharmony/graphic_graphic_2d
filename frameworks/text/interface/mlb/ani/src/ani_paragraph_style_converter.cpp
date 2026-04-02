@@ -51,6 +51,22 @@ void AniParagraphStyleConverter::ParseSimpleParagraphStyleToNative(
         paragraphStyle->orphanCharOptimization);
     AniTextUtils::ReadOptionalDoubleField(env, obj, AniGlobalMethod::GetInstance().paragraphStyleLineSpacing,
         paragraphStyle->lineSpacing);
+    AniTextUtils::ReadOptionalDoubleField(env, obj, AniGlobalMethod::GetInstance().paragraphStyleFirstLineIndent,
+        paragraphStyle->firstLineIndent);
+    auto doubleConvert = [](ani_env* env, ani_ref ref) {
+        ani_double objValue = 0;
+        ani_object obj = reinterpret_cast<ani_object>(ref);
+        ani_status ret = env->Object_CallMethod_Double(obj, AniGlobalMethod::GetInstance().doubleGet, &objValue);
+        if (ret != ANI_OK) {
+            TEXT_LOGE("Failed to get double, ret %{public}d", ret);
+            return 0.0;
+        }
+        return objValue;
+    };
+    AniTextUtils::ReadOptionalArrayField<double>(env, obj, AniGlobalMethod::GetInstance().paragraphStyleTailIndents,
+        paragraphStyle->tailIndents, doubleConvert);
+    AniTextUtils::ReadOptionalArrayField<double>(env, obj, AniGlobalMethod::GetInstance().paragraphStyleHeadIndents,
+        paragraphStyle->headIndents, doubleConvert);
 }
 
 ani_status ParagraphStyleGetMaxLine(ani_env* env, ani_object obj, std::unique_ptr<TypographyStyle>& paragraphStyle)

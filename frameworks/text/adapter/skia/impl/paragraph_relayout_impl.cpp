@@ -313,6 +313,28 @@ namespace {
             paragraph.getParagraphStyle().setTextHeightBehavior(
                 static_cast<skt::TextHeightBehavior>(style.textHeightBehavior));
             state = std::min(skt::InternalState::kIndexed, state);
+        },
+
+        [](skt::Paragraph& paragraph, const ParagraphStyle& style, skt::InternalState& state) {
+            if (style.firstLineIndent < 0) {
+                return;
+            }
+            paragraph.getParagraphStyle().setFirstLineIndent(style.firstLineIndent);
+            state = std::min(skt::InternalState::kShaped, state);
+        },
+
+        [](skt::Paragraph& paragraph, const ParagraphStyle& style, skt::InternalState& state) {
+            if (std::none_of(style.headIndents.begin(), style.headIndents.end(), [](float num) {return num < 0.0f;})) {
+                paragraph.getParagraphStyle().setHeadIndents(style.headIndents);
+                state = std::min(skt::InternalState::kShaped, state);
+            }
+        },
+
+        [](skt::Paragraph& paragraph, const ParagraphStyle& style, skt::InternalState& state) {
+            if (std::none_of(style.tailIndents.begin(), style.tailIndents.end(), [](float num) {return num < 0.0f;})) {
+                paragraph.getParagraphStyle().setTailIndents(style.tailIndents);
+                state = std::min(skt::InternalState::kShaped, state);
+            }
         }
     };
 
