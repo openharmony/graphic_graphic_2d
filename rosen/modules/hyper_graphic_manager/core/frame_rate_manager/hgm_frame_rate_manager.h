@@ -211,7 +211,7 @@ private:
     void HandleMultiSelfOwnedScreenEvent(pid_t pid, EventInfo eventInfo);
     void HandleTouchTask(pid_t pid, int32_t touchStatus, int32_t touchCnt);
     void HandlePointerTask(pid_t pid, int32_t pointerStatus, int32_t pointerCnt);
-    void HandleScreenEvent(ScreenId id);
+    void HandleScreenLtpoConfig(ScreenId id);
     void HandleScreenFrameRate(std::string curScreenName);
     void UpdateScreenFrameRate();
     void RegisterUpTimeoutAndDownEvent();

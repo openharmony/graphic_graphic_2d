@@ -943,7 +943,7 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
         return;
     }
 
-    HandleScreenEvent(id);
+    HandleScreenLtpoConfig(id);
     HandlePageUrlEvent();
 }
 
@@ -960,10 +960,10 @@ void HgmFrameRateManager::HandleScreenRectFrameRate(ScreenId id, const Rect& act
     }
     activeRectScreenId_ = id;
     activeRect_ = activeRect;
-    HandleScreenEvent(id);
+    HandleScreenLtpoConfig(id);
 }
 
-void HgmFrameRateManager::HandleScreenEvent(ScreenId id)
+void HgmFrameRateManager::HandleScreenLtpoConfig(ScreenId id)
 {
     auto& hgmCore = HgmCore::Instance();
     auto& hgmScreenInfo = HgmScreenInfo::GetInstance();

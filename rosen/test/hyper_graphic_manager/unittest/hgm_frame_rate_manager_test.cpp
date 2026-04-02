@@ -1867,13 +1867,11 @@ HWTEST_F(HgmFrameRateMgrTest, HandleScreenPowerStatusAndRectFrameRateTest, Funct
 
     frameRateMgr->HandleScreenPowerStatus(testScreenId, ScreenPowerStatus::POWER_STATUS_ON);
     std::string strategyId1 = frameRateMgr->curScreenStrategyId_;
-    EXPECT_FALSE(strategyId1.empty());
     EXPECT_NE(strategyId1.find("screen10_LTPO"), std::string::npos);
     EXPECT_EQ(strategyId1.find("100_200_300_400"), std::string::npos);
 
     frameRateMgr->HandleScreenRectFrameRate(testScreenId, testRect);
     std::string strategyId2 = frameRateMgr->curScreenStrategyId_;
-    EXPECT_FALSE(strategyId2.empty());
     EXPECT_NE(strategyId2.find("screen10_LTPO"), std::string::npos);
     EXPECT_NE(strategyId2.find("100_200_300_400"), std::string::npos);
 
@@ -1884,13 +1882,11 @@ HWTEST_F(HgmFrameRateMgrTest, HandleScreenPowerStatusAndRectFrameRateTest, Funct
 
     frameRateMgr->HandleScreenRectFrameRate(testScreenId, testRect);
     std::string strategyId3 = frameRateMgr->curScreenStrategyId_;
-    EXPECT_FALSE(strategyId3.empty());
     EXPECT_NE(strategyId3.find("screen10_LTPO"), std::string::npos);
     EXPECT_NE(strategyId3.find("100_200_300_400"), std::string::npos);
 
     frameRateMgr->HandleScreenPowerStatus(testScreenId, ScreenPowerStatus::POWER_STATUS_ON);
     std::string strategyId4 = frameRateMgr->curScreenStrategyId_;
-    EXPECT_FALSE(strategyId4.empty());
     EXPECT_NE(strategyId4.find("screen10_LTPO"), std::string::npos);
     EXPECT_NE(strategyId4.find("100_200_300_400"), std::string::npos);
 
@@ -1901,7 +1897,6 @@ HWTEST_F(HgmFrameRateMgrTest, HandleScreenPowerStatusAndRectFrameRateTest, Funct
 
     frameRateMgr->HandleScreenPowerStatus(testScreenId, ScreenPowerStatus::POWER_STATUS_ON);
     std::string strategyId5 = frameRateMgr->curScreenStrategyId_;
-    EXPECT_FALSE(strategyId5.empty());
     EXPECT_NE(strategyId5.find("screen10_LTPO"), std::string::npos);
     EXPECT_EQ(strategyId5.find("100_200_300_400"), std::string::npos);
 
@@ -1958,13 +1953,11 @@ HWTEST_F(HgmFrameRateMgrTest, HandleScreenPowerStatusAndRectFrameRateTest2, Func
     frameRateMgr->HandleScreenPowerStatus(selfOwnedScreenId, ScreenPowerStatus::POWER_STATUS_ON);
     frameRateMgr->HandleScreenRectFrameRate(selfOwnedScreenId, rect1);
     std::string strategyId3 = frameRateMgr->curScreenStrategyId_;
-    EXPECT_FALSE(strategyId3.empty());
     EXPECT_NE(strategyId3.find("screen20_LTPO"), std::string::npos);
     EXPECT_NE(strategyId3.find("100_200_300_400"), std::string::npos);
 
     frameRateMgr->HandleScreenRectFrameRate(selfOwnedScreenId, rect2);
     std::string strategyId4 = frameRateMgr->curScreenStrategyId_;
-    EXPECT_FALSE(strategyId4.empty());
     EXPECT_NE(strategyId4.find("screen20_LTPO"), std::string::npos);
     EXPECT_NE(strategyId4.find("150_250_350_450"), std::string::npos);
     EXPECT_EQ(strategyId4.find("100_200_300_400"), std::string::npos);
@@ -2010,20 +2003,17 @@ HWTEST_F(HgmFrameRateMgrTest, HandleScreenPowerStatusAndRectFrameRateTest3, Func
     frameRateMgr->HandleScreenPowerStatus(screenId1, ScreenPowerStatus::POWER_STATUS_ON);
     frameRateMgr->HandleScreenRectFrameRate(screenId1, rect1);
     std::string strategyId1 = frameRateMgr->curScreenStrategyId_;
-    EXPECT_FALSE(strategyId1.empty());
     EXPECT_NE(strategyId1.find("screen30_LTPO"), std::string::npos);
     EXPECT_NE(strategyId1.find("100_200_300_400"), std::string::npos);
 
     frameRateMgr->HandleScreenPowerStatus(screenId2, ScreenPowerStatus::POWER_STATUS_ON);
     frameRateMgr->HandleScreenRectFrameRate(screenId2, rect2);
     std::string strategyId2 = frameRateMgr->curScreenStrategyId_;
-    EXPECT_FALSE(strategyId2.empty());
     EXPECT_NE(strategyId2.find("screen31_LTPO"), std::string::npos);
     EXPECT_NE(strategyId2.find("150_250_350_450"), std::string::npos);
 
     frameRateMgr->HandleScreenPowerStatus(screenId1, ScreenPowerStatus::POWER_STATUS_ON);
     std::string strategyId3 = frameRateMgr->curScreenStrategyId_;
-    EXPECT_FALSE(strategyId3.empty());
     EXPECT_NE(strategyId3.find("screen30_LTPO"), std::string::npos);
     EXPECT_NE(strategyId3.find("100_200_300_400"), std::string::npos);
 
@@ -2053,7 +2043,6 @@ HWTEST_F(HgmFrameRateMgrTest, HandleScreenPowerStatusAndRectFrameRateTest4, Func
 
     configData->screenStrategyConfigs_["screen40_LTPO"] = "LTPO-DEFAULT";
     configData->screenStrategyConfigs_["screen40_LTPO_100_200_300_400"] = "LTPO-RECT1";
-    // rect2的策略配置缺失，应该使用默认策略
 
     EXPECT_EQ(hgmCore.AddScreen(testScreenId, 0, screenSize, isSelfOwnedScreen), EXEC_SUCCESS);
 
@@ -2065,14 +2054,11 @@ HWTEST_F(HgmFrameRateMgrTest, HandleScreenPowerStatusAndRectFrameRateTest4, Func
     frameRateMgr->HandleScreenPowerStatus(testScreenId, ScreenPowerStatus::POWER_STATUS_ON);
     frameRateMgr->HandleScreenRectFrameRate(testScreenId, rect1);
     std::string strategyId1 = frameRateMgr->curScreenStrategyId_;
-    EXPECT_FALSE(strategyId1.empty());
     EXPECT_NE(strategyId1.find("screen40_LTPO"), std::string::npos);
     EXPECT_NE(strategyId1.find("100_200_300_400"), std::string::npos);
 
     frameRateMgr->HandleScreenRectFrameRate(testScreenId, rect2);
     std::string strategyId2 = frameRateMgr->curScreenStrategyId_;
-    EXPECT_FALSE(strategyId2.empty());
-    // 由于rect2没有配置，应该使用默认策略
     EXPECT_EQ(strategyId2, "LTPO-DEFAULT");
 
     EXPECT_EQ(hgmCore.RemoveScreen(testScreenId), EXEC_SUCCESS);
