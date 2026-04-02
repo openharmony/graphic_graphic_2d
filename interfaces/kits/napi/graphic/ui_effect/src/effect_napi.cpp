@@ -1136,7 +1136,6 @@ napi_value EffectNapi::CreateHarmoniumEffect(napi_env env, napi_callback_info in
 }
 
 napi_value EffectNapi::CreateSpatialPointLight(napi_env env, napi_callback_info info)
-)
 {
     if (!UIEffectNapiUtils::IsSystemApp()) {
         UIEFFECT_LOG_E("CreateSpatialPointLight failed, is not system app");
@@ -1200,10 +1199,10 @@ bool EffectNapi::GetSpatialPointLight(napi_env env, napi_value *param, size_t le
     }
     para->SetLightColor(lightColor);
 
-    lightIntensity = GetSpecialValue(env, param[2]);
+    lightIntensity = GetSpecialValue(env, param[NUM_2]);
     para->SetLightIntensity(lightIntensity);
 
-    attenuation = GetSpecialValue(env, param[3]);
+    attenuation = GetSpecialValue(env, param[NUM_3]);
     para->SetAttenuation(attenuation);
 
     return true;
