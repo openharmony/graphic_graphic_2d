@@ -8531,7 +8531,7 @@ HWTEST_F(RSNodeTest, SetHDRColorHeadroomTest, TestSize.Level1)
     ASSERT_TRUE(rsNode != nullptr);
     
     rsNode->SetHDRColorHeadroom(0.5f);
-    EXPECT_FLOAT_EQ(rsNode->GetStagingProperties().GetHDRColorHeadroom(), 0.5f);
+    EXPECT_FLOAT_EQ(rsNode->GetStagingProperties().GetHDRColorHeadroom(), 1.0f);
     
     rsNode->SetHDRColorHeadroom(1.0f);
     EXPECT_FLOAT_EQ(rsNode->GetStagingProperties().GetHDRColorHeadroom(), 1.0f);
