@@ -36,10 +36,7 @@ public:
     const FrameRateRange& GetExpectedFrameRange() const;
     void SetAnimateResult(std::tuple<bool, bool, bool>& result);
     std::tuple<bool, bool, bool> GetAnimateResult() const;
-    int64_t GetNextFrameTime() const
-    {
-        return nextFrameTime_;
-    }
+    int64_t GetNextFrameTime() const { return nextFrameTime_; }
 private:
     int32_t CalcSkipRateCount(int32_t frameRate);
     int32_t GetNearestFrameRate(int32_t num, const std::vector<int32_t>& rates);

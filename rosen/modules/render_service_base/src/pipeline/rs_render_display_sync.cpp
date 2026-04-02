@@ -115,13 +115,14 @@ bool RSRenderDisplaySync::OnFrameSkip(uint64_t timestamp, int64_t period, bool i
     if (referenceCount_ % skipRateCount_ != 0 || !isDrawSkipCountReached) {
         isFrameSkip = true;
     }
+
     int64_t nextCount = ((referenceCount_ / skipRateCount_) + 1) * skipRateCount_;
     nextFrameTime_ = (currentFrameRate_ != 0) ?
         (timestamp_ + static_cast<uint64_t>((nextCount - referenceCount_) * NS_TO_S / currentFrameRate_)) : 0;
+
     RS_OPTIONAL_TRACE_NAME_FMT(
         "RSRenderDisplaySync::OnFrameSkip nodeId:[%" PRIu64 "] preferred:[%d] currentPeriod:[%d] "
-        "isFrameSkip:[%d] nextFrameTime:[%" PRIu64 "]",
-        GetId(), expectedFrameRateRange_.preferred_, currentPeriod_,
+        "isFrameSkip:[%d] nextFrameTime:[%" PRIu64 "]", GetId(), expectedFrameRateRange_.preferred_, currentPeriod_,
         static_cast<int32_t>(isFrameSkip), nextFrameTime_);
     RS_LOGD("[RenderAnimation] Id: %{public}" PRIu64 " preferred: %{public}d "
         "isFrameSkip: %{public}d nextFrameTime: %{public}" PRIu64,
