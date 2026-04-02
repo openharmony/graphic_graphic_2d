@@ -62,7 +62,7 @@ bool DoCreate(const uint8_t* data, size_t size)
         OH_DisplaySoloist_Destroy(g_displaySoloist);
         g_displaySoloist = nullptr;
     }
-    bool useExclusiveThread = GetData<bool>();
+    bool useExclusiveThread = false;
     g_displaySoloist = OH_DisplaySoloist_Create(useExclusiveThread);
     return true;
 }
@@ -101,10 +101,10 @@ bool DoStart(const uint8_t* data, size_t size)
     bool useNullCallback = GetData<bool>();
     OH_DisplaySoloist_FrameCallback callback = nullptr;
     if (!useNullCallback) {
-        callback = [](long long timestamp, long long targetTimestamp, void* data1) {
+        callback = [](long long timestamp, long long targetTimestamp, void* callbackData) {
             (void)timestamp;
             (void)targetTimestamp;
-            (void)data1;
+            (void)callbackData;
         };
     }
     OH_DisplaySoloist_Start(soloist, callback, nullptr);
@@ -145,7 +145,7 @@ bool DoSetExpectedFrameRateRange(const uint8_t* data, size_t size)
     bool useNullRange = GetData<bool>();
     if (useNullRange) {
         OH_DisplaySoloist_SetExpectedFrameRateRange(soloist, nullptr);
-        return;
+        return true;
     }
 
     DisplaySoloist_ExpectedRateRange range;

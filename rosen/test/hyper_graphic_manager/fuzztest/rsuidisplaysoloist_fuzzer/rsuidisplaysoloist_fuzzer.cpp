@@ -106,10 +106,10 @@ bool DoInsertOnVsyncCallback(const uint8_t* data, size_t size)
     g_pos = 0;
 
     SoloistIdType id = GetData<uint32_t>();
-    auto callback = [](long long timestamp, long long targetTimestamp, void* data) {
+    auto callback = [](long long timestamp, long long targetTimestamp, void* callbackData) {
         (void)timestamp;
         (void)targetTimestamp;
-        (void)data;
+        (void)callbackData;
     };
     bool useNullCallback = GetData<bool>();
     if (useNullCallback) {
