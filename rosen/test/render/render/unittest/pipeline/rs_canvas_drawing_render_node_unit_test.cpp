@@ -239,6 +239,9 @@ HWTEST_F(RSCanvasDrawingRenderNodeUnitTest, ContentStyleSlotUpdateTest003, TestS
     node->isOnTheTree_ = false;
     node->isNeverOnTree_ = false;
     node->isTextureExportNode_ = false;
+    node->stagingRenderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(node->GetId());
+    auto stagingRenderParams = static_cast<RSCanvasDrawingRenderParams*>(node->stagingRenderParams_.get());
+    stagingRenderParams->surfaceParams_ = { 100, 100, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB };
     RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL;
     auto drawCmdList = std::make_shared<Drawing::DrawCmdList>();
     node->drawCmdListsNG_[ModifierNG::RSModifierType::CONTENT_STYLE] = { drawCmdList };
