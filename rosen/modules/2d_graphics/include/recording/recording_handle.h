@@ -106,6 +106,8 @@ struct PaintHandle {
     FlattenableHandle maskFilterHandle;
     FlattenableHandle pathEffectHandle;
     OpDataHandle blurDrawLooperHandle;
+    UIColor uiColor = UIColor();
+    bool isUIColor = false;
 };
 
 struct BrushHandle {
@@ -120,6 +122,8 @@ struct BrushHandle {
     FlattenableHandle colorFilterHandle;
     FlattenableHandle imageFilterHandle;
     FlattenableHandle maskFilterHandle;
+    UIColor uiColor = UIColor();
+    bool isUIColor = false;
 };
 
 struct PenHandle {
@@ -129,6 +133,8 @@ struct PenHandle {
     Pen::JoinStyle joinStyle = Pen::JoinStyle::MITER_JOIN;
     FlattenableHandle pathEffectHandle;
     Color color = Color::COLOR_BLACK;
+    UIColor uiColor = UIColor();
+    bool isUIColor = false;
 };
 } // namespace Drawing
 } // namespace Rosen

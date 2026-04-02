@@ -1965,6 +1965,16 @@ void RSPaintFilterCanvas::SetIsDrawingCache(bool isDrawingCache)
     isDrawingCache_ = isDrawingCache;
 }
 
+bool RSPaintFilterCanvas::GetIsDrawingOffscreenMirror() const
+{
+    return isDrawingOffscreenMirror_;
+}
+
+void RSPaintFilterCanvas::SetIsDrawingOffscreenMirror(bool isDrawingOffscreenMirror)
+{
+    isDrawingOffscreenMirror_ = isDrawingOffscreenMirror;
+}
+
 RSPaintFilterCanvas::CacheBehindWindowData::CacheBehindWindowData(
     std::shared_ptr<RSFilter> filter, const Drawing::Rect rect)
     : filter_(filter), rect_(rect)

@@ -69,6 +69,7 @@ enum RSNodeCommandType : uint16_t {
     UPDATE_MODIFIER_VELOCITY_FIELD_PTR = 0x012A,
     UPDATE_MODIFIER_NG_SHAPE_BASE_PTR = 0x012B,
     UPDATE_MODIFIER_VECTOR_VECTOR4F = 0x012C,
+    UPDATE_MODIFIER_HDR_DARKEN_BLENDER_PARA = 0x012D,
 
     SET_FREEZE = 0x0200,
     SET_DRAW_REGION = 0x0201,
@@ -323,6 +324,12 @@ ADD_COMMAND(RSUpdatePropertyShadowBlenderPara,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_SHADOW_BLENDER_PARA,
         RSNodeCommandHelper::UpdateProperty<RSShadowBlenderPara>, NodeId,
         RSShadowBlenderPara, PropertyId, PropertyUpdateType))
+
+ADD_COMMAND(RSUpdatePropertyHdrDarkenBlenderPara,
+    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_HDR_DARKEN_BLENDER_PARA,
+        RSNodeCommandHelper::UpdateProperty<RSHdrDarkenBlenderPara>, NodeId,
+        RSHdrDarkenBlenderPara, PropertyId, PropertyUpdateType))
+
 ADD_COMMAND(RSUpdatePropertyShort,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_SHORT, RSNodeCommandHelper::UpdateProperty<short>, NodeId, short,
         PropertyId, PropertyUpdateType))

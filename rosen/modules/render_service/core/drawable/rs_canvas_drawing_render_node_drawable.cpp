@@ -102,9 +102,10 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RS_LOGE("RSCanvasDrawingRenderNodeDrawable params is null!");
         return;
     }
-    if (params->GetCanvasDrawingSurfaceChanged()) {
+    auto renderParams = static_cast<RSCanvasDrawingRenderParams*>(params.get());
+    if (renderParams->GetCanvasDrawingSurfaceChanged()) {
         ResetSurface();
-        params->SetCanvasDrawingSurfaceChanged(false);
+        renderParams->SetCanvasDrawingSurfaceChanged(false);
     }
     Drawing::GPUResourceTag::SetCurrentNodeId(GetId());
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
@@ -137,7 +138,7 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 #endif
 
     auto& bounds = params->GetBounds();
-    auto surfaceParams = params->GetCanvasDrawingSurfaceParams();
+    auto surfaceParams = renderParams->GetCanvasDrawingSurfaceParams();
     if (!InitSurface(surfaceParams.width, surfaceParams.height, *paintFilterCanvas)) {
         SetDrawSkipType(DrawSkipType::INIT_SURFACE_FAIL);
         RS_LOGE("Failed to init surface!");
@@ -326,10 +327,11 @@ void RSCanvasDrawingRenderNodeDrawable::PostPlaybackInCorrespondThread()
                 RSTagTracker::TAGTYPE::TAG_CANVAS_DRAWING_NODE, renderParams_->GetInstanceRootNodeName());
         }
 
-        if (renderParams_->GetCanvasDrawingSurfaceChanged()) {
+        auto renderParams = static_cast<RSCanvasDrawingRenderParams*>(renderParams_.get());
+        if (renderParams->GetCanvasDrawingSurfaceChanged()) {
             ResetSurface();
             RS_LOGI("PostPlaybackInCorrespondThread NodeId[%{public}" PRIu64 "] SurfaceChanged Reset Surface", nodeId);
-            renderParams_->SetCanvasDrawingSurfaceChanged(false);
+            renderParams->SetCanvasDrawingSurfaceChanged(false);
         }
 
 #if defined(RS_ENABLE_GPU) && defined(RS_ENABLE_PARALLEL_RENDER)
@@ -341,7 +343,7 @@ void RSCanvasDrawingRenderNodeDrawable::PostPlaybackInCorrespondThread()
         SetSurfaceClearFunc({ threadIdx, clearFunc }, threadId);
 #endif
 
-        auto surfaceParams = renderParams_->GetCanvasDrawingSurfaceParams();
+        auto surfaceParams = renderParams->GetCanvasDrawingSurfaceParams();
         if (!surface_ || !canvas_) {
             RS_LOGE_LIMIT(__func__, __line__, "NodeId[%{public}" PRIu64 "], Surface[%{public}d], Canvas[%{public}d]",
                 nodeId, surface_ == nullptr, canvas_ == nullptr);
@@ -871,7 +873,8 @@ bool RSCanvasDrawingRenderNodeDrawable::CreateDmaBackendTexture(pid_t pid, int w
         return false;
     }
 
-    auto resetSurfaceIndex = renderParams_ != nullptr ? renderParams_->GetCanvasDrawingResetSurfaceIndex() : 0;
+    auto renderParams = static_cast<RSCanvasDrawingRenderParams*>(renderParams_.get());
+    auto resetSurfaceIndex = renderParams != nullptr ? renderParams->GetCanvasDrawingResetSurfaceIndex() : 0;
     if (resetSurfaceIndex == 0) {
         return false;
     }
@@ -913,9 +916,8 @@ bool RSCanvasDrawingRenderNodeDrawable::CreateDmaBackendTexture(pid_t pid, int w
         willNotify = hasClientBuffer;
         surfaceBuffer = nullptr;
         backendTexture_ = {};
-        RS_LOGE("RSCanvasDrawingRenderNodeDrawable::CreateDmaBackendTexture: Create DMA BackendTexture fail, "
-                "width=%{public}d, height=%{public}d, null surfaceBuffer: %{public}d",
-            width, height, surfaceBuffer == nullptr);
+        RS_LOGE("CreateDmaBackendTexture: Create DMA BackendTexture fail, width=%{public}d, height=%{public}d, null "
+            "surfaceBuffer: %{public}d", width, height, surfaceBuffer == nullptr);
     }
     if (willNotify) {
         // Step 4: Notify application to hold SurfaceBuffer
@@ -929,7 +931,8 @@ void RSCanvasDrawingRenderNodeDrawable::ReleaseDmaSurfaceBuffer(bool notifyOnly)
     const auto& params = GetRenderParams();
     if ((preAllocateDmaEnabled_ || renderDmaEnabled_) && params != nullptr) {
         auto& bufferCache = RSCanvasDmaBufferCache::GetInstance();
-        auto resetSurfaceIndex = params->GetCanvasDrawingResetSurfaceIndex();
+        auto renderParams = static_cast<RSCanvasDrawingRenderParams*>(params.get());
+        auto resetSurfaceIndex = renderParams->GetCanvasDrawingResetSurfaceIndex();
         // Notify client to release DMA buffer
         bufferCache.NotifyCanvasSurfaceBufferChanged(nodeId_, nullptr, resetSurfaceIndex);
         if (!notifyOnly) {
@@ -946,7 +949,8 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceForVK(int width, int height,
     const auto& params = GetRenderParams();
     GraphicColorGamut colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     if (params) {
-        colorSpace = params->GetCanvasDrawingSurfaceParams().colorSpace;
+        auto renderParams = static_cast<RSCanvasDrawingRenderParams*>(params.get());
+        colorSpace = renderParams->GetCanvasDrawingSurfaceParams().colorSpace;
     }
     auto drawingColorSpace = RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(colorSpace);
     Drawing::ImageInfo info = Drawing::ImageInfo { width, height, Drawing::COLORTYPE_RGBA_8888,

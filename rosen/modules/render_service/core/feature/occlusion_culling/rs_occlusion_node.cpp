@@ -103,8 +103,10 @@ void OcclusionNode::CollectNodeProperties(const RSRenderNode& node)
     rootOcclusionNode_ = parentShared->rootOcclusionNode_;
     localScale_ = renderProperties.GetScale();
     localAlpha_ = renderProperties.GetAlpha();
-    isNeedClip_ = renderProperties.GetClipToBounds() || renderProperties.GetClipToFrame() ||
-        renderProperties.GetClipToRRect();
+    isNeedClip_ = renderProperties.GetClipToBounds();
+    isNeedClipFrame_ = renderProperties.GetClipToFrame();
+    clipRRect_ = renderProperties.GetClipToRRect() ?
+        std::make_unique<RRect>(renderProperties.GetClipRRect()) : nullptr;
     cornerRadius_ = renderProperties.GetCornerRadius();
     needFilter_ = renderProperties.NeedFilter();
 
@@ -124,7 +126,6 @@ bool OcclusionNode::IsSubTreeShouldIgnored(const RSRenderNode& node, const RSPro
     const auto& degree = renderProperties.GetRotation();
     const auto& degreeX = renderProperties.GetRotationX();
     const auto& degreeY = renderProperties.GetRotationY();
-
     // Skip this subtree if transformations (rotation/projection/skew/clip) make bounds non-rectangular.
     if (!ROSEN_EQ(skew[0], 0.f) || !ROSEN_EQ(skew[1], 0.f) ||
         !ROSEN_EQ(perspective[0], 0.f) || !ROSEN_EQ(perspective[1], 0.f) ||
@@ -142,6 +143,11 @@ bool OcclusionNode::IsSubTreeShouldIgnored(const RSRenderNode& node, const RSPro
     const auto& originFrame = renderProperties.GetFrame();
     const auto drawFrameRect = RectF(originFrame.x_, originFrame.y_, originFrame.z_, originFrame.w_);
     if (!drawFrameRect.IsEmpty() && !drawFrameRect.IsInsideOf(drawRect)) {
+        return true;
+    }
+    // Skip this subtree if node has special clip operation
+    if (renderProperties.GetSDFShape() != nullptr ||
+        (renderProperties.GetClipToFrame() && drawRect != drawFrameRect)) {
         return true;
     }
     // Skip this subtree if the node has any properties that may cause it to be drawn outside of its bounds.
@@ -170,50 +176,23 @@ void OcclusionNode::CalculateDrawRect(const RSRenderNode& node, const RSProperti
     if (isSubTreeIgnored_) {
         return;
     }
-
-    // calculate new pos.
-    auto centOffset = center * Vector2f(originBounds.z_, originBounds.w_);
-    localPosition_ = Vector2f(originBounds.x_, originBounds.y_);
-    localPosition_ += centOffset;
-    localPosition_ -= centOffset * localScale_;
-    localPosition_ += translate;
-
-    // calculate drawRect.
-    drawRect_ = RectF(localPosition_.x_, localPosition_.y_,
-        originBounds.z_ * localScale_.x_, originBounds.w_ * localScale_.y_);
-    if (isNeedClip_ && !clipRRect.IsEmpty()) {
-        clipRRect.Move(translate.x_, translate.y_);
-        drawRect_ = drawRect_.IntersectRect(clipRRect);
+    // When the bounds are empty (width and height are non-positive), translation and scaling are ineffective
+    if (originBounds.z_ <= 0 && originBounds.w_ <= 0) {
+        localScale_ = {1.f, 1.f};
+        localPosition_ = {0.f, 0.f};
+        drawRect_ = RectF();
+        return;
     }
-}
 
-static int16_t inline SafeCast(float value)
-{
-    return static_cast<int16_t>(std::clamp(value, static_cast<float>(INT16_MIN), static_cast<float>(INT16_MAX)));
-}
-
-static RectI16 inline ComputeOuter(RectF drawRect)
-{
-    if (drawRect.IsEmpty()) {
-        return RectI16();
+    auto centerPoint = Vector2f(originBounds.x_, originBounds.y_) +
+        center * Vector2f(originBounds.z_, originBounds.w_);
+    if (clipRRect_ != nullptr) {
+        clipRRect_->rect_.Move(originBounds.x_, originBounds.y_);
+        TransformByCenterScalingAndTranslation(clipRRect_->rect_, centerPoint, localScale_, translate);
     }
-    auto left = SafeCast(std::floor(drawRect.GetLeft()));
-    auto right = SafeCast(std::ceil(drawRect.GetRight()));
-    auto top = SafeCast(std::floor(drawRect.GetTop()));
-    auto bottom = SafeCast(std::ceil(drawRect.GetBottom()));
-    return (left >= right || top >= bottom) ? RectI16() : RectI16(left, top, right - left, bottom - top);
-}
-
-static RectI16 inline ComputeInner(RectF drawRect, Vector4f cornerRadius)
-{
-    if (drawRect.IsEmpty()) {
-        return RectI16();
-    }
-    auto left = SafeCast(std::ceil(drawRect.GetLeft()));
-    auto right = SafeCast(std::floor(drawRect.GetRight()));
-    auto top = SafeCast(std::ceil(drawRect.GetTop() + std::max(cornerRadius.x_, cornerRadius.y_)));
-    auto bottom = SafeCast(std::floor(drawRect.GetBottom() - std::max(cornerRadius.w_, cornerRadius.z_)));
-    return (left >= right || top >= bottom) ? RectI16() : RectI16(left, top, right - left, bottom - top);
+    drawRect_ = RectF(originBounds.x_, originBounds.y_, originBounds.z_, originBounds.w_);
+    TransformByCenterScalingAndTranslation(drawRect_, centerPoint, localScale_, translate);
+    localPosition_ = {drawRect_.GetLeft(), drawRect_.GetTop()};
 }
 
 void OcclusionNode::CalculateNodeAllBounds()
@@ -228,23 +207,31 @@ void OcclusionNode::CalculateNodeAllBounds()
     isAlphaNeed_ = alpha < 1.f;
     accumulatedScale_ = parentShared->localScale_ * parentShared->accumulatedScale_;
     absPositions_ = parentShared->absPositions_ + localPosition_ * accumulatedScale_;
-    auto scaleDrawRect = RectF(drawRect_.GetLeft() * accumulatedScale_.x_,
-        drawRect_.GetTop() * accumulatedScale_.y_,
-        drawRect_.GetWidth() * accumulatedScale_.x_,
-        drawRect_.GetHeight() * accumulatedScale_.y_);
-    auto absDrawRect = scaleDrawRect.Offset(parentShared->absPositions_.x_, parentShared->absPositions_.y_);
+    auto absDrawRect = drawRect_;
+    TransformToAbsoluteCoord(absDrawRect, accumulatedScale_, parentShared->absPositions_);
+    std::unique_ptr<RRect> absClipRRect;
+    if (clipRRect_ != nullptr) {
+        absClipRRect = std::make_unique<RRect>(*clipRRect_);
+        TransformToAbsoluteCoord(absClipRRect->rect_, accumulatedScale_, parentShared->absPositions_);
+    }
     outerRect_ = ComputeOuter(absDrawRect);
     innerRect_ = ComputeInner(absDrawRect, cornerRadius_);
     clipOuterRect_ = parentShared->clipOuterRect_;
     clipInnerRect_ = parentShared->clipInnerRect_;
     outerRect_ = outerRect_.IntersectRect(clipOuterRect_);
     innerRect_ = innerRect_.IntersectRect(clipInnerRect_);
-
-    if (isNeedClip_) {
+    if (absClipRRect != nullptr) {
+        auto outerClipRRect = ComputeOuter(absClipRRect->rect_);
+        auto innerClipRRect = ComputeInner(*absClipRRect);
+        outerRect_ = outerRect_.IntersectRect(outerClipRRect);
+        innerRect_ = innerRect_.IntersectRect(innerClipRRect);
+        clipOuterRect_ = clipOuterRect_.IntersectRect(outerClipRRect);
+        clipInnerRect_ = clipInnerRect_.IntersectRect(innerClipRRect);
+    }
+    if (isNeedClipFrame_ || (absClipRRect == nullptr && isNeedClip_)) {
         clipOuterRect_ = outerRect_;
         clipInnerRect_ = innerRect_;
     }
-
     isOutOfRootRect_ = IsOutOfRootRect(outerRect_);
 }
 

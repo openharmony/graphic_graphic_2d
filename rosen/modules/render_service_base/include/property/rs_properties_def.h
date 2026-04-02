@@ -21,6 +21,7 @@
 
 #include "common/rs_color_palette.h"
 #include "common/rs_rect.h"
+#include "common/rs_vector3.h"
 #include "common/rs_vector4.h"
 
 namespace OHOS {
@@ -198,6 +199,29 @@ struct RSShadowBlenderPara {
     {
         return (cubic_ == other.cubic_ && quadratic_ == other.quadratic_ &&
             linear_ == other.linear_ && constant_ == other.constant_);
+    }
+};
+
+struct RSHdrDarkenBlenderPara {
+    float hdrBrightnessRatio_ = 1.0f;
+    Vector3f grayscaleFactor_ = {0.299f, 0.587f, 0.114f}; // default value
+
+    RSHdrDarkenBlenderPara() = default;
+
+    RSHdrDarkenBlenderPara(float hdrBrightnessRatio, Vector3f grayscaleFactor = {0.299f, 0.587f, 0.114f})
+    {
+        hdrBrightnessRatio_ = ROSEN_GE(hdrBrightnessRatio, 1.0f) ? hdrBrightnessRatio : 1.0f;
+        grayscaleFactor_ = grayscaleFactor;
+    }
+
+    inline bool IsValid() const
+    {
+        return ROSEN_GE(hdrBrightnessRatio_, 1.0);
+    }
+
+    bool operator==(const RSHdrDarkenBlenderPara& other) const
+    {
+        return (hdrBrightnessRatio_ == other.hdrBrightnessRatio_ && grayscaleFactor_ == other.grayscaleFactor_);
     }
 };
 

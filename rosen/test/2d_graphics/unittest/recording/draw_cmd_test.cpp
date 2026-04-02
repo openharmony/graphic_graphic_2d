@@ -17,6 +17,7 @@
 #include "gtest/gtest.h"
 
 #include "draw/surface.h"
+#include "draw/ui_color.h"
 #include "pixel_map.h"
 #include "recording/cmd_list.h"
 #include "recording/cmd_list_helper.h"
@@ -137,6 +138,47 @@ HWTEST_F(DrawCmdTest, BrushHandleToBrush001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: BrushHandleToBrush002
+ * @tc.desc: Test BrushHandleToBrush
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, BrushHandleToBrush002, TestSize.Level1)
+{
+    BrushHandle brushHandle;
+    brushHandle.colorFilterHandle.size = 1;
+    brushHandle.colorSpaceHandle.size = 1;
+    brushHandle.shaderEffectHandle.size = 1;
+    brushHandle.imageFilterHandle.size = 1;
+    brushHandle.maskFilterHandle.size = 1;
+    brushHandle.uiColor = UIColor(0.5, 0.6, 0.7, 1.0, 1.0);
+    brushHandle.isUIColor = true;
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    EXPECT_TRUE(drawCmdList != nullptr);
+    Brush brush;
+    DrawOpItem::BrushHandleToBrush(brushHandle, *drawCmdList, brush);
+    EXPECT_TRUE(brush.HasUIColor());
+}
+
+/**
+ * @tc.name: BrushToBrushHandle001
+ * @tc.desc: Test BrushToBrushHandle
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, BrushToBrushHandle001, TestSize.Level1)
+{
+    auto cmdList = std::make_shared<Drawing::DrawCmdList>();
+    cmdList->SetHybridRenderType(Drawing::DrawCmdList::HybridRenderType::TEXT);
+    Drawing::Brush brush;
+    UIColor color(0.5f, 0.6f, 0.7f, 0.8f, 2.0f);
+    brush.SetUIColor(color, nullptr);
+    Drawing::BrushHandle brushHandle;
+    Drawing::DrawOpItem::BrushToBrushHandle(brush, *cmdList, brushHandle);
+    EXPECT_TRUE(brushHandle.isUIColor);
+}
+
+/**
  * @tc.name: GeneratePaintFromHandle001
  * @tc.desc: Test GeneratePaintFromHandle
  * @tc.type: FUNC
@@ -153,6 +195,28 @@ HWTEST_F(DrawCmdTest, GeneratePaintFromHandle001, TestSize.Level1)
     Paint paint;
     paint.SetStyle(Paint::PaintStyle::PAINT_FILL_STROKE);
     DrawOpItem::GeneratePaintFromHandle(paintHandle, *drawCmdList, paint);
+}
+
+/**
+ * @tc.name: GeneratePaintFromHandle002
+ * @tc.desc: Test GeneratePaintFromHandle
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, GeneratePaintFromHandle002, TestSize.Level1)
+{
+    PaintHandle paintHandle;
+    paintHandle.colorSpaceHandle.size = 1;
+    paintHandle.imageFilterHandle.size = 1;
+    paintHandle.pathEffectHandle.size = 1;
+    paintHandle.uiColor = UIColor(0.5, 0.6, 0.7, 1.0, 1.0);
+    paintHandle.isUIColor = true;
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    EXPECT_TRUE(drawCmdList != nullptr);
+    Paint paint;
+    paint.SetStyle(Paint::PaintStyle::PAINT_FILL_STROKE);
+    DrawOpItem::GeneratePaintFromHandle(paintHandle, *drawCmdList, paint);
+    EXPECT_TRUE(paint.HasUIColor());
 }
 
 /**
@@ -177,6 +241,31 @@ HWTEST_F(DrawCmdTest, GenerateHandleFromPaint001, TestSize.Level1)
     paint.SetShaderEffect(ShaderEffect::CreateColorShader(0xFF000000));
     paint.SetStyle(Paint::PaintStyle::PAINT_FILL_STROKE);
     DrawOpItem::GenerateHandleFromPaint(*drawCmdList, paint, paintHandle);
+}
+
+/**
+ * @tc.name: GenerateHandleFromPaint002
+ * @tc.desc: Test GenerateHandleFromPaint
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, GenerateHandleFromPaint002, TestSize.Level1)
+{
+    PaintHandle paintHandle;
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    EXPECT_TRUE(drawCmdList != nullptr);
+    Paint paint;
+    Filter filter;
+    paint.SetFilter(filter);
+    auto space = std::make_shared<ColorSpace>();
+    UIColor color(0.5f, 0.6f, 0.7f, 0.8f, 1.0f);
+    paint.SetUIColor(color, space);
+    auto pathEffect = PathEffect::CreateCornerPathEffect(10);
+    paint.SetPathEffect(pathEffect);
+    paint.SetShaderEffect(ShaderEffect::CreateColorShader(0xFF000000));
+    paint.SetStyle(Paint::PaintStyle::PAINT_FILL_STROKE);
+    DrawOpItem::GenerateHandleFromPaint(*drawCmdList, paint, paintHandle);
+    EXPECT_TRUE(paintHandle.isUIColor);
 }
 
 /**
@@ -1507,6 +1596,21 @@ HWTEST_F(DrawCmdTest, ResetMatrixOpItem_Marshalling001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ResetClipOpItem_Marshalling001
+ * @tc.desc: Test ResetClipOpItem_Marshalling
+ * @tc.type: FUNC
+ * @tc.require: IAKWZL
+ */
+HWTEST_F(DrawCmdTest, ResetClipOpItem_Marshalling001, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({nullptr, 0}, false);
+    ResetClipOpItem opItem;
+    ASSERT_TRUE(drawCmdList != nullptr);
+    opItem.Marshalling(*drawCmdList);
+    EXPECT_EQ(drawCmdList->opCnt_, 1);
+}
+
+/**
  * @tc.name: SetMatrixOpItem_Marshalling001
  * @tc.desc: Test SetMatrixOpItem_Marshalling
  * @tc.type: FUNC
@@ -1701,6 +1805,25 @@ HWTEST_F(DrawCmdTest, GetOpItemCmdlistDrawRegion003, TestSize.Level1)
     opItem.path_->LineTo(3.0f, 4.0f);
     ASSERT_FALSE(opItem.GetOpItemCmdlistDrawRegion().IsEmpty());
 }
+
+/**
+ * @tc.name: Marshalling022
+ * @tc.desc: Test Marshalling for DrawUIColorOpItem
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, Marshalling022, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    EXPECT_TRUE(drawCmdList != nullptr);
+    UIColor color(0.5f, 0.6f, 0.7f, 0.8f, 2.0f);
+    DrawUIColorOpItem::ConstructorHandle handle{color, BlendMode::SRC_OVER};
+    DrawUIColorOpItem opItem{&handle};
+    opItem.Marshalling(*drawCmdList);
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(10, 10); // 10: width, height
+    opItem.Playback(recordingCanvas.get(), nullptr);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

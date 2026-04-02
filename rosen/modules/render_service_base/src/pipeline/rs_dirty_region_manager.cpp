@@ -281,6 +281,7 @@ void RSDirtyRegionManager::Clear()
     isDfxTarget_ = false;
     isFilterCacheRectValid_ = true;
     filterCollector_.Clear();
+    hasUifirstChild_ = false;
 }
 
 bool RSDirtyRegionManager::IsCurrentFrameDirty() const

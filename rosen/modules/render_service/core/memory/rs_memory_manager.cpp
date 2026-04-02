@@ -84,6 +84,10 @@ const std::string KERNEL_CONFIG_PATH = "/system/etc/hiview/kernel_leak_config.js
 const std::string GPUMEM_INFO_PATH = "/proc/gpumem_process_info";
 const std::string GPUMEM_NODEINFO_PATH = "/proc/gpu_memory";
 const std::string EVENT_ENTER_RECENTS = "GESTURE_TO_RECENTS";
+const std::string EVENT_CLEAR_ONE_RET = "CLEAR_1_RECENT_ANI";
+const std::string EVENT_CLEAR_ALL_RET = "CLEAR_All_RECENT_ANI";
+const std::string EVENT_RECENT_REALIGN = "RECENT_REALIGN_ANI";
+const std::string EVENT_RECENT_HOME = "EXIT_RECENT_2_HOME_ANI";
 const std::string GPU_RS_LEAK = "ResourceLeak(GpuRsLeak)";
 const std::string SCB_BUNDLE_NAME = "com.ohos.sceneboard";
 const std::string GRAPHIC_MEM_DIR = "/data/service/el0/render_service/";
@@ -1235,6 +1239,7 @@ void RSReclaimMemoryManager::TriggerReclaimTask()
         bool isTimeToReclaim = std::chrono::duration_cast<std::chrono::milliseconds>(
             currentTime - lastClearAppTime).count() < CLEAR_TWO_APPS_TIME;
         if (isTimeToReclaim) {
+            RS_LOGI("RSReclaimMemoryManager::TriggerReclaimTask");
             unirenderThread.ReclaimMemory();
             unirenderThread.SetTimeToReclaim(true);
             isReclaimInterrupt_.store(false);
@@ -1245,8 +1250,10 @@ void RSReclaimMemoryManager::TriggerReclaimTask()
 
 void RSReclaimMemoryManager::InterruptReclaimTask(const std::string& sceneId)
 {
+    bool notInterrupt = sceneId == EVENT_ENTER_RECENTS || sceneId == EVENT_CLEAR_ONE_RET ||
+        sceneId == EVENT_CLEAR_ALL_RET || sceneId == EVENT_RECENT_REALIGN || sceneId == EVENT_RECENT_HOME;
     // When operate in launcher, interrupt reclaim task.
-    if (!isReclaimInterrupt_.load() && sceneId != EVENT_ENTER_RECENTS) {
+    if (!isReclaimInterrupt_.load() && !notInterrupt) {
         isReclaimInterrupt_.store(true);
     }
 }

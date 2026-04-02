@@ -27,13 +27,17 @@ class RSScreenManagerAgent;
 class RSScreenManagerAgentListener : public RSIScreenManagerAgentListener {
 public:
     RSScreenManagerAgentListener() = default;
-    void OnScreenConnected(ScreenId id, ScreenChangeReason reason, sptr<IRemoteObject> remoteConn);
-    void OnScreenDisconnected(ScreenId id, ScreenChangeReason reason);
+    void OnScreenConnected(ScreenId id, ScreenChangeReason reason, sptr<IRemoteObject> remoteConn) override;
+    void OnScreenDisconnected(ScreenId id, ScreenChangeReason reason) override;
+    void OnScreenSwitchingNotify(bool status) override;
+
     void SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback);
+    void SetScreenSwitchingNotifyCallback(sptr<RSIScreenSwitchingNotifyCallback> screenSwitchingNotifyCallback);
 
 private:
     std::mutex mutex_;
     sptr<RSIScreenChangeCallback> screenChangeCallback_;
+    sptr<RSIScreenSwitchingNotifyCallback> screenSwitchingNotifyCallback_;
 };
 
 class RSScreenManagerAgent : public RefBase {

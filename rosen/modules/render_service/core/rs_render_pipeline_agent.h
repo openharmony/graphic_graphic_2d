@@ -105,6 +105,8 @@ public:
 
     int32_t SetLogicalCameraRotationCorrection(ScreenId screenId, ScreenRotation logicalCorrection);
 
+    ErrCode GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight);
+
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     void RegisterCanvasCallback(pid_t remotePid, sptr<RSICanvasSurfaceBufferCallback> callback);
 

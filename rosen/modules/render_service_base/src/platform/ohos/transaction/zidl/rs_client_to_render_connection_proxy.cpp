@@ -231,6 +231,11 @@ ErrCode RSClientToRenderConnectionProxy::CreateNode(const RSDisplayNodeConfig& d
         success = false;
         return ERR_INVALID_VALUE;
     }
+    if (!data.WriteUint32(static_cast<uint32_t>(displayNodeConfig.mirrorSourceRotation))) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::CreateNode: WriteUint32 Config.MirrorSourceRotation err.");
+        success = false;
+        return ERR_INVALID_VALUE;
+    }
     option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_DISPLAY_NODE);
     int32_t err = SendRequest(code, data, reply, option);
@@ -1719,6 +1724,29 @@ int32_t RSClientToRenderConnectionProxy::SetLogicalCameraRotationCorrection(
         return READ_PARCEL_ERR;
     }
     return result;
+}
+
+int32_t RSClientToRenderConnectionProxy::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("GetMaxGpuBufferSize: WriteInterfaceToken GetDescriptor err.");
+        return ERR_INVALID_VALUE;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_MAX_GPU_BUFFER_SIZE);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("GetMaxGpuBufferSize: Send Request err.");
+        return ERR_INVALID_VALUE;
+    }
+    if (!reply.ReadUint32(maxWidth) || !reply.ReadUint32(maxHeight)) {
+        ROSEN_LOGE("GetMaxGpuBufferSize: Read failed");
+        return READ_PARCEL_ERR;
+    }
+    return ERR_OK;
 }
 
 int32_t RSClientToRenderConnectionProxy::RegisterFrameStabilityDetection(

@@ -22,6 +22,7 @@
 #include "effect/filter.h"
 #include "effect/path_effect.h"
 #include "utils/rect.h"
+#include "draw/ui_color.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -46,6 +47,7 @@ public:
     Pen(const Pen& p) noexcept = default;
     Pen(const Color& c) noexcept;
     Pen(int rgba) noexcept;
+    Pen(const UIColor& c) noexcept;
     ~Pen() {};
 
     /**
@@ -54,6 +56,19 @@ public:
      * @return Color of pen
      */
     Color GetColor() const;
+
+    /**
+     * @brief Get the UIColor of pen
+     *
+     * @return UIColor of pen
+     */
+    UIColor GetUIColor() const;
+
+    /**
+     * @brief Returns true if hdrColor is enabled.
+     * @return hdrColor state
+     */
+    bool HasUIColor() const { return brush_.HasUIColor(); }
 
     /**
      * @brief Set the Color of pen
@@ -68,7 +83,14 @@ public:
      * @param c color uint32_t value to set
      */
     void SetColor(uint32_t c);
-    
+
+    /**
+     * @brief Set the UIColor of pen
+     *
+     * @param color UIColor object to set
+     */
+    void SetUIColor(const UIColor& c, std::shared_ptr<ColorSpace> s);
+
     /**
      * @brief set ARGB of pen
      *

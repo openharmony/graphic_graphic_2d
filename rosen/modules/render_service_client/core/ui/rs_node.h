@@ -1458,7 +1458,7 @@ public:
     /**
      * @brief Sets the radius of the shadow.
      *
-     * @param radius Indicates the radius value to be set.
+     * @param radius Indicates the radius value to be set, whose effective value is non-negative.
      */
     void SetShadowRadius(float radius);
 
@@ -1570,6 +1570,13 @@ public:
      * @param factor The HDR brightness factor to set.
      */
     void SetHDRBrightnessFactor(float factor);
+
+    /**
+     * @brief Sets the headroom of HDR Color (High Dynamic Range).
+     *
+     * @param headroom The HDR headroom to set.
+     */
+    void SetHDRColorHeadroom(const float& headroom);
 
     /**
      * @brief Sets the visibility of the node.
@@ -2151,6 +2158,7 @@ private:
     void SetFgBlurDisableSystemAdaptation(bool disableSystemAdaptation);
 
     void SetShadowBlenderParams(const RSShadowBlenderPara& params);
+    void SetHdrDarkenBlenderParams(const RSHdrDarkenBlenderPara& params);
 
     void NotifyPageNodeChanged() const;
     bool AnimationCallback(AnimationId animationId, AnimationCallbackEvent event);

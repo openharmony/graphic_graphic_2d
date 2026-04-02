@@ -395,6 +395,9 @@ bool HDRBrightnessModifierFuzzTest(const uint8_t* data, size_t size)
     modifier->SetHDRBrightness(randomFloat);
     modifier->GetHDRBrightness();
 
+    modifier->SetHDRColorHeadroom(GetData<float>());
+    modifier->GetHDRColorHeadroom();
+
     return true;
 }
 

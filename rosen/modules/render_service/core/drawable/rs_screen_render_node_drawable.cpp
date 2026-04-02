@@ -172,6 +172,7 @@ RSScreenRenderNodeDrawable::~RSScreenRenderNodeDrawable()
     auto curScreenId = params ? params->GetScreenId() : INVALID_SCREEN_ID;
     RSUniRenderThread::Instance().UnRegisterCond(curScreenId);
     RSPointerWindowManager::Instance().RemoveCommitResult(GetId());
+    RSFrameStabilityManager::GetInstance().CleanResourcesByScreenId(curScreenId);
 }
 
 RSRenderNodeDrawable::Ptr RSScreenRenderNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)
@@ -682,16 +683,19 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     if (!screenProperty.IsVirtual()) {
         if (auto composerClientManager = RSUniRenderThread::Instance().GetComposerClientManager()) {
-            PipelineParam param = composerClientManager->GetPipelineParam(paramScreenId);
-            param.frameTimestamp = RSUniRenderThread::Instance().GetCurrentTimestamp();
-            param.actualTimestamp = RSUniRenderThread::Instance().GetActualTimestamp();
-            param.fastComposeTimeStampDiff = RSUniRenderThread::Instance().GetFastComposeTimeStampDiff();
-            param.vsyncId = RSUniRenderThread::Instance().GetVsyncId();
-            param.pendingConstraintRelativeTime = RSUniRenderThread::Instance().GetPendingConstraintRelativeTime();
-            param.pendingScreenRefreshRate = RSUniRenderThread::Instance().GetPendingScreenRefreshRate();
-            param.isForceRefresh = RSUniRenderThread::Instance().GetForceRefreshFlag();
-            param.hasGameScene = RSUniRenderThread::Instance().GetHasGameScene();
-            param.hasLppVideo = RSUniRenderThread::Instance().GetHasLppVideo();
+            PipelineParam param = {
+                .frameTimestamp = RSUniRenderThread::Instance().GetCurrentTimestamp(),
+                .actualTimestamp = RSUniRenderThread::Instance().GetActualTimestamp(),
+                .fastComposeTimeStampDiff = RSUniRenderThread::Instance().GetFastComposeTimeStampDiff(),
+                .vsyncId = RSUniRenderThread::Instance().GetVsyncId(),
+                .pendingConstraintRelativeTime = RSUniRenderThread::Instance().GetPendingConstraintRelativeTime(),
+                .pendingScreenRefreshRate = RSUniRenderThread::Instance().GetPendingScreenRefreshRate(),
+                .isForceRefresh = RSUniRenderThread::Instance().GetForceRefreshFlag(),
+                .hasGameScene = RSUniRenderThread::Instance().GetHasGameScene(),
+                .hasLppVideo = RSUniRenderThread::Instance().GetHasLppVideo(),
+                .SurfaceFpsOpNum = RSUniRenderThread::Instance().GetSurfaceFpsOpNum(),
+                .SurfaceFpsOpList = RSUniRenderThread::Instance().GetSurfaceFpsOpList(),
+            };
             composerClientManager->UpdatePipelineParam(paramScreenId, param);
         }
     }
@@ -763,14 +767,18 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             params->ResetVirtualExpandAccumulatedParams();
         } else {
             RS_LOGD("RSScreenRenderNodeDrawable::OnDraw Expand screen.");
-            bool isOpDropped = uniParam->IsOpDropped();
-            uniParam->SetOpDropped(uniParam->IsVirtualExpandScreenDirtyEnabled());
             auto expandProcessor = RSProcessor::ReinterpretCast<RSUniRenderVirtualProcessor>(processor);
             if (!expandProcessor) {
                 SetDrawSkipType(DrawSkipType::EXPAND_PROCESSOR_NULL);
                 RS_LOGE("RSScreenRenderNodeDrawable::OnDraw expandProcessor is null!");
                 return;
             }
+            bool isOpDropped = uniParam->IsOpDropped();
+            bool isVirtualExpandScreenDirtyEnabled = uniParam->IsVirtualExpandScreenDirtyEnabled();
+            if (expandProcessor->IsVirtualExpandScale()) {
+                uniParam->SetVirtualExpandScreenDirtyEnabled(false);
+            }
+            uniParam->SetOpDropped(uniParam->IsVirtualExpandScreenDirtyEnabled());
             RSDirtyRectsDfx rsDirtyRectsDfx(*this);
             std::vector<RectI> damageRegionRects;
             RSUniDirtyComputeUtil::MergeVirtualExpandScreenAccumulatedDirtyRegions(*this, *params);
@@ -822,6 +830,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                 rsDirtyRectsDfx.OnDrawVirtual(*curCanvas_);
             }
             uniParam->SetOpDropped(isOpDropped);
+            uniParam->SetVirtualExpandScreenDirtyEnabled(isVirtualExpandScreenDirtyEnabled);
         }
         DrawCurtainScreen();
         processor->PostProcess();
@@ -1129,7 +1138,7 @@ bool RSScreenRenderNodeDrawable::CreateSurface(sptr<IBufferConsumerListener> lis
         RS_LOGI("RSScreenRenderNodeDrawable::CreateSurface already created, return");
         return true;
     }
-    consumer = IConsumerSurface::Create("ScreenNode");
+    consumer = IConsumerSurface::Create(RENDER_NODE_NAME);
     if (consumer == nullptr) {
         RS_LOGE("RSScreenRenderNodeDrawable::CreateSurface get consumer surface fail");
         return false;

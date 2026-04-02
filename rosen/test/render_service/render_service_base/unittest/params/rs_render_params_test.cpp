@@ -753,50 +753,6 @@ HWTEST_F(RSRenderParamsTest, HDRStatusTest, TestSize.Level2)
 }
 
 /**
- * @tc.name: OnCanvasDrawingSurfaceChange_001
- * @tc.desc: Test function OnCanvasDrawingSurfaceChange
- * @tc.type:FUNC
- * @tc.require:issueIB1KXV
- */
-HWTEST_F(RSRenderParamsTest, OnCanvasDrawingSurfaceChange_001, TestSize.Level2)
-{
-    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
-    std::unique_ptr<RSRenderParams> target = std::make_unique<RSRenderParams>(id);
-    RSRenderParams params(id);
-    auto renderParams = static_cast<RSRenderParams*>(target.get());
-
-    constexpr NodeId targetId = TestSrc::limitNumber::Uint64[5];
-    const std::unique_ptr<RSRenderParams> targetParams = std::make_unique<RSRenderParams>(targetId);
-
-    renderParams->canvasDrawingNodeSurfaceChanged_ = true;
-    renderParams->surfaceParams_.width = 2.0;
-    renderParams->surfaceParams_.height = 2.0;
-
-    renderParams->OnCanvasDrawingSurfaceChange(targetParams);
-    EXPECT_EQ(targetParams->canvasDrawingNodeSurfaceChanged_, true);
-    EXPECT_EQ(targetParams->surfaceParams_.width, renderParams->surfaceParams_.width);
-    EXPECT_EQ(targetParams->surfaceParams_.height, renderParams->surfaceParams_.height);
-    EXPECT_FALSE(renderParams->canvasDrawingNodeSurfaceChanged_);
-}
-
-/**
- * @tc.name: GetCanvasDrawingSurfaceChanged_001
- * @tc.desc: Test function GetCanvasDrawingSurfaceChanged
- * @tc.type:FUNC
- * @tc.require:issueIB1KXV
- */
-HWTEST_F(RSRenderParamsTest, GetCanvasDrawingSurfaceChanged_001, TestSize.Level2)
-{
-    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
-    std::unique_ptr<RSRenderParams> target = std::make_unique<RSRenderParams>(id);
-    RSRenderParams params(id);
-    auto renderParams = static_cast<RSRenderParams*>(target.get());
-    renderParams->canvasDrawingNodeSurfaceChanged_ = false;
-
-    EXPECT_FALSE(renderParams->GetCanvasDrawingSurfaceChanged());
-}
-
-/**
  * @tc.name: SetForegroundFilterCache_001
  * @tc.desc: Test function SetForegroundFilterCache
  * @tc.type:FUNC
@@ -816,25 +772,6 @@ HWTEST_F(RSRenderParamsTest, SetForegroundFilterCache_001, TestSize.Level2)
 
     renderParams->SetForegroundFilterCache(foregroundFilterCache);
     EXPECT_TRUE(renderParams->needSync_);
-}
-
-/**
- * @tc.name: GetCanvasDrawingSurfaceParams_001
- * @tc.desc: Test function GetCanvasDrawingSurfaceParams
- * @tc.type:FUNC
- * @tc.require:issueIB1KXV
- */
-HWTEST_F(RSRenderParamsTest, GetCanvasDrawingSurfaceParams_001, TestSize.Level2)
-{
-    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
-    std::unique_ptr<RSRenderParams> target = std::make_unique<RSRenderParams>(id);
-    RSRenderParams params(id);
-    auto renderParams = static_cast<RSRenderParams*>(target.get());
-    renderParams->surfaceParams_.height = 2;
-    renderParams->surfaceParams_.width = 3;
-    auto surfaceParams = renderParams->GetCanvasDrawingSurfaceParams();
-    EXPECT_EQ(surfaceParams.height, renderParams->surfaceParams_.height);
-    EXPECT_EQ(surfaceParams.width, renderParams->surfaceParams_.width);
 }
 
 /**
@@ -977,22 +914,6 @@ HWTEST_F(RSRenderParamsTest, SetScreensWithSubTreeWhitelist, TestSize.Level2)
     info.insert(screenId);
     renderParams->SetScreensWithSubTreeWhitelist(info);
     ASSERT_EQ(renderParams->GetScreensWithSubTreeWhitelist(), info);
-}
-
-/**
- * @tc.name: SetCanvasDrawingResetSurfaceIndexTest
- * @tc.desc: Test SetCanvasDrawingResetSurfaceIndex
- * @tc.type: FUNC
- * @tc.require:#issueICF7P6
- */
-HWTEST_F(RSRenderParamsTest, SetCanvasDrawingResetSurfaceIndexTest, TestSize.Level2)
-{
-    auto renderParams = std::make_unique<RSRenderParams>(1);
-    renderParams->canvasDrawingResetSurfaceIndex_ = 1;
-    renderParams->SetCanvasDrawingResetSurfaceIndex(1);
-    ASSERT_FALSE(renderParams->needSync_);
-    renderParams->SetCanvasDrawingResetSurfaceIndex(2);
-    ASSERT_TRUE(renderParams->needSync_);
 }
 
 /**
@@ -1141,4 +1062,52 @@ HWTEST_F(RSRenderParamsTest, SwapRelatedRenderParamsTest, TestSize.Level1)
     ASSERT_EQ(paramsA.GetMatrix().Get(Drawing::Matrix::SCALE_X), 3.0f);
     ASSERT_EQ(paramsB.GetMatrix().Get(Drawing::Matrix::SCALE_X), 2.0f);
 }
+/**
+ * @tc.name: OnSync003
+ * @tc.desc: Test nodeColorSpace_ is synced in OnSync
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderParamsTest, OnSync003, TestSize.Level1)
+{
+    constexpr NodeId id = 1;
+    std::unique_ptr<RSRenderParams> target = std::make_unique<RSRenderParams>(id);
+    RSRenderParams params(id);
+    params.nodeColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    params.OnSync(target);
+    EXPECT_EQ(target->nodeColorSpace_, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+}
+
+/**
+ * @tc.name: SetNodeColorSpace001
+ * @tc.desc: Test SetNodeColorSpace sets value and triggers needSync
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderParamsTest, SetNodeColorSpace001, TestSize.Level1)
+{
+    constexpr NodeId id = 1;
+    RSRenderParams params(id);
+    EXPECT_EQ(params.GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    params.SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    EXPECT_EQ(params.GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    EXPECT_TRUE(params.needSync_);
+}
+
+/**
+ * @tc.name: SetNodeColorSpace002
+ * @tc.desc: Test SetNodeColorSpace does not set needSync when value is same
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderParamsTest, SetNodeColorSpace002, TestSize.Level1)
+{
+    constexpr NodeId id = 1;
+    RSRenderParams params(id);
+    params.needSync_ = false;
+    params.SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    EXPECT_EQ(params.GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    EXPECT_FALSE(params.needSync_);
+}
+
 } // namespace OHOS::Rosen

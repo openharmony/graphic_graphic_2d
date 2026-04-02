@@ -693,7 +693,7 @@ void RSRenderNodeDrawable::InitCachedSurface(Drawing::GPUContext* gpuContext, co
         auto colorType = Drawing::ColorType::COLORTYPE_RGBA_8888;
         VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
         // When colorType is FP16, buffer's colorspace must be sRGB
-        // In other cases, the colorspace follows screen colorspace
+        // In other cases, the colorspace follows the node's colorspace
         auto colorSpace = RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(colorGamut);
         if (isNeedFP16) {
             colorType = Drawing::ColorType::COLORTYPE_RGBA_F16;
@@ -990,6 +990,21 @@ std::shared_ptr<Drawing::Image> RSRenderNodeDrawable::GetImageAlias(
     return ret ? image : nullptr;
 }
 
+bool RSRenderNodeDrawable::BufferNeedUpdate(std::shared_ptr<Drawing::Surface>& cacheSurface,
+    const RSRenderParams& params, bool isNeedFP16) const
+{
+    if (RSHdrUtil::BufferFormatNeedUpdate(cacheSurface, isNeedFP16)) {
+        return true;
+    }
+#ifdef RS_ENABLE_VK
+    auto newColorSpace = RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(params.GetNodeColorSpace());
+    if (cacheSurface && newColorSpace) {
+        return !newColorSpace->Equals(cacheSurface->GetImageInfo().GetColorSpace());
+    }
+#endif
+    return false;
+}
+
 void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSRenderParams& params)
 {
     auto startTime = RSPerfMonitorReporter::GetInstance().StartRendergroupMonitor();
@@ -1005,7 +1020,7 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
         RSUifirstManager::Instance().GetUiFirstSwitch();
     bool isNeedFP16 = isHdrOn || isScRGBEnable;
     auto cacheSurface = GetCachedSurface(threadId);
-    if (RSHdrUtil::BufferFormatNeedUpdate(cacheSurface, isNeedFP16)) {
+    if (BufferNeedUpdate(cacheSurface, params, isNeedFP16)) {
         // renderGroup memory tagTracer
         std::optional<RSTagTracker> tagTracer;
         if (GetOpincDrawCache().OpincGetCachedMark()) {
@@ -1017,7 +1032,8 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
         RS_TRACE_NAME_FMT("InitCachedSurface size:[%.2f, %.2f], isFP16:%d, HdrStatus:%d, isScRGBEnable:%d",
             params.GetCacheSize().x_, params.GetCacheSize().y_, isNeedFP16, params.GetHDRStatus(), isScRGBEnable);
         InitCachedSurface(curCanvas->GetGPUContext().get(), params.GetCacheSize(), threadId, isNeedFP16,
-            curCanvas->GetTargetColorGamut());
+            params.GetNodeColorSpace());
+        GetOpincDrawCache().ResetUpdateLayerPartRenderCache();
         cacheSurface = GetCachedSurface(threadId);
         if (cacheSurface == nullptr) {
             return;
@@ -1029,7 +1045,7 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
         return;
     }
 
-    GetOpincDrawCache().PushLayerPartRenderDirtyRegion(params, *cacheCanvas,
+    GetOpincDrawCache().PushLayerPartRenderDirtyRegion(params, *curCanvas, *cacheCanvas,
         RSRenderNodeDrawable::GetTotalProcessedNodeCount());
     // copy current canvas properties into cacheCanvas
     const auto& renderEngine = RSUniRenderThread::Instance().GetRenderEngine();

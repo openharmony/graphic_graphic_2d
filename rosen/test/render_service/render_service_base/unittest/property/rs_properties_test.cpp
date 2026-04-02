@@ -373,6 +373,7 @@ HWTEST_F(RSPropertiesTest, Dump001, TestSize.Level1)
     Vector4f vec(1.f, 1.f, 0.f, 1.f);
     EXPECT_EQ(properties.GetPersp(), vec);
     Color color1;
+    color1.SetHeadroom(2.0f);
     properties.SetForegroundColor(color1);
     properties.SetBackgroundColor(color1);
     std::shared_ptr<RSImage> image = std::make_shared<RSImage>();
@@ -388,6 +389,64 @@ HWTEST_F(RSPropertiesTest, Dump001, TestSize.Level1)
     properties.SetShadowRadius(1.f);
     EXPECT_EQ(properties.GetShadowRadius(), 1.f);
     properties.Dump();
+}
+
+/**
+ * @tc.name: Dump002
+ * @tc.desc: test results of Dump with positive ShadowRadius
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, Dump002, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetHDRColorHeadroom(3.0f);
+    EXPECT_EQ(properties.GetHDRColorHeadroom(), 3.0f);
+    properties.SetShadowRadius(5.5f);
+    std::string dumpInfo = properties.Dump();
+    EXPECT_TRUE(dumpInfo.find("ShadowRadius[5.5]") != std::string::npos);
+}
+
+/**
+ * @tc.name: Dump003
+ * @tc.desc: test results of Dump with zero ShadowRadius
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, Dump003, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetShadowRadius(0.0f);
+    std::string dumpInfo = properties.Dump();
+    EXPECT_TRUE(dumpInfo.find("ShadowRadius[0.0]") != std::string::npos);
+}
+
+/**
+ * @tc.name: Dump004
+ * @tc.desc: test results of Dump with Default ShadowRadius
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, Dump004, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetShadowRadius(-1.0f);
+    std::string dumpInfo = properties.Dump();
+    EXPECT_TRUE(dumpInfo.find("ShadowRadius[") == std::string::npos);
+}
+
+/**
+ * @tc.name: Dump005
+ * @tc.desc: test results of Dump with negative ShadowRadius
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, Dump005, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetShadowRadius(-2.0f);
+    std::string dumpInfo = properties.Dump();
+    EXPECT_TRUE(dumpInfo.find("ShadowRadius[-2.0]") != std::string::npos);
 }
 
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))

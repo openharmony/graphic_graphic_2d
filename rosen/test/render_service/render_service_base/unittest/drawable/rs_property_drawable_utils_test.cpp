@@ -655,7 +655,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, GetShadowRegionImageTest018, testing::ext:
 
 /**
  * @tc.name: DrawShadowMaskFilterTest019
- * @tc.desc: DrawShadowMaskFilter test
+ * @tc.desc: DrawShadowMaskFilter test with positive radius (blur shadow)
  * @tc.type: FUNC
  * @tc.require:issueIA5Y41
  */
@@ -667,6 +667,42 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowMaskFilterTest019, testing::ext:
     Drawing::Path path;
     path.AddRect({0, 0, 5, 5});
     rsPropertyDrawableUtilsTest->DrawShadowMaskFilter(&canvasTest, path, 1.f, 1.f, 1.f, false,
+        Color(255, 255, 255, 255), false);
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: DrawShadowMaskFilterTest020
+ * @tc.desc: DrawShadowMaskFilter test with zero radius (solid shadow, no blur)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowMaskFilterTest020, testing::ext::TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(rsPropertyDrawableUtilsTest, nullptr);
+    Drawing::Canvas canvasTest;
+    Drawing::Path path;
+    path.AddRect({0, 0, 5, 5});
+    rsPropertyDrawableUtilsTest->DrawShadowMaskFilter(&canvasTest, path, 1.f, 1.f, 0.f, false,
+        Color(255, 0, 0, 255), false);
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: DrawShadowMaskFilterTest021
+ * @tc.desc: DrawShadowMaskFilter test with negative radius (no shadow expected)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowMaskFilterTest021, testing::ext::TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(rsPropertyDrawableUtilsTest, nullptr);
+    Drawing::Canvas canvasTest;
+    Drawing::Path path;
+    path.AddRect({0, 0, 5, 5});
+    rsPropertyDrawableUtilsTest->DrawShadowMaskFilter(&canvasTest, path, 1.f, 1.f, -1.f, false,
         Color(255, 255, 255, 255), false);
     ASSERT_TRUE(true);
 }
@@ -1561,6 +1597,26 @@ HWTEST_F(RSPropertyDrawableUtilsTest, PickColorAndGpuScaleImageTest001, testing:
 
     utils->PickColor(gpuContext, image, color);
     utils->GpuScaleImage(gpuContext, image);
+}
+
+/**
+ * @tc.name: MakeHdrDarkenBlenderTest001
+ * @tc.desc: MakeHdrDarkenBlender Test
+ * @tc.type: FUNC
+ * @tc.require: issueICLU4I
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, MakeHdrDarkenBlenderTest001, testing::ext::TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtils = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(rsPropertyDrawableUtils, nullptr);
+    RSHdrDarkenBlenderPara hdrDarkenBlenderParams1;
+    EXPECT_NE(rsPropertyDrawableUtils->MakeHdrDarkenBlender(hdrDarkenBlenderParams1), nullptr);
+
+    RSHdrDarkenBlenderPara hdrDarkenBlenderParams2 = {1.0, {0.2, 0.3, 0.5}};
+    EXPECT_NE(rsPropertyDrawableUtils->MakeHdrDarkenBlender(hdrDarkenBlenderParams2), nullptr);
+
+    RSHdrDarkenBlenderPara hdrDarkenBlenderParams3 = {0.0};
+    EXPECT_EQ(rsPropertyDrawableUtils->MakeHdrDarkenBlender(hdrDarkenBlenderParams3), nullptr);
 }
 
 } // namespace OHOS::Rosen

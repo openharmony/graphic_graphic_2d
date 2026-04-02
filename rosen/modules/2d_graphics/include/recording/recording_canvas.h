@@ -89,6 +89,7 @@ public:
         FilterMode filterMode) override;
 
     void DrawColor(ColorQuad color, BlendMode mode = BlendMode::SRC_OVER) override;
+    void DrawUIColor(UIColor color, BlendMode mode = BlendMode::SRC_OVER) override;
 
     void DrawAtlas(const Image* atlas, const RSXform xform[], const Rect tex[], const ColorQuad colors[],
         int count, BlendMode mode, const SamplingOptions& sampling, const Rect* cullRect) override;
@@ -108,6 +109,7 @@ public:
     void ClipRoundRect(const Rect& rect, std::vector<Point>& pts, bool doAntiAlias) override;
     void ClipPath(const Path& path, ClipOp op, bool doAntiAlias) override;
     void ClipRegion(const Region& region, ClipOp op = ClipOp::INTERSECT) override;
+    void ResetClip() override;
 
     void SetMatrix(const Matrix& matrix) override;
     void ResetMatrix() override;

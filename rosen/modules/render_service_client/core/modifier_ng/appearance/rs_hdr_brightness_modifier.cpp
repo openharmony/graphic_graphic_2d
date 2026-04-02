@@ -45,4 +45,14 @@ float RSHDRBrightnessModifier::GetHDRBrightnessFactor() const
 {
     return Getter(RSPropertyType::HDR_BRIGHTNESS_FACTOR, 1.f);
 }
+
+void RSHDRBrightnessModifier::SetHDRColorHeadroom(float headroom)
+{
+    Setter(RSPropertyType::HDR_COLOR_HEADROOM, headroom);
+}
+
+float RSHDRBrightnessModifier::GetHDRColorHeadroom() const
+{
+    return Getter(RSPropertyType::HDR_COLOR_HEADROOM, 1.0f);
+}
 } // namespace OHOS::Rosen::ModifierNG

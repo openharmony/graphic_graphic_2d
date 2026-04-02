@@ -29,7 +29,9 @@ Brush::Brush() noexcept
       shaderEffect_(nullptr),
       blender_(nullptr),
       blurDrawLooper_(nullptr),
-      antiAlias_(false)
+      antiAlias_(false),
+      hdrColor_(),
+      isHdrColor_(false)
 {}
 
 Brush::Brush(const Color& c) noexcept
@@ -40,7 +42,9 @@ Brush::Brush(const Color& c) noexcept
       shaderEffect_(nullptr),
       blender_(nullptr),
       blurDrawLooper_(nullptr),
-      antiAlias_(false)
+      antiAlias_(false),
+      hdrColor_(),
+      isHdrColor_(false)
 {}
 
 Brush::Brush(int rgba) noexcept
@@ -51,12 +55,27 @@ Brush::Brush(int rgba) noexcept
       shaderEffect_(nullptr),
       blender_(nullptr),
       blurDrawLooper_(nullptr),
-      antiAlias_(false)
+      antiAlias_(false),
+      hdrColor_(),
+      isHdrColor_(false)
+{}
+
+Brush::Brush(const UIColor& c) noexcept
+    : color_(),
+      blendMode_(BlendMode::SRC_OVER),
+      filter_(),
+      colorSpace_(nullptr),
+      shaderEffect_(nullptr),
+      blender_(nullptr),
+      blurDrawLooper_(nullptr),
+      antiAlias_(false),
+      hdrColor_(c),
+      isHdrColor_(true)
 {}
 
 Brush::Brush(std::shared_ptr<ShaderEffect> e) noexcept
     : color_(), blendMode_(BlendMode::SRC_OVER), filter_(), colorSpace_(nullptr), shaderEffect_(e), blender_(nullptr),
-    blurDrawLooper_(nullptr), antiAlias_(false)
+    blurDrawLooper_(nullptr), antiAlias_(false), hdrColor_(), isHdrColor_(false)
 {}
 
 const Color& Brush::GetColor() const
@@ -64,19 +83,27 @@ const Color& Brush::GetColor() const
     return color_;
 }
 
+const UIColor& Brush::GetUIColor() const
+{
+    return hdrColor_;
+}
+
 void Brush::SetColor(const Color& c)
 {
     color_ = c;
+    isHdrColor_ = false;
 }
 
 void Brush::SetColor(uint32_t c)
 {
     color_.SetColorQuad(c);
+    isHdrColor_ = false;
 }
 
 void Brush::SetARGB(int a, int r, int g, int b)
 {
     color_.SetRgb(r, g, b, a);
+    isHdrColor_ = false;
 }
 
 const Color4f& Brush::GetColor4f()
@@ -88,6 +115,14 @@ void Brush::SetColor(const Color4f& cf, std::shared_ptr<ColorSpace> s)
 {
     color_.SetRgbF(cf.redF_, cf.greenF_, cf.blueF_, cf.alphaF_);
     colorSpace_ = s;
+    isHdrColor_ = false;
+}
+
+void Brush::SetUIColor(const UIColor& color, std::shared_ptr<ColorSpace> s)
+{
+    hdrColor_ = color;
+    colorSpace_ = s;
+    isHdrColor_ = true;
 }
 
 void Brush::SetAlpha(uint32_t a)
@@ -183,7 +218,8 @@ bool operator==(const Brush& b1, const Brush& b2)
 {
     return b1.color_ == b2.color_ && b1.blendMode_ == b2.blendMode_ && b1.shaderEffect_ == b2.shaderEffect_ &&
         b1.blender_ == b2.blender_ && b1.blenderEnabled_ == b2.blenderEnabled_ && b1.colorSpace_ == b2.colorSpace_ &&
-        b1.filter_ == b2.filter_ && b1.antiAlias_ == b2.antiAlias_ && b1.blurDrawLooper_ == b2.blurDrawLooper_;
+        b1.filter_ == b2.filter_ && b1.antiAlias_ == b2.antiAlias_ && b1.blurDrawLooper_ == b2.blurDrawLooper_ &&
+        b1.hdrColor_ == b2.hdrColor_ && b1.isHdrColor_ == b2.isHdrColor_;
 }
 
 bool operator!=(const Brush& b1, const Brush& b2)
@@ -205,6 +241,9 @@ void Brush::Dump(std::string& out) const
         out += " shaderEffectType:" + std::to_string(static_cast<int>(shaderEffect_->GetType()));
     }
     out += " isAntiAlias:" + std::string(antiAlias_ ? "true" : "false");
+    out += "UIColor";
+    hdrColor_.Dump(out);
+    out += " isHdrColor:" + std::string(isHdrColor_ ? "true" : "false");
     out += " blenderEnabled:" + std::string(blenderEnabled_ ? "true" : "false");
     out += " hasFilter:" + std::string(hasFilter_ ? "true" : "false");
     out += ']';

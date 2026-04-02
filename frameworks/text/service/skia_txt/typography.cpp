@@ -326,11 +326,17 @@ Boundary Typography::GetActualTextRange(int lineNumber, bool includeSpaces)
     return Convert(range);
 }
 
-Boundary Typography::GetEllipsisTextRange()
+Boundary Typography::GetEllipsisTextRange() const
 {
     std::shared_lock<std::shared_mutex> readLock(mutex_);
     auto range = paragraph_->GetEllipsisTextRange();
     return Convert(range);
+}
+
+std::vector<TextRange> Typography::GetVisibleTextRanges() const
+{
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
+    return paragraph_->GetVisibleTextRanges();
 }
 
 double Typography::GetLineHeight(int lineNumber)

@@ -119,20 +119,19 @@ void RSSurfaceRenderNodeDrawable::UpdatePipelineParamForSelfDraw(SurfaceFpsOpTyp
         return;
     }
 
-    if (auto composerClientMgr = RSUniRenderThread::Instance().GetComposerClientManager()) {
-        SurfaceFpsOp op {
-            static_cast<uint32_t>(surfaceFpsOpType),
-            id_,
-            name_,
-            uniqueId_,
-        };
-        PipelineParam param = composerClientMgr->GetPipelineParam(curDisplayScreenId_);
-        param.SurfaceFpsOpList.push_back(op);
-        param.SurfaceFpsOpNum++;
-        composerClientMgr->UpdatePipelineParam(curDisplayScreenId_, param);
-        RS_LOGD("update surfaceFps op id: %{public}" PRIu64 ", name: %{public}s, type: %{public}u",
-                id_, name_.c_str(), surfaceFpsOpType);
-    }
+    SurfaceFpsOp op {
+        static_cast<uint32_t>(surfaceFpsOpType),
+        id_,
+        name_,
+        uniqueId_,
+    };
+    RSMainThread::Instance()->AddSurfaceFpsOp(op);
+    RS_OPTIONAL_TRACE_NAME_FMT("Add SurfaceFpsOp type: %u, id: %" PRIu64 ", name: %s, uniqueId: %" PRIu64,
+                                surfaceFpsOpType, id_, name_.c_str(), uniqueId_);
+    RS_LOGD("update surfaceFps op id: %{public}" PRIu64 ", "
+            "name: %{public}s, "
+            "type: %{public}u, "
+            "uniqueId: %{public}" PRIu64, id_, name_.c_str(), surfaceFpsOpType, uniqueId_);
 }
 
 RSRenderNodeDrawable::Ptr RSSurfaceRenderNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)

@@ -2177,6 +2177,40 @@ HWTEST_F(RSSurfaceRenderNodeTest, OnSync, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateLayerPartRenderStatus001
+ * @tc.desc: test UpdateLayerPartRenderStatus updates dirty manager for uifirst or subthread-assignable child
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, UpdateLayerPartRenderStatus001, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
+    ASSERT_NE(surfaceNode, nullptr);
+
+    std::shared_ptr<RSDirtyRegionManager> nullDirtyManager = nullptr;
+    surfaceNode->UpdateLayerPartRenderStatus(nullDirtyManager);
+
+    auto dirtyManager = std::make_shared<RSDirtyRegionManager>();
+    ASSERT_NE(dirtyManager, nullptr);
+    ASSERT_FALSE(dirtyManager->HasUifirstChild());
+
+    surfaceNode->SetLastFrameUifirstFlag(MultiThreadCacheType::NONE);
+    surfaceNode->SetSubThreadAssignable(false);
+    surfaceNode->UpdateLayerPartRenderStatus(dirtyManager);
+    EXPECT_FALSE(dirtyManager->HasUifirstChild());
+
+    surfaceNode->SetLastFrameUifirstFlag(MultiThreadCacheType::LEASH_WINDOW);
+    surfaceNode->UpdateLayerPartRenderStatus(dirtyManager);
+    EXPECT_TRUE(dirtyManager->HasUifirstChild());
+
+    dirtyManager->SetHasUifirstChild(false);
+    surfaceNode->SetLastFrameUifirstFlag(MultiThreadCacheType::NONE);
+    surfaceNode->SetSubThreadAssignable(true);
+    surfaceNode->UpdateLayerPartRenderStatus(dirtyManager);
+    EXPECT_TRUE(dirtyManager->HasUifirstChild());
+}
+
+/**
  * @tc.name: HDRPresentTest001
  * @tc.desc: test SetHDRPresent and GetHDRPresent
  * @tc.type:FUNC
@@ -2278,6 +2312,13 @@ HWTEST_F(RSSurfaceRenderNodeTest, HDRPresentTest002, TestSize.Level1)
     EXPECT_FALSE(childNode->IsHdrEffectColorGamut());
     childNode->ReduceHDRNum(HDRComponentType::EFFECT); // different branch if call again
     EXPECT_FALSE(childNode->IsHdrEffectColorGamut());
+
+    childNode->IncreaseHDRNum(HDRComponentType::HDRCOLOR);
+    EXPECT_TRUE(childNode->HDRColorHeadroomEnabled());
+    childNode->ReduceHDRNum(HDRComponentType::HDRCOLOR);
+    EXPECT_FALSE(childNode->HDRColorHeadroomEnabled());
+    childNode->ReduceHDRNum(HDRComponentType::HDRCOLOR);
+    EXPECT_FALSE(childNode->HDRColorHeadroomEnabled());
 }
 
 /**

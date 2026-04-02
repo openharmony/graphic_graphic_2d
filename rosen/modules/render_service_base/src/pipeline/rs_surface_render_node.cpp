@@ -1221,7 +1221,6 @@ void RSSurfaceRenderNode::SetHDRPresent(bool hasHdrPresent)
 
 void RSSurfaceRenderNode::IncreaseHDRNum(HDRComponentType hdrType)
 {
-    std::lock_guard<std::mutex> lockGuard(mutexHDR_);
     if (hdrType == HDRComponentType::IMAGE) {
         hdrPhotoNum_++;
         RS_LOGD("RSSurfaceRenderNode::IncreaseHDRNum HDRClient hdrPhotoNum_: %{public}d", hdrPhotoNum_);
@@ -1231,12 +1230,14 @@ void RSSurfaceRenderNode::IncreaseHDRNum(HDRComponentType hdrType)
     } else if (hdrType == HDRComponentType::EFFECT) {
         hdrEffectNum_++;
         RS_LOGD("RSSurfaceRenderNode::IncreaseHDRNum HDRClient hdrEffectNum_: %{public}d", hdrEffectNum_);
+    } else if (hdrType == HDRComponentType::HDRCOLOR) {
+        hdrColorNum_++;
+        RS_LOGD("RSSurfaceRenderNode::IncreaseHDRNum HDRClient hdrColorNum_: %{public}d", hdrColorNum_);
     }
 }
 
 void RSSurfaceRenderNode::ReduceHDRNum(HDRComponentType hdrType)
 {
-    std::lock_guard<std::mutex> lockGuard(mutexHDR_);
     if (hdrType == HDRComponentType::IMAGE) {
         if (hdrPhotoNum_ == 0) {
             ROSEN_LOGE("RSSurfaceRenderNode::ReduceHDRNum error");
@@ -1258,6 +1259,13 @@ void RSSurfaceRenderNode::ReduceHDRNum(HDRComponentType hdrType)
         }
         hdrEffectNum_--;
         RS_LOGD("RSSurfaceRenderNode::ReduceHDRNum HDRClient hdrEffectNum_: %{public}d", hdrEffectNum_);
+    } else if (hdrType == HDRComponentType::HDRCOLOR) {
+        if (hdrColorNum_ == 0) {
+            ROSEN_LOGE("RSSurfaceRenderNode::ReduceHDRNum hdrColor error");
+            return;
+        }
+        hdrColorNum_--;
+        RS_LOGD("RSSurfaceRenderNode::ReduceHDRNum HDRClient hdrColorNum_: %{public}d", hdrColorNum_);
     }
 }
 
@@ -1311,6 +1319,11 @@ void RSSurfaceRenderNode::ReduceCanvasGamutNum(GraphicColorGamut gamut)
 bool RSSurfaceRenderNode::IsHdrEffectColorGamut() const
 {
     return hdrEffectNum_ > 0;
+}
+
+bool RSSurfaceRenderNode::HDRColorHeadroomEnabled()
+{
+    return hdrColorNum_ > 0;
 }
 
 void RSSurfaceRenderNode::SetForceUIFirstChanged(bool forceUIFirstChanged)
@@ -2486,6 +2499,16 @@ bool RSSurfaceRenderNode::CheckParticipateInOcclusion(bool isAnimationOcclusionS
         return false;
     }
     return true;
+}
+
+void RSSurfaceRenderNode::UpdateLayerPartRenderStatus(std::shared_ptr<RSDirtyRegionManager>& dirtyManager)
+{
+    if (dirtyManager == nullptr) {
+        return;
+    }
+    if (GetLastFrameUifirstFlag() != MultiThreadCacheType::NONE || GetSubThreadAssignable()) {
+        dirtyManager->SetHasUifirstChild(true);
+    }
 }
 
 void RSSurfaceRenderNode::RotateCorner(int rotationDegree, Vector4<int>& cornerRadius) const

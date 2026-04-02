@@ -38,7 +38,7 @@ using ComposerFallbackCallback = std::function<void(const sptr<Surface>& surface
     const std::vector<RSLayerPtr>& layers)>;
 using SetHardwareTaskNumCallback = std::function<void(uint32_t num)>;
 using SetTaskEndWithTimeCallback = std::function<void(int64_t time)>;
-using GetRealTimeOffsetOfDvsyncCallback = std::function<uint64_t(uint64_t timestamp)>;
+using GetRealTimeOffsetOfDvsyncCallback = std::function<uint64_t(uint64_t timestamp, int64_t& preTime)>;
 
 namespace Composer {
 template<typename Task>

@@ -561,6 +561,10 @@ RSShadowBlenderPara RandomDataCustomizedType::GetRandomRSShadowBlenderPara()
             RandomDataBasicType::GetRandomFloat(), RandomDataBasicType::GetRandomFloat()};
 }
 
+RSHdrDarkenBlenderPara RandomDataCustomizedType::GetRandomRSHdrDarkenBlenderPara()
+{
+    return {RandomDataBasicType::GetRandomFloat(), RandomDataCustomizedType::GetRandomVector3f()};
+}
 
 #ifndef ROSEN_CROSS_PLATFORM
 GraphicColorGamut RandomDataCustomizedType::GetRandomGraphicColorGamut()

@@ -492,6 +492,9 @@ void RSUniRenderVisitor::ResetCurSurfaceInfoAsUpperSurfaceParent(RSSurfaceRender
     }
     if (auto directParent = node.GetParent().lock()) {
         if (auto parentInstance = directParent->GetInstanceRootNode()) {
+            if (RSAncoManager::Instance()->IsAncoType(curSurfaceNode_->GetName())) {
+                hasAncoDimmer_ = false;
+            }
             // in case leashwindow is not directParent
             auto surfaceParent = parentInstance->ReinterpretCastTo<RSSurfaceRenderNode>();
             if (surfaceParent && (surfaceParent->IsLeashOrMainWindow())) {
@@ -574,8 +577,7 @@ void RSUniRenderVisitor::ResetDisplayDirtyRegion()
         IsFirstFrameOfOverdrawSwitch() ||
         IsFirstFrameOfDrawingCacheDfxSwitch() ||
         IsAccessibilityConfigChanged() ||
-        curScreenNode_->HasMirroredScreenChanged() ||
-        curScreenNode_->IsScreenResolutionChanged();
+        curScreenNode_->HasMirroredScreenChanged();
 
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     // if overlay display status changed, ......
@@ -1269,6 +1271,13 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
         CheckIsGpuOverDrawBufferOptimizeNode(node);
     }
     RSHdrUtil::CheckPixelFormatForHdrEffect(node, curScreenNode_);
+
+    if (hasAncoDimmer_ && (node.GetAncoFlags() & static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE))) {
+        node.SetHardwareForcedDisabledState(true);
+        RS_OPTIONAL_TRACE_FMT("anco node debug: name:%s id:%" PRIu64 " disabled by dimming node below.",
+                              node.GetName().c_str(), node.GetId());
+    }
+
     PostPrepare(node, !isSubTreeNeedPrepare);
     if (node.IsHardwareEnabledTopSurface() && node.shared_from_this()) {
         RSUniHwcComputeUtil::UpdateHwcNodeProperty(node.shared_from_this()->ReinterpretCastTo<RSSurfaceRenderNode>());
@@ -1282,6 +1291,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     dirtyFlag_ = dirtyFlag;
     isSkipDrawInVirtualScreen_ = preIsSkipDraw;
     PrepareForUIFirstNode(node);
+    node.UpdateLayerPartRenderStatus(curLayerPartRenderDirtyManager_);
     PrepareForCrossNode(node);
 #ifdef SUBTREE_PARALLEL_ENABLE
     if (node.GetSubThreadAssignable() || !isInFocusSurface_) {
@@ -1371,8 +1381,9 @@ void RSUniRenderVisitor::QuickPrepareUnionRenderNode(RSUnionRenderNode& node)
     // 1. Recursively traverse child nodes if above curSurfaceNode and subnode need draw
     hasAccumulatedClip_ = node.SetAccumulatedClipFlag(hasAccumulatedClip_);
     bool isOpincSubTreeDirty = RSOpincManager::Instance().IsOpincSubTreeDirty(node, autoCacheEnable_);
-    bool isSubTreeNeedPrepare = !curSurfaceNode_ || node.IsSubTreeNeedPrepare(filterInGlobal_) ||
-        ForcePrepareSubTree() || isOpincSubTreeDirty;
+    bool isSubTreeNeedPrepare =
+        !curSurfaceNode_ || node.IsSubTreeNeedPrepare(filterInGlobal_) || ForcePrepareSubTree() ||
+        (RSOpincManager::Instance().OpincSubTreeSkipPrepare(node, unchangeMarkEnable_), isOpincSubTreeDirty);
     isSubTreeNeedPrepare ? QuickPrepareChildren(node) :
         node.SubTreeSkipPrepare(*dirtyManager, curDirty_, dirtyFlag_, prepareClipRect_,
             curLayerPartRenderDirtyManager_);
@@ -1963,8 +1974,9 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     // 1. Recursively traverse child nodes if above curSurfaceNode and subnode need draw
     hasAccumulatedClip_ = node.SetAccumulatedClipFlag(hasAccumulatedClip_);
     bool isOpincSubTreeDirty = RSOpincManager::Instance().IsOpincSubTreeDirty(node, autoCacheEnable_);
-    bool isSubTreeNeedPrepare = !curSurfaceNode_ || node.IsSubTreeNeedPrepare(filterInGlobal_) ||
-        ForcePrepareSubTree() || isOpincSubTreeDirty;
+    bool isSubTreeNeedPrepare =
+        !curSurfaceNode_ || node.IsSubTreeNeedPrepare(filterInGlobal_) || ForcePrepareSubTree() ||
+        (RSOpincManager::Instance().OpincSubTreeSkipPrepare(node, unchangeMarkEnable_), isOpincSubTreeDirty);
     isSubTreeNeedPrepare ? QuickPrepareChildren(node) :
         node.SubTreeSkipPrepare(*dirtyManager, curDirty_, dirtyFlag_, prepareClipRect_,
             curLayerPartRenderDirtyManager_);
@@ -1992,6 +2004,10 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     globalShouldPaint_ = preGlobalShouldPaint;
 
     hwcVisitor_->RestoreIsOffscreen(isCurrOffscreen);
+
+    if (RSAncoManager::Instance()->IsAncoDimmer(node.GetNodeName())) {
+        hasAncoDimmer_ = true;
+    }
 
     node.RenderTraceDebug();
     RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
@@ -2256,6 +2272,10 @@ CM_INLINE bool RSUniRenderVisitor::BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderN
         // UpdateCurCornerInfo must process before curSurfaceNode_ update
         node.UpdateCurCornerInfo(curCornerRadius_, curCornerRect_);
         curSurfaceNode_ = node.ReinterpretCastTo<RSSurfaceRenderNode>();
+        // restores the dimmer canvas node tag of the anco window.
+        if (curSurfaceNode_ && RSAncoManager::Instance()->IsAncoType(curSurfaceNode_->GetName())) {
+            hasAncoDimmer_ = false;
+        }
         // dirty manager should not be overrode by cross node in expand screen
         curSurfaceDirtyManager_ = (!curScreenNode_->IsFirstVisitCrossNodeDisplay() && node.IsFirstLevelCrossNode()) ?
             std::make_shared<RSDirtyRegionManager>() : node.GetDirtyManager();
@@ -2479,7 +2499,8 @@ void RSUniRenderVisitor::PrevalidateHwcNode()
 #ifdef HETERO_HDR_ENABLE
             !RSHeteroHDRManager::Instance().HasHdrHeteroNode() &&
 #endif
-            RSHpaeOfflineProcessor::GetOfflineProcessor().IsRSHpaeOfflineProcessorReady()) {
+            RSHpaeOfflineProcessor::GetOfflineProcessor().IsRSHpaeOfflineProcessorReady() &&
+            node->GetTunnelLayerId() == 0) {
             node->SetDeviceOfflineEnable(true);
             continue;
         }
@@ -4155,9 +4176,7 @@ void RSUniRenderVisitor::HandleColorPickerHwcDisable(RSRenderNode& node)
     }
     using State = DrawableV2::ColorPickerState;
     if (colorPicker->GetState() == State::COLOR_PICK_THIS_FRAME && curSurfaceNode_) {
-        // Get the ColorPicker rect from current surface node (in screen coordinates)
-        RectI colorPickerRect = curSurfaceNode_->GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
-        // Store surface ID with its rect for intersection checking later
+        RectI colorPickerRect = node.GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
         hwcVisitor_->colorPickerHwcDisabledSurfaces_.emplace(curSurfaceNode_->GetId(), colorPickerRect);
     }
 }

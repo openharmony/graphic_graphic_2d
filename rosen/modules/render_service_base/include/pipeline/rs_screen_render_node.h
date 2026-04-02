@@ -75,10 +75,6 @@ public:
             properties.SetFrame({0, 0, info.width, info.height});
         }
 
-        screenResolutionChanged_ = screenInfo_.phyWidth != info.phyWidth || screenInfo_.phyHeight != info.phyHeight ||
-            screenInfo_.width != info.width || screenInfo_.height != info.height ||
-            std::fabs(screenInfo_.samplingScale - info.samplingScale) > FLT_EPSILON ||
-            (screenInfo_.activeRefreshRate != info.activeRefreshRate && screenInfo_.id != 0);
         screenInfo_ = std::move(info);
     }
 
@@ -98,11 +94,6 @@ public:
     const RSScreenProperty& GetScreenProperty() const
     {
         return screenProperty_;
-    }
-
-    bool IsScreenResolutionChanged() const
-    {
-        return screenResolutionChanged_;
     }
 
     const ScreenInfo& GetScreenInfo() const
@@ -586,8 +577,6 @@ private:
     std::map<NodeId, Drawing::Matrix> surfaceTotalMatrix_;
 
     bool screenDirtyFlag_ = false;
-
-    bool screenResolutionChanged_ = false;
 
     // Use in round corner display
     // removed later due to rcd node will be handled by RS tree in OH 6.0 rcd refactoring

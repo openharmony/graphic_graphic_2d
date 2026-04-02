@@ -3634,5 +3634,86 @@ HWTEST_F(RSRenderNodeTest2, DirtySlotsPartialSync001, TestSize.Level1)
     node->DirtySlotsPartialSync();
     EXPECT_EQ(node->dirtySlots_.size(), 2);
 }
+
+/**
+ * @tc.name: PrepareColorPicker001
+ * @tc.desc: Test PrepareColorPicker overrides darkMode when lastEquivalentDarkMode is LIGHT
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest2, PrepareColorPicker001, TestSize.Level1)
+{
+    RSRenderNode node(1);
+
+    // Create a ColorPicker drawable
+    auto colorPickerDrawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, 0);
+    ASSERT_NE(colorPickerDrawable, nullptr);
+
+    // Set it at COLOR_PICKER slot
+    node.GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = colorPickerDrawable;
+
+    // Set lastEquivalentDarkMode to LIGHT
+    node.GetMutableRenderProperties().SetLastEquivalentDarkMode(EquivalentDarkMode::LIGHT);
+
+    // Set state to COLOR_PICK_THIS_FRAME to trigger color picking
+    colorPickerDrawable->stagingState_ = DrawableV2::ColorPickerState::COLOR_PICK_THIS_FRAME;
+
+    // Call PrepareColorPicker with darkMode = true, should be overridden to false
+    bool needSync = node.PrepareColorPicker(true);
+    EXPECT_TRUE(needSync);
+}
+
+/**
+ * @tc.name: PrepareColorPicker002
+ * @tc.desc: Test PrepareColorPicker keeps darkMode when lastEquivalentDarkMode is INVALID
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest2, PrepareColorPicker002, TestSize.Level1)
+{
+    RSRenderNode node(1);
+
+    // Create a ColorPicker drawable
+    auto colorPickerDrawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, 0);
+    ASSERT_NE(colorPickerDrawable, nullptr);
+
+    // Set it at COLOR_PICKER slot
+    node.GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = colorPickerDrawable;
+
+    // Set lastEquivalentDarkMode to INVALID
+    node.GetMutableRenderProperties().SetLastEquivalentDarkMode(EquivalentDarkMode::INVALID);
+
+    // Set state to COLOR_PICK_THIS_FRAME to trigger color picking
+    colorPickerDrawable->stagingState_ = DrawableV2::ColorPickerState::COLOR_PICK_THIS_FRAME;
+
+    // Call PrepareColorPicker with darkMode = true, should not be overridden
+    bool needSync = node.PrepareColorPicker(true);
+    EXPECT_TRUE(needSync);
+}
+
+/**
+ * @tc.name: PrepareColorPicker003
+ * @tc.desc: Test PrepareColorPicker keeps darkMode when GetColorPicker returns nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest2, PrepareColorPicker003, TestSize.Level1)
+{
+    RSRenderNode node(1);
+
+    // Create a ColorPicker drawable
+    auto colorPickerDrawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, 0);
+    ASSERT_NE(colorPickerDrawable, nullptr);
+
+    // Set it at COLOR_PICKER slot
+    node.GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = colorPickerDrawable;
+
+    // Set state to COLOR_PICK_THIS_FRAME to trigger color picking
+    colorPickerDrawable->stagingState_ = DrawableV2::ColorPickerState::COLOR_PICK_THIS_FRAME;
+
+    // Call PrepareColorPicker with darkMode = true, should not be overridden
+    bool needSync = node.PrepareColorPicker(true);
+    EXPECT_TRUE(needSync);
+}
 } // namespace Rosen
 } // namespace OHOS

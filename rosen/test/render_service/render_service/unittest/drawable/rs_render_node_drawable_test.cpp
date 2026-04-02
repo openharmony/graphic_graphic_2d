@@ -1500,4 +1500,181 @@ HWTEST_F(RSRenderNodeDrawableTest, OnDrawTest, TestSize.Level1)
     drawable->OnDraw(*pCanvas);
 }
 #endif
+
+/**
+ * @tc.name: BufferNeedUpdateTest001
+ * @tc.desc: Test BufferNeedUpdate returns true when cacheSurface is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIB1KMY
+ */
+HWTEST_F(RSRenderNodeDrawableTest, BufferNeedUpdateTest001, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    std::shared_ptr<Drawing::Surface> cacheSurface = nullptr;
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    bool isNeedFP16 = false;
+    EXPECT_TRUE(drawable->BufferNeedUpdate(cacheSurface, params, isNeedFP16));
+}
+
+/**
+ * @tc.name: BufferNeedUpdateTest002
+ * @tc.desc: Test BufferNeedUpdate returns true when BufferFormatNeedUpdate returns true
+ * @tc.type: FUNC
+ * @tc.require: issueIB1KMY
+ */
+HWTEST_F(RSRenderNodeDrawableTest, BufferNeedUpdateTest002, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    auto cacheSurface = Drawing::Surface::MakeRasterN32Premul(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    ASSERT_NE(cacheSurface, nullptr);
+    bool isNeedFP16 = true;
+    EXPECT_TRUE(drawable->BufferNeedUpdate(cacheSurface, params, isNeedFP16));
+}
+
+/**
+ * @tc.name: BufferNeedUpdateTest003
+ * @tc.desc: Test BufferNeedUpdate with isNeedFP16=false and cacheSurface not nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIB1KMY
+ */
+HWTEST_F(RSRenderNodeDrawableTest, BufferNeedUpdateTest003, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    auto cacheSurface = Drawing::Surface::MakeRasterN32Premul(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    ASSERT_NE(cacheSurface, nullptr);
+    bool isNeedFP16 = false;
+    bool result = drawable->BufferNeedUpdate(cacheSurface, params, isNeedFP16);
+#ifdef RS_ENABLE_VK
+    EXPECT_TRUE(result);
+#else
+    EXPECT_FALSE(result);
+#endif
+}
+
+/**
+ * @tc.name: BufferNeedUpdateTest004
+ * @tc.desc: Test BufferNeedUpdate with different nodeColorSpace returns true under VK
+ * @tc.type: FUNC
+ * @tc.require: issueIB1KMY
+ */
+HWTEST_F(RSRenderNodeDrawableTest, BufferNeedUpdateTest004, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    params.SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    auto cacheSurface = Drawing::Surface::MakeRasterN32Premul(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    ASSERT_NE(cacheSurface, nullptr);
+    bool isNeedFP16 = false;
+    bool result = drawable->BufferNeedUpdate(cacheSurface, params, isNeedFP16);
+#ifdef RS_ENABLE_VK
+    EXPECT_TRUE(result);
+#else
+    EXPECT_FALSE(result);
+#endif
+}
+
+/**
+ * @tc.name: BufferNeedUpdateTest005
+ * @tc.desc: Test BufferNeedUpdate with same nodeColorSpace (SRGB) and isNeedFP16=false
+ * @tc.type: FUNC
+ * @tc.require: issueIB1KMY
+ */
+HWTEST_F(RSRenderNodeDrawableTest, BufferNeedUpdateTest005, TestSize.Level1)
+{
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    params.SetCacheSize({ DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT });
+    auto context = RsVulkanContext::GetSingleton().GetDrawingContext();
+    ASSERT_NE(context, nullptr);
+    drawable->InitCachedSurface(context.get(), params.GetCacheSize(), gettid(), false,
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    auto cacheSurface = drawable->GetCachedSurface(gettid());
+    ASSERT_NE(cacheSurface, nullptr);
+    bool isNeedFP16 = false;
+    bool result = drawable->BufferNeedUpdate(cacheSurface, params, isNeedFP16);
+    EXPECT_FALSE(result);
+    drawable->ClearCachedSurface();
+#endif
+}
+
+/**
+ * @tc.name: BufferNeedUpdateTest006
+ * @tc.desc: Test BufferNeedUpdate with different nodeColorSpace under VK returns true
+ * @tc.type: FUNC
+ * @tc.require: issueIB1KMY
+ */
+HWTEST_F(RSRenderNodeDrawableTest, BufferNeedUpdateTest006, TestSize.Level1)
+{
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    params.SetCacheSize({ DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT });
+    auto context = RsVulkanContext::GetSingleton().GetDrawingContext();
+    ASSERT_NE(context, nullptr);
+    drawable->InitCachedSurface(context.get(), params.GetCacheSize(), gettid(), false,
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    auto cacheSurface = drawable->GetCachedSurface(gettid());
+    ASSERT_NE(cacheSurface, nullptr);
+    params.SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    bool isNeedFP16 = false;
+    bool result = drawable->BufferNeedUpdate(cacheSurface, params, isNeedFP16);
+    EXPECT_TRUE(result);
+    drawable->ClearCachedSurface();
+#endif
+}
+
+/**
+ * @tc.name: BufferNeedUpdateTest007
+ * @tc.desc: Test BufferNeedUpdate with ADOBE_RGB colorspace under VK
+ * @tc.type: FUNC
+ * @tc.require: issueIB1KMY
+ */
+HWTEST_F(RSRenderNodeDrawableTest, BufferNeedUpdateTest007, TestSize.Level1)
+{
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    params.SetCacheSize({ DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT });
+    auto context = RsVulkanContext::GetSingleton().GetDrawingContext();
+    ASSERT_NE(context, nullptr);
+    drawable->InitCachedSurface(context.get(), params.GetCacheSize(), gettid(), false,
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    auto cacheSurface = drawable->GetCachedSurface(gettid());
+    ASSERT_NE(cacheSurface, nullptr);
+    params.SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_ADOBE_RGB);
+    bool isNeedFP16 = false;
+    bool result = drawable->BufferNeedUpdate(cacheSurface, params, isNeedFP16);
+    EXPECT_TRUE(result);
+    drawable->ClearCachedSurface();
+#endif
+}
+
+/**
+ * @tc.name: BufferNeedUpdateTest008
+ * @tc.desc: Test BufferNeedUpdate with BT2020 colorspace under VK
+ * @tc.type: FUNC
+ * @tc.require: issueIB1KMY
+ */
+HWTEST_F(RSRenderNodeDrawableTest, BufferNeedUpdateTest008, TestSize.Level1)
+{
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    params.SetCacheSize({ DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT });
+    auto context = RsVulkanContext::GetSingleton().GetDrawingContext();
+    ASSERT_NE(context, nullptr);
+    drawable->InitCachedSurface(context.get(), params.GetCacheSize(), gettid(), false,
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    auto cacheSurface = drawable->GetCachedSurface(gettid());
+    ASSERT_NE(cacheSurface, nullptr);
+    params.SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+    bool isNeedFP16 = false;
+    bool result = drawable->BufferNeedUpdate(cacheSurface, params, isNeedFP16);
+    EXPECT_TRUE(result);
+    drawable->ClearCachedSurface();
+#endif
+}
 }

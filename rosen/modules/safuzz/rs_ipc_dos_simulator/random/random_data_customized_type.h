@@ -94,6 +94,7 @@ public:
     static std::vector<Vector4f> GetRandomSmallVectorVector4f();
     static std::shared_ptr<Media::PixelMap> GetRandomPixelMap();
     static RSShadowBlenderPara GetRandomRSShadowBlenderPara();
+    static RSHdrDarkenBlenderPara GetRandomRSHdrDarkenBlenderPara();
 
 #ifndef ROSEN_CROSS_PLATFORM
     static GraphicColorGamut GetRandomGraphicColorGamut();

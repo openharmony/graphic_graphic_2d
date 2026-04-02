@@ -22,6 +22,7 @@
 #include <unistd.h>
 #include <unordered_set>
 
+#include "drawable/rs_screen_render_node_drawable.h"
 #include "pipeline/rs_surface_handler.h"
 #include "platform/common/rs_log.h"
 #include "platform/ohos/rs_jank_stats.h"
@@ -203,7 +204,8 @@ CM_INLINE bool RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfa
     }
     RSJankStats::GetInstance().AvcodecVideoCollect(consumer->GetUniqueId(), surfaceBuffer->buffer->GetSeqNum());
     surfaceHandler.ConsumeAndUpdateBuffer(*surfaceBuffer);
-    if (consumer->GetName() != SCREENNODE) {
+    if (consumer->GetName() != RENDER_NODE_NAME) {
+        RS_TRACE_NAME_FMT("video node: %" PRIu64 "", surfaceHandler.GetNodeId());
         DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(surfaceHandler.GetNodeId(),
             consumer->GetSurfaceSourceType(), surfaceBuffer->buffer);
     }

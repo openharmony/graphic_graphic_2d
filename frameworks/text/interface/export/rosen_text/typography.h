@@ -172,7 +172,7 @@ public:
         TextEncoding encodeType = TextEncoding::UTF8) const = 0;
     virtual Boundary GetWordBoundaryByIndex(size_t index) = 0;
     virtual Boundary GetActualTextRange(int lineNumber, bool includeSpaces) = 0;
-    virtual Boundary GetEllipsisTextRange() = 0;
+    virtual Boundary GetEllipsisTextRange() const = 0;
     virtual double GetLineHeight(int lineNumber) = 0;
     virtual double GetLineWidth(int lineNumber) = 0;
     virtual void SetAnimation(
@@ -207,6 +207,7 @@ public:
         size_t start, size_t end, const ImageOptions& options, bool fill) const = 0;
 #endif
     virtual TextLayoutResult LayoutWithConstraints(const TextRectSize& constraint) = 0;
+    virtual std::vector<TextRange> GetVisibleTextRanges() const = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

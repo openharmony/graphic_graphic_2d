@@ -140,6 +140,17 @@ void RSOpincManager::UpdateRootFlag(RSRenderNode& node, bool& unchangeMarkEnable
     }
 }
 
+void RSOpincManager::OpincSubTreeSkipPrepare(RSRenderNode& node, bool& unchangeMarkEnable)
+{
+    if (!unchangeMarkEnable || !OpincGetNodeSupportFlag(node)) {
+        return;
+    }
+
+    RS_OPTIONAL_TRACE_FMT("%s, node: %" PRIu64, __func__, node.GetId());
+    auto& opincCache = node.GetOpincCache();
+    opincCache.OpincSubTreeSkip();
+}
+
 OpincUnsupportType RSOpincManager::GetUnsupportReason(RSRenderNode& node)
 {
     if (!node.GetOpincCache().GetSubTreeSupportFlag()) {
@@ -228,9 +239,15 @@ bool RSOpincManager::CalculateLayerPartRenderDirtyRegion(RSRenderNode& node,
     const RectI& nodeAbsRect = geoPtr->GetAbsRect();
     if (!opincCache.IsLayerPartRenderUnchangeState()) {
         layerCurDirty = nodeAbsRect;
+        layerPartRenderDirtyManager->MergeDirtyRect(layerCurDirty);
+        layerPartRenderDirtyManager->UpdateDirty();
         layerCurDirty = geoPtr->MapRect(layerCurDirty.ConvertTo<float>(), invertMatrix);
-        RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", UnchangeState convert to layerCurDirty:[%d,%d,%d,%d]", node.GetId(),
-            layerCurDirty.GetLeft(), layerCurDirty.GetTop(), layerCurDirty.GetWidth(), layerCurDirty.GetHeight());
+        [[maybe_unused]] auto nodeAbsRectMap = geoPtr->MapRect(nodeAbsRect.ConvertTo<float>(), invertMatrix);
+        RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", UnchangeState convert to layerCurDirtyMap:[%d,%d,%d,%d], "
+            "nodeAbsRectMap:[%d,%d,%d,%d], nodeAbsRect:[%d,%d,%d,%d]", node.GetId(),
+            layerCurDirty.GetLeft(), layerCurDirty.GetTop(), layerCurDirty.GetWidth(), layerCurDirty.GetHeight(),
+            nodeAbsRectMap.GetLeft(), nodeAbsRectMap.GetTop(), nodeAbsRectMap.GetWidth(), nodeAbsRectMap.GetHeight(),
+            nodeAbsRect.GetLeft(), nodeAbsRect.GetTop(), nodeAbsRect.GetWidth(), nodeAbsRect.GetHeight());
         return true;
     }
 
@@ -239,21 +256,25 @@ bool RSOpincManager::CalculateLayerPartRenderDirtyRegion(RSRenderNode& node,
     layerPartRenderDirtyManager->UpdateDirty();
     layerCurDirty = layerPartRenderDirtyManager->GetDirtyRegion();
     {
-        RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", layerCurDirty:[%d,%d,%d,%d], visibleFilterRect:[%d,%d,%d,%d]",
-            node.GetId(), layerCurDirty.GetLeft(), layerCurDirty.GetTop(), layerCurDirty.GetWidth(),
-            layerCurDirty.GetHeight(), visibleFilterRect.GetLeft(), visibleFilterRect.GetTop(),
-            visibleFilterRect.GetWidth(), visibleFilterRect.GetHeight());
+        RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", layerCurDirty:[%d,%d,%d,%d], visibleFilterRect:[%d,%d,%d,%d], "
+            "nodeAbsRect:[%d,%d,%d,%d]", node.GetId(),
+            layerCurDirty.GetLeft(), layerCurDirty.GetTop(), layerCurDirty.GetWidth(), layerCurDirty.GetHeight(),
+            visibleFilterRect.GetLeft(), visibleFilterRect.GetTop(),
+            visibleFilterRect.GetWidth(), visibleFilterRect.GetHeight(),
+            nodeAbsRect.GetLeft(), nodeAbsRect.GetTop(), nodeAbsRect.GetWidth(), nodeAbsRect.GetHeight());
     }
     if (!layerCurDirty.IsInsideOf(nodeAbsRect)) {
-        RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", layerCurDirty:[%d,%d,%d,%d] not inside of nodeAbsRect:[%d,%d,%d,%d]",
-            node.GetId(), layerCurDirty.GetLeft(), layerCurDirty.GetTop(), layerCurDirty.GetWidth(),
-            layerCurDirty.GetHeight(), nodeAbsRect.GetLeft(), nodeAbsRect.GetTop(),
-            nodeAbsRect.GetWidth(), nodeAbsRect.GetHeight());
+        RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", layerCurDirty not inside of nodeAbsRect", node.GetId());
         layerCurDirty = nodeAbsRect;
+        layerPartRenderDirtyManager->MergeDirtyRect(layerCurDirty);
+        layerPartRenderDirtyManager->UpdateDirty();
     }
     layerCurDirty = geoPtr->MapRect(layerCurDirty.ConvertTo<float>(), invertMatrix);
-    RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", convert to layerCurDirty:[%d,%d,%d,%d]", node.GetId(),
-        layerCurDirty.GetLeft(), layerCurDirty.GetTop(), layerCurDirty.GetWidth(), layerCurDirty.GetHeight());
+    [[maybe_unused]] auto nodeAbsRectMap = geoPtr->MapRect(nodeAbsRect.ConvertTo<float>(), invertMatrix);
+    RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", convert to layerCurDirtyMap:[%d,%d,%d,%d], nodeAbsRectMap:[%d,%d,%d,%d]",
+        node.GetId(), layerCurDirty.GetLeft(), layerCurDirty.GetTop(),
+        layerCurDirty.GetWidth(), layerCurDirty.GetHeight(),
+        nodeAbsRectMap.GetLeft(), nodeAbsRectMap.GetTop(), nodeAbsRectMap.GetWidth(), nodeAbsRectMap.GetHeight());
 
     return true;
 }
@@ -274,6 +295,8 @@ void RSOpincManager::CalculateAndUpdateLayerPartRenderDirtyRegion(RSRenderNode& 
     if (node.GetOpincCache().GetLayerPartRenderNodeStrategyType() == NodeStrategyType::CACHE_DISABLE) {
         RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", LayerPartRender clean cache", node.GetId());
         node.MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_USER, false, false);
+        node.CheckDrawingCacheType();
+        stagingRenderParams->SetDrawingCacheType(node.GetDrawingCacheType());
         stagingRenderParams->SetLayerPartRenderEnabled(false);
         node.GetOpincCache().SetLayerPartRenderNodeStrategyType(NodeStrategyType::CACHE_NONE);
         layerPartRenderDirtyManager = nullptr;
@@ -291,10 +314,13 @@ void RSOpincManager::CalculateAndUpdateLayerPartRenderDirtyRegion(RSRenderNode& 
     }
 
     RectI layerCurDirty;
-    if (!CalculateLayerPartRenderDirtyRegion(node, layerPartRenderDirtyManager, visibleFilterRect, layerCurDirty)) {
+    if (!CalculateLayerPartRenderDirtyRegion(node, layerPartRenderDirtyManager, visibleFilterRect, layerCurDirty) ||
+        layerPartRenderDirtyManager->HasUifirstChild()) {
         node.MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_USER, false, false);
+        node.CheckDrawingCacheType();
+        stagingRenderParams->SetDrawingCacheType(node.GetDrawingCacheType());
         stagingRenderParams->SetLayerPartRenderEnabled(false);
-        RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", Calculate error, clear", node.GetId());
+        RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", Calculate error or has uifirst node, clear", node.GetId());
         return;
     }
 
@@ -303,6 +329,7 @@ void RSOpincManager::CalculateAndUpdateLayerPartRenderDirtyRegion(RSRenderNode& 
     }
     stagingRenderParams->SetLayerPartRenderEnabled(true);
     stagingRenderParams->SetLayerPartRenderCurrentFrameDirtyRegion(layerCurDirty);
+    node.AddToPendingSyncList();
     layerPartRenderDirtyManager = nullptr;
 }
 }

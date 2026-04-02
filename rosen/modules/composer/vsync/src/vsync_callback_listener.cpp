@@ -40,7 +40,6 @@ namespace OHOS {
 namespace Rosen {
 void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
 {
-    HitracePerfScoped perfTrace(ScopedDebugTrace::isEnabled(), HITRACE_TAG_GRAPHIC_AGP, "OnReadablePerfCount");
     {
         std::lock_guard<std::mutex> locker(cbMutex_);
         if (fileDescriptor < 0 || (readableCallback_ != nullptr && !readableCallback_(fileDescriptor))) {

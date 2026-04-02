@@ -412,7 +412,15 @@ void RSLogicalDisplayRenderNodeDrawable::DrawExpandDisplay(RSLogicalDisplayRende
         RS_LOGE("%{public}s screenParam is nullptr", __func__);
         return;
     }
+    auto virtualProcessor = RSProcessor::ReinterpretCast<RSUniRenderVirtualProcessor>(processor);
+    if (!virtualProcessor) {
+        RS_LOGE("RSScreenRenderNodeDrawable::DrawExpandDisplay virtualProcessor is null");
+        return;
+    }
     const auto& screenProperty = screenParam->GetScreenProperty();
+
+    RSAutoCanvasRestore acr(curCanvas_);
+    virtualProcessor->ScaleExpandIfNeed(curCanvas_);
 
     // Check for multi-surface extend mode (only when surfaces have specified regions)
     auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
@@ -1191,6 +1199,8 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirror(RSLogicalDisplayRenderParams
     virtualProcesser->CanvasClipRegionForUniscaleMode(visibleClipRectMatrix_, mirroredScreenProperty.GetIsSamplingOn());
     curCanvas_->ConcatMatrix(mirroredParams->GetMatrix());
     PrepareOffscreenRender(*mirroredDrawable, false, false);
+    // Add this flag to disable color picking operations during mirror screen redrawing
+    curCanvas_->SetIsDrawingOffscreenMirror(true);
 #ifdef RS_PROFILER_ENABLED
     if (auto canvas = RSCaptureRecorder::GetInstance().TryInstantCapture(static_cast<float>(curCanvas_->GetWidth()),
         static_cast<float>(curCanvas_->GetHeight()), SkpCaptureType::ON_CAPTURE)) {

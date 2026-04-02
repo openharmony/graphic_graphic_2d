@@ -145,6 +145,10 @@ void RSCanvasRenderNode::UpdateHDRNodeOnTreeState(NodeId displayNodeId)
         SetHdrNum(isOnTheTree, instanceRootNodeId, screenNodeId, HDRComponentType::UICOMPONENT);
         UpdateDisplayHDRNodeMap(isOnTheTree, displayNodeId);
     }
+    if (GetRenderProperties().HDRColorHeadroomEnabled()) {
+        SetHdrNum(isOnTheTree, instanceRootNodeId, screenNodeId, HDRComponentType::HDRCOLOR);
+        UpdateDisplayHDRNodeMap(isOnTheTree, displayNodeId);
+    }
     preScreenNodeId_ = GetScreenNodeId();
 }
 

@@ -510,6 +510,18 @@ uint32_t RSUniRenderThread::GetDefaultScreenRefreshRate() const
     return renderThreadParams ? renderThreadParams->GetDynamicRefreshRate() : 0;
 }
 
+uint32_t RSUniRenderThread::GetSurfaceFpsOpNum() const
+{
+    auto& renderThreadParams = GetRSRenderThreadParams();
+    return renderThreadParams ? renderThreadParams->GetSurfaceFpsOpNum() : 0;
+}
+
+std::vector<SurfaceFpsOp> RSUniRenderThread::GetSurfaceFpsOpList() const
+{
+    auto& renderThreadParams = GetRSRenderThreadParams();
+    return renderThreadParams ? renderThreadParams->GetSurfaceFpsOpList() : std::vector<SurfaceFpsOp>();
+}
+
 #ifdef RES_SCHED_ENABLE
 void RSUniRenderThread::SubScribeSystemAbility()
 {
@@ -990,6 +1002,7 @@ void RSUniRenderThread::ResetClearMemoryTask(bool isDoDirectComposition)
         RemoveTask(RECLAIM_MEMORY);
         SetIsPostedReclaimMemoryTask(false);
         if (ifInterrupt) {
+            RS_LOGE("RSUniRenderThread::ResetClearMemoryTask happen interrupt");
             isTimeToReclaim_.store(false);
             RSReclaimMemoryManager::Instance().SetReclaimInterrupt(false);
         } else if (!isDoDirectComposition) {

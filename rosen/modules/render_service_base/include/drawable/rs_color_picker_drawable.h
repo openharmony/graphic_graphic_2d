@@ -72,6 +72,7 @@ public:
     int64_t ScheduleColorPickIfReady(uint64_t vsyncTime);
 
     void ResetColorMemory();
+    EquivalentDarkMode GetLastEquivalentDarkMode();
 
     // main thread only
     void SetState(ColorPickerState state);

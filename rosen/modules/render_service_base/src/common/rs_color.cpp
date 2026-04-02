@@ -43,20 +43,22 @@ RSColor::RSColor(int16_t red, int16_t green, int16_t blue, int16_t alpha, Graphi
     red_ = red;
     green_ = green;
     blue_ = blue;
-    colorSpace_ = static_cast<int16_t>(colorSpace);
+    colorSpace_ = static_cast<int8_t>(colorSpace);
 }
 
 bool RSColor::operator==(const RSColor& rhs) const
 {
     return red_ == rhs.red_ && green_ == rhs.green_ && blue_ == rhs.blue_ && alpha_ == rhs.alpha_ &&
-           colorSpace_ == rhs.colorSpace_ && placeholder_ == rhs.placeholder_;
+           colorSpace_ == rhs.colorSpace_ && placeholder_ == rhs.placeholder_ &&
+           OHOS::ColorManager::FloatNearlyEqual(GetHeadroom(), Float16ToFloat32(rhs.headroom_));
 }
 
 bool RSColor::IsNearEqual(const RSColor& other, int16_t threshold) const
 {
     return (std::abs(red_ - other.red_) <= threshold) && (std::abs(green_ - other.green_) <= threshold) &&
            (std::abs(blue_ - other.blue_) <= threshold) && (std::abs(alpha_ - other.alpha_) <= threshold) &&
-           (colorSpace_ == other.colorSpace_) && (placeholder_ == other.placeholder_);
+           (colorSpace_ == other.colorSpace_) && (placeholder_ == other.placeholder_) &&
+           OHOS::ColorManager::FloatNearlyEqual(GetHeadroom(), Float16ToFloat32(other.headroom_));
 }
 
 RSColor RSColor::operator+(const RSColor& rhs) const
@@ -67,7 +69,26 @@ RSColor RSColor::operator+(const RSColor& rhs) const
     if (UNLIKELY(rhs.placeholder_ != 0)) {
         return rhs;
     }
-    return RSColor(red_ + rhs.red_, green_ + rhs.green_, blue_ + rhs.blue_, alpha_ + rhs.alpha_);
+    float lhsHeadroom = GetHeadroom();
+    float rhsHeadroom = Float16ToFloat32(rhs.headroom_);
+    if (lhsHeadroom < 1.0f || rhsHeadroom < 1.0f) {
+        return rhs;
+    }
+    if (rhsHeadroom > lhsHeadroom) {
+        RSColor color = RSColor(red_ * lhsHeadroom / rhsHeadroom + rhs.red_,
+                                green_ * lhsHeadroom / rhsHeadroom + rhs.green_,
+                                blue_ * lhsHeadroom / rhsHeadroom + rhs.blue_,
+                                alpha_ * lhsHeadroom / rhsHeadroom + rhs.alpha_);
+        color.SetHeadroom(rhsHeadroom);
+        return color;
+    } else {
+        RSColor color = RSColor(red_ + rhs.red_ * rhsHeadroom / lhsHeadroom,
+                                green_ + rhs.green_ * rhsHeadroom / lhsHeadroom,
+                                blue_ + rhs.blue_ * rhsHeadroom / lhsHeadroom,
+                                alpha_ + rhs.alpha_ * rhsHeadroom / lhsHeadroom);
+        color.SetHeadroom(lhsHeadroom);
+        return color;
+    }
 }
 
 RSColor RSColor::operator-(const RSColor& rhs) const
@@ -78,8 +99,27 @@ RSColor RSColor::operator-(const RSColor& rhs) const
     if (UNLIKELY(rhs.placeholder_ != 0)) {
         return rhs;
     }
-    return RSColor(red_ - rhs.red_, green_ - rhs.green_, blue_ - rhs.blue_, alpha_ - rhs.alpha_,
-        static_cast<GraphicColorGamut>(rhs.colorSpace_));
+    float lhsHeadroom = GetHeadroom();
+    float rhsHeadroom = Float16ToFloat32(rhs.headroom_);
+    if (lhsHeadroom < 1.0f || rhsHeadroom < 1.0f) {
+        return rhs;
+    }
+    if (rhsHeadroom > lhsHeadroom) {
+        RSColor color = RSColor(red_ * lhsHeadroom / rhsHeadroom - rhs.red_,
+                                green_ * lhsHeadroom / rhsHeadroom - rhs.green_,
+                                blue_ * lhsHeadroom / rhsHeadroom - rhs.blue_,
+                                alpha_ * lhsHeadroom / rhsHeadroom - rhs.alpha_,
+                                static_cast<GraphicColorGamut>(rhs.colorSpace_));
+        color.SetHeadroom(rhsHeadroom);
+        return color;
+    } else {
+        RSColor color = RSColor(red_ - rhs.red_ * rhsHeadroom / lhsHeadroom,
+                                green_ - rhs.green_ * rhsHeadroom / lhsHeadroom,
+                                blue_ - rhs.blue_ * rhsHeadroom / lhsHeadroom,
+                                alpha_ - rhs.alpha_ * rhsHeadroom / lhsHeadroom);
+        color.SetHeadroom(lhsHeadroom);
+        return color;
+    }
 }
 
 RSColor RSColor::operator*(float scale) const
@@ -87,7 +127,9 @@ RSColor RSColor::operator*(float scale) const
     if (UNLIKELY(placeholder_ != 0)) {
         return *this;
     }
-    return RSColor(round(red_ * scale), round(green_ * scale), round(blue_ * scale), round(alpha_ * scale));
+    RSColor color = RSColor(round(red_ * scale), round(green_ * scale), round(blue_ * scale), round(alpha_ * scale));
+    color.SetHeadroom(GetHeadroom());
+    return color;
 }
 
 RSColor& RSColor::operator*=(float scale)
@@ -300,6 +342,9 @@ void RSColor::Dump(std::string& out) const
     if (IsPlaceholder()) {
         out += " placeholder[" + std::to_string(placeholder_) + "]";
     }
+    if (!OHOS::ColorManager::FloatNearlyEqual(GetHeadroom(), 1.0f)) {
+        out += " headroom[" + std::to_string(GetHeadroom()) + "]";
+    }
 }
 ColorPlaceholder RSColor::GetPlaceholder() const
 {
@@ -311,7 +356,59 @@ bool RSColor::IsPlaceholder() const
 }
 void RSColor::SetPlaceholder(ColorPlaceholder ph)
 {
-    placeholder_ = static_cast<uint16_t>(ph);
+    placeholder_ = static_cast<uint8_t>(ph);
+}
+
+float RSColor::GetHeadroom() const
+{
+    return Float16ToFloat32(headroom_);
+}
+
+void RSColor::SetHeadroom(float headroom)
+{
+    if (headroom < 1.0f) {
+        headroom_ = Float32ToFloat16(1.0f);
+        return;
+    }
+    headroom_ = Float32ToFloat16(headroom);
+}
+
+float RSColor::Float16ToFloat32(float16 half) const
+{
+    int sign = (half & 0x8000) ? -1 : 1; //checking the most significant bit (MSB) of the half variable
+    int exponent = (half & 0x7C00) >> 10; // isolate the exponent bits in the half-precision floating-point format
+    int mantissa = half & 0x03FF; // isolate the mantissa bits in the half-precision floating-point format
+
+    if (exponent == 0) {
+        return sign * std::ldexp(static_cast<float>(mantissa), -24); // 24:offset for float16 subnormal
+    } else if (exponent == 31) { // 31:Max value for a 5-bit exponent in float16, representing infinity or NaN
+        return mantissa ? std::numeric_limits<float>::quiet_NaN() : sign * std::numeric_limits<float>::infinity();
+    } else {
+        return sign * std::ldexp(static_cast<float>(mantissa | 0x0400), exponent -25); // 25:offset for float16 normal
+    }
+}
+
+float16 RSColor::Float32ToFloat16(float value) const
+{
+    int f = *reinterpret_cast<int *>(&value);
+    int sign = (f >> 16) & 0x8000; //checking the most significant bit (MSB) of the half variable
+    int exponent = ((f >> 23) & 0xFF) - (127 -15); //127:Bias for float32, 15:Bias for float16
+    int mantissa = f & 0x007FFFFF;  // isolate the exponent bits
+
+    if (exponent <= 0) {
+        if (exponent < -10) { // 10:Smallest representable exponent in float16 subnormals
+            return sign;
+        }
+        mantissa = (mantissa | 0x00800000) >> (1 - exponent);  // isolate the exponent bits
+        return sign | (mantissa >> 13); // 13:Shift from 23-bit to 10-bit mantissa for float16
+    } else if (exponent == 0xFF - (127 -15)) { // 127:Bias for float32, 15:Bias for float16
+        return sign | 0x7C00 | (mantissa ? 1 : 0); // isolate the exponent bits
+    } else {
+        if (exponent > 30) { // 30:Max exponent value for float16
+            return sign | 0x7C00;  // isolate the exponent bits
+        }
+        return sign | (exponent << 10) | (mantissa >> 13); // 10:Shift for exponent in float16, 13:23-bit to 10-bit
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -195,6 +195,7 @@ export default namespace text {
     native didExceedMaxLines(): boolean;
     native getTextLines(): Array<TextLine>;
     native getActualTextRange(lineNumber: int, includeSpaces: boolean): Range;
+    native getVisibleTextRanges(): Array<Range>;
     native getLineMetrics(): Array<LineMetrics>;
     getLineMetrics(lineNumber: int): LineMetrics | undefined {
         return this.nativeGetLineMetricsAt(lineNumber);

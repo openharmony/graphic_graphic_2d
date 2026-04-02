@@ -208,6 +208,7 @@ public:
             case RSPropertyType::BG_BRIGHTNESS_NEGCOEFF: return "BgBrightnessNegcoeff";
             case RSPropertyType::BG_BRIGHTNESS_FRACTION: return "BgBrightnessFraction";
             case RSPropertyType::SHADOW_BLENDER_PARAMS: return "ShadowBlenderParams";
+            case RSPropertyType::HDR_DARKEN_BLENDER_PARAMS: return "HdrDarkenBlenderParams";
             case RSPropertyType::FRAME_GRAVITY: return "FrameGravity";
             case RSPropertyType::CLIP_RRECT: return "ClipRrect";
             case RSPropertyType::CLIP_BOUNDS: return "ClipBounds";
@@ -307,6 +308,7 @@ public:
             case RSPropertyType::HDR_BRIGHTNESS: return "HdrBrightness";
             case RSPropertyType::HDR_UI_BRIGHTNESS: return "HDRUIBrightness";
             case RSPropertyType::HDR_BRIGHTNESS_FACTOR: return "HdrBrightnessFactor";
+            case RSPropertyType::HDR_COLOR_HEADROOM: return "HDRColorHeadroom";
             case RSPropertyType::BEHIND_WINDOW_FILTER_RADIUS: return "BehindWindowFilterRadius";
             case RSPropertyType::BEHIND_WINDOW_FILTER_SATURATION: return "BehindWindowFilterSaturation";
             case RSPropertyType::BEHIND_WINDOW_FILTER_BRIGHTNESS: return "BehindWindowFilterBrightness";

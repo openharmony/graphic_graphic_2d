@@ -23,15 +23,7 @@
 
 namespace OHOS {
 namespace Rosen {
-struct RefreshRateParam {
-    uint32_t rate = 0;
-    uint64_t frameTimestamp = 0;
-    int64_t actualTimestamp = 0;
-    uint64_t vsyncId = 0;
-    uint64_t constraintRelativeTime = 0;
-    bool isForceRefresh = false;
-    uint64_t fastComposeTimeStampDiff = 0;
-};
+struct PipelineParam;
 
 struct SetRateRetryParam {
     int32_t retryCount = 0; // Number of retries attempted for frame switching
@@ -99,9 +91,8 @@ public:
 
     void ResetRetryCount(ScreenPowerStatus status);
     void SetScreenVBlankIdle() { vblankIdleCorrector_.SetScreenVBlankIdle(); }
-    void TransactRefreshRateParam(uint32_t& currentRate,
-        uint32_t pendingScreenRefreshRate, uint64_t frameTimestamp, uint64_t pendingConstraintRelativeTime);
-    void SwitchRefreshRate(const std::shared_ptr<HdiOutput>& hdiOutput, int64_t timestamp);
+    void SwitchRefreshRate(const std::shared_ptr<HdiOutput>& hdiOutput, int64_t timestamp,
+        const PipelineParam& pipelineParam);
 
     void RefreshRateCounts(std::string& dumpString);
     void ClearRefreshRateCounts(std::string& dumpString);
@@ -111,6 +102,12 @@ private:
         uint32_t rate = 0;
         uint64_t frameTimestamp = 0;
         uint64_t constraintRelativeTime = 0;
+        void setParam(uint32_t pendingRefreshRate, uint64_t timestamp, uint64_t pendingConstraintRelativeTime)
+        {
+            rate = pendingRefreshRate;
+            frameTimestamp = timestamp;
+            constraintRelativeTime = pendingConstraintRelativeTime;
+        }
     };
 
     void ExecuteSwitchRefreshRate(ScreenId screenId);

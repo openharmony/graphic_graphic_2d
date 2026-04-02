@@ -230,8 +230,6 @@ void PrintHiperfSurfaceLog(const std::string& counterContext, uint64_t counter)
 
 void RSRenderComposer::ComposerPrepare(uint32_t& currentRate, int64_t& delayTime, const PipelineParam& pipelineParam)
 {
-    hgmHardwareUtils_->TransactRefreshRateParam(currentRate, pipelineParam.pendingScreenRefreshRate,
-        pipelineParam.frameTimestamp, pipelineParam.pendingConstraintRelativeTime);
 #ifdef RES_SCHED_ENABLE
     ResschedEventListener::GetInstance()->ReportFrameToRSS();
 #endif
@@ -240,6 +238,7 @@ void RSRenderComposer::ComposerPrepare(uint32_t& currentRate, int64_t& delayTime
         setHardwareTaskNumCb_(unExecuteTaskNum_.load());
     }
     auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
+    currentRate = hgmCore.GetScreenCurrentRefreshRate(hgmCore.GetActiveScreenId());
     delayTime = UpdateDelayTime(hgmCore, currentRate, pipelineParam);
     delayTime_ = delayTime;
 }
@@ -271,7 +270,7 @@ void RSRenderComposer::ProcessComposerFrame(uint32_t currentRate, const Pipeline
 
     bool shouldDropFrame = IsDropDirtyFrame(layers);
     if (!shouldDropFrame) {
-        hgmHardwareUtils_->SwitchRefreshRate(hdiOutput_, startTime);
+        hgmHardwareUtils_->SwitchRefreshRate(hdiOutput_, startTime, pipelineParam);
     }
 
     if (RSSystemProperties::IsSuperFoldDisplay() && screenId_ == 0) {
@@ -350,7 +349,7 @@ int64_t RSRenderComposer::UpdateDelayTime(HgmCore& hgmCore,
     // We need to ensure the order of composition frames, postTaskTime(n + 1) must > postTaskTime(n),
     // and we give a delta time more between two composition tasks.
     int64_t currCommitTime = currTime + delayTime * NS_MS_UNIT_CONVERSION;
-    if (currCommitTime <= lastCommitTime_) {
+    if ((currCommitTime - lastCommitTime_) <= COMMIT_DELTA_TIME * NS_MS_UNIT_CONVERSION) {
         delayTime = delayTime +
             std::round((lastCommitTime_ - currCommitTime) * 1.0f / NS_MS_UNIT_CONVERSION) +
             COMMIT_DELTA_TIME;
@@ -560,9 +559,10 @@ int64_t RSRenderComposer::CalculateDelayTime(HgmCore& hgmCore, uint32_t currentR
     uint64_t dvsyncOffset = 0;
     int64_t compositionTime = period;
     int64_t delayTime = 0;
+    int64_t preTime = 0;
 
     if (getRealTimeOffsetOfDvsyncCb_ != nullptr) {
-        dvsyncOffset = getRealTimeOffsetOfDvsyncCb_(pipelineParam.frameTimestamp);
+        dvsyncOffset = getRealTimeOffsetOfDvsyncCb_(pipelineParam.frameTimestamp, preTime);
     }
     if (!hgmCore.GetLtpoEnabled()) {
         vsyncOffset = UNI_RENDER_VSYNC_OFFSET_DELAY_MODE;
@@ -586,10 +586,11 @@ int64_t RSRenderComposer::CalculateDelayTime(HgmCore& hgmCore, uint32_t currentR
         if (periodNum * idealPeriod + vsyncOffset + idealPulse < idealPipelineOffset) {
             periodNum = periodNum + 1;
         }
-        frameOffset = periodNum * idealPeriod + vsyncOffset
+        frameOffset = periodNum * idealPeriod + vsyncOffset + static_cast<int64_t>(dvsyncOffset)
             - static_cast<int64_t>(pipelineParam.fastComposeTimeStampDiff);
     }
-    expectCommitTime = pipelineParam.frameTimestamp + frameOffset - compositionTime - RESERVE_TIME;
+    // we use (pipelineParam.frameTimestamp - preTime) to get this frame real vsync timestamp
+    expectCommitTime = pipelineParam.frameTimestamp - preTime + frameOffset - compositionTime - RESERVE_TIME;
     int64_t diffTime = expectCommitTime - currTime;
     if (diffTime > 0 && period > 0) {
         delayTime = std::round(diffTime * 1.0f / NS_MS_UNIT_CONVERSION);
@@ -598,10 +599,10 @@ int64_t RSRenderComposer::CalculateDelayTime(HgmCore& hgmCore, uint32_t currentR
         "expectCommitTime: %" PRId64 ", currTime: %" PRId64 ", diffTime: %" PRId64 ", delayTime: %" PRId64 ", " \
         "frameOffset: %" PRId64 ", dvsyncOffset: %" PRIu64 ", vsyncOffset: %" PRId64 ", idealPeriod: %" PRId64 ", " \
         "period: %" PRId64 ", idealPipelineOffset: %" PRId64 ", fastComposeTimeStampDiff: %" PRIu64 ", " \
-        "frameTimestamp: %" PRId64 "",
+        "frameTimestamp: %" PRId64 ", preTime: %" PRId64 "",
         __func__, pipelineOffset, pipelineParam.actualTimestamp, expectCommitTime, currTime, diffTime, delayTime,
         frameOffset, dvsyncOffset, vsyncOffset, idealPeriod, period,
-        idealPipelineOffset, pipelineParam.fastComposeTimeStampDiff, pipelineParam.frameTimestamp);
+        idealPipelineOffset, pipelineParam.fastComposeTimeStampDiff, pipelineParam.frameTimestamp, preTime);
     RS_LOGD_IF(DEBUG_PIPELINE, "%{public}s period:%{public}" PRId64 " delayTime:%{public}" PRId64 "",
         __func__, period, delayTime);
     return delayTime;
@@ -1281,17 +1282,29 @@ void RSRenderComposer::UpdateTransactionData(std::shared_ptr<RSLayerTransactionD
 
 void RSRenderComposer::UpdateForSurfaceFps(const PipelineParam& pipelineParam)
 {
-    for (size_t i = 0; i < pipelineParam.GetSurfaceFpsOpNum(); i++) {
+    for (uint32_t i = 0; i < pipelineParam.GetSurfaceFpsOpNum(); i++) {
+        RS_OPTIONAL_TRACE_NAME_FMT(
+            "Update SurfaceFps type: %u, id: %" PRIu64 ", name: %s, uniqueId: %" PRIu64,
+            pipelineParam.SurfaceFpsOpList[i].surfaceFpsOpType,
+            pipelineParam.SurfaceFpsOpList[i].surfaceNodeId,
+            pipelineParam.SurfaceFpsOpList[i].surfaceName.c_str(),
+            pipelineParam.SurfaceFpsOpList[i].uniqueId);
         if (pipelineParam.SurfaceFpsOpList[i].surfaceFpsOpType ==
             static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_ADD)) {
-            RS_LOGD("update for surfaceFps add op id: %{public}" PRIu64 ", name: %{public}s",
-                pipelineParam.SurfaceFpsOpList[i].surfaceNodeId, pipelineParam.SurfaceFpsOpList[i].surfaceName.c_str());
+            RS_LOGD(
+                "update for surfaceFps add op id: %{public}" PRIu64 ", name: %{public}s, uniqueId: %{public}" PRIu64,
+                pipelineParam.SurfaceFpsOpList[i].surfaceNodeId,
+                pipelineParam.SurfaceFpsOpList[i].surfaceName.c_str(),
+                pipelineParam.SurfaceFpsOpList[i].uniqueId);
             RSSurfaceFpsManager::GetInstance().RegisterSurfaceFps(pipelineParam.SurfaceFpsOpList[i].surfaceNodeId,
                 pipelineParam.SurfaceFpsOpList[i].surfaceName.c_str(), pipelineParam.SurfaceFpsOpList[i].uniqueId);
         } else if (pipelineParam.SurfaceFpsOpList[i].surfaceFpsOpType ==
             static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_REMOVE)) {
-            RS_LOGD("update for surfaceFps remove op id: %{public}" PRIu64 ", name: %{public}s",
-                pipelineParam.SurfaceFpsOpList[i].surfaceNodeId, pipelineParam.SurfaceFpsOpList[i].surfaceName.c_str());
+            RS_LOGD(
+                "update for surfaceFps remove op id: %{public}" PRIu64 ", name: %{public}s uniqueId: %{public}" PRIu64,
+                pipelineParam.SurfaceFpsOpList[i].surfaceNodeId,
+                pipelineParam.SurfaceFpsOpList[i].surfaceName.c_str(),
+                pipelineParam.SurfaceFpsOpList[i].uniqueId);
             RSSurfaceFpsManager::GetInstance().UnregisterSurfaceFps(pipelineParam.SurfaceFpsOpList[i].surfaceNodeId);
         }
     }

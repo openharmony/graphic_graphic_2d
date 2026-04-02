@@ -45,7 +45,9 @@ namespace Rosen {
 namespace SPText {
 using PaintID = skt::ParagraphPainter::PaintID;
 constexpr double INFINITE_WIDTH = std::numeric_limits<double>::max();
-constexpr size_t INFINTE_RANGE_INDEX = std::numeric_limits<size_t>::max();
+constexpr size_t INFINITE_RANGE_INDEX = std::numeric_limits<size_t>::max();
+// Invalid text range representing an invalid or empty range
+constexpr TextRange INVALID_TEXT_RANGE = {0, 0};
 
 namespace {
 std::vector<TextBox> GetTxtTextBoxes(const std::vector<skt::TextBox>& skiaBoxes)
@@ -272,10 +274,17 @@ Range<size_t> ParagraphImpl::GetActualTextRange(int lineNumber, bool includeSpac
     }
 }
 
-Range<size_t> ParagraphImpl::GetEllipsisTextRange()
+Range<size_t> ParagraphImpl::GetEllipsisTextRange() const
 {
     skt::SkRange<size_t> range = paragraph_->getEllipsisTextRange();
     return Range<size_t>(range.start, range.end);
+}
+
+std::vector<TextRange> ParagraphImpl::GetVisibleTextRanges() const
+{
+    std::vector<TextRange> visibleRanges;
+    BuildFitStrRange(visibleRanges);
+    return visibleRanges;
 }
 
 std::vector<skt::LineMetrics> ParagraphImpl::GetLineMetrics()
@@ -623,13 +632,16 @@ std::shared_ptr<OHOS::Media::PixelMap> ParagraphImpl::GetTextPathImageByIndex(
         return nullptr;
     }
     
+    // If not all glyph paths in the range are successfully obtained, return nullptr to avoid
+    // returning an incomplete path result that could lead to rendering anomalies.
     skt::SkRange<size_t> range{start, end};
-    std::vector<skt::PathInfo> pathInfos = paragraph_->getTextPathByClusterRange(range);
-    if (pathInfos.empty()) {
-        TEXT_LOGD("No path info found for range: [%{public}zu, %{public}zu)", start, end);
+    auto [pathInfos, allSuccess] = paragraph_->getTextPathByClusterRange(range);
+    if (!allSuccess || pathInfos.empty()) {
+        TEXT_LOGD("Failed to get all path info for range: [%{public}zu, %{public}zu) path size: %{public}zu", start,
+            end, pathInfos.size());
         return nullptr;
     }
-    
+
     if (fill) {
         for (size_t i = 0; i < pathInfos.size(); i++) {
             auto& pathInfo = pathInfos[i];
@@ -664,20 +676,24 @@ TextLayoutResult ParagraphImpl::LayoutWithConstraints(const TextRectSize& limitR
     return layoutResult;
 }
 
-void ParagraphImpl::BuildFitStrRange(std::vector<TextRange>& fitRanges)
+void ParagraphImpl::BuildFitStrRange(std::vector<TextRange>& fitRanges) const
 {
     Range<size_t> ellipsisRange = GetEllipsisTextRange();
     skt::TextRange textRange = paragraph_->getUtf16TextRange();
     skt::TextRange lastLineTextRange = paragraph_->getLineUtf16TextRange(GetLineCount() - 1, true);
     // If there is no ellipsis, the fit range is 0 to end index of last line.
-    if (ellipsisRange.start == INFINTE_RANGE_INDEX) {
+    if (ellipsisRange.start == INFINITE_RANGE_INDEX) {
         fitRanges.push_back({0, lastLineTextRange.end});
         return;
     }
 
     // If there is one line head ellipsis, the fit range is the text range after ellipsis.
     if (ellipsisRange.start == 0) {
-        fitRanges.push_back({ellipsisRange.end, lastLineTextRange.end});
+        if (ellipsisRange.end < lastLineTextRange.end) {
+            fitRanges.push_back({ellipsisRange.end, lastLineTextRange.end});
+        } else {
+            fitRanges.push_back(INVALID_TEXT_RANGE);
+        }
     } else {
         fitRanges.push_back({textRange.start, ellipsisRange.start});
         // If there is middle ellipsis or multiple line head ellipsis, the fit ranges are 2 ranges.

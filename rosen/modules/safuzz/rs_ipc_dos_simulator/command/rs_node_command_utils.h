@@ -76,6 +76,8 @@ public:
                                     Uint64, PixelMap, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyShadowBlenderPara,
                                     Uint64, RSShadowBlenderPara, Uint64, PropertyUpdateType);
+    ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyHdrDarkenBlenderPara,
+                                    Uint64, RSHdrDarkenBlenderPara, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyShort,
                                     Uint64, Short, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyNGFilterBase,

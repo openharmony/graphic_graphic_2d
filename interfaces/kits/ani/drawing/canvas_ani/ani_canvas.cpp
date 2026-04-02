@@ -338,6 +338,7 @@ static const std::array g_methods = {
     ani_native_function { "isClipEmpty", nullptr, reinterpret_cast<void*>(AniCanvas::IsClipEmpty) },
     ani_native_function { "setMatrix", nullptr, reinterpret_cast<void*>(AniCanvas::SetMatrix) },
     ani_native_function { "resetMatrix", nullptr, reinterpret_cast<void*>(AniCanvas::ResetMatrix) },
+    ani_native_function { "resetClip", nullptr, reinterpret_cast<void*>(AniCanvas::ResetClip) },
     ani_native_function { "quickRejectPath", nullptr, reinterpret_cast<void*>(AniCanvas::QuickRejectPath) },
     ani_native_function { "quickRejectRect", nullptr, reinterpret_cast<void*>(AniCanvas::QuickRejectRect) },
     ani_native_function { "drawSingleCharacterWithFeatures", nullptr,
@@ -2183,6 +2184,17 @@ void AniCanvas::ResetMatrix(ani_env* env, ani_object obj)
     }
 
     aniCanvas->GetCanvas()->ResetMatrix();
+}
+
+void AniCanvas::ResetClip(ani_env* env, ani_object obj)
+{
+    auto aniCanvas = GetNativeFromObj<AniCanvas>(env, obj, AniGlobalField::GetInstance().canvasNativeObj);
+    if (aniCanvas == nullptr || aniCanvas->GetCanvas() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniCanvas::ResetClip canvas is nullptr.");
+        return;
+    }
+
+    aniCanvas->GetCanvas()->ResetClip();
 }
 
 ani_boolean AniCanvas::QuickRejectPath(ani_env* env, ani_object obj, ani_object pathObj)

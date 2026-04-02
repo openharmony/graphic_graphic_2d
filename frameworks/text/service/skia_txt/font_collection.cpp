@@ -283,6 +283,11 @@ void FontCollection::ClearCaches()
     fontCollection_->ClearFontFamilyCache();
 }
 
+void FontCollection::UpdateDefaultFamilies()
+{
+    fontCollection_->UpdateDefaultFamilies();
+}
+
 bool FontCollection::UnloadFont(const std::string& familyName)
 {
     if (SPText::DefaultFamilyNameMgr::IsThemeFontFamily(familyName) || familyName.empty()) {

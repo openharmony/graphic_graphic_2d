@@ -94,7 +94,7 @@ private:
     void DrawWiredMirrorOnDraw(RSLogicalDisplayRenderNodeDrawable& mirroredDrawable,
         RSLogicalDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
     void DrawMirrorScreen(RSLogicalDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
-    void DrawExpandDisplay(RSLogicalDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor = nullptr);
+    void DrawExpandDisplay(RSLogicalDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
     void PrepareOffscreenRender(const RSLogicalDisplayRenderNodeDrawable& displayDrawable, bool useFixedSize = false,
         bool useCanvasSize = true);
     void FinishOffscreenRender(const Drawing::SamplingOptions& sampling,

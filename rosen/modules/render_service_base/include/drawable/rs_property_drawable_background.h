@@ -22,6 +22,7 @@
 #include "drawable/rs_property_drawable.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
 #include "property/rs_properties_def.h"
+#include "render/rs_shadow.h"
 
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #include "external_window.h"
@@ -63,8 +64,8 @@ private:
     float stagingOffsetY_ = 0.0f;
     float elevation_ = 0.0f;
     float stagingElevation_ = 0.0f;
-    float radius_ = 0.0f;
-    float stagingRadius_ = 0.0f;
+    float radius_ = DEFAULT_SHADOW_RADIUS;
+    float stagingRadius_ = DEFAULT_SHADOW_RADIUS;
     int colorStrategy_ = 0;
     int stagingColorStrategy_ = 0;
     bool disableSDFBlur_ = false;

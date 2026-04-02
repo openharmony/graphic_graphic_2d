@@ -130,6 +130,39 @@ HWTEST_F(RSDirtyRegionManagerTest, OnSyncCurrentFrameDirtyStateChange002, Functi
     ASSERT_EQ(targetManager->GetCurrentFrameDirtyRegion(), dirtyRect);
 }
 
+/*
+ * @tc.name: HasUifirstChildState001
+ * @tc.desc: test SetHasUifirstChild and HasUifirstChild
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSDirtyRegionManagerTest, HasUifirstChildState001, Function | SmallTest | Level2)
+{
+    ASSERT_FALSE(rsDirtyManager->HasUifirstChild());
+
+    rsDirtyManager->SetHasUifirstChild(true);
+    ASSERT_TRUE(rsDirtyManager->HasUifirstChild());
+
+    rsDirtyManager->SetHasUifirstChild(false);
+    ASSERT_FALSE(rsDirtyManager->HasUifirstChild());
+}
+
+/*
+ * @tc.name: ClearResetsHasUifirstChild001
+ * @tc.desc: test Clear resets hasUifirstChild state
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSDirtyRegionManagerTest, ClearResetsHasUifirstChild001, Function | SmallTest | Level2)
+{
+    rsDirtyManager->SetHasUifirstChild(true);
+    ASSERT_TRUE(rsDirtyManager->HasUifirstChild());
+
+    rsDirtyManager->Clear();
+
+    ASSERT_FALSE(rsDirtyManager->HasUifirstChild());
+}
+
 /**
  * @tc.name: SetSurfaceSize001
  * @tc.desc: test results of SetSurfaceSize

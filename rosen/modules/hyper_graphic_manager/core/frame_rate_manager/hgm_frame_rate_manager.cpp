@@ -833,6 +833,17 @@ void HgmFrameRateManager::HandleTouchTask(pid_t pid, int32_t touchStatus, int32_
         cleanPidCallback_[pid].insert(CleanPidCallbackType::TOUCH_EVENT);
     }
 
+    // if hover frame up switch is open, POINTER_ACTION_PROXIMITY_IN and
+    // POINTER_ACTION_PROXIMITY_OUT need to transform to TOUCH_DOWN and TOUCH_UP
+    if (auto configData = HgmCore::Instance().GetPolicyConfigData();
+        configData != nullptr && configData->hoverFrameUpSwitch_) {
+        if (touchStatus == POINTER_ACTION_PROXIMITY_IN) {
+            touchStatus = TOUCH_DOWN;
+        } else if (touchStatus == POINTER_ACTION_PROXIMITY_OUT) {
+            touchStatus = TOUCH_UP;
+        }
+    }
+
     if (touchStatus == TOUCH_DOWN || touchStatus == TOUCH_PULL_DOWN) {
         HGM_LOGD("[touch manager] down");
         PolicyConfigData::StrategyConfig strategyRes;
@@ -1330,6 +1341,7 @@ void HgmFrameRateManager::UpdateASStateForFps(bool state)
     if (asStateForFps_.exchange(state) != state) {
         CreateVSyncSampler()->SetAdaptive(AdaptiveStatus() == SupportASStatus::SUPPORT_AS);
         RS_TRACE_NAME_FMT("ASStateForFps change new state: %d", state);
+        TriggerAdaptiveVsyncUpdateCallback();
     }
 }
 

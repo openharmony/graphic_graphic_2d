@@ -849,6 +849,32 @@ void RSMainThread::CleanResources(pid_t pid)
     }
 }
 
+bool RSMainThread::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
+{
+    RS_LOGI("GetMaxGpuBufferSize: start query GPU buffer size limits");
+
+#if !defined(RS_ENABLE_GL) && !defined(RS_ENABLE_VK)
+    RS_LOGE("GetMaxGpuBufferSize: No GPU backend enabled");
+    return false;
+#endif
+
+    bool querySuccess = false;
+    auto queryGpuLimits = [this, &maxWidth, &maxHeight, &querySuccess]() {
+        auto renderContext = isUniRender_ ? GetRenderEngine()->GetRenderContext() : renderEngine_->GetRenderContext();
+        if (renderContext) {
+            RS_TRACE_NAME_FMT("GetMaxGpuBufferSize task");
+            querySuccess = renderContext->QueryMaxGpuBufferSize(maxWidth, maxHeight);
+        }
+    };
+
+    if (isUniRender_) {
+        RSUniRenderThread::Instance().PostSyncTask(queryGpuLimits);
+    } else {
+        PostSyncTask(queryGpuLimits);
+    }
+    return querySuccess;
+}
+
 void RSMainThread::OnScreenConnected(const sptr<RSScreenProperty>& screenProperty)
 {
     if (!screenProperty) {
@@ -879,8 +905,8 @@ void RSMainThread::OnScreenPropertyChanged(
     }
     HandleScreenPropertyRefreshOneFrame(id, type);
     HandlePowerStatusChanged(id, type, property);
+    HandlePhysicalModeParamsChanged(id, type, property);
     UpdateScreenProperty(id, type, property);
-    RequestNextVSync();
 }
 
 void RSMainThread::ReleaseImageMem()
@@ -1030,6 +1056,15 @@ void RSMainThread::InitGPUCacheManager()
             return renderEnginePtr->GetGPUCacheManager();
         }
     );
+
+#ifdef HETERO_HDR_ENABLE
+    // Set GPUCacheManager callback to RSHeteroHDRManager (dependency injection)
+    RSHeteroHDRManager::Instance()->RegisterHpaeBufferDeleteCallback(
+        [renderEnginePtr]() -> std::shared_ptr<GPUCacheManager> {
+            return renderEnginePtr->GetGPUCacheManager();
+        }
+    );
+#endif
 
     // Set global GPU cache cleanup callback for RSSurfaceHandler (dependency injection)
     RSSurfaceHandler::SetGPUCacheCleanupCallback(
@@ -1860,6 +1895,9 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         };
     }
     nodeMap.TraverseSurfaceNodes(consumeAndUpdateNode_);
+    auto surfaceFpsOpList = GetSurfaceFpsOpList();
+    pipelineParam_.SurfaceFpsOpNum = static_cast<uint32_t>(surfaceFpsOpList.size());
+    pipelineParam_.SurfaceFpsOpList = std::move(surfaceFpsOpList);
     lppVideoHandler_.JudgeRequestVsyncForLpp(vsyncId_);
     DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi(timestamp_);
     RSJankStats::GetInstance().AvcodecVideoCollectFinish();
@@ -2750,6 +2788,7 @@ void RSMainThread::Render()
         renderThreadParams_->SetUIFirstCurrentFrameCanSkipFirstWait(
             RSUifirstManager::Instance().GetCurrentFrameSkipFirstWait());
         renderThreadParams_->SetHasLppVideo(lppVideoHandler_.HasLppVideo());
+        renderThreadParams_->SetSurfaceFpsOp(pipelineParam_.SurfaceFpsOpNum, pipelineParam_.SurfaceFpsOpList);
 #ifdef RS_ENABLE_TV_PQ_METADATA
         RSTvMetadataManager::Instance().SetUniRenderThreadParam(renderThreadParams_);
 #endif
@@ -5217,10 +5256,10 @@ void RSMainThread::SetHardwareTaskNum(uint32_t num)
     }
 }
 
-uint64_t RSMainThread::GetRealTimeOffsetOfDvsync(int64_t time)
+uint64_t RSMainThread::GetRealTimeOffsetOfDvsync(int64_t time, int64_t& preTime)
 {
     if (rsVsyncManagerAgent_ != nullptr) {
-        return rsVsyncManagerAgent_->GetRealTimeOffsetOfDvsync(time);
+        return rsVsyncManagerAgent_->GetRealTimeOffsetOfDvsync(time, preTime);
     }
     return 0;
 }
@@ -5315,6 +5354,7 @@ static bool NeedForceRefreshOneFrame(ScreenPropertyType type)
         case ScreenPropertyType::GAMUT_MAP:
         case ScreenPropertyType::MULTI_SURFACE_CONFIGS:
         case ScreenPropertyType::RENDER_RESOLUTION:
+        case ScreenPropertyType::SAMPLING_OPTION:
         case ScreenPropertyType::SCREEN_STATUS:
         case ScreenPropertyType::SCREEN_SWITCH_STATUS:
         case ScreenPropertyType::WHITE_LIST:
@@ -5340,6 +5380,7 @@ void RSMainThread::HandleScreenPropertyRefreshOneFrame(ScreenId id, ScreenProper
             }
         });
 
+        SetDirtyFlag();
         ForceRefreshForUni();
     }
 }
@@ -5388,6 +5429,45 @@ void RSMainThread::HandlePowerStatusChanged(ScreenId id,
 
     auto& nodeMap = context_->GetNodeMap();
     nodeMap.TraverseScreenNodes(checkPowerStatus);
+}
+
+void RSMainThread::HandlePhysicalModeParamsChanged(
+    ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property)
+{
+    if (type != ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE) {
+        return;
+    }
+
+    using T = typename PropertyTypeMapper<ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE>::value_type;
+    auto newProperty = static_cast<ScreenProperty<T>*>(property.GetRefPtr());
+    if (!newProperty) {
+        return;
+    }
+
+    bool needTraverseNodeTree = false;
+    auto& nodeMap = context_->GetNodeMap();
+    nodeMap.TraverseScreenNodes([id, newProperty, this, &needTraverseNodeTree](const auto& node) {
+        if (id != node->GetScreenId()) {
+            return;
+        }
+
+        auto [newWidth, newHeight, newRefreshRate] = newProperty->Get();
+        const auto& property = node->GetScreenProperty();
+
+        bool needResetDirty = newWidth != property.GetPhyWidth() || newHeight != property.GetPhyHeight() ||
+            property.GetConnectionType() == ScreenConnectionType::DISPLAY_CONNECTION_TYPE_EXTERNAL;
+        if (needResetDirty) {
+            node->SetScreenDirtyFlag(true);
+            needTraverseNodeTree |= true;
+        } else if (RSRealtimeRefreshRateManager::Instance().GetShowRefreshRateEnabled()) {
+            needTraverseNodeTree |= true;
+        }
+    });
+
+    if (needTraverseNodeTree) {
+        SetDirtyFlag();
+        RequestNextVSync();
+    }
 }
 
 void RSMainThread::DestroyScreenNode(ScreenId screenId)
@@ -5513,6 +5593,44 @@ void RSMainThread::TransitionDataMutexUnlock()
 void RSMainThread::CheckPackageInConfigList(const std::vector<std::string>& packageList)
 {
     hwcContext_->CheckPackageInConfigList(packageList);
+}
+
+void RSMainThread::AddSurfaceFpsOp(const SurfaceFpsOp& op)
+{
+    std::lock_guard<std::mutex> lock(surfaceFpsOpMutex_);
+    if (op.surfaceFpsOpType == static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_ADD)) {
+        addSurfaceFpsOpMap_[op.surfaceNodeId] = op;
+    } else if (op.surfaceFpsOpType == static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_REMOVE)) {
+        rmvSurfaceFpsOpMap_[op.surfaceNodeId] = op;
+    }
+}
+
+std::vector<SurfaceFpsOp> RSMainThread::GetSurfaceFpsOpList()
+{
+    std::vector<SurfaceFpsOp> surfaceFpsOpList;
+    {
+        std::lock_guard<std::mutex> lock(surfaceFpsOpMutex_);
+        surfaceFpsOpList.reserve(addSurfaceFpsOpMap_.size() + rmvSurfaceFpsOpMap_.size());
+        for (const auto& [_, op] : addSurfaceFpsOpMap_) {
+            surfaceFpsOpList.push_back(op);
+        }
+        for (const auto& [_, op] : rmvSurfaceFpsOpMap_) {
+            surfaceFpsOpList.push_back(op);
+        }
+    }
+    return surfaceFpsOpList;
+}
+
+void RSMainThread::RmvSurfaceFpsOp(const std::vector<SurfaceFpsOp>& rmvList)
+{
+    std::lock_guard<std::mutex> lock(surfaceFpsOpMutex_);
+    for (const auto& op : rmvList) {
+        if (op.surfaceFpsOpType == static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_ADD)) {
+            addSurfaceFpsOpMap_.erase(op.surfaceNodeId);
+        } else if (op.surfaceFpsOpType == static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_REMOVE)) {
+            rmvSurfaceFpsOpMap_.erase(op.surfaceNodeId);
+        }
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

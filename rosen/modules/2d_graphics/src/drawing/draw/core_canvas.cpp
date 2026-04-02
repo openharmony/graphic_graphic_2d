@@ -382,6 +382,16 @@ void CoreCanvas::DrawColor(ColorQuad color, BlendMode mode)
     impl_->DrawColor(color, mode);
 }
 
+void CoreCanvas::DrawUIColor(UIColor color, BlendMode mode)
+{
+#ifdef DRAWING_DISABLE_API
+    if (DrawingConfig::IsDisabled(DrawingConfig::DrawingDisableFlag::DISABLE_COLOR)) {
+        return;
+    }
+#endif
+    impl_->DrawUIColor(color, mode);
+}
+
 void CoreCanvas::DrawRegion(const Region& region)
 {
 #ifdef DRAWING_DISABLE_API

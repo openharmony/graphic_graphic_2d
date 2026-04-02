@@ -25,6 +25,7 @@
 #include "effect/include/color_gradient_effect_para.h"
 #include "effect/include/frosted_glass_effect_para.h"
 #include "effect/include/shadow_blender.h"
+#include "effect/include/hdr_darken_blender.h"
 
 #include "effect/include/visual_effect.h"
 #include "effect/include/visual_effect_para.h"
@@ -61,6 +62,9 @@ private:
     static napi_value CreateEffect(napi_env env, napi_callback_info info);
     static napi_value CreateBrightnessBlender(napi_env env, napi_callback_info info);
     static napi_value CreateHdrBrightnessBlender(napi_env env, napi_callback_info info);
+    static napi_value CreateHdrDarkenBlender(napi_env env, napi_callback_info info);
+    static bool CheckHdrDarkenBlender(napi_env env, napi_value jsObject);
+    static bool ParseHdrDarkenBlender(napi_env env, napi_value jsObject, HdrDarkenBlender* blender);
     static napi_value SetBackgroundColorBlender(napi_env env, napi_callback_info info);
     static bool ParseBrightnessBlender(napi_env env, napi_value jsObject, BrightnessBlender* blender);
     static napi_value CreateShadowBlender(napi_env env, napi_callback_info info);

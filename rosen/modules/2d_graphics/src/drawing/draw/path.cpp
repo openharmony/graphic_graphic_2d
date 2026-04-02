@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -248,6 +248,21 @@ int Path::CountPoints() const
 Point Path::GetPoint(int index) const
 {
     return impl_->GetPoint(index);
+}
+
+std::vector<Point> Path::GetPointData() const
+{
+    return impl_->GetPointData();
+}
+
+std::vector<PathVerb> Path::GetVerbData() const
+{
+    return impl_->GetVerbData();
+}
+
+std::vector<float> Path::GetConicWeightData() const
+{
+    return impl_->GetConicWeightData();
 }
 
 bool Path::IsInterpolate(const Path& other)

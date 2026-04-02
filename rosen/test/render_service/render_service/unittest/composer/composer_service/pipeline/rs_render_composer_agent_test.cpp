@@ -924,7 +924,7 @@ HWTEST_F(RsRenderComposerAgentTest, SetVsyncManagerCallbacks_NullComposer_EarlyR
     // Create dummy callbacks
     auto setHardwareTaskNumCb = [](uint32_t) {};
     auto setTaskEndWithTimeCb = [](uint64_t) {};
-    auto getRealTimeOffsetOfDvsyncCb = [](uint64_t) -> uint64_t { return 0; };
+    auto getRealTimeOffsetOfDvsyncCb = [](uint64_t, int64_t&) -> uint64_t { return 0; };
 
     // Call SetVsyncManagerCallbacks with null composer
     // Line 379 branch: rsRenderComposer_ == nullptr -> true
@@ -951,7 +951,7 @@ HWTEST_F(RsRenderComposerAgentTest, SetVsyncManagerCallbacks_ValidComposer_Succe
     // Create dummy callbacks
     auto setHardwareTaskNumCb = [](uint32_t) {};
     auto setTaskEndWithTimeCb = [](uint64_t) {};
-    auto getRealTimeOffsetOfDvsyncCb = [](uint64_t) -> uint64_t { return 0; };
+    auto getRealTimeOffsetOfDvsyncCb = [](uint64_t, int64_t&) -> uint64_t { return 0; };
 
     // Call SetVsyncManagerCallbacks with valid composer
     // Line 379 branch: rsRenderComposer_ == nullptr -> false
@@ -981,7 +981,7 @@ HWTEST_F(RsRenderComposerAgentTest, SetVsyncManagerCallbacks_AgentNotNull_Compos
     // Create dummy callbacks
     auto setHardwareTaskNumCb = [](uint32_t) {};
     auto setTaskEndWithTimeCb = [](uint64_t) {};
-    auto getRealTimeOffsetOfDvsyncCb = [](uint64_t) -> uint64_t { return 0; };
+    auto getRealTimeOffsetOfDvsyncCb = [](uint64_t, int64_t&) -> uint64_t { return 0; };
 
     // Call SetVsyncManagerCallbacks
     agent->SetVsyncManagerCallbacks(setHardwareTaskNumCb, setTaskEndWithTimeCb, getRealTimeOffsetOfDvsyncCb);
@@ -1020,7 +1020,7 @@ HWTEST_F(RsRenderComposerAgentTest, SetVsyncManagerCallbacks_CallbacksExecute, T
 
     auto setHardwareTaskNumCb = [&hardwareTaskNumCalled](uint32_t) { hardwareTaskNumCalled.store(true); };
     auto setTaskEndWithTimeCb = [&taskEndWithTimeCalled](uint64_t) { taskEndWithTimeCalled.store(true); };
-    auto getRealTimeOffsetOfDvsyncCb = [&realTimeOffsetCalled](uint64_t) -> uint64_t {
+    auto getRealTimeOffsetOfDvsyncCb = [&realTimeOffsetCalled](uint64_t, int64_t&) -> uint64_t {
         realTimeOffsetCalled.store(true);
         return 0;
     };
@@ -1051,7 +1051,7 @@ HWTEST_F(RsRenderComposerAgentTest, SetVsyncManagerCallbacks_MultipleCalls, Test
     // Create dummy callbacks
     auto setHardwareTaskNumCb = [](uint32_t) {};
     auto setTaskEndWithTimeCb = [](uint64_t) {};
-    auto getRealTimeOffsetOfDvsyncCb = [](uint64_t) -> uint64_t { return 0; };
+    auto getRealTimeOffsetOfDvsyncCb = [](uint64_t, int64_t&) -> uint64_t { return 0; };
 
     // Call SetVsyncManagerCallbacks multiple times
     for (int i = 0; i < 5; i++) {
@@ -1119,7 +1119,7 @@ HWTEST_F(RsRenderComposerAgentTest, SetVsyncManagerCallbacks_MixedNullCallbacks,
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     // Call with third callback valid, others null
-    auto getRealTimeOffsetOfDvsyncCb = [](uint64_t) -> uint64_t { return 0; };
+    auto getRealTimeOffsetOfDvsyncCb = [](uint64_t, int64_t&) -> uint64_t { return 0; };
     agent->SetVsyncManagerCallbacks(nullptr, nullptr, getRealTimeOffsetOfDvsyncCb);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 

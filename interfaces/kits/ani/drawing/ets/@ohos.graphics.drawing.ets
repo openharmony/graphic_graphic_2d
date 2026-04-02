@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1279,6 +1279,15 @@ namespace drawing {
      * @since 20
      */
     native resetMatrix(): void;
+
+    /**
+     * Resets the clip status.
+     *
+     * @syscap SystemCapability.Graphics.Drawing
+     * @stagemodelonly
+     * @since 26.0.0
+     */
+    native resetClip(): void;
 
     /**
      * Checks whether the path is not intersecting with the canvas area. The canvas area includes its boundaries.
@@ -4738,6 +4747,46 @@ namespace drawing {
      * @since 20
      */
     native buildFromSvgString(str: string): boolean;
+
+    /**
+     * Converts path to an SVG string.
+     *
+     * @returns { string } The SVG string of the path.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @stagemodelonly
+     * @since 26.0.0
+     */
+    native convertToSvgString(): string;
+
+    /**
+     * Gets path point data.
+     *
+     * @returns { Array<common2D.Point> } path points array.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @stagemodelonly
+     * @since 26.0.0 dynamic&static
+     */
+    native getPointData(): Array<common2D.Point>;
+
+    /**
+     * Gets path verb data.
+     *
+     * @returns { Array<PathIteratorVerb> } path verbs array.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @stagemodelonly
+     * @since 26.0.0 dynamic&static
+     */
+    native getVerbData(): Array<PathIteratorVerb>;
+
+    /**
+     * Gets path conic weight data.
+     *
+     * @returns { Array<double> } path conic weight array.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @stagemodelonly
+     * @since 26.0.0 dynamic&static
+     */
+    native getConicWeightData(): Array<double>;
 
     /**
      * Obtains the operation iterator of this path.

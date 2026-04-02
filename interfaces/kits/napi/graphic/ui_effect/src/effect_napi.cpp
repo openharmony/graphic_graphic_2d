@@ -40,6 +40,7 @@ napi_value EffectNapi::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_STATIC_FUNCTION("createBrightnessBlender", CreateBrightnessBlender),
         DECLARE_NAPI_STATIC_FUNCTION("createHdrBrightnessBlender", CreateHdrBrightnessBlender),
         DECLARE_NAPI_STATIC_FUNCTION("createShadowBlender", CreateShadowBlender),
+        DECLARE_NAPI_STATIC_FUNCTION("createHdrDarkenBlender", CreateHdrDarkenBlender),
     };
 
     napi_value constructor = nullptr;
@@ -662,6 +663,82 @@ napi_value EffectNapi::CreateShadowBlender(napi_env env, napi_callback_info info
         UIEFFECT_LOG_E("EffectNapi CreateShadowBlender wrap fail"));
 
     return nativeObj;
+}
+
+napi_value EffectNapi::CreateHdrDarkenBlender(napi_env env, napi_callback_info info)
+{
+    const size_t requireArgc = NUM_1;
+    size_t realArgc = NUM_1;
+    napi_value argv[NUM_1];
+    napi_value thisVar = nullptr;
+    napi_status status;
+    UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && realArgc == requireArgc, nullptr,
+        UIEFFECT_LOG_E("EffectNapi CreateHdrDarkenBlender parsing input fail"));
+
+    napi_value nativeObj = argv[0];
+    UIEFFECT_NAPI_CHECK_RET_D(nativeObj != nullptr, nullptr,
+        UIEFFECT_LOG_E("EffectNapi CreateHdrDarkenBlender nativeObj is nullptr"));
+
+    HdrDarkenBlender* blender = new(std::nothrow) HdrDarkenBlender();
+    UIEFFECT_NAPI_CHECK_RET_D(blender != nullptr, nullptr,
+        UIEFFECT_LOG_E("EffectNapi CreateHdrDarkenBlender blender is nullptr"));
+
+    UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(CheckHdrDarkenBlender(env, nativeObj) &&
+        ParseHdrDarkenBlender(env, nativeObj, blender), nullptr, blender,
+        UIEFFECT_LOG_E("EffectNapi CreateHdrDarkenBlender parse failed"));
+
+    status = napi_wrap(
+        env, nativeObj, blender,
+        [](napi_env env, void* data, void* hint) {
+            HdrDarkenBlender* blenderObj = (HdrDarkenBlender*)data;
+            delete blenderObj;
+        },
+        nullptr, nullptr);
+    UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, blender,
+        UIEFFECT_LOG_E("EffectNapi CreateHdrDarkenBlender wrap fail"));
+
+    return nativeObj;
+}
+
+bool EffectNapi::CheckHdrDarkenBlender(napi_env env, napi_value jsObject)
+{
+    bool result = true;
+    napi_status status = napi_has_named_property(env, jsObject, "hdrBrightnessRatio", &result);
+    if (!((status == napi_ok) && result)) {
+        UIEFFECT_LOG_E("EffectNapi CheckHdrDarkenBlender hdrBrightnessRatio fail");
+        return false;
+    }
+    status = napi_has_named_property(env, jsObject, "grayscaleFactor", &result);
+    if (status != napi_ok) {
+        UIEFFECT_LOG_E("EffectNapi CheckHdrDarkenBlender grayscaleFactor fail");
+        return false;
+    }
+
+    return true;
+}
+
+bool EffectNapi::ParseHdrDarkenBlender(napi_env env, napi_value jsObject, HdrDarkenBlender* blender)
+{
+    double val;
+    bool result = true;
+    Vector3f tmpVector3 = {0.299, 0.587, 0.114}; // default value
+    uint32_t parseTimes = 0;
+
+    if (ParseJsDoubleValue(env, jsObject, "hdrBrightnessRatio", val)) {
+        blender->SetHdrBrightnessRatio(static_cast<float>(val));
+        parseTimes++;
+    }
+    napi_status status = napi_has_named_property(env, jsObject, "grayscaleFactor", &result);
+    if ((status == napi_ok) && !result) { // grayscaleFactor is optional
+        blender->SetGrayscaleFactor(tmpVector3);
+        parseTimes++;
+    } else if (ParseJsVec3Value(env, jsObject, "grayscaleFactor", tmpVector3)) {
+        blender->SetGrayscaleFactor(tmpVector3);
+        parseTimes++;
+    }
+
+    return (parseTimes == NUM_2);
 }
 
 bool EffectNapi::CheckCreateShadowBlender(napi_env env, napi_value jsObject)

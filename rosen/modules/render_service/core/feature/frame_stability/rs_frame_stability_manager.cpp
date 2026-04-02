@@ -32,13 +32,43 @@ RSFrameStabilityManager& RSFrameStabilityManager::GetInstance()
     return instance;
 }
 
+void RSFrameStabilityManager::CleanResourcesByPid(pid_t pid)
+{
+    RS_LOGD("CleanResourcesByPid remove context by pid=%{public}d", pid);
+    {
+        std::lock_guard<std::mutex> detectorLock(detectorMutex_);
+        EraseIf(screenDetectorContexts_, [pid](const auto& iter) {
+            return iter.second && iter.second->pid == pid;
+        });
+    }
+    {
+        std::lock_guard<std::mutex> collectorLock(collectorMutex_);
+        EraseIf(screenCollectorContexts_, [pid](const auto& iter) {
+            return iter.second && iter.second->pid == pid;
+        });
+    }
+}
+
+void RSFrameStabilityManager::CleanResourcesByScreenId(ScreenId screenId)
+{
+    RS_LOGD("CleanResourcesByScreenId remove context by screenId=%{public}" PRIu64 "", screenId);
+    {
+        std::lock_guard<std::mutex> detectorLock(detectorMutex_);
+        screenDetectorContexts_.erase(static_cast<uint64_t>(screenId));
+    }
+    {
+        std::lock_guard<std::mutex> collectorLock(collectorMutex_);
+        screenCollectorContexts_.erase(static_cast<uint64_t>(screenId));
+    }
+}
+
 int32_t RSFrameStabilityManager::RegisterFrameStabilityDetection(
     pid_t pid,
     const FrameStabilityTarget& target,
     const FrameStabilityConfig& config,
     sptr<RSIFrameStabilityCallback> callback)
 {
-    if (!callback) {
+    if (callback == nullptr) {
         RS_LOGE("RegisterFrameStabilityDetection id: %{public}" PRIu64 ", "
             "callback is null", target.id);
         return static_cast<int32_t>(FrameStabilityErrorCode::NULL_CALLBACK);
@@ -76,6 +106,9 @@ int32_t RSFrameStabilityManager::RegisterFrameStabilityDetection(
     RS_LOGI("RegisterFrameStabilityDetection success, pid=%{public}d, "
         "type=%{public}d, id=%{public}" PRIu64 ", stableDuration=%{public}" PRIu32 ", changePercent=%{public}f",
         pid, target.type, target.id, config.stableDuration, config.changePercent);
+    RS_TRACE_NAME_FMT("RegisterFrameStabilityDetection success, pid=%d, "
+        "type=%d, id=%" PRIu64 ", stableDuration=%" PRIu32 ", changePercent=%f",
+        pid, target.type, target.id, config.stableDuration, config.changePercent);
 
     return static_cast<int32_t>(FrameStabilityErrorCode::SUCCESS);
 }
@@ -96,6 +129,7 @@ int32_t RSFrameStabilityManager::UnregisterFrameStabilityDetection(pid_t pid, co
     screenDetectorContexts_.erase(target.id);
     RS_LOGI("UnregisterFrameStabilityDetection, pid=%{public}d, "
         "type=%{public}d, id=%{public}" PRIu64, pid, target.type, target.id);
+    RS_TRACE_NAME_FMT("UnregisterFrameStabilityDetection, pid=%d, type=%d, id=%" PRIu64, pid, target.type, target.id);
     return static_cast<int32_t>(FrameStabilityErrorCode::SUCCESS);
 }
 
@@ -124,6 +158,8 @@ int32_t RSFrameStabilityManager::StartFrameStabilityCollection(
     RS_LOGI("StartFrameStabilityCollection success, pid=%{public}d, "
         "type=%{public}d, id=%{public}" PRIu64 ", changePercent=%{public}f",
         pid, target.type, target.id, config.changePercent);
+    RS_TRACE_NAME_FMT("StartFrameStabilityCollection success, pid=%d, type=%d, id=%" PRIu64 ", changePercent=%f",
+        pid, target.type, target.id, config.changePercent);
 
     return static_cast<int32_t>(FrameStabilityErrorCode::SUCCESS);
 }
@@ -139,7 +175,6 @@ int32_t RSFrameStabilityManager::GetFrameStabilityResult(pid_t pid, const FrameS
     }
 
     auto collectorContext = it->second;
-
     float percentage = CalculateRegionPercentage(
         collectorContext->collectionDirtyRegion, collectorContext->screenArea);
     result = ROSEN_LE(percentage, collectorContext->config.changePercent);
@@ -148,19 +183,19 @@ int32_t RSFrameStabilityManager::GetFrameStabilityResult(pid_t pid, const FrameS
     RS_LOGI("GetFrameStabilityResult success, pid=%{public}d, "
         "type=%{public}d, id=%{public}" PRIu64 ", percentage=%{public}f, result=%{public}d",
         pid, target.type, target.id, percentage, result);
+    RS_TRACE_NAME_FMT("GetFrameStabilityResult success, pid=%d, type=%d, id=%" PRIu64 ", percentage=%f, result=%d",
+        pid, target.type, target.id, percentage, result);
 
     return static_cast<int32_t>(FrameStabilityErrorCode::SUCCESS);
 }
 
 float RSFrameStabilityManager::CalculateRegionPercentage(const Occlusion::Region& region, float screenArea)
 {
-    if (screenArea <= 0) {
+    if (ROSEN_LE(screenArea, 0.0f)) {
         return 0.0f;
     }
 
-    int64_t regionArea = region.Area();
-
-    return static_cast<float>(regionArea) / screenArea;
+    return static_cast<float>(region.Area()) / screenArea;
 }
 
 void RSFrameStabilityManager::TriggerCallback(uint64_t targetId, bool isStable)
@@ -172,12 +207,12 @@ void RSFrameStabilityManager::TriggerCallback(uint64_t targetId, bool isStable)
     }
 
     auto detectorContext = it->second;
-    if (!detectorContext->callback) {
+    if (detectorContext->callback == nullptr) {
         RS_LOGE("TriggerCallback callback is null");
         return;
     }
-    RS_LOGI("TriggerCallback, id=%{public}" PRIu64 ", isStable=%{public}d",
-        targetId, isStable);
+    RS_LOGI("TriggerCallback, id=%{public}" PRIu64 ", isStable=%{public}d", targetId, isStable);
+    RS_TRACE_NAME_FMT("RSFrameStabilityManager::TriggerCallback, id=%" PRIu64 ", isStable=%d", targetId, isStable);
     detectorContext->callback->OnFrameStabilityChanged(isStable);
 }
 

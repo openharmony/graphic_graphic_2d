@@ -475,6 +475,13 @@ public:
     float GetHDRBrightnessFactor() const;
 
     /**
+     * @brief Gets the headroom of HDR Color.
+     *
+     * @return The  headroom of HDR Color.
+     */
+    float GetHDRColorHeadroom() const;
+
+    /**
      * @brief Gets the degree of light up effect.
      *
      * @return The light up effect degree.
