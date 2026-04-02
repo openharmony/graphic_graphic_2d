@@ -4594,7 +4594,7 @@ void RSRenderNode::OnSync()
     }
 
     if (nodeGroupType_ & NodeGroupType::GROUPED_BY_LAYER) {
-        layerDrawables_.emplace_back(renderDrawable_);
+        RSLayerCacheManagerBase::layerDrawables_.emplace_back(renderDrawable_);
     }
 
     if (drawableVecNeedClear_) {

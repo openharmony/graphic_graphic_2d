@@ -17,6 +17,6 @@
 
 namespace OHOS {
 namespace Rosen {
-    std::vector<std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter>> layerDrawables_;
+    std::vector<std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter>> RSLayerCacheManagerBase::layerDrawables_;
 } // namespace Rosen
 } // namespace OHOS

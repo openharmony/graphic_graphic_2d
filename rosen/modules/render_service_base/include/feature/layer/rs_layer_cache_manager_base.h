@@ -21,10 +21,10 @@
 
 namespace OHOS {
 namespace Rosen {
-extern RSB_EXPORT std::vector<std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter>> layerDrawables_;
-class RSLayerCacheManagerBase {
+class RSB_EXPORT RSLayerCacheManagerBase {
 public:
     virtual ~RSLayerCacheManagerBase() = default;
+    static std::vector<std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter>> layerDrawables_;
 };
 } // namespace Rosen
 } // namespace OHOS
