@@ -149,7 +149,7 @@ public:
 
     static std::shared_ptr<ColorSpace>skColorSpaceToDrawingColorSpace(sk_sp<SkColorSpace> skSpace)
     {
-        if(!skSpace) {
+        if (!skSpace) {
             return nullptr;
         }
         skcms_TransferFunction skFn;
