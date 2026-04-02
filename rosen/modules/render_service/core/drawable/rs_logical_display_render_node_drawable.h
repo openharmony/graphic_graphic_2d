@@ -55,6 +55,18 @@ public:
         return isFirstTimeToProcessor_;
     }
 
+    // Get the offscreen surface image for multi-surface extend mode
+    std::shared_ptr<Drawing::Image> GetOffscreenImage() const
+    {
+        if (offscreenSurface_ == nullptr) {
+            return nullptr;
+        }
+        return offscreenSurface_->GetImageSnapshot();
+    }
+
+    // Check if offscreen surface is available
+    bool HasOffscreenSurface() const { return offscreenSurface_ != nullptr; }
+
     RSRenderNodeDrawableType GetDrawableType() const override
     {
         return RSRenderNodeDrawableType::LOGICAL_DISPLAY_NODE_DRAWABLE;
@@ -82,7 +94,7 @@ private:
     void DrawWiredMirrorOnDraw(RSLogicalDisplayRenderNodeDrawable& mirroredDrawable,
         RSLogicalDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
     void DrawMirrorScreen(RSLogicalDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
-    void DrawExpandDisplay(RSLogicalDisplayRenderParams& params);
+    void DrawExpandDisplay(RSLogicalDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor = nullptr);
     void PrepareOffscreenRender(const RSLogicalDisplayRenderNodeDrawable& displayDrawable, bool useFixedSize = false,
         bool useCanvasSize = true);
     void FinishOffscreenRender(const Drawing::SamplingOptions& sampling,

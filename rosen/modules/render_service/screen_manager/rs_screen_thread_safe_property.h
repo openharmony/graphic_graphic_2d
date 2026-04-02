@@ -60,7 +60,6 @@ public:
     ResType SetPowerStatus(ScreenPowerStatus powerStatus);
     ResType SetScreenType(RSScreenType screenType);
     ResType SetConnectionType(ScreenConnectionType connectionType);
-    ResType SetProducerSurface(sptr<Surface> producerSurface);
     ResType SetScreenScaleMode(ScreenScaleMode scaleMode);
     ResType SetScreenStatus(VirtualScreenStatus screenStatus);
     ResType SetVirtualSecLayerOption(int32_t virtualSecLayerOption);
@@ -69,6 +68,9 @@ public:
     ResType SetDisablePowerOffRenderControl(bool disable);
     ResType SetScreenSwitchStatus(bool status);
     ResType SetFrameGravity(int32_t gravity);
+#ifndef ROSEN_CROSS_PLATFORM
+    ResType SetMultiSurfaceConfigs(const std::vector<SurfaceRegionConfig>& configs);
+#endif
 
     ScreenId GetId() const;
     bool IsVirtual() const;
@@ -110,12 +112,15 @@ public:
     ScreenPowerStatus GetPowerStatus() const;
     RSScreenType GetScreenType() const;
     ScreenConnectionType GetConnectionType() const;
-    sptr<Surface> GetProducerSurface() const;
     ScreenScaleMode GetScreenScaleMode() const;
     VirtualScreenStatus GetScreenStatus() const;
     int32_t GetVirtualSecLayerOption() const;
     bool GetIsHardCursorSupport() const;
     std::vector<ScreenColorGamut> GetSupportedColorGamuts() const;
+#ifndef ROSEN_CROSS_PLATFORM
+    // Multi-surface: Get surface configs directly
+    std::vector<SurfaceRegionConfig> GetMultiSurfaceConfigs() const;
+#endif
 
     ScreenInfo GetScreenInfo() const;
 

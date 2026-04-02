@@ -240,9 +240,9 @@ ScreenConnectionType RSScreenProperty::GetConnectionType() const
 }
 
 #ifndef ROSEN_CROSS_PLATFORM
-sptr<Surface> RSScreenProperty::GetProducerSurface() const
+std::vector<SurfaceRegionConfig> RSScreenProperty::GetMultiSurfaceConfigs() const
 {
-    return Get<ScreenPropertyType::PRODUCER_SURFACE>();
+    return Get<ScreenPropertyType::MULTI_SURFACE_CONFIGS>();
 }
 #endif
 
@@ -369,7 +369,6 @@ bool RSScreenProperty::Marshalling(Parcel& data) const
             MARSHALL_CASE(ScreenPropertyType::POWER_STATUS)
             MARSHALL_CASE(ScreenPropertyType::SCREEN_TYPE)
             MARSHALL_CASE(ScreenPropertyType::CONNECTION_TYPE)
-            MARSHALL_CASE(ScreenPropertyType::PRODUCER_SURFACE)
             MARSHALL_CASE(ScreenPropertyType::SCALE_MODE)
             MARSHALL_CASE(ScreenPropertyType::SCREEN_STATUS)
             MARSHALL_CASE(ScreenPropertyType::VIRTUAL_SEC_LAYER_OPTION)
@@ -378,6 +377,7 @@ bool RSScreenProperty::Marshalling(Parcel& data) const
             MARSHALL_CASE(ScreenPropertyType::DISABLE_POWER_OFF_RENDER_CONTROL)
             MARSHALL_CASE(ScreenPropertyType::SCREEN_SWITCH_STATUS)
             MARSHALL_CASE(ScreenPropertyType::SCREEN_FRAME_GRAVITY)
+            MARSHALL_CASE(ScreenPropertyType::MULTI_SURFACE_CONFIGS)
             default:
                 RS_LOGW("%{public}s invalid type: %{public}u", __func__, static_cast<uint32_t>(type));
         }
@@ -448,7 +448,6 @@ bool RSScreenProperty::UnmarshallingData(Parcel& data)
             UNMARSHALL_CASE(ScreenPropertyType::POWER_STATUS)
             UNMARSHALL_CASE(ScreenPropertyType::SCREEN_TYPE)
             UNMARSHALL_CASE(ScreenPropertyType::CONNECTION_TYPE)
-            UNMARSHALL_CASE(ScreenPropertyType::PRODUCER_SURFACE)
             UNMARSHALL_CASE(ScreenPropertyType::SCALE_MODE)
             UNMARSHALL_CASE(ScreenPropertyType::SCREEN_STATUS)
             UNMARSHALL_CASE(ScreenPropertyType::VIRTUAL_SEC_LAYER_OPTION)
@@ -457,6 +456,7 @@ bool RSScreenProperty::UnmarshallingData(Parcel& data)
             UNMARSHALL_CASE(ScreenPropertyType::DISABLE_POWER_OFF_RENDER_CONTROL)
             UNMARSHALL_CASE(ScreenPropertyType::SCREEN_SWITCH_STATUS)
             UNMARSHALL_CASE(ScreenPropertyType::SCREEN_FRAME_GRAVITY)
+            UNMARSHALL_CASE(ScreenPropertyType::MULTI_SURFACE_CONFIGS)
             default:
                 RS_LOGW("%{public}s invalid type: %{public}u", __func__, static_cast<uint32_t>(type));
         }

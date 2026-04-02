@@ -72,6 +72,7 @@
 #include "recording/mask_cmd_list.h"
 
 #include "property/rs_properties_def.h"
+#include "screen_manager/rs_screen_info.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -3618,5 +3619,27 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RSRenderParticleVector& 
 {
     return false;
 }
+
+#ifndef ROSEN_CROSS_PLATFORM
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const SurfaceRegionConfig& val)
+{
+    if (!parcel.WriteParcelable(val.surface.GetRefPtr())) {
+        return false;
+    }
+    if (!Marshalling(parcel, val.region)) {
+        return false;
+    }
+    return true;
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, SurfaceRegionConfig& val)
+{
+    val.surface = sptr<Surface>(parcel.ReadParcelable<Surface>());
+    if (!Unmarshalling(parcel, val.region)) {
+        return false;
+    }
+    return true;
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

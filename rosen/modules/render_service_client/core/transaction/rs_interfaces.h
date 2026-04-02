@@ -87,6 +87,64 @@ public:
         std::vector<NodeId> whiteList = {});
 
     /**
+     * @brief Create virtual screen with multiple surfaces for multi-surface rendering.
+     * @param name Virtual screen name.
+     * @param width Virtual screen width, max: MAX_VIRTUAL_SCREEN_WIDTH.
+     * @param height Virtual screen height, max: MAX_VIRTUAL_SCREEN_HEIGHT.
+     * @param surfaceConfigs Vector of surface-region configurations.
+     * @param associatedScreenId Decide which screen id to bind, it can't be INVALID_SCREEN_ID when RS multi process.
+     * @param flags Virtual screen security layer option, 0: screen level, 1: window level.
+     * @param whiteList List of surface node id, only these nodes can be drawn on this screen.
+     * @return Virtual screen id, INVALID_SCREEN_ID means failed.
+     */
+    ScreenId CreateVirtualScreen(
+        const std::string &name,
+        uint32_t width,
+        uint32_t height,
+        const std::vector<SurfaceRegionConfig>& surfaceConfigs,
+        ScreenId associatedScreenId = 0,
+        int flags = 0,
+        std::vector<NodeId> whiteList = {});
+
+    // ========== Multi-Surface Virtual Screen Dynamic Surface Management ==========
+    // These methods are ONLY for multi-surface virtual screens (created via CreateVirtualScreen with vector<SurfaceRegionConfig>)
+    // For single-surface virtual screens, use SetVirtualScreenSurface instead.
+
+    /**
+     * @brief Add surfaces to existing multi-surface virtual screen.
+     * @param id Virtual screen id (must be created via CreateVirtualScreen with vector<SurfaceRegionConfig>).
+     * @param surfaceConfigs Vector of surface-region configurations to add.
+     * @return 0 means success, others failed.
+     */
+    int32_t AddVirtualScreenSurface(
+        ScreenId id, const std::vector<SurfaceRegionConfig>& surfaceConfigs);
+
+    /**
+     * @brief Remove surfaces from virtual screen.
+     * @param id Virtual screen id.
+     * @param surfaces Producer surfaces to remove.
+     * @return 0 means success, others failed.
+     */
+    int32_t RemoveVirtualScreenSurface(ScreenId id, const std::vector<sptr<Surface>>& surfaces);
+
+    /**
+     * @brief Update the region for a surface in multi-surface virtual screen.
+     * @param id Virtual screen id (must be created via CreateVirtualScreen with vector<SurfaceRegionConfig>).
+     * @param surface Producer surface to update.
+     * @param region New region in virtual screen coordinates (x, y, width, height).
+     * @return 0 means success, others failed.
+     */
+    int32_t UpdateVirtualScreenSurfaceRegion(ScreenId id, sptr<Surface> surface, const RectI& region);
+
+    /**
+     * @brief Atomically set all surfaces for a multi-surface virtual screen.
+     * @param id Virtual screen id.
+     * @param surfaceConfigs Vector of surface-region configurations.
+     * @return 0 means success, others failed.
+     */
+    int32_t SetVirtualScreenSurfaces(ScreenId id, const std::vector<SurfaceRegionConfig>& surfaceConfigs);
+
+    /**
      * @brief Set list of surface node id, these nodes will be excluded from this screen.
      * @param id Valid screen id: set screen record black list; INVALID_SCREEN_ID: set screen cast black list.
      * @param blackList List of surface node id. If the screen id is INVALID_SCREEN_ID, the blackList will

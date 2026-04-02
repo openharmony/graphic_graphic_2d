@@ -102,6 +102,9 @@ template<typename T>
 class RRectT;
 struct PixelMapInfo;
 class RSRenderParticleVector;
+#ifndef ROSEN_CROSS_PLATFORM
+struct SurfaceRegionConfig;
+#endif
 
 class RSB_EXPORT RSMarshallingHelper {
 public:
@@ -527,6 +530,11 @@ public:
     static bool SkipData(Parcel& parcel);
     static bool SkipImage(Parcel& parcel);
     static bool SkipPixelMap(Parcel& parcel);
+
+#ifndef ROSEN_CROSS_PLATFORM
+    static bool Marshalling(Parcel& parcel, const SurfaceRegionConfig& val);
+    static bool Unmarshalling(Parcel& parcel, SurfaceRegionConfig& val);
+#endif
 
 private:
     static bool WriteToParcel(Parcel& parcel, const void* data, size_t size);

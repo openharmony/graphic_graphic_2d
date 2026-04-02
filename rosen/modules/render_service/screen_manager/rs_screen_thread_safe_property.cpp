@@ -277,13 +277,6 @@ RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetConnectionTyp
     return { ScreenPropertyType::CONNECTION_TYPE, prop };
 }
 
-RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetProducerSurface(sptr<Surface> producerSurface)
-{
-    UniqueLock lock(propertyMutex_);
-    auto prop = property_->Set<ScreenPropertyType::PRODUCER_SURFACE>(producerSurface);
-    return { ScreenPropertyType::PRODUCER_SURFACE, prop };
-}
-
 RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetScreenScaleMode(ScreenScaleMode scaleMode)
 {
     UniqueLock lock(propertyMutex_);
@@ -338,6 +331,16 @@ RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetFrameGravity(
     auto prop = property_->Set<ScreenPropertyType::SCREEN_FRAME_GRAVITY>(gravity);
     return { ScreenPropertyType::SCREEN_FRAME_GRAVITY, prop };
 }
+
+#ifndef ROSEN_CROSS_PLATFORM
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetMultiSurfaceConfigs(
+    const std::vector<SurfaceRegionConfig>& configs)
+{
+    UniqueLock lock(propertyMutex_);
+    auto prop = property_->Set<ScreenPropertyType::MULTI_SURFACE_CONFIGS>(configs);
+    return { ScreenPropertyType::MULTI_SURFACE_CONFIGS, prop };
+}
+#endif
 
 ScreenId RSScreenThreadSafeProperty::GetId() const
 {
@@ -574,12 +577,6 @@ ScreenConnectionType RSScreenThreadSafeProperty::GetConnectionType() const
     return property_->GetConnectionType();
 }
 
-sptr<Surface> RSScreenThreadSafeProperty::GetProducerSurface() const
-{
-    SharedLock lock(propertyMutex_);
-    return property_->GetProducerSurface();
-}
-
 ScreenScaleMode RSScreenThreadSafeProperty::GetScreenScaleMode() const
 {
     SharedLock lock(propertyMutex_);
@@ -607,6 +604,14 @@ std::vector<ScreenColorGamut> RSScreenThreadSafeProperty::GetSupportedColorGamut
 {
     return property_->GetScreenSupportedColorGamuts();
 }
+
+#ifndef ROSEN_CROSS_PLATFORM
+std::vector<SurfaceRegionConfig> RSScreenThreadSafeProperty::GetMultiSurfaceConfigs() const
+{
+    SharedLock lock(propertyMutex_);
+    return property_->GetMultiSurfaceConfigs();
+}
+#endif
 
 ScreenInfo RSScreenThreadSafeProperty::GetScreenInfo() const
 {

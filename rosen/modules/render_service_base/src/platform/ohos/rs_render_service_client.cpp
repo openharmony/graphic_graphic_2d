@@ -241,7 +241,7 @@ std::vector<ScreenId> RSRenderServiceClient::GetAllScreenIds()
 }
 
 ScreenId RSRenderServiceClient::CreateVirtualScreen(
-    const std::string &name,
+    const std::string& name,
     uint32_t width,
     uint32_t height,
     sptr<Surface> surface,
@@ -249,13 +249,10 @@ ScreenId RSRenderServiceClient::CreateVirtualScreen(
     int32_t flags,
     std::vector<NodeId> whiteList)
 {
-    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
-    if (clientToService == nullptr) {
-        RS_LOGE("RSRenderServiceClient::%{public}s clientToService is null!", __func__);
-        return INVALID_SCREEN_ID;
-    }
-
-    return clientToService->CreateVirtualScreen(name, width, height, surface, associatedScreenId, flags, whiteList);
+    SurfaceRegionConfig config;
+    config.surface = surface;
+    std::vector<SurfaceRegionConfig> surfaceConfigs = { config };
+    return CreateVirtualScreen(name, width, height, surfaceConfigs, associatedScreenId, flags, whiteList);
 }
 
 int32_t RSRenderServiceClient::SetVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList)
@@ -387,12 +384,83 @@ int32_t RSRenderServiceClient::SetCastScreenEnableSkipWindow(ScreenId id, bool e
 
 int32_t RSRenderServiceClient::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface)
 {
+    SurfaceRegionConfig config;
+    config.surface = surface;
+    std::vector<SurfaceRegionConfig> surfaceConfigs = { config };
+    return SetVirtualScreenSurfaces(id, surfaceConfigs);
+}
+
+ScreenId RSRenderServiceClient::CreateVirtualScreen(
+    const std::string& name,
+    uint32_t width,
+    uint32_t height,
+    const std::vector<SurfaceRegionConfig>& surfaceConfigs,
+    ScreenId associatedScreenId,
+    int32_t flags,
+    std::vector<NodeId> whiteList)
+{
     auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
+        RS_LOGE("RSRenderServiceClient::%{public}s clientToService is null!", __func__);
+        return INVALID_SCREEN_ID;
+    }
+
+    return clientToService->CreateVirtualScreen(
+        name, width, height, surfaceConfigs, associatedScreenId, flags, whiteList);
+}
+
+int32_t RSRenderServiceClient::AddVirtualScreenSurface(
+    ScreenId id, const std::vector<SurfaceRegionConfig>& surfaceConfigs)
+{
+    if (surfaceConfigs.empty()) {
+        RS_LOGW("RSRenderServiceClient::%{public}s: surfaceConfigs is empty.", __func__);
+        return INVALID_ARGUMENTS;
+    }
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
+    if (clientToService == nullptr) {
+        RS_LOGE("RSRenderServiceClient::%{public}s clientToService is null!", __func__);
         return RENDER_SERVICE_NULL;
     }
 
-    return clientToService->SetVirtualScreenSurface(id, surface);
+    return clientToService->AddVirtualScreenSurface(id, surfaceConfigs);
+}
+
+int32_t RSRenderServiceClient::RemoveVirtualScreenSurface(ScreenId id, const std::vector<sptr<Surface>>& surfaces)
+{
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
+    if (clientToService == nullptr) {
+        RS_LOGE("RSRenderServiceClient::%{public}s clientToService is null!", __func__);
+        return RENDER_SERVICE_NULL;
+    }
+
+    return clientToService->RemoveVirtualScreenSurface(id, surfaces);
+}
+
+int32_t RSRenderServiceClient::UpdateVirtualScreenSurfaceRegion(
+    ScreenId id, sptr<Surface> surface, const RectI& region)
+{
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
+    if (clientToService == nullptr) {
+        RS_LOGE("RSRenderServiceClient::%{public}s clientToService is null!", __func__);
+        return RENDER_SERVICE_NULL;
+    }
+
+    return clientToService->UpdateVirtualScreenSurfaceRegion(id, surface, region);
+}
+
+int32_t RSRenderServiceClient::SetVirtualScreenSurfaces(
+    ScreenId id, const std::vector<SurfaceRegionConfig>& surfaceConfigs)
+{
+    if (surfaceConfigs.empty()) {
+        RS_LOGW("RSRenderServiceClient::%{public}s: surfaceConfigs is empty.", __func__);
+        return INVALID_ARGUMENTS;
+    }
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
+    if (clientToService == nullptr) {
+        RS_LOGE("RSRenderServiceClient::%{public}s clientToService is null!", __func__);
+        return RENDER_SERVICE_NULL;
+    }
+    return clientToService->SetVirtualScreenSurfaces(id, surfaceConfigs);
 }
 
 void RSRenderServiceClient::RemoveVirtualScreen(ScreenId id)

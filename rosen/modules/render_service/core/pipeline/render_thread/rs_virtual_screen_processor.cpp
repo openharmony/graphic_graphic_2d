@@ -43,17 +43,21 @@ bool RSVirtualScreenProcessor::Init(RSScreenRenderNode& node, std::shared_ptr<RS
     }
 #endif
 
-    renderFrameConfig_.usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_MEM_DMA;
-
-    producerSurface_ = node.GetScreenProperty().GetProducerSurface();
-    if (producerSurface_ == nullptr) {
-        RS_LOGE("RSVirtualScreenProcessor::Init for Screen(id %{public}" PRIu64 "): ProducerSurface is null!",
+    auto surfaceConfigs = node.GetScreenProperty().GetMultiSurfaceConfigs();
+    if (surfaceConfigs.empty()) {
+        RS_LOGE("RSVirtualScreenProcessor::Init for Screen(id %{public}" PRIu64 "): No surfaces available!",
             node.GetScreenId());
         return false;
     }
-
+    // Non-unirender path only uses the first surface; multi-surface blitting is handled by RSVirtualScreenProcessor.
+    auto producerSurface = surfaceConfigs[0].surface;
+    if (producerSurface == nullptr) {
+        RS_LOGE("RSVirtualScreenProcessor::Init: ProducerSurface is null!");
+        return false;
+    }
+    renderFrameConfig_.usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_MEM_DMA;
     bool forceCPU = false;
-    renderFrame_ = renderEngine_->RequestFrame(producerSurface_, renderFrameConfig_, forceCPU, false);
+    renderFrame_ = renderEngine_->RequestFrame(producerSurface, renderFrameConfig_, forceCPU, false);
     if (renderFrame_ == nullptr) {
         RS_LOGE("RSVirtualScreenProcessor::Init: renderFrame_ is null!");
         return false;

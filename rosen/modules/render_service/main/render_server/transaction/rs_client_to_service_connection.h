@@ -94,7 +94,7 @@ private:
         const std::string &name,
         uint32_t width,
         uint32_t height,
-        sptr<Surface> surface,
+        const std::vector<SurfaceRegionConfig>& surfaceConfigs,
         ScreenId associatedScreenId,
         int32_t flags = 0,
         std::vector<NodeId> whiteList = {}) override;
@@ -123,8 +123,13 @@ private:
     void ForceRefreshOneFrameWithNextVSync() override;
 
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) override;
-    
-    int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) override;
+
+    // Multi-surface virtual screen: dynamic surface management
+    int32_t AddVirtualScreenSurface(
+        ScreenId id, const std::vector<SurfaceRegionConfig>& surfaceConfigs) override;
+    int32_t RemoveVirtualScreenSurface(ScreenId id, const std::vector<sptr<Surface>>& surfaces) override;
+    int32_t UpdateVirtualScreenSurfaceRegion(ScreenId id, sptr<Surface> surface, const RectI& region) override;
+    int32_t SetVirtualScreenSurfaces(ScreenId id, const std::vector<SurfaceRegionConfig>& surfaceConfigs) override;
 
     void RemoveVirtualScreen(ScreenId id) override;
 

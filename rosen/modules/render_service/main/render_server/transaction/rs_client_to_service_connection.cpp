@@ -423,7 +423,7 @@ ScreenId RSClientToServiceConnection::CreateVirtualScreen(
     const std::string &name,
     uint32_t width,
     uint32_t height,
-    sptr<Surface> surface,
+    const std::vector<SurfaceRegionConfig>& surfaceConfigs,
     ScreenId associatedScreenId,
     int32_t flags,
     std::vector<NodeId> whiteList)
@@ -432,17 +432,23 @@ ScreenId RSClientToServiceConnection::CreateVirtualScreen(
         RS_LOGW("%{public}s screenManagerAgent_ is nullptr", __func__);
         return INVALID_SCREEN_ID;
     }
-    auto res = screenManagerAgent_->CreateVirtualScreen(
-        name, width, height, surface, associatedScreenId, flags, whiteList);
-    if (res == INVALID_SCREEN_ID) {
-        return res;
+    auto screenId = screenManagerAgent_->CreateVirtualScreen(
+        name, width, height, surfaceConfigs, associatedScreenId, flags, whiteList);
+    if (screenId != INVALID_SCREEN_ID) {
+        bool hasValidSurface = false;
+        for (const auto& config : surfaceConfigs) {
+            if (config.surface != nullptr) {
+                hasValidSurface = true;
+                break;
+            }
+        }
+        if (hasValidSurface) {
+            EventInfo event = { "VOTER_VIRTUALDISPLAY", ADD_VOTE, OLED_60_HZ, OLED_60_HZ, name };
+            NotifyRefreshRateEvent(event);
+            ROSEN_LOGI("%{public}s vote 60hz", __func__);
+        }
     }
-    if (surface != nullptr) {
-        EventInfo event = { "VOTER_VIRTUALDISPLAY", ADD_VOTE, OLED_60_HZ, OLED_60_HZ, name };
-        NotifyRefreshRateEvent(event);
-        ROSEN_LOGI("%{public}s vote 60hz", __func__);
-    }
-    return res;
+    return screenId;
 }
 
 int32_t RSClientToServiceConnection::SetVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blacklist)
@@ -551,12 +557,43 @@ int32_t RSClientToServiceConnection::SetCastScreenEnableSkipWindow(ScreenId id, 
     return screenManagerAgent_->SetCastScreenEnableSkipWindow(id, enable);
 }
 
-int32_t RSClientToServiceConnection::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface)
+int32_t RSClientToServiceConnection::AddVirtualScreenSurface(
+    ScreenId id, const std::vector<SurfaceRegionConfig>& surfaceConfigs)
 {
     if (!screenManagerAgent_) {
+        RS_LOGW("%{public}s screenManagerAgent_ is nullptr", __func__);
         return StatusCode::SCREEN_NOT_FOUND;
     }
-    return screenManagerAgent_->SetVirtualScreenSurface(id, surface);
+    return screenManagerAgent_->AddVirtualScreenSurface(id, surfaceConfigs);
+}
+
+int32_t RSClientToServiceConnection::RemoveVirtualScreenSurface(ScreenId id, const std::vector<sptr<Surface>>& surfaces)
+{
+    if (!screenManagerAgent_) {
+        RS_LOGW("%{public}s screenManagerAgent_ is nullptr", __func__);
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    return screenManagerAgent_->RemoveVirtualScreenSurface(id, surfaces);
+}
+
+int32_t RSClientToServiceConnection::UpdateVirtualScreenSurfaceRegion(
+    ScreenId id, sptr<Surface> surface, const RectI& region)
+{
+    if (!screenManagerAgent_) {
+        RS_LOGW("%{public}s screenManagerAgent_ is nullptr", __func__);
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    return screenManagerAgent_->UpdateVirtualScreenSurfaceRegion(id, surface, region);
+}
+
+int32_t RSClientToServiceConnection::SetVirtualScreenSurfaces(
+    ScreenId id, const std::vector<SurfaceRegionConfig>& surfaceConfigs)
+{
+    if (!screenManagerAgent_) {
+        RS_LOGW("%{public}s screenManagerAgent_ is nullptr", __func__);
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    return screenManagerAgent_->SetVirtualScreenSurfaces(id, surfaceConfigs);
 }
 
 void RSClientToServiceConnection::RemoveVirtualScreen(ScreenId id)

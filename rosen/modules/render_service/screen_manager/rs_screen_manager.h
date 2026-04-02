@@ -130,12 +130,17 @@ public:
     uint32_t SetScreenActiveRect(ScreenId id, const Rect& activeRect);
 
     // virtual screen
-    ScreenId CreateVirtualScreen(const std::string& name, uint32_t width, uint32_t height, sptr<Surface> surface,
+    ScreenId CreateVirtualScreen(const std::string& name, uint32_t width, uint32_t height,
+        const std::vector<SurfaceRegionConfig>& surfaceConfigs,
         ScreenId associatedScreenId = 0, int32_t flags = 0, std::vector<uint64_t> whiteList = {});
     void RemoveVirtualScreen(ScreenId id);
     uint32_t GetCurrentVirtualScreenNum();
 
-    int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface);
+    // Multi-surface virtual screen methods
+    int32_t AddVirtualScreenSurface(ScreenId id, const std::vector<SurfaceRegionConfig>& surfaceConfigs);
+    int32_t RemoveVirtualScreenSurface(ScreenId id, const std::vector<sptr<Surface>>& surfaces);
+    int32_t UpdateVirtualScreenSurfaceRegion(ScreenId id, sptr<Surface> surface, const RectI& region);
+    int32_t SetVirtualScreenSurfaces(ScreenId id, const std::vector<SurfaceRegionConfig>& surfaceConfigs);
 
     int32_t ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height);
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height);
@@ -201,6 +206,8 @@ private:
 
     // virtual screen
     ScreenId GenerateVirtualScreenId();
+    bool ValidateVirtualScreenLimits(uint32_t width, uint32_t height) const;
+    ScreenId CreateAndRegisterVirtualScreen(VirtualScreenConfigs& configs, ScreenId associatedScreenId);
 
     mutable std::mutex screenMapMutex_;
     std::map<ScreenId, std::shared_ptr<RSScreen>> screens_;

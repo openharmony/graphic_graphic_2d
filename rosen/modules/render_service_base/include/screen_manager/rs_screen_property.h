@@ -54,7 +54,6 @@ enum class ScreenPropertyType : uint32_t {
     POWER_STATUS,
     SCREEN_TYPE,
     CONNECTION_TYPE,
-    PRODUCER_SURFACE,
     SCALE_MODE,
     SCREEN_STATUS,
     VIRTUAL_SEC_LAYER_OPTION,
@@ -63,6 +62,7 @@ enum class ScreenPropertyType : uint32_t {
     DISABLE_POWER_OFF_RENDER_CONTROL,
     SCREEN_SWITCH_STATUS,
     SCREEN_FRAME_GRAVITY,
+    MULTI_SURFACE_CONFIGS,  // Multi-surface virtual screen: vector of SurfaceRegionConfig
 };
 
 template<ScreenPropertyType T>
@@ -121,11 +121,6 @@ DECLARE_PROPERTY_TYPE(ScreenPropertyType::SCREEN_TYPE,
     uint32_t, static_cast<uint32_t>(RSScreenType::UNKNOWN_TYPE_SCREEN));
 DECLARE_PROPERTY_TYPE(ScreenPropertyType::CONNECTION_TYPE,
     uint32_t, static_cast<uint32_t>(ScreenConnectionType::INVALID_DISPLAY_CONNECTION_TYPE));
-#ifndef ROSEN_CROSS_PLATFORM
-DECLARE_PROPERTY_TYPE(ScreenPropertyType::PRODUCER_SURFACE, sptr<Surface>, nullptr);
-#else
-DECLARE_PROPERTY_TYPE(ScreenPropertyType::PRODUCER_SURFACE, void*, nullptr);
-#endif
 DECLARE_PROPERTY_TYPE(ScreenPropertyType::SCALE_MODE, uint32_t, static_cast<uint32_t>(ScreenScaleMode::UNISCALE_MODE));
 DECLARE_PROPERTY_TYPE(ScreenPropertyType::SCREEN_STATUS, uint32_t, static_cast<uint32_t>(VIRTUAL_SCREEN_PLAY));
 DECLARE_PROPERTY_TYPE(ScreenPropertyType::VIRTUAL_SEC_LAYER_OPTION, int32_t, 0);
@@ -135,6 +130,13 @@ DECLARE_PROPERTY_TYPE(ScreenPropertyType::SUPPORTED_COLOR_GAMUTS,
 DECLARE_PROPERTY_TYPE(ScreenPropertyType::DISABLE_POWER_OFF_RENDER_CONTROL, bool, false);
 DECLARE_PROPERTY_TYPE(ScreenPropertyType::SCREEN_SWITCH_STATUS, bool, false);
 DECLARE_PROPERTY_TYPE(ScreenPropertyType::SCREEN_FRAME_GRAVITY, int32_t, static_cast<int32_t>(Gravity::DEFAULT));
+// Multi-surface virtual screen: vector of surface+region configs
+#ifndef ROSEN_CROSS_PLATFORM
+using MultiSurfaceConfigs = std::vector<SurfaceRegionConfig>;
+DECLARE_PROPERTY_TYPE(ScreenPropertyType::MULTI_SURFACE_CONFIGS, MultiSurfaceConfigs, MultiSurfaceConfigs());
+#else
+DECLARE_PROPERTY_TYPE(ScreenPropertyType::MULTI_SURFACE_CONFIGS, void*, nullptr);
+#endif
 
 class ScreenPropertyBase : public Parcelable {
 public:
@@ -221,7 +223,8 @@ public:
     RSScreenType GetScreenType() const;
     ScreenConnectionType GetConnectionType() const;
 #ifndef ROSEN_CROSS_PLATFORM
-    sptr<Surface> GetProducerSurface() const;
+    // Multi-surface: Get the multi-surface configs directly
+    std::vector<SurfaceRegionConfig> GetMultiSurfaceConfigs() const;
 #endif
     ScreenScaleMode GetScaleMode() const;
     VirtualScreenStatus GetVirtualScreenStatus() const;

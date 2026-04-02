@@ -5313,7 +5313,7 @@ static bool NeedForceRefreshOneFrame(ScreenPropertyType type)
 {
     switch (type) {
         case ScreenPropertyType::GAMUT_MAP:
-        case ScreenPropertyType::PRODUCER_SURFACE:
+        case ScreenPropertyType::MULTI_SURFACE_CONFIGS:
         case ScreenPropertyType::RENDER_RESOLUTION:
         case ScreenPropertyType::SCREEN_STATUS:
         case ScreenPropertyType::SCREEN_SWITCH_STATUS:
@@ -5335,7 +5335,7 @@ void RSMainThread::HandleScreenPropertyRefreshOneFrame(ScreenId id, ScreenProper
                 return;
             }
             node->SetScreenDirtyFlag(true);
-            if (type == ScreenPropertyType::PRODUCER_SURFACE) {
+            if (type == ScreenPropertyType::MULTI_SURFACE_CONFIGS) {
                 node->SetVirtualSurfaceChanged(true);
             }
         });

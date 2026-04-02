@@ -112,15 +112,16 @@ RSScreen::RSScreen(const VirtualScreenConfigs& configs)
     property_.SetName(configs.name);
     property_.SetResolution(std::make_pair(configs.width, configs.height));
     property_.SetVirtualSecLayerOption(configs.flags);
-    property_.SetProducerSurface(configs.surface);
     property_.SetPixelFormat(configs.pixelFormat);
     property_.SetScreenType(RSScreenType::VIRTUAL_TYPE_SCREEN);
     property_.SetWhiteList(configs.whiteList);
-    if (property_.GetProducerSurface()) {
-        property_.SetState(ScreenState::PRODUCER_SURFACE_ENABLE);
-    } else {
-        property_.SetState(ScreenState::DISABLED);
+
+    bool hasValidSurface = false;
+    if (!configs.surfaceConfigs.empty()) {
+        property_.SetMultiSurfaceConfigs(configs.surfaceConfigs);
+        hasValidSurface = true;
     }
+    property_.SetState(hasValidSurface ? ScreenState::PRODUCER_SURFACE_ENABLE : ScreenState::DISABLED);
     VirtualScreenInit();
     HILOG_COMM_WARN("init virtual screen: {id: %{public}" PRIu64 ", associatedScreenId: %{public}" PRIu64", w * h: "
         "[%{public}u * %{public}u], name: %{public}s, screenType: VIRTUAL_TYPE_SCREEN, whiteList size: %{public}zu}",
@@ -647,20 +648,149 @@ int32_t RSScreen::SetDualScreenState(DualScreenStatus status)
     return StatusCode::SUCCESS;
 }
 
-sptr<Surface> RSScreen::GetProducerSurface() const
+// Multi-surface virtual screen - using vector<SurfaceRegionConfig> with copy-on-write
+#ifndef ROSEN_CROSS_PLATFORM
+namespace {
+uint64_t GetSurfaceId(const sptr<Surface>& surface)
 {
-    return property_.GetProducerSurface();
+    return surface == nullptr ? 0 : surface->GetUniqueId();
+}
 }
 
-void RSScreen::SetProducerSurface(sptr<Surface> producerSurface)
+void RSScreen::SetMultiSurfaceConfigs(const MultiSurfaceConfigs& configs)
 {
-    UPDATE_PROPERTY(ProducerSurface, producerSurface);
-    if (producerSurface) {
-        UPDATE_PROPERTY(State, ScreenState::PRODUCER_SURFACE_ENABLE);
-    } else {
-        UPDATE_PROPERTY(State, ScreenState::DISABLED);
-    }
+    UPDATE_PROPERTY(MultiSurfaceConfigs, configs);
 }
+
+MultiSurfaceConfigs RSScreen::GetMultiSurfaceConfigs() const
+{
+    return property_.GetMultiSurfaceConfigs();
+}
+
+int32_t RSScreen::AddVirtualScreenSurface(const std::vector<SurfaceRegionConfig>& surfaceConfigs)
+{
+    if (surfaceConfigs.empty()) {
+        RS_LOGW("%{public}s: surfaceConfigs is empty", __func__);
+        return INVALID_ARGUMENTS;
+    }
+
+    // Copy-on-write: get old configs, create new vector with added surfaces
+    auto oldConfigs = property_.GetMultiSurfaceConfigs();
+    auto newConfigs = oldConfigs;
+
+    for (const auto& newConfig : surfaceConfigs) {
+        if (newConfig.surface == nullptr) {
+            RS_LOGW("%{public}s: surface is null, skipping", __func__);
+            continue;
+        }
+        // Check for duplicate
+        bool duplicate = false;
+        for (const auto& config : newConfigs) {
+            if (GetSurfaceId(config.surface) == GetSurfaceId(newConfig.surface)) {
+                RS_LOGW("%{public}s: Surface already exists", __func__);
+                duplicate = true;
+                break;
+            }
+        }
+        if (!duplicate) {
+            newConfigs.push_back(newConfig);
+        }
+    }
+
+    SetMultiSurfaceConfigs(newConfigs);
+    RS_LOGI("%{public}s: Added surfaces, count=%{public}zu", __func__, surfaceConfigs.size());
+    return SUCCESS;
+}
+
+int32_t RSScreen::RemoveVirtualScreenSurface(const std::vector<sptr<Surface>>& surfaces)
+{
+    if (surfaces.empty()) {
+        RS_LOGW("%{public}s: surfaces is empty", __func__);
+        return INVALID_ARGUMENTS;
+    }
+
+    for (const auto& surface : surfaces) {
+        if (surface == nullptr) {
+            RS_LOGW("%{public}s: surface is null", __func__);
+            return INVALID_ARGUMENTS;
+        }
+    }
+
+    auto oldConfigs = property_.GetMultiSurfaceConfigs();
+    if (oldConfigs.empty()) {
+        RS_LOGW("%{public}s: No surface configs", __func__);
+        return INVALID_ARGUMENTS;
+    }
+
+    // Build set of surface IDs to remove
+    std::unordered_set<uint64_t> surfaceIdsToRemove;
+    for (const auto& surface : surfaces) {
+        surfaceIdsToRemove.insert(GetSurfaceId(surface));
+    }
+
+    // Copy-on-write: create new vector without the surfaces to remove
+    auto newConfigs = MultiSurfaceConfigs{};
+    uint32_t removedCount = 0;
+
+    for (const auto& config : oldConfigs) {
+        if (surfaceIdsToRemove.count(GetSurfaceId(config.surface)) > 0) {
+            removedCount++;
+            continue;  // Skip the surface to remove
+        }
+        newConfigs.push_back(config);
+    }
+
+    if (removedCount == 0) {
+        RS_LOGW("%{public}s: No surfaces found", __func__);
+        return INVALID_ARGUMENTS;
+    }
+
+    if (newConfigs.empty()) {
+        RS_LOGW("%{public}s: Cannot remove the last surface", __func__);
+        return INVALID_ARGUMENTS;
+    }
+
+    SetMultiSurfaceConfigs(newConfigs);
+    RS_LOGI("%{public}s: Removed %{public}u surfaces", __func__, removedCount);
+    return SUCCESS;
+}
+
+int32_t RSScreen::UpdateVirtualScreenSurfaceRegion(sptr<Surface> surface, const RectI& region)
+{
+    if (surface == nullptr) {
+        RS_LOGW("%{public}s: surface is null", __func__);
+        return INVALID_ARGUMENTS;
+    }
+
+    auto oldConfigs = property_.GetMultiSurfaceConfigs();
+    if (oldConfigs.empty()) {
+        RS_LOGW("%{public}s: No surface configs", __func__);
+        return INVALID_ARGUMENTS;
+    }
+
+    // Copy-on-write: create new vector with updated region for target
+    auto newConfigs = oldConfigs;
+    bool found = false;
+
+    for (auto& config : newConfigs) {
+        if (GetSurfaceId(config.surface) == GetSurfaceId(surface)) {
+            config.region = region;
+            found = true;
+            break;
+        }
+    }
+
+    if (!found) {
+        RS_LOGW("%{public}s: Surface not found", __func__);
+        return INVALID_ARGUMENTS;
+    }
+
+    SetMultiSurfaceConfigs(newConfigs);
+    RS_LOGI("%{public}s: Updated region to [%{public}d,%{public}d,%{public}d,%{public}d]",
+        __func__, region.left_, region.top_, region.width_, region.height_);
+    return SUCCESS;
+}
+#endif
 
 void RSScreen::ModeInfoDump(std::string& dumpString)
 {

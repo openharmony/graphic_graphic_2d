@@ -24,6 +24,15 @@
 #include "screen_types.h"
 
 namespace OHOS::Rosen {
+
+// Multi-surface virtual screen: surface with its render region
+#ifndef ROSEN_CROSS_PLATFORM
+struct SurfaceRegionConfig {
+    sptr<Surface> surface = nullptr;
+    RectI region;  // x, y, width, height
+};
+#endif
+
 enum class ScreenState : uint8_t {
     HDI_OUTPUT_ENABLE,
     PRODUCER_SURFACE_ENABLE,

@@ -42,6 +42,26 @@ constexpr uint32_t MAX_VIRTUAL_SCREEN_WIDTH = 65536;
 constexpr uint32_t MAX_VIRTUAL_SCREEN_HEIGHT = 65536;
 constexpr uint32_t MAX_VIRTUAL_SCREEN_REFRESH_RATE = 120;
 constexpr uint32_t ORIGINAL_FOLD_SCREEN_AMOUNT = 2;
+
+#ifndef ROSEN_CROSS_PLATFORM
+bool ContainsSurfaceId(const std::vector<SurfaceRegionConfig>& surfaceConfigs, uint64_t surfaceId)
+{
+    for (const auto& config : surfaceConfigs) {
+        if (config.surface != nullptr && config.surface->GetUniqueId() == surfaceId) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool ScreenContainsSurfaceId(const std::shared_ptr<RSScreen>& screen, uint64_t surfaceId)
+{
+    if (screen == nullptr || !screen->IsVirtual()) {
+        return false;
+    }
+    return ContainsSurfaceId(screen->GetMultiSurfaceConfigs(), surfaceId);
+}
+#endif
 } // namespace
 using namespace HiviewDFX;
 
@@ -446,51 +466,25 @@ std::vector<ScreenId> RSScreenManager::GetAllScreenIds() const
     return ids;
 }
 
-ScreenId RSScreenManager::CreateVirtualScreen(
-    const std::string& name,
-    uint32_t width,
-    uint32_t height,
-    sptr<Surface> surface,
-    ScreenId associatedScreenId,
-    int32_t flags,
-    std::vector<NodeId> whiteList)
+bool RSScreenManager::ValidateVirtualScreenLimits(uint32_t width, uint32_t height) const
 {
     if (currentVirtualScreenNum_ >= MAX_VIRTUAL_SCREEN_NUM) {
         RS_LOGW("%{public}s: virtual screens num %{public}" PRIu32 " has reached the maximum limit!",
             __func__, currentVirtualScreenNum_.load());
-        return INVALID_SCREEN_ID;
+        return false;
     }
     if (width > MAX_VIRTUAL_SCREEN_WIDTH || height > MAX_VIRTUAL_SCREEN_HEIGHT) {
         RS_LOGW("%{public}s: width %{public}" PRIu32 " or height %{public}" PRIu32 " has reached"
             " the maximum limit!", __func__, width, height);
-        return INVALID_SCREEN_ID;
+        return false;
     }
-    if (surface != nullptr) {
-        uint64_t surfaceId = surface->GetUniqueId();
-        auto func = [surfaceId](const ScreenNode& node) {
-            const auto& screen = node.second;
-            return screen && screen->IsVirtual() && screen->GetProducerSurface() &&
-                screen->GetProducerSurface()->GetUniqueId() == surfaceId;
-        };
-        if (AnyScreenFits(func)) {
-            RS_LOGW("%{public}s: surface %{public}" PRIu64 " is used, create virtual"
-                " screen failed!", __func__, surfaceId);
-            return INVALID_SCREEN_ID;
-        }
-    } else {
-        RS_LOGW("%{public}s: surface is nullptr.", __func__);
-    }
+    return true;
+}
 
-    VirtualScreenConfigs configs;
+ScreenId RSScreenManager::CreateAndRegisterVirtualScreen(VirtualScreenConfigs& configs, ScreenId associatedScreenId)
+{
     ScreenId newId = GenerateVirtualScreenId();
     configs.id = newId;
-    configs.associatedScreenId = associatedScreenId;
-    configs.name = name;
-    configs.width = width;
-    configs.height = height;
-    configs.surface = surface;
-    configs.flags = flags;
-    configs.whiteList = std::unordered_set<NodeId>(whiteList.begin(), whiteList.end());
 
     auto screen = std::make_shared<RSScreen>(configs);
     screen->SetOnPropertyChangedCallback([this](auto id, auto type, auto property) {
@@ -502,9 +496,57 @@ ScreenId RSScreenManager::CreateVirtualScreen(
     }
     ++currentVirtualScreenNum_;
     preprocessor_->NotifyVirtualScreenConnected(newId, associatedScreenId, screen->GetProperty());
-    RS_LOGI("%{public}s: create virtual screen(id %{public}" PRIu64 "), width %{public}u, height %{public}u."
-        "associatedScreenId %{public}" PRIu64,
-        __func__, newId, width, height, associatedScreenId);
+    return newId;
+}
+
+ScreenId RSScreenManager::CreateVirtualScreen(
+    const std::string& name,
+    uint32_t width,
+    uint32_t height,
+    const std::vector<SurfaceRegionConfig>& surfaceConfigs,
+    ScreenId associatedScreenId,
+    int32_t flags,
+    std::vector<NodeId> whiteList)
+{
+    if (!ValidateVirtualScreenLimits(width, height)) {
+        return INVALID_SCREEN_ID;
+    }
+
+    // Filter out null surfaces and check uniqueness in one pass
+    std::vector<SurfaceRegionConfig> validConfigs;
+    std::unordered_set<uint64_t> seenIds;
+    for (const auto& config : surfaceConfigs) {
+        if (config.surface == nullptr) {
+            continue;
+        }
+        uint64_t surfaceId = config.surface->GetUniqueId();
+        if (!seenIds.insert(surfaceId).second) {
+            continue;
+        }
+        auto func = [surfaceId](const ScreenNode& node) {
+            return ScreenContainsSurfaceId(node.second, surfaceId);
+        };
+        if (AnyScreenFits(func)) {
+            RS_LOGW("%{public}s: surface %{public}" PRIu64 " is used, create virtual screen failed!",
+                __func__, surfaceId);
+            return INVALID_SCREEN_ID;
+        }
+        validConfigs.push_back(config);
+    }
+
+    VirtualScreenConfigs configs;
+    configs.associatedScreenId = associatedScreenId;
+    configs.name = name;
+    configs.width = width;
+    configs.height = height;
+    configs.flags = flags;
+    configs.whiteList = std::unordered_set<NodeId>(whiteList.begin(), whiteList.end());
+    configs.surfaceConfigs = validConfigs;
+
+    ScreenId newId = CreateAndRegisterVirtualScreen(configs, associatedScreenId);
+    RS_LOGI("%{public}s: create virtual screen(id %{public}" PRIu64 "), width %{public}u, height %{public}u, "
+        "surfaceCount %{public}zu, associatedScreenId %{public}" PRIu64,
+        __func__, newId, width, height, validConfigs.size(), associatedScreenId);
     return newId;
 }
 
@@ -736,7 +778,117 @@ int32_t RSScreenManager::SetCastScreenEnableSkipWindow(ScreenId id, bool enable)
     return SUCCESS;
 }
 
-int32_t RSScreenManager::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface)
+int32_t RSScreenManager::SetVirtualScreenSurfaces(
+    ScreenId id, const std::vector<SurfaceRegionConfig>& surfaceConfigs)
+{
+    if (surfaceConfigs.empty()) {
+        RS_LOGW("%{public}s: screenId:%{public}" PRIu64 " surfaceConfigs is empty.", __func__, id);
+        return INVALID_ARGUMENTS;
+    }
+    auto screen = GetScreen(id);
+    if (screen == nullptr) {
+        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+        return SCREEN_NOT_FOUND;
+    }
+    if (!screen->IsVirtual()) {
+        RS_LOGW("%{public}s: The screen is not virtual, id %{public}" PRIu64, __func__, id);
+        return INVALID_ARGUMENTS;
+    }
+
+    std::vector<SurfaceRegionConfig> validConfigs;
+    std::unordered_set<uint64_t> seenIds;
+    for (const auto& config : surfaceConfigs) {
+        if (config.surface == nullptr) {
+            continue;
+        }
+        uint64_t surfaceId = config.surface->GetUniqueId();
+        if (!seenIds.insert(surfaceId).second) {
+            continue;
+        }
+        auto func = [id, surfaceId](const ScreenNode& node) -> bool {
+            return node.first != id && ScreenContainsSurfaceId(node.second, surfaceId);
+        };
+        if (AnyScreenFits(func)) {
+            RS_LOGE("%{public}s: Surface[%{public}" PRIu64 "] is used, set surface for virtualScreen[%{public}"
+                PRIu64 "] failed!", __func__, surfaceId, id);
+            return SURFACE_NOT_UNIQUE;
+        }
+        validConfigs.push_back(config);
+    }
+
+    if (validConfigs.empty()) {
+        RS_LOGW("%{public}s: No valid surfaces after filtering.", __func__);
+        return INVALID_ARGUMENTS;
+    }
+
+    screen->SetMultiSurfaceConfigs(validConfigs);
+    RS_LOGI("%{public}s: Set %{public}zu surfaces for virtualScreen[%{public}" PRIu64 "] success.",
+        __func__, validConfigs.size(), id);
+    return SUCCESS;
+}
+
+
+int32_t RSScreenManager::AddVirtualScreenSurface(
+    ScreenId id, const std::vector<SurfaceRegionConfig>& surfaceConfigs)
+{
+    if (surfaceConfigs.empty()) {
+        RS_LOGW("%{public}s: screenId:%{public}" PRIu64 " surfaceConfigs is empty.", __func__, id);
+        return INVALID_ARGUMENTS;
+    }
+    auto screen = GetScreen(id);
+    if (screen == nullptr) {
+        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+        return SCREEN_NOT_FOUND;
+    }
+    if (!screen->IsVirtual()) {
+        RS_LOGW("%{public}s: The screen is not virtual, id %{public}" PRIu64, __func__, id);
+        return INVALID_ARGUMENTS;
+    }
+    for (const auto& config : surfaceConfigs) {
+        if (config.surface == nullptr) {
+            continue;
+        }
+        uint64_t surfaceId = config.surface->GetUniqueId();
+        auto func = [id, surfaceId](const ScreenNode& node) -> bool {
+            const auto& [screenId, otherScreen] = node;
+            return screenId != id && ScreenContainsSurfaceId(otherScreen, surfaceId);
+        };
+        if (AnyScreenFits(func)) {
+            RS_LOGE("%{public}s: Surface[%{public}" PRIu64 "] is used, add surface failed for virtualScreen[%{public}"
+                PRIu64 "]!", __func__, surfaceId, id);
+            return SURFACE_NOT_UNIQUE;
+        }
+    }
+
+    return screen->AddVirtualScreenSurface(surfaceConfigs);
+}
+
+int32_t RSScreenManager::RemoveVirtualScreenSurface(ScreenId id, const std::vector<sptr<Surface>>& surfaces)
+{
+    if (surfaces.empty()) {
+        RS_LOGW("%{public}s: surfaces is empty, screenId:%{public}" PRIu64, __func__, id);
+        return INVALID_ARGUMENTS;
+    }
+    for (const auto& surface : surfaces) {
+        if (surface == nullptr) {
+            RS_LOGW("%{public}s: surface is null, screenId:%{public}" PRIu64, __func__, id);
+            return INVALID_ARGUMENTS;
+        }
+    }
+    auto screen = GetScreen(id);
+    if (screen == nullptr) {
+        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+        return SCREEN_NOT_FOUND;
+    }
+    if (!screen->IsVirtual()) {
+        RS_LOGW("%{public}s: The screen is not virtual, id %{public}" PRIu64, __func__, id);
+        return INVALID_ARGUMENTS;
+    }
+
+    return screen->RemoveVirtualScreenSurface(surfaces);
+}
+
+int32_t RSScreenManager::UpdateVirtualScreenSurfaceRegion(ScreenId id, sptr<Surface> surface, const RectI& region)
 {
     if (surface == nullptr) {
         RS_LOGW("%{public}s: screenId:%{public}" PRIu64 " surface is null.", __func__, id);
@@ -751,22 +903,51 @@ int32_t RSScreenManager::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surf
         RS_LOGW("%{public}s: The screen is not virtual, id %{public}" PRIu64, __func__, id);
         return INVALID_ARGUMENTS;
     }
-    uint64_t surfaceId = surface->GetUniqueId();
 
-    auto func = [id, surfaceId](const ScreenNode& node) -> bool {
-        const auto& [screenId, screen] = node;
-        return screen && screen->IsVirtual() && screenId != id && screen->GetProducerSurface() &&
-            screen->GetProducerSurface()->GetUniqueId() == surfaceId;
-    };
-    if (AnyScreenFits(func)) {
-        RS_LOGE("%{public}s: Surface[%{public}" PRIu64 "] is used, set surface for virtualScreen[%{public}" PRIu64
-            "] failed!", __func__, surfaceId, id);
-        return SURFACE_NOT_UNIQUE;
+    return screen->UpdateVirtualScreenSurfaceRegion(surface, region);
+}
+
+int32_t RSScreenManager::SetVirtualScreenSurfaces(
+    ScreenId id, const std::vector<SurfaceRegionConfig>& surfaceConfigs)
+{
+    if (surfaceConfigs.empty()) {
+        RS_LOGW("%{public}s: surfaceConfigs is empty", __func__);
+        return INVALID_ARGUMENTS;
     }
-
-    screen->SetProducerSurface(surface);
-    RS_LOGI("%{public}s: Set surface[%{public}" PRIu64 "] for virtualScreen[%{public}" PRIu64 "] success.",
-        __func__, surfaceId, id);
+    auto screen = GetScreen(id);
+    if (screen == nullptr) {
+        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+        return SCREEN_NOT_FOUND;
+    }
+    if (!screen->IsVirtual()) {
+        RS_LOGW("%{public}s: The screen is not virtual, id %{public}" PRIu64, __func__, id);
+        return INVALID_ARGUMENTS;
+    }
+    // Validate all surfaces are unique and not used by other screens
+    std::unordered_set<uint64_t> seenIds;
+    for (const auto& config : surfaceConfigs) {
+        if (config.surface == nullptr) {
+            RS_LOGW("%{public}s: null surface in configs", __func__);
+            return INVALID_ARGUMENTS;
+        }
+        uint64_t surfaceId = config.surface->GetUniqueId();
+        if (!seenIds.insert(surfaceId).second) {
+            RS_LOGW("%{public}s: duplicate surface in configs", __func__);
+            return INVALID_ARGUMENTS;
+        }
+        auto func = [id, surfaceId](const ScreenNode& node) -> bool {
+            const auto& [screenId, otherScreen] = node;
+            return screenId != id && ScreenContainsSurfaceId(otherScreen, surfaceId);
+        };
+        if (AnyScreenFits(func)) {
+            RS_LOGE("%{public}s: Surface[%{public}" PRIu64 "] is used, set failed for virtualScreen[%{public}"
+                PRIu64 "]!", __func__, surfaceId, id);
+            return SURFACE_NOT_UNIQUE;
+        }
+    }
+    screen->SetMultiSurfaceConfigs(surfaceConfigs);
+    RS_LOGI("%{public}s: Set %{public}zu surfaces for virtualScreen[%{public}" PRIu64 "] success.",
+        __func__, surfaceConfigs.size(), id);
     return SUCCESS;
 }
 
