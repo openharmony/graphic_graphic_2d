@@ -424,7 +424,6 @@ public:
     bool TransitionDataMutexLockIfNoCommands();
     void TransitionDataMutexUnlock();
     void CleanResources(pid_t pid);
-    bool GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight);
     
     const std::shared_ptr<RSHwcContext>& GetHwcContext() const { return hwcContext_; }
 

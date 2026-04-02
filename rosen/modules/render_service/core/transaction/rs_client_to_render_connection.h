@@ -180,7 +180,6 @@ private:
     ) override;
 
     int32_t GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result) override;
-    ErrCode GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight) override;
 
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;
