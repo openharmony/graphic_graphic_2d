@@ -279,6 +279,10 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(SDFTriangleShape, Radius, float);
 // SDFTransformShape
 DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFTransformShape, Matrix, Matrix3f);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFTransformShape, Shape, SHAPE_PTR);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFTransformShape, UnionMode, int);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFTransformShape, GravityCenter, Vector2f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFTransformShape, GravityStrength, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFTransformShape, GravitySpacing, float);
 
 // SDFPixelmapShape
 DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFPixelmapShape, Image, std::shared_ptr<Media::PixelMap>);

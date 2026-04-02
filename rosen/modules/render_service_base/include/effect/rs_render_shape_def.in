@@ -39,7 +39,11 @@ DECLARE_SHAPE(SDFTriangleShape, SDF_TRIANGLE_SHAPE,
 
 DECLARE_SHAPE(SDFTransformShape, SDF_TRANSFORM_SHAPE,
     ADD_PROPERTY_TAG(SDFTransformShape, Matrix),
-    ADD_PROPERTY_TAG(SDFTransformShape, Shape)
+    ADD_PROPERTY_TAG(SDFTransformShape, Shape),
+    ADD_PROPERTY_TAG(SDFTransformShape, UnionMode),
+    ADD_PROPERTY_TAG(SDFTransformShape, GravityCenter),
+    ADD_PROPERTY_TAG(SDFTransformShape, GravityStrength),
+    ADD_PROPERTY_TAG(SDFTransformShape, GravitySpacing)
 );
 
 DECLARE_SHAPE(SDFPixelmapShape, SDF_PIXELMAP_SHAPE,
