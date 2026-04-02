@@ -72,6 +72,9 @@ void RSLayerCacheManager::HandleLayerDrawables(Drawing::Canvas& canvas)
 {
     for (auto drawableAdapter : layerDrawables_) {
         auto drawablePtr = std::static_pointer_cast<DrawableV2::RSCanvasRenderNodeDrawable>(drawableAdapter);
+        if (!drawablePtr->GetRenderParams()) {
+            continue;
+        }
         RS_TRACE_NAME_FMT("LayerDrawable TryPrepareLayerCache, isOpinc:%d, id: %" PRId64 "",
             drawablePtr->GetRenderParams()->OpincIsSuggest(), drawablePtr->GetId());
         if (drawablePtr->GetRenderParams()->OpincIsSuggest() == false) {

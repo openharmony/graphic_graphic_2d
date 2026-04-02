@@ -93,6 +93,10 @@ HWTEST_F(RSLayerCacheManagerTest, HandleLayerDrawablesTest, TestSize.Level1)
     auto drawable = std::make_shared<DrawableV2::RSCanvasRenderNodeDrawable>(std::move(node));
 
     drawable->GetRenderParams()->isOpincSuggestFlag_ = false;
+    drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    layerCacheManager.layerDrawables_.emplace_back(drawable);
+    layerCacheManager.HandleLayerDrawables(canvas);
+    drawable->renderParams_ = nullptr;
     layerCacheManager.layerDrawables_.emplace_back(drawable);
     layerCacheManager.HandleLayerDrawables(canvas);
 }
