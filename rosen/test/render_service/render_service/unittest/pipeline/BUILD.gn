@@ -381,6 +381,13 @@ ohos_unittest("RSRenderServiceVisitorTest") {
       "video_processing_engine:videoprocessingengine",
     ]
   }
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
 }
 
 # Build RSComposerAdapterTest
