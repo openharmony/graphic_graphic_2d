@@ -18,7 +18,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <securec.h>
-#include <fuzzer/FuzzedDataProvider.h>
 
 #include "feature/hyper_graphic_manager/rs_ui_display_soloist.h"
 
