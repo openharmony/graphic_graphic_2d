@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <cinttypes>
+
 #include "rs_render_pipeline_agent.h"
 #include "common/rs_background_thread.h"
 #include "command/rs_command_verify_helper.h"
@@ -1445,7 +1447,7 @@ void RSRenderPipelineAgent::CollectSurfaceBuffersByProcessId(
             auto surfaceBufferTuple = std::make_tuple(bufferInfo.surfaceBuffer_, surfaceName, absRect);
             sfBufferInfoVector.push_back(surfaceBufferTuple);
 
-            RS_LOGD("CollectSurfaceBuffersByProcessId: Added texture buffer from pid=%{public}d, uid=%{public}llu, "
+            RS_LOGD("CollectSurfaceBuffersByProcessId: Added texture buffer from pid=%{public}d, uid=%{public}" PRId64 ", "
                     "bufferId=%{public}u, size=%{public}dx%{public}d",
                     bufferInfo.pid_, bufferInfo.uid_,
                     bufferInfo.surfaceBuffer_->GetSeqNum(),

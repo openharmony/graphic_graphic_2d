@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <cinttypes>
 
 #include "ipc_callbacks/rs_surface_buffer_callback.h"
 #include "pipeline/rs_draw_cmd.h"
@@ -434,7 +435,7 @@ void RSSurfaceBufferCallbackManager::RemoveAllSurfaceBufferInfo(pid_t pid, uint6
     auto it = surfaceBufferInfoMap_.find(key);
     if (it != surfaceBufferInfoMap_.end()) {
         RS_LOGD("RSSurfaceBufferCallbackManager::RemoveAllSurfaceBufferInfo:"
-                "Removed %{public}zu buffers for pid=%{public}d, uid=%{public}llu",
+                "Removed %{public}zu buffers for pid=%{public}d, uid=%{public}" PRIu64,
                 it->second.size(), pid, uid);
         surfaceBufferInfoMap_.erase(it);
     }
