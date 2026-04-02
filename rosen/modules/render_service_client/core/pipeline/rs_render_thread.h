@@ -121,7 +121,6 @@ public:
         }
     }
     static bool GetIsRunning();
-    bool QueryMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight);
 
 private:
     RSRenderThread();
