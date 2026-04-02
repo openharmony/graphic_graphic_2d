@@ -114,6 +114,10 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
             return std::make_shared<RSNGRenderMagnifierFilter>();
         }
     },
+    {RSNGEffectType::DISTORTION_COLLAPSE, [] {
+            return std::make_shared<RSNGRenderDistortionCollapseFilter>();
+        }
+    },
 };
 
 using FilterGetSnapshotRect = std::function<RectF(std::shared_ptr<RSNGRenderFilterBase>, RectF)>;
@@ -167,7 +171,51 @@ static std::unordered_map<RSNGEffectType, FilterGetSnapshotRect> getSnapshotRect
 };
 
 using FilterGetDrawRect = std::function<RectF(std::shared_ptr<RSNGRenderFilterBase>, RectF)>;
-static std::unordered_map<RSNGEffectType, FilterGetDrawRect> getDrawRectLUT = {};
+static std::unordered_map<RSNGEffectType, FilterGetDrawRect> getDrawRectLUT = {
+    {
+        RSNGEffectType::DISTORTION_COLLAPSE, [](std::shared_ptr<RSNGRenderFilterBase> filter, RectF rect) {
+            auto distortionFilter = std::static_pointer_cast<RSNGRenderDistortionCollapseFilter>(filter);
+            auto luCorner = distortionFilter->Getter<OHOS::Rosen::DistortionCollapseLUCornerRenderTag>()->Get();
+            auto ruCorner = distortionFilter->Getter<OHOS::Rosen::DistortionCollapseRUCornerRenderTag>()->Get();
+            auto rbCorner = distortionFilter->Getter<OHOS::Rosen::DistortionCollapseRBCornerRenderTag>()->Get();
+            auto lbCorner = distortionFilter->Getter<OHOS::Rosen::DistortionCollapseLBCornerRenderTag>()->Get();
+            auto distortion =
+                distortionFilter->Getter<OHOS::Rosen::DistortionCollapseBarrelDistortionRenderTag>()->Get();
+            float left = rect.GetLeft() + std::min(luCorner[0], lbCorner[0]) * rect.GetWidth();
+            float top = rect.GetTop() + std::min(luCorner[1], ruCorner[1]) * rect.GetHeight();
+            float right = std::max(ruCorner[0], rbCorner[0]) * rect.GetWidth();
+            float bottom = std::max(lbCorner[1], rbCorner[1]) * rect.GetHeight();
+            constexpr float halfUV = 0.5f;
+            constexpr float distortScale = 0.25f;
+            constexpr float tuneNum = 4.0f;
+            constexpr float tuneDenomBase = 2.0f;
+            if (distortion[0] > 0) {
+                left -= ceil(rect.GetWidth() *
+                    (halfUV - distortScale * (tuneNum + distortion[0]) / (tuneDenomBase + distortion[0])));
+            }
+            if (distortion[1] > 0) {
+                right += ceil(rect.GetWidth() *
+                    (halfUV - distortScale * (tuneNum + distortion[1]) / (tuneDenomBase + distortion[1])));
+            }
+            if (distortion[2] > 0) {
+                top -= ceil(rect.GetHeight() *
+                    (halfUV - distortScale * (tuneNum + distortion[2]) / (tuneDenomBase + distortion[2])));
+            }
+            if (distortion[3] > 0) {
+                bottom += ceil(rect.GetHeight() *
+                    (halfUV - distortScale * (tuneNum + distortion[3]) / (tuneDenomBase + distortion[3])));
+            }
+            return RectF(left, top, right - left, bottom - top);
+        }
+    },
+    {
+        RSNGEffectType::FROSTED_GLASS, [](std::shared_ptr<RSNGRenderFilterBase> filter, RectF rect) {
+            auto frostedGlassFilter = std::static_pointer_cast<RSNGRenderFrostedGlassFilter>(filter);
+            auto shape = frostedGlassFilter->Getter<OHOS::Rosen::FrostedGlassShapeRenderTag>()->Get();
+            return shape->GetTransformDrawRect();
+        }
+    }
+};
 
 using CheckFilterSkipFrameFunc = std::function<bool(std::shared_ptr<RSNGRenderFilterBase>)>;
 static std::unordered_map<RSNGEffectType, CheckFilterSkipFrameFunc> checkFilterSkipLUT = {

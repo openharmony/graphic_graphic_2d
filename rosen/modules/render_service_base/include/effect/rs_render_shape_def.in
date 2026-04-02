@@ -25,6 +25,15 @@ DECLARE_SHAPE(SDFSmoothUnionOpShape, SDF_SMOOTH_UNION_OP_SHAPE,
     ADD_PROPERTY_TAG(SDFSmoothUnionOpShape, ShapeY)
 );
 
+DECLARE_SHAPE(SDFDistortOpShape, SDF_DISTORT_OP_SHAPE,
+    ADD_PROPERTY_TAG(SDFDistortOpShape, LUCorner),
+    ADD_PROPERTY_TAG(SDFDistortOpShape, RUCorner),
+    ADD_PROPERTY_TAG(SDFDistortOpShape, RBCorner),
+    ADD_PROPERTY_TAG(SDFDistortOpShape, LBCorner),
+    ADD_PROPERTY_TAG(SDFDistortOpShape, BarrelDistortion),
+    ADD_PROPERTY_TAG(SDFDistortOpShape, Shape)
+);
+
 // SDF shape
 DECLARE_SHAPE(SDFRRectShape, SDF_RRECT_SHAPE,
     ADD_PROPERTY_TAG(SDFRRectShape, RRect)

@@ -22,6 +22,7 @@
 #include "dirty_region/rs_gpu_dirty_collector.h"
 #include "drawable/rs_color_picker_drawable.h"
 #include "drawable/rs_property_drawable_foreground.h"
+#include "effect/rs_render_shape_base.h"
 #include "metadata_helper.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "params/rs_render_params.h"
@@ -3633,6 +3634,166 @@ HWTEST_F(RSRenderNodeTest2, DirtySlotsPartialSync001, TestSize.Level1)
     node->dirtySlots_.insert(RSDrawableSlot::MATERIAL_FILTER);
     node->DirtySlotsPartialSync();
     EXPECT_EQ(node->dirtySlots_.size(), 2);
+}
+
+HWTEST_F(RSRenderNodeTest2, UpdateFilterRectInfo_WithSDFShape_CallsCalcRect, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_UNION_OP_SHAPE);
+    ASSERT_NE(sdfShape, nullptr);
+
+    node.GetMutableRenderProperties().SetSDFShape(sdfShape);
+
+    node.UpdateFilterRectInfo();
+
+    const RectF& transformDrawRect = sdfShape->GetTransformDrawRect();
+    RectF boundsRect = node.GetRenderProperties().GetBoundsRect();
+
+    EXPECT_FLOAT_EQ(transformDrawRect.GetLeft(), boundsRect.GetLeft());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetTop(), boundsRect.GetTop());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetWidth(), boundsRect.GetWidth());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetHeight(), boundsRect.GetHeight());
+}
+
+HWTEST_F(RSRenderNodeTest2, UpdateFilterRectInfo_WithSDFRRectShape_CallsCalcRect, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    ASSERT_NE(sdfShape, nullptr);
+
+    node.GetMutableRenderProperties().SetSDFShape(sdfShape);
+
+    node.UpdateFilterRectInfo();
+
+    const RectF& transformDrawRect = sdfShape->GetTransformDrawRect();
+    RectF boundsRect = node.GetRenderProperties().GetBoundsRect();
+
+    EXPECT_FLOAT_EQ(transformDrawRect.GetLeft(), boundsRect.GetLeft());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetTop(), boundsRect.GetTop());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetWidth(), boundsRect.GetWidth());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetHeight(), boundsRect.GetHeight());
+}
+
+HWTEST_F(RSRenderNodeTest2, UpdateFilterRectInfo_WithSDFTriangleShape_CallsCalcRect, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_TRIANGLE_SHAPE);
+    ASSERT_NE(sdfShape, nullptr);
+
+    node.GetMutableRenderProperties().SetSDFShape(sdfShape);
+
+    node.UpdateFilterRectInfo();
+
+    const RectF& transformDrawRect = sdfShape->GetTransformDrawRect();
+    RectF boundsRect = node.GetRenderProperties().GetBoundsRect();
+
+    EXPECT_FLOAT_EQ(transformDrawRect.GetLeft(), boundsRect.GetLeft());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetTop(), boundsRect.GetTop());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetWidth(), boundsRect.GetWidth());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetHeight(), boundsRect.GetHeight());
+}
+
+HWTEST_F(RSRenderNodeTest2, UpdateFilterRectInfo_WithSDFTransformShape_CallsCalcRect, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_TRANSFORM_SHAPE);
+    ASSERT_NE(sdfShape, nullptr);
+
+    node.GetMutableRenderProperties().SetSDFShape(sdfShape);
+
+    node.UpdateFilterRectInfo();
+
+    const RectF& transformDrawRect = sdfShape->GetTransformDrawRect();
+    RectF boundsRect = node.GetRenderProperties().GetBoundsRect();
+
+    EXPECT_FLOAT_EQ(transformDrawRect.GetLeft(), boundsRect.GetLeft());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetTop(), boundsRect.GetTop());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetWidth(), boundsRect.GetWidth());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetHeight(), boundsRect.GetHeight());
+}
+
+HWTEST_F(RSRenderNodeTest2, UpdateFilterRectInfo_WithSDFDistortOpShape_CallsCalcRect, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_DISTORT_OP_SHAPE);
+    ASSERT_NE(sdfShape, nullptr);
+
+    node.GetMutableRenderProperties().SetSDFShape(sdfShape);
+
+    node.UpdateFilterRectInfo();
+
+    const RectF& transformDrawRect = sdfShape->GetTransformDrawRect();
+    RectF boundsRect = node.GetRenderProperties().GetBoundsRect();
+
+    EXPECT_FLOAT_EQ(transformDrawRect.GetLeft(), boundsRect.GetLeft());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetTop(), boundsRect.GetTop());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetWidth(), boundsRect.GetWidth());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetHeight(), boundsRect.GetHeight());
+}
+
+HWTEST_F(RSRenderNodeTest2, UpdateFilterRectInfo_WithSDFEmptyShape_CallsCalcRect, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_EMPTY_SHAPE);
+    ASSERT_NE(sdfShape, nullptr);
+
+    node.GetMutableRenderProperties().SetSDFShape(sdfShape);
+
+    node.UpdateFilterRectInfo();
+
+    const RectF& transformDrawRect = sdfShape->GetTransformDrawRect();
+    RectF bounds = node.GetRenderProperties().GetBoundsRect();
+
+    EXPECT_FLOAT_EQ(transformDrawRect.GetLeft(), bounds.GetLeft());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetTop(), bounds.GetTop());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetWidth(), bounds.GetWidth());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetHeight(), bounds.GetHeight());
+}
+
+HWTEST_F(RSRenderNodeTest2, UpdateFilterRectInfo_WithSDFSmoothUnionOpShape_CallsCalcRect, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_SMOOTH_UNION_OP_SHAPE);
+    ASSERT_NE(sdfShape, nullptr);
+
+    node.GetMutableRenderProperties().SetSDFShape(sdfShape);
+
+    node.UpdateFilterRectInfo();
+
+    const RectF& transformDrawRect = sdfShape->GetTransformDrawRect();
+    RectF boundsRect = node.GetRenderProperties().GetBoundsRect();
+
+    EXPECT_FLOAT_EQ(transformDrawRect.GetLeft(), boundsRect.GetLeft());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetTop(), boundsRect.GetTop());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetWidth(), boundsRect.GetWidth());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetHeight(), boundsRect.GetHeight());
+}
+
+HWTEST_F(RSRenderNodeTest2, UpdateFilterRectInfo_WithSDFPixelmapShape_CallsCalcRect, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_PIXELMAP_SHAPE);
+    ASSERT_NE(sdfShape, nullptr);
+
+    node.GetMutableRenderProperties().SetSDFShape(sdfShape);
+
+    node.UpdateFilterRectInfo();
+
+    const RectF& transformDrawRect = sdfShape->GetTransformDrawRect();
+    RectF boundsRect = node.GetRenderProperties().GetBoundsRect();
+
+    EXPECT_FLOAT_EQ(transformDrawRect.GetLeft(), boundsRect.GetLeft());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetTop(), boundsRect.GetTop());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetWidth(), boundsRect.GetWidth());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetHeight(), boundsRect.GetHeight());
 }
 
 /**

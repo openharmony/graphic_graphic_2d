@@ -5430,6 +5430,11 @@ std::shared_ptr<RSFilter> RSRenderNode::GetRSFilterWithSlot(RSDrawableSlot slot)
 void RSRenderNode::UpdateFilterRectInfo()
 {
     auto boundsRect = GetRenderProperties().GetBoundsRect();
+    auto sdfShape = GetRenderProperties().GetSDFShape();
+    if (sdfShape) {
+        // Calc transform draw rect and store in sdf shape instance
+        RSNGRenderShapeHelper::CalcRect(sdfShape, boundsRect);
+    }
     for (auto slot : filterDrawableSlotsSupportGetRect) {
         std::shared_ptr<RSFilter> filter = GetRSFilterWithSlot(slot);
         if (filter == nullptr) {
