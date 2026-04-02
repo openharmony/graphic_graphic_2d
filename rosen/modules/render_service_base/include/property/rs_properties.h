@@ -802,6 +802,8 @@ public:
     void SetIlluminatedBorderWidth(float illuminatedBorderWidth);
     void SetIlluminatedType(int illuminatedType);
     void SetBloom(float bloomIntensity);
+    void SetOverlayNGShader(const std::shared_ptr<RSNGRenderShaderBase>& overlayShader);
+
     float GetLightIntensity() const;
     Color GetLightColor() const;
     Vector4f GetLightPosition() const;
@@ -817,6 +819,7 @@ public:
         const auto& illuminatedPtr = GetIlluminated();
         return illuminatedPtr ? illuminatedPtr->GetBloomIntensity() : 0.f;
     }
+    std::shared_ptr<RSNGRenderShaderBase> GetOverlayNGShader() const;
 
     inline const std::shared_ptr<RSLightSource>& GetLightSource() const
     {
@@ -996,6 +999,7 @@ private:
         std::shared_ptr<RSNGRenderFilterBase> cgNGRenderFilter_ = nullptr; // for compositing render
         std::shared_ptr<RSNGRenderShaderBase> bgNGRenderShader_ = nullptr;
         std::shared_ptr<RSNGRenderShaderBase> fgRenderShader_ = nullptr;
+        std::shared_ptr<RSNGRenderShaderBase> olRenderShader_ = nullptr; // for overlay shader
         std::shared_ptr<RSFilter> materialFilter_ = nullptr;
     };
     inline float DecreasePrecision(float value)

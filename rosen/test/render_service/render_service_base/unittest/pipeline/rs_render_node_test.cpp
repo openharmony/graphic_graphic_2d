@@ -20,9 +20,11 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "dirty_region/rs_optimize_canvas_dirty_collector.h"
 #include "drawable/rs_color_picker_drawable.h"
+#include "drawable/rs_overlay_ng_shader_drawable.h"
 #include "drawable/rs_property_drawable.h"
 #include "drawable/rs_property_drawable_background.h"
 #include "drawable/rs_property_drawable_foreground.h"
+#include "effect/rs_render_shader_base.h"
 #include "modifier_ng/custom/rs_custom_modifier.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "params/rs_render_params.h"
@@ -1536,6 +1538,30 @@ HWTEST_F(RSRenderNodeTest, UpdatePointLightDirtySlotTest2, TestSize.Level1)
     node.UpdatePointLightDirtySlot();
     EXPECT_FALSE(node.enableHdrEffect_);
 }
+
+/**
+ * @tc.name: UpdatePointLightDirtySlotTest3
+ * @tc.desc: Test UpdatePointLightDirtySlot with OVERLAY_NG_SHADER drawable set
+ * @tc.type: FUNC
+ * @tc.require: issueI9T3XY
+ */
+HWTEST_F(RSRenderNodeTest, UpdatePointLightDirtySlotTest3, TestSize.Level1)
+{
+    auto sContext = std::make_shared<RSContext>();
+    context = sContext;
+    auto node = std::make_shared<RSRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+    auto overlayDrawable = std::make_shared<DrawableV2::RSOverlayNGShaderDrawable>();
+    ASSERT_NE(overlayDrawable, nullptr);
+    node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::OVERLAY_NG_SHADER)] = overlayDrawable;
+    EXPECT_TRUE(node->dirtySlots_.empty());
+    auto overlayShader = std::make_shared<RSNGRenderAIBarRectHalo>();
+    node->GetMutableRenderProperties().SetOverlayNGShader(overlayShader);
+    node->UpdatePointLightDirtySlot();
+    EXPECT_FALSE(node->dirtySlots_.empty());
+    EXPECT_TRUE(node->dirtySlots_.count(RSDrawableSlot::OVERLAY_NG_SHADER) > 0);
+}
+
 /**
  * @tc.name: AddToPendingSyncListTest
  * @tc.desc:
@@ -4367,5 +4393,6 @@ HWTEST_F(RSRenderNodeTest, GetColorPickerDrawable002, TestSize.Level1)
     EXPECT_NE(retrievedDrawable, nullptr);
     EXPECT_EQ(retrievedDrawable, colorPickerDrawable);
 }
+
 } // namespace Rosen
 } // namespace OHOS
