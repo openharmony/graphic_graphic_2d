@@ -89,7 +89,12 @@ VsyncError VSyncConnectionProxy::SetUiDvsyncSwitch(bool dvsyncSwitch)
         VLOGE("ipc send fail, error:%{public}d", res);
         return VSYNC_ERROR_UNKOWN;
     }
-    return static_cast<VsyncError>(ret.ReadInt32());
+    int32_t value = 0;
+    if (!ret.ReadInt32(value)) {
+        VLOGE("ReadInt32 failed");
+        return VSYNC_ERROR_API_FAILED;
+    }
+    return static_cast<VsyncError>(value);
 }
 
 VsyncError VSyncConnectionProxy::SetNativeDVSyncSwitch(bool dvsyncSwitch)
@@ -116,7 +121,12 @@ VsyncError VSyncConnectionProxy::SetNativeDVSyncSwitch(bool dvsyncSwitch)
         VLOGE("ipc send fail, error:%{public}d", res);
         return VSYNC_ERROR_UNKOWN;
     }
-    return static_cast<VsyncError>(ret.ReadInt32());
+    int32_t value = 0;
+    if (!ret.ReadInt32(value)) {
+        VLOGE("ReadInt32 failed");
+        return VSYNC_ERROR_API_FAILED;
+    }
+    return static_cast<VsyncError>(value);
 }
 
 VsyncError VSyncConnectionProxy::SetUiDvsyncConfig(int32_t bufferCount, bool compositeSceneEnable,
@@ -159,7 +169,12 @@ VsyncError VSyncConnectionProxy::SetUiDvsyncConfig(int32_t bufferCount, bool com
     if (res != NO_ERROR) {
         return VSYNC_ERROR_UNKOWN;
     }
-    return static_cast<VsyncError>(ret.ReadInt32());
+    int32_t value = 0;
+    if (!ret.ReadInt32(value)) {
+        VLOGE("ReadInt32 failed");
+        return VSYNC_ERROR_API_FAILED;
+    }
+    return static_cast<VsyncError>(value);
 }
 
 VsyncError VSyncConnectionProxy::GetReceiveFd(int32_t &fd)
@@ -182,9 +197,13 @@ VsyncError VSyncConnectionProxy::GetReceiveFd(int32_t &fd)
         VLOGE("GetReceiveFd Failed, res = %{public}d", res);
         return VSYNC_ERROR_BINDER_ERROR;
     }
-    res = ret.ReadInt32();
-    if (res != VSYNC_ERROR_OK) {
-        return static_cast<VsyncError>(res);
+    int32_t value = 0;
+    if (!ret.ReadInt32(value)) {
+        VLOGE("ReadInt32 failed");
+        return VSYNC_ERROR_API_FAILED;
+    }
+    if (static_cast<VsyncError>(value) != VSYNC_ERROR_OK) {
+        return static_cast<VsyncError>(value);
     }
     fd = ret.ReadFileDescriptor();
     if (fd < 0) {
@@ -220,7 +239,12 @@ VsyncError VSyncConnectionProxy::SetVSyncRate(int32_t rate)
     if (res != NO_ERROR) {
         return VSYNC_ERROR_BINDER_ERROR;
     }
-    return static_cast<VsyncError>(ret.ReadInt32());
+    int32_t value = 0;
+    if (!ret.ReadInt32(value)) {
+        VLOGE("ReadInt32 failed");
+        return VSYNC_ERROR_API_FAILED;
+    }
+    return static_cast<VsyncError>(value);
 }
 
 VsyncError VSyncConnectionProxy::Destroy()
@@ -242,7 +266,12 @@ VsyncError VSyncConnectionProxy::Destroy()
     if (res != NO_ERROR) {
         return VSYNC_ERROR_BINDER_ERROR;
     }
-    return static_cast<VsyncError>(ret.ReadInt32());
+    int32_t value = 0;
+    if (!ret.ReadInt32(value)) {
+        VLOGE("ReadInt32 failed");
+        return VSYNC_ERROR_API_FAILED;
+    }
+    return static_cast<VsyncError>(value);
 }
 } // namespace Vsync
 } // namespace OHOS
