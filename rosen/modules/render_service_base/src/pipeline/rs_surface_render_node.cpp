@@ -2448,6 +2448,7 @@ void RSSurfaceRenderNode::OnSync()
             return;
         }
         surfaceParams->SetNeedSync(true);
+        surfaceParams->SetPartialSynced(IsUifirstSkipPartialSync());
     }
     RSRenderNode::OnSync();
 #endif

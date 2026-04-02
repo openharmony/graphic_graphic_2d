@@ -23,7 +23,6 @@
 #include <vector>
 
 #include "drawable/rs_surface_render_node_drawable.h"
-#include "feature_cfg/graphic_feature_param_manager.h"
 #include "pipeline/rs_processor.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -192,7 +191,7 @@ public:
     {
         isFreeMultiWindowEnabled_ = enable;
     }
-    UiFirstModeType GetUiFirstMode();
+    UiFirstModeType GetUiFirstMode() const;
     void ReadUIFirstCcmParam();
     void RefreshUIFirstParam();
 
@@ -222,12 +221,7 @@ public:
         return GetUiFirstType() == UiFirstCcmType::MULTI && RSSystemProperties::GetUIFirstDirtyEnabled();
     }
 
-    bool IsOcclusionEnabled() const
-    {
-        return RSUifirstManager::Instance().GetUiFirstMode() == UiFirstModeType::MULTI_WINDOW_MODE &&
-            UIFirstParam::IsOcclusionEnabled() &&
-            RSSystemParameters::GetUIFirstOcclusionEnabled();
-    }
+    bool IsOcclusionEnabled() const;
 private:
     struct NodeDataBehindWindow {
         uint64_t curTime = 0;
