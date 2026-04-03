@@ -187,10 +187,9 @@ sptr<IRemoteObject> RSMultiRenderProcessManager::HandleNewGroup(
             PendingScreenConnectInfo screenConnectInfo { .screenId = screenId, .property = property };
             pendingScreenConnectInfos_.insert_or_assign(pid, screenConnectInfo);
             renderProcessReadyPromises_[pid] = std::move(renderProcessReadyPromise);
-            // TODO: LTPO适配
-            // if (const auto& hgmContext = renderService_.GetHgmContext()) {
-            //     hgmContext->UpdateRenderProcessPid(screenId, pid);
-            // }
+            if (const auto& hgmContext = renderService_.GetHgmContext()) {
+                hgmContext->AddRenderProcessPid(pid);
+            }
             break;
         }
         RS_LOGE("%{public}s: Fork failed, retrying...", __func__);

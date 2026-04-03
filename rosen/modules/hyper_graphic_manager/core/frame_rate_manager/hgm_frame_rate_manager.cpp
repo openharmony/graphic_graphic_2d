@@ -540,10 +540,15 @@ void HgmFrameRateManager::FrameRateReport()
         slideModeChange_ = false;
     }
 
+    for (auto pid : renderProcessPids_) {
+        rates[pid] = currRefreshRate_;
+        HGM_LOGD("RenderProcessPid(%{public}d) = %{public}d", pid, rates[pid]);
+    }
+
     HGM_LOGD("RS(%{public}d) = %{public}d, APP(%{public}d) = %{public}d",
         GetRealPid(), rates[GetRealPid()], UNI_APP_PID, rates[UNI_APP_PID]);
-    RS_TRACE_NAME_FMT("%s: RS(%d) RP(%d) = %d, APP(%d) = %d",
-        __func__, GetRealPid(), rates[GetRealPid()], UNI_APP_PID, rates[UNI_APP_PID]);
+    RS_TRACE_NAME_FMT("%s: RS(%d) = %d, APP(%d) = %d, pid count = %lu",
+        __func__, GetRealPid(), rates[GetRealPid()], UNI_APP_PID, rates[UNI_APP_PID], renderProcessPids_.size());
     FRAME_TRACE::FrameRateReport::GetInstance().SendFrameRates(rates);
     FRAME_TRACE::FrameRateReport::GetInstance().SendFrameRatesToRss(rates);
     schedulePreferredFpsChange_ = false;
@@ -1659,5 +1664,24 @@ bool HgmFrameRateManager::IsNeedAdaptiveAfterUpdateMode()
 {
     return controller_ != nullptr && controller_->IsNeedAdaptiveAfterUpdateMode();
 }
+
+void HgmFrameRateManager::AddRenderProcessPid(int32_t pid)
+{
+    if (renderProcessPids_.find(pid) == renderProcessPids_.end()) {
+        schedulePreferredFpsChange_ = true;
+        renderProcessPids_.insert(pid);
+        FrameRateReport();
+    }
+}
+
+void HgmFrameRateManager::RemoveRenderProcessPid(int32_t pid)
+{
+    if (renderProcessPids_.find(pid) == renderProcessPids_.end()) {
+        schedulePreferredFpsChange_ = true;
+        renderProcessPids_.erase(pid);
+        FrameRateReport();
+    }
+}
+
 } // namespace Rosen
 } // namespace OHOS
