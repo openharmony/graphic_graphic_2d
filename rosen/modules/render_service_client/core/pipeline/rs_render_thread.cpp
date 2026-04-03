@@ -284,7 +284,8 @@ void RSRenderThread::RecvTransactionData(std::unique_ptr<RSTransactionData>& tra
 {
     {
         std::unique_lock<std::mutex> cmdLock(cmdMutex_);
-        std::string str = "RecvCommands ptr:" + std::to_string(reinterpret_cast<uintptr_t>(transactionData.get()));
+        std::string str = "RecvCommands count:" + std::to_string(transactionData->GetCommandCount()) +
+            ", timestamp:" + std::to_string(transactionData->GetTimestamp());
         commandTimestamp_ = transactionData->GetTimestamp();
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, str.c_str());
         cmds_.emplace_back(std::move(transactionData));
@@ -498,7 +499,8 @@ void RSRenderThread::ProcessCommands()
     }
     uint64_t uiEndTimeStamp = jankDetector_->GetSysTimeNs();
     for (auto& cmdData : cmds) {
-        std::string str = "ProcessCommands ptr:" + std::to_string(reinterpret_cast<uintptr_t>(cmdData.get()));
+        std::string str = "ProcessCommands count:" + std::to_string(cmdData->GetCommandCount()) +
+            ", timestamp:" + std::to_string(cmdData->GetTimestamp());
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, str.c_str());
         // only set transactionTimestamp_ in UniRender mode
         context_->transactionTimestamp_ = RSSystemProperties::GetUniRenderEnabled() ? cmdData->GetTimestamp() : 0;
