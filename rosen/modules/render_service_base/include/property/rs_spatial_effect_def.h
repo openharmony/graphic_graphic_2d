@@ -65,7 +65,7 @@ struct SpatialEffectPara {
             leftBottom == other.leftBottom && rightBottom == other.rightBottom &&
             ROSEN_EQ(occlusionWeight, other.occlusionWeight);
     }
-}; 
+};
 } // namespace Rosen
 } // namespace OHOS
 
