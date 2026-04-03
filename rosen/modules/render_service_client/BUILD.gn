@@ -131,7 +131,6 @@ template("render_service_client_source_set") {
       "core/modifier_ng/appearance/rs_pixel_stretch_modifier.cpp",
       "core/modifier_ng/appearance/rs_point_light_modifier.cpp",
       "core/modifier_ng/appearance/rs_shadow_modifier.cpp",
-      "core/modifier_ng/appearance/rs_spatial_effect_modifier.cpp",
       "core/modifier_ng/appearance/rs_use_effect_modifier.cpp",
       "core/modifier_ng/appearance/rs_visibility_modifier.cpp",
       "core/modifier_ng/background/rs_background_color_modifier.cpp",
