@@ -1785,7 +1785,6 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                 hgmRenderContext_->UpdateSurfaceData(surfaceHandler, surfaceNode);
             }
             PostTryReclaimLastBuffer(surfaceNode, surfaceHandler);
-            surfaceHandler->ResetCurrentFrameBufferConsumed();
             auto parentNode = surfaceNode->GetParent().lock();
             RSBaseSurfaceUtil::DropFrameConfig dropFrameConfig;
             dropFrameConfig.enable = IsNeedDropFrameByPid(surfaceHandler->GetNodeId());
@@ -2700,8 +2699,9 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
                 auto params = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetStagingRenderParams().get());
                 if (surfaceHandler->IsCurrentFrameBufferConsumed()) {
                     auto preBufferOwnerCount = params->GetPreBufferOwnerCount();
-                    if (preBufferOwnerCount) {
-                        preBufferOwnerCount->DecRef();
+                    if (preBufferOwnerCount && preBufferOwnerCount->DecRef()) {
+                        params->SetPreBuffer(nullptr, nullptr);
+                        surfaceNode->AddToPendingSyncList();
                     }
                     refreshRects.emplace_back(surfaceNode->GetDstRect());
                 }

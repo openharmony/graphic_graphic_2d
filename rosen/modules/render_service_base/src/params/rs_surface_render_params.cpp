@@ -611,10 +611,12 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
             // hpae offline: while using hpae offline and going directly composition, set to false
             bufferSynced_ = offlineOriginBufferSynced_;
         } else {
-            if (preBufferOwnerCount_ != nullptr && bufferSynced_ == false) {
-                RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceRenderParams::OnSync RSSurfaceRenderNode RSBufferManager::DecRef "
-                    "bufferId %" PRIu64, preBufferOwnerCount_->bufferId_);
-                preBufferOwnerCount_->DecRef();
+            RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceRenderParams::OnSync RSSurfaceRenderNode RSBufferManager::DecRef ");
+            if (preBufferOwnerCount_ != nullptr && bufferSynced_ == false && preBufferOwnerCount_->DecRef()) {
+                targetSurfaceParams->preBuffer_ = nullptr;
+                preBuffer_ = nullptr;
+                targetSurfaceParams->preBufferOwnerCount_ = nullptr;
+                preBufferOwnerCount_ = nullptr;
             }
             bufferSynced_ = true;
         }
