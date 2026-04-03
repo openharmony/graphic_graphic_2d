@@ -3080,14 +3080,39 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::PROFILER_SERVICE_OPEN_FILE): {
-            HrpServiceDir baseDirType = HrpServiceGetDirType(data.ReadUint32());
-            std::string subDir = data.ReadString();
-            std::string subDir2 = data.ReadString();
-            std::string fileName = data.ReadString();
-            int32_t flags = data.ReadInt32();
-
+            uint32_t dirType { 0 };
+            if (!data.ReadUint32(dirType)) {
+                RS_LOGE("RSClientToServiceConnectionStub::PROFILER_SERVICE_OPEN_FILE Read dirType failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            HrpServiceDir baseDirType = HrpServiceGetDirType(dirType);
+            std::string subDir;
+            if (!data.ReadString(subDir)) {
+                RS_LOGE("RSClientToServiceConnectionStub::PROFILER_SERVICE_OPEN_FILE Read subDir failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            std::string subDir2;
+            if (!data.ReadString(subDir2)) {
+                RS_LOGE("RSClientToServiceConnectionStub::PROFILER_SERVICE_OPEN_FILE Read subDir2 failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            std::string fileName;
+            if (!data.ReadString(fileName)) {
+                RS_LOGE("RSClientToServiceConnectionStub::PROFILER_SERVICE_OPEN_FILE Read fileName failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            int32_t flags { 0 };
+            if (!data.ReadInt32(flags)) {
+                RS_LOGE("RSClientToServiceConnectionStub::PROFILER_SERVICE_OPEN_FILE Read flags failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             int32_t retFd = -1;
-            HrpServiceDirInfo dirInfo{baseDirType, subDir, subDir2};
+            HrpServiceDirInfo dirInfo { baseDirType, subDir, subDir2 };
             RetCodeHrpService retCode = ProfilerServiceOpenFile(dirInfo, fileName, flags, retFd);
             reply.WriteInt32((int32_t)retCode);
             reply.WriteFileDescriptor(retFd);
@@ -3097,13 +3122,34 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::PROFILER_SERVICE_POPULATE_FILES): {
-            HrpServiceDir baseDirType = HrpServiceGetDirType(data.ReadUint32());
-            std::string subDir = data.ReadString();
-            std::string subDir2 = data.ReadString();
-            uint32_t firstFileIndex = data.ReadUint32();
-
+            uint32_t dirType { 0 };
+            if (!data.ReadUint32(dirType)) {
+                RS_LOGE("RSClientToServiceConnectionStub::PROFILER_SERVICE_POPULATE_FILES Read dirType failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            HrpServiceDir baseDirType = HrpServiceGetDirType(dirType);
+            std::string subDir;
+            if (!data.ReadString(subDir)) {
+                RS_LOGE("RSClientToServiceConnectionStub::PROFILER_SERVICE_POPULATE_FILES Read subDir failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            std::string subDir2;
+            if (!data.ReadString(subDir2)) {
+                RS_LOGE("RSClientToServiceConnectionStub::PROFILER_SERVICE_POPULATE_FILES Read subDir2 failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            uint32_t firstFileIndex { 0 };
+            if (!data.ReadUint32(firstFileIndex)) {
+                RS_LOGE("RSClientToServiceConnectionStub::PROFILER_SERVICE_POPULATE_FILES Read "
+                        "firstFileIndex failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             std::vector<HrpServiceFileInfo> retFiles;
-            HrpServiceDirInfo dirInfo{baseDirType, subDir, subDir2};
+            HrpServiceDirInfo dirInfo { baseDirType, subDir, subDir2 };
             RetCodeHrpService retCode = ProfilerServicePopulateFiles(dirInfo, firstFileIndex, retFiles);
             reply.WriteInt32((int32_t)retCode);
             reply.WriteUint32((uint32_t)retFiles.size());
