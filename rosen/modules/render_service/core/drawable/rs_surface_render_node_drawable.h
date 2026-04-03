@@ -207,7 +207,9 @@ private:
                 surfaceNodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE ||
                 surfaceNodeType_ == RSSurfaceNodeType::CURSOR_NODE;
     }
-    void UpdatePipelineParamForSelfDraw(SurfaceFpsOpType surfaceFpsOpType);
+
+    static void AddSurfaceFpsOpStatic(
+        SurfaceFpsOpType surfaceFpsOpType, NodeId id, const std::string& name, uint64_t uniqueId);
 
     void TryResumeLastBuffer(sptr<SurfaceBuffer> buffer);
 #ifdef SUBTREE_PARALLEL_ENABLE
