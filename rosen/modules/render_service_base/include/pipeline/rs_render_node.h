@@ -715,7 +715,8 @@ public:
         GROUPED_BY_UI = GROUPED_BY_ANIM << 1,
         GROUPED_BY_USER = GROUPED_BY_UI << 1,
         GROUPED_BY_FOREGROUND_FILTER = GROUPED_BY_USER << 1,
-        GROUP_TYPE_BUTT = GROUPED_BY_FOREGROUND_FILTER,
+        GROUPED_BY_LAYER = GROUPED_BY_FOREGROUND_FILTER << 1,
+        GROUP_TYPE_BUTT = GROUPED_BY_LAYER,
     };
     void MarkNodeGroup(NodeGroupType type, bool isNodeGroup, bool includeProperty);
     void ExcludedFromNodeGroup(bool isExcluded);

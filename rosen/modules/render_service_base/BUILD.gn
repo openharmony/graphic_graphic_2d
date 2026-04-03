@@ -395,6 +395,7 @@ ohos_source_set("render_service_base_src") {
     "src/feature/hyper_graphic_manager/rs_render_frame_rate_linker.cpp",
     "src/feature/hyper_graphic_manager/rs_render_frame_rate_linker_map.cpp",
     "src/feature/image_detail_enhancer/rs_image_detail_enhancer_thread.cpp",
+    "src/feature/layer/rs_layer_cache_manager_base.cpp",
     "src/feature/opinc/rs_opinc_cache.cpp",
     "src/feature/opinc/rs_opinc_manager.cpp",
     "src/feature/power_off_render_skip/rs_power_off_render_controller.cpp",

@@ -42,6 +42,7 @@
 #ifdef RS_MEMORY_INFO_MANAGER
 #include "feature/memory_info_manager/rs_memory_info_manager.h"
 #endif
+#include "feature/layer/rs_layer_cache_manager_base.h"
 #include "modifier_ng/geometry/rs_transform_render_modifier.h"
 #include "modifier_ng/rs_render_modifier_ng.h"
 #include "params/rs_render_params.h"
@@ -4588,6 +4589,10 @@ void RSRenderNode::OnSync()
         stagingDrawCmdList_.clear();
         renderDrawable_->drawCmdIndex_ = stagingDrawCmdIndex_;
         drawCmdListNeedSync_ = false;
+    }
+
+    if (nodeGroupType_ == NodeGroupType::GROUPED_BY_LAYER) {
+        RSLayerCacheManagerBase::layerDrawables_.emplace_back(renderDrawable_);
     }
 
     if (drawableVecNeedClear_) {

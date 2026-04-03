@@ -847,6 +847,13 @@ public:
     void SetAlphaOffscreen(bool alphaOffscreen);
 
     /**
+     * @brief Mark the node as a layer node for rendering pipeline optimization
+     *
+     * @param isLayer The layer mark value to set (true for layer, false for non-Layer).
+     */
+    void MarkLayer(bool isLayer);
+
+    /**
      * @brief Sets the foreground color of environment.
      *
      * @param colorValue The color value to set.
@@ -2227,6 +2234,7 @@ private:
     bool isNodeSingleFrameComposer_ = false;
 
     bool isSuggestOpincNode_ = false;
+    bool isLayer_ = false;
     bool isLayerPartRender_ = false;
     bool isDrawNode_ = false;
     // Used to identify whether the node has real drawing property
