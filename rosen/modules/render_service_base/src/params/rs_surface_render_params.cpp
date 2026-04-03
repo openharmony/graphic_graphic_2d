@@ -634,6 +634,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isCloneNode_ = isCloneNode_;
     targetSurfaceParams->isRelated_ = isRelated_;
     targetSurfaceParams->isRelatedSourceNode_ = isRelatedSourceNode_;
+    targetSurfaceParams->needClearRelatedCache_ = needClearRelatedCache_;
     targetSurfaceParams->clonedSourceNode_ = clonedSourceNode_;
     targetSurfaceParams->alpha_ = alpha_;
     targetSurfaceParams->isSpherizeValid_ = isSpherizeValid_;

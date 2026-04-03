@@ -672,6 +672,16 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
         uifirstRootNodeId_ = uifirstRootNodeId;
     }
 
+    auto surfaceNode = ReinterpretCastTo<RSSurfaceRenderNode>();
+    if (auto context = GetContext().lock();
+        surfaceNode && context && surfaceNode->IsRelated()) {
+        auto clonedSurfaceNode =
+            context->GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(surfaceNode->clonedSourceNodeId_);
+        if (clonedSurfaceNode) {
+            clonedSurfaceNode->CountRelatedNode(isOnTheTree_);
+        }
+    }
+
     if (stagingRenderParams_) {
         bool ret = stagingRenderParams_->SetFirstLevelNode(firstLevelNodeId_);
         ret |= stagingRenderParams_->SetUiFirstRootNode(uifirstRootNodeId_);

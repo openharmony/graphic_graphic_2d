@@ -652,6 +652,16 @@ public:
         isRelatedSourceNode_ = value;
     }
 
+    void SetNeedClearRelatedCache(bool value)
+    {
+        needClearRelatedCache_ = value;
+    }
+
+    bool IsNeedClearRelatedCache()
+    {
+        return needClearRelatedCache_;
+    }
+
     bool IsRelatedSourceNode() const
     {
         return isRelatedSourceNode_;
@@ -849,6 +859,7 @@ private:
     bool isRelated_ = false;
     bool clonedSourceNode_ = false;
     bool isRelatedSourceNode_ = false;
+    bool needClearRelatedCache_ = false;
     bool isTransparent_ = false;
     bool isSpherizeValid_ = false;
     bool isAttractionValid_ = false;

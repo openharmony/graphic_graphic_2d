@@ -1024,7 +1024,6 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         }
     }
     RenderOverDraw();
-    CheckAndClearRelatedSourceNodeCache(*params);
     RSMainThread::Instance()->SetDirtyFlag(false);
 
     if (Drawing::PerformanceCaculate::GetDrawingFlushPrint()) {
@@ -1291,20 +1290,5 @@ bool RSScreenRenderNodeDrawable::CheckScreenFreezeSkip(RSScreenRenderParams& par
         return true;
     }
     return false;
-}
-
-void RSScreenRenderNodeDrawable::CheckAndClearRelatedSourceNodeCache(RSScreenRenderParams& params)
-{
-    auto cloneNodeMap = params.GetCloneNodeMap();
-    for (auto &iter : cloneNodeMap) {
-        auto surfaceDrawable =
-            std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(iter.second.lock());
-        if (!surfaceDrawable) {
-            RS_LOGE("RSScreenRenderNodeDrawable::CheckAndClearRelatedSourceNodeCache"
-                " surfaceDrawable is nullptr");
-            continue;
-        }
-        surfaceDrawable->ClearRelatedSourceCache();
-    }
 }
 } // namespace OHOS::Rosen::DrawableV2

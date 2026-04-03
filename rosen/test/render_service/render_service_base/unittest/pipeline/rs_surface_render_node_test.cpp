@@ -3221,5 +3221,101 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdateBufferInfoTest006, TestSize.Level1)
     node->UpdateBufferInfo(buffer, bufferOwnerCount, damageRect, acquireFence, preBuffer, preBufferOwnerCount);
     EXPECT_FALSE(surfaceParams->IsBufferSynced());
 }
+
+/**
+ * @tc.name: CountRelatedNodeTest
+ * @tc.desc: Test CountRelatedNode function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, CountRelatedNodeTest, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+
+    node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id);
+    ASSERT_FALSE(node->IsRelatedSourceNode());
+
+    node->CountRelatedNode(true);
+    ASSERT_TRUE(node->IsRelatedSourceNode());
+    ASSERT_EQ(node->relatedNodeNum_, 1);
+
+    node->CountRelatedNode(true);
+    ASSERT_EQ(node->relatedNodeNum_, 2);
+    ASSERT_TRUE(node->IsRelatedSourceNode());
+
+    node->CountRelatedNode(false);
+    ASSERT_EQ(node->relatedNodeNum_, 1);
+    ASSERT_TRUE(node->IsRelatedSourceNode());
+
+    node->CountRelatedNode(false);
+    ASSERT_EQ(node->relatedNodeNum_, 0);
+    ASSERT_FALSE(node->IsRelatedSourceNode());
+}
+
+/**
+ * @tc.name: SetIsOnTheTreeTestForRelatedNode
+ * @tc.desc: Test SetIsOnTheTree calls CountRelatedNode when node is related
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetIsOnTheTreeTestForRelatedNode, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+
+    NodeId sourceId = 1;
+    NodeId relatedId = 2;
+    auto sourceNode = std::make_shared<RSSurfaceRenderNode>(sourceId, rsContext);
+    auto relatedNode = std::make_shared<RSSurfaceRenderNode>(relatedId, rsContext);
+    ASSERT_NE(sourceNode, nullptr);
+    ASSERT_NE(relatedNode, nullptr);
+
+    sourceNode->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(sourceId);
+    relatedNode->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(relatedId);
+
+    auto& nodeMap = rsContext->GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(sourceNode);
+    nodeMap.RegisterRenderNode(relatedNode);
+
+    relatedNode->context_ = rsContext->weak_from_this();
+    sourceNode->context_ = rsContext->weak_from_this();
+
+    relatedNode->SetClonedNodeInfo(sourceId, true, true);
+    ASSERT_TRUE(relatedNode->IsRelated());
+
+    relatedNode->SetIsOnTheTree(true);
+    ASSERT_TRUE(sourceNode->IsRelatedSourceNode());
+    ASSERT_EQ(sourceNode->relatedNodeNum_, 1);
+
+    relatedNode->SetIsOnTheTree(false);
+    ASSERT_FALSE(sourceNode->IsRelatedSourceNode());
+    ASSERT_EQ(sourceNode->relatedNodeNum_, 0);
+
+    relatedNode->clonedSourceNodeId_ = INVALID_NODEID;
+    relatedNode->SetIsOnTheTree(false);
+    ASSERT_FALSE(sourceNode->IsRelatedSourceNode());
+    ASSERT_EQ(sourceNode->relatedNodeNum_, 0);
+}
+
+/**
+ * @tc.name: ClearRelatedSourceCacheTest
+ * @tc.desc: Test ClearRelatedSourceCache function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, ClearRelatedSourceCacheTest, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+    node->ClearRelatedSourceCache();
+
+    node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(node->stagingRenderParams_.get());
+    node->ClearRelatedSourceCache();
+    ASSERT_TRUE(surfaceParams->IsNeedClearRelatedCache());
+}
 } // namespace Rosen
 } // namespace OHOS
