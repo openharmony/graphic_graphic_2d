@@ -13,26 +13,16 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_BASE_COMMAND_RS_SPATIAL_EFFECT_COMMAND_H
-#define RENDER_SERVICE_BASE_COMMAND_RS_SPATIAL_EFFECT_COMMAND_H
+#include "command/rs_spatial_effect_command.h"
 
-#include "command/rs_command_templates.h"
-#include "command/rs_macros.h"
-#include "pipeline/rs_context.h"
+#include "pipeline/rs_render_node.h"
+#include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_render_node.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
-enum RSSpatialEffectCommandType : uint16_t {
-    SET_IS_DEPTH_BACKGROUND = 0,
-    SET_IS_DEPTH_RESOURCE = 1,
-};
-
-class RSB_EXPORT RSSpatialEffectCommandHelper {
-public:
-    static void SetIsDepthBackground(RSContext& context, NodeId id, bool isDepthBackground);
-    static void SetIsDepthResource(RSContext& context, NodeId id, bool isDepthResource);
-};
+void RSSpatialEffectCommandHelper::SetIsDepthBackground(RSContext& context, NodeId id, bool isDepthBackground) {}
+void RSSpatialEffectCommandHelper::SetIsDepthResource(RSContext& context, NodeId id, bool isDepthResource) {}
 } // namespace Rosen
 } // namespace OHOS
-
-#endif // RENDER_SERVICE_BASE_COMMAND_RS_SPATIAL_EFFECT_COMMAND_H
