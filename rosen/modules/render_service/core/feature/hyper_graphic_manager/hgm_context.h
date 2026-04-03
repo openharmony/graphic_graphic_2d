@@ -85,6 +85,9 @@ public:
     uint64_t GetLastForceUpdateVsyncId() { return lastForceUpdateVsyncId_; }
     void SetLastForceUpdateVsyncId(uint64_t currVsyncId) { lastForceUpdateVsyncId_ = currVsyncId; }
 
+    void AddRenderProcessPid(int32_t pid);
+    void RemoveRenderProcessPid(int32_t pid);
+
 private:
     void InitHgmUpdateCallback();
 

@@ -34,6 +34,11 @@ constexpr int32_t MAX_LPP_LAYER_SIZE = 5;
 int32_t RSComposerToRenderConnectionStub::OnRemoteRequest(
     uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
 {
+    auto remoteDescriptor = data.ReadInterfaceToken();
+    if (GetDescriptor() != remoteDescriptor) {
+        RS_LOGE("%{public}s ReadInterfaceToken failed.", __func__);
+        return ERR_INVALID_STATE;
+    }
     int ret = COMPOSITOR_ERROR_OK;
     switch (code) {
         case ICOMPOSER_TO_RENDER_COMPOSER_RELEASE_LAYER_BUFFERS: {
@@ -55,11 +60,6 @@ int32_t RSComposerToRenderConnectionStub::OnRemoteRequest(
 int32_t RSComposerToRenderConnectionStub::ReleaseLayerBuffersStub(MessageParcel& data,
     MessageParcel& reply, MessageOption& option)
 {
-    auto interfaceToken = data.ReadInterfaceToken();
-    if (interfaceToken != IRSComposerToRenderConnection::GetDescriptor()) {
-        RS_LOGE("Read interfaceToken failed!");
-        return ERR_INVALID_DATA;
-    }
     ReleaseLayerBuffersInfo releaseLayerInfo;
     releaseLayerInfo.screenId = data.ReadUint64();
     auto vecSize = data.ReadUint32();
@@ -107,11 +107,6 @@ int32_t RSComposerToRenderConnectionStub::ReleaseLayerBuffersStub(MessageParcel&
 int32_t RSComposerToRenderConnectionStub::NotifyLppLayerToRenderStub(MessageParcel& data,
     MessageParcel& reply, MessageOption& option)
 {
-    if (auto interfaceToken = data.ReadInterfaceToken();
-        interfaceToken != IRSComposerToRenderConnection::GetDescriptor()) {
-        RS_LOGE("%{public}s::CREATE_CONNECTION Read interfaceToken failed!", __func__);
-        return ERR_INVALID_DATA;
-    }
     uint64_t vsyncId;
     if (!data.ReadUint64(vsyncId)) {
         ROSEN_LOGE("%{public}s read vsyncId failed", __func__);

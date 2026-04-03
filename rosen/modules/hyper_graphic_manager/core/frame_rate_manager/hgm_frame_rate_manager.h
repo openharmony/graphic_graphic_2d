@@ -182,6 +182,9 @@ public:
         std::function<void(std::shared_ptr<RPHgmConfigData>, bool, bool, int32_t)> hgmConfigUpdateCallback);
     void SyncHgmConfigUpdateCallback();
 
+    void AddRenderProcessPid(int32_t pid);
+    void RemoveRenderProcessPid(int32_t pid);
+
     const VoteInfo& GetLastVoteInfo() const { return lastVoteInfo_; }
 
 private:
@@ -303,6 +306,7 @@ private:
     bool isNeedUpdateAppOffset_ = false;
     uint32_t schedulePreferredFps_ = 60;
     int32_t schedulePreferredFpsChange_ = false;
+    std::unordered_set<int32_t> renderProcessPids_;
 
     // Adaptive Sync
     std::atomic<int32_t> isAdaptive_ = SupportASStatus::NOT_SUPPORT;
