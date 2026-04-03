@@ -50,6 +50,9 @@ constexpr uint32_t NUM_2 = 2;
 constexpr uint32_t NUM_3 = 3;
 constexpr uint32_t NUM_10 = 10;
 constexpr uint32_t NUM_12 = 12;
+enum class UIEffectErrorCode : int32_t {
+    ERR_NO_PERMISSION = 201,  // the value do not change. It is defined on all system
+};
 
 bool IsSystemApp();
 bool CheckPermission(const std::string& permission);
