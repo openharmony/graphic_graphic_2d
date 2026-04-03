@@ -202,6 +202,9 @@ public:
     virtual std::vector<TextBlobRecordInfo> GetTextBlobRecordInfo() const = 0;
     virtual bool CanPaintAllText() const = 0;
     virtual std::string GetDumpInfo() const = 0;
+    virtual TextProcessState GetProcessState() const = 0;
+    virtual TextDisplayState GetTextDisplayState() const = 0;
+    virtual TypographyStyle GetParagraphStyle() const = 0;
 #ifdef ENABLE_OHOS_ENHANCE
     virtual std::shared_ptr<OHOS::Media::PixelMap> GetTextPathImageByIndex(
         size_t start, size_t end, const ImageOptions& options, bool fill) const = 0;

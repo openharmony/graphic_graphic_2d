@@ -21,7 +21,7 @@
 
 #include "common_utils/path_util.h"
 #include "common_utils/pixel_map_util.h"
-#include "convert.h"
+#include "txt/sp_convert.h"
 #include "drawing_painter_impl.h"
 #include "include/DartTypes.h"
 #include "include/core/SkMatrix.h"
@@ -301,76 +301,9 @@ bool ParagraphImpl::GetLineMetricsAt(int lineNumber, skt::LineMetrics* lineMetri
     return paragraph_->getLineMetricsAt(lineNumber, lineMetrics);
 }
 
-void ParagraphImpl::GetExtraTextStyleAttributes(const skt::TextStyle& skStyle, TextStyle& textStyle)
-{
-    for (const auto& [tag, value] : skStyle.getFontFeatures()) {
-        textStyle.fontFeatures.SetFeature(tag.c_str(), value);
-    }
-    textStyle.textShadows.clear();
-    for (const skt::TextShadow& skShadow : skStyle.getShadows()) {
-        TextShadow shadow;
-        shadow.offset = skShadow.fOffset;
-        shadow.blurSigma = skShadow.fBlurSigma;
-        shadow.color = skShadow.fColor;
-        textStyle.textShadows.emplace_back(shadow);
-    }
-    textStyle.badgeType = static_cast<OHOS::Rosen::TextBadgeType>(skStyle.getTextBadgeType());
-    textStyle.maxLineHeight = skStyle.getMaxLineHeight();
-    textStyle.minLineHeight = skStyle.getMinLineHeight();
-    textStyle.lineHeightStyle = static_cast<OHOS::Rosen::LineHeightStyle>(skStyle.getLineHeightStyle());
-    textStyle.fontEdging = skStyle.getFontEdging();
-    textStyle.isFakeBoldEnabled = skStyle.isFakeBoldEnabled();
-}
-
 TextStyle ParagraphImpl::SkStyleToTextStyle(const skt::TextStyle& skStyle)
 {
-    TextStyle txt;
-    txt.color = skStyle.getColor();
-    txt.decoration = static_cast<TextDecoration>(skStyle.getDecorationType());
-    txt.decorationColor = skStyle.getDecorationColor();
-    txt.decorationStyle = static_cast<TextDecorationStyle>(skStyle.getDecorationStyle());
-    txt.decorationThicknessMultiplier = SkScalarToDouble(skStyle.getDecorationThicknessMultiplier());
-    txt.fontWeight = TextFontUtils::GetTxtFontWeight(skStyle.getFontStyle().GetWeight());
-    txt.fontStyle = TextFontUtils::GetTxtFontStyle(skStyle.getFontStyle().GetSlant());
-
-    txt.baseline = static_cast<TextBaseline>(skStyle.getTextBaseline());
-
-    for (const SkString& fontFamily : skStyle.getFontFamilies()) {
-        txt.fontFamilies.emplace_back(fontFamily.c_str());
-    }
-
-    txt.fontSize = SkScalarToDouble(skStyle.getFontSize());
-    txt.fontWidth = static_cast<FontWidth>(skStyle.getFontStyle().GetWidth());
-    txt.styleId = skStyle.getStyleId();
-    txt.letterSpacing = SkScalarToDouble(skStyle.getLetterSpacing());
-    txt.wordSpacing = SkScalarToDouble(skStyle.getWordSpacing());
-    txt.height = SkScalarToDouble(skStyle.getHeight());
-    txt.heightOverride = skStyle.getHeightOverride();
-    txt.halfLeading = skStyle.getHalfLeading();
-    txt.baseLineShift = SkScalarToDouble(skStyle.getBaselineShift());
-    txt.locale = skStyle.getLocale().c_str();
-    txt.backgroundRect = { skStyle.getBackgroundRect().color, skStyle.getBackgroundRect().leftTopRadius,
-        skStyle.getBackgroundRect().rightTopRadius, skStyle.getBackgroundRect().rightBottomRadius,
-        skStyle.getBackgroundRect().leftBottomRadius };
-    if (skStyle.hasBackground()) {
-        PaintID backgroundId = std::get<PaintID>(skStyle.getBackgroundPaintOrID());
-        if ((0 <= backgroundId) && (backgroundId < static_cast<int>(paints_.size()))) {
-            txt.background = paints_[backgroundId];
-        } else {
-            TEXT_LOGW("Invalid background id %{public}d", backgroundId);
-        }
-    }
-    if (skStyle.hasForeground()) {
-        PaintID foregroundId = std::get<PaintID>(skStyle.getForegroundPaintOrID());
-        if ((0 <= foregroundId) && (foregroundId < static_cast<int>(paints_.size()))) {
-            txt.foreground = paints_[foregroundId];
-            txt.colorPlaceholder = static_cast<uint8_t>(paints_[foregroundId].color.GetPlaceholder());
-        } else {
-            TEXT_LOGW("Invalid foreground id %{public}d", foregroundId);
-        }
-    }
-    GetExtraTextStyleAttributes(skStyle, txt);
-    return txt;
+    return OHOS::Rosen::SPText::SkStyleToSPTextStyle(skStyle, paints_);
 }
 
 Drawing::FontMetrics ParagraphImpl::GetFontMetricsResult(const SPText::TextStyle& textStyle)
@@ -478,6 +411,7 @@ void ParagraphImpl::UpdateColor(size_t from, size_t to, const RSColor& color,
     for (auto paintID : unresolvedPaintID) {
         paints_[paintID].SetColor(color);
     }
+    MarkAttributeUpdated();
 }
 
 void ParagraphImpl::UpdatePaintsBySkiaBlock(skt::Block& skiaBlock, const std::optional<RSBrush>& brush)
@@ -490,6 +424,7 @@ void ParagraphImpl::UpdatePaintsBySkiaBlock(skt::Block& skiaBlock, const std::op
         return;
     }
     paints_[foregroundId].brush = brush;
+    MarkAttributeUpdated();
 }
 #ifdef USE_M133_SKIA
 void ParagraphImpl::UpdateForegroundBrushWithValidData(skia_private::TArray<skt::Block, true>& skiaTextStyles,
@@ -516,6 +451,7 @@ void ParagraphImpl::UpdateForegroundBrushWithValidData(SkTArray<skt::Block, true
             }
         }
     }
+    MarkAttributeUpdated();
 }
 #ifdef USE_M133_SKIA
 void ParagraphImpl::UpdateForegroundBrushWithNullopt(skia_private::TArray<skt::Block, true>& skiaTextStyles)
@@ -531,6 +467,7 @@ void ParagraphImpl::UpdateForegroundBrushWithNullopt(SkTArray<skt::Block, true>&
         }
         UpdatePaintsBySkiaBlock(skiaBlock, std::nullopt);
     }
+    MarkAttributeUpdated();
 }
 
 void ParagraphImpl::UpdateForegroundBrush(const TextStyle& spTextStyle)
@@ -550,6 +487,7 @@ void ParagraphImpl::UpdateForegroundBrush(const TextStyle& spTextStyle)
     } else {
         UpdateForegroundBrushWithNullopt(skiaTextStyles);
     }
+    MarkAttributeUpdated();
 }
 
 std::vector<TextBlobRecordInfo> ParagraphImpl::GetTextBlobRecordInfo() const
@@ -621,6 +559,58 @@ void ParagraphImpl::SetLayoutState(size_t state)
 std::string ParagraphImpl::GetDumpInfo() const
 {
     return paragraph_->GetDumpInfo();
+}
+
+ParagraphStyle ParagraphImpl::GetParagraphStyle() const
+{
+    return SkParagraphStyleToParagraphStyle(paragraph_->getParagraphStyle(), paints_);
+}
+
+TextProcessState ParagraphImpl::GetProcessState() const
+{
+    skt::InternalState state = paragraph_->getState();
+    TextProcessState resultState = TextProcessState::INIT;
+    switch (state) {
+        case skt::InternalState::kUnknown:
+            resultState = TextProcessState::INIT;
+            break;
+        case skt::InternalState::kIndexed:
+            resultState = TextProcessState::INDEXED;
+            break;
+        case skt::InternalState::kShaped:
+            resultState = TextProcessState::SHAPED;
+            break;
+        case skt::InternalState::kLineBroken:
+            resultState = TextProcessState::LINE_BROKEN;
+            break;
+        case skt::InternalState::kFormatted:
+            resultState = TextProcessState::FORMATTED;
+            break;
+        case skt::InternalState::kDrawn:
+            resultState = TextProcessState::PAINT;
+            break;
+        default:
+            resultState = TextProcessState::INIT;
+    }
+    if (state < skt::InternalState::kDrawn && updateAttr) {
+        resultState = TextProcessState::UPDATE_ATTRIBUTE;
+    }
+    return resultState;
+}
+
+TextDisplayState ParagraphImpl::GetTextDisplayState() const
+{
+    if (paragraph_->getState() < skt::kFormatted) {
+        return TextDisplayState::UNKNOWN;
+    }
+    skt::SkRange<size_t> range = paragraph_->getEllipsisTextRange();
+    if (range.start != INFINITE_RANGE_INDEX) {
+        return TextDisplayState::OMITTED;
+    }
+    if (paragraph_->didExceedMaxLines()) {
+        return TextDisplayState::CLIP;
+    }
+    return TextDisplayState::ALL;
 }
 
 #ifdef ENABLE_OHOS_ENHANCE
