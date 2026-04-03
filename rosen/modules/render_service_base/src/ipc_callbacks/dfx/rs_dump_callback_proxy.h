@@ -28,6 +28,9 @@ public:
     virtual ~RSDumpCallbackProxy() noexcept = default;
 
     void OnDumpResult(std::string& dumpResult) override;
+
+private:
+    static inline BrokerDelegator<RSDumpCallbackProxy> delegator_;
 };
 } // namespace Rosen
 } // namespace OHOS
