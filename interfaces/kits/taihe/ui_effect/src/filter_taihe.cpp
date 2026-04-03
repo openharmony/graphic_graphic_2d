@@ -367,7 +367,9 @@ Filter FilterImpl::VariableRadiusBlur(double radius, ::ohos::graphics::uiEffect:
 Filter FilterImpl::HdrBrightnessRatio(double ratio)
 {
     if (!IsSystemApp() && !CheckPermission(HDR_BRIGHTNESS_PERMISSION)) {
-        UIEFFECT_LOG_E("FilterNapi SetHDRBrightnessRatio caller is not system app or lacks the required permission.");
+        UIEFFECT_LOG_E("FilterImpl HdrBrightnessRatio caller is not system app or lacks the required permission.");
+        set_business_error(static_cast<int32_t>(UIEffectErrorCode::ERR_NO_PERMISSION),
+            "The HdrBrightnessRatio is only accessible to applications which have HDR_BRIGHTNESS permission.");
         return make_holder<FilterImpl, Filter>(nativeFilter_);
     }
 
