@@ -22,7 +22,7 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSDumpCallbackProxy : IRemoteProxy<RSIDumpCallback> {
+class RSDumpCallbackProxy : public IRemoteProxy<RSIDumpCallback> {
 public:
     explicit RSDumpCallbackProxy(const sptr<IRemoteObject>& impl);
     virtual ~RSDumpCallbackProxy() noexcept = default;
