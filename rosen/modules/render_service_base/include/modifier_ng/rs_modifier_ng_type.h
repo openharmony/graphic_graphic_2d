@@ -67,6 +67,8 @@ enum class RSModifierType : uint16_t {
     FOREGROUND_SHADER = 35,
     MATERIAL_FILTER = 36,
     COLOR_PICKER = 37,
+    DEPTH_COMPONENT = 38,
+    SPATIAL_EFFECT = 39,
 
     CHILDREN, // PLACEHOLDER, no such modifier, but we need a dirty flag
 

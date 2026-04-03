@@ -21,6 +21,7 @@
 
 #include "command/rs_base_node_command.h"
 #include "command/rs_node_command.h"
+#include "command/rs_spatial_effect_command.h"
 #include "command/rs_surface_node_command.h"
 #include "common/rs_optional_trace.h"
 #include "ipc_callbacks/rs_rt_refresh_callback.h"
@@ -1234,5 +1235,7 @@ void RSSurfaceNode::DumpSubClass(std::string& out) const
         out += "], existsDuplicateModifier[true";
     }
 }
+
+void RSSurfaceNode::SetIsDepthResource(bool isDepthResource) {}
 } // namespace Rosen
 } // namespace OHOS

@@ -130,6 +130,7 @@ enum class RSUINodeType : uint32_t {
     PROXY_NODE           = 0x0041u,
     CANVAS_NODE          = 0x0081u,
     EFFECT_NODE          = 0x0101u,
+    DEPTH_NODE           = 0x0401u,
     WINDOW_KEYFRAME_NODE = 0x0801u,
     ROOT_NODE            = 0x1081u,
     CANVAS_DRAWING_NODE  = 0x2081u,
@@ -181,6 +182,7 @@ enum class RSRenderNodeType : uint32_t {
     ROOT_NODE              = 0x1081u,
     CANVAS_DRAWING_NODE    = 0x2081u,
     UNION_NODE             = 0x4081u,
+    DEPTH_NODE             = 0x8081u,
 };
 
 // types for Processor
@@ -332,6 +334,7 @@ enum class RSRenderNodeDrawableType : uint32_t {
     SURFACE_NODE_DRAWABLE,
     CANVAS_NODE_DRAWABLE,
     EFFECT_NODE_DRAWABLE,
+    DEPTH_NODE_DRAWABLE,
     ROOT_NODE_DRAWABLE,
     CANVAS_DRAWING_NODE_DRAWABLE,
     UNION_NODE_DRAWABLE,

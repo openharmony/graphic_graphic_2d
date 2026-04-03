@@ -1951,6 +1951,20 @@ public:
     void UpdateOcclusionCullingStatus(bool enable, NodeId keyOcclusionNodeId);
 
     /**
+     * @brief Set the spatial effect parameters of the node
+     *
+     * @param para spatial effect parameters
+     */
+    void SetSpatialEffectPara(const std::shared_ptr<SpatialEffectPara>& para);
+
+    /**
+     * @brief Set whether the node is a depth background node
+     *
+     * @param isDepthBackground True if the node is a depth background node
+     */
+    void SetIsDepthBackground(bool isDepthBackground);
+
+    /**
      * @brief Mark the node for layer part rendering optimization
      *
      * @param isLayerPartRender true to enable layer part rendering optimization; false to disable

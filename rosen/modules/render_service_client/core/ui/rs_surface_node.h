@@ -360,6 +360,8 @@ public:
     void SetContainerWindowTransparent(bool isContainerWindowTransparent);
     void SetAppRotationCorrection(ScreenRotation appRotationCorrection);
     void SetHDRBrightnessWithType(const float& hdrBrightness, uint32_t hdrType);
+    void SetIsDepthResource(bool isDepthResource);
+
 protected:
     bool NeedForcedSendToRemote() const override;
     RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode,
