@@ -4381,10 +4381,10 @@ HWTEST_F(RSRenderNodeTest, GetNodeColorSpaceForceSRGBTest, TestSize.Level1)
     nodeTest->InitRenderParams();
     nodeTest->SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
 
-    RsCommonHook::Instance().SetForceSRGBOutputEnable(true);
+    RsCommonHook::Instance().SetForceSRGBOutput(true);
     EXPECT_EQ(nodeTest->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
 
-    RsCommonHook::Instance().SetForceSRGBOutputEnable(false);
+    RsCommonHook::Instance().SetForceSRGBOutput(false);
     EXPECT_EQ(nodeTest->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
 }
 } // namespace Rosen

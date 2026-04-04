@@ -95,16 +95,16 @@ HWTEST_F(RsCommonHookTest, SetAdaptiveColorGamutEnableTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetForceSRGBOutputEnableTest
- * @tc.desc: Verify the SetForceSRGBOutputEnable and IsForceSRGBOutputEnabled
+ * @tc.name: SetForceSRGBOutputTest
+ * @tc.desc: Verify the SetForceSRGBOutput and IsForceSRGBOutputEnabled
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RsCommonHookTest, SetForceSRGBOutputEnableTest, TestSize.Level1)
+HWTEST_F(RsCommonHookTest, SetForceSRGBOutputTest, TestSize.Level1)
 {
-    RsCommonHook::Instance().SetForceSRGBOutputEnable(true);
+    RsCommonHook::Instance().SetForceSRGBOutput(true);
     ASSERT_EQ(RsCommonHook::Instance().IsForceSRGBOutputEnabled(), true);
-    RsCommonHook::Instance().SetForceSRGBOutputEnable(false);
+    RsCommonHook::Instance().SetForceSRGBOutput(false);
     ASSERT_EQ(RsCommonHook::Instance().IsForceSRGBOutputEnabled(), false);
 }
 

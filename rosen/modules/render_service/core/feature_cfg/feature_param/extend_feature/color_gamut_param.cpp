@@ -44,9 +44,9 @@ bool ColorGamutParam::IsForceSRGBOutputEnabled()
     return isForceSRGBOutputEnabled_;
 }
 
-void ColorGamutParam::SetForceSRGBOutputEnable(bool isEnable)
+void ColorGamutParam::SetForceSRGBOutput(bool isEnable)
 {
-    RsCommonHook::Instance().SetForceSRGBOutputEnable(isEnable);
+    RsCommonHook::Instance().SetForceSRGBOutput(isEnable);
     isForceSRGBOutputEnabled_ = isEnable;
 }
 

@@ -32,7 +32,7 @@ public:
 protected:
     static void SetDisableP3OnWiredExtendedScreen(bool isEnable);
     static void SetAdaptiveColorGamutEnable(bool isEnable);
-    static void SetForceSRGBOutputEnable(bool isEnable);
+    static void SetForceSRGBOutput(bool isEnable);
     static void SetSkipOccludedNodeDuringColorGamutCollection(bool isEnable);
 
 private:

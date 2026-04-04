@@ -42,7 +42,7 @@ public:
     bool IsAdaptiveColorGamutEnabled() const;
 
     // use to force sRGB output on specific device types, disabling color management
-    void SetForceSRGBOutputEnable(bool isForceSRGBOutputEnable);
+    void SetForceSRGBOutput(bool isForceSRGBOutput);
     bool IsForceSRGBOutputEnabled() const;
 
     void SetTvPlayerBundleName(const std::string& bundleName);
@@ -90,7 +90,7 @@ private:
     std::atomic<bool> isAdaptiveColorGamutEnable_{false};
 
     // force sRGB output, disable color management
-    std::atomic<bool> isForceSRGBOutputEnable_{false};
+    std::atomic<bool> isForceSRGBOutput_{false};
 
     std::string tvPlayerBundleName_;
 

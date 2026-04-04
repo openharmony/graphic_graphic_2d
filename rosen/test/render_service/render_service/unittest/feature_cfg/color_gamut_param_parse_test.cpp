@@ -32,7 +32,7 @@ void ColorGamutParamParseTest::SetUpTestCase() {}
 void ColorGamutParamParseTest::TearDownTestCase() {}
 void ColorGamutParamParseTest::SetUp()
 {
-    ColorGamutParam::SetForceSRGBOutputEnable(false);
+    ColorGamutParam::SetForceSRGBOutput(false);
 }
 void ColorGamutParamParseTest::TearDown() {}
 
@@ -85,7 +85,7 @@ HWTEST_F(ColorGamutParamParseTest, ParseFeatureParamTest003, TestSize.Level1)
     nextNode.name = reinterpret_cast<const xmlChar*>(name.c_str());
     node.xmlChildrenNode->next = &nextNode;
 
-    ColorGamutParam::SetForceSRGBOutputEnable(true);
+    ColorGamutParam::SetForceSRGBOutput(true);
     xmlSetProp(&nextNode, (const xmlChar*)("name"), (const xmlChar*)("ForceSRGBOutput"));
     xmlSetProp(&nextNode, (const xmlChar*)("value"), (const xmlChar*)("false"));
     auto res = paramParse.ParseFeatureParam(featureParam, node);

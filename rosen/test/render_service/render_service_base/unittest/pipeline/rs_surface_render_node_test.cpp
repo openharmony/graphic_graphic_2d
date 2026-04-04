@@ -3331,11 +3331,11 @@ HWTEST_F(RSSurfaceRenderNodeTest, GetColorSpaceForceSRGBTest, TestSize.Level1)
     ASSERT_NE(node, nullptr);
     node->colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
 
-    RsCommonHook::Instance().SetForceSRGBOutputEnable(true);
+    RsCommonHook::Instance().SetForceSRGBOutput(true);
     GraphicColorGamut forceSRGB = node->GetColorSpace();
     EXPECT_EQ(forceSRGB, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
 
-    RsCommonHook::Instance().SetForceSRGBOutputEnable(false);
+    RsCommonHook::Instance().SetForceSRGBOutput(false);
     GraphicColorGamut normal = node->GetColorSpace();
     EXPECT_NE(forceSRGB, normal);
 }
@@ -3351,11 +3351,11 @@ HWTEST_F(RSSurfaceRenderNodeTest, GetFirstLevelNodeGamutForceSRGBTest, TestSize.
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
     ASSERT_NE(node, nullptr);
 
-    RsCommonHook::Instance().SetForceSRGBOutputEnable(true);
+    RsCommonHook::Instance().SetForceSRGBOutput(true);
     GraphicColorGamut forceSRGB = node->gamutCollector_.GetFirstLevelNodeGamut();
     EXPECT_EQ(forceSRGB, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
 
-    RsCommonHook::Instance().SetForceSRGBOutputEnable(false);
+    RsCommonHook::Instance().SetForceSRGBOutput(false);
     GraphicColorGamut normal = node->gamutCollector_.GetFirstLevelNodeGamut();
     EXPECT_NE(forceSRGB, normal);
 }
