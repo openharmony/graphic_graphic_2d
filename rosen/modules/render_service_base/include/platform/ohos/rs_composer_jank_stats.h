@@ -16,14 +16,11 @@
 #ifndef ROSEN_COMPOSER_JANK_STATS_H
 #define ROSEN_COMPOSER_JANK_STATS_H
 
-#include <cstdint>
 #include <deque>
 #include "nocopyable.h"
 
 namespace OHOS {
 namespace Rosen {
-constexpr int FRAME_RATE_WINDOW_SIZE = 9;
-constexpr int FRAME_WINDOW_MIDDLE_NUM = 4;
 
 class RSComposerJankStats {
 public:
@@ -33,14 +30,15 @@ private:
     RSComposerJankStats() = default;
     ~RSComposerJankStats() = default;
     DISALLOW_COPY_AND_MOVE(RSComposerJankStats);
-    int GetRate(int i);
+    int GetRate(int frame);
     void CheckRefreshRate();
     bool IsAllEqual();
     bool IsAllLessThan60Hz();
-    bool IsDtrictlyIncreasing();
-    bool IsDtrictlyDecreasing();
+    bool IsStrictlyIncreasing();
+    bool IsStrictlyDecreasing();
     std::deque<int> refreshRates_;
     int64_t lastTimestamp_ = 0;
+};
 }
 }
-}
+#endif // ROSEN_COMPOSER_JANK_STATS_H

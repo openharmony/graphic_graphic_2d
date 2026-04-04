@@ -21,6 +21,8 @@ namespace OHOS {
 namespace Rosen {
 
 namespace {
+constexpr int REFRESH_RATE_WINDOW_SIZE = 9;
+constexpr int FRAME_WINDOW_MIDDLE_NUM = 4;
 constexpr int REFRESH_RATE_60_HZ = 60;
 constexpr int PERIOD_PRECISION = 5;
 constexpr double S_NS_UNIT_CONVERSION = 1000000000;
@@ -47,19 +49,22 @@ void RSComposerJankStats::CalculateJankInfo(int64_t timestamp)
     double value = S_NS_UNIT_CONVERSION / timeDiff;
     int refreshRate = std::round(value / PERIOD_PRECISION) * PERIOD_PRECISION;
 
-    if (refreshRates_.size() >= 0) {
+    if (static_cast<int>(refreshRates_.size()) >= REFRESH_RATE_WINDOW_SIZE) {
         refreshRates_.pop_front();
     }
     refreshRates_.push_back(refreshRate);
     lastTimestamp_ = timestamp;
 
-    if (refreshRates_.size() == FRAME_RATE_WINDOW_SIZE) {
+    if (static_cast<int>(refreshRates_.size()) == REFRESH_RATE_WINDOW_SIZE) {
         CheckRefreshRate();
     }
 }
 
 int RSComposerJankStats::GetRate(int frame)
 {
+    if (frame < 0 || frame >= static_cast<int>(refreshRates_.size())) {
+        return 0;
+    }
     return refreshRates_[frame];
 }
 
@@ -75,12 +80,12 @@ void RSComposerJankStats::CheckRefreshRate()
         return;
     }
 
-    if (IsDtrictlyIncreasing()) {
+    if (IsStrictlyIncreasing()) {
         RS_OPTIONAL_TRACE_NAME("RefreshRate is increasing");
         return;
     }
 
-    if (IsDtrictlyDecreasing()) {
+    if (IsStrictlyDecreasing()) {
         RS_OPTIONAL_TRACE_NAME("RefreshRate is decreasing");
         return;
     }
@@ -90,46 +95,49 @@ void RSComposerJankStats::CheckRefreshRate()
         RS_OPTIONAL_TRACE_NAME("RefreshRate is imperceptible");
         return;
     }
-
+    std::deque<int>().swap(refreshRates_);
     RS_OPTIONAL_TRACE_NAME("RefreshRate is unstable");
 }
 
-bool IsAllEqual()
+bool RSComposerJankStats::IsAllEqual()
 {
     int firstFrame = GetRate(0);
-    for (int frame = 1; frame < FRAME_RATE_WINDOW_SIZE; frame++) {
-        if (getRate(frame) != firstFrame) {
-            return false;
-        }
-    }
-}
-
-bool IsAllLessThan60Hz()
-{
-    for (int frame = 1; frame < FRAME_RATE_WINDOW_SIZE; frame++) {
-        if (getRate(frame) >= REFRESH_RATE_60_HZ) {
+    for (int frame = 1; frame < REFRESH_RATE_WINDOW_SIZE; frame++) {
+        if (GetRate(frame) != firstFrame) {
             return false;
         }
     }
     return true;
 }
 
-bool IsDtrictlyIncreasing()
+bool RSComposerJankStats::IsAllLessThan60Hz()
 {
-    for (int frame = 1; frame < FRAME_RATE_WINDOW_SIZE; frame++) {
-        if (getRate(frame) <= getRate(frame - 1)) {
+    for (int frame = 0; frame < REFRESH_RATE_WINDOW_SIZE; frame++) {
+        if (GetRate(frame) >= REFRESH_RATE_60_HZ) {
             return false;
         }
     }
+    return true;
 }
 
-bool IsDtrictlyDecreasing()
+bool RSComposerJankStats::IsStrictlyIncreasing()
 {
-    for (int frame = 1; frame < FRAME_RATE_WINDOW_SIZE; frame++) {
-        if (getRate(frame) >= getRate(frame - 1)) {
+    for (int frame = 1; frame < REFRESH_RATE_WINDOW_SIZE; frame++) {
+        if (GetRate(frame) <= GetRate(frame - 1)) {
             return false;
         }
     }
+    return true;
+}
+
+bool RSComposerJankStats::IsStrictlyDecreasing()
+{
+    for (int frame = 1; frame < REFRESH_RATE_WINDOW_SIZE; frame++) {
+        if (GetRate(frame) >= GetRate(frame - 1)) {
+            return false;
+        }
+    }
+    return true;
 }
 
 }
