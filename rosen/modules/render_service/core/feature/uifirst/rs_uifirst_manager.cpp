@@ -1953,6 +1953,17 @@ CM_INLINE bool RSUifirstManager::IsToSubByAppAnimation() const
     return false;
 }
 
+bool RSUifirstManager::IsLayerPartRenderDisableAnimation() const
+{
+    for (auto& it : currentFrameEvent_) {
+        if (std::find(layerPartRenderDisableAnimation_.begin(), layerPartRenderDisableAnimation_.end(), it.sceneId) !=
+            layerPartRenderDisableAnimation_.end()) {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool RSUifirstManager::GetSubNodeIsTransparent(RSSurfaceRenderNode& node, std::string& dfxMsg)
 {
     bool hasTransparent = false;

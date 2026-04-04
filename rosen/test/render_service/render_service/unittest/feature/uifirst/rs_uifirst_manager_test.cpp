@@ -1999,6 +1999,29 @@ HWTEST_F(RSUifirstManagerTest, IsToSubByAppAnimation01, TestSize.Level1)
 }
 
 /**
+ * @tc.name: IsLayerPartRenderDisableAnimation001
+ * @tc.desc: Test IsLayerPartRenderDisableAnimation with empty, matched and unmatched events
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSUifirstManagerTest, IsLayerPartRenderDisableAnimation001, TestSize.Level1)
+{
+    uifirstManager_.currentFrameEvent_.clear();
+    EXPECT_FALSE(uifirstManager_.IsLayerPartRenderDisableAnimation());
+
+    RSUifirstManager::EventInfo info;
+    info.sceneId = "APP_LIST_FLING";
+    uifirstManager_.currentFrameEvent_.push_back(info);
+    EXPECT_TRUE(uifirstManager_.IsLayerPartRenderDisableAnimation());
+
+    uifirstManager_.currentFrameEvent_.clear();
+    info.sceneId = "WINDOW_TITLE_BAR_MINIMIZED";
+    uifirstManager_.currentFrameEvent_.push_back(info);
+    EXPECT_FALSE(uifirstManager_.IsLayerPartRenderDisableAnimation());
+    uifirstManager_.currentFrameEvent_.clear();
+}
+
+/**
  * @tc.name: GetSubNodeIsTransparent
  * @tc.desc: test results of GetSubNodeIsTransparent
  * @tc.type: FUNC

@@ -280,7 +280,8 @@ bool RSOpincManager::CalculateLayerPartRenderDirtyRegion(RSRenderNode& node,
 }
 
 void RSOpincManager::CalculateAndUpdateLayerPartRenderDirtyRegion(RSRenderNode& node,
-    std::shared_ptr<RSDirtyRegionManager>& layerPartRenderDirtyManager, const RectI& visibleFilterRect)
+    std::shared_ptr<RSDirtyRegionManager>& layerPartRenderDirtyManager, const RectI& visibleFilterRect,
+    bool isDisableAnimation)
 {
     if (layerPartRenderDirtyManager == nullptr) {
         return;
@@ -314,13 +315,15 @@ void RSOpincManager::CalculateAndUpdateLayerPartRenderDirtyRegion(RSRenderNode& 
     }
 
     RectI layerCurDirty;
-    if (!CalculateLayerPartRenderDirtyRegion(node, layerPartRenderDirtyManager, visibleFilterRect, layerCurDirty) ||
+    if (isDisableAnimation ||
+        !CalculateLayerPartRenderDirtyRegion(node, layerPartRenderDirtyManager, visibleFilterRect, layerCurDirty) ||
         layerPartRenderDirtyManager->HasUifirstChild()) {
         node.MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_USER, false, false);
         node.CheckDrawingCacheType();
         stagingRenderParams->SetDrawingCacheType(node.GetDrawingCacheType());
         stagingRenderParams->SetLayerPartRenderEnabled(false);
-        RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", Calculate error or has uifirst node, clear", node.GetId());
+        RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", isDisableAnimation or Calculate error or has uifirst node, clear",
+            node.GetId());
         return;
     }
 
