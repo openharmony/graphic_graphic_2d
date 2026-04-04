@@ -36,6 +36,12 @@ void ColorGamutParamParseTest::SetUp()
 }
 void ColorGamutParamParseTest::TearDown() {}
 
+/**
+ * @tc.name: ParseForceSRGBOutput001
+ * @tc.desc: Verify ParseFeatureParam with empty node keeps ForceSRGBOutput disabled
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(ColorGamutParamParseTest, ParseFeatureParamTest001, TestSize.Level1)
 {
     ColorGamutParamParse paramParse;
@@ -48,6 +54,12 @@ HWTEST_F(ColorGamutParamParseTest, ParseFeatureParamTest001, TestSize.Level1)
     EXPECT_EQ(ColorGamutParam::IsForceSRGBOutputEnabled(), false);
 }
 
+/**
+ * @tc.name: ParseForceSRGBOutput002
+ * @tc.desc: Verify ParseFeatureParam enables ForceSRGBOutput when xml value is true
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(ColorGamutParamParseTest, ParseFeatureParamTest002, TestSize.Level1)
 {
     ColorGamutParamParse paramParse;
@@ -70,6 +82,12 @@ HWTEST_F(ColorGamutParamParseTest, ParseFeatureParamTest002, TestSize.Level1)
     EXPECT_EQ(ColorGamutParam::IsForceSRGBOutputEnabled(), true);
 }
 
+/**
+ * @tc.name: ParseForceSRGBOutput003
+ * @tc.desc: Verify ParseFeatureParam disables ForceSRGBOutput when xml value is false
+ * @tc.type: FUNC
+ * @tc.require:
+ */
 HWTEST_F(ColorGamutParamParseTest, ParseFeatureParamTest003, TestSize.Level1)
 {
     ColorGamutParamParse paramParse;
