@@ -168,6 +168,9 @@ ohos_source_set("librender_composer") {
     "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param/performance_feature/vma_block_param.cpp",
   ]
 
+  #composer_jank_stats
+  sources += ["$graphic_2d_root/rosen/modules/render_service_base/src/platform/ohos/rs_composer_jank_stats.cpp"]
+
   if (graphic_2d_feature_tv_metadata_enable) {
     sources += [ "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/external_depend/tv_metadata/rs_tv_metadata_util.cpp" ]
   }
