@@ -572,13 +572,20 @@ HWTEST_F(HgmFrameRateMgrTest, HandleScreenRectFrameRate, Function | SmallTest | 
 {
     int32_t testThreadNum = 100;
     auto& hgmCore = HgmCore::Instance();
+    HgmFrameRateManager frameRateMgr;
     bool isSelfOwnedScreen = false;
+    frameRateMgr.HandleScreenRectFrameRate(externalScreenId, rectF);
     EXPECT_EQ(hgmCore.AddScreen(externalScreenId, 0, screenSize, isSelfOwnedScreen), EXEC_SUCCESS);
     auto screen = hgmCore.GetScreen(externalScreenId);
     ASSERT_NE(screen, nullptr);
+    frameRateMgr.HandleScreenRectFrameRate(externalScreenId, rectF);
     screen->isSelfOwnedScreenFlag_.store(true);
 
-    HgmFrameRateManager frameRateMgr;
+    std::shared_ptr<PolicyConfigData> cachedPolicyConfigData = nullptr;
+    std::swap(hgmCore.mPolicyConfigData_, cachedPolicyConfigData);
+    frameRateMgr.HandleScreenRectFrameRate(externalScreenId, rectF);
+    std::swap(cachedPolicyConfigData, hgmCore.mPolicyConfigData_);
+
     HgmTaskHandleThread::Instance().PostTask([&]() {
         for (int i = 0; i < testThreadNum; i++) {
             // HandleScreenRectFrameRate

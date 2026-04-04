@@ -952,7 +952,8 @@ void HgmFrameRateManager::HandleScreenRectFrameRate(ScreenId id, const Rect& act
     RS_TRACE_NAME_FMT("%s: screenId:%d activeRect(%d, %d, %d, %d)",
         __func__, id, activeRect.x, activeRect.y, activeRect.w, activeRect.h);
     auto& hgmCore = HgmCore::Instance();
-    if (auto screen = hgmCore.GetScreen(id); !screen || !screen->GetSelfOwnedScreenFlag()) {
+    if (auto screen = hgmCore.GetScreen(id);
+        !screen || !screen->GetSelfOwnedScreenFlag()) {
         return;
     }
     if (hgmCore.GetPolicyConfigData() == nullptr) {
