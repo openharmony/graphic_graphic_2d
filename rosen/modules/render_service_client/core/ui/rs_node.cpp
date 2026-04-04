@@ -53,7 +53,6 @@
 #include "command/rs_base_node_command.h"
 #include "command/rs_canvas_node_command.h"
 #include "command/rs_node_command.h"
-#include "command/rs_spatial_effect_command.h"
 #include "common/rs_color.h"
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
@@ -68,7 +67,6 @@
 #include "modifier_ng/appearance/rs_color_picker_modifier.h"
 #include "modifier_ng/appearance/rs_compositing_filter_modifier.h"
 #include "modifier_ng/appearance/rs_dynamic_light_up_modifier.h"
-#include "modifier_ng/appearance/rs_spatial_effect_modifier.h"
 #include "modifier_ng/appearance/rs_foreground_filter_modifier.h"
 #include "modifier_ng/appearance/rs_hdr_brightness_modifier.h"
 #include "modifier_ng/appearance/rs_mask_modifier.h"
@@ -162,7 +160,6 @@ static const std::unordered_map<RSUINodeType, std::string> RSUINodeTypeStrs = {
     {RSUINodeType::CANVAS_NODE,         "CanvasNode"},
     {RSUINodeType::ROOT_NODE,           "RootNode"},
     {RSUINodeType::EFFECT_NODE,         "EffectNode"},
-    {RSUINodeType::DEPTH_NODE,          "DepthNode"},
     {RSUINodeType::CANVAS_DRAWING_NODE, "CanvasDrawingNode"},
     {RSUINodeType::UNION_NODE,          "UnionNode"},
     {RSUINodeType::WINDOW_KEYFRAME_NODE, "WindowKeyFrameNode"},

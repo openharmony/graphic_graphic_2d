@@ -33,23 +33,12 @@ struct DepthCameraPara {
     float yFov = 0.f;
     float zNear = 0.1f;
     float zFar = 100.f;
-
-    bool operator==(const DepthCameraPara& other) const noexcept
-    {
-        return position == other.position && quaternion == other.quaternion && ROSEN_EQ(yFov, other.yFov)
-            && ROSEN_EQ(zNear, other.zNear) && ROSEN_EQ(zFar, other.zFar);
-    }
 };
 
 struct DepthLightPara {
     Vector3f direction;
     Vector3f color;
     float intensity = 1.f;
-
-    bool operator==(const DepthLightPara& other) const noexcept
-    {
-        return direction == other.direction && color == other.color && ROSEN_EQ(intensity, other.intensity);
-    }
 };
 
 struct SpatialEffectPara {
@@ -58,13 +47,6 @@ struct SpatialEffectPara {
     Vector3f leftBottom;
     Vector3f rightBottom;
     float occlusionWeight = 0.f;
-
-    bool operator==(const SpatialEffectPara& other) const noexcept
-    {
-        return leftTop == other.leftTop && rightTop == other.rightTop &&
-            leftBottom == other.leftBottom && rightBottom == other.rightBottom &&
-            ROSEN_EQ(occlusionWeight, other.occlusionWeight);
-    }
 };
 } // namespace Rosen
 } // namespace OHOS

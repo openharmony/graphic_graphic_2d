@@ -15,8 +15,6 @@
 
 #include "ui/rs_depth_node.h"
 
-#include "command/rs_depth_node_command.h"
-#include "modifier_ng/appearance/rs_depth_space_modifier.h"
 #include "pipeline/rs_node_map.h"
 #include "platform/common/rs_log.h"
 

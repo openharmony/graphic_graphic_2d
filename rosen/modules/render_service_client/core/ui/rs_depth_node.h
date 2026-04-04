@@ -29,10 +29,9 @@ class RSC_EXPORT RSDepthNode : public RSNode {
 public:
     using WeakPtr = std::weak_ptr<RSDepthNode>;
     using SharedPtr = std::shared_ptr<RSDepthNode>;
-    static inline constexpr RSUINodeType Type = RSUINodeType::DEPTH_NODE;
     RSUINodeType GetType() const override
     {
-        return Type;
+        return RSUINodeType::UNKNOWN;
     }
 
     static SharedPtr Create(bool isRenderServiceNode, bool isTextureExportNode,
