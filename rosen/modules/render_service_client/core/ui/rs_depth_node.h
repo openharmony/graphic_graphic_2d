@@ -31,7 +31,7 @@ public:
     using SharedPtr = std::shared_ptr<RSDepthNode>;
     RSUINodeType GetType() const override
     {
-        return RSUINodeType::UNKNOWN;
+        return RSUINodeType::UNKNOW;
     }
 
     static SharedPtr Create(bool isRenderServiceNode, bool isTextureExportNode,
