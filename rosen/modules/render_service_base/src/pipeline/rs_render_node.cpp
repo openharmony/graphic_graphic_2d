@@ -3808,7 +3808,6 @@ bool RSRenderNode::UpdateLayerPartRenderDirtyRegion(std::shared_ptr<RSDirtyRegio
     if (GetRenderProperties().GetMaterialFilter() != nullptr) {
         opincCache_.MarkMaterialNode(true);
     }
-
     if (opincCache_.IsMaterialNode()) {
         auto parent = GetParent().lock();
         if (parent != nullptr) {
