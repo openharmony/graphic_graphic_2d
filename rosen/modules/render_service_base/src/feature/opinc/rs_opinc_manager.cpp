@@ -34,7 +34,8 @@ const std::vector<std::string> LAYER_PART_RENDER_DISABLE_ANIMATION = {
     "SCROLLER_ANIMATION",
 };
 
-bool IsDisableAnimationByCurrentFrameEvent(const std::vector<RSUifirstManager::EventInfo>& currentFrameEvent)
+bool IsDisableAnimationByCurrentFrameEvent(
+    const std::vector<RSOpincManager::LayerPartRenderEventInfo>& currentFrameEvent)
 {
     for (const auto& eventInfo : currentFrameEvent) {
         if (std::find(LAYER_PART_RENDER_DISABLE_ANIMATION.begin(),
@@ -305,7 +306,7 @@ bool RSOpincManager::CalculateLayerPartRenderDirtyRegion(RSRenderNode& node,
 
 void RSOpincManager::CalculateAndUpdateLayerPartRenderDirtyRegion(RSRenderNode& node,
     std::shared_ptr<RSDirtyRegionManager>& layerPartRenderDirtyManager, const RectI& visibleFilterRect,
-    const std::vector<EventInfo>& currentFrameEvent)
+    const std::vector<LayerPartRenderEventInfo>& currentFrameEvent)
 {
     if (layerPartRenderDirtyManager == nullptr) {
         return;

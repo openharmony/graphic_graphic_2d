@@ -528,33 +528,6 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckIfNeedUpdateCacheTest002, TestSize.Level
 }
 
 /**
- * @tc.name: CheckIfNeedUpdateCacheLayerPartEmptyDirty
- * @tc.desc: Verify cache update is skipped after layer-part warmup when current-frame dirty region is empty
- * @tc.type: FUNC
- * @tc.require: issueLayerPart
- */
-HWTEST_F(RSRenderNodeDrawableTest, CheckIfNeedUpdateCacheLayerPartEmptyDirty, TestSize.Level1)
-{
-    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
-    RSRenderParams params(RSRenderNodeDrawableTest::id);
-    params.SetCacheSize({ static_cast<float>(DEFAULT_CANVAS_WIDTH), static_cast<float>(DEFAULT_CANVAS_HEIGHT) });
-    params.SetLayerPartRenderEnabled(true);
-    params.SetLayerPartRenderCurrentFrameDirtyRegion(RectI());
-    params.isDrawingCacheChanged_ = true;
-
-    auto cacheSurface = Drawing::Surface::MakeRasterN32Premul(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
-    ASSERT_NE(cacheSurface, nullptr);
-    drawable->cachedSurface_ = cacheSurface;
-    drawable->cacheThreadId_ = gettid();
-    drawable->opincDrawCache_.layerPartRenderUnchangeCount_ = WARMED_UP_LAYER_PART_COUNT;
-
-    int32_t updateTimes = 1;
-    auto result = drawable->CheckIfNeedUpdateCache(params, updateTimes);
-
-    ASSERT_FALSE(result);
-}
-
-/**
  * @tc.name: Draw
  * @tc.desc: Test If Draw Can Run
  * @tc.type: FUNC

@@ -3806,7 +3806,8 @@ bool RSRenderNode::UpdateLayerPartRenderDirtyRegion(std::shared_ptr<RSDirtyRegio
         return false;
     }
     bool hasMaterialFilter = GetRenderProperties().GetMaterialFilter() != nullptr ||
-        GetRenderProperties().HasFrostedGlassEffect();
+        GetRenderProperties().IsBackgroundMaterialFilterValid() ||
+        GetRenderProperties().IsForegroundMaterialFilterValid();
     bool hasShadowFilter = GetRenderProperties().IsShadowValid() && GetRenderProperties().NeedFilter();
     if (hasMaterialFilter && hasShadowFilter) {
         opincCache_.MarkMaterialNode(true);

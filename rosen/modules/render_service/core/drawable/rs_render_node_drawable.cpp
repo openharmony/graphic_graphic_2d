@@ -953,10 +953,6 @@ bool RSRenderNodeDrawable::CheckIfNeedUpdateCache(RSRenderParams& params, int32_
     if (IsCurRenderGroupCacheRootExcludedStateChanged(params)) {
         return true;
     }
-    if (GetOpincDrawCache().ShouldSkipLayerPartRenderCacheUpdate(params)) {
-        RS_OPTIONAL_TRACE_NAME_FMT("CheckUpdateCache skip empty layer-part dirty, id:%" PRIu64, params.GetId());
-        return false;
-    }
     if (updateTimes == 0 || params.GetDrawingCacheChanged()) {
         return true;
     }

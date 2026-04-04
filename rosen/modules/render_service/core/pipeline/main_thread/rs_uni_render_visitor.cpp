@@ -109,6 +109,19 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
+std::vector<RSOpincManager::LayerPartRenderEventInfo> BuildLayerPartRenderEventInfo(
+    const std::vector<RSUifirstManager::EventInfo>& currentFrameEvent)
+{
+    std::vector<RSOpincManager::LayerPartRenderEventInfo> layerPartRenderEventInfo;
+    layerPartRenderEventInfo.reserve(currentFrameEvent.size());
+    for (const auto& eventInfo : currentFrameEvent) {
+        layerPartRenderEventInfo.push_back({ eventInfo.sceneId });
+    }
+    return layerPartRenderEventInfo;
+}
+} // namespace
+
+namespace {
 constexpr int32_t VISIBLEAREARATIO_FORQOS = 3;
 constexpr int EXPAND_ONE_PIX = 1;
 constexpr int MAX_ALPHA = 255;
@@ -1984,10 +1997,11 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
 
     PostPrepare(node, !isSubTreeNeedPrepare);
 
+    auto currentFrameEvent = BuildLayerPartRenderEventInfo(RSUifirstManager::Instance().GetCurrentFrameEvent());
     RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(node, curLayerPartRenderDirtyManager_,
         curLayerPartRenderDirtyManager_ != nullptr ?
         RSUniFilterDirtyComputeUtil::GetVisibleFilterRect(node) : RectI(0, 0, 0, 0),
-        RSUifirstManager::Instance().GetCurrentFrameEvent());
+        currentFrameEvent);
 
     prepareClipRect_ = prepareClipRect;
     hasAccumulatedClip_ = hasAccumulatedClip;

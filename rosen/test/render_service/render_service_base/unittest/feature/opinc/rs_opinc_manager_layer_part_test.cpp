@@ -95,12 +95,13 @@ public:
         }
     }
 
-    static std::vector<RSUifirstManager::EventInfo> CreateCurrentFrameEvent(const std::string& sceneId = "")
+    static std::vector<RSOpincManager::LayerPartRenderEventInfo> CreateCurrentFrameEvent(
+        const std::string& sceneId = "")
     {
         if (sceneId.empty()) {
             return {};
         }
-        RSUifirstManager::EventInfo eventInfo;
+        RSOpincManager::LayerPartRenderEventInfo eventInfo;
         eventInfo.sceneId = sceneId;
         return { eventInfo };
     }
@@ -451,7 +452,7 @@ HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionInvertF
     stagingRenderParams->SetLayerPartRenderEnabled(true);
 
     RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(*node, dirtyManager, DEFAULT_ABS_RECT,
-        false);
+        CreateCurrentFrameEvent());
 
     ASSERT_NE(dirtyManager, nullptr);
     ASSERT_FALSE(stagingRenderParams->GetLayerPartRenderEnabled());
@@ -666,6 +667,31 @@ HWTEST_F(RSOpincManagerLayerPartTest, CalculateAndUpdateLayerPartRenderDirtyRegi
     EXPECT_FALSE(context.stagingRenderParams->GetLayerPartRenderEnabled());
     EXPECT_EQ(context.node->GetNodeGroupType(), RSRenderNode::NodeGroupType::NONE);
     EXPECT_EQ(context.stagingRenderParams->GetDrawingCacheType(), context.node->GetDrawingCacheType());
+}
+
+/**
+ * @tc.name: CalculateAndUpdateLayerPartRenderDirtyRegionIgnoreUnmatchedEvent
+ * @tc.desc: Verify unmatched current-frame event does not disable layer-part render
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSOpincManagerLayerPartTest, CalculateAndUpdateLayerPartRenderDirtyRegionIgnoreUnmatchedEvent,
+    TestSize.Level1)
+{
+    auto context = CreateLayerPartUpdateCaseContext(DEFAULT_NODE_ID + 36, false);
+    ASSERT_NE(context.node, nullptr);
+    ASSERT_NE(context.dirtyManager, nullptr);
+    ASSERT_NE(context.stagingRenderParams, nullptr);
+    context.node->GetOpincCache().SetLayerPartRender(true);
+    context.node->MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_USER, true, false);
+
+    RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(
+        *context.node, context.dirtyManager, DEFAULT_ABS_RECT,
+        CreateCurrentFrameEvent("WINDOW_TITLE_BAR_MINIMIZED"));
+
+    EXPECT_EQ(context.node->GetNodeGroupType(), RSRenderNode::NodeGroupType::GROUPED_BY_USER);
+    EXPECT_TRUE(context.stagingRenderParams->GetLayerPartRenderEnabled());
+    EXPECT_EQ(context.dirtyManager, nullptr);
 }
 
 /**
