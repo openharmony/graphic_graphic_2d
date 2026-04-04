@@ -15,6 +15,8 @@
 
 #include "feature/opinc/rs_opinc_manager.h"
 
+#include <algorithm>
+
 #include "common/rs_optional_trace.h"
 #include "params/rs_render_params.h"
 #include "pipeline/rs_canvas_render_node.h"
@@ -24,6 +26,26 @@
 namespace OHOS {
 namespace Rosen {
 constexpr int32_t LAYER_PART_RENDER_DIRTY_MANAGER_BUFFER_AGE = 4;
+
+namespace {
+const std::vector<std::string> LAYER_PART_RENDER_DISABLE_ANIMATION = {
+    "APP_LIST_FLING",
+    "WEB_LIST_FLING",
+    "SCROLLER_ANIMATION",
+};
+
+bool IsDisableAnimationByCurrentFrameEvent(const std::vector<RSUifirstManager::EventInfo>& currentFrameEvent)
+{
+    for (const auto& eventInfo : currentFrameEvent) {
+        if (std::find(LAYER_PART_RENDER_DISABLE_ANIMATION.begin(),
+            LAYER_PART_RENDER_DISABLE_ANIMATION.end(), eventInfo.sceneId) !=
+            LAYER_PART_RENDER_DISABLE_ANIMATION.end()) {
+            return true;
+        }
+    }
+    return false;
+}
+}
 
 RSOpincManager& RSOpincManager::Instance()
 {
@@ -283,7 +305,7 @@ bool RSOpincManager::CalculateLayerPartRenderDirtyRegion(RSRenderNode& node,
 
 void RSOpincManager::CalculateAndUpdateLayerPartRenderDirtyRegion(RSRenderNode& node,
     std::shared_ptr<RSDirtyRegionManager>& layerPartRenderDirtyManager, const RectI& visibleFilterRect,
-    bool isDisableAnimation)
+    const std::vector<EventInfo>& currentFrameEvent)
 {
     if (layerPartRenderDirtyManager == nullptr) {
         return;
@@ -317,6 +339,7 @@ void RSOpincManager::CalculateAndUpdateLayerPartRenderDirtyRegion(RSRenderNode& 
     }
 
     RectI layerCurDirty;
+    const bool isDisableAnimation = IsDisableAnimationByCurrentFrameEvent(currentFrameEvent);
     if (isDisableAnimation ||
         !CalculateLayerPartRenderDirtyRegion(node, layerPartRenderDirtyManager, visibleFilterRect, layerCurDirty) ||
         layerPartRenderDirtyManager->HasUifirstChild()) {

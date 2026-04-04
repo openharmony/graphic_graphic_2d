@@ -220,9 +220,12 @@ public:
     {
         return GetUiFirstType() == UiFirstCcmType::MULTI && RSSystemProperties::GetUIFirstDirtyEnabled();
     }
+    const std::vector<EventInfo>& GetCurrentFrameEvent() const
+    {
+        return currentFrameEvent_;
+    }
 
     bool IsOcclusionEnabled() const;
-    bool IsLayerPartRenderDisableAnimation() const;
 private:
     struct NodeDataBehindWindow {
         uint64_t curTime = 0;
@@ -407,12 +410,6 @@ private:
     const std::vector<std::string> toSubByAppAnimation_ = {
         { "WINDOW_TITLE_BAR_MINIMIZED" },
         { "LAUNCHER_APP_LAUNCH_FROM_DOCK" },
-    };
-
-    const std::vector<std::string> layerPartRenderDisableAnimation_ = {
-        { "APP_LIST_FLING" },
-        { "WEB_LIST_FLING" },
-        { "SCROLLER_ANIMATION" },
     };
 
     const std::vector<std::string> vmAppNameSet_ = {

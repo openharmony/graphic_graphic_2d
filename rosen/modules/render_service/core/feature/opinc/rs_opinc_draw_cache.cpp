@@ -468,17 +468,6 @@ void RSOpincDrawCache::PushLayerPartRenderDirtyRegion(const RSRenderParams& para
     cacheCanvas.PushLayerPartRenderDirtyRegion(layerPartRenderDirtyRegion_);
 }
 
-bool RSOpincDrawCache::ShouldSkipLayerPartRenderCacheUpdate(const RSRenderParams& params) const
-{
-    if (!params.GetLayerPartRenderEnabled()) {
-        return false;
-    }
-    if (layerPartRenderUnchangeCount_ <= MIN_UNCHANGE_COUNT) {
-        return false;
-    }
-    return params.GetLayerPartRenderCurrentFrameDirtyRegion().IsEmpty();
-}
-
 void RSOpincDrawCache::LayerPartRenderClipDirtyRegion(const RSRenderParams& params,
     RSPaintFilterCanvas& canvas)
 {

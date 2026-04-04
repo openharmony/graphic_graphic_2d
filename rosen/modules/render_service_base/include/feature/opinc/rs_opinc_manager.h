@@ -16,7 +16,6 @@
 #ifndef RS_OPINC_MANAGER_H
 #define RS_OPINC_MANAGER_H
 
-#include "pipeline/rs_render_node.h"
 #include <mutex>
 
 namespace OHOS::Rosen {
@@ -67,7 +66,7 @@ public:
         std::shared_ptr<RSDirtyRegionManager>& layerPartRenderDirtyManager);
     void CalculateAndUpdateLayerPartRenderDirtyRegion(RSRenderNode& node,
         std::shared_ptr<RSDirtyRegionManager>& layerPartRenderDirtyManager, const RectI& visibleFilterRect,
-        bool isDisableAnimation);
+        const std::vector<EventInfo>& currentFrameEvent);
 
 private:
     RSOpincManager() = default;

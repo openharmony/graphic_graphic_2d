@@ -1987,7 +1987,7 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(node, curLayerPartRenderDirtyManager_,
         curLayerPartRenderDirtyManager_ != nullptr ?
         RSUniFilterDirtyComputeUtil::GetVisibleFilterRect(node) : RectI(0, 0, 0, 0),
-        RSUifirstManager::Instance().IsLayerPartRenderDisableAnimation());
+        RSUifirstManager::Instance().GetCurrentFrameEvent());
 
     prepareClipRect_ = prepareClipRect;
     hasAccumulatedClip_ = hasAccumulatedClip;

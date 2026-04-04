@@ -3805,9 +3805,13 @@ bool RSRenderNode::UpdateLayerPartRenderDirtyRegion(std::shared_ptr<RSDirtyRegio
     if (!RSSystemProperties::GetLayerPartRenderEnabled()) {
         return false;
     }
-    if (GetRenderProperties().GetMaterialFilter() != nullptr) {
+    bool hasMaterialFilter = GetRenderProperties().GetMaterialFilter() != nullptr ||
+        GetRenderProperties().HasFrostedGlassEffect();
+    bool hasShadowFilter = GetRenderProperties().IsShadowValid() && GetRenderProperties().NeedFilter();
+    if (hasMaterialFilter && hasShadowFilter) {
         opincCache_.MarkMaterialNode(true);
     }
+
     if (opincCache_.IsMaterialNode()) {
         auto parent = GetParent().lock();
         if (parent != nullptr) {

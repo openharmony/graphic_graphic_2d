@@ -1389,6 +1389,39 @@ HWTEST_F(RSRenderNodeTest, UpdateLayerPartRenderDirtyRegionMaterialFilterPropaga
 }
 
 /**
+ * @tc.name: UpdateLayerPartRenderDirtyRegionBlurAndShadowPropagatesToParent
+ * @tc.desc: Verify blur with shadow marks current node and propagates material mark to parent
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSRenderNodeTest, UpdateLayerPartRenderDirtyRegionBlurAndShadowPropagatesToParent, TestSize.Level1)
+{
+    const auto oldLayerPartRenderValue = RSSystemProperties::GetLayerPartRenderEnabled() ? "1" : "0";
+    (void)system::SetParameter(LAYER_PART_RENDER_KEY, "1");
+    auto parent = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID + 24);
+    auto child = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID + 25);
+    ASSERT_NE(parent, nullptr);
+    ASSERT_NE(child, nullptr);
+    child->SetParent(parent);
+
+    auto dirtyManager = std::make_shared<RSDirtyRegionManager>();
+    ASSERT_NE(dirtyManager, nullptr);
+
+    child->absDrawRect_ = RectI(6, 7, 8, 9);
+    auto& properties = child->GetMutableRenderProperties();
+    properties.SetBackgroundBlurRadius(10.0f);
+    properties.SetShadowRadius(10.0f);
+
+    EXPECT_FALSE(child->GetOpincCache().IsMaterialNode());
+    EXPECT_FALSE(parent->GetOpincCache().IsMaterialNode());
+
+    EXPECT_TRUE(child->UpdateLayerPartRenderDirtyRegion(dirtyManager));
+    (void)system::SetParameter(LAYER_PART_RENDER_KEY, oldLayerPartRenderValue);
+    EXPECT_TRUE(child->GetOpincCache().IsMaterialNode());
+    EXPECT_TRUE(parent->GetOpincCache().IsMaterialNode());
+}
+
+/**
  * @tc.name: UpdateLayerPartRenderDirtyRegionMaterialNodeWithoutParent
  * @tc.desc: Verify material-node branch keeps running when parent is null
  * @tc.type: FUNC
