@@ -39,6 +39,17 @@ void ColorGamutParam::SetAdaptiveColorGamutEnable(bool isEnable)
     isAdaptiveColorGamutEnabled_ = isEnable;
 }
 
+bool ColorGamutParam::IsForceSRGBOutputEnabled()
+{
+    return isForceSRGBOutputEnabled_;
+}
+
+void ColorGamutParam::SetForceSRGBOutputEnable(bool isEnable)
+{
+    RsCommonHook::Instance().SetForceSRGBOutputEnable(isEnable);
+    isForceSRGBOutputEnabled_ = isEnable;
+}
+
 bool ColorGamutParam::SkipOccludedNodeDuringColorGamutCollection()
 {
     return skipOccludedNodeDuringColorGamutCollection_;

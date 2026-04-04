@@ -65,6 +65,20 @@ HWTEST_F(ColorGamutParamTest, AdaptiveColorGamutEnable, Function | SmallTest | L
 }
 
 /**
+ * @tc.name: IsForceSRGBOutputEnabled SetForceSRGBOutputEnable
+ * @tc.desc: Verify the IsForceSRGBOutputEnabled and SetForceSRGBOutputEnable function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(ColorGamutParamTest, ForceSRGBOutput, Function | SmallTest | Level1)
+{
+    ColorGamutParam::SetForceSRGBOutputEnable(true);
+    EXPECT_EQ(ColorGamutParam::IsForceSRGBOutputEnabled(), true);
+    ColorGamutParam::SetForceSRGBOutputEnable(false);
+    EXPECT_EQ(ColorGamutParam::IsForceSRGBOutputEnabled(), false);
+}
+
+/**
  * @tc.name: SkipOccludedNodeDuringColorGamutCollection SetSkipOccludedNodeDuringColorGamutCollection
  * @tc.desc: Verify the SkipOccludedNodeDuringColorGamutCollection and
  *           SetSkipOccludedNodeDuringColorGamutCollection function

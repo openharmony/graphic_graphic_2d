@@ -26,16 +26,19 @@ public:
 
     static bool DisableP3OnWiredExtendedScreen();
     static bool IsAdaptiveColorGamutEnabled();
+    static bool IsForceSRGBOutputEnabled();
     static bool SkipOccludedNodeDuringColorGamutCollection();
 
 protected:
     static void SetDisableP3OnWiredExtendedScreen(bool isEnable);
     static void SetAdaptiveColorGamutEnable(bool isEnable);
+    static void SetForceSRGBOutputEnable(bool isEnable);
     static void SetSkipOccludedNodeDuringColorGamutCollection(bool isEnable);
 
 private:
     inline static bool disableP3OnWiredExtendedScreen_ = false;
     inline static bool isAdaptiveColorGamutEnabled_ = false;
+    inline static bool isForceSRGBOutputEnabled_ = false;
     inline static bool skipOccludedNodeDuringColorGamutCollection_ = false;
 
     friend class ColorGamutParamParse;

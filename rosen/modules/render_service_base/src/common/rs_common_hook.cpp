@@ -55,6 +55,16 @@ bool RsCommonHook::IsAdaptiveColorGamutEnabled() const
     return isAdaptiveColorGamutEnable_;
 }
 
+void RsCommonHook::SetForceSRGBOutputEnable(bool isForceSRGBOutputEnable)
+{
+    isForceSRGBOutputEnable_ = isForceSRGBOutputEnable;
+}
+
+bool RsCommonHook::IsForceSRGBOutputEnabled() const
+{
+    return isForceSRGBOutputEnable_;
+}
+
 // skip hwcnode hardware state updating
 void RsCommonHook::SetHardwareEnabledByHwcnodeBelowSelfInAppFlag(bool hardwareEnabledByHwcnodeSkippedFlag)
 {

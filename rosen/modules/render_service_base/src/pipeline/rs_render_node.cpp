@@ -27,6 +27,7 @@
 
 #include "animation/rs_render_animation.h"
 #include "common/rs_common_def.h"
+#include "common/rs_common_hook.h"
 #include "common/rs_common_tools.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
@@ -548,6 +549,9 @@ void RSRenderNode::SetNodeColorSpace(GraphicColorGamut colorSpace)
 
 GraphicColorGamut RSRenderNode::GetNodeColorSpace() const
 {
+    if (RsCommonHook::Instance().IsForceSRGBOutputEnabled()) {
+        return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    }
     return stagingRenderParams_->GetNodeColorSpace();
 }
 
