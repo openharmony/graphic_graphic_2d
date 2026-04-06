@@ -264,6 +264,7 @@ bool RSOpincManager::CalculateLayerPartRenderDirtyRegion(RSRenderNode& node,
             nodeAbsRect.GetLeft(), nodeAbsRect.GetTop(), nodeAbsRect.GetWidth(), nodeAbsRect.GetHeight());
     }
     if (!layerCurDirty.IsInsideOf(nodeAbsRect)) {
+        // If intersect, use intersection; otherwise use full node rect
         if (layerCurDirty.Intersect(nodeAbsRect)) {
             layerCurDirty = layerCurDirty.IntersectRect(nodeAbsRect);
             RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", clip layerCurDirty to intersect with nodeAbsRect:[%d,%d,%d,%d]",
