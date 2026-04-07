@@ -80,7 +80,7 @@ HWTEST_F(RSBoundsModifierNGTypeTest, RSBoundsModifierTest, TestSize.Level1)
 
 /**
  * @tc.name: ApplyGeometryTest
- * @tc.desc: Test function ApplyGeometry
+ * @tc.desc: Test the function ApplyGeometry
  * @tc.type: FUNC
  */
 HWTEST_F(RSBoundsModifierNGTypeTest, ApplyGeometryTest, TestSize.Level1)
@@ -102,68 +102,5 @@ HWTEST_F(RSBoundsModifierNGTypeTest, ApplyGeometryTest, TestSize.Level1)
     auto geometry2 = std::make_shared<RSObjAbsGeometry>();
     modifier2->ApplyGeometry(geometry2);
     EXPECT_FALSE(modifier2->HasProperty(ModifierNG::RSPropertyType::BOUNDS));
-}
-
-/**
- * @tc.name: SetGetUnionModeTest
- * @tc.desc: Test SetUnionMode and GetUnionMode
- * @tc.type: FUNC
- */
-HWTEST_F(RSBoundsModifierNGTypeTest, SetGetUnionModeTest, TestSize.Level1)
-{
-    auto modifier = std::make_shared<ModifierNG::RSBoundsModifier>();
-    int defaultMode = modifier->GetUnionMode();
-    EXPECT_EQ(defaultMode, 0);
-
-    modifier->SetUnionMode(1);
-    EXPECT_EQ(modifier->GetUnionMode(), 1);
-
-    modifier->SetUnionMode(0);
-    EXPECT_EQ(modifier->GetUnionMode(), 0);
-
-    modifier->SetUnionMode(2);
-    EXPECT_EQ(modifier->GetUnionMode(), 2);
-}
-
-/**
- * @tc.name: SetGetGravityPullCenterPullFlagTest
- * @tc.desc: Test SetGravityPullCenterFlag and GetGravityPullCenterFlag
- * @tc.type: FUNC
- */
-HWTEST_F(RSBoundsModifierNGTypeTest, SetGetGravityPullCenterPullFlagTest, TestSize.Level1)
-{
-    auto modifier = std::make_shared<ModifierNG::RSBoundsModifier>();
-    bool defaultFlag = modifier->GetGravityPullCenterFlag();
-    EXPECT_EQ(defaultFlag, false);
-
-    modifier->SetGravityPullCenterFlag(true);
-    EXPECT_EQ(modifier->GetGravityPullCenterFlag(), true);
-
-    modifier->SetGravityPullCenterFlag(false);
-    EXPECT_EQ(modifier->GetGravityPullCenterFlag(), false);
-
-    modifier->SetGravityPullCenterFlag(true);
-    EXPECT_EQ(modifier->GetGravityPullCenterFlag(), true);
-}
-
-/**
- * @tc.name: SetGetGravityPullStrengthTest
- * @tc.desc: Test SetGravityPullStrength and GetGravityPullStrength
- * @tc.type: FUNC
- */
-HWTEST_F(RSBoundsModifierNGTypeTest, SetGetGravityPullStrengthTest, TestSize.Level1)
-{
-    auto modifier = std::make_shared<ModifierNG::RSBoundsModifier>();
-    float defaultStrength = modifier->GetGravityPullStrength();
-    EXPECT_EQ(defaultStrength, 0.0f);
-
-    modifier->SetGravityPullStrength(0.5f);
-    EXPECT_EQ(modifier->GetGravityPullStrength(), 0.5f);
-
-    modifier->SetGravityPullStrength(1.0f);
-    EXPECT_EQ(modifier->GetGravityPullStrength(), 1.0f);
-
-    modifier->SetGravityPullStrength(0.0f);
-    EXPECT_EQ(modifier->GetGravityPullStrength(), 0.0f);
 }
 } // namespace OHOS::Rosen

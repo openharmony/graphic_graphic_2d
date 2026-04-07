@@ -317,9 +317,6 @@ public:
             case RSPropertyType::COMPOSITING_NG_FILTER: return "CompositingNGFilter";
             case RSPropertyType::USE_UNION: return "UseUnion";
             case RSPropertyType::UNION_SPACING: return "UnionSpacing";
-            case RSPropertyType::SDF_UNION_MODE: return "SDFUnionMode";
-            case RSPropertyType::GRAVITY_UNION_STRENGTH: return "UnionGravityStrength";
-            case RSPropertyType::GRAVITY_CENTER_FLAG: return "UnionGravityCenter";
             case RSPropertyType::SDF_SHAPE: return "SDFShape";
             case RSPropertyType::MATERIAL_NG_FILTER: return "MaterialNGFilter";
             case RSPropertyType::COLOR_PICKER_PLACEHOLDER : return "ColorPickerPlaceholder";

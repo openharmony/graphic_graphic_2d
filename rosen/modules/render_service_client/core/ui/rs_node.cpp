@@ -2955,12 +2955,6 @@ void RSNode::SetUseUnion(bool useUnion)
     SetPropertyNG<ModifierNG::RSBoundsModifier, &ModifierNG::RSBoundsModifier::SetUseUnion>(useUnion);
 }
 
-void RSNode::SetGravityPullCenterFlag(bool isGravityPullModeCenter)
-{
-    SetPropertyNG<ModifierNG::RSBoundsModifier,
-        &ModifierNG::RSBoundsModifier::SetGravityPullCenterFlag>(isGravityPullModeCenter);
-}
-
 void RSNode::SetSDFShape(const std::shared_ptr<RSNGShapeBase>& shape)
 {
     if (!shape) {
