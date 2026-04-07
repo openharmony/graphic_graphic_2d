@@ -25,8 +25,6 @@ using namespace testing::ext;
 namespace OHOS::Rosen {
 namespace {
 constexpr ScreenId TEST_SCREEN_ID = 0;
-constexpr int32_t TEST_SCREEN_WIDTH = 1080;
-constexpr int32_t TEST_SCREEN_HEIGHT = 2340;
 constexpr ScreenId TEST_SCREEN_ID_2 = 1;
 }
 
@@ -68,14 +66,11 @@ void RSRenderProcessAgentTest::TearDown() {}
 HWTEST_F(RSRenderProcessAgentTest, NotifyScreenConnectInfoToRenderTest001, TestSize.Level1)
 {
     auto screenProperty = sptr<RSScreenProperty>::MakeSptr();
-    screenProperty->SetScreenId(TEST_SCREEN_ID);
-    screenProperty->SetWidth(TEST_SCREEN_WIDTH);
-    screenProperty->SetHeight(TEST_SCREEN_HEIGHT);
 
     sptr<IRSRenderToComposerConnection> renderToComposerConn = nullptr;
     sptr<IRSComposerToRenderConnection> composerToRenderConn = nullptr;
 
-    auto result = renderProcessAgent_->NotifyScreenConnectInfoToRender(
+    renderProcessAgent_->NotifyScreenConnectInfoToRender(
         screenProperty, renderToComposerConn, composerToRenderConn);
 
     ASSERT_TRUE(renderProcessAgent_ != nullptr);
@@ -90,14 +85,11 @@ HWTEST_F(RSRenderProcessAgentTest, NotifyScreenConnectInfoToRenderTest001, TestS
 HWTEST_F(RSRenderProcessAgentTest, NotifyScreenConnectInfoToRenderTest002, TestSize.Level1)
 {
     auto screenProperty = sptr<RSScreenProperty>::MakeSptr();
-    screenProperty->SetScreenId(TEST_SCREEN_ID_2);
-    screenProperty->SetWidth(TEST_SCREEN_WIDTH);
-    screenProperty->SetHeight(TEST_SCREEN_HEIGHT);
 
     sptr<IRSRenderToComposerConnection> renderToComposerConn = nullptr;
     sptr<IRSComposerToRenderConnection> composerToRenderConn = nullptr;
 
-    auto result = renderProcessAgent_->NotifyScreenConnectInfoToRender(
+    renderProcessAgent_->NotifyScreenConnectInfoToRender(
         screenProperty, renderToComposerConn, composerToRenderConn);
 
     ASSERT_TRUE(renderProcessAgent_ != nullptr);
@@ -111,7 +103,7 @@ HWTEST_F(RSRenderProcessAgentTest, NotifyScreenConnectInfoToRenderTest002, TestS
  */
 HWTEST_F(RSRenderProcessAgentTest, NotifyScreenDisconnectInfoToRenderTest001, TestSize.Level1)
 {
-    auto result = renderProcessAgent_->NotifyScreenDisconnectInfoToRender(TEST_SCREEN_ID);
+    renderProcessAgent_->NotifyScreenDisconnectInfoToRender(TEST_SCREEN_ID);
 
     ASSERT_TRUE(renderProcessAgent_ != nullptr);
 }
@@ -124,7 +116,7 @@ HWTEST_F(RSRenderProcessAgentTest, NotifyScreenDisconnectInfoToRenderTest001, Te
  */
 HWTEST_F(RSRenderProcessAgentTest, NotifyScreenDisconnectInfoToRenderTest002, TestSize.Level1)
 {
-    auto result = renderProcessAgent_->NotifyScreenDisconnectInfoToRender(TEST_SCREEN_ID_2);
+    renderProcessAgent_->NotifyScreenDisconnectInfoToRender(TEST_SCREEN_ID_2);
 
     ASSERT_TRUE(renderProcessAgent_ != nullptr);
 }
@@ -138,10 +130,10 @@ HWTEST_F(RSRenderProcessAgentTest, NotifyScreenDisconnectInfoToRenderTest002, Te
 HWTEST_F(RSRenderProcessAgentTest, NotifyScreenPropertyChangedInfoToRenderTest001, TestSize.Level1)
 {
     ScreenId screenId = TEST_SCREEN_ID;
-    ScreenPropertyType type = ScreenPropertyType::RESOLUTION;
+    ScreenPropertyType type = ScreenPropertyType::RENDER_RESOLUTION;
     sptr<ScreenPropertyBase> screenProperty = nullptr;
 
-    auto result = renderProcessAgent_->NotifyScreenPropertyChangedInfoToRender(
+    renderProcessAgent_->NotifyScreenPropertyChangedInfoToRender(
         screenId, type, screenProperty);
 
     ASSERT_TRUE(renderProcessAgent_ != nullptr);
@@ -156,10 +148,10 @@ HWTEST_F(RSRenderProcessAgentTest, NotifyScreenPropertyChangedInfoToRenderTest00
 HWTEST_F(RSRenderProcessAgentTest, NotifyScreenPropertyChangedInfoToRenderTest002, TestSize.Level1)
 {
     ScreenId screenId = TEST_SCREEN_ID_2;
-    ScreenPropertyType type = ScreenPropertyType::FRESH_RATE;
+    ScreenPropertyType type = ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE;
     sptr<ScreenPropertyBase> screenProperty = nullptr;
 
-    auto result = renderProcessAgent_->NotifyScreenPropertyChangedInfoToRender(
+    renderProcessAgent_->NotifyScreenPropertyChangedInfoToRender(
         screenId, type, screenProperty);
 
     ASSERT_TRUE(renderProcessAgent_ != nullptr);
@@ -174,10 +166,10 @@ HWTEST_F(RSRenderProcessAgentTest, NotifyScreenPropertyChangedInfoToRenderTest00
 HWTEST_F(RSRenderProcessAgentTest, NotifyScreenPropertyChangedInfoToRenderTest003, TestSize.Level1)
 {
     ScreenId screenId = TEST_SCREEN_ID;
-    ScreenPropertyType type = ScreenPropertyType::ROTATION;
+    ScreenPropertyType type = ScreenPropertyType::CORRECTION;
     sptr<ScreenPropertyBase> screenProperty = nullptr;
 
-    auto result = renderProcessAgent_->NotifyScreenPropertyChangedInfoToRender(
+    renderProcessAgent_->NotifyScreenPropertyChangedInfoToRender(
         screenId, type, screenProperty);
 
     ASSERT_TRUE(renderProcessAgent_ != nullptr);

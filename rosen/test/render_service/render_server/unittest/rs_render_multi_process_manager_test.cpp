@@ -27,11 +27,6 @@ using namespace testing::ext;
 
 namespace OHOS::Rosen {
 namespace {
-constexpr ScreenId TEST_SCREEN_ID = 0;
-constexpr ScreenId TEST_SCREEN_ID_2 = 1;
-constexpr ScreenId INVALID_SCREEN_ID_TEST = 999;
-constexpr GroupId TEST_GROUP_ID_0 = 0;
-constexpr GroupId TEST_GROUP_ID_1 = 1;
 constexpr pid_t TEST_PID = 1234;
 constexpr pid_t TEST_PID_2 = 5678;
 }
