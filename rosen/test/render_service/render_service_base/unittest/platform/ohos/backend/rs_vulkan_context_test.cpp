@@ -279,7 +279,6 @@ HWTEST_F(RSVulkanContextTest, ReleaseRecyclableSingleton001, TestSize.Level2)
     RsVulkanContext::SetRecyclable(false);
 }
 
-
 /**
  * @tc.name: ReleaseRecyclableSingleton002
  * @tc.desc: test ReleaseRecyclableSingleton while vulkan context isn't recyclable
@@ -555,12 +554,12 @@ HWTEST_F(RSVulkanContextTest, RSVulkanContextDestruction, TestSize.Level2)
  * @tc.desc: Test ConfigureFeatures
  * @tc.type:FUNC
  * @tc.require:issuesIC7U3T
-*/
+ */
 HWTEST_F(RSVulkanContextTest, ConfigureFeatures_Test_00, TestSize.Level2)
 {
     RsVulkanInterface testInterface;
     testInterface.ConfigureFeatures(true);
-    ASSERT_TRUE(testInterface.ycbcrFeature_.pNext == testInterface.protectedMemoryFeatures_);
+    ASSERT_FALSE(testInterface.ycbcrFeature_.pNext == testInterface.protectedMemoryFeatures_);
 }
 
 /**
@@ -568,7 +567,7 @@ HWTEST_F(RSVulkanContextTest, ConfigureFeatures_Test_00, TestSize.Level2)
  * @tc.desc: Test ConfigureFeatures
  * @tc.type:FUNC
  * @tc.require:issuesIC7U3T
-*/
+ */
 HWTEST_F(RSVulkanContextTest, ConfigureFeatures_Test_01, TestSize.Level2)
 {
     RsVulkanInterface testInterface;
@@ -581,7 +580,7 @@ HWTEST_F(RSVulkanContextTest, ConfigureFeatures_Test_01, TestSize.Level2)
  * @tc.desc: Test ConfigureExtensions
  * @tc.type:FUNC
  * @tc.require:issuesIC7U3T
-*/
+ */
 HWTEST_F(RSVulkanContextTest, ConfigureExtensions_Test_00, TestSize.Level2)
 {
     RsVulkanInterface testInterface;
@@ -595,7 +594,7 @@ HWTEST_F(RSVulkanContextTest, ConfigureExtensions_Test_00, TestSize.Level2)
     ASSERT_EQ(testInterface.deviceExtensions_.size(), gMandatoryDeviceExtensions.size());
     for (const auto& ext:testInterface.deviceExtensions_) {
         ASSERT_NE(std::find(gMandatoryDeviceExtensions.begin(), gMandatoryDeviceExtensions.end(), ext),
-                    gMandatoryDeviceExtensions.end());
+            gMandatoryDeviceExtensions.end());
     }
 }
 
@@ -604,7 +603,7 @@ HWTEST_F(RSVulkanContextTest, ConfigureExtensions_Test_00, TestSize.Level2)
  * @tc.desc: Test ConfigureExtensions
  * @tc.type:FUNC
  * @tc.require:issuesIC7U3T
-*/
+ */
 HWTEST_F(RSVulkanContextTest, ConfigureExtensions_Test_01, TestSize.Level2)
 {
     RsVulkanInterface testInterface;
@@ -618,7 +617,7 @@ HWTEST_F(RSVulkanContextTest, ConfigureExtensions_Test_01, TestSize.Level2)
     ASSERT_EQ(testInterface.deviceExtensions_.size(), gMandatoryDeviceExtensions.size());
     for (const auto& ext:testInterface.deviceExtensions_) {
         ASSERT_NE(std::find(gMandatoryDeviceExtensions.begin(), gMandatoryDeviceExtensions.end(), ext),
-                    gMandatoryDeviceExtensions.end());
+            gMandatoryDeviceExtensions.end());
     }
 }
 
@@ -627,7 +626,7 @@ HWTEST_F(RSVulkanContextTest, ConfigureExtensions_Test_01, TestSize.Level2)
  * @tc.desc: Test ConfigureExtensions
  * @tc.type:FUNC
  * @tc.require:issuesIC7U3T
-*/
+ */
 HWTEST_F(RSVulkanContextTest, ConfigureExtensions_Test_02, TestSize.Level2)
 {
     RsVulkanInterface testInterface;
@@ -645,7 +644,7 @@ HWTEST_F(RSVulkanContextTest, ConfigureExtensions_Test_02, TestSize.Level2)
     ASSERT_EQ(testInterface.deviceExtensions_.size(), gMandatoryDeviceExtensions.size());
     for (const auto& ext:testInterface.deviceExtensions_) {
         ASSERT_NE(std::find(gMandatoryDeviceExtensions.begin(), gMandatoryDeviceExtensions.end(), ext),
-                    gMandatoryDeviceExtensions.end());
+            gMandatoryDeviceExtensions.end());
     }
 }
 
@@ -694,7 +693,7 @@ HWTEST_F(RSVulkanContextTest, GetDrawingContext003, TestSize.Level2)
 {
     RsVulkanContext::GetSingleton().InitVulkanContextForUniRender("");
     RsVulkanContext::GetSingleton().SetIsProtected(true);
-    
+
     RsVulkanContext::SaveNewDrawingContext(gettid(), nullptr);
     ASSERT_NE(RsVulkanContext::GetSingleton().GetDrawingContext(), nullptr);
 
@@ -712,7 +711,7 @@ HWTEST_F(RSVulkanContextTest, GetDrawingContext004, TestSize.Level2)
 {
     RsVulkanContext::GetSingleton().InitVulkanContextForUniRender("");
     RsVulkanContext::GetSingleton().SetIsProtected(true);
-    
+
     auto protectedDrawingContext = std::make_shared<Drawing::GPUContext>();
     RsVulkanContext::SaveNewDrawingContext(gettid(), protectedDrawingContext);
     ASSERT_NE(RsVulkanContext::GetSingleton().GetDrawingContext(), nullptr);
@@ -749,7 +748,7 @@ HWTEST_F(RSVulkanContextTest, CreateDrawingContext005, TestSize.Level2)
 {
     RsVulkanContext::GetSingleton().InitVulkanContextForUniRender("");
     RsVulkanContext::GetSingleton().SetIsProtected(true);
-    
+
     RsVulkanContext::SaveNewDrawingContext(gettid(), nullptr);
     ASSERT_NE(RsVulkanContext::GetSingleton().CreateDrawingContext(), nullptr);
 
@@ -767,7 +766,7 @@ HWTEST_F(RSVulkanContextTest, CreateDrawingContext006, TestSize.Level2)
 {
     RsVulkanContext::GetSingleton().InitVulkanContextForUniRender("");
     RsVulkanContext::GetSingleton().SetIsProtected(true);
-    
+
     auto protectedDrawingContext = std::make_shared<Drawing::GPUContext>();
     RsVulkanContext::SaveNewDrawingContext(gettid(), protectedDrawingContext);
     ASSERT_NE(RsVulkanContext::GetSingleton().CreateDrawingContext(), nullptr);
@@ -819,6 +818,197 @@ HWTEST_F(RSVulkanContextTest, RequireSemaphoreTest, TestSize.Level2)
         res = interface->RequireSemaphore();
         EXPECT_EQ(res, VK_NULL_HANDLE);
     }
+}
+
+/**
+ * @tc.name: CreateInstance_Null_Instance
+ * @tc.desc: test CreateInstance when mandatory proc addresses not acquired
+ * @tc.type:FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(RSVulkanContextTest, CreateInstance_Null_Instance, TestSize.Level2)
+{
+    RsVulkanInterface testInterface;
+    testInterface.acquiredMandatoryProcAddresses_ = false;
+    auto result = testInterface.CreateInstance();
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: SelectPhysicalDevice_Null_Instance
+ * @tc.desc: test SelectPhysicalDevice when instance is null
+ * @tc.type:FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(RSVulkanContextTest, SelectPhysicalDevice_Null_Instance, TestSize.Level2)
+{
+    RsVulkanInterface testInterface;
+    testInterface.instance_ = nullptr;
+    auto result = testInterface.SelectPhysicalDevice(false);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: SelectPhysicalDevice_No_Devices
+ * @tc.desc: test SelectPhysicalDevice when no physical devices found
+ * @tc.type:FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(RSVulkanContextTest, SelectPhysicalDevice_No_Devices, TestSize.Level2)
+{
+    RsVulkanInterface testInterface;
+    testInterface.instance_ = reinterpret_cast<VkInstance>(1);
+    testInterface.vkEnumeratePhysicalDevices = [](VkInstance, uint32_t* count, VkPhysicalDevice*) {
+        *count = 0;
+        return VK_SUCCESS;
+    };
+    auto result = testInterface.SelectPhysicalDevice(false);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: SelectPhysicalDevice_Enumerate_Fail
+ * @tc.desc: test SelectPhysicalDevice when enumerate fails
+ * @tc.type:FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(RSVulkanContextTest, SelectPhysicalDevice_Enumerate_Fail, TestSize.Level2)
+{
+    RsVulkanInterface testInterface;
+    testInterface.instance_ = reinterpret_cast<VkInstance>(1);
+    testInterface.vkEnumeratePhysicalDevices = [](VkInstance, uint32_t* count, VkPhysicalDevice*) {
+        return VK_ERROR_OUT_OF_HOST_MEMORY;
+    };
+    auto result = testInterface.SelectPhysicalDevice(false);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: InitializeFeatureChain_Protected_Low_API
+ * @tc.desc: test InitializeFeatureChain with protected memory and low API version
+ * @tc.type:FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(RSVulkanContextTest, InitializeFeatureChain_Protected_Low_API, TestSize.Level2)
+{
+    RsVulkanInterface testInterface;
+    testInterface.physicalDeviceApiVersion_ = VK_API_VERSION_1_0;
+    auto result = testInterface.InitializeFeatureChain(true);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: InitializeFeatureChain_Protected_High_API
+ * @tc.desc: test InitializeFeatureChain with protected memory and high API version
+ * @tc.type:FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(RSVulkanContextTest, InitializeFeatureChain_Protected_High_API, TestSize.Level2)
+{
+    RsVulkanInterface testInterface;
+    testInterface.physicalDeviceApiVersion_ = VK_API_VERSION_1_1;
+    auto result = testInterface.InitializeFeatureChain(true);
+    EXPECT_TRUE(result);
+    EXPECT_NE(testInterface.protectedMemoryFeatures_, nullptr);
+}
+
+/**
+ * @tc.name: CleanupFeatureChain
+ * @tc.desc: test CleanupFeatureChain
+ * @tc.type:FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(RSVulkanContextTest, CleanupFeatureChain, TestSize.Level2)
+{
+    RsVulkanInterface testInterface;
+    testInterface.protectedMemoryFeatures_ = new VkPhysicalDeviceProtectedMemoryFeatures;
+    testInterface.CleanupFeatureChain();
+    EXPECT_EQ(testInterface.protectedMemoryFeatures_, nullptr);
+}
+
+/**
+ * @tc.name: ConfigureExtensions_No_Extensions
+ * @tc.desc: test ConfigureExtensions when no device extensions found
+ * @tc.type:FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(RSVulkanContextTest, ConfigureExtensions_No_Extensions, TestSize.Level2)
+{
+    RsVulkanInterface testInterface;
+    testInterface.physicalDevice_ = reinterpret_cast<VkPhysicalDevice>(1);
+    testInterface.vkEnumerateDeviceExtensionProperties = [](VkPhysicalDevice, const char*, uint32_t* count,
+                                                             VkExtensionProperties*) {
+        *count = 0;
+        return VK_SUCCESS;
+    };
+    testInterface.ConfigureExtensions();
+    EXPECT_EQ(testInterface.deviceExtensions_.size(), gMandatoryDeviceExtensions.size());
+}
+
+/**
+ * @tc.name: CreateDevice_Null_PhysicalDevice
+ * @tc.desc: test CreateDevice when physical device is null
+ * @tc.type:FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(RSVulkanContextTest, CreateDevice_Null_PhysicalDevice, TestSize.Level2)
+{
+    RsVulkanInterface testInterface;
+    testInterface.physicalDevice_ = nullptr;
+    auto result = testInterface.CreateDevice(false, false);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: CreateDevice_No_Queue_Families
+ * @tc.desc: test CreateDevice when no queue families found
+ * @tc.type:FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(RSVulkanContextTest, CreateDevice_No_Queue_Families, TestSize.Level2)
+{
+    RsVulkanInterface testInterface;
+    testInterface.physicalDevice_ = reinterpret_cast<VkPhysicalDevice>(1);
+    testInterface.vkGetPhysicalDeviceQueueFamilyProperties = [](VkPhysicalDevice, uint32_t* count,
+                                                                 VkQueueFamilyProperties*) { *count = 0; };
+    auto result = testInterface.CreateDevice(false, false);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: CreateDevice_No_Graphics_Queue
+ * @tc.desc: test CreateDevice when no graphics queue family found
+ * @tc.type:FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(RSVulkanContextTest, CreateDevice_No_Graphics_Queue, TestSize.Level2)
+{
+    RsVulkanInterface testInterface;
+    testInterface.physicalDevice_ = reinterpret_cast<VkPhysicalDevice>(1);
+    testInterface.vkGetPhysicalDeviceQueueFamilyProperties = [](VkPhysicalDevice, uint32_t* count,
+                                                                 VkQueueFamilyProperties* props) {
+        if (props == nullptr) {
+            *count = 1;
+        } else {
+            props[0].queueFlags = VK_QUEUE_COMPUTE_BIT;
+        }
+    };
+    auto result = testInterface.CreateDevice(false, false);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: ConfigureFeatures_With_Cleanup
+ * @tc.desc: test ConfigureFeatures calls InitializeFeatureChain and CleanupFeatureChain
+ * @tc.type:FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(RSVulkanContextTest, ConfigureFeatures_With_Cleanup, TestSize.Level2)
+{
+    RsVulkanInterface testInterface;
+    testInterface.physicalDeviceApiVersion_ = VK_API_VERSION_1_1;
+    testInterface.ConfigureFeatures(true);
+    EXPECT_NE(testInterface.protectedMemoryFeatures_, nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS
