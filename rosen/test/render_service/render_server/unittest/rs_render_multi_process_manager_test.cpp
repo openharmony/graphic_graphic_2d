@@ -215,8 +215,11 @@ HWTEST_F(RSMultiRenderProcessManagerTest, MultiProcessManagerNullServiceTest001,
 
     ASSERT_NE(manager, nullptr);
 
-    sptr<RSIServiceToRenderConnection> conn = nullptr;
-    manager->RecordRenderProcessConnection(TEST_PID, conn, conn, conn);
+    sptr<RSIServiceToRenderConnection> serviceToRenderConnection = nullptr;
+    sptr<IRSComposerToRenderConnection> composerToRenderConnection = nullptr;
+    sptr<RSIConnectToRenderProcess> connectToRenderConnection = nullptr;
+    manager->RecordRenderProcessConnection(TEST_PID, serviceToRenderConnection,
+        composerToRenderConnection, connectToRenderConnection);
 
     delete manager;
     delete renderService;
