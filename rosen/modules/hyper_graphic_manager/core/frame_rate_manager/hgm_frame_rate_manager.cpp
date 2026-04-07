@@ -967,7 +967,6 @@ void HgmFrameRateManager::HandleScreenRectFrameRate(ScreenId id, const Rect& act
 void HgmFrameRateManager::HandleScreenLtpoConfig(ScreenId id)
 {
     if (curScreenId_.load() != id) {
-
         auto& hgmScreenInfo = HgmScreenInfo::GetInstance();
         auto isLtpo = hgmScreenInfo.IsLtpoType(hgmScreenInfo.GetScreenType(id));
         isLtpo_.store(isLtpo);
