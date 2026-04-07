@@ -1748,6 +1748,7 @@ void TestRSRenderPipelineClientInterfaces(InterfaceClientFrameTest &testFrame)
     TestSetHardwareEnabled(testFrame);
 }
 }
+}
 
 // ============================================================================
 // Main Test Registration (must be in global namespace)
