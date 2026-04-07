@@ -47,13 +47,6 @@ InteractiveImplictAnimatorId RSInteractiveImplictAnimator::GenerateId()
 }
 
 std::shared_ptr<RSInteractiveImplictAnimator> RSInteractiveImplictAnimator::Create(
-    const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve)
-{
-    return std::shared_ptr<RSInteractiveImplictAnimator>(
-        new RSInteractiveImplictAnimator(nullptr, timingProtocol, timingCurve));
-}
-
-std::shared_ptr<RSInteractiveImplictAnimator> RSInteractiveImplictAnimator::Create(
     const std::shared_ptr<RSUIContext> rsUIContext, const RSAnimationTimingProtocol& timingProtocol,
     const RSAnimationTimingCurve& timingCurve)
 {
@@ -113,16 +106,15 @@ std::shared_ptr<InteractiveAnimatorFinishCallback> RSInteractiveImplictAnimator:
 size_t RSInteractiveImplictAnimator::AddImplictAnimation(std::function<void()> callback)
 {
     if (state_ != RSInteractiveAnimationState::INACTIVE && state_ != RSInteractiveAnimationState::ACTIVE) {
-        ROSEN_LOGE("AddAnimation failed, state_ is error");
+        ROSEN_LOGE("RSInteractiveImplictAnimator::AddImplictAnimation failed, state_ is error");
         return 0;
     }
     auto rsUIContext = rsUIContext_.lock();
-    auto implicitAnimator = rsUIContext ? rsUIContext->GetRSImplicitAnimator() :
-        RSImplicitAnimatorMap::Instance().GetAnimator();
-    if (implicitAnimator == nullptr) {
-        ROSEN_LOGE("Failed to open implicit animation, implicit animator is null!");
+    if (rsUIContext == nullptr) {
+        ROSEN_LOGE("RSInteractiveImplictAnimator::AddImplictAnimation failed, rsUIContext is null!");
         return 0;
     }
+    auto implicitAnimator = rsUIContext->GetRSImplicitAnimator();
 
     if (timingProtocol_.GetDuration() <= 0) {
         return 0;
@@ -148,16 +140,15 @@ size_t RSInteractiveImplictAnimator::AddImplictAnimation(std::function<void()> c
 size_t RSInteractiveImplictAnimator::AddAnimation(std::function<void()> callback)
 {
     if (state_ != RSInteractiveAnimationState::INACTIVE && state_ != RSInteractiveAnimationState::ACTIVE) {
-        ROSEN_LOGE("AddAnimation failed, state_ is error");
+        ROSEN_LOGE("RSInteractiveImplictAnimator::AddAnimation failed, state_ is error");
         return 0;
     }
     auto rsUIContext = rsUIContext_.lock();
-    auto implicitAnimator = rsUIContext ? rsUIContext->GetRSImplicitAnimator() :
-        RSImplicitAnimatorMap::Instance().GetAnimator();
-    if (implicitAnimator == nullptr) {
-        ROSEN_LOGE("Failed to open implicit animation, implicit animator is null!");
+    if (rsUIContext == nullptr) {
+        ROSEN_LOGE("RSInteractiveImplictAnimator::AddAnimation failed, rsUIContext is null!");
         return 0;
     }
+    auto implicitAnimator = rsUIContext->GetRSImplicitAnimator();
 
     implicitAnimator->OpenInterActiveImplicitAnimation(false, timingProtocol_, timingCurve_, nullptr);
     callback();
@@ -188,11 +179,14 @@ int32_t RSInteractiveImplictAnimator::StartAnimation()
         return static_cast<int32_t>(StartAnimationErrorCode::INVALID_ANIMATIONS);
     }
     auto rsUIContext = rsUIContext_.lock();
+    if (rsUIContext == nullptr) {
+        ROSEN_LOGE("StartAnimation failed, rsUIContext is null!");
+        return static_cast<int32_t>(StartAnimationErrorCode::INVALID_CONTEXT);
+    }
     std::vector<std::pair<NodeId, AnimationId>> renderAnimations;
     for (auto& [item, nodeId] : animations_) {
         auto animation = item.lock();
-        auto target = rsUIContext ? rsUIContext->GetNodeMap().GetNode<RSNode>(nodeId) :
-            RSNodeMap::Instance().GetNode<RSNode>(nodeId);
+        auto target = rsUIContext->GetNodeMap().GetNode<RSNode>(nodeId);
         if (target != nullptr && animation != nullptr) {
             animation->InteractiveContinue();
             if (!animation->IsUiAnimation()) {
@@ -226,10 +220,13 @@ void RSInteractiveImplictAnimator::PauseAnimation()
     state_ = RSInteractiveAnimationState::PAUSED;
 
     auto rsUIContext = rsUIContext_.lock();
+    if (rsUIContext == nullptr) {
+        ROSEN_LOGE("PauseAnimation failed, rsUIContext is null!");
+        return;
+    }
     for (auto& [item, nodeId] : animations_) {
         auto animation = item.lock();
-        auto target = rsUIContext ? rsUIContext->GetNodeMap().GetNode<RSNode>(nodeId) :
-            RSNodeMap::Instance().GetNode<RSNode>(nodeId);
+        auto target = rsUIContext->GetNodeMap().GetNode<RSNode>(nodeId);
         if (target != nullptr && animation != nullptr) {
             animation->InteractivePause();
         }
@@ -252,10 +249,13 @@ void RSInteractiveImplictAnimator::ContinueAnimation()
     state_ = RSInteractiveAnimationState::RUNNING;
 
     auto rsUIContext = rsUIContext_.lock();
+    if (rsUIContext == nullptr) {
+        ROSEN_LOGE("ContinueAnimation failed, rsUIContext is null!");
+        return;
+    }
     for (auto& [item, nodeId] : animations_) {
         auto animation = item.lock();
-        auto target = rsUIContext ? rsUIContext->GetNodeMap().GetNode<RSNode>(nodeId) :
-            RSNodeMap::Instance().GetNode<RSNode>(nodeId);
+        auto target = rsUIContext->GetNodeMap().GetNode<RSNode>(nodeId);
         if (target != nullptr && animation != nullptr) {
             animation->InteractiveContinue();
         }
@@ -278,11 +278,14 @@ void RSInteractiveImplictAnimator::FinishAnimation(RSInteractiveAnimationPositio
     state_ = RSInteractiveAnimationState::INACTIVE;
 
     auto rsUIContext = rsUIContext_.lock();
+    if (rsUIContext == nullptr) {
+        ROSEN_LOGE("FinishAnimation failed, rsUIContext is null!");
+        return;
+    }
     if (position == RSInteractiveAnimationPosition::START || position == RSInteractiveAnimationPosition::END) {
         for (auto& [item, nodeId] : animations_) {
             auto animation = item.lock();
-            auto target = rsUIContext ? rsUIContext->GetNodeMap().GetNode<RSNode>(nodeId) :
-                RSNodeMap::Instance().GetNode<RSNode>(nodeId);
+            auto target = rsUIContext->GetNodeMap().GetNode<RSNode>(nodeId);
             if (target == nullptr || animation == nullptr) {
                 continue;
             }
@@ -303,11 +306,14 @@ void RSInteractiveImplictAnimator::FinishAnimation(RSInteractiveAnimationPositio
 void RSInteractiveImplictAnimator::FinishOnCurrent()
 {
     auto rsUIContext = rsUIContext_.lock();
+    if (rsUIContext == nullptr) {
+        ROSEN_LOGE("FinishOnCurrent failed, rsUIContext is null!");
+        return;
+    }
     RSNodeGetShowingPropertiesAndCancelAnimation::PropertiesMap propertiesMap;
     for (auto& [item, nodeId] : animations_) {
         auto animation = item.lock();
-        auto node = rsUIContext ? rsUIContext->GetNodeMap().GetNode<RSNode>(nodeId) :
-            RSNodeMap::Instance().GetNode<RSNode>(nodeId);
+        auto node = rsUIContext->GetNodeMap().GetNode<RSNode>(nodeId);
         if (node == nullptr || animation == nullptr) {
             continue;
         }
@@ -357,10 +363,13 @@ void RSInteractiveImplictAnimator::ReverseAnimation()
     state_ = RSInteractiveAnimationState::RUNNING;
 
     auto rsUIContext = rsUIContext_.lock();
+    if (rsUIContext == nullptr) {
+        ROSEN_LOGE("ReverseAnimation failed, rsUIContext is null!");
+        return;
+    }
     for (auto& [item, nodeId] : animations_) {
         auto animation = item.lock();
-        auto target = rsUIContext ? rsUIContext->GetNodeMap().GetNode<RSNode>(nodeId) :
-            RSNodeMap::Instance().GetNode<RSNode>(nodeId);
+        auto target = rsUIContext->GetNodeMap().GetNode<RSNode>(nodeId);
         if (target != nullptr && animation != nullptr) {
             animation->InteractiveReverse();
         }
@@ -382,10 +391,13 @@ void RSInteractiveImplictAnimator::SetFraction(float fraction)
     }
 
     auto rsUIContext = rsUIContext_.lock();
+    if (rsUIContext == nullptr) {
+        ROSEN_LOGE("SetFraction failed, rsUIContext is null!");
+        return;
+    }
     for (auto& [item, nodeId] : animations_) {
         auto animation = item.lock();
-        auto target = rsUIContext ? rsUIContext->GetNodeMap().GetNode<RSNode>(nodeId) :
-            RSNodeMap::Instance().GetNode<RSNode>(nodeId);
+        auto target = rsUIContext->GetNodeMap().GetNode<RSNode>(nodeId);
         if (target != nullptr && animation != nullptr) {
             animation->InteractiveSetFraction(fraction);
         }
@@ -438,21 +450,17 @@ void RSInteractiveImplictAnimator::CallFinishCallback()
 void RSInteractiveImplictAnimator::AddCommand(
     std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand, FollowType followType, NodeId nodeId) const
 {
-    if (rsUIContext_.lock() != nullptr) {
-        auto rsTransaction = rsUIContext_.lock()->GetRSTransaction();
-        if (rsTransaction == nullptr) {
-            RS_LOGE("multi-instance: RSInteractiveImplictAnimator::AddCommand, transaction is nullptr");
-            return;
-        }
-        rsTransaction->AddCommand(command, isRenderServiceCommand, followType, nodeId);
-    } else {
-        auto transactionProxy = RSTransactionProxy::GetInstance();
-        if (transactionProxy == nullptr) {
-            RS_LOGE("RSInteractiveImplictAnimator::AddCommand transactionProxy is nullptr");
-            return;
-        }
-        transactionProxy->AddCommand(command, isRenderServiceCommand, followType, nodeId);
+    auto rsUIContext = rsUIContext_.lock();
+    if (rsUIContext == nullptr) {
+        ROSEN_LOGE("RSInteractiveImplictAnimator::AddCommand failed, rsUIContext is null!");
+        return;
     }
+    auto rsTransaction = rsUIContext->GetRSTransaction();
+    if (rsTransaction == nullptr) {
+        RS_LOGE("RSInteractiveImplictAnimator::AddCommand, transaction is nullptr");
+        return;
+    }
+    rsTransaction->AddCommand(command, isRenderServiceCommand, followType, nodeId);
 }
 } // namespace Rosen
 } // namespace OHOS

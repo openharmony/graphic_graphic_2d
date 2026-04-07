@@ -37,8 +37,6 @@ class RSC_EXPORT RSInteractiveImplictAnimator : public std::enable_shared_from_t
 public:
     virtual ~RSInteractiveImplictAnimator();
     static std::shared_ptr<RSInteractiveImplictAnimator> Create(
-        const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve);
-    static std::shared_ptr<RSInteractiveImplictAnimator> Create(
         const std::shared_ptr<RSUIContext> rsUIContext, const RSAnimationTimingProtocol& timingProtocol,
         const RSAnimationTimingCurve& timingCurve);
     /*
