@@ -56,6 +56,7 @@ enum class RSIClientToRenderConnectionInterfaceCode : CodeUnderlyingType {
     GET_PIXELMAP = 0x00800D,
 
     GET_SCREEN_HDR_STATUS = 0x00800E,
+    GET_MAX_GPU_BUFFER_SIZE = 0x00800F,
     GET_BRIGHTNESS_INFO = 0x008010,
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     REGISTER_CANVAS_CALLBACK = 0x008011,

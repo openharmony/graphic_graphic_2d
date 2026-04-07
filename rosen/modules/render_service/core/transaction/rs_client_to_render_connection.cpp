@@ -633,6 +633,16 @@ int32_t RSClientToRenderConnection::SetLogicalCameraRotationCorrection(
     return renderPipelineAgent_->SetLogicalCameraRotationCorrection(screenId, logicalCorrection);
 }
 
+ErrCode RSClientToRenderConnection::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
+{
+    if (renderPipelineAgent_ == nullptr) {
+        RS_LOGE("%{public}s renderPipelineAgent_ is nullptr", __func__);
+        return ERR_INVALID_VALUE;
+    }
+
+    return renderPipelineAgent_->GetMaxGpuBufferSize(maxWidth, maxHeight);
+}
+
 int32_t RSClientToRenderConnection::RegisterFrameStabilityDetection(
     const FrameStabilityTarget& target,
     const FrameStabilityConfig& config,
