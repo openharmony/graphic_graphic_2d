@@ -206,6 +206,7 @@ private:
     bool tunnelHandleChange_ = false;
     bool isSupportedPresentTimestamp_ = false;
     GraphicPresentTimestamp presentTimestamp_ = {GRAPHIC_DISPLAY_PTS_UNSUPPORTED, 0};
+    mutable std::mutex mutex_;
     sptr<IConsumerSurface> cSurface_ = nullptr;
     sptr<SyncFence> acquireFence_ = SyncFence::InvalidFence();
     wptr<SurfaceBuffer> sbuffer_ = nullptr;
