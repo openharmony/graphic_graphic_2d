@@ -23,7 +23,6 @@ using namespace testing::ext;
 namespace OHOS::Rosen {
 namespace {
 constexpr GroupId TEST_GROUP_ID_0 = 0;
-constexpr GroupId TEST_GROUP_ID_1 = 1;
 constexpr GroupId DEFAULT_GROUP_ID = 0;
 }
 
