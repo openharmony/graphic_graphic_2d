@@ -28,8 +28,8 @@
 
 #define VK_NO_PROTOTYPES 1
 
-#include "vulkan/vulkan.h"
 #include "rs_vulkan_mem_statistic.h"
+#include "vulkan/vulkan.h"
 
 #include "image/gpu_context.h"
 
@@ -85,7 +85,7 @@ public:
         RsVulkanInterface& mVkContext;
         VkSemaphore mSemaphore;
         int mFenceFd;
-        
+
         int mRefs = 2; // 2 : both skia and rs hold fence fd
         int mRSRefs = 1; // 1 : rs hold fence fd
         int m2DEngineRefs = 1; // 1 : skia or ddgr hold fence fd
@@ -179,7 +179,7 @@ public:
 
     RsVulkanInterface() {};
     ~RsVulkanInterface();
-    void Init(VulkanInterfaceType vulkanInterfaceType, bool isProtected = false, bool isHtsEnable = false);
+    bool Init(VulkanInterfaceType vulkanInterfaceType, bool isProtected = false, bool isHtsEnable = false);
     bool CreateInstance();
     bool SelectPhysicalDevice(bool isProtected = false);
     bool CreateDevice(bool isProtected = false, bool isHtsEnable = false);
@@ -206,66 +206,34 @@ public:
 
 #define DEFINE_FUNC(name) Func<PFN_vk##name> vk##name
 
-    DEFINE_FUNC(AcquireNextImageKHR);
-    DEFINE_FUNC(AllocateCommandBuffers);
     DEFINE_FUNC(AllocateMemory);
-    DEFINE_FUNC(BeginCommandBuffer);
     DEFINE_FUNC(BindImageMemory);
     DEFINE_FUNC(BindImageMemory2);
-    DEFINE_FUNC(CmdPipelineBarrier);
-    DEFINE_FUNC(CreateCommandPool);
-    DEFINE_FUNC(CreateDebugReportCallbackEXT);
     DEFINE_FUNC(CreateDevice);
-    DEFINE_FUNC(CreateFence);
     DEFINE_FUNC(CreateImage);
-    DEFINE_FUNC(CreateImageView);
     DEFINE_FUNC(CreateInstance);
     DEFINE_FUNC(CreateSemaphore);
-    DEFINE_FUNC(CreateSwapchainKHR);
-    DEFINE_FUNC(DestroyCommandPool);
-    DEFINE_FUNC(DestroyDebugReportCallbackEXT);
     DEFINE_FUNC(DestroyDevice);
-    DEFINE_FUNC(DestroyFence);
     DEFINE_FUNC(DestroyImage);
-    DEFINE_FUNC(DestroyImageView);
     DEFINE_FUNC(DestroyInstance);
     DEFINE_FUNC(DestroySemaphore);
-    DEFINE_FUNC(DestroySurfaceKHR);
-    DEFINE_FUNC(DestroySwapchainKHR);
     DEFINE_FUNC(DeviceWaitIdle);
-    DEFINE_FUNC(EndCommandBuffer);
     DEFINE_FUNC(EnumerateDeviceExtensionProperties);
-    DEFINE_FUNC(EnumerateDeviceLayerProperties);
     DEFINE_FUNC(EnumerateInstanceExtensionProperties);
-    DEFINE_FUNC(EnumerateInstanceLayerProperties);
     DEFINE_FUNC(EnumeratePhysicalDevices);
-    DEFINE_FUNC(FreeCommandBuffers);
     DEFINE_FUNC(FreeMemory);
     DEFINE_FUNC(GetDeviceProcAddr);
-    DEFINE_FUNC(GetDeviceQueue);
     DEFINE_FUNC(GetImageMemoryRequirements);
     DEFINE_FUNC(GetInstanceProcAddr);
     DEFINE_FUNC(GetPhysicalDeviceFeatures);
     DEFINE_FUNC(GetPhysicalDeviceQueueFamilyProperties);
     DEFINE_FUNC(QueueSubmit);
-    DEFINE_FUNC(QueueWaitIdle);
-    DEFINE_FUNC(ResetCommandBuffer);
-    DEFINE_FUNC(ResetFences);
-    DEFINE_FUNC(WaitForFences);
-    DEFINE_FUNC(GetPhysicalDeviceSurfaceCapabilitiesKHR);
-    DEFINE_FUNC(GetPhysicalDeviceSurfaceFormatsKHR);
-    DEFINE_FUNC(GetPhysicalDeviceSurfacePresentModesKHR);
-    DEFINE_FUNC(GetPhysicalDeviceSurfaceSupportKHR);
-    DEFINE_FUNC(GetSwapchainImagesKHR);
-    DEFINE_FUNC(QueuePresentKHR);
-    DEFINE_FUNC(CreateSurfaceOHOS);
     DEFINE_FUNC(GetPhysicalDeviceMemoryProperties);
     DEFINE_FUNC(GetPhysicalDeviceMemoryProperties2);
     DEFINE_FUNC(GetNativeBufferPropertiesOHOS);
     DEFINE_FUNC(QueueSignalReleaseImageOHOS);
     DEFINE_FUNC(ImportSemaphoreFdKHR);
     DEFINE_FUNC(GetPhysicalDeviceFeatures2);
-    DEFINE_FUNC(SetFreqAdjustEnable);
     DEFINE_FUNC(GetSemaphoreFdKHR);
 #undef DEFINE_FUNC
 
@@ -331,6 +299,7 @@ private:
     uint32_t graphicsQueueFamilyIndex_ = UINT32_MAX;
     VkDevice device_ = VK_NULL_HANDLE;
     VkQueue queue_ = VK_NULL_HANDLE;
+    uint32_t physicalDeviceApiVersion_ = 0;
     VkPhysicalDeviceFeatures2 physicalDeviceFeatures2_;
     VkPhysicalDeviceProtectedMemoryFeatures* protectedMemoryFeatures_ = nullptr;
     VkPhysicalDeviceSamplerYcbcrConversionFeatures ycbcrFeature_;
@@ -363,6 +332,8 @@ private:
     bool SetupDeviceProcAddresses(VkDevice device);
     void ConfigureFeatures(bool isProtected);
     void ConfigureExtensions();
+    bool InitializeFeatureChain(bool isProtected);
+    void CleanupFeatureChain();
     PFN_vkVoidFunction AcquireProc(
         const char* proc_name,
         const VkInstance& instance) const;
