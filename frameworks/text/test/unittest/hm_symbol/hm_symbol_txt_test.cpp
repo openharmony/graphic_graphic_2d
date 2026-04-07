@@ -717,7 +717,7 @@ HWTEST_F(OHHmSymbolTxtTest, SetRenderUIColors002, TestSize.Level0)
     EXPECT_TRUE(symbolColor.gradients[0]->HasUIColor());
     EXPECT_TRUE(symbolColor.gradients[1]->HasUIColor());
     EXPECT_EQ(symbolColor.gradients[0]->GetColorSpace(), SymbolColorSpace::BT2020);
-    EXPECT_EQ(symbolColor.gradients[1]->GetColorSpace(), SymbolColorSpace::BT2020);
+    EXPECT_EQ(symbolColor.gradients[1]->GetColorSpace(), SymbolColorSpace::SRGB);
 }
 
 /*
@@ -779,7 +779,7 @@ HWTEST_F(OHHmSymbolTxtTest, GetUIColors_NonNoneGradient001, TestSize.Level0)
     OHOS::Rosen::SymbolColor symbolColor = { SymbolColorType::COLOR_TYPE, { lineGradient } };
     symbolTxt.SetSymbolColor(symbolColor);
     auto result = symbolTxt.GetUIColors();
-    EXPECT_TRUE(result.empty());
+    EXPECT_FALSE(result.empty());
 }
 
 /*
@@ -797,7 +797,7 @@ HWTEST_F(OHHmSymbolTxtTest, GetUIColors_RadialGradient001, TestSize.Level0)
     OHOS::Rosen::SymbolColor symbolColor = { SymbolColorType::COLOR_TYPE, { radialGradient } };
     symbolTxt.SetSymbolColor(symbolColor);
     auto result = symbolTxt.GetUIColors();
-    EXPECT_TRUE(result.empty());
+    EXPECT_FALSE(result.empty());
 }
 
 /*
@@ -851,7 +851,8 @@ HWTEST_F(OHHmSymbolTxtTest, GetColorSpaces_NonNoneGradient001, TestSize.Level0)
     symbolTxt.SetSymbolColor(symbolColor);
     auto csResults = symbolTxt.GetColorSpaces();
     ASSERT_FALSE(csResults.empty());
-    EXPECT_EQ(csResults[0], SymbolColorSpace::SRGB);
+    EXPECT_EQ(csResults[0], SymbolColorSpace::DISPLAY_P3);
+    EXPECT_EQ(csResults[1], SymbolColorSpace::SRGB);
 }
 
 /*

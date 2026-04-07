@@ -278,7 +278,7 @@ void ParagraphBuilderImpl::CopyTextStylePaint(const TextStyle& txt, skia::textla
         paint.color.SetPlaceholder(static_cast<ColorPlaceholder>(txt.colorPlaceholder));
         paint.isSymbolGlyph = txt.isSymbolGlyph;
         paint.symbol.familyName_ = txt.fontFamilies.empty() ? "" : txt.fontFamilies[0];
-        paint.symbol.SetSymbolColor(txt.symbol.GetSymbolColor()); // UIColor is stored in gradients
+        paint.symbol.SetSymbolColor(txt.symbol.GetSymbolColor());
         paint.symbol.SetRenderMode(txt.symbol.GetRenderMode());
         paint.symbol.SetSymbolEffect(txt.symbol.GetEffectStrategy());
         paint.symbol.SetAnimationMode(txt.symbol.GetAnimationMode());

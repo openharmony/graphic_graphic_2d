@@ -151,7 +151,7 @@ void CopyTextStyleSymbol(const TextStyle& style, SPText::TextStyle& textStyle)
     textStyle.symbol.SetCommonSubType(style.symbol.GetCommonSubType());
     textStyle.symbol.SetSymbolUid(style.symbol.GetSymbolUid());
     textStyle.symbol.SetSymbolBitmap(style.symbol.GetSymbolBitmap());
-    textStyle.symbol.SetSymbolColor(style.symbol.GetSymbolColor()); // UIColor is stored in gradients
+    textStyle.symbol.SetSymbolColor(style.symbol.GetSymbolColor());
     textStyle.symbol.SetSymbolShadow(style.symbol.GetSymbolShadow());
     textStyle.symbol.SetFirstActive(style.symbol.GetFirstActive());
     for (auto [tag, value] : style.symbol.GetVisualMap()) {
@@ -240,7 +240,7 @@ SPText::TextStyle Convert(const TextStyle& style)
 
 void CopyTextStyleSymbol(const SPText::TextStyle& style, TextStyle& textStyle)
 {
-    textStyle.symbol.SetSymbolColor(style.symbol.GetSymbolColor()); // UIColor is stored in gradients
+    textStyle.symbol.SetSymbolColor(style.symbol.GetSymbolColor());
     textStyle.symbol.SetRenderMode(style.symbol.GetRenderMode());
     textStyle.symbol.SetSymbolEffect(style.symbol.GetEffectStrategy());
     textStyle.symbol.SetAnimationMode(style.symbol.GetAnimationMode());

@@ -35,10 +35,10 @@ enum class CMSTransferFuncType {
 };
 
 enum class CMSMatrixType {
-    SRGB, // srgb
+    SRGB,
     ADOBE_RGB,
-    DCIP3, // p3
-    REC2020, // 2020
+    DCIP3,
+    REC2020,
     XYZ,
 };
 
@@ -82,7 +82,7 @@ public:
      * @param matrix  A row-major 3x3 transformation type to XYZ
      * @return        A shared pointer to ColorSpace that its type is RGB.
      */
-    static std::shared_ptr<ColorSpace> CreateRGB(const CMSTransferFuncType& func, const CMSMatrixType& matrix); //
+    static std::shared_ptr<ColorSpace> CreateRGB(const CMSTransferFuncType& func, const CMSMatrixType& matrix);
     static std::shared_ptr<ColorSpace> CreateCustomRGB(const CMSTransferFunction& func, const CMSMatrix3x3& matrix);
 
     ColorSpace() noexcept;

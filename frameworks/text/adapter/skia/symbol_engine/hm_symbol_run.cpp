@@ -91,9 +91,8 @@ RSSymbolLayers HMSymbolRun::GetSymbolLayers(uint16_t glyphId, const HMSymbolTxt&
 void HMSymbolRun::SetRenderColor(const RSSymbolRenderingStrategy& renderMode, RSSymbolLayers& symbolInfo)
 {
     std::vector<std::shared_ptr<SymbolGradient>> gradients;
-    if (!symbolTxt_.GetUIColors().empty()){
-        // symbolTxt_.GetUIColors
-        SetRenderUIColor(renderMode, symbolInfo, gradients); 
+    if (!symbolTxt_.GetUIColors().empty()) {
+        SetRenderUIColor(renderMode, symbolInfo, gradients);
     } else {
         SetRenderRSColor(renderMode, symbolInfo, gradients);
     }
@@ -116,20 +115,20 @@ auto HMSymbolRun::GetUiColorByRenderMode(const RSSymbolRenderingStrategy& render
                 effectiveColorSpaces.push_back(colorSpaces.empty() ? SymbolColorSpace::SRGB : colorSpaces[0]);
             }
             break;
-        // MULTIPLE_OPACITY: Supports rgb replace and alphia overlay setting by the first uiColor
+        // MULTIPLE_OPACITY: Supports rgb replace and alpha overlay setting by the first uiColor
         case RSSymbolRenderingStrategy::MULTIPLE_OPACITY:
             for (size_t i = 0; i < renderGroups.size(); ++i) {
                 float alpha = renderGroups[i].color.a * uiColorList[0].GetAlpha();
-                // the 0 indicates the the first color is used. Alpha: 0.0: min, 1.0: max
+                // the 0 indicates the first color is used. Alpha: 0.0: min, 1.0: max
                 auto uiColor = Drawing::UIColor(uiColorList[0].GetRed(), uiColorList[0].GetGreen(),
                     uiColorList[0].GetBlue(), std::clamp(alpha, 0.0f, 1.0f));
-                // the 0 indicates the the first color is used
+                // the 0 indicates the first color is used
                 uiColor.SetHeadroom(uiColorList[0].GetHeadroom());
                 effectiveUIColors.push_back(uiColor);
                 effectiveColorSpaces.push_back(colorSpaces.empty() ? SymbolColorSpace::SRGB : colorSpaces[0]);
             }
             break;
-        // MULTIPLE_COLOR: Supports mutiple uiColor setting
+        // MULTIPLE_COLOR: Supports multiple uiColor setting
         case RSSymbolRenderingStrategy::MULTIPLE_COLOR:
             for (size_t i = 0; i < renderGroups.size(); ++i) {
                 if (i < uiColorList.size()) {
@@ -138,14 +137,18 @@ auto HMSymbolRun::GetUiColorByRenderMode(const RSSymbolRenderingStrategy& render
                         SymbolColorSpace::SRGB);
                 } else {
                     // Use default symbol color
-                    auto uiColor = Drawing::UIColor(renderGroups[i].color.r, renderGroups[i].color.g,
-                        renderGroups[i].color.b, renderGroups[i].color.a);
+                    constexpr static uint8_t RGB_MAX = 255;
+                    float uiRed = static_cast<float>(renderGroups[i].color.r) / RGB_MAX;
+                    float uiGreen = static_cast<float>(renderGroups[i].color.g) / RGB_MAX;
+                    float uiBlue = static_cast<float>(renderGroups[i].color.b) / RGB_MAX;
+                    auto uiColor = Drawing::UIColor(uiRed, uiGreen, uiBlue, renderGroups[i].color.a);
                     effectiveUIColors.push_back(uiColor);
                     effectiveColorSpaces.push_back(SymbolColorSpace::SRGB);
                 }
             }
             break;
         default:
+            TEXT_LOGW_LIMIT3_MIN("Unknown renderMode %{public}d", static_cast<int>(renderMode));
             break;
     }
     return result;
@@ -199,8 +202,7 @@ void HMSymbolRun::SetGradientColor(const RSSymbolRenderingStrategy& renderMode, 
     }
     std::vector<std::shared_ptr<SymbolGradient>> gradients;
     if (renderMode == RSSymbolRenderingStrategy::SINGLE) {
-        auto gradient = symbolColor.gradients[0];
-        gradients.push_back(gradient);
+        gradients.push_back(symbolColor.gradients[0]);
         gradients_ = gradients;
         return;
     }

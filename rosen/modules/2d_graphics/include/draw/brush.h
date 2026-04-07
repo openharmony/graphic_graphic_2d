@@ -78,7 +78,7 @@ public:
      *
      * @param color UIColor object to set
      */
-    void SetUIColor(const UIColor& color, std::shared_ptr<ColorSpace> s); // NOTES
+    void SetUIColor(const UIColor& color, std::shared_ptr<ColorSpace> s);
 
     /**
      * @brief Sets color used when drawing solid fills. The color components range from 0 to 255.

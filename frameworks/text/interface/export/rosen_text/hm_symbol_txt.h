@@ -142,7 +142,6 @@ public:
     void SetRenderUIColor(const std::vector<Drawing::UIColor>& uiColors,
         const std::vector<SymbolColorSpace>& colorSpace);
 
-
 private:
     SymbolColor symbolColor_;
     Drawing::DrawingSymbolRenderingStrategy renderMode_ = Drawing::DrawingSymbolRenderingStrategy::SINGLE;
