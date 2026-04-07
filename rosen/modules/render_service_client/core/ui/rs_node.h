@@ -1657,13 +1657,6 @@ public:
     void SetUseUnion(bool useUnion);
 
     /**
-     * @brief Sets the flag to indicate the center of gravity pull SDF Union.
-     *
-     * @param isGravityPullModeCenter Indicates whether the node is center of gravity pull.
-     */
-    void SetGravityPullCenterFlag(bool isGravityPullModeCenter);
-
-    /**
      * @brief Sets the SDF Shape.
      *
      * @param shape SDF Shape (SDF Union OP Shape, SDF Smooth Union OP Shape, SDF RRect Shape)
