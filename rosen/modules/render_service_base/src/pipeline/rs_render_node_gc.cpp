@@ -492,7 +492,7 @@ void RSRenderNodeGC::ReleaseNodeMemNotOnTree()
             // VSync arrival or limit reached, break release early
             if (isEnable_.load() == false || cnt > NODE_MEM_RELEASE_LIMIT) {
                 RS_TRACE_NAME_FMT("ReleaseNodeMemNotOnTree break: cnt=%" PRIu32 ", isEnable=%s",
-                    cnt, isEnable_.load() ? "true" : "false");
+                    cnt, isEnable_.load() ? "true" : "false");//
                 return;
             }
             auto node = nodeIt->second.lock();
