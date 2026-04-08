@@ -828,8 +828,10 @@ void RSPropertiesPainter::GetForegroundNGFilterDirtyRect(RectI& dirtyForegroundE
         matrix.MapRect(drawingRect, drawingRect);
         auto filter = std::static_pointer_cast<RSNGRenderParticleAblationFilter>(foregroundNGFilter);
         auto scale = filter->Getter<ParticleAblationScaleSizeRenderTag>()->Get();
-        dirtyForegroundEffect.left_ = std::floor(drawingRect.GetLeft());
-        dirtyForegroundEffect.top_ = std::floor(drawingRect.GetTop());
+        auto offsetx = (scale.x_ - drawingRect.GetWidth()) / 2; //2 : half width
+        auto offsety = (scale.y_ - drawingRect.GetHeight()) / 2; //2 : half height
+        dirtyForegroundEffect.left_ = std::floor(drawingRect.GetLeft()) - offsetx;
+        dirtyForegroundEffect.top_ = std::floor(drawingRect.GetTop()) - offsety;
         dirtyForegroundEffect.width_ = scale.x_;
         dirtyForegroundEffect.height_ = scale.y_;
     }
