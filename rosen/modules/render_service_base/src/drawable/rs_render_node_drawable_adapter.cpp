@@ -25,6 +25,7 @@
 #include "drawable/rs_color_picker_drawable.h"
 #include "drawable/rs_misc_drawable.h"
 #include "drawable/rs_render_node_shadow_drawable.h"
+#include "feature/uifirst/rs_drawable_updater.h"
 #include "params/rs_canvas_drawing_render_params.h"
 #include "params/rs_effect_render_params.h"
 #include "params/rs_logical_display_render_params.h"
@@ -394,6 +395,8 @@ void RSRenderNodeDrawableAdapter::DrawAllUifirst(
     if (uifirstDrawCmdList_.empty()) {
         return;
     }
+
+    UpdateSaveRestoreDrawable(uifirstDrawCmdList_);
 
     const auto& drawCmdList = uifirstDrawCmdList_;
 
