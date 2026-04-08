@@ -18,6 +18,7 @@
 #include "drawable/rs_property_drawable_utils.h"
 #include "draw/surface.h"
 #include "effect/rs_render_filter_base.h"
+#include "effect/rs_render_shader_base.h"
 #include "effect/rs_render_shape_base.h"
 #include "ge_visual_effect_container.h"
 #include "property/rs_properties_painter.h"
@@ -1262,6 +1263,134 @@ HWTEST_F(RSPropertyDrawableUtilsTest, ApplySDFShapeToFilter009, testing::ext::Te
 }
 
 /**
+ * @tc.name: ApplySDFShapeToEffect001
+ * @tc.desc: test ApplySDFShapeToEffect with null shader
+ * @tc.type: FUNC
+ * @tc.require: issue23101
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, ApplySDFShapeToEffect001, testing::ext::TestSize.Level1)
+{
+    RSProperties properties;
+    NodeId nodeId = 1;
+    std::shared_ptr<RSNGRenderShaderBase> shader = nullptr;
+    RSPropertyDrawableUtils::ApplySDFShapeToEffect(properties, shader, nodeId);
+    EXPECT_EQ(shader, nullptr);
+}
+/**
+ * @tc.name: ApplySDFShapeToEffect002
+ * @tc.desc: test ApplySDFShapeToEffect with non SDF_EDGE_LIGHT_EFFECT shader
+ * @tc.type: FUNC
+ * @tc.require: issue23101
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, ApplySDFShapeToEffect002, testing::ext::TestSize.Level1)
+{
+    RSProperties properties;
+    NodeId nodeId = 1;
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::BLUR);
+    RSPropertyDrawableUtils::ApplySDFShapeToEffect(properties, shader, nodeId);
+    ASSERT_NE(shader, nullptr);
+    EXPECT_NE(shader->GetType(), RSNGEffectType::SDF_EDGE_LIGHT_EFFECT);
+}
+/**
+ * @tc.name: ApplySDFShapeToEffect003
+ * @tc.desc: test ApplySDFShapeToEffect with sdfShape
+ * @tc.type: FUNC
+ * @tc.require: issue23101
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, ApplySDFShapeToEffect003, testing::ext::TestSize.Level1)
+{
+    RSProperties properties;
+    auto sdfRRectShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    properties.SetSDFShape(sdfRRectShape);
+    NodeId nodeId = 1;
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::SDF_EDGE_LIGHT_EFFECT);
+    const auto& effectShader = std::static_pointer_cast<RSNGRenderSDFEdgeLightEffect>(shader);
+    EXPECT_EQ(effectShader->Getter<SDFEdgeLightEffectSDFShapeRenderTag>()->stagingValue_, nullptr);
+    RSPropertyDrawableUtils::ApplySDFShapeToEffect(properties, shader, nodeId);
+    ASSERT_NE(shader, nullptr);
+    EXPECT_EQ(shader->GetType(), RSNGEffectType::SDF_EDGE_LIGHT_EFFECT);
+    const auto& shaderFromResult = std::static_pointer_cast<RSNGRenderSDFEdgeLightEffect>(shader);
+    EXPECT_NE(shaderFromResult->Getter<SDFEdgeLightEffectSDFShapeRenderTag>()->stagingValue_, nullptr);
+}
+/**
+ * @tc.name: ApplySDFShapeToEffect004
+ * @tc.desc: test ApplySDFShapeToEffect without sdfShape but with clipRRect
+ * @tc.type: FUNC
+ * @tc.require: issue23101
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, ApplySDFShapeToEffect004, testing::ext::TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_EQ(properties.GetSDFShape(), nullptr);
+    properties.SetClipRRect(RRect(RectT<float>(0.0f, 0.0f, 100.0f, 100.0f), 10.0f, 10.0f));
+    NodeId nodeId = 1;
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::SDF_EDGE_LIGHT_EFFECT);
+    const auto& effectShader = std::static_pointer_cast<RSNGRenderSDFEdgeLightEffect>(shader);
+    EXPECT_EQ(effectShader->Getter<SDFEdgeLightEffectSDFShapeRenderTag>()->stagingValue_, nullptr);
+    RSPropertyDrawableUtils::ApplySDFShapeToEffect(properties, shader, nodeId);
+    ASSERT_NE(shader, nullptr);
+    EXPECT_EQ(shader->GetType(), RSNGEffectType::SDF_EDGE_LIGHT_EFFECT);
+    const auto& shaderFromResult = std::static_pointer_cast<RSNGRenderSDFEdgeLightEffect>(shader);
+    const auto& rrectShape = std::static_pointer_cast<RSNGRenderSDFRRectShape>(
+        shaderFromResult->Getter<SDFEdgeLightEffectSDFShapeRenderTag>()->stagingValue_);
+    auto rrectFromShape = rrectShape->Getter<SDFRRectShapeRRectRenderTag>()->stagingValue_;
+    EXPECT_TRUE(rrectFromShape.IsNearEqual(RRect(RectT<float>(0.0f, 0.0f, 100.0f, 100.0f), 10.0f, 10.0f)));
+}
+/**
+ * @tc.name: ApplySDFShapeToEffect005
+ * @tc.desc: test ApplySDFShapeToEffect with cornerRadius
+ * @tc.type: FUNC
+ * @tc.require: issue23101
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, ApplySDFShapeToEffect005, testing::ext::TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_EQ(properties.GetSDFShape(), nullptr);
+    EXPECT_EQ(properties.GetClipRRect(), RRect());
+    properties.SetCornerRadius(10.0f);
+    NodeId nodeId = 1;
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::SDF_EDGE_LIGHT_EFFECT);
+    const auto& effectShader = std::static_pointer_cast<RSNGRenderSDFEdgeLightEffect>(shader);
+    EXPECT_EQ(effectShader->Getter<SDFEdgeLightEffectSDFShapeRenderTag>()->stagingValue_, nullptr);
+    RSPropertyDrawableUtils::ApplySDFShapeToEffect(properties, shader, nodeId);
+    ASSERT_NE(shader, nullptr);
+    EXPECT_EQ(shader->GetType(), RSNGEffectType::SDF_EDGE_LIGHT_EFFECT);
+    const auto& shaderFromResult = std::static_pointer_cast<RSNGRenderSDFEdgeLightEffect>(shader);
+    const auto& rrectShape = std::static_pointer_cast<RSNGRenderSDFRRectShape>(
+        shaderFromResult->Getter<SDFEdgeLightEffectSDFShapeRenderTag>()->stagingValue_);
+    auto rrectFromShape = rrectShape->Getter<SDFRRectShapeRRectRenderTag>()->stagingValue_;
+    EXPECT_TRUE(rrectFromShape.IsNearEqual(RRect(properties.GetRRect().rect_, properties.GetRRect().radius_[0].x_,
+        properties.GetRRect().radius_[0].y_)));
+}
+/**
+ * @tc.name: ApplySDFShapeToEffect006
+ * @tc.desc: test ApplySDFShapeToEffect with boundsRect
+ * @tc.type: FUNC
+ * @tc.require: issue23101
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, ApplySDFShapeToEffect006, testing::ext::TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_EQ(properties.GetSDFShape(), nullptr);
+    EXPECT_EQ(properties.GetClipRRect(), RRect());
+    EXPECT_EQ(properties.GetCornerRadius(), Vector4f(0.f, 0.f, 0.f, 0.f));
+    properties.SetBounds(Vector4f(0.0f, 0.0f, 100.0f, 100.0f));
+    properties.SetFrame(Vector4f(0.0f, 0.0f, 100.0f, 100.0f));
+    NodeId nodeId = 1;
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::SDF_EDGE_LIGHT_EFFECT);
+    const auto& effectShader = std::static_pointer_cast<RSNGRenderSDFEdgeLightEffect>(shader);
+    EXPECT_EQ(effectShader->Getter<SDFEdgeLightEffectSDFShapeRenderTag>()->stagingValue_, nullptr);
+    RSPropertyDrawableUtils::ApplySDFShapeToEffect(properties, shader, nodeId);
+    ASSERT_NE(shader, nullptr);
+    EXPECT_EQ(shader->GetType(), RSNGEffectType::SDF_EDGE_LIGHT_EFFECT);
+    const auto& shaderFromResult = std::static_pointer_cast<RSNGRenderSDFEdgeLightEffect>(shader);
+    const auto& rrectShape = std::static_pointer_cast<RSNGRenderSDFRRectShape>(
+        shaderFromResult->Getter<SDFEdgeLightEffectSDFShapeRenderTag>()->stagingValue_);
+    auto rrectFromShape = rrectShape->Getter<SDFRRectShapeRRectRenderTag>()->stagingValue_;
+    EXPECT_TRUE(rrectFromShape.IsNearEqual(RRect(RectT<float>(0.0f, 0.0f, 100.0f, 100.0f), 0.0f, 0.0f)));
+}
+
+/**
  * @tc.name: ApplyAdaptiveFrostedGlassParamsTest001
  * @tc.desc: ApplyAdaptiveFrostedGlassParams null and type checks
  * @tc.type: FUNC
@@ -1597,6 +1726,26 @@ HWTEST_F(RSPropertyDrawableUtilsTest, PickColorAndGpuScaleImageTest001, testing:
 
     utils->PickColor(gpuContext, image, color);
     utils->GpuScaleImage(gpuContext, image);
+}
+
+/**
+ * @tc.name: MakeHdrDarkenBlenderTest001
+ * @tc.desc: MakeHdrDarkenBlender Test
+ * @tc.type: FUNC
+ * @tc.require: issueICLU4I
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, MakeHdrDarkenBlenderTest001, testing::ext::TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtils = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(rsPropertyDrawableUtils, nullptr);
+    RSHdrDarkenBlenderPara hdrDarkenBlenderParams1;
+    EXPECT_NE(rsPropertyDrawableUtils->MakeHdrDarkenBlender(hdrDarkenBlenderParams1), nullptr);
+
+    RSHdrDarkenBlenderPara hdrDarkenBlenderParams2 = {1.0, {0.2, 0.3, 0.5}};
+    EXPECT_NE(rsPropertyDrawableUtils->MakeHdrDarkenBlender(hdrDarkenBlenderParams2), nullptr);
+
+    RSHdrDarkenBlenderPara hdrDarkenBlenderParams3 = {0.0};
+    EXPECT_EQ(rsPropertyDrawableUtils->MakeHdrDarkenBlender(hdrDarkenBlenderParams3), nullptr);
 }
 
 } // namespace OHOS::Rosen

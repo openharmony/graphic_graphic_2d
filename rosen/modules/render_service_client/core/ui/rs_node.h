@@ -847,6 +847,13 @@ public:
     void SetAlphaOffscreen(bool alphaOffscreen);
 
     /**
+     * @brief Mark the node as a layer node for rendering pipeline optimization
+     *
+     * @param isLayer The layer mark value to set (true for layer, false for non-Layer).
+     */
+    void MarkLayer(bool isLayer);
+
+    /**
      * @brief Sets the foreground color of environment.
      *
      * @param colorValue The color value to set.
@@ -1650,6 +1657,13 @@ public:
     void SetUseUnion(bool useUnion);
 
     /**
+     * @brief Sets the flag to indicate the center of gravity pull SDF Union.
+     *
+     * @param isGravityPullModeCenter Indicates whether the node is center of gravity pull.
+     */
+    void SetGravityPullCenterFlag(bool isGravityPullModeCenter);
+
+    /**
      * @brief Sets the SDF Shape.
      *
      * @param shape SDF Shape (SDF Union OP Shape, SDF Smooth Union OP Shape, SDF RRect Shape)
@@ -2158,6 +2172,7 @@ private:
     void SetFgBlurDisableSystemAdaptation(bool disableSystemAdaptation);
 
     void SetShadowBlenderParams(const RSShadowBlenderPara& params);
+    void SetHdrDarkenBlenderParams(const RSHdrDarkenBlenderPara& params);
 
     void NotifyPageNodeChanged() const;
     bool AnimationCallback(AnimationId animationId, AnimationCallbackEvent event);
@@ -2219,6 +2234,7 @@ private:
     bool isNodeSingleFrameComposer_ = false;
 
     bool isSuggestOpincNode_ = false;
+    bool isLayer_ = false;
     bool isLayerPartRender_ = false;
     bool isDrawNode_ = false;
     // Used to identify whether the node has real drawing property
@@ -2228,7 +2244,7 @@ private:
     bool isUifirstNode_ = true;
     bool isForceFlag_ = false;
     bool isUifirstEnable_ = false;
-    bool isP3Color_ = false;
+    bool notSRGBColor_ = false;
     bool isSkipCheckInMultiInstance_ = true;
     RSUIFirstSwitch uiFirstSwitch_ = RSUIFirstSwitch::NONE;
     std::shared_ptr<RSUIContext> rsUIContext_;

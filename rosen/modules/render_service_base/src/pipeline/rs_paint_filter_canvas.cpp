@@ -1547,6 +1547,7 @@ void RSPaintFilterCanvas::CopyHDRConfiguration(const RSPaintFilterCanvas& other)
     isHdrOn_ = other.isHdrOn_;
     hdrProperties_ = other.hdrProperties_;
     isReplacable_ = other.isReplacable_;
+    multipleScreen_ = other.multipleScreen_;
 }
 
 bool RSPaintFilterCanvas::CopyCachedEffectData(std::shared_ptr<CachedEffectData>& dstEffectData,
@@ -1963,6 +1964,16 @@ bool RSPaintFilterCanvas::GetIsDrawingCache() const
 void RSPaintFilterCanvas::SetIsDrawingCache(bool isDrawingCache)
 {
     isDrawingCache_ = isDrawingCache;
+}
+
+bool RSPaintFilterCanvas::GetIsDrawingOffscreenMirror() const
+{
+    return isDrawingOffscreenMirror_;
+}
+
+void RSPaintFilterCanvas::SetIsDrawingOffscreenMirror(bool isDrawingOffscreenMirror)
+{
+    isDrawingOffscreenMirror_ = isDrawingOffscreenMirror;
 }
 
 RSPaintFilterCanvas::CacheBehindWindowData::CacheBehindWindowData(

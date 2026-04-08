@@ -77,12 +77,10 @@ bool ExecColorPick(const std::weak_ptr<IColorPickerManager>& weakManager, ColorP
     }
 
     // Wait for GPU to finish writing to the texture before accessing it
-    if (info.fenceFd_ != -1) {
-        sptr<SyncFence> fence = new SyncFence(info.fenceFd_);
-        if (!WaitFence(fence)) {
-            RS_LOGE("ColorPicker: fence wait failed");
-            return false;
-        }
+    sptr<SyncFence> fence = new SyncFence(info.fenceFd_);
+    if (!WaitFence(fence)) {
+        RS_LOGE("ColorPicker: fence wait failed");
+        return false;
     }
 
     auto image = std::make_shared<Drawing::Image>();
@@ -159,6 +157,11 @@ void ScheduleColorPickWithSemaphore(Drawing::Surface& surface, std::weak_ptr<ICo
     gpuCtx.Submit();
     // Get fence fd from semaphore right after flush
     NativeBufferUtils::GetFenceFdFromSemaphore(semaphore, info->fenceFd_);
+    if (info->fenceFd_ == -1) {
+        RS_LOGE("ScheduleColorPickWithSemaphore: failed to get fence fd from semaphore");
+        DestroySemaphoreInfo::DestroySemaphore(destroyInfo);
+        return;
+    }
 
     // Post task directly to ColorPickerThread with fence for GPU synchronization
     auto infoPtr = info.release();
@@ -166,7 +169,7 @@ void ScheduleColorPickWithSemaphore(Drawing::Surface& surface, std::weak_ptr<ICo
         ExecColorPick(infoPtr->manager_, *infoPtr);
         DestroySemaphoreInfo::DestroySemaphore(destroyInfo); // semaphore inits with ref count = 2
         delete infoPtr;
-    });
+        }, false);
 #else
     return;
 #endif

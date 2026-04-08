@@ -344,6 +344,12 @@ bool RSBeginBlenderDrawable::OnUpdate(const RSRenderNode& node)
         }
         stagingBlender_ = RSPropertyDrawableUtils::MakeShadowBlender(properties.GetShadowBlenderParams().value());
         stagingIsDangerous_ = false;
+    } else if (properties.IsHdrDarkenBlenderValid()) {
+        if (Rosen::RSSystemProperties::GetDebugTraceLevel() >= TRACE_LEVEL_TWO) {
+            stagingPropertyDescription_ = properties.GetHdrDarkenBlenderDescription();
+        }
+        stagingBlender_ = RSPropertyDrawableUtils::MakeHdrDarkenBlender(properties.GetHdrDarkenBlenderParams().value());
+        stagingIsDangerous_ = false;
     } else {
         return false;
     }

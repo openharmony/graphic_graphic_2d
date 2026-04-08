@@ -22,6 +22,7 @@
 #include "dirty_region/rs_gpu_dirty_collector.h"
 #include "drawable/rs_color_picker_drawable.h"
 #include "drawable/rs_property_drawable_foreground.h"
+#include "effect/rs_render_shape_base.h"
 #include "metadata_helper.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "params/rs_render_params.h"
@@ -3633,6 +3634,247 @@ HWTEST_F(RSRenderNodeTest2, DirtySlotsPartialSync001, TestSize.Level1)
     node->dirtySlots_.insert(RSDrawableSlot::MATERIAL_FILTER);
     node->DirtySlotsPartialSync();
     EXPECT_EQ(node->dirtySlots_.size(), 2);
+}
+
+HWTEST_F(RSRenderNodeTest2, UpdateFilterRectInfo_WithSDFShape_CallsCalcRect, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_UNION_OP_SHAPE);
+    ASSERT_NE(sdfShape, nullptr);
+
+    node.GetMutableRenderProperties().SetSDFShape(sdfShape);
+
+    node.UpdateFilterRectInfo();
+
+    const RectF& transformDrawRect = sdfShape->GetTransformDrawRect();
+    RectF boundsRect = node.GetRenderProperties().GetBoundsRect();
+
+    EXPECT_FLOAT_EQ(transformDrawRect.GetLeft(), boundsRect.GetLeft());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetTop(), boundsRect.GetTop());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetWidth(), boundsRect.GetWidth());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetHeight(), boundsRect.GetHeight());
+}
+
+HWTEST_F(RSRenderNodeTest2, UpdateFilterRectInfo_WithSDFRRectShape_CallsCalcRect, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    ASSERT_NE(sdfShape, nullptr);
+
+    node.GetMutableRenderProperties().SetSDFShape(sdfShape);
+
+    node.UpdateFilterRectInfo();
+
+    const RectF& transformDrawRect = sdfShape->GetTransformDrawRect();
+    RectF boundsRect = node.GetRenderProperties().GetBoundsRect();
+
+    EXPECT_FLOAT_EQ(transformDrawRect.GetLeft(), boundsRect.GetLeft());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetTop(), boundsRect.GetTop());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetWidth(), boundsRect.GetWidth());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetHeight(), boundsRect.GetHeight());
+}
+
+HWTEST_F(RSRenderNodeTest2, UpdateFilterRectInfo_WithSDFTriangleShape_CallsCalcRect, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_TRIANGLE_SHAPE);
+    ASSERT_NE(sdfShape, nullptr);
+
+    node.GetMutableRenderProperties().SetSDFShape(sdfShape);
+
+    node.UpdateFilterRectInfo();
+
+    const RectF& transformDrawRect = sdfShape->GetTransformDrawRect();
+    RectF boundsRect = node.GetRenderProperties().GetBoundsRect();
+
+    EXPECT_FLOAT_EQ(transformDrawRect.GetLeft(), boundsRect.GetLeft());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetTop(), boundsRect.GetTop());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetWidth(), boundsRect.GetWidth());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetHeight(), boundsRect.GetHeight());
+}
+
+HWTEST_F(RSRenderNodeTest2, UpdateFilterRectInfo_WithSDFTransformShape_CallsCalcRect, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_TRANSFORM_SHAPE);
+    ASSERT_NE(sdfShape, nullptr);
+
+    node.GetMutableRenderProperties().SetSDFShape(sdfShape);
+
+    node.UpdateFilterRectInfo();
+
+    const RectF& transformDrawRect = sdfShape->GetTransformDrawRect();
+    RectF boundsRect = node.GetRenderProperties().GetBoundsRect();
+
+    EXPECT_FLOAT_EQ(transformDrawRect.GetLeft(), boundsRect.GetLeft());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetTop(), boundsRect.GetTop());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetWidth(), boundsRect.GetWidth());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetHeight(), boundsRect.GetHeight());
+}
+
+HWTEST_F(RSRenderNodeTest2, UpdateFilterRectInfo_WithSDFDistortOpShape_CallsCalcRect, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_DISTORT_OP_SHAPE);
+    ASSERT_NE(sdfShape, nullptr);
+
+    node.GetMutableRenderProperties().SetSDFShape(sdfShape);
+
+    node.UpdateFilterRectInfo();
+
+    const RectF& transformDrawRect = sdfShape->GetTransformDrawRect();
+    RectF boundsRect = node.GetRenderProperties().GetBoundsRect();
+
+    EXPECT_FLOAT_EQ(transformDrawRect.GetLeft(), boundsRect.GetLeft());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetTop(), boundsRect.GetTop());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetWidth(), boundsRect.GetWidth());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetHeight(), boundsRect.GetHeight());
+}
+
+HWTEST_F(RSRenderNodeTest2, UpdateFilterRectInfo_WithSDFEmptyShape_CallsCalcRect, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_EMPTY_SHAPE);
+    ASSERT_NE(sdfShape, nullptr);
+
+    node.GetMutableRenderProperties().SetSDFShape(sdfShape);
+
+    node.UpdateFilterRectInfo();
+
+    const RectF& transformDrawRect = sdfShape->GetTransformDrawRect();
+    RectF bounds = node.GetRenderProperties().GetBoundsRect();
+
+    EXPECT_FLOAT_EQ(transformDrawRect.GetLeft(), bounds.GetLeft());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetTop(), bounds.GetTop());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetWidth(), bounds.GetWidth());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetHeight(), bounds.GetHeight());
+}
+
+HWTEST_F(RSRenderNodeTest2, UpdateFilterRectInfo_WithSDFSmoothUnionOpShape_CallsCalcRect, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_SMOOTH_UNION_OP_SHAPE);
+    ASSERT_NE(sdfShape, nullptr);
+
+    node.GetMutableRenderProperties().SetSDFShape(sdfShape);
+
+    node.UpdateFilterRectInfo();
+
+    const RectF& transformDrawRect = sdfShape->GetTransformDrawRect();
+    RectF boundsRect = node.GetRenderProperties().GetBoundsRect();
+
+    EXPECT_FLOAT_EQ(transformDrawRect.GetLeft(), boundsRect.GetLeft());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetTop(), boundsRect.GetTop());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetWidth(), boundsRect.GetWidth());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetHeight(), boundsRect.GetHeight());
+}
+
+HWTEST_F(RSRenderNodeTest2, UpdateFilterRectInfo_WithSDFPixelmapShape_CallsCalcRect, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_PIXELMAP_SHAPE);
+    ASSERT_NE(sdfShape, nullptr);
+
+    node.GetMutableRenderProperties().SetSDFShape(sdfShape);
+
+    node.UpdateFilterRectInfo();
+
+    const RectF& transformDrawRect = sdfShape->GetTransformDrawRect();
+    RectF boundsRect = node.GetRenderProperties().GetBoundsRect();
+
+    EXPECT_FLOAT_EQ(transformDrawRect.GetLeft(), boundsRect.GetLeft());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetTop(), boundsRect.GetTop());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetWidth(), boundsRect.GetWidth());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetHeight(), boundsRect.GetHeight());
+}
+
+/**
+ * @tc.name: PrepareColorPicker001
+ * @tc.desc: Test PrepareColorPicker overrides darkMode when lastEquivalentDarkMode is LIGHT
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest2, PrepareColorPicker001, TestSize.Level1)
+{
+    RSRenderNode node(1);
+
+    // Create a ColorPicker drawable
+    auto colorPickerDrawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, 0);
+    ASSERT_NE(colorPickerDrawable, nullptr);
+
+    // Set it at COLOR_PICKER slot
+    node.GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = colorPickerDrawable;
+
+    // Set lastEquivalentDarkMode to LIGHT
+    node.GetMutableRenderProperties().SetLastEquivalentDarkMode(EquivalentDarkMode::LIGHT);
+
+    // Set state to COLOR_PICK_THIS_FRAME to trigger color picking
+    colorPickerDrawable->stagingState_ = DrawableV2::ColorPickerState::COLOR_PICK_THIS_FRAME;
+
+    // Call PrepareColorPicker with darkMode = true, should be overridden to false
+    bool needSync = node.PrepareColorPicker(true);
+    EXPECT_TRUE(needSync);
+}
+
+/**
+ * @tc.name: PrepareColorPicker002
+ * @tc.desc: Test PrepareColorPicker keeps darkMode when lastEquivalentDarkMode is INVALID
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest2, PrepareColorPicker002, TestSize.Level1)
+{
+    RSRenderNode node(1);
+
+    // Create a ColorPicker drawable
+    auto colorPickerDrawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, 0);
+    ASSERT_NE(colorPickerDrawable, nullptr);
+
+    // Set it at COLOR_PICKER slot
+    node.GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = colorPickerDrawable;
+
+    // Set lastEquivalentDarkMode to INVALID
+    node.GetMutableRenderProperties().SetLastEquivalentDarkMode(EquivalentDarkMode::INVALID);
+
+    // Set state to COLOR_PICK_THIS_FRAME to trigger color picking
+    colorPickerDrawable->stagingState_ = DrawableV2::ColorPickerState::COLOR_PICK_THIS_FRAME;
+
+    // Call PrepareColorPicker with darkMode = true, should not be overridden
+    bool needSync = node.PrepareColorPicker(true);
+    EXPECT_TRUE(needSync);
+}
+
+/**
+ * @tc.name: PrepareColorPicker003
+ * @tc.desc: Test PrepareColorPicker keeps darkMode when GetColorPicker returns nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest2, PrepareColorPicker003, TestSize.Level1)
+{
+    RSRenderNode node(1);
+
+    // Create a ColorPicker drawable
+    auto colorPickerDrawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, 0);
+    ASSERT_NE(colorPickerDrawable, nullptr);
+
+    // Set it at COLOR_PICKER slot
+    node.GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = colorPickerDrawable;
+
+    // Set state to COLOR_PICK_THIS_FRAME to trigger color picking
+    colorPickerDrawable->stagingState_ = DrawableV2::ColorPickerState::COLOR_PICK_THIS_FRAME;
+
+    // Call PrepareColorPicker with darkMode = true, should not be overridden
+    bool needSync = node.PrepareColorPicker(true);
+    EXPECT_TRUE(needSync);
 }
 } // namespace Rosen
 } // namespace OHOS

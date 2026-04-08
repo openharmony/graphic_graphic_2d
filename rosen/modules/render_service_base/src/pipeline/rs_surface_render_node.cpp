@@ -1168,7 +1168,6 @@ void RSSurfaceRenderNode::SetClonedNodeInfo(NodeId id, bool needOffscreen, bool 
     }
     clonedSurfaceNode->clonedSourceNodeNeedOffscreen_ = isRelated || needOffscreen;
     isCloneNode_ = (id != INVALID_NODEID);
-    clonedSurfaceNode->SetRelatedSourceNode(isRelated);
     SetRelated(isCloneNode_ && isRelated);
     clonedSourceNodeId_ = id;
     RS_LOGD("RSSurfaceRenderNode::SetClonedNodeInfo clonedNode[%{public}" PRIu64 "] needOffscreen: %{public}d"
@@ -2448,6 +2447,7 @@ void RSSurfaceRenderNode::OnSync()
             return;
         }
         surfaceParams->SetNeedSync(true);
+        surfaceParams->SetPartialSynced(IsUifirstSkipPartialSync());
     }
     RSRenderNode::OnSync();
 #endif
@@ -2499,6 +2499,16 @@ bool RSSurfaceRenderNode::CheckParticipateInOcclusion(bool isAnimationOcclusionS
         return false;
     }
     return true;
+}
+
+void RSSurfaceRenderNode::UpdateLayerPartRenderStatus(std::shared_ptr<RSDirtyRegionManager>& dirtyManager)
+{
+    if (dirtyManager == nullptr) {
+        return;
+    }
+    if (GetLastFrameUifirstFlag() != MultiThreadCacheType::NONE || GetSubThreadAssignable()) {
+        dirtyManager->SetHasUifirstChild(true);
+    }
 }
 
 void RSSurfaceRenderNode::RotateCorner(int rotationDegree, Vector4<int>& cornerRadius) const
@@ -4032,6 +4042,25 @@ void RSSurfaceRenderNode::CopyModifierValue(ModifierNG::RSPropertyType propertyT
     if (newModifier->HasProperty(propertyType) && oldModifier->HasProperty(propertyType)) {
         oldModifier->Setter(propertyType, newModifier->Getter<T>(propertyType));
     }
+}
+
+void RSSurfaceRenderNode::CountRelatedNode(bool isIncrement)
+{
+    relatedNodeNum_ += isIncrement ? 1 : -1;
+    SetRelatedSourceNode(relatedNodeNum_ > 0);
+    if (!IsRelatedSourceNode()) {
+        ClearRelatedSourceCache();
+    }
+}
+
+void RSSurfaceRenderNode::ClearRelatedSourceCache()
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        return;
+    }
+    surfaceParams->SetNeedClearRelatedCache(true);
+    AddToPendingSyncList();
 }
 } // namespace Rosen
 } // namespace OHOS

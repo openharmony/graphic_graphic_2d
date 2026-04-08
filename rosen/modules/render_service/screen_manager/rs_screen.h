@@ -46,7 +46,7 @@ struct VirtualScreenConfigs {
     std::unordered_set<uint64_t> whiteList = {};
 };
 
-class RSScreen {
+class RSScreen : public std::enable_shared_from_this<RSScreen> {
 public:
     explicit RSScreen(ScreenId id);
     explicit RSScreen(const VirtualScreenConfigs& configs);

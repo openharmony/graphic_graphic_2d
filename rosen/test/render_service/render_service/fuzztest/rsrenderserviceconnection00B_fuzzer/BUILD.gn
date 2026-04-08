@@ -20,6 +20,11 @@ module_output_path = "graphic_2d/graphic_2d"
 ##############################fuzztest##########################################
 ohos_fuzztest("RSRenderServiceConnection00BFuzzTest") {
   module_out_path = module_output_path
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = true
+  }
   fuzz_config_file = "$graphic_2d_root/rosen/test/render_service/render_service/fuzztest/rsrenderserviceconnection00B_fuzzer"
 
   include_dirs = [
@@ -31,6 +36,7 @@ ohos_fuzztest("RSRenderServiceConnection00BFuzzTest") {
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
     "$graphic_2d_root/rosen/modules/render_service",
     "$graphic_2d_root/rosen/modules/render_service/main",
+    "$graphic_2d_root/rosen/modules/render_service/main/render_server",
     "$graphic_2d_root/rosen/modules/render_service/core",
     "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg",
     "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param",

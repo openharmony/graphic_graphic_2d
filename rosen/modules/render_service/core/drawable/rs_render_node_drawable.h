@@ -34,6 +34,7 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 
 namespace OHOS::Rosen {
+class RSLayerCacheManager;
 class RSRenderNode;
 class RSRenderParams;
 class RSPaintFilterCanvas;
@@ -162,6 +163,8 @@ protected:
     void ClearCachedSurface();
 
     bool CheckIfNeedUpdateCache(RSRenderParams& params, int32_t& updateTimes);
+    bool BufferNeedUpdate(std::shared_ptr<Drawing::Surface>& cacheSurface, const RSRenderParams& params,
+        bool isNeedFP16) const;
     void UpdateCacheSurface(Drawing::Canvas& canvas, const RSRenderParams& params);
     void TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas& canvas, const RSRenderParams& params);
     bool UpdateCurRenderGroupCacheRootFilterState(const RSRenderParams& params);
@@ -221,6 +224,7 @@ private:
     void ClearDrawingCacheDataMap();
     void ClearDrawingCacheContiUpdateTimeMap();
     friend class RsSubThreadCache;
+    friend class OHOS::Rosen::RSLayerCacheManager;
     RSOpincDrawCache opincDrawCache_;
     std::unique_ptr<RSRenderGroupCacheDrawable> renderGroupCache_ = nullptr;
 };

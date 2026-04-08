@@ -1062,4 +1062,52 @@ HWTEST_F(RSRenderParamsTest, SwapRelatedRenderParamsTest, TestSize.Level1)
     ASSERT_EQ(paramsA.GetMatrix().Get(Drawing::Matrix::SCALE_X), 3.0f);
     ASSERT_EQ(paramsB.GetMatrix().Get(Drawing::Matrix::SCALE_X), 2.0f);
 }
+/**
+ * @tc.name: OnSync003
+ * @tc.desc: Test nodeColorSpace_ is synced in OnSync
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderParamsTest, OnSync003, TestSize.Level1)
+{
+    constexpr NodeId id = 1;
+    std::unique_ptr<RSRenderParams> target = std::make_unique<RSRenderParams>(id);
+    RSRenderParams params(id);
+    params.nodeColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    params.OnSync(target);
+    EXPECT_EQ(target->nodeColorSpace_, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+}
+
+/**
+ * @tc.name: SetNodeColorSpace001
+ * @tc.desc: Test SetNodeColorSpace sets value and triggers needSync
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderParamsTest, SetNodeColorSpace001, TestSize.Level1)
+{
+    constexpr NodeId id = 1;
+    RSRenderParams params(id);
+    EXPECT_EQ(params.GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    params.SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    EXPECT_EQ(params.GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    EXPECT_TRUE(params.needSync_);
+}
+
+/**
+ * @tc.name: SetNodeColorSpace002
+ * @tc.desc: Test SetNodeColorSpace does not set needSync when value is same
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderParamsTest, SetNodeColorSpace002, TestSize.Level1)
+{
+    constexpr NodeId id = 1;
+    RSRenderParams params(id);
+    params.needSync_ = false;
+    params.SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    EXPECT_EQ(params.GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    EXPECT_FALSE(params.needSync_);
+}
+
 } // namespace OHOS::Rosen

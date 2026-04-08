@@ -152,9 +152,10 @@ public:
     /**
      * @brief init VSyncReceiver instance.
      *
+     * @param needAddFd will add fd to looper while init.
      * @return Returns an error code.
      */
-    virtual VsyncError Init();
+    virtual VsyncError Init(bool needAddFd = true);
 
     /**
      * @brief request next vsync signal.
@@ -281,7 +282,7 @@ public:
      */
     virtual void SetTouchEvent(int32_t touchType);
 private:
-    void RegisterFileDescriptorListener(bool hasVsyncThread = false);
+    void RegisterFileDescriptorListener(bool hasVsyncThread = false, bool needAddFd = true);
     VsyncError DestroyLocked();
     void RemoveAndCloseFdLocked();
     sptr<IVSyncConnection> connection_;

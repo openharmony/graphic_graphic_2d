@@ -76,6 +76,8 @@ public:
                                     Uint64, PixelMap, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyShadowBlenderPara,
                                     Uint64, RSShadowBlenderPara, Uint64, PropertyUpdateType);
+    ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyHdrDarkenBlenderPara,
+                                    Uint64, RSHdrDarkenBlenderPara, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyShort,
                                     Uint64, Short, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyNGFilterBase,
@@ -94,6 +96,7 @@ public:
     ADD_RANDOM_COMMAND_WITH_PARAM_3(RSMarkNodeSingleFrameComposer, Uint64, Bool, Pid);
     ADD_RANDOM_COMMAND_WITH_PARAM_3(RSMarkSuggestOpincNode, Uint64, Bool, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSMarkLayerPartRender, Uint64, Bool);
+    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSMarkLayer, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSMarkUifirstNode, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_3(RSForceUifirstNode, Uint64, Bool, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetUIFirstSwitch, Uint64, RSUIFirstSwitch);

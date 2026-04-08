@@ -35,6 +35,7 @@ constexpr int32_t MARGIN = 20;
 constexpr float RECT_PEN_ALPHA = 0.2f;
 constexpr float LAYER_RECT_PEN_ALPHA = 0.5f;
 constexpr float DFX_FONT_SIZE = 30.f;
+constexpr int32_t MIN_UNCHANGE_COUNT = 3;
 }
 
 RectI RSOpincDrawCache::screenRectInfo_ = {0, 0, 0, 0};
@@ -413,19 +414,58 @@ void RSOpincDrawCache::DrawOpincDisabledDfx(Drawing::Canvas& canvas, RSRenderPar
     canvas.DetachBrush();
 }
 
-void RSOpincDrawCache::PushLayerPartRenderDirtyRegion(const RSRenderParams& params,
-    RSPaintFilterCanvas& canvas, int nodeCount)
+void RSOpincDrawCache::PushLayerPartRenderDirtyRegion(const RSRenderParams& params, RSPaintFilterCanvas& curCanvas,
+    RSPaintFilterCanvas& cacheCanvas, int nodeCount)
 {
     if (!params.GetLayerPartRenderEnabled()) {
         return;
     }
-    RectI currentFrameDirty = params.GetLayerPartRenderCurrentFrameDirtyRegion();
-    layerPartRenderDirtyRegion_.SetRect(Drawing::RectI(currentFrameDirty.GetLeft(), currentFrameDirty.GetTop(),
-        currentFrameDirty.GetRight(), currentFrameDirty.GetBottom()));
+
+    Drawing::RectF absDrawRect = Drawing::RectF(params.GetAbsDrawRect().GetLeft(), params.GetAbsDrawRect().GetTop(),
+        params.GetAbsDrawRect().GetRight(), params.GetAbsDrawRect().GetBottom());
+    Drawing::Matrix inverseMatrix;
+    if (!curCanvas.GetTotalMatrix().Invert(inverseMatrix)) {
+        return;
+    }
+    Drawing::RectF absDrawRectTemp = Drawing::RectF(0, 0, 0, 0);
+    std::swap(absDrawRectTemp, absDrawRect);
+    if (!inverseMatrix.MapRect(absDrawRect, absDrawRectTemp)) {
+        return;
+    }
+
+    if (absDrawRect.IsEmpty()) {
+        return;
+    }
+
+    RectI currentFrameDirty;
+    if (layerPartRenderUnchangeCount_ <= MIN_UNCHANGE_COUNT) {
+        layerPartRenderUnchangeCount_++;
+        currentFrameDirty = { absDrawRect.GetLeft(), absDrawRect.GetTop(),
+            absDrawRect.GetRight(), absDrawRect.GetBottom() };
+    } else {
+        currentFrameDirty = params.GetLayerPartRenderCurrentFrameDirtyRegion();
+    }
+
+    float boundsWidth = params.GetCacheSize().x_;
+    float boundsHeight = params.GetCacheSize().y_;
+    float widthScale = boundsWidth / absDrawRect.GetWidth();
+    float heightScale = boundsHeight / absDrawRect.GetHeight();
+    float left = (currentFrameDirty.GetLeft() - absDrawRect.GetLeft()) * widthScale;
+    float top = (currentFrameDirty.GetTop() - absDrawRect.GetTop()) * heightScale;
+    float width = currentFrameDirty.GetWidth() * widthScale;
+    float height = currentFrameDirty.GetHeight() * heightScale;
+    Drawing::RectF tempRect = Drawing::RectF(left, top, left + width, top + height);
+    auto CurrentFrameDirtyResult = tempRect.RoundOut();
+
+    layerPartRenderDirtyRegion_.SetRect(CurrentFrameDirtyResult);
     auto bounds = layerPartRenderDirtyRegion_.GetBounds();
-    RS_OPTIONAL_TRACE_NAME_FMT("id:%" PRIu64 ", LayerPartRenderNodeDirtyRegion:[%d %d %d %d], nodeCount:%d",
-        params.GetId(), bounds.GetLeft(), bounds.GetTop(), bounds.GetWidth(), bounds.GetHeight(), nodeCount);
-    canvas.PushLayerPartRenderDirtyRegion(layerPartRenderDirtyRegion_);
+    RS_OPTIONAL_TRACE_NAME_FMT("id:%" PRIu64 ", nodeCount:%d, layerPartRenderDirtyRegion:[%d %d %d %d],"
+        "absDrawRect:[%.1f, %.1f, %.1f, %.1f], cacheSize:[%.1f, %.1f]",
+        params.GetId(), nodeCount,
+        bounds.GetLeft(), bounds.GetTop(), bounds.GetWidth(), bounds.GetHeight(),
+        absDrawRect.GetLeft(), absDrawRect.GetTop(), absDrawRect.GetWidth(), absDrawRect.GetHeight(),
+        boundsWidth, boundsHeight);
+    cacheCanvas.PushLayerPartRenderDirtyRegion(layerPartRenderDirtyRegion_);
 }
 
 void RSOpincDrawCache::LayerPartRenderClipDirtyRegion(const RSRenderParams& params,

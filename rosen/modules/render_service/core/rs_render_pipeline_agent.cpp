@@ -894,6 +894,19 @@ int32_t RSRenderPipelineAgent::SetLogicalCameraRotationCorrection(ScreenId scree
     return ERR_OK;
 }
 
+ErrCode RSRenderPipelineAgent::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
+{
+    if (rsRenderPipeline_ == nullptr) {
+        RS_LOGE("GetMaxGpuBufferSize: rsRenderPipeline_ is nullptr");
+        return ERR_INVALID_VALUE;
+    }
+    auto task = [renderPipeline = rsRenderPipeline_, &maxWidth, &maxHeight]() -> ErrCode {
+        bool result = renderPipeline->GetMainThread()->GetMaxGpuBufferSize(maxWidth, maxHeight);
+        return result ? ERR_OK : ERR_INVALID_VALUE;
+    };
+    return rsRenderPipeline_->GetMainThread()->ScheduleTask(task).get();
+}
+
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 void RSRenderPipelineAgent::RegisterCanvasCallback(pid_t remotePid, sptr<RSICanvasSurfaceBufferCallback> callback)
 {
@@ -1419,6 +1432,9 @@ void RSRenderPipelineAgent::CollectSurfaceBuffersByProcessId(
             rsRenderPipeline_->GetMainThread()->GetContext().GetMutableNodeMap().GetSelfDrawingNodeInProcess(pid);
     for (auto iter = selfDrawingNodeVector.rbegin(); iter != selfDrawingNodeVector.rend(); ++iter) {
         auto node = rsRenderPipeline_->GetMainThread()->GetContext().GetNodeMap().GetRenderNode(*iter);
+        if (node == nullptr) {
+            continue;
+        }
         if (auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>()) {
             auto surfaceBuffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
             auto surfaceBufferInfo = std::make_tuple(surfaceBuffer, surfaceNode->GetName(),
@@ -1428,23 +1444,18 @@ void RSRenderPipelineAgent::CollectSurfaceBuffersByProcessId(
     }
 
     // Step 2: Get texture mode buffers from RSSurfaceBufferCallbackManager
+    std::vector<std::tuple<sptr<SurfaceBuffer>, std::string, RectI>> textureBufferVector;
     auto textureBufferInfoList = RSSurfaceBufferCallbackManager::Instance().GetSurfaceBufferInfoByPid(pid);
     for (const auto& bufferInfo : textureBufferInfoList) {
         if (bufferInfo.surfaceBuffer_ != nullptr) {
-            // Generate surface name for texture mode
             std::string surfaceName = "XComponent_Texture_" + std::to_string(bufferInfo.uid_);
-
-            // Create RectI from dstRect
             RectI absRect(
                 static_cast<int>(bufferInfo.dstRect_.GetLeft()),
                 static_cast<int>(bufferInfo.dstRect_.GetTop()),
                 static_cast<int>(bufferInfo.dstRect_.GetWidth()),
                 static_cast<int>(bufferInfo.dstRect_.GetHeight())
             );
-
-            auto surfaceBufferTuple = std::make_tuple(bufferInfo.surfaceBuffer_, surfaceName, absRect);
-            sfBufferInfoVector.push_back(surfaceBufferTuple);
-
+            textureBufferVector.push_back(std::make_tuple(bufferInfo.surfaceBuffer_, surfaceName, absRect));
             RS_LOGD("CollectSurfaceBuffersByProcessId: Added texture buffer from pid=%{public}d, uid=%{public}llu, "
                     "bufferId=%{public}u, size=%{public}dx%{public}d",
                     bufferInfo.pid_, bufferInfo.uid_,
@@ -1453,6 +1464,25 @@ void RSRenderPipelineAgent::CollectSurfaceBuffersByProcessId(
                     bufferInfo.surfaceBuffer_->GetHeight());
         }
     }
+    for (const auto &bufferInfo : textureBufferInfoList) {
+        RSSurfaceBufferCallbackManager::Instance().RemoveAllSurfaceBufferInfo(pid, bufferInfo.uid_);
+    }
+
+    std::sort(textureBufferVector.begin(), textureBufferVector.end(), [](const auto &a, const auto &b) {
+        const auto &bufferA = std::get<0>(a);
+        const auto &bufferB = std::get<0>(b);
+        if (bufferA == nullptr) {
+            return false;
+        }
+        if (bufferB == nullptr) {
+            return true;
+        }
+        uint64_t areaA = static_cast<uint64_t>(bufferA->GetWidth()) * static_cast<uint64_t>(bufferA->GetHeight());
+        uint64_t areaB = static_cast<uint64_t>(bufferB->GetWidth()) * static_cast<uint64_t>(bufferB->GetHeight());
+        return areaA > areaB;
+    });
+
+    sfBufferInfoVector.insert(sfBufferInfoVector.end(), textureBufferVector.begin(), textureBufferVector.end());
 }
 
 void RSRenderPipelineAgent::ConvertBuffersToPixelMaps(

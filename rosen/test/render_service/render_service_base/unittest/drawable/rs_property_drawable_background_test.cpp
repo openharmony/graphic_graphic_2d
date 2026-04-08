@@ -262,6 +262,22 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundColorDrawable1, TestSize.Leve
 }
 
 /**
+ * @tc.name: RSBackgroundColorDrawable2
+ * @tc.desc: Test OnGenerate
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundColorDrawable2, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    std::shared_ptr<RSDrawable> drawable = DrawableV2::RSBackgroundColorDrawable::OnGenerate(node);
+    ASSERT_EQ(drawable, nullptr);
+    Color color(1.0f, 0.5f, 0.0f, 1.0f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 2.0f);
+    node.GetMutableRenderProperties().SetBackgroundColor(color);
+    ASSERT_NE(DrawableV2::RSBackgroundColorDrawable::OnGenerate(node), nullptr);
+}
+
+/**
  * @tc.name: RSBackgroundColorDrawable
  * @tc.desc: Test OnGenerate
  * @tc.type:FUNC

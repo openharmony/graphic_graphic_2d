@@ -147,10 +147,38 @@ public:
         }
     }
 
+    static std::shared_ptr<ColorSpace>skColorSpaceToDrawingColorSpace(sk_sp<SkColorSpace> skSpace)
+    {
+        if (!skSpace) {
+            return nullptr;
+        }
+        skcms_TransferFunction skFn;
+        skSpace->transferFn(&skFn);
+        skcms_Matrix3x3 skMat;
+        skSpace->toXYZD50(&skMat);
+        CMSTransferFunction drawingFn = {
+            .g = skFn.g,
+            .a = skFn.a,
+            .b = skFn.b,
+            .c = skFn.c,
+            .d = skFn.d,
+            .e = skFn.e,
+            .f = skFn.f,
+        };
+        CMSMatrix3x3 drawingMat = {{
+            {skMat.vals[0][0], skMat.vals[0][1], skMat.vals[0][2]},
+            {skMat.vals[1][0], skMat.vals[1][1], skMat.vals[1][2]},
+            {skMat.vals[2][0], skMat.vals[2][1], skMat.vals[2][2]},
+        }};
+        std::shared_ptr<ColorSpace> colorSpace =
+            std::make_shared<ColorSpace>(ColorSpace::ColorSpaceType::NO_TYPE, drawingFn, drawingMat);
+        return colorSpace;
+    }
+
     static ImageInfo ConvertToRSImageInfo(const SkImageInfo& skImageInfo)
     {
-        std::shared_ptr<ColorSpace> colorSpace = std::make_shared<ColorSpace>();
-        colorSpace->GetImpl<SkiaColorSpace>()->SetColorSpace(skImageInfo.refColorSpace());
+        auto skSpace = skImageInfo.refColorSpace();
+        std::shared_ptr<ColorSpace> colorSpace = skColorSpaceToDrawingColorSpace(skSpace);
         return {skImageInfo.width(), skImageInfo.height(),
                 ConvertToColorType(skImageInfo.colorType()),
                 ConvertToAlphaType(skImageInfo.alphaType()),

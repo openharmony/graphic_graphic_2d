@@ -652,6 +652,16 @@ public:
         isRelatedSourceNode_ = value;
     }
 
+    void SetNeedClearRelatedCache(bool value)
+    {
+        needClearRelatedCache_ = value;
+    }
+
+    bool IsNeedClearRelatedCache()
+    {
+        return needClearRelatedCache_;
+    }
+
     bool IsRelatedSourceNode() const
     {
         return isRelatedSourceNode_;
@@ -830,6 +840,8 @@ public:
 
     void SetUIFirstLeashAllEnable(bool isEnable);
     bool IsUIFirstLeashAllEnable() const override;
+    void SetPartialSynced(bool isPartialSynced);
+    bool IsPartialSynced() const;
 
     void SwapRelatedRenderParams(RSSurfaceRenderParams& relatedRenderParams);
 private:
@@ -847,6 +859,7 @@ private:
     bool isRelated_ = false;
     bool clonedSourceNode_ = false;
     bool isRelatedSourceNode_ = false;
+    bool needClearRelatedCache_ = false;
     bool isTransparent_ = false;
     bool isSpherizeValid_ = false;
     bool isAttractionValid_ = false;
@@ -974,6 +987,9 @@ private:
     bool isSurfaceBufferOpaque_ = false;
     bool isParticipateInOcclusion_ = false;
     bool isUIFirstLeashAllEnable_ = false;
+    // When onSync is triggered on the uifirst root node and the child thread drawing task
+    // is incomplete, partial synchronization is executed instead.
+    bool isPartialSynced_ = false;
 
     // only used for window capture
     sptr<RSISurfaceCaptureCallback> captureCallback_;

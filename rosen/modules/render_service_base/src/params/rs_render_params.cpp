@@ -585,6 +585,7 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->hdrBrightness_ = hdrBrightness_;
     target->hdrStatus_ = hdrStatus_;
     target->childHasVisibleHDRContent_ = childHasVisibleHDRContent_;
+    target->nodeColorSpace_ = nodeColorSpace_;
     target->needFilter_ = needFilter_;
     target->renderNodeType_ = renderNodeType_;
     target->globalAlpha_ = globalAlpha_;

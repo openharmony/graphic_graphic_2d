@@ -76,7 +76,8 @@ ohos_source_set("rs_graphic_test_src") {
     "$rosen_root/modules/render_service_client:librender_service_client",
   ]
 
-  public_external_deps = [
+  external_deps = [
+    "ffrt:libffrt",
     "cJSON:cjson",
     "googletest:gtest",
     "graphic_surface:surface",
@@ -87,10 +88,6 @@ ohos_source_set("rs_graphic_test_src") {
     "libpng:libpng",
     "window_manager:libdm",
     "zlib:libz",
-  ]
-
-  external_deps = [
-    "ffrt:libffrt",
   ]
 
   if (rosen_is_ohos && graphic_2d_feature_rs_enable_profiler &&
@@ -127,6 +124,17 @@ ohos_static_library("rs_graphic_test_main") {
   external_deps = [
     "eventhandler:libeventhandler",
     "hilog:libhilog",
+    "skia:skia_canvaskit",
+    "googletest:gtest",
+    "ffrt:libffrt",
+    "cJSON:cjson",
+    "graphic_surface:surface",
+    "graphics_effect:graphics_effect_core",
+    "hitrace:hitrace_meter",
+    "image_framework:image_native",
+    "libpng:libpng",
+    "window_manager:libdm",
+    "zlib:libz",
   ]
 
   part_name = "graphic_2d"

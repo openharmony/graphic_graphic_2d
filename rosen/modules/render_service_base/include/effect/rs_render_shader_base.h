@@ -87,6 +87,8 @@ public:
         float cornerRadius);
 
     static std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> GetCachedBlurImage(Drawing::Canvas* canvas);
+
+    static RectF CalcRect(const std::shared_ptr<RSNGRenderShaderBase>& shader, const RectF& bound);
 };
 
 #define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##RenderTag

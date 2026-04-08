@@ -1955,6 +1955,23 @@ HWTEST_F(RSNodeTest, SetandGetAlpha005, TestSize.Level1)
 }
 
 /**
+ * @tc.name: MarkLayerTest
+ * @tc.desc: TEST MarkLayer
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, MarkLayerTest, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    EXPECT_EQ(rsNode->isLayer_, false);
+    rsNode->MarkLayer(true);
+    EXPECT_EQ(rsNode->isLayer_, true);
+    rsNode->MarkLayer(false);
+    EXPECT_EQ(rsNode->isLayer_, false);
+    rsNode->MarkLayer(false);
+    EXPECT_EQ(rsNode->isLayer_, false);
+}
+
+/**
  * @tc.name: SetandGetBgImageWidth004
  * @tc.desc:
  * @tc.type:FUNC
@@ -3542,7 +3559,7 @@ HWTEST_F(RSNodeTest, SetandGetBackgroundColor001, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     constexpr uint32_t colorValue = 0x034123;
     RSColor color = Color::FromArgbInt(colorValue);
-    color.ConvertToP3ColorSpace();
+    color.ConvertToBT2020ColorSpace();
     rsNode->SetBackgroundColor(colorValue);
     EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundColor() == color);
 }
@@ -3557,7 +3574,7 @@ HWTEST_F(RSNodeTest, SetandGetBackgroundColor002, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     constexpr uint32_t colorValue = std::numeric_limits<uint32_t>::max();
     RSColor color = Color::FromArgbInt(colorValue);
-    color.ConvertToP3ColorSpace();
+    color.ConvertToBT2020ColorSpace();
     rsNode->SetBackgroundColor(colorValue);
     EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundColor() == color);
 }
@@ -3572,7 +3589,7 @@ HWTEST_F(RSNodeTest, SetandGetBackgroundColor003, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     constexpr uint32_t colorValue = std::numeric_limits<uint32_t>::min();
     RSColor color = Color::FromArgbInt(colorValue);
-    color.ConvertToP3ColorSpace();
+    color.ConvertToBT2020ColorSpace();
     rsNode->SetBackgroundColor(colorValue);
     EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundColor() == color);
 }
@@ -8476,6 +8493,27 @@ HWTEST_F(RSNodeTest, GetDescendantCount006, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetBackgroundColorBT2020Test
+ * @tc.desc: test SetBackgroundColor set BT2020
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeTest, SetBackgroundColorBT2020Test, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_TRUE(rsNode != nullptr);
+
+    RSColor color(1.0f, 0.0f, 0.0f, 1.0f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 1.0f);
+    rsNode->SetBackgroundColor(color);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundColor().GetColorSpace() ==
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+
+    RSColor color1(1.0f, 0.5f, 0.0f, 1.0f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 2.0f);
+    rsNode->SetBackgroundColor(color1);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundColor() == color1);
+}
+
+/**
  * @tc.name: SetBackgroundColorHeadroomTest
  * @tc.desc: test SetBackgroundColor set headroom
  * @tc.type:FUNC
@@ -8488,7 +8526,7 @@ HWTEST_F(RSNodeTest, SetBackgroundColorHeadroomTest, TestSize.Level1)
 
     constexpr uint32_t colorValue = 0x034123;
     RSColor color = Color::FromArgbInt(colorValue);
-    color.ConvertToP3ColorSpace();
+    color.ConvertToBT2020ColorSpace();
     rsNode->SetBackgroundColor(color);
     EXPECT_FLOAT_EQ(rsNode->GetStagingProperties().GetBackgroundColor().GetHeadroom(), 1.0f);
     color.SetHeadroom(2.0f);
@@ -8510,7 +8548,7 @@ HWTEST_F(RSNodeTest, SetHDRColorHeadroomTest, TestSize.Level1)
     ASSERT_TRUE(rsNode != nullptr);
     
     rsNode->SetHDRColorHeadroom(0.5f);
-    EXPECT_FLOAT_EQ(rsNode->GetStagingProperties().GetHDRColorHeadroom(), 0.5f);
+    EXPECT_FLOAT_EQ(rsNode->GetStagingProperties().GetHDRColorHeadroom(), 1.0f);
     
     rsNode->SetHDRColorHeadroom(1.0f);
     EXPECT_FLOAT_EQ(rsNode->GetStagingProperties().GetHDRColorHeadroom(), 1.0f);
@@ -8520,5 +8558,80 @@ HWTEST_F(RSNodeTest, SetHDRColorHeadroomTest, TestSize.Level1)
 
     rsNode->SetHDRColorHeadroom(1.0f);
     EXPECT_FLOAT_EQ(rsNode->GetStagingProperties().GetHDRColorHeadroom(), 1.0f);
+}
+
+/**
+ * @tc.name: SetPositionZApplicableCamera3DTest
+ * @tc.desc: test results of SetPositionZApplicableCamera3D
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeTest, SetPositionZApplicableCamera3DTest, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_TRUE(rsNode != nullptr);
+    rsNode->SetPositionZApplicableCamera3D(true);
+    rsNode->SetPositionZApplicableCamera3D(false);
+}
+
+/**
+ * @tc.name: SetCornerApplyTypeTest
+ * @tc.desc: test results of SetCornerApplyType
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeTest, SetCornerApplyTypeTest, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_TRUE(rsNode != nullptr);
+    rsNode->SetCornerApplyType(RSCornerApplyType::FAST);
+    EXPECT_EQ(rsNode->GetStagingProperties().GetCornerApplyType(),
+        static_cast<int>(RSCornerApplyType::FAST));
+    rsNode->SetCornerApplyType(RSCornerApplyType::OFFSCREEN);
+    EXPECT_EQ(rsNode->GetStagingProperties().GetCornerApplyType(),
+        static_cast<int>(RSCornerApplyType::OFFSCREEN));
+}
+
+/**
+ * @tc.name: SetBorderStyleVector4Test
+ * @tc.desc: test results of SetBorderStyle with Vector4<BorderStyle>
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeTest, SetBorderStyleVector4Test, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_TRUE(rsNode != nullptr);
+    constexpr uint32_t solidVal = static_cast<uint32_t>(BorderStyle::SOLID);
+    constexpr uint32_t dashedVal = static_cast<uint32_t>(BorderStyle::DASHED);
+    constexpr uint32_t dottedVal = static_cast<uint32_t>(BorderStyle::DOTTED);
+    constexpr uint32_t noneVal = static_cast<uint32_t>(BorderStyle::NONE);
+    Vector4<BorderStyle> style(BorderStyle::SOLID, BorderStyle::DASHED, BorderStyle::DOTTED, BorderStyle::NONE);
+    rsNode->SetBorderStyle(style);
+    auto result = rsNode->GetStagingProperties().GetBorderStyle();
+    EXPECT_EQ(result.x_, solidVal);
+    EXPECT_EQ(result.y_, dashedVal);
+    EXPECT_EQ(result.z_, dottedVal);
+    EXPECT_EQ(result.w_, noneVal);
+}
+
+/**
+ * @tc.name: GetPropertyByTypeTest
+ * @tc.desc: test results of GetPropertyByType
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeTest, GetPropertyByTypeTest, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_TRUE(rsNode != nullptr);
+    auto property = rsNode->GetPropertyByType(ModifierNG::RSModifierType::BACKGROUND_COLOR,
+        ModifierNG::RSPropertyType::BACKGROUND_COLOR);
+    EXPECT_EQ(property, nullptr);
+    constexpr uint32_t colorValue = 0xffff0000;
+    rsNode->SetBackgroundColor(colorValue);
+    property = rsNode->GetPropertyByType(ModifierNG::RSModifierType::BACKGROUND_COLOR,
+        ModifierNG::RSPropertyType::BACKGROUND_COLOR);
+    EXPECT_NE(property, nullptr);
 }
 } // namespace OHOS::Rosen

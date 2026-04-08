@@ -28,6 +28,7 @@
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_point_light_manager.h"
+#include "property/rs_properties_def.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_effect_luminance_manager.h"
 #include "render/rs_particles_drawable.h"
@@ -238,8 +239,11 @@ bool RSForegroundShaderDrawable::OnUpdate(const RSRenderNode& node)
     if (!shader) {
         return false;
     }
+    RSPropertyDrawableUtils::ApplySDFShapeToEffect(properties, shader, node.GetId());
     needSync_ = true;
     stagingShader_ = shader;
+    auto bounds = node.GetRenderProperties().GetBoundsRect();
+    stagingDrawRect_ = RSNGRenderShaderHelper::CalcRect(shader, bounds);
     PostUpdate(node);
     return true;
 }
@@ -251,6 +255,7 @@ void RSForegroundShaderDrawable::OnSync()
         stagingShader_->AppendToGEContainer(visualEffectContainer);
         visualEffectContainer->UpdateCacheDataFrom(visualEffectContainer_);
         visualEffectContainer_ = visualEffectContainer;
+        drawRect_ = stagingDrawRect_;
         needSync_ = false;
     }
 }
@@ -261,7 +266,8 @@ void RSForegroundShaderDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::
     if (canvas == nullptr || visualEffectContainer_ == nullptr || rect == nullptr) {
         return;
     }
-    geRender->DrawShaderEffect(*canvas, *visualEffectContainer_, *rect);
+    geRender->DrawShaderEffect(*canvas, *visualEffectContainer_,
+        drawRect_.IsEmpty() ? *rect : RSPropertyDrawableUtils::Rect2DrawingRect(drawRect_));
 }
 
 RSDrawable::Ptr RSCompositingFilterDrawable::OnGenerate(const RSRenderNode& node)
@@ -482,37 +488,6 @@ bool RSBorderDrawable::OnUpdate(const RSRenderNode& node)
 void RSBorderDrawable::DrawBorder(const RSProperties& properties, Drawing::Canvas& canvas,
     const std::shared_ptr<RSBorder>& border, const bool& isOutline)
 {
-    auto sdfShape = properties.GetSDFShape();
-    if (sdfShape && border->GetStyle() == BorderStyle::SOLID) {
-        std::shared_ptr<Drawing::GEVisualEffect> geVisualEffect = sdfShape->GenerateGEVisualEffect();
-        std::shared_ptr<Drawing::GEShaderShape> geShape =
-            geVisualEffect ? geVisualEffect->GenerateShaderShape() : nullptr;
-        auto geFilter = std::make_shared<Drawing::GEVisualEffect>(
-            Drawing::GE_SHADER_SDF_BORDER, Drawing::DrawingPaintType::BRUSH);
-        geFilter->SetParam(Drawing::GE_SHADER_SDF_BORDER_SHAPE, geShape);
-        Drawing::GESDFBorderParams borderParam;
-        auto borderColor = border->GetColor();
-        borderParam.color = Drawing::Color(
-            borderColor.GetRed(), borderColor.GetGreen(), borderColor.GetBlue(), borderColor.GetAlpha());
-        borderParam.width = border->GetWidth();
-        borderParam.isOutline = isOutline;
-        geFilter->SetParam(Drawing::GE_SHADER_SDF_BORDER_BORDER, borderParam);
-        std::shared_ptr<Drawing::GEVisualEffectContainer> geContainer_ =
-            std::make_shared<Drawing::GEVisualEffectContainer>();
-        geContainer_->AddToChainedFilter(geFilter);
-        auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
-        bool isZero = isOutline ? border->GetRadiusFour().IsZero() : properties.GetCornerRadius().IsZero();
-        Drawing::Rect rect;
-        if (isZero) {
-            rect = RSPropertyDrawableUtils::Rect2DrawingRect(isOutline ?
-                properties.GetBoundsRect().MakeOutset(border->GetWidthFour()) : properties.GetBoundsRect());
-        } else {
-            rect = RSPropertyDrawableUtils::RRect2DrawingRRect(
-                RSPropertyDrawableUtils::GetRRectForDrawingBorder(properties, border, isOutline)).GetRect();
-        }
-        geRender->DrawShaderEffect(canvas, *geContainer_, rect);
-        return;
-    }
     Drawing::Brush brush;
     Drawing::Pen pen;
     brush.SetAntiAlias(true);

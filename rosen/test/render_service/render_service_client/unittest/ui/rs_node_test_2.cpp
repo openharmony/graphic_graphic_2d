@@ -17,6 +17,7 @@
 
 #include "gtest/gtest.h"
 #include "ui_effect/effect/include/brightness_blender.h"
+#include "ui_effect/effect/include/hdr_darken_blender.h"
 #include "ui_effect/effect/include/rs_ui_mask_base.h"
 #include "ui_effect/effect/include/rs_ui_mask_shape.h"
 
@@ -26,6 +27,7 @@
 #include "animation/rs_implicit_animator.h"
 #include "animation/rs_transition.h"
 #include "common/rs_vector4.h"
+#include "common/rs_vector3.h"
 #include "modifier_ng/appearance/rs_alpha_modifier.h"
 #include "modifier_ng/appearance/rs_background_filter_modifier.h"
 #include "modifier_ng/appearance/rs_blend_modifier.h"
@@ -1154,5 +1156,78 @@ HWTEST_F(RSNodeTest2, SetMaterialWithQualityLevel_AdaptiveFrostedGlass, TestSize
     auto propInterval = std::static_pointer_cast<RSProperty<int>>(
         modifier->GetProperty(ModifierNG::RSPropertyType::COLOR_PICKER_INTERVAL));
     ASSERT_NE(propInterval, nullptr);
+}
+
+/**
+ * @tc.name: SetBlender
+ * @tc.desc: test results of SetBlender
+ * @tc.type: FUNC
+ * @tc.require: issueICLU4I
+ */
+HWTEST_F(RSNodeTest2, SetBlender, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetBlender(nullptr);
+    EXPECT_NE(rsNode, nullptr);
+    Blender blender;
+    rsNode->SetBlender(&blender);
+    EXPECT_NE(rsNode, nullptr);
+    HdrDarkenBlender hdrDarkenBlender;
+    rsNode->SetBlender(&hdrDarkenBlender);
+    EXPECT_NE(rsNode, nullptr);
+}
+
+/**
+ * @tc.name: SetBlender
+ * @tc.desc: test results of SetBlender
+ * @tc.type: FUNC
+ * @tc.require: issueICLU4I
+ */
+HWTEST_F(RSNodeTest2, SetHdrDarkenBlenderParams001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    RSHdrDarkenBlenderPara params;
+    rsNode->SetHdrDarkenBlenderParams(params);
+    EXPECT_EQ(params.hdrBrightnessRatio_, 1.f);
+}
+
+/**
+ * @tc.name: SetBlender
+ * @tc.desc: test results of SetHdrDarkenBlenderParams
+ * @tc.type: FUNC
+ * @tc.require: issueICLU4I
+ */
+HWTEST_F(RSNodeTest2, SetHdrDarkenBlenderParams002, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    RSHdrDarkenBlenderPara params = {2.0, {0.5, 0.5, 0.1}};
+    rsNode->SetHdrDarkenBlenderParams(params);
+    EXPECT_EQ(params.hdrBrightnessRatio_, 2.0f);
+    EXPECT_EQ(params.grayscaleFactor_.x_, 0.5f);
+    EXPECT_EQ(params.grayscaleFactor_.y_, 0.5f);
+    EXPECT_EQ(params.grayscaleFactor_.z_, 0.1f);
+}
+
+/**
+ * @tc.name: SetGravityPullCenterFlagTest
+ * @tc.desc: test results of RSNode::SetGravityPullCenterFlag
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest2, SetGravityPullCenterFlagTest, TestSize.Level1)
+{
+    auto modifierType = ModifierNG::RSModifierType::BOUNDS;
+    auto rsNode = RSCanvasNode::Create();
+
+    EXPECT_EQ(rsNode->GetModifierCreatedBySetter(modifierType), nullptr);
+
+    rsNode->SetGravityPullCenterFlag(false);
+    auto& properties = rsNode->GetModifierCreatedBySetter(modifierType)->properties_;
+
+    EXPECT_NE(rsNode->GetModifierCreatedBySetter(modifierType), nullptr);
+    EXPECT_NE(properties.find(ModifierNG::RSPropertyType::GRAVITY_CENTER_FLAG), properties.end());
+
+    rsNode->SetGravityPullCenterFlag(true);
+    EXPECT_NE(rsNode->GetModifierCreatedBySetter(modifierType), nullptr);
+    EXPECT_NE(properties.find(ModifierNG::RSPropertyType::GRAVITY_CENTER_FLAG), properties.end());
 }
 } // namespace OHOS::Rosen

@@ -38,6 +38,14 @@ void RSUnionRenderNodeTest::TearDownTestCase() {}
 void RSUnionRenderNodeTest::SetUp() {}
 void RSUnionRenderNodeTest::TearDown() {}
 
+std::shared_ptr<RSObjAbsGeometry> CreateRSObjAbsGeometry()
+{
+    auto boundsGeo = std::make_shared<RSObjAbsGeometry>();
+    boundsGeo->absMatrix_ = Drawing::Matrix();
+    boundsGeo->matrix_ = Drawing::Matrix();
+    return boundsGeo;
+}
+
 /**
  * @tc.name: CreateSDFOpShapeWithBaseInitialization001
  * @tc.desc: test CreateSDFOpShapeWithBaseInitialization
@@ -726,6 +734,84 @@ HWTEST_F(RSUnionRenderNodeTest, ProcessSDFShape005, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ProcessSDFShape006
+ * @tc.desc: test ProcessSDFShape with unionSpacing != 0 and unionMode == 1
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUnionRenderNodeTest, ProcessSDFShape006, TestSize.Level1)
+{
+    auto sContext = std::make_shared<RSContext>();
+    auto unionNode = std::make_shared<RSUnionRenderNode>(id, sContext);
+    EXPECT_NE(unionNode->GetContext().lock(), nullptr);
+    auto child1 = std::make_shared<RSRenderNode>(id + 1, context);
+    sContext->nodeMap.RegisterRenderNode(child1);
+    EXPECT_NE(sContext->GetNodeMap().GetRenderNode<RSRenderNode>(id + 1), nullptr);
+    auto child2 = std::make_shared<RSRenderNode>(id + 2, context);
+    sContext->nodeMap.RegisterRenderNode(child2);
+    EXPECT_NE(sContext->GetNodeMap().GetRenderNode<RSRenderNode>(id + 2), nullptr);
+    unionNode->unionChildren_.emplace(id + 1);
+    unionNode->unionChildren_.emplace(id + 2);
+    unionNode->renderProperties_.boundsGeo_ = CreateRSObjAbsGeometry();
+    child1->renderProperties_.boundsGeo_ = CreateRSObjAbsGeometry();
+    child2->renderProperties_.boundsGeo_ = CreateRSObjAbsGeometry();
+    child1->parent_ = unionNode;
+    child2->parent_ = unionNode;
+    Drawing::Matrix matrix;
+    EXPECT_TRUE(unionNode->GetChildRelativeMatrixToUnionNode(matrix, child1));
+    child1->renderProperties_.rrect_ = RRect(RectF(0.f, 0.f, 10.f, 10.f), 3.f, 3.f);
+    child2->renderProperties_.rrect_ = RRect(RectF(0.f, 0.f, 20.f, 20.f), 3.f, 3.f);
+    auto shape = unionNode->GetOrCreateChildSDFShape(child1);
+    EXPECT_NE(shape, nullptr);
+    unionNode->renderProperties_.unionSpacing_ = 0.5f;
+    unionNode->renderProperties_.SetSDFUnionMode(1);
+    std::unique_ptr<RSRenderParams> stagingRenderParams = std::make_unique<RSRenderParams>(id);
+    ASSERT_NE(stagingRenderParams, nullptr);
+    unionNode->stagingRenderParams_ = std::move(stagingRenderParams);
+
+    RSDirtyRegionManager dirtyManager;
+    unionNode->ProcessSDFShape(dirtyManager);
+    ASSERT_TRUE(unionNode->renderProperties_.renderSDFShape_ != nullptr);
+}
+
+/**
+ * @tc.name: CreateChildToContainerSDFTransformShape001
+ * @tc.desc: test CreateChildToContainerSDFTransformShape with unionSpacing != 0 and unionMode == 1
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUnionRenderNodeTest, CreateChildToContainerSDFTransformShape001, TestSize.Level1)
+{
+    auto sContext = std::make_shared<RSContext>();
+    auto unionNode = std::make_shared<RSUnionRenderNode>(id, sContext);
+    auto child = std::make_shared<RSRenderNode>(id + 1, context);
+    
+    unionNode->renderProperties_.boundsGeo_ = CreateRSObjAbsGeometry();
+    child->renderProperties_.boundsGeo_ = CreateRSObjAbsGeometry();
+    child->parent_ = unionNode;
+    
+    auto childShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    EXPECT_NE(childShape, nullptr);
+    
+    unionNode->renderProperties_.unionSpacing_ = 0.5f;
+    unionNode->unionMode_ = 1;
+    unionNode->gravityCenter_ = Vector2f(10.0f, 20.0f);
+    
+    auto transformShape = unionNode->CreateChildToContainerSDFTransformShape(child, childShape);
+    ASSERT_NE(transformShape, nullptr);
+    ASSERT_EQ(transformShape->GetType(), RSNGEffectType::SDF_TRANSFORM_SHAPE);
+    
+    auto sdfTransformShape = std::static_pointer_cast<RSNGRenderSDFTransformShape>(transformShape);
+    auto unionMode = sdfTransformShape->Getter<SDFTransformShapeUnionModeRenderTag>()->Get();
+    ASSERT_EQ(unionMode, 1);
+    
+    auto gravityCenter = sdfTransformShape->Getter<SDFTransformShapeGravityCenterRenderTag>()->Get();
+    ASSERT_EQ(gravityCenter.x_, 10.0f);
+    ASSERT_EQ(gravityCenter.y_, 20.0f);
+    
+    auto gravitySpacing = sdfTransformShape->Getter<SDFTransformShapeGravitySpacingRenderTag>()->Get();
+    ASSERT_EQ(gravitySpacing, 0.5f);
+}
+
+/**
  * @tc.name: QuickPrepare001
  * @tc.desc: test QuickPrepare
  * @tc.type: FUNC
@@ -917,6 +1003,107 @@ HWTEST_F(RSUnionRenderNodeTest, ProcessUnionInfoAfterApplyModifiers003, TestSize
 
     RSUnionRenderNode::ProcessUnionInfoAfterApplyModifiers(node);
     ASSERT_FALSE(unionNode->unionChildren_.empty());
+}
+
+/**
+ * @tc.name: GetGravityCenter001
+ * @tc.desc: test GetGravityCenter when context is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUnionRenderNodeTest, GetGravityCenter001, TestSize.Level1)
+{
+    auto unionNode = std::make_shared<RSUnionRenderNode>(id, context);
+    auto ret = unionNode->GetGravityCenter();
+    ASSERT_EQ(ret[0], 0.0f);
+    ASSERT_EQ(ret[1], 0.0f);
+}
+
+/**
+ * @tc.name: GetGravityCenter002
+ * @tc.desc: test GetGravityCenter when unionChildren_ is empty
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUnionRenderNodeTest, GetGravityCenter002, TestSize.Level1)
+{
+    auto sContext = std::make_shared<RSContext>();
+    auto unionNode = std::make_shared<RSUnionRenderNode>(id, sContext);
+    auto ret = unionNode->GetGravityCenter();
+    ASSERT_EQ(ret[0], 0.0f);
+    ASSERT_EQ(ret[1], 0.0f);
+}
+
+/**
+ * @tc.name: GetGravityCenter003
+ * @tc.desc: test GetGravityCenter when child node does not exist
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUnionRenderNodeTest, GetGravityCenter003, TestSize.Level1)
+{
+    auto sContext = std::make_shared<RSContext>();
+    auto unionNode = std::make_shared<RSUnionRenderNode>(id, sContext);
+    unionNode->unionChildren_.emplace(id + 1);
+    auto ret = unionNode->GetGravityCenter();
+    ASSERT_EQ(ret[0], 0.0f);
+    ASSERT_EQ(ret[1], 0.0f);
+}
+
+/**
+ * @tc.name: GetGravityCenter004
+ * @tc.desc: test GetGravityCenter when GetGravityPullCenterFlag is false
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUnionRenderNodeTest, GetGravityCenter004, TestSize.Level1)
+{
+    auto sContext = std::make_shared<RSContext>();
+    auto unionNode = std::make_shared<RSUnionRenderNode>(id, sContext);
+    auto child = std::make_shared<RSRenderNode>(id + 1, sContext);
+    sContext->nodeMap.RegisterRenderNode(child);
+    unionNode->unionChildren_.emplace(id + 1);
+    child->renderProperties_.isGravityPullModeCenter_ = false;
+    auto ret = unionNode->GetGravityCenter();
+    ASSERT_EQ(ret[0], 0.0f);
+    ASSERT_EQ(ret[1], 0.0f);
+}
+
+/**
+ * @tc.name: GetGravityCenter005
+ * @tc.desc: test GetGravityCenter when GetChildRelativeMatrixToUnionNode fails
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUnionRenderNodeTest, GetGravityCenter005, TestSize.Level1)
+{
+    auto sContext = std::make_shared<RSContext>();
+    auto unionNode = std::make_shared<RSUnionRenderNode>(id, sContext);
+    auto child = std::make_shared<RSRenderNode>(id + 1, sContext);
+    sContext->nodeMap.RegisterRenderNode(child);
+    unionNode->unionChildren_.emplace(id + 1);
+    child->renderProperties_.isGravityPullModeCenter_ = true;
+    unionNode->renderProperties_.boundsGeo_ = nullptr;
+    auto ret = unionNode->GetGravityCenter();
+    ASSERT_EQ(ret[0], 0.0f);
+    ASSERT_EQ(ret[1], 0.0f);
+}
+
+/**
+ * @tc.name: GetGravityCenter006
+ * @tc.desc: test GetGravityCenter normal case
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUnionRenderNodeTest, GetGravityCenter006, TestSize.Level1)
+{
+    auto sContext = std::make_shared<RSContext>();
+    auto unionNode = std::make_shared<RSUnionRenderNode>(id, sContext);
+    auto child = std::make_shared<RSRenderNode>(id + 1, sContext);
+    sContext->nodeMap.RegisterRenderNode(child);
+    unionNode->unionChildren_.emplace(id + 1);
+    child->renderProperties_.isGravityPullModeCenter_ = true;
+    unionNode->renderProperties_.boundsGeo_ = CreateRSObjAbsGeometry();
+    child->renderProperties_.boundsGeo_ = CreateRSObjAbsGeometry();
+    child->parent_ = unionNode;
+    child->renderProperties_.rrect_ = RRect(RectF(0.f, 0.f, 10.f, 10.f), 0.f, 0.f);
+    auto ret = unionNode->GetGravityCenter();
+    ASSERT_EQ(ret[0], 0.0f);
+    ASSERT_EQ(ret[1], 0.0f);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -432,9 +432,6 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_Triangle_Properties_Test_1)
         triangleChildShape->Setter<SDFTriangleShapeRadiusTag>(triangleRadiusParams[i]);
 
         backgroundTestNode->SetSDFShape(childShape);
-        backgroundTestNode->SetBorderWidth(borderWidthParams[i]);
-        backgroundTestNode->SetBorderStyle(0);
-        backgroundTestNode->SetBorderColor(0xff00ff00);
 
         Color color(0, 0, 0);
         Vector4<Color> outlineColor = {color, color, color, color};

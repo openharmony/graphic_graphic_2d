@@ -611,10 +611,12 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
             // hpae offline: while using hpae offline and going directly composition, set to false
             bufferSynced_ = offlineOriginBufferSynced_;
         } else {
-            if (preBufferOwnerCount_ != nullptr && bufferSynced_ == false) {
-                RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceRenderParams::OnSync RSSurfaceRenderNode RSBufferManager::DecRef "
-                    "bufferId %" PRIu64, preBufferOwnerCount_->bufferId_);
-                preBufferOwnerCount_->DecRef();
+            RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceRenderParams::OnSync RSSurfaceRenderNode RSBufferManager::DecRef ");
+            if (preBufferOwnerCount_ != nullptr && bufferSynced_ == false && preBufferOwnerCount_->DecRef()) {
+                targetSurfaceParams->preBuffer_ = nullptr;
+                preBuffer_ = nullptr;
+                targetSurfaceParams->preBufferOwnerCount_ = nullptr;
+                preBufferOwnerCount_ = nullptr;
             }
             bufferSynced_ = true;
         }
@@ -632,6 +634,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isCloneNode_ = isCloneNode_;
     targetSurfaceParams->isRelated_ = isRelated_;
     targetSurfaceParams->isRelatedSourceNode_ = isRelatedSourceNode_;
+    targetSurfaceParams->needClearRelatedCache_ = needClearRelatedCache_;
     targetSurfaceParams->clonedSourceNode_ = clonedSourceNode_;
     targetSurfaceParams->alpha_ = alpha_;
     targetSurfaceParams->isSpherizeValid_ = isSpherizeValid_;
@@ -734,6 +737,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->rotationCorrectionDegree_ = rotationCorrectionDegree_;
     targetSurfaceParams->isParticipateInOcclusion_ = isParticipateInOcclusion_;
     targetSurfaceParams->isUIFirstLeashAllEnable_ = isUIFirstLeashAllEnable_;
+    targetSurfaceParams->isPartialSynced_ = isPartialSynced_;
     RSRenderParams::OnSync(target);
 }
 
@@ -877,6 +881,20 @@ void RSSurfaceRenderParams::SetUIFirstLeashAllEnable(bool enable)
 bool RSSurfaceRenderParams::IsUIFirstLeashAllEnable() const
 {
     return isUIFirstLeashAllEnable_;
+}
+
+void RSSurfaceRenderParams::SetPartialSynced(bool isPartialSynced)
+{
+    if (isPartialSynced_ == isPartialSynced) {
+        return;
+    }
+    isPartialSynced_ = isPartialSynced;
+    needSync_ = true;
+}
+
+bool RSSurfaceRenderParams::IsPartialSynced() const
+{
+    return isPartialSynced_;
 }
 
 void RSSurfaceRenderParams::SwapRelatedRenderParams(RSSurfaceRenderParams& relatedRenderParams)

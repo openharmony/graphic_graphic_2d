@@ -424,6 +424,7 @@ public:
     bool TransitionDataMutexLockIfNoCommands();
     void TransitionDataMutexUnlock();
     void CleanResources(pid_t pid);
+    bool GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight);
     
     const std::shared_ptr<RSHwcContext>& GetHwcContext() const { return hwcContext_; }
 
@@ -433,6 +434,11 @@ public:
     }
 
     uint64_t GetVsyncId() const { return vsyncId_; }
+
+    // for surface fps op
+    void AddSurfaceFpsOp(const SurfaceFpsOp& op);
+    std::vector<SurfaceFpsOp> GetSurfaceFpsOpList();
+    void RmvSurfaceFpsOp(const std::vector<SurfaceFpsOp>& rmvList);
 
 private:
     // TransactionDataIndexMap is Pid to {index of RSTransactionData, vector of std::unique_ptr<RSTransactionData>}
@@ -822,6 +828,11 @@ private:
     std::shared_ptr<HgmRenderContext> hgmRenderContext_ = nullptr;
     std::shared_ptr<RSComposerClientManager> composerClientManager_ = nullptr;
     uint32_t curFrameBufferReclaimCount_ = 0;
+
+    // for surface fps op
+    std::mutex surfaceFpsOpMutex_;
+    std::unordered_map<NodeId, SurfaceFpsOp> addSurfaceFpsOpMap_;
+    std::unordered_map<NodeId, SurfaceFpsOp> rmvSurfaceFpsOpMap_;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

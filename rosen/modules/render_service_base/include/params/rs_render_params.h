@@ -81,19 +81,20 @@ struct PipelineParam {
     uint32_t pendingScreenRefreshRate = 0;
     bool isForceRefresh = false;
     bool hasGameScene = false;
-    uint32_t SurfaceFpsOpNum = 0;
-    std::vector<SurfaceFpsOp> SurfaceFpsOpList;
     bool hasLppVideo = false;
 
-    void ResetSurfaceFpsOp()
-    {
-        SurfaceFpsOpNum = 0;
-        SurfaceFpsOpList.clear();
-    }
+    uint32_t SurfaceFpsOpNum = 0;
+    std::vector<SurfaceFpsOp> SurfaceFpsOpList;
 
     uint32_t GetSurfaceFpsOpNum() const
     {
-        return (SurfaceFpsOpNum < SurfaceFpsOpList.size()) ? SurfaceFpsOpNum : SurfaceFpsOpList.size();
+        return static_cast<uint32_t>(SurfaceFpsOpList.size());
+    }
+
+    void AddSurfaceFpsOp(const SurfaceFpsOp& op)
+    {
+        SurfaceFpsOpList.emplace_back(op);
+        SurfaceFpsOpNum = static_cast<uint32_t>(SurfaceFpsOpList.size());
     }
 };
 

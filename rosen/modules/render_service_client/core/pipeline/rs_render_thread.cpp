@@ -284,7 +284,8 @@ void RSRenderThread::RecvTransactionData(std::unique_ptr<RSTransactionData>& tra
 {
     {
         std::unique_lock<std::mutex> cmdLock(cmdMutex_);
-        std::string str = "RecvCommands ptr:" + std::to_string(reinterpret_cast<uintptr_t>(transactionData.get()));
+        std::string str = "RecvCommands count:" + std::to_string(transactionData->GetCommandCount()) +
+            ", timestamp:" + std::to_string(transactionData->GetTimestamp());
         commandTimestamp_ = transactionData->GetTimestamp();
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, str.c_str());
         cmds_.emplace_back(std::move(transactionData));
@@ -498,7 +499,8 @@ void RSRenderThread::ProcessCommands()
     }
     uint64_t uiEndTimeStamp = jankDetector_->GetSysTimeNs();
     for (auto& cmdData : cmds) {
-        std::string str = "ProcessCommands ptr:" + std::to_string(reinterpret_cast<uintptr_t>(cmdData.get()));
+        std::string str = "ProcessCommands count:" + std::to_string(cmdData->GetCommandCount()) +
+            ", timestamp:" + std::to_string(cmdData->GetTimestamp());
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, str.c_str());
         // only set transactionTimestamp_ in UniRender mode
         context_->transactionTimestamp_ = RSSystemProperties::GetUniRenderEnabled() ? cmdData->GetTimestamp() : 0;
@@ -643,6 +645,23 @@ void RSRenderThread::PostPreTask()
     if (handler_ && preTask_) {
         handler_->PostTask(preTask_);
     }
+}
+
+bool RSRenderThread::QueryMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
+{
+    ROSEN_LOGI("RSRenderThread::QueryMaxGpuBufferSize: start query GPU buffer size limits");
+
+#ifdef RS_ENABLE_GPU
+    if (renderContext_) {
+        return renderContext_->QueryMaxGpuBufferSize(maxWidth, maxHeight);
+    } else {
+        ROSEN_LOGE("RSRenderThread::QueryMaxGpuBufferSize: renderContext_ is null");
+        return false;
+    }
+#else
+    ROSEN_LOGE("RSRenderThread::QueryMaxGpuBufferSize: GPU backend not enabled");
+    return false;
+#endif
 }
 } // namespace Rosen
 } // namespace OHOS

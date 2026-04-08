@@ -597,6 +597,9 @@ template<>
 void RSRenderProperty<RSShadowBlenderPara>::Dump(std::string& out) const
 {}
 template<>
+void RSRenderProperty<RSHdrDarkenBlenderPara>::Dump(std::string& out) const
+{}
+template<>
 void RSRenderProperty<std::vector<Vector2f>>::Dump(std::string& out) const
 {}
 template<>

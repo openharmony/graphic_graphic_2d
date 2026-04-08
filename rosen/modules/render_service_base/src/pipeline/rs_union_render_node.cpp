@@ -22,6 +22,9 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr float SCALE_EPSILON = 0.0001f;
+} // namespace
 
 RSUnionRenderNode::RSUnionRenderNode(NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
     : RSCanvasRenderNode(id, context, isTextureExportNode)
@@ -71,8 +74,9 @@ void RSUnionRenderNode::ResetUnionChildren()
 
 void RSUnionRenderNode::ProcessSDFShape(RSDirtyRegionManager& dirtyManager)
 {
-    RS_TRACE_NAME_FMT("RSUnionRenderNode::ProcessSDFShape, unionChildren_[%lu], UnionSpacing[%f]",
-        unionChildren_.size(), GetRenderProperties().GetUnionSpacing());
+    unionMode_ = GetRenderProperties().GetSDFUnionMode();
+    RS_TRACE_NAME_FMT("RSUnionRenderNode::ProcessSDFShape, unionChildren_[%lu], UnionSpacing[%f] unimode[%d]",
+        unionChildren_.size(), GetRenderProperties().GetUnionSpacing(), unionMode_);
     std::shared_ptr<RSNGRenderShapeBase> root;
     if (unionChildren_.empty()) {
         if (GetRenderProperties().GetSDFShape() &&
@@ -82,7 +86,13 @@ void RSUnionRenderNode::ProcessSDFShape(RSDirtyRegionManager& dirtyManager)
         root = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_EMPTY_SHAPE);
     } else {
         std::queue<std::shared_ptr<RSNGRenderShapeBase>> shapeQueue;
-        if (ROSEN_NE(GetRenderProperties().GetUnionSpacing(), 0.f)) {
+        if (ROSEN_NE(GetRenderProperties().GetUnionSpacing(), 0.f) && unionMode_ == 1) {
+            gravityCenter_ =  GetGravityCenter();
+            root = GenerateSDFNonLeaf<RSNGEffectType::SDF_UNION_OP_SHAPE, RSNGRenderSDFUnionOpShape,
+                SDFUnionOpShapeShapeXRenderTag, SDFUnionOpShapeShapeYRenderTag>(shapeQueue);
+            GenerateSDFLeaf<RSNGRenderSDFUnionOpShape, SDFUnionOpShapeShapeXRenderTag,
+                SDFUnionOpShapeShapeYRenderTag>(shapeQueue);
+        } else if (ROSEN_NE(GetRenderProperties().GetUnionSpacing(), 0.f) && unionMode_ == 0) {
             root = GenerateSDFNonLeaf<RSNGEffectType::SDF_SMOOTH_UNION_OP_SHAPE, RSNGRenderSDFSmoothUnionOpShape,
                 SDFSmoothUnionOpShapeShapeXRenderTag, SDFSmoothUnionOpShapeShapeYRenderTag>(shapeQueue);
             GenerateSDFLeaf<RSNGRenderSDFSmoothUnionOpShape, SDFSmoothUnionOpShapeShapeXRenderTag,
@@ -100,7 +110,7 @@ void RSUnionRenderNode::ProcessSDFShape(RSDirtyRegionManager& dirtyManager)
 }
 
 bool RSUnionRenderNode::GetChildRelativeMatrixToUnionNode(Drawing::Matrix& relativeMatrix,
-    std::shared_ptr<RSRenderNode>& child)
+    std::shared_ptr<RSRenderNode>& child) const
 {
     auto geoPtr = GetRenderProperties().GetBoundsGeometry();
     if (!geoPtr) {
@@ -161,7 +171,49 @@ std::shared_ptr<RSNGRenderShapeBase> RSUnionRenderNode::CreateChildToContainerSD
         RSNGRenderShapeBase::Create(RSNGEffectType::SDF_TRANSFORM_SHAPE));
     transformShape->Setter<SDFTransformShapeMatrixRenderTag>(matrix);
     transformShape->Setter<SDFTransformShapeShapeRenderTag>(childShape);
+
+    transformShape->Setter<SDFTransformShapeUnionModeRenderTag>(0);
+    if (ROSEN_NE(GetRenderProperties().GetUnionSpacing(), 0.f) && unionMode_ == 1) {
+        transformShape->Setter<SDFTransformShapeUnionModeRenderTag>(1);
+        transformShape->Setter<SDFTransformShapeGravityCenterRenderTag>(gravityCenter_);
+        transformShape->Setter<SDFTransformShapeGravityStrengthRenderTag>(
+            GetRenderProperties().GetGravityPullStrength());
+        transformShape->Setter<SDFTransformShapeGravitySpacingRenderTag>(GetRenderProperties().GetUnionSpacing());
+    }
     return transformShape;
+}
+
+Vector2f RSUnionRenderNode::GetGravityCenter() const
+{
+    auto context = GetContext().lock();
+    if (!context) {
+        RS_LOGE("RSUnionRenderNode::GetGravityCenter GetContext fail");
+        return Vector2f(0.0f, 0.0f);
+    }
+    for (auto& childId : unionChildren_) {
+        auto child = context->GetNodeMap().GetRenderNode<RSRenderNode>(childId);
+        if (!child || !child->GetRenderProperties().GetGravityPullCenterFlag()) {
+            continue;
+        }
+        Drawing::Matrix relativeMatrix;
+        if (!GetChildRelativeMatrixToUnionNode(relativeMatrix, child)) {
+            return Vector2f(0.0f, 0.0f);
+        }
+        Matrix3f matrix(relativeMatrix.Get(Drawing::Matrix::Index::SCALE_X),
+            relativeMatrix.Get(Drawing::Matrix::Index::SKEW_X), relativeMatrix.Get(Drawing::Matrix::Index::TRANS_X),
+            relativeMatrix.Get(Drawing::Matrix::Index::SKEW_Y), relativeMatrix.Get(Drawing::Matrix::Index::SCALE_Y),
+            relativeMatrix.Get(Drawing::Matrix::Index::TRANS_Y), relativeMatrix.Get(Drawing::Matrix::Index::PERSP_0),
+            relativeMatrix.Get(Drawing::Matrix::Index::PERSP_1), relativeMatrix.Get(Drawing::Matrix::Index::PERSP_2));
+        auto sdfRect = child->GetRenderProperties().GetRRectForSDF().rect_;
+        auto center = Vector3f(sdfRect.GetLeft() + sdfRect.GetWidth() / 2.0f,
+            sdfRect.GetTop() + sdfRect.GetHeight() / 2.0f, 1.0f);
+        auto result = matrix.Transpose() *  center;
+        if (std::abs(result.z_) < SCALE_EPSILON) {
+            return Vector2f(0.0f, 0.0f); // scaling too large
+        }
+        return Vector2f(result.x_ / result.z_, result.y_ / result.z_);
+    }
+    return Vector2f(0.0f, 0.0f);
 }
 
 std::shared_ptr<RSNGRenderShapeBase> RSUnionRenderNode::GetOrCreateChildSDFShape(std::shared_ptr<RSRenderNode>& child)

@@ -659,6 +659,13 @@ void RSProperty<RSShadowBlenderPara>::UpdateToRender(
 }
 
 template<>
+void RSProperty<RSHdrDarkenBlenderPara>::UpdateToRender(
+    const RSHdrDarkenBlenderPara& value, PropertyUpdateType type) const
+{
+    UPDATE_TO_RENDER(RSUpdatePropertyHdrDarkenBlenderPara, value, type);
+}
+
+template<>
 void RSProperty<Drawing::DrawCmdListPtr>::UpdateToRender(
     const Drawing::DrawCmdListPtr& value, PropertyUpdateType type) const
 {

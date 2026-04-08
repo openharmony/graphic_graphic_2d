@@ -208,6 +208,7 @@ public:
             case RSPropertyType::BG_BRIGHTNESS_NEGCOEFF: return "BgBrightnessNegcoeff";
             case RSPropertyType::BG_BRIGHTNESS_FRACTION: return "BgBrightnessFraction";
             case RSPropertyType::SHADOW_BLENDER_PARAMS: return "ShadowBlenderParams";
+            case RSPropertyType::HDR_DARKEN_BLENDER_PARAMS: return "HdrDarkenBlenderParams";
             case RSPropertyType::FRAME_GRAVITY: return "FrameGravity";
             case RSPropertyType::CLIP_RRECT: return "ClipRrect";
             case RSPropertyType::CLIP_BOUNDS: return "ClipBounds";
@@ -316,6 +317,9 @@ public:
             case RSPropertyType::COMPOSITING_NG_FILTER: return "CompositingNGFilter";
             case RSPropertyType::USE_UNION: return "UseUnion";
             case RSPropertyType::UNION_SPACING: return "UnionSpacing";
+            case RSPropertyType::SDF_UNION_MODE: return "SDFUnionMode";
+            case RSPropertyType::GRAVITY_UNION_STRENGTH: return "UnionGravityStrength";
+            case RSPropertyType::GRAVITY_CENTER_FLAG: return "UnionGravityCenter";
             case RSPropertyType::SDF_SHAPE: return "SDFShape";
             case RSPropertyType::MATERIAL_NG_FILTER: return "MaterialNGFilter";
             case RSPropertyType::COLOR_PICKER_PLACEHOLDER : return "ColorPickerPlaceholder";
