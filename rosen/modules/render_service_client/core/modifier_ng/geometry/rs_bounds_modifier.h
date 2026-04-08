@@ -52,6 +52,7 @@ public:
     void SetUnionMode(int uniModeUC);
     void SetGravityPullCenterFlag(bool isGravityPullModeCenter);
     void SetGravityPullStrength(float gravityPullStrength);
+    void SetGravityHotZone(float hotZone);
 
     Vector4f GetBounds() const;
     Vector2f GetBoundsSize() const;
@@ -66,6 +67,7 @@ public:
     int GetUnionMode() const;
     bool GetGravityPullCenterFlag() const;
     float GetGravityPullStrength() const;
+    float GetGravityHotZone() const;
 };
 } // namespace OHOS::Rosen::ModifierNG
 #endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_GEOMETRY_RS_BOUNDS_MODIFIER_H

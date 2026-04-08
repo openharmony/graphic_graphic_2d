@@ -2961,6 +2961,18 @@ void RSNode::SetGravityPullCenterFlag(bool isGravityPullModeCenter)
         &ModifierNG::RSBoundsModifier::SetGravityPullCenterFlag>(isGravityPullModeCenter);
 }
 
+void RSNode::SetGravityPullStrength(float gravityPullStrength)
+{
+    SetPropertyNG<ModifierNG::RSBoundsModifier,
+        &ModifierNG::RSBoundsModifier::SetGravityPullStrength>(gravityPullStrength);
+}
+
+void RSNode::SetGravityHotZone(float hotZone)
+{
+    SetPropertyNG<ModifierNG::RSBoundsModifier,
+        &ModifierNG::RSBoundsModifier::SetGravityHotZone>(hotZone);
+}
+
 void RSNode::SetSDFShape(const std::shared_ptr<RSNGShapeBase>& shape)
 {
     if (!shape) {

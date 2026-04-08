@@ -27,7 +27,9 @@ const RSBoundsRenderModifier::LegacyPropertyApplierMap RSBoundsRenderModifier::L
     { RSPropertyType::GRAVITY_CENTER_FLAG,
         RSRenderModifier::PropertyApplyHelper<bool, &RSProperties::SetGravityPullCenterFlag> },
     { RSPropertyType::GRAVITY_UNION_STRENGTH,
-        RSRenderModifier::PropertyApplyHelper<int, &RSProperties::SetGravityPullStrength> },
+        RSRenderModifier::PropertyApplyHelper<float, &RSProperties::SetGravityPullStrength> },
+    { RSPropertyType::GRAVITY_HOT_ZONE,
+        RSRenderModifier::PropertyApplyHelper<float, &RSProperties::SetGravityHotZone> },
 };
 
 void RSBoundsRenderModifier::ResetProperties(RSProperties& properties)
@@ -36,6 +38,7 @@ void RSBoundsRenderModifier::ResetProperties(RSProperties& properties)
     properties.SetSDFUnionMode(0);
     properties.SetGravityPullCenterFlag(false);
     properties.SetGravityPullStrength(0.f);
+    properties.SetGravityHotZone(0.f);
     properties.SetUnionSpacing(0.f);
     properties.SetSDFShape(nullptr);
 }

@@ -858,6 +858,8 @@ public:
     bool GetGravityPullCenterFlag() const;
     void SetGravityPullStrength(float gravityPullStrength);
     float GetGravityPullStrength() const;
+    void SetGravityHotZone(float hotZone);
+    float GetGravityHotZone() const;
     void SetUnionSpacing(float spacing);
     float GetUnionSpacing() const;
 
@@ -1091,6 +1093,7 @@ private:
     bool hasHarmonium_ = false;
     bool useUnion_ = false;
     float gravityPullStrength_ = 0.0f;
+    float gravityHotZone_ = 0.0f;
     bool isGravityPullModeCenter_ = false; // true, current node is gravity pull center
     int uniModeUC_ = 0; // 1 GravityPull Mode, 0 SmoothUnion.
     bool alphaOffscreen_ = false;

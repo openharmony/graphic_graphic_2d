@@ -1664,6 +1664,20 @@ public:
     void SetGravityPullCenterFlag(bool isGravityPullModeCenter);
 
     /**
+     * @brief Sets the strength of gravity pull union node.
+     *
+     * @param gravityPullStrength: strength of gravity pull.
+     */
+    void SetGravityPullStrength(float gravityPullStrength);
+
+    /**
+     * @brief Sets the hotZone of gravity pull union node.
+     *
+     * @param hotZone: hot zone of gravity pull.
+     */
+    void SetGravityHotZone(float hotZone);
+
+    /**
      * @brief Sets the SDF Shape.
      *
      * @param shape SDF Shape (SDF Union OP Shape, SDF Smooth Union OP Shape, SDF RRect Shape)

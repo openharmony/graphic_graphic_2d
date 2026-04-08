@@ -157,6 +157,16 @@ float RSBoundsModifier::GetGravityPullStrength() const
     return Getter(RSPropertyType::GRAVITY_UNION_STRENGTH, 0.f);
 }
 
+void RSBoundsModifier::SetGravityHotZone(float hotZone)
+{
+    Setter(RSPropertyType::GRAVITY_HOT_ZONE, hotZone);
+}
+
+float RSBoundsModifier::GetGravityHotZone() const
+{
+    return Getter(RSPropertyType::GRAVITY_HOT_ZONE, 0.f);
+}
+
 void RSBoundsModifier::SetSDFShape(const std::shared_ptr<RSNGShapeBase>& shape)
 {
     Setter<RSProperty, std::shared_ptr<RSNGShapeBase>>(RSPropertyType::SDF_SHAPE, shape);
