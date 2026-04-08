@@ -282,7 +282,10 @@ void RSScreenPreprocessor::OnHwcDeadEvent()
 void RSScreenPreprocessor::OnHwcEventCallback(
     uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData)
 {
-    callbackMgr_.NotifyHwcEvent(deviceId, eventId, eventData);
+    auto task = [this, deviceId, eventId, eventData] () {
+        callbackMgr_.NotifyHwcEvent(deviceId, eventId, eventData);
+    };
+    ScheduleTask(task);
 }
 
 void RSScreenPreprocessor::OnScreenVBlankIdleEvent(uint32_t devId, uint64_t ns)
