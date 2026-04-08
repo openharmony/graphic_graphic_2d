@@ -572,13 +572,20 @@ HWTEST_F(HgmFrameRateMgrTest, HandleScreenRectFrameRate, Function | SmallTest | 
 {
     int32_t testThreadNum = 100;
     auto& hgmCore = HgmCore::Instance();
+    HgmFrameRateManager frameRateMgr;
     bool isSelfOwnedScreen = false;
+    frameRateMgr.HandleScreenRectFrameRate(externalScreenId, rectF);
     EXPECT_EQ(hgmCore.AddScreen(externalScreenId, 0, screenSize, isSelfOwnedScreen), EXEC_SUCCESS);
     auto screen = hgmCore.GetScreen(externalScreenId);
     ASSERT_NE(screen, nullptr);
+    frameRateMgr.HandleScreenRectFrameRate(externalScreenId, rectF);
     screen->isSelfOwnedScreenFlag_.store(true);
 
-    HgmFrameRateManager frameRateMgr;
+    std::shared_ptr<PolicyConfigData> cachedPolicyConfigData = nullptr;
+    std::swap(hgmCore.mPolicyConfigData_, cachedPolicyConfigData);
+    frameRateMgr.HandleScreenRectFrameRate(externalScreenId, rectF);
+    std::swap(cachedPolicyConfigData, hgmCore.mPolicyConfigData_);
+
     HgmTaskHandleThread::Instance().PostTask([&]() {
         for (int i = 0; i < testThreadNum; i++) {
             // HandleScreenRectFrameRate
@@ -1845,6 +1852,234 @@ HWTEST_F(HgmFrameRateMgrTest, TestAddScreenInit, Function | SmallTest | Level2)
     HgmCore::Instance().mPolicyConfigData_ = nullptr;
     mgr.AddScreenInit();
     EXPECT_EQ(mgr.isAmbientEffect_, false);
+}
+
+/**
+ * @tc.name: HandleScreenPowerStatusAndRectFrameRateTest
+ * @tc.desc: Verify curScreenStrategyId_ with different call sequences
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, HandleScreenPowerStatusAndRectFrameRateTest, Function | SmallTest | Level0)
+{
+    auto& hgmCore = HgmCore::Instance();
+    auto frameRateMgr = hgmCore.GetFrameRateMgr();
+    auto configData = hgmCore.GetPolicyConfigData();
+    if (configData == nullptr || frameRateMgr == nullptr) {
+        return;
+    }
+
+    ScreenId testScreenId = 10;
+    Rect testRect { .x = 100, .y = 200, .w = 300, .h = 400 };
+    bool isSelfOwnedScreen = false;
+
+    configData->screenStrategyConfigs_["screen10_LTPO"] = "LTPO-DEFAULT";
+    configData->screenStrategyConfigs_["screen10_LTPO_100_200_300_400"] = "LTPO-RECT";
+
+    EXPECT_EQ(hgmCore.AddScreen(testScreenId, 0, screenSize, isSelfOwnedScreen), EXEC_SUCCESS);
+
+    frameRateMgr->curScreenStrategyId_.clear();
+    frameRateMgr->activeRectScreenId_ = INVALID_SCREEN_ID;
+    frameRateMgr->activeRect_ = { 0, 0, 0, 0 };
+    frameRateMgr->curScreenId_.store(INVALID_SCREEN_ID);
+
+    frameRateMgr->HandleScreenPowerStatus(testScreenId, ScreenPowerStatus::POWER_STATUS_ON);
+    std::string strategyId1 = frameRateMgr->curScreenStrategyId_;
+    EXPECT_NE(strategyId1.find("screen10_LTPO"), std::string::npos);
+    EXPECT_EQ(strategyId1.find("100_200_300_400"), std::string::npos);
+
+    frameRateMgr->HandleScreenRectFrameRate(testScreenId, testRect);
+    std::string strategyId2 = frameRateMgr->curScreenStrategyId_;
+    EXPECT_NE(strategyId2.find("screen10_LTPO"), std::string::npos);
+    EXPECT_NE(strategyId2.find("100_200_300_400"), std::string::npos);
+
+    frameRateMgr->curScreenStrategyId_.clear();
+    frameRateMgr->activeRectScreenId_ = INVALID_SCREEN_ID;
+    frameRateMgr->activeRect_ = { 0, 0, 0, 0 };
+    frameRateMgr->curScreenId_.store(INVALID_SCREEN_ID);
+
+    frameRateMgr->HandleScreenRectFrameRate(testScreenId, testRect);
+    std::string strategyId3 = frameRateMgr->curScreenStrategyId_;
+    EXPECT_NE(strategyId3.find("screen10_LTPO"), std::string::npos);
+    EXPECT_NE(strategyId3.find("100_200_300_400"), std::string::npos);
+
+    frameRateMgr->HandleScreenPowerStatus(testScreenId, ScreenPowerStatus::POWER_STATUS_ON);
+    std::string strategyId4 = frameRateMgr->curScreenStrategyId_;
+    EXPECT_NE(strategyId4.find("screen10_LTPO"), std::string::npos);
+    EXPECT_NE(strategyId4.find("100_200_300_400"), std::string::npos);
+
+    frameRateMgr->curScreenStrategyId_.clear();
+    frameRateMgr->activeRectScreenId_ = INVALID_SCREEN_ID;
+    frameRateMgr->activeRect_ = { 0, 0, 0, 0 };
+    frameRateMgr->curScreenId_.store(INVALID_SCREEN_ID);
+
+    frameRateMgr->HandleScreenPowerStatus(testScreenId, ScreenPowerStatus::POWER_STATUS_ON);
+    std::string strategyId5 = frameRateMgr->curScreenStrategyId_;
+    EXPECT_NE(strategyId5.find("screen10_LTPO"), std::string::npos);
+    EXPECT_EQ(strategyId5.find("100_200_300_400"), std::string::npos);
+
+    EXPECT_EQ(hgmCore.RemoveScreen(testScreenId), EXEC_SUCCESS);
+}
+
+/**
+ * @tc.name: HandleScreenPowerStatusAndRectFrameRateTest2
+ * @tc.desc: Verify curScreenStrategyId_ for non-self-owned screens and different rect switching
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, HandleScreenPowerStatusAndRectFrameRateTest2, Function | SmallTest | Level0)
+{
+    auto& hgmCore = HgmCore::Instance();
+    auto frameRateMgr = hgmCore.GetFrameRateMgr();
+    auto configData = hgmCore.GetPolicyConfigData();
+    if (configData == nullptr || frameRateMgr == nullptr) {
+        return;
+    }
+
+    ScreenId selfOwnedScreenId = 20;
+    ScreenId nonSelfOwnedScreenId = 21;
+    Rect rect1 { .x = 100, .y = 200, .w = 300, .h = 400 };
+    Rect rect2 { .x = 150, .y = 250, .w = 350, .h = 450 };
+    bool isSelfOwnedScreen = false;
+
+    configData->screenStrategyConfigs_["screen20_LTPO"] = "LTPO-DEFAULT";
+    configData->screenStrategyConfigs_["screen20_LTPO_100_200_300_400"] = "LTPO-RECT1";
+    configData->screenStrategyConfigs_["screen20_LTPO_150_250_350_450"] = "LTPO-RECT2";
+
+    EXPECT_EQ(hgmCore.AddScreen(selfOwnedScreenId, 0, screenSize, isSelfOwnedScreen), EXEC_SUCCESS);
+    EXPECT_EQ(hgmCore.AddScreen(nonSelfOwnedScreenId, 0, screenSize, isSelfOwnedScreen), EXEC_SUCCESS);
+
+    frameRateMgr->curScreenStrategyId_.clear();
+    frameRateMgr->activeRectScreenId_ = INVALID_SCREEN_ID;
+    frameRateMgr->activeRect_ = { 0, 0, 0, 0 };
+    frameRateMgr->curScreenId_.store(INVALID_SCREEN_ID);
+
+    std::string originalStrategyId = frameRateMgr->curScreenStrategyId_;
+    frameRateMgr->HandleScreenPowerStatus(nonSelfOwnedScreenId, ScreenPowerStatus::POWER_STATUS_ON);
+    std::string strategyId1 = frameRateMgr->curScreenStrategyId_;
+    EXPECT_EQ(strategyId1, originalStrategyId);
+
+    frameRateMgr->HandleScreenRectFrameRate(nonSelfOwnedScreenId, rect1);
+    std::string strategyId2 = frameRateMgr->curScreenStrategyId_;
+    EXPECT_EQ(strategyId2, originalStrategyId);
+
+    frameRateMgr->curScreenStrategyId_.clear();
+    frameRateMgr->activeRectScreenId_ = INVALID_SCREEN_ID;
+    frameRateMgr->activeRect_ = { 0, 0, 0, 0 };
+    frameRateMgr->curScreenId_.store(INVALID_SCREEN_ID);
+
+    frameRateMgr->HandleScreenPowerStatus(selfOwnedScreenId, ScreenPowerStatus::POWER_STATUS_ON);
+    frameRateMgr->HandleScreenRectFrameRate(selfOwnedScreenId, rect1);
+    std::string strategyId3 = frameRateMgr->curScreenStrategyId_;
+    EXPECT_NE(strategyId3.find("screen20_LTPO"), std::string::npos);
+    EXPECT_NE(strategyId3.find("100_200_300_400"), std::string::npos);
+
+    frameRateMgr->HandleScreenRectFrameRate(selfOwnedScreenId, rect2);
+    std::string strategyId4 = frameRateMgr->curScreenStrategyId_;
+    EXPECT_NE(strategyId4.find("screen20_LTPO"), std::string::npos);
+    EXPECT_NE(strategyId4.find("150_250_350_450"), std::string::npos);
+    EXPECT_EQ(strategyId4.find("100_200_300_400"), std::string::npos);
+
+    EXPECT_EQ(hgmCore.RemoveScreen(selfOwnedScreenId), EXEC_SUCCESS);
+    EXPECT_EQ(hgmCore.RemoveScreen(nonSelfOwnedScreenId), EXEC_SUCCESS);
+}
+
+/**
+ * @tc.name: HandleScreenPowerStatusAndRectFrameRateTest3
+ * @tc.desc: Verify curScreenStrategyId_ for multi-screen scenario
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, HandleScreenPowerStatusAndRectFrameRateTest3, Function | SmallTest | Level0)
+{
+    auto& hgmCore = HgmCore::Instance();
+    auto frameRateMgr = hgmCore.GetFrameRateMgr();
+    auto configData = hgmCore.GetPolicyConfigData();
+    if (configData == nullptr || frameRateMgr == nullptr) {
+        return;
+    }
+
+    ScreenId screenId1 = 30;
+    ScreenId screenId2 = 31;
+    Rect rect1 { .x = 100, .y = 200, .w = 300, .h = 400 };
+    Rect rect2 { .x = 150, .y = 250, .w = 350, .h = 450 };
+    bool isSelfOwnedScreen = false;
+
+    configData->screenStrategyConfigs_["screen30_LTPO"] = "LTPO-DEFAULT";
+    configData->screenStrategyConfigs_["screen30_LTPO_100_200_300_400"] = "LTPO-RECT1";
+    configData->screenStrategyConfigs_["screen31_LTPO"] = "LTPO-DEFAULT";
+    configData->screenStrategyConfigs_["screen31_LTPO_150_250_350_450"] = "LTPO-RECT2";
+
+    EXPECT_EQ(hgmCore.AddScreen(screenId1, 0, screenSize, isSelfOwnedScreen), EXEC_SUCCESS);
+    EXPECT_EQ(hgmCore.AddScreen(screenId2, 0, screenSize, isSelfOwnedScreen), EXEC_SUCCESS);
+
+    frameRateMgr->curScreenStrategyId_.clear();
+    frameRateMgr->activeRectScreenId_ = INVALID_SCREEN_ID;
+    frameRateMgr->activeRect_ = { 0, 0, 0, 0 };
+    frameRateMgr->curScreenId_.store(INVALID_SCREEN_ID);
+
+    frameRateMgr->HandleScreenPowerStatus(screenId1, ScreenPowerStatus::POWER_STATUS_ON);
+    frameRateMgr->HandleScreenRectFrameRate(screenId1, rect1);
+    std::string strategyId1 = frameRateMgr->curScreenStrategyId_;
+    EXPECT_NE(strategyId1.find("screen30_LTPO"), std::string::npos);
+    EXPECT_NE(strategyId1.find("100_200_300_400"), std::string::npos);
+
+    frameRateMgr->HandleScreenPowerStatus(screenId2, ScreenPowerStatus::POWER_STATUS_ON);
+    frameRateMgr->HandleScreenRectFrameRate(screenId2, rect2);
+    std::string strategyId2 = frameRateMgr->curScreenStrategyId_;
+    EXPECT_NE(strategyId2.find("screen31_LTPO"), std::string::npos);
+    EXPECT_NE(strategyId2.find("150_250_350_450"), std::string::npos);
+
+    frameRateMgr->HandleScreenPowerStatus(screenId1, ScreenPowerStatus::POWER_STATUS_ON);
+    std::string strategyId3 = frameRateMgr->curScreenStrategyId_;
+    EXPECT_NE(strategyId3.find("screen30_LTPO"), std::string::npos);
+    EXPECT_NE(strategyId3.find("100_200_300_400"), std::string::npos);
+
+    EXPECT_EQ(hgmCore.RemoveScreen(screenId1), EXEC_SUCCESS);
+    EXPECT_EQ(hgmCore.RemoveScreen(screenId2), EXEC_SUCCESS);
+}
+
+/**
+ * @tc.name: HandleScreenPowerStatusAndRectFrameRateTest4
+ * @tc.desc: Verify curScreenStrategyId_ when rect config is missing
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, HandleScreenPowerStatusAndRectFrameRateTest4, Function | SmallTest | Level0)
+{
+    auto& hgmCore = HgmCore::Instance();
+    auto frameRateMgr = hgmCore.GetFrameRateMgr();
+    auto configData = hgmCore.GetPolicyConfigData();
+    if (configData == nullptr || frameRateMgr == nullptr) {
+        return;
+    }
+
+    ScreenId testScreenId = 40;
+    Rect rect1 { .x = 100, .y = 200, .w = 300, .h = 400 };
+    Rect rect2 { .x = 150, .y = 250, .w = 350, .h = 450 };
+    bool isSelfOwnedScreen = false;
+
+    configData->screenStrategyConfigs_["screen40_LTPO"] = "LTPO-DEFAULT";
+    configData->screenStrategyConfigs_["screen40_LTPO_100_200_300_400"] = "LTPO-RECT1";
+
+    EXPECT_EQ(hgmCore.AddScreen(testScreenId, 0, screenSize, isSelfOwnedScreen), EXEC_SUCCESS);
+
+    frameRateMgr->curScreenStrategyId_.clear();
+    frameRateMgr->activeRectScreenId_ = INVALID_SCREEN_ID;
+    frameRateMgr->activeRect_ = { 0, 0, 0, 0 };
+    frameRateMgr->curScreenId_.store(INVALID_SCREEN_ID);
+
+    frameRateMgr->HandleScreenPowerStatus(testScreenId, ScreenPowerStatus::POWER_STATUS_ON);
+    frameRateMgr->HandleScreenRectFrameRate(testScreenId, rect1);
+    std::string strategyId1 = frameRateMgr->curScreenStrategyId_;
+    EXPECT_NE(strategyId1.find("screen40_LTPO"), std::string::npos);
+    EXPECT_NE(strategyId1.find("100_200_300_400"), std::string::npos);
+
+    frameRateMgr->HandleScreenRectFrameRate(testScreenId, rect2);
+    std::string strategyId2 = frameRateMgr->curScreenStrategyId_;
+    EXPECT_EQ(strategyId2, "LTPO-DEFAULT");
+
+    EXPECT_EQ(hgmCore.RemoveScreen(testScreenId), EXEC_SUCCESS);
 }
 } // namespace Rosen
 } // namespace OHOS
