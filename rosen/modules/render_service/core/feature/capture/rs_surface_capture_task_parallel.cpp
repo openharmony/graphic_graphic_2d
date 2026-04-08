@@ -288,6 +288,7 @@ bool RSSurfaceCaptureTaskParallel::Run(
         RSPaintFilterCanvas::ScreenshotType type = isHDRCapture ? RSPaintFilterCanvas::ScreenshotType::HDR_WINDOWSHOT :
             RSPaintFilterCanvas::ScreenshotType::SDR_WINDOWSHOT;
         canvas.SetScreenshotType(type);
+        canvas.SetOnMultipleScreen(!isHDRCapture); // not isHDRCapture means tmo to sdr
         canvas.SetHdrOn(isHDRCapture);
         canvas.SetScreenId(screenId_);
         canvas.SetIsWindowFreezeCapture(captureParam.isFreeze);
@@ -310,6 +311,7 @@ bool RSSurfaceCaptureTaskParallel::Run(
         } else {
             canvas.Translate(-boundsX_, -boundsY_);
         }
+        canvas.SetOnMultipleScreen(true); // sdr screenshot means tmo to sdr
         auto type = RSPaintFilterCanvas::ScreenshotType::SDR_SCREENSHOT;
         CaptureDisplayNode(*displayNodeDrawable_, canvas, captureParam, type);
     } else {
@@ -381,6 +383,8 @@ bool RSSurfaceCaptureTaskParallel::DrawHDRSurfaceContent(
     } else {
         canvas.Translate(-boundsX_, -boundsY_);
     }
+    canvas.SetOnMultipleScreen(!isOnHDR); // not isOnHDR means tmo to sdr
+    canvas.SetHdrOn(isOnHDR);
     canvas.SetDisableFilterCache(true);
     RSSurfaceRenderParams* curNodeParams = nullptr;
     if (displayNodeDrawable_) {

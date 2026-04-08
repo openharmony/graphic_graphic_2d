@@ -2511,6 +2511,11 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             }
             if (readRemoteObject) {
                 remoteObject = data.ReadRemoteObject();
+                if (remoteObject == nullptr) {
+                    RS_LOGE("RSClientToServiceConnectionStub::REFRESH_RATE_UPDATE_CALLBACK Read remoteObject failed!");
+                    ret = ERR_INVALID_DATA;
+                    break;
+                }
             }
             if (remoteObject != nullptr) {
                 callback = iface_cast<RSIHgmConfigChangeCallback>(remoteObject);
@@ -2556,6 +2561,12 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             }
             if (readRemoteObject) {
                 remoteObject = data.ReadRemoteObject();
+                if (remoteObject == nullptr) {
+                    RS_LOGE("RSClientToServiceConnectionStub::REGISTER_FRAME_RATE_LINKER_EXPECTED_FPS_CALLBACK "
+                        "Read remoteObject failed!");
+                    ret = ERR_INVALID_DATA;
+                    break;
+                }
             }
             if (remoteObject != nullptr) {
                 callback = iface_cast<RSIFrameRateLinkerExpectedFpsUpdateCallback>(remoteObject);

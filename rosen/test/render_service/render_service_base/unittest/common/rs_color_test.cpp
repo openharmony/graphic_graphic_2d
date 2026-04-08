@@ -467,4 +467,167 @@ HWTEST_F(RSColorTest, Float16Test, TestSize.Level1)
     EXPECT_TRUE(color.Float32ToFloat16(std::numeric_limits<float>::quiet_NaN()) == 0x7C01);
     EXPECT_EQ(color.Float32ToFloat16(5.960464477539063e-8), 0x0001); // subnomal: 5.960464477539063e-8
 }
+
+/**
+ * @tc.name: BT2020Test
+ * @tc.desc: Verify BT2020 Use
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSColorTest, BT2020Test, TestSize.Level1)
+{
+    float red = 0.5f;
+    float green = 1.0f;
+    float blue = 0.2f;
+    float alpha = 0.25f;
+    float headroom = 2.5f;
+    GraphicColorGamut colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020;
+    RSColor color(red, green, blue, alpha, colorSpace, headroom);
+    std::string out;
+    color.Dump(out);
+    EXPECT_FLOAT_EQ(color.GetRedF(), red);
+    EXPECT_FLOAT_EQ(color.GetGreenF(), green);
+    EXPECT_FLOAT_EQ(color.GetBlueF(), blue);
+    EXPECT_FLOAT_EQ(color.GetAlphaF(), alpha);
+    EXPECT_FLOAT_EQ(color.GetHeadroom(), headroom);
+    EXPECT_TRUE(color.GetColorSpace() == colorSpace);
+
+    float red1 = 0.0f;
+    float green1 = 1.0f;
+    float blue1 = 0.5f;
+    float alpha1 = 0.25f;
+    GraphicColorGamut colorSpace1 = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    RSColor color1(red1, green1, blue1, alpha1, colorSpace1, headroom);
+    EXPECT_EQ(color1.GetRed(), 0);
+    EXPECT_EQ(color1.GetGreen(), 255);
+    EXPECT_EQ(color1.GetBlue(), 128);
+    EXPECT_EQ(color1.GetAlpha(), 64);
+    EXPECT_FLOAT_EQ(color1.GetHeadroom(), headroom);
+    EXPECT_TRUE(color1.GetColorSpace() == colorSpace1);
+
+    RSColor color2(0.0f, 0.0f, 0.0f, 1.0f, colorSpace, 2.0f);
+    EXPECT_EQ(color2.AsRgbaInt(), 255);
+    RSColor color3(0.0f, 0.0f, 1.0f, 0.0f, colorSpace, 2.0f);
+    EXPECT_EQ(color3.AsArgbInt(), 255);
+    EXPECT_EQ(color2.AsBgraInt(), 255);
+    color2.MultiplyAlpha(0.5f);
+    EXPECT_FLOAT_EQ(color2.GetAlphaF(), 0.5f);
+}
+
+/**
+ * @tc.name: BT2020Test1
+ * @tc.desc: Verify BT2020 Use
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSColorTest, BT2020Test1, TestSize.Level1)
+{
+    RSColor color1(0.2f, 0.0f, 0.5f, 1.0f,
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 1.0f);
+    RSColor color2(0.0f, 0.0f, 0.0f, 0.0f,
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3, 2.0f);
+
+    EXPECT_TRUE(RSColor(0.1f, 0.0f, 0.25f, 0.5f,
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 2.0f) == (color1 + color2));
+    EXPECT_TRUE(RSColor(0.1f, 0.0f, 0.25f, 0.5f,
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 2.0f) == (color1 - color2));
+    EXPECT_TRUE(RSColor(0.0f, 0.0f, 0.0f, 0.0f,
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 2.0f) == (color2 - color1));
+
+    float scale = 0;
+    RSColor colorTest;
+    EXPECT_FALSE(color1 == colorTest);
+    EXPECT_TRUE(color1 == (color1 + colorTest));
+    EXPECT_TRUE(color1 == (color1 - colorTest));
+    EXPECT_FALSE(color1 == (color1 * scale));
+    EXPECT_TRUE(color1 == (color1 *= scale));
+
+    RSColor color3(0.5f, 0.1f, 0.0f, 1.0f,
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3, 2.0f);
+    RSColor color4(0.0f, 0.0f, 0.0f, 0.0f,
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB, 1.0f);
+    EXPECT_TRUE(color3 == (color3 + color4));
+    EXPECT_TRUE(color3 == (color3 - color4));
+}
+
+/**
+ * @tc.name: BT2020Test2
+ * @tc.desc: Verify BT2020 Use
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSColorTest, BT2020Test2, TestSize.Level1)
+{
+    RSColor color1(0.0f, 0.0f, 0.0f, 0.0f,
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3, 2.0f);
+    color1.ConvertToBT2020ColorSpace();
+    EXPECT_TRUE(RSColor(0.0f, 0.0f, 0.0f, 0.0f,
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 2.0f) == color1);
+    color1.ConvertToSRGBColorSpace();
+    EXPECT_TRUE(RSColor(0.0f, 0.0f, 0.0f, 0.0f,
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB, 2.0f) == color1);
+
+    RSColor color2(0.0f, 0.0f, 0.0f, 0.0f,
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB, 2.0f);
+    color2.ConvertToBT2020ColorSpace();
+    EXPECT_TRUE(RSColor(0.0f, 0.0f, 0.0f, 0.0f,
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 2.0f) == color2);
+    color2.ConvertToP3ColorSpace();
+    EXPECT_TRUE(RSColor(0.0f, 0.0f, 0.0f, 0.0f,
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3, 2.0f) == color2);
+
+    RSColor color3(0.0f, 0.0f, 0.0f, 0.0f,
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 2.0f);
+    color3.ConvertToSRGBColorSpace();
+    EXPECT_TRUE(RSColor(0.0f, 0.0f, 0.0f, 0.0f,
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB, 2.0f) == color3);
+    color3.ConvertToP3ColorSpace();
+    EXPECT_TRUE(RSColor(0.0f, 0.0f, 0.0f, 0.0f,
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3, 2.0f) == color3);
+}
+
+/**
+ * @tc.name: BT2020Test3
+ * @tc.desc: Verify BT2020 Use
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSColorTest, BT2020Test3, TestSize.Level1)
+{
+    int16_t red = 255;
+    int16_t green = 0;
+    int16_t blue = 0;
+    int16_t alpha = 255;
+    RSColor color1(red, green, blue, alpha, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    EXPECT_EQ(color1.GetRed(), red);
+    EXPECT_EQ(color1.GetGreen(), green);
+    EXPECT_EQ(color1.GetBlue(), blue);
+    EXPECT_EQ(color1.GetAlpha(), alpha);
+    int16_t red1 = 0;
+    int16_t green1 = 255;
+    int16_t blue1 = 255;
+    int16_t alpha1 = 0;
+    color1.SetRed(red1);
+    color1.SetGreen(green1);
+    color1.SetBlue(blue1);
+    color1.SetAlpha(alpha1);
+    EXPECT_EQ(color1.GetRed(), red1);
+    EXPECT_EQ(color1.GetGreen(), green1);
+    EXPECT_EQ(color1.GetBlue(), blue1);
+    EXPECT_EQ(color1.GetAlpha(), alpha1);
+
+    RSColor color2(red, green, blue, alpha, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+    EXPECT_EQ(color2.GetRed(), red);
+    EXPECT_EQ(color2.GetGreen(), green);
+    EXPECT_EQ(color2.GetBlue(), blue);
+    EXPECT_EQ(color2.GetAlpha(), alpha);
+    color2.SetRed(red1);
+    color2.SetGreen(green1);
+    color2.SetBlue(blue1);
+    color2.SetAlpha(alpha1);
+    EXPECT_EQ(color2.GetRed(), red1);
+    EXPECT_EQ(color2.GetGreen(), green1);
+    EXPECT_EQ(color2.GetBlue(), blue1);
+    EXPECT_EQ(color2.GetAlpha(), alpha1);
+}
 } // namespace OHOS::Rosen

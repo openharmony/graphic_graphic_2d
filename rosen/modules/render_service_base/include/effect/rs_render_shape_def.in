@@ -25,6 +25,15 @@ DECLARE_SHAPE(SDFSmoothUnionOpShape, SDF_SMOOTH_UNION_OP_SHAPE,
     ADD_PROPERTY_TAG(SDFSmoothUnionOpShape, ShapeY)
 );
 
+DECLARE_SHAPE(SDFDistortOpShape, SDF_DISTORT_OP_SHAPE,
+    ADD_PROPERTY_TAG(SDFDistortOpShape, LUCorner),
+    ADD_PROPERTY_TAG(SDFDistortOpShape, RUCorner),
+    ADD_PROPERTY_TAG(SDFDistortOpShape, RBCorner),
+    ADD_PROPERTY_TAG(SDFDistortOpShape, LBCorner),
+    ADD_PROPERTY_TAG(SDFDistortOpShape, BarrelDistortion),
+    ADD_PROPERTY_TAG(SDFDistortOpShape, Shape)
+);
+
 // SDF shape
 DECLARE_SHAPE(SDFRRectShape, SDF_RRECT_SHAPE,
     ADD_PROPERTY_TAG(SDFRRectShape, RRect)
@@ -39,7 +48,11 @@ DECLARE_SHAPE(SDFTriangleShape, SDF_TRIANGLE_SHAPE,
 
 DECLARE_SHAPE(SDFTransformShape, SDF_TRANSFORM_SHAPE,
     ADD_PROPERTY_TAG(SDFTransformShape, Matrix),
-    ADD_PROPERTY_TAG(SDFTransformShape, Shape)
+    ADD_PROPERTY_TAG(SDFTransformShape, Shape),
+    ADD_PROPERTY_TAG(SDFTransformShape, UnionMode),
+    ADD_PROPERTY_TAG(SDFTransformShape, GravityCenter),
+    ADD_PROPERTY_TAG(SDFTransformShape, GravityStrength),
+    ADD_PROPERTY_TAG(SDFTransformShape, GravitySpacing)
 );
 
 DECLARE_SHAPE(SDFPixelmapShape, SDF_PIXELMAP_SHAPE,

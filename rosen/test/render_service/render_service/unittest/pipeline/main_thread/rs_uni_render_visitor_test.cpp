@@ -1807,6 +1807,32 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateInfoForClonedNode, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateInfoForClonedNode001
+ * @tc.desc: Test UpdateInfoForClonedNode with IsRelatedSourceNode
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateInfoForClonedNode001, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(1);
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    nodeMap.renderNodeMap_.clear();
+    nodeMap.RegisterRenderNode(surfaceRenderNode);
+    
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceRenderNode->stagingRenderParams_.get());
+    surfaceRenderNode->SetRelatedSourceNode(true);
+    ASSERT_TRUE(surfaceRenderNode->IsRelatedSourceNode());
+
+    rsUniRenderVisitor->cloneNodeMap_.clear();
+    rsUniRenderVisitor->UpdateInfoForClonedNode(*surfaceRenderNode);
+    ASSERT_TRUE(surfaceParams->GetNeedCacheSurface());
+    ASSERT_TRUE(surfaceParams->IsNeedClearRelatedCache());
+}
+
+/**
  * @tc.name: PrepareForCloneNode
  * @tc.desc: Test PrepareForCloneNode while node is clone
  * @tc.type: FUNC

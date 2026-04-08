@@ -404,6 +404,7 @@ public:
     void SetColorPickerInterval(int interval);
     void SetColorPickerNotifyThreshold(int packedThresholds); // packed: lower 16 bits = dark, upper 16 bits = light
     void SetColorPickerRect(const Vector4f& rect); // [left, top, right, bottom]
+    void SetLastEquivalentDarkMode(EquivalentDarkMode darkMode);
     std::shared_ptr<ColorPickerParam> GetColorPicker() const;
 
     void SetFgBrightnessRates(const Vector4f& rates);
@@ -851,6 +852,12 @@ public:
 
     void SetUseUnion(bool useUnion);
     bool GetUseUnion() const;
+    void SetSDFUnionMode(int uniModeUC);
+    int GetSDFUnionMode() const;
+    void SetGravityPullCenterFlag(bool isGravityPullModeCenter);
+    bool GetGravityPullCenterFlag() const;
+    void SetGravityPullStrength(float gravityPullStrength);
+    float GetGravityPullStrength() const;
     void SetUnionSpacing(float spacing);
     float GetUnionSpacing() const;
 
@@ -1083,6 +1090,9 @@ private:
     bool needForceSubmit_ = false;
     bool hasHarmonium_ = false;
     bool useUnion_ = false;
+    float gravityPullStrength_ = 0.0f;
+    bool isGravityPullModeCenter_ = false; // true, current node is gravity pull center
+    int uniModeUC_ = 0; // 1 GravityPull Mode, 0 SmoothUnion.
     bool alphaOffscreen_ = false;
     std::optional<RRect> clipRRect_;
     bool alphaNeedApply_ = false;

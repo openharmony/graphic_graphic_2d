@@ -1849,6 +1849,9 @@ private:
     void CopyModifierValue(ModifierNG::RSPropertyType propertyType,
         std::shared_ptr<ModifierNG::RSRenderModifier> oldModifier,
         std::shared_ptr<ModifierNG::RSRenderModifier> newModifier);
+    
+    void CountRelatedNode(bool isIncrement);
+    void ClearRelatedSourceCache();
 
     RSSpecialLayerManager specialLayerManager_;
     bool specialLayerChanged_ = false;
@@ -2179,6 +2182,7 @@ private:
     NodeId clonedSourceNodeId_ = INVALID_NODEID;
     bool isClonedNodeOnTheTree_ = false;
     bool clonedSourceNodeNeedOffscreen_ = true;
+    int relatedNodeNum_ = 0;
 
     std::optional<std::pair<ScreenId, bool>> attachedInfo_ = std::nullopt;
     std::map<NodeId, RSSurfaceRenderNode::WeakPtr> childSubSurfaceNodes_;

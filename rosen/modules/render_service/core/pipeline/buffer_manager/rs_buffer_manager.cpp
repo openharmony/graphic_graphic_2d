@@ -252,7 +252,7 @@ void RSBufferManager::ReleaseBufferById(uint64_t bufferId)
 
     auto mergedFence = TryMergeFence(info.mergedFences_);
     RS_OPTIONAL_TRACE_NAME_FMT("RSBufferManager::ReleaseBufferById bufferId %" PRIu64 " Fence %d",
-        buffer->GetBufferId(), mergedFence->Get());
+        buffer->GetBufferId(), mergedFence ? mergedFence->Get() : -1);
     consumer->ReleaseBuffer(buffer, mergedFence);
     pendingReleaseBuffers_.erase(iter);
 }

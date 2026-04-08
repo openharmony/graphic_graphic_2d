@@ -276,15 +276,20 @@ bool RSBackgroundColorDrawable::OnUpdate(const RSRenderNode& node)
     if (bgColor.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB) {
         brush.SetColor(bgColor.ConvertToDrawingColor());
     } else {
-        // Currently, only P3 wide color space is supported, and it will be expanded soon.
+        std::shared_ptr<Drawing::ColorSpace> colorSpace = nullptr;
+        if (bgColor.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020) {
+            colorSpace =
+                Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::REC2020);
+        } else {
+            colorSpace =
+                Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3);
+        }
         if (ROSEN_GNE(bgColor.GetHeadroom(), 1.0f)) {
             Drawing::UIColor uiColor(bgColor.GetRedF(), bgColor.GetGreenF(), bgColor.GetBlueF(),
                                      bgColor.GetAlphaF(), bgColor.GetHeadroom());
-            brush.SetUIColor(uiColor,
-                Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3));
+            brush.SetUIColor(uiColor, colorSpace);
         } else {
-            brush.SetColor(bgColor.GetColor4f(),
-                Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3));
+            brush.SetColor(bgColor.GetColor4f(), colorSpace);
         }
     }
     if (properties.IsBgBrightnessValid()) {

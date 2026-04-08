@@ -2370,6 +2370,12 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawRelatedSourceNodeTest, TestSize.Le
     bmp.ClearWithColor(Drawing::Color::COLOR_RED);
     surfaceDrawable_->relatedSourceNodeCache_ = bmp.MakeImage();
     ASSERT_TRUE(surfaceDrawable_->DrawRelatedSourceNode(*canvas_, *surfaceParams));
+
+    surfaceParams->SetNeedClearRelatedCache(true);
+    ASSERT_TRUE(surfaceParams->IsNeedClearRelatedCache());
+    ASSERT_FALSE(surfaceDrawable_->DrawRelatedSourceNode(*canvas_, *surfaceParams));
+    ASSERT_EQ(surfaceDrawable_->relatedSourceNodeCache_, nullptr);
+    ASSERT_FALSE(surfaceParams->IsNeedClearRelatedCache());
 }
 
 /**

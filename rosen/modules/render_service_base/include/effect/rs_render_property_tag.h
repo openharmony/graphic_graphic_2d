@@ -85,6 +85,7 @@ enum class RSNGEffectType : int16_t {
     VARIABLE_RADIUS_BLUR,
     CONTENT_LIGHT,
     GRID_WARP,
+    DISTORTION_COLLAPSE,
     // mask type
     RIPPLE_MASK,
     DOUBLE_RIPPLE_MASK,
@@ -105,6 +106,7 @@ enum class RSNGEffectType : int16_t {
     SDF_PIXELMAP_SHAPE,
     SDF_TRANSFORM_SHAPE,
     SDF_EMPTY_SHAPE,
+    SDF_DISTORT_OP_SHAPE,
     // shader type
     CONTOUR_DIAGONAL_FLOW_LIGHT,
     DOT_MATRIX_SHADER,
@@ -128,6 +130,7 @@ enum class RSNGEffectType : int16_t {
     FROSTED_GLASS_BLUR,
     DISTORT_CHROMA,
     SDF_EDGE_LIGHT,
+    SDF_EDGE_LIGHT_EFFECT,
 };
 
 using RSNGEffectTypeUnderlying = std::underlying_type<RSNGEffectType>::type;

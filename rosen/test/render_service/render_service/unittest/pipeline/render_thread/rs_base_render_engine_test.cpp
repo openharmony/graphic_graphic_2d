@@ -676,6 +676,9 @@ HWTEST_F(RSBaseRenderEngineUnitTest, ColorSpaceConvertor001, TestSize.Level1)
     ASSERT_TRUE(ROSEN_EQ(parameter.sdrNits, 500.0f)); // 500: DEFAULT_DISPLAY_NIT
     ASSERT_TRUE(ROSEN_EQ(parameter.tmoNits, 500.0f)); // 500: DEFAULT_DISPLAY_NIT
 
+    params.isTmoToCurrentSDRNits = true;
+    renderEngine->ColorSpaceConvertor(shaderEffect, params, parameter);
+
     params.isHdrRedraw = false;
     params.isTmoNitsFixed = false;
     renderEngine->ColorSpaceConvertor(shaderEffect, params, parameter);

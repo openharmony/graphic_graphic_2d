@@ -101,6 +101,7 @@ struct BufferDrawParam {
     std::vector<float> layerLinearMatrix;
     bool isHdrRedraw = false;
     bool isTmoNitsFixed = false;
+    bool isTmoToCurrentSDRNits = false;
     bool hasMetadata = false; // SDR has metadata for AiHdrVideo and NatureTone
 #endif
 #ifdef HETERO_HDR_ENABLE

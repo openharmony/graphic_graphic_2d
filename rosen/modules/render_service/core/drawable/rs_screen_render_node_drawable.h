@@ -29,6 +29,8 @@
 #include "pipeline/rs_surface_handler.h"
 #include "rs_composer_client_manager.h"
 
+inline const std::string RENDER_NODE_NAME = "ScreenNode";
+
 namespace OHOS::Rosen {
 namespace DrawableV2 {
 class RSScreenRenderNodeDrawable : public RSRenderNodeDrawable {
@@ -159,7 +161,6 @@ private:
     bool SkipFrameByRefreshRate(uint32_t refreshRate, uint32_t expectedRefreshRate);
     void UpdateSurfaceDrawRegion(std::shared_ptr<RSPaintFilterCanvas>& mainCanvas,
         RSScreenRenderParams* params);
-    void CheckAndClearRelatedSourceNodeCache(RSScreenRenderParams& params);
 
     static void UpdateSlrScale(ScreenInfo& screenInfo);
 

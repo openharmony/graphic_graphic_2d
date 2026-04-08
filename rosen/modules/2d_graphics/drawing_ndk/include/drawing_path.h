@@ -565,7 +565,7 @@ bool OH_Drawing_PathBuildFromSvgString(OH_Drawing_Path* path, const char* str);
  *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if path or strSize is nullptr.
  * @since 26.0.0
  */
-OH_Drawing_ErrorCode OH_Drawing_PathConvertToSvgString(OH_Drawing_Path* path, char* str, size_t* strSize);
+OH_Drawing_ErrorCode OH_Drawing_PathConvertToSvgString(const OH_Drawing_Path* path, char* str, size_t* strSize);
 
 /**
  * @brief Return the status that point (x, y) is contained by path.
@@ -801,7 +801,7 @@ OH_Drawing_ErrorCode OH_Drawing_PathApproximate(OH_Drawing_Path* path, float acc
  * @since 26.0.0
  */
 OH_Drawing_ErrorCode OH_Drawing_PathGetPointData(
-    OH_Drawing_Path* path, OH_Drawing_Point2D* points, uint32_t* count);
+    const OH_Drawing_Path* path, OH_Drawing_Point2D* points, uint32_t* count);
 
 /**
  * @brief Get path verb data.
@@ -815,7 +815,7 @@ OH_Drawing_ErrorCode OH_Drawing_PathGetPointData(
  * @since 26.0.0
  */
 OH_Drawing_ErrorCode OH_Drawing_PathGetVerbData(
-    OH_Drawing_Path* path, OH_Drawing_PathIteratorVerb* verbs, uint32_t* count);
+    const OH_Drawing_Path* path, OH_Drawing_PathIteratorVerb* verbs, uint32_t* count);
 
 /**
  * @brief Get path conic weight data.
@@ -829,7 +829,7 @@ OH_Drawing_ErrorCode OH_Drawing_PathGetVerbData(
  * @since 26.0.0
  */
 OH_Drawing_ErrorCode OH_Drawing_PathGetConicWeightData(
-    OH_Drawing_Path* path, float* conicWeights, uint32_t* count);
+    const OH_Drawing_Path* path, float* conicWeights, uint32_t* count);
 
 /**
  * @brief Performs interpolation between the current path and another path based on a given weight, and stores the

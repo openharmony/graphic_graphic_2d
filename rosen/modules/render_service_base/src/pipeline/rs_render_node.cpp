@@ -36,10 +36,13 @@
 #include "drawable/rs_misc_drawable.h"
 #include "drawable/rs_property_drawable_foreground.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
+#include "effect/rs_render_shader_base.h"
+#include "transaction/rs_marshalling_helper.h"
 #include "feature/hdr/rs_colorspace_util.h"
 #ifdef RS_MEMORY_INFO_MANAGER
 #include "feature/memory_info_manager/rs_memory_info_manager.h"
 #endif
+#include "feature/layer/rs_layer_cache_manager_base.h"
 #include "modifier_ng/geometry/rs_transform_render_modifier.h"
 #include "modifier_ng/rs_render_modifier_ng.h"
 #include "params/rs_render_params.h"
@@ -667,6 +670,16 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
     }
     if (uifirstRootNodeId != INVALID_NODEID) {
         uifirstRootNodeId_ = uifirstRootNodeId;
+    }
+
+    auto surfaceNode = ReinterpretCastTo<RSSurfaceRenderNode>();
+    if (auto context = GetContext().lock();
+        surfaceNode && context && surfaceNode->IsRelated()) {
+        auto clonedSurfaceNode =
+            context->GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(surfaceNode->clonedSourceNodeId_);
+        if (clonedSurfaceNode) {
+            clonedSurfaceNode->CountRelatedNode(isOnTheTree_);
+        }
     }
 
     if (stagingRenderParams_) {
@@ -1929,6 +1942,8 @@ void RSRenderNode::CollectAndUpdateLocalEffectRect()
         }
         selfDrawRect_ = selfDrawRect_.JoinRect(filter->GetRect(boundsRect, EffectRectType::TOTAL));
     }
+    const auto& shader = GetRenderProperties().GetForegroundShader();
+    selfDrawRect_ = selfDrawRect_.JoinRect(RSNGRenderShaderHelper::CalcRect(shader, boundsRect));
 }
 
 void RSRenderNode::UpdateBufferDirtyRegion()
@@ -2712,6 +2727,11 @@ bool RSRenderNode::PrepareColorPicker(bool darkMode)
     auto drawable = GetColorPickerDrawable();
     if (!drawable) {
         return false;
+    }
+    if (GetRenderProperties().GetColorPicker() &&
+        GetRenderProperties().GetColorPicker()->lastEquivalentDarkMode != EquivalentDarkMode::INVALID) {
+        auto equivalentDarkMode = GetRenderProperties().GetColorPicker()->lastEquivalentDarkMode;
+        darkMode = equivalentDarkMode == EquivalentDarkMode::LIGHT ? false : true;
     }
     bool needSync = drawable->OnPrepare(darkMode);
     if (needSync) {
@@ -3952,6 +3972,11 @@ void RSRenderNode::OnTreeStateChanged()
 
 void RSRenderNode::HandleNodeRemovedFromTree()
 {
+    // Reset color picker memory when node goes off the tree
+    if (auto colorPickerDrawable = GetColorPickerDrawable()) {
+        GetMutableRenderProperties().SetLastEquivalentDarkMode(colorPickerDrawable->GetLastEquivalentDarkMode());
+        colorPickerDrawable->ResetColorMemory();
+    }
     isFullChildrenListValid_ = false;
     std::atomic_store_explicit(&fullChildrenList_, EmptyChildrenList, std::memory_order_release);
     assignOrEraseOnAccess(GetDrawableVec(__func__),
@@ -3960,10 +3985,6 @@ void RSRenderNode::HandleNodeRemovedFromTree()
     RS_PROFILER_KEEP_DRAW_CMD(drawCmdListNeedSync_); // false only when used for debugging
     uifirstNeedSync_ = true;
     AddToPendingSyncList();
-    // Reset color picker memory when node goes off the tree
-    if (auto colorPickerDrawable = GetColorPickerDrawable()) {
-        colorPickerDrawable->ResetColorMemory();
-    }
 }
 
 bool RSRenderNode::HasDisappearingTransition(bool recursive) const
@@ -4578,6 +4599,10 @@ void RSRenderNode::OnSync()
         stagingDrawCmdList_.clear();
         renderDrawable_->drawCmdIndex_ = stagingDrawCmdIndex_;
         drawCmdListNeedSync_ = false;
+    }
+
+    if (nodeGroupType_ == NodeGroupType::GROUPED_BY_LAYER) {
+        RSLayerCacheManagerBase::layerDrawables_.emplace_back(renderDrawable_);
     }
 
     if (drawableVecNeedClear_) {
@@ -5424,6 +5449,11 @@ std::shared_ptr<RSFilter> RSRenderNode::GetRSFilterWithSlot(RSDrawableSlot slot)
 void RSRenderNode::UpdateFilterRectInfo()
 {
     auto boundsRect = GetRenderProperties().GetBoundsRect();
+    auto sdfShape = GetRenderProperties().GetSDFShape();
+    if (sdfShape) {
+        // Calc transform draw rect and store in sdf shape instance
+        RSNGRenderShapeHelper::CalcRect(sdfShape, boundsRect);
+    }
     for (auto slot : filterDrawableSlotsSupportGetRect) {
         std::shared_ptr<RSFilter> filter = GetRSFilterWithSlot(slot);
         if (filter == nullptr) {

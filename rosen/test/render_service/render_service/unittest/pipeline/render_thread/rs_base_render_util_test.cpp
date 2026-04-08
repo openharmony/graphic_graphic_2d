@@ -17,8 +17,10 @@
 #include "limit_number.h"
 #include "parameters.h"
 
+#include "drawable/rs_screen_render_node_drawable.h"
 #include "feature/hyper_graphic_manager/hgm_render_context.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/main_thread/rs_uni_render_listener.h"
 #include "params/rs_screen_render_params.h"
 #include "engine/rs_base_render_util.h"
 #include "pipeline/rs_test_util.h"
@@ -467,8 +469,15 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_004, TestSize.Level2)
 HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_005, TestSize.Level2)
 {
     auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
-    sptr<IConsumerSurface> surfaceConsumer = IConsumerSurface::Create("ScreenNode");
-    rsSurfaceRenderNode->GetRSSurfaceHandler()->SetConsumer(surfaceConsumer);
+    using namespace HDI::Display::Graphic::Common::V1_0;
+    auto rsContext = std::make_shared<RSContext>();
+    RSScreenRenderNode::SharedPtr nodePtr = std::make_shared<RSScreenRenderNode>(1, 0, rsContext->weak_from_this());
+    auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(nodePtr));
+    auto surfaceHandler = screenDrawable->GetRSSurfaceHandlerOnDraw();
+    sptr<IBufferConsumerListener> listener = new RSUniRenderListener(surfaceHandler);
+    screenDrawable->CreateSurface(listener);
+    sptr<IConsumerSurface> surfaceConsumer = surfaceHandler->GetConsumer();
     sptr<SurfaceBuffer> buffer;
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
     int64_t timestamp = 0;

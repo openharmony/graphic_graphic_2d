@@ -25,6 +25,7 @@
 #include "pipeline/rs_test_util.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "uifirst_param.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -2103,5 +2104,41 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodes002, TestSize.Level1)
     uifirstManager_.UpdateUifirstNodes(*surfaceNode, true);
     EXPECT_TRUE(surfaceNode->GetLastFrameUifirstFlag() == MultiThreadCacheType::NONFOCUS_WINDOW);
     uifirstManager_.uifirstType_ = UiFirstCcmType::SINGLE;
+}
+
+/**
+* @tc.name: IsOcclusionEnabledTest001
+* @tc.desc: Test IsOcclusionEnabled basic conditions - mode, param and system check
+* @tc.type: FUNC
+* @tc.require: issues22678
+*/
+HWTEST_F(RSUifirstManagerTest, IsOcclusionEnabledTest001, TestSize.Level1)
+{
+    auto& uifirstManager = RSUifirstManager::Instance();
+    auto originalType = static_cast<int>(uifirstManager.GetUiFirstType());
+    auto originalParam = UIFirstParam::IsOcclusionEnabled();
+    auto originalOcclusionProp = system::GetParameter("rosen.uifirst.occlusion.enable", "1");
+
+    RSSurfaceRenderParams surfaceParams(1);
+    RSRenderThreadParams uniParams;
+
+    // Case 1: Not in MULTI_WINDOW_MODE - should return false
+    uifirstManager.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
+    EXPECT_FALSE(uifirstManager.IsOcclusionEnabled());
+
+    // Case 2: UIFirstParam occlusion disabled - should return false
+    uifirstManager.SetUiFirstType(static_cast<int>(UiFirstCcmType::MULTI));
+    UIFirstParam::SetOcclusionEnabled(false);
+    EXPECT_FALSE(uifirstManager.IsOcclusionEnabled());
+
+    // Case 3: System parameter occlusion disabled - should return false
+    UIFirstParam::SetOcclusionEnabled(true);
+    system::SetParameter("rosen.uifirst.occlusion.enable", "0");
+    EXPECT_FALSE(uifirstManager.IsOcclusionEnabled());
+
+    // Reset
+    uifirstManager.SetUiFirstType(originalType);
+    UIFirstParam::SetOcclusionEnabled(originalParam);
+    system::SetParameter("rosen.uifirst.occlusion.enable", originalOcclusionProp);
 }
 }

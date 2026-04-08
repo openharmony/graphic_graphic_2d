@@ -2351,5 +2351,20 @@ HWTEST_F(RSPaintFilterCanvasTest, InsertOpaqueRegionEmptyTest, TestSize.Level1)
     // The function handles empty rects gracefully
     EXPECT_TRUE(true);
 }
+
+/**
+ * @tc.name: IsDrawingOffscreenMirrorTest
+ * @tc.desc: GetIsDrawingOffscreenMirror/SetIsDrawingOffscreenMirror
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPaintFilterCanvasTest, IsDrawingOffscreenMirrorTest, TestSize.Level1)
+{
+    ASSERT_NE(paintFilterCanvas_, nullptr);
+    paintFilterCanvas_->SetIsDrawingOffscreenMirror(false);
+    EXPECT_EQ(paintFilterCanvas_->GetIsDrawingOffscreenMirror(), false);
+    paintFilterCanvas_->SetIsDrawingOffscreenMirror(true);
+    EXPECT_EQ(paintFilterCanvas_->GetIsDrawingOffscreenMirror(), true);
+}
 } // namespace Rosen
 } // namespace OHOS

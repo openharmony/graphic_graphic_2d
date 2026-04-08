@@ -189,6 +189,7 @@ rs_effect_feature_sources = [
   "rs_effect_feature/ng_filter_test/ng_filter_gasify_test.cpp",
   "rs_effect_feature/ng_filter_test/ng_filter_grid_warp_test.cpp",
   "rs_effect_feature/ng_filter_test/ng_filter_magnifier_test.cpp",
+  "rs_effect_feature/ng_filter_test/ng_filter_distortion_collapse_test.cpp",
   "rs_effect_feature/ng_filter_test/ng_filter_blur_test.cpp",
   "rs_effect_feature/ng_filter_test/ng_filter_edge_light_test.cpp",
   "rs_effect_feature/ng_filter_test/ng_filter_frosted_glass_blur_test.cpp",
@@ -199,6 +200,7 @@ rs_effect_feature_sources = [
   "rs_effect_feature/ng_filter_test/ng_filter_test.cpp",
   "rs_effect_feature/ng_filter_test/ng_filter_test_utils.cpp",
   "rs_effect_feature/ng_shape_test/ng_sdf_shape_test.cpp",
+  "rs_effect_feature/ng_shape_test/ng_sdf_distort_op_shape_test.cpp",
   "rs_effect_feature/ng_shape_test/ng_sdf_triangle_test.cpp",
   "rs_effect_feature/ng_shape_test/ng_sdf_test_utils.cpp",
   "rs_effect_feature/ui_filter_test/ui_filter_test.cpp",
@@ -313,6 +315,14 @@ ohos_unittest("RSGraphicTest") {
     "image_framework:image_native",
     "image_framework:pixelmap", 
     "image_framework:pixelmap_ndk",
+
+    "cJSON:cjson",
+    "googletest:gtest",
+    "graphics_effect:graphics_effect_core",
+    "hitrace:hitrace_meter",
+    "libpng:libpng",
+    "window_manager:libdm",
+    "zlib:libz",
   ]
 
   defines += gpu_defines
