@@ -147,7 +147,7 @@ public:
         }
     }
 
-    static std::shared_ptr<ColorSpace>skColorSpaceToDrawingColorSpace(sk_sp<SkColorSpace> skSpace)
+    static std::shared_ptr<ColorSpace> skColorSpaceToDrawingColorSpace(sk_sp<SkColorSpace> skSpace)
     {
         if (!skSpace) {
             return nullptr;
