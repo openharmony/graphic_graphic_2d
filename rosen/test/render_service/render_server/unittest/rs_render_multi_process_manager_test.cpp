@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,7 +29,7 @@ namespace OHOS::Rosen {
 namespace {
 constexpr pid_t TEST_PID = 1234;
 constexpr pid_t TEST_PID_2 = 5678;
-}
+} // namespace
 
 class RSMultiRenderProcessManagerTest : public testing::Test {
 public:

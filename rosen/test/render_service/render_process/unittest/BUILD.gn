@@ -1,4 +1,4 @@
-# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Copyright (c) 2026 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -29,7 +29,6 @@ ohos_unittest("RSRenderProcessAgentTest") {
     ]
 
     include_dirs = [
-        "../../../../../rosen/modules/platform",
         "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
         "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
         "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
@@ -59,9 +58,6 @@ ohos_unittest("RSRenderProcessAgentTest") {
         "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser/performance_feature_parser",
         "$graphic_2d_root/rosen/modules/render_service_base/src",
         "$graphic_2d_root/rosen/test/include",
-        "../../../../../../../../../../base/account/os_account/services/accountmgr/test/mock/app_account",
-        "../../../../../../../../../../base/security/access_token/interfaces/innerkits/nativetoken/include",
-        "../../../../../../../../../../base/security/access_token/interfaces/innerkits/token_sptproc/include",
         "$graphic_2d_root/rosen/modules/render_service/vsync",
     ]
 
@@ -106,7 +102,6 @@ ohos_unittest("RSRenderProcessMainTest") {
     ]
 
     include_dirs = [
-        "../../../../../rosen/modules/platform",
         "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
         "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
         "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
@@ -136,9 +131,6 @@ ohos_unittest("RSRenderProcessMainTest") {
         "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser/performance_feature_parser",
         "$graphic_2d_root/rosen/modules/render_service_base/src",
         "$graphic_2d_root/rosen/test/include",
-        "../../../../../../../../../../base/account/os_account/services/accountmgr/test/mock/app_account",
-        "../../../../../../../../../../base/security/access_token/interfaces/innerkits/nativetoken/include",
-        "../../../../../../../../../../base/security/access_token/interfaces/innerkits/token_sptproc/include",
         "$graphic_2d_root/rosen/modules/render_service/vsync",
     ]
 
@@ -183,7 +175,6 @@ ohos_unittest("RSRenderProcessTest") {
     ]
 
     include_dirs = [
-        "../../../../../rosen/modules/platform",
         "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
         "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
         "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
@@ -213,9 +204,6 @@ ohos_unittest("RSRenderProcessTest") {
         "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser/performance_feature_parser",
         "$graphic_2d_root/rosen/modules/render_service_base/src",
         "$graphic_2d_root/rosen/test/include",
-        "../../../../../../../../../../base/account/os_account/services/accountmgr/test/mock/app_account",
-        "../../../../../../../../../../base/security/access_token/interfaces/innerkits/nativetoken/include",
-        "../../../../../../../../../../base/security/access_token/interfaces/innerkits/token_sptproc/include",
         "$graphic_2d_root/rosen/modules/render_service/vsync",
     ]
 
