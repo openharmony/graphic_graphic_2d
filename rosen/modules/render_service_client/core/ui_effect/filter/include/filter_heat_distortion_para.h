@@ -77,12 +77,23 @@ public:
         return riseWeight_;
     }
 
+    void SetTimePhase(float timePhase)
+    {
+        timePhase_ = timePhase;
+    }
+
+    float GetTimePhase() const
+    {
+        return timePhase_;
+    }
+
 private:
     float intensity_ = 1.0f;
     float riseSpeed_ = 1.0f;
     float noiseScale_ = 1.0f;
     float noiseSpeed_ = 0.4f;
     float riseWeight_ = 0.2f;
+    float timePhase_ = 0.0f;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -170,12 +170,14 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(HeatDistortion, RiseSpeed, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(HeatDistortion, NoiseScale, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(HeatDistortion, NoiseSpeed, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(HeatDistortion, RiseWeight, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(HeatDistortion, TimePhase, float);
 
 DECLARE_ANIMATABLE_PROPERTY_TAG(BlurBubblesRise, BlurRadius, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(BlurBubblesRise, MixStrength, float);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(BlurBubblesRise, InvertMask, int);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(BlurBubblesRise, MaskChannel, int);
 DECLARE_ANIMATABLE_PROPERTY_TAG(BlurBubblesRise, MaskScrollSpeed, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(BlurBubblesRise, TimePhase, float);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(BlurBubblesRise, MaskImage, std::shared_ptr<Media::PixelMap>);
 
 DECLARE_ANIMATABLE_PROPERTY_TAG(BorderLight, Position, Vector3f);

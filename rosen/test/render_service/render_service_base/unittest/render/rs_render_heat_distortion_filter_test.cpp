@@ -67,18 +67,21 @@ HWTEST_F(RSRenderHeatDistortionFilterTest, HeatDistortionSetterGetter001, TestSi
     constexpr float noiseScale = 2.5f;
     constexpr float noiseSpeed = 0.7f;
     constexpr float riseWeight = 0.35f;
+    constexpr float timePhase = 0.45f;
 
     filter->Setter<HeatDistortionIntensityRenderTag>(intensity);
     filter->Setter<HeatDistortionRiseSpeedRenderTag>(riseSpeed);
     filter->Setter<HeatDistortionNoiseScaleRenderTag>(noiseScale);
     filter->Setter<HeatDistortionNoiseSpeedRenderTag>(noiseSpeed);
     filter->Setter<HeatDistortionRiseWeightRenderTag>(riseWeight);
+    filter->Setter<HeatDistortionTimePhaseRenderTag>(timePhase);
 
     EXPECT_FLOAT_EQ(filter->Getter<HeatDistortionIntensityRenderTag>()->Get(), intensity);
     EXPECT_FLOAT_EQ(filter->Getter<HeatDistortionRiseSpeedRenderTag>()->Get(), riseSpeed);
     EXPECT_FLOAT_EQ(filter->Getter<HeatDistortionNoiseScaleRenderTag>()->Get(), noiseScale);
     EXPECT_FLOAT_EQ(filter->Getter<HeatDistortionNoiseSpeedRenderTag>()->Get(), noiseSpeed);
     EXPECT_FLOAT_EQ(filter->Getter<HeatDistortionRiseWeightRenderTag>()->Get(), riseWeight);
+    EXPECT_FLOAT_EQ(filter->Getter<HeatDistortionTimePhaseRenderTag>()->Get(), timePhase);
 }
 
 /**
@@ -96,6 +99,7 @@ HWTEST_F(RSRenderHeatDistortionFilterTest, HeatDistortionGenerateGEVisualEffect0
     filter->Setter<HeatDistortionNoiseScaleRenderTag>(1.0f);
     filter->Setter<HeatDistortionNoiseSpeedRenderTag>(0.5f);
     filter->Setter<HeatDistortionRiseWeightRenderTag>(0.3f);
+    filter->Setter<HeatDistortionTimePhaseRenderTag>(0.5f);
 
     std::shared_ptr<RSNGRenderFilterBase> baseFilter = filter;
     RSNGRenderFilterHelper::GenerateGEVisualEffect(baseFilter);
