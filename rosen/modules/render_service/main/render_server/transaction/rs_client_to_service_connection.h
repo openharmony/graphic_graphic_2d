@@ -136,6 +136,10 @@ private:
 
     uint32_t SetScreenActiveMode(ScreenId id, uint32_t modeId) override;
 
+    int32_t SetAsMainScreen(ScreenId screenId, bool isMainScreen) override;
+
+    ScreenId GetMainScreenId() override;
+
     void SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate) override;
 
     void SetRefreshRateMode(int32_t refreshRateMode) override;
@@ -177,7 +181,7 @@ private:
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) override;
 
     int32_t SetDualScreenState(ScreenId id, DualScreenStatus status) override;
-    
+
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id) override;
 
     ErrCode GetScreenActiveMode(uint64_t id, RSScreenModeInfo& info) override;

@@ -520,6 +520,18 @@ int32_t RSInterfaces::SetDualScreenState(ScreenId id, DualScreenStatus status)
     return renderServiceClient_->SetDualScreenState(id, status);
 }
 
+int32_t RSInterfaces::SetAsMainScreen(ScreenId screenId, bool isMainScreen)
+{
+    ROSEN_LOGI("RSInterfaces::SetAsMainScreen. screenId[%{public}" PRIu64 "] isMainScreen[%{public}d]",
+               screenId, isMainScreen);
+    return renderServiceClient_->SetAsMainScreen(screenId, isMainScreen);
+}
+
+ScreenId RSInterfaces::GetMainScreenId()
+{
+    return renderServiceClient_->GetMainScreenId();
+}
+
 #endif // !ROSEN_ARKUI_X
 bool RSInterfaces::TakeSurfaceCaptureForUIWithoutUni(NodeId id,
     std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY)

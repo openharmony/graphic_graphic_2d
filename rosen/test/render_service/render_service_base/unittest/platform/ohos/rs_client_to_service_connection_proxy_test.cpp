@@ -1657,6 +1657,64 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SetDualScreenState002, TestSize.L
 }
 
 /**
+ * @tc.name: SetAsMainScreenTest001
+ * @tc.desc: Test SetAsMainScreen
+ * @tc.type: FUNC
+ * @tc.require: #23043
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, SetAsMainScreenTest001, TestSize.Level1)
+{
+    ScreenId screenId = 1;
+    bool isMainScreen = true;
+    auto ret = proxy->SetAsMainScreen(screenId, isMainScreen);
+    EXPECT_NE(ret, StatusCode::READ_PARCEL_ERR);
+}
+
+/**
+ * @tc.name: SetAsMainScreenTest002
+ * @tc.desc: Test SetAsMainScreen with mock remoteObject
+ * @tc.type: FUNC
+ * @tc.require: #23043
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, SetAsMainScreenTest002, TestSize.Level1)
+{
+    ScreenId screenId = 1;
+    bool isMainScreen = true;
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock;
+    auto mockproxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(0));
+    auto ret = mockproxy->SetAsMainScreen(screenId, isMainScreen);
+    EXPECT_EQ(ret, StatusCode::READ_PARCEL_ERR);
+}
+
+/**
+ * @tc.name: GetMainScreenIdTest001
+ * @tc.desc: Test GetMainScreenId
+ * @tc.type: FUNC
+ * @tc.require: #23043
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, GetMainScreenIdTest001, TestSize.Level1)
+{
+    ScreenId screenId = proxy->GetMainScreenId();
+    EXPECT_EQ(INVALID_SCREEN_ID, screenId);
+}
+
+/**
+ * @tc.name: GetMainScreenIdTest002
+ * @tc.desc: Test GetMainScreenId with mock remoteObject
+ * @tc.type: FUNC
+ * @tc.require: #23043
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, GetMainScreenIdTest002, TestSize.Level1)
+{
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock;
+    auto mockproxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(0));
+    auto ret = mockproxy->GetMainScreenId();
+    EXPECT_EQ(ret, INVALID_SCREEN_ID);
+}
+
+/**
  * @tc.name: GetRefreshInfoByPidAndUniqueIdTest Test
  * @tc.desc: GetRefreshInfoByPidAndUniqueIdTest Test
  * @tc.type:FUNC

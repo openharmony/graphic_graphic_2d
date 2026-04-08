@@ -197,6 +197,10 @@ public:
 
     int32_t SetDualScreenState(ScreenId id, DualScreenStatus status);
 
+    int32_t SetAsMainScreen(ScreenId screenId, bool isMainScreen);
+
+    ScreenId GetMainScreenId();
+
     RSScreenModeInfo GetScreenActiveMode(ScreenId id);
 
     std::vector<RSScreenModeInfo> GetScreenSupportedModes(ScreenId id);

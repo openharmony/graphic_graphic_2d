@@ -95,6 +95,8 @@ public:
     PanelPowerStatus GetPanelPowerStatus() const;
 
     int32_t SetDualScreenState(DualScreenStatus status);
+    int32_t SetAsMainScreen(bool isMainScreen);
+    bool IsMainScreen() const;
 
     void SetScreenBacklight(uint32_t level);
     int32_t GetScreenBacklight() const;

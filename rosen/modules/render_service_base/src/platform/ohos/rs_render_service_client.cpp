@@ -766,6 +766,28 @@ int32_t RSRenderServiceClient::SetDualScreenState(ScreenId id, DualScreenStatus 
     return clientToService->SetDualScreenState(id, status);
 }
 
+int32_t RSRenderServiceClient::SetAsMainScreen(ScreenId screenId, bool isMainScreen)
+{
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
+    if (clientToService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::%{public}s clientToService is nullptr", __func__);
+        return StatusCode::RENDER_SERVICE_NULL;
+    }
+
+    return clientToService->SetAsMainScreen(screenId, isMainScreen);
+}
+
+ScreenId RSRenderServiceClient::GetMainScreenId()
+{
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
+    if (clientToService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::%{public}s clientToService is nullptr", __func__);
+        return INVALID_SCREEN_ID;
+    }
+
+    return clientToService->GetMainScreenId();
+}
+
 RSScreenModeInfo RSRenderServiceClient::GetScreenActiveMode(ScreenId id)
 {
     auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();

@@ -902,6 +902,24 @@ int32_t RSClientToServiceConnection::SetDualScreenState(ScreenId id, DualScreenS
     return screenManagerAgent_->SetDualScreenState(id, status);
 }
 
+int32_t RSClientToServiceConnection::SetAsMainScreen(ScreenId screenId, bool isMainScreen)
+{
+    if (!screenManagerAgent_) {
+        RS_LOGE("%{public}s screenManagerAgent is null, screenId: %{public}" PRIu64, __func__, screenId);
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    return screenManagerAgent_->SetAsMainScreen(screenId, isMainScreen);
+}
+
+ScreenId RSClientToServiceConnection::GetMainScreenId()
+{
+    if (!screenManagerAgent_) {
+        RS_LOGE("%{public}s screenManagerAgent is null", __func__);
+        return INVALID_SCREEN_ID;
+    }
+    return screenManagerAgent_->GetMainScreenId();
+}
+
 RSVirtualScreenResolution RSClientToServiceConnection::GetVirtualScreenResolution(ScreenId id)
 {
     if (!screenManagerAgent_) {

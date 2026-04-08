@@ -79,6 +79,8 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_CHANGE_CALLBACK),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_SWITCHING_NOTIFY_CALLBACK),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_MODE),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_AS_MAIN_SCREEN),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_MAIN_SCREEN),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_REFRESH_RATE),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_REFRESH_RATE_MODE),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SYNC_FRAME_RATE_RANGE),
@@ -1124,6 +1126,29 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             int32_t retCode = SetDualScreenState(id, static_cast<DualScreenStatus>(status));
             if (!reply.WriteInt32(retCode)) {
                 RS_LOGE("RSClientToServiceConnectionStub::SET_DUAL_SCREEN_STATE write retCode failed!");
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_AS_MAIN_SCREEN): {
+            ScreenId screenId{INVALID_SCREEN_ID};
+            bool isMainScreen{false};
+            if (!data.ReadUint64(screenId) || !data.ReadBool(isMainScreen)) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_AS_MAIN_SCREEN Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            int32_t retCode = SetAsMainScreen(screenId, isMainScreen);
+            if (!reply.WriteInt32(retCode)) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_AS_MAIN_SCREEN write retCode failed!");
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_MAIN_SCREEN): {
+            ScreenId mainScreenId = GetMainScreenId();
+            if (!reply.WriteUint64(mainScreenId)) {
+                RS_LOGE("RSClientToServiceConnectionStub::GET_MAIN_SCREEN write mainScreenId failed!");
                 ret = ERR_INVALID_REPLY;
             }
             break;
