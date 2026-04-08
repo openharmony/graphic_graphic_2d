@@ -124,17 +124,20 @@ HWTEST_F(RSUIEffectFilterTest, RSUIEffectHeatDistortionParaTest, TestSize.Level1
     constexpr float noiseScale = 2.0f;
     constexpr float noiseSpeed = 0.3f;
     constexpr float riseWeight = 0.4f;
+    constexpr float timePhase = 0.25f;
     para->SetIntensity(intensity);
     para->SetRiseSpeed(riseSpeed);
     para->SetNoiseScale(noiseScale);
     para->SetNoiseSpeed(noiseSpeed);
     para->SetRiseWeight(riseWeight);
+    para->SetTimePhase(timePhase);
 
     EXPECT_EQ(intensity, para->GetIntensity());
     EXPECT_EQ(riseSpeed, para->GetRiseSpeed());
     EXPECT_EQ(noiseScale, para->GetNoiseScale());
     EXPECT_EQ(noiseSpeed, para->GetNoiseSpeed());
     EXPECT_EQ(riseWeight, para->GetRiseWeight());
+    EXPECT_EQ(timePhase, para->GetTimePhase());
 
     Parcel parcel;
     EXPECT_FALSE(para->Marshalling(parcel));
@@ -154,17 +157,20 @@ HWTEST_F(RSUIEffectFilterTest, RSUIEffectBlurBubblesRiseParaTest, TestSize.Level
     constexpr uint32_t invertMask = 1;
     constexpr uint32_t maskChannel = 3;
     constexpr float maskScrollSpeed = 0.15f;
+    constexpr float timePhase = 0.35f;
     para->SetBlurRadius(blurRadius);
     para->SetMixStrength(mixStrength);
     para->SetInvertMask(invertMask);
     para->SetMaskChannel(maskChannel);
     para->SetMaskScrollSpeed(maskScrollSpeed);
+    para->SetTimePhase(timePhase);
 
     EXPECT_EQ(blurRadius, para->GetBlurRadius());
     EXPECT_EQ(mixStrength, para->GetMixStrength());
     EXPECT_EQ(invertMask, para->GetInvertMask());
     EXPECT_EQ(maskChannel, para->GetMaskChannel());
     EXPECT_EQ(maskScrollSpeed, para->GetMaskScrollSpeed());
+    EXPECT_EQ(timePhase, para->GetTimePhase());
 
     Parcel parcel;
     EXPECT_FALSE(para->Marshalling(parcel));

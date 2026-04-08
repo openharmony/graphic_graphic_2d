@@ -334,6 +334,7 @@ std::shared_ptr<RSNGFilterBase> ConvertHeatDistortionFilterPara(std::shared_ptr<
     heatDistortionFilter->Setter<HeatDistortionNoiseScaleTag>(heatDistortionFilterPara->GetNoiseScale());
     heatDistortionFilter->Setter<HeatDistortionNoiseSpeedTag>(heatDistortionFilterPara->GetNoiseSpeed());
     heatDistortionFilter->Setter<HeatDistortionRiseWeightTag>(heatDistortionFilterPara->GetRiseWeight());
+    heatDistortionFilter->Setter<HeatDistortionTimePhaseTag>(heatDistortionFilterPara->GetTimePhase());
     return heatDistortionFilter;
 }
 
@@ -353,6 +354,7 @@ std::shared_ptr<RSNGFilterBase> ConvertBlurBubblesRiseFilterPara(std::shared_ptr
     blurBubblesRiseFilter->Setter<BlurBubblesRiseMaskChannelTag>(
         static_cast<int>(blurBubblesRiseFilterPara->GetMaskChannel()));
     blurBubblesRiseFilter->Setter<BlurBubblesRiseMaskScrollSpeedTag>(blurBubblesRiseFilterPara->GetMaskScrollSpeed());
+    blurBubblesRiseFilter->Setter<BlurBubblesRiseTimePhaseTag>(blurBubblesRiseFilterPara->GetTimePhase());
     blurBubblesRiseFilter->Setter<BlurBubblesRiseMaskImageTag>(blurBubblesRiseFilterPara->GetMaskImage());
     return blurBubblesRiseFilter;
 }
