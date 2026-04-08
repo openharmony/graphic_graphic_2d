@@ -16,6 +16,7 @@
 #define UIEFFECT_EFFECT_SPATIAL_POINT_LIGHT_EFFECT_PARA_H
 
 #include "visual_effect_para.h"
+#include "ui_effect/mask/include/mask_para.h"
 #include "common/rs_vector3.h"
 #include "common/rs_vector4.h"
 
@@ -69,11 +70,22 @@ public:
         return lightColor_;
     }
 
+    void SetMask(std::shared_ptr<MaskPara> mask)
+    {
+        maskPara_ = mask;
+    }
+
+    const std::shared_ptr<MaskPara>& GetMask() const
+    {
+        return maskPara_;
+    }
+
 private:
     float lightIntensity_ = 1.0f;
     Vector3f lightPosition_ = {0.0f, 0.0f, 1.0f};
     float attenuation_ = 0.5f;
     Vector4f lightColor_ = {1.0f, 1.0f, 1.0f, 1.0f};
+    std::shared_ptr<MaskPara> maskPara_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

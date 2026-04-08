@@ -1148,14 +1148,14 @@ napi_value EffectNapi::CreateSpatialPointLight(napi_env env, napi_callback_info 
     napi_get_undefined(env, &result);
     napi_status status;
     napi_value thisVar = nullptr;
-    napi_value argValue[NUM_4] = {0};
-    size_t argCount = NUM_4;
+    napi_value argValue[NUM_5] = {0};
+    size_t argCount = NUM_5;
     UIEFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
         UIEFFECT_LOG_E("EffectNapi CreateSpatialPointLight parsing input fail"));
 
-    if (argCount != NUM_4) {
-        UIEFFECT_LOG_E("Args number not equal to 4");
+    if (argCount < NUM_4) {
+        UIEFFECT_LOG_E("Args number less than 4");
         return nullptr;
     }
     std::shared_ptr<SpatialPointLightEffectPara> para = std::make_shared<SpatialPointLightEffectPara>();
@@ -1164,6 +1164,13 @@ napi_value EffectNapi::CreateSpatialPointLight(napi_env env, napi_callback_info 
 
     UIEFFECT_NAPI_CHECK_RET_D(GetSpatialPointLight(env, argValue, argCount, para), nullptr,
         UIEFFECT_LOG_E("EffectNapi GetSpatialPointLight fail"));
+
+    if (argCount >= NUM_5) {
+        Mask* mask = nullptr;
+        if (napi_unwrap(env, argValue[NUM_4], reinterpret_cast<void**>(&mask)) == napi_ok && mask != nullptr) {
+            para->SetMask(mask->GetMaskPara());
+        }
+    }
 
     VisualEffect* visualEffectObj = nullptr;
     status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&visualEffectObj));
