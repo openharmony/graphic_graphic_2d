@@ -141,7 +141,7 @@ private:
     void Render();
     void SendCommands();
     void ReleasePixelMapInBackgroundThread();
-#if defined(RS_ENABLE_VK) && defined(ROSEN_ARKUI_X) && defined(RS_ENABLE_GPU)
+#if defined(ROSEN_ARKUI_X) && defined(RS_ENABLE_GPU)
     void ScheduleIdleGpuResourceClean();
 #endif
 #ifdef CROSS_PLATFORM
@@ -195,7 +195,7 @@ private:
     std::atomic_bool isRunning_ = false;
 #endif
 
-#if defined(RS_ENABLE_VK) && defined(ROSEN_ARKUI_X) && defined(RS_ENABLE_GPU)
+#if defined(ROSEN_ARKUI_X) && defined(RS_ENABLE_GPU)
     std::atomic<int64_t> lastRenderEndTimeNs_ = 0;
 #endif
 };
