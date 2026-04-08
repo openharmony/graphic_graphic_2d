@@ -532,6 +532,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, Drawing::SharedTypeface& v
     success &= Marshalling(parcel, val.size_);
     success &= Marshalling(parcel, val.index_);
     success &= Marshalling(parcel, val.hash_);
+    RS_PROFILER_WRITE_SHARED_TYPEFACE(parcel, val);
     success &= static_cast<MessageParcel*>(&parcel)->WriteFileDescriptor(val.fd_);
     success &= Marshalling(parcel, val.hasFontArgs_);
 
@@ -572,7 +573,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, Drawing::SharedTypeface&
     success &= Unmarshalling(parcel, hash);
     if (success) { val.hash_ = hash; }
 
-    val.fd_ = static_cast<MessageParcel*>(&parcel)->ReadFileDescriptor();
+    RS_PROFILER_READ_SHARED_TYPEFACE(parcel, val);
     if (val.fd_ < 0) {
         success = false;
     }
