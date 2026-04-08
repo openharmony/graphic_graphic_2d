@@ -89,7 +89,6 @@ public:
         BEZIER_WARP,
         DISPERSION,
         CONTENT_LIGHT,
-        HEAT_DISTORTION,
         GASIFY_SCALE_TWIST,
         GASIFY_BLUR,
         GASIFY,

@@ -47,8 +47,6 @@ void RSUIEffectFilterTest::TearDownTestCase() {}
 void RSUIEffectFilterTest::SetUp()
 {
     ContentLightPara::RegisterUnmarshallingCallback();
-    HeatDistortionPara::RegisterUnmarshallingCallback();
-    BlurBubblesRisePara::RegisterUnmarshallingCallback();
     DispersionPara::RegisterUnmarshallingCallback();
     DisplacementDistortPara::RegisterUnmarshallingCallback();
     MaskTransitionPara::RegisterUnmarshallingCallback();
@@ -132,26 +130,15 @@ HWTEST_F(RSUIEffectFilterTest, RSUIEffectHeatDistortionParaTest, TestSize.Level1
     para->SetNoiseSpeed(noiseSpeed);
     para->SetRiseWeight(riseWeight);
 
+    EXPECT_EQ(intensity, para->GetIntensity());
+    EXPECT_EQ(riseSpeed, para->GetRiseSpeed());
+    EXPECT_EQ(noiseScale, para->GetNoiseScale());
+    EXPECT_EQ(noiseSpeed, para->GetNoiseSpeed());
+    EXPECT_EQ(riseWeight, para->GetRiseWeight());
+
     Parcel parcel;
-    EXPECT_TRUE(para->Marshalling(parcel));
-
-    std::shared_ptr<FilterPara> val = nullptr;
-    EXPECT_TRUE(FilterPara::Unmarshalling(parcel, val));
-    EXPECT_NE(nullptr, val);
-    auto heatDistortionPara = std::static_pointer_cast<HeatDistortionPara>(val);
-    EXPECT_EQ(intensity, heatDistortionPara->GetIntensity());
-    EXPECT_EQ(riseSpeed, heatDistortionPara->GetRiseSpeed());
-    EXPECT_EQ(noiseScale, heatDistortionPara->GetNoiseScale());
-    EXPECT_EQ(noiseSpeed, heatDistortionPara->GetNoiseSpeed());
-    EXPECT_EQ(riseWeight, heatDistortionPara->GetRiseWeight());
-    EXPECT_NE(nullptr, para->Clone());
-
-    std::shared_ptr<FilterPara> valTest = nullptr;
-    Parcel parcelTest;
-    EXPECT_EQ(false, HeatDistortionPara::OnUnmarshalling(parcelTest, valTest));
-    parcelTest.FlushBuffer();
-    parcelTest.WriteUint16(666);
-    EXPECT_EQ(false, HeatDistortionPara::OnUnmarshalling(parcelTest, valTest));
+    EXPECT_FALSE(para->Marshalling(parcel));
+    EXPECT_EQ(nullptr, para->Clone());
 }
 
 /**
@@ -173,26 +160,15 @@ HWTEST_F(RSUIEffectFilterTest, RSUIEffectBlurBubblesRiseParaTest, TestSize.Level
     para->SetMaskChannel(maskChannel);
     para->SetMaskScrollSpeed(maskScrollSpeed);
 
+    EXPECT_EQ(blurRadius, para->GetBlurRadius());
+    EXPECT_EQ(mixStrength, para->GetMixStrength());
+    EXPECT_EQ(invertMask, para->GetInvertMask());
+    EXPECT_EQ(maskChannel, para->GetMaskChannel());
+    EXPECT_EQ(maskScrollSpeed, para->GetMaskScrollSpeed());
+
     Parcel parcel;
-    EXPECT_TRUE(para->Marshalling(parcel));
-
-    std::shared_ptr<FilterPara> val = nullptr;
-    EXPECT_TRUE(FilterPara::Unmarshalling(parcel, val));
-    EXPECT_NE(nullptr, val);
-    auto blurBubblesRisePara = std::static_pointer_cast<BlurBubblesRisePara>(val);
-    EXPECT_EQ(blurRadius, blurBubblesRisePara->GetBlurRadius());
-    EXPECT_EQ(mixStrength, blurBubblesRisePara->GetMixStrength());
-    EXPECT_EQ(invertMask, blurBubblesRisePara->GetInvertMask());
-    EXPECT_EQ(maskChannel, blurBubblesRisePara->GetMaskChannel());
-    EXPECT_EQ(maskScrollSpeed, blurBubblesRisePara->GetMaskScrollSpeed());
-    EXPECT_NE(nullptr, para->Clone());
-
-    std::shared_ptr<FilterPara> valTest = nullptr;
-    Parcel parcelTest;
-    EXPECT_EQ(false, BlurBubblesRisePara::OnUnmarshalling(parcelTest, valTest));
-    parcelTest.FlushBuffer();
-    parcelTest.WriteUint16(666);
-    EXPECT_EQ(false, BlurBubblesRisePara::OnUnmarshalling(parcelTest, valTest));
+    EXPECT_FALSE(para->Marshalling(parcel));
+    EXPECT_EQ(nullptr, para->Clone());
 }
 
 /**

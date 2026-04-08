@@ -30,8 +30,6 @@ public:
     }
     ~BlurBubblesRisePara() override = default;
 
-    BlurBubblesRisePara(const BlurBubblesRisePara& other);
-
     void SetBlurRadius(float blurRadius)
     {
         blurRadius_ = blurRadius;
@@ -91,14 +89,6 @@ public:
     {
         return maskImage_;
     }
-
-    bool Marshalling(Parcel& parcel) const override;
-
-    static void RegisterUnmarshallingCallback();
-
-    [[nodiscard]] static bool OnUnmarshalling(Parcel& parcel, std::shared_ptr<FilterPara>& val);
-
-    std::shared_ptr<FilterPara> Clone() const override;
 
 private:
     float blurRadius_ = 3.0f;

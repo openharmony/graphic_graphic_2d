@@ -27,8 +27,6 @@ public:
     }
     ~HeatDistortionPara() override = default;
 
-    HeatDistortionPara(const HeatDistortionPara& other);
-
     void SetIntensity(float intensity)
     {
         intensity_ = intensity;
@@ -78,14 +76,6 @@ public:
     {
         return riseWeight_;
     }
-
-    bool Marshalling(Parcel& parcel) const override;
-
-    static void RegisterUnmarshallingCallback();
-
-    [[nodiscard]] static bool OnUnmarshalling(Parcel& parcel, std::shared_ptr<FilterPara>& val);
-
-    std::shared_ptr<FilterPara> Clone() const override;
 
 private:
     float intensity_ = 1.0f;

@@ -1223,8 +1223,6 @@ napi_value FilterNapi::SetMaskTransition(napi_env env, napi_callback_info info)
 void FilterNapi::RegisterFilterParaUnmarshallingCallback()
 {
     ContentLightPara::RegisterUnmarshallingCallback();
-    HeatDistortionPara::RegisterUnmarshallingCallback();
-    BlurBubblesRisePara::RegisterUnmarshallingCallback();
     DispersionPara::RegisterUnmarshallingCallback();
     DisplacementDistortPara::RegisterUnmarshallingCallback();
     MaskTransitionPara::RegisterUnmarshallingCallback();
