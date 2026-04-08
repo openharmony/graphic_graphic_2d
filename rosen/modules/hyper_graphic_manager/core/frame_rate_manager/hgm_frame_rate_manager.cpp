@@ -976,7 +976,7 @@ void HgmFrameRateManager::HandleScreenLtpoConfig(ScreenId id)
         hgmCore.SetActiveScreenId(curScreenId_.load());
     }
 
-    std::string curScreenName = "screen" + std::to_string(id) + "_" + (isLtpo ? "LTPO" : "LTPS");
+    std::string curScreenName = "screen" + std::to_string(id) + "_" + (isLtpo_ ? "LTPO" : "LTPS");
     if (id == activeRectScreenId_) {
         curScreenName += "_" + std::to_string(activeRect_.x);
         curScreenName += "_" + std::to_string(activeRect_.y);
