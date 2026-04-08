@@ -45,15 +45,16 @@ public:
         ScreenId screenId, ScreenId associatedScreenId, const sptr<RSScreenProperty>& property) override;
     void OnVirtualScreenDisconnected(ScreenId screenId) override;
 
-    void RecordRenderProcessConnection(pid_t pid, sptr<RSIServiceToRenderConnection> serviceToRenderConnection,
-        sptr<IRSComposerToRenderConnection> composerToRenderConnection,
-        sptr<RSIConnectToRenderProcess> connectToRenderConnection);
+    void RecordComposerToRenderConnection(pid_t pid, sptr<IRSComposerToRenderConnection> composerToRenderConnection);
     sptr<RSScreenProperty> GetPendingScreenProperty(pid_t pid) const;
-    void SetRenderProcessReadyPromise(pid_t pid);
+    void SetRenderProcessReadyPromise(pid_t pid, const sptr<RSIServiceToRenderConnection>& serviceToRenderConnection,
+        const sptr<RSIConnectToRenderProcess>& connectToRenderConnection);
 
     sptr<RSIServiceToRenderConnection> GetServiceToRenderConn(ScreenId screenId) const override;
     std::vector<sptr<RSIServiceToRenderConnection>> GetServiceToRenderConns() const override;
     sptr<RSIConnectToRenderProcess> GetConnectToRenderConnection(ScreenId screenId) const override;
+
+    std::shared_ptr<RSIpcReplayManager> GetIpcReplayManager() const override;
 
 private:
     sptr<IRemoteObject> HandleExistingGroup(pid_t pid, ScreenId screenId, const sptr<RSScreenProperty>& property);
@@ -99,6 +100,8 @@ private:
         sptr<RSScreenProperty> property = nullptr;
     };
     std::unordered_map<pid_t, PendingScreenConnectInfo> pendingScreenConnectInfos_;
+
+    const std::shared_ptr<RSIpcReplayManager> ipcReplayManager_;
 };
 } // namespace Rosen
 } // namespace OHOS

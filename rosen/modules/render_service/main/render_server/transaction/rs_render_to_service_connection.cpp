@@ -28,9 +28,12 @@ RSRenderToServiceConnection::RSRenderToServiceConnection(sptr<RSRenderServiceAge
       renderProcessManagerAgent_(renderProcessManagerAgent),
       screenManagerAgent_(screenManagerAgent) {}
 
-bool RSRenderToServiceConnection::NotifyRenderProcessInitFinished()
+bool RSRenderToServiceConnection::NotifyRenderProcessInitFinished(
+    const sptr<IRemoteObject>& serviceToRenderConnection, const sptr<IRemoteObject>& connectToRenderConnection)
 {
-    renderProcessManagerAgent_->SetRenderProcessReadyPromise(GetCallingPid());
+    auto serviceToRenderConn = iface_cast<RSIServiceToRenderConnection>(serviceToRenderConnection);
+    auto connectToRenderConn = iface_cast<RSIConnectToRenderProcess>(connectToRenderConnection);
+    renderProcessManagerAgent_->SetRenderProcessReadyPromise(GetCallingPid(), serviceToRenderConn, connectToRenderConn);
     return true;
 }
 

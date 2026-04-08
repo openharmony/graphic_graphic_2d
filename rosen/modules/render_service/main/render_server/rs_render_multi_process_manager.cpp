@@ -55,7 +55,7 @@ int32_t ForkAndExec(GroupId groupId)
                 errno, strerror(errno));
             exit(-1);
         }
-        std::string processName = "render_process_" + std::to_string(groupId);
+        std::string processName = "render_service:" + std::to_string(groupId);
         const char* binName = processName.c_str();
         char* argv[] = { const_cast<char*>(binName), NULL };
         if (execv("/system/bin/render_process", argv) == -1) {
@@ -72,7 +72,7 @@ int32_t ForkAndExec(GroupId groupId)
 } // namespace
 
 RSMultiRenderProcessManager::RSMultiRenderProcessManager(RSRenderService& renderService) :
-    RSRenderProcessManager(renderService)
+    RSRenderProcessManager(renderService), ipcReplayManager_(std::make_shared<RSIpcReplayManager>())
 {
     struct sigaction sa;
     sa.sa_handler = sigchld_handler;
@@ -84,15 +84,11 @@ RSMultiRenderProcessManager::RSMultiRenderProcessManager(RSRenderService& render
     }
 }
 
-void RSMultiRenderProcessManager::RecordRenderProcessConnection(pid_t pid,
-    sptr<RSIServiceToRenderConnection> serviceToRenderConnection,
-    sptr<IRSComposerToRenderConnection> composerToRenderConnection,
-    sptr<RSIConnectToRenderProcess> connectToRenderConnection)
+void RSMultiRenderProcessManager::RecordComposerToRenderConnection(
+    pid_t pid, sptr<IRSComposerToRenderConnection> composerToRenderConnection)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     composerToRenderConnections_.insert_or_assign(pid, composerToRenderConnection);
-    serviceToRenderConnections_.insert_or_assign(pid, serviceToRenderConnection);
-    connectToRenderConnections_.insert_or_assign(pid, connectToRenderConnection);
 }
 
 std::optional<pid_t> RSMultiRenderProcessManager::GetRenderProcessPidByGroupId(GroupId groupId) const
@@ -119,8 +115,15 @@ sptr<RSScreenProperty> RSMultiRenderProcessManager::GetPendingScreenProperty(pid
     return nullptr;
 }
 
-void RSMultiRenderProcessManager::SetRenderProcessReadyPromise(pid_t pid)
+void RSMultiRenderProcessManager::SetRenderProcessReadyPromise(pid_t pid,
+    const sptr<RSIServiceToRenderConnection>& serviceToRenderConnection,
+    const sptr<RSIConnectToRenderProcess>& connectToRenderConnection)
 {
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        serviceToRenderConnections_.insert_or_assign(pid, serviceToRenderConnection);
+        connectToRenderConnections_.insert_or_assign(pid, connectToRenderConnection);
+    }
     renderProcessReadyPromises_.at(pid).set_value(true);
     renderProcessReadyPromises_.erase(pid);
 }
@@ -286,12 +289,9 @@ void RSMultiRenderProcessManager::OnVirtualScreenDisconnected(ScreenId screenId)
 
 sptr<RSIServiceToRenderConnection> RSMultiRenderProcessManager::GetServiceToRenderConn(ScreenId screenId) const
 {
-    auto optionalGroupId = CheckGroupIdByScreenId(screenId);
-    if (!optionalGroupId.has_value()) {
-        return nullptr;
-    }
+    auto groupId = GetGroupIdByScreenId(screenId);
     std::lock_guard<std::mutex> lock(mutex_);
-    auto optionalPid = GetRenderProcessPidByGroupIdLocked(optionalGroupId.value());
+    auto optionalPid = GetRenderProcessPidByGroupIdLocked(groupId);
     if (!optionalPid.has_value()) {
         return nullptr;
     }
@@ -311,12 +311,9 @@ std::vector<sptr<RSIServiceToRenderConnection>> RSMultiRenderProcessManager::Get
 
 sptr<RSIConnectToRenderProcess> RSMultiRenderProcessManager::GetConnectToRenderConnection(ScreenId screenId) const
 {
-    auto optionalGroupId = CheckGroupIdByScreenId(screenId);
-    if (!optionalGroupId.has_value()) {
-        return nullptr;
-    }
+    auto groupId = GetGroupIdByScreenId(screenId);
     std::lock_guard<std::mutex> lock(mutex_);
-    auto optionalPid = GetRenderProcessPidByGroupIdLocked(optionalGroupId.value());
+    auto optionalPid = GetRenderProcessPidByGroupIdLocked(groupId);
     if (!optionalPid.has_value()) {
         return nullptr;
     }
@@ -408,6 +405,11 @@ ScreenId RSMultiRenderProcessManager::FindVirtualToPhysicalScreenMap(ScreenId sc
         return iter->second;
     }
     return screenId;
+}
+
+std::shared_ptr<RSIpcReplayManager> RSMultiRenderProcessManager::GetIpcReplayManager() const
+{
+    return ipcReplayManager_;
 }
 } // namespace Rosen
 } // namespace OHOS

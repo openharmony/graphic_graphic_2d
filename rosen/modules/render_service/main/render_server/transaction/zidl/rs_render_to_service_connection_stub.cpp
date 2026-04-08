@@ -38,7 +38,17 @@ int RSRenderToServiceConnectionStub::OnRemoteRequest(
     }
     switch (code) {
         case static_cast<uint32_t>(RSIRenderToServiceConnectionInterfaceCode::NOTIFY_RENDER_PROCESS_READY): {
-            auto result = NotifyRenderProcessInitFinished();
+            sptr<IRemoteObject> serviceToRenderConnection = data.ReadRemoteObject();
+            if (!serviceToRenderConnection) {
+                RS_LOGE("%{public}s::NOTIFY_RENDER_PROCESS_READY Read serviceToRenderConnection failed.", __func__);
+                return ERR_INVALID_STATE;
+            }
+            sptr<IRemoteObject> connectToRenderConnection = data.ReadRemoteObject();
+            if (!connectToRenderConnection) {
+                RS_LOGE("%{public}s::NOTIFY_RENDER_PROCESS_READY Read connectToRenderConnection failed.", __func__);
+                return ERR_INVALID_STATE;
+            }
+            auto result = NotifyRenderProcessInitFinished(serviceToRenderConnection, connectToRenderConnection);
             if (!reply.WriteBool(result)) {
                 RS_LOGE("%{public}s::NOTIFY_RENDER_PROCESS_READY WriteBool failed.", __func__);
                 return ERR_INVALID_STATE;
@@ -55,11 +65,6 @@ int RSRenderToServiceConnectionStub::OnRemoteRequest(
             sptr<HgmProcessToServiceInfo> processToServiceInfo = data.ReadParcelable<HgmProcessToServiceInfo>();
             if (!processToServiceInfo) {
                 RS_LOGE("%{public}s::NOTIFY_PROCESS_FRAME_RATE ReadParcelable failed.", __func__);
-                return ERR_INVALID_STATE;
-            }
-            uint32_t size = 0;
-            if (!data.ReadUint32(size) || size > MAX_SCREEN_ID_COUNT) {
-                RS_LOGE("%{public}s::NOTIFY_PROCESS_FRAME_RATE ReadSize failed.", __func__);
                 return ERR_INVALID_STATE;
             }
             auto serviceToProcessInfo = NotifyRpHgmFrameRate(timestamp, vsyncId, processToServiceInfo);

@@ -30,7 +30,8 @@ public:
     virtual ~RSIRenderToServiceConnection() noexcept = default;
 
     // Process Manager
-    virtual bool NotifyRenderProcessInitFinished() = 0;
+    virtual bool NotifyRenderProcessInitFinished(
+        const sptr<IRemoteObject>& serviceToRenderConnection, const sptr<IRemoteObject>& connectToRenderConnection) = 0;
 
     // Hgm
     virtual sptr<HgmServiceToProcessInfo> NotifyRpHgmFrameRate(uint64_t timestamp, uint64_t vsyncId,

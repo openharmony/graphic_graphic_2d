@@ -19,6 +19,7 @@
 #include "iremote_object.h"
 #include "message_parcel.h"
 
+#include "platform/ohos/transaction/ipc_replay/rs_ipc_replay_manager.h"
 #include "screen_manager/rs_screen_property.h"
 
 namespace OHOS {
@@ -28,9 +29,9 @@ public:
     ReplyToRenderInfo() = default;
     ReplyToRenderInfo(const sptr<IRemoteObject>& renderToServiceConnection,
         const sptr<IRemoteObject>& composerConnection, const sptr<RSScreenProperty>& rsScreenProperty,
-        const sptr<IRemoteObject>& vsyncConn)
+        const sptr<IRemoteObject>& vsyncConn, const std::shared_ptr<IpcReplayTypeToDataMap>& replayData)
         : serviceConnection_(renderToServiceConnection), composeConnection_(composerConnection),
-          rsScreenProperty_(rsScreenProperty), vsyncConn_(vsyncConn) {}
+          rsScreenProperty_(rsScreenProperty), vsyncConn_(vsyncConn), replayData_(replayData) {}
     ~ReplyToRenderInfo() noexcept override = default;
 
     bool Marshalling(Parcel& data) const override;
@@ -39,26 +40,21 @@ public:
     sptr<IRemoteObject> serviceConnection_ = nullptr;
     sptr<IRemoteObject> composeConnection_ = nullptr;
     sptr<RSScreenProperty> rsScreenProperty_ = nullptr;
-    sptr<IRemoteObject> vsyncConn_ {};
+    sptr<IRemoteObject> vsyncConn_ = nullptr;
+    std::shared_ptr<IpcReplayTypeToDataMap> replayData_ = nullptr;
 };
 
 struct RSB_EXPORT ConnectToServiceInfo : public Parcelable {
 public:
     ConnectToServiceInfo() = default;
-    ConnectToServiceInfo(const sptr<IRemoteObject>& serviceToRenderConnection,
-        const sptr<IRemoteObject>& composerToRenderConnection, const sptr<IRemoteObject>& connectToRenderConnection,
-        const sptr<IRemoteObject>& vsyncToken)
-        : serviceToRenderConnection_(serviceToRenderConnection),
-          composerToRenderConnection_(composerToRenderConnection),
-          connectToRenderConnection_(connectToRenderConnection), vsyncToken_(vsyncToken) {}
+    ConnectToServiceInfo(const sptr<IRemoteObject>& composerToRenderConnection, const sptr<IRemoteObject>& vsyncToken)
+        : composerToRenderConnection_(composerToRenderConnection), vsyncToken_(vsyncToken) {}
     ~ConnectToServiceInfo() noexcept override = default;
 
     bool Marshalling(Parcel& data) const override;
     [[nodiscard]] static ConnectToServiceInfo* Unmarshalling(Parcel& data);
 
-    sptr<IRemoteObject> serviceToRenderConnection_ = nullptr;
     sptr<IRemoteObject> composerToRenderConnection_ = nullptr;
-    sptr<IRemoteObject> connectToRenderConnection_ = nullptr;
     sptr<IRemoteObject> vsyncToken_ = nullptr;
 };
 } // namespace Rosen
