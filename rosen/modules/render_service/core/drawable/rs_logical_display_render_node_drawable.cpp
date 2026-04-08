@@ -539,7 +539,7 @@ std::vector<RectI> RSLogicalDisplayRenderNodeDrawable::CalculateVirtualDirty(
         uniParam->GetForceMirrorScreenDirty() || uniParam->GetVirtualDirtyRefresh() || virtualDirtyNeedRefresh_ ||
         curScreenParams->GetHasMirroredScreenChanged() || specialLayerChange ||
         !curScreenDrawable.GetSyncDirtyManager()->GetCurrentFrameDirtyRegion().IsEmpty() ||
-        lastEnableVisibleRect_ != enableVisibleRect_;
+        lastEnableVisibleRect_ != enableVisibleRect_ || !curScreenParams->IsEqualVsyncPeriod();
     if (needRefresh) {
         curScreenDrawable.GetSyncDirtyManager()->ResetDirtyAsSurfaceSize();
         virtualDirtyNeedRefresh_ = false;
@@ -554,11 +554,6 @@ std::vector<RectI> RSLogicalDisplayRenderNodeDrawable::CalculateVirtualDirty(
         return mappedDamageRegion.GetRegionRectIs();
     }
     curScreenDrawable.SetAccumulateDirtyInSkipFrame(false);
-    if (!curScreenParams->IsEqualVsyncPeriod()) {
-        RS_LOGD("RSLogicalDisplayRenderNodeDrawable::CalculateVirtualDirty frame rate is irregular");
-        virtualProcesser->SetRoiRegionToCodec(mappedDamageRegion.GetRegionRectIs());
-        return mappedDamageRegion.GetRegionRectIs();
-    }
     const auto& mainScreenInfo = mirrorParams->GetScreenInfo();
     int32_t bufferAge = virtualProcesser->GetBufferAge();
     std::vector<RectI> damageRegionRects = RSUniRenderUtil::MergeDirtyHistoryInVirtual(
