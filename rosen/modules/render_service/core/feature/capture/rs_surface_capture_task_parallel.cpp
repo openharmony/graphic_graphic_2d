@@ -225,10 +225,14 @@ bool RSSurfaceCaptureTaskParallel::CreateResources()
         }
         surfaceNodeDrawable_ = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
             DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(curNode));
+        if (!surfaceNodeDrawable_) {
+            return false;
+        }
+        auto surfaceNodeParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable_->GetRenderParams().get());
         // When the window freeze capture invokes the F16 screenshot mode and window need use F16 capture,
         // or when the HDR mode is invoked and the window contains HDR resources, an F16 buffer needs to be allocated.
         bool isF16Capture = (captureConfig_.needF16WindowCaptureForScRGB && RSHdrUtil::NeedUseF16Capture(curNode)) ||
-            (captureConfig_.isHdrCapture && surfaceNode->GetHDRPresent());
+            (captureConfig_.isHdrCapture && surfaceNodeParams->SelfOrChildHasHDR());
         pixelMap_ = CreatePixelMapBySurfaceNode(curNode, isF16Capture);
         auto screenNode = std::static_pointer_cast<RSScreenRenderNode>(surfaceNode->GetAncestorScreenNode().lock());
         if (screenNode) {
@@ -284,7 +288,7 @@ bool RSSurfaceCaptureTaskParallel::Run(
         RS_LOGD("surfaceCapParam.hasDirtyContent_: %{public}d", surfaceCapParam.hasDirtyContent_);
         RSUniRenderThread::SetCaptureParam(surfaceCapParam);
         DrawableV2::RSRenderNodeDrawable::ClearSnapshotProcessedNodeCount();
-        bool isHDRCapture = captureConfig_.isHdrCapture && curNodeParams->GetHDRPresent();
+        bool isHDRCapture = captureConfig_.isHdrCapture && curNodeParams->SelfOrChildHasHDR();
         RSPaintFilterCanvas::ScreenshotType type = isHDRCapture ? RSPaintFilterCanvas::ScreenshotType::HDR_WINDOWSHOT :
             RSPaintFilterCanvas::ScreenshotType::SDR_WINDOWSHOT;
         canvas.SetScreenshotType(type);
