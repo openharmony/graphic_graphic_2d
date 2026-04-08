@@ -16,6 +16,7 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 group("test") {
   testonly = true
   deps = [
+    "render_process/unittest:unittest",
     "render_process/unittest/transaction:unittest",
     "render_server/unittest:unittest",
     "render_server/unittest/transaction:unittest",
