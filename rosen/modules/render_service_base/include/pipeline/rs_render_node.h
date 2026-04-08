@@ -470,6 +470,10 @@ public:
     std::tuple<bool, bool, bool> Animate(
         int64_t timestamp, int64_t& minLeftDelayTime, int64_t period = 0, bool isDisplaySyncEnabled = false);
 
+    std::tuple<bool, bool, bool> Animate(
+        int64_t timestamp, int64_t& minLeftDelayTime, int64_t period, bool isDisplaySyncEnabled,
+        int64_t& nextFrameTime);
+
     // check if all clip properties are enabled
     bool IsClipBound() const;
     // clipRect has value in UniRender when calling PrepareCanvasRenderNode, else it is nullopt

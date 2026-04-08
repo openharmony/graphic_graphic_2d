@@ -1747,6 +1747,34 @@ std::tuple<bool, bool, bool> RSRenderNode::Animate(
     return animateResult;
 }
 
+std::tuple<bool, bool, bool> RSRenderNode::Animate(
+    int64_t timestamp, int64_t& minLeftDelayTime, int64_t period, bool isDisplaySyncEnabled,
+    int64_t& nextFrameTime)
+{
+    RS_PROFILER_ANIMATION_NODE(GetType(), selfDrawRect_.GetWidth() * selfDrawRect_.GetWidth());
+    if (displaySync_ && displaySync_->OnFrameSkipForAnimate(
+        timestamp, period, isDisplaySyncEnabled, nextFrameTime)) {
+        minLeftDelayTime = 0;
+        return displaySync_->GetAnimateResult();
+    }
+ 
+    RSSurfaceNodeAbilityState abilityState = RSSurfaceNodeAbilityState::FOREGROUND;
+ 
+    // Animation on surfaceNode is always on foreground ability state.
+    // If instanceRootNode is surfaceNode, get its ability state. If not, regard it as foreground ability state.
+    if (GetType() != RSRenderNodeType::SURFACE_NODE) {
+        if (auto instanceRootNode = GetInstanceRootNode()) {
+            abilityState = instanceRootNode->GetAbilityState();
+        }
+    }
+ 
+    auto animateResult = animationManager_.Animate(timestamp, minLeftDelayTime, IsOnTheTree(), abilityState);
+    if (displaySync_) {
+        displaySync_->SetAnimateResult(animateResult);
+    }
+    return animateResult;
+}
+
 bool RSRenderNode::IsClipBound() const
 {
     auto& renderProperties = GetRenderProperties();

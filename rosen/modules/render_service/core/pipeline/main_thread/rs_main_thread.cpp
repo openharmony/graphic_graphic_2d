@@ -238,7 +238,6 @@ constexpr uint32_t EXT_INFO_MAX_LENGTH = 100;
 constexpr uint32_t HIGH_32BIT = 32;
 constexpr uint64_t PERIOD_MAX_OFFSET = 1000000; // 1ms
 constexpr uint64_t FASTCOMPOSE_OFFSET = 600000; // 600us fastcompose threshold
-constexpr int64_t REQUEST_NEXT_FRAME_ADVANCE_NS = 500000; // 500us
 constexpr const char* WALLPAPER_VIEW = "WallpaperView";
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
 constexpr const char* DESKTOP_NAME_FOR_ROTATION = "SCBDesktop";
@@ -3589,10 +3588,11 @@ void RSMainThread::Animate(uint64_t timestamp)
         totalAnimationSize += node->animationManager_.GetAnimationsSize();
         node->animationManager_.SetRateDeciderEnable(
             isRateDeciderEnabled, hgmRenderContext_->GetConvertFrameRateFunc());
+        int64_t nodeNextFrameTime = 0;
         auto [hasRunningAnimation, nodeNeedRequestNextVsync, nodeCalculateAnimationValue] =
-            node->Animate(timestamp, minLeftDelayTime, period, isDisplaySyncEnabled);
-        nextFrameTime = (node->displaySync_ && node.use_count() != 1) ?
-            std::min(nextFrameTime, node->displaySync_->GetNextFrameTime()) : 0;
+            node->Animate(timestamp, minLeftDelayTime, period, isDisplaySyncEnabled, nodeNextFrameTime);
+        nextFrameTime = (nodeNextFrameTime != 0 && node.use_count() != 1) ?
+            std::min(nextFrameTime, nodeNextFrameTime) : 0;
         if (!hasRunningAnimation) {
             node->InActivateDisplaySync();
             RS_LOGD("Animate removing finished animating node %{public}" PRIu64, node->GetId());
@@ -3650,8 +3650,10 @@ void RSMainThread::Animate(uint64_t timestamp)
             PostTask(RequestNextVSyncTask, "animate_request_next_vsync", minLeftDelayTime - oneFrameTimeInFPS60,
                 AppExecFwk::EventQueue::Priority::IMMEDIATE);
         } else {
+            // Advance by 0.5 ms to prevent VSync jitter from causing this frame to be missed.
+            constexpr int64_t requestNextFrameAdvanceNs = 500000;
             int64_t requestNextFrameTime = (nextFrameTime == INT64_MAX) ? 0 : nextFrameTime;
-            requestNextFrameTime -= REQUEST_NEXT_FRAME_ADVANCE_NS;
+            requestNextFrameTime -= requestNextFrameAdvanceNs;
             RequestNextVSync("animate", timestamp_, requestNextFrameTime);
         }
     } else if (isUniRender_) {
