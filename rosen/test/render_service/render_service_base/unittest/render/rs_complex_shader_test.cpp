@@ -102,7 +102,22 @@ HWTEST_F(RSComplexShaderTest, UnmarshallingTest001, TestSize.Level1)
     auto rsComplexShader = std::make_shared<RSComplexShader>();
     bool needReset = false;
     Parcel parcel;
-    EXPECT_TRUE(rsComplexShader->Unmarshalling(parcel, needReset));
+    EXPECT_FALSE(rsComplexShader->Unmarshalling(parcel, needReset));
+}
+
+/**
+ * @tc.name: MarshallingAndUnmarshallingTest001
+ * @tc.desc: Test round-trip marshalling and unmarshalling
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSComplexShaderTest, MarshallingAndUnmarshallingTest001, TestSize.Level1)
+{
+    auto rsComplexShader1 = std::make_shared<RSComplexShader>(GexComplexShaderType::COLOR_GRADIENT);
+    Parcel parcel;
+    EXPECT_TRUE(rsComplexShader1->Marshalling(parcel));
+    
+    bool needReset = false;
+    EXPECT_TRUE(rsComplexShader1->Unmarshalling(parcel, needReset));
 }
 
 /**
