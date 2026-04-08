@@ -1725,6 +1725,9 @@ void RSClientToServiceConnection::ReportGameStateData(GameStateData info)
     for (auto conn : serviceToRenderConns) {
         conn->ReportGameStateData(info);
     }
+    if (renderServiceAgent_ != nullptr) {
+        renderServiceAgent_->HandleGameSceneChanged();
+    }
 }
 
 
