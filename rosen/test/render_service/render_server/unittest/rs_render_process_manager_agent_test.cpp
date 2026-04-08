@@ -36,7 +36,8 @@ namespace OHOS::Rosen {
 namespace {
 RSRenderService renderService;
 sptr<RSRenderProcessManagerAgent> g_rsManager = nullptr;
-}
+} // namespace
+
 namespace {
 class RSSingleRenderProcessManagerMock : public RSRenderProcessManager {
 public:
@@ -128,6 +129,7 @@ public:
     sptr<RSIConnectToRenderProcess> connectToRenderConnection_ = nullptr;
 };
 } // namespace
+
 class RSRenderProcessManagerAgentTest : public testing::Test {
 public:
     static void SetUpTestCase();
