@@ -17,6 +17,7 @@
 #include <gtest/gtest.h>
 
 #include "common/rs_common_def.h"
+#include "common/rs_common_hook.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "dirty_region/rs_optimize_canvas_dirty_collector.h"
 #include "drawable/rs_color_picker_drawable.h"
@@ -4366,6 +4367,25 @@ HWTEST_F(RSRenderNodeTest, GetColorPickerDrawable002, TestSize.Level1)
     auto retrievedDrawable = node.GetColorPickerDrawable();
     EXPECT_NE(retrievedDrawable, nullptr);
     EXPECT_EQ(retrievedDrawable, colorPickerDrawable);
+}
+
+/**
+ * @tc.name: GetNodeColorSpaceForceSRGBTest
+ * @tc.desc: Verify GetNodeColorSpace returns SRGB when ForceSRGBOutput is enabled
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, GetNodeColorSpaceForceSRGBTest, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
+    nodeTest->InitRenderParams();
+    nodeTest->SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+
+    RsCommonHook::Instance().SetForceSRGBOutput(true);
+    EXPECT_EQ(nodeTest->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+
+    RsCommonHook::Instance().SetForceSRGBOutput(false);
+    EXPECT_EQ(nodeTest->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
 }
 } // namespace Rosen
 } // namespace OHOS
