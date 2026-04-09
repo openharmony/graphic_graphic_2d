@@ -217,6 +217,44 @@ HWTEST_F(PaintTest, Dump001, TestSize.Level1)
     EXPECT_FALSE(out.empty());
 }
 
+/**
+ * @tc.name: SetAlpha
+ * @tc.desc: Test SetAlpha
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PaintTest, SetAlpha, TestSize.Level1)
+{
+    Paint paint;
+    UIColor uiColor(0.5f, 0.6f, 0.7f, 0.8f, 2.0f);
+    paint.SetUIColor(uiColor);
+    paint.SetAlpha(128);
+    EXPECT_EQ(paint.GetAlpha(), 128);
+
+    paint.SetARGB(255, 100, 150, 200);
+    paint.SetAlpha(200);
+    EXPECT_EQ(paint.GetAlpha(), 200);
+}
+
+/**
+ * @tc.name: SetAlphaF
+ * @tc.desc: Test SetAlphaF
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PaintTest, SetAlphaF, TestSize.Level1)
+{
+    Paint paint;
+    UIColor uiColor(0.5f, 0.6f, 0.7f, 0.8f, 2.0f);
+    paint.SetUIColor(uiColor);
+    paint.SetAlphaF(0.5f);
+    EXPECT_FLOAT_EQ(paint.GetAlphaF(), 0.5f);
+
+    paint.SetARGB(255, 100, 150, 200);
+    paint.SetAlphaF(0.7f);
+    EXPECT_FLOAT_EQ(paint.GetAlphaF(), 0.7f);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
