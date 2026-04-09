@@ -468,11 +468,8 @@ public:
     }
 
     std::tuple<bool, bool, bool> Animate(
-        int64_t timestamp, int64_t& minLeftDelayTime, int64_t period = 0, bool isDisplaySyncEnabled = false);
-
-    std::tuple<bool, bool, bool> Animate(
-        int64_t timestamp, int64_t& minLeftDelayTime, int64_t period, bool isDisplaySyncEnabled,
-        int64_t& nextFrameTime);
+        int64_t timestamp, int64_t& minLeftDelayTime, int64_t& nextFrameTime,
+        int64_t period = 0, bool isDisplaySyncEnabled = false);
 
     // check if all clip properties are enabled
     bool IsClipBound() const;

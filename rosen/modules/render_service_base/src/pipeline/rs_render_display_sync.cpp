@@ -53,7 +53,7 @@ void RSRenderDisplaySync::SetExpectedFrameRateRange(const FrameRateRange& range)
 
     if (expectedFrameRateRange_ != range) {
         expectedFrameRateRange_ = range;
-        isSkipCountUpdate_ = true;
+        skipPeriodCountNeedUpdate_ = true;
         RS_LOGI("[RenderAnimation] Id: %{public}" PRIu64 " SetExpectedFrameRateRange"
             "{%{public}d, %{public}d, %{public}d}", GetId(), expectedFrameRateRange_.min_,
             expectedFrameRateRange_.max_, expectedFrameRateRange_.preferred_);
@@ -78,44 +78,49 @@ std::tuple<bool, bool, bool> RSRenderDisplaySync::GetAnimateResult() const
 bool RSRenderDisplaySync::OnFrameSkip(uint64_t timestamp, int64_t period, bool isDisplaySyncEnabled)
 {
     if (!isDisplaySyncEnabled) {
-        referenceCount_ = 0;
+        vsyncTriggerCount_ = 0;
         return false;
     }
     if (period <= 0 || timestamp_ == timestamp || expectedFrameRateRange_.preferred_ == 0) {
         return false;
     }
-    bool isFrameSkip = false;
-    referenceCount_++;
+ 
+    bool isCurrentAnimateNeedSkip = false;
+    vsyncTriggerCount_++;
     timestamp_ = timestamp;
-
+ 
     if (currentPeriod_ != period) {
         currentPeriod_ = period;
-        int32_t frameRate = round(1.0 / (static_cast<double>(currentPeriod_) / NS_TO_S));
+        int32_t frameRate = std::round(1.0 * NS_TO_S / static_cast<double>(currentPeriod_));
         frameRate = GetNearestFrameRate(frameRate, SOURCE_FRAME_RATES);
         if (currentFrameRate_ != frameRate) {
             currentFrameRate_ = frameRate;
-            referenceCount_ = 0;
-            isSkipCountUpdate_ = true;
+            vsyncTriggerCount_ = 0;
+            skipPeriodCountNeedUpdate_ = true;
         }
     }
-
-    if (isSkipCountUpdate_) {
-        skipRateCount_ = CalcSkipRateCount(currentFrameRate_);
-        isSkipCountUpdate_ = false;
+ 
+    if (skipPeriodCountNeedUpdate_) {
+        skipPeriodCountNeedUpdate_ = false;
+        skipPeriodCount_ = CalcSkipRateCount(currentFrameRate_);
+        if (skipPeriodCount_ == 0) {
+            skipPeriodCount_ = 1; // default value
+        }
     }
-    if (skipRateCount_ == 0) {
-        skipRateCount_ = 1; // default value
+ 
+    if (vsyncTriggerCount_ % skipPeriodCount_ != 0) {
+        isCurrentAnimateNeedSkip = true;
     }
-
-    if (referenceCount_ % skipRateCount_ != 0) {
-        isFrameSkip = true;
-    }
+ 
     RS_OPTIONAL_TRACE_NAME_FMT(
-        "RSRenderDisplaySync::OnFrameSkip preferred: [%d] currentPeroid: [%d] isFrameSkip:[%d]",
-        expectedFrameRateRange_.preferred_, currentPeriod_, isFrameSkip);
+        "RSRenderDisplaySync::OnFrameSkip nodeId:[%" PRIu64 "] preferred:[%d] currentPeriod:[%d] "
+        "isCurrentAnimateNeedSkip:[%d]",
+        GetId(), expectedFrameRateRange_.preferred_, currentPeriod_,
+        static_cast<int32_t>(isCurrentAnimateNeedSkip));
     RS_LOGD("[RenderAnimation] Id: %{public}" PRIu64 " preferred: %{public}d "
-        "isFrameSkip: %{public}d", GetId(), expectedFrameRateRange_.preferred_, isFrameSkip);
-    return isFrameSkip;
+        "isCurrentAnimateNeedSkip: %{public}d",
+        GetId(), expectedFrameRateRange_.preferred_, static_cast<int32_t>(isCurrentAnimateNeedSkip));
+    return isCurrentAnimateNeedSkip;
 }
 
 bool RSRenderDisplaySync::OnFrameSkipForAnimate(
@@ -123,56 +128,54 @@ bool RSRenderDisplaySync::OnFrameSkipForAnimate(
 {
     nextFrameTime = 0;
     if (!isDisplaySyncEnabled) {
-        referenceCount_ = 0;
+        vsyncTriggerCount_ = 0;
         return false;
     }
     if (period <= 0 || timestamp_ == timestamp || expectedFrameRateRange_.preferred_ == 0) {
         return false;
     }
-    bool isFrameSkip = false;
+    bool isCurrentAnimateNeedSkip = false;
     int64_t deltaReferenceCount = std::round(static_cast<double>((timestamp - timestamp_) * currentFrameRate_) /
         static_cast<double>(NS_TO_S));
-    int64_t lastReferenceCountForAnimate = (referenceCount_ / skipRateCount_) * skipRateCount_;
-    referenceCount_ += deltaReferenceCount;
     timestamp_ = timestamp;
-    bool shouldForceAnimateThisFrame = (referenceCount_ - lastReferenceCountForAnimate) >= skipRateCount_;
- 
+    int64_t lastVsyncTriggerCountForAnimate = (vsyncTriggerCount_ / skipPeriodCount_) * skipPeriodCount_;
+    vsyncTriggerCount_ += deltaReferenceCount;
+    bool shouldForceAnimateThisFrame = (vsyncTriggerCount_ - lastVsyncTriggerCountForAnimate) >= skipPeriodCount_;
+
     if (currentPeriod_ != period) {
         currentPeriod_ = period;
-        int32_t frameRate = round(1.0 / (static_cast<double>(currentPeriod_) / NS_TO_S));
+        int32_t frameRate = std::round(1.0 * NS_TO_S / (static_cast<double>(currentPeriod_)));
         frameRate = GetNearestFrameRate(frameRate, SOURCE_FRAME_RATES);
         if (currentFrameRate_ != frameRate) {
             currentFrameRate_ = frameRate;
-            referenceCount_ = 0;
-            isSkipCountUpdate_ = true;
+            vsyncTriggerCount_ = 0;
+            skipPeriodCountNeedUpdate_ = true;
         }
     }
- 
-    if (isSkipCountUpdate_) {
-        skipRateCount_ = CalcSkipRateCount(currentFrameRate_);
-        isSkipCountUpdate_ = false;
+    if (skipPeriodCountNeedUpdate_) {
+        skipPeriodCountNeedUpdate_ = false;
+        skipPeriodCount_ = CalcSkipRateCount(currentFrameRate_);
+        if (skipPeriodCount_ == 0) {
+            skipPeriodCount_ = 1; // default value
+        }
     }
-    if (skipRateCount_ == 0) {
-        skipRateCount_ = 1; // default value
+
+    if (vsyncTriggerCount_ % skipPeriodCount_ != 0 && !shouldForceAnimateThisFrame) {
+        isCurrentAnimateNeedSkip = true;
     }
- 
-    if (referenceCount_ % skipRateCount_ != 0 && !shouldForceAnimateThisFrame) {
-        isFrameSkip = true;
-    }
- 
-    int64_t nextReferenceCountForAnimate = ((referenceCount_ / skipRateCount_) + 1) * skipRateCount_;
-    nextFrameTime = (currentFrameRate_ != 0) ?
-        (timestamp_ + static_cast<uint64_t>((nextReferenceCountForAnimate - referenceCount_) * NS_TO_S / currentFrameRate_)) : 0;
- 
+
+    int64_t nextReferenceCountForAnimate = ((vsyncTriggerCount_ / skipPeriodCount_) + 1) * skipPeriodCount_;
+    nextFrameTime = (currentFrameRate_ != 0) ? (timestamp_ + static_cast<uint64_t>((nextReferenceCountForAnimate - 
+        vsyncTriggerCount_) * NS_TO_S / currentFrameRate_)) : 0;
+
     RS_OPTIONAL_TRACE_NAME_FMT(
         "RSRenderDisplaySync::OnFrameSkipForAnimate nodeId:[%" PRIu64 "] isFrameSkip:[%d] preferred:[%d] "
-        "currentPeriod:[%d] nextFrameTime:[%" PRId64 "]",
-        GetId(), static_cast<int32_t>(isFrameSkip), expectedFrameRateRange_.preferred_,
-        currentPeriod_, nextFrameTime);
+        "currentPeriod:[%d] nextFrameTime:[%" PRId64 "]", GetId(), static_cast<int32_t>(isCurrentAnimateNeedSkip), 
+        expectedFrameRateRange_.preferred_, currentPeriod_, nextFrameTime);
     RS_LOGD("[RenderAnimation] Id: %{public}" PRIu64 " preferred: %{public}d "
         "isFrameSkip: %{public}d nextFrameTime: %{public}" PRId64,
-        GetId(), expectedFrameRateRange_.preferred_, static_cast<int32_t>(isFrameSkip), nextFrameTime);
-    return isFrameSkip;
+        GetId(), expectedFrameRateRange_.preferred_, static_cast<int32_t>(isCurrentAnimateNeedSkip), nextFrameTime);
+    return isCurrentAnimateNeedSkip;
 }
 
 int32_t RSRenderDisplaySync::CalcSkipRateCount(int32_t frameRate)

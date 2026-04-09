@@ -46,10 +46,10 @@ private:
     uint64_t timestamp_ = 0;
     int64_t currentPeriod_ = 0;
     int64_t currentFrameRate_ = 0;
-    int64_t referenceCount_ = 0;
-    int64_t skipRateCount_ = 1;
+    int64_t vsyncTriggerCount_ = 0;
+    int64_t skipPeriodCount_ = 1;
 
-    bool isSkipCountUpdate_ = false;
+    bool skipPeriodCountNeedUpdate_ = false;
     std::tuple<bool, bool, bool> animateResult_;
     FrameRateRange expectedFrameRateRange_;
     std::weak_ptr<RSRenderAnimation> renderAnimation_;
