@@ -46,7 +46,10 @@
 #define RS_USER_ASYNC_TRACE_END(screenId, name, value) \
     FinishAsyncTraceArgs(HITRACE_TAG_GRAPHIC_AGP | HITRACE_TAG_COMMERCIAL, value, "[screen_id=%" PRIu64 "] %s", screenId, name)
 #define RS_USER_TRACE_INT(screenId, name, value) \
-    CountTrace(HITRACE_TAG_GRAPHIC_AGP | HITRACE_TAG_COMMERCIAL, name, value)
+    [&] { \
+        std::string traceName = "[screen_id=" + std::to_string(screenId) + "] " + std::string(name); \
+        CountTrace(HITRACE_TAG_GRAPHIC_AGP | HITRACE_TAG_COMMERCIAL, traceName, value); \
+    }()
 #define RS_USER_TRACE_FUNC(screenId) RS_USER_TRACE_NAME(screenId, __func__)
 
 // DEBUG level
@@ -85,7 +88,10 @@
     FinishAsyncTraceArgsEx(                                 \
         HiTraceOutputLevel::HITRACE_LEVEL_DEBUG, HITRACE_TAG_GRAPHIC_AGP, value, "[screen_id=%" PRIu64 "] %s", screenId, name)
 #define RS_USER_TRACE_INT_DEBUG(screenId, name, value) \
-    CountTraceEx(HiTraceOutputLevel::HITRACE_LEVEL_DEBUG, HITRACE_TAG_GRAPHIC_AGP, name, value)
+    [&] { \
+        std::string traceName = "[screen_id=" + std::to_string(screenId) + "] " + std::string(name); \
+        CountTraceEx(HiTraceOutputLevel::HITRACE_LEVEL_DEBUG, HITRACE_TAG_GRAPHIC_AGP, traceName.c_str(), value); \
+    }()
 #define RS_USER_TRACE_FUNC_DEBUG(screenId) RS_USER_TRACE_NAME_DEBUG(screenId, __func__, "")
 
 // INFO level
@@ -123,7 +129,10 @@
     FinishAsyncTraceArgsEx(                                  \
         HiTraceOutputLevel::HITRACE_LEVEL_INFO, HITRACE_TAG_GRAPHIC_AGP, value, "[screen_id=%" PRIu64 "] %s", screenId, name)
 #define RS_USER_TRACE_INT_INFO(screenId, name, value) \
-    CountTraceEx(HiTraceOutputLevel::HITRACE_LEVEL_INFO, HITRACE_TAG_GRAPHIC_AGP, name, value)
+    [&] { \
+        std::string traceName = "[screen_id=" + std::to_string(screenId) + "] " + std::string(name); \
+        CountTraceEx(HiTraceOutputLevel::HITRACE_LEVEL_INFO, HITRACE_TAG_GRAPHIC_AGP, traceName.c_str(), value); \
+    }()
 #define RS_USER_TRACE_FUNC_INFO(screenId) RS_USER_TRACE_NAME_INFO(screenId, __func__, "")
 
 // CRITICAL level
@@ -162,7 +171,10 @@
     FinishAsyncTraceArgsEx(                                      \
         HiTraceOutputLevel::HITRACE_LEVEL_CRITICAL, HITRACE_TAG_GRAPHIC_AGP, value, "[screen_id=%" PRIu64 "] %s", screenId, name)
 #define RS_USER_TRACE_INT_CRITICAL(screenId, name, value) \
-    CountTraceEx(HiTraceOutputLevel::HITRACE_LEVEL_CRITICAL, HITRACE_TAG_GRAPHIC_AGP, name, value)
+    [&] { \
+        std::string traceName = "[screen_id=" + std::to_string(screenId) + "] " + std::string(name); \
+        CountTraceEx(HiTraceOutputLevel::HITRACE_LEVEL_CRITICAL, HITRACE_TAG_GRAPHIC_AGP, traceName.c_str(), value); \
+    }()
 #define RS_USER_TRACE_FUNC_CRITICAL(screenId) RS_USER_TRACE_NAME_CRITICAL(screenId, __func__, "")
 
 // COMMERCIAL level
@@ -201,7 +213,10 @@
     FinishAsyncTraceArgsEx(                                        \
         HiTraceOutputLevel::HITRACE_LEVEL_COMMERCIAL, HITRACE_TAG_GRAPHIC_AGP, value, "[screen_id=%" PRIu64 "] %s", screenId, name)
 #define RS_USER_TRACE_INT_COMMERCIAL(screenId, name, value) \
-    CountTraceEx(HiTraceOutputLevel::HITRACE_LEVEL_COMMERCIAL, HITRACE_TAG_GRAPHIC_AGP, name, value)
+    [&] { \
+        std::string traceName = "[screen_id=" + std::to_string(screenId) + "] " + std::string(name); \
+        CountTraceEx(HiTraceOutputLevel::HITRACE_LEVEL_COMMERCIAL, HITRACE_TAG_GRAPHIC_AGP, traceName.c_str(), value); \
+    }()
 #define RS_USER_TRACE_FUNC_COMMERCIAL(screenId) RS_USER_TRACE_NAME_COMMERCIAL(screenId, __func__, "")
 #elif defined(ROSEN_ANDROID) && !defined(RUNTIME_MODE_RELEASE)
 #include "rs_trace_crossplatform.h"
