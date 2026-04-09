@@ -677,7 +677,12 @@ bool RSClientToRenderConnectionProxy::GetHighContrastTextState()
         ROSEN_LOGE("RSClientToRenderConnectionProxy::GetHighContrastTextState: Send Request err.");
         return false;
     }
-    return reply.ReadBool();
+    bool replyMessage = false;
+    if (!reply.ReadBool(replyMessage)) {
+        ROSEN_LOGE("%{public}s: ReadBool result failed", __func__);
+        return false;
+    }
+    return replyMessage;
 }
 
 ErrCode RSClientToRenderConnectionProxy::SetFocusAppInfo(const FocusAppInfo& info, int32_t& repCode)
