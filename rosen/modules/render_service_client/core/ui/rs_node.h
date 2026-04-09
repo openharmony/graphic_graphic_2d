@@ -2261,7 +2261,7 @@ private:
     bool isUifirstNode_ = true;
     bool isForceFlag_ = false;
     bool isUifirstEnable_ = false;
-    bool notSRGBColor_ = false;
+    int8_t collectColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     bool isSkipCheckInMultiInstance_ = true;
     RSUIFirstSwitch uiFirstSwitch_ = RSUIFirstSwitch::NONE;
     std::shared_ptr<RSUIContext> rsUIContext_;

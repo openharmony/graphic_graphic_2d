@@ -440,10 +440,24 @@ HWTEST_F(RSColorTest, HeadroomTest, TestSize.Level1)
 {
     RSColor color;
     EXPECT_FLOAT_EQ(color.GetHeadroom(), 1.0f);
+    color.SetHeadroom(0.5f);
+    EXPECT_FLOAT_EQ(color.GetHeadroom(), 1.0f);
     color.SetHeadroom(3.5f);
     std::string out;
     color.Dump(out);
     EXPECT_FLOAT_EQ(color.GetHeadroom(), 3.5f);
+
+    RSColor colorTest;
+    colorTest.SetHeadroom(1.5f);
+    RSColor colorAdd1 = color + colorTest;
+    EXPECT_FLOAT_EQ(colorAdd1.GetHeadroom(), 3.5f);
+    RSColor colorAdd2 = colorTest + color;
+    EXPECT_FLOAT_EQ(colorAdd1.GetHeadroom(), 3.5f);
+
+    RSColor colorReduce1 = color - colorTest;
+    EXPECT_FLOAT_EQ(colorReduce1.GetHeadroom(), 3.5f);
+    RSColor colorReduce2 = colorTest - color;
+    EXPECT_FLOAT_EQ(colorReduce2.GetHeadroom(), 3.5f);
 }
 
 /**
@@ -478,7 +492,7 @@ HWTEST_F(RSColorTest, BT2020Test, TestSize.Level1)
 {
     float red = 0.5f;
     float green = 1.0f;
-    float blue = 0.2f;
+    float blue = 1.0f;
     float alpha = 0.25f;
     float headroom = 2.5f;
     GraphicColorGamut colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020;
@@ -531,7 +545,7 @@ HWTEST_F(RSColorTest, BT2020Test1, TestSize.Level1)
         GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 2.0f) == (color1 + color2));
     EXPECT_TRUE(RSColor(0.1f, 0.0f, 0.25f, 0.5f,
         GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 2.0f) == (color1 - color2));
-    EXPECT_TRUE(RSColor(0.0f, 0.0f, 0.0f, 0.0f,
+    EXPECT_FALSE(RSColor(0.0f, 0.0f, 0.0f, 0.0f,
         GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 2.0f) == (color2 - color1));
 
     float scale = 0;

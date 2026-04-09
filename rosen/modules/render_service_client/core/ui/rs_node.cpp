@@ -1810,12 +1810,18 @@ void RSNode::SetBackgroundColor(RSColor color)
     RSColor colorInP3 = color;
     if (colorInP3.GetColorSpace() == GRAPHIC_COLOR_GAMUT_DISPLAY_P3 ||
         colorInP3.GetColorSpace() == GRAPHIC_COLOR_GAMUT_BT2020) {
-        notSRGBColor_ = true;
-        std::unique_ptr<RSCommand> command = std::make_unique<RSMarkNodeColorSpace>(GetId(), notSRGBColor_);
+        collectColorSpace_ = static_cast<int8_t>(colorInP3.GetColorSpace());
+        std::unique_ptr<RSCommand> command = std::make_unique<RSMarkNodeColorSpace>(GetId(), collectColorSpace_);
         AddCommand(command, IsRenderServiceNode());
     }
 #ifndef ROSEN_CROSS_PLATFORM
-    color.ConvertToBT2020ColorSpace();
+#ifdef ROSEN_OHOS
+    if (colorInP3.GetColorSpace() != GRAPHIC_COLOR_GAMUT_BT2020) {
+        color.ConvertToP3ColorSpace();
+    }
+#else
+ 	color.ConvertToP3ColorSpace();
+#endif
 #endif
     SetPropertyNG<ModifierNG::RSBackgroundColorModifier, &ModifierNG::RSBackgroundColorModifier::SetBackgroundColor>(
         color);
