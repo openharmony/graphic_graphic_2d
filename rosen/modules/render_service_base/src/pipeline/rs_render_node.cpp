@@ -4283,12 +4283,12 @@ bool RSRenderNode::IsForegroundFilterEnable()
         static_cast<uint32_t>(RSDrawableSlot::FOREGROUND_FILTER)) != nullptr;
 }
 
-void RSRenderNode::SetStaticCached(bool isStaticCached)
+void RSRenderNode::SetStaticCached(bool isStaticCached, bool isMarkedByUI)
 {
     isStaticCached_ = isStaticCached;
     // ensure defrost subtree would be updated
 #ifdef RS_ENABLE_GPU
-    stagingRenderParams_->SetRSFreezeFlag(isStaticCached);
+    stagingRenderParams_->SetRSFreezeFlag(isStaticCached, isMarkedByUI);
 #else
     isStaticCached = false;
 #endif

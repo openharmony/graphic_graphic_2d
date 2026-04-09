@@ -3030,7 +3030,7 @@ void RSNode::SetDistortionK(const float distortionK)
         distortionK);
 }
 
-void RSNode::SetFreeze(bool isFreeze)
+void RSNode::SetFreeze(bool isFreeze, bool isMarkedByUI)
 {
     ROSEN_LOGE("SetFreeze only support RSSurfaceNode and RSCanvasNode in uniRender");
 }

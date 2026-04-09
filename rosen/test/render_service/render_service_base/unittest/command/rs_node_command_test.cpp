@@ -44,7 +44,7 @@ HWTEST_F(RSNodeCommandTest, TestRSBaseNodeCommand003, TestSize.Level1)
 {
     RSContext context;
     NodeId nodeId = static_cast<NodeId>(-1);
-    RSNodeCommandHelper::SetFreeze(context, nodeId, true);
+    RSNodeCommandHelper::SetFreeze(context, nodeId, true, false);
     EXPECT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId), nullptr);
 }
 
@@ -206,27 +206,57 @@ HWTEST_F(RSNodeCommandTest, RegisterGeometryTransitionPairTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetFreeze001
- * @tc.desc: test results of SetFreeze
+ * @tc.name: SetFreezeTest001
+ * @tc.desc: Test SetFreeze with invalid node IDs
  * @tc.type: FUNC
- * @tc.require: issueIA61E9
  */
-HWTEST_F(RSNodeCommandTest, SetFreeze001, TestSize.Level1)
+HWTEST_F(RSNodeCommandTest, SetFreezeTest001, TestSize.Level1)
 {
     RSContext context;
-    NodeId nodeId = 1;
-    pid_t pid = ExtractPid(nodeId);
-    RSNodeCommandHelper::SetFreeze(context, nodeId, true);
-    ASSERT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId), nullptr);
+    
+    RSNodeCommandHelper::SetFreeze(context, 999, true, true);
+    EXPECT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(999), nullptr);
+    
+    RSNodeCommandHelper::SetFreeze(context, static_cast<NodeId>(-1), true, true);
+    EXPECT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(static_cast<NodeId>(-1)), nullptr);
+}
 
-    nodeId = 0;
-    std::unique_ptr<RSRenderParams> stagingRenderParams = std::make_unique<RSRenderParams>(0);
-    std::shared_ptr<RSBaseRenderNode> renderNode = std::make_shared<RSBaseRenderNode>(0);
-
-    renderNode->stagingRenderParams_ = std::move(stagingRenderParams);
-    context.nodeMap.renderNodeMap_[pid][nodeId] = renderNode;
-    RSNodeCommandHelper::SetFreeze(context, nodeId, true);
-    ASSERT_NE(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId), nullptr);
+/**
+ * @tc.name: SetFreezeTest002
+ * @tc.desc: Test SetFreeze with valid nodes and all parameter combinations
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeCommandTest, SetFreezeTest002, TestSize.Level1)
+{
+    RSContext context;
+    
+    RSCanvasNodeCommandHelper::Create(context, 0, false);
+    RSCanvasNodeCommandHelper::Create(context, 1, false);
+    RSCanvasNodeCommandHelper::Create(context, 2, false);
+    RSCanvasNodeCommandHelper::Create(context, 3, false);
+    
+    RSNodeCommandHelper::SetFreeze(context, 0, true, true);
+    RSNodeCommandHelper::SetFreeze(context, 1, true, false);
+    RSNodeCommandHelper::SetFreeze(context, 2, false, true);
+    RSNodeCommandHelper::SetFreeze(context, 3, false, false);
+    
+    auto node0 = context.GetNodeMap().GetRenderNode<RSRenderNode>(0);
+    auto node1 = context.GetNodeMap().GetRenderNode<RSRenderNode>(1);
+    auto node2 = context.GetNodeMap().GetRenderNode<RSRenderNode>(2);
+    auto node3 = context.GetNodeMap().GetRenderNode<RSRenderNode>(3);
+    
+    ASSERT_NE(node0, nullptr);
+    ASSERT_NE(node1, nullptr);
+    ASSERT_NE(node2, nullptr);
+    ASSERT_NE(node3, nullptr);
+    
+    EXPECT_TRUE(node0->IsStaticCached());
+    EXPECT_TRUE(node1->IsStaticCached());
+    EXPECT_FALSE(node2->IsStaticCached());
+    EXPECT_FALSE(node3->IsStaticCached());
+    
+    RSNodeCommandHelper::SetFreeze(context, 0, false, false);
+    EXPECT_FALSE(node0->IsStaticCached());
 }
 
 /**

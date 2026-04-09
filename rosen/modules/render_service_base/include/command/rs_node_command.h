@@ -142,7 +142,7 @@ public:
 
     static void UpdateModifierNGDrawCmdList(
         RSContext& context, NodeId nodeId, Drawing::DrawCmdListPtr value, PropertyId propertyId);
-    static void SetFreeze(RSContext& context, NodeId nodeId, bool isFreeze);
+    static void SetFreeze(RSContext& context, NodeId nodeId, bool isFreeze, bool isMarkedByUi);
     static void SetNodeName(RSContext& context, NodeId nodeId, std::string& nodeName);
     static void MarkNodeGroup(RSContext& context, NodeId nodeId, bool isNodeGroup, bool isForced,
         bool includeProperty);
@@ -344,7 +344,7 @@ ADD_COMMAND(RSUpdatePropertyVectorFloat,
 
 ADD_COMMAND(RSSetFreeze,
     ARG(PERMISSION_APP, RS_NODE, SET_FREEZE,
-        RSNodeCommandHelper::SetFreeze, NodeId, bool))
+        RSNodeCommandHelper::SetFreeze, NodeId, bool, bool))
 ADD_COMMAND(RSSetNodeName,
     ARG(PERMISSION_APP, RS_NODE, SET_NODE_NAME,
         RSNodeCommandHelper::SetNodeName, NodeId, std::string))

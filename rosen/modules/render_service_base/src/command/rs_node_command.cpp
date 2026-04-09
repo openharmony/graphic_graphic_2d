@@ -28,12 +28,12 @@ RSNodeCommandHelper::CommitDumpNodeTreeProcessor gCommitDumpNodeTreeProcessor = 
 RSNodeCommandHelper::ColorPickerCallbackProcessor gColorPickerCallbackProcessor = nullptr;
 }
 
-void RSNodeCommandHelper::SetFreeze(RSContext& context, NodeId nodeId, bool isFreeze)
+void RSNodeCommandHelper::SetFreeze(RSContext& context, NodeId nodeId, bool isFreeze, bool isMarkedByUI)
 {
     auto& nodeMap = context.GetNodeMap();
     auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
     if (node) {
-        node->SetStaticCached(isFreeze);
+        node->SetStaticCached(isFreeze, isMarkedByUI);
     }
 }
 

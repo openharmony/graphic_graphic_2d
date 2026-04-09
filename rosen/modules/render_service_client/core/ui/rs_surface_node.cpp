@@ -706,14 +706,14 @@ void RSSurfaceNode::SetWindowId(uint32_t windowId)
     windowId_ = windowId;
 }
 
-void RSSurfaceNode::SetFreeze(bool isFreeze)
+void RSSurfaceNode::SetFreeze(bool isFreeze, bool isMarkedByUI)
 {
     if (!IsUniRenderEnabled()) {
         ROSEN_LOGE("SetFreeze is not supported in separate render");
         return;
     }
     RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceNode::SetFreeze id:%llu", GetId());
-    std::unique_ptr<RSCommand> command = std::make_unique<RSSetFreeze>(GetId(), isFreeze);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSetFreeze>(GetId(), isFreeze, isMarkedByUI);
     AddCommand(command, true);
 }
 

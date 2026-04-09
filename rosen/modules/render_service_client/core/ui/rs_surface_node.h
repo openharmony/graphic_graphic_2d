@@ -290,7 +290,7 @@ public:
      *                - true: Freeze current frame into static texture
      *                - false: Resume normal buffer updates
      */
-    void SetFreeze(bool isFreeze) override;
+    void SetFreeze(bool isFreeze, bool isMarkedByUI = false) override;
     
     // codes for arkui-x
 #ifdef USE_SURFACE_TEXTURE

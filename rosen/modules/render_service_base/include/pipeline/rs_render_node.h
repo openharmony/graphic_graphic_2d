@@ -596,7 +596,7 @@ public:
     void NodePostPrepare(
         std::shared_ptr<RSSurfaceRenderNode> curSurfaceNode, const RectI& clipRect);
 
-    void SetStaticCached(bool isStaticCached);
+    void SetStaticCached(bool isStaticCached, bool isMarkedByUI = false);
     virtual bool IsStaticCached() const;
     void SetNodeName(const std::string& nodeName);
     const std::string& GetNodeName() const;

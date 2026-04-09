@@ -494,10 +494,13 @@ public:
      * @param isFreeze Freeze state flag
      *                - true: Freeze current frame content
      *                - false: Resume dynamic updates
+     * @param isMarkedByUI Determine whether Freeze is marked by ArkUI
+     *                - true: Disable Freeze when a frozen component or its sub components include Filter or Effect
+     *                - false: Freeze anyway
      * @see RSCanvasNode::SetFreeze(bool isFreeze)
      * @see RSSurfaceNode::SetFreeze(bool isFreeze)
      */
-    virtual void SetFreeze(bool isFreeze);
+    virtual void SetFreeze(bool isFreeze, bool isMarkedByUI = false);
 
     /**
      * @brief Sets the name of the node.
