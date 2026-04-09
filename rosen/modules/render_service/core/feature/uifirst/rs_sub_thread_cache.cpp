@@ -994,6 +994,9 @@ void RsSubThreadCache::UpdateCacheSurfaceInfo(RSSurfaceRenderNodeDrawable* surfa
     cacheSurfaceInfo_.alpha = surfaceParams->GetGlobalAlpha();
     cacheSurfaceInfo_.isContainShadow = surfaceParams->IsUIFirstLeashAllEnable();
     cacheSurfaceInfo_.processedSubSurfaceNodeIds = surfaceParams->GetAllSubSurfaceNodeIds();
+    if (const auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams()) {
+        cacheSurfaceInfo_.vsyncId = uniParam->GetVsyncId();
+    }
     if (isOcclusionEnabled_) {
         CalculateSurfaceOpaqueRegion(surfaceDrawable, surfaceParams, cacheSurfaceInfo_.opaqueRegion,
             cacheSurfaceInfo_.absDrawRect);
@@ -1132,9 +1135,10 @@ bool RsSubThreadCache::DealWithUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawa
         return false;
     }
     if (RSUniRenderThread::GetCaptureParam().isSnapshot_) {
-        HILOG_COMM_INFO("%{public}s name:%{public}s surfaceCount:%{public}d nodeCount:%{public}d alpha:%{public}f",
-            __func__, surfaceDrawable->GetName().c_str(), cacheCompletedSurfaceInfo_.processedSurfaceCount,
-            cacheCompletedSurfaceInfo_.processedNodeCount, cacheCompletedSurfaceInfo_.alpha);
+        HILOG_COMM_INFO("%{public}s name:%{public}s surfaceCount:%{public}d nodeCount:%{public}d alpha:%{public}f" \
+            "vsyncId:%{public}" PRIu64, __func__, surfaceDrawable->GetName().c_str(),
+            cacheCompletedSurfaceInfo_.processedSurfaceCount, cacheCompletedSurfaceInfo_.processedNodeCount,
+            cacheCompletedSurfaceInfo_.alpha, cacheCompletedSurfaceInfo_.vsyncId);
     }
     // if its sub tree has a blacklist, draw empty cache
     const auto& specialLayerManager = surfaceParams.GetSpecialLayerMgr();
