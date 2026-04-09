@@ -452,7 +452,7 @@ HWTEST_F(RSColorTest, HeadroomTest, TestSize.Level1)
     RSColor colorAdd1 = color + colorTest;
     EXPECT_FLOAT_EQ(colorAdd1.GetHeadroom(), 3.5f);
     RSColor colorAdd2 = colorTest + color;
-    EXPECT_FLOAT_EQ(colorAdd1.GetHeadroom(), 3.5f);
+    EXPECT_FLOAT_EQ(colorAdd2.GetHeadroom(), 3.5f);
 
     RSColor colorReduce1 = color - colorTest;
     EXPECT_FLOAT_EQ(colorReduce1.GetHeadroom(), 3.5f);
