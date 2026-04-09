@@ -30,6 +30,7 @@ ohos_unittest("RSRenderServiceAgentTest") {
 
     include_dirs = [
         "../../../../../rosen/modules/platform",
+        "$graphic_2d_root/rosen/modules/frame_load/include",
         "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
         "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
         "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
@@ -197,6 +198,7 @@ ohos_unittest("RSRenderProcessManagerAgentTest") {
 
     include_dirs = [
         "../../../../../rosen/modules/platform",
+        "$graphic_2d_root/rosen/modules/frame_load/include",
         "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
         "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
         "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
@@ -275,6 +277,7 @@ ohos_unittest("RSRenderSingleProcessManagerTest") {
 
     include_dirs = [
         "../../../../../rosen/modules/platform",
+        "$graphic_2d_root/rosen/modules/frame_load/include",
         "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
         "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
         "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",

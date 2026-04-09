@@ -24,6 +24,7 @@ ohos_fuzztest("RSRenderServiceStubFuzzTest") {
   include_dirs = [
     "../../../../../rosen/modules/platform/ipc_core",
     "../../../../../rosen/modules/platform",
+    "$graphic_2d_root/rosen/modules/frame_load/include",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
     "$graphic_2d_root/rosen/modules/render_service",
     "$graphic_2d_root/rosen/modules/render_service/main",

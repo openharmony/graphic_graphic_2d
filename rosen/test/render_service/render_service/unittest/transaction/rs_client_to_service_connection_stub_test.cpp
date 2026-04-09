@@ -4904,4 +4904,68 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase008, TestSize.Level
     float gpuMemInMB = 0.0;
     connection->GetPidGpuMemoryInMB(0, gpuMemInMB);
 }
+
+/**
+ * @tc.name: ReportGameStateTest001
+ * @tc.desc: Test ReportGameStateData
+ * @tc.type: FUNC
+ * @tc.require: issue21752
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, ReportGameStateTest001, TestSize.Level1)
+{
+    EXPECT_NE(connectionStub_, nullptr);
+    EXPECT_NE(connectionStub_->renderServiceAgent_, nullptr);
+    sptr<RSClientToServiceConnection> clientToServiceConnection =
+        iface_cast<RSClientToServiceConnection>(connectionStub_);
+    EXPECT_NE(clientToServiceConnection, nullptr);
+    EXPECT_NE(clientToServiceConnection->renderServiceAgent_, nullptr);
+    auto& handler = clientToServiceConnection->renderServiceAgent_->renderService_.GetGameFrameHandler();
+    EXPECT_NE(handler, nullptr);
+    GameStateData data = { 0, 0, 0, 0, "bundleName" };
+    clientToServiceConnection->ReportGameStateData(data);
+}
+
+/**
+ * @tc.name: ReportGameStateTest002
+ * @tc.desc: Test ReportGameStateData with null RSRenderServiceAgent pointer.
+ * @tc.type: FUNC
+ * @tc.require: issue21752
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, ReportGameStateTest002, TestSize.Level1)
+{
+    EXPECT_NE(connectionStub_, nullptr);
+    EXPECT_NE(connectionStub_->renderServiceAgent_, nullptr);
+    auto renderServiceAgent = connectionStub_->renderServiceAgent_;
+    connectionStub_->renderServiceAgent_ = nullptr;
+    sptr<RSClientToServiceConnection> clientToServiceConnection =
+        iface_cast<RSClientToServiceConnection>(connectionStub_);
+    EXPECT_NE(clientToServiceConnection, nullptr);
+    EXPECT_EQ(clientToServiceConnection->renderServiceAgent_, nullptr);
+    GameStateData data = { 0, 0, 0, 0, "bundleName" };
+    clientToServiceConnection->ReportGameStateData(data);
+    connectionStub_->renderServiceAgent_ = renderServiceAgent;
+}
+
+/**
+ * @tc.name: ReportGameStateTest003
+ * @tc.desc: Test ReportGameStateData with null RsGameFrameHandler pointer.
+ * @tc.type: FUNC
+ * @tc.require: issue21752
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, ReportGameStateTest003, TestSize.Level1)
+{
+    EXPECT_NE(connectionStub_, nullptr);
+    EXPECT_NE(connectionStub_->renderServiceAgent_, nullptr);
+    sptr<RSClientToServiceConnection> clientToServiceConnection =
+        iface_cast<RSClientToServiceConnection>(connectionStub_);
+    EXPECT_NE(clientToServiceConnection, nullptr);
+    EXPECT_NE(clientToServiceConnection->renderServiceAgent_, nullptr);
+    auto& temp = clientToServiceConnection->renderServiceAgent_->renderService_.rsGameFrameHandler_;
+    clientToServiceConnection->renderServiceAgent_->renderService_.rsGameFrameHandler_ = nullptr;
+    auto& handler = clientToServiceConnection->renderServiceAgent_->renderService_.GetGameFrameHandler();
+    EXPECT_EQ(handler, nullptr);
+    GameStateData data = { 0, 0, 0, 0, "bundleName" };
+    clientToServiceConnection->ReportGameStateData(data);
+    clientToServiceConnection->renderServiceAgent_->renderService_.rsGameFrameHandler_ = temp;
+}
 } // namespace OHOS::Rosen
