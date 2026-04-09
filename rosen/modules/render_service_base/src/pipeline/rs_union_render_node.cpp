@@ -104,9 +104,12 @@ void RSUnionRenderNode::ProcessSDFShape(RSDirtyRegionManager& dirtyManager)
                 SDFUnionOpShapeShapeYRenderTag>(shapeQueue);
         }
     }
-    GetMutableRenderProperties().InternalSetSDFShape(root);
-    dirtyManager.MergeDirtyRect(GetAbsDrawRect());
-    UpdateDrawableAfterPostPrepare(ModifierNG::RSModifierType::BOUNDS);
+    if (!GetRenderProperties().GetSDFShape() ||
+        GetRenderProperties().GetSDFShape()->CalculateHash() != root->CalculateHash()) {
+        GetMutableRenderProperties().InternalSetSDFShape(root);
+        dirtyManager.MergeDirtyRect(GetAbsDrawRect());
+        UpdateDrawableAfterPostPrepare(ModifierNG::RSModifierType::BOUNDS);
+    }
 }
 
 bool RSUnionRenderNode::GetChildRelativeMatrixToUnionNode(Drawing::Matrix& relativeMatrix,
