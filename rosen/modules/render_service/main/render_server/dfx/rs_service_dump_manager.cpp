@@ -110,7 +110,7 @@ void RSServiceDumpManager::DoDump(const std::vector<std::u16string>& args, std::
         RS_TRACE_NAME("RSServiceDumpManager::DoDump args is [ " + cmdStr + " ]");
         RSDumpManager::CmdExec(serviceArgSets, dumpString);
     }
-     if (!processManager || processArgSets.empty()) {
+    if (!processManager || processArgSets.empty()) {
         return;
     }
     if (rsDumpCallbackDirector_ == nullptr) {
