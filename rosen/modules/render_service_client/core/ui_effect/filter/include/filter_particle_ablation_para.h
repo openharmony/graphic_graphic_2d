@@ -112,12 +112,12 @@ public:
         return glowBrightness_;
     }
 
-    void SetMaxParticleCount(int maxParticleCount)
+    void SetMaxParticleCount(int32_t maxParticleCount)
     {
         maxParticleCount_ = maxParticleCount;
     }
 
-    int GetMaxParticleCount() const
+    int32_t GetMaxParticleCount() const
     {
         return maxParticleCount_;
     }
@@ -132,32 +132,32 @@ public:
         return wind_;
     }
 
-    void SetTurbScale(int turbScale)
+    void SetTurbScale(int32_t turbScale)
     {
         turbScale_ = turbScale;
     }
 
-    int GetTurbScale() const
+    int32_t GetTurbScale() const
     {
         return turbScale_;
     }
 
-    void SetTurbEvo(int turbEvo)
+    void SetTurbEvo(int32_t turbEvo)
     {
         turbEvo_ = turbEvo;
     }
 
-    int GetTurbEvo() const
+    int32_t GetTurbEvo() const
     {
         return turbEvo_;
     }
 
-    void SetTurbAmp(int turbAmp)
+    void SetTurbAmp(int32_t turbAmp)
     {
         turbAmp_ = turbAmp;
     }
 
-    int GetTurbAmp() const
+    int32_t GetTurbAmp() const
     {
         return turbAmp_;
     }
@@ -181,11 +181,11 @@ private:
     Vector2f centers3_ = { 0.0f, 0.0f };
     float glowLevel_ = 0.0f;
     float glowBrightness_ = 0.0f;
-    int maxParticleCount_ = 0;
+    int32_t maxParticleCount_ = 0;
     Vector2f wind_ = { 0.0f, 0.0f };
-    int turbScale_ = 0;
-    int turbEvo_ = 0;
-    int turbAmp_ = 0;
+    int32_t turbScale_ = 0;
+    int32_t turbEvo_ = 0;
+    int32_t turbAmp_ = 0;
     Vector2f scaleSize_ = { 1.0f, 1.0f };
 };
 

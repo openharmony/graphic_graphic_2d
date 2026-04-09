@@ -280,7 +280,7 @@ GRAPHIC_TEST(NGFilterParticleAblationTest, EFFECT_TEST, Set_NG_Filter_Particle_A
 {
     auto particleAblationPtr = CreateFilter(RSNGEffectType::PARTICLE_ABLATION);
     auto particleAblationFilter = std::static_pointer_cast<RSNGRenderParticleAblationFilter>(particleAblationPtr);
-    particleAblationFilter->->Setter<ParticleAblationProgressTagger>(0.5f);
+    particleAblationFilter->Setter<ParticleAblationProgressTag>(0.5f);
     particleAblationFilter->Setter<ParticleAblationAblationRateTag>(0.8f);
     particleAblationFilter->Setter<ParticleAblationCenters0Tag>(Vector2f{100, 100});
     particleAblationFilter->Setter<ParticleAblationCenters1Tag>(Vector2f{200, 200});
