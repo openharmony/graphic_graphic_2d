@@ -25,6 +25,7 @@
 #include "common/rs_macros.h"
 #include "graphic_common.h"
 #include "hdi_display_type.h"
+#include "hpae_offline/rs_hpae_offline_layer_info.h"
 #include "iconsumer_surface.h"
 #include "message_parcel.h"
 #include "platform/common/rs_log.h"
@@ -33,7 +34,6 @@
 #include "rs_layer_cmd_type.h"
 #include "surface_buffer.h"
 #include "sync_fence.h"
-#include "hpae_offline/rs_hpae_offline_layer_info.h"
 
 namespace OHOS {
 namespace Rosen {
