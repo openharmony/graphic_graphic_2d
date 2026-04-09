@@ -37,7 +37,7 @@ public:
 GRAPHIC_TEST(NGFilterParticleAblationTest, EFFECT_TEST, Set_NG_Filter_Particle_Ablation_Test)
 {
     auto particleAblationPtr = CreateFilter(RSNGEffectType::PARTICLE_ABLATION);
-    auto particleAblationFilter = std::static_pointer_cast<RSNGRenderParticleAblationFilter>(particleAblationPtr);
+    auto particleAblationFilter = std::static_pointer_cast<RSNGParticleAblationFilter>(particleAblationPtr);
     particleAblationFilter->Setter<ParticleAblationProgressTag>(0.5f);
     particleAblationFilter->Setter<ParticleAblationAblationRateTag>(0.8f);
     particleAblationFilter->Setter<ParticleAblationCenters0Tag>(Vector2f{100, 100});
@@ -70,7 +70,7 @@ GRAPHIC_TEST(NGFilterParticleAblationTest, EFFECT_TEST, Set_NG_Filter_Particle_A
 GRAPHIC_TEST(NGFilterParticleAblationTest, EFFECT_TEST, Set_NG_Filter_Particle_Ablation_Progress_Test)
 {
     auto particleAblationPtr = CreateFilter(RSNGEffectType::PARTICLE_ABLATION);
-    auto particleAblationFilter = std::static_pointer_cast<RSNGRenderParticleAblationFilter>(particleAblationPtr);
+    auto particleAblationFilter = std::static_pointer_cast<RSNGParticleAblationFilter>(particleAblationPtr);
     particleAblationFilter->Setter<ParticleAblationAblationRateTag>(0.8f);
     particleAblationFilter->Setter<ParticleAblationCenters0Tag>(Vector2f{100, 100});
     particleAblationFilter->Setter<ParticleAblationCenters1Tag>(Vector2f{200, 200});
@@ -104,7 +104,7 @@ GRAPHIC_TEST(NGFilterParticleAblationTest, EFFECT_TEST, Set_NG_Filter_Particle_A
 GRAPHIC_TEST(NGFilterParticleAblationTest, EFFECT_TEST, Set_NG_Filter_Particle_Ablation_AblationRate_Test)
 {
     auto particleAblationPtr = CreateFilter(RSNGEffectType::PARTICLE_ABLATION);
-    auto particleAblationFilter = std::static_pointer_cast<RSNGRenderParticleAblationFilter>(particleAblationPtr);
+    auto particleAblationFilter = std::static_pointer_cast<RSNGParticleAblationFilter>(particleAblationPtr);
     particleAblationFilter->Setter<ParticleAblationProgressTag>(0.5f);
     particleAblationFilter->Setter<ParticleAblationCenters0Tag>(Vector2f{100, 100});
     particleAblationFilter->Setter<ParticleAblationCenters1Tag>(Vector2f{200, 200});
@@ -138,7 +138,7 @@ GRAPHIC_TEST(NGFilterParticleAblationTest, EFFECT_TEST, Set_NG_Filter_Particle_A
 GRAPHIC_TEST(NGFilterParticleAblationTest, EFFECT_TEST, Set_NG_Filter_Particle_Ablation_Centers_Test)
 {
     auto particleAblationPtr = CreateFilter(RSNGEffectType::PARTICLE_ABLATION);
-    auto particleAblationFilter = std::static_pointer_cast<RSNGRenderParticleAblationFilter>(particleAblationPtr);
+    auto particleAblationFilter = std::static_pointer_cast<RSNGParticleAblationFilter>(particleAblationPtr);
     particleAblationFilter->Setter<ParticleAblationProgressTag>(0.5f);
     particleAblationFilter->Setter<ParticleAblationAblationRateTag>(0.8f);
     particleAblationFilter->Setter<ParticleAblationGlowLevelTag>(0.6f);
@@ -175,7 +175,7 @@ GRAPHIC_TEST(NGFilterParticleAblationTest, EFFECT_TEST, Set_NG_Filter_Particle_A
 GRAPHIC_TEST(NGFilterParticleAblationTest, EFFECT_TEST, Set_NG_Filter_Particle_Ablation_Glow_Test)
 {
     auto particleAblationPtr = CreateFilter(RSNGEffectType::PARTICLE_ABLATION);
-    auto particleAblationFilter = std::static_pointer_cast<RSNGRenderParticleAblationFilter>(particleAblationPtr);
+    auto particleAblationFilter = std::static_pointer_cast<RSNGParticleAblationFilter>(particleAblationPtr);
     particleAblationFilter->Setter<ParticleAblationProgressTag>(0.5f);
     particleAblationFilter->Setter<ParticleAblationAblationRateTag>(0.8f);
     particleAblationFilter->Setter<ParticleAblationCenters0Tag>(Vector2f{100, 100});
@@ -210,7 +210,7 @@ GRAPHIC_TEST(NGFilterParticleAblationTest, EFFECT_TEST, Set_NG_Filter_Particle_A
 GRAPHIC_TEST(NGFilterParticleAblationTest, EFFECT_TEST, Set_NG_Filter_Particle_Ablation_MaxParticleCount_Test)
 {
     auto particleAblationPtr = CreateFilter(RSNGEffectType::PARTICLE_ABLATION);
-    auto particleAblationFilter = std::static_pointer_cast<RSNGRenderParticleAblationFilter>(particleAblationPtr);
+    auto particleAblationFilter = std::static_pointer_cast<RSNGParticleAblationFilter>(particleAblationPtr);
     particleAblationFilter->Setter<ParticleAblationProgressTag>(0.5f);
     particleAblationFilter->Setter<ParticleAblationAblationRateTag>(0.8f);
     particleAblationFilter->Setter<ParticleAblationCenters0Tag>(Vector2f{100, 100});
@@ -245,7 +245,7 @@ GRAPHIC_TEST(NGFilterParticleAblationTest, EFFECT_TEST, Set_NG_Filter_Particle_A
 GRAPHIC_TEST(NGFilterParticleAblationTest, EFFECT_TEST, Set_NG_Filter_Particle_Ablation_Wind_Test)
 {
     auto particleAblationPtr = CreateFilter(RSNGEffectType::PARTICLE_ABLATION);
-    auto particleAblationFilter = std::static_pointer_cast<RSNGRenderParticleAblationFilter>(particleAblationPtr);
+    auto particleAblationFilter = std::static_pointer_cast<RSNGParticleAblationFilter>(particleAblationPtr);
     particleAblationFilter->Setter<ParticleAblationProgressTag>(0.5f);
     particleAblationFilter->Setter<ParticleAblationAblationRateTag>(0.8f);
     particleAblationFilter->Setter<ParticleAblationCenters0Tag>(Vector2f{100, 100});
@@ -279,7 +279,7 @@ GRAPHIC_TEST(NGFilterParticleAblationTest, EFFECT_TEST, Set_NG_Filter_Particle_A
 GRAPHIC_TEST(NGFilterParticleAblationTest, EFFECT_TEST, Set_NG_Filter_Particle_Ablation_Turb_Test)
 {
     auto particleAblationPtr = CreateFilter(RSNGEffectType::PARTICLE_ABLATION);
-    auto particleAblationFilter = std::static_pointer_cast<RSNGRenderParticleAblationFilter>(particleAblationPtr);
+    auto particleAblationFilter = std::static_pointer_cast<RSNGParticleAblationFilter>(particleAblationPtr);
     particleAblationFilter->Setter<ParticleAblationProgressTag>(0.5f);
     particleAblationFilter->Setter<ParticleAblationAblationRateTag>(0.8f);
     particleAblationFilter->Setter<ParticleAblationCenters0Tag>(Vector2f{100, 100});
@@ -315,7 +315,7 @@ GRAPHIC_TEST(NGFilterParticleAblationTest, EFFECT_TEST, Set_NG_Filter_Particle_A
 GRAPHIC_TEST(NGFilterParticleAblationTest, EFFECT_TEST, Set_NG_Filter_Particle_Ablation_ScaleSize_Test)
 {
     auto particleAblationPtr = CreateFilter(RSNGEffectType::PARTICLE_ABLATION);
-    auto particleAblationFilter = std::static_pointer_cast<RSNGRenderParticleAblationFilter>(particleAblationPtr);
+    auto particleAblationFilter = std::static_pointer_cast<RSNGParticleAblationFilter>(particleAblationPtr);
     particleAblationFilter->Setter<ParticleAblationProgressTag>(0.5f);
     particleAblationFilter->Setter<ParticleAblationAblationRateTag>(0.8f);
     particleAblationFilter->Setter<ParticleAblationCenters0Tag>(Vector2f{100, 100});
