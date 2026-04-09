@@ -270,6 +270,26 @@ HWTEST_F(RSUifirstManagerTest, RenderGroupUpdate002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: IsLayerPartRenderDisableAnimation001
+ * @tc.desc: Test layer-part disable-animation helper against current-frame events
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSUifirstManagerTest, IsLayerPartRenderDisableAnimation001, TestSize.Level1)
+{
+    RSUifirstManager::EventInfo eventInfo;
+    eventInfo.sceneId = "WINDOW_TITLE_BAR_MINIMIZED";
+    uifirstManager_.currentFrameEvent_ = { eventInfo };
+    EXPECT_FALSE(uifirstManager_.IsLayerPartRenderDisableAnimation());
+
+    eventInfo.sceneId = "APP_LIST_FLING";
+    uifirstManager_.currentFrameEvent_ = { eventInfo };
+    EXPECT_TRUE(uifirstManager_.IsLayerPartRenderDisableAnimation());
+
+    uifirstManager_.currentFrameEvent_.clear();
+}
+
+/**
  * @tc.name: RenderGroupUpdate003
  * @tc.desc: Test RenderGroupUpdate, when parent node is surface node
  * @tc.type: FUNC

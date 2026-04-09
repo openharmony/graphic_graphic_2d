@@ -36,6 +36,8 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "platform/common/rs_log.h"
 
+#include <unordered_set>
+
 #undef LOG_TAG
 #define LOG_TAG "RSUifirstManager"
 
@@ -56,6 +58,12 @@ namespace {
     constexpr int UIFIRST_POSTTASK_HIGHPRIO_MAX = 6;
     constexpr int SUBTHREAD_CONTROL_FRAMERATE_NODE_LIMIT = 5;
     constexpr int CACHED_SURFACE_IS_TRANSPARENT = 0;
+    const std::unordered_set<std::string_view> LAYER_PART_RENDER_DISABLE_ANIMATION = {
+        "APP_LIST_FLING",
+        "WEB_LIST_FLING",
+        "SCROLLER_ANIMATION",
+    };
+
     inline int64_t GetCurSysTime()
     {
         auto curTime = std::chrono::system_clock::now().time_since_epoch();
@@ -1947,6 +1955,16 @@ CM_INLINE bool RSUifirstManager::IsToSubByAppAnimation() const
     for (auto& it : currentFrameEvent_) {
         if (std::find(toSubByAppAnimation_.begin(), toSubByAppAnimation_.end(), it.sceneId) !=
             toSubByAppAnimation_.end()) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool RSUifirstManager::IsLayerPartRenderDisableAnimation() const
+{
+    for (auto& it : currentFrameEvent_) {
+        if (LAYER_PART_RENDER_DISABLE_ANIMATION.find(it.sceneId) != LAYER_PART_RENDER_DISABLE_ANIMATION.end()) {
             return true;
         }
     }

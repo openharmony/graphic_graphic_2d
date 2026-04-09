@@ -66,7 +66,8 @@ public:
     void InitLayerPartRenderNode(bool isCCMLayerPartRenderEnables, RSRenderNode& node,
         std::shared_ptr<RSDirtyRegionManager>& layerPartRenderDirtyManager);
     void CalculateAndUpdateLayerPartRenderDirtyRegion(RSRenderNode& node,
-        std::shared_ptr<RSDirtyRegionManager>& layerPartRenderDirtyManager, const RectI& visibleFilterRect);
+        std::shared_ptr<RSDirtyRegionManager>& layerPartRenderDirtyManager, const RectI& visibleFilterRect,
+        bool isDisableAnimation);
 
 private:
     RSOpincManager() = default;
