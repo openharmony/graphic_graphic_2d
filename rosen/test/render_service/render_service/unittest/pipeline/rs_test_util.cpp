@@ -66,7 +66,6 @@ std::shared_ptr<RSSurfaceRenderNode> RSTestUtil::CreateSurfaceNodeWithBuffer()
     sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
     [[maybe_unused]] GSError ret = psurf->RequestBuffer(buffer, requestFence, requestConfig);
     sptr<SyncFence> flushFence = SyncFence::INVALID_FENCE;
-    RSMainThread::Instance()->hgmRenderContext_ = std::make_shared<HgmRenderContext>(nullptr);
     ret = psurf->FlushBuffer(buffer, flushFence, flushConfig);
     OHOS::sptr<SurfaceBuffer> cbuffer;
     Rect damage;
