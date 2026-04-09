@@ -77,8 +77,10 @@ static const napi_property_descriptor g_properties[] = {
     DECLARE_NAPI_FUNCTION("approximate", JsPath::Approximate),
     DECLARE_NAPI_FUNCTION("interpolate", JsPath::Interpolate),
     DECLARE_NAPI_FUNCTION("isInterpolate", JsPath::IsInterpolate),
+    DECLARE_NAPI_FUNCTION("isEqual", JsPath::IsEqual),
     DECLARE_NAPI_FUNCTION("isInverseFillType", JsPath::IsInverseFillType),
     DECLARE_NAPI_FUNCTION("toggleInverseFillType", JsPath::ToggleInverseFillType),
+    DECLARE_NAPI_FUNCTION("getLastPoint", JsPath::GetLastPoint),
     DECLARE_NAPI_STATIC_FUNCTION("__createTransfer__", JsPath::PathTransferDynamic),
 };
 
@@ -1532,6 +1534,30 @@ napi_value JsPath::OnIsInterpolate(napi_env env, napi_callback_info info)
     return CreateJsValue(env, result);
 }
 
+napi_value JsPath::IsEqual(napi_env env, napi_callback_info info)
+{
+    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    return (me != nullptr) ? me->OnIsEqual(env, info) : nullptr;
+}
+
+napi_value JsPath::OnIsEqual(napi_env env, napi_callback_info info)
+{
+    if (m_path == nullptr) {
+        ROSEN_LOGE("JsPath::OnIsEqual path is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    napi_value argv[ARGC_ONE] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
+    JsPath* other = nullptr;
+    GET_UNWRAP_PARAM(ARGC_ZERO, other);
+    Path* path = other->GetPath();
+    if (path == nullptr) {
+        ROSEN_LOGE("JsPath::OnIsEqual other is nullptr");
+        return CreateJsValue(env, false);
+    }
+    return CreateJsValue(env, *m_path == *path);
+}
+
 napi_value JsPath::CreateJsPathDynamic(napi_env env, const std::shared_ptr<Path> path)
 {
     napi_value result = nullptr;
@@ -1609,6 +1635,26 @@ napi_value JsPath::OnToggleInverseFillType(napi_env env, napi_callback_info info
 
     JS_CALL_DRAWING_FUNC(m_path->ToggleInverseFillType());
     return nullptr;
+}
+
+napi_value JsPath::GetLastPoint(napi_env env, napi_callback_info info)
+{
+    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    return (me != nullptr) ? me->OnGetLastPoint(env, info) : nullptr;
+}
+
+napi_value JsPath::OnGetLastPoint(napi_env env, napi_callback_info info)
+{
+    if (m_path == nullptr) {
+        ROSEN_LOGE("JsPath::OnGetLastPoint path is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    if (m_path->IsEmpty()) {
+        return nullptr;
+    }
+    Drawing::Point point;
+    m_path->GetLastPoint(point);
+    return ConvertPointToJsValue(env, point);
 }
 
 Path* JsPath::GetPath()
