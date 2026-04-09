@@ -37,16 +37,6 @@ public:
         return intensity_;
     }
 
-    void SetRiseSpeed(float riseSpeed)
-    {
-        riseSpeed_ = riseSpeed;
-    }
-
-    float GetRiseSpeed() const
-    {
-        return riseSpeed_;
-    }
-
     void SetNoiseScale(float noiseScale)
     {
         noiseScale_ = noiseScale;
@@ -55,16 +45,6 @@ public:
     float GetNoiseScale() const
     {
         return noiseScale_;
-    }
-
-    void SetNoiseSpeed(float noiseSpeed)
-    {
-        noiseSpeed_ = noiseSpeed;
-    }
-
-    float GetNoiseSpeed() const
-    {
-        return noiseSpeed_;
     }
 
     void SetRiseWeight(float riseWeight)
@@ -77,23 +57,21 @@ public:
         return riseWeight_;
     }
 
-    void SetTimePhase(float timePhase)
+    void SetProgress(float progress)
     {
-        timePhase_ = timePhase;
+        progress_ = progress;
     }
 
-    float GetTimePhase() const
+    float GetProgress() const
     {
-        return timePhase_;
+        return progress_;
     }
 
 private:
     float intensity_ = 1.0f;
-    float riseSpeed_ = 1.0f;
     float noiseScale_ = 1.0f;
-    float noiseSpeed_ = 0.4f;
     float riseWeight_ = 0.2f;
-    float timePhase_ = 0.0f;
+    float progress_ = 0.0f;
 };
 } // namespace Rosen
 } // namespace OHOS

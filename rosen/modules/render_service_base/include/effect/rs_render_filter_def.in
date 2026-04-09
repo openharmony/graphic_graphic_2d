@@ -187,11 +187,9 @@ DECLARE_FILTER(GridWarp, GRID_WARP,
 
 DECLARE_FILTER(HeatDistortion, HEAT_DISTORTION,
     ADD_PROPERTY_TAG(HeatDistortion, Intensity),
-    ADD_PROPERTY_TAG(HeatDistortion, RiseSpeed),
     ADD_PROPERTY_TAG(HeatDistortion, NoiseScale),
-    ADD_PROPERTY_TAG(HeatDistortion, NoiseSpeed),
     ADD_PROPERTY_TAG(HeatDistortion, RiseWeight),
-    ADD_PROPERTY_TAG(HeatDistortion, TimePhase)
+    ADD_PROPERTY_TAG(HeatDistortion, Progress)
 );
 
 DECLARE_FILTER(BlurBubblesRise, BLUR_BUBBLES_RISE,
@@ -199,8 +197,7 @@ DECLARE_FILTER(BlurBubblesRise, BLUR_BUBBLES_RISE,
     ADD_PROPERTY_TAG(BlurBubblesRise, MixStrength),
     ADD_PROPERTY_TAG(BlurBubblesRise, InvertMask),
     ADD_PROPERTY_TAG(BlurBubblesRise, MaskChannel),
-    ADD_PROPERTY_TAG(BlurBubblesRise, MaskScrollSpeed),
-    ADD_PROPERTY_TAG(BlurBubblesRise, TimePhase),
+    ADD_PROPERTY_TAG(BlurBubblesRise, Progress),
     ADD_PROPERTY_TAG(BlurBubblesRise, MaskImage)
 );
 

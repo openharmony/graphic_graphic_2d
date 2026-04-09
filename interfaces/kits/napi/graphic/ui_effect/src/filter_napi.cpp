@@ -492,12 +492,12 @@ napi_value FilterNapi::SetHeatDistortion(napi_env env, napi_callback_info info)
         return nullptr;
     }
 
-    static const size_t maxArgc = NUM_6;
+    static const size_t maxArgc = NUM_4;
     static const size_t minArgc = NUM_1;
     size_t argCount = maxArgc;
     napi_status status;
     napi_value thisVar = nullptr;
-    napi_value argValue[NUM_6] = {0};
+    napi_value argValue[NUM_4] = {0};
     UIEFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && argCount >= minArgc && argCount <= maxArgc, nullptr,
         FILTER_LOG_E("FilterNapi SetHeatDistortion parsing input fail"));
@@ -507,35 +507,25 @@ napi_value FilterNapi::SetHeatDistortion(napi_env env, napi_callback_info info)
         FILTER_LOG_E("FilterNapi SetHeatDistortion para is nullptr"));
 
     float intensity = 1.0f;
-    float riseSpeed = 1.0f;
     float noiseScale = 1.0f;
-    float noiseSpeed = 0.4f;
     float riseWeight = 0.2f;
-    float timePhase = 0.0f;
+    float progress = 0.0f;
     if (argCount >= NUM_1) {
         intensity = GetSpecialValue(env, argValue[NUM_0]);
     }
     if (argCount >= NUM_2) {
-        riseSpeed = GetSpecialValue(env, argValue[NUM_1]);
+        noiseScale = GetSpecialValue(env, argValue[NUM_1]);
     }
     if (argCount >= NUM_3) {
-        noiseScale = GetSpecialValue(env, argValue[NUM_2]);
+        riseWeight = GetSpecialValue(env, argValue[NUM_2]);
     }
     if (argCount >= NUM_4) {
-        noiseSpeed = GetSpecialValue(env, argValue[NUM_3]);
-    }
-    if (argCount >= NUM_5) {
-        riseWeight = GetSpecialValue(env, argValue[NUM_4]);
-    }
-    if (argCount >= NUM_6) {
-        timePhase = GetSpecialValue(env, argValue[NUM_5]);
+        progress = GetSpecialValue(env, argValue[NUM_3]);
     }
     para->SetIntensity(intensity);
-    para->SetRiseSpeed(riseSpeed);
     para->SetNoiseScale(noiseScale);
-    para->SetNoiseSpeed(noiseSpeed);
     para->SetRiseWeight(riseWeight);
-    para->SetTimePhase(timePhase);
+    para->SetProgress(progress);
 
     Filter* filterObj = nullptr;
     status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
@@ -554,12 +544,12 @@ napi_value FilterNapi::SetBlurBubblesRise(napi_env env, napi_callback_info info)
         return nullptr;
     }
 
-    static const size_t maxArgc = NUM_7;
+    static const size_t maxArgc = NUM_6;
     static const size_t minArgc = NUM_1;
     size_t argCount = maxArgc;
     napi_status status;
     napi_value thisVar = nullptr;
-    napi_value argValue[NUM_7] = {0};
+    napi_value argValue[NUM_6] = {0};
     UIEFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && argCount >= minArgc && argCount <= maxArgc, nullptr,
         FILTER_LOG_E("FilterNapi SetBlurBubblesRise parsing input fail"));
@@ -572,8 +562,7 @@ napi_value FilterNapi::SetBlurBubblesRise(napi_env env, napi_callback_info info)
     float mixStrength = 1.0f;
     uint32_t invertMask = 0;
     uint32_t maskChannel = 0;
-    float maskScrollSpeed = 0.07f;
-    float timePhase = 0.0f;
+    float progress = 0.0f;
     std::shared_ptr<Media::PixelMap> maskImage = nullptr;
     if (argCount >= NUM_1) {
         blurRadius = GetSpecialValue(env, argValue[NUM_0]);
@@ -588,27 +577,18 @@ napi_value FilterNapi::SetBlurBubblesRise(napi_env env, napi_callback_info info)
         maskChannel = GetSpecialIntValue(env, argValue[NUM_3]);
     }
     if (argCount >= NUM_5) {
-        maskScrollSpeed = GetSpecialValue(env, argValue[NUM_4]);
+        progress = GetSpecialValue(env, argValue[NUM_4]);
     }
+    
     if (argCount >= NUM_6) {
-        if (UIEffectNapiUtils::GetType(env, argValue[NUM_5]) == napi_object) {
-            UIEFFECT_NAPI_CHECK_RET_D(ParsePixelMap(env, argValue[NUM_5], maskImage), nullptr,
-                FILTER_LOG_E("FilterNapi SetBlurBubblesRise parse mask image failed"));
-        } else {
-            timePhase = GetSpecialValue(env, argValue[NUM_5]);
-        }
-    }
-    if (argCount >= NUM_7) {
-        timePhase = GetSpecialValue(env, argValue[NUM_5]);
-        UIEFFECT_NAPI_CHECK_RET_D(ParsePixelMap(env, argValue[NUM_6], maskImage), nullptr,
+        UIEFFECT_NAPI_CHECK_RET_D(ParsePixelMap(env, argValue[NUM_5], maskImage), nullptr,
             FILTER_LOG_E("FilterNapi SetBlurBubblesRise parse mask image failed"));
     }
     para->SetBlurRadius(blurRadius);
     para->SetMixStrength(mixStrength);
     para->SetInvertMask(invertMask);
     para->SetMaskChannel(maskChannel);
-    para->SetMaskScrollSpeed(maskScrollSpeed);
-    para->SetTimePhase(timePhase);
+    para->SetProgress(progress);
     para->SetMaskImage(maskImage);
 
     Filter* filterObj = nullptr;

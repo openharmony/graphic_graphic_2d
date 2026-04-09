@@ -70,24 +70,14 @@ public:
         return maskChannel_;
     }
 
-    void SetMaskScrollSpeed(float maskScrollSpeed)
+    void SetProgress(float progress)
     {
-        maskScrollSpeed_ = maskScrollSpeed;
+        progress_ = progress;
     }
 
-    float GetMaskScrollSpeed() const
+    float GetProgress() const
     {
-        return maskScrollSpeed_;
-    }
-
-    void SetTimePhase(float timePhase)
-    {
-        timePhase_ = timePhase;
-    }
-
-    float GetTimePhase() const
-    {
-        return timePhase_;
+        return progress_;
     }
 
     void SetMaskImage(std::shared_ptr<Media::PixelMap> maskImage)
@@ -105,8 +95,7 @@ private:
     float mixStrength_ = 1.0f;
     uint32_t invertMask_ = 0;
     uint32_t maskChannel_ = 0;
-    float maskScrollSpeed_ = 0.07f;
-    float timePhase_ = 0.0f;
+    float progress_ = 0.0f;
     std::shared_ptr<Media::PixelMap> maskImage_;
 };
 } // namespace Rosen
