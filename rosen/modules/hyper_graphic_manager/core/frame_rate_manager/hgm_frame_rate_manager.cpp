@@ -175,8 +175,8 @@ void HgmFrameRateManager::RegisterCoreCallbacksAndInitController(sptr<VSyncContr
             if (RSUniRenderJudgement::IsUniRender()) {
                 auto& hgmCore = HgmCore::Instance();
                 int64_t offset = hgmCore.IsDelayMode() ? UNI_RENDER_VSYNC_OFFSET_DELAY_MODE : UNI_RENDER_VSYNC_OFFSET;
-                rsController->SetPhaseOffset(hgmCore.GetRsPhaseOffset(offset));
-                appController->SetPhaseOffset(hgmCore.GetAppPhaseOffset(offset));
+                rsController->SetPhaseOffset(offset);
+                appController->SetPhaseOffset(offset);
             }
             CreateVSyncGenerator()->SetVSyncMode(VSYNC_MODE_LTPS);
         }
@@ -954,17 +954,7 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
         return;
     }
 
-    auto& hgmScreenInfo = HgmScreenInfo::GetInstance();
-    auto isLtpo = hgmScreenInfo.IsLtpoType(hgmScreenInfo.GetScreenType(id));
-    std::string curScreenName = "screen" + std::to_string(id) + "_" + (isLtpo ? "LTPO" : "LTPS");
-
-    isLtpo_.store(isLtpo);
-    lastCurScreenId_.store(curScreenId_.load());
-    curScreenId_.store(id);
-    hgmCore.SetActiveScreenId(curScreenId_.load());
-    HGM_LOGD("curScreen change:%{public}d", static_cast<int>(curScreenId_.load()));
-
-    HandleScreenFrameRate(curScreenName);
+    HandleScreenLtpoConfig(id);
     HandlePageUrlEvent();
 }
 
@@ -972,18 +962,39 @@ void HgmFrameRateManager::HandleScreenRectFrameRate(ScreenId id, const Rect& act
 {
     RS_TRACE_NAME_FMT("%s: screenId:%d activeRect(%d, %d, %d, %d)",
         __func__, id, activeRect.x, activeRect.y, activeRect.w, activeRect.h);
-    if (auto screen = HgmCore::Instance().GetScreen(id); !screen || !screen->GetSelfOwnedScreenFlag()) {
+    auto& hgmCore = HgmCore::Instance();
+    if (auto screen = hgmCore.GetScreen(id);
+        !screen || !screen->GetSelfOwnedScreenFlag()) {
         return;
     }
-    auto& hgmScreenInfo = HgmScreenInfo::GetInstance();
-    auto isLtpo = hgmScreenInfo.IsLtpoType(hgmScreenInfo.GetScreenType(id));
+    if (hgmCore.GetPolicyConfigData() == nullptr) {
+        return;
+    }
+    activeRectScreenId_ = id;
+    activeRect_ = activeRect;
+    HandleScreenLtpoConfig(id);
+}
 
-    std::string curScreenName = "screen" + std::to_string(id) + "_" + (isLtpo ? "LTPO" : "LTPS");
-    curScreenName += "_" + std::to_string(activeRect.x);
-    curScreenName += "_" + std::to_string(activeRect.y);
-    curScreenName += "_" + std::to_string(activeRect.w);
-    curScreenName += "_" + std::to_string(activeRect.h);
+void HgmFrameRateManager::HandleScreenLtpoConfig(ScreenId id)
+{
+    if (curScreenId_.load() != id) {
+        auto& hgmScreenInfo = HgmScreenInfo::GetInstance();
+        auto isLtpo = hgmScreenInfo.IsLtpoType(hgmScreenInfo.GetScreenType(id));
+        isLtpo_.store(isLtpo);
+        lastCurScreenId_.store(curScreenId_.load());
+        curScreenId_.store(id);
+        auto& hgmCore = HgmCore::Instance();
+        hgmCore.SetActiveScreenId(curScreenId_.load());
+    }
 
+    std::string curScreenName = "screen" + std::to_string(id) + "_" + (isLtpo_ ? "LTPO" : "LTPS");
+    if (id == activeRectScreenId_) {
+        curScreenName += "_" + std::to_string(activeRect_.x);
+        curScreenName += "_" + std::to_string(activeRect_.y);
+        curScreenName += "_" + std::to_string(activeRect_.w);
+        curScreenName += "_" + std::to_string(activeRect_.h);
+    }
+    HGM_LOGD("curScreen id:%{public}d name:%{public}s", static_cast<int>(curScreenId_.load()), curScreenName.c_str());
     HandleScreenFrameRate(curScreenName);
 }
 

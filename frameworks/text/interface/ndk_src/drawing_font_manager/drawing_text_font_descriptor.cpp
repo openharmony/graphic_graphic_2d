@@ -15,7 +15,10 @@
 
 #include "drawing_text_font_descriptor.h"
 
+#include <shared_mutex>
+#include <set>
 #include <string_ex.h>
+#include <unordered_map>
 
 #include "array_mgr.h"
 #include "font_descriptor_mgr.h"
@@ -24,6 +27,15 @@
 #include "utils/text_log.h"
 
 using namespace OHOS::Rosen;
+
+namespace {
+// Cache for font variation instance coordinates.
+// Key: pointer to FontVariationInstance
+// Value.first: pointer to the ObjectArray containing the instance (for lifecycle tracking)
+// Value.second: cached OH_Drawing_FontVariationInstanceCoordinate array allocated by getCoordinate
+std::unordered_map<void*, std::pair<ObjectArray*, OH_Drawing_FontVariationInstanceCoordinate*>> g_instanceCache;
+std::shared_mutex g_instanceCacheMutex;
+} // namespace
 template<typename T1, typename T2>
 inline T1* ConvertToOriginalText(T2* ptr)
 {
@@ -421,17 +433,10 @@ static OH_Drawing_Array* CreateVariationAxisArray(
         return nullptr;
     }
 
-    std::unique_ptr addr = std::make_unique<Drawing::FontParser::FontVariationAxis* []>(variationAxes.size());
-
-    size_t num = 0;
-    for (const auto& axis : variationAxes) {
-        addr[num] = new Drawing::FontParser::FontVariationAxis(axis);
-        num++;
-    }
     std::unique_ptr array = std::make_unique<ObjectArray>();
     array->type = ObjectType::FONT_VARIATION_AXIS;
-    array->addr = addr.release();
-    array->num = num;
+    array->addr = const_cast<TextEngine::FontParser::FontVariationAxis*>(variationAxes.data());
+    array->num = variationAxes.size();
     return reinterpret_cast<OH_Drawing_Array*>(array.release());
 }
 
@@ -443,17 +448,9 @@ static OH_Drawing_Array* CreateVariationInstanceArray(
     }
 
     std::unique_ptr array = std::make_unique<ObjectArray>();
-    std::unique_ptr addr = std::make_unique<Drawing::FontParser::FontVariationInstance* []>(
-        variationInstances.size());
     array->type = ObjectType::FONT_VARIATION_INSTANCE;
-
-    size_t num = 0;
-    for (const auto& instance : variationInstances) {
-        addr[num] = new Drawing::FontParser::FontVariationInstance(instance);
-        num++;
-    }
-    array->addr = addr.release();
-    array->num = num;
+    array->addr = const_cast<TextEngine::FontParser::FontVariationInstance*>(variationInstances.data());
+    array->num = variationInstances.size();
     return reinterpret_cast<OH_Drawing_Array*>(array.release());
 }
 
@@ -482,21 +479,9 @@ void OH_Drawing_DestroyFontVariationAxis(OH_Drawing_Array* array)
     }
 
     ObjectArray* axisArray = reinterpret_cast<ObjectArray*>(array);
-
-    Drawing::FontParser::FontVariationAxis** axes =
-        reinterpret_cast<Drawing::FontParser::FontVariationAxis**>(axisArray->addr);
-    if (axes == nullptr) {
+    if (axisArray->type != ObjectType::FONT_VARIATION_AXIS) {
         return;
     }
-
-    for (size_t i = 0; i < axisArray->num; ++i) {
-        if (axes[i] == nullptr) {
-            continue;
-        }
-        delete axes[i];
-        axes[i] = nullptr;
-    }
-    delete[] axes;
     axisArray->addr = nullptr;
     axisArray->num = 0;
     axisArray->type = ObjectType::INVALID;
@@ -510,21 +495,22 @@ void OH_Drawing_DestroyFontVariationInstance(OH_Drawing_Array* array)
     }
 
     ObjectArray* instanceArray = reinterpret_cast<ObjectArray*>(array);
-
-    Drawing::FontParser::FontVariationInstance** instances =
-        reinterpret_cast<Drawing::FontParser::FontVariationInstance**>(instanceArray->addr);
-    if (instances == nullptr) {
+    if (instanceArray->type != ObjectType::FONT_VARIATION_INSTANCE) {
         return;
     }
 
-    for (size_t i = 0; i < instanceArray->num; ++i) {
-        if (instances[i] == nullptr) {
-            continue;
+    {
+        std::unique_lock<std::shared_mutex> cacheLock(g_instanceCacheMutex);
+        for (auto it = g_instanceCache.begin(); it != g_instanceCache.end();) {
+            if (it->second.first == instanceArray) {
+                delete[] it->second.second;
+                it = g_instanceCache.erase(it);
+            } else {
+                ++it;
+            }
         }
-        delete instances[i];
-        instances[i] = nullptr;
     }
-    delete[] instances;
+
     instanceArray->addr = nullptr;
     instanceArray->num = 0;
     instanceArray->type = ObjectType::INVALID;
@@ -541,9 +527,9 @@ OH_Drawing_FontVariationAxis* OH_Drawing_GetFontVariationAxisByIndex(
     ObjectArray* axisArray = reinterpret_cast<ObjectArray*>(array);
     if (axisArray != nullptr && axisArray->addr != nullptr &&
         axisArray->type == ObjectType::FONT_VARIATION_AXIS && index < axisArray->num) {
-        Drawing::FontParser::FontVariationAxis** variationAxis =
-            reinterpret_cast<Drawing::FontParser::FontVariationAxis**>(axisArray->addr);
-        return reinterpret_cast<OH_Drawing_FontVariationAxis*>(variationAxis[index]);
+        Drawing::FontParser::FontVariationAxis* variationAxis =
+            static_cast<Drawing::FontParser::FontVariationAxis*>(axisArray->addr);
+        return reinterpret_cast<OH_Drawing_FontVariationAxis*>(&variationAxis[index]);
     }
 
     return nullptr;
@@ -559,9 +545,14 @@ OH_Drawing_FontVariationInstance* OH_Drawing_GetFontVariationInstanceByIndex(
     ObjectArray* instanceArray = reinterpret_cast<ObjectArray*>(array);
     if (instanceArray != nullptr && instanceArray->addr != nullptr &&
         instanceArray->type == ObjectType::FONT_VARIATION_INSTANCE && index < instanceArray->num) {
-        Drawing::FontParser::FontVariationInstance** variationInstance =
-            reinterpret_cast<Drawing::FontParser::FontVariationInstance**>(instanceArray->addr);
-        return reinterpret_cast<OH_Drawing_FontVariationInstance*>(variationInstance[index]);
+        Drawing::FontParser::FontVariationInstance* variationInstance =
+            static_cast<Drawing::FontParser::FontVariationInstance*>(instanceArray->addr);
+        auto* instance = &variationInstance[index];
+        {
+            std::unique_lock<std::shared_mutex> cacheLock(g_instanceCacheMutex);
+            g_instanceCache.try_emplace(instance, instanceArray, nullptr);
+        }
+        return reinterpret_cast<OH_Drawing_FontVariationInstance*>(instance);
     }
 
     return nullptr;
@@ -600,23 +591,25 @@ OH_Drawing_FontVariationInstanceCoordinate* OH_Drawing_GetFontVariationInstanceC
         return nullptr;
     }
 
-    const auto& instance = *reinterpret_cast<const Drawing::FontParser::FontVariationInstance*>(variationInstance);
+    auto* instance = reinterpret_cast<Drawing::FontParser::FontVariationInstance*>(variationInstance);
+    *arrayLength = instance->coordinates.size();
 
-    *arrayLength = instance.coordinates.size();
-    OH_Drawing_FontVariationInstanceCoordinate* coordinates =
-        new OH_Drawing_FontVariationInstanceCoordinate[*arrayLength];
-
-    for (size_t i = 0; i < *arrayLength; ++i) {
-        coordinates[i].axisKey = strdup(instance.coordinates[i].axis.c_str());
-        if (coordinates[i].axisKey == nullptr) {
-            for (size_t j = 0; j < i; ++j) {
-                free(coordinates[j].axisKey);
-            }
-            delete[] coordinates;
-            return nullptr;
+    {
+        std::unique_lock<std::shared_mutex> cacheLock(g_instanceCacheMutex);
+        auto cacheIt = g_instanceCache.find(instance);
+        if (cacheIt != g_instanceCache.end() && cacheIt->second.second != nullptr) {
+            return cacheIt->second.second;
         }
-        coordinates[i].value = instance.coordinates[i].value;
-    }
+        OH_Drawing_FontVariationInstanceCoordinate* coordinates =
+            new OH_Drawing_FontVariationInstanceCoordinate[*arrayLength];
 
-    return coordinates;
+        for (size_t i = 0; i < *arrayLength; ++i) {
+            coordinates[i].axisKey = instance->coordinates[i].axis.data();
+            coordinates[i].value = instance->coordinates[i].value;
+        }
+
+        g_instanceCache[instance].second = coordinates;
+
+        return coordinates;
+    }
 }

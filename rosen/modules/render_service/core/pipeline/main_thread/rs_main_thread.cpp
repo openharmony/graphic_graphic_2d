@@ -1785,7 +1785,6 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                 hgmRenderContext_->UpdateSurfaceData(surfaceHandler, surfaceNode);
             }
             PostTryReclaimLastBuffer(surfaceNode, surfaceHandler);
-            surfaceHandler->ResetCurrentFrameBufferConsumed();
             auto parentNode = surfaceNode->GetParent().lock();
             RSBaseSurfaceUtil::DropFrameConfig dropFrameConfig;
             dropFrameConfig.enable = IsNeedDropFrameByPid(surfaceHandler->GetNodeId());
@@ -2216,6 +2215,7 @@ void RSMainThread::WaitUntilUnmarshallingTaskFinished()
     }
     RS_OPTIONAL_TRACE_BEGIN("RSMainThread::WaitUntilUnmarshallingTaskFinished");
     std::unique_lock<std::mutex> lock(unmarshalMutex_);
+    RSUnmarshalThread::Instance().WaitUntilParallelTasksFinished();
     if (rsVsyncManagerAgent_ != nullptr) {
         rsVsyncManagerAgent_->SetWaitForDvsyncFrame(unmarshalFinishedCount_ <= 0);
     }
@@ -2700,8 +2700,9 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
                 auto params = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetStagingRenderParams().get());
                 if (surfaceHandler->IsCurrentFrameBufferConsumed()) {
                     auto preBufferOwnerCount = params->GetPreBufferOwnerCount();
-                    if (preBufferOwnerCount) {
-                        preBufferOwnerCount->DecRef();
+                    if (preBufferOwnerCount && preBufferOwnerCount->DecRef()) {
+                        params->SetPreBuffer(nullptr, nullptr);
+                        surfaceNode->AddToPendingSyncList();
                     }
                     refreshRects.emplace_back(surfaceNode->GetDstRect());
                 }
@@ -5606,7 +5607,6 @@ void RSMainThread::CheckPackageInConfigList(const std::vector<std::string>& pack
 
 void RSMainThread::AddSurfaceFpsOp(const SurfaceFpsOp& op)
 {
-    std::lock_guard<std::mutex> lock(surfaceFpsOpMutex_);
     if (op.surfaceFpsOpType == static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_ADD)) {
         addSurfaceFpsOpMap_[op.surfaceNodeId] = op;
     } else if (op.surfaceFpsOpType == static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_REMOVE)) {
@@ -5617,22 +5617,18 @@ void RSMainThread::AddSurfaceFpsOp(const SurfaceFpsOp& op)
 std::vector<SurfaceFpsOp> RSMainThread::GetSurfaceFpsOpList()
 {
     std::vector<SurfaceFpsOp> surfaceFpsOpList;
-    {
-        std::lock_guard<std::mutex> lock(surfaceFpsOpMutex_);
-        surfaceFpsOpList.reserve(addSurfaceFpsOpMap_.size() + rmvSurfaceFpsOpMap_.size());
-        for (const auto& [_, op] : addSurfaceFpsOpMap_) {
-            surfaceFpsOpList.push_back(op);
-        }
-        for (const auto& [_, op] : rmvSurfaceFpsOpMap_) {
-            surfaceFpsOpList.push_back(op);
-        }
+    surfaceFpsOpList.reserve(addSurfaceFpsOpMap_.size() + rmvSurfaceFpsOpMap_.size());
+    for (const auto& [_, op] : addSurfaceFpsOpMap_) {
+        surfaceFpsOpList.push_back(op);
+    }
+    for (const auto& [_, op] : rmvSurfaceFpsOpMap_) {
+        surfaceFpsOpList.push_back(op);
     }
     return surfaceFpsOpList;
 }
 
 void RSMainThread::RmvSurfaceFpsOp(const std::vector<SurfaceFpsOp>& rmvList)
 {
-    std::lock_guard<std::mutex> lock(surfaceFpsOpMutex_);
     for (const auto& op : rmvList) {
         if (op.surfaceFpsOpType == static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_ADD)) {
             addSurfaceFpsOpMap_.erase(op.surfaceNodeId);

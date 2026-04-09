@@ -143,6 +143,7 @@ ohos_shared_library("librender_service") {
     "core/feature/hyper_graphic_manager/rp_frame_rate_policy.cpp",
     "core/feature/hyper_graphic_manager/rp_hgm_xml_parser.cpp",
     "core/feature/image_enhance/image_enhance_manager.cpp",
+    "core/feature/layer/rs_layer_cache_manager.cpp",
     "core/feature/lpp/render_process/lpp_video_handler.cpp",
     "core/feature/occlusion_culling/rs_occlusion_handler.cpp",
     "core/feature/occlusion_culling/rs_occlusion_node.cpp",
@@ -282,6 +283,7 @@ ohos_shared_library("librender_service") {
   sources += [
     "$rosen_root/modules/frame_load/src/rs_frame_blur_predict.cpp",
     "$rosen_root/modules/frame_load/src/rs_frame_deadline_predict.cpp",
+    "$rosen_root/modules/frame_load/src/rs_game_frame_handler.cpp",
   ]
 
   if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
@@ -342,7 +344,7 @@ ohos_shared_library("librender_service") {
     defines += [ "IS_ENABLE_DRM" ]
   }
 
-  if (graphic_2d_feature_product == "phone" || graphic_2d_feature_product == "tablet") {
+  if (graphic_2d_feature_product == "phone") {
     defines += ["PREPARE_PHASE_QUICK_SKIP_ENABLED"]
   }
 
@@ -663,6 +665,7 @@ ohos_executable("render_service") {
     "$graphic_2d_root/interfaces/inner_api/common",
     "$graphic_2d_root/utils/color_manager/export",
     "$graphic_2d_root/utils/socketpair/export",
+    "$graphic_2d_root/rosen/modules/frame_load/include",
     "$graphic_2d_root/rosen/modules/render_service",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl",

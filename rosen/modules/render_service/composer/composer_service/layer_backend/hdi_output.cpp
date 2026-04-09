@@ -19,6 +19,7 @@
 #include "hdi_log.h"
 #include "hdi_output.h"
 #include "metadata_helper.h"
+#include "platform/ohos/rs_composer_jank_stats.h"
 #include "rs_trace.h"
 #include "string_utils.h"
 // DISPLAYENGINE
@@ -671,9 +672,9 @@ int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
         if (presentTimeUpdated && uniRenderLayer) {
             RS_TRACE_NAME_FMT("HdiOutput::RecordMergedPresentTime %lld", timestamp);
             uniRenderLayer->RecordMergedPresentTime(timestamp);
-            thirdFrameAheadPresentFenceFd_ = thirdFrameAheadPresentFence_->Get();
-            thirdFrameAheadPresentTime_ = timestamp;
         }
+        thirdFrameAheadPresentFenceFd_ = thirdFrameAheadPresentFence_->Get();
+        thirdFrameAheadPresentTime_ = timestamp;
     }
 
     int32_t ret = GRAPHIC_DISPLAY_SUCCESS;
@@ -684,6 +685,7 @@ int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
     if (fbFence != nullptr) {
         curPresentFd_ = fbFence->Get();
     }
+    RSComposerJankStats::GetInstance().CalculateJankInfo(timestamp);
     return ret;
 }
 

@@ -72,7 +72,6 @@ public:
         CLIP_ROUND_RECT_OPITEM,
         CLIP_PATH_OPITEM,
         CLIP_REGION_OPITEM,
-        RESET_CLIP_OPITEM,
         SET_MATRIX_OPITEM,
         RESET_MATRIX_OPITEM,
         CONCAT_MATRIX_OPITEM,
@@ -103,6 +102,7 @@ public:
         HYBRID_RENDER_PIXELMAP_OPITEM,
         HYBRID_RENDER_PIXELMAP_SIZE_OPITEM,
         UICOLOR_OPITEM,
+        RESET_CLIP_OPITEM,
     };
 
     static void BrushHandleToBrush(const BrushHandle& brushHandle, const DrawCmdList& cmdList, Brush& brush);

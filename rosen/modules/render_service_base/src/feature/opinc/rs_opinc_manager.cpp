@@ -264,10 +264,22 @@ bool RSOpincManager::CalculateLayerPartRenderDirtyRegion(RSRenderNode& node,
             nodeAbsRect.GetLeft(), nodeAbsRect.GetTop(), nodeAbsRect.GetWidth(), nodeAbsRect.GetHeight());
     }
     if (!layerCurDirty.IsInsideOf(nodeAbsRect)) {
-        RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", layerCurDirty not inside of nodeAbsRect", node.GetId());
-        layerCurDirty = nodeAbsRect;
-        layerPartRenderDirtyManager->MergeDirtyRect(layerCurDirty);
-        layerPartRenderDirtyManager->UpdateDirty();
+        // If intersect, use intersection; otherwise use full node rect
+        if (layerCurDirty.Intersect(nodeAbsRect)) {
+            layerCurDirty = layerCurDirty.IntersectRect(nodeAbsRect);
+            RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", clip layerCurDirty to intersect with nodeAbsRect:[%d,%d,%d,%d]",
+                node.GetId(), layerCurDirty.GetLeft(), layerCurDirty.GetTop(), layerCurDirty.GetWidth(),
+                layerCurDirty.GetHeight());
+            layerPartRenderDirtyManager->MergeDirtyRect(layerCurDirty);
+            layerPartRenderDirtyManager->UpdateDirty();
+        } else {
+            layerCurDirty = nodeAbsRect;
+            RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", layerCurDirty not intersect, use full nodeAbsRect:[%d,%d,%d,%d]",
+                node.GetId(), layerCurDirty.GetLeft(), layerCurDirty.GetTop(), layerCurDirty.GetWidth(),
+                layerCurDirty.GetHeight());
+            layerPartRenderDirtyManager->MergeDirtyRect(layerCurDirty);
+            layerPartRenderDirtyManager->UpdateDirty();
+        }
     }
     layerCurDirty = geoPtr->MapRect(layerCurDirty.ConvertTo<float>(), invertMatrix);
     [[maybe_unused]] auto nodeAbsRectMap = geoPtr->MapRect(nodeAbsRect.ConvertTo<float>(), invertMatrix);
@@ -280,7 +292,8 @@ bool RSOpincManager::CalculateLayerPartRenderDirtyRegion(RSRenderNode& node,
 }
 
 void RSOpincManager::CalculateAndUpdateLayerPartRenderDirtyRegion(RSRenderNode& node,
-    std::shared_ptr<RSDirtyRegionManager>& layerPartRenderDirtyManager, const RectI& visibleFilterRect)
+    std::shared_ptr<RSDirtyRegionManager>& layerPartRenderDirtyManager, const RectI& visibleFilterRect,
+    bool isDisableAnimation)
 {
     if (layerPartRenderDirtyManager == nullptr) {
         return;
@@ -315,12 +328,13 @@ void RSOpincManager::CalculateAndUpdateLayerPartRenderDirtyRegion(RSRenderNode& 
 
     RectI layerCurDirty;
     if (!CalculateLayerPartRenderDirtyRegion(node, layerPartRenderDirtyManager, visibleFilterRect, layerCurDirty) ||
-        layerPartRenderDirtyManager->HasUifirstChild()) {
+        layerPartRenderDirtyManager->HasUifirstChild() || isDisableAnimation) {
         node.MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_USER, false, false);
         node.CheckDrawingCacheType();
         stagingRenderParams->SetDrawingCacheType(node.GetDrawingCacheType());
         stagingRenderParams->SetLayerPartRenderEnabled(false);
-        RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", Calculate error or has uifirst node, clear", node.GetId());
+        RS_OPTIONAL_TRACE_FMT("id:%" PRIu64 ", isDisableAnimation or Calculate error or has uifirst node, clear",
+            node.GetId());
         return;
     }
 

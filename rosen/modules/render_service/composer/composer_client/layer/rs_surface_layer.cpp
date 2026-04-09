@@ -468,6 +468,7 @@ int32_t RSSurfaceLayer::GetGravity() const
 
 void RSSurfaceLayer::SetUniRenderFlag(bool isUniRender)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (isUniRender_ == isUniRender) {
         return;
     }
@@ -477,6 +478,7 @@ void RSSurfaceLayer::SetUniRenderFlag(bool isUniRender)
 
 bool RSSurfaceLayer::GetUniRenderFlag() const
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     return isUniRender_;
 }
 
@@ -768,11 +770,13 @@ LayerMask RSSurfaceLayer::GetLayerMaskInfo() const
 
 void RSSurfaceLayer::SetSurface(const sptr<IConsumerSurface>& surface)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     cSurface_ = surface;
 }
 
 sptr<IConsumerSurface> RSSurfaceLayer::GetSurface() const
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     return cSurface_;
 }
 
@@ -792,6 +796,7 @@ void RSSurfaceLayer::SetSurfaceUniqueId(uint64_t uniqueId)
 
 void RSSurfaceLayer::SetBuffer(const sptr<SurfaceBuffer>& sbuffer, const sptr<SyncFence>& acquireFence)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     sbuffer_ = sbuffer;
     acquireFence_ = acquireFence;
     SetRSLayerCmd<RSRenderLayerBufferCmd>(sbuffer);
@@ -800,12 +805,14 @@ void RSSurfaceLayer::SetBuffer(const sptr<SurfaceBuffer>& sbuffer, const sptr<Sy
 
 void RSSurfaceLayer::SetBuffer(const sptr<SurfaceBuffer>& sbuffer)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     sbuffer_ = sbuffer;
     SetRSLayerCmd<RSRenderLayerBufferCmd>(sbuffer);
 }
 
 sptr<SurfaceBuffer> RSSurfaceLayer::GetBuffer() const
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     auto sbuffer = sbuffer_.promote();
     if (sbuffer == nullptr) {
         ROSEN_LOGE("%{public}s layer id: %{public}" PRIu64 " buffer is released", __func__, rsLayerId_);

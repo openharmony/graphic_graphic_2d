@@ -105,33 +105,36 @@ RSSurfaceRenderNodeDrawable::RSSurfaceRenderNodeDrawable(std::shared_ptr<const R
 
     id_ = surfaceNode->GetId();
 
-    UpdatePipelineParamForSelfDraw(SurfaceFpsOpType::SURFACE_FPS_ADD);
+    if (IsSelfDrawingType()) {
+        AddSurfaceFpsOpStatic(SurfaceFpsOpType::SURFACE_FPS_ADD, id_, name_, uniqueId_);
+    }
 }
 
 RSSurfaceRenderNodeDrawable::~RSSurfaceRenderNodeDrawable()
 {
-    UpdatePipelineParamForSelfDraw(SurfaceFpsOpType::SURFACE_FPS_REMOVE);
+    if (IsSelfDrawingType()) {
+        RSMainThread::Instance()->PostTask([id = id_, name = name_, uniqueId = uniqueId_]() {
+            AddSurfaceFpsOpStatic(SurfaceFpsOpType::SURFACE_FPS_REMOVE, id, name, uniqueId);
+        });
+    }
 }
 
-void RSSurfaceRenderNodeDrawable::UpdatePipelineParamForSelfDraw(SurfaceFpsOpType surfaceFpsOpType)
+void RSSurfaceRenderNodeDrawable::AddSurfaceFpsOpStatic(
+    SurfaceFpsOpType surfaceFpsOpType, NodeId id, const std::string& name, uint64_t uniqueId)
 {
-    if (!IsSelfDrawingType()) {
-        return;
-    }
-
     SurfaceFpsOp op {
         static_cast<uint32_t>(surfaceFpsOpType),
-        id_,
-        name_,
-        uniqueId_,
+        id,
+        name,
+        uniqueId,
     };
     RSMainThread::Instance()->AddSurfaceFpsOp(op);
     RS_OPTIONAL_TRACE_NAME_FMT("Add SurfaceFpsOp type: %u, id: %" PRIu64 ", name: %s, uniqueId: %" PRIu64,
-                                surfaceFpsOpType, id_, name_.c_str(), uniqueId_);
+                               surfaceFpsOpType, id, name.c_str(), uniqueId);
     RS_LOGD("update surfaceFps op id: %{public}" PRIu64 ", "
             "name: %{public}s, "
             "type: %{public}u, "
-            "uniqueId: %{public}" PRIu64, id_, name_.c_str(), surfaceFpsOpType, uniqueId_);
+            "uniqueId: %{public}" PRIu64, id, name.c_str(), surfaceFpsOpType, uniqueId);
 }
 
 RSRenderNodeDrawable::Ptr RSSurfaceRenderNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)
@@ -1554,6 +1557,12 @@ bool RSSurfaceRenderNodeDrawable::DrawRelatedNode(RSPaintFilterCanvas& canvas,
 bool RSSurfaceRenderNodeDrawable::DrawRelatedSourceNode(RSPaintFilterCanvas& canvas,
     RSSurfaceRenderParams& surfaceParams)
 {
+    if (surfaceParams.IsNeedClearRelatedCache()) {
+        ClearRelatedSourceCache();
+        surfaceParams.SetNeedClearRelatedCache(false);
+        return false;
+    }
+
     if (!surfaceParams.ClonedSourceNode()) {
         return false;
     }

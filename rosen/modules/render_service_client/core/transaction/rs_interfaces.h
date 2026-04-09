@@ -577,6 +577,20 @@ public:
     int32_t SetDualScreenState(ScreenId id, DualScreenStatus status);
 
     /**
+     * @brief Set screen as main screen.
+     * @param screenId Id of the screen to set.
+     * @param isMainScreen True means set as main screen, false means not main screen.
+     * @return 0 means success, others failed.
+     */
+    int32_t SetAsMainScreen(ScreenId screenId, bool isMainScreen);
+
+    /**
+     * @brief Get the main screen id.
+     * @return ScreenId of the main screen. Returns INVALID_SCREEN_ID if no main screen is set.
+     */
+    ScreenId GetMainScreenId();
+
+    /**
      * @brief Get active mode of the screen.
      * @param id Id of the screen to get active mode.
      * @return RSScreenModeInfo including the screen width, height, and refresh rates.

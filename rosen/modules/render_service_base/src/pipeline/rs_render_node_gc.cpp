@@ -149,7 +149,6 @@ void RSRenderNodeGC::ReleaseNodeBucket()
 void RSRenderNodeGC::ReleaseNodeMemory(bool highPriority)
 {
     RS_TRACE_FUNC();
-#ifdef RS_ENABLE_MEMORY_DOWNTREE
     if (mainTask_) {
         mainTask_([this]() {
             ReleaseNodeMemNotOnTree();
@@ -157,7 +156,6 @@ void RSRenderNodeGC::ReleaseNodeMemory(bool highPriority)
     } else {
         ReleaseNodeMemNotOnTree();
     }
-#endif
     uint32_t remainBucketSize;
     {
         std::lock_guard<std::mutex> lock(nodeMutex_);
@@ -489,14 +487,18 @@ void RSRenderNodeGC::ReleaseNodeMemNotOnTree()
         auto nodeIt = nodeMap.begin();
         RS_TRACE_NAME_FMT("ReleaseNodeMemNotOnTree, pid: %" PRIu32 ", nodeMap size=%" PRIu32, *pidIt, nodeMap.size());
         while (nodeIt != nodeMap.end()) {
+            // VSync arrival or limit reached, break release early
+            if (isEnable_.load() == false || cnt > NODE_MEM_RELEASE_LIMIT) {
+                RS_TRACE_NAME_FMT("ReleaseNodeMemNotOnTree break: cnt=%" PRIu32 ", isEnable=%s",
+                    cnt, isEnable_.load() ? "true" : "false");
+                return;
+            }
             auto node = nodeIt->second.lock();
             if (node == nullptr || node->GetType() != RSRenderNodeType::CANVAS_NODE) {
                 nodeMap.erase(nodeIt++);
                 continue;
             }
-            if (cnt++ > NODE_MEM_RELEASE_LIMIT || isEnable_.load() == false) {
-                return;
-            }
+            cnt++;
             node->ReleaseNodeMem();
             nodeMap.erase(nodeIt++);
         }

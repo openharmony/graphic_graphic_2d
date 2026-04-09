@@ -1168,7 +1168,6 @@ void RSSurfaceRenderNode::SetClonedNodeInfo(NodeId id, bool needOffscreen, bool 
     }
     clonedSurfaceNode->clonedSourceNodeNeedOffscreen_ = isRelated || needOffscreen;
     isCloneNode_ = (id != INVALID_NODEID);
-    clonedSurfaceNode->SetRelatedSourceNode(isRelated);
     SetRelated(isCloneNode_ && isRelated);
     clonedSourceNodeId_ = id;
     RS_LOGD("RSSurfaceRenderNode::SetClonedNodeInfo clonedNode[%{public}" PRIu64 "] needOffscreen: %{public}d"
@@ -1462,6 +1461,9 @@ void RSSurfaceRenderNode::SetColorSpace(GraphicColorGamut colorSpace)
 
 GraphicColorGamut RSSurfaceRenderNode::GetColorSpace() const
 {
+    if (RsCommonHook::Instance().IsForceSRGBOutputEnabled()) {
+        return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    }
     if (!RSSystemProperties::GetWideColorSpaceEnabled()) {
         return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     }
@@ -2448,6 +2450,7 @@ void RSSurfaceRenderNode::OnSync()
             return;
         }
         surfaceParams->SetNeedSync(true);
+        surfaceParams->SetPartialSynced(IsUifirstSkipPartialSync());
     }
     RSRenderNode::OnSync();
 #endif
@@ -3856,6 +3859,9 @@ GraphicColorGamut RSSurfaceRenderNode::GamutCollector::GetCurGamut() const
 
 GraphicColorGamut RSSurfaceRenderNode::GamutCollector::GetFirstLevelNodeGamut() const
 {
+    if (RsCommonHook::Instance().IsForceSRGBOutputEnabled()) {
+        return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    }
     if (!RSSystemProperties::GetWideColorSpaceEnabled()) {
         return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     }
@@ -4042,6 +4048,25 @@ void RSSurfaceRenderNode::CopyModifierValue(ModifierNG::RSPropertyType propertyT
     if (newModifier->HasProperty(propertyType) && oldModifier->HasProperty(propertyType)) {
         oldModifier->Setter(propertyType, newModifier->Getter<T>(propertyType));
     }
+}
+
+void RSSurfaceRenderNode::CountRelatedNode(bool isIncrement)
+{
+    relatedNodeNum_ += isIncrement ? 1 : -1;
+    SetRelatedSourceNode(relatedNodeNum_ > 0);
+    if (!IsRelatedSourceNode()) {
+        ClearRelatedSourceCache();
+    }
+}
+
+void RSSurfaceRenderNode::ClearRelatedSourceCache()
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        return;
+    }
+    surfaceParams->SetNeedClearRelatedCache(true);
+    AddToPendingSyncList();
 }
 } // namespace Rosen
 } // namespace OHOS

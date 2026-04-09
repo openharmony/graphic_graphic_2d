@@ -265,6 +265,48 @@ HWTEST_F(RSScreenManagerAgentTest, SetScreenActiveMode001, TestSize.Level1)
 }
 
 /*
+ * @tc.name: SetAsMainScreenTest001
+ * @tc.desc: Test SetAsMainScreen
+ * @tc.type: FUNC
+ * @tc.require: #23043
+ */
+HWTEST_F(RSScreenManagerAgentTest, SetAsMainScreenTest001, TestSize.Level1)
+{
+    ASSERT_NE(screenManagerAgent_, nullptr);
+    ScreenId screenId = INVALID_SCREEN_ID;
+    bool isMainScreen = true;
+    screenManagerAgent_->SetAsMainScreen(screenId, isMainScreen);
+
+    auto screenManager = screenManagerAgent_->screenManager_;
+    screenManagerAgent_->screenManager_ = nullptr;
+    auto ret = screenManagerAgent_->SetAsMainScreen(screenId, isMainScreen);
+    ASSERT_EQ(ret, SCREEN_NOT_FOUND);
+
+    // restore
+    screenManagerAgent_->screenManager_ = screenManager;
+}
+
+/*
+ * @tc.name: GetMainScreenIdTest001
+ * @tc.desc: Test GetMainScreenId
+ * @tc.type: FUNC
+ * @tc.require: #23043
+ */
+HWTEST_F(RSScreenManagerAgentTest, GetMainScreenIdTest001, TestSize.Level1)
+{
+    ASSERT_NE(screenManagerAgent_, nullptr);
+    ScreenId screenId = screenManagerAgent_->GetMainScreenId();
+
+    auto screenManager = screenManagerAgent_->screenManager_;
+    screenManagerAgent_->screenManager_ = nullptr;
+    screenId = screenManagerAgent_->GetMainScreenId();
+    ASSERT_EQ(screenId, INVALID_SCREEN_ID);
+
+    // restore
+    screenManagerAgent_->screenManager_ = screenManager;
+}
+
+/*
  * @tc.name: GetScreenSupportedModes001
  * @tc.desc: Test GetScreenSupportedModes
  * @tc.type: FUNC

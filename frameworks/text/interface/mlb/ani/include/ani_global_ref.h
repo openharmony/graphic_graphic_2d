@@ -87,6 +87,9 @@ public:
     ani_class paragraphStyle;
     ani_class strutStyle;
     ani_class textTab;
+    ani_class textTabInternal;
+    ani_class strutStyleInternal;
+    ani_class paragraphStyleInternal;
     ani_class point;
     ani_class path;
     ani_class placeholderSpan;
@@ -124,6 +127,13 @@ public:
     ani_enum textDecorationStyle;
     ani_enum textBadgeType;
     ani_enum lineHeightStyle;
+    ani_enum textProcessState;
+    ani_enum textDisplayState;
+    ani_enum textAlign;
+    ani_enum wordBreak;
+    ani_enum breakStrategy;
+    ani_enum textHeightBehavior;
+    ani_enum textVerticalAlign;
 
 private:
     AniGlobalEnum() = default;
@@ -288,6 +298,9 @@ public:
     ani_method textBoxCtor;
     ani_method typographicBoundsCtor;
     ani_method textLayoutResultCtor;
+    ani_method textTabInternalCtor;
+    ani_method strutStyleInternalCtor;
+    ani_method paragraphStyleInternalCtor;
 
 private:
     AniGlobalMethod() = default;
@@ -317,6 +330,7 @@ private:
     void InitPointMethod(ani_env* env);
     void InitTextTabMethod(ani_env* env);
     void InitTextRectSizeMethod(ani_env* env);
+    void InitParagraphStyleInternalMethod(ani_env* env);
 };
 } // namespace OHOS::Text::ANI
 #endif // OHOS_TEXT_GLOBAL_REF_H

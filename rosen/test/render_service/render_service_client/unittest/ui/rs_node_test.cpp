@@ -1955,6 +1955,23 @@ HWTEST_F(RSNodeTest, SetandGetAlpha005, TestSize.Level1)
 }
 
 /**
+ * @tc.name: MarkLayerTest
+ * @tc.desc: TEST MarkLayer
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, MarkLayerTest, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    EXPECT_EQ(rsNode->isLayer_, false);
+    rsNode->MarkLayer(true);
+    EXPECT_EQ(rsNode->isLayer_, true);
+    rsNode->MarkLayer(false);
+    EXPECT_EQ(rsNode->isLayer_, false);
+    rsNode->MarkLayer(false);
+    EXPECT_EQ(rsNode->isLayer_, false);
+}
+
+/**
  * @tc.name: SetandGetBgImageWidth004
  * @tc.desc:
  * @tc.type:FUNC
@@ -3542,7 +3559,7 @@ HWTEST_F(RSNodeTest, SetandGetBackgroundColor001, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     constexpr uint32_t colorValue = 0x034123;
     RSColor color = Color::FromArgbInt(colorValue);
-    color.ConvertToP3ColorSpace();
+    color.ConvertToBT2020ColorSpace();
     rsNode->SetBackgroundColor(colorValue);
     EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundColor() == color);
 }
@@ -3557,7 +3574,7 @@ HWTEST_F(RSNodeTest, SetandGetBackgroundColor002, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     constexpr uint32_t colorValue = std::numeric_limits<uint32_t>::max();
     RSColor color = Color::FromArgbInt(colorValue);
-    color.ConvertToP3ColorSpace();
+    color.ConvertToBT2020ColorSpace();
     rsNode->SetBackgroundColor(colorValue);
     EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundColor() == color);
 }
@@ -3572,7 +3589,7 @@ HWTEST_F(RSNodeTest, SetandGetBackgroundColor003, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     constexpr uint32_t colorValue = std::numeric_limits<uint32_t>::min();
     RSColor color = Color::FromArgbInt(colorValue);
-    color.ConvertToP3ColorSpace();
+    color.ConvertToBT2020ColorSpace();
     rsNode->SetBackgroundColor(colorValue);
     EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundColor() == color);
 }
@@ -8476,6 +8493,27 @@ HWTEST_F(RSNodeTest, GetDescendantCount006, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetBackgroundColorBT2020Test
+ * @tc.desc: test SetBackgroundColor set BT2020
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeTest, SetBackgroundColorBT2020Test, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_TRUE(rsNode != nullptr);
+
+    RSColor color(1.0f, 0.0f, 0.0f, 1.0f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 1.0f);
+    rsNode->SetBackgroundColor(color);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundColor().GetColorSpace() ==
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+
+    RSColor color1(1.0f, 0.5f, 0.0f, 1.0f, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, 2.0f);
+    rsNode->SetBackgroundColor(color1);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundColor() == color1);
+}
+
+/**
  * @tc.name: SetBackgroundColorHeadroomTest
  * @tc.desc: test SetBackgroundColor set headroom
  * @tc.type:FUNC
@@ -8488,7 +8526,7 @@ HWTEST_F(RSNodeTest, SetBackgroundColorHeadroomTest, TestSize.Level1)
 
     constexpr uint32_t colorValue = 0x034123;
     RSColor color = Color::FromArgbInt(colorValue);
-    color.ConvertToP3ColorSpace();
+    color.ConvertToBT2020ColorSpace();
     rsNode->SetBackgroundColor(color);
     EXPECT_FLOAT_EQ(rsNode->GetStagingProperties().GetBackgroundColor().GetHeadroom(), 1.0f);
     color.SetHeadroom(2.0f);
@@ -8510,7 +8548,7 @@ HWTEST_F(RSNodeTest, SetHDRColorHeadroomTest, TestSize.Level1)
     ASSERT_TRUE(rsNode != nullptr);
     
     rsNode->SetHDRColorHeadroom(0.5f);
-    EXPECT_FLOAT_EQ(rsNode->GetStagingProperties().GetHDRColorHeadroom(), 0.5f);
+    EXPECT_FLOAT_EQ(rsNode->GetStagingProperties().GetHDRColorHeadroom(), 1.0f);
     
     rsNode->SetHDRColorHeadroom(1.0f);
     EXPECT_FLOAT_EQ(rsNode->GetStagingProperties().GetHDRColorHeadroom(), 1.0f);

@@ -34,6 +34,7 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 
 namespace OHOS::Rosen {
+class RSLayerCacheManager;
 class RSRenderNode;
 class RSRenderParams;
 class RSPaintFilterCanvas;
@@ -223,6 +224,7 @@ private:
     void ClearDrawingCacheDataMap();
     void ClearDrawingCacheContiUpdateTimeMap();
     friend class RsSubThreadCache;
+    friend class OHOS::Rosen::RSLayerCacheManager;
     RSOpincDrawCache opincDrawCache_;
     std::unique_ptr<RSRenderGroupCacheDrawable> renderGroupCache_ = nullptr;
 };

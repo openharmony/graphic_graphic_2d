@@ -226,3 +226,11 @@ DECLARE_FILTER(SDFEdgeLight, SDF_EDGE_LIGHT,
     ADD_PROPERTY_TAG(SDFEdgeLight, LightMask),
     ADD_PROPERTY_TAG(SDFEdgeLight, SDFShape)
 );
+
+DECLARE_FILTER(DistortionCollapse, DISTORTION_COLLAPSE,
+    ADD_PROPERTY_TAG(DistortionCollapse, LUCorner),
+    ADD_PROPERTY_TAG(DistortionCollapse, RUCorner),
+    ADD_PROPERTY_TAG(DistortionCollapse, RBCorner),
+    ADD_PROPERTY_TAG(DistortionCollapse, LBCorner),
+    ADD_PROPERTY_TAG(DistortionCollapse, BarrelDistortion)
+);

@@ -27,6 +27,7 @@
 #include "txt/paint_record.h"
 #include "txt/paragraph.h"
 #include "txt/paragraph_style.h"
+#include "txt/sp_convert.h"
 #include "txt/text_style.h"
 
 #ifdef USE_M133_SKIA
@@ -38,6 +39,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace SPText {
+
 namespace skt = skia::textlayout;
 class ParagraphImpl : public Paragraph {
 public:
@@ -173,6 +175,12 @@ public:
 
     TextLayoutResult LayoutWithConstraints(const TextRectSize& constraint) override;
 
+    ParagraphStyle GetParagraphStyle() const override;
+
+    TextProcessState GetProcessState() const override;
+
+    TextDisplayState GetTextDisplayState() const override;
+
 #ifdef ENABLE_OHOS_ENHANCE
     /**
      * Get the text path image by index.
@@ -185,6 +193,7 @@ public:
      */
     std::shared_ptr<OHOS::Media::PixelMap> GetTextPathImageByIndex(
         size_t start, size_t end, const ImageOptions& options, bool fill) const override;
+    std::vector<TextPathInfo> GetTextPathsByIndex(size_t start = 0, size_t end = SIZE_MAX) const override;
 #endif
 
 private:
@@ -195,8 +204,6 @@ private:
 
     void SymbolStyleUpdater(const HMSymbolTxt& symbolStyle, std::vector<std::shared_ptr<HMSymbolRun>>& hmSymbolRuns,
         skt::InternalState& state);
-
-    void GetExtraTextStyleAttributes(const skt::TextStyle& skStyle, TextStyle& textStyle);
 
     void ApplyParagraphStyleChanges(const ParagraphStyle& style);
 #ifdef USE_M133_SKIA
@@ -216,6 +223,10 @@ private:
         skt::InternalState& state, size_t index);
 
     void BuildFitStrRange(std::vector<TextRange>& fitRanges) const;
+    void MarkAttributeUpdated()
+    {
+        updateAttr = true;
+    }
 
     std::unique_ptr<skt::Paragraph> paragraph_;
     std::vector<PaintRecord> paints_;
@@ -226,6 +237,7 @@ private:
     uint32_t id_ = 0;
     std::vector<std::shared_ptr<HMSymbolRun>> hmSymbols_;
     std::once_flag initSymbolRunsFlag_;
+    bool updateAttr{false};
 };
 } // namespace SPText
 } // namespace Rosen

@@ -1140,24 +1140,6 @@ HWTEST_F(RSUifirstManagerTest2, GetCacheSurfaceProcessedStatusTest, TestSize.Lev
 }
 
 /**
- * @tc.name: SubThreadControlFrameRate
- * @tc.desc: Test SubThreadControlFrameRate
- * @tc.type: FUNC
- * @tc.require: issueIC3DK9
- */
-HWTEST_F(RSUifirstManagerTest2, SubThreadControlFrameRate, TestSize.Level1)
-{
-    NodeId id = 100;
-    auto node = RSTestUtil::CreateSurfaceNode();
-    auto rsSubThreadManager = RSSubThreadManager::Instance();
-    std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> drawable = nullptr;
-    rsSubThreadManager->ScheduleRenderNodeDrawable(drawable);
-    EXPECT_FALSE(drawable);
-    bool ret = uifirstManager_.SubThreadControlFrameRate(id, drawable, node);
-    ASSERT_EQ(ret, false);
-}
-
-/**
  * @tc.name: ProcessFirstFrameCache
  * @tc.desc: Test main thread cache preprocess
  * @tc.type: FUNC

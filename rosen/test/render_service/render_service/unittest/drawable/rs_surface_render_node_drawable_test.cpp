@@ -2370,6 +2370,12 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawRelatedSourceNodeTest, TestSize.Le
     bmp.ClearWithColor(Drawing::Color::COLOR_RED);
     surfaceDrawable_->relatedSourceNodeCache_ = bmp.MakeImage();
     ASSERT_TRUE(surfaceDrawable_->DrawRelatedSourceNode(*canvas_, *surfaceParams));
+
+    surfaceParams->SetNeedClearRelatedCache(true);
+    ASSERT_TRUE(surfaceParams->IsNeedClearRelatedCache());
+    ASSERT_FALSE(surfaceDrawable_->DrawRelatedSourceNode(*canvas_, *surfaceParams));
+    ASSERT_EQ(surfaceDrawable_->relatedSourceNodeCache_, nullptr);
+    ASSERT_FALSE(surfaceParams->IsNeedClearRelatedCache());
 }
 
 /**
@@ -2922,5 +2928,32 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDraw_HasDRMInVirtualScreen, TestSize
 
     // Call OnDraw which should trigger HasDRMInVirtualScreen and DrawRectWithColor
     surfaceDrawable_->OnDraw(*canvas_);
+}
+
+/**
+ * @tc.name: Destructor_SelfDrawingType
+ * @tc.desc: Test destructor with self drawing type to cover PostTask branch
+ * @tc.type: FUNC
+ * @tc.require: issue23146
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, Destructor_SelfDrawingType, TestSize.Level1)
+{
+    NodeId id = 1;
+    const RSSurfaceRenderNodeConfig config = {.id = id, .surfaceWindowType = SurfaceWindowType::SCB_SCREEN_LOCK};
+    auto renderNode = std::make_shared<RSSurfaceRenderNode>(config);
+    renderNode->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    auto drawable = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
+    ASSERT_NE(drawable, nullptr);
+
+    auto surfaceDrawable = static_cast<RSSurfaceRenderNodeDrawable*>(drawable);
+    ASSERT_NE(surfaceDrawable, nullptr);
+
+    // Set surface node type to SELF_DRAWING_NODE to trigger IsSelfDrawingType() == true in destructor
+    surfaceDrawable->id_ = id;
+    surfaceDrawable->name_ = "test_surface";
+    surfaceDrawable->uniqueId_ = 12345;
+
+    // Manually delete to call destructor and trigger PostTask branch
+    delete drawable;
 }
 }

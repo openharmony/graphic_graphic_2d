@@ -1208,4 +1208,26 @@ HWTEST_F(RSNodeTest2, SetHdrDarkenBlenderParams002, TestSize.Level1)
     EXPECT_EQ(params.grayscaleFactor_.z_, 0.1f);
 }
 
+/**
+ * @tc.name: SetGravityPullCenterFlagTest
+ * @tc.desc: test results of RSNode::SetGravityPullCenterFlag
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest2, SetGravityPullCenterFlagTest, TestSize.Level1)
+{
+    auto modifierType = ModifierNG::RSModifierType::BOUNDS;
+    auto rsNode = RSCanvasNode::Create();
+
+    EXPECT_EQ(rsNode->GetModifierCreatedBySetter(modifierType), nullptr);
+
+    rsNode->SetGravityPullCenterFlag(false);
+    auto& properties = rsNode->GetModifierCreatedBySetter(modifierType)->properties_;
+
+    EXPECT_NE(rsNode->GetModifierCreatedBySetter(modifierType), nullptr);
+    EXPECT_NE(properties.find(ModifierNG::RSPropertyType::GRAVITY_CENTER_FLAG), properties.end());
+
+    rsNode->SetGravityPullCenterFlag(true);
+    EXPECT_NE(rsNode->GetModifierCreatedBySetter(modifierType), nullptr);
+    EXPECT_NE(properties.find(ModifierNG::RSPropertyType::GRAVITY_CENTER_FLAG), properties.end());
+}
 } // namespace OHOS::Rosen

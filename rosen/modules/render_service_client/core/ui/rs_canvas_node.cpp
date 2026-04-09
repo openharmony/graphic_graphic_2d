@@ -210,7 +210,7 @@ float RSCanvasNode::GetPaintHeight() const
     return frame.w_ <= 0.f ? GetStagingProperties().GetBounds().w_ : frame.w_;
 }
 
-void RSCanvasNode::SetFreeze(bool isFreeze)
+void RSCanvasNode::SetFreeze(bool isFreeze, bool isMarkedByUI)
 {
     if (!IsUniRenderEnabled()) {
         ROSEN_LOGE("SetFreeze is not supported in separate render");
@@ -218,7 +218,7 @@ void RSCanvasNode::SetFreeze(bool isFreeze)
     }
     RS_OPTIONAL_TRACE_NAME_FMT("RSCanvasNode::SetFreeze id:%llu", GetId());
     RSNode::SetDrawNode();
-    std::unique_ptr<RSCommand> command = std::make_unique<RSSetFreeze>(GetId(), isFreeze);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSetFreeze>(GetId(), isFreeze, isMarkedByUI);
     AddCommand(command, true);
 }
 

@@ -16,12 +16,13 @@
 #include <gtest/gtest.h>
 #include <thread>
 #include <unordered_set>
-#include "rs_composer_to_render_connection_proxy.h"
-#include "rs_composer_to_render_connection.h"
+
 #include "graphic_common_c.h"
 #include "iremote_object.h"
-#include "sync_fence.h"
+#include "rs_composer_to_render_connection.h"
+#include "rs_composer_to_render_connection_proxy.h"
 #include "surface_buffer.h"
+#include "sync_fence.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -44,7 +45,7 @@ HWTEST_F(RSComposerToRenderConnectionProxyTest, ProxyStub_ReleaseLayerBuffers_An
     sptr<RSComposerToRenderConnection> stub = sptr<RSComposerToRenderConnection>::MakeSptr();
     ReleaseLayerBuffersInfo capturedInfo;
     bool cbCalled = false;
-    stub->RegisterReleaseLayerBuffersCB([&](ReleaseLayerBuffersInfo &info) {
+    stub->RegisterReleaseLayerBuffersCB([&](ReleaseLayerBuffersInfo& info) {
         capturedInfo = info;
         cbCalled = true;
     });
@@ -85,7 +86,7 @@ HWTEST_F(RSComposerToRenderConnectionProxyTest, Proxy_ReleaseLayerBuffers_Timest
     sptr<RSComposerToRenderConnection> stub = sptr<RSComposerToRenderConnection>::MakeSptr();
     ReleaseLayerBuffersInfo capturedInfo;
     bool cbCalled = false;
-    stub->RegisterReleaseLayerBuffersCB([&](ReleaseLayerBuffersInfo &info) {
+    stub->RegisterReleaseLayerBuffersCB([&](ReleaseLayerBuffersInfo& info) {
         capturedInfo = info;
         cbCalled = true;
     });
@@ -120,7 +121,7 @@ HWTEST_F(RSComposerToRenderConnectionProxyTest, Proxy_ReleaseLayerBuffers_MixedN
     sptr<RSComposerToRenderConnection> stub = sptr<RSComposerToRenderConnection>::MakeSptr();
     ReleaseLayerBuffersInfo capturedInfo;
     bool cbCalled = false;
-    stub->RegisterReleaseLayerBuffersCB([&](ReleaseLayerBuffersInfo &info) {
+    stub->RegisterReleaseLayerBuffersCB([&](ReleaseLayerBuffersInfo& info) {
         capturedInfo = info;
         cbCalled = true;
     });
@@ -177,7 +178,7 @@ HWTEST_F(RSComposerToRenderConnectionProxyTest, Proxy_ReleaseLayerBuffers_EmptyV
     sptr<RSComposerToRenderConnection> stub = sptr<RSComposerToRenderConnection>::MakeSptr();
     uint64_t capturedScreenId = 0;
     bool cbCalled = false;
-    stub->RegisterReleaseLayerBuffersCB([&](ReleaseLayerBuffersInfo &info) {
+    stub->RegisterReleaseLayerBuffersCB([&](ReleaseLayerBuffersInfo& info) {
         capturedScreenId = info.screenId;
         cbCalled = true;
     });
@@ -297,11 +298,26 @@ HWTEST_F(RSComposerToRenderConnectionProxyTest, Proxy_SendRequest_ErrorBranch, T
     class FakeErrorRemoteLocal : public IRemoteObject {
     public:
         FakeErrorRemoteLocal() : IRemoteObject(IRSComposerToRenderConnection::GetDescriptor()) {}
-        int32_t GetObjectRefCount() override { return 1; }
-        int SendRequest(uint32_t, MessageParcel &, MessageParcel &, MessageOption &) override { return -1; }
-        bool AddDeathRecipient(const sptr<DeathRecipient> &) override { return false; }
-        bool RemoveDeathRecipient(const sptr<DeathRecipient> &) override { return false; }
-        int Dump(int, const std::vector<std::u16string> &) override { return 0; }
+        int32_t GetObjectRefCount() override
+        {
+            return 1;
+        }
+        int SendRequest(uint32_t, MessageParcel&, MessageParcel&, MessageOption&) override
+        {
+            return -1;
+        }
+        bool AddDeathRecipient(const sptr<DeathRecipient>&) override
+        {
+            return false;
+        }
+        bool RemoveDeathRecipient(const sptr<DeathRecipient>&) override
+        {
+            return false;
+        }
+        int Dump(int, const std::vector<std::u16string>&) override
+        {
+            return 0;
+        }
     };
     sptr<IRemoteObject> badRemote = sptr<FakeErrorRemoteLocal>::MakeSptr();
     RSComposerToRenderConnectionProxy proxy(badRemote);
@@ -313,5 +329,94 @@ HWTEST_F(RSComposerToRenderConnectionProxyTest, Proxy_SendRequest_ErrorBranch, T
     std::unordered_set<uint64_t> ids;
     int32_t r2 = proxy.NotifyLppLayerToRender(1u, ids);
     EXPECT_EQ(r2, -1);
+}
+
+/**
+ * Function: Proxy_ReleaseLayerBuffers_ReadReplyMessageFail_TrueBranch
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. construct proxy with remote returning success but empty reply
+ *                  2. verify ReleaseLayerBuffers returns -1 (line 111 true branch)
+ */
+HWTEST_F(
+    RSComposerToRenderConnectionProxyTest, Proxy_ReleaseLayerBuffers_ReadReplyMessageFail_TrueBranch, TestSize.Level1)
+{
+    class FakeReplyReadFailRemote : public IRemoteObject {
+    public:
+        FakeReplyReadFailRemote() : IRemoteObject(IRSComposerToRenderConnection::GetDescriptor()) {}
+        int32_t GetObjectRefCount() override
+        {
+            return 1;
+        }
+        int SendRequest(uint32_t, MessageParcel&, MessageParcel& reply, MessageOption&) override
+        {
+            reply.RewindRead(0);
+            return NO_ERROR;
+        }
+        bool AddDeathRecipient(const sptr<DeathRecipient>&) override
+        {
+            return false;
+        }
+        bool RemoveDeathRecipient(const sptr<DeathRecipient>&) override
+        {
+            return false;
+        }
+        int Dump(int, const std::vector<std::u16string>&) override
+        {
+            return 0;
+        }
+    };
+    sptr<IRemoteObject> fakeRemote = sptr<FakeReplyReadFailRemote>::MakeSptr();
+    RSComposerToRenderConnectionProxy proxy(fakeRemote);
+
+    ReleaseLayerBuffersInfo info;
+    info.screenId = 1u;
+    int32_t r = proxy.ReleaseLayerBuffers(info);
+    EXPECT_EQ(r, -1);
+}
+
+/**
+ * Function: Proxy_NotifyLppLayerToRender_ReadReplyMessageFail_TrueBranch
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. construct proxy with remote returning success but empty reply
+ *                  2. verify NotifyLppLayerToRender returns -1 (line 157 true branch)
+ */
+HWTEST_F(RSComposerToRenderConnectionProxyTest, Proxy_NotifyLppLayerToRender_ReadReplyMessageFail_TrueBranch,
+    TestSize.Level1)
+{
+    class FakeReplyReadFailRemote : public IRemoteObject {
+    public:
+        FakeReplyReadFailRemote() : IRemoteObject(IRSComposerToRenderConnection::GetDescriptor()) {}
+        int32_t GetObjectRefCount() override
+        {
+            return 1;
+        }
+        int SendRequest(uint32_t, MessageParcel&, MessageParcel& reply, MessageOption&) override
+        {
+            reply.RewindRead(0);
+            return NO_ERROR;
+        }
+        bool AddDeathRecipient(const sptr<DeathRecipient>&) override
+        {
+            return false;
+        }
+        bool RemoveDeathRecipient(const sptr<DeathRecipient>&) override
+        {
+            return false;
+        }
+        int Dump(int, const std::vector<std::u16string>&) override
+        {
+            return 0;
+        }
+    };
+    sptr<IRemoteObject> fakeRemote = sptr<FakeReplyReadFailRemote>::MakeSptr();
+    RSComposerToRenderConnectionProxy proxy(fakeRemote);
+
+    std::unordered_set<uint64_t> ids { 1u, 2u };
+    int32_t r = proxy.NotifyLppLayerToRender(100u, ids);
+    EXPECT_EQ(r, -1);
 }
 } // namespace OHOS::Rosen

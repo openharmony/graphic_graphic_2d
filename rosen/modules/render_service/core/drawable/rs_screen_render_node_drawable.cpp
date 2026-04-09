@@ -39,6 +39,7 @@
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "feature/drm/rs_drm_util.h"
 #include "feature/frame_stability/rs_frame_stability_manager.h"
+#include "feature/layer/rs_layer_cache_manager.h"
 #include "feature/pointer_window_manager/rs_pointer_window_manager.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "feature/round_corner_display/rs_rcd_render_manager.h"
@@ -767,14 +768,18 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             params->ResetVirtualExpandAccumulatedParams();
         } else {
             RS_LOGD("RSScreenRenderNodeDrawable::OnDraw Expand screen.");
-            bool isOpDropped = uniParam->IsOpDropped();
-            uniParam->SetOpDropped(uniParam->IsVirtualExpandScreenDirtyEnabled());
             auto expandProcessor = RSProcessor::ReinterpretCast<RSUniRenderVirtualProcessor>(processor);
             if (!expandProcessor) {
                 SetDrawSkipType(DrawSkipType::EXPAND_PROCESSOR_NULL);
                 RS_LOGE("RSScreenRenderNodeDrawable::OnDraw expandProcessor is null!");
                 return;
             }
+            bool isOpDropped = uniParam->IsOpDropped();
+            bool isVirtualExpandScreenDirtyEnabled = uniParam->IsVirtualExpandScreenDirtyEnabled();
+            if (expandProcessor->IsVirtualExpandScale()) {
+                uniParam->SetVirtualExpandScreenDirtyEnabled(false);
+            }
+            uniParam->SetOpDropped(uniParam->IsVirtualExpandScreenDirtyEnabled());
             RSDirtyRectsDfx rsDirtyRectsDfx(*this);
             std::vector<RectI> damageRegionRects;
             RSUniDirtyComputeUtil::MergeVirtualExpandScreenAccumulatedDirtyRegions(*this, *params);
@@ -826,6 +831,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                 rsDirtyRectsDfx.OnDrawVirtual(*curCanvas_);
             }
             uniParam->SetOpDropped(isOpDropped);
+            uniParam->SetVirtualExpandScreenDirtyEnabled(isVirtualExpandScreenDirtyEnabled);
         }
         DrawCurtainScreen();
         processor->PostProcess();
@@ -867,6 +873,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         SetScreenNodeSkipFlag(*uniParam, true);
         return;
     }
+    params->GetLayerSkipContext().Reset();
     SetScreenNodeSkipFlag(*uniParam, false);
     RSMainThread::Instance()->SetFrameIsRender(true);
 
@@ -929,6 +936,10 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RS_LOGE("RSScreenRenderNodeDrawable::OnDraw failed to create canvas");
         return;
     }
+
+    auto& layerCacheManager = RSLayerCacheManager::Instance();
+    layerCacheManager.HandleLayerDrawables(*curCanvas_);
+
     curCanvas_->SetDrawnRegion(params->GetDrawnRegion());
     curCanvas_->SetTargetColorGamut(params->GetNewColorSpace());
     curCanvas_->SetScreenId(paramScreenId);
@@ -1014,7 +1025,6 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         }
     }
     RenderOverDraw();
-    CheckAndClearRelatedSourceNodeCache(*params);
     RSMainThread::Instance()->SetDirtyFlag(false);
 
     if (Drawing::PerformanceCaculate::GetDrawingFlushPrint()) {
@@ -1281,20 +1291,5 @@ bool RSScreenRenderNodeDrawable::CheckScreenFreezeSkip(RSScreenRenderParams& par
         return true;
     }
     return false;
-}
-
-void RSScreenRenderNodeDrawable::CheckAndClearRelatedSourceNodeCache(RSScreenRenderParams& params)
-{
-    auto cloneNodeMap = params.GetCloneNodeMap();
-    for (auto &iter : cloneNodeMap) {
-        auto surfaceDrawable =
-            std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(iter.second.lock());
-        if (!surfaceDrawable) {
-            RS_LOGE("RSScreenRenderNodeDrawable::CheckAndClearRelatedSourceNodeCache"
-                " surfaceDrawable is nullptr");
-            continue;
-        }
-        surfaceDrawable->ClearRelatedSourceCache();
-    }
 }
 } // namespace OHOS::Rosen::DrawableV2

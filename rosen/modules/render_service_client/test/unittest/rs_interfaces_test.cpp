@@ -3143,6 +3143,42 @@ HWTEST_F(RSInterfacesTest, SetDualScreenState003, Function | SmallTest | Level2)
     EXPECT_NE(ret, static_cast<int32_t>(StatusCode::SUCCESS));
 }
 
+/**
+ * @tc.name: SetAsMainScreenTest001
+ * @tc.desc: Test SetAsMainScreenTest when set INVALID_SCREEN_ID
+ * @tc.type: FUNC
+ * @tc.require: #23043
+ */
+HWTEST_F(RSInterfacesTest, SetAsMainScreenTest001, Function | SmallTest | Level2)
+{
+    auto ret = rsInterfaces->SetAsMainScreen(INVALID_SCREEN_ID, true);
+    EXPECT_NE(ret, static_cast<int32_t>(StatusCode::SUCCESS));
+}
+
+/*
+ * @tc.name: GetMainScreenIdTest001
+ * @tc.desc: Test GetMainScreenId returns valid screen ID after setting main screen
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, GetMainScreenIdTest001, Function | SmallTest | Level2)
+{
+    std::string name = "GetMainScreenIdTest001";
+    uint32_t width = 1920;
+    uint32_t height = 1080;
+    ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(name, width, height, nullptr);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+
+    auto ret = rsInterfaces->SetAsMainScreen(virtualScreenId, true);
+    EXPECT_EQ(ret, static_cast<int32_t>(StatusCode::SUCCESS));
+    ScreenId mainScreenId = rsInterfaces->GetMainScreenId();
+    EXPECT_EQ(mainScreenId, virtualScreenId);
+
+    // restore
+    rsInterfaces->SetAsMainScreen(virtualScreenId, false);
+    rsInterfaces->RemoveVirtualScreen(virtualScreenId);
+}
+
 /*
  * @tc.name: ModifyVirtualScreenWhiteList001
  * @tc.desc: modify virtual screen white list

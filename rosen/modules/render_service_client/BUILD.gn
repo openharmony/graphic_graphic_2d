@@ -187,6 +187,7 @@ template("render_service_client_source_set") {
       "core/ui/rs_canvas_callback_router.cpp",
       "core/ui/rs_canvas_drawing_node.cpp",
       "core/ui/rs_canvas_node.cpp",
+      "core/ui/rs_depth_node.cpp",
       "core/ui/rs_display_node.cpp",
       "core/ui/rs_effect_node.cpp",
       "core/ui/rs_node.cpp",

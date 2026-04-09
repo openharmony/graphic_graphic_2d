@@ -186,6 +186,10 @@ public:
 
     virtual int32_t SetDualScreenState(ScreenId id, DualScreenStatus status) = 0;
 
+    virtual int32_t SetAsMainScreen(ScreenId screenId, bool isMainScreen) = 0;
+
+    virtual ScreenId GetMainScreenId() = 0;
+
     virtual RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id) = 0;
 
     virtual ErrCode GetScreenActiveMode(uint64_t id, RSScreenModeInfo& screenModeInfo) = 0;

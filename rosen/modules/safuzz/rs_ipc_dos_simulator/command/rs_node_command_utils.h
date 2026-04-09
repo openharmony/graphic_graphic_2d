@@ -89,13 +89,14 @@ public:
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyNGShapeBase,
                                     Uint64, RSNGShapePtr, Uint64, PropertyUpdateType);
 
-    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetFreeze, Uint64, Bool);
+    ADD_RANDOM_COMMAND_WITH_PARAM_3(RSSetFreeze, Uint64, Bool, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetNodeName, Uint64, String);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSMarkNodeGroup, Uint64, Bool, Bool, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSExcludedFromNodeGroup, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_3(RSMarkNodeSingleFrameComposer, Uint64, Bool, Pid);
     ADD_RANDOM_COMMAND_WITH_PARAM_3(RSMarkSuggestOpincNode, Uint64, Bool, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSMarkLayerPartRender, Uint64, Bool);
+    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSMarkLayer, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSMarkUifirstNode, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_3(RSForceUifirstNode, Uint64, Bool, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetUIFirstSwitch, Uint64, RSUIFirstSwitch);

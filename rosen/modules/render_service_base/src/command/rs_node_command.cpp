@@ -18,6 +18,7 @@
 #include "modifier_ng/rs_render_modifier_ng.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
+#include "common/rs_optional_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -27,12 +28,12 @@ RSNodeCommandHelper::CommitDumpNodeTreeProcessor gCommitDumpNodeTreeProcessor = 
 RSNodeCommandHelper::ColorPickerCallbackProcessor gColorPickerCallbackProcessor = nullptr;
 }
 
-void RSNodeCommandHelper::SetFreeze(RSContext& context, NodeId nodeId, bool isFreeze)
+void RSNodeCommandHelper::SetFreeze(RSContext& context, NodeId nodeId, bool isFreeze, bool isMarkedByUI)
 {
     auto& nodeMap = context.GetNodeMap();
     auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
     if (node) {
-        node->SetStaticCached(isFreeze);
+        node->SetStaticCached(isFreeze, isMarkedByUI);
     }
 }
 
@@ -354,6 +355,19 @@ void RSNodeCommandHelper::ColorPickerCallback(
 void RSNodeCommandHelper::SetColorPickerCallbackProcessor(ColorPickerCallbackProcessor processor)
 {
     gColorPickerCallbackProcessor = processor;
+}
+
+void RSNodeCommandHelper::MarkLayer(RSContext& context, NodeId nodeId, bool isLayer)
+{
+    auto& nodeMap = context.GetNodeMap();
+    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
+    // only support canvas node mark
+    if (node && (node->GetType() == RSRenderNodeType::CANVAS_NODE)) {
+        RS_OPTIONAL_TRACE_NAME_FMT("MarkLayer isLayer:%d id:%llu", isLayer, node->GetId());
+        RS_LOGI_IF(
+            DEBUG_NODE, "RSRenderNode::MarkLayer isLayer:%{public}d id:%{public}" PRIu64 "", isLayer, node->GetId());
+        node->MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_LAYER, isLayer, false);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

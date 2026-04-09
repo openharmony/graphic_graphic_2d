@@ -830,7 +830,6 @@ private:
     uint32_t curFrameBufferReclaimCount_ = 0;
 
     // for surface fps op
-    std::mutex surfaceFpsOpMutex_;
     std::unordered_map<NodeId, SurfaceFpsOp> addSurfaceFpsOpMap_;
     std::unordered_map<NodeId, SurfaceFpsOp> rmvSurfaceFpsOpMap_;
 };

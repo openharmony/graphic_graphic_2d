@@ -1023,7 +1023,7 @@ bool RSServiceToRenderConnectionProxy::RegisterTypeface(uint64_t globalUniqueId,
     bool result{false};
     if (!reply.ReadBool(result)) {
         ROSEN_LOGE("%{public}s: Read result failed", __func__);
-        return READ_PARCEL_ERR;
+        return false;
     }
     return result;
 }

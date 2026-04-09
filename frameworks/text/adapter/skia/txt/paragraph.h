@@ -24,6 +24,7 @@
 #include "modules/skparagraph/include/Paragraph.h"
 #include "paragraph_style.h"
 #include "rosen_text/symbol_animation_config.h"
+#include "typography_types.h"
 #include "text/font_types.h"
 #include "text_line_base.h"
 #include "txt/text_style.h"
@@ -232,10 +233,14 @@ public:
     virtual void SetSkipTextBlobDrawing(bool state) = 0;
     virtual bool CanPaintAllText() const = 0;
     virtual std::string GetDumpInfo() const = 0;
+    virtual ParagraphStyle GetParagraphStyle() const = 0;
+    virtual TextProcessState GetProcessState() const = 0;
+    virtual TextDisplayState GetTextDisplayState() const = 0;
     virtual TextLayoutResult LayoutWithConstraints(const TextRectSize& constraint) = 0;
 #ifdef ENABLE_OHOS_ENHANCE
     virtual std::shared_ptr<OHOS::Media::PixelMap> GetTextPathImageByIndex(
         size_t start, size_t end, const ImageOptions& options, bool fill) const = 0;
+    virtual std::vector<TextPathInfo> GetTextPathsByIndex(size_t start = 0, size_t end = SIZE_MAX) const = 0;
 #endif
 };
 } // namespace SPText

@@ -127,6 +127,36 @@ float RSBoundsModifier::GetUnionSpacing() const
     return Getter(RSPropertyType::UNION_SPACING, 0.f);
 }
 
+void RSBoundsModifier::SetUnionMode(int uniModeUC)
+{
+    Setter<RSProperty>(RSPropertyType::SDF_UNION_MODE, uniModeUC);
+}
+
+int RSBoundsModifier::GetUnionMode() const
+{
+    return Getter(RSPropertyType::SDF_UNION_MODE, 0);
+}
+
+void RSBoundsModifier::SetGravityPullCenterFlag(bool isGravityPullModeCenter)
+{
+    Setter<RSProperty>(RSPropertyType::GRAVITY_CENTER_FLAG, isGravityPullModeCenter);
+}
+
+bool RSBoundsModifier::GetGravityPullCenterFlag() const
+{
+    return Getter(RSPropertyType::GRAVITY_CENTER_FLAG, false);
+}
+
+void RSBoundsModifier::SetGravityPullStrength(float gravityPullStrength)
+{
+    Setter(RSPropertyType::GRAVITY_UNION_STRENGTH, gravityPullStrength);
+}
+
+float RSBoundsModifier::GetGravityPullStrength() const
+{
+    return Getter(RSPropertyType::GRAVITY_UNION_STRENGTH, 0.f);
+}
+
 void RSBoundsModifier::SetSDFShape(const std::shared_ptr<RSNGShapeBase>& shape)
 {
     Setter<RSProperty, std::shared_ptr<RSNGShapeBase>>(RSPropertyType::SDF_SHAPE, shape);

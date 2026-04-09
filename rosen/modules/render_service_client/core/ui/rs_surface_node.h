@@ -290,7 +290,7 @@ public:
      *                - true: Freeze current frame into static texture
      *                - false: Resume normal buffer updates
      */
-    void SetFreeze(bool isFreeze) override;
+    void SetFreeze(bool isFreeze, bool isMarkedByUI = false) override;
     
     // codes for arkui-x
 #ifdef USE_SURFACE_TEXTURE
@@ -360,6 +360,8 @@ public:
     void SetContainerWindowTransparent(bool isContainerWindowTransparent);
     void SetAppRotationCorrection(ScreenRotation appRotationCorrection);
     void SetHDRBrightnessWithType(const float& hdrBrightness, uint32_t hdrType);
+    void SetIsDepthResource(bool isDepthResource);
+
 protected:
     bool NeedForcedSendToRemote() const override;
     RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode,

@@ -3250,6 +3250,145 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetPhysicalScreenResolutionTest001
 }
 
 /**
+ * @tc.name: SetAsMainScreenTest001
+ * @tc.desc: Test SetAsMainScreen
+ * @tc.type: FUNC
+ * @tc.require: #23043
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetAsMainScreenTest001, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    uint32_t interfaceCode = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_AS_MAIN_SCREEN);
+
+    // case 1: only write descriptor
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+        auto res = connectionStub_->OnRemoteRequest(interfaceCode, data, reply, option);
+        EXPECT_NE(res, ERR_NONE);
+    }
+
+    // case 2: write descriptor and screenId
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        ScreenId id = 0;
+        data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+        data.WriteUint64(id);
+        auto res = connectionStub_->OnRemoteRequest(interfaceCode, data, reply, option);
+        EXPECT_NE(res, ERR_NONE);
+    }
+
+    // case 3: write descriptor, screenId and isMainScreen
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        ScreenId id = 0;
+        bool isMainScreen = true;
+        data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+        data.WriteUint64(id);
+        data.WriteBool(isMainScreen);
+        auto res = connectionStub_->OnRemoteRequest(interfaceCode, data, reply, option);
+        EXPECT_EQ(res, ERR_NONE);
+    }
+
+    // case 4: reply write failed
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        ScreenId id = 0;
+        bool isMainScreen = true;
+        data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+        data.WriteUint64(id);
+        data.WriteBool(isMainScreen);
+        reply.writable_ = false;
+        reply.data_ = nullptr;
+        auto res = connectionStub_->OnRemoteRequest(interfaceCode, data, reply, option);
+        EXPECT_NE(res, ERR_NONE);
+    }
+}
+
+/**
+ * @tc.name: SetAsMainScreenTest002
+ * @tc.desc: Test SetAsMainScreen with screenManagerAgent null
+ * @tc.type: FUNC
+ * @tc.require: #23043
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetAsMainScreenTest002, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    sptr<RSClientToServiceConnection> connection = iface_cast<RSClientToServiceConnection>(connectionStub_);
+    ASSERT_NE(connection, nullptr);
+    auto screenManagerAgent = connection->screenManagerAgent_;
+    connection->screenManagerAgent_ = nullptr;
+    ScreenId id = 0;
+    int32_t res = connection->SetAsMainScreen(id, false);
+
+    // restore
+    connection->screenManagerAgent_ = screenManagerAgent;
+    EXPECT_NE(res, StatusCode::SUCCESS);
+}
+
+/**
+ * @tc.name: GetMainScreenIdTest001
+ * @tc.desc: Test GetMainScreenId
+ * @tc.type: FUNC
+ * @tc.require: #23043
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, GetMainScreenIdTest001, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    uint32_t interfaceCode = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_MAIN_SCREEN);
+
+    // case 1: only write descriptor
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+        auto res = connectionStub_->OnRemoteRequest(interfaceCode, data, reply, option);
+        EXPECT_EQ(res, ERR_NONE);
+    }
+
+    // case 2: reply write failed
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+        reply.writable_ = false;
+        reply.data_ = nullptr;
+        auto res = connectionStub_->OnRemoteRequest(interfaceCode, data, reply, option);
+        EXPECT_NE(res, ERR_NONE);
+    }
+}
+
+/**
+ * @tc.name: GetMainScreenIdTest002
+ * @tc.desc: Test GetMainScreenId with screenManagerAgent null
+ * @tc.type: FUNC
+ * @tc.require: #23043
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, GetMainScreenIdTest002, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    sptr<RSClientToServiceConnection> connection = iface_cast<RSClientToServiceConnection>(connectionStub_);
+    ASSERT_NE(connection, nullptr);
+    auto screenManagerAgent = connection->screenManagerAgent_;
+    connection->screenManagerAgent_ = nullptr;
+    ScreenId screenId = connection->GetMainScreenId();
+
+    // restore
+    connection->screenManagerAgent_ = screenManagerAgent;
+    EXPECT_NE(screenId, StatusCode::SUCCESS);
+}
+
+/**
  * @tc.name: RemoveVirtualScreenWhiteList001
  * @tc.desc: Test RemoveVirtualScreenWhiteList
  * @tc.type: FUNC
@@ -4935,5 +5074,69 @@ HWTEST_F(RSClientToServiceConnectionStubTest, CleanAllCallsCleanForRefreshTest, 
     // Verify cleanDone_ is set and pidToBundleName_ is cleared
     EXPECT_TRUE(testConnection->cleanDone_);
     EXPECT_TRUE(testConnection->pidToBundleName_.empty());
+}
+
+/**
+ * @tc.name: ReportGameStateTest001
+ * @tc.desc: Test ReportGameStateData
+ * @tc.type: FUNC
+ * @tc.require: issue21752
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, ReportGameStateTest001, TestSize.Level1)
+{
+    EXPECT_NE(connectionStub_, nullptr);
+    EXPECT_NE(connectionStub_->renderServiceAgent_, nullptr);
+    sptr<RSClientToServiceConnection> clientToServiceConnection =
+        iface_cast<RSClientToServiceConnection>(connectionStub_);
+    EXPECT_NE(clientToServiceConnection, nullptr);
+    EXPECT_NE(clientToServiceConnection->renderServiceAgent_, nullptr);
+    auto& handler = clientToServiceConnection->renderServiceAgent_->renderService_.GetGameFrameHandler();
+    EXPECT_NE(handler, nullptr);
+    GameStateData data = { 0, 0, 0, 0, "bundleName" };
+    clientToServiceConnection->ReportGameStateData(data);
+}
+
+/**
+ * @tc.name: ReportGameStateTest002
+ * @tc.desc: Test ReportGameStateData with null RSRenderServiceAgent pointer.
+ * @tc.type: FUNC
+ * @tc.require: issue21752
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, ReportGameStateTest002, TestSize.Level1)
+{
+    EXPECT_NE(connectionStub_, nullptr);
+    EXPECT_NE(connectionStub_->renderServiceAgent_, nullptr);
+    auto renderServiceAgent = connectionStub_->renderServiceAgent_;
+    connectionStub_->renderServiceAgent_ = nullptr;
+    sptr<RSClientToServiceConnection> clientToServiceConnection =
+        iface_cast<RSClientToServiceConnection>(connectionStub_);
+    EXPECT_NE(clientToServiceConnection, nullptr);
+    EXPECT_EQ(clientToServiceConnection->renderServiceAgent_, nullptr);
+    GameStateData data = { 0, 0, 0, 0, "bundleName" };
+    clientToServiceConnection->ReportGameStateData(data);
+    connectionStub_->renderServiceAgent_ = renderServiceAgent;
+}
+
+/**
+ * @tc.name: ReportGameStateTest003
+ * @tc.desc: Test ReportGameStateData with null RsGameFrameHandler pointer.
+ * @tc.type: FUNC
+ * @tc.require: issue21752
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, ReportGameStateTest003, TestSize.Level1)
+{
+    EXPECT_NE(connectionStub_, nullptr);
+    EXPECT_NE(connectionStub_->renderServiceAgent_, nullptr);
+    sptr<RSClientToServiceConnection> clientToServiceConnection =
+        iface_cast<RSClientToServiceConnection>(connectionStub_);
+    EXPECT_NE(clientToServiceConnection, nullptr);
+    EXPECT_NE(clientToServiceConnection->renderServiceAgent_, nullptr);
+    auto& temp = clientToServiceConnection->renderServiceAgent_->renderService_.rsGameFrameHandler_;
+    clientToServiceConnection->renderServiceAgent_->renderService_.rsGameFrameHandler_ = nullptr;
+    auto& handler = clientToServiceConnection->renderServiceAgent_->renderService_.GetGameFrameHandler();
+    EXPECT_EQ(handler, nullptr);
+    GameStateData data = { 0, 0, 0, 0, "bundleName" };
+    clientToServiceConnection->ReportGameStateData(data);
+    clientToServiceConnection->renderServiceAgent_->renderService_.rsGameFrameHandler_ = temp;
 }
 } // namespace OHOS::Rosen

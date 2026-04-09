@@ -79,6 +79,7 @@ enum RSNodeCommandType : uint16_t {
     SET_ENABLE_HDR_EFFECT = 0x0205,
     SET_NEED_USE_CMDLIST_DRAW_REGION = 0x0206,
     SET_HDR_UI_BRIGHTNESS = 0x0207,
+    SET_LAYER_MARK = 0x0208,
 
     REGISTER_GEOMETRY_TRANSITION = 0x0300,
     UNREGISTER_GEOMETRY_TRANSITION = 0x0301,
@@ -141,7 +142,7 @@ public:
 
     static void UpdateModifierNGDrawCmdList(
         RSContext& context, NodeId nodeId, Drawing::DrawCmdListPtr value, PropertyId propertyId);
-    static void SetFreeze(RSContext& context, NodeId nodeId, bool isFreeze);
+    static void SetFreeze(RSContext& context, NodeId nodeId, bool isFreeze, bool isMarkedByUi);
     static void SetNodeName(RSContext& context, NodeId nodeId, std::string& nodeName);
     static void MarkNodeGroup(RSContext& context, NodeId nodeId, bool isNodeGroup, bool isForced,
         bool includeProperty);
@@ -160,6 +161,7 @@ public:
     static void SetTakeSurfaceForUIFlag(RSContext& context, NodeId nodeId);
     static void SetNeedUseCmdlistDrawRegion(RSContext &context, NodeId nodeId, bool needUseCmdlistDrawRegion);
     static void SetHDRUIBrightness(RSContext& context, NodeId nodeId, float brightness);
+    static void MarkLayer(RSContext& context, NodeId nodeId, bool isLayer);
 
     static void RegisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId,
         const bool isInSameWindow);
@@ -342,7 +344,7 @@ ADD_COMMAND(RSUpdatePropertyVectorFloat,
 
 ADD_COMMAND(RSSetFreeze,
     ARG(PERMISSION_APP, RS_NODE, SET_FREEZE,
-        RSNodeCommandHelper::SetFreeze, NodeId, bool))
+        RSNodeCommandHelper::SetFreeze, NodeId, bool, bool))
 ADD_COMMAND(RSSetNodeName,
     ARG(PERMISSION_APP, RS_NODE, SET_NODE_NAME,
         RSNodeCommandHelper::SetNodeName, NodeId, std::string))
@@ -402,6 +404,9 @@ ADD_COMMAND(RSSetNeedUseCmdlistDrawRegion,
 ADD_COMMAND(RSSetHDRUIBrightness,
     ARG(PERMISSION_APP, RS_NODE, SET_HDR_UI_BRIGHTNESS,
         RSNodeCommandHelper::SetHDRUIBrightness, NodeId, float))
+
+ADD_COMMAND(
+    RSMarkLayer, ARG(PERMISSION_APP, RS_NODE, SET_LAYER_MARK, RSNodeCommandHelper::MarkLayer, NodeId, bool))
 
 ADD_COMMAND(RSRegisterGeometryTransitionNodePair,
     ARG(PERMISSION_APP, RS_NODE, REGISTER_GEOMETRY_TRANSITION,
