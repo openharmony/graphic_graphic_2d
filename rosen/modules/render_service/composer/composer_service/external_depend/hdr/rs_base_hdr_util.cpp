@@ -165,15 +165,14 @@ void RSBaseHdrUtil::SetBufferHDRParam(BufferDrawParam& params, const RSLayerPtr&
     // color temperature
     params.layerLinearMatrix = layer->GetLayerLinearMatrix();
     bool isSurfaceBufferWithMetadata = false;
-    auto buffer = layer->GetUseDeviceOffline() ? layer->GetOriginalBuffer() : layer->GetBuffer();
-    if (CheckIsHdrSurfaceBuffer(buffer) == HdrStatus::NO_HDR) {
+    if (CheckIsHdrSurfaceBuffer(layer->GetBuffer()) == HdrStatus::NO_HDR) {
         params.brightnessRatio = layer->GetBrightnessRatio();
-        isSurfaceBufferWithMetadata = CheckIsSurfaceBufferWithMetadata(buffer);
+        isSurfaceBufferWithMetadata = CheckIsSurfaceBufferWithMetadata(layer->GetBuffer());
     } else {
         params.isHdrRedraw = true;
     }
     if (isSurfaceBufferWithMetadata ||
-        CheckIsSurfaceBufferWithAiHdrMetadata(buffer)) {
+        CheckIsSurfaceBufferWithAiHdrMetadata(layer->GetBuffer())) {
         params.hasMetadata = true;
     }
 #endif
