@@ -839,11 +839,13 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const RSLayerPtr& la
     params.paint.SetFilter(filter);
     params.paint.SetAlpha(layer->GetAlpha().gAlpha);
 
-    sptr<SurfaceBuffer> buffer = layer->GetBuffer();
+    sptr<SurfaceBuffer> buffer = layer->GetUseDeviceOffline() ?
+        layer->GetHpaeOriginalInfo().originalBuffer : layer->GetBuffer();
     if (buffer == nullptr) {
         return params;
     }
-    params.acquireFence = layer->GetAcquireFence();
+    params.acquireFence = layer->GetUseDeviceOffline() ?
+        layer->GetHpaeOriginalInfo().originalAcquireFence : layer->GetAcquireFence();
     params.buffer = buffer;
     SetSrcRect(params, buffer);
     auto boundRect = layer->GetBoundSize();
@@ -851,13 +853,14 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const RSLayerPtr& la
 
     auto layerMatrix = layer->GetMatrix();
     params.matrix = Drawing::Matrix();
-    bool rotationFixed = layer->GetRotationFixed() || layer->GetUseDeviceOffline();
+    bool rotationFixed = layer->GetRotationFixed();
     auto dstRect = layer->GetLayerSize();
     if (rotationFixed) {
         // if rotation fixed or use hpae offline,
         // not use [total matrix + bounds] to draw buffer, use [src + dst + transform]
         params.matrix.PreTranslate(static_cast<float>(dstRect.x), static_cast<float>(dstRect.y));
-        auto srcRect = layer->GetCropRect();
+        auto srcRect = layer->GetUseDeviceOffline() ?
+            layer->GetHpaeOriginalInfo().originalCropRect : layer->GetCropRect();
         params.srcRect = Drawing::Rect(srcRect.x, srcRect.y, srcRect.x + srcRect.w, srcRect.y + srcRect.h);
     } else {
         params.matrix.SetMatrix(layerMatrix.scaleX, layerMatrix.skewX, layerMatrix.transX, layerMatrix.skewY,
@@ -865,7 +868,8 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const RSLayerPtr& la
     }
     // rotation degree anti-clockwise
     int nodeRotation = rotationFixed ? 0 : RSUniRenderUtil::GetRotationFromMatrix(params.matrix);
-    auto layerTransform = layer->GetTransform();
+    auto layerTransform = layer->GetUseDeviceOffline() ?
+        layer->GetHpaeOriginalInfo().originalTransformType : layer->GetTransform();
     // calculate clockwise rotation degree excluded rotation in total matrix
     int realRotation = (nodeRotation +
         RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(layerTransform))) % 360;
@@ -877,7 +881,7 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const RSLayerPtr& la
         rotationFixed ? static_cast<float>(dstRect.w) : static_cast<float>(boundRect.w),
         rotationFixed ? static_cast<float>(dstRect.h) : static_cast<float>(boundRect.h) };
     if (rotationFixed) {
-        auto gravity = layer->GetUseDeviceOffline() ? Gravity::RESIZE : static_cast<Gravity>(layer->GetGravity());
+        auto gravity = static_cast<Gravity>(layer->GetGravity());
         DealWithRotationAndGravityForRotationFixed(transform, gravity, localBounds, params);
     } else {
         RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, static_cast<Gravity>(layer->GetGravity()),

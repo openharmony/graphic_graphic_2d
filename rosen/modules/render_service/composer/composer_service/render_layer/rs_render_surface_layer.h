@@ -21,7 +21,9 @@
 #include "hdi_display_type.h"
 #include "iconsumer_surface.h"
 #include "rs_layer.h"
+#include "surface_buffer.h"
 #include "rs_layer_cmd_type.h"
+#include "surface_buffer.h"
 #include "surface.h"
 #include "sync_fence.h"
 
@@ -156,8 +158,18 @@ public:
     }
     void SetSolidColorLayerProperty(GraphicSolidColorLayerProperty solidColorLayerProperty) override;
     GraphicSolidColorLayerProperty GetSolidColorLayerProperty() const override;
+    // hpae_offline begin
     void SetUseDeviceOffline(bool useOffline) override;
     bool GetUseDeviceOffline() const override;
+    void SetOriginalBufferOwnerCount(
+        const std::shared_ptr<RSSurfaceHandler::BufferOwnerCount>& bufferOwnerCount) override {}
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetOriginalBufferOwnerCount() const override
+    {
+        return nullptr;
+    }
+    void SetHpaeOriginalInfo(const HpaeOriginalInfo& hpaeOriginalInfo) override;
+    const HpaeOriginalInfo& GetHpaeOriginalInfo() const override;
+    // hpae_offline end
     void SetIgnoreAlpha(bool ignoreAlpha) override;
     bool GetIgnoreAlpha() const override;
     void SetAncoSrcRect(const GraphicIRect& ancoSrcRect) override;
@@ -227,7 +239,10 @@ private:
     std::string surfaceName_ = "";
     uint64_t surfaceUniqueId_ = 0;
     GraphicSolidColorLayerProperty solidColorLayerProperty_ = {0};
+    // hpae_offline begin
     bool useDeviceOffline_ = false;
+    HpaeOriginalInfo hpaeOriginalInfo_;
+    // hpae_offline end
     bool ignoreAlpha_ = false;
     GraphicIRect ancoSrcRect_ {-1, -1, -1, -1};
     sptr<IConsumerSurface> cSurface_ = nullptr;

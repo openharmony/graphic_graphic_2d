@@ -887,19 +887,65 @@ GraphicSolidColorLayerProperty RSSurfaceLayer::GetSolidColorLayerProperty() cons
     return solidColorLayerProperty_;
 }
 
+// hpae_offline begin
 void RSSurfaceLayer::SetUseDeviceOffline(bool useOffline)
 {
     if (useDeviceOffline_ == useOffline) {
         return;
     }
+    if (!useOffline) {
+        // offline switch to online, clear original buffer info
+        hpaeOriginalInfo_.originalBuffer = nullptr;
+        hpaeOriginalInfo_.originalPreBuffer = nullptr;
+        hpaeOriginalInfo_.originalAcquireFence = SyncFence::InvalidFence();
+        hpaeOriginalInfo_.originalTransformType = GraphicTransformType::GRAPHIC_ROTATE_BUTT;
+        hpaeOriginalInfo_.originalCropRect = {0, 0, 0, 0};
+    }
     useDeviceOffline_ = useOffline;
     SetRSLayerCmd<RSRenderLayerUseDeviceOfflineCmd>(useOffline);
 }
-
+ 
 bool RSSurfaceLayer::GetUseDeviceOffline() const
 {
     return useDeviceOffline_;
 }
+
+void RSSurfaceLayer::SetOriginalBufferOwnerCount(
+    const std::shared_ptr<RSSurfaceHandler::BufferOwnerCount>& bufferOwnerCount)
+{
+    if (bufferOwnerCount == nullptr) {
+        return;
+    }
+    RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceLayer::SetOriginalBufferOwnerCount bufferId %" PRIu64 " layerId %" PRIu64,
+        bufferOwnerCount->bufferId_, rsLayerId_);
+    std::lock_guard<std::mutex> lockGuard(ownerCountMutex_);
+    if (bufferOwnerCounts_.find(bufferOwnerCount->bufferId_) == bufferOwnerCounts_.end()) {
+        bufferOwnerCount->AddRef();
+    }
+    bufferOwnerCounts_[bufferOwnerCount->bufferId_] = bufferOwnerCount;
+    originalBufferOwnerCount_ = bufferOwnerCount;
+}
+ 
+std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> RSSurfaceLayer::GetOriginalBufferOwnerCount() const
+{
+    std::lock_guard<std::mutex> lockGuard(ownerCountMutex_);
+    return originalBufferOwnerCount_;
+}
+ 
+void RSSurfaceLayer::SetHpaeOriginalInfo(const HpaeOriginalInfo& hpaeOriginalInfo)
+{
+    if (hpaeOriginalInfo_ == hpaeOriginalInfo) {
+        return;
+    }
+    SetRSLayerCmd<RSRenderLayerHpaeOriginalInfoCmd>(hpaeOriginalInfo);
+    hpaeOriginalInfo_ = hpaeOriginalInfo;
+}
+ 
+const HpaeOriginalInfo& RSSurfaceLayer::GetHpaeOriginalInfo() const
+{
+    return hpaeOriginalInfo_;
+}
+// hpae_offline end
 
 void RSSurfaceLayer::SetIgnoreAlpha(bool ignoreAlpha)
 {
