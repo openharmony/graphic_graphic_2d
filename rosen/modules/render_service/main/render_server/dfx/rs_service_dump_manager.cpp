@@ -113,6 +113,9 @@ void RSServiceDumpManager::DoDump(const std::vector<std::u16string>& args, std::
      if (!processManager || processArgSets.empty()) {
         return;
     }
+    if (rsDumpCallbackDirector_ == nullptr) {
+        rsDumpCallbackDirector_ = new RSDumpCallbackDirector(this);
+    }
     if (screenId != INVALID_SCREEN_ID) {
         auto serviceToRenderConn = processManager->GetServiceToRenderConn(screenId);
         if (!serviceToRenderConn) {
