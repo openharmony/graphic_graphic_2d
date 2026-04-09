@@ -36,9 +36,9 @@
 #endif
 // hpae offline
 #include "feature/hwc/hpae_offline/rs_hpae_offline_processor.h"
-#include "hpae_offline/rs_hpae_offline_layer_info.h"
 #include "feature/hwc/hpae_offline/rs_hpae_offline_util.h"
 #include "gpuComposition/rs_gpu_cache_manager.h"
+#include "hpae_offline/rs_hpae_offline_layer_info.h"
 #include "info_collection/rs_layer_compose_collection.h"
 #include "params/rs_screen_render_params.h"
 #include "params/rs_surface_render_params.h"
