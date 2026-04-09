@@ -638,7 +638,9 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest015, TestSize.Level
         (OH_Drawing_FontVariationAxisAttributeId)999, &str), OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
     free(str.strData);
 
+    OH_Drawing_DestroyFontVariationAxis(arr);
     OH_Drawing_DestroyFontVariationAxis(axisArray);
+    OH_Drawing_DestroyFontFullDescriptors(arr);
 }
 
 /*
@@ -666,6 +668,16 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest016, TestSize.Level
         (OH_Drawing_FontVariationInstanceAttributeId)999, &str), OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
     free(str.strData);
 
+    OH_Drawing_Array* arr2 = OH_Drawing_GetFontFullDescriptorsFromPath(NOTO_SANS_FILE);
+    auto desc2 = OH_Drawing_GetFontFullDescriptorByIndex(arr2, 0);
+    OH_Drawing_Array* instanceArray2 = OH_Drawing_GetFontFullDescriptorAttributeArray(desc2,
+        FULL_DESCRIPTOR_ATTR_O_VARIATION_INSTANCE);
+    OH_Drawing_GetFontVariationInstanceByIndex(instanceArray2, 0);
+    OH_Drawing_DestroyFontVariationInstance(instanceArray2);
+    OH_Drawing_DestroyFontFullDescriptors(arr2);
+
+    OH_Drawing_DestroyFontVariationInstance(arr);
     OH_Drawing_DestroyFontVariationInstance(instanceArray);
+    OH_Drawing_DestroyFontFullDescriptors(arr);
 }
 } // namespace OHOS
