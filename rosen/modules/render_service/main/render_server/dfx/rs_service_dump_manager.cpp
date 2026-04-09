@@ -119,7 +119,7 @@ void RSServiceDumpManager::DoDump(const std::vector<std::u16string>& args, std::
     if (screenId != INVALID_SCREEN_ID) {
         auto serviceToRenderConn = processManager->GetServiceToRenderConn(screenId);
         if (!serviceToRenderConn) {
-            RS_LOGI("RSServiceDumpManager::DoDump screen[%{public}" PRIu64 "] does not exist", screenId);
+            RS_LOGW("RSServiceDumpManager::DoDump screen[%{public}" PRIu64 "] does not exist", screenId);
             return;
         }
         InitProcessDumpTask(1);
