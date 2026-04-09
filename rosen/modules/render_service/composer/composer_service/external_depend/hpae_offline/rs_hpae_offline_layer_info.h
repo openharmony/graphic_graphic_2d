@@ -15,10 +15,10 @@
  
 #ifndef RS_HPAE_OFFLINE_LAYER_INFO_H
 #define RS_HPAE_OFFLINE_LAYER_INFO_H
- 
+
+#include "pipeline/rs_surface_handler.h"
 #include "surface_buffer.h"
 #include "sync_fence.h"
-#include "pipeline/rs_surface_handler.h"
  
 namespace OHOS {
 namespace Rosen {
