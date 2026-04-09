@@ -119,7 +119,7 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
         auto params = createLayerBufferDrawParamCallback_ ?
             createLayerBufferDrawParamCallback_(layer, forceCPU) : BufferDrawParam();
         // if rotation fixed or use hpae offline, no further scaling will be performed
-        bool rotationFixed = layer->GetRotationFixed();
+        bool rotationFixed = layer->GetRotationFixed() || layer->GetUseDeviceOffline();
         if (!rotationFixed) {
             params.matrix.PostScale(composerScreenInfo.GetRogWidthRatio(), composerScreenInfo.GetRogHeightRatio());
         }
