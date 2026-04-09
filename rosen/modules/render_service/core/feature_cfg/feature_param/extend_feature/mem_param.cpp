@@ -55,4 +55,34 @@ void MEMParam::SetKillScbEnabled(bool isEnabled)
 {
     isKillScbEnabled_ = isEnabled;
 }
+
+bool MEMParam::IsKernelReportEnabled()
+{
+    return isKernelReportEnabled_;
+}
+
+void MEMParam::SetKernelReportEnabled(bool isEnabled)
+{
+    isKernelReportEnabled_ = isEnabled;
+}
+
+int MEMParam::GetKernelReportAvailableMemLimit()
+{
+    return kernelReportAvailableMemLimit_;
+}
+
+void MEMParam::SetKernelReportAvailableMemLimit(int kernelReportAvailableMemLimit)
+{
+    kernelReportAvailableMemLimit_ = kernelReportAvailableMemLimit;
+}
+
+int MEMParam::GetKernelReportMemInterval()
+{
+    return kernelReportMemInterval_;
+}
+
+void MEMParam::SetKernelReportMemInterval(int kernelReportMemInterval)
+{
+    kernelReportMemInterval_ = kernelReportMemInterval;
+}
 } // namespace OHOS::Rosen
