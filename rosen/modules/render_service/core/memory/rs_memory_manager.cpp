@@ -57,6 +57,7 @@
 #include "hisysevent.h"
 #include "image/gpu_context.h"
 #include "platform/common/rs_hisysevent.h"
+#include "mem_mgr_client.h"
 
 #ifdef RS_ENABLE_UNI_RENDER
 #include "ability_manager_client.h"
@@ -111,6 +112,7 @@ uint32_t MemoryManager::frameCount_ = 0;
 uint64_t MemoryManager::memoryWarning_ = UINT64_MAX;
 uint64_t MemoryManager::gpuMemoryControl_ = UINT64_MAX;
 uint64_t MemoryManager::totalMemoryReportTime_ = 0;
+uint64_t MemoryManager::mReportLastTimestamp_ = 0;
 
 static std::string Data2String(std::string data, uint32_t targetNumber)
 {
@@ -1039,6 +1041,78 @@ static void KillProcessByPid(const pid_t pid, const MemorySnapshotInfo& info, co
 #endif
 }
 
+bool MemoryManager::NeedReportFromKernel(pid_t& abnormalPid,
+    std::unordered_map<std::string, std::pair<size_t, size_t>>& typeInfo, std::unordered_map<pid_t, size_t>& pidInfo)
+{
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        return false;
+    }
+    auto time = std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::steady_clock::now());
+    auto timestamp = static_cast<uint64_t>(time.time_since_epoch().count());
+    if (timestamp - mReportLastTimestamp_ < GPU_REPORT_INTERVAL) {
+        return false;
+    }
+    auto gpuContext = RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
+    if (!gpuContext) {
+        RS_LOGE("MemoryManager::IsNeedReportFromKernel gpuContext is null");
+        return false;
+    }
+    gpuContext->GetGpuMemoryInfo(typeInfo, pidInfo);
+    std::vector<std::pair<pid_t, size_t>> sortedPidInfo(pidInfo.begin(), pidInfo.end());
+    std::sort(sortedPidInfo.begin(), sortedPidInfo.end(),
+        [](const std::pair<pid_t, size_t>& info1, const std::pair<pid_t, size_t>& info2) {
+            return info1.second > info2.second;
+        });
+    // find abnormal pid with the max gpu memory.
+    abnormalPid = 0;
+    size_t maxIndex = 0;
+    while (maxIndex < sortedPidInfo.size() && sortedPidInfo[maxIndex].first == 0) {
+        maxIndex++;
+    }
+    if (maxIndex + 1 < sortedPidInfo.size() &&
+        sortedPidInfo[maxIndex].second - sortedPidInfo[maxIndex + 1].second >
+        MEMParam::GetKernelReportMemInterval() * MEMUNIT_RATE * MEMUNIT_RATE) {
+        abnormalPid = sortedPidInfo[maxIndex].first;
+    }
+    if (abnormalPid == 0) {
+        RS_LOGE("MemoryManager::IsNeedReportFromKernel abnormalPid is 0");
+        return false;
+    }
+    // status of available memory.
+    int32_t availableMem = 0;
+    Memory::MemMgrClient::GetInstance().GetAvailableMemory(availableMem);
+    if (availableMem > MEMParam::GetKernelReportAvailableMemLimit() * MEMUNIT_RATE) {
+        RS_LOGE("MemoryManager::IsNeedReportFromKernel availableMem:%{public}d", availableMem);
+        return false;
+    }
+
+    mReportLastTimestamp_ = timestamp;
+    return true;
+}
+
+void MemoryManager::GpuReportFromKernel(const std::string& recvInfo)
+{
+    std::unordered_map<std::string, std::pair<size_t, size_t>> typeInfo;
+    std::unordered_map<pid_t, size_t> pidInfo;
+    pid_t abnormalPid = 0;
+    if (!NeedReportFromKernel(abnormalPid, typeInfo, pidInfo)) {
+        return;
+    }
+    RS_TRACE_NAME("MemoryManager::GpuReportFromKernel");
+    RS_LOGE("MemoryManager::GpuReportFromKernel recvInfo:%{public}s", recvInfo.c_str());
+
+    auto gpuContext = RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
+    // set abnormal pid to intercept drawing.
+    gpuContext->SetAbnormalPid(abnormalPid);
+    // report dfx
+    GpuMemoryOverReport(abnormalPid, pidInfo[abnormalPid], typeInfo, pidInfo);
+    MemorySnapshotInfo info;
+    MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(abnormalPid, info);
+    std::string reason = "RENDER_MEMORY_OVER_ERROR: cpu[" + std::to_string(info.cpuMemory) + "], gpu[" +
+                         std::to_string(info.gpuMemory) + "], total[" + std::to_string(info.TotalMemory()) + "]";
+    KillProcessByPid(abnormalPid, info, reason);
+}
+
 bool MemoryManager::MemoryOverflow(pid_t pid, size_t overflowMemory, bool isGpu)
 {
     if (pid == 0) {
@@ -1111,6 +1185,11 @@ bool MemoryManager::GpuMemoryOverReport(pid_t pid, size_t overflowMemory,
 void MemoryManager::MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& info, const std::string& reportName,
     const std::string& hidumperReport, const std::string& filePath)
 {
+    if (pid == 0) {
+        RS_LOGE("MemoryManager::MemoryOverReport pid:0 cpu[%{public}zu] gpu[%{public}zu]",
+            info.cpuMemory, info.gpuMemory);
+        return;
+    }
     std::string gpuMemInfo;
     std::ifstream gpuMemInfoFile;
     gpuMemInfoFile.open(GPUMEM_INFO_PATH);
