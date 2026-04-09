@@ -29,7 +29,7 @@ public:
     void CmdExec(std::unordered_set<std::u16string>& argSets,
                  std::string &out, sptr<RSIDumpCallback> callback);
     void SetPid(int pid);
-    void SetScreenId(unsigned long screenId);
+    void SetScreenId(ScreenId screenId);
 
 private:
     uint64_t screenId_;
