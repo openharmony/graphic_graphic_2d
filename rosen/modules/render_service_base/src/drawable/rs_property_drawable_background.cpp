@@ -147,11 +147,12 @@ void RSShadowDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect
     if (colorStrategy_ != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
         shadowColor = RSPropertyDrawableUtils::GetColorForShadowSyn(canvas, path, color_, colorStrategy_);
     }
-    bool isSdfShadow = geContainer_ && ROSEN_LE(elevation_, 0.f) && ROSEN_GE(radius_, 0.f);
+    bool isSdfShadow = geContainer_ && ROSEN_GE(radius_, 0.f);
     if (isSdfShadow) {
         auto drawingShadowColor = Drawing::Color(shadowColor.GetRed(), shadowColor.GetGreen(),
             shadowColor.GetBlue(), shadowColor.GetAlpha());
-        Drawing::GESDFShadowParams shadow {drawingShadowColor, offsetX_, offsetY_, radius_, path, isFilled_};
+        Drawing::GESDFShadowParams shadow {drawingShadowColor, offsetX_, offsetY_,
+            radius_, path, isFilled_, elevation_};
         auto geFilter = geContainer_->GetGEVisualEffect(Drawing::GE_SHADER_SDF_SHADOW);
         geFilter->SetParam(Drawing::GE_SHADER_SDF_SHADOW_SHADOW, shadow);
         auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
