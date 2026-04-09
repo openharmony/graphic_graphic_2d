@@ -795,8 +795,8 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 .abilityName = abilityName,
                 .focusNodeId = focusNodeId};
             int32_t repCode;
-            if (SetFocusAppInfo(info, repCode) != ERR_OK || !reply.WriteInt32(repCode)) {
-                RS_LOGE("RSClientToRenderConnectionStub::SET_FOCUS_APP_INFO Write status failed!");
+            if (SetFocusAppInfo(info, repCode) != ERR_OK) {
+                RS_LOGE("RSClientToRenderConnectionStub::SET_FOCUS_APP_INFO failed!");
                 ret = ERR_INVALID_REPLY;
             }
             break;

@@ -725,7 +725,7 @@ ErrCode RSClientToRenderConnectionProxy::SetFocusAppInfo(const FocusAppInfo& inf
         repCode = RS_CONNECTION_ERROR;
         return ERR_INVALID_VALUE;
     }
-    repCode = reply.ReadInt32();
+    repCode = SUCCESS;
     return ERR_OK;
 }
 
