@@ -24,7 +24,6 @@ namespace OHOS {
     {
         bool isEnabled = fdp.ConsumeBool();
         BootAnimationUtils::SetBootAnimationSoundEnabled(isEnabled);
-        BootAnimationUtils::GetBootAnimationSoundEnabled();
     }
 }
 
