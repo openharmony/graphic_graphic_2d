@@ -3932,5 +3932,45 @@ HWTEST_F(RSPropertiesTest, SetAndGetCompositingNGFilter, TestSize.Level1)
     auto testFilter = properties.GetCompositingNGFilter();
     EXPECT_EQ(blurFilter, testFilter);
 }
+
+/**
+ * @tc.name: SetOverlayNGShader001
+ * @tc.desc: test results of SetOverlayNGShader with nullptr
+ * @tc.type:FUNC
+ * @tc.require: issueNumber
+ */
+HWTEST_F(RSPropertiesTest, SetOverlayNGShader001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetOverlayNGShader(nullptr);
+    EXPECT_EQ(properties.GetOverlayNGShader(), nullptr);
+}
+
+/**
+ * @tc.name: SetOverlayNGShader002
+ * @tc.desc: test results of SetOverlayNGShader with multiple shader types
+ * @tc.type:FUNC
+ * @tc.require: issueNumber
+ */
+HWTEST_F(RSPropertiesTest, SetOverlayNGShader002, TestSize.Level1)
+{
+    RSProperties properties;
+    
+    auto overlayShader = RSNGRenderShaderBase::Create(RSNGEffectType::BORDER_LIGHT);
+    properties.SetOverlayNGShader(overlayShader);
+    EXPECT_EQ(properties.GetOverlayNGShader(), overlayShader);
+    
+    overlayShader = RSNGRenderShaderBase::Create(RSNGEffectType::HARMONIUM_EFFECT);
+    properties.SetOverlayNGShader(overlayShader);
+    EXPECT_EQ(properties.GetOverlayNGShader(), overlayShader);
+    
+    overlayShader = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
+    properties.SetOverlayNGShader(overlayShader);
+    EXPECT_EQ(properties.GetOverlayNGShader(), overlayShader);
+    
+    overlayShader = RSNGRenderShaderBase::Create(RSNGEffectType::FROSTED_GLASS_EFFECT);
+    properties.SetOverlayNGShader(overlayShader);
+    EXPECT_EQ(properties.GetOverlayNGShader(), overlayShader);
+}
 } // namespace Rosen
 } // namespace OHOS

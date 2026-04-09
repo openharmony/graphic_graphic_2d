@@ -6883,6 +6883,8 @@ HWTEST_F(RSNodeTest, SetFunTest, TestSize.Level1)
     rsNode->SetSepia(position);
     rsNode->SetInvert(position);
     rsNode->SetHueRotate(position);
+    std::shared_ptr<RSNGSDFEdgeLightEffect> effect1 = std::make_shared<RSNGSDFEdgeLightEffect>();
+    rsNode->SetOverlayNGShader(effect1);
     EXPECT_NE(position, 0.f);
 }
 

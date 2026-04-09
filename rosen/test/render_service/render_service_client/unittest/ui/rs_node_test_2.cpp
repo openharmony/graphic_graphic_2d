@@ -41,7 +41,7 @@
 #include "modifier_ng/appearance/rs_outline_modifier.h"
 #include "modifier_ng/appearance/rs_particle_effect_modifier.h"
 #include "modifier_ng/appearance/rs_pixel_stretch_modifier.h"
-#include "modifier_ng/appearance/rs_point_light_modifier.h"
+#include "modifier_ng/appearance/rs_overlay_ng_shader_modifier.h"
 #include "modifier_ng/appearance/rs_shadow_modifier.h"
 #include "modifier_ng/appearance/rs_use_effect_modifier.h"
 #include "modifier_ng/appearance/rs_visibility_modifier.h"

@@ -85,6 +85,9 @@ public:
 
     static void SetCornerRadius(const std::shared_ptr<RSNGRenderShaderBase>& shader,
         float cornerRadius);
+    
+    static void SetSDFShape(const std::shared_ptr<RSNGRenderShaderBase>& shader,
+        const std::shared_ptr<RSNGRenderShapeBase>& sdfShape);
 
     static std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> GetCachedBlurImage(Drawing::Canvas* canvas);
 
