@@ -268,23 +268,6 @@ std::shared_ptr<RSNGShaderBase> ConvertHarmoniumEffectPara(std::shared_ptr<Visua
     return harmoniumEffect;
 }
 
-std::shared_ptr<RSNGShaderBase> ConvertBorderLightPara(std::shared_ptr<VisualEffectPara> effectPara)
-{
-    auto effect = RSNGShaderBase::Create(RSNGEffectType::BORDER_LIGHT);
-    bool isInvalid = (effect == nullptr || effectPara == nullptr);
-    if (isInvalid) {
-        return nullptr;
-    }
-    auto borderLightEffect = std::static_pointer_cast<RSNGBorderLight>(effect);
-    auto borderLightEffectPara = std::static_pointer_cast<BorderLightEffectPara>(effectPara);
-
-    borderLightEffect->Setter<BorderLightPositionTag>(borderLightEffectPara->GetLightPosition());
-    borderLightEffect->Setter<BorderLightColorTag>(borderLightEffectPara->GetLightColor());
-    borderLightEffect->Setter<BorderLightIntensityTag>(borderLightEffectPara->GetLightIntensity());
-    borderLightEffect->Setter<BorderLightWidthTag>(borderLightEffectPara->GetLightWidth());
-    return borderLightEffect;
-}
-
 std::shared_ptr<RSNGShaderBase> ConvertSpatialPointLightEffectPara(std::shared_ptr<VisualEffectPara> effectPara)
 {
     auto effect = RSNGShaderBase::Create(RSNGEffectType::SPATIAL_POINT_LIGHT);
