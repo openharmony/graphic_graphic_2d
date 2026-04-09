@@ -301,10 +301,11 @@ HWTEST_F(RSComposerJankStatsTest, CheckRefreshRate006, TestSize.Level1)
     // rates[4]=50 < rates[3]=70 → middle peak condition false
     instance.refreshRates_ = {90, 60, 80, 70, 50, 60, 65, 55, 70};
 
-    instance.CheckRefreshRate();
     int midRate = instance.GetRate(FRAME_WINDOW_MIDDLE_NUM);
     int leftRate = instance.GetRate(FRAME_WINDOW_MIDDLE_NUM - 1);
     int rightRate = instance.GetRate(FRAME_WINDOW_MIDDLE_NUM + 1);
+    instance.CheckRefreshRate();
+
     EXPECT_FALSE(midRate >= leftRate && midRate >= rightRate);
     GTEST_LOG_(INFO) << "RSComposerJankStatsTest-end CheckRefreshRate006";
 }
@@ -398,7 +399,7 @@ HWTEST_F(RSComposerJankStatsTest, IsStrictlyIncreasing001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSComposerJankStatsTest-begin IsStrictlyIncreasing001";
     auto& instance = RSComposerJankStats::GetInstance();
-    instance.refreshRates_ = {10, 20, 30, 40, 50, 60, 70, 80, 90};
+    instance.refreshRates_ = {10, 20, 30, 30, 50, 60, 70, 80, 90};
     EXPECT_TRUE(instance.IsStrictlyIncreasing());
     GTEST_LOG_(INFO) << "RSComposerJankStatsTest-end IsStrictlyIncreasing001";
 }
@@ -413,7 +414,7 @@ HWTEST_F(RSComposerJankStatsTest, IsStrictlyIncreasing002, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSComposerJankStatsTest-begin IsStrictlyIncreasing002";
     auto& instance = RSComposerJankStats::GetInstance();
-    instance.refreshRates_ = {10, 20, 30, 30, 50, 60, 70, 80, 90};
+    instance.refreshRates_ = {10, 20, 40, 30, 50, 60, 70, 80, 90};
     EXPECT_FALSE(instance.IsStrictlyIncreasing());
     GTEST_LOG_(INFO) << "RSComposerJankStatsTest-end IsStrictlyIncreasing002";
 }
@@ -428,7 +429,7 @@ HWTEST_F(RSComposerJankStatsTest, IsStrictlyDecreasing001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSComposerJankStatsTest-begin IsStrictlyDecreasing001";
     auto& instance = RSComposerJankStats::GetInstance();
-    instance.refreshRates_ = {90, 80, 70, 60, 50, 40, 30, 20, 10};
+    instance.refreshRates_ = {90, 80, 70, 70, 50, 40, 30, 20, 10};
     EXPECT_TRUE(instance.IsStrictlyDecreasing());
     GTEST_LOG_(INFO) << "RSComposerJankStatsTest-end IsStrictlyDecreasing001";
 }
@@ -443,7 +444,7 @@ HWTEST_F(RSComposerJankStatsTest, IsStrictlyDecreasing002, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSComposerJankStatsTest-begin IsStrictlyDecreasing002";
     auto& instance = RSComposerJankStats::GetInstance();
-    instance.refreshRates_ = {90, 80, 70, 70, 50, 40, 30, 20, 10};
+    instance.refreshRates_ = {90, 80, 70, 80, 50, 40, 30, 20, 10};
     EXPECT_FALSE(instance.IsStrictlyDecreasing());
     GTEST_LOG_(INFO) << "RSComposerJankStatsTest-end IsStrictlyDecreasing002";
 }

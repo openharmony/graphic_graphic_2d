@@ -123,7 +123,7 @@ bool RSComposerJankStats::IsAllLessThan60Hz()
 bool RSComposerJankStats::IsStrictlyIncreasing()
 {
     for (int frame = 1; frame < REFRESH_RATE_WINDOW_SIZE; frame++) {
-        if (GetRate(frame) <= GetRate(frame - 1)) {
+        if (GetRate(frame) < GetRate(frame - 1)) {
             return false;
         }
     }
@@ -133,7 +133,7 @@ bool RSComposerJankStats::IsStrictlyIncreasing()
 bool RSComposerJankStats::IsStrictlyDecreasing()
 {
     for (int frame = 1; frame < REFRESH_RATE_WINDOW_SIZE; frame++) {
-        if (GetRate(frame) >= GetRate(frame - 1)) {
+        if (GetRate(frame) > GetRate(frame - 1)) {
             return false;
         }
     }
