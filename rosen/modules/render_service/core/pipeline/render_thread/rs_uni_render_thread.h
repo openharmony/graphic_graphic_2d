@@ -262,9 +262,9 @@ public:
     }
 
     void AddPendingReleaseBuffer(sptr<IConsumerSurface> consumer, sptr<OHOS::SurfaceBuffer> buffer,
-        sptr<SyncFence> fence)
+        sptr<SyncFence> fence, std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount = nullptr)
     {
-        bufferManager_.AddPendingReleaseBuffer(consumer, buffer, fence);
+        bufferManager_.AddPendingReleaseBuffer(consumer, buffer, fence, bufferOwnerCount);
     }
 
     void OnReleaseLayerBuffers(std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>>& rsLayers,
@@ -293,9 +293,7 @@ public:
 
         ~BufferManagerGuard()
         {
-            // Set to true to enable dump of pendingReleaseBuffers_ after each frame
-            constexpr bool DEBUG_DUMP_BUFFER_MANAGER = false;
-            RSUniRenderThread::Instance().bufferManager_.OnDrawEnd(fence_, DEBUG_DUMP_BUFFER_MANAGER);
+            RSUniRenderThread::Instance().bufferManager_.OnDrawEnd(fence_);
         }
 
         void SetAcquireFence(sptr<SyncFence> fence)
