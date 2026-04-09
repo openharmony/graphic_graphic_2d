@@ -1641,6 +1641,31 @@ HWTEST_F(RSSubThreadCacheTest, UpdateCacheSurfaceInfo002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateCacheSurfaceInfo003
+ * @tc.desc: Test update cache info with RSRenderThreadParams not null
+ * @tc.type: FUNC
+ * @tc.require: issue29235
+ */
+HWTEST_F(RSSubThreadCacheTest, UpdateCacheSurfaceInfo004, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    RsSubThreadCache subCache;
+    subCache.cacheSurfaceInfo_.vsyncId = 0;
+    subCache.totalProcessedSurfaceCount_ = 1;
+    auto surfaceParams = std::make_unique<RSSurfaceRenderParams>(surfaceDrawable_->GetId());
+    surfaceParams->SetGlobalAlpha(1.0f);
+    subCache.isOcclusionEnabled_ = false;
+    auto renderThreadParams = std::make_unique<RSRenderThreadParams>();
+    constexpr uint64_t testVsyncId = 12345;
+    renderThreadParams->SetVsyncId(testVsyncId);
+    RSRenderThreadParamsManager::Instance().SetRSRenderThreadParams(std::move(renderThreadParams));
+    subCache.UpdateCacheSurfaceInfo(surfaceDrawable_.get(), surfaceParams.get());
+    ASSERT_EQ(subCache.cacheSurfaceInfo_.vsyncId, testVsyncId);
+    std::unique_ptr<RSRenderThreadParams> nullParams = nullptr;
+    RSRenderThreadParamsManager::Instance().SetRSRenderThreadParams(std::move(nullParams));
+}
+
+/**
  * @tc.name: DrawOpaqueRegionDfxTest001
  * @tc.desc: Test DrawOpaqueRegionDfx when debug is disabled
  * @tc.type: FUNC
@@ -2054,5 +2079,33 @@ HWTEST_F(RSSubThreadCacheTest, CalculateSurfaceOpaqueRegionTest003, TestSize.Lev
 
     // Cleanup
     surfaceParams->allSubSurfaceNodeIds_.clear();
+}
+
+/*
+ * @tc.name: GetCompletedCacheSurfaceVsyncIdTest
+ * @tc.desc: Test GetCompletedCacheSurfaceVsyncId method
+ * @tc.type: FUNC
+ * @tc.require: issue23075
+ */
+HWTEST_F(RSSubThreadCacheTest, GetCompletedCacheSurfaceVsyncIdTest, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto& subCache = surfaceDrawable_->GetRsSubThreadCache();
+
+    // Test default vsyncId is 0
+    uint64_t vsyncId = subCache.GetCompletedCacheSurfaceVsyncId();
+    EXPECT_EQ(vsyncId, 0);
+
+    // Test after setting vsyncId in cacheCompletedSurfaceInfo_
+    uint64_t testVsyncId = 12345;
+    subCache.cacheCompletedSurfaceInfo_.vsyncId = testVsyncId;
+    vsyncId = subCache.GetCompletedCacheSurfaceVsyncId();
+    EXPECT_EQ(vsyncId, testVsyncId);
+
+    // Test vsyncId is swapped when UpdateCompletedCacheSurface is called
+    subCache.cacheSurfaceInfo_.vsyncId = 67890;
+    subCache.UpdateCompletedCacheSurface();
+    vsyncId = subCache.GetCompletedCacheSurfaceVsyncId();
+    EXPECT_EQ(vsyncId, 67890);
 }
 } // namespace OHOS::Rosen
