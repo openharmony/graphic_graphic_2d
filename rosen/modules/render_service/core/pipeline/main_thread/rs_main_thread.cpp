@@ -3588,8 +3588,9 @@ void RSMainThread::Animate(uint64_t timestamp)
         totalAnimationSize += node->animationManager_.GetAnimationsSize();
         node->animationManager_.SetRateDeciderEnable(
             isRateDeciderEnabled, hgmRenderContext_->GetConvertFrameRateFunc());
+        nextFrameTime = (node.use_count() == 1) ? 0 : nextFrameTime;
         auto [hasRunningAnimation, nodeNeedRequestNextVsync, nodeCalculateAnimationValue] =
-            node->Animate(timestamp, minLeftDelayTime, period, isDisplaySyncEnabled, nodeNextFrameTime);
+            node->Animate(timestamp, minLeftDelayTime, nextFrameTime, period, isDisplaySyncEnabled);
         if (!hasRunningAnimation) {
             node->InActivateDisplaySync();
             RS_LOGD("Animate removing finished animating node %{public}" PRIu64, node->GetId());

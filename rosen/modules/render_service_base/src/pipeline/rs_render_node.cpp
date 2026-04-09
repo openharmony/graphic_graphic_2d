@@ -1730,8 +1730,7 @@ std::tuple<bool, bool, bool> RSRenderNode::Animate(
     bool needSkipCurrentAnimate = displaySync_ &&
         displaySync_->OnFrameSkipForAnimate(timestamp, period, isDisplaySyncEnabled, currentAnimateNextFrameTime);
 
-    nextFrameTime = (nextFrameTime != 0 && shared_from_this().use_count() != 1) ?
-        std::min(nextFrameTime, currentAnimateNextFrameTime) : 0;
+    nextFrameTime = (nextFrameTime != 0) ? std::min(nextFrameTime, currentAnimateNextFrameTime) : 0;
 
     if (needSkipCurrentAnimate) {
         minLeftDelayTime = 0;
