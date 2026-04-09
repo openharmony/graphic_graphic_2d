@@ -83,6 +83,7 @@ void RSServiceDumpManager::DoDump(const std::vector<std::u16string>& args, std::
 {
     std::unordered_set<std::u16string> serviceArgSets;
     std::unordered_set<std::u16string> processArgSets;
+    ScreenId screenId = GetScreenIdFormArgs(args);
     for (decltype(args.size()) index = 0; index < args.size(); ++index) {
         bool isCmdArg = false;
         if (IsServiceDumpCmd(args[index])) {
@@ -109,23 +110,59 @@ void RSServiceDumpManager::DoDump(const std::vector<std::u16string>& args, std::
         RS_TRACE_NAME("RSServiceDumpManager::DoDump args is [ " + cmdStr + " ]");
         RSDumpManager::CmdExec(serviceArgSets, dumpString);
     }
-    if (!processManager) {
+     if (!processManager || processArgSets.empty()) {
         return;
     }
-    auto serviceToRenderConns = processManager->GetServiceToRenderConns();
-    if (!processArgSets.empty()) {
-        if (serviceToRenderConns.size() == 0) {
-            RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
+    if (screenId != INVALID_SCREEN_ID) {
+        auto serviceToRenderConn = processManager->GetServiceToRenderConn(screenId);
+        if (!serviceToRenderConn) {
+            RS_LOGI("RSServiceDumpManager::DoDump screen[%{public}" PRIu64 "] does not exist", screenId);
             return;
         }
-        if (rsDumpCallbackDirector_ == nullptr) {
-            rsDumpCallbackDirector_ = new RSDumpCallbackDirector(this);
-        }
+        InitProcessDumpTask(1);
+        serviceToRenderConn->DoDump(processArgSets, rsDumpCallbackDirector_);
+    } else {
+        auto serviceToRenderConns = processManager->GetServiceToRenderConns();
         InitProcessDumpTask(static_cast<int32_t>(serviceToRenderConns.size()));
         for (auto conn : serviceToRenderConns) {
             conn->DoDump(processArgSets, rsDumpCallbackDirector_);
         }
-        WaitForDump(dumpString);
     }
+    WaitForDump(dumpString);
 }
+
+ScreenId RSServiceDumpManager::GetScreenIdFormArgs(const std::vector<std::u16string>& args)
+{
+    size_t MIN_ARGS_SIZE = 2;
+    int DECIMAL_BASE = 10;
+
+    if (args.size() < MIN_ARGS_SIZE) {
+        return INVALID_SCREEN_ID;
+    }
+
+    if (args[0] != u"-screen") {
+        return INVALID_SCREEN_ID;
+    }
+
+    std::string screenStr = std::string(args[1].begin(), args[1].end());
+    if (screenStr.empty()) {
+        return INVALID_SCREEN_ID;
+    }
+
+    for (char c : screenStr) {
+        if (!std::isdigit(c)) {
+            return INVALID_SCREEN_ID;
+        }
+    }
+
+    ScreenId id = INVALID_SCREEN_ID;
+    for (char c : screenStr) {
+        if (id > (std::numeric_limits<ScreenId>::max() - (c - '0')) / DECIMAL_BASE) {
+            return INVALID_SCREEN_ID;
+        }
+        id = id * DECIMAL_BASE + (c - '0');
+    }
+    return id;
+}
+
 }
