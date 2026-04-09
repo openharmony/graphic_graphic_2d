@@ -620,7 +620,6 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
             }
             bufferSynced_ = true;
         }
-        bufferSynced_ = true;
         dirtyType_.reset(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY);
     }
 #endif

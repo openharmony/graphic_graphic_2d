@@ -2719,14 +2719,17 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
                 }
                 HandleTunnelLayerId(surfaceHandler, surfaceNode);
                 if (!surfaceHandler->IsCurrentFrameBufferConsumed() && params->GetPreBuffer() != nullptr) {
-                    params->SetPreBuffer(nullptr, nullptr);
+                    if (!surfaceNode->GetDeviceOfflineEnable()) {
+                        // while using hpae_offline, prebuffer is not consumed, should not be reset
+                        params->SetPreBuffer(nullptr, nullptr);
+                    }
                     surfaceNode->AddToPendingSyncList();
                 }
                 if (surfaceNode->GetDeviceOfflineEnable() && processor->ProcessOfflineLayer(surfaceNode)) {
-                    // hape_offline: offline buffer and original buffer both sent to display,
-                    // release is handled by display release callback.
-                    params->SetBufferSynced(true);
-                    
+                    // use offline buffer instead of original buffer,
+                    // if succeed, params->SetBufferSynced will not be set true,
+                    // origianl buffer will be released at next acquirement
+                    params->SetOfflineOriginBufferSynced(false);
                     continue;
                 }
                 processor->CreateLayer(*surfaceNode, *params);

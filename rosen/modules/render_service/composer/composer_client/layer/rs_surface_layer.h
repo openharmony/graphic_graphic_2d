@@ -156,24 +156,8 @@ public:
     GraphicSolidColorLayerProperty GetSolidColorLayerProperty() const override;
     void SetIsNeedComposition(bool isNeedComposition) override;
     bool GetIsNeedComposition() const override;
-    // hpae_offline begin
     void SetUseDeviceOffline(bool useOffline) override;
     bool GetUseDeviceOffline() const override;
-    void SetOriginalBuffer(const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence) override;
-    void SetOriginalBuffer(const sptr<SurfaceBuffer>& buffer) override;
-    sptr<SurfaceBuffer> GetOriginalBuffer() const override;
-    void SetOriginalAcquireFence(const sptr<SyncFence>& acquireFence) override;
-    sptr<SyncFence> GetOriginalAcquireFence() const override;
-    void SetOriginalPreBuffer(const sptr<SurfaceBuffer>& buffer) override;
-    sptr<SurfaceBuffer> GetOriginalPreBuffer() const override;
-    void SetOriginalTransformType(GraphicTransformType type) override;
-    GraphicTransformType GetOriginalTransformType() const override;
-    void SetOriginalCropRect(const GraphicIRect& cropRect) override;
-    GraphicIRect GetOriginalCropRect() const override;
-    void SetOriginalBufferOwnerCount(
-        const std::shared_ptr<RSSurfaceHandler::BufferOwnerCount>& bufferOwnerCount) override;
-    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetOriginalBufferOwnerCount() const override;
-    // hpae_offline end
     void SetIgnoreAlpha(bool ignoreAlpha) override;
     bool GetIgnoreAlpha() const override;
     void SetAncoSrcRect(const GraphicIRect& ancoSrcRect) override;
@@ -252,15 +236,7 @@ private:
     std::string surfaceName_ = "";
     uint64_t surfaceUniqueId_ = 0;
     GraphicSolidColorLayerProperty solidColorLayerProperty_;
-    // hpae_offline begin
     bool useDeviceOffline_ = false;
-    wptr<SurfaceBuffer> originalBuffer_ = nullptr;
-    wptr<SurfaceBuffer> originalPreBuffer_ = nullptr;
-    GraphicTransformType originalTransformType_ = GraphicTransformType::GRAPHIC_ROTATE_BUTT;
-    sptr<SyncFence> originalAcquireFence_ = SyncFence::InvalidFence();
-    GraphicIRect originalCropRect_ = {0, 0, 0, 0};
-    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> originalBufferOwnerCount_ = nullptr;
-    // hpae_offline end
     bool ignoreAlpha_ = false;
     GraphicIRect ancoSrcRect_ {-1, -1, -1, -1};
     friend class RSSurfaceRCDLayer;

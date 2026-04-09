@@ -437,6 +437,13 @@ public:
     {
         return bufferSynced_;
     }
+    // hpae offline: when surface node using hpae offline and doing directly compotition,
+    // the origin buffer will not be synced by hwc.
+    // While taking capture, bufferSynced_ should be set to false
+    void SetOfflineOriginBufferSynced(bool bufferSynced)
+    {
+        offlineOriginBufferSynced_ = bufferSynced;
+    }
 #endif
 
     virtual void OnSync(const std::unique_ptr<RSRenderParams>& target) override;
@@ -905,6 +912,7 @@ private:
     bool bufferSynced_ = true;
     std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> preBufferOwnerCount_ = nullptr;
     std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount_ = nullptr;
+    bool offlineOriginBufferSynced_ = true;
 #endif
     bool isHardwareEnabled_ = false;
     bool needMakeImage_ = false;

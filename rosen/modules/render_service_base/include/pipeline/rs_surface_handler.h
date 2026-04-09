@@ -87,25 +87,24 @@ public:
             refCount_.fetch_add(1, std::memory_order_acq_rel);
         }
 
-        bool DecRef()
+        void DecRef()
         {
             RS_OPTIONAL_TRACE_NAME_FMT("BufferOwnerCount::DecRef bufferId %" PRIu64 " refCount_ %u", bufferId_,
                 refCount_.load());
             if (bufferId_ == 0) {
                 RS_LOGE("BufferOwnerCount::DecRef bufferId %{public}" PRIu64 " ret %{public}u", bufferId_,
                     refCount_.load());
-                return bufferReleaseCb_ == nullptr;
+                return;
             }
             auto ret = refCount_.fetch_sub(1, std::memory_order_acq_rel);
             if (ret == 1) {
                 if (bufferReleaseCb_ == nullptr) {
                     RS_LOGE("BufferOwnerCount::DecRef bufferReleaseCb_ is nullptr");
-                    return true;
+                    return;
                 }
                 bufferReleaseCb_(bufferId_);
                 bufferReleaseCb_ = nullptr;
             }
-            return bufferReleaseCb_ == nullptr;
         }
 
         void OnBufferReleased() {

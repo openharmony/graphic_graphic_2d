@@ -606,80 +606,14 @@ GraphicSolidColorLayerProperty RSRenderSurfaceLayer::GetSolidColorLayerProperty(
     return solidColorLayerProperty_;
 }
 
-// hpae_offline begin
 void RSRenderSurfaceLayer::SetUseDeviceOffline(bool useOffline)
 {
-    if (useDeviceOffline_ && !useOffline) {
-        // offline switch to online, clear original buffer info
-        originalBuffer_ = nullptr;
-        originalPreBuffer_ = nullptr;
-        originalAcquireFence_ = nullptr;
-        originalTransformType_ = GraphicTransformType::GRAPHIC_ROTATE_BUTT;
-        originalCropRect_ = {0, 0, 0, 0};
-    }
     useDeviceOffline_ = useOffline;
 }
 
 bool RSRenderSurfaceLayer::GetUseDeviceOffline() const
 {
     return useDeviceOffline_;
-}
-
-void RSRenderSurfaceLayer::SetOriginalBuffer(const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence)
-{
-    originalBuffer_ = buffer;
-    originalAcquireFence_ = acquireFence;
-}
-
-void RSRenderSurfaceLayer::SetOriginalBuffer(const sptr<SurfaceBuffer>& buffer)
-{
-    originalBuffer_ = buffer;
-}
-
-sptr<SurfaceBuffer> RSRenderSurfaceLayer::GetOriginalBuffer() const
-{
-    return originalBuffer_;
-}
-
-void RSRenderSurfaceLayer::SetOriginalAcquireFence(const sptr<SyncFence>& acquireFence)
-{
-    originalAcquireFence_ = acquireFence;
-}
-
-sptr<SyncFence> RSRenderSurfaceLayer::GetOriginalAcquireFence() const
-{
-    return originalAcquireFence_;
-}
-
-void RSRenderSurfaceLayer::SetOriginalPreBuffer(const sptr<SurfaceBuffer>& buffer)
-{
-    originalPreBuffer_ = buffer;
-}
-
-sptr<SurfaceBuffer> RSRenderSurfaceLayer::GetOriginalPreBuffer() const
-{
-    return originalPreBuffer_;
-}
-
-void RSRenderSurfaceLayer::SetOriginalTransformType(GraphicTransformType transformType)
-{
-    originalTransformType_ = transformType;
-}
-
-GraphicTransformType RSRenderSurfaceLayer::GetOriginalTransformType() const
-{
-    return originalTransformType_;
-}
-
-void RSRenderSurfaceLayer::SetOriginalCropRect(const GraphicIRect& cropRect)
-{
-    originalCropRect_ = cropRect;
-}
-// hpae_offline end
-
-GraphicIRect RSRenderSurfaceLayer::GetOriginalCropRect() const
-{
-    return originalCropRect_;
 }
 
 void RSRenderSurfaceLayer::SetIgnoreAlpha(bool ignoreAlpha)

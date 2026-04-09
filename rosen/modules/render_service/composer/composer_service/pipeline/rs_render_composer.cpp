@@ -1011,7 +1011,7 @@ GraphicColorGamut RSRenderComposer::ComputeTargetColorGamut(const std::vector<st
             RS_LOGE("%{public}s layer is nullptr", __func__);
             continue;
         }
-        auto buffer = layer->GetUseDeviceOffline() ? layer->GetOriginalBuffer() : layer->GetBuffer();
+        auto buffer = layer->GetBuffer();
         if (buffer == nullptr) {
             RS_LOGW("%{public}s The buffer of layer is nullptr", __func__);
             continue;

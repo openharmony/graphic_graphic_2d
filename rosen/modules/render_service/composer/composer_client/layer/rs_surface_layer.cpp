@@ -894,20 +894,10 @@ GraphicSolidColorLayerProperty RSSurfaceLayer::GetSolidColorLayerProperty() cons
     return solidColorLayerProperty_;
 }
 
-// hpae_offline begin
 void RSSurfaceLayer::SetUseDeviceOffline(bool useOffline)
 {
     if (useDeviceOffline_ == useOffline) {
         return;
-    }
-    if (!useOffline) {
-        // offline switch to online, clear original buffer info
-        originalBuffer_ = nullptr;
-        originalPreBuffer_ = nullptr;
-        originalAcquireFence_ = SyncFence::InvalidFence();
-        originalTransformType_ = GraphicTransformType::GRAPHIC_ROTATE_BUTT;
-        originalCropRect_ = {0, 0, 0, 0};
-        originalBufferOwnerCount_ = nullptr;
     }
     useDeviceOffline_ = useOffline;
     SetRSLayerCmd<RSRenderLayerUseDeviceOfflineCmd>(useOffline);
@@ -918,119 +908,6 @@ bool RSSurfaceLayer::GetUseDeviceOffline() const
     return useDeviceOffline_;
 }
 
-void RSSurfaceLayer::SetOriginalBuffer(const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence)
-{
-    if (buffer != originalBuffer_) {
-        originalBuffer_ = buffer;
-        SetRSLayerCmd<RSRenderLayerOriginalBufferCmd>(buffer);
-    }
-    if (originalAcquireFence_ != acquireFence) {
-        originalAcquireFence_ = acquireFence;
-        SetRSLayerCmd<RSRenderLayerOriginalAcquireFenceCmd>(acquireFence);
-    }
-}
- 
-void RSSurfaceLayer::SetOriginalBuffer(const sptr<SurfaceBuffer>& buffer)
-{
-    if (buffer == originalBuffer_) {
-        return;
-    }
-    originalBuffer_ = buffer;
-    SetRSLayerCmd<RSRenderLayerOriginalBufferCmd>(buffer);
-}
- 
-sptr<SurfaceBuffer> RSSurfaceLayer::GetOriginalBuffer() const
-{
-    auto buffer = originalBuffer_.promote();
-    if (buffer == nullptr) {
-        ROSEN_LOGE("%{public}s layer id: %{public}" PRIu64 " original buffer is released", __func__, rsLayerId_);
-        return nullptr;
-    }
-    return buffer;
-}
- 
-void RSSurfaceLayer::SetOriginalPreBuffer(const sptr<SurfaceBuffer>& buffer)
-{
-    if (buffer == originalPreBuffer_) {
-        return;
-    }
-    originalPreBuffer_ = buffer;
-    SetRSLayerCmd<RSRenderLayerOriginalPreBufferCmd>(buffer);
-}
- 
-sptr<SurfaceBuffer> RSSurfaceLayer::GetOriginalPreBuffer() const
-{
-    auto buffer = originalPreBuffer_.promote();
-    if (buffer == nullptr) {
-        ROSEN_LOGE("%{public}s layer id: %{public}" PRIu64 " original prebuffer is released", __func__, rsLayerId_);
-        return nullptr;
-    }
-    return buffer;
-}
- 
-void RSSurfaceLayer::SetOriginalTransformType(GraphicTransformType type)
-{
-    if (originalTransformType_ == type) {
-        return;
-    }
-    originalTransformType_ = type;
-    SetRSLayerCmd<RSRenderLayerOriginalTransformTypeCmd>(type);
-}
- 
-GraphicTransformType RSSurfaceLayer::GetOriginalTransformType() const
-{
-    return originalTransformType_;
-}
- 
-void RSSurfaceLayer::SetOriginalAcquireFence(const sptr<SyncFence>& acquireFence)
-{
-    if (originalAcquireFence_ == acquireFence) {
-        return;
-    }
-    originalAcquireFence_ = acquireFence;
-    SetRSLayerCmd<RSRenderLayerOriginalAcquireFenceCmd>(acquireFence);
-}
- 
-sptr<SyncFence> RSSurfaceLayer::GetOriginalAcquireFence() const
-{
-    return originalAcquireFence_;
-}
- 
-void RSSurfaceLayer::SetOriginalCropRect(const GraphicIRect& cropRect)
-{
-    if (originalCropRect_ == cropRect) {
-        return;
-    }
-    originalCropRect_ = cropRect;
-    SetRSLayerCmd<RSRenderLayerOriginalCropRectCmd>(cropRect);
-}
- 
-GraphicIRect RSSurfaceLayer::GetOriginalCropRect() const
-{
-    return originalCropRect_;
-}
- 
-void RSSurfaceLayer::SetOriginalBufferOwnerCount(
-    const std::shared_ptr<RSSurfaceHandler::BufferOwnerCount>& bufferOwnerCount)
-{
-    if (bufferOwnerCount == nullptr) {
-        return;
-    }
-    RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceLayer::SetOriginalBufferOwnerCount bufferId %" PRIu64 " layerId %" PRIu64,
-        bufferOwnerCount->bufferId_, rsLayerId_);
-    std::lock_guard<std::mutex> lockGuard(ownerCountMutex_);
-    if (bufferOwnerCounts_.find(bufferOwnerCount->bufferId_) == bufferOwnerCounts_.end()) {
-        bufferOwnerCount->AddRef();
-    }
-    bufferOwnerCounts_[bufferOwnerCount->bufferId_] = bufferOwnerCount;
-    originalBufferOwnerCount_ = bufferOwnerCount;
-}
- 
-std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> RSSurfaceLayer::GetOriginalBufferOwnerCount() const
-{
-    return originalBufferOwnerCount_;
-}
-// hpae_offline end
 void RSSurfaceLayer::SetIgnoreAlpha(bool ignoreAlpha)
 {
     if (ignoreAlpha_ == ignoreAlpha) {
