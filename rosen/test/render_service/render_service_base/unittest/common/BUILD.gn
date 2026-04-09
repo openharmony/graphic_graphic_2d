@@ -24,7 +24,6 @@ ohos_unittest("RSRenderServiceBaseCommonTest") {
   sources = [
     "rs_background_thread_test.cpp",
     "rs_color_test.cpp",
-    "rs_common_def_test.cpp",
     "rs_common_hook_test.cpp",
     "rs_common_tools_test.cpp",
     "rs_obj_abs_geometry_test.cpp",

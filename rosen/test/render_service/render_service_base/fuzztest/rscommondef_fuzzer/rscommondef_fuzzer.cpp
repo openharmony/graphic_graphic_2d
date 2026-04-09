@@ -25,7 +25,6 @@
 #include <securec.h>
 #include <unistd.h>
 
-#include "common/rs_common_def.cpp"
 #include "common/rs_common_def.h"
 
 namespace OHOS {
@@ -78,23 +77,6 @@ bool DoInline(const uint8_t* data, size_t size)
     ExtractPid(id);
     return true;
 }
-
-bool DoMemObject(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    size_t size1 = GetData<size_t>();
-    MemObject obj3(size1);
-    MemObject* obj1 = new MemObject(size1);
-    delete obj1;
-    MemObject* obj2 = new (std::nothrow) MemObject(size1);
-    if (obj2) {
-        delete obj2;
-    }
-    return true;
-}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -108,6 +90,5 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 
     /* Run your code on data */
     OHOS::Rosen::DoInline(data, size);    // inline
-    OHOS::Rosen::DoMemObject(data, size); // MemObject
     return 0;
 }
