@@ -183,6 +183,10 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_SWITCHING_NOTIFY_CALLBACK");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_ACTIVE_SCREEN_ID_CHANGED_CALLBACK): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_ACTIVE_SCREEN_ID_CHANGED_CALLBACK");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_CORRECTION): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_CORRECTION");
             break;

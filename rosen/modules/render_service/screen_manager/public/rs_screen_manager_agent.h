@@ -18,6 +18,7 @@
 
 #include "ipc_callbacks/screen_change_callback.h"
 #include "ipc_callbacks/screen_supported_hdr_formats_callback.h"
+#include "ipc_callbacks/active_screen_id_changed_callback.h"
 #include "screen_manager/rs_screen_manager.h"
 
 namespace OHOS {
@@ -29,11 +30,15 @@ public:
     RSScreenManagerAgentListener() = default;
     void OnScreenConnected(ScreenId id, ScreenChangeReason reason, sptr<IRemoteObject> remoteConn);
     void OnScreenDisconnected(ScreenId id, ScreenChangeReason reason);
+    void OnActiveScreenIdChanged(ScreenId activeScreenId);
     void SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback);
+    void SetActiveScreenIdChangedCallback(sptr<RSIActiveScreenIdChangedCallback> callback);
 
 private:
     std::mutex mutex_;
     sptr<RSIScreenChangeCallback> screenChangeCallback_;
+    std::mutex activeScreenIdCallbackMutex_;
+    sptr<RSIActiveScreenIdChangedCallback> activeScreenIdChangedCallback_;
 };
 
 class RSScreenManagerAgent : public RefBase {
@@ -69,6 +74,7 @@ public:
     int32_t GetDisplayIdentificationData(ScreenId id, uint8_t& outPort, std::vector<uint8_t>& edidData) const;
 
     int32_t SetScreenSwitchingNotifyCallback(sptr<RSIScreenSwitchingNotifyCallback> callback);
+    int32_t SetActiveScreenIdChangedCallback(sptr<RSIActiveScreenIdChangedCallback> callback);
 
     int32_t SetVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList);
     int32_t SetVirtualScreenTypeBlackList(ScreenId id, const std::vector<uint8_t>& typeBlackList);

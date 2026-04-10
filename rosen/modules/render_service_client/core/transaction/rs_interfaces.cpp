@@ -226,6 +226,12 @@ int32_t RSInterfaces::SetScreenSwitchingNotifyCallback(const ScreenSwitchingNoti
     return renderServiceClient_->SetScreenSwitchingNotifyCallback(callback);
 }
 
+int32_t RSInterfaces::SetActiveScreenIdChangedCallback(const ActiveScreenIdChangedCallback &callback)
+{
+    ROSEN_LOGI("RSInterfaces::%{public}s", __func__);
+    return renderServiceClient_->SetActiveScreenIdChangedCallback(callback);
+}
+
 int32_t RSInterfaces::SetBrightnessInfoChangeCallback(const BrightnessInfoChangeCallback& callback)
 {
     ROSEN_LOGD("RSInterfaces::%{public}s", __func__);
