@@ -135,11 +135,11 @@ bool RSRenderDisplaySync::OnFrameSkipForAnimate(
         return false;
     }
     bool isCurrentAnimateNeedSkip = false;
-    int64_t deltaReferenceCount = std::round(static_cast<double>((timestamp - timestamp_) * currentFrameRate_) /
+    int64_t deltaVsyncTriggerCount_ = std::round(static_cast<double>((timestamp - timestamp_) * currentFrameRate_) /
         static_cast<double>(NS_TO_S));
     timestamp_ = timestamp;
     int64_t lastVsyncTriggerCountForAnimate = (vsyncTriggerCount_ / skipPeriodCount_) * skipPeriodCount_;
-    vsyncTriggerCount_ += deltaReferenceCount;
+    vsyncTriggerCount_ += deltaVsyncTriggerCount_;
     bool shouldForceAnimateThisFrame = (vsyncTriggerCount_ - lastVsyncTriggerCountForAnimate) >= skipPeriodCount_;
 
     if (currentPeriod_ != period) {
@@ -164,8 +164,8 @@ bool RSRenderDisplaySync::OnFrameSkipForAnimate(
         isCurrentAnimateNeedSkip = true;
     }
 
-    int64_t nextReferenceCountForAnimate = ((vsyncTriggerCount_ / skipPeriodCount_) + 1) * skipPeriodCount_;
-    nextFrameTime = (currentFrameRate_ != 0) ? (timestamp_ + static_cast<uint64_t>((nextReferenceCountForAnimate -
+    int64_t nextVsyncTriggerCountForAnimate = ((vsyncTriggerCount_ / skipPeriodCount_) + 1) * skipPeriodCount_;
+    nextFrameTime = (currentFrameRate_ != 0) ? (timestamp_ + static_cast<uint64_t>((nextVsyncTriggerCountForAnimate -
         vsyncTriggerCount_) * NS_TO_S / currentFrameRate_)) : 0;
 
     RS_OPTIONAL_TRACE_NAME_FMT(
