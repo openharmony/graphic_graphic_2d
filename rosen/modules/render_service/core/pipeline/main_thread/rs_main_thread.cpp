@@ -778,10 +778,8 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
         }, "ReleaseImageMem in mainthread", 0, AppExecFwk::EventQueue::Priority::HIGH);
     });
     RSRenderNodeGC::Instance().SetDrawableReleaseFunc([this](bool highPriority) {
-        PostTask([this, highPriority]() {
-            RSRenderNodeGC::Instance().ReleaseDrawableMemory(highPriority);
-            drawFrame_.ClearDrawableResource();
-        }, "ReleaseNodeDrawableMem in mainthread", 0, AppExecFwk::EventQueue::Priority::HIGH);
+        drawFrame_.ClearDrawableMemory(highPriority);
+        drawFrame_.ClearDrawableResource();
     });
 }
 void RSMainThread::CleanBrightnessInfoChangeCallbacks(pid_t remotePid) noexcept
