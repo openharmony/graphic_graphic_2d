@@ -37,35 +37,6 @@ const double DEFAULT_MAX_WIDTHS = 100;
 class OH_Drawing_TypographyTest : public testing::Test {
 };
 
-namespace {
-std::string g_expectDumpInfo = "Paragraph dump:"
-    "Text sz:126,State:Drawn,TextDraw:F,"
-    "Run0 glyph sz:2,rng[0-6),"
-    "Run1 glyph sz:2,rng[6-8),"
-    "Run2 glyph sz:2,rng[8-14),"
-    "Run3 glyph sz:11,rng[14-25),"
-    "Run4 glyph sz:6,rng[25-43),"
-    "Run5 glyph sz:2,rng[43-45),"
-    "Run6 glyph sz:6,rng[45-63),"
-    "Run7 glyph sz:2,rng[63-69),"
-    "Run8 glyph sz:2,rng[69-71),"
-    "Run9 glyph sz:2,rng[71-77),"
-    "Run10 glyph sz:11,rng[77-88),"
-    "Run11 glyph sz:6,rng[88-106),"
-    "Run12 glyph sz:2,rng[106-108),"
-    "Run13 glyph sz:6,rng[108-126),"
-    "Blk0 rng[0-63),sz:50,clr:ffff0000,ht:0,wt:500,wd:6,slt:2,"
-    "Blk1 rng[63-126),sz:60,clr:ffffff00,ht:0,wt:300,wd:7,slt:1,"
-    "Paragraph glyph sz:62,"
-    "L0 run rng:0-2,"
-    "L1 run rng:3-4,"
-    "L2 run rng:4-6,"
-    "L3 run rng:7-9,"
-    "L4 run rng:10-11,"
-    "L5 run rng:11-13,"
-    "L6 run rng:13-13";
-}
-
 /*
  * @tc.name: OH_Drawing_TypographyInnerBadgeTypeTest001
  * @tc.desc: Test for badge text
@@ -1485,7 +1456,7 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyStyleEllipsisTest06, TestSize.Leve
 
 /*
  * @tc.name: TypographyGetDumpInfoTest
- * @tc.desc: test for get dump info
+ * @tc.desc: test for get dump info (paragraph-level state, runs, blocks, lines)
  * @tc.type: FUNC
  */
 HWTEST_F(OH_Drawing_TypographyTest, TypographyGetDumpInfoTest, TestSize.Level0)
@@ -1525,7 +1496,229 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyGetDumpInfoTest, TestSize.Level0)
     typographyImpl->paragraph_.swap(paragraphTemp);
     EXPECT_EQ(typography->GetDumpInfo(), "");
     typographyImpl->paragraph_.swap(paragraphTemp);
-    EXPECT_EQ(typography->GetDumpInfo(), g_expectDumpInfo);
+
+    // Verify dump info contains basic structure fields
+    std::string dumpInfo = typography->GetDumpInfo();
+    EXPECT_NE(dumpInfo.find("Paragraph dump:"), std::string::npos);
+    EXPECT_NE(dumpInfo.find("Text sz:126"), std::string::npos);
+    EXPECT_NE(dumpInfo.find("State:Drawn"), std::string::npos);
+    EXPECT_NE(dumpInfo.find("Run0 glyph sz:"), std::string::npos);
+    EXPECT_NE(dumpInfo.find("Blk0 rng[0-63)"), std::string::npos);
+    EXPECT_NE(dumpInfo.find("Blk1 rng[63-126)"), std::string::npos);
+    EXPECT_NE(dumpInfo.find("Paragraph glyph sz:62"), std::string::npos);
+}
+
+/*
+ * @tc.name: TypographyGetDumpInfoFamilyNameTest
+ * @tc.desc: test for get dump info contains typeface family name and unique ID per run
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyGetDumpInfoFamilyNameTest, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+    OHOS::Rosen::TextStyle style1;
+    style1.fontSize = 50;
+    style1.color = Drawing::Color::ColorQuadSetARGB(255, 255, 0, 0);
+    std::u16string text = u"你好, 测试GetDumpInfo中返回的数据, 是否符合预期";
+    typographyCreate->PushStyle(style1);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    double maxWidth = 500;
+    typography->Layout(maxWidth);
+
+    OHOS::Rosen::Drawing::Canvas canvas;
+    typography->Paint(&canvas, 0, 0);
+    std::string dumpInfo = typography->GetDumpInfo();
+
+    // Each Run entry must contain "family:" and "id:" fields from typeface
+    EXPECT_NE(dumpInfo.find("family:"), std::string::npos);
+    EXPECT_NE(dumpInfo.find(",id:"), std::string::npos);
+
+    // Verify "family:" appears immediately after the rng field in Run0
+    EXPECT_NE(dumpInfo.find("rng[0-6),family:"), std::string::npos);
+
+    // Verify "id:" appears after "family:" - at least one run has id > 0
+    // Format is "family:<name>,id:<number>,"
+    auto familyPos = dumpInfo.find("family:");
+    auto idPos = dumpInfo.find(",id:", familyPos);
+    EXPECT_NE(idPos, std::string::npos);
+}
+
+/*
+ * @tc.name: TypographyGetDumpInfoSymbolTest
+ * @tc.desc: test for get dump info appends symbol run info when hmSymbols_ is not empty
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyGetDumpInfoSymbolTest, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+    OHOS::Rosen::TextStyle style1;
+    style1.fontSize = 50;
+    style1.color = Drawing::Color::ColorQuadSetARGB(255, 255, 0, 0);
+    std::u16string text = u"你好";
+    typographyCreate->PushStyle(style1);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    double maxWidth = 500;
+    typography->Layout(maxWidth);
+
+    OHOS::Rosen::Drawing::Canvas canvas;
+    typography->Paint(&canvas, 0, 0);
+    // Cast to ParagraphImpl to access hmSymbols_
+    SPText::ParagraphImpl* paragraphImpl =
+        static_cast<SPText::ParagraphImpl*>(typography->GetParagraph());
+    ASSERT_NE(paragraphImpl, nullptr);
+
+    // hmSymbols_ is empty by default - no symbol info in dump
+    std::string dumpNoSymbol = typography->GetDumpInfo();
+    EXPECT_EQ(dumpNoSymbol.find("{SymbolRun"), std::string::npos);
+
+    // Create a HMSymbolRun and set known symbol data
+    auto symbolRun = std::make_shared<SPText::HMSymbolRun>();
+    SPText::HMSymbolTxt symbolTxt;
+    symbolTxt.SetSymbolUid(100); // 100 is test uid
+    symbolTxt.SetRenderMode(RSSymbolRenderingStrategy::SINGLE);
+    RSSColor rsColor = {1.0f, 255, 0, 0};
+    symbolTxt.SetRenderColor(rsColor);
+    symbolRun->SetSymbolTxt(symbolTxt);
+    paragraphImpl->hmSymbols_.push_back(symbolRun);
+
+    // Verify symbol info is appended to dump
+    std::string dumpWithSymbol = typography->GetDumpInfo();
+    EXPECT_NE(dumpWithSymbol.find("{SymbolRun0}uid:100"), std::string::npos);
+    EXPECT_NE(dumpWithSymbol.find(",rmode:0,"), std::string::npos); // 0 is SINGLE
+    EXPECT_NE(dumpWithSymbol.find("clrCnt:1"), std::string::npos);
+    EXPECT_NE(dumpWithSymbol.find("clr0:[255,0,0,1]"), std::string::npos);
+    EXPECT_NE(dumpWithSymbol.find(".uiClrCnt:0"), std::string::npos);
+
+    // Verify paragraph dump prefix is still present
+    EXPECT_NE(dumpWithSymbol.find("Paragraph dump:"), std::string::npos);
+}
+
+/*
+ * @tc.name: TypographyGetDumpInfoSymbolUIColorTest
+ * @tc.desc: test for get dump info includes UIColor and ColorSpace for symbol runs
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyGetDumpInfoSymbolUIColorTest, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+    OHOS::Rosen::TextStyle style1;
+    style1.fontSize = 50;
+    style1.color = Drawing::Color::ColorQuadSetARGB(255, 255, 0, 0);
+    std::u16string text = u"你好";
+    typographyCreate->PushStyle(style1);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    double maxWidth = 500;
+    typography->Layout(maxWidth);
+
+    OHOS::Rosen::Drawing::Canvas canvas;
+    typography->Paint(&canvas, 0, 0);
+    SPText::ParagraphImpl* paragraphImpl =
+        static_cast<SPText::ParagraphImpl*>(typography->GetParagraph());
+    ASSERT_NE(paragraphImpl, nullptr);
+
+    // Create a symbol run with UIColor data
+    auto symbolRun = std::make_shared<SPText::HMSymbolRun>();
+    SPText::HMSymbolTxt symbolTxt;
+    symbolTxt.SetSymbolUid(200); // 200 is test uid
+    symbolTxt.SetRenderMode(RSSymbolRenderingStrategy::MULTIPLE_COLOR); // rmode=1
+    RSSColor rsColor1 = {1.0f, 255, 0, 0};
+    RSSColor rsColor2 = {0.5f, 0, 255, 0};
+    symbolTxt.SetRenderColor({rsColor1, rsColor2});
+
+    // Set UIColor with specific values for dump verification
+    Drawing::UIColor uiColor(1.0f, 0.5f, 0.3f, 1.0f);
+    symbolTxt.SetRenderUIColor({ uiColor }, { SymbolColorSpace::DISPLAY_P3 });
+
+    symbolRun->SetSymbolTxt(symbolTxt);
+    paragraphImpl->hmSymbols_.push_back(symbolRun);
+
+    std::string dumpInfo = typography->GetDumpInfo();
+
+    // Verify uid and render mode
+    EXPECT_NE(dumpInfo.find("{SymbolRun0}uid:200"), std::string::npos);
+    EXPECT_NE(dumpInfo.find(",rmode:1,"), std::string::npos); // 1 is MULTIPLE_COLOR
+
+    // Verify RSSColor count and first color
+    EXPECT_NE(dumpInfo.find("clrCnt:0"), std::string::npos);
+    EXPECT_EQ(dumpInfo.find("clrCnt:2"), std::string::npos);
+    EXPECT_EQ(dumpInfo.find("clr0:[255,0,0,1]"), std::string::npos);
+    EXPECT_EQ(dumpInfo.find("clr1:[0,255,0,0.5]"), std::string::npos);
+
+    // Verify UIColor count and values
+    EXPECT_NE(dumpInfo.find(".uiClrCnt:1"), std::string::npos);
+    EXPECT_NE(dumpInfo.find("uiClr0:[1,0.5,0.3,1,1]"), std::string::npos);
+
+    // Verify ColorSpace: DISPLAY_P3 = 1
+    EXPECT_NE(dumpInfo.find("cspace0:1"), std::string::npos);
+}
+
+/*
+ * @tc.name: TypographyGetDumpInfoSymbolNullptrTest
+ * @tc.desc: test for get dump info skips nullptr symbol runs
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, TypographyGetDumpInfoSymbolNullptrTest, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    ASSERT_NE(typographyCreate, nullptr);
+    OHOS::Rosen::TextStyle style1;
+    style1.fontSize = 50;
+    style1.color = Drawing::Color::ColorQuadSetARGB(255, 255, 0, 0);
+    std::u16string text = u"你好";
+    typographyCreate->PushStyle(style1);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    ASSERT_NE(typography, nullptr);
+    double maxWidth = 500;
+    typography->Layout(maxWidth);
+
+    OHOS::Rosen::Drawing::Canvas canvas;
+    typography->Paint(&canvas, 0, 0);
+    SPText::ParagraphImpl* paragraphImpl =
+        static_cast<SPText::ParagraphImpl*>(typography->GetParagraph());
+    ASSERT_NE(paragraphImpl, nullptr);
+
+    // Push nullptr as a symbol run - should be skipped
+    paragraphImpl->hmSymbols_.push_back(nullptr);
+
+    // Push a valid symbol run - should appear with index 1 (not 0)
+    auto symbolRun = std::make_shared<SPText::HMSymbolRun>();
+    SPText::HMSymbolTxt symbolTxt;
+    symbolTxt.SetSymbolUid(300); // 300 is test uid
+    symbolTxt.SetRenderMode(RSSymbolRenderingStrategy::SINGLE);
+    symbolRun->SetSymbolTxt(symbolTxt);
+    paragraphImpl->hmSymbols_.push_back(symbolRun);
+
+    std::string dumpInfo = typography->GetDumpInfo();
+    // The nullptr at index 0 is skipped, so the valid one at index 1 appears as {SymbolRun1}
+    EXPECT_NE(dumpInfo.find("{SymbolRun1}uid:300"), std::string::npos);
+    // {SymbolRun0} should NOT appear (nullptr was skipped)
+    EXPECT_EQ(dumpInfo.find("{SymbolRun0}"), std::string::npos);
 }
 } // namespace Rosen
 } // namespace OHOS

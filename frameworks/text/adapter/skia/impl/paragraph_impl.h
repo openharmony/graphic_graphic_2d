@@ -209,9 +209,9 @@ private:
     void UpdatePaintsBySkiaBlock(skt::Block& skiaBlock, const std::optional<RSBrush>& brush);
 
     void InitSymbolRuns();
-
     void UpdateSymbolRun(const HMSymbolTxt& symbolStyle, std::shared_ptr<HMSymbolRun>& hmSymbolRun,
         skt::InternalState& state, size_t index);
+    std::string DumpSymbolInfo() const;
 
     void BuildFitStrRange(std::vector<TextRange>& fitRanges);
 
