@@ -404,50 +404,6 @@ HWTEST_F(RSOpincCacheTest, UpdateSubTreeSupportFlag, TestSize.Level1)
 }
 
 /**
- * @tc.name: OpincSubTreeSkip001
- * @tc.desc: test results of OpincSubTreeSkip
- * @tc.type: FUNC
- * @tc.require: issue22996
- */
-HWTEST_F(RSOpincCacheTest, OpincSubTreeSkip001, TestSize.Level1)
-{
-    RSRenderNode renderNode(0);
-    auto& opincCache = renderNode.GetOpincCache();
-    opincCache.unchangeCount_ = 0;
-    opincCache.unchangeCountUpper_ = 3;
-    {
-        opincCache.isSuggestOpincNode_ = false;
-        opincCache.OpincSubTreeSkip();
-        EXPECT_EQ(opincCache.unchangeCount_, 0);
-    }
-
-    {
-        opincCache.isSuggestOpincNode_ = true;
-        opincCache.nodeCacheState_ = NodeCacheState::STATE_UNCHANGE;
-        opincCache.OpincSubTreeSkip();
-        EXPECT_EQ(opincCache.unchangeCount_, 0);
-    }
-
-    {
-        opincCache.isSuggestOpincNode_ = true;
-        opincCache.nodeCacheState_ = NodeCacheState::STATE_CHANGE;
-        opincCache.unchangeCount_ = 4;
-        opincCache.unchangeCountUpper_ = 3;
-        opincCache.OpincSubTreeSkip();
-        EXPECT_EQ(opincCache.unchangeCount_, 4);
-    }
-
-    {
-        opincCache.isSuggestOpincNode_ = true;
-        opincCache.nodeCacheState_ = NodeCacheState::STATE_CHANGE;
-        opincCache.unchangeCount_ = 0;
-        opincCache.unchangeCountUpper_ = 3;
-        opincCache.OpincSubTreeSkip();
-        EXPECT_EQ(opincCache.unchangeCount_, opincCache.unchangeCountUpper_);
-    }
-}
-
-/**
  * @tc.name: SetCurNodeTreeSupportFlag
  * @tc.desc: test results of SetCurNodeTreeSupportFlag
  * @tc.type: FUNC

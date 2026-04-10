@@ -319,5 +319,12 @@ bool RSSystemParameters::GetUIFirstOcclusionDebugEnabled()
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 0) != 0;
 }
+
+bool RSSystemParameters::GetCropRectDebugOverlayEnabled()
+{
+    static bool cropRectDebugOverlayEnabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.cropRectDebugOverlay.Enabled", "0")).c_str()) != 0;
+    return cropRectDebugOverlayEnabled;
+}
 } // namespace Rosen
 } // namespace OHOS

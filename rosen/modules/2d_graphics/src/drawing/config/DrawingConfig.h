@@ -69,6 +69,7 @@ public:
         DISABLE_SHADER,
         DISABLE_BLENDER,
         DISABLE_PATH_EFFECT,
+        DISABLE_PARTICLE,
         COUNT // The total number of flags.
     };
 

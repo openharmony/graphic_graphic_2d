@@ -212,7 +212,8 @@ RSColor RSColor::operator*(float scale) const
         return RSColor(GetRedF() * scale, GetGreenF() * scale, GetBlueF() * scale, GetAlphaF() * scale,
             GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020, GetHeadroom());
     }
-    RSColor color = RSColor(round(red_ * scale), round(green_ * scale), round(blue_ * scale), round(alpha_ * scale));
+    RSColor color = RSColor(round(red_ * scale), round(green_ * scale), round(blue_ * scale), round(alpha_ * scale),
+        GetColorSpace());
     color.SetHeadroom(GetHeadroom());
     return color;
 }
@@ -460,6 +461,7 @@ void RSColor::ConvertToP3ColorSpace()
     OHOS::ColorManager::Vector3 rgbInP3 = rgbF;
     if (GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020) {
         rgbInP3 = OHOS::ColorManager::ColorSpaceConvertor::ConvertBT2020ToP3ColorSpace(rgbF);
+        alpha_ = GetAlpha();
     } else {
         rgbInP3 = OHOS::ColorManager::ColorSpaceConvertor::ConvertSRGBToP3ColorSpace(rgbF);
     }
@@ -480,6 +482,7 @@ void RSColor::ConvertToSRGBColorSpace()
     OHOS::ColorManager::Vector3 rgbInSRGB = rgbF;
     if (GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020) {
         rgbInSRGB = OHOS::ColorManager::ColorSpaceConvertor::ConvertBT2020ToSRGBColorSpace(rgbF);
+        alpha_ = GetAlpha();
     } else {
         rgbInSRGB = OHOS::ColorManager::ColorSpaceConvertor::ConvertP3ToSRGBColorSpace(rgbF);
     }

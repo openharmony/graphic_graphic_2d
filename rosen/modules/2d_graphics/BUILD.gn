@@ -95,6 +95,8 @@ template("graphics2d_source_set") {
       "$drawing_core_src_dir/effect/image_filter.cpp",
       "$drawing_core_src_dir/effect/mask_filter.cpp",
       "$drawing_core_src_dir/effect/path_effect.cpp",
+      "$drawing_core_src_dir/effect/particle_builder.cpp",
+      "$drawing_core_src_dir/effect/particle_effect.cpp",
       "$drawing_core_src_dir/effect/runtime_blender_builder.cpp",
       "$drawing_core_src_dir/effect/runtime_effect.cpp",
       "$drawing_core_src_dir/effect/runtime_shader_builder.cpp",

@@ -91,6 +91,7 @@ public:
     static bool GetUIFirstStartingWindowCacheEnabled();
     static bool GetUIFirstOcclusionEnabled();
     static bool GetUIFirstOcclusionDebugEnabled();
+    static bool GetCropRectDebugOverlayEnabled();
 };
 
 } // namespace Rosen

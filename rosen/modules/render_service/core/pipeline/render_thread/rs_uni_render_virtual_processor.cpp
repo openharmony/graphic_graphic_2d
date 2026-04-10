@@ -331,6 +331,35 @@ GSError RSUniRenderVirtualProcessor::SetColorSpaceForMetadata(GraphicColorGamut 
     return buffer->SetMetadata(ATTRKEY_COLORSPACE_INFO, colorSpaceVec);
 }
 
+bool RSUniRenderVirtualProcessor::SetCropRectForMetadata(
+    const HDI::Display::Graphic::Common::V1_0::BufferHandleMetaRegion& metaRegion)
+{
+    if (renderFrame_ == nullptr) {
+        RS_LOGD("%{public}s : renderFrame is nullptr.", __func__);
+        return false;
+    }
+    auto rsSurface = renderFrame_->GetSurface();
+    if (rsSurface == nullptr) {
+        RS_LOGD("%{public}s : surface is nullptr.", __func__);
+        return false;
+    }
+    auto buffer = rsSurface->GetCurrentBuffer();
+    if (buffer == nullptr) {
+        RS_LOGD("%{public}s : buffer is nullptr.", __func__);
+        return false;
+    }
+    std::vector<uint8_t> data;
+    if (MetadataHelper::ConvertMetadataToVec(metaRegion, data) != GSERROR_OK) {
+        RS_LOGD("%{public}s : ConvertMetadataToVec failed.", __func__);
+        return false;
+    }
+    if (buffer->SetMetadata(HDI::Display::Graphic::Common::V1_0::ATTRKEY_CROP_REGION, data) != GSERROR_OK) {
+        RS_LOGD("%{public}s : SetMetadata failed.", __func__);
+        return false;
+    }
+    return true;
+}
+
 void RSUniRenderVirtualProcessor::SetDirtyInfo(const std::vector<RectI>& damageRegion)
 {
     if (renderFrame_ == nullptr) {

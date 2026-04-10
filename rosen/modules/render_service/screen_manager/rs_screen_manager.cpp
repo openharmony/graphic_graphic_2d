@@ -505,6 +505,7 @@ ScreenId RSScreenManager::CreateVirtualScreen(
     RS_LOGI("%{public}s: create virtual screen(id %{public}" PRIu64 "), width %{public}u, height %{public}u."
         "associatedScreenId %{public}" PRIu64,
         __func__, newId, width, height, associatedScreenId);
+    RSSpecialLayerUtils::DumpScreenSpecialLayer(__func__, SpecialLayerType::IS_WHITE_LIST, newId, configs.whiteList);
     return newId;
 }
 

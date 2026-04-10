@@ -1384,9 +1384,8 @@ void RSUniRenderVisitor::QuickPrepareUnionRenderNode(RSUnionRenderNode& node)
     // 1. Recursively traverse child nodes if above curSurfaceNode and subnode need draw
     hasAccumulatedClip_ = node.SetAccumulatedClipFlag(hasAccumulatedClip_);
     bool isOpincSubTreeDirty = RSOpincManager::Instance().IsOpincSubTreeDirty(node, autoCacheEnable_);
-    bool isSubTreeNeedPrepare =
-        !curSurfaceNode_ || node.IsSubTreeNeedPrepare(filterInGlobal_) || ForcePrepareSubTree() ||
-        (RSOpincManager::Instance().OpincSubTreeSkipPrepare(node, unchangeMarkEnable_), isOpincSubTreeDirty);
+    bool isSubTreeNeedPrepare = !curSurfaceNode_ || node.IsSubTreeNeedPrepare(filterInGlobal_) ||
+        ForcePrepareSubTree() || isOpincSubTreeDirty;
     isSubTreeNeedPrepare ? QuickPrepareChildren(node) :
         node.SubTreeSkipPrepare(*dirtyManager, curDirty_, dirtyFlag_, prepareClipRect_,
             curLayerPartRenderDirtyManager_);
@@ -1979,9 +1978,8 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     // 1. Recursively traverse child nodes if above curSurfaceNode and subnode need draw
     hasAccumulatedClip_ = node.SetAccumulatedClipFlag(hasAccumulatedClip_);
     bool isOpincSubTreeDirty = RSOpincManager::Instance().IsOpincSubTreeDirty(node, autoCacheEnable_);
-    bool isSubTreeNeedPrepare =
-        !curSurfaceNode_ || node.IsSubTreeNeedPrepare(filterInGlobal_) || ForcePrepareSubTree() ||
-        (RSOpincManager::Instance().OpincSubTreeSkipPrepare(node, unchangeMarkEnable_), isOpincSubTreeDirty);
+    bool isSubTreeNeedPrepare = !curSurfaceNode_ || node.IsSubTreeNeedPrepare(filterInGlobal_) ||
+        ForcePrepareSubTree() || isOpincSubTreeDirty;
     isSubTreeNeedPrepare ? QuickPrepareChildren(node) :
         node.SubTreeSkipPrepare(*dirtyManager, curDirty_, dirtyFlag_, prepareClipRect_,
             curLayerPartRenderDirtyManager_);
@@ -2372,6 +2370,10 @@ CM_INLINE bool RSUniRenderVisitor::AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNo
         !node.GetVisibleRegion().IsEmpty() || !GetIsOpDropped()) {
         CheckColorSpace(node);
     }
+    // 5. collect white list rect
+    bool isRotating = displayNodeRotationChanged_ || isScreenRotationAnimating_ ||
+        RSMainThread::Instance()->GetSystemAnimatedScenes() == SystemAnimatedScenes::SNAPSHOT_ROTATION;
+    RSSpecialLayerUtils::CollectWhiteListRect(node, hasMirrorUsedInSpecialLayer_, isRotating);
     return true;
 }
 
@@ -3368,6 +3370,9 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeS
             CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache(node, *curDirtyManager);
             DisableOccludedHwcNodeInSkippedSubTree(node);
         }
+        bool hasUnstableOpincNode = false;
+        RSOpincManager::Instance().QuickCheckOpincStable(
+            node, unchangeMarkInApp_, unchangeMarkEnable_, hasUnstableOpincNode);
     }
     if (node.NeedUpdateDrawableBehindWindow()) {
         node.GetMutableRenderProperties().SetNeedDrawBehindWindow(node.NeedDrawBehindWindow());
@@ -3403,6 +3408,7 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeS
             RSOpincManager::Instance().OpincGetNodeSupportFlag(node),
             node.GetOpincCache().OpincGetRootFlag(),
             nodeParent->GetNodeGroupType() == RSRenderNode::NodeGroupType::NONE);
+        nodeParent->GetOpincCache().UpdateSubTreeHasUnstableOpincNode(node.GetOpincCache());
 #ifdef SUBTREE_PARALLEL_ENABLE
         nodeParent->UpdateRepaintBoundaryInfo(node);
 #endif

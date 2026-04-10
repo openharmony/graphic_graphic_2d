@@ -513,6 +513,9 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::DoComposition: " + std::to_string(curTime_));
         ConsumeAndUpdateAllNodes();
         ClearNeedDropframePidList();
+        if (renderThreadParams_) {
+            renderThreadParams_->ClearWhiteListRect();
+        }
         WaitUntilUnmarshallingTaskFinished();
         ProcessCommand();
         RsFrameBlurPredict::GetInstance().AdjustCurrentFrameDrawLargeAreaBlurFrequencyPredictively();
@@ -778,10 +781,8 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
         }, "ReleaseImageMem in mainthread", 0, AppExecFwk::EventQueue::Priority::HIGH);
     });
     RSRenderNodeGC::Instance().SetDrawableReleaseFunc([this](bool highPriority) {
-        PostTask([this, highPriority]() {
-            RSRenderNodeGC::Instance().ReleaseDrawableMemory(highPriority);
-            drawFrame_.ClearDrawableResource();
-        }, "ReleaseNodeDrawableMem in mainthread", 0, AppExecFwk::EventQueue::Priority::HIGH);
+        drawFrame_.ClearDrawableMemory(highPriority);
+        drawFrame_.ClearDrawableResource();
     });
 }
 void RSMainThread::CleanBrightnessInfoChangeCallbacks(pid_t remotePid) noexcept
@@ -2143,6 +2144,14 @@ uint32_t RSMainThread::GetDynamicRefreshRate() const
         return STANDARD_REFRESH_RATE;
     }
     return refreshRate;
+}
+
+void RSMainThread::AddWhiteListRect(const std::unordered_set<ScreenId>& screenIds, RectI rect)
+{
+    if (renderThreadParams_ == nullptr) {
+        return;
+    }
+    renderThreadParams_->AddWhiteListRect(screenIds, rect);
 }
 
 void RSMainThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t pid)

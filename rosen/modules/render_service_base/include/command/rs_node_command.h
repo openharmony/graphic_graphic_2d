@@ -155,7 +155,7 @@ public:
     static void MarkUifirstNode(RSContext& context, NodeId nodeId, bool isUifirstNode);
     static void ForceUifirstNode(RSContext& context, NodeId nodeId, bool isForceFlag, bool isUifirstEnable);
     static void SetUIFirstSwitch(RSContext& context, NodeId nodeId, RSUIFirstSwitch uiFirstSwitch);
-    static void MarkNodeColorSpace(RSContext& context, NodeId nodeId, bool isP3Color);
+    static void MarkNodeColorSpace(RSContext& context, NodeId nodeId, int8_t colorSpace);
     static void SetDrawRegion(RSContext& context, NodeId nodeId, std::shared_ptr<RectF> rect);
     static void SetOutOfParent(RSContext& context, NodeId nodeId, OutOfParentType outOfParent);
     static void SetTakeSurfaceForUIFlag(RSContext& context, NodeId nodeId);
@@ -384,7 +384,7 @@ ADD_COMMAND(RSSetUIFirstSwitch,
 
 ADD_COMMAND(RSMarkNodeColorSpace,
     ARG(PERMISSION_APP, RS_NODE, MARK_NODE_COLORSPACE,
-        RSNodeCommandHelper::MarkNodeColorSpace, NodeId, bool))
+        RSNodeCommandHelper::MarkNodeColorSpace, NodeId, int8_t))
 
 ADD_COMMAND(RSSetDrawRegion,
     ARG(PERMISSION_APP, RS_NODE, SET_DRAW_REGION,
