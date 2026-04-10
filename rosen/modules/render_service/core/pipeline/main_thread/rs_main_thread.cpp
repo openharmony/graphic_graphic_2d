@@ -812,9 +812,9 @@ void RSMainThread::CleanCanvasCallbacksAndPendingBuffer(pid_t remotePid) noexcep
 }
 #endif
 
-void RSMainThread::CleanResources(pid_t pid)
+void RSMainThread::CleanResources(pid_t pid, bool forRefresh)
 {
-    RS_TRACE_NAME_FMT("CleanResources %d", pid);
+    RS_TRACE_NAME_FMT("CleanResources %d, forRefresh: %d", pid, forRefresh);
     // 0. CleanRenderNodes
     {
         RS_TRACE_BEGIN("CleanRenderNodes");
@@ -827,8 +827,8 @@ void RSMainThread::CleanResources(pid_t pid)
     }
 
     {
-        RS_TRACE_BEGIN("ClearTransactionDataPidInfo");
-        ClearTransactionDataPidInfo(pid);
+        RS_TRACE_BEGIN(forRefresh ? "ResetTransactionDataPidInfo" : "ClearTransactionDataPidInfo");
+        ClearTransactionDataPidInfo(pid, forRefresh);
         if (IsRequestedNextVSync()) {
             SetDirtyFlag();
         }
@@ -4192,7 +4192,7 @@ bool RSMainThread::DoParallelComposition(std::shared_ptr<RSBaseRenderNode> rootN
     return true;
 }
 
-void RSMainThread::ClearTransactionDataPidInfo(pid_t remotePid)
+void RSMainThread::ClearTransactionDataPidInfo(pid_t remotePid, bool forRefresh)
 {
     if (!isUniRender_) {
         return;
@@ -4200,12 +4200,21 @@ void RSMainThread::ClearTransactionDataPidInfo(pid_t remotePid)
     std::lock_guard<std::mutex> lock(transitionDataMutex_);
     auto it = effectiveTransactionDataIndexMap_.find(remotePid);
     if (it != effectiveTransactionDataIndexMap_.end()) {
-        if (!it->second.second.empty()) {
-            RS_LOGD("ClearTransactionDataPidInfo process:%{public}d destroyed, skip commands", remotePid);
+        if (forRefresh) {
+            RS_LOGI("ClearTransactionDataPidInfo forRefresh, remotePid: %{public}d", remotePid);
+            it->second.first = 0;
+        } else {
+            if (!it->second.second.empty()) {
+                RS_LOGD("ClearTransactionDataPidInfo process:%{public}d destroyed, skip commands", remotePid);
+            }
+            effectiveTransactionDataIndexMap_.erase(it);
         }
-        effectiveTransactionDataIndexMap_.erase(it);
     }
     transactionDataLastWaitTime_.erase(remotePid);
+
+    if (forRefresh) {
+        return;
+    }
 
     // clear cpu cache when process exit
     // CLEAN_CACHE_FREQ to prevent multiple cleanups in a short period of time

@@ -367,6 +367,8 @@ private:
     ErrCode SetOverlayDisplayMode(int32_t mode) override;
 #endif
 
+    void RegisterRemoteRefreshCallback() override {};
+
     static inline BrokerDelegator<RSClientToServiceConnectionProxy> delegator_;
 
     pid_t pid_ = GetRealPid();

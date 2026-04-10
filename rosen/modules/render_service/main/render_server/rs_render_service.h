@@ -81,7 +81,7 @@ private:
 
     // IPC related
     std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> CreateConnection(
-        const sptr<RSIConnectionToken>& token) override;
+        const sptr<RSIConnectionToken>& token, bool needRefresh = false) override;
     std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> GetConnection(
         const sptr<RSIConnectionToken>& token) override;
     bool RemoveConnection(const sptr<RSIConnectionToken>& token) override;
