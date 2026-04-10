@@ -162,10 +162,7 @@ public:
     bool GetUseDeviceOffline() const override;
     void SetOriginalBufferOwnerCount(
         const std::shared_ptr<RSSurfaceHandler::BufferOwnerCount>& bufferOwnerCount) override {}
-    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetOriginalBufferOwnerCount() const override
-    {
-        return nullptr;
-    }
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetOriginalBufferOwnerCount() const override { return nullptr; }
     void SetHpaeOriginalInfo(const HpaeOriginalInfo& hpaeOriginalInfo) override;
     const HpaeOriginalInfo& GetHpaeOriginalInfo() const override;
     // hpae_offline end
