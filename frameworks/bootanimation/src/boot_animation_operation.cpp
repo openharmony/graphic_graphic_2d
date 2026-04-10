@@ -36,11 +36,14 @@ BootAnimationOperation::~BootAnimationOperation()
     if (rsDisplayNode_) {
         rsDisplayNode_->RemoveFromTree();
     }
-    OHOS::Rosen::RSTransaction::FlushImplicitTransaction();
+    if (rsUIDirector_) {
+        rsUIDirector_->SendMessages();
+    }
     LOGI("Release RsNode");
 }
 
-void BootAnimationOperation::Init(const BootAnimationConfig& config, int32_t width, int32_t height, int32_t duration)
+void BootAnimationOperation::Init(const BootAnimationConfig& config, int32_t width, int32_t height, int32_t duration,
+    sptr<IRemoteObject> connectToRender)
 {
     LOGI("Init enter, width: %{public}d, height: %{public}d, screenId : " BPUBU64 "", width, height, config.screenId);
     OHOS::Rosen::RSSystemProperties::SetTypicalResidentProcess(true);
@@ -48,7 +51,7 @@ void BootAnimationOperation::Init(const BootAnimationConfig& config, int32_t wid
     windowWidth_ = width;
     windowHeight_ = height;
     duration_ = duration * DELAY_TIME_MS;
-
+    connectToRender_ = connectToRender;
     eventThread_ = std::thread([this, &config] { this->StartEventHandler(config); });
 }
 
@@ -91,9 +94,12 @@ bool BootAnimationOperation::InitRsDisplayNode()
 {
     LOGI("InitRsDisplayNode start");
     OHOS::Rosen::RSDisplayNodeConfig config = { currentScreenId_ };
-    rsUIDirector_ = OHOS::Rosen::RSUIDirector::Create(nullptr);
-    // rsUIDirector_->Init(false, false);
+    rsUIDirector_ = OHOS::Rosen::RSUIDirector::Create(connectToRender_);
     auto rsUIContext = rsUIDirector_->GetRSUIContext();
+    if (!rsUIContext) {
+        LOGE("rsUIContext is nullptr");
+        return false;
+    }
     rsDisplayNode_ = OHOS::Rosen::RSDisplayNode::Create(config, rsUIContext);
     if (rsDisplayNode_ == nullptr) {
         LOGE("init display node failed");
@@ -103,21 +109,7 @@ bool BootAnimationOperation::InitRsDisplayNode()
     rsDisplayNode_->SetBounds(0, 0, windowWidth_, windowHeight_);
     rsDisplayNode_->SetBootAnimation(true);
     rsDisplayNode_->SetBackgroundColor(0xFF000000);
-    if (rsUIContext != nullptr) {
-        auto transaction = rsUIContext->GetRSTransaction();
-        if (transaction == nullptr) {
-            LOGE("transaction is nullptr");
-            return false;
-        }
-        transaction->FlushImplicitTransaction();
-    } else {
-        auto transactionProxy = OHOS::Rosen::RSTransactionProxy::GetInstance();
-        if (transactionProxy == nullptr) {
-            LOGE("transactionProxy is nullptr");
-            return false;
-        }
-        transactionProxy->FlushImplicitTransaction();
-    }
+    rsUIDirector_->SendMessages();
     return true;
 }
 
@@ -130,6 +122,10 @@ bool BootAnimationOperation::InitRsSurfaceNode(int32_t degree)
     rsSurfaceNodeConfig.isSync = false;
     Rosen::RSSurfaceNodeType rsSurfaceNodeType = Rosen::RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
     auto rsUIContext = rsUIDirector_->GetRSUIContext();
+    if (!rsUIContext) {
+        LOGE("rsUIContext is nullptr");
+        return false;
+    }
     rsSurfaceNode_ = Rosen::RSSurfaceNode::Create(rsSurfaceNodeConfig, rsSurfaceNodeType, true, false, rsUIContext);
     if (!rsSurfaceNode_) {
         LOGE("create rsSurfaceNode failed");
@@ -142,9 +138,9 @@ bool BootAnimationOperation::InitRsSurfaceNode(int32_t degree)
     rsSurfaceNode_->SetBackgroundColor(0xFF000000);
     rsSurfaceNode_->SetFrameGravity(Rosen::Gravity::RESIZE_ASPECT);
     rsSurfaceNode_->SetBootAnimation(true);
-    OHOS::Rosen::RSTransaction::FlushImplicitTransaction();
+    rsUIDirector_->SendMessages();
     rsSurfaceNode_->AttachToDisplay(currentScreenId_);
-    OHOS::Rosen::RSTransaction::FlushImplicitTransaction();
+    rsUIDirector_->SendMessages();
     if (!system::GetBoolParameter(BOOT_ANIMATION_READY, false)) {
         system::SetParameter(BOOT_ANIMATION_READY, "true");
         LOGI("set boot animation ready true");
