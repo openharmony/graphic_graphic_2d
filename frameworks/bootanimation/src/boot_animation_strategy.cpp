@@ -103,7 +103,7 @@ void BootAnimationStrategy::GetConnectToRenderMap(int count)
                 LOGE("BootAnimationStrategy::GetConnectToRenderMap shared this is null.");
                 return;
             }
-            LOGI("BootAnimationStrategy::Screen connected: %" PRIu64, rsScreenId);
+            LOGI("BootAnimationStrategy::Screen connected:" BPUBU64 "", rsScreenId);
             {
                 std::lock_guard<std::mutex> lock(sharedThis->connectToRenderMapMtx_);
                 sharedThis->connectToRenderMap_.emplace(rsScreenId, connectToRender);
@@ -117,8 +117,8 @@ void BootAnimationStrategy::GetConnectToRenderMap(int count)
             return this->connectToRenderMap_.size() >= static_cast<size_t>(count);
         });
         if (!success) {
-            LOGE("BootAnimationStrategy::GetConnectToRenderMap Timeout waiting for %d screens. Currently got %zu.",
-                 count, this->connectToRenderMap_.size());
+            LOGE("BootAnimationStrategy::GetConnectToRenderMap Timeout waiting for %{public}d screens."
+                "Currently got %{public}zu.", count, this->connectToRenderMap_.size());
         }
     }
     LOGI("BootAnimationStrategy::%{public}s set screen change callback end.", __func__);
@@ -133,11 +133,11 @@ void BootAnimationStrategy::SubscribeActiveScreenIdChanged()
         [cv, weakThis](Rosen::ScreenId changedActiveScreenId) {
             auto sharedThis = weakThis.lock();
             if (!sharedThis) {
-                LOGE("BootAnimationStrategy::Subscribe... shared this is null, screenId: %" PRIu64,
+                LOGE("BootAnimationStrategy::Subscribe... shared this is null, screenId:" BPUBU64 "",
                      changedActiveScreenId);
                 return;
             }
-            LOGI("BootAnimationStrategy::Subscribe... active screen id changed to %" PRIu64 ".",
+            LOGI("BootAnimationStrategy::Subscribe... active screen id changed to " BPUBU64 "",
                  changedActiveScreenId);
             {
                 std::lock_guard<std::mutex> lock(sharedThis->activeScreenIdMtx_);
