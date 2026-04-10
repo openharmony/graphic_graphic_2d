@@ -27,10 +27,9 @@ const uint8_t DO_STOP = 1;
 const uint8_t DO_REMOVE_SOLOIST = 2;
 const uint8_t DO_INSERT_ON_VSYNC_CALLBACK = 3;
 const uint8_t DO_INSERT_FRAME_RATE_RANGE = 4;
-const uint8_t DO_INSERT_USE_EXCLUSIVE_THREAD_FLAG = 5;
-const uint8_t DO_SET_VSYNC_RATE = 6;
-const uint8_t DO_SET_MAIN_FRAME_RATE_LINKER_ENABLE = 7;
-const uint8_t TARGET_SIZE = 8;
+const uint8_t DO_SET_VSYNC_RATE = 5;
+const uint8_t DO_SET_MAIN_FRAME_RATE_LINKER_ENABLE = 6;
+const uint8_t TARGET_SIZE = 7;
 
 void DoStart(FuzzedDataProvider& fdp)
 {
@@ -77,13 +76,6 @@ void DoInsertFrameRateRange(FuzzedDataProvider& fdp)
     RSDisplaySoloistManager::GetInstance().InsertFrameRateRange(id, frameRateRange);
 }
 
-void DoInsertUseExclusiveThreadFlag(FuzzedDataProvider& fdp)
-{
-    SoloistIdType id = fdp.ConsumeIntegral<uint32_t>();
-    bool useExclusiveThread = fdp.ConsumeBool();
-    RSDisplaySoloistManager::GetInstance().InsertUseExclusiveThreadFlag(id, useExclusiveThread);
-}
-
 void DoSetVSyncRate(FuzzedDataProvider& fdp)
 {
     int32_t vsyncRate = fdp.ConsumeIntegral<int32_t>();
@@ -123,9 +115,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_INSERT_FRAME_RATE_RANGE:
             OHOS::Rosen::DoInsertFrameRateRange(fdp);
-            break;
-        case OHOS::Rosen::DO_INSERT_USE_EXCLUSIVE_THREAD_FLAG:
-            OHOS::Rosen::DoInsertUseExclusiveThreadFlag(fdp);
             break;
         case OHOS::Rosen::DO_SET_VSYNC_RATE:
             OHOS::Rosen::DoSetVSyncRate(fdp);

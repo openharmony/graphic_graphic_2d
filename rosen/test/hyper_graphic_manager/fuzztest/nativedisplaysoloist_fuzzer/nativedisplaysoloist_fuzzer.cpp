@@ -37,7 +37,7 @@ void DoCreate(FuzzedDataProvider& fdp)
         OH_DisplaySoloist_Destroy(g_displaySoloist);
         g_displaySoloist = nullptr;
     }
-    bool useExclusiveThread = fdp.ConsumeBool();
+    bool useExclusiveThread = false;
     g_displaySoloist = OH_DisplaySoloist_Create(useExclusiveThread);
 }
 
