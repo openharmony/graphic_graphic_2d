@@ -128,7 +128,6 @@ private:
 
     std::atomic<bool> isEnable_ = true;
     GCLevel nodeGCLevel_ = GCLevel::IDLE;
-    GCLevel drawableGCLevel_ = GCLevel::IDLE;
     gcTask mainTask_ = nullptr;
     gcTask renderTask_ = nullptr;
 

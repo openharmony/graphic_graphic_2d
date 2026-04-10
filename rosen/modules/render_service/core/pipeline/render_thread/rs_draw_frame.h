@@ -45,6 +45,7 @@ public:
     void PostDirectCompositionJankStats(const JankDurationParams& rsParams, bool optimizeLoad);
 
     void ClearDrawableResource();
+    void ClearDrawableMemory(bool highPriority);
 
 private:
     void RenderFrame();
