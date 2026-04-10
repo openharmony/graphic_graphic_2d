@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,24 +13,24 @@
  * limitations under the License.
  */
 
-#ifndef RS_ISCREEN_MANAGER_AGENT_LISTENER_H
-#define RS_ISCREEN_MANAGER_AGENT_LISTENER_H
+#ifndef ROSEN_RENDER_SERVICE_BASE_IACTIVE_SCREEN_ID_CHANGED_CALLBACK_H
+#define ROSEN_RENDER_SERVICE_BASE_IACTIVE_SCREEN_ID_CHANGED_CALLBACK_H
 
-#include <iremote_object.h>
-#include <refbase.h>
-
-#include "screen_manager/screen_types.h"
+#include <iremote_broker.h>
+#include <screen_manager/screen_types.h>
 
 namespace OHOS {
 namespace Rosen {
-class RSIScreenManagerAgentListener : public RefBase {
+class RSIActiveScreenIdChangedCallback : public IRemoteBroker {
 public:
-    virtual ~RSIScreenManagerAgentListener() = default;
-    virtual void OnScreenConnected(ScreenId id, ScreenChangeReason reason, sptr<IRemoteObject> remoteConn) = 0;
-    virtual void OnScreenDisconnected(ScreenId id, ScreenChangeReason reason) = 0;
+    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.ActiveScreenIdChangedCallback");
+ 
+    RSIActiveScreenIdChangedCallback() = default;
+    virtual ~RSIActiveScreenIdChangedCallback() noexcept = default;
+
     virtual void OnActiveScreenIdChanged(ScreenId activeScreenId) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RS_ISCREEN_MANAGER_AGENT_LISTENER_H
+#endif // ROSEN_RENDER_SERVICE_BASE_IACTIVE_SCREEN_ID_CHANGED_CALLBACK_H

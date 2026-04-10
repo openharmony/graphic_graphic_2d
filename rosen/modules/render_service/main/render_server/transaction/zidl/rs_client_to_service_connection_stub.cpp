@@ -78,6 +78,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_CHANGE_CALLBACK),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_SWITCHING_NOTIFY_CALLBACK),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_ACTIVE_SCREEN_ID_CHANGED_CALLBACK),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_MODE),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_REFRESH_RATE),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_REFRESH_RATE_MODE),
@@ -762,6 +763,28 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 RS_LOGE("RSClientToServiceConnectionStub::SET_SCREEN_SWITCHING_NOTIFY_CALLBACK Write status failed!");
                 ret = ERR_INVALID_REPLY;
             }
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_ACTIVE_SCREEN_ID_CHANGED_CALLBACK): {
+            sptr<RSIActiveScreenIdChangedCallback> callback = nullptr;
+            sptr<IRemoteObject> remoteObject = nullptr;
+            bool readRemoteObject = data.ReadBool();
+            if (readRemoteObject) {
+                remoteObject = data.ReadRemoteObject();
+            }
+            if (remoteObject) {
+                callback = iface_cast<RSIActiveScreenIdChangedCallback>(remoteObject);
+            } else {
+                RS_LOGE(
+                    "RSClientToServiceConnectionStub::SET_ACTIVE_SCREEN_ID_CHANGED_CALLBACK ReadRemoteObject failed!");
+                ret = ERR_INVALID_DATA;
+            }
+            if (!callback) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_ACTIVE_SCREEN_ID_CHANGED_CALLBACK cast remoteObject to "
+                        "RSIActiveScreenIdChangedCallback failed!");
+                ret = ERR_INVALID_DATA;
+            }
+            SetActiveScreenIdChangedCallback(callback);
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_MODE): {

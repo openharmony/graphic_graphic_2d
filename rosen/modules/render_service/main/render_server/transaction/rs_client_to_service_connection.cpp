@@ -609,6 +609,15 @@ int32_t RSClientToServiceConnection::SetScreenSwitchingNotifyCallback(sptr<RSISc
     return status;
 }
 
+int32_t RSClientToServiceConnection::SetActiveScreenIdChangedCallback(sptr<RSIActiveScreenIdChangedCallback> callback)
+{
+    if (!screenManagerAgent_) {
+        RS_LOGE("%{public}s: screenManagerAgent_ is nullptr", __func__);
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    return screenManagerAgent_->SetActiveScreenIdChangedCallback(callback);
+}
+
 int32_t RSClientToServiceConnection::SetBrightnessInfoChangeCallback(sptr<RSIBrightnessInfoChangeCallback> callback)
 {
     if (renderProcessManagerAgent_ == nullptr) {

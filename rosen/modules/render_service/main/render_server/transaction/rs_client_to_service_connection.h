@@ -21,6 +21,7 @@
 #include <unordered_map>
 
 #include "hgm_config_callback_manager.h"
+#include "ipc_callbacks/active_screen_id_changed_callback.h"
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/buffer_clear_callback.h"
 #include "ipc_callbacks/screen_supported_hdr_formats_callback.h"
@@ -133,6 +134,8 @@ private:
     int32_t SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback) override;
 
     int32_t SetScreenSwitchingNotifyCallback(sptr<RSIScreenSwitchingNotifyCallback> callback) override;
+
+    int32_t SetActiveScreenIdChangedCallback(sptr<RSIActiveScreenIdChangedCallback> callback) override;
 
     int32_t SetBrightnessInfoChangeCallback(sptr<RSIBrightnessInfoChangeCallback> callback) override;
 

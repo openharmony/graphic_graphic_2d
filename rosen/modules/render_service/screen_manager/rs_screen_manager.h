@@ -27,6 +27,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include <ipc_callbacks/active_screen_id_changed_callback.h>
 #include <ipc_callbacks/screen_change_callback.h>
 #include <ipc_callbacks/screen_supported_hdr_formats_callback.h>
 #include <ipc_callbacks/screen_switching_notify_callback.h>
@@ -62,12 +63,13 @@ public:
     bool Init(const std::shared_ptr<AppExecFwk::EventHandler>& mainHandler) noexcept;
 
     ScreenId GetDefaultScreenId() const;
-    ScreenId GetActiveScreenId();
+    ScreenId GetActiveScreenId() const;
     std::vector<ScreenId> GetAllScreenIds() const;
 
     int32_t GetScreenType(ScreenId id, RSScreenType& type) const;
 
     int32_t SetScreenSwitchingNotifyCallback(const sptr<RSIScreenSwitchingNotifyCallback>& callback);
+    void OnActiveScreenIdChangedCallbackChanged(sptr<RSIScreenManagerAgentListener> agentListener) const;
     void DisplayDump(std::string& dumpString);
     int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval);
 
@@ -176,8 +178,7 @@ public:
     void SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY);
     void SetScreenFrameGravity(ScreenId id, int32_t gravity);
 
-    void ExecuteCallback(const sptr<RSIScreenChangeCallback>& callback) const;
-
+    void OnScreenChangeCallbackChanged(sptr<RSIScreenManagerAgentListener> agentListener) const;
     bool UpdateVsyncEnabledScreenId(ScreenId screenId);
     uint64_t JudgeVSyncEnabledScreenWhilePowerStatusChanged(
         ScreenId screenId, ScreenPowerStatus status, uint64_t enabledScreenId);
