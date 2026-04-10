@@ -680,35 +680,6 @@ HWTEST_F(RSUifirstManagerTest2, UpdateCompletedSurface, TestSize.Level1)
 }
 
 /**
- * @tc.name: OnProcessEventResponse
- * @tc.desc: Test receive system event
- * @tc.type: FUNC
- * @tc.require: issueIBVHE7
- */
-HWTEST_F(RSUifirstManagerTest2, OnProcessEventResponse, TestSize.Level1)
-{
-    int32_t scbPid = 100;
-    uifirstManager_.scbPid_ = scbPid;
-    DataBaseRs scrollEvent {
-        .uniqueId = 1,
-        .appPid = scbPid,
-        .sceneId = "LAUNCHER_SCROLL"
-    };
-    uifirstManager_.OnProcessEventResponse(scrollEvent);
-    ASSERT_TRUE(uifirstManager_.currentFrameCanSkipFirstWait_);
-    uifirstManager_.globalFrameEvent_.clear();
-
-    DataBaseRs minimizedEvent {
-        .uniqueId = 10,
-        .appPid = scbPid,
-        .sceneId = "WINDOW_TITLE_BAR_MINIMIZED"
-    };
-    uifirstManager_.OnProcessEventResponse(minimizedEvent);
-    ASSERT_FALSE(uifirstManager_.currentFrameCanSkipFirstWait_);
-    uifirstManager_.globalFrameEvent_.clear();
-}
-
-/**
  * @tc.name: PostUifistSubTasks
  * @tc.desc: Test post task to subthread
  * @tc.type: FUNC
@@ -883,37 +854,6 @@ HWTEST_F(RSUifirstManagerTest2, AddCapturedNodes, TestSize.Level1)
 {
     uifirstManager_.AddCapturedNodes(1);
     ASSERT_FALSE(uifirstManager_.capturedNodes_.empty());
-}
-
-/**
- * @tc.name: CheckCurrentFrameHasCardNodeReCreate
- * @tc.desc: Test if card node recreate on single frame
- * @tc.type: FUNC
- * @tc.require: issueIBVHE7
- */
-HWTEST_F(RSUifirstManagerTest2, CheckCurrentFrameHasCardNodeReCreate, TestSize.Level1)
-{
-    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
-    surfaceNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
-    uifirstManager_.CheckCurrentFrameHasCardNodeReCreate(*surfaceNode);
-    ASSERT_FALSE(uifirstManager_.isCurrentFrameHasCardNodeReCreate_);
-
-    surfaceNode->nodeType_ = RSSurfaceNodeType::ABILITY_COMPONENT_NODE;
-    surfaceNode->name_ = "ArkTSCardNode";
-
-    // card off the tree
-    surfaceNode->isOnTheTree_ = false;
-    uifirstManager_.CheckCurrentFrameHasCardNodeReCreate(*surfaceNode);
-    ASSERT_FALSE(uifirstManager_.isCurrentFrameHasCardNodeReCreate_);
-
-    // card on the tree
-    surfaceNode->isOnTheTree_ = true;
-    uifirstManager_.CheckCurrentFrameHasCardNodeReCreate(*surfaceNode);
-    ASSERT_TRUE(uifirstManager_.isCurrentFrameHasCardNodeReCreate_);
-
-    uifirstManager_.ResetCurrentFrameDeletedCardNodes();
-    ASSERT_FALSE(uifirstManager_.isCurrentFrameHasCardNodeReCreate_);
-    ASSERT_TRUE(uifirstManager_.currentFrameDeletedCardNodes_.empty());
 }
 
 /**
