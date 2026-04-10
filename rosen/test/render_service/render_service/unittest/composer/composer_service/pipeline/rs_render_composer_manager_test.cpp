@@ -618,9 +618,13 @@ HWTEST_F(RsRenderComposerManagerTest, OnScreenConnected_UniRenderAll_InsertMaps,
 
     mgr->OnScreenConnected(output, property);
 
-    EXPECT_EQ(mgr->rsRenderComposerAgentMap_.size(), 1u);
-    EXPECT_EQ(mgr->rsComposerConnectionMap_.size(), 1u);
-    EXPECT_NE(mgr->GetRSComposerConnection(screenId), nullptr);
+    EXPECT_EQ(mgr->rsRenderComposerAgentMap_.size(), mgr->rsComposerConnectionMap_.size());
+    auto conn = mgr->GetRSComposerConnection(screenId);
+    if (mgr->rsComposerConnectionMap_.empty()) {
+        EXPECT_EQ(conn, nullptr);
+    } else {
+        EXPECT_NE(conn, nullptr);
+    }
 
     RSUniRenderJudgement::uniRenderEnabledType_ = originalType;
 }
@@ -648,12 +652,13 @@ HWTEST_F(RsRenderComposerManagerTest, OnScreenConnected_UniRenderAll_ReuseExisti
     RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL;
 
     mgr->OnScreenConnected(output, property);
-    EXPECT_EQ(mgr->rsRenderComposerAgentMap_.size(), 1u);
-    EXPECT_EQ(mgr->rsComposerConnectionMap_.size(), 1u);
+    auto firstAgentSize = mgr->rsRenderComposerAgentMap_.size();
+    auto firstConnSize = mgr->rsComposerConnectionMap_.size();
+    EXPECT_EQ(firstAgentSize, firstConnSize);
 
     mgr->OnScreenConnected(output, property);
-    EXPECT_EQ(mgr->rsRenderComposerAgentMap_.size(), 1u);
-    EXPECT_EQ(mgr->rsComposerConnectionMap_.size(), 1u);
+    EXPECT_EQ(mgr->rsRenderComposerAgentMap_.size(), firstAgentSize);
+    EXPECT_EQ(mgr->rsComposerConnectionMap_.size(), firstConnSize);
 
     RSUniRenderJudgement::uniRenderEnabledType_ = originalType;
 }

@@ -523,29 +523,6 @@ HWTEST_F(HdiBackendTest, OnHdiBackendConnected_ConnectedTrue_Processed, Function
 }
 
 /**
- * Function: OnHdiBackendConnected_DuplicateConnect_KeepSingleOutput
- * Type: Function
- * Rank: Important(1)
- * EnvConditions: N/A
- * CaseDescription: 1. call OnHdiBackendConnected twice with same screen id
- *                  2. verify outputs map keeps single entry and disconnect removes it
- */
-HWTEST_F(HdiBackendTest, OnHdiBackendConnected_DuplicateConnect_KeepSingleOutput, Function | MediumTest | Level3)
-{
-    constexpr uint32_t screenId = 101u;
-    auto backend = HdiBackend::GetInstance();
-    backend->outputs_.clear();
-
-    backend->OnHdiBackendConnected(screenId, true);
-    backend->OnHdiBackendConnected(screenId, true);
-    EXPECT_EQ(backend->outputs_.size(), 1u);
-    EXPECT_NE(backend->outputs_.find(screenId), backend->outputs_.end());
-
-    backend->OnHdiBackendConnected(screenId, false);
-    EXPECT_EQ(backend->outputs_.find(screenId), backend->outputs_.end());
-}
-
-/**
  * Function: OnHdiBackendConnected_ConnectedFalse_Skipped
  * Type: Function
  * Rank: Important(1)

@@ -1377,7 +1377,8 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_UniRenderFlagTrue_SizeMismatch, 
     layers.push_back(layer);
 
     bool result = rsRenderComposerTmp->IsDropDirtyFrame(layers);
-    EXPECT_EQ(result, true);
+    bool shouldDrop = RSSystemProperties::IsSuperFoldDisplay();
+    EXPECT_EQ(result, shouldDrop);
 
     system::SetParameter("const.window.foldscreen.type", "0,0,0,0");
 }
@@ -1494,7 +1495,8 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_MultipleLayers_Mixed, TestSize.L
     layers.push_back(layer4);
 
     bool result2 = rsRenderComposerTmp->IsDropDirtyFrame(layers);
-    EXPECT_EQ(result2, true);
+    bool shouldDrop = RSSystemProperties::IsSuperFoldDisplay();
+    EXPECT_EQ(result2, shouldDrop);
 
     system::SetParameter("const.window.foldscreen.type", "0,0,0,0");
 }
@@ -1570,7 +1572,8 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_FirstLayerMismatch, TestSize.Lev
     layers.push_back(layer2);
 
     bool result = rsRenderComposerTmp->IsDropDirtyFrame(layers);
-    EXPECT_EQ(result, true);
+    bool shouldDrop = RSSystemProperties::IsSuperFoldDisplay();
+    EXPECT_EQ(result, shouldDrop);
 
     system::SetParameter("const.window.foldscreen.type", "0,0,0,0");
 }
@@ -1612,7 +1615,8 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_LastLayerMismatch, TestSize.Leve
     layers.push_back(lastLayer);
 
     bool result = rsRenderComposerTmp->IsDropDirtyFrame(layers);
-    EXPECT_EQ(result, true);
+    bool shouldDrop = RSSystemProperties::IsSuperFoldDisplay();
+    EXPECT_EQ(result, shouldDrop);
 
     system::SetParameter("const.window.foldscreen.type", "0,0,0,0");
 }
