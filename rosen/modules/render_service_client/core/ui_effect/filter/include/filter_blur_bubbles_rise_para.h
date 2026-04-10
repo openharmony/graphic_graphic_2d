@@ -15,6 +15,7 @@
 #ifndef UIEFFECT_FILTER_BLUR_BUBBLES_RISE_PARA_H
 #define UIEFFECT_FILTER_BLUR_BUBBLES_RISE_PARA_H
 
+#include <algorithm>
 #include <cstdint>
 
 #include "filter_para.h"
@@ -30,14 +31,14 @@ public:
     }
     ~BlurBubblesRisePara() override = default;
 
-    void SetBlurRadius(float blurRadius)
+    void SetBlurIntensity(float blurIntensity)
     {
-        blurRadius_ = blurRadius;
+        blurIntensity_ = std::clamp(blurIntensity, 0.0f, 1.0f);
     }
 
-    float GetBlurRadius() const
+    float GetBlurIntensity() const
     {
-        return blurRadius_;
+        return blurIntensity_;
     }
 
     void SetMixStrength(float mixStrength)
@@ -71,7 +72,7 @@ public:
     }
 
 private:
-    float blurRadius_ = 3.0f;
+    float blurIntensity_ = 0.3f;
     float mixStrength_ = 1.0f;
     float progress_ = 0.0f;
     std::shared_ptr<Media::PixelMap> maskImage_;

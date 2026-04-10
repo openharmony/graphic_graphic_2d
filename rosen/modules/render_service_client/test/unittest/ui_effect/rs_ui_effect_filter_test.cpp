@@ -146,14 +146,14 @@ HWTEST_F(RSUIEffectFilterTest, RSUIEffectHeatDistortionParaTest, TestSize.Level1
 HWTEST_F(RSUIEffectFilterTest, RSUIEffectBlurBubblesRiseParaTest, TestSize.Level1)
 {
     auto para = std::make_shared<BlurBubblesRisePara>();
-    constexpr float blurRadius = 2.8f;
+    constexpr float blurIntensity = 0.8f;
     constexpr float mixStrength = 0.7f;
     constexpr float progress = 0.35f;
-    para->SetBlurRadius(blurRadius);
+    para->SetBlurIntensity(blurIntensity);
     para->SetMixStrength(mixStrength);
     para->SetProgress(progress);
 
-    EXPECT_EQ(blurRadius, para->GetBlurRadius());
+    EXPECT_EQ(blurIntensity, para->GetBlurIntensity());
     EXPECT_EQ(mixStrength, para->GetMixStrength());
     EXPECT_EQ(progress, para->GetProgress());
 

@@ -573,14 +573,14 @@ napi_value FilterNapi::SetBlurBubblesRise(napi_env env, napi_callback_info info)
     UIEFFECT_NAPI_CHECK_RET_D(para != nullptr, nullptr,
         FILTER_LOG_E("FilterNapi SetBlurBubblesRise para is nullptr"));
 
-    // Parse blurRadius property
-    napi_value blurRadiusValue;
-    float blurRadius = 3.0f;
-    if (napi_get_named_property(env, argValue[NUM_0], "blurRadius", &blurRadiusValue) == napi_ok &&
-        UIEffectNapiUtils::GetType(env, blurRadiusValue) == napi_number) {
-        blurRadius = GetSpecialValue(env, blurRadiusValue);
+    // Parse blurIntensity property
+    napi_value blurIntensityValue;
+    float blurIntensity = 0.3f;
+    if (napi_get_named_property(env, argValue[NUM_0], "blurIntensity", &blurIntensityValue) == napi_ok &&
+        UIEffectNapiUtils::GetType(env, blurIntensityValue) == napi_number) {
+        blurIntensity = GetSpecialValue(env, blurIntensityValue);
     }
-    para->SetBlurRadius(blurRadius);
+    para->SetBlurIntensity(blurIntensity);
 
     // Parse mixStrength property
     napi_value mixStrengthValue;

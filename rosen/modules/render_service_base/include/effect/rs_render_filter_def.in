@@ -193,7 +193,7 @@ DECLARE_FILTER(HeatDistortion, HEAT_DISTORTION,
 );
 
 DECLARE_FILTER(BlurBubblesRise, BLUR_BUBBLES_RISE,
-    ADD_PROPERTY_TAG(BlurBubblesRise, BlurRadius),
+    ADD_PROPERTY_TAG(BlurBubblesRise, BlurIntensity),
     ADD_PROPERTY_TAG(BlurBubblesRise, MixStrength),
     ADD_PROPERTY_TAG(BlurBubblesRise, Progress),
     ADD_PROPERTY_TAG(BlurBubblesRise, MaskImage)

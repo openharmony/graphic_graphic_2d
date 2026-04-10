@@ -62,16 +62,16 @@ HWTEST_F(RSRenderBlurBubblesRiseFilterTest, BlurBubblesRiseSetterGetter001, Test
     auto filter = std::make_shared<RSNGRenderBlurBubblesRiseFilter>();
     ASSERT_NE(filter, nullptr);
 
-    constexpr float blurRadius = 5.0f;
+    constexpr float blurIntensity = 0.5f;
     constexpr float mixStrength = 0.6f;
     constexpr float progress = 0.62f;
 
-    filter->Setter<BlurBubblesRiseBlurRadiusRenderTag>(blurRadius);
+    filter->Setter<BlurBubblesRiseBlurIntensityRenderTag>(blurIntensity);
     filter->Setter<BlurBubblesRiseMixStrengthRenderTag>(mixStrength);
     filter->Setter<BlurBubblesRiseProgressRenderTag>(progress);
     filter->Setter<BlurBubblesRiseMaskImageRenderTag>(nullptr);
 
-    EXPECT_FLOAT_EQ(filter->Getter<BlurBubblesRiseBlurRadiusRenderTag>()->Get(), blurRadius);
+    EXPECT_FLOAT_EQ(filter->Getter<BlurBubblesRiseBlurIntensityRenderTag>()->Get(), blurIntensity);
     EXPECT_FLOAT_EQ(filter->Getter<BlurBubblesRiseMixStrengthRenderTag>()->Get(), mixStrength);
     EXPECT_FLOAT_EQ(filter->Getter<BlurBubblesRiseProgressRenderTag>()->Get(), progress);
     EXPECT_EQ(filter->Getter<BlurBubblesRiseMaskImageRenderTag>()->Get(), nullptr);
@@ -87,7 +87,7 @@ HWTEST_F(RSRenderBlurBubblesRiseFilterTest, BlurBubblesRiseGenerateGEVisualEffec
     auto filter = std::make_shared<RSNGRenderBlurBubblesRiseFilter>();
     ASSERT_NE(filter, nullptr);
 
-    filter->Setter<BlurBubblesRiseBlurRadiusRenderTag>(3.5f);
+    filter->Setter<BlurBubblesRiseBlurIntensityRenderTag>(0.35f);
     filter->Setter<BlurBubblesRiseMixStrengthRenderTag>(0.8f);
     filter->Setter<BlurBubblesRiseProgressRenderTag>(0.5f);
     filter->Setter<BlurBubblesRiseMaskImageRenderTag>(nullptr);
