@@ -52,7 +52,7 @@ void DoDestroy(FuzzedDataProvider& fdp)
 
 void DoStart(FuzzedDataProvider& fdp)
 {
-     bool useNullSoloist = fdp.ConsumeBool();
+    bool useNullSoloist = fdp.ConsumeBool();
     OH_DisplaySoloist* soloist = useNullSoloist ? nullptr : g_displaySoloist;
     bool useNullCallback = fdp.ConsumeBool();
     OH_DisplaySoloist_FrameCallback callback = nullptr;
