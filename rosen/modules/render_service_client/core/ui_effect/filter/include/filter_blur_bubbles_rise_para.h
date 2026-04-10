@@ -15,7 +15,6 @@
 #ifndef UIEFFECT_FILTER_BLUR_BUBBLES_RISE_PARA_H
 #define UIEFFECT_FILTER_BLUR_BUBBLES_RISE_PARA_H
 
-#include <algorithm>
 #include <cstdint>
 
 #include "filter_para.h"
@@ -33,7 +32,7 @@ public:
 
     void SetBlurIntensity(float blurIntensity)
     {
-        blurIntensity_ = std::clamp(blurIntensity, 0.0f, 1.0f);
+        blurIntensity_ = blurIntensity;
     }
 
     float GetBlurIntensity() const
