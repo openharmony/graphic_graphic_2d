@@ -68,6 +68,109 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(
     return Create(surfaceNodeConfig, RSSurfaceNodeType::DEFAULT, isWindow);
 }
 
+RSSurfaceNode::SharedPtr RSSurfaceNode::CreateSurfaceNode(const RSSurfaceNodeConfig &surfaceNodeConfig, bool isWindow)
+{
+    SharedPtr node(new RSSurfaceNode(surfaceNodeConfig, isWindow));
+    return node;
+}
+ 
+bool RSSurfaceNode::sendDataToRender(const RSSurfaceNodeConfig& surfaceNodeConfig,
+    RSSurfaceNodeType type, bool isWindow, bool unobscured)
+{
+    auto rsUIContext = GetRSUIContext();
+    if (rsUIContext == nullptr) {
+        ROSEN_LOGE("RSSurfaceNode::sendDataToRender rsUIContext is nullptr");
+        return false;
+    }
+    rsUIContext->GetMutableNodeMap().RegisterNode(shared_from_this());
+    SetSkipCheckInMultiInstance(surfaceNodeConfig.isSkipCheckInMultiInstance);
+ 
+    // create node in RS
+    RSSurfaceRenderNodeConfig config = {
+        .id = GetId(),
+        .name = name_,
+        .additionalData = surfaceNodeConfig.additionalData,
+        .isTextureExportNode = surfaceNodeConfig.isTextureExportNode,
+        .isSync = surfaceNodeConfig.isSync,
+        .surfaceWindowType = surfaceNodeConfig.surfaceWindowType,
+    };
+    if (!isWindow) {
+        config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    } else {
+        config.nodeType = type;
+    }
+    surfaceNodeType_ = config.nodeType;
+    RS_TRACE_NAME_FMT("RSSurfaceNode::sendDataToRender name: %s type: %hhu, id: %lu, token:%lu", name_.c_str(),
+        config.nodeType, GetId(), rsUIContext ? rsUIContext->GetToken() : 0);
+    RS_LOGD("RSSurfaceNode::sendDataToRender name: %{public}s type: %{public}hhu, id: %{public}" PRIu64, name_.c_str(),
+        config.nodeType, GetId());
+    if (type == RSSurfaceNodeType::LEASH_WINDOW_NODE && IsUniRenderEnabled()) {
+        std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeCreateWithConfig>(
+            config.id, config.name, static_cast<uint8_t>(config.nodeType), config.surfaceWindowType);
+        AddCommand(command, isWindow);
+    } else {
+#ifndef SCREENLESS_DEVICE
+        if (!CreateNodeAndSurface(config, surfaceNodeConfig.surfaceId, unobscured)) {
+            ROSEN_LOGE("RSSurfaceNode::sendDataToRender, create node and surface failed");
+            return false;
+        }
+#endif
+    }
+ 
+    SetClipToFrame(true);
+    // create node in RT (only when in divided render and isRenderServiceNode_ == false)
+    // create node in RT if is TextureExport node
+    if (!IsRenderServiceNode()) {
+        std::unique_ptr<RSCommand> command =
+            std::make_unique<RSSurfaceNodeCreate>(GetId(), surfaceNodeConfig.isTextureExportNode);
+        if (surfaceNodeConfig.isTextureExportNode) {
+            AddCommand(command, false);
+            SetSurfaceIdToRenderNode();
+        } else {
+            AddCommand(command, isWindow);
+        }
+        command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(
+            GetId(), rsUIContext->GetConnectToRender());
+        AddCommand(command, isWindow);
+ 
+        RSRTRefreshCallback::Instance().SetRefresh([] { RSRenderThread::Instance().RequestNextVSync(); });
+        command = std::make_unique<RSSurfaceNodeSetCallbackForRenderThreadRefresh>(GetId(), true);
+        AddCommand(command, isWindow);
+        SetFrameGravity(Gravity::RESIZE);
+        // codes for arkui-x
+#if defined(USE_SURFACE_TEXTURE) && defined(ROSEN_ANDROID) && !defined(SCREENLESS_DEVICE)
+        if (type == RSSurfaceNodeType::SURFACE_TEXTURE_NODE) {
+            RSSurfaceExtConfig config = {
+                .type = RSSurfaceExtType::SURFACE_TEXTURE,
+                .additionalData = nullptr,
+            };
+            CreateSurfaceExt(config);
+        }
+#endif
+        // codes for arkui-x
+#if defined(USE_SURFACE_TEXTURE) && defined(ROSEN_IOS) && !defined(SCREENLESS_DEVICE)
+        if ((type == RSSurfaceNodeType::SURFACE_TEXTURE_NODE) &&
+            (surfaceNodeConfig.SurfaceNodeName == "PlatformViewSurface")) {
+            RSSurfaceExtConfig config = {
+                .type = RSSurfaceExtType::SURFACE_PLATFORM_TEXTURE,
+                .additionalData = nullptr,
+            };
+            CreateSurfaceExt(config);
+        }
+#endif
+    }
+    if (GetName().find("battery_panel") != std::string::npos ||
+        GetName().find("sound_panel") != std::string::npos ||
+        GetName().find("RosenWeb") != std::string::npos) {
+        SetFrameGravity(Gravity::TOP_LEFT);
+    } else if (!isWindow) {
+        SetFrameGravity(Gravity::RESIZE);
+    }
+    ROSEN_LOGI("RsDebug RSSurfaceNode::sendDataToRender id:%{public}" PRIu64, GetId());
+    SetUIContextToken();
+    return true;
+}
+
 RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfaceNodeConfig,
     RSSurfaceNodeType type, bool isWindow, bool unobscured, std::shared_ptr<RSUIContext> rsUIContext)
 {
@@ -161,7 +264,7 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
     } else if (!isWindow) {
         node->SetFrameGravity(Gravity::RESIZE);
     }
-    ROSEN_LOGD("RsDebug RSSurfaceNode::Create id:%{public}" PRIu64, node->GetId());
+    ROSEN_LOGI("RsDebug RSSurfaceNode::Create id:%{public}" PRIu64, node->GetId());
     node->SetUIContextToken();
     return node;
 }
