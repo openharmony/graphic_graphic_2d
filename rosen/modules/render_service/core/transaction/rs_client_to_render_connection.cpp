@@ -351,15 +351,6 @@ ErrCode RSClientToRenderConnection::SetHidePrivacyContent(NodeId id, bool needHi
     return renderPipelineAgent_->SetHidePrivacyContent(id, needHidePrivacyContent, resCode);
 }
 
-bool RSClientToRenderConnection::GetHighContrastTextState()
-{
-    if (renderPipelineAgent_ == nullptr) {
-        return false;
-    }
-    return renderPipelineAgent_->GetHighContrastTextState();
-}
-
-
 ErrCode RSClientToRenderConnection::SetFocusAppInfo(const FocusAppInfo& info, int32_t& repCode)
 {
     if (renderPipelineAgent_ == nullptr) {

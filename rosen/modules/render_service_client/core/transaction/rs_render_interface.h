@@ -289,11 +289,6 @@ public:
     bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation = false);
     
     /**
-     * @brief Get high contrast text state.
-     * @return Return true if high contrast text enabled, otherwise false.
-     */
-    bool GetHighContrastTextState();
-    /**
      * @brief Freeze or unfreeze screen.
      * @param node Indicates a display node to freeze or unfreeze.
      * @param isFreeze Indicates freeze or unfreeze the specified display node.

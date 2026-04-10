@@ -92,5 +92,21 @@ HWTEST_F(RSHiSysEventTest, RSHiSysEventTest003, TestSize.Level1)
     int ret = RSHiSysEvent::EventWrite(eventName, RSEventType::RS_STATISTIC, "MSG", msg, "ID", id);
     ASSERT_EQ(ret, -2);
 }
+
+/**
+ * @tc.name: UserEventWriteTest
+ * @tc.desc: Verify function UserEventWrite
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHiSysEventTest, UserEventWriteTest, TestSize.Level1)
+{
+    string eventName = "USER_EVENT_TRST"; // invalid
+    string msg = "UserEventWriteTest 3";
+    uint64_t screenId = 100;
+    int id = 1;
+    int ret = RSHiSysEvent::UserEventWrite(screenId, eventName, RSEventType::RS_STATISTIC, "MSG", msg, "ID", id);
+    ASSERT_EQ(ret, 0);
+}
 } // namespace Rosen
 } // namespace OHOS

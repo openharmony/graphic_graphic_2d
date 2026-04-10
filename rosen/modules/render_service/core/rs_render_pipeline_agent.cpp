@@ -330,14 +330,6 @@ ErrCode RSRenderPipelineAgent::SetHidePrivacyContent(NodeId id, bool needHidePri
     return ERR_OK;
 }
 
-bool RSRenderPipelineAgent::GetHighContrastTextState()
-{
-    if (rsRenderPipeline_ == nullptr) {
-        return false;
-    }
-    return RSBaseRenderEngine::IsHighContrastEnabled();
-}
-
 ErrCode RSRenderPipelineAgent::SetFocusAppInfo(const FocusAppInfo& info, int32_t& repCode)
 {
     if (rsRenderPipeline_ == nullptr) {

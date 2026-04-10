@@ -121,8 +121,6 @@ public:
 
     uint32_t SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent);
 
-    bool GetHighContrastTextState();
-
     bool TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam = {},
         const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f));

@@ -1349,12 +1349,6 @@ public:
      */
     void NotifyPageName(const std::string& packageName, const std::string& pageName, bool isEnter);
 
-    /**
-     * @brief Get high contrast text state.
-     * @return Return true if high contrast text enabled, otherwise false.
-     */
-    bool GetHighContrastTextState();
-
     bool SetBehindWindowFilterEnabled(bool enabled);
 
     bool GetBehindWindowFilterEnabled(bool& enabled);

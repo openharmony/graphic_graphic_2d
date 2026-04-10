@@ -102,11 +102,6 @@ uint32_t RSRenderPipelineClient::SetHidePrivacyContent(NodeId id, bool needHideP
     return {};
 }
 
-bool RSRenderPipelineClient::GetHighContrastTextState()
-{
-    return false;
-}
-
 uint32_t RSRenderPipelineClient::SetSurfaceWatermark(pid_t pid, const std::string &name,
     const std::shared_ptr<Media::PixelMap> &watermark,
     const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType)

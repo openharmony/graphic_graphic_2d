@@ -651,7 +651,10 @@ ohos_unittest("RSJankReportThreadTest") {
 ohos_unittest("RSLogTest") {
   module_out_path = module_output_path
 
-  sources = [ "rs_log_test.cpp" ]
+  sources = [
+    "rs_log_test.cpp",
+    "rs_trace_test.cpp"
+  ]
 
   cflags = [
     "-Dprivate=public",
