@@ -2966,14 +2966,14 @@ void RSNode::SetSDFShape(const std::shared_ptr<RSNGShapeBase>& shape)
     if (!shape) {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::BOUNDS);
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::CLIP_TO_BOUNDS);
         if (modifier == nullptr || !modifier->HasProperty(ModifierNG::RSPropertyType::SDF_SHAPE)) {
             return;
         }
         modifier->DetachProperty(ModifierNG::RSPropertyType::SDF_SHAPE);
         return;
     }
-    SetPropertyNG<ModifierNG::RSBoundsModifier, &ModifierNG::RSBoundsModifier::SetSDFShape>(shape);
+    SetPropertyNG<ModifierNG::RSBoundsClipModifier, &ModifierNG::RSBoundsClipModifier::SetSDFShape>(shape);
 }
 
 void RSNode::SetUseShadowBatching(bool useShadowBatching)

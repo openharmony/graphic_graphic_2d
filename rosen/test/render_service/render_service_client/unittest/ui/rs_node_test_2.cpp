@@ -890,7 +890,7 @@ HWTEST_F(RSNodeTest2, GetLocalGeometry, TestSize.Level1)
  */
 HWTEST_F(RSNodeTest2, SetSDFUnionOPShape, TestSize.Level1)
 {
-    auto modifierType = ModifierNG::RSModifierType::BOUNDS;
+    auto modifierType = ModifierNG::RSModifierType::CLIP_TO_BOUNDS;
     auto rsNode = RSCanvasNode::Create();
     rsNode->SetSDFShape(nullptr);
     EXPECT_EQ(rsNode->GetModifierCreatedBySetter(modifierType), nullptr);
@@ -926,7 +926,7 @@ HWTEST_F(RSNodeTest2, SetSDFUnionOPShape, TestSize.Level1)
  */
 HWTEST_F(RSNodeTest2, SetSDFSmoothUnionOPShape, TestSize.Level1)
 {
-    auto modifierType = ModifierNG::RSModifierType::BOUNDS;
+    auto modifierType = ModifierNG::RSModifierType::CLIP_TO_BOUNDS;
     auto rsNode = RSCanvasNode::Create();
     rsNode->SetSDFShape(nullptr);
     EXPECT_EQ(rsNode->GetModifierCreatedBySetter(modifierType), nullptr);
@@ -964,7 +964,7 @@ HWTEST_F(RSNodeTest2, SetSDFSmoothUnionOPShape, TestSize.Level1)
  */
 HWTEST_F(RSNodeTest2, SetSDFRRectShape, TestSize.Level1)
 {
-    auto modifierType = ModifierNG::RSModifierType::BOUNDS;
+    auto modifierType = ModifierNG::RSModifierType::CLIP_TO_BOUNDS;
     auto rsNode = RSCanvasNode::Create();
     rsNode->SetSDFShape(nullptr);
     EXPECT_EQ(rsNode->GetModifierCreatedBySetter(modifierType), nullptr);
@@ -973,21 +973,21 @@ HWTEST_F(RSNodeTest2, SetSDFRRectShape, TestSize.Level1)
     auto shape0 = RSNGShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
     auto shape = std::static_pointer_cast<RSNGSDFRRectShape>(shape0);
 
-    auto boundsModifier = std::make_shared<ModifierNG::RSBoundsModifier>();
-    rsNode->AddModifier(boundsModifier);
+    auto clipModifier = std::make_shared<ModifierNG::RSBoundsClipModifier>();
+    rsNode->AddModifier(clipModifier);
 
-    EXPECT_EQ(boundsModifier->GetSDFShape(), nullptr);
-    EXPECT_EQ(boundsModifier->GetUnionSpacing(), 0.0f);
-    EXPECT_EQ(boundsModifier->GetUseUnion(), false);
+    EXPECT_EQ(clipModifier->GetSDFShape(), nullptr);
+    EXPECT_EQ(clipModifier->GetCornerRadius(), Vector4f());
+    EXPECT_EQ(clipModifier->GetCornerApplyType(), RSCornerApplyType::INDIVIDUAL);
 
-    // test the path of using modifier to set these properties
-    boundsModifier->SetSDFShape(shape);
-    boundsModifier->SetUnionSpacing(0.5f);
-    boundsModifier->SetUseUnion(true);
+    // test of path of using modifier to set these properties
+    clipModifier->SetSDFShape(shape);
+    clipModifier->SetCornerRadius(Vector4f(10.0f, 10.0f, 10.0f, 10.0f));
+    clipModifier->SetCornerApplyType(RSCornerApplyType::UNIFIED);
 
-    EXPECT_NE(boundsModifier->GetSDFShape(), nullptr);
-    EXPECT_EQ(boundsModifier->GetUnionSpacing(), 0.5f);
-    EXPECT_EQ(boundsModifier->GetUseUnion(), true);
+    EXPECT_NE(clipModifier->GetSDFShape(), nullptr);
+    EXPECT_EQ(clipModifier->GetCornerRadius(), Vector4f(10.0f, 10.0f, 10.0f, 10.0f));
+    EXPECT_EQ(clipModifier->GetCornerApplyType(), RSCornerApplyType::UNIFIED);
 }
 
 /**
