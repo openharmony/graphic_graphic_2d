@@ -16,11 +16,12 @@
 #ifndef FRAMEWORKS_BOOTANIMATION_INCLUDE_BOOT_ANIMATION_STRATEGY_H
 #define FRAMEWORKS_BOOTANIMATION_INCLUDE_BOOT_ANIMATION_STRATEGY_H
 
+#include <memory>
 #include "boot_animation_config.h"
 #include "boot_compile_progress.h"
 
 namespace OHOS {
-class BootAnimationStrategy {
+class BootAnimationStrategy : public std::enable_shared_from_this<BootAnimationStrategy> {
 public:
     BootAnimationStrategy() = default;
 
@@ -34,10 +35,17 @@ public:
 
     bool IsOtaUpdate() const;
 
+    void GetConnectToRenderMap(int count);
+    void SubscribeActiveScreenIdChanged();
+
+    Rosen::ScreenId GetActiveScreenId();
 public:
     std::shared_ptr<BootCompileProgress> bootCompileProgress_;
     std::string configPath_;
-
+    std::mutex connectToRenderMapMtx_;
+    std::map<Rosen::ScreenId, sptr<IRemoteObject>> connectToRenderMap_;
+    std::mutex activeScreenIdMtx_;
+    Rosen::ScreenId activeScreenId_ = Rosen::INVALID_SCREEN_ID;
 private:
     bool isAnimationEnd_ = false;
 

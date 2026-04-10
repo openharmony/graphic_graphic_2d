@@ -22,9 +22,14 @@ using namespace OHOS;
 void BootIndependentDisplayStrategy::Display(int32_t duration, std::vector<BootAnimationConfig>& configs)
 {
     LOGI("BootIndependentDisplayStrategy START");
+    GetConnectToRenderMap(configs.size());
     Rosen::RSInterfaces& interface = Rosen::RSInterfaces::GetInstance();
     BootAnimationConfig screenConfig;
     for (const auto& config : configs) {
+        if (connectToRenderMap_.find(config.screenId) == connectToRenderMap_.end()) {
+            LOGE("screen is not prepare:" BPUBU64 "", config.screenId);
+            continue;
+        }
         interface.SetScreenPowerStatus(config.screenId, Rosen::ScreenPowerStatus::POWER_STATUS_ON);
         Rosen::RSScreenModeInfo modeInfo = interface.GetScreenActiveMode(config.screenId);
         int screenWidth = modeInfo.GetScreenWidth();
@@ -36,7 +41,7 @@ void BootIndependentDisplayStrategy::Display(int32_t duration, std::vector<BootA
         } else {
             screenConfig = config;
         }
-        op->Init(config, screenWidth, screenHeight, duration);
+        op->Init(config, screenWidth, screenHeight, duration, connectToRenderMap_.find(config.screenId)->second);
         operators_.emplace_back(op);
     }
 
@@ -46,9 +51,9 @@ void BootIndependentDisplayStrategy::Display(int32_t duration, std::vector<BootA
         }
     }
 
-    if (IsOtaUpdate()) {
+    if (IsOtaUpdate() && connectToRenderMap_.find(screenConfig.screenId) != connectToRenderMap_.end()) {
         bootCompileProgress_ = std::make_shared<BootCompileProgress>();
-        bootCompileProgress_->Init(configPath_, screenConfig);
+        bootCompileProgress_->Init(configPath_, screenConfig, connectToRenderMap_.find(screenConfig.screenId)->second);
     }
 
     while (!CheckExitAnimation()) {
