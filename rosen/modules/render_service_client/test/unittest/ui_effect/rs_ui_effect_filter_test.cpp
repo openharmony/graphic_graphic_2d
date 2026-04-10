@@ -119,7 +119,7 @@ HWTEST_F(RSUIEffectFilterTest, RSUIEffectContentLightParaTest, TestSize.Level1)
 HWTEST_F(RSUIEffectFilterTest, RSUIEffectHeatDistortionParaTest, TestSize.Level1)
 {
     auto para = std::make_shared<HeatDistortionPara>();
-    constexpr float intensity = 1.2f;
+    constexpr float intensity = 1.0f;
     constexpr float noiseScale = 2.0f;
     constexpr float riseWeight = 0.4f;
     constexpr float progress = 0.25f;
