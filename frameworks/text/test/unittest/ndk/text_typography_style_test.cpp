@@ -165,11 +165,11 @@ void NdkTypographyStyleTest::TearDown()
 }
 
 /*
- * @tc.name: ParagraphTestGlyphPositionAtCoordinateWithCluster001
+ * @tc.name: GlyphPositionAtCoordinateWithClusterDashLine
  * @tc.desc: test for GlyphPositionAtCoordinate with dash
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, ParagraphTestGlyphPositionAtCoordinateWithCluster001, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, GlyphPositionAtCoordinateWithClusterDashLine, TestSize.Level0)
 {
     std::string text3 = "————————";
 
@@ -207,11 +207,11 @@ HWTEST_F(NdkTypographyStyleTest, ParagraphTestGlyphPositionAtCoordinateWithClust
 }
 
 /*
- * @tc.name: OH_Drawing_SetTypographyStyleAttributeBool001
+ * @tc.name: SetTypographyStyleAttributeBool
  * @tc.desc: test for set typography style descriptor attribute bool and error code.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, OH_Drawing_SetTypographyStyleAttributeBool001, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, SetTypographyStyleAttributeBool, TestSize.Level0)
 {
     typoStyle_ = OH_Drawing_CreateTypographyStyle();
     ASSERT_NE(typoStyle_, nullptr);
@@ -227,11 +227,11 @@ HWTEST_F(NdkTypographyStyleTest, OH_Drawing_SetTypographyStyleAttributeBool001, 
 }
 
 /*
- * @tc.name: OH_Drawing_GetTypographyStyleAttributeBool001
+ * @tc.name: GetTypographyStyleAttributeBool
  * @tc.desc: test for get typography style descriptor attribute bool and error code.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, OH_Drawing_GetTypographyStyleAttributeBool001, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, GetTypographyStyleAttributeBool, TestSize.Level0)
 {
     typoStyle_ = OH_Drawing_CreateTypographyStyle();
     ASSERT_NE(typoStyle_, nullptr);
@@ -256,11 +256,11 @@ HWTEST_F(NdkTypographyStyleTest, OH_Drawing_GetTypographyStyleAttributeBool001, 
 }
 
 /*
- * @tc.name: TypographyCompressPunctuation001
+ * @tc.name: CompressPunctuationMultiLineHeadMarks
  * @tc.desc: test for compress punctuation:《【『「『（〈【〖〔［｛
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographyCompressPunctuation001, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, CompressPunctuationMultiLineHeadMarks, TestSize.Level0)
 {
     // Prepare Paragraph 1 and Paragraph 2, and turn on and turn off compressPunctuation respectively.
     std::string text = "《围城【测试『你好「哈哈（可以〈很好【丰盛〖盛打〔给你［极速｛自己";
@@ -290,11 +290,11 @@ HWTEST_F(NdkTypographyStyleTest, TypographyCompressPunctuation001, TestSize.Leve
 }
 
 /*
- * @tc.name: TypographyCompressPunctuation002
- * @tc.desc: test for compress punctuation:“'
+ * @tc.name: CompressPunctuationQuotationMarks
+ * @tc.desc: test for compress punctuation:”'
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographyCompressPunctuation002, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, CompressPunctuationQuotationMarks, TestSize.Level0)
 {
     // Prepare Paragraph 1 and Paragraph 2, and turn on and turn off compressPunctuation respectively.
     std::string text = "‘好的 “标签";
@@ -321,11 +321,11 @@ HWTEST_F(NdkTypographyStyleTest, TypographyCompressPunctuation002, TestSize.Leve
 }
 
 /*
- * @tc.name: TypographyCompressPunctuation003
+ * @tc.name: CompressPunctuationHardBreak
  * @tc.desc: test for compress punctuation with hard break
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographyCompressPunctuation003, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, CompressPunctuationHardBreak, TestSize.Level0)
 {
     // Prepare Paragraph 1 and Paragraph 2, and turn on and turn off compressPunctuation respectively.
     std::string text = "《围城\n【测试\n『你好\n「哈哈\n（可以\n〈很好\n【丰盛\n〖盛打\n〔给你\n［极速\n｛自己";
@@ -343,11 +343,11 @@ HWTEST_F(NdkTypographyStyleTest, TypographyCompressPunctuation003, TestSize.Leve
 }
 
 /*
- * @tc.name: TypographyCompressPunctuation004
- * @tc.desc: test for compress punctuation with font Family name:“'
+ * @tc.name: CompressPunctuationWithFontFamily
+ * @tc.desc: test for compress punctuation with font Family name:”'
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographyCompressPunctuation004, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, CompressPunctuationWithFontFamily, TestSize.Level0)
 {
     // Prepare Paragraph 1 and Paragraph 2, and turn on and turn off compressPunctuation respectively.
     std::string text = "‘好的 “标签";
@@ -374,12 +374,12 @@ HWTEST_F(NdkTypographyStyleTest, TypographyCompressPunctuation004, TestSize.Leve
 }
 
 /*
- * @tc.name: TypographyCompressPunctuation005
+ * @tc.name: CompressPunctuationWithFontFeatureSs08FullCompress
  * @tc.desc: test for compress punctuation when setting font feature ss08.
  * ss08 can compress all head punctuation marks.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographyCompressPunctuation005, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, CompressPunctuationWithFontFeatureSs08FullCompress, TestSize.Level0)
 {
     // Prepare Paragraph 1 and Paragraph 2, and turn on and turn off compressPunctuation respectively.
     std::string text = "《围城\n【测试\n『你好\n「哈哈\n（可以\n〈很好\n【丰盛\n〖盛打\n〔给你\n［极速\n｛自己";
@@ -401,12 +401,12 @@ HWTEST_F(NdkTypographyStyleTest, TypographyCompressPunctuation005, TestSize.Leve
 }
 
 /*
- * @tc.name: TypographyCompressPunctuation006
+ * @tc.name: CompressPunctuationWithFontFeatureSs08PartialCompress
  * @tc.desc: test for compress punctuation when setting font feature ss08.
  * ss08 cannot compress all head punctuation marks.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographyCompressPunctuation006, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, CompressPunctuationWithFontFeatureSs08PartialCompress, TestSize.Level0)
 {
     // Prepare Paragraph 1 and Paragraph 2, and turn on and turn off compressPunctuation respectively.
     std::string text = "《测《试《测《试";
@@ -434,12 +434,12 @@ HWTEST_F(NdkTypographyStyleTest, TypographyCompressPunctuation006, TestSize.Leve
 }
 
 /*
- * @tc.name: TypographyCompressPunctuation007
+ * @tc.name: CompressPunctuationAllPunctuationWithSs08
  * @tc.desc: test for compress punctuation when text consists entirely of punctuation and ss08 is on.
  * ss08 cannot compress all head punctuation marks.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographyCompressPunctuation007, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, CompressPunctuationAllPunctuationWithSs08, TestSize.Level0)
 {
     // Prepare Paragraph 1 and Paragraph 2, and turn on and turn off compressPunctuation respectively.
     std::string text = "《《《《《《《《》》》》》》》》";
@@ -471,12 +471,12 @@ HWTEST_F(NdkTypographyStyleTest, TypographyCompressPunctuation007, TestSize.Leve
 }
 
 /*
- * @tc.name: TypographyCompressPunctuation008
+ * @tc.name: CompressPunctuationAllPunctuationWithoutSs08
  * @tc.desc: test for compress punctuation when text consists entirely of punctuation and ss08 is off.
  * ss08 cannot compress all head punctuation marks.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographyCompressPunctuation008, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, CompressPunctuationAllPunctuationWithoutSs08, TestSize.Level0)
 {
     // Prepare Paragraph 1 and Paragraph 2, and turn on and turn off compressPunctuation respectively.
     std::string text = "《《《《》》》》";
@@ -504,12 +504,12 @@ HWTEST_F(NdkTypographyStyleTest, TypographyCompressPunctuation008, TestSize.Leve
 }
 
 /*
- * @tc.name: TypographyCompressPunctuation009
+ * @tc.name: CompressPunctuationWithEmojiSymbol
  * @tc.desc: test for compress punctuation with symbol.
  * ss08 cannot compress all head punctuation marks.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographyCompressPunctuation009, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, CompressPunctuationWithEmojiSymbol, TestSize.Level0)
 {
     std::string text = "【😊😂】😊";
 
@@ -530,12 +530,12 @@ HWTEST_F(NdkTypographyStyleTest, TypographyCompressPunctuation009, TestSize.Leve
 }
 
 /*
- * @tc.name: TypographyCompressPunctuation010
+ * @tc.name: CompressPunctuationSingleMark
  * @tc.desc: test for compress punctuation with single punctuation.
  * ss08 cannot compress all head punctuation marks.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographyCompressPunctuation010, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, CompressPunctuationSingleMark, TestSize.Level0)
 {
     std::string text = "【";
 
@@ -553,12 +553,12 @@ HWTEST_F(NdkTypographyStyleTest, TypographyCompressPunctuation010, TestSize.Leve
 }
 
 /*
- * @tc.name: TypographyCompressPunctuation011
+ * @tc.name: CompressPunctuationCacheSinglePunctuation
  * @tc.desc: test for paragraph cache with single punctuation when open compress punctuation.
  * ss08 cannot compress all head punctuation marks.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographyCompressPunctuation011, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, CompressPunctuationCacheSinglePunctuation, TestSize.Level0)
 {
     std::string text = "【";
     PrepareWorkForTypographyStyleTest();
@@ -589,12 +589,12 @@ HWTEST_F(NdkTypographyStyleTest, TypographyCompressPunctuation011, TestSize.Leve
 }
 
 /*
- * @tc.name: TypographyCompressPunctuation012
+ * @tc.name: CompressPunctuationCacheMultiLine
  * @tc.desc: test for paragraph cache with multi line when open compress punctuation.
  * ss08 cannot compress all head punctuation marks.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographyCompressPunctuation012, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, CompressPunctuationCacheMultiLine, TestSize.Level0)
 {
     std::string text = "《围城【测试『你好「哈哈（可以〈很好【丰盛〖盛打〔给你［极速｛自己";
     constexpr double lineWidthComp1 = 124.999878;
@@ -636,11 +636,11 @@ HWTEST_F(NdkTypographyStyleTest, TypographyCompressPunctuation012, TestSize.Leve
 }
 
 /*
- * @tc.name: SetTypographyTextAutoSpaceTest001
+ * @tc.name: SetTypographyTextAutoSpaceSingleRun
  * @tc.desc: test for set auto space when paragraph with single run
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest001, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceSingleRun, TestSize.Level0)
 {
     // Prepare Paragraph 1 and Paragraph 2, and turn on autospace and turn off autospace respectively.
     std::string text = "SingRun©2002-2001";
@@ -662,11 +662,11 @@ HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest001, TestSize.Lev
 }
 
 /*
- * @tc.name: SetTypographyTextAutoSpaceTest002
+ * @tc.name: SetTypographyTextAutoSpaceSingleRunBoundaryWidth
  * @tc.desc: test for set auto space when paragraph with single run and the layout width is at the boundary value.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest002, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceSingleRunBoundaryWidth, TestSize.Level0)
 {
     // test boundary value：Use longestline without autospace as layout width when autospace enabled, line count + 1
     // Prepare Paragraph 1 and Paragraph 2, and turn on autospace and turn off autospace respectively.
@@ -699,11 +699,11 @@ HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest002, TestSize.Lev
 }
 
 /*
- * @tc.name: SetTypographyTextAutoSpaceTest003
+ * @tc.name: SetTypographyTextAutoSpaceMultiLine
  * @tc.desc: test for set auto space when paragraph with many lines
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest003, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceMultiLine, TestSize.Level0)
 {
     // Prepare Paragraph 1 and Paragraph 2, and turn on autospace and turn off autospace respectively.
     std::string text = "嫌疑者X的牺牲\n版权所有©2002-2001华为技术有限公司保留一切权利\n卸载USB设备";
@@ -731,11 +731,11 @@ HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest003, TestSize.Lev
 }
 
 /*
- * @tc.name: SetTypographyTextAutoSpaceTest004
+ * @tc.name: SetTypographyTextAutoSpaceMultiLineBoundaryWidth
  * @tc.desc: test for set auto space when paragraph is many lines and the layout width is at the boundary value.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest004, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceMultiLineBoundaryWidth, TestSize.Level0)
 {
     // test boundary value：Use longestline without autospace as layout width when autospace enabled, line count + 1
     // Prepare Paragraph 1 and Paragraph 2, and turn on autospace and turn off autospace respectively.
@@ -773,11 +773,11 @@ HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest004, TestSize.Lev
 }
 
 /*
- * @tc.name: SetTypographyTextAutoSpaceTest005
+ * @tc.name: SetTypographyTextAutoSpaceTextLineImageBounds
  * @tc.desc: test for width from OH_Drawing_TextLineGetImageBounds when set auto space
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest005, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTextLineImageBounds, TestSize.Level0)
 {
     // Prepare Paragraph 1 and Paragraph 2, and turn on autospace and turn off autospace respectively.
     std::string text = "嫌疑者X的牺牲";
@@ -808,11 +808,11 @@ HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest005, TestSize.Lev
 }
 
 /*
- * @tc.name: SetTypographyTextAutoSpaceTest006
+ * @tc.name: SetTypographyTextAutoSpaceTextLineOffsetForStringIndex
  * @tc.desc: test for width from OH_Drawing_TextLineGetOffsetForStringIndex when set auto space
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest006, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTextLineOffsetForStringIndex, TestSize.Level0)
 {
     // Prepare Paragraph 1 and Paragraph 2, and turn on autospace and turn off autospace respectively.
     std::string text = "嫌疑者X的牺牲";
@@ -843,11 +843,11 @@ HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest006, TestSize.Lev
 }
 
 /*
- * @tc.name: SetTypographyTextAutoSpaceTest007
+ * @tc.name: SetTypographyTextAutoSpaceRunTypographicBounds
  * @tc.desc: test for width from OH_Drawing_GetRunTypographicBounds when set auto space
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest007, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceRunTypographicBounds, TestSize.Level0)
 {
     // Prepare Paragraph 1 and Paragraph 2, and turn on autospace and turn off autospace respectively.
     std::string text = "嫌疑者X的牺牲";
@@ -898,11 +898,11 @@ HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest007, TestSize.Lev
 }
 
 /*
- * @tc.name: SetTypographyTextAutoSpaceTest008
+ * @tc.name: SetTypographyTextAutoSpaceRunImageBounds
  * @tc.desc: test for width from OH_Drawing_GetRunImageBounds when set auto space
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceTest008, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, SetTypographyTextAutoSpaceRunImageBounds, TestSize.Level0)
 {
     // Prepare Paragraph 1 and Paragraph 2, and turn on autospace and turn off autospace respectively.
     std::string text = "嫌疑者X的牺牲";
@@ -984,11 +984,11 @@ OH_Drawing_Typography* CreateParagraphWithCustomStyle(
 }
 
 /*
- * @tc.name: TypographStyleIncludeFontPaddingTest001
+ * @tc.name: IncludeFontPaddingEnglishHello
  * @tc.desc: Test for positionShapedTextIntoLine branch when open includeFontPadding
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest001, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, IncludeFontPaddingEnglishHello, TestSize.Level0)
 {
     const char* text = "Hello";
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
@@ -1010,11 +1010,11 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest001, TestSi
 }
 
 /*
- * @tc.name: TypographStyleIncludeFontPaddingTest002
+ * @tc.name: IncludeFontPaddingEnglishMultiLine
  * @tc.desc: Test for simple text breakShapedTextIntoLines branch when open includeFontPadding
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest002, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, IncludeFontPaddingEnglishMultiLine, TestSize.Level0)
 {
     const char* text = "Hello World";
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
@@ -1041,11 +1041,11 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest002, TestSi
 }
 
 /*
- * @tc.name: TypographStyleIncludeFontPaddingTest003
+ * @tc.name: IncludeFontPaddingBurmeseMultiLine
  * @tc.desc: Test for Burmese text breakShapedTextIntoLines branch when open includeFontPadding
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest003, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, IncludeFontPaddingBurmeseMultiLine, TestSize.Level0)
 {
     const char* text =
         "ရှည်လျားသောသမိုင်းရှိရုံသာမကအလွန်ကြွယ်ဝ။.";
@@ -1077,11 +1077,11 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest003, TestSi
 }
 
 /*
- * @tc.name: TypographStyleIncludeFontPaddingTest004
+ * @tc.name: IncludeFontPaddingUyghurMultiLine
  * @tc.desc: Test for simple text breakShapedTextIntoLines branch when open includeFontPadding
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest004, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, IncludeFontPaddingUyghurMultiLine, TestSize.Level0)
 {
     const char* text =
         "سوتسىيالىستىك فېدېراتسىيە جۇمھۇرىيىتىنىڭ ئورتاق تىلى";
@@ -1113,11 +1113,11 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest004, TestSi
 }
 
 /*
- * @tc.name: TypographStyleIncludeFontPaddingTest005
+ * @tc.name: IncludeFontPaddingLineHeightShorterThanRun
  * @tc.desc: Test for maxLineHeight and minLineHeight shorter than run height when open includeFontPadding
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest005, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, IncludeFontPaddingLineHeightShorterThanRun, TestSize.Level0)
 {
     const char* text = "Hello World";
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
@@ -1154,11 +1154,11 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest005, TestSi
 }
 
 /*
- * @tc.name: TypographStyleIncludeFontPaddingTest006
+ * @tc.name: IncludeFontPaddingLineHeightGreaterThanRun
  * @tc.desc: Test for maxLineHeight and minLineHeight greater than run height when open includeFontPadding
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest006, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, IncludeFontPaddingLineHeightGreaterThanRun, TestSize.Level0)
 {
     const char* text = "Hello World";
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
@@ -1194,11 +1194,11 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest006, TestSi
 }
 
 /*
- * @tc.name: TypographStyleIncludeFontPaddingTest007
+ * @tc.name: IncludeFontPaddingLineHeightScaleShort
  * @tc.desc: Test for line height scale and line height shorter than run height when open includeFontPadding
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest007, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, IncludeFontPaddingLineHeightScaleShort, TestSize.Level0)
 {
     const char* text = "fontPadding&lineHeightScale测试";
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
@@ -1231,11 +1231,11 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest007, TestSi
 }
 
 /*
- * @tc.name: TypographStyleIncludeFontPaddingTest008
+ * @tc.name: IncludeFontPaddingLineHeightScaleLarge
  * @tc.desc: Test for line height scale and line height greater than run height when open includeFontPadding
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest008, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, IncludeFontPaddingLineHeightScaleLarge, TestSize.Level0)
 {
     const char* text = "fontPadding&lineHeightScale测试";
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
@@ -1268,11 +1268,11 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest008, TestSi
 }
 
 /*
- * @tc.name: TypographStyleIncludeFontPaddingTest009
+ * @tc.name: IncludeFontPaddingDisableAllHeightBehavior
  * @tc.desc: Test for heightBehavior when open includeFontPadding
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest009, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, IncludeFontPaddingDisableAllHeightBehavior, TestSize.Level0)
 {
     const char* text = "fontPadding&lineHeightScale测试";
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
@@ -1306,11 +1306,11 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest009, TestSi
 }
 
 /*
- * @tc.name: TypographStyleFallbackLineSpacing010
+ * @tc.name: IncludeFontPaddingGetter
  * @tc.desc: Test for includeFontPadding getter
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest010, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, IncludeFontPaddingGetter, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     ASSERT_NE(typoStyle, nullptr);
@@ -1325,11 +1325,11 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest010, TestSi
 }
 
 /*
- * @tc.name: TypographStyleIncludeFontPaddingTest011
+ * @tc.name: IncludeFontPaddingTibetanMultiLine
  * @tc.desc: Test for tibetan language text breakShapedTextIntoLines branch when open includeFontPadding
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest011, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, IncludeFontPaddingTibetanMultiLine, TestSize.Level0)
 {
     const char* text = "ག་གནས་ཀྱི་འདུགཡུལ";
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
@@ -1362,11 +1362,11 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest011, TestSi
 }
 
 /*
- * @tc.name: TypographStyleIncludeFontPaddingTest012
+ * @tc.name: IncludeFontPaddingDevanagariMultiLine
  * @tc.desc: Test Devanagari text breaking when open includeFontPadding
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest012, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, IncludeFontPaddingDevanagariMultiLine, TestSize.Level0)
 {
     const char* text = "यह एक परीक्षण वाक्य है जो कई पंक्तियों में टूट जाएगा";
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
@@ -1400,11 +1400,11 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest012, TestSi
 }
 
 /*
- * @tc.name: TypographStyleIncludeFontPaddingTest013
+ * @tc.name: IncludeFontPaddingThaiMultiLine
  * @tc.desc: Test Thai script line break when open includeFontPadding
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest013, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, IncludeFontPaddingThaiMultiLine, TestSize.Level0)
 {
     const char* text =
         "ภาษาไทยไม่มีการเว้นวรรคทำให้ต้องตัดคำตามพจนานุกรม";
@@ -1439,11 +1439,11 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest013, TestSi
 }
 
 /*
- * @tc.name: TypographStyleIncludeFontPaddingTest014
+ * @tc.name: IncludeFontPaddingJapanese
  * @tc.desc: Test for positionShapedTextIntoLine branch when open includeFontPadding (Japanese)
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest014, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, IncludeFontPaddingJapanese, TestSize.Level0)
 {
     const char* text = "こんにちは";
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
@@ -1465,11 +1465,11 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest014, TestSi
 }
 
 /*
- * @tc.name: TypographStyleIncludeFontPaddingTest015
+ * @tc.name: IncludeFontPaddingKorean
  * @tc.desc: Test for positionShapedTextIntoLine branch when open includeFontPadding (Korean)
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest015, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, IncludeFontPaddingKorean, TestSize.Level0)
 {
     const char* text = "안녕하세요";
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
@@ -1491,11 +1491,11 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest015, TestSi
 }
 
 /*
- * @tc.name: TypographStyleIncludeFontPaddingTest016
+ * @tc.name: IncludeFontPaddingThai
  * @tc.desc: Test for positionShapedTextIntoLine branch when open includeFontPadding (Thai)
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest016, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, IncludeFontPaddingThai, TestSize.Level0)
 {
     const char* text = "สวัสดี";
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
@@ -1517,11 +1517,11 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest016, TestSi
 }
 
 /*
- * @tc.name: TypographStyleIncludeFontPaddingTest017
+ * @tc.name: IncludeFontPaddingChinese
  * @tc.desc: Test for positionShapedTextIntoLine branch when open includeFontPadding (Chinese)
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest017, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, IncludeFontPaddingChinese, TestSize.Level0)
 {
     const char* text = "你好世界";
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
@@ -1543,11 +1543,11 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest017, TestSi
 }
 
 /*
- * @tc.name: TypographStyleIncludeFontPaddingTest018
+ * @tc.name: IncludeFontPaddingEmoji
  * @tc.desc: Test for positionShapedTextIntoLine branch when open includeFontPadding (Emoji)
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest018, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, IncludeFontPaddingEmoji, TestSize.Level0)
 {
     const char* text = "😀😁😂🤣😃";
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
@@ -1569,11 +1569,11 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest018, TestSi
 }
 
 /*
- * @tc.name: TypographStyleIncludeFontPaddingTest019
+ * @tc.name: IncludeFontPaddingSymbols
  * @tc.desc: Test for positionShapedTextIntoLine branch when open includeFontPadding (Symbols)
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest019, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, IncludeFontPaddingSymbols, TestSize.Level0)
 {
     const char* text = "∑∏√∞≈≠≤≥";
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
@@ -1595,11 +1595,11 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest019, TestSi
 }
 
 /*
- * @tc.name: TypographStyleIncludeFontPaddingTest020
+ * @tc.name: IncludeFontPaddingTibetan
  * @tc.desc: Test for positionShapedTextIntoLine branch when open includeFontPadding (Tibetan)
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest020, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, IncludeFontPaddingTibetan, TestSize.Level0)
 {
     const char* text = "བོད་ཡིག";
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
@@ -1621,11 +1621,11 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest020, TestSi
 }
 
 /*
- * @tc.name: TypographStyleIncludeFontPaddingTest021
+ * @tc.name: IncludeFontPaddingUyghur
  * @tc.desc: Test for positionShapedTextIntoLine branch when open includeFontPadding (Uyghur)
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest021, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, IncludeFontPaddingUyghur, TestSize.Level0)
 {
     const char* text = "ئۇيغۇرچە";
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
@@ -1647,11 +1647,11 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest021, TestSi
 }
 
 /*
- * @tc.name: TypographStyleIncludeFontPaddingTest022
+ * @tc.name: IncludeFontPaddingBurmese
  * @tc.desc: Test for positionShapedTextIntoLine branch when open includeFontPadding (Burmese)
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest022, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, IncludeFontPaddingBurmese, TestSize.Level0)
 {
     const char* text = "မင်္ဂလာပါ";
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
@@ -1673,11 +1673,11 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest022, TestSi
 }
 
 /*
- * @tc.name: TypographStyleIncludeFontPaddingTest023
+ * @tc.name: IncludeFontPaddingRussian
  * @tc.desc: Test for positionShapedTextIntoLine branch when open includeFontPadding (Russian)
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest023, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, IncludeFontPaddingRussian, TestSize.Level0)
 {
     const char* text = "межстрочного";
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
@@ -1699,11 +1699,11 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest023, TestSi
 }
 
 /*
- * @tc.name: TypographStyleFallbackLineSpacing001
+ * @tc.name: FallbackLineSpacingEnglishLineLimitShorter
  * @tc.desc: Test for maxLineHeight and minLineHeight for English when open fallbackLineSpacing
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographStyleFallbackLineSpacing001, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, FallbackLineSpacingEnglishLineLimitShorter, TestSize.Level0)
 {
     const char* text = "max/minLineHeight&fallbackLineSpacing test";
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
@@ -1739,11 +1739,11 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleFallbackLineSpacing001, TestSize.
 }
 
 /*
- * @tc.name: TypographStyleFallbackLineSpacing002
+ * @tc.name: FallbackLineSpacingLineLimitGreaterThanRun
  * @tc.desc: Test for maxLineHeight and minLineHeight greater than run height when open fallbackLineSpacing
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographStyleFallbackLineSpacing002, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, FallbackLineSpacingLineLimitGreaterThanRun, TestSize.Level0)
 {
     const char* text = "max/minLineHeight&fallbackLineSpacing测试";
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
@@ -1776,11 +1776,11 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleFallbackLineSpacing002, TestSize.
 }
 
 /*
- * @tc.name: TypographStyleFallbackLineSpacing003
+ * @tc.name: FallbackLineSpacingHeightScaleShort
  * @tc.desc: Test for line height scale and line height shorter than run height when open fallbackLineSpacing
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographStyleFallbackLineSpacing003, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, FallbackLineSpacingHeightScaleShort, TestSize.Level0)
 {
     const char* text = "fallbackLineSpacing&lineHeightScale测试";
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
@@ -1812,11 +1812,11 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleFallbackLineSpacing003, TestSize.
 }
 
 /*
- * @tc.name: TypographStyleFallbackLineSpacing004
+ * @tc.name: FallbackLineSpacingHeightScaleLarge
  * @tc.desc: Test for line height scale and line height greater than run height when open fallbackLineSpacing
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographStyleFallbackLineSpacing004, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, FallbackLineSpacingHeightScaleLarge, TestSize.Level0)
 {
     const char* text = "fallbackLineSpacing&lineHeightScale测试";
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
@@ -1848,11 +1848,11 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleFallbackLineSpacing004, TestSize.
 }
 
 /*
- * @tc.name: TypographStyleFallbackLineSpacing005
+ * @tc.name: FallbackLineSpacingGetter
  * @tc.desc: Test for fallbackLineSpacing getter
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographStyleFallbackLineSpacing005, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, FallbackLineSpacingGetter, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     ASSERT_NE(typoStyle, nullptr);
@@ -1867,11 +1867,11 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleFallbackLineSpacing005, TestSize.
 }
 
 /*
- * @tc.name: TypographStyleFallbackLineSpacing006
+ * @tc.name: FallbackLineSpacingChineseLineLimitShorter
  * @tc.desc: Test for maxLineHeight and minLineHeight for Chinese when open fallbackLineSpacing
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographStyleFallbackLineSpacing006, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, FallbackLineSpacingChineseLineLimitShorter, TestSize.Level0)
 {
     const char* text = "测试行高回退中文场景";
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
@@ -1907,11 +1907,11 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleFallbackLineSpacing006, TestSize.
 }
 
 /*
- * @tc.name: TypographStyleFallbackLineSpacing007
+ * @tc.name: FallbackLineSpacingEmojiLineLimitShorter
  * @tc.desc: Test for maxLineHeight and minLineHeight for Emoji when open fallbackLineSpacing
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographStyleFallbackLineSpacing007, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, FallbackLineSpacingEmojiLineLimitShorter, TestSize.Level0)
 {
     const char* text = "😀😁😂🤣😃😄😅😆";
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
@@ -1947,11 +1947,11 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleFallbackLineSpacing007, TestSize.
 }
 
 /*
- * @tc.name: TypographStyleFallbackLineSpacing008
+ * @tc.name: FallbackLineSpacingTibetanLineLimitShorter
  * @tc.desc: Test for maxLineHeight and minLineHeight for Tibetan when open fallbackLineSpacing
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographStyleFallbackLineSpacing008, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, FallbackLineSpacingTibetanLineLimitShorter, TestSize.Level0)
 {
     const char* text = "བོད་ཡིག་སྡེ་ཚན་ཚོགས་སྦྱོང་།";
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
@@ -1987,11 +1987,11 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleFallbackLineSpacing008, TestSize.
 }
 
 /*
- * @tc.name: TypographStyleFallbackLineSpacing009
+ * @tc.name: FallbackLineSpacingUyghurLineLimitShorter
  * @tc.desc: Test for maxLineHeight and minLineHeight for Uyghur when open fallbackLineSpacing
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographStyleFallbackLineSpacing009, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, FallbackLineSpacingUyghurLineLimitShorter, TestSize.Level0)
 {
     const char* text = "ئۇيغۇرچە يېزىقنى سىناش";
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
@@ -2029,11 +2029,11 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleFallbackLineSpacing009, TestSize.
 }
 
 /*
- * @tc.name: TypographStyleFallbackLineSpacing010
+ * @tc.name: FallbackLineSpacingBurmeseLineLimitShorter
  * @tc.desc: Test for maxLineHeight and minLineHeight for Burmese when open fallbackLineSpacing
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographStyleFallbackLineSpacing010, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, FallbackLineSpacingBurmeseLineLimitShorter, TestSize.Level0)
 {
     const char* text = "မြန်မာစာ စမ်းသပ်မှု";
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
@@ -2071,11 +2071,11 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleFallbackLineSpacing010, TestSize.
 }
 
 /*
- * @tc.name: TypographStyleFallbackLineSpacing011
+ * @tc.name: FallbackLineSpacingJapaneseLineLimitShorter
  * @tc.desc: Test for maxLineHeight and minLineHeight for Japanese when open fallbackLineSpacing
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographStyleFallbackLineSpacing011, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, FallbackLineSpacingJapaneseLineLimitShorter, TestSize.Level0)
 {
     const char* text = "日本語フォールバック行間のテスト";
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
@@ -2111,11 +2111,11 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleFallbackLineSpacing011, TestSize.
 }
 
 /*
- * @tc.name: TypographStyleFallbackLineSpacing012
+ * @tc.name: FallbackLineSpacingRussianLineLimitShorter
  * @tc.desc: Test for maxLineHeight and minLineHeight for Russian when open fallbackLineSpacing
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographStyleFallbackLineSpacing012, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, FallbackLineSpacingRussianLineLimitShorter, TestSize.Level0)
 {
     const char* text = "Тест межстрочного интервала";
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
@@ -2151,11 +2151,11 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleFallbackLineSpacing012, TestSize.
 }
 
 /*
- * @tc.name: TypographStyleFallbackLineSpacing013
+ * @tc.name: FallbackLineSpacingKoreanLineLimitShorter
  * @tc.desc: Test for maxLineHeight and minLineHeight when open fallbackLineSpacing (Korean)
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographStyleFallbackLineSpacing013, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, FallbackLineSpacingKoreanLineLimitShorter, TestSize.Level0)
 {
     const char* text = "한글 테스트";
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
@@ -2190,11 +2190,11 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleFallbackLineSpacing013, TestSize.
 }
 
 /*
- * @tc.name: TypographStyleFallbackLineSpacing014
+ * @tc.name: FallbackLineSpacingThaiLineLimitShorter
  * @tc.desc: Test for maxLineHeight and minLineHeight when open fallbackLineSpacing (Thai)
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographStyleFallbackLineSpacing014, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, FallbackLineSpacingThaiLineLimitShorter, TestSize.Level0)
 {
     const char* text = "การทดสอบ ภาษาไทย";
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
@@ -2227,11 +2227,11 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleFallbackLineSpacing014, TestSize.
 }
 
 /*
- * @tc.name: TypographStyleDestroyPositionAndAffinity001
+ * @tc.name: DestroyPositionAndAffinityNullptr
  * @tc.desc: Test for destroy nullptr for OH_Drawing_DestroyPositionAndAffinity
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographStyleDestroyPositionAndAffinity001, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, DestroyPositionAndAffinityNullptr, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     ASSERT_NE(typoStyle, nullptr);
@@ -2240,11 +2240,11 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleDestroyPositionAndAffinity001, Te
 }
 
 /*
- * @tc.name: TypographStyleDestroyPositionAndAffinity002
+ * @tc.name: DestroyPositionAndAffinityObject
  * @tc.desc: Test for destroy positionAndAffinity object
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleTest, TypographStyleDestroyPositionAndAffinity002, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleTest, DestroyPositionAndAffinityObject, TestSize.Level0)
 {
     const char* text = "Destroy positionAndAffinity";
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();

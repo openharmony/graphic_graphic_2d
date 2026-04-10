@@ -52,11 +52,11 @@ static TextStyle* ConvertToOriginalText(OH_Drawing_TextStyle* style)
 }
 
 /*
- * @tc.name: TextStyleAttributeFontEdgingTest001
+ * @tc.name: SetInvalidFontEdgingOutOfRange
  * @tc.desc: test invalid data for font edging.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTextStyleFontEdgingTest, TextStyleAttributeFontEdgingTest001, TestSize.Level0)
+HWTEST_F(NdkTextStyleFontEdgingTest, SetInvalidFontEdgingOutOfRange, TestSize.Level0)
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     ASSERT_NE(txtStyle, nullptr);
@@ -81,11 +81,11 @@ HWTEST_F(NdkTextStyleFontEdgingTest, TextStyleAttributeFontEdgingTest001, TestSi
 }
 
 /*
- * @tc.name: TextStyleAttributeFontEdgingTest002
+ * @tc.name: SetAndGetAllValidFontEdgingValues
  * @tc.desc: test valid data for font edging.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTextStyleFontEdgingTest, TextStyleAttributeFontEdgingTest002, TestSize.Level0)
+HWTEST_F(NdkTextStyleFontEdgingTest, SetAndGetAllValidFontEdgingValues, TestSize.Level0)
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     ASSERT_NE(txtStyle, nullptr);
@@ -119,11 +119,11 @@ HWTEST_F(NdkTextStyleFontEdgingTest, TextStyleAttributeFontEdgingTest002, TestSi
 }
 
 /*
- * @tc.name: TextStyleAttributeFontEdgingTest003
+ * @tc.name: FontEdgingWithNullptrParameters
  * @tc.desc: test font edging with nullptr parameter.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTextStyleFontEdgingTest, TextStyleAttributeFontEdgingTest003, TestSize.Level0)
+HWTEST_F(NdkTextStyleFontEdgingTest, FontEdgingWithNullptrParameters, TestSize.Level0)
 {
     // Test set with nullptr
     auto res = OH_Drawing_SetTextStyleAttributeInt(
@@ -146,11 +146,11 @@ HWTEST_F(NdkTextStyleFontEdgingTest, TextStyleAttributeFontEdgingTest003, TestSi
 }
 
 /*
- * @tc.name: TextStyleAttributeFontEdgingTest004
+ * @tc.name: FontEdgingWithMismatchedAttributeId
  * @tc.desc: test font edging with mismatched attribute ID.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTextStyleFontEdgingTest, TextStyleAttributeFontEdgingTest004, TestSize.Level0)
+HWTEST_F(NdkTextStyleFontEdgingTest, FontEdgingWithMismatchedAttributeId, TestSize.Level0)
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     ASSERT_NE(txtStyle, nullptr);
@@ -169,11 +169,11 @@ HWTEST_F(NdkTextStyleFontEdgingTest, TextStyleAttributeFontEdgingTest004, TestSi
 }
 
 /*
- * @tc.name: TextStyleAttributeFontEdgingTest005
+ * @tc.name: FontEdgingNativeConversion
  * @tc.desc: test font edging conversion to native TextStyle.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTextStyleFontEdgingTest, TextStyleAttributeFontEdgingTest005, TestSize.Level0)
+HWTEST_F(NdkTextStyleFontEdgingTest, FontEdgingNativeConversion, TestSize.Level0)
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     ASSERT_NE(txtStyle, nullptr);
@@ -196,11 +196,11 @@ HWTEST_F(NdkTextStyleFontEdgingTest, TextStyleAttributeFontEdgingTest005, TestSi
 }
 
 /*
- * @tc.name: TextStyleAttributeFontEdgingTest006
+ * @tc.name: FontEdgingDefaultValue
  * @tc.desc: test font edging default value.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTextStyleFontEdgingTest, TextStyleAttributeFontEdgingTest006, TestSize.Level0)
+HWTEST_F(NdkTextStyleFontEdgingTest, FontEdgingDefaultValue, TestSize.Level0)
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     ASSERT_NE(txtStyle, nullptr);
@@ -216,11 +216,11 @@ HWTEST_F(NdkTextStyleFontEdgingTest, TextStyleAttributeFontEdgingTest006, TestSi
 }
 
 /*
- * @tc.name: TextStyleAttributeFontEdgingTest007
+ * @tc.name: FontEdgingWithTypographyWorkflow
  * @tc.desc: test font edging with typography workflow.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTextStyleFontEdgingTest, TextStyleAttributeFontEdgingTest007, TestSize.Level0)
+HWTEST_F(NdkTextStyleFontEdgingTest, FontEdgingWithTypographyWorkflow, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     ASSERT_NE(typoStyle, nullptr);
@@ -257,11 +257,11 @@ HWTEST_F(NdkTextStyleFontEdgingTest, TextStyleAttributeFontEdgingTest007, TestSi
 }
 
 /*
- * @tc.name: TextStyleAttributeFontEdgingTest008
+ * @tc.name: FontEdgingBoundaryValues
  * @tc.desc: test font edging boundary values.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTextStyleFontEdgingTest, TextStyleAttributeFontEdgingTest008, TestSize.Level0)
+HWTEST_F(NdkTextStyleFontEdgingTest, FontEdgingBoundaryValues, TestSize.Level0)
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     ASSERT_NE(txtStyle, nullptr);
@@ -291,11 +291,11 @@ HWTEST_F(NdkTextStyleFontEdgingTest, TextStyleAttributeFontEdgingTest008, TestSi
 }
 
 /*
- * @tc.name: TextStyleAttributeFontEdgingTest009
+ * @tc.name: FontEdgingStatePersistence
  * @tc.desc: test font edging state persistence across multiple sets.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTextStyleFontEdgingTest, TextStyleAttributeFontEdgingTest009, TestSize.Level0)
+HWTEST_F(NdkTextStyleFontEdgingTest, FontEdgingStatePersistence, TestSize.Level0)
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     ASSERT_NE(txtStyle, nullptr);
