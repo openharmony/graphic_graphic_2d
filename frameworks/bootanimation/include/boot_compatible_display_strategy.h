@@ -29,6 +29,8 @@ public:
     void Display(int32_t duration, std::vector<BootAnimationConfig>& configs) override;
 
 private:
+    bool PrepareScreenConfig(BootAnimationConfig& config);
+    void RunAnimationAndOta(BootAnimationConfig& config, int32_t duration);
     std::shared_ptr<BootAnimationOperation> operator_;
 };
 } // namespace OHOS

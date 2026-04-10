@@ -20,6 +20,7 @@
 #include "util.h"
 #include "boot_animation_operation.h"
 #include "boot_picture_player.h"
+#include "boot_animation_strategy.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -143,6 +144,9 @@ HWTEST_F(BootPicturePlayerTest, BootPicturePlayerTest_006, TestSize.Level1)
     BootAnimationOperation operation;
     std::shared_ptr<OHOS::AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create(false);
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler = std::make_shared<AppExecFwk::EventHandler>(runner);
+    std::shared_ptr<BootAnimationStrategy> strategy = std::make_shared<BootAnimationStrategy>();
+    strategy->GetConnectToRenderMap(1);
+    operation.connectToRender_ = strategy->connectToRenderMap_.begin()->second;
     int32_t degree = 0;
     operation.InitRsDisplayNode();
     operation.InitRsSurfaceNode(degree);

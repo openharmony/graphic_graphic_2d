@@ -38,10 +38,14 @@ void BootAssociativeDisplayStrategy::Display(int32_t duration, std::vector<BootA
         LOGI("not support play extra video for multi screen now");
         return;
     }
-
+    GetConnectToRenderMap(configs.size());
+    SubscribeActiveScreenIdChanged();
     Rosen::RSInterfaces& interface = Rosen::RSInterfaces::GetInstance();
     Rosen::ScreenId defaultId = interface.GetDefaultScreenId();
-    Rosen::ScreenId activeId = interface.GetActiveScreenId();
+    Rosen::ScreenId activeId = GetActiveScreenId();
+    if (activeId == Rosen::INVALID_SCREEN_ID) {
+        activeId = defaultId;
+    }
     LOGI("defaultId: " BPUBU64 ", activeId: " BPUBU64 "", defaultId, activeId);
     bool isSupportCoordination = IsSupportCoordination();
     LOGI("isSupportCoordination = %{public}d", isSupportCoordination);
@@ -53,7 +57,8 @@ void BootAssociativeDisplayStrategy::Display(int32_t duration, std::vector<BootA
     }
 
     for (const auto& config : configs) {
-        if (config.screenId != activeId) {
+        if (config.screenId != activeId || connectToRenderMap_.find(activeId) == connectToRenderMap_.end()) {
+            LOGE("invalid screenId:" BPUBU64 "", config.screenId);
             continue;
         }
 
@@ -61,19 +66,19 @@ void BootAssociativeDisplayStrategy::Display(int32_t duration, std::vector<BootA
         int screenWidth = modeInfo.GetScreenWidth();
         int screenHeight = modeInfo.GetScreenHeight();
         operator_ = std::make_shared<BootAnimationOperation>();
-        operator_->Init(config, screenWidth, screenHeight, duration);
+        sptr<IRemoteObject> connectToRender = connectToRenderMap_.find(activeId)->second;
+        operator_->Init(config, screenWidth, screenHeight, duration, connectToRender);
         if (operator_->GetThread().joinable()) {
             operator_->GetThread().join();
         }
 
         if (IsOtaUpdate()) {
             bootCompileProgress_ = std::make_shared<BootCompileProgress>();
-            bootCompileProgress_->Init(configPath_, config);
+            bootCompileProgress_->Init(configPath_, config, connectToRender);
         }
-
-        while (!CheckExitAnimation()) {
-            usleep(SLEEP_TIME_US);
-        }
+    }
+    while (!CheckExitAnimation()) {
+        usleep(SLEEP_TIME_US);
     }
 }
 
