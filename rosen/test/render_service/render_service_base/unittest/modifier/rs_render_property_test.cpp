@@ -701,37 +701,6 @@ HWTEST_F(RSRenderPropertyTest, RSRenderPropertyGravityOnUnmarshalling, TestSize.
 }
 
 /**
- * @tc.name: RSRenderPropertySharedPtrRSMagnifierParamsOnUnmarshalling
- * @tc.desc: RSRenderPropertySharedPtrRSMagnifierParams On Unmarshalling Test
- * @tc.type: FUNC
- * @tc.require: issueICDSPJ
- */
-HWTEST_F(RSRenderPropertyTest, RSRenderPropertySharedPtrRSMagnifierParamsOnUnmarshalling, TestSize.Level1)
-{
-    auto value = std::make_shared<RSMagnifierParams>();
-    std::shared_ptr<RSRenderProperty<std::shared_ptr<RSMagnifierParams>>> prop =
-        std::make_shared<RSRenderProperty<std::shared_ptr<RSMagnifierParams>>>(value, 1);
-
-    Parcel parcel;
-    std::shared_ptr<RSRenderPropertyBase> receivedProp;
-    bool ret = RSRenderProperty<std::shared_ptr<RSMagnifierParams>>::OnUnmarshalling(parcel, receivedProp);
-    EXPECT_FALSE(ret);
-
-    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
-    EXPECT_TRUE(ret);
-    ret = RSRenderProperty<std::shared_ptr<RSMagnifierParams>>::OnUnmarshalling(parcel, receivedProp);
-    EXPECT_FALSE(ret);
-
-    ret = RSMarshallingHelper::Marshalling(parcel, prop->GetId());
-    EXPECT_TRUE(ret);
-    ret = RSMarshallingHelper::Marshalling(parcel, prop->Get());
-    EXPECT_TRUE(ret);
-    ret = RSRenderProperty<std::shared_ptr<RSMagnifierParams>>::OnUnmarshalling(parcel, receivedProp);
-    EXPECT_TRUE(ret);
-    EXPECT_TRUE(receivedProp != nullptr);
-}
-
-/**
  * @tc.name: RSRenderPropertySharedPtrMotionBlurParamOnUnmarshalling
  * @tc.desc: RSRenderPropertySharedPtrMotionBlurParam On Unmarshalling Test
  * @tc.type: FUNC

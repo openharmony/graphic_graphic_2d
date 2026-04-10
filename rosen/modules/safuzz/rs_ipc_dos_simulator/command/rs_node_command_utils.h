@@ -45,8 +45,6 @@ public:
                                     Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyMotionBlurPara, Uint64, MotionBlurParamSharedPtr, Uint64,
                                     PropertyUpdateType);
-    ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyMagnifierPara, Uint64, RSMagnifierParamsSharedPtr, Uint64,
-                                    PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyEmitterUpdater, Uint64, EmitterUpdaterSharedPtrVector, Uint64,
                                     PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyParticleNoiseFields, Uint64, ParticleNoiseFieldsSharedPtr, Uint64,

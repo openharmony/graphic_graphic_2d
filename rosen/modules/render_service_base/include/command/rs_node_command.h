@@ -95,7 +95,7 @@ enum RSNodeCommandType : uint16_t {
 
     SET_NODE_NAME = 0x0600,
     UPDATE_MODIFIER_MOTION_BLUR_PTR = 0x0601,
-    UPDATE_MODIFIER_MAGNIFIER_PTR = 0x0602,
+
     UPDATE_MODIFIER_WATER_RIPPLE = 0x0603,
     UPDATE_MODIFIER_FLY_OUT = 0x0604,
     REMOVE_ALL_MODIFIERS = 0x0605,
@@ -263,10 +263,6 @@ ADD_COMMAND(RSUpdatePropertyMotionBlurPara,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_MOTION_BLUR_PTR,
         RSNodeCommandHelper::UpdateProperty<std::shared_ptr<MotionBlurParam>>,
         NodeId, std::shared_ptr<MotionBlurParam>, PropertyId, PropertyUpdateType))
-ADD_COMMAND(RSUpdatePropertyMagnifierPara,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_MAGNIFIER_PTR,
-        RSNodeCommandHelper::UpdateProperty<std::shared_ptr<RSMagnifierParams>>,
-        NodeId, std::shared_ptr<RSMagnifierParams>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyEmitterUpdater,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_EMITTER_UPDATER_PTR,
         RSNodeCommandHelper::UpdateProperty<std::vector<std::shared_ptr<EmitterUpdater>>>,
