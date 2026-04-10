@@ -156,14 +156,4 @@ float RSBoundsModifier::GetGravityPullStrength() const
 {
     return Getter(RSPropertyType::GRAVITY_UNION_STRENGTH, 0.f);
 }
-
-void RSBoundsModifier::SetSDFShape(const std::shared_ptr<RSNGShapeBase>& shape)
-{
-    Setter<RSProperty, std::shared_ptr<RSNGShapeBase>>(RSPropertyType::SDF_SHAPE, shape);
-}
-
-std::shared_ptr<RSNGShapeBase> RSBoundsModifier::GetSDFShape() const
-{
-    return Getter<std::shared_ptr<RSNGShapeBase>>(RSPropertyType::SDF_SHAPE, nullptr);
-}
 } // namespace OHOS::Rosen::ModifierNG
