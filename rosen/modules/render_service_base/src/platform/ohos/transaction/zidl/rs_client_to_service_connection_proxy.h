@@ -132,6 +132,8 @@ public:
     ErrCode RepaintEverything() override;
 
     void DisablePowerOffRenderControl(ScreenId id) override;
+    
+    sptr<IRemoteObject> GetConnectToRenderToken(ScreenId screenId) override;
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) override;
 

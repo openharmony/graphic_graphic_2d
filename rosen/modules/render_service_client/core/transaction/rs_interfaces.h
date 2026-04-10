@@ -191,6 +191,8 @@ public:
      */
     int32_t SetScreenChangeCallback(const ScreenChangeCallback &callback);
 
+    sptr<IRemoteObject> GetConnectToRenderToken(ScreenId screenId);
+
     /**
      * @brief Set screen switching status notify callback.
      * on the screen switching status is changed.
@@ -1398,7 +1400,8 @@ private:
         float scaleX, float scaleY);
 
     std::unique_ptr<RSRenderServiceClient> renderServiceClient_;
-    std::unique_ptr<RSRenderInterface> renderInterface_;
+    // ToDo renderInterface的接口需要从rsInterface中删除
+    // std::unique_ptr<RSRenderInterface> renderInterface_;
 };
 } // namespace Rosen
 } // namespace OHOS

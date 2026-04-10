@@ -91,8 +91,8 @@ bool BootAnimationOperation::InitRsDisplayNode()
 {
     LOGI("InitRsDisplayNode start");
     OHOS::Rosen::RSDisplayNodeConfig config = { currentScreenId_ };
-    rsUIDirector_ = OHOS::Rosen::RSUIDirector::Create();
-    rsUIDirector_->Init(false, false);
+    rsUIDirector_ = OHOS::Rosen::RSUIDirector::Create(nullptr);
+    // rsUIDirector_->Init(false, false);
     auto rsUIContext = rsUIDirector_->GetRSUIContext();
     rsDisplayNode_ = OHOS::Rosen::RSDisplayNode::Create(config, rsUIContext);
     if (rsDisplayNode_ == nullptr) {

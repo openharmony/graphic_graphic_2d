@@ -37,6 +37,7 @@
 #include "transaction/rs_render_pipeline_client.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
+#include "ui/rs_ui_context_manager.h"
 #include "rs_trace.h"
 
 namespace OHOS {
@@ -392,12 +393,12 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::ProcessSurfaceRenderNode(RSS
     }
     RS_LOGI("RSDividedUICaptureVisitor::ProcessSurfaceRenderNode nodeId is %{public}" PRIu64, node.GetId());
     std::shared_ptr<RSOffscreenRenderCallback> callback = std::make_shared<RSOffscreenRenderCallback>();
-    auto renderPipelineClient = std::make_unique<RSRenderPipelineClient>();
+    auto rsUIContext = RSUIContextManager::Instance().GetRSUIContext(node.GetUIContextToken());
     RSSurfaceCaptureConfig captureConfig;
     captureConfig.scaleX = scaleX_;
     captureConfig.scaleY = scaleY_;
     captureConfig.captureType = SurfaceCaptureType::UICAPTURE;
-    renderPipelineClient->TakeSurfaceCapture(node.GetId(), callback, captureConfig);
+    rsUIContext->GetRSRenderInterface()->TakeSurfaceCapture(node.GetId(), callback, captureConfig);
     std::shared_ptr<Media::PixelMap> pixelMap = callback->GetResult(MAX_WAIT_TIME);
     if (pixelMap == nullptr) {
         ROSEN_LOGE("RSDividedUICaptureVisitor::TakeLocalCapture failed to get pixelmap, return nullptr!");

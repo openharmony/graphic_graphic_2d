@@ -293,6 +293,8 @@ public:
 
     virtual void NotifyRefreshRateEvent(const EventInfo& eventInfo) = 0;
 
+    virtual sptr<IRemoteObject> GetConnectToRenderToken(ScreenId screenId) = 0;
+
     virtual void SetWindowExpectedRefreshRate(const std::unordered_map<uint64_t, EventInfo>& eventInfos) = 0;
 
     virtual void SetWindowExpectedRefreshRate(const std::unordered_map<std::string, EventInfo>& eventInfos) = 0;

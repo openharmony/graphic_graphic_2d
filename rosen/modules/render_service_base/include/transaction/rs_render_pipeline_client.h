@@ -18,6 +18,7 @@
 
 #include "common/rs_common_def.h"
 #include "rs_client_render_comm_def_info.h"
+#include "platform/ohos/transaction/zidl/rs_iclient_to_render_connection.h"
 #include <functional>
 #include <map>
 #include <memory>
@@ -65,7 +66,7 @@
 namespace OHOS {
 namespace Rosen {
 // normal callback functor for client users.
-using ScreenChangeCallback = std::function<void(ScreenId, ScreenEvent, ScreenChangeReason)>;
+using ScreenChangeCallback = std::function<void(ScreenId, ScreenEvent, ScreenChangeReason, sptr<IRemoteObject>)>;
 using BrightnessInfoChangeCallback = std::function<void(ScreenId, BrightnessInfo)>;
 using ScreenSwitchingNotifyCallback = std::function<void(bool)>;
 using BufferAvailableCallback = std::function<void()>;
@@ -82,7 +83,7 @@ using FirstFrameCommitCallback = std::function<void(uint64_t, int64_t)>;
 
 class RSB_EXPORT RSRenderPipelineClient : public RSIRenderClient {
 public:
-    RSRenderPipelineClient() = default;
+    RSRenderPipelineClient(sptr<IRemoteObject>& connectToRenderRemote);
     ~RSRenderPipelineClient() = default;
     void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
 
@@ -249,6 +250,7 @@ private:
     sptr<RSITransactionDataCallback> transactionDataCbDirector_;
     std::map<std::pair<uint64_t, uint64_t>, std::function<void()>> transactionDataCallbacks_;
     std::mutex transactionDataCallbackMutex_;
+    sptr<RSIClientToRenderConnection> clientToRenderConnection_;
 
     friend class SurfaceCaptureCallbackDirector;
     friend class SurfaceBufferCallbackDirector;
