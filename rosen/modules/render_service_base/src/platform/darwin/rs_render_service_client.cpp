@@ -27,12 +27,6 @@ std::shared_ptr<RSIRenderClient> RSIRenderClient::CreateRenderServiceClient()
     return client;
 }
 
-std::shared_ptr<RSIRenderClient> RSIRenderClient::CreateRenderPiplineClient()
-{
-    static std::shared_ptr<RSIRenderClient> client = std::make_shared<RSRenderPipelineClient>();
-    return client;
-}
-
 void RSRenderServiceClient::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
 {
 }
@@ -112,6 +106,11 @@ std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
     return std::make_shared<VSyncReceiverDarwin>();
 }
 
+sptr<IRemoteObject> RSRenderServiceClient::GetConnectToRenderToken(ScreenId screenId)
+{
+    return nullptr;
+}
+
 int32_t RSRenderServiceClient::GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid)
 {
     return 0;
@@ -153,6 +152,11 @@ int32_t RSRenderServiceClient::SetScreenChangeCallback(const ScreenChangeCallbac
 }
 
 int32_t RSRenderServiceClient::SetScreenSwitchingNotifyCallback(const ScreenSwitchingNotifyCallback &callback)
+{
+    return 0;
+}
+
+int32_t RSRenderServiceClient::SetActiveScreenIdChangedCallback(const ActiveScreenIdChangedCallback& callback)
 {
     return 0;
 }

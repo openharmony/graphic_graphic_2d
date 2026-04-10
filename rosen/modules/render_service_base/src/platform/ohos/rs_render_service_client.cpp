@@ -30,6 +30,7 @@
 #include "command/rs_command.h"
 #include "command/rs_node_showing_command.h"
 #include "common/rs_xcollie.h"
+#include "ipc_callbacks/active_screen_id_changed_callback_stub.h"
 #include "ipc_callbacks/screen_supported_hdr_formats_callback_stub.h"
 #include "ipc_callbacks/brightness_info_change_callback_stub.h"
 #include "ipc_callbacks/pointer_render/pointer_luminance_callback_stub.h"
@@ -64,13 +65,6 @@ std::shared_ptr<RSIRenderClient> RSIRenderClient::CreateRenderServiceClient()
     static std::once_flag once_flag;
     std::call_once(once_flag, []() { client_ = std::make_shared<RSRenderServiceClient>(); });
     return client_;
-}
-
-std::shared_ptr<RSIRenderClient> RSIRenderClient::CreateRenderPiplineClient()
-{
-    static std::once_flag once_flag_render;
-    std::call_once(once_flag_render, []() { renderClient_ = std::make_shared<RSRenderPipelineClient>(); });
-    return renderClient_;
 }
 
 void RSRenderServiceClient::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
@@ -166,6 +160,15 @@ std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
         return nullptr;
     }
     return std::make_shared<VSyncReceiver>(conn, token->AsObject(), looper, name);
+}
+
+sptr<IRemoteObject> RSRenderServiceClient::GetConnectToRenderToken(ScreenId screenId)
+{
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
+    if (clientToService == nullptr) {
+        return nullptr;
+    }
+    return clientToService->GetConnectToRenderToken(screenId);
 }
 
 int32_t RSRenderServiceClient::GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid)
@@ -415,7 +418,7 @@ public:
         ScreenChangeReason reason, sptr<IRemoteObject> obj = nullptr) override
     {
         if (cb_ != nullptr) {
-            cb_(id, event, reason);
+            cb_(id, event, reason, obj);
         }
     }
 
@@ -466,6 +469,41 @@ int32_t RSRenderServiceClient::SetScreenSwitchingNotifyCallback(const ScreenSwit
     }
 
     return clientToService->SetScreenSwitchingNotifyCallback(cb);
+}
+
+class CustomActiveScreenIdChangedCallback : public RSActiveScreenIdChangedCallbackStub
+{
+public:
+    explicit CustomActiveScreenIdChangedCallback(const ActiveScreenIdChangedCallback& callback) : cb_(callback) {}
+    ~CustomActiveScreenIdChangedCallback() override {};
+
+    void OnActiveScreenIdChanged(ScreenId activeScreenId) override
+    {
+        if (cb_ != nullptr) {
+            cb_(activeScreenId);
+        }
+    }
+
+private:
+    ActiveScreenIdChangedCallback cb_;
+};
+
+int32_t RSRenderServiceClient::SetActiveScreenIdChangedCallback(const ActiveScreenIdChangedCallback& callback)
+{
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
+    if (clientToService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::%{public}s clientToService is null", __func__);
+        return RENDER_SERVICE_NULL;
+    }
+
+    sptr<CustomActiveScreenIdChangedCallback> cb = nullptr;
+    if (callback) {
+        cb = new CustomActiveScreenIdChangedCallback(callback);
+    } else {
+        ROSEN_LOGE("RSRenderServiceClient::%{public}s callback is null.", __func__);
+    }
+
+    return clientToService->SetActiveScreenIdChangedCallback(cb);
 }
 
 class CustomBrightnessInfoChangeCallback : public RSBrightnessInfoChangeCallbackStub

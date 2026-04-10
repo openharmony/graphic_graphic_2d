@@ -30,6 +30,7 @@
 #define RENDER_SERVICE_CLIENT_CORE_UI_RS_UI_CONTEXT_H
 
 #include <functional>
+#include <iremote_object.h>
 #include <memory>
 #include <mutex>
 
@@ -40,6 +41,7 @@
 #include "pipeline/rs_node_map_v2.h"
 #include "transaction/rs_sync_transaction_handler.h"
 #include "transaction/rs_transaction_handler.h"
+#include "transaction/rs_render_interface.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -190,10 +192,20 @@ public:
      */
     bool HasTaskRunner();
 
+    std::shared_ptr<RSRenderInterface> GetRSRenderInterface()
+    {
+        return rsRenderInterface_;
+    }
+ 
+    sptr<IRemoteObject> GetConnectToRender()
+    {
+        return connectToRenderRemote_;
+    }
+
     void MoveModifier(std::shared_ptr<RSUIContext> dstUIContext, NodeId nodeId);
 
 private:
-    RSUIContext();
+    RSUIContext(uint64_t token, sptr<IRemoteObject>& connectToRenderRemote);
     RSUIContext(uint64_t token);
     RSUIContext(const RSUIContext&) = delete;
     RSUIContext(const RSUIContext&&) = delete;
@@ -206,6 +218,7 @@ private:
 
     RSNodeMapV2 nodeMap_;
     std::shared_ptr<RSTransactionHandler> rsTransactionHandler_;
+    std::shared_ptr<RSRenderInterface> rsRenderInterface_;
     std::shared_ptr<RSSyncTransactionHandler> rsSyncTransactionHandler_;
     std::unordered_map<pid_t, std::shared_ptr<RSImplicitAnimator>> rsImplicitAnimators_;
     std::shared_ptr<RSModifierManager> rsModifierManager_;
@@ -215,6 +228,7 @@ private:
     std::recursive_mutex animationMutex_;
 
     TaskRunner taskRunner_ = TaskRunner();
+    sptr<IRemoteObject> connectToRenderRemote_;
     std::function<void()> requestVsyncCallback_;
     std::mutex implicitAnimatorMutex_;
     std::mutex uiPipelineNumMutex_;

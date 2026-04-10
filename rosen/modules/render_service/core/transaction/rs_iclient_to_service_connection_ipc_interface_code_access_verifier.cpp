@@ -171,12 +171,20 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_BACK_LIGHT");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_CONNECT_TO_RENDER): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_CONNECT_TO_RENDER");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_CHANGE_CALLBACK): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_CHANGE_CALLBACK");
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_SWITCHING_NOTIFY_CALLBACK): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_SWITCHING_NOTIFY_CALLBACK");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_ACTIVE_SCREEN_ID_CHANGED_CALLBACK): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_ACTIVE_SCREEN_ID_CHANGED_CALLBACK");
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_CORRECTION): {

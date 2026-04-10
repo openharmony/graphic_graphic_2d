@@ -41,6 +41,8 @@ public:
     void RemoveAgentListener(const sptr<RSIScreenManagerAgentListener>& listener);
 
     void NotifyScreenConnected(const ScreenPresenceEvent& event);
+    void NotifyScreenConnectedToAgentListener(ScreenId id, ScreenChangeReason reason,
+                                              sptr<RSIScreenManagerAgentListener> agentListener);
     void NotifyScreenDisconnected(ScreenId id);
     void NotifyScreenPropertyUpdated(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
     void NotifyScreenRefresh(ScreenId id);
@@ -51,14 +53,17 @@ public:
     void NotifyVirtualScreenConnected(ScreenId id, ScreenId associatedScreenId, sptr<RSScreenProperty> property);
     void NotifyVirtualScreenDisconnected(ScreenId id);
     void NotifyActiveScreenIdChanged(ScreenId activeScreenId);
+    void NotifyActiveScreenIdChangedToAgentListener(ScreenId activeScreenId,
+                                                    sptr<RSIScreenManagerAgentListener> agentListener);
     void NotifyScreenBacklightChanged(ScreenId id, uint32_t level);
     void NotifyGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList);
 
     sptr<IRemoteObject> GetClientToRenderConnection(ScreenId id) const;
 
 private:
-    void NotifyScreenConnectedToAgentListeners(ScreenId id, ScreenChangeReason reason, sptr<IRemoteObject> remoteConn);
+    void NotifyScreenConnectedToAgentListeners(ScreenId id, ScreenChangeReason reason);
     void NotifyScreenDisconnectedToAgentListeners(ScreenId id, ScreenChangeReason reason);
+    void NotifyActiveScreenIdChangedToAgentListeners(ScreenId activeScreenId);
 
     std::unordered_map<ScreenId, sptr<IRemoteObject>> clientToRenderConns_;
     sptr<RSIScreenManagerListener> coreListener_;

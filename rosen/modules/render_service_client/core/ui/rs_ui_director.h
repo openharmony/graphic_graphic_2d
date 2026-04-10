@@ -47,9 +47,9 @@ class RSUIContext;
 class RSTransactionHandler;
 using TaskRunner = std::function<void(const std::function<void()>&, uint32_t)>;
 using FlushEmptyCallback = std::function<bool(const uint64_t)>;
-using CommitTransactionCallback =
-    std::function<void(std::shared_ptr<RSIRenderClient>&, std::unique_ptr<RSTransactionData>&&, uint32_t&,
-    std::shared_ptr<RSTransactionHandler>)>;
+// using CommitTransactionCallback =
+//     std::function<void(std::shared_ptr<RSIRenderClient>&, std::unique_ptr<RSTransactionData>&&, uint32_t&,
+//     std::shared_ptr<RSTransactionHandler>)>;
 
 /**
  * @class RSUIDirector
@@ -63,7 +63,9 @@ public:
      *
      * @return A std::shared_ptr pointing to the newly created RSUIDirector instance.
      */
-    static std::shared_ptr<RSUIDirector> Create();
+    // rsUIContext入参用于给arkUI将不同子窗实例设置成一样
+    static std::shared_ptr<RSUIDirector> Create(sptr<IRemoteObject> connectToRenderRemote,
+        std::shared_ptr<RSUIContext> rsUIContext = nullptr);
 
     /**
      * @brief Destructor for RSUIDirector.
@@ -87,16 +89,6 @@ public:
      *                        during the transition to the foreground. Defaults to false.
      */
     void GoForeground(bool isTextureExport = false);
-
-    /**
-     * @brief Initializes the RSUIDirector instance.
-     *
-     * @param shouldCreateRenderThread Indicates whether a render thread should be created. Defaults to true.
-     * @param isMultiInstance Indicates whether the instance supports multiple instances. Defaults to false.
-     * @param rsUIContext A shared pointer to the rsUIContext object to be set. Defaults to nullptr.
-     */
-    void Init(bool shouldCreateRenderThread = true, bool isMultiInstance = false,
-        std::shared_ptr<RSUIContext> rsUIContext = nullptr);
 
     /**
      * @brief Initiates the process of exporting texture data.
@@ -334,6 +326,14 @@ public:
      */
     void SetContainerWindowTransparent(bool isContainerWindowTransparent);
 private:
+    /**
+     * @brief Initializes the RSUIDirector instance.
+     *
+     * @param shouldCreateRenderThread Indicates whether a render thread should be created. Defaults to true.
+     * @param isMultiInstance Indicates whether the instance supports multiple instances. Defaults to false.
+     * @param rsUIContext A shared pointer to the rsUIContext object to be set. Defaults to nullptr.
+     */
+    void Init(sptr<IRemoteObject>& connectToRenderRemote, std::shared_ptr<RSUIContext> rsUIContext);
     void ReportUiSkipEvent(const std::string& abilityName);
     void AttachSurface();
     static void RecvMessages();
@@ -354,7 +354,7 @@ private:
     static bool RequestVsyncCallback(int32_t instanceId);
 
     void InitHybridRender();
-    void SetCommitTransactionCallback(CommitTransactionCallback commitTransactionCallback);
+    // void SetCommitTransactionCallback(CommitTransactionCallback commitTransactionCallback);
 
     RSUIDirector() = default;
     RSUIDirector(const RSUIDirector&) = delete;

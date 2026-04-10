@@ -54,7 +54,7 @@ const RSUIContextManager& RSUIContextManager::Instance()
     return MutableInstance();
 }
 
-std::shared_ptr<RSUIContext> RSUIContextManager::CreateRSUIContext()
+std::shared_ptr<RSUIContext> RSUIContextManager::CreateRSUIContext(sptr<IRemoteObject>& connectToRenderRemote)
 {
     if (!isMultiInstanceOpen_ || !g_instanceValid.load()) {
         return nullptr;
@@ -67,7 +67,7 @@ std::shared_ptr<RSUIContext> RSUIContextManager::CreateRSUIContext()
         ROSEN_LOGW("RSUIContextManager::CreateRSUIContext: context token %{public}" PRIu64 " already exists", token);
         return iter->second;
     }
-    auto newContext = std::shared_ptr<RSUIContext>(new RSUIContext(token));
+    auto newContext = std::shared_ptr<RSUIContext>(new RSUIContext(token, connectToRenderRemote));
     rsUIContextMap_[token] = newContext;
     return newContext;
 }

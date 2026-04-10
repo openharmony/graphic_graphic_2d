@@ -91,6 +91,8 @@ public:
 
     int32_t SetScreenSwitchingNotifyCallback(sptr<RSIScreenSwitchingNotifyCallback> callback) override;
 
+    int32_t SetActiveScreenIdChangedCallback(sptr<RSIActiveScreenIdChangedCallback> callback) override;
+
     int32_t SetBrightnessInfoChangeCallback(sptr<RSIBrightnessInfoChangeCallback> callback) override;
 
     uint32_t SetScreenActiveMode(ScreenId id, uint32_t modeId) override;
@@ -132,6 +134,8 @@ public:
     ErrCode RepaintEverything() override;
 
     void DisablePowerOffRenderControl(ScreenId id) override;
+    
+    sptr<IRemoteObject> GetConnectToRenderToken(ScreenId screenId) override;
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) override;
 

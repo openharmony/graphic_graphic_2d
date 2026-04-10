@@ -405,6 +405,15 @@ ErrCode RSClientToServiceConnection::GetDefaultScreenId(uint64_t& screenId)
     return screenManagerAgent_->GetDefaultScreenId(screenId);
 }
 
+sptr<IRemoteObject> RSClientToServiceConnection::GetConnectToRenderToken(ScreenId screenId)
+{
+    if (renderServiceAgent_ == nullptr) {
+        RS_LOGE("RSClientToServiceConnection::GetConnectToRenderToken is nullptr");
+        return nullptr;
+    }
+    return renderServiceAgent_->GetConnectToRenderToken(screenId);
+}
+
 ErrCode RSClientToServiceConnection::GetActiveScreenId(uint64_t& screenId)
 {
     if (!screenManagerAgent_) {
@@ -598,6 +607,15 @@ int32_t RSClientToServiceConnection::SetScreenSwitchingNotifyCallback(sptr<RSISc
     // update
     int32_t status = screenManagerAgent_->SetScreenSwitchingNotifyCallback(callback);
     return status;
+}
+
+int32_t RSClientToServiceConnection::SetActiveScreenIdChangedCallback(sptr<RSIActiveScreenIdChangedCallback> callback)
+{
+    if (!screenManagerAgent_) {
+        RS_LOGE("%{public}s: screenManagerAgent_ is nullptr", __func__);
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    return screenManagerAgent_->SetActiveScreenIdChangedCallback(callback);
 }
 
 int32_t RSClientToServiceConnection::SetBrightnessInfoChangeCallback(sptr<RSIBrightnessInfoChangeCallback> callback)

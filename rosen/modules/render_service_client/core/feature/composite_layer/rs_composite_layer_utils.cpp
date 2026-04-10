@@ -17,6 +17,7 @@
 
 #include "platform/common/rs_log.h"
 #include "transaction/rs_interfaces.h"
+#include "ui/rs_ui_context.h"
 #include "ui/rs_root_node.h"
 #include "ui/rs_surface_node.h"
 #include "ui/rs_texture_export.h"
@@ -32,10 +33,6 @@ RSCompositeLayerUtils::RSCompositeLayerUtils(const std::shared_ptr<RSNode>& root
 {
     rootNode_ = rootNode;
     topLayerZOrder_ = zOrder;
-    if (RSSystemProperties::GetRSClientMultiInstanceEnabled()) {
-        rsUiDirector_ = RSUIDirector::Create();
-        rsUiDirector_->Init(true, true);
-    }
 }
 
 RSCompositeLayerUtils::~RSCompositeLayerUtils() {}
@@ -49,12 +46,7 @@ bool RSCompositeLayerUtils::CreateCompositeLayer()
     if (auto surfaceNode = rootNode_->ReinterpretCastTo<RSSurfaceNode>()) {
         RSSurfaceNodeConfig config;
         config.SurfaceNodeName = surfaceNode->GetName();
-        if (RSSystemProperties::GetRSClientMultiInstanceEnabled()) {
-            compositeNode_ = RSSurfaceNode::Create(config, false, rsUiDirector_->GetRSUIContext());
-            rsUiDirector_->SetRSSurfaceNode(compositeNode_);
-        } else {
-            compositeNode_ = RSSurfaceNode::Create(config, false);
-        }
+        compositeNode_ = RSSurfaceNode::Create(config, false, rootNode_->GetRSUIContext());
     }
 
     if (compositeNode_ == nullptr) {
@@ -69,9 +61,6 @@ bool RSCompositeLayerUtils::CreateCompositeLayer()
     }
     auto bounds = rootNode_->GetStagingProperties().GetBounds();
     compositeNode_->SetBounds({bounds.x_, bounds.y_, bounds.z_, bounds.w_});
-    if (RSSystemProperties::GetRSClientMultiInstanceEnabled()) {
-        rsUiDirector_->SendMessages();
-    }
 
 #ifndef ROSEN_CROSS_PLATFORM
     parent->AddChild(compositeNode_);
@@ -98,9 +87,6 @@ void RSCompositeLayerUtils::UpdateVirtualNodeBounds(const Vector4f& bounds)
     }
     if (compositeNode_) {
         compositeNode_->SetBounds({bounds.x_, bounds.y_, bounds.z_, bounds.w_});
-        if (RSSystemProperties::GetRSClientMultiInstanceEnabled()) {
-            rsUiDirector_->SendMessages();
-        }
     }
 }
 
@@ -125,7 +111,11 @@ bool RSCompositeLayerUtils::DealWithSelfDrawCompositeNode(std::shared_ptr<RSNode
     }
     auto surfaceNode = child->ReinterpretCastTo<RSSurfaceNode>();
     if (surfaceNode && surfaceNode->IsSelfDrawingNode()) {
-        RSInterfaces::GetInstance().SetLayerTopForHWC(surfaceNode->GetId(), true, zOrder);
+        if (auto rsUIContext = surfaceNode->GetRSUIContext()) {
+            if (auto renderInterface = rsUIContext->GetRSRenderInterface()) {
+                renderInterface->SetLayerTopForHWC(surfaceNode->GetId(), true, zOrder);
+            }
+        }
         return true;
     }
     return false;

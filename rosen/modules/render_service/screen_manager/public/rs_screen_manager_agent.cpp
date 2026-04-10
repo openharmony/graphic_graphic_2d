@@ -54,6 +54,25 @@ void RSScreenManagerAgentListener::SetScreenChangeCallback(sptr<RSIScreenChangeC
     screenChangeCallback_ = screenChangeCallback;
 }
 
+void RSScreenManagerAgentListener::SetActiveScreenIdChangedCallback(
+    sptr<RSIActiveScreenIdChangedCallback> activeScreenIdChangedCallback)
+{
+    std::lock_guard<std::mutex> lock(activeScreenIdCallbackMutex_);
+    RS_LOGI("RSScreenManagerAgentListener::%{public}s.", __func__);
+    activeScreenIdChangedCallback_ = activeScreenIdChangedCallback;
+}
+
+void RSScreenManagerAgentListener::OnActiveScreenIdChanged(ScreenId activeScreenId)
+{
+    std::lock_guard<std::mutex> lock(activeScreenIdCallbackMutex_);
+    if (!activeScreenIdChangedCallback_) {
+        RS_LOGD("RSScreenManagerAgentListener::%{public}s activeScreenIdChangedCallback_ is nullptr.", __func__);
+        return;
+    }
+    RS_LOGI("RSScreenManagerAgentListener::%{public}s: activeScreenId:%{public}" PRIu64 ".", __func__, activeScreenId);
+    activeScreenIdChangedCallback_->OnActiveScreenIdChanged(activeScreenId);
+}
+
 RSScreenManagerAgent::RSScreenManagerAgent(sptr<RSScreenManager> screenManager) : screenManager_(screenManager)
 {
     agentListener_ = sptr<RSScreenManagerAgentListener>::MakeSptr();
@@ -71,10 +90,10 @@ RSScreenManagerAgent::~RSScreenManagerAgent()
 
 int32_t RSScreenManagerAgent::SetScreenChangeCallback(const sptr<RSIScreenChangeCallback>& callback)
 {
-    if (screenManager_ && callback) {
-        screenManager_->ExecuteCallback(callback);
-    }
     agentListener_->SetScreenChangeCallback(callback);
+    if (screenManager_) {
+        screenManager_->OnScreenChangeCallbackChanged(agentListener_);
+    }
     return SUCCESS;
 }
 
@@ -342,6 +361,15 @@ int32_t RSScreenManagerAgent::SetScreenSwitchingNotifyCallback(sptr<RSIScreenSwi
         return StatusCode::SCREEN_NOT_FOUND;
     }
     return screenManager_->SetScreenSwitchingNotifyCallback(callback);
+}
+
+int32_t RSScreenManagerAgent::SetActiveScreenIdChangedCallback(sptr<RSIActiveScreenIdChangedCallback> callback)
+{
+    agentListener_->SetActiveScreenIdChangedCallback(callback);
+    if (screenManager_) {
+        screenManager_->OnActiveScreenIdChangedCallbackChanged(agentListener_);
+    }
+    return SUCCESS;
 }
 
 int32_t RSScreenManagerAgent::SetVirtualScreenSecurityExemptionList(

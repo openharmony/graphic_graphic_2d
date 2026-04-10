@@ -36,9 +36,9 @@ namespace Rosen {
 class RSSyncTask;
 class RSTransactionHandler;
 using FlushEmptyCallback = std::function<bool(const uint64_t)>;
-using CommitTransactionCallback =
-    std::function<void(std::shared_ptr<RSIRenderClient>&, std::unique_ptr<RSTransactionData>&&, uint32_t&,
-    std::shared_ptr<RSTransactionHandler>)>;
+// using CommitTransactionCallback =
+//     std::function<void(std::shared_ptr<RSIRenderClient>&, std::unique_ptr<RSTransactionData>&&, uint32_t&,
+//     std::shared_ptr<RSTransactionHandler>)>;
 class RSB_EXPORT RSTransactionProxy final {
 public:
     static RSB_EXPORT RSTransactionProxy* GetInstance();
@@ -68,10 +68,10 @@ public:
         flushEmptyCallback_ = flushEmptyCallback;
     }
 
-    void SetCommitTransactionCallback(CommitTransactionCallback commitTransactionCallback)
-    {
-        commitTransactionCallback_ = commitTransactionCallback;
-    }
+    // void SetCommitTransactionCallback(CommitTransactionCallback commitTransactionCallback)
+    // {
+    //     commitTransactionCallback_ = commitTransactionCallback;
+    // }
 
     void SetSyncId(const uint64_t syncId)
     {
@@ -113,7 +113,7 @@ private:
     std::mutex mutexForRT_;
     std::unique_ptr<RSTransactionData> implicitTransactionDataFromRT_{std::make_unique<RSTransactionData>()};
 
-    std::shared_ptr<RSIRenderClient> renderPipelineClient_ = RSIRenderClient::CreateRenderPiplineClient();
+    std::shared_ptr<RSIRenderClient> renderServiceClient_ = RSIRenderClient::CreateRenderServiceClient();
     std::unique_ptr<RSIRenderClient> renderThreadClient_ = nullptr;
     uint64_t timestamp_ = 0;
     static std::once_flag flag_;
@@ -122,7 +122,7 @@ private:
     uint64_t syncId_ { 0 };
     std::shared_ptr<AppExecFwk::EventHandler> handler_;
     FlushEmptyCallback flushEmptyCallback_ = nullptr;
-    CommitTransactionCallback commitTransactionCallback_ = nullptr;
+    // CommitTransactionCallback commitTransactionCallback_ = nullptr;
     std::atomic<uint32_t> uiSkipCount_ = 0;
     uint32_t transactionDataIndex_ = 0;
     std::queue<std::string> taskNames_ {};
