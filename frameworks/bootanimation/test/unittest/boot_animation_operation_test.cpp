@@ -17,6 +17,7 @@
 
 #include <parameters.h>
 #include "boot_animation_operation.h"
+#include "boot_animation_strategy.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -67,6 +68,9 @@ HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_002, TestSize.Le
 HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_003, TestSize.Level1)
 {
     BootAnimationOperation operation;
+    std::shared_ptr<BootAnimationStrategy> strategy = std::make_shared<BootAnimationStrategy>();
+    strategy->GetConnectToRenderMap(1);
+    operation.connectToRender_ = strategy->connectToRenderMap_.begin()->second;
     operation.InitRsDisplayNode();
     ASSERT_NE(nullptr, operation.rsDisplayNode_);
 }
@@ -79,6 +83,9 @@ HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_003, TestSize.Le
 HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_004, TestSize.Level1)
 {
     BootAnimationOperation operation;
+    std::shared_ptr<BootAnimationStrategy> strategy = std::make_shared<BootAnimationStrategy>();
+    strategy->GetConnectToRenderMap(1);
+    operation.connectToRender_ = strategy->connectToRenderMap_.begin()->second;
     int32_t degree = 0;
     operation.InitRsDisplayNode();
     operation.InitRsSurfaceNode(degree);
@@ -93,6 +100,9 @@ HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_004, TestSize.Le
 HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_005, TestSize.Level1)
 {
     BootAnimationOperation operation;
+    std::shared_ptr<BootAnimationStrategy> strategy = std::make_shared<BootAnimationStrategy>();
+    strategy->GetConnectToRenderMap(1);
+    operation.connectToRender_ = strategy->connectToRenderMap_.begin()->second;
     int32_t degree = 0;
     operation.InitRsDisplayNode();
     operation.InitRsSurfaceNode(degree);
@@ -153,6 +163,9 @@ HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_008, TestSize.Le
 HWTEST_F(BootAnimationOperationTest, BootAnimationOperationTest_009, TestSize.Level1)
 {
     BootAnimationOperation operation;
+    std::shared_ptr<BootAnimationStrategy> strategy = std::make_shared<BootAnimationStrategy>();
+    strategy->GetConnectToRenderMap(1);
+    operation.connectToRender_ = strategy->connectToRenderMap_.begin()->second;
     int32_t degree = 0;
     system::SetParameter(BOOT_ANIMATION_READY, "true");
     operation.InitRsDisplayNode();
