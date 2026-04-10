@@ -2370,6 +2370,10 @@ CM_INLINE bool RSUniRenderVisitor::AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNo
         !node.GetVisibleRegion().IsEmpty() || !GetIsOpDropped()) {
         CheckColorSpace(node);
     }
+    // 5. collect white list rect
+    bool isRotating = displayNodeRotationChanged_ || isScreenRotationAnimating_ ||
+        RSMainThread::Instance()->GetSystemAnimatedScenes() == SystemAnimatedScenes::SNAPSHOT_ROTATION;
+    RSSpecialLayerUtils::CollectWhiteListRect(node, hasMirrorUsedInSpecialLayer_, isRotating);
     return true;
 }
 

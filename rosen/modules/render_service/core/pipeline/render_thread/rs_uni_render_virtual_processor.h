@@ -112,6 +112,7 @@ public:
     void CanvasInit(DrawableV2::RSLogicalDisplayRenderNodeDrawable& displayDrawable);
     void CancelCurrentFrame();
     sptr<SyncFence> GetFrameAcquireFence();
+    bool SetCropRectForMetadata(const HDI::Display::Graphic::Common::V1_0::BufferHandleMetaRegion& metaRegion);
 private:
     void MergeMirrorFenceToHardwareEnabledDrawables();
     void SetVirtualScreenSize(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable);
