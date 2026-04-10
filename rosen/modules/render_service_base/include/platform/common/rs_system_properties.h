@@ -409,6 +409,7 @@ public:
     static bool GetTransactionDataTraceEnabled();
     static bool GetDefaultMemClearEnabled();
     static bool GetSceneBoardIsPcMode();
+    static bool GetBufferOwnerCountDfxEnabled();
 
     static bool GetCanvasDrawingNodePreAllocateDmaEnabled();
     static bool GetCanvasDrawingNodeRenderDmaEnabled();
