@@ -763,7 +763,7 @@ void HdiOutput::ReleaseLayers(ReleaseLayerBuffersInfo& releaseLayerInfo)
             releaseBufferFenceMap[hdiLayer->GetRSLayer()->GetRSLayerId()] = SyncFence::InvalidFence();
             releaseLayerInfo.releaseBufferFenceVec.push_back(std::tuple(hdiLayer->GetRSLayer()->GetRSLayerId(),
                 hdiLayer->GetRSLayer()->GetPreBuffer(), SyncFence::InvalidFence()));
-            // release original buffer for device offline
+            // hpae_offline: release original buffer for device offline
             releaseOriginalBuffer(hdiLayer->GetRSLayer(), SyncFence::InvalidFence());
         }
         HLOGD("%{public}s: no layer needs to release", __func__);
@@ -781,12 +781,12 @@ void HdiOutput::ReleaseLayers(ReleaseLayerBuffersInfo& releaseLayerInfo)
                     releaseLayerInfo.releaseBufferFenceVec.push_back(std::tuple(rsLayer->GetRSLayerId(),
                         rsLayer->GetPreBuffer(), fence));
                 }
-                // release original buffer for device offline
+                // hpae_offline: release original buffer for device offline
                 releaseOriginalBuffer(rsLayer, fence);
             }
         }
     }
- 
+
     for (const auto& hdiLayer : layersTobeRelease_) {
         if (hdiLayer == nullptr || hdiLayer->GetRSLayer() == nullptr) {
             continue;
@@ -794,7 +794,7 @@ void HdiOutput::ReleaseLayers(ReleaseLayerBuffersInfo& releaseLayerInfo)
         if (releaseBufferFenceMap.find(hdiLayer->GetRSLayer()->GetRSLayerId()) == releaseBufferFenceMap.end()) {
             releaseLayerInfo.releaseBufferFenceVec.push_back(std::tuple(hdiLayer->GetRSLayer()->GetRSLayerId(),
                 hdiLayer->GetRSLayer()->GetPreBuffer(), SyncFence::InvalidFence()));
-            // release original buffer for device offline
+            // hpae_offline: release original buffer for device offline
             releaseOriginalBuffer(hdiLayer->GetRSLayer(), SyncFence::InvalidFence());
         }
     }

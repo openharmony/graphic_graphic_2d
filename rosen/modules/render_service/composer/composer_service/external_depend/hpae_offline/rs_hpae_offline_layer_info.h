@@ -39,7 +39,7 @@ struct HpaeOriginalInfo {
             originalCropRect == other.originalCropRect;
     }
 };
- 
+
 } // namespace Rosen
 } // namespace OHOS
  

@@ -391,6 +391,7 @@ public:
 protected:
     T stagingValue_ {};
 };
+
 template<>
 struct RSRenderLayerCmdProperty<HpaeOriginalInfo> : public RSRenderLayerPropertyBase {
     using ValueType = HpaeOriginalInfo;
@@ -399,16 +400,10 @@ struct RSRenderLayerCmdProperty<HpaeOriginalInfo> : public RSRenderLayerProperty
     explicit RSRenderLayerCmdProperty(const HpaeOriginalInfo& value) : stagingValue_(value) {}
     ~RSRenderLayerCmdProperty() override = default;
  
-    void Set(const HpaeOriginalInfo& value)
-    {
-        stagingValue_ = value;
-    }
- 
-    HpaeOriginalInfo Get() const
-    {
-        return stagingValue_;
-    }
- 
+    void Set(const HpaeOriginalInfo& value) { stagingValue_ = value; }
+
+    HpaeOriginalInfo Get() const { return stagingValue_; }
+
     bool Marshalling(OHOS::MessageParcel& parcel, const HpaeOriginalInfo& value)
     {
         // originalBuffer

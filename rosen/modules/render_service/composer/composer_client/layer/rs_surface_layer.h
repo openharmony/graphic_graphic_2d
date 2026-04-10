@@ -221,6 +221,7 @@ private:
     mutable std::mutex ownerCountMutex_;
     std::map<uint64_t, std::shared_ptr<RSSurfaceHandler::BufferOwnerCount>> bufferOwnerCounts_;
     std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount_;
+    // hpae_offline
     std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> originalBufferOwnerCount_;
     bool preMulti_ = false;
     bool needBilinearInterpolation_ = false;
