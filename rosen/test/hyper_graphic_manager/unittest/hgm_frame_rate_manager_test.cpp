@@ -1873,10 +1873,10 @@ HWTEST_F(HgmFrameRateMgrTest, HandleScreenPowerStatusAndRectFrameRateTest, Funct
     Rect testRect { .x = 100, .y = 200, .w = 300, .h = 400 };
     bool isSelfOwnedScreen = false;
 
-    configData->screenStrategyConfigs_["screen10_LTPO"] = "screen10_LTPO";
     configData->screenStrategyConfigs_["screen10_LTPS"] = "screen10_LTPS";
-    configData->screenStrategyConfigs_["screen10_LTPO_100_200_300_400"] = "screen10_LTPO_100_200_300_400";
+    configData->screenStrategyConfigs_["screen10_LTPO"] = "screen10_LTPO";
     configData->screenStrategyConfigs_["screen10_LTPS_100_200_300_400"] = "screen10_LTPS_100_200_300_400";
+    configData->screenStrategyConfigs_["screen10_LTPO_100_200_300_400"] = "screen10_LTPO_100_200_300_400";
 
     EXPECT_EQ(hgmCore.AddScreen(testScreenId, 0, screenSize, isSelfOwnedScreen), EXEC_SUCCESS);
 
@@ -1944,12 +1944,12 @@ HWTEST_F(HgmFrameRateMgrTest, HandleScreenPowerStatusAndRectFrameRateTest2, Func
     Rect rect2 { .x = 150, .y = 250, .w = 350, .h = 450 };
     bool isSelfOwnedScreen = false;
 
-    configData->screenStrategyConfigs_["screen20_LTPO"] = "screen20_LTPO";
     configData->screenStrategyConfigs_["screen20_LTPS"] = "screen20_LTPS";
-    configData->screenStrategyConfigs_["screen20_LTPO_100_200_300_400"] = "screen20_LTPO_100_200_300_400";
+    configData->screenStrategyConfigs_["screen20_LTPO"] = "screen20_LTPO";
     configData->screenStrategyConfigs_["screen20_LTPS_100_200_300_400"] = "screen20_LTPS_100_200_300_400";
-    configData->screenStrategyConfigs_["screen20_LTPO_150_250_350_450"] = "screen20_LTPO_150_250_350_450";
+    configData->screenStrategyConfigs_["screen20_LTPO_100_200_300_400"] = "screen20_LTPO_100_200_300_400";
     configData->screenStrategyConfigs_["screen20_LTPS_150_250_350_450"] = "screen20_LTPO_150_250_350_450";
+    configData->screenStrategyConfigs_["screen20_LTPO_150_250_350_450"] = "screen20_LTPO_150_250_350_450";
 
     EXPECT_EQ(hgmCore.AddScreen(selfOwnedScreenId, 0, screenSize, isSelfOwnedScreen), EXEC_SUCCESS);
     EXPECT_EQ(hgmCore.AddScreen(nonSelfOwnedScreenId, 0, screenSize, isSelfOwnedScreen), EXEC_SUCCESS);
@@ -2009,14 +2009,14 @@ HWTEST_F(HgmFrameRateMgrTest, HandleScreenPowerStatusAndRectFrameRateTest3, Func
     Rect rect2 { .x = 150, .y = 250, .w = 350, .h = 450 };
     bool isSelfOwnedScreen = false;
 
-    configData->screenStrategyConfigs_["screen30_LTPO"] = "screen30_LTPO";
     configData->screenStrategyConfigs_["screen30_LTPS"] = "screen30_LTPS";
-    configData->screenStrategyConfigs_["screen30_LTPO_100_200_300_400"] = "screen30_LTPO_100_200_300_400";
+    configData->screenStrategyConfigs_["screen30_LTPO"] = "screen30_LTPO";
     configData->screenStrategyConfigs_["screen30_LTPS_100_200_300_400"] = "screen30_LTPS_100_200_300_400";
-    configData->screenStrategyConfigs_["screen31_LTPO"] = "screen31_LTPO";
+    configData->screenStrategyConfigs_["screen30_LTPO_100_200_300_400"] = "screen30_LTPO_100_200_300_400";
     configData->screenStrategyConfigs_["screen31_LTPS"] = "screen31_LTPS";
-    configData->screenStrategyConfigs_["screen31_LTPO_150_250_350_450"] = "screen31_LTPO_150_250_350_450";
+    configData->screenStrategyConfigs_["screen31_LTPO"] = "screen31_LTPO";
     configData->screenStrategyConfigs_["screen31_LTPS_150_250_350_450"] = "screen31_LTPS_150_250_350_450";
+    configData->screenStrategyConfigs_["screen31_LTPO_150_250_350_450"] = "screen31_LTPO_150_250_350_450";
 
     EXPECT_EQ(hgmCore.AddScreen(screenId1, 0, screenSize, isSelfOwnedScreen), EXEC_SUCCESS);
     EXPECT_EQ(hgmCore.AddScreen(screenId2, 0, screenSize, isSelfOwnedScreen), EXEC_SUCCESS);
@@ -2067,10 +2067,10 @@ HWTEST_F(HgmFrameRateMgrTest, HandleScreenPowerStatusAndRectFrameRateTest4, Func
     Rect rect2 { .x = 150, .y = 250, .w = 350, .h = 450 };
     bool isSelfOwnedScreen = false;
 
-    configData->screenStrategyConfigs_["screen40_LTPO"] = "screen40_LTPO";
     configData->screenStrategyConfigs_["screen40_LTPS"] = "screen40_LTPS";
-    configData->screenStrategyConfigs_["screen40_LTPO_100_200_300_400"] = "screen40_LTPO_100_200_300_400";
+    configData->screenStrategyConfigs_["screen40_LTPO"] = "screen40_LTPO";
     configData->screenStrategyConfigs_["screen40_LTPS_100_200_300_400"] = "screen40_LTPS_100_200_300_400";
+    configData->screenStrategyConfigs_["screen40_LTPO_100_200_300_400"] = "screen40_LTPO_100_200_300_400";
 
     EXPECT_EQ(hgmCore.AddScreen(testScreenId, 0, screenSize, isSelfOwnedScreen), EXEC_SUCCESS);
 
