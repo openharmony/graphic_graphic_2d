@@ -272,6 +272,10 @@ public:
 
     static uint32_t AddDrawingObjectToCmdList(CmdList& cmdList, std::shared_ptr<Object>);
     static std::shared_ptr<Object> GetDrawingObjectFromCmdList(const CmdList& cmdList, uint32_t index);
+    static OpDataHandle AddParticleEffectToCmdList(CmdList& cmdList,
+        const std::shared_ptr<ParticleEffect>& particleEffect);
+    static std::shared_ptr<ParticleEffect> GetParticleEffectFromCmdList(const CmdList& cmdList,
+        const OpDataHandle& particleEffectHandle);
 };
 } // namespace Drawing
 } // namespace Rosen

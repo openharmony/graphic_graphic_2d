@@ -4153,6 +4153,22 @@ float RSProperties::GetGravityPullStrength() const
     return gravityPullStrength_;
 }
 
+void RSProperties::SetGravityHotZone(float hotZone)
+{
+    if (ROSEN_EQ(gravityHotZone_, hotZone)) {
+        return;
+    }
+    gravityHotZone_ = hotZone;
+    isDrawn_ = true;
+    filterNeedUpdate_ = true;
+    SetDirty();
+}
+
+float RSProperties::GetGravityHotZone() const
+{
+    return gravityHotZone_;
+}
+
 void RSProperties::SetUnionSpacing(float spacing)
 {
     if (ROSEN_EQ(unionSpacing_, spacing)) {

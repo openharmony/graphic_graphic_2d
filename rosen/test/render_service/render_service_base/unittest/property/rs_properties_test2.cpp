@@ -1575,6 +1575,39 @@ HWTEST_F(PropertiesTest, GetMaterialFilter001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetGravityHotZoneTest001
+ * @tc.desc: test SetGravityHotZone with different value
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetGravityHotZoneTest001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetGravityHotZone(0.5f);
+    EXPECT_FLOAT_EQ(properties.gravityHotZone_, 0.5f);
+    EXPECT_TRUE(properties.isDrawn_);
+    EXPECT_TRUE(properties.filterNeedUpdate_);
+    EXPECT_TRUE(properties.isDirty_);
+}
+
+/**
+ * @tc.name: SetGravityHotZoneTest002
+ * @tc.desc: test SetGravityHotZone with same value
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetGravityHotZoneTest002, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetGravityHotZone(0.5f);
+    properties.isDrawn_ = false;
+    properties.filterNeedUpdate_ = false;
+    properties.isDirty_ = false;
+    properties.SetGravityHotZone(0.5f);
+    EXPECT_FALSE(properties.isDrawn_);
+    EXPECT_FALSE(properties.filterNeedUpdate_);
+    EXPECT_FALSE(properties.isDirty_);
+}
+
+/**
  * @tc.name: GenerateMaterialFilter001
  * @tc.desc: test GenerateMaterialFilter
  * @tc.type: FUNC

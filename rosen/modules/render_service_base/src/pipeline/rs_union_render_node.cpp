@@ -104,9 +104,12 @@ void RSUnionRenderNode::ProcessSDFShape(RSDirtyRegionManager& dirtyManager)
                 SDFUnionOpShapeShapeYRenderTag>(shapeQueue);
         }
     }
-    GetMutableRenderProperties().InternalSetSDFShape(root);
-    dirtyManager.MergeDirtyRect(GetAbsDrawRect());
-    UpdateDrawableAfterPostPrepare(ModifierNG::RSModifierType::BOUNDS);
+    if (!GetRenderProperties().GetSDFShape() ||
+        GetRenderProperties().GetSDFShape()->CalculateHash() != root->CalculateHash()) {
+        GetMutableRenderProperties().InternalSetSDFShape(root);
+        dirtyManager.MergeDirtyRect(GetAbsDrawRect());
+        UpdateDrawableAfterPostPrepare(ModifierNG::RSModifierType::BOUNDS);
+    }
 }
 
 bool RSUnionRenderNode::GetChildRelativeMatrixToUnionNode(Drawing::Matrix& relativeMatrix,
@@ -176,14 +179,14 @@ std::shared_ptr<RSNGRenderShapeBase> RSUnionRenderNode::CreateChildToContainerSD
     if (ROSEN_NE(GetRenderProperties().GetUnionSpacing(), 0.f) && unionMode_ == 1) {
         transformShape->Setter<SDFTransformShapeUnionModeRenderTag>(1);
         transformShape->Setter<SDFTransformShapeGravityCenterRenderTag>(gravityCenter_);
-        transformShape->Setter<SDFTransformShapeGravityStrengthRenderTag>(
-            GetRenderProperties().GetGravityPullStrength());
+        transformShape->Setter<SDFTransformShapeGravityStrengthRenderTag>(gravityStrength_);
+        transformShape->Setter<SDFTransformShapeGravityHotZoneRenderTag>(gravityHotZone_);
         transformShape->Setter<SDFTransformShapeGravitySpacingRenderTag>(GetRenderProperties().GetUnionSpacing());
     }
     return transformShape;
 }
 
-Vector2f RSUnionRenderNode::GetGravityCenter() const
+Vector2f RSUnionRenderNode::GetGravityCenter()
 {
     auto context = GetContext().lock();
     if (!context) {
@@ -211,6 +214,8 @@ Vector2f RSUnionRenderNode::GetGravityCenter() const
         if (std::abs(result.z_) < SCALE_EPSILON) {
             return Vector2f(0.0f, 0.0f); // scaling too large
         }
+        gravityStrength_ = child->GetRenderProperties().GetGravityPullStrength();
+        gravityHotZone_ = child->GetRenderProperties().GetGravityHotZone();
         return Vector2f(result.x_ / result.z_, result.y_ / result.z_);
     }
     return Vector2f(0.0f, 0.0f);

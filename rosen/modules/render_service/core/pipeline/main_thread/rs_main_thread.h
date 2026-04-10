@@ -127,6 +127,7 @@ public:
     void ResetAnimateNodeFlag();
     void GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize);
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply = false, pid_t pid = -1);
+    void AddWhiteListRect(const std::unordered_set<ScreenId>& screenIds, RectI rect);
 
     void SetForceRsDVsync(const std::string& sceneId);
     void GetNodeInfo(std::unordered_map<int, std::pair<int, int>>& node_info,

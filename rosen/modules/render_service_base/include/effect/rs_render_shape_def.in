@@ -52,7 +52,8 @@ DECLARE_SHAPE(SDFTransformShape, SDF_TRANSFORM_SHAPE,
     ADD_PROPERTY_TAG(SDFTransformShape, UnionMode),
     ADD_PROPERTY_TAG(SDFTransformShape, GravityCenter),
     ADD_PROPERTY_TAG(SDFTransformShape, GravityStrength),
-    ADD_PROPERTY_TAG(SDFTransformShape, GravitySpacing)
+    ADD_PROPERTY_TAG(SDFTransformShape, GravitySpacing),
+    ADD_PROPERTY_TAG(SDFTransformShape, GravityHotZone)
 );
 
 DECLARE_SHAPE(SDFPixelmapShape, SDF_PIXELMAP_SHAPE,

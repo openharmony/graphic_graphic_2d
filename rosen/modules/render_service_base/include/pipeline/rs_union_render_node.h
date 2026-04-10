@@ -116,12 +116,14 @@ private:
     std::shared_ptr<RSNGRenderShapeBase> CreateChildToContainerSDFTransformShape(
         std::shared_ptr<RSRenderNode>& child, std::shared_ptr<RSNGRenderShapeBase>& childShape);
     std::shared_ptr<RSNGRenderShapeBase> GetOrCreateChildSDFShape(std::shared_ptr<RSRenderNode>& child);
-    Vector2f GetGravityCenter() const;
+    Vector2f GetGravityCenter();
     static std::shared_ptr<RSUnionRenderNode> FindClosestUnionAncestor(const std::shared_ptr<RSRenderNode> node);
 
     std::unordered_set<NodeId> unionChildren_;
     int unionMode_ = 0;
     Vector2f gravityCenter_ = Vector2f(0.0f, 0.0f);
+    float gravityStrength_ = 0.0f;
+    float gravityHotZone_ = 0.0f;
     friend class UnionNodeCommandHelper;
 };
 } // namespace Rosen

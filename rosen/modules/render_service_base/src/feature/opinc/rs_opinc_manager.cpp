@@ -103,9 +103,6 @@ bool RSOpincManager::IsOpincSubTreeDirty(RSRenderNode& node, bool opincEnable)
 {
     auto subTreeDirty = node.GetOpincCache().OpincForcePrepareSubTree(opincEnable,
         node.IsSubTreeDirty() || node.IsContentDirty(), OpincGetNodeSupportFlag(node));
-    if (subTreeDirty) {
-        node.SetParentSubTreeDirty();
-    }
     return subTreeDirty;
 }
 
@@ -140,15 +137,39 @@ void RSOpincManager::UpdateRootFlag(RSRenderNode& node, bool& unchangeMarkEnable
     }
 }
 
-void RSOpincManager::OpincSubTreeSkipPrepare(RSRenderNode& node, bool& unchangeMarkEnable)
+void RSOpincManager::QuickCheckOpincStable(
+    RSRenderNode& node, bool& unchangeMarkInApp, bool& unchangeMarkEnable, bool& hasUnstableOpincNode)
 {
-    if (!unchangeMarkEnable || !OpincGetNodeSupportFlag(node)) {
+    if (!GetOPIncSwitch() || !node.GetOpincCache().HasUnstableOpincNode()) {
         return;
     }
 
-    RS_OPTIONAL_TRACE_FMT("%s, node: %" PRIu64, __func__, node.GetId());
-    auto& opincCache = node.GetOpincCache();
-    opincCache.OpincSubTreeSkip();
+    bool allChildHasUnstableOpincNode = false;
+
+    for (const auto& child : *node.GetSortedChildren()) {
+        bool childHasUnstableOpincNode = false;
+        auto& opincCache = child->GetOpincCache();
+
+        if (!opincCache.IsSuggestOpincNode() || opincCache.IsOpincUnchangeState()) {
+            QuickCheckOpincStable(*child, unchangeMarkInApp, unchangeMarkEnable, childHasUnstableOpincNode);
+            opincCache.SetHasUnstableOpincNode(childHasUnstableOpincNode);
+            allChildHasUnstableOpincNode |= childHasUnstableOpincNode;
+            continue;
+        }
+
+        QuickMarkStableNode(*child, unchangeMarkInApp, unchangeMarkEnable, false);
+        QuickCheckOpincStable(*child, unchangeMarkInApp, unchangeMarkEnable, childHasUnstableOpincNode);
+        UpdateRootFlag(*child, unchangeMarkEnable);
+        child->AddToPendingSyncList();
+
+        opincCache.SetHasUnstableOpincNode(
+            childHasUnstableOpincNode || (opincCache.IsSuggestOpincNode() && !opincCache.IsOpincUnchangeState()));
+        allChildHasUnstableOpincNode |= opincCache.HasUnstableOpincNode();
+    }
+    node.GetOpincCache().SetHasUnstableOpincNode(
+        allChildHasUnstableOpincNode ||
+        (node.GetOpincCache().IsSuggestOpincNode() && !node.GetOpincCache().IsOpincUnchangeState()));
+    hasUnstableOpincNode = node.GetOpincCache().HasUnstableOpincNode();
 }
 
 OpincUnsupportType RSOpincManager::GetUnsupportReason(RSRenderNode& node)

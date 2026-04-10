@@ -972,7 +972,7 @@ public:
     void ResetNodeColorSpace();
     void SetNodeColorSpace(GraphicColorGamut colorSpace);
     GraphicColorGamut GetNodeColorSpace() const;
-    virtual void MarkNodeColorSpace(bool isP3) {}
+    virtual void MarkNodeColorSpace(int8_t colorSpace) {}
 
     void SetEnableHdrEffect(bool enableHdrEffect);
 

@@ -291,6 +291,7 @@ DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFTransformShape, UnionMode, int);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFTransformShape, GravityCenter, Vector2f);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFTransformShape, GravityStrength, float);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFTransformShape, GravitySpacing, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFTransformShape, GravityHotZone, float);
 
 // SDFPixelmapShape
 DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFPixelmapShape, Image, std::shared_ptr<Media::PixelMap>);

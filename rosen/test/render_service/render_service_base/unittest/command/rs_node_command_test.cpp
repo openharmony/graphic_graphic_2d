@@ -135,10 +135,10 @@ HWTEST_F(RSNodeCommandTest, MarkNodeColorSpaceTest001, TestSize.Level1)
 {
     RSContext context;
     NodeId nodeId = static_cast<NodeId>(-1);
-    RSNodeCommandHelper::MarkNodeColorSpace(context, nodeId, true);
+    RSNodeCommandHelper::MarkNodeColorSpace(context, nodeId, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
     nodeId = 100;
     RSCanvasNodeCommandHelper::Create(context, nodeId, false);
-    RSNodeCommandHelper::MarkNodeColorSpace(context, nodeId, false);
+    RSNodeCommandHelper::MarkNodeColorSpace(context, nodeId, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
     auto canvasNode = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
     ASSERT_NE(canvasNode, nullptr);
     EXPECT_EQ(canvasNode->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
@@ -153,10 +153,10 @@ HWTEST_F(RSNodeCommandTest, MarkNodeColorSpaceTest002, TestSize.Level1)
 {
     RSContext context;
     NodeId nodeId = static_cast<NodeId>(-1);
-    RSNodeCommandHelper::MarkNodeColorSpace(context, nodeId, true);
+    RSNodeCommandHelper::MarkNodeColorSpace(context, nodeId, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
     nodeId = 101;
     RSCanvasNodeCommandHelper::Create(context, nodeId, false);
-    RSNodeCommandHelper::MarkNodeColorSpace(context, nodeId, true);
+    RSNodeCommandHelper::MarkNodeColorSpace(context, nodeId, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
     auto canvasNode = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
     ASSERT_NE(canvasNode, nullptr);
     EXPECT_EQ(canvasNode->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);

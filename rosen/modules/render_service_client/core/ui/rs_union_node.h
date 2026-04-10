@@ -85,12 +85,6 @@ public:
      */
     void SetUnionMode(int uniModeUC);
 
-    /**
-     * @brief Sets the strength of gravity pull union node.
-     *
-     * @param gravityPullStrength: strength of gravity pull.
-     */
-    void SetGravityPullStrength(float gravityPullStrength);
 protected:
     RSUnionNode(
         bool isRenderServiceNode, bool isTextureExportNode = false, std::shared_ptr<RSUIContext> rsUIContext = nullptr);

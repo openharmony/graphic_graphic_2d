@@ -1054,6 +1054,14 @@ bool RSSystemProperties::GetDumpImgEnabled()
     return dumpImgEnabled;
 }
 
+bool RSSystemProperties::GetBufferOwnerCountDfxEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.backend.buffer.dfx.enabled", "0");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 0) != 0;
+}
+
 bool RSSystemProperties::FindNodeInTargetList(std::string node)
 {
     static std::string targetStr = system::GetParameter("persist.sys.graphic.traceTargetList", "");

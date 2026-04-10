@@ -59,7 +59,8 @@ public:
     void QuickMarkStableNode(RSRenderNode& node, bool& unchangeMarkInApp, bool& unchangeMarkEnable,
         bool isAccessibilityConfigChanged);
     void UpdateRootFlag(RSRenderNode& node, bool& unchangeMarkEnable);
-    void OpincSubTreeSkipPrepare(RSRenderNode& node, bool& unchangeMarkEnable);
+    void QuickCheckOpincStable(
+        RSRenderNode& node, bool& unchangeMarkInApp, bool& unchangeMarkEnable, bool& hasUnstableOpincNode);
     OpincUnsupportType GetUnsupportReason(RSRenderNode& node);
     std::string QuickGetNodeDebugInfo(RSRenderNode& node);
 

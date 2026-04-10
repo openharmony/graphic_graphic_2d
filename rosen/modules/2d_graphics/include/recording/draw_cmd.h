@@ -102,6 +102,7 @@ public:
         HYBRID_RENDER_PIXELMAP_OPITEM,
         HYBRID_RENDER_PIXELMAP_SIZE_OPITEM,
         UICOLOR_OPITEM,
+        PARTICLE_OPITEM,
         RESET_CLIP_OPITEM,
     };
 
@@ -1424,6 +1425,25 @@ class HybridRenderPixelMapSizeOpItem : public DrawOpItem {
         float width_;
         float height_;
     };
+
+class DrawParticleOpItem : public DrawOpItem {
+public:
+    struct ConstructorHandle : public OpItem {
+        ConstructorHandle(const OpDataHandle& particleEffectHandle)
+            : OpItem(DrawOpItem::PARTICLE_OPITEM), particleEffectHandle(particleEffectHandle) {}
+        ~ConstructorHandle() override = default;
+        OpDataHandle particleEffectHandle;
+    };
+    explicit DrawParticleOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
+    explicit DrawParticleOpItem(std::shared_ptr<ParticleEffect> particleEffect);
+    ~DrawParticleOpItem() override = default;
+    static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
+    void Marshalling(DrawCmdList& cmdList) override;
+    void Playback(Canvas* canvas, const Rect* rect) override;
+    void Dump(std::string& out) const override;
+private:
+    std::shared_ptr<ParticleEffect> particleEffect_;
+};
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

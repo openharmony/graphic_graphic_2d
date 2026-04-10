@@ -15,10 +15,10 @@
 
 #include "rs_trace.h"
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 
 #include "rs_buffer_manager.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
-#include <sstream>
 
 namespace OHOS {
 namespace Rosen {
@@ -71,13 +71,125 @@ static inline sptr<SyncFence> TryMergeFence(std::vector<sptr<SyncFence>> fences)
     return mergedFence;
 }
 
+#ifndef ROSEN_CROSS_PLATFORM
+static std::string GetFenceStatus(const sptr<SyncFence>& fence)
+{
+    if (!fence) {
+        return "(null)";
+    }
+    return (fence->Get() != -1) ? "(valid)" : "(invalid)";
+}
+
+static void AppendFenceDetails(std::ostringstream& oss,
+    const std::vector<sptr<SyncFence>>& mergedFences)
+{
+    for (size_t i = 0; i < mergedFences.size(); ++i) {
+        auto& fence = mergedFences[i];
+        oss << "  [" << i << "] fence_fd=";
+        oss << (fence ? fence->Get() : -1);
+        oss << " " << GetFenceStatus(fence) << "\n";
+    }
+}
+
+void RSBufferManager::AppendBufferEntry(std::ostringstream& oss, uint64_t bufferId,
+    const PendingReleaseBufferInfo& info)
+{
+    oss << bufferId << "\t\t";
+
+    if (info.consumer_) {
+        oss << info.consumer_->GetUniqueId() << "\t\t";
+    } else {
+        oss << "null\t\t";
+    }
+
+    auto buffer = info.buffer_.promote();
+    if (buffer) {
+        oss << "valid\t\t";
+        oss << buffer->GetWidth() << "\t";
+        oss << buffer->GetHeight() << "\t";
+        oss << buffer->GetSeqNum() << "\t";
+    } else {
+        oss << "expired\t\t-\t-\t-\t";
+    }
+
+    oss << info.mergedFences_.size() << "\t";
+
+    auto ownerCount = info.bufferOwnerCount_.lock();
+    if (ownerCount) {
+        oss << ownerCount->refCount_.load(std::memory_order_relaxed);
+    } else {
+        oss << "N/A";
+    }
+    oss << "\n";
+
+    AppendFenceDetails(oss, info.mergedFences_);
+}
+
+void RSBufferManager::AppendBufferTable(std::ostringstream& oss,
+    const std::map<uint64_t, PendingReleaseBufferInfo>& buffers)
+{
+    oss << "BufferID\t\tConsumerID\t\tBuffer\t\tWidth\tHeight\tSeqNum\tFenceCount\tRefCount\n";
+    oss << "--------\t\t--------\t\t------\t\t-----\t------\t------\t----------\t--------\n";
+    for (const auto& [bufferId, info] : buffers) {
+        AppendBufferEntry(oss, bufferId, info);
+    }
+}
+
+void RSBufferManager::AppendSummary(std::ostringstream& oss,
+    const std::map<uint64_t, PendingReleaseBufferInfo>& buffers)
+{
+    oss << "\n=== Summary ===\n";
+
+    uint64_t totalFences = 0;
+    uint64_t validBuffers = 0;
+    uint64_t expiredBuffers = 0;
+
+    for (const auto& [bufferId, info] : buffers) {
+        totalFences += info.mergedFences_.size();
+        if (info.buffer_.promote()) {
+            validBuffers++;
+        } else {
+            expiredBuffers++;
+        }
+    }
+
+    oss << "Valid buffers: " << validBuffers << "\n";
+    oss << "Expired buffers: " << expiredBuffers << "\n";
+    oss << "Total fences: " << totalFences << "\n";
+
+    uint64_t avgFences = buffers.empty() ? 0 : totalFences / buffers.size();
+    oss << "Average fences per buffer: " << avgFences << "\n";
+    oss << "=== End Dump ===\n";
+}
+
+void RSBufferManager::DumpPendingReleaseBuffers(std::string& output)
+{
+    std::lock_guard<std::mutex> lock(screenNodeBufferReleasedMutex_);
+    std::ostringstream oss;
+
+    oss << "\n=== RSBufferManager::pendingReleaseBuffers_ Dump ===\n";
+    oss << "Total entries: " << pendingReleaseBuffers_.size() << "\n";
+
+    if (pendingReleaseBuffers_.empty()) {
+        oss << "(empty)\n";
+    } else {
+        AppendBufferTable(oss, pendingReleaseBuffers_);
+    }
+
+    AppendSummary(oss, pendingReleaseBuffers_);
+
+    output = oss.str();
+}
+#endif
+
 void RSBufferCollectorHelper::OnCanvasDrawEnd()
 {
     for (auto& info : pendingReleaseBufferInfos_) {
         if (info.bufferOwnerCount_) {
             info.bufferOwnerCount_->DecRef();
         }
-        RSUniRenderThread::Instance().AddPendingReleaseBuffer(info.consumer_, info.buffer_, fence_);
+        RSUniRenderThread::Instance().AddPendingReleaseBuffer(info.consumer_, info.buffer_, fence_,
+            info.bufferOwnerCount_);
     }
 }
 
@@ -101,7 +213,8 @@ void RSBufferCollectorHelper::OnCanvasDrawBuffer(sptr<IConsumerSurface> consumer
 }
 
 void RSBufferManager::AddPendingReleaseBuffer(sptr<IConsumerSurface> consumer,
-    sptr<SurfaceBuffer> buffer, sptr<SyncFence> fence)
+    sptr<SurfaceBuffer> buffer, sptr<SyncFence> fence,
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount)
 {
     if (buffer == nullptr) {
         return;
@@ -112,7 +225,7 @@ void RSBufferManager::AddPendingReleaseBuffer(sptr<IConsumerSurface> consumer,
     std::lock_guard<std::mutex> lock(screenNodeBufferReleasedMutex_);
     auto iter = pendingReleaseBuffers_.find(bufferId);
     if (iter == pendingReleaseBuffers_.end()) {
-        pendingReleaseBuffers_[bufferId] = { consumer, buffer, { fence } };
+        pendingReleaseBuffers_[bufferId] = { consumer, buffer, { fence }, bufferOwnerCount };
     } else {
         if (fence != nullptr) {
             // Merge the fences on the GPU and the fences on the DSS;
@@ -126,10 +239,14 @@ void RSBufferManager::AddPendingReleaseBuffer(sptr<IConsumerSurface> consumer,
         if (iter->second.consumer_ == nullptr) {
             iter->second.consumer_ = consumer;
         }
+        if (iter->second.bufferOwnerCount_.expired() && bufferOwnerCount) {
+            iter->second.bufferOwnerCount_ = bufferOwnerCount;
+        }
     }
 }
 
-void RSBufferManager::AddPendingReleaseBuffer(uint64_t bufferId, sptr<SyncFence> fence)
+void RSBufferManager::AddPendingReleaseBuffer(uint64_t bufferId, sptr<SyncFence> fence,
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount)
 {
     if (fence == nullptr) {
         RS_LOGE("RSBufferManager::AddPendingReleaseBuffer(without consumer) fence is null");
@@ -140,11 +257,14 @@ void RSBufferManager::AddPendingReleaseBuffer(uint64_t bufferId, sptr<SyncFence>
     std::lock_guard<std::mutex> lock(screenNodeBufferReleasedMutex_);
     auto iter = pendingReleaseBuffers_.find(bufferId);
     if (iter == pendingReleaseBuffers_.end()) {
-        pendingReleaseBuffers_[bufferId] = { nullptr, nullptr, { fence } };
+        pendingReleaseBuffers_[bufferId] = { nullptr, nullptr, { fence }, bufferOwnerCount };
     } else {
         iter->second.mergedFences_.push_back(fence);
         if (iter->second.mergedFences_.size() > MAX_BUFFER_FENCE_COUT) {
             TryWaitFences(iter->second.mergedFences_);
+        }
+        if (iter->second.bufferOwnerCount_.expired() && bufferOwnerCount) {
+            iter->second.bufferOwnerCount_ = bufferOwnerCount;
         }
     }
 }
@@ -152,6 +272,8 @@ void RSBufferManager::AddPendingReleaseBuffer(uint64_t bufferId, sptr<SyncFence>
 void RSBufferManager::OnReleaseLayerBuffers(std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>>& rsLayers,
     std::vector<std::tuple<RSLayerId, sptr<SurfaceBuffer>, sptr<SyncFence>>>& releaseBufferFenceVec, uint64_t screenId)
 {
+    RS_OPTIONAL_TRACE_NAME_FMT("OnReleaseLayerBuffers start: releaseBufferCount=%zu, screenId=%" PRIu64,
+        releaseBufferFenceVec.size(), screenId);
     std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> uniBufferCount = nullptr;
     sptr<SyncFence> uniFence = nullptr;
     std::set<uint64_t> decedSet = {};
@@ -171,19 +293,20 @@ void RSBufferManager::OnReleaseLayerBuffers(std::unordered_map<RSLayerId, std::w
         }
         auto bufferId = buffer->GetBufferId();
         auto bufferOwnerCount = layer->PopBufferOwnerCountById(bufferId);
-
-        RS_OPTIONAL_TRACE_NAME_FMT("RSBufferManager::OnReleaseLayerBuffers bufferId % " PRIu64 " seq:%u fence %d",
-            bufferId, uint32_t(buffer->GetSeqNum()), fence ? fence->Get() : -1);
-
         if (bufferOwnerCount) {
+            RS_OPTIONAL_TRACE_NAME_FMT("OnReleaseLayerBuffers: bufferId %" PRIu64 " layerId %" PRIu64
+                " surfaceName:%s refCount=%d uniRender=%d fence=%d", bufferId, id, layer->GetSurfaceName().c_str(),
+                bufferOwnerCount->refCount_.load(), layer->GetUniRenderFlag(), fence ? fence->Get() : -1);
             if (layer->GetUniRenderFlag()) {
                 uniBufferCount = bufferOwnerCount;
                 uniFence = fence;
             }
 
-            AddPendingReleaseBuffer(bufferId, fence);
+            AddPendingReleaseBuffer(bufferId, fence, bufferOwnerCount);
             bufferOwnerCount->OnBufferReleased();
             decedSet.insert(bufferId);
+        } else {
+            RS_LOGD("OnReleaseLayerBuffers: bufferId %{public}" PRIu64 " has no ownerCount", bufferId);
         }
     }
 
@@ -197,6 +320,7 @@ void RSBufferManager::ReleaseUniOnDrawBuffers(std::shared_ptr<RSSurfaceHandler::
     if (uniBufferCount == nullptr) {
         return;
     }
+    RS_OPTIONAL_TRACE_NAME_FMT("ReleaseUniOnDrawBuffers start: decedCount=%zu", decedSet.size());
     std::lock_guard<std::mutex> lock(uniBufferCount->mapMutex_);
     for (const auto& [layerId, bufferIdSet] : uniBufferCount->uniOnDrawBuffersMap_) {
         auto iter = rsLayers.find(layerId);
@@ -224,7 +348,7 @@ void RSBufferManager::ReleaseUniOnDrawBuffers(std::shared_ptr<RSSurfaceHandler::
 
             RS_OPTIONAL_TRACE_NAME_FMT("RSBufferManager::ReleaseUniOnDrawBuffers bufferId %" PRIu64
                 " in layer:%" PRIu64, bufferId, layerId);
-            AddPendingReleaseBuffer(bufferOwnerCount->bufferId_, uniFence);
+            AddPendingReleaseBuffer(bufferOwnerCount->bufferId_, uniFence, bufferOwnerCount);
             if (!bufferOwnerCount->CheckLastUniBufferOwner(uniBufferCount->bufferId_, screenId)) {
                 layer->SetBufferOwnerCount(bufferOwnerCount, false);
             }
@@ -256,66 +380,5 @@ void RSBufferManager::ReleaseBufferById(uint64_t bufferId)
     consumer->ReleaseBuffer(buffer, mergedFence);
     pendingReleaseBuffers_.erase(iter);
 }
-
-#ifndef ROSEN_CROSS_PLATFORM
-void RSBufferManager::DumpPendingReleaseBuffers(std::string& output)
-{
-    std::lock_guard<std::mutex> lock(screenNodeBufferReleasedMutex_);
-    std::ostringstream oss;
-
-    oss << "\n=== RSBufferManager::pendingReleaseBuffers_ Dump ===\n";
-    oss << "Total entries: " << pendingReleaseBuffers_.size() << "\n";
-
-    if (pendingReleaseBuffers_.empty()) {
-        oss << "(empty)\n";
-    } else {
-        oss << "BufferID\t\tConsumerID\t\tBuffer\t\tWidth\tHeight\tSeqNum\tFenceCount\n";
-        oss << "--------\t\t--------\t\t------\t\t-----\t------\t------\t----------\n";
-        for (const auto& [bufferId, info] : pendingReleaseBuffers_) {
-            oss << bufferId << "\t\t";
-
-            // Consumer info
-            if (info.consumer_) {
-                oss << info.consumer_->GetUniqueId() << "\t\t";
-            } else {
-                oss << "null\t\t";
-            }
-
-            // Buffer info
-            if (auto buffer = info.buffer_.promote()) {
-                oss << "valid\t\t";
-                oss << buffer->GetWidth() << "\t";
-                oss << buffer->GetHeight() << "\t";
-                oss << buffer->GetSeqNum() << "\t";
-            } else {
-                oss << "null\t\t";
-                oss << "-\t";
-                oss << "-\t";
-                oss << "-\t";
-            }
-
-            oss << info.mergedFences_.size() << "\n";
-
-            // Dump fence details
-            for (size_t i = 0; i < info.mergedFences_.size(); ++i) {
-                auto& fence = info.mergedFences_[i];
-                oss << "  [" << i << "] fence_fd=" << (fence ? fence->Get() : -1);
-                if (fence && fence->Get() != -1) {
-                    oss << " (valid)";
-                } else if (fence) {
-                    oss << " (invalid)";
-                } else {
-                    oss << " (null)";
-                }
-                oss << "\n";
-            }
-        }
-    }
-    oss << "=== End Dump ===\n";
-
-    output = oss.str();
-}
-#endif
-
 } // OHOS
 } // Rosen

@@ -257,16 +257,16 @@ void RSRenderNodeGC::ReleaseDrawableMemory(bool highPriority)
         }
         remainBucketSize = drawableBucket_.size();
     }
-    drawableGCLevel_ = JudgeGCLevel(remainBucketSize);
+    auto drawableGCLevel = JudgeGCLevel(remainBucketSize);
     if (renderTask_) {
-        auto task = [this, highPriority]() {
+        auto task = [this, highPriority, drawableGCLevel]() {
             RSRenderNodeGC::Instance().ReleaseDrawableBucket();
             if (highPriority && imageReleaseFunc_) {
                 imageReleaseFunc_();
             }
             RSRenderNodeGC::Instance().ReleaseDrawableMemory(highPriority);
         };
-        renderTask_(task, DELETE_DRAWABLE_TASK, 0, static_cast<AppExecFwk::EventQueue::Priority>(drawableGCLevel_));
+        renderTask_(task, DELETE_DRAWABLE_TASK, 0, static_cast<AppExecFwk::EventQueue::Priority>(drawableGCLevel));
     } else {
         ReleaseDrawableBucket();
     }

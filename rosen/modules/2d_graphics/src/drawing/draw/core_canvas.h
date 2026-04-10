@@ -349,6 +349,12 @@ public:
     virtual void DrawUIColor(UIColor color, BlendMode mode = BlendMode::SRC_OVER);
 
     /**
+     * @brief Draws Particle with a ParticleEffect.
+     * @param particle ParticleEffect to draw.
+     */
+    virtual void DrawParticle(std::shared_ptr<ParticleEffect> particle);
+
+    /**
      * @brief Draws Region on the Canvas.
      * @param region Region to draw.
      */

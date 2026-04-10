@@ -1667,6 +1667,20 @@ public:
     void SetGravityPullCenterFlag(bool isGravityPullModeCenter);
 
     /**
+     * @brief Sets the strength of gravity pull union node.
+     *
+     * @param gravityPullStrength strength of gravity pull.
+     */
+    void SetGravityPullStrength(float gravityPullStrength);
+
+    /**
+     * @brief Sets the hotZone of gravity pull union node.
+     *
+     * @param hotZone hot zone of gravity pull.
+     */
+    void SetGravityHotZone(float hotZone);
+
+    /**
      * @brief Sets the SDF Shape.
      *
      * @param shape SDF Shape (SDF Union OP Shape, SDF Smooth Union OP Shape, SDF RRect Shape)
@@ -2261,7 +2275,7 @@ private:
     bool isUifirstNode_ = true;
     bool isForceFlag_ = false;
     bool isUifirstEnable_ = false;
-    bool notSRGBColor_ = false;
+    int8_t collectColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     bool isSkipCheckInMultiInstance_ = true;
     RSUIFirstSwitch uiFirstSwitch_ = RSUIFirstSwitch::NONE;
     std::shared_ptr<RSUIContext> rsUIContext_;

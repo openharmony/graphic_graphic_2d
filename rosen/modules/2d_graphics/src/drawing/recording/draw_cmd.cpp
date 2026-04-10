@@ -103,6 +103,7 @@ std::unordered_map<uint32_t, std::string> typeOpDes = {
     { DrawOpItem::HYBRID_RENDER_PIXELMAP_OPITEM, "HYBRID_RENDER_PIXELMAP_OPITEM"},
     { DrawOpItem::HYBRID_RENDER_PIXELMAP_SIZE_OPITEM, "HYBRID_RENDER_PIXELMAP_SIZE_OPITEM"},
     { DrawOpItem::UICOLOR_OPITEM, "UICOLOR_OPITEM"},
+    { DrawOpItem::PARTICLE_OPITEM, "PARTICLE_OPITEM"},
 };
 
 namespace {
@@ -2820,6 +2821,45 @@ float HybridRenderPixelMapSizeOpItem::GetWidth() const
 float HybridRenderPixelMapSizeOpItem::GetHeight() const
 {
     return height_;
+}
+
+/* DrawParticleOpItem */
+UNMARSHALLING_REGISTER(DrawParticle, DrawOpItem::PARTICLE_OPITEM,
+    DrawParticleOpItem::Unmarshalling, sizeof(DrawParticleOpItem::ConstructorHandle));
+
+DrawParticleOpItem::DrawParticleOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle)
+    : DrawOpItem(PARTICLE_OPITEM)
+{
+    if (!handle) {
+        LOGE("DrawParticleOpItem::DrawParticleOpItem: handle is null");
+        return;
+    }
+    particleEffect_ = CmdListHelper::GetParticleEffectFromCmdList(cmdList, handle->particleEffectHandle);
+}
+
+DrawParticleOpItem::DrawParticleOpItem(std::shared_ptr<ParticleEffect> particleEffect)
+    : DrawOpItem(PARTICLE_OPITEM), particleEffect_(particleEffect)
+{}
+
+std::shared_ptr<DrawOpItem> DrawParticleOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawParticleOpItem>(cmdList, static_cast<DrawParticleOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawParticleOpItem::Marshalling(DrawCmdList& cmdList)
+{
+    OpDataHandle effectHandle = CmdListHelper::AddParticleEffectToCmdList(cmdList, particleEffect_);
+    cmdList.AddOp<ConstructorHandle>(effectHandle);
+}
+
+void DrawParticleOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    canvas->DrawParticle(particleEffect_);
+}
+
+void DrawParticleOpItem::Dump(std::string& out) const
+{
+    out += GetOpDesc();
 }
 } // namespace Drawing
 } // namespace Rosen

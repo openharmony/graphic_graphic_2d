@@ -161,6 +161,7 @@ EquivalentDarkMode RSColorPickerDrawable::GetLastEquivalentDarkMode()
 void RSColorPickerDrawable::SetState(DrawableV2::ColorPickerState state)
 {
     const DrawableV2::ColorPickerState currentState = stagingState_;
+    RS_OPTIONAL_TRACE_NAME_FMT("ColorPicker: try transitioning to state %d from %d", state, currentState);
 
     // Validate state transitions
     switch (currentState) {

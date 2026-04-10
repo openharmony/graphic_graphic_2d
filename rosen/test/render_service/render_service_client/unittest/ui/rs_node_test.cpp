@@ -3559,7 +3559,7 @@ HWTEST_F(RSNodeTest, SetandGetBackgroundColor001, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     constexpr uint32_t colorValue = 0x034123;
     RSColor color = Color::FromArgbInt(colorValue);
-    color.ConvertToBT2020ColorSpace();
+    color.ConvertToP3ColorSpace();
     rsNode->SetBackgroundColor(colorValue);
     EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundColor() == color);
 }
@@ -3574,7 +3574,7 @@ HWTEST_F(RSNodeTest, SetandGetBackgroundColor002, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     constexpr uint32_t colorValue = std::numeric_limits<uint32_t>::max();
     RSColor color = Color::FromArgbInt(colorValue);
-    color.ConvertToBT2020ColorSpace();
+    color.ConvertToP3ColorSpace();
     rsNode->SetBackgroundColor(colorValue);
     EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundColor() == color);
 }
@@ -3589,7 +3589,7 @@ HWTEST_F(RSNodeTest, SetandGetBackgroundColor003, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     constexpr uint32_t colorValue = std::numeric_limits<uint32_t>::min();
     RSColor color = Color::FromArgbInt(colorValue);
-    color.ConvertToBT2020ColorSpace();
+    color.ConvertToP3ColorSpace();
     rsNode->SetBackgroundColor(colorValue);
     EXPECT_TRUE(rsNode->GetStagingProperties().GetBackgroundColor() == color);
 }
