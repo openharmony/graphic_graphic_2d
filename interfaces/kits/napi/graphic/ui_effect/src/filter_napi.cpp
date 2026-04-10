@@ -591,24 +591,6 @@ napi_value FilterNapi::SetBlurBubblesRise(napi_env env, napi_callback_info info)
     }
     para->SetMixStrength(mixStrength);
 
-    // Parse invertMask property
-    napi_value invertMaskValue;
-    uint32_t invertMask = 0;
-    if (napi_get_named_property(env, argValue[NUM_0], "invertMask", &invertMaskValue) == napi_ok &&
-        UIEffectNapiUtils::GetType(env, invertMaskValue) == napi_number) {
-        invertMask = GetSpecialIntValue(env, invertMaskValue);
-    }
-    para->SetInvertMask(invertMask);
-
-    // Parse maskChannel property
-    napi_value maskChannelValue;
-    uint32_t maskChannel = 0;
-    if (napi_get_named_property(env, argValue[NUM_0], "maskChannel", &maskChannelValue) == napi_ok &&
-        UIEffectNapiUtils::GetType(env, maskChannelValue) == napi_number) {
-        maskChannel = GetSpecialIntValue(env, maskChannelValue);
-    }
-    para->SetMaskChannel(maskChannel);
-
     // Parse progress property
     napi_value progressValue;
     float progress = 0.0f;

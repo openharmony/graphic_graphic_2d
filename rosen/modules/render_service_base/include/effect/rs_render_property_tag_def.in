@@ -172,8 +172,6 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(HeatDistortion, Progress, float);
 
 DECLARE_ANIMATABLE_PROPERTY_TAG(BlurBubblesRise, BlurRadius, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(BlurBubblesRise, MixStrength, float);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(BlurBubblesRise, InvertMask, int);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(BlurBubblesRise, MaskChannel, int);
 DECLARE_ANIMATABLE_PROPERTY_TAG(BlurBubblesRise, Progress, float);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(BlurBubblesRise, MaskImage, std::shared_ptr<Media::PixelMap>);
 

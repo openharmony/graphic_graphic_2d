@@ -50,26 +50,6 @@ public:
         return mixStrength_;
     }
 
-    void SetInvertMask(uint32_t invertMask)
-    {
-        invertMask_ = invertMask;
-    }
-
-    uint32_t GetInvertMask() const
-    {
-        return invertMask_;
-    }
-
-    void SetMaskChannel(uint32_t maskChannel)
-    {
-        maskChannel_ = maskChannel;
-    }
-
-    uint32_t GetMaskChannel() const
-    {
-        return maskChannel_;
-    }
-
     void SetProgress(float progress)
     {
         progress_ = progress;
@@ -93,8 +73,6 @@ public:
 private:
     float blurRadius_ = 3.0f;
     float mixStrength_ = 1.0f;
-    uint32_t invertMask_ = 0;
-    uint32_t maskChannel_ = 0;
     float progress_ = 0.0f;
     std::shared_ptr<Media::PixelMap> maskImage_;
 };

@@ -148,19 +148,13 @@ HWTEST_F(RSUIEffectFilterTest, RSUIEffectBlurBubblesRiseParaTest, TestSize.Level
     auto para = std::make_shared<BlurBubblesRisePara>();
     constexpr float blurRadius = 2.8f;
     constexpr float mixStrength = 0.7f;
-    constexpr uint32_t invertMask = 1;
-    constexpr uint32_t maskChannel = 3;
     constexpr float progress = 0.35f;
     para->SetBlurRadius(blurRadius);
     para->SetMixStrength(mixStrength);
-    para->SetInvertMask(invertMask);
-    para->SetMaskChannel(maskChannel);
     para->SetProgress(progress);
 
     EXPECT_EQ(blurRadius, para->GetBlurRadius());
     EXPECT_EQ(mixStrength, para->GetMixStrength());
-    EXPECT_EQ(invertMask, para->GetInvertMask());
-    EXPECT_EQ(maskChannel, para->GetMaskChannel());
     EXPECT_EQ(progress, para->GetProgress());
 
     Parcel parcel;

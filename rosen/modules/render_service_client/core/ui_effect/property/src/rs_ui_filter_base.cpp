@@ -351,10 +351,6 @@ std::shared_ptr<RSNGFilterBase> ConvertBlurBubblesRiseFilterPara(std::shared_ptr
     auto blurBubblesRiseFilterPara = std::static_pointer_cast<BlurBubblesRisePara>(filterPara);
     blurBubblesRiseFilter->Setter<BlurBubblesRiseBlurRadiusTag>(blurBubblesRiseFilterPara->GetBlurRadius());
     blurBubblesRiseFilter->Setter<BlurBubblesRiseMixStrengthTag>(blurBubblesRiseFilterPara->GetMixStrength());
-    blurBubblesRiseFilter->Setter<BlurBubblesRiseInvertMaskTag>(
-        static_cast<int>(blurBubblesRiseFilterPara->GetInvertMask()));
-    blurBubblesRiseFilter->Setter<BlurBubblesRiseMaskChannelTag>(
-        static_cast<int>(blurBubblesRiseFilterPara->GetMaskChannel()));
     blurBubblesRiseFilter->Setter<BlurBubblesRiseProgressTag>(blurBubblesRiseFilterPara->GetProgress());
     blurBubblesRiseFilter->Setter<BlurBubblesRiseMaskImageTag>(blurBubblesRiseFilterPara->GetMaskImage());
     return blurBubblesRiseFilter;

@@ -64,21 +64,15 @@ HWTEST_F(RSRenderBlurBubblesRiseFilterTest, BlurBubblesRiseSetterGetter001, Test
 
     constexpr float blurRadius = 5.0f;
     constexpr float mixStrength = 0.6f;
-    constexpr int invertMask = 1;
-    constexpr int maskChannel = 2;
     constexpr float progress = 0.62f;
 
     filter->Setter<BlurBubblesRiseBlurRadiusRenderTag>(blurRadius);
     filter->Setter<BlurBubblesRiseMixStrengthRenderTag>(mixStrength);
-    filter->Setter<BlurBubblesRiseInvertMaskRenderTag>(invertMask);
-    filter->Setter<BlurBubblesRiseMaskChannelRenderTag>(maskChannel);
     filter->Setter<BlurBubblesRiseProgressRenderTag>(progress);
     filter->Setter<BlurBubblesRiseMaskImageRenderTag>(nullptr);
 
     EXPECT_FLOAT_EQ(filter->Getter<BlurBubblesRiseBlurRadiusRenderTag>()->Get(), blurRadius);
     EXPECT_FLOAT_EQ(filter->Getter<BlurBubblesRiseMixStrengthRenderTag>()->Get(), mixStrength);
-    EXPECT_EQ(filter->Getter<BlurBubblesRiseInvertMaskRenderTag>()->Get(), invertMask);
-    EXPECT_EQ(filter->Getter<BlurBubblesRiseMaskChannelRenderTag>()->Get(), maskChannel);
     EXPECT_FLOAT_EQ(filter->Getter<BlurBubblesRiseProgressRenderTag>()->Get(), progress);
     EXPECT_EQ(filter->Getter<BlurBubblesRiseMaskImageRenderTag>()->Get(), nullptr);
 }
@@ -95,8 +89,6 @@ HWTEST_F(RSRenderBlurBubblesRiseFilterTest, BlurBubblesRiseGenerateGEVisualEffec
 
     filter->Setter<BlurBubblesRiseBlurRadiusRenderTag>(3.5f);
     filter->Setter<BlurBubblesRiseMixStrengthRenderTag>(0.8f);
-    filter->Setter<BlurBubblesRiseInvertMaskRenderTag>(1);
-    filter->Setter<BlurBubblesRiseMaskChannelRenderTag>(4);
     filter->Setter<BlurBubblesRiseProgressRenderTag>(0.5f);
     filter->Setter<BlurBubblesRiseMaskImageRenderTag>(nullptr);
 
