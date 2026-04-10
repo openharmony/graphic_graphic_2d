@@ -1948,7 +1948,7 @@ HWTEST_F(HgmFrameRateMgrTest, HandleScreenPowerStatusAndRectFrameRateTest2, Func
     configData->screenStrategyConfigs_["screen20_LTPO"] = "screen20_LTPO";
     configData->screenStrategyConfigs_["screen20_LTPS_100_200_300_400"] = "screen20_LTPS_100_200_300_400";
     configData->screenStrategyConfigs_["screen20_LTPO_100_200_300_400"] = "screen20_LTPO_100_200_300_400";
-    configData->screenStrategyConfigs_["screen20_LTPS_150_250_350_450"] = "screen20_LTPO_150_250_350_450";
+    configData->screenStrategyConfigs_["screen20_LTPS_150_250_350_450"] = "screen20_LTPS_150_250_350_450";
     configData->screenStrategyConfigs_["screen20_LTPO_150_250_350_450"] = "screen20_LTPO_150_250_350_450";
 
     EXPECT_EQ(hgmCore.AddScreen(selfOwnedScreenId, 0, screenSize, isSelfOwnedScreen), EXEC_SUCCESS);
