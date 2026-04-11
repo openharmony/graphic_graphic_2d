@@ -657,24 +657,6 @@ ErrCode RSClientToRenderConnectionProxy::SetHidePrivacyContent(NodeId id,
     return ERR_OK;
 }
 
-bool RSClientToRenderConnectionProxy::GetHighContrastTextState()
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
-        ROSEN_LOGE("RSClientToRenderConnectionProxy::GetHighContrastTextState: WriteInterfaceToken err.");
-        return false;
-    }
-    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_HIGH_CONTRAST_TEXT_STATE);
-    int32_t err = SendRequest(code, data, reply, option);
-    if (err != NO_ERROR) {
-        ROSEN_LOGE("RSClientToRenderConnectionProxy::GetHighContrastTextState: Send Request err.");
-        return false;
-    }
-    return reply.ReadBool();
-}
-
 ErrCode RSClientToRenderConnectionProxy::SetFocusAppInfo(const FocusAppInfo& info, int32_t& repCode)
 {
     MessageParcel data;

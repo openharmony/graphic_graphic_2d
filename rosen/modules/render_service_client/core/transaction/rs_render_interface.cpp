@@ -483,11 +483,6 @@ int32_t RSRenderInterface::GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus)
     return renderPipelineClient_->GetScreenHDRStatus(id, hdrStatus);
 }
 
-bool RSRenderInterface::GetHighContrastTextState()
-{
-    return renderPipelineClient_->GetHighContrastTextState();
-}
-
 bool RSRenderInterface::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation)
 {
     return renderPipelineClient_->SetSystemAnimatedScenes(systemAnimatedScenes, isRegularAnimation);

@@ -93,16 +93,6 @@ bool Init(const uint8_t* data, size_t size)
 }
 } // namespace
 
-void DoGetHighContrastTextState()
-{
-    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_HIGH_CONTRAST_TEXT_STATE);
-    MessageOption option;
-    MessageParcel dataParcel;
-    MessageParcel replyParcel;
-    dataParcel.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
-    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
-}
-
 void DoCommitTransaction()
 {
     uint32_t code =
@@ -317,9 +307,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     /* Run your code on data */
     uint8_t tarPos = OHOS::Rosen::GetData<uint8_t>() % OHOS::Rosen::TARGET_SIZE;
     switch (tarPos) {
-        case OHOS::Rosen::DO_GET_HIGH_CONTRAST_TEXT_STATE:
-            OHOS::Rosen::DoGetHighContrastTextState();
-            break;
         case OHOS::Rosen::DO_COMMIT_TRANSACTION:
             OHOS::Rosen::DoCommitTransaction();
             break;

@@ -1164,8 +1164,6 @@ void TestAccessibility(InterfaceClientFrameTest &testFrame)
     auto& rsInterfaces = RSInterfaces::GetInstance();
 
     // Normal call
-    auto highContrastState = rsInterfaces.GetHighContrastTextState();
-    (void)highContrastState;
     rsInterfaces.SetBehindWindowFilterEnabled(true);
     rsInterfaces.SetBehindWindowFilterEnabled(false);
 

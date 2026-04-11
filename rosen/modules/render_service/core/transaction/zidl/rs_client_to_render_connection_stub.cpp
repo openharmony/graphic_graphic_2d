@@ -751,13 +751,6 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             }
             break;
         }
-        case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_HIGH_CONTRAST_TEXT_STATE) : {
-            bool highContrast = GetHighContrastTextState();
-            if (!reply.WriteBool(highContrast)) {
-                ret = ERR_INVALID_REPLY;
-            }
-            break;
-        }
         case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_FOCUS_APP_INFO): {
             int32_t pid{0};
             if (!data.ReadInt32(pid)) {
