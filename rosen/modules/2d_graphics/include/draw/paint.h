@@ -61,8 +61,15 @@ public:
 
     void SetAlpha(uint32_t a);
     void SetAlphaF(scalar a);
-    inline uint32_t GetAlpha() const { return color_.GetAlpha(); }
-    inline scalar GetAlphaF() const { return color_.GetAlphaF(); }
+    inline uint32_t GetAlpha() const
+    {
+        return isHdrColor_ ? static_cast<uint32_t>(round(hdrColor_.GetAlpha() * Color::RGB_MAX)) : color_.GetAlpha();
+    }
+
+    inline scalar GetAlphaF() const
+    {
+        return isHdrColor_ ? hdrColor_.GetAlpha() : color_.GetAlphaF();
+    }
 
     void SetWidth(scalar width);
     scalar GetWidth() const { return width_; }

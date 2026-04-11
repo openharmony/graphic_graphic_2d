@@ -152,7 +152,7 @@ HWTEST_F(DrawCmdTest, BrushHandleToBrush002, TestSize.Level1)
     brushHandle.imageFilterHandle.size = 1;
     brushHandle.maskFilterHandle.size = 1;
     brushHandle.uiColor = UIColor(0.5, 0.6, 0.7, 1.0, 1.0);
-    brushHandle.isUIColor = true;
+    brushHandle.SetIsUIColor(true);
     auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
     EXPECT_TRUE(drawCmdList != nullptr);
     Brush brush;
@@ -175,7 +175,7 @@ HWTEST_F(DrawCmdTest, BrushToBrushHandle001, TestSize.Level1)
     brush.SetUIColor(color, nullptr);
     Drawing::BrushHandle brushHandle;
     Drawing::DrawOpItem::BrushToBrushHandle(brush, *cmdList, brushHandle);
-    EXPECT_TRUE(brushHandle.isUIColor);
+    EXPECT_TRUE(brushHandle.IsUIColor());
 }
 
 /**
@@ -210,7 +210,7 @@ HWTEST_F(DrawCmdTest, GeneratePaintFromHandle002, TestSize.Level1)
     paintHandle.imageFilterHandle.size = 1;
     paintHandle.pathEffectHandle.size = 1;
     paintHandle.uiColor = UIColor(0.5, 0.6, 0.7, 1.0, 1.0);
-    paintHandle.isUIColor = true;
+    paintHandle.SetIsUIColor(true);
     auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
     EXPECT_TRUE(drawCmdList != nullptr);
     Paint paint;
@@ -265,7 +265,7 @@ HWTEST_F(DrawCmdTest, GenerateHandleFromPaint002, TestSize.Level1)
     paint.SetShaderEffect(ShaderEffect::CreateColorShader(0xFF000000));
     paint.SetStyle(Paint::PaintStyle::PAINT_FILL_STROKE);
     DrawOpItem::GenerateHandleFromPaint(*drawCmdList, paint, paintHandle);
-    EXPECT_TRUE(paintHandle.isUIColor);
+    EXPECT_TRUE(paintHandle.IsUIColor());
 }
 
 /**
@@ -294,7 +294,7 @@ HWTEST_F(DrawCmdTest, DrawCmdTestBlurDrawLooper001, TestSize.Level1)
     EXPECT_NE(blurDrawLooper1, nullptr);
     paint1.SetLooper(blurDrawLooper1);
 
-    PaintHandle paintHandle { 0 };
+    PaintHandle paintHandle;
     DrawOpItem::GenerateHandleFromPaint(*drawCmdList, paint1, paintHandle);
     EXPECT_TRUE(paintHandle.isAntiAlias);
     EXPECT_NE(paintHandle.blurDrawLooperHandle.size, 0);
@@ -326,7 +326,7 @@ HWTEST_F(DrawCmdTest, DrawCmdTestBlurDrawLooper002, TestSize.Level1)
     paint1.SetAntiAlias(true);
     paint1.SetLooper(nullptr);
 
-    PaintHandle paintHandle { 0 };
+    PaintHandle paintHandle;
     DrawOpItem::GenerateHandleFromPaint(*drawCmdList, paint1, paintHandle);
     EXPECT_TRUE(paintHandle.isAntiAlias);
     EXPECT_EQ(paintHandle.blurDrawLooperHandle.offset, 0);
@@ -696,7 +696,7 @@ HWTEST_F(DrawCmdTest, Marshalling010, TestSize.Level1)
     RectI recti;
     Rect rect;
     BrushHandle brushHandle;
-    DrawImageNineOpItem::ConstructorHandle handle{opDataHandle, recti, rect, FilterMode::NEAREST, brushHandle, true};
+    DrawImageNineOpItem::ConstructorHandle handle { opDataHandle, recti, rect, FilterMode::NEAREST, brushHandle, true };
     Image image;
     Brush brush;
     DrawImageNineOpItem opItem{&image, recti, rect, FilterMode::NEAREST, &brush};
@@ -1716,10 +1716,9 @@ HWTEST_F(DrawCmdTest, UnmarshallingPlayer, TestSize.Level1)
     {
         auto drawCmdList = std::make_shared<DrawCmdList>(DrawCmdList::UnmarshalMode::DEFERRED);
         auto type = DrawOpItem::RECT_OPITEM;
-        auto paintHandle = Drawing::PaintHandle {
-            .style = Drawing::Paint::PaintStyle::PAINT_FILL,
-            .color = { Drawing::Color::COLOR_WHITE },
-        };
+        Drawing::PaintHandle paintHandle;
+        paintHandle.style = Drawing::Paint::PaintStyle::PAINT_FILL;
+        paintHandle.color = { Drawing::Color::COLOR_WHITE };
         auto rect = Drawing::Rect(0, 0, 0, 0);
         auto roundRect = Drawing::RoundRect(rect, 0.f, 0.f);
         auto handle = std::make_shared<DrawRoundRectOpItem::ConstructorHandle>(
@@ -1822,6 +1821,164 @@ HWTEST_F(DrawCmdTest, Marshalling022, TestSize.Level1)
     opItem.Marshalling(*drawCmdList);
     auto recordingCanvas = std::make_shared<RecordingCanvas>(10, 10); // 10: width, height
     opItem.Playback(recordingCanvas.get(), nullptr);
+}
+
+/**
+ * @tc.name: PaintHandle001
+ * @tc.desc: Test PaintHandle SetIsUIColor and IsUIColor
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, PaintHandle001, TestSize.Level1)
+{
+    PaintHandle paintHandle;
+    paintHandle.SetIsUIColor(true);
+    EXPECT_TRUE(paintHandle.IsUIColor());
+    paintHandle.SetIsUIColor(false);
+    EXPECT_FALSE(paintHandle.IsUIColor());
+}
+
+/**
+ * @tc.name: PaintHandle002
+ * @tc.desc: Test PaintHandle SetBlenderEnabled and GetBlenderEnabled
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, PaintHandle002, TestSize.Level1)
+{
+    PaintHandle paintHandle;
+    paintHandle.SetBlenderEnabled(true);
+    EXPECT_TRUE(paintHandle.GetBlenderEnabled());
+    paintHandle.SetBlenderEnabled(false);
+    EXPECT_FALSE(paintHandle.GetBlenderEnabled());
+}
+
+/**
+ * @tc.name: PaintHandle003
+ * @tc.desc: Test PaintHandle copy constructor
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, PaintHandle003, TestSize.Level1)
+{
+    PaintHandle paintHandle;
+    paintHandle.SetIsUIColor(true);
+    paintHandle.SetBlenderEnabled(true);
+    PaintHandle copyHandle(paintHandle);
+    EXPECT_TRUE(copyHandle.IsUIColor());
+    EXPECT_TRUE(copyHandle.GetBlenderEnabled());
+}
+
+/**
+ * @tc.name: BrushHandle001
+ * @tc.desc: Test BrushHandle SetIsUIColor and IsUIColor
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, BrushHandle001, TestSize.Level1)
+{
+    BrushHandle brushHandle;
+    brushHandle.SetIsUIColor(true);
+    EXPECT_TRUE(brushHandle.IsUIColor());
+    brushHandle.SetIsUIColor(false);
+    EXPECT_FALSE(brushHandle.IsUIColor());
+}
+
+/**
+ * @tc.name: BrushHandle002
+ * @tc.desc: Test BrushHandle SetBlenderEnabled and GetBlenderEnabled
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, BrushHandle002, TestSize.Level1)
+{
+    BrushHandle brushHandle;
+    brushHandle.SetBlenderEnabled(true);
+    EXPECT_TRUE(brushHandle.GetBlenderEnabled());
+    brushHandle.SetBlenderEnabled(false);
+    EXPECT_FALSE(brushHandle.GetBlenderEnabled());
+}
+
+/**
+ * @tc.name: BrushHandle003
+ * @tc.desc: Test BrushHandle copy constructor
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, BrushHandle003, TestSize.Level1)
+{
+    BrushHandle brushHandle;
+    brushHandle.SetIsUIColor(true);
+    brushHandle.SetBlenderEnabled(true);
+    BrushHandle copyHandle(brushHandle);
+    EXPECT_TRUE(copyHandle.IsUIColor());
+    EXPECT_TRUE(copyHandle.GetBlenderEnabled());
+}
+
+/**
+ * @tc.name: PenHandle001
+ * @tc.desc: Test PenHandle SetIsUIColor and IsUIColor
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, PenHandle001, TestSize.Level1)
+{
+    PenHandle penHandle;
+    penHandle.SetIsUIColor(true);
+    EXPECT_TRUE(penHandle.IsUIColor());
+    penHandle.SetIsUIColor(false);
+    EXPECT_FALSE(penHandle.IsUIColor());
+}
+
+/**
+ * @tc.name: PenHandle002
+ * @tc.desc: Test PenHandle SetCapStyle and GetCapStyle
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, PenHandle002, TestSize.Level1)
+{
+    PenHandle penHandle;
+    penHandle.SetCapStyle(Pen::CapStyle::ROUND_CAP);
+    EXPECT_EQ(penHandle.GetCapStyle(), Pen::CapStyle::ROUND_CAP);
+    penHandle.SetCapStyle(Pen::CapStyle::FLAT_CAP);
+    EXPECT_EQ(penHandle.GetCapStyle(), Pen::CapStyle::FLAT_CAP);
+    penHandle.SetCapStyle(Pen::CapStyle::SQUARE_CAP);
+    EXPECT_EQ(penHandle.GetCapStyle(), Pen::CapStyle::SQUARE_CAP);
+}
+
+/**
+ * @tc.name: PenHandle003
+ * @tc.desc: Test PenHandle copy constructor
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, PenHandle003, TestSize.Level1)
+{
+    PenHandle penHandle;
+    penHandle.SetIsUIColor(true);
+    penHandle.SetCapStyle(Pen::CapStyle::ROUND_CAP);
+    PenHandle copyHandle(penHandle);
+    EXPECT_TRUE(copyHandle.IsUIColor());
+    EXPECT_EQ(copyHandle.GetCapStyle(), Pen::CapStyle::ROUND_CAP);
+}
+
+/**
+ * @tc.name: PenHandle004
+ * @tc.desc: Test PenHandle SetIsUIColor preserves CapStyle
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, PenHandle004, TestSize.Level1)
+{
+    PenHandle penHandle;
+    penHandle.SetCapStyle(Pen::CapStyle::ROUND_CAP);
+    penHandle.SetIsUIColor(true);
+    EXPECT_TRUE(penHandle.IsUIColor());
+    EXPECT_EQ(penHandle.GetCapStyle(), Pen::CapStyle::ROUND_CAP);
+    penHandle.SetIsUIColor(false);
+    EXPECT_FALSE(penHandle.IsUIColor());
+    EXPECT_EQ(penHandle.GetCapStyle(), Pen::CapStyle::ROUND_CAP);
 }
 
 } // namespace Drawing

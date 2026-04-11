@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -89,9 +89,12 @@ struct SymbolOpHandle {
 
 struct PaintHandle {
     bool isAntiAlias = false;
-    bool blenderEnabled = true;
+    uint8_t blenderEnabled = 1;
     Paint::PaintStyle style = Paint::PaintStyle::PAINT_NONE;
-    Color color = Color::COLOR_BLACK;
+    union {
+        Color color = Color::COLOR_BLACK;
+        UIColor uiColor;
+    };
     BlendMode mode = BlendMode::SRC_OVER;
     scalar width = 0.0f;
     scalar miterLimit = 0.0f;
@@ -106,15 +109,94 @@ struct PaintHandle {
     FlattenableHandle maskFilterHandle;
     FlattenableHandle pathEffectHandle;
     OpDataHandle blurDrawLooperHandle;
-    UIColor uiColor = UIColor();
-    bool isUIColor = false;
+
+    PaintHandle()
+    {
+        isAntiAlias = false;
+        blenderEnabled = 1;
+        style = Paint::PaintStyle::PAINT_NONE;
+        color = Color::COLOR_BLACK;
+        mode = BlendMode::SRC_OVER;
+        width = 0.0f;
+        miterLimit = 0.0f;
+        capStyle = Pen::CapStyle::FLAT_CAP;
+        joinStyle = Pen::JoinStyle::MITER_JOIN;
+        filterQuality = Filter::FilterQuality::NONE;
+        colorSpaceHandle = { 0, 0 };
+        shaderEffectHandle = { 0, 0, 0 };
+        blenderHandle = { 0, 0, 0 };
+        colorFilterHandle = { 0, 0, 0 };
+        imageFilterHandle = { 0, 0, 0 };
+        maskFilterHandle = { 0, 0, 0 };
+        pathEffectHandle = { 0, 0, 0 };
+        blurDrawLooperHandle = { 0, 0 };
+    }
+
+    PaintHandle(const PaintHandle& other)
+    {
+        isAntiAlias = other.isAntiAlias;
+        blenderEnabled = other.blenderEnabled;
+        style = other.style;
+        if (other.IsUIColor()) {
+            uiColor = other.uiColor;
+        } else {
+            color = other.color;
+        }
+        mode = other.mode;
+        width = other.width;
+        miterLimit = other.miterLimit;
+        capStyle = other.capStyle;
+        joinStyle = other.joinStyle;
+        filterQuality = other.filterQuality;
+        colorSpaceHandle = other.colorSpaceHandle;
+        shaderEffectHandle = other.shaderEffectHandle;
+        blenderHandle = other.blenderHandle;
+        colorFilterHandle = other.colorFilterHandle;
+        imageFilterHandle = other.imageFilterHandle;
+        maskFilterHandle = other.maskFilterHandle;
+        pathEffectHandle = other.pathEffectHandle;
+        blurDrawLooperHandle = other.blurDrawLooperHandle;
+    }
+
+    ~PaintHandle() {}
+
+    void SetIsUIColor(bool isUIColor)
+    {
+        if (isUIColor) {
+            blenderEnabled |= 0x80;
+        } else {
+            blenderEnabled &= 0x7F;
+        }
+    }
+
+    bool IsUIColor() const
+    {
+        return blenderEnabled & 0x80;
+    }
+
+    void SetBlenderEnabled(bool isBlender)
+    {
+        if (isBlender) {
+            blenderEnabled |= 0x01;
+        } else {
+            blenderEnabled &= 0xFE;
+        }
+    }
+
+    bool GetBlenderEnabled() const
+    {
+        return blenderEnabled & 0x01;
+    }
 };
 
 struct BrushHandle {
-    Color color = Color::COLOR_BLACK;
+    union {
+        Color color = Color::COLOR_BLACK;
+        UIColor uiColor;
+    };
     BlendMode mode = BlendMode::SRC_OVER;
     bool isAntiAlias = false;
-    bool blenderEnabled = true;
+    uint8_t blenderEnabled = 1;
     Filter::FilterQuality filterQuality = Filter::FilterQuality::NONE;
     OpDataHandle colorSpaceHandle;
     FlattenableHandle shaderEffectHandle;
@@ -122,8 +204,70 @@ struct BrushHandle {
     FlattenableHandle colorFilterHandle;
     FlattenableHandle imageFilterHandle;
     FlattenableHandle maskFilterHandle;
-    UIColor uiColor = UIColor();
-    bool isUIColor = false;
+
+    BrushHandle()
+    {
+        color = Color::COLOR_BLACK;
+        mode = BlendMode::SRC_OVER;
+        isAntiAlias = false;
+        blenderEnabled = 1;
+        filterQuality = Filter::FilterQuality::NONE;
+        colorSpaceHandle = { 0, 0 };
+        shaderEffectHandle = { 0, 0, 0 };
+        blenderHandle = { 0, 0, 0 };
+        colorFilterHandle = { 0, 0, 0 };
+        imageFilterHandle = { 0, 0, 0 };
+        maskFilterHandle = { 0, 0, 0 };
+    }
+
+    BrushHandle(const BrushHandle& other)
+    {
+        if (other.IsUIColor()) {
+            uiColor = other.uiColor;
+        } else {
+            color = other.color;
+        }
+        mode = other.mode;
+        isAntiAlias = other.isAntiAlias;
+        blenderEnabled = other.blenderEnabled;
+        filterQuality = other.filterQuality;
+        colorSpaceHandle = other.colorSpaceHandle;
+        shaderEffectHandle = other.shaderEffectHandle;
+        blenderHandle = other.blenderHandle;
+        colorFilterHandle = other.colorFilterHandle;
+        imageFilterHandle = other.imageFilterHandle;
+        maskFilterHandle = other.maskFilterHandle;
+    }
+
+    ~BrushHandle() {}
+
+    void SetIsUIColor(bool isUIColor)
+    {
+        if (isUIColor) {
+            blenderEnabled |= 0x80;
+        } else {
+            blenderEnabled &= 0x7F;
+        }
+    }
+
+    bool IsUIColor() const
+    {
+        return blenderEnabled & 0x80;
+    }
+
+    void SetBlenderEnabled(bool isBlender)
+    {
+        if (isBlender) {
+            blenderEnabled |= 0x01;
+        } else {
+            blenderEnabled &= 0xFE;
+        }
+    }
+
+    bool GetBlenderEnabled() const
+    {
+        return blenderEnabled & 0x01;
+    }
 };
 
 struct PenHandle {
@@ -132,9 +276,61 @@ struct PenHandle {
     Pen::CapStyle capStyle = Pen::CapStyle::FLAT_CAP;
     Pen::JoinStyle joinStyle = Pen::JoinStyle::MITER_JOIN;
     FlattenableHandle pathEffectHandle;
-    Color color = Color::COLOR_BLACK;
-    UIColor uiColor = UIColor();
-    bool isUIColor = false;
+    union {
+        Color color = Color::COLOR_BLACK;
+        UIColor uiColor;
+    };
+
+    PenHandle()
+    {
+        width = 0.0f;
+        miterLimit = 0.0f;
+        capStyle = Pen::CapStyle::FLAT_CAP;
+        joinStyle = Pen::JoinStyle::MITER_JOIN;
+        pathEffectHandle = { 0, 0, 0 };
+        color = Color::COLOR_BLACK;
+    }
+
+    PenHandle(const PenHandle& other)
+    {
+        width = other.width;
+        miterLimit = other.miterLimit;
+        capStyle = other.capStyle;
+        joinStyle = other.joinStyle;
+        pathEffectHandle = other.pathEffectHandle;
+        if (other.IsUIColor()) {
+            uiColor = other.uiColor;
+        } else {
+            color = other.color;
+        }
+    }
+
+    ~PenHandle() {}
+
+    void SetIsUIColor(bool isUIColor)
+    {
+        if (isUIColor) {
+            capStyle = static_cast<Pen::CapStyle>(static_cast<uint32_t>(capStyle) | 0x80000000);
+        } else {
+            capStyle = static_cast<Pen::CapStyle>(static_cast<uint32_t>(capStyle) & 0x7FFFFFFF);
+        }
+    }
+
+    bool IsUIColor() const
+    {
+        return static_cast<uint32_t>(capStyle) & 0x80000000;
+    }
+
+    void SetCapStyle(Pen::CapStyle penCapStyle)
+    {
+        capStyle = static_cast<Pen::CapStyle>(
+            (static_cast<uint32_t>(capStyle) & 0x80000000) + static_cast<uint32_t>(penCapStyle));
+    }
+
+    Pen::CapStyle GetCapStyle() const
+    {
+        return static_cast<Pen::CapStyle>(static_cast<uint32_t>(capStyle) & 0x7FFFFFFF);
+    }
 };
 } // namespace Drawing
 } // namespace Rosen
