@@ -37,7 +37,7 @@ public:
 
     virtual std::shared_ptr<Drawing::GEVisualEffect> GenerateGEVisualEffect() { return nullptr; }
 
-    const RectF& GetTransformDrawRect() const { return transformDrawRect_; };
+    const RectF& GetTransformDrawRect() const { return transformDrawRect_; }
 
 protected:
     RectF transformDrawRect_;
@@ -76,7 +76,8 @@ protected:
 
 class RSNGRenderShapeHelper {
 public:
-    static RectF CalcRect(const std::shared_ptr<RSNGRenderShapeBase>& shape, const RectF& bound);
+    static RectF CalcRect(
+        const std::shared_ptr<RSNGRenderShapeBase>& shape, const RectF& bound, bool needUpdate = true);
 };
 
 #define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##RenderTag

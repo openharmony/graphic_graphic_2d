@@ -31,6 +31,7 @@
 #include "modifier_ng/appearance/rs_hdr_brightness_render_modifier.h"
 #include "modifier_ng/appearance/rs_mask_render_modifier.h"
 #include "modifier_ng/appearance/rs_material_filter_render_modifier.h"
+#include "modifier_ng/appearance/rs_material_shader_render_modifier.h"
 #include "modifier_ng/appearance/rs_outline_render_modifier.h"
 #include "modifier_ng/appearance/rs_particle_effect_render_modifier.h"
 #include "modifier_ng/appearance/rs_pixel_stretch_render_modifier.h"
@@ -86,6 +87,7 @@ static const std::unordered_map<RSModifierType, RSRenderModifier::ResetFunc> g_r
     { RSModifierType::COLOR_PICKER,             RSColorPickerRenderModifier::ResetProperties },
     { RSModifierType::BOUNDS,                   RSBoundsRenderModifier::ResetProperties },
     { RSModifierType::MATERIAL_FILTER,          RSMaterialFilterRenderModifier::ResetProperties },
+    { RSModifierType::MATERIAL_SHADER,          RSMaterialShaderRenderModifier::ResetProperties },
 };
 
 std::array<RSRenderModifier::Constructor, MODIFIER_TYPE_COUNT> RSRenderModifier::ConstructorLUT_ = {
@@ -127,6 +129,7 @@ std::array<RSRenderModifier::Constructor, MODIFIER_TYPE_COUNT> RSRenderModifier:
     [] { return std::make_shared<RSForegroundShaderRenderModifier>(); },                         // FOREGROUND_SHADER
     [] { return std::make_shared<RSMaterialFilterRenderModifier>(); },                           // MATERIAL_FILTER
     [] { return std::make_shared<RSColorPickerRenderModifier>(); },                              // COLOR_PICKER
+    [] { return std::make_shared<RSMaterialShaderRenderModifier>(); },                           // MATERIAL_SHADER
     nullptr,                                                                                     // CHILDREN
 };
 

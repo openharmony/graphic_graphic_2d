@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 #include "drawable/rs_property_drawable_foreground.h"
+#include "effect/rs_render_filter_base.h"
 #include "effect/rs_render_shape_base.h"
 #include "ge_visual_effect_container.h"
 #include "pipeline/rs_render_node.h"
@@ -544,5 +545,151 @@ HWTEST_F(RSPropertyDrawableForegroundTest, RSParticleDrawableOnUpdateCacheTest00
 
     bool result = particleDrawable->OnUpdate(renderNode);
     EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: RSForegroundFilterRestoreDrawableDrawRectTest001
+ * @tc.desc: Test RSForegroundFilterRestoreDrawable::OnUpdate with custom draw rect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, RSForegroundFilterRestoreDrawableDrawRectTest001, TestSize.Level1)
+{
+    RSRenderNode renderNode(1);
+    auto drawable = std::make_shared<DrawableV2::RSForegroundFilterRestoreDrawable>();
+    EXPECT_NE(drawable, nullptr);
+
+    auto imageFilter = std::make_shared<Drawing::ImageFilter>();
+    auto filterPtr = std::make_shared<RSRenderFilterParaBase>();
+    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters;
+    shaderFilters.push_back(filterPtr);
+    uint32_t hash = 1;
+    auto drawingFilter = std::make_shared<RSDrawingFilter>(imageFilter, shaderFilters, hash);
+    
+    renderNode.GetMutableRenderProperties().SetForegroundFilter(drawingFilter);
+    renderNode.GetMutableRenderProperties().GetBoundsRect() = RectF(0.0f, 0.0f, 100.0f, 100.0f);
+    
+    EXPECT_TRUE(drawable->OnUpdate(renderNode));
+    EXPECT_EQ(drawable->stagingDrawRect_, nullptr);
+}
+
+/**
+ * @tc.name: RSForegroundFilterRestoreDrawableDrawRectTest002
+ * @tc.desc: Test RSForegroundFilterRestoreDrawable::OnSync with custom draw rect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, RSForegroundFilterRestoreDrawableDrawRectTest002, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSForegroundFilterRestoreDrawable>();
+    EXPECT_NE(drawable, nullptr);
+
+    auto stagingDrawRect = std::make_unique<RectF>(10.0f, 10.0f, 50.0f, 50.0f);
+    drawable->stagingDrawRect_ = std::make_unique<RectF>(*stagingDrawRect);
+    drawable->needSync_ = true;
+    
+    drawable->OnSync();
+    
+    EXPECT_FALSE(drawable->needSync_);
+    EXPECT_NE(drawable->drawRect_, nullptr);
+    EXPECT_EQ(drawable->drawRect_->left_, stagingDrawRect->left_);
+    EXPECT_EQ(drawable->drawRect_->top_, stagingDrawRect->top_);
+    EXPECT_EQ(drawable->drawRect_->width_, stagingDrawRect->width_);
+    EXPECT_EQ(drawable->drawRect_->height_, stagingDrawRect->height_);
+}
+
+/**
+ * @tc.name: RSForegroundFilterRestoreDrawableDrawRectTest003
+ * @tc.desc: Test RSForegroundFilterRestoreDrawable::OnSync with null staging draw rect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, RSForegroundFilterRestoreDrawableDrawRectTest003, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSForegroundFilterRestoreDrawable>();
+    EXPECT_NE(drawable, nullptr);
+
+    drawable->stagingDrawRect_ = nullptr;
+    drawable->drawRect_ = std::make_unique<RectF>(10.0f, 10.0f, 50.0f, 50.0f);
+    drawable->needSync_ = true;
+    
+    drawable->OnSync();
+    
+    EXPECT_FALSE(drawable->needSync_);
+    EXPECT_EQ(drawable->drawRect_, nullptr);
+}
+
+/**
+ * @tc.name: RSForegroundFilterRestoreDrawableHasCustomRegion001
+ * @tc.desc: Test RSForegroundFilterRestoreDrawable::OnUpdate with HasCustomRegion true (line 383 coverage)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, RSForegroundFilterRestoreDrawableHasCustomRegion001, TestSize.Level1)
+{
+    RSRenderNode renderNode(1);
+    auto drawable = std::make_shared<DrawableV2::RSForegroundFilterRestoreDrawable>();
+    EXPECT_NE(drawable, nullptr);
+
+    auto imageFilter = std::make_shared<Drawing::ImageFilter>();
+    auto filterPtr = std::make_shared<RSRenderFilterParaBase>();
+    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters;
+    shaderFilters.push_back(filterPtr);
+    uint32_t hash = 1;
+    auto drawingFilter = std::make_shared<RSDrawingFilter>(imageFilter, shaderFilters, hash);
+    
+    auto renderFilter = RSNGRenderFilterBase::Create(RSNGEffectType::FROSTED_GLASS);
+    drawingFilter->SetNGRenderFilter(renderFilter);
+    drawingFilter->SetHasCustomRegion(true);
+    
+    renderNode.GetMutableRenderProperties().SetForegroundFilter(drawingFilter);
+    renderNode.GetMutableRenderProperties().GetBoundsRect() = RectF(0.0f, 0.0f, 100.0f, 100.0f);
+    
+    EXPECT_TRUE(drawable->OnUpdate(renderNode));
+    EXPECT_NE(drawable->stagingDrawRect_, nullptr);
+}
+
+/**
+ * @tc.name: RSForegroundFilterRestoreDrawableIsDrawingFilter002
+ * @tc.desc: Test OnUpdate with IsDrawingFilter true but HasCustomRegion false
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, RSForegroundFilterRestoreDrawableIsDrawingFilter002, TestSize.Level1)
+{
+    RSRenderNode renderNode(1);
+    auto drawable = std::make_shared<DrawableV2::RSForegroundFilterRestoreDrawable>();
+    EXPECT_NE(drawable, nullptr);
+
+    auto imageFilter = std::make_shared<Drawing::ImageFilter>();
+    auto filterPtr = std::make_shared<RSRenderFilterParaBase>();
+    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters;
+    shaderFilters.push_back(filterPtr);
+    uint32_t hash = 1;
+    auto drawingFilter = std::make_shared<RSDrawingFilter>(imageFilter, shaderFilters, hash);
+
+    drawingFilter->SetHasCustomRegion(false);
+
+    renderNode.GetMutableRenderProperties().SetForegroundFilter(drawingFilter);
+    renderNode.GetMutableRenderProperties().GetBoundsRect() = RectF(0.0f, 0.0f, 100.0f, 100.0f);
+
+    EXPECT_TRUE(drawable->OnUpdate(renderNode));
+    EXPECT_EQ(drawable->stagingDrawRect_, nullptr);
+}
+
+/**
+ * @tc.name: RSForegroundFilterRestoreDrawableIsDrawingFilter003
+ * @tc.desc: Test OnUpdate with IsDrawingFilter false (non-drawing filter)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, RSForegroundFilterRestoreDrawableIsDrawingFilter003, TestSize.Level1)
+{
+    RSRenderNode renderNode(1);
+    auto drawable = std::make_shared<DrawableV2::RSForegroundFilterRestoreDrawable>();
+    EXPECT_NE(drawable, nullptr);
+
+    auto rsFilter = std::make_shared<RSFilter>();
+    EXPECT_FALSE(rsFilter->IsDrawingFilter());
+
+    renderNode.GetMutableRenderProperties().SetForegroundFilter(rsFilter);
+    renderNode.GetMutableRenderProperties().GetBoundsRect() = RectF(0.0f, 0.0f, 100.0f, 100.0f);
+
+    EXPECT_TRUE(drawable->OnUpdate(renderNode));
+    EXPECT_EQ(drawable->stagingDrawRect_, nullptr);
 }
 } // namespace OHOS::Rosen

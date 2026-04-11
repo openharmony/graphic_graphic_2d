@@ -226,6 +226,7 @@ void RSClipToBoundsDrawable::OnDraw(Drawing::Canvas *canvas, const Drawing::Rect
                 ROSEN_LOGE("Clip SDF failed, geContainer or rect is nullptr");
                 return;
             }
+            geContainer_->SetGeometry(canvas->GetTotalMatrix(), *rect, *rect, rect->GetWidth(), rect->GetHeight());
             Drawing::Rect rectRelative { 0.0f, 0.0f, rect->GetWidth(), rect->GetHeight() };
             RSPaintFilterCanvas::DrawFunc customFunc = [geContainer = geContainer_,
                 rect = rectRelative](Drawing::Canvas& canvas) {

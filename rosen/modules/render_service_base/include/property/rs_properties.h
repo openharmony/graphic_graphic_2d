@@ -397,6 +397,8 @@ public:
     std::shared_ptr<RSNGRenderShapeBase> GetSDFShape() const;
     void SetMaterialNGFilter(const std::shared_ptr<RSNGRenderFilterBase>& renderFilter);
     std::shared_ptr<RSNGRenderFilterBase> GetMaterialNGFilter() const;
+    void SetMaterialShader(const std::shared_ptr<RSNGRenderShaderBase>& renderShader);
+    std::shared_ptr<RSNGRenderShaderBase> GetMaterialShader() const;
     void SetCompositingNGFilter(const std::shared_ptr<RSNGRenderFilterBase>& renderFilter);
     std::shared_ptr<RSNGRenderFilterBase> GetCompositingNGFilter() const;
 
@@ -1005,6 +1007,7 @@ private:
         std::shared_ptr<RSNGRenderShaderBase> bgNGRenderShader_ = nullptr;
         std::shared_ptr<RSNGRenderShaderBase> fgRenderShader_ = nullptr;
         std::shared_ptr<RSNGRenderShaderBase> olRenderShader_ = nullptr; // for overlay shader
+        std::shared_ptr<RSNGRenderShaderBase> mtRenderShader_ = nullptr; // for material shader
         std::shared_ptr<RSFilter> materialFilter_ = nullptr;
     };
     inline float DecreasePrecision(float value)

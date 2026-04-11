@@ -499,4 +499,39 @@ HWTEST_F(RSRenderFilterBaseTest, CalculatePropTagHashImplInt, TestSize.Level1)
     RSNGRenderEffectHelper::CalculatePropTagHashImpl(hash2, 2);
     EXPECT_NE(hash1, hash2);
 }
+
+/**
+ * @tc.name: HasCustomRegion001
+ * @tc.desc: Test HasCustomRegion with null filter
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderFilterBaseTest, HasCustomRegion001, TestSize.Level1)
+{
+    std::shared_ptr<RSNGRenderFilterBase> filter = nullptr;
+    EXPECT_FALSE(RSNGRenderFilterHelper::HasCustomRegion(filter));
+}
+
+/**
+ * @tc.name: HasCustomRegion002
+ * @tc.desc: Test HasCustomRegion with blur filter
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderFilterBaseTest, HasCustomRegion002, TestSize.Level1)
+{
+    auto filter = std::make_shared<RSNGRenderBlurFilter>();
+    EXPECT_FALSE(RSNGRenderFilterHelper::HasCustomRegion(filter));
+}
+
+/**
+ * @tc.name: HasCustomRegion004
+ * @tc.desc: Test HasCustomRegion with filter chain
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderFilterBaseTest, HasCustomRegion004, TestSize.Level1)
+{
+    auto filter1 = std::make_shared<RSNGRenderBlurFilter>();
+    auto filter2 = std::make_shared<RSNGRenderEdgeLightFilter>();
+    filter1->nextEffect_ = filter2;
+    EXPECT_FALSE(RSNGRenderFilterHelper::HasCustomRegion(filter1));
+}
 } // namespace OHOS::Rosen

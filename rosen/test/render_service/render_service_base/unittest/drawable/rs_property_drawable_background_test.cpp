@@ -1378,33 +1378,6 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawable010, TestSize.Level1)
 }
 
 /**
- * @tc.name: RSShadowDrawable011
- * @tc.desc: Test OnDraw when geContainer_ is not null but GetGEVisualEffect returns nullptr
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawable011, TestSize.Level1)
-{
-    auto drawable = std::make_shared<DrawableV2::RSShadowDrawable>();
-    auto canvas = std::make_shared<Drawing::Canvas>();
-    auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(canvas.get());
-    auto rect = std::make_shared<Drawing::Rect>();
-
-    drawable->elevation_ = 0.f;
-    drawable->radius_ = 1.0f;
-    drawable->offsetX_ = 5.f;
-    drawable->offsetY_ = 5.f;
-    drawable->color_ = Color(255, 0, 0, 255);
-    drawable->colorStrategy_ = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
-    drawable->isFilled_ = false;
-    drawable->disableSDFBlur_ = false;
-    drawable->geContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
-
-    drawable->OnDraw(filterCanvas.get(), rect.get());
-    ASSERT_TRUE(true);
-}
-
-/**
  * @tc.name: RSMaterialFilterDrawableOnUpdate003
  * @tc.desc: Test OnUpdate with clipBounds set
  * @tc.type:FUNC
@@ -1484,5 +1457,47 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSMaterialFilterDrawableOnDraw004, TestSi
     Drawing::Rect rect(0.0f, 0.0f, 1.0f, 1.0f);
     drawable->OnDraw(&canvas, &rect);
     ASSERT_NE(drawable->clipPath_, nullptr);
+}
+
+/**
+ * @tc.name: RSBackgroundNGShaderDrawable005
+ * @tc.desc: Test OnUpdate with SDFShape set (true branch)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundNGShaderDrawable005, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT);
+    node.GetMutableRenderProperties().SetBackgroundNGShader(shader);
+
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_UNION_OP_SHAPE);
+    EXPECT_NE(sdfShape, nullptr);
+    node.GetMutableRenderProperties().SetSDFShape(sdfShape);
+
+    auto drawable = std::static_pointer_cast<DrawableV2::RSBackgroundNGShaderDrawable>(
+        DrawableV2::RSBackgroundNGShaderDrawable::OnGenerate(node));
+    EXPECT_NE(drawable, nullptr);
+
+    EXPECT_TRUE(drawable->OnUpdate(node));
+}
+
+/**
+ * @tc.name: RSBackgroundNGShaderDrawable006
+ * @tc.desc: Test OnUpdate without SDFShape (false branch)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundNGShaderDrawable006, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT);
+    node.GetMutableRenderProperties().SetBackgroundNGShader(shader);
+
+    auto drawable = std::static_pointer_cast<DrawableV2::RSBackgroundNGShaderDrawable>(
+        DrawableV2::RSBackgroundNGShaderDrawable::OnGenerate(node));
+    EXPECT_NE(drawable, nullptr);
+
+    EXPECT_TRUE(drawable->OnUpdate(node));
 }
 } // namespace OHOS::Rosen

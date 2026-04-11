@@ -799,6 +799,7 @@ public:
     void CalVisibleFilterRect(const std::optional<RectI>& clipRect, const std::optional<RectI>& surfaceClipRect);
     void CalVisibleFilterRect(const RectI& absRect, const Drawing::Matrix& matrix,
         const std::optional<RectI>& clipRect, const std::optional<RectI>& surfaceClipRect);
+    void UpdateSDFTransformRectInfo();
     void UpdateFilterRectInfo();
     std::shared_ptr<RSFilter> GetRSFilterWithSlot(RSDrawableSlot slot) const;
 

@@ -119,7 +119,7 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorFilter = {
     {RSNGEffectType::DISTORTION_COLLAPSE, [] {
             return std::make_shared<RSNGDistortionCollapseFilter>();
         }
-    }
+    },
 };
 
 std::shared_ptr<RSNGMaskBase> CreateMask(RSNGEffectType type)

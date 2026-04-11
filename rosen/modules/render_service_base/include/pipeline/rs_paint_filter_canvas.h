@@ -389,6 +389,8 @@ public:
         Drawing::Matrix cachedMatrix_ = Drawing::Matrix();
         float refractOut_ = 0.f;
         std::shared_ptr<IGECacheProvider> geCacheProvider_ = nullptr;
+
+        std::shared_ptr<Drawing::Image> GetProviderDataChecked();
     };
     void SetEffectData(const std::shared_ptr<CachedEffectData>& effectData);
     const std::shared_ptr<CachedEffectData>& GetEffectData() const;
