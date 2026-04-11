@@ -1703,5 +1703,29 @@ int32_t RSClientToRenderConnectionProxy::SetLogicalCameraRotationCorrection(
     return result;
 }
 
+
+void RSClientToRenderConnectionProxy::SetFreeMultiWindowStatus(bool enable)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("SetFreeMultiWindowStatus: WriteInterfaceToken GetDescriptor err.");
+        return;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteBool(enable)) {
+        ROSEN_LOGE("SetFreeMultiWindowStatus: WriteBool enable err.");
+        return;
+    }
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToRenderConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("SetFreeMultiWindowStatus: Send Request err.");
+        return;
+    }
+}
+
 } // namespace Rosen
 } // namespace OHOS

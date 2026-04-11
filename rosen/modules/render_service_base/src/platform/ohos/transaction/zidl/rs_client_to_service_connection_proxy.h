@@ -297,8 +297,6 @@ public:
 
     ErrCode SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus, bool& success) override;
 
-    void SetFreeMultiWindowStatus(bool enable) override;
-
     int32_t GetDisplayIdentificationData(ScreenId id, uint8_t& outPort, std::vector<uint8_t>& edidData) override;
 #ifdef TP_FEATURE_ENABLE
     ErrCode SetTpFeatureConfig(int32_t feature, const char* config,

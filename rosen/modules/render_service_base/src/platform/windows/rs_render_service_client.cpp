@@ -671,10 +671,6 @@ void RSRenderServiceClient::SetForceRefresh(const std::string &nodeIdStr, bool i
 {
 }
 
-void RSRenderServiceClient::SetFreeMultiWindowStatus(bool enable)
-{
-}
-
 void RSRenderServiceClient::SetColorFollow(const std::string &nodeIdStr, bool isColorFollow)
 {
 }

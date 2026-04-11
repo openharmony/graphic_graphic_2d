@@ -663,10 +663,6 @@ bool RSRenderServiceClient::SetVirtualScreenStatus(ScreenId id, VirtualScreenSta
     return false;
 }
 
-void RSRenderServiceClient::SetFreeMultiWindowStatus(bool enable)
-{
-}
-
 void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop)
 {
 }

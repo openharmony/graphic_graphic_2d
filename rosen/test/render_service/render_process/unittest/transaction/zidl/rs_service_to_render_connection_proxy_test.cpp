@@ -2054,62 +2054,6 @@ HWTEST_F(RSServiceToRenderConnectionProxyTest, SetColorFollow_SendRequestFail, T
     EXPECT_EQ(ret, RS_CONNECTION_ERROR);
 }
 
-// ==================== SetFreeMultiWindowStatus Tests ====================
-
-/**
- * @tc.name: SetFreeMultiWindowStatus_Enable_Success
- * @tc.desc: Test SetFreeMultiWindowStatus with enabled
- *
- * @tc.type: FUNC
- * @tc.require: issueI9KXXE
- */
-HWTEST_F(RSServiceToRenderConnectionProxyTest, SetFreeMultiWindowStatus_Enable_Success, TestSize.Level1)
-{
-    auto remoteObject = sptr<IRemoteObjectMock>::MakeSptr();
-    auto mockProxy = std::make_shared<RSServiceToRenderConnectionProxy>(remoteObject);
-
-    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(NO_ERROR));
-
-    bool enable = true;
-    mockProxy->SetFreeMultiWindowStatus(enable);
-}
-
-/**
- * @tc.name: SetFreeMultiWindowStatus_Disable_Success
- * @tc.desc: Test SetFreeMultiWindowStatus with disabled
- *
- * @tc.type: FUNC
- * @tc.require: issueI9KXXE
- */
-HWTEST_F(RSServiceToRenderConnectionProxyTest, SetFreeMultiWindowStatus_Disable_Success, TestSize.Level1)
-{
-    auto remoteObject = sptr<IRemoteObjectMock>::MakeSptr();
-    auto mockProxy = std::make_shared<RSServiceToRenderConnectionProxy>(remoteObject);
-
-    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(NO_ERROR));
-
-    bool enable = false;
-    mockProxy->SetFreeMultiWindowStatus(enable);
-}
-
-/**
- * @tc.name: SetFreeMultiWindowStatus_SendRequestFail
- * @tc.desc: Test SetFreeMultiWindowStatus when SendRequest
- * fails
- * @tc.type: FUNC
- * @tc.require: issueI9KXXE
- */
-HWTEST_F(RSServiceToRenderConnectionProxyTest, SetFreeMultiWindowStatus_SendRequestFail, TestSize.Level1)
-{
-    auto remoteObject = sptr<IRemoteObjectMock>::MakeSptr();
-    auto mockProxy = std::make_shared<RSServiceToRenderConnectionProxy>(remoteObject);
-
-    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(-1));
-
-    bool enable = true;
-    mockProxy->SetFreeMultiWindowStatus(enable);
-}
-
 /**
  * @tc.name: DoDumpTest001
  * @tc.desc: Test DoDump with null argSets

@@ -4642,27 +4642,6 @@ void RSClientToServiceConnectionProxy::SetColorFollow(const std::string &nodeIdS
     }
 }
 
-void RSClientToServiceConnectionProxy::SetFreeMultiWindowStatus(bool enable)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
-        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetFreeMultiWindowStatus: write token err.");
-        return;
-    }
-    option.SetFlags(MessageOption::TF_ASYNC);
-    if (!data.WriteBool(enable)) {
-        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetFreeMultiWindowStatus: write bool val err.");
-        return;
-    }
-    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS);
-    int32_t err = SendRequest(code, data, reply, option);
-    if (err != NO_ERROR) {
-        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetFreeMultiWindowStatus: Send Request err.");
-    }
-}
-
 int32_t RSClientToServiceConnectionProxy::RegisterSelfDrawingNodeRectChangeCallback(
     const RectConstraint& constraint, sptr<RSISelfDrawingNodeRectChangeCallback> callback)
 {

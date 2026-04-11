@@ -1744,16 +1744,6 @@ bool RSRenderServiceClient::SetVirtualScreenStatus(ScreenId id, VirtualScreenSta
     return success;
 }
 
-void RSRenderServiceClient::SetFreeMultiWindowStatus(bool enable)
-{
-    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
-    if (clientToService == nullptr) {
-        ROSEN_LOGE("RSRenderServiceClient::SetFreeMultiWindowStatus clientToService == nullptr!");
-        return;
-    }
-    clientToService->SetFreeMultiWindowStatus(enable);
-}
-
 void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop)
 {
     auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();

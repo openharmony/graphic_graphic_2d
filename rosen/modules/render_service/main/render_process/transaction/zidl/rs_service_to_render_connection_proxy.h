@@ -90,9 +90,6 @@ public:
     void SetShowRefreshRateEnabled(bool enabled, int32_t type) override;
     ErrCode GetShowRefreshRateEnabled(bool& enable) override;
 
-    // Free Multi Window
-    void SetFreeMultiWindowStatus(bool enable) override;
-
     // Overlay
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     ErrCode SetOverlayDisplayMode(int32_t mode) override;

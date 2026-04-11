@@ -254,11 +254,6 @@ ErrCode RSServiceToRenderConnection::GetSurfaceRootNodeId(NodeId& windowNodeId)
     return ERR_OK;
 }
 
-void RSServiceToRenderConnection::SetFreeMultiWindowStatus(bool enable)
-{
-    renderPipelineAgent_->SetFreeMultiWindowStatus(enable);
-}
-
 int32_t RSServiceToRenderConnection::RegisterSelfDrawingNodeRectChangeCallback(
     pid_t remotePid, const RectConstraint& constraint, sptr<RSISelfDrawingNodeRectChangeCallback> callback)
 {

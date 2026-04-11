@@ -1037,18 +1037,6 @@ HWTEST_F(RSServiceClientTest, RegisterUIExtensionCallback_002, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetFreeMultiWindowStatus Test
- * @tc.desc: SetFreeMultiWindowStatus, input true
- * @tc.type:FUNC
- * @tc.require: issueIANPC2
- */
-HWTEST_F(RSServiceClientTest, SetFreeMultiWindowStatus, TestSize.Level1)
-{
-    ASSERT_NE(rsClient, nullptr);
-    rsClient->SetFreeMultiWindowStatus(true);
-}
-
-/**
  * @tc.name: SetLayerTop001 Test
  * @tc.desc: SetLayerTop001, input true
  * @tc.type:FUNC

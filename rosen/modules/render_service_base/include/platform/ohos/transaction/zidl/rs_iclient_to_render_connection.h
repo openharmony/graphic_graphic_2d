@@ -193,6 +193,8 @@ public:
 
     virtual int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id) = 0;
     virtual int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection) = 0;
+
+    virtual void SetFreeMultiWindowStatus(bool enable) = 0;
 };
 
 } // namespace Rosen

@@ -949,5 +949,15 @@ int32_t RSRenderPipelineClient::SetLogicalCameraRotationCorrection(ScreenId id, 
         PRIu64 ", logicalCorrection: %{public}u", id, logicalCorrection);
     return renderPipeline->SetLogicalCameraRotationCorrection(id, logicalCorrection);
 }
+
+void RSRenderPipelineClient::SetFreeMultiWindowStatus(bool enable)
+{
+    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
+    if (renderPipeline == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::SetFreeMultiWindowStatus renderPipeline == nullptr!");
+        return;
+    }
+    renderPipeline->SetFreeMultiWindowStatus(enable);
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -353,8 +353,6 @@ public:
 
     virtual ErrCode SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus, bool& success) = 0;
 
-    virtual void SetFreeMultiWindowStatus(bool enable) = 0;
-
     virtual int32_t GetDisplayIdentificationData(ScreenId id, uint8_t& outPort, std::vector<uint8_t>& edidData) = 0;
 
 #ifdef TP_FEATURE_ENABLE

@@ -349,8 +349,6 @@ private:
 
     ErrCode SetOptimizeCanvasDirtyPidList(const std::vector<int32_t>& pidList) override;
 
-    void SetFreeMultiWindowStatus(bool enable) override;
-
     ErrCode SetLayerTop(const std::string &nodeIdStr, bool isTop) override;
 
     ErrCode SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh) override;
