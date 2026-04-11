@@ -172,7 +172,7 @@ void CheckAndSetIndents(const ParagraphStyle& txt, skt::ParagraphStyle& skStyle)
         skStyle.setTailIndents(txt.tailIndents);
     }
     if (std::none_of(txt.headIndents.begin(), txt.headIndents.end(), [](float indent) { return indent < 0.0f; })) {
-        skStyle.setHeadIndents(txt.tailIndents);
+        skStyle.setHeadIndents(txt.headIndents);
     }
 }
 
