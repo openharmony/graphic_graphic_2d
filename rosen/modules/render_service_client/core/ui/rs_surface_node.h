@@ -113,6 +113,18 @@ public:
      *
      * @param surfaceNodeConfig The configuration settings for the surface node.
      * @param isWindow Indicates whether the surface node is a window. Defaults to true.
+     * @return SharedPtr A shared pointer to the newly created RSSurfaceNode instance.
+     */
+    static SharedPtr CreateSurfaceNode(const RSSurfaceNodeConfig& surfaceNodeConfig, bool isWindow = true);
+
+    bool SendDataToRender(const RSSurfaceNodeConfig& surfaceNodeConfig,
+    RSSurfaceNodeType type, bool isWindow, bool unobscured);
+ 
+    /**
+     * @brief Creates a new instance of RSSurfaceNode with the specified configuration.
+     *
+     * @param surfaceNodeConfig The configuration settings for the surface node.
+     * @param isWindow Indicates whether the surface node is a window. Defaults to true.
      * @param rsUIContext An optional shared pointer to an RSUIContext object. Defaults to nullptr.
      * @return SharedPtr A shared pointer to the newly created RSSurfaceNode instance.
      */
