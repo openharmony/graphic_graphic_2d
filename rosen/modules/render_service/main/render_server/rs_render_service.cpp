@@ -149,10 +149,7 @@ bool RSRenderService::CoreComponentsInit()
 
     // vsync manager
     vsyncManager_ = sptr<RSVsyncManager>::MakeSptr();
-    if (!vsyncManager_->init(screenManager_)) {
-        RS_LOGE("%{public}s: vsync init failed", __func__);
-        return false;
-    }
+    vsyncManager_->init(screenManager_, renderModeConfig_->GetIsMultiProcessModeEnabled());
 
     // composerManager init
     rsRenderComposerManager_ = std::make_shared<RSRenderComposerManager>(handler_,
