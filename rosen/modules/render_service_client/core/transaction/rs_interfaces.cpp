@@ -1143,12 +1143,7 @@ int32_t RSInterfaces::GetPidGpuMemoryInMB(pid_t pid, float& gpuMemInMB)
     auto ret = renderServiceClient_->GetPidGpuMemoryInMB(pid, gpuMemInMB);
     return ret;
 }
-// LCOV_EXCL_START
-bool RSInterfaces::GetHighContrastTextState()
-{
-    return false;
-    // return renderInterface_->GetHighContrastTextState();
-}
+
 // LCOV_EXCL_STOP
 bool RSInterfaces::SetBehindWindowFilterEnabled(bool enabled)
 {

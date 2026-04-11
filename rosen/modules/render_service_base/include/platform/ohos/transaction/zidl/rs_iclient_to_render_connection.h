@@ -116,8 +116,6 @@ public:
 
     virtual ErrCode SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent, uint32_t& resCode) = 0;
 
-    virtual bool GetHighContrastTextState() = 0;
-
     virtual ErrCode SetFocusAppInfo(const FocusAppInfo& info, int32_t& repCode) = 0;
     
     virtual void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,

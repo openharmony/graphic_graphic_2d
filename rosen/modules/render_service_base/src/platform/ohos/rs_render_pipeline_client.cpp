@@ -322,16 +322,6 @@ bool RSRenderPipelineClient::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
     return success;
 }
 
-bool RSRenderPipelineClient::GetHighContrastTextState()
-{
-    if (clientToRenderConnection_ == nullptr) {
-        ROSEN_LOGE("%{public}s clientToRenderConnection_ is nullptr", __func__);
-        return false;
-    }
-    return clientToRenderConnection_->GetHighContrastTextState();
-}
-
-
 void RSRenderPipelineClient::TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
     std::shared_ptr<Media::PixelMap> pixelmap, CaptureError captureErrorCode,
     std::shared_ptr<Media::PixelMap> pixelmapHDR)

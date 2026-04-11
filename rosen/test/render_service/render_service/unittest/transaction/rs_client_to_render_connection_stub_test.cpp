@@ -3998,10 +3998,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RenderPipelineAgentNullptrTest011, 
     std::shared_ptr<RSRenderPipeline> nullPipeline = nullptr;
     sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(nullPipeline);
 
-    // Test GetHighContrastTextState
-    bool ret = agent->GetHighContrastTextState();
-    EXPECT_EQ(ret, false);
-
     // Test RegisterTypeface
     uint64_t globalUniqueId = 12345;
     std::shared_ptr<Drawing::Typeface> typeface = nullptr;
@@ -4424,26 +4420,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, CommitTransaction_ZeroPid_012, Test
 
     renderPipelineAgent_->CommitTransaction(0, true, false, transactionData);
     EXPECT_FALSE(renderPipelineAgent_->rsRenderPipeline_->mainThread_->cachedTransactionDataMap_.empty());
-}
-
-/**
- * @tc.name: GetHighContrastTextStateTest001
- * @tc.desc: Test GetHighContrastTextState
- * branch)
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSClientToRenderConnectionStubTest, GetHighContrastTextStateTest001, TestSize.Level1)
-{
-    ASSERT_NE(connectionStub_, nullptr);
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
-    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_HIGH_CONTRAST_TEXT_STATE);
-
-    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(res, ERR_NONE);
 }
 
 /**

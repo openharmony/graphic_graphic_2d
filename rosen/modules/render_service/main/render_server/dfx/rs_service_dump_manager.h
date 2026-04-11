@@ -86,6 +86,7 @@ private:
     std::vector<std::string> dumpDataList_;
     sptr<RSDumpCallbackDirector> rsDumpCallbackDirector_ = nullptr;
     bool IsDumpCompleted();
+    ScreenId GetScreenIdFormArgs(const std::vector<std::u16string>& args);
 };
 
 class RSDumpCallbackDirector : public RSDumpCallbackStub {

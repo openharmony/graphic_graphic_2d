@@ -53,8 +53,6 @@ public:
 
     ErrCode SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent, uint32_t& resCode);
 
-    bool GetHighContrastTextState();
-
     ErrCode SetFocusAppInfo(const FocusAppInfo& info, int32_t& repCode);
 
     void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,

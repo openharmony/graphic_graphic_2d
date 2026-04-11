@@ -93,11 +93,6 @@ uint32_t RSRenderPipelineClient::SetHidePrivacyContent(NodeId id, bool needHideP
     return {};
 }
 
-bool RSRenderPipelineClient::GetHighContrastTextState()
-{
-    return false;
-}
-
 void RSRenderPipelineClient::TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
     std::shared_ptr<Media::PixelMap> pixelmap, CaptureError captureErrorCode,
     std::shared_ptr<Media::PixelMap> pixelmapHDR)

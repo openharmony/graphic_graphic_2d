@@ -157,6 +157,9 @@ void RSRenderPipeline::OnScreenConnected(const sptr<RSScreenProperty>& rsScreenP
         RS_LOGE("%{public}s mainThread_ is nullptr, return", __func__);
         return;
     }
+    if (rpDumpManager_) {
+        rpDumpManager_->SetScreenId(rsScreenProperty ? rsScreenProperty->GetScreenId() : INVALID_SCREEN_ID);
+    }
     mainThread_->OnScreenConnected(rsScreenProperty);
 
     if (rsScreenProperty->IsVirtual()) {
@@ -276,6 +279,7 @@ void RSRenderPipeline::InitUniRenderThread()
 void RSRenderPipeline::InitDumper(const std::shared_ptr<AppExecFwk::EventHandler>& handler)
 {
     rpDumpManager_ = std::make_shared<RSPipelineDumpManager>();
+    rpDumpManager_->SetPid(getpid());
     rpDumper_ = std::make_shared<RSPipelineDumper>(handler);
     rpDumper_->RenderPipelineDumpInit(rpDumpManager_);
 }
