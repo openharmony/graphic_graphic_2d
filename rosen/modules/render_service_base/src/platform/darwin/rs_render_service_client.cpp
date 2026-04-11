@@ -516,6 +516,12 @@ int32_t RSRenderServiceClient::RegisterFirstFrameCommitCallback(
     return {};
 }
 
+int32_t RSRenderServiceClient::RegisterExposedEventCallback(
+    const RSExposedEventType type, const RSExposedEventCallback& callback)
+{
+    return {};
+}
+
 int32_t RSRenderServiceClient::RegisterFrameRateLinkerExpectedFpsUpdateCallback(
     int32_t dstPid, const FrameRateLinkerExpectedFpsUpdateCallback& callback)
 {

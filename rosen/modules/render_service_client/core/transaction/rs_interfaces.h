@@ -24,6 +24,7 @@
 #include <memory>
 #include <mutex>
 
+#include "common/rs_event_def.h"
 #include "memory/rs_memory_graphic.h"
 #include "transaction/rs_render_service_client.h"
 #include "ui/rs_display_node.h"
@@ -991,6 +992,21 @@ public:
      * @return UnRegister result, 0 success, else failed.
      */
     int32_t UnRegisterFirstFrameCommitCallback();
+
+    /**
+     * @brief Register the exposed event callback function.
+     * @param type Indicates specified event that need to be registered.
+     * @param callback Indicates functions that need to be registered.
+     * @return Register result, 0 success, else failed.
+     */
+    int32_t RegisterExposedEventCallback(const RSExposedEventType type, const RSExposedEventCallback& callback);
+
+    /**
+     * @brief UnRegister the Exposed event Callback function.
+     * @param type Indicates specified event that need to be Unregistered.
+     * @return UnRegister result, 0 success, else failed.
+     */
+    int32_t UnRegisterExposedEventCallback(const RSExposedEventType type);
 
     /**
      * @brief Register FrameRateLinkerExpectedFpsUpdateCallback.

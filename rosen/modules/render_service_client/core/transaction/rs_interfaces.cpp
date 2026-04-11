@@ -776,6 +776,17 @@ int32_t RSInterfaces::UnRegisterFirstFrameCommitCallback()
     return renderServiceClient_->RegisterFirstFrameCommitCallback(nullptr);
 }
 
+int32_t RSInterfaces::RegisterExposedEventCallback(
+    const RSExposedEventType type, const RSExposedEventCallback& callback)
+{
+    return renderServiceClient_->RegisterExposedEventCallback(type, callback);
+}
+
+int32_t RSInterfaces::UnRegisterExposedEventCallback(const RSExposedEventType type)
+{
+    return renderServiceClient_->RegisterExposedEventCallback(type, nullptr);
+}
+
 int32_t RSInterfaces::RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
     const FrameRateLinkerExpectedFpsUpdateCallback& callback)
 {

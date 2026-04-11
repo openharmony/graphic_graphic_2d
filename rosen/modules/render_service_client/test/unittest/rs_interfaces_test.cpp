@@ -1432,6 +1432,35 @@ HWTEST_F(RSInterfacesTest, RegisterHgmConfigChangeCallback_Test, Function | Smal
 }
 
 /*
+ * @tc.name: RegisterExposedEventCallback Test
+ * @tc.desc: RegisterExposedEventCallback Test with valid callback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, RegisterExposedEventCallback_Test, Function | SmallTest | Level0)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    RSExposedEventCallback cb = [](const std::shared_ptr<RSExposedEventDataBase>& data) {};
+    RSExposedEventType type = RSExposedEventType::EXT_SCREEN_UNSUPPORT;
+    int32_t ret = rsInterfaces->RegisterExposedEventCallback(type, cb);
+    ASSERT_EQ(ret, 0);
+}
+
+/*
+ * @tc.name: UnRegisterExposedEventCallback Test
+ * @tc.desc: UnRegisterExposedEventCallback Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, UnRegisterExposedEventCallback_Test, Function | SmallTest | Level0)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    RSExposedEventType type = RSExposedEventType::EXT_SCREEN_UNSUPPORT;
+    int32_t ret = rsInterfaces->UnRegisterExposedEventCallback(type);
+    ASSERT_EQ(ret, 0);
+}
+
+/*
  * @tc.name: NotifyLightFactorStatus001
  * @tc.desc: Notify light factor status to hgm
  * @tc.type: FUNC

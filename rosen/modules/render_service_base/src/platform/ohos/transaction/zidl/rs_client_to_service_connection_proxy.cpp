@@ -3268,6 +3268,55 @@ int32_t RSClientToServiceConnectionProxy::RegisterFirstFrameCommitCallback(
     return result;
 }
 
+int32_t RSClientToServiceConnectionProxy::RegisterExposedEventCallback(
+    const RSExposedEventType type, const sptr<RSIExposedEventCallback> callback)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RegisterExposedEventCallback: WriteInterfaceToken GetDescriptor err.");
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+
+    // write type
+    if (!data.WriteUint32(static_cast<uint32_t>(type))) {
+        ROSEN_LOGE("RegisterExposedEventCallback: WriteUint32 type err.");
+        return WRITE_PARCEL_ERR;
+    }
+
+    // write callback
+    if (callback) {
+        if (!data.WriteBool(true)) {
+            ROSEN_LOGE("RegisterExposedEventCallback: WriteBool [true] err.");
+            return WRITE_PARCEL_ERR;
+        }
+        if (!data.WriteRemoteObject(callback->AsObject())) {
+            ROSEN_LOGE("RegisterExposedEventCallback: WriteRemoteObject callback->AsObject() err.");
+            return WRITE_PARCEL_ERR;
+        }
+    } else {
+        if (!data.WriteBool(false)) {
+            ROSEN_LOGE("RegisterExposedEventCallback: WriteBool [false] err.");
+            return WRITE_PARCEL_ERR;
+        }
+    }
+
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::ON_EXPOSED_EVENT);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::RegisterExposedEventCallback: Send Request err.");
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::RegisterExposedEventCallback Read result failed");
+        return READ_PARCEL_ERR;
+    }
+    return result;
+}
+
 ErrCode RSClientToServiceConnectionProxy::AvcodecVideoStart(const std::vector<uint64_t>& uniqueIdList,
     const std::vector<std::string>& surfaceNameList, uint32_t fps, uint64_t reportTime)
 {

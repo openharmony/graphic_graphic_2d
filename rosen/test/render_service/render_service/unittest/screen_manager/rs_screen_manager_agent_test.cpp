@@ -13,7 +13,10 @@
  * limitations under the License.
  */
 
+#include "ipc_callbacks/rs_exposed_event_callback_stub.h"
+
 #include "callback/rs_screen_callback_manager.h"
+#include "common/rs_event_def.h"
 #include "gtest/gtest.h"
 #include "public/rs_screen_manager_agent.h"
 #include "rs_screen_manager.h"
@@ -639,6 +642,131 @@ HWTEST_F(RSScreenManagerAgentTest, SetScreenSwitchingNotifyCallback001, TestSize
     screenManagerAgent_->screenManager_ = nullptr;
     screenManagerAgent_->SetScreenSwitchingNotifyCallback(callback);
     screenManagerAgent_->screenManager_ = screenManager;
+}
+
+/*
+ * @tc.name: SetExposedEventCallback001
+ * @tc.desc: Test SetExposedEventCallback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerAgentTest, SetExposedEventCallback001, TestSize.Level1)
+{
+    sptr<RSIExposedEventCallback> callback;
+    RSExposedEventType type = RSExposedEventType::EXT_SCREEN_UNSUPPORT;
+    auto result = screenManagerAgent_->SetExposedEventCallback(type, callback);
+    ASSERT_EQ(result, StatusCode::SUCCESS);
+
+    auto screenManager = screenManagerAgent_->screenManager_;
+    screenManagerAgent_->screenManager_ = nullptr;
+    screenManagerAgent_->SetExposedEventCallback(type, callback);
+    screenManagerAgent_->screenManager_ = screenManager;
+
+    type = RSExposedEventType::EXPOSED_EVENT_INVALID;
+    result = screenManagerAgent_->SetExposedEventCallback(type, nullptr);
+    ASSERT_EQ(result, StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: SetExposedEventCallback002
+ * @tc.desc: Test SetExposedEventCallback with valid callback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerAgentTest, SetExposedEventCallback002, TestSize.Level1)
+{
+    class MockExposedEventCallback : public RSExposedEventCallbackStub {
+    public:
+        MockExposedEventCallback() = default;
+        void OnDisplayEvent(const std::shared_ptr<RSExposedEventDataBase> data) override {}
+    };
+    sptr<RSIExposedEventCallback> callback = new MockExposedEventCallback();
+    RSExposedEventType type = RSExposedEventType::EXT_SCREEN_UNSUPPORT;
+    auto result = screenManagerAgent_->SetExposedEventCallback(type, callback);
+    ASSERT_EQ(result, StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: SetExposedEventCallback003
+ * @tc.desc: Test SetExposedEventCallback in listener
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerAgentTest, SetExposedEventCallback003, TestSize.Level1)
+{
+    class MockExposedEventCallback : public RSExposedEventCallbackStub {
+    public:
+        MockExposedEventCallback() = default;
+        void OnDisplayEvent(const std::shared_ptr<RSExposedEventDataBase> data) override {}
+    };
+    ASSERT_NE(screenManagerAgent_, nullptr);
+    sptr<RSIExposedEventCallback> callback = new MockExposedEventCallback();
+    RSExposedEventType type = RSExposedEventType::EXT_SCREEN_UNSUPPORT;
+    screenManagerAgent_->agentListener_->SetExposedEventCallback(type, callback);
+    screenManagerAgent_->agentListener_->SetExposedEventCallback(type, nullptr);
+}
+
+/*
+ * @tc.name: OnHwcEvent001
+ * @tc.desc: Test OnHwcEvent when callback is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerAgentTest, OnHwcEvent001, TestSize.Level1)
+{
+    uint32_t deviceId = 0;
+    uint32_t eventId = static_cast<uint32_t>(HwcEvent::HWCEVENT_EXT_SCREEN_NOT_SUPPORT);
+    std::vector<int32_t> eventData = {};
+    ASSERT_NE(screenManagerAgent_, nullptr);
+    screenManagerAgent_->agentListener_->OnHwcEvent(deviceId, eventId, eventData);
+}
+
+/*
+ * @tc.name: OnHwcEvent002
+ * @tc.desc: Test OnHwcEvent with different eventId
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerAgentTest, OnHwcEvent002, TestSize.Level1)
+{
+    class MockExposedEventCallback : public RSExposedEventCallbackStub {
+    public:
+        MockExposedEventCallback() = default;
+        void OnDisplayEvent(const std::shared_ptr<RSExposedEventDataBase> data) override {}
+    };
+    sptr<RSIExposedEventCallback> callback = new MockExposedEventCallback();
+    RSExposedEventType type = RSExposedEventType::EXT_SCREEN_UNSUPPORT;
+    screenManagerAgent_->agentListener_->SetExposedEventCallback(type, callback);
+
+    uint32_t deviceId = 0;
+    uint32_t eventId = static_cast<uint32_t>(HwcEvent::HWCEVENT_EXT_SCREEN_NOT_SUPPORT);
+    std::vector<int32_t> eventData = {};
+    ASSERT_NE(screenManagerAgent_, nullptr);
+    screenManagerAgent_->agentListener_->OnHwcEvent(deviceId, eventId, eventData);
+}
+
+/*
+ * @tc.name: OnHwcEvent003
+ * @tc.desc: Test OnHwcEvent with non-matching eventId
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerAgentTest, OnHwcEvent003, TestSize.Level1)
+{
+    class MockExposedEventCallback : public RSExposedEventCallbackStub {
+    public:
+        MockExposedEventCallback() = default;
+        void OnDisplayEvent(const std::shared_ptr<RSExposedEventDataBase> data) override {}
+    };
+    sptr<RSIExposedEventCallback> callback = new MockExposedEventCallback();
+    RSExposedEventType type = RSExposedEventType::EXT_SCREEN_UNSUPPORT;
+    screenManagerAgent_->agentListener_->SetExposedEventCallback(type, callback);
+
+    uint32_t deviceId = 0;
+    uint32_t eventId = static_cast<uint32_t>(HwcEvent::HWCEVENT_CALLBACK_MAX);
+    std::vector<int32_t> eventData = {};
+    ASSERT_NE(screenManagerAgent_, nullptr);
+    screenManagerAgent_->agentListener_->OnHwcEvent(deviceId, eventId, eventData);
 }
 
 /*

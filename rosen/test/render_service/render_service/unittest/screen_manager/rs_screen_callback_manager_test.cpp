@@ -212,6 +212,64 @@ HWTEST_F(RSScreenCallbackManagerTest, NotifyHwcEventTest, TestSize.Level0)
 }
 
 /*
+ * @tc.name: NotifyHwcEventToAgentListenersTest
+ * @tc.desc: Test NotifyHwcEventToAgentListeners with agent listener
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenCallbackManagerTest, NotifyHwcEventToAgentListenersTest, TestSize.Level0)
+{
+    class MockAgentListener : public RSIScreenManagerAgentListener {
+    public:
+        bool onHwcEventCalled = false;
+        void OnScreenConnected(ScreenId id, ScreenChangeReason reason,
+            sptr<IRemoteObject> remoteConn) override {};
+        void OnScreenDisconnected(ScreenId id, ScreenChangeReason reason) override {};
+        void OnScreenSwitchingNotify(bool status) override {};
+        void OnHwcEvent(uint32_t deviceId, uint32_t eventId,
+            const std::vector<int32_t>& eventData) override
+        {
+            onHwcEventCalled = true;
+        }
+    };
+    auto mockAgentListener = sptr<MockAgentListener>::MakeSptr();
+    ASSERT_EQ(callbackMgr_->agentListeners_.size(), 0);
+    callbackMgr_->AddAgentListener(mockAgentListener);
+    ASSERT_EQ(callbackMgr_->agentListeners_.size(), 1);
+
+    uint32_t deviceId = 100;
+    uint32_t eventId = 100;
+    std::vector<int32_t> eventData = {};
+    callbackMgr_->NotifyHwcEvent(deviceId, eventId, eventData);
+    ASSERT_TRUE(mockAgentListener->onHwcEventCalled);
+
+    callbackMgr_->RemoveAgentListener(mockAgentListener);
+    ASSERT_EQ(callbackMgr_->agentListeners_.size(), 0);
+}
+
+/*
+ * @tc.name: NotifyHwcEventToAgentListenersWithNullListenerTest
+ * @tc.desc: Test NotifyHwcEventToAgentListeners with null listener in list
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenCallbackManagerTest, NotifyHwcEventToAgentListenersWithNullListenerTest, TestSize.Level0)
+{
+    auto screenManagerAgentListener = sptr<RSScreenManagerAgentListener>::MakeSptr();
+    ASSERT_EQ(callbackMgr_->agentListeners_.size(), 0);
+    callbackMgr_->AddAgentListener(screenManagerAgentListener);
+    ASSERT_EQ(callbackMgr_->agentListeners_.size(), 1);
+
+    uint32_t deviceId = 100;
+    uint32_t eventId = 100;
+    std::vector<int32_t> eventData = {};
+    callbackMgr_->NotifyHwcEvent(deviceId, eventId, eventData);
+
+    callbackMgr_->RemoveAgentListener(screenManagerAgentListener);
+    ASSERT_EQ(callbackMgr_->agentListeners_.size(), 0);
+}
+
+/*
  * @tc.name: NotifyVBlankIdleTest
  * @tc.desc: Test NotifyVBlankIdle
  * @tc.type: FUNC
