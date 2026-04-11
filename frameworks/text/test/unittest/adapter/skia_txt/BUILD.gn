@@ -21,6 +21,7 @@ ohos_unittest("rosen_text_adapt_test") {
 
   sources = [
     "convert_test.cpp",
+    "use_locale_for_text_break_test.cpp",
     "font_collection_test.cpp",
     "placeholder_run_test.cpp",
     "orphan_char_optimization_test.cpp",

@@ -112,6 +112,7 @@ public:
     bool includeFontPadding{false};
     bool fallbackLineSpacing{false};
     bool orphanCharOptimization{false};
+    bool useLocaleForTextBreak{false};
 };
 } // namespace SPText
 } // namespace Rosen
