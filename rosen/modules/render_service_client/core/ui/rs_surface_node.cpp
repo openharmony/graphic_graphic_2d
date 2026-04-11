@@ -74,12 +74,12 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::CreateSurfaceNode(const RSSurfaceNodeCon
     return node;
 }
  
-bool RSSurfaceNode::sendDataToRender(const RSSurfaceNodeConfig& surfaceNodeConfig,
+bool RSSurfaceNode::SendDataToRender(const RSSurfaceNodeConfig& surfaceNodeConfig,
     RSSurfaceNodeType type, bool isWindow, bool unobscured)
 {
     auto rsUIContext = GetRSUIContext();
     if (rsUIContext == nullptr) {
-        ROSEN_LOGE("RSSurfaceNode::sendDataToRender rsUIContext is nullptr");
+        ROSEN_LOGE("RSSurfaceNode::SendDataToRender rsUIContext is nullptr");
         return false;
     }
     rsUIContext->GetMutableNodeMap().RegisterNode(shared_from_this());
@@ -100,9 +100,9 @@ bool RSSurfaceNode::sendDataToRender(const RSSurfaceNodeConfig& surfaceNodeConfi
         config.nodeType = type;
     }
     surfaceNodeType_ = config.nodeType;
-    RS_TRACE_NAME_FMT("RSSurfaceNode::sendDataToRender name: %s type: %hhu, id: %lu, token:%lu", name_.c_str(),
+    RS_TRACE_NAME_FMT("RSSurfaceNode::SendDataToRender name: %s type: %hhu, id: %lu, token:%lu", name_.c_str(),
         config.nodeType, GetId(), rsUIContext ? rsUIContext->GetToken() : 0);
-    RS_LOGD("RSSurfaceNode::sendDataToRender name: %{public}s type: %{public}hhu, id: %{public}" PRIu64, name_.c_str(),
+    RS_LOGD("RSSurfaceNode::SendDataToRender name: %{public}s type: %{public}hhu, id: %{public}" PRIu64, name_.c_str(),
         config.nodeType, GetId());
     if (type == RSSurfaceNodeType::LEASH_WINDOW_NODE && IsUniRenderEnabled()) {
         std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeCreateWithConfig>(
@@ -111,7 +111,7 @@ bool RSSurfaceNode::sendDataToRender(const RSSurfaceNodeConfig& surfaceNodeConfi
     } else {
 #ifndef SCREENLESS_DEVICE
         if (!CreateNodeAndSurface(config, surfaceNodeConfig.surfaceId, unobscured)) {
-            ROSEN_LOGE("RSSurfaceNode::sendDataToRender, create node and surface failed");
+            ROSEN_LOGE("RSSurfaceNode::SendDataToRender, create node and surface failed");
             return false;
         }
 #endif
@@ -166,7 +166,7 @@ bool RSSurfaceNode::sendDataToRender(const RSSurfaceNodeConfig& surfaceNodeConfi
     } else if (!isWindow) {
         SetFrameGravity(Gravity::RESIZE);
     }
-    ROSEN_LOGI("RsDebug RSSurfaceNode::sendDataToRender id:%{public}" PRIu64, GetId());
+    ROSEN_LOGI("RsDebug RSSurfaceNode::SendDataToRender id:%{public}" PRIu64, GetId());
     SetUIContextToken();
     return true;
 }
