@@ -41,6 +41,7 @@
 #include "draw/clip.h"
 #include "drawing/draw/core_canvas.h"
 #include "effect/rs_render_filter_base.h"
+#include "effect/rs_render_shape_base.h"
 #include "effect/runtime_blender_builder.h"
 #include "effect/runtime_effect.h"
 #include "effect/runtime_shader_builder.h"
@@ -296,6 +297,12 @@ void RSPropertiesPainter::GetShadowDirtyRect(RectI& dirtyShadow, const RSPropert
         emptyCanvas->GetLocalShadowBounds(matrix, path, planeParams, lightPos, DEFAULT_LIGHT_RADIUS,
             Drawing::ShadowFlags::TRANSPARENT_OCCLUDER, true, shadowRect);
     } else if (ROSEN_GNE(properties.GetShadowRadius(), 0.f)) {
+        if (properties.GetSDFShape()) {
+            OHOS::Rosen::RectF bound = OHOS::Rosen::RectF(
+                shadowRect.GetLeft(), shadowRect.GetTop(), shadowRect.GetWidth(), shadowRect.GetHeight());
+            bound = RSNGRenderShapeHelper::CalcRect(properties.GetSDFShape(), bound, false);
+            shadowRect.Join(Drawing::Rect(bound.GetLeft(), bound.GetTop(), bound.GetRight(), bound.GetBottom()));
+        }
         Drawing::Brush brush;
         brush.SetAntiAlias(true);
         Drawing::Filter filter;
@@ -813,9 +820,14 @@ void RSPropertiesPainter::GetForegroundNGFilterDirtyRect(RectI& dirtyForegroundE
         dirtyForegroundEffect.top_ = std::floor(drawingRect.GetTop());
         dirtyForegroundEffect.width_ = scale.x_;
         dirtyForegroundEffect.height_ = scale.y_;
-    } else if (foregroundNGFilter->GetType() == RSNGEffectType::PARTICLE_ABLATION) {
+        return;
+    }
+
+    if (RSNGRenderFilterHelper::HasCustomRegion(foregroundNGFilter)) {
         auto boundsRect = properties.GetBoundsRect();
         auto& geoPtr = properties.GetBoundsGeometry();
+
+        boundsRect = RSNGRenderFilterHelper::CalcRect(foregroundNGFilter, boundsRect, EffectRectType::TOTAL);
         Drawing::Matrix matrix = (geoPtr && isAbsCoordinate) ? geoPtr->GetAbsMatrix() : Drawing::Matrix();
         auto drawingRect = Rect2DrawingRect(boundsRect);
         matrix.MapRect(drawingRect, drawingRect);
@@ -827,6 +839,22 @@ void RSPropertiesPainter::GetForegroundNGFilterDirtyRect(RectI& dirtyForegroundE
         dirtyForegroundEffect.top_ = std::floor(drawingRect.GetTop()) - offsety;
         dirtyForegroundEffect.width_ = scale.x_;
         dirtyForegroundEffect.height_ = scale.y_;
+        return;
+    }
+    
+    if (RSNGRenderFilterHelper::HasCustomRegion(foregroundNGFilter)) {
+        auto boundsRect = properties.GetBoundsRect();
+        auto& geoPtr = properties.GetBoundsGeometry();
+
+        boundsRect = RSNGRenderFilterHelper::CalcRect(foregroundNGFilter, boundsRect, EffectRectType::TOTAL);
+        Drawing::Matrix matrix = (geoPtr && isAbsCoordinate) ? geoPtr->GetAbsMatrix() : Drawing::Matrix();
+        auto drawingRect = Rect2DrawingRect(boundsRect);
+        matrix.MapRect(drawingRect, drawingRect);
+
+        dirtyForegroundEffect.left_ = std::floor(drawingRect.GetLeft());
+        dirtyForegroundEffect.top_ = std::floor(drawingRect.GetTop());
+        dirtyForegroundEffect.width_ = std::ceil(drawingRect.GetWidth()) + 1;
+        dirtyForegroundEffect.height_ = std::ceil(drawingRect.GetHeight()) + 1;
     }
 }
 

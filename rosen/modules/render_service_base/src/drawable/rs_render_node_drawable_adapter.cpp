@@ -624,6 +624,7 @@ void RSRenderNodeDrawableAdapter::DrawAfterCacheWithProperty(Drawing::Canvas& ca
 bool RSRenderNodeDrawableAdapter::HasFilterOrEffect(const RSRenderParams& params) const
 {
     return drawCmdIndex_.materialFilterIndex_ != -1 ||
+           drawCmdIndex_.materialShaderIndex_ != -1 ||
            (drawCmdIndex_.shadowIndex_ != -1 && !params.GetShadowRect().IsEmpty()) ||
            drawCmdIndex_.backgroundFilterIndex_ != -1 ||
            drawCmdIndex_.useEffectIndex_ != -1 ||

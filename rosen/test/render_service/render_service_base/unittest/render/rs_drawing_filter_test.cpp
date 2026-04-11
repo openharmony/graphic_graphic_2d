@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 
+#include "effect/rs_render_filter_base.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_render_kawase_blur_filter.h"
@@ -844,6 +845,242 @@ HWTEST_F(RSDrawingFilterTest, CalcRect001, TestSize.Level1)
     drawingFilter.shaderFilters_ = shaderFilters;
     RectF bound(0.f, 0.f, 10.f, 10.f);
     EXPECT_EQ(drawingFilter.CalcRect(bound, EffectRectType::SNAPSHOT), bound);
+}
+
+/**
+ * @tc.name: HasCustomRegion001
+ * @tc.desc: test HasCustomRegion getter and setter
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDrawingFilterTest, HasCustomRegion001, TestSize.Level1)
+{
+    auto imageFilter = std::make_shared<Drawing::ImageFilter>();
+    auto filterPtr = std::make_shared<RSRenderFilterParaBase>();
+    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters;
+    shaderFilters.push_back(filterPtr);
+    uint32_t hash = 1;
+    RSDrawingFilter drawingFilter(imageFilter, shaderFilters, hash);
+
+    EXPECT_FALSE(drawingFilter.HasCustomRegion());
+
+    drawingFilter.SetHasCustomRegion(true);
+    EXPECT_TRUE(drawingFilter.HasCustomRegion());
+
+    drawingFilter.SetHasCustomRegion(false);
+    EXPECT_FALSE(drawingFilter.HasCustomRegion());
+}
+
+/**
+ * @tc.name: OnSyncSetHasCustomRegion001
+ * @tc.desc: test OnSync sets HasCustomRegion
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDrawingFilterTest, OnSyncSetHasCustomRegion001, TestSize.Level1)
+{
+    auto renderFilter = RSNGRenderFilterBase::Create(RSNGEffectType::BLUR);
+    auto drawingFilter = std::make_shared<RSDrawingFilter>();
+    drawingFilter->SetNGRenderFilter(renderFilter);
+
+    drawingFilter->OnSync();
+    EXPECT_FALSE(drawingFilter->HasCustomRegion());
+}
+
+/**
+ * @tc.name: OnSyncRenderFilterNull001
+ * @tc.desc: test OnSync with renderFilter_ null (line 263 coverage)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDrawingFilterTest, OnSyncRenderFilterNull001, TestSize.Level1)
+{
+    auto imageFilter = std::make_shared<Drawing::ImageFilter>();
+    uint32_t hash = 1;
+    RSDrawingFilter drawingFilter(imageFilter, hash);
+
+    // renderFilter_ is nullptr initially
+    EXPECT_FALSE(drawingFilter.HasCustomRegion());
+
+    drawingFilter.OnSync();
+    // Since renderFilter_ is null, HasCustomRegion remains false
+    EXPECT_FALSE(drawingFilter.HasCustomRegion());
+}
+
+/**
+ * @tc.name: ApplyImageEffectFrostedGlassNoCustomRegion001
+ * @tc.desc: test ApplyImageEffect with frosted glass filter and no custom region (line 581 coverage)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDrawingFilterTest, ApplyImageEffectFrostedGlassNoCustomRegion001, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+    RSDrawingFilter::DrawImageRectAttributes attr;
+
+    // Create a frosted glass filter with no custom region
+    auto renderFilter = RSNGRenderFilterBase::Create(RSNGEffectType::FROSTED_GLASS);
+    auto drawingFilter = std::make_shared<RSDrawingFilter>();
+    drawingFilter->SetNGRenderFilter(renderFilter);
+    drawingFilter->SetHasCustomRegion(false);
+    drawingFilter->OnSync();
+
+    // Generate visual effect with frosted glass
+    auto frostedGlassFilter = std::static_pointer_cast<RSNGRenderFrostedGlassFilter>(renderFilter);
+    Vector2f weightsEmboss = {1.0f, 1.0f};
+    frostedGlassFilter->Setter<FrostedGlassWeightsEmbossRenderTag>(weightsEmboss);
+    frostedGlassFilter->GenerateGEVisualEffect();
+    RSNGRenderFilterHelper::UpdateToGEContainer(renderFilter, visualEffectContainer);
+
+    drawingFilter->visualEffectContainer_ = visualEffectContainer;
+
+    // This should trigger the frosted glass branch without custom region
+    drawingFilter->ApplyImageEffect(canvas, image, visualEffectContainer, attr);
+
+    EXPECT_FALSE(drawingFilter->HasCustomRegion());
+}
+
+/**
+ * @tc.name: ApplyImageEffectFrostedGlassWithCustomRegion001
+ * @tc.desc: test ApplyImageEffect with frosted glass filter and custom region (line 581 coverage)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDrawingFilterTest, ApplyImageEffectFrostedGlassWithCustomRegion001, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+    RSDrawingFilter::DrawImageRectAttributes attr;
+
+    // Create a frosted glass filter with custom region
+    auto renderFilter = RSNGRenderFilterBase::Create(RSNGEffectType::FROSTED_GLASS);
+    auto drawingFilter = std::make_shared<RSDrawingFilter>();
+    drawingFilter->SetNGRenderFilter(renderFilter);
+    drawingFilter->SetHasCustomRegion(true);
+    drawingFilter->OnSync();
+
+    // Generate visual effect with frosted glass
+    auto frostedGlassFilter = std::static_pointer_cast<RSNGRenderFrostedGlassFilter>(renderFilter);
+    Vector2f weightsEmboss = {1.0f, 1.0f};
+    frostedGlassFilter->Setter<FrostedGlassWeightsEmbossRenderTag>(weightsEmboss);
+    frostedGlassFilter->GenerateGEVisualEffect();
+    RSNGRenderFilterHelper::UpdateToGEContainer(renderFilter, visualEffectContainer);
+
+    drawingFilter->visualEffectContainer_ = visualEffectContainer;
+
+    // This should trigger the frosted glass branch with custom region
+    drawingFilter->ApplyImageEffect(canvas, image, visualEffectContainer, attr);
+
+    EXPECT_TRUE(drawingFilter->HasCustomRegion());
+}
+
+/**
+ * @tc.name: ApplyImageEffectFrostedGlassWithCustomRegion002
+ * @tc.desc: test ApplyImageEffect with frosted glass blur filter and HasCustomRegion=true (line 581 branch 2)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDrawingFilterTest, ApplyImageEffectFrostedGlassWithCustomRegion002, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+    RSDrawingFilter::DrawImageRectAttributes attr;
+
+    // Create a frosted glass filter that is frosted glass (not frosted glass blur)
+    auto renderFilter = RSNGRenderFilterBase::Create(RSNGEffectType::FROSTED_GLASS);
+    auto drawingFilter = std::make_shared<RSDrawingFilter>();
+    drawingFilter->SetNGRenderFilter(renderFilter);
+
+    // Set HasCustomRegion to true
+    drawingFilter->SetHasCustomRegion(true);
+    drawingFilter->OnSync();
+
+    // Generate visual effect with frosted glass
+    auto frostedGlassFilter = std::static_pointer_cast<RSNGRenderFrostedGlassFilter>(renderFilter);
+    Vector2f weightsEmboss = {1.0f, 1.0f};
+    frostedGlassFilter->Setter<FrostedGlassWeightsEmbossRenderTag>(weightsEmboss);
+    frostedGlassFilter->GenerateGEVisualEffect();
+    RSNGRenderFilterHelper::UpdateToGEContainer(renderFilter, visualEffectContainer);
+
+    drawingFilter->visualEffectContainer_ = visualEffectContainer;
+
+    // This should trigger: isFrostedGlassFilter==true && HasCustomRegion()==true branch at line 581
+    drawingFilter->ApplyImageEffect(canvas, image, visualEffectContainer, attr);
+
+    EXPECT_TRUE(drawingFilter->HasCustomRegion());
+}
+
+/**
+ * @tc.name: ApplyImageEffectHasCustomRegion001
+ * @tc.desc: test ApplyImageEffect with HasCustomRegion true (line 631 coverage)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDrawingFilterTest, ApplyImageEffectHasCustomRegion001, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+    RSDrawingFilter::DrawImageRectAttributes attr;
+
+    auto renderFilter = RSNGRenderFilterBase::Create(RSNGEffectType::FROSTED_GLASS);
+    auto drawingFilter = std::make_shared<RSDrawingFilter>();
+    drawingFilter->SetNGRenderFilter(renderFilter);
+    drawingFilter->SetHasCustomRegion(true);
+    drawingFilter->OnSync();
+
+    auto frostedGlassFilter = std::static_pointer_cast<RSNGRenderFrostedGlassFilter>(renderFilter);
+    Vector2f weightsEmboss = {1.0f, 1.0f};
+    frostedGlassFilter->Setter<FrostedGlassWeightsEmbossRenderTag>(weightsEmboss);
+    frostedGlassFilter->GenerateGEVisualEffect();
+    RSNGRenderFilterHelper::UpdateToGEContainer(renderFilter, visualEffectContainer);
+
+    drawingFilter->visualEffectContainer_ = visualEffectContainer;
+
+    drawingFilter->ApplyImageEffect(canvas, image, visualEffectContainer, attr);
+
+    EXPECT_TRUE(drawingFilter->HasCustomRegion());
+}
+
+/**
+ * @tc.name: ApplyImageEffectNonFrostedGlassHasCustomRegion001
+ * @tc.desc: test ApplyImageEffect with non-frosted glass filter and HasCustomRegion true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDrawingFilterTest, ApplyImageEffectNonFrostedGlassHasCustomRegion001, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+    RSDrawingFilter::DrawImageRectAttributes attr;
+
+    auto shaderFilter = std::make_shared<RSRenderFilterParaBase>();
+    RSDrawingFilter drawingFilter(shaderFilter);
+    drawingFilter.visualEffectContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
+    drawingFilter.SetHasCustomRegion(true);
+    
+    drawingFilter.ApplyImageEffect(canvas, image, visualEffectContainer, attr);
+
+    EXPECT_TRUE(drawingFilter.HasCustomRegion());
+}
+
+/**
+ * @tc.name: ApplyImageEffectNonFrostedGlassNoCustomRegion001
+ * @tc.desc: test ApplyImageEffect with non-frosted glass filter and HasCustomRegion false
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDrawingFilterTest, ApplyImageEffectNonFrostedGlassNoCustomRegion001, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+    RSDrawingFilter::DrawImageRectAttributes attr;
+
+    auto shaderFilter = std::make_shared<RSRenderFilterParaBase>();
+    RSDrawingFilter drawingFilter(shaderFilter);
+    drawingFilter.visualEffectContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
+    drawingFilter.SetHasCustomRegion(false);
+    
+    drawingFilter.ApplyImageEffect(canvas, image, visualEffectContainer, attr);
+
+    EXPECT_FALSE(drawingFilter.HasCustomRegion());
 }
 
 /**

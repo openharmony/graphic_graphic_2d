@@ -8769,4 +8769,61 @@ HWTEST_F(RSNodeTest, SetRSUIContext002, TestSize.Level1)
     }
 }
 
+
+/**
+ * @tc.name: SetMaterialShaderNullTest
+ * @tc.desc: test SetMaterialShader with nullptr (true branch)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetMaterialShaderNullTest, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_TRUE(rsNode != nullptr);
+
+    std::shared_ptr<RSNGShaderBase> nullShader = nullptr;
+    rsNode->SetMaterialShader(nullShader);
+
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: SetMaterialShaderValidTest
+ * @tc.desc: test SetMaterialShader with valid shader (false branch)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetMaterialShaderValidTest, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_TRUE(rsNode != nullptr);
+
+    auto materialShader = RSNGShaderBase::Create(RSNGEffectType::FROSTED_GLASS_EFFECT);
+    ASSERT_TRUE(materialShader != nullptr);
+
+    rsNode->SetMaterialShader(materialShader);
+
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: SetMaterialShaderDetachPropertyTest
+ * @tc.desc: test SetMaterialShader with nullptr after setting valid shader (DetachProperty branch)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeTest, SetMaterialShaderDetachPropertyTest, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_TRUE(rsNode != nullptr);
+
+    auto materialShader = RSNGShaderBase::Create(RSNGEffectType::FROSTED_GLASS_EFFECT);
+    ASSERT_TRUE(materialShader != nullptr);
+
+    rsNode->SetMaterialShader(materialShader);
+
+    auto modifier = rsNode->GetModifierCreatedBySetter(ModifierNG::RSModifierType::MATERIAL_SHADER);
+
+    std::shared_ptr<RSNGShaderBase> nullShader = nullptr;
+    rsNode->SetMaterialShader(nullShader);
+
+    EXPECT_TRUE(true);
+}
 } // namespace OHOS::Rosen

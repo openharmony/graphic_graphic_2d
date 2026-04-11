@@ -5777,6 +5777,22 @@ std::shared_ptr<RSNGRenderFilterBase> RSProperties::GetMaterialNGFilter() const
     return nullptr;
 }
 
+void RSProperties::SetMaterialShader(const std::shared_ptr<RSNGRenderShaderBase>& renderShader)
+{
+    GetEffect().mtRenderShader_ = renderShader;
+    isDrawn_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+std::shared_ptr<RSNGRenderShaderBase> RSProperties::GetMaterialShader() const
+{
+    if (effect_) {
+        return effect_->mtRenderShader_;
+    }
+    return nullptr;
+}
+
 RRect RSProperties::GetRRectForSDF() const
 {
     RRect sdfRRect;

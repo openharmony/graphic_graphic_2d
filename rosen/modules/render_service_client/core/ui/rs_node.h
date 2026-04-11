@@ -1233,6 +1233,13 @@ public:
     void SetBackgroundNGShader(const std::shared_ptr<RSNGShaderBase>& backgroundShader);
 
     /**
+     * @brief Sets the material shader.
+     *
+     * @param materialShader Indicates the material shader to be applied.
+     */
+    void SetMaterialShader(const std::shared_ptr<RSNGShaderBase>& materialShader);
+
+    /**
      * @brief Sets the foreground shader.
      *
      * @param foregroundShader Indicates the foreground shader to be applied.

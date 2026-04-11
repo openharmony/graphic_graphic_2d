@@ -74,7 +74,8 @@ public:
         std::shared_ptr<Drawing::Image> image);
     static void GetDarkColor(RSColor& color);
     static void BeginForegroundFilter(RSPaintFilterCanvas& canvas, const RectF& bounds);
-    static void DrawForegroundFilter(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSFilter>& rsFilter);
+    static void DrawForegroundFilter(RSPaintFilterCanvas& canvas,
+        const std::shared_ptr<RSFilter>& rsFilter, std::optional<RectF> drawRect = std::nullopt);
     static void DrawFilter(Drawing::Canvas* canvas, const std::shared_ptr<RSFilter>& rsFilter,
         const std::unique_ptr<RSFilterCacheManager>& cacheManager, NodeId id, const bool isForegroundFilter,
         const std::optional<Drawing::RectI>& snapshotRect = std::nullopt,
