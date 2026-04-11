@@ -105,6 +105,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER),
 #endif
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_LOGICAL_CAMERA_ROTATION_CORRECTION),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS),
 };
 
 void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
@@ -1497,6 +1498,17 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 RS_LOGE("RSClientToRenderConnectionStub::SET_LOGICAL_CAMERA_ROTATION_CORRECTION Write parcel failed!");
                 ret = ERR_INVALID_REPLY;
             }
+            break;
+        }
+        case static_cast<uint32_t>(
+            RSIClientToRenderConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS): {
+            bool enable{false};
+            if (!data.ReadBool(enable)) {
+                RS_LOGE("SET_FREE_MULTI_WINDOW_STATUS Read enable failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            SetFreeMultiWindowStatus(enable);
             break;
         }
         default: {

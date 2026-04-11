@@ -164,6 +164,8 @@ private:
     std::string GetBundleName(pid_t pid) override;
     int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection) override;
 
+    void SetFreeMultiWindowStatus(bool enable) override;
+
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;
     sptr<RSRenderPipelineAgent> renderPipelineAgent_;

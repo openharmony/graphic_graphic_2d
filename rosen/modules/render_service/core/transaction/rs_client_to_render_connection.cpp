@@ -622,5 +622,13 @@ int32_t RSClientToRenderConnection::SetLogicalCameraRotationCorrection(
     }
     return renderPipelineAgent_->SetLogicalCameraRotationCorrection(screenId, logicalCorrection);
 }
+
+void RSClientToRenderConnection::SetFreeMultiWindowStatus(bool enable)
+{
+    if (renderPipelineAgent_ == nullptr) {
+        return;
+    }
+    renderPipelineAgent_->SetFreeMultiWindowStatus(enable);
+}
 } // namespace Rosen
 } // namespace OHOS

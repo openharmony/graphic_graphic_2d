@@ -101,9 +101,6 @@ public:
     virtual void SetShowRefreshRateEnabled(bool enabled, int32_t type) = 0;
     virtual ErrCode GetShowRefreshRateEnabled(bool& enable) = 0;
 
-    // Free Multi Window
-    virtual void SetFreeMultiWindowStatus(bool enable) = 0;
-
     // Overlay
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     virtual ErrCode SetOverlayDisplayMode(int32_t mode) = 0;

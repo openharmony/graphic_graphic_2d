@@ -151,7 +151,9 @@ public:
         NodeId id, sptr<RSISurfaceOcclusionChangeCallback> callback, std::vector<float>& partitionPoints) override;
 
     int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id) override;
-    
+
+    void SetFreeMultiWindowStatus(bool enable) override;
+
     void RemoveToken() override {};
     static inline BrokerDelegator<RSClientToRenderConnectionProxy> delegator_;
 

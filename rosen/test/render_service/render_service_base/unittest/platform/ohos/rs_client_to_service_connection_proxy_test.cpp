@@ -1432,19 +1432,6 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SetForceRefresh, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetFreeMultiWindowStatus Test
- * @tc.desc: SetFreeMultiWindowStatus Test
- * @tc.type:FUNC
- * @tc.require: issueIB31K8
- */
-HWTEST_F(RSClientToServiceConnectionProxyTest, SetFreeMultiWindowStatus, TestSize.Level1)
-{
-    proxy->SetFreeMultiWindowStatus(true);
-    proxy->SetFreeMultiWindowStatus(false);
-    ASSERT_TRUE(proxy);
-}
-
-/**
  * @tc.name: GetPixelMapByProcessIdTest
  * @tc.desc: Test GetPixelMapByProcessId
  * @tc.type: FUNC

@@ -722,16 +722,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             SetColorFollow(nodeIdStr, isColorFollow);
             break;
         }
-        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS): {
-            bool enable{false};
-            if (!data.ReadBool(enable)) {
-                RS_LOGE("RSServiceToRenderStub::SET_FREE_MULTI_WINDOW_STATUS read uniqueId failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            SetFreeMultiWindowStatus(enable);
-            break;
-        }
         case static_cast<uint32_t>(
             RSIServiceToRenderConnectionInterfaceCode::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK): {
             pid_t remotePid;

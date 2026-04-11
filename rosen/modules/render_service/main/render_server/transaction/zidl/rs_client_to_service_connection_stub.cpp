@@ -179,7 +179,6 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VMA_CACHE_STATUS),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_STATUS),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NEED_REGISTER_TYPEFACE),
-    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_LAYER_TOP),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_FORCE_REFRESH),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_COLOR_FOLLOW),
@@ -2829,16 +2828,6 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             SetVmaCacheStatus(flag);
-            break;
-        }
-        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS) : {
-            bool enable{false};
-            if (!data.ReadBool(enable)) {
-                RS_LOGE("RSClientToServiceConnectionStub::SET_FREE_MULTI_WINDOW_STATUS Read enable failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            SetFreeMultiWindowStatus(enable);
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_LAYER_TOP) : {

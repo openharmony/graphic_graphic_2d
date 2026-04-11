@@ -1049,7 +1049,7 @@ bool RSInterfaces::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus scree
 
 void RSInterfaces::SetFreeMultiWindowStatus(bool enable)
 {
-    renderServiceClient_->SetFreeMultiWindowStatus(enable);
+    renderInterface_->SetFreeMultiWindowStatus(enable);
 }
 
 bool RSInterfaces::RegisterTransactionDataCallback(uint64_t token, uint64_t timeStamp, std::function<void()> callback)

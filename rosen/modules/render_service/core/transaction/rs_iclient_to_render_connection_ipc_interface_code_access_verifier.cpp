@@ -126,6 +126,10 @@ bool RSIClientToRenderConnectionInterfaceCodeAccessVerifier::IsExclusiveVerifica
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REGISTER_OCCLUSION_CHANGE_CALLBACK");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_FREE_MULTI_WINDOW_STATUS): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_FREE_MULTI_WINDOW_STATUS");
+            break;
+        }
         default: {
             break;
         }

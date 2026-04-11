@@ -2029,22 +2029,6 @@ ErrCode RSClientToServiceConnection::SetForceRefresh(const std::string& nodeIdSt
     return ret;
 }
 
-void RSClientToServiceConnection::SetFreeMultiWindowStatus(bool enable)
-{
-    if (renderProcessManagerAgent_ == nullptr) {
-        RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
-        return;
-    }
-    auto serviceToRenderConns = renderProcessManagerAgent_->GetServiceToRenderConns();
-    if (serviceToRenderConns.size() == 0) {
-        RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
-        return;
-    }
-    for (auto conn : serviceToRenderConns) {
-        conn->SetFreeMultiWindowStatus(enable);
-    }
-}
-
 void RSClientToServiceConnection::SetColorFollow(const std::string &nodeIdStr, bool isColorFollow)
 {
     if (renderProcessManagerAgent_ == nullptr) {

@@ -396,6 +396,12 @@ public:
      */
     int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection);
 
+    /**
+     * @brief Set free multi window status.
+     * @param enable Indicates whether enable.
+     */
+    void SetFreeMultiWindowStatus(bool enable);
+
 private:
     RSRenderInterface(sptr<IRemoteObject>& connectToRenderRemote);
 

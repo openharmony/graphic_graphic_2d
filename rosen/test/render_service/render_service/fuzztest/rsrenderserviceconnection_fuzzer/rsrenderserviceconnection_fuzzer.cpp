@@ -1354,7 +1354,7 @@ bool DOSetFreeMultiWindowStatus()
     }
 
     bool enable = GetData<bool>();
-    rsToServiceConn_->SetFreeMultiWindowStatus(enable);
+    rsToRenderConn_->SetFreeMultiWindowStatus(enable);
     return true;
 }
 

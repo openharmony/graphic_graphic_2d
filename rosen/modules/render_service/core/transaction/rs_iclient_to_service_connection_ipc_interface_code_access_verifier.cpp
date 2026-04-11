@@ -474,10 +474,6 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             hasPermission = IsStylusServiceCalling(codeEnumTypeName_ + "::SET_COLOR_FOLLOW");
             break;
         }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_FREE_MULTI_WINDOW_STATUS): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_FREE_MULTI_WINDOW_STATUS");
-            break;
-        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK");
             break;

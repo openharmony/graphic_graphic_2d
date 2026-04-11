@@ -1299,28 +1299,6 @@ ErrCode RSServiceToRenderConnectionProxy::SetColorFollow(const std::string& node
     return ERR_OK;
 }
 
-void RSServiceToRenderConnectionProxy::SetFreeMultiWindowStatus(bool enable)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
-        ROSEN_LOGE("SetFreeMultiWindowStatus: WriteInterfaceToken GetDescriptor err.");
-        return;
-    }
-    if (!data.WriteBool(enable)) {
-        ROSEN_LOGE("SetFreeMultiWindowStatus: WriteBool err.");
-        return;
-    }
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
-    if (err != NO_ERROR) {
-        RS_LOGE("RSServiceToRenderConnectionProxy::SetFreeMultiWindowStatus: send request err.");
-        return;
-    }
-}
-
 int32_t RSServiceToRenderConnectionProxy::RegisterSelfDrawingNodeRectChangeCallback(
     pid_t remotePid, const RectConstraint& constraint, sptr<RSISelfDrawingNodeRectChangeCallback> callback)
 {

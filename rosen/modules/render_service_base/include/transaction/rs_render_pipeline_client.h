@@ -194,6 +194,8 @@ public:
 
     int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection);
 
+    void SetFreeMultiWindowStatus(bool enable);
+
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
         std::shared_ptr<Media::PixelMap> pixelmap, CaptureError captureErrorCode,

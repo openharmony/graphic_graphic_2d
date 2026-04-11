@@ -4041,10 +4041,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RenderPipelineAgentNullptrTest012, 
     agent->ShowWatermark(watermarkImg, true);
     // Should return without crash
 
-    // Test SetFreeMultiWindowStatus
-    agent->SetFreeMultiWindowStatus(true);
-    // Should return without crash
-
     // Test HgmForceUpdateTask
     agent->HgmForceUpdateTask(true, "test");
     // Should return without crash
@@ -4689,5 +4685,56 @@ HWTEST_F(RSClientToRenderConnectionStubTest, GetPixelMapTest, TestSize.Level1)
     uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_PIXELMAP);
     auto res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_NE(res, ERR_OK);
+}
+
+/**
+ * @tc.name: SetFreeMultiWindowStatusTest001
+ * @tc.desc: Test SetFreeMultiWindowStatus with missing parameters
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, SetFreeMultiWindowStatusTest001, TestSize.Level1)
+{
+    ASSERT_EQ(OnRemoteRequestTest(
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS)),
+        ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: SetFreeMultiWindowStatusTest002
+ * @tc.desc: Test SetFreeMultiWindowStatus with valid parameters
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, SetFreeMultiWindowStatusTest002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data.WriteBool(true);
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToRenderConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_NONE);
+}
+
+/**
+ * @tc.name: SetFreeMultiWindowStatusTest003
+ * @tc.desc: Test SetFreeMultiWindowStatus with false parameter
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, SetFreeMultiWindowStatusTest003, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data.WriteBool(false);
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToRenderConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_NONE);
 }
 } // namespace OHOS::Rosen

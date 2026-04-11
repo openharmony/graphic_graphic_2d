@@ -298,8 +298,6 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsClientToRenderConnectionProxy.FillParcelWithTransactionData(transactionData, parcel);
     rsClientToServiceConnectionProxy.ReportDataBaseRs(messageParcel, reply, option, info);
     rsClientToServiceConnectionProxy.ReportGameStateDataRs(messageParcel, reply, option, gameStateDataInfo);
-    rsClientToServiceConnectionProxy.SetFreeMultiWindowStatus(true);
-    rsClientToServiceConnectionProxy.SetFreeMultiWindowStatus(false);
     rsClientToServiceConnectionProxy.RegisterFrameRateLinkerExpectedFpsUpdateCallback(pid1,
         rsIFrameRateLinkerExpectedFpsUpdateCallback);
     rsFrameRateLinkerExpectedFpsUpdateCallbackProxy.OnFrameRateLinkerExpectedFpsUpdate(pid, XCOMPONENT_ID, expectedFps);

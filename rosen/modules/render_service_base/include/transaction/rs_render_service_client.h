@@ -370,8 +370,6 @@ public:
     
     bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus);
 
-    void SetFreeMultiWindowStatus(bool enable);
-
     void NotifyScreenSwitched();
 
     int32_t RegisterSelfDrawingNodeRectChangeCallback(
