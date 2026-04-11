@@ -122,7 +122,7 @@ bool RSSurfaceNode::SendDataToRender(const RSSurfaceNodeConfig& surfaceNodeConfi
     // create node in RT if is TextureExport node
     if (!IsRenderServiceNode()) {
         std::unique_ptr<RSCommand> command =
-            std::make_unique<RSSurfaceNodeCreate>(GetId(), surfaceNodeConfig.isTextureExportNode);
+            std::make_unique<RSSurfaceNodeCreate>(GetId(), config.nodeType, surfaceNodeConfig.isTextureExportNode);
         if (surfaceNodeConfig.isTextureExportNode) {
             AddCommand(command, false);
             SetSurfaceIdToRenderNode();
