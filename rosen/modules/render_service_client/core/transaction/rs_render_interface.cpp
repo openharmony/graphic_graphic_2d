@@ -585,8 +585,7 @@ int32_t RSRenderInterface::SetLogicalCameraRotationCorrection(ScreenId id, Scree
 
 void RSRenderInterface::SetFreeMultiWindowStatus(bool enable)
 {
-    return;
-    // renderPipelineClient_->SetFreeMultiWindowStatus(enable);
+    renderPipelineClient_->SetFreeMultiWindowStatus(enable);
 }
 }
 }
