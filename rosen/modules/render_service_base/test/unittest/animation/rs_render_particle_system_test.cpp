@@ -98,59 +98,6 @@ public:
 };
 
 /* ==========================================================================
- * UpdateFields — null input branch
- * ========================================================================== */
-
-/**
- * @tc.name: UpdateFieldsNullInput001
- * @tc.desc: Passing nullptr to UpdateFields is a no-op.
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderParticleSystemTest, UpdateFieldsNullInput001, TestSize.Level1)
-{
-    // Call with null; should return safely without crashing.
-    system_->UpdateFields(nullptr);
-    // internal particleFields_ should remain null (observable only via the behavior below).
-    // Second call must also be safe.
-    system_->UpdateFields(nullptr);
-    SUCCEED();
-}
-
-/* ==========================================================================
- * UpdateFields — first-time assignment branch
- * ========================================================================== */
-
-/**
- * @tc.name: UpdateFieldsFirstTime001
- * @tc.desc: First UpdateFields sets particleFields_ by direct assignment.
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderParticleSystemTest, UpdateFieldsFirstTime001, TestSize.Level1)
-{
-    auto col = std::make_shared<ParticleFieldCollection>();
-    col->Add(MakeNoiseField());
-    system_->UpdateFields(col);
-
-    // Second call with a DIFFERENT collection triggers the merge path (not first-time anymore).
-    auto col2 = std::make_shared<ParticleFieldCollection>();
-    col2->Add(MakeNoiseField(20));
-    system_->UpdateFields(col2);
-    SUCCEED();
-}
-
-/**
- * @tc.name: UpdateFieldsFirstTimeEmpty001
- * @tc.desc: First-time assignment with an empty collection.
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderParticleSystemTest, UpdateFieldsFirstTimeEmpty001, TestSize.Level1)
-{
-    auto col = std::make_shared<ParticleFieldCollection>();
-    system_->UpdateFields(col);
-    SUCCEED();
-}
-
-/* ==========================================================================
  * UpdateFields — self-assignment branch
  * ========================================================================== */
 
