@@ -3589,12 +3589,13 @@ void RSMainThread::Animate(uint64_t timestamp)
     uint32_t totalAnimationSize = 0;
     uint32_t animatingNodeSize = context_->animatingNodeList_.size();
     bool needPrintAnimationDFX = IsTagEnabled(HITRACE_TAG_GRAPHIC_AGP) ? true : false;
+    int64_t nextFrameTime = INT64_MAX;
     std::set<pid_t> animationPids;
     // iterate and animate all animating nodes, remove if animation finished
     EraseIf(context_->animatingNodeList_,
         [this, timestamp, period, isDisplaySyncEnabled, isRateDeciderEnabled, &totalAnimationSize,
         &curWinAnim, &needRequestNextVsync, &isCalculateAnimationValue, &needPrintAnimationDFX, &minLeftDelayTime,
-        &animationPids](const auto& iter) -> bool {
+        &animationPids, &nextFrameTime](const auto& iter) -> bool {
         auto node = iter.second.lock();
         if (node == nullptr) {
             RS_LOGD("Animate removing expired animating node");
@@ -3603,8 +3604,9 @@ void RSMainThread::Animate(uint64_t timestamp)
         totalAnimationSize += node->animationManager_.GetAnimationsSize();
         node->animationManager_.SetRateDeciderEnable(
             isRateDeciderEnabled, hgmRenderContext_->GetConvertFrameRateFunc());
+        nextFrameTime = (node.use_count() == 1) ? 0 : nextFrameTime;
         auto [hasRunningAnimation, nodeNeedRequestNextVsync, nodeCalculateAnimationValue] =
-            node->Animate(timestamp, minLeftDelayTime, period, isDisplaySyncEnabled);
+            node->Animate(timestamp, minLeftDelayTime, nextFrameTime, period, isDisplaySyncEnabled);
         if (!hasRunningAnimation) {
             node->InActivateDisplaySync();
             RS_LOGD("Animate removing finished animating node %{public}" PRIu64, node->GetId());
@@ -3662,7 +3664,11 @@ void RSMainThread::Animate(uint64_t timestamp)
             PostTask(RequestNextVSyncTask, "animate_request_next_vsync", minLeftDelayTime - oneFrameTimeInFPS60,
                 AppExecFwk::EventQueue::Priority::IMMEDIATE);
         } else {
-            RequestNextVSync("animate", timestamp_);
+            // Advance by 0.5 ms to prevent VSync jitter from causing this frame to be missed.
+            constexpr int64_t requestNextFrameAdvanceNs = 500000;
+            int64_t requestNextFrameTime = (nextFrameTime == INT64_MAX) ? 0 : nextFrameTime;
+            requestNextFrameTime -= requestNextFrameAdvanceNs;
+            RequestNextVSync("animate", timestamp_, requestNextFrameTime);
         }
     } else if (isUniRender_) {
 #ifdef RS_ENABLE_GPU

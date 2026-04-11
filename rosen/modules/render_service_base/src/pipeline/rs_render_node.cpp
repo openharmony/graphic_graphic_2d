@@ -1729,10 +1729,14 @@ void RSRenderNode::UpdateDisplaySyncRange()
 }
 
 std::tuple<bool, bool, bool> RSRenderNode::Animate(
-    int64_t timestamp, int64_t& minLeftDelayTime, int64_t period, bool isDisplaySyncEnabled)
+    int64_t timestamp, int64_t& minLeftDelayTime, int64_t& nextFrameTime, int64_t period, bool isDisplaySyncEnabled)
 {
     RS_PROFILER_ANIMATION_NODE(GetType(), selfDrawRect_.GetWidth() * selfDrawRect_.GetWidth());
-    if (displaySync_ && displaySync_->OnFrameSkip(timestamp, period, isDisplaySyncEnabled)) {
+    int64_t nextFrameTimeForThisAnimate = 0;
+    bool needSkipCurrentAnimate = displaySync_ &&
+        displaySync_->OnFrameSkipForAnimate(timestamp, period, isDisplaySyncEnabled, nextFrameTimeForThisAnimate);
+    nextFrameTime = (nextFrameTime != 0) ? std::min(nextFrameTime, nextFrameTimeForThisAnimate) : 0;
+    if (needSkipCurrentAnimate) {
         minLeftDelayTime = 0;
         return displaySync_->GetAnimateResult();
     }
