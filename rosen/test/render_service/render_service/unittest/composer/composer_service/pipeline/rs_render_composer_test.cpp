@@ -20,6 +20,7 @@
 #include "../layer_backend/mock_hdi_device.h"
 #include "hdi_output.h"
 #include "rs_layer.h"
+#include "rs_surface_layer.h"
 #include "rs_layer_common_def.h"
 #include "rs_layer_transaction_data.h"
 #include "rs_render_composer.h"
@@ -573,14 +574,21 @@ public:
     }
 
     // Provide overrides to avoid undefined reference to base default implementations during linking
-    void SetUseDeviceOffline(bool useOffline) override
-    {
-        useDeviceOffline_ = useOffline;
+    // hpae_offline: Original buffer related for AAE offline
+    void SetUseDeviceOffline(bool useOffline) override { useDeviceOffline_ = useOffline; }
+    bool GetUseDeviceOffline() const override { return useDeviceOffline_; }
+    void SetHpaeOriginalInfo(const HpaeOriginalInfo& hpaeOriginalInfo) override {
+        hpaeOriginalInfo_ = hpaeOriginalInfo;
     }
-    bool GetUseDeviceOffline() const override
-    {
-        return useDeviceOffline_;
+    const HpaeOriginalInfo& GetHpaeOriginalInfo() const override { return hpaeOriginalInfo_; }
+    void SetOriginalBufferOwnerCount(
+        const std::shared_ptr<RSSurfaceHandler::BufferOwnerCount>& bufferOwnerCount) override {
+        originalBufferOwnerCount_ = bufferOwnerCount;
     }
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetOriginalBufferOwnerCount() const override {
+        return originalBufferOwnerCount_;
+    }
+    // hpae_offline end
     void SetAncoSrcRect(const GraphicIRect& ancoSrcRect) override
     {
         ancoSrcRect_ = ancoSrcRect;
@@ -658,8 +666,11 @@ private:
     sptr<SyncFence> acquireFence_ = nullptr;
     uint32_t cycleBuffersNum_ = 0;
     bool ignoreAlpha_ { false };
-    bool useDeviceOffline_ { false };
     GraphicIRect ancoSrcRect_ { -1, -1, -1, -1 };
+    // hpae_offline: Original buffer related for AAE offline
+    bool useDeviceOffline_ {false};
+    HpaeOriginalInfo hpaeOriginalInfo_;
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> originalBufferOwnerCount_;
 };
 }
 
