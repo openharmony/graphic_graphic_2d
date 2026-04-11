@@ -117,7 +117,7 @@ public:
      */
     static SharedPtr CreateSurfaceNode(const RSSurfaceNodeConfig& surfaceNodeConfig, bool isWindow = true);
 
-    bool sendDataToRender(const RSSurfaceNodeConfig& surfaceNodeConfig,
+    bool SendDataToRender(const RSSurfaceNodeConfig& surfaceNodeConfig,
     RSSurfaceNodeType type, bool isWindow, bool unobscured);
  
     /**
