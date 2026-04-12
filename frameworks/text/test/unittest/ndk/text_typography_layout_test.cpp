@@ -766,4 +766,297 @@ HWTEST_F(NdkTypographyTest, TypographyRectsForRangeTest001, TestSize.Level0)
     OH_Drawing_DestroyTypographyHandler(handler);
     OH_Drawing_DestroyTypography(typography);
 }
+
+/*
+ * @tc.name: SetTailIndents_EmptyArray
+ * @tc.desc: test for setting empty tail indent array
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, SetTailIndents_EmptyArray, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(txtStyle, nullptr);
+    OH_Drawing_SetTextStyleFontSize(txtStyle, 50);
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+    ASSERT_NE(handler, nullptr);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
+    const char* text = "这是一段测试文本用于验证行尾缩进";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    ASSERT_NE(typography, nullptr);
+    double tailIndents[] = {};
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_SetTypographyStyleAttributeDoubleArray(
+        typoStyle, TYPOGRAPHY_STYLE_ATTR_DA_LINE_TAIL_INDENT, tailIndents, 0);
+    EXPECT_EQ(errorCode, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    OH_Drawing_TypographyLayout(typography, MAX_WIDTH);
+    double longestLineWithIndent = OH_Drawing_TypographyGetLongestLineWithIndent(typography);
+    EXPECT_DOUBLE_EQ(longestLineWithIndent, 799.9991455078125);
+    OH_Drawing_DestroyTypography(typography);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+}
+
+/*
+ * @tc.name: SetTailIndents_PositiveValue
+ * @tc.desc: test for setting positive tail indent value
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, SetTailIndents_PositiveValue, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(txtStyle, nullptr);
+    OH_Drawing_SetTextStyleFontSize(txtStyle, 50);
+    double tailIndents[] = { 50.0 };
+    OH_Drawing_SetTypographyStyleAttributeDoubleArray(
+        typoStyle, TYPOGRAPHY_STYLE_ATTR_DA_LINE_TAIL_INDENT, tailIndents, 1);
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+    ASSERT_NE(handler, nullptr);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
+    const char* text = "这是一段测试文本用于验证行尾缩进正值效果";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    ASSERT_NE(typography, nullptr);
+    OH_Drawing_TypographyLayout(typography, MAX_WIDTH);
+    double longestLineWithIndent = OH_Drawing_TypographyGetLongestLineWithIndent(typography);
+    EXPECT_DOUBLE_EQ(longestLineWithIndent, 849.99920654296875);
+    OH_Drawing_DestroyTypography(typography);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+}
+
+/*
+ * @tc.name: SetTailIndents_NegativeValue
+ * @tc.desc: test for setting negative tail indent value
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, SetTailIndents_NegativeValue, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(txtStyle, nullptr);
+    OH_Drawing_SetTextStyleFontSize(txtStyle, 50);
+    double tailIndents[] = { -20.0 };
+    OH_Drawing_SetTypographyStyleAttributeDoubleArray(
+        typoStyle, TYPOGRAPHY_STYLE_ATTR_DA_LINE_TAIL_INDENT, tailIndents, 1);
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+    ASSERT_NE(handler, nullptr);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
+    const char* text = "这是一段测试文本用于验证行尾缩进负值效果";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    ASSERT_NE(typography, nullptr);
+    OH_Drawing_TypographyLayout(typography, MAX_WIDTH);
+    double longestLineWithIndent = OH_Drawing_TypographyGetLongestLineWithIndent(typography);
+    EXPECT_DOUBLE_EQ(longestLineWithIndent, 799.9991455078125);
+    OH_Drawing_DestroyTypography(typography);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+}
+
+/*
+ * @tc.name: SetTailIndents_ZeroValue
+ * @tc.desc: test for setting zero tail indent value
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, SetTailIndents_ZeroValue, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(txtStyle, nullptr);
+    OH_Drawing_SetTextStyleFontSize(txtStyle, 50);
+    double tailIndents[] = { 0.0 };
+    OH_Drawing_SetTypographyStyleAttributeDoubleArray(
+        typoStyle, TYPOGRAPHY_STYLE_ATTR_DA_LINE_TAIL_INDENT, tailIndents, 1);
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+    ASSERT_NE(handler, nullptr);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
+    const char* text = "这是一段测试文本用于验证行尾缩进零值效果";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    ASSERT_NE(typography, nullptr);
+    OH_Drawing_TypographyLayout(typography, MAX_WIDTH);
+    double longestLineWithIndent = OH_Drawing_TypographyGetLongestLineWithIndent(typography);
+    EXPECT_DOUBLE_EQ(longestLineWithIndent, 799.9991455078125);
+    OH_Drawing_DestroyTypography(typography);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+}
+
+/*
+ * @tc.name: SetBothIndents_Combined
+ * @tc.desc: test for setting both head and tail indents
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, SetBothIndents_Combined, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(txtStyle, nullptr);
+    OH_Drawing_SetTextStyleFontSize(txtStyle, 50);
+    double headIndents[] = { 40.0 };
+    double tailIndents[] = { 30.0 };
+    OH_Drawing_SetTypographyStyleAttributeDoubleArray(
+        typoStyle, TYPOGRAPHY_STYLE_ATTR_DA_LINE_HEAD_INDENT, headIndents, 1);
+    OH_Drawing_SetTypographyStyleAttributeDoubleArray(
+        typoStyle, TYPOGRAPHY_STYLE_ATTR_DA_LINE_TAIL_INDENT, tailIndents, 1);
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+    ASSERT_NE(handler, nullptr);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
+    const char* text = "这是一段测试文本用于验证左右缩进组合效果";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    ASSERT_NE(typography, nullptr);
+    OH_Drawing_TypographyLayout(typography, MAX_WIDTH);
+    double longestLineWithIndent = OH_Drawing_TypographyGetLongestLineWithIndent(typography);
+    EXPECT_DOUBLE_EQ(longestLineWithIndent, 799.999267578125);
+    OH_Drawing_DestroyTypography(typography);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+}
+
+/*
+ * @tc.name: SetIndents_FirstLine
+ * @tc.desc: test for setting first line head indent
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, SetIndents_FirstLine, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_SetTypographyStyleAttributeDouble(typoStyle, TYPOGRAPHY_STYLE_ATTR_D_FIRST_LINE_HEAD_INDENT, 40.0);
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(txtStyle, nullptr);
+    OH_Drawing_SetTextStyleFontSize(txtStyle, 50);
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+    ASSERT_NE(handler, nullptr);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
+    const char* text = "这是一段测试文本用于验证首行缩进效果";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    ASSERT_NE(typography, nullptr);
+    OH_Drawing_TypographyLayout(typography, MAX_WIDTH);
+    double longestLineWithIndent = OH_Drawing_TypographyGetLongestLineWithIndent(typography);
+    EXPECT_DOUBLE_EQ(longestLineWithIndent, 789.99920654296875);
+    OH_Drawing_DestroyTypography(typography);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+}
+
+/*
+ * @tc.name: SetIndents_MultipleParagraphs
+ * @tc.desc: test for setting first line indent with multiple paragraphs
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, SetIndents_MultipleParagraphs, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_SetTypographyStyleAttributeDouble(typoStyle, TYPOGRAPHY_STYLE_ATTR_D_FIRST_LINE_HEAD_INDENT, 40.0);
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(txtStyle, nullptr);
+    OH_Drawing_SetTextStyleFontSize(txtStyle, 50);
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+    ASSERT_NE(handler, nullptr);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
+    const char* text = "第一段文本\n第二段文本\n第三段文本";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    ASSERT_NE(typography, nullptr);
+    OH_Drawing_TypographyLayout(typography, MAX_WIDTH);
+    double longestLineWithIndent = OH_Drawing_TypographyGetLongestLineWithIndent(typography);
+    EXPECT_DOUBLE_EQ(longestLineWithIndent, 289.999755859375);
+    OH_Drawing_DestroyTypography(typography);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+}
+
+/*
+ * @tc.name: SetTailIndents_LargerThanWidth
+ * @tc.desc: test for setting tail indent larger than layout width
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, SetTailIndents_LargerThanWidth, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(txtStyle, nullptr);
+    OH_Drawing_SetTextStyleFontSize(txtStyle, 50);
+    double tailIndents[] = { 900.0 }; // larger than MAX_WIDTH (800)
+    OH_Drawing_SetTypographyStyleAttributeDoubleArray(
+        typoStyle, TYPOGRAPHY_STYLE_ATTR_DA_LINE_TAIL_INDENT, tailIndents, 1);
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+    ASSERT_NE(handler, nullptr);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
+    const char* text = "测试文本";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    ASSERT_NE(typography, nullptr);
+    // Should not crash when indent exceeds width
+    OH_Drawing_TypographyLayout(typography, MAX_WIDTH);
+    double longestLineWithIndent = OH_Drawing_TypographyGetLongestLineWithIndent(typography);
+    EXPECT_DOUBLE_EQ(longestLineWithIndent, 1850);
+    OH_Drawing_DestroyTypography(typography);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+}
+
+/*
+ * @tc.name: SetBothIndents_ExceedWidth
+ * @tc.desc: test for setting both indents exceeding layout width
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, SetBothIndents_ExceedWidth, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(txtStyle, nullptr);
+    OH_Drawing_SetTextStyleFontSize(txtStyle, 50);
+    double headIndents[] = { 500.0 };
+    double tailIndents[] = { 500.0 }; // 500 + 500 = 1000 > 800
+    OH_Drawing_SetTypographyStyleAttributeDoubleArray(
+        typoStyle, TYPOGRAPHY_STYLE_ATTR_DA_LINE_HEAD_INDENT, headIndents, 1);
+    OH_Drawing_SetTypographyStyleAttributeDoubleArray(
+        typoStyle, TYPOGRAPHY_STYLE_ATTR_DA_LINE_TAIL_INDENT, tailIndents, 1);
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+    ASSERT_NE(handler, nullptr);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
+    const char* text = "测试文本";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    ASSERT_NE(typography, nullptr);
+    // Should not crash when combined indents exceed width
+    OH_Drawing_TypographyLayout(typography, MAX_WIDTH);
+    double longestLineWithIndent = OH_Drawing_TypographyGetLongestLineWithIndent(typography);
+    EXPECT_DOUBLE_EQ(longestLineWithIndent, 1550);
+    OH_Drawing_DestroyTypography(typography);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+}
 } // namespace OHOS

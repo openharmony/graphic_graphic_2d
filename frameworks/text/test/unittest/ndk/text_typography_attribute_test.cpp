@@ -626,4 +626,219 @@ HWTEST_F(NdkTypographyTest, TextStyleGetTest006, TestSize.Level0)
     OH_Drawing_BrushDestroy(brush);
     OH_Drawing_DestroyTextShadow(shadow);
 }
+
+/*
+ * @tc.name: TypographyStyleAttributeDoubleArrayTest001
+ * @tc.desc: test for OH_Drawing_SetTypographyStyleAttributeDoubleArray invalid param
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, TypographyStyleAttributeDoubleArrayTest001, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    double values[] = { 10.0 };
+    // nullptr style
+    OH_Drawing_ErrorCode errorCodeOne = OH_Drawing_SetTypographyStyleAttributeDoubleArray(
+        nullptr, TYPOGRAPHY_STYLE_ATTR_DA_LINE_HEAD_INDENT, values, 1);
+    EXPECT_EQ(errorCodeOne, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    // nullptr arrayValue
+    OH_Drawing_ErrorCode errorCodeTwo = OH_Drawing_SetTypographyStyleAttributeDoubleArray(
+        typoStyle, TYPOGRAPHY_STYLE_ATTR_DA_LINE_HEAD_INDENT, nullptr, 1);
+    EXPECT_EQ(errorCodeTwo, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    // zero arrayLength
+    OH_Drawing_ErrorCode errorCodeThree = OH_Drawing_SetTypographyStyleAttributeDoubleArray(
+        typoStyle, TYPOGRAPHY_STYLE_ATTR_DA_LINE_HEAD_INDENT, values, 0);
+    EXPECT_EQ(errorCodeThree, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    // mismatched attribute id (using double id for array setter)
+    OH_Drawing_ErrorCode errorCodeFour = OH_Drawing_SetTypographyStyleAttributeDoubleArray(
+        typoStyle, TYPOGRAPHY_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, values, 1);
+    EXPECT_EQ(errorCodeFour, OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+}
+
+/*
+ * @tc.name: TypographyStyleAttributeDoubleArrayTest002
+ * @tc.desc: test for OH_Drawing_GetTypographyStyleAttributeDoubleArray invalid param
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, TypographyStyleAttributeDoubleArrayTest002, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    double* outArray = nullptr;
+    size_t outLen = 0;
+    // nullptr style
+    OH_Drawing_ErrorCode errorCodeOne = OH_Drawing_GetTypographyStyleAttributeDoubleArray(
+        nullptr, TYPOGRAPHY_STYLE_ATTR_DA_LINE_HEAD_INDENT, &outArray, &outLen);
+    EXPECT_EQ(errorCodeOne, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    // nullptr arrayValue output
+    OH_Drawing_ErrorCode errorCodeTwo = OH_Drawing_GetTypographyStyleAttributeDoubleArray(
+        typoStyle, TYPOGRAPHY_STYLE_ATTR_DA_LINE_HEAD_INDENT, nullptr, &outLen);
+    EXPECT_EQ(errorCodeTwo, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    // nullptr arrayLength output
+    OH_Drawing_ErrorCode errorCodeThree = OH_Drawing_GetTypographyStyleAttributeDoubleArray(
+        typoStyle, TYPOGRAPHY_STYLE_ATTR_DA_LINE_HEAD_INDENT, &outArray, nullptr);
+    EXPECT_EQ(errorCodeThree, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    // mismatched attribute id (using double id for array getter)
+    OH_Drawing_ErrorCode errorCodeFour = OH_Drawing_GetTypographyStyleAttributeDoubleArray(
+        typoStyle, TYPOGRAPHY_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, &outArray, &outLen);
+    EXPECT_EQ(errorCodeFour, OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+}
+
+/*
+ * @tc.name: TypographyStyleAttributeDoubleArrayTest003
+ * @tc.desc: test for setting and getting line head indent array
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, TypographyStyleAttributeDoubleArrayTest003, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    double headIndents[] = { 10.0, 20.0, 30.0 };
+    OH_Drawing_ErrorCode setCode = OH_Drawing_SetTypographyStyleAttributeDoubleArray(
+        typoStyle, TYPOGRAPHY_STYLE_ATTR_DA_LINE_HEAD_INDENT, headIndents, 3);
+    EXPECT_EQ(setCode, OH_DRAWING_SUCCESS);
+    double* outArray = nullptr;
+    size_t outLen = 0;
+    OH_Drawing_ErrorCode getCode = OH_Drawing_GetTypographyStyleAttributeDoubleArray(
+        typoStyle, TYPOGRAPHY_STYLE_ATTR_DA_LINE_HEAD_INDENT, &outArray, &outLen);
+    EXPECT_EQ(getCode, OH_DRAWING_SUCCESS);
+    EXPECT_EQ(outLen, 3);
+    EXPECT_NEAR(outArray[0], 10.0, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(outArray[1], 20.0, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(outArray[2], 30.0, FLOAT_DATA_EPSILON);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+}
+
+/*
+ * @tc.name: TypographyStyleAttributeDoubleArrayTest004
+ * @tc.desc: test for setting and getting line tail indent array
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, TypographyStyleAttributeDoubleArrayTest004, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    double tailIndents[] = { 5.0, 15.0, 25.0, 35.0 };
+    OH_Drawing_ErrorCode setCode = OH_Drawing_SetTypographyStyleAttributeDoubleArray(
+        typoStyle, TYPOGRAPHY_STYLE_ATTR_DA_LINE_TAIL_INDENT, tailIndents, 4);
+    EXPECT_EQ(setCode, OH_DRAWING_SUCCESS);
+    double* outArray = nullptr;
+    size_t outLen = 0;
+    OH_Drawing_ErrorCode getCode = OH_Drawing_GetTypographyStyleAttributeDoubleArray(
+        typoStyle, TYPOGRAPHY_STYLE_ATTR_DA_LINE_TAIL_INDENT, &outArray, &outLen);
+    EXPECT_EQ(getCode, OH_DRAWING_SUCCESS);
+    EXPECT_EQ(outLen, 4);
+    EXPECT_NEAR(outArray[0], 5.0, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(outArray[1], 15.0, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(outArray[2], 25.0, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(outArray[3], 35.0, FLOAT_DATA_EPSILON);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+}
+
+/*
+ * @tc.name: TypographyStyleAttributeDoubleArrayTest005
+ * @tc.desc: test for setting and getting empty tail indent array
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, TypographyStyleAttributeDoubleArrayTest005, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    // Default state: tail indents should be empty
+    double* outArray = nullptr;
+    size_t outLen = 0;
+    OH_Drawing_ErrorCode getCode = OH_Drawing_GetTypographyStyleAttributeDoubleArray(
+        typoStyle, TYPOGRAPHY_STYLE_ATTR_DA_LINE_TAIL_INDENT, &outArray, &outLen);
+    EXPECT_EQ(getCode, OH_DRAWING_SUCCESS);
+    EXPECT_EQ(outLen, 0);
+    EXPECT_EQ(outArray, nullptr);
+    getCode = OH_Drawing_GetTypographyStyleAttributeDoubleArray(
+        typoStyle, TYPOGRAPHY_STYLE_ATTR_DA_LINE_HEAD_INDENT, &outArray, &outLen);
+    EXPECT_EQ(outLen, 0);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+}
+
+/*
+ * @tc.name: TypographyStyleAttributeDoubleArrayTest006
+ * @tc.desc: test for replacing indent array with new values
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, TypographyStyleAttributeDoubleArrayTest006, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    // First set
+    double indents1[] = { 10.0, 20.0 };
+    OH_Drawing_SetTypographyStyleAttributeDoubleArray(
+        typoStyle, TYPOGRAPHY_STYLE_ATTR_DA_LINE_HEAD_INDENT, indents1, 2);
+    // Replace with different values
+    double indents2[] = { 100.0 };
+    OH_Drawing_SetTypographyStyleAttributeDoubleArray(
+        typoStyle, TYPOGRAPHY_STYLE_ATTR_DA_LINE_HEAD_INDENT, indents2, 1);
+    double* outArray = nullptr;
+    size_t outLen = 0;
+    OH_Drawing_GetTypographyStyleAttributeDoubleArray(
+        typoStyle, TYPOGRAPHY_STYLE_ATTR_DA_LINE_HEAD_INDENT, &outArray, &outLen);
+    EXPECT_EQ(outLen, 1);
+    EXPECT_NEAR(outArray[0], 100.0, FLOAT_DATA_EPSILON);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+}
+
+/*
+ * @tc.name: TypographyStyleFirstLineHeadIndentTest001
+ * @tc.desc: test for setting and getting first line head indent via double attribute
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, TypographyStyleFirstLineHeadIndentTest001, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_ErrorCode setCode = OH_Drawing_SetTypographyStyleAttributeDouble(
+        typoStyle, TYPOGRAPHY_STYLE_ATTR_D_FIRST_LINE_HEAD_INDENT, 40.0);
+    EXPECT_EQ(setCode, OH_DRAWING_SUCCESS);
+    double value = 0.0;
+    OH_Drawing_ErrorCode getCode = OH_Drawing_GetTypographyStyleAttributeDouble(
+        typoStyle, TYPOGRAPHY_STYLE_ATTR_D_FIRST_LINE_HEAD_INDENT, &value);
+    EXPECT_EQ(getCode, OH_DRAWING_SUCCESS);
+    EXPECT_NEAR(value, 40.0, FLOAT_DATA_EPSILON);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+}
+
+/*
+ * @tc.name: TypographyStyleFirstLineHeadIndentTest002
+ * @tc.desc: test for first line head indent with nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, TypographyStyleFirstLineHeadIndentTest002, TestSize.Level0)
+{
+    OH_Drawing_ErrorCode setCode = OH_Drawing_SetTypographyStyleAttributeDouble(
+        nullptr, TYPOGRAPHY_STYLE_ATTR_D_FIRST_LINE_HEAD_INDENT, 40.0);
+    EXPECT_EQ(setCode, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    double value = 0.0;
+    OH_Drawing_ErrorCode getCode = OH_Drawing_GetTypographyStyleAttributeDouble(
+        nullptr, TYPOGRAPHY_STYLE_ATTR_D_FIRST_LINE_HEAD_INDENT, &value);
+    EXPECT_EQ(getCode, OH_DRAWING_ERROR_INVALID_PARAMETER);
+}
+
+/*
+ * @tc.name: TypographyStyleFirstLineHeadIndentTest003
+ * @tc.desc: test for first line head indent with negative value
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, TypographyStyleFirstLineHeadIndentTest003, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_ErrorCode setCode = OH_Drawing_SetTypographyStyleAttributeDouble(
+        typoStyle, TYPOGRAPHY_STYLE_ATTR_D_FIRST_LINE_HEAD_INDENT, -20.0);
+    EXPECT_EQ(setCode, OH_DRAWING_SUCCESS);
+    double value = 0.0;
+    OH_Drawing_ErrorCode getCode = OH_Drawing_GetTypographyStyleAttributeDouble(
+        typoStyle, TYPOGRAPHY_STYLE_ATTR_D_FIRST_LINE_HEAD_INDENT, &value);
+    EXPECT_EQ(getCode, OH_DRAWING_SUCCESS);
+    EXPECT_NEAR(value, -20.0, FLOAT_DATA_EPSILON);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+}
 } // namespace OHOS
