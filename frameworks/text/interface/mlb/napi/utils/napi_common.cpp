@@ -507,6 +507,30 @@ bool GetParagraphStyleFromJS(napi_env env, napi_value argValue, TypographyStyle&
     return true;
 }
 
+static void ParseDoubleArrayFromJsProperty(napi_env env, napi_value argValue, const std::string& propName,
+    std::vector<double>& target)
+{
+    napi_value arrayValue = nullptr;
+    if (!GetNamePropertyFromJS(env, argValue, propName, arrayValue) || arrayValue == nullptr) {
+        return;
+    }
+    bool isArray = false;
+    napi_is_array(env, arrayValue, &isArray);
+    if (!isArray) {
+        return;
+    }
+    uint32_t arrayLength = 0;
+    napi_get_array_length(env, arrayValue, &arrayLength);
+    for (uint32_t i = 0; i < arrayLength; ++i) {
+        napi_value element = nullptr;
+        napi_get_element(env, arrayValue, i, &element);
+        double value = 0.0;
+        if (element != nullptr && ConvertFromJsValue(env, element, value)) {
+            target.push_back(value);
+        }
+    }
+}
+
 void HandleExtentParagraphStyleProperties(napi_env env, napi_value argValue, TypographyStyle& pographyStyle)
 {
     SetEnumValueFromJS(env, argValue, "textHeightBehavior", pographyStyle.textHeightBehavior);
@@ -518,6 +542,9 @@ void HandleExtentParagraphStyleProperties(napi_env env, napi_value argValue, Typ
     SetBoolValueFromJS(env, argValue, "includeFontPadding", pographyStyle.includeFontPadding);
     SetBoolValueFromJS(env, argValue, "fallbackLineSpacing", pographyStyle.fallbackLineSpacing);
     SetBoolValueFromJS(env, argValue, "orphanCharOptimization", pographyStyle.orphanCharOptimization);
+    SetDoubleValueFromJS(env, argValue, "firstLineHeadIndent", pographyStyle.firstLineIndent);
+    ParseDoubleArrayFromJsProperty(env, argValue, "tailIndents", pographyStyle.tailIndents);
+    ParseDoubleArrayFromJsProperty(env, argValue, "headIndents", pographyStyle.headIndents);
 }
 
 bool GetPlaceholderSpanFromJS(napi_env env, napi_value argValue, PlaceholderSpan& placeholderSpan)
