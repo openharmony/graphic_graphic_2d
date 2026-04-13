@@ -1217,7 +1217,11 @@ ErrCode RSClientToRenderConnectionProxy::SetAncoForceDoDirect(bool direct, bool&
             res = false;
             return ERR_INVALID_VALUE;
         }
-        res = reply.ReadBool();
+        if (!reply.ReadBool(res)) {
+            ROSEN_LOGE("SetAncoForceDoDirect ReadBool direct failed!");
+            res = false;
+            return READ_PARCEL_ERR;
+        }
         return ERR_OK;
     } else {
         ROSEN_LOGE("SetAncoForceDoDirect: WriteBool direct err.");
