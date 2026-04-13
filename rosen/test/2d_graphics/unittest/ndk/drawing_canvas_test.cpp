@@ -3175,6 +3175,7 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawGlyphs001, TestSiz
               OH_DRAWING_ERROR_INCORRECT_PARAMETER);
     EXPECT_EQ(OH_Drawing_CanvasDrawGlyphs(canvas_, glyphIds, 3, 0, nullptr, 3, 0, 3, font),
               OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    OH_Drawing_FontDestroy(font);
 }
 
 /*
