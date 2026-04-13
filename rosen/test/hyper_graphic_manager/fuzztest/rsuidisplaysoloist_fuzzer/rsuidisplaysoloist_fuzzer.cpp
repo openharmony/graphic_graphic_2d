@@ -90,7 +90,7 @@ void DoInsertFrameRateRange(FuzzedDataProvider& fdp)
 void DoInsertUseExclusiveThreadFlag(FuzzedDataProvider& fdp)
 {
     SoloistIdType id = fdp.ConsumeIntegral<uint32_t>();
-    bool useExclusiveThread = false;
+    bool useExclusiveThread = fdp.ConsumeBool();
     RSDisplaySoloistManager::GetInstance().InsertUseExclusiveThreadFlag(id, useExclusiveThread);
     std::unique_lock<std::mutex> lock(RSDisplaySoloistManager::GetInstance().dataUpdateMtx_);
     RSDisplaySoloistManager::GetInstance().idToSoloistMap_.erase(id);
