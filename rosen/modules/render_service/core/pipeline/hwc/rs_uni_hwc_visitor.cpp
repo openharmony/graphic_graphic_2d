@@ -977,10 +977,10 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByGlobalFilter(std::shared_ptr<RSSurfac
 }
 
 bool RSUniHwcVisitor::IsHveBlurFilterEnabled(
-    const RSRenderNode& renderNode, const std::pair<NodeId, RectI>filter, RSSurfaceRenderNode&hwcNode)
+    const RSRenderNode& renderNode, const std::pair<NodeId, RectI>& filter, RSSurfaceRenderNode& hwcNode)
 {
     if (!RSSystemParameters::GetHveBlurEnabled() ||
-        !HveFilter::GetHveFilter().CheckPrecondition(renderNode, fliter, hwcNode) ||
+        !HveFilter::GetHveFilter().CheckPrecondition(renderNode, fliter.second, hwcNode) ||
         RSHdrUtil::CheckIsHdrSurface(hwcNode)) {
         return false;
     }

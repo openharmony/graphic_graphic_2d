@@ -38,7 +38,6 @@ public:
     std::shared_ptr<RSEffectRenderNode> invalidTargetNode;
     std::shared_ptr<RSRenderNode> renderNode;
     std::shared_ptr<RSRenderNode> hwcNode;
-    std::pair<NodeId, RectI> testFilter;
     static constexpr uint32_t MAX_FILTER_SIZE = 500;
     static constexpr uint32_t ROOT_SURFACE_NODE_ID = 1;
     static constexpr uint32_t EFFECT_NODE_ID = 2;
@@ -67,8 +66,6 @@ void RSHveFilterTest::SetUp()
     rootSurfaceNode->AddChild(effectNode);
     effectNode->AddChild(validTargetNode);
     validTargetNode->AddChild(renderNode);
-
-    testFilter = {123, RectI{0, 0, 100, 100}};
 }
 void RSHveFilterTest::TearDown() {}
 
@@ -155,13 +152,14 @@ HWTEST_F(RSHveFilterTest, HasValidEffectTest, TestSize.Level1)
 HWTEST_F(RSHveFilterTest, CheckPreconditionTest, TestSize.Level1)
 {
     HveFilter filter;
+    RectI filterRect = {0, 0, 100, 100};
     renderNode->GetMutableRenderProperties().SetUseEffect(true);
-    filter.CheckPrecondition(*renderNode, testFilter, *hwcNode);
-    testFilter.second.width_ = 600;
-    testFilter.second.height_ = 600;
-    EXPECT_FALSE(filter.CheckPrecondition(*renderNode, testFilter, *hwcNode));
+    filter.CheckPrecondition(*renderNode, filterRect, *hwcNode);
+    filterRect.SetRight(600);
+    filterRect.SetBottom(600);
+    EXPECT_FALSE(filter.CheckPrecondition(*renderNode, filterRect, *hwcNode));
     renderNode->GetMutableRenderProperties().SetUseEffect(false);
-    filter.CheckPrecondition(*renderNode, testFilter, *hwcNode);
+    filter.CheckPrecondition(*renderNode, filterRect, *hwcNode);
 }
 
 /**

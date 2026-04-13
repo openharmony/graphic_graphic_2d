@@ -87,10 +87,10 @@ bool HveFilter::HasValidEffect(const RSRenderNode* node)
 }
 
 bool HveFilter::CheckPrecondition(const RSRenderNode& renderNode,
-    const std::pair<NodeId, RectI>& filter, RSSurfaceRenderNode& hwcNode)
+    const RectI<int>& filterRect, RSSurfaceRenderNode& hwcNode)
 {
     // Check basic conditions for hwcNode and filter size
-    if (!hwcNode.GetArsrTag() || (filter.second.width_ > MAX_FILTER_SIZE && filter.second.height_ > MAX_FILTER_SIZE)) {
+    if (!hwcNode.GetArsrTag() || (filterRect.GetWidth() > MAX_FILTER_SIZE && filterRect.GetHeight() > MAX_FILTER_SIZE)) {
         return false;
     }
     const RSProperties& properties = renderNode.GetRenderProperties();
@@ -99,7 +99,6 @@ bool HveFilter::CheckPrecondition(const RSRenderNode& renderNode,
         RS_LOGD("%{public}s within filter range", __func__);
         return true;
     }
-    auto geoptr = properties.GetBoundsGeometry();
     auto parentNode = renderNode.GetParent().lock();
     // If there is BgBrightness, ensure the Effect is valid.
     return properties.IsBgBrightnessValid() && HasValidEffect(parentNode.get());
