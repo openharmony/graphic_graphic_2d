@@ -1631,7 +1631,7 @@ bool AniCanvas::GetGlyphIds(ani_env* env, ani_int glyphsIDCountLimit,
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniCanvas::DrawGlyphs incorrect glyphIds.");
         return false;
     }
-    if (aniLength < 0 || aniLength < glyphsIDCountLimit) {
+    if (aniLength < glyphsIDCountLimit) {
         ROSEN_LOGE("AniCanvas::DrawGlyphs glyphs input is out of range");
         ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED,
                            "AniCanvas::DrawGlyphs glyphs input out of range.");
@@ -1676,7 +1676,7 @@ bool AniCanvas::GetGlyphPositions(ani_env* env, ani_int positionCountLimit,
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniCanvas::DrawGlyphs incorrect positions.");
         return false;
     }
-    if (aniLength < 0 || aniLength < positionCountLimit) {
+    if (aniLength < positionCountLimit) {
         ROSEN_LOGE("AniCanvas::DrawGlyphs positions input is out of range");
         ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED,
                            "AniCanvas::DrawGlyphs position input out of range.");
@@ -1710,6 +1710,11 @@ void AniCanvas::DrawGlyphs(ani_env* env, ani_object obj,
     }
     std::unique_ptr<uint16_t[]> glyphIds;
     std::unique_ptr<Drawing::Point[]> positions;
+    if (glyphIdOffset < 0 || positionOffset < 0) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED,
+                           "AniCanvas::DrawGlyphs array offset out of range.");
+        return;
+    }
     if (!GetGlyphIds(env, glyphIdOffset + glyphCount, glyphIdsObj, glyphIds) ||
         !GetGlyphPositions(env, positionOffset + glyphCount, positionsObj, positions)) {
         return;
