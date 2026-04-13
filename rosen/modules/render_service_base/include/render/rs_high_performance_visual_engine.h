@@ -49,8 +49,7 @@ public:
     bool CheckPrecondition(const RSRenderNode& renderNode,
         const std::pair<NodeId, RectI>& filter, RSSurfaceRenderNode& hwcNode);
     std::shared_ptr<Drawing::Image> SampleLayer(RSPaintFilterCanvas& canvas, const Drawing::RectI& srcRect);
-
-    private:
+private:
     bool CheckEffectNodeConditions(const std::shared_ptr<RSRenderNode>& node);
     bool HasValidEffect(const RSRenderNode* node);
     HveFilter() = default;
