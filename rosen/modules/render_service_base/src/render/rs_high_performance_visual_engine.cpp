@@ -90,7 +90,8 @@ bool HveFilter::CheckPrecondition(const RSRenderNode& renderNode,
     const RectI<int>& filterRect, RSSurfaceRenderNode& hwcNode)
 {
     // Check basic conditions for hwcNode and filter size
-    if (!hwcNode.GetArsrTag() || (filterRect.GetWidth() > MAX_FILTER_SIZE && filterRect.GetHeight() > MAX_FILTER_SIZE)) {
+    if (!hwcNode.GetArsrTag() ||
+        (filterRect.GetWidth() > MAX_FILTER_SIZE && filterRect.GetHeight() > MAX_FILTER_SIZE)) {
         return false;
     }
     const RSProperties& properties = renderNode.GetRenderProperties();
