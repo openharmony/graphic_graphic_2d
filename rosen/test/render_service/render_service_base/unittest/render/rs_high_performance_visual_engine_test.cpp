@@ -16,6 +16,9 @@
 
 #include "utils/rect.h"
 #include "render/rs_high_performance_visual_engine.h"
+#include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_effct_render_node.h"
+#include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 
 using namespace testing;
@@ -29,11 +32,37 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+    std::shared_ptr<RSSurfaceRenderNode> rootSurfaceNode;
+    std::shared_ptr<RSEffectRenderNode> effectNode;
+    std::shared_ptr<RSEffectRenderNode> validTargetNode;
+    std::shared_ptr<RSEffectRenderNode> invalidTargetNode;
+    std::shared_ptr<RSRenderNode> renderNode;
+    std::shared_ptr<RSRenderNode> hwcNode;
+    std::pair<NodeId, RectI> testFilter;
+    const int MAX_FILTER_SIZE = 500;
 };
 
 void RSHveFilterTest::SetUpTestCase() {}
 void RSHveFilterTest::TearDownTestCase() {}
-void RSHveFilterTest::SetUp() {}
+void RSHveFilterTest::SetUp() {
+    rootSurfaceNode = std::make_shared<RSSurfaceRenderNode>(1);
+    effectNode = std::make_shared<RSEffectRenderNode>(2);
+    validTargetNode = std::make_shared<RSEffectRenderNode>(3);
+    invalidTargetNode = std::make_shared<RSEffectRenderNode>(4);
+    renderNode = std::make_shared<RSRenderNode>(5);
+    hwcNode = std::make_shared<RSRenderNode>(6);
+
+    validTargetNode->GetMutableRenderProperties().SetUseEffect(true);
+    validTargetNode->SetGlobalAlpha(1.0f);
+    validTargetNode->UpdateChildrenOutOfRectFlag(false);
+    invalidTargetNode->GetMutableRenderProperties().SetUseEffect(false);
+
+    rootSurfaceNode->AddChild(effectNode);
+    effectNode->AddChild(validTargetNode);
+    validTargetNode->AddChild(renderNode);
+
+    testFilter = {123, RectI{0, 0, 100, 100}};
+}
 void RSHveFilterTest::TearDown() {}
 
 /**
@@ -85,6 +114,47 @@ HWTEST_F(RSHveFilterTest, GetSurfaceNodeSizeTest, TestSize.Level1)
 {
     HveFilter filter;
     EXPECT_EQ(filter.GetSurfaceNodeSize(), 0);
+}
+
+/**
+ * @tc.name: HasValidEffectTest
+ * @tc.desc: Verify function HasValidEffect
+ * @tc.type:FUNC
+ * @tc.require: issuesI9UWCD
+ */
+HWTEST_F(RSHveFilterTest, HasValidEffectTest, TestSize.Level1)
+{
+    HveFilter filter;
+    EXPECT_FALSE(filter.HasValidEffect(nullptr));
+    filter.HasValidEffect(rootSurfaceNode.get());
+    EXPECT_FALSE(filter.HasValidEffect(invalidTargetNode.get()));
+    filter.HasValidEffect(validTargetNode.get());
+    validTargetNode->SetGlobalAlpha(0.5f);
+    EXPECT_FALSE(filter.HasValidEffect(validTargetNode.get()));
+    validTargetNode->SetGlobalAlpha(1.0f);
+    validTargetNode->UpdateChildrenOutOfRectFlag(true);
+    EXPECT_FALSE(filter.HasValidEffect(validTargetNode.get()));
+    rootSurfaceNode->RemoveChild(effectNode);
+    EXPECT_FALSE(filter.HasValidEffect(rootSurfaceNode.get()));
+    filter.HasValidEffect(renderNode.get());
+}
+
+/**
+ * @tc.name: CheckPreconditionTest
+ * @tc.desc: Verify function CheckPrecondition
+ * @tc.type:FUNC
+ * @tc.require: issuesI9UWCD
+ */
+HWTEST_F(RSHveFilterTest, CheckPreconditionTest, TestSize.Level1)
+{
+    HveFilter filter;
+    renderNode->GetMutableRenderProperties().SetUseEffect(true);
+    filter.CheckPrecondition(*renderNode, testFilter, *hwcNode);
+    testFilter.second.width_ = 600;
+    testFilter.second.height_ = 600;
+    EXPECT_FALSE(filter.CheckPrecondition(*renderNode, testFilter, *hwcNode));
+    renderNode->GetMutableRenderProperties().SetUseEffect(false);
+    filter.CheckPrecondition(*renderNode, testFilter, *hwcNode);
 }
 
 /**

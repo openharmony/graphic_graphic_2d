@@ -25,6 +25,7 @@
 #include "render/rs_render_aibar_filter.h"
 #include "render/rs_render_kawase_blur_filter.h"
 #include "render/rs_render_magnifier_filter.h"
+#include "render/rs_high_performance_visual_engine.h"
 #include "utils/rect.h"
 #include "utils/region.h"
 #include "skia_adapter/skia_surface.h"
@@ -337,6 +338,16 @@ HWTEST_F(RSFilterCacheManagerTest, TakeSnapshotTest, TestSize.Level1)
     auto para = std::make_shared<RSMagnifierParams>();
     auto rsMagnifierShaderFilter = std::make_shared<RSMagnifierShaderFilter>(para);
     filter = std::make_shared<RSDrawingFilter>(rsMagnifierShaderFilter);
+    rsFilterCacheManager->TakeSnapshot(filterCanvas, filter, srcRect);
+    SurfaceNodeInfo info;
+    info.surfaceImage_ = std::make_shared<Drawing::Image>();
+    info.matrix_.Set(Drawing::Matrix::Trans_X, 1.0f);
+    info.srcRect_ = Drawing::Rect(0, 0, 100, 100);
+    info.dstRect_ = Drawing::Rect(0, 0, 100, 100);
+    info.solidLayerColor_ = RgbPalette::Black();
+    HveFilter::GetHveFilter().PushSurfaceNodeInfo(info);
+    rsFilterCacheManager->TakeSnapshot(filterCanvas, filter, srcRect);
+    HveFilter::GetHveFilter().ClearSurfaceNodeInfo();
     rsFilterCacheManager->TakeSnapshot(filterCanvas, filter, srcRect);
     EXPECT_NE(filter->GetShaderFilterWithType(RSUIFilterType::MAGNIFIER), nullptr);
 }

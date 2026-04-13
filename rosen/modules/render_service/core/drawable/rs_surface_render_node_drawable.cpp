@@ -1438,7 +1438,7 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
                                                        surfaceParams.GetBufferOwnerCount());
 
             // Use to adapt to AIBar DSS solution
-            Color solidLayerColor = RgbPalette::Transparent();
+            Color solidLayerColor = RgbPalette::Black();
             if (surfaceParams.GetIsHwcEnabledBySolidLayer()) {
                 solidLayerColor = surfaceParams.GetSolidLayerColor();
                 RS_TRACE_NAME_FMT("solidLayer enabled, color:%08x", solidLayerColor.AsArgbInt());

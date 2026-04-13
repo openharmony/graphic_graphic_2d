@@ -73,6 +73,7 @@ public:
     bool IsPrevalidateEnable();
     void CollectSurfaceNodeLayerInfo(std::vector<RequestLayerInfo>& prevalidLayers,
         std::vector<RSBaseRenderNode::SharedPtr>& surfaceNodes, uint32_t curFps, uint32_t& zOrder);
+    bool CheckIfDoArsrPre(const RSSurfaceRenderNode::SharedPtr node);
 private:
     RSUniHwcPrevalidateUtil();
     ~RSUniHwcPrevalidateUtil();
@@ -81,7 +82,6 @@ private:
     bool IsNeedDssRotate(GraphicTransformType transform) const;
     void CopyCldInfo(const CldInfo& src, RequestLayerInfo& info);
     void LayerRotate(RequestLayerInfo& info, const sptr<IConsumerSurface>& surface);
-    bool CheckIfDoArsrPre(const RSSurfaceRenderNode::SharedPtr node);
     void CheckIfDoCopybit(const RSSurfaceRenderNode::SharedPtr node, GraphicTransformType transform,
         RequestLayerInfo& info);
     static bool CheckHwcNode(const RSSurfaceRenderNode::SharedPtr& node);

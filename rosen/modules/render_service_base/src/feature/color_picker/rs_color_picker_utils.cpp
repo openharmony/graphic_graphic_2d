@@ -30,6 +30,7 @@
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
+#include "render/rs_high_performance_visual_engine.h"
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 #include "include/gpu/ganesh/vk/GrVkBackendSemaphore.h"
@@ -234,7 +235,12 @@ bool ExtractSnapshotAndScheduleColorPick(
 #ifdef RS_ENABLE_GPU
     RSTagTracker tracker(canvas.GetGPUContext(), RSTagTracker::TAG_COLOR_PICKER_SNAPSHOT);
 #endif
-    auto snapshot = drawingSurface->GetImageSnapshot(snapshotIBounds, false);
+    std::shared_ptr<Drawing::Image> snapshot;
+    if ((HveFilter::GetHveFilter().GetSurfaceNodeSize() > 0)) {
+        snapshot = HveFilter::GetHveFilter().SampleLayer(canvas, snapshotIBounds);
+    } else {
+        snapshot = drawingSurface->GetImageSnapshot(snapshotIBounds, false);
+    }
     if (!snapshot) {
         RS_LOGE("ExtractSnapshotAndScheduleColorPick: snapshot is null");
         return false;
