@@ -2835,6 +2835,114 @@ HWTEST_F(RSScreenTest, SetDualScreenStateTest, TestSize.Level1)
 }
 
 /*
+ * @tc.name: SetAsMainScreenTest
+ * @tc.desc: SetAsMainScreen Test
+ * @tc.type: FUNC
+ * @tc.require: #23043
+ */
+HWTEST_F(RSScreenTest, SetAsMainScreenTest, TestSize.Level1)
+{
+    // case 1: normal screen set to main screen
+    {
+        ScreenId screenId = mockScreenId_;
+        bool isMainScreen = true;
+        auto rsScreen = std::make_shared<RSScreen>(screenId);
+        rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+        EXPECT_CALL(*hdiDeviceMock_, SetDisplayProperty(_, _, _)).WillOnce(testing::Return(0));
+        EXPECT_EQ(rsScreen->SetAsMainScreen(isMainScreen), StatusCode::SUCCESS);
+    }
+
+    // case 2: normal screen unset as main screen
+    {
+        ScreenId screenId = mockScreenId_;
+        bool isMainScreen = false;
+        auto rsScreen = std::make_shared<RSScreen>(screenId);
+        rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+        EXPECT_CALL(*hdiDeviceMock_, SetDisplayProperty(_, _, _)).WillOnce(testing::Return(0));
+        EXPECT_EQ(rsScreen->SetAsMainScreen(isMainScreen), StatusCode::SUCCESS);
+    }
+
+    // case 3: virtual screen
+    {
+        VirtualScreenConfigs config;
+        bool isMainScreen = true;
+        auto virtualScreen = std::make_shared<RSScreen>(config);
+        EXPECT_EQ(virtualScreen->SetAsMainScreen(isMainScreen), StatusCode::SUCCESS);
+    }
+
+    // case 4: toggle main screen status
+    {
+        ScreenId screenId = mockScreenId_;
+        auto rsScreen = std::make_shared<RSScreen>(screenId);
+        rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+        EXPECT_CALL(*hdiDeviceMock_, SetDisplayProperty(_, _, _))
+            .Times(3)
+            .WillRepeatedly(testing::Return(0));
+
+        EXPECT_EQ(rsScreen->SetAsMainScreen(true), StatusCode::SUCCESS);
+        EXPECT_EQ(rsScreen->SetAsMainScreen(false), StatusCode::SUCCESS);
+        EXPECT_EQ(rsScreen->SetAsMainScreen(true), StatusCode::SUCCESS);
+    }
+}
+
+/*
+ * @tc.name: IsMainScreenTest001
+ * @tc.desc: Test IsMainScreen returns correct value after SetAsMainScreen
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenTest, IsMainScreenTest001, TestSize.Level1)
+{
+    // case 1: default is not main screen
+    {
+        ScreenId screenId = mockScreenId_;
+        auto rsScreen = std::make_shared<RSScreen>(screenId);
+        rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+        EXPECT_CALL(*hdiDeviceMock_, SetDisplayProperty(_, _, _)).WillOnce(testing::Return(0));
+
+        EXPECT_EQ(rsScreen->IsMainScreen(), false);
+    }
+
+    // case 2: set to main screen and verify
+    {
+        ScreenId screenId = mockScreenId_;
+        auto rsScreen = std::make_shared<RSScreen>(screenId);
+        rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+        EXPECT_CALL(*hdiDeviceMock_, SetDisplayProperty(_, _, _)).WillOnce(testing::Return(0));
+
+        rsScreen->SetAsMainScreen(true);
+        EXPECT_EQ(rsScreen->IsMainScreen(), true);
+    }
+
+    // case 3: toggle main screen status and verify
+    {
+        ScreenId screenId = mockScreenId_;
+        auto rsScreen = std::make_shared<RSScreen>(screenId);
+        rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+        EXPECT_CALL(*hdiDeviceMock_, SetDisplayProperty(_, _, _))
+            .Times(2)
+            .WillRepeatedly(testing::Return(0));
+
+        rsScreen->SetAsMainScreen(true);
+        EXPECT_EQ(rsScreen->IsMainScreen(), true);
+
+        rsScreen->SetAsMainScreen(false);
+        EXPECT_EQ(rsScreen->IsMainScreen(), false);
+    }
+
+    // case 4: virtual screen main screen status
+    {
+        VirtualScreenConfigs config;
+        auto virtualScreen = std::make_shared<RSScreen>(config);
+
+        EXPECT_EQ(virtualScreen->IsMainScreen(), false);
+
+        virtualScreen->SetAsMainScreen(true);
+        EXPECT_EQ(virtualScreen->IsMainScreen(), true);
+    }
+}
+
+/*
  * @tc.name: WriteHisyseventEpsLcdInfo_001
  * @tc.desc: Test WriteHisyseventEpsLcdInfo with mode change
  * @tc.type: FUNC

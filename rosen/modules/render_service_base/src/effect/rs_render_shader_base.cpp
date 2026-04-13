@@ -19,6 +19,7 @@
 
 #include "common/rs_optional_trace.h"
 #include "effect/rs_render_mask_base.h"
+#include "effect/rs_render_shape_base.h"
 #include "ge_visual_effect.h"
 #include "ge_visual_effect_container.h"
 #include "platform/common/rs_log.h"
@@ -93,6 +94,24 @@ static std::unordered_map<RSNGEffectType, ShaderCreator> creatorLUT = {
             return std::make_shared<RSNGRenderDistortChroma>();
         }
     },
+    {RSNGEffectType::SDF_EDGE_LIGHT_EFFECT, [] {
+            return std::make_shared<RSNGRenderSDFEdgeLightEffect>();
+        }
+    },
+};
+
+using ShaderGetDrawRect = std::function<RectF(std::shared_ptr<RSNGRenderShaderBase>, const RectF&)>;
+static std::unordered_map<RSNGEffectType, ShaderGetDrawRect> getDrawRectLUT = {
+    {
+        RSNGEffectType::SDF_EDGE_LIGHT_EFFECT, [](std::shared_ptr<RSNGRenderShaderBase> shader, const RectF& rect) {
+            auto sdfEdgeLightEffect = std::static_pointer_cast<RSNGRenderSDFEdgeLightEffect>(shader);
+            auto maxBorderWidth =
+                sdfEdgeLightEffect->Getter<OHOS::Rosen::SDFEdgeLightEffectMaxBorderWidthRenderTag>()->Get();
+            auto outerBorderBloomWidth =
+                sdfEdgeLightEffect->Getter<OHOS::Rosen::SDFEdgeLightEffectOuterBorderBloomWidthRenderTag>()->Get();
+            return rect.MakeOutset(std::max(maxBorderWidth, outerBorderBloomWidth));
+        }
+    }
 };
 
 std::shared_ptr<RSNGRenderShaderBase> RSNGRenderShaderBase::Create(RSNGEffectType type)
@@ -187,6 +206,24 @@ std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> RSNGRenderShaderHelper::G
         return nullptr;
     }
     return effectData;
+}
+
+RectF RSNGRenderShaderHelper::CalcRect(const std::shared_ptr<RSNGRenderShaderBase>& shader, const RectF& bound)
+{
+    if (shader == nullptr) {
+        return RectF();
+    }
+
+    RectF drawRect = bound;
+    auto current = shader;
+    while (current) {
+        auto iter = getDrawRectLUT.find(current->GetType());
+        if (iter != getDrawRectLUT.end()) {
+            drawRect = iter->second(current, drawRect);
+        }
+        current = current->nextEffect_;
+    }
+    return drawRect;
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -133,5 +133,45 @@ HWTEST_F(RSProxyTest, SetRenderContext, TestSize.Level1)
     raster.SetRenderContext(renderContext);
     ASSERT_NE(raster.renderContext_, nullptr);
 }
+
+/**
+ * @tc.name: CreateConnectionTest003
+ * @tc.desc: CreateConnection with needRefresh=true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSProxyTest, CreateConnectionTest003, TestSize.Level1)
+{
+    ASSERT_NE(renderService, nullptr);
+    MessageParcel data;
+    auto remoteObj = data.ReadRemoteObject();
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    ASSERT_NE(token, nullptr);
+    std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> connPair =
+        renderService->CreateConnection(token, true);
+    ASSERT_NE(connPair.first, nullptr);
+    ASSERT_NE(connPair.second, nullptr);
+    bool isConnectionRemoved = renderService->RemoveConnection(token);
+    EXPECT_TRUE(isConnectionRemoved);
+}
+
+/**
+ * @tc.name: CreateConnectionTest004
+ * @tc.desc: CreateConnection with needRefresh=false
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSProxyTest, CreateConnectionTest004, TestSize.Level1)
+{
+    ASSERT_NE(renderService, nullptr);
+    MessageParcel data;
+    auto remoteObj = data.ReadRemoteObject();
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    ASSERT_NE(token, nullptr);
+    std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> connPair =
+        renderService->CreateConnection(token, false);
+    ASSERT_NE(connPair.first, nullptr);
+    ASSERT_NE(connPair.second, nullptr);
+    bool isConnectionRemoved = renderService->RemoveConnection(token);
+    EXPECT_TRUE(isConnectionRemoved);
+}
 } // namespace Rosen
 } // namespace OHOS

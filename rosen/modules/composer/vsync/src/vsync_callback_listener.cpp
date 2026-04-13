@@ -99,6 +99,7 @@ VsyncError VSyncCallBackListener::ReadFdInternal(int32_t fd, int64_t (&data)[3],
                 continue;
             } else if (errno != EAGAIN) {
                 VLOGE("ReadFdInternal, read fd:%{public}d failed, errno:%{public}d", fd, errno);
+                return VSYNC_ERROR_API_FAILED;
             }
         } else {
             dataCount += ret;
@@ -171,12 +172,17 @@ void VSyncCallBackListener::PrintRequestTs(int64_t fromRsTs)
     }
 }
 
-int64_t VSyncCallBackListener::CalculateExpectedEndLocked(int64_t now)
+int64_t VSyncCallBackListener::CalculateExpectedEndLocked(int64_t &now)
 {
     int64_t expectedEnd = 0;
     if (period_ < 0 || now < period_ || now > INT64_MAX - period_) {
         RS_TRACE_NAME_FMT("invalid timestamps, now:%" PRId64 ", period:%" PRId64, now, period_);
         VLOGE("invalid timestamps, now:" VPUBI64 ", period_:" VPUBI64, now, period_);
+        now = 0;
+        period_ = 0;
+        periodShared_ = 0;
+        timeStamp_ = 0;
+        timeStampShared_ = 0;
         return 0;
     }
     expectedEnd = now + period_;

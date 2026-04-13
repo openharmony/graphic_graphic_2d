@@ -662,6 +662,21 @@ typedef enum OH_Drawing_TypographyStyleAttributeId {
      * @since 24
      */
     TYPOGRAPHY_STYLE_ATTR_I_ELLIPSIS_MODAL = 8,
+    /**
+     * Line head indent array
+     * @since 26.0.0
+     */
+    TYPOGRAPHY_STYLE_ATTR_DA_LINE_HEAD_INDENT = 9,
+    /**
+     * First line head indent
+     * @since 26.0.0
+     */
+    TYPOGRAPHY_STYLE_ATTR_D_FIRST_LINE_HEAD_INDENT = 10,
+    /**
+     * Line tail indent array
+     * @since 26.0.0
+     */
+    TYPOGRAPHY_STYLE_ATTR_DA_LINE_TAIL_INDENT = 11,
 } OH_Drawing_TypographyStyleAttributeId;
 
 /**
@@ -821,6 +836,38 @@ OH_Drawing_ErrorCode OH_Drawing_SetTypographyStyleAttributeBool(OH_Drawing_Typog
  */
 OH_Drawing_ErrorCode OH_Drawing_GetTypographyStyleAttributeBool(OH_Drawing_TypographyStyle* style,
     OH_Drawing_TypographyStyleAttributeId id, bool* value);
+
+/**
+ * @brief Sets the double array value for the typographic style attribute.
+ *
+ * @param style Indicates the pointer to an <b>OH_Drawing_TypographyStyle</b> object.
+ * @param id Indicates the attribute id.
+ * @param arrayValue Indicates the array value to set.
+ * @param arrayLength Indicates the array length.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if the style is nullptr.
+ *         Returns {@link OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH} if the attribute id is not recognized or supported.
+ * @since 26.0.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_SetTypographyStyleAttributeDoubleArray(OH_Drawing_TypographyStyle* style,
+    OH_Drawing_TypographyStyleAttributeId id, double* arrayValue, size_t arrayLength);
+
+/**
+ * @brief Gets the double array value for the typographic style attribute.
+ *
+ * @param style Indicates the pointer to an <b>OH_Drawing_TypographyStyle</b> object.
+ * @param id Indicates the attribute id.
+ * @param arrayValue Output parameter to receive the array value.
+ * @param arrayLength Output parameter to receive the length of the array.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if the style is nullptr.
+ *         Returns {@link OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH} if the attribute id is not recognized or supported.
+ * @since 26.0.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_GetTypographyStyleAttributeDoubleArray(const OH_Drawing_TypographyStyle* style,
+    OH_Drawing_TypographyStyleAttributeId id, double** arrayValue, size_t* arrayLength);
 
 /**
  * @brief Type of badge.

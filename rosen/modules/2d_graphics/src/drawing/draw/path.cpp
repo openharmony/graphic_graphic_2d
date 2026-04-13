@@ -389,6 +389,11 @@ void Path::SetLastPoint(scalar x, scalar y)
     impl_->SetLastPoint(x, y);
 }
 
+void Path::GetLastPoint(Point& point) const
+{
+    impl_->GetLastPoint(point);
+}
+
 void Path::ReWind()
 {
     impl_->ReWind();
@@ -448,6 +453,11 @@ void Path::ToggleInverseFillType()
 {
     uint32_t inverseFillType = static_cast<uint32_t>(GetFillStyle()) ^ 2; // 2 is Inverse bit
     SetFillStyle(static_cast<PathFillType>(inverseFillType));
+}
+
+bool Path::operator==(const Path& other) const
+{
+    return impl_->Equals(other);
 }
 
 std::shared_ptr<Data> Path::Serialize() const

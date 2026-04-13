@@ -28,7 +28,7 @@
 #include "modifier_ng/appearance/rs_outline_modifier.h"
 #include "modifier_ng/appearance/rs_particle_effect_modifier.h"
 #include "modifier_ng/appearance/rs_pixel_stretch_modifier.h"
-#include "modifier_ng/appearance/rs_point_light_modifier.h"
+#include "modifier_ng/appearance/rs_overlay_ng_shader_modifier.h"
 #include "modifier_ng/appearance/rs_shadow_modifier.h"
 #include "modifier_ng/appearance/rs_use_effect_modifier.h"
 #include "modifier_ng/appearance/rs_visibility_modifier.h"
@@ -505,7 +505,8 @@ bool PointLightModifierFuzzTest(const uint8_t* data, size_t size)
     }
 
     // test
-    std::shared_ptr<ModifierNG::RSPointLightModifier> modifier = std::make_shared<ModifierNG::RSPointLightModifier>();
+    std::shared_ptr<ModifierNG::RSOverlayNGShaderModifier> modifier =
+        std::make_shared<ModifierNG::RSOverlayNGShaderModifier>();
 
     float randomFloat = GetData<float>();
     modifier->SetLightIntensity(randomFloat);

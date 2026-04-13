@@ -79,6 +79,7 @@ public:
     ani_class typefaceArguments;
     ani_class fontMetrics;
     ani_class point;
+    ani_class pointUtils;
     ani_class rect;
     ani_class color;
     ani_class colorInterface;

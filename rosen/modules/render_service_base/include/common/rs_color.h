@@ -43,6 +43,8 @@ public:
     RSColor(int16_t red, int16_t green, int16_t blue) noexcept;
     RSColor(int16_t red, int16_t green, int16_t blue, int16_t alpha,
         GraphicColorGamut colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB) noexcept;
+    RSColor(float red, float green, float blue, float alpha,
+        GraphicColorGamut colorSpace, float headroom) noexcept;
 
     RSColor(const RSColor& rhs) noexcept
     {
@@ -105,6 +107,7 @@ public:
 
     void ConvertToP3ColorSpace();
     void ConvertToSRGBColorSpace();
+    void ConvertToBT2020ColorSpace();
 
     void Dump(std::string& out) const;
 
@@ -130,12 +133,21 @@ private:
     float Float16ToFloat32(float16 half) const;
     float16 Float32ToFloat16(float value) const;
 
-    struct {
-        int16_t alpha_ : 16;
-        int16_t blue_ : 16;
-        int16_t green_ : 16;
-        int16_t red_ : 16;
+    union {
+        struct {
+            int16_t alpha_ : 16;
+            int16_t blue_ : 16;
+            int16_t green_ : 16;
+            int16_t red_ : 16;
+        };
+        struct {
+            float16 alphaF_ : 16;
+            float16 blueF_ : 16;
+            float16 greenF_ : 16;
+            float16 redF_ : 16;
+        };
     };
+    
     int8_t colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     uint8_t placeholder_ = 0; // enum ColorPlaceholder
     float16 headroom_ = Float32ToFloat16(1.0f); // brightness ratio, range [1, 1+]

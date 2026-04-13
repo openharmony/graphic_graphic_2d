@@ -70,8 +70,7 @@ public:
     void UpdateCompletedCacheSurface();
     void ClearCacheSurfaceInThread();
     void ClearCacheSurfaceOnly();
-    void UpdateCacheSurfaceInfo(std::shared_ptr<RSSurfaceRenderNodeDrawable> nodeDrawable,
-        RSSurfaceRenderParams* surfaceParams);
+    void UpdateCacheSurfaceInfo(RSSurfaceRenderNodeDrawable* surfaceDrawable, RSSurfaceRenderParams* surfaceParams);
     std::shared_ptr<Drawing::Surface> GetCacheSurface(uint32_t threadIndex);
     bool NeedInitCacheSurface(RSSurfaceRenderParams* surfaceParams);
     std::shared_ptr<Drawing::Image> GetCompletedImage(RSPaintFilterCanvas& canvas, uint32_t threadIndex,
@@ -270,6 +269,8 @@ private:
     void DrawUIFirstDfx(RSPaintFilterCanvas& canvas, MultiThreadCacheType enableType,
         RSSurfaceRenderParams& surfaceParams, bool drawCacheSuccess);
     bool IsCacheSizeMatchBound(const RectF& cacheSize, const Vector2f& boundSize);
+    void CalculateSurfaceOpaqueRegion(RSSurfaceRenderNodeDrawable* surfaceDrawable,
+        RSSurfaceRenderParams* surfaceParams, Occlusion::Region& opaqueRegion, RectI& absDrawRect);
 
     NodeId nodeId_ = 0;
     // Cache in RT
@@ -289,6 +290,8 @@ private:
         float alpha = -1.f;
         bool isContainShadow = false;
         std::unordered_set<NodeId> processedSubSurfaceNodeIds;
+        Occlusion::Region opaqueRegion;
+        RectI absDrawRect;
 
         void Reset()
         {
@@ -297,6 +300,8 @@ private:
             alpha = -1.f;
             isContainShadow = false;
             processedSubSurfaceNodeIds.clear();
+            opaqueRegion.Reset();
+            absDrawRect = {};
         }
     };
     CacheSurfaceInfo cacheSurfaceInfo_;
@@ -339,6 +344,7 @@ private:
     bool uifirstSurfaceCacheContentStatic_ = true;
 
     uint32_t cacheReuseCount_ = 0;
+    bool isOcclusionEnabled_ = false;
 };
 } // DrawableV2
 } // OHOS::Rosen

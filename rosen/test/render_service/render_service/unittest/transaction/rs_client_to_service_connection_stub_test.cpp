@@ -30,6 +30,8 @@
 #include "ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_stub.h"
 #include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback_ipc_interface_code.h"
 #include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback.h"
+#include "ipc_callbacks/rs_iexposed_event_callback.h"
+#include "ipc_callbacks/rs_exposed_event_callback_stub.h"
 #include "ipc_callbacks/screen_change_callback_stub.h"
 #include "ipc_callbacks/brightness_info_change_callback_stub.h"
 #include "ipc_skeleton.h"
@@ -398,6 +400,12 @@ public:
         ScreenChangeReason reason, sptr<IRemoteObject> obj = nullptr) override {};
 };
 
+class RSExposedEventCallbackStubMock : public RSExposedEventCallbackStub {
+public:
+    RSExposedEventCallbackStubMock() = default;
+    virtual ~RSExposedEventCallbackStubMock() = default;
+    void OnDisplayEvent(const std::shared_ptr<RSExposedEventDataBase> data) override {};
+};
 
 class RSFrameRateLinkerExpectedFpsUpdateCallbackStubMock : public RSFrameRateLinkerExpectedFpsUpdateCallbackStub {
 public:
@@ -892,6 +900,103 @@ HWTEST_F(RSClientToServiceConnectionStubTest, TestRSRenderServiceConnectionStub0
     data.WriteRemoteObject(callback->AsObject());
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, NO_ERROR);
+}
+
+/**
+ * @tc.name: RegisterExposedEventCallbackTest001
+ * @tc.desc: Test RegisterExposedEventCallback with valid callback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, RegisterExposedEventCallbackTest001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::ON_EXPOSED_EVENT);
+    data.WriteUint32(static_cast<uint32_t>(RSExposedEventType::EXT_SCREEN_UNSUPPORT));
+    data.WriteBool(true);
+    sptr<RSExposedEventCallbackStubMock> callback = new RSExposedEventCallbackStubMock();
+    data.WriteRemoteObject(callback->AsObject());
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, NO_ERROR);
+}
+
+/**
+ * @tc.name: RegisterExposedEventCallbackTest002
+ * @tc.desc: Test RegisterExposedEventCallback with nullptr callback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, RegisterExposedEventCallbackTest002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::ON_EXPOSED_EVENT);
+    data.WriteUint32(static_cast<uint32_t>(RSExposedEventType::EXT_SCREEN_UNSUPPORT));
+    data.WriteBool(false);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, NO_ERROR);
+}
+
+/**
+ * @tc.name: RegisterExposedEventCallbackTest003
+ * @tc.desc: Test RegisterExposedEventCallback with ReadBool failed
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, RegisterExposedEventCallbackTest003, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::ON_EXPOSED_EVENT);
+    data.WriteUint32(static_cast<uint32_t>(RSExposedEventType::EXT_SCREEN_UNSUPPORT));
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: RegisterExposedEventCallbackTest004
+ * @tc.desc: Test RegisterExposedEventCallback with invalid reply
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, RegisterExposedEventCallbackTest004, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    reply.writable_ = false;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::ON_EXPOSED_EVENT);
+    data.WriteUint32(static_cast<uint32_t>(RSExposedEventType::EXT_SCREEN_UNSUPPORT));
+    data.WriteBool(true);
+    sptr<RSExposedEventCallbackStubMock> callback = new RSExposedEventCallbackStubMock();
+    data.WriteRemoteObject(callback->AsObject());
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_REPLY);
+}
+
+/**
+ * @tc.name: RegisterExposedEventCallbackTest005
+ * @tc.desc: Test RegisterExposedEventCallback with ReadUint32 failed
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, RegisterExposedEventCallbackTest005, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::ON_EXPOSED_EVENT);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
 }
 
 /**
@@ -3250,6 +3355,145 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetPhysicalScreenResolutionTest001
 }
 
 /**
+ * @tc.name: SetAsMainScreenTest001
+ * @tc.desc: Test SetAsMainScreen
+ * @tc.type: FUNC
+ * @tc.require: #23043
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetAsMainScreenTest001, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    uint32_t interfaceCode = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_AS_MAIN_SCREEN);
+
+    // case 1: only write descriptor
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+        auto res = connectionStub_->OnRemoteRequest(interfaceCode, data, reply, option);
+        EXPECT_NE(res, ERR_NONE);
+    }
+
+    // case 2: write descriptor and screenId
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        ScreenId id = 0;
+        data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+        data.WriteUint64(id);
+        auto res = connectionStub_->OnRemoteRequest(interfaceCode, data, reply, option);
+        EXPECT_NE(res, ERR_NONE);
+    }
+
+    // case 3: write descriptor, screenId and isMainScreen
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        ScreenId id = 0;
+        bool isMainScreen = true;
+        data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+        data.WriteUint64(id);
+        data.WriteBool(isMainScreen);
+        auto res = connectionStub_->OnRemoteRequest(interfaceCode, data, reply, option);
+        EXPECT_EQ(res, ERR_NONE);
+    }
+
+    // case 4: reply write failed
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        ScreenId id = 0;
+        bool isMainScreen = true;
+        data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+        data.WriteUint64(id);
+        data.WriteBool(isMainScreen);
+        reply.writable_ = false;
+        reply.data_ = nullptr;
+        auto res = connectionStub_->OnRemoteRequest(interfaceCode, data, reply, option);
+        EXPECT_NE(res, ERR_NONE);
+    }
+}
+
+/**
+ * @tc.name: SetAsMainScreenTest002
+ * @tc.desc: Test SetAsMainScreen with screenManagerAgent null
+ * @tc.type: FUNC
+ * @tc.require: #23043
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetAsMainScreenTest002, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    sptr<RSClientToServiceConnection> connection = iface_cast<RSClientToServiceConnection>(connectionStub_);
+    ASSERT_NE(connection, nullptr);
+    auto screenManagerAgent = connection->screenManagerAgent_;
+    connection->screenManagerAgent_ = nullptr;
+    ScreenId id = 0;
+    int32_t res = connection->SetAsMainScreen(id, false);
+
+    // restore
+    connection->screenManagerAgent_ = screenManagerAgent;
+    EXPECT_NE(res, StatusCode::SUCCESS);
+}
+
+/**
+ * @tc.name: GetMainScreenIdTest001
+ * @tc.desc: Test GetMainScreenId
+ * @tc.type: FUNC
+ * @tc.require: #23043
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, GetMainScreenIdTest001, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    uint32_t interfaceCode = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_MAIN_SCREEN);
+
+    // case 1: only write descriptor
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+        auto res = connectionStub_->OnRemoteRequest(interfaceCode, data, reply, option);
+        EXPECT_EQ(res, ERR_NONE);
+    }
+
+    // case 2: reply write failed
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+        reply.writable_ = false;
+        reply.data_ = nullptr;
+        auto res = connectionStub_->OnRemoteRequest(interfaceCode, data, reply, option);
+        EXPECT_NE(res, ERR_NONE);
+    }
+}
+
+/**
+ * @tc.name: GetMainScreenIdTest002
+ * @tc.desc: Test GetMainScreenId with screenManagerAgent null
+ * @tc.type: FUNC
+ * @tc.require: #23043
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, GetMainScreenIdTest002, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    sptr<RSClientToServiceConnection> connection = iface_cast<RSClientToServiceConnection>(connectionStub_);
+    ASSERT_NE(connection, nullptr);
+    auto screenManagerAgent = connection->screenManagerAgent_;
+    connection->screenManagerAgent_ = nullptr;
+    ScreenId screenId = connection->GetMainScreenId();
+
+    // restore
+    connection->screenManagerAgent_ = screenManagerAgent;
+    EXPECT_NE(screenId, StatusCode::SUCCESS);
+}
+
+/**
  * @tc.name: RemoveVirtualScreenWhiteList001
  * @tc.desc: Test RemoveVirtualScreenWhiteList
  * @tc.type: FUNC
@@ -4764,5 +5008,307 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase008, TestSize.Level
     // test GetPidGpuMemoryInMB
     float gpuMemInMB = 0.0;
     connection->GetPidGpuMemoryInMB(0, gpuMemInMB);
+}
+
+/**
+ * @tc.name: RegisterRemoteRefreshCallbackTest_Service
+ * @tc.desc: Test RegisterRemoteRefreshCallback for RSClientToServiceConnection
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, RegisterRemoteRefreshCallbackTest_Service, TestSize.Level1)
+{
+    auto testToken = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSClientToServiceConnection> testConnection = sptr<RSClientToServiceConnection>::MakeSptr(
+        0, renderServiceAgent_, renderProcessManagerAgent_, screenManagerAgent_, testToken->AsObject(),
+        renderService_.vsyncManager_->GetVsyncManagerAgent());
+    ASSERT_NE(testConnection, nullptr);
+
+    // First call should create recipient
+    testConnection->RegisterRemoteRefreshCallback();
+    EXPECT_NE(testConnection->connRefreshRecipient_, nullptr);
+
+    // Second call should not create new recipient
+    auto firstRecipient = testConnection->connRefreshRecipient_;
+    testConnection->RegisterRemoteRefreshCallback();
+    EXPECT_EQ(testConnection->connRefreshRecipient_, firstRecipient);
+
+    // Test with null token
+    testConnection->token_ = nullptr;
+    testConnection->connRefreshRecipient_ = nullptr;
+    testConnection->RegisterRemoteRefreshCallback();
+    // Should handle without crash
+}
+
+/**
+ * @tc.name: CleanForRefreshTest001_Service
+ * @tc.desc: Test CleanForRefresh when renderServiceAgent_ is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, CleanForRefreshTest001_Service, TestSize.Level1)
+{
+    auto testToken = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSClientToServiceConnection> testConnection = sptr<RSClientToServiceConnection>::MakeSptr(
+        0, nullptr, nullptr, nullptr, testToken->AsObject(),
+        renderService_.vsyncManager_->GetVsyncManagerAgent());
+    ASSERT_NE(testConnection, nullptr);
+    ASSERT_EQ(testConnection->renderServiceAgent_, nullptr);
+
+    // Should return early without crash when renderServiceAgent_ is nullptr
+    testConnection->CleanForRefresh();
+    // Verify connection state remains valid
+    EXPECT_EQ(testConnection->renderServiceAgent_, nullptr);
+    EXPECT_NE(testConnection->GetToken(), nullptr);
+}
+
+/**
+ * @tc.name: CleanForRefreshTest002_Service
+ * @tc.desc: Test CleanForRefresh normal path
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, CleanForRefreshTest002_Service, TestSize.Level1)
+{
+    auto testToken = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSClientToServiceConnection> testConnection = sptr<RSClientToServiceConnection>::MakeSptr(
+        0, renderServiceAgent_, renderProcessManagerAgent_, screenManagerAgent_, testToken->AsObject(),
+        renderService_.vsyncManager_->GetVsyncManagerAgent());
+    ASSERT_NE(testConnection, nullptr);
+
+    // Setup pidToBundleName_
+    testConnection->pidToBundleName_[123] = "test.bundle";
+
+    // Execute CleanForRefresh
+    testConnection->CleanForRefresh();
+
+    // Verify pidToBundleName_ is cleared
+    EXPECT_TRUE(testConnection->pidToBundleName_.empty());
+}
+
+/**
+ * @tc.name: RSConnectionRefreshRecipientTest001_Service
+ * @tc.desc: Test RSConnectionRefreshRecipient::OnRemoteRefreshed with nullptr token
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, RSConnectionRefreshRecipientTest001_Service, TestSize.Level1)
+{
+    auto testToken = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSClientToServiceConnection> testConnection = sptr<RSClientToServiceConnection>::MakeSptr(
+        0, renderServiceAgent_, renderProcessManagerAgent_, screenManagerAgent_, testToken->AsObject(),
+        renderService_.vsyncManager_->GetVsyncManagerAgent());
+    ASSERT_NE(testConnection, nullptr);
+
+    auto refreshRecipient = new RSClientToServiceConnection::RSConnectionRefreshRecipient(testConnection);
+    ASSERT_NE(refreshRecipient, nullptr);
+    ASSERT_NE(refreshRecipient->conn_, nullptr);
+
+    // Test with nullptr token
+    wptr<IRemoteObject> nullToken;
+    refreshRecipient->OnRemoteRefreshed(nullToken);
+    // Should return early when token is nullptr, connection should remain valid
+    EXPECT_NE(testConnection, nullptr);
+}
+
+/**
+ * @tc.name: RSConnectionRefreshRecipientTest002_Service
+ * @tc.desc: Test RSConnectionRefreshRecipient::OnRemoteRefreshed with valid connection
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, RSConnectionRefreshRecipientTest002_Service, TestSize.Level1)
+{
+    auto testToken = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSClientToServiceConnection> testConnection = sptr<RSClientToServiceConnection>::MakeSptr(
+        0, renderServiceAgent_, renderProcessManagerAgent_, screenManagerAgent_, testToken->AsObject(),
+        renderService_.vsyncManager_->GetVsyncManagerAgent());
+    ASSERT_NE(testConnection, nullptr);
+
+    wptr<RSClientToServiceConnection> weakConn = testConnection;
+    auto refreshRecipient = new RSClientToServiceConnection::RSConnectionRefreshRecipient(weakConn);
+    ASSERT_NE(refreshRecipient, nullptr);
+    ASSERT_NE(refreshRecipient->conn_, nullptr);
+
+    // Test with valid token and valid connection - should handle gracefully
+    refreshRecipient->OnRemoteRefreshed(testToken->AsObject());
+    // Verify weak reference returns valid connection after OnRemoteRefreshed
+    EXPECT_NE(refreshRecipient->conn_.promote(), nullptr);
+}
+
+/**
+ * @tc.name: RSConnectionRefreshRecipientTest003_Service
+ * @tc.desc: Test RSConnectionRefreshRecipient::OnRemoteRefreshed with matching token
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, RSConnectionRefreshRecipientTest003_Service, TestSize.Level1)
+{
+    auto testToken = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSClientToServiceConnection> testConnection = sptr<RSClientToServiceConnection>::MakeSptr(
+        0, renderServiceAgent_, renderProcessManagerAgent_, screenManagerAgent_, testToken->AsObject(),
+        renderService_.vsyncManager_->GetVsyncManagerAgent());
+    ASSERT_NE(testConnection, nullptr);
+    ASSERT_NE(testConnection->renderServiceAgent_, nullptr);
+    ASSERT_EQ(testConnection->GetToken(), testToken->AsObject());
+
+    auto refreshRecipient = new RSClientToServiceConnection::RSConnectionRefreshRecipient(testConnection);
+    ASSERT_NE(refreshRecipient, nullptr);
+
+    // Test with matching token - should call CleanForRefresh
+    refreshRecipient->OnRemoteRefreshed(testToken->AsObject());
+    // Verify connection remains valid after OnRemoteRefreshed
+    EXPECT_NE(testConnection, nullptr);
+    EXPECT_NE(testConnection->renderServiceAgent_, nullptr);
+}
+
+/**
+ * @tc.name: CleanAllCallsCleanForRefreshTest
+ * @tc.desc: Test CleanAll calls CleanForRefresh internally
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, CleanAllCallsCleanForRefreshTest, TestSize.Level1)
+{
+    auto testToken = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSClientToServiceConnection> testConnection = sptr<RSClientToServiceConnection>::MakeSptr(
+        0, renderServiceAgent_, renderProcessManagerAgent_, screenManagerAgent_, testToken->AsObject(),
+        renderService_.vsyncManager_->GetVsyncManagerAgent());
+    ASSERT_NE(testConnection, nullptr);
+
+    // Setup pidToBundleName_
+    testConnection->pidToBundleName_[123] = "test.bundle";
+    ASSERT_FALSE(testConnection->cleanDone_);
+
+    // Execute CleanAll
+    testConnection->CleanAll(false);
+
+    // Verify cleanDone_ is set and pidToBundleName_ is cleared
+    EXPECT_TRUE(testConnection->cleanDone_);
+    EXPECT_TRUE(testConnection->pidToBundleName_.empty());
+}
+
+/**
+ * @tc.name: ReportGameStateTest001
+ * @tc.desc: Test ReportGameStateData
+ * @tc.type: FUNC
+ * @tc.require: issue21752
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, ReportGameStateTest001, TestSize.Level1)
+{
+    EXPECT_NE(connectionStub_, nullptr);
+    EXPECT_NE(connectionStub_->renderServiceAgent_, nullptr);
+    sptr<RSClientToServiceConnection> clientToServiceConnection =
+        iface_cast<RSClientToServiceConnection>(connectionStub_);
+    EXPECT_NE(clientToServiceConnection, nullptr);
+    EXPECT_NE(clientToServiceConnection->renderServiceAgent_, nullptr);
+    auto& handler = clientToServiceConnection->renderServiceAgent_->renderService_.GetGameFrameHandler();
+    EXPECT_NE(handler, nullptr);
+    GameStateData data = { 0, 0, 0, 0, "bundleName" };
+    clientToServiceConnection->ReportGameStateData(data);
+}
+
+/**
+ * @tc.name: ReportGameStateTest002
+ * @tc.desc: Test ReportGameStateData with null RSRenderServiceAgent pointer.
+ * @tc.type: FUNC
+ * @tc.require: issue21752
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, ReportGameStateTest002, TestSize.Level1)
+{
+    EXPECT_NE(connectionStub_, nullptr);
+    EXPECT_NE(connectionStub_->renderServiceAgent_, nullptr);
+    auto renderServiceAgent = connectionStub_->renderServiceAgent_;
+    connectionStub_->renderServiceAgent_ = nullptr;
+    sptr<RSClientToServiceConnection> clientToServiceConnection =
+        iface_cast<RSClientToServiceConnection>(connectionStub_);
+    EXPECT_NE(clientToServiceConnection, nullptr);
+    EXPECT_EQ(clientToServiceConnection->renderServiceAgent_, nullptr);
+    GameStateData data = { 0, 0, 0, 0, "bundleName" };
+    clientToServiceConnection->ReportGameStateData(data);
+    connectionStub_->renderServiceAgent_ = renderServiceAgent;
+}
+
+/**
+ * @tc.name: ReportGameStateTest003
+ * @tc.desc: Test ReportGameStateData with null RsGameFrameHandler pointer.
+ * @tc.type: FUNC
+ * @tc.require: issue21752
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, ReportGameStateTest003, TestSize.Level1)
+{
+    EXPECT_NE(connectionStub_, nullptr);
+    EXPECT_NE(connectionStub_->renderServiceAgent_, nullptr);
+    sptr<RSClientToServiceConnection> clientToServiceConnection =
+        iface_cast<RSClientToServiceConnection>(connectionStub_);
+    EXPECT_NE(clientToServiceConnection, nullptr);
+    EXPECT_NE(clientToServiceConnection->renderServiceAgent_, nullptr);
+    auto& temp = clientToServiceConnection->renderServiceAgent_->renderService_.rsGameFrameHandler_;
+    clientToServiceConnection->renderServiceAgent_->renderService_.rsGameFrameHandler_ = nullptr;
+    auto& handler = clientToServiceConnection->renderServiceAgent_->renderService_.GetGameFrameHandler();
+    EXPECT_EQ(handler, nullptr);
+    GameStateData data = { 0, 0, 0, 0, "bundleName" };
+    clientToServiceConnection->ReportGameStateData(data);
+    clientToServiceConnection->renderServiceAgent_->renderService_.rsGameFrameHandler_ = temp;
+}
+
+/**
+ * @tc.name: RegisterExposedEventCallbackDirectTest001
+ * @tc.desc: Test RegisterExposedEventCallback directly with nullptr screenManagerAgent
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, RegisterExposedEventCallbackDirectTest001, TestSize.Level1)
+{
+    auto connection = sptr<RSClientToServiceConnection>::MakeSptr(0, renderServiceAgent_,
+        renderProcessManagerAgent_, screenManagerAgent_, nullptr,
+        renderService_.vsyncManager_->GetVsyncManagerAgent());
+    ASSERT_NE(connection, nullptr);
+
+    auto screenManagerAgent = connection->screenManagerAgent_;
+    ASSERT_NE(screenManagerAgent, nullptr);
+
+    connection->screenManagerAgent_ = nullptr;
+    sptr<RSIExposedEventCallback> callback = new RSExposedEventCallbackStubMock();
+    RSExposedEventType type = RSExposedEventType::EXT_SCREEN_UNSUPPORT;
+    int32_t result = connection->RegisterExposedEventCallback(type, callback);
+    EXPECT_EQ(result, StatusCode::SCREEN_NOT_FOUND);
+
+    connection->screenManagerAgent_ = screenManagerAgent;
+}
+
+/**
+ * @tc.name: RegisterExposedEventCallbackDirectTest002
+ * @tc.desc: Test RegisterExposedEventCallback directly with valid callback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, RegisterExposedEventCallbackDirectTest002, TestSize.Level1)
+{
+    auto connection = sptr<RSClientToServiceConnection>::MakeSptr(0, renderServiceAgent_,
+        renderProcessManagerAgent_, screenManagerAgent_, nullptr,
+        renderService_.vsyncManager_->GetVsyncManagerAgent());
+    ASSERT_NE(connection, nullptr);
+
+    ASSERT_NE(connection->screenManagerAgent_, nullptr);
+
+    sptr<RSIExposedEventCallback> callback = new RSExposedEventCallbackStubMock();
+    RSExposedEventType type = RSExposedEventType::EXT_SCREEN_UNSUPPORT;
+    int32_t result = connection->RegisterExposedEventCallback(type, callback);
+    EXPECT_EQ(result, StatusCode::SUCCESS);
+}
+
+/**
+ * @tc.name: RegisterExposedEventCallbackDirectTest003
+ * @tc.desc: Test RegisterExposedEventCallback directly with nullptr callback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, RegisterExposedEventCallbackDirectTest003, TestSize.Level1)
+{
+    auto connection = sptr<RSClientToServiceConnection>::MakeSptr(0, renderServiceAgent_,
+        renderProcessManagerAgent_, screenManagerAgent_, nullptr,
+        renderService_.vsyncManager_->GetVsyncManagerAgent());
+    ASSERT_NE(connection, nullptr);
+
+    ASSERT_NE(connection->screenManagerAgent_, nullptr);
+
+    sptr<RSIExposedEventCallback> callback = nullptr;
+    RSExposedEventType type = RSExposedEventType::EXT_SCREEN_UNSUPPORT;
+    int32_t result = connection->RegisterExposedEventCallback(type, callback);
+    EXPECT_EQ(result, StatusCode::SUCCESS);
 }
 } // namespace OHOS::Rosen

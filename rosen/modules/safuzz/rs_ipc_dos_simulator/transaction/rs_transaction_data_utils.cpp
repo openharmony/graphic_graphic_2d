@@ -104,6 +104,7 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     DECLARE_ADD_RANDOM(RSNodeCommand, RSMarkNodeSingleFrameComposer),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSMarkSuggestOpincNode),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSMarkLayerPartRender),
+    DECLARE_ADD_RANDOM(RSNodeCommand, RSMarkLayer),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSMarkUifirstNode),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSForceUifirstNode),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSSetUIFirstSwitch),
@@ -182,6 +183,7 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetContainerWindowTransparent),
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetClonedNodeId),
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetAppRotationCorrection),
+    DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetHDRType),
 
     /********** RSProxyNodeCommand **********/
     DECLARE_ADD_RANDOM(RSProxyNodeCommand, RSProxyNodeCreate),

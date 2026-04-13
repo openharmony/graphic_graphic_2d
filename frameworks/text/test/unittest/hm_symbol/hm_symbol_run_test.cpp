@@ -17,6 +17,7 @@
 #include "txt/text_style.h"
 #include "symbol_engine/hm_symbol_run.h"
 #include "symbol_engine/hm_symbol_txt.h"
+#include "symbol_engine/hm_symbol_node_build.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -1295,7 +1296,7 @@ HWTEST_F(OHHmSymbolRunTest, SetDrawPath001, TestSize.Level0)
     EXPECT_TRUE(hmSymbolRun.gradients_.empty());
 
     // Test multPaths not is empty
-    path.AddCircle(100.0f, 100.0f, 50.0f); // 100.0f x, 100.0f y, 50.0f radius
+    path.AddCircle(100.0f, 100.0f, 50.0f);
     multPaths.push_back(path);
     std::vector<std::shared_ptr<SymbolGradient>> gradients;
     gradients.push_back(std::make_shared<SymbolGradient>());
@@ -1449,6 +1450,663 @@ HWTEST_F(OHHmSymbolRunTest, SetSymbolLayersColorTest, TestSize.Level0)
     hmSymbolRun.SetSymbolTxt(symbolTxt);
     symbolLayer = hmSymbolRun.GetSymbolLayers(glyphId, symbolTxt);
     EXPECT_TRUE(!hmSymbolRun.gradients_.empty());
+}
+/*
+ * @tc.name: GetUiColorByRenderMode_Single001
+ * @tc.desc: test GetUiColorByRenderMode with SINGLE render mode
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, GetUiColorByRenderMode_Single001, TestSize.Level0)
+{
+    // Prepare renderGroups with 3 groups
+    std::vector<RSRenderGroup> renderGroups(3);
+    renderGroups[0].color = {1.0f, 255, 0, 0};
+    renderGroups[1].color = {0.5f, 0, 255, 0};
+    renderGroups[2].color = {0.3f, 0, 0, 255};
+
+    Drawing::UIColor uiColor(1.0f, 0.5f, 0.3f, 1.0f);
+    std::vector<Drawing::UIColor> uiColorList = { uiColor };
+    std::vector<SymbolColorSpace> colorSpaces = { SymbolColorSpace::DISPLAY_P3 };
+
+    auto result = HMSymbolRun::GetUiColorByRenderMode(
+        RSSymbolRenderingStrategy::SINGLE, uiColorList, colorSpaces, renderGroups);
+
+    // All groups should use uiColorList[0] + colorSpaces[0]
+    ASSERT_EQ(result.colors.size(), 3);
+    ASSERT_EQ(result.colorSpaces.size(), 3);
+    for (size_t i = 0; i < 3; i++) {
+        EXPECT_FLOAT_EQ(result.colors[i].GetRed(), 1.0f);
+        EXPECT_FLOAT_EQ(result.colors[i].GetGreen(), 0.5f);
+        EXPECT_FLOAT_EQ(result.colors[i].GetBlue(), 0.3f);
+        EXPECT_FLOAT_EQ(result.colors[i].GetAlpha(), 1.0f);
+        EXPECT_EQ(result.colorSpaces[i], SymbolColorSpace::DISPLAY_P3);
+    }
+}
+
+/*
+ * @tc.name: GetUiColorByRenderMode_Single_EmptyColorSpaces001
+ * @tc.desc: test GetUiColorByRenderMode SINGLE with empty colorSpaces fallback to SRGB
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, GetUiColorByRenderMode_Single_EmptyColorSpaces001, TestSize.Level0)
+{
+    std::vector<RSRenderGroup> renderGroups(2);
+    Drawing::UIColor uiColor(1.0f, 0.0f, 0.0f, 1.0f);
+    std::vector<Drawing::UIColor> uiColorList = { uiColor };
+    std::vector<SymbolColorSpace> colorSpaces; // empty
+
+    auto result = HMSymbolRun::GetUiColorByRenderMode(
+        RSSymbolRenderingStrategy::SINGLE, uiColorList, colorSpaces, renderGroups);
+
+    ASSERT_EQ(result.colorSpaces.size(), 2);
+    for (size_t i = 0; i < 2; i++) {
+        EXPECT_EQ(result.colorSpaces[i], SymbolColorSpace::SRGB);
+    }
+}
+
+/*
+ * @tc.name: GetUiColorByRenderMode_MultipleOpacity001
+ * @tc.desc: test GetUiColorByRenderMode with MULTIPLE_OPACITY alpha modulation
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, GetUiColorByRenderMode_MultipleOpacity001, TestSize.Level0)
+{
+    std::vector<RSRenderGroup> renderGroups(3);
+    renderGroups[0].color = {1.0f, 255, 0, 0};
+    renderGroups[1].color = {0.5f, 0, 255, 0};
+    renderGroups[2].color = {0.2f, 0, 0, 255};
+
+    Drawing::UIColor uiColor(0.8f, 0.4f, 0.2f, 1.0f);
+    uiColor.SetHeadroom(2.0f);
+    std::vector<Drawing::UIColor> uiColorList = { uiColor };
+    std::vector<SymbolColorSpace> colorSpaces = { SymbolColorSpace::BT2020 };
+
+    auto result = HMSymbolRun::GetUiColorByRenderMode(
+        RSSymbolRenderingStrategy::MULTIPLE_OPACITY, uiColorList, colorSpaces, renderGroups);
+
+    ASSERT_EQ(result.colors.size(), 3);
+    ASSERT_EQ(result.colorSpaces.size(), 3);
+
+    // Group 0: alpha = 1.0 * 1.0 = 1.0
+    EXPECT_FLOAT_EQ(result.colors[0].GetRed(), 0.8f);
+    EXPECT_FLOAT_EQ(result.colors[0].GetGreen(), 0.4f);
+    EXPECT_FLOAT_EQ(result.colors[0].GetBlue(), 0.2f);
+    EXPECT_FLOAT_EQ(result.colors[0].GetAlpha(), 1.0f);
+    EXPECT_FLOAT_EQ(result.colors[0].GetHeadroom(), 2.0f);
+    EXPECT_EQ(result.colorSpaces[0], SymbolColorSpace::BT2020);
+
+    // Group 1: alpha = 0.5 * 1.0 = 0.5
+    EXPECT_FLOAT_EQ(result.colors[1].GetAlpha(), 0.5f);
+    EXPECT_FLOAT_EQ(result.colors[1].GetHeadroom(), 2.0f);
+    EXPECT_EQ(result.colorSpaces[1], SymbolColorSpace::BT2020);
+
+    // Group 2: alpha = 0.2 * 1.0 = 0.2
+    EXPECT_FLOAT_EQ(result.colors[2].GetAlpha(), 0.2f);
+    EXPECT_FLOAT_EQ(result.colors[2].GetHeadroom(), 2.0f);
+    EXPECT_EQ(result.colorSpaces[2], SymbolColorSpace::BT2020);
+}
+
+/*
+ * @tc.name: GetUiColorByRenderMode_MultipleOpacity_AlphaClamp001
+ * @tc.desc: test GetUiColorByRenderMode MULTIPLE_OPACITY alpha clamping
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, GetUiColorByRenderMode_MultipleOpacity_AlphaClamp001, TestSize.Level0)
+{
+    std::vector<RSRenderGroup> renderGroups(1);
+    // renderGroup.alpha > 1.0 combined with uiColor.alpha would exceed 1.0
+    renderGroups[0].color = {2.0f, 255, 0, 0};
+
+    Drawing::UIColor uiColor(1.0f, 0.0f, 0.0f, 0.8f);
+    std::vector<Drawing::UIColor> uiColorList = { uiColor };
+
+    auto result = HMSymbolRun::GetUiColorByRenderMode(
+        RSSymbolRenderingStrategy::MULTIPLE_OPACITY, uiColorList, {}, renderGroups);
+
+    ASSERT_EQ(result.colors.size(), 1);
+    // alpha = clamp(2.0 * 0.8, 0.0, 1.0) = clamp(1.6, 0.0, 1.0) = 1.0
+    EXPECT_FLOAT_EQ(result.colors[0].GetAlpha(), 1.0f);
+    EXPECT_EQ(result.colorSpaces[0], SymbolColorSpace::SRGB);
+}
+
+/*
+ * @tc.name: GetUiColorByRenderMode_MultipleColor001
+ * @tc.desc: test GetUiColorByRenderMode with MULTIPLE_COLOR per-layer matching
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, GetUiColorByRenderMode_MultipleColor001, TestSize.Level0)
+{
+    std::vector<RSRenderGroup> renderGroups(3);
+    renderGroups[0].color = {1.0f, 255, 0, 0};
+    renderGroups[1].color = {0.5f, 0, 255, 0};
+    renderGroups[2].color = {0.3f, 0, 0, 255};
+
+    Drawing::UIColor uiColor1(1.0f, 0.0f, 0.0f, 1.0f);
+    Drawing::UIColor uiColor2(0.0f, 1.0f, 0.0f, 1.0f);
+    std::vector<Drawing::UIColor> uiColorList = { uiColor1, uiColor2 };
+    std::vector<SymbolColorSpace> colorSpaces = {
+        SymbolColorSpace::DISPLAY_P3,
+        SymbolColorSpace::BT2020
+    };
+
+    auto result = HMSymbolRun::GetUiColorByRenderMode(
+        RSSymbolRenderingStrategy::MULTIPLE_COLOR, uiColorList, colorSpaces, renderGroups);
+
+    ASSERT_EQ(result.colors.size(), 3);
+    ASSERT_EQ(result.colorSpaces.size(), 3);
+
+    // Group 0: uses uiColorList[0] + colorSpaces[0]
+    EXPECT_FLOAT_EQ(result.colors[0].GetRed(), 1.0f);
+    EXPECT_EQ(result.colorSpaces[0], SymbolColorSpace::DISPLAY_P3);
+
+    // Group 1: uses uiColorList[1] + colorSpaces[1]
+    EXPECT_FLOAT_EQ(result.colors[1].GetGreen(), 1.0f);
+    EXPECT_EQ(result.colorSpaces[1], SymbolColorSpace::BT2020);
+
+    // Group 2: uiColorList exhausted, fallback to renderGroup default color + SRGB
+    EXPECT_FLOAT_EQ(result.colors[2].GetRed(), 0.0f);
+    EXPECT_FLOAT_EQ(result.colors[2].GetGreen(), 0.0f);
+    EXPECT_FLOAT_EQ(result.colors[2].GetBlue(), 1.0f);
+    EXPECT_FLOAT_EQ(result.colors[2].GetAlpha(), 0.3f);
+    EXPECT_FLOAT_EQ(result.colors[2].GetHeadroom(), 1.0f);
+    EXPECT_EQ(result.colorSpaces[2], SymbolColorSpace::SRGB);
+}
+
+/*
+ * @tc.name: GetUiColorByRenderMode_MultipleColor_PartialColorSpaces001
+ * @tc.desc: test GetUiColorByRenderMode MULTIPLE_COLOR with partial colorSpaces
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, GetUiColorByRenderMode_MultipleColor_PartialColorSpaces001, TestSize.Level0)
+{
+    std::vector<RSRenderGroup> renderGroups(2);
+    renderGroups[0].color = {1.0f, 0, 0, 0};
+    renderGroups[1].color = {1.0f, 0, 0, 0};
+
+    Drawing::UIColor uiColor1(1.0f, 0.0f, 0.0f, 1.0f);
+    Drawing::UIColor uiColor2(0.0f, 1.0f, 0.0f, 1.0f);
+    std::vector<Drawing::UIColor> uiColorList = { uiColor1, uiColor2 };
+    // Only 1 colorSpace for 2 uiColors -> second falls back to SRGB
+    std::vector<SymbolColorSpace> colorSpaces = { SymbolColorSpace::DISPLAY_P3 };
+
+    auto result = HMSymbolRun::GetUiColorByRenderMode(
+        RSSymbolRenderingStrategy::MULTIPLE_COLOR, uiColorList, colorSpaces, renderGroups);
+
+    ASSERT_EQ(result.colorSpaces.size(), 2);
+    EXPECT_EQ(result.colorSpaces[0], SymbolColorSpace::DISPLAY_P3);
+    EXPECT_EQ(result.colorSpaces[1], SymbolColorSpace::SRGB);
+}
+
+/*
+ * @tc.name: GetUiColorByRenderMode_Default001
+ * @tc.desc: test GetUiColorByRenderMode with unknown render mode returns empty
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, GetUiColorByRenderMode_Default001, TestSize.Level0)
+{
+    std::vector<RSRenderGroup> renderGroups(1);
+    Drawing::UIColor uiColor(1.0f, 0.0f, 0.0f, 1.0f);
+    std::vector<Drawing::UIColor> uiColorList = { uiColor };
+
+    // Use an invalid render mode value via static_cast
+    auto unknownMode = static_cast<RSSymbolRenderingStrategy>(99);
+    auto result = HMSymbolRun::GetUiColorByRenderMode(
+        unknownMode, uiColorList, {}, renderGroups);
+
+    EXPECT_TRUE(result.colors.empty());
+    EXPECT_TRUE(result.colorSpaces.empty());
+}
+
+/*
+ * @tc.name: GetUiColorByRenderMode_EmptyRenderGroups001
+ * @tc.desc: test GetUiColorByRenderMode with empty renderGroups
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, GetUiColorByRenderMode_EmptyRenderGroups001, TestSize.Level0)
+{
+    std::vector<RSRenderGroup> renderGroups; // empty
+    Drawing::UIColor uiColor(1.0f, 0.5f, 0.3f, 1.0f);
+    std::vector<Drawing::UIColor> uiColorList = { uiColor };
+
+    auto result = HMSymbolRun::GetUiColorByRenderMode(
+        RSSymbolRenderingStrategy::SINGLE, uiColorList, {}, renderGroups);
+
+    EXPECT_TRUE(result.colors.empty());
+    EXPECT_TRUE(result.colorSpaces.empty());
+}
+
+/*
+ * @tc.name: GetUiColorByRenderMode_MultipleOpacity_EmptyColorSpaces001
+ * @tc.desc: test GetUiColorByRenderMode MULTIPLE_OPACITY with empty colorSpaces fallback
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, GetUiColorByRenderMode_MultipleOpacity_EmptyColorSpaces001, TestSize.Level0)
+{
+    std::vector<RSRenderGroup> renderGroups(1);
+    renderGroups[0].color = {0.6f, 100, 200, 50};
+
+    Drawing::UIColor uiColor(0.9f, 0.1f, 0.2f, 0.8f);
+    uiColor.SetHeadroom(3.0f);
+    std::vector<Drawing::UIColor> uiColorList = { uiColor };
+    std::vector<SymbolColorSpace> colorSpaces; // empty -> fallback SRGB
+
+    auto result = HMSymbolRun::GetUiColorByRenderMode(
+        RSSymbolRenderingStrategy::MULTIPLE_OPACITY, uiColorList, colorSpaces, renderGroups);
+
+    ASSERT_EQ(result.colors.size(), 1);
+    // alpha = 0.6 * 0.8 = 0.48
+    EXPECT_FLOAT_EQ(result.colors[0].GetAlpha(), 0.48f);
+    EXPECT_FLOAT_EQ(result.colors[0].GetHeadroom(), 3.0f);
+    EXPECT_EQ(result.colorSpaces[0], SymbolColorSpace::SRGB);
+}
+
+/*
+ * @tc.name: CreateGradient_UIColor_Copy001
+ * @tc.desc: test CreateGradient copies UIColor and ColorSpace from SymbolGradient
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, CreateGradient_UIColor_Copy001, TestSize.Level0)
+{
+    // Source gradient with UIColor
+    auto srcGradient = std::make_shared<SymbolGradient>();
+    Drawing::UIColor uiColor(1.0f, 0.5f, 0.3f, 1.0f);
+    uiColor.SetHeadroom(2.0f);
+    srcGradient->SetUIColors({ uiColor }, SymbolColorSpace::DISPLAY_P3);
+    srcGradient->SetColors({Drawing::Color(0xFF00FF00)}); // 0xFF00FF00 is ARGB
+
+    auto copiedGradient = SymbolNodeBuild::CreateGradient(srcGradient);
+    ASSERT_TRUE(copiedGradient != nullptr);
+    EXPECT_TRUE(copiedGradient->HasUIColor());
+    EXPECT_EQ(copiedGradient->GetColorSpace(), SymbolColorSpace::DISPLAY_P3);
+
+    auto copiedUiColors = copiedGradient->GetUIColors();
+    ASSERT_EQ(copiedUiColors.size(), 1);
+    EXPECT_FLOAT_EQ(copiedUiColors[0].GetRed(), 1.0f);
+    EXPECT_FLOAT_EQ(copiedUiColors[0].GetGreen(), 0.5f);
+    EXPECT_FLOAT_EQ(copiedUiColors[0].GetBlue(), 0.3f);
+    EXPECT_FLOAT_EQ(copiedUiColors[0].GetHeadroom(), 2.0f);
+
+    // Colors should also be copied
+    EXPECT_FALSE(copiedGradient->GetColors().empty());
+}
+
+/*
+ * @tc.name: CreateGradient_UIColor_Nullptr001
+ * @tc.desc: test CreateGradient with nullptr returns nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, CreateGradient_UIColor_Nullptr001, TestSize.Level0)
+{
+    auto result = SymbolNodeBuild::CreateGradient(nullptr);
+    EXPECT_TRUE(result == nullptr);
+    
+    SPText::HMSymbolTxt symbolTxt;
+    std::vector<Drawing::UIColor> uiColors = {};
+    std::vector<SymbolColorSpace> colorSpaces = {};
+    symbolTxt.SetRenderUIColor(uiColors, colorSpaces);
+    auto result2 = symbolTxt.GetUIColors();
+    auto result3 = symbolTxt.GetColorSpaces();
+    EXPECT_TRUE(result2.empty());
+    EXPECT_TRUE(result3.empty());
+}
+
+/*
+ * @tc.name: CreateGradient_UIColor_NoUIColor001
+ * @tc.desc: test CreateGradient without UIColor only copies regular colors
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, CreateGradient_UIColor_NoUIColor001, TestSize.Level0)
+{
+    auto srcGradient = std::make_shared<SymbolGradient>();
+    srcGradient->SetColors({Drawing::Color(0xFFFF0000)}); // 0xFFFF0000 is ARGB
+    EXPECT_FALSE(srcGradient->HasUIColor());
+
+    auto copiedGradient = SymbolNodeBuild::CreateGradient(srcGradient);
+    ASSERT_TRUE(copiedGradient != nullptr);
+    EXPECT_FALSE(copiedGradient->HasUIColor());
+    EXPECT_FALSE(copiedGradient->GetColors().empty());
+}
+
+/*
+ * @tc.name: CreateGradient_UIColor_LineGradient001
+ * @tc.desc: test CreateGradient copies UIColor from SymbolLineGradient
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, CreateGradient_UIColor_LineGradient001, TestSize.Level0)
+{
+    auto srcGradient = std::make_shared<SymbolLineGradient>(90.0f); // 90.0f is angle
+    Drawing::UIColor uiColor(2.0f, 1.5f, 0.8f, 1.0f);
+    uiColor.SetHeadroom(3.0f);
+    srcGradient->SetUIColors({ uiColor }, SymbolColorSpace::BT2020);
+    // 0XFF00FF00 and 0XFFFF0000 is ARGB
+    srcGradient->SetColors({Drawing::Color(0XFF00FF00), Drawing::Color(0XFFFF0000)});
+
+    auto copiedGradient = SymbolNodeBuild::CreateGradient(srcGradient);
+    ASSERT_TRUE(copiedGradient != nullptr);
+    EXPECT_EQ(copiedGradient->GetGradientType(), GradientType::LINE_GRADIENT);
+    EXPECT_TRUE(copiedGradient->HasUIColor());
+    EXPECT_EQ(copiedGradient->GetColorSpace(), SymbolColorSpace::BT2020);
+
+    auto copiedUiColors = copiedGradient->GetUIColors();
+    ASSERT_EQ(copiedUiColors.size(), 1);
+    EXPECT_FLOAT_EQ(copiedUiColors[0].GetRed(), 2.0f);
+    EXPECT_FLOAT_EQ(copiedUiColors[0].GetHeadroom(), 3.0f);
+}
+
+/*
+ * @tc.name: CreateGradient_UIColor_RadialGradient001
+ * @tc.desc: test CreateGradient copies UIColor from SymbolRadialGradient
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, CreateGradient_UIColor_RadialGradient001, TestSize.Level0)
+{
+    auto srcGradient = std::make_shared<SymbolRadialGradient>(
+        Drawing::Point(0.5f, 0.5f), 0.6f); // 0.5f is center, 0.6f is radiusRatio
+    Drawing::UIColor uiColor(1.0f, 0.8f, 0.4f, 1.0f);
+    uiColor.SetHeadroom(4.0f);
+    srcGradient->SetUIColors({ uiColor }, SymbolColorSpace::DISPLAY_P3);
+
+    auto copiedGradient = SymbolNodeBuild::CreateGradient(srcGradient);
+    ASSERT_TRUE(copiedGradient != nullptr);
+    EXPECT_EQ(copiedGradient->GetGradientType(), GradientType::RADIAL_GRADIENT);
+    EXPECT_TRUE(copiedGradient->HasUIColor());
+    EXPECT_EQ(copiedGradient->GetColorSpace(), SymbolColorSpace::DISPLAY_P3);
+
+    auto copiedUiColors = copiedGradient->GetUIColors();
+    ASSERT_EQ(copiedUiColors.size(), 1);
+    EXPECT_FLOAT_EQ(copiedUiColors[0].GetHeadroom(), 4.0f);
+}
+/*
+ * @tc.name: DrawPaths_UIColor_Single001
+ * @tc.desc: test end-to-end DrawPaths with UIColor in SINGLE render mode
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, DrawPaths_UIColor_Single001, TestSize.Level0)
+{
+    HMSymbolRun hmSymbolRun = HMSymbolRun();
+
+    // Set up symbolLayersGroups_
+    uint16_t glyphId = 1;
+    hmSymbolRun.symbolLayersGroups_.symbolGlyphId = glyphId;
+    hmSymbolRun.symbolLayersGroups_.layers = {{0}};
+    RSRenderGroup renderGroup;
+    renderGroup.color = {1.0f, 0, 0, 0};
+    hmSymbolRun.symbolLayersGroups_.renderModeGroups[RSSymbolRenderingStrategy::SINGLE] = {renderGroup};
+
+    // Set UIColor on symbolTxt_
+    Drawing::UIColor uiColor(1.0f, 0.5f, 0.3f, 1.0f);
+    hmSymbolRun.symbolTxt_.SetRenderUIColor({ uiColor }, { SymbolColorSpace::DISPLAY_P3 });
+    hmSymbolRun.SetRenderMode(RSSymbolRenderingStrategy::SINGLE);
+
+    // GetSymbolLayers triggers FillUIColorGradients → populates gradients_
+    auto symbolLayers = hmSymbolRun.GetSymbolLayers(glyphId, hmSymbolRun.symbolTxt_);
+    EXPECT_EQ(symbolLayers.renderGroups.size(), 1);
+    ASSERT_EQ(hmSymbolRun.gradients_.size(), 1);
+    EXPECT_TRUE(hmSymbolRun.gradients_[0]->HasUIColor());
+    EXPECT_EQ(hmSymbolRun.gradients_[0]->GetColorSpace(), SymbolColorSpace::DISPLAY_P3);
+
+    // DrawPaths creates brush/pen and calls canvas->DrawPath
+    std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
+    RSPath path;
+    path.AddCircle(100.0f, 100.0f, 50.0f);
+    std::vector<RSPath> multPaths = { path };
+    hmSymbolRun.DrawPaths(rsCanvas.get(), multPaths, path);
+    EXPECT_EQ(hmSymbolRun.symbolTxt_.GetRenderMode(), RSSymbolRenderingStrategy::SINGLE);
+}
+
+/*
+ * @tc.name: DrawPaths_UIColor_MultipleColor001
+ * @tc.desc: test end-to-end DrawPaths with UIColor in MULTIPLE_COLOR render mode
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, DrawPaths_UIColor_MultipleColor001, TestSize.Level0)
+{
+    HMSymbolRun hmSymbolRun = HMSymbolRun();
+
+    // Set up symbolLayersGroups_ with multiple render groups
+    uint16_t glyphId = 1;
+    hmSymbolRun.symbolLayersGroups_.symbolGlyphId = glyphId;
+    hmSymbolRun.symbolLayersGroups_.layers = {{0}, {1}};
+    RSRenderGroup group1;
+    group1.color = {1.0f, 255, 0, 0};
+    RSRenderGroup group2;
+    group2.color = {1.0f, 0, 255, 0};
+    hmSymbolRun.symbolLayersGroups_.renderModeGroups[RSSymbolRenderingStrategy::MULTIPLE_COLOR] =
+        {group1, group2};
+
+    // Set multiple UIColors
+    Drawing::UIColor uiColor1(1.0f, 0.0f, 0.0f, 1.0f);
+    Drawing::UIColor uiColor2(0.0f, 1.0f, 0.0f, 1.0f);
+    hmSymbolRun.symbolTxt_.SetRenderUIColor(
+        { uiColor1, uiColor2 }, { SymbolColorSpace::DISPLAY_P3, SymbolColorSpace::BT2020 });
+    hmSymbolRun.SetRenderMode(RSSymbolRenderingStrategy::MULTIPLE_COLOR);
+
+    // GetSymbolLayer triggers FillUIColorGradients with per-layer color matching
+    auto symbolLayers = hmSymbolRun.GetSymbolLayers(glyphId, hmSymbolRun.symbolTxt_);
+    EXPECT_EQ(symbolLayers.renderGroups.size(), 2);
+    ASSERT_EQ(hmSymbolRun.gradients_.size(), 2);
+    EXPECT_TRUE(hmSymbolRun.gradients_[0]->HasUIColor());
+    EXPECT_TRUE(hmSymbolRun.gradients_[1]->HasUIColor());
+    EXPECT_EQ(hmSymbolRun.gradients_[0]->GetColorSpace(), SymbolColorSpace::DISPLAY_P3);
+    EXPECT_EQ(hmSymbolRun.gradients_[1]->GetColorSpace(), SymbolColorSpace::BT2020);
+
+    // DrawPaths creates brush/pen per layer and calls canvas->DrawPath
+    std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
+    RSPath path;
+    path.AddCircle(100.0f, 100.0f, 50.0f);
+    std::vector<RSPath> multPaths = { path, path };
+    hmSymbolRun.DrawPaths(rsCanvas.get(), multPaths, path);
+    EXPECT_EQ(hmSymbolRun.symbolTxt_.GetRenderMode(), RSSymbolRenderingStrategy::MULTIPLE_COLOR);
+}
+
+/*
+ * @tc.name: DrawPaths_UIColor_MultipleOpacity001
+ * @tc.desc: test end-to-end DrawPaths with UIColor in MULTIPLE_OPACITY render mode
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, DrawPaths_UIColor_MultipleOpacity001, TestSize.Level0)
+{
+    HMSymbolRun hmSymbolRun = HMSymbolRun();
+
+    // Set up symbolLayersGroups_ with render groups having different alpha
+    uint16_t glyphId = 1;
+    hmSymbolRun.symbolLayersGroups_.symbolGlyphId = glyphId;
+    hmSymbolRun.symbolLayersGroups_.layers = {{0}, {1}};
+    RSRenderGroup group1;
+    group1.color = {1.0f, 255, 0, 0};
+    RSRenderGroup group2;
+    group2.color = {0.5f, 0, 255, 0};
+    hmSymbolRun.symbolLayersGroups_.renderModeGroups[RSSymbolRenderingStrategy::MULTIPLE_OPACITY] =
+        {group1, group2};
+
+    // Set single UIColor, alpha is modulated per group
+    Drawing::UIColor uiColor(1.0f, 0.5f, 0.3f, 0.8f);
+    hmSymbolRun.symbolTxt_.SetRenderUIColor({ uiColor }, { SymbolColorSpace::SRGB });
+    hmSymbolRun.SetRenderMode(RSSymbolRenderingStrategy::MULTIPLE_OPACITY);
+
+    // GetSymbolLayer triggers FillUIColorGradients with alpha modulation
+    auto symbolLayers = hmSymbolRun.GetSymbolLayers(glyphId, hmSymbolRun.symbolTxt_);
+    EXPECT_EQ(symbolLayers.renderGroups.size(), 2);
+    ASSERT_EQ(hmSymbolRun.gradients_.size(), 2);
+    EXPECT_TRUE(hmSymbolRun.gradients_[0]->HasUIColor());
+    EXPECT_TRUE(hmSymbolRun.gradients_[1]->HasUIColor());
+
+    // Verify alpha modulation
+    auto uiColors0 = hmSymbolRun.gradients_[0]->GetUIColors();
+    ASSERT_FALSE(uiColors0.empty());
+    EXPECT_FLOAT_EQ(uiColors0[0].GetAlpha(), 0.8f);
+    auto uiColors1 = hmSymbolRun.gradients_[1]->GetUIColors();
+    ASSERT_FALSE(uiColors1.empty());
+    EXPECT_FLOAT_EQ(uiColors1[0].GetAlpha(), 0.4f);
+
+    // DrawPaths creates brush/pen per layer and calls canvas->DrawPath
+    std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
+    RSPath path;
+    path.AddCircle(100.0f, 100.0f, 50.0f);
+    std::vector<RSPath> multPaths = { path, path };
+    hmSymbolRun.DrawPaths(rsCanvas.get(), multPaths, path);
+    EXPECT_EQ(hmSymbolRun.symbolTxt_.GetRenderMode(), RSSymbolRenderingStrategy::MULTIPLE_OPACITY);
+}
+
+/*
+ * @tc.name: DrawPaths_UIColor_HDR001
+ * @tc.desc: test end-to-end DrawPaths with HDR UIColor (headroom > 1.0)
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, DrawPaths_UIColor_HDR001, TestSize.Level0)
+{
+    HMSymbolRun hmSymbolRun = HMSymbolRun();
+
+    // Set up symbolLayersGroups_
+    uint16_t glyphId = 1;
+    hmSymbolRun.symbolLayersGroups_.symbolGlyphId = glyphId;
+    hmSymbolRun.symbolLayersGroups_.layers = {{0}};
+    RSRenderGroup renderGroup;
+    renderGroup.color = {1.0f, 0, 0, 0};
+    hmSymbolRun.symbolLayersGroups_.renderModeGroups[RSSymbolRenderingStrategy::SINGLE] = {renderGroup};
+
+    // Set HDR UIColor with headroom
+    Drawing::UIColor uiColor(2.0f, 1.5f, 1.0f, 1.0f);
+    uiColor.SetHeadroom(4.0f);
+    hmSymbolRun.symbolTxt_.SetRenderUIColor({ uiColor }, { SymbolColorSpace::BT2020 });
+    hmSymbolRun.SetRenderMode(RSSymbolRenderingStrategy::SINGLE);
+
+    // GetSymbolLayer triggers FillUIColorGradients
+    auto symbolLayers = hmSymbolRun.GetSymbolLayers(glyphId, hmSymbolRun.symbolTxt_);
+    ASSERT_EQ(hmSymbolRun.gradients_.size(), 1);
+    EXPECT_TRUE(hmSymbolRun.gradients_[0]->HasUIColor());
+    EXPECT_EQ(hmSymbolRun.gradients_[0]->GetColorSpace(), SymbolColorSpace::BT2020);
+
+    // Verify HDR values preserved through the pipeline
+    auto uiColors = hmSymbolRun.gradients_[0]->GetUIColors();
+    ASSERT_FALSE(uiColors.empty());
+    EXPECT_FLOAT_EQ(uiColors[0].GetRed(), 2.0f);
+    EXPECT_FLOAT_EQ(uiColors[0].GetGreen(), 1.5f);
+    EXPECT_FLOAT_EQ(uiColors[0].GetBlue(), 1.0f);
+    EXPECT_FLOAT_EQ(uiColors[0].GetHeadroom(), 4.0f);
+
+    // DrawPaths creates brush/pen with HDR UIColor and calls canvas->DrawPath
+    std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
+    RSPath path;
+    path.AddCircle(100.0f, 100.0f, 50.0f);
+    std::vector<RSPath> multPaths = { path };
+    hmSymbolRun.DrawPaths(rsCanvas.get(), multPaths, path);
+    EXPECT_EQ(hmSymbolRun.symbolTxt_.GetRenderMode(), RSSymbolRenderingStrategy::SINGLE);
+}
+
+/*
+ * @tc.name: DrawPaths_RSColor_Single001
+ * @tc.desc: test end-to-end DrawPaths with RSColor in SINGLE render mode
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, DrawPaths_RSColor_Single001, TestSize.Level0)
+{
+    HMSymbolRun hmSymbolRun = HMSymbolRun();
+
+    // Set up symbolLayersGroups_
+    uint16_t glyphId = 1;
+    hmSymbolRun.symbolLayersGroups_.symbolGlyphId = glyphId;
+    hmSymbolRun.symbolLayersGroups_.layers = {{0}};
+    RSRenderGroup renderGroup;
+    renderGroup.color = {1.0f, 0, 0, 0};
+    hmSymbolRun.symbolLayersGroups_.renderModeGroups[RSSymbolRenderingStrategy::SINGLE] = {renderGroup};
+
+    // Set RSColor (no UIColor)
+    RSSColor rsColor = {1.0f, 255, 0, 0};
+    hmSymbolRun.symbolTxt_.SetRenderColor({rsColor});
+    hmSymbolRun.SetRenderMode(RSSymbolRenderingStrategy::SINGLE);
+
+    // GetSymbolLayer triggers FillRSColorGradients (no UIColor path)
+    auto symbolLayers = hmSymbolRun.GetSymbolLayers(glyphId, hmSymbolRun.symbolTxt_);
+    ASSERT_EQ(hmSymbolRun.gradients_.size(), 1);
+    EXPECT_FALSE(hmSymbolRun.gradients_[0]->HasUIColor());
+    EXPECT_FALSE(hmSymbolRun.gradients_[0]->GetColors().empty());
+
+    // DrawPaths creates brush/pen with RSColor and calls canvas->DrawPath
+    std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
+    RSPath path;
+    path.AddCircle(100.0f, 100.0f, 50.0f);
+    std::vector<RSPath> multPaths = { path };
+    hmSymbolRun.DrawPaths(rsCanvas.get(), multPaths, path);
+}
+
+/*
+ * @tc.name: DrawPaths_UIColor_Then_RSColor001
+ * @tc.desc: test SetRenderUIColor then SetRenderColor, RSColor replaces UIColor in pipeline
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, DrawPaths_UIColor_Then_RSColor001, TestSize.Level0)
+{
+    HMSymbolRun hmSymbolRun = HMSymbolRun();
+
+    // Set up symbolLayersGroups_
+    uint16_t glyphId = 1;
+    hmSymbolRun.symbolLayersGroups_.symbolGlyphId = glyphId;
+    hmSymbolRun.symbolLayersGroups_.layers = {{0}};
+    RSRenderGroup renderGroup;
+    renderGroup.color = {1.0f, 0, 0, 0};
+    hmSymbolRun.symbolLayersGroups_.renderModeGroups[RSSymbolRenderingStrategy::SINGLE] = {renderGroup};
+    hmSymbolRun.SetRenderMode(RSSymbolRenderingStrategy::SINGLE);
+
+    // First set UIColor
+    Drawing::UIColor uiColor(1.0f, 0.5f, 0.3f, 1.0f);
+    hmSymbolRun.symbolTxt_.SetRenderUIColor({ uiColor }, { SymbolColorSpace::DISPLAY_P3 });
+
+    // Then set RSColor, replaces UIColor
+    RSSColor rsColor = {1.0f, 255, 0, 0};
+    hmSymbolRun.symbolTxt_.SetRenderColor({rsColor});
+
+    // GetSymbolLayer → FillRSColorGradients (UIColor was cleared)
+    auto symbolLayers = hmSymbolRun.GetSymbolLayers(glyphId, hmSymbolRun.symbolTxt_);
+    ASSERT_EQ(hmSymbolRun.gradients_.size(), 1);
+    EXPECT_FALSE(hmSymbolRun.gradients_[0]->HasUIColor());
+
+    // DrawPaths with RSColor calls canvas->DrawPath
+    std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
+    RSPath path;
+    path.AddCircle(100.0f, 100.0f, 50.0f);
+    std::vector<RSPath> multPaths = { path };
+    hmSymbolRun.DrawPaths(rsCanvas.get(), multPaths, path);
+    EXPECT_EQ(hmSymbolRun.symbolTxt_.GetRenderMode(), RSSymbolRenderingStrategy::SINGLE);
+}
+
+/*
+ * @tc.name: DrawPaths_RSColor_Then_UIColor001
+ * @tc.desc: test SetRenderColor then SetRenderUIColor, UIColor replaces RSColor in pipeline
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, DrawPaths_RSColor_Then_UIColor001, TestSize.Level0)
+{
+    HMSymbolRun hmSymbolRun = HMSymbolRun();
+
+    // Set up symbolLayersGroups_
+    uint16_t glyphId = 1;
+    hmSymbolRun.symbolLayersGroups_.symbolGlyphId = glyphId;
+    hmSymbolRun.symbolLayersGroups_.layers = {{0}};
+    RSRenderGroup renderGroup;
+    renderGroup.color = {1.0f, 0, 0, 0};
+    hmSymbolRun.symbolLayersGroups_.renderModeGroups[RSSymbolRenderingStrategy::SINGLE] = {renderGroup};
+    hmSymbolRun.SetRenderMode(RSSymbolRenderingStrategy::SINGLE);
+
+    RSSColor rsColor = {1.0f, 255, 0, 0};
+    hmSymbolRun.symbolTxt_.SetRenderColor({rsColor});
+
+    Drawing::UIColor uiColor(1.0f, 0.5f, 0.3f, 1.0f);
+    hmSymbolRun.symbolTxt_.SetRenderUIColor({ uiColor }, { SymbolColorSpace::BT2020 });
+
+    // GetSymbolLayer → FillUIColorGradients (RSColor was cleared)
+    auto symbolLayers = hmSymbolRun.GetSymbolLayers(glyphId, hmSymbolRun.symbolTxt_);
+    ASSERT_EQ(hmSymbolRun.gradients_.size(), 1);
+    EXPECT_TRUE(hmSymbolRun.gradients_[0]->HasUIColor());
+    EXPECT_EQ(hmSymbolRun.gradients_[0]->GetColorSpace(), SymbolColorSpace::BT2020);
+
+    // DrawPaths with UIColor calls canvas->DrawPath
+    std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
+    RSPath path;
+    path.AddCircle(100.0f, 100.0f, 50.0f);
+    std::vector<RSPath> multPaths = { path };
+    hmSymbolRun.DrawPaths(rsCanvas.get(), multPaths, path);
+    EXPECT_EQ(hmSymbolRun.symbolTxt_.GetRenderMode(), RSSymbolRenderingStrategy::SINGLE);
 }
 } // namespace SPText
 } // namespace Rosen

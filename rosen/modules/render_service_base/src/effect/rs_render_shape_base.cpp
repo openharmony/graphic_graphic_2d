@@ -20,6 +20,7 @@
 #include "ge_visual_effect.h"
 #include "ge_visual_effect_container.h"
 
+#include "common/rs_vector4.h"
 #include "effect/rs_render_shape_base.h"
 #include "platform/common/rs_log.h"
 
@@ -55,6 +56,56 @@ static std::unordered_map<RSNGEffectType, ShapeCreator> creatorLUT = {
     {RSNGEffectType::SDF_EMPTY_SHAPE, [] {
             return std::make_shared<RSNGRenderSDFEmptyShape>();
         }
+    },
+    {RSNGEffectType::SDF_DISTORT_OP_SHAPE, [] {
+            ROSEN_LOGE("RSNGRenderSDFDistortOpShape Created");
+            return std::make_shared<RSNGRenderSDFDistortOpShape>();
+        }
+    },
+};
+
+using ShapeGetTransformRect = std::function<RectF(std::shared_ptr<RSNGRenderShapeBase>, RectF)>;
+static std::unordered_map<RSNGEffectType, ShapeGetTransformRect> getTransformRectLUT = {
+    {
+        RSNGEffectType::SDF_DISTORT_OP_SHAPE, [](std::shared_ptr<RSNGRenderShapeBase> shape, RectF rect) {
+            auto distortOp = std::static_pointer_cast<RSNGRenderSDFDistortOpShape>(shape);
+            auto base = distortOp->Getter<OHOS::Rosen::SDFDistortOpShapeShapeRenderTag>()->Get();
+            if (base == nullptr) {
+                return rect;
+            }
+            auto transformRect = rect;
+            transformRect = RSNGRenderShapeHelper::CalcRect(base, rect);
+            auto luCorner = distortOp->Getter<OHOS::Rosen::SDFDistortOpShapeLUCornerRenderTag>()->Get();
+            auto ruCorner = distortOp->Getter<OHOS::Rosen::SDFDistortOpShapeRUCornerRenderTag>()->Get();
+            auto rbCorner = distortOp->Getter<OHOS::Rosen::SDFDistortOpShapeRBCornerRenderTag>()->Get();
+            auto lbCorner = distortOp->Getter<OHOS::Rosen::SDFDistortOpShapeLBCornerRenderTag>()->Get();
+            auto distortion = distortOp->Getter<OHOS::Rosen::SDFDistortOpShapeBarrelDistortionRenderTag>()->Get();
+            float left = transformRect.GetLeft() + std::min(luCorner[0], lbCorner[0]) * transformRect.GetWidth();
+            float top = transformRect.GetTop() + std::min(luCorner[1], ruCorner[1]) * transformRect.GetHeight();
+            float right = std::max(ruCorner[0], rbCorner[0]) * transformRect.GetWidth();
+            float bottom = std::max(lbCorner[1], rbCorner[1]) * transformRect.GetHeight();
+            constexpr float halfUV = 0.5f;
+            constexpr float distortScale = 0.25f;
+            constexpr float tuneNum = 4.0f;
+            constexpr float tuneDenomBase = 2.0f;
+            if (distortion[0] > 0) {
+                left -= ceil(transformRect.GetWidth() *
+                    (halfUV - distortScale * (tuneNum + distortion[0]) / (tuneDenomBase + distortion[0])));
+            }
+            if (distortion[1] > 0) {
+                right += ceil(transformRect.GetWidth() *
+                    (halfUV - distortScale * (tuneNum + distortion[1]) / (tuneDenomBase + distortion[1])));
+            }
+            if (distortion[2] > 0) {
+                top -= ceil(transformRect.GetHeight() *
+                    (halfUV - distortScale * (tuneNum + distortion[2]) / (tuneDenomBase + distortion[2])));
+            }
+            if (distortion[3] > 0) {
+                bottom += ceil(transformRect.GetHeight() *
+                    (halfUV - distortScale * (tuneNum + distortion[3]) / (tuneDenomBase + distortion[3])));
+            }
+            return RectF(left, top, right - left, bottom - top);
+        },
     },
 };
 
@@ -96,6 +147,17 @@ std::shared_ptr<RSNGRenderShapeBase> RSNGRenderShapeBase::Create(RSNGEffectType 
     ROSEN_LOGE("RSNGRenderShapeBase: UnMarshalling shape count arrive limit(%{public}zu)",
         EFFECT_COUNT_LIMIT);
     return false;
+}
+
+RectF RSNGRenderShapeHelper::CalcRect(const std::shared_ptr<RSNGRenderShapeBase>& shape, const RectF& bound)
+{
+    if (shape == nullptr) {
+        return bound;
+    }
+
+    auto iter = getTransformRectLUT.find(shape->GetType());
+    shape->transformDrawRect_ = iter == getTransformRectLUT.end() ? bound : iter->second(shape, bound);
+    return shape->transformDrawRect_;
 }
 } // namespace Rosen
 } // namespace OHOS

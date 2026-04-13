@@ -74,6 +74,7 @@ public:
     Path() noexcept;
     Path(const Path& p) noexcept;
     Path &operator=(const Path& p) noexcept;
+    bool operator==(const Path& other) const;
     virtual ~Path();
 
     virtual DrawingType GetDrawingType() const
@@ -535,6 +536,14 @@ public:
     virtual void Reset();
 
     void SetLastPoint(scalar x, scalar y);
+
+    /**
+     * @brief Gets the last point of the path.
+     *
+     * @param point Pointer to store the last point.
+     * @return Returns true if the last point was successfully retrieved, false if the path is empty.
+     */
+    virtual void GetLastPoint(Point& point) const;
 
     void ReWind();
 

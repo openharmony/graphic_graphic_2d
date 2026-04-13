@@ -127,6 +127,7 @@ public:
     void ResetAnimateNodeFlag();
     void GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize);
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply = false, pid_t pid = -1);
+    void AddWhiteListRect(const std::unordered_set<ScreenId>& screenIds, RectI rect);
 
     void SetForceRsDVsync(const std::string& sceneId);
     void GetNodeInfo(std::unordered_map<int, std::pair<int, int>>& node_info,
@@ -177,7 +178,7 @@ public:
     void ClearSurfaceOcclusionChangeCallback(pid_t pid);
     bool SurfaceOcclusionCallBackIfOnTreeStateChanged();
 
-    void ClearTransactionDataPidInfo(pid_t remotePid);
+    void ClearTransactionDataPidInfo(pid_t remotePid, bool forRefresh = false);
     void AddTransactionDataPidInfo(pid_t remotePid);
 
     void SetFocusAppInfo(const FocusAppInfo& info);
@@ -423,7 +424,7 @@ public:
 
     bool TransitionDataMutexLockIfNoCommands();
     void TransitionDataMutexUnlock();
-    void CleanResources(pid_t pid);
+    void CleanResources(pid_t pid, bool forRefresh = false);
     bool GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight);
     
     const std::shared_ptr<RSHwcContext>& GetHwcContext() const { return hwcContext_; }
@@ -434,6 +435,11 @@ public:
     }
 
     uint64_t GetVsyncId() const { return vsyncId_; }
+
+    // for surface fps op
+    void AddSurfaceFpsOp(const SurfaceFpsOp& op);
+    std::vector<SurfaceFpsOp> GetSurfaceFpsOpList();
+    void RmvSurfaceFpsOp(const std::vector<SurfaceFpsOp>& rmvList);
 
 private:
     // TransactionDataIndexMap is Pid to {index of RSTransactionData, vector of std::unique_ptr<RSTransactionData>}
@@ -823,6 +829,10 @@ private:
     std::shared_ptr<HgmRenderContext> hgmRenderContext_ = nullptr;
     std::shared_ptr<RSComposerClientManager> composerClientManager_ = nullptr;
     uint32_t curFrameBufferReclaimCount_ = 0;
+
+    // for surface fps op
+    std::unordered_map<NodeId, SurfaceFpsOp> addSurfaceFpsOpMap_;
+    std::unordered_map<NodeId, SurfaceFpsOp> rmvSurfaceFpsOpMap_;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

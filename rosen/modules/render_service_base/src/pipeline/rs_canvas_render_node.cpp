@@ -413,9 +413,12 @@ void RSCanvasRenderNode::UpdateNodeColorSpace()
     SetNodeColorSpace(nodeColorSpace);
 }
 
-void RSCanvasRenderNode::MarkNodeColorSpace(bool isP3Color)
+void RSCanvasRenderNode::MarkNodeColorSpace(int8_t colorSpace)
 {
-    if (isP3Color) {
+    GraphicColorGamut nodeColorSpace = static_cast<GraphicColorGamut>(colorSpace);
+    if (nodeColorSpace == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020) {
+        SetColorGamut(OHOS::ColorManager::ColorSpaceName::BT2020);
+    } else if (nodeColorSpace == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3) {
         SetColorGamut(OHOS::ColorManager::ColorSpaceName::DISPLAY_P3);
     }
 }

@@ -148,4 +148,44 @@ HWTEST_F(RSUnionNodeTest, RegisterNodeMap001, TestSize.Level1)
     node->RegisterNodeMap();
     ASSERT_NE(rsUIContext1->GetMutableNodeMap().GetNode(1), nullptr);
 }
+
+/**
+ * @tc.name: SetUnionModeTest
+ * @tc.desc: test results of RSUnionNode::SetUnionMode
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUnionNodeTest, SetUnionModeTest, TestSize.Level1)
+{
+    auto modifierType = ModifierNG::RSModifierType::BOUNDS;
+    auto rsUnionNode = RSUnionNode::Create();
+
+    EXPECT_EQ(rsUnionNode->GetModifierCreatedBySetter(modifierType), nullptr);
+
+    int uniMode = 1;
+    rsUnionNode->SetUnionMode(uniMode);
+    auto& properties = rsUnionNode->GetModifierCreatedBySetter(modifierType)->properties_;
+
+    EXPECT_NE(rsUnionNode->GetModifierCreatedBySetter(modifierType), nullptr);
+    EXPECT_NE(properties.find(ModifierNG::RSPropertyType::SDF_UNION_MODE), properties.end());
+}
+
+/**
+ * @tc.name: SetGravityPullStrengthTest
+ * @tc.desc: test results of RSUnionNode::SetGravityPullStrength
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUnionNodeTest, SetGravityPullStrengthTest, TestSize.Level1)
+{
+    auto modifierType = ModifierNG::RSModifierType::BOUNDS;
+    auto rsUnionNode = RSUnionNode::Create();
+
+    EXPECT_EQ(rsUnionNode->GetModifierCreatedBySetter(modifierType), nullptr);
+
+    float gravityPullStrength = 0.5f;
+    rsUnionNode->SetGravityPullStrength(gravityPullStrength);
+    auto& properties = rsUnionNode->GetModifierCreatedBySetter(modifierType)->properties_;
+
+    EXPECT_NE(rsUnionNode->GetModifierCreatedBySetter(modifierType), nullptr);
+    EXPECT_NE(properties.find(ModifierNG::RSPropertyType::GRAVITY_UNION_STRENGTH), properties.end());
+}
 } // namespace OHOS::Rosen

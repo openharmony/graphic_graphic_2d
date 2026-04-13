@@ -29,6 +29,7 @@
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "engine/rs_base_render_engine.h"
 #include "engine/rs_base_render_util.h"
+#include "params/rs_logical_display_render_params.h"
 #include "params/rs_screen_render_params.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -131,6 +132,13 @@ public:
     static void SwitchColorFilter(RSPaintFilterCanvas& canvas, float hdrBrightnessRatio = 1.f,
         bool displayP3Enable = false);
     static Drawing::Matrix GetMatrixByDegree(int degree, const RectF& bounds);
+    static bool ProcessSingleSelfDrawingNode(RSPaintFilterCanvas& canvas,
+        RSScreenRenderParams& screenParams, RSLogicalDisplayRenderParams& displayParams);
+    static bool DrawSingleSelfDrawingNode(RSPaintFilterCanvas& canvas,
+        const std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& surfaceDrawable,
+        RSLogicalDisplayRenderParams& displayParams);
+    static BufferDrawParam DealWithBufferDrawParam(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams,
+        DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable);
 
 private:
     static void SetSrcRect(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer);
@@ -141,6 +149,8 @@ private:
         bool isDirtyAlignEnabled, Occlusion::Region& sampledDamageRegion, Occlusion::Region& sampledDrawnRegion);
     static void SwitchColorFilterWithP3(RSPaintFilterCanvas& canvas, ColorFilterMode colorFilterMode,
         float hdrBrightnessRatio = 1.f);
+    static BufferDrawParam ProcessCanvasBySurfaceNode(RSPaintFilterCanvas& canvas,
+        RSSurfaceRenderParams& surfaceParams, DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable);
 
     static inline int currentUIExtensionIndex_ = -1;
     static inline const std::string RELEASE_SURFACE_TASK = "releaseSurface";

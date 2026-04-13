@@ -32,10 +32,12 @@ public:
 
     uint64_t GetId() const;
     bool OnFrameSkip(uint64_t timestamp, int64_t period, bool isDisplaySyncEnabled);
+    bool OnFrameSkipForAnimate(uint64_t timestamp, int64_t period, bool isDisplaySyncEnabled, int64_t& nextFrameTime);
     void SetExpectedFrameRateRange(const FrameRateRange& range);
     const FrameRateRange& GetExpectedFrameRange() const;
     void SetAnimateResult(std::tuple<bool, bool, bool>& result);
     std::tuple<bool, bool, bool> GetAnimateResult() const;
+
 private:
     int32_t CalcSkipRateCount(int32_t frameRate);
     int32_t GetNearestFrameRate(int32_t num, const std::vector<int32_t>& rates);
@@ -44,10 +46,10 @@ private:
     uint64_t timestamp_ = 0;
     int64_t currentPeriod_ = 0;
     int64_t currentFrameRate_ = 0;
-    int64_t referenceCount_ = 0;
-    int64_t skipRateCount_ = 1;
+    int64_t vsyncTriggerCount_ = 0;
+    int64_t skipPeriodCount_ = 1;
 
-    bool isSkipCountUpdate_ = false;
+    bool skipPeriodCountNeedUpdate_ = false;
     std::tuple<bool, bool, bool> animateResult_;
     FrameRateRange expectedFrameRateRange_;
     std::weak_ptr<RSRenderAnimation> renderAnimation_;

@@ -706,14 +706,14 @@ void RSSurfaceNode::SetWindowId(uint32_t windowId)
     windowId_ = windowId;
 }
 
-void RSSurfaceNode::SetFreeze(bool isFreeze)
+void RSSurfaceNode::SetFreeze(bool isFreeze, bool isMarkedByUI)
 {
     if (!IsUniRenderEnabled()) {
         ROSEN_LOGE("SetFreeze is not supported in separate render");
         return;
     }
     RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceNode::SetFreeze id:%llu", GetId());
-    std::unique_ptr<RSCommand> command = std::make_unique<RSSetFreeze>(GetId(), isFreeze);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSetFreeze>(GetId(), isFreeze, isMarkedByUI);
     AddCommand(command, true);
 }
 
@@ -1196,9 +1196,15 @@ void RSSurfaceNode::SetAppRotationCorrection(ScreenRotation appRotationCorrectio
         GetId(), appRotationCorrection);
 }
 
+void RSSurfaceNode::SetHDRType(uint32_t hdrType)
+{
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetHDRType>(GetId(), hdrType);
+    AddCommand(command, true);
+}
 void RSSurfaceNode::SetHDRBrightnessWithType(const float& hdrBrightness, uint32_t hdrType)
 {
     RSNode::SetHDRBrightness(hdrBrightness);
+    SetHDRType(hdrType);
     RS_LOGD("SurfaceNode::SetHDRBrightnessWithType set with hdrType:%{public}d", hdrType);
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     switch (static_cast<HDRType>(hdrType)) {
@@ -1234,5 +1240,7 @@ void RSSurfaceNode::DumpSubClass(std::string& out) const
         out += "], existsDuplicateModifier[true";
     }
 }
+
+void RSSurfaceNode::SetIsDepthResource(bool isDepthResource) {}
 } // namespace Rosen
 } // namespace OHOS

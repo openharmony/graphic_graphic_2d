@@ -689,4 +689,19 @@ HWTEST_F(RSSurfaceRenderParamsTest, SwapRelatedRenderParamsTest, TestSize.Level1
     ASSERT_EQ(paramsA.GetMatrix().Get(Drawing::Matrix::SCALE_X), 3.0f);
     ASSERT_EQ(paramsB.GetMatrix().Get(Drawing::Matrix::SCALE_X), 2.0f);
 }
+
+/**
+ * @tc.name: SetNeedClearRelatedCacheTest
+ * @tc.desc: Test SetNeedClearRelatedCache
+ * @tc.type:FUNC
+ * @tc.require: issues22651
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetNeedClearRelatedCacheTest, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(DEFAULT_NODEID);
+    params.SetNeedClearRelatedCache(false);
+    EXPECT_EQ(params.IsNeedClearRelatedCache(), false);
+    params.SetNeedClearRelatedCache(true);
+    EXPECT_EQ(params.IsNeedClearRelatedCache(), true);
+}
 } // namespace OHOS::Rosen

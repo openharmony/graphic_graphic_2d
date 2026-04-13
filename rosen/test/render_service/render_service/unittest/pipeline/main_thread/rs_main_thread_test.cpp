@@ -29,6 +29,7 @@
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "feature/buffer_reclaim/rs_buffer_reclaim.h"
 #include "feature/dirty/rs_uni_dirty_occlusion_util.h"
+#include "params/rs_render_params.h"
 #include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "feature/hyper_graphic_manager/hgm_render_context.h"
@@ -3679,6 +3680,125 @@ HWTEST_F(RSMainThreadTest, ClearTransactionDataPidInfo002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ClearTransactionDataPidInfo003
+ * @tc.desc: ClearTransactionDataPidInfo Test with forRefresh=true, verify counter reset
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, ClearTransactionDataPidInfo003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto isUniRender = mainThread->isUniRender_;
+    mainThread->isUniRender_ = true;
+    pid_t remotePid = 12345;
+
+    // Setup: Add entry to effectiveTransactionDataIndexMap_
+    mainThread->effectiveTransactionDataIndexMap_[remotePid] =
+        std::make_pair(100, std::vector<std::unique_ptr<RSTransactionData>>());
+    mainThread->transactionDataLastWaitTime_[remotePid] = 12345678;
+
+    // Execute: forRefresh=true
+    mainThread->ClearTransactionDataPidInfo(remotePid, true);
+
+    // Verify: Counter reset to 0, map entry preserved
+    auto it = mainThread->effectiveTransactionDataIndexMap_.find(remotePid);
+    ASSERT_NE(it, mainThread->effectiveTransactionDataIndexMap_.end());
+    EXPECT_EQ(it->second.first, 0);
+    // transactionDataLastWaitTime_ should still be erased
+    EXPECT_EQ(mainThread->transactionDataLastWaitTime_.find(remotePid),
+        mainThread->transactionDataLastWaitTime_.end());
+
+    // Cleanup
+    mainThread->effectiveTransactionDataIndexMap_.erase(remotePid);
+    mainThread->isUniRender_ = isUniRender;
+}
+
+/**
+ * @tc.name: ClearTransactionDataPidInfo004
+ * @tc.desc: ClearTransactionDataPidInfo Test with forRefresh=true and non-existent pid
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, ClearTransactionDataPidInfo004, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto isUniRender = mainThread->isUniRender_;
+    mainThread->isUniRender_ = true;
+    pid_t remotePid = 99999;
+
+    // Ensure pid doesn't exist in map
+    mainThread->effectiveTransactionDataIndexMap_.erase(remotePid);
+
+    // Execute: forRefresh=true with non-existent pid, should not crash
+    mainThread->ClearTransactionDataPidInfo(remotePid, true);
+
+    // Verify: Map still doesn't contain the pid
+    EXPECT_EQ(mainThread->effectiveTransactionDataIndexMap_.find(remotePid),
+        mainThread->effectiveTransactionDataIndexMap_.end());
+
+    mainThread->isUniRender_ = isUniRender;
+}
+
+/**
+ * @tc.name: ClearTransactionDataPidInfo005
+ * @tc.desc: ClearTransactionDataPidInfo Test with forRefresh=false and !isUniRender_
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, ClearTransactionDataPidInfo005, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto isUniRender = mainThread->isUniRender_;
+    mainThread->isUniRender_ = false;
+    pid_t remotePid = 12345;
+
+    // Setup: Add entry to map
+    mainThread->effectiveTransactionDataIndexMap_[remotePid] =
+        std::make_pair(100, std::vector<std::unique_ptr<RSTransactionData>>());
+
+    // Execute: forRefresh=false but !isUniRender_, should return early
+    mainThread->ClearTransactionDataPidInfo(remotePid, false);
+
+    // Verify: Map entry should still exist (early return)
+    EXPECT_NE(mainThread->effectiveTransactionDataIndexMap_.find(remotePid),
+        mainThread->effectiveTransactionDataIndexMap_.end());
+
+    // Cleanup
+    mainThread->effectiveTransactionDataIndexMap_.erase(remotePid);
+    mainThread->isUniRender_ = isUniRender;
+}
+
+/**
+ * @tc.name: CleanResourcesForRefreshTest
+ * @tc.desc: CleanResources Test with forRefresh=true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, CleanResourcesForRefreshTest, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto isUniRender = mainThread->isUniRender_;
+    mainThread->isUniRender_ = true;
+    pid_t remotePid = 12345;
+
+    // Setup: Add entry to effectiveTransactionDataIndexMap_
+    mainThread->effectiveTransactionDataIndexMap_[remotePid] =
+        std::make_pair(100, std::vector<std::unique_ptr<RSTransactionData>>());
+
+    // Execute: CleanResources with forRefresh=true
+    mainThread->CleanResources(remotePid, true);
+
+    // Verify: Counter reset to 0, map entry preserved
+    auto it = mainThread->effectiveTransactionDataIndexMap_.find(remotePid);
+    ASSERT_NE(it, mainThread->effectiveTransactionDataIndexMap_.end());
+    EXPECT_EQ(it->second.first, 0);
+
+    // Cleanup
+    mainThread->effectiveTransactionDataIndexMap_.erase(remotePid);
+    mainThread->isUniRender_ = isUniRender;
+}
+
+/**
  * @tc.name: AddTransactionDataPidInfo001
  * @tc.desc: AddTransactionDataPidInfo Test, no UniRender
  * @tc.type: FUNC
@@ -6336,5 +6456,96 @@ HWTEST_F(RSMainThreadTest, CheckUiCaptureNodeTest, TestSize.Level1)
     mainThread->ProcessUiCaptureTasks();
 
     BufferReclaimParam::GetInstance().SetBufferReclaimEnable(enable);
+}
+
+/**
+ * @tc.name: AddSurfaceFpsOpTest
+ * @tc.desc: Test Func AddSurfaceFpsOp
+ * @tc.type: FUNC
+ * @tc.require: issue22921
+ */
+HWTEST_F(RSMainThreadTest, AddSurfaceFpsOpTest, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    
+    SurfaceFpsOp addOp {static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_ADD), 1, "test_surface", 100};
+    SurfaceFpsOp removeOp {static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_REMOVE), 2, "test_surface2", 200};
+    SurfaceFpsOp otherOp {static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_DEFAULT), 3, "test_surface3", 300};
+    mainThread->AddSurfaceFpsOp(addOp);
+    mainThread->AddSurfaceFpsOp(removeOp);
+    mainThread->AddSurfaceFpsOp(otherOp);
+    
+    auto surfaceFpsOpList = mainThread->GetSurfaceFpsOpList();
+    EXPECT_EQ(surfaceFpsOpList.size(), 2u);
+    
+    bool foundAdd = false;
+    bool foundRemove = false;
+    for (const auto& op : surfaceFpsOpList) {
+        if (op.surfaceNodeId == 1) {
+            foundAdd = true;
+            EXPECT_EQ(op.surfaceFpsOpType, static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_ADD));
+            EXPECT_EQ(op.surfaceName, "test_surface");
+            EXPECT_EQ(op.uniqueId, 100u);
+        } else if (op.surfaceNodeId == 2) {
+            foundRemove = true;
+            EXPECT_EQ(op.surfaceFpsOpType, static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_REMOVE));
+            EXPECT_EQ(op.surfaceName, "test_surface2");
+            EXPECT_EQ(op.uniqueId, 200u);
+        }
+    }
+    EXPECT_TRUE(foundAdd);
+    EXPECT_TRUE(foundRemove);
+}
+
+/**
+ * @tc.name: RmvSurfaceFpsOpTest
+ * @tc.desc: Test Func RmvSurfaceFpsOp with removal
+ * @tc.type: FUNC
+ * @tc.require: issue22921
+ */
+HWTEST_F(RSMainThreadTest, RmvSurfaceFpsOpTest, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    
+    SurfaceFpsOp addOp1 {static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_ADD), 1, "test_surface", 100};
+    SurfaceFpsOp addOp2 {static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_ADD), 2, "test_surface2", 200};
+    SurfaceFpsOp removeOp {static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_REMOVE), 3, "test_surface3", 300};
+    SurfaceFpsOp otherOp {static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_DEFAULT), 4, "test_surface4", 400};
+    mainThread->AddSurfaceFpsOp(addOp1);
+    mainThread->AddSurfaceFpsOp(addOp2);
+    mainThread->AddSurfaceFpsOp(removeOp);
+    mainThread->AddSurfaceFpsOp(otherOp);
+
+    std::vector<SurfaceFpsOp> rmvList;
+    rmvList.push_back(addOp1);
+
+    mainThread->RmvSurfaceFpsOp(rmvList);
+    auto surfaceFpsOpList = mainThread->GetSurfaceFpsOpList();
+    EXPECT_EQ(surfaceFpsOpList.size(), 2u);
+
+    bool foundAdd1 = false;
+    bool foundAdd2 = false;
+    bool foundRemove = false;
+    for (const auto& op : surfaceFpsOpList) {
+        if (op.surfaceNodeId == 1) {
+            foundAdd1 = true;
+        } else if (op.surfaceNodeId == 2) {
+            foundAdd2 = true;
+        } else if (op.surfaceNodeId == 3) {
+            foundRemove = true;
+        }
+    }
+    EXPECT_FALSE(foundAdd1);
+    EXPECT_TRUE(foundAdd2);
+    EXPECT_TRUE(foundRemove);
+
+    rmvList.push_back(addOp2);
+    rmvList.push_back(removeOp);
+    rmvList.push_back(otherOp);
+    mainThread->RmvSurfaceFpsOp(rmvList);
+    surfaceFpsOpList = mainThread->GetSurfaceFpsOpList();
+    EXPECT_EQ(surfaceFpsOpList.size(), 0u);
 }
 } // namespace OHOS::Rosen

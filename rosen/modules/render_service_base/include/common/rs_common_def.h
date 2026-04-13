@@ -667,21 +667,6 @@ constexpr float PI = M_PI;
 static const float PI = std::atanf(1.0) * 4;
 #endif
 
-class MemObject {
-public:
-    explicit MemObject(size_t size) : size_(size) {}
-    virtual ~MemObject() = default;
-
-    void* operator new(size_t size);
-    void operator delete(void* ptr);
-
-    void* operator new(std::size_t size, const std::nothrow_t&) noexcept;
-    void operator delete(void* ptr, const std::nothrow_t&) noexcept;
-
-protected:
-    size_t size_;
-};
-
 inline constexpr pid_t ExtractPid(uint64_t id)
 {
     // extract high 32 bits of nodeid/animationId/propertyId as pid

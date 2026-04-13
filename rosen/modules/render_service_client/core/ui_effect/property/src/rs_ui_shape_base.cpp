@@ -54,6 +54,11 @@ static thread_local std::unordered_map<RSNGEffectType, ShapeCreator> creatorLUT 
             return std::make_shared<RSNGSDFEmptyShape>();
         }
     },
+    {RSNGEffectType::SDF_DISTORT_OP_SHAPE, [] {
+            ROSEN_LOGE("RSNGSDFDistortOpShape Created");
+            return std::make_shared<RSNGSDFDistortOpShape>();
+        }
+    },
 };
 
 std::shared_ptr<RSNGShapeBase> RSNGShapeBase::Create(RSNGEffectType type)

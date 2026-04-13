@@ -120,6 +120,8 @@ public:
     // UIColor
     void DrawUIColor(UIColor color, BlendMode mode) override;
 
+    void DrawParticle(std::shared_ptr<ParticleEffect> particle) override;
+
     bool OpCalculateBefore(const Matrix& matrix) override;
     std::shared_ptr<Drawing::OpListHandle> OpCalculateAfter(const Rect& bound) override;
 

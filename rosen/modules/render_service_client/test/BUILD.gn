@@ -755,13 +755,13 @@ ohos_executable("render_service_client_tunnel_handle_demo") {
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
   ]
 
-  public_external_deps = [ "window_manager:libwm" ]
-
   external_deps = [
     "c_utils:utils",
     "graphic_surface:surface",
     "hilog:libhilog",
     "zlib:libz",
+    "window_manager:libwm",
+    "window_manager:sms",
   ]
 
   part_name = "graphic_2d"

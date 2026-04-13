@@ -204,18 +204,22 @@ private:
     std::string ReadHeader();
     bool ReadHeaderPidList();
     bool ReadHeaderFirstScreen();
-    std::string LayerReadHeader(uint32_t layer);
+    std::string LayerReadHeader(RSFileLayer& layer);
 
     template<typename Track>
-    void LayerReadHeaderOfTrack(Track& track)
+    bool LayerReadHeaderOfTrack(Track& track)
     {
-        uint32_t recordSize;
+        uint32_t recordSize = 0u;
         Utils::FileRead(&recordSize, sizeof(recordSize), 1, file_);
+        if (recordSize > chunkSizeMax) {
+            return false;
+        }
         track.resize(recordSize);
         for (size_t i = 0; i < recordSize; i++) {
             offsetVersionHandler_.ReadU64(file_, track[i].first);
             offsetVersionHandler_.ReadU64(file_, track[i].second);
         }
+        return true;
     }
 
     using LayerTrackIndexPtr = uint32_t RSFileLayer::*;

@@ -83,6 +83,8 @@ static const std::array g_methods = {
     ani_native_function { "set", nullptr, reinterpret_cast<void*>(AniPath::Set) },
     ani_native_function { "isInterpolate", nullptr, reinterpret_cast<void*>(AniPath::IsInterpolate) },
     ani_native_function { "getFillType", nullptr, reinterpret_cast<void*>(AniPath::GetFillType) },
+    ani_native_function { "getLastPoint", nullptr, reinterpret_cast<void*>(AniPath::GetLastPoint) },
+    ani_native_function { "isEqual", nullptr, reinterpret_cast<void*>(AniPath::IsEqual) },
 };
 
 ani_status AniPath::AniInit(ani_env *env)
@@ -908,6 +910,24 @@ void AniPath::SetLastPoint(ani_env* env, ani_object obj, ani_double x, ani_doubl
     aniPath->GetPath()->SetLastPoint(x, y);
 }
 
+ani_object AniPath::GetLastPoint(ani_env* env, ani_object obj)
+{
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
+    if (aniPath == nullptr || aniPath->GetPath() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param.");
+        return CreateAniUndefined(env);
+    }
+    std::shared_ptr<Path> path = aniPath->GetPath();
+    if (path->IsEmpty()) {
+        return CreateAniUndefined(env);
+    }
+    Drawing::Point point;
+    path->GetLastPoint(point);
+    ani_object aniPointObj;
+    CreatePointObjAndCheck(env, point, aniPointObj);
+    return aniPointObj;
+}
+
 void AniPath::ReWind(ani_env* env, ani_object obj)
 {
     auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
@@ -946,6 +966,27 @@ ani_boolean AniPath::Interpolate(ani_env* env, ani_object obj, ani_object othero
     }
 
     return aniPath->GetPath()->Interpolate(*other->GetPath(), weight, *interpolatedPath->GetPath());
+}
+
+ani_boolean AniPath::IsEqual(ani_env* env, ani_object obj, ani_object otherobj)
+{
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
+    if (aniPath == nullptr || aniPath->GetPath() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return false;
+    }
+    std::shared_ptr<Path> path = aniPath->GetPath();
+    auto other = GetNativeFromObj<AniPath>(env, otherobj, AniGlobalField::GetInstance().pathNativeObj);
+    if (other == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "invalid param path.");
+        return false;
+    }
+    std::shared_ptr<Path> otherPath = other->GetPath();
+    if (otherPath == nullptr) {
+        ROSEN_LOGE("AniPath::IsEqual other is nullptr");
+        return false;
+    }
+    return *path == *otherPath;
 }
 
 void AniPath::Set(ani_env* env, ani_object obj, ani_object srcobj)

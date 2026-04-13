@@ -27,14 +27,14 @@ namespace Drawing {
 ani_status AniThrowError(ani_env* env, const std::string& message)
 {
     ani_class errCls;
-    const char* className = "escompat.Error";
+    const char* className = "std.core.Error";
     if (ANI_OK != env->FindClass(className, &errCls)) {
         ROSEN_LOGE("Not found %{public}s", className);
         return ANI_ERROR;
     }
 
     ani_method errCtor;
-    if (ANI_OK != env->Class_FindMethod(errCls, "<ctor>", "C{std.core.String}C{escompat.ErrorOptions}:", &errCtor)) {
+    if (ANI_OK != env->Class_FindMethod(errCls, "<ctor>", "C{std.core.String}C{std.core.ErrorOptions}:", &errCtor)) {
         ROSEN_LOGE("get errCtor Failed %{public}s", className);
         return ANI_ERROR;
     }
@@ -309,7 +309,7 @@ ani_status CreateBusinessError(ani_env* env, int32_t error, const char* message,
         return status;
     }
     ani_method aniCtor;
-    status = env->Class_FindMethod(aniClass, "<ctor>", "C{std.core.String}C{escompat.ErrorOptions}:", &aniCtor);
+    status = env->Class_FindMethod(aniClass, "<ctor>", "C{std.core.String}C{std.core.ErrorOptions}:", &aniCtor);
     if (status != ANI_OK) {
         ROSEN_LOGE("Failed to find ctor, status:%{public}d", static_cast<int32_t>(status));
         return status;

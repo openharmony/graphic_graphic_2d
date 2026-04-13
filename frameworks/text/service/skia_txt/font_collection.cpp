@@ -278,6 +278,11 @@ void FontCollection::ClearThemeFont()
     SPText::DefaultFamilyNameMgr::GetInstance().ModifyThemeFontFamilies(0);
 }
 
+void FontCollection::SetCachesEnabled(bool enable)
+{
+    fontCollection_->SetCachesEnabled(enable);
+}
+
 void FontCollection::ClearCaches()
 {
     fontCollection_->ClearFontFamilyCache();

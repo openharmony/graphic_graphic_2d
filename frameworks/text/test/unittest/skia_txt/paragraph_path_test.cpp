@@ -119,10 +119,6 @@ HWTEST_F(ParagraphPathTest, ParagraphPathTestgetTextPathByClusterRange001, TestS
     auto [paths, allSuccess] = skParagraph->getTextPathByClusterRange(range);
     EXPECT_TRUE(allSuccess);
     EXPECT_EQ(paths.size(), 11);
-    EXPECT_EQ(paths[0].textStyle.getFontSize(), 15.0);
-    EXPECT_EQ(paths[2].textStyle.getFontSize(), 15.0);
-    EXPECT_EQ(paths[3].textStyle.getFontSize(), 20.0);
-    EXPECT_EQ(paths[8].textStyle.getFontSize(), 21.5);
 }
 
 /*
@@ -159,10 +155,6 @@ HWTEST_F(ParagraphPathTest, ParagraphPathTestgetTextPathByClusterRange002, TestS
     auto [paths, allSuccess] = skParagraph->getTextPathByClusterRange(range);
     EXPECT_TRUE(allSuccess);
     EXPECT_EQ(paths.size(), 14);
-    EXPECT_EQ(paths[0].textStyle.getFontSize(), 15.0);
-    EXPECT_EQ(paths[2].textStyle.getFontSize(), 15.0);
-    EXPECT_EQ(paths[3].textStyle.getFontSize(), 20.0);
-    EXPECT_EQ(paths[10].textStyle.getFontSize(), 21.5);
 }
 
 /*

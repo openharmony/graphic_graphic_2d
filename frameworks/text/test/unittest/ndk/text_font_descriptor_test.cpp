@@ -124,11 +124,11 @@ public:
 };
 
 /*
- * @tc.name: NdkFontFullDescriptorTest001
+ * @tc.name: GetFullDescriptorsFromPathNull
  * @tc.desc: test for get font full descriptor from url when path is nullptr.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontDescriptorTest, NdkFontFullDescriptorTest001, TestSize.Level0)
+HWTEST_F(NdkFontDescriptorTest, GetFullDescriptorsFromPathNull, TestSize.Level0)
 {
     OH_Drawing_Array* fontFullDescArr = OH_Drawing_GetFontFullDescriptorsFromPath(nullptr);
     EXPECT_EQ(fontFullDescArr, nullptr);
@@ -142,11 +142,11 @@ HWTEST_F(NdkFontDescriptorTest, NdkFontFullDescriptorTest001, TestSize.Level0)
 }
  
 /*
- * @tc.name: NdkFontFullDescriptorTest002
+ * @tc.name: GetFullDescriptorsFromPathInvalid
  * @tc.desc: test for get font full descriptor from url when path is invalid.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontDescriptorTest, NdkFontFullDescriptorTest002, TestSize.Level0)
+HWTEST_F(NdkFontDescriptorTest, GetFullDescriptorsFromPathInvalid, TestSize.Level0)
 {
     string invalidPath = "/test/invalid.ttf";
     OH_Drawing_Array* fontFullDescArr = OH_Drawing_GetFontFullDescriptorsFromPath(invalidPath.c_str());
@@ -162,11 +162,11 @@ HWTEST_F(NdkFontDescriptorTest, NdkFontFullDescriptorTest002, TestSize.Level0)
 }
 
 /*
- * @tc.name: NdkFontFullDescriptorTest003
+ * @tc.name: GetFullDescriptorsFromPathEmpty
  * @tc.desc: test for get font full descriptor from url when path is empty string.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontDescriptorTest, NdkFontFullDescriptorTest003, TestSize.Level0)
+HWTEST_F(NdkFontDescriptorTest, GetFullDescriptorsFromPathEmpty, TestSize.Level0)
 {
     char *invalidPath = strdup("");
     OH_Drawing_Array* fontFullDescArr = OH_Drawing_GetFontFullDescriptorsFromPath(invalidPath);
@@ -184,11 +184,11 @@ HWTEST_F(NdkFontDescriptorTest, NdkFontFullDescriptorTest003, TestSize.Level0)
 }
  
 /*
- * @tc.name: NdkFontFullDescriptorTest004
+ * @tc.name: GetTtfDescriptorStringAttributes
  * @tc.desc: test for get the ttf fontFullDescriptor and test get font full descriptor attribute string.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontDescriptorTest, NdkFontFullDescriptorTest004, TestSize.Level0)
+HWTEST_F(NdkFontDescriptorTest, GetTtfDescriptorStringAttributes, TestSize.Level0)
 {
     char *validPath = strdup("/system/fonts/HMSymbolVF.ttf");
     OH_Drawing_Array* fontFullDescArr = OH_Drawing_GetFontFullDescriptorsFromPath(validPath);
@@ -241,11 +241,11 @@ HWTEST_F(NdkFontDescriptorTest, NdkFontFullDescriptorTest004, TestSize.Level0)
 }
 
 /*
- * @tc.name: NdkFontFullDescriptorTest005
+ * @tc.name: GetTtfDescriptorIntAndBoolAttributes
  * @tc.desc: test for get the ttf fontFullDescriptor and test get font full descriptor attribute int and bool.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontDescriptorTest, NdkFontFullDescriptorTest005, TestSize.Level0)
+HWTEST_F(NdkFontDescriptorTest, GetTtfDescriptorIntAndBoolAttributes, TestSize.Level0)
 {
     char *validPath = strdup("/system/fonts/HMSymbolVF.ttf");
     int weight, width, italic = 0;
@@ -283,11 +283,11 @@ HWTEST_F(NdkFontDescriptorTest, NdkFontFullDescriptorTest005, TestSize.Level0)
 }
 
 /*
- * @tc.name: NdkFontFullDescriptorTest006
+ * @tc.name: GetDescriptorIntBoolAttributeErrorCode
  * @tc.desc: test for OH_Drawing_GetFontFullDescriptorAttribute int and bool errorCode.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontDescriptorTest, NdkFontFullDescriptorTest006, TestSize.Level0)
+HWTEST_F(NdkFontDescriptorTest, GetDescriptorIntBoolAttributeErrorCode, TestSize.Level0)
 {
     char *validPath = strdup("/system/fonts/HMSymbolVF.ttf");
     // Assign it an initial value
@@ -322,11 +322,11 @@ HWTEST_F(NdkFontDescriptorTest, NdkFontFullDescriptorTest006, TestSize.Level0)
 }
 
 /*
- * @tc.name: NdkFontFullDescriptorTest007
+ * @tc.name: GetDescriptorStringAttributeErrorCode
  * @tc.desc: test for OH_Drawing_GetFontFullDescriptorAttributeString ErrorCode.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontDescriptorTest, NdkFontFullDescriptorTest007, TestSize.Level0)
+HWTEST_F(NdkFontDescriptorTest, GetDescriptorStringAttributeErrorCode, TestSize.Level0)
 {
     char *validPath = strdup("/system/fonts/HMSymbolVF.ttf");
     OH_Drawing_Array* fontFullDescArr = OH_Drawing_GetFontFullDescriptorsFromPath(validPath);
@@ -353,11 +353,11 @@ HWTEST_F(NdkFontDescriptorTest, NdkFontFullDescriptorTest007, TestSize.Level0)
 }
 
 /*
- * @tc.name: NdkFontFullDescriptorTest008
+ * @tc.name: GetTtcDescriptorValidPath
  * @tc.desc: test for the ttc fontFullDescriptor valid path.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontDescriptorTest, NdkFontFullDescriptorTest008, TestSize.Level0)
+HWTEST_F(NdkFontDescriptorTest, GetTtcDescriptorValidPath, TestSize.Level0)
 {
     char* ttcPath = strdup("/system/fonts/NotoSerifCJK-Regular.ttc");
     OH_Drawing_Array* fontFullDescArr = OH_Drawing_GetFontFullDescriptorsFromPath(ttcPath);
@@ -412,11 +412,11 @@ HWTEST_F(NdkFontDescriptorTest, NdkFontFullDescriptorTest008, TestSize.Level0)
 }
 
 /*
- * @tc.name: NdkFontDescriptorTest001
+ * @tc.name: MatchFontDescriptorsNullInput
  * @tc.desc: test for the fontDescriptor.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest001, TestSize.Level0)
+HWTEST_F(NdkFontDescriptorTest, MatchFontDescriptorsNullInput, TestSize.Level0)
 {
     OH_Drawing_FontDescriptor* descArr = OH_Drawing_MatchFontDescriptors(nullptr, nullptr);
     EXPECT_EQ(descArr, nullptr);
@@ -424,11 +424,11 @@ HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest001, TestSize.Level0)
 }
 
 /*
- * @tc.name: NdkFontDescriptorTest002
+ * @tc.name: MatchFontDescriptorsDefault
  * @tc.desc: test for the fontDescriptor.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest002, TestSize.Level0)
+HWTEST_F(NdkFontDescriptorTest, MatchFontDescriptorsDefault, TestSize.Level0)
 {
     OH_Drawing_FontDescriptor* desc = OH_Drawing_CreateFontDescriptor();
     size_t num = 0;
@@ -444,11 +444,11 @@ HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest002, TestSize.Level0)
 }
 
 /*
- * @tc.name: NdkFontDescriptorTest003
+ * @tc.name: MatchFontDescriptorsInvalidWeight
  * @tc.desc: test for the fontDescriptor.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest003, TestSize.Level0)
+HWTEST_F(NdkFontDescriptorTest, MatchFontDescriptorsInvalidWeight, TestSize.Level0)
 {
     OH_Drawing_FontDescriptor* desc = OH_Drawing_CreateFontDescriptor();
     desc->weight = -1;
@@ -461,11 +461,11 @@ HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest003, TestSize.Level0)
 }
 
 /*
- * @tc.name: NdkFontDescriptorTest004
+ * @tc.name: MatchFontDescriptorsByFontFamily
  * @tc.desc: test for the fontDescriptor.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest004, TestSize.Level0)
+HWTEST_F(NdkFontDescriptorTest, MatchFontDescriptorsByFontFamily, TestSize.Level0)
 {
     OH_Drawing_FontDescriptor* desc = OH_Drawing_CreateFontDescriptor();
     char* fontFamily = strdup("HarmonyOS Sans");
@@ -489,11 +489,11 @@ HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest004, TestSize.Level0)
 }
 
 /*
- * @tc.name: NdkFontDescriptorTest005
+ * @tc.name: MatchFontDescriptorsByFontFamilyAndWeight
  * @tc.desc: test for the fontDescriptor.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest005, TestSize.Level0)
+HWTEST_F(NdkFontDescriptorTest, MatchFontDescriptorsByFontFamilyAndWeight, TestSize.Level0)
 {
     OH_Drawing_FontDescriptor* desc = OH_Drawing_CreateFontDescriptor();
     char* fontFamily = strdup("HarmonyOS Sans");
@@ -511,11 +511,11 @@ HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest005, TestSize.Level0)
 }
 
 /*
- * @tc.name: NdkFontDescriptorTest006
+ * @tc.name: GetFontFullNamesByTypeAbnormalParams
  * @tc.desc: test for abnormal parameters when obtaining the font list and obtaining the FontDescriptor by fullName.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest006, TestSize.Level0)
+HWTEST_F(NdkFontDescriptorTest, GetFontFullNamesByTypeAbnormalParams, TestSize.Level0)
 {
     OH_Drawing_SystemFontType fontType = OH_Drawing_SystemFontType(0b10000);
     OH_Drawing_Array *fontList = OH_Drawing_GetSystemFontFullNamesByType(fontType);
@@ -536,11 +536,11 @@ HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest006, TestSize.Level0)
 }
 
 /*
- * @tc.name: NdkFontDescriptorTest007
+ * @tc.name: GetInstalledFontFullNames
  * @tc.desc: test for obtaining the array of installed fonts.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest007, TestSize.Level0)
+HWTEST_F(NdkFontDescriptorTest, GetInstalledFontFullNames, TestSize.Level0)
 {
     InstallConfig installConfig;
     std::unordered_set<std::string> fullnames { "Noto Sans CJK JP", "Noto Sans CJK KR", "Noto Sans CJK SC",
@@ -573,11 +573,11 @@ HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest007, TestSize.Level0)
 }
 
 /*
- * @tc.name: NdkFontDescriptorTest008
+ * @tc.name: GetStylishFontFullNames
  * @tc.desc: test for obtaining the array of stylish fonts.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest008, TestSize.Level0)
+HWTEST_F(NdkFontDescriptorTest, GetStylishFontFullNames, TestSize.Level0)
 {
     if (!ExistStylishFontConfigFile()) {
         return;
@@ -602,11 +602,11 @@ HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest008, TestSize.Level0)
 }
 
 /*
- * @tc.name: NdkFontDescriptorTest009
+ * @tc.name: GetGenericFontFullNames
  * @tc.desc: test for obtaining the array of system generic fonts.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest009, TestSize.Level0)
+HWTEST_F(NdkFontDescriptorTest, GetGenericFontFullNames, TestSize.Level0)
 {
     OH_Drawing_SystemFontType fontType = OH_Drawing_SystemFontType::GENERIC;
     OH_Drawing_Array *fontList = OH_Drawing_GetSystemFontFullNamesByType(fontType);
@@ -632,11 +632,11 @@ HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest009, TestSize.Level0)
 }
 
 /*
- * @tc.name: NdkFontDescriptorTest010
+ * @tc.name: GetStylishFontFullNamesComposite
  * @tc.desc: test for obtaining the list of composite fonts.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest010, TestSize.Level0)
+HWTEST_F(NdkFontDescriptorTest, GetStylishFontFullNamesComposite, TestSize.Level0)
 {
     if (!ExistStylishFontConfigFile()) {
         return;
@@ -661,11 +661,11 @@ HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest010, TestSize.Level0)
 }
 
 /*
- * @tc.name: NdkFontDescriptorTest011
+ * @tc.name: GetFontFullNamesByAllOrStylish
  * @tc.desc: test for obtaining the list of composite fonts that include "ALL".
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest011, TestSize.Level0)
+HWTEST_F(NdkFontDescriptorTest, GetFontFullNamesByAllOrStylish, TestSize.Level0)
 {
     OH_Drawing_SystemFontType fontType = OH_Drawing_SystemFontType(ALL | STYLISH);
     OH_Drawing_Array* fontList = OH_Drawing_GetSystemFontFullNamesByType(fontType);
@@ -691,11 +691,11 @@ HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest011, TestSize.Level0)
 }
 
 /*
- * @tc.name: NdkFontDescriptorTest012
+ * @tc.name: GetFontFullNameByIndexAbnormalParams
  * @tc.desc: test for abnormal parameters when obtaining the fullName by index and releasing array memory.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest012, TestSize.Level0)
+HWTEST_F(NdkFontDescriptorTest, GetFontFullNameByIndexAbnormalParams, TestSize.Level0)
 {
     OH_Drawing_SystemFontType fontType = OH_Drawing_SystemFontType::GENERIC;
     OH_Drawing_Array *fontList = OH_Drawing_GetSystemFontFullNamesByType(fontType);
@@ -714,11 +714,11 @@ HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest012, TestSize.Level0)
 }
 
 /*
- * @tc.name: NdkFontDescriptorTest013
+ * @tc.name: RegisterFontAndGetAllFontFullNames
  * @tc.desc: test for obtaining the list of composite fonts that include "ALL".
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest013, TestSize.Level0)
+HWTEST_F(NdkFontDescriptorTest, RegisterFontAndGetAllFontFullNames, TestSize.Level0)
 {
     OH_Drawing_FontCollection *fc = OH_Drawing_CreateSharedFontCollection();
     const char* fontFamily = "HM Symbol Regular";
@@ -737,11 +737,11 @@ HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest013, TestSize.Level0)
 }
 
 /*
- * @tc.name: NdkFontDescriptorTest014
+ * @tc.name: RegisterFontOnceAndQueryCustomized
  * @tc.desc: test for registering a font once and query it.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest014, TestSize.Level0)
+HWTEST_F(NdkFontDescriptorTest, RegisterFontOnceAndQueryCustomized, TestSize.Level0)
 {
     OH_Drawing_FontCollection *fc = OH_Drawing_CreateSharedFontCollection();
     const char* fontFamily = "HM Symbol Regular";
@@ -761,11 +761,11 @@ HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest014, TestSize.Level0)
 }
 
 /*
- * @tc.name: NdkFontDescriptorTest015
+ * @tc.name: RegisterFontFiveTimesAndQueryCustomized
  * @tc.desc: test for registering a font five times and query it.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest015, TestSize.Level0)
+HWTEST_F(NdkFontDescriptorTest, RegisterFontFiveTimesAndQueryCustomized, TestSize.Level0)
 {
     OH_Drawing_FontCollection *fc = OH_Drawing_CreateSharedFontCollection();
     const char* fontFamily = "HM Symbol Regular";
@@ -789,11 +789,11 @@ HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest015, TestSize.Level0)
 }
 
 /*
- * @tc.name: NdkFontDescriptorTest016
+ * @tc.name: RegisterTtcFontAndQueryCustomized
  * @tc.desc: test for registering a TTC font and query it.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest016, TestSize.Level0)
+HWTEST_F(NdkFontDescriptorTest, RegisterTtcFontAndQueryCustomized, TestSize.Level0)
 {
     OH_Drawing_FontCollection *fc = OH_Drawing_CreateSharedFontCollection();
     const char* fontFamily = "NotoSansCJKjp-Regular-Alphabetic";
@@ -813,11 +813,11 @@ HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest016, TestSize.Level0)
 }
 
 /*
- * @tc.name: NdkFontDescriptorTest017
+ * @tc.name: RegisterOtfFontAndQueryCustomized
  * @tc.desc: test for registering a OTF font and query it.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest017, TestSize.Level0)
+HWTEST_F(NdkFontDescriptorTest, RegisterOtfFontAndQueryCustomized, TestSize.Level0)
 {
     OH_Drawing_FontCollection *fc = OH_Drawing_CreateSharedFontCollection();
     const char* fontFamily = "Birch std";
@@ -840,11 +840,11 @@ HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest017, TestSize.Level0)
 }
 
 /*
- * @tc.name: NdkFontDescriptorTest018
+ * @tc.name: RegisterInvalidFontPath
  * @tc.desc: test for registering failed.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest018, TestSize.Level0)
+HWTEST_F(NdkFontDescriptorTest, RegisterInvalidFontPath, TestSize.Level0)
 {
     OH_Drawing_FontCollection *fc = OH_Drawing_CreateSharedFontCollection();
     const char* fontFamily = "xxxxxxx";
@@ -859,11 +859,11 @@ HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest018, TestSize.Level0)
 }
 
 /*
- * @tc.name: NdkFontDescriptorTest019
+ * @tc.name: RegisterFontWithLocalFontCollection
  * @tc.desc: test for registering a font with a local fontCollection.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest019, TestSize.Level0)
+HWTEST_F(NdkFontDescriptorTest, RegisterFontWithLocalFontCollection, TestSize.Level0)
 {
     OH_Drawing_FontCollection *fc = OH_Drawing_CreateFontCollection();
     const char* fontFamily = "HM Symbol Regular";
@@ -889,11 +889,11 @@ HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest019, TestSize.Level0)
 }
 
 /*
- * @tc.name: NdkGetFontPathsByType001
+ * @tc.name: GetFontPathsByAllTypes
  * @tc.desc: test for get all font paths.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontDescriptorTest, NdkGetFontPathsByType001, TestSize.Level0)
+HWTEST_F(NdkFontDescriptorTest, GetFontPathsByAllTypes, TestSize.Level0)
 {
     InstallConfig installConfig;
     auto expectFunc = [](OH_Drawing_SystemFontType type, size_t num) {
@@ -933,11 +933,11 @@ HWTEST_F(NdkFontDescriptorTest, NdkGetFontPathsByType001, TestSize.Level0)
 }
 
 /*
- * @tc.name: NdkGetFontPathsByType002
+ * @tc.name: GetFontPathsByTypeEmptyInstalled
  * @tc.desc: test for get installed font paths with empty installed font.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontDescriptorTest, NdkGetFontPathsByType002, TestSize.Level0)
+HWTEST_F(NdkFontDescriptorTest, GetFontPathsByTypeEmptyInstalled, TestSize.Level0)
 {
     InstallConfig installConfig(INSTALL_CONFIG_EMPTY);
     size_t pathCount = SIZE_MAX;
@@ -948,11 +948,11 @@ HWTEST_F(NdkFontDescriptorTest, NdkGetFontPathsByType002, TestSize.Level0)
 }
 
 /*
- * @tc.name: NdkGetFontPathsByType003
+ * @tc.name: GetFontPathsByTypeInvalidInput
  * @tc.desc: test for GetFontPathsByType use invalid input
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontDescriptorTest, NdkGetFontPathsByType003, TestSize.Level0)
+HWTEST_F(NdkFontDescriptorTest, GetFontPathsByTypeInvalidInput, TestSize.Level0)
 {
     size_t pathCount = SIZE_MAX;
     OH_Drawing_String* fontPaths = OH_Drawing_GetFontPathsByType(

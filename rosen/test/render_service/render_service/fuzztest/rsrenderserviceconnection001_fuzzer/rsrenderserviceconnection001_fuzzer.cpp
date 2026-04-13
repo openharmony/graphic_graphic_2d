@@ -51,7 +51,8 @@ namespace {
 const uint8_t DO_GET_DEFAULT_SCREEN_ID = 0;
 const uint8_t DO_GET_ACTIVE_SCREEN_ID = 1;
 const uint8_t DO_GET_ALL_SCREEN_IDS = 2;
-const uint8_t TARGET_SIZE = 3;
+const uint8_t DO_SET_AS_MAIN_SCREEN = 3;
+const uint8_t TARGET_SIZE = 4;
 
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
@@ -131,6 +132,58 @@ void DoGetAllScreenIds()
         RSIClientToServiceConnectionInterfaceCode::GET_ALL_SCREEN_IDS);
     toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
+
+void DoSetAsMainScreen()
+{
+    uint32_t code =
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_AS_MAIN_SCREEN);
+
+    MessageParcel dataP1;
+    MessageParcel reply1;
+    MessageOption option1;
+    ScreenId id = GetData<uint64_t>();
+    bool isMainScreen = GetData<bool>();
+    if (!dataP1.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor()) ||
+        !dataP1.WriteUint64(id) || !dataP1.WriteBool(isMainScreen)) {
+        return;
+    }
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP1, reply1, option1);
+
+    MessageParcel dataP2;
+    MessageParcel reply2;
+    MessageOption option2;
+    if (!dataP2.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        return;
+    }
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP2, reply2, option2);
+
+    MessageParcel dataP3;
+    MessageParcel reply3;
+    MessageOption option3;
+    if (!dataP3.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor()) ||
+        !dataP3.WriteUint64(INVALID_SCREEN_ID)) {
+        return;
+    }
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP3, reply3, option3);
+
+    MessageParcel dataP4;
+    MessageParcel reply4;
+    MessageOption option4;
+    if (!dataP4.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor()) ||
+        !dataP4.WriteUint64(INVALID_SCREEN_ID) || !dataP4.WriteBool(true)) {
+        return;
+    }
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP4, reply4, option4);
+
+    MessageParcel dataP5;
+    MessageParcel reply5;
+    MessageOption option5;
+    if (!dataP5.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor()) ||
+        !dataP5.WriteUint64(INVALID_SCREEN_ID) || !dataP5.WriteBool(false)) {
+        return;
+    }
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP5, reply5, option5);
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -204,6 +257,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_GET_ALL_SCREEN_IDS:
             OHOS::Rosen::DoGetAllScreenIds();
+            break;
+        case OHOS::Rosen::DO_SET_AS_MAIN_SCREEN:
+            OHOS::Rosen::DoSetAsMainScreen();
             break;
         default:
             return -1;

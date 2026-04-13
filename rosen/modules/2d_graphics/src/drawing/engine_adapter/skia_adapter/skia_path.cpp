@@ -491,6 +491,23 @@ void SkiaPath::SetLastPoint(scalar x, scalar y)
     path_.setLastPt(x, y);
 }
 
+void SkiaPath::GetLastPoint(Point& point) const
+{
+    SkPoint lastPt;
+    path_.getLastPt(&lastPt);
+    point.SetX(lastPt.x());
+    point.SetY(lastPt.y());
+}
+
+bool SkiaPath::Equals(const Path& other) const
+{
+    const SkiaPath* otherImpl = other.GetImpl<SkiaPath>();
+    if (otherImpl == nullptr) {
+        return false;
+    }
+    return path_ == otherImpl->GetPath();
+}
+
 void SkiaPath::ReWind()
 {
     path_.rewind();

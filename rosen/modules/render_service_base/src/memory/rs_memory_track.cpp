@@ -23,8 +23,7 @@
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "rs_trace.h"
-#include <fstream>
-#include <sstream>
+
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -39,11 +38,7 @@ constexpr uint32_t MEM_UID_STRING_LEN = 8;
 constexpr uint32_t MEM_SURNODE_STRING_LEN = 40;
 constexpr uint32_t MEM_FRAME_STRING_LEN = 35;
 constexpr uint32_t MEM_NODEID_STRING_LEN = 20;
-const std::string ASHMEM_INFO_PATH = "/proc/ashmem_process_info";
-const std::string DMABUF_INFO_PATH = "/proc/process_dmabuf_info";
-#ifdef RS_ENABLE_UNI_RENDER
-constexpr int KILL_PROCESS_TYPE = 301;
-#endif
+
 struct MemoryStats {
     int64_t totalSize = 0;
     int count = 0;
@@ -530,124 +525,26 @@ void MemoryTrack::AddPictureRecord(const void* addr, MemoryInfo info)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     memPicRecord_.emplace(addr, info);
-    if (!(info.allocType == Media::AllocatorType::DMA_ALLOC ||
-        info.allocType ==Media::AllocatorType::SHARE_MEM_ALLOC) || info.type != MEM_PIXELMAP) {
-        return;
+    if (info.type == MEM_PIXELMAP) {
+        pixelMapFdTracker_.AddFdRecord(static_cast<int32_t>(info.pid), addr, info.allocType);
     }
-    fdNumOfPid_[info.pid].insert(addr);
 }
 
 void MemoryTrack::RemovePictureRecord(const void* addr)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    uint32_t pid = 0;
-    if (memPicRecord_.find(addr) != memPicRecord_.end()) {
-        pid = static_cast<uint32_t>(memPicRecord_[addr].pid);
-    }
-    
-    fdNumOfPid_[pid].erase(addr);
-    memPicRecord_.erase(addr);
-}
-
-void MemoryTrack::KillProcessByPid(const pid_t pid, const std::string& reason)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (pid == 0) {
-        return;
-    }
-#ifdef RS_ENABLE_UNI_RENDER
-    FdOverReport(pid, RSEventName::RENDER_MEMORY_OVER_WARNING, "");
-    AAFwk::ExitReasonCompability killReason{AAFwk::Reason::REASON_RESOURCE_CONTROL, KILL_PROCESS_TYPE, reason};
-    killReason.killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_FD_EXCEEDS_LIMIT;
-    int32_t ret = AAFwk::AbilityManagerClient::GetInstance()->KillAppWithReason(pid, killReason);
-    if (ret == ERR_OK) {
-        auto it = fdNumOfPid_.find(pid);
-        if (it != fdNumOfPid_.end()) {
-            fdNumOfPid_.erase(it);
+    auto it = memPicRecord_.find(addr);
+    if (it != memPicRecord_.end()) {
+        if (it->second.type == MEM_PIXELMAP) {
+            pixelMapFdTracker_.RemoveFdRecord(static_cast<int32_t>(it->second.pid), addr, it->second.allocType);
         }
+        memPicRecord_.erase(it);
     }
-#endif
 }
 
-void MemoryTrack::FdOverReport(const pid_t pid, const std::string& reportName,
-    const std::string& hidumperReport)
+bool MemoryTrack::CheckPixelMapFdCountAndKillProcess(uint32_t pid)
 {
-#ifdef RS_ENABLE_UNI_RENDER
-    std::string ashmemInfo;
-    std::ifstream ashmemInfoFile;
-    ashmemInfoFile.open(ASHMEM_INFO_PATH);
-    if (ashmemInfoFile.is_open()) {
-        std::stringstream ashmemInfoStream;
-        ashmemInfoStream << ashmemInfoFile.rdbuf();
-        FilterAshmemInfoByPid(ashmemInfo, ashmemInfoStream.str(), pid);
-        ashmemInfoFile.close();
-    } else {
-        ashmemInfo = reportName;
-        RS_LOGE("MemoryTrack::FdOverReport can not open ashmemInfo");
-    }
-
-    std::string dmaBufInfo;
-    std::ifstream dmaBufInfoFile;
-    dmaBufInfoFile.open(DMABUF_INFO_PATH);
-    if (dmaBufInfoFile.is_open()) {
-        std::stringstream dmaBufInfoStream;
-        dmaBufInfoStream << dmaBufInfoFile.rdbuf();
-        FilterDmaheapInfoByPid(dmaBufInfo, dmaBufInfoStream.str(), pid);
-        dmaBufInfoFile.close();
-    } else {
-        dmaBufInfo = reportName;
-        RS_LOGE("MemoryTrack::FdOverReport can not open dmaBufInfo");
-    }
-
-    std::string combinedInfo = "=== AshmemInfo ===\n" + ashmemInfo +
-        "\n\n=== DmaBufInfo ===\n" + dmaBufInfo;
-
-    std::string filePath = "/data/service/el0/render_service/renderservice_fdmem.txt";
-    WriteInfoToFile(filePath, combinedInfo, hidumperReport);
-
-    RS_TRACE_NAME("MemoryTrack::FdOverReport HiSysEventWrite");
-
-    int ret = RSHiSysEvent::EventWrite(reportName, RSEventType::RS_STATISTIC,
-        "PID", pid,
-        "TYPE", "FD",
-        "FILEPATH", filePath);
-    RS_LOGW("hisysevent writ result=%{public}d, send event [FRAMEWORK,PROCESS_KILL], "
-        "pid[%{public}d]", ret, pid);
-#endif
-}
-
-void MemoryTrack::WriteInfoToFile(std::string& filePath, std::string& memInfo, const std::string& hidumperReport)
-{
-#ifdef RS_ENABLE_UNI_RENDER
-    std::ofstream tempFile(filePath);
-    if (tempFile.is_open()) {
-        tempFile << "\n******************************\n";
-        tempFile << memInfo;
-        tempFile << "\n************ endl ************\n";
-    } else {
-        RS_LOGE("MemoryTrack::file open fail!");
-    }
-    if (!hidumperReport.empty()) {
-        if (tempFile.is_open()) {
-            tempFile << "\n******************************\n";
-            tempFile << "LOGGER_RENDER_SERVICE_MEM\n";
-            tempFile << hidumperReport;
-        } else {
-            RS_LOGE("MemoryTrack::file open fail!");
-        }
-    }
-    tempFile.close();
-#endif
-}
-
-uint32_t MemoryTrack::CountFdRecordOfPid(uint32_t pid)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto it = fdNumOfPid_.find(pid);
-    if (it != fdNumOfPid_.end()) {
-        return it->second.size();
-    }
-    return 0;
+    return pixelMapFdTracker_.CheckFdRecordAndKillProcess(static_cast<int32_t>(pid));
 }
 
 #ifdef RS_MEMORY_INFO_MANAGER
@@ -700,63 +597,5 @@ void MemoryTrack::SetNodeOnTreeStatus(NodeId nodeId, bool rootNodeStatusChangeFl
     itr->second.isOnTree = isOnTree;
 }
 #endif
-
-void MemoryTrack::FilterAshmemInfoByPid(std::string& out, const std::string& info, const pid_t pid)
-{
-    std::string pidStr = std::to_string(pid);
-    std::istringstream iss(info);
-    std::string line;
-
-    while (std::getline(iss, line)) {
-        if (line.find("Process ashmem overview info:") != std::string::npos ||
-            line.find("Process ashmem detail info:") != std::string::npos ||
-            line.find("Process_name") != std::string::npos ||
-            line.find("Total ashmem") != std::string::npos ||
-            line.find("---") != std::string::npos) {
-            out += line + "\n";
-            continue;
-        }
-
-        std::istringstream lineStream(line);
-        std::string token;
-        std::getline(lineStream, token, '\t'); // discard first col
-        if (std::getline(lineStream, token, '\t') && (token == pidStr)) {
-            out += line + "\n";
-        }
-    }
-}
-
-void MemoryTrack::FilterDmaheapInfoByPid(std::string& out, const std::string& info, const pid_t pid)
-{
-    std::string pidStr = std::to_string(pid);
-    std::istringstream iss(info);
-    std::string line;
-    bool hasMatchingData = false;
-
-    while (std::getline(iss, line)) {
-        if (line.find("Dma-buf objects usage of processes:") != std::string::npos ||
-            line.find("Process") != std::string::npos) {
-            out += line + "\n";
-            continue;
-        }
-
-        if (line.find("Total dmabuf size") != std::string::npos) {
-            if (hasMatchingData) {
-                out += line + "\n";
-                hasMatchingData = false;
-                break;
-            }
-            continue;
-        }
-
-        std::istringstream lineStream(line);
-        std::string token;
-        lineStream >> token; // discard first col
-        if ((lineStream >> token) && (token == pidStr)) {
-            out += line + "\n";
-            hasMatchingData = true;
-        }
-    }
-}
 }
 }

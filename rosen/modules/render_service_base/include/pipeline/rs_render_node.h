@@ -468,7 +468,8 @@ public:
     }
 
     std::tuple<bool, bool, bool> Animate(
-        int64_t timestamp, int64_t& minLeftDelayTime, int64_t period = 0, bool isDisplaySyncEnabled = false);
+        int64_t timestamp, int64_t& minLeftDelayTime, int64_t& nextFrameTime,
+        int64_t period = 0, bool isDisplaySyncEnabled = false);
 
     // check if all clip properties are enabled
     bool IsClipBound() const;
@@ -596,7 +597,7 @@ public:
     void NodePostPrepare(
         std::shared_ptr<RSSurfaceRenderNode> curSurfaceNode, const RectI& clipRect);
 
-    void SetStaticCached(bool isStaticCached);
+    void SetStaticCached(bool isStaticCached, bool isMarkedByUI = false);
     virtual bool IsStaticCached() const;
     void SetNodeName(const std::string& nodeName);
     const std::string& GetNodeName() const;
@@ -715,7 +716,8 @@ public:
         GROUPED_BY_UI = GROUPED_BY_ANIM << 1,
         GROUPED_BY_USER = GROUPED_BY_UI << 1,
         GROUPED_BY_FOREGROUND_FILTER = GROUPED_BY_USER << 1,
-        GROUP_TYPE_BUTT = GROUPED_BY_FOREGROUND_FILTER,
+        GROUPED_BY_LAYER = GROUPED_BY_FOREGROUND_FILTER << 1,
+        GROUP_TYPE_BUTT = GROUPED_BY_LAYER,
     };
     void MarkNodeGroup(NodeGroupType type, bool isNodeGroup, bool includeProperty);
     void ExcludedFromNodeGroup(bool isExcluded);
@@ -847,6 +849,10 @@ public:
     {
         uifirstSkipPartialSync_ = skip;
     }
+    bool IsUifirstSkipPartialSync() const
+    {
+        return uifirstSkipPartialSync_;
+    }
 
     void SetForceUpdateByUifirst(bool b)
     {
@@ -967,7 +973,7 @@ public:
     void ResetNodeColorSpace();
     void SetNodeColorSpace(GraphicColorGamut colorSpace);
     GraphicColorGamut GetNodeColorSpace() const;
-    virtual void MarkNodeColorSpace(bool isP3) {}
+    virtual void MarkNodeColorSpace(int8_t colorSpace) {}
 
     void SetEnableHdrEffect(bool enableHdrEffect);
 
@@ -1226,6 +1232,11 @@ private:
     bool childHasVisibleEffect_ = false;  // only collect visible children has useeffect
     bool hasChildrenOutOfRect_ = false;
 
+    // for decide whether has true draw content
+    bool hasDrawContent_ = false;
+    bool subTreeHasDrawContent_ = false;
+    bool needUpdateDrawContent_ = false;
+
     bool isSubTreeDirty_ = false;
     bool isTreeStateChangeDirty_ = false;
     bool isContentDirty_ = false;
@@ -1337,12 +1348,8 @@ private:
     std::unordered_set<NodeId> visibleEffectChild_;
     Drawing::Matrix oldMatrix_;
     Drawing::Matrix oldAbsMatrix_;
-#ifdef RS_ENABLE_MEMORY_DOWNTREE
     mutable std::unique_ptr<RSDrawable::Vec> drawableVec_;
     bool released_ = false;
-#else
-    mutable RSDrawable::Vec drawableVec_;
-#endif
     RSAnimationManager animationManager_;
     RSOpincCache opincCache_;
     std::unordered_set<NodeId> subtreeParallelNodes_;
@@ -1453,6 +1460,7 @@ private:
     friend class ModifierNG::RSRenderModifier;
     friend class ModifierNG::RSForegroundFilterRenderModifier;
     friend class ModifierNG::RSBackgroundFilterRenderModifier;
+    friend class RSDynamicLayerSkipController;
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif

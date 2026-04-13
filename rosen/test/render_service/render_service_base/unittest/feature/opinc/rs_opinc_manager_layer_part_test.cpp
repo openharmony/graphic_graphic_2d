@@ -47,6 +47,15 @@ constexpr int32_t OUTSIDE_RECT_LEFT = 1000;
 constexpr int32_t OUTSIDE_RECT_TOP = 1000;
 constexpr int32_t OUTSIDE_RECT_WIDTH = 50;
 constexpr int32_t OUTSIDE_RECT_HEIGHT = 50;
+constexpr int32_t PARTIAL_OUTSIDE_RECT_LEFT = 90;
+constexpr int32_t PARTIAL_OUTSIDE_RECT_TOP = 90;
+constexpr int32_t PARTIAL_OUTSIDE_RECT_WIDTH = 40;
+constexpr int32_t PARTIAL_OUTSIDE_RECT_HEIGHT = 40;
+// Rect that intersects with DEFAULT_ABS_RECT (10,10,20,20) but is not fully inside
+constexpr int32_t INTERSECT_RECT_LEFT = 5;
+constexpr int32_t INTERSECT_RECT_TOP = 5;
+constexpr int32_t INTERSECT_RECT_WIDTH = 30;
+constexpr int32_t INTERSECT_RECT_HEIGHT = 30;
 constexpr int32_t INSIDE_RECT_LEFT = 20;
 constexpr int32_t INSIDE_RECT_TOP = 20;
 constexpr int32_t INSIDE_RECT_WIDTH = 10;
@@ -55,6 +64,15 @@ const RectI DEFAULT_ABS_RECT = { ABS_RECT_LEFT, ABS_RECT_TOP, ABS_RECT_WIDTH, AB
 const RectI DEFAULT_OLD_RECT = { OLD_RECT_LEFT, OLD_RECT_TOP, OLD_RECT_WIDTH, OLD_RECT_HEIGHT };
 const RectI DEFAULT_CHILD_RECT = { CHILD_RECT_LEFT, CHILD_RECT_TOP, CHILD_RECT_WIDTH, CHILD_RECT_HEIGHT };
 const RectI DEFAULT_OUTSIDE_RECT = { OUTSIDE_RECT_LEFT, OUTSIDE_RECT_TOP, OUTSIDE_RECT_WIDTH, OUTSIDE_RECT_HEIGHT };
+const RectI DEFAULT_PARTIAL_OUTSIDE_RECT = {
+    PARTIAL_OUTSIDE_RECT_LEFT, PARTIAL_OUTSIDE_RECT_TOP,
+    PARTIAL_OUTSIDE_RECT_WIDTH, PARTIAL_OUTSIDE_RECT_HEIGHT
+};
+const RectI DEFAULT_INTERSECT_ONLY_RECT = { INTERSECT_RECT_LEFT, INTERSECT_RECT_TOP,
+    INTERSECT_RECT_WIDTH, INTERSECT_RECT_HEIGHT
+};
+const RectI DEFAULT_INTERSECT_RESULT_RECT = DEFAULT_INTERSECT_ONLY_RECT.IntersectRect(DEFAULT_ABS_RECT);
+const RectI DEFAULT_INTERSECT_RECT = DEFAULT_PARTIAL_OUTSIDE_RECT.IntersectRect(DEFAULT_ABS_RECT);
 const RectI DEFAULT_INSIDE_RECT = { INSIDE_RECT_LEFT, INSIDE_RECT_TOP, INSIDE_RECT_WIDTH, INSIDE_RECT_HEIGHT };
 }
 
@@ -84,6 +102,11 @@ public:
         for (int32_t index = 0; index < WARMUP_UNCHANGED_COUNT; ++index) {
             (void)opincCache.IsLayerPartRenderUnchangeState();
         }
+    }
+
+    static bool CreateDisableAnimationFlag(const std::string& sceneId = "")
+    {
+        return sceneId == "APP_LIST_FLING" || sceneId == "WEB_LIST_FLING" || sceneId == "SCROLLER_ANIMATION";
     }
 
     static LayerPartUpdateCaseContext CreateLayerPartUpdateCaseContext(NodeId nodeId, bool layerPartRenderEnabled)
@@ -195,7 +218,8 @@ HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionNormalP
     ASSERT_NE(dirtyManager, nullptr);
     dirtyManager->SetCurrentFrameDirtyRect(DEFAULT_OLD_RECT);
 
-    RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(*node, dirtyManager, DEFAULT_OLD_RECT);
+    RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(*node, dirtyManager, DEFAULT_OLD_RECT,
+        CreateDisableAnimationFlag());
 
     auto& cachedDirtyManager = node->GetOpincCache().GetLayerPartRenderDirtyManager();
     auto& stagingRenderParams = node->GetStagingRenderParams();
@@ -218,7 +242,8 @@ HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionNullDir
     auto node = CreateCanvasNode(THIRD_NODE_ID);
     std::shared_ptr<RSDirtyRegionManager> dirtyManager = nullptr;
 
-    RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(*node, dirtyManager, DEFAULT_ABS_RECT);
+    RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(*node, dirtyManager, DEFAULT_ABS_RECT,
+        CreateDisableAnimationFlag());
 
     ASSERT_EQ(dirtyManager, nullptr);
 }
@@ -242,7 +267,8 @@ HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionNullSta
     stagingRenderParams.reset();
     ASSERT_EQ(node->GetStagingRenderParams(), nullptr);
 
-    RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(*node, dirtyManager, DEFAULT_ABS_RECT);
+    RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(*node, dirtyManager, DEFAULT_ABS_RECT,
+        CreateDisableAnimationFlag());
 
     ASSERT_NE(dirtyManager, nullptr);
     ASSERT_EQ(node->GetStagingRenderParams(), nullptr);
@@ -266,7 +292,8 @@ HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionLayerPa
     ASSERT_NE(stagingRenderParams, nullptr);
     stagingRenderParams->SetLayerPartRenderEnabled(true);
 
-    RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(*node, dirtyManager, DEFAULT_ABS_RECT);
+    RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(*node, dirtyManager, DEFAULT_ABS_RECT,
+        CreateDisableAnimationFlag());
 
     ASSERT_NE(dirtyManagerHold, nullptr);
     ASSERT_FALSE(stagingRenderParams->GetLayerPartRenderEnabled());
@@ -289,7 +316,8 @@ HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionUsesNod
     ASSERT_NE(dirtyManager, nullptr);
     dirtyManager->SetCurrentFrameDirtyRect(DEFAULT_OLD_RECT);
 
-    RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(*node, dirtyManager, DEFAULT_OLD_RECT);
+    RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(*node, dirtyManager, DEFAULT_OLD_RECT,
+        CreateDisableAnimationFlag());
 
     auto& cachedDirtyManager = node->GetOpincCache().GetLayerPartRenderDirtyManager();
     auto& stagingRenderParams = node->GetStagingRenderParams();
@@ -325,12 +353,12 @@ HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionChangeS
 }
 
 /**
- * @tc.name: CalculateLayerPartRenderDirtyRegionFallbackToNodeAbsRect
- * @tc.desc: Verify unchanged node falls back to node abs rect when dirty region is not fully inside node abs rect
+ * @tc.name: CalculateLayerPartRenderDirtyRegionIntersectNodeAbsRect
+ * @tc.desc: Verify unchanged node clips dirty region to the intersection with node abs rect
  * @tc.type: FUNC
  * @tc.require: issueLayerPart
  */
-HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionFallbackToNodeAbsRect, TestSize.Level1)
+HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionIntersectNodeAbsRect, TestSize.Level1)
 {
     auto node = CreateCanvasNode(THIRD_NODE_ID);
     node->InitRenderParams();
@@ -340,16 +368,17 @@ HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionFallbac
 
     auto dirtyManager = node->GetOpincCache().GetLayerPartRenderDirtyManager();
     ASSERT_NE(dirtyManager, nullptr);
-    dirtyManager->SetCurrentFrameDirtyRect(DEFAULT_OLD_RECT);
+    dirtyManager->SetCurrentFrameDirtyRect(DEFAULT_PARTIAL_OUTSIDE_RECT);
 
-    RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(*node, dirtyManager, DEFAULT_OLD_RECT);
+    RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(
+        *node, dirtyManager, DEFAULT_PARTIAL_OUTSIDE_RECT, CreateDisableAnimationFlag());
 
     auto& cachedDirtyManager = node->GetOpincCache().GetLayerPartRenderDirtyManager();
     auto& stagingRenderParams = node->GetStagingRenderParams();
     ASSERT_NE(cachedDirtyManager, nullptr);
     ASSERT_NE(stagingRenderParams, nullptr);
     ASSERT_TRUE(stagingRenderParams->GetLayerPartRenderEnabled());
-    ASSERT_EQ(stagingRenderParams->GetLayerPartRenderCurrentFrameDirtyRegion(), DEFAULT_ABS_RECT);
+    ASSERT_EQ(stagingRenderParams->GetLayerPartRenderCurrentFrameDirtyRegion(), DEFAULT_INTERSECT_RECT);
     ASSERT_EQ(dirtyManager, nullptr);
 }
 
@@ -369,7 +398,8 @@ HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionNotLaye
     ASSERT_NE(stagingRenderParams, nullptr);
     stagingRenderParams->SetLayerPartRenderEnabled(true);
 
-    RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(*node, dirtyManager, DEFAULT_ABS_RECT);
+    RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(*node, dirtyManager, DEFAULT_ABS_RECT,
+        CreateDisableAnimationFlag());
 
     ASSERT_NE(dirtyManager, nullptr);
     ASSERT_TRUE(stagingRenderParams->GetLayerPartRenderEnabled());
@@ -394,7 +424,8 @@ HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionGeoNull
     ASSERT_NE(stagingRenderParams, nullptr);
     stagingRenderParams->SetLayerPartRenderEnabled(true);
 
-    RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(*node, dirtyManager, DEFAULT_ABS_RECT);
+    RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(*node, dirtyManager, DEFAULT_ABS_RECT,
+        CreateDisableAnimationFlag());
 
     ASSERT_NE(dirtyManager, nullptr);
     ASSERT_FALSE(stagingRenderParams->GetLayerPartRenderEnabled());
@@ -423,7 +454,8 @@ HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionInvertF
     ASSERT_NE(stagingRenderParams, nullptr);
     stagingRenderParams->SetLayerPartRenderEnabled(true);
 
-    RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(*node, dirtyManager, DEFAULT_ABS_RECT);
+    RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(*node, dirtyManager, DEFAULT_ABS_RECT,
+        CreateDisableAnimationFlag());
 
     ASSERT_NE(dirtyManager, nullptr);
     ASSERT_FALSE(stagingRenderParams->GetLayerPartRenderEnabled());
@@ -432,7 +464,7 @@ HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionInvertF
 
 /**
  * @tc.name: CalculateLayerPartRenderDirtyRegionOutsideNodeAbsRect
- * @tc.desc: Verify out-of-range dirty region falls back to node abs rect
+ * @tc.desc: Verify out-of-range dirty region becomes empty after intersecting node abs rect
  * @tc.type: FUNC
  * @tc.require: issueLayerPart
  */
@@ -449,12 +481,13 @@ HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionOutside
     dirtyManager->SetCurrentFrameDirtyRect(DEFAULT_OUTSIDE_RECT);
 
     RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(*node, dirtyManager,
-        DEFAULT_OUTSIDE_RECT);
+        DEFAULT_OUTSIDE_RECT, CreateDisableAnimationFlag());
 
     auto& cachedDirtyManager = node->GetOpincCache().GetLayerPartRenderDirtyManager();
     auto& stagingRenderParams = node->GetStagingRenderParams();
     ASSERT_NE(cachedDirtyManager, nullptr);
     ASSERT_NE(stagingRenderParams, nullptr);
+    // When dirty rect does not intersect with node abs rect, use full node rect
     ASSERT_EQ(stagingRenderParams->GetLayerPartRenderCurrentFrameDirtyRegion(), DEFAULT_ABS_RECT);
     ASSERT_EQ(dirtyManager, nullptr);
 }
@@ -478,7 +511,7 @@ HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionInsideN
     dirtyManager->SetCurrentFrameDirtyRect(DEFAULT_INSIDE_RECT);
 
     RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(*node, dirtyManager,
-        DEFAULT_INSIDE_RECT);
+        DEFAULT_INSIDE_RECT, CreateDisableAnimationFlag());
 
     auto& cachedDirtyManager = node->GetOpincCache().GetLayerPartRenderDirtyManager();
     auto& stagingRenderParams = node->GetStagingRenderParams();
@@ -564,6 +597,37 @@ HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionOutside
 }
 
 /**
+ * @tc.name: CalculateLayerPartRenderDirtyRegionIntersectOnly
+ * @tc.desc: Verify intersect branch uses intersection when dirty rect partially overlaps node abs rect
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSOpincManagerLayerPartTest, CalculateLayerPartRenderDirtyRegionIntersectOnly, TestSize.Level1)
+{
+    auto node = CreateCanvasNode(THIRD_NODE_ID);
+    node->InitRenderParams();
+    node->GetOpincCache().SetLayerPartRender(true);
+    node->MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_USER, true, false);
+    WarmUpLayerPartUnchangeState(node->GetOpincCache());
+
+    auto dirtyManager = std::make_shared<RSDirtyRegionManager>();
+    ASSERT_NE(dirtyManager, nullptr);
+    // Set dirty rect that intersects with but is lager than node abs rect
+    dirtyManager->SetCurrentFrameDirtyRect(DEFAULT_INTERSECT_ONLY_RECT);
+
+    RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(
+        *node, dirtyManager, DEFAULT_INTERSECT_ONLY_RECT, CreateDisableAnimationFlag());
+
+    auto& cacheDirtyManager = node->GetOpincCache().GetLayerPartRenderDirtyManager();
+    auto& stagingRenderParams = node->GetStagingRenderParams();
+    ASSERT_NE(cacheDirtyManager, nullptr);
+    ASSERT_NE(stagingRenderParams, nullptr);
+    ASSERT_TRUE(stagingRenderParams->GetLayerPartRenderEnabled());
+    ASSERT_EQ(stagingRenderParams->GetLayerPartRenderCurrentFrameDirtyRegion(), DEFAULT_INTERSECT_RESULT_RECT);
+    ASSERT_EQ(dirtyManager, nullptr);
+}
+
+/**
  * @tc.name: CalculateAndUpdateLayerPartRenderDirtyRegionCacheDisablePathHit
  * @tc.desc: Verify cache-disable strategy path clears strategy to cache-none and releases dirty manager
  * @tc.type: FUNC
@@ -581,7 +645,7 @@ HWTEST_F(RSOpincManagerLayerPartTest, CalculateAndUpdateLayerPartRenderDirtyRegi
     context.node->GetOpincCache().SetLayerPartRender(true);
 
     RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(
-        *context.node, context.dirtyManager, DEFAULT_ABS_RECT);
+        *context.node, context.dirtyManager, DEFAULT_ABS_RECT, CreateDisableAnimationFlag());
 
     EXPECT_EQ(context.dirtyManager, nullptr);
     EXPECT_FALSE(context.stagingRenderParams->GetLayerPartRenderEnabled());
@@ -607,12 +671,62 @@ HWTEST_F(RSOpincManagerLayerPartTest, CalculateAndUpdateLayerPartRenderDirtyRegi
     context.dirtyManager->SetHasUifirstChild(true);
 
     RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(
-        *context.node, context.dirtyManager, DEFAULT_ABS_RECT);
+        *context.node, context.dirtyManager, DEFAULT_ABS_RECT, CreateDisableAnimationFlag());
 
     EXPECT_NE(context.dirtyManager, nullptr);
     EXPECT_FALSE(context.stagingRenderParams->GetLayerPartRenderEnabled());
     EXPECT_EQ(context.node->GetNodeGroupType(), RSRenderNode::NodeGroupType::NONE);
     EXPECT_EQ(context.stagingRenderParams->GetDrawingCacheType(), context.node->GetDrawingCacheType());
+}
+
+/**
+ * @tc.name: CalculateAndUpdateLayerPartRenderDirtyRegionDisableAnimationPathHit
+ * @tc.desc: Verify disable-animation path clears layer-part render and keeps dirty manager for caller
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSOpincManagerLayerPartTest, CalculateAndUpdateLayerPartRenderDirtyRegionDisableAnimationPathHit,
+    TestSize.Level1)
+{
+    auto context = CreateLayerPartUpdateCaseContext(DEFAULT_NODE_ID + 35, true);
+    ASSERT_NE(context.node, nullptr);
+    ASSERT_NE(context.dirtyManager, nullptr);
+    ASSERT_NE(context.stagingRenderParams, nullptr);
+    context.node->GetOpincCache().SetLayerPartRender(true);
+    context.node->MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_USER, true, false);
+
+    RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(
+        *context.node, context.dirtyManager, DEFAULT_ABS_RECT, CreateDisableAnimationFlag("APP_LIST_FLING"));
+
+    EXPECT_NE(context.dirtyManager, nullptr);
+    EXPECT_FALSE(context.stagingRenderParams->GetLayerPartRenderEnabled());
+    EXPECT_EQ(context.node->GetNodeGroupType(), RSRenderNode::NodeGroupType::NONE);
+    EXPECT_EQ(context.stagingRenderParams->GetDrawingCacheType(), context.node->GetDrawingCacheType());
+}
+
+/**
+ * @tc.name: CalculateAndUpdateLayerPartRenderDirtyRegionIgnoreUnmatchedEvent
+ * @tc.desc: Verify unmatched current-frame event does not disable layer-part render
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSOpincManagerLayerPartTest, CalculateAndUpdateLayerPartRenderDirtyRegionIgnoreUnmatchedEvent,
+    TestSize.Level1)
+{
+    auto context = CreateLayerPartUpdateCaseContext(DEFAULT_NODE_ID + 36, false);
+    ASSERT_NE(context.node, nullptr);
+    ASSERT_NE(context.dirtyManager, nullptr);
+    ASSERT_NE(context.stagingRenderParams, nullptr);
+    context.node->GetOpincCache().SetLayerPartRender(true);
+    context.node->MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_USER, true, false);
+
+    RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(
+        *context.node, context.dirtyManager, DEFAULT_ABS_RECT,
+        CreateDisableAnimationFlag("WINDOW_TITLE_BAR_MINIMIZED"));
+
+    EXPECT_EQ(context.node->GetNodeGroupType(), RSRenderNode::NodeGroupType::GROUPED_BY_USER);
+    EXPECT_TRUE(context.stagingRenderParams->GetLayerPartRenderEnabled());
+    EXPECT_EQ(context.dirtyManager, nullptr);
 }
 
 /**
@@ -634,7 +748,7 @@ HWTEST_F(RSOpincManagerLayerPartTest, CalculateAndUpdateLayerPartRenderDirtyRegi
     context.node->GetOpincCache().SetLayerPartRenderNodeStrategyType(NodeStrategyType::NODE_GROUP);
 
     RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(
-        *context.node, context.dirtyManager, DEFAULT_ABS_RECT);
+        *context.node, context.dirtyManager, DEFAULT_ABS_RECT, CreateDisableAnimationFlag());
 
     EXPECT_NE(context.dirtyManager, nullptr);
     EXPECT_FALSE(context.stagingRenderParams->GetLayerPartRenderEnabled());
@@ -659,7 +773,7 @@ HWTEST_F(RSOpincManagerLayerPartTest, CalculateAndUpdateLayerPartRenderDirtyRegi
     context.node->GetMutableRenderProperties().boundsGeo_ = nullptr;
 
     RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(
-        *context.node, context.dirtyManager, DEFAULT_ABS_RECT);
+        *context.node, context.dirtyManager, DEFAULT_ABS_RECT, CreateDisableAnimationFlag());
 
     EXPECT_NE(context.dirtyManager, nullptr);
     EXPECT_FALSE(context.stagingRenderParams->GetLayerPartRenderEnabled());
@@ -682,7 +796,7 @@ HWTEST_F(RSOpincManagerLayerPartTest, CalculateAndUpdateLayerPartRenderDirtyRegi
     context.node->MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_USER, true, false);
 
     RSOpincManager::Instance().CalculateAndUpdateLayerPartRenderDirtyRegion(
-        *context.node, context.dirtyManager, DEFAULT_ABS_RECT);
+        *context.node, context.dirtyManager, DEFAULT_ABS_RECT, CreateDisableAnimationFlag());
 
     EXPECT_EQ(context.node->GetNodeGroupType(), RSRenderNode::NodeGroupType::GROUPED_BY_USER);
     EXPECT_TRUE(context.stagingRenderParams->GetLayerPartRenderEnabled());

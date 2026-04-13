@@ -782,6 +782,95 @@ HWTEST_F(BrushTest, Dump001, TestSize.Level1)
     brush.Dump(out);
     EXPECT_FALSE(out.empty());
 }
+
+/**
+ * @tc.name: SetAlpha
+ * @tc.desc: Test SetAlpha
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(BrushTest, SetAlpha, TestSize.Level1)
+{
+    Brush brush;
+    UIColor uiColor(0.5f, 0.6f, 0.7f, 0.8f, 2.0f);
+    brush.SetUIColor(uiColor, nullptr);
+    brush.SetAlpha(128);
+    EXPECT_EQ(brush.GetAlpha(), 128);
+
+    brush.SetColor(Color(100, 150, 200, 255));
+    brush.SetAlpha(200);
+    EXPECT_EQ(brush.GetAlpha(), 200);
+}
+
+/**
+ * @tc.name: SetAlphaF
+ * @tc.desc: Test SetAlphaF with HdrColor branch
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(BrushTest, SetAlphaF, TestSize.Level1)
+{
+    Brush brush;
+    UIColor uiColor(0.5f, 0.6f, 0.7f, 0.8f, 2.0f);
+    brush.SetUIColor(uiColor, nullptr);
+    brush.SetAlphaF(0.5f);
+    EXPECT_FLOAT_EQ(brush.GetAlphaF(), 0.5f);
+
+    brush.SetColor(Color(100, 150, 200, 255));
+    brush.SetAlphaF(0.7f);
+    EXPECT_FLOAT_EQ(brush.GetAlphaF(), 0.7f);
+}
+
+/**
+ * @tc.name: GetRedF
+ * @tc.desc: Test GetRedF
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(BrushTest, GetRedF, TestSize.Level1)
+{
+    Brush brush;
+    UIColor uiColor(0.55f, 0.65f, 0.75f, 0.8f, 2.0f);
+    brush.SetUIColor(uiColor, nullptr);
+    EXPECT_FLOAT_EQ(brush.GetRedF(), 0.55f);
+
+    brush.SetARGB(255, 128, 64, 32);
+    EXPECT_FLOAT_EQ(brush.GetRedF(), 128.0f / 255.0f);
+}
+
+/**
+ * @tc.name: GetGreenF
+ * @tc.desc: Test GetGreenF
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(BrushTest, GetGreenF, TestSize.Level1)
+{
+    Brush brush;
+    UIColor uiColor(0.5f, 0.62f, 0.7f, 0.8f, 2.0f);
+    brush.SetUIColor(uiColor, nullptr);
+    EXPECT_FLOAT_EQ(brush.GetGreenF(), 0.62f);
+
+    brush.SetARGB(255, 64, 96, 32);
+    EXPECT_FLOAT_EQ(brush.GetGreenF(), 96.0f / 255.0f);
+}
+
+/**
+ * @tc.name: GetBlueF
+ * @tc.desc: Test GetBlueF
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(BrushTest, GetBlueF, TestSize.Level1)
+{
+    Brush brush;
+    UIColor uiColor(0.5f, 0.6f, 0.73f, 0.8f, 2.0f);
+    brush.SetUIColor(uiColor, nullptr);
+    EXPECT_FLOAT_EQ(brush.GetBlueF(), 0.73f);
+
+    brush.SetARGB(255, 64, 96, 160);
+    EXPECT_FLOAT_EQ(brush.GetBlueF(), 160.0f / 255.0f);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

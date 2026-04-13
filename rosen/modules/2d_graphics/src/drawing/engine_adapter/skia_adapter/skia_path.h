@@ -107,7 +107,11 @@ public:
     void ReWind() override;
     void SetLastPoint(scalar x, scalar y) override;
 
+    void GetLastPoint(Point& point) const override;
+
     void Close() override;
+
+    bool Equals(const Path& other) const override;
 
     void SetPath(const SkPath& path);
 

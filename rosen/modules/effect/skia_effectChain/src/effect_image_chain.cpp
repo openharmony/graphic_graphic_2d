@@ -32,9 +32,11 @@
 #include "surface_buffer.h"
 
 #ifdef RS_ENABLE_VK
-#include "effect_vulkan_context.h"
 #ifndef ROSEN_ARKUI_X
+#include "platform/ohos/backend/rs_vulkan_context.h"
 #include "platform/ohos/backend/native_buffer_utils.h"
+#else
+#include "rs_vulkan_context.h"
 #endif
 #endif
 

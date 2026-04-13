@@ -214,6 +214,8 @@ public:
     ) = 0;
 
     virtual int32_t GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result) = 0;
+
+    virtual void RegisterRemoteRefreshCallback() = 0;
 };
 
 } // namespace Rosen

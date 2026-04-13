@@ -56,7 +56,7 @@ private:
     inline static int uiFirstType_ = 1;
     inline static int clearCacheThreshold_ = 0;
     inline static float sizeChangedThreshold_ = 0.1f;
-    inline static bool isOcclusionEnabled_ = false;
+    inline static bool isOcclusionEnabled_ = true;
     inline static bool isUIFirstLeashAllEnable_ = false;
 
     friend class UIFirstParamParse;

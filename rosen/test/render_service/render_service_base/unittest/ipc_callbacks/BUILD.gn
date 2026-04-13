@@ -136,6 +136,47 @@ ohos_unittest("RSFrameStabilityCallbackTest") {
 
   subsystem_name = "graphic"
 }
+
+##############################  RSExposedEventCallbackTest  ##################################
+ohos_unittest("RSExposedEventCallbackTest") {
+  module_out_path = module_output_path
+
+  sources = [
+    "rs_exposed_event_callback_proxy_test.cpp",
+    "rs_exposed_event_callback_stub_test.cpp",
+  ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/test/include",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "hitrace:hitrace_meter",
+    "init:libbegetutil",
+  ]
+
+  subsystem_name = "graphic"
+}
 ###############################################################################
 
 config("render_test") {
@@ -149,5 +190,6 @@ group("unittest") {
   deps = [
     ":RSRenderServiceBaseIpcCallBacksTest",
     ":RSFrameStabilityCallbackTest",
+    ":RSExposedEventCallbackTest",
   ]
 }

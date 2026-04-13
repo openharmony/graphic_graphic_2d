@@ -4085,8 +4085,8 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RenderPipelineAgentNullptrTest012, 
     agent->NotifyHwcEventToRender(0, 0, eventData);
     // Should return without crash
 
-    // Test CleanAll
-    agent->CleanAll(100);
+    // Test Clean
+    agent->Clean(100, false);
     // Should return without crash
 
     // Test AddTransactionDataPidInfo
@@ -4929,5 +4929,138 @@ HWTEST_F(RSClientToRenderConnectionStubTest, GetFrameStabilityResultTest002, Tes
         RSIClientToRenderConnectionInterfaceCode::GET_FRAME_STABILITY_RESULT);
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_REPLY);
+}
+
+/**
+ * @tc.name: RegisterRemoteRefreshCallbackTest
+ * @tc.desc: Test RegisterRemoteRefreshCallback with normal and edge cases
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, RegisterRemoteRefreshCallbackTest, TestSize.Level1)
+{
+    // Test with valid connection
+    auto testToken = new IRemoteStub<RSIConnectionToken>();
+    auto testConnection = new RSClientToRenderConnection(TEST_NULLPTR_CONN_PID,
+        renderPipelineAgent_, testToken->AsObject());
+    ASSERT_NE(testConnection, nullptr);
+
+    // First call should create recipient
+    testConnection->RegisterRemoteRefreshCallback();
+    EXPECT_NE(testConnection->connRefreshRecipient_, nullptr);
+
+    // Second call should not create new recipient (already exists)
+    auto firstRecipient = testConnection->connRefreshRecipient_;
+    testConnection->RegisterRemoteRefreshCallback();
+    EXPECT_EQ(testConnection->connRefreshRecipient_, firstRecipient);
+}
+
+/**
+ * @tc.name: CleanForRefreshTest001
+ * @tc.desc: Test CleanForRefresh when renderPipelineAgent_ is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, CleanForRefreshTest001, TestSize.Level1)
+{
+    auto testToken = new IRemoteStub<RSIConnectionToken>();
+    auto testConnection = new RSClientToRenderConnection(TEST_NULLPTR_CONN_PID,
+        nullptr, testToken->AsObject());
+    ASSERT_NE(testConnection, nullptr);
+    ASSERT_EQ(testConnection->renderPipelineAgent_, nullptr);
+
+    // Should return early without crash when renderPipelineAgent_ is nullptr
+    testConnection->CleanForRefresh();
+    // Verify connection remains valid after CleanForRefresh
+    EXPECT_EQ(testConnection->renderPipelineAgent_, nullptr);
+}
+
+/**
+ * @tc.name: CleanForRefreshTest002
+ * @tc.desc: Test CleanForRefresh normal path
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, CleanForRefreshTest002, TestSize.Level1)
+{
+    auto testToken = new IRemoteStub<RSIConnectionToken>();
+    auto testConnection = new RSClientToRenderConnection(TEST_NULLPTR_CONN_PID,
+        renderPipelineAgent_, testToken->AsObject());
+    ASSERT_NE(testConnection, nullptr);
+    ASSERT_NE(testConnection->renderPipelineAgent_, nullptr);
+    EXPECT_EQ(testConnection->remotePid_, TEST_NULLPTR_CONN_PID);
+
+    // Should call Clean with forRefresh=true
+    testConnection->CleanForRefresh();
+    // Verify connection and agent remain valid after CleanForRefresh
+    EXPECT_NE(testConnection->renderPipelineAgent_, nullptr);
+}
+
+/**
+ * @tc.name: RSConnectionRefreshRecipientTest001
+ * @tc.desc: Test RSConnectionRefreshRecipient::OnRemoteRefreshed with nullptr token
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, RSConnectionRefreshRecipientTest001, TestSize.Level1)
+{
+    auto testToken = new IRemoteStub<RSIConnectionToken>();
+    auto testConnection = new RSClientToRenderConnection(TEST_NULLPTR_CONN_PID,
+        renderPipelineAgent_, testToken->AsObject());
+    ASSERT_NE(testConnection, nullptr);
+
+    auto refreshRecipient = new RSClientToRenderConnection::RSConnectionRefreshRecipient(testConnection);
+    ASSERT_NE(refreshRecipient, nullptr);
+
+    // Verify initial state
+    ASSERT_NE(refreshRecipient->conn_, nullptr);
+
+    // Test with nullptr token (wptr with nullptr)
+    wptr<IRemoteObject> nullToken;
+    refreshRecipient->OnRemoteRefreshed(nullToken);
+    // Should return early when token is nullptr, connection should remain valid
+    EXPECT_NE(testConnection, nullptr);
+}
+
+/**
+ * @tc.name: RSConnectionRefreshRecipientTest002
+ * @tc.desc: Test RSConnectionRefreshRecipient::OnRemoteRefreshed with valid connection
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, RSConnectionRefreshRecipientTest002, TestSize.Level1)
+{
+    auto testToken = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSClientToRenderConnection> testConnection = new RSClientToRenderConnection(TEST_NULLPTR_CONN_PID,
+        renderPipelineAgent_, testToken->AsObject());
+    ASSERT_NE(testConnection, nullptr);
+
+    wptr<RSClientToRenderConnection> weakConn = testConnection;
+    auto refreshRecipient = new RSClientToRenderConnection::RSConnectionRefreshRecipient(weakConn);
+    ASSERT_NE(refreshRecipient, nullptr);
+    ASSERT_NE(refreshRecipient->conn_, nullptr);
+
+    // Test with valid token and valid connection - should handle gracefully
+    refreshRecipient->OnRemoteRefreshed(testToken->AsObject());
+    // Verify weak reference returns valid connection after OnRemoteRefreshed
+    EXPECT_NE(refreshRecipient->conn_.promote(), nullptr);
+}
+
+/**
+ * @tc.name: RSConnectionRefreshRecipientTest003
+ * @tc.desc: Test RSConnectionRefreshRecipient::OnRemoteRefreshed with matching token
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, RSConnectionRefreshRecipientTest003, TestSize.Level1)
+{
+    auto testToken = new IRemoteStub<RSIConnectionToken>();
+    auto testConnection = new RSClientToRenderConnection(TEST_NULLPTR_CONN_PID,
+        renderPipelineAgent_, testToken->AsObject());
+    ASSERT_NE(testConnection, nullptr);
+    ASSERT_NE(testConnection->renderPipelineAgent_, nullptr);
+    ASSERT_EQ(testConnection->GetToken(), testToken->AsObject());
+
+    auto refreshRecipient = new RSClientToRenderConnection::RSConnectionRefreshRecipient(testConnection);
+    ASSERT_NE(refreshRecipient, nullptr);
+
+    // Test with matching token - should call CleanForRefresh
+    refreshRecipient->OnRemoteRefreshed(testToken->AsObject());
+    // Verify connection remains valid after OnRemoteRefreshed
+    EXPECT_NE(testConnection, nullptr);
 }
 } // namespace OHOS::Rosen

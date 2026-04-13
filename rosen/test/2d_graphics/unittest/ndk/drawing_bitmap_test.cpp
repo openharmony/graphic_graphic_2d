@@ -301,6 +301,586 @@ HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_GetAlphaFormat009, Tes
         EXPECT_EQ(alphaFormat_, alphaFormats[i]);
     }
 }
+
+/*
+ * @tc.name: NativeDrawingBitmapTest_bitmapGetRowBytes001
+ * @tc.desc: test for BitmapGetRowBytes func with valid bitmap.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_bitmapGetRowBytes001, TestSize.Level1)
+{
+    const unsigned int width = 500;
+    const unsigned int height = 500;
+    const uint32_t rowBytes = 2000;
+    OH_Drawing_Image_Info imageInfo;
+    imageInfo.width = width;
+    imageInfo.height = height;
+    imageInfo.colorType = COLOR_FORMAT_RGBA_8888;
+    imageInfo.alphaType = ALPHA_FORMAT_PREMUL;
+    
+    uint8_t* pixels = new uint8_t[width * height * 4];
+    OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreateFromPixels(&imageInfo, pixels, rowBytes);
+    ASSERT_NE(bitmap, nullptr);
+    
+    uint32_t bytes = 0;
+    EXPECT_EQ(OH_DRAWING_SUCCESS, OH_Drawing_BitmapGetRowBytes(bitmap, &bytes));
+    EXPECT_EQ(rowBytes, bytes);
+    
+    delete[] pixels;
+    OH_Drawing_BitmapDestroy(bitmap);
+}
+
+/*
+ * @tc.name: NativeDrawingBitmapTest_bitmapGetRowBytes002
+ * @tc.desc: test for BitmapGetRowBytes func with null bitmap.
+ * @tc.type: {FUNC}
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_bitmapGetRowBytes002, TestSize.Level1)
+{
+    uint32_t bytes = 0;
+    EXPECT_EQ(OH_Drawing_BitmapGetRowBytes(nullptr, &bytes), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_BitmapGetRowBytes(nullptr, nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+}
+
+/*
+ * @tc.name: NativeDrawingBitmapTest_bitmapGetRowBytes003
+ * @tc.desc: test for BitmapGetRowBytes func with null bytes parameter.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_bitmapGetRowBytes003, TestSize.Level1)
+{
+    const unsigned int width = 500;
+    const unsigned int height = 500;
+    const uint32_t rowBytes = 2000;
+    
+    OH_Drawing_Image_Info imageInfo;
+    imageInfo.width = width;
+    imageInfo.height = height;
+    imageInfo.colorType = COLOR_FORMAT_RGBA_8888;
+    imageInfo.alphaType = ALPHA_FORMAT_PREMUL;
+    
+    uint8_t* pixels = new uint8_t[width * height * 4];
+    OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreateFromPixels(&imageInfo, pixels, rowBytes);
+    ASSERT_NE(bitmap, nullptr);
+    
+    EXPECT_EQ(OH_Drawing_BitmapGetRowBytes(bitmap, nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    
+    delete[] pixels;
+    OH_Drawing_BitmapDestroy(bitmap);
+}
+
+/*
+ * @tc.name: NativeDrawingBitmapTest_bitmapGetRowBytes004
+ * @tc.desc: test for BitmapGetRowBytes func with ALPHA_8 format.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_bitmapGetRowBytes004, TestSize.Level1)
+{
+    const unsigned int width = 100;
+    const unsigned int height = 100;
+    const uint32_t rowBytes = 100;
+    
+    OH_Drawing_Image_Info imageInfo;
+    imageInfo.width = width;
+    imageInfo.height = height;
+    imageInfo.colorType = COLOR_FORMAT_ALPHA_8;
+    imageInfo.alphaType = ALPHA_FORMAT_PREMUL;
+    
+    uint8_t* pixels = new uint8_t[width * height];
+    OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreateFromPixels(&imageInfo, pixels, rowBytes);
+    ASSERT_NE(bitmap, nullptr);
+    
+    uint32_t bytes = 0;
+    EXPECT_EQ(OH_DRAWING_SUCCESS, OH_Drawing_BitmapGetRowBytes(bitmap, &bytes));
+    EXPECT_EQ(rowBytes, bytes);
+    
+    delete[] pixels;
+    OH_Drawing_BitmapDestroy(bitmap);
+}
+
+/*
+ * @tc.name: NativeDrawingBitmapTest_bitmapGetRowBytes005
+ * @tc.desc: test for BitmapGetRowBytes func with RGB_565 format.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_bitmapGetRowBytes005, TestSize.Level1)
+{
+    const unsigned int width = 100;
+    const unsigned int height = 100;
+    const uint32_t rowBytes = 200;
+    
+    OH_Drawing_Image_Info imageInfo;
+    imageInfo.width = width;
+    imageInfo.height = height;
+    imageInfo.colorType = COLOR_FORMAT_RGB_565;
+    imageInfo.alphaType = ALPHA_FORMAT_OPAQUE;
+    
+    uint8_t* pixels = new uint8_t[width * height * 2];
+    OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreateFromPixels(&imageInfo, pixels, rowBytes);
+    ASSERT_NE(bitmap, nullptr);
+    
+    uint32_t bytes = 0;
+    EXPECT_EQ(OH_DRAWING_SUCCESS, OH_Drawing_BitmapGetRowBytes(bitmap, &bytes));
+    EXPECT_EQ(rowBytes, bytes);
+    
+    delete[] pixels;
+    OH_Drawing_BitmapDestroy(bitmap);
+}
+
+/*
+ * @tc.name: NativeDrawingBitmapTest_bitmapGetRowBytes006
+ * @tc.desc: test for BitmapGetRowBytes func with ARGB_4444 format.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_bitmapGetRowBytes006, TestSize.Level1)
+{
+    const unsigned int width = 100;
+    const unsigned int height = 100;
+    const uint32_t rowBytes = 200;
+    
+    OH_Drawing_Image_Info imageInfo;
+    imageInfo.width = width;
+    imageInfo.height = height;
+    imageInfo.colorType = COLOR_FORMAT_ARGB_4444;
+    imageInfo.alphaType = ALPHA_FORMAT_PREMUL;
+    
+    uint8_t* pixels = new uint8_t[width * height * 2];
+    OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreateFromPixels(&imageInfo, pixels, rowBytes);
+    ASSERT_NE(bitmap, nullptr);
+    
+    uint32_t bytes = 0;
+    EXPECT_EQ(OH_DRAWING_SUCCESS, OH_Drawing_BitmapGetRowBytes(bitmap, &bytes));
+    EXPECT_EQ(rowBytes, bytes);
+    
+    delete[] pixels;
+    OH_Drawing_BitmapDestroy(bitmap);
+}
+
+/*
+ * @tc.name: NativeDrawingBitmapTest_bitmapGetRowBytes007
+ * @tc.desc: test for BitmapGetRowBytes func with RGBA_8888 format.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_bitmapGetRowBytes007, TestSize.Level1)
+{
+    const unsigned int width = 100;
+    const unsigned int height = 100;
+    const uint32_t rowBytes = 400;
+    
+    OH_Drawing_Image_Info imageInfo;
+    imageInfo.width = width;
+    imageInfo.height = height;
+    imageInfo.colorType = COLOR_FORMAT_RGBA_8888;
+    imageInfo.alphaType = ALPHA_FORMAT_PREMUL;
+    
+    uint8_t* pixels = new uint8_t[width * height * 4];
+    OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreateFromPixels(&imageInfo, pixels, rowBytes);
+    ASSERT_NE(bitmap, nullptr);
+    
+    uint32_t bytes = 0;
+    EXPECT_EQ(OH_DRAWING_SUCCESS, OH_Drawing_BitmapGetRowBytes(bitmap, &bytes));
+    EXPECT_EQ(rowBytes, bytes);
+    
+    delete[] pixels;
+    OH_Drawing_BitmapDestroy(bitmap);
+}
+
+/*
+ * @tc.name: NativeDrawingBitmapTest_bitmapGetRowBytes008
+ * @tc.desc: test for BitmapGetRowBytes func with BGRA_8888 format.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_bitmapGetRowBytes008, TestSize.Level1)
+{
+    const unsigned int width = 100;
+    const unsigned int height = 100;
+    const uint32_t rowBytes = 400;
+    
+    OH_Drawing_Image_Info imageInfo;
+    imageInfo.width = width;
+    imageInfo.height = height;
+    imageInfo.colorType = COLOR_FORMAT_BGRA_8888;
+    imageInfo.alphaType = ALPHA_FORMAT_PREMUL;
+    
+    uint8_t* pixels = new uint8_t[width * height * 4];
+    OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreateFromPixels(&imageInfo, pixels, rowBytes);
+    ASSERT_NE(bitmap, nullptr);
+    
+    uint32_t bytes = 0;
+    EXPECT_EQ(OH_DRAWING_SUCCESS, OH_Drawing_BitmapGetRowBytes(bitmap, &bytes));
+    EXPECT_EQ(rowBytes, bytes);
+    
+    delete[] pixels;
+    OH_Drawing_BitmapDestroy(bitmap);
+}
+
+/*
+ * @tc.name: NativeDrawingBitmapTest_bitmapGetRowBytes009
+ * @tc.desc: test for BitmapGetRowBytes func with OPAQUE alpha format.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_bitmapGetRowBytes009, TestSize.Level1)
+{
+    const unsigned int width = 100;
+    const unsigned int height = 100;
+    const uint32_t rowBytes = 400;
+    
+    OH_Drawing_Image_Info imageInfo;
+    imageInfo.width = width;
+    imageInfo.height = height;
+    imageInfo.colorType = COLOR_FORMAT_RGBA_8888;
+    imageInfo.alphaType = ALPHA_FORMAT_OPAQUE;
+    
+    uint8_t* pixels = new uint8_t[width * height * 4];
+    OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreateFromPixels(&imageInfo, pixels, rowBytes);
+    ASSERT_NE(bitmap, nullptr);
+    
+    uint32_t bytes = 0;
+    EXPECT_EQ(OH_DRAWING_SUCCESS, OH_Drawing_BitmapGetRowBytes(bitmap, &bytes));
+    EXPECT_EQ(rowBytes, bytes);
+    
+    delete[] pixels;
+    OH_Drawing_BitmapDestroy(bitmap);
+}
+
+/*
+ * @tc.name: NativeDrawingBitmapTest_bitmapGetRowBytes010
+ * @tc.desc: test for BitmapGetRowBytes func with UNPREMUL alpha format.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_bitmapGetRowBytes010, TestSize.Level1)
+{
+    const unsigned int width = 100;
+    const unsigned int height = 100;
+    const uint32_t rowBytes = 400;
+    
+    OH_Drawing_Image_Info imageInfo;
+    imageInfo.width = width;
+    imageInfo.height = height;
+    imageInfo.colorType = COLOR_FORMAT_RGBA_8888;
+    imageInfo.alphaType = ALPHA_FORMAT_UNPREMUL;
+    
+    uint8_t* pixels = new uint8_t[width * height * 4];
+    OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreateFromPixels(&imageInfo, pixels, rowBytes);
+    ASSERT_NE(bitmap, nullptr);
+    
+    uint32_t bytes = 0;
+    EXPECT_EQ(OH_DRAWING_SUCCESS, OH_Drawing_BitmapGetRowBytes(bitmap, &bytes));
+    EXPECT_EQ(rowBytes, bytes);
+    
+    delete[] pixels;
+    OH_Drawing_BitmapDestroy(bitmap);
+}
+
+/*
+ * @tc.name: NativeDrawingBitmapTest_bitmapGetRowBytes011
+ * @tc.desc: test for BitmapGetRowBytes func with small dimensions.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_bitmapGetRowBytes011, TestSize.Level1)
+{
+    const unsigned int width = 1;
+    const unsigned int height = 1;
+    const uint32_t rowBytes = 4;
+    
+    OH_Drawing_Image_Info imageInfo;
+    imageInfo.width = width;
+    imageInfo.height = height;
+    imageInfo.colorType = COLOR_FORMAT_RGBA_8888;
+    imageInfo.alphaType = ALPHA_FORMAT_PREMUL;
+    
+    uint8_t* pixels = new uint8_t[width * height * 4];
+    OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreateFromPixels(&imageInfo, pixels, rowBytes);
+    ASSERT_NE(bitmap, nullptr);
+    
+    uint32_t bytes = 0;
+    EXPECT_EQ(OH_DRAWING_SUCCESS, OH_Drawing_BitmapGetRowBytes(bitmap, &bytes));
+    EXPECT_EQ(rowBytes, bytes);
+    
+    delete[] pixels;
+    OH_Drawing_BitmapDestroy(bitmap);
+}
+
+/*
+ * @tc.name: NativeDrawingBitmapTest_bitmapGetRowBytes012
+ * @tc.desc: test for BitmapGetRowBytes func with large dimensions.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_bitmapGetRowBytes012, TestSize.Level1)
+{
+    const unsigned int width = 1920;
+    const unsigned int height = 1080;
+    const uint32_t rowBytes = 7680;
+    
+    OH_Drawing_Image_Info imageInfo;
+    imageInfo.width = width;
+    imageInfo.height = height;
+    imageInfo.colorType = COLOR_FORMAT_RGBA_8888;
+    imageInfo.alphaType = ALPHA_FORMAT_PREMUL;
+    
+    uint8_t* pixels = new uint8_t[width * height * 4];
+    OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreateFromPixels(&imageInfo, pixels, rowBytes);
+    ASSERT_NE(bitmap, nullptr);
+    
+    uint32_t bytes = 0;
+    EXPECT_EQ(OH_DRAWING_SUCCESS, OH_Drawing_BitmapGetRowBytes(bitmap, &bytes));
+    EXPECT_EQ(rowBytes, bytes);
+    
+    delete[] pixels;
+    OH_Drawing_BitmapDestroy(bitmap);
+}
+
+/*
+ * @tc.name: NativeDrawingBitmapTest_bitmapGetRowBytes013
+ * @tc.desc: test for BitmapGetRowBytes func with odd width.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_bitmapGetRowBytes013, TestSize.Level1)
+{
+    const unsigned int width = 123;
+    const unsigned int height = 456;
+    const uint32_t rowBytes = 492;
+    
+    OH_Drawing_Image_Info imageInfo;
+    imageInfo.width = width;
+    imageInfo.height = height;
+    imageInfo.colorType = COLOR_FORMAT_RGBA_8888;
+    imageInfo.alphaType = ALPHA_FORMAT_PREMUL;
+    
+    uint8_t* pixels = new uint8_t[width * height * 4];
+    OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreateFromPixels(&imageInfo, pixels, rowBytes);
+    ASSERT_NE(bitmap, nullptr);
+    
+    uint32_t bytes = 0;
+    EXPECT_EQ(OH_DRAWING_SUCCESS, OH_Drawing_BitmapGetRowBytes(bitmap, &bytes));
+    EXPECT_EQ(rowBytes, bytes);
+    
+    delete[] pixels;
+    OH_Drawing_BitmapDestroy(bitmap);
+}
+
+/*
+ * @tc.name: NativeDrawingBitmapTest_bitmapGetRowBytes014
+ * @tc.desc: test for BitmapGetRowBytes func with minimum width.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_bitmapGetRowBytes014, TestSize.Level1)
+{
+    const unsigned int width = 1;
+    const unsigned int height = 100;
+    const uint32_t rowBytes = 4;
+    
+    OH_Drawing_Image_Info imageInfo;
+    imageInfo.width = width;
+    imageInfo.height = height;
+    imageInfo.colorType = COLOR_FORMAT_RGBA_8888;
+    imageInfo.alphaType = ALPHA_FORMAT_PREMUL;
+    
+    uint8_t* pixels = new uint8_t[width * height * 4];
+    OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreateFromPixels(&imageInfo, pixels, rowBytes);
+    ASSERT_NE(bitmap, nullptr);
+    
+    uint32_t bytes = 0;
+    EXPECT_EQ(OH_DRAWING_SUCCESS, OH_Drawing_BitmapGetRowBytes(bitmap, &bytes));
+    EXPECT_EQ(rowBytes, bytes);
+    
+    delete[] pixels;
+    OH_Drawing_BitmapDestroy(bitmap);
+}
+
+/*
+ * @tc.name: NativeDrawingBitmapTest_bitmapGetRowBytes015
+ * @tc.desc: test for BitmapGetRowBytes func with minimum height.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_bitmapGetRowBytes015, TestSize.Level1)
+{
+    const unsigned int width = 100;
+    const unsigned int height = 1;
+    const uint32_t rowBytes = 400;
+    
+    OH_Drawing_Image_Info imageInfo;
+    imageInfo.width = width;
+    imageInfo.height = height;
+    imageInfo.colorType = COLOR_FORMAT_RGBA_8888;
+    imageInfo.alphaType = ALPHA_FORMAT_PREMUL;
+    
+    uint8_t* pixels = new uint8_t[width * height * 4];
+    OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreateFromPixels(&imageInfo, pixels, rowBytes);
+    ASSERT_NE(bitmap, nullptr);
+    
+    uint32_t bytes = 0;
+    EXPECT_EQ(OH_DRAWING_SUCCESS, OH_Drawing_BitmapGetRowBytes(bitmap, &bytes));
+    EXPECT_EQ(rowBytes, bytes);
+    
+    delete[] pixels;
+    OH_Drawing_BitmapDestroy(bitmap);
+}
+
+/*
+ * @tc.name: NativeDrawingBitmapTest_bitmapGetRowBytes016
+ * @tc.desc: test for BitmapGetRowBytes func with square bitmap.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_bitmapGetRowBytes016, TestSize.Level1)
+{
+    const unsigned int width = 1024;
+    const unsigned int height = 1024;
+    const uint32_t rowBytes = 4096;
+    
+    OH_Drawing_Image_Info imageInfo;
+    imageInfo.width = width;
+    imageInfo.height = height;
+    imageInfo.colorType = COLOR_FORMAT_RGBA_8888;
+    imageInfo.alphaType = ALPHA_FORMAT_PREMUL;
+    
+    uint8_t* pixels = new uint8_t[width * height * 4];
+    OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreateFromPixels(&imageInfo, pixels, rowBytes);
+    ASSERT_NE(bitmap, nullptr);
+    
+    uint32_t bytes = 0;
+    EXPECT_EQ(OH_DRAWING_SUCCESS, OH_Drawing_BitmapGetRowBytes(bitmap, &bytes));
+    EXPECT_EQ(rowBytes, bytes);
+    
+    delete[] pixels;
+    OH_Drawing_BitmapDestroy(bitmap);
+}
+
+/*
+ * @tc.name: NativeDrawingBitmapTest_bitmapGetRowBytes017
+ * @tc.desc: test for BitmapGetRowBytes func with wide bitmap.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_bitmapGetRowBytes017, TestSize.Level1)
+{
+    const unsigned int width = 2048;
+    const unsigned int height = 100;
+    const uint32_t rowBytes = 8192;
+    
+    OH_Drawing_Image_Info imageInfo;
+    imageInfo.width = width;
+    imageInfo.height = height;
+    imageInfo.colorType = COLOR_FORMAT_RGBA_8888;
+    imageInfo.alphaType = ALPHA_FORMAT_PREMUL;
+    
+    uint8_t* pixels = new uint8_t[width * height * 4];
+    OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreateFromPixels(&imageInfo, pixels, rowBytes);
+    ASSERT_NE(bitmap, nullptr);
+    
+    uint32_t bytes = 0;
+    EXPECT_EQ(OH_DRAWING_SUCCESS, OH_Drawing_BitmapGetRowBytes(bitmap, &bytes));
+    EXPECT_EQ(rowBytes, bytes);
+    
+    delete[] pixels;
+    OH_Drawing_BitmapDestroy(bitmap);
+}
+
+/*
+ * @tc.name: NativeDrawingBitmapTest_bitmapGetRowBytes018
+ * @tc.desc: test for BitmapGetRowBytes func with tall bitmap.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_bitmapGetRowBytes018, TestSize.Level1)
+{
+    const unsigned int width = 100;
+    const unsigned int height = 2048;
+    const uint32_t rowBytes = 400;
+    
+    OH_Drawing_Image_Info imageInfo;
+    imageInfo.width = width;
+    imageInfo.height = height;
+    imageInfo.colorType = COLOR_FORMAT_RGBA_8888;
+    imageInfo.alphaType = ALPHA_FORMAT_PREMUL;
+    
+    uint8_t* pixels = new uint8_t[width * height * 4];
+    OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreateFromPixels(&imageInfo, pixels, rowBytes);
+    ASSERT_NE(bitmap, nullptr);
+    
+    uint32_t bytes = 0;
+    EXPECT_EQ(OH_DRAWING_SUCCESS, OH_Drawing_BitmapGetRowBytes(bitmap, &bytes));
+    EXPECT_EQ(rowBytes, bytes);
+    
+    delete[] pixels;
+    OH_Drawing_BitmapDestroy(bitmap);
+}
+
+/*
+ * @tc.name: NativeDrawingBitmapTest_bitmapGetRowBytes019
+ * @tc.desc: test for BitmapGetRowBytes func with power of 2 dimension.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_bitmapGetRowBytes019, TestSize.Level1)
+{
+    const unsigned int width = 256;
+    const unsigned int height = 256;
+    const uint32_t rowBytes = 1024;
+    
+    OH_Drawing_Image_Info imageInfo;
+    imageInfo.width = width;
+    imageInfo.height = height;
+    imageInfo.colorType = COLOR_FORMAT_RGBA_8888;
+    imageInfo.alphaType = ALPHA_FORMAT_PREMUL;
+    
+    uint8_t* pixels = new uint8_t[width * height * 4];
+    OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreateFromPixels(&imageInfo, pixels, rowBytes);
+    ASSERT_NE(bitmap, nullptr);
+    
+    uint32_t bytes = 0;
+    EXPECT_EQ(OH_DRAWING_SUCCESS, OH_Drawing_BitmapGetRowBytes(bitmap, &bytes));
+    EXPECT_EQ(rowBytes, bytes);
+    
+    delete[] pixels;
+    OH_Drawing_BitmapDestroy(bitmap);
+}
+
+/*
+ * @tc.name: NativeDrawingBitmapTest_bitmapGetRowBytes020
+ * @tc)desc: test for BitmapGetRowBytes func with non-power of 2 dimension.
+ * @tc.type: FUNC
+ * @tc.require: 22932
+ */
+HWTEST_F(NativeDrawingBitmapTest, NativeDrawingBitmapTest_bitmapGetRowBytes020, TestSize.Level1)
+{
+    const unsigned int width = 123;
+    const unsigned int height = 456;
+    const uint32_t rowBytes = 492;
+    
+    OH_Drawing_Image_Info imageInfo;
+    imageInfo.width = width;
+    imageInfo.height = height;
+    imageInfo.colorType = COLOR_FORMAT_RGBA_8888;
+    imageInfo.alphaType = ALPHA_FORMAT_PREMUL;
+    
+    uint8_t* pixels = new uint8_t[width * height * 4];
+    OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreateFromPixels(&imageInfo, pixels, rowBytes);
+    ASSERT_NE(bitmap, nullptr);
+    
+    uint32_t bytes = 0;
+    EXPECT_EQ(OH_DRAWING_SUCCESS, OH_Drawing_BitmapGetRowBytes(bitmap, &bytes));
+    EXPECT_EQ(rowBytes, bytes);
+    
+    delete[] pixels;
+    OH_Drawing_BitmapDestroy(bitmap);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

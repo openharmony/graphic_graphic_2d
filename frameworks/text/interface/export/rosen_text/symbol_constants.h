@@ -45,6 +45,13 @@ enum class SymbolColorType {
                                 // Layers without a set use the color of the default layer.
 };
 
+// Color space enum for Symbol HDR rendering
+enum class SymbolColorSpace {
+    SRGB = 0,
+    DISPLAY_P3 = 1,
+    BT2020 = 2,
+};
+
 struct SymbolShadow {
     Drawing::Color color = Drawing::Color::COLOR_BLACK;
     Drawing::Point offset;

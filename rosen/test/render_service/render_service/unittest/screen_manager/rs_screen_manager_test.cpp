@@ -346,6 +346,50 @@ HWTEST_F(RSScreenManagerTest, SetDualScreenState_002, TestSize.Level1)
 }
 
 /*
+ * @tc.name: SetAsMainScreenTest001
+ * @tc.desc: Test SetAsMainScreen with invalid ScreenId
+ * @tc.type: FUNC
+ * @tc.require: #23043
+ */
+HWTEST_F(RSScreenManagerTest, SetAsMainScreenTest001, TestSize.Level1)
+{
+    ASSERT_NE(screenManager_, nullptr);
+    int32_t result = screenManager_->SetAsMainScreen(INVALID_SCREEN_ID, true);
+    EXPECT_NE(result, StatusCode::SUCCESS);
+
+    ScreenId id = 0;
+    result = screenManager_->SetAsMainScreen(id, false);
+    EXPECT_EQ(result, StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: GetMainScreenIdTest001
+ * @tc.desc: Test GetMainScreenId returns INVALID_SCREEN_ID when no screen is set as main
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(RSScreenManagerTest, GetMainScreenIdTest001, TestSize.Level1)
+{
+    ASSERT_NE(screenManager_, nullptr);
+
+    int32_t ret = screenManager_->SetAsMainScreen(0, true);
+    EXPECT_EQ(ret, StatusCode::SUCCESS);
+    ScreenId result = screenManager_->GetMainScreenId();
+    EXPECT_EQ(result, 0);
+
+    // Ensure no screen is set as main
+    for (auto& [screenId, screen] : screenManager_->screens_) {
+        if (screen) {
+            screen->SetAsMainScreen(false);
+        }
+    }
+
+    // Should return INVALID_SCREEN_ID when no main screen exists
+    result = screenManager_->GetMainScreenId();
+    EXPECT_EQ(result, INVALID_SCREEN_ID);
+}
+
+/*
  * @tc.name: SetVirtualScreenResolution_001
  * @tc.desc: Test SetVirtualScreenResolution
  * @tc.type: FUNC

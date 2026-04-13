@@ -218,11 +218,11 @@ void VerifyRectSize(double expectedWidth, double expectedHeight, OH_Drawing_Rect
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest001
+ * @tc.name: NullTypography
  * @tc.desc: Test LayoutWithConstraints with null typography pointer
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest001, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, NullTypography, TestSize.Level0)
 {
     OH_Drawing_Array* rangeArray = nullptr;
     size_t rangeCount = 0;
@@ -239,11 +239,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest002
+ * @tc.name: NullRangeArrayPointer
  * @tc.desc: Test LayoutWithConstraints with null rangeArray pointer
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest002, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, NullRangeArrayPointer, TestSize.Level0)
 {
     CreateTypographyHandler();
     AddText(SHORT_TEXT);
@@ -262,11 +262,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest003
+ * @tc.name: NullRangeCountPointer
  * @tc.desc: Test LayoutWithConstraints with null rangeCount pointer
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest003, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, NullRangeCountPointer, TestSize.Level0)
 {
     CreateTypographyHandler();
     AddText(SHORT_TEXT);
@@ -285,11 +285,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest004
+ * @tc.name: AllNullParameters
  * @tc.desc: Test LayoutWithConstraints with all null parameters
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest004, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, AllNullParameters, TestSize.Level0)
 {
     OH_Drawing_RectSize size;
     size.width = LAYOUT_WIDTH_MEDIUM;
@@ -302,11 +302,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest005
+ * @tc.name: ZeroWidthConstraint
  * @tc.desc: Test LayoutWithConstraints with zero width constraint
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest005, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, ZeroWidthConstraint, TestSize.Level0)
 {
     CreateTypographyHandler();
     AddText(SHORT_TEXT);
@@ -333,11 +333,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest006
+ * @tc.name: ZeroHeightConstraint
  * @tc.desc: Test LayoutWithConstraints with zero height constraint
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest006, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, ZeroHeightConstraint, TestSize.Level0)
 {
     CreateTypographyHandler();
     AddText(SHORT_TEXT);
@@ -363,11 +363,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest007
+ * @tc.name: ZeroWidthAndHeight
  * @tc.desc: Test LayoutWithConstraints with both zero width and height
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest007, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, ZeroWidthAndHeight, TestSize.Level0)
 {
     CreateTypographyHandler();
     AddText(SHORT_TEXT);
@@ -393,11 +393,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest008
+ * @tc.name: NegativeWidthConstraint
  * @tc.desc: Test LayoutWithConstraints with negative width constraint
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest008, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, NegativeWidthConstraint, TestSize.Level0)
 {
     CreateTypographyHandler();
     AddText(SHORT_TEXT);
@@ -424,11 +424,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest009
+ * @tc.name: NegativeHeightConstraint
  * @tc.desc: Test LayoutWithConstraints with negative height constraint
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest009, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, NegativeHeightConstraint, TestSize.Level0)
 {
     CreateTypographyHandler();
     AddText(SHORT_TEXT);
@@ -455,11 +455,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest010
+ * @tc.name: CompareWithLayoutApi
  * @tc.desc: Test LayoutWithConstraints and Layout.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest010, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, CompareWithLayoutApi, TestSize.Level0)
 {
     CreateTypographyHandler();
     AddText(SHORT_TEXT);
@@ -488,11 +488,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest011
+ * @tc.name: MediumTextMultiLine
  * @tc.desc: Test LayoutWithConstraints with medium text requiring multiple lines
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest011, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, MediumTextMultiLine, TestSize.Level0)
 {
     CreateTypographyHandler();
     AddText(MEDIUM_TEXT);
@@ -519,11 +519,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest012
+ * @tc.name: LongTextMultiLine
  * @tc.desc: Test LayoutWithConstraints with very long text
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest012, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, LongTextMultiLine, TestSize.Level0)
 {
     CreateTypographyHandler();
     AddText(LONG_TEXT);
@@ -550,11 +550,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest013
+ * @tc.name: EmptyText
  * @tc.desc: Test LayoutWithConstraints with empty text
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest013, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, EmptyText, TestSize.Level0)
 {
     CreateTypographyHandler();
     AddText(EMPTY_TEXT);
@@ -581,11 +581,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest014
+ * @tc.name: SingleCharacter
  * @tc.desc: Test LayoutWithConstraints with single character
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest014, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, SingleCharacter, TestSize.Level0)
 {
     CreateTypographyHandler();
     AddText(SINGLE_CHAR_TEXT);
@@ -612,11 +612,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest015
+ * @tc.name: ChineseText
  * @tc.desc: Test LayoutWithConstraints with Chinese text
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest015, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, ChineseText, TestSize.Level0)
 {
     CreateTypographyHandler();
     AddText(CHINESE_TEXT);
@@ -643,11 +643,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest016
+ * @tc.name: MixedEnglishChineseText
  * @tc.desc: Test LayoutWithConstraints with mixed English and Chinese text
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest016, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, MixedEnglishChineseText, TestSize.Level0)
 {
     CreateTypographyHandler();
     AddText(MIXED_TEXT);
@@ -674,11 +674,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest017
+ * @tc.name: ArabicTextRtl
  * @tc.desc: Test LayoutWithConstraints with Arabic text (RTL)
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest017, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, ArabicTextRtl, TestSize.Level0)
 {
     CreateTypographyHandler();
     AddText(ARABIC_TEXT);
@@ -706,11 +706,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest018
+ * @tc.name: JapaneseText
  * @tc.desc: Test LayoutWithConstraints with Japanese text
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest018, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, JapaneseText, TestSize.Level0)
 {
     CreateTypographyHandler();
     AddText(JAPANESE_TEXT);
@@ -737,11 +737,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest019
+ * @tc.name: KoreanText
  * @tc.desc: Test LayoutWithConstraints with Korean text
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest019, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, KoreanText, TestSize.Level0)
 {
     CreateTypographyHandler();
     AddText(KOREAN_TEXT);
@@ -769,11 +769,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest020
+ * @tc.name: ThaiText
  * @tc.desc: Test LayoutWithConstraints with Thai text
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest020, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, ThaiText, TestSize.Level0)
 {
     CreateTypographyHandler();
     AddText(THAI_TEXT);
@@ -801,11 +801,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest021
+ * @tc.name: GetRangeByArrayIndexNullArray
  * @tc.desc: Test GetRangeByArrayIndex with null array
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest021, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, GetRangeByArrayIndexNullArray, TestSize.Level0)
 {
     OH_Drawing_Range* range = OH_Drawing_GetRangeByArrayIndex(nullptr, 0);
     EXPECT_EQ(range, nullptr);
@@ -816,11 +816,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest022
+ * @tc.name: GetRangeByArrayIndexValidIndex
  * @tc.desc: Test GetRangeByArrayIndex with valid index
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest022, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, GetRangeByArrayIndexValidIndex, TestSize.Level0)
 {
     CreateTypographyHandler();
     AddText(MEDIUM_TEXT);
@@ -847,11 +847,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest023
+ * @tc.name: GetRangeByArrayIndexOutOfBounds
  * @tc.desc: Test GetRangeByArrayIndex with out of bounds index
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest023, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, GetRangeByArrayIndexOutOfBounds, TestSize.Level0)
 {
     CreateTypographyHandler();
     AddText(SHORT_TEXT);
@@ -878,11 +878,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest024
+ * @tc.name: GetRangeByArrayIndexAllValidIndices
  * @tc.desc: Test GetRangeByArrayIndex with all valid indices
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest024, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, GetRangeByArrayIndexAllValidIndices, TestSize.Level0)
 {
     CreateTypographyHandler();
     AddText(LONG_TEXT);
@@ -909,11 +909,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest026
+ * @tc.name: ReleaseArrayBufferAfterLayout
  * @tc.desc: Test DestroyRectSize with valid pointer
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest026, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, ReleaseArrayBufferAfterLayout, TestSize.Level0)
 {
     CreateTypographyHandler();
     AddText(SHORT_TEXT);
@@ -940,11 +940,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest027
+ * @tc.name: RectSizeWithDifferentConstraints
  * @tc.desc: Test RectSize dimensions with different constraints
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest027, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, RectSizeWithDifferentConstraints, TestSize.Level0)
 {
     CreateTypographyHandler();
     AddText(MEDIUM_TEXT);
@@ -989,11 +989,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest029
+ * @tc.name: EmojiCharacters
  * @tc.desc: Test LayoutWithConstraints with emoji characters (4-byte UTF-8)
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest029, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, EmojiCharacters, TestSize.Level0)
 {
     CreateTypographyHandler();
     OH_Drawing_TypographyHandlerAddText(fHandler, EMOJI_TEXT);
@@ -1022,11 +1022,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest030
+ * @tc.name: SingleLineHeadEllipsis
  * @tc.desc: Test LayoutWithConstraints with single line HEAD ellipsis
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest030, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, SingleLineHeadEllipsis, TestSize.Level0)
 {
     OH_Drawing_SetTypographyTextEllipsis(fTypoStyle, "...");
     OH_Drawing_SetTypographyTextEllipsisModal(fTypoStyle, ELLIPSIS_MODAL_HEAD);
@@ -1058,11 +1058,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest031
+ * @tc.name: SingleLineMiddleEllipsis
  * @tc.desc: Test LayoutWithConstraints with single line MIDDLE ellipsis
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest031, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, SingleLineMiddleEllipsis, TestSize.Level0)
 {
     ResetTypoStyleWithFontSize(DEFAULT_FONT_SIZE);
     OH_Drawing_SetTypographyTextEllipsis(fTypoStyle, "...");
@@ -1095,11 +1095,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest032
+ * @tc.name: MultilineHeadEllipsis
  * @tc.desc: Test LayoutWithConstraints with multiline HEAD ellipsis
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest032, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, MultilineHeadEllipsis, TestSize.Level0)
 {
     ResetTypoStyleWithFontSize(DEFAULT_FONT_SIZE);
     OH_Drawing_SetTypographyTextEllipsis(fTypoStyle, "...");
@@ -1132,11 +1132,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest033
+ * @tc.name: MultilineMiddleEllipsis
  * @tc.desc: Test LayoutWithConstraints with multiline MIDDLE ellipsis
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest033, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, MultilineMiddleEllipsis, TestSize.Level0)
 {
     ResetTypoStyleWithFontSize(DEFAULT_FONT_SIZE);
     OH_Drawing_SetTypographyTextEllipsis(fTypoStyle, "...");
@@ -1169,11 +1169,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest034
+ * @tc.name: MultilineTailEllipsis
  * @tc.desc: Test LayoutWithConstraints with multiline TAIL ellipsis
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest034, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, MultilineTailEllipsis, TestSize.Level0)
 {
     ResetTypoStyleWithFontSize(DEFAULT_FONT_SIZE);
     OH_Drawing_SetTypographyTextEllipsis(fTypoStyle, "...");
@@ -1205,11 +1205,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest035
+ * @tc.name: HighQualityStrategyShortEnglish
  * @tc.desc: Test LayoutWithConstraints with HIGH_QUALITY strategy on short English text
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest035, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, HighQualityStrategyShortEnglish, TestSize.Level0)
 {
     OH_Drawing_SetTypographyTextBreakStrategy(fTypoStyle, BREAK_STRATEGY_HIGH_QUALITY);
 
@@ -1238,11 +1238,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest036
+ * @tc.name: HighQualityStrategyMediumEnglish
  * @tc.desc: Test LayoutWithConstraints with HIGH_QUALITY strategy on medium English text
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest036, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, HighQualityStrategyMediumEnglish, TestSize.Level0)
 {
     OH_Drawing_SetTypographyTextBreakStrategy(fTypoStyle, BREAK_STRATEGY_HIGH_QUALITY);
 
@@ -1271,11 +1271,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest037
+ * @tc.name: HighQualityStrategyLongEnglish
  * @tc.desc: Test LayoutWithConstraints with HIGH_QUALITY strategy on long English text
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest037, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, HighQualityStrategyLongEnglish, TestSize.Level0)
 {
     OH_Drawing_SetTypographyTextBreakStrategy(fTypoStyle, BREAK_STRATEGY_HIGH_QUALITY);
 
@@ -1304,11 +1304,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest038
+ * @tc.name: BalancedStrategyShortEnglish
  * @tc.desc: Test LayoutWithConstraints with BALANCED strategy on short English text
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest038, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, BalancedStrategyShortEnglish, TestSize.Level0)
 {
     OH_Drawing_SetTypographyTextBreakStrategy(fTypoStyle, BREAK_STRATEGY_BALANCED);
 
@@ -1337,11 +1337,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest039
+ * @tc.name: BalancedStrategyMediumEnglish
  * @tc.desc: Test LayoutWithConstraints with BALANCED strategy on medium English text
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest039, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, BalancedStrategyMediumEnglish, TestSize.Level0)
 {
     OH_Drawing_SetTypographyTextBreakStrategy(fTypoStyle, BREAK_STRATEGY_BALANCED);
 
@@ -1370,11 +1370,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest040
+ * @tc.name: BalancedStrategyLongEnglish
  * @tc.desc: Test LayoutWithConstraints with BALANCED strategy on long English text
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest040, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, BalancedStrategyLongEnglish, TestSize.Level0)
 {
     OH_Drawing_SetTypographyTextBreakStrategy(fTypoStyle, BREAK_STRATEGY_BALANCED);
 
@@ -1403,11 +1403,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest041
+ * @tc.name: BalancedStrategyMixedChineseEnglish
  * @tc.desc: Test LayoutWithConstraints with BALANCED strategy on mixed Chinese-English text
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest041, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, BalancedStrategyMixedChineseEnglish, TestSize.Level0)
 {
     OH_Drawing_SetTypographyTextBreakStrategy(fTypoStyle, BREAK_STRATEGY_BALANCED);
 
@@ -1436,11 +1436,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest042
+ * @tc.name: BalancedStrategyEmojiSmallWidth
  * @tc.desc: Test LayoutWithConstraints with BALANCED strategy on emoji text
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest042, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, BalancedStrategyEmojiSmallWidth, TestSize.Level0)
 {
     OH_Drawing_SetTypographyTextBreakStrategy(fTypoStyle, BREAK_STRATEGY_BALANCED);
 
@@ -1469,11 +1469,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest043
+ * @tc.name: BalancedStrategyWithHeadEllipsis
  * @tc.desc: Test LayoutWithConstraints with BALANCED strategy and HEAD ellipsis
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest043, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, BalancedStrategyWithHeadEllipsis, TestSize.Level0)
 {
     OH_Drawing_SetTypographyTextBreakStrategy(fTypoStyle, BREAK_STRATEGY_BALANCED);
     OH_Drawing_SetTypographyTextEllipsis(fTypoStyle, "...");
@@ -1505,11 +1505,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest044
+ * @tc.name: BalancedStrategyWithMiddleEllipsis
  * @tc.desc: Test LayoutWithConstraints with BALANCED strategy and MIDDLE ellipsis
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest044, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, BalancedStrategyWithMiddleEllipsis, TestSize.Level0)
 {
     ResetTypoStyleWithFontSize(DEFAULT_FONT_SIZE);
     OH_Drawing_SetTypographyTextBreakStrategy(fTypoStyle, BREAK_STRATEGY_BALANCED);
@@ -1540,11 +1540,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest045
+ * @tc.name: BalancedStrategyWithTailEllipsis
  * @tc.desc: Test LayoutWithConstraints with BALANCED strategy and TAIL ellipsis
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest045, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, BalancedStrategyWithTailEllipsis, TestSize.Level0)
 {
     ResetTypoStyleWithFontSize(DEFAULT_FONT_SIZE);
     OH_Drawing_SetTypographyTextBreakStrategy(fTypoStyle, BREAK_STRATEGY_BALANCED);
@@ -1576,11 +1576,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest046
+ * @tc.name: BalancedStrategyWithMultilineHeadEllipsis
  * @tc.desc: Test LayoutWithConstraints with BALANCED strategy and MULTILINE_HEAD ellipsis
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest046, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, BalancedStrategyWithMultilineHeadEllipsis, TestSize.Level0)
 {
     ResetTypoStyleWithFontSize(DEFAULT_FONT_SIZE);
     OH_Drawing_SetTypographyTextBreakStrategy(fTypoStyle, BREAK_STRATEGY_BALANCED);
@@ -1612,11 +1612,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest047
+ * @tc.name: BalancedStrategyWithMultilineMiddleEllipsis
  * @tc.desc: Test LayoutWithConstraints with BALANCED strategy and MULTILINE_MIDDLE ellipsis
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest047, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, BalancedStrategyWithMultilineMiddleEllipsis, TestSize.Level0)
 {
     ResetTypoStyleWithFontSize(DEFAULT_FONT_SIZE);
     OH_Drawing_SetTypographyTextBreakStrategy(fTypoStyle, BREAK_STRATEGY_BALANCED);
@@ -1648,11 +1648,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest048
+ * @tc.name: BalancedStrategyEmojiMediumWidth
  * @tc.desc: Test LayoutWithConstraints with BALANCED strategy on emoji text
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest048, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, BalancedStrategyEmojiMediumWidth, TestSize.Level0)
 {
     OH_Drawing_SetTypographyTextBreakStrategy(fTypoStyle, BREAK_STRATEGY_BALANCED);
 
@@ -1681,11 +1681,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest049
+ * @tc.name: DisableAllHeightBehavior
  * @tc.desc: Test LayoutWithConstraints with disable all height behavior
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest049, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, DisableAllHeightBehavior, TestSize.Level0)
 {
     OH_Drawing_SetTextStyleFontHeight(fTextStyle, FONT_HEIGHT_SCALE);
     OH_Drawing_TypographyTextSetHeightBehavior(fTypoStyle,
@@ -1716,11 +1716,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest050
+ * @tc.name: DisableFirstAscentHeightBehavior
  * @tc.desc: Test LayoutWithConstraints with disable first height behavior
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest050, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, DisableFirstAscentHeightBehavior, TestSize.Level0)
 {
     OH_Drawing_SetTextStyleFontHeight(fTextStyle, FONT_HEIGHT_SCALE);
     OH_Drawing_TypographyTextSetHeightBehavior(fTypoStyle,
@@ -1751,11 +1751,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest051
+ * @tc.name: DisableLastAscentHeightBehavior
  * @tc.desc: Test LayoutWithConstraints with disable last height behavior
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest051, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, DisableLastAscentHeightBehavior, TestSize.Level0)
 {
     OH_Drawing_SetTextStyleFontHeight(fTextStyle, FONT_HEIGHT_SCALE);
     OH_Drawing_TypographyTextSetHeightBehavior(fTypoStyle,
@@ -1786,11 +1786,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest052
+ * @tc.name: WithLineSpacing
  * @tc.desc: Test LayoutWithConstraints with lineSpacing
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest052, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, WithLineSpacing, TestSize.Level0)
 {
     const double lineSpacing = 100;
     OH_Drawing_SetTypographyStyleAttributeDouble(fTypoStyle,
@@ -1822,11 +1822,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest053
+ * @tc.name: WithLineSpacingAndDisableLastAscent
  * @tc.desc: Test LayoutWithConstraints with lineSpacing and disable last height behavior
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest053, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, WithLineSpacingAndDisableLastAscent, TestSize.Level0)
 {
     const double lineSpacing = 100;
     OH_Drawing_SetTypographyStyleAttributeDouble(fTypoStyle,
@@ -1863,11 +1863,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest054
+ * @tc.name: HeightEqualsActualHeight
  * @tc.desc: Test LayoutWithConstraints when constraints height equals to actual height.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest054, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, HeightEqualsActualHeight, TestSize.Level0)
 {
     CreateTypographyHandler();
     AddText("你H");
@@ -1896,11 +1896,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest055
+ * @tc.name: HeightEqualsActualHeightFastPath
  * @tc.desc: Test LayoutWithConstraints when constraints height equals to actual height and enter fastFath.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest055, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, HeightEqualsActualHeightFastPath, TestSize.Level0)
 {
     CreateTypographyHandler();
     AddText(SHORT_TEXT);
@@ -1930,11 +1930,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest056
+ * @tc.name: HeightEqualsActualHeightBalancedStrategy
  * @tc.desc: Test LayoutWithConstraints when constraints height equals to actual height and breakStrategy is BALANCED.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest056, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, HeightEqualsActualHeightBalancedStrategy, TestSize.Level0)
 {
     OH_Drawing_SetTypographyTextBreakStrategy(fTypoStyle, BREAK_STRATEGY_BALANCED);
     CreateTypographyHandler();
@@ -1964,11 +1964,11 @@ HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest
 }
 
 /**
- * @tc.name: TypographyLayoutWithConstraintsTest057
+ * @tc.name: HeightLessThanLineHeightWithHardBreak
  * @tc.desc: Test for constraints height less than line height and hard break break at the beginning of a paragraph.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLayoutConstraintsTest, TypographyLayoutWithConstraintsTest057, TestSize.Level0)
+HWTEST_F(NdkTypographyLayoutConstraintsTest, HeightLessThanLineHeightWithHardBreak, TestSize.Level0)
 {
     CreateTypographyHandler();
     AddText("/n你好");

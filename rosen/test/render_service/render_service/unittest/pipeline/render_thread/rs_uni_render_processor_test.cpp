@@ -222,6 +222,27 @@ HWTEST_F(RSUniRenderProcessorTest, ProcessScreenSurfaceTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ProcessScreenSurfaceTest002
+ * @tc.desc: Verify function ProcessScreenSurface
+ * @tc.type:FUNC
+ * @tc.require:issuesI9KRF1
+ */
+HWTEST_F(RSUniRenderProcessorTest, ProcessScreenSurfaceTest002, TestSize.Level1)
+{
+    ScreenId screenId = 0;
+    std::weak_ptr<RSContext> context = {};
+    if (RSUniRenderJudgement::IsUniRender()) {
+        constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[0];
+        RSScreenRenderNode node(nodeId, screenId, context);
+        auto size = renderProcessor->layers_.size();
+        auto layerSkipController = node.GetDynamicLayerSkipController();
+        layerSkipController->screenLayerInvalid_ = true;
+        renderProcessor->ProcessScreenSurface(node);
+        EXPECT_EQ(renderProcessor->layers_.size(), size);
+    }
+}
+
+/**
  * @tc.name: ProcessRcdSurfaceTest
  * @tc.desc: Verify function ProcessRcdSurface
  * @tc.type:FUNC

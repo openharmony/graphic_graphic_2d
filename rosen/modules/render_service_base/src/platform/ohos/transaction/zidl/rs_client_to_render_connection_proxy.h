@@ -170,8 +170,11 @@ public:
     ) override;
 
     int32_t GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result) override;
-    
+
     void RemoveToken() override {};
+
+    void RegisterRemoteRefreshCallback() override {};
+
     static inline BrokerDelegator<RSClientToRenderConnectionProxy> delegator_;
 
     pid_t pid_ = GetRealPid();

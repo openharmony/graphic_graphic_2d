@@ -475,7 +475,7 @@ HWTEST_F(OhDrawingTypographyTest, TypographyGetVisibleTextRangesHebrewRTLTest, T
     std::vector<TextRange> ranges = typography->GetVisibleTextRanges();
     EXPECT_EQ(ranges.size(), 1);
     EXPECT_EQ(ranges[0].start, 0);
-    EXPECT_EQ(ranges[0].end, 13);
+    EXPECT_EQ(ranges[0].end, 9);
 }
 
 /*
@@ -834,9 +834,11 @@ HWTEST_F(OhDrawingTypographyTest, TypographyGetVisibleTextRangesExtremeWidthMidd
         });
 
     std::vector<TextRange> ranges = typography->GetVisibleTextRanges();
-    EXPECT_EQ(ranges.size(), 1);
+    EXPECT_EQ(ranges.size(), 2);
     EXPECT_EQ(ranges[0].start, 0);
     EXPECT_EQ(ranges[0].end, 0);
+    EXPECT_EQ(ranges[1].start, 22);
+    EXPECT_EQ(ranges[1].end, 22);
 }
 
 /*
@@ -1039,9 +1041,59 @@ HWTEST_F(OhDrawingTypographyTest, TypographyGetVisibleTextRangesMiddleEllipsisEx
 
     std::vector<TextRange> ranges = typography->GetVisibleTextRanges();
     // With extreme small width in middle ellipsis mode
-    EXPECT_EQ(ranges.size(), 1);
+    EXPECT_EQ(ranges.size(), 2);
     EXPECT_EQ(ranges[0].start, 0);
     EXPECT_EQ(ranges[0].end, 0);
+    EXPECT_EQ(ranges[1].start, 18);
+    EXPECT_EQ(ranges[1].end, 18);
+}
+
+/*
+ * @tc.name: TypographyGetVisibleTextRangesMiddleEllipsisNewlineTest
+ * @tc.desc: test GetVisibleTextRanges with middle ellipsis, newline followed by text, and extreme width.
+ *           Verifies that fit ranges are valid when \n causes ellipsisRange to exceed lastLineTextRange.
+ * @tc.type: FUNC
+ */
+HWTEST_F(OhDrawingTypographyTest, TypographyGetVisibleTextRangesMiddleEllipsisNewlineTest, TestSize.Level0)
+{
+    std::unique_ptr<Typography> typography = CreateAndLayoutTypography(
+        u"L111\n1", 1.0,
+        [](TypographyStyle& style) {
+            style.maxLines = 1;
+            style.ellipsis = TypographyStyle::ELLIPSIS;
+            style.ellipsisModal = EllipsisModal::MIDDLE;
+        });
+
+    std::vector<TextRange> ranges = typography->GetVisibleTextRanges();
+    EXPECT_EQ(ranges.size(), 2);
+    EXPECT_EQ(ranges[0].start, 0);
+    EXPECT_EQ(ranges[0].end, 0);
+    EXPECT_EQ(ranges[1].start, 4);
+    EXPECT_EQ(ranges[1].end, 4);
+}
+
+/*
+ * @tc.name: TypographyGetVisibleTextRangesMiddleEllipsisTrailingNewlineTest
+ * @tc.desc: test GetVisibleTextRanges with middle ellipsis, trailing newline only, and extreme width.
+ *           Verifies behavior when text ends with \n (no characters after).
+ * @tc.type: FUNC
+ */
+HWTEST_F(OhDrawingTypographyTest, TypographyGetVisibleTextRangesMiddleEllipsisTrailingNewlineTest, TestSize.Level0)
+{
+    std::unique_ptr<Typography> typography = CreateAndLayoutTypography(
+        u"L111\n", 1.0,
+        [](TypographyStyle& style) {
+            style.maxLines = 1;
+            style.ellipsis = TypographyStyle::ELLIPSIS;
+            style.ellipsisModal = EllipsisModal::MIDDLE;
+        });
+
+    std::vector<TextRange> ranges = typography->GetVisibleTextRanges();
+    EXPECT_EQ(ranges.size(), 2);
+    EXPECT_EQ(ranges[0].start, 0);
+    EXPECT_EQ(ranges[0].end, 0);
+    EXPECT_EQ(ranges[1].start, 5);
+    EXPECT_EQ(ranges[1].end, 5);
 }
 } // namespace Rosen
 } // namespace OHOS

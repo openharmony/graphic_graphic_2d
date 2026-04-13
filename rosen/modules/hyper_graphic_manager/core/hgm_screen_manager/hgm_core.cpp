@@ -221,16 +221,6 @@ void HgmCore::SetIdealPipelineOffset(int32_t pipelineOffsetPulseNum)
     idealPipelineOffset_ = pipelineOffsetPulseNum * IDEAL_PULSE;
 }
 
-int64_t HgmCore::GetRsPhaseOffset(const int64_t orgValue) const
-{
-    return isVsyncOffsetCustomized_.load() ? rsPhaseOffset_.load() : orgValue;
-}
-
-int64_t HgmCore::GetAppPhaseOffset(const int64_t orgValue) const
-{
-    return isVsyncOffsetCustomized_.load() ? appPhaseOffset_.load() : orgValue;
-}
-
 void HgmCore::SetMultiSelfOwnedScreenEnable(bool multiSelfOwnedScreenEnable)
 {
     multiSelfOwnedScreenEnable_.store(multiSelfOwnedScreenEnable);

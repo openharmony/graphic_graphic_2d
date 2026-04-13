@@ -78,6 +78,7 @@ public:
     LoadSymbolErrorCode LoadSymbolFont(const std::string& familyName, const uint8_t* data, size_t datalen) override;
     LoadSymbolErrorCode LoadSymbolJson(const std::string& familyName, const uint8_t* data, size_t datalen) override;
     void ClearCaches() override;
+    void SetCachesEnabled(bool enable) override;
     bool UnloadFont(const std::string& familyName) override;
     void UpdateDefaultFamilies() override;
 

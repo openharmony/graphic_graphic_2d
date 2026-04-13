@@ -190,7 +190,7 @@ HWTEST_F(RSWindowKeyFrameDrawableTest, OnLinkedNodeDraw, TestSize.Level1)
     keyframeDrawable_->renderParams_->SetBoundsRect(Drawing::RectF(0.0f, 0.0f, 1.0f, 1.0f));
     EXPECT_TRUE(keyframeDrawable_->OnLinkedNodeDraw(canvas, *rootDrawable, *rootDrawable->renderParams_));
 
-    keyframeDrawable_->renderParams_->freezeFlag_ = true;
+    keyframeDrawable_->renderParams_->SetRSFreezeFlag(true);
     EXPECT_TRUE(keyframeDrawable_->OnLinkedNodeDraw(canvas, *rootDrawable, *rootDrawable->renderParams_));
 }
 

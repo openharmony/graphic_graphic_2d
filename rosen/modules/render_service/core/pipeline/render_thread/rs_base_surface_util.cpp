@@ -98,6 +98,7 @@ void RSBaseSurfaceUtil::MergeBufferDamages(Rect& surfaceDamage, const std::vecto
 CM_INLINE bool RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler,
     uint64_t presentWhen, const DropFrameConfig& dropFrameConfig, uint64_t parentNodeId, bool dropFrameByScreenFrozen)
 {
+    surfaceHandler.ResetCurrentFrameBufferConsumed();
     if (surfaceHandler.GetAvailableBufferCount() <= 0) {
         return true;
     }
@@ -161,7 +162,7 @@ CM_INLINE bool RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfa
             RSUniRenderThread::Instance().ReleaseBufferById(bufferId);
         });
         RSUniRenderThread::Instance().AddPendingReleaseBuffer(consumer, surfaceBuffer->buffer,
-                                                              SyncFence::InvalidFence());
+            SyncFence::InvalidFence(), surfaceBuffer->bufferOwnerCount_);
         RS_LOGD_IF(DEBUG_PIPELINE,
             "RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer success, acquireTimeStamp = "
             "%{public}" PRIu64 ", buffer timestamp = %{public}" PRId64 ", seq = %{public}" PRIu32 ".",

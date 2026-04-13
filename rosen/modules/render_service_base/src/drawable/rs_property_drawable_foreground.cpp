@@ -28,6 +28,7 @@
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_point_light_manager.h"
+#include "property/rs_properties_def.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_effect_luminance_manager.h"
 #include "render/rs_particles_drawable.h"
@@ -238,8 +239,11 @@ bool RSForegroundShaderDrawable::OnUpdate(const RSRenderNode& node)
     if (!shader) {
         return false;
     }
+    RSPropertyDrawableUtils::ApplySDFShapeToEffect(properties, shader, node.GetId());
     needSync_ = true;
     stagingShader_ = shader;
+    auto bounds = node.GetRenderProperties().GetBoundsRect();
+    stagingDrawRect_ = RSNGRenderShaderHelper::CalcRect(shader, bounds);
     PostUpdate(node);
     return true;
 }
@@ -251,6 +255,7 @@ void RSForegroundShaderDrawable::OnSync()
         stagingShader_->AppendToGEContainer(visualEffectContainer);
         visualEffectContainer->UpdateCacheDataFrom(visualEffectContainer_);
         visualEffectContainer_ = visualEffectContainer;
+        drawRect_ = stagingDrawRect_;
         needSync_ = false;
     }
 }
@@ -261,7 +266,8 @@ void RSForegroundShaderDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::
     if (canvas == nullptr || visualEffectContainer_ == nullptr || rect == nullptr) {
         return;
     }
-    geRender->DrawShaderEffect(*canvas, *visualEffectContainer_, *rect);
+    geRender->DrawShaderEffect(*canvas, *visualEffectContainer_,
+        drawRect_.IsEmpty() ? *rect : RSPropertyDrawableUtils::Rect2DrawingRect(drawRect_));
 }
 
 RSDrawable::Ptr RSCompositingFilterDrawable::OnGenerate(const RSRenderNode& node)

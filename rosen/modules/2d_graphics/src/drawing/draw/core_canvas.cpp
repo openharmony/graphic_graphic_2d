@@ -392,6 +392,16 @@ void CoreCanvas::DrawUIColor(UIColor color, BlendMode mode)
     impl_->DrawUIColor(color, mode);
 }
 
+void CoreCanvas::DrawParticle(std::shared_ptr<ParticleEffect> particle)
+{
+#ifdef DRAWING_DISABLE_API
+    if (DrawingConfig::IsDisabled(DrawingConfig::DrawingDisableFlag::DISABLE_PARTICLE)) {
+        return;
+    }
+#endif
+    impl_->DrawParticle(particle);
+}
+
 void CoreCanvas::DrawRegion(const Region& region)
 {
 #ifdef DRAWING_DISABLE_API

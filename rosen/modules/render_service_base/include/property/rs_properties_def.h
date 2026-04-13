@@ -23,6 +23,7 @@
 #include "common/rs_rect.h"
 #include "common/rs_vector3.h"
 #include "common/rs_vector4.h"
+#include "property/rs_spatial_effect_def.h"
 
 namespace OHOS {
 namespace Rosen {

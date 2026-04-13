@@ -91,6 +91,8 @@ public:
     void DrawColor(ColorQuad color, BlendMode mode = BlendMode::SRC_OVER) override;
     void DrawUIColor(UIColor color, BlendMode mode = BlendMode::SRC_OVER) override;
 
+    void DrawParticle(std::shared_ptr<ParticleEffect> particle) override;
+
     void DrawAtlas(const Image* atlas, const RSXform xform[], const Rect tex[], const ColorQuad colors[],
         int count, BlendMode mode, const SamplingOptions& sampling, const Rect* cullRect) override;
     void DrawBitmap(const Bitmap& bitmap, const scalar px, const scalar py) override;

@@ -245,7 +245,7 @@ void RSRenderComposer::ComposerPrepare(uint32_t& currentRate, int64_t& delayTime
 
 void RSRenderComposer::ProcessComposerFrame(uint32_t currentRate, const PipelineParam& pipelineParam)
 {
-    RS_TRACE_NAME_FMT("%s screenId:%{public}" PRIu64, __func__, screenId_);
+    RS_TRACE_NAME_FMT("%s screenId:%" PRIu64, __func__, screenId_);
     std::string threadName = "CompThread_" + std::to_string(screenId_);
     RSTimer timer(threadName.c_str(), COMPOSER_TIMEOUT);
     auto layers = rsRenderComposerContext_->GetNeedCompositionLayersVec();
@@ -1011,7 +1011,8 @@ GraphicColorGamut RSRenderComposer::ComputeTargetColorGamut(const std::vector<st
             RS_LOGE("%{public}s layer is nullptr", __func__);
             continue;
         }
-        auto buffer = layer->GetBuffer();
+        auto buffer = layer->GetUseDeviceOffline() ?
+            layer->GetHpaeOriginalInfo().originalBuffer : layer->GetBuffer();
         if (buffer == nullptr) {
             RS_LOGW("%{public}s The buffer of layer is nullptr", __func__);
             continue;
@@ -1282,17 +1283,29 @@ void RSRenderComposer::UpdateTransactionData(std::shared_ptr<RSLayerTransactionD
 
 void RSRenderComposer::UpdateForSurfaceFps(const PipelineParam& pipelineParam)
 {
-    for (size_t i = 0; i < pipelineParam.GetSurfaceFpsOpNum(); i++) {
+    for (uint32_t i = 0; i < pipelineParam.GetSurfaceFpsOpNum(); i++) {
+        RS_OPTIONAL_TRACE_NAME_FMT(
+            "Update SurfaceFps type: %u, id: %" PRIu64 ", name: %s, uniqueId: %" PRIu64,
+            pipelineParam.SurfaceFpsOpList[i].surfaceFpsOpType,
+            pipelineParam.SurfaceFpsOpList[i].surfaceNodeId,
+            pipelineParam.SurfaceFpsOpList[i].surfaceName.c_str(),
+            pipelineParam.SurfaceFpsOpList[i].uniqueId);
         if (pipelineParam.SurfaceFpsOpList[i].surfaceFpsOpType ==
             static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_ADD)) {
-            RS_LOGD("update for surfaceFps add op id: %{public}" PRIu64 ", name: %{public}s",
-                pipelineParam.SurfaceFpsOpList[i].surfaceNodeId, pipelineParam.SurfaceFpsOpList[i].surfaceName.c_str());
+            RS_LOGD(
+                "update for surfaceFps add op id: %{public}" PRIu64 ", name: %{public}s, uniqueId: %{public}" PRIu64,
+                pipelineParam.SurfaceFpsOpList[i].surfaceNodeId,
+                pipelineParam.SurfaceFpsOpList[i].surfaceName.c_str(),
+                pipelineParam.SurfaceFpsOpList[i].uniqueId);
             RSSurfaceFpsManager::GetInstance().RegisterSurfaceFps(pipelineParam.SurfaceFpsOpList[i].surfaceNodeId,
                 pipelineParam.SurfaceFpsOpList[i].surfaceName.c_str(), pipelineParam.SurfaceFpsOpList[i].uniqueId);
         } else if (pipelineParam.SurfaceFpsOpList[i].surfaceFpsOpType ==
             static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_REMOVE)) {
-            RS_LOGD("update for surfaceFps remove op id: %{public}" PRIu64 ", name: %{public}s",
-                pipelineParam.SurfaceFpsOpList[i].surfaceNodeId, pipelineParam.SurfaceFpsOpList[i].surfaceName.c_str());
+            RS_LOGD(
+                "update for surfaceFps remove op id: %{public}" PRIu64 ", name: %{public}s uniqueId: %{public}" PRIu64,
+                pipelineParam.SurfaceFpsOpList[i].surfaceNodeId,
+                pipelineParam.SurfaceFpsOpList[i].surfaceName.c_str(),
+                pipelineParam.SurfaceFpsOpList[i].uniqueId);
             RSSurfaceFpsManager::GetInstance().UnregisterSurfaceFps(pipelineParam.SurfaceFpsOpList[i].surfaceNodeId);
         }
     }

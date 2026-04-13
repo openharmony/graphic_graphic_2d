@@ -71,5 +71,6 @@ constexpr const char* ANI_INTERFACE_FONTFEATURE_NAME = "@ohos.graphics.drawing.d
 constexpr const char* ANI_INTERFACE_COLOR4F_NAME = "@ohos.graphics.common2D.common2D.Color4f";
 constexpr const char* ANI_INTERFACE_FONT_METRICS_NAME = "@ohos.graphics.drawing.drawing.FontMetrics";
 constexpr const char* ANI_INTERFACE_POINT3D_NAME = "@ohos.graphics.common2D.common2D.Point3d";
+constexpr const char* ANI_CLASS_POINT_UTILS_NAME = "@ohos.graphics.drawing.drawing.PointUtils";
 constexpr const char* ANI_INTERFACE_TEXT_BLOB_RUN_BUFFER_NAME = "@ohos.graphics.drawing.drawing.TextBlobRunBuffer";
 #endif // OHOS_ANI_DRAWING_COMMON_H

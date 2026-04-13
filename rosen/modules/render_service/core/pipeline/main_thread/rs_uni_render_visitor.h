@@ -400,6 +400,7 @@ private:
     std::shared_ptr<RSDirtyRegionManager> curLayerPartRenderDirtyManager_;
     std::shared_ptr<RSSurfaceRenderNode> curSurfaceNode_;
     std::shared_ptr<RSUnionRenderNode> curUnionNode_;
+    std::shared_ptr<RSDynamicLayerSkipController> dynamicLayerSkipController_;
     RSSpecialLayerManager specialLayerManager_;
 
     bool hasFingerprint_ = false;

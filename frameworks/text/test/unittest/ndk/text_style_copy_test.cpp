@@ -80,11 +80,11 @@ void NDKTextStyleCopyTest::TearDown()
 }
 
 /*
- * @tc.name: CopyTextStyle001
+ * @tc.name: CopyTextStyleBasicProperties
  * @tc.desc: test for copy text style：base
  * @tc.type: FUNC
  */
-HWTEST_F(NDKTextStyleCopyTest, CopyTextStyle001, TestSize.Level0)
+HWTEST_F(NDKTextStyleCopyTest, CopyTextStyleBasicProperties, TestSize.Level0)
 {
     txtStyle_ = OH_Drawing_CreateTextStyle();
     ASSERT_NE(txtStyle_, nullptr);
@@ -128,11 +128,11 @@ HWTEST_F(NDKTextStyleCopyTest, CopyTextStyle001, TestSize.Level0)
 }
 
 /*
- * @tc.name: CopyTextStyle002
+ * @tc.name: CopyTextStyleFontStyleStructAndFontFeature
  * @tc.desc: test for copy text style: FontStyleStruct、AddFontFeature
  * @tc.type: FUNC
  */
-HWTEST_F(NDKTextStyleCopyTest, CopyTextStyle002, TestSize.Level0)
+HWTEST_F(NDKTextStyleCopyTest, CopyTextStyleFontStyleStructAndFontFeature, TestSize.Level0)
 {
     txtStyle_ = OH_Drawing_CreateTextStyle();
     ASSERT_NE(txtStyle_, nullptr);
@@ -157,11 +157,11 @@ HWTEST_F(NDKTextStyleCopyTest, CopyTextStyle002, TestSize.Level0)
 }
 
 /*
- * @tc.name: CopyTextStyle003
+ * @tc.name: CopyTextStyleBrushProperties
  * @tc.desc: test for copy text style: brush
  * @tc.type: FUNC
  */
-HWTEST_F(NDKTextStyleCopyTest, CopyTextStyle003, TestSize.Level0)
+HWTEST_F(NDKTextStyleCopyTest, CopyTextStyleBrushProperties, TestSize.Level0)
 {
     txtStyle_ = OH_Drawing_CreateTextStyle();
     ASSERT_NE(txtStyle_, nullptr);
@@ -198,11 +198,11 @@ HWTEST_F(NDKTextStyleCopyTest, CopyTextStyle003, TestSize.Level0)
 }
 
 /*
- * @tc.name: CopyTextStyle004
+ * @tc.name: CopyTextStylePenProperties
  * @tc.desc: test for copy text style: pen
  * @tc.type: FUNC
  */
-HWTEST_F(NDKTextStyleCopyTest, CopyTextStyle004, TestSize.Level0)
+HWTEST_F(NDKTextStyleCopyTest, CopyTextStylePenProperties, TestSize.Level0)
 {
     txtStyle_ = OH_Drawing_CreateTextStyle();
     ASSERT_NE(txtStyle_, nullptr);
@@ -240,11 +240,11 @@ HWTEST_F(NDKTextStyleCopyTest, CopyTextStyle004, TestSize.Level0)
 }
 
 /*
- * @tc.name: CopyTextShadow001
+ * @tc.name: CopyTextShadowAndVerifyShadowCount
  * @tc.desc: test for copy text shadow and copy textstyle with shadow
  * @tc.type: FUNC
  */
-HWTEST_F(NDKTextStyleCopyTest, CopyTextShadow001, TestSize.Level0)
+HWTEST_F(NDKTextStyleCopyTest, CopyTextShadowAndVerifyShadowCount, TestSize.Level0)
 {
     OH_Drawing_TextShadow* shadow = OH_Drawing_CreateTextShadow();
     ASSERT_NE(shadow, nullptr);
@@ -270,11 +270,11 @@ HWTEST_F(NDKTextStyleCopyTest, CopyTextShadow001, TestSize.Level0)
 }
 
 /*
- * @tc.name: CopyTypographStyle001
+ * @tc.name: CopyTypographyStyleWithLineStyleProperties
  * @tc.desc: test for copy typography style
  * @tc.type: FUNC
  */
-HWTEST_F(NDKTextStyleCopyTest, CopyTypographStyle001, TestSize.Level0)
+HWTEST_F(NDKTextStyleCopyTest, CopyTypographyStyleWithLineStyleProperties, TestSize.Level0)
 {
     typoStyle_ = OH_Drawing_CreateTypographyStyle();
     ASSERT_NE(typoStyle_, nullptr);
@@ -324,11 +324,11 @@ HWTEST_F(NDKTextStyleCopyTest, CopyTypographStyle001, TestSize.Level0)
 }
 
 /*
- * @tc.name: CopyTypographStyle002
+ * @tc.name: CopyTypographyStyleFontWeightStyleFamilySizeHeight
  * @tc.desc: test for copy typography style：FontWeight、FontStyle、FontFamily、FontSize、FontHeight
  * @tc.type: FUNC
  */
-HWTEST_F(NDKTextStyleCopyTest, CopyTypographStyle002, TestSize.Level0)
+HWTEST_F(NDKTextStyleCopyTest, CopyTypographyStyleFontWeightStyleFamilySizeHeight, TestSize.Level0)
 {
     typoStyle_ = OH_Drawing_CreateTypographyStyle();
     ASSERT_NE(typoStyle_, nullptr);
@@ -356,11 +356,11 @@ HWTEST_F(NDKTextStyleCopyTest, CopyTypographStyle002, TestSize.Level0)
 }
 
 /*
- * @tc.name: CopyTypographStyle003
+ * @tc.name: CopyTypographyStyleFontStyleStruct
  * @tc.desc: test for copy typography style: FontStyleStruct
  * @tc.type: FUNC
  */
-HWTEST_F(NDKTextStyleCopyTest, CopyTypographStyle003, TestSize.Level0)
+HWTEST_F(NDKTextStyleCopyTest, CopyTypographyStyleFontStyleStruct, TestSize.Level0)
 {
     typoStyle_ = OH_Drawing_CreateTypographyStyle();
     ASSERT_NE(typoStyle_, nullptr);
@@ -378,11 +378,11 @@ HWTEST_F(NDKTextStyleCopyTest, CopyTypographStyle003, TestSize.Level0)
 }
 
 /*
- * @tc.name: CopyTypographStyle004
+ * @tc.name: CopyTypographyStyleWithTextStyleShadows
  * @tc.desc: test for copy text shadow: typographystyle->textstyle->shadow
  * @tc.type: FUNC
  */
-HWTEST_F(NDKTextStyleCopyTest, CopyTypographStyle004, TestSize.Level0)
+HWTEST_F(NDKTextStyleCopyTest, CopyTypographyStyleWithTextStyleShadows, TestSize.Level0)
 {
     OH_Drawing_TextShadow* shadow = OH_Drawing_CreateTextShadow();
     ASSERT_NE(shadow, nullptr);

@@ -692,6 +692,57 @@ void NativeDrawingPathTest015(const uint8_t* data, size_t size)
     OH_Drawing_PathDestroy(path);
 }
 
+void NativeDrawingPathTest016(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return;
+    }
+
+    float x = GetObject<float>();
+    float y = GetObject<float>();
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    OH_Drawing_PathMoveTo(nullptr, x, y);
+    OH_Drawing_PathMoveTo(path, GetObject<float>(), GetObject<float>());
+    OH_Drawing_PathRMoveTo(nullptr, GetObject<float>(), GetObject<float>());
+    OH_Drawing_PathRMoveTo(path, GetObject<float>(), GetObject<float>());
+    OH_Drawing_PathLineTo(nullptr, GetObject<float>(), GetObject<float>());
+    OH_Drawing_PathLineTo(path, GetObject<float>(), GetObject<float>());
+    OH_Drawing_PathRLineTo(nullptr, GetObject<float>(), GetObject<float>());
+    OH_Drawing_PathRLineTo(path, GetObject<float>(), GetObject<float>());
+    OH_Drawing_PathClose(nullptr);
+    OH_Drawing_PathClose(path);
+
+    bool isInverse = false;
+    OH_Drawing_PathIsInverseFillType(nullptr, &isInverse);
+    OH_Drawing_PathIsInverseFillType(path, nullptr);
+    OH_Drawing_PathIsInverseFillType(path, &isInverse);
+
+    OH_Drawing_PathToggleInverseFillType(nullptr);
+    OH_Drawing_PathToggleInverseFillType(path);
+
+    OH_Drawing_Path* pathCopy = OH_Drawing_PathCreate();
+    pathCopy = OH_Drawing_PathCopy(nullptr);
+    pathCopy = OH_Drawing_PathCopy(path);
+
+    OH_Drawing_Point2D point;
+    OH_Drawing_PathGetLastPoint(nullptr, &point);
+    OH_Drawing_PathGetLastPoint(path, nullptr);
+    OH_Drawing_PathGetLastPoint(path, &point);
+
+    OH_Drawing_Path* otherPath = OH_Drawing_PathCreate();
+    OH_Drawing_PathMoveTo(otherPath, GetObject<float>(), GetObject<float>());
+    OH_Drawing_PathLineTo(otherPath, GetObject<float>(), GetObject<float>());
+
+    bool isEqual = false;
+    OH_Drawing_PathIsEqual(nullptr, path, &isEqual);
+    OH_Drawing_PathIsEqual(path, nullptr, &isEqual);
+    OH_Drawing_PathIsEqual(path, otherPath, &isEqual);
+
+    OH_Drawing_PathDestroy(otherPath);
+    OH_Drawing_PathDestroy(pathCopy);
+    OH_Drawing_PathDestroy(path);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -720,5 +771,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::NativeDrawingPathTest013(data, size);
     OHOS::Rosen::Drawing::NativeDrawingPathTest014(data, size);
     OHOS::Rosen::Drawing::NativeDrawingPathTest015(data, size);
+    OHOS::Rosen::Drawing::NativeDrawingPathTest016(data, size);
     return 0;
 }
