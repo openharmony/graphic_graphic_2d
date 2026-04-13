@@ -240,6 +240,46 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, RemoveVirtualScreenBlackList, Tes
 }
 
 /**
+ * @tc.name: SetVirtualScreenTypeBlackListTest
+ * @tc.desc: test SetVirtualScreenTypeBlackList
+ * @tc.type: FUNC
+ * @tc.require: issue23264
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, SetVirtualScreenTypeBlackListTest, TestSize.Level2)
+{
+    int32_t repCode = 0;
+    std::vector<NodeType> typeBlackListVector;
+    ASSERT_NE(proxy, nullptr);
+    ASSERT_EQ(proxy->SetVirtualScreenTypeBlackList(0, typeBlackListVector, repCode), 0);
+}
+
+/**
+ * @tc.name: AddVirtualScreenWhiteListTest
+ * @tc.desc: test AddVirtualScreenWhiteList
+ * @tc.type: FUNC
+ * @tc.require: issue23264
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, AddVirtualScreenWhiteListTest, TestSize.Level2)
+{
+    int32_t repCode = 0;
+    ASSERT_NE(proxy, nullptr);
+    ASSERT_EQ(proxy->AddVirtualScreenWhiteList(0, {}, repCode), 0);
+}
+
+/**
+ * @tc.name: RemoveVirtualScreenWhiteListTest
+ * @tc.desc: test RemoveVirtualScreenWhiteList
+ * @tc.type: FUNC
+ * @tc.require: issue23264
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, RemoveVirtualScreenWhiteListTest, TestSize.Level2)
+{
+    int32_t repCode = 0;
+    ASSERT_NE(proxy, nullptr);
+    ASSERT_EQ(proxy->RemoveVirtualScreenWhiteList(0, {}, repCode), 0);
+}
+
+/**
  * @tc.name: RemoveVirtualScreen Test
  * @tc.desc: RemoveVirtualScreen Test
  * @tc.type:FUNC

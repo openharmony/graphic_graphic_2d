@@ -32,6 +32,11 @@ int RSOcclusionChangeCallbackStub::OnRemoteRequest(
     switch (code) {
         case static_cast<uint32_t>(RSIOcclusionChangeCallbackInterfaceCode::ON_OCCLUSION_VISIBLE_CHANGED): {
             std::shared_ptr<RSOcclusionData> occlusionData(data.ReadParcelable<RSOcclusionData>());
+            if (occlusionData == nullptr) {
+                ROSEN_LOGE("RSOcclusionChangeCallbackStub::OnRemoteRequest ReadParcelable failed");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             OnOcclusionVisibleChanged(occlusionData);
             break;
         }
