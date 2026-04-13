@@ -35,21 +35,21 @@ const uint8_t TARGET_SIZE = 8;
 void DoStart(FuzzedDataProvider& fdp)
 {
     SoloistIdType id = fdp.ConsumeIntegral<uint32_t>();
-    RSDisplaySoloistManager::GetInstance().InsertUseExclusiveThreadFlag(id, useExclusiveThread);
+    RSDisplaySoloistManager::GetInstance().InsertUseExclusiveThreadFlag(id, false);
     RSDisplaySoloistManager::GetInstance().Start(id);
 }
 
 void DoStop(FuzzedDataProvider& fdp)
 {
     SoloistIdType id = fdp.ConsumeIntegral<uint32_t>();
-    RSDisplaySoloistManager::GetInstance().InsertUseExclusiveThreadFlag(id, useExclusiveThread);
+    RSDisplaySoloistManager::GetInstance().InsertUseExclusiveThreadFlag(id, false);
     RSDisplaySoloistManager::GetInstance().Stop(id);
 }
 
 void DoRemoveSoloist(FuzzedDataProvider& fdp)
 {
     SoloistIdType id = fdp.ConsumeIntegral<uint32_t>();
-    RSDisplaySoloistManager::GetInstance().InsertUseExclusiveThreadFlag(id, useExclusiveThread);
+    RSDisplaySoloistManager::GetInstance().InsertUseExclusiveThreadFlag(id, false);
     RSDisplaySoloistManager::GetInstance().RemoveSoloist(id);
 }
 
@@ -72,7 +72,7 @@ void DoInsertOnVsyncCallback(FuzzedDataProvider& fdp)
 void DoInsertFrameRateRange(FuzzedDataProvider& fdp)
 {
     SoloistIdType id = fdp.ConsumeIntegral<uint32_t>();
-    RSDisplaySoloistManager::GetInstance().InsertUseExclusiveThreadFlag(id, useExclusiveThread);
+    RSDisplaySoloistManager::GetInstance().InsertUseExclusiveThreadFlag(id, false);
     FrameRateRange frameRateRange;
     frameRateRange.min_ = fdp.ConsumeIntegral<int32_t>();
     frameRateRange.max_ = fdp.ConsumeIntegral<int32_t>();
