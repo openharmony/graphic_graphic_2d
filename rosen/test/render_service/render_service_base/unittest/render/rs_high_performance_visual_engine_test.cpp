@@ -37,14 +37,14 @@ public:
     std::shared_ptr<RSEffectRenderNode> validTargetNode;
     std::shared_ptr<RSEffectRenderNode> invalidTargetNode;
     std::shared_ptr<RSRenderNode> renderNode;
-    std::shared_ptr<RSSurfaceRenderNode> hwcNode;
+    std::shared_ptr<RSSurfaceRenderNode> surfaceNode;
     static constexpr uint32_t MAX_FILTER_SIZE = 500;
     static constexpr uint32_t ROOT_SURFACE_NODE_ID = 1;
     static constexpr uint32_t EFFECT_NODE_ID = 2;
     static constexpr uint32_t VALID_TARGET_NODE_ID = 3;
     static constexpr uint32_t INVALID_TARGET_NODE_ID = 4;
     static constexpr uint32_t RENDER_NODE_ID = 5;
-    static constexpr uint32_t HWC_NODE_ID = 6;
+    static constexpr uint32_t SURFACE_NODE_ID = 6;
 };
 
 void RSHveFilterTest::SetUpTestCase() {}
@@ -56,7 +56,7 @@ void RSHveFilterTest::SetUp()
     validTargetNode = std::make_shared<RSEffectRenderNode>(VALID_TARGET_NODE_ID);
     invalidTargetNode = std::make_shared<RSEffectRenderNode>(INVALID_TARGET_NODE_ID);
     renderNode = std::make_shared<RSRenderNode>(RENDER_NODE_ID);
-    hwcNode = std::make_shared<RSSurfaceRenderNode>(HWC_NODE_ID);
+    surfaceNode = std::make_shared<RSSurfaceRenderNode>(SURFACE_NODE_ID);
 
     validTargetNode->GetMutableRenderProperties().SetUseEffect(true);
     validTargetNode->SetGlobalAlpha(1.0f);
@@ -154,12 +154,12 @@ HWTEST_F(RSHveFilterTest, CheckPreconditionTest, TestSize.Level1)
     HveFilter filter;
     RectI filterRect = {0, 0, 100, 100};
     renderNode->GetMutableRenderProperties().SetUseEffect(true);
-    filter.CheckPrecondition(*renderNode, filterRect, *hwcNode);
+    filter.CheckPrecondition(*renderNode, filterRect, *surfaceNode);
     filterRect.SetRight(600);
     filterRect.SetBottom(600);
-    EXPECT_FALSE(filter.CheckPrecondition(*renderNode, filterRect, *hwcNode));
+    EXPECT_FALSE(filter.CheckPrecondition(*renderNode, filterRect, *surfaceNode));
     renderNode->GetMutableRenderProperties().SetUseEffect(false);
-    filter.CheckPrecondition(*renderNode, filterRect, *hwcNode);
+    filter.CheckPrecondition(*renderNode, filterRect, *surfaceNode);
 }
 
 /**
