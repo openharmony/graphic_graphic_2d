@@ -47,7 +47,7 @@ public:
     std::vector<SurfaceNodeInfo> GetSurfaceNodeInfo() const;
     int GetSurfaceNodeSize() const;
     bool CheckPrecondition(const RSRenderNode& renderNode,
-        const RectI<int>& filterRect, RSSurfaceRenderNode& hwcNode);
+        const RectI& filterRect, RSSurfaceRenderNode& hwcNode);
     std::shared_ptr<Drawing::Image> SampleLayer(RSPaintFilterCanvas& canvas, const Drawing::RectI& srcRect);
 private:
     bool CheckEffectNodeConditions(const std::shared_ptr<RSRenderNode>& node);

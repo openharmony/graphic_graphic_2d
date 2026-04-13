@@ -2036,8 +2036,8 @@ void RSMainThread::CollectInfoForHardwareComposer()
                         "HwcDelayDirtyFlag is true", surfaceNode->GetName().c_str(), surfaceNode->GetId());
                 }
             }
-            if (surfaceNode->GetIntersecWithFilterNode() && surfaceHandler->IsCurrentFrameBufferConsumed()) {
-                surfaceNode->SetIntersectwithFilterNode(false);
+            if (surfaceNode->GetIntersectWithFilterNode() && surfaceHandler->IsCurrentFrameBufferConsumed()) {
+                surfaceNode->SetIntersectWithFilterNode(false);
                 surfaceNode->SetContentDirty();
                 doDirectComposition_ = false;
                 RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name %s, id %" PRIu64 " surfaceNode intersects with hve filter",
