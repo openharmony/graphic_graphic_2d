@@ -22,39 +22,38 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-const uint8_t DO_INSERT_USE_EXCLUSIVE_THREAD_FLAG = 0;
-const uint8_t DO_START = 1;
-const uint8_t DO_STOP = 2;
-const uint8_t DO_REMOVE_SOLOIST = 3;
-const uint8_t DO_INSERT_ON_VSYNC_CALLBACK = 4;
-const uint8_t DO_INSERT_FRAME_RATE_RANGE = 5;
+const uint8_t DO_START = 0;
+const uint8_t DO_STOP = 1;
+const uint8_t DO_REMOVE_SOLOIST = 2;
+const uint8_t DO_INSERT_ON_VSYNC_CALLBACK = 3;
+const uint8_t DO_INSERT_FRAME_RATE_RANGE = 4;
+const uint8_t DO_INSERT_USE_EXCLUSIVE_THREAD_FLAG = 5;
 const uint8_t DO_SET_VSYNC_RATE = 6;
 const uint8_t DO_SET_MAIN_FRAME_RATE_LINKER_ENABLE = 7;
 const uint8_t TARGET_SIZE = 8;
-
-void DoInsertUseExclusiveThreadFlag(FuzzedDataProvider& fdp)
-{
-    SoloistIdType id = fdp.ConsumeIntegral<uint32_t>();
-    bool useExclusiveThread = false;
-    RSDisplaySoloistManager::GetInstance().InsertUseExclusiveThreadFlag(id, useExclusiveThread);
-}
 
 void DoStart(FuzzedDataProvider& fdp)
 {
     SoloistIdType id = fdp.ConsumeIntegral<uint32_t>();
     RSDisplaySoloistManager::GetInstance().Start(id);
+    std::unique_lock<std::mutex> lock(RSDisplaySoloistManager::GetInstance().dataUpdateMtx_);
+    RSDisplaySoloistManager::GetInstance().idToSoloistMap_.erase(id);
 }
 
 void DoStop(FuzzedDataProvider& fdp)
 {
     SoloistIdType id = fdp.ConsumeIntegral<uint32_t>();
     RSDisplaySoloistManager::GetInstance().Stop(id);
+    std::unique_lock<std::mutex> lock(RSDisplaySoloistManager::GetInstance().dataUpdateMtx_);
+    RSDisplaySoloistManager::GetInstance().idToSoloistMap_.erase(id);
 }
 
 void DoRemoveSoloist(FuzzedDataProvider& fdp)
 {
     SoloistIdType id = fdp.ConsumeIntegral<uint32_t>();
     RSDisplaySoloistManager::GetInstance().RemoveSoloist(id);
+    std::unique_lock<std::mutex> lock(RSDisplaySoloistManager::GetInstance().dataUpdateMtx_);
+    RSDisplaySoloistManager::GetInstance().idToSoloistMap_.erase(id);
 }
 
 void DoInsertOnVsyncCallback(FuzzedDataProvider& fdp)
@@ -71,6 +70,8 @@ void DoInsertOnVsyncCallback(FuzzedDataProvider& fdp)
     } else {
         RSDisplaySoloistManager::GetInstance().InsertOnVsyncCallback(id, callback, nullptr);
     }
+    std::unique_lock<std::mutex> lock(RSDisplaySoloistManager::GetInstance().dataUpdateMtx_);
+    RSDisplaySoloistManager::GetInstance().idToSoloistMap_.erase(id);
 }
 
 void DoInsertFrameRateRange(FuzzedDataProvider& fdp)
@@ -82,6 +83,17 @@ void DoInsertFrameRateRange(FuzzedDataProvider& fdp)
     frameRateRange.preferred_ = fdp.ConsumeIntegral<int32_t>();
     frameRateRange.type_ = fdp.ConsumeIntegral<uint32_t>();
     RSDisplaySoloistManager::GetInstance().InsertFrameRateRange(id, frameRateRange);
+    std::unique_lock<std::mutex> lock(RSDisplaySoloistManager::GetInstance().dataUpdateMtx_);
+    RSDisplaySoloistManager::GetInstance().idToSoloistMap_.erase(id);
+}
+
+void DoInsertUseExclusiveThreadFlag(FuzzedDataProvider& fdp)
+{
+    SoloistIdType id = fdp.ConsumeIntegral<uint32_t>();
+    bool useExclusiveThread = false;
+    RSDisplaySoloistManager::GetInstance().InsertUseExclusiveThreadFlag(id, useExclusiveThread);
+    std::unique_lock<std::mutex> lock(RSDisplaySoloistManager::GetInstance().dataUpdateMtx_);
+    RSDisplaySoloistManager::GetInstance().idToSoloistMap_.erase(id);
 }
 
 void DoSetVSyncRate(FuzzedDataProvider& fdp)
@@ -109,9 +121,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 
     uint8_t tarPos = fdp.ConsumeIntegral<uint8_t>() % OHOS::Rosen::TARGET_SIZE;
     switch (tarPos) {
-        case OHOS::Rosen::DO_INSERT_USE_EXCLUSIVE_THREAD_FLAG:
-            OHOS::Rosen::DoInsertUseExclusiveThreadFlag(fdp);
-            break;
         case OHOS::Rosen::DO_START:
             OHOS::Rosen::DoStart(fdp);
             break;
@@ -126,6 +135,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_INSERT_FRAME_RATE_RANGE:
             OHOS::Rosen::DoInsertFrameRateRange(fdp);
+            break;
+        case OHOS::Rosen::DO_INSERT_USE_EXCLUSIVE_THREAD_FLAG:
+            OHOS::Rosen::DoInsertUseExclusiveThreadFlag(fdp);
             break;
         case OHOS::Rosen::DO_SET_VSYNC_RATE:
             OHOS::Rosen::DoSetVSyncRate(fdp);
