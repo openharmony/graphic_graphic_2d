@@ -1782,6 +1782,8 @@ public:
 
     void SetBloom(float bloomIntensity);
 
+    void SetOverlayNGShader(const std::shared_ptr<RSNGShaderBase>& overlayShader);
+
     void SetBrightness(float brightness);
 
     void SetContrast(float contrast);

@@ -4358,6 +4358,14 @@ void RSProperties::SetBloom(float bloomIntensity)
     contentDirty_ = true;
 }
 
+void RSProperties::SetOverlayNGShader(const std::shared_ptr<RSNGRenderShaderBase>& overlayShader)
+{
+    GetEffect().olRenderShader_ = overlayShader;
+    isDrawn_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
 float RSProperties::GetLightIntensity() const
 {
     const auto& lightSourcePtr = GetLightSource();
@@ -4379,6 +4387,14 @@ Vector4f RSProperties::GetLightPosition() const
 int RSProperties::GetIlluminatedType() const
 {
     return GetIlluminated() ? static_cast<int>(GetIlluminated()->GetIlluminatedType()) : 0;
+}
+
+std::shared_ptr<RSNGRenderShaderBase> RSProperties::GetOverlayNGShader() const
+{
+    if (effect_) {
+        return effect_->olRenderShader_;
+    }
+    return nullptr;
 }
 
 void RSProperties::SetBrightness(const std::optional<float>& brightness)
