@@ -26,11 +26,7 @@
 #ifdef HETERO_HDR_ENABLE
 #include "rs_hdr_pattern_manager.h"
 #endif
-#ifdef USE_M133_SKIA
 #include "include/gpu/vk/VulkanExtensions.h"
-#else
-#include "include/gpu/vk/GrVkExtensions.h"
-#endif
 #include "unistd.h"
 #include "utils/system_properties.h"
 #include "vulkan/vulkan_core.h"
@@ -97,7 +93,6 @@ std::atomic<uint64_t> RsVulkanInterface::callbackSemaphoreInfo2DEngineCallCnt_ =
 void RsVulkanInterface::Init(VulkanInterfaceType vulkanInterfaceType, bool isProtected, bool isHtsEnable)
 {
     acquiredMandatoryProcAddresses_ = false;
-    memHandler_ = nullptr;
     acquiredMandatoryProcAddresses_ = OpenLibraryHandle() && SetupLoaderProcAddresses();
     interfaceType_ = vulkanInterfaceType;
     CreateInstance();
@@ -362,48 +357,21 @@ bool RsVulkanInterface::CreateDevice(bool isProtected, bool isHtsEnable)
     return true;
 }
 
-#ifdef USE_M133_SKIA
 bool RsVulkanInterface::CreateSkiaBackendContext(skgpu::VulkanBackendContext* context, bool isProtected)
-#else
-bool RsVulkanInterface::CreateSkiaBackendContext(GrVkBackendContext* context, bool isProtected)
-#endif
 {
     auto getProc = CreateSkiaGetProc();
     if (getProc == nullptr) {
         ROSEN_LOGE("CreateSkiaBackendContext getProc is null");
         return false;
     }
-#ifndef USE_M133_SKIA
-    VkPhysicalDeviceFeatures features;
-    vkGetPhysicalDeviceFeatures(physicalDevice_, &features);
-
-    uint32_t fFeatures = 0;
-    if (features.geometryShader) {
-        fFeatures |= kGeometryShader_GrVkFeatureFlag;
-    }
-    if (features.dualSrcBlend) {
-        fFeatures |= kDualSrcBlend_GrVkFeatureFlag;
-    }
-    if (features.sampleRateShading) {
-        fFeatures |= kSampleRateShading_GrVkFeatureFlag;
-    }
-#endif
 
     context->fInstance = instance_;
     context->fPhysicalDevice = physicalDevice_;
     context->fDevice = device_;
     context->fQueue = queue_;
     context->fGraphicsQueueIndex = graphicsQueueFamilyIndex_;
-#ifndef USE_M133_SKIA
-    context->fMinAPIVersion = VK_API_VERSION_1_2;
 
-    uint32_t extensionFlags = kKHR_surface_GrVkExtensionFlag;
-    extensionFlags |= kKHR_ohos_surface_GrVkExtensionFlag;
-
-    context->fExtensions = extensionFlags;
-#else
     context->fMaxAPIVersion = VK_API_VERSION_1_2;
-#endif
 
     skVkExtensions_.init(getProc, instance_, physicalDevice_,
         gInstanceExtensions.size(), gInstanceExtensions.data(),
@@ -411,16 +379,10 @@ bool RsVulkanInterface::CreateSkiaBackendContext(GrVkBackendContext* context, bo
 
     context->fVkExtensions = &skVkExtensions_;
     context->fDeviceFeatures2 = &physicalDeviceFeatures2_;
-#ifndef USE_M133_SKIA
-    context->fFeatures = fFeatures;
-#endif
+
     context->fGetProc = std::move(getProc);
-#ifdef USE_M133_SKIA
+
     context->fProtectedContext = isProtected ? skgpu::Protected::kYes : skgpu::Protected::kNo;
-#else
-    context->fOwnsInstanceAndDevice = false;
-    context->fProtectedContext = isProtected ? GrProtected::kYes : GrProtected::kNo;
-#endif
 
     return true;
 }
@@ -495,11 +457,7 @@ PFN_vkVoidFunction RsVulkanInterface::AcquireProc(
     return vkGetDeviceProcAddr(device, procName);
 }
 
-#ifdef USE_M133_SKIA
 skgpu::VulkanGetProc RsVulkanInterface::CreateSkiaGetProc() const
-#else
-GrVkGetProc RsVulkanInterface::CreateSkiaGetProc() const
-#endif
 {
     if (!IsValid()) {
         return nullptr;
@@ -526,10 +484,8 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanInterface::DoCreateDrawingContext(s
 
     auto drawingContext = std::make_shared<Drawing::GPUContext>();
     Drawing::GPUContextOptions options;
-    memHandler_ = std::make_unique<MemoryHandler>();
     std::string vkVersion = std::to_string(VK_API_VERSION_1_2);
     auto size = vkVersion.size();
-    memHandler_->ConfigureContext(&options, vkVersion.c_str(), size, cacheDir);
     drawingContext->BuildFromVK(backendContext_, options);
     return drawingContext;
 }

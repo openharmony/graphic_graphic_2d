@@ -129,7 +129,6 @@ protected:
     bool isUniRender_ = false;
     bool isUniRenderMode_ = false;
     std::string cacheDir_ = "";
-    std::shared_ptr<MemoryHandler> mHandler_ = nullptr;
     int32_t pixelFormat_ = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     #ifdef ROSEN_ARKUI_X

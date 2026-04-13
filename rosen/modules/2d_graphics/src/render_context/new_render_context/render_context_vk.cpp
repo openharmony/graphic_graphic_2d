@@ -92,18 +92,12 @@ void RenderContextVK::ChangeProtectedState(bool isProtected)
 
 std::string RenderContextVK::GetShaderCacheSize() const
 {
-    if (RsVulkanContext::GetSingleton().GetMemoryHandler()) {
-        return RsVulkanContext::GetSingleton().GetMemoryHandler()->QuerryShader();
-    }
     LOGD("GetShaderCacheSize no shader cache");
     return "";
 }
 
 std::string RenderContextVK::CleanAllShaderCache() const
 {
-    if (RsVulkanContext::GetSingleton().GetMemoryHandler()) {
-        return RsVulkanContext::GetSingleton().GetMemoryHandler()->ClearShader();
-    }
     LOGD("CleanAllShaderCache no shader cache");
     return "";
 }
