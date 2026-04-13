@@ -978,9 +978,9 @@ namespace drawing {
      * @stagemodeonly
      * @since 26.0.0 dynamic&static
      */
-    drawGlyphs(glyphIds: Array<int>, glyphIdOffset: int,
-               positions: Array<common2D.Point>, positionOffset: int,
-               glyphCount: int, font: Font): void;
+    native drawGlyphs(glyphIds: Array<int>, glyphIdOffset: int,
+                      positions: Array<common2D.Point>, positionOffset: int,
+                      glyphCount: int, font: Font): void;
 
     /**
      * Draws the pixelmap base on the mesh which is evenly distributed across the pixelmap.
