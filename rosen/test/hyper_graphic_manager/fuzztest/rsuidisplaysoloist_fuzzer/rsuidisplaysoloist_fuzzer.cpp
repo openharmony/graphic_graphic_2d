@@ -23,11 +23,11 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 const uint8_t DO_INSERT_USE_EXCLUSIVE_THREAD_FLAG = 0;
-const uint8_t DO_STOP = 1;
-const uint8_t DO_REMOVE_SOLOIST = 2;
-const uint8_t DO_INSERT_ON_VSYNC_CALLBACK = 3;
-const uint8_t DO_INSERT_FRAME_RATE_RANGE = 4;
-const uint8_t DO_START = 5;
+const uint8_t DO_START = 1;
+const uint8_t DO_STOP = 2;
+const uint8_t DO_REMOVE_SOLOIST = 3;
+const uint8_t DO_INSERT_ON_VSYNC_CALLBACK = 4;
+const uint8_t DO_INSERT_FRAME_RATE_RANGE = 5;
 const uint8_t DO_SET_VSYNC_RATE = 6;
 const uint8_t DO_SET_MAIN_FRAME_RATE_LINKER_ENABLE = 7;
 const uint8_t TARGET_SIZE = 8;
@@ -112,6 +112,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         case OHOS::Rosen::DO_INSERT_USE_EXCLUSIVE_THREAD_FLAG:
             OHOS::Rosen::DoInsertUseExclusiveThreadFlag(fdp);
             break;
+        case OHOS::Rosen::DO_START:
+            OHOS::Rosen::DoStart(fdp);
+            break;
         case OHOS::Rosen::DO_STOP:
             OHOS::Rosen::DoStop(fdp);
             break;
@@ -123,9 +126,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_INSERT_FRAME_RATE_RANGE:
             OHOS::Rosen::DoInsertFrameRateRange(fdp);
-            break;
-        case OHOS::Rosen::DO_START:
-            OHOS::Rosen::DoStart(fdp);
             break;
         case OHOS::Rosen::DO_SET_VSYNC_RATE:
             OHOS::Rosen::DoSetVSyncRate(fdp);
