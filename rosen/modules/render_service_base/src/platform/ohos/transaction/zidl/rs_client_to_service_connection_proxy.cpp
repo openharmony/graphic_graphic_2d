@@ -459,7 +459,11 @@ ErrCode RSClientToServiceConnectionProxy::SetVirtualScreenTypeBlackList(
         return ERR_INVALID_VALUE;
     }
 
-    repCode = SUCCESS;
+    if (!reply.ReadInt32(repCode)) {
+        ROSEN_LOGE("%{public}s: Read repCode failed", __func__);
+        repCode = READ_PARCEL_ERR;
+        return ERR_INVALID_VALUE;
+    }
     return ERR_OK;
 }
 
@@ -495,7 +499,11 @@ ErrCode RSClientToServiceConnectionProxy::AddVirtualScreenBlackList(
         return ERR_INVALID_VALUE;
     }
 
-    repCode = reply.ReadInt32();
+    if (!reply.ReadInt32(repCode)) {
+        ROSEN_LOGE("%{public}s: Read repCode failed", __func__);
+        repCode = READ_PARCEL_ERR;
+        return ERR_INVALID_VALUE;
+    }
     return ERR_OK;
 }
 
@@ -531,7 +539,11 @@ ErrCode RSClientToServiceConnectionProxy::RemoveVirtualScreenBlackList(
         return ERR_INVALID_VALUE;
     }
 
-    repCode = reply.ReadInt32();
+    if (!reply.ReadInt32(repCode)) {
+        ROSEN_LOGE("%{public}s: Read repCode failed", __func__);
+        repCode = READ_PARCEL_ERR;
+        return ERR_INVALID_VALUE;
+    }
     return ERR_OK;
 }
 
@@ -567,7 +579,11 @@ ErrCode RSClientToServiceConnectionProxy::AddVirtualScreenWhiteList(
         return ERR_INVALID_VALUE;
     }
 
-    repCode = reply.ReadInt32();
+    if (!reply.ReadInt32(repCode)) {
+        ROSEN_LOGE("%{public}s: Read repCode failed", __func__);
+        repCode = READ_PARCEL_ERR;
+        return ERR_INVALID_VALUE;
+    }
     return ERR_OK;
 }
 
@@ -603,7 +619,11 @@ ErrCode RSClientToServiceConnectionProxy::RemoveVirtualScreenWhiteList(
         return ERR_INVALID_VALUE;
     }
 
-    repCode = reply.ReadInt32();
+    if (!reply.ReadInt32(repCode)) {
+        ROSEN_LOGE("%{public}s: Read repCode failed", __func__);
+        repCode = READ_PARCEL_ERR;
+        return ERR_INVALID_VALUE;
+    }
     return ERR_OK;
 }
 
