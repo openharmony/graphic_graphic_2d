@@ -1094,10 +1094,12 @@ bool GetGlyphIds(napi_env env, napi_value& jsGlyphIds, uint32_t size, std::uniqu
         uint32_t glyphId = 0;
         if (napi_get_value_uint32(env, tempGlyphIds, &glyphId) != napi_ok) {
             ROSEN_LOGE("GetGlyphIds id = %{public}u is Invalid", glyphId);
+            glyphIds[i] = 0;
             continue;
         }
         if (glyphId > std::numeric_limits<uint16_t>::max()) {
             ROSEN_LOGE("GetGlyphIds id = %{public}u is Invalid", glyphId);
+            glyphIds[i] = 0;
             continue;
         }
         glyphIds[i] = static_cast<uint16_t>(glyphId);
