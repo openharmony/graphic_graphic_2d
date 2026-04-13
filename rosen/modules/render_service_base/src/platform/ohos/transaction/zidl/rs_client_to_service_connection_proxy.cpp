@@ -301,7 +301,12 @@ std::vector<ScreenId> RSClientToServiceConnectionProxy::GetAllScreenIds()
         return screenIds;
     }
     for (uint32_t i = 0; i < size; i++) {
-        screenIds.emplace_back(reply.ReadUint64());
+        ScreenId id{INVALID_SCREEN_ID};
+        if (!reply.ReadUint64(id)) {
+            RS_LOGE("RSClientToServiceConnectionProxy::GetAllScreenIds Read id failed");
+            continue;
+        }
+        screenIds.emplace_back(id);
     }
 
     return screenIds;
@@ -415,8 +420,7 @@ int32_t RSClientToServiceConnectionProxy::SetVirtualScreenBlackList(ScreenId id,
         return RS_CONNECTION_ERROR;
     }
 
-    int32_t status = reply.ReadInt32();
-    return status;
+    return ERR_OK;
 }
 
 ErrCode RSClientToServiceConnectionProxy::SetVirtualScreenTypeBlackList(
@@ -449,7 +453,7 @@ ErrCode RSClientToServiceConnectionProxy::SetVirtualScreenTypeBlackList(
         return ERR_INVALID_VALUE;
     }
 
-    repCode = reply.ReadInt32();
+    repCode = SUCCESS;
     return ERR_OK;
 }
 
@@ -746,8 +750,7 @@ int32_t RSClientToServiceConnectionProxy::SetCastScreenEnableSkipWindow(ScreenId
         ROSEN_LOGE("RSClientToServiceConnectionProxy::SetCastScreenEnableSkipWindow: Send Request err.");
         return RS_CONNECTION_ERROR;
     }
-    int32_t result = reply.ReadInt32();
-    return result;
+    return ERR_OK;
 }
 
 int32_t RSClientToServiceConnectionProxy::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface)
@@ -783,8 +786,7 @@ int32_t RSClientToServiceConnectionProxy::SetVirtualScreenSurface(ScreenId id, s
         return RS_CONNECTION_ERROR;
     }
 
-    int32_t status = reply.ReadInt32();
-    return status;
+    return ERR_OK;
 }
 
 void RSClientToServiceConnectionProxy::RemoveVirtualScreen(ScreenId id)
@@ -837,8 +839,7 @@ int32_t RSClientToServiceConnectionProxy::SetScreenChangeCallback(sptr<RSIScreen
         ROSEN_LOGE("RSClientToServiceConnectionProxy::SetScreenChangeCallback: Send Request err.");
         return RS_CONNECTION_ERROR;
     }
-    int32_t result = reply.ReadInt32();
-    return result;
+    return ERR_OK;
 }
 
 int32_t RSClientToServiceConnectionProxy::SetScreenSwitchingNotifyCallback(
@@ -1880,9 +1881,15 @@ ErrCode RSClientToServiceConnectionProxy::GetScreenPowerStatus(uint64_t screenId
     uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_POWER_STATUS);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
+        ROSEN_LOGE("%{public}s: sendrequest error : %{public}d", __func__, err);
+        status = INVALID_POWER_STATUS;
+        return ERR_INVALID_OPERATION;
+    }
+    if (!reply.ReadUint32(status)) {
+        ROSEN_LOGE("%{public}s: Read status err.", __func__);
+        status = INVALID_POWER_STATUS;
         return ERR_INVALID_VALUE;
     }
-    status = reply.ReadUint32();
     return ERR_OK;
 }
 
@@ -2672,7 +2679,11 @@ int32_t RSClientToServiceConnectionProxy::GetScreenType(ScreenId id, RSScreenTyp
     if (err != NO_ERROR) {
         return RS_CONNECTION_ERROR;
     }
-    int32_t result = reply.ReadInt32();
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::GetScreenType Read result failed");
+        return READ_PARCEL_ERR;
+    }
     if (result == SUCCESS) {
         uint32_t type{0};
         if (!reply.ReadUint32(type)) {
@@ -2958,7 +2969,10 @@ int32_t RSClientToServiceConnectionProxy::GetDisplayIdentificationData(ScreenId 
     if (!reply.ReadUint8(outPort)) {
         return READ_PARCEL_ERR;
     }
-    uint32_t edidSize = reply.ReadUint32();
+    uint32_t edidSize{0};
+    if (!reply.ReadUint32(edidSize)) {
+        return READ_PARCEL_ERR;
+    }
     if (edidSize == 0 || edidSize > EDID_DATA_MAX_SIZE) {
         RS_LOGE("RSClientToServiceConnectionProxy::GetDisplayIdentificationData: EdidSize failed");
         return READ_PARCEL_ERR;

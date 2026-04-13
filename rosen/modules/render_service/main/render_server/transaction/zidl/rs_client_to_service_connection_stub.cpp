@@ -425,10 +425,13 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             sptr<Surface> surface = nullptr;
             if (useSurface) {
                 auto remoteObject = data.ReadRemoteObject();
-                if (remoteObject != nullptr) {
-                    auto bufferProducer = iface_cast<IBufferProducer>(remoteObject);
-                    surface = Surface::CreateSurfaceAsProducer(bufferProducer);
+                if (remoteObject == nullptr) {
+                    RS_LOGE("RSClientToServiceConnectionStub::CREATE_VIRTUAL_SCREEN read surface failed!");
+                    ret = ERR_NULL_OBJECT;
+                    break;
                 }
+                auto bufferProducer = iface_cast<IBufferProducer>(remoteObject);
+                surface = Surface::CreateSurfaceAsProducer(bufferProducer);
             }
             ScreenId associatedScreenId{INVALID_SCREEN_ID};
             int32_t flags{0};
@@ -454,11 +457,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            int32_t status = SetVirtualScreenBlackList(id, blackList);
-            if (!reply.WriteInt32(status)) {
-                RS_LOGE("RSClientToServiceConnectionStub::SET_VIRTUAL_SCREEN_BLACKLIST Write status failed!");
-                ret = ERR_INVALID_REPLY;
-            }
+            SetVirtualScreenBlackList(id, blackList);
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_TYPE_BLACKLIST): {
@@ -644,11 +643,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            int32_t result = SetCastScreenEnableSkipWindow(id, enable);
-            if (!reply.WriteInt32(result)) {
-                RS_LOGE("RSClientToServiceConnectionStub::SET_MIRROR_SCREEN_VISIBLE_RECT Write result failed!");
-                ret = ERR_INVALID_REPLY;
-            }
+            SetCastScreenEnableSkipWindow(id, enable);
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_SURFACE): {
@@ -670,11 +665,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_NULL_OBJECT;
                 break;
             }
-            int32_t status = SetVirtualScreenSurface(id, surface);
-            if (!reply.WriteInt32(status)) {
-                RS_LOGE("RSClientToServiceConnectionStub::SET_VIRTUAL_SCREEN_SURFACE Write status failed!");
-                ret = ERR_INVALID_REPLY;
-            }
+            SetVirtualScreenSurface(id, surface);
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN): {
@@ -723,11 +714,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             RS_LOGI("RSClientToServiceConnectionStub::SET_SCREEN_CHANGE_CALLBACK");
-            int32_t status = SetScreenChangeCallback(cb);
-            if (!reply.WriteInt32(status)) {
-                RS_LOGE("RSClientToServiceConnectionStub::SET_SCREEN_CHANGE_CALLBACK Write status failed!");
-                ret = ERR_INVALID_REPLY;
-            }
+            SetScreenChangeCallback(cb);
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_SWITCHING_NOTIFY_CALLBACK): {
