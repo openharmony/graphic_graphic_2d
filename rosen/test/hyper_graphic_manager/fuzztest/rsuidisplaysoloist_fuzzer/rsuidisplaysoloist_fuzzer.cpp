@@ -22,12 +22,12 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-const uint8_t DO_START = 0;
+const uint8_t DO_INSERT_USE_EXCLUSIVE_THREAD_FLAG = 0;
 const uint8_t DO_STOP = 1;
 const uint8_t DO_REMOVE_SOLOIST = 2;
 const uint8_t DO_INSERT_ON_VSYNC_CALLBACK = 3;
 const uint8_t DO_INSERT_FRAME_RATE_RANGE = 4;
-const uint8_t DO_INSERT_USE_EXCLUSIVE_THREAD_FLAG = 5;
+const uint8_t DO_START = 5;
 const uint8_t DO_SET_VSYNC_RATE = 6;
 const uint8_t DO_SET_MAIN_FRAME_RATE_LINKER_ENABLE = 7;
 const uint8_t TARGET_SIZE = 8;
@@ -35,21 +35,18 @@ const uint8_t TARGET_SIZE = 8;
 void DoStart(FuzzedDataProvider& fdp)
 {
     SoloistIdType id = fdp.ConsumeIntegral<uint32_t>();
-    RSDisplaySoloistManager::GetInstance().InsertUseExclusiveThreadFlag(id, false);
     RSDisplaySoloistManager::GetInstance().Start(id);
 }
 
 void DoStop(FuzzedDataProvider& fdp)
 {
     SoloistIdType id = fdp.ConsumeIntegral<uint32_t>();
-    RSDisplaySoloistManager::GetInstance().InsertUseExclusiveThreadFlag(id, false);
     RSDisplaySoloistManager::GetInstance().Stop(id);
 }
 
 void DoRemoveSoloist(FuzzedDataProvider& fdp)
 {
     SoloistIdType id = fdp.ConsumeIntegral<uint32_t>();
-    RSDisplaySoloistManager::GetInstance().InsertUseExclusiveThreadFlag(id, false);
     RSDisplaySoloistManager::GetInstance().RemoveSoloist(id);
 }
 
@@ -72,7 +69,6 @@ void DoInsertOnVsyncCallback(FuzzedDataProvider& fdp)
 void DoInsertFrameRateRange(FuzzedDataProvider& fdp)
 {
     SoloistIdType id = fdp.ConsumeIntegral<uint32_t>();
-    RSDisplaySoloistManager::GetInstance().InsertUseExclusiveThreadFlag(id, false);
     FrameRateRange frameRateRange;
     frameRateRange.min_ = fdp.ConsumeIntegral<int32_t>();
     frameRateRange.max_ = fdp.ConsumeIntegral<int32_t>();
@@ -84,7 +80,7 @@ void DoInsertFrameRateRange(FuzzedDataProvider& fdp)
 void DoInsertUseExclusiveThreadFlag(FuzzedDataProvider& fdp)
 {
     SoloistIdType id = fdp.ConsumeIntegral<uint32_t>();
-    bool useExclusiveThread = fdp.ConsumeBool();
+    bool useExclusiveThread = false;
     RSDisplaySoloistManager::GetInstance().InsertUseExclusiveThreadFlag(id, useExclusiveThread);
 }
 
