@@ -425,7 +425,7 @@ void RecordingCanvas::DrawGlyphs(int count, const uint16_t glyphs[], const Point
     auto glyphIDsData = CmdListHelper::AddVectorToCmdList<uint16_t>(*cmdList_, glyphIDs);
     auto positionsData = CmdListHelper::AddVectorToCmdList<Point>(*cmdList_, positions);
     uint64_t globalUniqueId = 0;
-    if (font->GetTypeface() != nullptr) {
+    if (font && font->GetTypeface() != nullptr) {
         globalUniqueId = (shiftedPid | font->GetTypeface()->GetUniqueID());
     }
     AddDrawOpImmediate<DrawGlyphsOpItem::ConstructorHandle>(glyphIDsData, positionsData, origin, fontHandle,
