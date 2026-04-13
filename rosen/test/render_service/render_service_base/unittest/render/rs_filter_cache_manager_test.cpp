@@ -341,7 +341,7 @@ HWTEST_F(RSFilterCacheManagerTest, TakeSnapshotTest, TestSize.Level1)
     rsFilterCacheManager->TakeSnapshot(filterCanvas, filter, srcRect);
     SurfaceNodeInfo info;
     info.surfaceImage_ = std::make_shared<Drawing::Image>();
-    info.matrix_.Set(Drawing::Matrix::Trans_X, 1.0f);
+    info.matrix_.Set(Drawing::Matrix::TRANS_X, 1.0f);
     info.srcRect_ = Drawing::Rect(0, 0, 100, 100);
     info.dstRect_ = Drawing::Rect(0, 0, 100, 100);
     info.solidLayerColor_ = RgbPalette::Black();

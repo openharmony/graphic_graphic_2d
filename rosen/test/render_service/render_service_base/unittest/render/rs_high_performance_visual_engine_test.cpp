@@ -17,7 +17,7 @@
 #include "utils/rect.h"
 #include "render/rs_high_performance_visual_engine.h"
 #include "pipeline/rs_surface_render_node.h"
-#include "pipeline/rs_effct_render_node.h"
+#include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 
@@ -37,7 +37,7 @@ public:
     std::shared_ptr<RSEffectRenderNode> validTargetNode;
     std::shared_ptr<RSEffectRenderNode> invalidTargetNode;
     std::shared_ptr<RSRenderNode> renderNode;
-    std::shared_ptr<RSRenderNode> hwcNode;
+    std::shared_ptr<RSSurfaceRenderNode> hwcNode;
     static constexpr uint32_t MAX_FILTER_SIZE = 500;
     static constexpr uint32_t ROOT_SURFACE_NODE_ID = 1;
     static constexpr uint32_t EFFECT_NODE_ID = 2;
@@ -56,7 +56,7 @@ void RSHveFilterTest::SetUp()
     validTargetNode = std::make_shared<RSEffectRenderNode>(VALID_TARGET_NODE_ID);
     invalidTargetNode = std::make_shared<RSEffectRenderNode>(INVALID_TARGET_NODE_ID);
     renderNode = std::make_shared<RSRenderNode>(RENDER_NODE_ID);
-    hwcNode = std::make_shared<RSRenderNode>(HWC_NODE_ID);
+    hwcNode = std::make_shared<RSSurfaceRenderNode>(HWC_NODE_ID);
 
     validTargetNode->GetMutableRenderProperties().SetUseEffect(true);
     validTargetNode->SetGlobalAlpha(1.0f);

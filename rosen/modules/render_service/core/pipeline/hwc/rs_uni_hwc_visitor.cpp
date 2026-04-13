@@ -980,14 +980,14 @@ bool RSUniHwcVisitor::IsHveBlurFilterEnabled(
     const RSRenderNode& renderNode, const std::pair<NodeId, RectI>& filter, RSSurfaceRenderNode& hwcNode)
 {
     if (!RSSystemParameters::GetHveBlurEnabled() ||
-        !HveFilter::GetHveFilter().CheckPrecondition(renderNode, fliter.second, hwcNode) ||
+        !HveFilter::GetHveFilter().CheckPrecondition(renderNode, filter.second, hwcNode) ||
         RSHdrUtil::CheckIsHdrSurface(hwcNode)) {
         return false;
     }
-    RS_OPTIONAL_TRACE_FMT("%s: id:%"PRIu64 " isHveEnabled with filterId:% " PRIu64,
-        __func__, hwcNode.GetId(), fliter.first);
+    RS_OPTIONAL_TRACE_FMT("%s: id:%" PRIu64 " isHveEnabled with filterId:% " PRIu64,
+        __func__, hwcNode.GetId(), filter.first);
     hwcNode.SetHardwareNeedMakeImage(true);
-    hwcNode.SetIntersectwithFilterNode(true);
+    hwcNode.SetIntersectWithFilterNode(true);
     return true;
 }
 
@@ -1083,7 +1083,7 @@ void ColorPickerCheckHwcIntersection(const std::shared_ptr<RSSurfaceRenderNode>&
 
     RectI hwcNodeRect = hwcNode->GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
     if (!colorPickerRect.IntersectRect(hwcNodeRect).IsEmpty()) {
-        hwcNode->SetIntersectwithFilterNode(true);
+        hwcNode->SetIntersectWithFilterNode(true);
         hwcNode->SetHardwareNeedMakeImage(true);
         RS_OPTIONAL_TRACE_FMT("ColorPicker: rect [%d,%d,%d,%d] intersects node %s id:%" PRIu64
             " (rect: [%d,%d,%d,%d])",

@@ -87,7 +87,7 @@ bool HveFilter::HasValidEffect(const RSRenderNode* node)
 }
 
 bool HveFilter::CheckPrecondition(const RSRenderNode& renderNode,
-    const RectI<int>& filterRect, RSSurfaceRenderNode& hwcNode)
+    const RectI& filterRect, RSSurfaceRenderNode& hwcNode)
 {
     // Check basic conditions for hwcNode and filter size
     if (!hwcNode.GetArsrTag() ||
