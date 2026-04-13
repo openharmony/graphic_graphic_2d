@@ -60,13 +60,14 @@ bool HveFilter::CheckEffectNodeConditions(const std::shared_ptr<RSRenderNode>& n
            node->GetGlobalAlpha() == 1;
 }
 
-bool HveFilter::HasValidEffect(const RSRenderNode* node) {
+bool HveFilter::HasValidEffect(const RSRenderNode* node)
+{
     // Basic termination condition
-    if (!node || node->GetType() == RSRenderNodeType::SURFACE_NODE){
+    if (!node || node->GetType() == RSRenderNodeType::SURFACE_NODE) {
         return false;
     }
     const RSProperties& properties = node->GetRenderProperties();
-    if ((properties.GetUseEffect() && node->GetGlobalAlpha() == 1) && !node->HasChildrenOutOfRect()){
+    if ((properties.GetUseEffect() && node->GetGlobalAlpha() == 1) && !node->HasChildrenOutOfRect()) {
         //After finding target node, star searching upwards for EFFECT_NODE
         RS_LOGD("%{public}s UseEffect is valid", __func__);
         auto parentPtr = node->GetParent().lock();
@@ -86,7 +87,8 @@ bool HveFilter::HasValidEffect(const RSRenderNode* node) {
 }
 
 bool HveFilter::CheckPrecondition(const RSRenderNode& renderNode,
-    const std::pair<NodeId, RectI>& filter, RSSurfaceRenderNode& hwcNode) {
+    const std::pair<NodeId, RectI>& filter, RSSurfaceRenderNode& hwcNode)
+{
     // Check basic conditions for hwcNode and filter size
     if (!hwcNode.GetArsrTag() || (filter.second.width_ > MAX_FILTER_SIZE && filter.second.height_ > MAX_FILTER_SIZE)) {
         return false;

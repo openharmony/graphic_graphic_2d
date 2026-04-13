@@ -539,7 +539,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnable()
         }
         if (RSSystemParameters::GetArsrPreEnabled() &&
             RSUniHwcPrevalidateUtil::GetInstance().CheckIfDoArsrPre(surfaceNode)) {
-           surfaceNode->SetArsrTag(true);
+            surfaceNode->SetArsrTag(true);
         }
         UpdateHwcNodeEnableByGlobalFilter(surfaceNode);
         surfaceNode->ResetNeedCollectHwcNode();
