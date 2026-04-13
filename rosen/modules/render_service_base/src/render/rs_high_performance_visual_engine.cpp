@@ -151,9 +151,8 @@ std::shared_ptr<Drawing::Image> HveFilter::SampleLayer(RSPaintFilterCanvas& canv
             Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
         offscreenCanvas->Restore();
     }
-    ClearSurfaceNodeInfo();
 
-    auto inputImage = drawingSurface->GetImageSnapshot();
+    auto inputImage = drawingSurface->GetImageSnapshot(srcRect);
     if (inputImage != nullptr) {
         offscreenCanvas->DrawImageRect(*inputImage, srcRect, dstRect, Drawing::SamplingOptions(),
             Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
