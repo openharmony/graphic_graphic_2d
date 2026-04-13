@@ -117,7 +117,7 @@ private:
         NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) override;
 
-    ErrCode SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+    ErrCode SetHwcNodeBounds(NodeId rsNodeId, float positionX, float positionY,
         float positionZ, float positionW) override;
 
     int32_t GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo) override;

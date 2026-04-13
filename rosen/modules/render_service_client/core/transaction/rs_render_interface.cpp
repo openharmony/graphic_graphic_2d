@@ -336,7 +336,7 @@ bool RSRenderInterface::SetAncoForceDoDirect(bool direct)
     return renderPipelineClient_->SetAncoForceDoDirect(direct);
 }
 
-bool RSRenderInterface::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+bool RSRenderInterface::SetHwcNodeBounds(NodeId rsNodeId, float positionX, float positionY,
     float positionZ, float positionW)
 {
     if (renderPipelineClient_ == nullptr) {

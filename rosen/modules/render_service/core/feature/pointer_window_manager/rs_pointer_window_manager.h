@@ -94,12 +94,12 @@ public:
         return isPointerCanSkipFrame_.compare_exchange_weak(expectChanged, changeFlag);
     }
 
-    int64_t GetRsNodeId() const
+    NodeId GetRsNodeId() const
     {
         return rsNodeId_;
     }
 
-    void SetRsNodeId(int64_t id)
+    void SetRsNodeId(NodeId id)
     {
         rsNodeId_ = id;
     }
@@ -144,7 +144,7 @@ public:
     }
 
     void UpdatePointerInfo();
-    void SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+    void SetHwcNodeBounds(NodeId rsNodeId, float positionX, float positionY,
         float positionZ, float positionW);
     void SetHardCursorNodeInfo(std::shared_ptr<RSSurfaceRenderNode> hardCursorNode);
     const std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& GetHardCursorNode() const;
@@ -169,7 +169,7 @@ private:
     std::atomic<bool> isPointerCanSkipFrame_ = false;
     std::atomic<bool> boundHasUpdate_ = false;
     BoundParam bound_ = {0.0f, 0.0f, 0.0f, 0.0f};
-    int64_t rsNodeId_ = -1;
+    NodeId rsNodeId_ = INVALID_NODEID;
     bool isTuiEnabled_ = false;
 };
 } // namespace Rosen

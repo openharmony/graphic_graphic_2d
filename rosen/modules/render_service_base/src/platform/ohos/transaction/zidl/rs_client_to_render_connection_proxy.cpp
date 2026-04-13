@@ -1060,7 +1060,7 @@ bool RSClientToRenderConnectionProxy::WriteSurfaceCaptureAreaRect(
     return true;
 }
 
-ErrCode RSClientToRenderConnectionProxy::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+ErrCode RSClientToRenderConnectionProxy::SetHwcNodeBounds(NodeId rsNodeId, float positionX, float positionY,
     float positionZ, float positionW)
 {
     MessageParcel data;
