@@ -854,10 +854,14 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasDrawGlyphs(OH_Drawing_Canvas* cCanvas,
         return OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
     }
     const Point* glyphPositions = reinterpret_cast<const Point*>(positions);
-    const uint16_t* glyphIdsUForm = reinterpret_cast<const uint16_t*>(glyphIds);
+    std::vector<uint16_t> safeGlyphs;
+    safeGlyphs.reserve(glyphIdCount);
+    for (size_t i = 0; i < glyphIdCount; ++i) {
+        safeGlyphs.push_back(static_cast<uint16_t>(glyphIds[i]));
+    }
     Drawing::Point origin = Drawing::Point(0, 0);
     canvas->DrawGlyphs(glyphCount,
-                       glyphIdsUForm + glyphIdOffset,
+                       safeGlyphs.data() + glyphIdOffset,
                        glyphPositions + positionOffset,
                        origin,
                        font);
