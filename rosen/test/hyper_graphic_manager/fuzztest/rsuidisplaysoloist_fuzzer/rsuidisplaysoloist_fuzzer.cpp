@@ -32,6 +32,13 @@ const uint8_t DO_SET_VSYNC_RATE = 6;
 const uint8_t DO_SET_MAIN_FRAME_RATE_LINKER_ENABLE = 7;
 const uint8_t TARGET_SIZE = 8;
 
+void DoInsertUseExclusiveThreadFlag(FuzzedDataProvider& fdp)
+{
+    SoloistIdType id = fdp.ConsumeIntegral<uint32_t>();
+    bool useExclusiveThread = false;
+    RSDisplaySoloistManager::GetInstance().InsertUseExclusiveThreadFlag(id, useExclusiveThread);
+}
+
 void DoStart(FuzzedDataProvider& fdp)
 {
     SoloistIdType id = fdp.ConsumeIntegral<uint32_t>();
@@ -75,13 +82,6 @@ void DoInsertFrameRateRange(FuzzedDataProvider& fdp)
     frameRateRange.preferred_ = fdp.ConsumeIntegral<int32_t>();
     frameRateRange.type_ = fdp.ConsumeIntegral<uint32_t>();
     RSDisplaySoloistManager::GetInstance().InsertFrameRateRange(id, frameRateRange);
-}
-
-void DoInsertUseExclusiveThreadFlag(FuzzedDataProvider& fdp)
-{
-    SoloistIdType id = fdp.ConsumeIntegral<uint32_t>();
-    bool useExclusiveThread = false;
-    RSDisplaySoloistManager::GetInstance().InsertUseExclusiveThreadFlag(id, useExclusiveThread);
 }
 
 void DoSetVSyncRate(FuzzedDataProvider& fdp)
