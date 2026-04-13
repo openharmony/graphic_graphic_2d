@@ -1272,4 +1272,546 @@ HWTEST_F(VulkanLoaderUnitTest, enumerateDeviceExtensionProperties_VK_KHR_increme
         ASSERT_TRUE(requiredExtensions.empty());
     }
 }
-} // vulkan::loader
+
+/**
+ * @tc.name: test vkEnumerateDeviceExtensionProperties VK_HUAWEveri_hdr_vivid
+ * @tc.desc: check if VK_HUAWEI_hdr_vivid can be found in the list of device extensions
+ * @tc.type: FUNC
+ * @tc.require: issueI9EYX2
+ */
+HWTEST_F(VulkanLoaderUnitTest, enumerateDeviceExtensionProperties_VK_HUAWEI_hdr_vivid_Test, TestSize.Level1)
+{
+    std::set<std::string> requiredExtensions = {
+        "VK_HUAWEI_hdr_vivid",
+    };
+
+    if (isSupportedVulkan_) {
+        uint32_t pPropertyCount = 0;
+        const char* pLayerName = "VK_LAYER_OHOS_surface";
+        VkResult err = vkEnumerateDeviceExtensionProperties(physicalDevice_, pLayerName, &pPropertyCount, nullptr);
+        EXPECT_EQ(err, VK_SUCCESS);
+        std::vector<VkExtensionProperties> pProperties(pPropertyCount);
+        if (pPropertyCount > 0) {
+            err =
+                vkEnumerateDeviceExtensionProperties(physicalDevice_, pLayerName, &pPropertyCount, pProperties.data());
+            EXPECT_EQ(err, VK_SUCCESS);
+        }
+        // Check that all required extensions are present
+        for (const auto& extension : pProperties) {
+            requiredExtensions.erase(extension.extensionName);
+        }
+        ASSERT_TRUE(requiredExtensions.empty());
+    }
+}
+
+/**
+ * @tc.name: test fpSetHdrMetadataEXT with static metadata
+ * @tc.desc: test fpSetHdrMetadataEXT with static HDR metadata
+ * @tc.type: FUNC
+ * @tc.require: issueI9EYX2
+ */
+HWTEST_F(VulkanLoaderUnitTest, fpSetHdrMetadataEXT_Static_Metadata_Test, TestSize.Level1)
+{
+    if (isSupportedVulkan_) {
+        EXPECT_NE(fpSetHdrMetadataEXT, nullptr);
+        EXPECT_NE(device_, nullptr);
+        EXPECT_NE(swapChain_, VK_NULL_HANDLE);
+
+        VkHdrMetadataEXT hdrMetadata = {};
+        hdrMetadata.sType = VK_STRUCTURE_TYPE_HDR_METADATA_EXT;
+        hdrMetadata.pNext = nullptr;
+        hdrMetadata.displayPrimaryRed = { 0.640f, 0.330f };
+        hdrMetadata.displayPrimaryGreen = { 0.300f, 0.600f };
+        hdrMetadata.displayPrimaryBlue = { 0.150f, 0.060f };
+        hdrMetadata.whitePoint = { 0.3127f, 0.3290f };
+        hdrMetadata.maxLuminance = 1000.0f;
+        hdrMetadata.minLuminance = 0.01f;
+        hdrMetadata.maxContentLightLevel = 1000;
+        hdrMetadata.maxFrameAverageLightLevel = 500;
+
+        VkSwapchainKHR swapchains[] = { swapChain_ };
+        fpSetHdrMetadataEXT(device_, 1, swapchains, &hdrMetadata);
+        EXPECT_NE(swapChain_, VK_NULL_HANDLE);
+    }
+}
+
+/**
+ * @tc.name: test fpSetHdrMetadataEXT with static and vivid dynamic metadata
+ * @tc.desc: test fpSetHdrMetadataEXT with static HDR metadata and vivid dynamic metadata
+ * @tc.type: FUNC
+ * @tc.require: issueI9EYX2
+ */
+HWTEST_F(VulkanLoaderUnitTest, fpSetHdrMetadataEXT_Static_Vivid_Metadata_Test, TestSize.Level1)
+{
+    if (isSupportedVulkan_) {
+        EXPECT_NE(fpSetHdrMetadataEXT, nullptr);
+        EXPECT_NE(device_, nullptr);
+        EXPECT_NE(swapChain_, VK_NULL_HANDLE);
+
+        uint8_t vividMetadataData[16] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D,
+            0x0E, 0x0F, 0x10 };
+
+        VkHdrVividDynamicMetadataHUAWEI vividMetadata = {};
+        vividMetadata.sType = VK_STRUCTURE_TYPE_HDR_VIVID_DYNAMIC_METADATA_HUAWEI;
+        vividMetadata.pNext = nullptr;
+        vividMetadata.dynamicMetadataSize = sizeof(vividMetadataData);
+        vividMetadata.pDynamicMetadata = vividMetadataData;
+
+        VkHdrMetadataEXT hdrMetadata = {};
+        hdrMetadata.sType = VK_STRUCTURE_TYPE_HDR_METADATA_EXT;
+        hdrMetadata.pNext = &vividMetadata;
+        hdrMetadata.displayPrimaryRed = { 0.640f, 0.330f };
+        hdrMetadata.displayPrimaryGreen = { 0.300f, 0.600f };
+        hdrMetadata.displayPrimaryBlue = { 0.150f, 0.060f };
+        hdrMetadata.whitePoint = { 0.3127f, 0.3290f };
+        hdrMetadata.maxLuminance = 1000.0f;
+        hdrMetadata.minLuminance = 0.01f;
+        hdrMetadata.maxContentLightLevel = 1000;
+        hdrMetadata.maxFrameAverageLightLevel = 500;
+
+        VkSwapchainKHR swapchains[] = { swapChain_ };
+        fpSetHdrMetadataEXT(device_, 1, swapchains, &hdrMetadata);
+        EXPECT_NE(swapChain_, VK_NULL_HANDLE);
+    }
+}
+
+/**
+ * @tc.name: test fpSetHdrMetadataEXT with nullptr metadata
+ * @tc.desc: test fpSetHdrMetadataEXT with nullptr metadata (should not crash)
+ * @tc.type: FUNC
+ * @tc.require: issueI9EYX2
+ */
+HWTEST_F(VulkanLoaderUnitTest, fpSetHdrMetadataEXT_Nullptr_Metadata_Test, TestSize.Level1)
+{
+    if (isSupportedVulkan_) {
+        EXPECT_NE(fpSetHdrMetadataEXT, nullptr);
+        EXPECT_NE(device_, nullptr);
+        EXPECT_NE(swapChain_, VK_NULL_HANDLE);
+
+        VkSwapchainKHR swapchains[] = { swapChain_ };
+        fpSetHdrMetadataEXT(device_, 1, swapchains, nullptr);
+        EXPECT_NE(swapChain_, VK_NULL_HANDLE);
+    }
+}
+
+/**
+ * @tc.name: test fpSetHdrMetadataEXT with multiple swapchains
+ * @tc.desc: test fpSetHdrMetadataEXT with multiple swapchains
+ * @tc.type: FUNC
+ * @tc.require: issueI9EYX2
+ */
+HWTEST_F(VulkanLoaderUnitTest, fpSetHdrMetadataEXT_Multiple_Swapchains_Test, TestSize.Level1)
+{
+    if (isSupportedVulkan_) {
+        EXPECT_NE(fpSetHdrMetadataEXT, nullptr);
+        EXPECT_NE(device_, nullptr);
+        EXPECT_NE(swapChain_, VK_NULL_HANDLE);
+        EXPECT_NE(swapChain2_, VK_NULL_HANDLE);
+
+        VkHdrMetadataEXT hdrMetadata = {};
+        hdrMetadata.sType = VK_STRUCTURE_TYPE_HDR_METADATA_EXT;
+        hdrMetadata.pNext = nullptr;
+        hdrMetadata.displayPrimaryRed = { 0.640f, 0.330f };
+        hdrMetadata.displayPrimaryGreen = { 0.300f, 0.600f };
+        hdrMetadata.displayPrimaryBlue = { 0.150f, 0.060f };
+        hdrMetadata.whitePoint = { 0.3127f, 0.3290f };
+        hdrMetadata.maxLuminance = 1000.0f;
+        hdrMetadata.minLuminance = 0.01f;
+        hdrMetadata.maxContentLightLevel = 1000;
+        hdrMetadata.maxFrameAverageLightLevel = 500;
+
+        VkSwapchainKHR swapchains[] = { swapChain_, swapChain2_ };
+        fpSetHdrMetadataEXT(device_, 2, swapchains, &hdrMetadata);
+        EXPECT_NE(swapChain_, VK_NULL_HANDLE);
+    }
+}
+
+/**
+ * @tc.name: test fpSetHdrMetadataEXT with different vivid metadata sizes
+ * @tc.desc: test fpSetHdrMetadataEXT with different vivid metadata sizes
+ * @tc.type: FUNC
+ * @tc.require: issueI9EYX2
+ */
+HWTEST_F(VulkanLoaderUnitTest, fpSetHdrMetadataEXT_Different_Vivid_Sizes_Test, TestSize.Level1)
+{
+    if (isSupportedVulkan_) {
+        EXPECT_NE(fpSetHdrMetadataEXT, nullptr);
+        EXPECT_NE(device_, nullptr);
+        EXPECT_NE(swapChain_, VK_NULL_HANDLE);
+
+        std::vector<uint32_t> sizes = { 8, 16, 32, 64 };
+        for (uint32_t size : sizes) {
+            std::vector<uint8_t> vividMetadataData(size, 0x42);
+
+            VkHdrVividDynamicMetadataHUAWEI vividMetadata = {};
+            vividMetadata.sType = VK_STRUCTURE_TYPE_HDR_VIVID_DYNAMIC_METADATA_HUAWEI;
+            vividMetadata.pNext = nullptr;
+            vividMetadata.dynamicMetadataSize = size;
+            vividMetadata.pDynamicMetadata = vividMetadataData.data();
+
+            VkHdrMetadataEXT hdrMetadata = {};
+            hdrMetadata.sType = VK_STRUCTURE_TYPE_HDR_METADATA_EXT;
+            hdrMetadata.pNext = &vividMetadata;
+            hdrMetadata.displayPrimaryRed = { 0.640f, 0.330f };
+            hdrMetadata.displayPrimaryGreen = { 0.300f, 0.600f };
+            hdrMetadata.displayPrimaryBlue = { 0.150f, 0.060f };
+            hdrMetadata.whitePoint = { 0.3127f, 0.3290f };
+            hdrMetadata.maxLuminance = 1000.0f;
+            hdrMetadata.minLuminance = 0.01f;
+            hdrMetadata.maxContentLightLevel = 1000;
+            hdrMetadata.maxFrameAverageLightLevel = 500;
+
+            VkSwapchainKHR swapchains[] = { swapChain_ };
+            fpSetHdrMetadataEXT(device_, 1, swapchains, &hdrMetadata);
+        }
+        EXPECT_NE(swapChain_, VK_NULL_HANDLE);
+    }
+}
+
+/**
+ * @tc.name: test fpSetHdrMetadataEXT with pNext chain but no vivid metadata
+ * @tc.desc: test fpSetHdrMetadataEXT with pNext chain containing non-vivid structures
+ * @tc.type: FUNC
+ * @tc.require: issueI9EYX2
+ */
+HWTEST_F(VulkanLoaderUnitTest, fpSetHdrMetadataEXT_NonVivid_PNext_Chain_Test, TestSize.Level1)
+{
+    if (isSupportedVulkan_) {
+        EXPECT_NE(fpSetHdrMetadataEXT, nullptr);
+        EXPECT_NE(device_, nullptr);
+        EXPECT_NE(swapChain_, VK_NULL_HANDLE);
+
+        VkHdrMetadataEXT hdrMetadata = {};
+        hdrMetadata.sType = VK_STRUCTURE_TYPE_HDR_METADATA_EXT;
+        hdrMetadata.pNext = nullptr;
+        hdrMetadata.displayPrimaryRed = { 0.640f, 0.330f };
+        hdrMetadata.displayPrimaryGreen = { 0.300f, 0.600f };
+        hdrMetadata.displayPrimaryBlue = { 0.150f, 0.060f };
+        hdrMetadata.whitePoint = { 0.3127f, 0.3290f };
+        hdrMetadata.maxLuminance = 1000.0f;
+        hdrMetadata.minLuminance = 0.01f;
+        hdrMetadata.maxContentLightLevel = 1000;
+        hdrMetadata.maxFrameAverageLightLevel = 500;
+
+        VkSwapchainKHR swapchains[] = { swapChain_ };
+        fpSetHdrMetadataEXT(device_, 1, swapchains, &hdrMetadata);
+        EXPECT_NE(swapChain_, VK_NULL_HANDLE);
+    }
+}
+
+/**
+ * @tc.name: test fpSetHdrMetadataEXT vivid metadata resize
+ * @tc.desc: test fpSetHdrMetadataEXT with vivid metadata resize (first small, then large)
+ * @tc.type: FUNC
+ * @tc.require: issueI9EYX2
+ */
+HWTEST_F(VulkanLoaderUnitTest, fpSetHdrMetadataEXT_Vivid_Resize_Test, TestSize.Level1)
+{
+    if (isSupportedVulkan_) {
+        EXPECT_NE(fpSetHdrMetadataEXT, nullptr);
+        EXPECT_NE(device_, nullptr);
+        EXPECT_NE(swapChain_, VK_NULL_HANDLE);
+
+        uint8_t vividMetadataDataSmall[8] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08 };
+
+        VkHdrVividDynamicMetadataHUAWEI vividMetadataSmall = {};
+        vividMetadataSmall.sType = VK_STRUCTURE_TYPE_HDR_VIVID_DYNAMIC_METADATA_HUAWEI;
+        vividMetadataSmall.pNext = nullptr;
+        vividMetadataSmall.dynamicMetadataSize = sizeof(vividMetadataDataSmall);
+        vividMetadataSmall.pDynamicMetadata = vividMetadataDataSmall;
+
+        VkHdrMetadataEXT hdrMetadata = {};
+        hdrMetadata.sType = VK_STRUCTURE_TYPE_HDR_METADATA_EXT;
+        hdrMetadata.pNext = &vividMetadataSmall;
+        hdrMetadata.displayPrimaryRed = { 0.640f, 0.330f };
+        hdrMetadata.displayPrimaryGreen = { 0.300f, 0.600f };
+        hdrMetadata.displayPrimaryBlue = { 0.150f, 0.060f };
+        hdrMetadata.whitePoint = { 0.3127f, 0.3290f };
+        hdrMetadata.maxLuminance = 1000.0f;
+        hdrMetadata.minLuminance = 0.01f;
+        hdrMetadata.maxContentLightLevel = 1000;
+        hdrMetadata.maxFrameAverageLightLevel = 500;
+
+        VkSwapchainKHR swapchains[] = { swapChain_ };
+        fpSetHdrMetadataEXT(device_, 1, swapchains, &hdrMetadata);
+
+        uint8_t vividMetadataDataLarge[32] = { 0 };
+        for (int i = 0; i < 32; i++) {
+            vividMetadataDataLarge[i] = i;
+        }
+
+        VkHdrVividDynamicMetadataHUAWEI vividMetadataLarge = {};
+        vividMetadataLarge.sType = VK_STRUCTURE_TYPE_HDR_VIVID_DYNAMIC_METADATA_HUAWEI;
+        vividMetadataLarge.pNext = nullptr;
+        vividMetadataLarge.dynamicMetadataSize = sizeof(vividMetadataDataLarge);
+        vividMetadataLarge.pDynamicMetadata = vividMetadataDataLarge;
+
+        hdrMetadata.pNext = &vividMetadataLarge;
+        fpSetHdrMetadataEXT(device_, 1, swapchains, &hdrMetadata);
+        EXPECT_NE(swapChain_, VK_NULL_HANDLE);
+    }
+}
+
+/**
+ * @tc.name: test fpSetHdrMetadataEXT with same vivid metadata size
+ * @tc.desc: test fpSetHdrMetadataEXT with same vivid metadata size (no reallocation)
+ * @tc.type: FUNC
+ * @tc.require: issueI9EYX2
+ */
+HWTEST_F(VulkanLoaderUnitTest, fpSetHdrMetadataEXT_Same_Vivid_Size_Test, TestSize.Level1)
+{
+    if (isSupportedVulkan_) {
+        EXPECT_NE(fpSetHdrMetadataEXT, nullptr);
+        EXPECT_NE(device_, nullptr);
+        EXPECT_NE(swapChain_, VK_NULL_HANDLE);
+
+        uint8_t vividMetadataData[16] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D,
+            0x0E, 0x0F, 0x10 };
+
+        VkHdrVividDynamicMetadataHUAWEI vividMetadata = {};
+        vividMetadata.sType = VK_STRUCTURE_TYPE_HDR_VIVID_DYNAMIC_METADATA_HUAWEI;
+        vividMetadata.pNext = nullptr;
+        vividMetadata.dynamicMetadataSize = sizeof(vividMetadataData);
+        vividMetadata.pDynamicMetadata = vividMetadataData;
+
+        VkHdrMetadataEXT hdrMetadata = {};
+        hdrMetadata.sType = VK_STRUCTURE_TYPE_HDR_METADATA_EXT;
+        hdrMetadata.pNext = &vividMetadata;
+        hdrMetadata.displayPrimaryRed = { 0.640f, 0.330f };
+        hdrMetadata.displayPrimaryGreen = { 0.300f, 0.600f };
+        hdrMetadata.displayPrimaryBlue = { 0.150f, 0.060f };
+        hdrMetadata.whitePoint = { 0.3127f, 0.3290f };
+        hdrMetadata.maxLuminance = 1000.0f;
+        hdrMetadata.minLuminance = 0.01f;
+        hdrMetadata.maxContentLightLevel = 1000;
+        hdrMetadata.maxFrameAverageLightLevel = 500;
+
+        VkSwapchainKHR swapchains[] = { swapChain_ };
+        fpSetHdrMetadataEXT(device_, 1, swapchains, &hdrMetadata);
+
+        uint8_t vividMetadataData2[16] = { 0x10, 0x0F, 0x0E, 0x0D, 0x0C, 0x0B, 0x0A, 0x09, 0x08, 0x07, 0x06, 0x05, 0x04,
+            0x03, 0x02, 0x01 };
+
+        vividMetadata.pDynamicMetadata = vividMetadataData2;
+        fpSetHdrMetadataEXT(device_, 1, swapchains, &hdrMetadata);
+        EXPECT_NE(swapChain_, VK_NULL_HANDLE);
+    }
+}
+
+/**
+ * @tc.name: test SetMetaData function coverage
+ * @tc.desc: test SetMetaData by setting HDR metadata and calling QueuePresentKHR
+ * @tc.type: FUNC
+ * @tc.require: issueI9EYX2
+ */
+HWTEST_F(VulkanLoaderUnitTest, SetMetaData_Coverage_Test, TestSize.Level1)
+{
+    if (isSupportedVulkan_) {
+        EXPECT_NE(fpSetHdrMetadataEXT, nullptr);
+        EXPECT_NE(fpQueuePresentKHR, nullptr);
+        EXPECT_NE(fpAcquireNextImage2KHR, nullptr);
+        EXPECT_NE(device_, nullptr);
+        EXPECT_NE(swapChain2_, VK_NULL_HANDLE);
+        EXPECT_NE(semaphore_, VK_NULL_HANDLE);
+
+        VkHdrMetadataEXT hdrMetadata = {};
+        hdrMetadata.sType = VK_STRUCTURE_TYPE_HDR_METADATA_EXT;
+        hdrMetadata.pNext = nullptr;
+        hdrMetadata.displayPrimaryRed = { 0.640f, 0.330f };
+        hdrMetadata.displayPrimaryGreen = { 0.300f, 0.600f };
+        hdrMetadata.displayPrimaryBlue = { 0.150f, 0.060f };
+        hdrMetadata.whitePoint = { 0.3127f, 0.3290f };
+        hdrMetadata.maxLuminance = 1000.0f;
+        hdrMetadata.minLuminance = 0.01f;
+        hdrMetadata.maxContentLightLevel = 1000;
+        hdrMetadata.maxFrameAverageLightLevel = 500;
+
+        VkSwapchainKHR swapchains[] = { swapChain2_ };
+        fpSetHdrMetadataEXT(device_, 1, swapchains, &hdrMetadata);
+
+        VkQueue queue = nullptr;
+        PFN_vkGetDeviceQueue vkGetDeviceQueue =
+            reinterpret_cast<PFN_vkGetDeviceQueue>(vkGetInstanceProcAddr(instance_, "vkGetDeviceQueue"));
+        EXPECT_NE(vkGetDeviceQueue, nullptr);
+        vkGetDeviceQueue(device_, 0, 0, &queue);
+        EXPECT_NE(queue, nullptr);
+
+        VkAcquireNextImageInfoKHR pAcquireInfo;
+        pAcquireInfo.swapchain = swapChain2_;
+        pAcquireInfo.timeout = UINT64_MAX;
+        pAcquireInfo.semaphore = semaphore_;
+        pAcquireInfo.fence = (VkFence) nullptr;
+        uint32_t imageIndex = 0;
+        VkResult err = fpAcquireNextImage2KHR(device_, &pAcquireInfo, &imageIndex);
+        EXPECT_EQ(err, VK_SUCCESS);
+
+        VkPresentInfoKHR presentInfo = {};
+        presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+        presentInfo.pNext = nullptr;
+        presentInfo.swapchainCount = 1;
+        presentInfo.pSwapchains = &swapChain2_;
+        presentInfo.pImageIndices = &imageIndex;
+        presentInfo.pWaitSemaphores = &semaphore_;
+        presentInfo.waitSemaphoreCount = 1;
+
+        err = fpQueuePresentKHR(queue, &presentInfo);
+        EXPECT_EQ(err, VK_SUCCESS);
+    }
+}
+
+/**
+ * @tc.name: test SetMetaData with vivid dynamic metadata
+ * @tc.desc: test SetMetaData with both static and vivid dynamic metadata to cover pDynamicMetadata branch
+ * @tc.type: FUNC
+ * @tc.require: issueI9EYX2
+ */
+HWTEST_F(VulkanLoaderUnitTest, SetMetaData_Vivid_Dynamic_Metadata_Test, TestSize.Level1)
+{
+    if (isSupportedVulkan_) {
+        EXPECT_NE(fpSetHdrMetadataEXT, nullptr);
+        EXPECT_NE(fpQueuePresentKHR, nullptr);
+        EXPECT_NE(fpAcquireNextImage2KHR, nullptr);
+        EXPECT_NE(device_, nullptr);
+        EXPECT_NE(swapChain2_, VK_NULL_HANDLE);
+        EXPECT_NE(semaphore_, VK_NULL_HANDLE);
+
+        uint8_t vividMetadataData[16] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D,
+            0x0E, 0x0F, 0x10 };
+
+        VkHdrVividDynamicMetadataHUAWEI vividMetadata = {};
+        vividMetadata.sType = VK_STRUCTURE_TYPE_HDR_VIVID_DYNAMIC_METADATA_HUAWEI;
+        vividMetadata.pNext = nullptr;
+        vividMetadata.dynamicMetadataSize = sizeof(vividMetadataData);
+        vividMetadata.pDynamicMetadata = vividMetadataData;
+
+        VkHdrMetadataEXT hdrMetadata = {};
+        hdrMetadata.sType = VK_STRUCTURE_TYPE_HDR_METADATA_EXT;
+        hdrMetadata.pNext = &vividMetadata;
+        hdrMetadata.displayPrimaryRed = { 0.640f, 0.330f };
+        hdrMetadata.displayPrimaryGreen = { 0.300f, 0.600f };
+        hdrMetadata.displayPrimaryBlue = { 0.150f, 0.060f };
+        hdrMetadata.whitePoint = { 0.3127f, 0.3290f };
+        hdrMetadata.maxLuminance = 1000.0f;
+        hdrMetadata.minLuminance = 0.01f;
+        hdrMetadata.maxContentLightLevel = 1000;
+        hdrMetadata.maxFrameAverageLightLevel = 500;
+
+        VkSwapchainKHR swapchains[] = { swapChain2_ };
+        fpSetHdrMetadataEXT(device_, 1, swapchains, &hdrMetadata);
+
+        VkQueue queue = nullptr;
+        PFN_vkGetDeviceQueue vkGetDeviceQueue =
+            reinterpret_cast<PFN_vkGetDeviceQueue>(vkGetInstanceProcAddr(instance_, "vkGetDeviceQueue"));
+        EXPECT_NE(vkGetDeviceQueue, nullptr);
+        vkGetDeviceQueue(device_, 0, 0, &queue);
+        EXPECT_NE(queue, nullptr);
+
+        VkAcquireNextImageInfoKHR pAcquireInfo;
+        pAcquireInfo.swapchain = swapChain2_;
+        pAcquireInfo.timeout = UINT64_MAX;
+        pAcquireInfo.semaphore = semaphore_;
+        pAcquireInfo.fence = (VkFence) nullptr;
+        uint32_t imageIndex = 0;
+        VkResult err = fpAcquireNextImage2KHR(device_, &pAcquireInfo, &imageIndex);
+        EXPECT_EQ(err, VK_SUCCESS);
+
+        VkPresentInfoKHR presentInfo = {};
+        presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+        presentInfo.pNext = nullptr;
+        presentInfo.swapchainCount = 1;
+        presentInfo.pSwapchains = &swapChain2_;
+        presentInfo.pImageIndices = &imageIndex;
+        presentInfo.pWaitSemaphores = &semaphore_;
+        presentInfo.waitSemaphoreCount = 1;
+
+        err = fpQueuePresentKHR(queue, &presentInfo);
+        EXPECT_EQ(err, VK_SUCCESS);
+    }
+}
+
+/**
+ * @tc.name: test SetMetaData with pNext chain containing non-vivid structure
+ * @tc.desc: test SetMetaData with pNext chain to cover line 1465 in swapchain_layer.cpp
+ * @tc.type: FUNC
+ * @tc.require: issueI9EYX2
+ */
+HWTEST_F(VulkanLoaderUnitTest, SetMetaData_NonVivid_PNext_Chain_Coverage_Test, TestSize.Level1)
+{
+    if (isSupportedVulkan_) {
+        EXPECT_NE(fpSetHdrMetadataEXT, nullptr);
+        EXPECT_NE(device_, nullptr);
+        EXPECT_NE(swapChain2_, VK_NULL_HANDLE);
+
+        uint8_t vividMetadataData[16] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D,
+            0x0E, 0x0F, 0x10 };
+
+        VkHdrVividDynamicMetadataHUAWEI vividMetadata = {};
+        vividMetadata.sType = VK_STRUCTURE_TYPE_HDR_VIVID_DYNAMIC_METADATA_HUAWEI;
+        vividMetadata.pNext = nullptr;
+        vividMetadata.dynamicMetadataSize = sizeof(vividMetadataData);
+        vividMetadata.pDynamicMetadata = vividMetadataData;
+
+        VkHdrVividDynamicMetadataHUAWEI dummyMetadata = {};
+        dummyMetadata.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+        dummyMetadata.pNext = &vividMetadata;
+        dummyMetadata.dynamicMetadataSize = 0;
+        dummyMetadata.pDynamicMetadata = nullptr;
+
+        VkHdrMetadataEXT hdrMetadata = {};
+        hdrMetadata.sType = VK_STRUCTURE_TYPE_HDR_METADATA_EXT;
+        hdrMetadata.pNext = &dummyMetadata;
+        hdrMetadata.displayPrimaryRed = { 0.640f, 0.330f };
+        hdrMetadata.displayPrimaryGreen = { 0.300f, 0.600f };
+        hdrMetadata.displayPrimaryBlue = { 0.150f, 0.060f };
+        hdrMetadata.whitePoint = { 0.3127f, 0.3290f };
+        hdrMetadata.maxLuminance = 1000.0f;
+        hdrMetadata.minLuminance = 0.01f;
+        hdrMetadata.maxContentLightLevel = 1000;
+        hdrMetadata.maxFrameAverageLightLevel = 500;
+
+        VkSwapchainKHR swapchains[] = { swapChain2_ };
+        fpSetHdrMetadataEXT(device_, 1, swapchains, &hdrMetadata);
+        EXPECT_NE(swapChain_, VK_NULL_HANDLE);
+    }
+}
+
+/**
+ * @tc.name: test vkCreateDevice with HUAWEI_HDR_VIVID extension
+ * @tc.desc: test vkCreateDevice with HUAWEI_HDR_VIVID extension
+ * @tc.type: FUNC
+ * @tc.require: issueI6SKRO
+ */
+HWTEST_F(VulkanLoaderUnitTest, vkCreateDevice_HuaweiHdrVivid_Test, TestSize.Level1)
+{
+    if (isSupportedVulkan_) {
+        EXPECT_NE(vkCreateDevice, nullptr);
+        EXPECT_NE(physicalDevice_, nullptr);
+
+        VkDeviceCreateInfo deviceCreateInfo = {};
+        deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+
+        std::vector<VkDeviceQueueCreateInfo> queueCreateInfos {};
+        const float defaultQueuePriority(0.0f);
+        VkDeviceQueueCreateInfo queueInfo {};
+        queueInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queueInfo.queueFamilyIndex = GetQueueFamilyIndex(VK_QUEUE_GRAPHICS_BIT);
+        queueInfo.queueCount = 1;
+        queueInfo.pQueuePriorities = &defaultQueuePriority;
+        queueCreateInfos.push_back(queueInfo);
+        deviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
+        deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
+
+        std::vector<const char*> deviceExtensions;
+        deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+        deviceExtensions.push_back(VK_EXT_HDR_METADATA_EXTENSION_NAME);
+        deviceExtensions.push_back(VK_HUAWEI_HDR_VIVID_EXTENSION_NAME);
+        deviceCreateInfo.enabledExtensionCount = (uint32_t)deviceExtensions.size();
+        deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
+        VkDevice logicalDevice;
+        VkResult err = vkCreateDevice(physicalDevice_, &deviceCreateInfo, nullptr, &logicalDevice);
+        EXPECT_EQ(err, VK_SUCCESS);
+        EXPECT_NE(logicalDevice, nullptr);
+        vkDestroyDevice(logicalDevice, nullptr);
+    }
+}
+} // namespace vulkan::loader
