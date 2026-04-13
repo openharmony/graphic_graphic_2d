@@ -2177,8 +2177,8 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByGlobalDirtyFilter_002, TestSi
     std::vector<std::pair<NodeId, RectI>> dirtyFilter;
     uint32_t left = 0;
     uint32_t top = 0;
-    uint32_t width = 300;
-    uint32_t height = 300;
+    uint32_t width = 600;
+    uint32_t height = 600;
     RectI rect{left, top, width, height};
     surfaceNode->SetDstRect(rect);
     surfaceNode->renderProperties_.boundsGeo_->absRect_ = rect;
@@ -3734,7 +3734,7 @@ HWTEST_F(RSUniHwcVisitorTest, CheckHwcNodeIntersection001, TestSize.Level1)
     rsUniRenderVisitor->curScreenNode_->curMainAndLeashSurfaceNodes_.push_back(surfaceNode);
 
     // Set up intersecting rect
-    RectI colorPickerRect(50, 50, 200, 200);
+    RectI colorPickerRect(50, 50, 600, 600);
     constexpr NodeId surfaceId = 1;
     rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_[surfaceId] = colorPickerRect;
 
