@@ -677,7 +677,12 @@ bool RSClientToRenderConnectionProxy::GetHighContrastTextState()
         ROSEN_LOGE("RSClientToRenderConnectionProxy::GetHighContrastTextState: Send Request err.");
         return false;
     }
-    return reply.ReadBool();
+    bool replyMessage = false;
+    if (!reply.ReadBool(replyMessage)) {
+        ROSEN_LOGE("%{public}s: ReadBool result failed", __func__);
+        return false;
+    }
+    return replyMessage;
 }
 
 ErrCode RSClientToRenderConnectionProxy::SetFocusAppInfo(const FocusAppInfo& info, int32_t& repCode)
@@ -725,7 +730,7 @@ ErrCode RSClientToRenderConnectionProxy::SetFocusAppInfo(const FocusAppInfo& inf
         repCode = RS_CONNECTION_ERROR;
         return ERR_INVALID_VALUE;
     }
-    repCode = reply.ReadInt32();
+    repCode = SUCCESS;
     return ERR_OK;
 }
 
@@ -784,7 +789,7 @@ RSClientToRenderConnectionProxy::TakeSurfaceCaptureSoloNode(
     MessageParcel reply;
     MessageOption option;
     std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> pixelMapIdPairVector;
-    option.SetFlags(MessageOption::TF_SYNC);
+    option.SetFlags(MessageOption::TF_SYNC | MessageOption::TF_IMAGE);
     if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("RSClientToRenderConnectionProxy::TakeSurfaceCaptureSoloNode: WriteInterfaceToken err.");
         return pixelMapIdPairVector;

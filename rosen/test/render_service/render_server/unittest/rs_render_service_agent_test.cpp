@@ -152,4 +152,51 @@ HWTEST_F(RSRenderServiceAgentTest, ProcessHgmFrameRateTest, TestSize.Level1)
     g_rsAgent->ProcessHgmFrameRate(timeStamp, vsyncId, processToServiceInfo, serviceToProcessInfo);
     ASSERT_TRUE(g_rsAgent);
 }
+
+/**
+ * @tc.name: HandleGameSceneChanged001
+ * @tc.desc: HandleGameSceneChanged Test with RsGameFrameHandler nullptr.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceAgentTest, HandleGameSceneChanged001, TestSize.Level1)
+{
+    auto renderService = sptr<RSRenderService>::MakeSptr();
+    auto vsyncManager = sptr<RSVsyncManager>::MakeSptr();
+    auto screenManager = sptr<RSScreenManager>::MakeSptr();
+    ASSERT_NE(renderService, nullptr);
+    ASSERT_NE(vsyncManager, nullptr);
+    ASSERT_NE(screenManager, nullptr);
+    vsyncManager->init(screenManager);
+    renderService->vsyncManager_ = vsyncManager;
+    sptr<RSRenderServiceAgent> renderServiceAgent = sptr<RSRenderServiceAgent>::MakeSptr(*renderService);
+    ASSERT_NE(renderServiceAgent, nullptr);
+    auto& handler = renderService->GetGameFrameHandler();
+    ASSERT_EQ(handler, nullptr);
+    renderServiceAgent->HandleGameSceneChanged();
+}
+
+/**
+ * @tc.name: HandleGameSceneChanged002
+ * @tc.desc: HandleGameSceneChanged Test with RsGameFrameHandler.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceAgentTest, HandleGameSceneChanged002, TestSize.Level1)
+{
+    auto renderService = sptr<RSRenderService>::MakeSptr();
+    auto vsyncManager = sptr<RSVsyncManager>::MakeSptr();
+    auto screenManager = sptr<RSScreenManager>::MakeSptr();
+    ASSERT_NE(renderService, nullptr);
+    ASSERT_NE(vsyncManager, nullptr);
+    ASSERT_NE(screenManager, nullptr);
+    vsyncManager->init(screenManager);
+    renderService->vsyncManager_ = vsyncManager;
+    sptr<RSRenderServiceAgent> renderServiceAgent = sptr<RSRenderServiceAgent>::MakeSptr(*renderService);
+    ASSERT_NE(renderServiceAgent, nullptr);
+    renderService->InitGameFrameHandler();
+    auto& handler = renderService->GetGameFrameHandler();
+    ASSERT_NE(handler, nullptr);
+    renderServiceAgent->HandleGameSceneChanged();
+}
 } // namespace OHOS::Rosen

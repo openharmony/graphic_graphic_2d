@@ -47,7 +47,7 @@ enum class RSModifierType : uint16_t {
     USE_EFFECT = 18,
     BLENDER = 19,
 
-    POINT_LIGHT = 20,
+    OVERLAY_NG_SHADER = 20,
     PARTICLE_EFFECT = 21,
     COMPOSITING_FILTER = 22,
     BACKGROUND_FILTER = 23,
@@ -126,7 +126,7 @@ public:
             case RSModifierType::PIXEL_STRETCH: return "PixelStretch";
             case RSModifierType::USE_EFFECT: return "UseEffect";
             case RSModifierType::BLENDER: return "Blender";
-            case RSModifierType::POINT_LIGHT: return "PointLight";
+            case RSModifierType::OVERLAY_NG_SHADER: return "OverlayNGShader";
             case RSModifierType::PARTICLE_EFFECT: return "ParticleEffect";
             case RSModifierType::COMPOSITING_FILTER: return "CompositingFilter";
             case RSModifierType::BACKGROUND_FILTER: return "BackgroundFilter";
@@ -317,6 +317,9 @@ public:
             case RSPropertyType::COMPOSITING_NG_FILTER: return "CompositingNGFilter";
             case RSPropertyType::USE_UNION: return "UseUnion";
             case RSPropertyType::UNION_SPACING: return "UnionSpacing";
+            case RSPropertyType::SDF_UNION_MODE: return "SDFUnionMode";
+            case RSPropertyType::GRAVITY_UNION_STRENGTH: return "UnionGravityStrength";
+            case RSPropertyType::GRAVITY_CENTER_FLAG: return "UnionGravityCenter";
             case RSPropertyType::SDF_SHAPE: return "SDFShape";
             case RSPropertyType::MATERIAL_NG_FILTER: return "MaterialNGFilter";
             case RSPropertyType::COLOR_PICKER_PLACEHOLDER : return "ColorPickerPlaceholder";

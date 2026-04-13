@@ -342,6 +342,20 @@ public:
      */
     void InitGpuMemoryReportLimit(MemoryOverReportCallback callback, size_t intervalLimit, size_t size);
 
+    /**
+     * @brief                   get gpu info.
+     * @param typeInfo          statistical gpu info by tag.
+     * @param pidInfo           statistical gpu info by pid.
+     */
+    void GetGpuMemoryInfo(std::unordered_map<std::string, std::pair<size_t, size_t>>& typeInfo,
+        std::unordered_map<pid_t, size_t>& pidInfo);
+    
+    /**
+     * @brief                   set abnormal pid.
+     * @param pid               abnormal pid.
+     */
+    void SetAbnormalPid(pid_t pid);
+
 #ifdef RS_ENABLE_VK
     /**
      * @brief                   Store vulkan pipeline cache

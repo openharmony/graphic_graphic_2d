@@ -404,6 +404,7 @@ public:
     void SetColorPickerInterval(int interval);
     void SetColorPickerNotifyThreshold(int packedThresholds); // packed: lower 16 bits = dark, upper 16 bits = light
     void SetColorPickerRect(const Vector4f& rect); // [left, top, right, bottom]
+    void SetLastEquivalentDarkMode(EquivalentDarkMode darkMode);
     std::shared_ptr<ColorPickerParam> GetColorPicker() const;
 
     void SetFgBrightnessRates(const Vector4f& rates);
@@ -801,6 +802,8 @@ public:
     void SetIlluminatedBorderWidth(float illuminatedBorderWidth);
     void SetIlluminatedType(int illuminatedType);
     void SetBloom(float bloomIntensity);
+    void SetOverlayNGShader(const std::shared_ptr<RSNGRenderShaderBase>& overlayShader);
+
     float GetLightIntensity() const;
     Color GetLightColor() const;
     Vector4f GetLightPosition() const;
@@ -816,6 +819,7 @@ public:
         const auto& illuminatedPtr = GetIlluminated();
         return illuminatedPtr ? illuminatedPtr->GetBloomIntensity() : 0.f;
     }
+    std::shared_ptr<RSNGRenderShaderBase> GetOverlayNGShader() const;
 
     inline const std::shared_ptr<RSLightSource>& GetLightSource() const
     {
@@ -851,6 +855,14 @@ public:
 
     void SetUseUnion(bool useUnion);
     bool GetUseUnion() const;
+    void SetSDFUnionMode(int uniModeUC);
+    int GetSDFUnionMode() const;
+    void SetGravityPullCenterFlag(bool isGravityPullModeCenter);
+    bool GetGravityPullCenterFlag() const;
+    void SetGravityPullStrength(float gravityPullStrength);
+    float GetGravityPullStrength() const;
+    void SetGravityHotZone(float hotZone);
+    float GetGravityHotZone() const;
     void SetUnionSpacing(float spacing);
     float GetUnionSpacing() const;
 
@@ -989,6 +1001,7 @@ private:
         std::shared_ptr<RSNGRenderFilterBase> cgNGRenderFilter_ = nullptr; // for compositing render
         std::shared_ptr<RSNGRenderShaderBase> bgNGRenderShader_ = nullptr;
         std::shared_ptr<RSNGRenderShaderBase> fgRenderShader_ = nullptr;
+        std::shared_ptr<RSNGRenderShaderBase> olRenderShader_ = nullptr; // for overlay shader
         std::shared_ptr<RSFilter> materialFilter_ = nullptr;
     };
     inline float DecreasePrecision(float value)
@@ -1083,6 +1096,10 @@ private:
     bool needForceSubmit_ = false;
     bool hasHarmonium_ = false;
     bool useUnion_ = false;
+    float gravityPullStrength_ = 0.0f;
+    float gravityHotZone_ = 0.0f;
+    bool isGravityPullModeCenter_ = false; // true, current node is gravity pull center
+    int uniModeUC_ = 0; // 1 GravityPull Mode, 0 SmoothUnion.
     bool alphaOffscreen_ = false;
     std::optional<RRect> clipRRect_;
     bool alphaNeedApply_ = false;

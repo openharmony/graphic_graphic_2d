@@ -245,6 +245,17 @@ void GPUContext::InitGpuMemoryReportLimit(MemoryOverReportCallback callback, siz
     impl_->InitGpuMemoryReportLimit(callback, intervalLimit, size);
 }
 
+void GPUContext::GetGpuMemoryInfo(std::unordered_map<std::string, std::pair<size_t, size_t>>& typeInfo,
+    std::unordered_map<pid_t, size_t>& pidInfo)
+{
+    impl_->GetGpuMemoryInfo(typeInfo, pidInfo);
+}
+    
+void GPUContext::SetAbnormalPid(pid_t pid)
+{
+    impl_->SetAbnormalPid(pid);
+}
+
 void GPUContext::ResetContext()
 {
     impl_->ResetContext();

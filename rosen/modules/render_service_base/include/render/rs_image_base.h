@@ -78,7 +78,6 @@ public:
     void MarkPurgeable();
     bool IsPurgeable() const;
     std::shared_ptr<Media::PixelMap> GetPixelMap() const;
-    void DumpPicture(DfxString& info) const;
     uint64_t GetUniqueId() const;
 #ifdef ROSEN_OHOS
     virtual bool Marshalling(Parcel& parcel) const;

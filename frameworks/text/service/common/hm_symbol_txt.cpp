@@ -278,6 +278,20 @@ bool HMSymbolTxt::GetFirstActive() const
     return isFirstActive_;
 }
 
+void HMSymbolTxt::SetRenderUIColor(const std::vector<Drawing::UIColor>& uiColors,
+    const std::vector<SymbolColorSpace>& colorSpaces)
+{
+    std::unique_lock<std::shared_mutex> writeLock(mutex_);
+    symbolColor_.colorType = SymbolColorType::COLOR_TYPE;
+    symbolColor_.gradients.clear();
+    for (size_t i = 0; i < uiColors.size(); ++i) {
+        SymbolColorSpace cs = (i < colorSpaces.size()) ? colorSpaces[i] : SymbolColorSpace::SRGB;
+        auto gradient = std::make_shared<SymbolGradient>();
+        gradient->SetUIColors({ uiColors[i] }, cs);
+        symbolColor_.gradients.push_back(gradient);
+    }
+}
+
 void HMSymbolTxt::CloneSelf(const HMSymbolTxt& other)
 {
     symbolColor_ = other.symbolColor_;

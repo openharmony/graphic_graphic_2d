@@ -38,6 +38,7 @@
  */
 
 #include "drawing_types.h"
+#include "drawing_error_code.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -189,6 +190,19 @@ void OH_Drawing_BitmapGetImageInfo(OH_Drawing_Bitmap*, OH_Drawing_Image_Info*);
  */
 bool OH_Drawing_BitmapReadPixels(OH_Drawing_Bitmap*, const OH_Drawing_Image_Info* dstInfo,
     void* dstPixels, size_t dstRowBytes, int32_t srcX, int32_t srcY);
+
+/**
+ * @brief Gets the row bytes of the bitmap.
+ *
+ * @param bitmap Indicates the pointer to an <b>OH_Drawing_Bitmap</b> object.
+ * @param bytes Indicates the row bytes of the bitmap.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if bitmap or bytes is nullptr.
+ * @since 26.0.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_BitmapGetRowBytes(OH_Drawing_Bitmap* bitmap, uint32_t* bytes);
+
 #ifdef __cplusplus
 }
 #endif

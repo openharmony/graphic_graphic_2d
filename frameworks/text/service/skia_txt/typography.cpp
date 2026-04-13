@@ -629,6 +629,33 @@ std::string Typography::GetDumpInfo() const
     return paragraph_->GetDumpInfo();
 }
 
+TextProcessState Typography::GetProcessState() const
+{
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
+    if (paragraph_ == nullptr) {
+        return TextProcessState::INIT;
+    }
+    return paragraph_->GetProcessState();
+}
+
+TextDisplayState Typography::GetTextDisplayState() const
+{
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
+    if (paragraph_ == nullptr) {
+        return TextDisplayState::UNKNOWN;
+    }
+    return paragraph_->GetTextDisplayState();
+}
+
+TypographyStyle Typography::GetParagraphStyle() const
+{
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
+    if (paragraph_ == nullptr) {
+        return {};
+    }
+    return Convert(paragraph_->GetParagraphStyle());
+}
+
 #ifdef ENABLE_OHOS_ENHANCE
 std::shared_ptr<OHOS::Media::PixelMap> Typography::GetTextPathImageByIndex(
     size_t start, size_t end, const ImageOptions& options, bool fill) const
@@ -642,6 +669,17 @@ std::shared_ptr<OHOS::Media::PixelMap> Typography::GetTextPathImageByIndex(
         "fill %{public}d, options %{public}d %{public}d %{public}f %{public}f",
         start, end, fill, options.width, options.height, options.offsetX, options.offsetY);
     return paragraph_->GetTextPathImageByIndex(start, end, options, fill);
+}
+
+std::vector<TextPathInfo> Typography::GetTextPathsByIndex(size_t start, size_t end) const
+{
+    TEXT_TRACE_FUNC();
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
+    if (paragraph_ == nullptr) {
+        return {};
+    }
+    TEXT_LOGD("Getting text paths by index: start %{public}zu, end %{public}zu", start, end);
+    return paragraph_->GetTextPathsByIndex(start, end);
 }
 #endif
 

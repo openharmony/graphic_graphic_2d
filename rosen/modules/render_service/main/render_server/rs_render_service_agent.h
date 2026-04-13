@@ -73,6 +73,9 @@ public:
     void FpsDump(std::string& dumpString, const std::string& arg);
     void CollectDump(std::string& dumpString);
 
+    // Game Scene Handler
+    void HandleGameSceneChanged() const;
+
 private:
     RSRenderService& renderService_;
 };

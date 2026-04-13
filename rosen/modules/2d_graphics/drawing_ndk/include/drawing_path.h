@@ -565,7 +565,7 @@ bool OH_Drawing_PathBuildFromSvgString(OH_Drawing_Path* path, const char* str);
  *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if path or strSize is nullptr.
  * @since 26.0.0
  */
-OH_Drawing_ErrorCode OH_Drawing_PathConvertToSvgString(OH_Drawing_Path* path, char* str, size_t* strSize);
+OH_Drawing_ErrorCode OH_Drawing_PathConvertToSvgString(const OH_Drawing_Path* path, char* str, size_t* strSize);
 
 /**
  * @brief Return the status that point (x, y) is contained by path.
@@ -801,7 +801,7 @@ OH_Drawing_ErrorCode OH_Drawing_PathApproximate(OH_Drawing_Path* path, float acc
  * @since 26.0.0
  */
 OH_Drawing_ErrorCode OH_Drawing_PathGetPointData(
-    OH_Drawing_Path* path, OH_Drawing_Point2D* points, uint32_t* count);
+    const OH_Drawing_Path* path, OH_Drawing_Point2D* points, uint32_t* count);
 
 /**
  * @brief Get path verb data.
@@ -815,7 +815,7 @@ OH_Drawing_ErrorCode OH_Drawing_PathGetPointData(
  * @since 26.0.0
  */
 OH_Drawing_ErrorCode OH_Drawing_PathGetVerbData(
-    OH_Drawing_Path* path, OH_Drawing_PathIteratorVerb* verbs, uint32_t* count);
+    const OH_Drawing_Path* path, OH_Drawing_PathIteratorVerb* verbs, uint32_t* count);
 
 /**
  * @brief Get path conic weight data.
@@ -829,7 +829,7 @@ OH_Drawing_ErrorCode OH_Drawing_PathGetVerbData(
  * @since 26.0.0
  */
 OH_Drawing_ErrorCode OH_Drawing_PathGetConicWeightData(
-    OH_Drawing_Path* path, float* conicWeights, uint32_t* count);
+    const OH_Drawing_Path* path, float* conicWeights, uint32_t* count);
 
 /**
  * @brief Performs interpolation between the current path and another path based on a given weight, and stores the
@@ -892,6 +892,31 @@ OH_Drawing_ErrorCode OH_Drawing_PathIsInverseFillType(const OH_Drawing_Path* pat
  * @since 23
  */
 OH_Drawing_ErrorCode OH_Drawing_PathToggleInverseFillType(OH_Drawing_Path* path);
+
+/**
+ * @brief Gets the last point of the path.
+ *
+ * @param path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param point Indicates the pointer to an <b>OH_Drawing_Point2D</b> object to store the last point.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if path or point is nullptr, or the path is empty.
+ * @since 26.0.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_PathGetLastPoint(OH_Drawing_Path* path, OH_Drawing_Point2D* point);
+
+/**
+ * @brief Checks if two paths are equal.
+ *
+ * @param path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param other Indicates the pointer to another <b>OH_Drawing_Path</b> object to compare.
+ * @param equal Indicates whether the two paths are equal.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if path or other is nullptr, or equal is nullptr.
+ * @since 26.0.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_PathIsEqual(OH_Drawing_Path* path, OH_Drawing_Path* other, bool* equal);
 
 #ifdef __cplusplus
 }

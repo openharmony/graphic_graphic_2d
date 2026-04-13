@@ -36,7 +36,7 @@ ohos_unittest("RSRenderServiceClientAppearanceModifierNGTest") {
     "rs_outline_modifier_test.cpp",
     "rs_particle_effect_modifier_test.cpp",
     "rs_pixel_stretch_modifier_test.cpp",
-    "rs_point_light_modifier_test.cpp",
+    "rs_overlay_ng_shader_modifier_test.cpp",
     "rs_shadow_modifier_test.cpp",
     "rs_use_effect_modifier_test.cpp",
     "rs_visibility_modifier_test.cpp",

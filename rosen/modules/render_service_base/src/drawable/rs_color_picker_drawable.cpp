@@ -134,6 +134,10 @@ void RSColorPickerDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect*
     }
     RS_OPTIONAL_TRACE_NAME_FMT("ColorPicker: onDraw nodeId=%" PRIu64 " rect=[%s], need execute = %d", nodeId_,
         rect ? rect->ToString().c_str() : "null", needColorPick_);
+    // Disable color picking operations during mirror screen redrawing
+    if (paintFilterCanvas->GetIsDrawingOffscreenMirror()) {
+        return;
+    }
 
     if (needColorPick_) {
         colorPickerManager_->ScheduleColorPick(*paintFilterCanvas, rect, params_);
@@ -149,9 +153,15 @@ void RSColorPickerDrawable::ResetColorMemory()
     stagingNeedColorPick_ = false;
 }
 
+EquivalentDarkMode RSColorPickerDrawable::GetLastEquivalentDarkMode()
+{
+    return colorPickerManager_ ? colorPickerManager_->GetLastEquivalentDarkMode() : EquivalentDarkMode::INVALID;
+}
+
 void RSColorPickerDrawable::SetState(DrawableV2::ColorPickerState state)
 {
     const DrawableV2::ColorPickerState currentState = stagingState_;
+    RS_OPTIONAL_TRACE_NAME_FMT("ColorPicker: try transitioning to state %d from %d", state, currentState);
 
     // Validate state transitions
     switch (currentState) {

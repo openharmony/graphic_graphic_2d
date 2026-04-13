@@ -585,6 +585,46 @@ HWTEST_F(RSColorPickerDrawableTest, RSColorPickerDrawable022, TestSize.Level1)
 }
 
 /**
+ * @tc.name: IsDrawingOffscreenMirror
+ * @tc.desc: Test OnDraw returns early when IsDrawingOffscreenMirror is true
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSColorPickerDrawableTest, IsDrawingOffscreenMirror, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+
+    node.GetMutableRenderProperties().SetColorPickerPlaceholder(
+        static_cast<int>(ColorPlaceholder::TEXT_CONTRAST));
+    node.GetMutableRenderProperties().SetColorPickerStrategy(
+        static_cast<int>(ColorPickStrategyType::AVERAGE));
+    node.GetMutableRenderProperties().SetColorPickerInterval(1000);
+
+    auto drawable = std::static_pointer_cast<DrawableV2::RSColorPickerDrawable>(
+        DrawableV2::RSColorPickerDrawable::OnGenerate(node));
+    ASSERT_NE(drawable, nullptr);
+
+    auto canvas = std::make_shared<Drawing::Canvas>();
+    auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(canvas.get());
+    auto rect = std::make_shared<Drawing::Rect>();
+
+    // Set IsDrawingOffscreenMirror to true to trigger early return
+    filterCanvas->SetIsDrawingOffscreenMirror(true);
+
+    // OnDraw should return early without executing color picking
+    drawable->OnDraw(filterCanvas.get(), rect.get());
+
+    // Verify the flag was set correctly
+    EXPECT_TRUE(filterCanvas->GetIsDrawingOffscreenMirror());
+
+    // Test with IsDrawingOffscreenMirror set to false (normal case)
+    filterCanvas->SetIsDrawingOffscreenMirror(false);
+    drawable->OnDraw(filterCanvas.get(), rect.get());
+    EXPECT_FALSE(filterCanvas->GetIsDrawingOffscreenMirror());
+}
+
+/**
  * @tc.name: RSColorPickerDrawable023
  * @tc.desc: Test SetState with same state (no-op transition)
  * @tc.type:FUNC
@@ -645,5 +685,22 @@ HWTEST_F(RSColorPickerDrawableTest, RSColorPickerDrawable024, TestSize.Level1)
     result = node.PrepareColorPicker(false);
     EXPECT_TRUE(result);
     EXPECT_TRUE(colorPickerDrawable->stagingNeedColorPick_);
+}
+
+/**
+ * @tc.name: RSColorPickerDrawable025
+ * @tc.desc: Test GetLastEquivalentDarkMode returns INVALID when manager is null
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSColorPickerDrawableTest, RSColorPickerDrawable025, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto drawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, id);
+    ASSERT_NE(drawable, nullptr);
+
+    drawable->colorPickerManager_ = nullptr;
+    auto mode = drawable->GetLastEquivalentDarkMode();
+    EXPECT_EQ(mode, EquivalentDarkMode::INVALID);
 }
 } // namespace OHOS::Rosen

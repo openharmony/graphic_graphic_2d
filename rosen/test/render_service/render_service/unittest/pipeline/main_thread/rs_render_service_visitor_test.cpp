@@ -20,6 +20,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "engine/rs_uni_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
+#include "pipeline/render_thread/rs_virtual_screen_processor.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
@@ -1242,13 +1243,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessLogicalDisplayRenderNodeTest001, Tes
 HWTEST_F(RSRenderServiceVisitorTest, ProcessLogicalDisplayRenderNodeTest002, TestSize.Level1)
 {
     RSRenderServiceVisitor rsRenderServiceVisitor(true);
-    constexpr NodeId screenNodeId = 0;
-    auto rsContext = std::make_shared<RSContext>();
-    ScreenId screenId = 1;
-    auto rsScreenRenderNode = std::make_shared<RSScreenRenderNode>(screenNodeId, screenId, rsContext);
-
-    // Init processor_ via ProcessScreenRenderNode, or the test will core dump.
-    rsRenderServiceVisitor.ProcessScreenRenderNode(*rsScreenRenderNode);
+    rsRenderServiceVisitor.processor_ = std::make_shared<RSVirtualScreenProcessor>();
 
     RSDisplayNodeConfig config;
     NodeId displayNodeId = 101;

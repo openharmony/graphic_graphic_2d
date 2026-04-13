@@ -136,8 +136,9 @@ public:
 
     bool IsDelayMode() const { return isDelayMode_; }
 
-    int64_t GetRsPhaseOffset(const int64_t orgValue) const;
-    int64_t GetAppPhaseOffset(const int64_t orgValue) const;
+    int64_t GetRsPhaseOffset() const { return rsPhaseOffset_.load(); }
+    int64_t GetAppPhaseOffset() const { return appPhaseOffset_.load(); }
+    bool IsVsyncOffsetCustomized() const { return isVsyncOffsetCustomized_.load(); }
 
     bool GetMultiSelfOwnedScreenEnable() const { return multiSelfOwnedScreenEnable_.load(); }
     void SetMultiSelfOwnedScreenEnable(bool multiSelfOwnedScreenEnable);

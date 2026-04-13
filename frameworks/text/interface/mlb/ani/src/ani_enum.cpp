@@ -189,6 +189,23 @@ const std::vector<uint32_t> AniTextEnum::fontEdging = {
     static_cast<uint32_t>(Drawing::FontEdging::SUBPIXEL_ANTI_ALIAS),
 };
 
+const std::vector<uint32_t> AniTextEnum::textProcessState = {
+    static_cast<uint32_t>(TextProcessState::INIT),
+    static_cast<uint32_t>(TextProcessState::INDEXED),
+    static_cast<uint32_t>(TextProcessState::SHAPED),
+    static_cast<uint32_t>(TextProcessState::LINE_BROKEN),
+    static_cast<uint32_t>(TextProcessState::FORMATTED),
+    static_cast<uint32_t>(TextProcessState::PAINT),
+    static_cast<uint32_t>(TextProcessState::UPDATE_ATTRIBUTE),
+};
+
+const std::vector<uint32_t> AniTextEnum::textDisplayState = {
+    static_cast<uint32_t>(TextDisplayState::UNKNOWN),
+    static_cast<uint32_t>(TextDisplayState::ALL),
+    static_cast<uint32_t>(TextDisplayState::CLIP),
+    static_cast<uint32_t>(TextDisplayState::OMITTED),
+};
+
 std::optional<size_t> aniGetEnumIndex(const std::vector<uint32_t>& enumValues, uint32_t enumValue)
 {
     auto pos = std::find(enumValues.begin(), enumValues.end(), enumValue);

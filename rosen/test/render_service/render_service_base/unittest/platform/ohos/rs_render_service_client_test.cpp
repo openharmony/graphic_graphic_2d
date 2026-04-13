@@ -460,6 +460,39 @@ HWTEST_F(RSServiceClientTest, RegisterFirstFrameCommitCallback001, TestSize.Leve
 }
 
 /**
+ * @tc.name: RegisterExposedEventCallback Test
+ * @tc.desc: RegisterExposedEventCallback Test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceClientTest, RegisterExposedEventCallback001, TestSize.Level1)
+{
+    auto callback = [](const std::shared_ptr<RSExposedEventDataBase>& data) -> void {};
+    RSExposedEventType type = RSExposedEventType::EXT_SCREEN_UNSUPPORT;
+    EXPECT_EQ(rsClient->RegisterExposedEventCallback(type, callback),
+        StatusCode::SUCCESS);
+    EXPECT_EQ(rsClient->RegisterExposedEventCallback(type, nullptr), StatusCode::SUCCESS);
+}
+
+/**
+ * @tc.name: RegisterExposedEventCallback Test
+ * @tc.desc: Test RegisterExposedEventCallback with invalid clientToService
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceClientTest, RegisterExposedEventCallback002, TestSize.Level1)
+{
+    auto callback = [](const std::shared_ptr<RSExposedEventDataBase>& data) -> void {};
+    RSExposedEventType type = RSExposedEventType::EXT_SCREEN_UNSUPPORT;
+    RSRenderServiceConnectHub::Destroy();
+    EXPECT_EQ(rsClient->RegisterExposedEventCallback(type, callback),
+        StatusCode::RENDER_SERVICE_NULL);
+    RSRenderServiceConnectHub::Init();
+    EXPECT_EQ(rsClient->RegisterExposedEventCallback(type, callback),
+        StatusCode::SUCCESS);
+}
+
+/**
  * @tc.name: SetScreenActiveMode Test
  * @tc.desc: SetScreenActiveMode Test
  * @tc.type:FUNC
@@ -512,6 +545,72 @@ HWTEST_F(RSServiceClientTest, SetScreenRefreshRate001, TestSize.Level1)
     usleep(SET_REFRESHRATE_SLEEP_US);
     uint32_t currentRate = rsClient->GetScreenCurrentRefreshRate(screenId);
     EXPECT_NE(currentRate, rateToSet);
+}
+
+/**
+ * @tc.name: SetAsMainScreenTest001
+ * @tc.desc: Test SetAsMainScreen with INVALID_SCREEN_ID
+ * @tc.type: FUNC
+ * @tc.require: #23043
+ */
+HWTEST_F(RSServiceClientTest, SetAsMainScreenTest001, TestSize.Level1)
+{
+    auto rsClient = std::make_shared<RSRenderServiceClient>();
+    ASSERT_NE(rsClient, nullptr);
+    ScreenId screenId = INVALID_SCREEN_ID;
+    auto ret = rsClient->SetAsMainScreen(screenId, true);
+    EXPECT_NE(ret, StatusCode::SUCCESS);
+}
+
+/**
+ * @tc.name: SetAsMainScreenTest002
+ * @tc.desc: Test SetAsMainScreen with null connection
+ * @tc.type: FUNC
+ * @tc.require: #23043
+ */
+HWTEST_F(RSServiceClientTest, SetAsMainScreenTest002, TestSize.Level1)
+{
+    auto rsClient = std::make_shared<RSRenderServiceClient>();
+    ASSERT_NE(rsClient, nullptr);
+    auto screenId = rsClient->GetDefaultScreenId();
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
+
+    RSRenderServiceConnectHub::Destroy();
+    auto ret = rsClient->SetAsMainScreen(screenId, true);
+    RSRenderServiceConnectHub::Init();
+    EXPECT_EQ(ret, StatusCode::RENDER_SERVICE_NULL);
+}
+
+/**
+ * @tc.name: GetMainScreenId001
+ * @tc.desc: Test GetMainScreenId
+ * @tc.type: FUNC
+ * @tc.require: #23043
+ */
+HWTEST_F(RSServiceClientTest, GetMainScreenId001, TestSize.Level1)
+{
+    auto rsClient = std::make_shared<RSRenderServiceClient>();
+    ASSERT_NE(rsClient, nullptr);
+    ScreenId defaultScreenId = rsClient->GetDefaultScreenId();
+    rsClient->SetAsMainScreen(defaultScreenId, true);
+    ScreenId screenId = rsClient->GetMainScreenId();
+    ASSERT_EQ(defaultScreenId, screenId);
+}
+
+/**
+ * @tc.name: GetMainScreenId002
+ * @tc.desc: Test GetMainScreenId
+ * @tc.type: FUNC
+ * @tc.require: #23043
+ */
+HWTEST_F(RSServiceClientTest, GetMainScreenId002, TestSize.Level1)
+{
+    auto rsClient = std::make_shared<RSRenderServiceClient>();
+    ASSERT_NE(rsClient, nullptr);
+    RSRenderServiceConnectHub::Destroy();
+    ScreenId screenId = rsClient->GetMainScreenId();
+    RSRenderServiceConnectHub::Init();
+    ASSERT_EQ(screenId, INVALID_SCREEN_ID);
 }
 
 /**

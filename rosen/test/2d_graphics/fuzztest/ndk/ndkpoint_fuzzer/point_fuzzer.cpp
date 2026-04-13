@@ -54,6 +54,48 @@ void NativeDrawingPointTest001(const uint8_t* data, size_t size)
 
     OH_Drawing_PointDestroy(point);
 }
+
+void NativeDrawingPointTest002(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return;
+    }
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    float x = GetObject<float>();
+    float y = GetObject<float>();
+
+    OH_Drawing_Point* point = OH_Drawing_PointCreate(x, y);
+
+    OH_Drawing_PointNegate(point);
+    OH_Drawing_PointNegate(nullptr);
+
+    OH_Drawing_PointDestroy(point);
+}
+
+void NativeDrawingPointTest003(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return;
+    }
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    float x = GetObject<float>();
+    float y = GetObject<float>();
+    float dx = GetObject<float>();
+    float dy = GetObject<float>();
+
+    OH_Drawing_Point* point = OH_Drawing_PointCreate(x, y);
+
+    OH_Drawing_PointOffset(point, dx, dy);
+    OH_Drawing_PointOffset(nullptr, dx, dy);
+
+    OH_Drawing_PointDestroy(point);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -63,6 +105,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
     OHOS::Rosen::Drawing::NativeDrawingPointTest001(data, size);
+    OHOS::Rosen::Drawing::NativeDrawingPointTest002(data, size);
+    OHOS::Rosen::Drawing::NativeDrawingPointTest003(data, size);
 
     return 0;
 }

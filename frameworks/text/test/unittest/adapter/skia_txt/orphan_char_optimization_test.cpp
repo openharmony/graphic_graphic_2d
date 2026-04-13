@@ -771,5 +771,44 @@ HWTEST_F(OHDrawingOrphanCharOptimizationTest, OHDrawingOrphanCharOptimizationSce
         EXPECT_EQ(lineMetric.endIndex, expectRanges[i].end);
     }
 }
+
+/*
+ * @tc.name: OHDrawingOrphanCharOptimizationSceneTest017
+ * @tc.desc: Test orphan char optimization with -- line
+ * @tc.type: FUNC
+ *
+ * Scenario: Test with "人工智能技术深圳——香港"
+ *           Font size: 50, Max width: 585.0
+ *           Target: Verify -- scene
+ */
+HWTEST_F(OHDrawingOrphanCharOptimizationTest, OHDrawingOrphanCharOptimizationSceneTest017, TestSize.Level0)
+{
+    TypographyStyle typographyStyle;
+    typographyStyle.orphanCharOptimization = true;
+    typographyStyle.fontSize = 50.0;
+    typographyCreate_ = TypographyCreate::Create(typographyStyle, fontCollection_);
+    ASSERT_NE(typographyCreate_, nullptr);
+    TextStyle style;
+    style.fontSize = 50.0;
+    std::u16string text = StrToU16Str("人工智能技术深圳——香港");
+    typographyCreate_->PushStyle(style);
+    typographyCreate_->AppendText(text);
+    typography_ = typographyCreate_->CreateTypography();
+    ASSERT_NE(typography_, nullptr);
+    double maxWidth = 585.0;
+    typography_->Layout(maxWidth);
+
+    size_t lineCount = typography_->GetLineCount();
+    EXPECT_EQ(lineCount, 2);
+    std::vector<double> expectWidths{499.99957275390625, 99.999908447265625};
+    std::vector<TextRange> expectRanges{{0, 10}, {10, 12}};
+    for (size_t i = 0; i < lineCount; ++i) {
+        LineMetrics lineMetric;
+        EXPECT_TRUE(typography_->GetLineMetricsAt(i, &lineMetric));
+        EXPECT_DOUBLE_EQ(lineMetric.width, expectWidths[i]);
+        EXPECT_EQ(lineMetric.startIndex, expectRanges[i].start);
+        EXPECT_EQ(lineMetric.endIndex, expectRanges[i].end);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

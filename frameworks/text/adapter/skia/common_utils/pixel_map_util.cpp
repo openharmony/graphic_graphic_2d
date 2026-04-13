@@ -62,11 +62,11 @@ static void RenderPaths(uint8_t* pixel, const ImageOptions& options,
         const auto& pathInfo = pathInfos[i];
         Drawing::Pen pen;
         pen.SetAntiAlias(true);
-        pen.SetColor(pathInfo.textStyle.getColor());
+        pen.SetColor(pathInfo.color);
         bitmapCanvas->AttachPen(pen);
         Drawing::Brush brush;
         brush.SetAntiAlias(true);
-        brush.SetColor(pathInfo.textStyle.getColor());
+        brush.SetColor(pathInfo.color);
         bitmapCanvas->AttachBrush(brush);
 
         bitmapCanvas->Translate(pathInfo.point.GetX() - prefX, pathInfo.point.GetY() - prefY);

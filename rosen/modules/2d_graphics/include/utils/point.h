@@ -45,6 +45,7 @@ public:
 
     inline bool IsZero() const;
 
+    inline void Negate();
     inline void Offset(scalar x, scalar y);
 
     inline PointF& operator+=(const PointF& p);
@@ -111,6 +112,12 @@ inline void PointF::Set(scalar x, scalar y)
 inline bool PointF::IsZero() const
 {
     return (0 == x_) && (0 == y_);
+}
+
+inline void PointF::Negate()
+{
+    x_ = -x_;
+    y_ = -y_;
 }
 
 inline void PointF::Offset(scalar x, scalar y)

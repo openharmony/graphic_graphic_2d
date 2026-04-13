@@ -53,6 +53,9 @@ enum class RelayoutParagraphStyleAttribute {
     SPACING = 24,
     SPACING_IS_END = 25,
     TEXT_HEIGHT_BEHAVIOR = 26,
+    FIRST_LINE_INDENT = 27,
+    LINE_HEAD_INDENTS = 28,
+    LINE_TAIL_INDENTS = 29,
 
     PARAGRAPH_STYLE_ATTRIBUTE_BUTT,
 };
@@ -133,10 +136,14 @@ struct RS_EXPORT TypographyStyle {
     double maxLineHeight{std::numeric_limits<float>::max()};
     double minLineHeight{0.0f};
     double lineSpacing{0.0f};
+    double firstLineIndent{-1.0f};
+    std::vector<double> tailIndents;
+    std::vector<double> headIndents;
     LineHeightStyle lineHeightStyle{LineHeightStyle::kFontSize};
     bool includeFontPadding{false};
     bool fallbackLineSpacing{false};
     bool orphanCharOptimization{false};
+    bool useLocaleForTextBreak{false};
 };
 } // namespace Rosen
 } // namespace OHOS

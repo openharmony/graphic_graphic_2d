@@ -18,6 +18,7 @@
 
 #ifndef ROSEN_CROSS_PLATFORM
 #include <iconsumer_surface.h>
+#include <sstream>
 #include <surface.h>
 #include "sync_fence.h"
 #endif
@@ -61,9 +62,11 @@ public:
     RSBufferManager() = default;
     ~RSBufferManager() = default;
 
-    void AddPendingReleaseBuffer(sptr<IConsumerSurface> consumer, sptr<SurfaceBuffer> buffer, sptr<SyncFence> fence);
+    void AddPendingReleaseBuffer(sptr<IConsumerSurface> consumer, sptr<SurfaceBuffer> buffer, sptr<SyncFence> fence,
+        std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount = nullptr);
 
-    void AddPendingReleaseBuffer(uint64_t bufferId, sptr<SyncFence> fence);
+    void AddPendingReleaseBuffer(uint64_t bufferId, sptr<SyncFence> fence,
+        std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount = nullptr);
 
     void OnDrawStart()
     {
@@ -82,11 +85,13 @@ public:
             bufferCollector_->SetAcquireFence(canvasAcquireFence);
             bufferCollector_.reset();
         }
-        if (needDump) {
+#ifndef ROSEN_CROSS_PLATFORM
+        if (OHOS::Rosen::RSSystemProperties::GetBufferOwnerCountDfxEnabled()) {
             std::string output;
             DumpPendingReleaseBuffers(output);
-            RS_LOGD("%{public}s", output.c_str());
+            RS_LOGI("%{public}s", output.c_str());
         }
+#endif
     }
 
     void OnReleaseLayerBuffers(std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>>& rsLayers,
@@ -97,16 +102,23 @@ public:
         std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>>& rsLayers, uint64_t screenId);
     void ReleaseBufferById(uint64_t bufferId);
 
-#ifndef ROSEN_CROSS_PLATFORM
-    void DumpPendingReleaseBuffers(std::string& output);
-#endif
-
 private:
     struct PendingReleaseBufferInfo {
         sptr<IConsumerSurface> consumer_;
         wptr<SurfaceBuffer> buffer_ = nullptr;
         std::vector<sptr<SyncFence>> mergedFences_;
+        std::weak_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount_;
     };
+
+#ifndef ROSEN_CROSS_PLATFORM
+    void DumpPendingReleaseBuffers(std::string& output);
+    void AppendBufferEntry(std::ostringstream& oss, uint64_t bufferId,
+        const PendingReleaseBufferInfo& info);
+    void AppendBufferTable(std::ostringstream& oss,
+        const std::map<uint64_t, PendingReleaseBufferInfo>& buffers);
+    void AppendSummary(std::ostringstream& oss,
+        const std::map<uint64_t, PendingReleaseBufferInfo>& buffers);
+#endif
 
     mutable std::mutex screenNodeBufferReleasedMutex_;
     std::map<uint64_t, PendingReleaseBufferInfo> pendingReleaseBuffers_;

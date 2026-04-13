@@ -304,6 +304,7 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
     canvas.Scale(captureConfig_.scaleX, captureConfig_.scaleY);
     canvas.SetDisableFilterCache(true);
     canvas.SetUICapture(true);
+    canvas.SetOnMultipleScreen(!isHdrCapture_); // not isHdrCapture means tmo to sdr
     if (isHdrCapture_) {
         canvas.SetHdrOn(true);
         RS_TRACE_NAME_FMT("RSUiCaptureTaskParallel::Run: isHdrCapture_: %d, SetHdrOn", isHdrCapture_);

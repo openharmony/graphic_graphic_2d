@@ -65,7 +65,10 @@ public:
 
     bool GetCurNodeTreeSupportFlag() const { return curNodeTreeSupportFlag_; }
     void SetCurNodeTreeSupportFlag(bool curNodeTreeSupportFlag) { curNodeTreeSupportFlag_ = curNodeTreeSupportFlag; }
-    void OpincSubTreeSkip();
+
+    bool HasUnstableOpincNode() const;
+    void SetHasUnstableOpincNode(bool hasUnstableOpincNode);
+    void UpdateSubTreeHasUnstableOpincNode(RSOpincCache& childOpincCache);
 
     void MarkSuggestLayerPartRenderNode(bool isLayerPartRender);
     bool IsSuggestLayerPartRenderNode() const;
@@ -100,6 +103,7 @@ private:
     int unchangeCountUpper_ = 3; // 3 time is the default to cache
     bool cacheChangeFlag_ = false;
     int waitCount_ = 0;
+    bool hasUnstableOpincNode_ = false;
 
     // layer part render
     bool isSuggestLayerPartRenderNode_ = false;

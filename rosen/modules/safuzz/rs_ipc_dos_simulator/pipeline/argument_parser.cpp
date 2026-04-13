@@ -39,6 +39,8 @@
 
 namespace OHOS {
 namespace Rosen {
+constexpr int RENDER_CON_TYPE = 0;
+constexpr int SERVICE_CON_TYPE = 1;
 bool ArgumentParser::Init(int argc, char *const *argv)
 {
     int opt = -1;
@@ -300,15 +302,21 @@ bool ArgumentParser::PrepareConnectionProxy()
     int status = object->SendRequest(code, data, reply, option);
     SAFUZZ_LOGI("ArgumentParser::PrepareConnectionProxy SendRequest status %d", status);
 
-    connProxy_ = reply.ReadRemoteObject();
-    if (connProxy_ == nullptr) {
+    sptr<IRemoteObject> clientToServiceConnProxy = reply.ReadRemoteObject();
+    if (clientToServiceConnProxy == nullptr) {
         SAFUZZ_LOGE("ArgumentParser::PrepareConnectionProxy get connection proxy failed");
         return false;
     }
-
-    connProxyDescriptor_ = connProxy_->GetInterfaceDescriptor();
-    SAFUZZ_LOGI("ArgumentParser::PrepareConnectionProxy inner descriptor is %s",
-        Str16ToStr8(connProxyDescriptor_).c_str());
+    sptr<IRemoteObject> clientToRenderConnProxy = reply.ReadRemoteObject();
+    if (clientToRenderConnProxy == nullptr) {
+        SAFUZZ_LOGE("ArgumentParser::PrepareConnectionRenderProxy get connection proxy failed");
+        return false;
+    }
+    proxyMap_[RENDER_CON_TYPE] = clientToRenderConnProxy;
+    proxyMap_[SERVICE_CON_TYPE] = clientToServiceConnProxy;
+    SAFUZZ_LOGI("ArgumentParser::PrepareConnectionProxy inner clientToService descriptor is %s, clientToRender descriptor is %s",
+        Str16ToStr8(clientToServiceConnProxy->GetInterfaceDescriptor()).c_str(),
+        Str16ToStr8(clientToRenderConnProxy->GetInterfaceDescriptor()).c_str());
     return true;
 }
 
@@ -362,11 +370,6 @@ bool ArgumentParser::RunTestCase(const TestCaseDesc& testCaseDesc) const
 {
     SAFUZZ_LOGI("ArgumentParser::RunTestCase %s start", testCaseDesc.c_str());
 
-    if (connProxy_ == nullptr) {
-        SAFUZZ_LOGE("ArgumentParser::RunTestCase connectionProxy is nullptr");
-        return false;
-    }
-
     std::optional<TestCaseConfig> testCaseConfig = configManager_.GetTestCaseConfigByDesc(testCaseDesc);
     if (!testCaseConfig.has_value()) {
         SAFUZZ_LOGE("ArgumentParser::RunTestCase get testCaseConfig failed");
@@ -413,6 +416,12 @@ bool ArgumentParser::RunTestCaseWithParcelSplit(const TestCaseConfig& testCaseCo
                                       .commandList       = testCaseConfig.commandList,
                                       .commandListRepeat = testCaseConfig.commandListRepeat };
 
+    auto iter = proxyMap_.find(testCaseConfig.connectionType);
+    if (iter == proxyMap_.end() || iter->second == nullptr) {
+        SAFUZZ_LOGE("ArgumentParser::RunTestCaseWithParcelSplit connectionProxy is nulllptr");
+        return false;
+    }
+    sptr<IRemoteObject> connProxy = iter->second;
     std::vector<std::shared_ptr<MessageParcel>> data;
     if (!MessageParcelUtils::WriteParamsToVector(data, testCaseParams)) {
         SAFUZZ_LOGE("ArgumentParser::RunTestCaseWithParcelSplit WriteParams failed");
@@ -429,7 +438,7 @@ bool ArgumentParser::RunTestCaseWithParcelSplit(const TestCaseConfig& testCaseCo
 
     MultiDataSaFuzzThreadParams threadParams[SAFUZZ_THREAD_COUNT];
     for (size_t i = 0; i < SAFUZZ_THREAD_COUNT; i++) {
-        threadParams[i] = { .sa     = connProxy_,
+        threadParams[i] = { .sa     = connProxy,
                             .code   = testCaseConfig.interfaceCode,
                             .data   = &data,
                             .reply  = &reply[i],
@@ -454,8 +463,14 @@ bool ArgumentParser::RunTestCaseWithoutParcelSplit(const TestCaseConfig& testCas
                                       .commandList       = testCaseConfig.commandList,
                                       .commandListRepeat = testCaseConfig.commandListRepeat };
 
+    auto iter = proxyMap_.find(testCaseConfig.connectionType);
+    if (iter == proxyMap_.end() || iter->second == nullptr) {
+        SAFUZZ_LOGE("ArgumentParser::RunTestCaseWithoutParcelSplit connectionProxy is nulllptr");
+        return false;
+    }
+    sptr<IRemoteObject> connProxy = iter->second;
     MessageParcel data;
-    if (testCaseConfig.writeInterfaceToken && !data.WriteInterfaceToken(connProxyDescriptor_)) {
+    if (testCaseConfig.writeInterfaceToken && !data.WriteInterfaceToken(connProxy->GetInterfaceDescriptor())) {
         SAFUZZ_LOGE("ArgumentParser::RunTestCaseWithoutParcelSplit WriteInterfaceToken failed");
         return false;
     }
@@ -474,7 +489,7 @@ bool ArgumentParser::RunTestCaseWithoutParcelSplit(const TestCaseConfig& testCas
 
     SaFuzzThreadParams threadParams[SAFUZZ_THREAD_COUNT];
     for (size_t i = 0; i < SAFUZZ_THREAD_COUNT; i++) {
-        threadParams[i] = { .sa     = connProxy_,
+        threadParams[i] = { .sa     = connProxy,
                             .code   = testCaseConfig.interfaceCode,
                             .data   = &data,
                             .reply  = &reply[i],

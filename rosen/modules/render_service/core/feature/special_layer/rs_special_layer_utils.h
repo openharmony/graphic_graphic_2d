@@ -59,6 +59,9 @@ public:
     static DrawType GetDrawTypeInSecurityDisplay(
         const RSSurfaceRenderParams& surfaceParams, const RSRenderThreadParams& uniParams);
     static DrawType GetDrawTypeInSnapshot(const RSSurfaceRenderParams& surfaceParams);
+    static void SetWhiteListRectToMetaData(RSPaintFilterCanvas& canvas, const RSRenderThreadParams& uniParam,
+        const RSScreenProperty& mirrorProperty);
+    static void CollectWhiteListRect(const RSSurfaceRenderNode& node, bool hasMirrorDisplay, bool isRotating);
 private:
     static bool CheckCurrentTypeIntersectVisibleRect(const std::unordered_set<NodeId>& nodeIds,
         uint32_t currentType, const RectI& visibleRect);
@@ -66,6 +69,9 @@ private:
         RSSurfaceRenderNode& node, RSLogicalDisplayRenderNode& displayNode, bool needCalcScreenSpecialLayer);
     static void UpdateSpecialLayersRecord(RSSurfaceRenderNode& node, RSLogicalDisplayRenderNode& displayNode);
     static void NotifyScreenSpecialLayerChange();
+    static void DrawCropRectDebugOverlay(
+        RSPaintFilterCanvas& canvas, const HDI::Display::Graphic::Common::V1_0::BufferHandleMetaRegion& metaRegion);
+    static uint32_t ConvertFloatToUint32(float value);
 };
 } // namespace Rosen
 } // namespace OHOS

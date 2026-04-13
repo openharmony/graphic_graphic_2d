@@ -319,11 +319,7 @@ bool RSSystemProperties::GetRCDForceRedrawEnable()
 
 bool RSSystemProperties::GetRenderNodeLazyLoadEnabled()
 {
-#ifdef RS_ENABLE_MEMORY_DOWNTREE
     static bool enabled = system::GetParameter("persist.rosen.rendernodelazyload.enabled", "1") != "0";
-#else
-    static bool enabled = system::GetParameter("persist.rosen.rendernodelazyload.enabled", "0") != "0";
-#endif
     return enabled;
 }
 
@@ -371,6 +367,14 @@ float RSSystemProperties::GetClipRectThreshold()
 bool RSSystemProperties::GetAllSurfaceVisibleDebugEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.uni.allsurfacevisibledebug.enabled", "0");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 0) != 0;
+}
+
+bool RSSystemProperties::GetVirtualSelfDrawOptEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.uni.virtualSelfDrawOptEnabled.enabled", "1");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 0) != 0;
@@ -427,6 +431,14 @@ bool RSSystemProperties::GetReclaimMemoryEnabled()
 bool RSSystemProperties::GetOcclusionEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.occlusion.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
+bool RSSystemProperties::GetDynamicLayerSkipEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.dynamiclayerskip.enabled", "1");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 1) != 0;
@@ -1040,6 +1052,14 @@ bool RSSystemProperties::GetDumpImgEnabled()
     static bool dumpImgEnabled =
         std::atoi((system::GetParameter("persist.sys.graphic.dumpImgEnabled", "0")).c_str()) != 0;
     return dumpImgEnabled;
+}
+
+bool RSSystemProperties::GetBufferOwnerCountDfxEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.backend.buffer.dfx.enabled", "0");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 0) != 0;
 }
 
 bool RSSystemProperties::FindNodeInTargetList(std::string node)
@@ -1803,6 +1823,21 @@ bool RSSystemProperties::GetDefaultMemClearEnabled()
     static bool defaultMemClearEnabled =
         std::atoi((system::GetParameter("persist.sys.graphic.default.mem.clear.enabled", "1")).c_str()) != 0;
     return defaultMemClearEnabled;
+}
+
+bool RSSystemProperties::GetUnmarshalParallelEnabled()
+{
+    static bool unmarshalParallel =
+        RSUniRenderJudgement::GetUniRenderEnabledType() == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL &&
+        std::atoi((system::GetParameter("persist.sys.graphic.unmarshalParallel.enabled", "1")).c_str()) != 0;
+    return unmarshalParallel;
+}
+
+uint32_t RSSystemProperties::GetUnmarshalParallelMinDataSize()
+{
+    static uint32_t unmarshalParallelMinDataSize = static_cast<uint32_t>(
+        system::GetIntParameter("persist.sys.graphic.unmarshalParallel.minSize", 204800)); // 200KB
+    return unmarshalParallelMinDataSize;
 }
 
 bool RSSystemProperties::GetSceneBoardIsPcMode()

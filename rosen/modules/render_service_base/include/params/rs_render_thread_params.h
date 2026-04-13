@@ -24,6 +24,7 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/ohos/rs_jank_stats.h"
 #include "property/rs_properties.h"
+#include "rs_render_params.h"
 #include "screen_manager/rs_screen_info.h"
 
 namespace OHOS::Rosen {
@@ -482,6 +483,26 @@ public:
         return isSecurityExemption_;
     }
 
+    void AddWhiteListRect(const std::unordered_set<ScreenId>& screenIds, RectI rect)
+    {
+        for (auto screenId : screenIds) {
+            whiteListRect_[screenId].push_back(rect);
+        }
+    }
+
+    std::vector<RectI> GetWhiteListRectByScreenId(ScreenId screenId) const
+    {
+        if (auto iter = whiteListRect_.find(screenId); iter != whiteListRect_.end()) {
+            return iter->second;
+        }
+        return {};
+    }
+
+    void ClearWhiteListRect()
+    {
+        whiteListRect_.clear();
+    }
+
     bool IsOverDrawEnabled() const
     {
         return isOverDrawEnabled_;
@@ -490,6 +511,22 @@ public:
     bool IsDrawingCacheDfxEnabled() const
     {
         return isDrawingCacheDfxEnabled_;
+    }
+
+    void SetSurfaceFpsOp(uint32_t surfaceFpsOpNum, std::vector<SurfaceFpsOp> surfaceFpsOpList)
+    {
+        surfaceFpsOpNum_ = surfaceFpsOpNum;
+        surfaceFpsOpList_ = std::move(surfaceFpsOpList);
+    }
+
+    uint32_t GetSurfaceFpsOpNum() const
+    {
+        return surfaceFpsOpNum_;
+    }
+
+    std::vector<SurfaceFpsOp> GetSurfaceFpsOpList() const
+    {
+        return surfaceFpsOpList_;
     }
 
     const ScreenInfo& GetScreenInfo() const
@@ -646,6 +683,9 @@ private:
     bool isOverDrawEnabled_ = false;
     bool isDrawingCacheDfxEnabled_ = false;
 
+    uint32_t surfaceFpsOpNum_ = 0;
+    std::vector<SurfaceFpsOp> surfaceFpsOpList_;
+
     int64_t onVsyncStartTime_ = TIMESTAMP_INITIAL;
     int64_t onVsyncStartTimeSteady_ = TIMESTAMP_INITIAL;
     float onVsyncStartTimeSteadyFloat_ = TIMESTAMP_INITIAL_FLOAT;
@@ -662,6 +702,7 @@ private:
     bool isImplicitAnimationEnd_ = false;
     bool discardJankFrames_ = false;
 
+    std::map<ScreenId, std::vector<RectI>> whiteListRect_;
     bool isSecurityExemption_ = false;
     // use to mark security display
     bool isSecurityDisplay_ = false;
