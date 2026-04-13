@@ -39,13 +39,13 @@ public:
     std::shared_ptr<RSRenderNode> renderNode;
     std::shared_ptr<RSRenderNode> hwcNode;
     std::pair<NodeId, RectI> testFilter;
-    constexpr uint32_t MAX_FILTER_SIZE = 500;
-    constexpr uint32_t ROOT_SURFACE_NODE_ID = 1;
-    constexpr uint32_t EFFECT_NODE_ID = 2;
-    constexpr uint32_t VALID_TARGET_NODE_ID = 3;
-    constexpr uint32_t INVALID_TARGET_NODE_ID = 4;
-    constexpr uint32_t RENDER_NODE_ID = 5;
-    constexpr uint32_t HWC_NODE_ID = 6;
+    static constexpr uint32_t MAX_FILTER_SIZE = 500;
+    static constexpr uint32_t ROOT_SURFACE_NODE_ID = 1;
+    static constexpr uint32_t EFFECT_NODE_ID = 2;
+    static constexpr uint32_t VALID_TARGET_NODE_ID = 3;
+    static constexpr uint32_t INVALID_TARGET_NODE_ID = 4;
+    static constexpr uint32_t RENDER_NODE_ID = 5;
+    static constexpr uint32_t HWC_NODE_ID = 6;
 };
 
 void RSHveFilterTest::SetUpTestCase() {}
