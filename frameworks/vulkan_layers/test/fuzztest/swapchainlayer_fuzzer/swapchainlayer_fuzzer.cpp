@@ -110,8 +110,8 @@ namespace OHOS {
         }
         if (g_isSupportedVulkan) {
             VkSurfaceCreateInfoOHOS surfaceCreateInfo = {};
-            surfaceCreateInfo.sType = fdp.ConsumeIntegral<VkStructureType>();
-            surfaceCreateInfo.flags = fdp.ConsumeIntegral<VkSurfaceCreateFlagsOHOS>();
+            surfaceCreateInfo.sType = static_cast<VkStructureType>(fdp.ConsumeIntegral<uint32_t>());
+            surfaceCreateInfo.flags = static_cast<VkSurfaceCreateFlagsOHOS>(fdp.ConsumeIntegral<uint32_t>());
             VkSurfaceKHR surface;
             vkCreateSurfaceOHOS(instance, &surfaceCreateInfo, NULL, &surface);
             vkDestroySurfaceKHR(instance, surface, nullptr);
