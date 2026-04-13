@@ -5438,6 +5438,7 @@ void RSMainThread::HandlePowerStatusChanged(ScreenId id,
             return;
         }
 
+        node->SetScreenDirtyFlag(true);
         SetDirtyFlag();
         SetScreenPowerOnChanged(true);
         if (lastStatus == ScreenPowerStatus::POWER_STATUS_OFF ||
