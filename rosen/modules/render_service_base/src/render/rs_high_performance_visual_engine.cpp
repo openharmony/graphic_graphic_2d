@@ -56,7 +56,7 @@ bool HveFilter::CheckEffectNodeConditions(const std::shared_ptr<RSRenderNode>& n
 {
     auto effectNode = RSRenderNode::ReinterpretCast<RSEffectRenderNode>(node);
     return effectNode->ChildHasVisibleEffectWithoutEmptyRect() &&
-           node->GetRenderProperties().GetBackgroundfilter() != nullptr &&
+           node->GetRenderProperties().GetBackgroundFilter() != nullptr &&
            node->GetGlobalAlpha() == 1;
 }
 
@@ -94,7 +94,7 @@ bool HveFilter::CheckPrecondition(const RSRenderNode& renderNode,
         return false;
     }
     const RSProperties& properties = renderNode.GetRenderProperties();
-    if (properties.GetBackgroundfilter() != nullptr ||
+    if (properties.GetBackgroundFilter() != nullptr ||
         properties.GetMaterialFilter() != nullptr || properties.GetUseEffect()) {
         RS_LOGD("%{public}s within filter range", __func__);
         return true;
