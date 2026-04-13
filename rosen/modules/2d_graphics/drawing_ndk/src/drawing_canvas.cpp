@@ -847,7 +847,7 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasDrawGlyphs(OH_Drawing_Canvas* cCanvas,
     Canvas* canvas = CastToCanvas(cCanvas);
     const Font* font = CastToFont(cFont);
     if (canvas == nullptr || font == nullptr || glyphIds == nullptr || positions == nullptr) {
-        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
     }
     if ((glyphCount <= 0) || (glyphIdOffset < 0) || (positionOffset < 0) ||
         (glyphIdCount < (glyphCount + glyphIdOffset)) || (positionCount < (glyphCount + positionOffset))) {

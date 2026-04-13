@@ -576,16 +576,15 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasDrawSingleCharacterWithFeatures(OH_Drawing
 void OH_Drawing_CanvasDrawTextBlob(OH_Drawing_Canvas*, const OH_Drawing_TextBlob*, float x, float y);
 
 /**
- * @brief Draws the array of glyphs with specified font, Nothing is drawn if glyphCount is smaller than or equal to 0.
+ * @brief Draws the array of glyphs with specified font, Nothing is drawn if glyphCount is smaller than or equals to 0.
  *
- * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
  * @param glyphIds Indicates an array of glyph IDs.
  * @param glyphIdCount Indicates the size of glyphId array.
  * @param glyphIdOffset Indicates the number of elements to skip before drawing in glyphIds array.
  * @param positions Indicates an array of positions.
  * @param positionCount Indicates the size of position array
- * @param positionOffset Indicates the number of elements to skip before drawing in positions.
+ * @param positionOffset Indicates the number of elements to skip before drawing in positions array.
  * @param glyphCount Indicates the number of glyphs to be draw.
  * @param font Indicates the font used for drawing.
  * @return Returns the error code.
@@ -596,7 +595,6 @@ void OH_Drawing_CanvasDrawTextBlob(OH_Drawing_Canvas*, const OH_Drawing_TextBlob
  *                 or if glyphIdCount is less than (glyphIdOffset + glyphCount),
  *                 or positionCount is less than (positionOffset + glyphCount). 
  * @since 26.0.0
- * @version 1.0
  */
 OH_Drawing_ErrorCode OH_Drawing_CanvasDrawGlyphs(OH_Drawing_Canvas* canvas,
                                                  const int* glyphIds,

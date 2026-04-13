@@ -770,6 +770,11 @@ void CanvasFuzzTest019(const uint8_t* data, size_t size)
     OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreate();
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     int glyphCount = GetObject<int>() % MAX_ARRAY_MAX + 1;
+    if (glyphCount < 0) {
+        OH_Drawing_CanvasDestroy(canvas);
+        OH_Drawing_FontDestroy(font);
+        return;
+    }
     int* glyphIds = new int [glyphCount];
     for (int i = 0; i < glyphCount; i++) {
         glyphIds[i] = GetObject<int>();

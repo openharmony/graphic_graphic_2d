@@ -1626,10 +1626,15 @@ bool AniCanvas::GetGlyphIds(ani_env* env, ani_int glyphsIDCountLimit,
                             ani_array glyphIdsObj, std::unique_ptr<uint16_t[]>& glyphIds)
 {
     ani_size aniLength;
-    if (ANI_OK != env->Array_GetLength(glyphIdsObj, &aniLength) ||
-        aniLength == 0 || aniLength < glyphsIDCountLimit) {
+    if (ANI_OK != env->Array_GetLength(glyphIdsObj, &aniLength) || aniLength == 0) {
         ROSEN_LOGE("AniCanvas::DrawGlyphs glyphIds array is invalid");
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniCanvas::DrawGlyphs incorrect glyphIds.");
+        return false;
+    }
+    if (aniLength < 0 || aniLength < glyphsIDCountLimit) {
+        ROSEN_LOGE("AniCanvas::DrawGlyphs glyphs input is out of range");
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED,
+                           "AniCanvas::DrawGlyphs glyphs input out of range.");
         return false;
     }
     uint32_t size = static_cast<uint32_t>(aniLength);
@@ -1666,10 +1671,15 @@ bool AniCanvas::GetGlyphPositions(ani_env* env, ani_int positionCountLimit,
                                   ani_array positionsObj, std::unique_ptr<Drawing::Point[]>& positions)
 {
     ani_size aniLength;
-    if (ANI_OK != env->Array_GetLength(positionsObj, &aniLength) ||
-        aniLength == 0 || aniLength < positionCountLimit) {
+    if (ANI_OK != env->Array_GetLength(positionsObj, &aniLength) || aniLength == 0) {
         ROSEN_LOGE("AniCanvas::DrawGlyphs positions array is invalid");
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniCanvas::DrawGlyphs incorrect positions.");
+        return false;
+    }
+    if (aniLength < 0 || aniLength < positionCountLimit) {
+        ROSEN_LOGE("AniCanvas::DrawGlyphs positions input is out of range");
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED,
+                           "AniCanvas::DrawGlyphs position input out of range.");
         return false;
     }
     uint32_t size = static_cast<uint32_t>(aniLength);
@@ -1683,7 +1693,6 @@ bool AniCanvas::GetGlyphPositions(ani_env* env, ani_int positionCountLimit,
         return false;
     }
     if (!GetPoints(env, positionsObj, size, positions.get())) {
-        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniCanvas::DrawGlyphs get positions failed.");
         return false;
     }
     return true;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -965,19 +965,22 @@ namespace drawing {
     native drawTextBlob(blob: TextBlob, x: double, y: double): void;
 
     /**
-     * @param { Array<number> } glyphIds - 
-     * @param { number } glyphIdOffset - 
-     * @param { Array<common2D.Point> } positions -
-     * @param { number } positionOffset -
-     * @param { number } glyphCount - 
-     * @param { Font } font - 
-     * @throws { BusinessError }
+     * Draws the array of glyphs with specified font. Nothing is drawn if glyphCount is samller than or equals to 0.
+     *
+     * @param { Array<int> } glyphIds - Indicates an array of glyph IDs.
+     * @param { int } glyphIdOffset - Indicates the number of elements to skip before drawing in glyphIds array.
+     * @param { Array<common2D.Point> } positions - Indicates an array of positions.
+     * @param { int } positionOffset - Indicates the number of elements to skip before drawing in positions.
+     * @param { int } glyphCount - Indicates the number of glyphs to be drawn.
+     * @param { Font } font - Indicates the font used for drawing.
+     * @throws { BusinessError } 25900001 - Parameter error. Possible causes: Incorrect parameter range.
      * @syscap SystemCapability.Graphics.Drawing
-     * @since 26.0.0
+     * @stagemodeonly
+     * @since 26.0.0 dynamic&static
      */
-      drawGlyphs(glyphIds: Array<number>, glyphIdOffset: number,
-                 positions: Array<common2D.Point>, positionOffset: number,
-                 glyphCount: number, font: Font): void;
+    drawGlyphs(glyphIds: Array<int>, glyphIdOffset: int,
+               positions: Array<common2D.Point>, positionOffset: int,
+               glyphCount: int, font: Font): void;
 
     /**
      * Draws the pixelmap base on the mesh which is evenly distributed across the pixelmap.
