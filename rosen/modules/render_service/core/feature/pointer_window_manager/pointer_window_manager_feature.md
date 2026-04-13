@@ -100,43 +100,50 @@ The `pointer_window_manager` provides pointer/hard cursor window management acro
 
 ## Screen Type Behavior
 
+### Hard Cursor Support Logic
+
+**CheckHardCursorSupport(screenNode)** - Complete support check combining:
+- `screenNode->GetScreenProperty().IsHardCursorSupport()` - Hardware support capability
+- `!RSPointerWindowManager::Instance().IsTuiEnabled()` - TUI mode disabled
+
+**IsHardCursorSupport()** - Hardware-only support check on screen property
+
 | Screen Type | Hard Cursor Support | Visibility Check | Notes |
 |-------------|---------------------|-------------------|-------|
-| **Physical Screen** | Depends on IsHardCursorSupport() | Visible by default | Normal cursor rendering |
-| **Virtual Screen** | Depends on IsHardCursorSupport() | Visible if type blacklist empty | Used for virtual displays |
-| **Mirror Screen** | Depends on IsHardCursorSupport() | Visible if type blacklist empty | Mirrors source screen |
-| **TUI Mode** | Disabled (always false) | N/A | TUI disables hard cursor globally |
+| **Physical Single Screen** | CheckHardCursorSupport() = IsHardCursorSupport() && !TUI | Visible by default | Normal cursor rendering on single physical display |
+| **Physical Multiscreen** | CheckHardCursorSupport() = IsHardCursorSupport() && !TUI | Visible by default | Cursor rendering across multiple physical displays |
+| **Virtual Screen** | CheckHardCursorSupport() = IsHardCursorSupport() && !TUI | Visible if type blacklist empty | Used for virtual displays |
 
 ## Per-Screen State Management
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                    Per-Screen State Storage                                │
+│                    Per-Screen State Storage                                 │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│  hardCursorDrawableVec_:                                                   │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │ Vector: std::tuple<screenNodeId, displayNodeId, drawable>           │   │
+│  hardCursorDrawableVec_:                                                    │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │ Vector: std::tuple<screenNodeId, displayNodeId, drawable>           │    │
 │  │ - Stores all hard cursor drawables for current frame                 │   │
-│  │ - Cleared at frame end (ResetHardCursorDrawables())                 │   │
+│  │ - Cleared at frame end (ResetHardCursorDrawables())                 │    │
 │  │ - Used for layer creation and commit checking                        │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
+│  └─────────────────────────────────────────────────────────────────────┘    │
 │                                                                             │
-│  hardCursorCommitResultMap_:                                               │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │ Map: screenNodeId → lastFrameCommitResult (bool)                    │   │
-│  │ - Tracks last frame's layer creation success per screen             │   │
-│  │ - Used to detect buffer status changes (GetHardCursorNeedCommit())  │   │
+│  hardCursorCommitResultMap_:                                                │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │ Map: screenNodeId → lastFrameCommitResult (bool)                    │    │
+│  │ - Tracks last frame's layer creation success per screen             │    │
+│  │ - Used to detect buffer status changes (GetHardCursorNeedCommit())  │    │
 │  │ - Removed via RemoveCommitResult(screenNodeId)                       │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
+│  └─────────────────────────────────────────────────────────────────────┘    │
 │                                                                             │
-│  hardCursorNodeMap_:                                                       │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │ Map: nodeId → RSSurfaceRenderNode                                   │   │
-│  │ - Stores all hard cursor nodes (global, not per-screen)             │   │
-│  │ - Populated via SetSetHardCursorNodeInfo()                          │   │
+│  hardCursorNodeMap_:                                                        │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │ Map: nodeId → RSSurfaceRenderNode                                   │    │
+│  │ - Stores all hard cursor nodes (global, not per-screen)             │    │
+│  │ - Populated via SetSetHardCursorNodeInfo()                          │    │
 │  │ - Used for HardCursorCreateLayerForDirect()                          │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
+│  └─────────────────────────────────────────────────────────────────────┘    │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -176,28 +183,28 @@ The `pointer_window_manager` provides pointer/hard cursor window management acro
 │              IsPointerInvisibleInMultiScreen() Logic                        │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│  Initialize: isPointerInvisible = true                                     │
-│    │                                                                       │
-│    ▼                                                                       │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │ Traverse all screen nodes via NodeMap.TraverseScreenNodes()       │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-│    │                                                                       │
-│    ▼                                                                       │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │ For each screen:                                                    │   │
-│  │   1. Get screen property                                            │   │
-│  │   2. Check if type blacklist is empty                              │   │
-│  │   3. Check if screen is mirror OR virtual                           │   │
-│  │   4. If both true:                                                  │   │
+│  Initialize: isPointerInvisible = true                                      │
+│    │                                                                        │
+│    ▼                                                                        │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │ Traverse all screen nodes via NodeMap.TraverseScreenNodes()       │      │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│    │                                                                        │
+│    ▼                                                                        │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │ For each screen:                                                    │    │
+│  │   1. Get screen property                                            │    │
+│  │   2. Check if type blacklist is empty                              │     │
+│  │   3. Check if screen is mirror OR virtual                           │    │
+│  │   4. If both true:                                                  │    │
 │  │        - isPointerInvisible = false                                  │   │
-│  │        - Break (found visible screen)                               │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-│    │                                                                       │
-│    ▼                                                                       │
-│  Return isPointerInvisible                                                │
-│  - true: No screen with empty blacklist AND (mirror OR virtual)         │
-│  - false: At least one screen makes pointer visible                      │
+│  │        - Break (found visible screen)                               │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│    │                                                                        │
+│    ▼                                                                        │
+│  Return isPointerInvisible                                                  │
+│  - true: No screen with empty blacklist AND (mirror OR virtual)             │
+│  - false: At least one screen makes pointer visible                         │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -206,33 +213,33 @@ The `pointer_window_manager` provides pointer/hard cursor window management acro
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│           UpdatePointerDirtyToGlobalDirty() Screen Flow                    │
+│           UpdatePointerDirtyToGlobalDirty() Screen Flow                     │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│  Input: pointerWindow, curScreenNode                                       │
-│    │                                                                       │
-│    ▼                                                                       │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  Input: pointerWindow, curScreenNode                                        │
+│    │                                                                        │
+│    ▼                                                                        │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
 │  │ Get dirty manager from pointer window                                │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-│    │                                                                       │
-│    ▼                                                                       │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │ If hard cursor status changed (current != last):                    │   │
-│  │   - Get last frame surface position from screen node                │   │
-│  │   - Merge position to screen dirty manager                          │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-│    │                                                                       │
-│    ▼                                                                       │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│    │                                                                        │
+│    ▼                                                                        │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │ If hard cursor status changed (current != last):                    │    │
+│  │   - Get last frame surface position from screen node                │    │
+│  │   - Merge position to screen dirty manager                          │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│    │                                                                        │
+│    ▼                                                                        │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
 │  │ Get pointer window dirty region                                      │   │
-│  │ If dirty region is not empty:                                       │   │
-│  │   - Merge to screen HWC dirty region                                │   │
-│  │   - Clear pointer dirty region                                      │   │
-│  │   - Set isNeedForceCommitByPointer_ = true                          │   │
+│  │ If dirty region is not empty:                                       │    │
+│  │   - Merge to screen HWC dirty region                                │    │
+│  │   - Clear pointer dirty region                                      │    │
+│  │   - Set isNeedForceCommitByPointer_ = true                          │    │
 │  │ Else:                                                                │   │
-│  │   - Set isNeedForceCommitByPointer_ = false                         │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
+│  │   - Set isNeedForceCommitByPointer_ = false                         │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -255,194 +262,77 @@ The `pointer_window_manager` provides pointer/hard cursor window management acro
 
 **Rule:** Skip frame commit when hard cursor buffer status unchanged
 
-**Implementation:**
-```cpp
-bool GetHardCursorNeedCommit(NodeId screenNodeId)
-{
-    auto hardCursorDrawable = GetHardCursorDrawable(screenNodeId);
-    bool hasBuffer = false;
-    if (hardCursorDrawable != nullptr) {
-        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(hardCursorDrawable->GetRenderParams().get());
-        hasBuffer = surfaceParams->GetBuffer() != nullptr;
-    }
-    auto iter = hardCursorCommitResultMap_.find(screenNodeId);
-    bool lastCommitResult = iter != hardCursorCommitResultMap_.end() && iter->second;
-    return hasBuffer != lastCommitResult;
-}
-```
-
 **Logic:**
-- `hasBuffer`: Current frame has buffer (true/false)
-- `lastCommitResult`: Previous frame layer creation success (true/false)
-- **Skip frame if:** `hasBuffer == lastCommitResult` (no change)
-- **Force commit if:** `hasBuffer != lastCommitResult` (status changed)
+1. Get hard cursor drawable for screen
+2. Check if drawable has buffer (current frame)
+3. Get last frame commit result from map
+4. Compare current buffer status with last commit result
+5. Skip frame if status unchanged, force commit if status changed
 
 **Thread-safe skip flag:**
-```cpp
-bool IsPointerCanSkipFrameCompareChange(bool flag, bool changeFlag)
-{
-    bool expectChanged = flag;
-    return isPointerCanSkipFrame_.compare_exchange_weak(expectChanged, changeFlag);
-}
-```
+- Use atomic compare_exchange_weak to check and update skip flag
 
 ### Dirty Region Optimization
 
 **Rule:** Only propagate dirty regions when hard cursor actually moves or changes
 
-**Implementation:**
-```cpp
-void UpdatePointerDirtyToGlobalDirty(std::shared_ptr<RSSurfaceRenderNode>& pointWindow,
-    std::shared_ptr<RSScreenRenderNode>& curScreenNode)
-{
-    if (pointWindow == nullptr || curScreenNode == nullptr) {
-        return;
-    }
-    auto dirtyManager = pointWindow->GetDirtyManager();
-    if (dirtyManager && pointWindow->GetHardCursorStatus()) {
-        if (!pointWindow->GetHardCursorLastStatus()) {
-            RectI lastFrameSurfacePos = curScreenNode->GetLastFrameSurfacePos(pointWindow->GetId());
-            curScreenNode->GetDirtyManager()->MergeDirtyRect(lastFrameSurfacePos);
-        }
-        auto pointerWindowDirtyRegion = dirtyManager->GetCurrentFrameDirtyRegion();
-        if (!pointerWindowDirtyRegion.IsEmpty()) {
-            curScreenNode->GetDirtyManager()->MergeHwcDirtyRect(
-                pointerWindowDirtyRegion, pointWindow->GetSurfaceNodeType());
-            dirtyManager->SetCurrentFrameDirtyRect(RectI());
-            isNeedForceCommitByPointer_ = true;
-        } else {
-            isNeedForceCommitByPointer_ = false;
-        }
-    }
-}
-```
-
-**Optimization points:**
-1. **Status change detection:** Merge last frame position only when cursor status changes (visible ↔ invisible)
-2. **Empty dirty check:** Only propagate non-empty dirty regions
-3. **Clear after merge:** Reset pointer dirty region after merging to screen
-4. **Force commit flag:** Set `isNeedForceCommitByPointer_` only when dirty region exists
+**Logic:**
+1. Validate pointer window and screen node exist
+2. Get dirty manager from pointer window
+3. If hard cursor status changed (visible ↔ invisible):
+   - Get last frame surface position from screen
+   - Merge position to screen dirty manager
+4. Get pointer window dirty region
+5. If dirty region not empty:
+   - Merge to screen HWC dirty region
+   - Clear pointer dirty region
+   - Set force commit flag
+6. Otherwise, clear force commit flag
 
 ### Multi-Screen Visibility Optimization
 
 **Rule:** Early exit when pointer visible on any screen
 
-**Implementation:**
-```cpp
-bool IsPointerInvisibleInMultiScreen() const
-{
-    bool isPointerInvisible = true;
-    auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
-    nodeMap.TraverseScreenNodes(
-        [&isPointerInvisible](const std::shared_ptr<RSScreenRenderNode>& node) {
-        if (!node) {
-            return;
-        }
-        const auto& screenProperty = node->GetScreenProperty();
-        if (screenProperty.GetTypeBlackList().empty() && (node->IsMirrorScreen() || screenProperty.IsVirtual())) {
-            isPointerInvisible = false;
-            return;
-        }
-    });
-    return isPointerInvisible;
-}
-```
-
-**Optimization points:**
-1. **Early exit:** Return false immediately when any screen makes pointer visible
-2. **Simple condition:** Empty blacklist AND (mirror OR virtual) = visible
-3. **Default invisible:** Assume invisible until proven otherwise
+**Logic:**
+1. Initialize pointer as invisible
+2. Traverse all screen nodes
+3. For each screen:
+   - Check if type blacklist is empty
+   - Check if screen is mirror OR virtual
+   - If both conditions true: mark pointer visible and exit early
+4. Return visibility result
 
 ### Bound Update Optimization
 
 **Rule:** Only update pointer bounds when bound flag is set
 
-**Implementation:**
-```cpp
-void UpdatePointerInfo()
-{
-    int64_t rsNodeId = 0;
-    BoundParam boundTemp = {0.0f, 0.0f, 0.0f, 0.0f};
-    {
-        std::lock_guard<std::mutex> lock(mtx_);
-        if (!BoundHasUpdateCompareChange(true, false)) {
-            return;
-        }
-        rsNodeId = GetRsNodeId();
-        boundTemp = GetBound();
-    }
-
-    if (rsNodeId <= 0) {
-        return;
-    }
-
-    auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(rsNodeId);
-    if (node == nullptr) {
-        return;
-    }
-    auto& properties = node->GetMutableRenderProperties();
-    properties.SetBounds({boundTemp.x, boundTemp.y, boundTemp.z, boundTemp.w});
-    node->SetDirty();
-    properties.OnApplyModifiers();
-    node->OnApplyModifiers();
-    node->AddToPendingSyncList();
-
-    auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>();
-    if (surfaceNode == nullptr) {
-        return;
-    }
-    RSUniHwcComputeUtil::UpdateHwcNodeProperty(surfaceNode);
-
-    if (surfaceNode->GetScreenId() != INVALID_SCREEN_ID) {
-        auto node = GetScreenRenderNode(surfaceNode->GetScreenId());
-        if (!node) {
-            return;
-        }
-        auto transform = RSUniHwcComputeUtil::GetLayerTransform(*surfaceNode);
-        surfaceNode->UpdateHwcNodeLayerInfo(transform, isPointerEnableHwc_);
-    }
-}
-```
-
-**Optimization points:**
-1. **Atomic flag check:** `BoundHasUpdateCompareChange(true, false)` - only proceed if flag was true
-2. **Mutex scope:** Lock only for reading bound data, unlock before updates
-3. **Early returns:** Null checks at each step
-4. **Minimal updates:** Only set dirty and apply modifiers when bounds changed
+**Logic:**
+1. Lock mutex and check bound update flag
+2. If flag not set, return early
+3. Copy rsNodeId and bound data locally
+4. Unlock mutex
+5. Validate rsNodeId is valid
+6. Get render node from node map
+7. Set bounds on node properties
+8. Mark node dirty and apply modifiers
+9. Add to pending sync list
+10. Update HWC node properties if surface node exists
+11. Update HWC layer info if screen ID is valid
 
 ### Layer Creation Optimization
 
 **Rule:** Skip layer creation when buffer already consumed
 
-**Implementation:**
-```cpp
-void HardCursorCreateLayerForDirect(std::shared_ptr<RSProcessor> processor)
-{
-    auto& hardCursorNodeMap = GetHardCursorNode();
-    for (auto& [_, hardCursorNode] :  hardCursorNodeMap) {
-        if (hardCursorNode && hardCursorNode->IsHardwareEnabledTopSurface()) {
-            auto surfaceHandler = hardCursorNode->GetRSSurfaceHandler();
-            if (!surfaceHandler) {
-                continue;
-            }
-            auto params = static_cast<RSSurfaceRenderParams *>(hardCursorNode->GetStagingRenderParams().get());
-            if (!params) {
-                continue;
-            }
-            if (!surfaceHandler->IsCurrentFrameBufferConsumed() && params->GetPreBuffer() != nullptr) {
-                params->SetPreBuffer(nullptr, nullptr);
-                hardCursorNode->AddToPendingSyncList();
-            }
-            processor->CreateLayer(*hardCursorNode, *params);
-        }
-    }
-}
-```
-
-**Optimization points:**
-1. **Buffer consumed check:** Only update pre-buffer if not consumed
-2. **Pre-buffer cleanup:** Set to nullptr to avoid stale buffer references
-3. **Continue on null:** Skip nodes without handler or params
+**Logic:**
+1. Get hard cursor node map
+2. For each hard cursor node:
+   - Check if node is hardware-enabled top surface
+   - Get surface handler, skip if null
+   - Get render params, skip if null
+   - If buffer not consumed and pre-buffer exists:
+     - Set pre-buffer to nullptr
+     - Add to pending sync list
+   - Create layer via processor
 
 ## Integration Points
 
@@ -458,5 +348,5 @@ void HardCursorCreateLayerForDirect(std::shared_ptr<RSProcessor> processor)
 - `ResetHardCursorDrawables()` - Clear frame state
 
 ### Cross-Thread
-- `SetHwcNodeBounds()` - Called from input thread, protected by mutex
+- `SetHwcNodeBounds()` - Called from ipc thread, protected by mutex
 - `UpdatePointerInfo()` - Updates node properties with mutex protection
