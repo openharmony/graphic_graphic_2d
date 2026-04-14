@@ -51,8 +51,12 @@ public:
     }
 
     const FinishCallbackType finishCallbackType_;
+    float GetEstimatedDuration() const;
+    void SetEstimatedDuration(float duration);
+
 private:
     bool hasAnimationBeenPaused = false;
+    float estimatedDuration_ = 0.0f;
 };
 
 class RSC_EXPORT AnimationRepeatCallback {
