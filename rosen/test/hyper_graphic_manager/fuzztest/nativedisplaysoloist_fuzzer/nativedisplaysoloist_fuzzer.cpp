@@ -39,7 +39,6 @@ void DoCreate(FuzzedDataProvider& fdp)
     }
     bool useExclusiveThread = fdp.ConsumeBool();
     g_displaySoloist = OH_DisplaySoloist_Create(useExclusiveThread);
-    std::unique_lock<std::mutex> lock(RSDisplaySoloistManager::GetInstance().dataUpdateMtx_);
     RSDisplaySoloistManager::GetInstance().idToSoloistMap_.clear();
     OH_DisplaySoloist_Destroy(g_displaySoloist);
     g_displaySoloist = nullptr;
