@@ -25,4 +25,14 @@ bool RSVisibilityModifier::GetVisible() const
 {
     return Getter(RSPropertyType::VISIBLE, true);
 }
+
+void RSVisibilityModifier::SetDoubleSidedEnabled(bool isDoubleSided)
+{
+    Setter<RSProperty>(RSPropertyType::DOUBLE_SIDED, isDoubleSided);
+}
+
+bool RSVisibilityModifier::GetDoubleSidedEnabled() const
+{
+    return Getter<bool>(RSPropertyType::DOUBLE_SIDED, true);
+}
 } // namespace OHOS::Rosen::ModifierNG

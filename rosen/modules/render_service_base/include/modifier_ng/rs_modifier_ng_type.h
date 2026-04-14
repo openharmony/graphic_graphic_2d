@@ -67,6 +67,7 @@ enum class RSModifierType : uint16_t {
     FOREGROUND_SHADER = 35,
     MATERIAL_FILTER = 36,
     COLOR_PICKER = 37,
+    DOUBLE_SIDED = 38,
 
     CHILDREN, // PLACEHOLDER, no such modifier, but we need a dirty flag
 
@@ -98,6 +99,7 @@ private:
         { RSModifierType::FOREGROUND_STYLE, RSPropertyType::FOREGROUND_STYLE },
         { RSModifierType::OVERLAY_STYLE, RSPropertyType::OVERLAY_STYLE },
         { RSModifierType::NODE_MODIFIER, RSPropertyType::NODE_MODIFIER },
+        { RSModifierType::DOUBLE_SIDED, RSPropertyType::DOUBLE_SIDED },
     };
 };
 
@@ -120,6 +122,7 @@ public:
             case RSModifierType::CLIP_TO_BOUNDS: return "ClipToBounds";
             case RSModifierType::CLIP_TO_FRAME: return "ClipToFrame";
             case RSModifierType::VISIBILITY: return "Visibility";
+            case RSModifierType::DOUBLE_SIDED: return "DoubleSided";
             case RSModifierType::DYNAMIC_LIGHT_UP: return "DynamicLightUp";
             case RSModifierType::SHADOW: return "Shadow";
             case RSModifierType::MASK: return "Mask";
@@ -327,6 +330,7 @@ public:
             case RSPropertyType::COLOR_PICKER_INTERVAL : return "ColorPickerInterval";
             case RSPropertyType::COLOR_PICKER_NOTIFY_THRESHOLD : return "ColorPickerNotifyThreshold";
             case RSPropertyType::COLOR_ADAPTIVE : return "ColorAdaptive";
+            case RSPropertyType::DOUBLE_SIDED: return "DoubleSided";
             case RSPropertyType::CHILDREN: return "Children";
             default: return "Unknown";
         }

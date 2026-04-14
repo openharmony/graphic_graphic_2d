@@ -1568,6 +1568,13 @@ public:
     void SetCustomClipToFrame(const Vector4f& clipRect);
 
     /**
+     * @brief Sets whether the node should be double-sided rendered.
+     *
+     * @param isDoubleSided True to enable double-sided rendering; false to enable single-sided rendering.
+     */
+    void SetDoubleSidedEnabled(bool isDoubleSided);
+
+    /**
      * @brief Sets the brightness of HDR (High Dynamic Range).
      *
      * @param hdrBrightness The HDR brightness value to set.

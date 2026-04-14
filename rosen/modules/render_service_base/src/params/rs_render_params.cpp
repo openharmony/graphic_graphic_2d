@@ -132,6 +132,15 @@ void RSRenderParams::SetShouldPaint(bool shouldPaint)
     needSync_ = true;
 }
 
+void RSRenderParams::SetDoubleSidedEnabled(bool isDoubleSided)
+{
+    if (isDoubleSided_ == isDoubleSided) {
+        return;
+    }
+    isDoubleSided_ = isDoubleSided;
+    needSync_ = true;
+}
+
 void RSRenderParams::SetContentEmpty(bool empty)
 {
     if (contentEmpty_ == empty) {
@@ -626,6 +635,7 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->isLayerPartRenderEnable_ = isLayerPartRenderEnable_;
     target->layerPartRenderCurrentFrameDirtyRegion_ = layerPartRenderCurrentFrameDirtyRegion_;
     target->startingWindowFlag_ = startingWindowFlag_;
+    target->isDoubleSided_ = isDoubleSided_;
     target->absDrawRect_ = absDrawRect_;
     target->firstLevelNodeId_ = firstLevelNodeId_;
     target->uifirstRootNodeId_ = uifirstRootNodeId_;
