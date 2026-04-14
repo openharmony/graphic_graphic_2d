@@ -2968,25 +2968,22 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, BackFaceSkipTest001, TestSize.Level2)
     ASSERT_NE(surfaceDrawable_, nullptr);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
-    
+
     surfaceParams->shouldPaint_ = true;
     surfaceParams->contentEmpty_ = false;
-    
+
     Drawing::Matrix matrix;
     matrix.SetScale(-1.0f, 1.0f);
     surfaceParams->SetMatrix(matrix);
     surfaceParams->SetDoubleSidedEnabled(false);
-    
-    // Set up RSUniRenderThread to allow execution to reach backface culling logic
-    auto uniParams = std::make_unique<RSRenderThreadParams>();
-    uniParams->SetSecurityDisplay(false);
-    RSUniRenderThread::Instance().Sync(std::move(uniParams));
-    
+
+    auto params = std::make_unique<RSRenderThreadParams>();
+    params->SetIsMirrorScreen(false);
+    RSUniRenderThread::Instance().Sync(std::move(params));
+
     surfaceDrawable_->OnDraw(*drawingCanvas_);
-    
+
     ASSERT_EQ(surfaceDrawable_->GetDrawSkipType(), DrawSkipType::BACKFACE_SKIP);
-    
-    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
 }
 
 /**
@@ -3000,25 +2997,22 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, BackFaceSkipTest002, TestSize.Level2)
     ASSERT_NE(surfaceDrawable_, nullptr);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
-    
+
     surfaceParams->shouldPaint_ = true;
     surfaceParams->contentEmpty_ = false;
-    
+
     Drawing::Matrix matrix;
     matrix.SetScale(-1.0f, 1.0f);
     surfaceParams->SetMatrix(matrix);
     surfaceParams->SetDoubleSidedEnabled(true);
-    
-    // Set up RSUniRenderThread to allow execution to reach backface culling logic
-    auto uniParams = std::make_unique<RSRenderThreadParams>();
-    uniParams->SetSecurityDisplay(false);
-    RSUniRenderThread::Instance().Sync(std::move(uniParams));
-    
+
+    auto params = std::make_unique<RSRenderThreadParams>();
+    params->SetIsMirrorScreen(false);
+    RSUniRenderThread::Instance().Sync(std::move(params));
+
     surfaceDrawable_->OnDraw(*drawingCanvas_);
-    
+
     ASSERT_NE(surfaceDrawable_->GetDrawSkipType(), DrawSkipType::BACKFACE_SKIP);
-    
-    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
 }
 
 /**
@@ -3032,25 +3026,22 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, BackFaceSkipTest003, TestSize.Level2)
     ASSERT_NE(surfaceDrawable_, nullptr);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
-    
+
     surfaceParams->shouldPaint_ = true;
     surfaceParams->contentEmpty_ = false;
-    
+
     Drawing::Matrix matrix;
     matrix.SetScale(1.0f, 1.0f);
     surfaceParams->SetMatrix(matrix);
     surfaceParams->SetDoubleSidedEnabled(false);
-    
-    // Set up RSUniRenderThread to allow execution to reach backface culling logic
-    auto uniParams = std::make_unique<RSRenderThreadParams>();
-    uniParams->SetSecurityDisplay(false);
-    RSUniRenderThread::Instance().Sync(std::move(uniParams));
-    
+
+    auto params = std::make_unique<RSRenderThreadParams>();
+    params->SetIsMirrorScreen(false);
+    RSUniRenderThread::Instance().Sync(std::move(params));
+
     surfaceDrawable_->OnDraw(*drawingCanvas_);
-    
+
     ASSERT_NE(surfaceDrawable_->GetDrawSkipType(), DrawSkipType::BACKFACE_SKIP);
-    
-    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
 }
 
 }
