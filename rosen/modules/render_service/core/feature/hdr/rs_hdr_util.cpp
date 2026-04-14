@@ -275,18 +275,25 @@ void RSHdrUtil::CheckPixelFormatWithSelfDrawingNode(RSSurfaceRenderNode& surface
     }
     auto screenId = screenNode.GetScreenId();
     screenNode.CollectHdrStatus(surfaceNode.GetVideoHdrStatus());
-
+    bool isHWCDisabled = surfaceNode.IsHardwareForcedDisabled();
+    bool isHDRNode = surfaceNode.GetVideoHdrStatus() != HdrStatus::NO_HDR;
+    bool isSdrNitsChanged = ROSEN_NE(screenNode.GetSdrNits(), screenNode.GetLastSdrNits());
+    bool isNeedSetDirty = isHWCDisabled && isHDRNode && isSdrNitsChanged;
+    if (isNeedSetDirty) {
+        RS_TRACE_NAME_FMT("%s surfaceNode: %s SetDirty", __func__, surfaceNode.GetName().c_str());
+        surfaceNode.SetContentDirty();
+    }
     if (RSLuminanceControl::Get().IsForceCloseHdr()) {
         RS_LOGD("RSHdrUtil::CheckPixelFormatWithSelfDrawingNode node(%{public}s) forceCloseHdr.",
             surfaceNode.GetName().c_str());
         return;
     }
-    if (!surfaceNode.IsHardwareForcedDisabled()) {
+    if (!isHWCDisabled) {
         RS_LOGD("RSHdrUtil::CheckPixelFormatWithSelfDrawingNode node(%{public}s) is hardware-enabled",
             surfaceNode.GetName().c_str());
         return;
     }
-    if (surfaceNode.GetVideoHdrStatus() != HdrStatus::NO_HDR) {
+    if (isHDRNode) {
         SetHDRParam(screenNode, surfaceNode, false);
         if (screenNode.GetIsLuminanceStatusChange()) {
             surfaceNode.SetContentDirty();
