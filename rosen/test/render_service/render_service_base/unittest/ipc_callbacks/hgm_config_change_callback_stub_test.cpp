@@ -118,7 +118,7 @@ HWTEST_F(RSHgmConfigChangeCallbackStubTest, OnRemoteRequest004, TestSize.Level1)
     data.WriteInterfaceToken(RSIHgmConfigChangeCallback::GetDescriptor());
 
     int res = stub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(ERR_NONE, res);
+    EXPECT_EQ(ERR_INVALID_DATA, res);
 }
 
 /**
@@ -153,6 +153,24 @@ HWTEST_F(RSHgmConfigChangeCallbackStubTest, OnRemoteRequest006, TestSize.Level1)
 
     int res = stub->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(ERR_INVALID_DATA, res);
+}
+
+/**
+ * @tc.name: OnRemoteRequest007
+ * @tc.desc: Verify function OnRemoteRequest code:ON_HGM_CONFIG_CHANGED
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSHgmConfigChangeCallbackStubTest, OnRemoteRequest007, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    auto code = static_cast<uint32_t>(RSIHgmConfigChangeCallbackInterfaceCode::ON_HGM_CONFIG_CHANGED);
+    data.WriteInterfaceToken(RSIHgmConfigChangeCallback::GetDescriptor());
+    auto configData = std::make_shared<RSHgmConfigData>();
+    data.WriteParcelable(configData.get());
+    int res = stub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ERR_NONE, res);
 }
 
 } // namespace Rosen
