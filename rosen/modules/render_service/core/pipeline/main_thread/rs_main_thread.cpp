@@ -2793,8 +2793,6 @@ void RSMainThread::Render()
         renderThreadParams_->SetForceCommitLayer(GetForceCommitReason());
         renderThreadParams_->SetOcclusionEnabled(RSSystemProperties::GetOcclusionEnabled());
         renderThreadParams_->SetCacheEnabledForRotation(RSSystemProperties::GetCacheEnabledForRotation());
-        renderThreadParams_->SetUIFirstCurrentFrameCanSkipFirstWait(
-            RSUifirstManager::Instance().GetCurrentFrameSkipFirstWait());
         renderThreadParams_->SetHasLppVideo(lppVideoHandler_.HasLppVideo());
         renderThreadParams_->SetSurfaceFpsOp(pipelineParam_.SurfaceFpsOpNum, pipelineParam_.SurfaceFpsOpList);
 #ifdef RS_ENABLE_TV_PQ_METADATA
