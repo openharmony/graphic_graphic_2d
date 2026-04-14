@@ -83,5 +83,42 @@ HWTEST_F(AnimationCallbackTest, Execute002, TestSize.Level1)
     EXPECT_TRUE(finishCallback1 != nullptr);
     GTEST_LOG_(INFO) << "AnimationCallbackTest Execute002 end";
 }
+
+/**
+ * @tc.name: EstimatedDuration001
+ * @tc.desc: Verify the GetEstimatedDuration and SetEstimatedDuration of AnimationFinishCallback
+ * @tc.type:FUNC
+ */
+HWTEST_F(AnimationCallbackTest, EstimatedDuration001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AnimationCallbackTest EstimatedDuration001 start";
+
+    // Test 1: Default value should be 0
+    std::function<void()> func = []() {};
+    auto finishCallback = std::make_shared<AnimationFinishCallback>(func);
+    EXPECT_FLOAT_EQ(finishCallback->GetEstimatedDuration(), 0.0f);
+
+    // Test 2: Set and get duration
+    finishCallback->SetEstimatedDuration(100.0f);
+    EXPECT_FLOAT_EQ(finishCallback->GetEstimatedDuration(), 100.0f);
+
+    // Test 3: Set larger value should update
+    finishCallback->SetEstimatedDuration(200.0f);
+    EXPECT_FLOAT_EQ(finishCallback->GetEstimatedDuration(), 200.0f);
+
+    // Test 4: Set smaller value should NOT update (keeps maximum)
+    finishCallback->SetEstimatedDuration(50.0f);
+    EXPECT_FLOAT_EQ(finishCallback->GetEstimatedDuration(), 200.0f);
+
+    // Test 5: Set same value
+    finishCallback->SetEstimatedDuration(200.0f);
+    EXPECT_FLOAT_EQ(finishCallback->GetEstimatedDuration(), 200.0f);
+
+    // Test 6: Set zero value should NOT update when current is larger
+    finishCallback->SetEstimatedDuration(0.0f);
+    EXPECT_FLOAT_EQ(finishCallback->GetEstimatedDuration(), 200.0f);
+
+    GTEST_LOG_(INFO) << "AnimationCallbackTest EstimatedDuration001 end";
+}
 } // namespace Rosen
 } // namespace OHOS
