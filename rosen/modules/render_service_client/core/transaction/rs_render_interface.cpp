@@ -134,20 +134,22 @@ bool RSRenderInterface::TakeSurfaceCaptureForUIWithConfig(std::shared_ptr<RSNode
         return renderPipelineClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig, {},
             captureConfig.specifiedAreaRect);
     } else {
-        return TakeSurfaceCaptureForUIWithoutUni(node->GetId(), callback, captureConfig.scaleX, captureConfig.scaleY);
+        return TakeSurfaceCaptureForUIWithoutUni(
+            node->GetId(), callback, captureConfig.scaleX, captureConfig.scaleY, captureConfig.specifiedAreaRect);
     }
 }
 
 bool RSRenderInterface::TakeSurfaceCaptureForUIWithoutUni(NodeId id,
-    std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY)
+    std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY,
+    const Drawing::Rect& specifiedAreaRect)
 {
-    std::function<void()> offscreenRenderTask = [scaleX, scaleY, callback, id, this]() -> void {
+    std::function<void()> offscreenRenderTask = [scaleX, scaleY, callback, id, specifiedAreaRect, this]() -> void {
         ROSEN_LOGD(
             "RSRenderInterface::TakeSurfaceCaptureForUIWithoutUni callback->OnOffscreenRender nodeId:"
             "[%{public}" PRIu64 "]", id);
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderThread::TakeSurfaceCaptureForUIWithoutUni");
         std::shared_ptr<RSDividedUICapture> rsDividedUICapture =
-            std::make_shared<RSDividedUICapture>(id, scaleX, scaleY);
+            std::make_shared<RSDividedUICapture>(id, scaleX, scaleY, specifiedAreaRect);
         std::shared_ptr<Media::PixelMap> pixelmap = rsDividedUICapture->TakeLocalCapture();
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
         callback->OnSurfaceCapture(pixelmap);

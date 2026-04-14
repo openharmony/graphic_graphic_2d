@@ -945,6 +945,23 @@ void RSSurfaceNode::SetSurfaceTextureInitTypeCallBack(const RSSurfaceTextureInit
     }
 #endif // ROSEN_IOS
 }
+
+void RSSurfaceNode::SetSurfaceCaptureCallback(std::function<std::shared_ptr<Media::PixelMap>()> callback)
+{
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeSetSurfaceCaptureCallBack>(GetId(), callback);
+    auto transaction = GetRSTransaction();
+    if (transaction != nullptr) {
+        transaction->AddCommand(command, false);
+        transaction->FlushImplicitTransaction();
+    } else {
+        auto transactionProxy = RSTransactionProxy::GetInstance();
+        if (transactionProxy != nullptr) {
+            transactionProxy->AddCommand(command, false);
+            transactionProxy->FlushImplicitTransaction();
+        }
+    }
+}
 #endif
 
 void RSSurfaceNode::SetForeground(bool isForeground)
