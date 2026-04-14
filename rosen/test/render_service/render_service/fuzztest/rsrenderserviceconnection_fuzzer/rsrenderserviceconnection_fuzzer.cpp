@@ -38,12 +38,14 @@
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 #include "ipc_callbacks/pointer_render/pointer_luminance_callback_stub.h"
 #endif
+#include "common/rs_event_def.h"
+#include "ipc_callbacks/rs_exposed_event_callback_stub.h"
 #include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
 #include "ipc_callbacks/rs_first_frame_commit_callback_stub.h"
 #include "render_server/rs_render_service.h"
 #include "render_server/transaction/rs_client_to_service_connection.h"
 #include "transaction/rs_client_to_render_connection.h"
-#include "platform/ohos/rs_render_service_connect_hub.cpp"
+#include "platform/ohos/rs_render_service_connect_hub.h"
 #include "transaction/rs_render_service_client.h"
 #include "render_server/transaction/zidl/rs_client_to_service_connection_stub.h"
 #include "transaction/zidl/rs_client_to_render_connection_stub.h"
@@ -1481,6 +1483,33 @@ bool DoRegisterFirstFrameCommitCallback()
     return true;
 }
 
+class CustomExposedEventCallback : public RSExposedEventCallbackStub {
+public:
+    explicit CustomExposedEventCallback(const RSExposedEventCallback& callback) : cb_(callback) {}
+    ~CustomExposedEventCallback() override {};
+
+    void OnDisplayEvent(const std::shared_ptr<RSExposedEventDataBase> data) override
+    {
+        if (cb_ != nullptr) {
+            cb_(data);
+        }
+    }
+private:
+    RSExposedEventCallback cb_;
+};
+
+bool DoRegisterExposedEventCallback()
+{
+    if (rsToServiceConn_ == nullptr) {
+        return false;
+    }
+    RSExposedEventType type = static_cast<RSExposedEventType>(GetData<uint32_t>());
+    RSExposedEventCallback callback = [](const std::shared_ptr<RSExposedEventDataBase> data) {};
+    sptr<CustomExposedEventCallback> cb = new CustomExposedEventCallback(callback);
+    rsToServiceConn_->RegisterExposedEventCallback(type, cb);
+    return true;
+}
+
 bool DoClearUifirstCache()
 {
     if (rsToRenderConn_ == nullptr) {
@@ -1631,6 +1660,7 @@ void DoFuzzerTest3()
     DoSetOverlayDisplayMode();
 #endif
     DoRegisterFirstFrameCommitCallback();
+    DoRegisterExposedEventCallback();
     DoNotifySoftVsyncRateDiscountEvent();
     DoSetBehindWindowFilterEnabled();
     DoGetBehindWindowFilterEnabled();

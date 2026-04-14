@@ -51,6 +51,11 @@ std::shared_ptr<HdiOutput> RSComposerClient::GetOutput() const
     return output_;
 }
 
+void RSComposerClient::SetRmvSurfaceFpsOpCallback(RmvSurfaceFpsOpCB callback)
+{
+    rmvSurfaceFpsOpCallback_ = std::move(callback);
+}
+
 bool RSComposerClient::IsFindRSLayer(RSLayerId rsLayerId)
 {
     if (rsComposerContext_->GetRSLayer(rsLayerId) != nullptr) {
@@ -67,10 +72,11 @@ void RSComposerClient::CommitLayers(ComposerInfo& composerInfo)
     }
     IncUnExecuteTaskNum();
     composerInfo.pipelineParam = pipelineParam_;
-    pipelineParam_.ResetSurfaceFpsOp();
     if (!rsComposerContext_->CommitLayers(composerInfo)) {
         SubUnExecuteTaskNum();
         RS_LOGE("%{public}s failed, restore task count", __func__);
+    } else if (!pipelineParam_.SurfaceFpsOpList.empty() && rmvSurfaceFpsOpCallback_) {
+        rmvSurfaceFpsOpCallback_(pipelineParam_.SurfaceFpsOpList);
     }
 }
 

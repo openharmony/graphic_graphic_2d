@@ -16,10 +16,12 @@
 #include <gtest/gtest.h>
 
 #include "filter/include/filter.h"
+#include "filter/include/filter_blur_bubbles_rise_para.h"
 #include "filter/include/filter_para.h"
 #include "filter/include/filter_content_light_para.h"
 #include "filter/include/filter_dispersion_para.h"
 #include "filter/include/filter_displacement_distort_para.h"
+#include "filter/include/filter_heat_distortion_para.h"
 #include "filter/include/filter_water_ripple_para.h"
 #include "filter/include/filter_mask_transition_para.h"
 #include "filter/include/filter_unmarshalling_singleton.h"
@@ -107,6 +109,57 @@ HWTEST_F(RSUIEffectFilterTest, RSUIEffectContentLightParaTest, TestSize.Level1)
     parcelTest.FlushBuffer();
     parcelTest.WriteUint16(666);
     EXPECT_EQ(false, ContentLightPara::OnUnmarshalling(parcelTest, valTest));
+}
+
+/**
+ * @tc.name: RSUIEffectHeatDistortionParaTest
+ * @tc.desc: Verify the HeatDistortionPara func
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIEffectFilterTest, RSUIEffectHeatDistortionParaTest, TestSize.Level1)
+{
+    auto para = std::make_shared<HeatDistortionPara>();
+    constexpr float intensity = 1.0f;
+    constexpr float noiseScale = 2.0f;
+    constexpr float riseWeight = 0.4f;
+    constexpr float progress = 0.25f;
+    para->SetIntensity(intensity);
+    para->SetNoiseScale(noiseScale);
+    para->SetRiseWeight(riseWeight);
+    para->SetProgress(progress);
+
+    EXPECT_EQ(intensity, para->GetIntensity());
+    EXPECT_EQ(noiseScale, para->GetNoiseScale());
+    EXPECT_EQ(riseWeight, para->GetRiseWeight());
+    EXPECT_EQ(progress, para->GetProgress());
+
+    Parcel parcel;
+    EXPECT_FALSE(para->Marshalling(parcel));
+    EXPECT_EQ(nullptr, para->Clone());
+}
+
+/**
+ * @tc.name: RSUIEffectBlurBubblesRiseParaTest
+ * @tc.desc: Verify the BlurBubblesRisePara func
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIEffectFilterTest, RSUIEffectBlurBubblesRiseParaTest, TestSize.Level1)
+{
+    auto para = std::make_shared<BlurBubblesRisePara>();
+    constexpr float blurIntensity = 0.8f;
+    constexpr float mixStrength = 0.7f;
+    constexpr float progress = 0.35f;
+    para->SetBlurIntensity(blurIntensity);
+    para->SetMixStrength(mixStrength);
+    para->SetProgress(progress);
+
+    EXPECT_EQ(blurIntensity, para->GetBlurIntensity());
+    EXPECT_EQ(mixStrength, para->GetMixStrength());
+    EXPECT_EQ(progress, para->GetProgress());
+
+    Parcel parcel;
+    EXPECT_FALSE(para->Marshalling(parcel));
+    EXPECT_EQ(nullptr, para->Clone());
 }
 
 /**

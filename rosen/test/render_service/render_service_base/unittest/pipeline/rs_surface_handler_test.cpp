@@ -556,6 +556,12 @@ HWTEST_F(RSSurfaceHandlerTest, SetAvailableBufferCount001, TestSize.Level2)
     ASSERT_EQ(rSSurfaceHandlerPtr_->GetAvailableBufferCount(), bufferAvailableCount);
 }
 
+/**
+ * @tc.name:  TryReclaimLastBuffer001
+ * @tc.desc: test TryReclaimLastBuffer
+ * @tc.type: FUNC
+ * @tc.require: issue#913
+ */
 HWTEST_F(RSSurfaceHandlerTest, TryReclaimLastBuffer001, TestSize.Level1)
 {
     ASSERT_NE(rSSurfaceHandlerPtr_, nullptr);
@@ -605,5 +611,39 @@ HWTEST_F(RSSurfaceHandlerTest, TryReclaimLastBuffer001, TestSize.Level1)
     EXPECT_FALSE(buffer->IsReclaimed());
 }
 
+/**
+ * @tc.name:  TryReclaimLastBuffer002
+ * @tc.desc: test TryReclaimLastBuffer
+ * @tc.type: FUNC
+ * @tc.require: issue#913
+ */
+HWTEST_F(RSSurfaceHandlerTest, TryReclaimLastBuffer002, TestSize.Level1)
+{
+    const uint32_t maxBufferReclaimNums = 50;
+    auto rSSurfaceHandlerPtrTmp = std::make_unique<RSSurfaceHandler>(id);
+    std::vector<sptr<SurfaceBuffer>> buffers;
+    for (uint32_t i = 0; i <= maxBufferReclaimNums; i++) {
+        sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
+        BufferRequestConfig requestConfig = {
+            .width = 0x100,
+            .height = 0x100,
+            .strideAlignment = 0x8,
+            .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+            .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+            .timeout = 0,
+            .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB,
+        };
+        GSError ret = buffer->Alloc(requestConfig);
+        ASSERT_EQ(ret, GSERROR_OK);
+        buffers.push_back(buffer);
+        rSSurfaceHandlerPtrTmp->lastBufferId_ = buffer->GetBufferId();
+        rSSurfaceHandlerPtrTmp->SetBuffer(buffer, SyncFence::INVALID_FENCE, Rect(), 0, nullptr);
+        if (i < maxBufferReclaimNums) {
+            EXPECT_TRUE(rSSurfaceHandlerPtrTmp->ReclaimLastBufferProcess());
+        } else {
+            EXPECT_FALSE(rSSurfaceHandlerPtrTmp->ReclaimLastBufferProcess());
+        }
+    }
+}
 #endif
 } // namespace OHOS::Rosen

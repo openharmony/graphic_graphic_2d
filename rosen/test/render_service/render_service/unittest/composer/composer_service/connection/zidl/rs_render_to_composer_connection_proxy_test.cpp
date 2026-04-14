@@ -17,13 +17,13 @@
 #include <set>
 #include <unordered_set>
 #include <vector>
-#include "rs_render_to_composer_connection_stub.h"
-#include "rs_render_to_composer_connection.h"
-#include "rs_render_to_composer_connection_proxy.h"
+
 #include "rs_composer_to_render_connection.h"
 #include "rs_layer_transaction_data.h"
-#include "rs_composer_to_render_connection.h"
 #include "rs_render_composer_agent.h"
+#include "rs_render_to_composer_connection.h"
+#include "rs_render_to_composer_connection_proxy.h"
+#include "rs_render_to_composer_connection_stub.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -84,7 +84,7 @@ HWTEST_F(RSRenderToComposerConnectionProxyTest, Proxy_SendRequest_RemoteNull_Err
     ASSERT_EQ(nullObj, nullptr);
     proxy.ClearFrameBuffers();
     proxy.CleanLayerBufferBySurfaceId(1u);
-    std::unordered_set<uint64_t> ids {1u};
+    std::unordered_set<uint64_t> ids { 1u };
     proxy.ClearRedrawGPUCompositionCache(ids);
     proxy.SetScreenBacklight(1u);
     EXPECT_EQ(ids.count(1u), 1u);
@@ -239,5 +239,49 @@ HWTEST_F(RSRenderToComposerConnectionProxyTest, Proxy_CleanLayerBufferBySurfaceI
     RSRenderToComposerConnectionProxy proxy(stub->AsObject());
     ASSERT_NE(stub->AsObject(), nullptr);
     proxy.CleanLayerBufferBySurfaceId(0u);
+}
+
+/**
+ * Function: Proxy_SendLayers_ReadServerRetFail_TrueBranch
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create proxy with remote returning success but empty reply
+ *                  2. verify SendLayers returns COMPOSITOR_ERROR_BINDER_ERROR (line 104 true branch)
+ */
+HWTEST_F(RSRenderToComposerConnectionProxyTest, Proxy_SendLayers_ReadServerRetFail_TrueBranch, TestSize.Level1)
+{
+    class FakeReadFailRemote : public IRemoteObject {
+    public:
+        FakeReadFailRemote() : IRemoteObject(u"test.descriptor") {}
+        int32_t GetObjectRefCount() override
+        {
+            return 1;
+        }
+        int SendRequest(uint32_t, MessageParcel&, MessageParcel& reply, MessageOption&) override
+        {
+            reply.RewindRead(0);
+            return NO_ERROR;
+        }
+        bool AddDeathRecipient(const sptr<DeathRecipient>&) override
+        {
+            return false;
+        }
+        bool RemoveDeathRecipient(const sptr<DeathRecipient>&) override
+        {
+            return false;
+        }
+        int Dump(int, const std::vector<std::u16string>&) override
+        {
+            return 0;
+        }
+    };
+    auto agent = std::make_shared<RSRenderComposerAgent>(nullptr);
+    sptr<RSRenderToComposerConnection> stub = sptr<RSRenderToComposerConnection>::MakeSptr("ut", 0u, agent);
+    RSRenderToComposerConnectionProxy proxy(stub->AsObject());
+
+    std::vector<std::shared_ptr<MessageParcel>> parcels;
+    RSComposerError ret = proxy.SendLayers(parcels);
+    EXPECT_EQ(ret, COMPOSITOR_ERROR_OK);
 }
 } // namespace OHOS::Rosen

@@ -34,9 +34,6 @@ namespace Rosen {
 namespace {
 #ifdef RS_ENABLE_VK
 const std::string LIB_VULKAN_PATH = "/system/lib64/libvulkan.so";
-static std::atomic<bool> isInit{false};
-static PFN_vkSetFrontWindowStatusHUAWEI mSetFrontWindowStatusHUAWEI = nullptr;
-static PFN_vkGetDeviceProcAddr vkGetDeviceProcAddr = nullptr;
 #endif
 }
 
@@ -223,26 +220,41 @@ void RsFrameReport::ReportDelScreenId(const int screenId)
 }
 
 #ifdef RS_ENABLE_VK
+std::atomic<bool> isInit{false};
+PFN_vkSetFrontWindowStatusHUAWEI mSetFrontWindowStatusHUAWEI = nullptr;
+PFN_vkGetDeviceProcAddr vkGetDeviceProcAddr = nullptr;
+std::unique_ptr<void, RsFrameReport::VkHandleDeleter> RsFrameReport::vkhandle = nullptr;
+std::function<void*(const char*, int)> RsFrameReport::dlopenFunc = ::dlopen;
+std::function<void*(void*, const char*)> RsFrameReport::dlsymFunc = ::dlsym;
+
+void RsFrameReport::VkHandleDeleter::operator()(void* ptr) const
+{
+    if (ptr) {
+        dlclose(ptr);
+    }
+}
+
 bool RsFrameReport::InitializeVulkanExtensions(VkDevice device)
 {
-    if (isInit.load()) {
-        return mSetFrontWindowStatusHUAWEI != nullptr;
+    if (isInit.load() && mSetFrontWindowStatusHUAWEI != nullptr) {
+        return true;
     }
     if (device == nullptr) {
         LOGE("Obtain vkdevice fail");
         return false;
     }
 
-    auto vkhandle = dlopen(LIB_VULKAN_PATH.c_str(), RTLD_NOW | RTLD_LOCAL);
+    vkhandle.reset(dlopenFunc(LIB_VULKAN_PATH.c_str(), RTLD_NOW | RTLD_LOCAL));
     if (vkhandle == nullptr) {
-        LOGE("Failed to load Vulkan library: %{public}s", dlerror());
+        char* err = dlerror();
+        LOGE("Failed to load Vulkan library: %{public}s", err ? err : "unknow error");
         return false;
     }
 
-    vkGetDeviceProcAddr = reinterpret_cast<PFN_vkGetDeviceProcAddr>(dlsym(vkhandle, "vkGetDeviceProcAddr"));
+    vkGetDeviceProcAddr = reinterpret_cast<PFN_vkGetDeviceProcAddr>(dlsymFunc(vkhandle.get(), "vkGetDeviceProcAddr"));
     if (vkGetDeviceProcAddr == nullptr) {
         LOGE("Failed to obtain vkGetDeviceProcAddr");
-        dlclose(vkhandle);
+        vkhandle.reset();
         return false;
     }
 
@@ -250,11 +262,10 @@ bool RsFrameReport::InitializeVulkanExtensions(VkDevice device)
         vkGetDeviceProcAddr(device, "vkSetFrontWindowStatusHUAWEI"));
     if (mSetFrontWindowStatusHUAWEI == nullptr) {
         LOGE("Failed to obtain vkSetFrontWindowStatusHUAWEI");
-        dlclose(vkhandle);
+        vkhandle.reset();
         return false;
     }
 
-    dlclose(vkhandle);
     isInit.store(true);
     return true;
 }
@@ -263,10 +274,6 @@ void RsFrameReport::ReportWindowInfo(VkDevice device, bool isSingleFullScreenApp
 {
     if (!InitializeVulkanExtensions(device)) {
         LOGE("Failed to initialize Vulkan extensions");
-        return;
-    }
-    if (mSetFrontWindowStatusHUAWEI == nullptr) {
-        LOGE("vkSetFrontWindowStatusHUAWEI is null");
         return;
     }
     mSetFrontWindowStatusHUAWEI(nullptr, isSingleFullScreenApp, firstFrontBundleName);

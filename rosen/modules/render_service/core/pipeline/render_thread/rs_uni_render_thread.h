@@ -22,11 +22,11 @@
 
 #include "common/rs_thread_handler.h"
 #include "common/rs_thread_looper.h"
+#include "engine/rs_base_render_engine.h"
 #include "event_handler.h"
 #include "params/rs_render_thread_params.h"
 #include "pipeline/buffer_manager/rs_buffer_manager.h"
 #include "pipeline/rs_context.h"
-#include "rs_base_render_engine.h"
 #include "rs_composer_client_manager.h"
 #ifdef RES_SCHED_ENABLE
 #include "vsync_system_ability_listener.h"
@@ -84,6 +84,8 @@ public:
     uint64_t GetPendingConstraintRelativeTime() const;
     uint32_t GetDefaultScreenRefreshRate() const;
     uint64_t GetFastComposeTimeStampDiff() const;
+    uint32_t GetSurfaceFpsOpNum() const;
+    std::vector<SurfaceFpsOp> GetSurfaceFpsOpList() const;
 
     void PurgeCacheBetweenFrames();
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t pid = -1);
@@ -260,9 +262,9 @@ public:
     }
 
     void AddPendingReleaseBuffer(sptr<IConsumerSurface> consumer, sptr<OHOS::SurfaceBuffer> buffer,
-        sptr<SyncFence> fence)
+        sptr<SyncFence> fence, std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount = nullptr)
     {
-        bufferManager_.AddPendingReleaseBuffer(consumer, buffer, fence);
+        bufferManager_.AddPendingReleaseBuffer(consumer, buffer, fence, bufferOwnerCount);
     }
 
     void OnReleaseLayerBuffers(std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>>& rsLayers,
@@ -291,9 +293,7 @@ public:
 
         ~BufferManagerGuard()
         {
-            // Set to true to enable dump of pendingReleaseBuffers_ after each frame
-            constexpr bool DEBUG_DUMP_BUFFER_MANAGER = false;
-            RSUniRenderThread::Instance().bufferManager_.OnDrawEnd(fence_, DEBUG_DUMP_BUFFER_MANAGER);
+            RSUniRenderThread::Instance().bufferManager_.OnDrawEnd(fence_);
         }
 
         void SetAcquireFence(sptr<SyncFence> fence)

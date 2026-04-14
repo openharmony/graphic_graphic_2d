@@ -28,18 +28,27 @@ public:
     static bool IsReclaimEnabled();
     static int GetRSCacheLimitsResourceSize();
     static bool IsKillScbEnabled();
+    static bool IsKernelReportEnabled();
+    static int GetKernelReportAvailableMemLimit();
+    static int GetKernelReportMemInterval();
 
 protected:
     void SetRSWatchPoint(std::string rsWatchPoint);
     static void SetReclaimEnabled(bool isEnabled);
     static void SetRSCacheLimitsResourceSize(int rsCacheLimitsResourceSize);
     static void SetKillScbEnabled(bool isEnabled);
+    static void SetKernelReportEnabled(bool isEnabled);
+    static void SetKernelReportAvailableMemLimit(int kernelReportAvailableMemLimit);
+    static void SetKernelReportMemInterval(int kernelReportMemInterval);
 
 private:
     std::string rsWatchPoint_ = "";
     inline static bool isReclaimEnabled_ = false;
     inline static int rsCacheLimitsResourceSize_ = 0;
     inline static bool isKillScbEnabled_ = true;
+    inline static bool isKernelReportEnabled_ = false;  // enable gpu report from kernel.
+    inline static int kernelReportAvailableMemLimit_ = 10000;
+    inline static int kernelReportMemInterval_ = 0;
 
     friend class MEMParamParse;
 };

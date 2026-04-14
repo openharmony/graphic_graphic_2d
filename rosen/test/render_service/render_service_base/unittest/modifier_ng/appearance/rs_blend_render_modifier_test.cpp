@@ -65,5 +65,6 @@ HWTEST_F(RSBlendRenderModifierNGTest, RSBlendRenderModifierTest, TestSize.Level1
     EXPECT_EQ(properties.GetFgBrightnessFract(), 1.f);
     EXPECT_EQ(properties.GetFgBrightnessHdr(), false);
     EXPECT_EQ(properties.GetShadowBlenderParams(), std::nullopt);
+    EXPECT_EQ(properties.GetHdrDarkenBlenderParams(), std::nullopt);
 }
 } // namespace OHOS::Rosen

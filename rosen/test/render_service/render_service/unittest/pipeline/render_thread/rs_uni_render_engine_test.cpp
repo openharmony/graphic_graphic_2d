@@ -16,7 +16,7 @@
 #include "gtest/gtest.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "pipeline/render_thread/rs_divided_render_util.h"
-#include "pipeline/render_thread/rs_uni_render_engine.h"
+#include "engine/rs_uni_render_engine.h"
 #include "pipeline/rs_test_util.h"
 #include "platform/common/rs_system_properties.h"
 #include "recording/recording_canvas.h"

@@ -24,7 +24,7 @@
 
 #include "securec.h"
 
-#include "feature/gpuComposition/rs_vk_image_manager.h"
+#include "gpuComposition/rs_vk_image_manager.h"
 
 namespace OHOS {
 namespace Rosen {

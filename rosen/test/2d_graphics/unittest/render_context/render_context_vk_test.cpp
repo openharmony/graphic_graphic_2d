@@ -273,4 +273,109 @@ HWTEST_F(RenderContextVKTest, SetRenderContextTypeSequenceTest, Level1)
     renderContext->SetRenderContextType(0); // BASIC_RENDER
     EXPECT_EQ(renderContext->isProtected_.load(), false);
 }
+
+/**
+ * @tc.name: QueryMaxGpuBufferSize001
+ * @tc.desc: Verify QueryMaxGpuBufferSize with valid Vulkan context
+ * @tc.type: FUNC
+ */
+HWTEST_F(RenderContextVKTest, QueryMaxGpuBufferSize001, TestSize.Level1)
+{
+    if (!RSSystemProperties::IsUseVulkan()) {
+        GTEST_LOG_(INFO) << "opengl enable! skip vulkan test case";
+        return;
+    }
+    auto renderContext = std::make_shared<RenderContextVK>();
+    EXPECT_NE(renderContext, nullptr);
+    auto vkContext = RsVulkanContext::GetInstance();
+    if (vkContext == nullptr) {
+        GTEST_LOG_(INFO) << "vulkan context is null, skip test";
+        return;
+    }
+    vkContext->InitVulkanContextForHybridRender();
+    uint32_t maxWidth = 0;
+    uint32_t maxHeight = 0;
+    bool result = renderContext->QueryMaxGpuBufferSize(maxWidth, maxHeight);
+    EXPECT_TRUE(result);
+    EXPECT_GT(maxWidth, 0);
+    EXPECT_GT(maxHeight, 0);
+}
+
+/**
+ * @tc.name: QueryMaxGpuBufferSize002
+ * @tc.desc: Verify QueryMaxGpuBufferSize without Vulkan context
+ * @tc.type: FUNC
+ */
+HWTEST_F(RenderContextVKTest, QueryMaxGpuBufferSize002, TestSize.Level1)
+{
+    if (!RSSystemProperties::IsUseVulkan()) {
+        GTEST_LOG_(INFO) << "opengl enable! skip vulkan test case";
+        return;
+    }
+    auto renderContext = std::make_shared<RenderContextVK>();
+    EXPECT_NE(renderContext, nullptr);
+    uint32_t maxWidth = 0;
+    uint32_t maxHeight = 0;
+    bool result = renderContext->QueryMaxGpuBufferSize(maxWidth, maxHeight);
+}
+
+/**
+ * @tc.name: QueryMaxGpuBufferSize003
+ * @tc.desc: Verify QueryMaxGpuBufferSize with preset values
+ * @tc.type: FUNC
+ */
+HWTEST_F(RenderContextVKTest, QueryMaxGpuBufferSize003, TestSize.Level1)
+{
+    if (!RSSystemProperties::IsUseVulkan()) {
+        GTEST_LOG_(INFO) << "opengl enable! skip vulkan test case";
+        return;
+    }
+    auto renderContext = std::make_shared<RenderContextVK>();
+    EXPECT_NE(renderContext, nullptr);
+    auto vkContext = RsVulkanContext::GetInstance();
+    if (vkContext == nullptr) {
+        GTEST_LOG_(INFO) << "vulkan context is null, skip test";
+        return;
+    }
+    vkContext->InitVulkanContextForHybridRender();
+    uint32_t maxWidth = 4096;
+    uint32_t maxHeight = 4096;
+    bool result = renderContext->QueryMaxGpuBufferSize(maxWidth, maxHeight);
+    EXPECT_TRUE(result);
+    EXPECT_GE(maxWidth, 4096);
+    EXPECT_GE(maxHeight, 4096);
+}
+
+/**
+ * @tc.name: QueryMaxGpuBufferSize004
+ * @tc.desc: Verify QueryMaxGpuBufferSize consistency across multiple calls
+ * @tc.type: FUNC
+ */
+HWTEST_F(RenderContextVKTest, QueryMaxGpuBufferSize004, TestSize.Level1)
+{
+    if (!RSSystemProperties::IsUseVulkan()) {
+        GTEST_LOG_(INFO) << "opengl enable! skip vulkan test case";
+        return;
+    }
+    auto renderContext = std::make_shared<RenderContextVK>();
+    EXPECT_NE(renderContext, nullptr);
+    auto vkContext = RsVulkanContext::GetInstance();
+    if (vkContext == nullptr) {
+        GTEST_LOG_(INFO) << "vulkan context is null, skip test";
+        return;
+    }
+    vkContext->InitVulkanContextForHybridRender();
+    uint32_t maxWidth1 = 0;
+    uint32_t maxHeight1 = 0;
+    bool result1 = renderContext->QueryMaxGpuBufferSize(maxWidth1, maxHeight1);
+
+    uint32_t maxWidth2 = 0;
+    uint32_t maxHeight2 = 0;
+    bool result2 = renderContext->QueryMaxGpuBufferSize(maxWidth2, maxHeight2);
+
+    EXPECT_TRUE(result1);
+    EXPECT_TRUE(result2);
+    EXPECT_EQ(maxWidth1, maxWidth2);
+    EXPECT_EQ(maxHeight1, maxHeight2);
+}
 } // namespace OHOS::Rosen

@@ -22,27 +22,24 @@
 #include "hdi_layer.h"
 #include "params/rs_surface_render_params.h"
 #include "params/rs_render_thread_params.h"
+#include "tv_metadata/rs_tv_metadata_util.h"
 
 namespace OHOS::Rosen {
 class RSTvMetadataManager {
 public:
     static RSTvMetadataManager& Instance();
-    static void CopyFromLayersToSurface(const std::vector<RSLayerPtr>& layers,
-        std::shared_ptr<RSSurfaceOhos>& surface);
 
     void RecordAndCombineMetadata(const TvPQMetadata& metadata);
     void CopyTvMetadataToSurface(std::shared_ptr<RSSurfaceOhos>& surface);
     void Reset();
     void ResetDpPixelFormat();
     TvPQMetadata GetMetadata() const;
-    static void CombineMetadataForAllLayers(const std::vector<RSLayerPtr>& layers);
     void UpdateTvMetadata(const RSSurfaceRenderParams& params, const sptr<SurfaceBuffer>& buffer);
     void RecordTvMetadata(const RSSurfaceRenderParams& params, const sptr<SurfaceBuffer>& buffer);
     static bool IsSdpInfoAppId(const std::string& bundleName);
     void SetUniRenderThreadParam(std::unique_ptr<RSRenderThreadParams>& renderThreadParams);
 
 private:
-    static void CombineMetadata(TvPQMetadata& dstMetadata, const TvPQMetadata& srcMetadata);
     static void ClearVideoMetadata(TvPQMetadata& metadata);
     void CollectTvMetadata(const RSSurfaceRenderParams& params,
         const sptr<SurfaceBuffer>& buffer, TvPQMetadata& metaData);

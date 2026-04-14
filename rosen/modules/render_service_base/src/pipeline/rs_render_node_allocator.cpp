@@ -93,11 +93,9 @@ std::shared_ptr<RSCanvasRenderNode> RSRenderNodeAllocator::CreateRSCanvasRenderN
         node = std::shared_ptr<RSCanvasRenderNode>(new (front)RSCanvasRenderNode(id,
             context, isTextureExportNode), RSRenderNodeGC::NodeDestructor);
     }
-#ifdef RS_ENABLE_MEMORY_DOWNTREE
     if (node && node->IsNodeMemClearEnable()) {
         RSRenderNodeGC::Instance().SetIsOnTheTree(node->GetId(), node, node->IsOnTheTree());
     }
-#endif
     return node;
 }
 

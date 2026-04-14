@@ -38,6 +38,9 @@ public:
 
     void SetHDRBrightnessFactor(float factor);
     float GetHDRBrightnessFactor() const;
+
+    void SetHDRColorHeadroom(float headroom);
+    float GetHDRColorHeadroom() const;
 };
 } // namespace OHOS::Rosen::ModifierNG
 #endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_APPEARANCE_RS_HDR_BRIGHTNESS_MODIFIER_H

@@ -65,13 +65,17 @@ public:
     inline static const std::string KEY_GPU_FREQ = "gpu_freq";
     inline static const std::string KEY_CPU_ID = "cpu_id";
 
+public:
     RSCaptureData();
     ~RSCaptureData();
 
     void Reset();
+    bool Empty() const
+    {
+        return properties_.empty();
+    }
 
     void SetTime(float time);
-
     float GetTime() const;
 
     void Serialize(class Archive& archive);

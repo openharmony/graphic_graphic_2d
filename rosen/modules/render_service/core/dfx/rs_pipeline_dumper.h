@@ -39,7 +39,9 @@ public:
 
 private:
     void DumpNodesNotOnTheTree(std::string& dumpString) const;
-    void DumpMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const;
+    void DumpMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString,
+        bool isLite = false) const;
+    void DumpGpuMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const;
     void DumpAllNodesMemSize(std::string& dumpString) const;
     void DumpRSEvenParam(std::string& dumpString) const;
     void DumpRenderServiceTree(std::string& dumpString, bool forceDumpSingleFrame = true) const;

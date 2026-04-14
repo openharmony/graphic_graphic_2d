@@ -113,7 +113,7 @@ private:
     void OnReadable(int32_t fileDescriptor) override;
     void OnShutdown(int32_t fileDescriptor) override;
     void PrintRequestTs(int64_t fromRsTs);
-    int64_t CalculateExpectedEndLocked(int64_t now);
+    int64_t CalculateExpectedEndLocked(int64_t &now);
     void HandleVsyncCallbacks(int64_t data[], ssize_t dataCount, int32_t fileDescriptor);
     VsyncError ReadFdInternal(int32_t fd, int64_t (&data)[3], ssize_t &dataCount);
     VSyncCallback vsyncCallbacks_;
@@ -152,9 +152,10 @@ public:
     /**
      * @brief init VSyncReceiver instance.
      *
+     * @param needAddFd will add fd to looper while init.
      * @return Returns an error code.
      */
-    virtual VsyncError Init();
+    virtual VsyncError Init(bool needAddFd = true);
 
     /**
      * @brief request next vsync signal.
@@ -281,7 +282,7 @@ public:
      */
     virtual void SetTouchEvent(int32_t touchType);
 private:
-    void RegisterFileDescriptorListener(bool hasVsyncThread = false);
+    void RegisterFileDescriptorListener(bool hasVsyncThread = false, bool needAddFd = true);
     VsyncError DestroyLocked();
     void RemoveAndCloseFdLocked();
     sptr<IVSyncConnection> connection_;

@@ -26,11 +26,12 @@
 
 namespace OHOS {
 namespace Rosen {
-
+namespace {
 const unsigned long long PRIV_USAGE_FBC_CLD_LAYER = 1ULL << 56; // 56 means the buffer usage is hardware
 const float RCD_LAYER_Z_TOP1 = static_cast<float>(0x7FFFFFFF); // toppest
 const float RCD_LAYER_Z_TOP2 = static_cast<float>(0x7FFFFEFF); // not set toppest - 1, float only 6 significant digits
 const int32_t BUFFER_TIME_OUT = 500;
+} // namespace
 
 RSRcdSurfaceRenderNode::RSRcdSurfaceRenderNode(
     NodeId id, RCDSurfaceType type, const std::weak_ptr<RSContext>& context)
@@ -216,23 +217,6 @@ RSRcdSurfaceRenderNode::PixelMapPtr RSRcdSurfaceRenderNode::CreatePixelMapFromBi
         return nullptr;
     }
     return pixelMap;
-}
-
-void RSRcdSurfaceRenderNode::DrawRsRCDLayer(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSLayer>& layer)
-{
-    if (layer == nullptr) {
-        RS_LOGE("RSRcdSurfaceRenderNode::DrawRsRCDLayer layer is null");
-        return;
-    }
-    auto rcdLayer = std::static_pointer_cast<RSRenderSurfaceRCDLayer>(layer);
-    auto pixelMap = rcdLayer->GetPixelMap();
-    if (pixelMap == nullptr || pixelMap->GetPixels() == nullptr ||
-        pixelMap->GetWidth() < 1 || pixelMap->GetHeight() < 1) {
-        RS_LOGE("RSRcdSurfaceRenderNode::DrawRsRCDLayer pixelmap error");
-        return;
-    }
-    auto rect = rcdLayer->GetLayerSize();
-    RSPixelMapUtil::DrawPixelMap(canvas, *pixelMap, rect.x, rect.y);
 }
 
 bool RSRcdSurfaceRenderNode::SetHardwareResourceToBuffer()

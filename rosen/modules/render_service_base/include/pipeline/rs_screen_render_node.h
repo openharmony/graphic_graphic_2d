@@ -30,6 +30,7 @@
 #include "common/rs_macros.h"
 #include "common/rs_occlusion_region.h"
 #include "display_engine/rs_luminance_control.h"
+#include "feature/dynamic_layer_skip/rs_dynamic_layer_skip_controller.h"
 #include "memory/rs_memory_track.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_handler.h"
@@ -40,6 +41,7 @@
 namespace OHOS {
 namespace Rosen {
 class RSSurfaceRenderNode;
+class RSDynamicLayerSkipController;
 typedef void (*ReleaseDmaBufferTask)(uint64_t);
 
 class RSB_EXPORT RSScreenRenderNode : public RSRenderNode {
@@ -75,10 +77,6 @@ public:
             properties.SetFrame({0, 0, info.width, info.height});
         }
 
-        screenResolutionChanged_ = screenInfo_.phyWidth != info.phyWidth || screenInfo_.phyHeight != info.phyHeight ||
-            screenInfo_.width != info.width || screenInfo_.height != info.height ||
-            std::fabs(screenInfo_.samplingScale - info.samplingScale) > FLT_EPSILON ||
-            (screenInfo_.activeRefreshRate != info.activeRefreshRate && screenInfo_.id != 0);
         screenInfo_ = std::move(info);
     }
 
@@ -98,11 +96,6 @@ public:
     const RSScreenProperty& GetScreenProperty() const
     {
         return screenProperty_;
-    }
-
-    bool IsScreenResolutionChanged() const
-    {
-        return screenResolutionChanged_;
     }
 
     const ScreenInfo& GetScreenInfo() const
@@ -191,6 +184,7 @@ public:
     void ResetMirrorSource();
     void SetIsMirrorScreen(bool isMirror);
     void SetDisplayGlobalZOrder(float zOrder);
+    float GetDisplayGlobalZOrder() const;
     bool SkipFrame(uint32_t refreshRate, uint32_t skipFrameInterval) override;
     WeakPtr GetMirrorSource() const
     {
@@ -496,6 +490,11 @@ public:
         return targetSurfaceRenderNodeId_;
     }
 
+    std::shared_ptr<RSDynamicLayerSkipController> GetDynamicLayerSkipController()
+    {
+        return dynamicLayerSkipController_;
+    }
+
     void SetHasMirrorScreen(bool hasMirrorScreen);
 
     void SetTargetSurfaceRenderNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable);
@@ -517,9 +516,6 @@ public:
     void UpdateHeadroomMapIncrease(HdrStatus status, uint32_t level);
     void UpdateHeadroomMapDecrease(HdrStatus status, uint32_t level);
     void ResetVideoHeadroomInfo();
-
-    void SetCloneNodeMap(
-        const std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr>& cloneNodeMap);
     
     void SetLogicalCameraRotationCorrection(ScreenRotation logicalCorrection);
 
@@ -558,6 +554,8 @@ private:
     int64_t lastRefreshTime_ = 0;
     static ReleaseDmaBufferTask releaseScreenDmaBufferTask_;
     std::shared_ptr<RSDirtyRegionManager> dirtyManager_ = nullptr;
+    std::shared_ptr<RSDynamicLayerSkipController> dynamicLayerSkipController_ =
+        std::make_shared<RSDynamicLayerSkipController>();
     // Use in screen recording optimization
     std::shared_ptr<Drawing::Image> offScreenCacheImgForCapture_ = nullptr;
     WeakPtr mirrorSource_;
@@ -586,8 +584,6 @@ private:
     std::map<NodeId, Drawing::Matrix> surfaceTotalMatrix_;
 
     bool screenDirtyFlag_ = false;
-
-    bool screenResolutionChanged_ = false;
 
     // Use in round corner display
     // removed later due to rcd node will be handled by RS tree in OH 6.0 rcd refactoring

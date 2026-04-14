@@ -117,4 +117,53 @@ HWTEST_F(RSScreenPropertyTest, MarshallingTest002, TestSize.Level1)
     auto dstProperty = sptr<RSScreenProperty>(RSScreenProperty::Unmarshalling(parcel));
     ASSERT_NE(dstProperty, nullptr);
 }
+
+/**
+ * @tc.name: IsMainScreenTest001
+ * @tc.desc: Test IsMainScreen returns false when IS_MAIN_SCREEN property is not set
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenPropertyTest, IsMainScreenTest001, TestSize.Level1)
+{
+    RSScreenProperty property;
+    bool isMainScreen = property.IsMainScreen();
+    ASSERT_FALSE(isMainScreen);
+}
+
+/**
+ * @tc.name: IsMainScreenTest002
+ * @tc.desc: Test IsMainScreen returns true when IS_MAIN_SCREEN property is set to true
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenPropertyTest, IsMainScreenTest002, TestSize.Level1)
+{
+    RSScreenProperty property;
+
+    using T = PropertyTypeMapper<ScreenPropertyType::IS_MAIN_SCREEN>::value_type;
+    auto prop = sptr<ScreenProperty<T>>::MakeSptr(true);
+    property.Set(ScreenPropertyType::IS_MAIN_SCREEN, prop);
+
+    bool isMainScreen = property.IsMainScreen();
+    ASSERT_TRUE(isMainScreen);
+}
+
+/**
+ * @tc.name: IsMainScreenTest003
+ * @tc.desc: Test IsMainScreen returns false when IS_MAIN_SCREEN property is set to false
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenPropertyTest, IsMainScreenTest003, TestSize.Level1)
+{
+    RSScreenProperty property;
+
+    using T = PropertyTypeMapper<ScreenPropertyType::IS_MAIN_SCREEN>::value_type;
+    auto prop = sptr<ScreenProperty<T>>::MakeSptr(false);
+    property.Set(ScreenPropertyType::IS_MAIN_SCREEN, prop);
+
+    bool isMainScreen = property.IsMainScreen();
+    ASSERT_FALSE(isMainScreen);
+}
 }

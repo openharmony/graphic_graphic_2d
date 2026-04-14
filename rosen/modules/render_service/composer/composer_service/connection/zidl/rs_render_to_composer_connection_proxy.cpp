@@ -100,7 +100,11 @@ RSComposerError RSRenderToComposerConnectionProxy::SendLayers(std::vector<std::s
                 return COMPOSITOR_ERROR_BINDER_ERROR;
             }
         } while (err != NO_ERROR);
-        int32_t serverRet = reply.ReadInt32();
+        int32_t serverRet;
+        if (!reply.ReadInt32(serverRet)) {
+            RS_LOGE("%{public}s read server returned error", __func__);
+            return COMPOSITOR_ERROR_BINDER_ERROR;
+        }
         if (serverRet != COMPOSITOR_ERROR_OK) {
             RS_LOGE("%{public}s server returned error:%{public}d", __func__, serverRet);
             return static_cast<RSComposerError>(serverRet);

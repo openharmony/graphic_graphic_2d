@@ -67,7 +67,6 @@ public:
 
     int32_t GetScreenType(ScreenId id, RSScreenType& type) const;
 
-    int32_t SetScreenSwitchingNotifyCallback(const sptr<RSIScreenSwitchingNotifyCallback>& callback);
     void DisplayDump(std::string& dumpString);
     int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval);
 
@@ -92,6 +91,8 @@ public:
     int32_t GetRogScreenResolution(ScreenId id, uint32_t& width, uint32_t& height);
     int32_t SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height);
     int32_t SetDualScreenState(ScreenId id, DualScreenStatus status);
+    int32_t SetAsMainScreen(ScreenId screenId, bool isMainScreen);
+    ScreenId GetMainScreenId();
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
     ScreenPowerStatus GetScreenPowerStatus(ScreenId id) const;
@@ -197,7 +198,6 @@ private:
 
     sptr<RSScreenProperty> QueryScreenProperty(ScreenId id) const; // Only for internal use by ScreenManager
     std::shared_ptr<RSScreen> GetScreen(ScreenId id) const;
-    void NotifySwitchingCallback(bool status) const;
 
     // virtual screen
     ScreenId GenerateVirtualScreenId();
@@ -221,10 +221,6 @@ private:
     std::atomic<uint32_t> virtualScreenCount_ = 0;
     std::atomic<uint32_t> currentVirtualScreenNum_ = 0;
 
-    mutable std::shared_mutex screenChangeCallbackMutex_;
-    mutable std::shared_mutex screenSwitchingNotifyCallbackMutex_;
-    sptr<RSIScreenSwitchingNotifyCallback> screenSwitchingNotifyCallback_;
-
     std::atomic<bool> mipiCheckInFirstHotPlugEvent_ = false;
 
     mutable std::mutex hotPlugAndConnectMutex_;
@@ -246,8 +242,6 @@ private:
 
     mutable std::mutex renderControlMutex_;
     std::unordered_set<ScreenId> disableRenderControlScreens_ = {};
-
-    std::atomic<bool> isScreenSwitching_ = false;
 
     bool isFoldScreenFlag_ = false;
     std::unique_ptr<RSFoldScreenManager> foldScreenManager_;

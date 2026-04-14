@@ -320,13 +320,36 @@ void RSRenderParams::SetDrawingCacheIncludeProperty(bool includeProperty)
     needSync_ = true;
 }
 
-void RSRenderParams::SetRSFreezeFlag(bool freezeFlag)
+void RSRenderParams::SetRSFreezeFlag(bool freezeFlag, bool isMarkedByUI)
 {
-    if (freezeFlag_ == freezeFlag) {
+    if (GetRSFreezeFlag() == freezeFlag) {
         return;
     }
-    freezeFlag_ = freezeFlag;
-    needSync_ = true;
+    if (!renderGroupCache_) {
+        renderGroupCache_ = std::make_unique<RSRenderGroupCache>();
+    }
+    if (renderGroupCache_->SetRSFreezeFlag(freezeFlag, isMarkedByUI)) {
+        needSync_ = true;
+    }
+}
+
+bool RSRenderParams::GetRSFreezeFlag() const
+{
+    return GetRSFreezeFlagType() != RSRenderGroupCache::RSFreezeFlag::NONE;
+}
+
+RSRenderGroupCache::RSFreezeFlag RSRenderParams::GetRSFreezeFlagType() const
+{
+    if (renderGroupCache_) {
+        return renderGroupCache_->GetRSFreezeFlag();
+    }
+    return RSRenderGroupCache::RSFreezeFlag::NONE;
+}
+
+bool RSRenderParams::IsFreezedByUser() const
+{
+    return (GetRSFreezeFlagType() & RSRenderGroupCache::RSFreezeFlag::FREEZED_BY_USER) !=
+            RSRenderGroupCache::RSFreezeFlag::NONE;
 }
 
 void RSRenderParams::OpincSetIsSuggest(bool isSuggest)
@@ -529,30 +552,6 @@ void RSRenderParams::SetScreensWithSubTreeWhitelist(const std::unordered_set<Scr
     needSync_ = true;
 }
 
-void RSRenderParams::OnCanvasDrawingSurfaceChange(const std::unique_ptr<RSRenderParams>& target)
-{
-    if (!canvasDrawingNodeSurfaceChanged_) {
-        return;
-    }
-    target->canvasDrawingNodeSurfaceChanged_ = true;
-    target->surfaceParams_.width = surfaceParams_.width;
-    target->surfaceParams_.height = surfaceParams_.height;
-    target->surfaceParams_.colorSpace = surfaceParams_.colorSpace;
-    target->canvasDrawingResetSurfaceIndex_ = canvasDrawingResetSurfaceIndex_.load();
-    if (GetParamsType() == RSRenderParamsType::RS_PARAM_OWNED_BY_DRAWABLE) {
-        return;
-    }
-    canvasDrawingNodeSurfaceChanged_ = false;
-}
-
-void RSRenderParams::SetCanvasDrawingSurfaceChanged(bool changeFlag)
-{
-    if (changeFlag) {
-        needSync_ = true;
-    }
-    canvasDrawingNodeSurfaceChanged_ = changeFlag;
-}
-
 bool RSRenderParams::IsRepaintBoundary() const
 {
     return isRepaintBoundary_;
@@ -563,15 +562,6 @@ void RSRenderParams::MarkRepaintBoundary(bool isRepaintBoundary)
     isRepaintBoundary_ = isRepaintBoundary;
 }
 
-void RSRenderParams::SetCanvasDrawingResetSurfaceIndex(uint32_t index)
-{
-    if (index == canvasDrawingResetSurfaceIndex_) {
-        return;
-    }
-    canvasDrawingResetSurfaceIndex_.store(index);
-    needSync_ = true;
-}
-
 void RSRenderParams::SetForegroundFilterCache(const std::shared_ptr<RSFilter>& foregroundFilterCache)
 {
     if (foregroundFilterCache_ == foregroundFilterCache) {
@@ -579,13 +569,6 @@ void RSRenderParams::SetForegroundFilterCache(const std::shared_ptr<RSFilter>& f
     }
     foregroundFilterCache_ = foregroundFilterCache;
     needSync_ = true;
-}
-
-void RSRenderParams::SetCanvasDrawingSurfaceParams(int width, int height, GraphicColorGamut colorSpace)
-{
-    surfaceParams_.width = width;
-    surfaceParams_.height = height;
-    surfaceParams_.colorSpace = colorSpace;
 }
 
 void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
@@ -625,6 +608,7 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->hdrBrightness_ = hdrBrightness_;
     target->hdrStatus_ = hdrStatus_;
     target->childHasVisibleHDRContent_ = childHasVisibleHDRContent_;
+    target->nodeColorSpace_ = nodeColorSpace_;
     target->needFilter_ = needFilter_;
     target->renderNodeType_ = renderNodeType_;
     target->globalAlpha_ = globalAlpha_;
@@ -635,7 +619,6 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     if (target->foregroundFilterCache_) {
         target->foregroundFilterCache_->OnSync();
     }
-    OnCanvasDrawingSurfaceChange(target);
     target->isOpincSuggestFlag_ = isOpincSuggestFlag_;
     target->isOpincSupportFlag_ = isOpincSupportFlag_;
     target->isOpincRootFlag_ = isOpincRootFlag_;
@@ -643,7 +626,6 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->isLayerPartRenderEnable_ = isLayerPartRenderEnable_;
     target->layerPartRenderCurrentFrameDirtyRegion_ = layerPartRenderCurrentFrameDirtyRegion_;
     target->startingWindowFlag_ = startingWindowFlag_;
-    target->freezeFlag_ = freezeFlag_;
     target->absDrawRect_ = absDrawRect_;
     target->firstLevelNodeId_ = firstLevelNodeId_;
     target->uifirstRootNodeId_ = uifirstRootNodeId_;

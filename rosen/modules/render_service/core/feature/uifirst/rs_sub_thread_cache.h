@@ -25,8 +25,8 @@
 
 #include "common/rs_common_def.h"
 #include "drawable/rs_render_node_drawable.h"
+#include "engine/rs_base_render_engine.h"
 #include "params/rs_surface_render_params.h"
-#include "pipeline/render_thread/rs_base_render_engine.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "feature/uifirst/rs_draw_window_cache.h"
 
@@ -70,8 +70,7 @@ public:
     void UpdateCompletedCacheSurface();
     void ClearCacheSurfaceInThread();
     void ClearCacheSurfaceOnly();
-    void UpdateCacheSurfaceInfo(std::shared_ptr<RSSurfaceRenderNodeDrawable> nodeDrawable,
-        RSSurfaceRenderParams* surfaceParams);
+    void UpdateCacheSurfaceInfo(RSSurfaceRenderNodeDrawable* surfaceDrawable, RSSurfaceRenderParams* surfaceParams);
     std::shared_ptr<Drawing::Surface> GetCacheSurface(uint32_t threadIndex);
     bool NeedInitCacheSurface(RSSurfaceRenderParams* surfaceParams);
     std::shared_ptr<Drawing::Image> GetCompletedImage(RSPaintFilterCanvas& canvas, uint32_t threadIndex,
@@ -230,7 +229,8 @@ public:
     void ResetCacheBehindWindowData();
     void ResetCacheCompletedBehindWindowData();
     void DrawBehindWindowBeforeCache(RSPaintFilterCanvas& canvas,
-        const Drawing::scalar px = 0.f, const Drawing::scalar py = 0.f);
+        const Drawing::scalar px = 0.f, const Drawing::scalar py = 0.f,
+        DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable = nullptr);
 
     void SetUifirstSurfaceCacheContentStatic(bool staticContent);
     bool GetUifirstSurfaceCacheContentStatic() const;
@@ -250,6 +250,11 @@ public:
         cacheReuseCount_ = 0;
     }
 
+    bool IsContainShadow() const
+    {
+        return cacheCompletedSurfaceInfo_.isContainShadow;
+    }
+
     const std::unordered_set<NodeId>& GetAllDrawnSubSurfaceNodeIds() const
     {
         return cacheCompletedSurfaceInfo_.processedSubSurfaceNodeIds;
@@ -263,6 +268,9 @@ private:
         RSPaintFilterCanvas& rscanvas, NodeId startingWindowId);
     void DrawUIFirstDfx(RSPaintFilterCanvas& canvas, MultiThreadCacheType enableType,
         RSSurfaceRenderParams& surfaceParams, bool drawCacheSuccess);
+    bool IsCacheSizeMatchBound(const RectF& cacheSize, const Vector2f& boundSize);
+    void CalculateSurfaceOpaqueRegion(RSSurfaceRenderNodeDrawable* surfaceDrawable,
+        RSSurfaceRenderParams* surfaceParams, Occlusion::Region& opaqueRegion, RectI& absDrawRect);
 
     NodeId nodeId_ = 0;
     // Cache in RT
@@ -280,20 +288,28 @@ private:
         int processedSurfaceCount = -1;
         int processedNodeCount = -1;
         float alpha = -1.f;
+        bool isContainShadow = false;
         std::unordered_set<NodeId> processedSubSurfaceNodeIds;
+        Occlusion::Region opaqueRegion;
+        RectI absDrawRect;
 
         void Reset()
         {
             processedSurfaceCount = -1;
             processedNodeCount = -1;
             alpha = -1.f;
+            isContainShadow = false;
             processedSubSurfaceNodeIds.clear();
+            opaqueRegion.Reset();
+            absDrawRect = {};
         }
     };
     CacheSurfaceInfo cacheSurfaceInfo_;
     CacheSurfaceInfo cacheCompletedSurfaceInfo_;
     std::shared_ptr<Drawing::Surface> cacheSurface_ = nullptr;
     std::shared_ptr<Drawing::Surface> cacheCompletedSurface_ = nullptr;
+    RectF cacheSurfaceRect_;
+    RectF cacheCompletedSurfaceRect_;
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     Drawing::BackendTexture cacheBackendTexture_;
     Drawing::BackendTexture cacheCompletedBackendTexture_;
@@ -328,6 +344,7 @@ private:
     bool uifirstSurfaceCacheContentStatic_ = true;
 
     uint32_t cacheReuseCount_ = 0;
+    bool isOcclusionEnabled_ = false;
 };
 } // DrawableV2
 } // OHOS::Rosen

@@ -15,14 +15,35 @@
 
 #include "gtest/gtest.h"
 #include "font_collection.h"
+#include "paragraph_builder.h"
 #include "platform.h"
 #include "rosen_text/font_collection.h"
 
 using namespace testing;
 using namespace testing::ext;
+using namespace OHOS::Rosen;
 
 namespace txt {
-class FontCollectionTest : public testing::Test {};
+constexpr float TEST_FONT_SIZE = 50;
+constexpr float TEST_LAYOUT_WIDTH = 500;
+
+class FontCollectionTest : public testing::Test {
+public:
+    static void BuildAndLayout(const std::shared_ptr<txt::FontCollection>& fontCollection,
+        const std::u16string& text)
+    {
+        SPText::ParagraphStyle paragraphStyle;
+        auto paragraphBuilder = SPText::ParagraphBuilder::Create(paragraphStyle, fontCollection);
+        ASSERT_NE(paragraphBuilder, nullptr);
+        OHOS::Rosen::SPText::TextStyle style;
+        style.fontSize = TEST_FONT_SIZE;
+        paragraphBuilder->PushStyle(style);
+        paragraphBuilder->AddText(text);
+        auto paragraph = paragraphBuilder->Build();
+        ASSERT_NE(paragraph, nullptr);
+        paragraph->Layout(TEST_LAYOUT_WIDTH);
+    }
+};
 
 /*
  * @tc.name: FontCollectionTest001
@@ -131,4 +152,107 @@ HWTEST_F(FontCollectionTest, FontCollectionTest009, TestSize.Level0)
     EXPECT_EQ(fontCollection.sktFontCollection_->getParagraphCache()->count(), 0);
 }
 
+/*
+ * @tc.name: FontCollectionTest010
+ * @tc.desc: test for SetCachesEnabled(false) - clears existing cache entries
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontCollectionTest, FontCollectionTest010, TestSize.Level0)
+{
+    auto fontCollection = std::make_shared<txt::FontCollection>();
+    ASSERT_NE(fontCollection, nullptr);
+    fontCollection->SetupDefaultFontManager();
+    auto paragraphCache = fontCollection->CreateSktFontCollection()->getParagraphCache();
+    ASSERT_NE(paragraphCache, nullptr);
+
+    BuildAndLayout(fontCollection, u"Test Cache Clear, This is an english text.");
+    // Verify cache has entries before disabling
+    EXPECT_GT(paragraphCache->count(), 0);
+
+    // Disable cache should clear all existing entries
+    fontCollection->SetCachesEnabled(false);
+    EXPECT_EQ(paragraphCache->count(), 0);
+}
+
+/*
+ * @tc.name: FontCollectionTest011
+ * @tc.desc: test for SetCachesEnabled(false) - cache disabled, Layout does not write to cache
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontCollectionTest, FontCollectionTest011, TestSize.Level0)
+{
+    auto fontCollection = std::make_shared<txt::FontCollection>();
+    ASSERT_NE(fontCollection, nullptr);
+    fontCollection->SetupDefaultFontManager();
+    auto paragraphCache = fontCollection->CreateSktFontCollection()->getParagraphCache();
+    ASSERT_NE(paragraphCache, nullptr);
+
+    // Disable cache before any Layout
+    fontCollection->SetCachesEnabled(false);
+    EXPECT_EQ(paragraphCache->count(), 0);
+
+    BuildAndLayout(fontCollection, u"Cache disabled test, This is an english text.");
+    // Cache is off, updateParagraph should not write, count stays 0
+    EXPECT_EQ(paragraphCache->count(), 0);
+}
+
+/*
+ * @tc.name: FontCollectionTest012
+ * @tc.desc: test for SetCachesEnabled - cache re-enabled after disable, Layout writes to cache
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontCollectionTest, FontCollectionTest012, TestSize.Level0)
+{
+    auto fontCollection = std::make_shared<txt::FontCollection>();
+    ASSERT_NE(fontCollection, nullptr);
+    fontCollection->SetupDefaultFontManager();
+    auto paragraphCache = fontCollection->CreateSktFontCollection()->getParagraphCache();
+    ASSERT_NE(paragraphCache, nullptr);
+
+    // Disable then re-enable cache
+    fontCollection->SetCachesEnabled(false);
+    fontCollection->SetCachesEnabled(true);
+    EXPECT_EQ(paragraphCache->count(), 0);
+
+    BuildAndLayout(fontCollection, u"Cache re-enable test, This is an english text.");
+    // Cache re-enabled, updateParagraph should write after Layout
+    EXPECT_GT(paragraphCache->count(), 0);
+}
+
+/*
+ * @tc.name: FontCollectionTest014
+ * @tc.desc: test for SetCachesEnabled called before CreateSktFontCollection has no effect
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontCollectionTest, FontCollectionTest014, TestSize.Level0)
+{
+    auto fontCollection = std::make_shared<txt::FontCollection>();
+    ASSERT_NE(fontCollection, nullptr);
+    fontCollection->SetupDefaultFontManager();
+
+    // Disable cache BEFORE creating skFontCollection - this should have no effect
+    fontCollection->SetCachesEnabled(false);
+
+    auto skFontCollection = fontCollection->CreateSktFontCollection();
+    ASSERT_NE(skFontCollection, nullptr);
+    auto paragraphCache = skFontCollection->getParagraphCache();
+    ASSERT_NE(paragraphCache, nullptr);
+
+    SPText::ParagraphStyle paragraphStyle;
+    std::unique_ptr<SPText::ParagraphBuilder> paragraphBuilder =
+        SPText::ParagraphBuilder::Create(paragraphStyle, fontCollection);
+    ASSERT_NE(paragraphBuilder, nullptr);
+
+    OHOS::Rosen::SPText::TextStyle style;
+    style.fontSize = TEST_FONT_SIZE;
+    paragraphBuilder->PushStyle(style);
+    paragraphBuilder->AddText(u"Test with cache pre-disabled.");
+    auto paragraph = paragraphBuilder->Build();
+    ASSERT_NE(paragraph, nullptr);
+    paragraph->Layout(TEST_LAYOUT_WIDTH);
+
+    // SetCachesEnabled(false) was called before CreateSktFontCollection, so it had no effect
+    // Cache is still enabled, updateParagraph should have written after Layout
+    EXPECT_GT(paragraphCache->count(), 0);
+}
 } // namespace txt

@@ -51,8 +51,7 @@ struct DestroySemaphoreInfo {
             return;
         }
         DestroySemaphoreInfo* info = reinterpret_cast<DestroySemaphoreInfo*>(context);
-        --info->mRefs;
-        if (info->mRefs == 0) {
+        if (info->mRefs.fetch_sub(1, std::memory_order_acq_rel) == 1) {
             info->mDestroyFunction(info->mDevice, info->mSemaphore, nullptr);
             delete info;
         }

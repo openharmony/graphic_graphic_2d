@@ -789,6 +789,7 @@ Color RSProperties::GetForegroundColor() const
 // background properties
 void RSProperties::SetBackgroundColor(Color color)
 {
+    UpdateHDRColorMaxHeadroom(GetHDRColorHeadroom(), color.GetHeadroom());
     if (!decoration_) {
         decoration_ = std::make_optional<Decoration>();
     }
@@ -1338,6 +1339,14 @@ void RSProperties::SetColorPickerRect(const Vector4f& rect)
     SetDirty();
 }
 
+void RSProperties::SetLastEquivalentDarkMode(EquivalentDarkMode darkMode)
+{
+    if (!colorPicker_) {
+        colorPicker_ = std::make_shared<ColorPickerParam>();
+    }
+    colorPicker_->lastEquivalentDarkMode = darkMode;
+}
+
 std::shared_ptr<ColorPickerParam> RSProperties::GetColorPicker() const
 {
     return colorPicker_;
@@ -1774,6 +1783,45 @@ std::optional<RSShadowBlenderPara> RSProperties::GetShadowBlenderParams() const
         return effect_->shadowBlenderParams_;
     }
     return std::nullopt;
+}
+
+void RSProperties::SetHdrDarkenBlenderParams(const std::optional<RSHdrDarkenBlenderPara>& params)
+{
+    GetEffect().hdrDarkenBlenderParams_ = params;
+    if (params.has_value()) {
+        isDrawn_ = true;
+    }
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+std::optional<RSHdrDarkenBlenderPara> RSProperties::GetHdrDarkenBlenderParams() const
+{
+    if (effect_) {
+        return effect_->hdrDarkenBlenderParams_;
+    }
+    return std::nullopt;
+}
+
+bool RSProperties::IsHdrDarkenBlenderValid() const
+{
+    const auto& hdrDarkenBlenderParams = GetHdrDarkenBlenderParams();
+    return hdrDarkenBlenderParams.has_value();
+}
+
+std::string RSProperties::GetHdrDarkenBlenderDescription() const
+{
+    const auto& hdrDarkenBlenderParams = GetHdrDarkenBlenderParams();
+    if (!hdrDarkenBlenderParams.has_value()) {
+        return "hdrDarkenBlenderParams is nullopt";
+    }
+    std::string description =
+        "HdrDarkenBlender, hdrBrightnessRatio: " + std::to_string(hdrDarkenBlenderParams->hdrBrightnessRatio_) +
+        ", grayscaleFactor.r: " + std::to_string(hdrDarkenBlenderParams->grayscaleFactor_.x_) +
+        ", grayscaleFactor.g: " + std::to_string(hdrDarkenBlenderParams->grayscaleFactor_.y_) +
+        ", grayscaleFactor.b: " + std::to_string(hdrDarkenBlenderParams->grayscaleFactor_.z_);
+    return description;
 }
 
 bool RSProperties::IsShadowBlenderValid() const
@@ -2563,6 +2611,49 @@ void RSProperties::CreateHDRUIBrightnessFilter()
     } else {
         foregroundFilter_ = hdrUIBrightnessFilter;
     }
+}
+
+void RSProperties::SetHDRColorHeadroom(float headroom)
+{
+    UpdateHDRColorMaxHeadroom(headroom, GetBackgroundColor().GetHeadroom());
+    hdrColorHeadroom_ = headroom;
+    SetDirty();
+}
+
+float RSProperties::GetHDRColorHeadroom() const
+{
+    return hdrColorHeadroom_;
+}
+
+float RSProperties::GetHDRColorMaxHeadroom() const
+{
+    return hdrColorMaxHeadroom_;
+}
+
+bool RSProperties::HDRColorHeadroomEnabled() const
+{
+    return ROSEN_GNE(GetHDRColorMaxHeadroom(), 1.0f);
+}
+
+void RSProperties::UpdateHDRColorMaxHeadroom(float hdrColorHeadroom, float backgroundColorHeadroom)
+{
+    float maxHeadroom = hdrColorHeadroom;
+    if (ROSEN_GNE(backgroundColorHeadroom, hdrColorHeadroom)) {
+        maxHeadroom = backgroundColorHeadroom;
+    }
+    if (auto node = RSBaseRenderNode::ReinterpretCast<RSCanvasRenderNode>(backref_.lock())) {
+        bool oldHeadroomStatus = HDRColorHeadroomEnabled();
+        bool newHeadroomStatus = ROSEN_GNE(maxHeadroom, 1.0f);
+        if (oldHeadroomStatus != newHeadroomStatus) {
+            node->UpdateHDRStatus(HdrStatus::HDR_COLOR, newHeadroomStatus);
+            if (node->IsOnTheTree()) {
+                node->SetHdrNum(newHeadroomStatus,
+                    node->GetInstanceRootNodeId(), node->GetScreenNodeId(), HDRComponentType::HDRCOLOR);
+                node->UpdateDisplayHDRNodeMap(newHeadroomStatus, node->GetLogicalDisplayNodeId());
+            }
+        }
+    }
+    hdrColorMaxHeadroom_ = maxHeadroom;
 }
 
 void RSProperties::SetSpherize(float spherizeDegree)
@@ -3601,6 +3692,13 @@ void RSProperties::ComposeNGRenderFilter(
             Vector3f rotationAngle(boundsGeo_->GetRotationX(), boundsGeo_->GetRotationY(), boundsGeo_->GetRotation());
             RSNGRenderFilterHelper::SetRotationAngle(filter, rotationAngle);
         }
+        if (filter->ContainsType(RSNGEffectType::FROSTED_GLASS_BLUR)) {
+            std::string dumpStr = "";
+            RS_OPTIONAL_TRACE_NAME_FMT("FROSTED_GLASS_BLUR skip = %d dump: %s",
+                static_cast<int>(filter->CanSkipFrame()),
+                ({filter->Dump(dumpStr); dumpStr.c_str();}));
+            originDrawingFilter->SetSkipFrame(filter->CanSkipFrame());
+        }
     }
     originFilter = originDrawingFilter;
 }
@@ -3933,6 +4031,13 @@ void RSProperties::GenerateMaterialFilter()
     auto filter = std::make_shared<RSDrawingFilter>();
     filter->SetNGRenderFilter(GetMaterialNGFilter());
     filter->SetFilterType(RSFilter::COMPOUND_EFFECT);
+    if (GetMaterialNGFilter()->GetType() == RSNGEffectType::FROSTED_GLASS) {
+        std::string dumpStr = "";
+        RS_OPTIONAL_TRACE_NAME_FMT("FROSTED_GLASS skip = %d dump: %s",
+            static_cast<int>(filter->CanSkipFrame()),
+            ({GetMaterialNGFilter()->Dump(dumpStr); dumpStr.c_str();}));
+        filter->SetSkipFrame(GetMaterialNGFilter()->CanSkipFrame());
+    }
     GetEffect().materialFilter_ = filter;
 }
 
@@ -3998,6 +4103,70 @@ void RSProperties::SetUseUnion(bool useUnion)
 bool RSProperties::GetUseUnion() const
 {
     return useUnion_;
+}
+
+void RSProperties::SetSDFUnionMode(int uniModeUC)
+{
+    if (ROSEN_EQ(uniModeUC_, uniModeUC)) {
+        return;
+    }
+    uniModeUC_ = uniModeUC;
+    isDrawn_ = true;
+    filterNeedUpdate_ = true;
+    SetDirty();
+}
+
+int RSProperties::GetSDFUnionMode() const
+{
+    return uniModeUC_;
+}
+
+void RSProperties::SetGravityPullCenterFlag(bool isGravityPullModeCenter)
+{
+    if (ROSEN_EQ(isGravityPullModeCenter_, isGravityPullModeCenter)) {
+        return;
+    }
+    isGravityPullModeCenter_ = isGravityPullModeCenter;
+    isDrawn_ = true;
+    filterNeedUpdate_ = true;
+    SetDirty();
+}
+
+bool RSProperties::GetGravityPullCenterFlag() const
+{
+    return isGravityPullModeCenter_;
+}
+
+void RSProperties::SetGravityPullStrength(float gravityPullStrength)
+{
+    if (ROSEN_EQ(gravityPullStrength_, gravityPullStrength)) {
+        return;
+    }
+    gravityPullStrength_ = gravityPullStrength;
+    isDrawn_ = true;
+    filterNeedUpdate_ = true;
+    SetDirty();
+}
+
+float RSProperties::GetGravityPullStrength() const
+{
+    return gravityPullStrength_;
+}
+
+void RSProperties::SetGravityHotZone(float hotZone)
+{
+    if (ROSEN_EQ(gravityHotZone_, hotZone)) {
+        return;
+    }
+    gravityHotZone_ = hotZone;
+    isDrawn_ = true;
+    filterNeedUpdate_ = true;
+    SetDirty();
+}
+
+float RSProperties::GetGravityHotZone() const
+{
+    return gravityHotZone_;
 }
 
 void RSProperties::SetUnionSpacing(float spacing)
@@ -4189,6 +4358,14 @@ void RSProperties::SetBloom(float bloomIntensity)
     contentDirty_ = true;
 }
 
+void RSProperties::SetOverlayNGShader(const std::shared_ptr<RSNGRenderShaderBase>& overlayShader)
+{
+    GetEffect().olRenderShader_ = overlayShader;
+    isDrawn_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
 float RSProperties::GetLightIntensity() const
 {
     const auto& lightSourcePtr = GetLightSource();
@@ -4210,6 +4387,14 @@ Vector4f RSProperties::GetLightPosition() const
 int RSProperties::GetIlluminatedType() const
 {
     return GetIlluminated() ? static_cast<int>(GetIlluminated()->GetIlluminatedType()) : 0;
+}
+
+std::shared_ptr<RSNGRenderShaderBase> RSProperties::GetOverlayNGShader() const
+{
+    if (effect_) {
+        return effect_->olRenderShader_;
+    }
+    return nullptr;
 }
 
 void RSProperties::SetBrightness(const std::optional<float>& brightness)
@@ -4914,7 +5099,7 @@ std::string RSProperties::Dump() const
     if (ret != EOK) {
         return "Failed to memset_s for ShadowRadius, ret=" + std::to_string(ret);
     }
-    if (!ROSEN_EQ(GetShadowRadius(), 0.f) &&
+    if (!ROSEN_EQ(GetShadowRadius(), DEFAULT_SHADOW_RADIUS) &&
         sprintf_s(buffer, UINT8_MAX, ", ShadowRadius[%.1f]", GetShadowRadius()) != -1) {
         dumpInfo.append(buffer);
     }
@@ -4999,6 +5184,18 @@ std::string RSProperties::Dump() const
     if (brightness.has_value() && !ROSEN_EQ(*brightness, 1.f) &&
         sprintf_s(buffer, UINT8_MAX, ", Brightness[%.1f]", *brightness) != -1) {
         dumpInfo.append(buffer);
+    }
+
+    // HDRColorHeadroom
+    auto headroom = GetHDRColorHeadroom();
+    if (!ROSEN_EQ(headroom, 1.0f)) {
+        dumpInfo.append(", HDRColorHeadroom[" + std::to_string(headroom) + "]");
+    }
+
+    // HDRColorMaxHeadroom
+    auto maxHeadroom = GetHDRColorMaxHeadroom();
+    if (!ROSEN_EQ(maxHeadroom, 1.0f)) {
+        dumpInfo.append(", HDRColorMaxHeadroom[" + std::to_string(maxHeadroom) + "]");
     }
 
     // Contrast

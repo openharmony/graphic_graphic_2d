@@ -26,9 +26,10 @@
 #include "feature/round_corner_display/rs_rcd_render_listener.h"
 #include "feature/round_corner_display/rs_rcd_render_visitor.h"
 #include "pipeline/rs_screen_render_node.h"
+#include "rcd/rs_render_rcd_draw.h"
 #include "render/rs_pixel_map_util.h"
 #include "rs_render_surface_rcd_layer.h"
-#include "pipeline/render_thread/rs_uni_render_engine.h"
+#include "engine/rs_uni_render_engine.h"
 #include "surface_buffer_impl.h"
 #include "rs_test_util.h"
 
@@ -1979,7 +1980,7 @@ HWTEST_F(RSRoundCornerDisplayTest, CreatePixelMapFromBitmapLargeDimensions, Test
 
 /*
  * @tc.name: DrawRsRCDLayerValid
- * @tc.desc: Test RSRcdSurfaceRenderNode::DrawRsRCDLayer with valid canvas and layer
+ * @tc.desc: Test RSRenderRcdDraw::DrawRSRCDLayer with valid canvas and layer
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -2002,12 +2003,12 @@ HWTEST_F(RSRoundCornerDisplayTest, DrawRsRCDLayerValid, TestSize.Level1)
     Drawing::Canvas drawingCanvas(width, height);
     RSPaintFilterCanvas canvas(&drawingCanvas);
 
-    RSRcdSurfaceRenderNode::DrawRsRCDLayer(canvas, rcdLayer);
+    RSRenderRcdDraw::DrawRSRCDLayer(canvas, rcdLayer);
 }
 
 /*
  * @tc.name: DrawRsRCDLayerNullPixelMap
- * @tc.desc: Test RSRcdSurfaceRenderNode::DrawRsRCDLayer with null pixelMap
+ * @tc.desc: Test RSRenderRcdDraw::DrawRSRCDLayer with null pixelMap
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -2015,17 +2016,17 @@ HWTEST_F(RSRoundCornerDisplayTest, DrawRsRCDLayerNullPixelMap, TestSize.Level1)
 {
     Drawing::Canvas drawingCanvas(100, 100);
     RSPaintFilterCanvas canvas(&drawingCanvas);
-    RSRcdSurfaceRenderNode::DrawRsRCDLayer(canvas, nullptr);
+    RSRenderRcdDraw::DrawRSRCDLayer(canvas, nullptr);
 
     auto rcdLayer = std::make_shared<RSRenderSurfaceRCDLayer>();
     ASSERT_NE(rcdLayer, nullptr);
 
-    RSRcdSurfaceRenderNode::DrawRsRCDLayer(canvas, rcdLayer);
+    RSRenderRcdDraw::DrawRSRCDLayer(canvas, rcdLayer);
 }
 
 /*
  * @tc.name: DrawRsRCDLayerNullPixelMapPixels
- * @tc.desc: Test RSRcdSurfaceRenderNode::DrawRsRCDLayer with null pixelMap pixels
+ * @tc.desc: Test RSRenderRcdDraw::DrawRSRCDLayer with null pixelMap pixels
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -2044,12 +2045,12 @@ HWTEST_F(RSRoundCornerDisplayTest, DrawRsRCDLayerNullPixelMapPixels, TestSize.Le
     Drawing::Canvas drawingCanvas(100, 100);
     RSPaintFilterCanvas canvas(&drawingCanvas);
 
-    RSRcdSurfaceRenderNode::DrawRsRCDLayer(canvas, rcdLayer);
+    RSRenderRcdDraw::DrawRSRCDLayer(canvas, rcdLayer);
 }
 
 /*
  * @tc.name: DrawRsRCDLayerInvalidWidth
- * @tc.desc: Test RSRcdSurfaceRenderNode::DrawRsRCDLayer with invalid width (< 1)
+ * @tc.desc: Test RSRenderRcdDraw::DrawRSRCDLayer with invalid width (< 1)
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -2069,12 +2070,12 @@ HWTEST_F(RSRoundCornerDisplayTest, DrawRsRCDLayerInvalidWidth, TestSize.Level1)
     Drawing::Canvas drawingCanvas(100, 100);
     RSPaintFilterCanvas canvas(&drawingCanvas);
 
-    RSRcdSurfaceRenderNode::DrawRsRCDLayer(canvas, rcdLayer);
+    RSRenderRcdDraw::DrawRSRCDLayer(canvas, rcdLayer);
 }
 
 /*
  * @tc.name: DrawRsRCDLayerInvalidHeight
- * @tc.desc: Test RSRcdSurfaceRenderNode::DrawRsRCDLayer with invalid height (< 1)
+ * @tc.desc: Test RSRenderRcdDraw::DrawRSRCDLayer with invalid height (< 1)
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -2094,12 +2095,12 @@ HWTEST_F(RSRoundCornerDisplayTest, DrawRsRCDLayerInvalidHeight, TestSize.Level1)
     Drawing::Canvas drawingCanvas(100, 100);
     RSPaintFilterCanvas canvas(&drawingCanvas);
 
-    RSRcdSurfaceRenderNode::DrawRsRCDLayer(canvas, rcdLayer);
+    RSRenderRcdDraw::DrawRSRCDLayer(canvas, rcdLayer);
 }
 
 /*
  * @tc.name: DrawRsRCDLayerInvalidRowBytes
- * @tc.desc: Test RSRcdSurfaceRenderNode::DrawRsRCDLayer with invalid row bytes (< 1)
+ * @tc.desc: Test RSRenderRcdDraw::DrawRSRCDLayer with invalid row bytes (< 1)
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -2119,12 +2120,12 @@ HWTEST_F(RSRoundCornerDisplayTest, DrawRsRCDLayerInvalidRowBytes, TestSize.Level
     Drawing::Canvas drawingCanvas(100, 100);
     RSPaintFilterCanvas canvas(&drawingCanvas);
 
-    RSRcdSurfaceRenderNode::DrawRsRCDLayer(canvas, rcdLayer);
+    RSRenderRcdDraw::DrawRSRCDLayer(canvas, rcdLayer);
 }
 
 /*
  * @tc.name: DrawRsRCDLayerValidMultiple
- * @tc.desc: Test RSRcdSurfaceRenderNode::DrawRsRCDLayer with multiple valid layers
+ * @tc.desc: Test RSRenderRcdDraw::DrawRSRCDLayer with multiple valid layers
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -2161,13 +2162,13 @@ HWTEST_F(RSRoundCornerDisplayTest, DrawRsRCDLayerValidMultiple, TestSize.Level1)
     Drawing::Canvas drawingCanvas(150, 100);
     RSPaintFilterCanvas canvas(&drawingCanvas);
 
-    RSRcdSurfaceRenderNode::DrawRsRCDLayer(canvas, rcdLayer1);
-    RSRcdSurfaceRenderNode::DrawRsRCDLayer(canvas, rcdLayer2);
+    RSRenderRcdDraw::DrawRSRCDLayer(canvas, rcdLayer1);
+    RSRenderRcdDraw::DrawRSRCDLayer(canvas, rcdLayer2);
 }
 
 /*
  * @tc.name: DrawRsRCDLayerSmallDimensions
- * @tc.desc: Test RSRcdSurfaceRenderNode::DrawRsRCDLayer with 1x1 dimensions
+ * @tc.desc: Test RSRenderRcdDraw::DrawRSRCDLayer with 1x1 dimensions
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -2190,12 +2191,12 @@ HWTEST_F(RSRoundCornerDisplayTest, DrawRsRCDLayerSmallDimensions, TestSize.Level
     Drawing::Canvas drawingCanvas(width, height);
     RSPaintFilterCanvas canvas(&drawingCanvas);
 
-    RSRcdSurfaceRenderNode::DrawRsRCDLayer(canvas, rcdLayer);
+    RSRenderRcdDraw::DrawRSRCDLayer(canvas, rcdLayer);
 }
 
 /*
  * @tc.name: DrawRsRCDLayerLargeDimensions
- * @tc.desc: Test RSRcdSurfaceRenderNode::DrawRsRCDLayer with large dimensions (1920x1080)
+ * @tc.desc: Test RSRenderRcdDraw::DrawRSRCDLayer with large dimensions (1920x1080)
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -2218,7 +2219,7 @@ HWTEST_F(RSRoundCornerDisplayTest, DrawRsRCDLayerLargeDimensions, TestSize.Level
     Drawing::Canvas drawingCanvas(width, height);
     RSPaintFilterCanvas canvas(&drawingCanvas);
 
-    RSRcdSurfaceRenderNode::DrawRsRCDLayer(canvas, rcdLayer);
+    RSRenderRcdDraw::DrawRSRCDLayer(canvas, rcdLayer);
 }
 
 /*
@@ -2240,7 +2241,7 @@ HWTEST_F(RSRoundCornerDisplayTest, RSRcdRenderManager_DrawRCD, TestSize.Level1)
     RSLayerPtr ngRcdLayer = std::make_shared<RSRenderSurfaceLayer>();
     ASSERT_NE(ngRcdLayer, nullptr);
     std::vector<RSLayerPtr> layers = {nullLayer, ngRcdLayer};
-    RSRcdRenderManager::DrawRoundCorner(canvas, layers);
+    RSRenderRcdDraw::DrawRoundCorner(canvas, layers);
     EXPECT_TRUE(rcdManagerInstance.isRcdServiceRegister_);
 }
 
@@ -2316,5 +2317,350 @@ HWTEST_F(RSRoundCornerDisplayTest, ProcessRcdSurfaceRenderNode3, TestSize.Level1
     EXPECT_FALSE(res1);
     auto res2 = visitor->ProcessRcdSurfaceRenderNode(*bottomSurfaceNode, hardInfo.bottomLayer, true);
     EXPECT_FALSE(res2);
+}
+
+/*
+ * @tc.name: BindPixelMapToDrawingImage_NullLayer
+ * @tc.desc: Test BindPixelMapToDrawingImage with null layer
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, BindPixelMapToDrawingImage_NullLayer, TestSize.Level1)
+{
+    Drawing::Canvas canvas(100, 100);
+    std::shared_ptr<RSRenderSurfaceRCDLayer> rcdLayer = nullptr;
+    bool result = RSRenderRcdDraw::BindPixelMapToDrawingImage(canvas, rcdLayer);
+    EXPECT_EQ(result, false);
+}
+
+/*
+ * @tc.name: BindPixelMapToDrawingImage_NullPixelMap
+ * @tc.desc: Test BindPixelMapToDrawingImage with null pixelMap
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, BindPixelMapToDrawingImage_NullPixelMap, TestSize.Level1)
+{
+    Drawing::Canvas canvas(100, 100);
+    std::shared_ptr<RSRenderSurfaceRCDLayer> rcdLayer = std::make_shared<RSRenderSurfaceRCDLayer>();
+    rcdLayer->pixelMap_ = nullptr;
+    bool result = RSRenderRcdDraw::BindPixelMapToDrawingImage(canvas, rcdLayer);
+    EXPECT_EQ(result, false);
+}
+
+/*
+ * @tc.name: BindPixelMapToDrawingImage_CacheHit
+ * @tc.desc: Test BindPixelMapToDrawingImage with cache hit
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, BindPixelMapToDrawingImage_CacheHit, TestSize.Level1)
+{
+    Drawing::Canvas canvas(100, 100);
+    std::shared_ptr<RSRenderSurfaceRCDLayer> rcdLayer = std::make_shared<RSRenderSurfaceRCDLayer>();
+    
+    Drawing::Bitmap bitmap;
+    bitmap.Build(100, 100,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
+    
+    auto pixelMap = RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap(bitmap);
+    ASSERT_NE(pixelMap, nullptr);
+    
+    rcdLayer->pixelMap_ = pixelMap;
+    rcdLayer->id_ = pixelMap->GetUniqueId();
+    
+    bool result = RSRenderRcdDraw::BindPixelMapToDrawingImage(canvas, rcdLayer);
+    EXPECT_EQ(result, true);
+}
+
+/*
+ * @tc.name: BindPixelMapToDrawingImage_NeedRebind
+ * @tc.desc: Test BindPixelMapToDrawingImage when rebind is needed
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, BindPixelMapToDrawingImage_NeedRebind, TestSize.Level1)
+{
+    Drawing::Canvas canvas(100, 100);
+    std::shared_ptr<RSRenderSurfaceRCDLayer> rcdLayer = std::make_shared<RSRenderSurfaceRCDLayer>();
+    
+    Drawing::Bitmap bitmap;
+    bitmap.Build(100, 100,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
+    
+    auto pixelMap = RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap(bitmap);
+    ASSERT_NE(pixelMap, nullptr);
+    
+    rcdLayer->pixelMap_ = pixelMap;
+    rcdLayer->id_ = 0;
+    
+    bool result = RSRenderRcdDraw::BindPixelMapToDrawingImage(canvas, rcdLayer);
+    EXPECT_EQ(result, true);
+    EXPECT_NE(rcdLayer->image_, nullptr);
+}
+
+/*
+ * @tc.name: StoreWithoutDMA_NullPixelMap
+ * @tc.desc: Test StoreWithoutDMA with null pixelMap
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, StoreWithoutDMA_NullPixelMap, TestSize.Level1)
+{
+    Drawing::Canvas canvas(100, 100);
+    std::shared_ptr<RSRenderSurfaceRCDLayer> rcdLayer = std::make_shared<RSRenderSurfaceRCDLayer>();
+    RSRcdSurfaceRenderNode::PixelMapPtr pixelMap = nullptr;
+    
+    bool result = RSRenderRcdDraw::StoreWithoutDMA(canvas, rcdLayer, pixelMap);
+    EXPECT_EQ(result, false);
+}
+
+/*
+ * @tc.name: StoreWithoutDMA_ValidPixelMap
+ * @tc.desc: Test StoreWithoutDMA with valid pixelMap
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, StoreWithoutDMA_ValidPixelMap, TestSize.Level1)
+{
+    Drawing::Canvas canvas(100, 100);
+    std::shared_ptr<RSRenderSurfaceRCDLayer> rcdLayer = std::make_shared<RSRenderSurfaceRCDLayer>();
+    
+    Drawing::Bitmap bitmap;
+    const int width = 100;
+    const int height = 100;
+    bitmap.Build(width, height,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
+    
+    auto pixelMap = RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap(bitmap);
+    ASSERT_NE(pixelMap, nullptr);
+    
+    bool result = RSRenderRcdDraw::StoreWithoutDMA(canvas, rcdLayer, pixelMap);
+    EXPECT_EQ(result, true);
+    EXPECT_NE(rcdLayer->image_, nullptr);
+    EXPECT_EQ(rcdLayer->id_, pixelMap->GetUniqueId());
+}
+
+/*
+ * @tc.name: StoreWithoutDMA_InvalidWidth
+ * @tc.desc: Test StoreWithoutDMA with invalid width (0)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, StoreWithoutDMA_InvalidWidth, TestSize.Level1)
+{
+    Drawing::Canvas canvas(100, 100);
+    std::shared_ptr<RSRenderSurfaceRCDLayer> rcdLayer = std::make_shared<RSRenderSurfaceRCDLayer>();
+    
+    Drawing::Bitmap bitmap;
+    bitmap.Build(0, 100,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
+    
+    auto pixelMap = RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap(bitmap);
+    if (pixelMap == nullptr) {
+        return;
+    }
+    
+    bool result = RSRenderRcdDraw::StoreWithoutDMA(canvas, rcdLayer, pixelMap);
+    EXPECT_EQ(result, false);
+}
+
+/*
+ * @tc.name: StoreWithoutDMA_InvalidHeight
+ * @tc.desc: Test StoreWithoutDMA with invalid height (0)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, StoreWithoutDMA_InvalidHeight, TestSize.Level1)
+{
+    Drawing::Canvas canvas(100, 100);
+    std::shared_ptr<RSRenderSurfaceRCDLayer> rcdLayer = std::make_shared<RSRenderSurfaceRCDLayer>();
+    
+    Drawing::Bitmap bitmap;
+    bitmap.Build(100, 0,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
+    
+    auto pixelMap = RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap(bitmap);
+    if (pixelMap == nullptr) {
+        return;
+    }
+    
+    bool result = RSRenderRcdDraw::StoreWithoutDMA(canvas, rcdLayer, pixelMap);
+    EXPECT_EQ(result, false);
+}
+
+/*
+ * @tc.name: StoreWithoutDMA_SmallDimensions
+ * @tc.desc: Test StoreWithoutDMA with 1x1 dimensions
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, StoreWithoutDMA_SmallDimensions, TestSize.Level1)
+{
+    Drawing::Canvas canvas(1, 1);
+    std::shared_ptr<RSRenderSurfaceRCDLayer> rcdLayer = std::make_shared<RSRenderSurfaceRCDLayer>();
+    
+    Drawing::Bitmap bitmap;
+    const int bitmapWidth = 1;
+    const int bitmapHeight = 1;
+    bitmap.Build(bitmapWidth, bitmapHeight,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
+    
+    auto pixelMap = RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap(bitmap);
+    ASSERT_NE(pixelMap, nullptr);
+    
+    bool result = RSRenderRcdDraw::StoreWithoutDMA(canvas, rcdLayer, pixelMap);
+    EXPECT_EQ(result, true);
+    EXPECT_NE(rcdLayer->image_, nullptr);
+    EXPECT_EQ(rcdLayer->id_, pixelMap->GetUniqueId());
+}
+
+/*
+ * @tc.name: StoreWithoutDMA_LargeDimensions
+ * @tc.desc: Test StoreWithoutDMA with large dimensions (1920x1080)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, StoreWithoutDMA_LargeDimensions, TestSize.Level1)
+{
+    Drawing::Canvas canvas(1920, 1080);
+    std::shared_ptr<RSRenderSurfaceRCDLayer> rcdLayer = std::make_shared<RSRenderSurfaceRCDLayer>();
+    
+    Drawing::Bitmap bitmap;
+    const int bitmapWidth = 1920;
+    const int bitmapHeight = 1080;
+    bitmap.Build(bitmapWidth, bitmapHeight,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
+    
+    auto pixelMap = RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap(bitmap);
+    ASSERT_NE(pixelMap, nullptr);
+    
+    bool result = RSRenderRcdDraw::StoreWithoutDMA(canvas, rcdLayer, pixelMap);
+    EXPECT_EQ(result, true);
+    EXPECT_NE(rcdLayer->image_, nullptr);
+    EXPECT_EQ(rcdLayer->id_, pixelMap->GetUniqueId());
+}
+
+/*
+ * @tc.name: StoreWithoutDMA_MultipleCalls
+ * @tc.desc: Test StoreWithoutDMA with multiple calls to verify cache override
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, StoreWithoutDMA_MultipleCalls, TestSize.Level1)
+{
+    Drawing::Canvas canvas(100, 100);
+    std::shared_ptr<RSRenderSurfaceRCDLayer> rcdLayer = std::make_shared<RSRenderSurfaceRCDLayer>();
+    
+    Drawing::Bitmap bitmap1;
+    const int width1 = 100;
+    const int height1 = 100;
+    bitmap1.Build(width1, height1,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
+    
+    auto pixelMap1 = RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap(bitmap1);
+    ASSERT_NE(pixelMap1, nullptr);
+    
+    bool result1 = RSRenderRcdDraw::StoreWithoutDMA(canvas, rcdLayer, pixelMap1);
+    EXPECT_EQ(result1, true);
+    EXPECT_NE(rcdLayer->image_, nullptr);
+    uint32_t firstId = rcdLayer->id_;
+    
+    Drawing::Bitmap bitmap2;
+    const int width2 = 50;
+    const int height2 = 50;
+    bitmap2.Build(width2, height2,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE});
+    
+    auto pixelMap2 = RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap(bitmap2);
+    ASSERT_NE(pixelMap2, nullptr);
+    
+    bool result2 = RSRenderRcdDraw::StoreWithoutDMA(canvas, rcdLayer, pixelMap2);
+    EXPECT_EQ(result2, true);
+    EXPECT_NE(rcdLayer->image_, nullptr);
+    EXPECT_NE(rcdLayer->id_, firstId);
+    EXPECT_EQ(rcdLayer->id_, pixelMap2->GetUniqueId());
+}
+
+/*
+ * @tc.name: StoreWithoutDMA_DifferentPixelFormats
+ * @tc.desc: Test StoreWithoutDMA with different pixel formats
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, StoreWithoutDMA_DifferentPixelFormats, TestSize.Level1)
+{
+    Drawing::Canvas canvas(100, 100);
+    std::shared_ptr<RSRenderSurfaceRCDLayer> rcdLayer = std::make_shared<RSRenderSurfaceRCDLayer>();
+    
+    Drawing::Bitmap bitmap;
+    bitmap.Build(100, 100,
+        Drawing::BitmapFormat{Drawing::ColorType::COLORTYPE_BGRA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL});
+    
+    auto pixelMap = RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap(bitmap);
+    if (pixelMap == nullptr) {
+        return;
+    }
+    
+    bool result = RSRenderRcdDraw::StoreWithoutDMA(canvas, rcdLayer, pixelMap);
+    EXPECT_EQ(result, true);
+    EXPECT_NE(rcdLayer->image_, nullptr);
+}
+
+/*
+ * @tc.name: PixelFormatToDrawingColorType
+ * @tc.desc: Test RSRcdSurfaceRenderNode.PixelFormatToDrawingColorType
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, PixelFormatToDrawingColorType, TestSize.Level1)
+{
+    using namespace Media;
+    
+    EXPECT_EQ(RSRenderRcdDraw::PixelFormatToDrawingColorType(PixelFormat::RGB_565),
+        Drawing::ColorType::COLORTYPE_RGB_565);
+    EXPECT_EQ(RSRenderRcdDraw::PixelFormatToDrawingColorType(PixelFormat::RGBA_8888),
+        Drawing::ColorType::COLORTYPE_RGBA_8888);
+    EXPECT_EQ(RSRenderRcdDraw::PixelFormatToDrawingColorType(PixelFormat::BGRA_8888),
+        Drawing::ColorType::COLORTYPE_BGRA_8888);
+    EXPECT_EQ(RSRenderRcdDraw::PixelFormatToDrawingColorType(PixelFormat::ALPHA_8),
+        Drawing::ColorType::COLORTYPE_ALPHA_8);
+    EXPECT_EQ(RSRenderRcdDraw::PixelFormatToDrawingColorType(PixelFormat::RGBA_F16),
+        Drawing::ColorType::COLORTYPE_RGBA_F16);
+    EXPECT_EQ(RSRenderRcdDraw::PixelFormatToDrawingColorType(PixelFormat::RGBA_1010102),
+        Drawing::ColorType::COLORTYPE_RGBA_1010102);
+    
+    EXPECT_EQ(RSRenderRcdDraw::PixelFormatToDrawingColorType(PixelFormat::UNKNOWN),
+        Drawing::ColorType::COLORTYPE_UNKNOWN);
+    EXPECT_EQ(RSRenderRcdDraw::PixelFormatToDrawingColorType(PixelFormat::ARGB_8888),
+        Drawing::ColorType::COLORTYPE_UNKNOWN);
+    EXPECT_EQ(RSRenderRcdDraw::PixelFormatToDrawingColorType(PixelFormat::RGB_888),
+        Drawing::ColorType::COLORTYPE_UNKNOWN);
+    EXPECT_EQ(RSRenderRcdDraw::PixelFormatToDrawingColorType(PixelFormat::NV21),
+        Drawing::ColorType::COLORTYPE_UNKNOWN);
+    EXPECT_EQ(RSRenderRcdDraw::PixelFormatToDrawingColorType(PixelFormat::NV12),
+        Drawing::ColorType::COLORTYPE_UNKNOWN);
+    EXPECT_EQ(RSRenderRcdDraw::PixelFormatToDrawingColorType(PixelFormat::CMYK),
+        Drawing::ColorType::COLORTYPE_UNKNOWN);
+}
+
+/*
+ * @tc.name: AlphaTypeToDrawingAlphaType
+ * @tc.desc: Test RSRcdSurfaceRenderNode.AlphaTypeToDrawingAlphaType
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, AlphaTypeToDrawingAlphaType, TestSize.Level1)
+{
+    using namespace Media;
+    
+    EXPECT_EQ(RSRenderRcdDraw::AlphaTypeToDrawingAlphaType(AlphaType::IMAGE_ALPHA_TYPE_UNKNOWN),
+        Drawing::AlphaType::ALPHATYPE_UNKNOWN);
+    EXPECT_EQ(RSRenderRcdDraw::AlphaTypeToDrawingAlphaType(AlphaType::IMAGE_ALPHA_TYPE_OPAQUE),
+        Drawing::AlphaType::ALPHATYPE_OPAQUE);
+    EXPECT_EQ(RSRenderRcdDraw::AlphaTypeToDrawingAlphaType(AlphaType::IMAGE_ALPHA_TYPE_PREMUL),
+        Drawing::AlphaType::ALPHATYPE_PREMUL);
+    EXPECT_EQ(RSRenderRcdDraw::AlphaTypeToDrawingAlphaType(AlphaType::IMAGE_ALPHA_TYPE_UNPREMUL),
+        Drawing::AlphaType::ALPHATYPE_UNPREMUL);
 }
 } // OHOS::Rosen

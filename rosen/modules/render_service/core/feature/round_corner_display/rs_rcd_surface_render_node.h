@@ -36,6 +36,7 @@
 namespace OHOS {
 namespace Rosen {
 class RSLayer;
+class RSRenderSurfaceRCDLayer;
 enum class RCDSurfaceType : uint32_t {
     BOTTOM,
     TOP,
@@ -137,8 +138,6 @@ public:
     {
         displayRect_ = rect;
     }
-
-    static void DrawRsRCDLayer(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSLayer>& layer);
 
     static PixelMapPtr CreatePixelMapFromBitmap(const Drawing::Bitmap& src);
 

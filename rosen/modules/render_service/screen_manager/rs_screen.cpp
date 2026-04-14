@@ -647,6 +647,19 @@ int32_t RSScreen::SetDualScreenState(DualScreenStatus status)
     return StatusCode::SUCCESS;
 }
 
+int32_t RSScreen::SetAsMainScreen(bool isMainScreen)
+{
+    RS_LOGI("RSScreen::SetAsMainScreen screenId:%{public}" PRIu64 " isMainScreen:%{public}d",
+            property_.GetId(), isMainScreen);
+    UPDATE_PROPERTY(AsMainScreen, isMainScreen);
+    return StatusCode::SUCCESS;
+}
+
+bool RSScreen::IsMainScreen() const
+{
+    return property_.IsMainScreen();
+}
+
 sptr<Surface> RSScreen::GetProducerSurface() const
 {
     return property_.GetProducerSurface();
@@ -1172,9 +1185,13 @@ int32_t RSScreen::GetScreenSupportedHDRFormats(std::vector<ScreenHDRFormat>& hdr
         hdrFormats = supportedVirtualHDRFormats_;
     } else {
         hdrFormats = supportedPhysicalHDRFormats_;
-        if (callback && !specialHDRFormatsInit_) {
-            RSBackgroundThread::Instance().PostTask([this, callback]() {
-                GetScreenSupportedHDRFormatsCallBack(callback);
+        if (callback &&
+            GetConnectionType() == ScreenConnectionType::DISPLAY_CONNECTION_TYPE_INTERNAL && !specialHDRFormatsInit_) {
+            RSBackgroundThread::Instance().PostTask([weakThis = weak_from_this(), callback]() {
+                auto rsScreen = weakThis.lock();
+                if (rsScreen) {
+                    rsScreen->GetScreenSupportedHDRFormatsCallBack(callback);
+                }
             });
         }
     }

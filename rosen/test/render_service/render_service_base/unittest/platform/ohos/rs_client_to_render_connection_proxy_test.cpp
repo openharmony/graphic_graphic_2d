@@ -653,5 +653,83 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, SetLogicalCameraRotationCorrection
     auto ret = proxy->SetLogicalCameraRotationCorrection(screenId, logicalCorrection);
     EXPECT_EQ(ret, 2);
 }
+
+/**
+ * @tc.name: GetMaxGpuBufferSize001
+ * @tc.desc: Test GetMaxGpuBufferSize with zero initial values
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, GetMaxGpuBufferSize001, TestSize.Level1)
+{
+    ASSERT_NE(proxy, nullptr);
+    uint32_t maxWidth = 0;
+    uint32_t maxHeight = 0;
+    int32_t ret = proxy->GetMaxGpuBufferSize(maxWidth, maxHeight);
+    EXPECT_LE(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: GetMaxGpuBufferSize002
+ * @tc.desc: Test GetMaxGpuBufferSize with preset values
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, GetMaxGpuBufferSize002, TestSize.Level1)
+{
+    ASSERT_NE(proxy, nullptr);
+    uint32_t maxWidth = 2048;
+    uint32_t maxHeight = 2048;
+    int32_t ret = proxy->GetMaxGpuBufferSize(maxWidth, maxHeight);
+    EXPECT_LE(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: GetMaxGpuBufferSize003
+ * @tc.desc: Test GetMaxGpuBufferSize with UINT32_MAX initial values
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, GetMaxGpuBufferSize003, TestSize.Level1)
+{
+    ASSERT_NE(proxy, nullptr);
+    uint32_t maxWidth = UINT32_MAX;
+    uint32_t maxHeight = UINT32_MAX;
+    int32_t ret = proxy->GetMaxGpuBufferSize(maxWidth, maxHeight);
+    EXPECT_LE(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: GetMaxGpuBufferSize004
+ * @tc.desc: Test GetMaxGpuBufferSize with different width and height
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, GetMaxGpuBufferSize004, TestSize.Level1)
+{
+    ASSERT_NE(proxy, nullptr);
+    uint32_t maxWidth = 4096;
+    uint32_t maxHeight = 2160;
+    int32_t ret = proxy->GetMaxGpuBufferSize(maxWidth, maxHeight);
+    EXPECT_LE(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: RegisterFrameStabilityDetectionTest001
+ * @tc.desc: Test RegisterFrameStabilityDetection with nullptr callback
+ * @tc.type: FUNC
+ * @tc.require: issues22734
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, RegisterFrameStabilityDetectionTest001, TestSize.Level1)
+{
+    FrameStabilityTarget target =
+        { .id = 100, .type = FrameStabilityTargetType::SCREEN };
+    FrameStabilityConfig config = {
+        .stableDuration = 1000,
+        .changePercent = 0.1f
+    };
+    int32_t ret = proxy->RegisterFrameStabilityDetection(target, config, nullptr);
+    EXPECT_EQ(ret, INVALID_ARGUMENTS);
+}
 } // namespace Rosen
 } // namespace OHOS

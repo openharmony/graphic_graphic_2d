@@ -58,15 +58,12 @@ const uint8_t DO_SET_BRIGHTNESS_INFO_CHANGE_CALLBACK = 11;
 const uint8_t DO_GET_BRIGHTNESS_INFO = 12;
 const uint8_t TARGET_SIZE = 13;
 } // namespace
-auto g_pid = getpid();
-RSMainThread* g_mainThread = nullptr;
-sptr<OHOS::Rosen::RSScreenManager> screenManagerPtr_ = OHOS::sptr<OHOS::Rosen::RSScreenManager>::MakeSptr();
-sptr<RSIConnectionToken> g_token = nullptr;
+RSMainThread* g_mainThread = OHOS::Rosen::RSMainThread::Instance();
 sptr<RSClientToServiceConnectionStub> g_toServiceConnectionStub = nullptr;
 sptr<RSClientToServiceConnection> g_toServiceConnection = nullptr;
 sptr<RSClientToRenderConnection> g_toRenderConnection = nullptr;
 sptr<RSClientToRenderConnectionStub> g_toRenderConnectionStub = nullptr;
-sptr<OHOS::Rosen::RSRenderService> renderService_ = nullptr;
+sptr<RSVsyncManager> g_vsyncManager = nullptr;
 
 std::string g_originTag = "";
 
@@ -228,9 +225,6 @@ void DoSetColorFollow(FuzzedDataProvider& fdp)
         context.GetMutableNodeMap().surfaceNodeMap_.emplace(config.id, surfaceNode);
     }).wait();
 
-    bool isColorFollow = fdp.ConsumeBool();
-    g_toServiceConnectionStub->SetColorFollow(config.name, isColorFollow);
-
     mainThread->ScheduleTask([=]() {
         auto& context = mainThread->GetContext();
         context.GetMutableNodeMap().surfaceNodeMap_.erase(config.id);
@@ -302,9 +296,6 @@ void DoSetForceRefresh(FuzzedDataProvider& fdp)
         context.GetMutableNodeMap().surfaceNodeMap_.emplace(config.id, surfaceNode);
     }).wait();
 
-    bool isForceRefresh = fdp.ConsumeBool();
-    g_toServiceConnectionStub->SetForceRefresh(config.name, isForceRefresh);
-
     mainThread->ScheduleTask([=]() {
         auto& context = mainThread->GetContext();
         context.GetMutableNodeMap().surfaceNodeMap_.erase(config.id);
@@ -316,60 +307,21 @@ void DoSetForceRefresh(FuzzedDataProvider& fdp)
 /* Fuzzer envirement */
 extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 {
-    OHOS::Rosen::g_pid = getpid();
-    OHOS::Rosen::g_mainThread = OHOS::Rosen::RSMainThread::Instance();
-    OHOS::Rosen::g_mainThread->handler_ =
-        std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::AppExecFwk::EventRunner::Create(true));
-    OHOS::sptr<OHOS::Rosen::RSIConnectionToken> token_ = new OHOS::IRemoteStub<OHOS::Rosen::RSIConnectionToken>();
-
-    OHOS::Rosen::DVSyncFeatureParam dvsyncParam;
-    auto generator = OHOS::Rosen::CreateVSyncGenerator();
-    auto appVSyncController = new OHOS::Rosen::VSyncController(generator, 0);
-    OHOS::sptr<OHOS::Rosen::VSyncDistributor> appVSyncDistributor_ =
-        new OHOS::Rosen::VSyncDistributor(appVSyncController, "app", dvsyncParam);
-
-    OHOS::Rosen::renderService_ = OHOS::sptr<OHOS::Rosen::RSRenderService>::MakeSptr();
-    auto vsyncManager = OHOS::sptr<OHOS::Rosen::RSVsyncManager>::MakeSptr();
-    vsyncManager->appVSyncDistributor_ = appVSyncDistributor_;
-
     auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
-    runner->Run();
-    OHOS::Rosen::renderService_->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
-    OHOS::Rosen::renderService_->renderProcessManager_ =
-        OHOS::Rosen::RSRenderProcessManager::Create(*OHOS::Rosen::renderService_);
-    auto renderServiceAgent_ = OHOS::sptr<OHOS::Rosen::RSRenderServiceAgent>::MakeSptr(*OHOS::Rosen::renderService_);
-    OHOS::sptr<OHOS::Rosen::RSRenderProcessManagerAgent> renderProcessManagerAgent_ =
-        OHOS::sptr<OHOS::Rosen::RSRenderProcessManagerAgent>::MakeSptr(
-            OHOS::Rosen::renderService_->renderProcessManager_);
+    OHOS::Rosen::g_mainThread->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
+    OHOS::Rosen::g_mainThread->handler_->eventRunner_->Run();
 
-    OHOS::sptr<OHOS::Rosen::RSScreenManagerAgent> screenManagerAgent_ =
-        new OHOS::Rosen::RSScreenManagerAgent(OHOS::Rosen::screenManagerPtr_);
-
-    OHOS::sptr<OHOS::Rosen::RSRenderPipelineAgent> renderPipelineAgent_ =
-        OHOS::sptr<OHOS::Rosen::RSRenderPipelineAgent>::MakeSptr(OHOS::Rosen::renderService_->renderPipeline_);
+    auto screenManager_ = OHOS::sptr<OHOS::Rosen::RSScreenManager>::MakeSptr();
+    OHOS::Rosen::g_vsyncManager = OHOS::sptr<OHOS::Rosen::RSVsyncManager>::MakeSptr();
+    OHOS::Rosen::g_vsyncManager->init(screenManager_);
 
     OHOS::Rosen::g_toServiceConnection = new OHOS::Rosen::RSClientToServiceConnection(
-        OHOS::Rosen::g_pid, renderServiceAgent_, renderProcessManagerAgent_,
-        screenManagerAgent_, token_->AsObject(), vsyncManager->GetVsyncManagerAgent());
+        getpid(), nullptr, nullptr, nullptr, nullptr, OHOS::Rosen::g_vsyncManager->GetVsyncManagerAgent());
 
-    OHOS::Rosen::g_toRenderConnection = new OHOS::Rosen::RSClientToRenderConnection(
-        OHOS::Rosen::g_pid, renderPipelineAgent_, token_->AsObject());
-    OHOS::Rosen::g_toRenderConnection->cleanDone_ = true;
-
-    // reset recevier, otherwise maybe crash
-    OHOS::Rosen::renderService_->renderPipeline_->uniRenderThread_->uniRenderEngine_ = nullptr;
-
-    OHOS::Rosen::RSMainThread::Instance()->receiver_->connection_ = nullptr;
-    OHOS::Rosen::RSMainThread::Instance()->receiver_ = nullptr;
-    OHOS::Rosen::RSMainThread::Instance()->mainLoop_ = []() {};
+    OHOS::Rosen::g_toRenderConnection = new OHOS::Rosen::RSClientToRenderConnection(getpid(), nullptr, nullptr);
 
     OHOS::Rosen::g_toServiceConnectionStub = OHOS::Rosen::g_toServiceConnection;
     OHOS::Rosen::g_toRenderConnectionStub = OHOS::Rosen::g_toRenderConnection;
-
-#ifdef RS_ENABLE_VK
-    OHOS::Rosen::RsVulkanContext::GetSingleton().InitVulkanContextForUniRender("");
-#endif
-    // OHOS::Rosen::RSHardwareThread::Instance().Start();
     return 0;
 }
 

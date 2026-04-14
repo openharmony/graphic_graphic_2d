@@ -52,6 +52,8 @@ public:
     // If the cropRect is smaller than the buffer size, it needs to shrink inwards by a few pixels.
     static float CalculateShrinkAmount(const int32_t format);
     static void ShrinkAmountIfNeed(const AncoBufferInfo& ancoInfo, Drawing::Rect& outSrcRect);
+    static bool IsAncoDimmer(const std::string& name);
+    static bool IsAncoType(const std::string& name);
 
 private:
     bool AncoOptimizeCheck(bool isHebc, int nodesCnt, int sfvNodesCnt);

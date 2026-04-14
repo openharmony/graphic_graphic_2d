@@ -69,6 +69,7 @@ public:
     ResType SetDisablePowerOffRenderControl(bool disable);
     ResType SetScreenSwitchStatus(bool status);
     ResType SetFrameGravity(int32_t gravity);
+    ResType SetAsMainScreen(bool isMainScreen);
 
     ScreenId GetId() const;
     bool IsVirtual() const;
@@ -116,6 +117,7 @@ public:
     int32_t GetVirtualSecLayerOption() const;
     bool GetIsHardCursorSupport() const;
     std::vector<ScreenColorGamut> GetSupportedColorGamuts() const;
+    bool IsMainScreen() const;
 
     ScreenInfo GetScreenInfo() const;
 

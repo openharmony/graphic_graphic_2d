@@ -68,6 +68,24 @@ public:
         return needClipHoleForFilter_;
     }
 
+    enum class RSFreezeFlag : uint8_t {
+        NONE = 0,
+        FREEZED_BY_UI = 1 << NONE,
+        FREEZED_BY_USER = 1 << FREEZED_BY_UI,
+    };
+
+    bool SetRSFreezeFlag(bool freezeFlag, bool isMarkedByUI);
+    RSFreezeFlag GetRSFreezeFlag() const
+    {
+        return freezeFlag_;
+    }
+    // operator overloading for the RSFreezeFlag enumeration
+    friend constexpr RSFreezeFlag operator|(RSFreezeFlag lhs, RSFreezeFlag rhs) noexcept;
+    friend constexpr RSFreezeFlag operator&(RSFreezeFlag lhs, RSFreezeFlag rhs) noexcept;
+    friend constexpr RSFreezeFlag operator~(RSFreezeFlag val) noexcept;
+    friend inline RSFreezeFlag& operator|=(RSFreezeFlag& lhs, RSFreezeFlag rhs) noexcept;
+    friend inline RSFreezeFlag& operator&=(RSFreezeFlag& lhs, RSFreezeFlag rhs) noexcept;
+
 private:
     bool excludedFromNodeGroup_ = false;
     bool hasChildExcludedFromNodeGroup_ = false;
@@ -75,7 +93,40 @@ private:
     bool isCachedSubTreeDirty_ = false;
     bool childHasTranslateOnSqueeze_ = false;
     bool needClipHoleForFilter_ = false;
+    RSFreezeFlag freezeFlag_ = RSFreezeFlag::NONE;
 };
+
+constexpr RSRenderGroupCache::RSFreezeFlag operator|(
+    RSRenderGroupCache::RSFreezeFlag lhs, RSRenderGroupCache::RSFreezeFlag rhs) noexcept
+{
+    return static_cast<RSRenderGroupCache::RSFreezeFlag>(
+        static_cast<std::underlying_type_t<RSRenderGroupCache::RSFreezeFlag>>(lhs) |
+        static_cast<std::underlying_type_t<RSRenderGroupCache::RSFreezeFlag>>(rhs));
+}
+constexpr RSRenderGroupCache::RSFreezeFlag operator&(
+    RSRenderGroupCache::RSFreezeFlag lhs, RSRenderGroupCache::RSFreezeFlag rhs) noexcept
+{
+    return static_cast<RSRenderGroupCache::RSFreezeFlag>(
+        static_cast<std::underlying_type_t<RSRenderGroupCache::RSFreezeFlag>>(lhs) &
+        static_cast<std::underlying_type_t<RSRenderGroupCache::RSFreezeFlag>>(rhs));
+}
+constexpr RSRenderGroupCache::RSFreezeFlag operator~(RSRenderGroupCache::RSFreezeFlag val) noexcept
+{
+    return static_cast<RSRenderGroupCache::RSFreezeFlag>(
+        ~static_cast<std::underlying_type_t<RSRenderGroupCache::RSFreezeFlag>>(val));
+}
+RSRenderGroupCache::RSFreezeFlag& operator|=(
+    RSRenderGroupCache::RSFreezeFlag& lhs, RSRenderGroupCache::RSFreezeFlag rhs) noexcept
+{
+    lhs = lhs | rhs;
+    return lhs;
+}
+RSRenderGroupCache::RSFreezeFlag& operator&=(
+    RSRenderGroupCache::RSFreezeFlag& lhs, RSRenderGroupCache::RSFreezeFlag rhs) noexcept
+{
+    lhs = lhs & rhs;
+    return lhs;
+}
 
 class RSB_EXPORT AutoRenderGroupExcludedSubTreeGuard {
 public:

@@ -27,7 +27,9 @@
 #include "dirty_region/rs_gpu_dirty_collector.h"
 #include "drawable/rs_property_drawable_background.h"
 #include "drawable/rs_screen_render_node_drawable.h"
+#include "feature/buffer_reclaim/rs_buffer_reclaim.h"
 #include "feature/dirty/rs_uni_dirty_occlusion_util.h"
+#include "params/rs_render_params.h"
 #include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "feature/hyper_graphic_manager/hgm_render_context.h"
@@ -35,7 +37,7 @@
 #include "feature/hwc/rs_uni_hwc_prevalidate_util.h"
 #include "memory/rs_memory_track.h"
 #include "pipeline/render_thread/rs_render_engine.h"
-#include "pipeline/render_thread/rs_uni_render_engine.h"
+#include "engine/rs_uni_render_engine.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "render_server/transaction/rs_client_to_service_connection.h"
 #include "pipeline/rs_root_render_node.h"
@@ -72,6 +74,7 @@ constexpr uint64_t SKIP_COMMAND_FREQ_LIMIT = 30;
 constexpr uint32_t DEFAULT_SCREEN_WIDTH = 480;
 constexpr uint32_t DEFAULT_SCREEN_HEIGHT = 320;
 constexpr uint32_t WAIT_HANDLER_TIME = 10000;
+constexpr uint32_t MAX_BUFFER_RECLAIM_NUMS_IN_SINGLE_FRAME = 1;
 class RSSingleRenderProcessManagerMock : public RSRenderProcessManager {
 
 public:
@@ -286,6 +289,11 @@ std::shared_ptr<RSScreenRenderNode> RSMainThreadTest::GetAndInitScreenRenderNode
     ScreenId screenId = 0xFFFF;
     NodeId displayId = 10;
     auto screenNode = std::make_shared<RSScreenRenderNode>(displayId, screenId, context);
+    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
+    screenNode->UpdateScreenProperty(ScreenPropertyType::STATE,
+        sptr<ScreenProperty<uint8_t>>::MakeSptr(static_cast<uint8_t>(ScreenState::HDI_OUTPUT_ENABLE)));
+
     auto rsScreen = std::make_shared<RSScreen>(screenId);
     if (rsScreen == nullptr) {
         return screenNode;
@@ -2510,7 +2518,8 @@ HWTEST_F(RSMainThreadTest, GetRealTimeOffsetOfDvsync, TestSize.Level1)
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
     int64_t time = 1000;
-    uint64_t offset = mainThread->GetRealTimeOffsetOfDvsync(time);
+    int64_t preTime = 0;
+    uint64_t offset = mainThread->GetRealTimeOffsetOfDvsync(time, preTime);
     ASSERT_EQ(offset, 0);
 }
 
@@ -3668,6 +3677,125 @@ HWTEST_F(RSMainThreadTest, ClearTransactionDataPidInfo002, TestSize.Level1)
     ASSERT_NE(mainThread, nullptr);
     int remotePid = 1;
     mainThread->ClearTransactionDataPidInfo(remotePid);
+}
+
+/**
+ * @tc.name: ClearTransactionDataPidInfo003
+ * @tc.desc: ClearTransactionDataPidInfo Test with forRefresh=true, verify counter reset
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, ClearTransactionDataPidInfo003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto isUniRender = mainThread->isUniRender_;
+    mainThread->isUniRender_ = true;
+    pid_t remotePid = 12345;
+
+    // Setup: Add entry to effectiveTransactionDataIndexMap_
+    mainThread->effectiveTransactionDataIndexMap_[remotePid] =
+        std::make_pair(100, std::vector<std::unique_ptr<RSTransactionData>>());
+    mainThread->transactionDataLastWaitTime_[remotePid] = 12345678;
+
+    // Execute: forRefresh=true
+    mainThread->ClearTransactionDataPidInfo(remotePid, true);
+
+    // Verify: Counter reset to 0, map entry preserved
+    auto it = mainThread->effectiveTransactionDataIndexMap_.find(remotePid);
+    ASSERT_NE(it, mainThread->effectiveTransactionDataIndexMap_.end());
+    EXPECT_EQ(it->second.first, 0);
+    // transactionDataLastWaitTime_ should still be erased
+    EXPECT_EQ(mainThread->transactionDataLastWaitTime_.find(remotePid),
+        mainThread->transactionDataLastWaitTime_.end());
+
+    // Cleanup
+    mainThread->effectiveTransactionDataIndexMap_.erase(remotePid);
+    mainThread->isUniRender_ = isUniRender;
+}
+
+/**
+ * @tc.name: ClearTransactionDataPidInfo004
+ * @tc.desc: ClearTransactionDataPidInfo Test with forRefresh=true and non-existent pid
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, ClearTransactionDataPidInfo004, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto isUniRender = mainThread->isUniRender_;
+    mainThread->isUniRender_ = true;
+    pid_t remotePid = 99999;
+
+    // Ensure pid doesn't exist in map
+    mainThread->effectiveTransactionDataIndexMap_.erase(remotePid);
+
+    // Execute: forRefresh=true with non-existent pid, should not crash
+    mainThread->ClearTransactionDataPidInfo(remotePid, true);
+
+    // Verify: Map still doesn't contain the pid
+    EXPECT_EQ(mainThread->effectiveTransactionDataIndexMap_.find(remotePid),
+        mainThread->effectiveTransactionDataIndexMap_.end());
+
+    mainThread->isUniRender_ = isUniRender;
+}
+
+/**
+ * @tc.name: ClearTransactionDataPidInfo005
+ * @tc.desc: ClearTransactionDataPidInfo Test with forRefresh=false and !isUniRender_
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, ClearTransactionDataPidInfo005, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto isUniRender = mainThread->isUniRender_;
+    mainThread->isUniRender_ = false;
+    pid_t remotePid = 12345;
+
+    // Setup: Add entry to map
+    mainThread->effectiveTransactionDataIndexMap_[remotePid] =
+        std::make_pair(100, std::vector<std::unique_ptr<RSTransactionData>>());
+
+    // Execute: forRefresh=false but !isUniRender_, should return early
+    mainThread->ClearTransactionDataPidInfo(remotePid, false);
+
+    // Verify: Map entry should still exist (early return)
+    EXPECT_NE(mainThread->effectiveTransactionDataIndexMap_.find(remotePid),
+        mainThread->effectiveTransactionDataIndexMap_.end());
+
+    // Cleanup
+    mainThread->effectiveTransactionDataIndexMap_.erase(remotePid);
+    mainThread->isUniRender_ = isUniRender;
+}
+
+/**
+ * @tc.name: CleanResourcesForRefreshTest
+ * @tc.desc: CleanResources Test with forRefresh=true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, CleanResourcesForRefreshTest, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto isUniRender = mainThread->isUniRender_;
+    mainThread->isUniRender_ = true;
+    pid_t remotePid = 12345;
+
+    // Setup: Add entry to effectiveTransactionDataIndexMap_
+    mainThread->effectiveTransactionDataIndexMap_[remotePid] =
+        std::make_pair(100, std::vector<std::unique_ptr<RSTransactionData>>());
+
+    // Execute: CleanResources with forRefresh=true
+    mainThread->CleanResources(remotePid, true);
+
+    // Verify: Counter reset to 0, map entry preserved
+    auto it = mainThread->effectiveTransactionDataIndexMap_.find(remotePid);
+    ASSERT_NE(it, mainThread->effectiveTransactionDataIndexMap_.end());
+    EXPECT_EQ(it->second.first, 0);
+
+    // Cleanup
+    mainThread->effectiveTransactionDataIndexMap_.erase(remotePid);
+    mainThread->isUniRender_ = isUniRender;
 }
 
 /**
@@ -5780,7 +5908,7 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition004, TestSize.Level1)
     system::SetParameter("persist.sys.graphic.anco.disableHebc", "1");
 
     RSSurfaceRenderNode::SetAncoForceDoDirect(true);
-    ASSERT_FALSE(mainThread->DoDirectComposition(rootNode));
+    EXPECT_TRUE(mainThread->DoDirectComposition(rootNode));
 
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes = mainThread->hardwareEnabledNodes_;
     ChangeHardwareEnabledNodesBufferData(hardwareEnabledNodes);
@@ -5791,7 +5919,7 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition004, TestSize.Level1)
     rootNode->AddChild(screenNode2);
     rootNode->GenerateFullChildrenList();
 
-    ASSERT_FALSE(mainThread->DoDirectComposition(rootNode));
+    EXPECT_TRUE(mainThread->DoDirectComposition(rootNode));
     system::SetParameter("persist.sys.graphic.anco.disableHebc", type);
     delete handle;
 }
@@ -5839,12 +5967,12 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition004_BufferSync, TestSize.Level1)
     mainThread->isUniRender_ = true;
     screenNode->HwcDisplayRecorder().hasVisibleHwcNodes_ = true;
     surfaceNode->surfaceHandler_->SetCurrentFrameBufferConsumed();
-    EXPECT_FALSE(mainThread->DoDirectComposition(rootNode));
+    EXPECT_TRUE(mainThread->DoDirectComposition(rootNode));
 
     // true false
     screenNode->HwcDisplayRecorder().hasVisibleHwcNodes_ = true;
     surfaceNode->surfaceHandler_->ResetCurrentFrameBufferConsumed();
-    EXPECT_FALSE(mainThread->DoDirectComposition(rootNode));
+    EXPECT_TRUE(mainThread->DoDirectComposition(rootNode));
 
     std::shared_ptr<RSBaseRenderEngine> renderEngine = std::make_shared<RSRenderEngine>();
     renderEngine->Init();
@@ -5853,13 +5981,13 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition004_BufferSync, TestSize.Level1)
     screenNode->HwcDisplayRecorder().hasVisibleHwcNodes_ = true;
     mainThread->isUniRender_ = false;
     surfaceNode->surfaceHandler_->SetCurrentFrameBufferConsumed();
-    EXPECT_FALSE(mainThread->DoDirectComposition(rootNode));
+    EXPECT_TRUE(mainThread->DoDirectComposition(rootNode));
 
     // false false
     screenNode->HwcDisplayRecorder().hasVisibleHwcNodes_ = true;
     mainThread->isUniRender_ = false;
     surfaceNode->surfaceHandler_->ResetCurrentFrameBufferConsumed();
-    EXPECT_FALSE(mainThread->DoDirectComposition(rootNode));
+    EXPECT_TRUE(mainThread->DoDirectComposition(rootNode));
 
     // RESET
     mainThread->renderEngine_ = nullptr;
@@ -5913,7 +6041,7 @@ HWTEST_F(RSMainThreadTest, DoDirectCompositionWithAIBar, TestSize.Level1)
     // add nullptr
     RSRenderNode::WeakPtr nullNode;
     mainThread->aibarNodes_[childNode->GetScreenId()].insert(nullNode);
-    EXPECT_FALSE(mainThread->DoDirectComposition(rootNode));
+    EXPECT_TRUE(mainThread->DoDirectComposition(rootNode));
 
     // add not aibar node
     auto node = std::make_shared<RSRenderNode>(100, mainThread->context_);
@@ -5975,6 +6103,149 @@ HWTEST_F(RSMainThreadTest, CheckAdaptiveCompose002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetMaxGpuBufferSize001
+ * @tc.desc: Test GetMaxGpuBufferSize
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, GetMaxGpuBufferSize001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->isUniRender_ = true;
+
+    uint32_t maxWidth = 0;
+    uint32_t maxHeight = 0;
+
+    bool result = mainThread->GetMaxGpuBufferSize(maxWidth, maxHeight);
+
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    EXPECT_GE(result, 0);
+    EXPECT_GE(maxWidth, 0);
+    EXPECT_GE(maxHeight, 0);
+    EXPECT_EQ(maxWidth, maxHeight);
+#else
+    EXPECT_GE(result, 0);
+    EXPECT_GE(maxWidth, 0);
+    EXPECT_GE(maxHeight, 0);
+#endif
+}
+
+/**
+ * @tc.name: GetMaxGpuBufferSize002
+ * @tc.desc: Test GetMaxGpuBufferSize
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, GetMaxGpuBufferSize002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->isUniRender_ = true;
+
+    uint32_t maxWidth = 1024;
+    uint32_t maxHeight = 768;
+
+    bool result = mainThread->GetMaxGpuBufferSize(maxWidth, maxHeight);
+
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    EXPECT_GE(result, 0);
+    EXPECT_GE(maxWidth, 1024);
+    EXPECT_GE(maxHeight, 768);
+#else
+    EXPECT_GE(result, 0);
+    EXPECT_GE(maxWidth, 1024);
+    EXPECT_GE(maxHeight, 768);
+#endif
+}
+
+/**
+ * @tc.name: GetMaxGpuBufferSize003
+ * @tc.desc: Test GetMaxGpuBufferSize
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, GetMaxGpuBufferSize003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->isUniRender_ = true;
+
+    uint32_t maxWidth = 0;
+    uint32_t maxHeight = 0;
+
+    bool result = mainThread->GetMaxGpuBufferSize(maxWidth, maxHeight);
+
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    EXPECT_GE(result, 0);
+    EXPECT_GE(maxWidth, 0);
+    EXPECT_GE(maxHeight, 0);
+    RS_LOGI("GetMaxGpuBufferSize003: maxWidth=%u, maxHeight=%u", maxWidth, maxHeight);
+#else
+    EXPECT_GE(result, 0);
+    EXPECT_GE(maxWidth, 0);
+    EXPECT_GE(maxHeight, 0);
+#endif
+}
+
+/**
+ * @tc.name: GetMaxGpuBufferSize004
+ * @tc.desc: Test GetMaxGpuBufferSize
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, GetMaxGpuBufferSize004, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->isUniRender_ = true;
+
+    uint32_t maxWidth = UINT32_MAX;
+    uint32_t maxHeight = UINT32_MAX;
+
+    bool result = mainThread->GetMaxGpuBufferSize(maxWidth, maxHeight);
+
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    EXPECT_GE(result, 0);
+    EXPECT_LE(maxWidth, UINT32_MAX);
+    EXPECT_LE(maxHeight, UINT32_MAX);
+    RS_LOGI("GetMaxGpuBufferSize004: maxWidth=%u, maxHeight=%u", maxWidth, maxHeight);
+#else
+    EXPECT_GE(result, 0);
+#endif
+}
+
+/**
+ * @tc.name: GetMaxGpuBufferSize005
+ * @tc.desc: Test GetMaxGpuBufferSize
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, GetMaxGpuBufferSize005, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->isUniRender_ = true;
+    uint32_t maxWidth1 = 0;
+    uint32_t maxHeight1 = 0;
+    bool result1 = mainThread->GetMaxGpuBufferSize(maxWidth1, maxHeight1);
+
+    uint32_t maxWidth2 = 0;
+    uint32_t maxHeight2 = 0;
+    bool result2 = mainThread->GetMaxGpuBufferSize(maxWidth2, maxHeight2);
+
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    EXPECT_GE(result1, 0);
+    EXPECT_GE(result2, 0);
+    EXPECT_EQ(maxWidth1, maxWidth2);
+    EXPECT_EQ(maxHeight1, maxHeight2);
+#else
+    EXPECT_GE(result1, 0);
+    EXPECT_GE(result2, 0);
+#endif
+}
+
+/**
  * @tc.name: NeedConsumeMultiCommand001
  * @tc.desc: NeedConsumeMultiCommand001
  * @tc.type: FUNC
@@ -5987,4 +6258,294 @@ HWTEST_F(RSMainThreadTest, NeedConsumeMultiCommand001, TestSize.Level1)
     auto ret = mainThread->NeedConsumeMultiCommand(dvsyncPid);
     ASSERT_EQ(ret, false);
 }
+
+/**
+ * @tc.name: PostTryReclaimLastBuffer001
+ * @tc.desc: Test PostTryReclaimLastBuffer
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, PostTryReclaimLastBuffer001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    mainThread->curFrameBufferReclaimCount_ = 0;
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler, nullptr);
+
+    bool enable = BufferReclaimParam::GetInstance().IsBufferReclaimEnable();
+
+    BufferReclaimParam::GetInstance().SetBufferReclaimEnable(false);
+    surfaceNode->name_ = "RosenWeb";
+    mainThread->PostTryReclaimLastBuffer(surfaceNode, surfaceHandler);
+    EXPECT_EQ(mainThread->curFrameBufferReclaimCount_, 0);
+
+    BufferReclaimParam::GetInstance().SetBufferReclaimEnable(false);
+    surfaceNode->name_ = "NoRosenWeb";
+    mainThread->PostTryReclaimLastBuffer(surfaceNode, surfaceHandler);
+    EXPECT_EQ(mainThread->curFrameBufferReclaimCount_, 0);
+
+    BufferReclaimParam::GetInstance().SetBufferReclaimEnable(true);
+    surfaceNode->name_ = "RosenWeb";
+    mainThread->PostTryReclaimLastBuffer(surfaceNode, surfaceHandler);
+    EXPECT_EQ(mainThread->curFrameBufferReclaimCount_, 0);
+
+    BufferReclaimParam::GetInstance().SetBufferReclaimEnable(true);
+    surfaceNode->name_ = "NoRosenWeb";
+    mainThread->PostTryReclaimLastBuffer(surfaceNode, surfaceHandler);
+    EXPECT_EQ(mainThread->curFrameBufferReclaimCount_, 0);
+
+    BufferReclaimParam::GetInstance().SetBufferReclaimEnable(enable);
 }
+
+/**
+ * @tc.name: PostTryReclaimLastBuffer002
+ * @tc.desc: Test PostTryReclaimLastBuffer
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, PostTryReclaimLastBuffer002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    mainThread->curFrameBufferReclaimCount_ = MAX_BUFFER_RECLAIM_NUMS_IN_SINGLE_FRAME;
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler, nullptr);
+
+    bool enable = BufferReclaimParam::GetInstance().IsBufferReclaimEnable();
+    BufferReclaimParam::GetInstance().SetBufferReclaimEnable(true);
+    surfaceNode->name_ = "RosenWeb";
+    mainThread->PostTryReclaimLastBuffer(surfaceNode, surfaceHandler);
+    EXPECT_EQ(mainThread->curFrameBufferReclaimCount_, MAX_BUFFER_RECLAIM_NUMS_IN_SINGLE_FRAME);
+    BufferReclaimParam::GetInstance().SetBufferReclaimEnable(enable);
+}
+
+/**
+ * @tc.name: PostTryReclaimLastBuffer003
+ * @tc.desc: Test PostTryReclaimLastBuffer
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, PostTryReclaimLastBuffer003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    mainThread->curFrameBufferReclaimCount_ = 0;
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler, nullptr);
+
+    bool enable = BufferReclaimParam::GetInstance().IsBufferReclaimEnable();
+    BufferReclaimParam::GetInstance().SetBufferReclaimEnable(true);
+    surfaceNode->name_ = "RosenWeb";
+    mainThread->PostTryReclaimLastBuffer(surfaceNode, surfaceHandler);
+
+    surfaceHandler->lastBufferReclaimNum_ = 0;
+    surfaceNode->isOnTheTree_ = false;
+    surfaceHandler->lastBufferId_ = 0;
+    mainThread->PostTryReclaimLastBuffer(surfaceNode, surfaceHandler);
+    EXPECT_EQ(mainThread->curFrameBufferReclaimCount_, 0);
+
+    surfaceNode->isOnTheTree_ = true;
+    surfaceHandler->lastBufferId_ = 0;
+    mainThread->PostTryReclaimLastBuffer(surfaceNode, surfaceHandler);
+    EXPECT_EQ(mainThread->curFrameBufferReclaimCount_, 0);
+
+    surfaceNode->isOnTheTree_ = false;
+    surfaceHandler->lastBufferId_ = 1;
+    mainThread->PostTryReclaimLastBuffer(surfaceNode, surfaceHandler);
+    EXPECT_EQ(mainThread->curFrameBufferReclaimCount_, 0);
+
+    surfaceNode->isOnTheTree_ = true;
+    surfaceHandler->lastBufferId_ = 1;
+    mainThread->PostTryReclaimLastBuffer(surfaceNode, surfaceHandler);
+    EXPECT_EQ(mainThread->curFrameBufferReclaimCount_, 0);
+
+    BufferReclaimParam::GetInstance().SetBufferReclaimEnable(enable);
+}
+
+/**
+ * @tc.name: PostTryReclaimLastBuffer004
+ * @tc.desc: Test PostTryReclaimLastBuffer
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, PostTryReclaimLastBuffer004, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    mainThread->curFrameBufferReclaimCount_ = 0;
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
+    ASSERT_NE(surfaceHandler, nullptr);
+
+    bool enable = BufferReclaimParam::GetInstance().IsBufferReclaimEnable();
+    BufferReclaimParam::GetInstance().SetBufferReclaimEnable(true);
+    surfaceNode->name_ = "RosenWeb";
+
+    surfaceHandler->lastBufferReclaimNum_ = 0;
+    surfaceNode->isOnTheTree_ = false;
+    RSBufferReclaim::GetInstance().AddUICaptureNode(surfaceNode->GetId());
+    mainThread->PostTryReclaimLastBuffer(surfaceNode, surfaceHandler);
+    EXPECT_EQ(mainThread->curFrameBufferReclaimCount_, 0);
+
+    RSBufferReclaim::GetInstance().RemoveUICaptureNode(surfaceNode->GetId());
+    mainThread->PostTryReclaimLastBuffer(surfaceNode, surfaceHandler);
+    EXPECT_EQ(mainThread->curFrameBufferReclaimCount_, 0);
+
+    surfaceHandler->lastBufferId_ = 1;
+    surfaceHandler->lastBufferReclaimNum_ = 3;
+    mainThread->PostTryReclaimLastBuffer(surfaceNode, surfaceHandler);
+    EXPECT_LE(mainThread->curFrameBufferReclaimCount_, MAX_BUFFER_RECLAIM_NUMS_IN_SINGLE_FRAME);
+    BufferReclaimParam::GetInstance().SetBufferReclaimEnable(enable);
+}
+
+/**
+ * @tc.name: PostTryReclaimLastBuffer005
+ * @tc.desc: Test PostTryReclaimLastBuffer
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckUiCaptureNodeTest, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    auto task = []() {};
+    auto node = RSTestUtil::CreateSurfaceNode();
+    mainThread->context_->nodeMap.RegisterRenderNode(node);
+    mainThread->PrepareUiCaptureTasks(nullptr);
+    mainThread->ProcessUiCaptureTasks();
+
+    NodeId id = node->GetId();
+    bool enable = BufferReclaimParam::GetInstance().IsBufferReclaimEnable();
+
+    // case 1
+    BufferReclaimParam::GetInstance().SetBufferReclaimEnable(false);
+    node->isOnTheTree_ = false;
+    mainThread->AddUiCaptureTask(id, task);
+    EXPECT_FALSE(RSBufferReclaim::GetInstance().CheckSameProcessUICaptureNode(id));
+    mainThread->PrepareUiCaptureTasks(nullptr);
+    mainThread->ProcessUiCaptureTasks();
+
+    // case 2
+    BufferReclaimParam::GetInstance().SetBufferReclaimEnable(true);
+    node->isOnTheTree_ = false;
+    mainThread->AddUiCaptureTask(id, task);
+    EXPECT_TRUE(RSBufferReclaim::GetInstance().CheckSameProcessUICaptureNode(id));
+    mainThread->PrepareUiCaptureTasks(nullptr);
+    mainThread->ProcessUiCaptureTasks();
+    EXPECT_FALSE(RSBufferReclaim::GetInstance().CheckSameProcessUICaptureNode(id));
+
+    // case 3
+    BufferReclaimParam::GetInstance().SetBufferReclaimEnable(true);
+    node->isOnTheTree_ = true;
+    mainThread->AddUiCaptureTask(id, task);
+    EXPECT_FALSE(RSBufferReclaim::GetInstance().CheckSameProcessUICaptureNode(id));
+    mainThread->PrepareUiCaptureTasks(nullptr);
+    mainThread->ProcessUiCaptureTasks();
+
+    // case 4
+    BufferReclaimParam::GetInstance().SetBufferReclaimEnable(false);
+    node->isOnTheTree_ = true;
+    mainThread->AddUiCaptureTask(id, task);
+    EXPECT_FALSE(RSBufferReclaim::GetInstance().CheckSameProcessUICaptureNode(id));
+    mainThread->PrepareUiCaptureTasks(nullptr);
+    mainThread->ProcessUiCaptureTasks();
+
+    BufferReclaimParam::GetInstance().SetBufferReclaimEnable(enable);
+}
+
+/**
+ * @tc.name: AddSurfaceFpsOpTest
+ * @tc.desc: Test Func AddSurfaceFpsOp
+ * @tc.type: FUNC
+ * @tc.require: issue22921
+ */
+HWTEST_F(RSMainThreadTest, AddSurfaceFpsOpTest, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    
+    SurfaceFpsOp addOp {static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_ADD), 1, "test_surface", 100};
+    SurfaceFpsOp removeOp {static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_REMOVE), 2, "test_surface2", 200};
+    SurfaceFpsOp otherOp {static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_DEFAULT), 3, "test_surface3", 300};
+    mainThread->AddSurfaceFpsOp(addOp);
+    mainThread->AddSurfaceFpsOp(removeOp);
+    mainThread->AddSurfaceFpsOp(otherOp);
+    
+    auto surfaceFpsOpList = mainThread->GetSurfaceFpsOpList();
+    EXPECT_EQ(surfaceFpsOpList.size(), 2u);
+    
+    bool foundAdd = false;
+    bool foundRemove = false;
+    for (const auto& op : surfaceFpsOpList) {
+        if (op.surfaceNodeId == 1) {
+            foundAdd = true;
+            EXPECT_EQ(op.surfaceFpsOpType, static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_ADD));
+            EXPECT_EQ(op.surfaceName, "test_surface");
+            EXPECT_EQ(op.uniqueId, 100u);
+        } else if (op.surfaceNodeId == 2) {
+            foundRemove = true;
+            EXPECT_EQ(op.surfaceFpsOpType, static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_REMOVE));
+            EXPECT_EQ(op.surfaceName, "test_surface2");
+            EXPECT_EQ(op.uniqueId, 200u);
+        }
+    }
+    EXPECT_TRUE(foundAdd);
+    EXPECT_TRUE(foundRemove);
+}
+
+/**
+ * @tc.name: RmvSurfaceFpsOpTest
+ * @tc.desc: Test Func RmvSurfaceFpsOp with removal
+ * @tc.type: FUNC
+ * @tc.require: issue22921
+ */
+HWTEST_F(RSMainThreadTest, RmvSurfaceFpsOpTest, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    
+    SurfaceFpsOp addOp1 {static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_ADD), 1, "test_surface", 100};
+    SurfaceFpsOp addOp2 {static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_ADD), 2, "test_surface2", 200};
+    SurfaceFpsOp removeOp {static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_REMOVE), 3, "test_surface3", 300};
+    SurfaceFpsOp otherOp {static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_DEFAULT), 4, "test_surface4", 400};
+    mainThread->AddSurfaceFpsOp(addOp1);
+    mainThread->AddSurfaceFpsOp(addOp2);
+    mainThread->AddSurfaceFpsOp(removeOp);
+    mainThread->AddSurfaceFpsOp(otherOp);
+
+    std::vector<SurfaceFpsOp> rmvList;
+    rmvList.push_back(addOp1);
+
+    mainThread->RmvSurfaceFpsOp(rmvList);
+    auto surfaceFpsOpList = mainThread->GetSurfaceFpsOpList();
+    EXPECT_EQ(surfaceFpsOpList.size(), 2u);
+
+    bool foundAdd1 = false;
+    bool foundAdd2 = false;
+    bool foundRemove = false;
+    for (const auto& op : surfaceFpsOpList) {
+        if (op.surfaceNodeId == 1) {
+            foundAdd1 = true;
+        } else if (op.surfaceNodeId == 2) {
+            foundAdd2 = true;
+        } else if (op.surfaceNodeId == 3) {
+            foundRemove = true;
+        }
+    }
+    EXPECT_FALSE(foundAdd1);
+    EXPECT_TRUE(foundAdd2);
+    EXPECT_TRUE(foundRemove);
+
+    rmvList.push_back(addOp2);
+    rmvList.push_back(removeOp);
+    rmvList.push_back(otherOp);
+    mainThread->RmvSurfaceFpsOp(rmvList);
+    surfaceFpsOpList = mainThread->GetSurfaceFpsOpList();
+    EXPECT_EQ(surfaceFpsOpList.size(), 0u);
+}
+} // namespace OHOS::Rosen

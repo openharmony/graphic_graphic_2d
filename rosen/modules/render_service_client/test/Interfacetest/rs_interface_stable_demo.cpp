@@ -33,6 +33,8 @@
 
 #include "rs_interface_client_frame_test.h"
 #include "transaction/rs_interfaces.h"
+#include "transaction/rs_render_pipeline_client.h"
+#include "platform/ohos/rs_render_service_connect_hub.h"
 #include "transaction/rs_hgm_config_data.h"
 #include "transaction/rs_occlusion_data.h"
 #include "transaction/rs_self_drawing_node_rect_data.h"
@@ -42,6 +44,8 @@
 #include "ui/rs_canvas_node.h"
 #include "surface_utils.h"
 #include "feature/capture/rs_ui_capture.h"
+#include "pipeline/rs_surface_render_node.h"
+#include "common/rs_common_def.h"
 
 using namespace OHOS;
 using namespace OHOS::Rosen;
@@ -1563,6 +1567,186 @@ void TestFreezeScreenDefaults(InterfaceClientFrameTest &testFrame)
     rsInterfaces.FreezeScreen(nullptr, true);
 }
 
+// ============================================================================
+// 52. RSRenderPipelineClient Direct Interface Tests
+// Tests for interfaces not exposed through RSInterfaces but available through RSRenderPipelineClient
+// ============================================================================
+
+// 52.1 Test CreateNode with RSDisplayNodeConfig
+void TestCreateNodeDisplayConfig(InterfaceClientFrameTest &testFrame)
+{
+    auto rsClient = std::make_shared<RSRenderPipelineClient>();
+
+    RSDisplayNodeConfig displayNodeConfig;
+    displayNodeConfig.screenId = 0;
+    displayNodeConfig.isMirrored = false;
+    displayNodeConfig.mirrorNodeId = 0;
+    displayNodeConfig.isSync = false;
+    displayNodeConfig.mirrorSourceRotation = 4;
+    NodeId nodeId = 1;
+
+    // Normal call
+    rsClient->CreateNode(displayNodeConfig, nodeId);
+
+    // Test with different configs
+    RSDisplayNodeConfig config2;
+    config2.screenId = 1;
+    config2.isMirrored = true;
+    config2.mirrorNodeId = 2;
+    config2.isSync = true;
+    config2.mirrorSourceRotation = 0;
+    NodeId nodeId2 = 2;
+    rsClient->CreateNode(config2, nodeId2);
+
+    // Test with invalid NodeId
+    rsClient->CreateNode(displayNodeConfig, 0);
+    rsClient->CreateNode(displayNodeConfig, UINT64_MAX);
+}
+
+// 52.2 Test CreateNode with RSSurfaceRenderNodeConfig
+void TestCreateNodeSurfaceConfig(InterfaceClientFrameTest &testFrame)
+{
+    auto rsClient = std::make_shared<RSRenderPipelineClient>();
+
+    RSSurfaceRenderNodeConfig config;
+    config.id = 1;
+    config.name = "TestSurface";
+
+    // Normal call
+    rsClient->CreateNode(config);
+
+    // Test with different configs
+    RSSurfaceRenderNodeConfig config2;
+    config2.id = 0;
+    config2.name = "";
+    rsClient->CreateNode(config2);
+
+    RSSurfaceRenderNodeConfig config3;
+    config3.id = UINT64_MAX;
+    config3.name = "MaxIdSurface";
+    rsClient->CreateNode(config3);
+}
+
+// 52.3 Test GetBitmap
+void TestGetBitmap(InterfaceClientFrameTest &testFrame)
+{
+    auto rsClient = std::make_shared<RSRenderPipelineClient>();
+
+    Drawing::Bitmap bitmap;
+    NodeId testNodeId = 1;
+    rsClient->GetBitmap(testNodeId, bitmap);
+
+    // Test with invalid NodeId
+    rsClient->GetBitmap(0, bitmap);
+
+    // Test with maximum NodeId
+    rsClient->GetBitmap(UINT64_MAX, bitmap);
+}
+
+// 52.4 Test CreateNodeAndSurface
+void TestCreateNodeAndSurface(InterfaceClientFrameTest &testFrame)
+{
+    auto rsClient = std::make_shared<RSRenderPipelineClient>();
+
+    RSSurfaceRenderNodeConfig config;
+    config.id = 1;
+    config.name = "TestSurface";
+
+    // Normal call
+    rsClient->CreateNodeAndSurface(config);
+
+    // With unobscured parameter
+    rsClient->CreateNodeAndSurface(config, true);
+    rsClient->CreateNodeAndSurface(config, false);
+
+    // Test with different configs
+    RSSurfaceRenderNodeConfig config2;
+    config2.id = 0;
+    config2.name = "";
+    rsClient->CreateNodeAndSurface(config2);
+}
+
+// 52.5 Test GetPixelmap
+void TestGetPixelmap(InterfaceClientFrameTest &testFrame)
+{
+    auto rsClient = std::make_shared<RSRenderPipelineClient>();
+
+    std::shared_ptr<Media::PixelMap> pixelmap = nullptr;
+    NodeId testNodeId = 1;
+    Drawing::Rect rect = {0, 0, 100, 100};
+    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr;
+
+    // Normal call with all parameters
+    rsClient->GetPixelmap(testNodeId, pixelmap, &rect, drawCmdList);
+
+    // With nullptr rect
+    rsClient->GetPixelmap(testNodeId, pixelmap, nullptr, drawCmdList);
+
+    // With nullptr drawCmdList
+    rsClient->GetPixelmap(testNodeId, pixelmap, &rect, nullptr);
+
+    // With nullptr for both
+    rsClient->GetPixelmap(testNodeId, pixelmap, nullptr, nullptr);
+
+    // Test with invalid NodeId
+    rsClient->GetPixelmap(0, pixelmap, nullptr, nullptr);
+}
+
+// 52.6 Test SetHidePrivacyContent
+void TestSetHidePrivacyContent(InterfaceClientFrameTest &testFrame)
+{
+    auto rsClient = std::make_shared<RSRenderPipelineClient>();
+
+    NodeId testNodeId = 1;
+
+    // Normal call - enable privacy
+    rsClient->SetHidePrivacyContent(testNodeId, true);
+
+    // Normal call - disable privacy
+    rsClient->SetHidePrivacyContent(testNodeId, false);
+
+    // Test with invalid NodeId
+    rsClient->SetHidePrivacyContent(0, true);
+    rsClient->SetHidePrivacyContent(UINT64_MAX, false);
+}
+
+// 52.7 Test SetHardwareEnabled
+void TestSetHardwareEnabled(InterfaceClientFrameTest &testFrame)
+{
+    auto rsClient = std::make_shared<RSRenderPipelineClient>();
+
+    NodeId testNodeId = 1;
+
+    // Normal call - enable hardware
+    rsClient->SetHardwareEnabled(testNodeId, true, SelfDrawingNodeType::DEFAULT, false);
+
+    // Normal call - disable hardware
+    rsClient->SetHardwareEnabled(testNodeId, false, SelfDrawingNodeType::DEFAULT, false);
+
+    // With dynamic hardware enable
+    rsClient->SetHardwareEnabled(testNodeId, true, SelfDrawingNodeType::DEFAULT, true);
+    rsClient->SetHardwareEnabled(testNodeId, false, SelfDrawingNodeType::DEFAULT, true);
+
+    // With different self drawing types
+    rsClient->SetHardwareEnabled(testNodeId, true, SelfDrawingNodeType::IMAGE, false);
+    rsClient->SetHardwareEnabled(testNodeId, true, SelfDrawingNodeType::EFFECT_NODE, false);
+
+    // Test with invalid NodeId
+    rsClient->SetHardwareEnabled(0, true, SelfDrawingNodeType::DEFAULT, false);
+    rsClient->SetHardwareEnabled(UINT64_MAX, false, SelfDrawingNodeType::DEFAULT, true);
+}
+
+// 52.8 Main wrapper function - calls all RSRenderPipelineClient interface tests
+void TestRSRenderPipelineClientInterfaces(InterfaceClientFrameTest &testFrame)
+{
+    TestCreateNodeDisplayConfig(testFrame);
+    TestCreateNodeSurfaceConfig(testFrame);
+    TestGetBitmap(testFrame);
+    TestCreateNodeAndSurface(testFrame);
+    TestGetPixelmap(testFrame);
+    TestSetHidePrivacyContent(testFrame);
+    TestSetHardwareEnabled(testFrame);
+}
 }
 }
 
@@ -1741,6 +1925,15 @@ int main()
     REGISTER_TEST("51.TakeSurfaceCaptureWithBlurDefaults", TestTakeSurfaceCaptureWithBlurDefaults);
     REGISTER_TEST("51.DropFrameByPidDefaults", TestDropFrameByPidDefaults);
     REGISTER_TEST("51.FreezeScreenDefaults", TestFreezeScreenDefaults);
+
+    // 52. RSRenderPipelineClient Direct Interface Tests
+    REGISTER_TEST("52.CreateNodeDisplayConfig", TestCreateNodeDisplayConfig);
+    REGISTER_TEST("52.CreateNodeSurfaceConfig", TestCreateNodeSurfaceConfig);
+    REGISTER_TEST("52.GetBitmap", TestGetBitmap);
+    REGISTER_TEST("52.CreateNodeAndSurface", TestCreateNodeAndSurface);
+    REGISTER_TEST("52.GetPixelmap", TestGetPixelmap);
+    REGISTER_TEST("52.SetHidePrivacyContent", TestSetHidePrivacyContent);
+    REGISTER_TEST("52.SetHardwareEnabled", TestSetHardwareEnabled);
 
     std::cout << "\n--- Running Comprehensive Tests ---\n" << std::endl;
 

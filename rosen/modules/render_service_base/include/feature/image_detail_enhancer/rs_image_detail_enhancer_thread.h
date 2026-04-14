@@ -88,8 +88,8 @@ private:
         sptr<SurfaceBuffer>& dstSurfaceBuffer, const std::shared_ptr<Drawing::Image>& srcImage);
     std::shared_ptr<Drawing::Image> ScaleByAAE(sptr<SurfaceBuffer>& dstSurfaceBuffer,
         const std::shared_ptr<Drawing::Image>& srcImage);
-    void ExecuteTaskAsync(int dstWidth, int dstHeight, const std::shared_ptr<Drawing::Image>& image,
-        uint64_t nodeId, uint64_t imageId);
+    void ExecuteTaskAsync(const Drawing::Rect& dst, const std::shared_ptr<Drawing::Image>& image,
+        uint64_t nodeId, uint64_t imageId, const std::shared_ptr<Media::PixelMap>& pixelMap);
     void DumpImage(const std::shared_ptr<Drawing::Image>& image, uint64_t imageId);
 #endif
 
@@ -117,7 +117,7 @@ public:
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     bool SetMemoryName(sptr<SurfaceBuffer>& buffer);
-    sptr<SurfaceBuffer> CreateSurfaceBuffer(int width, int height);
+    sptr<SurfaceBuffer> CreateSurfaceBuffer(const std::shared_ptr<Media::PixelMap>& pixelMap, int width, int height);
     std::shared_ptr<Drawing::Surface> InitSurface(int dstWidth, int dstHeight, sptr<SurfaceBuffer>& dstSurfaceBuffer,
         const std::shared_ptr<Drawing::Image>& image);
     std::shared_ptr<Drawing::Image> MakeImageFromSurfaceBuffer(sptr<SurfaceBuffer>& surfaceBuffer,

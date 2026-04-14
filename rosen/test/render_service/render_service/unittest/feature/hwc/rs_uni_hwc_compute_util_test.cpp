@@ -1493,4 +1493,112 @@ HWTEST_F(RSUniHwcComputeUtilTest, GetPropertyFromModifier_001, Function | SmallT
         ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR, ModifierNG::RSPropertyType::ENV_FOREGROUND_COLOR_STRATEGY);
     ASSERT_NE(result, nullptr);
 }
+
+/**
+ * @tc.name: UpdateHwcNodeByScalingMode_001
+ * @tc.desc: Test UpdateHwcNodeByScalingMode
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeByScalingMode_001, Function | SmallTest | Level2)
+{
+    NodeId id = 1;
+    RSSurfaceRenderNode node1(id);
+    node1.GetRSSurfaceHandler()->buffer_.buffer = SurfaceBuffer::Create();
+    node1.GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
+    node1.GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferScalingMode(ScalingMode::SCALING_MODE_SCALE_TO_WINDOW);
+    node1.GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferWidth(1080);
+    node1.GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferHeight(1920);
+    node1.GetRSSurfaceHandler()->consumer_ = IConsumerSurface::Create();
+    node1.renderProperties_.SetBoundsWidth(1080);
+    node1.renderProperties_.SetBoundsHeight(1920);
+    node1.renderProperties_.frameGravity_ = Gravity::TOP_LEFT;
+    node1.SetDstRect({0, 0, 1080, 1920});
+    node1.SetSrcRect({0, 0, 1080, 1920});
+    node1.isFixRotationByUser_ = false;
+
+    Drawing::Matrix totalMatrix;
+    totalMatrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
+    Drawing::Matrix gravityMatrix;
+    gravityMatrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
+    Drawing::Matrix scalingModeMatrix;
+    scalingModeMatrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
+
+    RSUniHwcComputeUtil::UpdateHwcNodeByScalingMode(node1, totalMatrix, gravityMatrix, scalingModeMatrix);
+
+    ASSERT_EQ(node1.GetDstRect().GetLeft(), 0);
+    ASSERT_EQ(node1.GetSrcRect().GetLeft(), 0);
+}
+
+/**
+ * @tc.name: UpdateHwcNodeByScalingMode_002
+ * @tc.desc: Test UpdateHwcNodeByScalingMode
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeByScalingMode_002, Function | SmallTest | Level2)
+{
+    NodeId id = 1;
+    RSSurfaceRenderNode node1(id);
+    node1.GetRSSurfaceHandler()->buffer_.buffer = SurfaceBuffer::Create();
+    node1.GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
+    node1.GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferScalingMode(ScalingMode::SCALING_MODE_SCALE_TO_WINDOW);
+    node1.GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferWidth(1080);
+    node1.GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferHeight(1920);
+    node1.GetRSSurfaceHandler()->consumer_ = IConsumerSurface::Create();
+    node1.renderProperties_.SetBoundsWidth(1080);
+    node1.renderProperties_.SetBoundsHeight(1920);
+    node1.renderProperties_.frameGravity_ = Gravity::TOP_LEFT;
+    node1.SetDstRect({0, 0, 1920, 1080});
+    node1.SetSrcRect({0, 0, 1080, 1920});
+    node1.isFixRotationByUser_ = true;
+
+    Drawing::Matrix totalMatrix;
+    totalMatrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
+    Drawing::Matrix gravityMatrix;
+    gravityMatrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
+    Drawing::Matrix scalingModeMatrix;
+    scalingModeMatrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
+
+    RSUniHwcComputeUtil::UpdateHwcNodeByScalingMode(node1, totalMatrix, gravityMatrix, scalingModeMatrix);
+
+    ASSERT_EQ(node1.GetDstRect().GetLeft(), 0);
+    ASSERT_EQ(node1.GetSrcRect().GetLeft(), 0);
+}
+
+/**
+ * @tc.name: UpdateHwcNodeByScalingMode_003
+ * @tc.desc: Test UpdateHwcNodeByScalingMode
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeByScalingMode_003, Function | SmallTest | Level2)
+{
+    NodeId id = 1;
+    RSSurfaceRenderNode node1(id);
+    node1.GetRSSurfaceHandler()->buffer_.buffer = SurfaceBuffer::Create();
+    node1.GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
+    node1.GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferScalingMode(ScalingMode::SCALING_MODE_SCALE_TO_WINDOW);
+    node1.GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferWidth(1080);
+    node1.GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferHeight(1920);
+    node1.GetRSSurfaceHandler()->consumer_ = IConsumerSurface::Create();
+    node1.renderProperties_.SetBoundsWidth(1080);
+    node1.renderProperties_.SetBoundsHeight(1920);
+    node1.renderProperties_.frameGravity_ = Gravity::TOP_LEFT;
+    node1.SetDstRect({0, 0, 1080, 1920});
+    node1.SetSrcRect({0, 0, 1080, 1920});
+    node1.isFixRotationByUser_ = false;
+
+    Drawing::Matrix totalMatrix;
+    totalMatrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
+    Drawing::Matrix gravityMatrix;
+    gravityMatrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
+    Drawing::Matrix scalingModeMatrix;
+    scalingModeMatrix.SetMatrix(0.5f, 0, 0, 0, 0.5f, 0, 0, 0, 1);
+
+    RSUniHwcComputeUtil::UpdateHwcNodeByScalingMode(node1, totalMatrix, gravityMatrix, scalingModeMatrix);
+
+    ASSERT_EQ(node1.GetDstRect().GetLeft(), 0);
+    ASSERT_EQ(node1.GetSrcRect().GetLeft(), 0);
+}
 } // namespace OHOS::Rosen

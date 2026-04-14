@@ -312,6 +312,23 @@ HWTEST_F(RSScreenRenderNodeTest, SetDisplayGlobalZorderTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetDisplayGlobalZorderTest
+ * @tc.desc: test results of GetDisplayGlobalZorder
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderNodeTest, GetDisplayGlobalZorderTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSScreenRenderNode>(id, 0, context);
+    node->stagingRenderParams_ = nullptr;
+    node->SetDisplayGlobalZOrder(1.0);
+    ASSERT_TRUE(ROSEN_EQ(node->GetDisplayGlobalZOrder(), 0.f));
+    node->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(node->GetId());
+    node->SetDisplayGlobalZOrder(1.0);
+    ASSERT_FALSE(ROSEN_EQ(node->GetDisplayGlobalZOrder(), 0.f));
+}
+
+/**
  * @tc.name: SetNeedForceUpdateHwcNodesTest
  * @tc.desc: test results of SetNeedForceUpdateHwcNodes
  * @tc.type:FUNC
@@ -1196,27 +1213,6 @@ HWTEST_F(RSScreenRenderNodeTest, ResetVideoHeadroomInfo, TestSize.Level1)
     CheckWithStatusLevel(map, HdrStatus::HDR_EFFECT, level);
     CheckWithoutStatusLevel(map, HdrStatus::AI_HDR_VIDEO_GAINMAP, level);
     CheckWithStatusLevel(map, HdrStatus::HDR_UICOMPONENT, level);
-}
-
-/**
- * @tc.name: SetCloneNodeMapTest
- * @tc.desc: test results of SetCloneNodeMap
- * @tc.type: FUNC
- */
-HWTEST_F(RSScreenRenderNodeTest, SetCloneNodeMapTest, TestSize.Level1)
-{
-    auto node = std::make_shared<RSScreenRenderNode>(id, 0, context);
-    node->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(node->GetId());
-    std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr> nodeMap;
-    nodeMap[1];
-    auto screenParams = static_cast<RSScreenRenderParams*>(node->stagingRenderParams_.get());
-    ASSERT_EQ(screenParams->GetCloneNodeMap().size(), 0);
-    node->SetCloneNodeMap(nodeMap);
-    ASSERT_EQ(screenParams->GetCloneNodeMap().size(), 1);
-
-    node->stagingRenderParams_ = nullptr;
-    node->SetCloneNodeMap(nodeMap);
-    ASSERT_EQ(node->stagingRenderParams_.get(), nullptr);
 }
 
 /**

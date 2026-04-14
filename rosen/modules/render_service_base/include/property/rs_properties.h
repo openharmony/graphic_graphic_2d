@@ -404,6 +404,7 @@ public:
     void SetColorPickerInterval(int interval);
     void SetColorPickerNotifyThreshold(int packedThresholds); // packed: lower 16 bits = dark, upper 16 bits = light
     void SetColorPickerRect(const Vector4f& rect); // [left, top, right, bottom]
+    void SetLastEquivalentDarkMode(EquivalentDarkMode darkMode);
     std::shared_ptr<ColorPickerParam> GetColorPicker() const;
 
     void SetFgBrightnessRates(const Vector4f& rates);
@@ -424,6 +425,8 @@ public:
 
     void SetShadowBlenderParams(const std::optional<RSShadowBlenderPara>& params);
     std::optional<RSShadowBlenderPara> GetShadowBlenderParams() const;
+    void SetHdrDarkenBlenderParams(const std::optional<RSHdrDarkenBlenderPara>& params);
+    std::optional<RSHdrDarkenBlenderPara> GetHdrDarkenBlenderParams() const;
 
     void SetWaterRippleParams(const std::optional<RSWaterRipplePara>& params);
     std::optional<RSWaterRipplePara> GetWaterRippleParams() const;
@@ -702,6 +705,12 @@ public:
     bool IsHDRUIBrightnessValid() const;
     void CreateHDRUIBrightnessFilter();
 
+    void SetHDRColorHeadroom(float headroom);
+    float GetHDRColorHeadroom() const;
+    float GetHDRColorMaxHeadroom() const;
+    bool HDRColorHeadroomEnabled() const;
+    void UpdateHDRColorMaxHeadroom(float hdrColorHeadroom, float backgroundColorHeadroom);
+
     bool IsAttractionValid() const
     {
         if (effect_) {
@@ -741,12 +750,14 @@ public:
     bool IsWaterRippleValid() const;
     bool IsFlyOutValid() const;
     bool IsDistortionKValid() const;
+    bool IsHdrDarkenBlenderValid() const;
     void SetDistortionDirty(bool distortionEffectDirty);
     bool GetDistortionDirty() const;
     bool GetMagnifierDirty() const;
     std::string GetFgBrightnessDescription() const;
     std::string GetBgBrightnessDescription() const;
     std::string GetShadowBlenderDescription() const;
+    std::string GetHdrDarkenBlenderDescription() const;
 
     // Image effect properties
     void SetGrayScale(const std::optional<float>& grayScale);
@@ -791,6 +802,8 @@ public:
     void SetIlluminatedBorderWidth(float illuminatedBorderWidth);
     void SetIlluminatedType(int illuminatedType);
     void SetBloom(float bloomIntensity);
+    void SetOverlayNGShader(const std::shared_ptr<RSNGRenderShaderBase>& overlayShader);
+
     float GetLightIntensity() const;
     Color GetLightColor() const;
     Vector4f GetLightPosition() const;
@@ -806,6 +819,7 @@ public:
         const auto& illuminatedPtr = GetIlluminated();
         return illuminatedPtr ? illuminatedPtr->GetBloomIntensity() : 0.f;
     }
+    std::shared_ptr<RSNGRenderShaderBase> GetOverlayNGShader() const;
 
     inline const std::shared_ptr<RSLightSource>& GetLightSource() const
     {
@@ -841,6 +855,14 @@ public:
 
     void SetUseUnion(bool useUnion);
     bool GetUseUnion() const;
+    void SetSDFUnionMode(int uniModeUC);
+    int GetSDFUnionMode() const;
+    void SetGravityPullCenterFlag(bool isGravityPullModeCenter);
+    bool GetGravityPullCenterFlag() const;
+    void SetGravityPullStrength(float gravityPullStrength);
+    float GetGravityPullStrength() const;
+    void SetGravityHotZone(float hotZone);
+    float GetGravityHotZone() const;
     void SetUnionSpacing(float spacing);
     float GetUnionSpacing() const;
 
@@ -931,6 +953,7 @@ private:
         bool needDrawBehindWindow_ = false;
         int useEffectType_ = 0;
         std::optional<RSShadowBlenderPara> shadowBlenderParams_;
+        std::optional<RSHdrDarkenBlenderPara> hdrDarkenBlenderParams_;
         std::optional<std::vector<float>> complexShaderParam_;
         int pixelStretchTileMode_ = 0;
         std::optional<Vector4f> pixelStretch_;
@@ -978,6 +1001,7 @@ private:
         std::shared_ptr<RSNGRenderFilterBase> cgNGRenderFilter_ = nullptr; // for compositing render
         std::shared_ptr<RSNGRenderShaderBase> bgNGRenderShader_ = nullptr;
         std::shared_ptr<RSNGRenderShaderBase> fgRenderShader_ = nullptr;
+        std::shared_ptr<RSNGRenderShaderBase> olRenderShader_ = nullptr; // for overlay shader
         std::shared_ptr<RSFilter> materialFilter_ = nullptr;
     };
     inline float DecreasePrecision(float value)
@@ -1072,6 +1096,10 @@ private:
     bool needForceSubmit_ = false;
     bool hasHarmonium_ = false;
     bool useUnion_ = false;
+    float gravityPullStrength_ = 0.0f;
+    float gravityHotZone_ = 0.0f;
+    bool isGravityPullModeCenter_ = false; // true, current node is gravity pull center
+    int uniModeUC_ = 0; // 1 GravityPull Mode, 0 SmoothUnion.
     bool alphaOffscreen_ = false;
     std::optional<RRect> clipRRect_;
     bool alphaNeedApply_ = false;
@@ -1085,6 +1113,8 @@ private:
     float unionSpacing_ = 0.f;
     Gravity frameGravity_ = Gravity::DEFAULT;
     float hdrUIBrightness_ = 1.0f;
+    float hdrColorHeadroom_ = 1.0f;
+    float hdrColorMaxHeadroom_ = 1.0f;
     std::shared_ptr<ColorPickerParam> colorPicker_;
     // filter property
     std::shared_ptr<RSObjAbsGeometry> boundsGeo_;

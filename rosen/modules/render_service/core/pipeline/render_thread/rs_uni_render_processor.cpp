@@ -23,7 +23,6 @@
 #include "surface_type.h"
 
 #include "common/rs_common_hook.h"
-#include "feature/gpuComposition/rs_gpu_cache_manager.h"
 #include "common/rs_optional_trace.h"
 #include "dirty_region/rs_gpu_dirty_collector.h"
 #include "display_engine/rs_luminance_control.h"
@@ -38,6 +37,8 @@
 // hpae offline
 #include "feature/hwc/hpae_offline/rs_hpae_offline_processor.h"
 #include "feature/hwc/hpae_offline/rs_hpae_offline_util.h"
+#include "gpuComposition/rs_gpu_cache_manager.h"
+#include "hpae_offline/rs_hpae_offline_layer_info.h"
 #include "info_collection/rs_layer_compose_collection.h"
 #include "params/rs_screen_render_params.h"
 #include "params/rs_surface_render_params.h"
@@ -115,11 +116,41 @@ void RSUniRenderProcessor::PostProcess()
                 continue;
             }
             bufferOwnerCount->SetUniBufferOwner(uniBufferOwnerCount->bufferId_, screenInfo_.id);
+            if (!layer->GetUseDeviceOffline()) {
+                continue;
+            }
+            // Handle original buffer owner count for hpae offline layer only
+            auto& hpaeInfo = layer->GetHpaeOriginalInfo();
+            auto originalBuffer = hpaeInfo.originalBuffer;
+            if (originalBuffer == nullptr) {
+                continue;
+            }
+            uniBufferOwnerCount->InsertUniOnDrawSet(layer->GetRSLayerId(), originalBuffer->GetBufferId());
+            auto originalBufferOwnerCount = layer->GetOriginalBufferOwnerCount();
+            if (originalBufferOwnerCount == nullptr) {
+                continue;
+            }
+            originalBufferOwnerCount->SetUniBufferOwner(uniBufferOwnerCount->bufferId_, screenInfo_.id);
         }
     }
     uniComposerAdapter_->CommitLayers();
     LayerComposeCollection::GetInstance().UpdateUniformOrOfflineComposeFrameNumberForDFX(layers_.size());
     RS_LOGD("RSUniRenderProcessor::PostProcess layers_:%{public}zu", layers_.size());
+}
+
+static void SetDeviceOfflineOriginalInfo(RSLayerPtr& layer, RSSurfaceRenderParams& params)
+{
+    HpaeOriginalInfo hpaeOriginalInfo = {
+        params.GetBuffer(),
+        params.GetPreBuffer(),
+        params.GetAcquireFence(),
+        params.GetLayerInfo().transformType,
+        params.GetLayerInfo().srcRect
+    };
+    layer->SetHpaeOriginalInfo(hpaeOriginalInfo);
+    if (params.GetBufferOwnerCount()) {
+        layer->SetOriginalBufferOwnerCount(params.GetBufferOwnerCount());
+    }
 }
 
 void RSUniRenderProcessor::CreateLayer(RSSurfaceRenderNode& node, RSSurfaceRenderParams& params,
@@ -332,10 +363,10 @@ RSLayerPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, spt
     layer->SetSurface(consumer);
     layer->SetBuffer(buffer, acquireFence);
     layer->SetPreBuffer(preBuffer);
-    if (!offlineResult) {
-        // while using hpae_offline, prebuffer should not be consumed by dss
-        params.SetPreBuffer(nullptr, nullptr);
+    if (offlineResult) {
+        SetDeviceOfflineOriginalInfo(layer, params);
     }
+    params.SetPreBuffer(nullptr, nullptr);
     layer->SetZorder(layerInfo.zOrder);
     if (params.GetTunnelLayerId()) {
         RS_TRACE_NAME_FMT("%s lpp set tunnel layer type", __func__);
@@ -435,6 +466,7 @@ RSLayerPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, spt
     } else {
         layer->SetCropRect(layerInfo.srcRect);
         layer->SetTransform(layerInfo.transformType);
+        layer->SetUseDeviceOffline(false);
     }
     if (layerInfo.layerType == GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR) {
         layer->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);

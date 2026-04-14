@@ -296,7 +296,7 @@ void RSPropertiesPainter::GetShadowDirtyRect(RectI& dirtyShadow, const RSPropert
         Drawing::Point3 lightPos = { pt[0].GetX(), pt[0].GetY(), DEFAULT_LIGHT_HEIGHT };
         emptyCanvas->GetLocalShadowBounds(matrix, path, planeParams, lightPos, DEFAULT_LIGHT_RADIUS,
             Drawing::ShadowFlags::TRANSPARENT_OCCLUDER, true, shadowRect);
-    } else {
+    } else if (ROSEN_GNE(properties.GetShadowRadius(), 0.f)) {
         Drawing::Brush brush;
         brush.SetAntiAlias(true);
         Drawing::Filter filter;
@@ -827,7 +827,7 @@ void RSPropertiesPainter::GetForegroundNGFilterDirtyRect(RectI& dirtyForegroundE
         auto drawingRect = Rect2DrawingRect(boundsRect);
         matrix.MapRect(drawingRect, drawingRect);
         auto filter = std::static_pointer_cast<RSNGRenderParticleAblationFilter>(foregroundNGFilter);
-        auto scale = filter->Getter<ParticleAblationScaleSizeRenderTag>()->Get();
+        auto scale = filter->Getter<ParticleAblationExpansionSizeRenderTag>()->Get();
         auto offsetx = (scale.x_ - drawingRect.GetWidth()) / 2; //2 : half width
         auto offsety = (scale.y_ - drawingRect.GetHeight()) / 2; //2 : half height
         dirtyForegroundEffect.left_ = std::floor(drawingRect.GetLeft()) - offsetx;

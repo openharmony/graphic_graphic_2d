@@ -51,7 +51,7 @@ GRAPHIC_TEST(NGFilterParticleAblationTest, EFFECT_TEST, Set_NG_Filter_Particle_A
     particleAblationFilter->Setter<ParticleAblationTurbScaleTag>(10);
     particleAblationFilter->Setter<ParticleAblationTurbEvoTag>(5);
     particleAblationFilter->Setter<ParticleAblationTurbAmpTag>(3);
-    particleAblationFilter->Setter<ParticleAblationScaleSizeTag>(Vector2f{1.0f, 1.0f});
+    particleAblationFilter->Setter<ParticleAblationExpansionSizeTag>(Vector2f{1.0f, 1.0f});
 
     int nodeWidth = 200;
     int nodeHeight = 200;
@@ -83,7 +83,7 @@ GRAPHIC_TEST(NGFilterParticleAblationTest, EFFECT_TEST, Set_NG_Filter_Particle_A
     particleAblationFilter->Setter<ParticleAblationTurbScaleTag>(10);
     particleAblationFilter->Setter<ParticleAblationTurbEvoTag>(5);
     particleAblationFilter->Setter<ParticleAblationTurbAmpTag>(3);
-    particleAblationFilter->Setter<ParticleAblationScaleSizeTag>(Vector2f{1.0f, 1.0f});
+    particleAblationFilter->Setter<ParticleAblationExpansionSizeTag>(Vector2f{1.0f, 1.0f});
 
     int nodeWidth = 200;
     int nodeHeight = 200;
@@ -117,7 +117,7 @@ GRAPHIC_TEST(NGFilterParticleAblationTest, EFFECT_TEST, Set_NG_Filter_Particle_A
     particleAblationFilter->Setter<ParticleAblationTurbScaleTag>(10);
     particleAblationFilter->Setter<ParticleAblationTurbEvoTag>(5);
     particleAblationFilter->Setter<ParticleAblationTurbAmpTag>(3);
-    particleAblationFilter->Setter<ParticleAblationScaleSizeTag>(Vector2f{1.0f, 1.0f});
+    particleAblationFilter->Setter<ParticleAblationExpansionSizeTag>(Vector2f{1.0f, 1.0f});
 
     int nodeWidth = 200;
     int nodeHeight = 200;
@@ -148,7 +148,7 @@ GRAPHIC_TEST(NGFilterParticleAblationTest, EFFECT_TEST, Set_NG_Filter_Particle_A
     particleAblationFilter->Setter<ParticleAblationTurbScaleTag>(10);
     particleAblationFilter->Setter<ParticleAblationTurbEvoTag>(5);
     particleAblationFilter->Setter<ParticleAblationTurbAmpTag>(3);
-    particleAblationFilter->Setter<ParticleAblationScaleSizeTag>(Vector2f{1.0f, 1.0f});
+    particleAblationFilter->Setter<ParticleAblationExpansionSizeTag>(Vector2f{1.0f, 1.0f});
 
     int nodeWidth = 200;
     int nodeHeight = 200;
@@ -187,7 +187,7 @@ GRAPHIC_TEST(NGFilterParticleAblationTest, EFFECT_TEST, Set_NG_Filter_Particle_A
     particleAblationFilter->Setter<ParticleAblationTurbScaleTag>(10);
     particleAblationFilter->Setter<ParticleAblationTurbEvoTag>(5);
     particleAblationFilter->Setter<ParticleAblationTurbAmpTag>(3);
-    particleAblationFilter->Setter<ParticleAblationScaleSizeTag>(Vector2f{1.0f, 1.0f});
+    particleAblationFilter->Setter<ParticleAblationExpansionSizeTag>(Vector2f{1.0f, 1.0f});
 
     int nodeWidth = 200;
     int nodeHeight = 200;
@@ -223,7 +223,7 @@ GRAPHIC_TEST(NGFilterParticleAblationTest, EFFECT_TEST, Set_NG_Filter_Particle_A
     particleAblationFilter->Setter<ParticleAblationTurbScaleTag>(10);
     particleAblationFilter->Setter<ParticleAblationTurbEvoTag>(5);
     particleAblationFilter->Setter<ParticleAblationTurbAmpTag>(3);
-    particleAblationFilter->Setter<ParticleAblationScaleSizeTag>(Vector2f{1.0f, 1.0f});
+    particleAblationFilter->Setter<ParticleAblationExpansionSizeTag>(Vector2f{1.0f, 1.0f});
 
     int nodeWidth = 200;
     int nodeHeight = 200;
@@ -258,7 +258,7 @@ GRAPHIC_TEST(NGFilterParticleAblationTest, EFFECT_TEST, Set_NG_Filter_Particle_A
     particleAblationFilter->Setter<ParticleAblationTurbScaleTag>(10);
     particleAblationFilter->Setter<ParticleAblationTurbEvoTag>(5);
     particleAblationFilter->Setter<ParticleAblationTurbAmpTag>(3);
-    particleAblationFilter->Setter<ParticleAblationScaleSizeTag>(Vector2f{1.0f, 1.0f});
+    particleAblationFilter->Setter<ParticleAblationExpansionSizeTag>(Vector2f{1.0f, 1.0f});
 
     int nodeWidth = 200;
     int nodeHeight = 200;
@@ -290,7 +290,7 @@ GRAPHIC_TEST(NGFilterParticleAblationTest, EFFECT_TEST, Set_NG_Filter_Particle_A
     particleAblationFilter->Setter<ParticleAblationGlowBrightnessTag>(0.7f);
     particleAblationFilter->Setter<ParticleAblationMaxParticleCountTag>(1000);
     particleAblationFilter->Setter<ParticleAblationWindTag>(Vector2f{1.0f, 0.5f});
-    particleAblationFilter->Setter<ParticleAblationScaleSizeTag>(Vector2f{1.0f, 1.0f});
+    particleAblationFilter->Setter<ParticleAblationExpansionSizeTag>(Vector2f{1.0f, 1.0f});
 
     int nodeWidth = 200;
     int nodeHeight = 200;
@@ -312,7 +312,7 @@ GRAPHIC_TEST(NGFilterParticleAblationTest, EFFECT_TEST, Set_NG_Filter_Particle_A
     }
 }
 
-GRAPHIC_TEST(NGFilterParticleAblationTest, EFFECT_TEST, Set_NG_Filter_Particle_Ablation_ScaleSize_Test)
+GRAPHIC_TEST(NGFilterParticleAblationTest, EFFECT_TEST, Set_NG_Filter_Particle_Ablation_ExpansionSize_Test)
 {
     auto particleAblationPtr = CreateFilter(RSNGEffectType::PARTICLE_ABLATION);
     auto particleAblationFilter = std::static_pointer_cast<RSNGParticleAblationFilter>(particleAblationPtr);
@@ -334,12 +334,12 @@ GRAPHIC_TEST(NGFilterParticleAblationTest, EFFECT_TEST, Set_NG_Filter_Particle_A
     int nodeHeight = 200;
     int start = 50;
     int row = 4;
-    std::vector<Vector2f> scaleSizeVec = {{0.5f, 0.5f}, {0.75f, 0.75f}, {1.0f, 1.0f}, {1.25f, 1.25f}};
+    std::vector<Vector2f> expansionSizeVec = {{0.5f, 0.5f}, {0.75f, 0.75f}, {1.0f, 1.0f}, {1.25f, 1.25f}};
 
     for (int i = 0; i < row; i++) {
         auto backgroundNode = SetUpNodeBgImage(BG_PATH,
             {start, start + (start + nodeWidth) * i, nodeWidth * (i + 1), nodeHeight * (i + 1)});
-        particleAblationFilter->Setter<ParticleAblationScaleSizeTag>(scaleSizeVec[i]);
+        particleAblationFilter->Setter<ParticleAblationExpansionSizeTag>(expansionSizeVec[i]);
         backgroundNode->SetForegroundNGFilter(particleAblationFilter);
         GetRootNode()->AddChild(backgroundNode);
         RegisterNode(backgroundNode);

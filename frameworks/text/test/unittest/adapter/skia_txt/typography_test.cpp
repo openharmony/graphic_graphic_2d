@@ -616,7 +616,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest015, TestSize.Level
     std::unique_ptr<OHOS::Rosen::Typography> typography0 = typographyCreate0->CreateTypography();
     double maxWidth = 500;
     typography0->Layout(maxWidth);
-    
+
     // Test paragraphSpacing is positive, there is no hard break within the paragraph, and isEndAddParagraphSpacing
     // is false: In this scenario, the paragraph spacing does not take effect.
     OHOS::Rosen::TypographyStyle typographyStyle1;

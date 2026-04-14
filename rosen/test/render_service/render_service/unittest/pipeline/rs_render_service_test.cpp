@@ -66,4 +66,19 @@ HWTEST_F(RSRenderServiceUnitTest, DoDump003, TestSize.Level1)
     ASSERT_NE(renderService, nullptr);
     ASSERT_NE(renderService->screenManager_, nullptr);
 }
+
+/**
+ * @tc.name: GameFrameHandlerTest
+ * @tc.desc: test GameFrameHandler.
+ * @tc.type: FUNC
+ * @tc.require: issue21752
+ */
+HWTEST_F(RSRenderServiceUnitTest, GameFrameHandler, TestSize.Level1)
+{
+    auto renderService = sptr<RSRenderService>::MakeSptr();
+    ASSERT_NE(renderService, nullptr);
+    ASSERT_EQ(renderService->GetGameFrameHandler(), nullptr);
+    renderService->FeatureComponentInit();
+    ASSERT_NE(renderService->GetGameFrameHandler(), nullptr);
+}
 } // namespace OHOS::Rosen

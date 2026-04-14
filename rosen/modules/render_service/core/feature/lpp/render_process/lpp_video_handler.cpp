@@ -56,8 +56,9 @@ void LppVideoHandler::ConsumeAndUpdateLppBuffer(
     surfaceBuffer->timestamp = timestamp;
     surfaceBuffer->RegisterReleaseBufferListener(
         [](uint64_t bufferId) { RSUniRenderThread::Instance().ReleaseBufferById(bufferId); });
-    RSUniRenderThread::Instance().AddPendingReleaseBuffer(consumer, surfaceBuffer->buffer, SyncFence::InvalidFence());
-    RSBaseRenderUtil::MergeBufferDamages(surfaceBuffer->damageRect, damages);
+    RSUniRenderThread::Instance().AddPendingReleaseBuffer(consumer, surfaceBuffer->buffer,
+        SyncFence::InvalidFence(), surfaceBuffer->bufferOwnerCount_);
+    RSBaseSurfaceUtil::MergeBufferDamages(surfaceBuffer->damageRect, damages);
     if (surfaceBuffer->damageRect.h <= 0 || surfaceBuffer->damageRect.w <= 0) {
         RS_LOGW("RsDebug ConsumerLowPowerBuffer(id: %{public}" PRIu64 ") buffer damage is invalid",
             surfaceHandler->GetNodeId());

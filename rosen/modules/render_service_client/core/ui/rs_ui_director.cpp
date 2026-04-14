@@ -431,6 +431,18 @@ void RSUIDirector::SetRSRootNode(std::shared_ptr<RSRootNode> rootNode)
     AttachSurface();
 }
 
+size_t RSUIDirector::GetUIDescendantCount() const
+{
+    auto node = rootNode_.lock();
+    if (node == nullptr) {
+        ROSEN_LOGE("RSUIDirector::GetUIDescendantCount, rootNode is nullptr");
+        return 0;
+    }
+    size_t count = node->GetDescendantCount();
+    ROSEN_LOGD("RSUIDirector::GetUIDescendantCount, count=%{public}zu", count);
+    return count;
+}
+
 void RSUIDirector::SetAppFreeze(bool isAppFreeze)
 {
     auto surfaceNode = surfaceNode_.lock();

@@ -454,7 +454,7 @@ void RSProfiler::DumpNodePropertiesShadow(const RSProperties& properties, JsonWr
     if (!ROSEN_EQ(properties.GetShadowElevation(), 0.f)) {
         out["ShadowElevation"] = properties.GetShadowElevation();
     }
-    if (!ROSEN_EQ(properties.GetShadowRadius(), 0.f)) {
+    if (!ROSEN_EQ(properties.GetShadowRadius(), DEFAULT_SHADOW_RADIUS)) {
         out["ShadowRadius"] = properties.GetShadowRadius();
     }
     if (!ROSEN_EQ(properties.GetShadowIsFilled(), false)) {
@@ -541,6 +541,12 @@ void RSProfiler::DumpNodePropertiesColor(const RSProperties& properties, JsonWri
     if (!ROSEN_EQ(properties.GetColorBlendMode(), 0)) {
         out["skblendmode"] = properties.GetColorBlendMode() - 1;
         out["blendType"] = properties.GetColorBlendApplyType();
+    }
+    if (!ROSEN_EQ(properties.GetHDRColorHeadroom(), 1.0f)) {
+        out["HDRColorHeadroom"] = properties.GetHDRColorHeadroom();
+    }
+    if (!ROSEN_EQ(properties.GetHDRColorMaxHeadroom(), 1.0f)) {
+        out["HDRColorMaxHeadroom"] = properties.GetHDRColorMaxHeadroom();
     }
 }
 

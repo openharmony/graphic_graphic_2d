@@ -2121,6 +2121,48 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingDrawCmdListObjectCreationFailureT
 }
 
 /**
+ * @tc.name: UnmarshallingPixelMapFdCountExceedLimitTest
+ * @tc.desc: Verify function Unmarshalling PixelMap when fd count exceeds limit
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingPixelMapFdCountExceedLimitTest, TestSize.Level1)
+{
+    constexpr int32_t TEST_FD_COUNT = 25001;
+    constexpr int32_t TEST_PID = 10001;
+    constexpr uint64_t TEST_UNIQUE_ID = static_cast<uint64_t>(TEST_PID) << 32;
+
+    Media::InitializationOptions opts;
+    opts.size.width = 100;
+    opts.size.height = 100;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+    opts.allocatorType = Media::AllocatorType::SHARE_MEM_ALLOC;
+
+    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+
+    Parcel parcel;
+    EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel, pixelMap));
+
+    MemoryInfo memInfo = {
+        pixelMap->GetByteCount(), TEST_PID, 0, pixelMap->GetUniqueId(),
+        MEMORY_TYPE::MEM_PIXELMAP, Media::AllocatorType::SHARE_MEM_ALLOC, Media::PixelFormat::RGBA_8888
+    };
+
+    for (int32_t i = 0; i < TEST_FD_COUNT; i++) {
+        MemoryTrack::Instance().AddPictureRecord(reinterpret_cast<const void*>(i), memInfo);
+    }
+
+    std::shared_ptr<Media::PixelMap> unmarshalledVal;
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, unmarshalledVal, TEST_UNIQUE_ID));
+
+    for (int32_t i = 0; i < TEST_FD_COUNT; i++) {
+        MemoryTrack::Instance().RemovePictureRecord(reinterpret_cast<const void*>(i));
+    }
+}
+
+/**
  * @tc.name: TransactionVersionCheckTest
  * @tc.desc: Verify function TransactionVersionCheck
  * @tc.type: FUNC

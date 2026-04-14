@@ -538,7 +538,6 @@ private:
 
     static constexpr size_t MAX_DATA_SIZE = 128 * 1024 * 1024; // 128M
     static constexpr size_t MIN_DATA_SIZE = 8 * 1024;          // 8k
-    static constexpr size_t MAX_FD = 30000;
 
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;

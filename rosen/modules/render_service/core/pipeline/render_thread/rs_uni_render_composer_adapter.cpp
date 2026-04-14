@@ -18,7 +18,6 @@
 #include <memory>
 
 #include "common/rs_common_def.h"
-#include "feature/gpuComposition/rs_gpu_cache_manager.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
@@ -28,6 +27,7 @@
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "metadata_helper.h"
+#include "gpuComposition/rs_gpu_cache_manager.h"
 #include "params/rs_render_params.h"
 #include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
 #include "pipeline/main_thread/rs_uni_render_listener.h"
@@ -144,7 +144,9 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(DrawableV2::RSScreenRen
     if (surfaceHandler->IsCurrentFrameBufferConsumed() && preBufferOwnerCount) {
         RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderComposerAdapter::BuildComposeInfo RSScreenRenderNodeDrawable DecRef "
             "preBuf bufferId %" PRIu64, preBufferOwnerCount->bufferId_);
-        preBufferOwnerCount->DecRef();
+        if (preBufferOwnerCount->DecRef()) {
+            info.preBuffer = nullptr;
+        }
     }
 
     info.fence = surfaceHandler->GetAcquireFence();
@@ -216,7 +218,9 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSRcdSurfaceRenderNode&
     if (node.IsCurrentFrameBufferConsumed() && preBufferOwnerCount) {
         RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderComposerAdapter::BuildComposeInfo RSRcdSurfaceRenderNode DecRef preBuf "
             "bufferId %" PRIu64, preBufferOwnerCount->bufferId_);
-        preBufferOwnerCount->DecRef();
+        if (preBufferOwnerCount->DecRef()) {
+            info.preBuffer = nullptr;
+        }
     }
     RS_LOGD_IF(DEBUG_COMPOSER,
         "RSUniRenderComposerAdapter::BuildCInfo id:%{public}" PRIu64
@@ -1073,8 +1077,7 @@ RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(DrawableV2::RSScreenRenderNod
             return nullptr;
         }
     }
-    surfaceHandler->ResetCurrentFrameBufferConsumed();
-    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler) ||
+    if (!RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(*surfaceHandler) ||
         !surfaceHandler->GetBuffer()) {
         RS_LOGE("RSUniRenderComposerAdapter::CreateLayer RSScreenRenderNodeDrawable consume buffer failed. %{public}d",
             !surfaceHandler->GetBuffer());
@@ -1098,12 +1101,16 @@ RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(DrawableV2::RSScreenRenderNod
         return nullptr;
     }
     RSLayerPtr layer = RSSurfaceLayer::Create(surfaceHandler->GetNodeId(), composerClient_->GetComposerContext());
+    auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable.GetRenderParams().get());
+    bool skipLayerCommit = RSSystemProperties::GetDynamicLayerSkipEnabled() &&
+                           screenParams && screenParams->GetLayerSkipContext().screenLayerInvalid_;
     if (layer != nullptr) {
         layer->SetNodeId(surfaceHandler->GetNodeId());  // node id only for dfx
         layer->SetUniRenderFlag(true);
         screenDrawable.SetRSLayer(screenInfo_.id, layer);
         SetComposeInfoToLayer(layer, info, surfaceHandler->GetConsumer());
         layer->SetNeedBilinearInterpolation(true);
+        layer->SetIsNeedComposition(!skipLayerCommit);
     }
     // do not crop or scale down for displayNode's layer.
     return layer;
@@ -1125,7 +1132,7 @@ RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(RSScreenRenderNode& node)
     }
     RS_LOGD("RSUniRenderComposerAdapter::CreateLayer displayNode id:%{public}" PRIu64 " available buffer:%{public}d",
         node.GetId(), surfaceHandler->GetAvailableBufferCount());
-    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler) ||
+    if (!RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(*surfaceHandler) ||
         !surfaceHandler->GetBuffer()) {
         RS_LOGE("RSUniRenderComposerAdapter::CreateLayer consume buffer failed.");
         return nullptr;
@@ -1151,6 +1158,9 @@ RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(RSScreenRenderNode& node)
         return nullptr;
     }
     RSLayerPtr layer = RSSurfaceLayer::Create(surfaceHandler->GetNodeId(), composerClient_->GetComposerContext());
+    auto skipController = node.GetDynamicLayerSkipController();
+    bool skipLayerCommit =
+        RSSystemProperties::GetDynamicLayerSkipEnabled() && skipController && skipController->IsScreenLayerInvalid();
     if (layer != nullptr) {
         layer->SetNodeId(node.GetId());
         layer->SetUniRenderFlag(true);
@@ -1158,6 +1168,7 @@ RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(RSScreenRenderNode& node)
         SetComposeInfoToLayer(layer, info, surfaceHandler->GetConsumer());
         LayerRotate(layer, *screenDrawable);
         layer->SetNeedBilinearInterpolation(true);
+        layer->SetIsNeedComposition(!skipLayerCommit);
     }
     // do not crop or scale down for screenNode's layer.
     return layer;

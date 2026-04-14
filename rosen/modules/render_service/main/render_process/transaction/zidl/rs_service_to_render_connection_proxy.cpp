@@ -105,10 +105,16 @@ ErrCode RSServiceToRenderConnectionProxy::CreatePixelMapFromSurface(sptr<Surface
         return ERR_INVALID_VALUE;
     }
 
-    if (reply.ReadBool()) {
+    bool result{false};
+    if (!reply.ReadBool(result)) {
+        ROSEN_LOGE("CreatePixelMapFromSurface: Invalid data format.");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (result) {
         pixelMap.reset(Media::PixelMap::Unmarshalling(reply));
     } else {
-        ROSEN_LOGE("CreatePixelMapFromSurface: ReadBool err.");
+        ROSEN_LOGE("CreatePixelMapFromSurface: Read result false.");
     }
     return ERR_OK;
 }
@@ -1023,7 +1029,7 @@ bool RSServiceToRenderConnectionProxy::RegisterTypeface(uint64_t globalUniqueId,
     bool result{false};
     if (!reply.ReadBool(result)) {
         ROSEN_LOGE("%{public}s: Read result failed", __func__);
-        return READ_PARCEL_ERR;
+        return false;
     }
     return result;
 }
