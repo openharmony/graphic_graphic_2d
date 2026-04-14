@@ -33,6 +33,7 @@ ohos_fuzztest("RsUiDisplaySoloistFuzzTest") {
     "-O0",
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
+    "-Dprivate=public",
   ]
 
   sources = [ "rsuidisplaysoloist_fuzzer.cpp" ]
