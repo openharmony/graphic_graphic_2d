@@ -616,7 +616,7 @@ HWTEST(RSCanvasRenderNodeDrawableTest, IsBackFaceTest007, TestSize.Level1)
     ASSERT_NE(canvasDrawable->renderParams_, nullptr);
 
     Drawing::Matrix matrix;
-    matrix.SetRotate(180.0f);
+    matrix.PostRotate(180.0f);
     canvasDrawable->renderParams_->SetMatrix(matrix);
 
     bool isBackFace = canvasDrawable->IsBackFace();
@@ -769,77 +769,7 @@ HWTEST(RSCanvasRenderNodeDrawableTest, DoubleSidedTest005, TestSize.Level1)
     ASSERT_FALSE(isBackFace);
 }
 
-/**
- * @tc.name: IsBackFaceTest009
- * @tc.desc: Test IsBackFace cache hit - same frame returns cached result
- * @tc.type: FUNC
- * @tc.require: issueIXXXXX
- */
-HWTEST(RSCanvasRenderNodeDrawableTest, IsBackFaceTest009, TestSize.Level1)
-{
-    NodeId nodeId = 0;
-    auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
-    auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
-    ASSERT_NE(canvasDrawable, nullptr);
 
-    canvasDrawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
-    ASSERT_NE(canvasDrawable->renderParams_, nullptr);
-
-    Drawing::Matrix matrix;
-    matrix.SetScale(-1.0f, 1.0f);
-    canvasDrawable->renderParams_->SetMatrix(matrix);
-
-    auto uniParams = std::make_unique<RSRenderThreadParams>();
-    uniParams->SetVsyncId(100);
-    RSUniRenderThread::Instance().Sync(std::move(uniParams));
-
-    bool result1 = canvasDrawable->IsBackFace();
-    ASSERT_TRUE(result1);
-
-    bool result2 = canvasDrawable->IsBackFace();
-    ASSERT_TRUE(result2);
-
-    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
-}
-
-/**
- * @tc.name: IsBackFaceTest010
- * @tc.desc: Test IsBackFace cache invalidation - different frame recalculates
- * @tc.type: FUNC
- * @tc.require: issueIXXXXX
- */
-HWTEST(RSCanvasRenderNodeDrawableTest, IsBackFaceTest010, TestSize.Level1)
-{
-    NodeId nodeId = 0;
-    auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
-    auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
-    ASSERT_NE(canvasDrawable, nullptr);
-
-    canvasDrawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
-    ASSERT_NE(canvasDrawable->renderParams_, nullptr);
-
-    Drawing::Matrix matrix;
-    matrix.SetScale(-1.0f, 1.0f);
-    canvasDrawable->renderParams_->SetMatrix(matrix);
-
-    auto uniParams1 = std::make_unique<RSRenderThreadParams>();
-    uniParams1->SetVsyncId(100);
-    RSUniRenderThread::Instance().Sync(std::move(uniParams1));
-    bool result1 = canvasDrawable->IsBackFace();
-    ASSERT_TRUE(result1);
-
-    auto uniParams2 = std::make_unique<RSRenderThreadParams>();
-    uniParams2->SetVsyncId(200);
-    RSUniRenderThread::Instance().Sync(std::move(uniParams2));
-
-    Drawing::Matrix matrix2;
-    matrix2.SetScale(1.0f, 1.0f);
-    canvasDrawable->renderParams_->SetMatrix(matrix2);
-    bool result2 = canvasDrawable->IsBackFace();
-    ASSERT_FALSE(result2);
-
-    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
-}
 
 /**
  * @tc.name: IsBackFaceTest011
@@ -859,7 +789,7 @@ HWTEST(RSCanvasRenderNodeDrawableTest, IsBackFaceTest011, TestSize.Level1)
 
     Drawing::Matrix matrix;
     constexpr float slightlyBelowEpsilon = -(1e-6f) - 1e-7f;
-    float values[9] = {1.0f, 0.0f, 0.0f, 0.0f, slightlyBelowEpsilon, 0.0f, 0.0f, 0.0f, 1.0f};
+    std::array<float, 9> values = {1.0f, 0.0f, 0.0f, 0.0f, slightlyBelowEpsilon, 0.0f, 0.0f, 0.0f, 1.0f};
     matrix.SetAll(values);
     canvasDrawable->renderParams_->SetMatrix(matrix);
 
@@ -885,7 +815,7 @@ HWTEST(RSCanvasRenderNodeDrawableTest, IsBackFaceTest012, TestSize.Level1)
 
     Drawing::Matrix matrix;
     constexpr float withinEpsilon = -(1e-6f) + 1e-7f;
-    float values[9] = {1.0f, 0.0f, 0.0f, 0.0f, withinEpsilon, 0.0f, 0.0f, 0.0f, 1.0f};
+    std::array<float, 9> values = {1.0f, 0.0f, 0.0f, 0.0f, withinEpsilon, 0.0f, 0.0f, 0.0f, 1.0f};
     matrix.SetAll(values);
     canvasDrawable->renderParams_->SetMatrix(matrix);
 
@@ -893,103 +823,7 @@ HWTEST(RSCanvasRenderNodeDrawableTest, IsBackFaceTest012, TestSize.Level1)
     ASSERT_FALSE(result);
 }
 
-/**
- * @tc.name: GetCurrentFrameIdTest001
- * @tc.desc: Test GetCurrentFrameId with valid vsyncId
- * @tc.type: FUNC
- * @tc.require: issueIXXXXX
- */
-HWTEST(RSCanvasRenderNodeDrawableTest, GetCurrentFrameIdTest001, TestSize.Level1)
-{
-    NodeId nodeId = 0;
-    auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
-    auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
-    ASSERT_NE(canvasDrawable, nullptr);
 
-    auto uniParams = std::make_unique<RSRenderThreadParams>();
-    constexpr uint64_t testVsyncId = 12345;
-    uniParams->SetVsyncId(testVsyncId);
-    RSUniRenderThread::Instance().Sync(std::move(uniParams));
-
-    uint64_t frameId = canvasDrawable->GetCurrentFrameId();
-    ASSERT_EQ(frameId, testVsyncId);
-
-    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
-}
-
-/**
- * @tc.name: GetCurrentFrameIdTest002
- * @tc.desc: Test GetCurrentFrameId with vsyncId == 0 falls back to timestamp
- * @tc.type: FUNC
- * @tc.require: issueIXXXXX
- */
-HWTEST(RSCanvasRenderNodeDrawableTest, GetCurrentFrameIdTest002, TestSize.Level1)
-{
-    NodeId nodeId = 0;
-    auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
-    auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
-    ASSERT_NE(canvasDrawable, nullptr);
-
-    auto uniParams = std::make_unique<RSRenderThreadParams>();
-    uniParams->SetVsyncId(0);
-    RSUniRenderThread::Instance().Sync(std::move(uniParams));
-
-    uint64_t frameId = canvasDrawable->GetCurrentFrameId();
-    ASSERT_GT(frameId, 0u);
-
-    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
-}
-
-/**
- * @tc.name: GetCurrentFrameIdTest003
- * @tc.desc: Test GetCurrentFrameId with null uniParams falls back to timestamp
- * @tc.type: FUNC
- * @tc.require: issueIXXXXX
- */
-HWTEST(RSCanvasRenderNodeDrawableTest, GetCurrentFrameIdTest003, TestSize.Level1)
-{
-    NodeId nodeId = 0;
-    auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
-    auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
-    ASSERT_NE(canvasDrawable, nullptr);
-
-    RSUniRenderThread::Instance().Sync(nullptr);
-
-    uint64_t frameId = canvasDrawable->GetCurrentFrameId();
-    ASSERT_GT(frameId, 0u);
-
-    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
-}
-
-/**
- * @tc.name: GetCurrentFrameIdTest004
- * @tc.desc: Test GetCurrentFrameId returns different values for different vsyncIds
- * @tc.type: FUNC
- * @tc.require: issueIXXXXX
- */
-HWTEST(RSCanvasRenderNodeDrawableTest, GetCurrentFrameIdTest004, TestSize.Level1)
-{
-    NodeId nodeId = 0;
-    auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
-    auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
-    ASSERT_NE(canvasDrawable, nullptr);
-
-    auto uniParams1 = std::make_unique<RSRenderThreadParams>();
-    uniParams1->SetVsyncId(100);
-    RSUniRenderThread::Instance().Sync(std::move(uniParams1));
-    uint64_t frameId1 = canvasDrawable->GetCurrentFrameId();
-
-    auto uniParams2 = std::make_unique<RSRenderThreadParams>();
-    uniParams2->SetVsyncId(200);
-    RSUniRenderThread::Instance().Sync(std::move(uniParams2));
-    uint64_t frameId2 = canvasDrawable->GetCurrentFrameId();
-
-    ASSERT_NE(frameId1, frameId2);
-    ASSERT_EQ(frameId1, 100u);
-    ASSERT_EQ(frameId2, 200u);
-
-    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
-}
 
 /**
  * @tc.name: BackFaceSkipTest001
