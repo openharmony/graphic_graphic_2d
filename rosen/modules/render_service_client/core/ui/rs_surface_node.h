@@ -311,6 +311,7 @@ public:
     void SetSurfaceTextureAttachCallBack(const RSSurfaceTextureAttachCallBack& attachCallback);
     void SetSurfaceTextureUpdateCallBack(const RSSurfaceTextureUpdateCallBack& updateCallback);
     void SetSurfaceTextureInitTypeCallBack(const RSSurfaceTextureInitTypeCallBack& initTypeCallback);
+    void SetSurfaceCaptureCallback(std::function<std::shared_ptr<Media::PixelMap>()> callback);
 #endif
     void SetForeground(bool isForeground);
     // [Attention] The function now used for unlocking screen and other scenes for PC currrently,

@@ -82,6 +82,7 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_SET_APP_ROTATION_CORRECTION = 47,
     SURFACE_NODE_SET_HDR_TYPE = 48,
     SURFACE_NODE_SET_DARK_COLOR_MODE = 49,
+    SURFACE_NODE_SET_SURFACE_CAPTURE_CALLBACK = 50,
 };
 
 class RSB_EXPORT SurfaceNodeCommandHelper {
@@ -119,6 +120,8 @@ public:
     static void SetForceHardwareAndFixRotation(RSContext& context, NodeId nodeId, bool flag);
 #ifdef USE_SURFACE_TEXTURE
     static void CreateSurfaceExt(RSContext& context, NodeId id, const std::shared_ptr<RSSurfaceTexture>& surfaceExt);
+    static void SetSurfaceCaptureCallBack(RSContext& context, NodeId id,
+        std::function<std::shared_ptr<Media::PixelMap>()> callback);
 #endif
     static void SetForeground(RSContext& context, NodeId nodeId, bool isForeground);
     static void SetSurfaceId(RSContext& context, NodeId nodeId, SurfaceId surfaceId);
@@ -234,6 +237,9 @@ ADD_COMMAND(RSurfaceNodeSetLeashPersistentId,
 ADD_COMMAND(RSSurfaceNodeCreateSurfaceExt,
     ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_CREATE_SURFACE_EXT,
         SurfaceNodeCommandHelper::CreateSurfaceExt, NodeId, std::shared_ptr<RSSurfaceTexture>))
+ADD_COMMAND(RSSurfaceNodeSetSurfaceCaptureCallBack,
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_SURFACE_CAPTURE_CALLBACK,
+        SurfaceNodeCommandHelper::SetSurfaceCaptureCallBack, NodeId, std::function<std::shared_ptr<Media::PixelMap>()>))
 #endif
 ADD_COMMAND(RSSurfaceNodeSetForeground,
     ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_FOREGROUND,
