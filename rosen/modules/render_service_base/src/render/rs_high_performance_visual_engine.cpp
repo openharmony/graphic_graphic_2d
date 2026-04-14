@@ -75,7 +75,7 @@ bool HveFilter::HasValidEffect(const RSRenderNode* node)
             if (parentPtr->GetType() == RSRenderNodeType::SURFACE_NODE) {
                 return false;
             }
-            if (parentPtr->GetType() == RSRenderNodeType::SURFACE_NODE) {
+            if (parentPtr->GetType() == RSRenderNodeType::EFFECT_NODE) {
                 return CheckEffectNodeConditions(parentPtr);
             }
             parentPtr = parentPtr->GetParent().lock();
