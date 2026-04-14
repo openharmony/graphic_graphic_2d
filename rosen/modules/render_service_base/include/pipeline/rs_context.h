@@ -122,6 +122,8 @@ public:
     void RegisterAnimatingRenderNode(const std::shared_ptr<RSRenderNode>& nodePtr);
     void UnregisterAnimatingRenderNode(NodeId id);
 
+    bool UpdateGroupAnimators(int64_t timestamp, int64_t& minLeftDelayTime);
+
     uint64_t GetTransactionTimestamp() const
     {
         return transactionTimestamp_;

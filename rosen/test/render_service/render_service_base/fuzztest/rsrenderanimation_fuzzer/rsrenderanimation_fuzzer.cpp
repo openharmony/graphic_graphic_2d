@@ -38,6 +38,7 @@
 #include "animation/rs_spring_model.h"
 #include "animation/rs_steps_interpolator.h"
 #include "animation/rs_value_estimator.h"
+#include "command/rs_message_processor.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_render_node.h"
 #include "render/rs_path.h"
@@ -121,6 +122,7 @@ void RSRenderAnimation1FuzzerTest()
     animation->ProcessOnRepeatFinish();
     animation->SetStartTime(time);
     animation->GetAnimateVelocity();
+    RSMessageProcessor::Instance().GetAllTransactions();
 }
 
 void RSRenderAnimation2FuzzerTest()
@@ -166,6 +168,36 @@ void RSRenderAnimation2FuzzerTest()
     auto animation3 = std::make_shared<RSRenderAnimation>(animationId);
     animation3->Start();
     animation3->FinishOnCurrentPosition();
+    RSMessageProcessor::Instance().GetAllTransactions();
+}
+
+void RSRenderAnimation3FuzzerTest()
+{
+    // test new group animation methods
+    AnimationId animationId = GetData<AnimationId>();
+    auto animation4 = std::make_shared<RSRenderAnimation>(animationId);
+    animation4->FlipDirection();
+    animation4->Restart();
+    animation4->ResumeGroupWaiting();
+    animation4->IsGroupWaiting();
+    animation4->IsGroupAnimationChild();
+
+    // test group animator operations
+    auto context = std::make_shared<RSContext>();
+    RSAnimationTimingProtocol timingProtocol;
+    auto groupAnimator = std::make_shared<RSRenderTimeDrivenGroupAnimator>(
+        GetData<InteractiveImplictAnimatorId>(), context, timingProtocol);
+    animation4->SetGroupAnimator(groupAnimator);
+    animation4->RemoveFromGroupAnimator();
+
+    // test AnimateOnGroupWaiting with reused parameters
+    auto time = GetData<int64_t>();
+    int64_t minLeftDelayTime = GetData<int64_t>();
+    auto isCustom = GetData<bool>();
+    animation4->AnimateOnGroupWaiting(time, isCustom);
+
+    context->UpdateGroupAnimators(time, minLeftDelayTime);
+    RSMessageProcessor::Instance().GetAllTransactions();
 }
 
 bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
@@ -180,6 +212,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
 
     RSRenderAnimation1FuzzerTest();
     RSRenderAnimation2FuzzerTest();
+    RSRenderAnimation3FuzzerTest();
     return true;
 }
 } // namespace OHOS

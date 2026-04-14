@@ -43,11 +43,11 @@ public:
     bool IsValid();
     void SetAnimationBeenPaused()
     {
-        hasAnimationBeenPaused = true;
+        hasAnimationBeenPaused_ = true;
     }
     bool HasAnimationBeenPaused()
     {
-        return hasAnimationBeenPaused;
+        return hasAnimationBeenPaused_;
     }
 
     const FinishCallbackType finishCallbackType_;
@@ -55,7 +55,7 @@ public:
     void SetEstimatedDuration(float duration);
 
 private:
-    bool hasAnimationBeenPaused = false;
+    bool hasAnimationBeenPaused_ = false;
     float estimatedDuration_ = 0.0f;
 };
 

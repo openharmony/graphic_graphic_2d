@@ -57,6 +57,8 @@
 #include "render_server/transaction/rs_render_to_service_connection.h"
 #include "render_service/composer/composer_client/connection/rs_composer_to_render_connection.h"
 #include "transaction/rs_connect_to_render_process.h"
+#include "animation/rs_animation_timing_protocol.h"
+#include "animation/rs_render_interactive_implict_animator.h"
 #if defined(ACCESSIBILITY_ENABLE)
 #include "accessibility_config.h"
 #endif
@@ -603,6 +605,63 @@ HWTEST_F(RSMainThreadTest, Animate002, TestSize.Level1)
     ASSERT_NE(mainThread, nullptr);
     mainThread->doWindowAnimate_ = true;
     mainThread->Animate(0);
+}
+
+/**
+ * @tc.name: AnimateBranch001
+ * @tc.desc: Cover branch: animatingNodeList_.empty() && !hasRunningGroupAnimators (return early)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, AnimateBranch001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSMainThreadTest AnimateBranch001 start";
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    EXPECT_TRUE(mainThread->context_->animatingNodeList_.empty());
+
+    int64_t minLeftDelayTime = 0;
+    bool hasRunningGroupAnimators = mainThread->context_->UpdateGroupAnimators(0, minLeftDelayTime);
+    EXPECT_FALSE(hasRunningGroupAnimators);
+
+    mainThread->Animate(0);
+
+    GTEST_LOG_(INFO) << "RSMainThreadTest AnimateBranch001 end";
+}
+
+/**
+ * @tc.name: AnimateBranch002
+ * @tc.desc: Cover branch: hasRunningGroupAnimators = true (RS_TRACE_NAME_FMT branch)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, AnimateBranch002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSMainThreadTest AnimateBranch002 start";
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    RSAnimationTimingProtocol timingProtocol;
+    timingProtocol.SetDuration(1000);
+    timingProtocol.SetStartDelay(0);
+    timingProtocol.SetRepeatCount(1);
+    timingProtocol.SetSpeed(1.0f);
+    timingProtocol.SetAutoReverse(false);
+
+    auto groupAnimator = std::make_shared<RSRenderTimeDrivenGroupAnimator>(
+        10001, mainThread->context_->weak_from_this(), timingProtocol);
+
+    mainThread->context_->GetInteractiveImplictAnimatorMap().RegisterInteractiveImplictAnimator(groupAnimator);
+
+    groupAnimator->StartAnimator();
+
+    int64_t minLeftDelayTime = 0;
+    bool hasRunningGroupAnimators = mainThread->context_->UpdateGroupAnimators(0, minLeftDelayTime);
+    EXPECT_TRUE(hasRunningGroupAnimators);
+
+    mainThread->Animate(0);
+
+    mainThread->context_->GetInteractiveImplictAnimatorMap().UnregisterInteractiveImplictAnimator(10001);
+    GTEST_LOG_(INFO) << "RSMainThreadTest AnimateBranch002 end";
 }
 
 /**

@@ -3562,20 +3562,27 @@ void RSMainThread::Animate(uint64_t timestamp)
 {
     RS_TRACE_FUNC();
     lastAnimateTimestamp_ = timestamp;
-    if (context_->animatingNodeList_.empty()) {
+
+    int64_t minLeftDelayTime = RSSystemProperties::GetAnimationDelayOptimizeEnabled() ? INT64_MAX : 0;
+    bool hasRunningGroupAnimators = context_->UpdateGroupAnimators(timestamp, minLeftDelayTime);
+    if (hasRunningGroupAnimators) {
+        RS_TRACE_NAME_FMT("Animate groupAnimation hasRunningGroupAnimators:%d, minLeftDelayTime:%ld",
+            hasRunningGroupAnimators, minLeftDelayTime);
+    }
+
+    if (context_->animatingNodeList_.empty() && !hasRunningGroupAnimators) {
         doWindowAnimate_ = false;
         context_->SetRequestedNextVsyncAnimate(false);
         return;
     }
     UpdateAnimateNodeFlag();
     bool curWinAnim = false;
-    bool needRequestNextVsync = false;
+    bool needRequestNextVsync = hasRunningGroupAnimators;
     // isCalculateAnimationValue is embedded modify for stat animate frame drop
     bool isCalculateAnimationValue = false;
     bool isRateDeciderEnabled = (context_->animatingNodeList_.size() <= CAL_NODE_PREFERRED_FPS_LIMIT);
     bool isDisplaySyncEnabled = true;
     int64_t period = 0;
-    int64_t minLeftDelayTime = RSSystemProperties::GetAnimationDelayOptimizeEnabled() ? INT64_MAX : 0;
     if (receiver_) {
         receiver_->GetVSyncPeriod(period);
     }
