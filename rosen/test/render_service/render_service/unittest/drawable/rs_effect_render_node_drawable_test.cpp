@@ -327,4 +327,117 @@ HWTEST_F(RSEffectRenderNodeDrawableTest, GenerateEffectDataOnDemandWithColorPick
     // Call GenerateEffectDataOnDemand - should not crash and return true
     EXPECT_TRUE(drawable->GenerateEffectDataOnDemand(&params, paintFilterCanvas, bounds, &paintFilterCanvas));
 }
+
+/**
+ * @tc.name: BackFaceSkipTest001
+ * @tc.desc: Test OnDraw skips with BACKFACE_SKIP when single sided + back face
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(RSEffectRenderNodeDrawableTest, BackFaceSkipTest001, TestSize.Level2)
+{
+    auto effectNode = std::make_shared<RSEffectRenderNode>(DEFAULT_ID);
+    ASSERT_NE(effectNode, nullptr);
+    auto effectDrawable = static_cast<RSEffectRenderNodeDrawable*>(
+        RSRenderNodeDrawableAdapter::OnGenerate(effectNode).get());
+    ASSERT_NE(effectDrawable->renderParams_, nullptr);
+    
+    effectDrawable->renderParams_->shouldPaint_ = true;
+    effectDrawable->renderParams_->contentEmpty_ = false;
+    
+    Drawing::Matrix matrix;
+    matrix.SetScale(-1.0f, 1.0f);
+    effectDrawable->renderParams_->SetMatrix(matrix);
+    effectDrawable->renderParams_->SetDoubleSidedEnabled(false);
+    
+    Drawing::Canvas canvas(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    
+    effectDrawable->OnDraw(paintFilterCanvas);
+    
+    ASSERT_EQ(effectDrawable->GetDrawSkipType(), DrawSkipType::BACKFACE_SKIP);
+}
+
+/**
+ * @tc.name: BackFaceSkipTest002
+ * @tc.desc: Test OnDraw does NOT skip when double sided + back face
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(RSEffectRenderNodeDrawableTest, BackFaceSkipTest002, TestSize.Level2)
+{
+    auto effectNode = std::make_shared<RSEffectRenderNode>(DEFAULT_ID);
+    ASSERT_NE(effectNode, nullptr);
+    auto effectDrawable = static_cast<RSEffectRenderNodeDrawable*>(
+        RSRenderNodeDrawableAdapter::OnGenerate(effectNode).get());
+    ASSERT_NE(effectDrawable->renderParams_, nullptr);
+    
+    effectDrawable->renderParams_->shouldPaint_ = true;
+    effectDrawable->renderParams_->contentEmpty_ = false;
+    
+    Drawing::Matrix matrix;
+    matrix.SetScale(-1.0f, 1.0f);
+    effectDrawable->renderParams_->SetMatrix(matrix);
+    effectDrawable->renderParams_->SetDoubleSidedEnabled(true);
+    
+    Drawing::Canvas canvas(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    
+    effectDrawable->OnDraw(paintFilterCanvas);
+    
+    ASSERT_NE(effectDrawable->GetDrawSkipType(), DrawSkipType::BACKFACE_SKIP);
+}
+
+/**
+ * @tc.name: BackFaceSkipTest003
+ * @tc.desc: Test OnDraw does NOT skip when single sided + front face
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(RSEffectRenderNodeDrawableTest, BackFaceSkipTest003, TestSize.Level2)
+{
+    auto effectNode = std::make_shared<RSEffectRenderNode>(DEFAULT_ID);
+    ASSERT_NE(effectNode, nullptr);
+    auto effectDrawable = static_cast<RSEffectRenderNodeDrawable*>(
+        RSRenderNodeDrawableAdapter::OnGenerate(effectNode).get());
+    ASSERT_NE(effectDrawable->renderParams_, nullptr);
+    
+    effectDrawable->renderParams_->shouldPaint_ = true;
+    effectDrawable->renderParams_->contentEmpty_ = false;
+    
+    Drawing::Matrix matrix;
+    matrix.SetScale(1.0f, 1.0f);
+    effectDrawable->renderParams_->SetMatrix(matrix);
+    effectDrawable->renderParams_->SetDoubleSidedEnabled(false);
+    
+    Drawing::Canvas canvas(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    
+    effectDrawable->OnDraw(paintFilterCanvas);
+    
+    ASSERT_NE(effectDrawable->GetDrawSkipType(), DrawSkipType::BACKFACE_SKIP);
+}
+
+/**
+ * @tc.name: BackFaceSkipTest004
+ * @tc.desc: Test OnDraw backface culling with null renderParams
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(RSEffectRenderNodeDrawableTest, BackFaceSkipTest004, TestSize.Level2)
+{
+    auto effectNode = std::make_shared<RSEffectRenderNode>(DEFAULT_ID);
+    ASSERT_NE(effectNode, nullptr);
+    auto effectDrawable = static_cast<RSEffectRenderNodeDrawable*>(
+        RSRenderNodeDrawableAdapter::OnGenerate(effectNode).get());
+    
+    effectDrawable->renderParams_ = nullptr;
+    
+    Drawing::Canvas canvas(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    
+    effectDrawable->OnDraw(paintFilterCanvas);
+    
+    ASSERT_EQ(effectDrawable->GetDrawSkipType(), DrawSkipType::RENDER_PARAMS_NULL);
+}
 }

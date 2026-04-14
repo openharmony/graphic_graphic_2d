@@ -123,6 +123,13 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 #endif
 
+    bool isBackFace = IsBackFace();
+    bool isDoubleSided = params->GetDoubleSidedEnabled();
+    if (!isDoubleSided && isBackFace) {
+        SetDrawSkipType(DrawSkipType::BACKFACE_SKIP);
+        return;
+    }
+
     RSRenderNodeSingleDrawableLocker singleLocker(this);
     if (UNLIKELY(!singleLocker.IsLocked())) {
         singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);

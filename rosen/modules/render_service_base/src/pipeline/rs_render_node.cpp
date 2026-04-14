@@ -1589,6 +1589,7 @@ void RSRenderNode::PrepareSelfNodeForApplyModifiers()
     PrepareChildrenForApplyModifiers();
 
     stagingRenderParams_->SetAlpha(GetRenderProperties().GetAlpha());
+    stagingRenderParams_->SetDoubleSidedEnabled(GetRenderProperties().GetDoubleSidedEnabled());
 
     UpdateRenderParams();
     AddToPendingSyncList();
@@ -3584,6 +3585,16 @@ void RSRenderNode::SetGlobalAlpha(float alpha)
         stagingRenderParams_->SetGlobalAlpha(alpha);
     }
 #endif
+}
+
+void RSRenderNode::SetDoubleSidedEnabled(bool isDoubleSided)
+{
+    GetMutableRenderProperties().SetDoubleSidedEnabled(isDoubleSided);
+}
+
+bool RSRenderNode::GetDoubleSidedEnabled() const
+{
+    return GetRenderProperties().GetDoubleSidedEnabled();
 }
 
 void RSRenderNode::SetBootAnimation(bool isBootAnimation)

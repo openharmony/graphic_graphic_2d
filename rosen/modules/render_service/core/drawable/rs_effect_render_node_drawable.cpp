@@ -55,6 +55,15 @@ void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw params is nullptr");
         return;
     }
+
+    bool isBackFace = IsBackFace();
+    bool isDoubleSided = effectParams->GetDoubleSidedEnabled();
+    if (!isDoubleSided && isBackFace) {
+        SetDrawSkipType(DrawSkipType::BACKFACE_SKIP);
+        RS_TRACE_NAME_FMT("RSEffectRenderNodeDrawable::OnDraw backface skip, id:%" PRIu64, nodeId_);
+        return;
+    }
+
     Drawing::GPUResourceTag::SetCurrentNodeId(GetId());
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kAll);

@@ -39,6 +39,9 @@ public:
 
     void SetVisible(bool visible);
     bool GetVisible() const;
+    
+    void SetDoubleSidedEnabled(bool isDoubleSided);
+    bool GetDoubleSidedEnabled() const;
 };
 } // namespace OHOS::Rosen::ModifierNG
 #endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_APPEARANCE_RS_VISIBILITY_MODIFIER_H

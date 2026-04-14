@@ -132,6 +132,8 @@ protected:
     float boundsWidth_ = 0.0f;
     float boundsHeight_ = 0.0f;
 
+    bool IsBackFace() const;
+
     void GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRenderParams& params);
     void CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const RSRenderParams& params, bool isInCapture = false);
 
@@ -182,6 +184,8 @@ protected:
     bool SkipCulledNodeOrEntireSubtree(Drawing::Canvas& canvas, Drawing::Rect& bounds);
 
 private:
+    static constexpr float EPSILON = 1e-6f;
+
     std::atomic<DrawableCacheType> cacheType_ = DrawableCacheType::NONE;
     mutable std::recursive_mutex cacheMutex_;
     mutable std::mutex freezeByCaptureMutex_;

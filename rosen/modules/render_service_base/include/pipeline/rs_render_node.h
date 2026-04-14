@@ -760,6 +760,8 @@ public:
     {
         return globalAlpha_;
     }
+    void SetDoubleSidedEnabled(bool isDoubleSided);
+    bool GetDoubleSidedEnabled() const;
     virtual void OnAlphaChanged() {}
 
     inline const Vector4f& GetGlobalCornerRadius() const noexcept
