@@ -44,9 +44,36 @@ namespace Rosen {
 
 const int MAX_WAIT_TIME = 2000;
 
+bool RSDividedUICapture::IsRectValid(NodeId nodeId, const Drawing::Rect& specifiedAreaRect)
+{
+    ROSEN_LOGD("RSDividedUICapture::IsRectValid: NodeId:[%{public}" PRIu64 "],"
+        " Rect Left is [%{public}f], Top is [%{public}f],"
+        " Right is [%{public}f], Bottom is [%{public}f],",
+        nodeId, specifiedAreaRect.GetLeft(), specifiedAreaRect.GetTop(),
+        specifiedAreaRect.GetRight(), specifiedAreaRect.GetBottom());
+    auto node = RSRenderThread::Instance().GetContext().GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
+    if (node == nullptr) {
+        ROSEN_LOGE("RSDividedUICapture::IsRectValid: Invalid nodeId:[%{public}" PRIu64 "]", nodeId);
+        return false;
+    }
+    if (!specifiedAreaRect.IsValid()) {
+        ROSEN_LOGE("RSDividedUICapture::IsRectValid: specifiedAreaRect is an invalid rect");
+        return false;
+    }
+    if ((specifiedAreaRect.GetWidth() > node->GetRenderProperties().GetBoundsWidth()) ||
+        (specifiedAreaRect.GetHeight() > node->GetRenderProperties().GetBoundsHeight()) ||
+        (specifiedAreaRect.GetLeft() < 0) || (specifiedAreaRect.GetTop() < 0) ||
+        (specifiedAreaRect.GetRight() > node->GetRenderProperties().GetBoundsWidth()) ||
+        (specifiedAreaRect.GetBottom() > node->GetRenderProperties().GetBoundsHeight())) {
+        ROSEN_LOGE("RSDividedUICapture::IsRectValid: specifiedAreaRect is out of bounds");
+        return false;
+    }
+    return true;
+}
+
 std::shared_ptr<Media::PixelMap> RSDividedUICapture::TakeLocalCapture()
 {
-    RS_LOGI("RSDividedUICapture::TakeLocalCapture nodeId is %{public}" PRIu64, nodeId_);
+    ROSEN_LOGI("RSDividedUICapture::TakeLocalCapture nodeId is %{public}" PRIu64, nodeId_);
     if (ROSEN_EQ(scaleX_, 0.f) || ROSEN_EQ(scaleY_, 0.f) || scaleX_ < 0.f || scaleY_ < 0.f) {
         ROSEN_LOGE("RSDividedUICapture::TakeLocalCapture: scale is invalid.");
         return nullptr;
@@ -56,8 +83,13 @@ std::shared_ptr<Media::PixelMap> RSDividedUICapture::TakeLocalCapture()
         ROSEN_LOGE("RSDividedUICapture::TakeLocalCapture node is nullptr return");
         return nullptr;
     }
+    // Validate specifiedAreaRect if it's valid
+    if (!IsRectValid(nodeId_, specifiedAreaRect_)) {
+        RS_LOGI("RSDividedUICapture::TakeLocalCapture specifiedAreaRect is invalid, fall back to full node");
+        specifiedAreaRect_ = Drawing::Rect();
+    }
     std::shared_ptr<RSDividedUICaptureVisitor> visitor =
-        std::make_shared<RSDividedUICaptureVisitor>(nodeId_, scaleX_, scaleY_);
+        std::make_shared<RSDividedUICaptureVisitor>(nodeId_, scaleX_, scaleY_, specifiedAreaRect_);
     if (!node->IsOnTheTree()) {
         ROSEN_LOGD("RSDividedUICapture::TakeLocalCapture IsNotOnTheTree, Do ApplyModifiers");
         node->ApplyModifiers();
@@ -96,6 +128,11 @@ std::shared_ptr<Media::PixelMap> RSDividedUICapture::CreatePixelMapByNode(std::s
 {
     int pixmapWidth = node->GetRenderProperties().GetBoundsWidth();
     int pixmapHeight = node->GetRenderProperties().GetBoundsHeight();
+    if (IsRectValid(nodeId_, specifiedAreaRect_)) {
+        // Only use specifiedAreaRect if it's valid (already validated in TakeLocalCapture)
+        pixmapWidth = specifiedAreaRect_.GetWidth();
+        pixmapHeight = specifiedAreaRect_.GetHeight();
+    }
     Media::InitializationOptions opts;
     opts.size.width = ceil(pixmapWidth * scaleX_);
     opts.size.height = ceil(pixmapHeight * scaleY_);
@@ -285,6 +322,12 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::ProcessCanvasRenderNode(RSCa
         Drawing::Matrix relativeMatrix;
         relativeMatrix.Set(Drawing::Matrix::SCALE_X, scaleX_);
         relativeMatrix.Set(Drawing::Matrix::SCALE_Y, scaleY_);
+        if (IsRectValid(nodeId_, specifiedAreaRect_)) {
+            Drawing::scalar xOffset = static_cast<Drawing::scalar>(-1 * specifiedAreaRect_.GetLeft());
+            Drawing::scalar yOffset = static_cast<Drawing::scalar>(-1 * specifiedAreaRect_.GetTop());
+            relativeMatrix.Set(Drawing::Matrix::TRANS_X, xOffset);
+            relativeMatrix.Set(Drawing::Matrix::TRANS_Y, yOffset);
+        }
         Drawing::Matrix invertMatrix;
         if (geoPtr && geoPtr->GetMatrix().Invert(invertMatrix)) {
             relativeMatrix.PreConcat(invertMatrix);
@@ -398,7 +441,12 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::ProcessSurfaceRenderNode(RSS
     captureConfig.scaleY = scaleY_;
     captureConfig.captureType = SurfaceCaptureType::UICAPTURE;
     renderPipelineClient->TakeSurfaceCapture(node.GetId(), callback, captureConfig);
+#ifndef USE_SURFACE_TEXTURE
     std::shared_ptr<Media::PixelMap> pixelMap = callback->GetResult(MAX_WAIT_TIME);
+#else
+    auto surfaceCaptureCallback = node.GetSurfaceCaptureCallback();
+    std::shared_ptr<Media::PixelMap> pixelMap = surfaceCaptureCallback ? surfaceCaptureCallback() : nullptr;
+#endif
     if (pixelMap == nullptr) {
         ROSEN_LOGE("RSDividedUICaptureVisitor::TakeLocalCapture failed to get pixelmap, return nullptr!");
         return;
