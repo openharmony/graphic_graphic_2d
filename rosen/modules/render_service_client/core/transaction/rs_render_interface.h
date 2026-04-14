@@ -177,7 +177,7 @@ public:
      * @param scaleY Indicates the scale of Y-axis.
      */
     bool TakeSurfaceCaptureForUIWithoutUni(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
-        float scaleX, float scaleY);
+        float scaleX, float scaleY, const Drawing::Rect& specifiedAreaRect = {});
 
     /**
      * @brief Set selfdrawing node to topLayer force use DSS.
