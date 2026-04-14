@@ -50,7 +50,7 @@ public:
         const RectI& filterRect, RSSurfaceRenderNode& hwcNode);
     std::shared_ptr<Drawing::Image> SampleLayer(RSPaintFilterCanvas& canvas, const Drawing::RectI& srcRect);
 private:
-    bool CheckEffectNodeConditions(const std::shared_ptr<RSRenderNode>& node);
+    bool HasValidEffectNode(const std::shared_ptr<RSRenderNode>& node);
     bool HasValidEffect(const RSRenderNode* node);
     HveFilter() = default;
     std::vector<SurfaceNodeInfo> surfaceNodeInfo_;

@@ -52,12 +52,22 @@ int HveFilter::GetSurfaceNodeSize() const
     return surfaceNodeInfo_.size();
 }
 
-bool HveFilter::CheckEffectNodeConditions(const std::shared_ptr<RSRenderNode>& node)
+bool HveFilter::HasValidEffectNode(const std::shared_ptr<RSRenderNode>& node)
 {
-    auto effectNode = RSRenderNode::ReinterpretCast<RSEffectRenderNode>(node);
-    return effectNode->ChildHasVisibleEffectWithoutEmptyRect() &&
-           node->GetRenderProperties().GetBackgroundFilter() != nullptr &&
-           node->GetGlobalAlpha() == 1;
+    auto current = node;
+    while (current) {
+        if (current->GetType() == RSRenderNodeType::SURFACE_NODE) {
+            return false;
+        }
+        if (current->GetType() == RSRenderNodeType::EFFECT_NODE) {
+            auto effectNode = RSRenderNode::ReinterpretCast<RSEffectRenderNode>(current);
+            return effectNode->ChildHasVisibleEffectWithoutEmptyRect() &&
+                current->GetRenderProperties().GetBackgroundFilter() != nullptr &&
+                current->ShouldPaint() && current->GetGlobalAlpha() == 1;
+        }
+        current = current->GetParent().lock();
+    }
+    return false;
 }
 
 bool HveFilter::HasValidEffect(const RSRenderNode* node)
@@ -67,20 +77,12 @@ bool HveFilter::HasValidEffect(const RSRenderNode* node)
         return false;
     }
     const RSProperties& properties = node->GetRenderProperties();
-    if ((properties.GetUseEffect() && node->GetGlobalAlpha() == 1) && !node->HasChildrenOutOfRect()) {
-        //After finding target node, star searching upwards for EFFECT_NODE
+    if (properties.GetUseEffect() &&
+        node->ShouldPaint() && node->GetGlobalAlpha() == 1 && !node->HasChildrenOutOfRect()) {
+        //After finding target node, start searching upwards for EFFECT_NODE
         RS_LOGD("%{public}s UseEffect is valid", __func__);
         auto parentPtr = node->GetParent().lock();
-        while (parentPtr) {
-            if (parentPtr->GetType() == RSRenderNodeType::SURFACE_NODE) {
-                return false;
-            }
-            if (parentPtr->GetType() == RSRenderNodeType::EFFECT_NODE) {
-                return CheckEffectNodeConditions(parentPtr);
-            }
-            parentPtr = parentPtr->GetParent().lock();
-        }
-        return false;
+        return HasValidEffectNode(parentPtr);
     }
     auto parentPtr = node->GetParent().lock();
     return HasValidEffect(parentPtr.get());
@@ -134,14 +136,14 @@ std::shared_ptr<Drawing::Image> HveFilter::SampleLayer(RSPaintFilterCanvas& canv
 
     for (size_t i = 0; i < surfaceNodeSize; i++) {
         auto surfaceImage = vecSurfaceNode[i].surfaceImage_;
+        if (surfaceImage == nullptr) {
+            continue;
+        }
         Drawing::Matrix rotateMatrix = vecSurfaceNode[i].matrix_;
         Drawing::Rect parmSrcRect = vecSurfaceNode[i].srcRect_;
         Drawing::Rect parmDstRect = vecSurfaceNode[i].dstRect_;
         // Get the color of solidlayer
         Color solidLayerColor = vecSurfaceNode[i].solidLayerColor_;
-        if (surfaceImage == nullptr) {
-            continue;
-        }
         // A valid solidlayer color exists.
         if (solidLayerColor != RgbPalette::Transparent()) {
             offscreenCanvas->Clear(static_cast<Drawing::ColorQuad>(solidLayerColor.AsArgbInt()));
