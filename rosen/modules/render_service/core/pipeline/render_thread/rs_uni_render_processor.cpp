@@ -373,8 +373,10 @@ RSLayerPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, spt
     // Alpha of 255 indicates opacity
     alpha.gAlpha = static_cast<uint8_t>(std::clamp(layerInfo.alpha, 0.0f, 1.0f) * RGBA_MAX);
     layer->SetAlpha(alpha);
-    GraphicIRect dstRect = { layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerinfo.dstRect.h };
+    GraphicIRect dstRect = { layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h };
     if (layerInfo.layerType != GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR) {
+        auto rogWidthRatio = uniComposerAdapter_->GetScreenInfo().GetRogWidthRatio();
+        auto rogHeightRatio = uniComposerAdapter_->GetScreenInfo().GetRogHeightRatio();
         Drawing::Rect originDstRect = { dstRect.x, dstRect.y, dstRect.x + dstRect.w, dstRect.y + dstRect.h };
         Drawing::Rect adjustedDstRect = { static_cast<int32_t>(std::floor(originDstRect.GetLeft() * rogWidthRatio)),
             static_cast<int32_t>(std::floor(originDstRect.GetTop() * rogHeightRatio)),
