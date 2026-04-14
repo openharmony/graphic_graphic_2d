@@ -124,8 +124,6 @@ void RSPixelMapFdTrack::ClearFdRecordByPid(int32_t pid)
 void RSPixelMapFdTrack::CheckFdRecordAndGetPidsToKill(std::unordered_map<int32_t, int32_t>& pidsToKill,
     int32_t pid) const
 {
-    RS_TRACE_NAME("RSPixelMapFdTrack::CheckFdRecordAndGetPidsToKill");
-
     std::lock_guard<std::mutex> lock(mutex_);
     // step 1: If current pid exceeds fd limit, add current pid to the kill queue.
     int32_t fdCount = 0;
