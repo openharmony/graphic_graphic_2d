@@ -1456,11 +1456,20 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Part
 
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<ParticleNoiseFields>& val)
 {
-    if (parcel.ReadInt32() == -1) {
+    int32_t flag = 0;
+    if (!parcel.ReadInt32(flag)) {
+        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ParticleNoiseFields ReadInt32 failed");
+        return false;
+    }
+    if (flag == -1) {
         val = nullptr;
         return true;
     }
-    uint32_t size = parcel.ReadUint32();
+    uint32_t size = 0;
+    if (!parcel.ReadUint32(size)) {
+        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ParticleNoiseFields ReadUint32 failed");
+        return false;
+    }
     bool success = true;
     if (size > PARTICLE_EMMITER_UPPER_LIMIT) {
         return false;
@@ -1503,11 +1512,20 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Part
  
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<ParticleRippleFields>& val)
 {
-    if (parcel.ReadInt32() == -1) {
+    int32_t flag = 0;
+    if (!parcel.ReadInt32(flag)) {
+        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ParticleRippleFields ReadInt32 failed");
+        return false;
+    }
+    if (flag == -1) {
         val = nullptr;
         return true;
     }
-    uint32_t size = parcel.ReadUint32();
+    uint32_t size = 0;
+    if (!parcel.ReadUint32(size)) {
+        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ParticleRippleFields ReadUint32 failed");
+        return false;
+    }
     if (size > PARTICLE_EMMITER_UPPER_LIMIT) {
         ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ParticleRippleFields size exceeds limit: %{public}u", size);
         return false;
@@ -1559,11 +1577,20 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Part
  
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<ParticleVelocityFields>& val)
 {
-    if (parcel.ReadInt32() == -1) {
+    int32_t flag = 0;
+    if (!parcel.ReadInt32(flag)) {
+        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ParticleVelocityFields ReadInt32 failed");
+        return false;
+    }
+    if (flag == -1) {
         val = nullptr;
         return true;
     }
-    uint32_t size = parcel.ReadUint32();
+    uint32_t size = 0;
+    if (!parcel.ReadUint32(size)) {
+        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ParticleVelocityFields ReadUint32 failed");
+        return false;
+    }
     if (size > PARTICLE_EMMITER_UPPER_LIMIT) {
         ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ParticleVelocityFields size exceeds limit: %{public}u", size);
         return false;
