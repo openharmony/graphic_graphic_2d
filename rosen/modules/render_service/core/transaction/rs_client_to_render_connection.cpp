@@ -492,7 +492,7 @@ void RSClientToRenderConnection::TakeUICaptureInRange(
 }
 
 ErrCode RSClientToRenderConnection::SetHwcNodeBounds(
-    int64_t rsNodeId, float positionX, float positionY, float positionZ, float positionW)
+    NodeId rsNodeId, float positionX, float positionY, float positionZ, float positionW)
 {
     if (renderPipelineAgent_ == nullptr) {
         return ERR_INVALID_VALUE;
