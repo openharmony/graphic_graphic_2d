@@ -19,7 +19,6 @@
 #include "hdi_log.h"
 #include "hdi_output.h"
 #include "metadata_helper.h"
-#include "platform/ohos/rs_composer_jank_stats.h"
 #include "rs_trace.h"
 #include "string_utils.h"
 // DISPLAYENGINE
@@ -685,7 +684,7 @@ int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
     if (fbFence != nullptr) {
         curPresentFd_ = fbFence->Get();
     }
-    RSComposerJankStats::GetInstance().CalculateJankInfo(timestamp);
+    rsComposerJankStats.CalculateJankInfo(timestamp);
     return ret;
 }
 
