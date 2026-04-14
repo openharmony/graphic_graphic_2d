@@ -24,6 +24,7 @@
 #include "feature/hpae/rs_hpae_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "gfx/performance/rs_perfmonitor_reporter.h"
+#include "gpuComposition/rs_gpu_cache_manager.h"
 #include "memory/rs_memory_manager.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_render_node_gc.h"
@@ -42,7 +43,6 @@
 #endif
 #include "rs_render_composer_manager.h"
 #include "rs_uni_render_thread.h"
-#include "feature/gpuComposition/rs_gpu_cache_manager.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -233,6 +233,30 @@ void RSDrawFrame::ClearDrawableResource()
         case RsParallelType::RS_PARALLEL_TYPE_ASYNC: // wait until sync finish in render thread
         default: {
             unirenderInstance_.PostTask([]() { DrawableV2::RSRenderNodeDrawableAdapter::ClearResource(); });
+        }
+    }
+}
+
+void RSDrawFrame::ClearDrawableMemory(bool highPriority)
+{
+    switch (rsParallelType_) {
+        case RsParallelType::RS_PARALLEL_TYPE_SYNC: { // wait until render finish in render thread
+            auto task = [highPriority]() {
+                RSRenderNodeGC::Instance().ReleaseDrawableMemory(highPriority);
+            };
+            unirenderInstance_.PostSyncTask(task);
+            break;
+        }
+        case RsParallelType::RS_PARALLEL_TYPE_SINGLE_THREAD: { // render in main thread
+            RSRenderNodeGC::Instance().ReleaseDrawableMemory(highPriority);
+            break;
+        }
+        case RsParallelType::RS_PARALLEL_TYPE_ASYNC: // wait until sync finish in render thread
+        default: {
+            auto task = [highPriority]() {
+                RSRenderNodeGC::Instance().ReleaseDrawableMemory(highPriority);
+            };
+            unirenderInstance_.PostTask(task);
         }
     }
 }

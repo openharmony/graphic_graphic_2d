@@ -66,8 +66,6 @@ public:
 
     static bool IsRcdProcessInfoValid(const RcdProcessInfo& info);
 
-    static void DrawRoundCorner(RSPaintFilterCanvas& canvas, const std::vector<RSLayerPtr>& layers);
-
     RSRcdRenderManager() = default;
     virtual ~RSRcdRenderManager() = default;
 

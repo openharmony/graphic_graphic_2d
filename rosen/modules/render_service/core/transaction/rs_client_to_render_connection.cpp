@@ -105,6 +105,7 @@ constexpr uint64_t MAX_TIME_OUT_NS = 1e9;
 constexpr int64_t MAX_FREEZE_SCREEN_TIME = 3000;
 const std::string UNFREEZE_SCREEN_TASK_NAME = "UNFREEZE_SCREEN_TASK";
 }
+const std::string RSClientToRenderConnection::GPU_FREQ_PREF = "GPU_FREQ_PREF";
 
 // we guarantee that when constructing this object,
 // all these pointers are valid, so will not check them.
@@ -139,6 +140,17 @@ RSClientToRenderConnection::~RSClientToRenderConnection() noexcept
     CleanAll();
 }
 
+void RSClientToRenderConnection::RegisterRemoteRefreshCallback()
+{
+    RS_LOGI("RSClientToRenderConnection::RegisterRemoteRefreshCallback");
+    if (!connRefreshRecipient_) {
+        connRefreshRecipient_ = new RSConnectionRefreshRecipient(this);
+    }
+    if (token_ == nullptr || !token_->AddRefreshRecipient(connRefreshRecipient_)) {
+        RS_LOGE("RSClientToRenderConnection: Failed to set refresh recipient");
+    }
+}
+
 void RSClientToRenderConnection::CleanAll(bool toDelete) noexcept
 {
     {
@@ -152,7 +164,7 @@ void RSClientToRenderConnection::CleanAll(bool toDelete) noexcept
         return;
     }
 
-    renderPipelineAgent_->CleanAll(remotePid_);
+    renderPipelineAgent_->Clean(remotePid_, false);
     {
         std::lock_guard<std::mutex> lock(mutex_);
         cleanDone_ = true;
@@ -162,6 +174,15 @@ void RSClientToRenderConnection::CleanAll(bool toDelete) noexcept
     //     auto token = iface_cast<RSIConnectionToken>(GetToken());
     //     renderPipelineAgent_->RemoveConnection(token);
     // }
+}
+
+void RSClientToRenderConnection::CleanForRefresh() noexcept
+{
+    if (renderPipelineAgent_ == nullptr) {
+        return;
+    }
+
+    renderPipelineAgent_->Clean(remotePid_, true);
 }
 
 RSClientToRenderConnection::RSConnectionDeathRecipient::RSConnectionDeathRecipient(
@@ -189,6 +210,34 @@ void RSClientToRenderConnection::RSConnectionDeathRecipient::OnRemoteDied(const 
     }
 
     rsConn->CleanAll(true);
+}
+
+RSClientToRenderConnection::RSConnectionRefreshRecipient::RSConnectionRefreshRecipient(
+    wptr<RSClientToRenderConnection> conn) : conn_(conn)
+{
+}
+
+void RSClientToRenderConnection::RSConnectionRefreshRecipient::OnRemoteRefreshed(const wptr<IRemoteObject>& token)
+{
+    auto tokenSptr = token.promote();
+    if (tokenSptr == nullptr) {
+        RS_LOGW("RSClientToRenderConnection::RSConnectionRefreshRecipient: can't promote remote object");
+        return;
+    }
+
+    auto rsConn = conn_.promote();
+    if (rsConn == nullptr) {
+        RS_LOGW("RSConnectionRefreshRecipient::OnRemoteRefreshed: RSClientToRenderConnection was dead, do not hing");
+        return;
+    }
+
+    if (rsConn->GetToken() != tokenSptr) {
+        RS_LOGI("RSConnectionRefreshRecipient::OnRemoteRefreshed: token  doesn't match, ignore it");
+        return;
+    }
+    RS_LOGI("RSConnectionRefreshRecipient::OnRemoteRefreshed: call CleanForRefresh");
+
+    rsConn->CleanForRefresh();
 }
 
 RSClientToRenderConnection::RSApplicationRenderThreadDeathRecipient::RSApplicationRenderThreadDeathRecipient(

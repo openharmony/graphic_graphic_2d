@@ -41,6 +41,10 @@ public:
     void SetAdaptiveColorGamutEnable(bool isAdaptiveColorGamutEnable);
     bool IsAdaptiveColorGamutEnabled() const;
 
+    // use to force sRGB output on specific device types, disabling color management
+    void SetForceSRGBOutput(bool isForceSRGBOutput);
+    bool IsForceSRGBOutputEnabled() const;
+
     void SetTvPlayerBundleName(const std::string& bundleName);
     const std::string& GetTvPlayerBundleName() const;
 
@@ -84,6 +88,9 @@ private:
 
     // use to implement product isolation for the adaptive P3 scheme
     std::atomic<bool> isAdaptiveColorGamutEnable_{false};
+
+    // force sRGB output, disable color management
+    std::atomic<bool> isForceSRGBOutput_{false};
 
     std::string tvPlayerBundleName_;
 

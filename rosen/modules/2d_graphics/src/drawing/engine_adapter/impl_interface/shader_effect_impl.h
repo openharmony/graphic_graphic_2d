@@ -30,6 +30,7 @@
 #include "utils/rect.h"
 #include "utils/sampling_options.h"
 #include "utils/scalar.h"
+#include "draw/ui_color.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -88,6 +89,22 @@ public:
         scalar endAngle, const Matrix *matrix) = 0;
 
     virtual void InitWithSdf(const SDFShapeBase& shape) = 0;
+
+    virtual void InitWithLinearGradient(const Point& startPt, const Point& endPt, const std::vector<UIColor>& colors,
+        std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos, TileMode mode,
+        const Matrix *matrix) = 0;
+
+    virtual void InitWithRadialGradient(const Point& centerPt, scalar radius, const std::vector<UIColor>& colors,
+        std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos,
+        TileMode mode, const Matrix *matrix) = 0;
+
+    virtual void InitWithTwoPointConical(const Point& startPt, scalar startRadius, const Point& endPtr,
+        scalar endRadius, const std::vector<UIColor>& colors, std::shared_ptr<ColorSpace> colorSpace,
+        const std::vector<scalar>& pos, TileMode mode, const Matrix *matrix) = 0;
+
+    virtual void InitWithSweepGradient(const Point& centerPt, const std::vector<UIColor>& colors,
+        std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos, TileMode mode,
+        scalar startAngle, scalar endAngle, const Matrix *matrix) = 0;
 
 #ifdef RS_ENABLE_GPU
     virtual void SetGPUContext(std::shared_ptr<GPUContext> gpuContext) = 0;

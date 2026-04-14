@@ -29,6 +29,8 @@ ohos_unittest("RSRenderServiceAgentTest") {
     ]
 
     include_dirs = [
+        "../../../../../rosen/modules/platform",
+        "$graphic_2d_root/rosen/modules/frame_load/include",
         "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
         "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
         "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
@@ -42,6 +44,7 @@ ohos_unittest("RSRenderServiceAgentTest") {
         "$graphic_2d_root/rosen/modules/render_service/main/render_process",
         "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection",
         "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/external_depend",
         "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/pipeline",
         "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction",
         "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/command",
@@ -65,7 +68,7 @@ ohos_unittest("RSRenderServiceAgentTest") {
     deps = [
         "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
         "$graphic_2d_root/rosen/modules/composer:libcomposer",
-        "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+        "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
         "$graphic_2d_root/rosen/modules/render_service:librender_service",
         "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
         "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
@@ -101,6 +104,8 @@ ohos_unittest("RSRenderProcessManagerAgentTest") {
     ]
 
     include_dirs = [
+        "../../../../../rosen/modules/platform",
+        "$graphic_2d_root/rosen/modules/frame_load/include",
         "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
         "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
         "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
@@ -114,6 +119,7 @@ ohos_unittest("RSRenderProcessManagerAgentTest") {
         "$graphic_2d_root/rosen/modules/render_service/main/render_process",
         "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection",
         "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/external_depend",
         "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/pipeline",
         "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction",
         "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/command",
@@ -137,7 +143,7 @@ ohos_unittest("RSRenderProcessManagerAgentTest") {
     deps = [
         "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
         "$graphic_2d_root/rosen/modules/composer:libcomposer",
-        "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+        "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
         "$graphic_2d_root/rosen/modules/render_service:librender_service",
         "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
         "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
@@ -175,6 +181,7 @@ ohos_unittest("RSRenderSingleProcessManagerTest") {
 
     include_dirs = [
         "../../../../../rosen/modules/platform",
+        "$graphic_2d_root/rosen/modules/frame_load/include",
         "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
         "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
         "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
@@ -188,6 +195,7 @@ ohos_unittest("RSRenderSingleProcessManagerTest") {
         "$graphic_2d_root/rosen/modules/render_service/main/render_process",
         "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection",
         "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/external_depend",
         "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/pipeline",
         "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction",
         "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/command",
@@ -211,7 +219,7 @@ ohos_unittest("RSRenderSingleProcessManagerTest") {
     deps = [
         "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
         "$graphic_2d_root/rosen/modules/composer:libcomposer",
-        "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+        "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
         "$graphic_2d_root/rosen/modules/render_service:librender_service",
         "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
         "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
@@ -261,6 +269,7 @@ ohos_unittest("RSRenderProcessManagerTest") {
         "$graphic_2d_root/rosen/modules/render_service/main/render_process",
         "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection",
         "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/external_depend",
         "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/pipeline",
         "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction",
         "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/command",
@@ -430,7 +439,7 @@ ohos_unittest("RSMultiRenderProcessManagerTest") {
     deps = [
         "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
         "$graphic_2d_root/rosen/modules/composer:libcomposer",
-        "$graphic_2d_root/rosen/modules/render_service/composer:render_composer",
+        "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
         "$graphic_2d_root/rosen/modules/render_service:librender_service",
         "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
         "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",

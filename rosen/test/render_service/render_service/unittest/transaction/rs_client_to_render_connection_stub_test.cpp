@@ -18,46 +18,49 @@
 #include <message_parcel.h>
 #include <parameters.h>
 
-#include "dirty_region/rs_gpu_dirty_collector.h"
-#include "gtest/gtest.h"
-#include "limit_number.h"
-#include "mock_hdi_device.h"
-#include "sandbox_utils.h"
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 #include "feature_cfg/feature_param/performance_feature/node_mem_release_param.h"
 #include "ipc_callbacks/rs_canvas_surface_buffer_callback_stub.h"
 #include "platform/ohos/backend/surface_buffer_utils.h"
 #endif
-#include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
-#include "ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_stub.h"
-#include "ipc_callbacks/rs_surface_occlusion_change_callback_stub.h"
-#include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback_ipc_interface_code.h"
-#include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback.h"
-#include "ipc_callbacks/screen_change_callback_stub.h"
-#include "ipc_callbacks/brightness_info_change_callback_stub.h"
-#include "pipeline/render_thread/rs_composer_adapter.h"
-#include "pipeline/main_thread/rs_main_thread.h"
-#include "transaction/rs_client_to_render_connection.h"
-#include "pipeline/rs_logical_display_render_node.h"
-#include "feature/pointer_window_manager/rs_pointer_window_manager.h"
-#include "pipeline/rs_render_node_gc.h"
-#include "pipeline/rs_screen_render_node.h"
-#include "pipeline/rs_uni_render_judgement.h"
-#include "ipc_callbacks/rs_transaction_data_callback_stub.h"
-#include "platform/ohos/transaction/zidl/rs_irender_service.h"
-#include "screen_manager/screen_types.h"
-#include "transaction/zidl/rs_client_to_render_connection_stub.h"
-#include "screen_manager/rs_screen.h"
+#include "dirty_region/rs_gpu_dirty_collector.h"
 #include "feature/capture/rs_capture_pixelmap_manager.h"
-#include "ipc_callbacks/surface_capture_callback_stub.h"
-#include "ipc_callbacks/rs_surface_buffer_callback_stub.h"
+#include "feature/pointer_window_manager/rs_pointer_window_manager.h"
+#include "gtest/gtest.h"
+#include "ipc_callbacks/brightness_info_change_callback_stub.h"
 #include "ipc_callbacks/buffer_available_callback_stub.h"
 #include "ipc_callbacks/buffer_clear_callback_stub.h"
 #include "ipc_callbacks/rs_application_agent_stub.h"
+#include "ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_stub.h"
+#include "ipc_callbacks/rs_frame_stability_callback_stub.h"
+#include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback_ipc_interface_code.h"
+#include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback.h"
+#include "ipc_callbacks/rs_iframe_stability_callback.h"
+#include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
+#include "ipc_callbacks/rs_surface_buffer_callback_stub.h"
+#include "ipc_callbacks/rs_surface_occlusion_change_callback_stub.h"
+#include "ipc_callbacks/rs_transaction_data_callback_stub.h"
+#include "ipc_callbacks/screen_change_callback_stub.h"
+#include "ipc_callbacks/surface_capture_callback_stub.h"
+#include "limit_number.h"
+#include "mock_hdi_device.h"
+#include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/render_thread/rs_composer_adapter.h"
+#include "pipeline/rs_logical_display_render_node.h"
+#include "pipeline/rs_render_node_gc.h"
+#include "pipeline/rs_screen_render_node.h"
+#include "pipeline/rs_uni_render_judgement.h"
+#include "platform/ohos/transaction/zidl/rs_irender_service.h"
+#include "sandbox_utils.h"
+#include "screen_manager/rs_screen.h"
+#include "screen_manager/screen_types.h"
+#include "transaction/rs_client_to_render_connection.h"
+#include "transaction/rs_frame_stability_types.h"
 #include "transaction/rs_transaction_data.h"
-#ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_context.h"
-#endif
+#include "transaction/zidl/rs_client_to_render_connection_stub.h"
 using namespace testing;
 using namespace testing::ext;
 
@@ -66,6 +69,9 @@ constexpr const int WAIT_HANDLER_TIME = 1; // 1s
 constexpr const int WAIT_HANDLER_TIME_COUNT = 5;
 constexpr const int SURFACE_NODE_ID = 1003;
 constexpr const int TEST_NULLPTR_CONN_PID = 10;
+constexpr const uint64_t DEFAULT_ID = 100;
+constexpr const uint32_t DEFAULT_STABLE_DURATION = 1000;
+constexpr const float DEFAULT_CHANGE_PERCENT = 0.5f;
 };
 
 namespace OHOS::Rosen {
@@ -253,6 +259,13 @@ public:
     ~RSSurfaceBufferCallbackStubMock() noexcept override = default;
     void OnFinish(const FinishCallbackRet& ret) override {}
     void OnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) override {}
+};
+
+class RSFrameStabilityCallbackStubMock : public RSFrameStabilityCallbackStub {
+public:
+    RSFrameStabilityCallbackStubMock() = default;
+    virtual ~RSFrameStabilityCallbackStubMock() = default;
+    void OnFrameStabilityChanged(bool isStable) override {};
 };
 
 void g_WriteSurfaceCaptureConfigMock(RSSurfaceCaptureConfig& captureConfig, MessageParcel& data)
@@ -4064,8 +4077,8 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RenderPipelineAgentNullptrTest012, 
     agent->NotifyHwcEventToRender(0, 0, eventData);
     // Should return without crash
 
-    // Test CleanAll
-    agent->CleanAll(100);
+    // Test Clean
+    agent->Clean(100, false);
     // Should return without crash
 
     // Test AddTransactionDataPidInfo
@@ -4680,7 +4693,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, GetPixelMapTest, TestSize.Level1)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     data.WriteBool(false);
     uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_PIXELMAP);
     auto res = connectionStub_->OnRemoteRequest(code, data, reply, option);

@@ -721,7 +721,7 @@ napi_value JsMatrix::OnInvert(napi_env env, napi_callback_info info)
 
     if (jsMatrix->GetMatrix() == nullptr) {
         ROSEN_LOGE("JsMatrix::OnInvert matrix is nullptr");
-        return nullptr;
+        return CreateJsValue(env, false);
     }
 
     return CreateJsValue(env, m_matrix->Invert(*jsMatrix->GetMatrix()));

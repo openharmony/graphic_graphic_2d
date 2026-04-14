@@ -468,6 +468,7 @@ int32_t RSSurfaceLayer::GetGravity() const
 
 void RSSurfaceLayer::SetUniRenderFlag(bool isUniRender)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (isUniRender_ == isUniRender) {
         return;
     }
@@ -477,6 +478,7 @@ void RSSurfaceLayer::SetUniRenderFlag(bool isUniRender)
 
 bool RSSurfaceLayer::GetUniRenderFlag() const
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     return isUniRender_;
 }
 
@@ -768,11 +770,13 @@ LayerMask RSSurfaceLayer::GetLayerMaskInfo() const
 
 void RSSurfaceLayer::SetSurface(const sptr<IConsumerSurface>& surface)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     cSurface_ = surface;
 }
 
 sptr<IConsumerSurface> RSSurfaceLayer::GetSurface() const
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     return cSurface_;
 }
 
@@ -792,6 +796,7 @@ void RSSurfaceLayer::SetSurfaceUniqueId(uint64_t uniqueId)
 
 void RSSurfaceLayer::SetBuffer(const sptr<SurfaceBuffer>& sbuffer, const sptr<SyncFence>& acquireFence)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     sbuffer_ = sbuffer;
     acquireFence_ = acquireFence;
     SetRSLayerCmd<RSRenderLayerBufferCmd>(sbuffer);
@@ -800,15 +805,17 @@ void RSSurfaceLayer::SetBuffer(const sptr<SurfaceBuffer>& sbuffer, const sptr<Sy
 
 void RSSurfaceLayer::SetBuffer(const sptr<SurfaceBuffer>& sbuffer)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     sbuffer_ = sbuffer;
     SetRSLayerCmd<RSRenderLayerBufferCmd>(sbuffer);
 }
 
 sptr<SurfaceBuffer> RSSurfaceLayer::GetBuffer() const
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     auto sbuffer = sbuffer_.promote();
     if (sbuffer == nullptr) {
-        ROSEN_LOGE("%{public}s layer id: %{public}" PRIu64 "buffer is released", __func__, rsLayerId_);
+        ROSEN_LOGE("%{public}s layer id: %{public}" PRIu64 " buffer is released", __func__, rsLayerId_);
         return nullptr;
     }
     return sbuffer;
@@ -827,7 +834,7 @@ sptr<SurfaceBuffer> RSSurfaceLayer::GetPreBuffer() const
 {
     auto pbuffer = pbuffer_.promote();
     if (pbuffer == nullptr) {
-        ROSEN_LOGE("%{public}s layer id: %{public}" PRIu64 "buffer is released", __func__, rsLayerId_);
+        ROSEN_LOGE("%{public}s layer id: %{public}" PRIu64 " buffer is released", __func__, rsLayerId_);
         return nullptr;
     }
     return pbuffer;
@@ -887,10 +894,19 @@ GraphicSolidColorLayerProperty RSSurfaceLayer::GetSolidColorLayerProperty() cons
     return solidColorLayerProperty_;
 }
 
+// hpae_offline begin
 void RSSurfaceLayer::SetUseDeviceOffline(bool useOffline)
 {
     if (useDeviceOffline_ == useOffline) {
         return;
+    }
+    if (!useOffline) {
+        // offline switch to online, clear original buffer info
+        hpaeOriginalInfo_.originalBuffer = nullptr;
+        hpaeOriginalInfo_.originalPreBuffer = nullptr;
+        hpaeOriginalInfo_.originalAcquireFence = SyncFence::InvalidFence();
+        hpaeOriginalInfo_.originalTransformType = GraphicTransformType::GRAPHIC_ROTATE_BUTT;
+        hpaeOriginalInfo_.originalCropRect = {0, 0, 0, 0};
     }
     useDeviceOffline_ = useOffline;
     SetRSLayerCmd<RSRenderLayerUseDeviceOfflineCmd>(useOffline);
@@ -900,6 +916,21 @@ bool RSSurfaceLayer::GetUseDeviceOffline() const
 {
     return useDeviceOffline_;
 }
+
+void RSSurfaceLayer::SetHpaeOriginalInfo(const HpaeOriginalInfo& hpaeOriginalInfo)
+{
+    if (hpaeOriginalInfo_ == hpaeOriginalInfo) {
+        return;
+    }
+    hpaeOriginalInfo_ = hpaeOriginalInfo;
+    SetRSLayerCmd<RSRenderLayerHpaeOriginalInfoCmd>(hpaeOriginalInfo);
+}
+ 
+const HpaeOriginalInfo& RSSurfaceLayer::GetHpaeOriginalInfo() const
+{
+    return hpaeOriginalInfo_;
+}
+// hpae_offline end
 
 void RSSurfaceLayer::SetIgnoreAlpha(bool ignoreAlpha)
 {
@@ -1000,8 +1031,6 @@ void RSSurfaceLayer::SetBufferOwnerCount(const std::shared_ptr<RSSurfaceHandler:
     if (bufferOwnerCount == nullptr) {
         return;
     }
-    RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceLayer::SetBufferOwnerCount bufferId %" PRIu64 " layerId %" PRIu64,
-        bufferOwnerCount->bufferId_, rsLayerId_);
     std::lock_guard<std::mutex> lockGuard(ownerCountMutex_);
     if (bufferOwnerCounts_.find(bufferOwnerCount->bufferId_) == bufferOwnerCounts_.end()) {
         bufferOwnerCount->AddRef();
@@ -1029,5 +1058,30 @@ std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> RSSurfaceLayer::GetBufferOwn
     std::lock_guard<std::mutex> lockGuard(ownerCountMutex_);
     return bufferOwnerCount_;
 }
+
+// hpae_offline begin
+void RSSurfaceLayer::SetOriginalBufferOwnerCount(
+    const std::shared_ptr<RSSurfaceHandler::BufferOwnerCount>& bufferOwnerCount)
+{
+    if (bufferOwnerCount == nullptr) {
+        return;
+    }
+    RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceLayer::SetOriginalBufferOwnerCount bufferId %" PRIu64 " layerId %" PRIu64,
+        bufferOwnerCount->bufferId_, rsLayerId_);
+    std::lock_guard<std::mutex> lockGuard(ownerCountMutex_);
+    if (bufferOwnerCounts_.find(bufferOwnerCount->bufferId_) == bufferOwnerCounts_.end()) {
+        bufferOwnerCount->AddRef();
+    }
+    bufferOwnerCounts_[bufferOwnerCount->bufferId_] = bufferOwnerCount;
+    originalBufferOwnerCount_ = bufferOwnerCount;
+}
+ 
+std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> RSSurfaceLayer::GetOriginalBufferOwnerCount() const
+{
+    std::lock_guard<std::mutex> lockGuard(ownerCountMutex_);
+    return originalBufferOwnerCount_;
+}
+// hpae_offline end
+ 
 } // namespace Rosen
 } // namespace OHOS

@@ -675,5 +675,510 @@ HWTEST_F(OHHmSymbolTxtTest, SetFirstActiveTest, TestSize.Level1)
     textStyle = AdapterTxt::Convert(style);
     EXPECT_EQ(textStyle.symbol.GetFirstActive(),  style.symbol.GetFirstActive());
 }
+
+/*
+ * @tc.name: SetRenderUIColors001
+ * @tc.desc: test SetRenderUIColors on interface layer
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolTxtTest, SetRenderUIColors001, TestSize.Level0)
+{
+    OHOS::Rosen::HMSymbolTxt symbolTxt;
+    Drawing::UIColor uiColor(1.0f, 0.5f, 0.3f, 1.0f);
+    std::vector<Drawing::UIColor> uiColors = { uiColor };
+    std::vector<SymbolColorSpace> colorSpaces = { SymbolColorSpace::DISPLAY_P3 };
+    symbolTxt.SetRenderUIColor(uiColors, colorSpaces);
+
+    auto symbolColor = symbolTxt.GetSymbolColor();
+    EXPECT_EQ(symbolColor.colorType, SymbolColorType::COLOR_TYPE);
+    EXPECT_EQ(symbolColor.gradients.size(), 1); // 1 is the size of gradients
+    ASSERT_TRUE(symbolColor.gradients[0] != nullptr);
+    EXPECT_TRUE(symbolColor.gradients[0]->HasUIColor());
+    EXPECT_EQ(symbolColor.gradients[0]->GetColorSpace(), SymbolColorSpace::DISPLAY_P3);
+    EXPECT_EQ(symbolColor.gradients[0]->GetGradientType(), GradientType::NONE_GRADIENT);
+}
+
+/*
+ * @tc.name: SetRenderUIColorThenRenderColor001
+ * @tc.desc: test SetRenderUIColor then SetRenderColor, Color replaces UIColor
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolTxtTest, SetRenderUIColorThenRenderColor001, TestSize.Level0)
+{
+    OHOS::Rosen::HMSymbolTxt symbolTxt;
+    // First set UIColor
+    Drawing::UIColor uiColor(1.0f, 0.5f, 0.3f, 1.0f);
+    std::vector<SymbolColorSpace> colorSpaces = { SymbolColorSpace::BT2020 };
+    symbolTxt.SetRenderUIColor({ uiColor }, colorSpaces);
+
+    // Then set Drawing::Color
+    Drawing::Color color1 = Drawing::Color::COLOR_BLUE;
+    std::vector<Drawing::Color> colors = { color1 };
+    symbolTxt.SetRenderColor(colors);
+
+    // Verify Color replaced UIColor
+    auto symbolColor = symbolTxt.GetSymbolColor();
+    EXPECT_EQ(symbolColor.colorType, SymbolColorType::COLOR_TYPE);
+    EXPECT_EQ(symbolColor.gradients.size(), 1); // 1 is the size of gradients
+    ASSERT_TRUE(symbolColor.gradients[0] != nullptr);
+    EXPECT_FALSE(symbolColor.gradients[0]->HasUIColor());
+}
+
+/*
+ * @tc.name: SetRenderColorThenRenderUIColor001
+ * @tc.desc: test SetRenderColor then SetRenderUIColor, UIColor replaces Color
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolTxtTest, SetRenderColorThenRenderUIColor001, TestSize.Level0)
+{
+    OHOS::Rosen::HMSymbolTxt symbolTxt;
+    // First set Drawing::Color
+    Drawing::Color color1 = Drawing::Color::COLOR_BLUE;
+    std::vector<Drawing::Color> colors = { color1 };
+    symbolTxt.SetRenderColor(colors);
+
+    // Then set UIColor
+    Drawing::UIColor uiColor(1.0f, 0.5f, 0.3f, 1.0f);
+    std::vector<SymbolColorSpace> colorSpaces = { SymbolColorSpace::DISPLAY_P3 };
+    symbolTxt.SetRenderUIColor({ uiColor }, colorSpaces);
+
+    // Verify UIColor replaced Color
+    auto symbolColor = symbolTxt.GetSymbolColor();
+    EXPECT_EQ(symbolColor.colorType, SymbolColorType::COLOR_TYPE);
+    EXPECT_EQ(symbolColor.gradients.size(), 1); // 1 is the size of gradients
+    ASSERT_TRUE(symbolColor.gradients[0] != nullptr);
+    EXPECT_TRUE(symbolColor.gradients[0]->HasUIColor());
+    EXPECT_EQ(symbolColor.gradients[0]->GetColorSpace(), SymbolColorSpace::DISPLAY_P3);
+}
+
+/*
+ * @tc.name: SetRenderUIColors002
+ * @tc.desc: test SetRenderUIColors with multiple colors
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolTxtTest, SetRenderUIColors002, TestSize.Level0)
+{
+    OHOS::Rosen::HMSymbolTxt symbolTxt;
+    Drawing::UIColor uiColor1(1.0f, 0.0f, 0.0f, 1.0f);
+    Drawing::UIColor uiColor2(0.0f, 1.0f, 0.0f, 1.0f);
+    std::vector<Drawing::UIColor> uiColors = { uiColor1, uiColor2 };
+    std::vector<SymbolColorSpace> colorSpaces = { SymbolColorSpace::BT2020 };
+    symbolTxt.SetRenderUIColor(uiColors, colorSpaces);
+
+    auto symbolColor = symbolTxt.GetSymbolColor();
+    EXPECT_EQ(symbolColor.gradients.size(), 2); // 2 is the size of gradients
+    EXPECT_TRUE(symbolColor.gradients[0]->HasUIColor());
+    EXPECT_TRUE(symbolColor.gradients[1]->HasUIColor());
+    EXPECT_EQ(symbolColor.gradients[0]->GetColorSpace(), SymbolColorSpace::BT2020);
+    EXPECT_EQ(symbolColor.gradients[1]->GetColorSpace(), SymbolColorSpace::SRGB);
+}
+
+/*
+ * @tc.name: SetRenderUIColors_Convert001
+ * @tc.desc: test SetRenderUIColors converted to adapter layer
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolTxtTest, SetRenderUIColors_Convert001, TestSize.Level0)
+{
+    TextStyle style;
+    style.isSymbolGlyph = true;
+    Drawing::UIColor uiColor(1.0f, 0.5f, 0.3f, 1.0f);
+    std::vector<Drawing::UIColor> uiColors = { uiColor };
+    std::vector<SymbolColorSpace> colorSpaces = { SymbolColorSpace::DISPLAY_P3 };
+    style.symbol.SetRenderUIColor(uiColors, colorSpaces);
+
+    SPText::TextStyle textStyle = AdapterTxt::Convert(style);
+    auto uiColorResults = textStyle.symbol.GetUIColors();
+    ASSERT_FALSE(uiColorResults.empty());
+    EXPECT_FLOAT_EQ(uiColorResults[0].GetRed(), 1.0f);
+    EXPECT_FLOAT_EQ(uiColorResults[0].GetGreen(), 0.5f);
+    EXPECT_FLOAT_EQ(uiColorResults[0].GetBlue(), 0.3f);
+    auto csResults = textStyle.symbol.GetColorSpaces();
+    ASSERT_FALSE(csResults.empty());
+    EXPECT_EQ(csResults[0], SymbolColorSpace::DISPLAY_P3);
+}
+
+/*
+ * @tc.name: GetUIColors_NoneGradient001
+ * @tc.desc: test GetUIColors returns value for NONE_GRADIENT with UIColor set
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolTxtTest, GetUIColors_NoneGradient001, TestSize.Level0)
+{
+    SPText::HMSymbolTxt symbolTxt;
+    Drawing::UIColor uiColor(1.0f, 0.5f, 0.3f, 1.0f);
+    std::vector<Drawing::UIColor> uiColors = { uiColor };
+    std::vector<SymbolColorSpace> colorSpaces = { SymbolColorSpace::SRGB };
+    symbolTxt.SetRenderUIColor(uiColors, colorSpaces);
+    auto result = symbolTxt.GetUIColors();
+    ASSERT_FALSE(result.empty());
+    EXPECT_FLOAT_EQ(result[0].GetRed(), 1.0f);
+    EXPECT_FLOAT_EQ(result[0].GetGreen(), 0.5f);
+    EXPECT_FLOAT_EQ(result[0].GetBlue(), 0.3f);
+}
+
+/*
+ * @tc.name: GetUIColors_NonNoneGradient001
+ * @tc.desc: test GetUIColors returns empty for LINE_GRADIENT
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolTxtTest, GetUIColors_NonNoneGradient001, TestSize.Level0)
+{
+    SPText::HMSymbolTxt symbolTxt;
+    // Create a SymbolLineGradient (LINE_GRADIENT), GetUIColors should return empty
+    auto lineGradient = std::make_shared<SymbolLineGradient>(45.0f); // 45.0f is angle
+    Drawing::UIColor uiColor(1.0f, 0.5f, 0.3f, 1.0f);
+    lineGradient->SetUIColors({ uiColor }, SymbolColorSpace::SRGB);
+    OHOS::Rosen::SymbolColor symbolColor = { SymbolColorType::COLOR_TYPE, { lineGradient } };
+    symbolTxt.SetSymbolColor(symbolColor);
+    auto result = symbolTxt.GetUIColors();
+    EXPECT_FALSE(result.empty());
+}
+
+/*
+ * @tc.name: GetUIColors_RadialGradient001
+ * @tc.desc: test GetUIColors returns empty for RADIAL_GRADIENT
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolTxtTest, GetUIColors_RadialGradient001, TestSize.Level0)
+{
+    SPText::HMSymbolTxt symbolTxt;
+    // Create a SymbolRadialGradient (RADIAL_GRADIENT), GetUIColors should return empty
+    auto radialGradient = std::make_shared<SymbolRadialGradient>(Drawing::Point(0.5f, 0.5f), 0.6f);
+    Drawing::UIColor uiColor(1.0f, 0.5f, 0.3f, 1.0f);
+    radialGradient->SetUIColors({ uiColor }, SymbolColorSpace::SRGB);
+    OHOS::Rosen::SymbolColor symbolColor = { SymbolColorType::COLOR_TYPE, { radialGradient } };
+    symbolTxt.SetSymbolColor(symbolColor);
+    auto result = symbolTxt.GetUIColors();
+    EXPECT_FALSE(result.empty());
+}
+
+/*
+ * @tc.name: GetUIColors_EmptyGradients001
+ * @tc.desc: test GetUIColors returns empty when gradients are empty
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolTxtTest, GetUIColors_EmptyGradients001, TestSize.Level0)
+{
+    SPText::HMSymbolTxt symbolTxt;
+    // no gradients set
+    auto result = symbolTxt.GetUIColors();
+    EXPECT_TRUE(result.empty());
+}
+
+/*
+ * @tc.name: GetColorSpaces_NoneGradient001
+ * @tc.desc: test GetColorSpaces for NONE_GRADIENT with UIColor set
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolTxtTest, GetColorSpaces_NoneGradient001, TestSize.Level0)
+{
+    SPText::HMSymbolTxt symbolTxt;
+    Drawing::UIColor uiColor(1.0f, 0.5f, 0.3f, 1.0f);
+    std::vector<SymbolColorSpace> colorSpaces = { SymbolColorSpace::DISPLAY_P3 };
+    symbolTxt.SetRenderUIColor({ uiColor }, colorSpaces);
+    auto csResults = symbolTxt.GetColorSpaces();
+    ASSERT_FALSE(csResults.empty());
+    EXPECT_EQ(csResults[0], SymbolColorSpace::DISPLAY_P3);
+
+    std::vector<SymbolColorSpace> colorSpaces2 = { SymbolColorSpace::BT2020 };
+    symbolTxt.SetRenderUIColor({ uiColor }, colorSpaces2);
+    auto csResults2 = symbolTxt.GetColorSpaces();
+    ASSERT_FALSE(csResults2.empty());
+    EXPECT_EQ(csResults2[0], SymbolColorSpace::BT2020);
+}
+
+/*
+ * @tc.name: GetColorSpaces_NonNoneGradient001
+ * @tc.desc: test GetColorSpaces returns SRGB for LINE_GRADIENT
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolTxtTest, GetColorSpaces_NonNoneGradient001, TestSize.Level0)
+{
+    SPText::HMSymbolTxt symbolTxt;
+    // Create a SymbolLineGradient (LINE_GRADIENT), GetColorSpaces should return SRGB
+    auto lineGradient = std::make_shared<SymbolLineGradient>(45.0f); // 45.0f is angle
+    Drawing::UIColor uiColor(1.0f, 0.5f, 0.3f, 1.0f);
+    lineGradient->SetUIColors({ uiColor }, SymbolColorSpace::DISPLAY_P3);
+    OHOS::Rosen::SymbolColor symbolColor = { SymbolColorType::COLOR_TYPE, { lineGradient } };
+    symbolTxt.SetSymbolColor(symbolColor);
+    auto csResults = symbolTxt.GetColorSpaces();
+    ASSERT_FALSE(csResults.empty());
+    EXPECT_EQ(csResults[0], SymbolColorSpace::DISPLAY_P3);
+    EXPECT_EQ(csResults[1], SymbolColorSpace::SRGB);
+}
+
+/*
+ * @tc.name: SetRenderUIColors_SingleMode001
+ * @tc.desc: test SetRenderUIColors with SINGLE render mode
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolTxtTest, SetRenderUIColors_SingleMode001, TestSize.Level0)
+{
+    TextStyle style;
+    style.isSymbolGlyph = true;
+    Drawing::UIColor uiColor(1.0f, 0.5f, 0.3f, 1.0f);
+    std::vector<SymbolColorSpace> colorSpaces2 = { SymbolColorSpace::SRGB };
+    style.symbol.SetRenderUIColor({ uiColor }, colorSpaces2);
+    style.symbol.SetRenderMode(0); // 0 is SINGLE
+
+    SPText::TextStyle textStyle = AdapterTxt::Convert(style);
+    EXPECT_EQ(textStyle.symbol.GetRenderMode(), Drawing::DrawingSymbolRenderingStrategy::SINGLE);
+    auto uiColorResults = textStyle.symbol.GetUIColors();
+    ASSERT_FALSE(uiColorResults.empty());
+    EXPECT_FLOAT_EQ(uiColorResults[0].GetRed(), 1.0f);
+    EXPECT_FLOAT_EQ(uiColorResults[0].GetGreen(), 0.5f);
+    EXPECT_FLOAT_EQ(uiColorResults[0].GetBlue(), 0.3f);
+}
+
+/*
+ * @tc.name: SetRenderUIColors_MultipleColorMode001
+ * @tc.desc: test SetRenderUIColors with MULTIPLE_COLOR render mode
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolTxtTest, SetRenderUIColors_MultipleColorMode001, TestSize.Level0)
+{
+    TextStyle style;
+    style.isSymbolGlyph = true;
+    Drawing::UIColor uiColor1(1.0f, 0.0f, 0.0f, 1.0f);
+    Drawing::UIColor uiColor2(0.0f, 1.0f, 0.0f, 1.0f);
+    std::vector<SymbolColorSpace> colorSpaces2 = { SymbolColorSpace::SRGB, SymbolColorSpace::DISPLAY_P3 };
+    style.symbol.SetRenderUIColor({ uiColor1, uiColor2 }, colorSpaces2);
+    style.symbol.SetRenderMode(1); // 1 is MULTIPLE_COLOR
+
+    SPText::TextStyle textStyle = AdapterTxt::Convert(style);
+    EXPECT_EQ(textStyle.symbol.GetRenderMode(), Drawing::DrawingSymbolRenderingStrategy::MULTIPLE_COLOR);
+    auto symbolColor = textStyle.symbol.GetSymbolColor();
+    EXPECT_EQ(symbolColor.gradients.size(), 2); // 2 is the size of gradients
+    EXPECT_TRUE(symbolColor.gradients[0]->HasUIColor());
+    EXPECT_TRUE(symbolColor.gradients[1]->HasUIColor());
+    auto csResults = textStyle.symbol.GetColorSpaces();
+    ASSERT_EQ(csResults.size(), 2); // 2 is the size of colorSpaces
+    EXPECT_EQ(csResults[0], SymbolColorSpace::SRGB);
+    EXPECT_EQ(csResults[1], SymbolColorSpace::DISPLAY_P3);
+}
+
+/*
+ * @tc.name: SetRenderUIColors_MultipleOpacityMode001
+ * @tc.desc: test SetRenderUIColors with MULTIPLE_OPACITY render mode
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolTxtTest, SetRenderUIColors_MultipleOpacityMode001, TestSize.Level0)
+{
+    TextStyle style;
+    style.isSymbolGlyph = true;
+    Drawing::UIColor uiColor(1.0f, 0.5f, 0.3f, 1.0f);
+    std::vector<SymbolColorSpace> colorSpaces = { SymbolColorSpace::DISPLAY_P3 };
+    style.symbol.SetRenderUIColor({ uiColor }, colorSpaces);
+    style.symbol.SetRenderMode(2); // 2 is MULTIPLE_OPACITY
+
+    SPText::TextStyle textStyle = AdapterTxt::Convert(style);
+    EXPECT_EQ(textStyle.symbol.GetRenderMode(), Drawing::DrawingSymbolRenderingStrategy::MULTIPLE_OPACITY);
+    auto csResults = textStyle.symbol.GetColorSpaces();
+    ASSERT_FALSE(csResults.empty());
+    EXPECT_EQ(csResults[0], SymbolColorSpace::DISPLAY_P3);
+}
+
+/*
+ * @tc.name: SetRenderColorThenUIColor001
+ * @tc.desc: test SetRenderColor then SetRenderUIColors, UIColor replaces Color
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolTxtTest, SetRenderColorThenUIColor001, TestSize.Level0)
+{
+    OHOS::Rosen::HMSymbolTxt symbolTxt;
+    // First set Drawing::Color
+    Drawing::Color color1 = Drawing::Color::COLOR_BLUE;
+    std::vector<Drawing::Color> colors = { color1 };
+    symbolTxt.SetRenderColor(colors);
+
+    // Then set UIColor
+    Drawing::UIColor uiColor(1.0f, 0.5f, 0.3f, 1.0f);
+    std::vector<SymbolColorSpace> colorSpaces = { SymbolColorSpace::BT2020 };
+    symbolTxt.SetRenderUIColor({ uiColor }, colorSpaces);
+
+    // Verify UIColor replaced Color
+    auto symbolColor = symbolTxt.GetSymbolColor();
+    EXPECT_EQ(symbolColor.gradients.size(), 1); // 1 is the size of gradients
+    EXPECT_TRUE(symbolColor.gradients[0]->HasUIColor());
+    EXPECT_EQ(symbolColor.gradients[0]->GetColorSpace(), SymbolColorSpace::BT2020);
+}
+
+/*
+ * @tc.name: SetUIColorThenRenderColor001
+ * @tc.desc: test SetRenderUIColors then SetRenderColor, Color replaces UIColor
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolTxtTest, SetUIColorThenRenderColor001, TestSize.Level0)
+{
+    OHOS::Rosen::HMSymbolTxt symbolTxt;
+    // First set UIColor
+    Drawing::UIColor uiColor(1.0f, 0.5f, 0.3f, 1.0f);
+    std::vector<SymbolColorSpace> colorSpaces = { SymbolColorSpace::BT2020 };
+    symbolTxt.SetRenderUIColor({ uiColor }, colorSpaces);
+
+    // Then set Drawing::Color
+    Drawing::Color color1 = Drawing::Color::COLOR_BLUE;
+    std::vector<Drawing::Color> colors = { color1 };
+    symbolTxt.SetRenderColor(colors);
+
+    // Verify Color replaced UIColor
+    auto symbolColor = symbolTxt.GetSymbolColor();
+    EXPECT_EQ(symbolColor.gradients.size(), 1); // 1 is the size of gradients
+    EXPECT_FALSE(symbolColor.gradients[0]->HasUIColor());
+}
+
+/*
+ * @tc.name: SetRenderUIColors_GradientColor001
+ * @tc.desc: test SetRenderUIColors replaces gradient color on adapter layer
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolTxtTest, SetRenderUIColors_GradientColor001, TestSize.Level0)
+{
+    SPText::HMSymbolTxt symbolTxt;
+    // First set gradient color
+    auto lineGradient = std::make_shared<SymbolLineGradient>(90.0f); // 90.0f is angle
+    std::vector<Drawing::Color> colors = {Drawing::Color(0XFF00FF00), Drawing::Color(0XFFFF0000)};
+    lineGradient->SetColors(colors);
+    OHOS::Rosen::SymbolColor symbolColor = { SymbolColorType::GRADIENT_TYPE, { lineGradient } };
+    symbolTxt.SetSymbolColor(symbolColor);
+
+    // Then set UIColor, should replace gradient
+    Drawing::UIColor uiColor(1.0f, 0.5f, 0.3f, 1.0f);
+    std::vector<SymbolColorSpace> colorSpaces = { SymbolColorSpace::SRGB };
+    symbolTxt.SetRenderUIColor({ uiColor }, colorSpaces);
+    auto result = symbolTxt.GetUIColors();
+    ASSERT_FALSE(result.empty());
+    EXPECT_FLOAT_EQ(result[0].GetRed(), 1.0f);
+    EXPECT_FLOAT_EQ(result[0].GetGreen(), 0.5f);
+    EXPECT_FLOAT_EQ(result[0].GetBlue(), 0.3f);
+}
+
+/*
+ * @tc.name: SetRenderUIColors_MultipleColorSpaces001
+ * @tc.desc: test SetRenderUIColors with different colorSpaces per gradient
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolTxtTest, SetRenderUIColors_MultipleColorSpaces001, TestSize.Level0)
+{
+    SPText::HMSymbolTxt symbolTxt;
+    Drawing::UIColor uiColor1(1.0f, 0.0f, 0.0f, 1.0f);
+    Drawing::UIColor uiColor2(0.0f, 1.0f, 0.0f, 1.0f);
+    Drawing::UIColor uiColor3(0.0f, 0.0f, 1.0f, 1.0f);
+    std::vector<Drawing::UIColor> uiColors = { uiColor1, uiColor2, uiColor3 };
+    std::vector<SymbolColorSpace> colorSpaces = {
+        SymbolColorSpace::DISPLAY_P3,
+        SymbolColorSpace::BT2020,
+        SymbolColorSpace::SRGB
+    };
+    symbolTxt.SetRenderUIColor(uiColors, colorSpaces);
+
+    auto result = symbolTxt.GetUIColors();
+    ASSERT_EQ(result.size(), 3); // 3 is the size of uiColors
+    EXPECT_FLOAT_EQ(result[0].GetRed(), 1.0f);
+    EXPECT_FLOAT_EQ(result[1].GetGreen(), 1.0f);
+    EXPECT_FLOAT_EQ(result[2].GetBlue(), 1.0f);
+
+    auto csResults = symbolTxt.GetColorSpaces();
+    ASSERT_EQ(csResults.size(), 3); // 3 is the size of colorSpaces
+    EXPECT_EQ(csResults[0], SymbolColorSpace::DISPLAY_P3);
+    EXPECT_EQ(csResults[1], SymbolColorSpace::BT2020);
+    EXPECT_EQ(csResults[2], SymbolColorSpace::SRGB);
+}
+
+/*
+ * @tc.name: SetRenderUIColors_HDR_Headroom_Min001
+ * @tc.desc: test SetRenderUIColors with default headroom=1.0 (minimum)
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolTxtTest, SetRenderUIColors_HDR_Headroom_Min001, TestSize.Level0)
+{
+    SPText::HMSymbolTxt symbolTxt;
+    Drawing::UIColor uiColor(0.5f, 0.3f, 0.1f, 1.0f);
+    symbolTxt.SetRenderUIColor({ uiColor }, { SymbolColorSpace::SRGB });
+
+    auto result = symbolTxt.GetUIColors();
+    ASSERT_FALSE(result.empty());
+    EXPECT_FLOAT_EQ(result[0].GetHeadroom(), 1.0f);
+    EXPECT_FLOAT_EQ(result[0].GetRed(), 0.5f);
+    EXPECT_FLOAT_EQ(result[0].GetGreen(), 0.3f);
+    EXPECT_FLOAT_EQ(result[0].GetBlue(), 0.1f);
+}
+
+/*
+ * @tc.name: SetRenderUIColors_HDR_Headroom_Max001
+ * @tc.desc: test SetRenderUIColors with headroom=4.0 (maximum) via SetHeadroom
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolTxtTest, SetRenderUIColors_HDR_Headroom_Max001, TestSize.Level0)
+{
+    SPText::HMSymbolTxt symbolTxt;
+    Drawing::UIColor uiColor(3.0f, 2.5f, 1.8f, 1.0f);
+    uiColor.SetHeadroom(4.0f);
+    symbolTxt.SetRenderUIColor({ uiColor }, { SymbolColorSpace::BT2020 });
+
+    auto result = symbolTxt.GetUIColors();
+    ASSERT_FALSE(result.empty());
+    EXPECT_FLOAT_EQ(result[0].GetHeadroom(), 4.0f);
+    EXPECT_FLOAT_EQ(result[0].GetRed(), 3.0f);
+    EXPECT_FLOAT_EQ(result[0].GetGreen(), 2.5f);
+    EXPECT_FLOAT_EQ(result[0].GetBlue(), 1.8f);
+}
+
+/*
+ * @tc.name: SetRenderUIColors_HDR_MultiHeadroom001
+ * @tc.desc: test SetRenderUIColors with multiple HDR colors having different headroom
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolTxtTest, SetRenderUIColors_HDR_MultiHeadroom001, TestSize.Level0)
+{
+    SPText::HMSymbolTxt symbolTxt;
+    Drawing::UIColor uiColor1(1.5f, 0.8f, 0.5f, 1.0f);
+    uiColor1.SetHeadroom(-1.0f);
+    Drawing::UIColor uiColor2(2.0f, 1.0f, 0.3f, 1.0f);
+    uiColor2.SetHeadroom(0.0f);
+    std::vector<Drawing::UIColor> uiColors = { uiColor1, uiColor2 };
+    std::vector<SymbolColorSpace> colorSpaces = {
+        SymbolColorSpace::DISPLAY_P3,
+        SymbolColorSpace::BT2020
+    };
+    symbolTxt.SetRenderUIColor(uiColors, colorSpaces);
+
+    auto result = symbolTxt.GetUIColors();
+    ASSERT_EQ(result.size(), 2);
+    EXPECT_FLOAT_EQ(result[0].GetRed(), 1.5f);
+    EXPECT_FLOAT_EQ(result[0].GetHeadroom(), 1.0f);
+    EXPECT_FLOAT_EQ(result[1].GetRed(), 2.0f);
+    EXPECT_FLOAT_EQ(result[1].GetHeadroom(), 1.0f);
+
+    auto csResults = symbolTxt.GetColorSpaces();
+    ASSERT_EQ(csResults.size(), 2);
+    EXPECT_EQ(csResults[0], SymbolColorSpace::DISPLAY_P3);
+    EXPECT_EQ(csResults[1], SymbolColorSpace::BT2020);
+}
+
+/*
+ * @tc.name: SetRenderUIColors_Convert_HDR001
+ * @tc.desc: test HDR UIColor with headroom through Convert
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolTxtTest, SetRenderUIColors_Convert_HDR001, TestSize.Level0)
+{
+    TextStyle style;
+    style.isSymbolGlyph = true;
+    Drawing::UIColor uiColor(-1.0f, -1.0f, -1.0f, 1.5f);
+    uiColor.SetHeadroom(0.9f);
+    std::vector<SymbolColorSpace> colorSpaces = { SymbolColorSpace::DISPLAY_P3 };
+    style.symbol.SetRenderUIColor({ uiColor }, colorSpaces);
+
+    SPText::TextStyle textStyle = AdapterTxt::Convert(style);
+    auto uiColorResults = textStyle.symbol.GetUIColors();
+    ASSERT_FALSE(uiColorResults.empty());
+    EXPECT_FLOAT_EQ(uiColorResults[0].GetRed(), 0.0f);
+    EXPECT_FLOAT_EQ(uiColorResults[0].GetGreen(), 0.0f);
+    EXPECT_FLOAT_EQ(uiColorResults[0].GetBlue(), 0.0f);
+    EXPECT_FLOAT_EQ(uiColorResults[0].GetAlpha(), 1.0f);
+    EXPECT_FLOAT_EQ(uiColorResults[0].GetHeadroom(), 1.0f);
+}
 } // namespace Rosen
 } // namespace OHOS

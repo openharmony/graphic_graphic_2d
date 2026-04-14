@@ -817,6 +817,17 @@ void RSNode::SetAlphaOffscreen(bool alphaOffscreen)
     SetPropertyNG<ModifierNG::RSAlphaModifier, &ModifierNG::RSAlphaModifier::SetAlphaOffscreen>(alphaOffscreen);
 }
 
+void RSNode::MarkLayer(bool isLayer)
+{
+    CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
+    if (isLayer_ == isLayer) {
+        return;
+    }
+    isLayer_ = isLayer;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkLayer>(GetId(), isLayer_);
+    AddCommand(command, IsRenderServiceNode());
+}
+
 // Bounds
 void RSNode::SetBounds(const Vector4f& bounds)
 {
@@ -1605,13 +1616,20 @@ void RSNode::SetBackgroundColor(uint32_t colorValue)
 void RSNode::SetBackgroundColor(RSColor color)
 {
     RSColor colorInP3 = color;
-    if (colorInP3.GetColorSpace() == GRAPHIC_COLOR_GAMUT_DISPLAY_P3) {
-        isP3Color_ = true;
-        std::unique_ptr<RSCommand> command = std::make_unique<RSMarkNodeColorSpace>(GetId(), isP3Color_);
+    if (colorInP3.GetColorSpace() == GRAPHIC_COLOR_GAMUT_DISPLAY_P3 ||
+        colorInP3.GetColorSpace() == GRAPHIC_COLOR_GAMUT_BT2020) {
+        collectColorSpace_ = static_cast<int8_t>(colorInP3.GetColorSpace());
+        std::unique_ptr<RSCommand> command = std::make_unique<RSMarkNodeColorSpace>(GetId(), collectColorSpace_);
         AddCommand(command, IsRenderServiceNode());
     }
 #ifndef ROSEN_CROSS_PLATFORM
-    color.ConvertToP3ColorSpace();
+#ifdef ROSEN_OHOS
+    if (colorInP3.GetColorSpace() != GRAPHIC_COLOR_GAMUT_BT2020) {
+        color.ConvertToP3ColorSpace();
+    }
+#else
+ 	color.ConvertToP3ColorSpace();
+#endif
 #endif
     SetPropertyNG<ModifierNG::RSBackgroundColorModifier, &ModifierNG::RSBackgroundColorModifier::SetBackgroundColor>(
         color);
@@ -2276,12 +2294,23 @@ void RSNode::SetBlender(const Blender* blender)
             SetShadowBlenderParams({ shadowBlender->GetCubicCoeff(), shadowBlender->GetQuadraticCoeff(),
                 shadowBlender->GetLinearCoeff(), shadowBlender->GetConstantTerm() });
         }
+    } else if (Blender::HDR_DARKEN_BLENDER == blender->GetBlenderType()) {
+        auto hdrDarkenBlender = static_cast<const HdrDarkenBlender*>(blender);
+        if (hdrDarkenBlender != nullptr) {
+            SetHdrDarkenBlenderParams({ hdrDarkenBlender->GetHdrBrightnessRatio(),
+                                        hdrDarkenBlender->GetGrayscaleFactor() });
+        }
     }
 }
 
 void RSNode::SetShadowBlenderParams(const RSShadowBlenderPara& params)
 {
     SetPropertyNG<ModifierNG::RSBlendModifier, &ModifierNG::RSBlendModifier::SetShadowBlenderParams>(params);
+}
+
+void RSNode::SetHdrDarkenBlenderParams(const RSHdrDarkenBlenderPara& params)
+{
+    SetPropertyNG<ModifierNG::RSBlendModifier, &ModifierNG::RSBlendModifier::SetHdrDarkenBlenderParams>(params);
 }
 
 void RSNode::SetForegroundEffectRadius(const float blurRadius)
@@ -2559,13 +2588,15 @@ void RSNode::SetGreyCoef(const Vector2f greyCoef)
 
 void RSNode::SetCompositingNGFilter(const std::shared_ptr<RSNGFilterBase>& compositingFilter)
 {
-    auto filter = compositingFilter;
-    if (filter == nullptr) {
-        MaterialParam materialParam = { 0.0, 1.0, 1.0, RSColor(), false };
-        filter = RSNGFilterHelper::CreateNGMaterialBlurFilter(materialParam);
+    if (!compositingFilter) {
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::COMPOSITING_FILTER);
+        if (modifier != nullptr) {
+            modifier->DetachProperty(ModifierNG::RSPropertyType::COMPOSITING_NG_FILTER);
+        }
+        return;
     }
     SetPropertyNG<ModifierNG::RSCompositingFilterModifier,
-        &ModifierNG::RSCompositingFilterModifier::SetNGFilterBase>(filter);
+        &ModifierNG::RSCompositingFilterModifier::SetNGFilterBase>(compositingFilter);
 }
 
 void RSNode::SetShadowColor(uint32_t colorValue)
@@ -2597,7 +2628,7 @@ void RSNode::SetShadowAlpha(float alpha)
 
 void RSNode::SetShadowElevation(float elevation)
 {
-    SetPropertyNG<ModifierNG::RSShadowModifier, &ModifierNG::RSShadowModifier::SetShadowRadius>(0);
+    SetPropertyNG<ModifierNG::RSShadowModifier, &ModifierNG::RSShadowModifier::SetShadowRadius>(DEFAULT_SHADOW_RADIUS);
     SetPropertyNG<ModifierNG::RSShadowModifier, &ModifierNG::RSShadowModifier::SetShadowElevation>(elevation);
 }
 
@@ -2692,6 +2723,16 @@ void RSNode::SetHDRBrightnessFactor(float factor)
         factor);
 }
 
+void RSNode::SetHDRColorHeadroom(const float& headroom)
+{
+    if (headroom < 1.0f) {
+        ROSEN_LOGE("SetHDRColorHeadroom only can be greater than or equal to one");
+        return;
+    }
+    SetPropertyNG<ModifierNG::RSHDRBrightnessModifier, &ModifierNG::RSHDRBrightnessModifier::SetHDRColorHeadroom>(
+        headroom);
+}
+
 void RSNode::SetVisible(bool visible)
 {
     // kick off transition only if it's on tree(has valid parent) and visibility is changed.
@@ -2728,19 +2769,37 @@ void RSNode::SetUseUnion(bool useUnion)
     SetPropertyNG<ModifierNG::RSBoundsModifier, &ModifierNG::RSBoundsModifier::SetUseUnion>(useUnion);
 }
 
+void RSNode::SetGravityPullCenterFlag(bool isGravityPullModeCenter)
+{
+    SetPropertyNG<ModifierNG::RSBoundsModifier,
+        &ModifierNG::RSBoundsModifier::SetGravityPullCenterFlag>(isGravityPullModeCenter);
+}
+
+void RSNode::SetGravityPullStrength(float gravityPullStrength)
+{
+    SetPropertyNG<ModifierNG::RSBoundsModifier,
+        &ModifierNG::RSBoundsModifier::SetGravityPullStrength>(gravityPullStrength);
+}
+
+void RSNode::SetGravityHotZone(float hotZone)
+{
+    SetPropertyNG<ModifierNG::RSBoundsModifier,
+        &ModifierNG::RSBoundsModifier::SetGravityHotZone>(hotZone);
+}
+
 void RSNode::SetSDFShape(const std::shared_ptr<RSNGShapeBase>& shape)
 {
     if (!shape) {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::BOUNDS);
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::CLIP_TO_BOUNDS);
         if (modifier == nullptr || !modifier->HasProperty(ModifierNG::RSPropertyType::SDF_SHAPE)) {
             return;
         }
         modifier->DetachProperty(ModifierNG::RSPropertyType::SDF_SHAPE);
         return;
     }
-    SetPropertyNG<ModifierNG::RSBoundsModifier, &ModifierNG::RSBoundsModifier::SetSDFShape>(shape);
+    SetPropertyNG<ModifierNG::RSBoundsClipModifier, &ModifierNG::RSBoundsClipModifier::SetSDFShape>(shape);
 }
 
 void RSNode::SetUseShadowBatching(bool useShadowBatching)
@@ -2797,7 +2856,7 @@ void RSNode::SetDistortionK(const float distortionK)
         distortionK);
 }
 
-void RSNode::SetFreeze(bool isFreeze)
+void RSNode::SetFreeze(bool isFreeze, bool isMarkedByUI)
 {
     ROSEN_LOGE("SetFreeze only support RSSurfaceNode and RSCanvasNode in uniRender");
 }
@@ -3215,6 +3274,10 @@ void RSNode::UpdateOcclusionCullingStatus(bool enable, NodeId keyOcclusionNodeId
         std::make_unique<RSUpdateOcclusionCullingStatus>(GetId(), enable, keyOcclusionNodeId);
     AddCommand(command, IsRenderServiceNode());
 }
+
+void RSNode::SetSpatialEffectPara(const std::shared_ptr<SpatialEffectPara>& para) {}
+
+void RSNode::SetIsDepthBackground(bool isDepthBackground) {}
 
 void RSNode::MarkAllExtendModifierDirty()
 {
@@ -4070,6 +4133,18 @@ RSNode::SharedPtr RSNode::GetChildByIndex(int index) const
         return children_.back().lock();
     }
     return children_.at(index).lock();
+}
+
+size_t RSNode::GetDescendantCount() const
+{
+    size_t count = children_.size();
+    for (const auto& child : children_) {
+        auto childNode = child.lock();
+        if (childNode) {
+            count += childNode->GetDescendantCount();
+        }
+    }
+    return count;
 }
 
 void RSNode::SetParent(WeakPtr parent)

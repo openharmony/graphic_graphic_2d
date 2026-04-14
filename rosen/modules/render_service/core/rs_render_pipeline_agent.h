@@ -103,6 +103,8 @@ public:
 
     int32_t SetLogicalCameraRotationCorrection(ScreenId screenId, ScreenRotation logicalCorrection);
 
+    ErrCode GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight);
+
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     void RegisterCanvasCallback(pid_t remotePid, sptr<RSICanvasSurfaceBufferCallback> callback);
 
@@ -169,7 +171,7 @@ public:
     int32_t GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB);
     ErrCode RepaintEverything();
     ErrCode SetColorFollow(const std::string &nodeIdStr, bool isColorFollow);
-    void CleanAll(pid_t pid);
+    void Clean(pid_t pid, bool forRefresh = false);
     void SetFreeMultiWindowStatus(bool enable);
     int32_t RegisterSelfDrawingNodeRectChangeCallback(
         pid_t remotePid, const RectConstraint& constraint, sptr<RSISelfDrawingNodeRectChangeCallback> callback);
@@ -202,6 +204,18 @@ public:
     void AddTransactionDataPidInfo(pid_t remotePid);
     void AddConnection(sptr<IRemoteObject>& token, sptr<RSIClientToRenderConnection> connectToRenderConnection);
     sptr<RSIClientToRenderConnection> FindClientToRenderConnection(const sptr<IRemoteObject>& token);
+    int32_t RegisterFrameStabilityDetection(
+        pid_t pid,
+        const FrameStabilityTarget& target,
+        const FrameStabilityConfig& config,
+        sptr<RSIFrameStabilityCallback> callback
+    );
+    int32_t UnregisterFrameStabilityDetection(pid_t pid, const FrameStabilityTarget& target);
+    int32_t StartFrameStabilityCollection(
+        pid_t pid,
+        const FrameStabilityTarget& target,
+        const FrameStabilityConfig& config);
+    int32_t GetFrameStabilityResult(pid_t pid, const FrameStabilityTarget& target, bool& result);
 private:
     std::shared_ptr<RSRenderPipeline>& rsRenderPipeline_;
     std::unordered_map<pid_t, std::string> pidToBundleName_;

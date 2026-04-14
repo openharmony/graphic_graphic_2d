@@ -105,4 +105,15 @@ std::optional<RSShadowBlenderPara> RSBlendModifier::GetShadowBlenderParams() con
 {
     return GetterOptional<RSShadowBlenderPara>(RSPropertyType::SHADOW_BLENDER_PARAMS);
 }
+
+void RSBlendModifier::SetHdrDarkenBlenderParams(const std::optional<RSHdrDarkenBlenderPara>& params)
+{
+    SetterOptional(RSPropertyType::HDR_DARKEN_BLENDER_PARAMS, params);
+}
+
+std::optional<RSHdrDarkenBlenderPara> RSBlendModifier::GetHdrDarkenBlenderParams() const
+{
+    return GetterOptional<RSHdrDarkenBlenderPara>(RSPropertyType::HDR_DARKEN_BLENDER_PARAMS);
+}
+
 } // namespace OHOS::Rosen::ModifierNG

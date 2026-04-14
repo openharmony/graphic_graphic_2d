@@ -58,7 +58,8 @@ public:
         Boundary* actualGlyphRange, TextEncoding encodeType), (const, override));
     MOCK_METHOD(Boundary, GetWordBoundaryByIndex, (size_t index), (override));
     MOCK_METHOD(Boundary, GetActualTextRange, (int lineNumber, bool includeSpaces), (override));
-    MOCK_METHOD(Boundary, GetEllipsisTextRange, (), (override));
+    MOCK_METHOD(Boundary, GetEllipsisTextRange, (), (const, override));
+    MOCK_METHOD(std::vector<TextRange>, GetVisibleTextRanges, (), (const, override));
     MOCK_METHOD(double, GetLineHeight, (int lineNumber), (override));
     MOCK_METHOD(double, GetLineWidth, (int lineNumber), (override));
     MOCK_METHOD(void, SetAnimation,
@@ -92,7 +93,11 @@ public:
     MOCK_METHOD(std::string, GetDumpInfo, (), (const, override));
     MOCK_METHOD(std::shared_ptr<OHOS::Media::PixelMap>, GetTextPathImageByIndex,
         (size_t start, size_t end, const ImageOptions& options, bool fill), (const, override));
+    MOCK_METHOD((std::vector<TextPathInfo>), GetTextPathsByIndex, (size_t start, size_t end), (const, override));
     MOCK_METHOD(TextLayoutResult, LayoutWithConstraints, (const TextRectSize& constraint));
+    MOCK_METHOD(TextProcessState, GetProcessState, (), (const, override));
+    MOCK_METHOD(TextDisplayState, GetTextDisplayState, (), (const, override));
+    MOCK_METHOD(TypographyStyle, GetParagraphStyle, (), (const, override));
 };
 } // namespace OHOS::Rosen
 #endif

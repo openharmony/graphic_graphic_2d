@@ -62,6 +62,10 @@ int32_t ColorGamutParamParse::ParseColorGamutInternal(xmlNode &node)
             ColorGamutParam::SetSkipOccludedNodeDuringColorGamutCollection(isEnabled);
             RS_LOGI("ColorGamutParamParse parse SkipOccludedNodeDuringColorGamutCollection %{public}d",
                 ColorGamutParam::SkipOccludedNodeDuringColorGamutCollection());
+        } else if (name == "ForceSRGBOutput") {
+            ColorGamutParam::SetForceSRGBOutput(isEnabled);
+            RS_LOGI("ColorGamutParamParse parse ForceSRGBOutput %{public}d",
+                ColorGamutParam::IsForceSRGBOutputEnabled());
         }
     }
 

@@ -21,6 +21,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <thread>
+#include <type_traits>
 
 namespace OHOS {
 static const char* CACHE_MAGIC = "OSOH";
@@ -32,6 +33,27 @@ namespace {
         std::string ddkCacheDir;
     };
     static CacheDataInfo g_dirInfo = {false, "", ""};
+    /**
+     * Safe addition for unsigned integers only.
+     * Computes a + b and stores the result in result.
+     * @tparam T Unsigned integral type
+     * @return true  if overflow occurs (result wraps around)
+     *         false if the operation is safe, result holds the correct sum
+     */
+    template<typename T>
+    bool AddOverflow(T a, T b, T& result)
+    {
+        static_assert(std::is_unsigned_v<T>,
+                    "T must be an unsigned integral type; signed types are not allowed.");
+        // Prefer compiler built-in if available (most efficient)
+#if defined(__has_builtin) && __has_builtin(__builtin_add_overflow)
+        return __builtin_add_overflow(a, b, &result);
+#else
+        // Portable fallback: overflow occurs when the result wraps around.
+        result = a + b;
+        return result < a;
+#endif
+    }
 }
 
 BlobCache* BlobCache::Get()
@@ -88,8 +110,9 @@ void BlobCache::Terminate()
 {
     if (blobCache_) {
         blobCache_->WriteToDisk();
+        delete blobCache_;
+        blobCache_ = nullptr;
     }
-    delete blobCache_;
 }
 
 int BlobCache::GetMapSize() const
@@ -398,11 +421,14 @@ void BlobCache::BlobCacheReadFromDisk(const std::string filePath)
         const CacheHeader* eheader = reinterpret_cast<CacheHeader*>(&buf[byteoffset]);
         size_t keysize = eheader->keySize;
         size_t valuesize = eheader->valueSize;
-        if (byteoffset + headsize + keysize > filesize) {
+        size_t currentsize = byteoffset + headsize;
+        if (AddOverflow(currentsize, keysize, currentsize) || currentsize > filesize) {
+            WLOGE("invalid keysize in blobcache");
             break;
         }
         const uint8_t *key = eheader->mData;
-        if (byteoffset + headsize + keysize + valuesize > filesize) {
+        if (AddOverflow(currentsize, valuesize, currentsize) || currentsize > filesize) {
+            WLOGE("invalid valuesize in blobcache");
             break;
         }
         const uint8_t *value = eheader->mData + keysize;

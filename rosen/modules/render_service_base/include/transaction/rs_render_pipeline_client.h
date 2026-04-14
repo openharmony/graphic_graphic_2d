@@ -52,6 +52,7 @@
 #include "screen_manager/rs_screen_mode_info.h"
 #include "screen_manager/screen_types.h"
 #include "screen_manager/rs_virtual_screen_resolution.h"
+#include "transaction/rs_frame_stability_types.h"
 #include "vsync_receiver.h"
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
 #include "rs_hgm_config_data.h"
@@ -80,6 +81,7 @@ using FrameRateLinkerExpectedFpsUpdateCallback = std::function<void(int32_t, con
 using UIExtensionCallback = std::function<void(std::shared_ptr<RSUIExtensionData>, uint64_t)>;
 using SelfDrawingNodeRectChangeCallback = std::function<void(std::shared_ptr<RSSelfDrawingNodeRectData>)>;
 using FirstFrameCommitCallback = std::function<void(uint64_t, int64_t)>;
+using FrameStabilityCallback = std::function<void(bool)>;
 
 class RSB_EXPORT RSRenderPipelineClient : public RSIRenderClient {
 public:

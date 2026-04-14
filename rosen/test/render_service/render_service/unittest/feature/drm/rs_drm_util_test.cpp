@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,16 +18,21 @@
 
 #include "common/rs_common_def.h"
 #include "composer/composer_client/pipeline/rs_composer_client_manager.h"
+#include "drawable/rs_screen_render_node_drawable.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/rs_processor_factory.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_test_util.h"
-#include "screen_manager/rs_screen.h"
 
 using namespace testing;
 using namespace testing::ext;
+
+namespace {
+constexpr uint32_t DEFAULT_CANVAS_WIDTH = 800;
+constexpr uint32_t DEFAULT_CANVAS_HEIGHT = 600;
+}
 
 namespace OHOS::Rosen {
 class RSDrmUtilTest : public testing::Test {
@@ -36,6 +41,20 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+
+    static NodeId GenerateNodeId()
+    {
+        static NodeId nextId = 1;
+        return nextId++;
+    }
+
+    static ScreenId GenerateScreenId()
+    {
+        static ScreenId nextId = 1;
+        return nextId++;
+    }
+
+    std::shared_ptr<DrawableV2::RSScreenRenderNodeDrawable> CreateScreenDrawable();
 };
 
 void RSDrmUtilTest::SetUpTestCase()
@@ -45,6 +64,16 @@ void RSDrmUtilTest::SetUpTestCase()
 void RSDrmUtilTest::TearDownTestCase() {}
 void RSDrmUtilTest::SetUp() {}
 void RSDrmUtilTest::TearDown() {}
+
+std::shared_ptr<DrawableV2::RSScreenRenderNodeDrawable> RSDrmUtilTest::CreateScreenDrawable()
+{
+    static NodeId nodeId = GenerateNodeId();
+    ScreenId screenId = GenerateScreenId();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(nodeId, screenId);
+    auto screenDrawable = std::make_shared<DrawableV2::RSScreenRenderNodeDrawable>(std::move(screenNode));
+    screenDrawable->renderParams_ = std::make_unique<RSScreenRenderParams>(screenId);
+    return screenDrawable;
+}
 
 /**
  * Function: MarkBlurIntersectWithDRM
@@ -657,5 +686,134 @@ HWTEST_F(RSDrmUtilTest, DealWithDRMNodes002, TestSize.Level1)
     auto clientManager = std::make_shared<RSComposerClientManager>();
     RSDrmUtil::DealWithDRMNodes(surfaceNode, buffer, clientManager);
     RSDrmUtil::ClearDrmNodes();
+}
+
+/**
+ * Function: HasDRMInVirtualScreen
+ * Type: Function
+ * Rank: Important(2)
+ * EnvCondition: N/A
+ * CaseDescription: 1. preSetup: ancestorDrawable is nullptr
+ *                  2. operation: HasDRMInVirtualScreen
+ *                  3. result: return false
+ */
+HWTEST_F(RSDrmUtilTest, HasDRMInVirtualScreen001, TestSize.Level2)
+{
+    RSSurfaceRenderParams surfaceParams(GenerateNodeId());
+    surfaceParams.ancestorScreenDrawable_.reset();
+
+    Drawing::Canvas canvas(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    RSPaintFilterCanvas filterCanvas(&canvas);
+
+    auto result = RSDrmUtil::HasDRMInVirtualScreen(filterCanvas, surfaceParams);
+    ASSERT_FALSE(result);
+}
+
+/**
+ * Function: HasDRMInVirtualScreen
+ * Type: Function
+ * Rank: Important(2)
+ * EnvCondition: N/A
+ * CaseDescription: 1. preSetup: params is nullptr
+ *                  2. operation: HasDRMInVirtualScreen
+ *                  3. result: return false
+ */
+HWTEST_F(RSDrmUtilTest, HasDRMInVirtualScreen002, TestSize.Level2)
+{
+    auto screenDrawable = CreateScreenDrawable();
+    ASSERT_NE(screenDrawable, nullptr);
+    screenDrawable->renderParams_ = nullptr;
+
+    RSSurfaceRenderParams surfaceParams(GenerateNodeId());
+    surfaceParams.ancestorScreenDrawable_ = screenDrawable;
+
+    Drawing::Canvas canvas(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    RSPaintFilterCanvas filterCanvas(&canvas);
+
+    auto result = RSDrmUtil::HasDRMInVirtualScreen(filterCanvas, surfaceParams);
+    ASSERT_FALSE(result);
+}
+
+/**
+ * Function: HasDRMInVirtualScreen
+ * Type: Function
+ * Rank: Important(2)
+ * EnvCondition: N/A
+ * CaseDescription: 1. preSetup: screen is not virtual
+ *                  2. operation: HasDRMInVirtualScreen
+ *                  3. result: return false
+ */
+HWTEST_F(RSDrmUtilTest, HasDRMInVirtualScreen003, TestSize.Level2)
+{
+    auto screenDrawable = CreateScreenDrawable();
+    ASSERT_NE(screenDrawable, nullptr);
+
+    RSSurfaceRenderParams surfaceParams(GenerateNodeId());
+    surfaceParams.ancestorScreenDrawable_ = screenDrawable;
+
+    Drawing::Canvas canvas(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    RSPaintFilterCanvas filterCanvas(&canvas);
+
+    auto result = RSDrmUtil::HasDRMInVirtualScreen(filterCanvas, surfaceParams);
+    ASSERT_FALSE(result);
+}
+
+/**
+ * Function: HasDRMInVirtualScreen
+ * Type: Function
+ * Rank: Important(2)
+ * EnvCondition: N/A
+ * CaseDescription: 1. preSetup: no protected layer
+ *                  2. operation: HasDRMInVirtualScreen
+ *                  3. result: return false
+ */
+HWTEST_F(RSDrmUtilTest, HasDRMInVirtualScreen004, TestSize.Level2)
+{
+    auto screenDrawable = CreateScreenDrawable();
+    ASSERT_NE(screenDrawable, nullptr);
+
+    auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable->renderParams_.get());
+    ASSERT_NE(screenParams, nullptr);
+    screenParams->screenProperty_.Set(ScreenPropertyType::IS_VIRTUAL,
+        sptr<ScreenPropertyBase>(new ScreenProperty<bool>(true)));
+
+    RSSurfaceRenderParams surfaceParams(GenerateNodeId());
+    surfaceParams.ancestorScreenDrawable_ = screenDrawable;
+
+    Drawing::Canvas canvas(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    RSPaintFilterCanvas filterCanvas(&canvas);
+
+    auto result = RSDrmUtil::HasDRMInVirtualScreen(filterCanvas, surfaceParams);
+    ASSERT_FALSE(result);
+}
+
+/**
+ * Function: HasDRMInVirtualScreen
+ * Type: Function
+ * Rank: Important(2)
+ * EnvCondition: N/A
+ * CaseDescription: 1. preSetup: virtual screen with protected layer
+ *                  2. operation: HasDRMInVirtualScreen
+ *                  3. result: return true
+ */
+HWTEST_F(RSDrmUtilTest, HasDRMInVirtualScreen005, TestSize.Level2)
+{
+    auto screenDrawable = CreateScreenDrawable();
+    ASSERT_NE(screenDrawable, nullptr);
+
+    auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable->renderParams_.get());
+    ASSERT_NE(screenParams, nullptr);
+    screenParams->screenProperty_.Set(ScreenPropertyType::IS_VIRTUAL,
+        sptr<ScreenPropertyBase>(new ScreenProperty<bool>(true)));
+
+    RSSurfaceRenderParams surfaceParams(GenerateNodeId());
+    surfaceParams.ancestorScreenDrawable_ = screenDrawable;
+    surfaceParams.specialLayerManager_.Set(SpecialLayerType::PROTECTED, true);
+
+    Drawing::Canvas canvas(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    RSPaintFilterCanvas filterCanvas(&canvas);
+
+    auto result = RSDrmUtil::HasDRMInVirtualScreen(filterCanvas, surfaceParams);
+    ASSERT_TRUE(result);
 }
 }

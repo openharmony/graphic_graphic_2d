@@ -478,9 +478,8 @@ HWTEST_F(RSSurfaceRenderNodeFourTest, SetIsParticipateInOcclusion, TestSize.Leve
 {
     auto rsContext = std::make_shared<RSContext>();
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0, rsContext);
-    
+
     surfaceNode->SetIsParticipateInOcclusion(true);
-    ASSERT_TRUE(surfaceNode->isParticipateInOcclusion_);
     ASSERT_TRUE(surfaceNode->GetIsParticipateInOcclusion());
 }
 

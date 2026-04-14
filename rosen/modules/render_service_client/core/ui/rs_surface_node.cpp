@@ -826,14 +826,14 @@ void RSSurfaceNode::SetWindowId(uint32_t windowId)
     windowId_ = windowId;
 }
 
-void RSSurfaceNode::SetFreeze(bool isFreeze)
+void RSSurfaceNode::SetFreeze(bool isFreeze, bool isMarkedByUI)
 {
     if (!IsUniRenderEnabled()) {
         ROSEN_LOGE("SetFreeze is not supported in separate render");
         return;
     }
     RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceNode::SetFreeze id:%llu", GetId());
-    std::unique_ptr<RSCommand> command = std::make_unique<RSSetFreeze>(GetId(), isFreeze);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSetFreeze>(GetId(), isFreeze, isMarkedByUI);
     AddCommand(command, true);
 }
 
@@ -1050,6 +1050,15 @@ void RSSurfaceNode::SetSurfaceTextureInitTypeCallBack(const RSSurfaceTextureInit
 #if defined(ROSEN_IOS)
     RSSurfaceTextureConfig config = {
         .type = RSSurfaceExtType::SURFACE_PLATFORM_TEXTURE,
+    };
+    auto texture = surface_->GetSurfaceExt(config);
+    if (texture) {
+        texture->SetInitTypeCallback(initTypeCallback);
+    }
+#else
+    RSSurfaceTextureConfig config = {
+        .type = RSSurfaceExtType::SURFACE_TEXTURE,
+        .additionalData = nullptr
     };
     auto texture = surface_->GetSurfaceExt(config);
     if (texture) {
@@ -1350,5 +1359,7 @@ void RSSurfaceNode::DumpSubClass(std::string& out) const
         out += "], existsDuplicateModifier[true";
     }
 }
+
+void RSSurfaceNode::SetIsDepthResource(bool isDepthResource) {}
 } // namespace Rosen
 } // namespace OHOS

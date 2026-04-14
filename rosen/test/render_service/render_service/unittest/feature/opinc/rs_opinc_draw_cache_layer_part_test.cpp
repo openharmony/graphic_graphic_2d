@@ -13,87 +13,67 @@
  * limitations under the License.
  */
 
-/**
- * @tc.name: LayerPartRenderBranchCoverageTest
- * @tc.desc: Branch coverage tests for layer part render feature (commit 266e787e55)
- * @tc.type: FUNC
- * @tc.require: issueLayerPart
- */
-
 #include "gtest/gtest.h"
+
 #include "feature/opinc/rs_opinc_draw_cache.h"
+#include "params/rs_canvas_drawing_render_params.h"
 #include "params/rs_render_params.h"
-#include "platform/common/rs_system_properties.h"
 #include "parameters.h"
+#include "platform/common/rs_system_properties.h"
 
 using namespace testing;
 using namespace testing::ext;
 
-namespace OHOS {
-namespace Rosen {
-
-constexpr NodeId DEFAULT_ID = 0xFFFF;
+namespace OHOS::Rosen {
+namespace {
+constexpr int32_t DIRTY_LEFT = 10;
+constexpr int32_t DIRTY_TOP = 10;
+constexpr int32_t DIRTY_WIDTH = 100;
+constexpr int32_t DIRTY_HEIGHT = 100;
 constexpr int32_t TEST_NODE_COUNT = 5;
+constexpr int32_t CACHE_WIDTH = 200;
+constexpr int32_t CACHE_HEIGHT = 200;
+constexpr int32_t PARTIAL_DIRTY_LEFT = 35;
+constexpr int32_t PARTIAL_DIRTY_TOP = 45;
+constexpr int32_t PARTIAL_DIRTY_WIDTH = 25;
+constexpr int32_t PARTIAL_DIRTY_HEIGHT = 15;
+constexpr int32_t FULL_CACHE_REGION_LEFT = 0;
+constexpr int32_t FULL_CACHE_REGION_TOP = 0;
+constexpr int32_t FULL_CACHE_REGION_WIDTH = 220;
+constexpr int32_t FULL_CACHE_REGION_HEIGHT = 220;
+constexpr int32_t PARTIAL_CACHE_REGION_LEFT = 50;
+constexpr int32_t PARTIAL_CACHE_REGION_TOP = 70;
+constexpr int32_t PARTIAL_CACHE_REGION_WIDTH = 50;
+constexpr int32_t PARTIAL_CACHE_REGION_HEIGHT = 30;
+constexpr int32_t WARMUP_PUSH_COUNT = 4;
+const RectI DEFAULT_DIRTY_RECT = { DIRTY_LEFT, DIRTY_TOP, DIRTY_WIDTH, DIRTY_HEIGHT };
+const RectI PARTIAL_DIRTY_RECT = {
+    PARTIAL_DIRTY_LEFT, PARTIAL_DIRTY_TOP, PARTIAL_DIRTY_WIDTH, PARTIAL_DIRTY_HEIGHT
+};
+const RectI FULL_CACHE_REGION = {
+    FULL_CACHE_REGION_LEFT, FULL_CACHE_REGION_TOP, FULL_CACHE_REGION_WIDTH, FULL_CACHE_REGION_HEIGHT
+};
+const RectI PARTIAL_CACHE_REGION = {
+    PARTIAL_CACHE_REGION_LEFT, PARTIAL_CACHE_REGION_TOP, PARTIAL_CACHE_REGION_WIDTH, PARTIAL_CACHE_REGION_HEIGHT
+};
+}
 
 class RSOpincDrawCacheLayerPartTest : public testing::Test {
 public:
-    static void SetUpTestCase();
-    static void TearDownTestCase();
-    void SetUp() override;
-    void TearDown() override;
-
-    static inline NodeId id = DEFAULT_ID;
+    static std::shared_ptr<RSCanvasDrawingRenderParams> CreateRenderParams(bool enabled)
+    {
+        auto params = std::make_shared<RSCanvasDrawingRenderParams>(GenerateUniqueNodeIdForRS());
+        params->SetLayerPartRenderEnabled(enabled);
+        params->SetLayerPartRenderCurrentFrameDirtyRegion(DEFAULT_DIRTY_RECT);
+        params->SetAbsDrawRect(DEFAULT_DIRTY_RECT);
+        params->SetCacheSize({ CACHE_WIDTH, CACHE_HEIGHT });
+        return params;
+    }
 };
-
-void RSOpincDrawCacheLayerPartTest::SetUpTestCase() {}
-void RSOpincDrawCacheLayerPartTest::TearDownTestCase() {}
-void RSOpincDrawCacheLayerPartTest::SetUp() {}
-void RSOpincDrawCacheLayerPartTest::TearDown() {}
-
-/**
- * @tc.name: PopLayerPartRenderDirtyRegionWithEmptyStack
- * @tc.desc: Test PopLayerPartRenderDirtyRegion when stack is empty
- * @tc.type: FUNC
- * @tc.require: issueLayerPart
- */
-HWTEST_F(RSOpincDrawCacheLayerPartTest, PopLayerPartRenderDirtyRegionWithEmptyStack, TestSize.Level1)
-{
-    DrawableV2::RSOpincDrawCache opincDrawCache;
-    Drawing::Canvas canvas;
-    RSPaintFilterCanvas paintFilterCanvas(&canvas);
-    RSRenderParams params(id);
-
-    params.SetLayerPartRenderEnabled(true);
-    ASSERT_TRUE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
-
-    opincDrawCache.PopLayerPartRenderDirtyRegion(params, paintFilterCanvas);
-
-    ASSERT_TRUE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
-}
-
-/**
- * @tc.name: PopLayerPartRenderDirtyRegionDisabled
- * @tc.desc: Test PopLayerPartRenderDirtyRegion when feature is disabled
- * @tc.type: FUNC
- * @tc.require: issueLayerPart
- */
-HWTEST_F(RSOpincDrawCacheLayerPartTest, PopLayerPartRenderDirtyRegionDisabled, TestSize.Level1)
-{
-    DrawableV2::RSOpincDrawCache opincDrawCache;
-    Drawing::Canvas canvas;
-    RSPaintFilterCanvas paintFilterCanvas(&canvas);
-    RSRenderParams params(id);
-
-    params.SetLayerPartRenderEnabled(false);
-
-    opincDrawCache.PopLayerPartRenderDirtyRegion(params, paintFilterCanvas);
-
-    ASSERT_TRUE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
-}
 
 /**
  * @tc.name: PushLayerPartRenderDirtyRegionDisabled
- * @tc.desc: Test PushLayerPartRenderDirtyRegion when feature is disabled
+ * @tc.desc: Verify PushLayerPartRenderDirtyRegion returns early when layer-part render is disabled
  * @tc.type: FUNC
  * @tc.require: issueLayerPart
  */
@@ -102,20 +82,16 @@ HWTEST_F(RSOpincDrawCacheLayerPartTest, PushLayerPartRenderDirtyRegionDisabled, 
     DrawableV2::RSOpincDrawCache opincDrawCache;
     Drawing::Canvas canvas;
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
-    RSRenderParams params(id);
+    auto params = CreateRenderParams(false);
 
-    params.SetLayerPartRenderEnabled(false);
-    RectI dirtyRect = {10, 10, 100, 100};
-    params.SetLayerPartRenderCurrentFrameDirtyRegion(dirtyRect);
+    opincDrawCache.PushLayerPartRenderDirtyRegion(*params, paintFilterCanvas, paintFilterCanvas, TEST_NODE_COUNT);
 
-    opincDrawCache.PushLayerPartRenderDirtyRegion(params, paintFilterCanvas, TEST_NODE_COUNT);
-
-    ASSERT_TRUE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
+    EXPECT_TRUE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
 }
 
 /**
  * @tc.name: PushLayerPartRenderDirtyRegionEnabled
- * @tc.desc: Test PushLayerPartRenderDirtyRegion when feature is enabled
+ * @tc.desc: Verify PushLayerPartRenderDirtyRegion pushes current dirty region into stack
  * @tc.type: FUNC
  * @tc.require: issueLayerPart
  */
@@ -124,39 +100,16 @@ HWTEST_F(RSOpincDrawCacheLayerPartTest, PushLayerPartRenderDirtyRegionEnabled, T
     DrawableV2::RSOpincDrawCache opincDrawCache;
     Drawing::Canvas canvas;
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
-    RSRenderParams params(id);
+    auto params = CreateRenderParams(true);
 
-    params.SetLayerPartRenderEnabled(true);
-    RectI dirtyRect = {10, 10, 100, 100};
-    params.SetLayerPartRenderCurrentFrameDirtyRegion(dirtyRect);
+    opincDrawCache.PushLayerPartRenderDirtyRegion(*params, paintFilterCanvas, paintFilterCanvas, TEST_NODE_COUNT);
 
-    opincDrawCache.PushLayerPartRenderDirtyRegion(params, paintFilterCanvas, TEST_NODE_COUNT);
-
-    ASSERT_FALSE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
-}
-
-/**
- * @tc.name: LayerDirtyRegionDfxWithDebugDisabled
- * @tc.desc: Test LayerDirtyRegionDfx when debug is disabled
- * @tc.type: FUNC
- * @tc.require: issueLayerPart
- */
-HWTEST_F(RSOpincDrawCacheLayerPartTest, LayerDirtyRegionDfxWithDebugDisabled, TestSize.Level1)
-{
-    DrawableV2::RSOpincDrawCache opincDrawCache;
-    Drawing::Canvas canvas;
-    RSPaintFilterCanvas paintFilterCanvas(&canvas);
-
-    Drawing::RectI dirtyRect(10, 10, 100, 100);
-
-    opincDrawCache.LayerDirtyRegionDfx(paintFilterCanvas, dirtyRect);
-
-    ASSERT_FALSE(RSSystemProperties::GetLayerPartRenderDebugEnabled());
+    EXPECT_FALSE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
 }
 
 /**
  * @tc.name: LayerPartRenderClipDirtyRegionDisabled
- * @tc.desc: Test LayerPartRenderClipDirtyRegion when feature is disabled
+ * @tc.desc: Verify LayerPartRenderClipDirtyRegion returns early when layer-part render is disabled
  * @tc.type: FUNC
  * @tc.require: issueLayerPart
  */
@@ -165,254 +118,137 @@ HWTEST_F(RSOpincDrawCacheLayerPartTest, LayerPartRenderClipDirtyRegionDisabled, 
     DrawableV2::RSOpincDrawCache opincDrawCache;
     Drawing::Canvas canvas;
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
-    RSRenderParams params(id);
+    auto params = CreateRenderParams(false);
 
-    params.SetLayerPartRenderEnabled(false);
-    bool isOffScreenWithClipHole = true;
+    opincDrawCache.LayerPartRenderClipDirtyRegion(*params, paintFilterCanvas);
 
-    opincDrawCache.LayerPartRenderClipDirtyRegion(params, &isOffScreenWithClipHole, paintFilterCanvas);
-
-    ASSERT_TRUE(isOffScreenWithClipHole);
+    EXPECT_TRUE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
 }
 
 /**
- * @tc.name: LayerPartRenderClipDirtyRegionEnabled
- * @tc.desc: Test LayerPartRenderClipDirtyRegion when feature is enabled
+ * @tc.name: LayerPartRenderClipDirtyRegionWithEmptyDirty
+ * @tc.desc: Verify LayerPartRenderClipDirtyRegion handles enabled state when dirty region is empty
  * @tc.type: FUNC
  * @tc.require: issueLayerPart
  */
-HWTEST_F(RSOpincDrawCacheLayerPartTest, LayerPartRenderClipDirtyRegionEnabled, TestSize.Level1)
+HWTEST_F(RSOpincDrawCacheLayerPartTest, LayerPartRenderClipDirtyRegionWithEmptyDirty, TestSize.Level1)
 {
     DrawableV2::RSOpincDrawCache opincDrawCache;
     Drawing::Canvas canvas;
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
-    RSRenderParams params(id);
+    auto params = CreateRenderParams(true);
 
-    params.SetLayerPartRenderEnabled(true);
-    RectI dirtyRect = {10, 10, 100, 100};
-    params.SetLayerPartRenderCurrentFrameDirtyRegion(dirtyRect);
+    opincDrawCache.LayerPartRenderClipDirtyRegion(*params, paintFilterCanvas);
 
-    opincDrawCache.PushLayerPartRenderDirtyRegion(params, paintFilterCanvas, TEST_NODE_COUNT);
-
-    bool isOffScreenWithClipHole = true;
-    opincDrawCache.LayerPartRenderClipDirtyRegion(params, &isOffScreenWithClipHole, paintFilterCanvas);
-
-    ASSERT_FALSE(isOffScreenWithClipHole);
+    EXPECT_TRUE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
 }
 
 /**
- * @tc.name: LayerPartRenderFullWorkflow
- * @tc.desc: Test complete workflow of layer part render
+ * @tc.name: LayerPartRenderClipDirtyRegionWithNonEmptyDirty
+ * @tc.desc: Verify LayerPartRenderClipDirtyRegion handles enabled state when dirty region is non-empty
  * @tc.type: FUNC
  * @tc.require: issueLayerPart
  */
-HWTEST_F(RSOpincDrawCacheLayerPartTest, LayerPartRenderFullWorkflow, TestSize.Level1)
+HWTEST_F(RSOpincDrawCacheLayerPartTest, LayerPartRenderClipDirtyRegionWithNonEmptyDirty, TestSize.Level1)
 {
     DrawableV2::RSOpincDrawCache opincDrawCache;
     Drawing::Canvas canvas;
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
-    RSRenderParams params(id);
+    auto params = CreateRenderParams(true);
 
-    params.SetLayerPartRenderEnabled(true);
-    RectI dirtyRect = {10, 10, 100, 100};
-    params.SetLayerPartRenderCurrentFrameDirtyRegion(dirtyRect);
+    opincDrawCache.PushLayerPartRenderDirtyRegion(*params, paintFilterCanvas, paintFilterCanvas, TEST_NODE_COUNT);
+    opincDrawCache.LayerPartRenderClipDirtyRegion(*params, paintFilterCanvas);
 
-    opincDrawCache.PushLayerPartRenderDirtyRegion(params, paintFilterCanvas, TEST_NODE_COUNT);
-    ASSERT_FALSE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
-
-    bool isOffScreenWithClipHole = true;
-    opincDrawCache.LayerPartRenderClipDirtyRegion(params, &isOffScreenWithClipHole, paintFilterCanvas);
-    ASSERT_FALSE(isOffScreenWithClipHole);
-
-    opincDrawCache.PopLayerPartRenderDirtyRegion(params, paintFilterCanvas);
-    ASSERT_TRUE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
+    EXPECT_FALSE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
 }
 
 /**
- * @tc.name: PopAfterPush
- * @tc.desc: Test Pop after Push returns non-empty stack
+ * @tc.name: PopLayerPartRenderDirtyRegionDisabled
+ * @tc.desc: Verify PopLayerPartRenderDirtyRegion returns early when layer-part render is disabled
  * @tc.type: FUNC
  * @tc.require: issueLayerPart
  */
-HWTEST_F(RSOpincDrawCacheLayerPartTest, PopAfterPush, TestSize.Level1)
+HWTEST_F(RSOpincDrawCacheLayerPartTest, PopLayerPartRenderDirtyRegionDisabled, TestSize.Level1)
 {
     DrawableV2::RSOpincDrawCache opincDrawCache;
     Drawing::Canvas canvas;
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
-    RSRenderParams params(id);
+    auto enabledParams = CreateRenderParams(true);
+    auto disabledParams = CreateRenderParams(false);
 
-    params.SetLayerPartRenderEnabled(true);
-    RectI dirtyRect = {10, 10, 100, 100};
-    params.SetLayerPartRenderCurrentFrameDirtyRegion(dirtyRect);
+    opincDrawCache.PushLayerPartRenderDirtyRegion(*enabledParams,
+        paintFilterCanvas, paintFilterCanvas, TEST_NODE_COUNT);
+    EXPECT_FALSE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
 
-    opincDrawCache.PushLayerPartRenderDirtyRegion(params, paintFilterCanvas, TEST_NODE_COUNT);
-    ASSERT_FALSE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
+    opincDrawCache.PopLayerPartRenderDirtyRegion(*disabledParams, paintFilterCanvas);
 
-    opincDrawCache.PopLayerPartRenderDirtyRegion(params, paintFilterCanvas);
-    ASSERT_TRUE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
+    EXPECT_FALSE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
 }
 
 /**
- * @tc.name: GetCurLayerPartRenderDirtyRegionWithNonEmptyStack
- * @tc.desc: Test GetCurLayerPartRenderDirtyRegion when stack is not empty
+ * @tc.name: PopLayerPartRenderDirtyRegionEmptyStack
+ * @tc.desc: Verify PopLayerPartRenderDirtyRegion handles empty stack gracefully
  * @tc.type: FUNC
  * @tc.require: issueLayerPart
  */
-HWTEST_F(RSOpincDrawCacheLayerPartTest, GetCurLayerPartRenderDirtyRegionWithNonEmptyStack, TestSize.Level1)
+HWTEST_F(RSOpincDrawCacheLayerPartTest, PopLayerPartRenderDirtyRegionEmptyStack, TestSize.Level1)
 {
     DrawableV2::RSOpincDrawCache opincDrawCache;
     Drawing::Canvas canvas;
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
-    RSRenderParams params(id);
+    auto params = CreateRenderParams(true);
 
-    params.SetLayerPartRenderEnabled(true);
-    RectI dirtyRect = {10, 10, 100, 100};
-    params.SetLayerPartRenderCurrentFrameDirtyRegion(dirtyRect);
+    opincDrawCache.PopLayerPartRenderDirtyRegion(*params, paintFilterCanvas);
 
-    opincDrawCache.PushLayerPartRenderDirtyRegion(params, paintFilterCanvas, TEST_NODE_COUNT);
-    ASSERT_FALSE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
-
-    auto& dirtyRegion = paintFilterCanvas.GetCurLayerPartRenderDirtyRegion();
-    // Non-empty stack should return the pushed dirty region
-    ASSERT_FALSE(dirtyRegion.IsEmpty());
+    EXPECT_TRUE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
 }
 
 /**
- * @tc.name: QuickRejectWithEmptyLayerPartRenderStack
- * @tc.desc: Test QuickReject branch when LayerPartRenderDirtyRegionStack is empty
- *           When stack is empty, QuickReject uses GetCurDirtyRegion() instead
+ * @tc.name: PopLayerPartRenderDirtyRegionNonEmptyStack
+ * @tc.desc: Verify PopLayerPartRenderDirtyRegion pops one layer-part dirty region when stack is non-empty
  * @tc.type: FUNC
  * @tc.require: issueLayerPart
  */
-HWTEST_F(RSOpincDrawCacheLayerPartTest, QuickRejectWithEmptyLayerPartRenderStack, TestSize.Level1)
-{
-    Drawing::Canvas canvas;
-    RSPaintFilterCanvas paintFilterCanvas(&canvas);
-
-    // Stack is empty - GetCurLayerPartRenderDirtyRegion should NOT be called directly
-    // as it would cause undefined behavior on empty stack
-    ASSERT_TRUE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
-
-    // When stack is empty, QuickReject logic falls back to GetCurDirtyRegion()
-    // This verifies the empty stack condition is properly handled
-    auto& dirtyRegion = paintFilterCanvas.GetCurDirtyRegion();
-    ASSERT_TRUE(dirtyRegion.IsEmpty());
-}
-
-/**
- * @tc.name: QuickRejectWithNonEmptyLayerPartRenderStackIntersects
- * @tc.desc: Test QuickReject branch when LayerPartRenderDirtyRegionStack is not empty and intersects
- *           This tests: layerNodeDirtyRegion.IsIntersects(dstRegion) returns true
- * @tc.type: FUNC
- * @tc.require: issueLayerPart
- */
-HWTEST_F(RSOpincDrawCacheLayerPartTest, QuickRejectWithNonEmptyLayerPartRenderStackIntersects, TestSize.Level1)
+HWTEST_F(RSOpincDrawCacheLayerPartTest, PopLayerPartRenderDirtyRegionNonEmptyStack, TestSize.Level1)
 {
     DrawableV2::RSOpincDrawCache opincDrawCache;
     Drawing::Canvas canvas;
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
-    RSRenderParams params(id);
+    auto params = CreateRenderParams(true);
 
-    params.SetLayerPartRenderEnabled(true);
-    RectI dirtyRect = {0, 0, 100, 100};
-    params.SetLayerPartRenderCurrentFrameDirtyRegion(dirtyRect);
+    opincDrawCache.PushLayerPartRenderDirtyRegion(*params, paintFilterCanvas, paintFilterCanvas, TEST_NODE_COUNT);
+    EXPECT_FALSE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
 
-    opincDrawCache.PushLayerPartRenderDirtyRegion(params, paintFilterCanvas, TEST_NODE_COUNT);
-    ASSERT_FALSE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
+    opincDrawCache.PopLayerPartRenderDirtyRegion(*params, paintFilterCanvas);
 
-    auto& layerPartDirtyRegion = paintFilterCanvas.GetCurLayerPartRenderDirtyRegion();
-    ASSERT_FALSE(layerPartDirtyRegion.IsEmpty());
-
-    // Create a region that intersects with the dirty region
-    Drawing::Region testRegion;
-    Drawing::RectI testRect = {50, 50, 150, 150};
-    testRegion.SetRect(testRect);
-
-    // Should intersect since both cover (50,50) to (100,100)
-    ASSERT_TRUE(layerPartDirtyRegion.IsIntersects(testRegion));
+    EXPECT_TRUE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
 }
 
 /**
- * @tc.name: QuickRejectWithNonEmptyLayerPartRenderStackNotIntersects
- * @tc.desc: Test QuickReject branch when LayerPartRenderDirtyRegionStack is not empty and not intersects
- *           This tests: layerNodeDirtyRegion.IsIntersects(dstRegion) returns false
+ * @tc.name: LayerDirtyRegionDfxWithDebugDisabled
+ * @tc.desc: Verify LayerDirtyRegionDfx keeps no side effect when debug switch is disabled
  * @tc.type: FUNC
  * @tc.require: issueLayerPart
  */
-HWTEST_F(RSOpincDrawCacheLayerPartTest, QuickRejectWithNonEmptyLayerPartRenderStackNotIntersects, TestSize.Level1)
+HWTEST_F(RSOpincDrawCacheLayerPartTest, LayerDirtyRegionDfxWithDebugDisabled, TestSize.Level1)
 {
     DrawableV2::RSOpincDrawCache opincDrawCache;
     Drawing::Canvas canvas;
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
-    RSRenderParams params(id);
+    Drawing::RectI dirtyRect(DIRTY_LEFT, DIRTY_TOP, DIRTY_WIDTH, DIRTY_HEIGHT);
+    const std::string debugKey = "rosen.layerPartRenderDfx.enabled";
+    const std::string oldDebugValue = system::GetParameter(debugKey, "0");
+    (void)system::SetParameter(debugKey, "0");
 
-    params.SetLayerPartRenderEnabled(true);
-    RectI dirtyRect = {0, 0, 100, 100};
-    params.SetLayerPartRenderCurrentFrameDirtyRegion(dirtyRect);
+    opincDrawCache.LayerDirtyRegionDfx(paintFilterCanvas, dirtyRect);
 
-    opincDrawCache.PushLayerPartRenderDirtyRegion(params, paintFilterCanvas, TEST_NODE_COUNT);
-    ASSERT_FALSE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
-
-    auto& layerPartDirtyRegion = paintFilterCanvas.GetCurLayerPartRenderDirtyRegion();
-    ASSERT_FALSE(layerPartDirtyRegion.IsEmpty());
-
-    // Create a region that does NOT intersect with the dirty region
-    Drawing::Region testRegion;
-    Drawing::RectI testRect = {200, 200, 100, 100};
-    testRegion.SetRect(testRect);
-
-    // Should NOT intersect since dirty region is (0,0)-(100,100) and test is (200,200)-(300,300)
-    ASSERT_FALSE(layerPartDirtyRegion.IsIntersects(testRegion));
-}
-
-/**
- * @tc.name: PaintFilterCanvasPopLayerPartRenderDirtyRegionWithEmptyStack
- * @tc.desc: Test RSPaintFilterCanvas::PopLayerPartRenderDirtyRegion when stack is empty
- * @tc.type: FUNC
- * @tc.require: issueLayerPart
- */
-HWTEST_F(RSOpincDrawCacheLayerPartTest, PaintFilterCanvasPopLayerPartRenderDirtyRegionWithEmptyStack, TestSize.Level1)
-{
-    Drawing::Canvas canvas;
-    RSPaintFilterCanvas paintFilterCanvas(&canvas);
-
-    ASSERT_TRUE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
-
-    // Call PopLayerPartRenderDirtyRegion on empty stack - should return without crash
-    paintFilterCanvas.PopLayerPartRenderDirtyRegion();
-
-    ASSERT_TRUE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
-}
-
-/**
- * @tc.name: PaintFilterCanvasPopLayerPartRenderDirtyRegionWithNonEmptyStack
- * @tc.desc: Test RSPaintFilterCanvas::PopLayerPartRenderDirtyRegion when stack is not empty
- * @tc.type: FUNC
- * @tc.require: issueLayerPart
- */
-HWTEST_F(RSOpincDrawCacheLayerPartTest, PaintFilterCanvasPopLayerPartRenderDirtyRegion, TestSize.Level1)
-{
-    DrawableV2::RSOpincDrawCache opincDrawCache;
-    Drawing::Canvas canvas;
-    RSPaintFilterCanvas paintFilterCanvas(&canvas);
-    RSRenderParams params(id);
-
-    params.SetLayerPartRenderEnabled(true);
-    RectI dirtyRect = {10, 10, 100, 100};
-    params.SetLayerPartRenderCurrentFrameDirtyRegion(dirtyRect);
-
-    opincDrawCache.PushLayerPartRenderDirtyRegion(params, paintFilterCanvas, TEST_NODE_COUNT);
-    ASSERT_FALSE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
-
-    // Call PopLayerPartRenderDirtyRegion directly on non-empty stack
-    paintFilterCanvas.PopLayerPartRenderDirtyRegion();
-
-    ASSERT_TRUE(paintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
+    EXPECT_FALSE(RSSystemProperties::GetLayerPartRenderDebugEnabled());
+    (void)system::SetParameter(debugKey, oldDebugValue);
 }
 
 /**
  * @tc.name: LayerDirtyRegionDfxWithDebugEnabled
- * @tc.desc: Test LayerDirtyRegionDfx when debug is enabled
+ * @tc.desc: Verify LayerDirtyRegionDfx enters drawing branch when debug switch is enabled
  * @tc.type: FUNC
  * @tc.require: issueLayerPart
  */
@@ -421,16 +257,154 @@ HWTEST_F(RSOpincDrawCacheLayerPartTest, LayerDirtyRegionDfxWithDebugEnabled, Tes
     DrawableV2::RSOpincDrawCache opincDrawCache;
     Drawing::Canvas canvas;
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    Drawing::RectI dirtyRect(DIRTY_LEFT, DIRTY_TOP, DIRTY_WIDTH, DIRTY_HEIGHT);
+    const std::string debugKey = "rosen.layerPartRenderDfx.enabled";
+    const std::string oldDebugValue = system::GetParameter(debugKey, "0");
 
-    system::SetParameter("rosen.layerPartRenderDfx.enabled", "1");
-
-    Drawing::RectI dirtyRect(10, 10, 100, 100);
+    (void)system::SetParameter(debugKey, "1");
+    EXPECT_TRUE(RSSystemProperties::GetLayerPartRenderDebugEnabled());
 
     opincDrawCache.LayerDirtyRegionDfx(paintFilterCanvas, dirtyRect);
 
-    ASSERT_TRUE(RSSystemProperties::GetLayerPartRenderDebugEnabled());
-
-    system::SetParameter("rosen.layerPartRenderDfx.enabled", "0");
+    (void)system::SetParameter(debugKey, oldDebugValue);
 }
-} // namespace Rosen
-} // namespace OHOS
+
+/**
+ * @tc.name: PushLayerPartRenderDirtyRegionInvertFailed
+ * @tc.desc: Verify PushLayerPartRenderDirtyRegion returns early when current canvas matrix inversion fails
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSOpincDrawCacheLayerPartTest, PushLayerPartRenderDirtyRegionInvertFailed, TestSize.Level1)
+{
+    DrawableV2::RSOpincDrawCache opincDrawCache;
+    Drawing::Canvas curCanvas;
+    Drawing::Canvas cacheCanvas;
+    RSPaintFilterCanvas curPaintFilterCanvas(&curCanvas);
+    RSPaintFilterCanvas cachePaintFilterCanvas(&cacheCanvas);
+    auto params = CreateRenderParams(true);
+    curPaintFilterCanvas.Scale(0.0f, 0.0f);
+
+    opincDrawCache.PushLayerPartRenderDirtyRegion(*params,
+        curPaintFilterCanvas, cachePaintFilterCanvas, TEST_NODE_COUNT);
+
+    EXPECT_TRUE(cachePaintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
+}
+
+/**
+ * @tc.name: PushLayerPartRenderDirtyRegionMapRectFailed
+ * @tc.desc: Verify PushLayerPartRenderDirtyRegion returns early when inverse matrix map rect fails
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSOpincDrawCacheLayerPartTest, PushLayerPartRenderDirtyRegionMapRectFailed, TestSize.Level1)
+{
+    DrawableV2::RSOpincDrawCache opincDrawCache;
+    Drawing::Canvas curCanvas;
+    Drawing::Canvas cacheCanvas;
+    RSPaintFilterCanvas curPaintFilterCanvas(&curCanvas);
+    RSPaintFilterCanvas cachePaintFilterCanvas(&cacheCanvas);
+    auto params = CreateRenderParams(true);
+    curPaintFilterCanvas.Rotate(45.0f, 0.0f, 0.0f);
+
+    opincDrawCache.PushLayerPartRenderDirtyRegion(*params,
+        curPaintFilterCanvas, cachePaintFilterCanvas, TEST_NODE_COUNT);
+
+    EXPECT_TRUE(cachePaintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
+}
+
+/**
+ * @tc.name: PushLayerPartRenderDirtyRegionAbsDrawRectEmpty
+ * @tc.desc: Verify PushLayerPartRenderDirtyRegion returns early when mapped abs draw rect is empty
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSOpincDrawCacheLayerPartTest, PushLayerPartRenderDirtyRegionAbsDrawRectEmpty, TestSize.Level1)
+{
+    DrawableV2::RSOpincDrawCache opincDrawCache;
+    Drawing::Canvas curCanvas;
+    Drawing::Canvas cacheCanvas;
+    RSPaintFilterCanvas curPaintFilterCanvas(&curCanvas);
+    RSPaintFilterCanvas cachePaintFilterCanvas(&cacheCanvas);
+    auto params = CreateRenderParams(true);
+    params->SetAbsDrawRect(RectI(DIRTY_LEFT, DIRTY_TOP, 0, DIRTY_HEIGHT));
+
+    opincDrawCache.PushLayerPartRenderDirtyRegion(*params,
+        curPaintFilterCanvas, cachePaintFilterCanvas, TEST_NODE_COUNT);
+
+    EXPECT_TRUE(cachePaintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
+}
+
+/**
+ * @tc.name: PushLayerPartRenderDirtyRegionSwitchToCurrentFrameDirty
+ * @tc.desc: Verify dirty source switches from abs draw rect to current-frame dirty after warmup count
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSOpincDrawCacheLayerPartTest, PushLayerPartRenderDirtyRegionSwitchToCurrentFrameDirty, TestSize.Level1)
+{
+    DrawableV2::RSOpincDrawCache opincDrawCache;
+    Drawing::Canvas curCanvas;
+    Drawing::Canvas cacheCanvas;
+    RSPaintFilterCanvas curPaintFilterCanvas(&curCanvas);
+    RSPaintFilterCanvas cachePaintFilterCanvas(&cacheCanvas);
+    auto params = CreateRenderParams(true);
+    params->SetLayerPartRenderCurrentFrameDirtyRegion(PARTIAL_DIRTY_RECT);
+
+    for (int32_t i = 0; i < WARMUP_PUSH_COUNT; ++i) {
+        opincDrawCache.PushLayerPartRenderDirtyRegion(*params,
+            curPaintFilterCanvas, cachePaintFilterCanvas, TEST_NODE_COUNT);
+        ASSERT_FALSE(cachePaintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
+        auto warmupBounds = cachePaintFilterCanvas.GetCurLayerPartRenderDirtyRegion().GetBounds();
+        EXPECT_EQ(warmupBounds.GetLeft(), FULL_CACHE_REGION_LEFT);
+        EXPECT_EQ(warmupBounds.GetTop(), FULL_CACHE_REGION_TOP);
+        EXPECT_EQ(warmupBounds.GetWidth(), FULL_CACHE_REGION_WIDTH);
+        EXPECT_EQ(warmupBounds.GetHeight(), FULL_CACHE_REGION_HEIGHT);
+        opincDrawCache.PopLayerPartRenderDirtyRegion(*params, cachePaintFilterCanvas);
+    }
+
+    opincDrawCache.PushLayerPartRenderDirtyRegion(*params,
+        curPaintFilterCanvas, cachePaintFilterCanvas, TEST_NODE_COUNT);
+    ASSERT_FALSE(cachePaintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
+    auto switchedBounds = cachePaintFilterCanvas.GetCurLayerPartRenderDirtyRegion().GetBounds();
+    EXPECT_EQ(switchedBounds.GetLeft(), PARTIAL_CACHE_REGION_LEFT);
+    EXPECT_EQ(switchedBounds.GetTop(), PARTIAL_CACHE_REGION_TOP);
+    EXPECT_EQ(switchedBounds.GetWidth(), PARTIAL_CACHE_REGION_WIDTH);
+    EXPECT_EQ(switchedBounds.GetHeight(), PARTIAL_CACHE_REGION_HEIGHT);
+}
+
+/**
+ * @tc.name: ResetUpdateLayerPartRenderCacheResetsWarmup
+ * @tc.desc: Verify ResetUpdateLayerPartRenderCache clears warmup count so next push uses abs draw rect again
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSOpincDrawCacheLayerPartTest, ResetUpdateLayerPartRenderCacheResetsWarmup, TestSize.Level1)
+{
+    DrawableV2::RSOpincDrawCache opincDrawCache;
+    Drawing::Canvas curCanvas;
+    Drawing::Canvas cacheCanvas;
+    RSPaintFilterCanvas curPaintFilterCanvas(&curCanvas);
+    RSPaintFilterCanvas cachePaintFilterCanvas(&cacheCanvas);
+    auto params = CreateRenderParams(true);
+    params->SetLayerPartRenderCurrentFrameDirtyRegion(PARTIAL_DIRTY_RECT);
+
+    for (int32_t i = 0; i <= WARMUP_PUSH_COUNT; ++i) {
+        opincDrawCache.PushLayerPartRenderDirtyRegion(*params,
+            curPaintFilterCanvas, cachePaintFilterCanvas, TEST_NODE_COUNT);
+        ASSERT_FALSE(cachePaintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
+        opincDrawCache.PopLayerPartRenderDirtyRegion(*params, cachePaintFilterCanvas);
+    }
+
+    opincDrawCache.ResetUpdateLayerPartRenderCache();
+    opincDrawCache.PushLayerPartRenderDirtyRegion(*params,
+        curPaintFilterCanvas, cachePaintFilterCanvas, TEST_NODE_COUNT);
+
+    ASSERT_FALSE(cachePaintFilterCanvas.IsLayerPartRenderDirtyRegionStackEmpty());
+    auto resetBounds = cachePaintFilterCanvas.GetCurLayerPartRenderDirtyRegion().GetBounds();
+    EXPECT_EQ(resetBounds.GetLeft(), FULL_CACHE_REGION_LEFT);
+    EXPECT_EQ(resetBounds.GetTop(), FULL_CACHE_REGION_TOP);
+    EXPECT_EQ(resetBounds.GetWidth(), FULL_CACHE_REGION_WIDTH);
+    EXPECT_EQ(resetBounds.GetHeight(), FULL_CACHE_REGION_HEIGHT);
+}
+} // namespace OHOS::Rosen

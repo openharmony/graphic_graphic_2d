@@ -126,7 +126,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ReleaseSurfaceVKTest, TestSize.L
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnDrawTest, TestSize.Level1)
 {
     auto drawable = RSCanvasDrawingRenderNodeDrawableTest::CreateDrawable();
-    drawable->renderParams_ = std::make_unique<RSRenderParams>(0);
+    drawable->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(0);
 
     Drawing::Canvas rawCanvas;
     RSPaintFilterCanvas canvas(&rawCanvas);
@@ -136,12 +136,13 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnDrawTest, TestSize.Level1)
     drawable->renderParams_->contentEmpty_ = false;
     drawable->OnDraw(canvas);
     ASSERT_TRUE(drawable->ShouldPaint());
-    ASSERT_FALSE(drawable->renderParams_->GetCanvasDrawingSurfaceChanged());
+    auto renderParams = static_cast<RSCanvasDrawingRenderParams*>(drawable->renderParams_.get());
+    ASSERT_FALSE(renderParams->GetCanvasDrawingSurfaceChanged());
 
-    drawable->renderParams_->canvasDrawingNodeSurfaceChanged_ = true;
+    renderParams->canvasDrawingNodeSurfaceChanged_ = true;
     drawable->OnDraw(canvas);
     ASSERT_TRUE(drawable->ShouldPaint());
-    ASSERT_FALSE(drawable->renderParams_->GetCanvasDrawingSurfaceChanged());
+    ASSERT_FALSE(renderParams->GetCanvasDrawingSurfaceChanged());
 
     rawCanvas.recordingState_ = true;
     RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
@@ -161,7 +162,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnDrawTest, TestSize.Level1)
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnDrawWithoutChildren, TestSize.Level1)
 {
     auto drawable = RSCanvasDrawingRenderNodeDrawableTest::CreateDrawable();
-    drawable->renderParams_ = std::make_unique<RSRenderParams>(0);
+    drawable->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(0);
 
     Drawing::Canvas rawCanvas;
     RSPaintFilterCanvas canvas(&rawCanvas);
@@ -170,11 +171,12 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnDrawWithoutChildren, TestSize.
     RSUniRenderThread::GetCaptureParam().endNodeId_ = drawable->renderParams_->GetId();
     rawCanvas.SetUICapture(true);
     drawable->OnDraw(canvas);
-    ASSERT_FALSE(drawable->renderParams_->GetCanvasDrawingSurfaceChanged());
+    auto renderParams = static_cast<RSCanvasDrawingRenderParams*>(drawable->renderParams_.get());
+    ASSERT_FALSE(renderParams->GetCanvasDrawingSurfaceChanged());
     RSUniRenderThread::GetCaptureParam().endNodeId_ = INVALID_NODEID;
-    drawable->renderParams_->canvasDrawingNodeSurfaceChanged_ = true;
+    renderParams->canvasDrawingNodeSurfaceChanged_ = true;
     drawable->OnDraw(canvas);
-    ASSERT_FALSE(drawable->renderParams_->GetCanvasDrawingSurfaceChanged());
+    ASSERT_FALSE(renderParams->GetCanvasDrawingSurfaceChanged());
 }
 
 /**
@@ -220,12 +222,18 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, PlaybackInCorrespondThreadTest, 
     drawable->PostPlaybackInCorrespondThread();
     ASSERT_FALSE(drawable->canvas_);
 
-    drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    drawable->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(nodeId);
     drawable->PostPlaybackInCorrespondThread();
     ASSERT_FALSE(drawable->canvas_);
 
     drawable->needDraw_ = true;
-    drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    drawable->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(nodeId);
+    drawable->PostPlaybackInCorrespondThread();
+    ASSERT_FALSE(drawable->canvas_);
+
+    drawable->needDraw_ = true;
+    auto renderParams = static_cast<RSCanvasDrawingRenderParams*>(drawable->renderParams_.get());
+    renderParams->SetCanvasDrawingSurfaceChanged(true);
     drawable->PostPlaybackInCorrespondThread();
     ASSERT_FALSE(drawable->canvas_);
 
@@ -542,7 +550,9 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnCaptureTest002, TestSize.Level
     drawable->renderParams_ = nullptr;
     drawable->OnCapture(canvas);
     drawable->isDrawingCacheEnabled_ = false;
-    drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    drawable->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(nodeId);
+    auto renderParams = static_cast<RSCanvasDrawingRenderParams*>(drawable->renderParams_.get());
+    renderParams->SetCanvasDrawingSurfaceChanged(true);
     ASSERT_TRUE(drawable->GetRenderParams());
     drawable->renderParams_->shouldPaint_ = true;
     drawable->renderParams_->contentEmpty_ = false;
@@ -750,8 +760,9 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceTest003, TestSize.Le
     auto result = drawable->ResetSurfaceForGL(width, height, canvas);
     EXPECT_EQ(result, true);
 
-    drawable->renderParams_ = std::make_unique<RSRenderParams>(0);
-    drawable->renderParams_->surfaceParams_.colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    drawable->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(0);
+    auto renderParams = static_cast<RSCanvasDrawingRenderParams*>(drawable->renderParams_.get());
+    renderParams->surfaceParams_.colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     ASSERT_TRUE(drawable->GetRenderParams());
     auto resultVK = drawable->ResetSurfaceForVK(width, height, canvas);
     EXPECT_EQ(resultVK, true);
@@ -1058,7 +1069,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, CreateDmaBackendTextureTest001, 
     auto ret = drawable->CreateDmaBackendTexture(1, 100, 100);
     ASSERT_EQ(ret, false);
     drawable->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(1);
-    drawable->renderParams_->SetCanvasDrawingResetSurfaceIndex(1);
+    auto renderParams = static_cast<RSCanvasDrawingRenderParams*>(drawable->renderParams_.get());
+    renderParams->SetCanvasDrawingResetSurfaceIndex(1);
     ret = drawable->CreateDmaBackendTexture(1, 100, 100);
     ASSERT_EQ(ret, false);
     ret = drawable->CreateDmaBackendTexture(1, 100, 100);
@@ -1067,7 +1079,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, CreateDmaBackendTextureTest001, 
     auto node1 = std::make_shared<RSCanvasDrawingRenderNode>(1, rsContext1->weak_from_this());
     RSCanvasDmaBufferCache::GetInstance().pendingBufferMap_.clear();
     RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(node1);
-    node1->stagingRenderParams_->canvasDrawingResetSurfaceIndex_ = 1;
+    auto stagingRenderParams = static_cast<RSCanvasDrawingRenderParams*>(node1->stagingRenderParams_.get());
+    stagingRenderParams->canvasDrawingResetSurfaceIndex_ = 1;
     sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
     RSCanvasDmaBufferCache::GetInstance().AddPendingBuffer(1, buffer, 1);
     ret = drawable->CreateDmaBackendTexture(1, 100, 100);
@@ -1112,7 +1125,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, CreateDmaBackendTextureTest002, 
     auto buffer = SurfaceBufferUtils::CreateCanvasSurfaceBuffer(1, 100, 100);
     RSCanvasDmaBufferCache::GetInstance().AddPendingBuffer(2, buffer, 2);
     drawable->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(2);
-    drawable->renderParams_->SetCanvasDrawingResetSurfaceIndex(2);
+    auto renderParams = static_cast<RSCanvasDrawingRenderParams*>(drawable->renderParams_.get());
+    renderParams->SetCanvasDrawingResetSurfaceIndex(2);
     drawable->backendTexture_ = {};
     bool isDmaBackendTexture = false;
     ret = drawable->ReleaseSurfaceVK(100, 100, isDmaBackendTexture);
@@ -1144,7 +1158,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ReleaseDmaSurfaceBufferTest, Tes
     ASSERT_EQ(drawable->renderParams_, nullptr);
     ASSERT_EQ(nodeBufferMap.empty(), false);
     drawable->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(1);
-    drawable->renderParams_->SetCanvasDrawingResetSurfaceIndex(1);
+    auto renderParams = static_cast<RSCanvasDrawingRenderParams*>(drawable->renderParams_.get());
+    renderParams->SetCanvasDrawingResetSurfaceIndex(1);
     drawable->ReleaseDmaSurfaceBuffer(true);
     ASSERT_NE(drawable->renderParams_, nullptr);
     ASSERT_EQ(nodeBufferMap.empty(), false);

@@ -31,7 +31,7 @@ public:
     virtual ~RSRenderServiceProxy() noexcept = default;
 
     std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
-        CreateConnection(const sptr<RSIConnectionToken>& token) override;
+        CreateConnection(const sptr<RSIConnectionToken>& token, bool needRefresh = false) override;
     bool RemoveConnection(const sptr<RSIConnectionToken>& token) override;
     sptr<ReplyToRenderInfo> RegisterRenderProcessConnection(
         const sptr<ConnectToServiceInfo>& connectToServiceInfo) override;

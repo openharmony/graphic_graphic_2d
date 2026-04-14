@@ -165,6 +165,17 @@ public:
     {
         return children_;
     }
+
+    /**
+     * @brief Gets the total count of all descendant nodes recursively.
+     *
+     * This method traverses the entire child tree recursively and returns
+     * the total number of all descendant nodes, including direct children,
+     * grandchildren, and all deeper levels.
+     *
+     * @return The total count of all descendant nodes.
+     */
+    size_t GetDescendantCount() const;
     // ONLY support index in [0, childrenTotal) or index = -1, otherwise return std::nullopt
     RSNode::SharedPtr GetChildByIndex(int index) const;
 
@@ -457,10 +468,13 @@ public:
      * @param isFreeze Freeze state flag
      *                - true: Freeze current frame content
      *                - false: Resume dynamic updates
+     * @param isMarkedByUI Determine whether Freeze is marked by ArkUI
+     *                - true: Disable Freeze when a frozen component or its sub components include Filter or Effect
+     *                - false: Freeze anyway
      * @see RSCanvasNode::SetFreeze(bool isFreeze)
      * @see RSSurfaceNode::SetFreeze(bool isFreeze)
      */
-    virtual void SetFreeze(bool isFreeze);
+    virtual void SetFreeze(bool isFreeze, bool isMarkedByUI = false);
 
     /**
      * @brief Sets the name of the node.
@@ -808,6 +822,13 @@ public:
      * @param alphaOffscreen true if offscreen alpha is enabled; false otherwise.
      */
     void SetAlphaOffscreen(bool alphaOffscreen);
+
+    /**
+     * @brief Mark the node as a layer node for rendering pipeline optimization
+     *
+     * @param isLayer The layer mark value to set (true for layer, false for non-Layer).
+     */
+    void MarkLayer(bool isLayer);
 
     /**
      * @brief Sets the foreground color of environment.
@@ -1421,7 +1442,7 @@ public:
     /**
      * @brief Sets the radius of the shadow.
      *
-     * @param radius Indicates the radius value to be set.
+     * @param radius Indicates the radius value to be set, whose effective value is non-negative.
      */
     void SetShadowRadius(float radius);
 
@@ -1535,6 +1556,13 @@ public:
     void SetHDRBrightnessFactor(float factor);
 
     /**
+     * @brief Sets the headroom of HDR Color (High Dynamic Range).
+     *
+     * @param headroom The HDR headroom to set.
+     */
+    void SetHDRColorHeadroom(const float& headroom);
+
+    /**
      * @brief Sets the visibility of the node.
      *
      * @param visible True to make the node visible; false to hide it.
@@ -1604,6 +1632,27 @@ public:
      * @param useUnion Indicates whether to enable the SDF Union.
      */
     void SetUseUnion(bool useUnion);
+
+    /**
+     * @brief Sets the flag to indicate the center of gravity pull SDF Union.
+     *
+     * @param isGravityPullModeCenter Indicates whether the node is center of gravity pull.
+     */
+    void SetGravityPullCenterFlag(bool isGravityPullModeCenter);
+
+    /**
+     * @brief Sets the strength of gravity pull union node.
+     *
+     * @param gravityPullStrength strength of gravity pull.
+     */
+    void SetGravityPullStrength(float gravityPullStrength);
+
+    /**
+     * @brief Sets the hotZone of gravity pull union node.
+     *
+     * @param hotZone hot zone of gravity pull.
+     */
+    void SetGravityHotZone(float hotZone);
 
     /**
      * @brief Sets the SDF Shape.
@@ -1893,6 +1942,20 @@ public:
     void UpdateOcclusionCullingStatus(bool enable, NodeId keyOcclusionNodeId);
 
     /**
+     * @brief Set the spatial effect parameters of the node
+     *
+     * @param para spatial effect parameters
+     */
+    void SetSpatialEffectPara(const std::shared_ptr<SpatialEffectPara>& para);
+
+    /**
+     * @brief Set whether the node is a depth background node
+     *
+     * @param isDepthBackground True if the node is a depth background node
+     */
+    void SetIsDepthBackground(bool isDepthBackground);
+
+    /**
      * @brief Mark the node for layer part rendering optimization
      *
      * @param isLayerPartRender true to enable layer part rendering optimization; false to disable
@@ -2114,6 +2177,7 @@ private:
     void SetFgBlurDisableSystemAdaptation(bool disableSystemAdaptation);
 
     void SetShadowBlenderParams(const RSShadowBlenderPara& params);
+    void SetHdrDarkenBlenderParams(const RSHdrDarkenBlenderPara& params);
 
     void NotifyPageNodeChanged() const;
     bool AnimationCallback(AnimationId animationId, AnimationCallbackEvent event);
@@ -2174,6 +2238,7 @@ private:
     bool isNodeSingleFrameComposer_ = false;
 
     bool isSuggestOpincNode_ = false;
+    bool isLayer_ = false;
     bool isLayerPartRender_ = false;
     bool isDrawNode_ = false;
     // Used to identify whether the node has real drawing property
@@ -2183,7 +2248,7 @@ private:
     bool isUifirstNode_ = true;
     bool isForceFlag_ = false;
     bool isUifirstEnable_ = false;
-    bool isP3Color_ = false;
+    int8_t collectColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     bool isSkipCheckInMultiInstance_ = true;
     RSUIFirstSwitch uiFirstSwitch_ = RSUIFirstSwitch::NONE;
     std::shared_ptr<RSUIContext> rsUIContext_;

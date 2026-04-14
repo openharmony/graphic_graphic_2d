@@ -24,6 +24,7 @@
 #include <memory>
 #include <mutex>
 
+#include "common/rs_event_def.h"
 #include "memory/rs_memory_graphic.h"
 #include "transaction/rs_render_service_client.h"
 #include "ui/rs_display_node.h"
@@ -587,6 +588,20 @@ public:
     int32_t SetDualScreenState(ScreenId id, DualScreenStatus status);
 
     /**
+     * @brief Set screen as main screen.
+     * @param screenId Id of the screen to set.
+     * @param isMainScreen True means set as main screen, false means not main screen.
+     * @return 0 means success, others failed.
+     */
+    int32_t SetAsMainScreen(ScreenId screenId, bool isMainScreen);
+
+    /**
+     * @brief Get the main screen id.
+     * @return ScreenId of the main screen. Returns INVALID_SCREEN_ID if no main screen is set.
+     */
+    ScreenId GetMainScreenId();
+
+    /**
      * @brief Get active mode of the screen.
      * @param id Id of the screen to get active mode.
      * @return RSScreenModeInfo including the screen width, height, and refresh rates.
@@ -989,6 +1004,21 @@ public:
     int32_t UnRegisterFirstFrameCommitCallback();
 
     /**
+     * @brief Register the exposed event callback function.
+     * @param type Indicates specified event that need to be registered.
+     * @param callback Indicates functions that need to be registered.
+     * @return Register result, 0 success, else failed.
+     */
+    int32_t RegisterExposedEventCallback(const RSExposedEventType type, const RSExposedEventCallback& callback);
+
+    /**
+     * @brief UnRegister the Exposed event Callback function.
+     * @param type Indicates specified event that need to be Unregistered.
+     * @return UnRegister result, 0 success, else failed.
+     */
+    int32_t UnRegisterExposedEventCallback(const RSExposedEventType type);
+
+    /**
      * @brief Register FrameRateLinkerExpectedFpsUpdateCallback.
      * @param callback Indicates functions that need to be registered.
      * @return Register result, 0 success, else failed.
@@ -1366,6 +1396,14 @@ public:
     int32_t GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB);
 
     /**
+     * @brief Get the maximum GPU buffer size.
+     * @param maxWidth The maximum width of GPU buffer.
+     * @param maxHeight The maximum height of GPU buffer.
+     * @return 0 success, others failed.
+     */
+    int32_t GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight);
+
+    /**
      * @brief clear uifirst node cache
      * @param id surface node id
      */
@@ -1388,6 +1426,46 @@ public:
      * @return 0 means success, others failed.
      */
     int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection);
+
+    /**
+     * @brief Register frame stability detection, used for callback of frame stability result.
+     * @param target Frame stability target (screen or node).
+     * @param config Detection configuration.
+     * @param callback Callback function, trigger callbacks based on configuration.
+     * @return 0 means success, others failed.
+     */
+    int32_t RegisterFrameStabilityDetection(
+        const FrameStabilityTarget& target,
+        const FrameStabilityConfig& config,
+        const FrameStabilityCallback& callback
+    );
+
+    /**
+     * @brief Unregister frame stability detection.
+     * @param target Frame stability target (screen or node).
+     * @return 0 means success, others failed.
+     */
+    int32_t UnregisterFrameStabilityDetection(const FrameStabilityTarget& target);
+
+    /**
+     * @brief Start frame stability data collection, collect stable results for every frame and accumulate them.
+     * @param target Frame stability target (screen or node).
+     * @param config Collection configuration.
+     * @return 0 means success, others failed.
+     */
+    int32_t StartFrameStabilityCollection(
+        const FrameStabilityTarget& target,
+        const FrameStabilityConfig& config
+    );
+
+    /**
+     * @brief Get frame stability result and stop collection.
+     * @param target Frame stability target (screen or node).
+     * @param result Collection result, get frame stability result from StartFrameStabilityCollection to present.
+     * false means unstable, true means stable.
+     * @return 0 means success, others failed.
+     */
+    int32_t GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result);
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

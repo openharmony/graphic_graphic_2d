@@ -53,6 +53,7 @@ public:
     static napi_value GetTextLines(napi_env env, napi_callback_info info);
     static napi_value DidExceedMaxLines(napi_env env, napi_callback_info info);
     static napi_value GetActualTextRange(napi_env env, napi_callback_info info);
+    static napi_value GetVisibleTextRanges(napi_env env, napi_callback_info info);
     static napi_value GetLineMetrics(napi_env env, napi_callback_info info);
     static napi_value GetFontMetricsByTextStyle(napi_env env, napi_callback_info info);
     static napi_value GetLineFontMetrics(napi_env env, napi_callback_info info);
@@ -65,6 +66,9 @@ public:
     static napi_value IsStrutStyleEqual(napi_env env, napi_callback_info info);
     static napi_value UpdateColor(napi_env env, napi_callback_info info);
     static napi_value UpdateDecoration(napi_env env, napi_callback_info info);
+    static napi_value GetProcessState(napi_env env, napi_callback_info info);
+    static napi_value GetTextDisplayState(napi_env env, napi_callback_info info);
+    static napi_value GetParagraphStyle(napi_env env, napi_callback_info info);
     static napi_value LayoutWithConstraints(napi_env env, napi_callback_info info);
 
 private:
@@ -92,6 +96,7 @@ private:
     napi_value OnDidExceedMaxLines(napi_env env, napi_callback_info info);
     napi_value OnGetTextLines(napi_env env, [[maybe_unused]] napi_callback_info info);
     napi_value OnGetActualTextRange(napi_env env, napi_callback_info info);
+    napi_value OnGetVisibleTextRanges(napi_env env, napi_callback_info info);
     napi_value OnGetLineMetrics(napi_env env, napi_callback_info info);
     napi_value OnGetLineMetricsAt(napi_env env, napi_callback_info info);
 
@@ -100,6 +105,9 @@ private:
     napi_value OnLayoutAsync(napi_env env, napi_callback_info info);
     napi_value OnUpdateColor(napi_env env, napi_callback_info info);
     napi_value OnUpdateDecoration(napi_env env, napi_callback_info info);
+    napi_value OnGetProcessState(napi_env env, napi_callback_info info);
+    napi_value OnGetTextDisplayState(napi_env env, napi_callback_info info);
+    napi_value OnGetParagraphStyle(napi_env env, napi_callback_info info);
     napi_value OnLayoutWithConstraints(napi_env env, napi_callback_info info);
     static bool CreateConstructor(napi_env env);
     static thread_local napi_ref constructor_;

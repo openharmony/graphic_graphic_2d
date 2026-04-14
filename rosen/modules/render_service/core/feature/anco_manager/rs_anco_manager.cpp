@@ -21,6 +21,12 @@
 #include "platform/common/rs_system_properties.h"
 
 namespace OHOS::Rosen {
+namespace {
+const std::string DIMMER_PREFIX = "ShellAssistantAnco_Dimmer_";
+const std::string SHELL_WINDOW_PREFIX = "shell_assistant";
+const std::string SYS_WINDOW_PREFIX = "shell_sys_win";
+}
+
 RSAncoManager* RSAncoManager::Instance()
 {
     static RSAncoManager instance;
@@ -220,5 +226,15 @@ void RSAncoManager::ShrinkAmountIfNeed(const AncoBufferInfo& ancoInfo, Drawing::
         outSrcRect.top_ += shrinkAmount;
         outSrcRect.bottom_ -= shrinkAmount;
     }
+}
+
+bool RSAncoManager::IsAncoDimmer(const std::string& name)
+{
+    return name.rfind(DIMMER_PREFIX, 0) == 0;
+}
+
+bool RSAncoManager::IsAncoType(const std::string& name)
+{
+    return (name.rfind(SHELL_WINDOW_PREFIX, 0) == 0) || (name.rfind(SYS_WINDOW_PREFIX, 0) == 0);
 }
 } // namespace OHOS::Rosen

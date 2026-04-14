@@ -71,6 +71,27 @@ HWTEST_F(RSRectTest, RectIComparator, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RectI_Hash_Func
+ * @tc.desc: test results of RectI_Hash_Func
+ * @tc.type:FUNC
+ * @tc.require: issueI9LJFJ
+ */
+HWTEST_F(RSRectTest, RectI_Hash_Func, TestSize.Level1)
+{
+    NodeId id = 1;
+    RectI rect1(0, 0, 10, 10);
+    auto p1 = std::pair<NodeId, RectI>(id, rect1);
+    id++;
+    RectI rect2(0, 0, 5, 5);
+    auto p2 = std::pair<NodeId, RectI>(id, rect2);
+    OcclusionRectISet occRectISet;
+    occRectISet.insert(p1);
+    occRectISet.insert(p2);
+    RectIComparator comp;
+    ASSERT_TRUE(comp(p1, p2));
+}
+
+/**
  * @tc.name: Filter_RectI_Hash_Func
  * @tc.desc: test results of Filter_RectI_Hash_Func of equal nodeid
  * @tc.type:FUNC

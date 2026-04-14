@@ -92,7 +92,7 @@ private:
     /*** prepare ***/
     bool isTestEnvironmentPrepared_ = false;
     ConfigManager configManager_;
-    sptr<IRemoteObject> connProxy_ = nullptr;
+    std::unordered_map<int, sptr<IRemoteObject>> proxyMap_;
     std::u16string connProxyDescriptor_;
 };
 } // namespace Rosen

@@ -259,5 +259,35 @@ int32_t RSRenderPipelineClient::SetLogicalCameraRotationCorrection(ScreenId id, 
 {
     return 0;
 }
+
+int32_t RSRenderPipelineClient::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
+{
+    return false;
+}
+
+int32_t RSRenderPipelineClient::RegisterFrameStabilityDetection(
+    const FrameStabilityTarget& target,
+    const FrameStabilityConfig& config,
+    const FrameStabilityCallback& callback)
+{
+    return 0;
+}
+
+int32_t RSRenderPipelineClient::UnregisterFrameStabilityDetection(const FrameStabilityTarget& target)
+{
+    return 0;
+}
+
+int32_t RSRenderPipelineClient::StartFrameStabilityCollection(
+    const FrameStabilityTarget& target,
+    const FrameStabilityConfig& config)
+{
+    return 0;
+}
+
+int32_t RSRenderPipelineClient::GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result)
+{
+    return 0;
+}
 } // namespace Rosen
 } // namespace OHOS

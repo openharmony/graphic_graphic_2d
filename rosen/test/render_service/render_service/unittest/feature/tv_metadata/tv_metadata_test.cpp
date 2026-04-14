@@ -208,7 +208,7 @@ HWTEST_F(TvMetadataTest, CopyFromLayersToSurface_001, TestSize.Level1)
 
     // test empty layers
     std::vector<RSLayerPtr> layers;
-    RSTvMetadataManager::CopyFromLayersToSurface(layers, rsSurface);
+    RSTvMetadataUtil::CopyFromLayersToSurface(layers, rsSurface);
     TvPQMetadata tvMetadata = { 0 };
     MetadataHelper::GetVideoTVMetadata(outBuffer, tvMetadata);
     ASSERT_EQ(0, tvMetadata.sceneTag);
@@ -232,7 +232,7 @@ HWTEST_F(TvMetadataTest, CopyFromLayersToSurface_001, TestSize.Level1)
     layer->SetBuffer(buffer, acquireFence);
     layers.emplace_back(layer);
 
-    RSTvMetadataManager::CopyFromLayersToSurface(layers, rsSurface);
+    RSTvMetadataUtil::CopyFromLayersToSurface(layers, rsSurface);
     MetadataHelper::GetVideoTVMetadata(outBuffer, tvMetadata);
     ASSERT_EQ(1, tvMetadata.sceneTag);
     ASSERT_EQ(60, tvMetadata.uiFrameCnt);
@@ -365,7 +365,7 @@ HWTEST_F(TvMetadataTest, CombineMetadataForAllLayers_001, TestSize.Level1)
     layers.emplace_back(layerNull);
     RSLayerPtr layerNoBuffer = std::make_shared<RSSurfaceLayer>(0, nullptr);;
     layers.emplace_back(layerNoBuffer);
-    RSTvMetadataManager::Instance().CombineMetadataForAllLayers(layers);
+    RSTvMetadataUtil::CombineMetadataForAllLayers(layers);
     TvPQMetadata tvMetadata = { 0 };
     MetadataHelper::GetVideoTVMetadata(unitRenderBuffer, tvMetadata);
     ASSERT_EQ(1, tvMetadata.sceneTag);
@@ -414,7 +414,7 @@ HWTEST_F(TvMetadataTest, CombineMetadataForAllLayers_002, TestSize.Level1)
     selfDrawLayer2->SetZorder(0);
     layers.emplace_back(selfDrawLayer2);
 
-    RSTvMetadataManager::Instance().CombineMetadataForAllLayers(layers);
+    RSTvMetadataUtil::CombineMetadataForAllLayers(layers);
     TvPQMetadata tvMetadata1 = { 0 };
     MetadataHelper::GetVideoTVMetadata(selfDrawBuffer1, tvMetadata1);
     ASSERT_EQ(1, tvMetadata1.sceneTag);

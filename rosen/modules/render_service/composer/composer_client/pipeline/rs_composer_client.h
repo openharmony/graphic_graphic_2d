@@ -30,6 +30,9 @@
 
 namespace OHOS {
 namespace Rosen {
+
+using RmvSurfaceFpsOpCB = std::function<void(const std::vector<SurfaceFpsOp>&)>;
+
 class RSComposerClient {
 public:
     ~RSComposerClient() = default;
@@ -58,6 +61,7 @@ public:
     void PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer);
     std::shared_ptr<HdiOutput> GetOutput() const;
     void SetOutput(const std::shared_ptr<HdiOutput>& output);
+    void SetRmvSurfaceFpsOpCallback(RmvSurfaceFpsOpCB callback);
 
 private:
     explicit RSComposerClient(const sptr<IRSRenderToComposerConnection>& renderToComposerConn);
@@ -74,6 +78,7 @@ private:
     bool isPreAllocProtectedFrameBuffer_ = false;
     PipelineParam pipelineParam_;
     std::shared_ptr<HdiOutput> output_ = nullptr;
+    RmvSurfaceFpsOpCB rmvSurfaceFpsOpCallback_ = nullptr;
 
     friend std::shared_ptr<RSComposerClient> Create(
         const sptr<IRSRenderToComposerConnection>& renderToComposerConn,

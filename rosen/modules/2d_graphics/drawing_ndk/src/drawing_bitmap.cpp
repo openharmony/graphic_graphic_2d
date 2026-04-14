@@ -151,3 +151,17 @@ bool OH_Drawing_BitmapReadPixels(OH_Drawing_Bitmap* cBitmap, const OH_Drawing_Im
 
     return CastToBitmap(cBitmap)->ReadPixels(imageInfo, dstPixels, dstRowBytes, srcX, srcY);
 }
+
+OH_Drawing_ErrorCode OH_Drawing_BitmapGetRowBytes(OH_Drawing_Bitmap* cBitmap, uint32_t* bytes)
+{
+    if (bytes == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    Bitmap* bitmap = CastToBitmap(cBitmap);
+    if (bitmap == nullptr) {
+        *bytes = 0;
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    *bytes = static_cast<uint32_t>(bitmap->GetRowBytes());
+    return OH_DRAWING_SUCCESS;
+}

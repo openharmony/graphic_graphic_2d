@@ -806,6 +806,8 @@ public:
 
     bool IsHdrEffectColorGamut() const;
 
+    bool HDRColorHeadroomEnabled();
+
     const std::shared_ptr<RSDirtyRegionManager>& GetDirtyManager() const
     {
         return dirtyManager_;
@@ -911,10 +913,7 @@ public:
     }
 
     void SetIsParticipateInOcclusion(bool isParticipate);
-    bool GetIsParticipateInOcclusion() const
-    {
-        return isParticipateInOcclusion_;
-    }
+    bool GetIsParticipateInOcclusion() const;
 
     const Occlusion::Region& GetVisibleRegion() const
     {
@@ -1804,6 +1803,8 @@ public:
 
     void SetAppRotationCorrection(ScreenRotation appRotationCorrection);
     void SetRotationCorrectionDegree(int32_t rotationCorrectionDegree);
+    void UpdateLayerPartRenderStatus(std::shared_ptr<RSDirtyRegionManager>& dirtyManager);
+
 protected:
     void OnSync() override;
     void OnSkipSync() override;
@@ -1848,6 +1849,9 @@ private:
     void CopyModifierValue(ModifierNG::RSPropertyType propertyType,
         std::shared_ptr<ModifierNG::RSRenderModifier> oldModifier,
         std::shared_ptr<ModifierNG::RSRenderModifier> newModifier);
+    
+    void CountRelatedNode(bool isIncrement);
+    void ClearRelatedSourceCache();
 
     RSSpecialLayerManager specialLayerManager_;
     bool specialLayerChanged_ = false;
@@ -1875,7 +1879,6 @@ private:
     bool isRefresh_ = false;
     bool isOcclusionVisible_ = true;
     bool isOcclusionVisibleWithoutFilter_ = true;
-    bool isParticipateInOcclusion_ = true;
     bool dstRectChanged_ = false;
     uint8_t abilityBgAlpha_ = 0;
     bool alphaChanged_ = false;
@@ -1973,6 +1976,7 @@ private:
     // Count the number of hdr UI components. If hdrUIComponentNum_ > 0, it means there are hdr UI components
     int hdrUIComponentNum_ = 0;
     int hdrEffectNum_ = 0;
+    int hdrColorNum_ = 0;
     int bt2020Num_ = 0;
     int p3Num_ = 0;
     int firstLevelNodeBt2020WindowNum_ = 0;
@@ -2059,7 +2063,6 @@ private:
     std::mutex mutexUI_;
     std::mutex mutexClear_;
     std::mutex mutex_;
-    std::mutex mutexHDR_;
     std::mutex parallelVisitMutex_;
     std::optional<Drawing::Matrix> contextMatrix_;
     std::optional<Drawing::Rect> contextClipRect_;
@@ -2179,6 +2182,7 @@ private:
     NodeId clonedSourceNodeId_ = INVALID_NODEID;
     bool isClonedNodeOnTheTree_ = false;
     bool clonedSourceNodeNeedOffscreen_ = true;
+    int relatedNodeNum_ = 0;
 
     std::optional<std::pair<ScreenId, bool>> attachedInfo_ = std::nullopt;
     std::map<NodeId, RSSurfaceRenderNode::WeakPtr> childSubSurfaceNodes_;

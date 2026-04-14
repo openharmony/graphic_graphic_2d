@@ -24,6 +24,7 @@
 #include "effect/shader_effect.h"
 #include "utils/drawing_macros.h"
 #include "utils/rect.h"
+#include "draw/ui_color.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -35,6 +36,7 @@ public:
     Brush(const Color& c) noexcept;
     Brush(const std::shared_ptr<ShaderEffect> e) noexcept;
     Brush(int rgba) noexcept;
+    Brush(const UIColor& c) noexcept;
 
     ~Brush() {}
 
@@ -43,6 +45,19 @@ public:
      * @return unpremultiplied ARGB.
      */
     const Color& GetColor() const;
+
+    /**
+     * @brief Set the UIColor of brush
+     *
+     * @param color UIColor of brush
+     */
+    const UIColor& GetUIColor() const;
+
+    /**
+     * @brief Returns true if hdrColor is enabled.
+     * @return hdrColor state
+     */
+    bool HasUIColor() const { return isHdrColor_; }
 
     /**
      * @brief Sets alpha and RGB used when stroking and filling. The color is a 32-bit value,
@@ -57,6 +72,13 @@ public:
      * @param color    unpremultiplied ARGB
      */
     void SetColor(uint32_t c);
+
+    /**
+     * @brief Set the UIColor of brush
+     *
+     * @param color UIColor object to set
+     */
+    void SetUIColor(const UIColor& color, std::shared_ptr<ColorSpace> s);
 
     /**
      * @brief Sets color used when drawing solid fills. The color components range from 0 to 255.
@@ -102,7 +124,7 @@ public:
      */
     inline uint32_t GetAlpha() const
     {
-        return color_.GetAlpha();
+        return isHdrColor_ ? static_cast<uint32_t>(round(hdrColor_.GetAlpha() * Color::RGB_MAX)) : color_.GetAlpha();
     }
 
     /**
@@ -111,7 +133,7 @@ public:
      */
     inline scalar GetAlphaF() const
     {
-        return color_.GetAlphaF();
+        return isHdrColor_ ? hdrColor_.GetAlpha() : color_.GetAlphaF();
     }
 
     /**
@@ -120,7 +142,7 @@ public:
      */
     inline scalar GetRedF() const
     {
-        return color_.GetRedF();
+        return isHdrColor_ ? hdrColor_.GetRed() : color_.GetRedF();
     }
 
     /**
@@ -129,7 +151,7 @@ public:
      */
     inline scalar GetGreenF() const
     {
-        return color_.GetGreenF();
+        return isHdrColor_ ? hdrColor_.GetGreen() : color_.GetGreenF();
     }
 
     /**
@@ -138,7 +160,7 @@ public:
      */
     inline scalar GetBlueF() const
     {
-        return color_.GetBlueF();
+        return isHdrColor_ ? hdrColor_.GetBlue() : color_.GetBlueF();
     }
 
     /**
@@ -311,6 +333,8 @@ private:
     bool antiAlias_;
     bool blenderEnabled_ = true;
     bool hasFilter_ = false;
+    UIColor hdrColor_;
+    bool isHdrColor_;
 };
 } // namespace Drawing
 } // namespace Rosen

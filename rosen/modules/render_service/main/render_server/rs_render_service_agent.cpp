@@ -96,5 +96,12 @@ const std::shared_ptr<const RenderModeConfig>& RSRenderServiceAgent::GetRenderMo
 {
     return renderService_.GetRenderModeConfig();
 }
+
+void RSRenderServiceAgent::HandleGameSceneChanged() const
+{
+    if (auto& handler = renderService_.GetGameFrameHandler()) {
+        handler->HandleGameSceneChanged();
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -62,7 +62,7 @@ GRAPHIC_TEST(OHFilterMaskTransitionTest, EFFECT_TEST, LinearGradientMaskTest)
     for (int i = 0; i < rowCount; i++) {
         auto bgPixelMapNative = CreateTestPixelMap(BG_TEST_JPG_PATH);
         auto fgPixelMapNative = CreateTestPixelMap(FG_TEST_JPG_PATH);
-        auto ohFilter = CreateFilter(bgPixelMapNative);
+        auto ohFilter = CreateFilter(fgPixelMapNative);
 
         auto fractionStops = linearGradientMaskParams[i].fractionStops;
 
@@ -72,15 +72,15 @@ GRAPHIC_TEST(OHFilterMaskTransitionTest, EFFECT_TEST, LinearGradientMaskTest)
         mask.fractionStops = fractionStops.data();
         mask.fractionStopsLength = static_cast<uint32_t>(fractionStops.size());
 
-        OH_Filter_MaskTransition(ohFilter, fgPixelMapNative, &mask,
+        OH_Filter_MaskTransition(ohFilter, bgPixelMapNative, &mask,
             EffectMaskType::LINEAR_GRADIENT_MASK,
             linearGradientMaskParams[i].factor,
             linearGradientMaskParams[i].inverse);
-        OH_Filter_GetEffectPixelMap(ohFilter, &bgPixelMapNative);
+        OH_Filter_GetEffectPixelMap(ohFilter, &fgPixelMapNative);
 
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        DrawBackgroundNodeOHPixelMap(bgPixelMapNative, {x, y, sizeX, sizeY});
+        DrawBackgroundNodeOHPixelMap(fgPixelMapNative, {x, y, sizeX, sizeY});
         OH_Filter_Release(ohFilter);
     }
 }
@@ -95,7 +95,7 @@ GRAPHIC_TEST(OHFilterMaskTransitionTest, EFFECT_TEST, RadialGradientMaskTest)
     for (int i = 0; i < rowCount; i++) {
         auto bgPixelMapNative = CreateTestPixelMap(BG_TEST_JPG_PATH);
         auto fgPixelMapNative = CreateTestPixelMap(FG_TEST_JPG_PATH);
-        auto ohFilter = CreateFilter(bgPixelMapNative);
+        auto ohFilter = CreateFilter(fgPixelMapNative);
 
         auto fractionStops = radialGradientMaskParams[i].fractionStops;
 
@@ -106,15 +106,15 @@ GRAPHIC_TEST(OHFilterMaskTransitionTest, EFFECT_TEST, RadialGradientMaskTest)
         mask.fractionStops = fractionStops.data();
         mask.fractionStopsLength = static_cast<uint32_t>(fractionStops.size());
 
-        OH_Filter_MaskTransition(ohFilter, fgPixelMapNative, &mask,
+        OH_Filter_MaskTransition(ohFilter, bgPixelMapNative, &mask,
             EffectMaskType::RADIAL_GRADIENT_MASK,
             radialGradientMaskParams[i].factor,
             radialGradientMaskParams[i].inverse);
-        OH_Filter_GetEffectPixelMap(ohFilter, &bgPixelMapNative);
+        OH_Filter_GetEffectPixelMap(ohFilter, &fgPixelMapNative);
 
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        DrawBackgroundNodeOHPixelMap(bgPixelMapNative, {x, y, sizeX, sizeY});
+        DrawBackgroundNodeOHPixelMap(fgPixelMapNative, {x, y, sizeX, sizeY});
         OH_Filter_Release(ohFilter);
     }
 }

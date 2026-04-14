@@ -767,6 +767,8 @@ ohos_unittest("RSMaterialFilterTest") {
     "rs_motion_blur_filter_test.cpp",
     "rs_path_test.cpp",
     "rs_pixel_map_shader_test.cpp",
+    "rs_render_blur_bubbles_rise_filter_test.cpp",
+    "rs_render_heat_distortion_filter_test.cpp",
     "rs_render_filter_base_test.cpp",
   ]
 

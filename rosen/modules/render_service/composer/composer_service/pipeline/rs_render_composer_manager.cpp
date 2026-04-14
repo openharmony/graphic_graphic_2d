@@ -23,9 +23,8 @@
 #define LOG_TAG "ComposerManager"
 namespace OHOS {
 namespace Rosen {
-RSRenderComposerManager::RSRenderComposerManager(std::shared_ptr<AppExecFwk::EventHandler>& handler,
-    const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent)
-    : handler_(handler), rsVsyncManagerAgent_(rsVsyncManagerAgent) {}
+RSRenderComposerManager::RSRenderComposerManager(std::shared_ptr<AppExecFwk::EventHandler>& handler)
+    : handler_(handler) {}
 
 void RSRenderComposerManager::OnScreenConnected(const std::shared_ptr<HdiOutput>& output,
     const sptr<RSScreenProperty>& property)
@@ -48,7 +47,6 @@ void RSRenderComposerManager::OnScreenConnected(const std::shared_ptr<HdiOutput>
         auto iter = rsRenderComposerAgentMap_.find(screenId);
         if (iter == rsRenderComposerAgentMap_.end()) {
             std::shared_ptr<RSRenderComposer> renderComposer = std::make_shared<RSRenderComposer>(output, property);
-            renderComposer->InitRsVsyncManagerAgent(rsVsyncManagerAgent_);
             renderComposerAgent = std::make_shared<RSRenderComposerAgent>(renderComposer);
             sptr<RSRenderToComposerConnection> composerConnection =
                 sptr<RSRenderToComposerConnection>::MakeSptr("composer_conn", screenId, renderComposerAgent);
@@ -300,6 +298,49 @@ void RSRenderComposerManager::HandlePowerStatus(ScreenId screenId, ScreenPowerSt
         return;
     }
     renderComposerAgent->HandlePowerStatus(status);
+}
+
+void RSRenderComposerManager::SetAFBCEnabled(ScreenId screenId, bool enabled)
+{
+    std::shared_ptr<RSRenderComposerAgent> renderComposerAgent;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        auto iter = rsRenderComposerAgentMap_.find(screenId);
+        if (iter == rsRenderComposerAgentMap_.end()) {
+            RS_LOGE("%{public}s not find screenId:%{public}" PRIu64, __func__, screenId);
+            return;
+        }
+        renderComposerAgent = iter->second;
+    }
+    if (renderComposerAgent == nullptr) {
+        RS_LOGE("%{public}s renderComposerAgent is null, screenId:%{public}" PRIu64, __func__, screenId);
+        return;
+    }
+    renderComposerAgent->SetAFBCEnabled(enabled);
+}
+
+void RSRenderComposerManager::RegisterVsyncManagerCallbacks(ScreenId screenId,
+    const SetHardwareTaskNumCallback& setHardwareTaskNumCb,
+    const SetTaskEndWithTimeCallback& setTaskEndWithTimeCb,
+    const GetRealTimeOffsetOfDvsyncCallback& getRealTimeOffsetOfDvsyncCb)
+{
+    RS_OPTIONAL_TRACE_NAME_FMT("%s: screenId %u", __func__, screenId);
+    std::shared_ptr<RSRenderComposerAgent> renderComposerAgent;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        auto iter = rsRenderComposerAgentMap_.find(screenId);
+        if (iter == rsRenderComposerAgentMap_.end()) {
+            RS_LOGE("%{public}s not find screenId:%{public}" PRIu64, __func__, screenId);
+            return;
+        }
+        renderComposerAgent = iter->second;
+    }
+    if (renderComposerAgent == nullptr) {
+        RS_LOGE("%{public}s renderComposerAgent is null, screenId:%{public}" PRIu64, __func__, screenId);
+        return;
+    }
+    renderComposerAgent->SetVsyncManagerCallbacks(setHardwareTaskNumCb,
+        setTaskEndWithTimeCb, getRealTimeOffsetOfDvsyncCb);
 }
 } // namespace Rosen
 } // namespace OHOS

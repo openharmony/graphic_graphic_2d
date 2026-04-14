@@ -532,6 +532,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, Drawing::SharedTypeface& v
     success &= Marshalling(parcel, val.size_);
     success &= Marshalling(parcel, val.index_);
     success &= Marshalling(parcel, val.hash_);
+    RS_PROFILER_WRITE_SHARED_TYPEFACE(parcel, val);
     success &= static_cast<MessageParcel*>(&parcel)->WriteFileDescriptor(val.fd_);
     success &= Marshalling(parcel, val.hasFontArgs_);
 
@@ -572,7 +573,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, Drawing::SharedTypeface&
     success &= Unmarshalling(parcel, hash);
     if (success) { val.hash_ = hash; }
 
-    val.fd_ = static_cast<MessageParcel*>(&parcel)->ReadFileDescriptor();
+    RS_PROFILER_READ_SHARED_TYPEFACE(parcel, val);
     if (val.fd_ < 0) {
         success = false;
     }
@@ -2213,14 +2214,6 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
     auto readSafeFdFunc = [](Parcel& parcel, std::function<int(Parcel&)> readFdDefaultFunc) -> int {
         return AshmemFdContainer::Instance().ReadSafeFd(parcel, readFdDefaultFunc);
     };
-    uint32_t pid = static_cast<uint32_t>(uniqueId >> 32);
-    if (MemoryTrack::Instance().CountFdRecordOfPid(pid) > MAX_FD) {
-        ROSEN_LOGE("The number of fd exceeds the limit");
-        std::string reason = "The number of fd exceeds the limit" +
-            std::to_string(MemoryTrack::Instance().CountFdRecordOfPid(pid));
-        MemoryTrack::Instance().KillProcessByPid(pid, reason);
-        return false;
-    }
     val.reset(RS_PROFILER_UNMARSHAL_PIXELMAP(parcel, readSafeFdFunc));
     if (val == nullptr) {
         ROSEN_LOGE("failed RSMarshallingHelper::Unmarshalling Media::PixelMap");
@@ -2239,6 +2232,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
     if (RSSystemProperties::GetClosePixelMapFdEnabled()) {
         val->CloseFd();
     }
+    uint32_t pid = static_cast<uint32_t>(uniqueId >> 32);
     OHOS::Media::ImageInfo imageInfo;
     val->GetImageInfo(imageInfo);
     MemoryInfo info = {
@@ -2256,6 +2250,11 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
     MemoryTrack::Instance().AddPictureRecord(val->GetPixels(), info);
 #endif
     val->SetFreePixelMapProc(CustomFreePixelMap);
+
+    if (!MemoryTrack::Instance().CheckPixelMapFdCountAndKillProcess(pid)) {
+        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling CheckPixelMapFdCount failed");
+        return false;
+    }
     return true;
 }
 

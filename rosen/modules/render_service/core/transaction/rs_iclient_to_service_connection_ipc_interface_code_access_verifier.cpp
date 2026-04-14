@@ -520,6 +520,10 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_BEHIND_WINDOW_FILTER_ENABLED");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::ON_EXPOSED_EVENT): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::ON_EXPOSED_EVENT");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_PID_GPU_MEMORY_IN_MB): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_PID_GPU_MEMORY_IN_MB");
             break;

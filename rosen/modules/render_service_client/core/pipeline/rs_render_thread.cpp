@@ -146,6 +146,9 @@ RSRenderThread::RSRenderThread()
         }
         RSRenderNodeGC::Instance().ReleaseNodeMemory();
         ReleasePixelMapInBackgroundThread();
+#if defined(ROSEN_ARKUI_X) && defined(RS_ENABLE_GPU)
+        ScheduleIdleGpuResourceClean();
+#endif
         context_->pendingSyncNodes_.clear();
 #ifdef ROSEN_OHOS
         FRAME_TRACE::RenderFrameTrace::GetInstance().RenderEndFrameTrace(RT_INTERVAL_NAME);
@@ -210,6 +213,29 @@ RSRenderThread::~RSRenderThread()
 #endif
 }
 
+#if defined(ROSEN_ARKUI_X) && defined(RS_ENABLE_GPU)
+void RSRenderThread::ScheduleIdleGpuResourceClean()
+{
+    lastRenderEndTimeNs_ = jankDetector_ ? static_cast<int64_t>(jankDetector_->GetSysTimeNs()) : 0;
+    const int64_t scheduledTimeNs = lastRenderEndTimeNs_;
+    constexpr int64_t IDLE_CLEAN_DELAY_MS = 2500;
+    if (!handler_) {
+        return;
+    }
+    handler_->PostTask([this, scheduledTimeNs]() {
+        if (lastRenderEndTimeNs_ > scheduledTimeNs || !renderContext_) {
+            return;
+        }
+        auto gpuContext = renderContext_->GetSharedDrGPUContext();
+        if (!gpuContext) {
+            return;
+        }
+        gpuContext->FlushAndSubmit(true);
+        gpuContext->PurgeUnlockedResources(false);
+        }, IDLE_CLEAN_DELAY_MS);
+}
+#endif
+
 void RSRenderThread::Start()
 {
     ROSEN_LOGD("RSRenderThread start.");
@@ -258,7 +284,8 @@ void RSRenderThread::RecvTransactionData(std::unique_ptr<RSTransactionData>& tra
 {
     {
         std::unique_lock<std::mutex> cmdLock(cmdMutex_);
-        std::string str = "RecvCommands ptr:" + std::to_string(reinterpret_cast<uintptr_t>(transactionData.get()));
+        std::string str = "RecvCommands count:" + std::to_string(transactionData->GetCommandCount()) +
+            ", timestamp:" + std::to_string(transactionData->GetTimestamp());
         commandTimestamp_ = transactionData->GetTimestamp();
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, str.c_str());
         cmds_.emplace_back(std::move(transactionData));
@@ -312,7 +339,7 @@ void RSRenderThread::CreateAndInitRenderContextIfNeed()
             renderContext_->SetCleanUpHelper(cleanupTask);
         
 #endif
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
 
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
         RS_TRACE_NAME("Init");
@@ -472,7 +499,8 @@ void RSRenderThread::ProcessCommands()
     }
     uint64_t uiEndTimeStamp = jankDetector_->GetSysTimeNs();
     for (auto& cmdData : cmds) {
-        std::string str = "ProcessCommands ptr:" + std::to_string(reinterpret_cast<uintptr_t>(cmdData.get()));
+        std::string str = "ProcessCommands count:" + std::to_string(cmdData->GetCommandCount()) +
+            ", timestamp:" + std::to_string(cmdData->GetTimestamp());
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, str.c_str());
         // only set transactionTimestamp_ in UniRender mode
         context_->transactionTimestamp_ = RSSystemProperties::GetUniRenderEnabled() ? cmdData->GetTimestamp() : 0;
@@ -533,8 +561,9 @@ void RSRenderThread::Animate(uint64_t timestamp)
             ROSEN_LOGD("RSRenderThread::Animate removing expired animating node");
             return true;
         }
+        int64_t unusedNextFrameTime = 0;
         auto [hasRunningAnimation, nodeNeedRequestNextVsync, nodeCalculateAnimationValue] =
-            node->Animate(timestamp, minLeftDelayTime);
+            node->Animate(timestamp, minLeftDelayTime, unusedNextFrameTime);
         if (!hasRunningAnimation) {
             ROSEN_LOGD("RSRenderThread::Animate removing finished animating node %{public}" PRIu64, node->GetId());
         }
@@ -617,6 +646,23 @@ void RSRenderThread::PostPreTask()
     if (handler_ && preTask_) {
         handler_->PostTask(preTask_);
     }
+}
+
+bool RSRenderThread::QueryMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
+{
+    ROSEN_LOGI("RSRenderThread::QueryMaxGpuBufferSize: start query GPU buffer size limits");
+
+#ifdef RS_ENABLE_GPU
+    if (renderContext_) {
+        return renderContext_->QueryMaxGpuBufferSize(maxWidth, maxHeight);
+    } else {
+        ROSEN_LOGE("RSRenderThread::QueryMaxGpuBufferSize: renderContext_ is null");
+        return false;
+    }
+#else
+    ROSEN_LOGE("RSRenderThread::QueryMaxGpuBufferSize: GPU backend not enabled");
+    return false;
+#endif
 }
 } // namespace Rosen
 } // namespace OHOS

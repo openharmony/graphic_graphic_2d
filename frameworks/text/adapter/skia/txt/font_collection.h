@@ -58,6 +58,9 @@ public:
 
     // Remove all cached variations for a given original uniqueId
     void RemoveVariationCacheByOriginalUniqueId(uint32_t originalUniqueId);
+
+    // Enable or disable paragraph cache
+    void SetCachesEnabled(bool enable);
 private:
     std::shared_ptr<RSFontMgr> defaultFontManager_{nullptr};
     std::shared_ptr<RSFontMgr> assetFontManager_{nullptr};

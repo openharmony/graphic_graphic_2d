@@ -182,6 +182,7 @@ bool RSHDRBrightnessRenderModifierFuzzTest(const uint8_t* data, size_t size)
     RSProperties properties;
     properties.SetHDRUIBrightness(GetData<float>());
     properties.SetHDRBrightnessFactor(GetData<float>());
+    properties.SetHDRColorHeadroom(GetData<float>());
     modifier->ResetProperties(properties);
 
     return true;

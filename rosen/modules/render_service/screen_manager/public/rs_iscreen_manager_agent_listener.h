@@ -28,6 +28,8 @@ public:
     virtual ~RSIScreenManagerAgentListener() = default;
     virtual void OnScreenConnected(ScreenId id, ScreenChangeReason reason, sptr<IRemoteObject> remoteConn) = 0;
     virtual void OnScreenDisconnected(ScreenId id, ScreenChangeReason reason) = 0;
+    virtual void OnScreenSwitchingNotify(bool status) = 0;
+    virtual void OnHwcEvent(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData) = 0;
     virtual void OnActiveScreenIdChanged(ScreenId activeScreenId) = 0;
 };
 } // namespace Rosen

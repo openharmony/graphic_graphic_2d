@@ -26,7 +26,6 @@ namespace {
     constexpr const char* DUE_UPDATE_TYPE_PARAM = "persist.dupdate_engine.update_type";
     constexpr const char* HMOS_UPDATE_PARAM = "persist.update.hmos_to_next_flag";
     constexpr uint32_t WAIT_FOR_ACTIVE_SCREEN_ID_CHANGE = 1000;
-    constexpr uint32_t WAIT_FOR_GET_RENDER_MAP = 1000;
     const std::string DUE_UPDATE_TYPE_MANUAL = "manual";
     const std::string DUE_UPDATE_TYPE_NIGHT = "night";
 }
@@ -112,14 +111,13 @@ void BootAnimationStrategy::GetConnectToRenderMap(int count)
         });
     {
         std::unique_lock<std::mutex> lock(connectToRenderMapMtx_);
-        const auto timeout = std::chrono::milliseconds(WAIT_FOR_GET_RENDER_MAP);
-        bool success = cv->wait_for(lock, timeout, [this, count]() {
+        LOGI("BootAnimationStrategy::GetConnectToRenderMap start infinite waiting for %{public}d screens.", count);
+        cv->wait(lock, [this, count]() {
             return this->connectToRenderMap_.size() >= static_cast<size_t>(count);
         });
-        if (!success) {
-            LOGE("BootAnimationStrategy::GetConnectToRenderMap Timeout waiting for %{public}d screens."
-                "Currently got %{public}zu.", count, this->connectToRenderMap_.size());
-        }
+        
+        LOGI("BootAnimationStrategy::GetConnectToRenderMap wait finished. Currently got %{public}zu.",
+             this->connectToRenderMap_.size());
     }
     LOGI("BootAnimationStrategy::%{public}s set screen change callback end.", __func__);
 }

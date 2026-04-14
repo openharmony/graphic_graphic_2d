@@ -301,6 +301,7 @@ protected:
     bool CheckCap(napi_env env, GLenum cap);
     bool CheckPixelsFormat(napi_env env, GLenum format);
     bool CheckPixelsType(napi_env env, GLenum type);
+    uint32_t GetFormatComponentCount(GLenum format);
     bool CheckReadBufferMode(GLenum mode);
     bool CheckTexImageInternalFormat(napi_env env, int32_t func, GLenum internalFormat);
     bool CheckTexInternalFormatColorBufferCombination(GLenum texInternalFormat, GLenum colorBufferFormat);
@@ -326,7 +327,7 @@ protected:
     GLenum CheckTextureDataBuffer(const TexImageArg& info, const WebGLReadBufferArg *bufferData);
     GLenum GetBoundFrameBufferColorFormat(napi_env env);
     GLenum CheckReadBufferAndGetInfo(napi_env env, GLuint* frameBufferId, GLenum* format, GLenum* type);
-    GLenum CheckReadPixelsArg(napi_env env, const PixelsArg& arg, uint64_t bufferSize);
+    GLenum CheckReadPixelsArg(napi_env env, const PixelsArg& arg, uint64_t bufferSize, uint64_t dstOffset);
     GLenum CheckCompressedTexSubDimensions(const TexSubImage2DArg& imgArg, WebGLTexture* texture);
     
     template<class T>

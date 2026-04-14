@@ -732,8 +732,7 @@ HWTEST_F(RSImageDetailEnhancerThreadTest, IsTypeSupportTest, TestSize.Level1)
 HWTEST_F(RSImageDetailEnhancerThreadTest, ScaleByAAETest, TestSize.Level1)
 {
     RSImageDetailEnhancerThread& rsImageDetailEnhancerThread = RSImageDetailEnhancerThread::Instance();
-    DetailEnhancerUtils& detailEnhancerUtils = DetailEnhancerUtils::Instance();
-    sptr<SurfaceBuffer> surfaceBuffer = detailEnhancerUtils.CreateSurfaceBuffer(1000, 1000);
+    sptr<SurfaceBuffer> surfaceBuffer = CreateSurfaceBuffer(1000, 1000);
     Drawing::Bitmap bmp;
     Drawing::BitmapFormat format {Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE};
     bmp.Build(700, 700, format);
@@ -764,25 +763,24 @@ HWTEST_F(RSImageDetailEnhancerThreadTest, ScaleByHDSamplerTest, TestSize.Level1)
     auto srcImage = std::make_shared<Drawing::Image>();
     EXPECT_NE(srcImage, nullptr);
     srcImage->BuildFromBitmap(bmp);
-    DetailEnhancerUtils& detailEnhancerUtils = DetailEnhancerUtils::Instance();
-    sptr<SurfaceBuffer> dstSurfaceBuffer = detailEnhancerUtils.CreateSurfaceBuffer(700, 700);
+    sptr<SurfaceBuffer> dstSurfaceBuffer = CreateSurfaceBuffer(700, 700);
     auto result = rsImageDetailEnhancerThread.ScaleByHDSampler(700, 700, dstSurfaceBuffer, srcImage);
-    dstSurfaceBuffer = detailEnhancerUtils.CreateSurfaceBuffer(1000, 1000);
+    dstSurfaceBuffer = CreateSurfaceBuffer(1000, 1000);
     result = rsImageDetailEnhancerThread.ScaleByHDSampler(1000, 1000, dstSurfaceBuffer, srcImage);
-    dstSurfaceBuffer = detailEnhancerUtils.CreateSurfaceBuffer(1300, 1300);
+    dstSurfaceBuffer = CreateSurfaceBuffer(1300, 1300);
     result = rsImageDetailEnhancerThread.ScaleByHDSampler(1300, 1300, dstSurfaceBuffer, srcImage);
-    dstSurfaceBuffer = detailEnhancerUtils.CreateSurfaceBuffer(700, 1300);
+    dstSurfaceBuffer = CreateSurfaceBuffer(700, 1300);
     result = rsImageDetailEnhancerThread.ScaleByHDSampler(700, 1300, dstSurfaceBuffer, srcImage);
-    dstSurfaceBuffer = detailEnhancerUtils.CreateSurfaceBuffer(700, 700);
+    dstSurfaceBuffer = CreateSurfaceBuffer(700, 700);
     result = rsImageDetailEnhancerThread.ScaleByHDSampler(700, 700, dstSurfaceBuffer, srcImage);
-    dstSurfaceBuffer = detailEnhancerUtils.CreateSurfaceBuffer(300, 300);
+    dstSurfaceBuffer = CreateSurfaceBuffer(300, 300);
     result = rsImageDetailEnhancerThread.ScaleByHDSampler(300, 300, dstSurfaceBuffer, srcImage);
-    dstSurfaceBuffer = detailEnhancerUtils.CreateSurfaceBuffer(500, 500);
+    dstSurfaceBuffer = CreateSurfaceBuffer(500, 500);
     result = rsImageDetailEnhancerThread.ScaleByHDSampler(500, 500, dstSurfaceBuffer, srcImage);
-    dstSurfaceBuffer = detailEnhancerUtils.CreateSurfaceBuffer(600, 600);
+    dstSurfaceBuffer = CreateSurfaceBuffer(600, 600);
     result = rsImageDetailEnhancerThread.ScaleByHDSampler(600, 600, dstSurfaceBuffer, srcImage);
     result = rsImageDetailEnhancerThread.ScaleByHDSampler(300, 300, dstSurfaceBuffer, srcImage);
-    dstSurfaceBuffer = detailEnhancerUtils.CreateSurfaceBuffer(800, 800);
+    dstSurfaceBuffer = CreateSurfaceBuffer(800, 800);
     result = rsImageDetailEnhancerThread.ScaleByHDSampler(800, 800, dstSurfaceBuffer, srcImage);
     dstSurfaceBuffer = nullptr;
     result = rsImageDetailEnhancerThread.ScaleByHDSampler(800, 800, dstSurfaceBuffer, srcImage);
@@ -802,44 +800,38 @@ HWTEST_F(RSImageDetailEnhancerThreadTest, ExecuteTaskAsyncTest, TestSize.Level1)
     rsImageDetailEnhancerThread.esrParams_ = esrParams;
     uint64_t nodeId = 12345;
     uint64_t imageId = 45678;
-    int dstWidth = 800;
-    int dstHeight = 800;
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    Drawing::Rect dstRect1(0.0, 0.0, 800.0, 800.0);
     auto image = std::make_shared<Drawing::Image>();
-    rsImageDetailEnhancerThread.ExecuteTaskAsync(dstWidth, dstHeight, image, nodeId, imageId);
+    rsImageDetailEnhancerThread.ExecuteTaskAsync(dstRect1, image, nodeId, imageId, pixelMap);
     Drawing::Bitmap bmp;
     Drawing::BitmapFormat format{Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE};
     bmp.Build(600, 600, format);
     auto srcImage = std::make_shared<Drawing::Image>();
     srcImage->BuildFromBitmap(bmp);
-    rsImageDetailEnhancerThread.ExecuteTaskAsync(dstWidth, dstHeight, srcImage, nodeId, imageId);
-    dstWidth = 0;
-    dstHeight = 0;
-    rsImageDetailEnhancerThread.ExecuteTaskAsync(dstWidth, dstHeight, srcImage, nodeId, imageId);
-    dstWidth = -1;
-    dstHeight = -1;
-    rsImageDetailEnhancerThread.ExecuteTaskAsync(dstWidth, dstHeight, srcImage, nodeId, imageId);
-    dstWidth = 400;
-    dstHeight = 800;
-    rsImageDetailEnhancerThread.ExecuteTaskAsync(dstWidth, dstHeight, srcImage, nodeId, imageId);
-    dstWidth = 800;
-    dstHeight = 400;
-    rsImageDetailEnhancerThread.ExecuteTaskAsync(dstWidth, dstHeight, srcImage, nodeId, imageId);
+    rsImageDetailEnhancerThread.ExecuteTaskAsync(dstRect1, srcImage, nodeId, imageId, pixelMap);
+    Drawing::Rect dstRect2(0.0, 0.0, 0.0, 0.0);
+    rsImageDetailEnhancerThread.ExecuteTaskAsync(dstRect2, srcImage, nodeId, imageId, pixelMap);
+    Drawing::Rect dstRect3(0.0, 0.0, -1.0, -1.0);
+    rsImageDetailEnhancerThread.ExecuteTaskAsync(dstRect3, srcImage, nodeId, imageId, pixelMap);
+    Drawing::Rect dstRect4(0.0, 0.0, 400.0, 800.0);
+    rsImageDetailEnhancerThread.ExecuteTaskAsync(dstRect4, srcImage, nodeId, imageId, pixelMap);
+    Drawing::Rect dstRect5(0.0, 0.0, 800.0, 400.0);
+    rsImageDetailEnhancerThread.ExecuteTaskAsync(dstRect5, srcImage, nodeId, imageId, pixelMap);
     Drawing::Bitmap bmp2;
     bmp2.Build(1000, 1000, format);
     auto srcImage2 = std::make_shared<Drawing::Image>();
     srcImage2->BuildFromBitmap(bmp2);
-    dstWidth = 1000;
-    dstHeight = 1000;
-    rsImageDetailEnhancerThread.ExecuteTaskAsync(dstWidth, dstHeight, srcImage2, nodeId, imageId);
+    Drawing::Rect dstRect6(0.0, 0.0, 1000.0, 1000.0);
+    rsImageDetailEnhancerThread.ExecuteTaskAsync(dstRect6, srcImage2, nodeId, imageId, pixelMap);
     EXPECT_NE(srcImage2, nullptr);
-    rsImageDetailEnhancerThread.ExecuteTaskAsync(dstWidth, dstHeight, nullptr, nodeId, imageId);
+    rsImageDetailEnhancerThread.ExecuteTaskAsync(dstRect6, nullptr, nodeId, imageId, pixelMap);
     int srcWidth = 1024;
     int srcHeight = 1024;
     sptr<SurfaceBuffer> srcSurfaceBuffer = CreateSurfaceBuffer(srcWidth, srcHeight);
     std::shared_ptr<Image> srcImage3 = MakeImageFromSurfaceBuffer(srcSurfaceBuffer);
-    dstWidth = 512;
-    dstHeight = 512;
-    rsImageDetailEnhancerThread.ExecuteTaskAsync(dstWidth, dstHeight, srcImage3, nodeId, imageId);
+    Drawing::Rect dstRect7(0.0, 0.0, 512.0, 512.0);
+    rsImageDetailEnhancerThread.ExecuteTaskAsync(dstRect7, srcImage3, nodeId, imageId, pixelMap);
     rsImageDetailEnhancerThread.ReleaseScaledImage(imageId);
 }
 
@@ -1093,7 +1085,7 @@ HWTEST_F(DetailEnhancerUtilsTest, InitSurfaceTest, TestSize.Level1)
     int dstHeight = 600;
     auto image = std::make_shared<Drawing::Image>();
     DetailEnhancerUtils& detailEnhancerUtils = DetailEnhancerUtils::Instance();
-    sptr<SurfaceBuffer> dstSurfaceBuffer = detailEnhancerUtils.CreateSurfaceBuffer(dstWidth, dstHeight);
+    sptr<SurfaceBuffer> dstSurfaceBuffer = CreateSurfaceBuffer(dstWidth, dstHeight);
     EXPECT_NE(detailEnhancerUtils.InitSurface(dstWidth, dstHeight, dstSurfaceBuffer, image), nullptr);
     EXPECT_EQ(detailEnhancerUtils.InitSurface(dstWidth, dstHeight, dstSurfaceBuffer, nullptr), nullptr);
     dstSurfaceBuffer = nullptr;
@@ -1111,7 +1103,7 @@ HWTEST_F(DetailEnhancerUtilsTest, MakeImageFromSurfaceBufferTest, TestSize.Level
     auto image = std::make_shared<Drawing::Image>();
     EXPECT_NE(image, nullptr);
     DetailEnhancerUtils& detailEnhancerUtils = DetailEnhancerUtils::Instance();
-    sptr<SurfaceBuffer> surfaceBuffer = detailEnhancerUtils.CreateSurfaceBuffer(600, 600);
+    sptr<SurfaceBuffer> surfaceBuffer = CreateSurfaceBuffer(600, 600);
     auto result = detailEnhancerUtils.MakeImageFromSurfaceBuffer(surfaceBuffer, image);
     result = detailEnhancerUtils.MakeImageFromSurfaceBuffer(surfaceBuffer, nullptr);
     result = detailEnhancerUtils.MakeImageFromSurfaceBuffer(surfaceBuffer, image);
@@ -1119,7 +1111,7 @@ HWTEST_F(DetailEnhancerUtilsTest, MakeImageFromSurfaceBufferTest, TestSize.Level
     result = detailEnhancerUtils.MakeImageFromSurfaceBuffer(surfaceBuffer, image);
     surfaceBuffer = new SurfaceBufferImpl();
     result = detailEnhancerUtils.MakeImageFromSurfaceBuffer(surfaceBuffer, image);
-    sptr<SurfaceBuffer> surfaceBuffer2 = detailEnhancerUtils.CreateSurfaceBuffer(10001, 10001);
+    sptr<SurfaceBuffer> surfaceBuffer2 = CreateSurfaceBuffer(10001, 10001);
     result = detailEnhancerUtils.MakeImageFromSurfaceBuffer(surfaceBuffer2, image);
     int srcWidth = 1024;
     int srcHeight = 1024;
@@ -1170,7 +1162,7 @@ HWTEST_F(DetailEnhancerUtilsTest, SetMemoryNameTest, TestSize.Level1)
     EXPECT_EQ(result, false);
     int width = 1920;
     int height = 1080;
-    sptr<SurfaceBuffer> dstSurfaceBuffer = detailEnhancerUtils.CreateSurfaceBuffer(width, height);
+    sptr<SurfaceBuffer> dstSurfaceBuffer = CreateSurfaceBuffer(width, height);
     result = detailEnhancerUtils.SetMemoryName(dstSurfaceBuffer);
     EXPECT_TRUE(result);
 }
@@ -1186,22 +1178,39 @@ HWTEST_F(DetailEnhancerUtilsTest, CreateSurfaceBufferTest, TestSize.Level1)
     int width = 1920;
     int height = 1080;
     DetailEnhancerUtils& detailEnhancerUtils = DetailEnhancerUtils::Instance();
-    sptr<SurfaceBuffer> surfaceBuffer = detailEnhancerUtils.CreateSurfaceBuffer(width, height);
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    void* nativeBuffer = buffer.GetRefPtr();
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->SetPixelsAddr(NULL, nativeBuffer, 0, Media::AllocatorType::DMA_ALLOC, NULL);
+    sptr<SurfaceBuffer> surfaceBuffer = detailEnhancerUtils.CreateSurfaceBuffer(pixelMap, width, height);
     EXPECT_NE(surfaceBuffer, nullptr);
     EXPECT_EQ(surfaceBuffer->GetWidth(), width);
     EXPECT_EQ(surfaceBuffer->GetHeight(), height);
     width = 0;
     height = 0;
-    surfaceBuffer = detailEnhancerUtils.CreateSurfaceBuffer(width, height);
+    surfaceBuffer = detailEnhancerUtils.CreateSurfaceBuffer(pixelMap, width, height);
     EXPECT_NE(surfaceBuffer, nullptr);
     EXPECT_NE(surfaceBuffer->GetWidth(), width);
     EXPECT_NE(surfaceBuffer->GetHeight(), height);
     width = -1920;
     height = -1080;
-    surfaceBuffer = detailEnhancerUtils.CreateSurfaceBuffer(width, height);
+    surfaceBuffer = detailEnhancerUtils.CreateSurfaceBuffer(pixelMap, width, height);
     EXPECT_NE(surfaceBuffer, nullptr);
     EXPECT_NE(surfaceBuffer->GetWidth(), width);
     EXPECT_NE(surfaceBuffer->GetHeight(), height);
+}
+
+/**
+ * @tc.name: CreateSurfaceBufferTest002
+ * @tc.desc: CreateSurfaceBufferTest002
+ * @tc.type: FUNC
+ * @tc.require: issueIBZ6NM
+ */
+HWTEST_F(DetailEnhancerUtilsTest, CreateSurfaceBufferTest002, TestSize.Level1)
+{
+    DetailEnhancerUtils& detailEnhancerUtils = DetailEnhancerUtils::Instance();
+    sptr<SurfaceBuffer> surfaceBuffer = detailEnhancerUtils.CreateSurfaceBuffer(nullptr, 500, 500);
+    EXPECT_EQ(surfaceBuffer, nullptr);
 }
 
 /**

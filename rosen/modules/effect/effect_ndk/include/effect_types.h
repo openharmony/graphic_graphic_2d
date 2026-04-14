@@ -152,6 +152,32 @@ typedef enum {
 } EffectTileMode;
 
 /**
+ * @brief Defines the scale mode of the sampling optiopns .
+ *
+ * @since 24
+ */
+typedef enum {
+    /** Nearest mode of the scaling mode */
+    SCALE_MODE_NEAREST = 0,
+    /** Linear mode of the scaling mode */
+    SCALE_MODE_LINEAR,
+} OH_Filter_ScaleMode;
+ 
+/**
+ * @brief Defines the mipmap mode of the sampling optiopns .
+ *
+ * @since 24
+ */
+typedef enum {
+    /** Skip the mipmap step */
+    MIPMAP_MODE_NONE = 0,
+    /** Nearest mode of the scaling mode */
+    MIPMAP_MODE_NEAREST,
+    /** Linear mode of the scaling mode */
+    MIPMAP_MODE_LINEAR,
+} OH_Filter_MipmapMode;
+
+/**
  * @brief Defines a effect filter mask type.
  *
  * @since 24

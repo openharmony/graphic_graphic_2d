@@ -524,6 +524,149 @@ HWTEST_F(RSBufferManagerTest, AddPendingReleaseBuffer_WithoutConsumer_SetFenceTe
 }
 
 /**
+ * @tc.name: AddPendingReleaseBuffer_WithConsumer_UpdateBufferOwnerCountTest001
+ * @tc.desc: Test bufferOwnerCount_ update path in AddPendingReleaseBuffer with consumer
+ *           When entry exists and bufferOwnerCount_ is expired and new bufferOwnerCount is provided,
+ *           should update bufferOwnerCount_ (line 242-244)
+ * @tc.type: FUNC
+ * @tc.require: issueI5N3G0
+ */
+HWTEST_F(RSBufferManagerTest, AddPendingReleaseBuffer_WithConsumer_UpdateBufferOwnerCountTest001, TestSize.Level2)
+{
+    auto mgr = std::make_shared<RSBufferManager>();
+    auto consumer = IConsumerSurface::Create("bm-ut-owner1");
+    auto buffer = SurfaceBuffer::Create();
+    BufferRequestConfig cfg { BUFFER_WIDTH, BUFFER_HEIGHT, BUFFER_STRIDE, GRAPHIC_PIXEL_FMT_RGBA_8888,
+        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA, 0 };
+    ASSERT_EQ(buffer->Alloc(cfg), GSERROR_OK);
+
+    // First add with null bufferOwnerCount (simulating expired state)
+    sptr<SyncFence> fence1 = new SyncFence(dup(STDOUT_FILENO));
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> nullOwner = nullptr;
+    mgr->AddPendingReleaseBuffer(consumer, buffer, fence1, nullOwner);
+
+    // Verify bufferOwnerCount_ is expired after first add with null
+    auto iter = mgr->pendingReleaseBuffers_.find(buffer->GetBufferId());
+    ASSERT_NE(iter, mgr->pendingReleaseBuffers_.end());
+    EXPECT_TRUE(iter->second.bufferOwnerCount_.expired());
+
+    // Second add with valid bufferOwnerCount should update the expired one
+    auto newOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    newOwnerCount->bufferId_ = buffer->GetBufferId();
+    sptr<SyncFence> fence2 = new SyncFence(dup(STDERR_FILENO));
+    mgr->AddPendingReleaseBuffer(consumer, buffer, fence2, newOwnerCount);
+
+    // Verify bufferOwnerCount_ is now updated to newOwnerCount
+    auto& info = mgr->pendingReleaseBuffers_[buffer->GetBufferId()];
+    auto lockedOwner = info.bufferOwnerCount_.lock();
+    EXPECT_NE(lockedOwner, nullptr);
+    EXPECT_EQ(lockedOwner->bufferId_, buffer->GetBufferId());
+}
+
+/**
+ * @tc.name: AddPendingReleaseBuffer_WithoutConsumer_UpdateBufferOwnerCountTest001
+ * @tc.desc: Test bufferOwnerCount_ update path in AddPendingReleaseBuffer without consumer
+ *           When entry exists and bufferOwnerCount_ is expired and new bufferOwnerCount is provided,
+ *           should update bufferOwnerCount_ (line 266-268)
+ * @tc.type: FUNC
+ * @tc.require: issueI5N3G0
+ */
+HWTEST_F(RSBufferManagerTest, AddPendingReleaseBuffer_WithoutConsumer_UpdateBufferOwnerCountTest001, TestSize.Level2)
+{
+    auto mgr = std::make_shared<RSBufferManager>();
+    uint64_t bufferId = 8888ULL;
+
+    // First add with null bufferOwnerCount (simulating expired state)
+    sptr<SyncFence> fence1 = new SyncFence(dup(STDOUT_FILENO));
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> nullOwner = nullptr;
+    mgr->AddPendingReleaseBuffer(bufferId, fence1, nullOwner);
+
+    // Verify bufferOwnerCount_ is expired after first add with null
+    auto iter = mgr->pendingReleaseBuffers_.find(bufferId);
+    ASSERT_NE(iter, mgr->pendingReleaseBuffers_.end());
+    EXPECT_TRUE(iter->second.bufferOwnerCount_.expired());
+
+    // Second add with valid bufferOwnerCount should update the expired one
+    auto newOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    newOwnerCount->bufferId_ = bufferId;
+    sptr<SyncFence> fence2 = new SyncFence(dup(STDERR_FILENO));
+    mgr->AddPendingReleaseBuffer(bufferId, fence2, newOwnerCount);
+
+    // Verify bufferOwnerCount_ is now updated to newOwnerCount
+    auto& info = mgr->pendingReleaseBuffers_[bufferId];
+    auto lockedOwner = info.bufferOwnerCount_.lock();
+    EXPECT_NE(lockedOwner, nullptr);
+    EXPECT_EQ(lockedOwner->bufferId_, bufferId);
+}
+
+/**
+ * @tc.name: AddPendingReleaseBuffer_WithConsumer_BufferOwnerCountNotExpiredTest001
+ * @tc.desc: Test bufferOwnerCount_ not updated when not expired
+ *           When entry exists and bufferOwnerCount_ is NOT expired, should NOT update
+ * @tc.type: FUNC
+ * @tc.require: issueI5N3G0
+ */
+HWTEST_F(RSBufferManagerTest, AddPendingReleaseBuffer_WithConsumer_BufferOwnerCountNotExpiredTest001, TestSize.Level2)
+{
+    auto mgr = std::make_shared<RSBufferManager>();
+    auto consumer = IConsumerSurface::Create("bm-ut-owner2");
+    auto buffer = SurfaceBuffer::Create();
+    BufferRequestConfig cfg { BUFFER_WIDTH, BUFFER_HEIGHT, BUFFER_STRIDE, GRAPHIC_PIXEL_FMT_RGBA_8888,
+        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA, 0 };
+    ASSERT_EQ(buffer->Alloc(cfg), GSERROR_OK);
+
+    // First add with valid bufferOwnerCount
+    sptr<SyncFence> fence1 = new SyncFence(dup(STDOUT_FILENO));
+    auto originalOwner = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    originalOwner->bufferId_ = buffer->GetBufferId();
+    mgr->AddPendingReleaseBuffer(consumer, buffer, fence1, originalOwner);
+
+    // Second add with different bufferOwnerCount should NOT update because original is not expired
+    auto differentOwner = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    differentOwner->bufferId_ = 9999ULL;  // Different bufferId
+    sptr<SyncFence> fence2 = new SyncFence(dup(STDERR_FILENO));
+    mgr->AddPendingReleaseBuffer(consumer, buffer, fence2, differentOwner);
+
+    // Verify bufferOwnerCount_ is still the original one
+    auto& info = mgr->pendingReleaseBuffers_[buffer->GetBufferId()];
+    auto lockedOwner = info.bufferOwnerCount_.lock();
+    EXPECT_NE(lockedOwner, nullptr);
+    EXPECT_EQ(lockedOwner->bufferId_, buffer->GetBufferId());  // Should be original, not different
+}
+
+/**
+ * @tc.name: AddPendingReleaseBuffer_WithoutConsumer_BufferOwnerCountNotExpiredTest001
+ * @tc.desc: Test bufferOwnerCount_ not updated when not expired (without consumer)
+ *           When entry exists and bufferOwnerCount_ is NOT expired, should NOT update
+ * @tc.type: FUNC
+ * @tc.require: issueI5N3G0
+ */
+HWTEST_F(RSBufferManagerTest, AddPendingReleaseBuffer_WithoutConsumer_BufferOwnerCountNotExpiredTest001,
+    TestSize.Level2)
+{
+    auto mgr = std::make_shared<RSBufferManager>();
+    uint64_t bufferId = 7777ULL;
+
+    // First add with valid bufferOwnerCount
+    sptr<SyncFence> fence1 = new SyncFence(dup(STDOUT_FILENO));
+    auto originalOwner = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    originalOwner->bufferId_ = bufferId;
+    mgr->AddPendingReleaseBuffer(bufferId, fence1, originalOwner);
+
+    // Second add with different bufferOwnerCount should NOT update because original is not expired
+    auto differentOwner = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    differentOwner->bufferId_ = 9999ULL;  // Different bufferId
+    sptr<SyncFence> fence2 = new SyncFence(dup(STDERR_FILENO));
+    mgr->AddPendingReleaseBuffer(bufferId, fence2, differentOwner);
+
+    // Verify bufferOwnerCount_ is still the original one
+    auto& info = mgr->pendingReleaseBuffers_[bufferId];
+    auto lockedOwner = info.bufferOwnerCount_.lock();
+    EXPECT_NE(lockedOwner, nullptr);
+    EXPECT_EQ(lockedOwner->bufferId_, bufferId);  // Should be original, not different
+}
+
+/**
  * @tc.name: OnReleaseLayerBuffers_NullLayerTest001
  * @tc.desc: Test null layer path in OnReleaseLayerBuffers
  *           When layer weak_ptr.lock() returns nullptr, should skip
@@ -910,5 +1053,391 @@ HWTEST_F(RSBufferManagerTest, OnReleaseLayerBuffers_NullBufferOwnerCountTest001,
 
     // This should cover the false branch of if (bufferOwnerCount) at line 177
     mgr->OnReleaseLayerBuffers(rsLayers, releaseVec, TEST_SCREEN_ID);
+}
+
+/**
+ * @tc.name: OnReleaseLayerBuffers_BufferOwnerCountTrueTest001
+ * @tc.desc: Test bufferOwnerCount is not null path in OnReleaseLayerBuffers
+ *           When PopBufferOwnerCountById returns valid bufferOwnerCount:
+ *           - AddPendingReleaseBuffer should be called
+ *           - OnBufferReleased should be called (refCount decrements)
+ *           - decedSet should be inserted with bufferId
+ *           This covers the true branch of if (bufferOwnerCount) at line 297.
+ * @tc.type: FUNC
+ * @tc.require: issueI5N3G0
+ */
+HWTEST_F(RSBufferManagerTest, OnReleaseLayerBuffers_BufferOwnerCountTrueTest001, TestSize.Level2)
+{
+    auto mgr = std::make_shared<RSBufferManager>();
+    auto ctx = std::make_shared<RSComposerContext>(nullptr);
+    auto layer = RSSurfaceLayer::Create(0, ctx);
+    layer->SetUniRenderFlag(false);
+
+    auto buffer = SurfaceBuffer::Create();
+    BufferRequestConfig cfg { BUFFER_WIDTH, BUFFER_HEIGHT, BUFFER_STRIDE, GRAPHIC_PIXEL_FMT_RGBA_8888,
+        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA, 0 };
+    ASSERT_EQ(buffer->Alloc(cfg), GSERROR_OK);
+
+    // Create owner with MATCHING bufferId so PopBufferOwnerCountById returns non-null
+    auto owner = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    owner->bufferId_ = buffer->GetBufferId();  // Match buffer's bufferId
+    std::atomic<int> releaseCount{0};
+    owner->bufferReleaseCb_ = [&releaseCount](uint64_t){ releaseCount.fetch_add(1); };
+    layer->SetBufferOwnerCount(owner, false);
+
+    sptr<SyncFence> f = new SyncFence(dup(STDOUT_FILENO));
+
+    std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>> rsLayers;
+    rsLayers[TEST_LAYER_ID] = std::static_pointer_cast<RSLayer>(layer);
+
+    std::vector<std::tuple<RSLayerId, sptr<SurfaceBuffer>, sptr<SyncFence>>> releaseVec;
+    releaseVec.emplace_back(TEST_LAYER_ID, buffer, f);
+
+    mgr->OnReleaseLayerBuffers(rsLayers, releaseVec, TEST_SCREEN_ID);
+
+    // Verify AddPendingReleaseBuffer was called by checking pendingReleaseBuffers_
+    EXPECT_EQ(mgr->pendingReleaseBuffers_.size(), 1);
+    auto iter = mgr->pendingReleaseBuffers_.find(buffer->GetBufferId());
+    ASSERT_NE(iter, mgr->pendingReleaseBuffers_.end());
+    EXPECT_NE(iter->second.bufferOwnerCount_.lock(), nullptr);
+}
+
+/**
+ * @tc.name: OnReleaseLayerBuffers_UniRenderFlagTrueVerifyUniBufferCountTest001
+ * @tc.desc: Test uniBufferCount and uniFence are set when GetUniRenderFlag returns true
+ *           This verifies the inner if (layer->GetUniRenderFlag()) branch at line 301
+ *           and that ReleaseUniOnDrawBuffers is called with correct parameters.
+ * @tc.type: FUNC
+ * @tc.require: issueI5N3G0
+ */
+HWTEST_F(RSBufferManagerTest, OnReleaseLayerBuffers_UniRenderFlagTrueVerifyUniBufferCountTest001, TestSize.Level2)
+{
+    auto mgr = std::make_shared<RSBufferManager>();
+    auto ctx = std::make_shared<RSComposerContext>(nullptr);
+    auto layer = std::static_pointer_cast<RSSurfaceLayer>(RSSurfaceLayer::Create(0, ctx));
+    layer->SetUniRenderFlag(true);  // Enable uniRender flag
+
+    auto buffer = SurfaceBuffer::Create();
+    BufferRequestConfig cfg { BUFFER_WIDTH, BUFFER_HEIGHT, BUFFER_STRIDE, GRAPHIC_PIXEL_FMT_RGBA_8888,
+        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA, 0 };
+    ASSERT_EQ(buffer->Alloc(cfg), GSERROR_OK);
+
+    auto owner = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    owner->bufferId_ = buffer->GetBufferId();
+    std::atomic<int> releaseCount{0};
+    owner->bufferReleaseCb_ = [&releaseCount](uint64_t){ releaseCount.fetch_add(1); };
+    layer->SetBufferOwnerCount(owner, false);
+
+    sptr<SyncFence> f = new SyncFence(dup(STDOUT_FILENO));
+
+    std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>> rsLayers;
+    rsLayers[TEST_LAYER_ID] = std::static_pointer_cast<RSLayer>(layer);
+
+    std::vector<std::tuple<RSLayerId, sptr<SurfaceBuffer>, sptr<SyncFence>>> releaseVec;
+    releaseVec.emplace_back(TEST_LAYER_ID, buffer, f);
+
+    mgr->OnReleaseLayerBuffers(rsLayers, releaseVec, TEST_SCREEN_ID);
+
+    // Verify AddPendingReleaseBuffer was called
+    EXPECT_EQ(mgr->pendingReleaseBuffers_.size(), 1);
+}
+
+/**
+ * @tc.name: DumpPendingReleaseBuffers_EmptyTest001
+ * @tc.desc: Test DumpPendingReleaseBuffers when pendingReleaseBuffers_ is empty
+ *           Should output "(empty)" message and zero counts in summary
+ * @tc.type: FUNC
+ * @tc.require: issueI5N3G0
+ */
+HWTEST_F(RSBufferManagerTest, DumpPendingReleaseBuffers_EmptyTest001, TestSize.Level2)
+{
+    auto mgr = std::make_shared<RSBufferManager>();
+    std::string output;
+    mgr->DumpPendingReleaseBuffers(output);
+
+    // Verify empty dump output
+    EXPECT_NE(output.find("pendingReleaseBuffers_ Dump"), std::string::npos);
+    EXPECT_NE(output.find("Total entries: 0"), std::string::npos);
+    EXPECT_NE(output.find("(empty)"), std::string::npos);
+    EXPECT_NE(output.find("Valid buffers: 0"), std::string::npos);
+    EXPECT_NE(output.find("Expired buffers: 0"), std::string::npos);
+    EXPECT_NE(output.find("Total fences: 0"), std::string::npos);
+}
+
+/**
+ * @tc.name: DumpPendingReleaseBuffers_WithValidBufferTest001
+ * @tc.desc: Test DumpPendingReleaseBuffers with one valid buffer entry
+ *           Covers valid buffer path in AppendBufferEntry and AppendSummary
+ * @tc.type: FUNC
+ * @tc.require: issueI5N3G0
+ */
+HWTEST_F(RSBufferManagerTest, DumpPendingReleaseBuffers_WithValidBufferTest001, TestSize.Level2)
+{
+    auto mgr = std::make_shared<RSBufferManager>();
+    auto consumer = IConsumerSurface::Create("bm-dump-test");
+    auto buffer = SurfaceBuffer::Create();
+    BufferRequestConfig cfg { BUFFER_WIDTH, BUFFER_HEIGHT, BUFFER_STRIDE, GRAPHIC_PIXEL_FMT_RGBA_8888,
+        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA, 0 };
+    ASSERT_EQ(buffer->Alloc(cfg), GSERROR_OK);
+    sptr<SyncFence> fence = new SyncFence(dup(STDOUT_FILENO));
+    auto ownerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    ownerCount->bufferId_ = buffer->GetBufferId();
+
+    mgr->AddPendingReleaseBuffer(consumer, buffer, fence, ownerCount);
+
+    std::string output;
+    mgr->DumpPendingReleaseBuffers(output);
+
+    // Verify valid buffer dump output
+    EXPECT_NE(output.find("pendingReleaseBuffers_ Dump"), std::string::npos);
+    EXPECT_NE(output.find("Total entries: 1"), std::string::npos);
+    EXPECT_NE(output.find("valid"), std::string::npos);
+    EXPECT_NE(output.find(std::to_string(buffer->GetWidth())), std::string::npos);
+    EXPECT_NE(output.find(std::to_string(buffer->GetHeight())), std::string::npos);
+    EXPECT_NE(output.find("Valid buffers: 1"), std::string::npos);
+    EXPECT_NE(output.find("Expired buffers: 0"), std::string::npos);
+    EXPECT_NE(output.find("Total fences: 1"), std::string::npos);
+}
+
+/**
+ * @tc.name: DumpPendingReleaseBuffers_WithExpiredBufferTest001
+ * @tc.desc: Test DumpPendingReleaseBuffers with expired buffer (buffer_ is wptr expired)
+ *           Covers expired buffer path in AppendBufferEntry and AppendSummary
+ * @tc.type: FUNC
+ * @tc.require: issueI5N3G0
+ */
+HWTEST_F(RSBufferManagerTest, DumpPendingReleaseBuffers_WithExpiredBufferTest001, TestSize.Level2)
+{
+    auto mgr = std::make_shared<RSBufferManager>();
+    auto consumer = IConsumerSurface::Create("bm-dump-expired");
+    auto buffer = SurfaceBuffer::Create();
+    BufferRequestConfig cfg { BUFFER_WIDTH, BUFFER_HEIGHT, BUFFER_STRIDE, GRAPHIC_PIXEL_FMT_RGBA_8888,
+        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA, 0 };
+    ASSERT_EQ(buffer->Alloc(cfg), GSERROR_OK);
+    sptr<SyncFence> fence = new SyncFence(dup(STDOUT_FILENO));
+    auto ownerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    ownerCount->bufferId_ = buffer->GetBufferId();
+
+    mgr->AddPendingReleaseBuffer(consumer, buffer, fence, ownerCount);
+
+    // Release the buffer so buffer_ becomes expired
+    mgr->ReleaseBufferById(buffer->GetBufferId());
+
+    // Now add a new entry with same consumer but buffer will be expired
+    // Directly construct entry with expired buffer
+    RSBufferManager::PendingReleaseBufferInfo info;
+    info.consumer_ = consumer;
+    info.buffer_ = nullptr;  // wptr already expired
+    info.mergedFences_.push_back(fence);
+    info.bufferOwnerCount_ = ownerCount;
+    mgr->pendingReleaseBuffers_[9999ULL] = info;
+
+    std::string output;
+    mgr->DumpPendingReleaseBuffers(output);
+
+    // Verify expired buffer dump output
+    EXPECT_NE(output.find("expired"), std::string::npos);
+    EXPECT_NE(output.find("Valid buffers: 0"), std::string::npos);
+    EXPECT_NE(output.find("Expired buffers: 1"), std::string::npos);
+}
+
+/**
+ * @tc.name: DumpPendingReleaseBuffers_NullConsumerTest001
+ * @tc.desc: Test DumpPendingReleaseBuffers with null consumer entry
+ *           Covers null consumer path in AppendBufferEntry
+ * @tc.type: FUNC
+ * @tc.require: issueI5N3G0
+ */
+HWTEST_F(RSBufferManagerTest, DumpPendingReleaseBuffers_NullConsumerTest001, TestSize.Level2)
+{
+    auto mgr = std::make_shared<RSBufferManager>();
+    sptr<SyncFence> fence = new SyncFence(dup(STDOUT_FILENO));
+
+    // Add entry without consumer (using bufferId overload)
+    mgr->AddPendingReleaseBuffer(TEST_LAYER_ID, fence);
+
+    std::string output;
+    mgr->DumpPendingReleaseBuffers(output);
+
+    // Verify null consumer dump output
+    EXPECT_NE(output.find("null"), std::string::npos);
+}
+
+/**
+ * @tc.name: DumpPendingReleaseBuffers_MultipleFencesTest001
+ * @tc.desc: Test DumpPendingReleaseBuffers with multiple fences in mergedFences_
+ *           Covers fence details output in AppendFenceDetails
+ * @tc.type: FUNC
+ * @tc.require: issueI5N3G0
+ */
+HWTEST_F(RSBufferManagerTest, DumpPendingReleaseBuffers_MultipleFencesTest001, TestSize.Level2)
+{
+    auto mgr = std::make_shared<RSBufferManager>();
+    auto consumer = IConsumerSurface::Create("bm-dump-fences");
+    auto buffer = SurfaceBuffer::Create();
+    BufferRequestConfig cfg { BUFFER_WIDTH, BUFFER_HEIGHT, BUFFER_STRIDE, GRAPHIC_PIXEL_FMT_RGBA_8888,
+        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA, 0 };
+    ASSERT_EQ(buffer->Alloc(cfg), GSERROR_OK);
+
+    // Add multiple times to accumulate fences
+    sptr<SyncFence> fence1 = new SyncFence(dup(STDOUT_FILENO));
+    sptr<SyncFence> fence2 = new SyncFence(dup(STDERR_FILENO));
+    auto ownerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    ownerCount->bufferId_ = buffer->GetBufferId();
+
+    mgr->AddPendingReleaseBuffer(consumer, buffer, fence1, ownerCount);
+    mgr->AddPendingReleaseBuffer(consumer, buffer, fence2, ownerCount);
+
+    std::string output;
+    mgr->DumpPendingReleaseBuffers(output);
+
+    // Verify multiple fence details output
+    EXPECT_NE(output.find("[0]"), std::string::npos);
+    EXPECT_NE(output.find("[1]"), std::string::npos);
+    EXPECT_NE(output.find("fence_fd="), std::string::npos);
+    EXPECT_NE(output.find("Total fences: 2"), std::string::npos);
+}
+
+/**
+ * @tc.name: DumpPendingReleaseBuffers_NullFenceInMergedTest001
+ * @tc.desc: Test DumpPendingReleaseBuffers with null fence in mergedFences_
+ *           Covers null fence path in GetFenceStatus and AppendFenceDetails
+ * @tc.type: FUNC
+ * @tc.require: issueI5N3G0
+ */
+HWTEST_F(RSBufferManagerTest, DumpPendingReleaseBuffers_NullFenceInMergedTest001, TestSize.Level2)
+{
+    auto mgr = std::make_shared<RSBufferManager>();
+    auto consumer = IConsumerSurface::Create("bm-dump-nullfence");
+    auto buffer = SurfaceBuffer::Create();
+    BufferRequestConfig cfg { BUFFER_WIDTH, BUFFER_HEIGHT, BUFFER_STRIDE, GRAPHIC_PIXEL_FMT_RGBA_8888,
+        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA, 0 };
+    ASSERT_EQ(buffer->Alloc(cfg), GSERROR_OK);
+    auto ownerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    ownerCount->bufferId_ = buffer->GetBufferId();
+
+    // Directly construct entry with null fence in mergedFences_
+    RSBufferManager::PendingReleaseBufferInfo info;
+    info.consumer_ = consumer;
+    info.buffer_ = buffer;
+    info.mergedFences_.push_back(nullptr);  // null fence
+    info.mergedFences_.push_back(SyncFence::InvalidFence());  // invalid fence (Get() == -1)
+    info.bufferOwnerCount_ = ownerCount;
+    mgr->pendingReleaseBuffers_[buffer->GetBufferId()] = info;
+
+    std::string output;
+    mgr->DumpPendingReleaseBuffers(output);
+
+    // Verify null and invalid fence output
+    EXPECT_NE(output.find("(null)"), std::string::npos);
+    EXPECT_NE(output.find("(invalid)"), std::string::npos);
+}
+
+/**
+ * @tc.name: DumpPendingReleaseBuffers_NullOwnerCountTest001
+ * @tc.desc: Test DumpPendingReleaseBuffers with null/expired bufferOwnerCount_
+ *           Covers null ownerCount path in AppendBufferEntry showing "N/A"
+ * @tc.type: FUNC
+ * @tc.require: issueI5N3G0
+ */
+HWTEST_F(RSBufferManagerTest, DumpPendingReleaseBuffers_NullOwnerCountTest001, TestSize.Level2)
+{
+    auto mgr = std::make_shared<RSBufferManager>();
+    auto consumer = IConsumerSurface::Create("bm-dump-nullowner");
+    auto buffer = SurfaceBuffer::Create();
+    BufferRequestConfig cfg { BUFFER_WIDTH, BUFFER_HEIGHT, BUFFER_STRIDE, GRAPHIC_PIXEL_FMT_RGBA_8888,
+        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA, 0 };
+    ASSERT_EQ(buffer->Alloc(cfg), GSERROR_OK);
+    sptr<SyncFence> fence = new SyncFence(dup(STDOUT_FILENO));
+
+    // Directly construct entry with expired bufferOwnerCount_
+    RSBufferManager::PendingReleaseBufferInfo info;
+    info.consumer_ = consumer;
+    info.buffer_ = buffer;
+    info.mergedFences_.push_back(fence);
+    // bufferOwnerCount_ is weak_ptr, default is expired
+    info.bufferOwnerCount_ = std::shared_ptr<RSSurfaceHandler::BufferOwnerCount>();
+    mgr->pendingReleaseBuffers_[buffer->GetBufferId()] = info;
+
+    std::string output;
+    mgr->DumpPendingReleaseBuffers(output);
+
+    // Verify N/A for null ownerCount
+    EXPECT_NE(output.find("N/A"), std::string::npos);
+}
+
+/**
+ * @tc.name: DumpPendingReleaseBuffers_AverageFencesTest001
+ * @tc.desc: Test DumpPendingReleaseBuffers average fences calculation
+ *           When buffers not empty, average = totalFences / buffers.size()
+ * @tc.type: FUNC
+ * @tc.require: issueI5N3G0
+ */
+HWTEST_F(RSBufferManagerTest, DumpPendingReleaseBuffers_AverageFencesTest001, TestSize.Level2)
+{
+    auto mgr = std::make_shared<RSBufferManager>();
+    auto consumer = IConsumerSurface::Create("bm-dump-avg");
+    auto buffer = SurfaceBuffer::Create();
+    BufferRequestConfig cfg { BUFFER_WIDTH, BUFFER_HEIGHT, BUFFER_STRIDE, GRAPHIC_PIXEL_FMT_RGBA_8888,
+        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA, 0 };
+    ASSERT_EQ(buffer->Alloc(cfg), GSERROR_OK);
+    auto ownerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    ownerCount->bufferId_ = buffer->GetBufferId();
+
+    // Add multiple fences to test average calculation
+    sptr<SyncFence> fence1 = new SyncFence(dup(STDOUT_FILENO));
+    sptr<SyncFence> fence2 = new SyncFence(dup(STDERR_FILENO));
+    sptr<SyncFence> fence3 = new SyncFence(dup(STDIN_FILENO));
+
+    mgr->AddPendingReleaseBuffer(consumer, buffer, fence1, ownerCount);
+    mgr->AddPendingReleaseBuffer(consumer, buffer, fence2, ownerCount);
+    mgr->AddPendingReleaseBuffer(consumer, buffer, fence3, ownerCount);
+
+    std::string output;
+    mgr->DumpPendingReleaseBuffers(output);
+
+    // Verify average fences output (3 fences / 1 buffer = 3)
+    EXPECT_NE(output.find("Average fences per buffer:"), std::string::npos);
+    EXPECT_NE(output.find("3"), std::string::npos);
+}
+
+/**
+ * @tc.name: DumpPendingReleaseBuffers_MultipleBuffersTest001
+ * @tc.desc: Test DumpPendingReleaseBuffers with multiple buffer entries
+ *           Covers iteration over multiple entries in AppendBufferTable and AppendSummary
+ * @tc.type: FUNC
+ * @tc.require: issueI5N3G0
+ */
+HWTEST_F(RSBufferManagerTest, DumpPendingReleaseBuffers_MultipleBuffersTest001, TestSize.Level2)
+{
+    auto mgr = std::make_shared<RSBufferManager>();
+    auto consumer = IConsumerSurface::Create("bm-dump-multi");
+
+    auto buffer1 = SurfaceBuffer::Create();
+    BufferRequestConfig cfg { BUFFER_WIDTH, BUFFER_HEIGHT, BUFFER_STRIDE, GRAPHIC_PIXEL_FMT_RGBA_8888,
+        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA, 0 };
+    ASSERT_EQ(buffer1->Alloc(cfg), GSERROR_OK);
+    auto ownerCount1 = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    ownerCount1->bufferId_ = buffer1->GetBufferId();
+
+    auto buffer2 = SurfaceBuffer::Create();
+    ASSERT_EQ(buffer2->Alloc(cfg), GSERROR_OK);
+    auto ownerCount2 = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    ownerCount2->bufferId_ = buffer2->GetBufferId();
+
+    sptr<SyncFence> fence1 = new SyncFence(dup(STDOUT_FILENO));
+    sptr<SyncFence> fence2 = new SyncFence(dup(STDERR_FILENO));
+
+    mgr->AddPendingReleaseBuffer(consumer, buffer1, fence1, ownerCount1);
+    mgr->AddPendingReleaseBuffer(consumer, buffer2, fence2, ownerCount2);
+
+    std::string output;
+    mgr->DumpPendingReleaseBuffers(output);
+
+    // Verify multiple buffers output
+    EXPECT_NE(output.find("Total entries: 2"), std::string::npos);
+    EXPECT_NE(output.find("Valid buffers: 2"), std::string::npos);
+    EXPECT_NE(output.find("Expired buffers: 0"), std::string::npos);
+    EXPECT_NE(output.find("Total fences: 2"), std::string::npos);
 }
 }

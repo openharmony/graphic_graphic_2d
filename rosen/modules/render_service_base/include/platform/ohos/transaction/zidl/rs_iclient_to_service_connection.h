@@ -31,6 +31,7 @@
 
 #include "command/rs_command.h"
 #include "command/rs_node_showing_command.h"
+#include "common/rs_event_def.h"
 #include "feature/capture/rs_ui_capture.h"
 #include "ipc_callbacks/active_screen_id_changed_callback.h"
 #include "ipc_callbacks/brightness_info_change_callback.h"
@@ -56,6 +57,7 @@
 #include "transaction/rs_transaction_data.h"
 #include "transaction/rs_render_service_client_info.h"
 #include "ivsync_connection.h"
+#include "ipc_callbacks/rs_iexposed_event_callback.h"
 #include "ipc_callbacks/rs_ihgm_config_change_callback.h"
 #include "ipc_callbacks/rs_ifirst_frame_commit_callback.h"
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
@@ -189,6 +191,10 @@ public:
 
     virtual int32_t SetDualScreenState(ScreenId id, DualScreenStatus status) = 0;
 
+    virtual int32_t SetAsMainScreen(ScreenId screenId, bool isMainScreen) = 0;
+
+    virtual ScreenId GetMainScreenId() = 0;
+
     virtual RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id) = 0;
 
     virtual ErrCode GetScreenActiveMode(uint64_t id, RSScreenModeInfo& screenModeInfo) = 0;
@@ -278,7 +284,10 @@ public:
 
     virtual int32_t RegisterFirstFrameCommitCallback(sptr<RSIFirstFrameCommitCallback> callback) = 0;
 
-    virtual int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t pid,
+    virtual int32_t RegisterExposedEventCallback(
+        const RSExposedEventType type, const sptr<RSIExposedEventCallback> callback) = 0;
+
+    virtual int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
         sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback) = 0;
 
     virtual void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow) = 0;
@@ -405,6 +414,8 @@ public:
     virtual ErrCode SetOverlayDisplayMode(int32_t mode) = 0;
 #endif
     virtual void RemoveToken() = 0;
+
+    virtual void RegisterRemoteRefreshCallback() = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

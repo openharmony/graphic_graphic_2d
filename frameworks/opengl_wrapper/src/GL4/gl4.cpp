@@ -20,6 +20,14 @@
 #include "thread_private_data_ctl.h"
 #include "wrapper_log.h"
 
+#include "GL/gl.h"
+#undef CALL_HOOK_API
+#undef CALL_HOOK_API_RET
+#undef HOOK_API_ENTRY
+#define HOOK_API_ENTRY(r, api, ...) r api(__VA_ARGS__) {                                \
+
+
+#ifdef OPENGL_WRAPPER_ENABLE_GL4
 using GetGlHookTableFunc = OHOS::GlHookTable* (*)();
 using GetGlHookTableKeyFunc = pthread_key_t(*)();
 template<typename Func = void*>
@@ -58,7 +66,6 @@ __attribute__((__always_inline__))__inline__ static OHOS::GlHookTable *GetHookTa
     return table;
 }
 
-#undef CALL_HOOK_API
 #define CALL_HOOK_API(api, ...)                                                         \
     do {                                                                                \
         OHOS::GlHookTable *table = GetHookTable();                                      \
@@ -70,7 +77,6 @@ __attribute__((__always_inline__))__inline__ static OHOS::GlHookTable *GetHookTa
     } while (0);                                                                        \
 }
 
-#undef CALL_HOOK_API_RET
 #define CALL_HOOK_API_RET(api, ...) do {                                                \
         OHOS::GlHookTable *table = GetHookTable();                                      \
         if (table && table->table4.api) {                                               \
@@ -81,8 +87,16 @@ __attribute__((__always_inline__))__inline__ static OHOS::GlHookTable *GetHookTa
         }                                                                               \
     } while (0);                                                                        \
 }
-#undef HOOK_API_ENTRY
-#define HOOK_API_ENTRY(r, api, ...) r api(__VA_ARGS__) {                                \
+#else
+#define CALL_HOOK_API(api, ...)                                                         \
+        WLOGE("%{public}s of GL not supported.", #api);                                 \
+}
+
+#define CALL_HOOK_API_RET(api, ...)                                                     \
+        WLOGE("%{public}s of GL not supported.", #api);                                 \
+        return 0;                                                                       \
+}
+#endif // OPENGL_WRAPPER_ENABLE_GL4
 
 extern "C" {
 #pragma GCC diagnostic ignored "-Wunused-parameter"

@@ -50,8 +50,11 @@ public:
         token_ = nullptr;
     }
 
+    void RegisterRemoteRefreshCallback() override;
+
 private:
     void CleanAll(bool toDelete = false) noexcept;
+    void CleanForRefresh() noexcept;
 
     // IPC RSIRenderServiceConnection Interfaces
     ErrCode CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
@@ -185,6 +188,19 @@ private:
     friend class RSConnectionDeathRecipient;
     sptr<RSConnectionDeathRecipient> connDeathRecipient_;
 
+    class RSConnectionRefreshRecipient : public IRemoteObject::RefreshRecipient {
+    public:
+        explicit RSConnectionRefreshRecipient(wptr<RSClientToRenderConnection> conn);
+        virtual ~RSConnectionRefreshRecipient() = default;
+
+        void OnRemoteRefreshed(const wptr<IRemoteObject>& token) override;
+
+    private:
+        wptr<RSClientToRenderConnection> conn_;
+    };
+    friend class RSConnectionRefreshRecipient;
+    sptr<RSConnectionRefreshRecipient> connRefreshRecipient_;
+
     class RSApplicationRenderThreadDeathRecipient : public IRemoteObject::DeathRecipient {
     public:
         explicit RSApplicationRenderThreadDeathRecipient(wptr<RSClientToRenderConnection> conn);
@@ -202,7 +218,7 @@ private:
     bool cleanDone_ = false;
     const std::string VOTER_SCENE_BLUR = "VOTER_SCENE_BLUR";
     const std::string VOTER_SCENE_GPU = "VOTER_SCENE_GPU";
-    const std::string GPU_FREQ_PREF = "GPU_FREQ_PREF";
+    static const std::string GPU_FREQ_PREF;
     sptr<VSyncDistributor> appVSyncDistributor_;
 
 #ifdef RS_PROFILER_ENABLED

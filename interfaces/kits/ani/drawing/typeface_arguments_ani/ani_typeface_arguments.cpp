@@ -86,7 +86,7 @@ TypefaceArgumentsHelper& AniTypefaceArguments::GetTypefaceArgumentsHelper()
 }
 
 void AniTypefaceArguments::ConvertToFontArguments(const TypefaceArgumentsHelper& typefaceArgumentsHelper,
-    FontArguments fontArguments)
+    FontArguments& fontArguments)
 {
     fontArguments.SetCollectionIndex(typefaceArgumentsHelper.fontCollectionIndex);
     fontArguments.SetVariationDesignPosition({reinterpret_cast<const FontArguments::VariationPosition::Coordinate*>(

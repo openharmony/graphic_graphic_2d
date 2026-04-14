@@ -207,7 +207,7 @@ void HgmContext::AddScreenToHgm(const sptr<RSScreenProperty>& property)
             return;
         }
         if (isSelfOwnedScreen && screenId == frameRateManager_->GetCurScreenId()) {
-            frameRateManager_->SyncHgmConfigUpdateCallback();
+            frameRateManager_->AddScreenInit();
         }
     });
 }

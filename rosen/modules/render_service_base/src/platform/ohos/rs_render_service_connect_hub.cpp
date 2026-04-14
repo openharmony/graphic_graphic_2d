@@ -15,6 +15,7 @@
 
 #include "rs_render_service_connect_hub.h"
 
+#include "app_image_observer_manager.h"
 #include <if_system_ability_manager.h>
 #include <iremote_stub.h>
 #include <iservice_registry.h>
@@ -160,7 +161,9 @@ bool RSRenderServiceConnectHub::Connect()
     if (token_ == nullptr) {
         token_ = new IRemoteStub<RSIConnectionToken>();
     }
-    auto [conn, renderConn] = renderService->CreateConnection(token_);
+    bool needRefresh = AppExecFwk::AppImageObserverManager::GetInstance().IsBeforeImageCreationPoint();
+    ROSEN_LOGI("RSRenderServiceConnectHub call CreateConnection, needRefresh:[%{public}d]", needRefresh);
+    auto [conn, renderConn] = renderService->CreateConnection(token_, needRefresh);
 
     if (conn == nullptr || renderConn == nullptr) {
         ROSEN_LOGD("RSRenderServiceConnectHub::Connect, failed to CreateConnection to render service.");

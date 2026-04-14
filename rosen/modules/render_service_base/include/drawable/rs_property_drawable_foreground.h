@@ -180,6 +180,9 @@ public:
 private:
     NodeId screenNodeId_ = INVALID_NODEID;
 
+    RectF drawRect_;
+    RectF stagingDrawRect_;
+
     bool needSync_ = false;
     bool enableEDREffect_ = false;
     std::shared_ptr<RSNGRenderShaderBase> stagingShader_;

@@ -19,6 +19,7 @@
 #include "feature/vrate/rs_vsync_rate_reduce_manager.h"
 #include "hgm_core.h"
 #include "screen_manager/rs_screen_manager.h"
+#include "screen_manager/screen_types.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -1253,5 +1254,104 @@ HWTEST_F(HgmContextTest, LastForceUpdateVsyncIdTest001, TestSize.Level1)
     hgmContext->SetLastForceUpdateVsyncId(lastForceUpdateVsyncId);
 
     EXPECT_EQ(hgmContext->GetLastForceUpdateVsyncId(), lastForceUpdateVsyncId);
+}
+
+/**
+ * @tc.name: RegisterScreenManagerCallbacksAndInvokeAllMethods
+ * @tc.desc: 1. Register all screen manager callbacks via RegisterScreenManagerCallbacks
+ *               2. Call GetDefaultScreenId, GetScreenPowerStatus, GetScreenSupportedModes,
+ *                  SetScreenConstraint, SetScreenActiveMode
+ *               3. Verify all methods invoke registered callbacks correctly
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmContextTest, RegisterScreenManagerCallbacksAndInvokeAllMethods, TestSize.Level1)
+{
+    // Track callback invocations
+    std::atomic<bool> getDefaultScreenIdCalled{false};
+    std::atomic<bool> getScreenPowerStatusCalled{false};
+    std::atomic<bool> getScreenSupportedModesCalled{false};
+    std::atomic<bool> setScreenConstraintCalled{false};
+    std::atomic<bool> setScreenActiveModeCalled{false};
+
+    // Define test screen ID
+    constexpr ScreenId testScreenId = 100;
+    constexpr ScreenId defaultScreenId = 0;
+
+    // Register all screen manager callbacks
+    hgmCore.RegisterScreenManagerCallbacks(
+        // GetDefaultScreenIdCallback
+        [&getDefaultScreenIdCalled]() -> ScreenId {
+            getDefaultScreenIdCalled.store(true);
+            return defaultScreenId;
+        },
+        // GetScreenPowerStatusCallback
+        [&getScreenPowerStatusCalled](ScreenId id) -> ScreenPowerStatus {
+            if (id == testScreenId) {
+                getScreenPowerStatusCalled.store(true);
+                return ScreenPowerStatus::POWER_STATUS_ON;
+            }
+            return ScreenPowerStatus::INVALID_POWER_STATUS;
+        },
+        // GetScreenSupportedModesCallback
+        [&getScreenSupportedModesCalled](ScreenId id) -> std::vector<RSScreenModeInfo> {
+            if (id == testScreenId) {
+                getScreenSupportedModesCalled.store(true);
+                std::vector<RSScreenModeInfo> modes;
+                RSScreenModeInfo modeInfo;
+                modeInfo.modeId_ = 1;
+                modeInfo.refreshRate_ = 60;
+                modes.push_back(modeInfo);
+                return modes;
+            }
+            return {};
+        },
+        // SetScreenConstraintCallback
+        [&setScreenConstraintCalled](ScreenId id, uint64_t timestamp, ScreenConstraintType type) -> int32_t {
+            if (id == testScreenId) {
+                setScreenConstraintCalled.store(true);
+                return ERR_OK;
+            }
+            return StatusCode::SCREEN_NOT_FOUND;
+        },
+        // SetScreenActiveModeCallback
+        [&setScreenActiveModeCalled](ScreenId id, uint32_t modeId) -> uint32_t {
+            if (id == testScreenId) {
+                setScreenActiveModeCalled.store(true);
+                return ERR_OK;
+            }
+            return StatusCode::SCREEN_NOT_FOUND;
+        }
+    );
+
+    // Test 1: Call GetDefaultScreenId
+    ScreenId retrievedDefaultScreenId = hgmCore.GetDefaultScreenId();
+    EXPECT_TRUE(getDefaultScreenIdCalled.load());
+    EXPECT_EQ(retrievedDefaultScreenId, defaultScreenId);
+
+    // Test 2: Call GetScreenPowerStatus
+    ScreenPowerStatus powerStatus = hgmCore.GetScreenPowerStatus(testScreenId);
+    EXPECT_TRUE(getScreenPowerStatusCalled.load());
+    EXPECT_EQ(powerStatus, ScreenPowerStatus::POWER_STATUS_ON);
+
+    // Test 3: Call GetScreenSupportedModes
+    std::vector<RSScreenModeInfo> supportedModes = hgmCore.GetScreenSupportedModes(testScreenId);
+    EXPECT_TRUE(getScreenSupportedModesCalled.load());
+    EXPECT_GE(supportedModes.size(), 1u);
+    if (!supportedModes.empty()) {
+        EXPECT_EQ(supportedModes[0].modeId_, 1u);
+        EXPECT_EQ(supportedModes[0].refreshRate_, 60u);
+    }
+
+    // Test 4: Call SetScreenConstraint
+    int32_t constraintResult = hgmCore.SetScreenConstraint(testScreenId,
+        123456789ULL, ScreenConstraintType::CONSTRAINT_ABSOLUTE);
+    EXPECT_TRUE(setScreenConstraintCalled.load());
+    EXPECT_EQ(constraintResult, ERR_OK);
+
+    // Test 5: Call SetScreenActiveMode
+    uint32_t activeModeResult = hgmCore.SetScreenActiveMode(testScreenId, 1);
+    EXPECT_TRUE(setScreenActiveModeCalled.load());
+    EXPECT_EQ(activeModeResult, ERR_OK);
 }
 } // namespace OHOS::Rosen

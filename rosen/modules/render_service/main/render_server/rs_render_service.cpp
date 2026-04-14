@@ -25,6 +25,10 @@
 #include <unistd.h>
 
 #include "dfx/rs_service_dump_manager.h"
+#include "engine/rs_base_render_engine.h"
+#ifdef RS_CAR_FEATURES
+#include "rs_car_multi_display_feature_param.h"
+#endif
 #include "gfx/fps_info/rs_surface_fps_manager.h"
 #include "hgm_core.h"
 #include "parameter.h"
@@ -32,6 +36,7 @@
 #include "rs_profiler.h"
 
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/render_thread/rs_uni_render_util.h"
 #include "transaction/rs_client_to_render_connection.h"
 #include "transaction/rs_render_to_service_connection.h"
 
@@ -138,6 +143,10 @@ void RSRenderService::InitCCMConfig()
 {
     // feature param parse
     GraphicFeatureParamManager::GetInstance().Init();
+
+#ifdef RS_CAR_FEATURES
+    RSCarMultiDisplayFeatureParam::Load();
+#endif
 }
 
 bool RSRenderService::CoreComponentsInit()
@@ -151,9 +160,10 @@ bool RSRenderService::CoreComponentsInit()
     vsyncManager_ = sptr<RSVsyncManager>::MakeSptr();
     vsyncManager_->init(screenManager_, renderModeConfig_->GetIsMultiProcessModeEnabled());
 
+    RSBaseRenderEngine::RegisterUniRenderUtilCallback(RSUniRenderUtil::CreateLayerBufferDrawParam,
+        RSUniRenderUtil::DrawRectForDfx);
     // composerManager init
-    rsRenderComposerManager_ = std::make_shared<RSRenderComposerManager>(handler_,
-        vsyncManager_->GetVsyncManagerAgent());
+    rsRenderComposerManager_ = std::make_shared<RSRenderComposerManager>(handler_);
 
     // hgm init
     HgmInit();
@@ -166,6 +176,15 @@ bool RSRenderService::CoreComponentsInit()
 
 void RSRenderService::HgmInit()
 {
+    HgmCore::Instance().RegisterScreenManagerCallbacks(
+        std::bind(&RSScreenManager::GetDefaultScreenId, screenManager_.GetRefPtr()),
+        std::bind(&RSScreenManager::GetScreenPowerStatus, screenManager_.GetRefPtr(), std::placeholders::_1),
+        std::bind(&RSScreenManager::GetScreenSupportedModes, screenManager_.GetRefPtr(), std::placeholders::_1),
+        std::bind(&RSScreenManager::SetScreenConstraint,
+            screenManager_.GetRefPtr(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3),
+        std::bind(&RSScreenManager::SetScreenActiveMode,
+            screenManager_.GetRefPtr(), std::placeholders::_1, std::placeholders::_2)
+    );
     HgmCore::Instance().SetScreenManager(screenManager_.GetRefPtr());
     if (auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr()) {
         auto callbackFunc = [this](bool forceUpdate, ScreenId activeScreenId) {
@@ -206,6 +225,9 @@ void RSRenderService::FeatureComponentInit()
 #ifdef RS_ENABLE_RDO
     EnableRSCodeCache();
 #endif
+
+    // Game Scene Handler Init
+    InitGameFrameHandler();
 }
 
 void RSRenderService::RenderProcessManagerInit()
@@ -294,8 +316,8 @@ std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
     return iter->second;
 }
 
-std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
-    RSRenderService::CreateConnection(const sptr<RSIConnectionToken>& token)
+std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> RSRenderService::CreateConnection(
+    const sptr<RSIConnectionToken>& token, bool needRefresh)
 {
     if (!token) {
         RS_LOGE("CreateConnection failed, mainThread or token is nullptr");
@@ -314,6 +336,10 @@ std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
     sptr<RSRenderPipelineAgent> renderPipelineAgent = new RSRenderPipelineAgent(renderPipeline_);
     sptr<RSIClientToRenderConnection> newRenderConn(
         new RSClientToRenderConnection(remotePid, renderPipelineAgent, tokenObj));
+    if (needRefresh) {
+        newConn->RegisterRemoteRefreshCallback();
+        newRenderConn->RegisterRemoteRefreshCallback();
+    }
     std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> tmp;
     std::unique_lock<std::mutex> lock(mutex_);
     // if connections_ has the same token one, replace it.
@@ -384,6 +410,20 @@ sptr<IRemoteObject> RSRenderService::ScreenManagerListener::OnScreenConnected(Sc
     RS_LOGD("%{public}s: rsScreenProperty.id[%{public}" PRIu64 "] .width[%{public}d] .height[%{public}d]",
         __func__, property->GetScreenId(), property->GetWidth(), property->GetHeight());
     renderService_.rsRenderComposerManager_->OnScreenConnected(output, property);
+    renderService_.rsRenderComposerManager_->RegisterVsyncManagerCallbacks(screenId,
+        std::bind(&RSVsyncManagerAgent::SetHardwareTaskNum,
+            renderService_.vsyncManager_->GetVsyncManagerAgent(), std::placeholders::_1),
+        std::bind(&RSVsyncManagerAgent::SetTaskEndWithTime,
+            renderService_.vsyncManager_->GetVsyncManagerAgent(), std::placeholders::_1),
+        std::bind(&RSVsyncManagerAgent::GetRealTimeOffsetOfDvsync,
+            renderService_.vsyncManager_->GetVsyncManagerAgent(), std::placeholders::_1, std::placeholders::_2));
+#ifdef RS_CAR_FEATURES
+    if (RSCarMultiDisplayFeatureParam::IsCrossDomainFeatureEnable() &&
+        RSCarMultiDisplayFeatureParam::IsScreenInCrossDomain(screenId)) {
+        renderService_.rsRenderComposerManager_->SetAFBCEnabled(screenId, false);
+        RS_LOGI("%{public}s: ScreenId[%{public}" PRIu64 "] SetAFBCEnabled[false]", __func__, screenId);
+    }
+#endif
     if (const auto& hgmContext = renderService_.GetHgmContext()) {
         hgmContext->AddScreenToHgm(property);
     }
@@ -467,6 +507,30 @@ void RSRenderService::ScreenManagerListener::OnScreenBacklightChanged(ScreenId i
 void RSRenderService::ScreenManagerListener::OnGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList)
 {
     renderService_.renderProcessManager_->OnGlobalBlacklistChanged(globalBlackList);
+}
+
+void RSRenderService::InitGameFrameHandler()
+{
+    rsGameFrameHandler_ = sptr<RsGameFrameHandler>::MakeSptr(
+        [vsyncManager = vsyncManager_](int64_t rsOffset, int64_t appOffset) {
+            RS_TRACE_NAME_FMT("GameSceneChangeVsyncOffset(" PRId64 "," PRId64 ")", rsOffset, appOffset);
+            RS_LOGW("GameSceneChangeVsyncOffset(%{public}" PRId64 ",%{public}" PRId64 ")", rsOffset, appOffset);
+            vsyncManager->GetVSyncRSController()->SetPhaseOffset(rsOffset);
+            vsyncManager->GetVSyncAppController()->SetPhaseOffset(appOffset);
+        },
+        [](bool& isLtpoEnabled, bool& isVsyncCustomized, bool& isDelayMode, int64_t& rsOffset, int64_t& appOffset) {
+            auto& hgmCore = HgmCore::Instance();
+            isLtpoEnabled = hgmCore.GetLtpoEnabled();
+            isVsyncCustomized = hgmCore.IsVsyncOffsetCustomized();
+            isDelayMode = hgmCore.IsDelayMode();
+            rsOffset = hgmCore.GetRsPhaseOffset();
+            appOffset = hgmCore.GetAppPhaseOffset();
+        });
+}
+
+const sptr<RsGameFrameHandler>& RSRenderService::GetGameFrameHandler() const
+{
+    return rsGameFrameHandler_;
 }
 } // namespace Rosen
 } // namespace OHOS

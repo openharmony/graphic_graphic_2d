@@ -20,6 +20,7 @@
 #include <map>
 #include <unordered_set>
 
+#include "rs_game_frame_handler.h"
 #include "rs_render_mode_config.h"
 #include "rs_render_multi_process_manager.h"
 #include "rs_render_pipeline.h"
@@ -50,6 +51,8 @@ public:
     void Run();
 
     const std::shared_ptr<const RenderModeConfig>& GetRenderModeConfig() const { return renderModeConfig_; }
+
+    const sptr<RsGameFrameHandler>& GetGameFrameHandler() const;
 
 private:
     class ScreenManagerListener : public RSIScreenManagerListener {
@@ -83,7 +86,7 @@ private:
     sptr<ReplyToRenderInfo> RegisterRenderProcessConnection(
         const sptr<ConnectToServiceInfo>& connectToServiceInfo) override;
     std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> CreateConnection(
-        const sptr<RSIConnectionToken>& token) override;
+        const sptr<RSIConnectionToken>& token, bool needRefresh = false) override;
     std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> GetConnection(
         const sptr<RSIConnectionToken>& token) override;
     bool RemoveConnection(const sptr<RSIConnectionToken>& token) override;
@@ -106,6 +109,9 @@ private:
     const std::shared_ptr<HgmContext>& GetHgmContext() const { return hgmContext_; }
     void HandlePowerStatus(ScreenId screenId, ScreenPowerStatus status);
 
+    // Game Scene Handler
+    void InitGameFrameHandler();
+
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     sptr<RSScreenManager> screenManager_ = nullptr;
@@ -123,6 +129,8 @@ private:
     mutable std::mutex mutex_;
     std::map<sptr<IRemoteObject>,
         std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>> connections_;
+
+    sptr<RsGameFrameHandler> rsGameFrameHandler_ = nullptr;
 
     friend class RSRenderServiceAgent;
     friend class RSRenderProcessManager;

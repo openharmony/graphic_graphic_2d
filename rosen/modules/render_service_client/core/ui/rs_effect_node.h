@@ -78,7 +78,7 @@ public:
      *
      * @param isFreeze If true, the node will be frozen; if false, the node will be unfrozen.
      */
-    void SetFreeze(bool isFreeze) override;
+    void SetFreeze(bool isFreeze, bool isMarkedByUI = false) override;
 
 protected:
     RSEffectNode(

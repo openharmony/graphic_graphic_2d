@@ -286,6 +286,11 @@ Gravity RSScreenProperty::GetFrameGravity() const
     return static_cast<Gravity>(Get<ScreenPropertyType::SCREEN_FRAME_GRAVITY>());
 }
 
+bool RSScreenProperty::IsMainScreen() const
+{
+    return Get<ScreenPropertyType::IS_MAIN_SCREEN>();
+}
+
 ScreenInfo RSScreenProperty::GetScreenInfo() const
 {
     ScreenInfo info;
@@ -368,6 +373,7 @@ bool ScreenPropertyBase::Unmarshalling(Parcel& data, ScreenPropertyType type, sp
         UNMARSHALL_CASE(ScreenPropertyType::DISABLE_POWER_OFF_RENDER_CONTROL)
         UNMARSHALL_CASE(ScreenPropertyType::SCREEN_SWITCH_STATUS)
         UNMARSHALL_CASE(ScreenPropertyType::SCREEN_FRAME_GRAVITY)
+        UNMARSHALL_CASE(ScreenPropertyType::IS_MAIN_SCREEN)
         default:
             RS_LOGW("%{public}s invalid type: %{public}u", __func__, static_cast<uint32_t>(type));
     }

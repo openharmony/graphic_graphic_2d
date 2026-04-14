@@ -93,7 +93,14 @@ ani_object AniTextUtils::CreateAniArray(ani_env* env, size_t size)
 
 ani_object AniTextUtils::CreateAniMap(ani_env* env)
 {
-    return AniTextUtils::CreateAniObject(env, AniGlobalClass::GetInstance().aniMap, AniGlobalMethod::GetInstance().map);
+    ani_ref undefinedArgument = nullptr;
+    ani_status status = env->GetUndefined(&undefinedArgument);
+    if (status != ANI_OK) {
+        TEXT_LOGE("Failed to get undefined argument, status %{public}d", static_cast<int32_t>(status));
+        return CreateAniUndefined(env);
+    }
+    return AniTextUtils::CreateAniObject(
+        env, AniGlobalClass::GetInstance().aniMap, AniGlobalMethod::GetInstance().map, undefinedArgument);
 }
 
 ani_object AniTextUtils::CreateAniOptionalEnum(ani_env* env, const ani_enum enumType, std::optional<ani_size> index)

@@ -16,7 +16,7 @@
 #ifndef RS_CORE_PIPELINE_RENDER_ENGINE_H
 #define RS_CORE_PIPELINE_RENDER_ENGINE_H
 
-#include "pipeline/render_thread/rs_base_render_engine.h"
+#include "engine/rs_base_render_engine.h"
 
 namespace OHOS {
 namespace Rosen {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -74,6 +74,7 @@ public:
     Path() noexcept;
     Path(const Path& p) noexcept;
     Path &operator=(const Path& p) noexcept;
+    bool operator==(const Path& other) const;
     virtual ~Path();
 
     virtual DrawingType GetDrawingType() const
@@ -439,6 +440,24 @@ public:
     Point GetPoint(int index) const;
 
     /**
+ 	 * @brief Gets raw point data stored in Path.
+ 	 * @return Raw point data stored in Path.
+ 	 */
+    std::vector<Point> GetPointData() const;
+
+ 	/**
+ 	 * @brief Gets raw verb data stored in Path.
+ 	 * @return Raw verb data stored in Path.
+ 	 */
+    std::vector<PathVerb> GetVerbData() const;
+
+ 	/**
+ 	 * @brief Gets raw conic weight data stored in Path.
+ 	 * @return Raw conic weight data stored in Path.
+ 	 */
+    std::vector<float> GetConicWeightData() const;
+
+    /**
      * @brief  Checks whether the current path is compatible with other path for interpolation.
      * @param other The path to be compared.
      * @return true if the Path is interpolated, otherwise false.
@@ -517,6 +536,14 @@ public:
     virtual void Reset();
 
     void SetLastPoint(scalar x, scalar y);
+
+    /**
+     * @brief Gets the last point of the path.
+     *
+     * @param point Pointer to store the last point.
+     * @return Returns true if the last point was successfully retrieved, false if the path is empty.
+     */
+    virtual void GetLastPoint(Point& point) const;
 
     void ReWind();
 

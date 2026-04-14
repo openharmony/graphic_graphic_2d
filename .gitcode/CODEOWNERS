@@ -176,7 +176,6 @@ rosen/modules/render_service/core/feature/opinc/ @conan13234
 
 [composer]
 rosen/modules/render_service/core/pipeline/hardware_thread/ @conan13234
-rosen/modules/render_service/core/feature/gpuComposition/ @conan13234
 rosen/modules/render_service/composer/ @conan13234
 rosen/modules/composer/hdi_backend/ @conan13234
 
@@ -189,10 +188,14 @@ rosen/modules/render_service/core/pipeline/main_thread/rs_render_service_connect
 rosen/modules/render_service/core/pipeline/main_thread/rs_render_service_connection.cpp @aslklw
 
 [render_thread]
-rosen/modules/render_service/core/pipeline/render_thread/rs_base_render_engine.cpp @charlielou
-rosen/modules/render_service/core/pipeline/render_thread/rs_base_render_engine.h @charlielou
-rosen/modules/render_service/core/pipeline/render_thread/rs_base_render_util.cpp @charlielou
-rosen/modules/render_service/core/pipeline/render_thread/rs_base_render_util.h @charlielou
+rosen/modules/render_service/composer/composer_service/external_depend/engine/rs_base_render_engine.cpp @charlielou
+rosen/modules/render_service/composer/composer_service/external_depend/engine/rs_base_render_engine.h @charlielou
+rosen/modules/render_service/composer/composer_service/external_depend/engine/rs_base_render_util.cpp @charlielou
+rosen/modules/render_service/composer/composer_service/external_depend/engine/rs_base_render_util.h @charlielou
+rosen/modules/render_service/composer/composer_service/external_depend/engine/rs_uni_render_engine.cpp @charlielou
+rosen/modules/render_service/composer/composer_service/external_depend/engine/rs_uni_render_engine.h @charlielou
+rosen/modules/render_service/core/pipeline/render_thread/rs_base_surface_util.cpp @charlielou
+rosen/modules/render_service/core/pipeline/render_thread/rs_base_surface_util.h @charlielou
 rosen/modules/render_service/core/pipeline/render_thread/rs_composer_adapter.cpp @charlielou
 rosen/modules/render_service/core/pipeline/render_thread/rs_composer_adapter.h @charlielou
 rosen/modules/render_service/core/pipeline/render_thread/rs_draw_frame.cpp @charlielou
@@ -201,8 +204,6 @@ rosen/modules/render_service/core/pipeline/render_thread/rs_render_engine.cpp @c
 rosen/modules/render_service/core/pipeline/render_thread/rs_render_engine.h @charlielou
 rosen/modules/render_service/core/pipeline/render_thread/rs_uni_render_composer_adapter.cpp @charlielou
 rosen/modules/render_service/core/pipeline/render_thread/rs_uni_render_composer_adapter.h @charlielou
-rosen/modules/render_service/core/pipeline/render_thread/rs_uni_render_engine.cpp @charlielou
-rosen/modules/render_service/core/pipeline/render_thread/rs_uni_render_engine.h @charlielou
 rosen/modules/render_service/core/pipeline/render_thread/rs_uni_render_processor.cpp @charlielou
 rosen/modules/render_service/core/pipeline/render_thread/rs_uni_render_processor.h @charlielou
 rosen/modules/render_service/core/pipeline/render_thread/rs_uni_render_thread.cpp @charlielou
@@ -226,6 +227,7 @@ rosen/modules/render_service_base/src/hwc/ @wh_qwe
 interfaces/inner_api/hyper_graphic_manager/ @wh_qwe
 interfaces/kits/napi/graphic/hyper_graphic_manager/ @wh_qwe
 rosen/modules/hyper_graphic_manager/ @wh_qwe
+rosen/modules/render_service/composer/composer_service/external_depend/hyper_graphic_manager @wh_qwe
 rosen/modules/render_service/core/feature/hyper_graphic_manager/ @wh_qwe
 rosen/modules/render_service_base/include/feature/hyper_graphic_manager/ @wh_qwe
 rosen/modules/render_service_base/include/ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback_ipc_interface_code.h @wh_qwe

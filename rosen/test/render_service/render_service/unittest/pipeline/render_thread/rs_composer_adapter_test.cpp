@@ -61,7 +61,7 @@ void RSComposerAdapterTest::SetUpTestCase()
 
     hdiOutput_ = HdiOutput::CreateHdiOutput(screenId_);
     std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
-    rsRenderComposerManager = std::make_shared<RSRenderComposerManager>(handler, nullptr);
+    rsRenderComposerManager = std::make_shared<RSRenderComposerManager>(handler);
     auto property = sptr<RSScreenProperty>::MakeSptr();
     rsRenderComposerManager->OnScreenConnected(hdiOutput_, property);
     auto screen = std::make_shared<RSScreen>(screenId_);

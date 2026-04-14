@@ -1840,6 +1840,22 @@ HWTEST_F(RSSurfaceNodeTest, SetHardwareEnableHint, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetApiCompatibleVersion
+ * @tc.desc: Test function SetApiCompatibleVersion
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, SetApiCompatibleVersion, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetApiCompatibleVersion(0);
+    surfaceNode->SetApiCompatibleVersion(1);
+    surfaceNode->SetApiCompatibleVersion(100);
+    surfaceNode->SetApiCompatibleVersion(UINT32_MAX);
+}
+
+/**
  * @tc.name: SetSourceVirtualScreenId
  * @tc.desc: Test function SetSourceVirtualScreenId
  * @tc.type: FUNC

@@ -57,14 +57,16 @@ public:
                                                     sptr<RSIScreenManagerAgentListener> agentListener);
     void NotifyScreenBacklightChanged(ScreenId id, uint32_t level);
     void NotifyGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList);
+    void NotifySwitchingCallback(bool status);
 
     sptr<IRemoteObject> GetClientToRenderConnection(ScreenId id) const;
 
 private:
     void NotifyScreenConnectedToAgentListeners(ScreenId id, ScreenChangeReason reason);
     void NotifyScreenDisconnectedToAgentListeners(ScreenId id, ScreenChangeReason reason);
-    void NotifyActiveScreenIdChangedToAgentListeners(ScreenId activeScreenId);
+    void NotifyHwcEventToAgentListeners(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData);
 
+    void NotifyActiveScreenIdChangedToAgentListeners(ScreenId activeScreenId);
     std::unordered_map<ScreenId, sptr<IRemoteObject>> clientToRenderConns_;
     sptr<RSIScreenManagerListener> coreListener_;
     std::vector<sptr<RSIScreenManagerAgentListener>> agentListeners_;

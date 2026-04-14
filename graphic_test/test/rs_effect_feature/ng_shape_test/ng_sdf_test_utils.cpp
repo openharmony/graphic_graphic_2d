@@ -24,6 +24,8 @@ static std::unordered_map<RSNGEffectType, ShapeCreator> creatorShape = {
         [] { return std::make_shared<RSNGSDFSmoothUnionOpShape>(); }},
     {RSNGEffectType::SDF_RRECT_SHAPE,
         [] { return std::make_shared<RSNGSDFRRectShape>(); }},
+    {RSNGEffectType::SDF_TRIANGLE_SHAPE,
+        [] { return std::make_shared<RSNGSDFTriangleShape>(); }},
     {RSNGEffectType::SDF_TRANSFORM_SHAPE,
         [] { return std::make_shared<RSNGSDFTransformShape>(); }},
     {RSNGEffectType::SDF_PIXELMAP_SHAPE,
@@ -69,6 +71,34 @@ void InitSmoothUnionShapesByPixelmap(std::shared_ptr<RSNGShapeBase>& rootShape,
     auto childShapeY = CreateShape(RSNGEffectType::SDF_PIXELMAP_SHAPE);
     auto pixelmapChildShapeY = std::static_pointer_cast<RSNGSDFPixelmapShape>(childShapeY);
     pixelmapChildShapeY->Setter<SDFPixelmapShapeImageTag>(pixelmapY);
+    sdfUnionRootShape->Setter<SDFSmoothUnionOpShapeShapeYTag>(childShapeY);
+
+    sdfUnionRootShape->Setter<SDFSmoothUnionOpShapeSpacingTag>(spacing);
+}
+
+void InitSmoothUnionShapesByTriangle(
+    std::shared_ptr<RSNGShapeBase>& rootShape,
+    Vector2f v0, Vector2f v1, Vector2f v2, float radius1,
+    Vector2f v3, Vector2f v4, Vector2f v5, float radius2,
+    float spacing)
+{
+    rootShape = CreateShape(RSNGEffectType::SDF_SMOOTH_UNION_OP_SHAPE);
+    auto sdfUnionRootShape = std::static_pointer_cast<RSNGSDFSmoothUnionOpShape>(rootShape);
+
+    auto childShapeX = CreateShape(RSNGEffectType::SDF_TRIANGLE_SHAPE);
+    auto triangleChildShapeX = std::static_pointer_cast<RSNGSDFTriangleShape>(childShapeX);
+    triangleChildShapeX->Setter<SDFTriangleShapeVertex0Tag>(v0);
+    triangleChildShapeX->Setter<SDFTriangleShapeVertex1Tag>(v1);
+    triangleChildShapeX->Setter<SDFTriangleShapeVertex2Tag>(v2);
+    triangleChildShapeX->Setter<SDFTriangleShapeRadiusTag>(radius1);
+    sdfUnionRootShape->Setter<SDFSmoothUnionOpShapeShapeXTag>(childShapeX);
+
+    auto childShapeY = CreateShape(RSNGEffectType::SDF_TRIANGLE_SHAPE);
+    auto triangleChildShapeY = std::static_pointer_cast<RSNGSDFTriangleShape>(childShapeY);
+    triangleChildShapeY->Setter<SDFTriangleShapeVertex0Tag>(v3);
+    triangleChildShapeY->Setter<SDFTriangleShapeVertex1Tag>(v4);
+    triangleChildShapeY->Setter<SDFTriangleShapeVertex2Tag>(v5);
+    triangleChildShapeY->Setter<SDFTriangleShapeRadiusTag>(radius2);
     sdfUnionRootShape->Setter<SDFSmoothUnionOpShapeShapeYTag>(childShapeY);
 
     sdfUnionRootShape->Setter<SDFSmoothUnionOpShapeSpacingTag>(spacing);

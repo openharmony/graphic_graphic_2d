@@ -78,6 +78,13 @@ public:
      */
     void SetUnionSpacing(float spacing);
 
+    /**
+     * @brief Sets the union mode of the node.
+     *
+     * @param uniModeUC: 1 GravityPull Mode, 0 SmoothUnion.
+     */
+    void SetUnionMode(int uniModeUC);
+
 protected:
     RSUnionNode(
         bool isRenderServiceNode, bool isTextureExportNode = false, std::shared_ptr<RSUIContext> rsUIContext = nullptr);

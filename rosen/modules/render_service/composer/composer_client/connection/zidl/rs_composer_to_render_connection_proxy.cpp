@@ -107,7 +107,11 @@ int32_t RSComposerToRenderConnectionProxy::ReleaseLayerBuffers(ReleaseLayerBuffe
         return -1;
     }
 
-    auto replyMessage = reply.ReadInt32();
+    int32_t replyMessage;
+    if (!reply.ReadInt32(replyMessage)) {
+        RS_LOGE("%{public}s read replyMessage error", __func__);
+        return -1;
+    }
     RS_LOGD("%{public}s reply received successfully", __func__);
 
     return replyMessage;
@@ -149,7 +153,11 @@ int32_t RSComposerToRenderConnectionProxy::NotifyLppLayerToRender(
         ROSEN_LOGE("%{public}s: SendRequest failed, err is %{public}d", __func__, err);
         return -1;
     }
-    auto replyMessage = reply.ReadInt32();
+    int32_t replyMessage;
+    if (!reply.ReadInt32(replyMessage)) {
+        RS_LOGE("%{public}s read replyMessage error", __func__);
+        return -1;
+    }
     return replyMessage;
 }
 } // namespace Rosen

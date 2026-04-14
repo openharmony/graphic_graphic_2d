@@ -21,8 +21,8 @@
 #include "hpae_base/rs_hpae_log.h"
 
 #include "common/rs_optional_trace.h"
+#include "engine/rs_base_render_engine.h"
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "pipeline/render_thread/rs_base_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_surface_handler.h"

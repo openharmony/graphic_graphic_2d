@@ -47,8 +47,26 @@ void AniParagraphStyleConverter::ParseSimpleParagraphStyleToNative(
         paragraphStyle->includeFontPadding);
     AniTextUtils::ReadOptionalBoolField(env, obj, AniGlobalMethod::GetInstance().paragraphStyleFallbackLineSpacing,
         paragraphStyle->fallbackLineSpacing);
+    AniTextUtils::ReadOptionalBoolField(env, obj, AniGlobalMethod::GetInstance().paragraphStyleOrphanCharOptimization,
+        paragraphStyle->orphanCharOptimization);
     AniTextUtils::ReadOptionalDoubleField(env, obj, AniGlobalMethod::GetInstance().paragraphStyleLineSpacing,
         paragraphStyle->lineSpacing);
+    AniTextUtils::ReadOptionalDoubleField(env, obj, AniGlobalMethod::GetInstance().paragraphStyleFirstLineIndent,
+        paragraphStyle->firstLineIndent);
+    auto doubleConvert = [](ani_env* env, ani_ref ref) {
+        ani_double objValue = 0;
+        ani_object obj = reinterpret_cast<ani_object>(ref);
+        ani_status ret = env->Object_CallMethod_Double(obj, AniGlobalMethod::GetInstance().doubleGet, &objValue);
+        if (ret != ANI_OK) {
+            TEXT_LOGE("Failed to get double, ret %{public}d", ret);
+            return 0.0;
+        }
+        return objValue;
+    };
+    AniTextUtils::ReadOptionalArrayField<double>(env, obj, AniGlobalMethod::GetInstance().paragraphStyleTailIndents,
+        paragraphStyle->tailIndents, doubleConvert);
+    AniTextUtils::ReadOptionalArrayField<double>(env, obj, AniGlobalMethod::GetInstance().paragraphStyleHeadIndents,
+        paragraphStyle->headIndents, doubleConvert);
 }
 
 ani_status ParagraphStyleGetMaxLine(ani_env* env, ani_object obj, std::unique_ptr<TypographyStyle>& paragraphStyle)
@@ -170,5 +188,70 @@ void AniParagraphStyleConverter::ParseFontFamiliesToNative(
             fontFamilies.push_back(fontFamiliesString);
         }
     }
+}
+
+ani_object AniParagraphStyleConverter::ParseTextTabToAni(ani_env* env, const TextTab& textTab)
+{
+    return AniTextUtils::CreateAniObject(env, AniGlobalClass::GetInstance().textTabInternal,
+        AniGlobalMethod::GetInstance().textTabInternalCtor,
+        AniTextUtils::CreateAniOptionalEnum(env, AniGlobalEnum::GetInstance().textAlign,
+            aniGetEnumIndex(AniTextEnum::textAlign, static_cast<uint32_t>(textTab.alignment))),
+        static_cast<ani_double>(textTab.location));
+}
+
+ani_object AniParagraphStyleConverter::ParseStrutStyleToAni(
+    ani_env* env, const OHOS::Rosen::TypographyStyle& style)
+{
+    return AniTextUtils::CreateAniObject(env, AniGlobalClass::GetInstance().strutStyleInternal,
+        AniGlobalMethod::GetInstance().strutStyleInternalCtor,
+        AniTextUtils::CreateAniArrayAndInitData(env, style.lineStyleFontFamilies, style.lineStyleFontFamilies.size(),
+            [](ani_env* env, const std::string& item) { return AniTextUtils::CreateAniStringObj(env, item); }),
+        AniTextUtils::CreateAniOptionalEnum(env, AniGlobalEnum::GetInstance().fontStyle,
+            aniGetEnumIndex(AniTextEnum::fontStyle, static_cast<uint32_t>(style.lineStyleFontStyle))),
+        AniTextUtils::CreateAniOptionalEnum(env, AniGlobalEnum::GetInstance().fontWidth,
+            aniGetEnumIndex(AniTextEnum::fontWidth, static_cast<uint32_t>(style.lineStyleFontWidth))),
+        AniTextUtils::CreateAniOptionalEnum(env, AniGlobalEnum::GetInstance().fontWeight,
+            aniGetEnumIndex(AniTextEnum::fontWeight, static_cast<uint32_t>(style.lineStyleFontWeight))),
+        AniTextUtils::CreateAniDoubleObj(env, style.lineStyleFontSize),
+        AniTextUtils::CreateAniDoubleObj(env, style.lineStyleHeightScale),
+        AniTextUtils::CreateAniDoubleObj(env, style.lineStyleSpacingScale),
+        AniTextUtils::CreateAniBooleanObj(env, style.lineStyleOnly),
+        AniTextUtils::CreateAniBooleanObj(env, style.useLineStyle),
+        AniTextUtils::CreateAniBooleanObj(env, style.lineStyleHeightOnly),
+        AniTextUtils::CreateAniBooleanObj(env, style.lineStyleHalfLeading));
+}
+
+void AniParagraphStyleConverter::ParseTypographyStyleToAni(
+    ani_env* env, const OHOS::Rosen::TypographyStyle& style, ani_object& obj)
+{
+    ani_object textStyleObj = AniTextStyleConverter::ParseTextStyleToAni(env, style.insideTextStyle);
+    ani_object strutStyleObj = ParseStrutStyleToAni(env, style);
+    ani_object tabObj = ParseTextTabToAni(env, style.tab);
+
+    obj = AniTextUtils::CreateAniObject(env, AniGlobalClass::GetInstance().paragraphStyleInternal,
+        AniGlobalMethod::GetInstance().paragraphStyleInternalCtor,
+        AniTextUtils::CreateAniBooleanObj(env, style.orphanCharOptimization),
+        AniTextUtils::CreateAniBooleanObj(env, style.fallbackLineSpacing),
+        AniTextUtils::CreateAniBooleanObj(env, style.includeFontPadding),
+        textStyleObj,
+        AniTextUtils::CreateAniOptionalEnum(env, AniGlobalEnum::GetInstance().textDirection,
+            aniGetEnumIndex(AniTextEnum::textDirection, static_cast<uint32_t>(style.textDirection))),
+        AniTextUtils::CreateAniOptionalEnum(env, AniGlobalEnum::GetInstance().textAlign,
+            aniGetEnumIndex(AniTextEnum::textAlign, static_cast<uint32_t>(style.textAlign))),
+        AniTextUtils::CreateAniOptionalEnum(env, AniGlobalEnum::GetInstance().wordBreak,
+            aniGetEnumIndex(AniTextEnum::wordBreakType, static_cast<uint32_t>(style.wordBreakType))),
+        AniTextUtils::CreateAniIntObj(env, static_cast<int>(style.maxLines)),
+        AniTextUtils::CreateAniOptionalEnum(env, AniGlobalEnum::GetInstance().breakStrategy,
+            aniGetEnumIndex(AniTextEnum::breakStrategy, static_cast<uint32_t>(style.breakStrategy))),
+        strutStyleObj,
+        AniTextUtils::CreateAniOptionalEnum(env, AniGlobalEnum::GetInstance().textHeightBehavior,
+            aniGetEnumIndex(AniTextEnum::textHeightBehavior, static_cast<uint32_t>(style.textHeightBehavior))),
+        tabObj,
+        AniTextUtils::CreateAniBooleanObj(env, style.isTrailingSpaceOptimized),
+        AniTextUtils::CreateAniBooleanObj(env, style.enableAutoSpace),
+        AniTextUtils::CreateAniOptionalEnum(env, AniGlobalEnum::GetInstance().textVerticalAlign,
+            aniGetEnumIndex(AniTextEnum::textVerticalAlign, static_cast<uint32_t>(style.verticalAlignment))),
+        AniTextUtils::CreateAniBooleanObj(env, style.compressHeadPunctuation),
+        AniTextUtils::CreateAniDoubleObj(env, style.lineSpacing));
 }
 } // namespace OHOS::Text::ANI

@@ -299,6 +299,9 @@ std::shared_ptr<SymbolGradient> SymbolNodeBuild::CreateGradient(
 
     outGradient->SetTileMode(gradient->GetTileMode());
     outGradient->SetColors(gradient->GetColors());
+    if (gradient->HasUIColor()) {
+        outGradient->SetUIColors(gradient->GetUIColors(), gradient->GetColorSpace());
+    }
     outGradient->SetPositions(gradient->GetPositions());
 
     return outGradient;

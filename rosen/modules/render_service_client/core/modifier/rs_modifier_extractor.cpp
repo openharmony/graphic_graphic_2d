@@ -393,6 +393,11 @@ float RSModifierExtractor::GetHDRBrightnessFactor() const
     GET_PROPERTY_FROM_MODIFIERS_NG(float, HDR_BRIGHTNESS, HDR_BRIGHTNESS_FACTOR, 1.0f, =);
 }
 
+float RSModifierExtractor::GetHDRColorHeadroom() const
+{
+    GET_PROPERTY_FROM_MODIFIERS_NG(float, HDR_BRIGHTNESS, HDR_COLOR_HEADROOM, 1.0f, =);
+}
+
 float RSModifierExtractor::GetLightUpEffectDegree() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(float, COMPOSITING_FILTER, LIGHT_UP_EFFECT_DEGREE, 0.f, =);

@@ -49,6 +49,9 @@ namespace OHOS::Text::ANI {
 #define ANI_INTERFACE_TEXT_STYLE "@ohos.graphics.text.text.TextStyle"
 #define ANI_INTERFACE_STRUT_STYLE "@ohos.graphics.text.text.StrutStyle"
 #define ANI_INTERFACE_TEXT_TAB "@ohos.graphics.text.text.TextTab"
+#define ANI_CLASS_TEXT_TAB_INTERNAL "@ohos.graphics.text.text.TextTabInternal"
+#define ANI_CLASS_STRUT_STYLE_INTERNAL "@ohos.graphics.text.text.StrutStyleInternal"
+#define ANI_CLASS_PARAGRAPH_STYLE_INTERNAL "@ohos.graphics.text.text.ParagraphStyleInternal"
 #define ANI_INTERFACE_FONT_FEATURE "@ohos.graphics.text.text.FontFeature"
 #define ANI_INTERFACE_FONT_VARIATION "@ohos.graphics.text.text.FontVariation"
 #define ANI_INTERFACE_FONT_VARIATION_AXIS "@ohos.graphics.text.text.FontVariationAxis"
@@ -125,6 +128,8 @@ namespace OHOS::Text::ANI {
 #define ANI_ENUM_TEXT_HIGH_CONTRAST "@ohos.graphics.text.text.TextHighContrast"
 #define ANI_ENUM_TEXT_UNDEFINED_GLYPH_DISPLAY "@ohos.graphics.text.text.TextUndefinedGlyphDisplay"
 #define ANI_ENUM_TEXT_LINE_HEIGHT_STYLE_TYPE "@ohos.graphics.text.text.LineHeightStyle"
+#define ANI_ENUM_TEXT_PROCESS_STATE "@ohos.graphics.text.text.TextProcessState"
+#define ANI_ENUM_TEXT_DISPLAY_STATE "@ohos.graphics.text.text.TextDisplayState"
 #define ANI_ENUM_TEXT_ENCODING "@ohos.graphics.drawing.drawing.TextEncoding"
 
 enum class TextErrorCode : int32_t {

@@ -36,6 +36,7 @@ const std::string LOAD_FONT_SYNC_SIGN = "C{std.core.String}X{C{global.resource.R
 const std::string UNLOAD_FONT_SYNC_SIGN = "C{std.core.String}:";
 const std::string LOAD_FONT_SYNC_WITH_CHECK_SIGN =
     "C{std.core.String}X{C{global.resource.Resource}C{std.core.String}}C{std.core.Int}:";
+const std::string SET_CACHES_ENABLED_SIGN = "z:";
 
 AniTextResult LoadString(ani_env* env, ani_object path, std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection,
     std::string familyName, uint32_t index = 0)
@@ -102,6 +103,8 @@ ani_status AniFontCollection::AniInit(ani_vm* vm, uint32_t* result)
         ani_native_function { "clearCaches", ":", reinterpret_cast<void*>(ClearCaches) },
         ani_native_function { "loadFontSyncWithCheck", LOAD_FONT_SYNC_WITH_CHECK_SIGN.c_str(),
             reinterpret_cast<void*>(LoadFontSyncWithCheck) },
+        ani_native_function { "setParagraphCachesEnabled", SET_CACHES_ENABLED_SIGN.c_str(),
+            reinterpret_cast<void*>(SetCachesEnabled) },
     };
     ret = env->Class_BindNativeMethods(AniGlobalClass::GetInstance().fontCollection, methods.data(), methods.size());
     if (ret != ANI_OK) {
@@ -254,6 +257,22 @@ void AniFontCollection::ClearCaches(ani_env* env, ani_object obj)
         return;
     }
     aniFontCollection->fontCollection_->ClearCaches();
+}
+
+void AniFontCollection::SetCachesEnabled(ani_env* env, ani_object obj, ani_boolean enable)
+{
+    auto aniFontCollection = AniTextUtils::GetNativeFromObj<AniFontCollection>(
+        env, obj, AniGlobalMethod::GetInstance().fontCollectionGetNative);
+    if (aniFontCollection == nullptr || aniFontCollection->fontCollection_ == nullptr) {
+        TEXT_LOGE("Null font collection");
+        return;
+    }
+    uint64_t envAddress = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(env));
+    if (!FontCollectionMgr::GetInstance().CheckInstanceIsValid(envAddress, aniFontCollection->fontCollection_)) {
+        TEXT_LOGE("Failed to check local instance");
+        return;
+    }
+    aniFontCollection->fontCollection_->SetCachesEnabled(enable);
 }
 
 void AniFontCollection::UnloadFontSync(ani_env* env, ani_object obj, ani_string name)

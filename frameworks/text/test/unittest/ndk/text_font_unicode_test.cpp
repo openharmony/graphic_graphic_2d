@@ -81,11 +81,11 @@ void NdkFontUnicodeTest::SetUp()
 }
 
 /*
-* @tc.name: NdkFontUnicodeTest001
+* @tc.name: GetFontUnicodeArrayFromTtcFile
 * @tc.desc: test for getting unicode array from ttc file
 * @tc.type: FUNC
 */
-HWTEST_F(NdkFontUnicodeTest, NdkFontUnicodeTest001, TestSize.Level0)
+HWTEST_F(NdkFontUnicodeTest, GetFontUnicodeArrayFromTtcFile, TestSize.Level0)
 {
     OH_Drawing_ErrorCode errorCode = OH_Drawing_GetFontUnicodeArrayFromFile(
         ttcFontPath_, 0, &unicodeArray, &arrayLength);
@@ -101,11 +101,11 @@ HWTEST_F(NdkFontUnicodeTest, NdkFontUnicodeTest001, TestSize.Level0)
 }
 
 /*
-* @tc.name: NdkFontUnicodeTest002
+* @tc.name: GetFontUnicodeArrayFromTtfFile
 * @tc.desc: test for getting unicode array from ttf file
 * @tc.type: FUNC
 */
-HWTEST_F(NdkFontUnicodeTest, NdkFontUnicodeTest002, TestSize.Level0)
+HWTEST_F(NdkFontUnicodeTest, GetFontUnicodeArrayFromTtfFile, TestSize.Level0)
 {
     OH_Drawing_ErrorCode errorCode = OH_Drawing_GetFontUnicodeArrayFromFile(
         ttfFontPath_, 0, &unicodeArray, &arrayLength);
@@ -115,11 +115,11 @@ HWTEST_F(NdkFontUnicodeTest, NdkFontUnicodeTest002, TestSize.Level0)
 }
 
 /*
-* @tc.name: NdkFontUnicodeTest003
+* @tc.name: GetFontUnicodeArrayFromBuffer
 * @tc.desc: test for getting unicode array from buffer
 * @tc.type: FUNC
 */
-HWTEST_F(NdkFontUnicodeTest, NdkFontUnicodeTest003, TestSize.Level0)
+HWTEST_F(NdkFontUnicodeTest, GetFontUnicodeArrayFromBuffer, TestSize.Level0)
 {
     OH_Drawing_ErrorCode errorCode = OH_Drawing_GetFontUnicodeArrayFromBuffer(
         existFontBuffer_.get(), bufferSize_, 0, &unicodeArray, &arrayLength);
@@ -129,11 +129,11 @@ HWTEST_F(NdkFontUnicodeTest, NdkFontUnicodeTest003, TestSize.Level0)
 }
 
 /*
-* @tc.name: NdkFontUnicodeTest004
+* @tc.name: GetFontUnicodeArrayNullptrParameters
 * @tc.desc: test for nullptr
 * @tc.type: FUNC
 */
-HWTEST_F(NdkFontUnicodeTest, NdkFontUnicodeTest004, TestSize.Level0)
+HWTEST_F(NdkFontUnicodeTest, GetFontUnicodeArrayNullptrParameters, TestSize.Level0)
 {
     OH_Drawing_ErrorCode errorCode = OH_Drawing_GetFontUnicodeArrayFromFile(
         nullptr, 0, &unicodeArray, &arrayLength);
@@ -149,11 +149,11 @@ HWTEST_F(NdkFontUnicodeTest, NdkFontUnicodeTest004, TestSize.Level0)
 }
 
 /*
-* @tc.name: NdkFontUnicodeTest005
+* @tc.name: GetFontCountFromFileAndBufferConsistency
 * @tc.desc: test for getting font count from file or buffer
 * @tc.type: FUNC
 */
-HWTEST_F(NdkFontUnicodeTest, NdkFontUnicodeTest005, TestSize.Level0)
+HWTEST_F(NdkFontUnicodeTest, GetFontCountFromFileAndBufferConsistency, TestSize.Level0)
 {
     uint32_t countFromFile = OH_Drawing_GetFontCountFromFile(ttcFontPath_);
  
@@ -168,11 +168,11 @@ HWTEST_F(NdkFontUnicodeTest, NdkFontUnicodeTest005, TestSize.Level0)
 }
 
 /*
-* @tc.name: NdkFontUnicodeTest006
+* @tc.name: GetFontCountInvalidInputs
 * @tc.desc: test for nullptr
 * @tc.type: FUNC
 */
-HWTEST_F(NdkFontUnicodeTest, NdkFontUnicodeTest006, TestSize.Level0)
+HWTEST_F(NdkFontUnicodeTest, GetFontCountInvalidInputs, TestSize.Level0)
 {
     uint32_t countFromFile = OH_Drawing_GetFontCountFromFile(nullptr);
     EXPECT_EQ(countFromFile, 0);

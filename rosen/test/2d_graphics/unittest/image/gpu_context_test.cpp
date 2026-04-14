@@ -771,6 +771,37 @@ HWTEST_F(GpuContextTest, GPUContextOptionsSetIsUniRenderTest, TestSize.Level1)
     options.SetIsUniRender(true);
     EXPECT_EQ(options.GetIsUniRender(), true);
 }
+
+/**
+ * @tc.name: GetGpuMemoryInfoTest001
+ * @tc.desc: Test for GetGpuMemoryInfo
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(GpuContextTest, GetGpuMemoryInfoTest001, TestSize.Level1)
+{
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    std::unordered_map<std::string, std::pair<size_t, size_t>> typeInfo;
+    std::unordered_map<pid_t, size_t> pidInfo;
+    gpuContext->GetGpuMemoryInfo(typeInfo, pidInfo);
+    ASSERT_TRUE(typeInfo.size() == 0);
+}
+
+/**
+ * @tc.name: SetAbnormalPidTest001
+ * @tc.desc: Test for SetAbnormalPid
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(GpuContextTest, SetAbnormalPidTest001, TestSize.Level1)
+{
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    pid_t pid = 1234;
+    gpuContext->SetAbnormalPid(pid);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

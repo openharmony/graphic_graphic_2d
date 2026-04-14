@@ -1432,6 +1432,35 @@ HWTEST_F(RSInterfacesTest, RegisterHgmConfigChangeCallback_Test, Function | Smal
 }
 
 /*
+ * @tc.name: RegisterExposedEventCallback Test
+ * @tc.desc: RegisterExposedEventCallback Test with valid callback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, RegisterExposedEventCallback_Test, Function | SmallTest | Level0)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    RSExposedEventCallback cb = [](const std::shared_ptr<RSExposedEventDataBase>& data) {};
+    RSExposedEventType type = RSExposedEventType::EXT_SCREEN_UNSUPPORT;
+    int32_t ret = rsInterfaces->RegisterExposedEventCallback(type, cb);
+    ASSERT_EQ(ret, 0);
+}
+
+/*
+ * @tc.name: UnRegisterExposedEventCallback Test
+ * @tc.desc: UnRegisterExposedEventCallback Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, UnRegisterExposedEventCallback_Test, Function | SmallTest | Level0)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    RSExposedEventType type = RSExposedEventType::EXT_SCREEN_UNSUPPORT;
+    int32_t ret = rsInterfaces->UnRegisterExposedEventCallback(type);
+    ASSERT_EQ(ret, 0);
+}
+
+/*
  * @tc.name: NotifyLightFactorStatus001
  * @tc.desc: Notify light factor status to hgm
  * @tc.type: FUNC
@@ -3141,6 +3170,42 @@ HWTEST_F(RSInterfacesTest, SetDualScreenState003, Function | SmallTest | Level2)
 
     auto ret = rsInterfaces->SetDualScreenState(screenId, DualScreenStatus::DUAL_SCREEN_STATUS_BUTT);
     EXPECT_NE(ret, static_cast<int32_t>(StatusCode::SUCCESS));
+}
+
+/**
+ * @tc.name: SetAsMainScreenTest001
+ * @tc.desc: Test SetAsMainScreenTest when set INVALID_SCREEN_ID
+ * @tc.type: FUNC
+ * @tc.require: #23043
+ */
+HWTEST_F(RSInterfacesTest, SetAsMainScreenTest001, Function | SmallTest | Level2)
+{
+    auto ret = rsInterfaces->SetAsMainScreen(INVALID_SCREEN_ID, true);
+    EXPECT_NE(ret, static_cast<int32_t>(StatusCode::SUCCESS));
+}
+
+/*
+ * @tc.name: GetMainScreenIdTest001
+ * @tc.desc: Test GetMainScreenId returns valid screen ID after setting main screen
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, GetMainScreenIdTest001, Function | SmallTest | Level2)
+{
+    std::string name = "GetMainScreenIdTest001";
+    uint32_t width = 1920;
+    uint32_t height = 1080;
+    ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(name, width, height, nullptr);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+
+    auto ret = rsInterfaces->SetAsMainScreen(virtualScreenId, true);
+    EXPECT_EQ(ret, static_cast<int32_t>(StatusCode::SUCCESS));
+    ScreenId mainScreenId = rsInterfaces->GetMainScreenId();
+    EXPECT_EQ(mainScreenId, virtualScreenId);
+
+    // restore
+    rsInterfaces->SetAsMainScreen(virtualScreenId, false);
+    rsInterfaces->RemoveVirtualScreen(virtualScreenId);
 }
 
 /*

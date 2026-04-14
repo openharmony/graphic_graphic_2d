@@ -301,6 +301,15 @@ public:
     void AccumulateVirtualExpandScreenDirtyRegions(const RectI& curFrameDirtyRegion);
     const std::vector<RectI>& GetVirtualExpandScreenAccumulatedDirtyRegions() const;
     void ClearVirtualExpandScreenAccumulatedDirtyRegions();
+
+    void SetHasUifirstChild(bool hasUifirstChild)
+    {
+        hasUifirstChild_ = hasUifirstChild;
+    }
+    bool HasUifirstChild() const
+    {
+        return hasUifirstChild_;
+    }
 private:
     void UpdateMaxNumOfDirtyRectByState();
     void UpdateCurrentFrameAdvancedDirtyRegion(RectI rect);
@@ -364,6 +373,9 @@ private:
     std::vector<RectI> dirtyHistory_;
 
     RSFilterDirtyCollector filterCollector_;
+
+    // added for layer part render
+    bool hasUifirstChild_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS
