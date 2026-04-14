@@ -127,6 +127,7 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     bool isDoubleSided = params->GetDoubleSidedEnabled();
     if (!isDoubleSided && isBackFace) {
         SetDrawSkipType(DrawSkipType::BACKFACE_SKIP);
+        RS_TRACE_NAME_FMT("RSCanvasRenderNodeDrawable::OnDraw backface skip, id:%" PRIu64, nodeId_);
         return;
     }
 
