@@ -3153,7 +3153,7 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawGlyphs001, TestSiz
     OH_Drawing_Font *font = OH_Drawing_FontCreate();
     EXPECT_NE(font, nullptr);
     int glyphIds[] = {71, 72, 73};
-    OH_Drawing_Point2D positions[] = {{0, 20}, {0, 40}, {0,60}};
+    OH_Drawing_Point2D positions[] = {{0, 20}, {0, 40}, {0, 60}};
     EXPECT_EQ(OH_Drawing_CanvasDrawGlyphs(canvas_, glyphIds, 3, 0, positions, 3, 0, 3, font), OH_DRAWING_SUCCESS);
 
     EXPECT_EQ(OH_Drawing_CanvasDrawGlyphs(canvas_, glyphIds, 3, 0, positions, 3, 0, -1, font),
