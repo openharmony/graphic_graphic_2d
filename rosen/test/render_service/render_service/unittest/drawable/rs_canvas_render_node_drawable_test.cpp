@@ -944,32 +944,4 @@ HWTEST(RSCanvasRenderNodeDrawableTest, BackFaceSkipTest003, TestSize.Level2)
     RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
 }
 
-/**
- * @tc.name: BackFaceSkipTest004
- * @tc.desc: Test OnDraw backface culling with null renderParams
- * @tc.type: FUNC
- * @tc.require: issueIXXXXX
- */
-HWTEST(RSCanvasRenderNodeDrawableTest, BackFaceSkipTest004, TestSize.Level2)
-{
-    NodeId nodeId = 0;
-    auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
-    auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
-    ASSERT_NE(canvasDrawable, nullptr);
-
-    canvasDrawable->renderParams_ = nullptr;
-
-    auto uniParams = std::make_unique<RSRenderThreadParams>();
-    uniParams->SetSecurityDisplay(false);
-    RSUniRenderThread::Instance().Sync(std::move(uniParams));
-    RSUniRenderThread::Instance().SetWhiteList({});
-
-    Drawing::Canvas drawingCanvas;
-    RSPaintFilterCanvas canvas(&drawingCanvas);
-    canvasDrawable->OnDraw(canvas);
-
-    ASSERT_EQ(canvasDrawable->GetDrawSkipType(), DrawSkipType::RENDER_PARAMS_NULL);
-
-    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
-}
 }

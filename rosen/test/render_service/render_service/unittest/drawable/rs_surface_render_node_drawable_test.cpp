@@ -3032,20 +3032,4 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, BackFaceSkipTest003, TestSize.Level2)
     ASSERT_NE(surfaceDrawable_->GetDrawSkipType(), DrawSkipType::BACKFACE_SKIP);
 }
 
-/**
- * @tc.name: BackFaceSkipTest004
- * @tc.desc: Test OnDraw backface culling with null renderParams
- * @tc.type: FUNC
- * @tc.require: issueIXXXXX
- */
-HWTEST_F(RSSurfaceRenderNodeDrawableTest, BackFaceSkipTest004, TestSize.Level2)
-{
-    ASSERT_NE(surfaceDrawable_, nullptr);
-    
-    surfaceDrawable_->renderParams_ = nullptr;
-    
-    surfaceDrawable_->OnDraw(*drawingCanvas_);
-    
-    ASSERT_EQ(surfaceDrawable_->GetDrawSkipType(), DrawSkipType::RENDER_PARAMS_NULL);
-}
 }

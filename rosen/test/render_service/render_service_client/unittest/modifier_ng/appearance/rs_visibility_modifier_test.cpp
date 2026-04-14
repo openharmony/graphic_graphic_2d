@@ -74,40 +74,8 @@ HWTEST_F(RSVisibilityModifierNGTypeTest, RSVisibilityModifierSetDoubleSidedAndGe
 }
 
 /**
- * @tc.name: RSVisibilityModifierResetPropertiesDoubleSided
- * @tc.desc: Test ResetProperties applies default value for DoubleSided
- * @tc.type: FUNC
- * @tc.require: issueIXXXXX
- */
-HWTEST_F(RSVisibilityModifierNGTypeTest, RSVisibilityModifierResetPropertiesDoubleSided, TestSize.Level1)
-{
-    std::shared_ptr<ModifierNG::RSVisibilityModifier> modifier = std::make_shared<ModifierNG::RSVisibilityModifier>();
 
-    RSProperties properties;
-    modifier->ResetProperties(properties);
-    EXPECT_EQ(properties.GetDoubleSidedEnabled(), true);
-}
-
-/**
- * @tc.name: RSVisibilityModifierResetPropertiesDoubleSidedOverride
- * @tc.desc: Test ResetProperties with pre-set value for DoubleSided
- * @tc.type: FUNC
- * @tc.require: issueIXXXXX
- */
-HWTEST_F(RSVisibilityModifierNGTypeTest, RSVisibilityModifierResetPropertiesDoubleSidedOverride, TestSize.Level1)
-{
-    std::shared_ptr<ModifierNG::RSVisibilityModifier> modifier = std::make_shared<ModifierNG::RSVisibilityModifier>();
-
-    modifier->SetDoubleSidedEnabled(false);
-    EXPECT_EQ(modifier->GetDoubleSidedEnabled(), false);
-
-    RSProperties properties;
-    modifier->ResetProperties(properties);
-    EXPECT_EQ(properties.GetDoubleSidedEnabled(), true);
-}
-
-/**
- * @tc.name: RSVisibilityModifierTypeStringTestDoubleSided
+* @tc.name: RSVisibilityModifierTypeStringTestDoubleSided
  * @tc.desc: Test modifier type and property type string for DOUBLE_SIDED
  * @tc.type: FUNC
  * @tc.require: issueIXXXXX

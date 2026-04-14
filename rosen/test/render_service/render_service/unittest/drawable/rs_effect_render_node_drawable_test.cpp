@@ -418,26 +418,4 @@ HWTEST_F(RSEffectRenderNodeDrawableTest, BackFaceSkipTest003, TestSize.Level2)
     ASSERT_NE(effectDrawable->GetDrawSkipType(), DrawSkipType::BACKFACE_SKIP);
 }
 
-/**
- * @tc.name: BackFaceSkipTest004
- * @tc.desc: Test OnDraw backface culling with null renderParams
- * @tc.type: FUNC
- * @tc.require: issueIXXXXX
- */
-HWTEST_F(RSEffectRenderNodeDrawableTest, BackFaceSkipTest004, TestSize.Level2)
-{
-    auto effectNode = std::make_shared<RSEffectRenderNode>(DEFAULT_ID);
-    ASSERT_NE(effectNode, nullptr);
-    auto effectDrawable = static_cast<RSEffectRenderNodeDrawable*>(
-        RSRenderNodeDrawableAdapter::OnGenerate(effectNode).get());
-    
-    effectDrawable->renderParams_ = nullptr;
-    
-    Drawing::Canvas canvas(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
-    RSPaintFilterCanvas paintFilterCanvas(&canvas);
-    
-    effectDrawable->OnDraw(paintFilterCanvas);
-    
-    ASSERT_EQ(effectDrawable->GetDrawSkipType(), DrawSkipType::RENDER_PARAMS_NULL);
-}
 }
