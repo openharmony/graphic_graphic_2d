@@ -353,8 +353,8 @@ HWTEST_F(DrawCmdTest, GenerateCachedOpItem001, TestSize.Level1)
     OpDataHandle opDataHandle;
     uint64_t globalUniqueId = 0;
     PaintHandle paintHandle;
-    DrawTextBlobOpItem::ConstructorHandle handle{opDataHandle,
-        globalUniqueId, TextContrast::FOLLOW_SYSTEM, 0, 0, paintHandle};
+    DrawTextBlobOpItem::ConstructorHandle handle{opDataHandle, globalUniqueId, false,
+        TextContrast::FOLLOW_SYSTEM, 0, 0, paintHandle};
     EXPECT_FALSE(player.GenerateCachedOpItem(DrawOpItem::TEXT_BLOB_OPITEM, &handle, 0));
     EXPECT_FALSE(player.GenerateCachedOpItem(DrawOpItem::PICTURE_OPITEM, &handle, 0));
 }
