@@ -2977,9 +2977,16 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, BackFaceSkipTest001, TestSize.Level2)
     surfaceParams->SetMatrix(matrix);
     surfaceParams->SetDoubleSidedEnabled(false);
     
+    // Set up RSUniRenderThread to allow execution to reach backface culling logic
+    auto uniParams = std::make_unique<RSRenderThreadParams>();
+    uniParams->SetSecurityDisplay(false);
+    RSUniRenderThread::Instance().Sync(std::move(uniParams));
+    
     surfaceDrawable_->OnDraw(*drawingCanvas_);
     
     ASSERT_EQ(surfaceDrawable_->GetDrawSkipType(), DrawSkipType::BACKFACE_SKIP);
+    
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
 }
 
 /**
@@ -3002,9 +3009,16 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, BackFaceSkipTest002, TestSize.Level2)
     surfaceParams->SetMatrix(matrix);
     surfaceParams->SetDoubleSidedEnabled(true);
     
+    // Set up RSUniRenderThread to allow execution to reach backface culling logic
+    auto uniParams = std::make_unique<RSRenderThreadParams>();
+    uniParams->SetSecurityDisplay(false);
+    RSUniRenderThread::Instance().Sync(std::move(uniParams));
+    
     surfaceDrawable_->OnDraw(*drawingCanvas_);
     
     ASSERT_NE(surfaceDrawable_->GetDrawSkipType(), DrawSkipType::BACKFACE_SKIP);
+    
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
 }
 
 /**
@@ -3027,9 +3041,16 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, BackFaceSkipTest003, TestSize.Level2)
     surfaceParams->SetMatrix(matrix);
     surfaceParams->SetDoubleSidedEnabled(false);
     
+    // Set up RSUniRenderThread to allow execution to reach backface culling logic
+    auto uniParams = std::make_unique<RSRenderThreadParams>();
+    uniParams->SetSecurityDisplay(false);
+    RSUniRenderThread::Instance().Sync(std::move(uniParams));
+    
     surfaceDrawable_->OnDraw(*drawingCanvas_);
     
     ASSERT_NE(surfaceDrawable_->GetDrawSkipType(), DrawSkipType::BACKFACE_SKIP);
+    
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
 }
 
 }

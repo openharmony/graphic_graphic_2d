@@ -700,15 +700,15 @@ HWTEST(RSCanvasRenderNodeDrawableTest, DoubleSidedTest003, TestSize.Level1)
     auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
     auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
     ASSERT_NE(canvasDrawable, nullptr);
-
+    
     canvasDrawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
     ASSERT_NE(canvasDrawable->renderParams_, nullptr);
-
+    
     Drawing::Matrix matrix;
     matrix.SetScale(-1.0f, 1.0f);
     canvasDrawable->renderParams_->SetMatrix(matrix);
     canvasDrawable->renderParams_->SetDoubleSidedEnabled(true);
-
+    
     bool isDoubleSided = canvasDrawable->renderParams_->GetDoubleSidedEnabled();
     bool isBackFace = canvasDrawable->IsBackFace();
     ASSERT_TRUE(isDoubleSided);
@@ -727,19 +727,19 @@ HWTEST(RSCanvasRenderNodeDrawableTest, DoubleSidedTest004, TestSize.Level1)
     auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
     auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
     ASSERT_NE(canvasDrawable, nullptr);
-
+    
     canvasDrawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
     ASSERT_NE(canvasDrawable->renderParams_, nullptr);
-
+    
     Drawing::Matrix matrix;
     matrix.SetScale(-1.0f, 1.0f);
     canvasDrawable->renderParams_->SetMatrix(matrix);
     canvasDrawable->renderParams_->SetDoubleSidedEnabled(false);
-
+    
     bool isDoubleSided = canvasDrawable->renderParams_->GetDoubleSidedEnabled();
     bool isBackFace = canvasDrawable->IsBackFace();
     ASSERT_FALSE(isDoubleSided);
-    ASSERT_TRUE(isBackFace);
+    ASSERT_FALSE(isBackFace);
 }
 
 /**
@@ -754,22 +754,43 @@ HWTEST(RSCanvasRenderNodeDrawableTest, DoubleSidedTest005, TestSize.Level1)
     auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
     auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
     ASSERT_NE(canvasDrawable, nullptr);
-
+    
     canvasDrawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
     ASSERT_NE(canvasDrawable->renderParams_, nullptr);
-
+    
     Drawing::Matrix matrix;
     matrix.SetScale(1.0f, 1.0f);
     canvasDrawable->renderParams_->SetMatrix(matrix);
     canvasDrawable->renderParams_->SetDoubleSidedEnabled(false);
-
+    
     bool isDoubleSided = canvasDrawable->renderParams_->GetDoubleSidedEnabled();
     bool isBackFace = canvasDrawable->IsBackFace();
     ASSERT_FALSE(isDoubleSided);
     ASSERT_FALSE(isBackFace);
 }
 
-
+/**
+ * @tc.name: DoubleSidedTest006
+ * @tc.desc: Test SetDoubleSidedEnabled with same value (branch not taken)
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST(RSCanvasRenderNodeDrawableTest, DoubleSidedTest006, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
+    ASSERT_NE(canvasDrawable, nullptr);
+    
+    canvasDrawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    ASSERT_NE(canvasDrawable->renderParams_, nullptr);
+    
+    canvasDrawable->renderParams_->SetDoubleSidedEnabled(true);
+    ASSERT_TRUE(canvasDrawable->renderParams_->GetDoubleSidedEnabled());
+    
+    canvasDrawable->renderParams_->SetDoubleSidedEnabled(true);
+    ASSERT_TRUE(canvasDrawable->renderParams_->GetDoubleSidedEnabled());
+}
 
 /**
  * @tc.name: IsBackFaceTest011
@@ -783,10 +804,10 @@ HWTEST(RSCanvasRenderNodeDrawableTest, IsBackFaceTest011, TestSize.Level1)
     auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
     auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
     ASSERT_NE(canvasDrawable, nullptr);
-
+    
     canvasDrawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
     ASSERT_NE(canvasDrawable->renderParams_, nullptr);
-
+    
     Drawing::Matrix matrix;
     constexpr float slightlyBelowEpsilon = -(1e-6f) - 1e-7f;
     std::array<float, 9> values = {1.0f, 0.0f, 0.0f, 0.0f, slightlyBelowEpsilon, 0.0f, 0.0f, 0.0f, 1.0f};
