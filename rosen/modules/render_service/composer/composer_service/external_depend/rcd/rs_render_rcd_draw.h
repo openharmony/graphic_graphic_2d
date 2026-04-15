@@ -28,8 +28,10 @@ class RSRenderSurfaceRCDLayer;
 class RSRenderRcdDraw {
 public:
     using PixelMapPtr = std::shared_ptr<Media::PixelMap>;
-    static void DrawRoundCorner(RSPaintFilterCanvas& canvas, const std::vector<RSLayerPtr>& layers);
-    static void DrawRSRCDLayer(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSLayer>& layer);
+    static void DrawRoundCorner(RSPaintFilterCanvas& canvas, const std::vector<RSLayerPtr>& layers,
+        const Vector2f& rogRatio);
+    static void DrawRSRCDLayer(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSLayer>& layer,
+        const Vector2f& rogRatio);
     static bool BindPixelMapToDrawingImage(Drawing::Canvas& canvas,
         const std::shared_ptr<RSRenderSurfaceRCDLayer>& layer);
     static bool StoreWithoutDMA(Drawing::Canvas& canvas,
