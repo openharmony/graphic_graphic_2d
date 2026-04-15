@@ -17,12 +17,14 @@
 
 namespace OHOS {
 
+class NdkTextStyleTest : public testing::Test {};
+
 /*
- * @tc.name: TypographyTest005
+ * @tc.name: CreateAndDestroyTextStyle
  * @tc.desc: test for creating text style
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest005, TestSize.Level0)
+HWTEST_F(NdkTextStyleTest, CreateAndDestroyTextStyle, TestSize.Level0)
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     EXPECT_NE(txtStyle, nullptr);
@@ -31,11 +33,11 @@ HWTEST_F(NdkTypographyTest, TypographyTest005, TestSize.Level0)
 }
 
 /*
- * @tc.name: TypographyTest006
+ * @tc.name: SetTextStyleColor
  * @tc.desc: test for text color
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest006, TestSize.Level0)
+HWTEST_F(NdkTextStyleTest, SetTextStyleColor, TestSize.Level0)
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     // black
@@ -52,11 +54,11 @@ HWTEST_F(NdkTypographyTest, TypographyTest006, TestSize.Level0)
 }
 
 /*
- * @tc.name: TypographyTest007
+ * @tc.name: SetTextStyleFontSize
  * @tc.desc: test for font size
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest007, TestSize.Level0)
+HWTEST_F(NdkTextStyleTest, SetTextStyleFontSize, TestSize.Level0)
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_SetTextStyleFontSize(txtStyle, 80);
@@ -70,11 +72,11 @@ HWTEST_F(NdkTypographyTest, TypographyTest007, TestSize.Level0)
 }
 
 /*
- * @tc.name: TypographyTest008
+ * @tc.name: SetTextStyleFontWeight
  * @tc.desc: test for font weight
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest008, TestSize.Level0)
+HWTEST_F(NdkTextStyleTest, SetTextStyleFontWeight, TestSize.Level0)
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_SetTextStyleFontWeight(txtStyle, FONT_WEIGHT_100);
@@ -102,11 +104,11 @@ HWTEST_F(NdkTypographyTest, TypographyTest008, TestSize.Level0)
 }
 
 /*
- * @tc.name: TypographyTest009
+ * @tc.name: SetTextStyleBaseline
  * @tc.desc: test for baseline location
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest009, TestSize.Level0)
+HWTEST_F(NdkTextStyleTest, SetTextStyleBaseline, TestSize.Level0)
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_SetTextStyleBaseLine(txtStyle, TEXT_BASELINE_ALPHABETIC);
@@ -120,11 +122,11 @@ HWTEST_F(NdkTypographyTest, TypographyTest009, TestSize.Level0)
 }
 
 /*
- * @tc.name: TypographyTest010
+ * @tc.name: SetTextStyleDecoration
  * @tc.desc: test for text decoration
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest010, TestSize.Level0)
+HWTEST_F(NdkTextStyleTest, SetTextStyleDecoration, TestSize.Level0)
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_SetTextStyleDecoration(txtStyle, TEXT_DECORATION_NONE);
@@ -142,11 +144,11 @@ HWTEST_F(NdkTypographyTest, TypographyTest010, TestSize.Level0)
 }
 
 /*
- * @tc.name: TypographyTest011
+ * @tc.name: SetTextStyleDecorationColor
  * @tc.desc: test for text decoration color
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest011, TestSize.Level0)
+HWTEST_F(NdkTextStyleTest, SetTextStyleDecorationColor, TestSize.Level0)
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_SetTextStyleDecorationColor(txtStyle, OH_Drawing_ColorSetArgb(0xFF, 0x00, 0x00, 0x00));
@@ -158,11 +160,11 @@ HWTEST_F(NdkTypographyTest, TypographyTest011, TestSize.Level0)
 }
 
 /*
- * @tc.name: TypographyTest012
+ * @tc.name: SetTextStyleFontHeight
  * @tc.desc: test for font height
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest012, TestSize.Level0)
+HWTEST_F(NdkTextStyleTest, SetTextStyleFontHeight, TestSize.Level0)
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_SetTextStyleFontHeight(txtStyle, 0.0);
@@ -174,11 +176,11 @@ HWTEST_F(NdkTypographyTest, TypographyTest012, TestSize.Level0)
 }
 
 /*
- * @tc.name: TypographyTest013
+ * @tc.name: SetTextStyleFontFamilies
  * @tc.desc: test for font families
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest013, TestSize.Level0)
+HWTEST_F(NdkTextStyleTest, SetTextStyleFontFamilies, TestSize.Level0)
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     const char* fontFamilies[] = { "Roboto", "Arial" };
@@ -191,11 +193,11 @@ HWTEST_F(NdkTypographyTest, TypographyTest013, TestSize.Level0)
 }
 
 /*
- * @tc.name: TypographyTest014
+ * @tc.name: SetTextStyleFontStyle
  * @tc.desc: test for font italic
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest014, TestSize.Level0)
+HWTEST_F(NdkTextStyleTest, SetTextStyleFontStyle, TestSize.Level0)
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_SetTextStyleFontStyle(txtStyle, FONT_STYLE_NORMAL);
@@ -209,11 +211,11 @@ HWTEST_F(NdkTypographyTest, TypographyTest014, TestSize.Level0)
 }
 
 /*
- * @tc.name: TypographyTest015
+ * @tc.name: SetTextStyleLocale
  * @tc.desc: test for font locale
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest015, TestSize.Level0)
+HWTEST_F(NdkTextStyleTest, SetTextStyleLocale, TestSize.Level0)
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_SetTextStyleLocale(txtStyle, "en");
@@ -225,11 +227,11 @@ HWTEST_F(NdkTypographyTest, TypographyTest015, TestSize.Level0)
 }
 
 /*
- * @tc.name: TypographyTest020
+ * @tc.name: SetTextStyleDecorationStyle
  * @tc.desc: test for decoration style
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest020, TestSize.Level0)
+HWTEST_F(NdkTextStyleTest, SetTextStyleDecorationStyle, TestSize.Level0)
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_SetTextStyleDecorationStyle(txtStyle, TEXT_DECORATION_STYLE_SOLID);
@@ -249,11 +251,11 @@ HWTEST_F(NdkTypographyTest, TypographyTest020, TestSize.Level0)
 }
 
 /*
- * @tc.name: TypographyTest021
+ * @tc.name: SetTextStyleDecorationThicknessScale
  * @tc.desc: test for decoration thickness scale
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest021, TestSize.Level0)
+HWTEST_F(NdkTextStyleTest, SetTextStyleDecorationThicknessScale, TestSize.Level0)
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_SetTextStyleDecorationThicknessScale(txtStyle, 10);
@@ -267,11 +269,11 @@ HWTEST_F(NdkTypographyTest, TypographyTest021, TestSize.Level0)
 }
 
 /*
- * @tc.name: TypographyTest022
+ * @tc.name: SetTextStyleLetterSpacing
  * @tc.desc: test for letter spacing
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest022, TestSize.Level0)
+HWTEST_F(NdkTextStyleTest, SetTextStyleLetterSpacing, TestSize.Level0)
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_SetTextStyleLetterSpacing(txtStyle, 10);
@@ -285,11 +287,11 @@ HWTEST_F(NdkTypographyTest, TypographyTest022, TestSize.Level0)
 }
 
 /*
- * @tc.name: TypographyTest023
+ * @tc.name: SetTextStyleWordSpacing
  * @tc.desc: test for word spacing
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest023, TestSize.Level0)
+HWTEST_F(NdkTextStyleTest, SetTextStyleWordSpacing, TestSize.Level0)
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_SetTextStyleWordSpacing(txtStyle, 10);
@@ -303,11 +305,11 @@ HWTEST_F(NdkTypographyTest, TypographyTest023, TestSize.Level0)
 }
 
 /*
- * @tc.name: TypographyTest024
+ * @tc.name: SetTextStyleEllipsisModal
  * @tc.desc: test for ellipsis modal
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest024, TestSize.Level0)
+HWTEST_F(NdkTextStyleTest, SetTextStyleEllipsisModal, TestSize.Level0)
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_SetTextStyleEllipsisModal(txtStyle, ELLIPSIS_MODAL_HEAD);
@@ -323,11 +325,11 @@ HWTEST_F(NdkTypographyTest, TypographyTest024, TestSize.Level0)
 }
 
 /*
- * @tc.name: TypographyTest025
+ * @tc.name: SetTextStyleEllipsis
  * @tc.desc: test for set ellipsis
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest025, TestSize.Level0)
+HWTEST_F(NdkTextStyleTest, SetTextStyleEllipsis, TestSize.Level0)
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_SetTextStyleEllipsis(txtStyle, "...");
@@ -340,11 +342,11 @@ HWTEST_F(NdkTypographyTest, TypographyTest025, TestSize.Level0)
 }
 
 /*
- * @tc.name: TypographyTest050
+ * @tc.name: GetTextStyleProperties
  * @tc.desc: test for getting numbers for textstyle
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest050, TestSize.Level0)
+HWTEST_F(NdkTextStyleTest, GetTextStyleProperties, TestSize.Level0)
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_SetTextStyleColor(txtStyle, 1);
@@ -391,11 +393,11 @@ HWTEST_F(NdkTypographyTest, TypographyTest050, TestSize.Level0)
 }
 
 /*
- * @tc.name: TypographyTest051
- * @tc.desc: test for getting line info for text typography
+ * @tc.name: SetTextStyleFontFeatureAndBackgroundRect
+ * @tc.desc: test for font features, background rect and baseline shift
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest051, TestSize.Level0)
+HWTEST_F(NdkTextStyleTest, SetTextStyleFontFeatureAndBackgroundRect, TestSize.Level0)
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
@@ -438,11 +440,11 @@ HWTEST_F(NdkTypographyTest, TypographyTest051, TestSize.Level0)
 }
 
 /*
- * @tc.name: TypographyTest075
+ * @tc.name: TextStyleIsPlaceholder
  * @tc.desc: test for sets and gets isPlaceholder for TextStyle objects
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest075, TestSize.Level0)
+HWTEST_F(NdkTextStyleTest, TextStyleIsPlaceholder, TestSize.Level0)
 {
     EXPECT_FALSE(OH_Drawing_TextStyleIsPlaceholder(nullptr));
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
@@ -455,11 +457,11 @@ HWTEST_F(NdkTypographyTest, TypographyTest075, TestSize.Level0)
 }
 
 /*
- * @tc.name: TypographyTest076
+ * @tc.name: TextStyleIsAttributeMatched
  * @tc.desc: test for the two TextStyle objects have matching properties
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest076, TestSize.Level0)
+HWTEST_F(NdkTextStyleTest, TextStyleIsAttributeMatched, TestSize.Level0)
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_TextStyle* txtStyleCompare = OH_Drawing_CreateTextStyle();
@@ -475,11 +477,11 @@ HWTEST_F(NdkTypographyTest, TypographyTest076, TestSize.Level0)
 }
 
 /*
- * @tc.name: TypographyTest080
+ * @tc.name: TextStyleIsEqual
  * @tc.desc: test for whether two TextStyle objects are equal
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest080, TestSize.Level0)
+HWTEST_F(NdkTextStyleTest, TextStyleIsEqual, TestSize.Level0)
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_TextStyle* txtStyleCompare = OH_Drawing_CreateTextStyle();
@@ -500,11 +502,11 @@ HWTEST_F(NdkTypographyTest, TypographyTest080, TestSize.Level0)
 }
 
 /*
- * @tc.name: TypographyTest081
+ * @tc.name: SetAndGetTextStyleFontStyleStruct
  * @tc.desc: test for getting and setting text style
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest081, TestSize.Level0)
+HWTEST_F(NdkTextStyleTest, SetAndGetTextStyleFontStyleStruct, TestSize.Level0)
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     EXPECT_NE(txtStyle, nullptr);
@@ -523,11 +525,11 @@ HWTEST_F(NdkTypographyTest, TypographyTest081, TestSize.Level0)
 }
 
 /*
- * @tc.name: TypographyTest083
+ * @tc.name: TextStyleIsEqualByFont
  * @tc.desc: test for the font properties of two TextStyle objects are equal
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest083, TestSize.Level0)
+HWTEST_F(NdkTextStyleTest, TextStyleIsEqualByFont, TestSize.Level0)
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_TextStyle* txtStyleCompare = OH_Drawing_CreateTextStyle();
@@ -546,11 +548,11 @@ HWTEST_F(NdkTypographyTest, TypographyTest083, TestSize.Level0)
 }
 
 /*
- * @tc.name: AddTextStyleDecorationTest001
+ * @tc.name: AddTextStyleDecorationCumulativeAndCombined
  * @tc.desc: test for add multiple text decoration
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, AddTextStyleDecorationTest001, TestSize.Level0)
+HWTEST_F(NdkTextStyleTest, AddTextStyleDecorationCumulativeAndCombined, TestSize.Level0)
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     EXPECT_NE(txtStyle, nullptr);
@@ -582,11 +584,11 @@ HWTEST_F(NdkTypographyTest, AddTextStyleDecorationTest001, TestSize.Level0)
 }
 
 /*
- * @tc.name: RemoveTextStyleDecorationTest001
+ * @tc.name: RemoveTextStyleDecorationSpecificAndCombined
  * @tc.desc: test for remove specific text decoration
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, RemoveTextStyleDecorationTest001, TestSize.Level0)
+HWTEST_F(NdkTextStyleTest, RemoveTextStyleDecorationSpecificAndCombined, TestSize.Level0)
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     EXPECT_NE(txtStyle, nullptr);
@@ -616,11 +618,11 @@ HWTEST_F(NdkTypographyTest, RemoveTextStyleDecorationTest001, TestSize.Level0)
 }
 
 /*
- * @tc.name: TextStyleAttributeFontWidthTest001
+ * @tc.name: TextStyleAttributeFontWidthOutOfRange
  * @tc.desc: test invalid data for font width.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TextStyleAttributeFontWidthTest001, TestSize.Level0)
+HWTEST_F(NdkTextStyleTest, TextStyleAttributeFontWidthOutOfRange, TestSize.Level0)
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     ASSERT_NE(txtStyle, nullptr);
@@ -636,11 +638,11 @@ HWTEST_F(NdkTypographyTest, TextStyleAttributeFontWidthTest001, TestSize.Level0)
 }
 
 /*
- * @tc.name: TextStyleAttributeFontWidthTest002
+ * @tc.name: TextStyleAttributeFontWidthValidValue
  * @tc.desc: test valid data for font width.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TextStyleAttributeFontWidthTest002, TestSize.Level0)
+HWTEST_F(NdkTextStyleTest, TextStyleAttributeFontWidthValidValue, TestSize.Level0)
 {
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     ASSERT_NE(txtStyle, nullptr);

@@ -27,6 +27,7 @@
 #include "hdi_framebuffer_surface.h"
 #include "hdi_screen.h"
 #include "irs_composer_to_render_connection.h"
+#include "platform/ohos/rs_composer_jank_stats.h"
 #include "surface_type.h"
 #include "vsync_sampler.h"
 
@@ -201,6 +202,8 @@ private:
     int32_t thirdFrameAheadPresentFenceFd_ = 0;
     int64_t thirdFrameAheadPresentTime_ = 0;
     int32_t curPresentFd_ = 0;
+
+    RSComposerJankStats rsComposerJankStats;
 };
 } // namespace Rosen
 } // namespace OHOS

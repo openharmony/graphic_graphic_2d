@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "drawable/rs_point_light_drawable.h"
+#include "drawable/rs_overlay_ng_shader_drawable.h"
 
 #include "ge_render.h"
 #include "ge_visual_effect.h"
@@ -242,27 +242,44 @@ static constexpr char SDF_BORDER_LIGHT_SHADER_STRING[](R"(
 constexpr float SDR_LUMINANCE = 1.0f;
 } // namespace
 
-RSDrawable::Ptr RSPointLightDrawable::OnGenerate(const RSRenderNode& node)
+RSDrawable::Ptr RSOverlayNGShaderDrawable::OnGenerate(const RSRenderNode& node)
 {
-    if (auto ret = std::make_shared<RSPointLightDrawable>(); ret->OnUpdate(node)) {
+    if (auto ret = std::make_shared<RSOverlayNGShaderDrawable>(); ret->OnUpdate(node)) {
         return std::move(ret);
     }
     return nullptr;
 };
 
-void RSPointLightDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
+void RSOverlayNGShaderDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
 {
 #ifdef RS_ENABLE_GPU
     RSTagTracker tagTracker(canvas ? canvas->GetGPUContext() : nullptr,
         RSTagTracker::SOURCETYPE::SOURCE_RSPOINTLIGHTDRAWABLE);
 #endif
-    DrawLight(canvas);
+    if (visualEffectContainer_ != nullptr && rect != nullptr) {
+        auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
+        geRender->DrawShaderEffect(*canvas, *(visualEffectContainer_),
+            drawRect_.IsEmpty() ? *rect : RSPropertyDrawableUtils::Rect2DrawingRect(drawRect_));
+    } else {
+        DrawLight(canvas);
+    }
 }
 
-bool RSPointLightDrawable::OnUpdate(const RSRenderNode& node)
+bool RSOverlayNGShaderDrawable::OnUpdate(const RSRenderNode& node)
 {
     const RSProperties& properties = node.GetRenderProperties();
     const auto& illuminatedPtr = properties.GetIlluminated();
+    const auto& overlayShader = properties.GetOverlayNGShader();
+    if (overlayShader) {
+        needSync_ = true;
+        stagingOverlayShader_ = overlayShader;
+        RSPropertyDrawableUtils::ApplySDFShapeToEffect(properties, overlayShader, node.GetId());
+
+        auto bounds = node.GetRenderProperties().GetBoundsRect();
+        stagingDrawRect_ = RSNGRenderShaderHelper::CalcRect(overlayShader, bounds);
+        return true;
+    }
+
     if (!illuminatedPtr || !illuminatedPtr->IsIlluminatedValid()) {
         return false;
     }
@@ -296,7 +313,7 @@ bool RSPointLightDrawable::OnUpdate(const RSRenderNode& node)
     return true;
 }
 
-void RSPointLightDrawable::OnSync()
+void RSOverlayNGShaderDrawable::OnSync()
 {
     if (!needSync_) {
         lightSourcesAndPosVec_.clear();
@@ -324,10 +341,19 @@ void RSPointLightDrawable::OnSync()
     if (enableEDREffect_) {
         displayHeadroom_ = RSEffectLuminanceManager::GetInstance().GetDisplayHeadroom(screenNodeId_);
     }
+
+    // overlay Shader
+    if (needSync_ && stagingOverlayShader_) {
+        auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+        stagingOverlayShader_->AppendToGEContainer(visualEffectContainer);
+        visualEffectContainer->UpdateCacheDataFrom(visualEffectContainer_);
+        visualEffectContainer_ = visualEffectContainer;
+        drawRect_ = stagingDrawRect_;
+    }
     needSync_ = false;
 }
 
-float RSPointLightDrawable::GetBrightnessMapping(float headroom, float input)
+float RSOverlayNGShaderDrawable::GetBrightnessMapping(float headroom, float input)
 {
     if (ROSEN_GE(headroom, EFFECT_MAX_LUMINANCE)) {
         return input;
@@ -375,7 +401,7 @@ float RSPointLightDrawable::GetBrightnessMapping(float headroom, float input)
     return std::clamp(interpolationedY, 0.0f, headroom);
 }
 
-std::optional<float> RSPointLightDrawable::CalcBezierResultY(
+std::optional<float> RSOverlayNGShaderDrawable::CalcBezierResultY(
     const Vector2f& start, const Vector2f& end, const Vector2f& control, float input)
 {
     // Solve quadratic beziier formula with root formula
@@ -409,12 +435,12 @@ std::optional<float> RSPointLightDrawable::CalcBezierResultY(
     return start[1] + t * (TWO * (control[1] - start[1]) + t * (start[1] - TWO * control[1] + end[1]));
 }
 
-bool RSPointLightDrawable::NeedToneMapping(float supportHeadroom)
+bool RSOverlayNGShaderDrawable::NeedToneMapping(float supportHeadroom)
 {
     return ROSEN_GNE(supportHeadroom, 0.0f) && ROSEN_LNE(supportHeadroom, EFFECT_MAX_LUMINANCE);
 }
 
-std::shared_ptr<Drawing::RuntimeShaderBuilder> RSPointLightDrawable::MakeFeatheringBoardLightShaderBuilder() const
+std::shared_ptr<Drawing::RuntimeShaderBuilder> RSOverlayNGShaderDrawable::MakeFeatheringBoardLightShaderBuilder() const
 {
     auto builder = GetFeatheringBorderLightShaderBuilder();
     if (!builder) {
@@ -429,7 +455,7 @@ std::shared_ptr<Drawing::RuntimeShaderBuilder> RSPointLightDrawable::MakeFeather
     return builder;
 }
 
-std::shared_ptr<Drawing::RuntimeShaderBuilder> RSPointLightDrawable::MakeNormalLightShaderBuilder() const
+std::shared_ptr<Drawing::RuntimeShaderBuilder> RSOverlayNGShaderDrawable::MakeNormalLightShaderBuilder() const
 {
     auto builder = GetNormalLightShaderBuilder();
     if (!builder) {
@@ -463,7 +489,7 @@ std::shared_ptr<Drawing::RuntimeShaderBuilder> RSPointLightDrawable::MakeNormalL
     return builder;
 }
 
-std::shared_ptr<Drawing::RuntimeShaderBuilder> RSPointLightDrawable::CreateShaderBuilder() const
+std::shared_ptr<Drawing::RuntimeShaderBuilder> RSOverlayNGShaderDrawable::CreateShaderBuilder() const
 {
     std::shared_ptr<Drawing::RuntimeShaderBuilder> builder = nullptr;
     if (illuminatedType_ == IlluminatedType::NORMAL_BORDER_CONTENT) {
@@ -479,7 +505,7 @@ std::shared_ptr<Drawing::RuntimeShaderBuilder> RSPointLightDrawable::CreateShade
     return builder;
 }
 
-void RSPointLightDrawable::DrawLightByIlluminatedType(Drawing::Canvas& canvas,
+void RSOverlayNGShaderDrawable::DrawLightByIlluminatedType(Drawing::Canvas& canvas,
     std::shared_ptr<Drawing::RuntimeShaderBuilder> builder,
     const std::array<float, MAX_LIGHT_SOURCES>& lightIntensityArray) const
 {
@@ -501,7 +527,7 @@ void RSPointLightDrawable::DrawLightByIlluminatedType(Drawing::Canvas& canvas,
         DrawBorderLight(canvas, builder, pen, lightIntensityArray);
     }
 }
-void RSPointLightDrawable::ProcessLightSourcesData(std::array<float, MAX_LIGHT_SOURCES>& lightIntensityArray,
+void RSOverlayNGShaderDrawable::ProcessLightSourcesData(std::array<float, MAX_LIGHT_SOURCES>& lightIntensityArray,
     std::shared_ptr<Drawing::RuntimeShaderBuilder> builder) const
 {
     constexpr int vectorLen = 4;
@@ -534,7 +560,7 @@ void RSPointLightDrawable::ProcessLightSourcesData(std::array<float, MAX_LIGHT_S
     builder->SetUniform("viewPos", viewPosArray, vectorLen * MAX_LIGHT_SOURCES);
     builder->SetUniform("specularLightColor", lightColorArray, vectorLen * MAX_LIGHT_SOURCES);
 }
-void RSPointLightDrawable::DrawLight(Drawing::Canvas* canvas) const
+void RSOverlayNGShaderDrawable::DrawLight(Drawing::Canvas* canvas) const
 {
     if (lightSourcesAndPosVec_.empty()) {
         return;
@@ -551,7 +577,7 @@ void RSPointLightDrawable::DrawLight(Drawing::Canvas* canvas) const
     DrawLightByIlluminatedType(*canvas, builder, lightIntensityArray);
 }
 
-std::shared_ptr<Drawing::RuntimeShaderBuilder> RSPointLightDrawable::GetPhongShaderBuilder()
+std::shared_ptr<Drawing::RuntimeShaderBuilder> RSOverlayNGShaderDrawable::GetPhongShaderBuilder()
 {
     thread_local std::shared_ptr<Drawing::RuntimeShaderBuilder> shaderBuilder;
     if (shaderBuilder) {
@@ -560,14 +586,14 @@ std::shared_ptr<Drawing::RuntimeShaderBuilder> RSPointLightDrawable::GetPhongSha
     std::shared_ptr<Drawing::RuntimeEffect> effect =
         Drawing::RuntimeEffect::CreateForShader(std::string(PHONG_SHADER_STRING));
     if (!effect) {
-        ROSEN_LOGE("RSPointLightDrawable::GetPhongShaderBuilder effect is null");
+        ROSEN_LOGE("RSOverlayNGShaderDrawable::GetPhongShaderBuilder effect is null");
         return nullptr;
     }
     shaderBuilder = std::make_shared<Drawing::RuntimeShaderBuilder>(std::move(effect));
     return shaderBuilder;
 }
 
-std::shared_ptr<Drawing::RuntimeShaderBuilder> RSPointLightDrawable::GetFeatheringBorderLightShaderBuilder()
+std::shared_ptr<Drawing::RuntimeShaderBuilder> RSOverlayNGShaderDrawable::GetFeatheringBorderLightShaderBuilder()
 {
     thread_local std::shared_ptr<Drawing::RuntimeShaderBuilder> shaderBuilder;
     if (shaderBuilder) {
@@ -576,14 +602,14 @@ std::shared_ptr<Drawing::RuntimeShaderBuilder> RSPointLightDrawable::GetFeatheri
     std::shared_ptr<Drawing::RuntimeEffect> effect =
         Drawing::RuntimeEffect::CreateForShader(std::string(FEATHERING_BORDER_LIGHT_SHADER_STRING));
     if (!effect) {
-        ROSEN_LOGE("RSPointLightDrawable::GetFeatheringBorderLightShaderBuilder effect is null");
+        ROSEN_LOGE("RSOverlayNGShaderDrawable::GetFeatheringBorderLightShaderBuilder effect is null");
         return nullptr;
     }
     shaderBuilder = std::make_shared<Drawing::RuntimeShaderBuilder>(std::move(effect));
     return shaderBuilder;
 }
 
-std::shared_ptr<Drawing::RuntimeShaderBuilder> RSPointLightDrawable::GetNormalLightShaderBuilder()
+std::shared_ptr<Drawing::RuntimeShaderBuilder> RSOverlayNGShaderDrawable::GetNormalLightShaderBuilder()
 {
     thread_local std::shared_ptr<Drawing::RuntimeShaderBuilder> shaderBuilder;
     if (shaderBuilder) {
@@ -592,14 +618,14 @@ std::shared_ptr<Drawing::RuntimeShaderBuilder> RSPointLightDrawable::GetNormalLi
     std::shared_ptr<Drawing::RuntimeEffect> effect =
         Drawing::RuntimeEffect::CreateForShader(std::string(NORMAL_LIGHT_SHADER_STRING));
     if (!effect) {
-        ROSEN_LOGE("RSPointLightDrawable::GetNormalLightShaderBuilder effect is null");
+        ROSEN_LOGE("RSOverlayNGShaderDrawable::GetNormalLightShaderBuilder effect is null");
         return nullptr;
     }
     shaderBuilder = std::make_shared<Drawing::RuntimeShaderBuilder>(std::move(effect));
     return shaderBuilder;
 }
 
-std::shared_ptr<Drawing::RuntimeShaderBuilder> RSPointLightDrawable::GetSDFContentLightShaderBuilder()
+std::shared_ptr<Drawing::RuntimeShaderBuilder> RSOverlayNGShaderDrawable::GetSDFContentLightShaderBuilder()
 {
     thread_local std::shared_ptr<Drawing::RuntimeShaderBuilder> shaderBuilder;
     if (shaderBuilder) {
@@ -608,14 +634,14 @@ std::shared_ptr<Drawing::RuntimeShaderBuilder> RSPointLightDrawable::GetSDFConte
     std::shared_ptr<Drawing::RuntimeEffect> effect =
         Drawing::RuntimeEffect::CreateForShader(std::string(SDF_CONTENT_LIGHT_SHADER_STRING));
     if (!effect) {
-        ROSEN_LOGE("RSPointLightDrawable::GetSDFContentLightShaderBuilder effect is null");
+        ROSEN_LOGE("RSOverlayNGShaderDrawable::GetSDFContentLightShaderBuilder effect is null");
         return nullptr;
     }
     shaderBuilder = std::make_shared<Drawing::RuntimeShaderBuilder>(std::move(effect));
     return shaderBuilder;
 }
 
-std::shared_ptr<Drawing::RuntimeShaderBuilder> RSPointLightDrawable::GetSDFBorderLightShaderBuilder()
+std::shared_ptr<Drawing::RuntimeShaderBuilder> RSOverlayNGShaderDrawable::GetSDFBorderLightShaderBuilder()
 {
     thread_local std::shared_ptr<Drawing::RuntimeShaderBuilder> shaderBuilder;
     if (shaderBuilder) {
@@ -624,14 +650,14 @@ std::shared_ptr<Drawing::RuntimeShaderBuilder> RSPointLightDrawable::GetSDFBorde
     std::shared_ptr<Drawing::RuntimeEffect> effect =
         Drawing::RuntimeEffect::CreateForShader(std::string(SDF_BORDER_LIGHT_SHADER_STRING));
     if (!effect) {
-        ROSEN_LOGE("RSPointLightDrawable::GetSDFBorderLightShaderBuilder effect is null");
+        ROSEN_LOGE("RSOverlayNGShaderDrawable::GetSDFBorderLightShaderBuilder effect is null");
         return nullptr;
     }
     shaderBuilder = std::make_shared<Drawing::RuntimeShaderBuilder>(std::move(effect));
     return shaderBuilder;
 }
 
-bool RSPointLightDrawable::DrawSDFContentLight(Drawing::Canvas& canvas,
+bool RSOverlayNGShaderDrawable::DrawSDFContentLight(Drawing::Canvas& canvas,
     std::shared_ptr<Drawing::ShaderEffect>& lightShaderEffect, Drawing::Brush& brush) const
 {
     auto sdfLightBuilder = GetSDFContentLightShaderBuilder();
@@ -660,7 +686,7 @@ bool RSPointLightDrawable::DrawSDFContentLight(Drawing::Canvas& canvas,
     return true;
 }
 
-void RSPointLightDrawable::DrawContentLight(Drawing::Canvas& canvas,
+void RSOverlayNGShaderDrawable::DrawContentLight(Drawing::Canvas& canvas,
     std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Brush& brush,
     const std::array<float, MAX_LIGHT_SOURCES>& lightIntensityArray) const
 {
@@ -694,7 +720,7 @@ void RSPointLightDrawable::DrawContentLight(Drawing::Canvas& canvas,
     }
 }
 
-bool RSPointLightDrawable::DrawSDFBorderLight(Drawing::Canvas& canvas,
+bool RSOverlayNGShaderDrawable::DrawSDFBorderLight(Drawing::Canvas& canvas,
     std::shared_ptr<Drawing::ShaderEffect>& lightShaderEffect) const
 {
     auto sdfLightBuilder = GetSDFBorderLightShaderBuilder();
@@ -727,7 +753,7 @@ bool RSPointLightDrawable::DrawSDFBorderLight(Drawing::Canvas& canvas,
     return true;
 }
 
-void RSPointLightDrawable::DrawBorderLight(Drawing::Canvas& canvas,
+void RSOverlayNGShaderDrawable::DrawBorderLight(Drawing::Canvas& canvas,
     std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Pen& pen,
     const std::array<float, MAX_LIGHT_SOURCES>& lightIntensityArray) const
 {

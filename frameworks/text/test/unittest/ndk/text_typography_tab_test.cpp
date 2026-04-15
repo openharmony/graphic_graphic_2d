@@ -17,11 +17,11 @@
 
 namespace OHOS {
 /*
- * @tc.name: TypographyTest108
+ * @tc.name: CreateAndDestroyTextTab
  * @tc.desc: test for the text tab create and destroy
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest108, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, CreateAndDestroyTextTab, TestSize.Level0)
 {
     OH_Drawing_TextTab* textTab = OH_Drawing_CreateTextTab(TEXT_ALIGN_LEFT, 0.0);
     EXPECT_NE(textTab, nullptr);
@@ -32,11 +32,11 @@ HWTEST_F(NdkTypographyTest, TypographyTest108, TestSize.Level0)
 }
 
 /*
- * @tc.name: TypographyTest109
+ * @tc.name: GetTextTabAlignment
  * @tc.desc: test for get alignment of the text tab
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest109, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, GetTextTabAlignment, TestSize.Level0)
 {
     OH_Drawing_TextTab* textTab = OH_Drawing_CreateTextTab(TEXT_ALIGN_LEFT, 0.0);
     EXPECT_EQ(OH_Drawing_GetTextTabAlignment(textTab), TEXT_ALIGN_LEFT);
@@ -48,11 +48,11 @@ HWTEST_F(NdkTypographyTest, TypographyTest109, TestSize.Level0)
 }
 
 /*
- * @tc.name: TypographyTest110
+ * @tc.name: GetTextTabLocation
  * @tc.desc: test for get location of the text tab
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest110, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, GetTextTabLocation, TestSize.Level0)
 {
     OH_Drawing_TextTab* textTab = OH_Drawing_CreateTextTab(TEXT_ALIGN_LEFT, 0.0);
     EXPECT_EQ(OH_Drawing_GetTextTabLocation(textTab), 0.0);
@@ -64,11 +64,11 @@ HWTEST_F(NdkTypographyTest, TypographyTest110, TestSize.Level0)
 }
 
 /*
- * @tc.name: TypographyTest111
+ * @tc.name: SetTypographyTextTab
  * @tc.desc: test for typography style set text tab
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest111, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, SetTypographyTextTab, TestSize.Level0)
 {
     OH_Drawing_TextTab* textTab = OH_Drawing_CreateTextTab(TEXT_ALIGN_LEFT, -1.0);
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
@@ -81,11 +81,11 @@ HWTEST_F(NdkTypographyTest, TypographyTest111, TestSize.Level0)
     OH_Drawing_DestroyTypographyStyle(typoStyle);
 }
 /*
- * @tc.name: TypographyTest117
+ * @tc.name: TabWithLeftAlignment
  * @tc.desc: test for text tab with left alignment
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest117, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, TabWithLeftAlignment, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_SetTypographyTextWordBreakType(typoStyle, WORD_BREAK_TYPE_BREAK_ALL);
@@ -121,11 +121,11 @@ HWTEST_F(NdkTypographyTest, TypographyTest117, TestSize.Level0)
 }
 
 /*
- * @tc.name: TypographyTest118
- * @tc.desc: test for text tab with left alignment
+ * @tc.name: TabWithRightAlignment
+ * @tc.desc: test for text tab with right alignment
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest118, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, TabWithRightAlignment, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_SetTypographyTextWordBreakType(typoStyle, WORD_BREAK_TYPE_BREAK_ALL);
@@ -161,11 +161,11 @@ HWTEST_F(NdkTypographyTest, TypographyTest118, TestSize.Level0)
 }
 
 /*
- * @tc.name: TypographyTest119
+ * @tc.name: TabWithCenterAlignment
  * @tc.desc: test for text tab with center alignment
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest119, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, TabWithCenterAlignment, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_SetTypographyTextWordBreakType(typoStyle, WORD_BREAK_TYPE_BREAK_ALL);
@@ -201,11 +201,11 @@ HWTEST_F(NdkTypographyTest, TypographyTest119, TestSize.Level0)
 }
 
 /*
- * @tc.name: TypographyTest120
+ * @tc.name: TabWithCenterAlignmentAndTextAlign
  * @tc.desc: test for setting both the texttab and text layout direction
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest120, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, TabWithCenterAlignmentAndTextAlign, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_SetTypographyTextWordBreakType(typoStyle, WORD_BREAK_TYPE_BREAK_ALL);
@@ -242,11 +242,11 @@ HWTEST_F(NdkTypographyTest, TypographyTest120, TestSize.Level0)
 }
 
 /*
- * @tc.name: TypographyTest121
+ * @tc.name: TabWithEllipsis
  * @tc.desc: test for setting both the texttab and ellipsis
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest121, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, TabWithEllipsis, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_SetTypographyTextWordBreakType(typoStyle, WORD_BREAK_TYPE_BREAK_ALL);

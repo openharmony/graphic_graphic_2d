@@ -32,7 +32,6 @@
 #include "render/rs_drawing_filter.h"
 #include "render/rs_filter_cache_memory_controller.h"
 #include "render/rs_high_performance_visual_engine.h"
-#include "render/rs_render_magnifier_filter.h"
 
 #ifdef USE_M133_SKIA
 #include "include/gpu/ganesh/GrBackendSurface.h"
@@ -298,11 +297,6 @@ void RSFilterCacheManager::TakeSnapshot(
     // shrink the srcRect by 1px to avoid edge artifacts.
     Drawing::RectI snapshotIBounds = srcRect;
 
-    auto magnifierShaderFilter = filter->GetShaderFilterWithType(RSUIFilterType::MAGNIFIER);
-    if (magnifierShaderFilter != nullptr) {
-        auto tmpFilter = std::static_pointer_cast<RSMagnifierShaderFilter>(magnifierShaderFilter);
-        snapshotIBounds.Offset(tmpFilter->GetMagnifierOffsetX(), tmpFilter->GetMagnifierOffsetY());
-    }
     std::shared_ptr<Drawing::Image> snapshot;
     if (HveFilter::GetHveFilter().GetSurfaceNodeSize() > 0) {
         snapshot = HveFilter::GetHveFilter().SampleLayer(canvas, srcRect);

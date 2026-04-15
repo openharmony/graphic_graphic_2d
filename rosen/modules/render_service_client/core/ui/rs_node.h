@@ -1301,13 +1301,6 @@ public:
     void SetMotionBlurPara(const float radius, const Vector2f& anchor);
 
     /**
-     * @brief Sets the parameters for magnifier.
-     *
-     * @param para Indicates the parameters for magnifier.
-     */
-    void SetMagnifierParams(const std::shared_ptr<RSMagnifierParams>& para);
-
-    /**
      * @brief Sets the rate for dynamic light.
      *
      * @param rate Indicates the rate of dynamic light.
@@ -1781,6 +1774,8 @@ public:
     void SetIlluminatedType(uint32_t illuminatedType);
 
     void SetBloom(float bloomIntensity);
+
+    void SetOverlayNGShader(const std::shared_ptr<RSNGShaderBase>& overlayShader);
 
     void SetBrightness(float brightness);
 

@@ -37,7 +37,6 @@ enum class RSUIFilterType : int16_t {
     AIBAR,
     GREY,
     MATERIAL,
-    MAGNIFIER,
     MESA,
     MASK_COLOR,
     KAWASE,

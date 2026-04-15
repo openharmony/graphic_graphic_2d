@@ -185,6 +185,20 @@ DECLARE_FILTER(GridWarp, GRID_WARP,
     ADD_PROPERTY_TAG(GridWarp, RotationAngle8)
 );
 
+DECLARE_FILTER(HeatDistortion, HEAT_DISTORTION,
+    ADD_PROPERTY_TAG(HeatDistortion, Intensity),
+    ADD_PROPERTY_TAG(HeatDistortion, NoiseScale),
+    ADD_PROPERTY_TAG(HeatDistortion, RiseWeight),
+    ADD_PROPERTY_TAG(HeatDistortion, Progress)
+);
+
+DECLARE_FILTER(BlurBubblesRise, BLUR_BUBBLES_RISE,
+    ADD_PROPERTY_TAG(BlurBubblesRise, BlurIntensity),
+    ADD_PROPERTY_TAG(BlurBubblesRise, MixStrength),
+    ADD_PROPERTY_TAG(BlurBubblesRise, Progress),
+    ADD_PROPERTY_TAG(BlurBubblesRise, MaskImage)
+);
+
 DECLARE_FILTER(Magnifier, MAGNIFIER,
     ADD_PROPERTY_TAG(Magnifier, Factor),
     ADD_PROPERTY_TAG(Magnifier, Width),
@@ -202,7 +216,8 @@ DECLARE_FILTER(Magnifier, MAGNIFIER,
     ADD_PROPERTY_TAG(Magnifier, GradientMaskColor1),
     ADD_PROPERTY_TAG(Magnifier, GradientMaskColor2),
     ADD_PROPERTY_TAG(Magnifier, OuterContourColor1),
-    ADD_PROPERTY_TAG(Magnifier, OuterContourColor2)
+    ADD_PROPERTY_TAG(Magnifier, OuterContourColor2),
+    ADD_PROPERTY_TAG(Magnifier, SDFShape)
 );
 
 DECLARE_FILTER(FrostedGlassBlur, FROSTED_GLASS_BLUR,

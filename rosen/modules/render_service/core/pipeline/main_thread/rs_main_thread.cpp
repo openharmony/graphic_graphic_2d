@@ -2725,17 +2725,13 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
                 }
                 HandleTunnelLayerId(surfaceHandler, surfaceNode);
                 if (!surfaceHandler->IsCurrentFrameBufferConsumed() && params->GetPreBuffer() != nullptr) {
-                    if (!surfaceNode->GetDeviceOfflineEnable()) {
-                        // while using hpae_offline, prebuffer is not consumed, should not be reset
-                        params->SetPreBuffer(nullptr, nullptr);
-                    }
+                    params->SetPreBuffer(nullptr, nullptr);
                     surfaceNode->AddToPendingSyncList();
                 }
                 if (surfaceNode->GetDeviceOfflineEnable() && processor->ProcessOfflineLayer(surfaceNode)) {
-                    // use offline buffer instead of original buffer,
-                    // if succeed, params->SetBufferSynced will not be set true,
-                    // origianl buffer will be released at next acquirement
-                    params->SetOfflineOriginBufferSynced(false);
+                    // hpae_offline: offline buffer and original buffer both sent to hwc,
+                    // release is handled by hwc release callback.
+                    params->SetBufferSynced(true);
                     continue;
                 }
                 processor->CreateLayer(*surfaceNode, *params);
@@ -2803,8 +2799,6 @@ void RSMainThread::Render()
         renderThreadParams_->SetForceCommitLayer(GetForceCommitReason());
         renderThreadParams_->SetOcclusionEnabled(RSSystemProperties::GetOcclusionEnabled());
         renderThreadParams_->SetCacheEnabledForRotation(RSSystemProperties::GetCacheEnabledForRotation());
-        renderThreadParams_->SetUIFirstCurrentFrameCanSkipFirstWait(
-            RSUifirstManager::Instance().GetCurrentFrameSkipFirstWait());
         renderThreadParams_->SetHasLppVideo(lppVideoHandler_.HasLppVideo());
         renderThreadParams_->SetSurfaceFpsOp(pipelineParam_.SurfaceFpsOpNum, pipelineParam_.SurfaceFpsOpList);
 #ifdef RS_ENABLE_TV_PQ_METADATA
@@ -5448,6 +5442,7 @@ void RSMainThread::HandlePowerStatusChanged(ScreenId id,
             return;
         }
 
+        node->SetScreenDirtyFlag(true);
         SetDirtyFlag();
         SetScreenPowerOnChanged(true);
         if (lastStatus == ScreenPowerStatus::POWER_STATUS_OFF ||

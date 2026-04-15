@@ -612,10 +612,6 @@ bool DoMarshallingHelper017(const uint8_t* data, size_t size)
     std::shared_ptr<MotionBlurParam> mbp = std::make_shared<MotionBlurParam>(GetData<float>(), anchor);
     RSMarshallingHelper::Marshalling(parcel3, mbp);
     RSMarshallingHelper::Unmarshalling(parcel3, mbp);
-    Parcel parcel4;
-    std::shared_ptr<RSMagnifierParams> mfp = std::make_shared<RSMagnifierParams>();
-    RSMarshallingHelper::Marshalling(parcel4, mfp);
-    RSMarshallingHelper::Unmarshalling(parcel4, mfp);
     return true;
 }
 

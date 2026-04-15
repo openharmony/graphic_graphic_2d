@@ -143,7 +143,7 @@ bool MaskCmdListFuzzTest004(const uint8_t* data, size_t size)
     brushHandle.imageFilterHandle.size = GetObject<size_t>();
     brushHandle.maskFilterHandle.size = GetObject<size_t>();
     brushHandle.isAntiAlias = GetObject<bool>();
-    brushHandle.blenderEnabled = GetObject<bool>();
+    brushHandle.SetBlenderEnabled(GetObject<bool>());
     uint32_t blendMode = GetObject<uint32_t>();
     brushHandle.mode = static_cast<BlendMode>(blendMode % BLENDMODE_SIZE);
     brushHandle.color = color;
@@ -349,7 +349,7 @@ bool MaskCmdListFuzzTest009(const uint8_t* data, size_t size)
     brushHandle.imageFilterHandle.size = GetObject<size_t>();
     brushHandle.maskFilterHandle.size = GetObject<size_t>();
     brushHandle.isAntiAlias = GetObject<bool>();
-    brushHandle.blenderEnabled = GetObject<bool>();
+    brushHandle.SetBlenderEnabled(GetObject<bool>());
     brushHandle.mode = GetObject<BlendMode>();
     brushHandle.color = color;
     brushHandle.filterQuality = GetObject<Filter::FilterQuality>();
@@ -398,7 +398,7 @@ bool MaskCmdListFuzzTest010(const uint8_t* data, size_t size)
     brushHandle.imageFilterHandle.size = GetObject<size_t>();
     brushHandle.maskFilterHandle.size = GetObject<size_t>();
     brushHandle.isAntiAlias = GetObject<bool>();
-    brushHandle.blenderEnabled = GetObject<bool>();
+    brushHandle.SetBlenderEnabled(GetObject<bool>());
     brushHandle.mode = GetObject<BlendMode>();
     brushHandle.color = color;
     brushHandle.filterQuality = GetObject<Filter::FilterQuality>();

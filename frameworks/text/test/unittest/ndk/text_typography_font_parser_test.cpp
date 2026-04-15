@@ -18,11 +18,11 @@
 namespace OHOS {
 
 /*
- * @tc.name: TypographyTest040
+ * @tc.name: TypographyAndFontParserLineMetrics
  * @tc.desc: test for line metrics for text typography
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest040, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, TypographyAndFontParserLineMetrics, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
@@ -79,11 +79,11 @@ HWTEST_F(NdkTypographyTest, TypographyTest040, TestSize.Level0)
 }
 
 /*
- * @tc.name: TypographyTest102
+ * @tc.name: FontParserGetSystemFontListAndGetByName
  * @tc.desc: test for the font parser
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest102, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, FontParserGetSystemFontListAndGetByName, TestSize.Level0)
 {
     OH_Drawing_FontParser* parser = OH_Drawing_CreateFontParser();
     if (std::filesystem::exists(VIS_LIST_FILE_NAME)) {
@@ -103,12 +103,12 @@ HWTEST_F(NdkTypographyTest, TypographyTest102, TestSize.Level0)
 }
 
 /*
- * @tc.name: FontParserGetSystemFontListTest001
+ * @tc.name: FontParserGetSystemFontList
  * @tc.desc: test for the OH_Drawing_FontParserGetSystemFontList.
  * @tc.type: FUNC
  * @tc.require: IALK43
  */
-HWTEST_F(NdkTypographyTest, FontParserGetSystemFontListTest001, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, FontParserGetSystemFontList, TestSize.Level0)
 {
     OH_Drawing_FontParser* fontParser = OH_Drawing_CreateFontParser();
     ASSERT_NE(fontParser, nullptr);
@@ -128,12 +128,12 @@ HWTEST_F(NdkTypographyTest, FontParserGetSystemFontListTest001, TestSize.Level0)
 }
 
 /*
- * @tc.name: DestroySystemFontListTest001
+ * @tc.name: DestroySystemFontList
  * @tc.desc: test for the OH_Drawing_DestroySystemFontList.
  * @tc.type: FUNC
  * @tc.require: IALK43
  */
-HWTEST_F(NdkTypographyTest, DestroySystemFontListTest001, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, DestroySystemFontList, TestSize.Level0)
 {
     char** fontList = new char*[3]; // 3 means the number of font
     std::string tempStr1 = "Test1";
@@ -154,12 +154,12 @@ HWTEST_F(NdkTypographyTest, DestroySystemFontListTest001, TestSize.Level0)
 }
 
 /*
- * @tc.name: FontParserGetFontByNameTest001
+ * @tc.name: FontParserGetFontByName
  * @tc.desc: test for the OH_Drawing_FontParserGetFontByName.
  * @tc.type: FUNC
  * @tc.require: IALK43
  */
-HWTEST_F(NdkTypographyTest, FontParserGetFontByNameTest001, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, FontParserGetFontByName, TestSize.Level0)
 {
     OH_Drawing_FontParser* fontParser = OH_Drawing_CreateFontParser();
     ASSERT_NE(fontParser, nullptr);

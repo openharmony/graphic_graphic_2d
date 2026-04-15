@@ -18,12 +18,12 @@
 namespace OHOS {
 
 /*
- * @tc.name: FontFamiliesTest001
+ * @tc.name: DestroyFontFamilies
  * @tc.desc: test for the OH_Drawing_TypographyTextlineStyleDestroyFontFamilies.
  * @tc.type: FUNC
  * @tc.require: IALK43
  */
-HWTEST_F(NdkTypographyTest, FontFamiliesTest001, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, DestroyFontFamilies, TestSize.Level0)
 {
     char** fontFamilies = new char*[3]; // 3 means the number of font
     std::string tempStr1 = "Test1";
@@ -44,12 +44,12 @@ HWTEST_F(NdkTypographyTest, FontFamiliesTest001, TestSize.Level0)
 }
 
 /*
- * @tc.name: TextStyleAddFontVariationTest001
+ * @tc.name: AddFontVariationWithNullptr
  * @tc.desc: test for the OH_Drawing_TextStyleAddFontVariation.
  * @tc.type: FUNC
  * @tc.require: IALK43
  */
-HWTEST_F(NdkTypographyTest, TextStyleAddFontVariationTest001, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, AddFontVariationWithNullptr, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* style = OH_Drawing_CreateTypographyStyle();
     ASSERT_NE(style, nullptr);
@@ -64,11 +64,11 @@ HWTEST_F(NdkTypographyTest, TextStyleAddFontVariationTest001, TestSize.Level0)
 }
 
 /*
- * @tc.name: TextStyleAddFontVariationTest002
+ * @tc.name: AddFontVariationWdthAxis
  * @tc.desc: test for the fontvariation wdth axis.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TextStyleAddFontVariationTest002, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, AddFontVariationWdthAxis, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     ASSERT_NE(typoStyle, nullptr);
@@ -101,11 +101,11 @@ HWTEST_F(NdkTypographyTest, TextStyleAddFontVariationTest002, TestSize.Level0)
 }
 
 /*
- * @tc.name: TextStyleAddFontVariationNormalizedTest001
+ * @tc.name: AddFontVariationWithNormalization
  * @tc.desc: test for the fontvariation axis with normalized.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TextStyleAddFontVariationNormalizedTest001, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, AddFontVariationWithNormalization, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     ASSERT_NE(typoStyle, nullptr);

@@ -45,11 +45,11 @@ constexpr static float FLOAT_DATA_EPSILON = 1e-6f;
 class NdkTypographyLineLayoutTest : public testing::Test {};
 
 /*
- * @tc.name: TypographyDidExceedMaxLinesTest001
+ * @tc.name: TypographyDidExceedMaxLinesFalse
  * @tc.desc: test for typography mutiple lines.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLineLayoutTest, TypographyDidExceedMaxLinesTest001, TestSize.Level0)
+HWTEST_F(NdkTypographyLineLayoutTest, TypographyDidExceedMaxLinesFalse, TestSize.Level0)
 {
     std::vector<pair<int, double>> lineResult = { { 75, 796.899231 }, { 59, 780.399231 }, { 59, 750.999268 },
         { 59, 773.041809 }, { 59, 774.646362 }, { 68, 595.349548 }, { 59, 349.772766 } };
@@ -100,11 +100,11 @@ HWTEST_F(NdkTypographyLineLayoutTest, TypographyDidExceedMaxLinesTest001, TestSi
 }
 
 /*
- * @tc.name: TypographyGetWordBoundaryTest001
+ * @tc.name: TypographyGetWordBoundaryWithMaxLines
  * @tc.desc: test for typography mutiple lines，but set the maximum number of lines
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLineLayoutTest, TypographyGetWordBoundaryTest001, TestSize.Level0)
+HWTEST_F(NdkTypographyLineLayoutTest, TypographyGetWordBoundaryWithMaxLines, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
@@ -159,11 +159,11 @@ HWTEST_F(NdkTypographyLineLayoutTest, TypographyGetWordBoundaryTest001, TestSize
 }
 
 /*
- * @tc.name: TypographyGetIndentsWithIndexTest001
+ * @tc.name: TypographyGetIndentsWithIndex
  * @tc.desc: test for typography mutiple lines，but set mutiple indents
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLineLayoutTest, TypographyGetIndentsWithIndexTest001, TestSize.Level0)
+HWTEST_F(NdkTypographyLineLayoutTest, TypographyGetIndentsWithIndex, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
@@ -209,11 +209,11 @@ HWTEST_F(NdkTypographyLineLayoutTest, TypographyGetIndentsWithIndexTest001, Test
 }
 
 /*
- * @tc.name: TypographyGetLineTextRangeTest001
+ * @tc.name: TypographyGetLineTextRangeWithEllipsis
  * @tc.desc: test for typography mutiple lines，but set Set end line spaces and ellipsis
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLineLayoutTest, TypographyGetLineTextRangeTest001, TestSize.Level0)
+HWTEST_F(NdkTypographyLineLayoutTest, TypographyGetLineTextRangeWithEllipsis, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
@@ -266,11 +266,11 @@ HWTEST_F(NdkTypographyLineLayoutTest, TypographyGetLineTextRangeTest001, TestSiz
 }
 
 /*
- * @tc.name: TypographyGetLineTextRangeTest002
+ * @tc.name: TypographyGetLineTextRangeBeforeLayoutAndOutOfBounds
  * @tc.desc: test for typography mutiple lines，but set Set end line spaces and ellipsis
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLineLayoutTest, TypographyGetLineTextRangeTest002, TestSize.Level0)
+HWTEST_F(NdkTypographyLineLayoutTest, TypographyGetLineTextRangeBeforeLayoutAndOutOfBounds, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
@@ -306,11 +306,11 @@ HWTEST_F(NdkTypographyLineLayoutTest, TypographyGetLineTextRangeTest002, TestSiz
 }
 
 /*
- * @tc.name: TypographyTest084
+ * @tc.name: TypographyBreakStrategyGreedyWithIndents
  * @tc.desc: test for BREAK_STRATEGY_GREEDY
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLineLayoutTest, TypographyBreakStrategyWithIndentsTest001, TestSize.Level0)
+HWTEST_F(NdkTypographyLineLayoutTest, TypographyBreakStrategyGreedyWithIndents, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
@@ -333,11 +333,11 @@ HWTEST_F(NdkTypographyLineLayoutTest, TypographyBreakStrategyWithIndentsTest001,
 }
 
 /*
- * @tc.name: TypographyTest085
+ * @tc.name: TypographyBreakStrategyBalancedWithIndents
  * @tc.desc: test for BREAK_STRATEGY_BALANCED
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLineLayoutTest, TypographyBreakStrategyWithIndentsTest002, TestSize.Level0)
+HWTEST_F(NdkTypographyLineLayoutTest, TypographyBreakStrategyBalancedWithIndents, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
@@ -359,11 +359,11 @@ HWTEST_F(NdkTypographyLineLayoutTest, TypographyBreakStrategyWithIndentsTest002,
 }
 
 /*
- * @tc.name: TypographyTest086
+ * @tc.name: TypographyBreakStrategyHighQualityWithIndents
  * @tc.desc: test for BREAK_STRATEGY_HIGH_QUALITY
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLineLayoutTest, TypographyBreakStrategyWithIndentsTest003, TestSize.Level0)
+HWTEST_F(NdkTypographyLineLayoutTest, TypographyBreakStrategyHighQualityWithIndents, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
@@ -386,11 +386,11 @@ HWTEST_F(NdkTypographyLineLayoutTest, TypographyBreakStrategyWithIndentsTest003,
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyInnerBalanceExceedMaxLinesTest
+ * @tc.name: TypographyBalancedNotExceedMaxLinesWhenLinesEqualMax
  * @tc.desc: Test for balance strategy exceed maxLines interface when layout line count equal to max line count
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLineLayoutTest, TypographyBalanceStrategy001, TestSize.Level0)
+HWTEST_F(NdkTypographyLineLayoutTest, TypographyBalancedNotExceedMaxLinesWhenLinesEqualMax, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     ASSERT_NE(typoStyle, nullptr);
@@ -418,11 +418,11 @@ HWTEST_F(NdkTypographyLineLayoutTest, TypographyBalanceStrategy001, TestSize.Lev
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyInnerBalanceMaxLinesTest
+ * @tc.name: TypographyBalancedRespectsMaxLinesLimit
  * @tc.desc: Test for balance strategy set maxLines limit
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLineLayoutTest, TypographyBalanceStrategy002, TestSize.Level0)
+HWTEST_F(NdkTypographyLineLayoutTest, TypographyBalancedRespectsMaxLinesLimit, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     ASSERT_NE(typoStyle, nullptr);
@@ -453,11 +453,11 @@ HWTEST_F(NdkTypographyLineLayoutTest, TypographyBalanceStrategy002, TestSize.Lev
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyInnerBalanceMaxLinesTest
+ * @tc.name: TypographyBalancedLineCountEqualsMaxLines
  * @tc.desc: Test for balance strategy set maxLines limit and maxLines equals to layout line count
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLineLayoutTest, TypographyBalanceStrategy003, TestSize.Level0)
+HWTEST_F(NdkTypographyLineLayoutTest, TypographyBalancedLineCountEqualsMaxLines, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     ASSERT_NE(typoStyle, nullptr);
@@ -487,11 +487,11 @@ HWTEST_F(NdkTypographyLineLayoutTest, TypographyBalanceStrategy003, TestSize.Lev
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyLineSpacingTest
+ * @tc.name: TypographyLineSpacingBasic
  * @tc.desc: Test for lineSpacing basic functions
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLineLayoutTest, TypographyLineSpacingTest001, TestSize.Level0)
+HWTEST_F(NdkTypographyLineLayoutTest, TypographyLineSpacingBasic, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     ASSERT_NE(typoStyle, nullptr);
@@ -526,11 +526,11 @@ HWTEST_F(NdkTypographyLineLayoutTest, TypographyLineSpacingTest001, TestSize.Lev
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyLineSpacingTest
+ * @tc.name: TypographyLineSpacingWithGreedyLayout
  * @tc.desc: Test for lineSpacing function with text behavior function in greedy layout
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLineLayoutTest, TypographyLineSpacingTest002, TestSize.Level0)
+HWTEST_F(NdkTypographyLineLayoutTest, TypographyLineSpacingWithGreedyLayout, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_SetTypographyTextBreakStrategy(typoStyle, 0);
@@ -568,11 +568,11 @@ HWTEST_F(NdkTypographyLineLayoutTest, TypographyLineSpacingTest002, TestSize.Lev
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyLineSpacingTest
+ * @tc.name: TypographyLineSpacingWithBalancedLayout
  * @tc.desc: Test for lineSpacing function with text behavior function in balance layout
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLineLayoutTest, TypographyLineSpacingTest003, TestSize.Level0)
+HWTEST_F(NdkTypographyLineLayoutTest, TypographyLineSpacingWithBalancedLayout, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_SetTypographyTextBreakStrategy(typoStyle, 2);
@@ -614,11 +614,11 @@ HWTEST_F(NdkTypographyLineLayoutTest, TypographyLineSpacingTest003, TestSize.Lev
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyMaxAndMinLineHeight
+ * @tc.name: TypographyLineHeightClampedByEqualMaxAndMin
  * @tc.desc: Test for maxLineHeight and minLineHeight basic functions(trigger max limit)
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLineLayoutTest, OH_Drawing_TypographyMaxAndMinLineHeightTest001, TestSize.Level0)
+HWTEST_F(NdkTypographyLineLayoutTest, TypographyLineHeightClampedByEqualMaxAndMin, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_SetTypographyTextBreakStrategy(typoStyle, 0);
@@ -657,11 +657,11 @@ HWTEST_F(NdkTypographyLineLayoutTest, OH_Drawing_TypographyMaxAndMinLineHeightTe
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyMaxAndMinLineHeight
+ * @tc.name: TypographyLineHeightClampedByMinLimit
  * @tc.desc: Test for maxLineHeight and minLineHeight basic functions(trigger min limit)
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLineLayoutTest, OH_Drawing_TypographyMaxAndMinLineHeightTest002, TestSize.Level0)
+HWTEST_F(NdkTypographyLineLayoutTest, TypographyLineHeightClampedByMinLimit, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_SetTypographyTextBreakStrategy(typoStyle, 0);
@@ -708,11 +708,11 @@ HWTEST_F(NdkTypographyLineLayoutTest, OH_Drawing_TypographyMaxAndMinLineHeightTe
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyMaxAndMinLineHeight
+ * @tc.name: TypographyMaxLineHeightLessThanMinLineHeight
  * @tc.desc: Test for maxLineHeight less than minLineHeight
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLineLayoutTest, OH_Drawing_TypographyMaxAndMinLineHeightTest003, TestSize.Level0)
+HWTEST_F(NdkTypographyLineLayoutTest, TypographyMaxLineHeightLessThanMinLineHeight, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_SetTypographyTextBreakStrategy(typoStyle, 0);
@@ -751,11 +751,11 @@ HWTEST_F(NdkTypographyLineLayoutTest, OH_Drawing_TypographyMaxAndMinLineHeightTe
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyMaxAndMinLineHeight
+ * @tc.name: TypographyMaxLineHeightNegative
  * @tc.desc: Test for maxLineHeight less than zero
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyLineLayoutTest, OH_Drawing_TypographyMaxAndMinLineHeightTest004, TestSize.Level0)
+HWTEST_F(NdkTypographyLineLayoutTest, TypographyMaxLineHeightNegative, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_SetTypographyTextBreakStrategy(typoStyle, 0);

@@ -1065,7 +1065,7 @@ bool RSClientToRenderConnectionProxy::WriteSurfaceCaptureAreaRect(
     return true;
 }
 
-ErrCode RSClientToRenderConnectionProxy::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+ErrCode RSClientToRenderConnectionProxy::SetHwcNodeBounds(NodeId rsNodeId, float positionX, float positionY,
     float positionZ, float positionW)
 {
     MessageParcel data;
@@ -1217,7 +1217,11 @@ ErrCode RSClientToRenderConnectionProxy::SetAncoForceDoDirect(bool direct, bool&
             res = false;
             return ERR_INVALID_VALUE;
         }
-        res = reply.ReadBool();
+        if (!reply.ReadBool(res)) {
+            ROSEN_LOGE("SetAncoForceDoDirect ReadBool direct failed!");
+            res = false;
+            return READ_PARCEL_ERR;
+        }
         return ERR_OK;
     } else {
         ROSEN_LOGE("SetAncoForceDoDirect: WriteBool direct err.");

@@ -108,7 +108,7 @@ void RSUnionRenderNode::ProcessSDFShape(RSDirtyRegionManager& dirtyManager)
         GetRenderProperties().GetSDFShape()->CalculateHash() != root->CalculateHash()) {
         GetMutableRenderProperties().InternalSetSDFShape(root);
         dirtyManager.MergeDirtyRect(GetAbsDrawRect());
-        UpdateDrawableAfterPostPrepare(ModifierNG::RSModifierType::BOUNDS);
+        UpdateDrawableAfterPostPrepare(ModifierNG::RSModifierType::CLIP_TO_BOUNDS);
     }
 }
 
