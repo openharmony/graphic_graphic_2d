@@ -18,20 +18,20 @@
 
 #include "common/rs_occlusion_region.h"
 #include "common/rs_rect.h"
+#include "hpae_base/rs_hpae_base_data.h"
+#include "hpae_base/rs_hpae_filter_cache_manager.h"
+#include "render/rs_drawing_filter.h"
 #include "render/rs_filter_cache_manager.h"
 #include "render/rs_filter_cache_memory_controller.h"
-#include "render/rs_drawing_filter.h"
 #include "render/rs_filter.h"
+#include "render/rs_high_performance_visual_engine.h"
 #include "render/rs_render_aibar_filter.h"
 #include "render/rs_render_kawase_blur_filter.h"
-#include "render/rs_high_performance_visual_engine.h"
-#include "utils/rect.h"
-#include "utils/region.h"
 #include "skia_adapter/skia_surface.h"
 #include "skia_canvas.h"
 #include "skia_surface.h"
-#include "hpae_base/rs_hpae_base_data.h"
-#include "hpae_base/rs_hpae_filter_cache_manager.h"
+#include "utils/rect.h"
+#include "utils/region.h"
 
 using namespace testing;
 using namespace testing::ext;
