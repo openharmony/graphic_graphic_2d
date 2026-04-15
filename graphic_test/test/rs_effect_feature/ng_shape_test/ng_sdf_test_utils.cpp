@@ -29,7 +29,9 @@ static std::unordered_map<RSNGEffectType, ShapeCreator> creatorShape = {
     {RSNGEffectType::SDF_TRANSFORM_SHAPE,
         [] { return std::make_shared<RSNGSDFTransformShape>(); }},
     {RSNGEffectType::SDF_PIXELMAP_SHAPE,
-        [] { return std::make_shared<RSNGSDFPixelmapShape>(); }}
+        [] { return std::make_shared<RSNGSDFPixelmapShape>(); }},
+    {RSNGEffectType::SDF_DISTORT_OP_SHAPE,
+        [] { return std::make_shared<RSNGSDFDistortOpShape>(); }}
 };
 
 std::shared_ptr<RSNGShapeBase> CreateShape(RSNGEffectType type)
