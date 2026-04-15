@@ -1459,6 +1459,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Particle
     int32_t flag = 0;
     if (!parcel.ReadInt32(flag)) {
         ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ParticleNoiseFields ReadInt32 failed");
+        val = nullptr;
         return false;
     }
     if (flag == -1) {
@@ -1468,6 +1469,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Particle
     uint32_t size = 0;
     if (!parcel.ReadUint32(size)) {
         ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ParticleNoiseFields ReadUint32 failed");
+        val = nullptr;
         return false;
     }
     bool success = true;
@@ -1515,6 +1517,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Particle
     int32_t flag = 0;
     if (!parcel.ReadInt32(flag)) {
         ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ParticleRippleFields ReadInt32 failed");
+        val = nullptr;
         return false;
     }
     if (flag == -1) {
@@ -1524,6 +1527,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Particle
     uint32_t size = 0;
     if (!parcel.ReadUint32(size)) {
         ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ParticleRippleFields ReadUint32 failed");
+        val = nullptr;
         return false;
     }
     if (size > PARTICLE_EMMITER_UPPER_LIMIT) {
@@ -1580,6 +1584,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Particle
     int32_t flag = 0;
     if (!parcel.ReadInt32(flag)) {
         ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ParticleVelocityFields ReadInt32 failed");
+        val = nullptr;
         return false;
     }
     if (flag == -1) {
@@ -1589,6 +1594,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Particle
     uint32_t size = 0;
     if (!parcel.ReadUint32(size)) {
         ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ParticleVelocityFields ReadUint32 failed");
+        val = nullptr;
         return false;
     }
     if (size > PARTICLE_EMMITER_UPPER_LIMIT) {
