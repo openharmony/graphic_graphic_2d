@@ -410,9 +410,9 @@ public:
         return intersectWithAIBar_;
     }
 
-    void SetIntersectWithFilterNode(bool flag)
+    void SetIntersectWithFilterNode(bool intersectOrNot)
     {
-        intersectWithFilterNode_ = flag;
+        intersectWithFilterNode_ = intersectOrNot;
     }
 
     bool GetIntersectWithFilterNode() const
