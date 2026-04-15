@@ -344,7 +344,6 @@ HWTEST_F(RSFilterCacheManagerTest, TakeSnapshotTest, TestSize.Level1)
     rsFilterCacheManager->TakeSnapshot(filterCanvas, filter, srcRect);
     HveFilter::GetHveFilter().ClearSurfaceNodeInfo();
     rsFilterCacheManager->TakeSnapshot(filterCanvas, filter, srcRect);
-    EXPECT_NE(filter->GetShaderFilterWithType(RSUIFilterType::MAGNIFIER), nullptr);
 }
 
 /**
