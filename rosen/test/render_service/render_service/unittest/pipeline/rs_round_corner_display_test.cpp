@@ -2003,7 +2003,7 @@ HWTEST_F(RSRoundCornerDisplayTest, DrawRsRCDLayerValid, TestSize.Level1)
     Drawing::Canvas drawingCanvas(width, height);
     RSPaintFilterCanvas canvas(&drawingCanvas);
 
-    RSRenderRcdDraw::DrawRSRCDLayer(canvas, rcdLayer);
+    RSRenderRcdDraw::DrawRSRCDLayer(canvas, rcdLayer, Vector2f(1.0f, 1.0f));
 }
 
 /*
@@ -2016,12 +2016,12 @@ HWTEST_F(RSRoundCornerDisplayTest, DrawRsRCDLayerNullPixelMap, TestSize.Level1)
 {
     Drawing::Canvas drawingCanvas(100, 100);
     RSPaintFilterCanvas canvas(&drawingCanvas);
-    RSRenderRcdDraw::DrawRSRCDLayer(canvas, nullptr);
+    RSRenderRcdDraw::DrawRSRCDLayer(canvas, nullptr, Vector2f(1.0f, 1.0f));
 
     auto rcdLayer = std::make_shared<RSRenderSurfaceRCDLayer>();
     ASSERT_NE(rcdLayer, nullptr);
 
-    RSRenderRcdDraw::DrawRSRCDLayer(canvas, rcdLayer);
+    RSRenderRcdDraw::DrawRSRCDLayer(canvas, rcdLayer, Vector2f(1.0f, 1.0f));
 }
 
 /*
@@ -2045,7 +2045,7 @@ HWTEST_F(RSRoundCornerDisplayTest, DrawRsRCDLayerNullPixelMapPixels, TestSize.Le
     Drawing::Canvas drawingCanvas(100, 100);
     RSPaintFilterCanvas canvas(&drawingCanvas);
 
-    RSRenderRcdDraw::DrawRSRCDLayer(canvas, rcdLayer);
+    RSRenderRcdDraw::DrawRSRCDLayer(canvas, rcdLayer, Vector2f(1.0f, 1.0f));
 }
 
 /*
@@ -2070,7 +2070,7 @@ HWTEST_F(RSRoundCornerDisplayTest, DrawRsRCDLayerInvalidWidth, TestSize.Level1)
     Drawing::Canvas drawingCanvas(100, 100);
     RSPaintFilterCanvas canvas(&drawingCanvas);
 
-    RSRenderRcdDraw::DrawRSRCDLayer(canvas, rcdLayer);
+    RSRenderRcdDraw::DrawRSRCDLayer(canvas, rcdLayer, Vector2f(1.0f, 1.0f));
 }
 
 /*
@@ -2095,7 +2095,7 @@ HWTEST_F(RSRoundCornerDisplayTest, DrawRsRCDLayerInvalidHeight, TestSize.Level1)
     Drawing::Canvas drawingCanvas(100, 100);
     RSPaintFilterCanvas canvas(&drawingCanvas);
 
-    RSRenderRcdDraw::DrawRSRCDLayer(canvas, rcdLayer);
+    RSRenderRcdDraw::DrawRSRCDLayer(canvas, rcdLayer, Vector2f(1.0f, 1.0f));
 }
 
 /*
@@ -2120,7 +2120,7 @@ HWTEST_F(RSRoundCornerDisplayTest, DrawRsRCDLayerInvalidRowBytes, TestSize.Level
     Drawing::Canvas drawingCanvas(100, 100);
     RSPaintFilterCanvas canvas(&drawingCanvas);
 
-    RSRenderRcdDraw::DrawRSRCDLayer(canvas, rcdLayer);
+    RSRenderRcdDraw::DrawRSRCDLayer(canvas, rcdLayer, Vector2f(1.0f, 1.0f));
 }
 
 /*
@@ -2162,8 +2162,8 @@ HWTEST_F(RSRoundCornerDisplayTest, DrawRsRCDLayerValidMultiple, TestSize.Level1)
     Drawing::Canvas drawingCanvas(150, 100);
     RSPaintFilterCanvas canvas(&drawingCanvas);
 
-    RSRenderRcdDraw::DrawRSRCDLayer(canvas, rcdLayer1);
-    RSRenderRcdDraw::DrawRSRCDLayer(canvas, rcdLayer2);
+    RSRenderRcdDraw::DrawRSRCDLayer(canvas, rcdLayer1, Vector2f(1.0f, 1.0f));
+    RSRenderRcdDraw::DrawRSRCDLayer(canvas, rcdLayer2, Vector2f(1.0f, 1.0f));
 }
 
 /*
@@ -2191,7 +2191,7 @@ HWTEST_F(RSRoundCornerDisplayTest, DrawRsRCDLayerSmallDimensions, TestSize.Level
     Drawing::Canvas drawingCanvas(width, height);
     RSPaintFilterCanvas canvas(&drawingCanvas);
 
-    RSRenderRcdDraw::DrawRSRCDLayer(canvas, rcdLayer);
+    RSRenderRcdDraw::DrawRSRCDLayer(canvas, rcdLayer, Vector2f(1.0f, 1.0f));
 }
 
 /*
@@ -2219,7 +2219,7 @@ HWTEST_F(RSRoundCornerDisplayTest, DrawRsRCDLayerLargeDimensions, TestSize.Level
     Drawing::Canvas drawingCanvas(width, height);
     RSPaintFilterCanvas canvas(&drawingCanvas);
 
-    RSRenderRcdDraw::DrawRSRCDLayer(canvas, rcdLayer);
+    RSRenderRcdDraw::DrawRSRCDLayer(canvas, rcdLayer, Vector2f(1.0f, 1.0f));
 }
 
 /*
@@ -2241,7 +2241,7 @@ HWTEST_F(RSRoundCornerDisplayTest, RSRcdRenderManager_DrawRCD, TestSize.Level1)
     RSLayerPtr ngRcdLayer = std::make_shared<RSRenderSurfaceLayer>();
     ASSERT_NE(ngRcdLayer, nullptr);
     std::vector<RSLayerPtr> layers = {nullLayer, ngRcdLayer};
-    RSRenderRcdDraw::DrawRoundCorner(canvas, layers);
+    RSRenderRcdDraw::DrawRoundCorner(canvas, layers, Vector2f(1.0f, 1.0f));
     EXPECT_TRUE(rcdManagerInstance.isRcdServiceRegister_);
 }
 
