@@ -14,11 +14,12 @@
  */
 
 #include "render/rs_high_performance_visual_engine.h"
-#include "pipeline/rs_effect_render_node.h"
-#include "pipeline/rs_canvas_render_node.h"
-#include "common/rs_optional_trace.h"
-#include "platform/common/rs_log.h"
+
 #include "common/rs_color_palette.h"
+#include "common/rs_optional_trace.h"
+#include "pipeline/rs_canvas_render_node.h"
+#include "pipeline/rs_effect_render_node.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -62,8 +63,8 @@ bool HveFilter::HasValidEffectNode(const std::shared_ptr<RSRenderNode>& node)
         if (current->GetType() == RSRenderNodeType::EFFECT_NODE) {
             auto effectNode = RSRenderNode::ReinterpretCast<RSEffectRenderNode>(current);
             return effectNode->ChildHasVisibleEffectWithoutEmptyRect() &&
-                current->GetRenderProperties().GetBackgroundFilter() != nullptr &&
-                current->ShouldPaint() && current->GetGlobalAlpha() == 1;
+                   current->GetRenderProperties().GetBackgroundFilter() != nullptr &&
+                   current->ShouldPaint() && current->GetGlobalAlpha() == 1;
         }
         current = current->GetParent().lock();
     }
@@ -79,13 +80,11 @@ bool HveFilter::HasValidEffect(const RSRenderNode* node)
     const RSProperties& properties = node->GetRenderProperties();
     if (properties.GetUseEffect() &&
         node->ShouldPaint() && node->GetGlobalAlpha() == 1 && !node->HasChildrenOutOfRect()) {
-        //After finding target node, start searching upwards for EFFECT_NODE
+        // After finding target node, start searching upwards for EFFECT_NODE
         RS_LOGD("%{public}s UseEffect is valid", __func__);
-        auto parentPtr = node->GetParent().lock();
-        return HasValidEffectNode(parentPtr);
+        return HasValidEffectNode(node->GetParent().lock());
     }
-    auto parentPtr = node->GetParent().lock();
-    return HasValidEffect(parentPtr.get());
+    return HasValidEffect(node->GetParent().lock().get());
 }
 
 bool HveFilter::CheckPrecondition(const RSRenderNode& renderNode,
@@ -102,9 +101,8 @@ bool HveFilter::CheckPrecondition(const RSRenderNode& renderNode,
         RS_LOGD("%{public}s within filter range", __func__);
         return true;
     }
-    auto parentNode = renderNode.GetParent().lock();
     // If there is BgBrightness, ensure the Effect is valid.
-    return properties.IsBgBrightnessValid() && HasValidEffect(parentNode.get());
+    return properties.IsBgBrightnessValid() && HasValidEffect(renderNode.GetParent().lock().get());
 }
 
 std::shared_ptr<Drawing::Image> HveFilter::SampleLayer(RSPaintFilterCanvas& canvas, const Drawing::RectI& srcRect)
