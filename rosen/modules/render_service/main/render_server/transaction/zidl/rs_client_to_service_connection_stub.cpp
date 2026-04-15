@@ -96,6 +96,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::FORCE_REFRESH_ONE_FRAME_WITH_NEXT_VSYNC),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::DISABLE_RENDER_CONTROL_SCREEN),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_DISPLAY_IDENTIFICATION_DATA),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_REFRESH_INFO),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_REFRESH_INFO_TO_SP),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_POWER_STATUS),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_BACK_LIGHT),
@@ -172,6 +173,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REGISTER_SHARED_TYPEFACE),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REFRESH_RATE_UPDATE_CALLBACK),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::ON_FIRST_FRAME_COMMIT),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::ON_EXPOSED_EVENT),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REGISTER_FRAME_RATE_LINKER_EXPECTED_FPS_CALLBACK),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_ACTIVE_DIRTY_REGION_INFO),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_GLOBAL_DIRTY_REGION_INFO),
@@ -916,11 +918,6 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_REFRESH_INFO): {
-            auto token = data.ReadInterfaceToken();
-            if (token != RSIClientToServiceConnection::GetDescriptor()) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             int32_t pid{0};
             if (!data.ReadInt32(pid)) {
                 RS_LOGE("RSClientToServiceConnectionStub::GET_REFRESH_INFO Read pid failed!");
@@ -2569,6 +2566,44 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 callback = iface_cast<RSIFirstFrameCommitCallback>(remoteObject);
             }
             int32_t status = RegisterFirstFrameCommitCallback(callback);
+            if (!reply.WriteInt32(status)) {
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(
+            RSIClientToServiceConnectionInterfaceCode::ON_EXPOSED_EVENT) : {
+            sptr<RSIExposedEventCallback> callback = nullptr;
+            sptr<IRemoteObject> remoteObject = nullptr;
+            uint32_t type{0};
+            bool readRemoteObject{false};
+
+            // read type
+            if (!data.ReadUint32(type)) {
+                RS_LOGE("RSClientToServiceConnectionStub::ON_EXPOSED_EVENT Read type failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (type >= static_cast<uint32_t>(RSExposedEventType::EXPOSED_EVENT_INVALID)) {
+                RS_LOGE("RSClientToServiceConnectionStub::ON_EXPOSED_EVENT invalid type: %{public}u", type);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+
+            // read callback
+            if (!data.ReadBool(readRemoteObject)) {
+                RS_LOGE("RSClientToServiceConnectionStub::ON_EXPOSED_EVENT Read callback failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (readRemoteObject) {
+                remoteObject = data.ReadRemoteObject();
+            }
+            if (remoteObject != nullptr) {
+                callback = iface_cast<RSIExposedEventCallback>(remoteObject);
+            }
+
+            int32_t status = RegisterExposedEventCallback(static_cast<RSExposedEventType>(type), callback);
             if (!reply.WriteInt32(status)) {
                 ret = ERR_INVALID_REPLY;
             }

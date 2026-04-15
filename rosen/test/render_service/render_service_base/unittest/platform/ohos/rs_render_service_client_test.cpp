@@ -460,6 +460,39 @@ HWTEST_F(RSServiceClientTest, RegisterFirstFrameCommitCallback001, TestSize.Leve
 }
 
 /**
+ * @tc.name: RegisterExposedEventCallback Test
+ * @tc.desc: RegisterExposedEventCallback Test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceClientTest, RegisterExposedEventCallback001, TestSize.Level1)
+{
+    auto callback = [](const std::shared_ptr<RSExposedEventDataBase>& data) -> void {};
+    RSExposedEventType type = RSExposedEventType::EXT_SCREEN_UNSUPPORT;
+    EXPECT_EQ(rsClient->RegisterExposedEventCallback(type, callback),
+        StatusCode::SUCCESS);
+    EXPECT_EQ(rsClient->RegisterExposedEventCallback(type, nullptr), StatusCode::SUCCESS);
+}
+
+/**
+ * @tc.name: RegisterExposedEventCallback Test
+ * @tc.desc: Test RegisterExposedEventCallback with invalid clientToService
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceClientTest, RegisterExposedEventCallback002, TestSize.Level1)
+{
+    auto callback = [](const std::shared_ptr<RSExposedEventDataBase>& data) -> void {};
+    RSExposedEventType type = RSExposedEventType::EXT_SCREEN_UNSUPPORT;
+    RSRenderServiceConnectHub::Destroy();
+    EXPECT_EQ(rsClient->RegisterExposedEventCallback(type, callback),
+        StatusCode::RENDER_SERVICE_NULL);
+    RSRenderServiceConnectHub::Init();
+    EXPECT_EQ(rsClient->RegisterExposedEventCallback(type, callback),
+        StatusCode::SUCCESS);
+}
+
+/**
  * @tc.name: SetScreenActiveMode Test
  * @tc.desc: SetScreenActiveMode Test
  * @tc.type:FUNC

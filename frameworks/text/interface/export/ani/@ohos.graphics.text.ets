@@ -382,6 +382,9 @@ export default namespace text {
     verticalAlign?: TextVerticalAlign;
     compressHeadPunctuation?: boolean;
     lineSpacing?: double;
+    firstLineIndent?: double;
+    tailIndents?: Array<double>;
+    headIndents?: Array<double>;
   }
 
   class ParagraphStyleInternal implements ParagraphStyle {

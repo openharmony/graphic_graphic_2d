@@ -271,7 +271,7 @@ bool RSInterfaces::FreezeScreen(std::shared_ptr<RSDisplayNode> node, bool isFree
     return renderInterface_->FreezeScreen(node, isFreeze, needSync);
 }
 
-bool RSInterfaces::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+bool RSInterfaces::SetHwcNodeBounds(NodeId rsNodeId, float positionX, float positionY,
     float positionZ, float positionW)
 {
     return renderInterface_->SetHwcNodeBounds(rsNodeId, positionX, positionY, positionZ, positionW);
@@ -774,6 +774,17 @@ int32_t RSInterfaces::RegisterFirstFrameCommitCallback(const FirstFrameCommitCal
 int32_t RSInterfaces::UnRegisterFirstFrameCommitCallback()
 {
     return renderServiceClient_->RegisterFirstFrameCommitCallback(nullptr);
+}
+
+int32_t RSInterfaces::RegisterExposedEventCallback(
+    const RSExposedEventType type, const RSExposedEventCallback& callback)
+{
+    return renderServiceClient_->RegisterExposedEventCallback(type, callback);
+}
+
+int32_t RSInterfaces::UnRegisterExposedEventCallback(const RSExposedEventType type)
+{
+    return renderServiceClient_->RegisterExposedEventCallback(type, nullptr);
 }
 
 int32_t RSInterfaces::RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,

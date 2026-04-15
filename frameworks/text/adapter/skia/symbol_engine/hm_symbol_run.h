@@ -79,7 +79,7 @@ public:
 
     void SetSymbolTxt(const HMSymbolTxt& hmsymbolTxt);
 
-    const HMSymbolTxt& GetSymbolTxt();
+    const HMSymbolTxt& GetSymbolTxt() const;
 
     void SetSymbolShadow(const std::optional<SymbolShadow>& symbolShadow);
 

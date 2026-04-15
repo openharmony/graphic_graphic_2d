@@ -133,11 +133,11 @@ void NdkDestroyArrayTest::AddText(const char* text)
 }
 
 /**
- * @tc.name: DestroyArrayTest001
+ * @tc.name: DestroyStringArrayFromSystemFontNames
  * @tc.desc: Test destroying STRING array created by OH_Drawing_GetSystemFontFullNamesByType
  * @tc.type: FUNC
  */
-HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest001, TestSize.Level0)
+HWTEST_F(NdkDestroyArrayTest, DestroyStringArrayFromSystemFontNames, TestSize.Level0)
 {
     OH_Drawing_Array* fontList = OH_Drawing_GetSystemFontFullNamesByType(
         OH_Drawing_SystemFontType::ALL);
@@ -151,11 +151,11 @@ HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest001, TestSize.Level0)
 }
 
 /**
- * @tc.name: DestroyArrayTest002
+ * @tc.name: DestroyEmptyStringArrayFromInvalidFontType
  * @tc.desc: Test destroying empty STRING array
  * @tc.type: FUNC
  */
-HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest002, TestSize.Level0)
+HWTEST_F(NdkDestroyArrayTest, DestroyEmptyStringArrayFromInvalidFontType, TestSize.Level0)
 {
     OH_Drawing_Array* fontList = OH_Drawing_GetSystemFontFullNamesByType(
         static_cast<OH_Drawing_SystemFontType>(999)); // Invalid type to get empty list
@@ -167,11 +167,11 @@ HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest002, TestSize.Level0)
 }
 
 /**
- * @tc.name: DestroyArrayTest003
+ * @tc.name: DestroyTextLineArrayWithSingleLine
  * @tc.desc: Test destroying TEXT_LINE array with single line
  * @tc.type: FUNC
  */
-HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest003, TestSize.Level0)
+HWTEST_F(NdkDestroyArrayTest, DestroyTextLineArrayWithSingleLine, TestSize.Level0)
 {
     CreateTypographyHandler();
     AddText(SHORT_TEXT);
@@ -189,11 +189,11 @@ HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest003, TestSize.Level0)
 }
 
 /**
- * @tc.name: DestroyArrayTest004
+ * @tc.name: DestroyTextLineArrayWithMultipleLines
  * @tc.desc: Test destroying TEXT_LINE array with multiple lines
  * @tc.type: FUNC
  */
-HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest004, TestSize.Level0)
+HWTEST_F(NdkDestroyArrayTest, DestroyTextLineArrayWithMultipleLines, TestSize.Level0)
 {
     CreateTypographyHandler();
     AddText(LONG_TEXT);
@@ -211,11 +211,11 @@ HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest004, TestSize.Level0)
 }
 
 /**
- * @tc.name: DestroyArrayTest005
+ * @tc.name: DestroyTextRunStringIndicesArray
  * @tc.desc: Test destroying TEXT_RUN (string indices) array
  * @tc.type: FUNC
  */
-HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest005, TestSize.Level0)
+HWTEST_F(NdkDestroyArrayTest, DestroyTextRunStringIndicesArray, TestSize.Level0)
 {
     CreateTypographyHandler();
     AddText(SHORT_TEXT);
@@ -259,11 +259,11 @@ HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest005, TestSize.Level0)
 }
 
 /**
- * @tc.name: DestroyArrayTest006
+ * @tc.name: DestroyEmptyTextRunStringIndicesArray
  * @tc.desc: Test destroying empty TEXT_RUN array
  * @tc.type: FUNC
  */
-HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest006, TestSize.Level0)
+HWTEST_F(NdkDestroyArrayTest, DestroyEmptyTextRunStringIndicesArray, TestSize.Level0)
 {
     CreateTypographyHandler();
     AddText(SHORT_TEXT);
@@ -294,11 +294,11 @@ HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest006, TestSize.Level0)
 }
 
 /**
- * @tc.name: DestroyArrayTest007
+ * @tc.name: DestroyRectArrayWithSingleElement
  * @tc.desc: Test destroying DRAWING_RECT array with single element
  * @tc.type: FUNC
  */
-HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest007, TestSize.Level0)
+HWTEST_F(NdkDestroyArrayTest, DestroyRectArrayWithSingleElement, TestSize.Level0)
 {
     const size_t arraySize = 1;
     OH_Drawing_Array* rectArray = OH_Drawing_RectCreateArray(arraySize);
@@ -309,11 +309,11 @@ HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest007, TestSize.Level0)
 }
 
 /**
- * @tc.name: DestroyArrayTest008
+ * @tc.name: DestroyRectArrayWithMultipleElements
  * @tc.desc: Test destroying DRAWING_RECT array with multiple elements
  * @tc.type: FUNC
  */
-HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest008, TestSize.Level0)
+HWTEST_F(NdkDestroyArrayTest, DestroyRectArrayWithMultipleElements, TestSize.Level0)
 {
     const size_t arraySize = 5;
     OH_Drawing_Array* rectArray = OH_Drawing_RectCreateArray(arraySize);
@@ -329,11 +329,11 @@ HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest008, TestSize.Level0)
 }
 
 /**
- * @tc.name: DestroyArrayTest009
+ * @tc.name: DestroyLargeRectArray
  * @tc.desc: Test destroying large DRAWING_RECT array
  * @tc.type: FUNC
  */
-HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest009, TestSize.Level0)
+HWTEST_F(NdkDestroyArrayTest, DestroyLargeRectArray, TestSize.Level0)
 {
     const size_t arraySize = 100;
     OH_Drawing_Array* rectArray = OH_Drawing_RectCreateArray(arraySize);
@@ -349,11 +349,11 @@ HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest009, TestSize.Level0)
 }
 
 /**
- * @tc.name: DestroyArrayTest010
+ * @tc.name: DestroyFontDescriptorArrayFromPath
  * @tc.desc: Test destroying FONT_FULL_DESCRIPTOR array from file path
  * @tc.type: FUNC
  */
-HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest010, TestSize.Level0)
+HWTEST_F(NdkDestroyArrayTest, DestroyFontDescriptorArrayFromPath, TestSize.Level0)
 {
     OH_Drawing_Array* fontFullDescArr = OH_Drawing_GetFontFullDescriptorsFromPath(NOTO_SANS_FILE);
     ASSERT_NE(fontFullDescArr, nullptr);
@@ -366,11 +366,11 @@ HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest010, TestSize.Level0)
 }
 
 /**
- * @tc.name: DestroyArrayTest011
+ * @tc.name: DestroyFontDescriptorArrayFromStream
  * @tc.desc: Test destroying FONT_FULL_DESCRIPTOR array from stream
  * @tc.type: FUNC
  */
-HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest011, TestSize.Level0)
+HWTEST_F(NdkDestroyArrayTest, DestroyFontDescriptorArrayFromStream, TestSize.Level0)
 {
     std::vector<char> content;
     EXPECT_TRUE(OHOS::LoadBufferFromFile(SYMBOL_FILE, content));
@@ -388,11 +388,11 @@ HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest011, TestSize.Level0)
 }
 
 /**
- * @tc.name: DestroyArrayTest012
+ * @tc.name: DestroyFontDescriptorArrayFromTtcFile
  * @tc.desc: Test destroying FONT_FULL_DESCRIPTOR array with multiple descriptors (TTC file)
  * @tc.type: FUNC
  */
-HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest012, TestSize.Level0)
+HWTEST_F(NdkDestroyArrayTest, DestroyFontDescriptorArrayFromTtcFile, TestSize.Level0)
 {
     OH_Drawing_Array* fontFullDescArr = OH_Drawing_GetFontFullDescriptorsFromPath(CJK_FILE);
     ASSERT_NE(fontFullDescArr, nullptr);
@@ -406,11 +406,11 @@ HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest012, TestSize.Level0)
 }
 
 /**
- * @tc.name: DestroyArrayTest013
+ * @tc.name: DestroyTextRangeArrayFromLayoutWithConstraints
  * @tc.desc: Test destroying TEXT_RANGE array from LayoutWithConstraints
  * @tc.type: FUNC
  */
-HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest013, TestSize.Level0)
+HWTEST_F(NdkDestroyArrayTest, DestroyTextRangeArrayFromLayoutWithConstraints, TestSize.Level0)
 {
     CreateTypographyHandler();
     AddText(SHORT_TEXT);
@@ -431,11 +431,11 @@ HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest013, TestSize.Level0)
 }
 
 /**
- * @tc.name: DestroyArrayTest014
+ * @tc.name: DestroyTextRangeArrayWithMultipleRanges
  * @tc.desc: Test destroying TEXT_RANGE array with multiple ranges
  * @tc.type: FUNC
  */
-HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest014, TestSize.Level0)
+HWTEST_F(NdkDestroyArrayTest, DestroyTextRangeArrayWithMultipleRanges, TestSize.Level0)
 {
     CreateTypographyHandler();
     AddText(LONG_TEXT);
@@ -455,11 +455,11 @@ HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest014, TestSize.Level0)
 }
 
 /**
- * @tc.name: DestroyArrayTest016
+ * @tc.name: DestroyArrayWithInvalidObjectType
  * @tc.desc: Test destroying array with invalid type (INVALID ObjectType)
  * @tc.type: FUNC
  */
-HWTEST_F(NdkDestroyArrayTest, DestroyArrayTest016, TestSize.Level0)
+HWTEST_F(NdkDestroyArrayTest, DestroyArrayWithInvalidObjectType, TestSize.Level0)
 {
     // Create a manually constructed ObjectArray with INVALID type
     // This simulates what would happen if an array was corrupted

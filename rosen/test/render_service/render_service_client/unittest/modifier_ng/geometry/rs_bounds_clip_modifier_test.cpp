@@ -24,6 +24,7 @@
 
 #include "common/rs_vector4.h"
 #include "modifier_ng/geometry/rs_bounds_clip_modifier.h"
+#include "ui_effect/property/include/rs_ui_shape_base.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -118,5 +119,81 @@ HWTEST_F(RSBoundsClipModifierNGTypeTest, SetAndGetCornerApplyTypeTest, TestSize.
     auto modifier = std::make_shared<ModifierNG::RSBoundsClipModifier>();
     modifier->SetCornerApplyType(RSCornerApplyType::OFFSCREEN);
     EXPECT_EQ(modifier->GetCornerApplyType(), RSCornerApplyType::OFFSCREEN);
+}
+
+/**
+ * @tc.name: SetSDFShapeTest001
+ * @tc.desc: test results of SetSDFShape with nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBoundsClipModifierNGTypeTest, SetSDFShapeTest001, TestSize.Level1)
+{
+    auto modifier = std::make_shared<ModifierNG::RSBoundsClipModifier>();
+    modifier->SetSDFShape(nullptr);
+    EXPECT_EQ(modifier->GetSDFShape(), nullptr);
+}
+
+/**
+ * @tc.name: SetSDFShapeTest002
+ * @tc.desc: test results of SetSDFShape with valid shape
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBoundsClipModifierNGTypeTest, SetSDFShapeTest002, TestSize.Level1)
+{
+    auto modifier = std::make_shared<ModifierNG::RSBoundsClipModifier>();
+    auto shape0 = RSNGShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    auto shape = std::static_pointer_cast<RSNGSDFRRectShape>(shape0);
+    
+    modifier->SetSDFShape(shape);
+    EXPECT_NE(modifier->GetSDFShape(), nullptr);
+    EXPECT_EQ(modifier->GetSDFShape(), shape);
+}
+
+/**
+ * @tc.name: SetSDFShapeTest003
+ * @tc.desc: test results of SetSDFShape with union op shape
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBoundsClipModifierNGTypeTest, SetSDFShapeTest003, TestSize.Level1)
+{
+    auto modifier = std::make_shared<ModifierNG::RSBoundsClipModifier>();
+    auto shape0 = RSNGShapeBase::Create(RSNGEffectType::SDF_UNION_OP_SHAPE);
+    auto shape = std::static_pointer_cast<RSNGSDFUnionOpShape>(shape0);
+    auto shapeX = RSNGShapeBase::Create(RSNGEffectType::SDF_UNION_OP_SHAPE);
+    auto shapeY = RSNGShapeBase::Create(RSNGEffectType::SDF_UNION_OP_SHAPE);
+    
+    shapeX = std::static_pointer_cast<RSNGShapeBase>(shapeX);
+    shapeY = std::static_pointer_cast<RSNGShapeBase>(shapeY);
+    shape->Setter<SDFUnionOpShapeShapeXTag>(shapeX);
+    shape->Setter<SDFUnionOpShapeShapeYTag>(shapeY);
+    
+    modifier->SetSDFShape(shape);
+    EXPECT_NE(modifier->GetSDFShape(), nullptr);
+    EXPECT_EQ(modifier->GetSDFShape(), shape);
+}
+
+/**
+ * @tc.name: SetSDFShapeTest004
+ * @tc.desc: test results of SetSDFShape with smooth union op shape
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSBoundsClipModifierNGTypeTest, SetSDFShapeTest004, TestSize.Level1)
+{
+    auto modifier = std::make_shared<ModifierNG::RSBoundsClipModifier>();
+    auto shape0 = RSNGShapeBase::Create(RSNGEffectType::SDF_SMOOTH_UNION_OP_SHAPE);
+    auto shape = std::static_pointer_cast<RSNGSDFSmoothUnionOpShape>(shape0);
+    auto shapeX = RSNGShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    auto shapeY = RSNGShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    
+    shapeX = std::static_pointer_cast<RSNGShapeBase>(shapeX);
+    shapeY = std::static_pointer_cast<RSNGShapeBase>(shapeY);
+    
+    shape->Setter<SDFSmoothUnionOpShapeSpacingTag>(10.0f);
+    shape->Setter<SDFSmoothUnionOpShapeShapeXTag>(shapeX);
+    shape->Setter<SDFSmoothUnionOpShapeShapeYTag>(shapeY);
+    
+    modifier->SetSDFShape(shape);
+    EXPECT_NE(modifier->GetSDFShape(), nullptr);
+    EXPECT_EQ(modifier->GetSDFShape(), shape);
 }
 } // namespace OHOS::Rosen

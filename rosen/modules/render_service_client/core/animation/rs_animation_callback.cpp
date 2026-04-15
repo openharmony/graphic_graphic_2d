@@ -50,6 +50,18 @@ void AnimationFinishCallback::Execute()
     }
 }
 
+float AnimationFinishCallback::GetEstimatedDuration() const
+{
+    return estimatedDuration_;
+}
+
+void AnimationFinishCallback::SetEstimatedDuration(float duration)
+{
+    if (duration > estimatedDuration_) {
+        estimatedDuration_ = duration;
+    }
+}
+
 void AnimationRepeatCallback::Execute()
 {
     if (callback_ != nullptr) {

@@ -66,7 +66,6 @@ class RSMask;
 class RSPath;
 class RSLinearGradientBlurPara;
 class MotionBlurParam;
-class RSMagnifierParams;
 class EmitterUpdater;
 class ParticleNoiseField;
 class ParticleNoiseFields;
@@ -251,7 +250,6 @@ public:
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSPath>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSLinearGradientBlurPara>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<MotionBlurParam>)
-    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSMagnifierParams>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<EmitterUpdater>)
     DECLARE_FUNCTION_OVERLOAD(std::vector<std::shared_ptr<EmitterUpdater>>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleNoiseField>)

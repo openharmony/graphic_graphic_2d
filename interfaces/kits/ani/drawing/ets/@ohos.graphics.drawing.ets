@@ -484,7 +484,7 @@ namespace drawing {
       if (addr == 0) {
         return null;
       }
-      let module = ESValue.load("@ohos.graphics.drawing");
+      let module = ESValue.load(`@ohos:graphics.drawing`);
       let hasProperty: boolean = module.hasProperty("SamplingOptions");
       if (!hasProperty) {
         return null;
@@ -587,7 +587,7 @@ namespace drawing {
       }
       let pixelMapAddr = Canvas.getPixelMapAddr(canvas);
       let owned = Canvas.getOwned(canvas);
-      let module = ESValue.load("@ohos.graphics.drawing");
+      let module = ESValue.load(`@ohos:graphics.drawing`);
       let hasProperty: boolean = module.hasProperty("Canvas");
       if (!hasProperty) {
         return null;
@@ -1230,7 +1230,7 @@ namespace drawing {
      * @since 20
      */
     native concatMatrix(matrix: Matrix): void;
-  
+
     /**
      * Clips a region on the canvas.
      * @param { Region } region - Region object, which indicates the range to clip.
@@ -1306,7 +1306,7 @@ namespace drawing {
      * @since 20
      */
     native quickRejectRect(rect: common2D.Rect): boolean;
-    
+
     /**
      * Draws a single character with font feature.
      * @param { string } text - A string containing only a single character.
@@ -1407,7 +1407,7 @@ namespace drawing {
       if (addr == 0) {
         return null;
       }
-      let module = ESValue.load("@ohos.graphics.drawing");
+      let module = ESValue.load(`@ohos:graphics.drawing`);
       let hasProperty: boolean = module.hasProperty("ColorFilter");
       if (!hasProperty) {
         return null;
@@ -1574,7 +1574,7 @@ namespace drawing {
       if (addr == 0) {
         return null;
       }
-      let module = ESValue.load("@ohos.graphics.drawing");
+      let module = ESValue.load(`@ohos:graphics.drawing`);
       let hasProperty: boolean = module.hasProperty("Pen");
       if (!hasProperty) {
         return null;
@@ -1955,7 +1955,7 @@ namespace drawing {
       if (addr == 0) {
         return null;
       }
-      let module = ESValue.load("@ohos.graphics.drawing");
+      let module = ESValue.load(`@ohos:graphics.drawing`);
       let hasProperty: boolean = module.hasProperty("Brush");
       if (!hasProperty) {
         return null;
@@ -2209,7 +2209,7 @@ namespace drawing {
       if (addr == 0) {
         return null;
       }
-      let module = ESValue.load("@ohos.graphics.drawing");
+      let module = ESValue.load(`@ohos:graphics.drawing`);
       let hasProperty: boolean = module.hasProperty("Typeface");
       if (!hasProperty) {
         return null;
@@ -2421,7 +2421,7 @@ namespace drawing {
       if (addr == 0) {
         return null;
       }
-      let module = ESValue.load("@ohos.graphics.drawing");
+      let module = ESValue.load(`@ohos:graphics.drawing`);
       let hasProperty: boolean = module.hasProperty("Font");
       if (!hasProperty) {
         return null;
@@ -3135,7 +3135,7 @@ namespace drawing {
       if (addr == 0) {
         return null;
       }
-      let module = ESValue.load("@ohos.graphics.drawing");
+      let module = ESValue.load(`@ohos:graphics.drawing`);
       let hasProperty: boolean = module.hasProperty("Lattice");
       if (!hasProperty) {
         return null;
@@ -3261,7 +3261,7 @@ namespace drawing {
       if (addr == 0) {
         return null;
       }
-      let module = ESValue.load("@ohos.graphics.drawing");
+      let module = ESValue.load(`@ohos:graphics.drawing`);
       let hasProperty: boolean = module.hasProperty("Matrix");
       if (!hasProperty) {
         return null;
@@ -4273,7 +4273,7 @@ namespace drawing {
       if (addr == 0) {
         return null;
       }
-      let module = ESValue.load("@ohos.graphics.drawing");
+      let module = ESValue.load(`@ohos:graphics.drawing`);
       let hasProperty: boolean = module.hasProperty("Path");
       if (!hasProperty) {
         return null;
@@ -5463,7 +5463,7 @@ namespace drawing {
       if (addr == 0) {
         return null;
       }
-      let module = ESValue.load("@ohos.graphics.drawing");
+      let module = ESValue.load(`@ohos:graphics.drawing`);
       let hasProperty: boolean = module.hasProperty("Region");
       if (!hasProperty) {
         return null;
@@ -5759,7 +5759,7 @@ namespace drawing {
       if (addr == 0) {
         return null;
       }
-      let module = ESValue.load("@ohos.graphics.drawing");
+      let module = ESValue.load(`@ohos:graphics.drawing`);
       let hasProperty: boolean = module.hasProperty("RoundRect");
       if (!hasProperty) {
         return null;

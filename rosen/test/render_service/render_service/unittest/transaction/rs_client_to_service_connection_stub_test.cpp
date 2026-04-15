@@ -30,6 +30,8 @@
 #include "ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_stub.h"
 #include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback_ipc_interface_code.h"
 #include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback.h"
+#include "ipc_callbacks/rs_iexposed_event_callback.h"
+#include "ipc_callbacks/rs_exposed_event_callback_stub.h"
 #include "ipc_callbacks/screen_change_callback_stub.h"
 #include "ipc_callbacks/brightness_info_change_callback_stub.h"
 #include "ipc_skeleton.h"
@@ -398,6 +400,12 @@ public:
         ScreenChangeReason reason, sptr<IRemoteObject> obj = nullptr) override {};
 };
 
+class RSExposedEventCallbackStubMock : public RSExposedEventCallbackStub {
+public:
+    RSExposedEventCallbackStubMock() = default;
+    virtual ~RSExposedEventCallbackStubMock() = default;
+    void OnDisplayEvent(const std::shared_ptr<RSExposedEventDataBase> data) override {};
+};
 
 class RSFrameRateLinkerExpectedFpsUpdateCallbackStubMock : public RSFrameRateLinkerExpectedFpsUpdateCallbackStub {
 public:
@@ -892,6 +900,103 @@ HWTEST_F(RSClientToServiceConnectionStubTest, TestRSRenderServiceConnectionStub0
     data.WriteRemoteObject(callback->AsObject());
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, NO_ERROR);
+}
+
+/**
+ * @tc.name: RegisterExposedEventCallbackTest001
+ * @tc.desc: Test RegisterExposedEventCallback with valid callback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, RegisterExposedEventCallbackTest001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::ON_EXPOSED_EVENT);
+    data.WriteUint32(static_cast<uint32_t>(RSExposedEventType::EXT_SCREEN_UNSUPPORT));
+    data.WriteBool(true);
+    sptr<RSExposedEventCallbackStubMock> callback = new RSExposedEventCallbackStubMock();
+    data.WriteRemoteObject(callback->AsObject());
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, NO_ERROR);
+}
+
+/**
+ * @tc.name: RegisterExposedEventCallbackTest002
+ * @tc.desc: Test RegisterExposedEventCallback with nullptr callback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, RegisterExposedEventCallbackTest002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::ON_EXPOSED_EVENT);
+    data.WriteUint32(static_cast<uint32_t>(RSExposedEventType::EXT_SCREEN_UNSUPPORT));
+    data.WriteBool(false);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, NO_ERROR);
+}
+
+/**
+ * @tc.name: RegisterExposedEventCallbackTest003
+ * @tc.desc: Test RegisterExposedEventCallback with ReadBool failed
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, RegisterExposedEventCallbackTest003, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::ON_EXPOSED_EVENT);
+    data.WriteUint32(static_cast<uint32_t>(RSExposedEventType::EXT_SCREEN_UNSUPPORT));
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: RegisterExposedEventCallbackTest004
+ * @tc.desc: Test RegisterExposedEventCallback with invalid reply
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, RegisterExposedEventCallbackTest004, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    reply.writable_ = false;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::ON_EXPOSED_EVENT);
+    data.WriteUint32(static_cast<uint32_t>(RSExposedEventType::EXT_SCREEN_UNSUPPORT));
+    data.WriteBool(true);
+    sptr<RSExposedEventCallbackStubMock> callback = new RSExposedEventCallbackStubMock();
+    data.WriteRemoteObject(callback->AsObject());
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_REPLY);
+}
+
+/**
+ * @tc.name: RegisterExposedEventCallbackTest005
+ * @tc.desc: Test RegisterExposedEventCallback with ReadUint32 failed
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, RegisterExposedEventCallbackTest005, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::ON_EXPOSED_EVENT);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
 }
 
 /**
@@ -5138,5 +5243,72 @@ HWTEST_F(RSClientToServiceConnectionStubTest, ReportGameStateTest003, TestSize.L
     GameStateData data = { 0, 0, 0, 0, "bundleName" };
     clientToServiceConnection->ReportGameStateData(data);
     clientToServiceConnection->renderServiceAgent_->renderService_.rsGameFrameHandler_ = temp;
+}
+
+/**
+ * @tc.name: RegisterExposedEventCallbackDirectTest001
+ * @tc.desc: Test RegisterExposedEventCallback directly with nullptr screenManagerAgent
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, RegisterExposedEventCallbackDirectTest001, TestSize.Level1)
+{
+    auto connection = sptr<RSClientToServiceConnection>::MakeSptr(0, renderServiceAgent_,
+        renderProcessManagerAgent_, screenManagerAgent_, nullptr,
+        renderService_.vsyncManager_->GetVsyncManagerAgent());
+    ASSERT_NE(connection, nullptr);
+
+    auto screenManagerAgent = connection->screenManagerAgent_;
+    ASSERT_NE(screenManagerAgent, nullptr);
+
+    connection->screenManagerAgent_ = nullptr;
+    sptr<RSIExposedEventCallback> callback = new RSExposedEventCallbackStubMock();
+    RSExposedEventType type = RSExposedEventType::EXT_SCREEN_UNSUPPORT;
+    int32_t result = connection->RegisterExposedEventCallback(type, callback);
+    EXPECT_EQ(result, StatusCode::SCREEN_NOT_FOUND);
+
+    connection->screenManagerAgent_ = screenManagerAgent;
+}
+
+/**
+ * @tc.name: RegisterExposedEventCallbackDirectTest002
+ * @tc.desc: Test RegisterExposedEventCallback directly with valid callback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, RegisterExposedEventCallbackDirectTest002, TestSize.Level1)
+{
+    auto connection = sptr<RSClientToServiceConnection>::MakeSptr(0, renderServiceAgent_,
+        renderProcessManagerAgent_, screenManagerAgent_, nullptr,
+        renderService_.vsyncManager_->GetVsyncManagerAgent());
+    ASSERT_NE(connection, nullptr);
+
+    ASSERT_NE(connection->screenManagerAgent_, nullptr);
+
+    sptr<RSIExposedEventCallback> callback = new RSExposedEventCallbackStubMock();
+    RSExposedEventType type = RSExposedEventType::EXT_SCREEN_UNSUPPORT;
+    int32_t result = connection->RegisterExposedEventCallback(type, callback);
+    EXPECT_EQ(result, StatusCode::SUCCESS);
+}
+
+/**
+ * @tc.name: RegisterExposedEventCallbackDirectTest003
+ * @tc.desc: Test RegisterExposedEventCallback directly with nullptr callback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, RegisterExposedEventCallbackDirectTest003, TestSize.Level1)
+{
+    auto connection = sptr<RSClientToServiceConnection>::MakeSptr(0, renderServiceAgent_,
+        renderProcessManagerAgent_, screenManagerAgent_, nullptr,
+        renderService_.vsyncManager_->GetVsyncManagerAgent());
+    ASSERT_NE(connection, nullptr);
+
+    ASSERT_NE(connection->screenManagerAgent_, nullptr);
+
+    sptr<RSIExposedEventCallback> callback = nullptr;
+    RSExposedEventType type = RSExposedEventType::EXT_SCREEN_UNSUPPORT;
+    int32_t result = connection->RegisterExposedEventCallback(type, callback);
+    EXPECT_EQ(result, StatusCode::SUCCESS);
 }
 } // namespace OHOS::Rosen

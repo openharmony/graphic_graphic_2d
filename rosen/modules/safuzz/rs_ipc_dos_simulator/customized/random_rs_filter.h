@@ -37,7 +37,6 @@ private:
     static std::shared_ptr<RSFilter> GetRandomHDRUIBrightnessFilter();
     static std::shared_ptr<RSFilter> GetRandomColorfulShadowFilter();
     static std::shared_ptr<RSFilter> GetRandomAttractionEffectFilter();
-    static std::shared_ptr<RSFilter> GetRandomMagnifierShaderFilter();
     static std::shared_ptr<RSFilter> GetRandomWaterRippleShaderFilter();
     static std::shared_ptr<RSFilter> GetRandomFlyOutShaderFilter();
     static std::shared_ptr<RSFilter> GetRandomDistortionFilter();

@@ -46,6 +46,7 @@
 #include "ipc_callbacks/rs_transaction_data_callback_stub.h"
 #include "ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_stub.h"
 #include "ipc_callbacks/rs_uiextension_callback_stub.h"
+#include "ipc_callbacks/rs_exposed_event_callback_stub.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "render/rs_typeface_cache.h"
@@ -1379,6 +1380,42 @@ int32_t RSRenderServiceClient::RegisterFirstFrameCommitCallback(
 
     ROSEN_LOGD("RSRenderServiceClient::RegisterFirstFrameCommitCallback called");
     return clientToService->RegisterFirstFrameCommitCallback(cb);
+}
+
+class CustomExposedEventCallback : public RSExposedEventCallbackStub
+{
+public:
+    explicit CustomExposedEventCallback(const RSExposedEventCallback& callback) : cb_(callback) {}
+    ~CustomExposedEventCallback() override {};
+
+    void OnDisplayEvent(const std::shared_ptr<RSExposedEventDataBase> data) override
+    {
+        ROSEN_LOGI("CustomExposedEventCallback::OnDisplayEvent called, type: %{public}u",
+            static_cast<uint32_t>(data->type_));
+        if (cb_ != nullptr) {
+            cb_(data);
+        }
+    }
+private:
+    RSExposedEventCallback cb_;
+};
+
+int32_t RSRenderServiceClient::RegisterExposedEventCallback(
+    const RSExposedEventType type, const RSExposedEventCallback& callback)
+{
+    sptr<CustomExposedEventCallback> cb = nullptr;
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
+    if (clientToService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::RegisterExposedEventCallback clientToService == nullptr!");
+        return RENDER_SERVICE_NULL;
+    }
+
+    if (callback) {
+        cb = new CustomExposedEventCallback(callback);
+    }
+
+    ROSEN_LOGD("RSRenderServiceClient::RegisterExposedEventCallback called");
+    return clientToService->RegisterExposedEventCallback(type, cb);
 }
 
 class CustomFrameRateLinkerExpectedFpsUpdateCallback : public RSFrameRateLinkerExpectedFpsUpdateCallbackStub

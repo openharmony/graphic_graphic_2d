@@ -130,11 +130,11 @@ bool CheckEllipsisRunIndex(skia::textlayout::ParagraphImpl* paragraph, size_t ru
 } // namespace
 
 /*
- * @tc.name: TypographyTest103
+ * @tc.name: TypographyArcTextOffset
  * @tc.desc: test arc text offset
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest104, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, TypographyArcTextOffset, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
@@ -175,11 +175,11 @@ HWTEST_F(NdkTypographyTest, TypographyTest104, TestSize.Level0)
 }
 
 /*
- * @tc.name: TypographyTest104
+ * @tc.name: TypographyArcTextDrawing
  * @tc.desc: test arc text drawing
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest103, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, TypographyArcTextDrawing, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
@@ -218,12 +218,12 @@ HWTEST_F(NdkTypographyTest, TypographyTest103, TestSize.Level0)
 }
 
 /*
- * @tc.name: TypographyHandlerPushTextStyleTest001
+ * @tc.name: TypographyHandlerPushTextStyleEffectiveValue
  * @tc.desc: test for the actual effective value of textstyle in each of the three scenarios.
  * @tc.type: FUNC
  * @tc.require: IALK43
  */
-HWTEST_F(NdkTypographyTest, TypographyHandlerPushTextStyleTest001, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, TypographyHandlerPushTextStyleEffectiveValue, TestSize.Level0)
 {
     // Use interfaces such as OH_Drawing_SetTypographyTextFontSize to test the fallback textstyle.
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
@@ -280,12 +280,12 @@ HWTEST_F(NdkTypographyTest, TypographyHandlerPushTextStyleTest001, TestSize.Leve
 }
 
 /*
- * @tc.name: TypographyHandlerPushTextStyleTest002
+ * @tc.name: TypographyHandlerPushTextStyleUyghurTibetanHeight
  * @tc.desc: test the height of Tibetan and Uighur in push textstyle scenarios.
  * @tc.type: FUNC
  * @tc.require: IALK43
  */
-HWTEST_F(NdkTypographyTest, TypographyHandlerPushTextStyleTest002, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, TypographyHandlerPushTextStyleUyghurTibetanHeight, TestSize.Level0)
 {
     // After pushing a new text style, the default text style becomes ineffective.
     OH_Drawing_TypographyStyle* typoStyle3 = OH_Drawing_CreateTypographyStyle();
@@ -325,11 +325,11 @@ HWTEST_F(NdkTypographyTest, TypographyHandlerPushTextStyleTest002, TestSize.Leve
 }
 
 /*
- * @tc.name: TypographyBadgeTypeTest001
+ * @tc.name: TypographyBadgeTypeSuperscript
  * @tc.desc: Test for text's super script
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyBadgeTypeTest001, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, TypographyBadgeTypeSuperscript, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     ASSERT_NE(typoStyle, nullptr);
@@ -378,11 +378,11 @@ HWTEST_F(NdkTypographyTest, TypographyBadgeTypeTest001, TestSize.Level0)
 }
 
 /*
- * @tc.name: TypographyBadgeTypeTest002
+ * @tc.name: TypographyBadgeTypeSubscript
  * @tc.desc: Test for text's sub script
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyBadgeTypeTest002, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, TypographyBadgeTypeSubscript, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     ASSERT_NE(typoStyle, nullptr);
@@ -430,32 +430,32 @@ HWTEST_F(NdkTypographyTest, TypographyBadgeTypeTest002, TestSize.Level0)
 }
 
 /*
- * @tc.name: TypographyBadgeTypeTest003
+ * @tc.name: TypographyBadgeTypeNullCheck
  * @tc.desc: Test for text's badge valid params
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyBadgeTypeTest003, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, TypographyBadgeTypeNullCheck, TestSize.Level0)
 {
     EXPECT_NO_FATAL_FAILURE(OH_Drawing_SetTextStyleBadgeType(nullptr, OH_Drawing_TextBadgeType::TEXT_BADGE_NONE));
 }
 
 /*
- * @tc.name: TypographyVerticalTest001
+ * @tc.name: TypographyVerticalAlignNullCheck
  * @tc.desc: Test for vertical align valid params
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyVerticalTest001, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, TypographyVerticalAlignNullCheck, TestSize.Level0)
 {
     EXPECT_NO_FATAL_FAILURE(OH_Drawing_SetTypographyVerticalAlignment(
         nullptr, OH_Drawing_TextVerticalAlignment::TEXT_VERTICAL_ALIGNMENT_BOTTOM));
 }
 
 /*
- * @tc.name: TypographyVerticalTest002
+ * @tc.name: TypographyVerticalAlignMulti
  * @tc.desc: Test for vertical align
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyVerticalTest002, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, TypographyVerticalAlignMulti, TestSize.Level0)
 {
     OH_Drawing_Typography* typographyOne =
         PrepareParagraphForVerticalAlign(OH_Drawing_TextVerticalAlignment::TEXT_VERTICAL_ALIGNMENT_BASELINE, false);
@@ -491,11 +491,11 @@ HWTEST_F(NdkTypographyTest, TypographyVerticalTest002, TestSize.Level0)
 }
 
 /*
- * @tc.name: OH_Drawing_TypographySplitRunsEllipsisTest001
- * @tc.desc: test for thai language triggering ellipsis and split runs scenarios
+ * @tc.name: TypographySplitRunsEllipsisAssameseNarrow
+ * @tc.desc: test for assamese language triggering ellipsis and split runs scenarios with narrow layout
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, OH_Drawing_TypographySplitRunsEllipsisTest001, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, TypographySplitRunsEllipsisAssameseNarrow, TestSize.Level0)
 {
     const char* text = "অসমীয়া ভাষা ভাৰতৰ উত্তৰ-পূৱাঞ্চলৰ অসম ৰাজ্যৰ মুখ্য ভাষা। ইয়াৰ \
         সমৃদ্ধ সাহিত্যিক পৰম্পৰা আৰু সাংস্কৃতিক ঐতিহ্য আছে।";
@@ -511,11 +511,11 @@ HWTEST_F(NdkTypographyTest, OH_Drawing_TypographySplitRunsEllipsisTest001, TestS
 }
 
 /*
- * @tc.name: OH_Drawing_TypographySplitRunsEllipsisTest002
- * @tc.desc: test for thai language triggering ellipsis and split runs scenarios but layout width is 64
+ * @tc.name: TypographySplitRunsEllipsisAssameseVeryNarrow
+ * @tc.desc: test for assamese language triggering ellipsis and split runs scenarios with very narrow layout
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, OH_Drawing_TypographySplitRunsEllipsisTest002, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, TypographySplitRunsEllipsisAssameseVeryNarrow, TestSize.Level0)
 {
     const char* text = "অসমীয়া ভাষা ভাৰতৰ উত্তৰ-পূৱাঞ্চলৰ অসম ৰাজ্যৰ মুখ্য ভাষা। ইয়াৰ \
         সমৃদ্ধ সাহিত্যিক পৰম্পৰা আৰু সাংস্কৃতিক ঐতিহ্য আছে।";
@@ -532,11 +532,11 @@ HWTEST_F(NdkTypographyTest, OH_Drawing_TypographySplitRunsEllipsisTest002, TestS
 }
 
 /*
- * @tc.name: OH_Drawing_TypographySplitRunsEllipsisTest003
+ * @tc.name: TypographySplitRunsEllipsisUyghur
  * @tc.desc: test for uyghur language triggering ellipsis and split runs scenarios
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, OH_Drawing_TypographySplitRunsEllipsisTest003, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, TypographySplitRunsEllipsisUyghur, TestSize.Level0)
 {
     const char* text =
         " ئۇيغۇرچە، ياكى ئۇيغۇر تىلى، ئاساسلىقى شىنجاڭ ئۇيغۇر ئاپتونوم رايونى ۋە ئەتراپىدىكى رايونلاردا ئى\
@@ -554,11 +554,11 @@ HWTEST_F(NdkTypographyTest, OH_Drawing_TypographySplitRunsEllipsisTest003, TestS
 }
 
 /*
- * @tc.name: OH_Drawing_TypographySplitRunsEllipsisTest004
+ * @tc.name: TypographySplitRunsEllipsisChinese
  * @tc.desc: test for chinese language triggering ellipsis and split runs scenarios
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, OH_Drawing_TypographySplitRunsEllipsisTest004, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, TypographySplitRunsEllipsisChinese, TestSize.Level0)
 {
     const char* text = "比如单个字母出现的时候，比如「嫌疑者X的牺牲」中，这个X前后便有1/8EM的空格，因为单个字母太窄了";
     // Test for layout width 175

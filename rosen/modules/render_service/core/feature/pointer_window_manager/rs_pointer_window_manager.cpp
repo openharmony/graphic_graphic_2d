@@ -61,7 +61,7 @@ void RSPointerWindowManager::UpdatePointerDirtyToGlobalDirty(std::shared_ptr<RSS
 void RSPointerWindowManager::UpdatePointerInfo()
 {
 #ifdef RS_ENABLE_GPU
-    int64_t rsNodeId = 0;
+    NodeId rsNodeId = 0;
     BoundParam boundTemp = {0.0f, 0.0f, 0.0f, 0.0f};
     {
         std::lock_guard<std::mutex> lock(mtx_);
@@ -108,7 +108,7 @@ void RSPointerWindowManager::UpdatePointerInfo()
 #endif
 }
 
-void RSPointerWindowManager::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+void RSPointerWindowManager::SetHwcNodeBounds(NodeId rsNodeId, float positionX, float positionY,
     float positionZ, float positionW)
 {
 #ifdef RS_ENABLE_GPU

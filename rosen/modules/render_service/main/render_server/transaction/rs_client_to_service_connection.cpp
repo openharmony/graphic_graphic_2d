@@ -1512,6 +1512,17 @@ int32_t RSClientToServiceConnection::RegisterFirstFrameCommitCallback(
     return StatusCode::SUCCESS;
 }
 
+int32_t RSClientToServiceConnection::RegisterExposedEventCallback(
+    const RSExposedEventType type, const sptr<RSIExposedEventCallback> callback)
+{
+    if (screenManagerAgent_ == nullptr) {
+        RS_LOGE("%{public}s: screenManagerAgent_ is nullptr", __func__);
+        return SCREEN_NOT_FOUND;
+    }
+
+    return screenManagerAgent_->SetExposedEventCallback(type, callback);
+}
+
 int32_t RSClientToServiceConnection::RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
     sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback)
 {

@@ -204,10 +204,16 @@ ErrCode RSClientToServiceConnectionProxy::CreatePixelMapFromSurface(sptr<Surface
         return ERR_INVALID_VALUE;
     }
 
-    if (reply.ReadBool()) {
+    bool result{false};
+    if (!reply.ReadBool(result)) {
+        ROSEN_LOGE("CreatePixelMapFromSurface: Invalid data format.");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (result) {
         pixelMap.reset(Media::PixelMap::Unmarshalling(reply));
     } else {
-        ROSEN_LOGE("CreatePixelMapFromSurface: ReadBool err.");
+        ROSEN_LOGE("CreatePixelMapFromSurface: Read result false.");
     }
     return ERR_OK;
 }
@@ -3264,7 +3270,60 @@ int32_t RSClientToServiceConnectionProxy::RegisterFirstFrameCommitCallback(
         ROSEN_LOGE("RSClientToServiceConnectionProxy::RegisterFirstFrameCommitCallback: Send Request err.");
         return RS_CONNECTION_ERROR;
     }
-    int32_t result = reply.ReadInt32();
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::RegisterFirstFrameCommitCallback Read result failed");
+        return READ_PARCEL_ERR;
+    }
+    return result;
+}
+
+int32_t RSClientToServiceConnectionProxy::RegisterExposedEventCallback(
+    const RSExposedEventType type, const sptr<RSIExposedEventCallback> callback)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RegisterExposedEventCallback: WriteInterfaceToken GetDescriptor err.");
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+
+    // write type
+    if (!data.WriteUint32(static_cast<uint32_t>(type))) {
+        ROSEN_LOGE("RegisterExposedEventCallback: WriteUint32 type err.");
+        return WRITE_PARCEL_ERR;
+    }
+
+    // write callback
+    if (callback) {
+        if (!data.WriteBool(true)) {
+            ROSEN_LOGE("RegisterExposedEventCallback: WriteBool [true] err.");
+            return WRITE_PARCEL_ERR;
+        }
+        if (!data.WriteRemoteObject(callback->AsObject())) {
+            ROSEN_LOGE("RegisterExposedEventCallback: WriteRemoteObject callback->AsObject() err.");
+            return WRITE_PARCEL_ERR;
+        }
+    } else {
+        if (!data.WriteBool(false)) {
+            ROSEN_LOGE("RegisterExposedEventCallback: WriteBool [false] err.");
+            return WRITE_PARCEL_ERR;
+        }
+    }
+
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::ON_EXPOSED_EVENT);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::RegisterExposedEventCallback: Send Request err.");
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::RegisterExposedEventCallback Read result failed");
+        return READ_PARCEL_ERR;
+    }
     return result;
 }
 

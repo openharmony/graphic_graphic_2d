@@ -38,31 +38,9 @@ void RSComposerJankStatsTest::SetUpTestCase() {}
 
 void RSComposerJankStatsTest::TearDownTestCase() {}
 
-void RSComposerJankStatsTest::SetUp()
-{
-    auto& instance = RSComposerJankStats::GetInstance();
-    instance.lastTimestamp_ = 0;
-    instance.refreshRates_.clear();
-}
+void RSComposerJankStatsTest::SetUp() {}
 
 void RSComposerJankStatsTest::TearDown() {}
-
-/**
- * @tc.name: GetInstance001
- * @tc.desc: Verify GetInstance returns valid singleton and same instance on multiple calls
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSComposerJankStatsTest, GetInstance001, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "RSComposerJankStatsTest-begin GetInstance001";
-    auto& instance = RSComposerJankStats::GetInstance();
-    EXPECT_NE(&instance, nullptr);
-
-    auto& instance2 = RSComposerJankStats::GetInstance();
-    EXPECT_EQ(&instance, &instance2);
-    GTEST_LOG_(INFO) << "RSComposerJankStatsTest-end GetInstance001";
-}
 
 /**
  * @tc.name: CalculateJankInfo001
@@ -73,7 +51,7 @@ HWTEST_F(RSComposerJankStatsTest, GetInstance001, TestSize.Level1)
 HWTEST_F(RSComposerJankStatsTest, CalculateJankInfo001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSComposerJankStatsTest-begin CalculateJankInfo001";
-    auto& instance = RSComposerJankStats::GetInstance();
+    RSComposerJankStats instance;
     EXPECT_EQ(instance.lastTimestamp_, 0);
 
     int64_t timestamp = 1000000000;
@@ -93,7 +71,7 @@ HWTEST_F(RSComposerJankStatsTest, CalculateJankInfo001, TestSize.Level1)
 HWTEST_F(RSComposerJankStatsTest, CalculateJankInfo002, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSComposerJankStatsTest-begin CalculateJankInfo002";
-    auto& instance = RSComposerJankStats::GetInstance();
+    RSComposerJankStats instance;
     instance.lastTimestamp_ = 2000000000;
 
     // timeDiff == 0
@@ -117,7 +95,7 @@ HWTEST_F(RSComposerJankStatsTest, CalculateJankInfo002, TestSize.Level1)
 HWTEST_F(RSComposerJankStatsTest, CalculateJankInfo003, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSComposerJankStatsTest-begin CalculateJankInfo003";
-    auto& instance = RSComposerJankStats::GetInstance();
+    RSComposerJankStats instance;
     instance.lastTimestamp_ = 1000000000;
 
     int64_t timestamp = 1000000000 + 16666667;
@@ -137,7 +115,7 @@ HWTEST_F(RSComposerJankStatsTest, CalculateJankInfo003, TestSize.Level1)
 HWTEST_F(RSComposerJankStatsTest, CalculateJankInfo004, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSComposerJankStatsTest-begin CalculateJankInfo004";
-    auto& instance = RSComposerJankStats::GetInstance();
+    RSComposerJankStats instance;
     instance.lastTimestamp_ = 1000000000;
     instance.refreshRates_ = {60, 60, 60, 60, 60, 60, 60, 60};
 
@@ -158,7 +136,7 @@ HWTEST_F(RSComposerJankStatsTest, CalculateJankInfo004, TestSize.Level1)
 HWTEST_F(RSComposerJankStatsTest, CalculateJankInfo005, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSComposerJankStatsTest-begin CalculateJankInfo005";
-    auto& instance = RSComposerJankStats::GetInstance();
+    RSComposerJankStats instance;
     instance.lastTimestamp_ = 1000000000;
     instance.refreshRates_ = {60, 60, 60, 60, 60, 60, 60, 60, 60};
 
@@ -181,7 +159,7 @@ HWTEST_F(RSComposerJankStatsTest, CalculateJankInfo005, TestSize.Level1)
 HWTEST_F(RSComposerJankStatsTest, CalculateJankInfo006, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSComposerJankStatsTest-begin CalculateJankInfo006";
-    auto& instance = RSComposerJankStats::GetInstance();
+    RSComposerJankStats instance;
     instance.lastTimestamp_ = 1000000000;
 
     // timeDiff = 16666667 → value = 1e9/16666667 ≈ 59.999... → round(59.999/5)*5 = 60
@@ -202,7 +180,7 @@ HWTEST_F(RSComposerJankStatsTest, CalculateJankInfo006, TestSize.Level1)
 HWTEST_F(RSComposerJankStatsTest, CheckRefreshRate001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSComposerJankStatsTest-begin CheckRefreshRate001";
-    auto& instance = RSComposerJankStats::GetInstance();
+    RSComposerJankStats instance;
     instance.refreshRates_ = {60, 60, 60, 60, 60, 60, 60, 60, 60};
 
     instance.CheckRefreshRate();
@@ -219,7 +197,7 @@ HWTEST_F(RSComposerJankStatsTest, CheckRefreshRate001, TestSize.Level1)
 HWTEST_F(RSComposerJankStatsTest, CheckRefreshRate002, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSComposerJankStatsTest-begin CheckRefreshRate002";
-    auto& instance = RSComposerJankStats::GetInstance();
+    RSComposerJankStats instance;
     instance.refreshRates_ = {30, 30, 30, 30, 30, 30, 30, 30, 30};
 
     instance.CheckRefreshRate();
@@ -237,7 +215,7 @@ HWTEST_F(RSComposerJankStatsTest, CheckRefreshRate002, TestSize.Level1)
 HWTEST_F(RSComposerJankStatsTest, CheckRefreshRate003, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSComposerJankStatsTest-begin CheckRefreshRate003";
-    auto& instance = RSComposerJankStats::GetInstance();
+    RSComposerJankStats instance;
     instance.refreshRates_ = {10, 20, 30, 40, 50, 60, 70, 80, 90};
 
     instance.CheckRefreshRate();
@@ -256,7 +234,7 @@ HWTEST_F(RSComposerJankStatsTest, CheckRefreshRate003, TestSize.Level1)
 HWTEST_F(RSComposerJankStatsTest, CheckRefreshRate004, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSComposerJankStatsTest-begin CheckRefreshRate004";
-    auto& instance = RSComposerJankStats::GetInstance();
+    RSComposerJankStats instance;
     instance.refreshRates_ = {90, 80, 70, 60, 50, 40, 30, 20, 10};
 
     instance.CheckRefreshRate();
@@ -276,7 +254,7 @@ HWTEST_F(RSComposerJankStatsTest, CheckRefreshRate004, TestSize.Level1)
 HWTEST_F(RSComposerJankStatsTest, CheckRefreshRate005, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSComposerJankStatsTest-begin CheckRefreshRate005";
-    auto& instance = RSComposerJankStats::GetInstance();
+    RSComposerJankStats instance;
     // rates[4]=75 >= rates[3]=70 && rates[4]=75 >= rates[5]=60 → middle peak true
     instance.refreshRates_ = {60, 55, 65, 70, 75, 60, 50, 45, 40};
 
@@ -297,7 +275,7 @@ HWTEST_F(RSComposerJankStatsTest, CheckRefreshRate005, TestSize.Level1)
 HWTEST_F(RSComposerJankStatsTest, CheckRefreshRate006, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSComposerJankStatsTest-begin CheckRefreshRate006";
-    auto& instance = RSComposerJankStats::GetInstance();
+    RSComposerJankStats instance;
     // rates[4]=50 < rates[3]=70 → middle peak condition false
     instance.refreshRates_ = {90, 60, 80, 70, 50, 60, 65, 55, 70};
 
@@ -319,7 +297,7 @@ HWTEST_F(RSComposerJankStatsTest, CheckRefreshRate006, TestSize.Level1)
 HWTEST_F(RSComposerJankStatsTest, GetRate001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSComposerJankStatsTest-begin GetRate001";
-    auto& instance = RSComposerJankStats::GetInstance();
+    RSComposerJankStats instance;
     instance.refreshRates_ = {10, 20, 30, 40, 50, 60, 70, 80, 90};
 
     EXPECT_EQ(instance.GetRate(0), 10);
@@ -338,7 +316,7 @@ HWTEST_F(RSComposerJankStatsTest, GetRate001, TestSize.Level1)
 HWTEST_F(RSComposerJankStatsTest, IsAllEqual001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSComposerJankStatsTest-begin IsAllEqual001";
-    auto& instance = RSComposerJankStats::GetInstance();
+    RSComposerJankStats instance;
     instance.refreshRates_ = {60, 60, 60, 60, 60, 60, 60, 60, 60};
     EXPECT_TRUE(instance.IsAllEqual());
     GTEST_LOG_(INFO) << "RSComposerJankStatsTest-end IsAllEqual001";
@@ -353,7 +331,7 @@ HWTEST_F(RSComposerJankStatsTest, IsAllEqual001, TestSize.Level1)
 HWTEST_F(RSComposerJankStatsTest, IsAllEqual002, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSComposerJankStatsTest-begin IsAllEqual002";
-    auto& instance = RSComposerJankStats::GetInstance();
+    RSComposerJankStats instance;
     instance.refreshRates_ = {60, 60, 60, 60, 61, 60, 60, 60, 60};
     EXPECT_FALSE(instance.IsAllEqual());
     GTEST_LOG_(INFO) << "RSComposerJankStatsTest-end IsAllEqual002";
@@ -368,7 +346,7 @@ HWTEST_F(RSComposerJankStatsTest, IsAllEqual002, TestSize.Level1)
 HWTEST_F(RSComposerJankStatsTest, IsAllLessThan60Hz001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSComposerJankStatsTest-begin IsAllLessThan60Hz001";
-    auto& instance = RSComposerJankStats::GetInstance();
+    RSComposerJankStats instance;
     instance.refreshRates_ = {30, 30, 30, 30, 30, 30, 30, 30, 30};
     EXPECT_TRUE(instance.IsAllLessThan60Hz());
     GTEST_LOG_(INFO) << "RSComposerJankStatsTest-end IsAllLessThan60Hz001";
@@ -383,7 +361,7 @@ HWTEST_F(RSComposerJankStatsTest, IsAllLessThan60Hz001, TestSize.Level1)
 HWTEST_F(RSComposerJankStatsTest, IsAllLessThan60Hz002, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSComposerJankStatsTest-begin IsAllLessThan60Hz002";
-    auto& instance = RSComposerJankStats::GetInstance();
+    RSComposerJankStats instance;
     instance.refreshRates_ = {30, 30, 30, 60, 30, 30, 30, 30, 30};
     EXPECT_FALSE(instance.IsAllLessThan60Hz());
     GTEST_LOG_(INFO) << "RSComposerJankStatsTest-end IsAllLessThan60Hz002";
@@ -398,7 +376,7 @@ HWTEST_F(RSComposerJankStatsTest, IsAllLessThan60Hz002, TestSize.Level1)
 HWTEST_F(RSComposerJankStatsTest, IsStrictlyIncreasing001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSComposerJankStatsTest-begin IsStrictlyIncreasing001";
-    auto& instance = RSComposerJankStats::GetInstance();
+    RSComposerJankStats instance;
     instance.refreshRates_ = {10, 20, 30, 30, 50, 60, 70, 80, 90};
     EXPECT_TRUE(instance.IsStrictlyIncreasing());
     GTEST_LOG_(INFO) << "RSComposerJankStatsTest-end IsStrictlyIncreasing001";
@@ -413,7 +391,7 @@ HWTEST_F(RSComposerJankStatsTest, IsStrictlyIncreasing001, TestSize.Level1)
 HWTEST_F(RSComposerJankStatsTest, IsStrictlyIncreasing002, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSComposerJankStatsTest-begin IsStrictlyIncreasing002";
-    auto& instance = RSComposerJankStats::GetInstance();
+    RSComposerJankStats instance;
     instance.refreshRates_ = {10, 20, 40, 30, 50, 60, 70, 80, 90};
     EXPECT_FALSE(instance.IsStrictlyIncreasing());
     GTEST_LOG_(INFO) << "RSComposerJankStatsTest-end IsStrictlyIncreasing002";
@@ -428,7 +406,7 @@ HWTEST_F(RSComposerJankStatsTest, IsStrictlyIncreasing002, TestSize.Level1)
 HWTEST_F(RSComposerJankStatsTest, IsStrictlyDecreasing001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSComposerJankStatsTest-begin IsStrictlyDecreasing001";
-    auto& instance = RSComposerJankStats::GetInstance();
+    RSComposerJankStats instance;
     instance.refreshRates_ = {90, 80, 70, 70, 50, 40, 30, 20, 10};
     EXPECT_TRUE(instance.IsStrictlyDecreasing());
     GTEST_LOG_(INFO) << "RSComposerJankStatsTest-end IsStrictlyDecreasing001";
@@ -443,7 +421,7 @@ HWTEST_F(RSComposerJankStatsTest, IsStrictlyDecreasing001, TestSize.Level1)
 HWTEST_F(RSComposerJankStatsTest, IsStrictlyDecreasing002, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSComposerJankStatsTest-begin IsStrictlyDecreasing002";
-    auto& instance = RSComposerJankStats::GetInstance();
+    RSComposerJankStats instance;
     instance.refreshRates_ = {90, 80, 70, 80, 50, 40, 30, 20, 10};
     EXPECT_FALSE(instance.IsStrictlyDecreasing());
     GTEST_LOG_(INFO) << "RSComposerJankStatsTest-end IsStrictlyDecreasing002";

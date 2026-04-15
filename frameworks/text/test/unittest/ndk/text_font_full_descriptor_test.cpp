@@ -176,11 +176,11 @@ std::vector<Rosen::Drawing::FontInstanceInfo> DUAL_AXIS_INSTANCES = {
 class NdkFontFullDescriptorTest : public testing::Test {};
 
 /*
- * @tc.name: NdkFontFullDescriptorTest001
+ * @tc.name: NdkFontFullDescriptorTestGetDescriptorsFromStreamInvalidParam
  * @tc.desc: test for OH_Drawing_GetFontFullDescriptorsFromStream with invalid param
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest001, TestSize.Level0)
+HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTestGetDescriptorsFromStreamInvalidParam, TestSize.Level0)
 {
     std::vector<char> content;
     OH_Drawing_Array* fontFullDescArr = OH_Drawing_GetFontFullDescriptorsFromStream(nullptr, 1);
@@ -197,11 +197,11 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest001, TestSize.Level
 }
 
 /*
- * @tc.name: NdkFontFullDescriptorTest002
+ * @tc.name: NdkFontFullDescriptorTestGetDescriptorsFromStreamSymbolFile
  * @tc.desc: test for OH_Drawing_GetFontFullDescriptorsFromStream with SYMBOL_FILE
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest002, TestSize.Level0)
+HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTestGetDescriptorsFromStreamSymbolFile, TestSize.Level0)
 {
     std::vector<char> content;
     EXPECT_TRUE(OHOS::LoadBufferFromFile(SYMBOL_FILE, content));
@@ -246,11 +246,11 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest002, TestSize.Level
 }
 
 /*
- * @tc.name: NdkFontFullDescriptorTest003
+ * @tc.name: NdkFontFullDescriptorTestGetDescriptorsFromStreamCorruptedFile
  * @tc.desc: test for OH_Drawing_GetFontFullDescriptorsFromStream with invalid ttf file
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest003, TestSize.Level0)
+HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTestGetDescriptorsFromStreamCorruptedFile, TestSize.Level0)
 {
     std::vector<char> content;
     EXPECT_TRUE(OHOS::LoadBufferFromFile(SYMBOL_FILE, content));
@@ -265,11 +265,11 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest003, TestSize.Level
 }
 
 /*
- * @tc.name: NdkFontFullDescriptorTest004
+ * @tc.name: NdkFontFullDescriptorTestGetDescriptorsFromStreamConfigFile
  * @tc.desc: test for OH_Drawing_GetFontFullDescriptorsFromStream with SYMBOL_CONFIG_FILE
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest004, TestSize.Level0)
+HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTestGetDescriptorsFromStreamConfigFile, TestSize.Level0)
 {
     std::vector<char> content;
     EXPECT_TRUE(OHOS::LoadBufferFromFile(SYMBOL_CONFIG_FILE, content));
@@ -281,11 +281,11 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest004, TestSize.Level
 }
 
 /*
- * @tc.name: NdkFontFullDescriptorTest005
+ * @tc.name: NdkFontFullDescriptorTestGetDescriptorsFromStreamCjkTtc
  * @tc.desc: test for OH_Drawing_GetFontFullDescriptorsFromStream with CJK_FILE
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest005, TestSize.Level0)
+HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTestGetDescriptorsFromStreamCjkTtc, TestSize.Level0)
 {
     std::vector<char> content;
     EXPECT_TRUE(OHOS::LoadBufferFromFile(CJK_FILE, content));
@@ -333,11 +333,11 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest005, TestSize.Level
 }
 
 /*
- * @tc.name: NdkFontFullDescriptorTest006
+ * @tc.name: NdkFontFullDescriptorTestGetDescriptorLocalAndMetadataAttributes
  * @tc.desc: test for OH_Drawing_GetFontFullDescriptorAttributeString with local attribute id
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest006, TestSize.Level0)
+HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTestGetDescriptorLocalAndMetadataAttributes, TestSize.Level0)
 {
     OH_Drawing_Array* fontFullDescArr = OH_Drawing_GetFontFullDescriptorsFromPath(NOTO_SANS_FILE);
     EXPECT_NE(fontFullDescArr, nullptr);
@@ -400,11 +400,11 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest006, TestSize.Level
 }
 
 /*
- * @tc.name: NdkFontFullDescriptorTest007
+ * @tc.name: NdkFontFullDescriptorTestGetVariationAxisNullptr
  * @tc.desc: test for OH_Drawing_GetFontVariationAxisByIndex and OH_Drawing_DestroyFontVariationAxis with nullptr input
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest007, TestSize.Level0)
+HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTestGetVariationAxisNullptr, TestSize.Level0)
 {
     auto axis = OH_Drawing_GetFontVariationAxisByIndex(nullptr, 0);
     EXPECT_EQ(axis, nullptr);
@@ -412,11 +412,11 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest007, TestSize.Level
 }
 
 /*
- * @tc.name: NdkFontFullDescriptorTest008
+ * @tc.name: NdkFontFullDescriptorTestGetVariationInstanceNullptr
  * @tc.desc: test OH_Drawing_GetFontVariationInstanceByIndex and OH_Drawing_DestroyFontVariationInstance with nullptr
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest008, TestSize.Level0)
+HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTestGetVariationInstanceNullptr, TestSize.Level0)
 {
     auto instance = OH_Drawing_GetFontVariationInstanceByIndex(nullptr, 0);
     EXPECT_EQ(instance, nullptr);
@@ -424,11 +424,11 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest008, TestSize.Level
 }
 
 /*
- * @tc.name: NdkFontFullDescriptorTest009
+ * @tc.name: NdkFontFullDescriptorTestSymbolFontVariationAxisAttributes
  * @tc.desc: test for OH_Drawing_GetFontFullDescriptorAttributeArray with HMSymbolVF variable font axis
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest009, TestSize.Level0)
+HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTestSymbolFontVariationAxisAttributes, TestSize.Level0)
 {
     OH_Drawing_Array* fontFullDescArr = OH_Drawing_GetFontFullDescriptorsFromPath(SYMBOL_FILE);
     EXPECT_NE(fontFullDescArr, nullptr);
@@ -483,11 +483,11 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest009, TestSize.Level
 }
 
 /*
- * @tc.name: NdkFontFullDescriptorTest010
+ * @tc.name: NdkFontFullDescriptorTestGetDescriptorByFullName
  * @tc.desc: test for OH_Drawing_GetFontFullDescriptorByFullName with various parameters
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest010, TestSize.Level0)
+HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTestGetDescriptorByFullName, TestSize.Level0)
 {
     const OH_Drawing_FontFullDescriptor* desc = OH_Drawing_GetFontFullDescriptorByFullName(nullptr,
         OH_Drawing_SystemFontType::ALL);
@@ -519,11 +519,11 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest010, TestSize.Level
 }
 
 /*
- * @tc.name: NdkFontFullDescriptorTest011
+ * @tc.name: NdkFontFullDescriptorTestSymbolFontVariationInstances
  * @tc.desc: test for all variation instances in HMSymbolVF variable font
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest011, TestSize.Level0)
+HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTestSymbolFontVariationInstances, TestSize.Level0)
 {
     OH_Drawing_Array* fontFullDescArr = OH_Drawing_GetFontFullDescriptorsFromPath(SYMBOL_FILE);
     auto desc = OH_Drawing_GetFontFullDescriptorByIndex(fontFullDescArr, 0);
@@ -568,11 +568,11 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest011, TestSize.Level
 }
 
 /*
- * @tc.name: NdkFontFullDescriptorTest012
+ * @tc.name: NdkFontFullDescriptorTestGetVariationInstanceCoordinateNullptr
  * @tc.desc: test for OH_Drawing_GetFontVariationInstanceCoordinate with nullptr input
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest012, TestSize.Level0)
+HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTestGetVariationInstanceCoordinateNullptr, TestSize.Level0)
 {
     size_t coordLength = 0;
     OH_Drawing_FontVariationInstanceCoordinate* coords =
@@ -581,11 +581,11 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest012, TestSize.Level
 }
 
 /*
- * @tc.name: NdkFontFullDescriptorTest013
+ * @tc.name: NdkFontFullDescriptorTestNonVariableFontNoVariationData
  * @tc.desc: test for unvariable font FTToken variation axis and instance
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest013, TestSize.Level0)
+HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTestNonVariableFontNoVariationData, TestSize.Level0)
 {
     // Skip test if FTToken.ttf is not available in the current environment
     std::ifstream ftTokenFile(FTTOKEN_FILE, std::ios::binary);
@@ -611,11 +611,11 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest013, TestSize.Level
 }
 
 /*
- * @tc.name: NdkFontFullDescriptorTest014
+ * @tc.name: NdkFontFullDescriptorTestGetDescriptorAttributeArrayNullptr
  * @tc.desc: test for OH_Drawing_GetFontFullDescriptorAttributeArray with nullptr input
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest014, TestSize.Level0)
+HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTestGetDescriptorAttributeArrayNullptr, TestSize.Level0)
 {
     OH_Drawing_Array* array = OH_Drawing_GetFontFullDescriptorAttributeArray(nullptr,
         FULL_DESCRIPTOR_ATTR_O_VARIATION_INSTANCE);
@@ -626,11 +626,11 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest014, TestSize.Level
 }
 
 /*
- * @tc.name: NdkFontFullDescriptorTest015
+ * @tc.name: NdkFontFullDescriptorTestVariationAxisAttributeErrorHandling
  * @tc.desc: test error handling of OH_Drawing_GetFontVariationAxisAttributeDouble/Int/Str
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest015, TestSize.Level0)
+HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTestVariationAxisAttributeErrorHandling, TestSize.Level0)
 {
     OH_Drawing_Array* arr = OH_Drawing_GetFontFullDescriptorsFromPath(SYMBOL_FILE);
     auto desc = OH_Drawing_GetFontFullDescriptorByIndex(arr, 0);
@@ -672,11 +672,11 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest015, TestSize.Level
 }
 
 /*
- * @tc.name: NdkFontFullDescriptorTest016
+ * @tc.name: VariationInstanceAttributeStrErrorHandling
  * @tc.desc: test error handling of OH_Drawing_GetFontVariationInstanceAttributeStr
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest016, TestSize.Level0)
+HWTEST_F(NdkFontFullDescriptorTest, VariationInstanceAttributeStrErrorHandling, TestSize.Level0)
 {
     OH_Drawing_Array* arr = OH_Drawing_GetFontFullDescriptorsFromPath(SYMBOL_FILE);
     auto desc = OH_Drawing_GetFontFullDescriptorByIndex(arr, 0);
@@ -710,11 +710,11 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest016, TestSize.Level
 }
 
 /*
- * @tc.name: NdkFontFullDescriptorTest017
+ * @tc.name: NdkFontFullDescriptorTestDualAxisVariableFontAxisInfo
  * @tc.desc: test for dual-axis variable font axis information
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest017, TestSize.Level0)
+HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTestDualAxisVariableFontAxisInfo, TestSize.Level0)
 {
     // Skip test if dual-axis variable font is not available in the current environment
     std::ifstream dualAxisFontFile(DUAL_AXIS_VARIABLE_FONT, std::ios::binary);
@@ -764,11 +764,11 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest017, TestSize.Level
 }
 
 /*
- * @tc.name: NdkFontFullDescriptorTest018
+ * @tc.name: NdkFontFullDescriptorTestDualAxisVariableFontInstanceInfo
  * @tc.desc: test for dual-axis variable font instance information
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest018, TestSize.Level0)
+HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTestDualAxisVariableFontInstanceInfo, TestSize.Level0)
 {
     // Skip test if dual-axis variable font is not available in the current environment
     std::ifstream dualAxisFontFile(DUAL_AXIS_VARIABLE_FONT, std::ios::binary);

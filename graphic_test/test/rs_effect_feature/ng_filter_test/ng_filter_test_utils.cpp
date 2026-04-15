@@ -88,6 +88,14 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorFilter = {
      [] {
          return std::make_shared<RSNGSoundWaveFilter>();
      }},
+    {RSNGEffectType::HEAT_DISTORTION,
+     [] {
+         return std::make_shared<RSNGHeatDistortionFilter>();
+     }},
+    {RSNGEffectType::BLUR_BUBBLES_RISE,
+     [] {
+         return std::make_shared<RSNGBlurBubblesRiseFilter>();
+     }},
     {RSNGEffectType::MAGNIFIER,
      [] {
          return std::make_shared<RSNGMagnifierFilter>();

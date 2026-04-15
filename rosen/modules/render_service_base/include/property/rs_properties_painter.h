@@ -48,7 +48,6 @@ public:
     static void GetForegroundNGFilterDirtyRect(RectI& dirtyForegroundEffect,
         const RSProperties& properties, const bool isAbsCoordinate = true);
     static void GetDistortionEffectDirtyRect(RectI& dirtyDistortionEffect, const RSProperties& properties);
-    static void GetMagnifierEffectDirtyRect(RectI& dirtyMagnifierEffect, const RSProperties& properties);
     static void DrawShadow(const RSProperties& properties, RSPaintFilterCanvas& canvas, const RRect* rrect = nullptr);
     static int GetAndResetBlurCnt();
     static void GetOutlineDirtyRect(RectI& dirtyOutline,

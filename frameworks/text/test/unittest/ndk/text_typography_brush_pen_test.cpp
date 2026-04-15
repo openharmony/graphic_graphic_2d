@@ -18,11 +18,11 @@
 namespace OHOS {
 
 /*
- * @tc.name: TypographyTest043
+ * @tc.name: SetAndGetForegroundBrush
  * @tc.desc: test for foreground brush for textstyle
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest043, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, SetAndGetForegroundBrush, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
@@ -70,11 +70,11 @@ HWTEST_F(NdkTypographyTest, TypographyTest043, TestSize.Level0)
 }
 
 /*
- * @tc.name: TypographyTest045
+ * @tc.name: SetAndGetBackgroundBrush
  * @tc.desc: test for background brush for textstyle
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest045, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, SetAndGetBackgroundBrush, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
@@ -123,11 +123,11 @@ HWTEST_F(NdkTypographyTest, TypographyTest045, TestSize.Level0)
 }
 
 /*
- * @tc.name: TypographyTest046
+ * @tc.name: SetAndGetBackgroundPen
  * @tc.desc: test for background pen for textstyle
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest046, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, SetAndGetBackgroundPen, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
@@ -176,11 +176,11 @@ HWTEST_F(NdkTypographyTest, TypographyTest046, TestSize.Level0)
 }
 
 /*
- * @tc.name: TypographyTest047
+ * @tc.name: SetAndGetForegroundPen
  * @tc.desc: test for foreground pen for textstyle
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest047, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, SetAndGetForegroundPen, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();

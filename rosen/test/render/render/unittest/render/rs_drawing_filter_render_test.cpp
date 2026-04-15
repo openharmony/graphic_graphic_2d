@@ -619,9 +619,6 @@ HWTEST_F(RSDrawingFilterTest, TestGetFilterTypeStringKnown, TestSize.Level1)
 
     drawingFilter.SetFilterType(RSFilter::WATER_RIPPLE);
     EXPECT_EQ(drawingFilter.GetFilterTypeString(), "RSWaterRippleFilter");
-
-    drawingFilter.SetFilterType(RSFilter::MAGNIFIER);
-    EXPECT_EQ(drawingFilter.GetFilterTypeString(), "RSMagnifierFilter");
 }
 
 /**

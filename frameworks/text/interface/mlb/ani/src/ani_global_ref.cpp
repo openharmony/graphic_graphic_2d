@@ -111,6 +111,12 @@ constexpr CacheKey PARAGRAPH_STYLE_ORPHAN_CHAR_OPTIMIZATION_KEY{
     ANI_INTERFACE_PARAGRAPH_STYLE, "<get>orphanCharOptimization", ANI_WRAP_RETURN_C(ANI_BOOLEAN)};
 constexpr CacheKey PARAGRAPH_STYLE_LINE_SPACING_KEY{
     ANI_INTERFACE_PARAGRAPH_STYLE, "<get>lineSpacing", ANI_WRAP_RETURN_C(ANI_DOUBLE)};
+constexpr CacheKey PARAGRAPH_STYLE_FIRST_LINE_INDENT_KEY{
+    ANI_INTERFACE_PARAGRAPH_STYLE, "<get>firstLineHeadIndent", ANI_WRAP_RETURN_C(ANI_DOUBLE)};
+constexpr CacheKey PARAGRAPH_STYLE_TAIL_INDENTS_KEY{
+    ANI_INTERFACE_PARAGRAPH_STYLE, "<get>tailIndents", ANI_WRAP_RETURN_C(ANI_ARRAY)};
+constexpr CacheKey PARAGRAPH_STYLE_HEAD_INDENTS_KEY{
+    ANI_INTERFACE_PARAGRAPH_STYLE, "<get>headIndents", ANI_WRAP_RETURN_C(ANI_ARRAY)};
 
 constexpr CacheKey STRUT_STYLE_FONT_STYLE_KEY{
     ANI_INTERFACE_STRUT_STYLE, "<get>fontStyle", ANI_WRAP_RETURN_E(ANI_ENUM_FONT_STYLE)};
@@ -503,6 +509,12 @@ void AniGlobalMethod::InitParagraphStyleMethod(ani_env* env)
         env, AniGlobalClass::GetInstance().paragraphStyle, PARAGRAPH_STYLE_ORPHAN_CHAR_OPTIMIZATION_KEY);
     paragraphStyleLineSpacing = AniClassFindMethod(
         env, AniGlobalClass::GetInstance().paragraphStyle, PARAGRAPH_STYLE_LINE_SPACING_KEY);
+    paragraphStyleFirstLineIndent = AniClassFindMethod(
+        env, AniGlobalClass::GetInstance().paragraphStyle, PARAGRAPH_STYLE_FIRST_LINE_INDENT_KEY);
+    paragraphStyleTailIndents = AniClassFindMethod(
+        env, AniGlobalClass::GetInstance().paragraphStyle, PARAGRAPH_STYLE_TAIL_INDENTS_KEY);
+    paragraphStyleHeadIndents = AniClassFindMethod(
+        env, AniGlobalClass::GetInstance().paragraphStyle, PARAGRAPH_STYLE_HEAD_INDENTS_KEY);
 }
 void AniGlobalMethod::InitStrutStyleMethod(ani_env* env)
 {

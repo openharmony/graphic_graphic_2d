@@ -607,19 +607,14 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
         targetSurfaceParams->preBufferOwnerCount_ = preBufferOwnerCount_;
         targetSurfaceParams->acquireFence_ = acquireFence_;
         targetSurfaceParams->damageRect_ = damageRect_;
-        if (layerInfo_.useDeviceOffline && isHardwareEnabled_) {
-            // hpae offline: while using hpae offline and going directly composition, set to false
-            bufferSynced_ = offlineOriginBufferSynced_;
-        } else {
-            RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceRenderParams::OnSync RSSurfaceRenderNode RSBufferManager::DecRef ");
-            if (preBufferOwnerCount_ != nullptr && bufferSynced_ == false && preBufferOwnerCount_->DecRef()) {
-                targetSurfaceParams->preBuffer_ = nullptr;
-                preBuffer_ = nullptr;
-                targetSurfaceParams->preBufferOwnerCount_ = nullptr;
-                preBufferOwnerCount_ = nullptr;
-            }
-            bufferSynced_ = true;
+        RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceRenderParams::OnSync RSSurfaceRenderNode RSBufferManager::DecRef ");
+        if (preBufferOwnerCount_ != nullptr && bufferSynced_ == false && preBufferOwnerCount_->DecRef()) {
+            targetSurfaceParams->preBuffer_ = nullptr;
+            preBuffer_ = nullptr;
+            targetSurfaceParams->preBufferOwnerCount_ = nullptr;
+            preBufferOwnerCount_ = nullptr;
         }
+        bufferSynced_ = true;
         dirtyType_.reset(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY);
     }
 #endif

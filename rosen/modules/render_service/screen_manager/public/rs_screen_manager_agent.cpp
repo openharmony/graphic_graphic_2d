@@ -48,6 +48,22 @@ void RSScreenManagerAgentListener::OnScreenDisconnected(ScreenId id, ScreenChang
     screenChangeCallback_->OnScreenChanged(id, ScreenEvent::DISCONNECTED, reason);
 }
 
+void RSScreenManagerAgentListener::OnHwcEvent(
+    uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (eventId == static_cast<uint32_t>(HwcEvent::HWCEVENT_EXT_SCREEN_NOT_SUPPORT)) {
+        auto it = exposedEventCallbacks_.find(RSExposedEventType::EXT_SCREEN_UNSUPPORT);
+        if (it != exposedEventCallbacks_.end() && it->second != nullptr) {
+            auto callback = it->second;
+            auto data = std::make_shared<RSExtScreenUnsupportData>();
+            RS_LOGI("RSScreenManagerAgentListener::OnHwcEvent - EXT_SCREEN_UNSUPPORT detected,"
+                "deviceId is %{public}u, eventId is %{public}u", deviceId, eventId);
+            callback->OnDisplayEvent(data);
+        }
+    }
+}
+
 void RSScreenManagerAgentListener::OnScreenSwitchingNotify(bool status)
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -64,6 +80,14 @@ void RSScreenManagerAgentListener::SetScreenChangeCallback(sptr<RSIScreenChangeC
 {
     std::lock_guard<std::mutex> lock(mutex_);
     screenChangeCallback_ = screenChangeCallback;
+}
+
+void RSScreenManagerAgentListener::SetExposedEventCallback(
+    const RSExposedEventType type, const sptr<RSIExposedEventCallback> callback)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    exposedEventCallbacks_[type] = callback;
+    RS_LOGI("%{public}s: set callback for the event type: %{public}u", __func__, static_cast<uint32_t>(type));
 }
 
 void RSScreenManagerAgentListener::SetScreenSwitchingNotifyCallback(
@@ -96,6 +120,13 @@ int32_t RSScreenManagerAgent::SetScreenChangeCallback(const sptr<RSIScreenChange
         screenManager_->ExecuteCallback(callback);
     }
     agentListener_->SetScreenChangeCallback(callback);
+    return SUCCESS;
+}
+
+int32_t RSScreenManagerAgent::SetExposedEventCallback(
+    const RSExposedEventType type, const sptr<RSIExposedEventCallback>& callback)
+{
+    agentListener_->SetExposedEventCallback(type, callback);
     return SUCCESS;
 }
 

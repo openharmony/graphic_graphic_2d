@@ -127,12 +127,20 @@ void Brush::SetUIColor(const UIColor& color, std::shared_ptr<ColorSpace> s)
 
 void Brush::SetAlpha(uint32_t a)
 {
-    color_.SetAlpha(a);
+    if (isHdrColor_) {
+        hdrColor_.SetAlpha(static_cast<scalar>(a) / Color::RGB_MAX);
+    } else {
+        color_.SetAlpha(a);
+    }
 }
 
 void Brush::SetAlphaF(scalar a)
 {
-    color_.SetAlphaF(a);
+    if (isHdrColor_) {
+        hdrColor_.SetAlpha(a);
+    } else {
+        color_.SetAlphaF(a);
+    }
 }
 
 void Brush::SetBlendMode(const BlendMode& mode)

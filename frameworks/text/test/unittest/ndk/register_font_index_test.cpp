@@ -76,11 +76,11 @@ void NdkRegisterFontIndexTest::SetUp()
 }
 
 /*
- * @tc.name: NdkRegisterFontIndexTest001
+ * @tc.name: RegisterFontIndexNullptrParameters
  * @tc.desc: test for nullptr
  * @tc.type: FUNC
  */
-HWTEST_F(NdkRegisterFontIndexTest, NdkRegisterFontIndexTest001, TestSize.Level0)
+HWTEST_F(NdkRegisterFontIndexTest, RegisterFontIndexNullptrParameters, TestSize.Level0)
 {
     uint32_t errorCode = OH_Drawing_RegisterFontBufferByIndex(fontCollection_, nullptr, nullptr, 0, 0);
     EXPECT_EQ(errorCode, ERROR_NULL_FONT_BUFFER);
@@ -94,11 +94,11 @@ HWTEST_F(NdkRegisterFontIndexTest, NdkRegisterFontIndexTest001, TestSize.Level0)
 }
 
 /*
- * @tc.name: NdkRegisterFontIndexTest002
+ * @tc.name: RegisterFontByIndexFromFile
  * @tc.desc: test for register font by index
  * @tc.type: FUNC
  */
-HWTEST_F(NdkRegisterFontIndexTest, NdkRegisterFontIndexTest002, TestSize.Level0)
+HWTEST_F(NdkRegisterFontIndexTest, RegisterFontByIndexFromFile, TestSize.Level0)
 {
     uint32_t errorCode = OH_Drawing_RegisterFontByIndex(fontCollection_, fontFamily_, notExistFontPath_, 0);
     EXPECT_EQ(errorCode, ERROR_FILE_NOT_EXISTS);
@@ -109,11 +109,11 @@ HWTEST_F(NdkRegisterFontIndexTest, NdkRegisterFontIndexTest002, TestSize.Level0)
 }
 
 /*
- * @tc.name: NdkRegisterFontIndexTest003
+ * @tc.name: RegisterFontByIndexBoundaryCheck
  * @tc.desc: test for the bound of registering font by index
  * @tc.type: FUNC
  */
-HWTEST_F(NdkRegisterFontIndexTest, NdkRegisterFontIndexTest003, TestSize.Level0)
+HWTEST_F(NdkRegisterFontIndexTest, RegisterFontByIndexBoundaryCheck, TestSize.Level0)
 {
     uint32_t fontCount = OH_Drawing_GetFontCountFromFile(existFontPath_);
     EXPECT_EQ(fontCount, expectedCount);
@@ -130,22 +130,22 @@ HWTEST_F(NdkRegisterFontIndexTest, NdkRegisterFontIndexTest003, TestSize.Level0)
 }
 
 /*
- * @tc.name: NdkRegisterFontIndexTest004
+ * @tc.name: RegisterFontByIndexThemeFontRejected
  * @tc.desc: test for ohosthemefont
  * @tc.type: FUNC
  */
-HWTEST_F(NdkRegisterFontIndexTest, NdkRegisterFontIndexTest004, TestSize.Level0)
+HWTEST_F(NdkRegisterFontIndexTest, RegisterFontByIndexThemeFontRejected, TestSize.Level0)
 {
     uint32_t result = OH_Drawing_RegisterFontByIndex(fontCollection_, themeFontFamily_, existFontPath_, 0);
     EXPECT_EQ(result, ERROR_FILE_CORRUPTION);
 }
 
 /*
- * @tc.name: NdkRegisterFontIndexTest005
+ * @tc.name: RegisterFontBufferByIndex
  * @tc.desc: test for register font buffer by index
  * @tc.type: FUNC
  */
-HWTEST_F(NdkRegisterFontIndexTest, NdkRegisterFontIndexTest005, TestSize.Level0)
+HWTEST_F(NdkRegisterFontIndexTest, RegisterFontBufferByIndex, TestSize.Level0)
 {
     std::ifstream fileStream(existFontPath_);
     uint32_t result = OH_Drawing_RegisterFontBufferByIndex(
@@ -162,11 +162,11 @@ HWTEST_F(NdkRegisterFontIndexTest, NdkRegisterFontIndexTest005, TestSize.Level0)
 }
 
 /*
- * @tc.name: NdkRegisterFontIndexTest006
+ * @tc.name: RegisterFontBufferByIndexBoundaryCheck
  * @tc.desc: test for the bound of registering font buffer by index
  * @tc.type: FUNC
  */
-HWTEST_F(NdkRegisterFontIndexTest, NdkRegisterFontIndexTest006, TestSize.Level0)
+HWTEST_F(NdkRegisterFontIndexTest, RegisterFontBufferByIndexBoundaryCheck, TestSize.Level0)
 {
     uint32_t fontCount = OH_Drawing_GetFontCountFromBuffer(existFontBuffer_.get(), bufferSize_);
     EXPECT_EQ(fontCount, expectedCount);
@@ -184,11 +184,11 @@ HWTEST_F(NdkRegisterFontIndexTest, NdkRegisterFontIndexTest006, TestSize.Level0)
 }
 
 /*
- * @tc.name: NdkRegisterFontIndexTest007
+ * @tc.name: UnregisterFontAfterIndexRegistration
  * @tc.desc: test for unregister font
  * @tc.type: FUNC
  */
-HWTEST_F(NdkRegisterFontIndexTest, NdkRegisterFontIndexTest007, TestSize.Level0)
+HWTEST_F(NdkRegisterFontIndexTest, UnregisterFontAfterIndexRegistration, TestSize.Level0)
 {
     uint32_t fontCount = OH_Drawing_GetFontCountFromBuffer(existFontBuffer_.get(), bufferSize_);
     EXPECT_EQ(fontCount, expectedCount);

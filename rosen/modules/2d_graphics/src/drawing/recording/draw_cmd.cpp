@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -145,9 +145,8 @@ void DrawOpItem::BrushHandleToBrush(const BrushHandle& brushHandle, const DrawCm
 {
     brush.SetBlendMode(brushHandle.mode);
     brush.SetAntiAlias(brushHandle.isAntiAlias);
-    brush.SetBlenderEnabled(brushHandle.blenderEnabled);
-
-    if (brushHandle.isUIColor) {
+    brush.SetBlenderEnabled(brushHandle.GetBlenderEnabled());
+    if (brushHandle.IsUIColor()) {
         brush.SetUIColor(brushHandle.uiColor, brushHandle.colorSpaceHandle.size ?
             CmdListHelper::GetColorSpaceFromCmdList(cmdList, brushHandle.colorSpaceHandle) : nullptr);
     } else {
@@ -200,14 +199,14 @@ void DrawOpItem::BrushToBrushHandle(const Brush& brush, DrawCmdList& cmdList, Br
     const Filter& filter = brush.GetFilter();
     if (brush.HasUIColor()) {
         brushHandle.uiColor = brush.GetUIColor();
-        brushHandle.isUIColor = brush.HasUIColor();
+        brushHandle.SetIsUIColor(brush.HasUIColor());
     } else {
         brushHandle.color = brush.GetColor();
-        brushHandle.isUIColor = false;
+        brushHandle.SetIsUIColor(brush.HasUIColor());
     }
     brushHandle.mode = brush.GetBlendMode();
     brushHandle.isAntiAlias = brush.IsAntiAlias();
-    brushHandle.blenderEnabled = brush.GetBlenderEnabled();
+    brushHandle.SetBlenderEnabled(brush.GetBlenderEnabled());
     brushHandle.filterQuality = filter.GetFilterQuality();
     brushHandle.colorSpaceHandle = CmdListHelper::AddColorSpaceToCmdList(cmdList, brush.GetColorSpace());
     brushHandle.shaderEffectHandle = CmdListHelper::AddShaderEffectToCmdList(cmdList, brush.GetShaderEffect());
@@ -220,10 +219,10 @@ void DrawOpItem::GeneratePaintFromHandle(const PaintHandle& paintHandle, const D
 {
     paint.SetBlendMode(paintHandle.mode);
     paint.SetAntiAlias(paintHandle.isAntiAlias);
-    paint.SetBlenderEnabled(paintHandle.blenderEnabled);
+    paint.SetBlenderEnabled(paintHandle.GetBlenderEnabled());
     paint.SetStyle(paintHandle.style);
 
-    if (paintHandle.isUIColor) {
+    if (paintHandle.IsUIColor()) {
         paint.SetUIColor(paintHandle.uiColor, paintHandle.colorSpaceHandle.size ?
             CmdListHelper::GetColorSpaceFromCmdList(cmdList, paintHandle.colorSpaceHandle) : nullptr);
     } else {
@@ -293,14 +292,14 @@ void DrawOpItem::GeneratePaintFromHandle(const PaintHandle& paintHandle, const D
 void DrawOpItem::GenerateHandleFromPaint(CmdList& cmdList, const Paint& paint, PaintHandle& paintHandle)
 {
     paintHandle.isAntiAlias = paint.IsAntiAlias();
-    paintHandle.blenderEnabled = paint.GetBlenderEnabled();
+    paintHandle.SetBlenderEnabled(paint.GetBlenderEnabled());
     paintHandle.style = paint.GetStyle();
     if (paint.HasUIColor()) {
         paintHandle.uiColor = paint.GetUIColor();
-        paintHandle.isUIColor = paint.HasUIColor();
+        paintHandle.SetIsUIColor(paint.HasUIColor());
     } else {
         paintHandle.color = paint.GetColor();
-        paintHandle.isUIColor = false;
+        paintHandle.SetIsUIColor(paint.HasUIColor());
     }
 
     paintHandle.mode = paint.GetBlendMode();

@@ -17,19 +17,16 @@
 #define ROSEN_COMPOSER_JANK_STATS_H
 
 #include <deque>
-#include "nocopyable.h"
 
 namespace OHOS {
 namespace Rosen {
 
 class RSComposerJankStats {
 public:
-    static RSComposerJankStats& GetInstance();
     void CalculateJankInfo(int64_t timestamp);
-private:
     RSComposerJankStats() = default;
     ~RSComposerJankStats() = default;
-    DISALLOW_COPY_AND_MOVE(RSComposerJankStats);
+private:
     int GetRate(int frame);
     void CheckRefreshRate();
     bool IsAllEqual();

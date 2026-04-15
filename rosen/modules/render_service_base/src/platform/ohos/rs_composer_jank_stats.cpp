@@ -28,12 +28,6 @@ constexpr int PERIOD_PRECISION = 5;
 constexpr double S_NS_UNIT_CONVERSION = 1000000000;
 }
 
-RSComposerJankStats& RSComposerJankStats::GetInstance()
-{
-    static RSComposerJankStats instance;
-    return instance;
-}
-
 void RSComposerJankStats::CalculateJankInfo(int64_t timestamp)
 {
     if (lastTimestamp_ == 0) {

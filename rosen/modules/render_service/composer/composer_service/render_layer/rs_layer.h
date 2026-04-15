@@ -24,6 +24,7 @@
 #include "rs_layer_common_def.h"
 #include "surface.h"
 #include "sync_fence.h"
+#include "hpae_offline/rs_hpae_offline_layer_info.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -150,8 +151,15 @@ public:
     virtual std::string GetSurfaceName() const = 0;
     virtual void SetSolidColorLayerProperty(GraphicSolidColorLayerProperty solidColorLayerProperty) = 0;
     virtual GraphicSolidColorLayerProperty GetSolidColorLayerProperty() const = 0;
+    // hpae_offline begin
     virtual void SetUseDeviceOffline(bool useOffline) = 0;
     virtual bool GetUseDeviceOffline() const = 0;
+    virtual void SetOriginalBufferOwnerCount(
+        const std::shared_ptr<RSSurfaceHandler::BufferOwnerCount>& bufferOwnerCount) = 0;
+    virtual std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetOriginalBufferOwnerCount() const = 0;
+    virtual void SetHpaeOriginalInfo(const HpaeOriginalInfo& hpaeOriginalInfo) = 0;
+    virtual const HpaeOriginalInfo& GetHpaeOriginalInfo() const = 0;
+    // hpae_offline end
     virtual void SetIgnoreAlpha(bool ignoreAlpha) = 0;
     virtual bool GetIgnoreAlpha() const = 0;
     virtual void SetAncoSrcRect(const GraphicIRect& ancoSrcRect) = 0;

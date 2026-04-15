@@ -1953,53 +1953,6 @@ HWTEST_F(RSUifirstManagerTest, NodeIsInCardWhiteList001, TestSize.Level1)
 }
 
 /**
- * @tc.name: IsCardSkipFirstWaitScene001
- * @tc.desc: Test IsCardSkipFirstWaitScene
- * @tc.type: FUNC
- * @tc.require: issueIADDL3
- */
-HWTEST_F(RSUifirstManagerTest, IsCardSkipFirstWaitScene001, TestSize.Level1)
-{
-    std::string scene = "";
-    int32_t appPid = 1;
-    bool res = uifirstManager_.IsCardSkipFirstWaitScene(scene, appPid);
-    EXPECT_FALSE(res);
-
-    appPid = 0;
-    res = uifirstManager_.IsCardSkipFirstWaitScene(scene, appPid);
-    EXPECT_FALSE(res);
-
-    scene = "INTO_HOME_ANI"; // for test
-    res = uifirstManager_.IsCardSkipFirstWaitScene(scene, appPid);
-    EXPECT_TRUE(res);
-}
-
-/**
- * @tc.name: EventsCanSkipFirstWait001
- * @tc.desc: Test EventsCanSkipFirstWait
- * @tc.type: FUNC
- * @tc.require: issueIADDL3
- */
-HWTEST_F(RSUifirstManagerTest, EventsCanSkipFirstWait001, TestSize.Level1)
-{
-    std::vector<RSUifirstManager::EventInfo> events;
-    bool res = uifirstManager_.EventsCanSkipFirstWait(events);
-    EXPECT_FALSE(res);
-
-    RSUifirstManager::EventInfo info;
-    info.sceneId = "";
-    info.appPid = 0;
-    events.push_back(info);
-    res = uifirstManager_.EventsCanSkipFirstWait(events);
-    EXPECT_FALSE(res);
-
-    info.sceneId = "INTO_HOME_ANI"; // for test
-    events.push_back(info);
-    res = uifirstManager_.EventsCanSkipFirstWait(events);
-    EXPECT_TRUE(res);
-}
-
-/**
  * @tc.name: IsToSubByAppAnimation01
  * @tc.desc: Test IsToSubByAppAnimation
  * @tc.type: FUNC

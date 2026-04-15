@@ -21,8 +21,6 @@ const RSBoundsRenderModifier::LegacyPropertyApplierMap RSBoundsRenderModifier::L
     { RSPropertyType::BOUNDS, RSRenderModifier::PropertyApplyHelper<Vector4f, &RSProperties::SetBounds> },
     { RSPropertyType::USE_UNION, RSRenderModifier::PropertyApplyHelper<bool, &RSProperties::SetUseUnion> },
     { RSPropertyType::UNION_SPACING, RSRenderModifier::PropertyApplyHelper<float, &RSProperties::SetUnionSpacing> },
-    { RSPropertyType::SDF_SHAPE,
-        RSRenderModifier::PropertyApplyHelper<std::shared_ptr<RSNGRenderShapeBase>, &RSProperties::SetSDFShape> },
     { RSPropertyType::SDF_UNION_MODE, RSRenderModifier::PropertyApplyHelper<int, &RSProperties::SetSDFUnionMode> },
     { RSPropertyType::GRAVITY_CENTER_FLAG,
         RSRenderModifier::PropertyApplyHelper<bool, &RSProperties::SetGravityPullCenterFlag> },
@@ -40,7 +38,6 @@ void RSBoundsRenderModifier::ResetProperties(RSProperties& properties)
     properties.SetGravityPullStrength(0.f);
     properties.SetGravityHotZone(0.f);
     properties.SetUnionSpacing(0.f);
-    properties.SetSDFShape(nullptr);
 }
 
 bool RSBoundsRenderModifier::DeduplicationMarshalling(Parcel& parcel) const

@@ -30,7 +30,6 @@
 #include "render/rs_foreground_effect_filter.h"
 #include "render/rs_render_kawase_blur_filter.h"
 #include "render/rs_render_linear_gradient_blur_filter.h"
-#include "render/rs_render_magnifier_filter.h"
 #include "render/rs_shadow.h"
 #include "render/rs_skia_filter.h"
 
@@ -805,31 +804,6 @@ HWTEST_F(RSPropertiesPainterTest, DrawFilter003, TestSize.Level1)
     EXPECT_NE(res, 0);
 }
 
-/**
- * @tc.name: DrawFilter004
- * @tc.desc: test results of DrawFilter
- * @tc.type:FUNC
- * @tc.require:issuesICBIDA
- */
-HWTEST_F(RSPropertiesPainterTest, DrawFilter004, TestSize.Level1)
-{
-    RSProperties properties;
-    auto magnifierPara = std::make_shared<RSMagnifierParams>();
-    auto magnifierFilter = std::make_shared<RSMagnifierShaderFilter>(magnifierPara);
-    properties.backgroundFilter_ = std::make_shared<RSDrawingFilter>(magnifierFilter);
-    Drawing::Canvas drawingCanvas(100, 100);
-    RSPaintFilterCanvas canvas(&drawingCanvas);
-    Drawing::RectI srcRect { 0, 0, 100, 100 };
-    Drawing::RectI dstRect { 0, 0, 100, 100 };
-    int width = 100;
-    int height = 100;
-    Drawing::ImageInfo imageInfo { width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
-    std::shared_ptr<Drawing::Surface> surface = Drawing::Surface::MakeRaster(imageInfo);
-    canvas.surface_ = surface.get();
-    EXPECT_NE(canvas.GetSurface(), nullptr);
-    RSPropertiesPainter::DrawFilter(properties, canvas, FilterType::BACKGROUND_FILTER);
-    EXPECT_NE(magnifierFilter, nullptr);
-}
 
 /**
  * @tc.name: DrawBackgroundImageAsEffect001
@@ -1342,32 +1316,6 @@ HWTEST_F(RSPropertiesPainterTest, GetDistortionEffectDirtyRect, TestSize.Level1)
     properties.SetDistortionK(0.2f);
     RSPropertiesPainter::GetDistortionEffectDirtyRect(localDistortionEffectRect, properties);
     EXPECT_TRUE(localDistortionEffectRect.width_ > static_cast<int>(width));
-}
-
-/**
- * @tc.name: GetMagnifierEffectDirtyRectTest
- * @tc.desc: GetMagnifierEffectDirtyRect
- * @tc.type: FUNC
- */
-HWTEST_F(RSPropertiesPainterTest, GetMagnifierEffectDirtyRectTest, TestSize.Level1)
-{
-    RectI localDistortionEffectRect(0, 0, 0, 0);
-    RSProperties properties;
-    float width = 200.0f; // set width 200
-    float height = 200.0f; // set height 200
-    Vector4f bounds(0.0, 0.0, width, height);
-    properties.SetBounds(bounds);
-
-    RSPropertiesPainter::GetMagnifierEffectDirtyRect(localDistortionEffectRect, properties);
-    EXPECT_EQ(localDistortionEffectRect.left_, 0);
-
-    std::shared_ptr<RSMagnifierParams> para = std::make_shared<RSMagnifierParams>();
-    para->offsetX_ = 50.f; // set offset 50 of X
-    para->offsetY_ = 100.f; // set offset 100 of Y
-    para->factor_ = 0.5f; // set factor 0.5
-    properties.SetMagnifierParams(para);
-    RSPropertiesPainter::GetMagnifierEffectDirtyRect(localDistortionEffectRect, properties);
-    EXPECT_NE(localDistortionEffectRect.left_, 0);
 }
 } // namespace Rosen
 } // namespace OHOS

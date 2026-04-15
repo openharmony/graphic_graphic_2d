@@ -120,6 +120,7 @@ void RSScreenCallbackManager::NotifyHwcEvent(uint32_t deviceId, uint32_t eventId
     } else {
         RS_LOGI("%{public}s: coreListener is nullptr", __func__);
     }
+    NotifyHwcEventToAgentListeners(deviceId, eventId, eventData);
 }
 
 void RSScreenCallbackManager::NotifyVBlankIdle(ScreenId id, uint64_t ns)
@@ -237,6 +238,24 @@ void RSScreenCallbackManager::NotifyScreenDisconnectedToAgentListeners(ScreenId 
             continue;
         }
         agentListener->OnScreenDisconnected(id, reason);
+    }
+}
+
+void RSScreenCallbackManager::NotifyHwcEventToAgentListeners(
+    uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData)
+{
+    std::vector<sptr<RSIScreenManagerAgentListener>> agentListeners;
+    {
+        std::lock_guard<std::mutex> lock(agentMtx_);
+        agentListeners = agentListeners_;
+    }
+    RS_LOGI("%{public}s: HwcEvent received. deviceId %{public}u, eventId %{public}u",
+        __func__, deviceId, eventId);
+    for (const auto& agentListener : agentListeners) {
+        if (!agentListener) {
+            continue;
+        }
+        agentListener->OnHwcEvent(deviceId, eventId, eventData);
     }
 }
 } // namespace Rosen

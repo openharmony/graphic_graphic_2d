@@ -188,6 +188,7 @@ enum class RSIClientToServiceConnectionInterfaceCode : CodeUnderlyingType {
 #endif
 
     ON_FIRST_FRAME_COMMIT = 0x011000,
+    ON_EXPOSED_EVENT = 0x011001,
     GET_PID_GPU_MEMORY_IN_MB = 0X13000,
     GET_MAX_GPU_BUFFER_SIZE = 0X13001,
 

@@ -156,8 +156,15 @@ public:
     GraphicSolidColorLayerProperty GetSolidColorLayerProperty() const override;
     void SetIsNeedComposition(bool isNeedComposition) override;
     bool GetIsNeedComposition() const override;
+    // hpae_offline begin
     void SetUseDeviceOffline(bool useOffline) override;
     bool GetUseDeviceOffline() const override;
+    void SetOriginalBufferOwnerCount(
+        const std::shared_ptr<RSSurfaceHandler::BufferOwnerCount>& bufferOwnerCount) override;
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetOriginalBufferOwnerCount() const override;
+    void SetHpaeOriginalInfo(const HpaeOriginalInfo& hpaeOriginalInfo) override;
+    const HpaeOriginalInfo& GetHpaeOriginalInfo() const override;
+    // hpae_offline end
     void SetIgnoreAlpha(bool ignoreAlpha) override;
     bool GetIgnoreAlpha() const override;
     void SetAncoSrcRect(const GraphicIRect& ancoSrcRect) override;
@@ -214,6 +221,8 @@ private:
     mutable std::mutex ownerCountMutex_;
     std::map<uint64_t, std::shared_ptr<RSSurfaceHandler::BufferOwnerCount>> bufferOwnerCounts_;
     std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount_;
+    // hpae_offline
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> originalBufferOwnerCount_;
     bool preMulti_ = false;
     bool needBilinearInterpolation_ = false;
     LayerMask layerMask_ = LayerMask::LAYER_MASK_NORMAL;
@@ -236,7 +245,10 @@ private:
     std::string surfaceName_ = "";
     uint64_t surfaceUniqueId_ = 0;
     GraphicSolidColorLayerProperty solidColorLayerProperty_;
+    // hpae_offline begin
     bool useDeviceOffline_ = false;
+    HpaeOriginalInfo hpaeOriginalInfo_;
+    // hpae_offline end
     bool ignoreAlpha_ = false;
     GraphicIRect ancoSrcRect_ {-1, -1, -1, -1};
     friend class RSSurfaceRCDLayer;

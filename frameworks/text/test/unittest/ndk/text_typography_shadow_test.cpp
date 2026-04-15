@@ -18,11 +18,11 @@
 namespace OHOS {
 
 /*
- * @tc.name: TypographyTest028
- * @tc.desc: test for getting line info for text typography
+ * @tc.name: CreateDestroyTextShadowTest
+ * @tc.desc: test for creating and destroying text shadow
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest028, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, CreateDestroyTextShadowTest, TestSize.Level0)
 {
     OH_Drawing_TextShadow* textShadow = OH_Drawing_CreateTextShadow();
     EXPECT_NE(textShadow, nullptr);
@@ -31,11 +31,11 @@ HWTEST_F(NdkTypographyTest, TypographyTest028, TestSize.Level0)
 }
 
 /*
- * @tc.name: TypographyTest042
- * @tc.desc: test for text shadow for textstyle
+ * @tc.name: TypographyWithShadowTest
+ * @tc.desc: test for text shadow with typography style, layout, and paint
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest042, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, TypographyWithShadowTest, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
@@ -84,11 +84,11 @@ HWTEST_F(NdkTypographyTest, TypographyTest042, TestSize.Level0)
 }
 
 /*
- * @tc.name: TypographyTest107
- * @tc.desc: test for default textshadow.
+ * @tc.name: SetDefaultTextShadowTest
+ * @tc.desc: test for default text shadow parameters
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TypographyTest107, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, SetDefaultTextShadowTest, TestSize.Level0)
 {
     // Test default scenario
     OH_Drawing_TextShadow* shadow = OH_Drawing_CreateTextShadow();
@@ -107,11 +107,11 @@ HWTEST_F(NdkTypographyTest, TypographyTest107, TestSize.Level0)
 }
 
 /*
- * @tc.name: TextStyleAddShadowTest001
+ * @tc.name: TextStyleAddShadowWithFullAndAbnormalParams
  * @tc.desc: test for multiple shadow parameters and abnormal shadow parameters.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyTest, TextStyleAddShadowTest001, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, TextStyleAddShadowWithFullAndAbnormalParams, TestSize.Level0)
 {
     // Test the full shadow parameters of the scene
     OH_Drawing_TextShadow* shadow2 = OH_Drawing_CreateTextShadow();
@@ -164,12 +164,12 @@ HWTEST_F(NdkTypographyTest, TextStyleAddShadowTest001, TestSize.Level0)
 }
 
 /*
- * @tc.name: TextStyleGetShadowCountTest001
+ * @tc.name: TextStyleGetShadowCountOnEmptyAndNullStyle
  * @tc.desc: test for the OH_Drawing_TextStyleGetShadowCount.
  * @tc.type: FUNC
  * @tc.require: IALK43
  */
-HWTEST_F(NdkTypographyTest, TextStyleGetShadowCountTest001, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, TextStyleGetShadowCountOnEmptyAndNullStyle, TestSize.Level0)
 {
     OH_Drawing_TextStyle* style = OH_Drawing_CreateTextStyle();
     ASSERT_NE(style, nullptr);
@@ -185,12 +185,12 @@ HWTEST_F(NdkTypographyTest, TextStyleGetShadowCountTest001, TestSize.Level0)
 }
 
 /*
- * @tc.name: SetTextShadowTest001
+ * @tc.name: SetTextShadowOnRetrievedShadowWithNullChecks
  * @tc.desc: test for the OH_Drawing_SetTextShadow.
  * @tc.type: FUNC
  * @tc.require: IALK43
  */
-HWTEST_F(NdkTypographyTest, SetTextShadowTest001, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, SetTextShadowOnRetrievedShadowWithNullChecks, TestSize.Level0)
 {
     OH_Drawing_TextStyle* style = OH_Drawing_CreateTextStyle();
     OH_Drawing_TextShadow* originShadow = OH_Drawing_CreateTextShadow();
@@ -211,12 +211,12 @@ HWTEST_F(NdkTypographyTest, SetTextShadowTest001, TestSize.Level0)
 }
 
 /*
- * @tc.name: TextStyleAddShadowTest002
+ * @tc.name: TextStyleAddShadowWithNullStyleAndNullShadow
  * @tc.desc: test for the OH_Drawing_TextStyleAddShadow.
  * @tc.type: FUNC
  * @tc.require: IALK43
  */
-HWTEST_F(NdkTypographyTest, TextStyleAddShadowTest002, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, TextStyleAddShadowWithNullStyleAndNullShadow, TestSize.Level0)
 {
     OH_Drawing_TextStyle* style = OH_Drawing_CreateTextStyle();
     OH_Drawing_TextShadow* shadow = OH_Drawing_TextStyleGetShadows(style);
@@ -232,12 +232,12 @@ HWTEST_F(NdkTypographyTest, TextStyleAddShadowTest002, TestSize.Level0)
 }
 
 /*
- * @tc.name: TextStyleGetShadowWithIndexTest001
+ * @tc.name: TextStyleGetShadowWithIndexBoundaryAndNullCheck
  * @tc.desc: test for the OH_Drawing_TextStyleGetShadowWithIndex.
  * @tc.type: FUNC
  * @tc.require: IALK43
  */
-HWTEST_F(NdkTypographyTest, TextStyleGetShadowWithIndexTest001, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, TextStyleGetShadowWithIndexBoundaryAndNullCheck, TestSize.Level0)
 {
     OH_Drawing_TextStyle* style = OH_Drawing_CreateTextStyle();
     ASSERT_NE(style, nullptr);
@@ -256,12 +256,12 @@ HWTEST_F(NdkTypographyTest, TextStyleGetShadowWithIndexTest001, TestSize.Level0)
 }
 
 /*
- * @tc.name: TextStyleGetShadowsTest001
+ * @tc.name: TextStyleGetShadowsAndDestroyWithNullCheck
  * @tc.desc: test for the OH_Drawing_DestroyTextShadows.
  * @tc.type: FUNC
  * @tc.require: IALK43
  */
-HWTEST_F(NdkTypographyTest, TextStyleGetShadowsTest001, TestSize.Level0)
+HWTEST_F(NdkTypographyTest, TextStyleGetShadowsAndDestroyWithNullCheck, TestSize.Level0)
 {
     OH_Drawing_TextStyle* style = OH_Drawing_CreateTextStyle();
     OH_Drawing_TextShadow* shadow = OH_Drawing_TextStyleGetShadows(style);
