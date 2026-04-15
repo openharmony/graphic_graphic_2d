@@ -844,8 +844,6 @@ HWTEST(RSCanvasRenderNodeDrawableTest, IsBackFaceTest012, TestSize.Level1)
     ASSERT_FALSE(result);
 }
 
-
-
 /**
  * @tc.name: BackFaceSkipTest001
  * @tc.desc: Test OnDraw skips with BACKFACE_SKIP when single sided + back face
