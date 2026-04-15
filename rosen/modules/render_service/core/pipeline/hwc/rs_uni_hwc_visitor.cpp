@@ -1002,7 +1002,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByGlobalCleanFilter(
         if (!geo->GetAbsRect().IntersectRect(filter->second).IsEmpty()) {
             auto& renderNode = nodeMap.GetRenderNode<RSRenderNode>(filter->first);
             if (renderNode == nullptr) {
-                ROSEN_LOGD("UpdateHwcNodeByFilter: renderNode is null");
+                RS_LOGD("UpdateHwcNodeByFilter: renderNode is null");
                 continue;
             }
 
@@ -1014,7 +1014,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByGlobalCleanFilter(
                 bool intersectHwcDamage = RSSystemProperties::GetAIBarOptEnabled() ?
                     RSSurfaceRenderNodeUtils::IntersectHwcDamageWith(hwcNode, filter->second) : true;
                 if (renderNode->CheckAndUpdateAIBarCacheStatus(intersectHwcDamage)) {
-                    ROSEN_LOGD("UpdateHwcNodeByFilter: skip intersection for using cache");
+                    RS_LOGD("UpdateHwcNodeByFilter: skip intersection for using cache");
                     continue;
                 } else if (RSSystemProperties::GetHveFilterEnabled()) {
                     checkDrawAIBar = true;
@@ -1054,7 +1054,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByGlobalDirtyFilter(
         if (!geo->GetAbsRect().IntersectRect(filter->second).IsEmpty()) {
             auto& renderNode = nodeMap.GetRenderNode<RSRenderNode>(filter->first);
             if (renderNode == nullptr) {
-                ROSEN_LOGD("%s: renderNode is null", __func__);
+                RS_LOGD("%s: renderNode is null", __func__);
                 continue;
             }
             if (IsHveBlurFilterEnabled(*renderNode, *filter, hwcNode)) {
