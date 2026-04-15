@@ -24,7 +24,6 @@
 #include "render/rs_filter.h"
 #include "render/rs_render_aibar_filter.h"
 #include "render/rs_render_kawase_blur_filter.h"
-#include "render/rs_render_magnifier_filter.h"
 #include "render/rs_high_performance_visual_engine.h"
 #include "utils/rect.h"
 #include "utils/region.h"
