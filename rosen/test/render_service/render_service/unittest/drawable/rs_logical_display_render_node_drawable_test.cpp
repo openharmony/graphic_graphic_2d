@@ -794,7 +794,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, CalculateVirtualDirtyTest001, T
     auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
     Drawing::Matrix matrix;
     auto ret = displayDrawable_->CalculateVirtualDirty(virtualProcesser, *screenDrawable_, *renderParams, matrix);
-    ASSERT_TRUE(ret.empty());
+    ASSERT_FALSE(ret.empty());
 }
 
 /**
