@@ -14,6 +14,8 @@
  */
 
 #include "parameters_defination.h"
+#include "effect/rs_render_shape_base.h"
+#include "ui_effect/property/include/rs_ui_shape_base.h"
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 
@@ -581,6 +583,291 @@ GRAPHIC_TEST(AppearanceTest09, CONTENT_DISPLAY_TEST, Appearance_Alpha_Shadow_Fil
         testNode->SetShadowPath(shadowPath);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
+    }
+}
+
+// Elevation shadow: different triangles (left=Skia path, right=SDF)
+GRAPHIC_TEST(AppearanceTest09, CONTENT_DISPLAY_TEST, Appearance_Elevation_Triangle_Cmp_Test)
+{
+    int nodeW = 600;
+    int nodeH = 500;
+    std::vector<std::tuple<Vector2f, Vector2f, Vector2f>> triangles = {
+        { Vector2f(150, 80),  Vector2f(250, 80),  Vector2f(200, 350) },  // acute
+        { Vector2f(100, 300), Vector2f(400, 300), Vector2f(100, 80) },   // right angle at v0
+        { Vector2f(80, 150),  Vector2f(450, 200), Vector2f(200, 350) },  // obtuse
+        { Vector2f(200, 120), Vector2f(280, 120), Vector2f(240, 250) },  // small
+    };
+
+    for (int i = 0; i < 4; i++) {
+        int rowY = i * nodeH;
+        auto [v0, v1, v2] = triangles[i];
+
+        // Left: Skia path
+        Drawing::Path path;
+        std::vector<Drawing::Point> pts = { { v0.x_, v0.y_ }, { v1.x_, v1.y_ }, { v2.x_, v2.y_ } };
+        path.AddPoly(pts, 3, true);
+        auto shadowPath = RSPath::CreateRSPath(path);
+        auto skiaNode = RSCanvasNode::Create();
+        skiaNode->SetFrame({ 0, rowY, nodeW, nodeH });
+        skiaNode->SetBackgroundColor(0xff000000);
+        skiaNode->SetShadowColor(0xff000000);
+        skiaNode->SetShadowElevation(20);
+        skiaNode->SetShadowIsFilled(false);
+        skiaNode->SetShadowPath(shadowPath);
+        skiaNode->SetClipToBounds(true);
+        skiaNode->SetClipBounds(shadowPath);
+        GetRootNode()->AddChild(skiaNode);
+        RegisterNode(skiaNode);
+
+        // Right: SDF shape
+        auto childShape = std::make_shared<RSNGSDFTriangleShape>();
+        auto triShape = std::static_pointer_cast<RSNGSDFTriangleShape>(childShape);
+        triShape->Setter<SDFTriangleShapeVertex0Tag>(v0);
+        triShape->Setter<SDFTriangleShapeVertex1Tag>(v1);
+        triShape->Setter<SDFTriangleShapeVertex2Tag>(v2);
+        triShape->Setter<SDFTriangleShapeRadiusTag>(0.0f);
+        auto sdfNode = RSCanvasNode::Create();
+        sdfNode->SetFrame({ nodeW, rowY, nodeW, nodeH });
+        sdfNode->SetBackgroundColor(0xff000000);
+        sdfNode->SetShadowColor(0xff000000);
+        sdfNode->SetShadowElevation(20);
+        sdfNode->SetShadowIsFilled(false);
+        sdfNode->SetSDFShape(childShape);
+        GetRootNode()->AddChild(sdfNode);
+        RegisterNode(sdfNode);
+    }
+}
+
+// Elevation shadow: different rounded rectangles (left=Skia path, right=SDF)
+GRAPHIC_TEST(AppearanceTest09, CONTENT_DISPLAY_TEST, Appearance_Elevation_RRect_Cmp_Test)
+{
+    int nodeW = 600;
+    int nodeH = 500;
+    // { left, top, width, height, cornerX, cornerY }
+    std::vector<std::tuple<float, float, float, float, float, float>> rrects = {
+        { 100, 100, 250, 250, 50, 50 },   // square, large corner
+        { 50,  50,  350, 350, 120, 120 },  // large square, very large corner (capsule-ish)
+        { 75,  100, 400, 200, 80, 80 },    // wide rect, large corner
+        { 150, 100, 150, 300, 60, 60 },    // tall rect, medium corner
+    };
+
+    for (int i = 0; i < 4; i++) {
+        int rowY = i * nodeH;
+        auto [l, t, w, h, rx, ry] = rrects[i];
+
+        // Left: Skia path
+        Drawing::Path path;
+        Drawing::RoundRect rr(Drawing::Rect(l, t, l + w, t + h), rx, ry);
+        path.AddRoundRect(rr);
+        auto shadowPath = RSPath::CreateRSPath(path);
+        auto skiaNode = RSCanvasNode::Create();
+        skiaNode->SetFrame({ 0, rowY, nodeW, nodeH });
+        skiaNode->SetBackgroundColor(0xff000000);
+        skiaNode->SetShadowColor(0xff000000);
+        skiaNode->SetShadowElevation(20);
+        skiaNode->SetShadowIsFilled(false);
+        skiaNode->SetShadowPath(shadowPath);
+        skiaNode->SetClipToBounds(true);
+        skiaNode->SetClipBounds(shadowPath);
+        GetRootNode()->AddChild(skiaNode);
+        RegisterNode(skiaNode);
+
+        // Right: SDF shape
+        auto childShape = std::make_shared<RSNGSDFRRectShape>();
+        auto rrectShape = std::static_pointer_cast<RSNGSDFRRectShape>(childShape);
+        rrectShape->Setter<SDFRRectShapeRRectTag>(RRect { RectT<float> { l, t, w, h }, rx, ry });
+        auto sdfNode = RSCanvasNode::Create();
+        sdfNode->SetFrame({ nodeW, rowY, nodeW, nodeH });
+        sdfNode->SetBackgroundColor(0xff000000);
+        sdfNode->SetShadowColor(0xff000000);
+        sdfNode->SetShadowElevation(20);
+        sdfNode->SetShadowIsFilled(false);
+        sdfNode->SetSDFShape(childShape);
+        GetRootNode()->AddChild(sdfNode);
+        RegisterNode(sdfNode);
+    }
+}
+
+// Elevation shadow: different colors with RRect (left=Skia path, right=SDF)
+GRAPHIC_TEST(AppearanceTest09, CONTENT_DISPLAY_TEST, Appearance_Elevation_Color_Cmp_Test)
+{
+    int nodeW = 600;
+    int nodeH = 500;
+    uint32_t colorList[] = { 0xff000000, 0xffff0000, 0xff00ff00, 0xff0000ff };
+    float l = 100, t = 100, w = 250, h = 250, rx = 30, ry = 30;
+
+    for (int i = 0; i < 4; i++) {
+        int rowY = i * nodeH;
+
+        // Left: Skia path
+        Drawing::Path path;
+        Drawing::RoundRect rr(Drawing::Rect(l, t, l + w, t + h), rx, ry);
+        path.AddRoundRect(rr);
+        auto shadowPath = RSPath::CreateRSPath(path);
+        auto skiaNode = RSCanvasNode::Create();
+        skiaNode->SetFrame({ 0, rowY, nodeW, nodeH });
+        skiaNode->SetBackgroundColor(0xff000000);
+        skiaNode->SetShadowColor(colorList[i]);
+        skiaNode->SetShadowElevation(20);
+        skiaNode->SetShadowIsFilled(false);
+        skiaNode->SetShadowPath(shadowPath);
+        skiaNode->SetClipToBounds(true);
+        skiaNode->SetClipBounds(shadowPath);
+        GetRootNode()->AddChild(skiaNode);
+        RegisterNode(skiaNode);
+
+        // Right: SDF shape
+        auto childShape = std::make_shared<RSNGSDFRRectShape>();
+        auto rrectShape = std::static_pointer_cast<RSNGSDFRRectShape>(childShape);
+        rrectShape->Setter<SDFRRectShapeRRectTag>(RRect { RectT<float> { l, t, w, h }, rx, ry });
+        auto sdfNode = RSCanvasNode::Create();
+        sdfNode->SetFrame({ nodeW, rowY, nodeW, nodeH });
+        sdfNode->SetBackgroundColor(0xff000000);
+        sdfNode->SetShadowColor(colorList[i]);
+        sdfNode->SetShadowElevation(20);
+        sdfNode->SetShadowIsFilled(false);
+        sdfNode->SetSDFShape(childShape);
+        GetRootNode()->AddChild(sdfNode);
+        RegisterNode(sdfNode);
+    }
+}
+
+// Elevation shadow: different offsets with RRect (left=Skia path, right=SDF)
+GRAPHIC_TEST(AppearanceTest09, CONTENT_DISPLAY_TEST, Appearance_Elevation_Offset_Cmp_Test)
+{
+    int nodeW = 600;
+    int nodeH = 500;
+    float offsetList[][2] = { { 0, 0 }, { 50, 50 }, { 100, 100 }, { -50, -50 } };
+    float l = 100, t = 100, w = 250, h = 250, rx = 50, ry = 50;
+
+    for (int i = 0; i < 4; i++) {
+        int rowY = i * nodeH;
+
+        // Left: Skia path
+        Drawing::Path path;
+        Drawing::RoundRect rr(Drawing::Rect(l, t, l + w, t + h), rx, ry);
+        path.AddRoundRect(rr);
+        auto shadowPath = RSPath::CreateRSPath(path);
+        auto skiaNode = RSCanvasNode::Create();
+        skiaNode->SetFrame({ 0, rowY, nodeW, nodeH });
+        skiaNode->SetBackgroundColor(0xff000000);
+        skiaNode->SetShadowColor(0xff000000);
+        skiaNode->SetShadowElevation(20);
+        skiaNode->SetShadowOffset(offsetList[i][0], offsetList[i][1]);
+        skiaNode->SetShadowIsFilled(false);
+        skiaNode->SetShadowPath(shadowPath);
+        skiaNode->SetClipToBounds(true);
+        skiaNode->SetClipBounds(shadowPath);
+        GetRootNode()->AddChild(skiaNode);
+        RegisterNode(skiaNode);
+
+        // Right: SDF shape
+        auto childShape = std::make_shared<RSNGSDFRRectShape>();
+        auto rrectShape = std::static_pointer_cast<RSNGSDFRRectShape>(childShape);
+        rrectShape->Setter<SDFRRectShapeRRectTag>(RRect { RectT<float> { l, t, w, h }, rx, ry });
+        auto sdfNode = RSCanvasNode::Create();
+        sdfNode->SetFrame({ nodeW, rowY, nodeW, nodeH });
+        sdfNode->SetBackgroundColor(0xff000000);
+        sdfNode->SetShadowColor(0xff000000);
+        sdfNode->SetShadowElevation(20);
+        sdfNode->SetShadowOffset(offsetList[i][0], offsetList[i][1]);
+        sdfNode->SetShadowIsFilled(false);
+        sdfNode->SetSDFShape(childShape);
+        GetRootNode()->AddChild(sdfNode);
+        RegisterNode(sdfNode);
+    }
+}
+
+// Elevation shadow: different elevation values with RRect (left=Skia path, right=SDF)
+GRAPHIC_TEST(AppearanceTest09, CONTENT_DISPLAY_TEST, Appearance_Elevation_Value_Cmp_Test)
+{
+    int nodeW = 600;
+    int nodeH = 500;
+    float elevationList[] = { 5, 20, 50, 100 };
+    float l = 100, t = 100, w = 250, h = 250, rx = 30, ry = 30;
+
+    for (int i = 0; i < 4; i++) {
+        int rowY = i * nodeH;
+
+        // Left: Skia path
+        Drawing::Path path;
+        Drawing::RoundRect rr(Drawing::Rect(l, t, l + w, t + h), rx, ry);
+        path.AddRoundRect(rr);
+        auto shadowPath = RSPath::CreateRSPath(path);
+        auto skiaNode = RSCanvasNode::Create();
+        skiaNode->SetFrame({ 0, rowY, nodeW, nodeH });
+        skiaNode->SetBackgroundColor(0xff000000);
+        skiaNode->SetShadowColor(0xff000000);
+        skiaNode->SetShadowElevation(elevationList[i]);
+        skiaNode->SetShadowIsFilled(false);
+        skiaNode->SetShadowPath(shadowPath);
+        skiaNode->SetClipToBounds(true);
+        skiaNode->SetClipBounds(shadowPath);
+        GetRootNode()->AddChild(skiaNode);
+        RegisterNode(skiaNode);
+
+        // Right: SDF shape
+        auto childShape = std::make_shared<RSNGSDFRRectShape>();
+        auto rrectShape = std::static_pointer_cast<RSNGSDFRRectShape>(childShape);
+        rrectShape->Setter<SDFRRectShapeRRectTag>(RRect { RectT<float> { l, t, w, h }, rx, ry });
+        auto sdfNode = RSCanvasNode::Create();
+        sdfNode->SetFrame({ nodeW, rowY, nodeW, nodeH });
+        sdfNode->SetBackgroundColor(0xff000000);
+        sdfNode->SetShadowColor(0xff000000);
+        sdfNode->SetShadowElevation(elevationList[i]);
+        sdfNode->SetShadowIsFilled(false);
+        sdfNode->SetSDFShape(childShape);
+        GetRootNode()->AddChild(sdfNode);
+        RegisterNode(sdfNode);
+    }
+}
+
+// Elevation shadow: isFilled with RRect (left=Skia path, right=SDF)
+// isFilled=false clips shadow inside shape, use transparent bg to see clipping effect
+GRAPHIC_TEST(AppearanceTest09, CONTENT_DISPLAY_TEST, Appearance_Elevation_IsFilled_Cmp_Test)
+{
+    int nodeW = 600;
+    int nodeH = 500;
+    float l = 100, t = 100, w = 250, h = 250, rx = 50, ry = 50;
+    bool filledList[] = { false, true, false, true };
+    float offsetXList[] = { 0, 0, 50, 50 };
+    float offsetYList[] = { 0, 0, 50, 50 };
+
+    for (int i = 0; i < 4; i++) {
+        int rowY = i * nodeH;
+
+        // Left: Skia path
+        Drawing::Path path;
+        Drawing::RoundRect rr(Drawing::Rect(l, t, l + w, t + h), rx, ry);
+        path.AddRoundRect(rr);
+        auto shadowPath = RSPath::CreateRSPath(path);
+        auto skiaNode = RSCanvasNode::Create();
+        skiaNode->SetFrame({ 0, rowY, nodeW, nodeH });
+        skiaNode->SetBackgroundColor(0x30000000);
+        skiaNode->SetShadowColor(0xff000000);
+        skiaNode->SetShadowElevation(20);
+        skiaNode->SetShadowOffset(offsetXList[i], offsetYList[i]);
+        skiaNode->SetShadowIsFilled(filledList[i]);
+        skiaNode->SetShadowPath(shadowPath);
+        skiaNode->SetClipToBounds(true);
+        skiaNode->SetClipBounds(shadowPath);
+        GetRootNode()->AddChild(skiaNode);
+        RegisterNode(skiaNode);
+
+        // Right: SDF shape
+        auto childShape = std::make_shared<RSNGSDFRRectShape>();
+        auto rrectShape = std::static_pointer_cast<RSNGSDFRRectShape>(childShape);
+        rrectShape->Setter<SDFRRectShapeRRectTag>(RRect { RectT<float> { l, t, w, h }, rx, ry });
+        auto sdfNode = RSCanvasNode::Create();
+        sdfNode->SetFrame({ nodeW, rowY, nodeW, nodeH });
+        sdfNode->SetBackgroundColor(0x30000000);
+        sdfNode->SetShadowColor(0xff000000);
+        sdfNode->SetShadowElevation(20);
+        sdfNode->SetShadowOffset(offsetXList[i], offsetYList[i]);
+        sdfNode->SetShadowIsFilled(filledList[i]);
+        sdfNode->SetSDFShape(childShape);
+        GetRootNode()->AddChild(sdfNode);
+        RegisterNode(sdfNode);
     }
 }
 
