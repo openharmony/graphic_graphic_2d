@@ -221,13 +221,16 @@ bool PixelMapStorage::PushSharedMemory(uint64_t id, PixelMap& map)
         return false;
     }
 
-    constexpr size_t skipBytes = 24u;
-    const auto size = static_cast<size_t>(map.GetByteCount());
-    const ImageProperties properties(map);
+    // see PixelMap::Marshalling
+    const auto size = (map.IsAstc() || map.IsYuvFormat() || (map.GetPixelFormat() == Media::PixelFormat::RGBA_F16))
+                          ? static_cast<size_t>(map.GetCapacity())
+                          : static_cast<size_t>(map.GetByteCount());
     if (auto image = MapImage(*reinterpret_cast<const int32_t*>(map.GetFd()), size, PROT_READ)) {
-        auto ret = PushImage(id, GenerateImageData(0, image, size, map), skipBytes, nullptr, &properties);
+        constexpr size_t skipBytes = 24u;
+        const ImageProperties properties(map);
+        const auto result = PushImage(id, GenerateImageData(0, image, size, map), skipBytes, nullptr, &properties);
         UnmapImage(image, size);
-        return ret;
+        return result;
     }
     return false;
 }
