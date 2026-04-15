@@ -43,8 +43,6 @@ public:
 
     virtual bool Init() = 0;
     virtual bool AbandonContext() = 0;
-    virtual std::string GetShaderCacheSize() const = 0;
-    virtual std::string CleanAllShaderCache() const = 0;
     virtual bool SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawingContext = nullptr) = 0;
     virtual bool QueryMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight) = 0;
 

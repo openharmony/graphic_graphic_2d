@@ -410,18 +410,6 @@ void RenderContextGL::ClearRedundantResources()
     }
 }
 
-std::string RenderContextGL::GetShaderCacheSize() const
-{
-    LOGD("GetShaderCacheSize no shader cache");
-    return "";
-}
-
-std::string RenderContextGL::CleanAllShaderCache() const
-{
-    LOGD("CleanAllShaderCache no shader cache");
-    return "";
-}
-
 void RenderContextGL::CreateShareContext()
 {
     std::unique_lock<std::mutex> lock(shareContextMutex_);

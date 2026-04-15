@@ -90,18 +90,6 @@ void RenderContextVK::ChangeProtectedState(bool isProtected)
     isProtected_.store(isProtected, std::memory_order_release);
 }
 
-std::string RenderContextVK::GetShaderCacheSize() const
-{
-    LOGD("GetShaderCacheSize no shader cache");
-    return "";
-}
-
-std::string RenderContextVK::CleanAllShaderCache() const
-{
-    LOGD("CleanAllShaderCache no shader cache");
-    return "";
-}
-
 bool RenderContextVK::QueryMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
 {
     LOGI("RenderContextVK::QueryMaxGpuBufferSize: using Vulkan backend");
