@@ -2981,7 +2981,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, BackFaceSkipTest001, TestSize.Level2)
     params->SetIsMirrorScreen(false);
     RSUniRenderThread::Instance().Sync(std::move(params));
 
-    surfaceDrawable_->OnDraw(*drawingCanvas_);
+    surfaceDrawable_->OnDraw(*canvas_);
 
     ASSERT_EQ(surfaceDrawable_->GetDrawSkipType(), DrawSkipType::BACKFACE_SKIP);
 }
@@ -3010,7 +3010,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, BackFaceSkipTest002, TestSize.Level2)
     params->SetIsMirrorScreen(false);
     RSUniRenderThread::Instance().Sync(std::move(params));
 
-    surfaceDrawable_->OnDraw(*drawingCanvas_);
+    surfaceDrawable_->OnDraw(*canvas_);
 
     ASSERT_NE(surfaceDrawable_->GetDrawSkipType(), DrawSkipType::BACKFACE_SKIP);
 }
@@ -3039,7 +3039,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, BackFaceSkipTest003, TestSize.Level2)
     params->SetIsMirrorScreen(false);
     RSUniRenderThread::Instance().Sync(std::move(params));
 
-    surfaceDrawable_->OnDraw(*drawingCanvas_);
+    surfaceDrawable_->OnDraw(*canvas_);
 
     ASSERT_NE(surfaceDrawable_->GetDrawSkipType(), DrawSkipType::BACKFACE_SKIP);
 }
