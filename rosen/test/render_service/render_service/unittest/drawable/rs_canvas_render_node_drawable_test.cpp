@@ -964,5 +964,4 @@ HWTEST(RSCanvasRenderNodeDrawableTest, BackFaceSkipTest003, TestSize.Level2)
 
     RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
 }
-
 }

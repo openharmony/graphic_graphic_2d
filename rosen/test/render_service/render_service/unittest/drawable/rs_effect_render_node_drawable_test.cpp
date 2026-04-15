@@ -417,5 +417,4 @@ HWTEST_F(RSEffectRenderNodeDrawableTest, BackFaceSkipTest003, TestSize.Level2)
     
     ASSERT_NE(effectDrawable->GetDrawSkipType(), DrawSkipType::BACKFACE_SKIP);
 }
-
 }

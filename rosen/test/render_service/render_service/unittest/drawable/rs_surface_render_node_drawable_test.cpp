@@ -3043,5 +3043,4 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, BackFaceSkipTest003, TestSize.Level2)
 
     ASSERT_NE(surfaceDrawable_->GetDrawSkipType(), DrawSkipType::BACKFACE_SKIP);
 }
-
 }

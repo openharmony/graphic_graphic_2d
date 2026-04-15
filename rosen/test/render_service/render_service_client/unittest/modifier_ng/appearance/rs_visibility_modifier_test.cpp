@@ -24,7 +24,6 @@
 
 #include "common/rs_vector4.h"
 #include "modifier_ng/appearance/rs_visibility_modifier.h"
-#include "property/rs_properties.h"
 
 using namespace testing;
 using namespace testing::ext;
