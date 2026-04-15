@@ -2894,7 +2894,7 @@ void RSNode::SetClipToFrame(bool clipToFrame)
 
 void RSNode::SetDoubleSidedEnabled(bool isDoubleSided)
 {
-    SetPropertyNG<ModifierNG::RSVisibilityModifier, 
+    SetPropertyNG<ModifierNG::RSVisibilityModifier,
         &ModifierNG::RSVisibilityModifier::SetDoubleSidedEnabled>(isDoubleSided);
 }
 
