@@ -16,9 +16,10 @@
 #ifndef RENDER_SERVICE_BASE_RENDER_RENDER_RS_HIGH_PERFORMANCE_VISUAL_ENGINE_H
 #define RENDER_SERVICE_BASE_RENDER_RENDER_RS_HIGH_PERFORMANCE_VISUAL_ENGINE_H
 
+#include <mutex>
+
 #include "draw/canvas.h"
 #include "image/image.h"
-#include <mutex>
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "utils/matrix.h"
@@ -46,7 +47,7 @@ public:
     void PushSurfaceNodeInfo(SurfaceNodeInfo& surfaceNodeInfo);
     std::vector<SurfaceNodeInfo> GetSurfaceNodeInfo() const;
     int GetSurfaceNodeSize() const;
-    bool CheckPrecondition(const RSRenderNode& renderNode,
+    bool CheckPrecondition(const RSRenderNode& filterNode,
         const RectI& filterRect, RSSurfaceRenderNode& hwcNode);
     std::shared_ptr<Drawing::Image> SampleLayer(RSPaintFilterCanvas& canvas, const Drawing::RectI& srcRect);
 private:
