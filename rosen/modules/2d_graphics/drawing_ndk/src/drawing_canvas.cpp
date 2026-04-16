@@ -834,7 +834,7 @@ void OH_Drawing_CanvasDrawTextBlob(OH_Drawing_Canvas* cCanvas, const OH_Drawing_
 #endif
 }
 
-OH_Drawing_ErrorCode OH_Drawing_CanvasDrawGlyphs(OH_Drawing_Canvas* cCanvas,
+OH_Drawing_ErrorCode OH_Drawing_CanvasDrawGlyphs(const OH_Drawing_Canvas* cCanvas,
                                                  const int* glyphIds,
                                                  int glyphIdCount,
                                                  int glyphIdOffset,
@@ -844,7 +844,8 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasDrawGlyphs(OH_Drawing_Canvas* cCanvas,
                                                  int glyphCount,
                                                  const OH_Drawing_Font* cFont)
 {
-    Canvas* canvas = CastToCanvas(cCanvas);
+    
+    Canvas* canvas = CastToCanvas(const_cast<OH_Drawing_Canvas*>(cCanvas));
     const Font* font = CastToFont(cFont);
     if (canvas == nullptr || font == nullptr || glyphIds == nullptr || positions == nullptr) {
         return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
