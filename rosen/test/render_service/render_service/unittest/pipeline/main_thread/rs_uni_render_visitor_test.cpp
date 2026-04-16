@@ -1824,6 +1824,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateInfoForClonedNode001, TestSize.Level1)
     
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceRenderNode->stagingRenderParams_.get());
     surfaceRenderNode->SetRelatedSourceNode(true);
+    surfaceRenderNode->SetDirty();
     ASSERT_TRUE(surfaceRenderNode->IsRelatedSourceNode());
 
     rsUniRenderVisitor->cloneNodeMap_.clear();
@@ -1873,6 +1874,9 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareForCloneNode002, TestSize.Level1)
     surfaceRenderNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(surfaceRenderNode->GetId());
     surfaceRenderNode->SetRelated(true);
     ASSERT_TRUE(surfaceRenderNode->IsRelated());
+    surfaceRenderNodeCloned->SetDirty();
+    result = rsUniRenderVisitor->PrepareForCloneNode(*surfaceRenderNode);
+    ASSERT_FALSE(result);
     surfaceRenderNodeCloned->SetSurfaceNodeType(RSSurfaceNodeType::NODE_MAX);
     result = rsUniRenderVisitor->PrepareForCloneNode(*surfaceRenderNode);
     ASSERT_FALSE(result);

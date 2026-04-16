@@ -3311,12 +3311,15 @@ HWTEST_F(RSSurfaceRenderNodeTest, ClearRelatedSourceCacheTest, TestSize.Level1)
     NodeId id = 1;
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
     ASSERT_NE(node, nullptr);
-    node->ClearRelatedSourceCache();
+    node->ClearRelatedSourceCache(true);
 
     node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(node->stagingRenderParams_.get());
-    node->ClearRelatedSourceCache();
+    node->ClearRelatedSourceCache(true);
     ASSERT_TRUE(surfaceParams->IsNeedClearRelatedCache());
+
+    node->ClearRelatedSourceCache(false);
+    ASSERT_FALSE(surfaceParams->IsNeedClearRelatedCache());
 }
 
 /**
