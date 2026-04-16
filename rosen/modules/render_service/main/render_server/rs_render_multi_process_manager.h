@@ -16,6 +16,8 @@
 #ifndef RENDER_SERVICE_MAIN_RENDER_SERVER_RS_RENDER_MULTI_PROCESS_MANAGER_H
 #define RENDER_SERVICE_MAIN_RENDER_SERVER_RS_RENDER_MULTI_PROCESS_MANAGER_H
 
+#include <chrono>
+#include <condition_variable>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -46,7 +48,7 @@ public:
     void OnVirtualScreenDisconnected(ScreenId screenId) override;
 
     void RecordComposerToRenderConnection(pid_t pid, sptr<IRSComposerToRenderConnection> composerToRenderConnection);
-    sptr<RSScreenProperty> GetPendingScreenProperty(pid_t pid) const;
+    sptr<RSScreenProperty> GetPendingScreenProperty(pid_t pid);
     void SetRenderProcessReadyPromise(pid_t pid, const sptr<RSIServiceToRenderConnection>& serviceToRenderConnection,
         const sptr<RSIConnectToRenderProcess>& connectToRenderConnection);
 
@@ -54,7 +56,7 @@ public:
     std::vector<sptr<RSIServiceToRenderConnection>> GetServiceToRenderConns() const override;
     sptr<RSIConnectToRenderProcess> GetConnectToRenderConnection(ScreenId screenId) const override;
 
-    std::shared_ptr<RSIpcReplayManager> GetIpcReplayManager() const override;
+    std::shared_ptr<RSIpcPersistenceManager> GetIpcPersistenceManager() const override;
 
 private:
     sptr<IRemoteObject> HandleExistingGroup(pid_t pid, ScreenId screenId, const sptr<RSScreenProperty>& property);
@@ -84,6 +86,8 @@ private:
     std::optional<ScreenId> DeleteVirtualToPhysicalScreenMap(ScreenId id);
     ScreenId FindVirtualToPhysicalScreenMap(ScreenId screenId);
 
+    mutable std::mutex renderProcessReadyPromiseMutex_;
+    std::condition_variable renderProcessReadyPromiseCv_;
     std::unordered_map<pid_t, std::promise<bool>> renderProcessReadyPromises_;
 
     mutable std::mutex mutex_;
@@ -101,7 +105,7 @@ private:
     };
     std::unordered_map<pid_t, PendingScreenConnectInfo> pendingScreenConnectInfos_;
 
-    const std::shared_ptr<RSIpcReplayManager> ipcReplayManager_;
+    const std::shared_ptr<RSIpcPersistenceManager> ipcPersistenceManager_;
 };
 } // namespace Rosen
 } // namespace OHOS

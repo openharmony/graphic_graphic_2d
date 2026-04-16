@@ -18,8 +18,8 @@
 #include <iremote_proxy.h>
 #include "message_parcel.h"
 
-#include "platform/ohos/transaction/rs_render_connect_parcel_info.h"
 #include "render_server/transaction/rs_client_to_service_connection.h"
+#include "rs_render_connect_parcel_info.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -85,13 +85,11 @@ int RSRenderServiceStub::OnRemoteRequest(
                 ret = ERR_NULL_OBJECT;
                 break;
             }
-
             if (!remoteObj->IsProxyObject()) {
                 RS_LOGE("RSRenderServiceStub::REMOVE_CONNECTION remoteObj !IsProxyObject() failed!");
                 ret = ERR_UNKNOWN_OBJECT;
                 break;
             }
-
             auto token = iface_cast<RSIConnectionToken>(remoteObj);
             auto [rsConn, renderConn] = GetConnection(token);
             if (rsConn) {
@@ -104,9 +102,8 @@ int RSRenderServiceStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceInterfaceCode::REGISTER_RENDER_PROCESS_CONNECTION): {
-            auto connectToServiceInfo = sptr<ConnectToServiceInfo>(data.ReadParcelable<ConnectToServiceInfo>());
-            auto replyToRenderInfo = RegisterRenderProcessConnection(connectToServiceInfo);
-            if (!reply.WriteParcelable(replyToRenderInfo.GetRefPtr())) {
+            auto renderToServiceConnection = RegisterRenderProcessConnection();
+            if (!reply.WriteRemoteObject(renderToServiceConnection)) {
                 ret = ERR_INVALID_STATE;
             }
             break;

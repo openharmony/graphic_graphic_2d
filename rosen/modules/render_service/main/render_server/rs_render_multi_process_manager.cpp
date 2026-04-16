@@ -36,6 +36,7 @@ void sigchld_handler(int sig)
     int status;
     pid_t pid = waitpid(-1, &status, WNOHANG);
     if (pid > 0) {
+        RS_LOGE("%{public}s: kill render_service since render_process: %{public}u is dead", __func__, pid);
         exit(-1);
     }
 }
@@ -71,8 +72,8 @@ int32_t ForkAndExec(GroupId groupId)
 }
 } // namespace
 
-RSMultiRenderProcessManager::RSMultiRenderProcessManager(RSRenderService& renderService) :
-    RSRenderProcessManager(renderService), ipcReplayManager_(std::make_shared<RSIpcReplayManager>())
+RSMultiRenderProcessManager::RSMultiRenderProcessManager(RSRenderService& renderService)
+    : RSRenderProcessManager(renderService), ipcPersistenceManager_(std::make_shared<RSIpcPersistenceManager>())
 {
     struct sigaction sa;
     sa.sa_handler = sigchld_handler;
@@ -107,12 +108,21 @@ std::optional<pid_t> RSMultiRenderProcessManager::GetRenderProcessPidByGroupIdLo
     return std::nullopt;
 }
 
-sptr<RSScreenProperty> RSMultiRenderProcessManager::GetPendingScreenProperty(pid_t pid) const
+sptr<RSScreenProperty> RSMultiRenderProcessManager::GetPendingScreenProperty(pid_t pid)
 {
-    if (auto iter = pendingScreenConnectInfos_.find(pid); iter != pendingScreenConnectInfos_.end()) {
-        return iter->second.property;
+    {
+        std::unique_lock<std::mutex> lock(renderProcessReadyPromiseMutex_);
+        bool isFound = renderProcessReadyPromiseCv_.wait_for(lock, std::chrono::seconds(5),
+            [this, pid]() { return renderProcessReadyPromises_.find(pid) != renderProcessReadyPromises_.end(); });
+        if (!isFound) {
+            RS_LOGE("%{public}s: Cannot find renderProcessReadyPromises in 5s for pid: %{public}u", __func__, pid);
+            return nullptr;
+        }
     }
-    return nullptr;
+
+    const auto node = pendingScreenConnectInfos_.extract(pid);
+    RS_LOGI("%{public}s: Found pendingScreenConnectInfo for pid: %{public}u", __func__, pid);
+    return node.mapped().property;
 }
 
 void RSMultiRenderProcessManager::SetRenderProcessReadyPromise(pid_t pid,
@@ -188,9 +198,14 @@ sptr<IRemoteObject> RSMultiRenderProcessManager::HandleNewGroup(
         if (pid > 0) {
             UpdateGroupIdToRenderProcessPid(groupId, pid);
             PendingScreenConnectInfo screenConnectInfo { .screenId = screenId, .property = property };
-            pendingScreenConnectInfos_.insert_or_assign(pid, screenConnectInfo);
-            renderProcessReadyPromises_[pid] = std::move(renderProcessReadyPromise);
+            {
+                std::lock_guard<std::mutex> lock(renderProcessReadyPromiseMutex_);
+                pendingScreenConnectInfos_.insert_or_assign(pid, screenConnectInfo);
+                renderProcessReadyPromises_[pid] = std::move(renderProcessReadyPromise);
+                renderProcessReadyPromiseCv_.notify_one();
+            }
             if (const auto& hgmContext = renderService_.GetHgmContext()) {
+                // TODO:  进程死亡时需要调用RemoveRenderProcessPid删除pid
                 hgmContext->AddRenderProcessPid(pid);
             }
             break;
@@ -205,14 +220,8 @@ sptr<IRemoteObject> RSMultiRenderProcessManager::HandleNewGroup(
 
     // Block and wait for the clientToRenderConnectionProxy to be ready
     renderProcessReadyFuture.wait();
+    RS_LOGI("%{public}s: render process is ready", __func__);
     auto renderConnProxy = GotConnectToRenderConnByPid(pid)->AsObject();
-
-    // TODO: 字体需要适配
-    // auto conn = GotServiceToRenderConnByPid(pid);
-    // auto cachedTypefaces = RSTypefaceCache::Instance().GetCachedTypeface();
-    // for (auto& cachedTypeface : cachedTypefaces) {
-    //     conn->RegisterTypeface(cachedTypeface.first, cachedTypeface.second);
-    // }
     return renderConnProxy;
 }
 
@@ -293,6 +302,7 @@ sptr<RSIServiceToRenderConnection> RSMultiRenderProcessManager::GetServiceToRend
     std::lock_guard<std::mutex> lock(mutex_);
     auto optionalPid = GetRenderProcessPidByGroupIdLocked(groupId);
     if (!optionalPid.has_value()) {
+        RS_LOGE("%{public}s: get render process pid failed", __func__);
         return nullptr;
     }
     return GetServiceToRenderConnByPidLocked(optionalPid.value());
@@ -315,6 +325,7 @@ sptr<RSIConnectToRenderProcess> RSMultiRenderProcessManager::GetConnectToRenderC
     std::lock_guard<std::mutex> lock(mutex_);
     auto optionalPid = GetRenderProcessPidByGroupIdLocked(groupId);
     if (!optionalPid.has_value()) {
+        RS_LOGE("%{public}s: get render process pid failed", __func__);
         return nullptr;
     }
     return GetConnectToRenderConnByPidLocked(optionalPid.value());
@@ -401,15 +412,14 @@ ScreenId RSMultiRenderProcessManager::FindVirtualToPhysicalScreenMap(ScreenId sc
 {
     std::lock_guard<std::mutex> lock(virtualScreenMutex_);
     if (auto iter = virtualToPhysicalScreenMap_.find(screenId); iter != virtualToPhysicalScreenMap_.end()) {
-        RS_LOGW("%{public}s: cannot found render_process by virtual screenId: %{public}" PRIu64, __func__, screenId);
         return iter->second;
     }
     return screenId;
 }
 
-std::shared_ptr<RSIpcReplayManager> RSMultiRenderProcessManager::GetIpcReplayManager() const
+std::shared_ptr<RSIpcPersistenceManager> RSMultiRenderProcessManager::GetIpcPersistenceManager() const
 {
-    return ipcReplayManager_;
+    return ipcPersistenceManager_;
 }
 } // namespace Rosen
 } // namespace OHOS

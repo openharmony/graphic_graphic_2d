@@ -22,6 +22,15 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+bool IsInvalidConnectInfo(const sptr<ConnectToServiceInfo>& result)
+{
+    return !result ||
+           !result->composerToRenderConnection_ ||
+           !result->vsyncToken_;
+}
+} // namespace
+
 RSRenderToServiceConnection::RSRenderToServiceConnection(sptr<RSRenderServiceAgent> renderServiceAgent,
     sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent, sptr<RSScreenManagerAgent> screenManagerAgent)
     : renderServiceAgent_(renderServiceAgent),
@@ -35,6 +44,26 @@ bool RSRenderToServiceConnection::NotifyRenderProcessInitFinished(
     auto connectToRenderConn = iface_cast<RSIConnectToRenderProcess>(connectToRenderConnection);
     renderProcessManagerAgent_->SetRenderProcessReadyPromise(GetCallingPid(), serviceToRenderConn, connectToRenderConn);
     return true;
+}
+
+sptr<ReplyToRenderInfo> RSRenderToServiceConnection::SendProcessInfo(
+    const sptr<ConnectToServiceInfo>& connectToServiceInfo)
+{
+    if (IsInvalidConnectInfo(connectToServiceInfo)) {
+        RS_LOGE("%{public}s: connectToServiceInfo is invalid", __func__);
+        return nullptr;
+    }
+    const auto remotePid = GetCallingPid();
+    auto composerToRenderConn =
+        iface_cast<IRSComposerToRenderConnection>(connectToServiceInfo->composerToRenderConnection_);
+    // preparing required infos
+    RS_LOGI("%{public}s: Preparing Required Infos", __func__);
+    auto [rsScreenProperty, replayData] = renderProcessManagerAgent_->GetProcessInfo(remotePid, composerToRenderConn);
+    auto [renderToComposerConnection, vsyncConnection] =
+        renderServiceAgent_->GetProcessInfo(rsScreenProperty->GetScreenId(), connectToServiceInfo->vsyncToken_);
+
+    return sptr<ReplyToRenderInfo>::MakeSptr(
+        renderToComposerConnection->AsObject(), rsScreenProperty, vsyncConnection->AsObject(), replayData);
 }
 
 sptr<HgmServiceToProcessInfo> RSRenderToServiceConnection::NotifyRpHgmFrameRate(uint64_t timestamp,

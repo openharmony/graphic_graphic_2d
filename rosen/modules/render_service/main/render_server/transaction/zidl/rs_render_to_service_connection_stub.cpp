@@ -55,6 +55,14 @@ int RSRenderToServiceConnectionStub::OnRemoteRequest(
             }
             break;
         }
+        case static_cast<uint32_t>(RSIRenderToServiceConnectionInterfaceCode::SEND_PROCESS_INFO): {
+            auto connectToServiceInfo = sptr<ConnectToServiceInfo>(data.ReadParcelable<ConnectToServiceInfo>());
+            auto replyToRenderInfo = SendProcessInfo(connectToServiceInfo);
+            if (!reply.WriteParcelable(replyToRenderInfo.GetRefPtr())) {
+                ret = ERR_INVALID_STATE;
+            }
+            break;
+        }
         case static_cast<uint32_t>(RSIRenderToServiceConnectionInterfaceCode::NOTIFY_PROCESS_FRAME_RATE): {
             uint64_t timestamp = 0;
             uint64_t vsyncId = 0;

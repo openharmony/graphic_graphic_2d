@@ -19,8 +19,8 @@
 #include <vector>
 
 #include "irs_composer_to_render_connection.h"
-#include "platform/ohos/transaction/ipc_replay/rs_ipc_replay_manager.h"
 #include "platform/ohos/transaction/zidl/rs_iconnect_to_render_process.h"
+#include "render_process/transaction/ipc_persistence/rs_ipc_persistence_manager.h"
 #include "render_process/transaction/zidl/rs_iservice_to_render_connection.h"
 #include "render_server/transaction/zidl/rs_irender_to_service_connection.h"
 #include "screen_manager/public/rs_iscreen_manager_listener.h"
@@ -49,7 +49,7 @@ public:
     virtual std::vector<sptr<RSIServiceToRenderConnection>> GetServiceToRenderConns() const = 0;
     virtual sptr<RSIConnectToRenderProcess> GetConnectToRenderConnection(ScreenId screenId) const = 0;
 
-    virtual std::shared_ptr<RSIpcReplayManager> GetIpcReplayManager() const { return nullptr; };
+    virtual std::shared_ptr<RSIpcPersistenceManager> GetIpcPersistenceManager() const { return nullptr; };
 
 protected:
     RSRenderService& renderService_;

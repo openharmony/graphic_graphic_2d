@@ -76,10 +76,6 @@ void RSRenderServiceAgent::ProcessHgmFrameRate(uint64_t timestamp, uint64_t vsyn
         hgmContext->ProcessHgmFrameRate(timestamp, vsyncId, processToServiceInfo, serviceToProcessInfo);
         return;
     }
-    // TODO: 需要判断是不是自有屏
-    PostSyncTaskImmediate([this, timestamp, vsyncId, processToServiceInfo, serviceToProcessInfo] {
-        GetHgmContext()->ProcessHgmFrameRate(timestamp, vsyncId, processToServiceInfo, serviceToProcessInfo);
-    });
 }
 
 void RSRenderServiceAgent::HandlePowerStatus(ScreenId screenId, ScreenPowerStatus status)
@@ -95,6 +91,12 @@ void RSRenderServiceAgent::RemoveToken(const sptr<RSIConnectionToken>& token)
 const std::shared_ptr<const RenderModeConfig>& RSRenderServiceAgent::GetRenderModeConfig() const
 {
     return renderService_.GetRenderModeConfig();
+}
+
+std::pair<sptr<IRSRenderToComposerConnection>, sptr<VSyncConnection>> RSRenderServiceAgent::GetProcessInfo(
+    ScreenId screenId, sptr<IRemoteObject> vsyncToken)
+{
+    return renderService_.GetProcessInfo(screenId, vsyncToken);
 }
 
 void RSRenderServiceAgent::HandleGameSceneChanged() const

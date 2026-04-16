@@ -51,11 +51,6 @@ private:
     xmlDoc* xmlDocument_ { nullptr };
     RenderModeConfigBuilder builder;
 
-    std::vector<std::string> sysPath_ = { "/system/variant/phone/base/", "/system/variant/tablet/base/",
-        "/system/variant/pc/base/", "/system/variant/watch/base/", "/system/variant/tv/base/",
-        "/system/variant/car/base/", "/system/variant/smarthomehost/base/" };
-    std::string prodPath_ { "/sys_prod/" };
-
     bool isMultiProcessModeEnabled_ { false };
 };
 

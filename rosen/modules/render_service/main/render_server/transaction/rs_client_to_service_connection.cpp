@@ -75,8 +75,8 @@
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "platform/ohos/rs_jank_stats_helper.h"
-#include "platform/ohos/transaction/ipc_replay/rs_ipc_replay_data.h"
 #include "render/rs_typeface_cache.h"
+#include "rs_ipc_persistence_data.h"
 #include "transaction/rs_unmarshal_thread.h"
 #include "transaction/rs_transaction_data_callback_manager.h"
 #include "dirty_region/rs_optimize_canvas_dirty_collector.h"
@@ -434,9 +434,9 @@ ErrCode RSClientToServiceConnection::SetWatermark(
         return ERR_INVALID_VALUE;
     }
     auto callingPid = GetCallingPid();
-    if (auto ipcReplayManager = renderProcessManagerAgent_->GetIpcReplayManager()) {
-        auto data = std::make_shared<SetWatermarkReplayData>(callingPid, name, watermark, success);
-        ipcReplayManager->Register(callingPid, data);
+    if (auto ipcPersistenceManager = renderProcessManagerAgent_->GetIpcPersistenceManager()) {
+        auto data = std::make_shared<SetWatermarkPersistenceData>(callingPid, name, watermark, success);
+        ipcPersistenceManager->RegisterWithCallingPid(data);
     }
     for (auto conn : serviceToRenderConns) {
         bool successTmp = true;
@@ -644,7 +644,11 @@ int32_t RSClientToServiceConnection::SetScreenChangeCallback(sptr<RSIScreenChang
     }
 
     // update
-    return screenManagerAgent_->SetScreenChangeCallback(callback);
+    int32_t status;
+    renderServiceAgent_->ScheduleTask([this, callback, &status]() {
+        status = screenManagerAgent_->SetScreenChangeCallback(callback);
+    }).wait();
+    return status;
 }
 
 int32_t RSClientToServiceConnection::SetScreenSwitchingNotifyCallback(sptr<RSIScreenSwitchingNotifyCallback> callback)
@@ -777,6 +781,10 @@ void RSClientToServiceConnection::SetShowRefreshRateEnabled(bool enabled, int32_
     if (serviceToRenderConns.empty()) {
         RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
         return;
+    }
+    if (auto ipcPersistenceManager = renderProcessManagerAgent_->GetIpcPersistenceManager()) {
+        auto data = std::make_shared<SetShowRefreshRateEnabledPersistenceData>(enabled, type);
+        ipcPersistenceManager->RegisterWithoutCallingPid(data);
     }
     for (auto conn : serviceToRenderConns) {
         conn->SetShowRefreshRateEnabled(enabled, type);
@@ -1567,6 +1575,10 @@ void RSClientToServiceConnection::ShowWatermark(const std::shared_ptr<Media::Pix
         RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
         return;
     }
+    if (auto ipcPersistenceManager = renderProcessManagerAgent_->GetIpcPersistenceManager()) {
+        auto data = std::make_shared<ShowWatermarkPersistenceData>(watermarkImg, isShow);
+        ipcPersistenceManager->RegisterWithoutCallingPid(data);
+    }
     for (auto conn : serviceToRenderConns) {
         conn->ShowWatermark(watermarkImg, isShow);
     }
@@ -2151,7 +2163,12 @@ int32_t RSClientToServiceConnection::RegisterSelfDrawingNodeRectChangeCallback(
         RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
         return ERR_INVALID_VALUE;
     }
-
+    if (auto ipcPersistenceManager = renderProcessManagerAgent_->GetIpcPersistenceManager()) {
+        auto data = std::make_shared<SelfDrawingNodeRectChangeCallbackPersistenceData>(remotePid_,
+                                                                                       constraint,
+                                                                                       callback);
+        ipcPersistenceManager->RegisterWithCallingPid(data);
+    }
     int32_t result = StatusCode::SUCCESS;
     for (auto conn : serviceToRenderConns) {
         int32_t ret = conn->RegisterSelfDrawingNodeRectChangeCallback(remotePid_, constraint, callback);
@@ -2174,6 +2191,9 @@ int32_t RSClientToServiceConnection::UnRegisterSelfDrawingNodeRectChangeCallback
     if (serviceToRenderConns.size() == 0) {
         RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
         return ERR_INVALID_VALUE;
+    }
+    if (auto ipcPersistenceManager = renderProcessManagerAgent_->GetIpcPersistenceManager()) {
+        ipcPersistenceManager->UnregisterByType(RSIpcPersistenceType::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK);
     }
     int32_t result = StatusCode::SUCCESS;
     for (auto conn : serviceToRenderConns) {
@@ -2308,6 +2328,10 @@ ErrCode RSClientToServiceConnection::SetBehindWindowFilterEnabled(bool enabled)
     if (serviceToRenderConns.empty()) {
         RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
         return ERR_INVALID_VALUE;
+    }
+    if (auto ipcPersistenceManager = renderProcessManagerAgent_->GetIpcPersistenceManager()) {
+        auto data = std::make_shared<SetBehindWindowFilterEnabledPersistenceData>(enabled);
+        ipcPersistenceManager->RegisterWithoutCallingPid(data);
     }
     for (auto& conn : serviceToRenderConns) {
         conn->SetBehindWindowFilterEnabled(enabled);

@@ -196,6 +196,8 @@ public:
 
     int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection);
 
+    int32_t GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight);
+
     void SetFreeMultiWindowStatus(bool enable);
 
 private:
