@@ -62,13 +62,18 @@ namespace OHOS {
 namespace Rosen {
 RSRenderPipelineClient::RSRenderPipelineClient(sptr<IRemoteObject>& connectToRenderRemote)
 {
-    auto conn = iface_cast<RSIConnectToRenderProcess>(connectToRenderRemote);
-    if (conn == nullptr) {
-        RS_LOGE("RSRenderPipelineClient::%{public}s, iface_cast failed", __func__);
-        return;
+    static bool isUniRender = RSSystemProperties::GetUniRenderEnabled();
+    if (isUniRender) {
+        auto conn = iface_cast<RSIConnectToRenderProcess>(connectToRenderRemote);
+        if (conn == nullptr) {
+            RS_LOGE("RSRenderPipelineClient::%{public}s, iface_cast failed", __func__);
+            return;
+        }
+        token_ = new IRemoteStub<RSIConnectionToken>();
+        clientToRenderConnection_ = conn->CreateRenderConnection(token_);
+    } else {
+        clientToRenderConnection_ = RSRenderServiceConnectHub::GetClientToRenderConnection();
     }
-    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
-    clientToRenderConnection_ = conn->CreateRenderConnection(token);
 }
 
 void RSRenderPipelineClient::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)

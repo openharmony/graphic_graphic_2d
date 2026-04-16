@@ -257,8 +257,7 @@ bool RSSystemProperties::GetAnimationDelayOptimizeEnabled()
 bool RSSystemProperties::GetRSClientMultiInstanceEnabled()
 {
     static bool isMultiInstance = system::GetParameter("persist.rosen.rsclientmultiinstance.enabled", "1") != "0";
-    static bool isPhone = system::GetParameter("const.product.devicetype", "phone") == "phone";
-    return isMultiInstance && isPhone;
+    return isMultiInstance;
 }
 
 bool RSSystemProperties::GetRSScreenRoundCornerEnable()
