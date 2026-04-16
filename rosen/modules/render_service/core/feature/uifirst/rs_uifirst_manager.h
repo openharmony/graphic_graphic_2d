@@ -218,6 +218,11 @@ public:
     }
 
     bool IsOcclusionEnabled() const;
+    // only use in RT sync phase
+    bool IsNodeInSubthreadProcessing(NodeId id) const
+    {
+        return subthreadProcessingNode_.count(id) > 0;
+    }
     bool IsLayerPartRenderDisableAnimation() const;
 private:
     struct NodeDataBehindWindow {
