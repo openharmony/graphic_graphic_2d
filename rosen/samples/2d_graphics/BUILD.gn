@@ -110,7 +110,6 @@ ohos_executable("drawing_engine_sample") {
     deps += [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
   }
   public_deps += [
-    "$graphic_2d_root:libvulkan",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
   ]
   public_external_deps = [ "openssl:libcrypto_shared" ]
@@ -123,6 +122,10 @@ ohos_executable("drawing_engine_sample") {
     "init:libbegetutil",
     "ipc:ipc_core",
   ]
+
+  if (graphic_2d_feature_enable_vulkan) {
+    external_deps += [ "vulkan-loader:vulkan_loader" ]
+  }
 
   subsystem_name = "graphic"
   part_name = "graphic_2d"
@@ -214,7 +217,6 @@ ohos_executable("drawing_sample_replayer") {
     "$graphic_2d_root/interfaces/inner_api/surface",
   ]
   public_deps += [
-    "$graphic_2d_root:libvulkan",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
   ]
   external_deps = [
@@ -223,6 +225,10 @@ ohos_executable("drawing_sample_replayer") {
     "ipc:ipc_core",
     "window_manager:libdm",
   ]
+
+  if (graphic_2d_feature_enable_vulkan) {
+    external_deps += [ "vulkan-loader:vulkan_loader" ]
+  }
 
   subsystem_name = "graphic"
   part_name = "graphic_2d"

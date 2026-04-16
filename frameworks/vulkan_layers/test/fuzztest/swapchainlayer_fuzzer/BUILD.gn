@@ -35,6 +35,7 @@ ohos_fuzztest("SwapchainLayerFuzzTest") {
     "graphic_surface:sync_fence",
     "hilog:libhilog",
     "ipc:ipc_single",
+    "vulkan-headers:vulkan_headers",
   ]
   sources = [ "swapchainlayer_fuzzer.cpp" ]
 }
