@@ -17,11 +17,13 @@ group("fuzztest") {
   deps = [
     "postvsyncevent_fuzzer:fuzztest",
     "vsynccallbacklistener_fuzzer:fuzztest",
+    "vsynccallbacklistenerapi_fuzzer:fuzztest",
     "vsyncconnection_fuzzer:fuzztest",
     "vsynccontroller_fuzzer:fuzztest",
     "vsyncdistributor_fuzzer:fuzztest",
     "vsyncgenerator_fuzzer:fuzztest",
     "vsyncreceiver_fuzzer:fuzztest",
+    "vsyncreceiverapi_fuzzer:fuzztest",
     "vsyncreceiverconcurrent_fuzzer:fuzztest",
     "vsyncsafe_fuzzer:fuzztest",
     "vsyncsampler_fuzzer:fuzztest",
