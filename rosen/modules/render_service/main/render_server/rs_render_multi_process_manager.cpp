@@ -204,10 +204,6 @@ sptr<IRemoteObject> RSMultiRenderProcessManager::HandleNewGroup(
                 renderProcessReadyPromises_[pid] = std::move(renderProcessReadyPromise);
                 renderProcessReadyPromiseCv_.notify_one();
             }
-            if (const auto& hgmContext = renderService_.GetHgmContext()) {
-                // TODO:  进程死亡时需要调用RemoveRenderProcessPid删除pid
-                hgmContext->AddRenderProcessPid(pid);
-            }
             break;
         }
         RS_LOGE("%{public}s: Fork failed, retrying...", __func__);

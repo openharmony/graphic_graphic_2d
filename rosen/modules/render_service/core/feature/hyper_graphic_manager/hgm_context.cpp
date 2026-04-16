@@ -504,19 +504,5 @@ bool HgmContext::NotifySoftVsyncRateDiscountEvent(uint32_t pid, const std::strin
     }
     return true;
 }
-
-void HgmContext::AddRenderProcessPid(int32_t pid)
-{
-    HgmTaskHandleThread::Instance().PostTask([frameRateManager = frameRateManager_, pid] {
-        frameRateManager->AddRenderProcessPid(pid);
-    });
-}
-
-void HgmContext::RemoveRenderProcessPid(int32_t pid)
-{
-    HgmTaskHandleThread::Instance().PostTask([frameRateManager = frameRateManager_, pid] {
-        frameRateManager->RemoveRenderProcessPid(pid);
-    });
-}
 } // namespace Rosen
 } // namespace OHOS
