@@ -112,6 +112,8 @@ private:
     std::unordered_map<uint64_t, std::shared_ptr<RSUIContext>> rsUIContextMap_;
     uint32_t instanceIdCounter_ = 0;
     bool isMultiInstanceOpen_ = false;
+    bool isDividedRender_ = false;
+    bool hasCreateRSUIContext_ = false;
     std::shared_ptr<AppExecFwk::EventHandler> handler_;
     std::queue<std::string> taskNames_{};
     std::mutex closeSyncFallBackMutex_;
