@@ -73,9 +73,8 @@ HWTEST_F(RSVisibilityModifierNGTypeTest, RSVisibilityModifierSetDoubleSidedAndGe
 }
 
 /**
-
-* @tc.name: RSVisibilityModifierTypeStringTestDoubleSided
- * @tc.desc: Test modifier type and property type string for DOUBLE_SIDED
+ * @tc.name: RSVisibilityModifierTypeStringTestDoubleSided
+ * @tc.desc: Test property type string for DOUBLE_SIDED
  * @tc.type: FUNC
  * @tc.require: issueIXXXXX
  */
