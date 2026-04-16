@@ -113,7 +113,6 @@ RenderContextGL::RenderContextGL()
     eglContext_ = EGL_NO_CONTEXT;
     eglSurface_ = EGL_NO_SURFACE;
     config_ = nullptr;
-    mHandler_ = nullptr;
 }
 
 RenderContextGL::~RenderContextGL()
@@ -136,7 +135,6 @@ RenderContextGL::~RenderContextGL()
     pbufferSurface_ = EGL_NO_SURFACE;
     drGPUContext_ = nullptr;
     surface_ = nullptr;
-    mHandler_ = nullptr;
 }
 
 bool RenderContextGL::Init()
@@ -203,17 +201,8 @@ bool RenderContextGL::SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawi
         return true;
     }
 
-    mHandler_ = std::make_shared<MemoryHandler>();
-    auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
-    if (isUniRenderMode_) {
-        cacheDir_ = UNIRENDER_CACHE_DIR;
-    }
     Drawing::GPUContextOptions options;
     options.SetIsUniRender(isUniRenderMode_);
-    if (glesVersion != nullptr) {
-        auto size = glesVersion ? strlen(glesVersion) : 0;
-        mHandler_->ConfigureContext(&options, glesVersion, size, cacheDir_, isUniRenderMode_);
-    }
 
     auto drGPUContext = std::make_shared<Drawing::GPUContext>();
     if (!drGPUContext->BuildFromGL(options)) {
@@ -419,26 +408,6 @@ void RenderContextGL::ClearRedundantResources()
         // GPU resources that haven't been used in the past 10 seconds
         drGPUContext_->PerformDeferredCleanup(std::chrono::seconds(10));
     }
-}
-
-std::string RenderContextGL::GetShaderCacheSize() const
-{
-    if (mHandler_) {
-        return mHandler_->QuerryShader();
-    }
-
-    LOGD("GetShaderCacheSize no shader cache");
-    return "";
-}
-
-std::string RenderContextGL::CleanAllShaderCache() const
-{
-    if (mHandler_) {
-        return mHandler_->ClearShader();
-    }
-
-    LOGD("CleanAllShaderCache no shader cache");
-    return "";
 }
 
 void RenderContextGL::CreateShareContext()
