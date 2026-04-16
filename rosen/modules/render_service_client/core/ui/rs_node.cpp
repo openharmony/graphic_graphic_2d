@@ -244,7 +244,9 @@ RSNode::~RSNode()
     }
     if (rsUIContext != nullptr) {
         // tell RT/RS to destroy related render node
-        rsUIContext->GetMutableNodeMap().UnregisterNode(id_);
+        if (!isShadowNode_ || g_isUniRenderEnabled) {
+            rsUIContext->GetMutableNodeMap().UnregisterNode(id_);
+        }
         auto transaction = rsUIContext->GetRSTransaction();
         if (transaction == nullptr || skipDestroyCommandInDestructor_) {
             RS_LOGD("RSNode::~RSNode stop destroy proxy:%{public}d, skip: %{public}d", transaction == nullptr,

@@ -415,7 +415,6 @@ private:
     BufferAvailableCallback callback_;
     bool bufferAvailable_ = false;
     BoundsChangedCallback boundsChangedCallback_;
-    bool isShadowNode_ = false;
     // If has shadow node or itself is a shadow node, existsDuplicateModifier_ may be true.
     bool existsDuplicateModifier_ = false;
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
