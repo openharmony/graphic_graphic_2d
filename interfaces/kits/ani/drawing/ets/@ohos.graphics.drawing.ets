@@ -965,7 +965,7 @@ namespace drawing {
     native drawTextBlob(blob: TextBlob, x: double, y: double): void;
 
     /**
-     * Draws the array of glyphs with specified font. Nothing is drawn if glyphCount is samller than or equals to 0.
+     * Draws the array of glyphs with specified font. Nothing is drawn if glyphCount is smaller than or equals to 0.
      *
      * @param { Array<int> } glyphIds - Indicates an array of glyph IDs.
      * @param { int } glyphIdOffset - Indicates the number of elements to skip before drawing in glyphIds array.
@@ -975,7 +975,7 @@ namespace drawing {
      * @param { Font } font - Indicates the font used for drawing.
      * @throws { BusinessError } 25900001 - Parameter error. Possible causes: Incorrect parameter range.
      * @syscap SystemCapability.Graphics.Drawing
-     * @stagemodeonly
+     * @stagemodelonly
      * @since 26.0.0 dynamic&static
      */
     native drawGlyphs(glyphIds: Array<int>, glyphIdOffset: int, positions: Array<common2D.Point>,
