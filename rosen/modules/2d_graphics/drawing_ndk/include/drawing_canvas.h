@@ -590,7 +590,7 @@ void OH_Drawing_CanvasDrawTextBlob(OH_Drawing_Canvas*, const OH_Drawing_TextBlob
  * @return Returns the error code.
  * Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
  * Returns {@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if any of canvas, glyphIds, positions and font is nullptr.
- * Returns {@link OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE} if glyphIdOffset or positionOffset is less than 0, or if glyphIdCount is less than (glyphIdOffset + glyphCount) or positionCount is less than (positionOffset + glyphCount). 
+ * Returns {@link OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE} if glyphIdOffset or positionOffset is less than 0, or if glyphIdCount is less than (glyphIdOffset + glyphCount) or positionCount is less than (positionOffset + glyphCount).
  * @since 26.0.0
  */
 OH_Drawing_ErrorCode OH_Drawing_CanvasDrawGlyphs(const OH_Drawing_Canvas* canvas, const int* glyphIds, int glyphIdCount,
