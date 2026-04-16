@@ -18,6 +18,7 @@
 #include "include/command/rs_surface_node_command.h"
 #include "include/pipeline/rs_root_render_node.h"
 #include "include/pipeline/rs_surface_render_node.h"
+#include "common/rs_common_def.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -196,5 +197,19 @@ HWTEST_F(RSRootNodeCommandTest, AttachToUniSurfaceNodeTest003, TestSize.Level1)
     ASSERT_NE(context.GetNodeMap().GetRenderNode<RSRootRenderNode>(childId), nullptr);
     RootNodeCommandHelper::AttachToUniSurfaceNode(context, childId, parentId);
     EXPECT_TRUE(context.GetMutableNodeMap().UnRegisterUnTreeNode(parentId));
+}
+
+HWTEST_F(RSRootNodeCommandTest, CreateDOSProtectionTest, TestSize.Level1)
+{
+    RSContext context;
+    pid_t pid = 1;
+    for (uint32_t i = 0; i <= MAX_NODE_COUNT_PER_PID; i++) {
+        NodeId existId = MakeNodeId(pid, i);
+        context.nodeMap.renderNodeMap_[pid][existId] =
+            std::make_shared<RSRootRenderNode>(existId, context.weak_from_this(), false);
+    }
+    NodeId newNodeId = MakeNodeId(pid, MAX_NODE_COUNT_PER_PID + 1);
+    RootNodeCommandHelper::Create(context, newNodeId, false);
+    EXPECT_EQ(context.GetNodeMap().GetRenderNode<RSRootRenderNode>(newNodeId), nullptr);
 }
 } // namespace OHOS::Rosen
