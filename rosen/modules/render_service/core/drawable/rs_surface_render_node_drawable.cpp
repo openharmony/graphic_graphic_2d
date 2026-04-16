@@ -146,7 +146,7 @@ RSRenderNodeDrawable::Ptr RSSurfaceRenderNodeDrawable::OnGenerate(std::shared_pt
 bool RSSurfaceRenderNodeDrawable::CheckDrawAndCacheWindowContent(RSSurfaceRenderParams& surfaceParams,
     RSRenderThreadParams& uniParams)
 {
-    if (RSUniRenderThread::GetCaptureParam().isMirror_) {
+    if (RSUniRenderThread::IsInCaptureProcess()) {
         return false;
     }
     if (!surfaceParams.GetNeedCacheSurface()) {
