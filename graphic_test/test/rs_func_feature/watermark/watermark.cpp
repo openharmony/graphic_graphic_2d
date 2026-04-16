@@ -37,7 +37,11 @@ namespace {
 class WatermarktTest : public RSGraphicTest {
 public:
     // called before each tests
-    void BeforeEach() override {}
+    void BeforeEach() override
+    {
+        SetScreenSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+        SetSurfaceColor(RSColor(0xffff0000));
+    }
     // called after each tests
     void AfterEach() override
     {
