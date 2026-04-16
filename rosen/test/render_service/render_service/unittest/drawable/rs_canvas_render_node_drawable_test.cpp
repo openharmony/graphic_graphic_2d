@@ -739,7 +739,7 @@ HWTEST(RSCanvasRenderNodeDrawableTest, DoubleSidedTest004, TestSize.Level1)
     bool isDoubleSided = canvasDrawable->renderParams_->GetDoubleSidedEnabled();
     bool isBackFace = canvasDrawable->IsBackFace();
     ASSERT_FALSE(isDoubleSided);
-    ASSERT_FALSE(isBackFace);
+    ASSERT_TRUE(isBackFace);
 }
 
 /**

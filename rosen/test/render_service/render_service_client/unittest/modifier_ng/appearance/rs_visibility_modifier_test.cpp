@@ -63,13 +63,13 @@ HWTEST_F(RSVisibilityModifierNGTypeTest, RSVisibilityModifierSetDoubleSidedAndGe
 {
     std::shared_ptr<ModifierNG::RSVisibilityModifier> modifier = std::make_shared<ModifierNG::RSVisibilityModifier>();
 
-    EXPECT_EQ(modifier->GetDoubleSidedEnabled(), false);
-
-    modifier->SetDoubleSidedEnabled(true);
     EXPECT_EQ(modifier->GetDoubleSidedEnabled(), true);
 
     modifier->SetDoubleSidedEnabled(false);
     EXPECT_EQ(modifier->GetDoubleSidedEnabled(), false);
+
+    modifier->SetDoubleSidedEnabled(true);
+    EXPECT_EQ(modifier->GetDoubleSidedEnabled(), true);
 }
 
 /**

@@ -39,7 +39,7 @@ public:
 
     void SetVisible(bool visible);
     bool GetVisible() const;
-    
+
     void SetDoubleSidedEnabled(bool isDoubleSided);
     bool GetDoubleSidedEnabled() const;
 };
