@@ -1922,7 +1922,8 @@ bool DrawCmdFuzzTest051(const uint8_t* data, size_t size)
     paintHandle.width = GetObject<scalar>();
     paintHandle.miterLimit = GetObject<scalar>();
     DrawTextBlobOpItem::ConstructorHandle constructorHandle = DrawTextBlobOpItem::ConstructorHandle(textBlob,
-        globalUniqueId, static_cast<TextContrast>(GetObject<uint32_t>() % TEXTCONTRAST_SIZE), x, y, paintHandle);
+        globalUniqueId, false, static_cast<TextContrast>(GetObject<uint32_t>() % TEXTCONTRAST_SIZE),
+        x, y, paintHandle);
     int32_t width = GetObject<int32_t>();
     int32_t height = GetObject<int32_t>();
     Canvas canvas = Canvas(width, height);
