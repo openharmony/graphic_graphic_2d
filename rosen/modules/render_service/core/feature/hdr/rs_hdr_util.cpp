@@ -142,9 +142,8 @@ bool RSHdrUtil::UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId 
         hdrStatus = RSBaseHdrUtil::CheckIsHdrSurfaceBuffer(surfaceBuffer);
         if (hdrStatus == HdrStatus::AI_HDR_VIDEO_GAINMAP || hdrStatus == HdrStatus::AI_HDR_VIDEO_GTM) {
             float hdrBrightness = static_cast<HDRType>(surfaceNode.GetHDRType()) == HDRType::DEFAULT?
-                1.0f : surfaceNode.GetHDRBrightness();
-            scaler = rsLuminance.CalScaler(1.0f, std::vector<uint8_t>{},
-                hdrBrightness * brightnessFactor * hdrDimmingFactor, hdrStatus);
+                hdrDimmingFactor : surfaceNode.GetHDRBrightness();
+            scaler = rsLuminance.CalScaler(1.0f, std::vector<uint8_t>{}, hdrBrightness * brightnessFactor, hdrStatus);
         } else {
             scaler = surfaceNode.GetHDRBrightness() * brightnessFactor * (scaler - 1.0f) + 1.0f;
         }
