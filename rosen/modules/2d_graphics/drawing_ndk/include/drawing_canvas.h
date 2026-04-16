@@ -576,7 +576,7 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasDrawSingleCharacterWithFeatures(OH_Drawing
 void OH_Drawing_CanvasDrawTextBlob(OH_Drawing_Canvas*, const OH_Drawing_TextBlob*, float x, float y);
 
 /**
- * @brief Draws the array of glyphs with specified font, Nothing is drawn if glyphCount is smaller than or equals to 0.
+ * @brief Draws the array of glyphs with specified font. Nothing is drawn if glyphCount is smaller than or equals to 0.
  *
  * @param canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
  * @param glyphIds Indicates an array of glyph IDs.
