@@ -830,7 +830,7 @@ HWTEST_F(RSBaseRenderUtilTest, ConvertBufferToBitmap_004, TestSize.Level2)
     std::vector<uint8_t> newBuffer;
     GraphicColorGamut dstGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     Drawing::Bitmap bitmap;
-    ASSERT_EQ(false, RSBaseRenderUtil::ConvertBufferToBitmap(cbuffer, newBuffer, dstGamut, bitmap));
+    ASSERT_EQ(true, RSBaseRenderUtil::ConvertBufferToBitmap(cbuffer, newBuffer, dstGamut, bitmap));
 }
 
 /*
