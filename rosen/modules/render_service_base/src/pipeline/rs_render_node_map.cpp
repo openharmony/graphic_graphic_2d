@@ -374,6 +374,15 @@ void RSRenderNodeMap::TraversalNodesByPid(int pid,
     }
 }
 
+size_t RSRenderNodeMap::GetNodeCountByPid(pid_t pid) const
+{
+    const auto& itr = renderNodeMap_.find(pid);
+    if (itr != renderNodeMap_.end()) {
+        return itr->second.size();
+    }
+    return 0;
+}
+
 void RSRenderNodeMap::TraverseCanvasDrawingNodes(
     std::function<void(const std::shared_ptr<RSCanvasDrawingRenderNode>&)> func) const
 {

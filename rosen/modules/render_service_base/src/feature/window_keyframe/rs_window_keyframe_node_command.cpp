@@ -25,6 +25,11 @@ namespace Rosen {
 void RSWindowKeyFrameNodeCommandHelper::Create(
     RSContext& context, NodeId id, bool isTextureExportNode)
 {
+    if (context.GetNodeMap().GetNodeCountByPid(ExtractPid(id)) > MAX_NODE_COUNT_PER_PID) {
+        RS_LOGE_LIMIT(__func__, __line__,
+            "GetNodeCountByPid > %{public}u, pid:%{public}d", MAX_NODE_COUNT_PER_PID, ExtractPid(id));
+        return;
+    }
     auto node = RSWindowKeyFrameRenderNode::SharedPtr(new (std::nothrow) RSWindowKeyFrameRenderNode(id,
         context.weak_from_this(), isTextureExportNode), RSRenderNodeGC::NodeDestructor);
     if (node == nullptr) {
