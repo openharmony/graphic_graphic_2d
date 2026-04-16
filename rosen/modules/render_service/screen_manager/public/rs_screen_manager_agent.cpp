@@ -149,13 +149,6 @@ int32_t RSScreenManagerAgent::SetExposedEventCallback(
     return SUCCESS;
 }
 
-int32_t RSScreenManagerAgent::SetExposedEventCallback(
-    const RSExposedEventType type, const sptr<RSIExposedEventCallback>& callback)
-{
-    agentListener_->SetExposedEventCallback(type, callback);
-    return SUCCESS;
-}
-
 void RSScreenManagerAgent::CleanVirtualScreens()
 {
     if (!screenManager_) {
@@ -416,15 +409,6 @@ int32_t RSScreenManagerAgent::RemoveVirtualScreenWhiteList(ScreenId id, const st
 int32_t RSScreenManagerAgent::SetScreenSwitchingNotifyCallback(sptr<RSIScreenSwitchingNotifyCallback> callback)
 {
     agentListener_->SetScreenSwitchingNotifyCallback(callback);
-    return SUCCESS;
-}
-
-int32_t RSScreenManagerAgent::SetActiveScreenIdChangedCallback(sptr<RSIActiveScreenIdChangedCallback> callback)
-{
-    agentListener_->SetActiveScreenIdChangedCallback(callback);
-    if (screenManager_) {
-        screenManager_->OnActiveScreenIdChangedCallbackChanged(agentListener_);
-    }
     return SUCCESS;
 }
 

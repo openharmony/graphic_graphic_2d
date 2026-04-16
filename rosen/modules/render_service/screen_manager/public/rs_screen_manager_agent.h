@@ -34,7 +34,7 @@ public:
     void OnScreenDisconnected(ScreenId id, ScreenChangeReason reason) override;
     void OnScreenSwitchingNotify(bool status) override;
     void OnHwcEvent(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData) override;
-    void OnActiveScreenIdChanged(ScreenId activeScreenId);
+    void OnActiveScreenIdChanged(ScreenId activeScreenId) override;
     void SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback);
     void SetScreenSwitchingNotifyCallback(sptr<RSIScreenSwitchingNotifyCallback> screenSwitchingNotifyCallback);
     void SetExposedEventCallback(const RSExposedEventType type, const sptr<RSIExposedEventCallback> callback);

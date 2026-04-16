@@ -129,8 +129,7 @@ bool RSScreenPreprocessor::Init() noexcept
     if (composer_->RegScreenVBlankIdleCallback(&RSScreenPreprocessor::OnScreenVBlankIdle, this) != 0) {
         RS_LOGW("%{public}s: Not support register OnScreenVBlankIdle Func to composer", __func__);
     }
-    // TODO: 屏幕管理需要适配
-    // ProcessScreenHotPlugEvents();
+
     RS_LOGI("Init RSScreenPreprocessor succeed");
     return true;
 }
@@ -148,10 +147,7 @@ void RSScreenPreprocessor::OnHotPlugEvent(std::shared_ptr<HdiOutput>& output, bo
         RS_LOGI("%{public}s: screen %{public}" PRIu64 "is %{public}s, event has been saved", __func__, id,
             connected ? "connected" : "disconnected");
     }
-    if (isHwcDead_) {
-        RS_LOGE("%{public}s: hotPlugEvent should be processed after Init() on hwc dead.", __func__);
-        return;
-    }
+
     ScheduleTask([this]() {
         ProcessScreenHotPlugEvents();
     });

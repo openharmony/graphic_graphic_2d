@@ -108,8 +108,7 @@ bool RSRenderServiceProxy::RemoveConnection(const sptr<RSIConnectionToken>& toke
     return reply.ReadBool();
 }
 
-sptr<ReplyToRenderInfo> RSRenderServiceProxy::RegisterRenderProcessConnection(
-    const sptr<ConnectToServiceInfo>& connectToServiceInfo)
+sptr<IRemoteObject> RSRenderServiceProxy::RegisterRenderProcessConnection()
 {
     MessageParcel data;
     MessageParcel reply;
@@ -119,18 +118,13 @@ sptr<ReplyToRenderInfo> RSRenderServiceProxy::RegisterRenderProcessConnection(
         RS_LOGE("%{public}s: WriteInterfaceToken failed", __func__);
         return nullptr;
     }
-    if (!data.WriteParcelable(connectToServiceInfo.GetRefPtr())) {
-        RS_LOGE("%{public}s: WriteParcelable failed", __func__);
-        return nullptr;
-    }
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceInterfaceCode::REGISTER_RENDER_PROCESS_CONNECTION);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         RS_LOGE("%{public}s: SendRequest failed, err is %{public}d", __func__, err);
         return nullptr;
     }
-    auto replyToRenderInfo = sptr<ReplyToRenderInfo>(reply.ReadParcelable<ReplyToRenderInfo>());
-    return replyToRenderInfo;
+    return reply.ReadRemoteObject();
 }
 } // namespace Rosen
 } // namespace OHOS

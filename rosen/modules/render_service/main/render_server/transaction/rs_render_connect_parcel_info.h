@@ -13,38 +13,36 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_BASE_PLATFORM_OHOS_TRANSACTION_RS_RENDER_CONNECT_PARCEL_INFO_H
-#define RENDER_SERVICE_BASE_PLATFORM_OHOS_TRANSACTION_RS_RENDER_CONNECT_PARCEL_INFO_H
+#ifndef RENDER_SERVICE_MAIN_RENDER_SERVER_TRANSACTION_RS_RENDER_CONNECT_PARCEL_INFO_H
+#define RENDER_SERVICE_MAIN_RENDER_SERVER_TRANSACTION_RS_RENDER_CONNECT_PARCEL_INFO_H
 
 #include "iremote_object.h"
 #include "message_parcel.h"
 
-#include "platform/ohos/transaction/ipc_replay/rs_ipc_replay_manager.h"
+#include "render_process/transaction/ipc_persistence/rs_ipc_persistence_manager.h"
 #include "screen_manager/rs_screen_property.h"
 
 namespace OHOS {
 namespace Rosen {
-struct RSB_EXPORT ReplyToRenderInfo : public Parcelable {
+struct ReplyToRenderInfo : public Parcelable {
 public:
     ReplyToRenderInfo() = default;
-    ReplyToRenderInfo(const sptr<IRemoteObject>& renderToServiceConnection,
-        const sptr<IRemoteObject>& composerConnection, const sptr<RSScreenProperty>& rsScreenProperty,
-        const sptr<IRemoteObject>& vsyncConn, const std::shared_ptr<IpcReplayTypeToDataMap>& replayData)
-        : serviceConnection_(renderToServiceConnection), composeConnection_(composerConnection),
-          rsScreenProperty_(rsScreenProperty), vsyncConn_(vsyncConn), replayData_(replayData) {}
+    ReplyToRenderInfo(const sptr<IRemoteObject>& composerConnection, const sptr<RSScreenProperty>& rsScreenProperty,
+        const sptr<IRemoteObject>& vsyncConn, const std::shared_ptr<IpcPersistenceTypeToDataMap>& replayData)
+        : composeConnection_(composerConnection), rsScreenProperty_(rsScreenProperty), vsyncConn_(vsyncConn),
+          replayData_(replayData) {}
     ~ReplyToRenderInfo() noexcept override = default;
 
     bool Marshalling(Parcel& data) const override;
     [[nodiscard]] static ReplyToRenderInfo* Unmarshalling(Parcel& data);
 
-    sptr<IRemoteObject> serviceConnection_ = nullptr;
     sptr<IRemoteObject> composeConnection_ = nullptr;
     sptr<RSScreenProperty> rsScreenProperty_ = nullptr;
     sptr<IRemoteObject> vsyncConn_ = nullptr;
-    std::shared_ptr<IpcReplayTypeToDataMap> replayData_ = nullptr;
+    std::shared_ptr<IpcPersistenceTypeToDataMap> replayData_ = nullptr;
 };
 
-struct RSB_EXPORT ConnectToServiceInfo : public Parcelable {
+struct ConnectToServiceInfo : public Parcelable {
 public:
     ConnectToServiceInfo() = default;
     ConnectToServiceInfo(const sptr<IRemoteObject>& composerToRenderConnection, const sptr<IRemoteObject>& vsyncToken)
@@ -59,4 +57,4 @@ public:
 };
 } // namespace Rosen
 } // namespace OHOS
-#endif // RENDER_SERVICE_BASE_PLATFORM_OHOS_TRANSACTION_RS_RENDER_CONNECT_PARCEL_INFO_H
+#endif // RENDER_SERVICE_MAIN_RENDER_SERVER_TRANSACTION_RS_RENDER_CONNECT_PARCEL_INFO_H

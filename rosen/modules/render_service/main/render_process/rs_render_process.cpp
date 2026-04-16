@@ -24,9 +24,10 @@
 #include "irs_render_to_composer_connection.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "platform/common/rs_log.h"
-#include "platform/ohos/transaction/rs_render_connect_parcel_info.h"
 #include "rs_composer_to_render_connection.h"
-#include "rs_ipc_replayer.h"
+#include "rs_ipc_persistence_data.h"
+#include "rs_render_connect_parcel_info.h"
+#include "rs_render_pipeline_agent.h"
 #include "transaction/rs_connect_to_render_process.h"
 #include "transaction/rs_service_to_render_connection.h"
 #include "xcollie/watchdog.h"
@@ -102,27 +103,37 @@ bool RSRenderProcess::Init()
 
     // register the child process to the parent process
     RS_LOGI("%{public}s: Subprocess Registration", __func__);
-    auto composerToRenderConn = sptr<RSComposerToRenderConnection>::MakeSptr();
-    auto renderPipelineAgent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline_);
-    sptr<VSyncIConnectionToken> vsyncToken = new IRemoteStub<VSyncIConnectionToken>();
-    auto replyToRenderInfo = ConnectToRenderService(composerToRenderConn, renderPipelineAgent, vsyncToken);
-    if (!replyToRenderInfo) {
-        RS_LOGE("%{public}s: replyToRenderInfo is nullptr", __func__);
+    renderToServiceConnection_ = ConnectToRenderService();
+    if (!renderToServiceConnection_) {
+        RS_LOGE("%{public}s: renderToServiceConnection is nullptr", __func__);
         return false;
     }
-    renderToServiceConnection_ = iface_cast<RSIRenderToServiceConnection>(replyToRenderInfo->serviceConnection_);
-    auto renderToComposerConn = iface_cast<IRSRenderToComposerConnection>(replyToRenderInfo->composeConnection_);
+    // Second ipc which aiming to exchange necessary info between main and sub process
+    RS_LOGI("%{public}s: RenderToServiceConnection Get Successfully", __func__);
+    auto composerToRenderConnection = sptr<RSComposerToRenderConnection>::MakeSptr();
+    sptr<VSyncIConnectionToken> vsyncToken = new IRemoteStub<VSyncIConnectionToken>();
+    auto replyToRenderInfo = renderToServiceConnection_->SendProcessInfo(
+        sptr<ConnectToServiceInfo>::MakeSptr(composerToRenderConnection->AsObject(), vsyncToken->AsObject()));
+    if (IsInvalidReplyInfo(replyToRenderInfo)) {
+        RS_LOGE("%{public}s: replyToRenderInfo has nullptr", __func__);
+        return false;
+    }
+    auto renderToComposerConnection = iface_cast<IRSRenderToComposerConnection>(replyToRenderInfo->composeConnection_);
     auto& rsScreenProperty = replyToRenderInfo->rsScreenProperty_;
     auto vsyncConn = iface_cast<IVSyncConnection>(replyToRenderInfo->vsyncConn_);
     auto receiver = std::make_shared<VSyncReceiver>(vsyncConn, vsyncToken->AsObject(), handler_, "render_process");
     receiver->Init();
 
     // create render pipeline
+    RS_LOGI("%{public}s: RenderPipeline Create", __func__);
     renderPipeline_ = RSRenderPipeline::Create(handler_, receiver, renderToServiceConnection_, nullptr);
-    renderPipeline_->OnScreenConnected(rsScreenProperty, renderToComposerConn, composerToRenderConn, nullptr);
+    renderPipeline_->OnScreenConnected(
+        rsScreenProperty, renderToComposerConnection, composerToRenderConnection, nullptr);
 
     // replay global ipc
-    RSIpcReplayer::ReplayIpcData(renderPipelineAgent, replyToRenderInfo->replayData_);
+    RS_LOGI("%{public}s: Replay Global Ipc", __func__);
+    auto renderPipelineAgent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline_);
+    ApplyIpcPersistenceData(renderPipelineAgent, replyToRenderInfo->replayData_);
 
     auto renderProcessAgent = sptr<RSRenderProcessAgent>::MakeSptr(*this);
     // called from service
@@ -130,6 +141,7 @@ bool RSRenderProcess::Init()
         sptr<RSServiceToRenderConnection>::MakeSptr(renderProcessAgent, renderPipelineAgent);
     auto connectToRenderConnection = sptr<RSConnectToRenderProcess>::MakeSptr(renderPipelineAgent);
     // child process is initialized
+    RS_LOGI("%{public}s: NotifyRenderProcessInitFinished", __func__);
     if (!renderToServiceConnection_->NotifyRenderProcessInitFinished(
         serviceToRenderConnection->AsObject(), connectToRenderConnection->AsObject())) {
         RS_LOGE("%{public}s: NotifyRenderProcessInitFinished is failed", __func__);
@@ -148,35 +160,30 @@ void RSRenderProcess::Run()
     }
 }
 
-sptr<RSIRenderService> RSRenderProcess::GetRenderServer()
+sptr<RSIRenderToServiceConnection> RSRenderProcess::ConnectToRenderService()
 {
-    // get sa proxy
-    if (!renderServer_) {
-        renderServer_ = ConnectToServer();
-    }
-    return renderServer_;
-}
-
-sptr<ReplyToRenderInfo> RSRenderProcess::ConnectToRenderService(
-    const sptr<IRSComposerToRenderConnection>& composerToRenderConnection,
-    const sptr<RSRenderPipelineAgent>& renderPipelineAgent, const sptr<VSyncIConnectionToken>& vsyncToken)
-{
-    auto renderServer = GetRenderServer();
+    auto renderServer = ConnectToServer();
     if (UNLIKELY(!renderServer)) {
         RS_LOGE("%{public}s: renderServer is null", __func__);
         return nullptr;
     }
 
-    // called from others
-    auto connectToServiceInfo =
-        sptr<ConnectToServiceInfo>::MakeSptr(composerToRenderConnection->AsObject(), vsyncToken->AsObject());
     // make first connection to service
-    auto replyToRenderInfo = renderServer->RegisterRenderProcessConnection(connectToServiceInfo);
-    if (IsInvalidReplyInfo(replyToRenderInfo)) {
-        RS_LOGE("%{public}s: replyToRenderInfo is nullptr", __func__);
+    auto renderToServiceConnection = renderServer->RegisterRenderProcessConnection();
+    if (!renderToServiceConnection) {
         return nullptr;
     }
-    return replyToRenderInfo;
+    return iface_cast<RSIRenderToServiceConnection>(renderToServiceConnection);
+}
+
+void RSRenderProcess::ApplyIpcPersistenceData(const sptr<RSRenderPipelineAgent>& renderPipelineAgent,
+    const std::shared_ptr<IpcPersistenceTypeToDataMap>& replayData)
+{
+    for (const auto& [type, dataVec] : *replayData) {
+        for (const auto& data : dataVec) {
+            data->Apply(renderPipelineAgent);
+        }
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

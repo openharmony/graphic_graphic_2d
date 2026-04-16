@@ -18,6 +18,7 @@
 
 #include "platform/ohos/transaction/rs_irender_connection_token.h"
 #include "feature/hyper_graphic_manager/hgm_info_parcel.h"
+#include "render_server/transaction/rs_render_connect_parcel_info.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -32,6 +33,7 @@ public:
     // Process Manager
     virtual bool NotifyRenderProcessInitFinished(
         const sptr<IRemoteObject>& serviceToRenderConnection, const sptr<IRemoteObject>& connectToRenderConnection) = 0;
+    virtual sptr<ReplyToRenderInfo> SendProcessInfo(const sptr<ConnectToServiceInfo>& connectToServiceInfo) = 0;
 
     // Hgm
     virtual sptr<HgmServiceToProcessInfo> NotifyRpHgmFrameRate(uint64_t timestamp, uint64_t vsyncId,

@@ -951,6 +951,16 @@ int32_t RSRenderPipelineClient::SetLogicalCameraRotationCorrection(ScreenId id, 
     return renderPipeline->SetLogicalCameraRotationCorrection(id, logicalCorrection);
 }
 
+int32_t RSRenderPipelineClient::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
+{
+    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
+    if (renderPipeline == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::GetMaxGpuBufferSize renderPipeline is nullptr!");
+        return RENDER_SERVICE_NULL;
+    }
+    return renderPipeline->GetMaxGpuBufferSize(maxWidth, maxHeight);
+}
+
 void RSRenderPipelineClient::SetFreeMultiWindowStatus(bool enable)
 {
     auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();

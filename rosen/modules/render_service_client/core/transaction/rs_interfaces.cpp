@@ -1171,7 +1171,8 @@ int32_t RSInterfaces::GetPidGpuMemoryInMB(pid_t pid, float& gpuMemInMB)
 int32_t RSInterfaces::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
 {
     RS_LOGI("RSInterfaces::GetMaxGpuBufferSize called");
-    return renderInterface_->GetMaxGpuBufferSize(maxWidth, maxHeight);
+    return 0;
+    // return renderInterface_->GetMaxGpuBufferSize(maxWidth, maxHeight);
 }
 
 // LCOV_EXCL_STOP
@@ -1217,24 +1218,28 @@ int32_t RSInterfaces::RegisterFrameStabilityDetection(
     const FrameStabilityConfig& config,
     const FrameStabilityCallback& callback)
 {
-    return renderInterface_->RegisterFrameStabilityDetection(target, config, callback);
+    return 0;
+    // return renderInterface_->RegisterFrameStabilityDetection(target, config, callback);
 }
 
 int32_t RSInterfaces::UnregisterFrameStabilityDetection(const FrameStabilityTarget& target)
 {
-    return renderInterface_->UnregisterFrameStabilityDetection(target);
+    return 0;
+    // return renderInterface_->UnregisterFrameStabilityDetection(target);
 }
 
 int32_t RSInterfaces::StartFrameStabilityCollection(
     const FrameStabilityTarget& target,
     const FrameStabilityConfig& config)
 {
-    return renderInterface_->StartFrameStabilityCollection(target, config);
+    return 0;
+    // return renderInterface_->StartFrameStabilityCollection(target, config);
 }
 
 int32_t RSInterfaces::GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result)
 {
-    return renderInterface_->GetFrameStabilityResult(target, result);
+    return 0;
+    // return renderInterface_->GetFrameStabilityResult(target, result);
 }
 
 int32_t RSInterfaces::SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection)

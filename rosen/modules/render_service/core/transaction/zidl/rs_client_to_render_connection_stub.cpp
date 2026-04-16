@@ -113,6 +113,7 @@ static constexpr std::array descriptorCheckList = {
 #endif
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_LOGICAL_CAMERA_ROTATION_CORRECTION),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_MAX_GPU_BUFFER_SIZE),
 };
 
 void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
@@ -1507,6 +1508,26 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             if (!reply.WriteInt32(result)) {
                 RS_LOGE("RSClientToRenderConnectionStub::SET_LOGICAL_CAMERA_ROTATION_CORRECTION Write parcel failed!");
                 ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_MAX_GPU_BUFFER_SIZE): {
+            uint32_t maxWidth { 0 };
+            uint32_t maxHeight { 0 };
+            ret = GetMaxGpuBufferSize(maxWidth, maxHeight);
+            if (ret != ERR_OK) {
+                RS_LOGE("RSClientToRenderConnectionStub::GET_MAX_GPU_BUFFER_SIZE Business error(%{public}d)!", ret);
+                break;
+            }
+            if (!reply.WriteUint32(maxWidth)) {
+                RS_LOGE("RSClientToRenderConnectionStub::GET_MAX_GPU_BUFFER_SIZE Write maxWidth failed!");
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
+            if (!reply.WriteUint32(maxHeight)) {
+                RS_LOGE("RSClientToRenderConnectionStub::GET_MAX_GPU_BUFFER_SIZE Write maxHeight failed!");
+                ret = ERR_INVALID_REPLY;
+                break;
             }
             break;
         }

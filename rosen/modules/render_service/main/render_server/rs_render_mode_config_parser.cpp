@@ -19,6 +19,8 @@
 #include <cstdint>
 #include <fstream>
 
+#include "config_policy_utils.h"
+
 #include "platform/common/rs_log.h"
 
 #undef LOG_TAG
@@ -27,21 +29,17 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr const char* RENDER_MODE_CONFIG_PATH { "etc/graphic/render_mode_config.xml" };
-
-xmlDoc* LoadConfiguration(const char* fileDir, const std::vector<std::string>& paths, bool isSys)
+std::optional<std::string> GetConfigPath()
 {
-    for (const std::string& configPath : paths) {
-        std::string graphicFilePath { configPath + fileDir };
-        xmlDoc* doc { xmlReadFile(graphicFilePath.c_str(), nullptr, 0) };
-        if (doc != nullptr) {
-            RS_LOGD("%{public}s: success to get %{public}s graphic config: %{public}s", __func__,
-                isSys ? "sys" : "prod", graphicFilePath.c_str());
-            return doc;
-        }
+    std::string fileSuffix = "etc/graphic/render_mode_config.xml";
+    char pathBuff[MAX_PATH_LEN] = { '\0' };
+    char* flexConfigPath = GetOneCfgFile(fileSuffix.c_str(), pathBuff, MAX_PATH_LEN);
+    if (!flexConfigPath) {
+        return std::nullopt;
     }
-    RS_LOGE("%{public}s: %{public}s xmlReadFile failed", __func__, isSys ? "sys" : "prod");
-    return nullptr;
+    std::string resPath(flexConfigPath);
+    RS_LOGI("%{public}s: renderModeConfig path is: %{public}s", __func__, resPath.c_str());
+    return resPath;
 }
 
 bool IsNumber(const std::string& str)
@@ -78,18 +76,19 @@ std::shared_ptr<const RenderModeConfig> RSRenderModeConfigParser::BuildRenderCon
 
 int32_t RSRenderModeConfigParser::LoadConfigurations()
 {
-    xmlDoc* sysDoc { LoadConfiguration(RENDER_MODE_CONFIG_PATH, sysPath_, true) };
-    if (!sysDoc) {
+    auto configPathOpt = GetConfigPath();
+    if (!configPathOpt.has_value()) {
+        RS_LOGE("%{public}s: GetOneCfgFile failed, config file not found", __func__);
         return RENDER_MODE_PARSE_FILE_LOAD_FAIL;
     }
-    xmlDocument_ = sysDoc;
-
-    // product config must work with system config
-    xmlDoc* prodDoc { LoadConfiguration(RENDER_MODE_CONFIG_PATH, { prodPath_ }, false) };
-    if (prodDoc) {
-        xmlFreeDoc(xmlDocument_);
-        xmlDocument_ = prodDoc;
+    std::string configPath = configPathOpt.value();
+    xmlDoc* doc = xmlReadFile(configPath.c_str(), nullptr, 0);
+    if (!doc) {
+        RS_LOGE("%{public}s: xmlReadFile failed for %{public}s", __func__, configPath.c_str());
+        return RENDER_MODE_PARSE_FILE_LOAD_FAIL;
     }
+    RS_LOGI("%{public}s: success to get renderModeConfig: %{public}s", __func__, configPath.c_str());
+    xmlDocument_ = doc;
     return RENDER_MODE_PARSE_EXEC_SUCCESS;
 }
 
@@ -165,7 +164,7 @@ bool RSRenderModeConfigParser::ParseInternal(xmlNode& node)
 std::string RSRenderModeConfigParser::ExtractPropertyValue(const std::string& propName, xmlNode& node)
 {
     RS_LOGD("%{public}s: extracting value %{public}s", __func__, propName.c_str());
-    std::string propValue {};
+    std::string propValue { "" };
     xmlChar* tempValue { nullptr };
     if (xmlHasProp(&node, reinterpret_cast<const xmlChar*>(propName.c_str()))) {
         tempValue = xmlGetProp(&node, reinterpret_cast<const xmlChar*>(propName.c_str()));

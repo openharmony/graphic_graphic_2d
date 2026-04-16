@@ -31,6 +31,7 @@ public:
     // Process Manager
     bool NotifyRenderProcessInitFinished(const sptr<IRemoteObject>& serviceToRenderConnection,
         const sptr<IRemoteObject>& connectToRenderConnection) override;
+    sptr<ReplyToRenderInfo> SendProcessInfo(const sptr<ConnectToServiceInfo>& connectToServiceInfo) override;
 
     // Hgm
     sptr<HgmServiceToProcessInfo> NotifyRpHgmFrameRate(uint64_t timestamp, uint64_t vsyncId,

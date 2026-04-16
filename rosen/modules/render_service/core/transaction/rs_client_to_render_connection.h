@@ -167,6 +167,8 @@ private:
     std::string GetBundleName(pid_t pid) override;
     int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection) override;
 
+    ErrCode GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight) override;
+
     void SetFreeMultiWindowStatus(bool enable) override;
 
     pid_t remotePid_;

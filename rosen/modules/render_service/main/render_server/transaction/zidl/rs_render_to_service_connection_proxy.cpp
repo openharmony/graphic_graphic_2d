@@ -57,6 +57,30 @@ bool RSRenderToServiceConnectionProxy::NotifyRenderProcessInitFinished(
     return result;
 }
 
+sptr<ReplyToRenderInfo> RSRenderToServiceConnectionProxy::SendProcessInfo(
+    const sptr<ConnectToServiceInfo>& connectToServiceInfo)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteInterfaceToken(RSIRenderToServiceConnection::GetDescriptor())) {
+        RS_LOGE("%{public}s: WriteInterfaceToken failed", __func__);
+        return nullptr;
+    }
+    if (!data.WriteParcelable(connectToServiceInfo.GetRefPtr())) {
+        RS_LOGE("%{public}s: WriteParcelable failed", __func__);
+        return nullptr;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderToServiceConnectionInterfaceCode::SEND_PROCESS_INFO);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        RS_LOGE("%{public}s: SendRquest failed, err is %{public}d", __func__, err);
+        return nullptr;
+    }
+    return sptr<ReplyToRenderInfo>(reply.ReadParcelable<ReplyToRenderInfo>());
+}
+
 sptr<HgmServiceToProcessInfo> RSRenderToServiceConnectionProxy::NotifyRpHgmFrameRate(
     uint64_t timestamp, uint64_t vsyncId, const sptr<HgmProcessToServiceInfo>& processToServiceInfo)
 {

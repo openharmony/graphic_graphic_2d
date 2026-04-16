@@ -78,6 +78,9 @@ public:
     // Game Scene Handler
     void HandleGameSceneChanged() const;
 
+    std::pair<sptr<IRSRenderToComposerConnection>, sptr<VSyncConnection>> GetProcessInfo(
+        ScreenId screenId, sptr<IRemoteObject> vsyncToken);
+
 private:
     RSRenderService& renderService_;
 };

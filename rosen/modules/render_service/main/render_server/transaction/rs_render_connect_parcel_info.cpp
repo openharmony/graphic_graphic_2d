@@ -13,16 +13,13 @@
  * limitations under the License.
  */
 
-#include "platform/ohos/transaction/rs_render_connect_parcel_info.h"
+#include "rs_render_connect_parcel_info.h"
 
 namespace OHOS {
 namespace Rosen {
 bool ReplyToRenderInfo::Marshalling(Parcel& data) const
 {
     MessageParcel* message = static_cast<MessageParcel*>(&data);
-    if (!message->WriteRemoteObject(serviceConnection_)) {
-        return false;
-    }
     if (!message->WriteRemoteObject(composeConnection_)) {
         return false;
     }
@@ -32,7 +29,7 @@ bool ReplyToRenderInfo::Marshalling(Parcel& data) const
     if (!message->WriteRemoteObject(vsyncConn_)) {
         return false;
     }
-    if (!RSIpcReplayManager::Marshalling(data, *replayData_)) {
+    if (!RSIpcPersistenceManager::Marshalling(data, *replayData_)) {
         return false;
     }
     return true;
@@ -42,10 +39,6 @@ ReplyToRenderInfo* ReplyToRenderInfo::Unmarshalling(Parcel& data)
 {
     auto result = std::make_unique<ReplyToRenderInfo>();
     MessageParcel* message = static_cast<MessageParcel*>(&data);
-    result->serviceConnection_ = message->ReadRemoteObject();
-    if (!result->serviceConnection_) {
-        return nullptr;
-    }
     result->composeConnection_ = message->ReadRemoteObject();
     if (!result->composeConnection_) {
         return nullptr;
@@ -58,11 +51,11 @@ ReplyToRenderInfo* ReplyToRenderInfo::Unmarshalling(Parcel& data)
     if (!result->vsyncConn_) {
         return nullptr;
     }
-    auto typeToDataMap = RSIpcReplayManager::Unmarshalling(data);
+    auto typeToDataMap = RSIpcPersistenceManager::Unmarshalling(data);
     if (!typeToDataMap.has_value()) {
         return nullptr;
     }
-    result->replayData_ = std::make_shared<IpcReplayTypeToDataMap>(typeToDataMap.value());
+    result->replayData_ = std::make_shared<IpcPersistenceTypeToDataMap>(typeToDataMap.value());
     return result.release();
 }
 

@@ -50,8 +50,6 @@ public:
     bool Init();
     void Run();
 
-    const std::shared_ptr<const RenderModeConfig>& GetRenderModeConfig() const { return renderModeConfig_; }
-
     const sptr<RsGameFrameHandler>& GetGameFrameHandler() const;
 
 private:
@@ -83,13 +81,15 @@ private:
     };
 
     // IPC related
-    sptr<ReplyToRenderInfo> RegisterRenderProcessConnection(
-        const sptr<ConnectToServiceInfo>& connectToServiceInfo) override;
+    sptr<IRemoteObject> RegisterRenderProcessConnection() override;
     std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> CreateConnection(
         const sptr<RSIConnectionToken>& token, bool needRefresh = false) override;
     std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> GetConnection(
         const sptr<RSIConnectionToken>& token) override;
     bool RemoveConnection(const sptr<RSIConnectionToken>& token) override;
+
+    std::pair<sptr<IRSRenderToComposerConnection>, sptr<VSyncConnection>> GetProcessInfo(
+        ScreenId screenId, sptr<IRemoteObject> vsyncToken);
 
     // Initialization related
     void ParseRenderModeConfig();
@@ -108,6 +108,8 @@ private:
     // Hgm related
     const std::shared_ptr<HgmContext>& GetHgmContext() const { return hgmContext_; }
     void HandlePowerStatus(ScreenId screenId, ScreenPowerStatus status);
+
+    const std::shared_ptr<const RenderModeConfig>& GetRenderModeConfig() const { return renderModeConfig_; }
 
     // Game Scene Handler
     void InitGameFrameHandler();
