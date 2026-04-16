@@ -107,10 +107,6 @@ bool BackgroundFilterModifierFuzzTest(const uint8_t* data, size_t size)
     modifier->SetWaterRippleParams(randomWaterRippleParams);
     modifier->GetWaterRippleParams();
 
-    std::shared_ptr<RSMagnifierParams> randomMagnifierParams = std::make_shared<RSMagnifierParams>();
-    modifier->SetMagnifierParams(randomMagnifierParams);
-    modifier->GetMagnifierParams();
-
     modifier->SetBackgroundBlurRadius(randomFloat);
     modifier->GetBackgroundBlurRadius();
 

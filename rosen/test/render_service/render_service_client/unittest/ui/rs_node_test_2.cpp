@@ -723,26 +723,6 @@ HWTEST_F(RSNodeTest2, SetPropertyNG_RSBoundsClipModifierTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetMagnifierParamsTest
- * @tc.desc: SetMagnifierParams
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeTest2, SetMagnifierParamsTest, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    auto para = std::make_shared<RSMagnifierParams>();
-    rsNode->SetMagnifierParams(para);
-
-    auto modifier = rsNode->GetModifierByType(ModifierNG::RSBackgroundFilterModifier::Type);
-    ASSERT_TRUE(modifier != nullptr);
-    auto property = std::static_pointer_cast<RSProperty<std::shared_ptr<RSMagnifierParams>>>(
-        modifier->GetProperty(ModifierNG::RSPropertyType::MAGNIFIER_PARA));
-    ASSERT_TRUE(property != nullptr);
-
-    EXPECT_EQ(property->Get(), para);
-}
-
-/**
  * @tc.name: AddModifier
  * @tc.desc: test results of AddModifier
  * @tc.type: FUNC
@@ -774,13 +754,6 @@ HWTEST_F(RSNodeTest2, RemoveModifier, TestSize.Level1)
     std::shared_ptr<ModifierNG::RSModifier> modifierNull = nullptr;
     EXPECT_TRUE(rsNode->modifiersNG_.empty());
     rsNode->RemoveModifier(modifierNull);
-    EXPECT_TRUE(rsNode->modifiersNG_.empty());
-
-    auto para = std::make_shared<RSMagnifierParams>();
-    rsNode->SetMagnifierParams(para);
-    EXPECT_FALSE(rsNode->modifiersNG_.empty());
-    auto modifier = rsNode->GetModifierByType(ModifierNG::RSBackgroundFilterModifier::Type);
-    rsNode->RemoveModifier(modifier);
     EXPECT_TRUE(rsNode->modifiersNG_.empty());
 
     auto alphaModifier = std::make_shared<ModifierNG::RSAlphaModifier>();

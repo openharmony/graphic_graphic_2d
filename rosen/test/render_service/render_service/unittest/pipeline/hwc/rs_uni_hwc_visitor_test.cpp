@@ -2174,6 +2174,12 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByGlobalDirtyFilter_002, TestSi
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
 
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    constexpr NodeId id = 1;
+    pid_t pid = ExtractPid(id);
+    auto node = std::make_shared<RSRenderNode>(id);
+    nodeMap.renderNodeMap_[pid][id] = node;
+    ASSERT_NE(node, nullptr);
     std::vector<std::pair<NodeId, RectI>> dirtyFilter;
     uint32_t left = 0;
     uint32_t top = 0;
@@ -2182,7 +2188,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByGlobalDirtyFilter_002, TestSi
     RectI rect{left, top, width, height};
     surfaceNode->SetDstRect(rect);
     surfaceNode->renderProperties_.boundsGeo_->absRect_ = rect;
-    dirtyFilter.emplace_back(NodeId(0), RectI(50, 50, 100, 100));
+    dirtyFilter.emplace_back(NodeId(id), RectI(50, 50, 600, 600));
     auto geo = surfaceNode->GetRenderProperties().GetBoundsGeometry();
     ASSERT_FALSE(geo->GetAbsRect().IntersectRect(dirtyFilter[0].second).IsEmpty());
 
@@ -3740,7 +3746,7 @@ HWTEST_F(RSUniHwcVisitorTest, CheckHwcNodeIntersection001, TestSize.Level1)
 
     // Call UpdateHwcNodeEnableByColorPicker which internally calls CheckHwcNodeIntersection
     rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByColorPicker();
-    EXPECT_TRUE(hwcNode->isHardwareForcedDisabled_);
+    EXPECT_FALSE(hwcNode->isHardwareForcedDisabled_);
 }
 
 /**

@@ -101,7 +101,8 @@ private:
         HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceType& colorSpaceType);
 #endif
     std::shared_ptr<RSSurfaceOhos> CreateFrameBufferSurfaceOhos(const sptr<Surface>& surface);
-    void RedrawScreenRCD(RSPaintFilterCanvas& canvas, const std::vector<std::shared_ptr<RSLayer>>& layers);
+    void RedrawScreenRCD(RSPaintFilterCanvas& canvas, const std::vector<std::shared_ptr<RSLayer>>& layers,
+        const Vector2f& rogRatio);
     void ResetScreenRCDRedrawState(std::vector<std::shared_ptr<RSLayer>>& layers);
     void Redraw(const sptr<Surface>& surface, const std::vector<std::shared_ptr<RSLayer>>& layers);
     GraphicColorGamut ComputeTargetColorGamut(const sptr<SurfaceBuffer>& buffer);

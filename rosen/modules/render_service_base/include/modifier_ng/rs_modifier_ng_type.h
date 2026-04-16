@@ -273,7 +273,6 @@ public:
             case RSPropertyType::FLY_OUT_PARAMS: return "FlyOutParams";
             case RSPropertyType::DISTORTION_K: return "DistortionK";
             case RSPropertyType::DYNAMIC_DIM_DEGREE: return "DynamicDimDegree";
-            case RSPropertyType::MAGNIFIER_PARA: return "MagnifierPara";
             case RSPropertyType::BACKGROUND_BLUR_RADIUS: return "BackgroundBlurRadius";
             case RSPropertyType::BACKGROUND_BLUR_SATURATION: return "BackgroundBlurSaturation";
             case RSPropertyType::BACKGROUND_BLUR_BRIGHTNESS: return "BackgroundBlurBrightness";

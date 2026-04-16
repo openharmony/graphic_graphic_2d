@@ -855,12 +855,6 @@ void RSNode::SetMotionPathOption(const std::shared_ptr<RSMotionPathOption>& moti
     UpdateModifierMotionPathOption();
 }
 
-void RSNode::SetMagnifierParams(const std::shared_ptr<RSMagnifierParams>& para)
-{
-    SetPropertyNG<ModifierNG::RSBackgroundFilterModifier, &ModifierNG::RSBackgroundFilterModifier::SetMagnifierParams>(
-        para);
-}
-
 const std::shared_ptr<RSMotionPathOption> RSNode::GetMotionPathOption() const
 {
     return motionPathOption_;

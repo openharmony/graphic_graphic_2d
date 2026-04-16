@@ -18,20 +18,20 @@
 
 #include "common/rs_occlusion_region.h"
 #include "common/rs_rect.h"
+#include "hpae_base/rs_hpae_base_data.h"
+#include "hpae_base/rs_hpae_filter_cache_manager.h"
+#include "render/rs_drawing_filter.h"
 #include "render/rs_filter_cache_manager.h"
 #include "render/rs_filter_cache_memory_controller.h"
-#include "render/rs_drawing_filter.h"
 #include "render/rs_filter.h"
+#include "render/rs_high_performance_visual_engine.h"
 #include "render/rs_render_aibar_filter.h"
 #include "render/rs_render_kawase_blur_filter.h"
-#include "render/rs_render_magnifier_filter.h"
-#include "utils/rect.h"
-#include "utils/region.h"
 #include "skia_adapter/skia_surface.h"
 #include "skia_canvas.h"
 #include "skia_surface.h"
-#include "hpae_base/rs_hpae_base_data.h"
-#include "hpae_base/rs_hpae_filter_cache_manager.h"
+#include "utils/rect.h"
+#include "utils/region.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -334,11 +334,16 @@ HWTEST_F(RSFilterCacheManagerTest, TakeSnapshotTest, TestSize.Level1)
     filterCanvas.surface_ = new Drawing::Surface();
     rsFilterCacheManager->TakeSnapshot(filterCanvas, filter, srcRect);
     EXPECT_NE(filterCanvas.GetSurface(), nullptr);
-    auto para = std::make_shared<RSMagnifierParams>();
-    auto rsMagnifierShaderFilter = std::make_shared<RSMagnifierShaderFilter>(para);
-    filter = std::make_shared<RSDrawingFilter>(rsMagnifierShaderFilter);
+    SurfaceNodeInfo info;
+    info.surfaceImage_ = std::make_shared<Drawing::Image>();
+    info.matrix_.Set(Drawing::Matrix::TRANS_X, 1.0f);
+    info.srcRect_ = Drawing::Rect(0, 0, 100, 100);
+    info.dstRect_ = Drawing::Rect(0, 0, 100, 100);
+    info.solidLayerColor_ = RgbPalette::Black();
+    HveFilter::GetHveFilter().PushSurfaceNodeInfo(info);
     rsFilterCacheManager->TakeSnapshot(filterCanvas, filter, srcRect);
-    EXPECT_NE(filter->GetShaderFilterWithType(RSUIFilterType::MAGNIFIER), nullptr);
+    HveFilter::GetHveFilter().ClearSurfaceNodeInfo();
+    rsFilterCacheManager->TakeSnapshot(filterCanvas, filter, srcRect);
 }
 
 /**

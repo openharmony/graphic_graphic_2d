@@ -20,6 +20,7 @@ group("test") {
     "render_server/unittest:unittest",
     "render_server/unittest/transaction:unittest",
     "render_service/fuzztest/rsclienttorenderconnection_fuzzer:fuzztest",
+    "render_service/fuzztest/rsmemorymanager_fuzzer:fuzztest",
     "render_service/fuzztest/rsirenderserviceipcinterfacecodeaccessverifier_fuzzer:fuzztest",
     "render_service/fuzztest/rsrenderserviceconnection_fuzzer:fuzztest",
     "render_service/fuzztest/rsrenderserviceconnection000_fuzzer:fuzztest",

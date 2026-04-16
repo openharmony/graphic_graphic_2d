@@ -31,7 +31,6 @@
 #include "render/rs_render_kawase_blur_filter.h"
 #include "render/rs_render_linear_gradient_blur_filter.h"
 #include "render/rs_skia_filter.h"
-#include "render/rs_render_magnifier_filter.h"
 #include "render/rs_material_filter.h"
 #include "platform/common/rs_system_properties.h"
 
@@ -576,13 +575,6 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
 
     auto clipIBounds = canvas.GetDeviceClipBounds();
     auto imageClipIBounds = clipIBounds;
-    auto magnifierShaderFilter = filter->GetShaderFilterWithType(RSUIFilterType::MAGNIFIER);
-    if (magnifierShaderFilter != nullptr) {
-        auto tmpFilter = std::static_pointer_cast<RSMagnifierShaderFilter>(magnifierShaderFilter);
-        auto canvasMatrix = canvas.GetTotalMatrix();
-        tmpFilter->SetMagnifierOffset(canvasMatrix);
-        imageClipIBounds.Offset(tmpFilter->GetMagnifierOffsetX(), tmpFilter->GetMagnifierOffsetY());
-    }
 
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     // Optional use cacheManager to draw filter
@@ -850,23 +842,6 @@ void RSPropertiesPainter::GetDistortionEffectDirtyRect(RectI& dirtyDistortionEff
         dirtyDistortionEffect.width_ = dirtyWidth;
         dirtyDistortionEffect.height_ = dirtyWidth;
     }
-}
-
-// calculate the magnifier effect's dirty area
-void RSPropertiesPainter::GetMagnifierEffectDirtyRect(RectI& dirtyMagnifierEffect, const RSProperties& properties)
-{
-    const auto& magnifierPara = properties.GetMagnifierPara();
-    if (!magnifierPara) {
-        return;
-    }
-    auto boundsRect = properties.GetBoundsRect();
-    auto scaledBounds = RectF(boundsRect.left_ + magnifierPara->offsetX_, boundsRect.top_ + magnifierPara->offsetY_,
-        boundsRect.width_, boundsRect.height_);
-    auto drawingRect = Rect2DrawingRect(scaledBounds);
-        dirtyMagnifierEffect.left_ = static_cast<int>(std::floor(drawingRect.GetLeft()));
-    dirtyMagnifierEffect.top_ = static_cast<int>(std::floor(drawingRect.GetTop()));
-    dirtyMagnifierEffect.width_ = static_cast<int>(std::ceil(drawingRect.GetRight())) - dirtyMagnifierEffect.left_ ;
-    dirtyMagnifierEffect.height_ = static_cast<int>(std::ceil(drawingRect.GetBottom())) - dirtyMagnifierEffect.top_;
 }
 
 Drawing::ColorQuad RSPropertiesPainter::CalcAverageColor(std::shared_ptr<Drawing::Image> imageSnapshot)

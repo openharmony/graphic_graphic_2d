@@ -37,7 +37,6 @@ public:
     void SetWaterRippleProgress(float progress);
     void SetWaterRippleParams(const std::optional<RSWaterRipplePara>& para);
 
-    void SetMagnifierParams(const std::shared_ptr<RSMagnifierParams>& params);
     void SetBackgroundBlurRadius(float backgroundBlurRadius);
     void SetBackgroundBlurSaturation(float backgroundBlurSaturation);
     void SetBackgroundBlurBrightness(float backgroundBlurBrightness);
@@ -54,7 +53,6 @@ public:
     float GetWaterRippleProgress() const;
     std::optional<RSWaterRipplePara> GetWaterRippleParams() const;
 
-    std::shared_ptr<RSMagnifierParams> GetMagnifierParams() const;
     float GetBackgroundBlurRadius() const;
     float GetBackgroundBlurSaturation() const;
     float GetBackgroundBlurBrightness() const;

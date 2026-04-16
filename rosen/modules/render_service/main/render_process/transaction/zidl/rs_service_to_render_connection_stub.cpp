@@ -21,6 +21,7 @@
 #include "rs_profiler.h"
 #include "common/rs_xcollie.h"
 #include "platform/common/rs_log.h"
+#include "gfx/dump/rs_dump_manager.h"
 
 #undef LOG_TAG
 #define LOG_TAG "RSServiceToRenderConnectionStub"
@@ -330,6 +331,11 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             std::vector<std::u16string> args;
             if (!data.ReadString16Vector(&args)) {
                 RS_LOGE("RSRenderServiceStub::DFX_DUMP Read args failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (args.size() > cmdMap_.size()) {
+                RS_LOGE("RSRenderServiceStub::DFX_DUMP Read size too big failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }

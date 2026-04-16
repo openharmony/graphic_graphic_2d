@@ -233,7 +233,8 @@ DECLARE_FILTER(Magnifier, MAGNIFIER,
     ADD_PROPERTY_TAG(Magnifier, GradientMaskColor1),
     ADD_PROPERTY_TAG(Magnifier, GradientMaskColor2),
     ADD_PROPERTY_TAG(Magnifier, OuterContourColor1),
-    ADD_PROPERTY_TAG(Magnifier, OuterContourColor2)
+    ADD_PROPERTY_TAG(Magnifier, OuterContourColor2),
+    ADD_PROPERTY_TAG(Magnifier, SDFShape)
 );
 
 DECLARE_FILTER(FrostedGlassBlur, FROSTED_GLASS_BLUR,

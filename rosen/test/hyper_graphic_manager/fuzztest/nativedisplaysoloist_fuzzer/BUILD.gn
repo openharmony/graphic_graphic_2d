@@ -32,6 +32,7 @@ ohos_fuzztest("NativeDisplaySoloistFuzzTest") {
     "-O0",
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
+    "-Dprivate=public",
   ]
 
   sources = [ "nativedisplaysoloist_fuzzer.cpp" ]

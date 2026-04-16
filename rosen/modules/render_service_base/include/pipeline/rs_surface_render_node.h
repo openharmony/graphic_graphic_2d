@@ -410,6 +410,16 @@ public:
         return intersectWithAIBar_;
     }
 
+    void SetIntersectWithFilterNode(bool intersectOrNot)
+    {
+        intersectWithFilterNode_ = intersectOrNot;
+    }
+
+    bool GetIntersectWithFilterNode() const
+    {
+        return intersectWithFilterNode_;
+    }
+
     bool IsHardwareForcedDisabledByFilter() const
     {
         return isHardwareForcedDisabledByFilter_;
@@ -1918,6 +1928,7 @@ private:
     bool isHardwareForcedDisabled_ = false;
     bool hardwareNeedMakeImage_ = false;
     bool intersectWithAIBar_ = false;
+    bool intersectWithFilterNode_ = false;
     bool isHardwareForcedDisabledByFilter_ = false;
     // For certain buffer format(YUV), dss restriction on src : srcRect % 2 == 0
     // To avoid switch between gpu and dss during sliding, we disable dss when srcHeight != bufferHeight
