@@ -84,6 +84,13 @@ struct CurFrameInfoDetail {
     bool curFrameReverseChildren = false;
 };
 
+enum LayerDrawContent : size_t {
+    SELF = 0,       // whether the node itself has draw content
+    SUBTREE = 1,    // whether the subtree has draw content, determined by all its descendants
+    UPDATE = 2,     // whether the node has update content in current frame, used for dynamic layer skip optimization
+    MAX = 3
+};
+
 class RSB_EXPORT RSRenderNode : public std::enable_shared_from_this<RSRenderNode> {
 public:
     using WeakPtr = std::weak_ptr<RSRenderNode>;
@@ -1233,9 +1240,7 @@ private:
     bool hasChildrenOutOfRect_ = false;
 
     // for decide whether has true draw content
-    bool hasDrawContent_ = false;
-    bool subTreeHasDrawContent_ = false;
-    bool needUpdateDrawContent_ = false;
+    std::bitset<LayerDrawContent::MAX> layerContentBits_;
 
     bool isSubTreeDirty_ = false;
     bool isTreeStateChangeDirty_ = false;

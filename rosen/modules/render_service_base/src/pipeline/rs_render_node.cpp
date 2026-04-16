@@ -765,7 +765,7 @@ void RSRenderNode::ResetChildRelevantFlags()
     SetHasChildExcludedFromNodeGroup(false);
     SetChildHasVisibleHDRContent(false);
     ResetNodeColorSpace();
-    subTreeHasDrawContent_ = false;
+    layerContentBits_[LayerDrawContent::SUBTREE] = false;
     RSPointLightManager::Instance(GetLogicalDisplayNodeId())->SetChildHasVisibleIlluminated(shared_from_this(), false);
 }
 
@@ -1159,8 +1159,8 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
         out += ", IsSubTreeSkipped: " + std::to_string(curFrameInfoDetail_.curFrameSubTreeSkipped);
         out += ", ReverseChildren: " + std::to_string(curFrameInfoDetail_.curFrameReverseChildren);
         out += ", zOrder: " + std::to_string(hwcRecorder_.GetZOrderForHwcEnableByFilter());
-        out += ", hasDrawContent: " + std::to_string(hasDrawContent_);
-        out += ", hasChildrenDrawContent: " + std::to_string(subTreeHasDrawContent_);
+        out += ", hasDrawContent: " + std::to_string(layerContentBits_[LayerDrawContent::SELF]);
+        out += ", hasChildrenDrawContent: " + std::to_string(layerContentBits_[LayerDrawContent::SUBTREE]);
     }
 #endif
 
@@ -1485,7 +1485,7 @@ void RSRenderNode::SetDirty(bool forceAddToActiveList)
     isParentTreeDirty_ = true;
     SetParentSubTreeDirty();
     dirtyStatus_ = NodeDirty::DIRTY;
-    needUpdateDrawContent_ = true;
+    layerContentBits_[LayerDrawContent::UPDATE] = true;
 }
 
 void RSRenderNode::CollectSurface(
