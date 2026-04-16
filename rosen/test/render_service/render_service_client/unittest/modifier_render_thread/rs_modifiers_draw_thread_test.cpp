@@ -725,7 +725,7 @@ HWTEST_F(RSModifiersDrawThreadTest, GetIsFirstFrame002, TestSize.Level1)
  */
 HWTEST_F(RSModifiersDrawThreadTest, CreateDrawingContext001, TestSize.Level2)
 {
-    auto& singletonPtr = RsVulkanContext::GetRecyclableSingletonPtr("");
+    auto& singletonPtr = RsVulkanContext::GetRecyclableSingletonPtr();
     singletonPtr.reset();
     (void)RsVulkanContext::GetRecyclableSingleton();
     ASSERT_NE(RsVulkanContext::GetRecyclableSingletonPtr(), nullptr);
