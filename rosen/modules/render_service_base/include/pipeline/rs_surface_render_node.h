@@ -410,6 +410,16 @@ public:
         return intersectWithAIBar_;
     }
 
+    void SetIntersectWithFilterNode(bool intersectOrNot)
+    {
+        intersectWithFilterNode_ = intersectOrNot;
+    }
+
+    bool GetIntersectWithFilterNode() const
+    {
+        return intersectWithFilterNode_;
+    }
+
     bool IsHardwareForcedDisabledByFilter() const
     {
         return isHardwareForcedDisabledByFilter_;
@@ -1815,6 +1825,9 @@ public:
     void SetRotationCorrectionDegree(int32_t rotationCorrectionDegree);
     void UpdateLayerPartRenderStatus(std::shared_ptr<RSDirtyRegionManager>& dirtyManager);
 
+    void SetHDRType(uint32_t hdrType);
+    uint32_t GetHDRType() const;
+
 protected:
     void OnSync() override;
     void OnSkipSync() override;
@@ -1859,6 +1872,9 @@ private:
     void CopyModifierValue(ModifierNG::RSPropertyType propertyType,
         std::shared_ptr<ModifierNG::RSRenderModifier> oldModifier,
         std::shared_ptr<ModifierNG::RSRenderModifier> newModifier);
+    
+    void CountRelatedNode(bool isIncrement);
+    void ClearRelatedSourceCache();
 
     RSSpecialLayerManager specialLayerManager_;
     bool specialLayerChanged_ = false;
@@ -1922,6 +1938,7 @@ private:
     bool isHardwareForcedDisabled_ = false;
     bool hardwareNeedMakeImage_ = false;
     bool intersectWithAIBar_ = false;
+    bool intersectWithFilterNode_ = false;
     bool isHardwareForcedDisabledByFilter_ = false;
     // For certain buffer format(YUV), dss restriction on src : srcRect % 2 == 0
     // To avoid switch between gpu and dss during sliding, we disable dss when srcHeight != bufferHeight
@@ -2190,6 +2207,7 @@ private:
     NodeId clonedSourceNodeId_ = INVALID_NODEID;
     bool isClonedNodeOnTheTree_ = false;
     bool clonedSourceNodeNeedOffscreen_ = true;
+    int relatedNodeNum_ = 0;
 
     std::optional<std::pair<ScreenId, bool>> attachedInfo_ = std::nullopt;
     std::map<NodeId, RSSurfaceRenderNode::WeakPtr> childSubSurfaceNodes_;
@@ -2203,6 +2221,8 @@ private:
     bool isFrameGravityNewVersionEnabled_ = false;
 
     bool isSurfaceBufferOpaque_ = false;
+
+    uint32_t hdrType_ = 0;
 
     // Used for control-level occlusion culling scene info and culled nodes transmission.
     std::shared_ptr<OcclusionParams> occlusionParams_ = nullptr;

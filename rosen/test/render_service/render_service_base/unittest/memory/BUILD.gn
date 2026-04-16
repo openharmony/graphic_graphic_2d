@@ -35,6 +35,7 @@ ohos_unittest("RSRenderServiceBaseMemoryTest") {
     "rs_memory_graphic_test.cpp",
     "rs_memory_snapshot_test.cpp",
     "rs_memory_track_test.cpp",
+    "rs_pixelmap_fd_track_test.cpp",
     "rs_tag_tracker_test.cpp",
   ]
 

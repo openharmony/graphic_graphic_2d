@@ -20,6 +20,7 @@
 #include <mutex>
 
 #include "ge_shader_filter_params.h"
+#include "ge_shader_filter_params_for_kits.h"
 #include "ge_shader_mask.h"
 #include "include/draw/canvas.h"
 #include "include/draw/surface.h"

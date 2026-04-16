@@ -526,13 +526,17 @@ void RSBaseRenderEngine::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffe
     if (params.isHdrRedraw) {
         parameter.disableHdrFloatHeadRoom = true;
     } else if (params.isTmoNitsFixed) {
-        parameter.sdrNits = hdrProperties.screenshotType == RSPaintFilterCanvas::ScreenshotType::HDR_SCREENSHOT ?
-            RSLuminanceConst::DEFAULT_CAPTURE_SDR_NITS : DEFAULT_DISPLAY_NIT;
-        parameter.tmoNits = hdrProperties.screenshotType == RSPaintFilterCanvas::ScreenshotType::HDR_SCREENSHOT ?
-            RSLuminanceConst::DEFAULT_CAPTURE_HDR_NITS : DEFAULT_DISPLAY_NIT;
-        parameter.currentDisplayNits = hdrProperties.screenshotType ==
-            RSPaintFilterCanvas::ScreenshotType::HDR_SCREENSHOT ?
-            RSLuminanceConst::DEFAULT_CAPTURE_HDR_NITS : DEFAULT_DISPLAY_NIT;
+        if (params.isTmoToCurrentSDRNits) {
+            parameter.tmoNits = parameter.sdrNits;
+        } else {
+            parameter.sdrNits = hdrProperties.screenshotType == RSPaintFilterCanvas::ScreenshotType::HDR_SCREENSHOT ?
+                RSLuminanceConst::DEFAULT_CAPTURE_SDR_NITS : DEFAULT_DISPLAY_NIT;
+            parameter.tmoNits = hdrProperties.screenshotType == RSPaintFilterCanvas::ScreenshotType::HDR_SCREENSHOT ?
+                RSLuminanceConst::DEFAULT_CAPTURE_HDR_NITS : DEFAULT_DISPLAY_NIT;
+            parameter.currentDisplayNits = hdrProperties.screenshotType ==
+                RSPaintFilterCanvas::ScreenshotType::HDR_SCREENSHOT ?
+                RSLuminanceConst::DEFAULT_CAPTURE_HDR_NITS : DEFAULT_DISPLAY_NIT;
+        }
         parameter.layerLinearMatrix = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
     } else if (hdrProperties.isHDREnabledVirtualScreen) {
         parameter.sdrNits = RSLuminanceConst::DEFAULT_CAST_SDR_NITS;
@@ -771,11 +775,13 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         (!canvas.GetHdrOn() &&
         !rsLuminance.IsScreenNoHeadroom(canvas.GetScreenId())) ||
         !RSSystemProperties::GetHdrVideoEnabled();
+    params.isTmoToCurrentSDRNits = !canvas.IsOnMultipleScreen() && params.isTmoNitsFixed;
     auto shotType = canvas.GetScreenshotType();
     if (shotType == RSPaintFilterCanvas::ScreenshotType::HDR_WINDOWSHOT) {
         params.isTmoNitsFixed = false;
     }
-    RS_LOGD_IF(DEBUG_COMPOSER, "- Fix tonemapping: %{public}d", params.isTmoNitsFixed);
+    RS_LOGD_IF(DEBUG_COMPOSER, "- Fix tonemapping: %{public}d, tmoToCurSDR: %{public}d, screenId: %{public}" PRIu64 "",
+        params.isTmoNitsFixed, params.isTmoToCurrentSDRNits, canvas.GetScreenId());
 
     Drawing::Matrix matrix;
     auto srcWidth = params.srcRect.GetWidth();

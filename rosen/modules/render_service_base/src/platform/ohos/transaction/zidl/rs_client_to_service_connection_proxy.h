@@ -95,6 +95,10 @@ public:
 
     uint32_t SetScreenActiveMode(ScreenId id, uint32_t modeId) override;
 
+    int32_t SetAsMainScreen(ScreenId screenId, bool isMainScreen) override;
+
+    ScreenId GetMainScreenId() override;
+
     void SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate) override;
 
     void SetRefreshRateMode(int32_t refreshRateMode) override;
@@ -222,6 +226,9 @@ public:
     int32_t RegisterHgmRefreshRateUpdateCallback(sptr<RSIHgmConfigChangeCallback> callback) override;
 
     int32_t RegisterFirstFrameCommitCallback(sptr<RSIFirstFrameCommitCallback> callback) override;
+
+    int32_t RegisterExposedEventCallback(
+        const RSExposedEventType type, const sptr<RSIExposedEventCallback> callback) override;
 
     int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
         sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback) override;
@@ -362,6 +369,8 @@ private:
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     ErrCode SetOverlayDisplayMode(int32_t mode) override;
 #endif
+
+    void RegisterRemoteRefreshCallback() override {};
 
     static inline BrokerDelegator<RSClientToServiceConnectionProxy> delegator_;
 

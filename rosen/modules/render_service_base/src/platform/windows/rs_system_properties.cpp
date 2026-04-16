@@ -156,6 +156,11 @@ bool RSSystemProperties::GetAllSurfaceVisibleDebugEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetVirtualSelfDrawOptEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetVirtualDirtyDebugEnabled()
 {
     return {};
@@ -179,6 +184,11 @@ bool RSSystemProperties::GetVirtualExpandScreenSkipEnabled()
 bool RSSystemProperties::GetOcclusionEnabled()
 {
     return {};
+}
+
+bool RSSystemProperties::GetDynamicLayerSkipEnabled()
+{
+    return false;
 }
 
 bool RSSystemProperties::GetVkQueuePriorityEnable()
@@ -847,6 +857,16 @@ bool RSSystemProperties::GetTransactionDataTraceEnabled()
 bool RSSystemProperties::GetDefaultMemClearEnabled()
 {
     return true;
+}
+
+bool RSSystemProperties::GetUnmarshalParallelEnabled()
+{
+    return false;
+}
+
+uint32_t RSSystemProperties::GetUnmarshalParallelMinDataSize()
+{
+    return 0;
 }
 
 bool RSSystemProperties::GetSceneBoardIsPcMode()

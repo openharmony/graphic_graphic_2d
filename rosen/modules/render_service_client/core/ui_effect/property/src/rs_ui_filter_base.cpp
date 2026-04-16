@@ -19,6 +19,7 @@
 
 #include "ui_effect/filter/include/filter_bezier_warp_para.h"
 #include "ui_effect/filter/include/filter_blur_para.h"
+#include "ui_effect/filter/include/filter_blur_bubbles_rise_para.h"
 #include "ui_effect/filter/include/filter_color_gradient_para.h"
 #include "ui_effect/filter/include/filter_content_light_para.h"
 #include "ui_effect/filter/include/filter_direction_light_para.h"
@@ -30,6 +31,7 @@
 #include "ui_effect/filter/include/filter_gasify_blur_para.h"
 #include "ui_effect/filter/include/filter_gasify_para.h"
 #include "ui_effect/filter/include/filter_gasify_scale_twist_para.h"
+#include "ui_effect/filter/include/filter_heat_distortion_para.h"
 #include "ui_effect/filter/include/filter_magnifier_para.h"
 #include "ui_effect/filter/include/filter_mask_transition_para.h"
 #include "ui_effect/filter/include/filter_variable_radius_blur_para.h"
@@ -96,6 +98,14 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
             return std::make_shared<RSNGContentLightFilter>();
         }
     },
+    {RSNGEffectType::HEAT_DISTORTION, [] {
+            return std::make_shared<RSNGHeatDistortionFilter>();
+        }
+    },
+    {RSNGEffectType::BLUR_BUBBLES_RISE, [] {
+            return std::make_shared<RSNGBlurBubblesRiseFilter>();
+        }
+    },
     {RSNGEffectType::GASIFY_SCALE_TWIST, [] {
             return std::make_shared<RSNGGasifyScaleTwistFilter>();
         }
@@ -126,6 +136,10 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
     },
     {RSNGEffectType::MAGNIFIER, [] {
             return std::make_shared<RSNGMagnifierFilter>();
+        }
+    },
+    {RSNGEffectType::DISTORTION_COLLAPSE, [] {
+            return std::make_shared<RSNGDistortionCollapseFilter>();
         }
     },
 };
@@ -310,6 +324,38 @@ std::shared_ptr<RSNGFilterBase> ConvertContentLightFilterPara(std::shared_ptr<Fi
     return contentLightFilter;
 }
 
+std::shared_ptr<RSNGFilterBase> ConvertHeatDistortionFilterPara(std::shared_ptr<FilterPara> filterPara)
+{
+    auto filter = RSNGFilterBase::Create(RSNGEffectType::HEAT_DISTORTION);
+    if (filter == nullptr || filterPara == nullptr) {
+        ROSEN_LOGE("ConvertHeatDistortionFilterPara filter or filterPara is nullptr");
+        return nullptr;
+    }
+    auto heatDistortionFilter = std::static_pointer_cast<RSNGHeatDistortionFilter>(filter);
+    auto heatDistortionFilterPara = std::static_pointer_cast<HeatDistortionPara>(filterPara);
+    heatDistortionFilter->Setter<HeatDistortionIntensityTag>(heatDistortionFilterPara->GetIntensity());
+    heatDistortionFilter->Setter<HeatDistortionNoiseScaleTag>(heatDistortionFilterPara->GetNoiseScale());
+    heatDistortionFilter->Setter<HeatDistortionRiseWeightTag>(heatDistortionFilterPara->GetRiseWeight());
+    heatDistortionFilter->Setter<HeatDistortionProgressTag>(heatDistortionFilterPara->GetProgress());
+    return heatDistortionFilter;
+}
+
+std::shared_ptr<RSNGFilterBase> ConvertBlurBubblesRiseFilterPara(std::shared_ptr<FilterPara> filterPara)
+{
+    auto filter = RSNGFilterBase::Create(RSNGEffectType::BLUR_BUBBLES_RISE);
+    if (filter == nullptr || filterPara == nullptr) {
+        ROSEN_LOGE("ConvertBlurBubblesRiseFilterPara filter or filterPara is nullptr");
+        return nullptr;
+    }
+    auto blurBubblesRiseFilter = std::static_pointer_cast<RSNGBlurBubblesRiseFilter>(filter);
+    auto blurBubblesRiseFilterPara = std::static_pointer_cast<BlurBubblesRisePara>(filterPara);
+    blurBubblesRiseFilter->Setter<BlurBubblesRiseBlurIntensityTag>(blurBubblesRiseFilterPara->GetBlurIntensity());
+    blurBubblesRiseFilter->Setter<BlurBubblesRiseMixStrengthTag>(blurBubblesRiseFilterPara->GetMixStrength());
+    blurBubblesRiseFilter->Setter<BlurBubblesRiseProgressTag>(blurBubblesRiseFilterPara->GetProgress());
+    blurBubblesRiseFilter->Setter<BlurBubblesRiseMaskImageTag>(blurBubblesRiseFilterPara->GetMaskImage());
+    return blurBubblesRiseFilter;
+}
+
 void ConvertOptionalAdaptivePara(FrostedGlassPara const* para, RSNGFrostedGlassFilter* frostedGlassFilter)
 {
     if (auto darkMode = para->GetDarkAdaptiveParams(); darkMode) {
@@ -423,6 +469,8 @@ static std::unordered_map<FilterPara::ParaType, FilterConvertor> convertorLUT = 
     { FilterPara::ParaType::FROSTED_GLASS, ConvertFrostedGlassPara },
     { FilterPara::ParaType::FROSTED_GLASS_BLUR, ConvertFrostedGlassBlurPara },
     { FilterPara::ParaType::MAGNIFIER, ConvertMagnifierPara },
+    { FilterPara::ParaType::HEAT_DISTORTION, ConvertHeatDistortionFilterPara },
+    { FilterPara::ParaType::BLUR_BUBBLES_RISE, ConvertBlurBubblesRiseFilterPara },
 };
 
 std::shared_ptr<RSNGFilterBase> RSNGFilterBase::Create(RSNGEffectType type)

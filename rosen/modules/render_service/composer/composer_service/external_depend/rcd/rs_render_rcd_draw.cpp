@@ -76,18 +76,21 @@ Drawing::AlphaType RSRenderRcdDraw::AlphaTypeToDrawingAlphaType(AlphaType alphaT
     }
 }
 
-void RSRenderRcdDraw::DrawRoundCorner(RSPaintFilterCanvas& canvas, const std::vector<RSLayerPtr>& layers)
+void RSRenderRcdDraw::DrawRoundCorner(RSPaintFilterCanvas& canvas, const std::vector<RSLayerPtr>& layers,
+    const Vector2f& rogRatio)
 {
     RS_TRACE_NAME("RSRenderRcdDraw::DrawRoundCorner");
+    auto saveRog = Vector2f(std::max(0.0f, rogRatio.x_), std::max(0.0f, rogRatio.y_));
     for (auto& layer : layers) {
         if (layer == nullptr || !layer->IsScreenRCDLayer()) {
             continue;
         }
-        DrawRSRCDLayer(canvas, layer);
+        DrawRSRCDLayer(canvas, layer, saveRog);
     }
 }
 
-void RSRenderRcdDraw::DrawRSRCDLayer(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSLayer>& layer)
+void RSRenderRcdDraw::DrawRSRCDLayer(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSLayer>& layer,
+    const Vector2f& rogRatio)
 {
     if (layer == nullptr) {
         RS_LOGE("RSRenderRcdDraw::DrawRsRCDLayer layer is null");
@@ -106,10 +109,14 @@ void RSRenderRcdDraw::DrawRSRCDLayer(RSPaintFilterCanvas& canvas, const std::sha
         RS_LOGE("RSRenderRcdDraw::DrawRsRCDLayer BindPixelMapToDrawingImage error");
         return;
     }
+    auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
+    canvas.Save();
+    canvas.Scale(rogRatio.x_, rogRatio.y_);
     Drawing::Brush brush;
     canvas.AttachBrush(brush);
-    canvas.DrawImage(*(rcdLayer->GetCacheImage()), rect.x, rect.y, Drawing::SamplingOptions());
+    canvas.DrawImage(*(rcdLayer->GetCacheImage()), rect.x, rect.y, samplingOptions);
     canvas.DetachBrush();
+    canvas.Restore();
 }
 
 bool RSRenderRcdDraw::BindPixelMapToDrawingImage(Drawing::Canvas& canvas,

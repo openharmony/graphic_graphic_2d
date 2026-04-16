@@ -121,7 +121,6 @@ void RSServiceDumper::RegisterRSGfxFuncs(std::shared_ptr<RSServiceDumpManager> r
     // screen info
     RSDumpFunc screenInfoFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
                                        std::string &dumpString) -> void {
-        RS_LOGE("hwj RSServiceDumper::RegisterRSGfxFuncs screenInfoFunc");
         ScheduleTask([this, &dumpString]() { screenManager_->DisplayDump(dumpString); });
     };
 

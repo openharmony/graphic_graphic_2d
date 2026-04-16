@@ -59,8 +59,12 @@ public:
         token_ = nullptr;
     }
 
+    void RegisterRemoteRefreshCallback() override;
+
 private:
     void CleanVirtualScreens() noexcept;
+
+    void CleanForRefresh() noexcept;
 
     void CleanAll(bool toDelete = false) noexcept;
 
@@ -136,6 +140,10 @@ private:
 
     uint32_t SetScreenActiveMode(ScreenId id, uint32_t modeId) override;
 
+    int32_t SetAsMainScreen(ScreenId screenId, bool isMainScreen) override;
+
+    ScreenId GetMainScreenId() override;
+
     void SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate) override;
 
     void SetRefreshRateMode(int32_t refreshRateMode) override;
@@ -177,7 +185,7 @@ private:
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) override;
 
     int32_t SetDualScreenState(ScreenId id, DualScreenStatus status) override;
-    
+
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id) override;
 
     ErrCode GetScreenActiveMode(uint64_t id, RSScreenModeInfo& info) override;
@@ -262,6 +270,9 @@ private:
     int32_t RegisterHgmRefreshRateUpdateCallback(sptr<RSIHgmConfigChangeCallback> callback) override;
 
     int32_t RegisterFirstFrameCommitCallback(sptr<RSIFirstFrameCommitCallback> callback) override;
+
+    int32_t RegisterExposedEventCallback(
+        const RSExposedEventType type, const sptr<RSIExposedEventCallback> callback) override;
 
     int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
         sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback) override;
@@ -409,6 +420,19 @@ private:
     };
     friend class RSConnectionDeathRecipient;
     sptr<RSConnectionDeathRecipient> connDeathRecipient_;
+
+    class RSConnectionRefreshRecipient : public IRemoteObject::RefreshRecipient {
+    public:
+        explicit RSConnectionRefreshRecipient(wptr<RSClientToServiceConnection> conn);
+        virtual ~RSConnectionRefreshRecipient() = default;
+
+        void OnRemoteRefreshed(const wptr<IRemoteObject>& token) override;
+
+    private:
+        wptr<RSClientToServiceConnection> conn_;
+    };
+    friend class RSConnectionRefreshRecipient;
+    sptr<RSConnectionRefreshRecipient> connRefreshRecipient_;
 
     mutable std::mutex mutex_;
     bool cleanDone_ = false;

@@ -50,8 +50,11 @@ public:
         token_ = nullptr;
     }
 
+    void RegisterRemoteRefreshCallback() override;
+
 private:
     void CleanAll(bool toDelete = false) noexcept;
+    void CleanForRefresh() noexcept;
 
     // IPC RSIRenderServiceConnection Interfaces
     ErrCode CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
@@ -117,7 +120,7 @@ private:
         NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) override;
 
-    ErrCode SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+    ErrCode SetHwcNodeBounds(NodeId rsNodeId, float positionX, float positionY,
         float positionZ, float positionW) override;
 
     int32_t GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo) override;
@@ -200,6 +203,19 @@ private:
     };
     friend class RSConnectionDeathRecipient;
     sptr<RSConnectionDeathRecipient> connDeathRecipient_;
+
+    class RSConnectionRefreshRecipient : public IRemoteObject::RefreshRecipient {
+    public:
+        explicit RSConnectionRefreshRecipient(wptr<RSClientToRenderConnection> conn);
+        virtual ~RSConnectionRefreshRecipient() = default;
+
+        void OnRemoteRefreshed(const wptr<IRemoteObject>& token) override;
+
+    private:
+        wptr<RSClientToRenderConnection> conn_;
+    };
+    friend class RSConnectionRefreshRecipient;
+    sptr<RSConnectionRefreshRecipient> connRefreshRecipient_;
 
     class RSApplicationRenderThreadDeathRecipient : public IRemoteObject::DeathRecipient {
     public:

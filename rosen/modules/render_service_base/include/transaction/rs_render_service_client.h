@@ -28,6 +28,7 @@
 #include <utility>
 #endif
 
+#include "common/rs_event_def.h"
 #include "common/rs_self_draw_rect_change_callback_constraint.h"
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/iapplication_agent.h"
@@ -197,6 +198,10 @@ public:
 
     int32_t SetDualScreenState(ScreenId id, DualScreenStatus status);
 
+    int32_t SetAsMainScreen(ScreenId screenId, bool isMainScreen);
+
+    ScreenId GetMainScreenId();
+
     RSScreenModeInfo GetScreenActiveMode(ScreenId id);
 
     std::vector<RSScreenModeInfo> GetScreenSupportedModes(ScreenId id);
@@ -283,6 +288,8 @@ public:
     int32_t RegisterHgmRefreshRateUpdateCallback(const HgmRefreshRateUpdateCallback& callback);
 
     int32_t RegisterFirstFrameCommitCallback(const FirstFrameCommitCallback& callback);
+
+    int32_t RegisterExposedEventCallback(const RSExposedEventType type, const RSExposedEventCallback& callback);
 
     int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
         const FrameRateLinkerExpectedFpsUpdateCallback& callback);

@@ -26,6 +26,7 @@
 #include "draw/shadow.h"
 #include "draw/sdf_shaper_base.h"
 #include "effect/filter.h"
+#include "effect/particle_effect.h"
 #include "draw/OpListHandle.h"
 #include "image/bitmap.h"
 #include "image/image_info.h"
@@ -121,6 +122,9 @@ public:
 
     // UIColor
     virtual void DrawUIColor(UIColor color, BlendMode mode) = 0;
+
+    // particle
+    virtual void DrawParticle(std::shared_ptr<ParticleEffect> particle) = 0;
 
     // opinc calculate realdraw rect
     virtual bool OpCalculateBefore(const Matrix& matrix) = 0;

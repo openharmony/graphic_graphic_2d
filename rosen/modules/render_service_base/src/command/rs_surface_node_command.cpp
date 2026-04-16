@@ -361,10 +361,8 @@ void SurfaceNodeCommandHelper::SetAbilityState(RSContext& context, NodeId nodeId
         return;
     }
     node->SetAbilityState(abilityState);
-#ifdef RS_ENABLE_MEMORY_DOWNTREE
     RSRenderNodeGC::Instance().SetAbilityState(ExtractPid(nodeId),
         abilityState == RSSurfaceNodeAbilityState::BACKGROUND);
-#endif
 }
 
 void SurfaceNodeCommandHelper::SetApiCompatibleVersion(RSContext& context, NodeId nodeId, uint32_t apiCompatibleVersion)
@@ -487,6 +485,13 @@ void SurfaceNodeCommandHelper::SetAppRotationCorrection(
     }
     if (const auto& node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
         node->SetAppRotationCorrection(appRotationCorrection);
+    }
+}
+
+void SurfaceNodeCommandHelper::SetHDRType(RSContext& context, NodeId nodeId, uint32_t hdrType)
+{
+    if (const auto& node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
+        node->SetHDRType(hdrType);
     }
 }
 } // namespace Rosen

@@ -35,6 +35,7 @@ public:
         ani_env* env, ani_object obj, ani_string name, ani_object path, int32_t index = 0);
     static void UnloadFontSync(ani_env* env, ani_object obj, ani_string name);
     static void ClearCaches(ani_env* env, ani_object obj);
+    static void SetCachesEnabled(ani_env* env, ani_object obj, ani_boolean enable);
     static void Constructor(ani_env* env, ani_object object);
     static ani_status AniInit(ani_vm* vm, uint32_t* result);
     std::shared_ptr<OHOS::Rosen::FontCollection> GetFontCollection();

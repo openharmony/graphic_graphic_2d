@@ -88,3 +88,6 @@ DECLARE_RSLAYER_CMD(LayerMaskInfo, LayerMask, LAYER_MASK_INFO)
 DECLARE_RSLAYER_CMD(Buffer, sptr<SurfaceBuffer>, BUFFER)
 DECLARE_RSLAYER_CMD(AcquireFence, sptr<SyncFence>, ACQUIRE_FENCE)
 DECLARE_RSLAYER_CMD(PreBuffer, sptr<SurfaceBuffer>, PRE_BUFFER)
+
+// hpae_offline command
+DECLARE_RSLAYER_CMD(HpaeOriginalInfo, HpaeOriginalInfo, HPAE_ORIGINAL_INFO)

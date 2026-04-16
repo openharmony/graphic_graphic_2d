@@ -33,12 +33,10 @@ bool RSServiceDumpManager::IsProcessDumpCmd(const std::u16string& cmd)
 
 void RSServiceDumpManager::InitProcessDumpTask(int32_t processCount)
 {
+    std::unique_lock<std::mutex> lock(collectDumpMutex_);
     processCount_ = processCount;
     completionCount_ = 0;
-    {
-        std::unique_lock<std::mutex> lock(collectDumpMutex_);
-        dumpDataList_.clear();
-    }
+    dumpDataList_.clear();
 }
 
 void RSServiceDumpManager::WaitForDump(std::string& dumpString)

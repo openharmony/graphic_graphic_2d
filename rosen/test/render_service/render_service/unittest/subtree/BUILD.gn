@@ -255,6 +255,7 @@ ohos_unittest("RSSubtreeTest") {
 config("rs_test_common_public_config") {
   include_dirs = [
     "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/modules/frame_load/include",
     "$graphic_2d_root/rosen/modules/composer/hdi_backend/include",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",

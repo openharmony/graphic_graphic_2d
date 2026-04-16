@@ -202,6 +202,9 @@ void RSRenderService::FeatureComponentInit()
 #ifdef RS_ENABLE_RDO
     EnableRSCodeCache();
 #endif
+
+    // Game Scene Handler Init
+    InitGameFrameHandler();
 }
 
 void RSRenderService::RenderProcessManagerInit()
@@ -256,8 +259,8 @@ std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
     return iter->second;
 }
 
-std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
-    RSRenderService::CreateConnection(const sptr<RSIConnectionToken>& token)
+std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> RSRenderService::CreateConnection(
+    const sptr<RSIConnectionToken>& token, bool needRefresh)
 {
     if (!token) {
         RS_LOGE("CreateConnection failed, mainThread or token is nullptr");
@@ -276,6 +279,10 @@ std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
     sptr<RSRenderPipelineAgent> renderPipelineAgent = new RSRenderPipelineAgent(renderPipeline_);
     sptr<RSIClientToRenderConnection> newRenderConn(
         new RSClientToRenderConnection(remotePid, renderPipelineAgent, tokenObj));
+    if (needRefresh) {
+        newConn->RegisterRemoteRefreshCallback();
+        newRenderConn->RegisterRemoteRefreshCallback();
+    }
     std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> tmp;
     std::unique_lock<std::mutex> lock(mutex_);
     // if connections_ has the same token one, replace it.
@@ -443,6 +450,30 @@ void RSRenderService::ScreenManagerListener::OnScreenBacklightChanged(ScreenId i
 void RSRenderService::ScreenManagerListener::OnGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList)
 {
     renderService_.renderProcessManager_->OnGlobalBlacklistChanged(globalBlackList);
+}
+
+void RSRenderService::InitGameFrameHandler()
+{
+    rsGameFrameHandler_ = sptr<RsGameFrameHandler>::MakeSptr(
+        [vsyncManager = vsyncManager_](int64_t rsOffset, int64_t appOffset) {
+            RS_TRACE_NAME_FMT("GameSceneChangeVsyncOffset(" PRId64 "," PRId64 ")", rsOffset, appOffset);
+            RS_LOGW("GameSceneChangeVsyncOffset(%{public}" PRId64 ",%{public}" PRId64 ")", rsOffset, appOffset);
+            vsyncManager->GetVSyncRSController()->SetPhaseOffset(rsOffset);
+            vsyncManager->GetVSyncAppController()->SetPhaseOffset(appOffset);
+        },
+        [](bool& isLtpoEnabled, bool& isVsyncCustomized, bool& isDelayMode, int64_t& rsOffset, int64_t& appOffset) {
+            auto& hgmCore = HgmCore::Instance();
+            isLtpoEnabled = hgmCore.GetLtpoEnabled();
+            isVsyncCustomized = hgmCore.IsVsyncOffsetCustomized();
+            isDelayMode = hgmCore.IsDelayMode();
+            rsOffset = hgmCore.GetRsPhaseOffset();
+            appOffset = hgmCore.GetAppPhaseOffset();
+        });
+}
+
+const sptr<RsGameFrameHandler>& RSRenderService::GetGameFrameHandler() const
+{
+    return rsGameFrameHandler_;
 }
 } // namespace Rosen
 } // namespace OHOS

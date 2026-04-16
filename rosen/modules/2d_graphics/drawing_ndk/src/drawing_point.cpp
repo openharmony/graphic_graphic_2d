@@ -76,3 +76,22 @@ OH_Drawing_ErrorCode OH_Drawing_PointSet(OH_Drawing_Point* cPoint, float x, floa
     return OH_DRAWING_SUCCESS;
 }
 
+OH_Drawing_ErrorCode OH_Drawing_PointNegate(OH_Drawing_Point* cPoint)
+{
+    Point* point = CastToPoint(cPoint);
+    if (point == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    point->Negate();
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_PointOffset(OH_Drawing_Point* cPoint, float dx, float dy)
+{
+    Point* point = CastToPoint(cPoint);
+    if (point == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    point->Offset(dx, dy);
+    return OH_DRAWING_SUCCESS;
+}

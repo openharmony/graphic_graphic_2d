@@ -203,6 +203,14 @@ bool RSSystemParameters::GetHpaeBlurEnabled()
     return ConvertToInt(enable, 1) != 0;
 }
 
+bool RSSystemParameters::GetHveBlurEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("debug.graphic.hve.blur.enabled", "1");
+    int changed = 0;
+    const char* enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
 bool RSSystemParameters::GetTcacheEnabled()
 {
     static bool flag = system::GetBoolParameter("persist.sys.graphic.tcache.enable", true);
@@ -318,6 +326,13 @@ bool RSSystemParameters::GetUIFirstOcclusionDebugEnabled()
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 0) != 0;
+}
+
+bool RSSystemParameters::GetCropRectDebugOverlayEnabled()
+{
+    static bool cropRectDebugOverlayEnabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.cropRectDebugOverlay.Enabled", "0")).c_str()) != 0;
+    return cropRectDebugOverlayEnabled;
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -68,6 +68,8 @@ enum class RSIClientToServiceConnectionInterfaceCode : CodeUnderlyingType {
     SET_DUAL_SCREEN_STATE = 0x000043,
     AVCODEC_VIDEO_GET = 0x000044,
     AVCODEC_VIDEO_GET_RECENT = 0x000045,
+    SET_AS_MAIN_SCREEN = 0x000046,
+    GET_MAIN_SCREEN = 0x000047,
 
     GET_DEFAULT_SCREEN_ID = 0x001000,
     GET_ACTIVE_SCREEN_ID = 0x001001,
@@ -186,6 +188,7 @@ enum class RSIClientToServiceConnectionInterfaceCode : CodeUnderlyingType {
 #endif
 
     ON_FIRST_FRAME_COMMIT = 0x011000,
+    ON_EXPOSED_EVENT = 0x011001,
     GET_PID_GPU_MEMORY_IN_MB = 0X13000,
     GET_MAX_GPU_BUFFER_SIZE = 0X13001,
 

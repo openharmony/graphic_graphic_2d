@@ -89,7 +89,9 @@ public:
     static ani_boolean IsEmpty(ani_env* env, ani_object obj);
     static void Set(ani_env* env, ani_object obj, ani_object srcobj);
     static ani_boolean IsInterpolate(ani_env* env, ani_object obj, ani_object otherobj);
+    static ani_boolean IsEqual(ani_env* env, ani_object obj, ani_object otherobj);
     static ani_enum_item GetFillType(ani_env* env, ani_object obj);
+    static ani_object GetLastPoint(ani_env* env, ani_object obj);
 
     std::shared_ptr<Path> GetPath();
 

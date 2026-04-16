@@ -183,14 +183,22 @@ void RSOpincCache::NodeCacheStateReset(NodeCacheState nodeCacheState)
     isOpincRootFlag_ = false;
 }
 
-void RSOpincCache::OpincSubTreeSkip()
+bool RSOpincCache::HasUnstableOpincNode() const
 {
-    if (!IsSuggestOpincNode() || nodeCacheState_ == NodeCacheState::STATE_UNCHANGE ||
-        unchangeCount_ >= unchangeCountUpper_) {
-        return;
-    }
+    return hasUnstableOpincNode_;
+}
 
-    unchangeCount_ = unchangeCountUpper_;
+void RSOpincCache::SetHasUnstableOpincNode(bool hasUnstableOpincNode)
+{
+    hasUnstableOpincNode_ = hasUnstableOpincNode;
+}
+
+void RSOpincCache::UpdateSubTreeHasUnstableOpincNode(RSOpincCache& childOpincCache)
+{
+    childOpincCache.SetHasUnstableOpincNode(
+        childOpincCache.HasUnstableOpincNode() ||
+        (childOpincCache.IsSuggestOpincNode() && !childOpincCache.IsOpincUnchangeState()));
+    SetHasUnstableOpincNode(HasUnstableOpincNode() || childOpincCache.HasUnstableOpincNode());
 }
 
 void RSOpincCache::MarkSuggestLayerPartRenderNode(bool isLayerPartRender)

@@ -1520,10 +1520,10 @@ static void CacheAshmemData(uint64_t id, const uint8_t* data, size_t size)
     }
 }
 
-static const uint8_t* GetCachedAshmemData(uint64_t id)
+static const uint8_t* GetCachedAshmemData(uint64_t id, size_t size)
 {
     const auto ashmem = RSProfiler::IsReadMode() ? ImageCache::Get(id) : nullptr;
-    return ashmem ? ashmem->data.data() : nullptr;
+    return ashmem && (ashmem->data.size() == size) ? ashmem->data.data() : nullptr;
 }
 
 void RSProfiler::WriteParcelData(Parcel& parcel)
@@ -1548,15 +1548,21 @@ const void* RSProfiler::ReadParcelData(Parcel& parcel, size_t size, bool& isMall
 {
     bool isClientEnabled = false;
     if (!parcel.ReadBool(isClientEnabled)) {
-        HRPE("Unable to read is_client_enabled");
+        HRPE("ReadParcelData: Cannot read isClientEnabled");
         return nullptr;
     }
+
     if (!isClientEnabled) {
         return RSMarshallingHelper::ReadFromAshmem(parcel, size, isMalloc);
     }
 
-    const uint64_t id = parcel.ReadUint64();
-    if (auto data = GetCachedAshmemData(id)) {
+    uint64_t id = 0u;
+    if (!parcel.ReadUint64(id)) {
+        HRPE("ReadParcelData: Cannot read id");
+        return nullptr;
+    }
+
+    if (auto data = GetCachedAshmemData(id, size)) {
         constexpr uint32_t skipBytes = 24u;
         parcel.SkipBytes(skipBytes);
         isMalloc = false;
@@ -1572,14 +1578,19 @@ bool RSProfiler::SkipParcelData(Parcel& parcel, size_t size)
 {
     bool isClientEnabled = false;
     if (!parcel.ReadBool(isClientEnabled)) {
-        HRPE("RSProfiler::SkipParcelData read isClientEnabled failed");
+        HRPE("SkipParcelData: Cannot read isClientEnabled");
         return false;
     }
+
     if (!isClientEnabled) {
         return false;
     }
 
-    [[maybe_unused]] const uint64_t id = parcel.ReadUint64();
+    uint64_t id = 0u;
+    if (!parcel.ReadUint64(id)) {
+        HRPE("SkipParcelData: Cannot read id");
+        return false;
+    }
 
     if (IsReadMode()) {
         constexpr uint32_t skipBytes = 24u;
@@ -1588,6 +1599,111 @@ bool RSProfiler::SkipParcelData(Parcel& parcel, size_t size)
     }
 
     return false;
+}
+
+bool IsTypefaceVariation(const Drawing::SharedTypeface& typeface)
+{
+    // See RSClientToServiceConnection::RegisterTypeface
+    return typeface.originId_ > 0;
+}
+
+void CacheSharedTypeface(uint64_t id, const Drawing::SharedTypeface& typeface)
+{
+    if (!RSProfiler::IsWriteMode() || (typeface.fd_ == INVALID_FD) || (typeface.size_ <= 0) ||
+        IsTypefaceVariation(typeface)) {
+        return;
+    }
+
+    if (const auto data = ::mmap(nullptr, typeface.size_, PROT_READ, MAP_SHARED, typeface.fd_, 0)) {
+        CacheAshmemData(id, reinterpret_cast<const uint8_t*>(data), typeface.size_);
+        ::munmap(data, typeface.size_);
+    } else {
+        HRPE("CacheSharedTypeface: Cannot cache typeface data");
+    }
+}
+
+bool FetchSharedTypeface(uint64_t id, Drawing::SharedTypeface& typeface)
+{
+    if (!RSProfiler::IsReadMode() || (typeface.size_ <= 0)) {
+        return false;
+    }
+
+    const auto file = AshmemCreate("HRPSharedTypeface", typeface.size_);
+    if ((file == INVALID_FD) || (AshmemSetProt(file, PROT_READ | PROT_WRITE) != EOK)) {
+        ::close(file);
+        HRPE("FetchSharedTypeface: Cannot create typeface file");
+        return false;
+    }
+
+    if (IsTypefaceVariation(typeface)) {
+        typeface.fd_ = file;
+        return true;
+    }
+
+    const auto cached = GetCachedAshmemData(id, typeface.size_);
+    if (!cached) {
+        ::close(file);
+        HRPE("FetchSharedTypeface: Cannot get cached data");
+        return false;
+    }
+
+    if (const auto data = ::mmap(nullptr, typeface.size_, PROT_WRITE, MAP_SHARED, file, 0)) {
+        if (::memcpy_s(data, typeface.size_, cached, typeface.size_) == EOK) {
+            ::munmap(data, typeface.size_);
+            typeface.fd_ = file;
+            return true;
+        }
+        ::munmap(data, typeface.size_);
+    }
+
+    ::close(file);
+    HRPE("FetchSharedTypeface: Copy failed");
+    return false;
+}
+
+void RSProfiler::WriteSharedTypeface(Parcel& parcel, const Drawing::SharedTypeface& typeface)
+{
+    const auto profilerEnabled = RSSystemProperties::GetProfilerEnabled();
+    if (!parcel.WriteBool(profilerEnabled)) {
+        HRPE("WriteSharedTypeface: Cannot write profilerEnabled");
+        return;
+    }
+
+    if (!profilerEnabled) {
+        return;
+    }
+
+    if (!parcel.WriteUint64(NewAshmemDataCacheId())) {
+        HRPE("WriteSharedTypeface: Cannot write cache id");
+    }
+}
+
+void RSProfiler::ReadSharedTypeface(Parcel& parcel, Drawing::SharedTypeface& typeface)
+{
+    bool profilerEnabled = false;
+    if (!parcel.ReadBool(profilerEnabled)) {
+        HRPE("ReadSharedTypeface: Cannot read profilerEnabled");
+    }
+
+    if (!profilerEnabled) {
+        typeface.fd_ = static_cast<MessageParcel*>(&parcel)->ReadFileDescriptor();
+        return;
+    }
+
+    uint64_t id = 0u;
+    if (!parcel.ReadUint64(id)) {
+        HRPE("ReadSharedTypeface: Cannot read id");
+        return;
+    }
+
+    if (FetchSharedTypeface(id, typeface)) {
+        constexpr uint32_t skipBytes = 24u;
+        parcel.SkipBytes(skipBytes);
+        return;
+    }
+
+    typeface.fd_ = static_cast<MessageParcel*>(&parcel)->ReadFileDescriptor();
+    CacheSharedTypeface(id, typeface);
 }
 
 uint32_t RSProfiler::GetNodeDepth(const std::shared_ptr<RSRenderNode> node)

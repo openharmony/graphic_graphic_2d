@@ -1575,6 +1575,39 @@ HWTEST_F(PropertiesTest, GetMaterialFilter001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetGravityHotZoneTest001
+ * @tc.desc: test SetGravityHotZone with different value
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetGravityHotZoneTest001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetGravityHotZone(0.5f);
+    EXPECT_FLOAT_EQ(properties.gravityHotZone_, 0.5f);
+    EXPECT_TRUE(properties.isDrawn_);
+    EXPECT_TRUE(properties.filterNeedUpdate_);
+    EXPECT_TRUE(properties.isDirty_);
+}
+
+/**
+ * @tc.name: SetGravityHotZoneTest002
+ * @tc.desc: test SetGravityHotZone with same value
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetGravityHotZoneTest002, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetGravityHotZone(0.5f);
+    properties.isDrawn_ = false;
+    properties.filterNeedUpdate_ = false;
+    properties.isDirty_ = false;
+    properties.SetGravityHotZone(0.5f);
+    EXPECT_FALSE(properties.isDrawn_);
+    EXPECT_FALSE(properties.filterNeedUpdate_);
+    EXPECT_FALSE(properties.isDirty_);
+}
+
+/**
  * @tc.name: GenerateMaterialFilter001
  * @tc.desc: test GenerateMaterialFilter
  * @tc.type: FUNC
@@ -1779,6 +1812,120 @@ HWTEST_F(PropertiesTest, SetHDRColorHeadroomTest, TestSize.Level1)
     EXPECT_FLOAT_EQ(properties.GetHDRColorHeadroom(), 1.0f);
     properties.SetHDRColorHeadroom(3.5f);
     EXPECT_FLOAT_EQ(properties.GetHDRColorHeadroom(), 3.5f);
+}
+
+/**
+ * @tc.name: SetSDFUnionModeTest001
+ * @tc.desc: test SetSDFUnionMode and GetSDFUnionMode
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetSDFUnionModeTest001, TestSize.Level1)
+{
+    RSProperties properties;
+    int defaultMode = properties.GetSDFUnionMode();
+    EXPECT_EQ(defaultMode, 0);
+
+    properties.SetSDFUnionMode(1);
+    EXPECT_EQ(properties.GetSDFUnionMode(), 1);
+    EXPECT_TRUE(properties.isDrawn_);
+    EXPECT_TRUE(properties.filterNeedUpdate_);
+    EXPECT_TRUE(properties.IsDirty());
+
+    properties.isDrawn_ = false;
+    properties.filterNeedUpdate_ = false;
+    properties.ResetDirty();
+
+    properties.SetSDFUnionMode(0);
+    EXPECT_EQ(properties.GetSDFUnionMode(), 0);
+    EXPECT_TRUE(properties.isDrawn_);
+    EXPECT_TRUE(properties.filterNeedUpdate_);
+    EXPECT_TRUE(properties.IsDirty());
+
+    properties.isDrawn_ = false;
+    properties.filterNeedUpdate_ = false;
+    properties.ResetDirty();
+
+    properties.SetSDFUnionMode(0);
+    EXPECT_EQ(properties.GetSDFUnionMode(), 0);
+    EXPECT_FALSE(properties.isDrawn_);
+    EXPECT_FALSE(properties.filterNeedUpdate_);
+    EXPECT_FALSE(properties.IsDirty());
+}
+
+/**
+ * @tc.name: SetGravityPullCenterFlagTest001
+ * @tc.desc: test SetGravityPullCenterFlag and GetGravityPullCenterFlag
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetGravityPullCenterFlagTest001, TestSize.Level1)
+{
+    RSProperties properties;
+    bool defaultFlag = properties.GetGravityPullCenterFlag();
+    EXPECT_EQ(defaultFlag, false);
+
+    properties.SetGravityPullCenterFlag(true);
+    EXPECT_EQ(properties.GetGravityPullCenterFlag(), true);
+    EXPECT_TRUE(properties.isDrawn_);
+    EXPECT_TRUE(properties.filterNeedUpdate_);
+    EXPECT_TRUE(properties.IsDirty());
+
+    properties.isDrawn_ = false;
+    properties.filterNeedUpdate_ = false;
+    properties.ResetDirty();
+
+    properties.SetGravityPullCenterFlag(false);
+    EXPECT_EQ(properties.GetGravityPullCenterFlag(), false);
+    EXPECT_TRUE(properties.isDrawn_);
+    EXPECT_TRUE(properties.filterNeedUpdate_);
+    EXPECT_TRUE(properties.IsDirty());
+
+    properties.isDrawn_ = false;
+    properties.filterNeedUpdate_ = false;
+    properties.ResetDirty();
+
+    properties.SetGravityPullCenterFlag(false);
+    EXPECT_EQ(properties.GetGravityPullCenterFlag(), false);
+    EXPECT_FALSE(properties.isDrawn_);
+    EXPECT_FALSE(properties.filterNeedUpdate_);
+    EXPECT_FALSE(properties.IsDirty());
+}
+
+/**
+ * @tc.name: SetGravityPullStrengthTest001
+ * @tc.desc: test SetGravityPullStrength and GetGravityPullStrength
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetGravityPullStrengthTest001, TestSize.Level1)
+{
+    RSProperties properties;
+    float defaultStrength = properties.GetGravityPullStrength();
+    EXPECT_EQ(defaultStrength, 0.0f);
+
+    properties.SetGravityPullStrength(0.5f);
+    EXPECT_EQ(properties.GetGravityPullStrength(), 0.5f);
+    EXPECT_TRUE(properties.isDrawn_);
+    EXPECT_TRUE(properties.filterNeedUpdate_);
+    EXPECT_TRUE(properties.IsDirty());
+
+    properties.isDrawn_ = false;
+    properties.filterNeedUpdate_ = false;
+    properties.ResetDirty();
+
+    properties.SetGravityPullStrength(1.0f);
+    EXPECT_EQ(properties.GetGravityPullStrength(), 1.0f);
+    EXPECT_TRUE(properties.isDrawn_);
+    EXPECT_TRUE(properties.filterNeedUpdate_);
+    EXPECT_TRUE(properties.IsDirty());
+
+    properties.isDrawn_ = false;
+    properties.filterNeedUpdate_ = false;
+    properties.ResetDirty();
+
+    properties.SetGravityPullStrength(1.0f);
+    EXPECT_EQ(properties.GetGravityPullStrength(), 1.0f);
+    EXPECT_FALSE(properties.isDrawn_);
+    EXPECT_FALSE(properties.filterNeedUpdate_);
+    EXPECT_FALSE(properties.IsDirty());
 }
 
 /**

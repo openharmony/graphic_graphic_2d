@@ -26,11 +26,11 @@ class NdkFontCollectionTest : public testing::Test {
 };
 
 /*
- * @tc.name: NativeDrawingTest001
+ * @tc.name: CreateAndManageFontCollectionLifecycle
  * @tc.desc: test for fontcollection
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontCollectionTest, NdkFontCollectionTest001, TestSize.Level0)
+HWTEST_F(NdkFontCollectionTest, CreateAndManageFontCollectionLifecycle, TestSize.Level0)
 {
     OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
     OH_Drawing_FontCollection* fontCollection2 = OH_Drawing_CreateSharedFontCollection();

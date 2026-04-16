@@ -684,13 +684,9 @@ HWTEST_F(RSHdrUtilTest, CheckPixelFormatWithSelfDrawingNodeTest, TestSize.Level1
     surfaceNode->SetHardwareForcedDisabledState(false);
     RSHdrUtil::CheckPixelFormatWithSelfDrawingNode(*surfaceNode, *screenNode);
     surfaceNode->SetHardwareForcedDisabledState(true);
-
-    surfaceNode->context_ = context;
-    NodeId logicalDisplayNodeId = 2U;
-    RSDisplayNodeConfig config;
-    auto logicalDisplayNode = std::make_shared<RSLogicalDisplayRenderNode>(logicalDisplayNodeId, config, context);
-    surfaceNode->logicalDisplayNodeId_ = logicalDisplayNodeId;
-    context->nodeMap.RegisterRenderNode(logicalDisplayNode);
+    RSHdrUtil::CheckPixelFormatWithSelfDrawingNode(*surfaceNode, *screenNode);
+    screenNode->SetSdrNits(100.0f);
+    screenNode->SetSdrNits(200.0f);
     RSHdrUtil::CheckPixelFormatWithSelfDrawingNode(*surfaceNode, *screenNode);
     RSTestUtil::UnregisterConsumerListener();
 }

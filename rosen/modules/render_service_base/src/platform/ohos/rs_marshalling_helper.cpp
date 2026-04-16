@@ -58,7 +58,6 @@
 #include "render/rs_gradient_blur_para.h"
 #include "render/rs_image.h"
 #include "render/rs_image_base.h"
-#include "render/rs_magnifier_para.h"
 #include "render/rs_mask.h"
 #include "render/rs_motion_blur_filter.h"
 #include "render/rs_path.h"
@@ -532,6 +531,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, Drawing::SharedTypeface& v
     success &= Marshalling(parcel, val.size_);
     success &= Marshalling(parcel, val.index_);
     success &= Marshalling(parcel, val.hash_);
+    RS_PROFILER_WRITE_SHARED_TYPEFACE(parcel, val);
     success &= static_cast<MessageParcel*>(&parcel)->WriteFileDescriptor(val.fd_);
     success &= Marshalling(parcel, val.hasFontArgs_);
 
@@ -572,7 +572,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, Drawing::SharedTypeface&
     success &= Unmarshalling(parcel, hash);
     if (success) { val.hash_ = hash; }
 
-    val.fd_ = static_cast<MessageParcel*>(&parcel)->ReadFileDescriptor();
+    RS_PROFILER_READ_SHARED_TYPEFACE(parcel, val);
     if (val.fd_ < 0) {
         success = false;
     }
@@ -1060,50 +1060,6 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<MotionBl
     if (success) {
         val = std::make_shared<MotionBlurParam>(radius, anchor);
     }
-    return success;
-}
-
-// MagnifierPara
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSMagnifierParams>& val)
-{
-    bool success = Marshalling(parcel, val->factor_);
-    success &= Marshalling(parcel, val->width_);
-    success &= Marshalling(parcel, val->height_);
-    success &= Marshalling(parcel, val->cornerRadius_);
-    success &= Marshalling(parcel, val->borderWidth_);
-    success &= Marshalling(parcel, val->offsetX_);
-    success &= Marshalling(parcel, val->offsetY_);
-    success &= Marshalling(parcel, val->zoomOffsetX_);
-    success &= Marshalling(parcel, val->zoomOffsetY_);
-
-    success &= Marshalling(parcel, val->shadowOffsetX_);
-    success &= Marshalling(parcel, val->shadowOffsetY_);
-    success &= Marshalling(parcel, val->shadowSize_);
-    success &= Marshalling(parcel, val->shadowStrength_);
- 
-    success &= Marshalling(parcel, val->gradientMaskColor1_);
-    success &= Marshalling(parcel, val->gradientMaskColor2_);
-    success &= Marshalling(parcel, val->outerContourColor1_);
-    success &= Marshalling(parcel, val->outerContourColor2_);
-
-    return success;
-}
- 
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSMagnifierParams>& val)
-{
-    val = std::make_shared<RSMagnifierParams>();
-    if (val == nullptr) { return false; }
-
-    bool success = Unmarshalling(parcel, val->factor_) && Unmarshalling(parcel, val->width_) &&
-                   Unmarshalling(parcel, val->height_) && Unmarshalling(parcel, val->cornerRadius_) &&
-                   Unmarshalling(parcel, val->borderWidth_) && Unmarshalling(parcel, val->offsetX_) &&
-                   Unmarshalling(parcel, val->offsetY_) && Unmarshalling(parcel, val->zoomOffsetX_) &&
-                   Unmarshalling(parcel, val->zoomOffsetY_) && Unmarshalling(parcel, val->shadowOffsetX_) &&
-                   Unmarshalling(parcel, val->shadowOffsetY_) && Unmarshalling(parcel, val->shadowSize_) &&
-                   Unmarshalling(parcel, val->shadowStrength_) && Unmarshalling(parcel, val->gradientMaskColor1_) &&
-                   Unmarshalling(parcel, val->gradientMaskColor2_) && Unmarshalling(parcel, val->outerContourColor1_) &&
-                   Unmarshalling(parcel, val->outerContourColor2_);
-
     return success;
 }
 
@@ -2213,14 +2169,6 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
     auto readSafeFdFunc = [](Parcel& parcel, std::function<int(Parcel&)> readFdDefaultFunc) -> int {
         return AshmemFdContainer::Instance().ReadSafeFd(parcel, readFdDefaultFunc);
     };
-    uint32_t pid = static_cast<uint32_t>(uniqueId >> 32);
-    if (MemoryTrack::Instance().CountFdRecordOfPid(pid) > MAX_FD) {
-        ROSEN_LOGE("The number of fd exceeds the limit");
-        std::string reason = "The number of fd exceeds the limit" +
-            std::to_string(MemoryTrack::Instance().CountFdRecordOfPid(pid));
-        MemoryTrack::Instance().KillProcessByPid(pid, reason);
-        return false;
-    }
     val.reset(RS_PROFILER_UNMARSHAL_PIXELMAP(parcel, readSafeFdFunc));
     if (val == nullptr) {
         ROSEN_LOGE("failed RSMarshallingHelper::Unmarshalling Media::PixelMap");
@@ -2239,6 +2187,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
     if (RSSystemProperties::GetClosePixelMapFdEnabled()) {
         val->CloseFd();
     }
+    uint32_t pid = static_cast<uint32_t>(uniqueId >> 32);
     OHOS::Media::ImageInfo imageInfo;
     val->GetImageInfo(imageInfo);
     MemoryInfo info = {
@@ -2256,6 +2205,11 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
     MemoryTrack::Instance().AddPictureRecord(val->GetPixels(), info);
 #endif
     val->SetFreePixelMapProc(CustomFreePixelMap);
+
+    if (!MemoryTrack::Instance().CheckPixelMapFdCountAndKillProcess(pid)) {
+        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling CheckPixelMapFdCount failed");
+        return false;
+    }
     return true;
 }
 
@@ -3286,7 +3240,6 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSShader>)                    \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSLinearGradientBlurPara>)    \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<MotionBlurParam>)             \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSMagnifierParams>)           \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<std::shared_ptr<EmitterUpdater>>) \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleNoiseFields>)         \
     EXPLICIT_INSTANTIATION(TEMPLATE, RSRenderParticleVector)                       \

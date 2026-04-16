@@ -29,7 +29,7 @@ namespace Rosen {
 RSRenderServiceProxy::RSRenderServiceProxy(const sptr<IRemoteObject>& impl) : IRemoteProxy<RSIRenderService>(impl) {}
 
 std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
-    RSRenderServiceProxy::CreateConnection(const sptr<RSIConnectionToken>& token)
+    RSRenderServiceProxy::CreateConnection(const sptr<RSIConnectionToken>& token, bool needRefresh)
 {
     if (token == nullptr) {
         ROSEN_LOGE("CreateConnection(): token is null.");
@@ -39,7 +39,7 @@ std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    option.SetFlags(MessageOption::TF_SYNC);
+    option.SetFlags(MessageOption::TF_SYNC | MessageOption::TF_IMAGE);
     if (!data.WriteInterfaceToken(RSIRenderService::GetDescriptor())) {
         ROSEN_LOGE("CreateConnection(): WriteInterfaceToken failed.");
         return std::make_pair(nullptr, nullptr);;
@@ -47,6 +47,10 @@ std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
     if (!data.WriteRemoteObject(token->AsObject())) {
         ROSEN_LOGE("CreateConnection(): WriteRemoteObject failed.");
         return std::make_pair(nullptr, nullptr);;
+    }
+    if (!data.WriteBool(needRefresh)) {
+        ROSEN_LOGE("CreateConnection(): WriteBool failed.");
+        return std::make_pair(nullptr, nullptr);
     }
 
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceInterfaceCode::CREATE_CONNECTION);

@@ -505,6 +505,8 @@ napi_value CreateDecrationJsValue(napi_env env, TextStyle textStyle);
 
 napi_value CreateTextStyleJsValue(napi_env env, TextStyle textStyle);
 
+napi_value CreateTypographyStyleJsValue(napi_env env, const TypographyStyle& typographyStyle);
+
 napi_value CreateFontMetricsJsValue(napi_env env, Drawing::FontMetrics& fontMetrics);
 
 inline napi_value CreateRunMetricsJsValue(napi_env env, RunMetrics runMetrics)

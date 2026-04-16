@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -144,7 +144,7 @@ void MaskBrushOpItem::Playback(Brush& brush, const CmdList& cmdList) const
     filter.SetMaskFilter(maskFilter);
     filter.SetFilterQuality(brushHandle_.filterQuality);
 
-    if (brushHandle_.isUIColor) {
+    if (brushHandle_.IsUIColor()) {
         brush.SetUIColor(brushHandle_.uiColor, colorSpace);
     } else {
         const Color4f color4f = { brushHandle_.color.GetRedF(), brushHandle_.color.GetGreenF(),
@@ -191,11 +191,11 @@ void MaskPenOpItem::Playback(Pen& pen, const CmdList& cmdList) const
     pen.SetWidth(penHandle_.width);
     pen.SetMiterLimit(penHandle_.miterLimit);
     pen.SetJoinStyle(penHandle_.joinStyle);
-    pen.SetCapStyle(penHandle_.capStyle);
+    pen.SetCapStyle(penHandle_.GetCapStyle());
 
     auto pathEffect = CmdListHelper::GetPathEffectFromCmdList(cmdList, penHandle_.pathEffectHandle);
     pen.SetPathEffect(pathEffect);
-    if (penHandle_.isUIColor) {
+    if (penHandle_.IsUIColor()) {
         pen.SetUIColor(penHandle_.uiColor, nullptr);
     } else {
         pen.SetColor(penHandle_.color);

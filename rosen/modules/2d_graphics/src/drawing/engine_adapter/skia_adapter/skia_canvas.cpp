@@ -550,6 +550,11 @@ void SkiaCanvas::DrawUIColor(UIColor color, BlendMode mode)
     LOGD("SKIA does not support HDR color. %{public}d", __LINE__);
 }
 
+void SkiaCanvas::DrawParticle(std::shared_ptr<ParticleEffect> particle)
+{
+    LOGD("SKIA does not support Particle. %{public}d", __LINE__);
+}
+
 void SkiaCanvas::DrawRegion(const Region& region, const Paint& paint)
 {
     if (!skCanvas_) {

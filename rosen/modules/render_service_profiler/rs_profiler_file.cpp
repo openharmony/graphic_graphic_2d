@@ -391,40 +391,50 @@ void RSFile::LayerWriteHeader(uint32_t layer)
     writeDataOff_ = Utils::FileTell(file_);
 }
 
-std::string RSFile::LayerReadHeader(uint32_t layer)
+std::string RSFile::LayerReadHeader(RSFileLayer& layer)
 {
-    const std::string errCode = "can't read layer header";
-    if (!file_ || !HasLayer(layer)) {
-        return errCode;
+    if (!file_) {
+        return "Cannot read layer header";
     }
 
-    RSFileLayer& layerData = layerData_[layer];
+    Utils::FileSeek(file_, static_cast<int64_t>(layer.layerHeader.first), SEEK_SET);
 
-    Utils::FileSeek(file_, layerData.layerHeader.first, SEEK_SET);
-
-    // READ LAYER PROPERTY
-    uint32_t recordSize = 0u;
-    Utils::FileRead(&recordSize, sizeof(recordSize), 1, file_);
-    if (recordSize > chunkSizeMax) {
-        return errCode;
+    uint32_t size = 0u;
+    if (!Utils::FileRead(file_, &size, sizeof(size)) || (size > chunkSizeMax)) {
+        return "Cannot read layer.property";
     }
-    std::vector<char> propertyData;
-    propertyData.resize(recordSize);
-    Utils::FileRead(propertyData.data(), recordSize, 1, file_);
 
-    layerData.property.Deserialize(propertyData);
-    LayerReadHeaderOfTrack(layerData.rsData);
-    LayerReadHeaderOfTrack(layerData.oglData);
-    LayerReadHeaderOfTrack(layerData.rsMetrics);
-    if (versionId_ >= RSFILE_VERSION_RENDER_METRICS_ADDED) {
-        LayerReadHeaderOfTrack(layerData.renderMetrics);
+    std::vector<char> properties(size, 0);
+    if (!Utils::FileRead(file_, properties.data(), properties.size())) {
+        return "Cannot read layer.property";
     }
-    if (versionId_ >= RSFILE_VERSION_LOG_EVENTS_ADDED) {
-        LayerReadHeaderOfTrack(layerData.logEvents);
-    }
-    LayerReadHeaderOfTrack(layerData.trace3DMetrics);
-    LayerReadHeaderOfTrack(layerData.gfxMetrics);
 
+    layer.property.Deserialize(properties);
+    if (!properties.empty() && layer.property.Empty()) {
+        return "Cannot read layer.property";
+    }
+
+    if (!LayerReadHeaderOfTrack(layer.rsData)) {
+        return "Cannot read layer.rsData";
+    }
+    if (!LayerReadHeaderOfTrack(layer.oglData)) {
+        return "Cannot read layer.oglData";
+    }
+    if (!LayerReadHeaderOfTrack(layer.rsMetrics)) {
+        return "Cannot read layer.rsMetrics";
+    }
+    if ((versionId_ >= RSFILE_VERSION_RENDER_METRICS_ADDED) && !LayerReadHeaderOfTrack(layer.renderMetrics)) {
+        return "Cannot read layer.renderMetrics";
+    }
+    if ((versionId_ >= RSFILE_VERSION_LOG_EVENTS_ADDED) && !LayerReadHeaderOfTrack(layer.logEvents)) {
+        return "Cannot read layer.logEvents";
+    }
+    if (!LayerReadHeaderOfTrack(layer.trace3DMetrics)) {
+        return "Cannot read layer.trace3DMetrics";
+    }
+    if (!LayerReadHeaderOfTrack(layer.gfxMetrics)) {
+        return "Cannot read layer.gfxMetrics";
+    }
     return "";
 }
 
@@ -692,8 +702,8 @@ std::string RSFile::ReadHeaders()
     if (errReason.size()) {
         return errReason;
     }
-    for (size_t i = 0; i < layerData_.size(); i++) {
-        errReason = LayerReadHeader(i);
+    for (auto& layer : layerData_) {
+        errReason = LayerReadHeader(layer);
         if (errReason.size()) {
             return errReason;
         }

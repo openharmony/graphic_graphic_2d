@@ -34,6 +34,11 @@ constexpr int32_t MAX_LPP_LAYER_SIZE = 5;
 int32_t RSComposerToRenderConnectionStub::OnRemoteRequest(
     uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
 {
+    auto interfaceToken = data.ReadInterfaceToken();
+    if (interfaceToken != IRSComposerToRenderConnection::GetDescriptor()) {
+        RS_LOGE("Read interfaceToken failed!");
+        return ERR_INVALID_DATA;
+    }
     int ret = COMPOSITOR_ERROR_OK;
     switch (code) {
         case ICOMPOSER_TO_RENDER_COMPOSER_RELEASE_LAYER_BUFFERS: {
@@ -55,41 +60,67 @@ int32_t RSComposerToRenderConnectionStub::OnRemoteRequest(
 int32_t RSComposerToRenderConnectionStub::ReleaseLayerBuffersStub(MessageParcel& data,
     MessageParcel& reply, MessageOption& option)
 {
-    auto interfaceToken = data.ReadInterfaceToken();
-    if (interfaceToken != IRSComposerToRenderConnection::GetDescriptor()) {
-        RS_LOGE("Read interfaceToken failed!");
-        return ERR_INVALID_DATA;
-    }
     ReleaseLayerBuffersInfo releaseLayerInfo;
     releaseLayerInfo.screenId = data.ReadUint64();
-    auto vecSize = data.ReadUint32();
+    uint32_t vecSize;
+    if (!data.ReadUint32(vecSize)) {
+        RS_LOGE("%{public}s read vecSize error", __func__);
+        return COMPOSITOR_ERROR_BINDER_ERROR;
+    }
     if (vecSize > RELEASE_LAYER_MAX_SIZE) {
         RS_LOGE("Release layer size invalid: %{public}d", vecSize);
         return ERR_INVALID_DATA;
     }
     for (uint32_t i = 0; i < vecSize; i++) {
-        auto layerId = data.ReadUint64();
-        bool isSupportedPresentTimestamp = data.ReadBool();
+        uint64_t layerId;
+        if (!data.ReadUint64(layerId)) {
+            RS_LOGE("%{public}s read layerId error", __func__);
+            return COMPOSITOR_ERROR_BINDER_ERROR;
+        }
+        bool isSupportedPresentTimestamp;
+        if (!data.ReadBool(isSupportedPresentTimestamp)) {
+            RS_LOGE("%{public}s read isSupportedPresentTimestamp error", __func__);
+            return COMPOSITOR_ERROR_BINDER_ERROR;
+        }
         GraphicPresentTimestamp timestamp;
-        timestamp.type = static_cast<GraphicPresentTimestampType>(data.ReadUint32());
-        timestamp.time = data.ReadInt64();
+        uint32_t presentTimestampType;
+        if (!data.ReadUint32(presentTimestampType)) {
+            RS_LOGE("%{public}s read presentTimestampType error", __func__);
+            return COMPOSITOR_ERROR_BINDER_ERROR;
+        }
+        timestamp.type = static_cast<GraphicPresentTimestampType>(presentTimestampType);
+        if (!data.ReadInt64(timestamp.time)) {
+            RS_LOGE("%{public}s read timestamp.time error", __func__);
+            return COMPOSITOR_ERROR_BINDER_ERROR;
+        }
         releaseLayerInfo.timestampVec.push_back(std::tuple(layerId, isSupportedPresentTimestamp, timestamp));
     }
-    vecSize = data.ReadUint32();
+    if (!data.ReadUint32(vecSize)) {
+        RS_LOGE("%{public}s read vecSize error", __func__);
+        return COMPOSITOR_ERROR_BINDER_ERROR;
+    }
     if (vecSize > RELEASE_LAYER_MAX_SIZE) {
         RS_LOGE("Release layer size invalid: %{public}d", vecSize);
         return ERR_INVALID_DATA;
     }
     for (uint32_t i = 0; i < vecSize; i++) {
-        auto layerId = data.ReadUint64();
-        uint32_t sequence;
+        uint64_t layerId;
+        if (!data.ReadUint64(layerId)) {
+            RS_LOGE("%{public}s read layerId error", __func__);
+            return COMPOSITOR_ERROR_BINDER_ERROR;
+        }
+        bool hasBuffer;
+        if (!data.ReadBool(hasBuffer)) {
+            RS_LOGE("%{public}s read hasBuffer error", __func__);
+            return COMPOSITOR_ERROR_BINDER_ERROR;
+        }
         sptr<SurfaceBuffer> buffer = nullptr;
-        bool hasBuffer = data.ReadBool();
         if (hasBuffer) {
             auto readSafeFdFunc = [](OHOS::MessageParcel& parcel,
                 std::function<int(OHOS::MessageParcel&)> readFdDefaultFunc) -> int {
                 return parcel.ReadFileDescriptor();
             };
+            uint32_t sequence;
             auto ret = ReadSurfaceBufferImpl(data, sequence, buffer, readSafeFdFunc);
             if (ret != GSERROR_OK) {
                 return ERR_INVALID_DATA;
@@ -107,11 +138,6 @@ int32_t RSComposerToRenderConnectionStub::ReleaseLayerBuffersStub(MessageParcel&
 int32_t RSComposerToRenderConnectionStub::NotifyLppLayerToRenderStub(MessageParcel& data,
     MessageParcel& reply, MessageOption& option)
 {
-    if (auto interfaceToken = data.ReadInterfaceToken();
-        interfaceToken != IRSComposerToRenderConnection::GetDescriptor()) {
-        RS_LOGE("%{public}s::CREATE_CONNECTION Read interfaceToken failed!", __func__);
-        return ERR_INVALID_DATA;
-    }
     uint64_t vsyncId;
     if (!data.ReadUint64(vsyncId)) {
         ROSEN_LOGE("%{public}s read vsyncId failed", __func__);
