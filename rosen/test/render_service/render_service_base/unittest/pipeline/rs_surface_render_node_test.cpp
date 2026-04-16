@@ -3361,5 +3361,151 @@ HWTEST_F(RSSurfaceRenderNodeTest, GetFirstLevelNodeGamutForceSRGBTest, TestSize.
     RsCommonHook::Instance().SetForceSRGBOutput(false);
     node->gamutCollector_.GetFirstLevelNodeGamut();
 }
+
+/**
+ * @tc.name: IsSourceNodeDirtyTest001
+ * @tc.desc: Test IsSourceNodeDirty returns true when sourceNode is dirty
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVisitorTest, IsSourceNodeDirtyTest001, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    RSSurfaceRenderNodeConfig config;
+    config.id = 1;
+    auto sourceNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    ASSERT_NE(sourceNode, nullptr);
+    sourceNode->InitRenderParams();
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    bool result = rsUniRenderVisitor->IsSourceNodeDirty(*sourceNode);
+    EXPECT_FALSE(result);
+    // Set source node sub tree dirty
+    sourceNode->isSubTreeDirty_ = true;
+    result = rsUniRenderVisitor->IsSourceNodeDirty(*sourceNode);
+    EXPECT_TRUE(result);
+    // Set source node as dirty
+    sourceNode->SetDirty();
+    result = rsUniRenderVisitor->IsSourceNodeDirty(*sourceNode);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: IsSourceNodeDirtyTest002
+ * @tc.desc: Test IsSourceNodeDirty returns true when sourceNode's dirtyManager has dirty region
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVisitorTest, IsSourceNodeDirtyTest002, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    RSSurfaceRenderNodeConfig config;
+    config.id = 2;
+    auto sourceNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    ASSERT_NE(sourceNode, nullptr);
+    sourceNode->InitRenderParams();
+
+    // Create dirty manager and set dirty region
+    auto dirtyManager = std::make_shared<RSDirtyRegionManager>();
+    RectI dirtyRect = {0, 0, 100, 100};
+    dirtyManager->MergeDirtyRect(dirtyRect);
+    sourceNode->dirtyManager_ = dirtyManager;
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    // IsSourceNodeDirty should return true when dirtyManager has non-empty dirty region
+    bool result = rsUniRenderVisitor->IsSourceNodeDirty(*sourceNode);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: IsSourceNodeDirtyTest003
+ * @tc.desc: Test IsSourceNodeDirty returns true when leash window has dirty children
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVisitorTest, IsSourceNodeDirtyTest003, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    RSSurfaceRenderNodeConfig config;
+    config.id = 4;
+    auto leashWindowNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    ASSERT_NE(leashWindowNode, nullptr);
+    leashWindowNode->InitRenderParams();
+    leashWindowNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+
+    // Create child node with dirty state
+    RSSurfaceRenderNodeConfig childConfig;
+    childConfig.id = 5;
+    auto childNode = std::make_shared<RSSurfaceRenderNode>(childConfig, rsContext->weak_from_this());
+    ASSERT_NE(childNode, nullptr);
+    childNode->InitRenderParams();
+    
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    // no children
+    bool result = rsUniRenderVisitor->IsSourceNodeDirty(*leashWindowNode);
+    EXPECT_FALSE(result);
+
+    // Add child to leash window but no dirty
+    leashWindowNode->AddChild(childNode, -1);
+    result = rsUniRenderVisitor->IsSourceNodeDirty(*leashWindowNode);
+    EXPECT_FALSE(result);
+
+    // child subtree dirty
+    childNode->isSubTreeDirty_ = true;
+    result = rsUniRenderVisitor->IsSourceNodeDirty(*leashWindowNode);
+    EXPECT_TRUE(result);
+
+    // child dirty
+    childNode->SetDirty();
+    result = rsUniRenderVisitor->IsSourceNodeDirty(*leashWindowNode);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: IsSourceNodeDirtyTest004
+ * @tc.desc: Test IsSourceNodeDirty returns true when sourceNode's child has dirty region
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVisitorTest, IsSourceNodeDirtyTest004, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    RSSurfaceRenderNodeConfig config;
+    config.id = 7;
+    auto leashWindowNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    ASSERT_NE(leashWindowNode, nullptr);
+    leashWindowNode->InitRenderParams();
+    leashWindowNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+
+    // Create child node with dirtyManager having non-empty dirty region
+    RSSurfaceRenderNodeConfig childConfig;
+    childConfig.id = 8;
+    NodeId canvasNodeId = 9;
+    auto childNode = std::make_shared<RSSurfaceRenderNode>(childConfig, rsContext->weak_from_this());
+    auto canvasChildNode = std::make_shared<RSCanvasRenderNode>(canvasNodeId, rsContext->weak_from_this
+    ASSERT_NE(childNode, nullptr);
+    childNode->InitRenderParams();
+
+    auto childDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    RectI dirtyRect = {0, 0, 200, 200};
+    childDirtyManager->MergeDirtyRect(dirtyRect);
+    childNode->dirtyManager_ = childDirtyManager;
+
+    // Add child to leash window
+    leashWindowNode->AddChild(childNode, -1);
+    leashWindowNode->AddChild(canvasChildNode, -1);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    // IsSourceNodeDirty should return true when child has non-empty dirty region
+    bool result = rsUniRenderVisitor->IsSourceNodeDirty(*leashWindowNode);
+    EXPECT_TRUE(result);
+}
 } // namespace Rosen
 } // namespace OHOS
