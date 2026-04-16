@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "command/rs_canvas_drawing_node_command.h"
+#include "common/rs_common_def.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 
 using namespace testing;
@@ -48,6 +49,20 @@ HWTEST_F(RSCanvasDrawingNodeCommandTest, CreateTest, TestSize.Level1)
     EXPECT_NE(context.GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(targetId), nullptr);
     RSCanvasDrawingNodeCommandHelper::ResetSurface(context, targetId, width, height, 0);
     RSCanvasDrawingNodeCommandHelper::ResetSurface(context, 0, width, height, 0);
+}
+
+HWTEST_F(RSCanvasDrawingNodeCommandTest, CreateDOSProtectionTest, TestSize.Level1)
+{
+    RSContext context;
+    pid_t pid = 1;
+    for (uint32_t i = 0; i <= MAX_NODE_COUNT_PER_PID; i++) {
+        NodeId existId = MakeNodeId(pid, i);
+        context.nodeMap.renderNodeMap_[pid][existId] =
+            std::make_shared<RSCanvasDrawingRenderNode>(existId, context.weak_from_this(), false);
+    }
+    NodeId newNodeId = MakeNodeId(pid, MAX_NODE_COUNT_PER_PID + 1);
+    RSCanvasDrawingNodeCommandHelper::Create(context, newNodeId, false);
+    EXPECT_EQ(context.GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(newNodeId), nullptr);
 }
 
 } // namespace OHOS::Rosen
