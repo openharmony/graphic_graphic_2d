@@ -556,10 +556,10 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(DistortionCollapse, RBCorner, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(DistortionCollapse, LBCorner, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(DistortionCollapse, BarrelDistortion, Vector4f);
 
-DECLARE_ANIMATABLE_PROPERTY_TAG(SpatialGlassEffect, TopLeft, Vector3f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(SpatialGlassEffect, TopRight, Vector3f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(SpatialGlassEffect, BotLeft, Vector3f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(SpatialGlassEffect, BotRight, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SpatialGlassEffect, LeftTop, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SpatialGlassEffect, RightTop, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SpatialGlassEffect, LeftBot, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SpatialGlassEffect, RightBot, Vector3f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(SpatialGlassEffect, CameraPosition, Vector3f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(SpatialGlassEffect, CameraIntrinsics, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(SpatialGlassEffect, ZNearFar, Vector2f);
