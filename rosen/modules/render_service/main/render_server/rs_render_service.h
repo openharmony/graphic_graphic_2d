@@ -109,8 +109,6 @@ private:
     const std::shared_ptr<HgmContext>& GetHgmContext() const { return hgmContext_; }
     void HandlePowerStatus(ScreenId screenId, ScreenPowerStatus status);
 
-    const std::shared_ptr<const RenderModeConfig>& GetRenderModeConfig() const { return renderModeConfig_; }
-
     // Game Scene Handler
     void InitGameFrameHandler();
 

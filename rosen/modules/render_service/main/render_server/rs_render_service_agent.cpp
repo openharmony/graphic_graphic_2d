@@ -64,20 +64,6 @@ void RSRenderServiceAgent::FpsDump(std::string& dumpString, const std::string& a
     renderService_.FpsDump(dumpString, arg);
 }
 
-void RSRenderServiceAgent::ProcessHgmFrameRate(uint64_t timestamp, uint64_t vsyncId,
-    const sptr<HgmProcessToServiceInfo>& processToServiceInfo,
-    const sptr<HgmServiceToProcessInfo>& serviceToProcessInfo)
-{
-    auto hgmContext = GetHgmContext();
-    if (!hgmContext) {
-        return;
-    }
-    if (!GetRenderModeConfig()->GetIsMultiProcessModeEnabled()) {
-        hgmContext->ProcessHgmFrameRate(timestamp, vsyncId, processToServiceInfo, serviceToProcessInfo);
-        return;
-    }
-}
-
 void RSRenderServiceAgent::HandlePowerStatus(ScreenId screenId, ScreenPowerStatus status)
 {
     renderService_.HandlePowerStatus(screenId, status);
@@ -88,15 +74,15 @@ void RSRenderServiceAgent::RemoveToken(const sptr<RSIConnectionToken>& token)
     renderService_.RemoveConnection(token);
 }
 
-const std::shared_ptr<const RenderModeConfig>& RSRenderServiceAgent::GetRenderModeConfig() const
-{
-    return renderService_.GetRenderModeConfig();
-}
-
 std::pair<sptr<IRSRenderToComposerConnection>, sptr<VSyncConnection>> RSRenderServiceAgent::GetProcessInfo(
     ScreenId screenId, sptr<IRemoteObject> vsyncToken)
 {
     return renderService_.GetProcessInfo(screenId, vsyncToken);
+}
+
+void RSRenderServiceAgent::RegisterHgmProcessCallback(HgmProcessCallback hgmProcessCallback)
+{
+    hgmProcessCallback_ = std::move(hgmProcessCallback);
 }
 
 void RSRenderServiceAgent::HandleGameSceneChanged() const

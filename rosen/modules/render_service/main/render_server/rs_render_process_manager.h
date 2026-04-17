@@ -28,10 +28,14 @@
 
 namespace OHOS {
 namespace Rosen {
+using HgmProcessCallback =
+    std::function<void(uint64_t timestamp, uint64_t vsyncId, const sptr<HgmProcessToServiceInfo>& processToServiceInfo,
+        const sptr<HgmServiceToProcessInfo>& serviceToProcessInfo)>;
+
 class RSRenderService;
 class RSRenderProcessManager : public RSIScreenManagerListener {
 public:
-    static sptr<RSRenderProcessManager> Create(RSRenderService& renderService);
+    static sptr<RSRenderProcessManager> Create(RSRenderService& renderService, HgmProcessCallback hgmProcessCallback);
 
     explicit RSRenderProcessManager(RSRenderService& renderService) : renderService_(renderService) {}
     ~RSRenderProcessManager() noexcept override = default;

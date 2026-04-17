@@ -224,7 +224,15 @@ void RSRenderService::FeatureComponentInit()
 void RSRenderService::RenderProcessManagerInit()
 {
     RS_LOGI("%{public}s:", __func__);
-    renderProcessManager_ = RSRenderProcessManager::Create(*this);
+    HgmProcessCallback hgmProcessCallback = nullptr;
+    if (hgmContext_) {
+        hgmProcessCallback = [hgmContext = hgmContext_](uint64_t timestamp, uint64_t vsyncId,
+                                              const sptr<HgmProcessToServiceInfo>& processToServiceInfo,
+                                              const sptr<HgmServiceToProcessInfo>& serviceToProcessInfo) {
+            hgmContext->ProcessHgmFrameRate(timestamp, vsyncId, processToServiceInfo, serviceToProcessInfo);
+        };
+    }
+    renderProcessManager_ = RSRenderProcessManager::Create(*this, std::move(hgmProcessCallback));
     auto screenManagerListener = sptr<ScreenManagerListener>::MakeSptr(*this);
     screenManager_->RegisterCoreListener(screenManagerListener);
     if (screenManager_->Init(handler_)) {

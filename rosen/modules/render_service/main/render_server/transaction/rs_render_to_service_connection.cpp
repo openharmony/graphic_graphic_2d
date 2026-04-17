@@ -70,7 +70,9 @@ sptr<HgmServiceToProcessInfo> RSRenderToServiceConnection::NotifyRpHgmFrameRate(
     uint64_t vsyncId, const sptr<HgmProcessToServiceInfo>& processToServiceInfo)
 {
     auto serviceToProcessInfo = sptr<HgmServiceToProcessInfo>::MakeSptr();
-    renderServiceAgent_->ProcessHgmFrameRate(timestamp, vsyncId, processToServiceInfo, serviceToProcessInfo);
+    if (auto hgmProcessCallback = renderServiceAgent_->GetHgmProcessCallback()) {
+        hgmProcessCallback(timestamp, vsyncId, processToServiceInfo, serviceToProcessInfo);
+    }
     return serviceToProcessInfo;
 }
 

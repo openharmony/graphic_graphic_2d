@@ -23,13 +23,15 @@
 
 namespace OHOS {
 namespace Rosen {
-sptr<RSRenderProcessManager> RSRenderProcessManager::Create(RSRenderService& renderService)
+sptr<RSRenderProcessManager> RSRenderProcessManager::Create(
+    RSRenderService& renderService, HgmProcessCallback hgmProcessCallback)
 {
     sptr<RSRenderProcessManager> renderProcessManager;
     if (renderService.renderModeConfig_->GetIsMultiProcessModeEnabled()) {
         renderProcessManager = sptr<RSMultiRenderProcessManager>::MakeSptr(renderService);
     } else {
-        renderProcessManager = sptr<RSSingleRenderProcessManager>::MakeSptr(renderService);
+        renderProcessManager =
+            sptr<RSSingleRenderProcessManager>::MakeSptr(renderService, std::move(hgmProcessCallback));
     }
     return renderProcessManager;
 }
