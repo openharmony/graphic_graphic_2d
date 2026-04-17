@@ -390,6 +390,9 @@ TypographyStyle Convert(const SPText::ParagraphStyle& style)
     typoStyle.includeFontPadding = style.includeFontPadding;
     typoStyle.fallbackLineSpacing = style.fallbackLineSpacing;
     typoStyle.orphanCharOptimization = style.orphanCharOptimization;
+    typoStyle.firstLineIndent = style.firstLineIndent;
+    typoStyle.tailIndents = style.tailIndents;
+    typoStyle.headIndents = style.headIndents;
     //tab
     typoStyle.tab.alignment = static_cast<TextAlign>(style.tab.alignment);
     typoStyle.tab.location = style.tab.location;
