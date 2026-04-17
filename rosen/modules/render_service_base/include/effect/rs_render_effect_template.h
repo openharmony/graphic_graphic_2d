@@ -118,6 +118,7 @@ public:
             case RSNGEffectType::SDF_EDGE_LIGHT_EFFECT: return "SDFEdgeLightEffect";
             case RSNGEffectType::MAGNIFIER: return "Magnifier";
             case RSNGEffectType::DISTORTION_COLLAPSE: return "DistortionCollapse";
+            case RSNGEffectType::SPATIAL_GLASS_EFFECT: return "SpatialGlassEffect";
             default: return "UNKNOWN";
         }
     }
