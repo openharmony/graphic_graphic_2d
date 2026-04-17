@@ -178,6 +178,7 @@ rs_effect_feature_sources = [
   "rs_effect_feature/ng_shader_test/ng_shader_ai_bar_rect_halo_test.cpp",
   "rs_effect_feature/ng_shader_test/ng_shader_color_gradient_effect_test.cpp",
   "rs_effect_feature/ng_shader_test/ng_shader_frosted_glass_effect_test.cpp",
+  "rs_effect_feature/ng_shader_test/ng_shader_spatial_point_light_test.cpp",
   "rs_effect_feature/ng_effect_test/ng_substracted_rect_test.cpp",
   "rs_effect_feature/ng_effect_test/ng_hdrdarken_blender_test.cpp",
   "rs_effect_feature/ng_filter_test/ng_filter_content_light_test.cpp",

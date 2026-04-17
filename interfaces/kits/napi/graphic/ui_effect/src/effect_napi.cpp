@@ -124,6 +124,7 @@ napi_value EffectNapi::CreateEffect(napi_env env, napi_callback_info info)
         DECLARE_NAPI_FUNCTION("colorGradient", CreateColorGradientEffect),
         DECLARE_NAPI_FUNCTION("liquidMaterial", CreateHarmoniumEffect),
         DECLARE_NAPI_FUNCTION("frostedGlass", CreateFrostedGlassEffect),
+        DECLARE_NAPI_FUNCTION("spatialPointLight", CreateSpatialPointLight),
     };
     status = napi_define_properties(env, object, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs);
     UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, effectObj,
@@ -1177,6 +1178,86 @@ napi_value EffectNapi::CreateHarmoniumEffect(napi_env env, napi_callback_info in
         UIEFFECT_LOG_E("EffectNapi CreateHarmoniumEffect napi_unwrap fail"));
     visualEffectObj->AddPara(para);
     return thisVar;
+}
+
+napi_value EffectNapi::CreateSpatialPointLight(napi_env env, napi_callback_info info)
+{
+    if (!UIEffectNapiUtils::IsSystemApp()) {
+        UIEFFECT_LOG_E("CreateSpatialPointLight failed, is not system app");
+        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
+            "EffectNapi CreateSpatialPointLight failed, is not system app");
+        return nullptr;
+    }
+
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    napi_status status;
+    napi_value thisVar = nullptr;
+    napi_value argValue[NUM_5] = {0};
+    size_t argCount = NUM_5;
+    UIEFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
+        UIEFFECT_LOG_E("EffectNapi CreateSpatialPointLight parsing input fail"));
+
+    if (argCount < NUM_4) {
+        UIEFFECT_LOG_E("Args number less than 4");
+        return nullptr;
+    }
+    std::shared_ptr<SpatialPointLightEffectPara> para = std::make_shared<SpatialPointLightEffectPara>();
+    UIEFFECT_NAPI_CHECK_RET_D(para != nullptr, nullptr,
+        UIEFFECT_LOG_E("EffectNapi CreateSpatialPointLight para is nullptr"));
+
+    UIEFFECT_NAPI_CHECK_RET_D(GetSpatialPointLight(env, argValue, argCount, para), nullptr,
+        UIEFFECT_LOG_E("EffectNapi GetSpatialPointLight fail"));
+
+    if (argCount >= NUM_5) {
+        Mask* mask = nullptr;
+        if (napi_unwrap(env, argValue[NUM_4], reinterpret_cast<void**>(&mask)) == napi_ok && mask != nullptr) {
+            para->SetMask(mask->GetMaskPara());
+        }
+    }
+
+    VisualEffect* visualEffectObj = nullptr;
+    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&visualEffectObj));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && visualEffectObj != nullptr, nullptr,
+        UIEFFECT_LOG_E("EffectNapi CreateSpatialPointLight napi_unwrap fail"));
+    visualEffectObj->AddPara(para);
+
+    return thisVar;
+}
+
+bool EffectNapi::GetSpatialPointLight(napi_env env, napi_value *param, size_t length,
+    std::shared_ptr<SpatialPointLightEffectPara>& para)
+{
+    if (length < NUM_4) {
+        UIEFFECT_LOG_E("EffectNapi GetSpatialPointLight array length is less than 4");
+        return false;
+    }
+
+    Vector3f lightPosition = {0.0f, 0.0f, 0.0f};
+    Vector4f lightColor = {0.0f, 0.0f, 0.0f, 0.0f};
+    float lightIntensity = 1.0f;
+    float attenuation = 0.5f;
+
+    if (!ParseJsVector3f(env, param[0], lightPosition)) {
+        UIEFFECT_LOG_E("EffectNapi GetSpatialPointLight parse lightPosition fail");
+        return false;
+    }
+    para->SetLightPosition(lightPosition);
+
+    if (!ParseJsRGBAColor(env, param[1], lightColor)) {
+        UIEFFECT_LOG_E("EffectNapi GetSpatialPointLight parse lightColor fail");
+        return false;
+    }
+    para->SetLightColor(lightColor);
+
+    lightIntensity = GetSpecialValue(env, param[NUM_2]);
+    para->SetLightIntensity(lightIntensity);
+
+    attenuation = GetSpecialValue(env, param[NUM_3]);
+    para->SetAttenuation(attenuation);
+
+    return true;
 }
 
 }  // namespace Rosen

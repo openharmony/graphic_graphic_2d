@@ -31,6 +31,7 @@
 #include "effect/include/visual_effect_para.h"
 
 #include "effect/include/harmonium_effect_para.h"
+#include "effect/include/spatial_point_light_effect_para.h"
 
 #include "mask/include/mask.h"
 #include "napi/native_api.h"
@@ -77,6 +78,9 @@ private:
     static float GetSpecialValue(napi_env env, napi_value argValue);
     static napi_value CreateHarmoniumEffect(napi_env env, napi_callback_info info);
     static napi_value CreateFrostedGlassEffect(napi_env env, napi_callback_info info);
+    static napi_value CreateSpatialPointLight(napi_env env, napi_callback_info info);
+    static bool GetSpatialPointLight(napi_env env, napi_value* param, size_t length,
+        std::shared_ptr<SpatialPointLightEffectPara>& para);
     static bool FillFrostedGlassCommon(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassEffectPara>& para);
     static bool FillFrostedGlassBg(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassEffectPara>& para);
     static bool FillFrostedGlassSd(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassEffectPara>& para);
