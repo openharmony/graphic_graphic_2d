@@ -233,8 +233,7 @@ HWTEST_F(RSCanvasNodeCommandTest, CreateDOSProtectionTest, TestSize.Level1)
     pid_t pid = 1;
     for (uint32_t i = 0; i <= MAX_NODE_COUNT_PER_PID; i++) {
         NodeId existId = MakeNodeId(pid, i);
-        context.nodeMap.renderNodeMap_[pid][existId] =
-            std::make_shared<RSCanvasRenderNode>(existId, context.weak_from_this(), false);
+        RSCanvasNodeCommandHelper::Create(context, existId, false);
     }
     NodeId newNodeId = MakeNodeId(pid, MAX_NODE_COUNT_PER_PID + 1);
     RSCanvasNodeCommandHelper::Create(context, newNodeId, false);
