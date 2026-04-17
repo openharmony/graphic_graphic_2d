@@ -13,18 +13,18 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_BASE_MODIFIER_NG_APPEARANCE_RS_POINT_LIGHT_RENDER_MODIFIER_H
-#define RENDER_SERVICE_BASE_MODIFIER_NG_APPEARANCE_RS_POINT_LIGHT_RENDER_MODIFIER_H
+#ifndef RENDER_SERVICE_BASE_MODIFIER_NG_APPEARANCE_RS_OVERLAY_NG_SHADER_RENDER_MODIFIER_H
+#define RENDER_SERVICE_BASE_MODIFIER_NG_APPEARANCE_RS_OVERLAY_NG_SHADER_RENDER_MODIFIER_H
 
 #include "modifier_ng/rs_render_modifier_ng.h"
 
 namespace OHOS::Rosen::ModifierNG {
-class RSB_EXPORT RSPointLightRenderModifier : public RSDisplayListRenderModifier {
+class RSB_EXPORT RSOverlayNGShaderRenderModifier : public RSDisplayListRenderModifier {
 public:
-    RSPointLightRenderModifier() = default;
-    ~RSPointLightRenderModifier() override = default;
+    RSOverlayNGShaderRenderModifier() = default;
+    ~RSOverlayNGShaderRenderModifier() override = default;
 
-    static inline constexpr auto Type = RSModifierType::POINT_LIGHT;
+    static inline constexpr auto Type = RSModifierType::OVERLAY_NG_SHADER;
     // LCOV_EXCL_START
     RSModifierType GetType() const override
     {
@@ -44,4 +44,4 @@ private:
     // LCOV_EXCL_STOP
 };
 } // namespace OHOS::Rosen::ModifierNG
-#endif // RENDER_SERVICE_BASE_MODIFIER_NG_APPEARANCE_RS_POINT_LIGHT_RENDER_MODIFIER_H
+#endif // RENDER_SERVICE_BASE_MODIFIER_NG_APPEARANCE_RS_OVERLAY_NG_SHADER_RENDER_MODIFIER_H

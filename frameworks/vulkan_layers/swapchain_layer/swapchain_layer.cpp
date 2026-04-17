@@ -39,6 +39,7 @@
 #include "vk_layer_dispatch_table.h"
 #include "swapchain_layer_log.h"
 #include "sync_fence.h"
+#include "native_buffer.h"
 #ifdef USE_IGAMESERVICE_PLUGIN
 #include "igameservice_plugin.h"
 #endif
@@ -57,6 +58,7 @@ enum Extension {
     EXT_SWAPCHAIN_COLOR_SPACE,
     KHR_GET_SURFACE_CAPABILITIES_2,
     EXT_HDR_METADATA,
+    HUAWEI_HDR_VIVID,
     EXTENSION_COUNT,
     EXTENSION_UNKNOWN,
 };
@@ -254,6 +256,10 @@ static const VkExtensionProperties g_deviceExtensions[] = {
         .specVersion = 2,
     },
     {
+        .extensionName = VK_HUAWEI_HDR_VIVID_EXTENSION_NAME,
+        .specVersion = 1,
+    },
+    {
         .extensionName = VK_KHR_INCREMENTAL_PRESENT_EXTENSION_NAME,
         .specVersion = 2,
     }
@@ -278,13 +284,30 @@ struct Swapchain {
         : surface(surface), numImages(numImages), mailboxMode(presentMode == VK_PRESENT_MODE_MAILBOX_KHR),
           preTransform(preTransform),
           shared(presentMode == VK_PRESENT_MODE_SHARED_DEMAND_REFRESH_KHR ||
-                 presentMode == VK_PRESENT_MODE_SHARED_CONTINUOUS_REFRESH_KHR) {}
+                 presentMode == VK_PRESENT_MODE_SHARED_CONTINUOUS_REFRESH_KHR),
+          pStaticMetadata(nullptr), dynamicMetadataSize(0), pDynamicMetadata(nullptr) {}
+
+    ~Swapchain()
+    {
+        if (pStaticMetadata != nullptr) {
+            delete pStaticMetadata;
+            pStaticMetadata = nullptr;
+        }
+        if (pDynamicMetadata != nullptr) {
+            dynamicMetadataSize = 0;
+            delete[] pDynamicMetadata;
+            pDynamicMetadata = nullptr;
+        }
+    }
 
     Surface &surface;
     uint32_t numImages;
     bool mailboxMode;
     OH_NativeBuffer_TransformType preTransform;
     bool shared;
+    OH_NativeBuffer_StaticMetadata* pStaticMetadata;
+    uint32_t dynamicMetadataSize;
+    uint8_t* pDynamicMetadata;
 
     struct Image {
         Image() : image(VK_NULL_HANDLE), buffer(nullptr), requestFence(-1), releaseFence(-1), requested(false) {}
@@ -498,6 +521,8 @@ GraphicPixelFormat GetPixelFormat(VkFormat format)
             return GRAPHIC_PIXEL_FMT_RGB_565;
         case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
             return GRAPHIC_PIXEL_FMT_RGBA_1010102;
+        case VK_FORMAT_R16G16B16A16_SFLOAT:
+            return GRAPHIC_PIXEL_FMT_RGBA16_FLOAT;
         default:
             SWLOGE("Swapchain format %{public}d unsupported return GRAPHIC_PIXEL_FMT_RGBA_8888;", format);
             DebugMessageToUserCallback(VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
@@ -1149,6 +1174,53 @@ void InitRegionRect(const VkRectLayerKHR* layer, struct Region::Rect* rect, int3
     rect->h = layer->extent.height;
 }
 
+void SetMetaData(Swapchain &swapchain, Swapchain::Image &img, NativeWindow* window)
+{
+    if (swapchain.pStaticMetadata == nullptr) {
+        return;
+    }
+    OH_NativeBuffer_MetadataType metadataType;
+    OH_NativeBuffer_ColorSpace colorSpace;
+    if (img.buffer == nullptr || img.buffer->sfbuffer == nullptr) {
+        SWLOGE("Image buffer or sfbuffer is null");
+        return;
+    }
+    OH_NativeBuffer *nbuffer = img.buffer->sfbuffer->SurfaceBufferToNativeBuffer();
+    int err = 0;
+    if (OH_NativeWindow_GetColorSpace(window, &colorSpace) == OHOS::GSERROR_OK) {
+        metadataType = colorSpace == OH_COLORSPACE_BT2020_HLG_FULL ?
+            OH_NativeBuffer_MetadataType::OH_VIDEO_HDR_HLG : OH_NativeBuffer_MetadataType::OH_VIDEO_HDR_HDR10;
+
+        err = OH_NativeBuffer_SetMetadataValue(nbuffer, OH_HDR_METADATA_TYPE,
+            sizeof(metadataType), reinterpret_cast<uint8_t*>(&metadataType));
+        if (err != OHOS::GSERROR_OK) {
+            SWLOGE("NativeWindow set HDR metadata type failed, error num : %{public}d", err);
+        }
+
+        err = OH_NativeBuffer_SetMetadataValue(nbuffer, OH_HDR_STATIC_METADATA,
+            sizeof(OH_NativeBuffer_StaticMetadata), reinterpret_cast<uint8_t*>(swapchain.pStaticMetadata));
+        if (err != OHOS::GSERROR_OK) {
+            SWLOGE("NativeWindow set HDR static metadata failed, error num : %{public}d", err);
+        }
+    }
+
+    if (swapchain.pDynamicMetadata == nullptr) {
+        return;
+    }
+    metadataType = OH_NativeBuffer_MetadataType::OH_VIDEO_HDR_VIVID;
+    err = OH_NativeBuffer_SetMetadataValue(nbuffer, OH_HDR_METADATA_TYPE,
+        sizeof(metadataType), reinterpret_cast<uint8_t*>(&metadataType));
+    if (err != OHOS::GSERROR_OK) {
+        SWLOGE("NativeWindow set HDR vivid metadata type failed, error num : %{public}d", err);
+    }
+
+    err = OH_NativeBuffer_SetMetadataValue(nbuffer, OH_HDR_DYNAMIC_METADATA,
+        swapchain.dynamicMetadataSize, swapchain.pDynamicMetadata);
+    if (err != OHOS::GSERROR_OK) {
+        SWLOGE("NativeWindow set HDR dynamic metadata failed, error num : %{public}d", err);
+    }
+}
+
 VkResult FlushBuffer(const VkPresentRegionKHR* region, struct Region::Rect* rects,
     Swapchain &swapchain, Swapchain::Image &img, int32_t fence)
 {
@@ -1184,6 +1256,8 @@ VkResult FlushBuffer(const VkPresentRegionKHR* region, struct Region::Rect* rect
         localRegion.rects = rects;
         localRegion.rectNumber = rectangleCount;
     }
+
+    SetMetaData(swapchain, img, window);
     // the acquire fence will be close by BufferQueue module
     err = NativeWindowFlushBuffer(window, img.buffer, fence, localRegion);
     VkResult scResult = VK_SUCCESS;
@@ -1376,11 +1450,78 @@ VKAPI_ATTR VkResult VKAPI_CALL GetPhysicalDeviceSurfaceCapabilitiesKHR(
 
 /*
     VK_EXT_hdr_metadata
+    VK_HUAWEI_hdr_vivid
 */
 VKAPI_ATTR void VKAPI_CALL SetHdrMetadataEXT(
     VkDevice device, uint32_t swapchainCount, const VkSwapchainKHR* pSwapchains, const VkHdrMetadataEXT* pMetadata)
 {
-    SWLOGE("NativeWindow Not Support Set HdrMetaData[TODO]");
+    ScopedBytrace trace(__func__);
+    
+    if (pMetadata == nullptr) {
+        return;
+    }
+    // Search for vivid dynamic metadata
+    const void* pNextChain = pMetadata->pNext;
+    const VkHdrVividDynamicMetadataHUAWEI* pHdrVividMetadata = nullptr;
+    while (pNextChain != nullptr) {
+        const VkBaseInStructure* base = reinterpret_cast<const VkBaseInStructure*>(pNextChain);
+        if (base->sType == VK_STRUCTURE_TYPE_HDR_VIVID_DYNAMIC_METADATA_HUAWEI) {
+            pHdrVividMetadata = reinterpret_cast<const VkHdrVividDynamicMetadataHUAWEI*>(base);
+            break;
+        }
+        pNextChain = base->pNext;
+    }
+
+    for (uint32_t index = 0; index < swapchainCount; index++) {
+        Swapchain* swapchain = SwapchainFromHandle(pSwapchains[index]);
+        // Allocate memory
+        if (swapchain->pStaticMetadata == nullptr) {
+            swapchain->pStaticMetadata = new (std::nothrow) OH_NativeBuffer_StaticMetadata();
+            if (swapchain->pStaticMetadata == nullptr) {
+                SWLOGE("Failed to allocate static metadata");
+                return;
+            }
+        }
+        if (pHdrVividMetadata != nullptr && swapchain->pDynamicMetadata != nullptr &&
+                swapchain->dynamicMetadataSize != pHdrVividMetadata->dynamicMetadataSize) {
+            swapchain->dynamicMetadataSize = pHdrVividMetadata->dynamicMetadataSize;
+            delete[] swapchain->pDynamicMetadata;
+            swapchain->pDynamicMetadata = new (std::nothrow) uint8_t[pHdrVividMetadata->dynamicMetadataSize];
+            if (swapchain->pDynamicMetadata == nullptr) {
+                SWLOGE("Failed to allocate dynamic metadata");
+                swapchain->dynamicMetadataSize = 0;
+                return;
+            }
+        } else if (pHdrVividMetadata != nullptr && swapchain->pDynamicMetadata == nullptr) {
+            swapchain->dynamicMetadataSize = pHdrVividMetadata->dynamicMetadataSize;
+            swapchain->pDynamicMetadata = new (std::nothrow) uint8_t[pHdrVividMetadata->dynamicMetadataSize];
+            if (swapchain->pDynamicMetadata == nullptr) {
+                SWLOGE("Failed to allocate dynamic metadata");
+                swapchain->dynamicMetadataSize = 0;
+                return;
+            }
+        }
+
+        // Set static metadata into swapchain
+        swapchain->pStaticMetadata->smpte2086.displayPrimaryRed.x = pMetadata->displayPrimaryRed.x;
+        swapchain->pStaticMetadata->smpte2086.displayPrimaryRed.y = pMetadata->displayPrimaryRed.y;
+        swapchain->pStaticMetadata->smpte2086.displayPrimaryGreen.x = pMetadata->displayPrimaryGreen.x;
+        swapchain->pStaticMetadata->smpte2086.displayPrimaryGreen.y = pMetadata->displayPrimaryGreen.y;
+        swapchain->pStaticMetadata->smpte2086.displayPrimaryBlue.x = pMetadata->displayPrimaryBlue.x;
+        swapchain->pStaticMetadata->smpte2086.displayPrimaryBlue.y = pMetadata->displayPrimaryBlue.y;
+        swapchain->pStaticMetadata->smpte2086.whitePoint.x = pMetadata->whitePoint.x;
+        swapchain->pStaticMetadata->smpte2086.whitePoint.y = pMetadata->whitePoint.y;
+        swapchain->pStaticMetadata->smpte2086.maxLuminance = pMetadata->maxLuminance;
+        swapchain->pStaticMetadata->smpte2086.minLuminance = pMetadata->minLuminance;
+        swapchain->pStaticMetadata->cta861.maxContentLightLevel = pMetadata->maxContentLightLevel;
+        swapchain->pStaticMetadata->cta861.maxFrameAverageLightLevel = pMetadata->maxFrameAverageLightLevel;
+
+        // Set dynamic metadata into swapchain
+        if (pHdrVividMetadata != nullptr) {
+            memcpy_s(swapchain->pDynamicMetadata, swapchain->dynamicMetadataSize,
+                        pHdrVividMetadata->pDynamicMetadata, pHdrVividMetadata->dynamicMetadataSize);
+        }
+    }
 }
 
 VKAPI_ATTR VkResult VKAPI_CALL GetPhysicalDeviceSurfaceCapabilities2KHR(
@@ -1422,7 +1563,15 @@ VKAPI_ATTR VkResult VKAPI_CALL GetPhysicalDeviceSurfaceFormatsKHR(
         {VK_FORMAT_R5G6B5_UNORM_PACK16, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR},
         // RGBA_1010102
         {VK_FORMAT_A2B10G10R10_UNORM_PACK32, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR},
-        {VK_FORMAT_A2B10G10R10_UNORM_PACK32, VK_COLOR_SPACE_DISPLAY_P3_NONLINEAR_EXT}
+        {VK_FORMAT_A2B10G10R10_UNORM_PACK32, VK_COLOR_SPACE_DISPLAY_P3_NONLINEAR_EXT},
+        // scRGB
+        {VK_FORMAT_R16G16B16A16_SFLOAT, VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT},
+        // HDR PQ
+        {VK_FORMAT_A2B10G10R10_UNORM_PACK32, VK_COLOR_SPACE_HDR10_ST2084_EXT},
+        // HDR HLG
+        {VK_FORMAT_A2B10G10R10_UNORM_PACK32, VK_COLOR_SPACE_HDR10_HLG_EXT},
+        // BT2020 linear
+        {VK_FORMAT_R16G16B16A16_SFLOAT, VK_COLOR_SPACE_BT2020_LINEAR_EXT}
     };
 
     if (enableSwapchainColorSpace) {
@@ -1551,6 +1700,9 @@ Extension GetExtensionBitFromName(const char* name)
     }
     if (strcmp(name, VK_EXT_HDR_METADATA_EXTENSION_NAME) == 0) {
         return Extension::EXT_HDR_METADATA;
+    }
+    if (strcmp(name, VK_HUAWEI_HDR_VIVID_EXTENSION_NAME) == 0) {
+        return Extension::HUAWEI_HDR_VIVID;
     }
     return Extension::EXTENSION_UNKNOWN;
 }

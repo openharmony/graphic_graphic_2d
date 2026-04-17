@@ -13,18 +13,18 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_APPEARANCE_RS_POINT_LIGHT_MODIFIER_H
-#define RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_APPEARANCE_RS_POINT_LIGHT_MODIFIER_H
+#ifndef RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_APPEARANCE_RS_OVERLAY_NG_SHADER_MODIFIER_H
+#define RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_APPEARANCE_RS_OVERLAY_NG_SHADER_MODIFIER_H
 
 #include "modifier_ng/rs_modifier_ng.h"
 
 namespace OHOS::Rosen::ModifierNG {
-class RSC_EXPORT RSPointLightModifier : public RSModifier {
+class RSC_EXPORT RSOverlayNGShaderModifier : public RSModifier {
 public:
-    RSPointLightModifier() = default;
-    ~RSPointLightModifier() override = default;
+    RSOverlayNGShaderModifier() = default;
+    ~RSOverlayNGShaderModifier() override = default;
 
-    static inline constexpr auto Type = RSModifierType::POINT_LIGHT;
+    static inline constexpr auto Type = RSModifierType::OVERLAY_NG_SHADER;
     RSModifierType GetType() const override
     {
         return Type;
@@ -42,6 +42,10 @@ public:
     int GetIlluminatedType() const;
     void SetBloom(float bloomIntensity);
     float GetBloom() const;
+
+    // Overlay Shader
+    void SetOverlayNGShader(const std::shared_ptr<RSNGShaderBase>& overlayNGShader);
+    std::shared_ptr<RSNGShaderBase> GetOverlayNGShader() const;
 };
 } // namespace OHOS::Rosen::ModifierNG
-#endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_APPEARANCE_RS_POINT_LIGHT_MODIFIER_H
+#endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_APPEARANCE_RS_OVERLAY_NG_SHADER_MODIFIER_H

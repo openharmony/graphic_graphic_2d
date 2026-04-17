@@ -885,6 +885,7 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, GetScreenPowerStatus, TestSize.Le
     uint32_t status = ScreenPowerStatus::POWER_STATUS_ON;
     proxy->GetScreenPowerStatus(id, status);
     ASSERT_EQ(proxy->GetScreenPowerStatus(id, status), ERR_INVALID_VALUE);
+    proxy->GetScreenPowerStatus(0, status);
 }
 
 /**
@@ -1166,6 +1167,42 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, RegisterFirstFrameCommitCallback,
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
     sptr<RSIFirstFrameCommitCallback> callback = iface_cast<RSIFirstFrameCommitCallback>(remoteObject);
     EXPECT_EQ(proxy->RegisterFirstFrameCommitCallback(callback), 2);
+}
+
+/**
+ * @tc.name: RegisterFirstFrameCommitCallback_ReadParcelFailed Test
+ * @tc.desc: RegisterFirstFrameCommitCallback reply read failed Test
+ * @tc.type:FUNC
+ * @tc.require: issues23225
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, RegisterFirstFrameCommitCallback_ReadParcelFailed, TestSize.Level1)
+{
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock;
+    auto mockproxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(0));
+    sptr<RSIFirstFrameCommitCallback> callback = nullptr;
+    auto ret = mockproxy->RegisterFirstFrameCommitCallback(callback);
+    EXPECT_EQ(ret, StatusCode::READ_PARCEL_ERR);
+}
+
+/**
+ * @tc.name: RegisterFirstFrameCommitCallback_ReadParcelSuccess Test
+ * @tc.desc: RegisterFirstFrameCommitCallback reply read success Test
+ * @tc.type:FUNC
+ * @tc.require: issues23225
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, RegisterFirstFrameCommitCallback_ReadParcelSuccess, TestSize.Level1)
+{
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock;
+    auto mockproxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _))
+        .WillRepeatedly([](uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) {
+            reply.WriteInt32(0);
+            return 0;
+        });
+    sptr<RSIFirstFrameCommitCallback> callback = nullptr;
+    auto ret = mockproxy->RegisterFirstFrameCommitCallback(callback);
+    EXPECT_EQ(ret, 0);
 }
 
 /**
@@ -1785,7 +1822,7 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, RegisterExposedEventCallback001, 
     uint32_t eventCode = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::ON_EXPOSED_EVENT);
     EXPECT_CALL(*remoteObject, SendRequest(eventCode, _, _, _)).WillRepeatedly(testing::Return(0));
     auto ret = mockProxy->RegisterExposedEventCallback(type, nullptr);
-    EXPECT_EQ(ret, SUCCESS);
+    EXPECT_EQ(ret, READ_PARCEL_ERR);
 }
 
 /**
@@ -1803,7 +1840,7 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, RegisterExposedEventCallback002, 
     EXPECT_CALL(*remoteObject, SendRequest(eventCode, _, _, _)).WillRepeatedly(testing::Return(0));
     sptr<MockRSExposedEventCallback> callback = new MockRSExposedEventCallback;
     auto ret = mockProxy->RegisterExposedEventCallback(type, callback);
-    EXPECT_EQ(ret, SUCCESS);
+    EXPECT_EQ(ret, READ_PARCEL_ERR);
 }
 
 /**
@@ -1839,7 +1876,20 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, RegisterExposedEventCallback004, 
     EXPECT_CALL(*remoteObject, SendRequest(eventCode, _, _, _)).WillRepeatedly(testing::Return(0));
     sptr<MockRSExposedEventCallback> callback = new MockRSExposedEventCallback;
     auto ret = mockProxy->RegisterExposedEventCallback(type, callback);
-    EXPECT_EQ(ret, SUCCESS);
+    EXPECT_EQ(ret, READ_PARCEL_ERR);
+}
+
+/**
+ * @tc.name: GetScreenType Test
+ * @tc.desc: GetScreenType Test
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, GetScreenTypeTest, TestSize.Level1)
+{
+    ScreenId id = 1;
+    RSScreenType type = UNKNOWN_TYPE_SCREEN;
+    proxy->GetScreenType(id, type);
+    ASSERT_EQ(type, UNKNOWN_TYPE_SCREEN);
 }
 } // namespace Rosen
 } // namespace OHOS

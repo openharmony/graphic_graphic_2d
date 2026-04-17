@@ -102,6 +102,12 @@ public:
         return cacheSurfaceInfo_.processedNodeCount;
     }
 
+    // only use in RT sync phase
+    uint64_t GetCompletedCacheSurfaceVsyncId() const
+    {
+        return cacheCompletedSurfaceInfo_.vsyncId;
+    }
+
     void SetCacheSurfaceNeedUpdated(bool isCacheSurfaceNeedUpdate)
     {
         isCacheSurfaceNeedUpdate_ = isCacheSurfaceNeedUpdate;
@@ -292,6 +298,7 @@ private:
         std::unordered_set<NodeId> processedSubSurfaceNodeIds;
         Occlusion::Region opaqueRegion;
         RectI absDrawRect;
+        uint64_t vsyncId = 0;
 
         void Reset()
         {
@@ -302,6 +309,7 @@ private:
             processedSubSurfaceNodeIds.clear();
             opaqueRegion.Reset();
             absDrawRect = {};
+            vsyncId = 0;
         }
     };
     CacheSurfaceInfo cacheSurfaceInfo_;

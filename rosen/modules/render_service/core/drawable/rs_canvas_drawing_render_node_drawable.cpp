@@ -827,7 +827,7 @@ void RSCanvasDrawingRenderNodeDrawable::CreateGpuSurface(const Drawing::ImageInf
     newVulkanCleanupHelper = vulkanCleanupHelper_ == nullptr;
     if (newVulkanCleanupHelper) {
         vulkanCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
-            vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory, vkTextureInfo->vkAlloc.statName);
+            vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
     }
     REAL_ALLOC_CONFIG_SET_STATUS(true);
     surface_ = Drawing::Surface::MakeFromBackendTexture(gpuContext.get(), backendTexture_.GetTextureInfo(),

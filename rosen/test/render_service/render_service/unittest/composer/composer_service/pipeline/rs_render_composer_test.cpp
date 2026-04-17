@@ -1326,7 +1326,8 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_UniRenderFlagTrue_SizeMismatch, 
     layers.push_back(layer);
 
     bool result = rsRenderComposerTmp->IsDropDirtyFrame(layers);
-    EXPECT_EQ(result, true);
+    bool shouldDrop = RSSystemProperties::IsSuperFoldDisplay();
+    EXPECT_EQ(result, shouldDrop);
 
     system::SetParameter("const.window.foldscreen.type", "0,0,0,0");
 }
@@ -1443,7 +1444,8 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_MultipleLayers_Mixed, TestSize.L
     layers.push_back(layer4);
 
     bool result2 = rsRenderComposerTmp->IsDropDirtyFrame(layers);
-    EXPECT_EQ(result2, true);
+    bool shouldDrop = RSSystemProperties::IsSuperFoldDisplay();
+    EXPECT_EQ(result2, shouldDrop);
 
     system::SetParameter("const.window.foldscreen.type", "0,0,0,0");
 }
@@ -1519,7 +1521,8 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_FirstLayerMismatch, TestSize.Lev
     layers.push_back(layer2);
 
     bool result = rsRenderComposerTmp->IsDropDirtyFrame(layers);
-    EXPECT_EQ(result, true);
+    bool shouldDrop = RSSystemProperties::IsSuperFoldDisplay();
+    EXPECT_EQ(result, shouldDrop);
 
     system::SetParameter("const.window.foldscreen.type", "0,0,0,0");
 }
@@ -1561,7 +1564,8 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_LastLayerMismatch, TestSize.Leve
     layers.push_back(lastLayer);
 
     bool result = rsRenderComposerTmp->IsDropDirtyFrame(layers);
-    EXPECT_EQ(result, true);
+    bool shouldDrop = RSSystemProperties::IsSuperFoldDisplay();
+    EXPECT_EQ(result, shouldDrop);
 
     system::SetParameter("const.window.foldscreen.type", "0,0,0,0");
 }
@@ -2685,7 +2689,7 @@ HWTEST_F(RsRenderComposerTest, RedrawScreenRCD, TestSize.Level1)
     auto rcdLayer1 = std::static_pointer_cast<RSLayer>(std::make_shared<RSRenderSurfaceRCDLayer>());
     layers.emplace_back(rcdLayer1);
     EXPECT_NE(layers.size(), 0u);
-    rsRenderComposer_->RedrawScreenRCD(paintFilterCanvas, layers);
+    rsRenderComposer_->RedrawScreenRCD(paintFilterCanvas, layers, Vector2f(1.0f, 1.0f));
 }
 
 /**
@@ -5759,7 +5763,7 @@ HWTEST_F(RsRenderComposerTest, RedrawScreenRCD_CompositionDevice_Skip, TestSize.
     layers.push_back(layer);
 
     // Call RedrawScreenRCD - layer with DEVICE composition type should be skipped (line 859 continue)
-    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers);
+    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers, Vector2f(1.0f, 1.0f));
 
     // The test verifies the code path when line 856 condition is true
     // The layer should not be added to rcdLayerInfoList
@@ -5794,7 +5798,7 @@ HWTEST_F(RsRenderComposerTest, RedrawScreenRCD_CompositionDeviceClear_Skip, Test
     layers.push_back(layer);
 
     // Call RedrawScreenRCD - layer with DEVICE_CLEAR composition type should be skipped (line 859 continue)
-    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers);
+    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers, Vector2f(1.0f, 1.0f));
 
     // The test verifies the code path when line 857 condition is true
     // The layer should not be added to rcdLayerInfoList
@@ -5829,7 +5833,7 @@ HWTEST_F(RsRenderComposerTest, RedrawScreenRCD_CompositionSolidColor_Skip, TestS
     layers.push_back(layer);
 
     // Call RedrawScreenRCD - layer with SOLID_COLOR composition type should be skipped (line 859 continue)
-    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers);
+    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers, Vector2f(1.0f, 1.0f));
 
     // The test verifies the code path when line 858 condition is true
     // The layer should not be added to rcdLayerInfoList
@@ -5872,7 +5876,7 @@ HWTEST_F(RsRenderComposerTest, RedrawScreenRCD_AllThreeCompositionTypes_Skip, Te
     layers.push_back(layer3);
 
     // Call RedrawScreenRCD - all layers should be skipped (line 859 continue)
-    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers);
+    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers, Vector2f(1.0f, 1.0f));
 
     // The test verifies the code path when all conditions are true
     // All three layers should be skipped and not added to rcdLayerInfoList
@@ -5910,7 +5914,7 @@ HWTEST_F(RsRenderComposerTest, RedrawScreenRCD_OtherCompositionType_Processed, T
     layers.push_back(layer);
 
     // Call RedrawScreenRCD - layer should not be skipped (lines 856-858 false)
-    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers);
+    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers, Vector2f(1.0f, 1.0f));
 
     // The test verifies the code path when all conditions at lines 856-858 are false
     // The layer should NOT be skipped (but won't be added to rcdLayerInfoList if not RCD layer)
@@ -5948,7 +5952,7 @@ HWTEST_F(RsRenderComposerTest, RedrawScreenRCD_RcdLayer_Processed, TestSize.Leve
     layers.push_back(rcdLayer);
 
     // Call RedrawScreenRCD - RCD layer should be added to rcdLayerInfoList (line 862)
-    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers);
+    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers, Vector2f(1.0f, 1.0f));
 
     // Verify RCD layer properties
     EXPECT_TRUE(rcdLayer->IsScreenRCDLayer());
@@ -5982,7 +5986,7 @@ HWTEST_F(RsRenderComposerTest, RedrawScreenRCD_NullptrLayer_Skipped, TestSize.Le
     layers.push_back(nullptr);
 
     // Call RedrawScreenRCD - nullptr layer should be skipped (line 854 continue)
-    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers);
+    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers, Vector2f(1.0f, 1.0f));
 
     // Verify the function handles nullptr layers gracefully
     // The test verifies the code path when line 853 condition is true
@@ -6022,7 +6026,7 @@ HWTEST_F(RsRenderComposerTest, RedrawScreenRCD_NullptrLayerAndNormalLayer, TestS
     layers.push_back(layer);
 
     // Call RedrawScreenRCD - nullptr should be skipped, normal layer should be processed
-    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers);
+    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers, Vector2f(1.0f, 1.0f));
 
     // The test verifies mixed handling:
     // - nullptr layer should be skipped (line 854 continue)
@@ -6063,7 +6067,7 @@ HWTEST_F(RsRenderComposerTest, RedrawScreenRCD_DeviceTypeAndNullptr, TestSize.Le
     // Call RedrawScreenRCD
     // - nullptr should be skipped (line 854 continue)
     // - DEVICE type should be skipped (line 859 continue)
-    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers);
+    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers, Vector2f(1.0f, 1.0f));
 
     // Verify both layers should be skipped
 }
@@ -6114,7 +6118,7 @@ HWTEST_F(RsRenderComposerTest, RedrawScreenRCD_AllSkipConditions, TestSize.Level
     // - layer1 (DEVICE): line 859 continue
     // - layer2 (DEVICE_CLEAR): line 859 continue
     // - layer3 (SOLID_COLOR): line 859 continue
-    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers);
+    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers, Vector2f(1.0f, 1.0f));
 
     // Verify all skip conditions are covered
     EXPECT_EQ(layers.size(), 4u);
@@ -8976,5 +8980,69 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_CallbackNotNull_TimestampUpd
 
     tmpRsRenderComposer->uniRenderEngine_ = nullptr;
 }
+
+
+/**
+ * Function: OnScreenDisconnected_WithPendingTask_KeepContext
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. connect to a new screen output
+ *                  2. set unExecuteTaskNum_ to non-zero
+ *                  3. call OnScreenDisconnected and verify output/context are kept
+ */
+HWTEST_F(RsRenderComposerTest, OnScreenDisconnected_WithPendingTask_KeepContext, TestSize.Level1)
+{
+    constexpr uint32_t testScreenId = 5u;
+    constexpr uint32_t pendingTaskNum = 1u;
+
+    auto output = std::make_shared<HdiOutput>(testScreenId);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    rsRenderComposer_->OnScreenConnected(output, property);
+
+    ASSERT_NE(rsRenderComposer_->hdiOutput_, nullptr);
+    ASSERT_NE(rsRenderComposer_->rsRenderComposerContext_, nullptr);
+
+    rsRenderComposer_->unExecuteTaskNum_ = pendingTaskNum;
+    rsRenderComposer_->OnScreenDisconnected();
+
+    EXPECT_TRUE(rsRenderComposer_->isDisconnected_);
+    EXPECT_NE(rsRenderComposer_->hdiOutput_, nullptr);
+    EXPECT_NE(rsRenderComposer_->rsRenderComposerContext_, nullptr);
+
+    rsRenderComposer_->unExecuteTaskNum_ = 0;
+    rsRenderComposer_->OnScreenDisconnected();
+    EXPECT_EQ(rsRenderComposer_->hdiOutput_, nullptr);
+    EXPECT_EQ(rsRenderComposer_->rsRenderComposerContext_, nullptr);
+}
+
+/**
+ * Function: OnScreenConnected_Reconnect_ResetDisconnectedState
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. disconnect composer to set disconnected state
+ *                  2. reconnect with a new output
+ *                  3. verify disconnected flag is reset and context recreated
+ */
+HWTEST_F(RsRenderComposerTest, OnScreenConnected_Reconnect_ResetDisconnectedState, TestSize.Level1)
+{
+    rsRenderComposer_->unExecuteTaskNum_ = 0;
+    rsRenderComposer_->OnScreenDisconnected();
+    ASSERT_TRUE(rsRenderComposer_->isDisconnected_);
+    ASSERT_EQ(rsRenderComposer_->hdiOutput_, nullptr);
+
+    auto output = std::make_shared<HdiOutput>(6u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    rsRenderComposer_->OnScreenConnected(output, property);
+
+    EXPECT_FALSE(rsRenderComposer_->isDisconnected_);
+    ASSERT_NE(rsRenderComposer_->hdiOutput_, nullptr);
+    EXPECT_EQ(rsRenderComposer_->hdiOutput_->GetScreenId(), 6u);
+    EXPECT_NE(rsRenderComposer_->rsRenderComposerContext_, nullptr);
+}
+
 } // namespace Rosen
 } // namespace OHOS

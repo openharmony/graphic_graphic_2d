@@ -400,7 +400,7 @@ void HMSymbolRun::SetSymbolTxt(const HMSymbolTxt& hmsymbolTxt)
     symbolTxt_ = hmsymbolTxt;
 }
 
-const HMSymbolTxt& HMSymbolRun::GetSymbolTxt()
+const HMSymbolTxt& HMSymbolRun::GetSymbolTxt() const
 {
     return symbolTxt_;
 }

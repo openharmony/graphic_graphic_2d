@@ -128,7 +128,7 @@ template("render_service_client_source_set") {
       "core/modifier_ng/appearance/rs_outline_modifier.cpp",
       "core/modifier_ng/appearance/rs_particle_effect_modifier.cpp",
       "core/modifier_ng/appearance/rs_pixel_stretch_modifier.cpp",
-      "core/modifier_ng/appearance/rs_point_light_modifier.cpp",
+      "core/modifier_ng/appearance/rs_overlay_ng_shader_modifier.cpp",
       "core/modifier_ng/appearance/rs_shadow_modifier.cpp",
       "core/modifier_ng/appearance/rs_use_effect_modifier.cpp",
       "core/modifier_ng/appearance/rs_visibility_modifier.cpp",

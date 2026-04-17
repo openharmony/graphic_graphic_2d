@@ -77,7 +77,6 @@ public:
         ATTRACTION_EFFECT,
         WATER_RIPPLE,
         COMPOUND_EFFECT,
-        MAGNIFIER,
         FLY_OUT,
         DISTORT,
         ALWAYS_SNAPSHOT,

@@ -2210,6 +2210,7 @@ bool RSUniRenderVisitor::InitScreenInfo(RSScreenRenderNode& node)
     node.SetPixelFormat(GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888);
     node.SetBrightnessRatio(1.0f);
     node.SetExistHWCNode(false);
+    node.SetSdrNits(RSLuminanceControl::Get().GetSdrDisplayNits(node.GetScreenId()));
     CheckLuminanceStatusChange(curScreenNode_->GetScreenId());
 
     // 2 init screenManager info

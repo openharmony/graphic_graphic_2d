@@ -193,18 +193,13 @@ HWTEST_F(RSInterfacesTest, SetPhysicalScreenResolution001, Function | SmallTest 
 */
 HWTEST_F(RSInterfacesTest, SetVirtualScreenResolution001, Function | SmallTest | Level2)
 {
-    auto csurface = IConsumerSurface::Create();
-    EXPECT_NE(csurface, nullptr);
-    auto producer = csurface->GetProducer();
-    auto psurface = Surface::CreateSurfaceAsProducer(producer);
     uint32_t defaultWidth = 720;
     uint32_t defaultHeight = 1280;
     uint32_t newWidth = 1920;
     uint32_t newHeight = 1080;
-    EXPECT_NE(psurface, nullptr);
 
     ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
-        "virtual5", defaultWidth, defaultHeight, psurface, INVALID_SCREEN_ID, -1);
+        "virtual5", defaultWidth, defaultHeight, nullptr, INVALID_SCREEN_ID, -1);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
     auto curVirtualScreenResolution = rsInterfaces->GetVirtualScreenResolution(virtualScreenId);
@@ -296,19 +291,15 @@ HWTEST_F(RSInterfacesTest, SetVirtualMirrorScreenCanvasRotation001, Function | S
 */
 HWTEST_F(RSInterfacesTest, GetAllScreenIds, Function | SmallTest | Level2)
 {
-    auto csurface = IConsumerSurface::Create();
-    EXPECT_NE(csurface, nullptr);
-    auto producer = csurface->GetProducer();
-    auto psurface = Surface::CreateSurfaceAsProducer(producer);
     uint32_t defaultWidth = 720;
     uint32_t defaultHeight = 1280;
-    EXPECT_NE(psurface, nullptr);
 
     ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
-        "virtual6", defaultWidth, defaultHeight, psurface, GenerateVirtualScreenMirrorId(), -1);
+        "virtual6", defaultWidth, defaultHeight, nullptr, GenerateVirtualScreenMirrorId(), -1);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
     std::vector<ScreenId> ids = rsInterfaces->GetAllScreenIds();
     EXPECT_TRUE(find(ids.begin(), ids.end(), virtualScreenId) != ids.end());
+    rsInterfaces->RemoveVirtualScreen(virtualScreenId);
 }
 
 /*
@@ -439,6 +430,7 @@ HWTEST_F(RSInterfacesTest, CreateVirtualScreen005, Function | SmallTest | Level2
     ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
         "virtual11", 320, 180, nullptr, INVALID_SCREEN_ID, -1, whiteList);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+    rsInterfaces->RemoveVirtualScreen(virtualScreenId);
 }
 
 /*
@@ -1737,18 +1729,13 @@ HWTEST_F(RSInterfacesTest, UnRegisterSurfaceOcclusionChangeCallback001, Function
  */
 HWTEST_F(RSInterfacesTest, ResizeVirtualScreen001, Function | SmallTest | Level2)
 {
-    auto csurface = IConsumerSurface::Create();
-    EXPECT_NE(csurface, nullptr);
-    auto producer = csurface->GetProducer();
-    auto psurface = Surface::CreateSurfaceAsProducer(producer);
     uint32_t defaultWidth = 720;
     uint32_t defaultHeight = 1280;
     uint32_t newWidth = 1920;
     uint32_t newHeight = 1080;
-    EXPECT_NE(psurface, nullptr);
 
     ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
-        "virtualScreen0", defaultWidth, defaultHeight, psurface, INVALID_SCREEN_ID, -1);
+        "virtualScreen0", defaultWidth, defaultHeight, nullptr, INVALID_SCREEN_ID, -1);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
     int32_t ret = rsInterfaces->ResizeVirtualScreen(virtualScreenId, newWidth, newHeight);
@@ -2298,22 +2285,17 @@ HWTEST_F(RSInterfacesTest, SetSystemAnimatedScenes, Function | SmallTest | Level
  */
 HWTEST_F(RSInterfacesTest, SetVirtualScreenBlackList_Test, Function | SmallTest | Level2)
 {
-    auto cSurface = IConsumerSurface::Create();
-    ASSERT_NE(cSurface, nullptr);
-
-    auto producer = cSurface->GetProducer();
-    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
-    EXPECT_NE(pSurface, nullptr);
     uint32_t defaultWidth = 720;
     uint32_t defaultHeight = 1280;
 
     ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
-        "virtualScreen0", defaultWidth, defaultHeight, pSurface, INVALID_SCREEN_ID, -1);
+        "virtualScreen0", defaultWidth, defaultHeight, nullptr, INVALID_SCREEN_ID, -1);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
     std::vector<NodeId> blackList = {1, 2, 3};
     int32_t ret = rsInterfaces->SetVirtualScreenBlackList(virtualScreenId, blackList);
     ASSERT_EQ(ret, 0);
+    rsInterfaces->RemoveVirtualScreen(virtualScreenId);
 }
 
 /*
@@ -2324,22 +2306,17 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenBlackList_Test, Function | SmallTest 
  */
 HWTEST_F(RSInterfacesTest, SetVirtualScreenTypeBlackList_Test, Function | SmallTest | Level2)
 {
-    auto cSurface = IConsumerSurface::Create();
-    ASSERT_NE(cSurface, nullptr);
-
-    auto producer = cSurface->GetProducer();
-    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
-    EXPECT_NE(pSurface, nullptr);
     uint32_t defaultWidth = 720;
     uint32_t defaultHeight = 1280;
 
     ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
-        "virtualScreen0", defaultWidth, defaultHeight, pSurface, INVALID_SCREEN_ID, -1);
+        "virtualScreen0", defaultWidth, defaultHeight, nullptr, INVALID_SCREEN_ID, -1);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
     std::vector<NodeType> typeBlackList = {1, 2, 3};
     int32_t ret = rsInterfaces->SetVirtualScreenTypeBlackList(virtualScreenId, typeBlackList);
     ASSERT_EQ(ret, 0);
+    rsInterfaces->RemoveVirtualScreen(virtualScreenId);
 }
 
 /*
@@ -2376,22 +2353,17 @@ HWTEST_F(RSInterfacesTest, AddVirtualScreenBlackList_Test, Function | SmallTest 
  */
 HWTEST_F(RSInterfacesTest, RemoveVirtualScreenBlackList_Test, Function | SmallTest | Level2)
 {
-    auto cSurface = IConsumerSurface::Create();
-    ASSERT_NE(cSurface, nullptr);
-
-    auto producer = cSurface->GetProducer();
-    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
-    EXPECT_NE(pSurface, nullptr);
     uint32_t defaultWidth = 720;
     uint32_t defaultHeight = 1280;
 
     ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
-        "virtualScreen0", defaultWidth, defaultHeight, pSurface, INVALID_SCREEN_ID, -1);
+        "virtualScreen0", defaultWidth, defaultHeight, nullptr, INVALID_SCREEN_ID, -1);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
     std::vector<NodeId> blackList = {1, 2, 3};
     int32_t ret = rsInterfaces->RemoveVirtualScreenBlackList(virtualScreenId, blackList);
     ASSERT_EQ(ret, 0);
+    rsInterfaces->RemoveVirtualScreen(virtualScreenId);
 }
 
 /*
@@ -2438,22 +2410,17 @@ HWTEST_F(RSInterfacesTest, ForceRefreshOneFrameWithNextVSync, Function | SmallTe
  */
 HWTEST_F(RSInterfacesTest, SetCastScreenEnableSkipWindow_Test, Function | SmallTest | Level2)
 {
-    auto cSurface = IConsumerSurface::Create();
-    ASSERT_NE(cSurface, nullptr);
-
-    auto producer = cSurface->GetProducer();
-    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
-    EXPECT_NE(pSurface, nullptr);
     uint32_t defaultWidth = 720;
     uint32_t defaultHeight = 1280;
 
     ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
-        "virtualScreen0", defaultWidth, defaultHeight, pSurface, INVALID_SCREEN_ID, -1);
+        "virtualScreen0", defaultWidth, defaultHeight, nullptr, INVALID_SCREEN_ID, -1);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
     bool enable = true;
     auto res = rsInterfaces->SetCastScreenEnableSkipWindow(virtualScreenId, enable);
     EXPECT_EQ(res, SUCCESS);
+    rsInterfaces->RemoveVirtualScreen(virtualScreenId);
 }
 
 /*
@@ -2534,20 +2501,16 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenSecurityExemptionList_001, Function |
  */
 HWTEST_F(RSInterfacesTest, SetVirtualScreenSecurityExemptionList_002, Function | SmallTest | Level2)
 {
-    auto cSurface = IConsumerSurface::Create();
-    ASSERT_NE(cSurface, nullptr);
-    auto producer = cSurface->GetProducer();
-    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
-    EXPECT_NE(pSurface, nullptr);
     uint32_t defaultWidth = 720;  // width value for test
     uint32_t defaultHeight = 1280;  // height value for test
     ASSERT_NE(rsInterfaces, nullptr);
     ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
-        "VirtualScreenStatus0", defaultWidth, defaultHeight, pSurface, INVALID_SCREEN_ID, -1);
+        "VirtualScreenStatus0", defaultWidth, defaultHeight, nullptr, INVALID_SCREEN_ID, -1);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
     std::vector<NodeId> securityExemptionList = {1, 2, 3};  // 1,2,3 NodeId for test
     int32_t res = rsInterfaces->SetVirtualScreenSecurityExemptionList(virtualScreenId, securityExemptionList);
     EXPECT_EQ(res, RS_CONNECTION_ERROR); // Unable to access IPC due to lack of permissions.
+    rsInterfaces->RemoveVirtualScreen(virtualScreenId);
 }
 
 /*
@@ -2572,6 +2535,7 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenSecurityExemptionList_003, Function |
     std::vector<NodeId> securityExemptionList = {};
     int32_t res = rsInterfaces->SetVirtualScreenSecurityExemptionList(virtualScreenId, securityExemptionList);
     EXPECT_EQ(res, RS_CONNECTION_ERROR); // Unable to access IPC due to lack of permissions.
+    rsInterfaces->RemoveVirtualScreen(virtualScreenId);
 }
 
 /*
@@ -2597,6 +2561,7 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenSecurityExemptionList_004, Function |
     std::vector<NodeId> securityExemptionList = {};
     int32_t res = rsInterfaces->SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
     EXPECT_EQ(res, RS_CONNECTION_ERROR); // Unable to access IPC due to lack of permissions.
+    rsInterfaces->RemoveVirtualScreen(virtualScreenId);
 }
 
 /*
@@ -2676,20 +2641,16 @@ HWTEST_F(RSInterfacesTest, SetMirrorScreenVisibleRect_002, Function | SmallTest 
  */
 HWTEST_F(RSInterfacesTest, SetMirrorScreenVisibleRect_003, Function | SmallTest | Level2)
 {
-    auto cSurface = IConsumerSurface::Create();
-    ASSERT_NE(cSurface, nullptr);
-    auto producer = cSurface->GetProducer();
-    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
-    EXPECT_NE(pSurface, nullptr);
     ASSERT_NE(rsInterfaces, nullptr);
     uint32_t defaultWidth = 720;  // width value for test
     uint32_t defaultHeight = 1280;  // height value for test
     ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
-        "VirtualScreenStatus0", defaultWidth, defaultHeight, pSurface, 0, -1);
+        "VirtualScreenStatus0", defaultWidth, defaultHeight, nullptr, 0, -1);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
     Rect rect = {0, 0, defaultWidth, defaultHeight};
     int32_t res = rsInterfaces->SetMirrorScreenVisibleRect(virtualScreenId, rect);
     EXPECT_EQ(res, RS_CONNECTION_ERROR);  // Unable to access IPC due to lack of permissions.
+    rsInterfaces->RemoveVirtualScreen(virtualScreenId);
 }
 
 /*
@@ -2779,17 +2740,13 @@ HWTEST_F(RSInterfacesTest, SetScreenSecurityMask_001, Function | SmallTest | Lev
     ASSERT_NE(rsInterfaces, nullptr);
     constexpr uint32_t sizeWidth = 720;
     constexpr uint32_t sizeHeight = 1280;
-    auto csurface = IConsumerSurface::Create();
-    EXPECT_NE(csurface, nullptr);
-    auto producer = csurface->GetProducer();
-    auto psurface = Surface::CreateSurfaceAsProducer(producer);
-    EXPECT_NE(psurface, nullptr);
     ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
-        "VirtualScreenStatus0", sizeWidth, sizeHeight, psurface, INVALID_SCREEN_ID, -1);
+        "VirtualScreenStatus0", sizeWidth, sizeHeight, nullptr, INVALID_SCREEN_ID, -1);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
     int32_t ret = rsInterfaces->SetScreenSecurityMask(virtualScreenId, nullptr);
     EXPECT_EQ(ret, SUCCESS);
+    rsInterfaces->RemoveVirtualScreen(virtualScreenId);
 }
 
 /*
@@ -2803,13 +2760,8 @@ HWTEST_F(RSInterfacesTest, SetScreenSecurityMask_002, Function | SmallTest | Lev
     ASSERT_NE(rsInterfaces, nullptr);
     constexpr uint32_t sizeWidth = 720;
     constexpr uint32_t sizeHeight = 1280;
-    auto csurface = IConsumerSurface::Create();
-    EXPECT_NE(csurface, nullptr);
-    auto producer = csurface->GetProducer();
-    auto psurface = Surface::CreateSurfaceAsProducer(producer);
-    EXPECT_NE(psurface, nullptr);
     ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
-        "VirtualScreenStatus0", sizeWidth, sizeHeight, psurface, INVALID_SCREEN_ID, -1);
+        "VirtualScreenStatus0", sizeWidth, sizeHeight, nullptr, INVALID_SCREEN_ID, -1);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
     const uint32_t color[1] = { 0x6f0000ff };
@@ -2822,6 +2774,7 @@ HWTEST_F(RSInterfacesTest, SetScreenSecurityMask_002, Function | SmallTest | Lev
     std::unique_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(color, colorLength, opts);
     int32_t ret = rsInterfaces->SetScreenSecurityMask(virtualScreenId, std::move(pixelMap));
     EXPECT_EQ(ret, SUCCESS);
+    rsInterfaces->RemoveVirtualScreen(virtualScreenId);
 }
 
 /*
@@ -2835,13 +2788,8 @@ HWTEST_F(RSInterfacesTest, SetScreenSecurityMask_003, Function | SmallTest | Lev
     ASSERT_NE(rsInterfaces, nullptr);
     constexpr uint32_t sizeWidth = 720;
     constexpr uint32_t sizeHeight = 1280;
-    auto csurface = IConsumerSurface::Create();
-    EXPECT_NE(csurface, nullptr);
-    auto producer = csurface->GetProducer();
-    auto psurface = Surface::CreateSurfaceAsProducer(producer);
-    EXPECT_NE(psurface, nullptr);
     ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
-        "VirtualScreenStatus0", sizeWidth, sizeHeight, psurface, INVALID_SCREEN_ID, -1);
+        "VirtualScreenStatus0", sizeWidth, sizeHeight, nullptr, INVALID_SCREEN_ID, -1);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
     constexpr uint32_t colorWidth = 5000;

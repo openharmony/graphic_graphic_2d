@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_BASE_DRAWABLE_RS_POINT_LIGHT_DRAWABLE_H
-#define RENDER_SERVICE_BASE_DRAWABLE_RS_POINT_LIGHT_DRAWABLE_H
+#ifndef RENDER_SERVICE_BASE_DRAWABLE_RS_OVERLAY_NG_SHADER_DRAWABLE_H
+#define RENDER_SERVICE_BASE_DRAWABLE_RS_OVERLAY_NG_SHADER_DRAWABLE_H
 #include "common/rs_rect.h"
 #include "common/rs_vector4.h"
 #include "drawable/rs_property_drawable.h"
@@ -29,10 +29,10 @@ namespace DrawableV2 {
 namespace {
 constexpr int MAX_LIGHT_SOURCES = 12;
 }
-class RSPointLightDrawable : public RSDrawable {
+class RSOverlayNGShaderDrawable : public RSDrawable {
 public:
-    RSPointLightDrawable() = default;
-    ~RSPointLightDrawable() override = default;
+    RSOverlayNGShaderDrawable() = default;
+    ~RSOverlayNGShaderDrawable() override = default;
     void OnSync() override;
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
@@ -58,12 +58,19 @@ private:
     bool stagingEnableEDREffect_ = false;
     std::shared_ptr<Drawing::ShaderEffect> stagingSDFShaderEffect_;
     std::shared_ptr<Drawing::ShaderEffect> sdfShaderEffect_;
+    RectF drawRect_;
+    RectF stagingDrawRect_;
 
     Drawing::RoundRect borderRRect_ = {};
     Drawing::RoundRect contentRRect_ = {};
 
     bool needSync_ = false;
     float displayHeadroom_ = 0.0f;
+
+    // OverlayShader Drawable
+    std::shared_ptr<RSNGRenderShaderBase> stagingOverlayShader_;
+    std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer_;
+
     void DrawLight(Drawing::Canvas* canvas) const;
     void ProcessLightSourcesData(std::array<float, MAX_LIGHT_SOURCES>& lightIntensityArray,
         std::shared_ptr<Drawing::RuntimeShaderBuilder> builder) const;

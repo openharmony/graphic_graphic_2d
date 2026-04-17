@@ -1954,38 +1954,6 @@ HWTEST_F(RSPropertiesTest, SetMotionBlurPara001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetMagnifierParams001
- * @tc.desc: test results of SetMagnifierParams
- * @tc.type: FUNC
- * @tc.require: issueI9QKVM
- */
-HWTEST_F(RSPropertiesTest, SetMagnifierParams001, TestSize.Level1)
-{
-    RSProperties properties;
-    auto para = std::make_shared<RSMagnifierParams>();
-    properties.SetMagnifierParams(para);
-    EXPECT_NE(properties.GetMagnifierPara(), nullptr);
-
-    para->factor_ = 1.f;
-    properties.SetMagnifierParams(para);
-    EXPECT_NE(para, nullptr);
-}
-
-/**
- * @tc.name: SetMagnifierParams002
- * @tc.desc: test results of SetMagnifierParams
- * @tc.type: FUNC
- * @tc.require: issueI9QKVM
- */
-HWTEST_F(RSPropertiesTest, SetMagnifierParams002, TestSize.Level1)
-{
-    RSProperties properties;
-    std::shared_ptr<RSMagnifierParams> para;
-    properties.SetMagnifierParams(para);
-    EXPECT_EQ(properties.GetMagnifierPara(), nullptr);
-}
-
-/**
  * @tc.name: SetForegroundFilter001
  * @tc.desc: test results of SetForegroundFilter
  * @tc.type: FUNC
@@ -3744,7 +3712,6 @@ HWTEST_F(RSPropertiesTest, StatBackground_Variants, TestSize.Level1)
     props.backref_ = node;
     props.hasReportedServerXXFilterCascade_.reset();
     props.SetAiInvert(Vector4f(0.1f, 0.1f, 0.1f, 0.1f));
-    props.SetMagnifierParams(std::make_shared<RSMagnifierParams>());
     props.SetAlwaysSnapshot(true);
     props.SetBackgroundNGFilter(RSNGRenderFilterBase::Create(RSNGEffectType::BLUR));
     props.SetSystemBarEffect(true);
@@ -3758,19 +3725,6 @@ HWTEST_F(RSPropertiesTest, StatBackground_Variants, TestSize.Level1)
     props.GenerateBackgroundFilter();
     EXPECT_TRUE(props.hasReportedServerXXFilterCascade_.test(0));
     props.GenerateBackgroundFilter();
-
-    auto node1 = std::make_shared<RSRenderNode>(1);
-    RSProperties props1;
-    props1.backref_ = node1;
-    props1.hasReportedServerXXFilterCascade_.reset();
-    props1.SetSystemBarEffect(true);
-    auto magnifierPara = std::make_shared<RSMagnifierParams>();
-    magnifierPara->factor_ = 1.0f;
-    props1.SetMagnifierParams(magnifierPara);
-    props1.GenerateBackgroundMaterialBlurFilter();
-    props1.SetBackgroundBlurRadiusX(1.5f);
-    props1.GenerateBackgroundFilter();
-    EXPECT_TRUE(props1.hasReportedServerXXFilterCascade_.test(0));
 
     auto node2 = std::make_shared<RSRenderNode>(2);
     RSProperties props2;
@@ -3931,6 +3885,46 @@ HWTEST_F(RSPropertiesTest, SetAndGetCompositingNGFilter, TestSize.Level1)
     properties.SetCompositingNGFilter(blurFilter);  // for coverage
     auto testFilter = properties.GetCompositingNGFilter();
     EXPECT_EQ(blurFilter, testFilter);
+}
+
+/**
+ * @tc.name: SetOverlayNGShader001
+ * @tc.desc: test results of SetOverlayNGShader with nullptr
+ * @tc.type:FUNC
+ * @tc.require: issueNumber
+ */
+HWTEST_F(RSPropertiesTest, SetOverlayNGShader001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetOverlayNGShader(nullptr);
+    EXPECT_EQ(properties.GetOverlayNGShader(), nullptr);
+}
+
+/**
+ * @tc.name: SetOverlayNGShader002
+ * @tc.desc: test results of SetOverlayNGShader with multiple shader types
+ * @tc.type:FUNC
+ * @tc.require: issueNumber
+ */
+HWTEST_F(RSPropertiesTest, SetOverlayNGShader002, TestSize.Level1)
+{
+    RSProperties properties;
+    
+    auto overlayShader = RSNGRenderShaderBase::Create(RSNGEffectType::BORDER_LIGHT);
+    properties.SetOverlayNGShader(overlayShader);
+    EXPECT_EQ(properties.GetOverlayNGShader(), overlayShader);
+    
+    overlayShader = RSNGRenderShaderBase::Create(RSNGEffectType::HARMONIUM_EFFECT);
+    properties.SetOverlayNGShader(overlayShader);
+    EXPECT_EQ(properties.GetOverlayNGShader(), overlayShader);
+    
+    overlayShader = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
+    properties.SetOverlayNGShader(overlayShader);
+    EXPECT_EQ(properties.GetOverlayNGShader(), overlayShader);
+    
+    overlayShader = RSNGRenderShaderBase::Create(RSNGEffectType::FROSTED_GLASS_EFFECT);
+    properties.SetOverlayNGShader(overlayShader);
+    EXPECT_EQ(properties.GetOverlayNGShader(), overlayShader);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -708,7 +708,7 @@ void RSRenderPipelineAgent::TakeUICaptureInRange(
     rsRenderPipeline_->PostMainThreadTask(captureTask);
 }
 
-ErrCode RSRenderPipelineAgent::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+ErrCode RSRenderPipelineAgent::SetHwcNodeBounds(NodeId rsNodeId, float positionX, float positionY,
     float positionZ, float positionW)
 {
     if (rsRenderPipeline_ == nullptr) {

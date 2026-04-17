@@ -708,7 +708,7 @@ void RSRenderNodeDrawable::InitCachedSurface(Drawing::GPUContext* gpuContext, co
             return;
         }
         vulkanCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
-            vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory, vkTextureInfo->vkAlloc.statName);
+            vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
         REAL_ALLOC_CONFIG_SET_STATUS(true);
         cachedSurface_ = Drawing::Surface::MakeFromBackendTexture(gpuContext, cachedBackendTexture_.GetTextureInfo(),
             Drawing::TextureOrigin::BOTTOM_LEFT, 1, colorType, colorSpace,

@@ -5182,6 +5182,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, ReportGameStateTest001, TestSize.L
         iface_cast<RSClientToServiceConnection>(connectionStub_);
     EXPECT_NE(clientToServiceConnection, nullptr);
     EXPECT_NE(clientToServiceConnection->renderServiceAgent_, nullptr);
+    clientToServiceConnection->renderServiceAgent_->renderService_.InitGameFrameHandler();
     auto& handler = clientToServiceConnection->renderServiceAgent_->renderService_.GetGameFrameHandler();
     EXPECT_NE(handler, nullptr);
     GameStateData data = { 0, 0, 0, 0, "bundleName" };

@@ -80,7 +80,7 @@ public:
         NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
         RSSurfaceCapturePermissions permissions);
 
-    ErrCode SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+    ErrCode SetHwcNodeBounds(NodeId rsNodeId, float positionX, float positionY,
         float positionZ, float positionW);
 
     ErrCode GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus, int32_t& resCode);

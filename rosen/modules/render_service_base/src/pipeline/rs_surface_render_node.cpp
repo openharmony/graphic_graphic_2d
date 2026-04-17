@@ -3795,6 +3795,16 @@ bool RSSurfaceRenderNode::GetSurfaceBufferOpaque() const
     return isSurfaceBufferOpaque_;
 }
 
+void RSSurfaceRenderNode::SetHDRType(uint32_t hdrType)
+{
+    hdrType_ = hdrType;
+}
+
+uint32_t RSSurfaceRenderNode::GetHDRType() const
+{
+    return hdrType_;
+}
+
 bool RSSurfaceRenderNode::isForcedClipHole() const
 {
     const std::string& tvPlayerBundleName = RsCommonHook::Instance().GetTvPlayerBundleName();

@@ -409,6 +409,7 @@ private:
         SharedPtr shadowNode, ModifierNG::RSPropertyType propertyType);
 
     void DumpSubClass(std::string& out) const override;
+    void SetHDRType(uint32_t hdrType);
 
     std::shared_ptr<RSSurface> surface_;
     std::string name_;

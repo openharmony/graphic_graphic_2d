@@ -47,7 +47,7 @@ enum class RSModifierType : uint16_t {
     USE_EFFECT = 18,
     BLENDER = 19,
 
-    POINT_LIGHT = 20,
+    OVERLAY_NG_SHADER = 20,
     PARTICLE_EFFECT = 21,
     COMPOSITING_FILTER = 22,
     BACKGROUND_FILTER = 23,
@@ -126,7 +126,7 @@ public:
             case RSModifierType::PIXEL_STRETCH: return "PixelStretch";
             case RSModifierType::USE_EFFECT: return "UseEffect";
             case RSModifierType::BLENDER: return "Blender";
-            case RSModifierType::POINT_LIGHT: return "PointLight";
+            case RSModifierType::OVERLAY_NG_SHADER: return "OverlayNGShader";
             case RSModifierType::PARTICLE_EFFECT: return "ParticleEffect";
             case RSModifierType::COMPOSITING_FILTER: return "CompositingFilter";
             case RSModifierType::BACKGROUND_FILTER: return "BackgroundFilter";
@@ -273,7 +273,6 @@ public:
             case RSPropertyType::FLY_OUT_PARAMS: return "FlyOutParams";
             case RSPropertyType::DISTORTION_K: return "DistortionK";
             case RSPropertyType::DYNAMIC_DIM_DEGREE: return "DynamicDimDegree";
-            case RSPropertyType::MAGNIFIER_PARA: return "MagnifierPara";
             case RSPropertyType::BACKGROUND_BLUR_RADIUS: return "BackgroundBlurRadius";
             case RSPropertyType::BACKGROUND_BLUR_SATURATION: return "BackgroundBlurSaturation";
             case RSPropertyType::BACKGROUND_BLUR_BRIGHTNESS: return "BackgroundBlurBrightness";
