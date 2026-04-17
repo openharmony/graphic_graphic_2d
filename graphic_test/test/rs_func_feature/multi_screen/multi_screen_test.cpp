@@ -4010,61 +4010,17 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, SetVirtualScreenStatusTe
 }
 
 /*
- * @tc.name: VirtualScreenSupportRenderResolutionTest001
- * @tc.desc: test virtual screen support rendering resolution when display resolution is smaller than screen resolution
+ * @tc.name: DrawExpandDisplayTest001
+ * @tc.desc: Test DrawExpandDisplay when displaynode set scale 0.5f
  * @tc.type: FUNC
  */
-GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, VirtualScreenSupportRenderResolutionTest001)
+GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, DrawExpandDisplayTest001)
 {
     RSInterfaces& rsInterfaces = RSInterfaces::GetInstance();
 
     // Create Virtual Screen
-    uint32_t width = 200;
-    uint32_t height = 200;
-    ScreenId screenId = rsInterfaces.CreateVirtualScreen(__func__, width, height, nullptr, INVALID_SCREEN_ID);
-    ASSERT_NE(screenId, INVALID_SCREEN_ID);
-
-    // Set Surface for Virtual Screen
-    auto [csurface, psurface] = CreateConsumerAndProducerSurface();
-    ASSERT_NE(csurface, nullptr);
-    ASSERT_NE(psurface, nullptr);
-    rsInterfaces.SetVirtualScreenSurface(screenId, psurface);
-    usleep(SLEEP_TIME_FOR_PROXY);
-
-    // Create Display Node
-    RSDisplayNodeConfig displayNodeConfig {
-        .screenId = screenId,
-        .isMirrored = false,
-        .mirrorNodeId = 0,
-        .isSync = true
-    };
-    Vector4f displayRect(0, 0, 100, 100);
-    auto displayNode = CreateDisplayNodeWithConfig(displayNodeConfig, displayRect, SK_ColorGREEN, true);
-    ASSERT_NE(displayNode, nullptr);
-
-    // Create Surface Node
-    Vector4f surfaceNodeRect(0, 0, 100, 100);
-    auto surfaceNode = CreateSurfaceNodeWithConfig(__func__, surfaceNodeRect, SK_ColorYELLOW);
-    ASSERT_NE(surfaceNode, nullptr);
-    displayNode->RSNode::AddChild(surfaceNode);
-
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
-    usleep(SLEEP_TIME_FOR_PROXY);
-    rsInterfaces.RemoveVirtualScreen(screenId);
-}
-
-/*
- * @tc.name: VirtualScreenSupportRenderResolutionTest002
- * @tc.desc: test virtual screen support rendering resolution when display resolution is equal to screen resolution
- * @tc.type: FUNC
- */
-GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, VirtualScreenSupportRenderResolutionTest002)
-{
-    RSInterfaces& rsInterfaces = RSInterfaces::GetInstance();
-
-    // Create Virtual Screen
-    uint32_t width = 200;
-    uint32_t height = 200;
+    uint32_t width = 100;
+    uint32_t height = 100;
     ScreenId screenId = rsInterfaces.CreateVirtualScreen(__func__, width, height, nullptr, INVALID_SCREEN_ID);
     ASSERT_NE(screenId, INVALID_SCREEN_ID);
 
@@ -4085,6 +4041,8 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, VirtualScreenSupportRend
     Vector4f displayRect(0, 0, 200, 200);
     auto displayNode = CreateDisplayNodeWithConfig(displayNodeConfig, displayRect, SK_ColorGREEN, true);
     ASSERT_NE(displayNode, nullptr);
+    displayNode->SetPivot(0.0f, 0.0f);
+    displayNode->SetScale(0.5f);
 
     // Create Surface Node
     Vector4f surfaceNodeRect(0, 0, 100, 100);
@@ -4098,17 +4056,17 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, VirtualScreenSupportRend
 }
 
 /*
- * @tc.name: VirtualScreenSupportRenderResolutionTest003
- * @tc.desc: test virtual screen support rendering resolution when display resolution is larger than screen resolution
+ * @tc.name: DrawExpandDisplayTest002
+ * @tc.desc: Test DrawExpandDisplay when displaynode doesn't set scale
  * @tc.type: FUNC
  */
-GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, VirtualScreenSupportRenderResolutionTest003)
+GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, DrawExpandDisplayTest002)
 {
     RSInterfaces& rsInterfaces = RSInterfaces::GetInstance();
 
     // Create Virtual Screen
-    uint32_t width = 200;
-    uint32_t height = 200;
+    uint32_t width = 100;
+    uint32_t height = 100;
     ScreenId screenId = rsInterfaces.CreateVirtualScreen(__func__, width, height, nullptr, INVALID_SCREEN_ID);
     ASSERT_NE(screenId, INVALID_SCREEN_ID);
 
@@ -4126,7 +4084,7 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, VirtualScreenSupportRend
         .mirrorNodeId = 0,
         .isSync = true
     };
-    Vector4f displayRect(0, 0, 300, 300);
+    Vector4f displayRect(0, 0, 200, 200);
     auto displayNode = CreateDisplayNodeWithConfig(displayNodeConfig, displayRect, SK_ColorGREEN, true);
     ASSERT_NE(displayNode, nullptr);
 
