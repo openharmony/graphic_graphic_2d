@@ -578,6 +578,7 @@ static std::tuple<uint64_t, std::string, RectI, bool> FindGeoByIdLite(uint64_t n
 void MemoryManager::DumpRenderServiceMemory(DfxString& log, bool isLite)
 {
     log.AppendFormat("\n----------\nRenderService caches:\n");
+    RSTypefaceCache::Instance().Dump(log);
     if (isLite) {
         MemoryTrack::Instance().DumpMemoryStatistics(log, FindGeoByIdLite, isLite);
         RenderServiceAllSurfaceDump(log);

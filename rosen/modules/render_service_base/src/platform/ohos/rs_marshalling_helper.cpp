@@ -531,8 +531,12 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, Drawing::SharedTypeface& v
     success &= Marshalling(parcel, val.size_);
     success &= Marshalling(parcel, val.index_);
     success &= Marshalling(parcel, val.hash_);
-    RS_PROFILER_WRITE_SHARED_TYPEFACE(parcel, val);
-    success &= static_cast<MessageParcel*>(&parcel)->WriteFileDescriptor(val.fd_);
+    // originId_ == 0: base typeface from ashmem, fd is required for reconstruction
+    // originId_ > 0: variation typeface, receiver derives from cached base typeface, no fd needed
+    if (val.originId_ == 0) {
+        RS_PROFILER_WRITE_SHARED_TYPEFACE(parcel, val);
+        success &= static_cast<MessageParcel*>(&parcel)->WriteFileDescriptor(val.fd_);
+    }
     success &= Marshalling(parcel, val.hasFontArgs_);
 
     if (!val.hasFontArgs_) {
@@ -572,9 +576,13 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, Drawing::SharedTypeface&
     success &= Unmarshalling(parcel, hash);
     if (success) { val.hash_ = hash; }
 
-    RS_PROFILER_READ_SHARED_TYPEFACE(parcel, val);
-    if (val.fd_ < 0) {
-        success = false;
+    // originId_ == 0: base typeface from ashmem, fd is required for reconstruction
+    // originId_ > 0: variation typeface, receiver derives from cached base typeface, no fd needed
+    if (val.originId_ == 0) {
+        RS_PROFILER_READ_SHARED_TYPEFACE(parcel, val);
+        if (val.fd_ < 0) {
+            success = false;
+        }
     }
     success &= Unmarshalling(parcel, hasFontArgs);
     if (success) { val.hasFontArgs_ = hasFontArgs; }

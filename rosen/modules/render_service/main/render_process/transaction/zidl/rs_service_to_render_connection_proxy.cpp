@@ -1057,6 +1057,34 @@ bool RSServiceToRenderConnectionProxy::UnRegisterTypeface(uint64_t globalUniqueI
     return true;
 }
 
+bool RSServiceToRenderConnectionProxy::RegisterTypeface(Drawing::SharedTypeface& sharedTypeface, bool isLocal)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
+        RS_LOGE("%{public}s: WriteInterfaceToken GetDescriptor err.", __func__);
+        return false;
+    }
+    if (!RSMarshallingHelper::Marshalling(data, sharedTypeface)) {
+        RS_LOGE("%{public}s: Marshalling SharedTypeface failed.", __func__);
+        return false;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::REGISTER_SHARED_TYPEFACE);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        RS_LOGE("%{public}s: SendRequest failed", __func__);
+        return false;
+    }
+    bool result { false };
+    if (!reply.ReadBool(result)) {
+        ROSEN_LOGE("%{public}s: Read result failed", __func__);
+        return false;
+    }
+    return result;
+}
+
 void RSServiceToRenderConnectionProxy::HgmForceUpdateTask(bool flag, const std::string& fromWhom)
 {
     MessageParcel data;

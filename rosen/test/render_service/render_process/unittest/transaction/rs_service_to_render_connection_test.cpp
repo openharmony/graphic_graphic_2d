@@ -25,6 +25,7 @@
 #include "rs_render_service.h"
 #include "rs_render_to_composer_connection_proxy.h"
 #include "rs_render_single_process_manager.h"
+#include "render/rs_typeface_cache.h"
 #include "transaction/rs_service_to_render_connection.h"
 
 using namespace testing;
@@ -217,5 +218,92 @@ HWTEST_F(RSServiceToRenderConnectionTest, NotifyPackageEventTest, TestSize.Level
     g_rsConn->NotifyPackageEvent(listSize1, package1);
     g_rsConn->NotifyPackageEvent(listSize2, package2);
     ASSERT_TRUE(g_rsConn);
+}
+
+/**
+ * @tc.name: RegisterSharedTypefaceTest001
+ * @tc.desc: Test RegisterTypeface(SharedTypeface&, bool) with isLocal=true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSServiceToRenderConnectionTest, RegisterSharedTypefaceTest001, TestSize.Level1)
+{
+    Drawing::SharedTypeface sharedTypeface;
+    sharedTypeface.id_ = 42;
+    sharedTypeface.originId_ = 0;
+    // isLocal=true should return true without doing anything
+    bool ret = g_rsConn->RegisterTypeface(sharedTypeface, true);
+    EXPECT_TRUE(ret);
+}
+
+/**
+ * @tc.name: RegisterSharedTypefaceTest002
+ * @tc.desc: Test RegisterTypeface with isLocal=false, originId>0 (variation typeface path)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSServiceToRenderConnectionTest, RegisterSharedTypefaceTest002, TestSize.Level1)
+{
+    Drawing::SharedTypeface sharedTypeface;
+    sharedTypeface.id_ = 42;
+    sharedTypeface.originId_ = 100;
+    sharedTypeface.fd_ = -1;
+    bool ret = g_rsConn->RegisterTypeface(sharedTypeface, false);
+    // InsertVariationTypeface returns -1 when base typeface not cached
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: RegisterSharedTypefaceTest003
+ * @tc.desc: Test RegisterTypeface with isLocal=false, cached typeface found via UpdateDrawingTypefaceRef
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSServiceToRenderConnectionTest, RegisterSharedTypefaceTest003, TestSize.Level1)
+{
+    auto typeface = Drawing::Typeface::MakeDefault();
+    ASSERT_NE(typeface, nullptr);
+    uint64_t uniqueId = (static_cast<uint64_t>(getpid()) << 32) | typeface->GetUniqueID();
+    // Pre-cache the typeface so UpdateDrawingTypefaceRef finds it
+    RSTypefaceCache::Instance().CacheDrawingTypeface(uniqueId, typeface);
+
+    Drawing::SharedTypeface sharedTypeface(uniqueId, typeface);
+    sharedTypeface.fd_ = -1;
+    bool ret = g_rsConn->RegisterTypeface(sharedTypeface, false);
+    EXPECT_TRUE(ret);
+
+    RSTypefaceCache::Instance().RemoveDrawingTypefaceByGlobalUniqueId(uniqueId);
+}
+
+/**
+ * @tc.name: RegisterSharedTypefaceTest004
+ * @tc.desc: Test RegisterTypeface with isLocal=false, not cached, MakeFromAshmem fails
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSServiceToRenderConnectionTest, RegisterSharedTypefaceTest004, TestSize.Level1)
+{
+    Drawing::SharedTypeface sharedTypeface;
+    sharedTypeface.id_ = 9999;
+    sharedTypeface.originId_ = 0;
+    sharedTypeface.fd_ = -1;
+    sharedTypeface.size_ = 0;
+    // Not cached, invalid ashmem -> should return false
+    bool ret = g_rsConn->RegisterTypeface(sharedTypeface, false);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: UnRegisterSharedTypefaceTest001
+ * @tc.desc: Test UnRegisterTypeface with cached typeface
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSServiceToRenderConnectionTest, UnRegisterSharedTypefaceTest001, TestSize.Level1)
+{
+    bool ret = g_rsConn->UnRegisterTypeface(0);
+    EXPECT_TRUE(ret);
+    auto typeface = Drawing::Typeface::MakeDefault();
+    ASSERT_NE(typeface, nullptr);
+    uint64_t uniqueId = (static_cast<uint64_t>(getpid()) << 32) | typeface->GetUniqueID();
+    RSTypefaceCache::Instance().CacheDrawingTypeface(uniqueId, typeface);
+
+    ret = g_rsConn->UnRegisterTypeface(uniqueId);
+    EXPECT_TRUE(ret);
 }
 } // namespace OHOS::Rosen
