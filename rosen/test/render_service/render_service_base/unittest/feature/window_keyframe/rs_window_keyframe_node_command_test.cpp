@@ -72,6 +72,11 @@ HWTEST_F(RSWindowKeyFrameNodeCommandTest, LinkNode, TestSize.Level1)
     EXPECT_EQ(keyframeNode->GetLinkedNodeId(), linkedNodeId);
 }
 
+/**
+ * @tc.name: CreateDOSProtectionTest
+ * @tc.desc: Verify Create is blocked when node count exceeds MAX_NODE_COUNT_PER_PID
+ * @tc.type: FUNC
+ */
 HWTEST_F(RSWindowKeyFrameNodeCommandTest, CreateDOSProtectionTest, TestSize.Level1)
 {
     RSContext context;

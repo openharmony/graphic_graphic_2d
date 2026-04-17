@@ -51,6 +51,11 @@ HWTEST_F(RSCanvasDrawingNodeCommandTest, CreateTest, TestSize.Level1)
     RSCanvasDrawingNodeCommandHelper::ResetSurface(context, 0, width, height, 0);
 }
 
+/**
+ * @tc.name: CreateDOSProtectionTest
+ * @tc.desc: Verify Create is blocked when node count exceeds MAX_NODE_COUNT_PER_PID
+ * @tc.type: FUNC
+ */
 HWTEST_F(RSCanvasDrawingNodeCommandTest, CreateDOSProtectionTest, TestSize.Level1)
 {
     RSContext context;
