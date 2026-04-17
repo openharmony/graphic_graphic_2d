@@ -102,12 +102,12 @@ public:
         return thickParams_;
     }
 
-    void SetLightDir(float lightDir)
+    void SetLightDir(Vector3f& lightDir)
     {
         lightDir_ = lightDir;
     }
 
-    float GetLightDir() const
+    const Vector3f GetLightDir() const
     {
         return lightDir_;
     }
@@ -120,7 +120,7 @@ private:
     Vector3f cameraPosition_ = Vector3f(0.0f, 0.0f, 0.0f);
     Vector3f cameraIntrinsics_ = Vector3f(0.0f, 0.0f, 0.0f);
     Vector2f thickParams_ = Vector2f(0.0f, 0.0f);
-    Vector3f lightDir_ = Vector3f(0.0f, 0.0f);
+    Vector3f lightDir_ = Vector3f(0.0f, 0.0f, 0.0f);
 };
 } // namespace Rosen
 } // namespace OHOS
