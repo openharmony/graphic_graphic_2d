@@ -5639,7 +5639,7 @@ void RSProperties::SetBackgroundNGShader(const std::shared_ptr<RSNGRenderShaderB
     if (renderShader != nullptr && renderShader->ContainsType(RSNGEffectType::FROSTED_GLASS_EFFECT)) {
         filterNeedUpdate_ = true;
     }
-    hasSpatialGlassEffect_ = renderShader->ContainsType(RSNGEffectType::SPATIAL_GLASS_EFFECT());
+    hasSpatialGlassEffect_ = renderShader->ContainsType(RSNGEffectType::SPATIAL_GLASS_EFFECT);
     if (hasSpatialGlassEffect_) {
         filterNeedUpdate_ = true;
     }
