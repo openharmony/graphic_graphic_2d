@@ -21,6 +21,7 @@
 #include "ui_effect/effect/include/color_gradient_effect_para.h"
 #include "ui_effect/effect/include/frosted_glass_effect_para.h"
 #include "ui_effect/effect/include/harmonium_effect_para.h"
+#include "ui_effect/effect/include/spatial_point_light_effect_para.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -90,6 +91,10 @@ static std::unordered_map<RSNGEffectType, ShaderCreator> creatorLUT = {
     },
     {RSNGEffectType::SDF_EDGE_LIGHT_EFFECT, [] {
             return std::make_shared<RSNGSDFEdgeLightEffect>();
+        }
+    },
+    {RSNGEffectType::SPATIAL_POINT_LIGHT, [] {
+            return std::make_shared<RSNGSpatialPointLight>();
         }
     },
 };
@@ -279,6 +284,29 @@ std::shared_ptr<RSNGShaderBase> ConvertBorderLightPara(std::shared_ptr<VisualEff
     borderLightEffect->Setter<BorderLightWidthTag>(borderLightEffectPara->GetLightWidth());
     return borderLightEffect;
 }
+
+std::shared_ptr<RSNGShaderBase> ConvertSpatialPointLightEffectPara(std::shared_ptr<VisualEffectPara> effectPara)
+{
+    auto effect = RSNGShaderBase::Create(RSNGEffectType::SPATIAL_POINT_LIGHT);
+    if (effect == nullptr || effectPara == nullptr) {
+        ROSEN_LOGE("ConvertSpatialPointLightEffectPara effect or effectPara is nullptr");
+        return nullptr;
+    }
+    auto spatialPointLightEffect = std::static_pointer_cast<RSNGSpatialPointLight>(effect);
+    auto spatialPointLightEffectPara = std::static_pointer_cast<SpatialPointLightEffectPara>(effectPara);
+
+    spatialPointLightEffect->Setter<SpatialPointLightLightIntensityTag>(
+        spatialPointLightEffectPara->GetLightIntensity());
+    spatialPointLightEffect->Setter<SpatialPointLightLightPositionTag>(
+        spatialPointLightEffectPara->GetLightPosition());
+    spatialPointLightEffect->Setter<SpatialPointLightAttenuationTag>(
+        spatialPointLightEffectPara->GetAttenuation());
+    spatialPointLightEffect->Setter<SpatialPointLightLightColorTag>(
+        spatialPointLightEffectPara->GetLightColor());
+    spatialPointLightEffect->Setter<SpatialPointLightMaskTag>(
+        RSNGMaskBase::Create(spatialPointLightEffectPara->GetMask()));
+    return spatialPointLightEffect;
+}
 }
 
 static std::unordered_map<VisualEffectPara::ParaType, ShaderConvertor> convertorLUT = {
@@ -286,6 +314,7 @@ static std::unordered_map<VisualEffectPara::ParaType, ShaderConvertor> convertor
     { VisualEffectPara::ParaType::BORDER_LIGHT_EFFECT, ConvertBorderLightPara },
     { VisualEffectPara::ParaType::HARMONIUM_EFFECT, ConvertHarmoniumEffectPara },
     { VisualEffectPara::ParaType::FROSTED_GLASS_EFFECT, ConvertFrostedGlassEffectPara },
+    { VisualEffectPara::ParaType::SPATIAL_POINT_LIGHT_EFFECT, ConvertSpatialPointLightEffectPara },
 };
 
 std::shared_ptr<RSNGShaderBase> RSNGShaderBase::Create(RSNGEffectType type)
