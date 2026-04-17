@@ -4640,7 +4640,7 @@ void RSRenderNode::OnSync()
     backgroundFilterInteractWithDirty_ = false;
 
     if (auto canvasDrawingNode = ReinterpretCastTo<RSCanvasDrawingRenderNode>()) {
-        canvasDrawingNode->SetWaitSync(false);
+        canvasDrawingNode->AfterSync();
     }
 
     lastFrameSynced_ = !isLeashWindowPartialSkip;
