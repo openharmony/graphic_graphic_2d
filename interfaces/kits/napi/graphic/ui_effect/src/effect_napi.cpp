@@ -1269,14 +1269,10 @@ napi_value EffectNapi::CreateSpatialGlassEffect(napi_env env, napi_callback_info
     para->SetFresnelEnvColor(fresnelEnvColor);
     idx++;
 
-    float fresnelEnvR0 = 1.f;
-    fresnelEnvR0 = GetSpecialValue(env, argv[idx]);
-    para->SetFresnelEnvR0(fresnelEnvR0);
-    idx++;
-
-    float fresnelEnvStrength = 1.f;
-    fresnelEnvStrength = GetSpecialValue(env, argv[idx]);
-    para->SetFresnelEnvStrength(fresnelEnvStrength);
+    Vector2f fresnelParams = 1.f;
+    UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector2f(env, argv[idx], fresnelParams), nullptr,
+        UIEFFECT_LOG_E("EffectNapi::CreateSpatialGlassEffect parse fresnelParams fail"));
+    para->SetFresnelParams(fresnelParams);
     idx++;
 
     float specularShiny = 1.f;
