@@ -73,18 +73,12 @@ public:
     bool CheckCachedOp();
     bool HasCachedOp() const;
 
-    bool IsWaitSync() const override
-    {
-        return waitSync_;
-    }
-
-    void SetWaitSync(bool waitSync) override
+    void SetWaitSync(bool waitSync)
     {
         waitSync_ = waitSync;
     }
 
 protected:
-    void OnSync() override;
     void OnApplyModifiers() override;
 
 private:
@@ -99,6 +93,7 @@ private:
     void ReportOpCount(const std::list<Drawing::DrawCmdListPtr>& cmdLists) const;
     void SplitDrawCmdList(size_t firstOpCount, Drawing::DrawCmdListPtr drawCmdList, bool splitOrigin);
     size_t ApplyCachedCmdList();
+    void AfterSync();
     void ClearResource();
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     bool ResetSurfaceWithTexture(int width, int height, RSPaintFilterCanvas& canvas);

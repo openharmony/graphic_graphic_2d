@@ -746,7 +746,13 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, OnSyncWaitSyncTrueTest, TestSize.Level1)
     node->uifirstSkipPartialSync_ = true;
     node->SetWaitSync(true);
     node->OnSync();
-    EXPECT_FALSE(node->IsWaitSync());
+    EXPECT_FALSE(node->waitSync_);
+    node->SetWaitSync(true);
+    node->AfterSync();
+    EXPECT_FALSE(node->waitSync_);
+    node->SetWaitSync(false);
+    node->AfterSync();
+    EXPECT_FALSE(node->waitSync_);
 }
 
 /**
