@@ -52,6 +52,11 @@ HWTEST_F(RSProxyNodeCommandTest, TestRSProxyNodeCommand001, TestSize.Level1)
     EXPECT_TRUE(id != -2);
 }
 
+/**
+ * @tc.name: CreateDOSProtectionTest
+ * @tc.desc: Verify Create is blocked when node count exceeds MAX_NODE_COUNT_PER_PID
+ * @tc.type: FUNC
+ */
 HWTEST_F(RSProxyNodeCommandTest, CreateDOSProtectionTest, TestSize.Level1)
 {
     RSContext context;

@@ -222,6 +222,11 @@ HWTEST_F(RSCanvasNodeCommandTest, SetPixelmap, TestSize.Level1)
     context.GetMutableNodeMap().UnregisterRenderNode(id);
 }
 
+/**
+ * @tc.name: CreateDOSProtectionTest
+ * @tc.desc: Verify Create is blocked when node count exceeds MAX_NODE_COUNT_PER_PID
+ * @tc.type: FUNC
+ */
 HWTEST_F(RSCanvasNodeCommandTest, CreateDOSProtectionTest, TestSize.Level1)
 {
     RSContext context;

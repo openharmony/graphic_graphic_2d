@@ -30,7 +30,8 @@ void RootNodeCommandHelper::Create(RSContext& context, NodeId id, bool isTexture
 {
     if (context.GetNodeMap().GetNodeCountByPid(ExtractPid(id)) > MAX_NODE_COUNT_PER_PID) {
         RS_LOGE_LIMIT(__func__, __line__,
-            "GetNodeCountByPid > %{public}u, pid:%{public}u", MAX_NODE_COUNT_PER_PID, static_cast<uint32_t>(ExtractPid(id)));
+            "GetNodeCountByPid > %{public}u, pid:%{public}u",
+            MAX_NODE_COUNT_PER_PID, static_cast<uint32_t>(ExtractPid(id)));
         return;
     }
     auto node = std::shared_ptr<RSRootRenderNode>(new RSRootRenderNode(id,

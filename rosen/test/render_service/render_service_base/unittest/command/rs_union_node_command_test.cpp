@@ -35,6 +35,11 @@ void RSUnionNodeCommandTest::TearDownTestCase() {}
 void RSUnionNodeCommandTest::SetUp() {}
 void RSUnionNodeCommandTest::TearDown() {}
 
+/**
+ * @tc.name: CreateTest
+ * @tc.desc: Verify Create works normally
+ * @tc.type: FUNC
+ */
 HWTEST_F(RSUnionNodeCommandTest, CreateTest, TestSize.Level1)
 {
     RSContext context;
@@ -43,6 +48,11 @@ HWTEST_F(RSUnionNodeCommandTest, CreateTest, TestSize.Level1)
     EXPECT_NE(context.GetNodeMap().GetRenderNode<RSUnionRenderNode>(id), nullptr);
 }
 
+/**
+ * @tc.name: CreateDOSProtectionTest
+ * @tc.desc: Verify Create is blocked when node count exceeds MAX_NODE_COUNT_PER_PID
+ * @tc.type: FUNC
+ */
 HWTEST_F(RSUnionNodeCommandTest, CreateDOSProtectionTest, TestSize.Level1)
 {
     RSContext context;

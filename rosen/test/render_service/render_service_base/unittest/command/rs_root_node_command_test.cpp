@@ -199,6 +199,11 @@ HWTEST_F(RSRootNodeCommandTest, AttachToUniSurfaceNodeTest003, TestSize.Level1)
     EXPECT_TRUE(context.GetMutableNodeMap().UnRegisterUnTreeNode(parentId));
 }
 
+/**
+ * @tc.name: CreateDOSProtectionTest
+ * @tc.desc: Verify Create is blocked when node count exceeds MAX_NODE_COUNT_PER_PID
+ * @tc.type: FUNC
+ */
 HWTEST_F(RSRootNodeCommandTest, CreateDOSProtectionTest, TestSize.Level1)
 {
     RSContext context;
