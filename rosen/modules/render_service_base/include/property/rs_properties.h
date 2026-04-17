@@ -835,6 +835,7 @@ public:
     }
 
     bool HasHarmonium() const;
+    bool HasSpatialGlassEffect() const;
 
     void SetUseEffect(bool useEffect);
     bool GetUseEffect() const;
@@ -1089,6 +1090,7 @@ private:
     bool needHwcFilter_ = false;
     bool needForceSubmit_ = false;
     bool hasHarmonium_ = false;
+    bool HasSpatialGlassEffect_ = false;
     bool useUnion_ = false;
     float gravityPullStrength_ = 0.0f;
     float gravityHotZone_ = 0.0f;
