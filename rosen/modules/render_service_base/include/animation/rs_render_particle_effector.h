@@ -20,6 +20,7 @@
 #include "rs_particle_noise_field.h"
 #include "rs_particle_ripple_field.h"
 #include "rs_particle_velocity_field.h"
+#include "rs_particle_field_collection.h"
 namespace OHOS {
 namespace Rosen {
 
@@ -59,6 +60,12 @@ public:
         const std::shared_ptr<ParticleNoiseFields>& particleNoiseFields,
         const std::shared_ptr<ParticleRippleFields>& particleRippleFields,
         const std::shared_ptr<ParticleVelocityFields>& particleVelocityFields, int64_t deltaTime);
+
+    // Unified field collection overloads
+    void UpdatePosition(const std::shared_ptr<RSRenderParticle>& particle,
+        const std::shared_ptr<ParticleFieldCollection>& fields, float deltaTime);
+    void Update(const std::shared_ptr<RSRenderParticle>& particle,
+        const std::shared_ptr<ParticleFieldCollection>& fields, int64_t deltaTime);
 };
 
 } // namespace Rosen

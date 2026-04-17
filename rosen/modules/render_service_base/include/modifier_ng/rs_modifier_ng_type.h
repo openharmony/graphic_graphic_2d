@@ -269,6 +269,7 @@ public:
             case RSPropertyType::PARTICLE_NOISE_FIELD: return "ParticleNoiseField";
             case RSPropertyType::PARTICLE_RIPPLE_FIELD: return "ParticleRippleField";
             case RSPropertyType::PARTICLE_VELOCITY_FIELD: return "ParticleVelocityField";
+            case RSPropertyType::PARTICLE_FIELDS: return "ParticleFields";
             case RSPropertyType::FLY_OUT_DEGREE: return "FlyOutDegree";
             case RSPropertyType::FLY_OUT_PARAMS: return "FlyOutParams";
             case RSPropertyType::DISTORTION_K: return "DistortionK";

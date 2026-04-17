@@ -121,6 +121,7 @@ enum class RSPropertyType : uint8_t {
     SHADOW_BLENDER_PARAMS,
     RS_NG_RENDER_SHAPE_BASE,
     HDR_DARKEN_BLENDER_PARAMS,
+    PARTICLE_FIELDS,
 };
 
 enum class RSPropertyUnit : uint8_t {

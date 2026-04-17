@@ -21,6 +21,7 @@
 #include "ui_effect/property/include/rs_ui_shader_base.h"
 #include "ui_effect/property/include/rs_ui_shape_base.h"
 
+#include "animation/rs_particle_field_collection.h"
 #include "command/rs_node_command.h"
 #include "modifier/rs_modifier_manager_map.h"
 #include "modifier_ng/rs_modifier_ng.h"
@@ -597,6 +598,12 @@ void RSProperty<std::shared_ptr<ParticleVelocityFields>>::UpdateToRender(
     const std::shared_ptr<ParticleVelocityFields>& value, PropertyUpdateType type) const
 {
     UPDATE_TO_RENDER(RSUpdatePropertyParticleVelocityFields, value, type);
+}
+template<>
+void RSProperty<std::shared_ptr<ParticleFieldCollection>>::UpdateToRender(
+    const std::shared_ptr<ParticleFieldCollection>& value, PropertyUpdateType type) const
+{
+    UPDATE_TO_RENDER(RSUpdatePropertyParticleFields, value, type);
 }
 template<>
 void RSProperty<std::shared_ptr<RSShader>>::UpdateToRender(
