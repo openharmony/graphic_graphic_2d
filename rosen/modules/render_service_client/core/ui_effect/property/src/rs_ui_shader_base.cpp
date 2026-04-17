@@ -277,33 +277,10 @@ std::shared_ptr<RSNGShaderBase> ConvertSpatialGlassEffectPara(std::shared_ptr<Vi
     }
     auto SpatialGlassEffect = std::static_pointer_cast<RSNGSpatialGlassEffect>(effect);
     auto SpatialGlassEffectPara = std::static_pointer_cast<SpatialGlassEffectPara>(effectPara);
-    SpatialGlassEffect->Setter<SpatialGlassEffectWeightsEmbossTag>(SpatialGlassEffectPara->GetWeightsEmboss());
-    SpatialGlassEffect->Setter<SpatialGlassEffectWeightsEdlTag>(SpatialGlassEffectPara->GetWeightsEdl());
-    SpatialGlassEffect->Setter<SpatialGlassEffectBgRatesTag>(SpatialGlassEffectPara->GetBgRates());
-    SpatialGlassEffect->Setter<SpatialGlassEffectBgKBSTag>(SpatialGlassEffectPara->GetBgKBS());
-    SpatialGlassEffect->Setter<SpatialGlassEffectBgPosTag>(SpatialGlassEffectPara->GetBgPos());
-    SpatialGlassEffect->Setter<SpatialGlassEffectBgNegTag>(SpatialGlassEffectPara->GetBgNeg());
-    SpatialGlassEffect->Setter<SpatialGlassEffectBgAlphaTag>(SpatialGlassEffectPara->GetBgAlpha());
-    SpatialGlassEffect->Setter<SpatialGlassEffectRefractParamsTag>(SpatialGlassEffectPara->GetRefractParams());
-    SpatialGlassEffect->Setter<SpatialGlassEffectSdParamsTag>(SpatialGlassEffectPara->GetSdParams());
-    SpatialGlassEffect->Setter<SpatialGlassEffectSdRatesTag>(SpatialGlassEffectPara->GetSdRates());
-    SpatialGlassEffect->Setter<SpatialGlassEffectSdKBSTag>(SpatialGlassEffectPara->GetSdKBS());
-    SpatialGlassEffect->Setter<SpatialGlassEffectSdPosTag>(SpatialGlassEffectPara->GetSdPos());
-    SpatialGlassEffect->Setter<SpatialGlassEffectSdNegTag>(SpatialGlassEffectPara->GetSdNeg());
-    SpatialGlassEffect->Setter<SpatialGlassEffectEnvLightParamsTag>(SpatialGlassEffectPara->GetEnvLightParams());
-    SpatialGlassEffect->Setter<SpatialGlassEffectEnvLightRatesTag>(SpatialGlassEffectPara->GetEnvLightRates());
-    SpatialGlassEffect->Setter<SpatialGlassEffectEnvLightKBSTag>(SpatialGlassEffectPara->GetEnvLightKBS());
-    SpatialGlassEffect->Setter<SpatialGlassEffectEnvLightPosTag>(SpatialGlassEffectPara->GetEnvLightPos());
-    SpatialGlassEffect->Setter<SpatialGlassEffectEnvLightNegTag>(SpatialGlassEffectPara->GetEnvLightNeg());
-    SpatialGlassEffect->Setter<SpatialGlassEffectEdLightParamsTag>(SpatialGlassEffectPara->GetEdLightParams());
-    SpatialGlassEffect->Setter<SpatialGlassEffectEdLightAnglesTag>(SpatialGlassEffectPara->GetEdLightAngles());
-    SpatialGlassEffect->Setter<SpatialGlassEffectEdLightDirTag>(SpatialGlassEffectPara->GetEdLightDir());
-    SpatialGlassEffect->Setter<SpatialGlassEffectEdLightRatesTag>(SpatialGlassEffectPara->GetEdLightRates());
-    SpatialGlassEffect->Setter<SpatialGlassEffectEdLightKBSTag>(SpatialGlassEffectPara->GetEdLightKBS());
-    SpatialGlassEffect->Setter<SpatialGlassEffectEdLightPosTag>(SpatialGlassEffectPara->GetEdLightPos());
-    SpatialGlassEffect->Setter<SpatialGlassEffectEdLightNegTag>(SpatialGlassEffectPara->GetEdLightNeg());
-    SpatialGlassEffect->Setter<SpatialGlassEffectMaterialColorTag>(SpatialGlassEffectPara->GetMaterialColor());
-    SpatialGlassEffect->Setter<SpatialGlassEffectWaveMaskTag>(RSNGMaskBase::Create(SpatialGlassEffectPara->GetMask()));
+    SpatialGlassEffect->Setter<SpatialGlassEffectLeftTopTag>(SpatialGlassEffectPara->GetLeftTop());
+    SpatialGlassEffect->Setter<SpatialGlassEffectRightTopTag>(SpatialGlassEffectPara->GetRightTop());
+    SpatialGlassEffect->Setter<SpatialGlassEffectLeftBotTag>(SpatialGlassEffectPara->GetLeftBot());
+    SpatialGlassEffect->Setter<SpatialGlassEffectRightBotTag>(SpatialGlassEffectPara->GetRightBot());
     return SpatialGlassEffect;
 }
 
