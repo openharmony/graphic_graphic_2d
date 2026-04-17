@@ -1439,6 +1439,78 @@ HWTEST_F(RSPropertyDrawableUtilsTest, ApplyAdaptiveFrostedGlassParamsTest001, te
     EXPECT_EQ(renderFilter->GetType(), RSNGEffectType::BLUR);
 }
 
+/**
+ * @tc.name: ApplyAdaptiveFrostedGlassParamsTest002
+ * @tc.desc: filter has no GE container (GetGEContainer returns nullptr)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, ApplyAdaptiveFrostedGlassParamsTest002, testing::ext::TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    auto drawingFilter = std::make_shared<RSDrawingFilter>();
+    // no renderFilter set, so GetGEContainer returns nullptr
+    RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(&canvas, drawingFilter);
+    EXPECT_EQ(drawingFilter->GetGEContainer(), nullptr);
+}
+
+/**
+ * @tc.name: ApplyAdaptiveFrostedGlassParamsTest003
+ * @tc.desc: GE container exists but filter is not frosted glass type
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, ApplyAdaptiveFrostedGlassParamsTest003, testing::ext::TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    auto renderFilter = RSNGRenderFilterBase::Create(RSNGEffectType::BLUR);
+    ASSERT_NE(renderFilter, nullptr);
+    auto drawingFilter = std::make_shared<RSDrawingFilter>();
+    drawingFilter->SetNGRenderFilter(renderFilter);
+    drawingFilter->GenerateAndUpdateGEVisualEffect();
+    // container is non-null but has no FROSTED_GLASS effect inside
+    RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(&canvas, drawingFilter);
+    EXPECT_NE(drawingFilter->GetGEContainer(), nullptr);
+    EXPECT_EQ(drawingFilter->GetGEContainer()->GetGEVisualEffect(Drawing::GE_FILTER_FROSTED_GLASS), nullptr);
+}
+
+/**
+ * @tc.name: ApplyAdaptiveFrostedGlassParamsTest004
+ * @tc.desc: canvas is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, ApplyAdaptiveFrostedGlassParamsTest004, testing::ext::TestSize.Level1)
+{
+    auto renderFilter = RSNGRenderFilterBase::Create(RSNGEffectType::FROSTED_GLASS);
+    ASSERT_NE(renderFilter, nullptr);
+    auto drawingFilter = std::make_shared<RSDrawingFilter>();
+    drawingFilter->SetNGRenderFilter(renderFilter);
+    drawingFilter->GenerateAndUpdateGEVisualEffect();
+    ASSERT_NE(drawingFilter->GetGEContainer(), nullptr);
+    RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(nullptr, drawingFilter);
+    EXPECT_NE(drawingFilter->GetGEContainer(), nullptr);
+    EXPECT_NE(drawingFilter->GetGEContainer()->GetGEVisualEffect(Drawing::GE_FILTER_FROSTED_GLASS), nullptr);
+}
+
+/**
+ * @tc.name: ApplyAdaptiveFrostedGlassParamsTest005
+ * @tc.desc: filter is frosted glass with valid canvas and GE container (normal path)
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, ApplyAdaptiveFrostedGlassParamsTest005, testing::ext::TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    auto renderFilter = RSNGRenderFilterBase::Create(RSNGEffectType::FROSTED_GLASS);
+    ASSERT_NE(renderFilter, nullptr);
+    auto drawingFilter = std::make_shared<RSDrawingFilter>();
+    drawingFilter->SetNGRenderFilter(renderFilter);
+    drawingFilter->GenerateAndUpdateGEVisualEffect();
+    ASSERT_NE(drawingFilter->GetGEContainer(), nullptr);
+    RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(&canvas, drawingFilter);
+    EXPECT_NE(drawingFilter->GetGEContainer(), nullptr);
+    EXPECT_NE(drawingFilter->GetGEContainer()->GetGEVisualEffect(Drawing::GE_FILTER_FROSTED_GLASS), nullptr);
+    EXPECT_NE(&canvas, nullptr);
+}
+
 namespace {
 Vector2f DARK_BLUR(1.5f, 2.5f);
 Vector2f DARK_WEIGHTS(0.1f, 0.2f);

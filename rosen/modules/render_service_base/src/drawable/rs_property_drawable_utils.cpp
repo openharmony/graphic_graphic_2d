@@ -60,8 +60,8 @@ std::shared_ptr<Drawing::RuntimeEffect> RSPropertyDrawableUtils::hdrDarkenBlende
 void RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(
     Drawing::Canvas* canvas, const std::shared_ptr<RSDrawingFilter>& filter)
 {
-    auto effect = filter->GetNGRenderFilter();
-    if (!effect || effect->GetType() != RSNGEffectType::FROSTED_GLASS || canvas == nullptr) {
+    if (!filter->GetGEContainer() || !filter->GetGEContainer()->GetGEVisualEffect(Drawing::GE_FILTER_FROSTED_GLASS) ||
+        !canvas) {
         return;
     }
     auto color = static_cast<RSPaintFilterCanvas*>(canvas)->GetColorPicked(ColorPlaceholder::SURFACE_CONTRAST);
