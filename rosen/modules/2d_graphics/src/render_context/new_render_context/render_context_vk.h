@@ -36,8 +36,6 @@ public:
 
     bool Init() override;
     bool AbandonContext() override;
-    std::string GetShaderCacheSize() const override;
-    std::string CleanAllShaderCache() const override;
     bool SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawingContext = nullptr) override;
     void SetRenderContextType(uint8_t type) override;
     void ChangeProtectedState(bool isProtected) override;

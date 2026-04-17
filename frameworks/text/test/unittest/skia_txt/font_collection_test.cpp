@@ -221,7 +221,7 @@ HWTEST_F(FontCollectionTest, FontCollectionTest012, TestSize.Level0)
 
 /*
  * @tc.name: FontCollectionTest014
- * @tc.desc: test for SetCachesEnabled called before CreateSktFontCollection has no effect
+ * @tc.desc: test for SetCachesEnabled called before CreateSktFontCollection takes effect
  * @tc.type: FUNC
  */
 HWTEST_F(FontCollectionTest, FontCollectionTest014, TestSize.Level0)
@@ -230,7 +230,7 @@ HWTEST_F(FontCollectionTest, FontCollectionTest014, TestSize.Level0)
     ASSERT_NE(fontCollection, nullptr);
     fontCollection->SetupDefaultFontManager();
 
-    // Disable cache BEFORE creating skFontCollection - this should have no effect
+    // Disable cache BEFORE creating skFontCollection - this should effect
     fontCollection->SetCachesEnabled(false);
 
     auto skFontCollection = fontCollection->CreateSktFontCollection();
@@ -251,8 +251,8 @@ HWTEST_F(FontCollectionTest, FontCollectionTest014, TestSize.Level0)
     ASSERT_NE(paragraph, nullptr);
     paragraph->Layout(TEST_LAYOUT_WIDTH);
 
-    // SetCachesEnabled(false) was called before CreateSktFontCollection, so it had no effect
-    // Cache is still enabled, updateParagraph should have written after Layout
-    EXPECT_GT(paragraphCache->count(), 0);
+    // SetCachesEnabled(false) was called before CreateSktFontCollection
+    // Cache is now disabled, updateParagraph should NOT have written after Layout
+    EXPECT_EQ(paragraphCache->count(), 0);
 }
 } // namespace txt

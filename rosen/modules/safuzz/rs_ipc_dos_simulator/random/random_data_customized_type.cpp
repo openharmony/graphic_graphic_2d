@@ -135,29 +135,6 @@ std::shared_ptr<MotionBlurParam> RandomDataCustomizedType::GetRandomMotionBlurPa
     return motionBlurParam;
 }
 
-std::shared_ptr<RSMagnifierParams> RandomDataCustomizedType::GetRandomRSMagnifierParamsSharedPtr()
-{
-    auto rsMagnifierParams = std::make_shared<RSMagnifierParams>();
-    rsMagnifierParams->factor_ = RandomDataBasicType::GetRandomFloat();
-    rsMagnifierParams->width_ = RandomDataBasicType::GetRandomFloat();
-    rsMagnifierParams->height_ = RandomDataBasicType::GetRandomFloat();
-    rsMagnifierParams->cornerRadius_ = RandomDataBasicType::GetRandomFloat();
-    rsMagnifierParams->borderWidth_ = RandomDataBasicType::GetRandomFloat();
-    rsMagnifierParams->offsetX_ = RandomDataBasicType::GetRandomFloat();
-    rsMagnifierParams->offsetY_ = RandomDataBasicType::GetRandomFloat();
-    rsMagnifierParams->zoomOffsetX_ = RandomDataBasicType::GetRandomFloat();
-    rsMagnifierParams->zoomOffsetY_ = RandomDataBasicType::GetRandomFloat();
-    rsMagnifierParams->shadowOffsetX_ = RandomDataBasicType::GetRandomFloat();
-    rsMagnifierParams->shadowOffsetY_ = RandomDataBasicType::GetRandomFloat();
-    rsMagnifierParams->shadowSize_ = RandomDataBasicType::GetRandomFloat();
-    rsMagnifierParams->shadowStrength_ = RandomDataBasicType::GetRandomFloat();
-    rsMagnifierParams->gradientMaskColor1_ = RandomDataBasicType::GetRandomUint32();
-    rsMagnifierParams->gradientMaskColor2_ = RandomDataBasicType::GetRandomUint32();
-    rsMagnifierParams->outerContourColor1_ = RandomDataBasicType::GetRandomUint32();
-    rsMagnifierParams->outerContourColor2_ = RandomDataBasicType::GetRandomUint32();
-    return rsMagnifierParams;
-}
-
 std::vector<std::shared_ptr<EmitterUpdater>> RandomDataCustomizedType::GetRandomEmitterUpdaterSharedPtrVector(
     const std::string& sizeType)
 {

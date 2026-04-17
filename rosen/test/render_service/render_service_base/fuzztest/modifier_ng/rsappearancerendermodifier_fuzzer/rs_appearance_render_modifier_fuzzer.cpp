@@ -29,7 +29,7 @@
 #include "modifier_ng/appearance/rs_outline_render_modifier.h"
 #include "modifier_ng/appearance/rs_particle_effect_render_modifier.h"
 #include "modifier_ng/appearance/rs_pixel_stretch_render_modifier.h"
-#include "modifier_ng/appearance/rs_point_light_render_modifier.h"
+#include "modifier_ng/appearance/rs_overlay_ng_shader_render_modifier.h"
 #include "modifier_ng/appearance/rs_shadow_render_modifier.h"
 #include "modifier_ng/appearance/rs_use_effect_render_modifier.h"
 #include "modifier_ng/appearance/rs_visibility_render_modifier.h"
@@ -256,7 +256,7 @@ bool RSPointLightRenderModifierFuzzTest(const uint8_t* data, size_t size)
     }
 
     // test
-    auto modifier = std::make_shared<ModifierNG::RSPointLightRenderModifier>();
+    auto modifier = std::make_shared<ModifierNG::RSOverlayNGShaderRenderModifier>();
     RSProperties properties;
     auto nodePtr = std::make_shared<RSRenderNode>(1);
     auto weakNode_ptr = std::weak_ptr<RSRenderNode>(nodePtr);

@@ -123,6 +123,9 @@ private:
     void ProcessEmptyAnimations(const std::shared_ptr<AnimationFinishCallback>& finishCallback);
     void ProcessAnimationFinishCallbackGuaranteeTask();
 
+    static float EstimateAnimationDuration(
+        const RSAnimationTimingProtocol& protocol, const RSAnimationTimingCurve& curve);
+
     void PushImplicitParam(const std::shared_ptr<RSImplicitAnimationParam>& implicitParam);
     void PopImplicitParam();
 

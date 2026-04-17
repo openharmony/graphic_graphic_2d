@@ -1350,7 +1350,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, CreateGpuSurfaceTest, TestSize.L
     drawable->backendTexture_ = NativeBufferUtils::MakeBackendTexture(imageInfo.width_, imageInfo.height_, getpid());
     auto vkTextureInfo = drawable->backendTexture_.GetTextureInfo().GetVKTextureInfo();
     drawable->vulkanCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
-        vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory, vkTextureInfo->vkAlloc.statName);
+        vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
     newVulkanCleanupHelper = false;
     drawable->CreateGpuSurface(imageInfo, gpuContext, newVulkanCleanupHelper, false);
     ASSERT_EQ(drawable->surface_, nullptr);

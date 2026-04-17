@@ -54,6 +54,7 @@
 #endif
 #if defined(ROSEN_ARKUI_X)
 #include "render_context/new_render_context/render_context_gl.h"
+#include "platform/common/rs_accessibility.h"
 #endif
 #ifdef OHOS_RSS_CLIENT
 #include "res_sched_client.h"
@@ -160,7 +161,7 @@ RSRenderThread::RSRenderThread()
     context_ = std::make_shared<RSContext>();
     context_->Initialize();
     jankDetector_ = std::make_shared<RSJankDetector>();
-#ifdef ACCESSIBILITY_ENABLE
+#if defined(ROSEN_ARKUI_X) || defined(ACCESSIBILITY_ENABLE)
     RSAccessibility::GetInstance().ListenHighContrastChange([](bool newHighContrast) {
         std::thread thread(
             [](bool newHighContrast) {

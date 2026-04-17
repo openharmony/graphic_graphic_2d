@@ -488,5 +488,12 @@ void SurfaceNodeCommandHelper::SetAppRotationCorrection(
         node->SetAppRotationCorrection(appRotationCorrection);
     }
 }
+
+void SurfaceNodeCommandHelper::SetHDRType(RSContext& context, NodeId nodeId, uint32_t hdrType)
+{
+    if (const auto& node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
+        node->SetHDRType(hdrType);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

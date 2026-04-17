@@ -146,7 +146,7 @@ public:
     bool TakeUICaptureInRange(
         NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig);
 
-    bool SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+    bool SetHwcNodeBounds(NodeId rsNodeId, float positionX, float positionY,
         float positionZ, float positionW);
 
     int32_t SetFocusAppInfo(const FocusAppInfo& info);

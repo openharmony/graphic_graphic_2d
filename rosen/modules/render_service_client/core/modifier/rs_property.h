@@ -81,7 +81,6 @@ class RSNGMaskBase;
 class RSNGShapeBase;
 class RSLinearGradientBlurPara;
 class MotionBlurParam;
-class RSMagnifierParams;
 class ParticleNoiseFields;
 class RSShader;
 class RSNGEffectUtils;

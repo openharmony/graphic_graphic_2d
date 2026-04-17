@@ -1321,9 +1321,15 @@ void RSSurfaceNode::SetAppRotationCorrection(ScreenRotation appRotationCorrectio
         GetId(), appRotationCorrection);
 }
 
+void RSSurfaceNode::SetHDRType(uint32_t hdrType)
+{
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeSetHDRType>(GetId(), hdrType);
+    AddCommand(command, true);
+}
 void RSSurfaceNode::SetHDRBrightnessWithType(const float& hdrBrightness, uint32_t hdrType)
 {
     RSNode::SetHDRBrightness(hdrBrightness);
+    SetHDRType(hdrType);
     RS_LOGD("SurfaceNode::SetHDRBrightnessWithType set with hdrType:%{public}d", hdrType);
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     switch (static_cast<HDRType>(hdrType)) {

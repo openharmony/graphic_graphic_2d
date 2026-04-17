@@ -13,66 +13,76 @@
  * limitations under the License.
  */
 
-#include "modifier_ng/appearance/rs_point_light_modifier.h"
+#include "modifier_ng/appearance/rs_overlay_ng_shader_modifier.h"
 
 namespace OHOS::Rosen::ModifierNG {
-void RSPointLightModifier::SetLightIntensity(float lightIntensity)
+void RSOverlayNGShaderModifier::SetLightIntensity(float lightIntensity)
 {
     Setter(RSPropertyType::LIGHT_INTENSITY, lightIntensity);
 }
 
-float RSPointLightModifier::GetLightIntensity() const
+float RSOverlayNGShaderModifier::GetLightIntensity() const
 {
     return Getter<float>(RSPropertyType::LIGHT_INTENSITY, {});
 }
 
-void RSPointLightModifier::SetLightColor(const Color lightColor)
+void RSOverlayNGShaderModifier::SetLightColor(const Color lightColor)
 {
     Setter(RSPropertyType::LIGHT_COLOR, lightColor);
 }
 
-Color RSPointLightModifier::GetLightColor() const
+Color RSOverlayNGShaderModifier::GetLightColor() const
 {
     return Getter<Color>(RSPropertyType::LIGHT_COLOR, {});
 }
 
-void RSPointLightModifier::SetLightPosition(const Vector4f& lightPosition)
+void RSOverlayNGShaderModifier::SetLightPosition(const Vector4f& lightPosition)
 {
     Setter(RSPropertyType::LIGHT_POSITION, lightPosition);
 }
 
-Vector4f RSPointLightModifier::GetLightPosition() const
+Vector4f RSOverlayNGShaderModifier::GetLightPosition() const
 {
     return Getter<Vector4f>(RSPropertyType::LIGHT_POSITION, {});
 }
 
-void RSPointLightModifier::SetIlluminatedBorderWidth(float illuminatedBorderWidth)
+void RSOverlayNGShaderModifier::SetIlluminatedBorderWidth(float illuminatedBorderWidth)
 {
     Setter(RSPropertyType::ILLUMINATED_BORDER_WIDTH, illuminatedBorderWidth);
 }
 
-float RSPointLightModifier::GetIlluminatedBorderWidth() const
+float RSOverlayNGShaderModifier::GetIlluminatedBorderWidth() const
 {
     return Getter<float>(RSPropertyType::ILLUMINATED_BORDER_WIDTH, {});
 }
 
-void RSPointLightModifier::SetIlluminatedType(int illuminatedType)
+void RSOverlayNGShaderModifier::SetIlluminatedType(int illuminatedType)
 {
     Setter<RSProperty>(RSPropertyType::ILLUMINATED_TYPE, illuminatedType);
 }
 
-int RSPointLightModifier::GetIlluminatedType() const
+int RSOverlayNGShaderModifier::GetIlluminatedType() const
 {
     return Getter<int>(RSPropertyType::ILLUMINATED_TYPE, {});
 }
 
-void RSPointLightModifier::SetBloom(float bloomIntensity)
+void RSOverlayNGShaderModifier::SetBloom(float bloomIntensity)
 {
     Setter(RSPropertyType::BLOOM, bloomIntensity);
 }
 
-float RSPointLightModifier::GetBloom() const
+float RSOverlayNGShaderModifier::GetBloom() const
 {
     return Getter<float>(RSPropertyType::BLOOM, {});
+}
+
+void RSOverlayNGShaderModifier::SetOverlayNGShader(const std::shared_ptr<RSNGShaderBase>& overlayShader)
+{
+    Setter<RSProperty, std::shared_ptr<RSNGShaderBase>>(RSPropertyType::OVERLAY_NG_SHADER, overlayShader);
+}
+
+std::shared_ptr<RSNGShaderBase> RSOverlayNGShaderModifier::GetOverlayNGShader() const
+{
+    return Getter<std::shared_ptr<RSNGShaderBase>>(RSPropertyType::OVERLAY_NG_SHADER, nullptr);
 }
 } // namespace OHOS::Rosen::ModifierNG

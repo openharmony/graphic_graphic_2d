@@ -71,6 +71,7 @@ public:
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetContainerWindowTransparent, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSSurfaceNodeSetClonedNodeId, Uint64, Uint64, Bool, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetAppRotationCorrection, Uint64, ScreenRotation);
+    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetHDRType, Uint64, Uint32);
 };
 } // namespace Rosen
 } // namespace OHOS

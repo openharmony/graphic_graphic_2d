@@ -1805,6 +1805,22 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, DoDumpTest, TestSize.Level2)
         auto res = g_connectionStub->OnRemoteRequest(code, data, reply, option);
         EXPECT_EQ(res, ERR_NULL_OBJECT);
     }
+
+    // case 3: args size too big
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor());
+        std::vector<std::u16string> args = { u"screen" };
+        args.resize(100, u"screen");
+        data.WriteString16Vector(args);
+        sptr<MockRSBrightnessInfoChangeCallback> callback = new MockRSBrightnessInfoChangeCallback();
+        data.WriteRemoteObject(callback->AsObject());
+        uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::DFX_DUMP);
+        auto res = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+        EXPECT_EQ(res, ERR_INVALID_DATA);
+    }
 }
 
 /**

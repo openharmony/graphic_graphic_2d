@@ -177,7 +177,7 @@ HWTEST_F(RSVulkanContextTest, CreateSkiaGetProc001, TestSize.Level1)
  */
 HWTEST_F(RSVulkanContextTest, CreateDrawingContext001, TestSize.Level2)
 {
-    RsVulkanContext::GetSingleton().InitVulkanContextForUniRender("");
+    RsVulkanContext::GetSingleton().InitVulkanContextForUniRender();
     RsVulkanContext::drawingContextMap_.clear();
     ASSERT_NE(RsVulkanContext::GetSingleton().CreateDrawingContext(), nullptr);
 }
@@ -190,7 +190,7 @@ HWTEST_F(RSVulkanContextTest, CreateDrawingContext001, TestSize.Level2)
  */
 HWTEST_F(RSVulkanContextTest, CreateDrawingContext002, TestSize.Level2)
 {
-    RsVulkanContext::GetSingleton().InitVulkanContextForUniRender("");
+    RsVulkanContext::GetSingleton().InitVulkanContextForUniRender();
     DrawingContextProperty property;
     RsVulkanContext::drawingContextMap_[gettid()] = property;
     ASSERT_NE(RsVulkanContext::GetSingleton().CreateDrawingContext(), nullptr);
@@ -656,7 +656,7 @@ HWTEST_F(RSVulkanContextTest, ConfigureExtensions_Test_02, TestSize.Level2)
  */
 HWTEST_F(RSVulkanContextTest, GetDrawingContext001, TestSize.Level2)
 {
-    RsVulkanContext::GetSingleton().InitVulkanContextForUniRender("");
+    RsVulkanContext::GetSingleton().InitVulkanContextForUniRender();
 
     RsVulkanContext::ReleaseDrawingContextMap();
     ASSERT_NE(RsVulkanContext::GetSingleton().GetDrawingContext(), nullptr);
@@ -673,7 +673,7 @@ HWTEST_F(RSVulkanContextTest, GetDrawingContext001, TestSize.Level2)
  */
 HWTEST_F(RSVulkanContextTest, GetDrawingContext002, TestSize.Level2)
 {
-    RsVulkanContext::GetSingleton().InitVulkanContextForUniRender("");
+    RsVulkanContext::GetSingleton().InitVulkanContextForUniRender();
     RsVulkanContext::GetSingleton().SetIsProtected(true);
 
     RsVulkanContext::ReleaseDrawingContextMap();
@@ -691,7 +691,7 @@ HWTEST_F(RSVulkanContextTest, GetDrawingContext002, TestSize.Level2)
  */
 HWTEST_F(RSVulkanContextTest, GetDrawingContext003, TestSize.Level2)
 {
-    RsVulkanContext::GetSingleton().InitVulkanContextForUniRender("");
+    RsVulkanContext::GetSingleton().InitVulkanContextForUniRender();
     RsVulkanContext::GetSingleton().SetIsProtected(true);
 
     RsVulkanContext::SaveNewDrawingContext(gettid(), nullptr);
@@ -709,7 +709,7 @@ HWTEST_F(RSVulkanContextTest, GetDrawingContext003, TestSize.Level2)
  */
 HWTEST_F(RSVulkanContextTest, GetDrawingContext004, TestSize.Level2)
 {
-    RsVulkanContext::GetSingleton().InitVulkanContextForUniRender("");
+    RsVulkanContext::GetSingleton().InitVulkanContextForUniRender();
     RsVulkanContext::GetSingleton().SetIsProtected(true);
 
     auto protectedDrawingContext = std::make_shared<Drawing::GPUContext>();
@@ -728,7 +728,7 @@ HWTEST_F(RSVulkanContextTest, GetDrawingContext004, TestSize.Level2)
  */
 HWTEST_F(RSVulkanContextTest, CreateDrawingContext004, TestSize.Level2)
 {
-    RsVulkanContext::GetSingleton().InitVulkanContextForUniRender("");
+    RsVulkanContext::GetSingleton().InitVulkanContextForUniRender();
     RsVulkanContext::GetSingleton().SetIsProtected(true);
 
     RsVulkanContext::ReleaseDrawingContextMap();
@@ -746,7 +746,7 @@ HWTEST_F(RSVulkanContextTest, CreateDrawingContext004, TestSize.Level2)
  */
 HWTEST_F(RSVulkanContextTest, CreateDrawingContext005, TestSize.Level2)
 {
-    RsVulkanContext::GetSingleton().InitVulkanContextForUniRender("");
+    RsVulkanContext::GetSingleton().InitVulkanContextForUniRender();
     RsVulkanContext::GetSingleton().SetIsProtected(true);
 
     RsVulkanContext::SaveNewDrawingContext(gettid(), nullptr);
@@ -764,7 +764,7 @@ HWTEST_F(RSVulkanContextTest, CreateDrawingContext005, TestSize.Level2)
  */
 HWTEST_F(RSVulkanContextTest, CreateDrawingContext006, TestSize.Level2)
 {
-    RsVulkanContext::GetSingleton().InitVulkanContextForUniRender("");
+    RsVulkanContext::GetSingleton().InitVulkanContextForUniRender();
     RsVulkanContext::GetSingleton().SetIsProtected(true);
 
     auto protectedDrawingContext = std::make_shared<Drawing::GPUContext>();
@@ -783,9 +783,9 @@ HWTEST_F(RSVulkanContextTest, CreateDrawingContext006, TestSize.Level2)
  */
 HWTEST_F(RSVulkanContextTest, CreateDrawingContext007, TestSize.Level2)
 {
-    RsVulkanContext::GetSingleton().InitVulkanContextForUniRender("");
+    RsVulkanContext::GetSingleton().InitVulkanContextForUniRender();
     RsVulkanContext::GetSingleton().SetIsProtected(true);
-    auto& singletonPtr = RsVulkanContext::GetRecyclableSingletonPtr("");
+    auto& singletonPtr = RsVulkanContext::GetRecyclableSingletonPtr();
     singletonPtr.reset();
     RsVulkanContext::GetRecyclableSingleton();
     ASSERT_NE(RsVulkanContext::GetRecyclableSingletonPtr(), nullptr);

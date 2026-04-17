@@ -548,6 +548,7 @@ DECLARE_NONANIMATABLE_PROPERTY_TAG(Magnifier, GradientMaskColor1, Color);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(Magnifier, GradientMaskColor2, Color);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(Magnifier, OuterContourColor1, Color);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(Magnifier, OuterContourColor2, Color);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(Magnifier, SDFShape, std::shared_ptr<RSNGRenderShapeBase>);
 
 DECLARE_ANIMATABLE_PROPERTY_TAG(DistortionCollapse, LUCorner, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(DistortionCollapse, RUCorner, Vector2f);

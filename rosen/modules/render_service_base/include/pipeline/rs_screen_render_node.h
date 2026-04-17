@@ -335,6 +335,22 @@ public:
         return pixelFormat_;
     }
 
+    void SetSdrNits(float sdrNits)
+    {
+        lastSdrNits_ = sdrNits_;
+        sdrNits_ = sdrNits;
+    }
+
+    float GetSdrNits() const
+    {
+        return sdrNits_;
+    }
+
+    float GetLastSdrNits() const
+    {
+        return lastSdrNits_;
+    }
+
     bool GetFirstFrameVirtualScreenInit() const
     {
         return isFirstFrameVirtualScreenInit_;
@@ -545,6 +561,8 @@ private:
     bool isParallelDisplayNode_ = false;
     bool curZoomState_ = false;
     bool preZoomState_ = false;
+    float sdrNits_ = 500.0f;
+    float lastSdrNits_ = 500.0f;
     CompositeType compositeType_ = CompositeType::HARDWARE_COMPOSITE;
     mutable HdrStatus lastDisplayTotalHdrStatus_ = HdrStatus::NO_HDR;
     uint64_t screenId_ = 0;

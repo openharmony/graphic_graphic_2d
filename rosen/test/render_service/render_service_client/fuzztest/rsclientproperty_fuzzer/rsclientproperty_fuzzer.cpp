@@ -346,9 +346,6 @@ bool DoUpdateToRender002(const uint8_t* data, size_t size)
     auto motionBlurParam = std::make_shared<MotionBlurParam>(valuefloat, valueVector2f);
     RSProperty rsPropertyMotionBlurParam(motionBlurParam);
     rsPropertyMotionBlurParam.UpdateToRender(motionBlurParam, EnumNumber);
-    auto rsMagnifierParams = std::make_shared<RSMagnifierParams>();
-    RSProperty rsPropertyRSMagnifierParams(rsMagnifierParams);
-    rsPropertyRSMagnifierParams.UpdateToRender(rsMagnifierParams, EnumNumber);
     uint32_t emitterIndex = GetData<uint32_t>();
     auto emitterUpdater = std::make_shared<EmitterUpdater>(emitterIndex);
     RSProperty rsPropertyEmitterUpdater(emitterUpdater);
