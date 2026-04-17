@@ -1901,16 +1901,16 @@ void RSPropertyDrawableUtils::UpdatePropertiesToSpatialGlassEffect(const RSPrope
 
     auto sdfShape = properties.GetSDFShape();
     if (sdfShape) {
-        ROSEN_LOGD("RSPropertyDrawableUtils::UpdatePropertiesToSpatialGlassEffect, SPATIAL_GLASS_EFFECT,
-            node %{public}" PRIu64, nodeId);
+        ROSEN_LOGD("RSPropertyDrawableUtils::UpdatePropertiesToSpatialGlassEffect sdfShape, node %{public}" PRIu64,
+            nodeId);
         effectShader->Setter<SpatialGlassEffectShapeRenderTag>(sdfShape,
             PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
     }
     auto sdfRRect = properties.GetRRectForSDF();
     auto sdfRRectShape = std::static_pointer_cast<RSNGRenderSDFRRectShape>(
         RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE));
-    ROSEN_LOGD("RSPropertyDrawableUtils::UpdatePropertiesToSpatialGlassEffect, rrect %{public}s, node %{public}"
-        PRIu64, sdfRRect.ToString().c_str(), nodeId);
+    ROSEN_LOGD("RSPropertyDrawableUtils::UpdatePropertiesToSpatialGlassEffect rrect %{public}s, node %{public}" PRIu64,
+        sdfRRect.ToString().c_str(), nodeId);
     sdfRRectShape->Setter<SDFRRectShapeRRectRenderTag>(sdfRRect);
     effectShader->Setter<SpatialGlassEffectShapeRenderTag>(sdfRRectShape, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
 }
