@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 #include "include/command/rs_proxy_node_command.h"
 #include "common/rs_common_def.h"
+#include "pipeline/rs_proxy_render_node.h"
 #include "pipeline/rs_render_node.h"
 
 using namespace testing;
