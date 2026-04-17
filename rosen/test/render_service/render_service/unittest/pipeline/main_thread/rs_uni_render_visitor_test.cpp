@@ -1871,12 +1871,15 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareForCloneNode002, TestSize.Level1)
     result = rsUniRenderVisitor->PrepareForCloneNode(*surfaceRenderNode);
     ASSERT_FALSE(result);
 
-    surfaceRenderNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(surfaceRenderNode->GetId());
+    surfaceRenderNode->InitRenderParams();
     surfaceRenderNode->SetRelated(true);
-    ASSERT_TRUE(surfaceRenderNode->IsRelated());
+    surfaceRenderNodeCloned->ResetDirtyStatus();
+    result = rsUniRenderVisitor->PrepareForCloneNode(*surfaceRenderNode);
+    ASSERT_TRUE(result);
     surfaceRenderNodeCloned->SetDirty();
     result = rsUniRenderVisitor->PrepareForCloneNode(*surfaceRenderNode);
     ASSERT_FALSE(result);
+    
     surfaceRenderNodeCloned->SetSurfaceNodeType(RSSurfaceNodeType::NODE_MAX);
     result = rsUniRenderVisitor->PrepareForCloneNode(*surfaceRenderNode);
     ASSERT_FALSE(result);
@@ -9728,6 +9731,7 @@ HWTEST_F(RSUniRenderVisitorTest, IsSourceNodeDirtyTest003, TestSize.Level1)
 
     // Add child to leash window but no dirty
     leashWindowNode->AddChild(childNode, -1);
+    leashWindowNode->isSubTreeDirty_ = false;
     result = rsUniRenderVisitor->IsSourceNodeDirty(*leashWindowNode);
     EXPECT_FALSE(result);
 
@@ -9775,6 +9779,7 @@ HWTEST_F(RSUniRenderVisitorTest, IsSourceNodeDirtyTest004, TestSize.Level1)
     // Add child to leash window
     leashWindowNode->AddChild(childNode, -1);
     leashWindowNode->AddChild(canvasChildNode, -1);
+    leashWindowNode->isSubTreeDirty_ = false;
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
