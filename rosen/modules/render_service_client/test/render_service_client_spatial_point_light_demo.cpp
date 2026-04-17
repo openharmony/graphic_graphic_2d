@@ -23,7 +23,7 @@
 #include "ui/rs_ui_context.h"
 #include "ui/rs_ui_director.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
-#include "ui_effect/property/include/rs_ui_shape_base.h"
+#include "ui_effect/property/include/rs_ui_mask_base.h"
 
 using namespace OHOS;
 using namespace OHOS::Rosen;
@@ -37,31 +37,17 @@ constexpr int WINDOW_HEIGHT = 2000;
 
 constexpr float WAIT_TIME = 5.0f;
 
-constexpr float LIGHT_INTENSITY = 1.0f;
-constexpr float LIGHT_ATTENUATION = 0.5f;
-constexpr float LIGHT_Z = 50.0f;
-
 const std::string SURFACE_NODE_NAME = "spatial_point_light_demo";
 
-std::shared_ptr<RSNGSpatialPointLight> CreateSpatialPointLightShader()
+std::shared_ptr<RSNGRadialGradientMask> CreateRadialGradientMask()
 {
-    auto shader = std::make_shared<RSNGSpatialPointLight>();
-    shader->Setter<SpatialPointLightLightIntensityTag>(LIGHT_INTENSITY);
-    shader->Setter<SpatialPointLightLightPositionTag>(Vector3f(750.0f, 1000.0f, LIGHT_Z));
-    shader->Setter<SpatialPointLightLightColorTag>(Vector4f(1.0f, 1.0f, 1.0f, 1.0f));
-    shader->Setter<SpatialPointLightAttenuationTag>(LIGHT_ATTENUATION);
-    return shader;
-}
-
-std::shared_ptr<RSNGSDFRRectShape> CreateSDFRRectShape()
-{
-    auto shape = std::make_shared<RSNGSDFRRectShape>();
-    constexpr float shapeWidth = 1000.0f;
-    constexpr float shapeHeight = 500.0f;
-    constexpr float cornerRadius = 50.0f;
-    RRect rrect = RRect(RectT<float>(250, 750, shapeWidth, shapeHeight), cornerRadius, cornerRadius);
-    shape->Setter<SDFRRectShapeRRectTag>(rrect);
-    return shape;
+    auto mask = std::make_shared<RSNGRadialGradientMask>();
+    mask->Setter<RadialGradientMaskCenterTag>(Vector2f(0.5f, 0.5f));
+    mask->Setter<RadialGradientMaskRadiusXTag>(0.4f);
+    mask->Setter<RadialGradientMaskRadiusYTag>(0.4f);
+    mask->Setter<RadialGradientMaskColorsTag>(std::vector<float>{1.0f, 0.0f});
+    mask->Setter<RadialGradientMaskPositionsTag>(std::vector<float>{0.0f, 1.0f});
+    return mask;
 }
 
 class SpatialPointLightDemo {
@@ -147,10 +133,19 @@ public:
             std::cout << "Failed to create canvas node!" << std::endl;
             return false;
         }
-        canvasNode_->SetBounds(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
-        canvasNode_->SetFrame(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
-        canvasNode_->SetSDFShape(CreateSDFRRectShape());
-        canvasNode_->SetMaterialNGFilter(CreateSpatialPointLightShader());
+        canvasNode_->SetBounds(200, 500, 1000, 800);
+        canvasNode_->SetFrame(200, 500, 1000, 800);
+        canvasNode_->SetBackgroundColor(0xFF808080);
+
+        auto shader = std::make_shared<RSNGSpatialPointLight>();
+        shader->Setter<SpatialPointLightLightIntensityTag>(2.0f);
+        shader->Setter<SpatialPointLightLightPositionTag>(Vector3f(700.0f, 900.0f, 100.0f));
+        shader->Setter<SpatialPointLightLightColorTag>(Vector4f(1.0f, 1.0f, 1.0f, 1.0f));
+        shader->Setter<SpatialPointLightAttenuationTag>(0.3f);
+        shader->Setter<SpatialPointLightMaskTag>(
+            std::static_pointer_cast<RSNGMaskBase>(CreateRadialGradientMask()));
+        canvasNode_->SetBackgroundNGShader(shader);
+
         rootNode_->AddChild(canvasNode_, -1);
         return true;
     }
