@@ -1166,6 +1166,11 @@ ohos_executable("magnifier_demo") {
 
 ohos_executable("render_service_client_spatial_point_light_demo") {
   sources = [ "render_service_client_spatial_point_light_demo.cpp" ]
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
 
   deps = [
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
