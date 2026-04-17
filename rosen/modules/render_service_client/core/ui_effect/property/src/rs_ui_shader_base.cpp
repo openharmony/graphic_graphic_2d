@@ -21,7 +21,7 @@
 #include "ui_effect/effect/include/color_gradient_effect_para.h"
 #include "ui_effect/effect/include/frosted_glass_effect_para.h"
 #include "ui_effect/effect/include/harmonium_effect_para.h"
-#include "ui_effect/effect/include/spatial_glasss_effect_para.h"
+#include "ui_effect/effect/include/spatial_glass_effect_para.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -270,7 +270,7 @@ std::shared_ptr<RSNGShaderBase> ConvertHarmoniumEffectPara(std::shared_ptr<Visua
 
 std::shared_ptr<RSNGShaderBase> ConvertSpatialGlassEffectPara(std::shared_ptr<VisualEffectPara> effectPara)
 {
-    auto effect = RSNGShaderBase::Create(RSNGEffectType::Spatial_GLASS_EFFECT);
+    auto effect = RSNGShaderBase::Create(RSNGEffectType::SPATIAL_GLASS_EFFECT);
     if (effect == nullptr || effectPara == nullptr) {
         ROSEN_LOGE("ConvertSpatialGlassEffectPara effect or effectPara is nullptr");
         return nullptr;
