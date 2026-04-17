@@ -39,6 +39,7 @@ constexpr int NODE_X = 200;
 constexpr int NODE_Y = 500;
 constexpr int NODE_WIDTH = 1000;
 constexpr int NODE_HEIGHT = 800;
+constexpr int HALF_DIVISOR = 2;
 
 constexpr float DEFAULT_INTENSITY = 2.0f;
 constexpr float DEFAULT_ATTENUATION = 0.3f;
@@ -47,6 +48,8 @@ constexpr float DEFAULT_LIGHT_Z = 100.0f;
 constexpr float ANIMATION_FRAME_INTERVAL_US = 50000;
 constexpr int ANIMATION_FRAME_COUNT = 60;
 constexpr int MASK_SWITCH_INTERVAL = 3;
+constexpr int DEMO_INIT_WAIT_SECONDS = 2;
+constexpr int DEMO_ANIMATION_WAIT_SECONDS = 1;
 
 const std::string SURFACE_NODE_NAME = "spatial_point_light_demo";
 
@@ -221,14 +224,15 @@ public:
         canvasNode_->SetFrame(NODE_X, NODE_Y, NODE_WIDTH, NODE_HEIGHT);
         canvasNode_->SetBackgroundColor(0xFF808080);
 
-        UpdateShader(DEFAULT_INTENSITY, Vector3f(NODE_X + NODE_WIDTH / 2, NODE_Y + NODE_HEIGHT / 2, DEFAULT_LIGHT_Z),
+        UpdateShader(DEFAULT_INTENSITY, Vector3f(NODE_X + NODE_WIDTH / HALF_DIVISOR, NODE_Y + NODE_HEIGHT / HALF_DIVISOR, DEFAULT_LIGHT_Z),
             Vector4f(1.0f, 1.0f, 1.0f, 1.0f), DEFAULT_ATTENUATION, MASK_RADIAL_GRADIENT);
 
         rootNode_->AddChild(canvasNode_, -1);
         return true;
     }
 
-    void UpdateShader(float intensity, const Vector3f& position, const Vector4f& color, float attenuation, MaskType maskType)
+    void UpdateShader(float intensity, const Vector3f& position,
+        const Vector4f& color, float attenuation, MaskType maskType)
     {
         auto shader = std::make_shared<RSNGSpatialPointLight>();
         shader->Setter<SpatialPointLightLightIntensityTag>(intensity);
@@ -262,7 +266,7 @@ public:
             phase += 0.1f;
             float intensity = 0.5f + 2.0f * (0.5f + 0.5f * sin(phase));
             UpdateShader(intensity,
-                Vector3f(NODE_X + NODE_WIDTH / 2, NODE_Y + NODE_HEIGHT / 2, DEFAULT_LIGHT_Z),
+                Vector3f(NODE_X + NODE_WIDTH / HALF_DIVISOR, NODE_Y + NODE_HEIGHT / HALF_DIVISOR, DEFAULT_LIGHT_Z),
                 Vector4f(1.0f, 1.0f, 1.0f, 1.0f),
                 DEFAULT_ATTENUATION,
                 currentMask_);
@@ -275,8 +279,8 @@ public:
     void RunPositionAnimation()
     {
         std::cout << "Running position animation..." << std::endl;
-        float centerX = NODE_X + NODE_WIDTH / 2;
-        float centerY = NODE_Y + NODE_HEIGHT / 2;
+        float centerX = NODE_X + NODE_WIDTH / HALF_DIVISOR;
+        float centerY = NODE_Y + NODE_HEIGHT / HALF_DIVISOR;
         float radius = 200.0f;
         for (int frame = 0; frame < ANIMATION_FRAME_COUNT; frame++) {
             float angle = frame * 0.1f;
@@ -304,7 +308,7 @@ public:
             float g = 0.5f + 0.5f * sin(phase + 2.094f);
             float b = 0.5f + 0.5f * sin(phase + 4.189f);
             UpdateShader(DEFAULT_INTENSITY,
-                Vector3f(NODE_X + NODE_WIDTH / 2, NODE_Y + NODE_HEIGHT / 2, DEFAULT_LIGHT_Z),
+                Vector3f(NODE_X + NODE_WIDTH / HALF_DIVISOR, NODE_Y + NODE_HEIGHT / HALF_DIVISOR, DEFAULT_LIGHT_Z),
                 Vector4f(r, g, b, 1.0f),
                 DEFAULT_ATTENUATION,
                 currentMask_);
@@ -319,7 +323,7 @@ public:
         currentMask_ = newMask;
         std::cout << "Switching to mask: " << GetMaskName(currentMask_) << std::endl;
         UpdateShader(DEFAULT_INTENSITY,
-            Vector3f(NODE_X + NODE_WIDTH / 2, NODE_Y + NODE_HEIGHT / 2, DEFAULT_LIGHT_Z),
+            Vector3f(NODE_X + NODE_WIDTH / HALF_DIVISOR, NODE_Y + NODE_HEIGHT / HALF_DIVISOR, DEFAULT_LIGHT_Z),
             Vector4f(1.0f, 1.0f, 1.0f, 1.0f),
             DEFAULT_ATTENUATION,
             currentMask_);
@@ -345,19 +349,19 @@ public:
 
         std::cout << "=== SpatialPointLight Demo Start ===" << std::endl;
         FlushAndSend();
-        sleep(2);
+        sleep(DEMO_INIT_WAIT_SECONDS);
 
         RunIntensityAnimation();
-        sleep(1);
+        sleep(DEMO_ANIMATION_WAIT_SECONDS);
 
         RunPositionAnimation();
-        sleep(1);
+        sleep(DEMO_ANIMATION_WAIT_SECONDS);
 
         RunColorAnimation();
-        sleep(1);
+        sleep(DEMO_ANIMATION_WAIT_SECONDS);
 
         RunMaskSwitchDemo();
-        sleep(1);
+        sleep(DEMO_ANIMATION_WAIT_SECONDS);
 
         std::cout << "=== SpatialPointLight Demo End ===" << std::endl;
     }
