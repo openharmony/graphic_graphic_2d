@@ -82,7 +82,7 @@ public:
         NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
         RSSurfaceCapturePermissions permissions);
 
-    ErrCode SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+    ErrCode SetHwcNodeBounds(NodeId rsNodeId, float positionX, float positionY,
         float positionZ, float positionW);
 
     ErrCode GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus, int32_t& resCode);
@@ -173,7 +173,7 @@ public:
     int32_t GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB);
     ErrCode RepaintEverything();
     ErrCode SetColorFollow(const std::string &nodeIdStr, bool isColorFollow);
-    void CleanAll(pid_t pid);
+    void Clean(pid_t pid, bool forRefresh = false);
     void SetFreeMultiWindowStatus(bool enable);
     int32_t RegisterSelfDrawingNodeRectChangeCallback(
         pid_t remotePid, const RectConstraint& constraint, sptr<RSISelfDrawingNodeRectChangeCallback> callback);

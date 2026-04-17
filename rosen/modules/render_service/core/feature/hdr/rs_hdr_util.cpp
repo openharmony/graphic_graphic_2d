@@ -139,7 +139,9 @@ bool RSHdrUtil::UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId 
         RS_LOGD("hdrStaticMetadataVec is invalid");
         auto hdrStatus = RSBaseHdrUtil::CheckIsHdrSurfaceBuffer(surfaceBuffer);
         if (hdrStatus == HdrStatus::AI_HDR_VIDEO_GAINMAP || hdrStatus == HdrStatus::AI_HDR_VIDEO_GTM) {
-            scaler = rsLuminance.CalScaler(1.0f, std::vector<uint8_t>{}, brightnessFactor, hdrStatus);
+            float hdrBrightness = static_cast<HDRType>(surfaceNode.GetHDRType()) == HDRType::DEFAULT?
+                1.0f : surfaceNode.GetHDRBrightness();
+            scaler = rsLuminance.CalScaler(1.0f, std::vector<uint8_t>{}, hdrBrightness * brightnessFactor, hdrStatus);
         } else {
             scaler = surfaceNode.GetHDRBrightness() * brightnessFactor * (scaler - 1.0f) + 1.0f;
         }
@@ -273,18 +275,25 @@ void RSHdrUtil::CheckPixelFormatWithSelfDrawingNode(RSSurfaceRenderNode& surface
     }
     auto screenId = screenNode.GetScreenId();
     screenNode.CollectHdrStatus(surfaceNode.GetVideoHdrStatus());
-
+    bool isHWCDisabled = surfaceNode.IsHardwareForcedDisabled();
+    bool isHDRNode = surfaceNode.GetVideoHdrStatus() != HdrStatus::NO_HDR;
+    bool isSdrNitsChanged = ROSEN_NE(screenNode.GetSdrNits(), screenNode.GetLastSdrNits());
+    bool isNeedSetDirty = isHWCDisabled && isHDRNode && isSdrNitsChanged;
+    if (isNeedSetDirty) {
+        RS_TRACE_NAME_FMT("%s surfaceNode: %s SetDirty", __func__, surfaceNode.GetName().c_str());
+        surfaceNode.SetContentDirty();
+    }
     if (RSLuminanceControl::Get().IsForceCloseHdr()) {
         RS_LOGD("RSHdrUtil::CheckPixelFormatWithSelfDrawingNode node(%{public}s) forceCloseHdr.",
             surfaceNode.GetName().c_str());
         return;
     }
-    if (!surfaceNode.IsHardwareForcedDisabled()) {
+    if (!isHWCDisabled) {
         RS_LOGD("RSHdrUtil::CheckPixelFormatWithSelfDrawingNode node(%{public}s) is hardware-enabled",
             surfaceNode.GetName().c_str());
         return;
     }
-    if (surfaceNode.GetVideoHdrStatus() != HdrStatus::NO_HDR) {
+    if (isHDRNode) {
         SetHDRParam(screenNode, surfaceNode, false);
         if (screenNode.GetIsLuminanceStatusChange()) {
             surfaceNode.SetContentDirty();

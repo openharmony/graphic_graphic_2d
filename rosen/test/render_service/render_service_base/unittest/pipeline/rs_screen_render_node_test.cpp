@@ -312,6 +312,23 @@ HWTEST_F(RSScreenRenderNodeTest, SetDisplayGlobalZorderTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetDisplayGlobalZorderTest
+ * @tc.desc: test results of GetDisplayGlobalZorder
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderNodeTest, GetDisplayGlobalZorderTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSScreenRenderNode>(id, 0, context);
+    node->stagingRenderParams_ = nullptr;
+    node->SetDisplayGlobalZOrder(1.0);
+    ASSERT_TRUE(ROSEN_EQ(node->GetDisplayGlobalZOrder(), 0.f));
+    node->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(node->GetId());
+    node->SetDisplayGlobalZOrder(1.0);
+    ASSERT_FALSE(ROSEN_EQ(node->GetDisplayGlobalZOrder(), 0.f));
+}
+
+/**
  * @tc.name: SetNeedForceUpdateHwcNodesTest
  * @tc.desc: test results of SetNeedForceUpdateHwcNodes
  * @tc.type:FUNC
@@ -388,6 +405,22 @@ HWTEST_F(RSScreenRenderNodeTest, ExistHWCNodeTest, TestSize.Level1)
     node->stagingRenderParams_->SetNeedSync(true);
     node->SetExistHWCNode(true);
     EXPECT_EQ(node->GetExistHWCNode(), true);
+}
+
+/**
+ * @tc.name: SetSdrNitsTest
+ * @tc.desc: test results of SetSdrNits
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderNodeTest, SetSdrNitsTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSScreenRenderNode>(id, 0, context);
+    node->SetSdrNits(100.0f);
+    EXPECT_EQ(ROSEN_EQ(node->GetSdrNits(), 100.0f), true);
+    node->SetSdrNits(200.0f);
+    EXPECT_EQ(ROSEN_EQ(node->GetSdrNits(), 200.0f), true);
+    EXPECT_EQ(ROSEN_EQ(node->GetLastSdrNits(), 100.0f), true);
 }
 
 /**

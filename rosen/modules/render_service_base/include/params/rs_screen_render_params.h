@@ -229,7 +229,10 @@ public:
     bool IsEqualVsyncPeriod() const { return isEqualVsyncPeriod_; }
     void SetLogicalCameraRotationCorrection(ScreenRotation logicalCorrection);
     ScreenRotation GetLogicalCameraRotationCorrection() const;
-
+    LayerSkipContext& GetLayerSkipContext()
+    {
+        return layerSkipContext_;
+    }
 private:
 
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> logicalDisplayNodeDrawables_;
@@ -266,6 +269,7 @@ private:
     bool isZoomed_ = false;
     uint32_t mirrorDstCount_ = 0;
     bool hasMirrorScreen_ = false;
+    LayerSkipContext layerSkipContext_;
     Drawing::Matrix slrMatrix_;
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr targetSurfaceRenderNodeDrawable_;
     friend class RSUniRenderVisitor;

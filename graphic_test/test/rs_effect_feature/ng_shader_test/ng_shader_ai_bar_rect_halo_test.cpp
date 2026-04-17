@@ -90,6 +90,23 @@ private:
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }
+
+    void SetUpOverlayNGShaderTestNode(const size_t i, const size_t columnCount, const size_t rowCount,
+        std::shared_ptr<RSNGAIBarRectHalo>& aiBarRectHalo)
+    {
+        if (columnCount == 0 || rowCount == 0) {
+            return; // Invalid test configuration
+        }
+        const size_t sizeX = SCREEN_WIDTH / columnCount;
+        const size_t sizeY = SCREEN_HEIGHT / rowCount;
+        const size_t x = (i % columnCount) * sizeX;
+        const size_t y = (i / columnCount) * sizeY;
+
+        auto testNode = SetUpNodeBgImage(TEST_IMAGE_PATH, { x, y, sizeX, sizeY });
+        testNode->SetOverlayNGShader(aiBarRectHalo);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
 };
 
 GRAPHIC_TEST(NGShaderAIBarRectHaloTest, EFFECT_TEST, Set_AI_Bar_Rect_Halo_Progress_Boundary_Test)
@@ -138,4 +155,34 @@ GRAPHIC_TEST(NGShaderAIBarRectHaloTest, EFFECT_TEST, Set_AI_Bar_Rect_Halo_Extrem
     }
 }
 
+GRAPHIC_TEST(NGShaderAIBarRectHaloTest, EFFECT_TEST, Set_AI_Bar_Rect_Halo_Overlay_NG_Shader_Test1)
+{
+    const size_t columnCount = 3;
+    const size_t rowCount = 1;
+
+    for (size_t i = 0; i < strengthValues.size(); i++) {
+        auto aiBarRectHalo = std::make_shared<RSNGAIBarRectHalo>();
+        InitAIBarRectHalo(aiBarRectHalo);
+        aiBarRectHalo->Setter<AIBarRectHaloProgressTag>(progressValues[i]);
+        aiBarRectHalo->Setter<AIBarRectHaloBrightnessTag>(brightnessValues[i]);
+        aiBarRectHalo->Setter<AIBarRectHaloStrengthTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
+        aiBarRectHalo->Setter<AIBarRectHaloLTWHTag>(Vector4f{0.0f, 0.0f, 100.0f, 100.0f});
+
+        SetUpOverlayNGShaderTestNode(i, columnCount, rowCount, aiBarRectHalo);
+    }
+}
+
+GRAPHIC_TEST(NGShaderAIBarRectHaloTest, EFFECT_TEST, Set_AI_Bar_Rect_Halo_Overlay_NG_Shader_Test2)
+{
+    const size_t columnCount = 4;
+    const size_t rowCount = 1;
+    const std::vector<float> extremeValues = {-1.0f, -10.0f, 9999.0f, 1e10f};
+    for (size_t i = 0; i < extremeValues.size(); i++) {
+        auto aiBarRectHalo = std::make_shared<RSNGAIBarRectHalo>();
+        InitAIBarRectHalo(aiBarRectHalo);
+        aiBarRectHalo->Setter<AIBarRectHaloProgressTag>(extremeValues[i]);
+        aiBarRectHalo->Setter<AIBarRectHaloLTWHTag>(Vector4f{0.0f, 0.0f, 100.0f, 100.0f});
+        SetUpOverlayNGShaderTestNode(i, columnCount, rowCount, aiBarRectHalo);
+    }
+}
 } // namespace OHOS::Rosen

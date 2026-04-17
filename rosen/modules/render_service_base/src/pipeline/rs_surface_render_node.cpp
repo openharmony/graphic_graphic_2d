@@ -1113,7 +1113,7 @@ void RSSurfaceRenderNode::UpdateVirtualScreenWhiteListInfo()
     auto screenIds = ScreenSpecialLayerInfo::QueryEnableScreen(
         SpecialLayerType::IS_WHITE_LIST, {GetId(), GetLeashPersistentId()});
     SetScreensWithSubTreeWhitelist(screenIds);
-    RSRenderNode::SyncWhiteListInfoToParent();
+    SyncWhiteListInfoToParent();
 }
 
 void RSSurfaceRenderNode::SyncPrivacyContentInfoToFirstLevelNode()
@@ -1461,6 +1461,9 @@ void RSSurfaceRenderNode::SetColorSpace(GraphicColorGamut colorSpace)
 
 GraphicColorGamut RSSurfaceRenderNode::GetColorSpace() const
 {
+    if (RsCommonHook::Instance().IsForceSRGBOutputEnabled()) {
+        return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    }
     if (!RSSystemProperties::GetWideColorSpaceEnabled()) {
         return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     }
@@ -3792,6 +3795,16 @@ bool RSSurfaceRenderNode::GetSurfaceBufferOpaque() const
     return isSurfaceBufferOpaque_;
 }
 
+void RSSurfaceRenderNode::SetHDRType(uint32_t hdrType)
+{
+    hdrType_ = hdrType;
+}
+
+uint32_t RSSurfaceRenderNode::GetHDRType() const
+{
+    return hdrType_;
+}
+
 bool RSSurfaceRenderNode::isForcedClipHole() const
 {
     const std::string& tvPlayerBundleName = RsCommonHook::Instance().GetTvPlayerBundleName();
@@ -3856,6 +3869,9 @@ GraphicColorGamut RSSurfaceRenderNode::GamutCollector::GetCurGamut() const
 
 GraphicColorGamut RSSurfaceRenderNode::GamutCollector::GetFirstLevelNodeGamut() const
 {
+    if (RsCommonHook::Instance().IsForceSRGBOutputEnabled()) {
+        return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    }
     if (!RSSystemProperties::GetWideColorSpaceEnabled()) {
         return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     }

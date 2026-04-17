@@ -154,14 +154,12 @@ bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(uint32_t zorder,
         info.perFrameParameters["SourceCropTuning"] = std::vector<int8_t> {0};
     }
 
-    if (arsrPreEnabled_ && CheckIfDoArsrPre(node)) {
+    if (node->GetArsrTag()) {
         info.perFrameParameters["ArsrDoEnhance"] = std::vector<int8_t> {1};
-        node->SetArsrTag(true);
     }
     CheckIfDoCopybit(node, transform, info);
     node->SetDeviceOfflineEnable(false);
     auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams *>(node->GetStagingRenderParams().get());
-    stagingSurfaceParams->SetOfflineOriginBufferSynced(true);
     const auto& layerLinearMatrix = stagingSurfaceParams->GetLayerLinearMatrix();
     if (layerLinearMatrix.size() == MATRIX_SIZE) {
         std::vector<int8_t> valueBlob(MATRIX_SIZE * sizeof(float));

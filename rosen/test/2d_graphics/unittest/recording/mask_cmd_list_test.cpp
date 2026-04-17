@@ -243,7 +243,7 @@ HWTEST_F(MaskPenOpItemTest, PlaybackTest005, TestSize.Level1)
 HWTEST_F(MaskBrushOpItemTest, PlaybackTest006, TestSize.Level1)
 {
     BrushHandle brushHandle;
-    brushHandle.isUIColor = true;
+    brushHandle.SetIsUIColor(true);
     brushHandle.uiColor = UIColor(128.0f, 64.0f, 32.0f, 255.0f);
     auto maskBrushOpItem = std::make_shared<MaskBrushOpItem>(brushHandle);
     auto path = std::make_shared<Path>();
@@ -271,7 +271,6 @@ HWTEST_F(MaskBrushOpItemTest, PlaybackTest006, TestSize.Level1)
 HWTEST_F(MaskBrushOpItemTest, PlaybackTest007, TestSize.Level1)
 {
     BrushHandle brushHandle;
-    brushHandle.isUIColor = false;
     brushHandle.color = Color::COLOR_RED;
     auto maskBrushOpItem = std::make_shared<MaskBrushOpItem>(brushHandle);
     auto path = std::make_shared<Path>();
@@ -299,7 +298,7 @@ HWTEST_F(MaskBrushOpItemTest, PlaybackTest007, TestSize.Level1)
 HWTEST_F(MaskPenOpItemTest, PlaybackTest008, TestSize.Level1)
 {
     PenHandle penHandle;
-    penHandle.isUIColor = true;
+    penHandle.SetIsUIColor(true);
     penHandle.uiColor = UIColor(64.0f, 128.0f, 192.0f, 255.0f);
     auto maskPenOpItem = std::make_shared<MaskPenOpItem>(penHandle);
     auto path = std::make_shared<Path>();
@@ -328,7 +327,7 @@ HWTEST_F(MaskPenOpItemTest, PlaybackTest008, TestSize.Level1)
 HWTEST_F(MaskPenOpItemTest, PlaybackTest009, TestSize.Level1)
 {
     PenHandle penHandle;
-    penHandle.isUIColor = false;
+    penHandle.SetIsUIColor(true);
     penHandle.color = Color::COLOR_BLUE;
     auto maskPenOpItem = std::make_shared<MaskPenOpItem>(penHandle);
     auto path = std::make_shared<Path>();

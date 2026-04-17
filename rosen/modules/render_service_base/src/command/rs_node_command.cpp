@@ -28,12 +28,12 @@ RSNodeCommandHelper::CommitDumpNodeTreeProcessor gCommitDumpNodeTreeProcessor = 
 RSNodeCommandHelper::ColorPickerCallbackProcessor gColorPickerCallbackProcessor = nullptr;
 }
 
-void RSNodeCommandHelper::SetFreeze(RSContext& context, NodeId nodeId, bool isFreeze)
+void RSNodeCommandHelper::SetFreeze(RSContext& context, NodeId nodeId, bool isFreeze, bool isMarkedByUI)
 {
     auto& nodeMap = context.GetNodeMap();
     auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
     if (node) {
-        node->SetStaticCached(isFreeze);
+        node->SetStaticCached(isFreeze, isMarkedByUI);
     }
 }
 
@@ -124,11 +124,11 @@ void RSNodeCommandHelper::SetUIFirstSwitch(RSContext& context, NodeId nodeId, RS
     }
 }
 
-void RSNodeCommandHelper::MarkNodeColorSpace(RSContext& context, NodeId nodeId, bool isP3Color)
+void RSNodeCommandHelper::MarkNodeColorSpace(RSContext& context, NodeId nodeId, int8_t colorSpace)
 {
     auto& nodeMap = context.GetNodeMap();
     if (auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId)) {
-        node->MarkNodeColorSpace(isP3Color);
+        node->MarkNodeColorSpace(colorSpace);
     }
 }
 

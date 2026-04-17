@@ -147,7 +147,7 @@ public:
         }
     }
 
-    static std::shared_ptr<ColorSpace>skColorSpaceToDrawingColorSpace(sk_sp<SkColorSpace> skSpace)
+    static std::shared_ptr<ColorSpace> SkColorSpaceToDrawingColorSpace(sk_sp<SkColorSpace> skSpace)
     {
         if (!skSpace) {
             return nullptr;
@@ -178,7 +178,7 @@ public:
     static ImageInfo ConvertToRSImageInfo(const SkImageInfo& skImageInfo)
     {
         auto skSpace = skImageInfo.refColorSpace();
-        std::shared_ptr<ColorSpace> colorSpace = skColorSpaceToDrawingColorSpace(skSpace);
+        std::shared_ptr<ColorSpace> colorSpace = SkColorSpaceToDrawingColorSpace(skSpace);
         return {skImageInfo.width(), skImageInfo.height(),
                 ConvertToColorType(skImageInfo.colorType()),
                 ConvertToAlphaType(skImageInfo.alphaType()),

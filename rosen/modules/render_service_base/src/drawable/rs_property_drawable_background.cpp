@@ -107,12 +107,6 @@ bool RSShadowDrawable::OnUpdate(const RSRenderNode& node)
         auto geFilter = std::make_shared<Drawing::GEVisualEffect>(
             Drawing::GE_SHADER_SDF_SHADOW, Drawing::DrawingPaintType::BRUSH);
         geFilter->SetParam(Drawing::GE_SHADER_SDF_SHADOW_SHAPE, geShape);
-
-        Drawing::Color color(stagingColor_.GetRed(), stagingColor_.GetGreen(),
-            stagingColor_.GetBlue(), stagingColor_.GetAlpha());
-        Drawing::GESDFShadowParams shadow {color, stagingOffsetX_, stagingOffsetY_,
-            stagingRadius_, stagingPath_, stagingIsFilled_};
-        geFilter->SetParam(Drawing::GE_SHADER_SDF_SHADOW_SHADOW, shadow);
         stagingGeContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
         stagingGeContainer_->AddToChainedFilter(geFilter);
     }
@@ -139,15 +133,6 @@ void RSShadowDrawable::OnSync()
 
 void RSShadowDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
 {
-    bool isSdfShadow = geContainer_ && ROSEN_LE(elevation_, 0.f) && ROSEN_GE(radius_, 0.f);
-    if (isSdfShadow) {
-        if (canvas && rect) {
-            auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
-            geRender->DrawShaderEffect(*canvas, *geContainer_, *rect);
-        }
-        return;
-    }
-
     // skip shadow if cache is enabled
     if (canvas->GetCacheType() == Drawing::CacheType::ENABLED) {
         ROSEN_LOGD("RSShadowDrawable::OnDraw cache type enabled.");
@@ -160,8 +145,18 @@ void RSShadowDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect
     Drawing::Path path = path_;
     Color shadowColor = color_;
     if (colorStrategy_ != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
-        shadowColor = RSPropertyDrawableUtils::GetColorForShadowSyn(canvas, path,
-            color_, colorStrategy_);
+        shadowColor = RSPropertyDrawableUtils::GetColorForShadowSyn(canvas, path, color_, colorStrategy_);
+    }
+    bool isSdfShadow = geContainer_ && ROSEN_LE(elevation_, 0.f) && ROSEN_GE(radius_, 0.f);
+    if (isSdfShadow) {
+        auto drawingShadowColor = Drawing::Color(shadowColor.GetRed(), shadowColor.GetGreen(),
+            shadowColor.GetBlue(), shadowColor.GetAlpha());
+        Drawing::GESDFShadowParams shadow {drawingShadowColor, offsetX_, offsetY_, radius_, path, isFilled_};
+        auto geFilter = geContainer_->GetGEVisualEffect(Drawing::GE_SHADER_SDF_SHADOW);
+        geFilter->SetParam(Drawing::GE_SHADER_SDF_SHADOW_SHADOW, shadow);
+        auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
+        geRender->DrawShaderEffect(*canvas, *geContainer_, *rect);
+        return;
     }
     if (ROSEN_GNE(elevation_, 0.f)) {
         RSPropertyDrawableUtils::DrawShadow(canvas, path, offsetX_, offsetY_,

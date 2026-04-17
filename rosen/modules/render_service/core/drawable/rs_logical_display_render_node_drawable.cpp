@@ -539,7 +539,7 @@ std::vector<RectI> RSLogicalDisplayRenderNodeDrawable::CalculateVirtualDirty(
         uniParam->GetForceMirrorScreenDirty() || uniParam->GetVirtualDirtyRefresh() || virtualDirtyNeedRefresh_ ||
         curScreenParams->GetHasMirroredScreenChanged() || specialLayerChange ||
         !curScreenDrawable.GetSyncDirtyManager()->GetCurrentFrameDirtyRegion().IsEmpty() ||
-        lastEnableVisibleRect_ != enableVisibleRect_;
+        lastEnableVisibleRect_ != enableVisibleRect_ || !curScreenParams->IsEqualVsyncPeriod();
     if (needRefresh) {
         curScreenDrawable.GetSyncDirtyManager()->ResetDirtyAsSurfaceSize();
         virtualDirtyNeedRefresh_ = false;
@@ -554,11 +554,6 @@ std::vector<RectI> RSLogicalDisplayRenderNodeDrawable::CalculateVirtualDirty(
         return mappedDamageRegion.GetRegionRectIs();
     }
     curScreenDrawable.SetAccumulateDirtyInSkipFrame(false);
-    if (!curScreenParams->IsEqualVsyncPeriod()) {
-        RS_LOGD("RSLogicalDisplayRenderNodeDrawable::CalculateVirtualDirty frame rate is irregular");
-        virtualProcesser->SetRoiRegionToCodec(mappedDamageRegion.GetRegionRectIs());
-        return mappedDamageRegion.GetRegionRectIs();
-    }
     const auto& mainScreenInfo = mirrorParams->GetScreenInfo();
     int32_t bufferAge = virtualProcesser->GetBufferAge();
     std::vector<RectI> damageRegionRects = RSUniRenderUtil::MergeDirtyHistoryInVirtual(
@@ -1011,6 +1006,11 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirrorCopy(RSLogicalDisplayRenderPa
     }
     // Clean up the content of the previous frame
     curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
+
+    // If the self-drawing node is not fullscreen, need to re-adaptation curCanvas_ clear
+    if (RSUniRenderUtil::ProcessSingleSelfDrawingNode(*curCanvas_, *mirroredScreenParams, params)) {
+        return;
+    }
     virtualProcesser->CanvasClipRegionForUniscaleMode();
     RSUniRenderThread::SetCaptureParam(CaptureParam(false, false, true));
 
@@ -1172,7 +1172,14 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirror(RSLogicalDisplayRenderParams
     }
     // Clean up the content of the previous frame
     curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
+
+    // If the self-drawing node is not fullscreen, need to re-adaptation curCanvas_ clear
+    if (RSUniRenderUtil::ProcessSingleSelfDrawingNode(*curCanvas_, *mirroredScreenParams, params)) {
+        return;
+    }
     virtualProcesser->CanvasClipRegionForUniscaleMode(visibleClipRectMatrix_, mirroredScreenProperty.GetIsSamplingOn());
+    // Set whitelist rect to meta data before concat matrix
+    RSSpecialLayerUtils::SetWhiteListRectToMetaData(*curCanvas_, uniParam, curScreenParams->GetScreenProperty());
     curCanvas_->ConcatMatrix(mirroredParams->GetMatrix());
     PrepareOffscreenRender(*mirroredDrawable, false, false);
     // Add this flag to disable color picking operations during mirror screen redrawing

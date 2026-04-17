@@ -54,6 +54,7 @@
 #endif
 #if defined(ROSEN_ARKUI_X)
 #include "render_context/new_render_context/render_context_gl.h"
+#include "platform/common/rs_accessibility.h"
 #endif
 #ifdef OHOS_RSS_CLIENT
 #include "res_sched_client.h"
@@ -146,7 +147,7 @@ RSRenderThread::RSRenderThread()
         }
         RSRenderNodeGC::Instance().ReleaseNodeMemory();
         ReleasePixelMapInBackgroundThread();
-#if defined(RS_ENABLE_VK) && defined(ROSEN_ARKUI_X) && defined(RS_ENABLE_GPU)
+#if defined(ROSEN_ARKUI_X) && defined(RS_ENABLE_GPU)
         ScheduleIdleGpuResourceClean();
 #endif
         context_->pendingSyncNodes_.clear();
@@ -160,7 +161,7 @@ RSRenderThread::RSRenderThread()
     context_ = std::make_shared<RSContext>();
     context_->Initialize();
     jankDetector_ = std::make_shared<RSJankDetector>();
-#ifdef ACCESSIBILITY_ENABLE
+#if defined(ROSEN_ARKUI_X) || defined(ACCESSIBILITY_ENABLE)
     RSAccessibility::GetInstance().ListenHighContrastChange([](bool newHighContrast) {
         std::thread thread(
             [](bool newHighContrast) {
@@ -213,12 +214,12 @@ RSRenderThread::~RSRenderThread()
 #endif
 }
 
-#if defined(RS_ENABLE_VK) && defined(ROSEN_ARKUI_X) && defined(RS_ENABLE_GPU)
+#if defined(ROSEN_ARKUI_X) && defined(RS_ENABLE_GPU)
 void RSRenderThread::ScheduleIdleGpuResourceClean()
 {
     lastRenderEndTimeNs_ = jankDetector_ ? static_cast<int64_t>(jankDetector_->GetSysTimeNs()) : 0;
     const int64_t scheduledTimeNs = lastRenderEndTimeNs_;
-    constexpr int64_t IDLE_CLEAN_DELAY_MS = 5000;
+    constexpr int64_t IDLE_CLEAN_DELAY_MS = 2500;
     if (!handler_) {
         return;
     }
@@ -231,7 +232,7 @@ void RSRenderThread::ScheduleIdleGpuResourceClean()
             return;
         }
         gpuContext->FlushAndSubmit(true);
-        gpuContext->PurgeUnlockedResources(true);
+        gpuContext->PurgeUnlockedResources(false);
         }, IDLE_CLEAN_DELAY_MS);
 }
 #endif
@@ -339,7 +340,7 @@ void RSRenderThread::CreateAndInitRenderContextIfNeed()
             renderContext_->SetCleanUpHelper(cleanupTask);
         
 #endif
-#ifdef ROSEN_OHOS
+#if defined(ROSEN_OHOS) || defined(ROSEN_ARKUI_X)
 
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
         RS_TRACE_NAME("Init");
@@ -561,8 +562,9 @@ void RSRenderThread::Animate(uint64_t timestamp)
             ROSEN_LOGD("RSRenderThread::Animate removing expired animating node");
             return true;
         }
+        int64_t unusedNextFrameTime = 0;
         auto [hasRunningAnimation, nodeNeedRequestNextVsync, nodeCalculateAnimationValue] =
-            node->Animate(timestamp, minLeftDelayTime);
+            node->Animate(timestamp, minLeftDelayTime, unusedNextFrameTime);
         if (!hasRunningAnimation) {
             ROSEN_LOGD("RSRenderThread::Animate removing finished animating node %{public}" PRIu64, node->GetId());
         }

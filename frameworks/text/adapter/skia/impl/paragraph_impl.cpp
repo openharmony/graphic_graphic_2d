@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <limits>
 #include <numeric>
+#include <sstream>
 
 #include "common_utils/path_util.h"
 #include "common_utils/pixel_map_util.h"
@@ -46,8 +47,6 @@ namespace SPText {
 using PaintID = skt::ParagraphPainter::PaintID;
 constexpr double INFINITE_WIDTH = std::numeric_limits<double>::max();
 constexpr size_t INFINITE_RANGE_INDEX = std::numeric_limits<size_t>::max();
-// Invalid text range representing an invalid or empty range
-constexpr TextRange INVALID_TEXT_RANGE = {0, 0};
 
 namespace {
 std::vector<TextBox> GetTxtTextBoxes(const std::vector<skt::TextBox>& skiaBoxes)
@@ -556,9 +555,53 @@ void ParagraphImpl::SetLayoutState(size_t state)
     paragraph_->setState(static_cast<skt::InternalState>(state));
 }
 
+std::string ParagraphImpl::DumpSymbolInfo() const
+{
+    std::ostringstream symbolInfo;
+    for (size_t i = 0; i < hmSymbols_.size(); ++i) {
+        const auto& symbolRun = hmSymbols_[i];
+        if (symbolRun == nullptr) {
+            continue;
+        }
+        const auto& symbolTxt = symbolRun->GetSymbolTxt();
+        auto colors = symbolTxt.GetRenderColor();
+        auto uiColors = symbolTxt.GetUIColors();
+        auto colorSpaces = symbolTxt.GetColorSpaces();
+
+        symbolInfo << "{SymbolRun" << i
+                   << "}uid:" << symbolTxt.GetSymbolUid()
+                   << ",rmode:" << static_cast<int>(symbolTxt.GetRenderMode())
+                   << ",clrCnt:" << colors.size();
+        for (size_t j = 0; j < colors.size(); ++j) {
+            symbolInfo << ",clr" << j << ":["
+                       << static_cast<int>(colors[j].r) << ","
+                       << static_cast<int>(colors[j].g) << ","
+                       << static_cast<int>(colors[j].b) << ","
+                       << colors[j].a << "]";
+        }
+        symbolInfo << ".uiClrCnt:" << uiColors.size();
+        for (size_t j = 0; j < uiColors.size(); ++j) {
+            symbolInfo << ",uiClr" << j << ":["
+                       << uiColors[j].GetRed() << ","
+                       << uiColors[j].GetGreen() << ","
+                       << uiColors[j].GetBlue() << ","
+                       << uiColors[j].GetAlpha() << ","
+                       << uiColors[j].GetHeadroom() << "],";
+            if (j < colorSpaces.size()) {
+                symbolInfo << "cspace" << j << ":" << static_cast<int>(colorSpaces[j]);
+            }
+        }
+    }
+    return symbolInfo.str();
+}
+
 std::string ParagraphImpl::GetDumpInfo() const
 {
-    return paragraph_->GetDumpInfo();
+    std::string dumpInfo = paragraph_->GetDumpInfo();
+    if (!hmSymbols_.empty()) {
+        return dumpInfo + DumpSymbolInfo();
+    }
+    return dumpInfo;
 }
 
 ParagraphStyle ParagraphImpl::GetParagraphStyle() const
@@ -697,13 +740,18 @@ void ParagraphImpl::BuildFitStrRange(std::vector<TextRange>& fitRanges) const
         return;
     }
 
+    // In MIDDLE ellipsis mode with text ending in \n followed by more characters,
+    // ellipsisRange is based on fGhostClusterRange (including \n cluster) while
+    // lastLineTextRange is based on fText (ending before \n), causing ellipsisRange.end
+    // to potentially exceed lastLineTextRange.end.
+    if (ellipsisRange.end > lastLineTextRange.end) {
+        ellipsisRange.end = lastLineTextRange.end;
+    }
+
     // If there is one line head ellipsis, the fit range is the text range after ellipsis.
-    if (ellipsisRange.start == 0) {
-        if (ellipsisRange.end < lastLineTextRange.end) {
-            fitRanges.push_back({ellipsisRange.end, lastLineTextRange.end});
-        } else {
-            fitRanges.push_back(INVALID_TEXT_RANGE);
-        }
+    if (ellipsisRange.start == 0 &&
+        paragraph_->getParagraphStyle().getEllipsisMod() == skt::EllipsisModal::HEAD) {
+        fitRanges.push_back({ellipsisRange.end, lastLineTextRange.end});
     } else {
         fitRanges.push_back({textRange.start, ellipsisRange.start});
         // If there is middle ellipsis or multiple line head ellipsis, the fit ranges are 2 ranges.

@@ -146,12 +146,6 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawable003, TestSize.Level1)
     Drawing::Canvas canvas;
     shadowDrawable->OnDraw(&canvas, rect.get());
     ASSERT_TRUE(true);
-
-    shadowDrawable->OnDraw(nullptr, rect.get());
-    ASSERT_TRUE(true);
-
-    shadowDrawable->OnDraw(&canvas, nullptr);
-    ASSERT_TRUE(true);
 }
 
 /**
@@ -1233,5 +1227,66 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSMaterialFilterDrawableOnDraw002, TestSi
     Drawing::Rect rect(0.0f, 0.0f, 10.0f, 10.0f);
     drawable->OnDraw(&canvas, &rect);
     ASSERT_NE(drawingFilter->visualEffectContainer_, nullptr);
+}
+
+/**
+ * @tc.name: RSShadowDrawable006
+ * @tc.desc: Test OnDraw with SDF shadow and color strategy MAIN
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawable006, TestSize.Level1)
+{
+    NodeId id = 3;
+    RSRenderNode node(id);
+    auto shadowDrawable = std::make_shared<DrawableV2::RSShadowDrawable>();
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_UNION_OP_SHAPE);
+    EXPECT_NE(sdfShape, nullptr);
+    node.GetMutableRenderProperties().SetSDFShape(sdfShape);
+
+    Color shadowColor = Color(255, 0, 0, 128);
+    node.GetMutableRenderProperties().SetShadowColor(shadowColor);
+    node.GetMutableRenderProperties().SetShadowRadius(1.0f);
+    shadowDrawable->OnUpdate(node);
+    shadowDrawable->OnSync();
+    EXPECT_TRUE(shadowDrawable->geContainer_ != nullptr);
+
+    shadowDrawable->colorStrategy_ = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_MAIN;
+    shadowDrawable->elevation_ = 0.f;
+    shadowDrawable->radius_ = 1.0f;
+    shadowDrawable->offsetX_ = 5.f;
+    shadowDrawable->offsetY_ = 5.f;
+    shadowDrawable->isFilled_ = true;
+
+    auto rect = std::make_shared<Drawing::Rect>();
+    Drawing::Canvas canvas;
+    shadowDrawable->OnDraw(&canvas, rect.get());
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: RSShadowDrawable007
+ * @tc.desc: Test OnDraw with SDF shadow, color strategy and null geContainer
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawable007, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSShadowDrawable>();
+    auto canvas = std::make_shared<Drawing::Canvas>();
+    auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(canvas.get());
+    auto rect = std::make_shared<Drawing::Rect>();
+
+    drawable->colorStrategy_ = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_MAIN;
+    drawable->elevation_ = 0.f;
+    drawable->radius_ = 1.0f;
+    drawable->offsetX_ = 1.f;
+    drawable->offsetY_ = 1.f;
+    drawable->color_ = Color(100, 100, 100, 255);
+    drawable->isFilled_ = true;
+    drawable->geContainer_ = nullptr;
+
+    drawable->OnDraw(filterCanvas.get(), rect.get());
+    ASSERT_TRUE(true);
 }
 } // namespace OHOS::Rosen

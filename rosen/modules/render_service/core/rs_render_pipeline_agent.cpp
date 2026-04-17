@@ -716,7 +716,7 @@ void RSRenderPipelineAgent::TakeUICaptureInRange(
     rsRenderPipeline_->PostMainThreadTask(captureTask);
 }
 
-ErrCode RSRenderPipelineAgent::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+ErrCode RSRenderPipelineAgent::SetHwcNodeBounds(NodeId rsNodeId, float positionX, float positionY,
     float positionZ, float positionW)
 {
     if (rsRenderPipeline_ == nullptr) {
@@ -1788,20 +1788,20 @@ ErrCode RSRenderPipelineAgent::RepaintEverything()
     return ERR_OK;
 }
 
-void RSRenderPipelineAgent::CleanAll(pid_t pid)
+void RSRenderPipelineAgent::Clean(pid_t pid, bool forRefresh)
 {
     if (rsRenderPipeline_ == nullptr) {
         return;
     }
-    RS_LOGD("CleanAll() start.");
-    RS_TRACE_NAME("RSRenderPipelineAgent::CleanAll begin, remotePid: " + std::to_string(pid));
+    RS_LOGD("Clean() start, remotePid: %{public}s, forRefresh: %{public}d", std::to_string(pid).c_str(), forRefresh);
+    RS_TRACE_NAME("RSRenderPipelineAgent::Clean begin, remotePid: " + std::to_string(pid));
     RsCommandVerifyHelper::GetInstance().RemoveCntWithPid(pid);
-    rsRenderPipeline_->ScheduleMainThreadTask(
-        [mainThread = rsRenderPipeline_->GetMainThread(), pid]() {
+    rsRenderPipeline_
+        ->ScheduleMainThreadTask([mainThread = rsRenderPipeline_->GetMainThread(), pid, forRefresh]() {
             if (mainThread == nullptr) {
                 return;
             }
-            mainThread->CleanResources(pid);
+            mainThread->CleanResources(pid, forRefresh);
         }).wait();
     RSSurfaceBufferCallbackManager::Instance().UnregisterSurfaceBufferCallback(pid);
     RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(pid);
@@ -1812,7 +1812,7 @@ void RSRenderPipelineAgent::CleanAll(pid_t pid)
     rsRenderPipeline_->PostUniRenderThreadSyncTask([pid]() {
         RSFrameStabilityManager::GetInstance().CleanResourcesByPid(pid);
     });
-    return;
+    RS_TRACE_NAME("RSRenderPipelineAgent::Clean end, remotePid: " + std::to_string(pid));
 }
 
 ErrCode RSRenderPipelineAgent::SetColorFollow(const std::string& nodeIdStr, bool isColorFollow)

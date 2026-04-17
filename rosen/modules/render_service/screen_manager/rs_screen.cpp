@@ -647,6 +647,19 @@ int32_t RSScreen::SetDualScreenState(DualScreenStatus status)
     return StatusCode::SUCCESS;
 }
 
+int32_t RSScreen::SetAsMainScreen(bool isMainScreen)
+{
+    RS_LOGI("RSScreen::SetAsMainScreen screenId:%{public}" PRIu64 " isMainScreen:%{public}d",
+            property_.GetId(), isMainScreen);
+    UPDATE_PROPERTY(AsMainScreen, isMainScreen);
+    return StatusCode::SUCCESS;
+}
+
+bool RSScreen::IsMainScreen() const
+{
+    return property_.IsMainScreen();
+}
+
 sptr<Surface> RSScreen::GetProducerSurface() const
 {
     return property_.GetProducerSurface();

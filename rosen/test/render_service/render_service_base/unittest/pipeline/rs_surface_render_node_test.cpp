@@ -22,6 +22,7 @@
 #include <system_ability_definition.h>
 #include <unistd.h>
 
+#include "common/rs_common_hook.h"
 #include "display_engine/rs_luminance_control.h"
 #include "ipc_callbacks/buffer_clear_callback_proxy.h"
 #include "gmock/gmock.h"
@@ -3316,6 +3317,46 @@ HWTEST_F(RSSurfaceRenderNodeTest, ClearRelatedSourceCacheTest, TestSize.Level1)
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(node->stagingRenderParams_.get());
     node->ClearRelatedSourceCache();
     ASSERT_TRUE(surfaceParams->IsNeedClearRelatedCache());
+}
+
+/**
+ * @tc.name: GetColorSpaceForceSRGBTest
+ * @tc.desc: Verify GetColorSpace returns SRGB when ForceSRGBOutput is enabled
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, GetColorSpaceForceSRGBTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+    node->colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+
+    RsCommonHook::Instance().SetForceSRGBOutput(true);
+    GraphicColorGamut forceSRGB = node->GetColorSpace();
+    EXPECT_EQ(forceSRGB, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+
+    RsCommonHook::Instance().SetForceSRGBOutput(false);
+    GraphicColorGamut normal = node->GetColorSpace();
+    EXPECT_NE(forceSRGB, normal);
+}
+
+/**
+ * @tc.name: GetFirstLevelNodeGamutForceSRGBTest
+ * @tc.desc: Verify GetFirstLevelNodeGamut returns SRGB when ForceSRGBOutput is enabled
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, GetFirstLevelNodeGamutForceSRGBTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+
+    RsCommonHook::Instance().SetForceSRGBOutput(true);
+    EXPECT_EQ(node->gamutCollector_.GetFirstLevelNodeGamut(),
+        GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+
+    RsCommonHook::Instance().SetForceSRGBOutput(false);
+    node->gamutCollector_.GetFirstLevelNodeGamut();
 }
 } // namespace Rosen
 } // namespace OHOS

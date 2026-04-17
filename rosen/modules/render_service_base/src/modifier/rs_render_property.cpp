@@ -422,15 +422,6 @@ void RSRenderProperty<std::shared_ptr<MotionBlurParam>>::Dump(std::string& out) 
 }
 
 template<>
-void RSRenderProperty<std::shared_ptr<RSMagnifierParams>>::Dump(std::string& out) const
-{
-    auto property = Get();
-    if (property != nullptr) {
-        property->Dump(out);
-    }
-}
-
-template<>
 void RSRenderProperty<std::vector<std::shared_ptr<EmitterUpdater>>>::Dump(std::string& out) const
 {
     auto property = Get();

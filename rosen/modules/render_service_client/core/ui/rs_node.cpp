@@ -73,7 +73,7 @@
 #include "modifier_ng/appearance/rs_outline_modifier.h"
 #include "modifier_ng/appearance/rs_particle_effect_modifier.h"
 #include "modifier_ng/appearance/rs_pixel_stretch_modifier.h"
-#include "modifier_ng/appearance/rs_point_light_modifier.h"
+#include "modifier_ng/appearance/rs_overlay_ng_shader_modifier.h"
 #include "modifier_ng/appearance/rs_shadow_modifier.h"
 #include "modifier_ng/appearance/rs_material_filter_modifier.h"
 #include "modifier_ng/appearance/rs_use_effect_modifier.h"
@@ -853,12 +853,6 @@ void RSNode::SetMotionPathOption(const std::shared_ptr<RSMotionPathOption>& moti
 {
     motionPathOption_ = motionPathOption;
     UpdateModifierMotionPathOption();
-}
-
-void RSNode::SetMagnifierParams(const std::shared_ptr<RSMagnifierParams>& para)
-{
-    SetPropertyNG<ModifierNG::RSBackgroundFilterModifier, &ModifierNG::RSBackgroundFilterModifier::SetMagnifierParams>(
-        para);
 }
 
 const std::shared_ptr<RSMotionPathOption> RSNode::GetMotionPathOption() const
@@ -1810,12 +1804,18 @@ void RSNode::SetBackgroundColor(RSColor color)
     RSColor colorInP3 = color;
     if (colorInP3.GetColorSpace() == GRAPHIC_COLOR_GAMUT_DISPLAY_P3 ||
         colorInP3.GetColorSpace() == GRAPHIC_COLOR_GAMUT_BT2020) {
-        notSRGBColor_ = true;
-        std::unique_ptr<RSCommand> command = std::make_unique<RSMarkNodeColorSpace>(GetId(), notSRGBColor_);
+        collectColorSpace_ = static_cast<int8_t>(colorInP3.GetColorSpace());
+        std::unique_ptr<RSCommand> command = std::make_unique<RSMarkNodeColorSpace>(GetId(), collectColorSpace_);
         AddCommand(command, IsRenderServiceNode());
     }
 #ifndef ROSEN_CROSS_PLATFORM
-    color.ConvertToBT2020ColorSpace();
+#ifdef ROSEN_OHOS
+    if (colorInP3.GetColorSpace() != GRAPHIC_COLOR_GAMUT_BT2020) {
+        color.ConvertToP3ColorSpace();
+    }
+#else
+ 	color.ConvertToP3ColorSpace();
+#endif
 #endif
     SetPropertyNG<ModifierNG::RSBackgroundColorModifier, &ModifierNG::RSBackgroundColorModifier::SetBackgroundColor>(
         color);
@@ -2962,19 +2962,31 @@ void RSNode::SetGravityPullCenterFlag(bool isGravityPullModeCenter)
         &ModifierNG::RSBoundsModifier::SetGravityPullCenterFlag>(isGravityPullModeCenter);
 }
 
+void RSNode::SetGravityPullStrength(float gravityPullStrength)
+{
+    SetPropertyNG<ModifierNG::RSBoundsModifier,
+        &ModifierNG::RSBoundsModifier::SetGravityPullStrength>(gravityPullStrength);
+}
+
+void RSNode::SetGravityHotZone(float hotZone)
+{
+    SetPropertyNG<ModifierNG::RSBoundsModifier,
+        &ModifierNG::RSBoundsModifier::SetGravityHotZone>(hotZone);
+}
+
 void RSNode::SetSDFShape(const std::shared_ptr<RSNGShapeBase>& shape)
 {
     if (!shape) {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::BOUNDS);
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::CLIP_TO_BOUNDS);
         if (modifier == nullptr || !modifier->HasProperty(ModifierNG::RSPropertyType::SDF_SHAPE)) {
             return;
         }
         modifier->DetachProperty(ModifierNG::RSPropertyType::SDF_SHAPE);
         return;
     }
-    SetPropertyNG<ModifierNG::RSBoundsModifier, &ModifierNG::RSBoundsModifier::SetSDFShape>(shape);
+    SetPropertyNG<ModifierNG::RSBoundsClipModifier, &ModifierNG::RSBoundsClipModifier::SetSDFShape>(shape);
 }
 
 void RSNode::SetUseShadowBatching(bool useShadowBatching)
@@ -3031,7 +3043,7 @@ void RSNode::SetDistortionK(const float distortionK)
         distortionK);
 }
 
-void RSNode::SetFreeze(bool isFreeze)
+void RSNode::SetFreeze(bool isFreeze, bool isMarkedByUI)
 {
     ROSEN_LOGE("SetFreeze only support RSSurfaceNode and RSCanvasNode in uniRender");
 }
@@ -3452,6 +3464,10 @@ void RSNode::UpdateOcclusionCullingStatus(bool enable, NodeId keyOcclusionNodeId
     AddCommand(command, IsRenderServiceNode());
 }
 
+void RSNode::SetSpatialEffectPara(const std::shared_ptr<SpatialEffectPara>& para) {}
+
+void RSNode::SetIsDepthBackground(bool isDepthBackground) {}
+
 void RSNode::MarkAllExtendModifierDirty()
 {
     std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
@@ -3748,7 +3764,7 @@ void RSNode::SetUIFirstSwitch(RSUIFirstSwitch uiFirstSwitch)
 void RSNode::SetLightIntensity(float lightIntensity)
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-    SetPropertyNG<ModifierNG::RSPointLightModifier, &ModifierNG::RSPointLightModifier::SetLightIntensity>(
+    SetPropertyNG<ModifierNG::RSOverlayNGShaderModifier, &ModifierNG::RSOverlayNGShaderModifier::SetLightIntensity>(
         lightIntensity);
 }
 
@@ -3756,7 +3772,8 @@ void RSNode::SetLightColor(uint32_t lightColorValue)
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
     auto lightColor = Color::FromArgbInt(lightColorValue);
-    SetPropertyNG<ModifierNG::RSPointLightModifier, &ModifierNG::RSPointLightModifier::SetLightColor>(lightColor);
+    SetPropertyNG<ModifierNG::RSOverlayNGShaderModifier, &ModifierNG::RSOverlayNGShaderModifier::SetLightColor>(
+        lightColor);
 }
 
 void RSNode::SetLightPosition(float positionX, float positionY, float positionZ)
@@ -3768,27 +3785,36 @@ void RSNode::SetLightPosition(float positionX, float positionY, float positionZ)
 void RSNode::SetLightPosition(const Vector4f& lightPosition)
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-    SetPropertyNG<ModifierNG::RSPointLightModifier, &ModifierNG::RSPointLightModifier::SetLightPosition>(lightPosition);
+    SetPropertyNG<ModifierNG::RSOverlayNGShaderModifier, &ModifierNG::RSOverlayNGShaderModifier::SetLightPosition>(
+        lightPosition);
 }
 
 void RSNode::SetIlluminatedBorderWidth(float illuminatedBorderWidth)
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-    SetPropertyNG<ModifierNG::RSPointLightModifier, &ModifierNG::RSPointLightModifier::SetIlluminatedBorderWidth>(
-        illuminatedBorderWidth);
+    SetPropertyNG<ModifierNG::RSOverlayNGShaderModifier,
+        &ModifierNG::RSOverlayNGShaderModifier::SetIlluminatedBorderWidth>(illuminatedBorderWidth);
 }
 
 void RSNode::SetIlluminatedType(uint32_t illuminatedType)
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-    SetPropertyNG<ModifierNG::RSPointLightModifier, &ModifierNG::RSPointLightModifier::SetIlluminatedType>(
+    SetPropertyNG<ModifierNG::RSOverlayNGShaderModifier, &ModifierNG::RSOverlayNGShaderModifier::SetIlluminatedType>(
         illuminatedType);
 }
 
 void RSNode::SetBloom(float bloomIntensity)
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-    SetPropertyNG<ModifierNG::RSPointLightModifier, &ModifierNG::RSPointLightModifier::SetBloom>(bloomIntensity);
+    SetPropertyNG<ModifierNG::RSOverlayNGShaderModifier, &ModifierNG::RSOverlayNGShaderModifier::SetBloom>(
+        bloomIntensity);
+}
+
+void RSNode::SetOverlayNGShader(const std::shared_ptr<RSNGShaderBase>& overlayShader)
+{
+    CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
+    SetPropertyNG<ModifierNG::RSOverlayNGShaderModifier,
+        &ModifierNG::RSOverlayNGShaderModifier::SetOverlayNGShader>(overlayShader);
 }
 
 void RSNode::SetAiInvert(const Vector4f& aiInvert)

@@ -301,6 +301,19 @@ void RecordingCanvas::DrawUIColor(UIColor color, BlendMode mode)
     cmdList_->AddDrawOp<DrawUIColorOpItem::ConstructorHandle>(color, mode);
 }
 
+void RecordingCanvas::DrawParticle(std::shared_ptr<ParticleEffect> particle)
+{
+    if (!particle) {
+        return;
+    }
+    if (!addDrawOpImmediate_) {
+        cmdList_->AddDrawOp(std::make_shared<DrawParticleOpItem>(particle));
+        return;
+    }
+    auto effectHandle = CmdListHelper::AddParticleEffectToCmdList(*cmdList_, particle);
+    cmdList_->AddDrawOp<DrawParticleOpItem::ConstructorHandle>(effectHandle);
+}
+
 void RecordingCanvas::DrawAtlas(const Image* atlas, const RSXform xform[], const Rect tex[], const ColorQuad colors[],
     int count, BlendMode mode, const SamplingOptions& sampling, const Rect* cullRect)
 {

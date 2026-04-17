@@ -203,8 +203,6 @@ ohos_shared_library("librender_service") {
     "screen_manager/rs_screen_manager.cpp",
     "screen_manager/rs_screen_preprocessor.cpp",
     "screen_manager/rs_screen_thread_safe_property.cpp",
-    "vsync/vsync_manager.cpp",
-    "vsync/vsync_manager_agent.cpp",
   ]
 
   #feature_cfg
@@ -283,6 +281,7 @@ ohos_shared_library("librender_service") {
   sources += [
     "$rosen_root/modules/frame_load/src/rs_frame_blur_predict.cpp",
     "$rosen_root/modules/frame_load/src/rs_frame_deadline_predict.cpp",
+    "$rosen_root/modules/frame_load/src/rs_game_frame_handler.cpp",
   ]
 
   if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
@@ -323,6 +322,7 @@ ohos_shared_library("librender_service") {
       "core/feature/uifirst/rs_uifirst_manager.cpp",
       "core/memory/rs_canvas_dma_buffer_cache.cpp",
       "core/memory/rs_memory_manager.cpp",
+      "core/memory/rs_netlink_manager.cpp",
       "core/pipeline/buffer_manager/rs_buffer_manager.cpp",
       "core/pipeline/main_thread/rs_uni_render_listener.cpp",
       "core/pipeline/main_thread/rs_uni_render_visitor.cpp",
@@ -457,6 +457,7 @@ ohos_shared_library("librender_service") {
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/utils/color_manager:color_manager",
     "$graphic_2d_root/utils:socketpair",
+    "$graphic_2d_root/rosen/modules/render_service/vsync:libvsync_manager",
   ]
 
   if (graphic_2d_feature_enable_chipset_vsync) {
@@ -526,7 +527,6 @@ ohos_shared_library("librender_service") {
   }
 
   if (rs_enable_gpu) {
-    public_deps += [ "$graphic_2d_root:libvulkan" ]
     deps += [
       "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
       "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
@@ -568,6 +568,10 @@ ohos_shared_library("librender_service") {
     "window_manager:libwsutils",
     "qos_manager:concurrent_task_client",
   ]
+
+  if (graphic_2d_feature_enable_vulkan) {
+    external_deps += [ "vulkan-loader:vulkan_loader" ]
+  }
 
   if (graphic_2d_feature_rs_enable_uni_render) {
     external_deps += [ "ability_runtime:ability_manager" ]
@@ -664,6 +668,7 @@ ohos_executable("render_service") {
     "$graphic_2d_root/interfaces/inner_api/common",
     "$graphic_2d_root/utils/color_manager/export",
     "$graphic_2d_root/utils/socketpair/export",
+    "$graphic_2d_root/rosen/modules/frame_load/include",
     "$graphic_2d_root/rosen/modules/render_service",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl",
@@ -674,6 +679,7 @@ ohos_executable("render_service") {
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/command",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/external_depend",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",

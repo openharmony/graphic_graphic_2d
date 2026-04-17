@@ -16,6 +16,7 @@
 #include "convert.h"
 
 #include "draw/color.h"
+#include "text_config.h"
 #include "txt/paint_record.h"
 
 namespace OHOS {
@@ -110,10 +111,15 @@ SPText::ParagraphStyle Convert(const TypographyStyle& style)
     paragraphStyle.maxLineHeight = style.maxLineHeight;
     paragraphStyle.minLineHeight= style.minLineHeight;
     paragraphStyle.lineSpacing = style.lineSpacing;
+    paragraphStyle.firstLineIndent = style.firstLineIndent;
+    paragraphStyle.tailIndents = style.tailIndents;
+    paragraphStyle.headIndents = style.headIndents;
     paragraphStyle.lineHeightStyle = style.lineHeightStyle;
     paragraphStyle.includeFontPadding = style.includeFontPadding;
     paragraphStyle.fallbackLineSpacing = style.fallbackLineSpacing;
     paragraphStyle.orphanCharOptimization = style.orphanCharOptimization;
+    paragraphStyle.useLocaleForTextBreak = style.useLocaleForTextBreak ||
+        TextConfig::IsLocaleTextBreakEnabled();
     ConvertStrutStyle(style, paragraphStyle);
 
     return paragraphStyle;

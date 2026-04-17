@@ -129,7 +129,7 @@ float RSBoundsModifier::GetUnionSpacing() const
 
 void RSBoundsModifier::SetUnionMode(int uniModeUC)
 {
-    Setter(RSPropertyType::SDF_UNION_MODE, uniModeUC);
+    Setter<RSProperty>(RSPropertyType::SDF_UNION_MODE, uniModeUC);
 }
 
 int RSBoundsModifier::GetUnionMode() const
@@ -139,7 +139,7 @@ int RSBoundsModifier::GetUnionMode() const
 
 void RSBoundsModifier::SetGravityPullCenterFlag(bool isGravityPullModeCenter)
 {
-    Setter(RSPropertyType::GRAVITY_CENTER_FLAG, isGravityPullModeCenter);
+    Setter<RSProperty>(RSPropertyType::GRAVITY_CENTER_FLAG, isGravityPullModeCenter);
 }
 
 bool RSBoundsModifier::GetGravityPullCenterFlag() const
@@ -157,13 +157,13 @@ float RSBoundsModifier::GetGravityPullStrength() const
     return Getter(RSPropertyType::GRAVITY_UNION_STRENGTH, 0.f);
 }
 
-void RSBoundsModifier::SetSDFShape(const std::shared_ptr<RSNGShapeBase>& shape)
+void RSBoundsModifier::SetGravityHotZone(float hotZone)
 {
-    Setter<RSProperty, std::shared_ptr<RSNGShapeBase>>(RSPropertyType::SDF_SHAPE, shape);
+    Setter(RSPropertyType::GRAVITY_HOT_ZONE, hotZone);
 }
 
-std::shared_ptr<RSNGShapeBase> RSBoundsModifier::GetSDFShape() const
+float RSBoundsModifier::GetGravityHotZone() const
 {
-    return Getter<std::shared_ptr<RSNGShapeBase>>(RSPropertyType::SDF_SHAPE, nullptr);
+    return Getter(RSPropertyType::GRAVITY_HOT_ZONE, 0.f);
 }
 } // namespace OHOS::Rosen::ModifierNG

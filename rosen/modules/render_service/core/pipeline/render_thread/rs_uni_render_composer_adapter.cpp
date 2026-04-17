@@ -1101,12 +1101,16 @@ RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(DrawableV2::RSScreenRenderNod
         return nullptr;
     }
     RSLayerPtr layer = RSSurfaceLayer::Create(surfaceHandler->GetNodeId(), composerClient_->GetComposerContext());
+    auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable.GetRenderParams().get());
+    bool skipLayerCommit = RSSystemProperties::GetDynamicLayerSkipEnabled() &&
+                           screenParams && screenParams->GetLayerSkipContext().screenLayerInvalid_;
     if (layer != nullptr) {
         layer->SetNodeId(surfaceHandler->GetNodeId());  // node id only for dfx
         layer->SetUniRenderFlag(true);
         screenDrawable.SetRSLayer(screenInfo_.id, layer);
         SetComposeInfoToLayer(layer, info, surfaceHandler->GetConsumer());
         layer->SetNeedBilinearInterpolation(true);
+        layer->SetIsNeedComposition(!skipLayerCommit);
     }
     // do not crop or scale down for displayNode's layer.
     return layer;
@@ -1154,6 +1158,9 @@ RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(RSScreenRenderNode& node)
         return nullptr;
     }
     RSLayerPtr layer = RSSurfaceLayer::Create(surfaceHandler->GetNodeId(), composerClient_->GetComposerContext());
+    auto skipController = node.GetDynamicLayerSkipController();
+    bool skipLayerCommit =
+        RSSystemProperties::GetDynamicLayerSkipEnabled() && skipController && skipController->IsScreenLayerInvalid();
     if (layer != nullptr) {
         layer->SetNodeId(node.GetId());
         layer->SetUniRenderFlag(true);
@@ -1161,6 +1168,7 @@ RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(RSScreenRenderNode& node)
         SetComposeInfoToLayer(layer, info, surfaceHandler->GetConsumer());
         LayerRotate(layer, *screenDrawable);
         layer->SetNeedBilinearInterpolation(true);
+        layer->SetIsNeedComposition(!skipLayerCommit);
     }
     // do not crop or scale down for screenNode's layer.
     return layer;

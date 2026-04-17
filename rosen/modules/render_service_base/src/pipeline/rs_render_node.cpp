@@ -27,6 +27,7 @@
 
 #include "animation/rs_render_animation.h"
 #include "common/rs_common_def.h"
+#include "common/rs_common_hook.h"
 #include "common/rs_common_tools.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
@@ -93,7 +94,7 @@ const std::unordered_set<RSDrawableSlot> edrDrawableSlots = {
     RSDrawableSlot::BACKGROUND_NG_SHADER,
     RSDrawableSlot::COMPOSITING_FILTER,
     RSDrawableSlot::BLENDER,
-    RSDrawableSlot::POINT_LIGHT,
+    RSDrawableSlot::OVERLAY_NG_SHADER,
 };
 
 // ensure the corresponding drawable type inherits from RSFilterDrawable.
@@ -142,15 +143,11 @@ bool RSRenderNode::IsPureBackgroundColor() const
         RSDrawableSlot::RESTORE_ALL
     };
 
-#ifdef RS_ENABLE_MEMORY_DOWNTREE
     if (!drawableVec_) {
         RS_LOGE("drawableVec_ is nullptr");
         return false;
     }
     auto& drawableVec = *drawableVec_;
-#else
-    auto& drawableVec = drawableVec_;
-#endif
 
     // Defines the valid RSDrawableSlot configuration of the pure background color node:
     // - if the node includes a "CHILDREN" slot, slots associated with the "CHILDREN" group are permitted.
@@ -206,21 +203,16 @@ static inline bool IsPurgeAble()
 }
 
 RSRenderNode::RSRenderNode(NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
-    : isTextureExportNode_(isTextureExportNode), isPurgeable_(IsPurgeAble()), id_(id), context_(context)
-#ifdef RS_ENABLE_MEMORY_DOWNTREE
-        , drawableVec_(std::make_unique<RSDrawable::Vec>())
-#endif
+    : isTextureExportNode_(isTextureExportNode), isPurgeable_(IsPurgeAble()), id_(id), context_(context),
+    drawableVec_(std::make_unique<RSDrawable::Vec>())
 {
     RS_PROFILER_RENDERNODE_INC(isOnTheTree_);
 }
 
 RSRenderNode::RSRenderNode(
     NodeId id, bool isOnTheTree, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
-        : isOnTheTree_(isOnTheTree), isTextureExportNode_(isTextureExportNode), isPurgeable_(IsPurgeAble()),
-        id_(id), context_(context)
-#ifdef RS_ENABLE_MEMORY_DOWNTREE
-        , drawableVec_(std::make_unique<RSDrawable::Vec>())
-#endif
+    : isOnTheTree_(isOnTheTree), isTextureExportNode_(isTextureExportNode), isPurgeable_(IsPurgeAble()),
+    id_(id), context_(context), drawableVec_(std::make_unique<RSDrawable::Vec>())
 {
     RS_PROFILER_RENDERNODE_INC(isOnTheTree_);
 }
@@ -548,6 +540,9 @@ void RSRenderNode::SetNodeColorSpace(GraphicColorGamut colorSpace)
 
 GraphicColorGamut RSRenderNode::GetNodeColorSpace() const
 {
+    if (RsCommonHook::Instance().IsForceSRGBOutputEnabled()) {
+        return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    }
     return stagingRenderParams_->GetNodeColorSpace();
 }
 
@@ -616,12 +611,10 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
 #ifdef RS_MEMORY_INFO_MANAGER
     RSMemoryInfoManager::RecordNodeOnTreeStatus(flag, GetId(), instanceRootNodeId);
 #endif
-#ifdef RS_ENABLE_MEMORY_DOWNTREE
     if (flag && IsNodeMemClearEnable()) {
         RS_LOGD("RSRenderNode::SetIsOnTheTree on tree: node[id:%{public}" PRIu64 "]", GetId());
         InitRenderDrawableAndDrawableVec();
     }
-#endif
     if (autoClearCloneNode_ && !flag) {
         ClearCloneCrossNode();
     }
@@ -699,6 +692,10 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
         if (isOnTheTree_) {
             AddPreFirstLevelNodeIdSet(child->GetPreFirstLevelNodeIdSet());
         }
+        if (child->GetType() == RSRenderNodeType::SURFACE_NODE) {
+            RS_LOGI("RSRenderNode::SetIsOnTheTree: CurNode:[%{public}" PRIu64 "] SurfaceNodeChild[%{public}" PRIu64 "],"
+                    " isOnTheTree: %{public}d", GetId(), child->GetId(), flag);
+        }
         child->SetIsOnTheTree(flag, instanceRootNodeId, firstLevelNodeId, cacheNodeId, uifirstRootNodeId, screenNodeId,
             logicalDisplayNodeId);
     }
@@ -711,11 +708,9 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
 #ifdef RS_MEMORY_INFO_MANAGER
     RSMemoryInfoManager::ResetRootNodeStatusChangeFlag(GetId(), instanceRootNodeId);
 #endif
-#ifdef RS_ENABLE_MEMORY_DOWNTREE
     if (IsNodeMemClearEnable()) {
         RSRenderNodeGC::Instance().SetIsOnTheTree(GetId(), weak_from_this(), isOnTheTree_);
     }
-#endif
 #endif
     auto context = GetContext().lock();
     auto task = [weakThis = weak_from_this()] () {
@@ -732,7 +727,6 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
 
 void RSRenderNode::ReleaseNodeMem()
 {
-#ifdef RS_ENABLE_MEMORY_DOWNTREE
     if (isOnTheTree_) {
         return;
     }
@@ -745,7 +739,7 @@ void RSRenderNode::ReleaseNodeMem()
     if (drawableVec_) {
         drawableVec_.reset();
         drawableVecStatus_ = 0;
-#endif
+    }
 }
 
 bool RSRenderNode::IsNodeMemClearEnable()
@@ -758,6 +752,7 @@ bool RSRenderNode::IsNodeMemClearEnable()
         return false;
 #endif
 }
+
 void RSRenderNode::ResetChildRelevantFlags()
 {
     childHasVisibleFilter_ = false;
@@ -770,6 +765,7 @@ void RSRenderNode::ResetChildRelevantFlags()
     SetHasChildExcludedFromNodeGroup(false);
     SetChildHasVisibleHDRContent(false);
     ResetNodeColorSpace();
+    layerContentBits_[LayerDrawContent::SUBTREE] = false;
     RSPointLightManager::Instance(GetLogicalDisplayNodeId())->SetChildHasVisibleIlluminated(shared_from_this(), false);
 }
 
@@ -1163,6 +1159,8 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
         out += ", IsSubTreeSkipped: " + std::to_string(curFrameInfoDetail_.curFrameSubTreeSkipped);
         out += ", ReverseChildren: " + std::to_string(curFrameInfoDetail_.curFrameReverseChildren);
         out += ", zOrder: " + std::to_string(hwcRecorder_.GetZOrderForHwcEnableByFilter());
+        out += ", hasDrawContent: " + std::to_string(layerContentBits_[LayerDrawContent::SELF]);
+        out += ", hasChildrenDrawContent: " + std::to_string(layerContentBits_[LayerDrawContent::SUBTREE]);
     }
 #endif
 
@@ -1487,6 +1485,7 @@ void RSRenderNode::SetDirty(bool forceAddToActiveList)
     isParentTreeDirty_ = true;
     SetParentSubTreeDirty();
     dirtyStatus_ = NodeDirty::DIRTY;
+    layerContentBits_[LayerDrawContent::UPDATE] = true;
 }
 
 void RSRenderNode::CollectSurface(
@@ -1586,12 +1585,10 @@ void RSRenderNode::PrepareChildrenForApplyModifiers()
 void RSRenderNode::PrepareSelfNodeForApplyModifiers()
 {
 #ifdef RS_ENABLE_GPU
-#ifdef RS_ENABLE_MEMORY_DOWNTREE
     if (IsNodeMemClearEnable()) {
         ROSEN_LOGD("RSRenderNode::PrepareSelfNodeForApplyModifiers, node[id:%{public}" PRIu64 "]", GetId());
         InitRenderDrawableAndDrawableVec();
     }
-#endif
     ApplyModifiers();
     PrepareChildrenForApplyModifiers();
 
@@ -1736,10 +1733,14 @@ void RSRenderNode::UpdateDisplaySyncRange()
 }
 
 std::tuple<bool, bool, bool> RSRenderNode::Animate(
-    int64_t timestamp, int64_t& minLeftDelayTime, int64_t period, bool isDisplaySyncEnabled)
+    int64_t timestamp, int64_t& minLeftDelayTime, int64_t& nextFrameTime, int64_t period, bool isDisplaySyncEnabled)
 {
     RS_PROFILER_ANIMATION_NODE(GetType(), selfDrawRect_.GetWidth() * selfDrawRect_.GetWidth());
-    if (displaySync_ && displaySync_->OnFrameSkip(timestamp, period, isDisplaySyncEnabled)) {
+    int64_t nextFrameTimeForThisAnimate = 0;
+    bool needSkipCurrentAnimate = displaySync_ &&
+        displaySync_->OnFrameSkipForAnimate(timestamp, period, isDisplaySyncEnabled, nextFrameTimeForThisAnimate);
+    nextFrameTime = (nextFrameTime != 0) ? std::min(nextFrameTime, nextFrameTimeForThisAnimate) : 0;
+    if (needSkipCurrentAnimate) {
         minLeftDelayTime = 0;
         return displaySync_->GetAnimateResult();
     }
@@ -1919,15 +1920,6 @@ void RSRenderNode::CollectAndUpdateLocalDistortionEffectRect()
     selfDrawRect_ = selfDrawRect_.JoinRect(localDistortionEffectRect.ConvertTo<float>());
 }
 
-void RSRenderNode::CollectAndUpdateLocalMagnifierEffectRect()
-{
-    // update magnifier effect's dirty region if it changes
-    if (GetRenderProperties().GetMagnifierDirty()) {
-        RectI localMagnifierEffectRect;
-        RSPropertiesPainter::GetMagnifierEffectDirtyRect(localMagnifierEffectRect, GetRenderProperties());
-        selfDrawRect_ = selfDrawRect_.JoinRect(localMagnifierEffectRect.ConvertTo<float>());
-    }
-}
 
 void RSRenderNode::CollectAndUpdateLocalEffectRect()
 {
@@ -2008,7 +2000,6 @@ bool RSRenderNode::UpdateSelfDrawRect()
     CollectAndUpdateLocalOutlineRect();
     CollectAndUpdateLocalPixelStretchRect();
     CollectAndUpdateLocalDistortionEffectRect();
-    CollectAndUpdateLocalMagnifierEffectRect();
     CollectAndUpdateLocalEffectRect();
     return !selfDrawRect_.IsNearEqual(prevSelfDrawRect);
 }
@@ -4275,12 +4266,12 @@ bool RSRenderNode::IsForegroundFilterEnable()
         static_cast<uint32_t>(RSDrawableSlot::FOREGROUND_FILTER)) != nullptr;
 }
 
-void RSRenderNode::SetStaticCached(bool isStaticCached)
+void RSRenderNode::SetStaticCached(bool isStaticCached, bool isMarkedByUI)
 {
     isStaticCached_ = isStaticCached;
     // ensure defrost subtree would be updated
 #ifdef RS_ENABLE_GPU
-    stagingRenderParams_->SetRSFreezeFlag(isStaticCached);
+    stagingRenderParams_->SetRSFreezeFlag(isStaticCached, isMarkedByUI);
 #else
     isStaticCached = false;
 #endif
@@ -4761,12 +4752,13 @@ void RSRenderNode::UpdateDrawableEnableEDR()
 
 void RSRenderNode::UpdatePointLightDirtySlot()
 {
-    auto& drawablePtr = findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(RSDrawableSlot::POINT_LIGHT));
+    auto& drawablePtr =
+        findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(RSDrawableSlot::OVERLAY_NG_SHADER));
     if (!drawablePtr) {
         return;
     }
     drawablePtr->OnUpdate(*shared_from_this());
-    UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::POINT_LIGHT);
+    UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::OVERLAY_NG_SHADER);
     // The illuminated node has no attribute changes, so it does not call applymodifier, and consequently does not
     // call SetEnableHdrEffect. Therefore, here we need call SetEnableHdrEffect.
     SetEnableHdrEffect(drawablePtr->GetEnableEDR());
@@ -5381,19 +5373,15 @@ void RSRenderNode::NodePostPrepare(
 
 RSDrawable::Vec& RSRenderNode::GetDrawableVec(const char* func) const
 {
-#ifdef RS_ENABLE_MEMORY_DOWNTREE
     if (!drawableVec_) {
         drawableVec_ = std::make_unique<RSDrawable::Vec>();
         ROSEN_LOGD("drawableVec_ is nullptr, %{public}s", func);
     }
     return *drawableVec_;
-#else
-    return drawableVec_;
-#endif
 }
+
 void RSRenderNode::InitRenderDrawableAndDrawableVec()
 {
-#ifdef RS_ENABLE_MEMORY_DOWNTREE
     if (renderDrawable_ == nullptr) {
         renderDrawable_ = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(shared_from_this());
     }
@@ -5425,7 +5413,6 @@ void RSRenderNode::InitRenderDrawableAndDrawableVec()
         stagingRenderParams_->SetDirtyType(RSRenderParamsDirtyType::DRAWING_CACHE_TYPE_DIRTY);
     }
     released_ = false;
-#endif
 }
 
 std::shared_ptr<RSFilter> RSRenderNode::GetRSFilterWithSlot(RSDrawableSlot slot) const

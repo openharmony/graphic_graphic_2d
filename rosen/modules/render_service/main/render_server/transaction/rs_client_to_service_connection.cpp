@@ -149,6 +149,17 @@ RSClientToServiceConnection::~RSClientToServiceConnection() noexcept
     CleanAll();
 }
 
+void RSClientToServiceConnection::RegisterRemoteRefreshCallback()
+{
+    RS_LOGI("RSClientToServiceConnection::RegisterRemoteRefreshCallback");
+    if (!connRefreshRecipient_) {
+        connRefreshRecipient_ = new RSConnectionRefreshRecipient(this);
+    }
+    if (token_ == nullptr || !token_->AddRefreshRecipient(connRefreshRecipient_)) {
+        RS_LOGE("RSClientToServiceConnection: Failed to set refresh recipient");
+    }
+}
+
 void RSClientToServiceConnection::CleanVirtualScreens() noexcept
 {
     if (!screenManagerAgent_) {
@@ -158,19 +169,13 @@ void RSClientToServiceConnection::CleanVirtualScreens() noexcept
     screenManagerAgent_->CleanVirtualScreens();
 }
 
-void RSClientToServiceConnection::CleanAll(bool toDelete) noexcept
+void RSClientToServiceConnection::CleanForRefresh() noexcept
 {
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        if (cleanDone_) {
-            return;
-        }
-    }
     if (!renderServiceAgent_) {
         return;
     }
-    RS_LOGD("CleanAll() start.");
-    RS_TRACE_NAME("RSClientToServiceConnection CleanAll begin, remotePid: " + std::to_string(remotePid_));
+    RS_LOGD("CleanForRefresh() start.");
+    RS_TRACE_NAME("RSClientToServiceConnection CleanForRefresh begin, remotePid: " + std::to_string(remotePid_));
     renderServiceAgent_->ScheduleTask(
         [weakThis = wptr<RSClientToServiceConnection>(this)]() {
             sptr<RSClientToServiceConnection> connection = weakThis.promote();
@@ -186,6 +191,31 @@ void RSClientToServiceConnection::CleanAll(bool toDelete) noexcept
     }
 
     {
+        std::lock_guard<std::mutex> lock(pidToBundleMutex_);
+        pidToBundleName_.clear();
+    }
+    RS_LOGD("CleanForRefresh() end.");
+    RS_TRACE_NAME("RSClientToServiceConnection CleanForRefresh end, remotePid: " + std::to_string(remotePid_));
+}
+
+void RSClientToServiceConnection::CleanAll(bool toDelete) noexcept
+{
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (cleanDone_) {
+            return;
+        }
+    }
+    if (!renderServiceAgent_) {
+        return;
+    }
+
+    RS_LOGD("CleanAll() start.");
+    RS_TRACE_NAME("RSClientToServiceConnection CleanAll begin, remotePid: " + std::to_string(remotePid_));
+
+    CleanForRefresh();
+
+    {
         std::lock_guard<std::mutex> lock(mutex_);
         cleanDone_ = true;
     }
@@ -197,10 +227,6 @@ void RSClientToServiceConnection::CleanAll(bool toDelete) noexcept
 
     RS_LOGD("CleanAll() end.");
     RS_TRACE_NAME("RSClientToServiceConnection CleanAll end, remotePid: " + std::to_string(remotePid_));
-    {
-        std::lock_guard<std::mutex> lock(pidToBundleMutex_);
-        pidToBundleName_.clear();
-    }
 }
 
 RSClientToServiceConnection::RSConnectionDeathRecipient::RSConnectionDeathRecipient(
@@ -228,6 +254,34 @@ void RSClientToServiceConnection::RSConnectionDeathRecipient::OnRemoteDied(const
     }
 
     rsConn->CleanAll(true);
+}
+
+RSClientToServiceConnection::RSConnectionRefreshRecipient::RSConnectionRefreshRecipient(
+    wptr<RSClientToServiceConnection> conn) : conn_(conn)
+{
+}
+
+void RSClientToServiceConnection::RSConnectionRefreshRecipient::OnRemoteRefreshed(const wptr<IRemoteObject>& token)
+{
+    auto tokenSptr = token.promote();
+    if (tokenSptr == nullptr) {
+        RS_LOGW("RSClientToServiceConnection::RSConnectionRefreshRecipient: can't promote remote object");
+        return;
+    }
+
+    auto rsConn = conn_.promote();
+    if (rsConn == nullptr) {
+        RS_LOGW("RSConnectionRefreshRecipient::OnRemoteRefreshed: RSClientToServiceConnection was dead, do not hing");
+        return;
+    }
+
+    if (rsConn->GetToken() != tokenSptr) {
+        RS_LOGI("RSConnectionRefreshRecipient::OnRemoteRefreshed: token  doesn't match, ignore it");
+        return;
+    }
+    RS_LOGI("RSConnectionRefreshRecipient::OnRemoteRefreshed: call CleanForRefresh");
+
+    rsConn->CleanForRefresh();
 }
 
 ErrCode RSClientToServiceConnection::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
@@ -902,6 +956,24 @@ int32_t RSClientToServiceConnection::SetDualScreenState(ScreenId id, DualScreenS
     return screenManagerAgent_->SetDualScreenState(id, status);
 }
 
+int32_t RSClientToServiceConnection::SetAsMainScreen(ScreenId screenId, bool isMainScreen)
+{
+    if (!screenManagerAgent_) {
+        RS_LOGE("%{public}s screenManagerAgent is null, screenId: %{public}" PRIu64, __func__, screenId);
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    return screenManagerAgent_->SetAsMainScreen(screenId, isMainScreen);
+}
+
+ScreenId RSClientToServiceConnection::GetMainScreenId()
+{
+    if (!screenManagerAgent_) {
+        RS_LOGE("%{public}s screenManagerAgent is null", __func__);
+        return INVALID_SCREEN_ID;
+    }
+    return screenManagerAgent_->GetMainScreenId();
+}
+
 RSVirtualScreenResolution RSClientToServiceConnection::GetVirtualScreenResolution(ScreenId id)
 {
     if (!screenManagerAgent_) {
@@ -1440,6 +1512,17 @@ int32_t RSClientToServiceConnection::RegisterFirstFrameCommitCallback(
     return StatusCode::SUCCESS;
 }
 
+int32_t RSClientToServiceConnection::RegisterExposedEventCallback(
+    const RSExposedEventType type, const sptr<RSIExposedEventCallback> callback)
+{
+    if (screenManagerAgent_ == nullptr) {
+        RS_LOGE("%{public}s: screenManagerAgent_ is nullptr", __func__);
+        return SCREEN_NOT_FOUND;
+    }
+
+    return screenManagerAgent_->SetExposedEventCallback(type, callback);
+}
+
 int32_t RSClientToServiceConnection::RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
     sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback)
 {
@@ -1724,6 +1807,9 @@ void RSClientToServiceConnection::ReportGameStateData(GameStateData info)
     }
     for (auto conn : serviceToRenderConns) {
         conn->ReportGameStateData(info);
+    }
+    if (renderServiceAgent_ != nullptr) {
+        renderServiceAgent_->HandleGameSceneChanged();
     }
 }
 

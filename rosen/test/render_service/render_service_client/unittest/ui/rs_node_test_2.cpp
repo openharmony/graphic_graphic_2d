@@ -41,7 +41,7 @@
 #include "modifier_ng/appearance/rs_outline_modifier.h"
 #include "modifier_ng/appearance/rs_particle_effect_modifier.h"
 #include "modifier_ng/appearance/rs_pixel_stretch_modifier.h"
-#include "modifier_ng/appearance/rs_point_light_modifier.h"
+#include "modifier_ng/appearance/rs_overlay_ng_shader_modifier.h"
 #include "modifier_ng/appearance/rs_shadow_modifier.h"
 #include "modifier_ng/appearance/rs_use_effect_modifier.h"
 #include "modifier_ng/appearance/rs_visibility_modifier.h"
@@ -723,26 +723,6 @@ HWTEST_F(RSNodeTest2, SetPropertyNG_RSBoundsClipModifierTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetMagnifierParamsTest
- * @tc.desc: SetMagnifierParams
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeTest2, SetMagnifierParamsTest, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    auto para = std::make_shared<RSMagnifierParams>();
-    rsNode->SetMagnifierParams(para);
-
-    auto modifier = rsNode->GetModifierByType(ModifierNG::RSBackgroundFilterModifier::Type);
-    ASSERT_TRUE(modifier != nullptr);
-    auto property = std::static_pointer_cast<RSProperty<std::shared_ptr<RSMagnifierParams>>>(
-        modifier->GetProperty(ModifierNG::RSPropertyType::MAGNIFIER_PARA));
-    ASSERT_TRUE(property != nullptr);
-
-    EXPECT_EQ(property->Get(), para);
-}
-
-/**
  * @tc.name: AddModifier
  * @tc.desc: test results of AddModifier
  * @tc.type: FUNC
@@ -774,13 +754,6 @@ HWTEST_F(RSNodeTest2, RemoveModifier, TestSize.Level1)
     std::shared_ptr<ModifierNG::RSModifier> modifierNull = nullptr;
     EXPECT_TRUE(rsNode->modifiersNG_.empty());
     rsNode->RemoveModifier(modifierNull);
-    EXPECT_TRUE(rsNode->modifiersNG_.empty());
-
-    auto para = std::make_shared<RSMagnifierParams>();
-    rsNode->SetMagnifierParams(para);
-    EXPECT_FALSE(rsNode->modifiersNG_.empty());
-    auto modifier = rsNode->GetModifierByType(ModifierNG::RSBackgroundFilterModifier::Type);
-    rsNode->RemoveModifier(modifier);
     EXPECT_TRUE(rsNode->modifiersNG_.empty());
 
     auto alphaModifier = std::make_shared<ModifierNG::RSAlphaModifier>();
@@ -890,7 +863,7 @@ HWTEST_F(RSNodeTest2, GetLocalGeometry, TestSize.Level1)
  */
 HWTEST_F(RSNodeTest2, SetSDFUnionOPShape, TestSize.Level1)
 {
-    auto modifierType = ModifierNG::RSModifierType::BOUNDS;
+    auto modifierType = ModifierNG::RSModifierType::CLIP_TO_BOUNDS;
     auto rsNode = RSCanvasNode::Create();
     rsNode->SetSDFShape(nullptr);
     EXPECT_EQ(rsNode->GetModifierCreatedBySetter(modifierType), nullptr);
@@ -926,7 +899,7 @@ HWTEST_F(RSNodeTest2, SetSDFUnionOPShape, TestSize.Level1)
  */
 HWTEST_F(RSNodeTest2, SetSDFSmoothUnionOPShape, TestSize.Level1)
 {
-    auto modifierType = ModifierNG::RSModifierType::BOUNDS;
+    auto modifierType = ModifierNG::RSModifierType::CLIP_TO_BOUNDS;
     auto rsNode = RSCanvasNode::Create();
     rsNode->SetSDFShape(nullptr);
     EXPECT_EQ(rsNode->GetModifierCreatedBySetter(modifierType), nullptr);
@@ -964,7 +937,7 @@ HWTEST_F(RSNodeTest2, SetSDFSmoothUnionOPShape, TestSize.Level1)
  */
 HWTEST_F(RSNodeTest2, SetSDFRRectShape, TestSize.Level1)
 {
-    auto modifierType = ModifierNG::RSModifierType::BOUNDS;
+    auto modifierType = ModifierNG::RSModifierType::CLIP_TO_BOUNDS;
     auto rsNode = RSCanvasNode::Create();
     rsNode->SetSDFShape(nullptr);
     EXPECT_EQ(rsNode->GetModifierCreatedBySetter(modifierType), nullptr);
@@ -973,19 +946,36 @@ HWTEST_F(RSNodeTest2, SetSDFRRectShape, TestSize.Level1)
     auto shape0 = RSNGShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
     auto shape = std::static_pointer_cast<RSNGSDFRRectShape>(shape0);
 
+    auto clipModifier = std::make_shared<ModifierNG::RSBoundsClipModifier>();
+    rsNode->AddModifier(clipModifier);
+
+    EXPECT_EQ(clipModifier->GetSDFShape(), nullptr);
+
+    // test of path of using modifier to set these properties
+    clipModifier->SetSDFShape(shape);
+
+    EXPECT_NE(clipModifier->GetSDFShape(), nullptr);
+}
+
+/**
+ * @tc.name: SetUseUnion & SetUnionSpacing
+ * @tc.desc: test results of UseUnion and UnionSpacing and modifier path
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest2, SetUseUnionAndUnionSpacing, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+
     auto boundsModifier = std::make_shared<ModifierNG::RSBoundsModifier>();
     rsNode->AddModifier(boundsModifier);
 
-    EXPECT_EQ(boundsModifier->GetSDFShape(), nullptr);
     EXPECT_EQ(boundsModifier->GetUnionSpacing(), 0.0f);
     EXPECT_EQ(boundsModifier->GetUseUnion(), false);
 
     // test the path of using modifier to set these properties
-    boundsModifier->SetSDFShape(shape);
     boundsModifier->SetUnionSpacing(0.5f);
     boundsModifier->SetUseUnion(true);
 
-    EXPECT_NE(boundsModifier->GetSDFShape(), nullptr);
     EXPECT_EQ(boundsModifier->GetUnionSpacing(), 0.5f);
     EXPECT_EQ(boundsModifier->GetUseUnion(), true);
 }

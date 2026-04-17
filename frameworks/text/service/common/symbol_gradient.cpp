@@ -14,9 +14,26 @@
  */
 
 #include "rosen_text/symbol_gradient.h"
+#include "rosen_text/symbol_constants.h"
 #include "utils/text_log.h"
 
 namespace OHOS::Rosen {
+namespace {
+std::shared_ptr<Drawing::ColorSpace> CreateColorSpaceFromEnum(SymbolColorSpace colorSpaceEnum)
+{
+    switch (colorSpaceEnum) {
+        case SymbolColorSpace::DISPLAY_P3:
+            return Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB,
+                Drawing::CMSMatrixType::DCIP3);
+        case SymbolColorSpace::BT2020:
+            return Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB,
+                Drawing::CMSMatrixType::REC2020);
+        case SymbolColorSpace::SRGB:
+        default:
+            return Drawing::ColorSpace::CreateSRGB();
+    }
+}
+} // namespace
 
 void SymbolGradient::SetColors(const std::vector<Drawing::Color>& colors)
 {
@@ -78,7 +95,9 @@ Drawing::Brush SymbolGradient::CreateGradientBrush(const Drawing::Point& offset)
 {
     Drawing::Brush brush;
     brush.SetAntiAlias(true);
-    if (!colors_.empty()) {
+    if (HasUIColor()) {
+        brush.SetUIColor(uiColors_[0], CreateColorSpaceFromEnum(colorSpace_));
+    } else if (!colors_.empty()) {
         brush.SetColor(colors_[0]);
     }
     return brush;
@@ -88,7 +107,9 @@ Drawing::Pen SymbolGradient::CreateGradientPen(const Drawing::Point& offset)
 {
     Drawing::Pen pen;
     pen.SetAntiAlias(true);
-    if (!colors_.empty()) {
+    if (HasUIColor()) {
+        pen.SetUIColor(uiColors_[0], CreateColorSpaceFromEnum(colorSpace_));
+    } else if (!colors_.empty()) {
         pen.SetColor(colors_[0]);
     }
     return pen;
@@ -123,7 +144,46 @@ bool SymbolGradient::IsNearlyEqual(const std::shared_ptr<SymbolGradient>& gradie
             return false;
         }
     }
+
+    // Compare UIColor for HDR color support
+    if (HasUIColor() != gradient->HasUIColor()) {
+        return false;
+    }
+    if (!HasUIColor()) {
+        return true;
+    }
+    const auto& otherUiColors = gradient->GetUIColors();
+    if (uiColors_.size() != otherUiColors.size()) {
+        return false;
+    }
+    for (size_t i = 0; i < uiColors_.size(); i++) {
+        if (uiColors_[i] != otherUiColors[i]) {
+            return false;
+        }
+    }
+
     return true;
+}
+
+void SymbolGradient::SetUIColors(const std::vector<Drawing::UIColor>& uiColors, SymbolColorSpace colorSpace)
+{
+    uiColors_ = uiColors;
+    colorSpace_ = colorSpace;
+}
+
+const std::vector<Drawing::UIColor>& SymbolGradient::GetUIColors() const
+{
+    return uiColors_;
+}
+
+SymbolColorSpace SymbolGradient::GetColorSpace() const
+{
+    return colorSpace_;
+}
+
+bool SymbolGradient::HasUIColor() const
+{
+    return !uiColors_.empty();
 }
 
 SymbolLineGradient::SymbolLineGradient(float rangle) : rangle_(rangle)
@@ -152,6 +212,9 @@ Drawing::Brush SymbolLineGradient::CreateGradientBrush(const Drawing::Point& off
 {
     Drawing::Brush brush;
     brush.SetAntiAlias(true);
+    if (HasUIColor()) {
+        brush.SetUIColor(uiColors_[0], CreateColorSpaceFromEnum(colorSpace_));
+    }
     auto shader = CreateGradientShader(offset);
     if (shader == nullptr) {
         return brush;
@@ -164,6 +227,9 @@ Drawing::Pen SymbolLineGradient::CreateGradientPen(const Drawing::Point& offset)
 {
     Drawing::Pen pen;
     pen.SetAntiAlias(true);
+    if (HasUIColor()) {
+        pen.SetUIColor(uiColors_[0], CreateColorSpaceFromEnum(colorSpace_));
+    }
     auto shader = CreateGradientShader(offset);
     if (shader == nullptr) {
         return pen;
@@ -309,6 +375,9 @@ Drawing::Brush SymbolRadialGradient::CreateGradientBrush(const Drawing::Point& o
 {
     Drawing::Brush brush;
     brush.SetAntiAlias(true);
+    if (HasUIColor()) {
+        brush.SetUIColor(uiColors_[0], CreateColorSpaceFromEnum(colorSpace_));
+    }
     auto shader = CreateGradientShader(offset);
     if (shader == nullptr) {
         return brush;
@@ -321,6 +390,9 @@ Drawing::Pen SymbolRadialGradient::CreateGradientPen(const Drawing::Point& offse
 {
     Drawing::Pen pen;
     pen.SetAntiAlias(true);
+    if (HasUIColor()) {
+        pen.SetUIColor(uiColors_[0], CreateColorSpaceFromEnum(colorSpace_));
+    }
     auto shader = CreateGradientShader(offset);
     if (shader == nullptr) {
         return pen;

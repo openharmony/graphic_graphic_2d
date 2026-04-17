@@ -178,7 +178,7 @@ sptr<Surface> RSVpeManager::GetVpeVideoSurface(uint32_t type, const sptr<Surface
 
 sptr<Surface> RSVpeManager::CheckAndGetSurface(const sptr<Surface>& surface, const RSSurfaceRenderNodeConfig& config)
 {
-    RS_TRACE_NAME_FMT("RSVpeManager::Create name: %{public}s nodeId:%{public}" PRIu64, config.name.c_str(), config.id);
+    RS_TRACE_NAME_FMT("RSVpeManager::Create name: %s nodeId:%" PRIu64, config.name.c_str(), config.id);
 
     Media::Format parameter{};
     if (surface == nullptr) {

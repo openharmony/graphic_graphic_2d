@@ -5975,6 +5975,64 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareCanvasRenderNodeLayerPartRender001,
 }
 
 /**
+ * @tc.name: QuickPrepareCanvasRenderNodeLayerPartRenderDisableAnimation002
+ * @tc.desc: Test QuickPrepareCanvasRenderNode clears layer-part render when UIFirst disables animation
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSUniRenderVisitorTest, QuickPrepareCanvasRenderNodeLayerPartRenderDisableAnimation002, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(LAYER_PART_CANVAS_NODE_ID + 10,
+        rsContext->weak_from_this());
+    ASSERT_NE(canvasNode, nullptr);
+    canvasNode->InitRenderParams();
+    auto& canvasGeo = canvasNode->GetMutableRenderProperties().boundsGeo_;
+    ASSERT_NE(canvasGeo, nullptr);
+    canvasGeo->absRect_ = DEFAULT_FILTER_RECT;
+    canvasGeo->absMatrix_ = Drawing::Matrix();
+
+    auto parentSurfaceNode = std::make_shared<RSSurfaceRenderNode>(
+        LAYER_PART_SURFACE_PARENT_ID + 10, rsContext->weak_from_this());
+    auto childSurfaceNode = std::make_shared<RSSurfaceRenderNode>(
+        LAYER_PART_SURFACE_CHILD_ID + 10, rsContext->weak_from_this());
+    ASSERT_NE(parentSurfaceNode, nullptr);
+    ASSERT_NE(childSurfaceNode, nullptr);
+    parentSurfaceNode->SetParent(canvasNode);
+    childSurfaceNode->SetParent(parentSurfaceNode);
+    childSurfaceNode->MarkSuggestLayerPartRenderNode(true);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->curSurfaceNode_ = std::make_shared<RSSurfaceRenderNode>(
+        LAYER_PART_VISITOR_SURFACE_ID + 10, rsContext->weak_from_this());
+    ASSERT_NE(rsUniRenderVisitor->curSurfaceNode_, nullptr);
+    rsUniRenderVisitor->curSurfaceDirtyManager_ = rsUniRenderVisitor->curSurfaceNode_->GetDirtyManager();
+
+    auto& uifirstManager = RSUifirstManager::Instance();
+    uifirstManager.currentFrameEvent_.clear();
+    RSUifirstManager::EventInfo info;
+    info.sceneId = "APP_LIST_FLING";
+    uifirstManager.currentFrameEvent_.push_back(info);
+
+    OPIncParam::SetLayerPartRenderEnable(true);
+    rsUniRenderVisitor->QuickPrepareCanvasRenderNode(*canvasNode);
+    OPIncParam::SetLayerPartRenderEnable(false);
+    uifirstManager.currentFrameEvent_.clear();
+
+    auto& dirtyManager = canvasNode->GetOpincCache().GetLayerPartRenderDirtyManager();
+    auto& stagingRenderParams = canvasNode->GetStagingRenderParams();
+    ASSERT_NE(dirtyManager, nullptr);
+    ASSERT_NE(stagingRenderParams, nullptr);
+    ASSERT_TRUE(canvasNode->GetOpincCache().IsLayerPartRender());
+    ASSERT_FALSE(stagingRenderParams->GetLayerPartRenderEnabled());
+    ASSERT_EQ(canvasNode->GetNodeGroupType(), RSRenderNode::NodeGroupType::NONE);
+    ASSERT_NE(rsUniRenderVisitor->curLayerPartRenderDirtyManager_, nullptr);
+}
+
+/**
  * @tc.name: QuickPrepareCanvasRenderNode002
  * @tc.desc: Test QuickPrepareCanvasRenderNode takes SubTreeSkipPrepare branch when subtree prepare is not needed
  * @tc.type: FUNC

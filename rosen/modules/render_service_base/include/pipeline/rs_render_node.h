@@ -84,6 +84,13 @@ struct CurFrameInfoDetail {
     bool curFrameReverseChildren = false;
 };
 
+enum LayerDrawContent : size_t {
+    SELF = 0,       // whether the node itself has draw content
+    SUBTREE = 1,    // whether the subtree has draw content, determined by all its descendants
+    UPDATE = 2,     // whether the node has update content in current frame, used for dynamic layer skip optimization
+    MAX = 3
+};
+
 class RSB_EXPORT RSRenderNode : public std::enable_shared_from_this<RSRenderNode> {
 public:
     using WeakPtr = std::weak_ptr<RSRenderNode>;
@@ -468,7 +475,8 @@ public:
     }
 
     std::tuple<bool, bool, bool> Animate(
-        int64_t timestamp, int64_t& minLeftDelayTime, int64_t period = 0, bool isDisplaySyncEnabled = false);
+        int64_t timestamp, int64_t& minLeftDelayTime, int64_t& nextFrameTime,
+        int64_t period = 0, bool isDisplaySyncEnabled = false);
 
     // check if all clip properties are enabled
     bool IsClipBound() const;
@@ -596,7 +604,7 @@ public:
     void NodePostPrepare(
         std::shared_ptr<RSSurfaceRenderNode> curSurfaceNode, const RectI& clipRect);
 
-    void SetStaticCached(bool isStaticCached);
+    void SetStaticCached(bool isStaticCached, bool isMarkedByUI = false);
     virtual bool IsStaticCached() const;
     void SetNodeName(const std::string& nodeName);
     const std::string& GetNodeName() const;
@@ -972,7 +980,7 @@ public:
     void ResetNodeColorSpace();
     void SetNodeColorSpace(GraphicColorGamut colorSpace);
     GraphicColorGamut GetNodeColorSpace() const;
-    virtual void MarkNodeColorSpace(bool isP3) {}
+    virtual void MarkNodeColorSpace(int8_t colorSpace) {}
 
     void SetEnableHdrEffect(bool enableHdrEffect);
 
@@ -1231,6 +1239,9 @@ private:
     bool childHasVisibleEffect_ = false;  // only collect visible children has useeffect
     bool hasChildrenOutOfRect_ = false;
 
+    // for decide whether has true draw content
+    std::bitset<LayerDrawContent::MAX> layerContentBits_;
+
     bool isSubTreeDirty_ = false;
     bool isTreeStateChangeDirty_ = false;
     bool isContentDirty_ = false;
@@ -1342,12 +1353,8 @@ private:
     std::unordered_set<NodeId> visibleEffectChild_;
     Drawing::Matrix oldMatrix_;
     Drawing::Matrix oldAbsMatrix_;
-#ifdef RS_ENABLE_MEMORY_DOWNTREE
     mutable std::unique_ptr<RSDrawable::Vec> drawableVec_;
     bool released_ = false;
-#else
-    mutable RSDrawable::Vec drawableVec_;
-#endif
     RSAnimationManager animationManager_;
     RSOpincCache opincCache_;
     std::unordered_set<NodeId> subtreeParallelNodes_;
@@ -1414,7 +1421,6 @@ private:
     void CollectAndUpdateLocalPixelStretchRect();
     void CollectAndUpdateLocalForegroundEffectRect();
     void CollectAndUpdateLocalDistortionEffectRect();
-    void CollectAndUpdateLocalMagnifierEffectRect();
     void CollectAndUpdateLocalEffectRect();
     // update drawrect based on self's info
     void UpdateBufferDirtyRegion();
@@ -1458,6 +1464,7 @@ private:
     friend class ModifierNG::RSRenderModifier;
     friend class ModifierNG::RSForegroundFilterRenderModifier;
     friend class ModifierNG::RSBackgroundFilterRenderModifier;
+    friend class RSDynamicLayerSkipController;
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif

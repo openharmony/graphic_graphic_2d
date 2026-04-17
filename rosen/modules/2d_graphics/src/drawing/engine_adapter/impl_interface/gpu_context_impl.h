@@ -116,6 +116,11 @@ public:
 
     virtual void InitGpuMemoryReportLimit(MemoryOverReportCallback callback, size_t intervalLimit, size_t size) = 0;
 
+    virtual void GetGpuMemoryInfo(std::unordered_map<std::string, std::pair<size_t, size_t>>& typeInfo,
+        std::unordered_map<pid_t, size_t>& pidInfo) = 0;
+    
+    virtual void SetAbnormalPid(pid_t pid) = 0;
+
 #ifdef RS_ENABLE_VK
     virtual void StoreVkPipelineCacheData() = 0;
 #endif

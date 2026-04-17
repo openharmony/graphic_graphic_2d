@@ -289,6 +289,7 @@ void RSScreenRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     targetScreenParams->hasMirroredScreenChanged_ = hasMirroredScreenChanged_;
     targetScreenParams->isVirtualSurfaceChanged_ = std::exchange(isVirtualSurfaceChanged_, false);
     targetScreenParams->logicalCameraRotationCorrection_ = logicalCameraRotationCorrection_;
+    targetScreenParams->layerSkipContext_ = layerSkipContext_;
 
     RSRenderParams::OnSync(target);
 }

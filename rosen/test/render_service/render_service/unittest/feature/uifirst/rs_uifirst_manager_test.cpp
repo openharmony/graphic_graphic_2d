@@ -270,6 +270,26 @@ HWTEST_F(RSUifirstManagerTest, RenderGroupUpdate002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: IsLayerPartRenderDisableAnimation001
+ * @tc.desc: Test layer-part disable-animation helper against current-frame events
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSUifirstManagerTest, IsLayerPartRenderDisableAnimation001, TestSize.Level1)
+{
+    RSUifirstManager::EventInfo eventInfo;
+    eventInfo.sceneId = "WINDOW_TITLE_BAR_MINIMIZED";
+    uifirstManager_.currentFrameEvent_ = { eventInfo };
+    EXPECT_FALSE(uifirstManager_.IsLayerPartRenderDisableAnimation());
+
+    eventInfo.sceneId = "APP_LIST_FLING";
+    uifirstManager_.currentFrameEvent_ = { eventInfo };
+    EXPECT_TRUE(uifirstManager_.IsLayerPartRenderDisableAnimation());
+
+    uifirstManager_.currentFrameEvent_.clear();
+}
+
+/**
  * @tc.name: RenderGroupUpdate003
  * @tc.desc: Test RenderGroupUpdate, when parent node is surface node
  * @tc.type: FUNC
@@ -1933,53 +1953,6 @@ HWTEST_F(RSUifirstManagerTest, NodeIsInCardWhiteList001, TestSize.Level1)
 }
 
 /**
- * @tc.name: IsCardSkipFirstWaitScene001
- * @tc.desc: Test IsCardSkipFirstWaitScene
- * @tc.type: FUNC
- * @tc.require: issueIADDL3
- */
-HWTEST_F(RSUifirstManagerTest, IsCardSkipFirstWaitScene001, TestSize.Level1)
-{
-    std::string scene = "";
-    int32_t appPid = 1;
-    bool res = uifirstManager_.IsCardSkipFirstWaitScene(scene, appPid);
-    EXPECT_FALSE(res);
-
-    appPid = 0;
-    res = uifirstManager_.IsCardSkipFirstWaitScene(scene, appPid);
-    EXPECT_FALSE(res);
-
-    scene = "INTO_HOME_ANI"; // for test
-    res = uifirstManager_.IsCardSkipFirstWaitScene(scene, appPid);
-    EXPECT_TRUE(res);
-}
-
-/**
- * @tc.name: EventsCanSkipFirstWait001
- * @tc.desc: Test EventsCanSkipFirstWait
- * @tc.type: FUNC
- * @tc.require: issueIADDL3
- */
-HWTEST_F(RSUifirstManagerTest, EventsCanSkipFirstWait001, TestSize.Level1)
-{
-    std::vector<RSUifirstManager::EventInfo> events;
-    bool res = uifirstManager_.EventsCanSkipFirstWait(events);
-    EXPECT_FALSE(res);
-
-    RSUifirstManager::EventInfo info;
-    info.sceneId = "";
-    info.appPid = 0;
-    events.push_back(info);
-    res = uifirstManager_.EventsCanSkipFirstWait(events);
-    EXPECT_FALSE(res);
-
-    info.sceneId = "INTO_HOME_ANI"; // for test
-    events.push_back(info);
-    res = uifirstManager_.EventsCanSkipFirstWait(events);
-    EXPECT_TRUE(res);
-}
-
-/**
  * @tc.name: IsToSubByAppAnimation01
  * @tc.desc: Test IsToSubByAppAnimation
  * @tc.type: FUNC
@@ -2140,5 +2113,36 @@ HWTEST_F(RSUifirstManagerTest, IsOcclusionEnabledTest001, TestSize.Level1)
     uifirstManager.SetUiFirstType(originalType);
     UIFirstParam::SetOcclusionEnabled(originalParam);
     system::SetParameter("rosen.uifirst.occlusion.enable", originalOcclusionProp);
+}
+
+/*
+ * @tc.name: IsNodeInSubthreadProcessingTest
+ * @tc.desc: Test IsNodeInSubthreadProcessing method
+ * @tc.type: FUNC
+ * @tc.require: issue23075
+ */
+HWTEST_F(RSUifirstManagerTest, IsNodeInSubthreadProcessingTest, TestSize.Level1)
+{
+    NodeId nodeId = 100;
+
+    // Test when subthreadProcessingNode_ is empty
+    ASSERT_FALSE(uifirstManager_.IsNodeInSubthreadProcessing(nodeId));
+
+    // Test when node is not in subthreadProcessingNode_
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto adapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
+    ASSERT_FALSE(uifirstManager_.IsNodeInSubthreadProcessing(surfaceNode->GetId()));
+
+    // Test when node is in subthreadProcessingNode_
+    uifirstManager_.subthreadProcessingNode_.insert(std::make_pair(surfaceNode->GetId(), adapter));
+    ASSERT_TRUE(uifirstManager_.IsNodeInSubthreadProcessing(surfaceNode->GetId()));
+
+    // Test with different node id
+    NodeId otherNodeId = 200;
+    ASSERT_FALSE(uifirstManager_.IsNodeInSubthreadProcessing(otherNodeId));
+
+    // Cleanup
+    uifirstManager_.subthreadProcessingNode_.clear();
 }
 }

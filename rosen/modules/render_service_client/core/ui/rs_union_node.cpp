@@ -59,12 +59,6 @@ void RSUnionNode::SetUnionMode(int uniModeUC)
     SetPropertyNG<ModifierNG::RSBoundsModifier, &ModifierNG::RSBoundsModifier::SetUnionMode>(uniModeUC);
 }
 
-void RSUnionNode::SetGravityPullStrength(float gravityPullStrength)
-{
-    SetPropertyNG<ModifierNG::RSBoundsModifier,
-        &ModifierNG::RSBoundsModifier::SetGravityPullStrength>(gravityPullStrength);
-}
-
 void RSUnionNode::RegisterNodeMap()
 {
     auto rsContext = GetRSUIContext();

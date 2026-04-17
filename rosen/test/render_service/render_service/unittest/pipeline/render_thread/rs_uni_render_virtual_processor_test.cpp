@@ -28,6 +28,7 @@
 #include "engine/rs_uni_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_virtual_processor.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/main_thread/rs_uni_render_listener.h"
 #include "pipeline/rs_processor_factory.h"
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 #include "platform/ohos/backend/rs_surface_frame_ohos_vulkan.h"
@@ -48,9 +49,13 @@ using namespace OHOS::Rosen::DrawableV2;
 
 namespace OHOS::Rosen {
 namespace {
-    constexpr uint32_t DEFAULT_CANVAS_WIDTH = 800;
-    constexpr uint32_t DEFAULT_CANVAS_HEIGHT = 600;
-    constexpr NodeId DEFAULT_ID = 0xFFFF;
+constexpr uint32_t DEFAULT_CANVAS_WIDTH = 800;
+constexpr uint32_t DEFAULT_CANVAS_HEIGHT = 600;
+constexpr NodeId DEFAULT_ID = 0xFFFF;
+#ifdef RS_ENABLE_VK
+constexpr int32_t DEFAULT_BUFFER_AGE = 10;
+#endif
+const HDI::Display::Graphic::Common::V1_0::BufferHandleMetaRegion DEFAULT_META_REGION {0, 0, 100, 100};
 }
 BufferRequestConfig requestConfig = {
     .width = 0x100,
@@ -1897,5 +1902,110 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, CanvasClipRegionForUniscaleMode_Disabl
 
     // Should clip region with default rect when enableVisibleRect_ is false
     EXPECT_NO_FATAL_FAILURE(virtualProcessor_->CanvasClipRegionForUniscaleMode(matrix, isSamplingOn));
+}
+
+/**
+ * @tc.name: SetCropRectForMetadata001
+ * @tc.desc: Test SetCropRectForMetadata with null renderFrame
+ * @tc.type: FUNC
+ * @tc.require: issue22999
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, SetCropRectForMetadata001, TestSize.Level2)
+{
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    
+    // Test with null renderFrame - should return false
+    ASSERT_FALSE(processor->SetCropRectForMetadata(DEFAULT_META_REGION));
+}
+
+/**
+ * @tc.name: SetCropRectForMetadata002
+ * @tc.desc: Test SetCropRectForMetadata with null surface
+ * @tc.type: FUNC
+ * @tc.require: issue22999
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, SetCropRectForMetadata002, TestSize.Level2)
+{
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    
+    // Set up renderFrame with null surface
+    processor->renderFrame_ = std::make_unique<RSRenderFrame>(nullptr, nullptr);
+    
+    // Test with null surface - should return false
+    ASSERT_FALSE(processor->SetCropRectForMetadata(DEFAULT_META_REGION));
+}
+
+/**
+ * @tc.name: SetCropRectForMetadata003
+ * @tc.desc: Test SetCropRectForMetadata with null buffer
+ * @tc.type: FUNC
+ * @tc.require: issue22999
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, SetCropRectForMetadata003, TestSize.Level2)
+{
+#ifdef RS_ENABLE_VK
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        return;
+    }
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    ASSERT_NE(producer, nullptr);
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(pSurface, nullptr);
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    
+    // Set up renderFrame with surface but null buffer
+    std::shared_ptr<RSSurfaceOhosVulkan> rsSurface = std::make_shared<RSSurfaceOhosVulkan>(pSurface);
+    auto surfaceFrame = std::make_unique<RSSurfaceFrameOhosVulkan>(
+        std::make_shared<Drawing::Surface>(), DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT, DEFAULT_BUFFER_AGE);
+    processor->renderFrame_ = std::make_unique<RSRenderFrame>(rsSurface, std::move(surfaceFrame));
+    
+    // Test with null buffer - should return false
+    ASSERT_FALSE(processor->SetCropRectForMetadata(DEFAULT_META_REGION));
+#endif
+}
+
+/**
+ * @tc.name: SetCropRectForMetadata004
+ * @tc.desc: Test SetCropRectForMetadata with valid condition
+ * @tc.type: FUNC
+ * @tc.require: issue22999
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, SetCropRectForMetadata004, TestSize.Level2)
+{
+#ifdef RS_ENABLE_VK
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        return;
+    }
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    ASSERT_NE(producer, nullptr);
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(pSurface, nullptr);
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    auto surfaceHandler = std::make_shared<RSSurfaceHandler>(0);
+    sptr<IBufferConsumerListener> listener = new RSUniRenderListener(surfaceHandler);
+    csurface->RegisterConsumerListener(listener);
+
+    // Create native buffer
+    sptr<SurfaceBuffer> buffer = nullptr;
+    int32_t fence;
+    pSurface->RequestBuffer(buffer, fence, requestConfig);
+    NativeWindowBuffer* nativeWindowBuffer = OH_NativeWindow_CreateNativeWindowBufferFromSurfaceBuffer(&buffer);
+    
+    // Set up renderFrame with surface which has buffer
+    std::shared_ptr<RSSurfaceOhosVulkan> rsSurface = std::make_shared<RSSurfaceOhosVulkan>(pSurface);
+    rsSurface->mSurfaceList.emplace_back(nativeWindowBuffer);
+    auto surfaceFrame = std::make_unique<RSSurfaceFrameOhosVulkan>(
+        std::make_shared<Drawing::Surface>(), DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT, DEFAULT_BUFFER_AGE);
+    processor->renderFrame_ = std::make_unique<RSRenderFrame>(rsSurface, std::move(surfaceFrame));
+    
+    // Test with valid buffer - should return true
+    ASSERT_TRUE(processor->SetCropRectForMetadata(DEFAULT_META_REGION));
+#endif
 }
 } // namespace OHOS::Rosen

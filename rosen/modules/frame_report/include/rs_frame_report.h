@@ -57,7 +57,7 @@ public:
     static void ReportWindowInfo(VkDevice device, bool isSingleFullScreenApp, const char* firstFrontBundleName);
 #endif
 private:
-#ifdef RS_ENABLE_VK
+#if defined (RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
     struct VkHandleDeleter {
         void operator()(void* ptr) const;
     };
