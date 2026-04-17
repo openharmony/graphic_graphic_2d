@@ -96,7 +96,8 @@ bool HveFilter::CheckPrecondition(const RSRenderNode& renderNode,
         return false;
     }
     const RSProperties& properties = renderNode.GetRenderProperties();
-    if (properties.GetMaterialFilter() != nullptr || properties.GetUseEffect()) {
+    if (properties.GetBackgroundFilter() != nullptr ||
+        properties.GetMaterialFilter() != nullptr || properties.GetUseEffect()) {
         RS_LOGD("%{public}s within filter range", __func__);
         return true;
     }
