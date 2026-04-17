@@ -98,6 +98,10 @@ static std::unordered_map<RSNGEffectType, ShaderCreator> creatorLUT = {
             return std::make_shared<RSNGRenderSDFEdgeLightEffect>();
         }
     },
+    {RSNGEffectType::SPATIAL_GLASS_EFFECT, [] {
+            return std::make_shared<RSNGRenderSpatialGlassEffect>();
+        }
+    },
 };
 
 using ShaderGetDrawRect = std::function<RectF(std::shared_ptr<RSNGRenderShaderBase>, const RectF&)>;
