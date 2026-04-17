@@ -1513,7 +1513,7 @@ bool RSUniRenderVisitor::IsSourceNodeDirty(RSSurfaceRenderNode& sourceNode)
         for (const auto& child : children) {
             auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child.lock());
             if (!node) {
-                break;
+                continue;
             }
             if (node->IsDirty() || node->IsSubTreeDirty()) {
                 return true;
