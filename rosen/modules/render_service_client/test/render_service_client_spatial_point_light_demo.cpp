@@ -224,7 +224,7 @@ public:
         canvasNode_->SetFrame(NODE_X, NODE_Y, NODE_WIDTH, NODE_HEIGHT);
         canvasNode_->SetBackgroundColor(0xFF808080);
 
-        UpdateShader(DEFAULT_INTENSITY, Vector3f(NODE_X + NODE_WIDTH / HALF_DIVISOR, 
+        UpdateShader(DEFAULT_INTENSITY, Vector3f(NODE_X + NODE_WIDTH / HALF_DIVISOR,
             NODE_Y + NODE_HEIGHT / HALF_DIVISOR, DEFAULT_LIGHT_Z),
             Vector4f(1.0f, 1.0f, 1.0f, 1.0f), DEFAULT_ATTENUATION, MASK_RADIAL_GRADIENT);
 
