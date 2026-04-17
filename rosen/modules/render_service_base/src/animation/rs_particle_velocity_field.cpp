@@ -17,6 +17,10 @@
 
 #include "animation/rs_particle_velocity_field.h"
 
+#include <parcel.h>
+
+#include "common/rs_common_def.h"
+
 namespace OHOS {
 namespace Rosen {
 
@@ -55,7 +59,6 @@ bool ParticleVelocityField::IsPointInRegion(const Vector2f& point) const
                 return false;
             }
 
-            // Ellipse equation: (x/rx)^2 + (y/ry)^2 <= 1
             float normalizedDist = (delta.x_ * delta.x_) / (radiusX * radiusX) +
                                    (delta.y_ * delta.y_) / (radiusY * radiusY);
             return normalizedDist <= 1.0f;
@@ -63,6 +66,33 @@ bool ParticleVelocityField::IsPointInRegion(const Vector2f& point) const
         default:
             return false;
     }
+}
+
+Vector2f ParticleVelocityField::Apply(const Vector2f& position, float deltaTime)
+{
+    return ApplyVelocityField(position, deltaTime);
+}
+
+bool ParticleVelocityField::Equals(const ParticleFieldBase& rhs) const
+{
+    const auto& other = static_cast<const ParticleVelocityField&>(rhs);
+    return (velocity_ == other.velocity_);
+}
+
+bool ParticleVelocityField::MarshalSpecific(Parcel& parcel) const
+{
+    return parcel.WriteFloat(velocity_.x_) && parcel.WriteFloat(velocity_.y_);
+}
+
+bool ParticleVelocityField::UnmarshalSpecific(Parcel& parcel)
+{
+    float vx = 0.0f;
+    float vy = 0.0f;
+    if (!parcel.ReadFloat(vx) || !parcel.ReadFloat(vy)) {
+        return false;
+    }
+    velocity_ = Vector2f(vx, vy);
+    return true;
 }
 
 void ParticleVelocityField::Dump(std::string& out) const

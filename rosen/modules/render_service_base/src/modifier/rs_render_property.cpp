@@ -19,6 +19,7 @@
 
 #include "rs_profiler.h"
 
+#include "animation/rs_particle_field_collection.h"
 #include "animation/rs_particle_ripple_field.h"
 #include "animation/rs_particle_velocity_field.h"
 #include "animation/rs_render_particle.h"
@@ -461,6 +462,15 @@ void RSRenderProperty<std::shared_ptr<ParticleRippleFields>>::Dump(std::string& 
 
 template<>
 void RSRenderProperty<std::shared_ptr<ParticleVelocityFields>>::Dump(std::string& out) const
+{
+    auto property = Get();
+    if (property != nullptr) {
+        property->Dump(out);
+    }
+}
+
+template<>
+void RSRenderProperty<std::shared_ptr<ParticleFieldCollection>>::Dump(std::string& out) const
 {
     auto property = Get();
     if (property != nullptr) {

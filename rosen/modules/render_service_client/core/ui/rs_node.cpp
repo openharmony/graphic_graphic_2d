@@ -1785,6 +1785,12 @@ void RSNode::SetParticleVelocityFields(const std::shared_ptr<ParticleVelocityFie
         &ModifierNG::RSParticleEffectModifier::SetParticleVelocityFields>(para);
 }
 
+void RSNode::SetParticleFields(const std::shared_ptr<ParticleFieldCollection>& para)
+{
+    SetPropertyNG<ModifierNG::RSParticleEffectModifier,
+        &ModifierNG::RSParticleEffectModifier::SetParticleFields>(para);
+}
+
 // foreground
 void RSNode::SetForegroundColor(uint32_t colorValue)
 {
