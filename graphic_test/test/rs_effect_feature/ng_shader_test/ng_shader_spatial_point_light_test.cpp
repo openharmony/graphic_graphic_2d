@@ -16,6 +16,7 @@
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 
+#include "draw/color.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
 #include "ui_effect/property/include/rs_ui_mask_base.h"
 
@@ -106,7 +107,7 @@ GRAPHIC_TEST(SpatialPointLightShaderTest, CONTENT_DISPLAY_TEST,
 
     auto testNode = RSCanvasNode::Create();
     testNode->SetBounds({ OFFSET_100, OFFSET_100, NODE_SIZE_400, NODE_SIZE_400 });
-    testNode->SetBackgroundColor(COLOR_RED);
+    testNode->SetBackgroundColor(Drawing::Color::COLOR_RED);
     testNode->SetBackgroundNGShader(shader);
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
@@ -512,7 +513,7 @@ GRAPHIC_TEST(SpatialPointLightShaderTest, CONTENT_DISPLAY_TEST,
     auto testNode = SetUpNodeBgImage(TEST_IMAGE_PATH,
         { OFFSET_100, OFFSET_100, NODE_SIZE_400, NODE_SIZE_400 });
     testNode->SetBorderWidth(20);
-    testNode->SetBorderColor(COLOR_GREEN);
+    testNode->SetBorderColor(Drawing::Color::COLOR_GREEN);
     testNode->SetBackgroundNGShader(shader);
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
@@ -890,7 +891,7 @@ GRAPHIC_TEST(SpatialPointLightShaderTest, CONTENT_DISPLAY_TEST,
     auto testNode = SetUpNodeBgImage(TEST_IMAGE_PATH,
         { OFFSET_100, OFFSET_100, NODE_SIZE_400, NODE_SIZE_400 });
     testNode->SetBorderWidth(20);
-    testNode->SetBorderColor(COLOR_GREEN);
+    testNode->SetBorderColor(Drawing::Color::COLOR_GREEN);
     testNode->SetBackgroundNGShader(shader);
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
