@@ -1583,7 +1583,7 @@ HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_PathConvertToSVGString067,
     size_t smallCount = 1;
     char smallBuffer[1] = {0};
     EXPECT_EQ(
-        OH_Drawing_PathConvertToSvgString(path, smallBuffer, &smallCount), OH_DRAWING_ERROR_INVALID_PARAMETER);
+        OH_Drawing_PathConvertToSvgString(path, smallBuffer, &smallCount), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
     EXPECT_EQ(smallCount, count);
 
     char* svgString = new char[count];
@@ -1597,8 +1597,8 @@ HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_PathConvertToSVGString067,
     EXPECT_NE(result.find("L"), std::string::npos);
     EXPECT_NE(result.find("Z"), std::string::npos);
 
-    EXPECT_EQ(OH_Drawing_PathConvertToSvgString(nullptr, nullptr, &count), OH_DRAWING_ERROR_INVALID_PARAMETER);
-    EXPECT_EQ(OH_Drawing_PathConvertToSvgString(path, nullptr, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PathConvertToSvgString(nullptr, nullptr, &count), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PathConvertToSvgString(path, nullptr, nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
 
     delete[] svgString;
     OH_Drawing_PathDestroy(path);
@@ -1684,9 +1684,9 @@ HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_PathGetPointData066, TestS
     uint32_t count = 0;
     OH_Drawing_Point2D points[1];
 
-    EXPECT_EQ(OH_Drawing_PathGetPointData(nullptr, nullptr, &count), OH_DRAWING_ERROR_INVALID_PARAMETER);
-    EXPECT_EQ(OH_Drawing_PathGetPointData(path, points, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
-    EXPECT_EQ(OH_Drawing_PathGetPointData(nullptr, points, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PathGetPointData(nullptr, nullptr, &count), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PathGetPointData(path, points, nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PathGetPointData(nullptr, points, nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
 
     OH_Drawing_PathDestroy(path);
 }
@@ -1763,9 +1763,9 @@ HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_PathGetVerbData069, TestSi
     uint32_t count = 0;
     OH_Drawing_PathIteratorVerb verbs[1];
 
-    EXPECT_EQ(OH_Drawing_PathGetVerbData(nullptr, nullptr, &count), OH_DRAWING_ERROR_INVALID_PARAMETER);
-    EXPECT_EQ(OH_Drawing_PathGetVerbData(path, verbs, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
-    EXPECT_EQ(OH_Drawing_PathGetVerbData(nullptr, verbs, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PathGetVerbData(nullptr, nullptr, &count), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PathGetVerbData(path, verbs, nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PathGetVerbData(nullptr, verbs, nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
 
     OH_Drawing_PathDestroy(path);
 }
@@ -1850,9 +1850,9 @@ HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_PathGetConicWeightData072,
     uint32_t count = 0;
     float conicWeights[1] = {0.0f};
 
-    EXPECT_EQ(OH_Drawing_PathGetConicWeightData(nullptr, nullptr, &count), OH_DRAWING_ERROR_INVALID_PARAMETER);
-    EXPECT_EQ(OH_Drawing_PathGetConicWeightData(path, conicWeights, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
-    EXPECT_EQ(OH_Drawing_PathGetConicWeightData(nullptr, conicWeights, nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PathGetConicWeightData(nullptr, nullptr, &count), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PathGetConicWeightData(path, conicWeights, nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PathGetConicWeightData(nullptr, conicWeights, nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
 
     OH_Drawing_PathDestroy(path);
 }
