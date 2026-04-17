@@ -475,7 +475,7 @@ protected:
 
     std::tuple<PropertyTags...> properties_;
 
-    template <typename U, RSNGEffectType T, typename... Tags>
+    template <typename U, typename RenderEffectTemplate, RSNGEffectType T, typename... Tags>
     friend class RSNGEffectTemplate;
 };
 } // namespace Rosen
