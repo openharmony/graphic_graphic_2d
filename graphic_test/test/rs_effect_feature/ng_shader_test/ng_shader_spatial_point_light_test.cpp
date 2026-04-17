@@ -38,7 +38,50 @@ constexpr int OFFSET_200 = 200;
 constexpr int OFFSET_280 = 280;
 constexpr int OFFSET_380 = 380;
 constexpr int OFFSET_510 = 510;
+constexpr int MASK_TYPE_RIPPLE = 0;
+constexpr int MASK_TYPE_RADIAL_GRADIENT = 1;
+constexpr int MASK_TYPE_WAVE_GRADIENT = 2;
+constexpr int MASK_TYPE_DOUBLE_RIPPLE = 3;
 const std::string TEST_IMAGE_PATH = "/data/local/tmp/fg_test.jpg";
+
+std::shared_ptr<RSNGMaskBase> CreateMaskByIndex(int index)
+{
+    if (index == MASK_TYPE_RIPPLE) {
+        auto rippleMask = std::make_shared<RSNGRippleMask>();
+        rippleMask->Setter<RippleMaskRadiusTag>(5.0f);
+        rippleMask->Setter<RippleMaskWidthTag>(5.0f);
+        rippleMask->Setter<RippleMaskCenterTag>(Vector2f(0.5f, 0.5f));
+        rippleMask->Setter<RippleMaskOffsetTag>(0.0f);
+        return std::static_pointer_cast<RSNGMaskBase>(rippleMask);
+    }
+    if (index == MASK_TYPE_RADIAL_GRADIENT) {
+        auto radialMask = std::make_shared<RSNGRadialGradientMask>();
+        radialMask->Setter<RadialGradientMaskCenterTag>(Vector2f(0.5f, 0.5f));
+        radialMask->Setter<RadialGradientMaskRadiusXTag>(0.3f);
+        radialMask->Setter<RadialGradientMaskRadiusYTag>(0.3f);
+        radialMask->Setter<RadialGradientMaskColorsTag>(std::vector<float>{1.0f, 0.0f});
+        radialMask->Setter<RadialGradientMaskPositionsTag>(std::vector<float>{0.0f, 1.0f});
+        return std::static_pointer_cast<RSNGMaskBase>(radialMask);
+    }
+    if (index == MASK_TYPE_WAVE_GRADIENT) {
+        auto waveMask = std::make_shared<RSNGWaveGradientMask>();
+        waveMask->Setter<WaveGradientMaskWaveCenterTag>(Vector2f(0.5f, 0.5f));
+        waveMask->Setter<WaveGradientMaskWaveWidthTag>(0.2f);
+        waveMask->Setter<WaveGradientMaskPropagationRadiusTag>(0.5f);
+        waveMask->Setter<WaveGradientMaskBlurRadiusTag>(0.1f);
+        waveMask->Setter<WaveGradientMaskTurbulenceStrengthTag>(0.5f);
+        return std::static_pointer_cast<RSNGMaskBase>(waveMask);
+    }
+    // MASK_TYPE_DOUBLE_RIPPLE
+    auto doubleRippleMask = std::make_shared<RSNGDoubleRippleMask>();
+    doubleRippleMask->Setter<DoubleRippleMaskRadiusTag>(5.0f);
+    doubleRippleMask->Setter<DoubleRippleMaskWidthTag>(5.0f);
+    doubleRippleMask->Setter<DoubleRippleMaskCenter1Tag>(Vector2f(0.3f, 0.3f));
+    doubleRippleMask->Setter<DoubleRippleMaskCenter2Tag>(Vector2f(0.7f, 0.7f));
+    doubleRippleMask->Setter<DoubleRippleMaskTurbulenceTag>(0.5f);
+    doubleRippleMask->Setter<DoubleRippleMaskHaloThicknessTag>(2.0f);
+    return std::static_pointer_cast<RSNGMaskBase>(doubleRippleMask);
+}
 }
 
 class SpatialPointLightShaderTest : public RSGraphicTest {
@@ -135,7 +178,9 @@ GRAPHIC_TEST(SpatialPointLightShaderTest, CONTENT_DISPLAY_TEST,
     SpatialPointLightShader_Intensity_Test_002)
 {
     float intensityList[] = { 0.5f, 1.0f, 1.5f, 2.0f };
-    Vector4f colorList[] = { Vector4f(1.0f, 0.0f, 0.0f, 1.0f), Vector4f(0.0f, 1.0f, 0.0f, 1.0f), Vector4f(0.0f, 0.0f, 1.0f, 1.0f) };
+    Vector4f colorList[] = {
+        Vector4f(1.0f, 0.0f, 0.0f, 1.0f), Vector4f(0.0f, 1.0f, 0.0f, 1.0f),
+        Vector4f(0.0f, 0.0f, 1.0f, 1.0f) };
     for (int row = 0; row < 4; row++) {
         for (int col = 0; col < 3; col++) {
             auto shader = std::make_shared<Rosen::RSNGSpatialPointLight>();
@@ -266,7 +311,9 @@ GRAPHIC_TEST(SpatialPointLightShaderTest, CONTENT_DISPLAY_TEST,
 GRAPHIC_TEST(SpatialPointLightShaderTest, CONTENT_DISPLAY_TEST,
     SpatialPointLightShader_Color_Test_001)
 {
-    Vector4f colorList[] = { Vector4f(1.0f, 0.0f, 0.0f, 1.0f), Vector4f(0.0f, 1.0f, 0.0f, 1.0f), Vector4f(0.0f, 0.0f, 1.0f, 1.0f) };
+    Vector4f colorList[] = {
+        Vector4f(1.0f, 0.0f, 0.0f, 1.0f), Vector4f(0.0f, 1.0f, 0.0f, 1.0f),
+        Vector4f(0.0f, 0.0f, 1.0f, 1.0f) };
     for (int i = 0; i < 3; i++) {
         auto shader = std::make_shared<Rosen::RSNGSpatialPointLight>();
         shader->Setter<Rosen::SpatialPointLightLightIntensityTag>(1.0f);
@@ -942,46 +989,7 @@ GRAPHIC_TEST(SpatialPointLightShaderTest, CONTENT_DISPLAY_TEST,
     SpatialPointLightShader_Mask_Types_Test_001)
 {
     for (int i = 0; i < 4; i++) {
-        std::shared_ptr<Rosen::RSNGMaskBase> mask;
-        
-        if (i == 0) {
-            // RippleMask
-            auto rippleMask = std::make_shared<Rosen::RSNGRippleMask>();
-            rippleMask->Setter<Rosen::RippleMaskRadiusTag>(5.0f);
-            rippleMask->Setter<Rosen::RippleMaskWidthTag>(5.0f);
-            rippleMask->Setter<Rosen::RippleMaskCenterTag>(Vector2f(0.5f, 0.5f));
-            rippleMask->Setter<Rosen::RippleMaskOffsetTag>(0.0f);
-            mask = std::static_pointer_cast<Rosen::RSNGMaskBase>(rippleMask);
-        } else if (i == 1) {
-            // RadialGradientMask
-            auto radialMask = std::make_shared<Rosen::RSNGRadialGradientMask>();
-            radialMask->Setter<Rosen::RadialGradientMaskCenterTag>(Vector2f(0.5f, 0.5f));
-            radialMask->Setter<Rosen::RadialGradientMaskRadiusXTag>(0.3f);
-            radialMask->Setter<Rosen::RadialGradientMaskRadiusYTag>(0.3f);
-            radialMask->Setter<Rosen::RadialGradientMaskColorsTag>(std::vector<float>{1.0f, 0.0f});
-            radialMask->Setter<Rosen::RadialGradientMaskPositionsTag>(std::vector<float>{0.0f, 1.0f});
-            mask = std::static_pointer_cast<Rosen::RSNGMaskBase>(radialMask);
-        } else if (i == 2) {
-            // WaveGradientMask
-            auto waveMask = std::make_shared<Rosen::RSNGWaveGradientMask>();
-            waveMask->Setter<Rosen::WaveGradientMaskWaveCenterTag>(Vector2f(0.5f, 0.5f));
-            waveMask->Setter<Rosen::WaveGradientMaskWaveWidthTag>(0.2f);
-            waveMask->Setter<Rosen::WaveGradientMaskPropagationRadiusTag>(0.5f);
-            waveMask->Setter<Rosen::WaveGradientMaskBlurRadiusTag>(0.1f);
-            waveMask->Setter<Rosen::WaveGradientMaskTurbulenceStrengthTag>(0.5f);
-            mask = std::static_pointer_cast<Rosen::RSNGMaskBase>(waveMask);
-        } else {
-            // DoubleRippleMask
-            auto doubleRippleMask = std::make_shared<Rosen::RSNGDoubleRippleMask>();
-            doubleRippleMask->Setter<Rosen::DoubleRippleMaskRadiusTag>(5.0f);
-            doubleRippleMask->Setter<Rosen::DoubleRippleMaskWidthTag>(5.0f);
-            doubleRippleMask->Setter<Rosen::DoubleRippleMaskCenter1Tag>(Vector2f(0.3f, 0.3f));
-            doubleRippleMask->Setter<Rosen::DoubleRippleMaskCenter2Tag>(Vector2f(0.7f, 0.7f));
-            doubleRippleMask->Setter<Rosen::DoubleRippleMaskTurbulenceTag>(0.5f);
-            doubleRippleMask->Setter<Rosen::DoubleRippleMaskHaloThicknessTag>(2.0f);
-            mask = std::static_pointer_cast<Rosen::RSNGMaskBase>(doubleRippleMask);
-        }
-
+        auto mask = CreateMaskByIndex(i);
         auto shader = std::make_shared<Rosen::RSNGSpatialPointLight>();
         shader->Setter<Rosen::SpatialPointLightLightIntensityTag>(1.0f);
         shader->Setter<Rosen::SpatialPointLightLightPositionTag>(
