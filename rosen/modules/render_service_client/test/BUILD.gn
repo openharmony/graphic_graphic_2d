@@ -1173,15 +1173,11 @@ ohos_executable("render_service_client_spatial_point_light_demo") {
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
   ]
 
-  public_external_deps = [
-    "$public_deps_skia",
-    "window_manager:libwm",
-  ]
-
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
     "safwk:system_ability_fwk",
+    "window_manager:libwm",
     "zlib:libz",
   ]
 
