@@ -1202,29 +1202,29 @@ napi_value EffectNapi::CreateSpatialGlassEffect(napi_env env, napi_callback_info
         UIEFFECT_LOG_E("EffectNapi::CreateSpatialGlassEffect parse input fail"));
     std::shared_ptr<SpatialGlassEffectPara> para = std::make_shared<SpatialGlassEffectPara>();
 
-    Vector3f topLeft = {0.0f, 0.0f, 0.0f};
+    Vector3f leftTop = {0.0f, 0.0f, 0.0f};
     uint32_t idx = 0;
-    UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[idx], topLeft), nullptr,
-        UIEFFECT_LOG_E("EffectNapi::CreateSpatialGlassEffect parse topLeft fail"));
-    para->SetTopLeft(topLeft);
+    UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[idx], leftTop), nullptr,
+        UIEFFECT_LOG_E("EffectNapi::CreateSpatialGlassEffect parse leftTop fail"));
+    para->SetLeftTop(leftTop);
     idx++;
 
-    Vector3f topRight = {0.0f, 0.0f, 0.0f};
-    UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[idx], topRight), nullptr,
-        UIEFFECT_LOG_E("EffectNapi::CreateSpatialGlassEffect parse topRight fail"));
-    para->SetTopRight(topRight);
+    Vector3f tightTop = {0.0f, 0.0f, 0.0f};
+    UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[idx], tightTop), nullptr,
+        UIEFFECT_LOG_E("EffectNapi::CreateSpatialGlassEffect parse tightTop fail"));
+    para->SetRightTop(tightTop);
     idx++;
 
-    Vector3f botLeft = {0.0f, 0.0f, 0.0f};
-    UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[idx], botLeft), nullptr,
-        UIEFFECT_LOG_E("EffectNapi::CreateSpatialGlassEffect parse botLeft fail"));
-    para->SetBotLeft(botLeft);
+    Vector3f leftBot = {0.0f, 0.0f, 0.0f};
+    UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[idx], leftBot), nullptr,
+        UIEFFECT_LOG_E("EffectNapi::CreateSpatialGlassEffect parse leftBot fail"));
+    para->SetLeftBot(leftBot);
     idx++;
 
-    Vector3f botRight = {0.0f, 0.0f, 0.0f};
-    UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[idx], botRight), nullptr,
-        UIEFFECT_LOG_E("EffectNapi::CreateSpatialGlassEffect parse botRight fail"));
-    para->SetBotRight(botRight);
+    Vector3f rightBot = {0.0f, 0.0f, 0.0f};
+    UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[idx], rightBot), nullptr,
+        UIEFFECT_LOG_E("EffectNapi::CreateSpatialGlassEffect parse rightBot fail"));
+    para->SetRightBot(rightBot);
     idx++;
 
     Vector3f cameraPosition = {0.0f, 0.0f, 0.0f};
