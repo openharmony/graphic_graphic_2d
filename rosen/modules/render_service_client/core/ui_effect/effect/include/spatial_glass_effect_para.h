@@ -32,44 +32,44 @@ public:
     }
     ~SpatialGlassEffectPara() override = default;
 
-    void SetTopLeft(Vector3f& topLeft)
+    void SetLeftTop(Vector3f& leftTop)
     {
-        topLeft_ = topLeft;
+        leftTop_ = leftTop;
     }
 
-    const Vector3f GetTopLeft() const
+    const Vector3f GetLeftTop() const
     {
-        return topLeft_;
+        return leftTop_;
     }
 
-    void SetTopRight(Vector3f& topRight)
+    void SetRightTop(Vector3f& rightTop)
     {
-        topRight_ = topRight;
+        rightTop_ = rightTop;
     }
 
-    const Vector3f GetTopRight() const
+    const Vector3f GetRightTop() const
     {
-        return topRight_;
+        return rightTop_;
     }
 
-    void SetBotLeft(Vector3f& botLeft)
+    void SetLeftBot(Vector3f& leftBot)
     {
-        botLeft_ = botLeft;
+        leftBot_ = leftBot;
     }
 
-    const Vector3f GetBotLeft() const
+    const Vector3f GetLeftBot() const
     {
-        return botLeft_;
+        return leftBot_;
     }
 
-    void SetBotRight(Vector3f& botRight)
+    void SetRightBot(Vector3f& rightBot)
     {
-        botRight_ = botRight;
+        rightBot_ = rightBot;
     }
 
-    const Vector3f GetBotRight() const
+    const Vector3f GetRightBot() const
     {
-        return botRight_;
+        return rightBot_;
     }
 
     void SetMameraPosition(Vector3f& cameraPosition)
@@ -113,10 +113,10 @@ public:
     }
 
 private:
-    Vector3f topLeft_ = Vector3f(0.0f, 0.0f, 0.0f);
-    Vector3f topRight_ = Vector3f(0.0f, 0.0f, 0.0f);
-    Vector3f botLeft_ = Vector3f(0.0f, 0.0f, 0.0f);
-    Vector3f botRight_ = Vector3f(0.0f, 0.0f, 0.0f);
+    Vector3f leftTop_ = Vector3f(0.0f, 0.0f, 0.0f);
+    Vector3f rightTop_ = Vector3f(0.0f, 0.0f, 0.0f);
+    Vector3f leftBot_ = Vector3f(0.0f, 0.0f, 0.0f);
+    Vector3f rightBot_ = Vector3f(0.0f, 0.0f, 0.0f);
     Vector3f cameraPosition_ = Vector3f(0.0f, 0.0f, 0.0f);
     Vector3f cameraIntrinsics_ = Vector3f(0.0f, 0.0f, 0.0f);
     Vector2f thickParams_ = Vector2f(0.0f, 0.0f);
