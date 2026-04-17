@@ -1864,7 +1864,7 @@ private:
         std::shared_ptr<ModifierNG::RSRenderModifier> newModifier);
     
     void CountRelatedNode(bool isIncrement);
-    void ClearRelatedSourceCache();
+    void ClearRelatedSourceCache(bool value);
 
     RSSpecialLayerManager specialLayerManager_;
     bool specialLayerChanged_ = false;

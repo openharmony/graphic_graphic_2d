@@ -227,6 +227,7 @@ private:
     void PrevalidateHwcNode();
     bool PrepareForCloneNode(RSSurfaceRenderNode& node);
     void UpdateInfoForClonedNode(RSSurfaceRenderNode& node);
+    bool IsSourceNodeDirty(RSSurfaceRenderNode& node);
     void PrepareForCrossNode(RSSurfaceRenderNode& node);
 
     // use in QuickPrepareSurfaceRenderNode, update SurfaceRenderNode's uiFirst status
