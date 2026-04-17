@@ -195,6 +195,7 @@ public:
         surfaceNode_->SetPositionZ(RSSurfaceNode::POINTER_WINDOW_POSITION_Z);
         surfaceNode_->SetBackgroundColor(SK_ColorWHITE);
         surfaceNode_->AttachToDisplay(SCREEN_ID);
+        surfaceNodeAttached_ = true;
         rsUiDirector_->SetRSSurfaceNode(surfaceNode_);
         return true;
     }
@@ -246,9 +247,11 @@ public:
 
     ~SpatialPointLightDemo() noexcept
     {
-        if (initSuccess_) {
+        if (surfaceNodeAttached_) {
             surfaceNode_->DetachToDisplay(SCREEN_ID);
-            transaction_->FlushImplicitTransaction();
+            if (transaction_) {
+                transaction_->FlushImplicitTransaction();
+            }
         }
     }
 
@@ -376,6 +379,7 @@ private:
     RSCanvasNode::SharedPtr canvasNode_;
     MaskType currentMask_ = MASK_RADIAL_GRADIENT;
     bool initSuccess_ = false;
+    bool surfaceNodeAttached_ = false;
 };
 } // namespace
 
