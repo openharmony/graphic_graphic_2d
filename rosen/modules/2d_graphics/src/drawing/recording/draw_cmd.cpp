@@ -1705,8 +1705,8 @@ void DrawTextBlobOpItem::Marshalling(DrawCmdList& cmdList)
     }
     if (textBlob_) {
         cmdList.AddOp<ConstructorHandle>(textBlobHandle, globalUniqueId,
-                                         textBlob_->IsSpeedOverQualityPreferred(),
-                                         textBlob_->GetTextContrast(), x_, y_, paintHandle);
+                                         textBlob_->GetTextContrast(), x_, y_,
+                                         textBlob_->IsSpeedOverQualityPreferred(),paintHandle);
     }
 }
 
