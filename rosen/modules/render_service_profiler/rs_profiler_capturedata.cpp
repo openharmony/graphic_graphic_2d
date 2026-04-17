@@ -119,23 +119,20 @@ void RSCaptureData::Serialize(Archive& archive)
 {
     archive.Serialize(time_);
 
-    size_t size = properties_.size();
-    archive.Serialize(size);
+    size_t count = properties_.size();
+    archive.Serialize(count);
+
+    constexpr size_t maxCount = 1024u;
+    if (archive.IsReading() && (count > maxCount)) {
+        return;
+    }
 
     if (archive.IsReading()) {
-        constexpr size_t maxPropertyCount = 1024u;
-        if (size > maxPropertyCount) {
-            return;
-        }
-
-        for (size_t i = 0; i < size; i++) {
-            std::string first;
-            archive.Serialize(first);
-
-            std::string second;
-            archive.Serialize(second);
-
-            properties_[first] = second;
+        for (size_t i = 0; i < count; i++) {
+            std::pair<std::string, std::string> pair;
+            archive.Serialize(pair.first);
+            archive.Serialize(pair.second);
+            properties_.emplace(pair);
         }
     } else {
         for (auto& pair : properties_) {
