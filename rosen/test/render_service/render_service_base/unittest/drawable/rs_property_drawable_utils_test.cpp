@@ -1439,12 +1439,72 @@ HWTEST_F(RSPropertyDrawableUtilsTest, ApplyAdaptiveFrostedGlassParamsTest001, te
     EXPECT_EQ(renderFilter->GetType(), RSNGEffectType::BLUR);
 }
 
+namespace {
+Vector2f DARK_BLUR(1.5f, 2.5f);
+Vector2f DARK_WEIGHTS(0.1f, 0.2f);
+Vector2f DARK_BG_RATES(0.3f, 0.4f);
+Vector3f DARK_BG_KBS(0.5f, 0.6f, 0.7f);
+Vector3f DARK_BG_POS(0.8f, 0.9f, 1.0f);
+Vector3f DARK_BG_NEG(1.1f, 1.2f, 1.3f);
+} // namespace
+
 /**
  * @tc.name: ApplyAdaptiveFrostedGlassParamsTest002
+ * @tc.desc: ApplyAdaptiveFrostedGlassParams dark / light branch
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, ApplyAdaptiveFrostedGlassParamsTest002, testing::ext::TestSize.Level1)
+{
+    // create frosted glass filter
+    auto renderFilter = RSNGRenderFilterBase::Create(RSNGEffectType::FROSTED_GLASS);
+    ASSERT_NE(renderFilter, nullptr);
+    auto glass = std::static_pointer_cast<RSNGRenderFrostedGlassFilter>(renderFilter);
+    auto drawingFilter = std::make_shared<RSDrawingFilter>();
+    drawingFilter->SetNGRenderFilter(renderFilter);
+    drawingFilter->GenerateAndUpdateGEVisualEffect();
+
+    // initialize main properties to different sentinel values
+    glass->Setter<FrostedGlassBlurParamsRenderTag>(Vector2f(0.0f, 0.0f));
+    glass->Setter<FrostedGlassWeightsEmbossRenderTag>(Vector2f(0.0f, 0.0f));
+    glass->Setter<FrostedGlassBgRatesRenderTag>(Vector2f(0.0f, 0.0f));
+    glass->Setter<FrostedGlassBgKBSRenderTag>(Vector3f(0.0f, 0.0f, 0.0f));
+    glass->Setter<FrostedGlassBgPosRenderTag>(Vector3f(0.0f, 0.0f, 0.0f));
+    glass->Setter<FrostedGlassBgNegRenderTag>(Vector3f(0.0f, 0.0f, 0.0f));
+
+    // set per-mode tags
+    glass->Setter<FrostedGlassDarkModeBlurParamsRenderTag>(DARK_BLUR);
+    glass->Setter<FrostedGlassDarkModeWeightsEmbossRenderTag>(DARK_WEIGHTS);
+    glass->Setter<FrostedGlassDarkModeBgRatesRenderTag>(DARK_BG_RATES);
+    glass->Setter<FrostedGlassDarkModeBgKBSRenderTag>(DARK_BG_KBS);
+    glass->Setter<FrostedGlassDarkModeBgPosRenderTag>(DARK_BG_POS);
+    glass->Setter<FrostedGlassDarkModeBgNegRenderTag>(DARK_BG_NEG);
+
+    // prepare canvas and set picked color to black -> light
+    Drawing::Canvas canvasDark;
+    RSPaintFilterCanvas paintFilterCanvasDark(&canvasDark);
+    paintFilterCanvasDark.SetColorPicked(Drawing::Color::COLOR_BLACK);
+
+    RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(&paintFilterCanvasDark, drawingFilter);
+
+    // prepare canvas and set picked color to white -> dark
+    Drawing::Canvas canvasLight;
+    RSPaintFilterCanvas paintFilterCanvasLight(&canvasLight);
+    paintFilterCanvasLight.SetColorPicked(Drawing::Color::COLOR_WHITE);
+
+    RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(&paintFilterCanvasLight, drawingFilter);
+
+    drawingFilter->visualEffectContainer_ = nullptr;
+    ASSERT_FALSE(drawingFilter->visualEffectContainer_);
+    RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(&paintFilterCanvasLight, drawingFilter);
+}
+
+/**
+ * @tc.name: ApplyAdaptiveFrostedGlassParamsTest003
  * @tc.desc: filter has no GE container (GetGEContainer returns nullptr)
  * @tc.type: FUNC
  */
-HWTEST_F(RSPropertyDrawableUtilsTest, ApplyAdaptiveFrostedGlassParamsTest002, testing::ext::TestSize.Level1)
+HWTEST_F(RSPropertyDrawableUtilsTest, ApplyAdaptiveFrostedGlassParamsTest003, testing::ext::TestSize.Level1)
 {
     Drawing::Canvas canvas;
     auto drawingFilter = std::make_shared<RSDrawingFilter>();
@@ -1454,11 +1514,11 @@ HWTEST_F(RSPropertyDrawableUtilsTest, ApplyAdaptiveFrostedGlassParamsTest002, te
 }
 
 /**
- * @tc.name: ApplyAdaptiveFrostedGlassParamsTest003
+ * @tc.name: ApplyAdaptiveFrostedGlassParamsTest004
  * @tc.desc: GE container exists but filter is not frosted glass type
  * @tc.type: FUNC
  */
-HWTEST_F(RSPropertyDrawableUtilsTest, ApplyAdaptiveFrostedGlassParamsTest003, testing::ext::TestSize.Level1)
+HWTEST_F(RSPropertyDrawableUtilsTest, ApplyAdaptiveFrostedGlassParamsTest004, testing::ext::TestSize.Level1)
 {
     Drawing::Canvas canvas;
     auto renderFilter = RSNGRenderFilterBase::Create(RSNGEffectType::BLUR);
@@ -1473,11 +1533,11 @@ HWTEST_F(RSPropertyDrawableUtilsTest, ApplyAdaptiveFrostedGlassParamsTest003, te
 }
 
 /**
- * @tc.name: ApplyAdaptiveFrostedGlassParamsTest004
+ * @tc.name: ApplyAdaptiveFrostedGlassParamsTest005
  * @tc.desc: canvas is nullptr
  * @tc.type: FUNC
  */
-HWTEST_F(RSPropertyDrawableUtilsTest, ApplyAdaptiveFrostedGlassParamsTest004, testing::ext::TestSize.Level1)
+HWTEST_F(RSPropertyDrawableUtilsTest, ApplyAdaptiveFrostedGlassParamsTest005, testing::ext::TestSize.Level1)
 {
     auto renderFilter = RSNGRenderFilterBase::Create(RSNGEffectType::FROSTED_GLASS);
     ASSERT_NE(renderFilter, nullptr);
@@ -1489,36 +1549,6 @@ HWTEST_F(RSPropertyDrawableUtilsTest, ApplyAdaptiveFrostedGlassParamsTest004, te
     EXPECT_NE(drawingFilter->GetGEContainer(), nullptr);
     EXPECT_NE(drawingFilter->GetGEContainer()->GetGEVisualEffect(Drawing::GE_FILTER_FROSTED_GLASS), nullptr);
 }
-
-/**
- * @tc.name: ApplyAdaptiveFrostedGlassParamsTest005
- * @tc.desc: filter is frosted glass with valid canvas and GE container (normal path)
- * @tc.type: FUNC
- * @tc.require: issue
- */
-HWTEST_F(RSPropertyDrawableUtilsTest, ApplyAdaptiveFrostedGlassParamsTest005, testing::ext::TestSize.Level1)
-{
-    Drawing::Canvas canvas;
-    auto renderFilter = RSNGRenderFilterBase::Create(RSNGEffectType::FROSTED_GLASS);
-    ASSERT_NE(renderFilter, nullptr);
-    auto drawingFilter = std::make_shared<RSDrawingFilter>();
-    drawingFilter->SetNGRenderFilter(renderFilter);
-    drawingFilter->GenerateAndUpdateGEVisualEffect();
-    ASSERT_NE(drawingFilter->GetGEContainer(), nullptr);
-    RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(&canvas, drawingFilter);
-    EXPECT_NE(drawingFilter->GetGEContainer(), nullptr);
-    EXPECT_NE(drawingFilter->GetGEContainer()->GetGEVisualEffect(Drawing::GE_FILTER_FROSTED_GLASS), nullptr);
-    EXPECT_NE(&canvas, nullptr);
-}
-
-namespace {
-Vector2f DARK_BLUR(1.5f, 2.5f);
-Vector2f DARK_WEIGHTS(0.1f, 0.2f);
-Vector2f DARK_BG_RATES(0.3f, 0.4f);
-Vector3f DARK_BG_KBS(0.5f, 0.6f, 0.7f);
-Vector3f DARK_BG_POS(0.8f, 0.9f, 1.0f);
-Vector3f DARK_BG_NEG(1.1f, 1.2f, 1.3f);
-} // namespace
 
 /**
  * @tc.name: DrawBackgroundEffectTest003
