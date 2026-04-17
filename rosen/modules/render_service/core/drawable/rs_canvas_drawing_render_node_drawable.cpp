@@ -518,15 +518,6 @@ void RSCanvasDrawingRenderNodeDrawable::ProcessCPURenderInBackgroundThread(std::
         if (!cmds || cmds->IsEmpty() || !surface || !ctx || !drawable) {
             return;
         }
-        RSRenderNodeSingleDrawableLocker singleLocker(drawable.get());
-        if (UNLIKELY(!singleLocker.IsLocked())) {
-            singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
-            RS_LOGE("RSCanvasDrawingRenderNodeDrawable::ProcessCPURenderInBackgroundThread node %{public}" PRIu64
-                " multi-access", nodeId);
-            if (RSSystemProperties::GetSingleDrawableLockerEnabled()) {
-                return;
-            }
-        }
         Drawing::GPUResourceTag::SetCurrentNodeId(nodeId);
         auto canvasDrawingDrawable = std::static_pointer_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable>(drawable);
         std::shared_ptr<Drawing::Canvas> canvas = nullptr;
