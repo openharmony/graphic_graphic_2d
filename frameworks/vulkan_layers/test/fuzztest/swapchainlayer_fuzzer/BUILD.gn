@@ -18,7 +18,7 @@ module_output_path = "graphic_2d/graphic_2d"
 
 ##############################fuzztest##########################################
 ohos_fuzztest("SwapchainLayerFuzzTest") {
-  fuzz_config_file = "//foundation/graphic/graphic_2d/frameworks/vulkan_layers/test/fuzztest/swapchainlayer_fuzzer"
+  fuzz_config_file = "../swapchainlayer_fuzzer"
   module_out_path = module_output_path
 
   cflags = [
