@@ -32,7 +32,7 @@ public:
     }
     ~SpatialGlassEffectPara() override = default;
 
-    void SetTopLeft(Vector3f& TopLeft)
+    void SetTopLeft(Vector3f& topLeft)
     {
         topLeft_ = topLeft;
     }
