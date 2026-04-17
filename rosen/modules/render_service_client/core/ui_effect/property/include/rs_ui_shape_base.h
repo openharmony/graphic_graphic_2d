@@ -31,7 +31,7 @@ public:
 };
 
 template<RSNGEffectType Type, typename... PropertyTags>
-using RSNGShapeTemplate = RSNGEffectTemplate<RSNGShapeBase, 
+using RSNGShapeTemplate = RSNGEffectTemplate<RSNGShapeBase,
         RSNGRenderShapeTemplate<Type, typename PropertyTags::RenderPropertyTagType...>, Type, PropertyTags...>;
 
 #define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##Tag
