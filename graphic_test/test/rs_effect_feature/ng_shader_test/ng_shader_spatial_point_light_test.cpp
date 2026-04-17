@@ -35,7 +35,6 @@ constexpr int OFFSET_50 = 50;
 constexpr int OFFSET_100 = 100;
 constexpr int OFFSET_175 = 175;
 constexpr int OFFSET_200 = 200;
-constexpr int OFFSET_240 = 240;
 constexpr int OFFSET_280 = 280;
 constexpr int OFFSET_380 = 380;
 constexpr int OFFSET_510 = 510;
