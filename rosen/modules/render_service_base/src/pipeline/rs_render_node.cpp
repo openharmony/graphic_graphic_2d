@@ -3515,7 +3515,7 @@ void RSRenderNode::UpdateEffectRegion(std::optional<Drawing::RectI>& region, boo
         return;
     }
     const auto& property = GetRenderProperties();
-    if (!isForced && !property.GetUseEffect() && !property.HasHarmonium()) {
+    if (!isForced && !property.GetUseEffect() && !property.HasHarmonium() && !property.HasSpatialGlassEffect()) {
         return;
     }
 
@@ -4183,7 +4183,8 @@ void RSRenderNode::UpdateVisibleFilterChild(RSRenderNode& childNode)
 }
 void RSRenderNode::UpdateVisibleEffectChild(RSRenderNode& childNode)
 {
-    if (childNode.GetRenderProperties().GetUseEffect() || childNode.GetRenderProperties().HasHarmonium()) {
+    if (childNode.GetRenderProperties().GetUseEffect() || childNode.GetRenderProperties().HasHarmonium() ||
+        childNode.GetRenderProperties().HasHarmonium()) {
         visibleEffectChild_.emplace(childNode.GetId());
     }
     auto& childEffectNodes = childNode.GetVisibleEffectChild();

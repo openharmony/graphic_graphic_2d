@@ -283,3 +283,23 @@ DECLARE_SHADER(SDFEdgeLightEffect, SDF_EDGE_LIGHT_EFFECT,
     ADD_PROPERTY_TAG(SDFEdgeLightEffect, LightMask),
     ADD_PROPERTY_TAG(SDFEdgeLightEffect, SDFShape)
 );
+
+DECLARE_SHADER(SpatialGlassEffect, SPATIAL_GLASS_EFFECT,
+    ADD_PROPERTY_TAG(SpatialGlassEffect, TopLeft),
+    ADD_PROPERTY_TAG(SpatialGlassEffect, TopRight),
+    ADD_PROPERTY_TAG(SpatialGlassEffect, BotLeft),
+    ADD_PROPERTY_TAG(SpatialGlassEffect, BotRight),
+    ADD_PROPERTY_TAG(SpatialGlassEffect, CameraPosition),
+    ADD_PROPERTY_TAG(SpatialGlassEffect, CameraIntrinsics),
+    ADD_PROPERTY_TAG(SpatialGlassEffect, ZNearFar),
+    ADD_PROPERTY_TAG(SpatialGlassEffect, ThickParams),
+    ADD_PROPERTY_TAG(SpatialGlassEffect, LightDir),
+    ADD_PROPERTY_TAG(SpatialGlassEffect, GlassBaseColor),
+    ADD_PROPERTY_TAG(SpatialGlassEffect, RefractCoef),
+    ADD_PROPERTY_TAG(SpatialGlassEffect, EdgeLightColor),
+    ADD_PROPERTY_TAG(SpatialGlassEffect, FresnelEnvColor),
+    ADD_PROPERTY_TAG(SpatialGlassEffect, FresnelEnvParams),
+    ADD_PROPERTY_TAG(SpatialGlassEffect, SpecularShiny),
+    ADD_PROPERTY_TAG(SpatialGlassEffect, Shape),
+    ADD_PROPERTY_TAG(SpatialGlassEffect, DepthImage)
+);

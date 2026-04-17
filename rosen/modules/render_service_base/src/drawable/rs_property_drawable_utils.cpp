@@ -1890,5 +1890,30 @@ void RSPropertyDrawableUtils::ApplySDFShapeToMagnifier(
     sdfRRectShape->Setter<SDFRRectShapeRRectRenderTag>(sdfRRect);
     filter->Setter<MagnifierSDFShapeRenderTag>(sdfRRectShape, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
 }
+
+void RSPropertyDrawableUtils::UpdatePropertiesToSpatialGlassEffect(const RSProperties& properties,
+    const std::shared_ptr<RSNGRenderShaderBase>& shader, NodeId nodeId)
+{
+    if (!shader || shader->GetType() != RSNGEffectType::SPATIAL_GLASS_EFFECT) {
+        return;
+    }
+    const auto& effectShader = std::static_pointer_cast<RSNGRenderSpatialGlassEffect>(shader);
+
+    auto sdfShape = properties.GetSDFShape();
+    if (sdfShape) {
+        ROSEN_LOGD("RSPropertyDrawableUtils::UpdatePropertiesToSpatialGlassEffect, SPATIAL_GLASS_EFFECT,
+            node %{public}" PRIu64, nodeId);
+        effectShader->Setter<SpatialGlassEffectShapeRenderTag>(sdfShape,
+            PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+    }
+    auto sdfRRect = properties.GetRRectForSDF();
+    auto sdfRRectShape = std::static_pointer_cast<RSNGRenderSDFRRectShape>(
+        RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE));
+    ROSEN_LOGD("RSPropertyDrawableUtils::UpdatePropertiesToSpatialGlassEffect, rrect %{public}s, node %{public}"
+        PRIu64, sdfRRect.ToString().c_str(), nodeId);
+    sdfRRectShape->Setter<SDFRRectShapeRRectRenderTag>(sdfRRect);
+    effectShader->Setter<SpatialGlassEffectShapeRenderTag>(sdfRRectShape, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+}
+
 } // namespace Rosen
 } // namespace OHOS

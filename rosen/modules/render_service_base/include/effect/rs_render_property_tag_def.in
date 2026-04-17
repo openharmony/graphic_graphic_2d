@@ -46,7 +46,7 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(EdgeLight, Alpha, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(EdgeLight, Color, Vector4f);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(EdgeLight, Mask, MASK_PTR);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(EdgeLight, Bloom, bool);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(EdgeLight, UseRawColor, bool);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(EdgeLight, UseRawColor, bool);f
 
 DECLARE_ANIMATABLE_PROPERTY_TAG(ColorGradient, Colors, std::vector<float>);
 DECLARE_ANIMATABLE_PROPERTY_TAG(ColorGradient, Positions, std::vector<float>);
@@ -555,3 +555,21 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(DistortionCollapse, RUCorner, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(DistortionCollapse, RBCorner, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(DistortionCollapse, LBCorner, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(DistortionCollapse, BarrelDistortion, Vector4f);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(SpatialGlassEffect, TopLeft, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SpatialGlassEffect, TopRight, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SpatialGlassEffect, BotLeft, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SpatialGlassEffect, BotRight, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SpatialGlassEffect, CameraPosition, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SpatialGlassEffect, CameraIntrinsics, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SpatialGlassEffect, ZNearFar, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SpatialGlassEffect, ThickParams, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SpatialGlassEffect, LightDir, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SpatialGlassEffect, GlassBaseColor, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SpatialGlassEffect, RefractCoef, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SpatialGlassEffect, EdgeLightColor, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SpatialGlassEffect, FresnelEnvColor, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SpatialGlassEffect, FresnelEnvParams, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SpatialGlassEffect, SpecularShiny, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(SpatialGlassEffect, Shape, std::shared_ptr<RSNGRenderShapeBase>);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(SpatialGlassEffect, DepthImage, std::shared_ptr<Media::PixelMap>);
