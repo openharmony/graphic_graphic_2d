@@ -122,6 +122,23 @@ DECLARE_FILTER(Gasify, GASIFY,
     ADD_PROPERTY_TAG(Gasify, Mask)
 );
 
+DECLARE_FILTER(ParticleAblation, PARTICLE_ABLATION,
+    ADD_PROPERTY_TAG(ParticleAblation, Progress),
+    ADD_PROPERTY_TAG(ParticleAblation, AblationRate),
+    ADD_PROPERTY_TAG(ParticleAblation, Centers0),
+    ADD_PROPERTY_TAG(ParticleAblation, Centers1),
+    ADD_PROPERTY_TAG(ParticleAblation, Centers2),
+    ADD_PROPERTY_TAG(ParticleAblation, Centers3),
+    ADD_PROPERTY_TAG(ParticleAblation, GlowLevel),
+    ADD_PROPERTY_TAG(ParticleAblation, GlowBrightness),
+    ADD_PROPERTY_TAG(ParticleAblation, MaxParticleCount),
+    ADD_PROPERTY_TAG(ParticleAblation, Wind),
+    ADD_PROPERTY_TAG(ParticleAblation, TurbScale),
+    ADD_PROPERTY_TAG(ParticleAblation, TurbEvo),
+    ADD_PROPERTY_TAG(ParticleAblation, TurbAmp),
+    ADD_PROPERTY_TAG(ParticleAblation, ExpansionSize)
+);
+
 DECLARE_FILTER(FrostedGlass, FROSTED_GLASS,
     ADD_PROPERTY_TAG(FrostedGlass, BlurParams),
     ADD_PROPERTY_TAG(FrostedGlass, WeightsEmboss),

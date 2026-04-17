@@ -89,6 +89,7 @@ public:
             case RSNGEffectType::GASIFY_SCALE_TWIST: return "GasifyScaleTwist";
             case RSNGEffectType::GASIFY_BLUR: return "GasifyBlur";
             case RSNGEffectType::GASIFY: return "Gasify";
+            case RSNGEffectType::PARTICLE_ABLATION: return "ParticleAblation";
             case RSNGEffectType::COLOR_GRADIENT_EFFECT: return "ColorGradientEffect";
             case RSNGEffectType::HARMONIUM_EFFECT: return "HarmoniumEffect";
             case RSNGEffectType::SDF_UNION_OP_SHAPE: return "SDFUnionOpShape";

@@ -91,6 +91,7 @@ public:
         GASIFY_SCALE_TWIST,
         GASIFY_BLUR,
         GASIFY,
+        PARTICLE_ABLATION,
         FROSTED_GLASS,
         FROSTED_GLASS_BLUR,
     };
