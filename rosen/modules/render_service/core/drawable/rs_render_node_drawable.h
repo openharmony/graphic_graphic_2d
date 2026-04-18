@@ -221,6 +221,7 @@ private:
     bool IsIntersectedWithFilter(std::vector<FilterNodeInfo>::const_iterator& begin,
         const std::vector<FilterNodeInfo>& filterInfoVec,
         Drawing::RectI& dstRect);
+    bool IsOverlappedWithExistingFilters(Drawing::Canvas& canvas, const RSRenderParams& params) const;
     void ClearDrawingCacheDataMap();
     void ClearDrawingCacheContiUpdateTimeMap();
     friend class RsSubThreadCache;
