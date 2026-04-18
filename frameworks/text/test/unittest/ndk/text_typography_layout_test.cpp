@@ -1059,4 +1059,293 @@ HWTEST_F(NdkTypographyTest, SetBothIndents_ExceedWidth, TestSize.Level0)
     OH_Drawing_DestroyTypographyStyle(typoStyle);
     OH_Drawing_DestroyTextStyle(txtStyle);
 }
+
+skia::textlayout::ParagraphImpl* GetSkiaParagraphByTypography(OH_Drawing_Typography* typography)
+{
+    OHOS::Rosen::Typography* rosenTypography = reinterpret_cast<OHOS::Rosen::Typography*>(typography);
+    OHOS::Rosen::SPText::ParagraphImpl* paragraph =
+        reinterpret_cast<OHOS::Rosen::SPText::ParagraphImpl*>(rosenTypography->GetParagraph());
+    return reinterpret_cast<skia::textlayout::ParagraphImpl*>(paragraph->paragraph_.get());
+}
+
+// Helper function to test zero-width character fallback
+// Tests that default ignorable unicode characters are properly handled when
+// the font doesn't have glyphs, using zero-width placeholder mechanism
+// expectedValues: array of 3 ints containing expected values for:
+//   [0] = expected number of runs
+//   [1] = expected number of glyphs in the zero-width character run
+//   [2] = expected glyph ID for the zero-width character
+static void TestZeroWidthCharFallback(const char* ignoreChar, const char* charDescription, const int expectedValues[3])
+{
+    const char* text0 = "test1\n";
+    const char* text1 = "\ntest1";
+
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+
+    // Set vertical alignment to CENTER
+    OH_Drawing_SetTypographyVerticalAlignment(
+        typoStyle, OH_Drawing_TextVerticalAlignment::TEXT_VERTICAL_ALIGNMENT_CENTER);
+
+    const char* fontFamilies[] = { "notdef" };
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    OH_Drawing_TextStyle* normalTextStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(txtStyle, nullptr);
+    ASSERT_NE(normalTextStyle, nullptr);
+
+    // FontSize 14
+    OH_Drawing_SetTextStyleFontSize(normalTextStyle, 14);
+    OH_Drawing_SetTextStyleFontFamilies(normalTextStyle, 1, fontFamilies);
+
+    // FontSize 14
+    OH_Drawing_SetTextStyleFontSize(txtStyle, 14);
+    OH_Drawing_SetTextStyleFontFamilies(txtStyle, 1, fontFamilies);
+    // LineHeight 50
+    OH_Drawing_SetTextStyleFontHeight(txtStyle, 50);
+
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+    ASSERT_NE(handler, nullptr);
+
+    // 1. Normal style for "test1\n"
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, normalTextStyle);
+    OH_Drawing_TypographyHandlerAddText(handler, text0);
+    OH_Drawing_TypographyHandlerPopTextStyle(handler);
+
+    // 2. "notdef" font style for zero-width character
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
+    OH_Drawing_TypographyHandlerAddText(handler, ignoreChar);
+    OH_Drawing_TypographyHandlerPopTextStyle(handler);
+
+    // 3. Normal style for "\ntest1"
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, normalTextStyle);
+    OH_Drawing_TypographyHandlerAddText(handler, text1);
+    OH_Drawing_TypographyHandlerPopTextStyle(handler);
+
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    ASSERT_NE(typography, nullptr);
+
+    // Layout width is 500, should not crash
+    OH_Drawing_TypographyLayout(typography, 500);
+
+    // Verify runs and glyphs (matching original test)
+    skia::textlayout::ParagraphImpl* skiaParagraph = GetSkiaParagraphByTypography(typography);
+    ASSERT_NE(skiaParagraph, nullptr);
+    auto runs = skiaParagraph->runs();
+    ASSERT_EQ(runs.size(), expectedValues[0]);  // Expected number of runs
+    int zeroWidthRunIndex = 2;
+    int expectedGlyphIndex = 2;
+    // Expected number of glyphs in zero-width character run
+    ASSERT_EQ(runs[zeroWidthRunIndex].glyphs().size(), expectedValues[1]);
+    // Expected glyph ID for zero-width character
+    EXPECT_EQ(runs[zeroWidthRunIndex].glyphs()[0], expectedValues[expectedGlyphIndex]);
+
+    OH_Drawing_DestroyTypography(typography);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+    OH_Drawing_DestroyTextStyle(normalTextStyle);
+}
+
+/*
+ * @tc.name: TypographyDefaultIgnorableCharsTest001
+ * @tc.desc: Test zero-width space (U+200B) - ZERO WIDTH SPACE (ZWSP)
+ *           This is the most commonly used default ignorable character
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, TypographyDefaultIgnorableCharsTest001, TestSize.Level1)
+{
+    const char* ignoreChar = "\u200B";  // ZERO WIDTH SPACE
+    const int expectedValues[] = {5, 3, 2};  // 5 runs, 3 glyph, glyph ID 2
+    TestZeroWidthCharFallback(ignoreChar, "U+200B ZERO WIDTH SPACE (ZWSP)", expectedValues);
+}
+
+/*
+ * @tc.name: TypographyDefaultIgnorableCharsTest002
+ * @tc.desc: Test zero-width joiner characters (U+200C, U+200D)
+ *           ZWNJ and ZWJ are commonly used in Indic scripts
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, TypographyDefaultIgnorableCharsTest002, TestSize.Level1)
+{
+    const int expectedValues[] = {5, 3, 2};  // 5 runs, 1 glyph, glyph ID 2
+
+    // Test U+200C ZERO WIDTH NON-JOINER
+    const char* ignoreChar1 = "\u200C";
+    TestZeroWidthCharFallback(ignoreChar1, "U+200C ZERO WIDTH NON-JOINER (ZWNJ)", expectedValues);
+
+    // Test U+200D ZERO WIDTH JOINER
+    const char* ignoreChar2 = "\u200D";
+    TestZeroWidthCharFallback(ignoreChar2, "U+200D ZERO WIDTH JOINER (ZWJ)", expectedValues);
+}
+
+/*
+ * @tc.name: TypographyDefaultIgnorableCharsTest003
+ * @tc.desc: Test word joiner and BOM (U+2060, U+FEFF)
+ *           WORD JOINER and ZERO WIDTH NO-BREAK SPACE (BOM)
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, TypographyDefaultIgnorableCharsTest003, TestSize.Level1)
+{
+    const int expectedValues[] = {5, 3, 2};  // 5 runs, 3 glyph, glyph ID 2
+
+    // Test U+2060 WORD JOINER
+    const char* ignoreChar1 = "\u2060";
+    TestZeroWidthCharFallback(ignoreChar1, "U+2060 WORD JOINER", expectedValues);
+
+    const int expectedValuesTwo[] = {5, 3, 2};  // 5 runs, 2 glyph, glyph ID 2
+    // Test U+FEFF ZERO WIDTH NO-BREAK SPACE (BOM)
+    const char* ignoreChar2 = "\uFEFF";
+    TestZeroWidthCharFallback(ignoreChar2, "U+FEFF ZERO WIDTH NO-BREAK SPACE (BOM)", expectedValuesTwo);
+}
+
+/*
+ * @tc.name: TypographyDefaultIgnorableCharsTest004
+ * @tc.desc: Test soft hyphen and combining grapheme joiner (U+00AD, U+034F)
+ *           Format control characters that may not have glyphs in some fonts
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, TypographyDefaultIgnorableCharsTest004, TestSize.Level1)
+{
+    const int expectedValues[] = {5, 2, 2};  // 5 runs, 2 glyph, glyph ID 2
+
+    // Test U+00AD SOFT HYPHEN
+    const char* ignoreChar1 = "\u00AD";
+    TestZeroWidthCharFallback(ignoreChar1, "U+00AD SOFT HYPHEN (SHY)", expectedValues);
+
+    const int expectedValuesTwo[] = {5, 2, 2};  // 5 runs, 2 glyph, glyph ID 2
+    // Test U+034F COMBINING GRAPHEME JOINER
+    const char* ignoreChar2 = "\u034F";
+    TestZeroWidthCharFallback(ignoreChar2, "U+034F COMBINING GRAPHEME JOINER (CGJ)", expectedValuesTwo);
+}
+
+/*
+ * @tc.name: TypographyDefaultIgnorableCharsTest005
+ * @tc.desc: Test bidirectional control characters (U+200E, U+200F, U+202A-202E)
+ *           LTR/RTL marks and BiDi control characters for text direction
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, TypographyDefaultIgnorableCharsTest005, TestSize.Level1)
+{
+    const int expectedValues[] = {5, 3, 2};  // 5 runs, 3 glyph, glyph ID 2
+
+    // Test bidirectional marks
+    const char* bidiMark1 = "\u200E";  // LEFT-TO-RIGHT MARK
+    const char* bidiMark2 = "\u200F";  // RIGHT-TO-LEFT MARK
+    const char* bidiControl1 = "\u202A";  // LEFT-TO-RIGHT EMBEDDING
+    const char* bidiControl2 = "\u202B";  // RIGHT-TO-LEFT EMBEDDING
+    const char* bidiControl3 = "\u202C";  // POP DIRECTIONAL FORMATTING
+    const char* bidiControl4 = "\u202D";  // LEFT-TO-RIGHT OVERRIDE
+    const char* bidiControl5 = "\u202E";  // RIGHT-TO-LEFT OVERRIDE
+
+    TestZeroWidthCharFallback(bidiMark1, "U+200E LEFT-TO-RIGHT MARK", expectedValues);
+    TestZeroWidthCharFallback(bidiMark2, "U+200F RIGHT-TO-LEFT MARK", expectedValues);
+    TestZeroWidthCharFallback(bidiControl1, "U+202A LEFT-TO-RIGHT EMBEDDING", expectedValues);
+    TestZeroWidthCharFallback(bidiControl2, "U+202B RIGHT-TO-LEFT EMBEDDING", expectedValues);
+    TestZeroWidthCharFallback(bidiControl3, "U+202C POP DIRECTIONAL FORMATTING", expectedValues);
+    TestZeroWidthCharFallback(bidiControl4, "U+202D LEFT-TO-RIGHT OVERRIDE", expectedValues);
+    TestZeroWidthCharFallback(bidiControl5, "U+202E RIGHT-TO-LEFT OVERRIDE", expectedValues);
+}
+
+/*
+ * @tc.name: TypographyDefaultIgnorableCharsTest006
+ * @tc.desc: Test Mongolian vowel separator range (U+180B-U+180E)
+ *           Format control characters for Mongolian script
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, TypographyDefaultIgnorableCharsTest006, TestSize.Level1)
+{
+    const int expectedValues[] = {5, 3, 2};  // 5 runs, 3 glyph, glyph ID 2
+
+    // Test U+180B-0x180E range (4 characters)
+    const char* mongolian1 = "\u180B";  // MONGOLIAN BIRGA
+    const char* mongolian2 = "\u180C";  // MONGOLIAN VIRGULE
+    const char* mongolian3 = "\u180D";  // MONGOLIAN DOT BEFORE
+    const char* mongolian4 = "\u180E";  // MONGOLIAN NUN BV
+
+    TestZeroWidthCharFallback(mongolian1, "U+180B MONGOLIAN BIRGA", expectedValues);
+    TestZeroWidthCharFallback(mongolian2, "U+180C MONGOLIAN VIRGULE", expectedValues);
+    TestZeroWidthCharFallback(mongolian3, "U+180D MONGOLIAN DOT BEFORE", expectedValues);
+    TestZeroWidthCharFallback(mongolian4, "U+180E MONGOLIAN NUN BV", expectedValues);
+}
+
+/*
+ * @tc.name: TypographyDefaultIgnorableCharsTest007
+ * @tc.desc: Test variation selectors (U+FE00-U+FE0F) + BOM
+ *           Variation Selectors used with emoji and special characters
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, TypographyDefaultIgnorableCharsTest007, TestSize.Level1)
+{
+    const int expectedValues[] = {5, 3, 2};  // 5 runs, 3 glyph, glyph ID 2
+
+    // Test variation selector range (selected representatives)
+    const char* varSel1 = "\uFE00";  // VARIATION SELECTOR-1
+    const char* varSel2 = "\uFE01";  // VARIATION SELECTOR-2
+    const char* varSel3 = "\uFE0F";  // VARIATION SELECTOR-16
+
+    TestZeroWidthCharFallback(varSel1, "U+FE00 VARIATION SELECTOR-1", expectedValues);
+    TestZeroWidthCharFallback(varSel2, "U+FE01 VARIATION SELECTOR-2", expectedValues);
+    TestZeroWidthCharFallback(varSel3, "U+FE0F VARIATION SELECTOR-16", expectedValues);
+}
+
+/*
+ * @tc.name: TypographyDefaultIgnorableCharsTest008
+ * @tc.desc: Test Tagalog range (U+17B4-U+17B5)
+ *           Special control characters for Tagalog script
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, TypographyDefaultIgnorableCharsTest008, TestSize.Level1)
+{
+    const int expectedValues[] = {5, 3, 2};  // 5 runs, 3 glyph, glyph ID 2
+
+    // Test U+17B4-0x17B5 range (2 characters)
+    const char* tagalog1 = "\u17B4";  // TAGALOG LETTER A
+    const char* tagalog2 = "\u17B5";  // TAGALOG LETTER A
+
+    TestZeroWidthCharFallback(tagalog1, "U+17B4 TAGALOG LETTER A", expectedValues);
+    TestZeroWidthCharFallback(tagalog2, "U+17B5 TAGALOG LETTER A", expectedValues);
+}
+
+/*
+ * @tc.name: TypographyDefaultIgnorableCharsTest009
+ * @tc.desc: Test music range in plane 1 (U+1D173-U+D17A)
+ *           Musical symbols and control characters
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, TypographyDefaultIgnorableCharsTest009, TestSize.Level1)
+{
+    const int expectedValues[] = {5, 4, 2};  // 5 runs, 4 glyph, glyph ID 2
+
+    // Test U+1D173 range (selected representatives)
+    const char* music1 = "\U0001D173";  // MUSICAL SYMBOL BEGIN BEAM
+    const char* music2 = "\U0001D174";  // MUSICAL SYMBOL END BEAM
+    const char* music3 = "\U0001D175";  // MUSICAL SYMBOL BEGIN TIE
+    const char* music4 = "\U0001D176";  // MUSICAL SYMBOL END TIE
+
+    TestZeroWidthCharFallback(music1, "U+1D173 MUSICAL SYMBOL BEGIN BEAM", expectedValues);
+    TestZeroWidthCharFallback(music2, "U+1D174 MUSICAL SYMBOL END BEAM", expectedValues);
+    TestZeroWidthCharFallback(music3, "U+1D175 MUSICAL SYMBOL BEGIN TIE", expectedValues);
+    TestZeroWidthCharFallback(music4, "U+1D176 MUSICAL SYMBOL END TIE", expectedValues);
+}
+
+/*
+ * @tc.name: TypographyDefaultIgnorableCharsTest010
+ * @tc.desc: Test CJK compatibility ideographs range (U+FFF0-U+FFF8)
+ *           CJK compatibility ideographs that are default ignorable
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyTest, TypographyDefaultIgnorableCharsTest010, TestSize.Level1)
+{
+    const int expectedValues[] = {5, 3, 2};  // 5 runs, 3 glyph, glyph ID 2
+
+    // Test CJK compatibility ideographs (selected representatives)
+    const char* cjk1 = "\uFFF0";  // CJK COMPATIBILITY IDEOGRAPH-0F00
+    const char* cjk2 = "\uFFF1";  // CJK COMPATIBILITY IDEOGRAPH-0F01
+    const char* cjk3 = "\uFFF8";  // CJK COMPATIBILITY IDEOGRAPH-0F08
+
+    TestZeroWidthCharFallback(cjk1, "U+FFF0 CJK COMPATIBILITY IDEOGRAPH-0F00", expectedValues);
+    TestZeroWidthCharFallback(cjk2, "U+FFF1 CJK COMPATIBILITY IDEOGRAPH-0F01", expectedValues);
+    TestZeroWidthCharFallback(cjk3, "U+FFF8 CJK COMPATIBILITY IDEOGRAPH-0F08", expectedValues);
+}
 } // namespace OHOS
