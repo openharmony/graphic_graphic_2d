@@ -254,8 +254,10 @@ private:
     sptr<RSITransactionDataCallback> transactionDataCbDirector_;
     std::map<std::pair<uint64_t, uint64_t>, std::function<void()>> transactionDataCallbacks_;
     std::mutex transactionDataCallbackMutex_;
+#ifndef ROSEN_CROSS_PLATFORM
     sptr<RSIClientToRenderConnection> clientToRenderConnection_;
-
+    sptr<RSIConnectionToken> token_;
+#endif
     friend class SurfaceCaptureCallbackDirector;
     friend class SurfaceBufferCallbackDirector;
     friend class TransactionDataCallbackDirector;
