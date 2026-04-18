@@ -1723,6 +1723,16 @@ public:
         hdrBrightnessFactor_ = hdrBrightnessFactor;
     }
 
+    float GetHDRDimmingFactor() const
+    {
+        return hdrDimmingFactor_;
+    }
+
+    void SetHDRDimmingFactor(float hdrDimmingFactor)
+    {
+        hdrDimmingFactor_ = hdrDimmingFactor;
+    }
+
     void SetApiCompatibleVersion(uint32_t apiCompatibleVersion);
     uint32_t GetApiCompatibleVersion()
     {
@@ -2013,6 +2023,7 @@ private:
     int32_t displayNit_ = 500; // default sdr luminance
     float brightnessRatio_ = 1.0f; // no ratio by default
     float hdrBrightnessFactor_ = 1.0f; // no discount by default
+    float hdrDimmingFactor_ = 1.0f; // no discount by default
     float localZOrder_ = 0.0f;
     uint32_t processZOrder_ = -1;
     int32_t nodeCost_ = 0;

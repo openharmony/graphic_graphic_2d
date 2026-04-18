@@ -2744,6 +2744,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
         if (!screenNode->GetHDRPresent()) {
             screenNode->SetBrightnessRatio(rsLuminance.GetHdrBrightnessRatio(screenId, 0));
         }
+        RSLuminanceControl::Get().HdrDimmingPostProcess(screenId);
         RSPointerWindowManager::Instance().HardCursorCreateLayerForDirect(processor);
         auto rcdInfo = std::make_unique<RcdInfo>();
         DoScreenRcdTask(screenNode->GetId(), processor, rcdInfo, screenNode->GetScreenProperty());
