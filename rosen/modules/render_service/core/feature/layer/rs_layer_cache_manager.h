@@ -39,10 +39,15 @@ public:
     RSLayerCacheManager(RSLayerCacheManager&&) = delete;
     RSLayerCacheManager& operator=(RSLayerCacheManager&&) = delete;
 
-    void HandleLayerDrawables(Drawing::Canvas& canvas);
-    void TryPrepareLayerCache(
-        std::shared_ptr<DrawableV2::RSCanvasRenderNodeDrawable> drawable, Drawing::Canvas& canvas);
+    void HandleLayerDrawables(RSPaintFilterCanvas& canvas);
+    void LayerCacheRegionDfx(
+        std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter> drawable, RSPaintFilterCanvas& canvas);
+
 private:
+    void TryPrepareLayerCache(
+        std::shared_ptr<DrawableV2::RSCanvasRenderNodeDrawable> drawable, RSPaintFilterCanvas& canvas);
+    bool ShouldEnableLayerCache(
+        std::shared_ptr<DrawableV2::RSCanvasRenderNodeDrawable> drawable, float& gpuMemMB, float& totalLayerCacheMB);
     RSLayerCacheManager() = default;
 };
 } // namespace Rosen

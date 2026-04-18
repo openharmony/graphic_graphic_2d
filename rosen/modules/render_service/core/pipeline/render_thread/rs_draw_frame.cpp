@@ -21,6 +21,7 @@
 #include "rs_trace.h"
 
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
+#include "feature/layer/rs_layer_cache_manager_base.h"
 #include "feature/hpae/rs_hpae_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "gfx/performance/rs_perfmonitor_reporter.h"
@@ -318,6 +319,7 @@ void RSDrawFrame::Sync()
         pendingSyncNodes.emplace(id, weakPtr);
     }
     stagingSyncCanvasDrawingNodes_.clear();
+    RSLayerCacheManagerBase::layerDrawables_.clear();
     for (auto& [id, weakPtr] : pendingSyncNodes) {
         if (auto node = weakPtr.lock()) {
             if (!CheckCanvasSkipSync(node)) {
