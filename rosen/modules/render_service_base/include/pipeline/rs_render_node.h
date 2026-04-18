@@ -315,11 +315,6 @@ public:
         isRepaintBoundary_ = isRepaintBoundary;
     }
 
-    inline bool IsWaitSync() const
-    {
-        return waitSync_;
-    }
-
     using ChildrenListSharedPtr = std::shared_ptr<const std::vector<std::shared_ptr<RSRenderNode>>>;
     // return children and disappeared children, not guaranteed to be sorted by z-index
     ChildrenListSharedPtr GetChildren() const;
@@ -1172,7 +1167,6 @@ protected:
     bool needClearSurface_ = false;
     bool isBootAnimation_ = false;
     bool lastFrameHasVisibleEffectWithoutEmptyRect_ = false;
-    bool waitSync_ = false;
     mutable bool isFullChildrenListValid_ = true;
     mutable bool isChildrenSorted_ = true;
     mutable bool childrenHasSharedTransition_ = false;
