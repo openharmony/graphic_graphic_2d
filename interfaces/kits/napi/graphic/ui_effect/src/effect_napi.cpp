@@ -124,7 +124,6 @@ napi_value EffectNapi::CreateEffect(napi_env env, napi_callback_info info)
         DECLARE_NAPI_FUNCTION("colorGradient", CreateColorGradientEffect),
         DECLARE_NAPI_FUNCTION("liquidMaterial", CreateHarmoniumEffect),
         DECLARE_NAPI_FUNCTION("frostedGlass", CreateFrostedGlassEffect),
-        DECLARE_NAPI_FUNCTION("spatialGlass", CreateSpatialGlassEffect),
     };
     status = napi_define_properties(env, object, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs);
     UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, effectObj,
@@ -1176,114 +1175,6 @@ napi_value EffectNapi::CreateHarmoniumEffect(napi_env env, napi_callback_info in
     status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&visualEffectObj));
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && visualEffectObj != nullptr, nullptr,
         UIEFFECT_LOG_E("EffectNapi CreateHarmoniumEffect napi_unwrap fail"));
-    visualEffectObj->AddPara(para);
-    return thisVar;
-}
-
-napi_value EffectNapi::CreateSpatialGlassEffect(napi_env env, napi_callback_info info)
-{
-    if (!UIEffectNapiUtils::IsSystemApp()) {
-        UIEFFECT_LOG_E("CreateSpatialGlassEffect failed, is not system app");
-        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
-            "EffectNapi CreateSpatialGlassEffect failed, is not system app");
-        return nullptr;
-    }
-    
-    constexpr size_t minArgc = NUM_1;
-    constexpr size_t maxArgc = 50;
-
-    napi_status status;
-    napi_value thisVar = nullptr;
-    napi_value argv[maxArgc] = {0};
-    size_t realArgc = maxArgc;
-
-    UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
-    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && minArgc <= realArgc && realArgc <= maxArgc, nullptr,
-        UIEFFECT_LOG_E("EffectNapi::CreateSpatialGlassEffect parse input fail"));
-    std::shared_ptr<SpatialGlassEffectPara> para = std::make_shared<SpatialGlassEffectPara>();
-
-    Vector3f leftTop = {0.0f, 0.0f, 0.0f};
-    uint32_t idx = 0;
-    UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[idx], leftTop), nullptr,
-        UIEFFECT_LOG_E("EffectNapi::CreateSpatialGlassEffect parse leftTop fail"));
-    para->SetLeftTop(leftTop);
-    idx++;
-
-    Vector3f tightTop = {0.0f, 0.0f, 0.0f};
-    UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[idx], tightTop), nullptr,
-        UIEFFECT_LOG_E("EffectNapi::CreateSpatialGlassEffect parse tightTop fail"));
-    para->SetRightTop(tightTop);
-    idx++;
-
-    Vector3f leftBot = {0.0f, 0.0f, 0.0f};
-    UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[idx], leftBot), nullptr,
-        UIEFFECT_LOG_E("EffectNapi::CreateSpatialGlassEffect parse leftBot fail"));
-    para->SetLeftBot(leftBot);
-    idx++;
-
-    Vector3f rightBot = {0.0f, 0.0f, 0.0f};
-    UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[idx], rightBot), nullptr,
-        UIEFFECT_LOG_E("EffectNapi::CreateSpatialGlassEffect parse rightBot fail"));
-    para->SetRightBot(rightBot);
-    idx++;
-
-    Vector3f cameraPosition = {0.0f, 0.0f, 0.0f};
-    UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[idx], cameraPosition), nullptr,
-        UIEFFECT_LOG_E("EffectNapi::CreateSpatialGlassEffect parse cameraPosition fail"));
-    para->SetCameraPosition(cameraPosition);
-    idx++;
-
-    Vector2f thickParams = {0.0f, 0.0f};
-    UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector2f(env, argv[idx], thickParams), nullptr,
-        UIEFFECT_LOG_E("EffectNapi::CreateSpatialGlassEffect parse thickParams fail"));
-    para->SetThickParams(thickParams);
-    idx++;
-
-    Vector3f lightDir = {0.0f, 0.0f, 0.0f};
-    UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[idx], lightDir), nullptr,
-        UIEFFECT_LOG_E("EffectNapi::CreateSpatialGlassEffect parse lightDir fail"));
-    para->SetLightDir(lightDir);
-    idx++;
-
-    Vector4f glassBaseColor;
-    UIEFFECT_NAPI_CHECK_RET_D(ParseJsRGBAColor(env, argv[idx], glassBaseColor), nullptr,
-        UIEFFECT_LOG_E("EffectNapi::CreateSpatialGlassEffect parse glassBaseColor fail"));
-    para->SetGlassBaseColor(glassBaseColor);
-    idx++;
-
-    Vector2f refractCoef = {0.0f, 0.0f};
-    UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector2f(env, argv[idx], refractCoef), nullptr,
-        UIEFFECT_LOG_E("EffectNapi::CreateSpatialGlassEffect parse refractCoef fail"));
-    para->SetRefractCoef(refractCoef);
-    idx++;
-
-    Vector4f edgeLightColor;
-    UIEFFECT_NAPI_CHECK_RET_D(ParseJsRGBAColor(env, argv[idx], edgeLightColor), nullptr,
-        UIEFFECT_LOG_E("EffectNapi::CreateSpatialGlassEffect parse edgeLightColor fail"));
-    para->SetEdgeLightColor(edgeLightColor);
-    idx++;
-
-    Vector4f fresnelEnvColor;
-    UIEFFECT_NAPI_CHECK_RET_D(ParseJsRGBAColor(env, argv[idx], fresnelEnvColor), nullptr,
-        UIEFFECT_LOG_E("EffectNapi::CreateSpatialGlassEffect parse fresnelEnvColor fail"));
-    para->SetFresnelEnvColor(fresnelEnvColor);
-    idx++;
-
-    Vector2f fresnelParams = 1.f;
-    UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector2f(env, argv[idx], fresnelParams), nullptr,
-        UIEFFECT_LOG_E("EffectNapi::CreateSpatialGlassEffect parse fresnelParams fail"));
-    para->SetFresnelParams(fresnelParams);
-    idx++;
-
-    float specularShiny = 1.f;
-    specularShiny = GetSpecialValue(env, argv[idx]);
-    para->SetSpecularShiny(specularShiny);
-
-    VisualEffect* visualEffectObj = nullptr;
-    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&visualEffectObj));
-    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && visualEffectObj != nullptr, nullptr,
-        UIEFFECT_LOG_E("EffectNapi::CreateSpatialGlassEffect napi_unwrap fail"));
-
     visualEffectObj->AddPara(para);
     return thisVar;
 }
