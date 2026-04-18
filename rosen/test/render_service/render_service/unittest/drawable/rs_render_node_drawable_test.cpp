@@ -274,6 +274,74 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckCacheTypeAndDrawTest003, TestSize.Level1
 }
 
 /**
+ * @tc.name: IsOverlappedWithExistingFiltersTest001
+ * @tc.desc: Cover all branches of IsOverlappedWithExistingFilters
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSRenderNodeDrawableTest, IsOverlappedWithExistingFiltersTest001, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    Drawing::Canvas canvas(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    params.SetBoundsRect(Drawing::RectF(0.0f, 0.0f, 10.0f, 10.0f));
+
+    drawable->curDrawingCacheRoot_ = nullptr;
+    EXPECT_FALSE(drawable->IsOverlappedWithExistingFilters(canvas, params));
+
+    auto rootRenderNode = std::make_shared<RSRenderNode>(1);
+    auto rootDrawable = RSRenderNodeDrawable::OnGenerate(rootRenderNode);
+    ASSERT_NE(rootDrawable, nullptr);
+    drawable->curDrawingCacheRoot_ = rootDrawable;
+
+    rootDrawable->renderParams_.reset();
+    EXPECT_FALSE(drawable->IsOverlappedWithExistingFilters(canvas, params));
+
+    rootDrawable->renderParams_ = std::make_unique<RSRenderParams>(rootDrawable->GetId());
+    EXPECT_NE(rootDrawable->renderParams_, nullptr);
+    rootDrawable->renderParams_->SetLayerPartRenderEnabled(false);
+    EXPECT_FALSE(drawable->IsOverlappedWithExistingFilters(canvas, params));
+
+    rootDrawable->renderParams_->SetLayerPartRenderEnabled(true);
+    EXPECT_FALSE(drawable->IsOverlappedWithExistingFilters(canvas, params));
+
+    rootDrawable->AddRectToUnifiedFilterRegion(Drawing::RectI(0, 0, 10, 10));
+    EXPECT_TRUE(drawable->IsOverlappedWithExistingFilters(canvas, params));
+    drawable->curDrawingCacheRoot_ = nullptr;
+}
+
+/**
+ * @tc.name: CheckCacheTypeAndDrawOverlapWithExistingFilters001
+ * @tc.desc: Cover overlap-triggered skip branch in CheckCacheTypeAndDraw
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSRenderNodeDrawableTest, CheckCacheTypeAndDrawOverlapWithExistingFilters001, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    auto rootRenderNode = std::make_shared<RSRenderNode>(2);
+    auto rootDrawable = RSRenderNodeDrawable::OnGenerate(rootRenderNode);
+    ASSERT_NE(rootDrawable, nullptr);
+
+    Drawing::Canvas canvas(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    params.SetBoundsRect(Drawing::RectF(0.0f, 0.0f, 10.0f, 10.0f));
+    rootDrawable->renderParams_ = std::make_unique<RSRenderParams>(rootDrawable->GetId());
+    EXPECT_NE(rootDrawable->renderParams_, nullptr);
+    rootDrawable->renderParams_->SetLayerPartRenderEnabled(true);
+    rootDrawable->AddRectToUnifiedFilterRegion(Drawing::RectI(0, 0, 10, 10));
+
+    drawable->curDrawingCacheRoot_ = rootDrawable;
+    drawable->isOffScreenWithClipHole_ = true;
+    drawable->CheckCacheTypeAndDraw(paintFilterCanvas, params);
+
+    EXPECT_TRUE(rootDrawable->filterInfoVec_.empty());
+    EXPECT_EQ(rootDrawable->withoutFilterMatrixMap_.count(drawable->GetId()), 0u);
+    drawable->curDrawingCacheRoot_ = nullptr;
+}
+
+/**
  * @tc.name: UpdateCacheInfoForDfx
  * @tc.desc: Test If UpdateCacheInfoForDfx Can Run
  * @tc.type: FUNC
@@ -944,6 +1012,30 @@ HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheSurfaceLayerPartRenderDirtyRegion0
     drawable->UpdateCacheSurface(paintFilterCanvas, params);
 
     ASSERT_NE(drawable->cachedSurface_, nullptr);
+}
+
+/**
+ * @tc.name: UpdateCacheSurfaceClearUnifiedFilterRegion001
+ * @tc.desc: Cover unified filter region clear branch in UpdateCacheSurface
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheSurfaceClearUnifiedFilterRegion001, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    Drawing::Canvas canvas(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    Drawing::RectI rect(0, 0, 10, 10);
+
+    drawable->AddRectToUnifiedFilterRegion(rect);
+    ASSERT_TRUE(drawable->IntersectsWithUnifiedRegion(rect));
+
+    drawable->curDrawingCacheRoot_ = drawable.get();
+    drawable->UpdateCacheSurface(paintFilterCanvas, params);
+
+    EXPECT_FALSE(drawable->IntersectsWithUnifiedRegion(rect));
+    drawable->curDrawingCacheRoot_ = nullptr;
 }
 
 /**
