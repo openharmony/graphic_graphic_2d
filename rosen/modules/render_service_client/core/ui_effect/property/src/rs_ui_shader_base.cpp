@@ -21,7 +21,6 @@
 #include "ui_effect/effect/include/color_gradient_effect_para.h"
 #include "ui_effect/effect/include/frosted_glass_effect_para.h"
 #include "ui_effect/effect/include/harmonium_effect_para.h"
-#include "ui_effect/effect/include/spatial_glass_effect_para.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -91,10 +90,6 @@ static std::unordered_map<RSNGEffectType, ShaderCreator> creatorLUT = {
     },
     {RSNGEffectType::SDF_EDGE_LIGHT_EFFECT, [] {
             return std::make_shared<RSNGSDFEdgeLightEffect>();
-        }
-    },
-    {RSNGEffectType::SPATIAL_GLASS_EFFECT, [] {
-            return std::make_shared<RSNGSpatialGlassEffect>();
         }
     },
 };
@@ -266,22 +261,6 @@ std::shared_ptr<RSNGShaderBase> ConvertHarmoniumEffectPara(std::shared_ptr<Visua
     harmoniumEffect->Setter<HarmoniumEffectNegRGBTag>(harmoniumEffectPara->GetNegRGB());
     harmoniumEffect->Setter<HarmoniumEffectFractionTag>(harmoniumEffectPara->GetFraction());
     return harmoniumEffect;
-}
-
-std::shared_ptr<RSNGShaderBase> ConvertSpatialGlassEffectPara(std::shared_ptr<VisualEffectPara> effectPara)
-{
-    auto effect = RSNGShaderBase::Create(RSNGEffectType::SPATIAL_GLASS_EFFECT);
-    if (effect == nullptr || effectPara == nullptr) {
-        ROSEN_LOGE("ConvertSpatialGlassEffectPara effect or effectPara is nullptr");
-        return nullptr;
-    }
-    auto SpatialGlassEffect = std::static_pointer_cast<RSNGSpatialGlassEffect>(effect);
-    auto SpatialGlassEffectPara = std::static_pointer_cast<SpatialGlassEffectPara>(effectPara);
-    SpatialGlassEffect->Setter<SpatialGlassEffectLeftTopTag>(SpatialGlassEffectPara->GetLeftTop());
-    SpatialGlassEffect->Setter<SpatialGlassEffectRightTopTag>(SpatialGlassEffectPara->GetRightTop());
-    SpatialGlassEffect->Setter<SpatialGlassEffectLeftBotTag>(SpatialGlassEffectPara->GetLeftBot());
-    SpatialGlassEffect->Setter<SpatialGlassEffectRightBotTag>(SpatialGlassEffectPara->GetRightBot());
-    return SpatialGlassEffect;
 }
 
 std::shared_ptr<RSNGShaderBase> ConvertBorderLightPara(std::shared_ptr<VisualEffectPara> effectPara)
