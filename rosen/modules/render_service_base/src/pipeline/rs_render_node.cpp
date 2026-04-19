@@ -4495,6 +4495,7 @@ void RSRenderNode::UpdateRenderParams()
     }
     stagingRenderParams_->MarkRepaintBoundary(isRepaintBoundary_);
     stagingRenderParams_->SetNeedClipHoleForFilter(GetRenderProperties().NeedClipHoleForRenderGroup());
+    stagingRenderParams_->SetDoubleSidedEnabled(GetRenderProperties().GetDoubleSidedEnabled());
 #endif
 }
 
