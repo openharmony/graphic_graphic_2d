@@ -91,6 +91,7 @@ const void* CmdList::GetImageData(size_t offset, size_t size) const
 
 CmdListData CmdList::GetAllImageData() const
 {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     return std::make_pair(imageAllocator_.GetData(), imageAllocator_.GetSize());
 }
 
@@ -165,16 +166,19 @@ size_t CmdList::AddBitmapData(const void* data, size_t size)
 
 const void* CmdList::GetBitmapData(size_t offset, size_t size) const
 {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     return bitmapAllocator_.OffsetToAddr(offset, size);
 }
 
 bool CmdList::SetUpBitmapData(const void* data, size_t size)
 {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     return bitmapAllocator_.BuildFromDataWithCopy(data, size);
 }
 
 CmdListData CmdList::GetAllBitmapData() const
 {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     return std::make_pair(bitmapAllocator_.GetData(), bitmapAllocator_.GetSize());
 }
 

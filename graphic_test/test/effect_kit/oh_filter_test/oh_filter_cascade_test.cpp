@@ -56,31 +56,31 @@ public:
             return false;
         }
         const auto& data = waterGlassParams[index];
-        params.speed = data[0]; // 0 index
-        params.distortSpeed = data[1]; // 1 index
-        params.refractionSpeed = { data[2],  data[3]}; // 2, 3 index
-        params.progress = data[4]; // 4 index
-        params.shakingDirection1 = {data[5], data[6]}; // 5, 6 index
-        params.shakingDirection2 = {data[7], data[8]}; // 7, 8 idnex
-        params.waveDensityXY = {data[9], data[10]}; // 9, 10 index
-        params.waveStrength = data[11]; // 11 index
-        params.waveRefraction = data[12]; // 12 index
-        params.waveSpecular = data[13]; // 13 index
-        params.waveFrequency = data[14]; // 14 index
-        params.waveShapeDistortion = data[15]; // 15 index
-        params.waveDistortionAngle = data[16]; // 16 index
-        params.rippleXWave = data[17]; // 17 index
-        params.rippleYWave = data[18]; // 18 index
-        params.borderRadius = data[19]; // 19 index
-        params.borderThickness = data[20]; // 20 index
-        params.waveInnerMaskXY = {data[21], data[22]}; // 21, 22 index
-        params.waveInnerMaskRadius = data[23]; // 23 index
-        params.waveInnerMaskSmoothness = data[24]; // 24 index
-        params.waveOuterMaskPadding = data[25]; // 25 index
-        params.waveSpecularPower = data[26]; // 26 index
-        params.refractionDetailDark = data[27]; // 27 index
-        params.refractionDetailWhite = data[28]; // 28 index
-        params.detailStrength = data[29]; // 29 index
+        params.speed = data[0];
+        params.distortSpeed = data[1];
+        params.refractionSpeed = { data[2],  data[3]};
+        params.progress = data[4];
+        params.shakingDirection1 = {data[5], data[6]};
+        params.shakingDirection2 = {data[7], data[8]};
+        params.waveDensityXY = {data[9], data[10]};
+        params.waveStrength = data[11];
+        params.waveRefraction = data[12];
+        params.waveSpecular = data[13];
+        params.waveFrequency = data[14];
+        params.waveShapeDistortion = data[15];
+        params.waveDistortionAngle = data[16];
+        params.rippleXWave = data[17];
+        params.rippleYWave = data[18];
+        params.borderRadius = data[19];
+        params.borderThickness = data[20];
+        params.waveInnerMaskXY = {data[21], data[22]};
+        params.waveInnerMaskRadius = data[23];
+        params.waveInnerMaskSmoothness = data[24];
+        params.waveOuterMaskPadding = data[25];
+        params.waveSpecularPower = data[26];
+        params.refractionDetailDark = data[27];
+        params.refractionDetailWhite = data[28];
+        params.detailStrength = data[29];
         return true;
     }
 
@@ -90,32 +90,23 @@ public:
             return false;
         }
         const auto& data = reededGlassParams[index];
-        params.refractionFactor = data[0];
-        params.dispersionStrength = data[1];
-        params.roughness = data[2];
-        params.noiseFrequency = data[3];
-        params.horizontalPatternNumber = static_cast<uint8_t>(data[4]);
-        params.saturationFactor = data[5];
-        params.gridLightStrength = data[6];
-        params.gridLightPositionStart = data[7];
-        params.gridLightPositionEnd = data[8];
-        params.gridShadowStrength = data[9];
-        params.gridShadowPositionStart = data[10];
-        params.gridShadowPositionEnd = data[11];
-        params.pointLightColor = {data[12], data[13], data[14], data[15]};
-        params.pointLight1Position = {data[16], data[17]};
-        params.pointLight1Strength = data[18];
-        params.pointLight2Position = {data[19], data[20]};
-        params.pointLight2Strength = data[21];
-        params.portalLightSize = {data[22], data[23]};
-        params.portalLightTilt = {data[24], data[25]};
-        params.portalLightPosition = {data[26], data[27]};
-        params.portalLightDisperseAttenuation = data[28];
-        params.portalLightDisperse = data[29];
-        params.portalLightSmoothBorder = data[30];
-        params.portalLightShadowBorder = data[31];
-        params.portalLightShadowPositionShift = data[32];
-        params.portalLightStrength = data[33];
+        params.refractionFactor = data[REFRACTION_FACTOR_INDEX];
+        params.horizontalPatternNumber = static_cast<uint8_t>(data[HORIZONTAL_PATTERN_NUMBER_INDEX]);
+        params.gridLightStrength = data[GRID_LIGHT_STRENGTH_INDEX];
+        params.gridLightPositionStart = data[GRID_LIGHT_POSITION_START_INDEX];
+        params.gridLightPositionEnd = data[GRID_LIGHT_POSITION_END_INDEX];
+        params.gridShadowStrength = data[GRID_SHADOW_STRENGTH_INDEX];
+        params.gridShadowPositionStart = data[GRID_SHADOW_POSITION_START_INDEX];
+        params.gridShadowPositionEnd = data[GRID_SHADOW_POSITION_END_INDEX];
+        params.portalLightSize = {data[PORTAL_LIGHT_SIZE_X_INDEX], data[PORTAL_LIGHT_SIZE_Y_INDEX]};
+        params.portalLightTilt = {data[PORTAL_LIGHT_TILT_X_INDEX], data[PORTAL_LIGHT_TILT_Y_INDEX]};
+        params.portalLightPosition = {data[PORTAL_LIGHT_POSITION_X_INDEX], data[PORTAL_LIGHT_POSITION_Y_INDEX]};
+        params.portalLightDisperseAttenuation = data[PORTAL_LIGHT_DISPERSE_ATTENUATION_INDEX];
+        params.portalLightDisperse = data[PORTAL_LIGHT_DISPERSE_INDEX];
+        params.portalLightSmoothBorder = data[PORTAL_LIGHT_SMOOTH_BORDER_INDEX];
+        params.portalLightShadowBorder = data[PORTAL_LIGHT_SHADOW_BORDER_INDEX];
+        params.portalLightShadowPositionShift = data[PORTAL_LIGHT_SHADOW_POSITION_SHIFT_INDEX];
+        params.portalLightStrength = data[PORTAL_LIGHT_STRENGTH_INDEX];
         return true;
     }
 };
@@ -135,7 +126,7 @@ GRAPHIC_TEST(OHFilterCascadeTest, EFFECT_TEST, All_Effects_Cascade_Test)
         const size_t x = (i % columnCount) * sizeX;
         const size_t y = (i / columnCount) * sizeY;
 
-        auto pixelMapNative = CreateTestPixelMap(BG_TEST_JPG_PATH);
+        auto pixelMapNative = CreateTestPixelMap(FG_TEST_JPG_PATH);
         if (!pixelMapNative) {
             continue;
         }
@@ -167,8 +158,8 @@ GRAPHIC_TEST(OHFilterCascadeTest, EFFECT_TEST, All_Effects_Cascade_Test)
         }
         OH_Filter_ReededGlass(ohFilter, &reededGlassParams);
 
-        auto fgPixelMapNative = CreateTestPixelMap(FG_TEST_JPG_PATH);
-        if (!fgPixelMapNative) {
+        auto bgPixelMapNative = CreateTestPixelMap(BG_TEST_JPG_PATH);
+        if (!bgPixelMapNative) {
             OH_Filter_Release(ohFilter);
             continue;
         }
@@ -181,7 +172,7 @@ GRAPHIC_TEST(OHFilterCascadeTest, EFFECT_TEST, All_Effects_Cascade_Test)
             const_cast<OH_Filter_Vec2*>(maskData.fractionStops.data());
         linearGradientMask.fractionStopsLength = maskData.fractionStops.size();
 
-        OH_Filter_MaskTransition(ohFilter, fgPixelMapNative, &linearGradientMask,
+        OH_Filter_MaskTransition(ohFilter, bgPixelMapNative, &linearGradientMask,
             EffectMaskType::LINEAR_GRADIENT_MASK, maskData.factor, maskData.inverse);
 
         OH_Filter_WaterDropletParams params = {};
@@ -197,7 +188,7 @@ GRAPHIC_TEST(OHFilterCascadeTest, EFFECT_TEST, All_Effects_Cascade_Test)
         params.noiseStrengthY = waterDropletParams[i][9];
         params.progress = waterDropletProgressParams[i];
 
-        OH_Filter_WaterDropletTransition(ohFilter, fgPixelMapNative,
+        OH_Filter_WaterDropletTransition(ohFilter, bgPixelMapNative,
             &params, false);
 
         OH_Filter_GetEffectPixelMap(ohFilter, &pixelMapNative);

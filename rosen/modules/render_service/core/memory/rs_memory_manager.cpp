@@ -57,13 +57,15 @@
 #include "hisysevent.h"
 #include "image/gpu_context.h"
 #include "platform/common/rs_hisysevent.h"
+#include "mem_mgr_client.h"
 
 #ifdef RS_ENABLE_UNI_RENDER
 #include "ability_manager_client.h"
+#include "xcollie/process_kill_reason.h"
 #endif
 
 #ifdef RS_ENABLE_VK
-#include "feature/gpuComposition/rs_vk_image_manager.h"
+#include "gpuComposition/rs_vk_image_manager.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
 static inline const char* GetThreadName()
@@ -83,6 +85,10 @@ const std::string KERNEL_CONFIG_PATH = "/system/etc/hiview/kernel_leak_config.js
 const std::string GPUMEM_INFO_PATH = "/proc/gpumem_process_info";
 const std::string GPUMEM_NODEINFO_PATH = "/proc/gpu_memory";
 const std::string EVENT_ENTER_RECENTS = "GESTURE_TO_RECENTS";
+const std::string EVENT_CLEAR_ONE_RET = "CLEAR_1_RECENT_ANI";
+const std::string EVENT_CLEAR_ALL_RET = "CLEAR_All_RECENT_ANI";
+const std::string EVENT_RECENT_REALIGN = "RECENT_REALIGN_ANI";
+const std::string EVENT_RECENT_HOME = "EXIT_RECENT_2_HOME_ANI";
 const std::string GPU_RS_LEAK = "ResourceLeak(GpuRsLeak)";
 const std::string SCB_BUNDLE_NAME = "com.ohos.sceneboard";
 const std::string GRAPHIC_MEM_DIR = "/data/service/el0/render_service/";
@@ -106,6 +112,7 @@ uint32_t MemoryManager::frameCount_ = 0;
 uint64_t MemoryManager::memoryWarning_ = UINT64_MAX;
 uint64_t MemoryManager::gpuMemoryControl_ = UINT64_MAX;
 uint64_t MemoryManager::totalMemoryReportTime_ = 0;
+uint64_t MemoryManager::mReportLastTimestamp_ = 0;
 
 static std::string Data2String(std::string data, uint32_t targetNumber)
 {
@@ -254,18 +261,15 @@ void MemoryManager::DumpMem(std::unordered_set<std::u16string>& argSets, std::st
         }
     }
     dumpString.append("dumpMem: " + type + "\n");
-    auto screenManager = CreateOrGetScreenManager();
-    if (!screenManager) {
-        RS_LOGE("DumpMem screenManager is nullptr");
-        return;
-    }
-    auto maxScreenInfo = screenManager->GetActualScreenMaxResolution();
-    dumpString.append("ScreenResolution = " + std::to_string(maxScreenInfo.phyWidth) +
-        "x" + std::to_string(maxScreenInfo.phyHeight) + "\n");
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    nodeMap.TraverseScreenNodes([&dumpString](const auto& screenNode) {
+ 	    const auto& screenProperty = screenNode->GetScreenProperty();
+        dumpString.append("\nScreenResolution: " + std::to_string(screenProperty.GetPhyWidth()) + "x" +
+ 	        std::to_string(screenProperty.GetPhyHeight()) + "\n");
+    });
     dumpString.append(log.GetString());
     if (!isLite) {
         RSUniRenderThread::Instance().DumpVkImageInfo(dumpString);
-        RSRenderComposerManager::GetInstance().DumpVkImageInfo(dumpString);
     }
 #else
     dumpString.append("No GPU in this device");
@@ -582,10 +586,6 @@ void MemoryManager::DumpRenderServiceMemory(DfxString& log, bool isLite)
         RenderServiceAllNodeDump(log);
         RenderServiceAllSurfaceDump(log);
     }
-#ifdef RS_ENABLE_VK
-    RsVulkanMemStat& memStat = RsVulkanContext::GetSingleton().GetRsVkMemStat();
-    memStat.DumpMemoryStatistics(&gpuTracer);
-#endif
 }
 
 void MemoryManager::DumpDrawingCpuMemory(DfxString& log)
@@ -773,10 +773,6 @@ void MemoryManager::DumpDrawingGpuMemory(DfxString& log, const Drawing::GPUConte
     gpuContext->GetResourceCacheUsage(nullptr, &cacheUsed);
     log.AppendFormat("\ngpu limit = %zu ( used = %zu ):\n", cacheLimit, cacheUsed);
 
-    /* ShaderCache */
-    log.AppendFormat("\n---------------\nShader Caches:\n");
-    std::shared_ptr<RenderContext> rendercontext = RenderContext::Create();
-    log.AppendFormat(rendercontext->GetShaderCacheSize().c_str());
     // gpu stat
     if (!isLite) {
         DumpGpuStats(log, gpuContext);
@@ -1026,23 +1022,87 @@ static void KillProcessByPid(const pid_t pid, const MemorySnapshotInfo& info, co
 {
 #ifdef RS_ENABLE_UNI_RENDER
     if (pid > 0) {
-        int32_t eventWriteStatus = -1;
-        AAFwk::ExitReason killReason{AAFwk::Reason::REASON_RESOURCE_CONTROL, KILL_PROCESS_TYPE, reason};
-        int32_t ret = (int32_t)AAFwk::AbilityManagerClient::GetInstance()->KillProcessWithReason(pid, killReason);
-        if (ret == ERR_OK) {
-            RS_TRACE_NAME("KillProcessByPid HiSysEventWrite");
-            eventWriteStatus = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::FRAMEWORK, "PROCESS_KILL",
-                HiviewDFX::HiSysEvent::EventType::FAULT, "PID", pid, "PROCESS_NAME", info.bundleName,
-                "MSG", reason, "FOREGROUND", true, "UID", info.uid, "BUNDLE_NAME", info.bundleName,
-                "REASON", GPU_RS_LEAK);
-        }
+        AAFwk::ExitReasonCompability killReason{AAFwk::Reason::REASON_RESOURCE_CONTROL, KILL_PROCESS_TYPE, reason};
+        killReason.killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_RESOURCE_LEAK_GPU_RS_LEAK;
+        int32_t ret = AAFwk::AbilityManagerClient::GetInstance()->KillAppWithReason(pid, killReason);
         // To prevent the print from being filtered, use RS_LOGE.
         std::string logInfo = "KillProcessByPid, pid: " + std::to_string(pid) + ", process name: " + info.bundleName +
-            "killStatus: " + std::to_string(ret) + ", eventWriteStatus: " + std::to_string(eventWriteStatus) +
-            ", reason: " + reason;
+            "killStatus: " + std::to_string(ret) + ", reason: " + reason;
         RS_LOGE("%{public}s", logInfo.c_str());
     }
 #endif
+}
+
+bool MemoryManager::NeedReportFromKernel(pid_t& abnormalPid,
+    std::unordered_map<std::string, std::pair<size_t, size_t>>& typeInfo, std::unordered_map<pid_t, size_t>& pidInfo)
+{
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        return false;
+    }
+    auto time = std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::steady_clock::now());
+    auto timestamp = static_cast<uint64_t>(time.time_since_epoch().count());
+    if (timestamp - mReportLastTimestamp_ < GPU_REPORT_INTERVAL) {
+        return false;
+    }
+    auto gpuContext = RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
+    if (!gpuContext) {
+        RS_LOGE("MemoryManager::IsNeedReportFromKernel gpuContext is null");
+        return false;
+    }
+    gpuContext->GetGpuMemoryInfo(typeInfo, pidInfo);
+    std::vector<std::pair<pid_t, size_t>> sortedPidInfo(pidInfo.begin(), pidInfo.end());
+    std::sort(sortedPidInfo.begin(), sortedPidInfo.end(),
+        [](const std::pair<pid_t, size_t>& info1, const std::pair<pid_t, size_t>& info2) {
+            return info1.second > info2.second;
+        });
+    // find abnormal pid with the max gpu memory.
+    abnormalPid = 0;
+    size_t maxIndex = 0;
+    while (maxIndex < sortedPidInfo.size() && sortedPidInfo[maxIndex].first == 0) {
+        maxIndex++;
+    }
+    if (maxIndex + 1 < sortedPidInfo.size() &&
+        sortedPidInfo[maxIndex].second - sortedPidInfo[maxIndex + 1].second >
+        MEMParam::GetKernelReportMemInterval() * MEMUNIT_RATE * MEMUNIT_RATE) {
+        abnormalPid = sortedPidInfo[maxIndex].first;
+    }
+    if (abnormalPid == 0) {
+        RS_LOGE("MemoryManager::IsNeedReportFromKernel abnormalPid is 0");
+        return false;
+    }
+    // status of available memory.
+    int32_t availableMem = 0;
+    Memory::MemMgrClient::GetInstance().GetAvailableMemory(availableMem);
+    if (availableMem > MEMParam::GetKernelReportAvailableMemLimit() * MEMUNIT_RATE) {
+        RS_LOGE("MemoryManager::IsNeedReportFromKernel availableMem:%{public}d", availableMem);
+        return false;
+    }
+
+    mReportLastTimestamp_ = timestamp;
+    return true;
+}
+
+void MemoryManager::GpuReportFromKernel(const std::string& recvInfo)
+{
+    std::unordered_map<std::string, std::pair<size_t, size_t>> typeInfo;
+    std::unordered_map<pid_t, size_t> pidInfo;
+    pid_t abnormalPid = 0;
+    if (!NeedReportFromKernel(abnormalPid, typeInfo, pidInfo)) {
+        return;
+    }
+    RS_TRACE_NAME("MemoryManager::GpuReportFromKernel");
+    RS_LOGE("MemoryManager::GpuReportFromKernel recvInfo:%{public}s", recvInfo.c_str());
+
+    auto gpuContext = RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
+    // set abnormal pid to intercept drawing.
+    gpuContext->SetAbnormalPid(abnormalPid);
+    // report dfx
+    GpuMemoryOverReport(abnormalPid, pidInfo[abnormalPid], typeInfo, pidInfo);
+    MemorySnapshotInfo info;
+    MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(abnormalPid, info);
+    std::string reason = "RENDER_MEMORY_OVER_ERROR: cpu[" + std::to_string(info.cpuMemory) + "], gpu[" +
+                         std::to_string(info.gpuMemory) + "], total[" + std::to_string(info.TotalMemory()) + "]";
+    KillProcessByPid(abnormalPid, info, reason);
 }
 
 bool MemoryManager::MemoryOverflow(pid_t pid, size_t overflowMemory, bool isGpu)
@@ -1117,6 +1177,11 @@ bool MemoryManager::GpuMemoryOverReport(pid_t pid, size_t overflowMemory,
 void MemoryManager::MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& info, const std::string& reportName,
     const std::string& hidumperReport, const std::string& filePath)
 {
+    if (pid == 0) {
+        RS_LOGE("MemoryManager::MemoryOverReport pid:0 cpu[%{public}zu] gpu[%{public}zu]",
+            info.cpuMemory, info.gpuMemory);
+        return;
+    }
     std::string gpuMemInfo;
     std::ifstream gpuMemInfoFile;
     gpuMemInfoFile.open(GPUMEM_INFO_PATH);
@@ -1245,6 +1310,7 @@ void RSReclaimMemoryManager::TriggerReclaimTask()
         bool isTimeToReclaim = std::chrono::duration_cast<std::chrono::milliseconds>(
             currentTime - lastClearAppTime).count() < CLEAR_TWO_APPS_TIME;
         if (isTimeToReclaim) {
+            RS_LOGI("RSReclaimMemoryManager::TriggerReclaimTask");
             unirenderThread.ReclaimMemory();
             unirenderThread.SetTimeToReclaim(true);
             isReclaimInterrupt_.store(false);
@@ -1255,8 +1321,10 @@ void RSReclaimMemoryManager::TriggerReclaimTask()
 
 void RSReclaimMemoryManager::InterruptReclaimTask(const std::string& sceneId)
 {
+    bool notInterrupt = sceneId == EVENT_ENTER_RECENTS || sceneId == EVENT_CLEAR_ONE_RET ||
+        sceneId == EVENT_CLEAR_ALL_RET || sceneId == EVENT_RECENT_REALIGN || sceneId == EVENT_RECENT_HOME;
     // When operate in launcher, interrupt reclaim task.
-    if (!isReclaimInterrupt_.load() && sceneId != EVENT_ENTER_RECENTS) {
+    if (!isReclaimInterrupt_.load() && !notInterrupt) {
         isReclaimInterrupt_.store(true);
     }
 }

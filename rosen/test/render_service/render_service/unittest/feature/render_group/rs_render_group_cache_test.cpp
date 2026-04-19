@@ -176,5 +176,51 @@ HWTEST_F(RSRenderGroupCacheTest, SetChildHasTranslateOnSqueezeTest, TestSize.Lev
     EXPECT_TRUE(renderGroupCache->ChildHasTranslateOnSqueeze());
     EXPECT_TRUE(rst);
 }
+
+/**
+ * @tc.name: SetNeedClipHoleForFilterTest001
+ * @tc.desc: Test SetNeedClipHoleForFilter with same value
+ * @tc.type: FUNC
+ * @tc.require: issues/20738
+ */
+HWTEST_F(RSRenderGroupCacheTest, SetNeedClipHoleForFilterTest001, TestSize.Level1)
+{
+    auto renderGroupCache = std::make_unique<RSRenderGroupCache>();
+    ASSERT_NE(renderGroupCache, nullptr);
+
+    renderGroupCache->SetNeedClipHoleForFilter(false);
+    bool rst = renderGroupCache->SetNeedClipHoleForFilter(false);
+    EXPECT_FALSE(renderGroupCache->NeedClipHoleForFilter());
+    EXPECT_FALSE(rst);
+
+    renderGroupCache->SetNeedClipHoleForFilter(true);
+    rst = renderGroupCache->SetNeedClipHoleForFilter(true);
+    EXPECT_TRUE(renderGroupCache->NeedClipHoleForFilter());
+    EXPECT_FALSE(rst);
+}
+
+/**
+ * @tc.name: SetNeedClipHoleForFilterTest002
+ * @tc.desc: Test SetNeedClipHoleForFilter with different value
+ * @tc.type: FUNC
+ * @tc.require: issues/20738
+ */
+HWTEST_F(RSRenderGroupCacheTest, SetNeedClipHoleForFilterTest002, TestSize.Level1)
+{
+    auto renderGroupCache = std::make_unique<RSRenderGroupCache>();
+    ASSERT_NE(renderGroupCache, nullptr);
+
+    bool rst = renderGroupCache->SetNeedClipHoleForFilter(false);
+    EXPECT_FALSE(renderGroupCache->NeedClipHoleForFilter());
+    EXPECT_FALSE(rst);
+
+    rst = renderGroupCache->SetNeedClipHoleForFilter(true);
+    EXPECT_TRUE(renderGroupCache->NeedClipHoleForFilter());
+    EXPECT_TRUE(rst);
+
+    rst = renderGroupCache->SetNeedClipHoleForFilter(false);
+    EXPECT_FALSE(renderGroupCache->NeedClipHoleForFilter());
+    EXPECT_TRUE(rst);
+}
 } // namespace Rosen
 } // namespace OHOS

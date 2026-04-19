@@ -56,20 +56,17 @@ void RSAnimationRateDecider::AddDecisionElement(PropertyId id, const PropertyVal
     }
 }
 
-void RSAnimationRateDecider::MakeDecision(const FrameRateFunctions& func)
+void RSAnimationRateDecider::MakeDecision(const FrameRateGetFunc& func)
 {
     if (!isEnabled_) {
         frameRateRange_.Set(0, RANGE_MAX_REFRESHRATE, DEFAULT_PREFERRED_FPS);
         return;
     }
-    for (auto& [id, element] : decisionElements_) {
+    for (const auto& [id, element] : decisionElements_) {
         FrameRateRange propertyRange;
-        if (func.componentFrameRateFunc != nullptr && element.second.IsZero()) {
-            func.componentFrameRateFunc(ExtractPid(id), element.second);
-        }
         RS_OPTIONAL_TRACE_BEGIN("MakeDecision property id: [" + std::to_string(id) + "]");
-        if (element.first != nullptr && func.frameRateGetFunc != nullptr) {
-            int32_t preferred = CalculatePreferredRate(element.first, func.frameRateGetFunc);
+        if (element.first != nullptr && func != nullptr) {
+            int32_t preferred = CalculatePreferredRate(element.first, func);
             if (preferred > 0) {
                 propertyRange = {0, RANGE_MAX_REFRESHRATE, preferred};
                 propertyRange.componentScene_ = element.second.componentScene_;

@@ -61,7 +61,6 @@ ohos_unittest("RSAnimationTest") {
 
     #common
     "$rosen_root/modules/render_service_base/src/common/rs_color.cpp",
-    "$rosen_root/modules/render_service_base/src/common/rs_common_def.cpp",
     "$rosen_root/modules/render_service_base/src/common/rs_obj_abs_geometry.cpp",
     "$rosen_root/modules/render_service_base/src/common/rs_thread_handler_generic.cpp",
     "$rosen_root/modules/render_service_base/src/common/rs_thread_looper_generic.cpp",

@@ -34,7 +34,8 @@ public:
 };
 
 template<RSNGEffectType Type, typename... PropertyTags>
-using RSNGMaskTemplate = RSNGEffectTemplate<RSNGMaskBase, Type, PropertyTags...>;
+using RSNGMaskTemplate = RSNGEffectTemplate<RSNGMaskBase,
+        RSNGRenderMaskTemplate<Type, typename PropertyTags::RenderPropertyTagType...>, Type, PropertyTags...>;
 
 #define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##Tag
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,19 +16,33 @@
 #ifndef HGM_RP_ENERGY_H
 #define HGM_RP_ENERGY_H
 
-#include "animation/rs_frame_rate_range.h"
-#include "transaction/rs_hgm_config_data.h"
+#include "hgm_energy_consumption_policy.h"
 
-namespace OHOS {
-namespace Rosen {
+#include "transaction/rp_hgm_config_data.h"
+namespace OHOS::Rosen {
 class HgmRPEnergy {
 public:
-    void SyncEnergyInfoToRP(const EnergyInfo& energyInfo);
-    void SetComponentDefaultFps(pid_t pid, FrameRateRange& rsRange);
+    HgmRPEnergy();
+    ~HgmRPEnergy();
+
+    void SetTouchState(bool isIdle);
+
+    void MoveEnergyCommonDataTo(EnergyCommonDataMap& commonData);
+
+    void AddEnergyCommonData(EnergyEvent event, const std::string& key, const std::string& value);
+
+    void StatisticAnimationTime(uint64_t timestamp);
+
+    void HgmConfigUpdateCallback(std::shared_ptr<RPHgmConfigData> configData);
 
 private:
-    EnergyInfo energyInfo_{};
+    void GetComponentFps(FrameRateRange& range);
+
+    std::mutex mutex_;
+    bool isTouchIdle_ = false;
+    EnergyCommonDataMap energyCommonData_;
+    std::unordered_map<std::string, int32_t> componentPowerConfig_;
 };
-} // namespace Rosen
-} // namespace OHOS
-#endif
+}; // namespace OHOS::Rosen
+
+#endif // HGM_RP_ENERGY_H

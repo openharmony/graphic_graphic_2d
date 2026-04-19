@@ -46,5 +46,11 @@ HWTEST_F(RSFrameRenderModifierNGTypeTest, RSFrameRenderModifierTest, TestSize.Le
 {
     RSFrameRenderModifier modifier;
     EXPECT_EQ(modifier.GetType(), ModifierNG::RSModifierType::FRAME);
+    modifier.enableDeduplication_ = true;
+    Parcel parcel;
+    bool ret = modifier.DeduplicationMarshalling(parcel);
+    EXPECT_TRUE(ret);
+    ret = modifier.DeduplicationUnmarshalling(parcel);
+    EXPECT_TRUE(ret);
 }
 } // namespace OHOS::Rosen

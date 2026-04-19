@@ -18,6 +18,7 @@
 
 #include <memory>
 
+
 #include "common/rs_rect.h"
 #include "render_context/render_context.h"
 
@@ -39,9 +40,8 @@ public:
 
     bool Init() override;
     bool AbandonContext() override;
-    std::string GetShaderCacheSize() const override;
-    std::string CleanAllShaderCache() const override;
     bool SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> context = nullptr) override;
+    bool QueryMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight) override;
 
     std::shared_ptr<Drawing::Surface> AcquireSurface(int width, int height) override;
     void RenderFrame() override;
@@ -55,6 +55,13 @@ public:
     EGLSurface CreateEGLSurface(EGLNativeWindowType eglNativeWindow);
     void MakeCurrent(EGLSurface surface, EGLContext context = EGL_NO_CONTEXT);
     bool SwapBuffers(EGLSurface surface) const;
+    #ifdef ROSEN_ARKUI_X
+    void AddSurface() override;
+    void DeleteSurface() override;
+    void DestroySharedSource() override;
+    void SetCleanUpHelper(std::function<void()> func) override;
+    #endif
+
     EGLSurface GetEGLSurface() const
     {
         return eglSurface_;
@@ -74,10 +81,6 @@ public:
     std::shared_ptr<Drawing::ColorSpace> ColorSpace() const { return color_space_; }
     bool UpdateStorageSizeIfNecessary();
     bool ResourceMakeCurrent();
-    void AddSurface();
-    void DeleteSurface();
-    void DestroySharedSource();
-    void SetCleanUpHelper(std::function<void()> func);
     static const EGLContext GetResourceContext();
 #endif
 
@@ -92,9 +95,7 @@ protected:
     uint32_t colorbuffer_ = 0;
     int32_t storage_width_ = 0;
     int32_t storage_height_ = 0;
-    std::atomic<int32_t> surface_count_ = 0;
     bool valid_ = false;
-    std::function<void()> cleanUpHelper_ = nullptr;
 #endif
 
 private:

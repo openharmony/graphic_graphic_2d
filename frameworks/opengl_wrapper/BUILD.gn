@@ -298,7 +298,7 @@ config("glv4_public_config") {
   include_dirs = [ "include" ]
 }
 
-if (current_os != "ohos" || !graphic_2d_feature_enable_opengl_to_vulkan) {
+if (current_os != "ohos") {
   group("GLv4") {
     public_external_deps = [
       "egl:libEGL",
@@ -313,16 +313,23 @@ if (current_os != "ohos" || !graphic_2d_feature_enable_opengl_to_vulkan) {
 
     public_configs = [ ":glv4_public_config" ]
 
-    public_external_deps = [
+    external_deps = [
       "egl:libEGL",
       "opengles:libGLES",
-    ]
-
-    external_deps = [
       "hilog:libhilog",
-      "mesa3d:zink_opengl",
       "graphic_surface:surface",
     ]
+
+    if (graphic_2d_feature_enable_opengl_to_vulkan) {
+      external_deps += [
+        "mesa3d:zink_opengl"
+      ]
+    } else {
+      sanitize = {
+        cfi = true
+        cfi_cross_dso = true
+      }
+    }
 
     output_name = "GLv4"
     output_extension = "so"

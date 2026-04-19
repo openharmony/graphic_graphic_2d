@@ -790,7 +790,7 @@ GRAPHIC_TEST(NGFilterFrostedGlassTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_R
     const size_t nodeOffset = 100;
     const size_t nodeSize = 400;
 
-    const std::vector<float> radiusList = {0.0, 50.0, 250.0};
+    const std::vector<float> radiusList = {-1.0, 50.0, 250.0};
 
     SetSingleBgNode();
 

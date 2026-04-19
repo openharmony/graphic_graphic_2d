@@ -44,6 +44,7 @@ DEFINE_CONVERT_FUNC(SPText::TextStyle, TextStyle);
 DEFINE_CONVERT_FUNC(TextRectHeightStyle, SPText::RectHeightStyle);
 DEFINE_CONVERT_FUNC(TextRectWidthStyle, SPText::RectWidthStyle);
 DEFINE_CONVERT_FUNC(TypographyStyle, SPText::ParagraphStyle);
+DEFINE_CONVERT_FUNC(SPText::ParagraphStyle, TypographyStyle);
 DEFINE_CONVERT_FUNC(PlaceholderSpan, SPText::PlaceholderRun);
 DEFINE_CONVERT_FUNC(TextStyle, SPText::TextStyle);
 DEFINE_CONVERT_FUNC(TextTab, SPText::TextTab);

@@ -18,10 +18,11 @@
 #include <algorithm>
 #include <limits>
 #include <numeric>
+#include <sstream>
 
 #include "common_utils/path_util.h"
 #include "common_utils/pixel_map_util.h"
-#include "convert.h"
+#include "txt/sp_convert.h"
 #include "drawing_painter_impl.h"
 #include "include/DartTypes.h"
 #include "include/core/SkMatrix.h"
@@ -45,7 +46,7 @@ namespace Rosen {
 namespace SPText {
 using PaintID = skt::ParagraphPainter::PaintID;
 constexpr double INFINITE_WIDTH = std::numeric_limits<double>::max();
-constexpr size_t INFINTE_RANGE_INDEX = std::numeric_limits<size_t>::max();
+constexpr size_t INFINITE_RANGE_INDEX = std::numeric_limits<size_t>::max();
 
 namespace {
 std::vector<TextBox> GetTxtTextBoxes(const std::vector<skt::TextBox>& skiaBoxes)
@@ -272,10 +273,17 @@ Range<size_t> ParagraphImpl::GetActualTextRange(int lineNumber, bool includeSpac
     }
 }
 
-Range<size_t> ParagraphImpl::GetEllipsisTextRange()
+Range<size_t> ParagraphImpl::GetEllipsisTextRange() const
 {
     skt::SkRange<size_t> range = paragraph_->getEllipsisTextRange();
     return Range<size_t>(range.start, range.end);
+}
+
+std::vector<TextRange> ParagraphImpl::GetVisibleTextRanges() const
+{
+    std::vector<TextRange> visibleRanges;
+    BuildFitStrRange(visibleRanges);
+    return visibleRanges;
 }
 
 std::vector<skt::LineMetrics> ParagraphImpl::GetLineMetrics()
@@ -292,75 +300,9 @@ bool ParagraphImpl::GetLineMetricsAt(int lineNumber, skt::LineMetrics* lineMetri
     return paragraph_->getLineMetricsAt(lineNumber, lineMetrics);
 }
 
-void ParagraphImpl::GetExtraTextStyleAttributes(const skt::TextStyle& skStyle, TextStyle& textStyle)
-{
-    for (const auto& [tag, value] : skStyle.getFontFeatures()) {
-        textStyle.fontFeatures.SetFeature(tag.c_str(), value);
-    }
-    textStyle.textShadows.clear();
-    for (const skt::TextShadow& skShadow : skStyle.getShadows()) {
-        TextShadow shadow;
-        shadow.offset = skShadow.fOffset;
-        shadow.blurSigma = skShadow.fBlurSigma;
-        shadow.color = skShadow.fColor;
-        textStyle.textShadows.emplace_back(shadow);
-    }
-    textStyle.badgeType = static_cast<OHOS::Rosen::TextBadgeType>(skStyle.getTextBadgeType());
-    textStyle.maxLineHeight = skStyle.getMaxLineHeight();
-    textStyle.minLineHeight = skStyle.getMinLineHeight();
-    textStyle.lineHeightStyle = static_cast<OHOS::Rosen::LineHeightStyle>(skStyle.getLineHeightStyle());
-    textStyle.fontEdging = skStyle.getFontEdging();
-}
-
 TextStyle ParagraphImpl::SkStyleToTextStyle(const skt::TextStyle& skStyle)
 {
-    TextStyle txt;
-    txt.color = skStyle.getColor();
-    txt.decoration = static_cast<TextDecoration>(skStyle.getDecorationType());
-    txt.decorationColor = skStyle.getDecorationColor();
-    txt.decorationStyle = static_cast<TextDecorationStyle>(skStyle.getDecorationStyle());
-    txt.decorationThicknessMultiplier = SkScalarToDouble(skStyle.getDecorationThicknessMultiplier());
-    txt.fontWeight = TextFontUtils::GetTxtFontWeight(skStyle.getFontStyle().GetWeight());
-    txt.fontStyle = TextFontUtils::GetTxtFontStyle(skStyle.getFontStyle().GetSlant());
-
-    txt.baseline = static_cast<TextBaseline>(skStyle.getTextBaseline());
-
-    for (const SkString& fontFamily : skStyle.getFontFamilies()) {
-        txt.fontFamilies.emplace_back(fontFamily.c_str());
-    }
-
-    txt.fontSize = SkScalarToDouble(skStyle.getFontSize());
-    txt.fontWidth = static_cast<FontWidth>(skStyle.getFontStyle().GetWidth());
-    txt.styleId = skStyle.getStyleId();
-    txt.letterSpacing = SkScalarToDouble(skStyle.getLetterSpacing());
-    txt.wordSpacing = SkScalarToDouble(skStyle.getWordSpacing());
-    txt.height = SkScalarToDouble(skStyle.getHeight());
-    txt.heightOverride = skStyle.getHeightOverride();
-    txt.halfLeading = skStyle.getHalfLeading();
-    txt.baseLineShift = SkScalarToDouble(skStyle.getBaselineShift());
-    txt.locale = skStyle.getLocale().c_str();
-    txt.backgroundRect = { skStyle.getBackgroundRect().color, skStyle.getBackgroundRect().leftTopRadius,
-        skStyle.getBackgroundRect().rightTopRadius, skStyle.getBackgroundRect().rightBottomRadius,
-        skStyle.getBackgroundRect().leftBottomRadius };
-    if (skStyle.hasBackground()) {
-        PaintID backgroundId = std::get<PaintID>(skStyle.getBackgroundPaintOrID());
-        if ((0 <= backgroundId) && (backgroundId < static_cast<int>(paints_.size()))) {
-            txt.background = paints_[backgroundId];
-        } else {
-            TEXT_LOGW("Invalid background id %{public}d", backgroundId);
-        }
-    }
-    if (skStyle.hasForeground()) {
-        PaintID foregroundId = std::get<PaintID>(skStyle.getForegroundPaintOrID());
-        if ((0 <= foregroundId) && (foregroundId < static_cast<int>(paints_.size()))) {
-            txt.foreground = paints_[foregroundId];
-            txt.colorPlaceholder = static_cast<uint8_t>(paints_[foregroundId].color.GetPlaceholder());
-        } else {
-            TEXT_LOGW("Invalid foreground id %{public}d", foregroundId);
-        }
-    }
-    GetExtraTextStyleAttributes(skStyle, txt);
-    return txt;
+    return OHOS::Rosen::SPText::SkStyleToSPTextStyle(skStyle, paints_);
 }
 
 Drawing::FontMetrics ParagraphImpl::GetFontMetricsResult(const SPText::TextStyle& textStyle)
@@ -468,6 +410,7 @@ void ParagraphImpl::UpdateColor(size_t from, size_t to, const RSColor& color,
     for (auto paintID : unresolvedPaintID) {
         paints_[paintID].SetColor(color);
     }
+    MarkAttributeUpdated();
 }
 
 void ParagraphImpl::UpdatePaintsBySkiaBlock(skt::Block& skiaBlock, const std::optional<RSBrush>& brush)
@@ -480,6 +423,7 @@ void ParagraphImpl::UpdatePaintsBySkiaBlock(skt::Block& skiaBlock, const std::op
         return;
     }
     paints_[foregroundId].brush = brush;
+    MarkAttributeUpdated();
 }
 #ifdef USE_M133_SKIA
 void ParagraphImpl::UpdateForegroundBrushWithValidData(skia_private::TArray<skt::Block, true>& skiaTextStyles,
@@ -506,6 +450,7 @@ void ParagraphImpl::UpdateForegroundBrushWithValidData(SkTArray<skt::Block, true
             }
         }
     }
+    MarkAttributeUpdated();
 }
 #ifdef USE_M133_SKIA
 void ParagraphImpl::UpdateForegroundBrushWithNullopt(skia_private::TArray<skt::Block, true>& skiaTextStyles)
@@ -521,6 +466,7 @@ void ParagraphImpl::UpdateForegroundBrushWithNullopt(SkTArray<skt::Block, true>&
         }
         UpdatePaintsBySkiaBlock(skiaBlock, std::nullopt);
     }
+    MarkAttributeUpdated();
 }
 
 void ParagraphImpl::UpdateForegroundBrush(const TextStyle& spTextStyle)
@@ -540,6 +486,7 @@ void ParagraphImpl::UpdateForegroundBrush(const TextStyle& spTextStyle)
     } else {
         UpdateForegroundBrushWithNullopt(skiaTextStyles);
     }
+    MarkAttributeUpdated();
 }
 
 std::vector<TextBlobRecordInfo> ParagraphImpl::GetTextBlobRecordInfo() const
@@ -608,9 +555,105 @@ void ParagraphImpl::SetLayoutState(size_t state)
     paragraph_->setState(static_cast<skt::InternalState>(state));
 }
 
+std::string ParagraphImpl::DumpSymbolInfo() const
+{
+    std::ostringstream symbolInfo;
+    for (size_t i = 0; i < hmSymbols_.size(); ++i) {
+        const auto& symbolRun = hmSymbols_[i];
+        if (symbolRun == nullptr) {
+            continue;
+        }
+        const auto& symbolTxt = symbolRun->GetSymbolTxt();
+        auto colors = symbolTxt.GetRenderColor();
+        auto uiColors = symbolTxt.GetUIColors();
+        auto colorSpaces = symbolTxt.GetColorSpaces();
+
+        symbolInfo << "{SymbolRun" << i
+                   << "}uid:" << symbolTxt.GetSymbolUid()
+                   << ",rmode:" << static_cast<int>(symbolTxt.GetRenderMode())
+                   << ",clrCnt:" << colors.size();
+        for (size_t j = 0; j < colors.size(); ++j) {
+            symbolInfo << ",clr" << j << ":["
+                       << static_cast<int>(colors[j].r) << ","
+                       << static_cast<int>(colors[j].g) << ","
+                       << static_cast<int>(colors[j].b) << ","
+                       << colors[j].a << "]";
+        }
+        symbolInfo << ".uiClrCnt:" << uiColors.size();
+        for (size_t j = 0; j < uiColors.size(); ++j) {
+            symbolInfo << ",uiClr" << j << ":["
+                       << uiColors[j].GetRed() << ","
+                       << uiColors[j].GetGreen() << ","
+                       << uiColors[j].GetBlue() << ","
+                       << uiColors[j].GetAlpha() << ","
+                       << uiColors[j].GetHeadroom() << "],";
+            if (j < colorSpaces.size()) {
+                symbolInfo << "cspace" << j << ":" << static_cast<int>(colorSpaces[j]);
+            }
+        }
+    }
+    return symbolInfo.str();
+}
+
 std::string ParagraphImpl::GetDumpInfo() const
 {
-    return paragraph_->GetDumpInfo();
+    std::string dumpInfo = paragraph_->GetDumpInfo();
+    if (!hmSymbols_.empty()) {
+        return dumpInfo + DumpSymbolInfo();
+    }
+    return dumpInfo;
+}
+
+ParagraphStyle ParagraphImpl::GetParagraphStyle() const
+{
+    return SkParagraphStyleToParagraphStyle(paragraph_->getParagraphStyle(), paints_);
+}
+
+TextProcessState ParagraphImpl::GetProcessState() const
+{
+    skt::InternalState state = paragraph_->getState();
+    TextProcessState resultState = TextProcessState::INIT;
+    switch (state) {
+        case skt::InternalState::kUnknown:
+            resultState = TextProcessState::INIT;
+            break;
+        case skt::InternalState::kIndexed:
+            resultState = TextProcessState::INDEXED;
+            break;
+        case skt::InternalState::kShaped:
+            resultState = TextProcessState::SHAPED;
+            break;
+        case skt::InternalState::kLineBroken:
+            resultState = TextProcessState::LINE_BROKEN;
+            break;
+        case skt::InternalState::kFormatted:
+            resultState = TextProcessState::FORMATTED;
+            break;
+        case skt::InternalState::kDrawn:
+            resultState = TextProcessState::PAINT;
+            break;
+        default:
+            resultState = TextProcessState::INIT;
+    }
+    if (state < skt::InternalState::kDrawn && updateAttr) {
+        resultState = TextProcessState::UPDATE_ATTRIBUTE;
+    }
+    return resultState;
+}
+
+TextDisplayState ParagraphImpl::GetTextDisplayState() const
+{
+    if (paragraph_->getState() < skt::kFormatted) {
+        return TextDisplayState::UNKNOWN;
+    }
+    skt::SkRange<size_t> range = paragraph_->getEllipsisTextRange();
+    if (range.start != INFINITE_RANGE_INDEX) {
+        return TextDisplayState::OMITTED;
+    }
+    if (paragraph_->didExceedMaxLines()) {
+        return TextDisplayState::CLIP;
+    }
+    return TextDisplayState::ALL;
 }
 
 #ifdef ENABLE_OHOS_ENHANCE
@@ -622,13 +665,16 @@ std::shared_ptr<OHOS::Media::PixelMap> ParagraphImpl::GetTextPathImageByIndex(
         return nullptr;
     }
     
+    // If not all glyph paths in the range are successfully obtained, return nullptr to avoid
+    // returning an incomplete path result that could lead to rendering anomalies.
     skt::SkRange<size_t> range{start, end};
-    std::vector<skt::PathInfo> pathInfos = paragraph_->getTextPathByClusterRange(range);
-    if (pathInfos.empty()) {
-        TEXT_LOGD("No path info found for range: [%{public}zu, %{public}zu)", start, end);
+    auto [pathInfos, allSuccess] = paragraph_->getTextPathByClusterRange(range);
+    if (!allSuccess || pathInfos.empty()) {
+        TEXT_LOGD("Failed to get all path info for range: [%{public}zu, %{public}zu) path size: %{public}zu", start,
+            end, pathInfos.size());
         return nullptr;
     }
-    
+
     if (fill) {
         for (size_t i = 0; i < pathInfos.size(); i++) {
             auto& pathInfo = pathInfos[i];
@@ -640,6 +686,26 @@ std::shared_ptr<OHOS::Media::PixelMap> ParagraphImpl::GetTextPathImageByIndex(
         }
     }
     return TextPixelMapUtil::CreatePixelMap(options, pathInfos);
+}
+
+std::vector<TextPathInfo> ParagraphImpl::GetTextPathsByIndex(size_t start, size_t end) const
+{
+    if (start >= end) {
+        TEXT_LOGW("Invalid range: [%{public}zu, %{public}zu)", start, end);
+        return {};
+    }
+    skt::SkRange<size_t> range { start, end };
+    auto [pathInfos, allSuccess] = paragraph_->getTextPathByClusterRange(range);
+    if (!allSuccess || pathInfos.empty()) {
+        TEXT_LOGD("No path info found for range: [%{public}zu, %{public}zu)", start, end);
+        return {};
+    }
+    std::vector<TextPathInfo> result;
+    result.reserve(pathInfos.size());
+    for (auto& pathInfo : pathInfos) {
+        result.push_back({ std::move(pathInfo.path), pathInfo.point });
+    }
+    return result;
 }
 #endif
 
@@ -663,19 +729,28 @@ TextLayoutResult ParagraphImpl::LayoutWithConstraints(const TextRectSize& limitR
     return layoutResult;
 }
 
-void ParagraphImpl::BuildFitStrRange(std::vector<TextRange>& fitRanges)
+void ParagraphImpl::BuildFitStrRange(std::vector<TextRange>& fitRanges) const
 {
     Range<size_t> ellipsisRange = GetEllipsisTextRange();
     skt::TextRange textRange = paragraph_->getUtf16TextRange();
     skt::TextRange lastLineTextRange = paragraph_->getLineUtf16TextRange(GetLineCount() - 1, true);
     // If there is no ellipsis, the fit range is 0 to end index of last line.
-    if (ellipsisRange.start == INFINTE_RANGE_INDEX) {
+    if (ellipsisRange.start == INFINITE_RANGE_INDEX) {
         fitRanges.push_back({0, lastLineTextRange.end});
         return;
     }
 
+    // In MIDDLE ellipsis mode with text ending in \n followed by more characters,
+    // ellipsisRange is based on fGhostClusterRange (including \n cluster) while
+    // lastLineTextRange is based on fText (ending before \n), causing ellipsisRange.end
+    // to potentially exceed lastLineTextRange.end.
+    if (ellipsisRange.end > lastLineTextRange.end) {
+        ellipsisRange.end = lastLineTextRange.end;
+    }
+
     // If there is one line head ellipsis, the fit range is the text range after ellipsis.
-    if (ellipsisRange.start == 0) {
+    if (ellipsisRange.start == 0 &&
+        paragraph_->getParagraphStyle().getEllipsisMod() == skt::EllipsisModal::HEAD) {
         fitRanges.push_back({ellipsisRange.end, lastLineTextRange.end});
     } else {
         fitRanges.push_back({textRange.start, ellipsisRange.start});

@@ -59,7 +59,7 @@ public:
      *                - true: Freeze current frame content
      *                - false: Resume dynamic updates
      */
-    void SetFreeze(bool isFreeze) override;
+    void SetFreeze(bool isFreeze, bool isMarkedByUI = false) override;
 
     /**
      * @brief Set linked node id in PC window resize scenario.

@@ -92,7 +92,6 @@ HWTEST_F(HdiScreenTest, CheckDeviceNull001, Function | MediumTest| Level3)
     ASSERT_EQ(hdiScreen_->SetScreenPowerStatus(status), GRAPHIC_DISPLAY_NULL_PTR);
     uint32_t level = 0;
     ASSERT_EQ(hdiScreen_->GetScreenBacklight(level), GRAPHIC_DISPLAY_NULL_PTR);
-    ASSERT_EQ(hdiScreen_->SetScreenBacklight(level), GRAPHIC_DISPLAY_NULL_PTR);
     bool enabled = false;
     ASSERT_EQ(hdiScreen_->SetScreenVsyncEnabled(enabled), GRAPHIC_DISPLAY_NULL_PTR);
     std::vector<GraphicColorGamut> gamuts;
@@ -267,20 +266,6 @@ HWTEST_F(HdiScreenTest, GetScreenBacklight001, Function | MediumTest| Level3)
 }
 
 /*
-* Function: SetScreenBacklight001
-* Type: Function
-* Rank: Important(3)
-* EnvConditions: N/A
-* CaseDescription: 1. call SetScreenBacklight
-*                  2. check ret
-*/
-HWTEST_F(HdiScreenTest, SetScreenBacklight001, Function | MediumTest| Level3)
-{
-    uint32_t level = 0;
-    ASSERT_EQ(HdiScreenTest::hdiScreen_->SetScreenBacklight(level), 0);
-}
-
-/*
 * Function: SetScreenVsyncEnabled001
 * Type: Function
 * Rank: Important(3)
@@ -442,37 +427,6 @@ HWTEST_F(HdiScreenTest, GetDisplayPropertyForHardCursor001, Function | MediumTes
     uint32_t screenId = 0;
     bool res = hdiScreen_->GetDisplayPropertyForHardCursor(screenId);
     EXPECT_FALSE(res);
-}
-
-/*
- * Function: GetPanelPowerStatus
- * Type: Function
- * Rank: Important(3)
- * EnvConditions: N/A
- * CaseDescription: 1. call GetPanelPowerStatus
- *                  2. check ret
- */
-HWTEST_F(HdiScreenTest, GetPanelPowerStatus001, Function | MediumTest | Level3)
-{
-    GraphicPanelPowerStatus status;
-    EXPECT_CALL(*mockDevice_, GetPanelPowerStatus(_, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
-    EXPECT_EQ(hdiScreen_->GetPanelPowerStatus(status), GRAPHIC_DISPLAY_SUCCESS);
-}
-
-/*
- * Function: SetScreenLinearMatrix
- * Type: Function
- * Rank: Important(3)
- * EnvConditions: N/A
- * CaseDescription: 1. call SetScreenLinearMatrix
- *                  2. check ret
- */
-HWTEST_F(HdiScreenTest, SetScreenLinearMatrix, Function | MediumTest | Level3)
-{
-    std::vector<float> matrix1 = { 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f };
-    std::vector<float> matrix2 = {};
-    EXPECT_EQ(hdiScreen_->SetScreenLinearMatrix(matrix1), 0);
-    EXPECT_EQ(hdiScreen_->SetScreenLinearMatrix(matrix2), -1);
 }
 } // namespace
 } // namespace Rosen

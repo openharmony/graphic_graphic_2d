@@ -22,6 +22,7 @@
 #include "image/image.h"
 #include "utils/matrix.h"
 #include "utils/scalar.h"
+#include "draw/ui_color.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -419,6 +420,59 @@ bool ShaderEffectFuzzTest007(const uint8_t* data, size_t size)
     ShaderEffect::CreateExtendShader(nullptr);
     return true;
 }
+
+/*
+ * 测试以下 ShaderEffect 接口：
+ * 1. CreateLinearGradient with UIColor
+ * 2. CreateRadialGradient with UIColor
+ * 3. CreateTwoPointConical with UIColor
+ * 4. CreateSweepGradient with UIColor
+ */
+bool ShaderEffectFuzzTest008(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    uint32_t tileMode = GetObject<uint32_t>();
+    Matrix matrix;
+    scalar scaleX = GetObject<scalar>();
+    scalar skewX = GetObject<scalar>();
+    scalar transX = GetObject<scalar>();
+    scalar skewY = GetObject<scalar>();
+    scalar scaleY = GetObject<scalar>();
+    scalar transY = GetObject<scalar>();
+    scalar persp0 = GetObject<scalar>();
+    scalar persp1 = GetObject<scalar>();
+    scalar persp2 = GetObject<scalar>();
+    matrix.SetMatrix(scaleX, skewX, transX, skewY, scaleY, transY, persp0, persp1, persp2);
+    Point startPt = PointF(GetObject<float>(), GetObject<float>());
+    Point endPt = PointF(GetObject<float>(), GetObject<float>());
+    std::vector<UIColor> uiColors;
+    float redF = GetObject<float>();
+    float greenF = GetObject<float>();
+    float blueF = GetObject<float>();
+    float alphaF = GetObject<float>();
+    float headroomF = GetObject<float>();
+
+    UIColor uiColor(redF, greenF, blueF, alphaF, headroomF);
+    uiColors.push_back(uiColor);
+    std::vector<scalar> scalarNumbers;
+    scalar scalarOne = GetObject<scalar>();
+    scalar scalarTwo = GetObject<scalar>();
+    scalarNumbers.push_back(scalarOne);
+    scalarNumbers.push_back(scalarTwo);
+    std::shared_ptr<ColorSpace> colorSpace = std::make_shared<ColorSpace>();
+    ShaderEffect::CreateLinearGradient(startPt, endPt, uiColors, colorSpace,
+        scalarNumbers, static_cast<TileMode>(tileMode % TILEMODE_SIZE), &matrix);
+    ShaderEffect::CreateRadialGradient(startPt, GetObject<scalar>(), uiColors, colorSpace, scalarNumbers,
+        static_cast<TileMode>(tileMode % TILEMODE_SIZE), &matrix);
+    ShaderEffect::CreateTwoPointConical(startPt, GetObject<scalar>(), endPt, GetObject<scalar>(), uiColors,
+        colorSpace, scalarNumbers, static_cast<TileMode>(tileMode % TILEMODE_SIZE), &matrix);
+    ShaderEffect::CreateSweepGradient(startPt, uiColors, colorSpace, scalarNumbers,
+        static_cast<TileMode>(tileMode % TILEMODE_SIZE), GetObject<scalar>(), GetObject<scalar>(), &matrix);
+    return true;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -439,5 +493,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::ShaderEffectFuzzTest005(data, size);
     OHOS::Rosen::Drawing::ShaderEffectFuzzTest006(data, size);
     OHOS::Rosen::Drawing::ShaderEffectFuzzTest007(data, size);
+    OHOS::Rosen::Drawing::ShaderEffectFuzzTest008(data, size);
     return 0;
 }

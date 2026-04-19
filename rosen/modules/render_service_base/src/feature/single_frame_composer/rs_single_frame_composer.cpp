@@ -24,6 +24,7 @@ std::map<std::thread::id, uint64_t> RSSingleFrameComposer::ipcThreadIdMap_;
 std::mutex RSSingleFrameComposer::ipcThreadIdMapMutex_;
 std::map<pid_t, uint64_t> RSSingleFrameComposer::appPidMap_;
 std::mutex RSSingleFrameComposer::appPidMapMutex_;
+std::atomic<uint32_t> RSSingleFrameComposer::visibleWinCount_ = 0;
 bool RSSingleFrameComposer::FindSingleFrameModifierNG(
     const std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>>& modifierList)
 {

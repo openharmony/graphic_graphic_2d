@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,18 +24,20 @@
 #include "drawing/engine_adapter/impl_interface/path_iterator_impl.h"
 #include "utils/scalar.h"
 
+#include "draw/path.h"
+
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-enum class PathVerb {
+enum class PathVerb : uint8_t {
     UNINIT = -1,
-    MOVE,
+    MOVE = 0,
     LINE,
     QUAD,
     CONIC,
     CUBIC,
     CLOSE,
-    DONE  = CLOSE + 1
+    DONE = CLOSE + 1
 };
 
 class DRAWING_API PathIterator {

@@ -69,6 +69,7 @@ ohos_shared_library("effectKit_ani") {
   ]
 
   deps = [
+    "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
     "$graphic_2d_root/interfaces/kits/napi/graphic/effect_kit:effectkit",
     "$graphic_2d_root/rosen/modules/effect/color_picker:color_picker",
     "$graphic_2d_root/rosen/modules/effect/skia_effectChain:skeffectchain",
@@ -77,6 +78,7 @@ ohos_shared_library("effectKit_ani") {
 
   external_deps = [
     "c_utils:utils",
+    "graphic_surface:surface",
     "graphics_effect:graphics_effect_core",
     "hilog:libhilog",
     "image_framework:image",

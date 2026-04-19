@@ -160,5 +160,23 @@ void RSLuminanceControl::SetDualScreenStatus(ScreenId screenId, DualScreenStatus
 {
     // Set dual screen coordination status
 }
+
+float RSLuminanceControl::HdrDimmingProcess(ScreenId screenId, uint64_t nodeId)
+{
+    return 1.0f;
+}
+
+void RSLuminanceControl::HdrDimmingPostProcess(ScreenId screenId)
+{
+    return;
+}
+
+#ifndef ROSEN_CROSS_PLATFORM
+int32_t RSLuminanceControl::UpdateMetadataBasedOnScaler(const sptr<SurfaceBuffer>& input, float scaler,
+    HdrStatus hdrStatus)
+{
+    return 0;
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

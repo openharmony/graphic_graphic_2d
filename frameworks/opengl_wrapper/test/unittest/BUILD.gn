@@ -29,6 +29,7 @@ ohos_unittest("opengl_wrapper_unit_test") {
 
   sources = [
     "egl_blob_test.cpp",
+    "egl_blobfile_test.cpp",
     "egl_bundle_mgr_helper_test.cpp",
     "egl_core_test.cpp",
     "egl_system_layers_manager_test.cpp",

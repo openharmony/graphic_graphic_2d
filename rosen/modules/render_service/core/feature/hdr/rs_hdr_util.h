@@ -16,15 +16,15 @@
 #ifndef RS_HDR_UTIL_H
 #define RS_HDR_UTIL_H
 
+#include "engine/rs_base_render_engine.h"
+#include "hdr/rs_base_hdr_util.h"
 #include "params/rs_screen_render_params.h"
-#include "pipeline/render_thread/rs_base_render_engine.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSScreenManager;
 
 namespace RSHDRUtilConst {
 #ifdef USE_VIDEO_PROCESSING_ENGINE
@@ -62,10 +62,8 @@ public:
     ~RSHdrUtil() = default;
 
     static HdrStatus CheckIsHdrSurface(const RSSurfaceRenderNode& surfaceNode);
-    static HdrStatus CheckIsHdrSurfaceBuffer(const sptr<SurfaceBuffer> surfaceBuffer);
-    static bool CheckIsHDRSelfProcessingBuffer(const sptr<SurfaceBuffer>& surfaceBuffer);
+    static bool CheckHasSurfaceWithAiHdrMetadata(const RSSurfaceRenderNode& surfaceNode);
     static bool CheckIsSurfaceWithMetadata(const RSSurfaceRenderNode& surfaceNode);
-    static bool CheckIsSurfaceBufferWithMetadata(const sptr<SurfaceBuffer> surfaceBuffer);
     static void UpdateSurfaceNodeLayerLinearMatrix(RSSurfaceRenderNode& surfaceNode, ScreenId screenId);
     static void UpdatePixelFormatAfterHwcCalc(RSScreenRenderNode& node);
     static void UpdateSelfDrawingNodesNit(RSScreenRenderNode& node);
@@ -75,13 +73,11 @@ public:
     static bool UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId screenId, float& scaler);
     static void SetHDRParam(RSScreenRenderNode& screenNode, RSSurfaceRenderNode& node, bool isEDR);
     static void LuminanceChangeSetDirty(RSScreenRenderNode& node);
-    static bool GetRGBA1010108Enabled();
     static void CheckNotifyCallback(RSContext& context, ScreenId screenId);
     static bool BufferFormatNeedUpdate(const std::shared_ptr<Drawing::Surface>& cacheSurface, bool isNeedFP16);
-    static void HandleVirtualScreenHDRStatus(RSScreenRenderNode& node, const sptr<RSScreenManager>& screenManager);
+    static void HandleVirtualScreenHDRStatus(RSScreenRenderNode& node);
     static void UpdateHDRCastProperties(RSScreenRenderNode& node, bool isNeedHDRCast, bool hdrCastColorGamut);
     static bool IsHDRCast(RSScreenRenderParams* screenParams, BufferRequestConfig& renderFrameConfig);
-    static ScreenColorGamut GetScreenColorGamut(RSScreenRenderNode& node, const sptr<RSScreenManager>& screenManager);
     static bool NeedUseF16Capture(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     static bool HDRCastProcess(std::shared_ptr<Drawing::Image>& image, Drawing::Brush& paint,
@@ -91,7 +87,7 @@ public:
         const Drawing::SamplingOptions& sampling);
     static GSError EraseHDRMetadataKey(std::unique_ptr<RSRenderFrame>& renderFrame);
     static GSError SetMetadata(const HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceInfo& colorspaceInfo,
-        std::unique_ptr<RSRenderFrame>& renderFrame);
+        std::unique_ptr<RSRenderFrame>& renderFrame, bool isHDRCast);
     static GSError SetMetadata(SurfaceBuffer* buffer,
         const HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceInfo& colorspaceInfo,
         const HDI::Display::Graphic::Common::V1_0::CM_HDR_Metadata_Type& value);

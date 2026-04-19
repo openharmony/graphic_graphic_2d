@@ -373,6 +373,7 @@ HWTEST_F(RSPropertiesTest, Dump001, TestSize.Level1)
     Vector4f vec(1.f, 1.f, 0.f, 1.f);
     EXPECT_EQ(properties.GetPersp(), vec);
     Color color1;
+    color1.SetHeadroom(2.0f);
     properties.SetForegroundColor(color1);
     properties.SetBackgroundColor(color1);
     std::shared_ptr<RSImage> image = std::make_shared<RSImage>();
@@ -388,6 +389,64 @@ HWTEST_F(RSPropertiesTest, Dump001, TestSize.Level1)
     properties.SetShadowRadius(1.f);
     EXPECT_EQ(properties.GetShadowRadius(), 1.f);
     properties.Dump();
+}
+
+/**
+ * @tc.name: Dump002
+ * @tc.desc: test results of Dump with positive ShadowRadius
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, Dump002, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetHDRColorHeadroom(3.0f);
+    EXPECT_EQ(properties.GetHDRColorHeadroom(), 3.0f);
+    properties.SetShadowRadius(5.5f);
+    std::string dumpInfo = properties.Dump();
+    EXPECT_TRUE(dumpInfo.find("ShadowRadius[5.5]") != std::string::npos);
+}
+
+/**
+ * @tc.name: Dump003
+ * @tc.desc: test results of Dump with zero ShadowRadius
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, Dump003, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetShadowRadius(0.0f);
+    std::string dumpInfo = properties.Dump();
+    EXPECT_TRUE(dumpInfo.find("ShadowRadius[0.0]") != std::string::npos);
+}
+
+/**
+ * @tc.name: Dump004
+ * @tc.desc: test results of Dump with Default ShadowRadius
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, Dump004, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetShadowRadius(-1.0f);
+    std::string dumpInfo = properties.Dump();
+    EXPECT_TRUE(dumpInfo.find("ShadowRadius[") == std::string::npos);
+}
+
+/**
+ * @tc.name: Dump005
+ * @tc.desc: test results of Dump with negative ShadowRadius
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, Dump005, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetShadowRadius(-2.0f);
+    std::string dumpInfo = properties.Dump();
+    EXPECT_TRUE(dumpInfo.find("ShadowRadius[-2.0]") != std::string::npos);
 }
 
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
@@ -1320,6 +1379,13 @@ HWTEST_F(RSPropertiesTest, UpdateBackgroundShader003, TestSize.Level1)
     properties.GetEffect().bgNGRenderShader_ = head;
     properties.UpdateBackgroundShader();
     EXPECT_FALSE(properties.bgShaderNeedUpdate_);
+
+    head = RSNGRenderShaderBase::Create(RSNGEffectType::FROSTED_GLASS_EFFECT);
+    properties.GetEffect().bgNGRenderShader_ = head;
+    properties.SetBackgroundNGShader(head);
+    properties.UpdateBackgroundShader();
+    EXPECT_FALSE(properties.bgShaderNeedUpdate_);
+    EXPECT_TRUE(properties.filterNeedUpdate_);
 }
 
 /**
@@ -1885,38 +1951,6 @@ HWTEST_F(RSPropertiesTest, SetMotionBlurPara001, TestSize.Level1)
     para->radius = 1.f;
     properties.SetMotionBlurPara(para);
     EXPECT_NE(para, nullptr);
-}
-
-/**
- * @tc.name: SetMagnifierParams001
- * @tc.desc: test results of SetMagnifierParams
- * @tc.type: FUNC
- * @tc.require: issueI9QKVM
- */
-HWTEST_F(RSPropertiesTest, SetMagnifierParams001, TestSize.Level1)
-{
-    RSProperties properties;
-    auto para = std::make_shared<RSMagnifierParams>();
-    properties.SetMagnifierParams(para);
-    EXPECT_NE(properties.GetMagnifierPara(), nullptr);
-
-    para->factor_ = 1.f;
-    properties.SetMagnifierParams(para);
-    EXPECT_NE(para, nullptr);
-}
-
-/**
- * @tc.name: SetMagnifierParams002
- * @tc.desc: test results of SetMagnifierParams
- * @tc.type: FUNC
- * @tc.require: issueI9QKVM
- */
-HWTEST_F(RSPropertiesTest, SetMagnifierParams002, TestSize.Level1)
-{
-    RSProperties properties;
-    std::shared_ptr<RSMagnifierParams> para;
-    properties.SetMagnifierParams(para);
-    EXPECT_EQ(properties.GetMagnifierPara(), nullptr);
 }
 
 /**
@@ -3137,7 +3171,7 @@ HWTEST_F(RSPropertiesTest, SetLightIntensity002, TestSize.Level1)
     EXPECT_NE(properties.GetEffect().lightSourcePtr_, nullptr);
     std::shared_ptr<RSRenderNode> node = nullptr;
     properties.backref_ = node;
-    auto instance = RSPointLightManager::Instance();
+    auto& instance = RSPointLightManager::Instance(0);
     instance->lightSourceNodeMap_.clear();
     properties.SetLightIntensity(1.f);
     EXPECT_TRUE(instance->lightSourceNodeMap_.empty());
@@ -3245,7 +3279,7 @@ HWTEST_F(RSPropertiesTest, SetIlluminatedType002, TestSize.Level1)
 
     std::shared_ptr<RSRenderNode> node = nullptr;
     properties.backref_ = node;
-    auto instance = RSPointLightManager::Instance();
+    auto& instance = RSPointLightManager::Instance(0);
     instance->illuminatedNodeMap_.clear();
     properties.SetIlluminatedType(1);
     EXPECT_TRUE(instance->illuminatedNodeMap_.empty());
@@ -3678,7 +3712,6 @@ HWTEST_F(RSPropertiesTest, StatBackground_Variants, TestSize.Level1)
     props.backref_ = node;
     props.hasReportedServerXXFilterCascade_.reset();
     props.SetAiInvert(Vector4f(0.1f, 0.1f, 0.1f, 0.1f));
-    props.SetMagnifierParams(std::make_shared<RSMagnifierParams>());
     props.SetAlwaysSnapshot(true);
     props.SetBackgroundNGFilter(RSNGRenderFilterBase::Create(RSNGEffectType::BLUR));
     props.SetSystemBarEffect(true);
@@ -3692,19 +3725,6 @@ HWTEST_F(RSPropertiesTest, StatBackground_Variants, TestSize.Level1)
     props.GenerateBackgroundFilter();
     EXPECT_TRUE(props.hasReportedServerXXFilterCascade_.test(0));
     props.GenerateBackgroundFilter();
-
-    auto node1 = std::make_shared<RSRenderNode>(1);
-    RSProperties props1;
-    props1.backref_ = node1;
-    props1.hasReportedServerXXFilterCascade_.reset();
-    props1.SetSystemBarEffect(true);
-    auto magnifierPara = std::make_shared<RSMagnifierParams>();
-    magnifierPara->factor_ = 1.0f;
-    props1.SetMagnifierParams(magnifierPara);
-    props1.GenerateBackgroundMaterialBlurFilter();
-    props1.SetBackgroundBlurRadiusX(1.5f);
-    props1.GenerateBackgroundFilter();
-    EXPECT_TRUE(props1.hasReportedServerXXFilterCascade_.test(0));
 
     auto node2 = std::make_shared<RSRenderNode>(2);
     RSProperties props2;
@@ -3865,6 +3885,46 @@ HWTEST_F(RSPropertiesTest, SetAndGetCompositingNGFilter, TestSize.Level1)
     properties.SetCompositingNGFilter(blurFilter);  // for coverage
     auto testFilter = properties.GetCompositingNGFilter();
     EXPECT_EQ(blurFilter, testFilter);
+}
+
+/**
+ * @tc.name: SetOverlayNGShader001
+ * @tc.desc: test results of SetOverlayNGShader with nullptr
+ * @tc.type:FUNC
+ * @tc.require: issueNumber
+ */
+HWTEST_F(RSPropertiesTest, SetOverlayNGShader001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetOverlayNGShader(nullptr);
+    EXPECT_EQ(properties.GetOverlayNGShader(), nullptr);
+}
+
+/**
+ * @tc.name: SetOverlayNGShader002
+ * @tc.desc: test results of SetOverlayNGShader with multiple shader types
+ * @tc.type:FUNC
+ * @tc.require: issueNumber
+ */
+HWTEST_F(RSPropertiesTest, SetOverlayNGShader002, TestSize.Level1)
+{
+    RSProperties properties;
+    
+    auto overlayShader = RSNGRenderShaderBase::Create(RSNGEffectType::BORDER_LIGHT);
+    properties.SetOverlayNGShader(overlayShader);
+    EXPECT_EQ(properties.GetOverlayNGShader(), overlayShader);
+    
+    overlayShader = RSNGRenderShaderBase::Create(RSNGEffectType::HARMONIUM_EFFECT);
+    properties.SetOverlayNGShader(overlayShader);
+    EXPECT_EQ(properties.GetOverlayNGShader(), overlayShader);
+    
+    overlayShader = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
+    properties.SetOverlayNGShader(overlayShader);
+    EXPECT_EQ(properties.GetOverlayNGShader(), overlayShader);
+    
+    overlayShader = RSNGRenderShaderBase::Create(RSNGEffectType::FROSTED_GLASS_EFFECT);
+    properties.SetOverlayNGShader(overlayShader);
+    EXPECT_EQ(properties.GetOverlayNGShader(), overlayShader);
 }
 } // namespace Rosen
 } // namespace OHOS

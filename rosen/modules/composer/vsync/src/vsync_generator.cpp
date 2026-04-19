@@ -39,9 +39,7 @@
 #include "system_ability_definition.h"
 #endif
 
-#if defined(RS_ENABLE_DVSYNC_2)
-#include "dvsync.h"
-#endif
+#include "dvsync_lib_manager.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -263,12 +261,6 @@ void VSyncGenerator::ThreadLoop()
                 clearAllSamplesFlag_ = false;
                 locker.unlock();
                 ClearAllSamplesInternal(clearAllSamplesFlag);
-                if (appVSyncDistributor_ != nullptr) {
-                    appVSyncDistributor_->RecordVsyncModeChange(currRefreshRate_, period_);
-                }
-                if (rsVSyncDistributor_ != nullptr) {
-                    rsVSyncDistributor_->RecordVsyncModeChange(currRefreshRate_, period_);
-                }
                 continue;
             }
         }
@@ -424,9 +416,12 @@ int64_t VSyncGenerator::ComputeNextVSyncTimeStamp(int64_t now, int64_t reference
 // Start of DVSync
 void VSyncGenerator::ComputeDVSyncListenerTimeStamp(const Listener& listener, int64_t now, int64_t &nextVSyncTime)
 {
-#if defined(RS_ENABLE_DVSYNC_2)
+    if (!DVSyncLibManager::Instance().IsInitialized()) {
+        return;
+    }
     int64_t t = INT64_MAX;
-    DVSync::Instance().UpdateReferenceTimeAndPeriod(isLtpoNeedChange_, occurDvsyncReferenceTime_, dvsyncPeriodRecord_);
+    DVSyncLibManager::Instance().UpdateReferenceTimeAndPeriod(isLtpoNeedChange_, occurDvsyncReferenceTime_,
+        dvsyncPeriodRecord_);
     if (dvsyncPeriodRecord_ != 0 && listener.callback_ != nullptr) {
         t = ComputeDVSyncListenerNextVSyncTimeStamp(listener, now, occurDvsyncReferenceTime_, dvsyncPeriodRecord_);
         nextVSyncTime = t < nextVSyncTime? t : nextVSyncTime;
@@ -435,20 +430,20 @@ void VSyncGenerator::ComputeDVSyncListenerTimeStamp(const Listener& listener, in
             ",wakeupDelay:%" PRId64 ",phaseRecord:%" PRId64, t, dvsyncPeriodRecord_, occurDvsyncReferenceTime_,
             now, listener.lastTime_, listener.phase_, wakeupDelay_, phaseRecord_);
     }
-#endif
 }
 
 int64_t VSyncGenerator::SetCurrentRefreshRate(uint32_t currRefreshRate, uint32_t lastRefreshRate)
 {
     int64_t delayTime = 0;
-#if defined(RS_ENABLE_DVSYNC_2)
+    if (!DVSyncLibManager::Instance().IsInitialized()) {
+        return delayTime;
+    }
     std::lock_guard<std::mutex> locker(mutex_);
-    delayTime = DVSync::Instance().SetCurrentRefreshRate(currRefreshRate, lastRefreshRate);
+    delayTime = DVSyncLibManager::Instance().SetCurrentRefreshRate(currRefreshRate, lastRefreshRate);
     if (currRefreshRate != 0 && delayTime != 0) {
         WaitForTimeoutConNotifyLocked();
         isLtpoNeedChange_ = true;
     }
-#endif
     RS_TRACE_NAME_FMT("DVSync::UiDVSync setCurrentRefreshRate isLtpoNeedChange:%d, currRefreshRate:%u, delayTime:%ld",
         isLtpoNeedChange_, currRefreshRate, delayTime);
     return delayTime;
@@ -458,16 +453,17 @@ bool VSyncGenerator::DVSyncRateChanged(uint32_t currRefreshRate, bool &frameRate
     bool needChangeDssRefreshRate)
 {
     bool isNeedDvsyncDelay = false;
-#if defined(RS_ENABLE_DVSYNC_2)
+    if (!DVSyncLibManager::Instance().IsInitialized()) {
+        return isNeedDvsyncDelay;
+    }
     uint32_t dvsyncRate = 0;
-    bool dvsyncRateChanged = DVSync::Instance().DVSyncRateChanged(currRefreshRate, dvsyncRate);
+    bool dvsyncRateChanged = DVSyncLibManager::Instance().DVSyncRateChanged(currRefreshRate, dvsyncRate);
     if (dvsyncRate == 0) {
         isNeedDvsyncDelay = needChangeDssRefreshRate;
     } else {
         frameRateChanged = dvsyncRateChanged;
         isNeedDvsyncDelay = dvsyncRateChanged;
     }
-#endif
     return isNeedDvsyncDelay;
 }
 
@@ -480,9 +476,7 @@ int64_t VSyncGenerator::CollectDVSyncListener(const Listener &listener, int64_t 
         if (t - SystemTime() < ERROR_THRESHOLD) {
             dvsyncListener_.lastTime_ = t;
             ret.push_back(dvsyncListener_);
-#if defined(RS_ENABLE_DVSYNC_2)
-            DVSync::Instance().SetToCurrentPeriod();
-#endif
+            DVSyncLibManager::Instance().SetToCurrentPeriod();
             RS_TRACE_NAME_FMT("DVSync::UiDVSync CollectDVSyncListener t:%" PRId64 ", dvsyncPeriod:%" PRId64
                 ", dvsyncReferenceTime:%" PRId64 ", now:%" PRId64 ", lastTime:%" PRId64 ", phase:%" PRId64
                 ",wakeupDelay:%" PRId64 ",phaseRecord:%" PRId64, t, dvsyncPeriodRecord_, occurDvsyncReferenceTime_,

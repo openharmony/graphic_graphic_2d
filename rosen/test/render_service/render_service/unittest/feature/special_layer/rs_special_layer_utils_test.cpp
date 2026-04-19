@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,17 +13,45 @@
  * limitations under the License.
  */
 
+#include "common/rs_common_def.h"
 #include "common/rs_special_layer_manager.h"
 #include "feature/special_layer/rs_special_layer_utils.h"
 #include "gtest/gtest.h"
 #include "params/rs_screen_render_params.h"
+#include "params/rs_render_thread_params.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/render_thread/rs_uni_render_thread.h"
+#include "pipeline/render_thread/rs_uni_render_processor.h"
+#include "pipeline/render_thread/rs_uni_render_virtual_processor.h"
 #include "pipeline/rs_logical_display_render_node.h"
+#include "pipeline/rs_render_node_map.h"
+#include "pipeline/rs_screen_render_node.h"
+#include "pipeline/rs_surface_render_node.h"
+#include "screen_manager/rs_screen_property.h"
+#include "drawable/rs_render_node_drawable.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+namespace {
+NodeId GenerateNodeId()
+{
+    static NodeId nextId = 1;
+    return nextId++;
+}
+
+ScreenId GenerateScreenId()
+{
+    static ScreenId nextId = 1;
+    return nextId++;
+}
+
+constexpr int CANVAS_WIDTH = 800;
+constexpr int CANVAS_HEIGHT = 600;
+const RectI DEFAULT_RECTI {0, 0, 100, 100};
+const HDI::Display::Graphic::Common::V1_0::BufferHandleMetaRegion DEFAULT_META_REGION {0, 0, 100, 100};
+}
 class RSSpecialLayerUtilsTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -36,8 +64,13 @@ void RSSpecialLayerUtilsTest::SetUpTestCase() {}
 void RSSpecialLayerUtilsTest::TearDownTestCase()
 {
     RSMainThread::Instance()->context_ = nullptr;
+    RSMainThread::Instance()->renderThreadParams_ = nullptr;
 }
-void RSSpecialLayerUtilsTest::SetUp() {}
+void RSSpecialLayerUtilsTest::SetUp()
+{
+    ScreenSpecialLayerInfo::screenSpecialLayerInfoByNode_ = {};
+    ScreenSpecialLayerInfo::SetGlobalBlackList({});
+}
 void RSSpecialLayerUtilsTest::TearDown()
 {
     auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
@@ -102,8 +135,596 @@ HWTEST_F(RSSpecialLayerUtilsTest, CheckSpecialLayerIntersectMirrorDisplay, TestS
 
     mirrorNode->SetIsMirrorDisplay(true);
     mirrorNode->SetMirrorSource(sourceNode);
-    RSSpecialLayerUtils::CheckSpecialLayerIntersectMirrorDisplay(*mirrorNode, *sourceNode, true);
+    RSSpecialLayerUtils::CheckSpecialLayerIntersectMirrorDisplay(*mirrorNode, *sourceNode);
     ASSERT_NE(mirrorNode->GetMirrorSource().lock(), nullptr);
+}
+
+/**
+ * @tc.name: GetAllBlackList001
+ * @tc.desc: test GetAllBlackList with empty nodeMap
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, GetAllBlackList001, TestSize.Level2)
+{
+    RSRenderNodeMap nodeMap;
+    auto result = RSSpecialLayerUtils::GetAllBlackList(nodeMap);
+    ASSERT_TRUE(result.empty());
+}
+
+/**
+ * @tc.name: GetAllBlackList002
+ * @tc.desc: test GetAllBlackList with screen nodes having black lists
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, GetAllBlackList002, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto& nodeMap = rsContext->GetMutableNodeMap();
+    nodeMap.Initialize(rsContext->weak_from_this());
+
+    // Create screen node with black list
+    auto screenNode1 =
+        std::make_shared<RSScreenRenderNode>(GenerateNodeId(), GenerateScreenId(), rsContext->weak_from_this());
+    RSScreenProperty property;
+    property.Set<ScreenPropertyType::BLACK_LIST>(std::unordered_set<NodeId>{GenerateNodeId()});
+    screenNode1->SetScreenProperty(property);
+    nodeMap.RegisterRenderNode(screenNode1);
+
+    ScreenSpecialLayerInfo::SetGlobalBlackList(std::unordered_set<NodeId>{GenerateNodeId()});
+    // Create screen node with black list and global blacklist enabled
+    auto screenNode2 =
+        std::make_shared<RSScreenRenderNode>(GenerateNodeId(), GenerateScreenId(), rsContext->weak_from_this());
+    RSScreenProperty property2;
+    property2.Set<ScreenPropertyType::BLACK_LIST>(std::unordered_set<NodeId>{GenerateNodeId()});
+    property2.Set<ScreenPropertyType::ENABLE_SKIP_WINDOW>(true);
+    screenNode2->SetScreenProperty(property2);
+    nodeMap.RegisterRenderNode(screenNode2);
+
+    auto result = RSSpecialLayerUtils::GetAllBlackList(nodeMap);
+    ASSERT_FALSE(result.empty());
+
+    // Clear
+    ScreenSpecialLayerInfo::SetGlobalBlackList(std::unordered_set<NodeId>{});
+}
+
+/**
+ * @tc.name: GetAllBlackList003
+ * @tc.desc: test GetAllBlackList with null screen node
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, GetAllBlackList003, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto& nodeMap = rsContext->GetMutableNodeMap();
+    nodeMap.Initialize(rsContext->weak_from_this());
+
+    // Inject a null screen node to test null check branch
+    NodeId nullNodeId = GenerateNodeId();
+    nodeMap.screenNodeMap_[nullNodeId] = nullptr;
+
+    auto result = RSSpecialLayerUtils::GetAllBlackList(nodeMap);
+    ASSERT_TRUE(result.empty());
+}
+
+/**
+ * @tc.name: GetAllWhiteList001
+ * @tc.desc: test GetAllWhiteList with empty nodeMap
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, GetAllWhiteList001, TestSize.Level2)
+{
+    RSRenderNodeMap nodeMap;
+    auto result = RSSpecialLayerUtils::GetAllWhiteList(nodeMap);
+    ASSERT_TRUE(result.empty());
+}
+
+/**
+ * @tc.name: GetAllWhiteList002
+ * @tc.desc: test GetAllWhiteList with screen nodes having white lists
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, GetAllWhiteList002, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto& nodeMap = rsContext->GetMutableNodeMap();
+    nodeMap.Initialize(rsContext->weak_from_this());
+
+    // Create screen node with white list
+    auto screenNode1 =
+        std::make_shared<RSScreenRenderNode>(GenerateNodeId(), GenerateScreenId(), rsContext->weak_from_this());
+    RSScreenProperty property;
+    property.Set<ScreenPropertyType::WHITE_LIST>(std::unordered_set<NodeId>{GenerateNodeId()});
+    screenNode1->SetScreenProperty(property);
+    nodeMap.RegisterRenderNode(screenNode1);
+
+    auto result = RSSpecialLayerUtils::GetAllWhiteList(nodeMap);
+    ASSERT_FALSE(result.empty());
+}
+
+/**
+ * @tc.name: GetAllWhiteList003
+ * @tc.desc: test GetAllWhiteList with null screen node
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, GetAllWhiteList003, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto& nodeMap = rsContext->GetMutableNodeMap();
+    nodeMap.Initialize(rsContext->weak_from_this());
+
+    // Inject a null screen node to test null check branch
+    NodeId nullNodeId = GenerateNodeId();
+    nodeMap.screenNodeMap_[nullNodeId] = nullptr;
+
+    auto result = RSSpecialLayerUtils::GetAllWhiteList(nodeMap);
+    ASSERT_TRUE(result.empty());
+}
+
+/**
+ * @tc.name: GetMergeBlackList001
+ * @tc.desc: test GetMergeBlackList when EnableSkipWindow is false
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, GetMergeBlackList001, TestSize.Level2)
+{
+    RSScreenProperty property;
+    property.Set<ScreenPropertyType::BLACK_LIST>(std::unordered_set<NodeId>{GenerateNodeId()});
+    property.Set<ScreenPropertyType::ENABLE_SKIP_WINDOW>(false);
+
+    auto result = RSSpecialLayerUtils::GetMergeBlackList(property);
+    ASSERT_FALSE(result.empty());
+}
+
+/**
+ * @tc.name: GetMergeBlackList002
+ * @tc.desc: test GetMergeBlackList when EnableSkipWindow is true
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, GetMergeBlackList002, TestSize.Level2)
+{
+    RSScreenProperty property;
+    property.Set<ScreenPropertyType::BLACK_LIST>(std::unordered_set<NodeId>{GenerateNodeId()});
+    property.Set<ScreenPropertyType::ENABLE_SKIP_WINDOW>(true);
+
+    ScreenSpecialLayerInfo::SetGlobalBlackList(std::unordered_set<NodeId>{GenerateNodeId()});
+    auto result = RSSpecialLayerUtils::GetMergeBlackList(property);
+    ASSERT_FALSE(result.empty());
+
+    // Clean up
+    ScreenSpecialLayerInfo::SetGlobalBlackList(std::unordered_set<NodeId>{});
+}
+
+/**
+ * @tc.name: GetMergeBlackList003
+ * @tc.desc: test GetMergeBlackList with empty black lists
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, GetMergeBlackList003, TestSize.Level2)
+{
+    RSScreenProperty property;
+    property.Set<ScreenPropertyType::BLACK_LIST>(std::unordered_set<NodeId>{});
+    property.Set<ScreenPropertyType::ENABLE_SKIP_WINDOW>(false);
+
+    auto result = RSSpecialLayerUtils::GetMergeBlackList(property);
+    ASSERT_TRUE(result.empty());
+}
+
+/**
+ * @tc.name: GetMergeBlackList004
+ * @tc.desc: test GetMergeBlackList with global blacklist but empty screen blacklist
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, GetMergeBlackList004, TestSize.Level2)
+{
+    RSScreenProperty property;
+    property.Set<ScreenPropertyType::BLACK_LIST>(std::unordered_set<NodeId>{});
+    property.Set<ScreenPropertyType::ENABLE_SKIP_WINDOW>(true);
+
+    ScreenSpecialLayerInfo::SetGlobalBlackList(std::unordered_set<NodeId>{GenerateNodeId()});
+    auto result = RSSpecialLayerUtils::GetMergeBlackList(property);
+    ASSERT_FALSE(result.empty());
+
+    // Clean up
+    ScreenSpecialLayerInfo::SetGlobalBlackList(std::unordered_set<NodeId>{});
+}
+
+/**
+ * @tc.name: UpdateInfoWithGlobalBlackList001
+ * @tc.desc: test UpdateInfoWithGlobalBlackList with empty nodeMap
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, UpdateInfoWithGlobalBlackList001, TestSize.Level2)
+{
+    RSRenderNodeMap nodeMap;
+    RSSpecialLayerUtils::UpdateInfoWithGlobalBlackList(nodeMap);
+    ASSERT_TRUE(ScreenSpecialLayerInfo::screenSpecialLayerInfoByNode_.empty());
+}
+
+/**
+ * @tc.name: UpdateInfoWithGlobalBlackList002
+ * @tc.desc: test UpdateInfoWithGlobalBlackList with null screen node
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, UpdateInfoWithGlobalBlackList002, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto& nodeMap = rsContext->GetMutableNodeMap();
+    nodeMap.Initialize(rsContext->weak_from_this());
+
+    // Inject a null screen node to test null check branch
+    NodeId nullNodeId = GenerateNodeId();
+    nodeMap.screenNodeMap_[nullNodeId] = nullptr;
+
+    RSSpecialLayerUtils::UpdateInfoWithGlobalBlackList(nodeMap);
+    ASSERT_TRUE(ScreenSpecialLayerInfo::screenSpecialLayerInfoByNode_.empty());
+}
+
+/**
+ * @tc.name: UpdateInfoWithGlobalBlackList003
+ * @tc.desc: test UpdateInfoWithGlobalBlackList with screen node having EnableSkipWindow false
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, UpdateInfoWithGlobalBlackList003, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto& nodeMap = rsContext->GetMutableNodeMap();
+    nodeMap.Initialize(rsContext->weak_from_this());
+
+    auto screenId = GenerateScreenId();
+    RSScreenProperty property;
+    property.Set<ScreenPropertyType::BLACK_LIST>(std::unordered_set<NodeId>{GenerateNodeId()});
+    property.Set<ScreenPropertyType::ENABLE_SKIP_WINDOW>(false);
+    property.Set<ScreenPropertyType::ID>(screenId);
+    auto screenNode = std::make_shared<RSScreenRenderNode>(GenerateNodeId(), screenId, rsContext->weak_from_this());
+    screenNode->SetScreenProperty(property);
+    nodeMap.RegisterRenderNode(screenNode);
+
+    RSSpecialLayerUtils::UpdateInfoWithGlobalBlackList(nodeMap);
+    ASSERT_TRUE(ScreenSpecialLayerInfo::screenSpecialLayerInfoByNode_.empty());
+}
+
+/**
+ * @tc.name: UpdateInfoWithGlobalBlackList004
+ * @tc.desc: test UpdateInfoWithGlobalBlackList with screen node having EnableSkipWindow true
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, UpdateInfoWithGlobalBlackList004, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto& nodeMap = rsContext->GetMutableNodeMap();
+    nodeMap.Initialize(rsContext->weak_from_this());
+
+    auto screenId = GenerateScreenId();
+    RSScreenProperty screenProperty;
+    screenProperty.Set<ScreenPropertyType::BLACK_LIST>(std::unordered_set<NodeId>{GenerateNodeId()});
+    screenProperty.Set<ScreenPropertyType::ENABLE_SKIP_WINDOW>(true);
+    screenProperty.Set<ScreenPropertyType::ID>(screenId);
+    auto screenNode = std::make_shared<RSScreenRenderNode>(GenerateNodeId(), screenId, rsContext->weak_from_this());
+    screenNode->SetScreenProperty(screenProperty);
+    nodeMap.RegisterRenderNode(screenNode);
+
+    RSSpecialLayerUtils::UpdateInfoWithGlobalBlackList(nodeMap);
+    ASSERT_FALSE(ScreenSpecialLayerInfo::screenSpecialLayerInfoByNode_.empty());
+
+    // Clean up
+    ScreenSpecialLayerInfo::ClearByScreenId(screenId);
+}
+
+/**
+ * @tc.name: UpdateScreenSpecialLayer001
+ * @tc.desc: test UpdateScreenSpecialLayer with basic properties
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, UpdateScreenSpecialLayer001, TestSize.Level2)
+{
+    auto screenId = GenerateScreenId();
+    RSScreenProperty property;
+    property.Set<ScreenPropertyType::BLACK_LIST>(std::unordered_set<NodeId>{GenerateNodeId()});
+    property.Set<ScreenPropertyType::WHITE_LIST>(std::unordered_set<NodeId>{GenerateNodeId()});
+    property.Set<ScreenPropertyType::ID>(screenId);
+
+    RSSpecialLayerUtils::UpdateScreenSpecialLayer(property);
+    ASSERT_FALSE(ScreenSpecialLayerInfo::screenSpecialLayerInfoByNode_.empty());
+
+    // Clean up
+    ScreenSpecialLayerInfo::ClearByScreenId(screenId);
+}
+
+/**
+ * @tc.name: UpdateScreenSpecialLayer002
+ * @tc.desc: test UpdateScreenSpecialLayer with ENABLE_SKIP_WINDOW type
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, UpdateScreenSpecialLayer002, TestSize.Level2)
+{
+    auto screenId = GenerateScreenId();
+    RSScreenProperty property;
+    property.Set<ScreenPropertyType::BLACK_LIST>(std::unordered_set<NodeId>{GenerateNodeId()});
+    property.Set<ScreenPropertyType::ENABLE_SKIP_WINDOW>(true);
+    property.Set<ScreenPropertyType::ID>(screenId);
+
+    ScreenSpecialLayerInfo::SetGlobalBlackList(std::unordered_set<NodeId>{GenerateNodeId()});
+    RSSpecialLayerUtils::UpdateScreenSpecialLayer(property, ScreenPropertyType::ENABLE_SKIP_WINDOW);
+    ASSERT_FALSE(ScreenSpecialLayerInfo::screenSpecialLayerInfoByNode_.empty());
+
+    // Clean up
+    ScreenSpecialLayerInfo::ClearByScreenId(screenId);
+    ScreenSpecialLayerInfo::SetGlobalBlackList(std::unordered_set<NodeId>{});
+}
+
+/**
+ * @tc.name: UpdateScreenSpecialLayer003
+ * @tc.desc: test UpdateScreenSpecialLayer with invalid type
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, UpdateScreenSpecialLayer003, TestSize.Level2)
+{
+    auto screenId = GenerateScreenId();
+    RSScreenProperty property;
+    property.Set<ScreenPropertyType::ID>(screenId);
+
+    // Test with SCREEN_STATUS type which is not in SCREEN_SPECIAL_LAYER_PROPERTY
+    RSSpecialLayerUtils::UpdateScreenSpecialLayer(property, ScreenPropertyType::SCREEN_STATUS);
+    ASSERT_TRUE(ScreenSpecialLayerInfo::screenSpecialLayerInfoByNode_.empty());
+}
+
+/**
+ * @tc.name: UpdateScreenSpecialLayersRecord001
+ * @tc.desc: test UpdateScreenSpecialLayersRecord with needCalcScreenSpecialLayer false
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, UpdateScreenSpecialLayersRecord001, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(GenerateNodeId(), rsContext->weak_from_this());
+    RSDisplayNodeConfig displayConfig;
+    displayConfig.screenId = GenerateScreenId();
+    auto displayNode =
+        std::make_shared<RSLogicalDisplayRenderNode>(GenerateNodeId(), displayConfig, rsContext->weak_from_this());
+
+    // Update blacklist Info
+    RSScreenProperty property;
+    property.Set<ScreenPropertyType::BLACK_LIST>(std::unordered_set<NodeId>{surfaceNode->GetId()});
+    ScreenId screenId = GenerateScreenId();
+    property.Set<ScreenPropertyType::ID>(screenId);
+    RSSpecialLayerUtils::UpdateScreenSpecialLayer(property);
+    
+    RSSpecialLayerUtils::UpdateScreenSpecialLayersRecord(*surfaceNode, *displayNode, false);
+    ASSERT_FALSE(displayNode->GetSpecialLayerMgr().FindWithScreen(screenId, SpecialLayerType::HAS_BLACK_LIST));
+
+    // Clean up
+    ScreenSpecialLayerInfo::ClearByScreenId(screenId);
+}
+
+/**
+ * @tc.name: UpdateScreenSpecialLayersRecord002
+ * @tc.desc: test UpdateScreenSpecialLayersRecord with needCalcScreenSpecialLayer true
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, UpdateScreenSpecialLayersRecord002, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(GenerateNodeId(), rsContext->weak_from_this());
+    RSDisplayNodeConfig displayConfig;
+    displayConfig.screenId = GenerateScreenId();
+    auto displayNode =
+        std::make_shared<RSLogicalDisplayRenderNode>(GenerateNodeId(), displayConfig, rsContext->weak_from_this());
+
+    // Update blacklist Info
+    RSScreenProperty property;
+    property.Set<ScreenPropertyType::BLACK_LIST>(std::unordered_set<NodeId>{surfaceNode->GetId()});
+    ScreenId screenId = GenerateScreenId();
+    property.Set<ScreenPropertyType::ID>(screenId);
+    RSSpecialLayerUtils::UpdateScreenSpecialLayer(property);
+    
+    RSSpecialLayerUtils::UpdateScreenSpecialLayersRecord(*surfaceNode, *displayNode, true);
+    ASSERT_TRUE(displayNode->GetSpecialLayerMgr().FindWithScreen(screenId, SpecialLayerType::HAS_BLACK_LIST));
+
+    // Clean up
+    ScreenSpecialLayerInfo::ClearByScreenId(screenId);
+}
+
+/**
+ * @tc.name: UpdateSpecialLayersRecord001
+ * @tc.desc: test UpdateSpecialLayersRecord with ShouldPaint false
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, UpdateSpecialLayersRecord001, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    RSDisplayNodeConfig displayConfig;
+    displayConfig.screenId = GenerateScreenId();
+    auto displayNode =
+        std::make_shared<RSLogicalDisplayRenderNode>(GenerateNodeId(), displayConfig, rsContext->weak_from_this());
+
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(GenerateNodeId(), rsContext->weak_from_this());
+    surfaceNode->SetSkipLayer(true);
+    surfaceNode->shouldPaint_ = false;
+
+    RSSpecialLayerUtils::UpdateSpecialLayersRecord(*surfaceNode, *displayNode);
+    ASSERT_FALSE(displayNode->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SKIP));
+}
+
+/**
+ * @tc.name: UpdateSpecialLayersRecord002
+ * @tc.desc: test UpdateSpecialLayersRecord with ShouldPaint true
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, UpdateSpecialLayersRecord002, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    RSDisplayNodeConfig displayConfig;
+    displayConfig.screenId = GenerateScreenId();
+    auto displayNode =
+        std::make_shared<RSLogicalDisplayRenderNode>(GenerateNodeId(), displayConfig, rsContext->weak_from_this());
+
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(GenerateNodeId(), rsContext->weak_from_this());
+    surfaceNode->SetSkipLayer(true);
+    surfaceNode->shouldPaint_ = true;
+
+    RSSpecialLayerUtils::UpdateSpecialLayersRecord(*surfaceNode, *displayNode);
+    ASSERT_TRUE(displayNode->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SKIP));
+}
+
+/**
+ * @tc.name: UpdateSpecialLayersRecord003
+ * @tc.desc: test UpdateSpecialLayersRecord with HAS_SECURITY type
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, UpdateSpecialLayersRecord003, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    RSDisplayNodeConfig displayConfig;
+    displayConfig.screenId = GenerateScreenId();
+    auto displayNode =
+        std::make_shared<RSLogicalDisplayRenderNode>(GenerateNodeId(), displayConfig, rsContext->weak_from_this());
+
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(GenerateNodeId(), rsContext->weak_from_this());
+    surfaceNode->SetSecurityLayer(true);
+    surfaceNode->shouldPaint_ = true;
+
+    RSSpecialLayerUtils::UpdateSpecialLayersRecord(*surfaceNode, *displayNode);
+    ASSERT_TRUE(displayNode->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY));
+}
+
+/**
+ * @tc.name: UpdateSpecialLayersRecord004
+ * @tc.desc: test UpdateSpecialLayersRecord with capture window name
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, UpdateSpecialLayersRecord004, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    RSDisplayNodeConfig displayConfig;
+    displayConfig.screenId = GenerateScreenId();
+    auto displayNode =
+        std::make_shared<RSLogicalDisplayRenderNode>(GenerateNodeId(), displayConfig, rsContext->weak_from_this());
+
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(GenerateNodeId(), rsContext->weak_from_this());
+    surfaceNode->SetSkipLayer(true);
+    surfaceNode->shouldPaint_ = true;
+    surfaceNode->name_ = CAPTURE_WINDOW_NAME;
+
+    RSSpecialLayerUtils::UpdateSpecialLayersRecord(*surfaceNode, *displayNode);
+    ASSERT_FALSE(displayNode->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SKIP));
+}
+
+/**
+ * @tc.name: UpdateSpecialLayersRecord005
+ * @tc.desc: test UpdateSpecialLayersRecord with special layer changed
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, UpdateSpecialLayersRecord005, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    RSDisplayNodeConfig displayConfig;
+    displayConfig.screenId = GenerateScreenId();
+    auto displayNode =
+        std::make_shared<RSLogicalDisplayRenderNode>(GenerateNodeId(), displayConfig, rsContext->weak_from_this());
+
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(GenerateNodeId(), rsContext->weak_from_this());
+    surfaceNode->SetSkipLayer(true);
+    surfaceNode->shouldPaint_ = true;
+    surfaceNode->specialLayerChanged_ = true;
+
+    RSSpecialLayerUtils::UpdateSpecialLayersRecord(*surfaceNode, *displayNode);
+    ASSERT_TRUE(displayNode->displaySpecialSurfaceChanged_);
+}
+
+/**
+ * @tc.name: DealWithSpecialLayer001
+ * @tc.desc: test DealWithSpecialLayer with non-clone node
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, DealWithSpecialLayer001, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    RSDisplayNodeConfig displayConfig;
+    displayConfig.screenId = GenerateScreenId();
+    auto displayNode =
+        std::make_shared<RSLogicalDisplayRenderNode>(GenerateNodeId(), displayConfig, rsContext->weak_from_this());
+
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(GenerateNodeId(), rsContext->weak_from_this());
+    surfaceNode->isCloneCrossNode_ = false;
+    surfaceNode->SetSkipLayer(true);
+    surfaceNode->shouldPaint_ = true;
+
+    RSSpecialLayerUtils::DealWithSpecialLayer(*surfaceNode, *displayNode, true);
+    ASSERT_TRUE(displayNode->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SKIP));
+}
+
+/**
+ * @tc.name: DealWithSpecialLayer002
+ * @tc.desc: test DealWithSpecialLayer with clone node having valid source
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, DealWithSpecialLayer002, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    RSDisplayNodeConfig displayConfig;
+    displayConfig.screenId = GenerateScreenId();
+    auto displayNode =
+        std::make_shared<RSLogicalDisplayRenderNode>(GenerateNodeId(), displayConfig, rsContext->weak_from_this());
+
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(GenerateNodeId(), rsContext->weak_from_this());
+    auto sourceNode = std::make_shared<RSSurfaceRenderNode>(GenerateNodeId(), rsContext->weak_from_this());
+    surfaceNode->isCloneCrossNode_ = true;
+    surfaceNode->sourceCrossNode_ = sourceNode;
+    sourceNode->SetSkipLayer(true);
+    sourceNode->shouldPaint_ = true;
+
+    RSSpecialLayerUtils::DealWithSpecialLayer(*surfaceNode, *displayNode, true);
+    ASSERT_TRUE(displayNode->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SKIP));
+}
+
+/**
+ * @tc.name: DealWithSpecialLayer003
+ * @tc.desc: test DealWithSpecialLayer with clone node having null source
+ * @tc.type: FUNC
+ * @tc.require: issue41
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, DealWithSpecialLayer003, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    RSDisplayNodeConfig displayConfig;
+    displayConfig.screenId = GenerateScreenId();
+    auto displayNode =
+        std::make_shared<RSLogicalDisplayRenderNode>(GenerateNodeId(), displayConfig, rsContext->weak_from_this());
+
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(GenerateNodeId(), rsContext->weak_from_this());
+    surfaceNode->isCloneCrossNode_ = true;
+    surfaceNode->sourceCrossNode_ = std::weak_ptr<RSSurfaceRenderNode>();
+    surfaceNode->SetSkipLayer(true);
+    surfaceNode->shouldPaint_ = true;
+
+    RSSpecialLayerUtils::DealWithSpecialLayer(*surfaceNode, *displayNode, true);
+    ASSERT_FALSE(displayNode->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SKIP));
 }
 
 /**
@@ -140,7 +761,7 @@ HWTEST_F(RSSpecialLayerUtilsTest, NeedProcessSecLayerInDisplay_VirtualSecLayerOp
 
     mirrorParam.isSecurityDisplay_ = true;
     // Set virtualSecLayerOption_ to non-zero value to trigger early return false
-    mirrorScreenParam.screenProperty_.virtualSecLayerOption_ = 1;
+    mirrorScreenParam.screenProperty_.Set<ScreenPropertyType::VIRTUAL_SEC_LAYER_OPTION>(1);
 
     bool result = RSSpecialLayerUtils::NeedProcessSecLayerInDisplay(false, mirrorScreenParam, mirrorParam, sourceParam);
     ASSERT_FALSE(result);
@@ -266,5 +887,652 @@ HWTEST_F(RSSpecialLayerUtilsTest, HasMirrorDisplay_MultipleDisplayNodesTest, Tes
     bool result = RSSpecialLayerUtils::HasMirrorDisplay(RSMainThread::Instance()->GetContext().GetNodeMap());
     ASSERT_TRUE(result);
 }
-} // namespace Rosen
 
+/**
+ * @tc.name: GetDrawTypeInSecurityDisplay001
+ * @tc.desc: Test GetDrawTypeInSecurityDisplay returns NONE when not in security display mode
+ * @tc.type: FUNC
+ * @tc.require: issue22101
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, GetDrawTypeInSecurityDisplay001, TestSize.Level2)
+{
+    NodeId nodeId = 1;
+    RSSurfaceRenderNodeConfig config = { .id = nodeId, .name = "testSurface" };
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(config);
+    RSSurfaceRenderParams surfaceParams(nodeId);
+
+    // Setup render thread params with security display disabled
+    RSRenderThreadParams uniParam;
+    uniParam.SetSecurityDisplay(false);
+
+    auto result = RSSpecialLayerUtils::GetDrawTypeInSecurityDisplay(surfaceParams, uniParam);
+    ASSERT_EQ(result, DrawType::NONE);
+}
+
+/**
+ * @tc.name: GetDrawTypeInSecurityDisplay002
+ * @tc.desc: Test GetDrawTypeInSecurityDisplay returns DRAW_BLACK for SECURITY layer without exemption
+ * @tc.type: FUNC
+ * @tc.require: issue22101
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, GetDrawTypeInSecurityDisplay002, TestSize.Level2)
+{
+    NodeId nodeId = 1;
+    RSSurfaceRenderNodeConfig config = { .id = nodeId, .name = "testSurface" };
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(config);
+    RSSurfaceRenderParams surfaceParams(nodeId);
+
+    // Setup security display mode without exemption
+    RSRenderThreadParams uniParam;
+    uniParam.SetSecurityDisplay(true);
+    uniParam.SetSecExemption(false);
+
+    // Add SECURITY layer
+    surfaceParams.GetMultableSpecialLayerMgr().Set(SpecialLayerType::SECURITY, true);
+
+    auto result = RSSpecialLayerUtils::GetDrawTypeInSecurityDisplay(surfaceParams, uniParam);
+    ASSERT_EQ(result, DrawType::DRAW_BLACK);
+}
+
+/**
+ * @tc.name: GetDrawTypeInSecurityDisplay003
+ * @tc.desc: Test GetDrawTypeInSecurityDisplay returns NONE for SECURITY layer with exemption
+ * @tc.type: FUNC
+ * @tc.require: issue22101
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, GetDrawTypeInSecurityDisplay003, TestSize.Level2)
+{
+    NodeId nodeId = 1;
+    RSSurfaceRenderNodeConfig config = { .id = nodeId, .name = "testSurface" };
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(config);
+    RSSurfaceRenderParams surfaceParams(nodeId);
+
+    // Setup security display mode with exemption
+    RSRenderThreadParams uniParam;
+    uniParam.SetSecurityDisplay(true);
+    uniParam.SetSecExemption(true);
+
+    // Add SECURITY layer
+    surfaceParams.GetMultableSpecialLayerMgr().Set(SpecialLayerType::SECURITY, true);
+
+    auto result = RSSpecialLayerUtils::GetDrawTypeInSecurityDisplay(surfaceParams, uniParam);
+    ASSERT_EQ(result, DrawType::NONE);
+}
+
+/**
+ * @tc.name: GetDrawTypeInSecurityDisplay004
+ * @tc.desc: Test GetDrawTypeInSecurityDisplay returns SKIP_DRAW for SKIP layer
+ * @tc.type: FUNC
+ * @tc.require: issue22101
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, GetDrawTypeInSecurityDisplay004, TestSize.Level2)
+{
+    NodeId nodeId = 1;
+    RSSurfaceRenderNodeConfig config = { .id = nodeId, .name = "testSurface" };
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(config);
+    RSSurfaceRenderParams surfaceParams(nodeId);
+
+    // Setup security display mode
+    RSRenderThreadParams uniParam;
+    uniParam.SetSecurityDisplay(true);
+
+    // Add SKIP layer
+    surfaceParams.GetMultableSpecialLayerMgr().Set(SpecialLayerType::SKIP, true);
+
+    auto result = RSSpecialLayerUtils::GetDrawTypeInSecurityDisplay(surfaceParams, uniParam);
+    ASSERT_EQ(result, DrawType::SKIP_DRAW);
+}
+
+/**
+ * @tc.name: GetDrawTypeInSecurityDisplay005
+ * @tc.desc: Test GetDrawTypeInSecurityDisplay returns NONE when no special layers present
+ * @tc.type: FUNC
+ * @tc.require: issue22101
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, GetDrawTypeInSecurityDisplay005, TestSize.Level2)
+{
+    NodeId nodeId = 1;
+    RSSurfaceRenderNodeConfig config = { .id = nodeId, .name = "testSurface" };
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(config);
+    RSSurfaceRenderParams surfaceParams(nodeId);
+
+    // Setup security display mode without any special layers
+    RSRenderThreadParams uniParam;
+    uniParam.SetSecurityDisplay(true);
+
+    auto result = RSSpecialLayerUtils::GetDrawTypeInSecurityDisplay(surfaceParams, uniParam);
+    ASSERT_EQ(result, DrawType::NONE);
+}
+
+/**
+ * @tc.name: GetDrawTypeInSnapshot001
+ * @tc.desc: Test GetDrawTypeInSnapshot returns NONE when needCaptureSpecialLayer is true
+ * @tc.type: FUNC
+ * @tc.require: issue22101
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, GetDrawTypeInSnapshot001, TestSize.Level2)
+{
+    NodeId nodeId = 1;
+    RSSurfaceRenderNodeConfig config = { .id = nodeId, .name = "testSurface" };
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(config);
+    RSSurfaceRenderParams surfaceParams(nodeId);
+
+    CaptureParam captureParam;
+    captureParam.needCaptureSpecialLayer_ = true;
+    RSUniRenderThread::SetCaptureParam(captureParam);
+
+    auto result = RSSpecialLayerUtils::GetDrawTypeInSnapshot(surfaceParams);
+    ASSERT_EQ(result, DrawType::NONE);
+}
+
+/**
+ * @tc.name: GetDrawTypeInSnapshot002
+ * @tc.desc: Test GetDrawTypeInSnapshot returns DRAW_WHITE for SECURITY layer in single surface mode
+ * @tc.type: FUNC
+ * @tc.require: issue22101
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, GetDrawTypeInSnapshot002, TestSize.Level2)
+{
+    NodeId nodeId = 1;
+    RSSurfaceRenderNodeConfig config = { .id = nodeId, .name = "testSurface" };
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(config);
+    RSSurfaceRenderParams surfaceParams(nodeId);
+
+    CaptureParam captureParam;
+    captureParam.isSnapshot_ = true;
+    captureParam.isSingleSurface_ = true;
+    captureParam.isNeedBlur_ = false;
+    captureParam.isSelfCapture_ = false;
+    RSUniRenderThread::SetCaptureParam(captureParam);
+
+    surfaceParams.GetMultableSpecialLayerMgr().Set(SpecialLayerType::SECURITY, true);
+
+    auto result = RSSpecialLayerUtils::GetDrawTypeInSnapshot(surfaceParams);
+    ASSERT_EQ(result, DrawType::DRAW_WHITE);
+}
+
+/**
+ * @tc.name: GetDrawTypeInSnapshot003
+ * @tc.desc: Test GetDrawTypeInSnapshot returns NONE when isNeedBlur is true (skip white)
+ * @tc.type: FUNC
+ * @tc.require: issue22101
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, GetDrawTypeInSnapshot003, TestSize.Level2)
+{
+    NodeId nodeId = 1;
+    RSSurfaceRenderNodeConfig config = { .id = nodeId, .name = "testSurface" };
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(config);
+    RSSurfaceRenderParams surfaceParams(nodeId);
+
+    CaptureParam captureParam;
+    captureParam.isSnapshot_ = true;
+    captureParam.isSingleSurface_ = true;
+    captureParam.isNeedBlur_ = true;
+    captureParam.isSelfCapture_ = false;
+    RSUniRenderThread::SetCaptureParam(captureParam);
+
+    surfaceParams.GetMultableSpecialLayerMgr().Set(SpecialLayerType::SECURITY, true);
+
+    auto result = RSSpecialLayerUtils::GetDrawTypeInSnapshot(surfaceParams);
+    ASSERT_EQ(result, DrawType::NONE);
+}
+
+/**
+ * @tc.name: GetDrawTypeInSnapshot004
+ * @tc.desc: Test GetDrawTypeInSnapshot returns NONE when isSelfCapture is true (skip white)
+ * @tc.type: FUNC
+ * @tc.require: issue22101
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, GetDrawTypeInSnapshot004, TestSize.Level2)
+{
+    NodeId nodeId = 1;
+    RSSurfaceRenderNodeConfig config = { .id = nodeId, .name = "testSurface" };
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(config);
+    RSSurfaceRenderParams surfaceParams(nodeId);
+
+    CaptureParam captureParam;
+    captureParam.isSnapshot_ = true;
+    captureParam.isSingleSurface_ = true;
+    captureParam.isNeedBlur_ = false;
+    captureParam.isSelfCapture_ = true;
+    RSUniRenderThread::SetCaptureParam(captureParam);
+
+    surfaceParams.GetMultableSpecialLayerMgr().Set(SpecialLayerType::SECURITY, true);
+
+    auto result = RSSpecialLayerUtils::GetDrawTypeInSnapshot(surfaceParams);
+    ASSERT_EQ(result, DrawType::NONE);
+}
+
+/**
+ * @tc.name: GetDrawTypeInSnapshot005
+ * @tc.desc: Test GetDrawTypeInSnapshot returns DRAW_BLACK for SECURITY layer in multi surface screenshot
+ * @tc.type: FUNC
+ * @tc.require: issue22101
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, GetDrawTypeInSnapshot005, TestSize.Level2)
+{
+    NodeId nodeId = 1;
+    RSSurfaceRenderNodeConfig config = { .id = nodeId, .name = "testSurface" };
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(config);
+    RSSurfaceRenderParams surfaceParams(nodeId);
+
+    CaptureParam captureParam;
+    captureParam.isSnapshot_ = true;
+    captureParam.isSingleSurface_ = false;
+    RSUniRenderThread::SetCaptureParam(captureParam);
+
+    surfaceParams.GetMultableSpecialLayerMgr().Set(SpecialLayerType::SECURITY, true);
+
+    auto result = RSSpecialLayerUtils::GetDrawTypeInSnapshot(surfaceParams);
+    ASSERT_EQ(result, DrawType::DRAW_BLACK);
+}
+
+/**
+ * @tc.name: GetDrawTypeInSnapshot006
+ * @tc.desc: Test GetDrawTypeInSnapshot returns SKIP_DRAW for SKIP layer
+ * @tc.type: FUNC
+ * @tc.require: issue22101
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, GetDrawTypeInSnapshot006, TestSize.Level2)
+{
+    NodeId nodeId = 1;
+    RSSurfaceRenderNodeConfig config = { .id = nodeId, .name = "testSurface" };
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(config);
+    RSSurfaceRenderParams surfaceParams(nodeId);
+
+    CaptureParam captureParam;
+    captureParam.isSnapshot_ = true;
+    RSUniRenderThread::SetCaptureParam(captureParam);
+
+    surfaceParams.GetMultableSpecialLayerMgr().Set(SpecialLayerType::SKIP, true);
+
+    auto result = RSSpecialLayerUtils::GetDrawTypeInSnapshot(surfaceParams);
+    ASSERT_EQ(result, DrawType::SKIP_DRAW);
+}
+
+/**
+ * @tc.name: GetDrawTypeInSnapshot007
+ * @tc.desc: Test GetDrawTypeInSnapshot returns SKIP_DRAW for SNAPSHOT_SKIP layer
+ * @tc.type: FUNC
+ * @tc.require: issue22101
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, GetDrawTypeInSnapshot007, TestSize.Level2)
+{
+    NodeId nodeId = 1;
+    RSSurfaceRenderNodeConfig config = { .id = nodeId, .name = "testSurface" };
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(config);
+    RSSurfaceRenderParams surfaceParams(nodeId);
+
+    CaptureParam captureParam;
+    captureParam.isSnapshot_ = true;
+    RSUniRenderThread::SetCaptureParam(captureParam);
+
+    surfaceParams.GetMultableSpecialLayerMgr().Set(SpecialLayerType::SNAPSHOT_SKIP, true);
+
+    auto result = RSSpecialLayerUtils::GetDrawTypeInSnapshot(surfaceParams);
+    ASSERT_EQ(result, DrawType::SKIP_DRAW);
+}
+
+/**
+ * @tc.name: GetDrawTypeInSnapshot008
+ * @tc.desc: Test GetDrawTypeInSnapshot returns NONE when no special layers present
+ * @tc.type: FUNC
+ * @tc.require: issue22101
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, GetDrawTypeInSnapshot008, TestSize.Level2)
+{
+    NodeId nodeId = 1;
+    RSSurfaceRenderNodeConfig config = { .id = nodeId, .name = "testSurface" };
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(config);
+    RSSurfaceRenderParams surfaceParams(nodeId);
+
+    CaptureParam captureParam;
+    captureParam.isSnapshot_ = true;
+    RSUniRenderThread::SetCaptureParam(captureParam);
+
+    auto result = RSSpecialLayerUtils::GetDrawTypeInSnapshot(surfaceParams);
+    ASSERT_EQ(result, DrawType::NONE);
+}
+
+/**
+ * @tc.name: GetDrawTypeInSnapshot009
+ * @tc.desc: Test GetDrawTypeInSnapshot returns NONE when isSecLayer is false and isSingleSurface is true
+ * @tc.type: FUNC
+ * @tc.require: issue22101
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, GetDrawTypeInSnapshot009, TestSize.Level2)
+{
+    NodeId nodeId = 1;
+    RSSurfaceRenderNodeConfig config = { .id = nodeId, .name = "testSurface" };
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(config);
+    RSSurfaceRenderParams surfaceParams(nodeId);
+
+    CaptureParam captureParam;
+    captureParam.isSnapshot_ = true;
+    captureParam.isSingleSurface_ = true;
+    captureParam.isNeedBlur_ = false;
+    captureParam.isSelfCapture_ = false;
+    RSUniRenderThread::SetCaptureParam(captureParam);
+
+    // Do NOT set SECURITY layer, so isSecLayer will be false
+    // This tests the branch: if (captureParam.isSingleSurface_ && UNLIKELY(isSecLayer && !needSkipDrawWhite))
+    // When isSecLayer=false, the condition fails and should return NONE
+
+    auto result = RSSpecialLayerUtils::GetDrawTypeInSnapshot(surfaceParams);
+    ASSERT_EQ(result, DrawType::NONE);
+}
+
+/**
+ * @tc.name: SetWhiteListRectToMetaData001
+ * @tc.desc: Test SetWhiteListRectToMetaData with null processor
+ * @tc.type: FUNC
+ * @tc.require: issue22999
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, SetWhiteListRectToMetaData001, TestSize.Level2)
+{
+    Drawing::Canvas drawingCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    
+    RSRenderThreadParams uniParam;
+    RSScreenProperty mirrorProperty;
+    
+    // Test with null processor - returns directly without any operation
+    ASSERT_EQ(uniParam.processor_, nullptr);
+    RSSpecialLayerUtils::SetWhiteListRectToMetaData(canvas, uniParam, mirrorProperty);
+}
+
+/**
+ * @tc.name: SetWhiteListRectToMetaData002
+ * @tc.desc: Test SetWhiteListRectToMetaData with no whitelist rects
+ * @tc.type: FUNC
+ * @tc.require: issue22999
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, SetWhiteListRectToMetaData002, TestSize.Level2)
+{
+    Drawing::Canvas drawingCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    
+    RSScreenProperty mirrorProperty;
+    ScreenId screenId = GenerateScreenId();
+    mirrorProperty.Set<ScreenPropertyType::ID>(screenId);
+
+    // Create a virtual processor but don't add any whitelist rects
+    RSRenderThreadParams uniParam;
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    uniParam.processor_ = processor;
+
+    // Test with no whitelist rects - returns directly without any operation
+    ASSERT_NE(uniParam.GetWhiteListRectByScreenId(screenId).size(), 1);
+    RSSpecialLayerUtils::SetWhiteListRectToMetaData(canvas, uniParam, mirrorProperty);
+}
+
+/**
+ * @tc.name: SetWhiteListRectToMetaData003
+ * @tc.desc: Test SetWhiteListRectToMetaData with multiple whitelist rects
+ * @tc.type: FUNC
+ * @tc.require: issue22999
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, SetWhiteListRectToMetaData003, TestSize.Level2)
+{
+    Drawing::Canvas drawingCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    
+    RSScreenProperty mirrorProperty;
+    ScreenId screenId = GenerateScreenId();
+    mirrorProperty.Set<ScreenPropertyType::ID>(screenId);
+
+    // Create virtual processor
+    RSRenderThreadParams uniParam;
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    uniParam.processor_ = processor;
+
+    // Add multiple whitelist rects - should return early
+    uniParam.AddWhiteListRect({screenId}, DEFAULT_RECTI);
+    uniParam.AddWhiteListRect({screenId}, DEFAULT_RECTI);
+
+    // Test multiple whitelist rects - returns directly without any operation
+    ASSERT_NE(uniParam.GetWhiteListRectByScreenId(screenId).size(), 1);
+    RSSpecialLayerUtils::SetWhiteListRectToMetaData(canvas, uniParam, mirrorProperty);
+}
+
+/**
+ * @tc.name: SetWhiteListRectToMetaData004
+ * @tc.desc: Test SetWhiteListRectToMetaData with single whitelist rect
+ * @tc.type: FUNC
+ * @tc.require: issue22999
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, SetWhiteListRectToMetaData004, TestSize.Level2)
+{
+    Drawing::Canvas drawingCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    
+    RSScreenProperty mirrorProperty;
+    ScreenId screenId = GenerateScreenId();
+    mirrorProperty.Set<ScreenPropertyType::ID>(screenId);
+
+    // Create virtual processor
+    RSRenderThreadParams uniParam;
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    uniParam.processor_ = processor;
+
+    // Add single whitelist rect - should process normally
+    uniParam.AddWhiteListRect({screenId}, DEFAULT_RECTI);
+
+    // Test single whitelist rect - SetCropRectForMetadata will be called
+    ASSERT_EQ(uniParam.GetWhiteListRectByScreenId(screenId).size(), 1);
+    RSSpecialLayerUtils::SetWhiteListRectToMetaData(canvas, uniParam, mirrorProperty);
+}
+
+/**
+ * @tc.name: SetWhiteListRectToMetaData005
+ * @tc.desc: Test SetWhiteListRectToMetaData with non-virtual processor
+ * @tc.type: FUNC
+ * @tc.require: issue22999
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, SetWhiteListRectToMetaData005, TestSize.Level2)
+{
+    Drawing::Canvas drawingCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    
+    RSScreenProperty mirrorProperty;
+    ScreenId screenId = GenerateScreenId();
+    mirrorProperty.Set<ScreenPropertyType::ID>(screenId);
+
+    // Create a non-virtual processor (RSUniRenderProcessor instead of RSUniRenderVirtualProcessor)
+    RSRenderThreadParams uniParam;
+    auto processor = std::make_shared<RSUniRenderProcessor>();
+    uniParam.processor_ = processor;
+
+    // Test with non-virtual processor - returns directly without any operation
+    ASSERT_EQ(RSProcessor::ReinterpretCast<RSUniRenderVirtualProcessor>(processor), nullptr);
+    RSSpecialLayerUtils::SetWhiteListRectToMetaData(canvas, uniParam, mirrorProperty);
+}
+
+/**
+ * @tc.name: ConvertFloatToUint32
+ * @tc.desc: Test ConvertFloatToUint32
+ * @tc.type: FUNC
+ * @tc.require: issue22999
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, ConvertFloatToUint32, TestSize.Level2)
+{
+    // nagative value
+    ASSERT_EQ(RSSpecialLayerUtils::ConvertFloatToUint32(-1.0f), 0u);
+    // overflow value
+    ASSERT_EQ(RSSpecialLayerUtils::ConvertFloatToUint32(UINT32_MAX + 1.0f), UINT32_MAX);
+    // normal value
+    ASSERT_EQ(RSSpecialLayerUtils::ConvertFloatToUint32(1.0f), 1u);
+}
+
+/**
+ * @tc.name: DrawCropRectDebugOverlay001
+ * @tc.desc: Test DrawCropRectDebugOverlay when debug overlay is disabled
+ * @tc.type: FUNC
+ * @tc.require: issue22999
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, DrawCropRectDebugOverlay001, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    Drawing::Canvas drawingCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    
+    // Test with debug overlay disabled - should return early
+    ASSERT_FALSE(RSSystemParameters::GetCropRectDebugOverlayEnabled());
+    RSSpecialLayerUtils::DrawCropRectDebugOverlay(canvas, DEFAULT_META_REGION);
+}
+
+/**
+ * @tc.name: CollectWhiteListRect001
+ * @tc.desc: Test CollectWhiteListRect when hasMirrorDisplay is false
+ * @tc.type: FUNC
+ * @tc.require: issue22999
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, CollectWhiteListRect001, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    RSSurfaceRenderNodeConfig config = { .id = GenerateNodeId(), .name = "testSurface" };
+    std::shared_ptr<RSSurfaceRenderNode> node =
+        std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    
+    // Set whitelist
+    ScreenId screenId = GenerateScreenId();
+    ScreenSpecialLayerInfo::Update(SpecialLayerType::IS_WHITE_LIST, screenId, {node->GetId()});
+
+    // Setup renderThreadParams for mainThread
+    RSMainThread::Instance()->renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    
+    // Test with hasMirrorDisplay false - should return early
+    RSSpecialLayerUtils::CollectWhiteListRect(*node, false, false);
+
+    // Verify
+    auto& uniParam = RSMainThread::Instance()->renderThreadParams_;
+    ASSERT_TRUE(uniParam->GetWhiteListRectByScreenId(screenId).empty());
+
+    // Restore
+    uniParam->ClearWhiteListRect();
+}
+
+/**
+ * @tc.name: CollectWhiteListRect002
+ * @tc.desc: Test CollectWhiteListRect when isRotating is true
+ * @tc.type: FUNC
+ * @tc.require: issue22999
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, CollectWhiteListRect002, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    RSSurfaceRenderNodeConfig config = { .id = GenerateNodeId(), .name = "testSurface" };
+    std::shared_ptr<RSSurfaceRenderNode> node =
+        std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+
+    // Set whitelist
+    ScreenId screenId = GenerateScreenId();
+    ScreenSpecialLayerInfo::Update(SpecialLayerType::IS_WHITE_LIST, screenId, {node->GetId()});
+
+    // Setup renderThreadParams for mainThread
+    RSMainThread::Instance()->renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    
+    // Test with isRotating true - should return early
+    RSSpecialLayerUtils::CollectWhiteListRect(*node, true, true);
+
+    // Verify
+    auto& uniParam = RSMainThread::Instance()->renderThreadParams_;
+    ASSERT_TRUE(uniParam->GetWhiteListRectByScreenId(screenId).empty());
+
+    // Restore
+    uniParam->ClearWhiteListRect();
+}
+
+/**
+ * @tc.name: CollectWhiteListRect003
+ * @tc.desc: Test CollectWhiteListRect when node's boundsGeo is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue22999
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, CollectWhiteListRect003, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    RSSurfaceRenderNodeConfig config = { .id = GenerateNodeId(), .name = "testSurface" };
+
+    // Create node which boundsGeo is nullptr
+    std::shared_ptr<RSSurfaceRenderNode> node =
+        std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    node->GetMutableRenderProperties().boundsGeo_ = nullptr;
+
+    // Set whitelist
+    ScreenId screenId = GenerateScreenId();
+    ScreenSpecialLayerInfo::Update(SpecialLayerType::IS_WHITE_LIST, screenId, {node->GetId()});
+
+    // Setup renderThreadParams for mainThread
+    RSMainThread::Instance()->renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    
+    // Test with null boundsGeo - should return early
+    RSSpecialLayerUtils::CollectWhiteListRect(*node, true, false);
+
+    // Verify
+    auto& uniParam = RSMainThread::Instance()->renderThreadParams_;
+    ASSERT_TRUE(uniParam->GetWhiteListRectByScreenId(screenId).empty());
+
+    // Restore
+    uniParam->ClearWhiteListRect();
+}
+
+/**
+ * @tc.name: CollectWhiteListRect004
+ * @tc.desc: Test CollectWhiteListRect when renderThreadParams is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue22999
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, CollectWhiteListRect004, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    RSSurfaceRenderNodeConfig config = { .id = GenerateNodeId(), .name = "testSurface" };
+    std::shared_ptr<RSSurfaceRenderNode> node =
+        std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+
+    // Set whitelist
+    ScreenId screenId = GenerateScreenId();
+    ScreenSpecialLayerInfo::Update(SpecialLayerType::IS_WHITE_LIST, screenId, {node->GetId()});
+
+    // Set renderThreadParams_ to nullptr
+    RSMainThread::Instance()->renderThreadParams_ = nullptr;
+    
+    // Test with null renderThreadParams_ - should return early
+    RSSpecialLayerUtils::CollectWhiteListRect(*node, true, false);
+
+    // Verify : CollectWhiteListRect will not create new renderThreadParams_
+    ASSERT_EQ(RSMainThread::Instance()->renderThreadParams_, nullptr);
+}
+
+/**
+ * @tc.name: CollectWhiteListRect005
+ * @tc.desc: Test CollectWhiteListRect with valid conditions
+ * @tc.type: FUNC
+ * @tc.require: issue22999
+ */
+HWTEST_F(RSSpecialLayerUtilsTest, CollectWhiteListRect005, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    RSSurfaceRenderNodeConfig config = { .id = GenerateNodeId(), .name = "testSurface" };
+    std::shared_ptr<RSSurfaceRenderNode> node =
+        std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+
+    // Set whitelist
+    ScreenId screenId = GenerateScreenId();
+    ScreenSpecialLayerInfo::Update(SpecialLayerType::IS_WHITE_LIST, screenId, {node->GetId()});
+
+    // Setup renderThreadParams for mainThread
+    RSMainThread::Instance()->renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    
+    // Test with valid conditions - should register whitelist rect
+    RSSpecialLayerUtils::CollectWhiteListRect(*node, true, false);
+
+    // Verify
+    auto& uniParam = RSMainThread::Instance()->renderThreadParams_;
+    ASSERT_NE(uniParam, nullptr);
+    ASSERT_FALSE(uniParam->GetWhiteListRectByScreenId(screenId).empty());
+
+    // Restore
+    uniParam->ClearWhiteListRect();
+}
+} // namespace Rosen

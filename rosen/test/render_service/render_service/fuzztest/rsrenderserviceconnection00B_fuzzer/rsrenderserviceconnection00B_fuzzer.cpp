@@ -27,20 +27,26 @@
 
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "render_server/transaction/rs_client_to_service_connection.h"
-#include "platform/ohos/rs_irender_service.h"
+#include "transaction/rs_render_to_service_connection.h"
+#include "platform/ohos/transaction/zidl/rs_irender_service.h"
 #include "render_server/transaction/zidl/rs_client_to_service_connection_stub.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "message_parcel.h"
 #include "securec.h"
 #include <iservice_registry.h>
 #include <system_ability_definition.h>
+#include "feature/hyper_graphic_manager/hgm_render_context.h"
+#include "pipeline/render_thread/rs_render_engine.h"
+#include "transaction/rs_client_to_render_connection.h"
+#include "transaction/zidl/rs_client_to_render_connection_stub.h"
 
 namespace OHOS {
 namespace Rosen {
 int32_t g_pid;
-sptr<OHOS::Rosen::RSScreenManager> screenManagerPtr_ = nullptr;
+sptr<OHOS::Rosen::RSScreenManager> screenManagerPtr_ = OHOS::sptr<OHOS::Rosen::RSScreenManager>::MakeSptr();
 RSMainThread* mainThread_ = RSMainThread::Instance();
 sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ = nullptr;
+sptr<OHOS::Rosen::RSRenderService> renderService_ = nullptr;
 namespace {
 const uint8_t DO_REPORT_JANK_STATS = 0;
 const uint8_t DO_REPORT_EVENT_RESPONSE = 1;
@@ -188,7 +194,7 @@ void DoReportJankStats()
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_JANK_STATS);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPORT_JANK_STATS);
 
     toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
@@ -202,7 +208,7 @@ void DoReportEventResponse()
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_EVENT_RESPONSE);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPORT_EVENT_RESPONSE);
     DataBaseRs info;
     WriteDataBaseRs(info, dataP);
     toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
@@ -217,7 +223,7 @@ void DoReportEventComplete()
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_EVENT_COMPLETE);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPORT_EVENT_COMPLETE);
     DataBaseRs info;
     WriteDataBaseRs(info, dataP);
     toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
@@ -232,7 +238,7 @@ void DoReportEventJankFrame()
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_EVENT_JANK_FRAME);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPORT_EVENT_JANK_FRAME);
     DataBaseRs info;
     WriteDataBaseRs(info, dataP);
     toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
@@ -247,7 +253,7 @@ void DoReportRsSceneJankStart()
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_RS_SCENE_JANK_START);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPORT_RS_SCENE_JANK_START);
     AppInfo info;
     WriteAppInfo(info, dataP);
     toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
@@ -262,7 +268,7 @@ void DoReportRsSceneJankEnd()
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_RS_SCENE_JANK_END);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPORT_RS_SCENE_JANK_END);
     AppInfo info;
     WriteAppInfo(info, dataP);
     toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
@@ -277,7 +283,7 @@ void DoReportGameStateData()
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_EVENT_GAMESTATE);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPORT_EVENT_GAMESTATE);
     GameStateData info;
     WriteGameStateDataRs(info, dataP);
     toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
@@ -285,7 +291,7 @@ void DoReportGameStateData()
 
 void DoAvcodecVideoStart()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_START);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::AVCODEC_VIDEO_START);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -309,7 +315,7 @@ void DoAvcodecVideoStart()
 
 void DoAvcodecVideoStop()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_STOP);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::AVCODEC_VIDEO_STOP);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -331,7 +337,7 @@ void DoAvcodecVideoStop()
 
 void DoAvcodecVideoGet()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_GET);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::AVCODEC_VIDEO_GET);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -347,21 +353,53 @@ void DoAvcodecVideoGet()
 extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 {
     OHOS::Rosen::g_pid = getpid();
-    OHOS::Rosen::screenManagerPtr_ = OHOS::Rosen::RSScreenManager::GetInstance();
-    OHOS::Rosen::mainThread_ = OHOS::Rosen::RSMainThread::Instance();
-    OHOS::Rosen::mainThread_->runner_ = OHOS::AppExecFwk::EventRunner::Create(true);
-    OHOS::Rosen::mainThread_->handler_ =
-        std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::Rosen::mainThread_->runner_);
     OHOS::sptr<OHOS::Rosen::RSIConnectionToken> token_ = new OHOS::IRemoteStub<OHOS::Rosen::RSIConnectionToken>();
-    OHOS::Rosen::mainThread_->mainLoop_ = []() {};
-
     OHOS::Rosen::DVSyncFeatureParam dvsyncParam;
     auto generator = OHOS::Rosen::CreateVSyncGenerator();
     auto appVSyncController = new OHOS::Rosen::VSyncController(generator, 0);
     OHOS::sptr<OHOS::Rosen::VSyncDistributor> appVSyncDistributor_ =
         new OHOS::Rosen::VSyncDistributor(appVSyncController, "app", dvsyncParam);
-    OHOS::Rosen::toServiceConnectionStub_ = new OHOS::Rosen::RSClientToServiceConnection(OHOS::Rosen::g_pid, nullptr,
-        OHOS::Rosen::mainThread_, OHOS::Rosen::screenManagerPtr_, token_->AsObject(), appVSyncDistributor_);
+
+    OHOS::Rosen::renderService_ = new OHOS::Rosen::RSRenderService();
+
+    OHOS::Rosen::RSUniRenderThread::Instance().InitGrContext();
+    auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
+    runner->Run();
+    OHOS::Rosen::renderService_->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
+
+    OHOS::Rosen::renderService_->vsyncManager_ = OHOS::sptr<OHOS::Rosen::RSVsyncManager>::MakeSptr();
+    OHOS::Rosen::renderService_->screenManager_ = OHOS::sptr<OHOS::Rosen::RSScreenManager>::MakeSptr();
+    OHOS::Rosen::renderService_->vsyncManager_->init(OHOS::Rosen::renderService_->screenManager_);
+
+    OHOS::Rosen::renderService_->renderProcessManager_ =
+        OHOS::Rosen::RSRenderProcessManager::Create(*OHOS::Rosen::renderService_);
+
+    auto renderServiceAgent_ = OHOS::sptr<OHOS::Rosen::RSRenderServiceAgent>::MakeSptr(*OHOS::Rosen::renderService_);
+    OHOS::sptr<OHOS::Rosen::RSRenderProcessManagerAgent> renderProcessManagerAgent_ =
+        OHOS::sptr<OHOS::Rosen::RSRenderProcessManagerAgent>::MakeSptr(
+            OHOS::Rosen::renderService_->renderProcessManager_);
+
+    OHOS::sptr<OHOS::Rosen::RSScreenManagerAgent> screenManagerAgent_ =
+        new OHOS::Rosen::RSScreenManagerAgent(OHOS::Rosen::screenManagerPtr_);
+    OHOS::Rosen::renderService_->rsRenderComposerManager_ = std::make_shared<OHOS::Rosen::RSRenderComposerManager>(
+        OHOS::Rosen::renderService_->handler_);
+
+    OHOS::Rosen::toServiceConnectionStub_ = new OHOS::Rosen::RSClientToServiceConnection(
+        OHOS::Rosen::g_pid, renderServiceAgent_, renderProcessManagerAgent_,
+        screenManagerAgent_, token_->AsObject(), OHOS::Rosen::renderService_->vsyncManager_->GetVsyncManagerAgent());
+
+    OHOS::sptr<OHOS::Rosen::RSRenderPipelineAgent> renderPipelineAgent_ =
+        OHOS::sptr<OHOS::Rosen::RSRenderPipelineAgent>::MakeSptr(OHOS::Rosen::renderService_->renderPipeline_);
+
+    OHOS::sptr<OHOS::Rosen::RSRenderToServiceConnection> g_rsConn =
+        OHOS::sptr<OHOS::Rosen::RSRenderToServiceConnection>::MakeSptr(
+            renderServiceAgent_, renderProcessManagerAgent_, screenManagerAgent_);
+    OHOS::Rosen::RSMainThread::Instance()->hgmRenderContext_ =
+        std::make_shared<OHOS::Rosen::HgmRenderContext>(g_rsConn);
+
+    OHOS::Rosen::RSMainThread::Instance()->receiver_->connection_ = nullptr;
+    OHOS::Rosen::RSMainThread::Instance()->receiver_ = nullptr;
+    OHOS::Rosen::RSMainThread::Instance()->mainLoop_ = []() {};
     return 0;
 }
 

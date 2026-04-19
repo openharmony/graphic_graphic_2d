@@ -247,6 +247,94 @@ HWTEST_F(RSOpincManagerTest, UpdateRootFlag, Function | SmallTest | Level1)
 }
 
 /**
+ * @tc.name: QuickCheckOpincStable001
+ * @tc.desc: Verify QuickCheckOpincStable
+ * @tc.type: FUNC
+ * @tc.require: issue23124
+ */
+HWTEST_F(RSOpincManagerTest, QuickCheckOpincStable001, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(id);
+    ASSERT_NE(canvasNode, nullptr);
+    auto preOPIncSwitch = opincManager_.GetOPIncSwitch();
+    bool unchangeMarkInApp = true;
+    bool unchangeMarkEnable = false;
+    bool hasUnstableOpincNode = false;
+
+    // GetOPIncSwitch() is false
+    opincManager_.SetOPIncSwitch(false);
+    EXPECT_FALSE(opincManager_.GetOPIncSwitch());
+    opincManager_.QuickCheckOpincStable(*canvasNode, unchangeMarkInApp, unchangeMarkEnable, hasUnstableOpincNode);
+
+    // GetOPIncSwitch() is true and HasUnstableOpincNode() is false
+    opincManager_.SetOPIncSwitch(true);
+    EXPECT_TRUE(opincManager_.GetOPIncSwitch());
+    EXPECT_FALSE(canvasNode->GetOpincCache().HasUnstableOpincNode());
+    opincManager_.QuickCheckOpincStable(*canvasNode, unchangeMarkInApp, unchangeMarkEnable, hasUnstableOpincNode);
+
+    // GetOPIncSwitch() is true and HasUnstableOpincNode() is true
+    canvasNode->GetOpincCache().SetHasUnstableOpincNode(true);
+    EXPECT_TRUE(canvasNode->GetOpincCache().HasUnstableOpincNode());
+    opincManager_.QuickCheckOpincStable(*canvasNode, unchangeMarkInApp, unchangeMarkEnable, hasUnstableOpincNode);
+    EXPECT_EQ(canvasNode->GetOpincCache().GetNodeCacheState(), NodeCacheState::STATE_INIT);
+
+    opincManager_.SetOPIncSwitch(preOPIncSwitch);
+}
+
+/**
+ * @tc.name: QuickCheckOpincStable002
+ * @tc.desc: Verify QuickCheckOpincStable
+ * @tc.type: FUNC
+ * @tc.require: issue23124
+ */
+HWTEST_F(RSOpincManagerTest, QuickCheckOpincStable002, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto parentNode = std::make_shared<RSSurfaceRenderNode>(id);
+    auto childNode = std::make_shared<RSCanvasRenderNode>(id + 1);
+    ASSERT_NE(parentNode, nullptr);
+    ASSERT_NE(childNode, nullptr);
+    auto preOPIncSwitch = opincManager_.GetOPIncSwitch();
+    opincManager_.SetOPIncSwitch(true);
+
+    auto fullChildrenList = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>();
+    fullChildrenList->push_back(childNode);
+    parentNode->fullChildrenList_ = fullChildrenList;
+    EXPECT_FALSE(parentNode->GetSortedChildren()->empty());
+
+    bool unchangeMarkInApp = true;
+    bool unchangeMarkEnable = false;
+    bool hasUnstableOpincNode = false;
+    parentNode->GetOpincCache().SetHasUnstableOpincNode(true);
+    childNode->GetOpincCache().SetHasUnstableOpincNode(true);
+
+    // node is not opinc node
+    opincManager_.QuickCheckOpincStable(*parentNode, unchangeMarkInApp, unchangeMarkEnable, hasUnstableOpincNode);
+    EXPECT_FALSE(parentNode->GetOpincCache().HasUnstableOpincNode());
+    EXPECT_FALSE(childNode->GetOpincCache().HasUnstableOpincNode());
+
+    // node is opinc node and unchanged
+    parentNode->GetOpincCache().SetHasUnstableOpincNode(true);
+    childNode->GetOpincCache().SetHasUnstableOpincNode(true);
+    childNode->GetOpincCache().MarkSuggestOpincNode(true, true);
+    childNode->GetOpincCache().nodeCacheState_ = NodeCacheState::STATE_UNCHANGE;
+    opincManager_.QuickCheckOpincStable(*parentNode, unchangeMarkInApp, unchangeMarkEnable, hasUnstableOpincNode);
+    EXPECT_FALSE(parentNode->GetOpincCache().HasUnstableOpincNode());
+    EXPECT_FALSE(childNode->GetOpincCache().HasUnstableOpincNode());
+
+    // node is opinc and changed
+    parentNode->GetOpincCache().SetHasUnstableOpincNode(true);
+    childNode->GetOpincCache().SetHasUnstableOpincNode(true);
+    childNode->GetOpincCache().nodeCacheState_ = NodeCacheState::STATE_CHANGE;
+    EXPECT_EQ(childNode->GetOpincCache().unchangeCount_, 0);
+    opincManager_.QuickCheckOpincStable(*parentNode, unchangeMarkInApp, unchangeMarkEnable, hasUnstableOpincNode);
+    EXPECT_EQ(childNode->GetOpincCache().unchangeCount_, 1);
+
+    opincManager_.SetOPIncSwitch(preOPIncSwitch);
+}
+
+/**
  * @tc.name: GetUnsupportReason
  * @tc.desc: Verify the GetUnsupportReason function
  * @tc.type: FUNC

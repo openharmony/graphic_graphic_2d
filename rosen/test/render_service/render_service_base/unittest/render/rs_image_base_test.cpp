@@ -34,7 +34,11 @@ public:
 };
 
 void RSImageBaseTest::SetUpTestCase() {}
-void RSImageBaseTest::TearDownTestCase() {}
+void RSImageBaseTest::TearDownTestCase() {
+    RSImageCache::Instance().pixelMapCache_.clear();
+    RSImageCache::Instance().editablePixelMapCache_.clear();
+    RSImageCache::Instance().editablePixelMapCacheToRelease_.clear();
+}
 void RSImageBaseTest::SetUp() {}
 void RSImageBaseTest::TearDown() {}
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
@@ -162,23 +166,6 @@ HWTEST_F(RSImageBaseTest, SetPixelMapTest, TestSize.Level1)
     auto pixelmap = std::make_shared<Media::PixelMap>();
     imageBase->SetPixelMap(pixelmap);
     EXPECT_EQ(imageBase->pixelMap_, pixelmap);
-}
-
-/**
- * @tc.name: DumpPictureTest
- * @tc.desc: Verify function DumpPicture
- * @tc.type: FUNC
- * @tc.require: issueI9I9D1
- */
-HWTEST_F(RSImageBaseTest, DumpPictureTest, TestSize.Level1)
-{
-    auto imageBase = std::make_shared<RSImageBase>();
-    DfxString info;
-    imageBase->DumpPicture(info);
-    auto pixelmap = std::make_shared<Media::PixelMap>();
-    imageBase->SetPixelMap(pixelmap);
-    imageBase->DumpPicture(info);
-    EXPECT_NE(imageBase->pixelMap_, nullptr);
 }
 
 /**

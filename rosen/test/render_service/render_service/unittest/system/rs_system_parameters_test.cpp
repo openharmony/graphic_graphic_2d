@@ -152,4 +152,17 @@ HWTEST_F(RSSystemParametersTest, GetDumpCanvasDrawingNodeEnabledTest, TestSize.L
     auto result = RSSystemParameters::GetDumpCanvasDrawingNodeEnabled();
     EXPECT_EQ(original, result);
 }
+
+/**
+ * @tc.name: GetCropRectDebugOverlayEnabled
+ * @tc.desc: Test GetCropRectDebugOverlayEnabled
+ * @tc.type: FUNC
+ * @tc.require: issue22999
+ */
+HWTEST_F(RSSystemParametersTest, GetCropRectDebugOverlayEnabled, TestSize.Level2)
+{
+    auto original = system::GetBoolParameter("persist.sys.graphic.cropRectDebugOverlay.Enabled", false);
+    auto result = RSSystemParameters::GetCropRectDebugOverlayEnabled();
+    EXPECT_EQ(original, result);
+}
 } // namespace OHOS::Rosen

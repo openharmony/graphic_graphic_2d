@@ -41,6 +41,11 @@
 #include "rs_vulkan_context.h"
 #endif
 #endif
+
+#ifndef ROSEN_CROSS_PLATFORM
+#include "metadata_helper.h"
+#endif
+
 #define DMA_BUF_SET_LEAK_TYPE _IOW(DMA_BUF_BASE, 5, const char *)
 
 namespace OHOS {
@@ -142,7 +147,7 @@ bool RSImageDetailEnhancerThread::GetSharpness(RSImageDetailEnhanceAlgoParams& p
 {
     for (size_t i = 0; i < param.rangeParams.size(); i++) {
         if (scaleRatio <= param.rangeParams[i].rangeMax && scaleRatio >= param.rangeParams[i].rangeMin) {
-            sharpness =  param.rangeParams[i].effectParam;
+            sharpness = param.rangeParams[i].effectParam;
             return true;
         }
     }
@@ -258,15 +263,19 @@ std::shared_ptr<Drawing::Image> RSImageDetailEnhancerThread::ScaleByHDSampler(in
     return dstImage;
 }
 
-void RSImageDetailEnhancerThread::ExecuteTaskAsync(int dstWidth, int dstHeight,
-    const std::shared_ptr<Drawing::Image>& image, uint64_t nodeId, uint64_t imageId)
+void RSImageDetailEnhancerThread::ExecuteTaskAsync(const Drawing::Rect& dst,
+    const std::shared_ptr<Drawing::Image>& image, uint64_t nodeId, uint64_t imageId,
+    const std::shared_ptr<Media::PixelMap>& pixelMap)
 {
     RS_TRACE_NAME("RSImageDetailEnhancerThread::ExecuteTaskAsync");
+    int dstWidth = static_cast<int>(dst.GetWidth());
+    int dstHeight = static_cast<int>(dst.GetHeight());
     if (image == nullptr) {
         RS_LOGE("RSImageDetailEnhancerThread ExecuteTaskAsync image is nullptr!");
         return;
     }
-    sptr<SurfaceBuffer> dstSurfaceBuffer = DetailEnhancerUtils::Instance().CreateSurfaceBuffer(dstWidth, dstHeight);
+    sptr<SurfaceBuffer> dstSurfaceBuffer = DetailEnhancerUtils::Instance().CreateSurfaceBuffer(
+        pixelMap, dstWidth, dstHeight);
     if (dstSurfaceBuffer == nullptr) {
         RS_LOGE("RSImageDetailEnhancerThread ExecuteTaskAsync create dstSurfaceBuffer failed!");
         return;
@@ -338,8 +347,8 @@ void RSImageDetailEnhancerThread::ScaleImageAsync(const std::shared_ptr<Media::P
     ResetStatus(srcWidth, srcHeight, dstWidth, dstHeight, imageId);
     if (IsSizeSupported(srcWidth, srcHeight, dstWidth, dstHeight) && !GetProcessStatus(imageId)) {
         SetProcessStatus(imageId, true);
-        auto asyncEnhancerTask = [this, dstWidth, dstHeight, image, nodeId, imageId]() {
-            ExecuteTaskAsync(dstWidth, dstHeight, image, nodeId, imageId);
+        auto asyncEnhancerTask = [this, dst, image, nodeId, imageId, pixelMap]() {
+            ExecuteTaskAsync(dst, image, nodeId, imageId, pixelMap);
         };
         RSImageDetailEnhancerThread::Instance().PostTask(asyncEnhancerTask);
     }
@@ -600,6 +609,10 @@ std::shared_ptr<Drawing::Image> DetailEnhancerUtils::MakeImageFromSurfaceBuffer(
     NativeBufferUtils::VulkanCleanupHelper* cleanUpHelper = new NativeBufferUtils::VulkanCleanupHelper(
         RsVulkanContext::GetSingleton(), vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
     std::shared_ptr<Drawing::Image> dmaImage = std::make_shared<Drawing::Image>();
+    if (cleanUpHelper == nullptr || dmaImage == nullptr) {
+        RS_LOGE("DetailEnhancerUtils MakeImageFromSurfaceBuffer failed, cleanUpHelper is invalid!");
+        return nullptr;
+    }
     Drawing::TextureOrigin origin = Drawing::TextureOrigin::TOP_LEFT;
     image->GetBackendTexture(false, &origin);
     Drawing::BitmapFormat bitmapFormat = {GetColorTypeWithVKFormat(vkTextureInfo->format), image->GetAlphaType()};
@@ -647,10 +660,11 @@ bool DetailEnhancerUtils::SetMemoryName(sptr<SurfaceBuffer>& buffer)
     return ret == 0;
 }
 
-sptr<SurfaceBuffer> DetailEnhancerUtils::CreateSurfaceBuffer(int width, int height)
+sptr<SurfaceBuffer> DetailEnhancerUtils::CreateSurfaceBuffer(const std::shared_ptr<Media::PixelMap>& pixelMap,
+    int width, int height)
 {
     sptr<SurfaceBuffer> surfaceBuffer = SurfaceBuffer::Create();
-    if (surfaceBuffer == nullptr) {
+    if (surfaceBuffer == nullptr || pixelMap == nullptr) {
         RS_LOGE("DetailEnhancerUtils CreateSurfaceBuffer failed!");
         return nullptr;
     }
@@ -665,6 +679,19 @@ sptr<SurfaceBuffer> DetailEnhancerUtils::CreateSurfaceBuffer(int width, int heig
         .transform = GraphicTransformType::GRAPHIC_ROTATE_NONE,
     };
     surfaceBuffer->Alloc(bufConfig);
+#ifndef ROSEN_CROSS_PLATFORM
+    auto srcSurfaceBuffer = static_cast<SurfaceBuffer*>(pixelMap->GetFd());
+    if (srcSurfaceBuffer == nullptr) {
+        RS_LOGE("DetailEnhancerUtils srcSurfaceBuffer is nullptr!");
+        return nullptr;
+    }
+    std::vector<uint8_t> colorSpaceInfo = {};
+    auto ret = srcSurfaceBuffer->GetMetadata(HDI::Display::Graphic::Common::V1_0::ATTRKEY_COLORSPACE_INFO,
+        colorSpaceInfo);
+    if (ret == GSERROR_OK) {
+        surfaceBuffer->SetMetadata(HDI::Display::Graphic::Common::V1_0::ATTRKEY_COLORSPACE_INFO, colorSpaceInfo);
+    }
+#endif
     return surfaceBuffer;
 }
 
@@ -673,7 +700,7 @@ void DetailEnhancerUtils::SavePixelmapToFile(Drawing::Bitmap& bitmap, const std:
     int32_t w = bitmap.GetWidth();
     int32_t h = bitmap.GetHeight();
     int32_t rowStride = bitmap.GetRowBytes();
-    int32_t totalSize = rowStride * h;
+    uint32_t totalSize = rowStride * h;
     std::string localTime = CommonTools::GetLocalTime();
     std::string fileName = dst + localTime + "_w" + std::to_string(w) + "_h" + std::to_string(h) +
         "_stride" + std::to_string(rowStride) + ".dat";

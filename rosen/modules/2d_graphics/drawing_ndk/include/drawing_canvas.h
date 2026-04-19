@@ -831,6 +831,17 @@ void OH_Drawing_CanvasSetMatrix(OH_Drawing_Canvas*, OH_Drawing_Matrix*);
 void OH_Drawing_CanvasResetMatrix(OH_Drawing_Canvas*);
 
 /**
+ * @brief Reset the clip status.
+ *
+ * @param canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if canvas is nullptr.
+ * @since 26.0.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_CanvasResetClip(OH_Drawing_Canvas* canvas);
+
+/**
  * @brief Draws the specified source rectangle of the image onto the canvas,
  * scaled and translated to the destination rectangle.
  *

@@ -42,6 +42,7 @@
 #include "impl_interface/path_impl.h"
 #include "impl_interface/path_iterator_impl.h"
 #include "impl_interface/picture_impl.h"
+#include "impl_interface/particle_builder_impl.h"
 #include "impl_interface/picture_recorder_impl.h"
 #include "impl_interface/region_impl.h"
 #include "impl_interface/resource_holder_impl.h"
@@ -77,6 +78,8 @@ public:
     static std::unique_ptr<PathIteratorImpl> CreatePathIteratorImpl(const Path& path);
     static std::unique_ptr<PathIterImpl> CreatePathIterImpl(const Path& path, bool forceClose);
     static std::unique_ptr<PathImpl> CreatePathImpl();
+    static std::unique_ptr<ParticleBuilderImpl> CreateParticleBuilderImpl();
+    static std::unique_ptr<ParticleEffectImpl> CreateParticleEffectImpl();
     static std::unique_ptr<ColorFilterImpl> CreateColorFilterImpl();
     static std::unique_ptr<MaskFilterImpl> CreateMaskFilterImpl();
     static std::unique_ptr<ImageFilterImpl> CreateImageFilterImpl();

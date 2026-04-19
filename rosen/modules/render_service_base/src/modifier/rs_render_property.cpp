@@ -19,6 +19,7 @@
 
 #include "rs_profiler.h"
 
+#include "animation/rs_particle_field_collection.h"
 #include "animation/rs_particle_ripple_field.h"
 #include "animation/rs_particle_velocity_field.h"
 #include "animation/rs_render_particle.h"
@@ -99,8 +100,8 @@ bool RSRenderPropertyBase::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRende
     uint16_t key = static_cast<uint16_t>(isAnimatable) << 8 | static_cast<uint16_t>(type);
     auto it = UnmarshallingFuncs_.find(key);
     if (it == UnmarshallingFuncs_.end()) {
-        ROSEN_LOGE("RSRenderPropertyBase::Unmarshalling: no unmarshalling function for type %d, isAnimatable %d",
-            static_cast<int>(type), isAnimatable);
+        ROSEN_LOGE("RSRenderPropertyBase::Unmarshalling: no unmarshalling function for type %{public}d, isAnimatable "
+            "%{public}d", static_cast<int>(type), isAnimatable);
         return false;
     }
     return (it->second)(parcel, val);
@@ -422,15 +423,6 @@ void RSRenderProperty<std::shared_ptr<MotionBlurParam>>::Dump(std::string& out) 
 }
 
 template<>
-void RSRenderProperty<std::shared_ptr<RSMagnifierParams>>::Dump(std::string& out) const
-{
-    auto property = Get();
-    if (property != nullptr) {
-        property->Dump(out);
-    }
-}
-
-template<>
 void RSRenderProperty<std::vector<std::shared_ptr<EmitterUpdater>>>::Dump(std::string& out) const
 {
     auto property = Get();
@@ -470,6 +462,15 @@ void RSRenderProperty<std::shared_ptr<ParticleRippleFields>>::Dump(std::string& 
 
 template<>
 void RSRenderProperty<std::shared_ptr<ParticleVelocityFields>>::Dump(std::string& out) const
+{
+    auto property = Get();
+    if (property != nullptr) {
+        property->Dump(out);
+    }
+}
+
+template<>
+void RSRenderProperty<std::shared_ptr<ParticleFieldCollection>>::Dump(std::string& out) const
 {
     auto property = Get();
     if (property != nullptr) {
@@ -595,6 +596,9 @@ void RSRenderProperty<RSDynamicBrightnessPara>::Dump(std::string& out) const
 {}
 template<>
 void RSRenderProperty<RSShadowBlenderPara>::Dump(std::string& out) const
+{}
+template<>
+void RSRenderProperty<RSHdrDarkenBlenderPara>::Dump(std::string& out) const
 {}
 template<>
 void RSRenderProperty<std::vector<Vector2f>>::Dump(std::string& out) const

@@ -294,6 +294,7 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetColorTest, TestSize.Level1)
     color.SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
     canvasNode->SetBackgroundColor(color);
     auto result2 = canvasNode->GetShowingProperties().GetBackgroundColor();
+    result2->ConvertToP3ColorSpace();
     ASSERT_TRUE(result2.has_value());
     EXPECT_TRUE(result2.value().GetRed() == SHOWING_COLOR_NUM);
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetColorTest end";

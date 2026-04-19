@@ -38,6 +38,8 @@ enum TouchStatus : uint32_t {
     TOUCH_PULL_DOWN = 12,
     TOUCH_PULL_MOVE = 13,
     TOUCH_PULL_UP = 14,
+    POINTER_ACTION_PROXIMITY_IN = 35,
+    POINTER_ACTION_PROXIMITY_OUT = 36,
 };
 
 struct AnimDynamicAttribute {
@@ -55,7 +57,6 @@ public:
     int32_t GetPreferredFps(const std::string& scene, float speed);
     int32_t GetRefreshRateModeName() const;
     int32_t GetExpectedFrameRate(const RSPropertyUnit unit, float velocity);
-    int32_t GetComponentDefaultFps(const std::string& scene, int32_t frameRate);
     bool GetTouchOrPointerAction(int32_t pointerAction);
 
     const std::unordered_set<std::string>& GetPageNameList() const;
@@ -64,9 +65,7 @@ private:
     RSFrameRatePolicy() = default;
     ~RSFrameRatePolicy();
 
-    void DispatchUpdateBranch(std::shared_ptr<RSHgmConfigData> configData);
     void HgmConfigChangeCallback(std::shared_ptr<RSHgmConfigData> configData);
-    void HgmEnergyDataChangeCallback(std::shared_ptr<RSHgmConfigData> configData);
     void HgmRefreshRateModeChangeCallback(int32_t refreshRateMode);
 
     float ppi_ = 1.0f;
@@ -75,7 +74,6 @@ private:
     std::unordered_set<std::string> pageNameList_;
     int32_t currentRefreshRateModeName_ = -1;
     std::unordered_map<std::string, std::unordered_map<std::string, AnimDynamicAttribute>> animAttributes_;
-    EnergyInfo energyInfo_;
     std::mutex mutex_;
     std::atomic<std::chrono::steady_clock::time_point> sendMoveTime_ = std::chrono::steady_clock::now();
     std::atomic<std::chrono::steady_clock::time_point> sendAxisUpdateTime_ = std::chrono::steady_clock::now();

@@ -118,6 +118,7 @@ bool RSBaseRenderNodeFuzzTest(const uint8_t* data, size_t size)
     int width = GetData<int>();
     int height = GetData<int>();
     int64_t leftDelayTime = GetData<int64_t>();
+    int64_t nextFrameTime = 0;
     RectI r(left, top, width, height);
 
     // test
@@ -129,7 +130,7 @@ bool RSBaseRenderNodeFuzzTest(const uint8_t* data, size_t size)
     node->AddCrossParentChild(child, index);
     node->CollectSurface(child, vec, isUniRender, false);
     node->SetIsOnTheTree(flag);
-    node->Animate(timestamp, leftDelayTime);
+    node->Animate(timestamp, leftDelayTime, nextFrameTime);
     node->SetIsOnTheTree(flag);
     node->HasDisappearingTransition(recursive);
     node->SetTunnelHandleChange(change);
@@ -394,9 +395,6 @@ bool RSRenderNodeMapFuzzerTest(const uint8_t* data, size_t size)
 
     pid_t pidnew = GetData<pid_t>();
     nodeMap->GetSelfDrawingNodeInProcess(pidnew);
-    nodeMap->GetSelfDrawSurfaceNameByPid(pidnew);
-    uint64_t uniqueId = GetData<uint64_t>();
-    nodeMap->GetSelfDrawSurfaceNameByPidAndUniqueId(pidnew, uniqueId);
     return true;
 }
 
@@ -456,9 +454,9 @@ bool RSSurfaceHandleFuzzerTest(const uint8_t* data, size_t size)
     sptr<SurfaceBuffer> surfaceBuffer;
     sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
     buffer.buffer = surfaceBuffer;
-    surfaceHandler->SetBuffer(surfaceBuffer, acquireFence, damage, timestamp);
+    surfaceHandler->SetBuffer(surfaceBuffer, acquireFence, damage, timestamp, nullptr);
     surfaceHandler->ConsumeAndUpdateBufferInner(buffer);
-    surfaceHandler->UpdateBuffer(surfaceBuffer, acquireFence, damage, timestamp);
+    surfaceHandler->UpdateBuffer(surfaceBuffer, acquireFence, damage, timestamp, nullptr);
     return true;
 }
 

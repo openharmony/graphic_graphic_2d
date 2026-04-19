@@ -21,16 +21,22 @@ ohos_unittest("rosen_text_adapt_test") {
 
   sources = [
     "convert_test.cpp",
+    "use_locale_for_text_break_test.cpp",
     "font_collection_test.cpp",
+    "placeholder_run_test.cpp",
+    "orphan_char_optimization_test.cpp",
     "run_test.cpp",
     "style_copy_test.cpp",
     "text_line_base_test.cpp",
+    "text_style_branch_test.cpp",
     "typography_character_index_test.cpp",
     "typography_create_test.cpp",
     "typography_ellipsis_test.cpp",
+    "typography_getter_test.cpp",
     "typography_image_test.cpp",
     "typography_relayout_test.cpp",
     "typography_test.cpp",
+    "typography_visible_range_test.cpp",
     "variation_font_cache_test.cpp",
   ]
   include_dirs = [
@@ -64,6 +70,7 @@ ohos_unittest("rosen_text_adapt_test") {
     "c_utils:utils",
     "hilog:libhilog",
     "icu:shared_icuuc",
+    "ipc:ipc_single",
     "image_framework:image_native",
   ]
 

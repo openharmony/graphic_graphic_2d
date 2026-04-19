@@ -29,6 +29,7 @@ static constexpr uint8_t COLOR_MAX_COUNTS = 5; // The colors max counts of mapCo
 static constexpr uint8_t COLOR_MIN_COUNTS = 1; // The colors min counts of mapColorByBrightness
 static constexpr uint8_t FRACTION_STOPS_LENGTH_MIN = 2;
 static constexpr uint8_t FRACTION_STOPS_LENGTH_MAX = 12;
+static constexpr float LINEAR_GRADIENT_MASK_POSITION_MAX = 10.0f;
 static constexpr float RADIAL_GRADIENT_MASK_RADIUS_MAX = 10.0f;
 static constexpr float WATER_DROPLET_RADIUS_MAX = 10.0f;
 }
@@ -102,6 +103,17 @@ EffectErrorCode OH_Filter_Brighten(OH_Filter* filter, float brightness)
 EffectErrorCode OH_Filter_GrayScale(OH_Filter* filter)
 {
     if (!filter || !(CastToFilter(filter)->Grayscale())) {
+        return EFFECT_BAD_PARAMETER;
+    }
+    return EFFECT_SUCCESS;
+}
+
+EffectErrorCode OH_Filter_Scale(
+    OH_Filter* filter, float scaleX, float scaleY, OH_Filter_ScaleMode filterMode, OH_Filter_MipmapMode mipmapMode)
+{
+    Drawing::FilterMode drawingFilterMode = static_cast<Drawing::FilterMode>(filterMode);
+    Drawing::MipmapMode drawingMipmapMode = static_cast<Drawing::MipmapMode>(mipmapMode);
+    if (!filter || !(CastToFilter(filter)->Scale(scaleX, scaleY, drawingFilterMode, drawingMipmapMode))) {
         return EFFECT_BAD_PARAMETER;
     }
     return EFFECT_SUCCESS;
@@ -181,10 +193,16 @@ EffectErrorCode LinearGradientMaskTransition(Filter* effectFilter,
  
     int32_t width = effectFilter->GetSrcPixelMap()->GetWidth();
     int32_t height = effectFilter->GetSrcPixelMap()->GetHeight();
-    auto startPosition = Drawing::Point(std::clamp(linearGradientMask->startPosition.x, 0.0f, 1.0f) * width,
-        std::clamp(linearGradientMask->startPosition.y, 0.0f, 1.0f) * height);
-    auto endPosition = Drawing::Point(std::clamp(linearGradientMask->endPosition.x, 0.0f, 1.0f) * width,
-        std::clamp(linearGradientMask->endPosition.y, 0.0f, 1.0f) * height);
+    auto startPosition = Drawing::Point(
+        std::clamp(linearGradientMask->startPosition.x,
+        -LINEAR_GRADIENT_MASK_POSITION_MAX, LINEAR_GRADIENT_MASK_POSITION_MAX) * width,
+        std::clamp(linearGradientMask->startPosition.y,
+        -LINEAR_GRADIENT_MASK_POSITION_MAX, LINEAR_GRADIENT_MASK_POSITION_MAX) * height);
+    auto endPosition = Drawing::Point(
+        std::clamp(linearGradientMask->endPosition.x,
+        -LINEAR_GRADIENT_MASK_POSITION_MAX, LINEAR_GRADIENT_MASK_POSITION_MAX) * width,
+        std::clamp(linearGradientMask->endPosition.y,
+        -LINEAR_GRADIENT_MASK_POSITION_MAX, LINEAR_GRADIENT_MASK_POSITION_MAX) * height);
     Drawing::GELinearGradientShaderMaskParams geLinearGradientMaskParams{
         fractionStops, startPosition, endPosition};
     auto transitionMask = std::static_pointer_cast<Drawing::GEShaderMask>(
@@ -358,30 +376,13 @@ EffectErrorCode OH_Filter_ReededGlass(OH_Filter* filter, OH_Filter_ReededGlassDa
         std::make_shared<Drawing::GEReededGlassDataParams>();
 
     geReededparams->refractionFactor = reededGlassParams->refractionFactor;
-    geReededparams->dispersionStrength = reededGlassParams->dispersionStrength;
-    geReededparams->roughness = reededGlassParams->roughness;
-    geReededparams->noiseFrequency = reededGlassParams->noiseFrequency;
     geReededparams->horizontalPatternNumber = reededGlassParams->horizontalPatternNumber;
-    geReededparams->saturationFactor = reededGlassParams->saturationFactor;
-
     geReededparams->gridLightStrength = reededGlassParams->gridLightStrength;
     geReededparams->gridLightPositionStart = reededGlassParams->gridLightPositionStart;
     geReededparams->gridLightPositionEnd = reededGlassParams->gridLightPositionEnd;
-
     geReededparams->gridShadowStrength = reededGlassParams->gridShadowStrength;
     geReededparams->gridShadowPositionStart = reededGlassParams->gridShadowPositionStart;
     geReededparams->gridShadowPositionEnd = reededGlassParams->gridShadowPositionEnd;
-
-    geReededparams->pointLightColor.redF_ = reededGlassParams->pointLightColor.red;
-    geReededparams->pointLightColor.greenF_ = reededGlassParams->pointLightColor.green;
-    geReededparams->pointLightColor.blueF_ = reededGlassParams->pointLightColor.blue;
-    geReededparams->pointLight1Position.SetX(reededGlassParams->pointLight1Position.x);
-    geReededparams->pointLight1Position.SetY(reededGlassParams->pointLight1Position.y);
-    geReededparams->pointLight1Strength = reededGlassParams->pointLight1Strength;
-    geReededparams->pointLight2Position.SetX(reededGlassParams->pointLight2Position.x);
-    geReededparams->pointLight2Position.SetY(reededGlassParams->pointLight2Position.y);
-    geReededparams->pointLight2Strength = reededGlassParams->pointLight2Strength;
-
     geReededparams->portalLightSize.SetX(reededGlassParams->portalLightSize.x);
     geReededparams->portalLightSize.SetY(reededGlassParams->portalLightSize.y);
     geReededparams->portalLightTilt.SetX(reededGlassParams->portalLightTilt.x);

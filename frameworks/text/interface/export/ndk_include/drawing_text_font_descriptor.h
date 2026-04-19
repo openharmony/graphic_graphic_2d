@@ -332,6 +332,15 @@ const OH_Drawing_FontFullDescriptor* OH_Drawing_GetFontFullDescriptorByIndex(
 void OH_Drawing_DestroyFontFullDescriptors(OH_Drawing_Array* descriptorArray);
 
 /**
+ * @brief Releases the memory occupied by the font full descriptor. This function is used to release the pointer
+ *     allocated by <b>OH_Drawing_GetFontFullDescriptorByFullName<b> function.
+ *
+ * @param descriptor Pointer to the font full descriptor <b>OH_Drawing_FontFullDescriptor</b>.
+ * @since 24
+ */
+void OH_Drawing_DestroyFontFullDescriptor(const OH_Drawing_FontFullDescriptor* descriptor);
+
+/**
  * @brief Defines an <b>OH_Drawing_GetFontUnicodeArrayFromFile</b>, which is used to get unicode from font file.
  *
  * @param fontSrc Indicates the path of the font file.
@@ -539,11 +548,12 @@ OH_Drawing_FontVariationInstanceCoordinate* OH_Drawing_GetFontVariationInstanceC
     OH_Drawing_FontVariationInstance* variationInstance, size_t *arrayLength);
 
 /**
- * @brief Get the <b>OH_Drawing_FontFullDescriptor</b> object by the font full name and the font type
+ * @brief Get the <b>OH_Drawing_FontFullDescriptor</b> object by the font full name and the font type.
  *
  * @param fullName Indicates the full name object <b>OH_Drawing_String</b>.
  * @param fontType Indicates the enumerates of system font type object <b>OH_Drawing_SystemFontType</b>.
  * @return Returns the pointer to a font full descriptor object <b>OH_Drawing_FontFullDescriptor</b>.
+ *     Release it through the {@link OH_Drawing_DestroyFontFullDescriptor} function after use.
  * @since 24
  */
 const OH_Drawing_FontFullDescriptor* OH_Drawing_GetFontFullDescriptorByFullName(const OH_Drawing_String* fullName,

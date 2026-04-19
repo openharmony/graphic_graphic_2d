@@ -21,8 +21,8 @@
 #include "hpae_base/rs_hpae_log.h"
 
 #include "common/rs_optional_trace.h"
+#include "engine/rs_base_render_engine.h"
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "pipeline/render_thread/rs_base_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_surface_handler.h"
@@ -269,7 +269,7 @@ bool RSHpaeBuffer::CreateSurface(sptr<IBufferConsumerListener> listener)
     producerSurface_->SetQueueSize(HPAE_BUFFER_SIZE);
     producerSurface_->SetBufferTypeLeak(HPAE_BUFFER_NAME);
 
-    auto client = std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
+    auto client = std::static_pointer_cast<RSRenderPipelineClient>(RSIRenderClient::CreateRenderPiplineClient());
     auto surface = client->CreateRSSurface(producerSurface_);
     rsSurface_ = std::static_pointer_cast<RSSurfaceOhos>(surface);
     RS_LOGI("RSHpaeBuffer::CreateSurface end");

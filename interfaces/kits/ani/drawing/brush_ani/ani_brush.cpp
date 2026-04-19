@@ -368,7 +368,10 @@ void AniBrush::SetColorFilter(ani_env* env, ani_object obj, ani_object objColorF
     }
 
     ani_boolean isNull = ANI_TRUE;
-    env->Reference_IsNull(objColorFilter, &isNull);
+    if (env->Reference_IsNull(objColorFilter, &isNull) != ANI_OK) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return;
+    }
     AniColorFilter* aniColorFilter = nullptr;
     if (!isNull) {
         aniColorFilter = GetNativeFromObj<AniColorFilter>(env, objColorFilter,
@@ -418,7 +421,10 @@ void AniBrush::SetImageFilter(ani_env* env, ani_object obj, ani_object imageFilt
     }
 
     ani_boolean isNull = ANI_TRUE;
-    env->Reference_IsNull(imageFilterObj, &isNull);
+    if (env->Reference_IsNull(imageFilterObj, &isNull) != ANI_OK) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return;
+    }
     AniImageFilter* aniImageFilter = nullptr;
     if (!isNull) {
         aniImageFilter = GetNativeFromObj<AniImageFilter>(env, imageFilterObj,
@@ -443,7 +449,10 @@ void AniBrush::SetMaskFilter(ani_env* env, ani_object obj, ani_object maskFilter
     }
 
     ani_boolean isNull = ANI_TRUE;
-    env->Reference_IsNull(maskFilterObj, &isNull);
+    if (env->Reference_IsNull(maskFilterObj, &isNull) != ANI_OK) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return;
+    }
     AniMaskFilter* aniMaskFilter = nullptr;
     if (!isNull) {
         aniMaskFilter = GetNativeFromObj<AniMaskFilter>(env, maskFilterObj,
@@ -468,7 +477,10 @@ void AniBrush::SetShadowLayer(ani_env* env, ani_object obj, ani_object shadowLay
     }
 
     ani_boolean isNull = ANI_TRUE;
-    env->Reference_IsNull(shadowLayerObj, &isNull);
+    if (env->Reference_IsNull(shadowLayerObj, &isNull) != ANI_OK) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return;
+    }
     AniShadowLayer* aniShadowLayer = nullptr;
     if (!isNull) {
         aniShadowLayer = GetNativeFromObj<AniShadowLayer>(env, shadowLayerObj,
@@ -491,7 +503,10 @@ void AniBrush::SetShaderEffect(ani_env* env, ani_object obj, ani_object shaderEf
     }
 
     ani_boolean isNull = ANI_TRUE;
-    env->Reference_IsNull(shaderEffectObj, &isNull);
+    if (env->Reference_IsNull(shaderEffectObj, &isNull) != ANI_OK) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return;
+    }
     AniShaderEffect* aniShaderEffect = nullptr;
     if (!isNull) {
         aniShaderEffect = GetNativeFromObj<AniShaderEffect>(env, shaderEffectObj,

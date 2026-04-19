@@ -57,10 +57,16 @@ public:
         return refractOutPx_;
     }
 
+    bool GetSkipFrameEnable() const
+    {
+        return isSkipFrameEnable_;
+    }
+
 private:
     float radius_ = 0.0f;
     float radiusScaleK_ = 0.0f;
     float refractOutPx_ = 0.0f;
+    bool isSkipFrameEnable_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -407,25 +407,6 @@ void RSSurfaceBufferCallbackManager::StoreSurfaceBufferInfo(const DrawingSurface
     }
 }
 
-
-void RSSurfaceBufferCallbackManager::RemoveSurfaceBufferInfo(uint32_t bufferId)
-{
-    std::lock_guard<std::mutex> lock(surfaceBufferInfoMutex_);
-
-    for (auto& [key, bufferList] : surfaceBufferInfoMap_) {
-        auto it = std::find_if(bufferList.begin(), bufferList.end(),
-            [bufferId](const SurfaceBufferInfoEntry& entry) {
-                return entry.bufferId == bufferId;
-            });
-        if (it != bufferList.end()) {
-            RS_LOGD("RSSurfaceBufferCallbackManager::RemoveSurfaceBufferInfo:"
-                    "Removed bufferId=%{public}u", bufferId);
-            bufferList.erase(it);
-            break;
-        }
-    }
-}
-
 void RSSurfaceBufferCallbackManager::RemoveAllSurfaceBufferInfo(pid_t pid, uint64_t uid)
 {
     std::lock_guard<std::mutex> lock(surfaceBufferInfoMutex_);

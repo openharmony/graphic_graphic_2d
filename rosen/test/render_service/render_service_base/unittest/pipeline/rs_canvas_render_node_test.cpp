@@ -256,6 +256,32 @@ HWTEST_F(RSCanvasRenderNodeTest, GetHDRNodeMap001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateHDRNodeOnTreeState
+ * @tc.desc: test results of UpdateHDRNodeOnTreeState
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSCanvasRenderNodeTest, UpdateHDRNodeOnTreeState, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    std::shared_ptr<RSCanvasRenderNode> rsCanvasRenderNode =
+        std::make_shared<RSCanvasRenderNode>(nodeId, context, true);
+    rsCanvasRenderNode->context_ = context;
+    rsCanvasRenderNode->InitRenderParams();
+    EXPECT_TRUE(rsCanvasRenderNode->GetContext().lock() != nullptr);
+    NodeId surfaceNodeId = 2;
+    SurfaceNodeCommandHelper::Create(*context, surfaceNodeId);
+    auto surfaceNode = context->GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(surfaceNodeId);
+    rsCanvasRenderNode->instanceRootNodeId_ = surfaceNodeId;
+    rsCanvasRenderNode->isOnTheTree_ = true;
+    RSProperties* properties = const_cast<RSProperties*>(&rsCanvasRenderNode->GetRenderProperties());
+    properties->SetHDRColorHeadroom(2.0f);
+    rsCanvasRenderNode->OnTreeStateChanged();
+    EXPECT_TRUE(surfaceNode->HDRColorHeadroomEnabled());
+}
+
+/**
  * @tc.name: OnTreeStateChanged
  * @tc.desc: test results of OnTreeStateChanged
  * @tc.type: FUNC
@@ -587,10 +613,12 @@ HWTEST_F(RSCanvasRenderNodeTest, MarkNodeColorSpace001, TestSize.Level1)
     NodeId nodeId = 1;
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
     auto node = std::make_shared<RSCanvasRenderNode>(nodeId, context, true);
-    node->MarkNodeColorSpace(false);
+    node->MarkNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
     EXPECT_EQ(node->colorGamut_, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
-    node->MarkNodeColorSpace(true);
+    node->MarkNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
     EXPECT_EQ(node->colorGamut_, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    node->MarkNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+    EXPECT_EQ(node->colorGamut_, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
 }
 
 /**
@@ -602,10 +630,10 @@ HWTEST_F(RSCanvasRenderNodeTest, MarkNodeColorSpaceTest002, TestSize.Level1)
 {
     RSContext context;
     NodeId nodeId = static_cast<NodeId>(-1);
-    RSNodeCommandHelper::MarkNodeColorSpace(context, nodeId, true);
+    RSNodeCommandHelper::MarkNodeColorSpace(context, nodeId, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
     nodeId = 100;
     RSCanvasNodeCommandHelper::Create(context, nodeId, false);
-    RSNodeCommandHelper::MarkNodeColorSpace(context, nodeId, false);
+    RSNodeCommandHelper::MarkNodeColorSpace(context, nodeId, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
     auto canvasNode = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
     ASSERT_NE(canvasNode, nullptr);
     EXPECT_EQ(canvasNode->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
@@ -620,10 +648,10 @@ HWTEST_F(RSCanvasRenderNodeTest, MarkNodeColorSpaceTest003, TestSize.Level1)
 {
     RSContext context;
     NodeId nodeId = static_cast<NodeId>(-1);
-    RSNodeCommandHelper::MarkNodeColorSpace(context, nodeId, true);
+    RSNodeCommandHelper::MarkNodeColorSpace(context, nodeId, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
     nodeId = 101;
     RSCanvasNodeCommandHelper::Create(context, nodeId, false);
-    RSNodeCommandHelper::MarkNodeColorSpace(context, nodeId, true);
+    RSNodeCommandHelper::MarkNodeColorSpace(context, nodeId, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
     auto canvasNode = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
     ASSERT_NE(canvasNode, nullptr);
     EXPECT_EQ(canvasNode->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);

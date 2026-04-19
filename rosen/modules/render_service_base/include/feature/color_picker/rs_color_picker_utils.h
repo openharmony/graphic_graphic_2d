@@ -19,18 +19,22 @@
 #include <cstdint>
 #include <functional>
 #include <memory>
+#include <unordered_set>
 
+#include "common/rs_macros.h"
 #include "draw/color.h"
 #include "image/image.h"
-
-#ifdef RS_ENABLE_VK
-#include "vulkan/vulkan_core.h"
-#endif
 
 namespace OHOS::Rosen {
 
 class IColorPickerManager;
 class RSPaintFilterCanvas;
+
+// Forward declarations
+class RSRenderNode;
+class RSSurfaceRenderNode;
+class RSRenderNodeMap;
+using NodeId = uint64_t;
 
 namespace RSColorPickerUtils {
 /**
@@ -50,11 +54,7 @@ struct ColorPickerInfo {
     Drawing::BackendTexture backendTexture_;
     std::shared_ptr<Drawing::Image> oldImage_;
     std::weak_ptr<IColorPickerManager> manager_;
-#ifdef RS_ENABLE_VK
-    VkSemaphore waitSemaphore_ = VK_NULL_HANDLE;
-
-    void SetSemaphore(VkSemaphore semaphore) { waitSemaphore_ = semaphore; }
-#endif
+    int32_t fenceFd_ = -1;
 
     ColorPickerInfo(std::shared_ptr<Drawing::ColorSpace> colorSpace, Drawing::BitmapFormat bitmapFormat,
         Drawing::BackendTexture backendTexture, std::shared_ptr<Drawing::Image> image,
@@ -94,16 +94,14 @@ std::unique_ptr<ColorPickerInfo> CreateColorPickerInfo(Drawing::Surface* drawing
  * @return true if scheduling succeeded, false on error
  */
 bool ExtractSnapshotAndScheduleColorPick(
-    RSPaintFilterCanvas& canvas,
-    const Drawing::Rect* rect,
-    const std::shared_ptr<IColorPickerManager>& manager);
+    RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, const std::shared_ptr<IColorPickerManager>& manager);
 
 /**
- * @brief Common implementation for scheduling color pick with semaphore.
+ * @brief Common implementation for scheduling color pick with fence.
  *
  * This function uses the Drawing::FlushInfo.backendSemaphore mechanism to ensure
  * GPU work completes before extracting the color. The ColorPickerInfo is passed
- * with a semaphore that is signaled when GPU work is complete, and a task is posted
+ * with a fence that is signaled when GPU work is complete, and a task is posted
  * to the color picker thread to extract the color and call HandleColorUpdate with the result.
  *
  * @param surface The drawing surface to flush
@@ -111,7 +109,7 @@ bool ExtractSnapshotAndScheduleColorPick(
  * @param colorPickerInfo A struct containing color space, bitmap format, backend texture, and image
  */
 void ScheduleColorPickWithSemaphore(Drawing::Surface& surface, std::weak_ptr<IColorPickerManager> manager,
-    std::unique_ptr<ColorPickerInfo> colorPickerInfo);
+    std::unique_ptr<ColorPickerInfo> colorPickerInfo, Drawing::GPUContext& gpuCtx);
 
 /**
  * @brief Obtain the corresponding dark color and light color based on the placeholder
@@ -131,7 +129,16 @@ std::pair<Drawing::ColorQuad, Drawing::ColorQuad> GetColorForPlaceholder(ColorPl
  */
 Drawing::ColorQuad InterpolateColor(Drawing::ColorQuad start, Drawing::ColorQuad end, float fraction);
 
-
+/**
+ * @brief Collect all color picker node IDs from surface nodes
+ */
+RSB_EXPORT std::unordered_set<NodeId> CollectColorPickerNodeIds(
+    const std::vector<std::shared_ptr<RSRenderNode>>& surfaces, const RSRenderNodeMap& nodeMap);
+/**
+ * @brief Check if color picker needs to execute based on dirty region intersection
+ */
+RSB_EXPORT bool IsColorPickerDirty(
+    const RSRenderNode& filterNode, const std::vector<std::shared_ptr<RSRenderNode>>& surfaces);
 } // namespace RSColorPickerUtils
 } // namespace OHOS::Rosen
 

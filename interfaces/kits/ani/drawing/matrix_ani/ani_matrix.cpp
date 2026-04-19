@@ -564,7 +564,7 @@ void AniMatrix::OnSetMatrix(ani_env* env, ani_object obj, ani_object matrixArrya
     return;
 }
 
-void AniMatrix::SetMatrixWithObject(ani_env* env, ani_object obj, ani_object matrixArryaObj)
+void AniMatrix::SetMatrixWithObject(ani_env* env, ani_object obj, ani_object matrixArrayObj)
 {
     auto aniMatrix = GetNativeFromObj<AniMatrix>(env, obj, AniGlobalField::GetInstance().matrixNativeObj);
     if (aniMatrix == nullptr || aniMatrix->GetMatrix() == nullptr) {
@@ -580,11 +580,14 @@ void AniMatrix::SetMatrixWithObject(ani_env* env, ani_object obj, ani_object mat
     }
 
     ani_boolean isMatrix;
-    env->Object_InstanceOf(matrixArryaObj, matrixClass, &isMatrix);
-    if (isMatrix) {
-        return aniMatrix->OnSetMatrix(env, obj, matrixArryaObj);
+    if (env->Object_InstanceOf(matrixArrayObj, matrixClass, &isMatrix) != ANI_OK) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "invalid params.");
+        return;
     }
-    ani_array arrayObj = reinterpret_cast<ani_array>(matrixArryaObj);
+    if (isMatrix) {
+        return aniMatrix->OnSetMatrix(env, obj, matrixArrayObj);
+    }
+    ani_array arrayObj = reinterpret_cast<ani_array>(matrixArrayObj);
     return AniMatrix::SetMatrix(env, obj, arrayObj);
 }
 

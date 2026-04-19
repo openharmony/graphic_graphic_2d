@@ -85,8 +85,9 @@ public:
     GSError SetRoiRegionToCodec(const std::vector<RectI>& damageRegion);
     void CalculateTransform(ScreenRotation rotation);
     void ScaleMirrorIfNeed(const ScreenRotation angle, RSPaintFilterCanvas& canvas);
+    void ScaleExpandIfNeed(RSPaintFilterCanvas* canvas);
     void CanvasClipRegionForUniscaleMode(const Drawing::Matrix& visibleClipRectMatrix = Drawing::Matrix(),
-        const ScreenInfo& mainScreenInfo = ScreenInfo());
+        bool isSamplingOn = false);
     void ProcessCacheImage(Drawing::Image& cacheImage);
     void SetDrawVirtualMirrorCopy(bool drawMirrorCopy)
     {
@@ -104,11 +105,16 @@ public:
     {
         return displaySkipInMirror_;
     }
+    bool IsVirtualExpandScale() const
+    {
+        return isVirtualExpandScale_;
+    }
     void CanvasInit(DrawableV2::RSLogicalDisplayRenderNodeDrawable& displayDrawable);
     void CancelCurrentFrame();
+    sptr<SyncFence> GetFrameAcquireFence();
+    bool SetCropRectForMetadata(const HDI::Display::Graphic::Common::V1_0::BufferHandleMetaRegion& metaRegion);
 private:
     void MergeMirrorFenceToHardwareEnabledDrawables();
-    void SetVirtualScreenFenceToRenderThread();
     void SetVirtualScreenSize(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable);
     bool CheckIfBufferSizeNeedChange(ScreenRotation firstBufferRotation, ScreenRotation curBufferRotation);
     void OriginScreenRotation(ScreenRotation screenRotation, float width, float height);
@@ -143,12 +149,15 @@ private:
     Drawing::Matrix canvasMatrix_;
     bool enableVisibleRect_ = false;
     Drawing::Rect visibleRect_;
-    sptr<RSScreenManager> screenManager_ = nullptr;
     ScreenId virtualScreenId_ = INVALID_SCREEN_ID;
     NodeId mirroredScreenNodeId_ = INVALID_NODEID;
     std::shared_ptr<RSSLRScaleFunction> slrManager_ = nullptr;
     bool drawMirrorCopy_ = false;
     bool displaySkipInMirror_ = false;
+
+    bool isVirtualExpandScale_ = false;
+    float virtualExpandScaleX_ = 0.0f;
+    float virtualExpandScaleY_ = 0.0f;
 };
 } // namespace Rosen
 } // namespace OHOS

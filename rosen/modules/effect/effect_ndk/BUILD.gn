@@ -116,8 +116,12 @@ ohos_shared_library("native_effect_ndk") {
   }
   public_configs = [ ":export_config" ]
 
+  deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+  ]
+
   if (platform == "ohos") {
-    deps = [ "$effect_root/effect_ndk:effect_ndk_source_ohos" ]
+    deps += [ "$effect_root/effect_ndk:effect_ndk_source_ohos" ]
     symlink_target_name = [ "libnative_effect.so" ]
     innerapi_tags = [ "ndk" ]
   }

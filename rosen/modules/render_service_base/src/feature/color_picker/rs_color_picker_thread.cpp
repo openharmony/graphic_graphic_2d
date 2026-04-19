@@ -17,6 +17,7 @@
 
 #include <chrono>
 
+#include "common/rs_optional_trace.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 
@@ -76,6 +77,7 @@ bool RSColorPickerThread::PostTask(const std::function<void()>& task, bool limit
     uint32_t currentCount = taskCount_.fetch_add(1, std::memory_order_relaxed);
     if (currentCount >= MAX_TASKS_PER_SECOND) {
         RS_LOGD("RSColorPickerThread: Task dropped due to rate limit (count: %{public}u)", currentCount + 1);
+        RS_OPTIONAL_TRACE_NAME_FMT("RSColorPickerThread::PostTask rate limited (count: %u)", currentCount + 1);
         return false;
     }
 

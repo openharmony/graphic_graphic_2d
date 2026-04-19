@@ -286,7 +286,7 @@ void AniTextStyleConverter::ParseFontVariationToNative(ani_env* env, ani_object 
             bool isNormalized = false;
             AniTextUtils::ReadOptionalBoolField(env, obj,
                 AniGlobalMethod::GetInstance().fontVariationIsNormalized, isNormalized);
-            fontVariations.SetAxisValue(axis, static_cast<int>(valueDouble), isNormalized);
+            fontVariations.SetAxisValue(axis, valueDouble, isNormalized);
             return "";
         });
 }

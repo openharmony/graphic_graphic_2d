@@ -24,6 +24,7 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/ohos/rs_jank_stats.h"
 #include "property/rs_properties.h"
+#include "rs_render_params.h"
 #include "screen_manager/rs_screen_info.h"
 
 namespace OHOS::Rosen {
@@ -176,16 +177,6 @@ public:
         return isUIFirstDebugEnable_;
     }
 
-    void SetUIFirstCurrentFrameCanSkipFirstWait(bool canSkip)
-    {
-        isUIFirstCurrentFrameCanSkipFirstWait_ = canSkip;
-    }
-
-    bool GetUIFirstCurrentFrameCanSkipFirstWait() const
-    {
-        return isUIFirstCurrentFrameCanSkipFirstWait_;
-    }
-
     void SetTimestamp(uint64_t timestamp)
     {
         timestamp_ = timestamp;
@@ -234,6 +225,36 @@ public:
     uint64_t GetFastComposeTimeStampDiff() const
     {
         return fastComposeTimeStampDiff_;
+    }
+
+    void SetHasGameScene(bool hasGameScene)
+    {
+        hasGameScene_ = hasGameScene;
+    }
+
+    bool GetHasGameScene() const
+    {
+        return hasGameScene_;
+    }
+
+    void SetHasLppVideo(bool hasLppVideo)
+    {
+        hasLppVideo_ = hasLppVideo;
+    }
+
+    bool GetHasLppVideo() const
+    {
+        return hasLppVideo_;
+    }
+
+    void SetDynamicRefreshRate(uint32_t defaultScreenRefreshRate)
+    {
+        defaultScreenRefreshRate_ = defaultScreenRefreshRate;
+    }
+
+    uint32_t GetDynamicRefreshRate() const
+    {
+        return defaultScreenRefreshRate_;
     }
 
     const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetSelfDrawables() const
@@ -412,6 +433,11 @@ public:
         return isMirrorScreenDirty_;
     }
 
+    RSPowerOffRenderController& GetPowerOffRenderController()
+    {
+        return powerOffRenderController_;
+    }
+
     void SetImplicitAnimationEnd(bool isImplicitAnimationEnd)
     {
         isImplicitAnimationEnd_ = isImplicitAnimationEnd;
@@ -447,6 +473,26 @@ public:
         return isSecurityExemption_;
     }
 
+    void AddWhiteListRect(const std::unordered_set<ScreenId>& screenIds, RectI rect)
+    {
+        for (auto screenId : screenIds) {
+            whiteListRect_[screenId].push_back(rect);
+        }
+    }
+
+    std::vector<RectI> GetWhiteListRectByScreenId(ScreenId screenId) const
+    {
+        if (auto iter = whiteListRect_.find(screenId); iter != whiteListRect_.end()) {
+            return iter->second;
+        }
+        return {};
+    }
+
+    void ClearWhiteListRect()
+    {
+        whiteListRect_.clear();
+    }
+
     bool IsOverDrawEnabled() const
     {
         return isOverDrawEnabled_;
@@ -455,6 +501,22 @@ public:
     bool IsDrawingCacheDfxEnabled() const
     {
         return isDrawingCacheDfxEnabled_;
+    }
+
+    void SetSurfaceFpsOp(uint32_t surfaceFpsOpNum, std::vector<SurfaceFpsOp> surfaceFpsOpList)
+    {
+        surfaceFpsOpNum_ = surfaceFpsOpNum;
+        surfaceFpsOpList_ = std::move(surfaceFpsOpList);
+    }
+
+    uint32_t GetSurfaceFpsOpNum() const
+    {
+        return surfaceFpsOpNum_;
+    }
+
+    std::vector<SurfaceFpsOp> GetSurfaceFpsOpList() const
+    {
+        return surfaceFpsOpList_;
     }
 
     const ScreenInfo& GetScreenInfo() const
@@ -564,6 +626,9 @@ private:
     uint32_t pendingScreenRefreshRate_ = 0;
     uint64_t pendingConstraintRelativeTime_ = 0;
     uint64_t fastComposeTimeStampDiff_ = 0;
+    bool hasGameScene_ = false;
+    bool hasLppVideo_ = false;
+    uint32_t defaultScreenRefreshRate_ = 0;
     // RSDirtyRectsDfx dfx
     std::vector<std::string> dfxTargetSurfaceNames_;
     bool hasDisplayHdrOn_ = false;
@@ -584,7 +649,6 @@ private:
     bool isOcclusionEnabled_ = false;
     CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn_ = CrossNodeOffScreenRenderDebugType::ENABLE;
     bool isUIFirstDebugEnable_ = false;
-    bool isUIFirstCurrentFrameCanSkipFirstWait_ = false;
     bool isVirtualDirtyDfxEnabled_ = false;
     bool isVirtualDirtyEnabled_ = false;
     bool isVirtualExpandScreenDirtyEnabled_ = false;
@@ -604,9 +668,12 @@ private:
     std::shared_ptr<Drawing::Image> watermarkImg_ = nullptr;
     std::unordered_map<std::string, std::pair<std::shared_ptr<Drawing::Image>, pid_t>> surfaceWatermarks_;
     std::shared_ptr<RSSLRScaleFunction> slrManager_ = nullptr;
-
+    RSPowerOffRenderController powerOffRenderController_;
     bool isOverDrawEnabled_ = false;
     bool isDrawingCacheDfxEnabled_ = false;
+
+    uint32_t surfaceFpsOpNum_ = 0;
+    std::vector<SurfaceFpsOp> surfaceFpsOpList_;
 
     int64_t onVsyncStartTime_ = TIMESTAMP_INITIAL;
     int64_t onVsyncStartTimeSteady_ = TIMESTAMP_INITIAL;
@@ -624,6 +691,7 @@ private:
     bool isImplicitAnimationEnd_ = false;
     bool discardJankFrames_ = false;
 
+    std::map<ScreenId, std::vector<RectI>> whiteListRect_;
     bool isSecurityExemption_ = false;
     // use to mark security display
     bool isSecurityDisplay_ = false;

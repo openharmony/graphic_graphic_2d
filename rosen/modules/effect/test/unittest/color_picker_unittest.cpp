@@ -626,13 +626,13 @@ HWTEST_F(ColorPickerUnittest, CalcContrastRatioWithWhite001, TestSize.Level1)
 }
 
 /**
- * @tc.name: DiscriminatePitureLightDegreee001
- * @tc.desc: DiscriminatePitureLightDegree degree is DARK_COLOR_PICTURE
+ * @tc.name: DiscriminatePictureLightDegreee001
+ * @tc.desc: DiscriminatePictureLightDegree degree is DARK_COLOR_PICTURE
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(ColorPickerUnittest, DiscriminatePitureLightDegreee001, TestSize.Level1)
+HWTEST_F(ColorPickerUnittest, DiscriminatePictureLightDegreee001, TestSize.Level1)
 {
     size_t bufferSize = 0;
     uint8_t* buffer = GetJpgBuffer(bufferSize);
@@ -658,18 +658,18 @@ HWTEST_F(ColorPickerUnittest, DiscriminatePitureLightDegreee001, TestSize.Level1
     pColorPicker->grayMsd_ = 5000;
     pColorPicker->contrastToWhite_ = 9;
     PictureLightColorDegree degree = EXTREMELY_LIGHT_COLOR_PICTURE;
-    pColorPicker->DiscriminatePitureLightDegree(degree);
+    pColorPicker->DiscriminatePictureLightDegree(degree);
     EXPECT_EQ(degree, DARK_COLOR_PICTURE);
 }
 
 /**
- * @tc.name: DiscriminatePitureLightDegreee002
- * @tc.desc: DiscriminatePitureLightDegree degree is ERR_EFFECT_INVALID_VALUE
+ * @tc.name: DiscriminatePictureLightDegreee002
+ * @tc.desc: DiscriminatePictureLightDegree degree is ERR_EFFECT_INVALID_VALUE
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(ColorPickerUnittest, DiscriminatePitureLightDegreee002, TestSize.Level1)
+HWTEST_F(ColorPickerUnittest, DiscriminatePictureLightDegreee002, TestSize.Level1)
 {
     size_t bufferSize = 0;
     uint8_t* buffer = GetJpgBuffer(bufferSize);
@@ -696,7 +696,7 @@ HWTEST_F(ColorPickerUnittest, DiscriminatePitureLightDegreee002, TestSize.Level1
     pColorPicker->grayMsd_ = 5000;
     pColorPicker->contrastToWhite_ = 9;
     PictureLightColorDegree degree = EXTREMELY_LIGHT_COLOR_PICTURE;
-    uint32_t ret = pColorPicker->DiscriminatePitureLightDegree(degree);
+    uint32_t ret = pColorPicker->DiscriminatePictureLightDegree(degree);
     EXPECT_EQ(ret, ERR_EFFECT_INVALID_VALUE);
 }
 

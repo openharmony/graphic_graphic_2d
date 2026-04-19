@@ -54,6 +54,18 @@ bool IsSystemApp()
 #endif
 }
 
+bool CheckPermission(const std::string& permission)
+{
+#ifdef ENABLE_IPC_SECURITY
+    auto tokenID = OHOS::IPCSkeleton::GetCallingTokenID();
+    int result = OHOS::Security::AccessToken::AccessTokenKit::VerifyAccessToken(
+        tokenID, permission, false);
+    return result == OHOS::Security::AccessToken::PERMISSION_GRANTED;
+#else
+    return true;
+#endif
+}
+
 void ClampVector4f(OHOS::Rosen::Vector4f& v, float minx, float maxn)
 {
     for (auto& data : v.data_) {
@@ -189,8 +201,7 @@ bool ConvertVector4fFromAniRect(uintptr_t rect, OHOS::Rosen::Vector4f& values)
     }
     ani_object obj = reinterpret_cast<ani_object>(rect);
     ani_boolean isRectClass = false;
-    env->Object_InstanceOf(obj, rectClass, &isRectClass);
-    if (!isRectClass) {
+    if ((env->Object_InstanceOf(obj, rectClass, &isRectClass) != ANI_OK) || !isRectClass) {
         UIEFFECT_LOG_E("ConvertVector4fFromAniRect object is not a rect obj");
         return false;
     }

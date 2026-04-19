@@ -23,7 +23,9 @@
 #include "draw/color.h"
 #include "draw/brush.h"
 #include "draw/pen.h"
+#include "draw/ui_color.h"
 #include "utils/rect.h"
+#include "symbol_constants.h"
 
 namespace OHOS::Rosen {
 enum GradientType {
@@ -52,12 +54,19 @@ public:
     virtual std::shared_ptr<Drawing::ShaderEffect> CreateGradientShader(const Drawing::Point& offset);
     bool IsNearlyEqual(const std::shared_ptr<SymbolGradient>& gradient);
 
+    void SetUIColors(const std::vector<Drawing::UIColor>& uiColors, SymbolColorSpace colorSpace);
+    const std::vector<Drawing::UIColor>& GetUIColors() const;
+    SymbolColorSpace GetColorSpace() const;
+    bool HasUIColor() const;
+
 protected:
     std::vector<Drawing::ColorQuad> GetColorQuads() const;
     GradientType gradientType_ = GradientType::NONE_GRADIENT;
     Drawing::TileMode tileMode_ = Drawing::TileMode::CLAMP;
     std::vector<Drawing::Color> colors_;
     std::vector<float> positions_;
+    std::vector<Drawing::UIColor> uiColors_;
+    SymbolColorSpace colorSpace_{SymbolColorSpace::SRGB};
 };
 
 class RS_EXPORT SymbolLineGradient : public SymbolGradient {
