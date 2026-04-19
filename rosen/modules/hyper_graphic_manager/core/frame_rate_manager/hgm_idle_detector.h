@@ -38,7 +38,7 @@ public:
     void SetAppSupportedState(bool appSupported);
     bool GetAppSupportedState() const { return appSupported_; }
 
-    void SetBufferFpsMap(std::unordered_map<std::string, int32_t> bufferFpsMap) { 
+    void SetBufferFpsMap(std::unordered_map<std::string, int32_t> bufferFpsMap) {
         bufferFpsMap_ = std::move(bufferFpsMap);
     }
 
