@@ -117,10 +117,7 @@ public:
     uint32_t GetCurrRefreshRate() { return currRefreshRate_; }
     ScreenId GetCurScreenId() const { return curScreenId_.load(); };
     ScreenId GetLastCurScreenId() const { return lastCurScreenId_.load(); };
-    void SetLastCurScreenId(ScreenId screenId)
-    {
-        lastCurScreenId_.store(screenId);
-    }
+    void SetLastCurScreenId(ScreenId screenId) { lastCurScreenId_.store(screenId); }
     std::string GetCurScreenStrategyId() const { return curScreenStrategyId_; };
     void HandleRefreshRateMode(int32_t refreshRateMode);
     void HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
@@ -143,8 +140,7 @@ public:
     void UniProcessDataForLtpo(uint64_t timestamp, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
         const FrameRateLinkerMap& appFrameRateLinkers, const std::map<uint64_t, int>& vRatesMap);
 
-    void SetForceUpdateCallback(std::function<void(bool, bool)> forceUpdateCallback)
-    {
+    void SetForceUpdateCallback(std::function<void(bool, bool)> forceUpdateCallback) {
         forceUpdateCallback_ = forceUpdateCallback;
     }
 
@@ -158,18 +154,14 @@ public:
     HgmIdleDetector& GetIdleDetector() { return idleDetector_; }
     // only called by RSMainThread
     void UpdateSurfaceTime(const std::string& surfaceName, pid_t pid, UIFWKType uiFwkType);
-    void SetSchedulerPreferredFps(uint32_t schedulePreferredFps)
-    {
+    void SetSchedulerPreferredFps(uint32_t schedulePreferredFps) {
         if (schedulePreferredFps_ != schedulePreferredFps) {
             schedulePreferredFps_ = schedulePreferredFps;
             schedulePreferredFpsChange_ = true;
         }
     }
 
-    void SetIsNeedUpdateAppOffset(bool isNeedUpdateAppOffset)
-    {
-        isNeedUpdateAppOffset_ = isNeedUpdateAppOffset;
-    }
+    void SetIsNeedUpdateAppOffset(bool isNeedUpdateAppOffset) { isNeedUpdateAppOffset_ = isNeedUpdateAppOffset; }
 
     // only called by RSMainThread
     bool UpdateUIFrameworkDirtyNodes(std::vector<std::weak_ptr<RSRenderNode>>& uiFwkDirtyNodes, uint64_t timestamp);
@@ -253,16 +245,14 @@ private:
     }
     void FrameRateReportTask(uint32_t leftRetryTimes);
     void CheckNeedUpdateAppOffset(uint32_t refreshRate, uint32_t controllerRate);
-    void CheckForceUpdateCallback(uint32_t refreshRate)
-    {
+    void CheckForceUpdateCallback(uint32_t refreshRate) {
         if (needForceUpdateUniRender_ && refreshRate != currRefreshRate_.load() && forceUpdateCallback_) {
             forceUpdateCallback_(false, true);
         }
     }
     void HandleLowPowerSlideSceneEvent(const std::string& sceneName, bool eventStatus);
     void TriggerHgmConfigUpdateCallback(std::shared_ptr<RPHgmConfigData> configData,
-        bool ltpoEnabled, bool isDelayMode, int32_t pipelineOffsetPulseNum)
-    {
+        bool ltpoEnabled, bool isDelayMode, int32_t pipelineOffsetPulseNum) {
         if (hgmConfigUpdateCallback_) {
             hgmConfigUpdateCallback_(configData, ltpoEnabled, isDelayMode, pipelineOffsetPulseNum);
         }

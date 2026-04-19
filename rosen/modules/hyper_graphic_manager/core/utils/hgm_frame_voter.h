@@ -38,12 +38,8 @@ public:
     bool GetVoterGamesEffective() const { return voterGamesEffective_.load(); }
 
     void SetDisableTouchHighFrame(bool isDisableTouchHighFrame);
-    void SetIsTouchUpLTPOFirstPeriod(bool isTouchUpLTPOFirstPeriod)
-    {
-        isTouchUpLTPOFirstPeriod_ = isTouchUpLTPOFirstPeriod;
-    }
-    void SetTouchUpLTPOFirstDynamicMode(DynamicModeType dynamicMode)
-    {
+    void SetIsTouchUpLTPOFirstPeriod(bool isTouchUpLTPOFirstPeriod) { isTouchUpLTPOFirstPeriod_ = isTouchUpLTPOFirstPeriod; }
+    void SetTouchUpLTPOFirstDynamicMode(DynamicModeType dynamicMode) {
         isTouchUpLTPOFirstDynamicMode_ = (dynamicMode == DynamicModeType::TOUCH_EXT_ENABLED_LTPO_FIRST);
     }
 
@@ -62,14 +58,12 @@ private:
         std::vector<std::string>::iterator& voterIter, VoteInfo& resultVoteInfo, VoteRange& mergedVoteRange);
     bool ProcessVoteIter(std::vector<std::string>::iterator& voterIter,
         VoteInfo& resultVoteInfo, VoteRange& voteRange, bool& voterGamesEffective);
-    void MarkVoteChange(const std::string& voter = "")
-    {
+    void MarkVoteChange(const std::string& voter = "") {
         if (markVoteChange_) {
             markVoteChange_(voter);
         }
     }
-    bool NeedSkipVoterTouch(bool existVoterLTPO)
-    {
+    bool NeedSkipVoterTouch(bool existVoterLTPO) {
         if (existVoterLTPO && isTouchUpLTPOFirstPeriod_ && isTouchUpLTPOFirstDynamicMode_) {
             return true;
         }

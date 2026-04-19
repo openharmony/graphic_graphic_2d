@@ -36,35 +36,25 @@ public:
     ~HgmIdleDetector() = default;
 
     void SetAppSupportedState(bool appSupported);
-    bool GetAppSupportedState() const {
-        return appSupported_;
-    }
+    bool GetAppSupportedState() const { return appSupported_; }
 
-    void SetBufferFpsMap(std::unordered_map<std::string, int32_t> bufferFpsMap) {
-        bufferFpsMap_ = std::move(bufferFpsMap);
-    }
+    void SetBufferFpsMap(std::unordered_map<std::string, int32_t> bufferFpsMap) { bufferFpsMap_ = std::move(bufferFpsMap); }
 
     int32_t GetTouchUpExpectedFPS();
 
     void SetAceAnimatorIdleState(bool aceAnimatorIdleState);
-    bool GetAceAnimatorIdleState() const {
-        return aceAnimatorIdleState_;
-    }
+    bool GetAceAnimatorIdleState() const { return aceAnimatorIdleState_; }
 
     void UpdateAceAnimatorExpectedFrameRate(int32_t aceAnimatorExpectedFrameRate);
 
-    void ResetAceAnimatorExpectedFrameRate() {
-        aceAnimatorExpectedFrameRate_ = ANIMATOR_NOT_RUNNING;
-    }
+    void ResetAceAnimatorExpectedFrameRate() { aceAnimatorExpectedFrameRate_ = ANIMATOR_NOT_RUNNING; }
 
     void UpdateSurfaceTime(const std::string& surfaceName, uint64_t timestamp,
         pid_t pid, UIFWKType uiFwkType = UIFWKType::FROM_UNKNOWN);
 
     void UpdateSurfaceState(uint64_t timestamp);
 
-    bool GetSurfaceIdleState() const {
-        return surfaceTimeMap_.empty();
-    }
+    bool GetSurfaceIdleState() const { return surfaceTimeMap_.empty(); }
 
 private:
     bool GetUnknownFrameworkState(const std::string& surfaceName,
