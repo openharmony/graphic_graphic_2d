@@ -2605,6 +2605,39 @@ bool WebGLRenderingContextBaseImpl::CheckPixelsType(napi_env env, GLenum type)
         });
 }
 
+uint32_t WebGLRenderingContextBaseImpl::GetFormatComponentCount(GLenum format)
+{
+    // Define color component count constants
+    static constexpr uint32_t COMPONENTS_1 = 1;
+    static constexpr uint32_t COMPONENTS_2 = 2;
+    static constexpr uint32_t COMPONENTS_3 = 3;
+    static constexpr uint32_t COMPONENTS_4 = 4;
+
+    switch (format) {
+        case GL_RED:
+        case GL_RED_INTEGER:
+        case GL_GREEN:
+        case GL_BLUE:
+        case GL_ALPHA:
+        case GL_LUMINANCE:
+        case GL_DEPTH_COMPONENT:
+            return COMPONENTS_1;
+        case GL_RG:
+        case GL_RG_INTEGER:
+        case GL_LUMINANCE_ALPHA:
+            return COMPONENTS_2;
+        case GL_RGB:
+        case GL_RGB_INTEGER:
+            return COMPONENTS_3;
+        case GL_RGBA:
+        case GL_RGBA_INTEGER:
+            return COMPONENTS_4;
+        default:
+            // For unknown formats, be conservative and assume max components
+            return COMPONENTS_4;
+    }
+}
+
 bool WebGLRenderingContextBaseImpl::CheckStencil(napi_env env)
 {
     if (stencilMask_[0] != stencilMask_[1] || stencilFuncRef_[0] != stencilFuncRef_[1] ||
@@ -2746,12 +2779,69 @@ GLenum WebGLRenderingContextBaseImpl::CheckFrameBufferBoundComplete(napi_env env
     return WebGLRenderingContextBase::NO_ERROR;
 }
 
-GLenum WebGLRenderingContextBaseImpl::CheckReadPixelsArg(napi_env env, const PixelsArg& arg, uint64_t bufferSize)
+GLenum WebGLRenderingContextBaseImpl::CheckReadPixelsArg(napi_env env, const PixelsArg& arg, uint64_t bufferSize,
+    uint64_t dstOffset)
 {
     if (!CheckPixelsFormat(env, arg.format) || !CheckPixelsType(env, arg.type)) {
         return WebGLRenderingContextBase::INVALID_ENUM;
     }
-    return 0;
+
+    // Validate dstOffset - must not exceed buffer size
+    if (dstOffset > bufferSize) {
+        LOGE("WebGL readPixels dstOffset %{public}llu exceeds buffer size %{public}llu",
+            static_cast<unsigned long long>(dstOffset), static_cast<unsigned long long>(bufferSize));
+        return WebGLRenderingContextBase::INVALID_VALUE;
+    }
+
+    // Calculate remaining capacity after offset
+    uint64_t remainingCapacity = bufferSize - dstOffset;
+
+    // Calculate required bytes based on format and type
+    // Get bytes per component from type
+    uint32_t bytesPerComponent = WebGLArg::GetWebGLDataSize(arg.type);
+
+    // Get number of components based on format
+    uint32_t components = GetFormatComponentCount(arg.format);
+
+    // Validate width and height are positive
+    if (arg.width < 0 || arg.height < 0) {
+        LOGE("WebGL readPixels invalid width/height %{public}d %{public}d", arg.width, arg.height);
+        return WebGLRenderingContextBase::INVALID_VALUE;
+    }
+
+    // Calculate required bytes with overflow detection
+    // Step 1: bytesPerPixel = components * bytesPerComponent
+    uint64_t bytesPerPixel = static_cast<uint64_t>(components) * static_cast<uint64_t>(bytesPerComponent);
+    if (components > 0 && bytesPerPixel / static_cast<uint64_t>(components) !=
+        static_cast<uint64_t>(bytesPerComponent)) {
+        LOGE("WebGL readPixels overflow in bytesPerPixel calculation");
+        return WebGLRenderingContextBase::INVALID_VALUE;
+    }
+
+    // Step 2: rowBytes = width * bytesPerPixel
+    uint64_t width64 = static_cast<uint64_t>(arg.width);
+    uint64_t rowBytes = width64 * bytesPerPixel;
+    if (bytesPerPixel > 0 && rowBytes / bytesPerPixel != width64) {
+        LOGE("WebGL readPixels overflow in rowBytes calculation");
+        return WebGLRenderingContextBase::INVALID_VALUE;
+    }
+
+    // Step 3: requiredBytes = height * rowBytes
+    uint64_t height64 = static_cast<uint64_t>(arg.height);
+    uint64_t requiredBytes = height64 * rowBytes;
+    if (rowBytes > 0 && requiredBytes / rowBytes != height64) {
+        LOGE("WebGL readPixels overflow in requiredBytes calculation");
+        return WebGLRenderingContextBase::INVALID_VALUE;
+    }
+
+    // Validate remaining capacity is sufficient for required bytes
+    if (requiredBytes > remainingCapacity) {
+        LOGE("WebGL readPixels required bytes %{public}llu exceeds remaining capacity %{public}llu",
+            static_cast<unsigned long long>(requiredBytes), static_cast<unsigned long long>(remainingCapacity));
+        return WebGLRenderingContextBase::INVALID_VALUE;
+    }
+
+    return WebGLRenderingContextBase::NO_ERROR;
 }
 
 GLenum WebGLRenderingContextBaseImpl::CheckVertexAttribPointer(napi_env env, const VertexAttribArg& vertexInfo)

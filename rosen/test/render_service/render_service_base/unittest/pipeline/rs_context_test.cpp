@@ -222,6 +222,37 @@ HWTEST_F(RSContextTest, GetSetUnirenderVisibleLeashWindowCountTest001, TestSize.
 }
 
 /**
+ * @tc.name: GetUIFrameworkDirtyNodeNameMapTest001
+ * @tc.desc: GetUIFrameworkDirtyNodeNameMap test.
+ * @tc.type: FUNC
+ * @tc.require: issue22806
+ */
+HWTEST_F(RSContextTest, GetUIFrameworkDirtyNodeNameMapTest001, TestSize.Level1)
+{
+    RSContext rSContext;
+    constexpr NodeId nodeId1{1};
+    auto node1 = std::make_shared<RSRenderNode>(nodeId1, true);
+    node1->nodeName_ = "node1";
+    node1->SetDirty();
+    rSContext.uiFrameworkDirtyNodes_.emplace_back(node1);
+
+    constexpr NodeId nodeId2{2};
+    auto node2 = std::make_shared<RSRenderNode>(nodeId2, false);
+    node2->nodeName_ = "node2";
+    node2->SetDirty();
+    rSContext.uiFrameworkDirtyNodes_.emplace_back(node2);
+
+    constexpr NodeId nodeId3{3};
+    auto node3 = std::make_shared<RSRenderNode>(nodeId3, false);
+    node3->nodeName_ = "node3";
+    node3->ResetDirtyFlag();
+    rSContext.uiFrameworkDirtyNodes_.emplace_back(node3);
+
+    constexpr size_t expectedMapSize{2};
+    EXPECT_EQ(rSContext.GetUIFrameworkDirtyNodeNameMap().size(), expectedMapSize);
+}
+
+/**
  * @tc.name: SetBrightnessInfoChangeCallbackTest
  * @tc.desc: test SetBrightnessInfoChangeCallback.
  * @tc.type: FUNC

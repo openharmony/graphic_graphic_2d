@@ -73,7 +73,7 @@
 #include "modifier_ng/appearance/rs_outline_modifier.h"
 #include "modifier_ng/appearance/rs_particle_effect_modifier.h"
 #include "modifier_ng/appearance/rs_pixel_stretch_modifier.h"
-#include "modifier_ng/appearance/rs_point_light_modifier.h"
+#include "modifier_ng/appearance/rs_overlay_ng_shader_modifier.h"
 #include "modifier_ng/appearance/rs_shadow_modifier.h"
 #include "modifier_ng/appearance/rs_material_filter_modifier.h"
 #include "modifier_ng/appearance/rs_use_effect_modifier.h"
@@ -855,12 +855,6 @@ void RSNode::SetMotionPathOption(const std::shared_ptr<RSMotionPathOption>& moti
     UpdateModifierMotionPathOption();
 }
 
-void RSNode::SetMagnifierParams(const std::shared_ptr<RSMagnifierParams>& para)
-{
-    SetPropertyNG<ModifierNG::RSBackgroundFilterModifier, &ModifierNG::RSBackgroundFilterModifier::SetMagnifierParams>(
-        para);
-}
-
 const std::shared_ptr<RSMotionPathOption> RSNode::GetMotionPathOption() const
 {
     return motionPathOption_;
@@ -1007,6 +1001,17 @@ void RSNode::SetAlpha(float alpha)
 void RSNode::SetAlphaOffscreen(bool alphaOffscreen)
 {
     SetPropertyNG<ModifierNG::RSAlphaModifier, &ModifierNG::RSAlphaModifier::SetAlphaOffscreen>(alphaOffscreen);
+}
+
+void RSNode::MarkLayer(bool isLayer)
+{
+    CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
+    if (isLayer_ == isLayer) {
+        return;
+    }
+    isLayer_ = isLayer;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkLayer>(GetId(), isLayer_);
+    AddCommand(command, IsRenderServiceNode());
 }
 
 // Bounds
@@ -1679,7 +1684,7 @@ void RSNode::SetParticleParams(std::vector<ParticleParams>& particleParams, cons
     SetParticleDrawRegion(particleParams);
     auto property = std::make_shared<RSProperty<int>>();
     auto propertyId = property->GetId();
-    auto uiAnimation = std::make_shared<RSDummyAnimation>();
+    auto uiAnimation = std::make_shared<RSDummyAnimation>(rsUIContext_);
     auto animationId = uiAnimation->GetId();
     AddAnimation(uiAnimation);
     if (finishCallback != nullptr) {
@@ -1687,6 +1692,13 @@ void RSNode::SetParticleParams(std::vector<ParticleParams>& particleParams, cons
     }
     auto animation =
         std::make_shared<RSRenderParticleAnimation>(animationId, propertyId, std::move(particlesRenderParams));
+    // set token to RSRenderParticleAnimation
+    if (rsUIContext_ != nullptr) {
+        animation->SetParticleAnimationToken(rsUIContext_->GetToken());
+    } else {
+        ROSEN_LOGE("multi-instance, RSNode [%{public}" PRIu64 "] without RSUIContext "
+            "when creating particle animation [%{public}" PRIu64 "]", GetId(), animationId);
+    }
     ModifierId modifierId = ModifierNG::RSModifier::GenerateModifierId();
     std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCreateParticleNG>(GetId(), modifierId, animation);
     AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
@@ -1773,6 +1785,12 @@ void RSNode::SetParticleVelocityFields(const std::shared_ptr<ParticleVelocityFie
         &ModifierNG::RSParticleEffectModifier::SetParticleVelocityFields>(para);
 }
 
+void RSNode::SetParticleFields(const std::shared_ptr<ParticleFieldCollection>& para)
+{
+    SetPropertyNG<ModifierNG::RSParticleEffectModifier,
+        &ModifierNG::RSParticleEffectModifier::SetParticleFields>(para);
+}
+
 // foreground
 void RSNode::SetForegroundColor(uint32_t colorValue)
 {
@@ -1790,13 +1808,20 @@ void RSNode::SetBackgroundColor(uint32_t colorValue)
 void RSNode::SetBackgroundColor(RSColor color)
 {
     RSColor colorInP3 = color;
-    if (colorInP3.GetColorSpace() == GRAPHIC_COLOR_GAMUT_DISPLAY_P3) {
-        isP3Color_ = true;
-        std::unique_ptr<RSCommand> command = std::make_unique<RSMarkNodeColorSpace>(GetId(), isP3Color_);
+    if (colorInP3.GetColorSpace() == GRAPHIC_COLOR_GAMUT_DISPLAY_P3 ||
+        colorInP3.GetColorSpace() == GRAPHIC_COLOR_GAMUT_BT2020) {
+        collectColorSpace_ = static_cast<int8_t>(colorInP3.GetColorSpace());
+        std::unique_ptr<RSCommand> command = std::make_unique<RSMarkNodeColorSpace>(GetId(), collectColorSpace_);
         AddCommand(command, IsRenderServiceNode());
     }
 #ifndef ROSEN_CROSS_PLATFORM
-    color.ConvertToP3ColorSpace();
+#ifdef ROSEN_OHOS
+    if (colorInP3.GetColorSpace() != GRAPHIC_COLOR_GAMUT_BT2020) {
+        color.ConvertToP3ColorSpace();
+    }
+#else
+ 	color.ConvertToP3ColorSpace();
+#endif
 #endif
     SetPropertyNG<ModifierNG::RSBackgroundColorModifier, &ModifierNG::RSBackgroundColorModifier::SetBackgroundColor>(
         color);
@@ -2461,12 +2486,23 @@ void RSNode::SetBlender(const Blender* blender)
             SetShadowBlenderParams({ shadowBlender->GetCubicCoeff(), shadowBlender->GetQuadraticCoeff(),
                 shadowBlender->GetLinearCoeff(), shadowBlender->GetConstantTerm() });
         }
+    } else if (Blender::HDR_DARKEN_BLENDER == blender->GetBlenderType()) {
+        auto hdrDarkenBlender = static_cast<const HdrDarkenBlender*>(blender);
+        if (hdrDarkenBlender != nullptr) {
+            SetHdrDarkenBlenderParams({ hdrDarkenBlender->GetHdrBrightnessRatio(),
+                                        hdrDarkenBlender->GetGrayscaleFactor() });
+        }
     }
 }
 
 void RSNode::SetShadowBlenderParams(const RSShadowBlenderPara& params)
 {
     SetPropertyNG<ModifierNG::RSBlendModifier, &ModifierNG::RSBlendModifier::SetShadowBlenderParams>(params);
+}
+
+void RSNode::SetHdrDarkenBlenderParams(const RSHdrDarkenBlenderPara& params)
+{
+    SetPropertyNG<ModifierNG::RSBlendModifier, &ModifierNG::RSBlendModifier::SetHdrDarkenBlenderParams>(params);
 }
 
 void RSNode::SetForegroundEffectRadius(const float blurRadius)
@@ -2744,13 +2780,15 @@ void RSNode::SetGreyCoef(const Vector2f greyCoef)
 
 void RSNode::SetCompositingNGFilter(const std::shared_ptr<RSNGFilterBase>& compositingFilter)
 {
-    auto filter = compositingFilter;
-    if (filter == nullptr) {
-        MaterialParam materialParam = { 0.0, 1.0, 1.0, RSColor(), false };
-        filter = RSNGFilterHelper::CreateNGMaterialBlurFilter(materialParam);
+    if (!compositingFilter) {
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::COMPOSITING_FILTER);
+        if (modifier != nullptr) {
+            modifier->DetachProperty(ModifierNG::RSPropertyType::COMPOSITING_NG_FILTER);
+        }
+        return;
     }
     SetPropertyNG<ModifierNG::RSCompositingFilterModifier,
-        &ModifierNG::RSCompositingFilterModifier::SetNGFilterBase>(filter);
+        &ModifierNG::RSCompositingFilterModifier::SetNGFilterBase>(compositingFilter);
 }
 
 void RSNode::SetShadowColor(uint32_t colorValue)
@@ -2782,7 +2820,7 @@ void RSNode::SetShadowAlpha(float alpha)
 
 void RSNode::SetShadowElevation(float elevation)
 {
-    SetPropertyNG<ModifierNG::RSShadowModifier, &ModifierNG::RSShadowModifier::SetShadowRadius>(0);
+    SetPropertyNG<ModifierNG::RSShadowModifier, &ModifierNG::RSShadowModifier::SetShadowRadius>(DEFAULT_SHADOW_RADIUS);
     SetPropertyNG<ModifierNG::RSShadowModifier, &ModifierNG::RSShadowModifier::SetShadowElevation>(elevation);
 }
 
@@ -2877,6 +2915,16 @@ void RSNode::SetHDRBrightnessFactor(float factor)
         factor);
 }
 
+void RSNode::SetHDRColorHeadroom(const float& headroom)
+{
+    if (headroom < 1.0f) {
+        ROSEN_LOGE("SetHDRColorHeadroom only can be greater than or equal to one");
+        return;
+    }
+    SetPropertyNG<ModifierNG::RSHDRBrightnessModifier, &ModifierNG::RSHDRBrightnessModifier::SetHDRColorHeadroom>(
+        headroom);
+}
+
 void RSNode::SetVisible(bool visible)
 {
     // kick off transition only if it's on tree(has valid parent) and visibility is changed.
@@ -2913,19 +2961,37 @@ void RSNode::SetUseUnion(bool useUnion)
     SetPropertyNG<ModifierNG::RSBoundsModifier, &ModifierNG::RSBoundsModifier::SetUseUnion>(useUnion);
 }
 
+void RSNode::SetGravityPullCenterFlag(bool isGravityPullModeCenter)
+{
+    SetPropertyNG<ModifierNG::RSBoundsModifier,
+        &ModifierNG::RSBoundsModifier::SetGravityPullCenterFlag>(isGravityPullModeCenter);
+}
+
+void RSNode::SetGravityPullStrength(float gravityPullStrength)
+{
+    SetPropertyNG<ModifierNG::RSBoundsModifier,
+        &ModifierNG::RSBoundsModifier::SetGravityPullStrength>(gravityPullStrength);
+}
+
+void RSNode::SetGravityHotZone(float hotZone)
+{
+    SetPropertyNG<ModifierNG::RSBoundsModifier,
+        &ModifierNG::RSBoundsModifier::SetGravityHotZone>(hotZone);
+}
+
 void RSNode::SetSDFShape(const std::shared_ptr<RSNGShapeBase>& shape)
 {
     if (!shape) {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::BOUNDS);
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::CLIP_TO_BOUNDS);
         if (modifier == nullptr || !modifier->HasProperty(ModifierNG::RSPropertyType::SDF_SHAPE)) {
             return;
         }
         modifier->DetachProperty(ModifierNG::RSPropertyType::SDF_SHAPE);
         return;
     }
-    SetPropertyNG<ModifierNG::RSBoundsModifier, &ModifierNG::RSBoundsModifier::SetSDFShape>(shape);
+    SetPropertyNG<ModifierNG::RSBoundsClipModifier, &ModifierNG::RSBoundsClipModifier::SetSDFShape>(shape);
 }
 
 void RSNode::SetUseShadowBatching(bool useShadowBatching)
@@ -2982,7 +3048,7 @@ void RSNode::SetDistortionK(const float distortionK)
         distortionK);
 }
 
-void RSNode::SetFreeze(bool isFreeze)
+void RSNode::SetFreeze(bool isFreeze, bool isMarkedByUI)
 {
     ROSEN_LOGE("SetFreeze only support RSSurfaceNode and RSCanvasNode in uniRender");
 }
@@ -3287,18 +3353,6 @@ void RSNode::DoFlushModifier()
     }
 }
 
-bool RSNode::IsAnyModifierDeduplicationEnabled() const
-{
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-    // Check if any modifier on this node has deduplication enabled
-    for (const auto& [_, modifier] : modifiersNG_) {
-        if (modifier && modifier->IsDeduplicationEnabled()) {
-            return true;
-        }
-    }
-    return false;
-}
-
 const std::shared_ptr<RSPropertyBase> RSNode::GetProperty(const PropertyId& propertyId)
 {
     std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
@@ -3414,6 +3468,10 @@ void RSNode::UpdateOcclusionCullingStatus(bool enable, NodeId keyOcclusionNodeId
         std::make_unique<RSUpdateOcclusionCullingStatus>(GetId(), enable, keyOcclusionNodeId);
     AddCommand(command, IsRenderServiceNode());
 }
+
+void RSNode::SetSpatialEffectPara(const std::shared_ptr<SpatialEffectPara>& para) {}
+
+void RSNode::SetIsDepthBackground(bool isDepthBackground) {}
 
 void RSNode::MarkAllExtendModifierDirty()
 {
@@ -3711,7 +3769,7 @@ void RSNode::SetUIFirstSwitch(RSUIFirstSwitch uiFirstSwitch)
 void RSNode::SetLightIntensity(float lightIntensity)
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-    SetPropertyNG<ModifierNG::RSPointLightModifier, &ModifierNG::RSPointLightModifier::SetLightIntensity>(
+    SetPropertyNG<ModifierNG::RSOverlayNGShaderModifier, &ModifierNG::RSOverlayNGShaderModifier::SetLightIntensity>(
         lightIntensity);
 }
 
@@ -3719,7 +3777,8 @@ void RSNode::SetLightColor(uint32_t lightColorValue)
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
     auto lightColor = Color::FromArgbInt(lightColorValue);
-    SetPropertyNG<ModifierNG::RSPointLightModifier, &ModifierNG::RSPointLightModifier::SetLightColor>(lightColor);
+    SetPropertyNG<ModifierNG::RSOverlayNGShaderModifier, &ModifierNG::RSOverlayNGShaderModifier::SetLightColor>(
+        lightColor);
 }
 
 void RSNode::SetLightPosition(float positionX, float positionY, float positionZ)
@@ -3731,27 +3790,36 @@ void RSNode::SetLightPosition(float positionX, float positionY, float positionZ)
 void RSNode::SetLightPosition(const Vector4f& lightPosition)
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-    SetPropertyNG<ModifierNG::RSPointLightModifier, &ModifierNG::RSPointLightModifier::SetLightPosition>(lightPosition);
+    SetPropertyNG<ModifierNG::RSOverlayNGShaderModifier, &ModifierNG::RSOverlayNGShaderModifier::SetLightPosition>(
+        lightPosition);
 }
 
 void RSNode::SetIlluminatedBorderWidth(float illuminatedBorderWidth)
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-    SetPropertyNG<ModifierNG::RSPointLightModifier, &ModifierNG::RSPointLightModifier::SetIlluminatedBorderWidth>(
-        illuminatedBorderWidth);
+    SetPropertyNG<ModifierNG::RSOverlayNGShaderModifier,
+        &ModifierNG::RSOverlayNGShaderModifier::SetIlluminatedBorderWidth>(illuminatedBorderWidth);
 }
 
 void RSNode::SetIlluminatedType(uint32_t illuminatedType)
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-    SetPropertyNG<ModifierNG::RSPointLightModifier, &ModifierNG::RSPointLightModifier::SetIlluminatedType>(
+    SetPropertyNG<ModifierNG::RSOverlayNGShaderModifier, &ModifierNG::RSOverlayNGShaderModifier::SetIlluminatedType>(
         illuminatedType);
 }
 
 void RSNode::SetBloom(float bloomIntensity)
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-    SetPropertyNG<ModifierNG::RSPointLightModifier, &ModifierNG::RSPointLightModifier::SetBloom>(bloomIntensity);
+    SetPropertyNG<ModifierNG::RSOverlayNGShaderModifier, &ModifierNG::RSOverlayNGShaderModifier::SetBloom>(
+        bloomIntensity);
+}
+
+void RSNode::SetOverlayNGShader(const std::shared_ptr<RSNGShaderBase>& overlayShader)
+{
+    CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
+    SetPropertyNG<ModifierNG::RSOverlayNGShaderModifier,
+        &ModifierNG::RSOverlayNGShaderModifier::SetOverlayNGShader>(overlayShader);
 }
 
 void RSNode::SetAiInvert(const Vector4f& aiInvert)
@@ -4299,6 +4367,18 @@ RSNode::SharedPtr RSNode::GetChildByIndex(int index) const
     return children_.at(index).lock();
 }
 
+size_t RSNode::GetDescendantCount() const
+{
+    size_t count = children_.size();
+    for (const auto& child : children_) {
+        auto childNode = child.lock();
+        if (childNode) {
+            count += childNode->GetDescendantCount();
+        }
+    }
+    return count;
+}
+
 void RSNode::SetParent(WeakPtr parent)
 {
     parent_ = parent;
@@ -4384,8 +4464,8 @@ void RSNode::Dump(std::string& out) const
         out += "null";
     }
     out += "], outOfParent[" + std::to_string(static_cast<int>(outOfParent_));
-    out += "], hybridRenderCanvas[";
-    out += hybridRenderCanvas_ ? "true" : "false";
+    out += "], hybridRenderCanvas[" + std::string(hybridRenderCanvas_ ? "true" : "false");
+    DumpSubClass(out);
     out += "], animations[";
     for (const auto& [id, anim] : animations_) {
         out += "{id:" + std::to_string(id);

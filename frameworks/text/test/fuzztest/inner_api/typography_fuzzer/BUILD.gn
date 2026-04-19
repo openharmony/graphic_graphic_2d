@@ -53,6 +53,7 @@ ohos_fuzztest("TypographyFuzzTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "ipc:ipc_single",
     "image_framework:image_native",
   ]
   part_name = "graphic_2d"

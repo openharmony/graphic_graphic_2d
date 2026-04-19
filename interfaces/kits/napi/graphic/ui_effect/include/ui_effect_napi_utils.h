@@ -115,6 +115,7 @@ constexpr uint32_t NUM_28 = 28;
 constexpr uint32_t NUM_29 = 29;
 constexpr uint32_t NUM_30 = 30;
 constexpr uint32_t NUM_1000 = 1000;
+constexpr int32_t ERR_NO_PERMISSION = 201;
 constexpr int32_t ERR_NOT_SYSTEM_APP = 202;
 
 bool ConvertDoubleValueFromJsElement(napi_env env, napi_value jsObject, uint32_t idx, double& data);
@@ -128,6 +129,7 @@ bool ParseJsRGBAColor(napi_env env, napi_value jsValue, Vector4f& rgba);
 bool ParseJsPoint(napi_env env, napi_value jsObject, Vector2f& point);
 bool ParseJsLTRBRect(napi_env env, napi_value jsValue, Vector4f& ltrb);
 bool ParseJsVector3f(napi_env env, napi_value jsObject, Vector3f& values);
+bool ParsegrayscaleFactor(napi_env env, napi_value jsObject, Vector3f& values);
 } // namespace UIEffect
 
 class UIEffectNapiUtils {
@@ -135,6 +137,7 @@ public:
     static napi_valuetype GetType(napi_env env, napi_value root);
     static bool IsSystemApp();
     static bool IsFormRenderServiceCall();
+    static bool CheckPermission(const std::string& permission);
 private:
     static std::string GetBundleName();
 };

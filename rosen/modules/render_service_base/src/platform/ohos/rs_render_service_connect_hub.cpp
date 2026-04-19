@@ -15,6 +15,7 @@
 
 #include "rs_render_service_connect_hub.h"
 
+#include "app_image_observer_manager.h"
 #include <if_system_ability_manager.h>
 #include <iremote_stub.h>
 #include <iservice_registry.h>
@@ -24,9 +25,8 @@
 #include <thread>
 
 #include "message_parcel.h"
-#include "pipeline/rs_render_thread.h"
-#include "rs_client_to_render_connection_proxy.h"
-#include "rs_client_to_service_connection_proxy.h"
+#include "transaction/zidl/rs_client_to_service_connection_proxy.h"
+#include "transaction/zidl/rs_client_to_render_connection_proxy.h"
 #include "rs_render_service_proxy.h"
 #include "pipeline/rs_render_thread.h"
 #include "platform/common/rs_log.h"
@@ -161,7 +161,9 @@ bool RSRenderServiceConnectHub::Connect()
     if (token_ == nullptr) {
         token_ = new IRemoteStub<RSIConnectionToken>();
     }
-    auto [conn, renderConn] = renderService->CreateConnection(token_);
+    bool needRefresh = AppExecFwk::AppImageObserverManager::GetInstance().IsBeforeImageCreationPoint();
+    ROSEN_LOGI("RSRenderServiceConnectHub call CreateConnection, needRefresh:[%{public}d]", needRefresh);
+    auto [conn, renderConn] = renderService->CreateConnection(token_, needRefresh);
 
     if (conn == nullptr || renderConn == nullptr) {
         ROSEN_LOGD("RSRenderServiceConnectHub::Connect, failed to CreateConnection to render service.");
@@ -173,7 +175,7 @@ bool RSRenderServiceConnectHub::Connect()
     renderConn_ = renderConn;
 
     if (onConnectCallback_) {
-        onConnectCallback_(conn_);
+        onConnectCallback_(renderConn_);
     }
 
     return true;

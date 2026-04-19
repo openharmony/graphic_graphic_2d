@@ -106,6 +106,7 @@ public:
     static napi_value Scale(napi_env env, napi_callback_info info);
     static napi_value SetMatrix(napi_env env, napi_callback_info info);
     static napi_value ResetMatrix(napi_env env, napi_callback_info info);
+    static napi_value ResetClip(napi_env env, napi_callback_info info);
     static napi_value Translate(napi_env env, napi_callback_info info);
     static napi_value GetLocalClipBounds(napi_env env, napi_callback_info info);
     static napi_value QuickRejectPath(napi_env env, napi_callback_info info);
@@ -174,6 +175,7 @@ private:
     napi_value OnScale(napi_env env, napi_callback_info info);
     napi_value OnSetMatrix(napi_env env, napi_callback_info info);
     napi_value OnResetMatrix(napi_env env, napi_callback_info info);
+    napi_value OnResetClip(napi_env env, napi_callback_info info);
     napi_value OnTranslate(napi_env env, napi_callback_info info);
     napi_value OnDrawBackground(napi_env env, napi_callback_info info);
     napi_value OnDrawRoundRect(napi_env env, napi_callback_info info);

@@ -20,6 +20,7 @@
 #include "modifier/rs_property.h"
 #include "ui/rs_node.h"
 #include "ui/rs_canvas_node.h"
+#include "ui/rs_ui_context_manager.h"
 #include "animation/rs_curve_animation.h"
 #include "animation/rs_keyframe_animation.h"
 #include <unistd.h>
@@ -64,9 +65,10 @@ void RSImplicitAnimationParamTest::TearDown() {}
  */
 HWTEST_F(RSImplicitAnimationParamTest, ApplyTimingProtocolTest, Level1)
 {
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
     RSAnimationTimingProtocol timingProtocol;
     RSImplicitAnimationParam rsImplicitAnimationParam(timingProtocol, ImplicitAnimationParamType::CURVE);
-    auto animation = std::make_shared<RSAnimation>();
+    auto animation = std::make_shared<RSAnimation>(rsUIContext);
     rsImplicitAnimationParam.ApplyTimingProtocol(animation);
     ASSERT_NE(animation, nullptr);
 }
@@ -97,7 +99,8 @@ HWTEST_F(RSImplicitAnimationParamTest, AddKeyframe001, TestSize.Level1)
     animationParam->AddKeyframe(animation, startDuration, startValue, endValue);
     EXPECT_TRUE(animationParam != nullptr);
 
-    std::shared_ptr<RSAnimation> animation1 = std::make_shared<RSKeyframeAnimation>(property);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    std::shared_ptr<RSAnimation> animation1 = std::make_shared<RSKeyframeAnimation>(rsUIContext, property);
     animationParam->AddKeyframe(animation1, startDuration, startValue, endValue);
     EXPECT_TRUE(animationParam != nullptr);
 
@@ -127,7 +130,8 @@ HWTEST_F(RSImplicitAnimationParamTest, AddKeyframe002, TestSize.Level1)
     auto startValue = std::make_shared<RSAnimatableProperty<float>>(100.f);
     auto endValue = std::make_shared<RSAnimatableProperty<float>>(200.f);
 
-    std::shared_ptr<RSAnimation> animation = std::make_shared<RSKeyframeAnimation>(property);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    std::shared_ptr<RSAnimation> animation = std::make_shared<RSKeyframeAnimation>(rsUIContext, property);
     animationParam->AddKeyframe(animation, startDuration, startValue, endValue);
     EXPECT_TRUE(animationParam != nullptr);
 
@@ -157,7 +161,8 @@ HWTEST_F(RSImplicitAnimationParamTest, CreateAnimation001, TestSize.Level1)
     auto startValue = std::make_shared<RSAnimatableProperty<float>>(100.f);
     auto endValue = std::make_shared<RSAnimatableProperty<float>>(200.f);
 
-    animationParam->CreateAnimation(property, true, startDuration, startValue, endValue);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    animationParam->CreateAnimation(rsUIContext, property, true, startDuration, startValue, endValue);
     EXPECT_TRUE(animationParam != nullptr);
 
     GTEST_LOG_(INFO) << "RSImplicitAnimationParamTest CreateAnimation001 end";
@@ -185,8 +190,9 @@ HWTEST_F(RSImplicitAnimationParamTest, CreateAnimation002, TestSize.Level1)
     auto property = std::make_shared<RSAnimatableProperty<float>>(100.f);
     auto startValue = std::make_shared<RSAnimatableProperty<float>>(100.f);
     auto endValue = std::make_shared<RSAnimatableProperty<float>>(200.f);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
 
-    animationParam->CreateAnimation(property, true, startDuration, startValue, endValue);
+    animationParam->CreateAnimation(rsUIContext, property, true, startDuration, startValue, endValue);
     EXPECT_TRUE(animationParam != nullptr);
 
     GTEST_LOG_(INFO) << "RSImplicitAnimationParamTest CreateAnimation002 end";
@@ -207,7 +213,8 @@ HWTEST_F(RSImplicitAnimationParamTest, CreateAnimation003, TestSize.Level1)
     auto property = std::make_shared<RSAnimatableProperty<float>>(1.f);
     auto startValue = std::make_shared<RSAnimatableProperty<float>>(0.f);
     auto endValue = std::make_shared<RSAnimatableProperty<float>>(1.f);
-    ASSERT_TRUE(param.CreateAnimation(property, startValue, endValue));
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    ASSERT_TRUE(param.CreateAnimation(rsUIContext, property, startValue, endValue));
 }
 
 /**
@@ -225,7 +232,8 @@ HWTEST_F(RSImplicitAnimationParamTest, CreateAnimation004, TestSize.Level1)
     auto property = std::make_shared<MockCmdListProperty>(1.f);
     auto startValue = std::make_shared<MockCmdListProperty>(0.f);
     auto endValue = std::make_shared<MockCmdListProperty>(1.f);
-    ASSERT_TRUE(param.CreateAnimation(property, startValue, endValue));
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    ASSERT_TRUE(param.CreateAnimation(rsUIContext, property, startValue, endValue));
 }
 
 /**
@@ -380,8 +388,9 @@ HWTEST_F(RSImplicitAnimationParamTest, CreateEmptyAnimationTest, TestSize.Level1
     auto property = std::make_shared<RSAnimatableProperty<float>>(1.f);
     auto startValue = std::make_shared<RSAnimatableProperty<float>>(0.f);
     auto endValue = std::make_shared<RSAnimatableProperty<float>>(1.f);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
 
-    ASSERT_TRUE(animationParam.CreateEmptyAnimation(property, startValue, endValue));
+    ASSERT_TRUE(animationParam.CreateEmptyAnimation(rsUIContext, property, startValue, endValue));
 }
 
 /**
@@ -400,6 +409,7 @@ HWTEST_F(RSImplicitAnimationParamTest, CreateAnimationTest, TestSize.Level1)
     auto property = std::make_shared<RSAnimatableProperty<float>>(1.f);
     auto startValue = std::make_shared<RSAnimatableProperty<float>>(0.f);
     auto endValue = std::make_shared<RSAnimatableProperty<float>>(1.f);
-    ASSERT_TRUE(animationParam.CreateAnimation(property, startValue, endValue));
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    ASSERT_TRUE(animationParam.CreateAnimation(rsUIContext, property, startValue, endValue));
 }
 } // namespace OHOS::Rosen

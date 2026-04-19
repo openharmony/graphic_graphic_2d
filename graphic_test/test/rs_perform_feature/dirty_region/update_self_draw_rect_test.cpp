@@ -112,7 +112,8 @@ public:
         int duration = 500; // the animation lasts for 0.5 second
         protocol.SetDuration(duration);
         auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-        RSNode::Animate(protocol, timingCurve, [&]() {
+        std::shared_ptr<RSUIContext> rsUIContext;
+        RSNode::Animate(rsUIContext, protocol, timingCurve, [&]() {
             canvasNode->SetTranslate(translate);
         }, []() {
             std::cout << "animation finish callback" << std::endl;
@@ -708,105 +709,6 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Foreground02)
 
     GetRootNode()->AddChild(testNode);
     GetRootNode()->AddChild(testNode2);
-
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
-    usleep(SLEEP_TIME_FOR_PROXY);
-    TestCaseCapture();
-}
-
-/*
- * @tc.name: Magnifier01
- * @tc.desc: test self draw rect changed, add Magnifier with small size
- * @tc.type: FUNC
- * @tc.require: issue21219
- */
-GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Magnifier01)
-{
-    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, DEFAULT_BOUNDS);
-    RegisterNode(testNode);
-    testNode->SetTranslate({ 0, 0 });
-    DoAnimation(testNode, DEFAULT_TRANSLATE);
-
-    auto testNodeBackGround = SetUpNodeBgImage(TEST_IMG_PATH, { 0, 0, screenSize.x_, screenSize.y_ });
-    RegisterNode(testNodeBackGround);
-    auto magnifierParams = std::make_shared<Rosen::RSMagnifierParams>();
-    magnifierParams->factor_ = 3;
-    magnifierParams->width_ = 150;
-    magnifierParams->height_ = 150;
-    magnifierParams->cornerRadius_ = 15;
-    magnifierParams->borderWidth_ = 3;
-    magnifierParams->offsetX_ = 15;
-    magnifierParams->offsetY_ = 15;
-    testNodeBackGround->SetMagnifierParams(magnifierParams);
-    
-    GetRootNode()->AddChild(testNodeBackGround);
-    GetRootNode()->AddChild(testNode);
-
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
-    usleep(SLEEP_TIME_FOR_PROXY);
-    TestCaseCapture();
-}
-
-/*
- * @tc.name: Magnifier02
- * @tc.desc: test self draw rect changed, add Magnifier with medium size
- * @tc.type: FUNC
- * @tc.require: issue21219
- */
-GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Magnifier02)
-{
-    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, DEFAULT_BOUNDS);
-    RegisterNode(testNode);
-    testNode->SetTranslate({ 0, 0 });
-    DoAnimation(testNode, DEFAULT_TRANSLATE);
-
-    auto testNodeBackGround = SetUpNodeBgImage(TEST_IMG_PATH, { 0, 0, screenSize.x_, screenSize.y_ });
-    RegisterNode(testNodeBackGround);
-    auto magnifierParams = std::make_shared<Rosen::RSMagnifierParams>();
-    magnifierParams->factor_ = 5;
-    magnifierParams->width_ = 500;
-    magnifierParams->height_ = 500;
-    magnifierParams->cornerRadius_ = 50;
-    magnifierParams->borderWidth_ = 10;
-    magnifierParams->offsetX_ = 50;
-    magnifierParams->offsetY_ = 50;
-    testNodeBackGround->SetMagnifierParams(magnifierParams);
-    
-    GetRootNode()->AddChild(testNodeBackGround);
-    GetRootNode()->AddChild(testNode);
-
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
-    usleep(SLEEP_TIME_FOR_PROXY);
-    TestCaseCapture();
-}
-
-/*
- * @tc.name: Magnifier03
- * @tc.desc: test self draw rect changed, add Magnifier with big size
- * @tc.type: FUNC
- * @tc.require: issue21219
- */
-GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Magnifier03)
-{
-    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, DEFAULT_BOUNDS);
-    RegisterNode(testNode);
-    testNode->SetTranslate({ 0, 0 });
-    DoAnimation(testNode, DEFAULT_TRANSLATE);
-
-    auto testNodeBackGround = SetUpNodeBgImage(TEST_IMG_PATH, { 0, 0, screenSize.x_, screenSize.y_ });
-    RegisterNode(testNodeBackGround);
-    auto magnifierParams = std::make_shared<Rosen::RSMagnifierParams>();
-    magnifierParams->factor_ = 10;
-    magnifierParams->width_ = 1000;
-    magnifierParams->height_ = 1000;
-    magnifierParams->cornerRadius_ = 100;
-    magnifierParams->borderWidth_ = 10;
-    magnifierParams->offsetX_ = 100;
-    magnifierParams->offsetY_ = 100;
-    testNodeBackGround->SetMagnifierParams(magnifierParams);
-    
-    GetRootNode()->AddChild(testNodeBackGround);
-    GetRootNode()->AddChild(testNode);
 
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);

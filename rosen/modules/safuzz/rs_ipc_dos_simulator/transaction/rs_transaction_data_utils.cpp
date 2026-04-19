@@ -32,6 +32,8 @@
 #include "command/rs_proxy_node_command_utils.h"
 #include "command/rs_root_node_command_utils.h"
 #include "command/rs_surface_node_command_utils.h"
+#include "command/rs_union_node_command_utils.h"
+#include "command/rs_window_keyframe_node_command_utils.h"
 #include "common/safuzz_log.h"
 #include "random/random_engine.h"
 #include "tools/common_utils.h"
@@ -73,7 +75,6 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyFlyOut),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyLinearGradientBlurPara),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyMotionBlurPara),
-    DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyMagnifierPara),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyEmitterUpdater),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyParticleNoiseFields),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyParticleRippleFields),
@@ -92,6 +93,7 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyVectorVector4f),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyPixelMap),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyShadowBlenderPara),
+    DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyHdrDarkenBlenderPara),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyShort),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSSetFreeze),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSSetNodeName),
@@ -101,6 +103,7 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     DECLARE_ADD_RANDOM(RSNodeCommand, RSMarkNodeSingleFrameComposer),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSMarkSuggestOpincNode),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSMarkLayerPartRender),
+    DECLARE_ADD_RANDOM(RSNodeCommand, RSMarkLayer),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSMarkUifirstNode),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSForceUifirstNode),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSSetUIFirstSwitch),
@@ -179,6 +182,7 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetContainerWindowTransparent),
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetClonedNodeId),
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetAppRotationCorrection),
+    DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetHDRType),
 
     /********** RSProxyNodeCommand **********/
     DECLARE_ADD_RANDOM(RSProxyNodeCommand, RSProxyNodeCreate),
@@ -194,6 +198,7 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     /********** RSDisplayNodeCommand **********/
     DECLARE_ADD_RANDOM(RSDisplayNodeCommand, RSDisplayNodeCreate),
     DECLARE_ADD_RANDOM(RSDisplayNodeCommand, RSDisplayNodeSetScreenId),
+    DECLARE_ADD_RANDOM(RSDisplayNodeCommand, RSDisplayNodeSetDisplayContentRect),
     DECLARE_ADD_RANDOM(RSDisplayNodeCommand, RSDisplayNodeSetSecurityDisplay),
     DECLARE_ADD_RANDOM(RSDisplayNodeCommand, RSDisplayNodeSetVirtualScreenMuteStatus),
     DECLARE_ADD_RANDOM(RSDisplayNodeCommand, RSDisplayNodeSetDisplayMode),
@@ -243,6 +248,13 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     /********** RSFrameRateLinkerCommand **********/
     DECLARE_ADD_RANDOM(RSFrameRateLinkerCommand, RSFrameRateLinkerDestroy),
     DECLARE_ADD_RANDOM(RSFrameRateLinkerCommand, RSFrameRateLinkerUpdateRange),
+
+    /********** RSUnionNodeCommand **********/
+    DECLARE_ADD_RANDOM(RSUnionNodeCommand, RSUnionNodeCreate),
+
+    /********** RSWindowKeyFrameNodeCommand **********/
+    DECLARE_ADD_RANDOM(RSWindowKeyFrameNodeCommand, RSWindowKeyFrameNodeCreate),
+    DECLARE_ADD_RANDOM(RSWindowKeyFrameNodeCommand, RSWindowKeyFrameNodeLinkNode),
 };
 }
 
@@ -333,7 +345,7 @@ std::function<bool(std::unique_ptr<RSTransactionData>&)> RSTransactionDataUtils:
 bool RSTransactionDataVariant::Marshalling(Parcel& parcel) const
 {
     bool success = true;
-    parcel.SetMaxCapacity(PARCEL_MAX_CPACITY_VARIANT);
+    parcel.SetMaxCapacity(PARCEL_MAX_CAPACITY_VARIANT);
     // to correct actual marshaled command size later, record its position in parcel
     size_t recordPosition = parcel.GetWritePosition();
     std::unique_lock<std::mutex> lock(commandMutex_);

@@ -73,7 +73,7 @@ void DoSubmitCanvasPreAllocatedBuffer(FuzzedDataProvider& fdp)
 /* Fuzzer environment initialization */
 extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
 {
-    g_renderInterface = &RSRenderInterface::GetInstance();
+    g_renderInterface = new RSRenderInterface();
     return 0;
 }
 

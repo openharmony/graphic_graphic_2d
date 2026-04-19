@@ -29,6 +29,7 @@
 #include "draw/color.h"
 #include "draw/core_canvas.h"
 #include "effect/blender.h"
+#include "effect/particle_effect.h"
 #include "utils/log.h"
 #include "utils/rect.h"
 
@@ -1027,6 +1028,43 @@ uint32_t CmdListHelper::AddDrawingObjectToCmdList(CmdList& cmdList, std::shared_
 std::shared_ptr<Object> CmdListHelper::GetDrawingObjectFromCmdList(const CmdList& cmdList, uint32_t index)
 {
     return (const_cast<CmdList&>(cmdList)).GetDrawingObject(index);
+}
+
+OpDataHandle CmdListHelper::AddParticleEffectToCmdList(CmdList& cmdList,
+    const std::shared_ptr<ParticleEffect>& particleEffect)
+{
+    if (particleEffect == nullptr) {
+        LOGE("particleEffect is nullptr!");
+        return { 0 };
+    }
+    auto data = particleEffect->Serialize();
+    if (data == nullptr || data->GetSize() == 0) {
+        LOGE("particleEffect is invalid, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return { 0 };
+    }
+    auto offset = cmdList.AddImageData(data->GetData(), data->GetSize());
+    return { offset, data->GetSize() };
+}
+
+std::shared_ptr<ParticleEffect> CmdListHelper::GetParticleEffectFromCmdList(const CmdList& cmdList,
+    const OpDataHandle& particleEffectHandle)
+{
+    if (particleEffectHandle.size == 0) {
+        return nullptr;
+    }
+
+    const void* ptr = cmdList.GetImageData(particleEffectHandle.offset, particleEffectHandle.size);
+    if (ptr == nullptr) {
+        return nullptr;
+    }
+    auto particleData = std::make_shared<Data>();
+    particleData->BuildWithoutCopy(ptr, particleEffectHandle.size);
+    auto particleEffect = std::make_shared<ParticleEffect>();
+    if (particleEffect->Deserialize(particleData) == false) {
+        LOGE("particleEffect deserialize failed!");
+        return nullptr;
+    }
+    return particleEffect;
 }
 } // namespace Drawing
 } // namespace Rosen

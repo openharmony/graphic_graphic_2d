@@ -16,7 +16,6 @@
 #ifndef ROSEN_RENDER_SERVICE_BASE_ANIMATION_RS_FRAME_RATE_RANGE_H
 #define ROSEN_RENDER_SERVICE_BASE_ANIMATION_RS_FRAME_RATE_RANGE_H
 #include <string>
-#include <string_view>
 #include <unordered_map>
 
 #define RANGE_MAX_REFRESHRATE 144
@@ -48,8 +47,6 @@ constexpr uint32_t OTHER_DISPLAY_SYNC_FRAME_RATE_TYPE = (1 << 24);
 constexpr uint32_t DISPLAY_SYNC_FRAME_RATE_TYPE = (0b111 << 22);
 
 constexpr uint32_t FRAME_RATE_TYPE_MAX_BIT = 32;
-
-inline constexpr std::string_view SWIPER_DRAG_SCENE = "swiper_drag_scene";
 
 enum ComponentScene : int32_t {
     UNKNOWN_SCENE = 0,
@@ -110,6 +107,15 @@ public:
         this->type_ = type;
     }
 
+    void Set(int min, int max, int preferred, uint32_t type, ComponentScene componentScene)
+    {
+        this->min_ = min;
+        this->max_ = max;
+        this->preferred_ = preferred;
+        this->type_ = type;
+        this->componentScene_ = componentScene;
+    }
+
     bool Merge(const FrameRateRange& other)
     {
         if (other.IsValid()) {
@@ -120,9 +126,6 @@ public:
             this->isEnergyAssurance_ = other.isEnergyAssurance_;
             this->componentScene_ = other.componentScene_;
             return true;
-        }
-        if (this->preferred_ == other.preferred_ && other.componentScene_ == ComponentScene::SWIPER_FLING) {
-            this->componentScene_ = other.componentScene_;
         }
         return false;
     }

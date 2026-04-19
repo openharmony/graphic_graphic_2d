@@ -196,6 +196,23 @@ static const std::vector<struct JsEnumInt> FONT_EDGING = {
     { "SUBPIXEL_ANTI_ALIAS", static_cast<size_t>(Drawing::FontEdging::SUBPIXEL_ANTI_ALIAS) },
 };
 
+static const std::vector<struct JsEnumInt> TEXT_PROCESS_STATE = {
+    { "INIT", static_cast<size_t>(TextProcessState::INIT) },
+    { "INDEXED", static_cast<size_t>(TextProcessState::INDEXED) },
+    { "SHAPED", static_cast<size_t>(TextProcessState::SHAPED) },
+    { "LINE_BROKEN", static_cast<size_t>(TextProcessState::LINE_BROKEN) },
+    { "FORMATTED", static_cast<size_t>(TextProcessState::FORMATTED) },
+    { "PAINT", static_cast<size_t>(TextProcessState::PAINT) },
+    { "UPDATE_ATTRIBUTE", static_cast<size_t>(TextProcessState::UPDATE_ATTRIBUTE) },
+};
+
+static const std::vector<struct JsEnumInt> TEXT_DISPLAY_STATE = {
+    { "UNKNOWN", static_cast<size_t>(TextDisplayState::UNKNOWN) },
+    { "ALL", static_cast<size_t>(TextDisplayState::ALL) },
+    { "CLIP", static_cast<size_t>(TextDisplayState::CLIP) },
+    { "OMITTED", static_cast<size_t>(TextDisplayState::OMITTED) },
+};
+
 const std::map<std::string_view, const std::vector<struct JsEnumInt>&> INT_ENUM_CLASS_MAP = {
     { "TextAlign", TEXT_ALIGN },
     { "TextDecorationStyle", TEXT_DECORATION_STYLE },
@@ -219,6 +236,8 @@ const std::map<std::string_view, const std::vector<struct JsEnumInt>&> INT_ENUM_
     { "TextUndefinedGlyphDisplay", TEXT_UNDEFINED_GLYPH_DISPLAY },
     { "TextVerticalAlign", TEXT_VERTICAL_ALIGN },
     { "LineHeightStyle", LINE_HEIGHT_STYLE },
+    { "TextProcessState", TEXT_PROCESS_STATE },
+    { "TextDisplayState", TEXT_DISPLAY_STATE },
     { "FontEdging", FONT_EDGING },
 };
 

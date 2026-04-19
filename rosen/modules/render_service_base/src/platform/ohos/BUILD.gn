@@ -62,12 +62,13 @@ ohos_source_set("rosen_ohos_sources") {
     "rs_render_pipeline_client.cpp",
     "rs_render_service_client.cpp",
     "rs_render_service_connect_hub.cpp",
-    "rs_client_to_render_connection_proxy.cpp",
-    "rs_client_to_service_connection_proxy.cpp",
     "rs_render_service_proxy.cpp",
     "rs_surface_ohos_converter.cpp",
     "rs_system_properties.cpp",
     "rs_vsync_client_ohos.cpp",
+    "transaction/zidl/rs_client_to_render_connection_proxy.cpp",
+    "transaction/zidl/rs_client_to_service_connection_proxy.cpp",
+    "transaction/zidl/rs_connect_to_render_process_proxy.cpp",
   ]
 
   if (accessibility_enable) {
@@ -148,13 +149,13 @@ ohos_source_set("rosen_ohos_sources") {
     include_dirs += [ "$graphic_2d_root/interfaces/inner_api/common" ]
 
     public_deps += [
-      "$graphic_2d_root:libvulkan",
       "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
       "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
     ]
   }
 
   external_deps = [
+    "ability_runtime:application_image_observer_manager",
     "c_utils:utils",
     "cJSON:cjson",
     "eventhandler:libeventhandler",
@@ -172,6 +173,10 @@ ohos_source_set("rosen_ohos_sources") {
     "skia:skia_canvaskit",
     "window_manager:libwsutils",
   ]
+
+  if (graphic_2d_feature_enable_vulkan) {
+    external_deps += [ "vulkan-loader:vulkan_loader" ]
+  }
 
   if (rosen_is_ohos) {
     external_deps += ["ffrt:libffrt",]

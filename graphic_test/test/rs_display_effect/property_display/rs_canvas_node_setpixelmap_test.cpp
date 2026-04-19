@@ -644,7 +644,7 @@ GRAPHIC_TEST(RSCanvasNodeSetPixelmapTest, CONTENT_DISPLAY_TEST, RSCanvasNodeSetP
     auto pixelMap = DecodePixelMap("/data/local/tmp/appearance_test.jpg",
                                    Media::AllocatorType::SHARE_MEM_ALLOC);
 
-    std::vector<float> shadowRadius = { 0, 10, 20 };
+    std::vector<float> shadowRadius = { -1, 10, 20 };
     std::vector<float> offsetX = { 0, 5, 10 };
 
     for (size_t row = 0; row < shadowRadius.size(); row++) {

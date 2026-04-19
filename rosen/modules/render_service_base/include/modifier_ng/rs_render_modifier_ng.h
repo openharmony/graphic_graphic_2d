@@ -82,9 +82,19 @@ public:
     void Dump(std::string& out, const std::string& splitStr) const
     {
         for (auto& [type, property] : properties_) {
-            out += RSModifierTypeString::GetPropertyTypeString(type) + (IsCustom() ? ":[" : "");
+            bool custom = IsCustom();
+            out += RSModifierTypeString::GetPropertyTypeString(type) + ":";
+            if (IsDeduplicationEnabled()) {
+                out += "[IsDeduplicationEnabled: true], ";
+            }
+            if (custom) {
+                out += "[";
+            }
             property->Dump(out);
-            out += (IsCustom() ? "]" : "") + splitStr;
+            if (custom) {
+                out += "]";
+            }
+            out += splitStr;
         }
     }
 
@@ -157,8 +167,9 @@ public:
         return true;
     }
 
-    bool Marshalling(Parcel& parcel) const;
-    [[nodiscard]] static std::shared_ptr<RSRenderModifier> Unmarshalling(Parcel& parcel);
+    bool Marshalling(Parcel& parcel, bool includeEnableDeduplication = true) const;
+    [[nodiscard]] static std::shared_ptr<RSRenderModifier> Unmarshalling(
+        Parcel& parcel, bool includeEnableDeduplication = true);
 
     inline bool HasProperty(RSPropertyType type) const
     {

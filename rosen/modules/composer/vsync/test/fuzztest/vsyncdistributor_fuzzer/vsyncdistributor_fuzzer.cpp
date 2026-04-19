@@ -93,7 +93,7 @@ namespace OHOS {
         int32_t highPriorityRate = GetData<int32_t>();
         int64_t windowNodeId = GetData<int64_t>();
         uint32_t vsyncMaxRefreshRate = GetData<uint32_t>();
-        int64_t timestamp = GetData<int64_t>();
+        // int64_t timestamp = GetData<int64_t>(); car 2 compile
         uint32_t pid = GetData<uint32_t>();
         bool isSystemAnimateScene = GetData<bool>();
         uint64_t id = GetData<uint64_t>();
@@ -117,9 +117,9 @@ namespace OHOS {
         vsyncDistributor->RemoveConnection(conn);
         std::mutex mutex;
         std::unique_lock<std::mutex> locker(mutex);
-        vsyncDistributor->WaitForVsyncOrTimeOut(locker);
+        // vsyncDistributor->WaitForVsyncOrTimeOut(locker); car 2 compile
         std::vector<sptr<Rosen::VSyncConnection>> conns = {conn};
-        vsyncDistributor->PostVSyncEventPreProcess(timestamp, conns);
+        // vsyncDistributor->PostVSyncEventPreProcess(timestamp, conns); car 2 compile
         vsyncDistributor->EnableVSync();
         vsyncDistributor->DisableVSync();
         std::string name = GetStringFromData(STR_LEN);
@@ -128,9 +128,9 @@ namespace OHOS {
         vsyncDistributor->SetQosVSyncRate(id, rate, isSystemAnimateScene);
         vsyncDistributor->ChangeConnsRateLocked(vsyncMaxRefreshRate);
         vsyncDistributor->SetFrameIsRender(isRender);
-        vsyncDistributor->MarkRSAnimate();
-        vsyncDistributor->UnmarkRSAnimate();
-        vsyncDistributor->HasPendingUIRNV();
+        // vsyncDistributor->MarkRSAnimate();  car 2 compile
+        // vsyncDistributor->UnmarkRSAnimate(); car 2 compile
+        // vsyncDistributor->HasPendingUIRNV(); car 2 compile
         return true;
     }
 

@@ -26,6 +26,7 @@
 #include "txt/platform.h"
 #include "txt/text_style.h"
 #include "txt/variation_font_cache.h"
+#include "utils/text_log.h"
 
 namespace txt {
 FontCollection::FontCollection()
@@ -148,6 +149,7 @@ sk_sp<skia::textlayout::FontCollection> FontCollection::CreateSktFontCollection(
         if (!enableFontFallback_) {
             sktFontCollection_->disableFontFallback();
         }
+        sktFontCollection_->setCachesEnabled(paragraphCacheEnabled_);
         // Register internal clone callback using std::bind
         // This callback handles variation typeface cloning through VariationFontCache
         auto internalCallback = [this](
@@ -209,6 +211,16 @@ void FontCollection::RemoveVariationCacheByOriginalUniqueId(uint32_t originalUni
 {
     if (variationFontCache_ != nullptr) {
         variationFontCache_->RemoveByOriginalUniqueId(originalUniqueId);
+    }
+}
+
+void FontCollection::SetCachesEnabled(bool enable)
+{
+    std::unique_lock lock(collectionMutex_);
+    paragraphCacheEnabled_ = enable;
+    TEXT_LOGI("Paragraph cache enabled: %{public}d", enable);
+    if (sktFontCollection_ != nullptr) {
+        sktFontCollection_->setCachesEnabled(enable);
     }
 }
 } // namespace txt

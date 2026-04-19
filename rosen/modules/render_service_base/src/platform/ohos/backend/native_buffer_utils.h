@@ -51,8 +51,7 @@ struct DestroySemaphoreInfo {
             return;
         }
         DestroySemaphoreInfo* info = reinterpret_cast<DestroySemaphoreInfo*>(context);
-        --info->mRefs;
-        if (info->mRefs == 0) {
+        if (info->mRefs.fetch_sub(1, std::memory_order_acq_rel) == 1) {
             info->mDestroyFunction(info->mDevice, info->mSemaphore, nullptr);
             delete info;
         }
@@ -64,21 +63,15 @@ constexpr uint32_t VKIMAGE_LIMIT_SIZE = 10000 * 10000; // Vk-Image Size need les
 void DeleteVkImage(void* context);
 class VulkanCleanupHelper {
 public:
-    VulkanCleanupHelper(RsVulkanContext& vkContext, VkImage image, VkDeviceMemory memory,
-        const std::string& statName = "")
+    VulkanCleanupHelper(RsVulkanContext& vkContext, VkImage image, VkDeviceMemory memory)
         : fDevice_(vkContext.GetDevice()),
           fImage_(image),
           fMemory_(memory),
           fDestroyImage_(vkContext.GetRsVulkanInterface().vkDestroyImage),
           fFreeMemory_(vkContext.GetRsVulkanInterface().vkFreeMemory),
-          fStatName(statName),
           fRefCnt_(1) {}
     ~VulkanCleanupHelper()
     {
-        if (fStatName.length()) {
-            RsVulkanMemStat& memStat = RsVulkanContext::GetSingleton().GetRsVkMemStat();
-            memStat.DeleteResource(fStatName);
-        }
         fDestroyImage_(fDevice_, fImage_, nullptr);
         fFreeMemory_(fDevice_, fMemory_, nullptr);
     }
@@ -102,7 +95,6 @@ private:
     VkDeviceMemory fMemory_;
     PFN_vkDestroyImage fDestroyImage_;
     PFN_vkFreeMemory fFreeMemory_;
-    std::string fStatName;
     mutable std::atomic<int32_t> fRefCnt_;
 };
 
@@ -142,6 +134,10 @@ bool MakeFromNativeWindowBuffer(std::shared_ptr<Drawing::GPUContext> skContext, 
 
 Drawing::BackendTexture MakeBackendTextureFromNativeBuffer(NativeWindowBuffer* nativeWindowBuffer,
     int width, int height, bool isProtected = false);
+
+std::shared_ptr<Drawing::Surface> CreateFromNativeWindowBufferImpl(Drawing::GPUContext* gpuContext,
+    const Drawing::ImageInfo& imageInfo, NativeSurfaceInfo& nativeSurface,
+    const std::shared_ptr<Drawing::ColorSpace>& colorSpace = nullptr);
 
 std::shared_ptr<Drawing::Surface> CreateFromNativeWindowBuffer(Drawing::GPUContext* gpuContext,
     const Drawing::ImageInfo& imageInfo, NativeSurfaceInfo& nativeSurface);

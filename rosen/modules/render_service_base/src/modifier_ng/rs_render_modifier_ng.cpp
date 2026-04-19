@@ -34,7 +34,7 @@
 #include "modifier_ng/appearance/rs_outline_render_modifier.h"
 #include "modifier_ng/appearance/rs_particle_effect_render_modifier.h"
 #include "modifier_ng/appearance/rs_pixel_stretch_render_modifier.h"
-#include "modifier_ng/appearance/rs_point_light_render_modifier.h"
+#include "modifier_ng/appearance/rs_overlay_ng_shader_render_modifier.h"
 #include "modifier_ng/appearance/rs_shadow_render_modifier.h"
 #include "modifier_ng/appearance/rs_use_effect_render_modifier.h"
 #include "modifier_ng/appearance/rs_visibility_render_modifier.h"
@@ -76,7 +76,7 @@ static const std::unordered_map<RSModifierType, RSRenderModifier::ResetFunc> g_r
     { RSModifierType::PIXEL_STRETCH,            RSPixelStretchRenderModifier::ResetProperties },
     { RSModifierType::USE_EFFECT,               RSUseEffectRenderModifier::ResetProperties },
     { RSModifierType::BLENDER,                  RSBlendRenderModifier::ResetProperties },
-    { RSModifierType::POINT_LIGHT,              RSPointLightRenderModifier::ResetProperties },
+    { RSModifierType::OVERLAY_NG_SHADER,        RSOverlayNGShaderRenderModifier::ResetProperties },
     { RSModifierType::PARTICLE_EFFECT,          RSParticleEffectRenderModifier::ResetProperties },
     { RSModifierType::COMPOSITING_FILTER,       RSCompositingFilterRenderModifier::ResetProperties },
     { RSModifierType::BACKGROUND_FILTER,        RSBackgroundFilterRenderModifier::ResetProperties },
@@ -109,7 +109,7 @@ std::array<RSRenderModifier::Constructor, MODIFIER_TYPE_COUNT> RSRenderModifier:
     [] { return std::make_shared<RSPixelStretchRenderModifier>(); },                             // PIXEL_STRETCH
     [] { return std::make_shared<RSUseEffectRenderModifier>(); },                                // USE_EFFECT
     [] { return std::make_shared<RSBlendRenderModifier>(); },                                    // BLENDER
-    [] { return std::make_shared<RSPointLightRenderModifier>(); },                               // POINT_LIGHT
+    [] { return std::make_shared<RSOverlayNGShaderRenderModifier>(); },                          // OVERLAY_NG_SHADER
     [] { return std::make_shared<RSParticleEffectRenderModifier>(); },                           // PARTICLE_EFFECT
     [] { return std::make_shared<RSCompositingFilterRenderModifier>(); },                        // COMPOSITING_FILTER
     [] { return std::make_shared<RSBackgroundFilterRenderModifier>(); },                         // BACKGROUND_FILTER
@@ -232,13 +232,13 @@ void RSRenderModifier::OnSetDirty()
     }
 }
 
-bool RSRenderModifier::Marshalling(Parcel& parcel) const
+bool RSRenderModifier::Marshalling(Parcel& parcel, bool includeEnableDeduplication) const
 {
     auto ret = RSMarshallingHelper::Marshalling(parcel, GetType());
     if (ret) {
         ret = RSMarshallingHelper::Marshalling(parcel, id_);
     }
-    if (ret) {
+    if (includeEnableDeduplication && ret) {
         ret = DeduplicationMarshalling(parcel);
     }
     if (ret) {
@@ -247,7 +247,7 @@ bool RSRenderModifier::Marshalling(Parcel& parcel) const
     return ret;
 }
 
-std::shared_ptr<RSRenderModifier> RSRenderModifier::Unmarshalling(Parcel& parcel)
+std::shared_ptr<RSRenderModifier> RSRenderModifier::Unmarshalling(Parcel& parcel, bool includeEnableDeduplication)
 {
     RSModifierType type = RSModifierType::MAX;
     if (!RSMarshallingHelper::Unmarshalling(parcel, type)) {
@@ -265,7 +265,7 @@ std::shared_ptr<RSRenderModifier> RSRenderModifier::Unmarshalling(Parcel& parcel
     if (!RSMarshallingHelper::UnmarshallingPidPlusId(parcel, ret->id_)) {
         return nullptr;
     }
-    if (!ret->DeduplicationUnmarshalling(parcel)) {
+    if (includeEnableDeduplication && !ret->DeduplicationUnmarshalling(parcel)) {
         return nullptr;
     }
     if (!RSMarshallingHelper::Unmarshalling(parcel, ret->properties_)) {

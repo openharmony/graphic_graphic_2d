@@ -24,6 +24,7 @@
 #include "drawable/rs_render_node_drawable_adapter.h"
 #include "memory/rs_memory_track.h"
 #include "pipeline/rs_render_node.h"
+#include "pipeline/rs_surface_handler.h"
 #include "property/rs_properties.h"
 #include "screen_manager/screen_types.h"
 #include "utils/matrix.h"
@@ -58,6 +59,45 @@ typedef enum {
     RS_PARAM_INVALID,
 } RSRenderParamsType;
 
+typedef enum {
+    SURFACE_FPS_DEFAULT,
+    SURFACE_FPS_ADD,
+    SURFACE_FPS_REMOVE,
+} SurfaceFpsOpType;
+
+struct SurfaceFpsOp {
+    uint32_t surfaceFpsOpType = 0;
+    NodeId surfaceNodeId = 0;
+    std::string surfaceName = "";
+    uint64_t uniqueId = 0;
+};
+
+struct PipelineParam {
+    uint64_t frameTimestamp = 0;
+    int64_t actualTimestamp = 0;
+    uint64_t fastComposeTimeStampDiff = 0;
+    uint64_t vsyncId = 0;
+    uint64_t pendingConstraintRelativeTime = 0;
+    uint32_t pendingScreenRefreshRate = 0;
+    bool isForceRefresh = false;
+    bool hasGameScene = false;
+    bool hasLppVideo = false;
+
+    uint32_t SurfaceFpsOpNum = 0;
+    std::vector<SurfaceFpsOp> SurfaceFpsOpList;
+
+    uint32_t GetSurfaceFpsOpNum() const
+    {
+        return static_cast<uint32_t>(SurfaceFpsOpList.size());
+    }
+
+    void AddSurfaceFpsOp(const SurfaceFpsOp& op)
+    {
+        SurfaceFpsOpList.emplace_back(op);
+        SurfaceFpsOpNum = static_cast<uint32_t>(SurfaceFpsOpList.size());
+    }
+};
+
 class RSB_EXPORT RSRenderParams {
 public:
     RSRenderParams(NodeId id) : id_(id)
@@ -71,12 +111,6 @@ public:
         MemoryTrack::Instance().UnRegisterNodeMem(ExtractPid(GetId()),
             sizeof(*this), MEMORY_TYPE::MEM_RENDER_DRAWABLE_NODE);
     }
-
-    struct SurfaceParam {
-        int width = 0;
-        int height = 0;
-        GraphicColorGamut colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-    };
 
     void SetDirtyType(RSRenderParamsDirtyType dirtyType);
 
@@ -283,11 +317,6 @@ public:
     {
         return isDrawingCacheChanged_;
     }
-    void SetForceDisableNodeGroup(bool forceDisable);
-    bool IsForceDisableNodeGroup() const
-    {
-        return isForceDisableNodeGroup_;
-    }
     void SetNeedUpdateCache(bool needUpdateCache)
     {
         isNeedUpdateCache_ = needUpdateCache;
@@ -311,16 +340,17 @@ public:
     bool IsRenderGroupSubTreeDirty() const;
     void SetChildHasTranslateOnSqueeze(bool val);
     bool ChildHasTranslateOnSqueeze() const;
+    void SetNeedClipHoleForFilter(bool val);
+    bool NeedClipHoleForFilter() const;
     void SetDrawingCacheIncludeProperty(bool includeProperty);
     bool GetDrawingCacheIncludeProperty() const
     {
         return drawingCacheIncludeProperty_;
     }
-    void SetRSFreezeFlag(bool freezeFlag);
-    bool GetRSFreezeFlag() const
-    {
-        return freezeFlag_;
-    }
+    void SetRSFreezeFlag(bool freezeFlag, bool isMarkedByUI = false);
+    bool GetRSFreezeFlag() const;
+    RSRenderGroupCache::RSFreezeFlag GetRSFreezeFlagType() const;
+    bool IsFreezedByUser() const;
     // !used for RenderGroup
 
     void OpincSetIsSuggest(bool isSuggest);
@@ -357,28 +387,6 @@ public:
     {
         return shadowRect_;
     }
-
-    // One-time trigger, needs to be manually reset false in main/RT thread after each sync operation
-    void OnCanvasDrawingSurfaceChange(const std::unique_ptr<RSRenderParams>& target);
-    bool GetCanvasDrawingSurfaceChanged() const
-    {
-        return canvasDrawingNodeSurfaceChanged_;
-    }
-    void SetCanvasDrawingSurfaceChanged(bool changeFlag);
-
-    uint32_t GetCanvasDrawingResetSurfaceIndex() const
-    {
-        return canvasDrawingResetSurfaceIndex_;
-    }
-
-    void SetCanvasDrawingResetSurfaceIndex(uint32_t index);
-
-    SurfaceParam GetCanvasDrawingSurfaceParams()
-    {
-        return surfaceParams_;
-    }
-    void SetCanvasDrawingSurfaceParams(int width, int height,
-        GraphicColorGamut colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
 
     void SetStartingWindowFlag(bool b)
     {
@@ -436,9 +444,11 @@ public:
 
     // overrided surface params
 #ifndef ROSEN_CROSS_PLATFORM
-    virtual void SetBuffer(const sptr<SurfaceBuffer>& buffer, const Rect& damageRect) {}
+    virtual void SetBuffer(const sptr<SurfaceBuffer>& buffer,
+        std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount, const Rect& damageRect) {}
     virtual sptr<SurfaceBuffer> GetBuffer() const { return nullptr; }
-    virtual void SetPreBuffer(const sptr<SurfaceBuffer>& preBuffer) {}
+    virtual void SetPreBuffer(const sptr<SurfaceBuffer>& preBuffer,
+        std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> preBufferOwnerCount) {}
     virtual sptr<SurfaceBuffer> GetPreBuffer() { return nullptr; }
     virtual void SetAcquireFence(const sptr<SyncFence>& acquireFence) {}
     virtual sptr<SyncFence> GetAcquireFence() const { return nullptr; }
@@ -446,6 +456,14 @@ public:
     {
         static const Rect defaultRect = {};
         return defaultRect;
+    }
+    virtual std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetBufferOwnerCount() const
+    {
+        return nullptr;
+    }
+    virtual std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetPreBufferOwnerCount() const
+    {
+        return nullptr;
     }
 #endif
     virtual const RSLayerInfo& GetLayerInfo() const;
@@ -507,9 +525,6 @@ public:
         return cloneSourceDrawable_;
     }
     void SetCloneSourceDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable);
-    // canvas drawing node
-    virtual bool IsNeedProcess() const { return true; }
-    virtual void SetNeedProcess(bool isNeedProcess) {}
     virtual bool IsFirstLevelCrossNode() const { return isFirstLevelCrossNode_; }
     virtual void SetFirstLevelCrossNode(bool firstLevelCrossNode) { isFirstLevelCrossNode_ = firstLevelCrossNode; }
     CrossNodeOffScreenRenderDebugType GetCrossNodeOffScreenStatus() const
@@ -540,10 +555,10 @@ public:
         hasUnobscuredUEC_ = flag;
     }
 
-    void SetVirtualScreenWhiteListInfo(const std::unordered_map<ScreenId, bool>& info);
-    const std::unordered_map<ScreenId, bool>& GetVirtualScreenWhiteListInfo() const
+    void SetScreensWithSubTreeWhitelist(const std::unordered_set<ScreenId>& screenIds);
+    const std::unordered_set<ScreenId>& GetScreensWithSubTreeWhitelist() const
     {
-        return hasVirtualScreenWhiteList_;
+        return screensWithSubTreeWhitelist_;
     }
 
     // [Attention] Only used in PC window resize scene now
@@ -552,6 +567,13 @@ public:
 
     void SetIsOnTheTree(bool isOnTheTree);
     bool GetIsOnTheTree() const;
+
+    virtual bool IsUIFirstLeashAllEnable() const
+    {
+        return false;
+    }
+
+    void SwapRelatedRenderParams(RSRenderParams& relatedRenderParams);
 
 protected:
     bool needSync_ = false;
@@ -576,20 +598,16 @@ private:
     HdrStatus hdrStatus_ = HdrStatus::NO_HDR;
     bool childHasVisibleHDRContent_ = false;
     GraphicColorGamut nodeColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-    bool freezeFlag_ = false;
     bool childHasVisibleEffect_ = false;
     bool childHasVisibleFilter_ = false;
     bool hasSandBox_ = false;
     bool isDrawingCacheChanged_ = false;
-    bool isForceDisableNodeGroup_ = false;
     std::atomic_bool isNeedUpdateCache_ = false;
     bool drawingCacheIncludeProperty_ = false;
     bool isNodeGroupHasChildInBlacklist_ = false;
     bool isSnapshotSkipLayer_ = false;
     bool shouldPaint_ = false;
     bool contentEmpty_  = false;
-    std::atomic_bool canvasDrawingNodeSurfaceChanged_ = false;
-    std::atomic_uint32_t canvasDrawingResetSurfaceIndex_ = 0;
     bool alphaOffScreen_ = false;
     Drawing::Rect shadowRect_;
     RSDrawingCacheType drawingCacheType_ = RSDrawingCacheType::DISABLED_CACHE;
@@ -607,7 +625,6 @@ private:
     bool effectNodeShouldPaint_ = false;
     bool hasGlobalCorner_ = false;
     bool hasBlurFilter_ = false;
-    SurfaceParam surfaceParams_;
     NodeId firstLevelNodeId_ = INVALID_NODEID;
     NodeId uifirstRootNodeId_ = INVALID_NODEID;
     NodeId instanceRootNodeId_ = INVALID_NODEID;
@@ -626,7 +643,7 @@ private:
     // used for DFX
     bool isOnTheTree_ = false;
 
-    std::unordered_map<ScreenId, bool> hasVirtualScreenWhiteList_;
+    std::unordered_set<ScreenId> screensWithSubTreeWhitelist_;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_RENDER_PARAMS_H

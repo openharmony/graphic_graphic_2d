@@ -203,7 +203,6 @@ HWTEST_F(SkiaImageFilterTest, InitWithHDSample001, TestSize.Level1)
     Rect srcRect(0.0f, 0.0f, width, height);
     Rect dstRect(0.0f, 0.0f, width / 2.0f, height / 2.0f);
     std::shared_ptr<SkiaImageFilter> skiaImageFilter = std::make_shared<SkiaImageFilter>();
-
     BitmapFormat bitmapFormat = { ColorType::COLORTYPE_BGRA_8888, AlphaType::ALPHATYPE_PREMUL };
     Bitmap bitmap;
     bitmap.Build(width, height, bitmapFormat);

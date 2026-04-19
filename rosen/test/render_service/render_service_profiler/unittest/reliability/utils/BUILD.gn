@@ -49,7 +49,10 @@ ohos_static_library("test_utils") {
   if (rosen_is_ohos) {
     external_deps += [ "image_framework:image_native" ]
   }
-  external_deps += [ "googletest:gtest_main" ]
+  external_deps += [
+    "googletest:gtest_main",
+    "ipc:ipc_single",
+  ]
 
   subsystem_name = "graphic"
   part_name = "graphic_2d"

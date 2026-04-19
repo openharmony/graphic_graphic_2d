@@ -187,15 +187,18 @@ public:
     static DirtyAlignType GetDirtyAlignEnabled();
     static PartialRenderType GetPartialRenderEnabled();
     static PartialRenderType GetUniPartialRenderEnabled();
+    static bool GetRCDForceRedrawEnable();
     static bool GetRenderNodeLazyLoadEnabled();
     static StencilPixelOcclusionCullingType GetStencilPixelOcclusionCullingEnabled();
     static float GetClipRectThreshold();
     static bool GetAllSurfaceVisibleDebugEnabled();
+    static bool GetVirtualSelfDrawOptEnabled();
     static bool GetVirtualDirtyDebugEnabled();
     static bool GetVirtualDirtyEnabled();
     static bool GetVirtualExpandScreenDirtyEnabled();
     static bool GetVirtualExpandScreenSkipEnabled();
     static bool GetOcclusionEnabled();
+    static bool GetDynamicLayerSkipEnabled();
     static std::string GetRSEventProperty(const std::string &paraName);
     static bool GetHighContrastStatus();
     static uint32_t GetCorrectionMode();
@@ -382,7 +385,6 @@ public:
 
     static bool GetVKImageUseEnabled();
     static bool GetVKImageAdaptationForWallpaperEnabled();
-
     static void SetBehindWindowFilterEnabled(bool enabled);
     static bool GetBehindWindowFilterEnabled();
     static bool GetSubThreadControlFrameRate();
@@ -399,13 +401,15 @@ public:
     static bool GetScaleImageAsyncEnabled();
     static bool GetMemoryWatermarkEnabled();
     static bool GetPreparePhaseQuickSkipEnabled();
-
+    static bool GetUnmarshalParallelEnabled();
+    static uint32_t GetUnmarshalParallelMinDataSize();
     static bool GetBootCompleted();
     static bool GetClipRRectOptimizationEnabled();
     static bool GetNodeMemClearEnabled();
     static bool GetTransactionDataTraceEnabled();
     static bool GetDefaultMemClearEnabled();
     static bool GetSceneBoardIsPcMode();
+    static bool GetBufferOwnerCountDfxEnabled();
 
     static bool GetCanvasDrawingNodePreAllocateDmaEnabled();
     static bool GetCanvasDrawingNodeRenderDmaEnabled();

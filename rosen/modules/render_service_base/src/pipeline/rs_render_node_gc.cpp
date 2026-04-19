@@ -149,7 +149,6 @@ void RSRenderNodeGC::ReleaseNodeBucket()
 void RSRenderNodeGC::ReleaseNodeMemory(bool highPriority)
 {
     RS_TRACE_FUNC();
-#ifdef RS_ENABLE_MEMORY_DOWNTREE
     if (mainTask_) {
         mainTask_([this]() {
             ReleaseNodeMemNotOnTree();
@@ -157,7 +156,6 @@ void RSRenderNodeGC::ReleaseNodeMemory(bool highPriority)
     } else {
         ReleaseNodeMemNotOnTree();
     }
-#endif
     uint32_t remainBucketSize;
     {
         std::lock_guard<std::mutex> lock(nodeMutex_);
@@ -259,16 +257,16 @@ void RSRenderNodeGC::ReleaseDrawableMemory(bool highPriority)
         }
         remainBucketSize = drawableBucket_.size();
     }
-    drawableGCLevel_ = JudgeGCLevel(remainBucketSize);
+    auto drawableGCLevel = JudgeGCLevel(remainBucketSize);
     if (renderTask_) {
-        auto task = [this, highPriority]() {
+        auto task = [this, highPriority, drawableGCLevel]() {
             RSRenderNodeGC::Instance().ReleaseDrawableBucket();
             if (highPriority && imageReleaseFunc_) {
                 imageReleaseFunc_();
             }
             RSRenderNodeGC::Instance().ReleaseDrawableMemory(highPriority);
         };
-        renderTask_(task, DELETE_DRAWABLE_TASK, 0, static_cast<AppExecFwk::EventQueue::Priority>(drawableGCLevel_));
+        renderTask_(task, DELETE_DRAWABLE_TASK, 0, static_cast<AppExecFwk::EventQueue::Priority>(drawableGCLevel));
     } else {
         ReleaseDrawableBucket();
     }
@@ -395,7 +393,9 @@ void RSRenderNodeGC::ReleaseOffTreeNodeForBucketMap(const RSThresholdDetector<ui
 #endif
 
     for (auto subIter = subMap.begin(); subIter != subMap.end();) {
-        if (count++ >= OFF_TREE_BUCKET_MAX_SIZE) {
+        if (isEnable_.load() == false || count++ >= OFF_TREE_BUCKET_MAX_SIZE) {
+            RS_TRACE_NAME_FMT("ReleaseOffTreeNodeForBucketMap break: count=%u, isEnable=%s",
+                count, isEnable_.load() ? "true" : "false");
             break;
         }
         auto renderNode = subIter->second;
@@ -487,14 +487,18 @@ void RSRenderNodeGC::ReleaseNodeMemNotOnTree()
         auto nodeIt = nodeMap.begin();
         RS_TRACE_NAME_FMT("ReleaseNodeMemNotOnTree, pid: %" PRIu32 ", nodeMap size=%" PRIu32, *pidIt, nodeMap.size());
         while (nodeIt != nodeMap.end()) {
+            // VSync arrival or limit reached, break release early
+            if (isEnable_.load() == false || cnt > NODE_MEM_RELEASE_LIMIT) {
+                RS_TRACE_NAME_FMT("ReleaseNodeMemNotOnTree break: cnt=%" PRIu32 ", isEnable=%s",
+                    cnt, isEnable_.load() ? "true" : "false");
+                return;
+            }
             auto node = nodeIt->second.lock();
             if (node == nullptr || node->GetType() != RSRenderNodeType::CANVAS_NODE) {
                 nodeMap.erase(nodeIt++);
                 continue;
             }
-            if (cnt++ > NODE_MEM_RELEASE_LIMIT || isEnable_.load() == false) {
-                return;
-            }
+            cnt++;
             node->ReleaseNodeMem();
             nodeMap.erase(nodeIt++);
         }

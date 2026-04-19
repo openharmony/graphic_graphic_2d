@@ -66,6 +66,42 @@ void RSVpeManager::ReleaseVpeVideo(uint64_t nodeId)
     return;
 }
 
+void RSVpeManager::EnableVpeVideo(const RSSurfaceRenderNodeConfig& config)
+{
+    std::shared_ptr<VpeVideo> vpeVideo;
+    {
+        std::lock_guard<std::mutex> lock(vpeVideoLock_);
+        auto it = allVpeVideo_.find(config.id);
+        if (it == allVpeVideo_.end()) {
+            return;
+        }
+        vpeVideo = it->second;
+    }
+    if (vpeVideo == nullptr) {
+        return;
+    }
+    RS_LOGD("RSVpeManager::EnableVpeVideo vpe video enable.");
+    vpeVideo->Enable();
+}
+
+void RSVpeManager::DisableVpeVideo(const RSSurfaceRenderNodeConfig& config)
+{
+    std::shared_ptr<VpeVideo> vpeVideo;
+    {
+        std::lock_guard<std::mutex> lock(vpeVideoLock_);
+        auto it = allVpeVideo_.find(config.id);
+        if (it == allVpeVideo_.end()) {
+            return;
+        }
+        vpeVideo = it->second;
+    }
+    if (vpeVideo == nullptr) {
+        return;
+    }
+    RS_LOGD("RSVpeManager::EnableVpeVideo vpe video disable.");
+    vpeVideo->Disable();
+}
+
 std::shared_ptr<VpeVideo> RSVpeManager::GetVpeVideo(uint32_t type, const RSSurfaceRenderNodeConfig& config)
 {
     ReleaseVpeVideo(config.id);
@@ -142,7 +178,7 @@ sptr<Surface> RSVpeManager::GetVpeVideoSurface(uint32_t type, const sptr<Surface
 
 sptr<Surface> RSVpeManager::CheckAndGetSurface(const sptr<Surface>& surface, const RSSurfaceRenderNodeConfig& config)
 {
-    RS_TRACE_NAME_FMT("RSVpeManager::Create name: %{public}s nodeId:%{public}" PRIu64, config.name.c_str(), config.id);
+    RS_TRACE_NAME_FMT("RSVpeManager::Create name: %s nodeId:%" PRIu64, config.name.c_str(), config.id);
 
     Media::Format parameter{};
     if (surface == nullptr) {

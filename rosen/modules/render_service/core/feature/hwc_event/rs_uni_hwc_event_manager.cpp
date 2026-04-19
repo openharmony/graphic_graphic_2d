@@ -16,9 +16,10 @@
 #include "rs_uni_hwc_event_manager.h"
 
 #include "feature/hwc/rs_uni_hwc_prevalidate_util.h"
+#include "feature/pointer_window_manager/rs_pointer_window_manager.h"
+#include "hdi_backend.h"
 #include "platform/common/rs_log.h"
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "pipeline/rs_pointer_window_manager.h"
 
 #undef LOG_TAG
 #define LOG_TAG "RSUniHwcEventManager"
@@ -31,23 +32,8 @@ RSUniHwcEventManager& RSUniHwcEventManager::GetInstance()
     return instance;
 }
 
-void RSUniHwcEventManager::Init()
-{
-    RS_LOGI("[%{public}s]:register OnHwcEvent Func", __func__);
-    RSPointerWindowManager::Instance().SetTuiEnabled(false);
-    auto hdiBackend = HdiBackend::GetInstance();
-    if (!hdiBackend) {
-        RS_LOGW("[%{public}s]:hdiBackend is nullptr", __func__);
-        return;
-    }
-    if (hdiBackend->RegHwcEventCallback(&RSUniHwcEventManager::OnHwcEvent, this) != 0) {
-        RS_LOGW("[%{public}s]:Failed to register OnHwcEvent Func", __func__);
-        return;
-    }
-}
-
 void RSUniHwcEventManager::OnHwcEvent(
-    uint32_t devId, uint32_t eventId, const std::vector<int32_t>& eventData, void* data)
+    uint32_t devId, uint32_t eventId, const std::vector<int32_t>& eventData)
 {
     RS_LOGI("RSUniHwcEventManager::OnHwcEvent: deviceId is %{public}u, eventId is %{public}u", devId, eventId);
     switch (eventId) {
@@ -64,7 +50,7 @@ void RSUniHwcEventManager::OnHwcEvent(
             break;
         }
         default: {
-            RSUniHwcPrevalidateUtil::GetInstance().OnHwcEvent(devId, eventId, eventData);
+            RSUniHwcPrevalidateUtil::GetInstance().HandleHwcEvent(devId, eventId, eventData);
             break;
         }
     }

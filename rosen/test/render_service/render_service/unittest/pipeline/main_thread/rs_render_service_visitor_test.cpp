@@ -18,8 +18,9 @@
 #include "pipeline/rs_test_util.h"
 
 #include "common/rs_obj_abs_geometry.h"
-#include "pipeline/render_thread/rs_uni_render_engine.h"
+#include "engine/rs_uni_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
+#include "pipeline/render_thread/rs_virtual_screen_processor.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
@@ -42,6 +43,7 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+    sptr<RSScreenManager> screenManager_ = sptr<RSScreenManager>::MakeSptr();
 };
 
 void RSRenderServiceVisitorTest::SetUpTestCase()
@@ -708,6 +710,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessChildren002, TestSize.Level1)
  */
 HWTEST_F(RSRenderServiceVisitorTest, ProcessScreenRenderNode001, TestSize.Level1)
 {
+    RSUniRenderThread::Instance().composerClientManager_ = std::make_shared<RSComposerClientManager>();
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[1];
     auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     auto rsContext = std::make_shared<RSContext>();
@@ -848,16 +851,15 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessScreenRenderNode009, TestSize.Level1
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[0];
     RSRenderServiceVisitor rsRenderServiceVisitor(true);
-    auto screenManager = CreateOrGetScreenManager();
-    ASSERT_NE(screenManager, nullptr);
-    auto rsScreen = std::make_shared<RSScreen>(HdiOutput::CreateHdiOutput(0));
+    ASSERT_NE(screenManager_, nullptr);
+    auto rsScreen = std::make_shared<RSScreen>(0);
     ASSERT_NE(rsScreen, nullptr);
     auto csurface = IConsumerSurface::Create();
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
     rsScreen->SetProducerSurface(psurface);
     rsScreen->SetScreenSkipFrameInterval(1);
-    screenManager->MockHdiScreenConnected(rsScreen);
+    screenManager_->MockHdiScreenConnected(rsScreen);
 
     auto rsContext = std::make_shared<RSContext>();
     ScreenId screenId = 1;
@@ -875,16 +877,15 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessScreenRenderNode010, TestSize.Level1
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[0];
     RSRenderServiceVisitor rsRenderServiceVisitor(true);
-    auto screenManager = CreateOrGetScreenManager();
-    ASSERT_NE(screenManager, nullptr);
+    ASSERT_NE(screenManager_, nullptr);
 
-    auto rsScreen = std::make_shared<RSScreen>(HdiOutput::CreateHdiOutput(0));
+    auto rsScreen = std::make_shared<RSScreen>(0);
     auto csurface = IConsumerSurface::Create();
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
     rsScreen->SetProducerSurface(psurface);
     rsScreen->SetScreenSkipFrameInterval(1);
-    screenManager->MockHdiScreenConnected(rsScreen);
+    screenManager_->MockHdiScreenConnected(rsScreen);
 
     ScreenId screenId = 0;
     auto rsContext = std::make_shared<RSContext>();
@@ -922,8 +923,10 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessSurfaceRenderNode002, TestSize.Level
     auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSSurfaceRenderNodeConfig config;
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
+    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
     rsRenderServiceVisitor->processor_ =
-        RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE);
+        RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, 0);
     rsRenderServiceVisitor->ProcessSurfaceRenderNode(*rsSurfaceRenderNode);
     EXPECT_TRUE(rsRenderServiceVisitor != nullptr);
 }
@@ -939,8 +942,10 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessSurfaceRenderNode003, TestSize.Level
     auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSSurfaceRenderNodeConfig config;
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
+    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
     rsRenderServiceVisitor->processor_ =
-        RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE);
+        RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, 0);
     rsRenderServiceVisitor->isSecurityDisplay_ = true;
     rsSurfaceRenderNode->SetSecurityLayer(true);
     rsRenderServiceVisitor->ProcessSurfaceRenderNode(*rsSurfaceRenderNode);
@@ -958,8 +963,10 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessSurfaceRenderNode004, TestSize.Level
     auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSSurfaceRenderNodeConfig config;
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
+    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
     rsRenderServiceVisitor->processor_ =
-        RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE);
+        RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, 0);
     rsSurfaceRenderNode->GetMutableRenderProperties().SetAlpha(0.0f);
     rsRenderServiceVisitor->ProcessSurfaceRenderNode(*rsSurfaceRenderNode);
     EXPECT_TRUE(rsRenderServiceVisitor != nullptr);
@@ -976,8 +983,10 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessSurfaceRenderNode005, TestSize.Level
     auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSSurfaceRenderNodeConfig config;
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
+    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
     rsRenderServiceVisitor->processor_ =
-        RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE);
+        RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, 0);
     rsSurfaceRenderNode->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SKIP, true);
     ASSERT_EQ(true, rsSurfaceRenderNode->GetSpecialLayerMgr().Find(SpecialLayerType::SKIP));
     rsRenderServiceVisitor->ProcessSurfaceRenderNode(*rsSurfaceRenderNode);
@@ -1234,13 +1243,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessLogicalDisplayRenderNodeTest001, Tes
 HWTEST_F(RSRenderServiceVisitorTest, ProcessLogicalDisplayRenderNodeTest002, TestSize.Level1)
 {
     RSRenderServiceVisitor rsRenderServiceVisitor(true);
-    constexpr NodeId screenNodeId = 0;
-    auto rsContext = std::make_shared<RSContext>();
-    ScreenId screenId = 1;
-    auto rsScreenRenderNode = std::make_shared<RSScreenRenderNode>(screenNodeId, screenId, rsContext);
-
-    // Init processor_ via ProcessScreenRenderNode, or the test will core dump.
-    rsRenderServiceVisitor.ProcessScreenRenderNode(*rsScreenRenderNode);
+    rsRenderServiceVisitor.processor_ = std::make_shared<RSVirtualScreenProcessor>();
 
     RSDisplayNodeConfig config;
     NodeId displayNodeId = 101;
@@ -1293,5 +1296,101 @@ HWTEST_F(RSRenderServiceVisitorTest, ShouldForceSerial, TestSize.Level1)
 {
     auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     ASSERT_EQ(false, rsRenderServiceVisitor->ShouldForceSerial());
+}
+
+/**
+ * @tc.name: UpdateScreenNodeCompositeTypeTest001
+ * @tc.desc: Test UpdateScreenNodeCompositeType with PRODUCER_SURFACE_ENABLE state
+ * @tc.type: FUNC
+ * @tc.require: issueI614P1
+ */
+HWTEST_F(RSRenderServiceVisitorTest, UpdateScreenNodeCompositeTypeTest001, TestSize.Level1)
+{
+    constexpr NodeId nodeId = 400;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
+    auto rsContext = std::make_shared<RSContext>();
+    ScreenId screenId = 1;
+    auto node = std::make_shared<RSScreenRenderNode>(nodeId, screenId, rsContext);
+    EXPECT_NE(node, nullptr);
+
+    RSScreenProperty property;
+    property.Set<ScreenPropertyType::STATE>(static_cast<uint8_t>(ScreenState::PRODUCER_SURFACE_ENABLE));
+
+    rsRenderServiceVisitor->UpdateScreenNodeCompositeType(*node, property);
+
+    EXPECT_EQ(CompositeType::SOFTWARE_COMPOSITE, node->GetCompositeType());
+}
+
+/**
+ * @tc.name: UpdateScreenNodeCompositeTypeTest002
+ * @tc.desc: Test UpdateScreenNodeCompositeType with HDI_OUTPUT_ENABLE state without force soft composite
+ * @tc.type: FUNC
+ * @tc.require: issueI614P1
+ */
+HWTEST_F(RSRenderServiceVisitorTest, UpdateScreenNodeCompositeTypeTest002, TestSize.Level1)
+{
+    constexpr NodeId nodeId = 500;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
+    auto rsContext = std::make_shared<RSContext>();
+    ScreenId screenId = 1;
+    auto node = std::make_shared<RSScreenRenderNode>(nodeId, screenId, rsContext);
+    EXPECT_NE(node, nullptr);
+    node->SetForceSoftComposite(false);
+
+    RSScreenProperty property;
+    property.Set<ScreenPropertyType::STATE>(static_cast<uint8_t>(ScreenState::HDI_OUTPUT_ENABLE));
+
+    rsRenderServiceVisitor->UpdateScreenNodeCompositeType(*node, property);
+
+    EXPECT_EQ(CompositeType::HARDWARE_COMPOSITE, node->GetCompositeType());
+}
+
+/**
+ * @tc.name: UpdateScreenNodeCompositeTypeTest003
+ * @tc.desc: Test UpdateScreenNodeCompositeType with HDI_OUTPUT_ENABLE state with force soft composite
+ * @tc.type: FUNC
+ * @tc.require: issueI614P1
+ */
+HWTEST_F(RSRenderServiceVisitorTest, UpdateScreenNodeCompositeTypeTest003, TestSize.Level1)
+{
+    constexpr NodeId nodeId = 600;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
+    auto rsContext = std::make_shared<RSContext>();
+    ScreenId screenId = 1;
+    auto node = std::make_shared<RSScreenRenderNode>(nodeId, screenId, rsContext);
+    EXPECT_NE(node, nullptr);
+    node->SetForceSoftComposite(true);
+
+    RSScreenProperty property;
+    property.Set<ScreenPropertyType::STATE>(static_cast<uint8_t>(ScreenState::HDI_OUTPUT_ENABLE));
+
+    rsRenderServiceVisitor->UpdateScreenNodeCompositeType(*node, property);
+
+    EXPECT_EQ(CompositeType::SOFTWARE_COMPOSITE, node->GetCompositeType());
+}
+
+/**
+ * @tc.name: UpdateScreenNodeCompositeTypeTest004
+ * @tc.desc: Test UpdateScreenNodeCompositeType with unknown state
+ * @tc.type: FUNC
+ * @tc.require: issueI614P1
+ */
+HWTEST_F(RSRenderServiceVisitorTest, UpdateScreenNodeCompositeTypeTest004, TestSize.Level1)
+{
+    constexpr NodeId nodeId = 700;
+    auto rsRenderServiceVisitor = GetRenderServiceVisitor();
+    auto rsContext = std::make_shared<RSContext>();
+    ScreenId screenId = 1;
+    auto node = std::make_shared<RSScreenRenderNode>(nodeId, screenId, rsContext);
+    EXPECT_NE(node, nullptr);
+    node->SetCompositeType(CompositeType::HARDWARE_COMPOSITE);
+
+    RSScreenProperty property;
+    property.Set<ScreenPropertyType::STATE>(static_cast<uint8_t>(ScreenState::UNKNOWN));
+
+    rsRenderServiceVisitor->UpdateScreenNodeCompositeType(*node, property);
+
+    // Composite type should remain unchanged when state is unusual
+    EXPECT_EQ(CompositeType::HARDWARE_COMPOSITE, node->GetCompositeType());
 }
 } // namespace OHOS::Rosen

@@ -106,11 +106,11 @@ void NdkTypographyCharacterIndexTest::SetupTypographyWithEncodedText(const char1
 }
 
 /*
- * @tc.name: TypographyGetCharacterPositionAtCoordinateNullTypographyUtf8Test001
+ * @tc.name: GetCharacterPositionAtCoordinateNullTypographyUtf8
  * @tc.desc: Test null typography with UTF-8 encoding
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterPositionAtCoordinateNullTypographyUtf8Test001,
+HWTEST_F(NdkTypographyCharacterIndexTest, GetCharacterPositionAtCoordinateNullTypographyUtf8,
     TestSize.Level0)
 {
     auto positionAndAffinity = OH_Drawing_TypographyGetCharacterPositionAtCoordinateWithBuffer(
@@ -120,11 +120,11 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterPositionAtCoordi
 }
 
 /*
- * @tc.name: TypographyGetCharacterPositionAtCoordinateNullTypographyUtf16Test001
+ * @tc.name: GetCharacterPositionAtCoordinateNullTypographyUtf16
  * @tc.desc: Test null typography with UTF-16 encoding
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterPositionAtCoordinateNullTypographyUtf16Test001,
+HWTEST_F(NdkTypographyCharacterIndexTest, GetCharacterPositionAtCoordinateNullTypographyUtf16,
     TestSize.Level0)
 {
     auto positionAndAffinity = OH_Drawing_TypographyGetCharacterPositionAtCoordinateWithBuffer(
@@ -134,11 +134,11 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterPositionAtCoordi
 }
 
 /*
- * @tc.name: TypographyGetCharacterPositionAtCoordinateInvalidEncodingTest003
+ * @tc.name: GetCharacterPositionAtCoordinateInvalidEncoding
  * @tc.desc: Test with invalid encoding type
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterPositionAtCoordinateInvalidEncodingTest003,
+HWTEST_F(NdkTypographyCharacterIndexTest, GetCharacterPositionAtCoordinateInvalidEncoding,
     TestSize.Level0)
 {
     SetupTypography(DEFAULT_TEXT_UTF8);
@@ -149,11 +149,11 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterPositionAtCoordi
 }
 
 /*
- * @tc.name: TypographyGetCharacterPositionAtCoordinateNormalUtf8Test001
+ * @tc.name: GetCharacterPositionAtCoordinateNormalUtf8
  * @tc.desc: Test UTF-8 encoding at normal coordinate
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterPositionAtCoordinateNormalUtf8Test001,
+HWTEST_F(NdkTypographyCharacterIndexTest, GetCharacterPositionAtCoordinateNormalUtf8,
     TestSize.Level0)
 {
     SetupTypography(DEFAULT_TEXT_UTF8);
@@ -168,11 +168,11 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterPositionAtCoordi
 }
 
 /*
- * @tc.name: TypographyGetCharacterPositionAtCoordinateNegativeUtf8Test001
+ * @tc.name: GetCharacterPositionAtCoordinateNegativeUtf8
  * @tc.desc: Test UTF-8 encoding at negative coordinates
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterPositionAtCoordinateNegativeUtf8Test001,
+HWTEST_F(NdkTypographyCharacterIndexTest, GetCharacterPositionAtCoordinateNegativeUtf8,
     TestSize.Level0)
 {
     SetupTypography(DEFAULT_TEXT_UTF8);
@@ -187,11 +187,11 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterPositionAtCoordi
 }
 
 /*
- * @tc.name: TypographyGetCharacterPositionAtCoordinateOutOfBoundUtf8Test001
+ * @tc.name: GetCharacterPositionAtCoordinateOutOfBoundUtf8
  * @tc.desc: Test UTF-8 encoding at out of bounds coordinates
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterPositionAtCoordinateOutOfBoundUtf8Test001,
+HWTEST_F(NdkTypographyCharacterIndexTest, GetCharacterPositionAtCoordinateOutOfBoundUtf8,
     TestSize.Level0)
 {
     SetupTypography(DEFAULT_TEXT_UTF8);
@@ -206,11 +206,11 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterPositionAtCoordi
 }
 
 /*
- * @tc.name: TypographyGetCharacterPositionAtCoordinateComplexUtf8Test001
+ * @tc.name: GetCharacterPositionAtCoordinateComplexUtf8
  * @tc.desc: Test complex text with UTF-8 encoding
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterPositionAtCoordinateComplexUtf8Test001,
+HWTEST_F(NdkTypographyCharacterIndexTest, GetCharacterPositionAtCoordinateComplexUtf8,
     TestSize.Level0)
 {
     SetupTypography(COMPLEX_TEXT_UTF8);
@@ -225,11 +225,11 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterPositionAtCoordi
 }
 
 /*
- * @tc.name: TypographyGetCharacterPositionAtCoordinateArabicUtf8Test001
+ * @tc.name: GetCharacterPositionAtCoordinateArabicUtf8
  * @tc.desc: Test Arabic text with UTF-8 encoding
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterPositionAtCoordinateArabicUtf8Test001,
+HWTEST_F(NdkTypographyCharacterIndexTest, GetCharacterPositionAtCoordinateArabicUtf8,
     TestSize.Level0)
 {
     SetupTypography(ARABIC_TEXT_UTF8);
@@ -244,11 +244,11 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterPositionAtCoordi
 }
 
 /*
- * @tc.name: TypographyGetCharacterPositionAtCoordinateNormalUtf16Test001
+ * @tc.name: GetCharacterPositionAtCoordinateNormalUtf16
  * @tc.desc: Test UTF-16 encoding at normal coordinate
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterPositionAtCoordinateNormalUtf16Test001,
+HWTEST_F(NdkTypographyCharacterIndexTest, GetCharacterPositionAtCoordinateNormalUtf16,
     TestSize.Level0)
 {
     SetupTypographyWithEncodedText(DEFAULT_TEXT_UTF16);
@@ -263,11 +263,11 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterPositionAtCoordi
 }
 
 /*
- * @tc.name: TypographyGetCharacterPositionAtCoordinateNegativeUtf16Test001
+ * @tc.name: GetCharacterPositionAtCoordinateNegativeUtf16
  * @tc.desc: Test UTF-16 encoding at negative coordinates
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterPositionAtCoordinateNegativeUtf16Test001,
+HWTEST_F(NdkTypographyCharacterIndexTest, GetCharacterPositionAtCoordinateNegativeUtf16,
     TestSize.Level0)
 {
     SetupTypographyWithEncodedText(DEFAULT_TEXT_UTF16);
@@ -282,11 +282,11 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterPositionAtCoordi
 }
 
 /*
- * @tc.name: TypographyGetCharacterPositionAtCoordinateOutOfBoundUtf16Test001
+ * @tc.name: GetCharacterPositionAtCoordinateOutOfBoundUtf16
  * @tc.desc: Test UTF-16 encoding at out of bounds coordinates
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterPositionAtCoordinateOutOfBoundUtf16Test001,
+HWTEST_F(NdkTypographyCharacterIndexTest, GetCharacterPositionAtCoordinateOutOfBoundUtf16,
     TestSize.Level0)
 {
     SetupTypographyWithEncodedText(DEFAULT_TEXT_UTF16);
@@ -301,11 +301,11 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterPositionAtCoordi
 }
 
 /*
- * @tc.name: TypographyGetCharacterPositionAtCoordinateComplexUtf16Test001
+ * @tc.name: GetCharacterPositionAtCoordinateComplexUtf16
  * @tc.desc: Test complex text with UTF-16 encoding
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterPositionAtCoordinateComplexUtf16Test001,
+HWTEST_F(NdkTypographyCharacterIndexTest, GetCharacterPositionAtCoordinateComplexUtf16,
     TestSize.Level0)
 {
     SetupTypographyWithEncodedText(COMPLEX_TEXT_UTF16);
@@ -320,11 +320,11 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterPositionAtCoordi
 }
 
 /*
- * @tc.name: TypographyGetCharacterPositionAtCoordinateArabicUtf16Test001
+ * @tc.name: GetCharacterPositionAtCoordinateArabicUtf16
  * @tc.desc: Test Arabic text with UTF-16 encoding
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterPositionAtCoordinateArabicUtf16Test001,
+HWTEST_F(NdkTypographyCharacterIndexTest, GetCharacterPositionAtCoordinateArabicUtf16,
     TestSize.Level0)
 {
     SetupTypographyWithEncodedText(ARABIC_TEXT_UTF16);
@@ -339,11 +339,11 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterPositionAtCoordi
 }
 
 /*
- * @tc.name: TypographyCharacterIndexMultilingualTest001
+ * @tc.name: GlyphToCharacterRangeUtf8
  * @tc.desc: Test glyph to character conversion with UTF-8
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyCharacterIndexTest, TypographyCharacterIndexMultilingualTest001, TestSize.Level0)
+HWTEST_F(NdkTypographyCharacterIndexTest, GlyphToCharacterRangeUtf8, TestSize.Level0)
 {
     SetupTypography(DEFAULT_TEXT_UTF8);
     OH_Drawing_Range* actualGlyphRange = nullptr;
@@ -361,11 +361,11 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyCharacterIndexMultilingualTe
 }
 
 /*
- * @tc.name: TypographyCharacterIndexMultilingualTest002
+ * @tc.name: CharacterToGlyphRangeUtf8
  * @tc.desc: Test character to glyph conversion with UTF-8
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyCharacterIndexTest, TypographyCharacterIndexMultilingualTest002, TestSize.Level0)
+HWTEST_F(NdkTypographyCharacterIndexTest, CharacterToGlyphRangeUtf8, TestSize.Level0)
 {
     SetupTypography(DEFAULT_TEXT_UTF8);
     OH_Drawing_Range* actualCharacterRange = nullptr;
@@ -382,11 +382,11 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyCharacterIndexMultilingualTe
 }
 
 /*
- * @tc.name: TypographyCharacterIndexMultilingualTest003
+ * @tc.name: GlyphToCharacterRangeUtf16
  * @tc.desc: Test glyph to character conversion with UTF-16
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyCharacterIndexTest, TypographyCharacterIndexMultilingualTest003, TestSize.Level0)
+HWTEST_F(NdkTypographyCharacterIndexTest, GlyphToCharacterRangeUtf16, TestSize.Level0)
 {
     SetupTypographyWithEncodedText(DEFAULT_TEXT_UTF16);
     OH_Drawing_Range* actualGlyphRange = nullptr;
@@ -403,11 +403,11 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyCharacterIndexMultilingualTe
 }
 
 /*
- * @tc.name: TypographyCharacterIndexMultilingualTest004
+ * @tc.name: CharacterToGlyphRangeUtf16
  * @tc.desc: Test character to glyph conversion with UTF-16
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyCharacterIndexTest, TypographyCharacterIndexMultilingualTest004, TestSize.Level0)
+HWTEST_F(NdkTypographyCharacterIndexTest, CharacterToGlyphRangeUtf16, TestSize.Level0)
 {
     SetupTypographyWithEncodedText(DEFAULT_TEXT_UTF16);
     OH_Drawing_Range* actualCharacterRange = nullptr;
@@ -425,11 +425,11 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyCharacterIndexMultilingualTe
 }
 
 /*
- * @tc.name: TypographyCharacterIndexMultilingualTest005
+ * @tc.name: GlyphToCharacterRangeArabicUtf8
  * @tc.desc: Test glyph to character conversion with Arabic RTL using UTF-8
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyCharacterIndexTest, TypographyCharacterIndexMultilingualTest005, TestSize.Level0)
+HWTEST_F(NdkTypographyCharacterIndexTest, GlyphToCharacterRangeArabicUtf8, TestSize.Level0)
 {
     SetupTypography(ARABIC_TEXT_UTF8);
     OH_Drawing_Range* actualGlyphRange = nullptr;
@@ -444,11 +444,11 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyCharacterIndexMultilingualTe
 }
 
 /*
- * @tc.name: TypographyCharacterIndexMultilingualTest006
+ * @tc.name: CharacterToGlyphRangeArabicUtf8
  * @tc.desc: Test character to glyph conversion with Arabic RTL using UTF-8
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyCharacterIndexTest, TypographyCharacterIndexMultilingualTest006, TestSize.Level0)
+HWTEST_F(NdkTypographyCharacterIndexTest, CharacterToGlyphRangeArabicUtf8, TestSize.Level0)
 {
     SetupTypography(ARABIC_TEXT_UTF8);
     OH_Drawing_Range* actualCharacterRange = nullptr;
@@ -463,11 +463,11 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyCharacterIndexMultilingualTe
 }
 
 /*
- * @tc.name: TypographyCharacterIndexMultilingualTest007
+ * @tc.name: GlyphToCharacterRangeArabicUtf16
  * @tc.desc: Test glyph to character conversion with Arabic RTL using UTF-16
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyCharacterIndexTest, TypographyCharacterIndexMultilingualTest007, TestSize.Level0)
+HWTEST_F(NdkTypographyCharacterIndexTest, GlyphToCharacterRangeArabicUtf16, TestSize.Level0)
 {
     SetupTypographyWithEncodedText(ARABIC_TEXT_UTF16);
     OH_Drawing_Range* actualGlyphRange = nullptr;
@@ -482,11 +482,11 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyCharacterIndexMultilingualTe
 }
 
 /*
- * @tc.name: TypographyCharacterIndexMultilingualTest008
+ * @tc.name: CharacterToGlyphRangeArabicUtf16
  * @tc.desc: Test character to glyph conversion with Arabic RTL using UTF-16
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyCharacterIndexTest, TypographyCharacterIndexMultilingualTest008, TestSize.Level0)
+HWTEST_F(NdkTypographyCharacterIndexTest, CharacterToGlyphRangeArabicUtf16, TestSize.Level0)
 {
     SetupTypographyWithEncodedText(ARABIC_TEXT_UTF16);
     OH_Drawing_Range* actualCharacterRange = nullptr;
@@ -503,11 +503,11 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyCharacterIndexMultilingualTe
 }
 
 /*
- * @tc.name: TypographyCharacterIndexNullActualRangeTest001
+ * @tc.name: CharacterRangeForGlyphRangeNullActualRangeUtf16
  * @tc.desc: Test glyph to character conversion with null actualRange
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyCharacterIndexTest, TypographyCharacterIndexNullActualRangeTest001, TestSize.Level0)
+HWTEST_F(NdkTypographyCharacterIndexTest, CharacterRangeForGlyphRangeNullActualRangeUtf16, TestSize.Level0)
 {
     SetupTypographyWithEncodedText(ARABIC_TEXT_UTF16);
     OH_Drawing_Range* characterRange = OH_Drawing_TypographyGetCharacterRangeForGlyphRangeWithBuffer(
@@ -519,11 +519,11 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyCharacterIndexNullActualRang
 }
 
 /*
- * @tc.name: TypographyCharacterIndexNullActualRangeTest002
+ * @tc.name: GlyphRangeForCharacterRangeNullActualRangeUtf16
  * @tc.desc: Test character to glyph conversion with null actualRange
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyCharacterIndexTest, TypographyCharacterIndexNullActualRangeTest002, TestSize.Level0)
+HWTEST_F(NdkTypographyCharacterIndexTest, GlyphRangeForCharacterRangeNullActualRangeUtf16, TestSize.Level0)
 {
     SetupTypographyWithEncodedText(ARABIC_TEXT_UTF16);
     OH_Drawing_Range* glyphRange = OH_Drawing_TypographyGetGlyphRangeForCharacterRangeWithBuffer(
@@ -535,11 +535,11 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyCharacterIndexNullActualRang
 }
 
 /*
- * @tc.name: TypographyGetGlyphRangeForCharacterRangeNullTypographyTest001
+ * @tc.name: GetGlyphRangeForCharacterRangeNullTypography
  * @tc.desc: Test error handling for glyph range conversion with null typography
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetGlyphRangeForCharacterRangeNullTypographyTest001,
+HWTEST_F(NdkTypographyCharacterIndexTest, GetGlyphRangeForCharacterRangeNullTypography,
     TestSize.Level0)
 {
     SetupTypography(DEFAULT_TEXT_UTF8);
@@ -549,11 +549,11 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetGlyphRangeForCharacterRan
 }
 
 /*
- * @tc.name: TypographyGetGlyphRangeForCharacterRangeInvalidRange1Test001
+ * @tc.name: GetGlyphRangeForCharacterRangeStartGreaterThanEnd
  * @tc.desc: Test error handling for glyph range conversion with start > end
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetGlyphRangeForCharacterRangeInvalidRange1Test001, TestSize.Level0)
+HWTEST_F(NdkTypographyCharacterIndexTest, GetGlyphRangeForCharacterRangeStartGreaterThanEnd, TestSize.Level0)
 {
     SetupTypography(DEFAULT_TEXT_UTF8);
     OH_Drawing_Range* range = OH_Drawing_TypographyGetGlyphRangeForCharacterRangeWithBuffer(
@@ -562,11 +562,11 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetGlyphRangeForCharacterRan
 }
 
 /*
- * @tc.name: TypographyGetGlyphRangeForCharacterRangeEmptyRangeTest001
+ * @tc.name: GetGlyphRangeForCharacterRangeEmptyRange
  * @tc.desc: Test error handling for glyph range conversion with empty range
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetGlyphRangeForCharacterRangeEmptyRangeTest001, TestSize.Level0)
+HWTEST_F(NdkTypographyCharacterIndexTest, GetGlyphRangeForCharacterRangeEmptyRange, TestSize.Level0)
 {
     SetupTypography(DEFAULT_TEXT_UTF8);
     OH_Drawing_Range* actualCharacterRange = nullptr;
@@ -576,11 +576,11 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetGlyphRangeForCharacterRan
 }
 
 /*
- * @tc.name: TypographyGetGlyphRangeForCharacterRangeInvalidEncodingTest001
+ * @tc.name: GetGlyphRangeForCharacterRangeInvalidEncoding
  * @tc.desc: Test error handling for glyph range conversion with invalid encoding
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetGlyphRangeForCharacterRangeInvalidEncodingTest001,
+HWTEST_F(NdkTypographyCharacterIndexTest, GetGlyphRangeForCharacterRangeInvalidEncoding,
     TestSize.Level0)
 {
     SetupTypography(DEFAULT_TEXT_UTF8);
@@ -591,11 +591,11 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetGlyphRangeForCharacterRan
 }
 
 /*
- * @tc.name: TypographyGetCharacterRangeForGlyphRangeNullTypographyTest001
+ * @tc.name: GetCharacterRangeForGlyphRangeNullTypography
  * @tc.desc: Test error handling for character range conversion with null typography
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterRangeForGlyphRangeNullTypographyTest001,
+HWTEST_F(NdkTypographyCharacterIndexTest, GetCharacterRangeForGlyphRangeNullTypography,
     TestSize.Level0)
 {
     SetupTypography(DEFAULT_TEXT_UTF8);
@@ -605,11 +605,11 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterRangeForGlyphRan
 }
 
 /*
- * @tc.name: TypographyGetCharacterRangeForGlyphRangeInvalidRange1Test001
+ * @tc.name: GetCharacterRangeForGlyphRangeStartGreaterThanEnd
  * @tc.desc: Test error handling for character range conversion with start > end
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterRangeForGlyphRangeInvalidRange1Test001, TestSize.Level0)
+HWTEST_F(NdkTypographyCharacterIndexTest, GetCharacterRangeForGlyphRangeStartGreaterThanEnd, TestSize.Level0)
 {
     SetupTypography(DEFAULT_TEXT_UTF8);
     OH_Drawing_Range* range = OH_Drawing_TypographyGetCharacterRangeForGlyphRangeWithBuffer(
@@ -618,11 +618,11 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterRangeForGlyphRan
 }
 
 /*
- * @tc.name: TypographyGetCharacterRangeForGlyphRangeEmptyRangeTest001
+ * @tc.name: GetCharacterRangeForGlyphRangeEmptyRange
  * @tc.desc: Test error handling for character range conversion with empty range
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterRangeForGlyphRangeEmptyRangeTest001, TestSize.Level0)
+HWTEST_F(NdkTypographyCharacterIndexTest, GetCharacterRangeForGlyphRangeEmptyRange, TestSize.Level0)
 {
     SetupTypography(DEFAULT_TEXT_UTF8);
     OH_Drawing_Range* actualGlyphRange = nullptr;
@@ -632,11 +632,11 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterRangeForGlyphRan
 }
 
 /*
- * @tc.name: TypographyGetCharacterRangeForGlyphRangeInvalidEncodingTest001
+ * @tc.name: GetCharacterRangeForGlyphRangeInvalidEncoding
  * @tc.desc: Test error handling for character range conversion with invalid encoding
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterRangeForGlyphRangeInvalidEncodingTest001,
+HWTEST_F(NdkTypographyCharacterIndexTest, GetCharacterRangeForGlyphRangeInvalidEncoding,
     TestSize.Level0)
 {
     SetupTypography(DEFAULT_TEXT_UTF8);
@@ -647,11 +647,11 @@ HWTEST_F(NdkTypographyCharacterIndexTest, TypographyGetCharacterRangeForGlyphRan
 }
 
 /*
- * @tc.name: TypographyUTF16SurrogatePairFullEmojiTest001
+ * @tc.name: UTF16SurrogatePairFullEmojiGlyphRange
  * @tc.desc: Test getting glyph range for a complete emoji (both surrogate code units)
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyCharacterIndexTest, TypographyUTF16SurrogatePairFullEmojiTest001, TestSize.Level0)
+HWTEST_F(NdkTypographyCharacterIndexTest, UTF16SurrogatePairFullEmojiGlyphRange, TestSize.Level0)
 {
     SetupTypographyWithEncodedText(DEFAULT_TEXT_UTF16);
     OH_Drawing_Range* actualCharacterRange = nullptr;

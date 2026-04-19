@@ -794,5 +794,29 @@ HWTEST_F(ColorPickAltManagerTest, ScheduleColorPickAltWithHeteroAcceleration, Te
     EXPECT_TRUE(true);
 }
 
+/**
+ * @tc.name: GetLastEquivalentDarkModeReturnsInvalidInitially
+ * @tc.desc: Verify GetLastEquivalentDarkMode
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSColorPickerManagerTest, GetLastEquivalentDarkMode, TestSize.Level1)
+{
+    RSColorPickerManager manager(1);
+    auto mode = manager.GetLastEquivalentDarkMode();
+    EXPECT_EQ(mode, EquivalentDarkMode::LIGHT);
+}
+
+/**
+ * @tc.name: GetLastEquivalentDarkModeAltAlwaysReturnsInvalid
+ * @tc.desc: Verify ColorPickAltManager::GetLastEquivalentDarkMode always returns INVALID
+ * @tc.type: FUNC
+ */
+HWTEST_F(ColorPickAltManagerTest, GetLastEquivalentDarkModeAlt, TestSize.Level1)
+{
+    auto manager = std::make_shared<ColorPickAltManager>(1);
+    auto mode = manager->GetLastEquivalentDarkMode();
+    EXPECT_EQ(mode, EquivalentDarkMode::INVALID);
+}
+
 } // namespace Rosen
 } // namespace OHOS

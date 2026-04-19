@@ -14,6 +14,7 @@
  */
 
 #include "hm_symbol_run.h"
+#include "common/rs_common_def.h"
 #include "custom_symbol_config.h"
 #include "default_symbol_config.h"
 #include "draw/path.h"
@@ -29,7 +30,7 @@ static const std::vector<RSEffectStrategy> COMMON_ANIMATION_TYPES = {
     RSEffectStrategy::SCALE, RSEffectStrategy::APPEAR, RSEffectStrategy::DISAPPEAR,
     RSEffectStrategy::BOUNCE, RSEffectStrategy::REPLACE_APPEAR, RSEffectStrategy::QUICK_REPLACE_APPEAR};
 
-static const float SHADOW_EPSILON = 0.999f; // if blur radius less than 1, do not need to draw
+static const float SHADOW_EPSILON = 0.0f; // if blur radius less than 0, do not need to draw
 
 HMSymbolRun::HMSymbolRun(uint64_t symbolId,
     const HMSymbolTxt& symbolTxt,
@@ -89,6 +90,84 @@ RSSymbolLayers HMSymbolRun::GetSymbolLayers(uint16_t glyphId, const HMSymbolTxt&
 
 void HMSymbolRun::SetRenderColor(const RSSymbolRenderingStrategy& renderMode, RSSymbolLayers& symbolInfo)
 {
+    std::vector<std::shared_ptr<SymbolGradient>> gradients;
+    if (!symbolTxt_.GetUIColors().empty()) {
+        FillUIColorGradients(renderMode, symbolInfo, gradients);
+    } else {
+        FillRSColorGradients(renderMode, symbolInfo, gradients);
+    }
+    gradients_ = std::move(gradients);
+}
+
+HMSymbolRun::EffectiveUIColorResult HMSymbolRun::GetUiColorByRenderMode(const RSSymbolRenderingStrategy& renderMode,
+    const std::vector<Drawing::UIColor>& uiColorList, const std::vector<SymbolColorSpace>& colorSpaces,
+    const std::vector<RSRenderGroup>& renderGroups)
+{
+    EffectiveUIColorResult result;
+    auto& effectiveUIColors = result.colors;
+    auto& effectiveColorSpaces = result.colorSpaces;
+
+    switch (renderMode) {
+        case RSSymbolRenderingStrategy::SINGLE:
+            for (size_t i = 0; i < renderGroups.size(); ++i) {
+                effectiveUIColors.push_back(uiColorList[0]);
+                effectiveColorSpaces.push_back(colorSpaces.empty() ? SymbolColorSpace::SRGB : colorSpaces[0]);
+            }
+            break;
+        // MULTIPLE_OPACITY: Supports rgb replace and alpha overlay setting by the first uiColor
+        case RSSymbolRenderingStrategy::MULTIPLE_OPACITY:
+            for (size_t i = 0; i < renderGroups.size(); ++i) {
+                float alpha = renderGroups[i].color.a * uiColorList[0].GetAlpha();
+                // the 0 indicates the first color is used. Alpha: 0.0: min, 1.0: max
+                auto uiColor = Drawing::UIColor(uiColorList[0].GetRed(), uiColorList[0].GetGreen(),
+                    uiColorList[0].GetBlue(), std::clamp(alpha, 0.0f, 1.0f));
+                // the 0 indicates the first color is used
+                uiColor.SetHeadroom(uiColorList[0].GetHeadroom());
+                effectiveUIColors.push_back(uiColor);
+                effectiveColorSpaces.push_back(colorSpaces.empty() ? SymbolColorSpace::SRGB : colorSpaces[0]);
+            }
+            break;
+        // MULTIPLE_COLOR: Supports multiple uiColor setting. Layers exceeding color count use default symbol colors.
+        case RSSymbolRenderingStrategy::MULTIPLE_COLOR:
+            for (size_t i = 0; i < renderGroups.size(); ++i) {
+                if (i < uiColorList.size()) {
+                    effectiveUIColors.push_back(uiColorList[i]);
+                    effectiveColorSpaces.push_back((i < colorSpaces.size()) ? colorSpaces[i] :
+                        SymbolColorSpace::SRGB);
+                } else {
+                    constexpr static uint8_t RGB_MAX = 255;
+                    float uiRed = static_cast<float>(renderGroups[i].color.r) / RGB_MAX;
+                    float uiGreen = static_cast<float>(renderGroups[i].color.g) / RGB_MAX;
+                    float uiBlue = static_cast<float>(renderGroups[i].color.b) / RGB_MAX;
+                    auto uiColor = Drawing::UIColor(uiRed, uiGreen, uiBlue, renderGroups[i].color.a);
+                    effectiveUIColors.push_back(uiColor);
+                    effectiveColorSpaces.push_back(SymbolColorSpace::SRGB);
+                }
+            }
+            break;
+        default:
+            TEXT_LOGW_LIMIT3_MIN("Unknown renderMode %{public}d", static_cast<int>(renderMode));
+            break;
+    }
+    return result;
+}
+
+void HMSymbolRun::FillUIColorGradients(const RSSymbolRenderingStrategy& renderMode, RSSymbolLayers& symbolInfo,
+    std::vector<std::shared_ptr<SymbolGradient>>& gradients)
+{
+    HMSymbolRun::EffectiveUIColorResult uiColorAndSpaceResult = GetUiColorByRenderMode(renderMode,
+        symbolTxt_.GetUIColors(), symbolTxt_.GetColorSpaces(), symbolInfo.renderGroups);
+
+    for (size_t i = 0; i < symbolInfo.renderGroups.size(); ++i) {
+        auto gradient = std::make_shared<SymbolGradient>();
+        gradient->SetUIColors({ uiColorAndSpaceResult.colors[i] }, uiColorAndSpaceResult.colorSpaces[i]);
+        gradients.push_back(gradient);
+    }
+}
+
+void HMSymbolRun::FillRSColorGradients(const RSSymbolRenderingStrategy& renderMode, RSSymbolLayers& symbolInfo,
+    std::vector<std::shared_ptr<SymbolGradient>>& gradients)
+{
     std::vector<RSSColor> colorList = symbolTxt_.GetRenderColor();
 
     if (!colorList.empty()) {
@@ -96,7 +175,7 @@ void HMSymbolRun::SetRenderColor(const RSSymbolRenderingStrategy& renderMode, RS
     }
 
     auto placeholderList = symbolTxt_.GetRenderColorPlaceholder();
-    std::vector<std::shared_ptr<SymbolGradient>> gradients;
+
     for (size_t i = 0; i < symbolInfo.renderGroups.size(); ++i) {
         auto gradient = std::make_shared<SymbolGradient>();
         auto groupColor = symbolInfo.renderGroups[i].color;
@@ -109,7 +188,6 @@ void HMSymbolRun::SetRenderColor(const RSSymbolRenderingStrategy& renderMode, RS
         gradient->SetColors({ color });
         gradients.push_back(gradient);
     }
-    gradients_ = std::move(gradients);
 }
 
 void HMSymbolRun::SetGradientColor(const RSSymbolRenderingStrategy& renderMode, const RSSymbolLayers& symbolInfo)
@@ -133,6 +211,7 @@ void HMSymbolRun::SetGradientColor(const RSSymbolRenderingStrategy& renderMode, 
             gradient = symbolColor.gradients[i];
             i++;
         } else {
+            // Gradient exhausted, copy last to fill.
             gradient = SymbolNodeBuild::CreateGradient(symbolColor.gradients[n]);
         }
         if (gradient != nullptr) {
@@ -321,7 +400,7 @@ void HMSymbolRun::SetSymbolTxt(const HMSymbolTxt& hmsymbolTxt)
     symbolTxt_ = hmsymbolTxt;
 }
 
-const HMSymbolTxt& HMSymbolRun::GetSymbolTxt()
+const HMSymbolTxt& HMSymbolRun::GetSymbolTxt() const
 {
     return symbolTxt_;
 }
@@ -421,8 +500,9 @@ void HMSymbolRun::OnDrawSymbol(RSCanvas* canvas, const RSHMSymbolData& symbolDat
         multPaths.push_back(multPath);
     }
 
+    // If a shadow is set and the shadow radius is within the valid range
     if (symbolTxt_.GetSymbolShadow().has_value() &&
-        symbolTxt_.GetSymbolShadow().value().blurRadius > SHADOW_EPSILON) {
+        ROSEN_GE(symbolTxt_.GetSymbolShadow().value().blurRadius, SHADOW_EPSILON)) {
         DrawSymbolShadow(canvas, multPaths);
     }
 

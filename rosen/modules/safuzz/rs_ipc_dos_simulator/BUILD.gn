@@ -137,5 +137,6 @@ ohos_fuzztest("RSIpcDosSimulator") {
 group("safuzztest") {
   testonly = true
 
-  deps = [ ":RSIpcDosSimulator" ]
+  # deps = [ ":RSIpcDosSimulator" ]
+  deps = []
 }

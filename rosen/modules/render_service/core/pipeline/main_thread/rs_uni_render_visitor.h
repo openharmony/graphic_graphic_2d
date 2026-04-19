@@ -22,19 +22,19 @@
 #include <parameters.h>
 #include <set>
 
-#include "pipeline/render_thread/rs_base_render_engine.h"
+#include "engine/rs_base_render_engine.h"
 #include "system/rs_system_parameters.h"
 
+#include "feature/anco_manager/rs_anco_manager.h"
 #include "feature/hwc/rs_uni_hwc_prevalidate_util.h"
+#include "feature/pointer_window_manager/rs_pointer_window_manager.h"
 #include "feature/round_corner_display/rs_rcd_render_manager.h"
 #include "common/rs_special_layer_manager.h"
 #include "params/rs_render_thread_params.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "pipeline/rs_pointer_window_manager.h"
 #include "pipeline/rs_render_node.h"
 #include "platform/ohos/overdraw/rs_overdraw_controller.h"
-#include "screen_manager/rs_screen_manager.h"
 #include "visitor/rs_node_visitor.h"
 #include "info_collection/rs_hdr_collection.h"
 
@@ -189,7 +189,6 @@ private:
     void UpdateSurfaceDirtyAndGlobalDirty();
     // should ensure that the surface size of dirty region manager has been set
     void ResetDisplayDirtyRegion();
-    bool CheckScreenPowerChange() const;
     bool CheckCurtainScreenUsingStatusChange() const;
     bool CheckLuminanceStatusChange(ScreenId id);
     bool CheckSkipCrossNode(RSSurfaceRenderNode& node);
@@ -228,6 +227,7 @@ private:
     void PrevalidateHwcNode();
     bool PrepareForCloneNode(RSSurfaceRenderNode& node);
     void UpdateInfoForClonedNode(RSSurfaceRenderNode& node);
+    bool IsSourceNodeDirty(RSSurfaceRenderNode& node);
     void PrepareForCrossNode(RSSurfaceRenderNode& node);
 
     // use in QuickPrepareSurfaceRenderNode, update SurfaceRenderNode's uiFirst status
@@ -287,15 +287,13 @@ private:
     void HandlePixelFormat(RSScreenRenderNode& node);
     bool IsHardwareComposerEnabled();
 
-    void UpdateSpecialLayersRecord(RSSurfaceRenderNode& node);
-    void UpdateBlackListRecord(RSSurfaceRenderNode& node);
-    void DealWithSpecialLayer(RSSurfaceRenderNode& node);
     void SendRcdMessage(RSScreenRenderNode& node);
 
     bool ForcePrepareSubTree()
     {
-        return (curSurfaceNode_ && curSurfaceNode_->GetNeedCollectHwcNode()) || IsAccessibilityConfigChanged() ||
-               isFirstFrameAfterScreenRotation_ || isCurSubTreeForcePrepare_;
+        return (curSurfaceNode_ && (curSurfaceNode_->GetNeedCollectHwcNode() ||
+                                    RSAncoManager::Instance()->IsAncoType(curSurfaceNode_->GetName()))) ||
+               IsAccessibilityConfigChanged() || isFirstFrameAfterScreenRotation_ || isCurSubTreeForcePrepare_;
     }
     // Wish to force prepare specific subtrees? Add conditions here
     bool IsCurrentSubTreeForcePrepare(RSRenderNode& node);
@@ -306,8 +304,9 @@ private:
         if (specialLayerMgr.Find(IS_GENERAL_SPECIAL) || isSkipDrawInVirtualScreen_) {
             return false; // surface is special layer
         }
-        if (!allWhiteList_.empty() || allBlackList_.count(node.GetId()) != 0) {
-            return false; // white list is not empty, or surface is in black list
+        if (!specialLayerMgr.FindScreenHasType(SpecialLayerType::IS_BLACK_LIST).empty() ||
+            !allWhiteList_.empty()) {
+            return false; // surface is in black list or white list is not empty
         }
         return true;
     }
@@ -375,7 +374,11 @@ private:
 
     void DisableOccludedHwcNodeInSkippedSubTree(const RSRenderNode& node) const;
 
-    void PrepareColorPickerDrawable(RSRenderNode& node);
+    void HandleColorPickerHwcDisable(RSRenderNode& node);
+    /**
+     * @brief Prepare color pickers with dirty region intersection checking
+     */
+    void PrepareColorPickers();
 
     friend class RSUniHwcVisitor;
     std::unique_ptr<RSUniHwcVisitor> hwcVisitor_;
@@ -398,6 +401,7 @@ private:
     std::shared_ptr<RSDirtyRegionManager> curLayerPartRenderDirtyManager_;
     std::shared_ptr<RSSurfaceRenderNode> curSurfaceNode_;
     std::shared_ptr<RSUnionRenderNode> curUnionNode_;
+    std::shared_ptr<RSDynamicLayerSkipController> dynamicLayerSkipController_;
     RSSpecialLayerManager specialLayerManager_;
 
     bool hasFingerprint_ = false;
@@ -410,7 +414,6 @@ private:
     // record DRM nodes
     std::vector<std::weak_ptr<RSSurfaceRenderNode>> drmNodes_;
     int16_t occlusionSurfaceOrder_ = DEFAULT_OCCLUSION_SURFACE_ORDER;
-    sptr<RSScreenManager> screenManager_;
     static std::unordered_set<NodeId> allBlackList_; // The collection of blacklist for all screens
     static std::unordered_set<NodeId> allWhiteList_; // The collection of whitelist for all screens
     // The info of whitelist contains screenId
@@ -536,8 +539,6 @@ private:
     int32_t rsScreenNodeChildNum_ = 0;
     size_t rsScreenNodeNum_ = 0;
 
-    ScreenState screenState_ = ScreenState::UNKNOWN;
-    
     bool isSkipDrawInVirtualScreen_ = false;
 
     // used for finding the first effect render node to check to need to enabled debug
@@ -545,6 +546,9 @@ private:
 
     // used for force prepare current subtree this frame
     bool isCurSubTreeForcePrepare_ = false;
+
+    // used for check whether anco has dimmer
+    bool hasAncoDimmer_ = false;
 };
 
 class RSSubTreePrepareController {

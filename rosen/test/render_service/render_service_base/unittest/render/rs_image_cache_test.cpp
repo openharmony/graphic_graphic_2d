@@ -879,18 +879,27 @@ HWTEST_F(RSImageCacheTest, ReleasePixelMapCacheTest008, TestSize.Level1)
 HWTEST_F(RSImageCacheTest, ReleaseDrawingImageCacheByPixelMapIdTest002, TestSize.Level1)
 {
     RSImageCache& imageCache = RSImageCache::Instance();
-    auto img = std::make_shared<Drawing::Image>();
-    imageCache.CacheRenderDrawingImageByPixelMapId(123, img, 0);
-    RSImageDetailEnhancerThread& rsImageDetailEnhancerThread = RSImageDetailEnhancerThread::Instance();
     auto type = system::GetParameter("rosen.isEnabledScaleImageAsync.enabled", "0");
-    system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", "1");
-    rsImageDetailEnhancerThread.SetScaledImage(123, img);
-    imageCache.ReleaseDrawingImageCacheByPixelMapId(123);
-    EXPECT_TRUE(imageCache.pixelMapIdRelatedDrawingImageCache_.empty());
+    system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", "0");
+    auto img = std::make_shared<Drawing::Image>();
+    imageCache.CacheRenderDrawingImageByPixelMapId(1234, img, 0);
+    RSImageDetailEnhancerThread& rsImageDetailEnhancerThread = RSImageDetailEnhancerThread::Instance();
+    imageCache.ReleaseDrawingImageCacheByPixelMapId(1234);
 
+    auto img1 = std::make_shared<Drawing::Image>();
+    imageCache.CacheRenderDrawingImageByPixelMapId(2345, img1, 0);
+    rsImageDetailEnhancerThread.SetScaledImage(2345, img1);
+    imageCache.ReleaseDrawingImageCacheByPixelMapId(2345);
+
+    system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", "1");
     auto img2 = std::make_shared<Drawing::Image>();
-    imageCache.CacheRenderDrawingImageByPixelMapId(345, img2, 0);
-    imageCache.ReleaseDrawingImageCacheByPixelMapId(345);
+    imageCache.CacheRenderDrawingImageByPixelMapId(3456, img2, 0);
+    rsImageDetailEnhancerThread.SetScaledImage(3456, img2);
+    imageCache.ReleaseDrawingImageCacheByPixelMapId(3456);
+
+    auto img3 = std::make_shared<Drawing::Image>();
+    imageCache.CacheRenderDrawingImageByPixelMapId(4567, img3, 0);
+    imageCache.ReleaseDrawingImageCacheByPixelMapId(4567);
     EXPECT_TRUE(imageCache.pixelMapIdRelatedDrawingImageCache_.empty());
     imageCache.pixelMapIdRelatedDrawingImageCache_.clear();
     system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", type);

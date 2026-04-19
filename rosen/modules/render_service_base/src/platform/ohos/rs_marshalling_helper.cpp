@@ -33,6 +33,8 @@
 #include "animation/rs_particle_noise_field.h"
 #include "animation/rs_particle_ripple_field.h"
 #include "animation/rs_particle_velocity_field.h"
+#include "animation/rs_particle_field_factory.h"
+#include "animation/rs_particle_field_collection.h"
 #include "animation/rs_render_curve_animation.h"
 #include "animation/rs_render_interpolating_spring_animation.h"
 #include "animation/rs_render_keyframe_animation.h"
@@ -54,10 +56,10 @@
 #include "modifier_ng/rs_render_modifier_ng.h"
 #include "pipeline/rs_draw_cmd.h"
 #include "platform/common/rs_log.h"
+#include "platform/ohos/transaction/zidl/rs_iclient_to_service_connection.h"
 #include "render/rs_gradient_blur_para.h"
 #include "render/rs_image.h"
 #include "render/rs_image_base.h"
-#include "render/rs_magnifier_para.h"
 #include "render/rs_mask.h"
 #include "render/rs_motion_blur_filter.h"
 #include "render/rs_path.h"
@@ -531,6 +533,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, Drawing::SharedTypeface& v
     success &= Marshalling(parcel, val.size_);
     success &= Marshalling(parcel, val.index_);
     success &= Marshalling(parcel, val.hash_);
+    RS_PROFILER_WRITE_SHARED_TYPEFACE(parcel, val);
     success &= static_cast<MessageParcel*>(&parcel)->WriteFileDescriptor(val.fd_);
     success &= Marshalling(parcel, val.hasFontArgs_);
 
@@ -571,7 +574,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, Drawing::SharedTypeface&
     success &= Unmarshalling(parcel, hash);
     if (success) { val.hash_ = hash; }
 
-    val.fd_ = static_cast<MessageParcel*>(&parcel)->ReadFileDescriptor();
+    RS_PROFILER_READ_SHARED_TYPEFACE(parcel, val);
     if (val.fd_ < 0) {
         success = false;
     }
@@ -1062,50 +1065,6 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<MotionBl
     return success;
 }
 
-// MagnifierPara
-bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSMagnifierParams>& val)
-{
-    bool success = Marshalling(parcel, val->factor_);
-    success &= Marshalling(parcel, val->width_);
-    success &= Marshalling(parcel, val->height_);
-    success &= Marshalling(parcel, val->cornerRadius_);
-    success &= Marshalling(parcel, val->borderWidth_);
-    success &= Marshalling(parcel, val->offsetX_);
-    success &= Marshalling(parcel, val->offsetY_);
-    success &= Marshalling(parcel, val->zoomOffsetX_);
-    success &= Marshalling(parcel, val->zoomOffsetY_);
-
-    success &= Marshalling(parcel, val->shadowOffsetX_);
-    success &= Marshalling(parcel, val->shadowOffsetY_);
-    success &= Marshalling(parcel, val->shadowSize_);
-    success &= Marshalling(parcel, val->shadowStrength_);
- 
-    success &= Marshalling(parcel, val->gradientMaskColor1_);
-    success &= Marshalling(parcel, val->gradientMaskColor2_);
-    success &= Marshalling(parcel, val->outerContourColor1_);
-    success &= Marshalling(parcel, val->outerContourColor2_);
-
-    return success;
-}
- 
-bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSMagnifierParams>& val)
-{
-    val = std::make_shared<RSMagnifierParams>();
-    if (val == nullptr) { return false; }
-
-    bool success = Unmarshalling(parcel, val->factor_) && Unmarshalling(parcel, val->width_) &&
-                   Unmarshalling(parcel, val->height_) && Unmarshalling(parcel, val->cornerRadius_) &&
-                   Unmarshalling(parcel, val->borderWidth_) && Unmarshalling(parcel, val->offsetX_) &&
-                   Unmarshalling(parcel, val->offsetY_) && Unmarshalling(parcel, val->zoomOffsetX_) &&
-                   Unmarshalling(parcel, val->zoomOffsetY_) && Unmarshalling(parcel, val->shadowOffsetX_) &&
-                   Unmarshalling(parcel, val->shadowOffsetY_) && Unmarshalling(parcel, val->shadowSize_) &&
-                   Unmarshalling(parcel, val->shadowStrength_) && Unmarshalling(parcel, val->gradientMaskColor1_) &&
-                   Unmarshalling(parcel, val->gradientMaskColor2_) && Unmarshalling(parcel, val->outerContourColor1_) &&
-                   Unmarshalling(parcel, val->outerContourColor2_);
-
-    return success;
-}
-
 // Particle
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<AnnulusRegion>& val)
 {
@@ -1264,9 +1223,9 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Part
         return flag;
     }
     bool success = parcel.WriteInt32(1) && Marshalling(parcel, val->fieldStrength_);
-    success &= Marshalling(parcel, val->fieldShape_);
-    success &= Marshalling(parcel, val->fieldSize_.x_) && Marshalling(parcel, val->fieldSize_.y_);
-    success &= Marshalling(parcel, val->fieldCenter_.x_) && Marshalling(parcel, val->fieldCenter_.y_);
+    success &= Marshalling(parcel, val->regionShape_);
+    success &= Marshalling(parcel, val->regionSize_.x_) && Marshalling(parcel, val->regionSize_.y_);
+    success &= Marshalling(parcel, val->regionPosition_.x_) && Marshalling(parcel, val->regionPosition_.y_);
     success &= Marshalling(parcel, val->fieldFeather_) &&  Marshalling(parcel, val->noiseScale_);
     success &= Marshalling(parcel, val->noiseFrequency_) &&  Marshalling(parcel, val->noiseAmplitude_);
     if (!success) {
@@ -1589,6 +1548,16 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Particle
         val = velocityFields;
     }
     return success;
+}
+
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<ParticleFieldCollection>& val)
+{
+    return ParticleFieldFactory::Marshalling(parcel, val);
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<ParticleFieldCollection>& val)
+{
+    return ParticleFieldFactory::Unmarshalling(parcel, val);
 }
 
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const EmitterConfig& val)
@@ -2212,14 +2181,6 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
     auto readSafeFdFunc = [](Parcel& parcel, std::function<int(Parcel&)> readFdDefaultFunc) -> int {
         return AshmemFdContainer::Instance().ReadSafeFd(parcel, readFdDefaultFunc);
     };
-    uint32_t pid = static_cast<uint32_t>(uniqueId >> 32);
-    if (MemoryTrack::Instance().CountFdRecordOfPid(pid) > MAX_FD) {
-        ROSEN_LOGE("The number of fd exceeds the limit");
-        std::string reason = "The number of fd exceeds the limit" +
-            std::to_string(MemoryTrack::Instance().CountFdRecordOfPid(pid));
-        MemoryTrack::Instance().KillProcessByPid(pid, reason);
-        return false;
-    }
     val.reset(RS_PROFILER_UNMARSHAL_PIXELMAP(parcel, readSafeFdFunc));
     if (val == nullptr) {
         ROSEN_LOGE("failed RSMarshallingHelper::Unmarshalling Media::PixelMap");
@@ -2238,6 +2199,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
     if (RSSystemProperties::GetClosePixelMapFdEnabled()) {
         val->CloseFd();
     }
+    uint32_t pid = static_cast<uint32_t>(uniqueId >> 32);
     OHOS::Media::ImageInfo imageInfo;
     val->GetImageInfo(imageInfo);
     MemoryInfo info = {
@@ -2255,6 +2217,11 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
     MemoryTrack::Instance().AddPictureRecord(val->GetPixels(), info);
 #endif
     val->SetFreePixelMapProc(CustomFreePixelMap);
+
+    if (!MemoryTrack::Instance().CheckPixelMapFdCountAndKillProcess(pid)) {
+        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling CheckPixelMapFdCount failed");
+        return false;
+    }
     return true;
 }
 
@@ -3285,7 +3252,6 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSShader>)                    \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSLinearGradientBlurPara>)    \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<MotionBlurParam>)             \
-    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSMagnifierParams>)           \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<std::shared_ptr<EmitterUpdater>>) \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleNoiseFields>)         \
     EXPLICIT_INSTANTIATION(TEMPLATE, RSRenderParticleVector)                       \
@@ -3293,6 +3259,7 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleRippleFields>)        \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleVelocityField>)         \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleVelocityFields>)        \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleFieldCollection>)       \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                                     \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector3f)                                     \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<uint32_t>)                            \
@@ -3553,25 +3520,59 @@ bool RSMarshallingHelper::UnmarshallingTransactionVer(Parcel& parcel)
     return true;
 }
 
+size_t CommitTransactionFlagsOffset()
+{
+    MessageParcel parcel;
+    parcel.WriteInt32(0);
+    return parcel.GetWritePosition();
+}
+
+size_t CommitTransactionWithTokenFlagsOffset()
+{
+    MessageParcel parcel;
+    parcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    parcel.WriteInt32(0);
+    return parcel.GetWritePosition();
+}
+
+size_t RemoteRequestFlagsOffset()
+{
+    MessageParcel parcel;
+    parcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    return parcel.GetWritePosition();
+}
+
 bool RSMarshallingHelper::TransactionVersionCheck(Parcel& parcel, uint8_t supportedFlag)
 {
-    constexpr size_t startPositionOffset = 4;
+    // 1. token flag 2. transaction flag 3. remote request flag
+    static const uint32_t flagNum = 3;
+    static const size_t flagsOffset[flagNum] = { CommitTransactionWithTokenFlagsOffset(),
+        CommitTransactionFlagsOffset(), RemoteRequestFlagsOffset() };
 
-    size_t offset = parcel.GetReadPosition();
-    parcel.RewindRead(startPositionOffset);
-    int64_t headerCode = parcel.ReadInt64();
-    if (headerCode == -1) {
-        uint64_t flags = 0;
-        constexpr uint8_t bitsPerUint64 = 64;
-        int numReads = supportedFlag / bitsPerUint64 + 1;
-        for (int i = 0; i < numReads; i++) {
-            flags = parcel.ReadUint64();
-        }
+    const auto offset = parcel.GetReadPosition();
+
+    bool hasFlags = false;
+    for (const auto& offset : flagsOffset) {
         parcel.RewindRead(offset);
-        return flags & (static_cast<uint64_t>(1) << (supportedFlag % bitsPerUint64));
+        if (parcel.ReadInt64() == -1) {
+            hasFlags = true;
+            break;
+        }
+    }
+
+    if (!hasFlags) {
+        parcel.RewindRead(offset);
+        return false;
+    }
+
+    uint64_t flags = 0;
+    constexpr uint8_t bitsPerUint64 = 64;
+    const int numReads = supportedFlag / bitsPerUint64 + 1;
+    for (int i = 0; i < numReads; i++) {
+        flags = parcel.ReadUint64();
     }
     parcel.RewindRead(offset);
-    return false;
+    return flags & (static_cast<uint64_t>(1) << (supportedFlag % bitsPerUint64));
 }
 
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const RSRenderParticleVector& val)

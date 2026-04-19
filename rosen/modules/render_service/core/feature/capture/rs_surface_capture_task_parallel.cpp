@@ -25,7 +25,9 @@
 
 #include "common/rs_background_thread.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "engine/rs_base_render_engine.h"
 #include "feature/hdr/rs_hdr_util.h"
+#include "feature/pointer_window_manager/rs_pointer_window_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "feature_cfg/graphic_feature_param_manager.h"
 #include "ge_render.h"
@@ -33,24 +35,20 @@
 #include "ge_visual_effect_container.h"
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_surface_render_params.h"
-#include "pipeline/render_thread/rs_base_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_paint_filter_canvas.h"
-#include "pipeline/rs_pointer_window_manager.h"
-#include "transaction/rs_client_to_render_connection.h"
-#include "render_server/transaction/rs_client_to_service_connection.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/drawing/rs_surface.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_render_mesa_blur_filter.h"
 #include "render/rs_skia_filter.h"
-#include "screen_manager/rs_screen_manager.h"
-#include "screen_manager/rs_screen_mode_info.h"
 #include "pipeline/rs_logical_display_render_node.h"
+#include "transaction/rs_client_to_render_connection.h"
+#include "transaction/rs_client_to_service_connection.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -227,10 +225,14 @@ bool RSSurfaceCaptureTaskParallel::CreateResources()
         }
         surfaceNodeDrawable_ = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
             DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(curNode));
+        if (!surfaceNodeDrawable_) {
+            return false;
+        }
+        auto surfaceNodeParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable_->GetRenderParams().get());
         // When the window freeze capture invokes the F16 screenshot mode and window need use F16 capture,
         // or when the HDR mode is invoked and the window contains HDR resources, an F16 buffer needs to be allocated.
         bool isF16Capture = (captureConfig_.needF16WindowCaptureForScRGB && RSHdrUtil::NeedUseF16Capture(curNode)) ||
-            (captureConfig_.isHdrCapture && surfaceNode->GetHDRPresent());
+            (captureConfig_.isHdrCapture && surfaceNodeParams->SelfOrChildHasHDR());
         pixelMap_ = CreatePixelMapBySurfaceNode(curNode, isF16Capture);
         auto screenNode = std::static_pointer_cast<RSScreenRenderNode>(surfaceNode->GetAncestorScreenNode().lock());
         if (screenNode) {
@@ -275,6 +277,7 @@ bool RSSurfaceCaptureTaskParallel::Run(
     canvas.Scale(captureConfig_.scaleX, captureConfig_.scaleY);
     canvas.SetDisableFilterCache(true);
     RSSurfaceRenderParams* curNodeParams = nullptr;
+    RSUniRenderThread::BufferManagerGuard bufferGuard;
     if (surfaceNodeDrawable_) {
         curNodeParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable_->GetRenderParams().get());
         RSUiFirstProcessStateCheckerHelper stateCheckerHelper(
@@ -285,10 +288,11 @@ bool RSSurfaceCaptureTaskParallel::Run(
         RS_LOGD("surfaceCapParam.hasDirtyContent_: %{public}d", surfaceCapParam.hasDirtyContent_);
         RSUniRenderThread::SetCaptureParam(surfaceCapParam);
         DrawableV2::RSRenderNodeDrawable::ClearSnapshotProcessedNodeCount();
-        bool isHDRCapture = captureConfig_.isHdrCapture && curNodeParams->GetHDRPresent();
+        bool isHDRCapture = captureConfig_.isHdrCapture && curNodeParams->SelfOrChildHasHDR();
         RSPaintFilterCanvas::ScreenshotType type = isHDRCapture ? RSPaintFilterCanvas::ScreenshotType::HDR_WINDOWSHOT :
             RSPaintFilterCanvas::ScreenshotType::SDR_WINDOWSHOT;
         canvas.SetScreenshotType(type);
+        canvas.SetOnMultipleScreen(!isHDRCapture); // not isHDRCapture means tmo to sdr
         canvas.SetHdrOn(isHDRCapture);
         canvas.SetScreenId(screenId_);
         canvas.SetIsWindowFreezeCapture(captureParam.isFreeze);
@@ -311,6 +315,7 @@ bool RSSurfaceCaptureTaskParallel::Run(
         } else {
             canvas.Translate(-boundsX_, -boundsY_);
         }
+        canvas.SetOnMultipleScreen(true); // sdr screenshot means tmo to sdr
         auto type = RSPaintFilterCanvas::ScreenshotType::SDR_SCREENSHOT;
         CaptureDisplayNode(*displayNodeDrawable_, canvas, captureParam, type);
     } else {
@@ -321,8 +326,11 @@ bool RSSurfaceCaptureTaskParallel::Run(
 
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)) && \
     (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_UNI_RENDER))
-    RSUniRenderUtil::OptimizedFlushAndSubmit(surface, gpuContext_.get(), GetFeatureParamValue("CaptureConfig",
-        &CaptureBaseParam::IsSnapshotWithDMAEnabled).value_or(false));
+    sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
+    RSUniRenderUtil::OptimizedFlushAndSubmit(surface, gpuContext_.get(), acquireFence,
+        GetFeatureParamValue("CaptureConfig",
+            &CaptureBaseParam::IsSnapshotWithDMAEnabled).value_or(false));
+    bufferGuard.SetAcquireFence(acquireFence);
     if (curNodeParams && curNodeParams->IsNodeToBeCaptured()) {
         RSUifirstManager::Instance().AddCapturedNodes(curNodeParams->GetId());
     }
@@ -369,6 +377,7 @@ bool RSSurfaceCaptureTaskParallel::DrawHDRSurfaceContent(
         RS_LOGE("RSSurfaceCaptureTaskParallel::DrawHDRSurfaceContent surface is nullptr!");
         return false;
     }
+    RSUniRenderThread::BufferManagerGuard bufferGuard;
     RSPaintFilterCanvas canvas(surface.get());
     canvas.Scale(captureConfig_.scaleX, captureConfig_.scaleY);
     const Drawing::Rect& rect = captureConfig_.mainScreenRect;
@@ -378,6 +387,8 @@ bool RSSurfaceCaptureTaskParallel::DrawHDRSurfaceContent(
     } else {
         canvas.Translate(-boundsX_, -boundsY_);
     }
+    canvas.SetOnMultipleScreen(!isOnHDR); // not isOnHDR means tmo to sdr
+    canvas.SetHdrOn(isOnHDR);
     canvas.SetDisableFilterCache(true);
     RSSurfaceRenderParams* curNodeParams = nullptr;
     if (displayNodeDrawable_) {
@@ -391,8 +402,10 @@ bool RSSurfaceCaptureTaskParallel::DrawHDRSurfaceContent(
     RSUniRenderThread::ResetCaptureParam();
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)) && \
     (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_UNI_RENDER))
-    RSUniRenderUtil::OptimizedFlushAndSubmit(surface, gpuContext_.get(), GetFeatureParamValue("CaptureConfig",
-        &CaptureBaseParam::IsSnapshotWithDMAEnabled).value_or(false));
+    sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
+    RSUniRenderUtil::OptimizedFlushAndSubmit(surface, gpuContext_.get(), acquireFence,
+        GetFeatureParamValue("CaptureConfig", &CaptureBaseParam::IsSnapshotWithDMAEnabled).value_or(false));
+    bufferGuard.SetAcquireFence(acquireFence);
 #endif
     return true;
 }
@@ -503,14 +516,13 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByD
         RS_LOGE("RSSurfaceCaptureTaskParallel::CreatePixelMapByDisplayNode: node is nullptr");
         return nullptr;
     }
-    uint64_t screenId = node->GetScreenId();
-    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
-    if (!screenManager) {
-        RS_LOGE("RSSurfaceCaptureTaskParallel::CreatePixelMapByDisplayNode: screenManager is nullptr!");
+    auto screenNode = RSRenderNode::ReinterpretCast<RSScreenRenderNode>(node->GetParent().lock());
+    if (!screenNode) {
+        RS_LOGE("RSSurfaceCaptureTaskParallel::CreatePixelMapByDisplayNode: screenNode is nullptr!");
         return nullptr;
     }
 
-    screenCorrection_ = screenManager->GetScreenCorrection(screenId);
+    screenCorrection_ = screenNode->GetScreenProperty().GetScreenCorrection();
     screenRotation_ = node->GetScreenRotation();
     finalRotationAngle_ = CalPixelMapRotation();
     uint32_t pixmapWidth = static_cast<uint32_t>(node->GetFixedWidth());
@@ -545,8 +557,7 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByD
         rect.GetLeft(), rect.GetTop(), rect.GetWidth(), rect.GetHeight(), captureConfig_.useDma, screenRotation_,
         screenCorrection_, captureConfig_.blackList.size(), isHDRCapture);
     std::unique_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
-    auto screenNode = std::static_pointer_cast<RSScreenRenderNode>(node->GetParent().lock());
-    if (pixelMap && screenNode) {
+    if (pixelMap) {
         GraphicColorGamut windowColorGamut = isHDRCapture ?
             GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB : screenNode->GetColorSpace();
         pixelMap->InnerSetColorSpace(windowColorGamut == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB ?
@@ -873,7 +884,9 @@ bool RSSurfaceCaptureTaskParallel::PixelMapCopy(std::unique_ptr<Media::PixelMap>
                     PixelMapSamplingDump(pixelmap, pixelmap->GetWidth() / 2, pixelmap->GetHeight() / 2) |
                     PixelMapSamplingDump(pixelmap, pixelmap->GetWidth() - 1, pixelmap->GetHeight() / 2) |
                     PixelMapSamplingDump(pixelmap, pixelmap->GetWidth() / 2, pixelmap->GetHeight() - 1);
-    if ((pixelDump & ALPHA_MASK) == 0) {
+    if ((pixelDump & ALPHA_MASK) != 0) {
+        RS_LOGI("RSSurfaceCaptureTaskParallel::PixelMapCopy pixelmap is Non-transparent");
+    } else {
         RS_LOGW("RSSurfaceCaptureTaskParallel::PixelMapCopy pixelmap is transparent");
     }
     pixelmap->SetMemoryName("RSSurfaceCaptureForClient");

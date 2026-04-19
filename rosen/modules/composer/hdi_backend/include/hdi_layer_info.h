@@ -478,47 +478,6 @@ public:
         return isMaskLayer_;
     }
 
-    void CopyLayerInfo(const std::shared_ptr<HdiLayerInfo> &layerInfo)
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        zOrder_ = layerInfo->GetZorder();
-        layerRect_ = layerInfo->GetLayerSize();
-        boundRect_ = layerInfo->GetBoundSize();
-        visibleRegions_ = layerInfo->GetVisibleRegions();
-        dirtyRegions_ = layerInfo->GetDirtyRegions();
-        cropRect_ = layerInfo->GetCropRect();
-        matrix_ = layerInfo->GetMatrix();
-        gravity_ = layerInfo->GetGravity();
-        layerAlpha_ = layerInfo->GetAlpha();
-        transformType_ = layerInfo->GetTransformType();
-        compositionType_ = layerInfo->GetCompositionType();
-        blendType_ = layerInfo->GetBlendType();
-        colorTransformMatrix_ = layerInfo->GetColorTransform();
-        colorSpace_ = layerInfo->GetColorDataSpace();
-        layerColor_ = layerInfo->GetLayerColor();
-        metaData_ = layerInfo->GetMetaData();
-        metaDataSet_ = layerInfo->GetMetaDataSet();
-        tunnelHandle_ = layerInfo->GetTunnelHandle();
-        tunnelHandleChange_ = layerInfo->GetTunnelHandleChange();
-        sbuffer_ = layerInfo->GetBuffer();
-        pbuffer_= layerInfo->GetPreBuffer();
-        acquireFence_ = layerInfo->GetAcquireFence();
-        preMulti_ = layerInfo->IsPreMulti();
-        sdrNit_ = layerInfo->GetSdrNit();
-        displayNit_ = layerInfo->GetDisplayNit();
-        brightnessRatio_ = layerInfo->GetBrightnessRatio();
-        layerLinearMatrix_ = layerInfo->GetLayerLinearMatrix();
-        layerSource_ = layerInfo->GetLayerSourceTuning();
-        rotationFixed_ = layerInfo->GetRotationFixed();
-        arsrTag_ = layerInfo->GetLayerArsr();
-        copybitTag_ = layerInfo->GetLayerCopybit();
-        needBilinearInterpolation_ = layerInfo->GetNeedBilinearInterpolation();
-        tunnelLayerId_ = layerInfo->GetTunnelLayerId();
-        tunnelLayerProperty_ = layerInfo->GetTunnelLayerProperty();
-        ancoFlags_ = layerInfo->GetAncoFlags();
-        ignoreAlpha_ = layerInfo->GetIgnoreAlpha();
-    }
-
     RosenError SetLayerMaskInfo(LayerMask mask)
     {
         switch (mask) {
@@ -577,21 +536,21 @@ public:
 private:
     uint32_t zOrder_ = 0;
     GraphicLayerType layerType_ = GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC;
-    GraphicIRect layerRect_;
-    GraphicIRect boundRect_; // node's bound width and height related to this layer, used for uni render redraw
+    GraphicIRect layerRect_ = {0};
+    GraphicIRect boundRect_ = {0}; // node's bound width and height related to this layer, used for uni render redraw
     std::vector<GraphicIRect> visibleRegions_;
     std::vector<GraphicIRect> dirtyRegions_;
-    GraphicIRect cropRect_;
-    GraphicMatrix matrix_; // matrix used for uni render redraw
-    int32_t gravity_; // used for uni render redraw
+    GraphicIRect cropRect_ = {0};
+    GraphicMatrix matrix_ = {0.0}; // matrix used for uni render redraw
+    int32_t gravity_ = 0; // used for uni render redraw
     bool isUniRender_ = false; // true for uni render layer (DisplayNode)
-    GraphicLayerAlpha layerAlpha_;
+    GraphicLayerAlpha layerAlpha_ = {0};
     GraphicTransformType transformType_ = GraphicTransformType::GRAPHIC_ROTATE_BUTT;
-    GraphicCompositionType compositionType_;
-    GraphicBlendType blendType_;
+    GraphicCompositionType compositionType_ = GraphicCompositionType::GRAPHIC_COMPOSITION_BUTT;
+    GraphicBlendType blendType_ = GraphicBlendType::GRAPHIC_BLEND_NONE;
     std::vector<float> colorTransformMatrix_;
-    GraphicLayerColor layerColor_;
-    GraphicLayerColor backgroundColor_;
+    GraphicLayerColor layerColor_ = {0};
+    GraphicLayerColor backgroundColor_ = {0};
     GraphicColorDataSpace colorSpace_ = GraphicColorDataSpace::GRAPHIC_COLOR_DATA_SPACE_UNKNOWN;
     std::vector<GraphicHDRMetaData> metaData_;
     GraphicHDRMetaDataSet metaDataSet_;

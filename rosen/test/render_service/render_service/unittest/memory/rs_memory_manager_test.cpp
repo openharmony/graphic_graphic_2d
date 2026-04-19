@@ -15,10 +15,12 @@
 
 #include <string>
 #include <fstream>
+#include <filesystem>
 #include "gtest/gtest.h"
 #include "memory/rs_memory_manager.h"
 #include "pipeline/rs_test_util.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/render_thread/rs_render_engine.h"
 
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_vulkan_context.h"
@@ -1034,6 +1036,26 @@ HWTEST_F(RSMemoryManagerTest, InterruptReclaimTaskTest001, testing::ext::TestSiz
 }
 
 /**
+ * @tc.name: InterruptReclaimTaskTest002
+ * @tc.desc: Test RECENT_REALIGN and CLEAR_1_RECENT_ANI scene
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, InterruptReclaimTaskTest002, testing::ext::TestSize.Level1)
+{
+    RSReclaimMemoryManager::Instance().SetReclaimInterrupt(true);
+    RSReclaimMemoryManager::Instance().InterruptReclaimTask("LAUNCHER_DIALER");
+    ASSERT_TRUE(RSReclaimMemoryManager::Instance().IsReclaimInterrupt());
+    RSReclaimMemoryManager::Instance().InterruptReclaimTask("EXIT_RECENT_2_HOME_ANI");
+    ASSERT_TRUE(RSReclaimMemoryManager::Instance().IsReclaimInterrupt());
+    RSReclaimMemoryManager::Instance().SetReclaimInterrupt(false);
+    RSReclaimMemoryManager::Instance().InterruptReclaimTask("RECENT_REALIGN_ANI");
+    ASSERT_FALSE(RSReclaimMemoryManager::Instance().IsReclaimInterrupt());
+    RSReclaimMemoryManager::Instance().InterruptReclaimTask("CLEAR_1_RECENT_ANI");
+    ASSERT_FALSE(RSReclaimMemoryManager::Instance().IsReclaimInterrupt());
+    RSReclaimMemoryManager::Instance().SetReclaimInterrupt(false);
+}
+/**
  * @tc.name: MemoryOverReport001
  * @tc.desc: Test MemoryOverReport
  * @tc.type: FUNC
@@ -1041,13 +1063,23 @@ HWTEST_F(RSMemoryManagerTest, InterruptReclaimTaskTest001, testing::ext::TestSiz
  */
 HWTEST_F(RSMemoryManagerTest, MemoryOverReport001, testing::ext::TestSize.Level1)
 {
-    pid_t pid = 1434;
-    MemorySnapshotInfo info;
-    auto& instance = MemorySnapshot::Instance();
-    instance.GetMemorySnapshotInfoByPid(pid, info);
     std::string hidumperReport = "report";
     std::string filePath = "/data/service/el0/render_service/renderservice_mem.txt";
-    MemoryManager::MemoryOverReport(pid, info, "RENDER_MEMORY_OVER_ERROR", hidumperReport, filePath);
+    std::filesystem::remove(filePath);
+    pid_t pid0 = 0;
+    MemorySnapshotInfo info;
+    info.pid = pid0;
+    info.cpuMemory = 1024;
+    info.gpuMemory = 2048;
+    MemoryManager::MemoryOverReport(pid0, info, "RENDER_MEMORY_OVER_ERROR", hidumperReport, filePath);
+    ASSERT_FALSE(std::ifstream(filePath).good());
+    std::filesystem::remove(filePath);
+    pid_t pid1 = 1434;
+    MemorySnapshotInfo info1;
+    info1.pid = pid1;
+    info1.cpuMemory = 1024;
+    info1.gpuMemory = 2048;
+    MemoryManager::MemoryOverReport(pid1, info1, "RENDER_MEMORY_OVER_ERROR", hidumperReport, filePath);
     ASSERT_TRUE(std::ifstream(filePath).good());
 }
 
@@ -1252,6 +1284,17 @@ HWTEST_F(RSMemoryManagerTest, DumpMem003, TestSize.Level2)
     std::string type = "gpu";
     pid_t pid = 1;
     bool isLite = false;
+    NodeId id = 10000000000000;
+    auto screenId = 100;
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    RSScreenProperty screenProperty;
+    screenProperty.Set<ScreenPropertyType::BLACK_LIST>(std::unordered_set<NodeId>{1, 2});
+    screenProperty.Set<ScreenPropertyType::ENABLE_SKIP_WINDOW>(true);
+    screenProperty.Set<ScreenPropertyType::ID>(screenId);
+    screenProperty.Set<ScreenPropertyType::RENDER_RESOLUTION>({1000, 2000});
+    screenNode->SetScreenProperty(screenProperty);
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().screenNodeMap_.emplace(id, screenNode);
     MemoryManager::DumpMem(argSets, dumpString, type, pid, isLite);
     ASSERT_TRUE(dumpString.find("dumpMem") != std::string::npos);
 }
@@ -1389,9 +1432,9 @@ HWTEST_F(RSMemoryManagerTest, RenderServiceAllSurfaceDump004, TestSize.Level1)
     sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
     int64_t timestamp = 0;
     OHOS::sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
-    surfaceHandler->SetBuffer(buffer, acquireFence, damage, timestamp);
+    surfaceHandler->SetBuffer(buffer, acquireFence, damage, timestamp, nullptr);
     OHOS::sptr<SurfaceBuffer> cbuffer = SurfaceBuffer::Create();
-    surfaceHandler->SetBuffer(cbuffer, acquireFence, damage, timestamp);
+    surfaceHandler->SetBuffer(cbuffer, acquireFence, damage, timestamp, nullptr);
 
     DfxString log;
     MemoryManager::RenderServiceAllSurfaceDump(log);
@@ -1464,5 +1507,29 @@ HWTEST_F(RSMemoryManagerTest, RenderServiceAllSurfaceDump006, TestSize.Level1)
     mainThread->GetContext().GetMutableNodeMap().surfaceNodeMap_.erase(nullNodeId);
     // Verify cleanup was successful
     ASSERT_EQ(mainThread->GetContext().GetMutableNodeMap().surfaceNodeMap_.count(nullNodeId), 0);
+}
+
+/**
+ * @tc.name: GpuReportFromKernel001
+ * @tc.desc: Test GpuReportFromKernel with valid info
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, GpuReportFromKernel001, TestSize.Level1)
+{
+    g_logMsg.clear();
+    LOG_SetCallback(MyLogCallback);
+    std::string recvInfo = "ACTION=MEMORY_OVER_LIMIT";
+    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+    auto renderContext = RenderContext::Create();
+    renderContext->SetDrGPUContext(std::make_shared<Drawing::GPUContext>());
+    RSUniRenderThread::Instance().uniRenderEngine_->renderContext_ = renderContext;
+    MemoryManager::GpuReportFromKernel(recvInfo);
+    ASSERT_TRUE(g_logMsg.find(recvInfo) == std::string::npos);
+    std::string recvInfo1 = "ACTION=MEMORY_OVER_LIMIT-1";
+    MemoryManager::mReportLastTimestamp_ = 0;
+    RSUniRenderThread::Instance().uniRenderEngine_->renderContext_->SetDrGPUContext(nullptr);
+    MemoryManager::GpuReportFromKernel(recvInfo1);
+    ASSERT_TRUE(g_logMsg.find(recvInfo1) == std::string::npos);
 }
 } // namespace OHOS::Rosen

@@ -22,6 +22,11 @@
 #include "ui/rs_surface_node.h"
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_ui_director.h"
+
+// Test registration macro
+#define REGISTER_TEST(test_name, test_func) \
+    InterfaceClientFrameTest::GetInstance().RegisterTest(test_name, test_func)
+
 class InterfaceClientFrameTest {
 public:
     InterfaceClientFrameTest();
@@ -36,16 +41,25 @@ public:
         return rootCanvasNode_;
     }
 
+    // Register test with name and function
+    void RegisterTest(const std::string& testName, std::function<void(InterfaceClientFrameTest &)> func)
+    {
+        execFuncMap[testName] = func;
+    }
+
+    // Legacy method for backward compatibility (can be deprecated later)
     void SetExecFun(uint32_t code, std::function<void(InterfaceClientFrameTest &)> func)
     {
-        execFuncMap[code] = func;
+        (void)code; // Mark parameter as intentionally unused
+        (void)func; // Mark parameter as intentionally unused
+        std::cout << "Warning: SetExecFun with uint32_t code is deprecated, use RegisterTest with string name instead" << std::endl;
     }
-    
+
     void Run();
 private:
     std::shared_ptr<OHOS::Rosen::RSSurfaceNode> rootSurfaceNode_ = nullptr;
     std::shared_ptr<OHOS::Rosen::RSCanvasNode> rootCanvasNode_ = nullptr;
 
-    std::unordered_map<uint32_t, std::function<void(InterfaceClientFrameTest &)>> execFuncMap;
+    std::unordered_map<std::string, std::function<void(InterfaceClientFrameTest &)>> execFuncMap;
 };
 #endif

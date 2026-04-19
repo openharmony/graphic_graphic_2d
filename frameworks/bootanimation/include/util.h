@@ -24,7 +24,7 @@
 #include <dirent.h>
 #include <functional>
 #include "log.h"
-#include <platform/ohos/rs_irender_service.h>
+#include <platform/ohos/transaction/zidl/rs_irender_service.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -37,7 +37,11 @@ namespace OHOS {
 constexpr int NUMBER_TWO = 2;
 constexpr int READ_SIZE = 8192;
 constexpr int MAX_FILE_NAME = 512;
+#ifdef VERIFY_PLAT_FPGA
+constexpr int SLEEP_TIME_US = 600000;
+#else
 constexpr int SLEEP_TIME_US = 30000;
+#endif
 constexpr int SLEEP_TIME_US_10 = 10000;
 constexpr int INVALID_VOLUME = -1;
 constexpr int MIN_VOLUME = 0;

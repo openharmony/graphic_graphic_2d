@@ -20,8 +20,6 @@
 #include <vector>
 
 #include "display_engine/rs_luminance_control.h"
-#include "hdi_layer.h"
-#include "hdi_layer_info.h"
 #include "rs_trace.h"
 #include "string_utils.h"
 #include "surface_type.h"
@@ -43,6 +41,29 @@ namespace {
 constexpr size_t MAX_NUM_INVALID_FRAME = 2;
 constexpr uint32_t WAIT_FENCE_TIMEOUT_MS = 500;
 }
+
+class BufferOwnerCountGuard {
+public:
+    explicit BufferOwnerCountGuard(std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> count) : count_(count)
+    {
+        if (count_) {
+            count_->AddRef();
+        }
+    }
+    ~BufferOwnerCountGuard()
+    {
+        if (count_) {
+            count_->DecRef();
+        }
+    }
+
+    BufferOwnerCountGuard(const BufferOwnerCountGuard&) = delete;
+    BufferOwnerCountGuard& operator=(const BufferOwnerCountGuard&) = delete;
+    BufferOwnerCountGuard(BufferOwnerCountGuard&&) = delete;
+    BufferOwnerCountGuard& operator=(BufferOwnerCountGuard&&) = delete;
+private:
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> count_;
+};
 
 RSHpaeOfflineProcessor::RSHpaeOfflineProcessor()
 {
@@ -254,19 +275,19 @@ void RSHpaeOfflineProcessor::FlushAndReleaseOfflineLayer(sptr<SurfaceBuffer>& ds
     const auto surfaceConsumer = surfaceHandler->GetConsumer();
     int32_t ret = surfaceConsumer->AcquireBuffer(returnValue, 0, false);
     if (ret != OHOS::SURFACE_ERROR_OK) {
-        RS_OFFLINE_LOGW("RSBaseRenderUtil::DropFrameProcess(node: %{public}" PRIu64 "): AcquireBuffer failed("
+        RS_OFFLINE_LOGW("RSBaseSurfaceUtil::DropFrameProcess(node: %{public}" PRIu64 "): AcquireBuffer failed("
             " ret: %{public}d), do nothing ", surfaceHandler->GetNodeId(), ret);
         return;
     }
 
     ret = surfaceConsumer->ReleaseBuffer(returnValue.buffer, returnValue.fence);
     if (ret != OHOS::SURFACE_ERROR_OK) {
-        RS_OFFLINE_LOGW("RSBaseRenderUtil::DropFrameProcess(node: %{public}" PRIu64
+        RS_OFFLINE_LOGW("RSBaseSurfaceUtil::DropFrameProcess(node: %{public}" PRIu64
             "): ReleaseBuffer failed(ret: %{public}d), Acquire done ",
             surfaceHandler->GetNodeId(), ret);
     }
     surfaceHandler->SetAvailableBufferCount(static_cast<int32_t>(surfaceConsumer->GetAvailableBufferCount()));
-    RS_OFFLINE_LOGD("RSBaseRenderUtil::DropFrameProcess (node: %{public}" PRIu64 "), drop one frame",
+    RS_OFFLINE_LOGD("RSBaseSurfaceUtil::DropFrameProcess (node: %{public}" PRIu64 "), drop one frame",
         surfaceHandler->GetNodeId());
 }
 
@@ -303,10 +324,12 @@ bool RSHpaeOfflineProcessor::DoProcessOffline(
     sptr<SurfaceBuffer> dstSurfaceBuffer = nullptr;
     int32_t releaseFence = -1;
     auto srcSurfaceBuffer = params.GetBuffer();
-    if (!srcSurfaceBuffer) {
+    auto srcBufferOwnerCount = params.GetBufferOwnerCount();
+    if (!srcSurfaceBuffer || !srcBufferOwnerCount) {
         RS_OFFLINE_LOGW("Offline srcSurfaceBuffer get buffer failed!");
         return false;
     }
+    BufferOwnerCountGuard guard(srcBufferOwnerCount);
     if (!GetOfflineProcessInput(params, inputInfo, srcSurfaceBuffer, dstSurfaceBuffer, releaseFence)) {
         RS_OFFLINE_LOGW("Get offline process input failed.");
         return false;
@@ -331,10 +354,16 @@ bool RSHpaeOfflineProcessor::DoProcessOffline(
         .w = inputInfo.dstRect.w, .h = inputInfo.dstRect.h};
     offlineLayer_.FlushSurfaceBuffer(dstSurfaceBuffer, -1, flushConfig_);
     auto offlineSurfaceHandler = offlineLayer_.GetMutableRSSurfaceHandler();
-    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(*offlineSurfaceHandler) || !offlineSurfaceHandler->GetBuffer()) {
+    if (!RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(*offlineSurfaceHandler) || !offlineSurfaceHandler->GetBuffer()) {
         RS_OFFLINE_LOGW("DeviceOfflineLayer consume buffer failed. %{public}d",
             !offlineSurfaceHandler->GetBuffer());
         return false;
+    }
+    if (offlineSurfaceHandler->IsCurrentFrameBufferConsumed()) {
+        auto offlinePreBufferCount = offlineSurfaceHandler->GetPreBufferOwnerCount();
+        if (offlinePreBufferCount) {
+            offlinePreBufferCount->DecRef();
+        }
     }
 
     // set to offline result
@@ -347,6 +376,7 @@ bool RSHpaeOfflineProcessor::DoProcessOffline(
     processOfflineResult.preBuffer = offlineSurfaceHandler->GetPreBuffer();
     processOfflineResult.buffer = offlineSurfaceHandler->GetBuffer();
     processOfflineResult.acquireFence = offlineSurfaceHandler->GetAcquireFence();
+    processOfflineResult.bufferOwnerCount = offlineSurfaceHandler->GetBufferOwnerCount();
     RS_OFFLINE_LOGD("Offline process done, bufferRect: [%{public}d %{public}d %{public}d %{public}d]",
         processOfflineResult.bufferRect.x, processOfflineResult.bufferRect.y,
         processOfflineResult.bufferRect.w, processOfflineResult.bufferRect.h);

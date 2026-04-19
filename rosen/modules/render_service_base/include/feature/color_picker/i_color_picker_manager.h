@@ -44,6 +44,7 @@ public:
     virtual void SetSystemDarkColorMode(bool isSystemDarkColorMode) = 0;
     // Reset memory of previously picked color.
     virtual void ResetColorMemory() = 0;
+    virtual EquivalentDarkMode GetLastEquivalentDarkMode() = 0;
 
     // Handles color update after GPU work completes.
     // Each implementation can have different business logic (e.g., animation, luminance zones).

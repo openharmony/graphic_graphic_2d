@@ -25,6 +25,7 @@
 #include "pipeline/rs_test_util.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "uifirst_param.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -269,6 +270,26 @@ HWTEST_F(RSUifirstManagerTest, RenderGroupUpdate002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: IsLayerPartRenderDisableAnimation001
+ * @tc.desc: Test layer-part disable-animation helper against current-frame events
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSUifirstManagerTest, IsLayerPartRenderDisableAnimation001, TestSize.Level1)
+{
+    RSUifirstManager::EventInfo eventInfo;
+    eventInfo.sceneId = "WINDOW_TITLE_BAR_MINIMIZED";
+    uifirstManager_.currentFrameEvent_ = { eventInfo };
+    EXPECT_FALSE(uifirstManager_.IsLayerPartRenderDisableAnimation());
+
+    eventInfo.sceneId = "APP_LIST_FLING";
+    uifirstManager_.currentFrameEvent_ = { eventInfo };
+    EXPECT_TRUE(uifirstManager_.IsLayerPartRenderDisableAnimation());
+
+    uifirstManager_.currentFrameEvent_.clear();
+}
+
+/**
  * @tc.name: RenderGroupUpdate003
  * @tc.desc: Test RenderGroupUpdate, when parent node is surface node
  * @tc.type: FUNC
@@ -422,11 +443,8 @@ HWTEST_F(RSUifirstManagerTest, CheckVisibleDirtyRegionIsEmpty001, TestSize.Level
 {
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
-
-    uifirstManager_.SetUiFirstType((int)UiFirstCcmType::SINGLE);
-    ASSERT_FALSE(uifirstManager_.CheckVisibleDirtyRegionIsEmpty(surfaceNode));
-
-    uifirstManager_.SetUiFirstType((int)UiFirstCcmType::MULTI);
+    auto visibleRegion = Occlusion::Region({0, 0, 100, 100});
+    surfaceNode->SetVisibleRegion(visibleRegion);
 
     // lockscreen to launcher anim
     surfaceNode->SetGlobalAlpha(0.f);
@@ -449,14 +467,13 @@ HWTEST_F(RSUifirstManagerTest, CheckVisibleDirtyRegionIsEmpty001, TestSize.Level
  */
 HWTEST_F(RSUifirstManagerTest, CheckVisibleDirtyRegionIsEmpty002, TestSize.Level1)
 {
-    uifirstManager_.SetUiFirstType((int)UiFirstCcmType::MULTI);
-
     auto emptyRegion = Occlusion::Region();
+    auto visibleRegion = Occlusion::Region({0, 0, 100, 100});
     auto leashWindow = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(leashWindow, nullptr);
     leashWindow->SetGlobalAlpha(1.f);
     leashWindow->uifirstContentDirty_ = false;
-    leashWindow->SetVisibleRegion(emptyRegion);
+    leashWindow->SetVisibleRegion(visibleRegion);
 
     auto appWindow = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(appWindow, nullptr);
@@ -468,7 +485,7 @@ HWTEST_F(RSUifirstManagerTest, CheckVisibleDirtyRegionIsEmpty002, TestSize.Level
     appWindow->SetVisibleRegion(emptyRegion);
     ASSERT_TRUE(uifirstManager_.CheckVisibleDirtyRegionIsEmpty(leashWindow));
 
-    auto visibleRegion = Occlusion::Region({ 100, 100, 1440, 1000 });
+    visibleRegion = Occlusion::Region({ 100, 100, 1440, 1000 });
     appWindow->SetVisibleRegion(visibleRegion);
 
     auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(appWindow->GetRenderDrawable());
@@ -496,6 +513,32 @@ HWTEST_F(RSUifirstManagerTest, CheckVisibleDirtyRegionIsEmpty002, TestSize.Level
 
     dirtyManager->SetUifirstFrameDirtyRect({ 200, 200, 200, 200 });
     // has visible dirty region
+    ASSERT_FALSE(uifirstManager_.CheckVisibleDirtyRegionIsEmpty(leashWindow));
+}
+
+/**
+ * @tc.name: CheckVisibleDirtyRegionIsEmpty003
+ * @tc.desc: Test CheckVisibleDirtyRegionIsEmpty for LeashOrMainWindow with empty visible region
+ * @tc.type: FUNC
+ * @tc.require: issue22763
+ */
+HWTEST_F(RSUifirstManagerTest, CheckVisibleDirtyRegionIsEmpty003, TestSize.Level1)
+{
+    auto emptyRegion = Occlusion::Region();
+    auto visibleRegion = Occlusion::Region({0, 0, 100, 100});
+
+    // Test 1: Leash Window with empty visible region should return true
+    auto leashWindow = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(leashWindow, nullptr);
+    leashWindow->SetSurfaceNodeType(RSSurfaceNodeType::ABILITY_COMPONENT_NODE);
+    ASSERT_FALSE(uifirstManager_.CheckVisibleDirtyRegionIsEmpty(leashWindow));
+
+    // Test 2: Leash Window with non-empty visible region should return false
+    leashWindow->SetVisibleRegion(emptyRegion);
+    ASSERT_TRUE(uifirstManager_.CheckVisibleDirtyRegionIsEmpty(leashWindow));
+
+    leashWindow->SetVisibleRegion(visibleRegion);
+    leashWindow->uifirstContentDirty_ = true;
     ASSERT_FALSE(uifirstManager_.CheckVisibleDirtyRegionIsEmpty(leashWindow));
 }
 
@@ -1910,53 +1953,6 @@ HWTEST_F(RSUifirstManagerTest, NodeIsInCardWhiteList001, TestSize.Level1)
 }
 
 /**
- * @tc.name: IsCardSkipFirstWaitScene001
- * @tc.desc: Test IsCardSkipFirstWaitScene
- * @tc.type: FUNC
- * @tc.require: issueIADDL3
- */
-HWTEST_F(RSUifirstManagerTest, IsCardSkipFirstWaitScene001, TestSize.Level1)
-{
-    std::string scene = "";
-    int32_t appPid = 1;
-    bool res = uifirstManager_.IsCardSkipFirstWaitScene(scene, appPid);
-    EXPECT_FALSE(res);
-
-    appPid = 0;
-    res = uifirstManager_.IsCardSkipFirstWaitScene(scene, appPid);
-    EXPECT_FALSE(res);
-
-    scene = "INTO_HOME_ANI"; // for test
-    res = uifirstManager_.IsCardSkipFirstWaitScene(scene, appPid);
-    EXPECT_TRUE(res);
-}
-
-/**
- * @tc.name: EventsCanSkipFirstWait001
- * @tc.desc: Test EventsCanSkipFirstWait
- * @tc.type: FUNC
- * @tc.require: issueIADDL3
- */
-HWTEST_F(RSUifirstManagerTest, EventsCanSkipFirstWait001, TestSize.Level1)
-{
-    std::vector<RSUifirstManager::EventInfo> events;
-    bool res = uifirstManager_.EventsCanSkipFirstWait(events);
-    EXPECT_FALSE(res);
-
-    RSUifirstManager::EventInfo info;
-    info.sceneId = "";
-    info.appPid = 0;
-    events.push_back(info);
-    res = uifirstManager_.EventsCanSkipFirstWait(events);
-    EXPECT_FALSE(res);
-
-    info.sceneId = "INTO_HOME_ANI"; // for test
-    events.push_back(info);
-    res = uifirstManager_.EventsCanSkipFirstWait(events);
-    EXPECT_TRUE(res);
-}
-
-/**
  * @tc.name: IsToSubByAppAnimation01
  * @tc.desc: Test IsToSubByAppAnimation
  * @tc.type: FUNC
@@ -2081,5 +2077,72 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodes002, TestSize.Level1)
     uifirstManager_.UpdateUifirstNodes(*surfaceNode, true);
     EXPECT_TRUE(surfaceNode->GetLastFrameUifirstFlag() == MultiThreadCacheType::NONFOCUS_WINDOW);
     uifirstManager_.uifirstType_ = UiFirstCcmType::SINGLE;
+}
+
+/**
+* @tc.name: IsOcclusionEnabledTest001
+* @tc.desc: Test IsOcclusionEnabled basic conditions - mode, param and system check
+* @tc.type: FUNC
+* @tc.require: issues22678
+*/
+HWTEST_F(RSUifirstManagerTest, IsOcclusionEnabledTest001, TestSize.Level1)
+{
+    auto& uifirstManager = RSUifirstManager::Instance();
+    auto originalType = static_cast<int>(uifirstManager.GetUiFirstType());
+    auto originalParam = UIFirstParam::IsOcclusionEnabled();
+    auto originalOcclusionProp = system::GetParameter("rosen.uifirst.occlusion.enable", "1");
+
+    RSSurfaceRenderParams surfaceParams(1);
+    RSRenderThreadParams uniParams;
+
+    // Case 1: Not in MULTI_WINDOW_MODE - should return false
+    uifirstManager.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
+    EXPECT_FALSE(uifirstManager.IsOcclusionEnabled());
+
+    // Case 2: UIFirstParam occlusion disabled - should return false
+    uifirstManager.SetUiFirstType(static_cast<int>(UiFirstCcmType::MULTI));
+    UIFirstParam::SetOcclusionEnabled(false);
+    EXPECT_FALSE(uifirstManager.IsOcclusionEnabled());
+
+    // Case 3: System parameter occlusion disabled - should return false
+    UIFirstParam::SetOcclusionEnabled(true);
+    system::SetParameter("rosen.uifirst.occlusion.enable", "0");
+    EXPECT_FALSE(uifirstManager.IsOcclusionEnabled());
+
+    // Reset
+    uifirstManager.SetUiFirstType(originalType);
+    UIFirstParam::SetOcclusionEnabled(originalParam);
+    system::SetParameter("rosen.uifirst.occlusion.enable", originalOcclusionProp);
+}
+
+/*
+ * @tc.name: IsNodeInSubthreadProcessingTest
+ * @tc.desc: Test IsNodeInSubthreadProcessing method
+ * @tc.type: FUNC
+ * @tc.require: issue23075
+ */
+HWTEST_F(RSUifirstManagerTest, IsNodeInSubthreadProcessingTest, TestSize.Level1)
+{
+    NodeId nodeId = 100;
+
+    // Test when subthreadProcessingNode_ is empty
+    ASSERT_FALSE(uifirstManager_.IsNodeInSubthreadProcessing(nodeId));
+
+    // Test when node is not in subthreadProcessingNode_
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto adapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
+    ASSERT_FALSE(uifirstManager_.IsNodeInSubthreadProcessing(surfaceNode->GetId()));
+
+    // Test when node is in subthreadProcessingNode_
+    uifirstManager_.subthreadProcessingNode_.insert(std::make_pair(surfaceNode->GetId(), adapter));
+    ASSERT_TRUE(uifirstManager_.IsNodeInSubthreadProcessing(surfaceNode->GetId()));
+
+    // Test with different node id
+    NodeId otherNodeId = 200;
+    ASSERT_FALSE(uifirstManager_.IsNodeInSubthreadProcessing(otherNodeId));
+
+    // Cleanup
+    uifirstManager_.subthreadProcessingNode_.clear();
 }
 }

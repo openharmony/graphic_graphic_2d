@@ -24,6 +24,7 @@
 #include "feature/hpae/rs_hpae_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "gfx/performance/rs_perfmonitor_reporter.h"
+#include "gpuComposition/rs_gpu_cache_manager.h"
 #include "memory/rs_memory_manager.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_render_node_gc.h"
@@ -82,15 +83,19 @@ void RSDrawFrame::RenderFrame()
     HitracePerfScoped perfTrace(RSDrawFrame::debugTraceEnabled_, HITRACE_TAG_GRAPHIC_AGP, "OnRenderFramePerfCount");
     RS_TRACE_NAME_FMT("RenderFrame");
     StartCheck();
-    // The destructor of GPUCompositonCacheGuard, a memory release check will be performed
-    RSMainThread::GPUCompositonCacheGuard guard;
-    RsFrameReport::GetInstance().UniRenderStart();
+
+    auto renderEngine = unirenderInstance_.GetRenderEngine();
+    // Use GPUGuard to manage GPU draw lifecycle (RAII-based)
+    // The guard will automatically call EndGPUDraw() when destroyed
+    GPUGuard gpuGuard(renderEngine->GetGPUCacheManager());
+
+    RsFrameReport::UniRenderStart();
     RSJankStatsRenderFrameHelper::GetInstance().JankStatsStart();
     unirenderInstance_.IncreaseFrameCount();
     RSUifirstManager::Instance().ProcessSubDoneNode();
     Sync();
     RSJankStatsRenderFrameHelper::GetInstance().JankStatsAfterSync(unirenderInstance_.GetRSRenderThreadParams(),
-        GetMinAccumulatedBufferCount());
+        unirenderInstance_.GetMinAccumulatedBufferCount());
     unirenderInstance_.UpdateScreenNodeScreenId();
     RSMainThread::Instance()->ProcessUiCaptureTasks();
 #ifdef HETERO_HDR_ENABLE
@@ -101,7 +106,7 @@ void RSDrawFrame::RenderFrame()
 #endif
     RSUifirstManager::Instance().PostUifistSubTasks();
     UnblockMainThread();
-    RsFrameReport::GetInstance().CheckUnblockMainThreadPoint();
+    RsFrameReport::CheckUnblockMainThreadPoint();
     Render();
 #ifdef SUBTREE_PARALLEL_ENABLE
     RSParallelManager::Singleton().Clear();
@@ -118,7 +123,7 @@ void RSDrawFrame::RenderFrame()
     RSJankStatsRenderFrameHelper::GetInstance().JankStatsEnd(unirenderInstance_.GetDynamicRefreshRate());
     SetEarlyZEnabled(unirenderInstance_.GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
     RSPerfMonitorReporter::GetInstance().ReportAtRsFrameEnd();
-    RsFrameReport::GetInstance().UniRenderEnd();
+    RsFrameReport::UniRenderEnd();
     EndCheck();
 }
 
@@ -156,19 +161,6 @@ void RSDrawFrame::EndCheck()
     timer_ = nullptr;
 }
 
-int32_t RSDrawFrame::GetMinAccumulatedBufferCount() const
-{
-    // Report minimum buffer count across all screens
-    int32_t minAccumulatedBufferCount = 4;
-    RSRenderComposerManager::GetInstance().ForEachScreen(
-        [&minAccumulatedBufferCount](ScreenId screenId, std::shared_ptr<RSRenderComposer> composer) {
-        auto renderComposerAgent = std::make_shared<RSRenderComposerAgent>(composer);
-        int32_t accumulatedBufferCount = renderComposerAgent->GetAccumulatedBufferCount();
-        minAccumulatedBufferCount = std::min(minAccumulatedBufferCount, accumulatedBufferCount);
-    });
-    return minAccumulatedBufferCount;
-}
-
 void RSDrawFrame::NotifyClearGpuCache()
 {
     if (RSFilterCacheManager::GetFilterInvalid()) {
@@ -179,18 +171,15 @@ void RSDrawFrame::NotifyClearGpuCache()
 
 void RSDrawFrame::ReleaseSelfDrawingNodeBuffer()
 {
-    unirenderInstance_.ReleaseSelfDrawingNodeBuffer();
     unirenderInstance_.ReleaseSurfaceOpItemBuffer();
 }
 
 void RSDrawFrame::PostAndWait()
 {
     RS_TRACE_NAME_FMT("PostAndWait, parallel type %d", static_cast<int>(rsParallelType_));
-    RsFrameReport& fr = RsFrameReport::GetInstance();
-    if (fr.GetEnable()) {
-        fr.SendCommandsStart();
-        fr.RenderEnd();
-    }
+
+    RsFrameReport::SendCommandsStart();
+    RsFrameReport::RenderEnd();
  
     uint32_t renderFrameNumber = RS_PROFILER_GET_FRAME_NUMBER();
     switch (rsParallelType_) {
@@ -244,6 +233,30 @@ void RSDrawFrame::ClearDrawableResource()
         case RsParallelType::RS_PARALLEL_TYPE_ASYNC: // wait until sync finish in render thread
         default: {
             unirenderInstance_.PostTask([]() { DrawableV2::RSRenderNodeDrawableAdapter::ClearResource(); });
+        }
+    }
+}
+
+void RSDrawFrame::ClearDrawableMemory(bool highPriority)
+{
+    switch (rsParallelType_) {
+        case RsParallelType::RS_PARALLEL_TYPE_SYNC: { // wait until render finish in render thread
+            auto task = [highPriority]() {
+                RSRenderNodeGC::Instance().ReleaseDrawableMemory(highPriority);
+            };
+            unirenderInstance_.PostSyncTask(task);
+            break;
+        }
+        case RsParallelType::RS_PARALLEL_TYPE_SINGLE_THREAD: { // render in main thread
+            RSRenderNodeGC::Instance().ReleaseDrawableMemory(highPriority);
+            break;
+        }
+        case RsParallelType::RS_PARALLEL_TYPE_ASYNC: // wait until sync finish in render thread
+        default: {
+            auto task = [highPriority]() {
+                RSRenderNodeGC::Instance().ReleaseDrawableMemory(highPriority);
+            };
+            unirenderInstance_.PostTask(task);
         }
     }
 }

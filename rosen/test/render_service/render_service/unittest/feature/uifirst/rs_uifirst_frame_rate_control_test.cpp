@@ -263,7 +263,7 @@ HWTEST_F(RSUifirstFrameRateControlTest, SetAnimationStartInfo004, TestSize.Level
     DataBaseRs eventInfo;
     eventInfo.sceneId = "LAUNCHER_APP_LAUNCH_FROM_RECENT";
     control.SetAnimationStartInfo(eventInfo);
-    EXPECT_TRUE(control.forceRefreshOnce_);
+    EXPECT_FALSE(control.forceRefreshOnce_);
 }
 
 /**
@@ -501,6 +501,8 @@ HWTEST_F(RSUifirstFrameRateControlTest, SubThreadFrameDropDecisionTest, TestSize
     RSSurfaceRenderNodeConfig config;
     RSSurfaceRenderNode node(config);
     RSUifirstFrameRateControl control;
+    EXPECT_EQ(control.SubThreadFrameDropDecision(node), false);
+    node.firstLevelNodeId_ = 1;
     EXPECT_EQ(control.SubThreadFrameDropDecision(node), false);
     EXPECT_EQ(control.NeedRSUifirstControlFrameDrop(node), false);
 }

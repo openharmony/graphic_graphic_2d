@@ -58,7 +58,7 @@ const std::string INSTALL_CONFIG = R"(
 )";
 
 constexpr uint32_t WEIGHT_500 = 500;
-constexpr uint32_t SYSTEM_FONT_PATH_NUM = 140;
+constexpr uint32_t SYSTEM_FONT_PATH_NUM = 141;
 constexpr uint32_t STYLISH_FONT_PATH_NUM = 1;
 constexpr uint32_t INSTALLED_FONT_PATH_NUM = 3;
 

@@ -24,6 +24,7 @@
 
 #include "common/rs_vector4.h"
 #include "modifier_ng/appearance/rs_shadow_modifier.h"
+#include "render/rs_shadow.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -97,5 +98,28 @@ HWTEST_F(RSShadowModifierNGTypeTest, RSShadowModifierTest, TestSize.Level1)
 
     modifierCom->SetShadowColor(shadowColor);
     EXPECT_EQ(modifierCom->GetShadowAlpha(), shadowColor.GetAlphaF());
+}
+
+/**
+ * @tc.name: RSShadowModifierTest002
+ * @tc.desc: Test GetShadowRadius default value
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSShadowModifierNGTypeTest, RSShadowModifierTest002, TestSize.Level1)
+{
+    std::shared_ptr<ModifierNG::RSShadowModifier> modifier = std::make_shared<ModifierNG::RSShadowModifier>();
+    EXPECT_EQ(modifier->GetShadowRadius(), DEFAULT_SHADOW_RADIUS);
+}
+
+/**
+ * @tc.name: RSShadowModifierTest003
+ * @tc.desc: Test SetShadowRadius with zero value (solid shadow)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSShadowModifierNGTypeTest, RSShadowModifierTest003, TestSize.Level1)
+{
+    std::shared_ptr<ModifierNG::RSShadowModifier> modifier = std::make_shared<ModifierNG::RSShadowModifier>();
+    modifier->SetShadowRadius(0.f);
+    EXPECT_EQ(modifier->GetShadowRadius(), 0.f);
 }
 } // namespace OHOS::Rosen

@@ -34,25 +34,23 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "render_server/transaction/rs_client_to_service_connection.h"
 #include "transaction/rs_client_to_render_connection.h"
-#include "platform/ohos/rs_irender_service.h"
+#include "platform/ohos/transaction/zidl/rs_irender_service.h"
 #include "render_server/transaction/zidl/rs_client_to_service_connection_stub.h"
 #include "transaction/zidl/rs_client_to_render_connection_stub.h"
 #include "transaction/rs_transaction_proxy.h"
+#include "transaction/rs_render_to_service_connection.h"
+#include "feature/hyper_graphic_manager/hgm_render_context.h"
 
 namespace OHOS {
 namespace Rosen {
 auto g_pid = getpid();
-auto screenManagerPtr_ = RSScreenManager::GetInstance();
+auto screenManagerPtr_ = OHOS::sptr<OHOS::Rosen::RSScreenManager>::MakeSptr();
 auto mainThread_ = RSMainThread::Instance();
 sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
 
-sptr<VSyncConnection> connServerApp_ = nullptr;
-DVSyncFeatureParam dvsyncParam;
-auto generator = CreateVSyncGenerator();
-auto appVSyncController = new VSyncController(generator, 0);
-sptr<VSyncDistributor> appVSyncDistributor_ = new VSyncDistributor(appVSyncController, "app", dvsyncParam);
-sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ = new RSClientToServiceConnection(
-    g_pid, nullptr, mainThread_, screenManagerPtr_, token_->AsObject(), appVSyncDistributor_);
+sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ = nullptr;
+sptr<RSClientToRenderConnectionStub> toRenderConnectionStub_ = nullptr;
+sptr<OHOS::Rosen::RSRenderService> renderService_ = nullptr;
 namespace {
 const uint8_t DO_NOTIFY_LIGHT_FACTOR_STATUS = 0;
 const uint8_t DO_NOTIFY_PACKAGE_EVENT = 1;
@@ -126,7 +124,7 @@ void DoNotifyLightFactorStatus()
     }
     option.SetFlags(MessageOption::TF_SYNC);
     dataP.WriteInt32(lightFactorStatus);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_LIGHT_FACTOR_STATUS);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_LIGHT_FACTOR_STATUS);
     if (toServiceConnectionStub_ == nullptr) {
         return;
     }
@@ -146,7 +144,7 @@ void DoNotifyPackageEvent()
     auto package = GetData<std::string>();
     dataP.WriteUint32(listSize);
     dataP.WriteString(package);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_PACKAGE_EVENT);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_PACKAGE_EVENT);
     if (toServiceConnectionStub_ == nullptr) {
         return;
     }
@@ -173,7 +171,7 @@ void DoNotifyRefreshRateEvent()
     dataP.WriteUint32(maxRefreshRate);
     dataP.WriteString(description);
 
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_REFRESH_RATE_EVENT);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_REFRESH_RATE_EVENT);
     if (toServiceConnectionStub_ == nullptr) {
         return;
     }
@@ -191,7 +189,7 @@ void DoNotifyDynamicModeEvent()
     option.SetFlags(MessageOption::TF_SYNC);
     bool enableDynamicMode = GetData<bool>();
     dataP.WriteBool(enableDynamicMode);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_DYNAMIC_MODE_EVENT);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_DYNAMIC_MODE_EVENT);
     if (toServiceConnectionStub_ == nullptr) {
         return;
     }
@@ -212,7 +210,7 @@ void DoNotifySoftVsyncEvent()
     uint32_t rateDiscount = GetData<uint32_t>();
     dataP.WriteUint32(pid);
     dataP.WriteUint32(rateDiscount);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_SOFT_VSYNC_EVENT);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_SOFT_VSYNC_EVENT);
     if (toServiceConnectionStub_ == nullptr) {
         return;
     }
@@ -237,7 +235,7 @@ void DoNotifyAppStrategyConfigChangeEvent()
     dataP.WriteString(configKey);
     dataP.WriteString(configValue);
 
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_PACKAGE_EVENT);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_PACKAGE_EVENT);
     if (toServiceConnectionStub_ == nullptr) {
         return;
     }
@@ -257,7 +255,7 @@ void DoNotifyHgmConfigEvent()
     bool state = GetData<bool>();
     dataP.WriteString(eventName);
     dataP.WriteBool(state);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_PACKAGE_EVENT);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_PACKAGE_EVENT);
     if (toServiceConnectionStub_ == nullptr) {
         return;
     }
@@ -273,7 +271,7 @@ void DoNotifyScreenSwitched()
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_SCREEN_SWITCHED);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_SCREEN_SWITCHED);
     if (toServiceConnectionStub_ == nullptr) {
         return;
     }
@@ -283,7 +281,7 @@ void DoNotifyScreenSwitched()
 void DoNotifySoftVsyncRateDiscountEvent()
 {
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_SOFT_VSYNC_RATE_DISCOUNT_EVENT);
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_SOFT_VSYNC_RATE_DISCOUNT_EVENT);
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     MessageOption option;
@@ -296,13 +294,6 @@ void DoNotifySoftVsyncRateDiscountEvent()
     dataParcel.WriteString(name);
     dataParcel.WriteUint32(rateDiscount);
     toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
-
-    if (!connServerApp_) {
-        uint64_t pidApp = static_cast<uint64_t>(getpid());
-        uint64_t id = pidApp << 32U;
-        connServerApp_ = new VSyncConnection(appVSyncDistributor_, "TestVsync", nullptr, id);
-        appVSyncDistributor_->AddConnection(connServerApp_);
-    }
 
     MessageParcel dataP;
     pid = getpid();
@@ -318,7 +309,7 @@ void DoNotifySoftVsyncRateDiscountEvent()
 void DoSetBehindWindowFilterEnabled()
 {
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BEHIND_WINDOW_FILTER_ENABLED);
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_BEHIND_WINDOW_FILTER_ENABLED);
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     MessageOption option;
@@ -343,9 +334,27 @@ void DoSetBehindWindowFilterEnabled()
     nodeMap.surfaceNodeMap_.erase(surfaceNodeId);
 }
 
+void DoGetRefreshInfoByPidAndUniqueId()
+{
+    uint32_t code =
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_REFRESH_INFO_BY_PID_AND_UNIQUEID);
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    MessageOption option;
+ 
+    int32_t pid = GetData<int32_t>();
+    uint64_t uniqueId = GetData<uint64_t>();
+ 
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    dataParcel.WriteInt32(pid);
+    dataParcel.WriteUint64(uniqueId);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
+
 void DoSetLayerTopForHWC()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LAYER_TOP_FOR_HARDWARE_COMPOSER);
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToRenderConnectionInterfaceCode::SET_LAYER_TOP_FOR_HARDWARE_COMPOSER);
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     MessageOption option;
@@ -358,24 +367,7 @@ void DoSetLayerTopForHWC()
     dataParcel.WriteUint64(nodeId);
     dataParcel.WriteBool(isTop);
     dataParcel.WriteUint32(zOrder);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
-}
-
-void DoGetRefreshInfoByPidAndUniqueId()
-{
-    uint32_t code = static_cast<uint32_t>(
-        RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO_BY_PID_AND_UNIQUEID);
-    MessageParcel dataParcel;
-    MessageParcel replyParcel;
-    MessageOption option;
- 
-    int32_t pid = GetData<int32_t>();
-    uint64_t uniqueId = GetData<uint64_t>();
- 
-    dataParcel.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
-    dataParcel.WriteInt32(pid);
-    dataParcel.WriteUint64(uniqueId);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 } // namespace Rosen
 } // namespace OHOS
@@ -383,6 +375,57 @@ void DoGetRefreshInfoByPidAndUniqueId()
 /* Fuzzer envirement */
 extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 {
+    OHOS::Rosen::g_pid = getpid();
+    OHOS::sptr<OHOS::Rosen::RSIConnectionToken> token_ = new OHOS::IRemoteStub<OHOS::Rosen::RSIConnectionToken>();
+    OHOS::Rosen::DVSyncFeatureParam dvsyncParam;
+    auto generator = OHOS::Rosen::CreateVSyncGenerator();
+    auto appVSyncController = new OHOS::Rosen::VSyncController(generator, 0);
+    OHOS::sptr<OHOS::Rosen::VSyncDistributor> appVSyncDistributor_ =
+        new OHOS::Rosen::VSyncDistributor(appVSyncController, "app", dvsyncParam);
+
+    OHOS::Rosen::renderService_ = new OHOS::Rosen::RSRenderService();
+
+    OHOS::Rosen::RSUniRenderThread::Instance().InitGrContext();
+    auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
+    runner->Run();
+    OHOS::Rosen::renderService_->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
+
+    OHOS::Rosen::renderService_->vsyncManager_ = OHOS::sptr<OHOS::Rosen::RSVsyncManager>::MakeSptr();
+    OHOS::Rosen::renderService_->screenManager_ = OHOS::sptr<OHOS::Rosen::RSScreenManager>::MakeSptr();
+    OHOS::Rosen::renderService_->vsyncManager_->init(OHOS::Rosen::renderService_->screenManager_);
+
+    OHOS::Rosen::renderService_->renderProcessManager_ =
+        OHOS::Rosen::RSRenderProcessManager::Create(*OHOS::Rosen::renderService_);
+
+    auto renderServiceAgent_ = OHOS::sptr<OHOS::Rosen::RSRenderServiceAgent>::MakeSptr(*OHOS::Rosen::renderService_);
+    OHOS::sptr<OHOS::Rosen::RSRenderProcessManagerAgent> renderProcessManagerAgent_ =
+        OHOS::sptr<OHOS::Rosen::RSRenderProcessManagerAgent>::MakeSptr(
+            OHOS::Rosen::renderService_->renderProcessManager_);
+
+    OHOS::sptr<OHOS::Rosen::RSScreenManagerAgent> screenManagerAgent_ =
+        new OHOS::Rosen::RSScreenManagerAgent(OHOS::Rosen::screenManagerPtr_);
+    OHOS::Rosen::renderService_->rsRenderComposerManager_ = std::make_shared<OHOS::Rosen::RSRenderComposerManager>(
+        OHOS::Rosen::renderService_->handler_);
+
+    OHOS::Rosen::toServiceConnectionStub_ = new OHOS::Rosen::RSClientToServiceConnection(
+        OHOS::Rosen::g_pid, renderServiceAgent_, renderProcessManagerAgent_,
+        screenManagerAgent_, token_->AsObject(), OHOS::Rosen::renderService_->vsyncManager_->GetVsyncManagerAgent());
+ 
+    OHOS::sptr<OHOS::Rosen::RSRenderPipelineAgent> renderPipelineAgent_ =
+        OHOS::sptr<OHOS::Rosen::RSRenderPipelineAgent>::MakeSptr(OHOS::Rosen::renderService_->renderPipeline_);
+    OHOS::sptr<OHOS::Rosen::RSClientToRenderConnection> toRenderConnection =
+        new OHOS::Rosen::RSClientToRenderConnection(OHOS::Rosen::g_pid, renderPipelineAgent_, token_->AsObject());
+    OHOS::Rosen::toRenderConnectionStub_ = toRenderConnection;
+
+    OHOS::sptr<OHOS::Rosen::RSRenderToServiceConnection> g_rsConn =
+        OHOS::sptr<OHOS::Rosen::RSRenderToServiceConnection>::MakeSptr(
+            renderServiceAgent_, renderProcessManagerAgent_, screenManagerAgent_);
+    OHOS::Rosen::RSMainThread::Instance()->hgmRenderContext_ =
+        std::make_shared<OHOS::Rosen::HgmRenderContext>(g_rsConn);
+ 
+    OHOS::Rosen::RSMainThread::Instance()->receiver_->connection_ = nullptr;
+    OHOS::Rosen::RSMainThread::Instance()->receiver_ = nullptr;
+    OHOS::Rosen::RSMainThread::Instance()->mainLoop_ = []() {};
     return 0;
 }
 

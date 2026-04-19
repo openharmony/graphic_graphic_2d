@@ -259,6 +259,50 @@ HWTEST_F(HgmCommandTest, SimpleGet, Function | SmallTest | Level0)
 }
 
 /**
+ * @tc.name: GetAceSceneDynamicSettingMapTest001
+ * @tc.desc: test when screenConfigs_ is empty
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmCommandTest, GetAceSceneDynamicSettingMapTest001, Function | SmallTest | Level0)
+{
+    auto& hgmCore = HgmCore::Instance();
+    auto configData = hgmCore.mPolicyConfigData_;
+    auto oriScreenConfigs = configData->screenConfigs_;
+
+    PolicyConfigData::ScreenConfigMap screenConfigs_;
+    configData->screenConfigs_ = screenConfigs_;
+
+    auto aceSceneDynamicSettingMap = configData->GetAceSceneDynamicSettingMap("test type", "test mode");
+    EXPECT_TRUE(aceSceneDynamicSettingMap.empty());
+
+    configData->screenConfigs_ = oriScreenConfigs;
+}
+
+/**
+ * @tc.name: GetAceSceneDynamicSettingMapTest002
+ * @tc.desc: test when screenConfigs_ is empty
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmCommandTest, GetAceSceneDynamicSettingMapTest002, Function | SmallTest | Level0)
+{
+    auto& hgmCore = HgmCore::Instance();
+    auto configData = hgmCore.mPolicyConfigData_;
+    auto oriScreenConfigs = configData->screenConfigs_;
+
+    PolicyConfigData::ScreenConfigMap screenConfigs_;
+    PolicyConfigData::ScreenConfig screenConfig;
+    screenConfigs_.emplace("test type", screenConfig);
+    configData->screenConfigs_ = screenConfigs_;
+
+    auto aceSceneDynamicSettingMap = configData->GetAceSceneDynamicSettingMap("test type", "test mode");
+    EXPECT_TRUE(aceSceneDynamicSettingMap.empty());
+
+    configData->screenConfigs_ = oriScreenConfigs;
+}
+
+/**
  * @tc.name: XmlModeId2SettingModeId
  * @tc.desc: Verify the result of XmlModeId2SettingModeId function
  * @tc.type: FUNC

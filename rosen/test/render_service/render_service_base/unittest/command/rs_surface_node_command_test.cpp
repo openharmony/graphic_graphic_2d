@@ -939,4 +939,24 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetAppRotationCorrectionTest, TestSize.Level1
     SurfaceNodeCommandHelper::SetAppRotationCorrection(context, nodeId, ScreenRotation::ROTATION_180);
     EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId) != nullptr);
 }
+
+/**
+ * @tc.name: SetHDRType
+ * @tc.desc: Verify function when map can find id and can't find id
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, SetHDRTypeTest, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 1;
+    SurfaceNodeCommandHelper::Create(context, nodeId);
+    SurfaceNodeCommandHelper::SetHDRType(context, nodeId, 1);
+    auto surfaceNode = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId);
+    ASSERT_NE(surfaceNode, nullptr);
+    ASSERT_EQ(surfaceNode->GetHDRType(), 1);
+
+    NodeId InvalidNodeId = 2;
+    SurfaceNodeCommandHelper::SetHDRType(context, InvalidNodeId, 0);
+    ASSERT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(InvalidNodeId) == nullptr);
+}
 } // namespace OHOS::Rosen

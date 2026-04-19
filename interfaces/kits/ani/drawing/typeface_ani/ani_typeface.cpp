@@ -264,8 +264,8 @@ ani_object AniTypeface::MakeFromRawFileWithArguments(ani_env* env, ani_object ob
             "AniTypeface::makeFromRawFileWithArguments get rawfilebuffer failed.");
         return CreateAniUndefined(env);
     }
-    
-    auto memory_stream = std::make_unique<MemoryStream> ((rawFileArrayBuffer.get()), rawFileArrayBufferSize, true);
+
+    auto memoryStream = std::make_unique<MemoryStream>((rawFileArrayBuffer.get()), rawFileArrayBufferSize, true);
     auto aniTypefaceArguments = GetNativeFromObj<AniTypefaceArguments>(env, argumentsObj,
         AniGlobalField::GetInstance().typefaceArgumentsNativeObj);
     if (aniTypefaceArguments == nullptr) {
@@ -275,31 +275,29 @@ ani_object AniTypeface::MakeFromRawFileWithArguments(ani_env* env, ani_object ob
     FontArguments fontArguments;
     AniTypefaceArguments::ConvertToFontArguments(aniTypefaceArguments->GetTypefaceArgumentsHelper(), fontArguments);
 
-    auto rawTypeface = Typeface::MakeFromStream(std::move(memory_stream), fontArguments);
+    uint32_t dataHash = Typeface::CalculateHash(static_cast<const uint8_t*>(rawFileArrayBuffer.get()),
+        rawFileArrayBufferSize, fontArguments.GetCollectionIndex());
+    uint32_t argsHash = Typeface::CalculateFontArgsHash(fontArguments.GetVariationDesignPosition());
+    uint64_t hash = Typeface::AssembleFullHash(argsHash, dataHash);
+
+    std::shared_ptr<Typeface> rawTypeface = TypefaceHashMap::GetTypefaceByFullHash(hash);
+    if (rawTypeface != nullptr) {
+        return CreateAniTypeface(env, rawTypeface);
+    }
+    rawTypeface = Typeface::MakeFromAshmem(std::move(memoryStream), fontArguments);
     if (rawTypeface == nullptr) {
-        ROSEN_LOGE("AniTypeface::makeFromRawFileWithArguments Create rawTypeface failed.");
+        ROSEN_LOGE("AniTypeface::makeFromRawFileWithArguments create rawTypeface failed.");
         return CreateAniUndefined(env);
     }
 
-    AniTypeface* aniTypeface = new AniTypeface(rawTypeface);
-    if (Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr) {
-        bool ret = Drawing::Typeface::GetTypefaceRegisterCallBack()(rawTypeface);
-        if (!ret) {
-            delete aniTypeface;
-            ROSEN_LOGE("AniTypeface::makeFromRawFileWithArguments MakeRegister Typeface failed!");
-            return CreateAniUndefined(env);
-        }
-    }
-
-    ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().typeface,
-        AniGlobalMethod::GetInstance().typefaceCtor);
-    if (ANI_OK != env->Object_SetField_Long(
-        aniObj, AniGlobalField::GetInstance().typefaceNativeObj, reinterpret_cast<ani_long>(aniTypeface))) {
-        delete aniTypeface;
-        ROSEN_LOGE("AniTypeface::makeFromRawFileWithArguments failed create aniTypeface");
+    if (Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr &&
+        Drawing::Typeface::GetTypefaceRegisterCallBack()(rawTypeface) == -1) {
+        ROSEN_LOGE("AniTypeface::makeFromRawFileWithArguments MakeRegister Typeface failed.");
         return CreateAniUndefined(env);
     }
-    return aniObj;
+    rawTypeface->SetFullHash(hash);
+    TypefaceHashMap::InsertTypefaceByFullHash(hash, rawTypeface);
+    return CreateAniTypeface(env, rawTypeface);
 #else
     return CreateAniUndefined(env);
 #endif
@@ -328,29 +326,30 @@ ani_object AniTypeface::MakeFromCurrent(ani_env* env, ani_object obj, ani_object
     FontArguments fontArguments;
     AniTypefaceArguments::ConvertToFontArguments(aniTypefaceArguments->GetTypefaceArgumentsHelper(), fontArguments);
 
-    auto rawTypeface = typeface->MakeClone(fontArguments);
+    uint32_t dataHash = typeface->GetHash();
+    uint32_t argsHash = Typeface::CalculateFontArgsHash(fontArguments.GetVariationDesignPosition());
+    uint64_t hash = Typeface::AssembleFullHash(argsHash, dataHash);
+
+    std::shared_ptr<Typeface> rawTypeface = TypefaceHashMap::GetTypefaceByFullHash(hash);
+    if (rawTypeface != nullptr) {
+        return CreateAniTypeface(env, rawTypeface);
+    }
+    rawTypeface = typeface->MakeClone(fontArguments);
     if (rawTypeface == nullptr) {
         ROSEN_LOGE("AniTypeface::MakeFromCurrent create rawTypeface failed.");
         return CreateAniUndefined(env);
     }
-
-    AniTypeface* aniRawTypeface = new AniTypeface(rawTypeface);
+    rawTypeface->SetFd(typeface->GetFd());
+    rawTypeface->SetSize(typeface->GetSize());
+    rawTypeface->SetHash(typeface->GetHash());
     if (rawTypeface->IsCustomTypeface() && Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr &&
-        !Drawing::Typeface::GetTypefaceRegisterCallBack()(rawTypeface)) {
-        delete aniRawTypeface;
+        Drawing::Typeface::GetTypefaceRegisterCallBack()(rawTypeface) == -1) {
         ROSEN_LOGE("AniTypeface::MakeFromCurrent MakeRegister Typeface failed.");
         return CreateAniUndefined(env);
     }
-
-    ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().typeface,
-        AniGlobalMethod::GetInstance().typefaceCtor);
-    if (ANI_OK != env->Object_SetField_Long(
-        aniObj, AniGlobalField::GetInstance().typefaceNativeObj, reinterpret_cast<ani_long>(aniRawTypeface))) {
-        delete aniRawTypeface;
-        ROSEN_LOGE("AniTypeface::MakeFromCurrent failed create aniTypeface");
-        return CreateAniUndefined(env);
-    }
-    return aniObj;
+    rawTypeface->SetFullHash(hash);
+    TypefaceHashMap::InsertTypefaceByFullHash(hash, rawTypeface);
+    return CreateAniTypeface(env, rawTypeface);
 }
 
 ani_object AniTypeface::TypefaceTransferStatic(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)

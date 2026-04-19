@@ -113,7 +113,6 @@ RenderContextGL::RenderContextGL()
     eglContext_ = EGL_NO_CONTEXT;
     eglSurface_ = EGL_NO_SURFACE;
     config_ = nullptr;
-    mHandler_ = nullptr;
 }
 
 RenderContextGL::~RenderContextGL()
@@ -136,7 +135,6 @@ RenderContextGL::~RenderContextGL()
     pbufferSurface_ = EGL_NO_SURFACE;
     drGPUContext_ = nullptr;
     surface_ = nullptr;
-    mHandler_ = nullptr;
 }
 
 bool RenderContextGL::Init()
@@ -203,17 +201,8 @@ bool RenderContextGL::SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawi
         return true;
     }
 
-    mHandler_ = std::make_shared<MemoryHandler>();
-    auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
-    if (isUniRenderMode_) {
-        cacheDir_ = UNIRENDER_CACHE_DIR;
-    }
     Drawing::GPUContextOptions options;
     options.SetIsUniRender(isUniRenderMode_);
-    if (glesVersion != nullptr) {
-        auto size = glesVersion ? strlen(glesVersion) : 0;
-        mHandler_->ConfigureContext(&options, glesVersion, size, cacheDir_, isUniRenderMode_);
-    }
 
     auto drGPUContext = std::make_shared<Drawing::GPUContext>();
     if (!drGPUContext->BuildFromGL(options)) {
@@ -421,26 +410,6 @@ void RenderContextGL::ClearRedundantResources()
     }
 }
 
-std::string RenderContextGL::GetShaderCacheSize() const
-{
-    if (mHandler_) {
-        return mHandler_->QuerryShader();
-    }
-
-    LOGD("GetShaderCacheSize no shader cache");
-    return "";
-}
-
-std::string RenderContextGL::CleanAllShaderCache() const
-{
-    if (mHandler_) {
-        return mHandler_->ClearShader();
-    }
-
-    LOGD("CleanAllShaderCache no shader cache");
-    return "";
-}
-
 void RenderContextGL::CreateShareContext()
 {
     std::unique_lock<std::mutex> lock(shareContextMutex_);
@@ -462,6 +431,28 @@ void RenderContextGL::DestroyShareContext()
     eglDestroyContext(GetEGLDisplay(), eglShareContext_);
     eglShareContext_ = EGL_NO_CONTEXT;
     eglMakeCurrent(GetEGLDisplay(), EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+}
+
+bool RenderContextGL::QueryMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
+{
+    LOGI("RenderContextGL::QueryMaxGpuBufferSize: using OpenGL backend");
+    GLint maxTextureSize = 0;
+    GLint maxRenderBufferSize = 0;
+
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
+    glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE, &maxRenderBufferSize);
+
+    if (maxTextureSize <= 0 || maxRenderBufferSize <= 0) {
+        LOGE("RenderContextGL::QueryMaxGpuBufferSize: failed to get GPU buffer size");
+        return false;
+    }
+
+    maxWidth = static_cast<uint32_t>(std::min(maxTextureSize, maxRenderBufferSize));
+    maxHeight = static_cast<uint32_t>(std::min(maxTextureSize, maxRenderBufferSize));
+
+    LOGI("RenderContextGL::QueryMaxGpuBufferSize: GL_MAX_TEXTURE_SIZE = %d, GL_MAX_RENDERBUFFER_SIZE = %d, result = %u",
+        maxTextureSize, maxRenderBufferSize, maxWidth);
+    return true;
 }
 } // namespace Rosen
 } // namespace OHOS

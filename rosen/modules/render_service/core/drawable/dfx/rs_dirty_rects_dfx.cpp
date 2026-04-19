@@ -26,7 +26,6 @@
 #include "params/rs_surface_render_params.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "platform/common/rs_log.h"
-#include "screen_manager/rs_screen_manager.h"
 
 namespace OHOS::Rosen {
 namespace {

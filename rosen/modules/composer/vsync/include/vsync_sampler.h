@@ -20,14 +20,22 @@
 #include <memory>
 #include <mutex>
 
+#include <event_handler.h>
 #include <refbase.h>
 #include "graphic_common.h"
+#include <screen_manager/screen_types.h>
 
 namespace OHOS {
 namespace Rosen {
 class VSyncSampler : public RefBase {
 public:
     using SetScreenVsyncEnabledCallback = std::function<void(uint64_t, bool)>;
+    using UpdateVsyncEnabledScreenIdCallback = std::function<bool(uint64_t)>;
+    using JudgeVSyncEnabledScreenWhilePowerStatusChangedCallback = std::function<uint64_t(uint64_t,
+        ScreenPowerStatus, uint64_t)>;
+    using UpdateFoldScreenConnectStatusLockedCallback = std::function<void(uint64_t, bool)>;
+    using SetScreenVsyncEnableByIdCallback = std::function<void(uint64_t, uint64_t, bool)>;
+    using GetScreenVsyncEnableByIdCallback = std::function<uint64_t(uint64_t)>;
     VSyncSampler() = default;
     virtual ~VSyncSampler() noexcept = default;
     virtual bool AddSample(int64_t timestamp) = 0;
@@ -51,6 +59,17 @@ public:
     virtual bool GetAdaptive() = 0;
     virtual void RecordDisplayVSyncStatus(bool enabled) = 0;
     virtual void RollbackHardwareVSyncStatus() = 0;
+    virtual void RegSetScreenVsyncEnabledCallbackForRenderService(uint64_t vsyncEnabledScreenId,
+        std::shared_ptr<AppExecFwk::EventHandler> handler) = 0;
+    virtual void ProcessVSyncScreenIdWhilePowerStatusChanged(uint64_t id, ScreenPowerStatus status,
+        std::shared_ptr<AppExecFwk::EventHandler> handler, bool isFold) = 0;
+    virtual uint64_t JudgeVSyncEnabledScreenWhileHotPlug(uint64_t screenId, bool connected) = 0;
+    virtual void RegUpdateVsyncEnabledScreenIdCallback(UpdateVsyncEnabledScreenIdCallback cb) = 0;
+    virtual void RegJudgeVSyncEnabledScreenWhilePowerStatusChangedCallback(
+        JudgeVSyncEnabledScreenWhilePowerStatusChangedCallback cb) = 0;
+    virtual void RegUpdateFoldScreenConnectStatusLockedCallback(UpdateFoldScreenConnectStatusLockedCallback cb) = 0;
+    virtual void RegSetScreenVsyncEnableByIdCallback(SetScreenVsyncEnableByIdCallback cb) = 0;
+    virtual void RegGetScreenVsyncEnableByIdCallback(GetScreenVsyncEnableByIdCallback cb) = 0;
 protected:
     SetScreenVsyncEnabledCallback setScreenVsyncEnabledCallback_ = nullptr;
 };
@@ -86,6 +105,18 @@ public:
     virtual bool GetAdaptive() override;
     virtual void RecordDisplayVSyncStatus(bool enabled) override;
     virtual void RollbackHardwareVSyncStatus() override;
+    virtual void RegSetScreenVsyncEnabledCallbackForRenderService(uint64_t vsyncEnabledScreenId,
+        std::shared_ptr<AppExecFwk::EventHandler> handler) override;
+    virtual void ProcessVSyncScreenIdWhilePowerStatusChanged(uint64_t id, ScreenPowerStatus status,
+        std::shared_ptr<AppExecFwk::EventHandler> handler, bool isFold) override;
+    virtual uint64_t JudgeVSyncEnabledScreenWhileHotPlug(uint64_t screenId, bool connected) override;
+    virtual void RegUpdateVsyncEnabledScreenIdCallback(UpdateVsyncEnabledScreenIdCallback cb) override;
+    virtual void RegJudgeVSyncEnabledScreenWhilePowerStatusChangedCallback(
+        JudgeVSyncEnabledScreenWhilePowerStatusChangedCallback cb) override;
+    virtual void RegUpdateFoldScreenConnectStatusLockedCallback(
+        UpdateFoldScreenConnectStatusLockedCallback cb) override;
+    virtual void RegSetScreenVsyncEnableByIdCallback(SetScreenVsyncEnableByIdCallback cb) override;
+    virtual void RegGetScreenVsyncEnableByIdCallback(GetScreenVsyncEnableByIdCallback cb) override;
 
 private:
     friend class OHOS::Rosen::VSyncSampler;
@@ -134,6 +165,11 @@ private:
     // Adaptive Sync
     bool isAdaptive_ = false;
     int64_t lastAdaptiveTime_ = 0;
+    UpdateVsyncEnabledScreenIdCallback updateVsyncEnabledScreenIdCallback_;
+    JudgeVSyncEnabledScreenWhilePowerStatusChangedCallback judgeVSyncEnabledScreenWhilePowerStatusChangedCallback_;
+    UpdateFoldScreenConnectStatusLockedCallback updateFoldScreenConnectStatusLockedCallback_;
+    SetScreenVsyncEnableByIdCallback setScreenVsyncEnableByIdCallback_;
+    GetScreenVsyncEnableByIdCallback getScreenVsyncEnableByIdCallback_;
     int64_t diffSum_ = 0;
     uint32_t frameCount_ = 0;
 };

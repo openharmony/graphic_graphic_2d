@@ -102,6 +102,7 @@ bool JsFontCollection::CreateConstructor(napi_env env)
         DECLARE_NAPI_STATIC_FUNCTION("getLocalInstance", JsFontCollection::GetLocalInstance),
         DECLARE_NAPI_FUNCTION("loadFontSync", JsFontCollection::LoadFontSync),
         DECLARE_NAPI_FUNCTION("clearCaches", JsFontCollection::ClearCaches),
+        DECLARE_NAPI_FUNCTION("setParagraphCachesEnabled", JsFontCollection::SetCachesEnabled),
         DECLARE_NAPI_FUNCTION("loadFont", JsFontCollection::LoadFontAsync),
         DECLARE_NAPI_FUNCTION("unloadFontSync", JsFontCollection::UnloadFontSync),
         DECLARE_NAPI_FUNCTION("unloadFont", JsFontCollection::UnloadFontAsync),
@@ -380,6 +381,43 @@ NapiTextResult JsFontCollection::OnClearCaches(napi_env env, napi_callback_info 
         return NapiTextResult::Invalid();
     }
     fontcollection_->ClearCaches();
+    return NapiTextResult::Success(NapiGetUndefined(env));
+}
+
+napi_value JsFontCollection::SetCachesEnabled(napi_env env, napi_callback_info info)
+{
+    JsFontCollection* me = CheckParamsAndGetThisWithTag<JsFontCollection>(env, info, &WRAP_TYPE_TAG);
+    return (me != nullptr) ? me->OnSetCachesEnabled(env, info).result : nullptr;
+}
+
+NapiTextResult JsFontCollection::OnSetCachesEnabled(napi_env env, napi_callback_info info)
+{
+    if (fontcollection_ == nullptr) {
+        TEXT_LOGE("Null font collection");
+        return NapiTextResult::Invalid(
+            "Internal Error", NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM,
+                "JsFontCollection::OnSetCachesEnabled fontCollection is nullptr."));
+    }
+    uint64_t envAddress = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(env));
+    if (!FontCollectionMgr::GetInstance().CheckInstanceIsValid(envAddress, fontcollection_)) {
+        TEXT_LOGE("Failed to check local instance");
+        return NapiTextResult::Invalid();
+    }
+    size_t argc = 1;
+    napi_value args[1] = { nullptr };
+    napi_status status = napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+    if (status != napi_ok || argc < 1) {
+        return NapiTextResult::Invalid(
+            "Parameter Error", NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM,
+                "set Paragraph Caches failed, require a boolean parameter."));
+    }
+    bool enable = false;
+    if (!ConvertFromJsValue(env, args[0], enable)) {
+        return NapiTextResult::Invalid(
+            "Parameter Error", NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM,
+                "set Paragraph Caches failed, parameter must be boolean."));
+    }
+    fontcollection_->SetCachesEnabled(enable);
     return NapiTextResult::Success(NapiGetUndefined(env));
 }
 

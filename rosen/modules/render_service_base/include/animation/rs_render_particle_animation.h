@@ -19,6 +19,7 @@
 #include <memory>
 
 #include "rs_particle_noise_field.h"
+#include "rs_particle_field_collection.h"
 #include "rs_render_particle.h"
 
 #include "animation/rs_render_particle_system.h"
@@ -49,9 +50,14 @@ public:
     void UpdateNoiseField(const std::shared_ptr<ParticleNoiseFields>& particleNoiseFields);
     void UpdateRippleField(const std::shared_ptr<ParticleRippleFields>& particleRippleFields);
     void UpdateVelocityField(const std::shared_ptr<ParticleVelocityFields>& particleVelocityFields);
+    void UpdateFields(const std::shared_ptr<ParticleFieldCollection>& fields);
     const std::shared_ptr<RSRenderParticleSystem>& GetParticleSystem()
     {
         return particleSystem_;
+    }
+    void SetParticleAnimationToken(uint64_t token)
+    {
+        SetToken(token);
     }
     template <typename T>
     void UpdateParamsIfChanged(const std::shared_ptr<T>& updaterValue, std::shared_ptr<T>& targetValue)
@@ -73,6 +79,7 @@ private:
     std::shared_ptr<ParticleNoiseFields> particleNoiseFields_;
     std::shared_ptr<ParticleRippleFields> particleRippleFields_;
     std::shared_ptr<ParticleVelocityFields> particleVelocityFields_;
+    std::shared_ptr<ParticleFieldCollection> particleFields_;
 };
 } // namespace Rosen
 } // namespace OHOS

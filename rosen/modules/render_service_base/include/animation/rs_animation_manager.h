@@ -74,7 +74,7 @@ public:
     const FrameRateRange& GetFrameRateRange() const;
     const FrameRateRange& GetDecideFrameRateRange() const;
 
-    void SetRateDeciderEnable(bool enabled, const FrameRateFunctions& func);
+    void SetRateDeciderEnable(bool enabled, const FrameRateGetFunc& func);
     void SetRateDeciderSize(float width, float height);
     void SetRateDeciderScale(float scaleX, float scaleY);
     void SetRateDeciderAbsRect(int32_t width, int32_t height);
@@ -96,7 +96,7 @@ private:
 
     FrameRateRange rsRange_ = {0, 0, 0};
     RSAnimationRateDecider rateDecider_;
-    FrameRateFunctions frameRateFunctions_;
+    FrameRateGetFunc frameRateGetFunc_;
 };
 } // namespace Rosen
 } // namespace OHOS

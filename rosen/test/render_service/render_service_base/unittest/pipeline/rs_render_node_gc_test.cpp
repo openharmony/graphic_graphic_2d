@@ -473,6 +473,31 @@ HWTEST_F(RSRenderNodeGCTest, ReleaseOffTreeNodeBucket005, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ReleaseOffTreeNodeBucket006
+ * @tc.desc: test ReleaseOffTreeNodeForBucketMap when isEnable_ is false
+ * @tc.type: FUNC
+ * @tc.require: issueIAF9XV
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseOffTreeNodeBucket006, TestSize.Level1)
+{
+    RSRenderNodeGC& nodeGC = RSRenderNodeGC::Instance();
+    ClearOffTreeBucketMap();
+    constexpr uint32_t nodeNums = 100;
+    AddNodes(nodeNums, 1, 10000, false, nullptr);
+    
+    EXPECT_EQ(nodeGC.offTreeBucketMap_.size(), 1);
+    auto originalMapSize = nodeGC.offTreeBucketMap_.front().second.size();
+    
+    nodeGC.isEnable_.store(false);
+    nodeGC.ReleaseOffTreeNodeBucket();
+    
+    EXPECT_EQ(nodeGC.offTreeBucketMap_.size(), 1);
+    EXPECT_EQ(nodeGC.offTreeBucketMap_.front().second.size(), originalMapSize);
+    
+    nodeGC.isEnable_.store(true);
+}
+
+/**
  * @tc.name: ReleaseFromTree001
  * @tc.desc: test results of ReleaseFromTree, expect node off tree and queue is empty
  * @tc.type: FUNC

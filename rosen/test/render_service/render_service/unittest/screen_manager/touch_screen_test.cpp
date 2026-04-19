@@ -18,7 +18,7 @@
 #include "limit_number.h"
 #include "parameters.h"
 
-#include "screen_manager/touch_screen.h"
+#include "touch_screen.h"
 
 using namespace testing;
 using namespace testing::ext;

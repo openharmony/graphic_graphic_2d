@@ -313,6 +313,17 @@ napi_status WebGLReadBufferArg::GenBufferData(napi_value data, BufferDataType de
     return status;
 }
 
+size_t WebGLReadBufferArg::GetElementCount() const
+{
+    size_t elementSize = GetBufferDataSize();
+    // Protect against division by zero
+    if (elementSize == 0) {
+        LOGE("GetElementCount: elementSize is 0, cannot divide");
+        return 0;
+    }
+    return dataLen_ / elementSize;
+}
+
 size_t hash_pointer(void* ptr)
 {
     return std::hash<void*> {}(ptr);

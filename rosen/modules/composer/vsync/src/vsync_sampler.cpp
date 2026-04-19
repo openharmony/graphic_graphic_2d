@@ -67,6 +67,105 @@ VSyncSampler::VSyncSampler()
 {
 }
 
+void VSyncSampler::RegSetScreenVsyncEnabledCallbackForRenderService(ScreenId vsyncEnabledScreenId,
+    std::shared_ptr<AppExecFwk::EventHandler> handler)
+{
+    if (updateVsyncEnabledScreenIdCallback_ == nullptr) {
+        return;
+    }
+    if (!updateVsyncEnabledScreenIdCallback_(vsyncEnabledScreenId)) {
+        return;
+    }
+    SetVsyncEnabledScreenId(vsyncEnabledScreenId);
+    RegSetScreenVsyncEnabledCallback([this, handler](uint64_t screenId, bool enabled) {
+        auto task = [this, screenId, enabled, handler]() {
+            setScreenVsyncEnableByIdCallback_(INVALID_SCREEN_ID, screenId, enabled);
+        };
+        if (handler != nullptr) {
+            handler->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+        }
+    });
+}
+
+void VSyncSampler::ProcessVSyncScreenIdWhilePowerStatusChanged(ScreenId id, ScreenPowerStatus status,
+    std::shared_ptr<AppExecFwk::EventHandler> handler, bool isFold)
+{
+    RS_TRACE_NAME_FMT("%s, id:%lu, status:%d, isPowerOff:%d, isSuspend:%d", __func__, id, status,
+        (status == ScreenPowerStatus::POWER_STATUS_OFF), (status == ScreenPowerStatus::POWER_STATUS_SUSPEND));
+    if (status == ScreenPowerStatus::POWER_STATUS_OFF || status == ScreenPowerStatus::POWER_STATUS_SUSPEND) {
+        SetScreenVsyncEnabledInRSMainThread(id, false);
+    }
+    if (isFold) {
+        uint64_t lastVsyncEnabledScreenId = GetVsyncEnabledScreenId();
+        uint64_t vsyncEnabledScreenId = judgeVSyncEnabledScreenWhilePowerStatusChangedCallback_(
+            id, status, lastVsyncEnabledScreenId);
+        if (vsyncEnabledScreenId != lastVsyncEnabledScreenId) {
+            RS_TRACE_NAME_FMT("vsyncEnabledScreenId has changed, need disable lastVsyncEnabledScreenId vsync, "
+                "vsyncEnabledScreenId:%lu, lastVsyncEnabledScreenId:%lu",
+                vsyncEnabledScreenId, lastVsyncEnabledScreenId);
+            SetScreenVsyncEnabledInRSMainThread(lastVsyncEnabledScreenId, false);
+        }
+        RegSetScreenVsyncEnabledCallbackForRenderService(id, handler);
+    }
+}
+
+uint64_t VSyncSampler::JudgeVSyncEnabledScreenWhileHotPlug(ScreenId screenId, bool connected)
+{
+    if (updateFoldScreenConnectStatusLockedCallback_ == nullptr) {
+        return INVALID_SCREEN_ID;
+    }
+    updateFoldScreenConnectStatusLockedCallback_(screenId, connected);
+    uint64_t vsyncEnabledScreenId = GetVsyncEnabledScreenId();
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (connected) { // screen connected
+        if (vsyncEnabledScreenId == INVALID_SCREEN_ID) {
+            return screenId;
+        }
+    } else { // screen disconnected
+        if (vsyncEnabledScreenId != screenId) {
+            return vsyncEnabledScreenId;
+        }
+        vsyncEnabledScreenId = INVALID_SCREEN_ID;
+        vsyncEnabledScreenId = getScreenVsyncEnableByIdCallback_(vsyncEnabledScreenId);
+    }
+    return vsyncEnabledScreenId;
+}
+
+void VSyncSampler::RegUpdateVsyncEnabledScreenIdCallback(
+    VSyncSampler::UpdateVsyncEnabledScreenIdCallback cb)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    updateVsyncEnabledScreenIdCallback_ = cb;
+}
+
+void VSyncSampler::RegJudgeVSyncEnabledScreenWhilePowerStatusChangedCallback(
+    VSyncSampler::JudgeVSyncEnabledScreenWhilePowerStatusChangedCallback cb)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    judgeVSyncEnabledScreenWhilePowerStatusChangedCallback_ = cb;
+}
+
+void VSyncSampler::RegUpdateFoldScreenConnectStatusLockedCallback(
+    VSyncSampler::UpdateFoldScreenConnectStatusLockedCallback cb)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    updateFoldScreenConnectStatusLockedCallback_ = cb;
+}
+
+void VSyncSampler::RegSetScreenVsyncEnableByIdCallback(
+    VSyncSampler::SetScreenVsyncEnableByIdCallback cb)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    setScreenVsyncEnableByIdCallback_ = cb;
+}
+
+void VSyncSampler::RegGetScreenVsyncEnableByIdCallback(
+    VSyncSampler::GetScreenVsyncEnableByIdCallback cb)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    getScreenVsyncEnableByIdCallback_ = cb;
+}
+
 void VSyncSampler::ResetErrorLocked()
 {
     presentFenceTimeOffset_ = 0;
@@ -513,7 +612,7 @@ void VSyncSampler::Dump(std::string &result)
     }
     result += "]";
     result += "\npresentFenceTimeOffset:" + std::to_string(presentFenceTimeOffset_);
-    result += "\nvsyncEnabledScreenId:" + std::to_string(vsyncEnabledScreenId_);
+    result += "\nvsyncEnabledScreenId:" + std::to_string(vsyncEnabledScreenId_) + "\n";
 }
 
 VSyncSampler::~VSyncSampler()

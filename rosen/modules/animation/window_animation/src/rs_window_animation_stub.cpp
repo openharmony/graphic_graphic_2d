@@ -240,7 +240,7 @@ int RSWindowAnimationStub::WindowAnimationTargetsUpdate(MessageParcel& data, Mes
         WALOGE("Failed to read whether there is full screen window target!");
         return ERR_INVALID_DATA;
     }
-    
+
     if (isFullScreenWindowTarget) {
         fullScreenWindowTarget = data.ReadParcelable<RSWindowAnimationTarget>();
         if (fullScreenWindowTarget == nullptr) {
@@ -249,13 +249,18 @@ int RSWindowAnimationStub::WindowAnimationTargetsUpdate(MessageParcel& data, Mes
         }
     }
 
-    size_t floatWindowSize = data.ReadUint32();
+    uint32_t floatWindowSize = 0;
+    if (!data.ReadUint32(floatWindowSize)) {
+        WALOGE("Failed to read float window size!");
+        return ERR_INVALID_DATA;
+    }
     if (floatWindowSize > MAX_FLOATING_WINDOW_NUMBER) {
         WALOGE("Floating windows are too much!");
         return ERR_INVALID_DATA;
     }
+
     std::vector<sptr<RSWindowAnimationTarget>> floatingWindowTargets;
-    for (size_t i = 0; i < floatWindowSize; i++) {
+    for (uint32_t i = 0; i < floatWindowSize; i++) {
         sptr<RSWindowAnimationTarget> floatingWindowTarget(data.ReadParcelable<RSWindowAnimationTarget>());
         if (floatingWindowTarget == nullptr) {
             WALOGE("Failed to read floating window animation window!");
@@ -272,6 +277,10 @@ int RSWindowAnimationStub::WallpaperUpdate(MessageParcel& data, MessageParcel& r
 {
     WALOGD("Window animation wallpaper update!");
     sptr<RSWindowAnimationTarget> wallpaperTarget(data.ReadParcelable<RSWindowAnimationTarget>());
+    if (wallpaperTarget == nullptr) {
+        WALOGE("Failed to read wallpaper animation target!");
+        return ERR_INVALID_DATA;
+    }
     OnWallpaperUpdate(wallpaperTarget);
     return ERR_NONE;
 }

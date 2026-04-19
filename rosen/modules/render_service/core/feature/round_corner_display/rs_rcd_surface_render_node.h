@@ -24,17 +24,19 @@
 #include "common/rs_rect.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_handler.h"
+#include "pixel_map.h"
 #include "feature/round_corner_display/rs_round_corner_config.h"
 #include "platform/drawing/rs_surface.h"
 #include "render_context/render_context.h"
 #include "sync_fence.h"
 #include <filesystem>
 #include "include/core/SkBitmap.h"
+#include "rs_layer.h"
 
 namespace OHOS {
 namespace Rosen {
-
-
+class RSLayer;
+class RSRenderSurfaceRCDLayer;
 enum class RCDSurfaceType : uint32_t {
     BOTTOM,
     TOP,
@@ -98,6 +100,7 @@ class RSRcdSurfaceRenderNode : public RSRenderNode, public RSSurfaceHandler {
 public:
     using WeakPtr = std::weak_ptr<RSRcdSurfaceRenderNode>;
     using SharedPtr = std::shared_ptr<RSRcdSurfaceRenderNode>;
+    using PixelMapPtr = std::shared_ptr<Media::PixelMap>;
 
     RSRcdSurfaceRenderNode(NodeId id, RCDSurfaceType type, const std::weak_ptr<RSContext>& context = {});
     static SharedPtr Create(NodeId id, RCDSurfaceType type);
@@ -136,6 +139,13 @@ public:
         displayRect_ = rect;
     }
 
+    static PixelMapPtr CreatePixelMapFromBitmap(const Drawing::Bitmap& src);
+
+    PixelMapPtr GetPixelMap() const
+    {
+        return pixelMap_;
+    }
+
     void PrintRcdNodeInfo();
 private:
     float GetSurfaceWidth() const;
@@ -144,6 +154,7 @@ private:
     bool SetRCDMetaData() const;
     HardwareLayerInfo cldLayerInfo;
     Drawing::Bitmap layerBitmap;
+    PixelMapPtr pixelMap_ = nullptr;
 
     uint32_t GetRcdBufferWidth() const;
     uint32_t GetRcdBufferHeight() const;

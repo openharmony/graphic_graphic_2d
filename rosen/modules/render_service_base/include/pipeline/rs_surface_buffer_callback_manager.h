@@ -77,7 +77,6 @@ public:
 
 #ifdef ROSEN_OHOS
     void StoreSurfaceBufferInfo(const DrawingSurfaceBufferInfo& info);
-    void RemoveSurfaceBufferInfo(uint32_t bufferId);
     void RemoveAllSurfaceBufferInfo(pid_t pid, uint64_t uid);
     std::vector<DrawingSurfaceBufferInfo> GetSurfaceBufferInfoByPid(pid_t pid);
 #endif

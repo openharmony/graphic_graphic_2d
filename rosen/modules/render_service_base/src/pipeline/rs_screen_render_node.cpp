@@ -147,16 +147,6 @@ void RSScreenRenderNode::InitRenderParams()
 }
 // LCOV_EXCL_STOP
 
-ReleaseDmaBufferTask RSScreenRenderNode::releaseScreenDmaBufferTask_;
-void RSScreenRenderNode::SetReleaseTask(ReleaseDmaBufferTask callback)
-{
-    if (!releaseScreenDmaBufferTask_ && callback) {
-        releaseScreenDmaBufferTask_ = callback;
-    } else {
-        RS_LOGE("RreleaseScreenDmaBufferTask_ register failed!");
-    }
-}
-
 // LCOV_EXCL_START
 void RSScreenRenderNode::OnSync()
 {
@@ -215,7 +205,6 @@ void RSScreenRenderNode::UpdateRenderParams()
     screenParams->screenProperty_ = screenProperty_;
     screenParams->logicalDisplayNodeDrawables_ = std::move(logicalDisplayNodeDrawables_);
     screenParams->SetHasMirroredScreenChanged(hasMirroredScreenChanged_);
-    screenParams->isVirtualSurfaceChanged_ = isVirtualSurfaceChanged_;
     RSRenderNode::UpdateRenderParams();
 #endif
 }
@@ -233,6 +222,7 @@ void RSScreenRenderNode::UpdateScreenRenderParams()
     screenParams->hasChildCrossNode_ = HasChildCrossNode();
     screenParams->isMirrorScreen_ = IsMirrorScreen();
     screenParams->isFirstVisitCrossNodeDisplay_ = IsFirstVisitCrossNodeDisplay();
+    screenParams->layerSkipContext_.SyncFrom(*dynamicLayerSkipController_);
 }
 // LCOV_EXCL_STOP
 
@@ -291,6 +281,16 @@ void RSScreenRenderNode::SetDisplayGlobalZOrder(float zOrder)
         return;
     }
     screenParams->SetGlobalZOrder(zOrder);
+}
+
+float RSScreenRenderNode::GetDisplayGlobalZOrder() const
+{
+    auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
+    if (screenParams == nullptr) {
+        RS_LOGE("RSScreenRenderNode::GetDisplayGlobalZOrder screenParams is null");
+        return 0.f;
+    }
+    return screenParams->GetGlobalZOrder();
 }
 
 void RSScreenRenderNode::UpdateDisplayDirtyManager(int32_t bufferage, bool useAlignedDirtyRegion)
@@ -674,24 +674,17 @@ bool RSScreenRenderNode::GetForceFreeze() const
 // LCOV_EXCL_STOP
 
 // LCOV_EXCL_START
-void RSScreenRenderNode::CheckSurfaceChanged()
+void RSScreenRenderNode::SetVirtualSurfaceChanged(bool isChanged)
 {
-#ifndef ROSEN_CROSS_PLATFORM
-    if (!screenProperty_.IsVirtual()) {
+    auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
+    if (screenParams == nullptr) {
+        RS_LOGE("RSScreenRenderNode::%{public}s screenParams is null", __func__);
         return;
     }
-    auto& [lastHasSurface, lastSurfaceId] = virtualSurfaceState_;
-    auto curSurface = screenProperty_.GetProducerSurface();
-    bool curHasSurface = (curSurface != nullptr);
-    if (lastHasSurface != curHasSurface || (curHasSurface && lastSurfaceId != curSurface->GetUniqueId())) {
-        lastHasSurface = curHasSurface;
-        lastSurfaceId = curSurface ? curSurface->GetUniqueId() : UINT64_MAX;
-        isVirtualSurfaceChanged_ = true;
-        return;
+    screenParams->SetVirtualSurfaceChanged(isChanged);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
     }
-
-    isVirtualSurfaceChanged_ = false;
-#endif
 }
 // LCOV_EXCL_STOP
 
@@ -728,17 +721,6 @@ void RSScreenRenderNode::ResetVideoHeadroomInfo()
     headroomCounts_.erase(HdrStatus::HDR_VIDEO);
     headroomCounts_.erase(HdrStatus::AI_HDR_VIDEO_GTM);
     headroomCounts_.erase(HdrStatus::AI_HDR_VIDEO_GAINMAP);
-}
-
-void RSScreenRenderNode::SetCloneNodeMap(
-    const std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr>& cloneNodeMap)
-{
-    auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
-    if (screenParams == nullptr) {
-        RS_LOGE("RSScreenRenderNode::SetCloneNodeMap screenParams is null");
-        return;
-    }
-    screenParams->SetCloneNodeMap(cloneNodeMap);
 }
 } // namespace Rosen
 } // namespace OHOS

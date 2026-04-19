@@ -107,6 +107,13 @@ public:
     {
         return rsSurfaceNodeType_;
     }
+
+    bool IsSelfDrawingType() const
+    {
+        return rsSurfaceNodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE ||
+                rsSurfaceNodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE ||
+                rsSurfaceNodeType_ == RSSurfaceNodeType::CURSOR_NODE;
+    }
     SelfDrawingNodeType GetSelfDrawingNodeType() const
     {
         return selfDrawingType_;
@@ -409,27 +416,26 @@ public:
     ScreenId GetScreenId() const;
 
 #ifndef ROSEN_CROSS_PLATFORM
-    void SetBuffer(const sptr<SurfaceBuffer>& buffer, const Rect& damageRect) override;
+    void SetBuffer(const sptr<SurfaceBuffer>& buffer,
+        std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount, const Rect& damageRect) override;
     sptr<SurfaceBuffer> GetBuffer() const override;
-    void SetPreBuffer(const sptr<SurfaceBuffer>& preBuffer) override;
+    void SetPreBuffer(const sptr<SurfaceBuffer>& preBuffer,
+        std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> preBufferOwnerCount) override;
     sptr<SurfaceBuffer> GetPreBuffer() override;
     void SetAcquireFence(const sptr<SyncFence>& acquireFence) override;
     sptr<SyncFence> GetAcquireFence() const override;
     const Rect& GetBufferDamage() const override;
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetBufferOwnerCount() const override;
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetPreBufferOwnerCount() const override;
     inline void SetBufferSynced(bool bufferSynced)
     {
+        RS_OPTIONAL_TRACE_NAME_FMT("RSBufferManager SetBufferSynced RSSurfaceRenderNode bufferSynced %d %" PRIu64,
+            bufferSynced, preBufferOwnerCount_ ? preBufferOwnerCount_->bufferId_ : 0);
         bufferSynced_ = bufferSynced;
     }
     bool IsBufferSynced() const
     {
         return bufferSynced_;
-    }
-    // hpae offline: when surface node using hpae offline and doing directly compotition,
-    // the origin buffer will not be synced by hwc.
-    // While taking capture, bufferSynced_ should be set to false
-    void SetOfflineOriginBufferSynced(bool bufferSynced)
-    {
-        offlineOriginBufferSynced_ = bufferSynced;
     }
 #endif
 
@@ -639,6 +645,16 @@ public:
         isRelatedSourceNode_ = value;
     }
 
+    void SetNeedClearRelatedCache(bool value)
+    {
+        needClearRelatedCache_ = value;
+    }
+
+    bool IsNeedClearRelatedCache()
+    {
+        return needClearRelatedCache_;
+    }
+
     bool IsRelatedSourceNode() const
     {
         return isRelatedSourceNode_;
@@ -814,6 +830,13 @@ public:
 
     void SetIsParticipateInOcclusion(bool isParticipateInOcclusion);
     bool GetIsParticipateInOcclusion() const;
+
+    void SetUIFirstLeashAllEnable(bool isEnable);
+    bool IsUIFirstLeashAllEnable() const override;
+    void SetPartialSynced(bool isPartialSynced);
+    bool IsPartialSynced() const;
+
+    void SwapRelatedRenderParams(RSSurfaceRenderParams& relatedRenderParams);
 private:
     RSSurfaceNodeType rsSurfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
@@ -829,6 +852,7 @@ private:
     bool isRelated_ = false;
     bool clonedSourceNode_ = false;
     bool isRelatedSourceNode_ = false;
+    bool needClearRelatedCache_ = false;
     bool isTransparent_ = false;
     bool isSpherizeValid_ = false;
     bool isAttractionValid_ = false;
@@ -879,7 +903,8 @@ private:
     sptr<SyncFence> acquireFence_ = SyncFence::InvalidFence();
     Rect damageRect_ = {0, 0, 0, 0};
     bool bufferSynced_ = true;
-    bool offlineOriginBufferSynced_ = true;
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> preBufferOwnerCount_ = nullptr;
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount_ = nullptr;
 #endif
     bool isHardwareEnabled_ = false;
     bool needMakeImage_ = false;
@@ -953,6 +978,10 @@ private:
     bool isFrameGravityNewVersionEnabled_ = false;
     bool isSurfaceBufferOpaque_ = false;
     bool isParticipateInOcclusion_ = false;
+    bool isUIFirstLeashAllEnable_ = false;
+    // When onSync is triggered on the uifirst root node and the child thread drawing task
+    // is incomplete, partial synchronization is executed instead.
+    bool isPartialSynced_ = false;
 
     // only used for window capture
     sptr<RSISurfaceCaptureCallback> captureCallback_;

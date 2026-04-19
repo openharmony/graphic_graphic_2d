@@ -25,6 +25,7 @@
 
 #include "common/rs_background_thread.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "drawable/rs_canvas_render_node_drawable.h"
 #include "feature/capture/rs_surface_capture_task_parallel.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "feature/hdr/rs_colorspace_util.h"
@@ -32,13 +33,12 @@
 #include "feature_cfg/graphic_feature_param_manager.h"
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_surface_render_params.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_base_render_node.h"
+#include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
-#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_paint_filter_canvas.h"
-#include "transaction/rs_client_to_render_connection.h"
-#include "render_server/transaction/rs_client_to_service_connection.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_hisysevent.h"
@@ -46,10 +46,7 @@
 #include "platform/drawing/rs_surface.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_skia_filter.h"
-#include "screen_manager/rs_screen_manager.h"
-#include "screen_manager/rs_screen_mode_info.h"
-#include "drawable/rs_canvas_render_node_drawable.h"
-#include "pipeline/rs_canvas_render_node.h"
+#include "transaction/rs_client_to_service_connection.h"
 #include <unistd.h>
 #include "utils/matrix.h"
 #include <sys/stat.h>
@@ -307,6 +304,7 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
     canvas.Scale(captureConfig_.scaleX, captureConfig_.scaleY);
     canvas.SetDisableFilterCache(true);
     canvas.SetUICapture(true);
+    canvas.SetOnMultipleScreen(!isHdrCapture_); // not isHdrCapture means tmo to sdr
     if (isHdrCapture_) {
         canvas.SetHdrOn(true);
         RS_TRACE_NAME_FMT("RSUiCaptureTaskParallel::Run: isHdrCapture_: %d, SetHdrOn", isHdrCapture_);
@@ -351,6 +349,7 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
     RSUniRenderThread::SetCaptureParam(CaptureParam(true, true, false, false, false, false, false, false,
         captureConfig_.uiCaptureInRangeParam.endNodeId));
     DrawableV2::RSRenderNodeDrawable::ClearSnapshotProcessedNodeCount();
+    RSUniRenderThread::BufferManagerGuard bufferGuard;
     if (HasEndNodeRect() && !isStartEndNodeSame_) {
         auto offScreenWidth = nodeParams->GetBounds().GetWidth();
         auto offScreenHeight = nodeParams->GetBounds().GetHeight();
@@ -430,8 +429,11 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
     bool isEnableFeature = GetFeatureParamValue("CaptureConfig",
         &CaptureBaseParam::IsSnapshotWithDMAEnabled).value_or(false);
     if (snapshotDmaEnabled && isEnableFeature) {
-        RSUniRenderUtil::OptimizedFlushAndSubmit(surface, grContext, GetFeatureParamValue("UICaptureConfig",
+        sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
+        RSUniRenderUtil::OptimizedFlushAndSubmit(surface, grContext, acquireFence,
+            GetFeatureParamValue("UICaptureConfig",
             &UICaptureParam::IsUseOptimizedFlushAndSubmitEnabled).value_or(false));
+        bufferGuard.SetAcquireFence(acquireFence);
         auto copytask =
             RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(
                 surface, std::move(pixelMap_), nodeId_, captureConfig_, callback, 0, needDump_, errorCode_,

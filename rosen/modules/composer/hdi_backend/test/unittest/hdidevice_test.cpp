@@ -44,14 +44,14 @@ void HdiDeviceTest::TearDownTestCase()
 }
 
 namespace {
-/*
-* Function: DeviceFuncs001
-* Type: Function
-* Rank: Important(3)
-* EnvConditions: N/A
-* CaseDescription: 1. call DeviceFuncs
-*                  2. check ret
-*/
+/**
+ * Function: DeviceFuncs001
+ * Type: Function
+ * Rank: Important(3)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call DeviceFuncs
+ *                  2. check ret
+ */
 HWTEST_F(HdiDeviceTest, DeviceFuncs001, Function | MediumTest| Level3)
 {
     EXPECT_CALL(*hdiDeviceMock_, RegHotPlugCallback(_, _))
@@ -171,14 +171,14 @@ HWTEST_F(HdiDeviceTest, DeviceFuncs001, Function | MediumTest| Level3)
     EXPECT_EQ(hdiDeviceMock_->Commit(screenId, fence), GRAPHIC_DISPLAY_SUCCESS);
 }
 
-/*
-* Function: DeviceFuncs002
-* Type: Function
-* Rank: Important(3)
-* EnvConditions: N/A
-* CaseDescription: 1. call DeviceFuncs
-*                  2. check ret
-*/
+/**
+ * Function: DeviceFuncs002
+ * Type: Function
+ * Rank: Important(3)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call DeviceFuncs
+ *                  2. check ret
+ */
 HWTEST_F(HdiDeviceTest, DeviceFuncs002, Function | MediumTest| Level3)
 {
     uint32_t screenId = UINT32_MAX;
@@ -192,14 +192,14 @@ HWTEST_F(HdiDeviceTest, DeviceFuncs002, Function | MediumTest| Level3)
     EXPECT_EQ(hdiDeviceMock_->GetSupportedMetaDataKey(screenId, keys), GRAPHIC_DISPLAY_SUCCESS);
 }
 
-/*
-* Function: LayerFuncs001
-* Type: Function
-* Rank: Important(3)
-* EnvConditions: N/A
-* CaseDescription: 1. call LayerFuncs
-*                  2. check ret
-*/
+/**
+ * Function: LayerFuncs001
+ * Type: Function
+ * Rank: Important(3)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call LayerFuncs
+ *                  2. check ret
+ */
 HWTEST_F(HdiDeviceTest, LayerFuncs001, Function | MediumTest| Level3)
 {
     uint32_t screenId = UINT32_MAX, layerId = 0, zorder = 0;
@@ -299,14 +299,14 @@ HWTEST_F(HdiDeviceTest, LayerFuncs001, Function | MediumTest| Level3)
               GRAPHIC_DISPLAY_NOT_SUPPORT);
 }
 
-/*
-* Function: SetTunnelLayerId
-* Type: Function
-* Rank: Important(3)
-* EnvConditions: N/A
-* CaseDescription: 1. call SetTunnelLayerId
-*                  2. check ret
-*/
+/**
+ * Function: SetTunnelLayerId
+ * Type: Function
+ * Rank: Important(3)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call SetTunnelLayerId
+ *                  2. check ret
+ */
 HWTEST_F(HdiDeviceTest, SetTunnelLayerId, Function | MediumTest| Level3)
 {
     uint32_t screenId = UINT32_MAX;
@@ -809,27 +809,38 @@ HWTEST_F(HdiDeviceTest, LayerFuncs006, Function | MediumTest| Level3)
               GRAPHIC_DISPLAY_NOT_SUPPORT);
 }
 
-/*
-* Function: GetDisplayClientTargetProperty
-* Type: Function
-* Rank: Important(3)
-* EnvConditions: N/A
-* CaseDescription: 1. call GetDisplayClientTargetProperty
-*                  2. check ret
-*/
-HWTEST_F(HdiDeviceTest, GetDisplayClientTargetProperty, Function | MediumTest| Level3)
+/**
+ * Function: SetScreenActiveRect_InvalidDims
+ * Type: Function
+ * Rank: Important(3)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call SetScreenActiveRect with invalid width/height
+ *                  2. expect GRAPHIC_DISPLAY_PARAM_ERR
+ */
+HWTEST_F(HdiDeviceTest, SetScreenActiveRect_InvalidDims, Function | MediumTest| Level3)
 {
     uint32_t screenId = 0;
-    int32_t pixelFormat = 0;
-    int32_t dataspace = 0;
-    EXPECT_CALL(*hdiDeviceMock_, GetDisplayClientTargetProperty(_, _, _)).WillRepeatedly(
-            testing::Return(GRAPHIC_DISPLAY_SUCCESS));
-    EXPECT_EQ(hdiDeviceMock_->GetDisplayClientTargetProperty(screenId, pixelFormat, dataspace),
-              GRAPHIC_DISPLAY_SUCCESS);
-    EXPECT_CALL(*hdiDeviceMock_, GetDisplayClientTargetProperty(_, _, _)).WillRepeatedly(
-            testing::Return(GRAPHIC_DISPLAY_NOT_SUPPORT));
-    EXPECT_EQ(hdiDeviceMock_->GetDisplayClientTargetProperty(screenId, pixelFormat, dataspace),
-              GRAPHIC_DISPLAY_NOT_SUPPORT);
+    GraphicIRect rectInvalidW = {0, 0, 0, 100};
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetScreenActiveRect(screenId, rectInvalidW), GRAPHIC_DISPLAY_PARAM_ERR);
+
+    GraphicIRect rectInvalidH = {0, 0, 100, 0};
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetScreenActiveRect(screenId, rectInvalidH), GRAPHIC_DISPLAY_PARAM_ERR);
+}
+
+/**
+ * Function: SetScreenClientBufferCacheCount_InvalidCounts
+ * Type: Function
+ * Rank: Important(3)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call SetScreenClientBufferCacheCount with 0 and very large count
+ *                  2. expect GRAPHIC_DISPLAY_PARAM_ERR
+ */
+HWTEST_F(HdiDeviceTest, SetScreenClientBufferCacheCount_InvalidCounts, Function | MediumTest| Level3)
+{
+    uint32_t screenId = 0;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetScreenClientBufferCacheCount(screenId, 0), GRAPHIC_DISPLAY_PARAM_ERR);
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetScreenClientBufferCacheCount(screenId, UINT32_MAX),
+              GRAPHIC_DISPLAY_PARAM_ERR);
 }
 
 /*

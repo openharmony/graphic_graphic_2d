@@ -19,10 +19,16 @@
 #include "platform/common/rs_log.h"
 #include "sandbox_utils.h"
 
+#undef LOG_TAG
+#define LOG_TAG "graphic_2d_hgm"
+
 namespace OHOS {
 namespace Rosen {
-const std::chrono::steady_clock::duration NATIVE_VSYNC_FALLBACK_INTERVAL =
+namespace {
+constexpr std::chrono::steady_clock::duration NATIVE_VSYNC_FALLBACK_INTERVAL =
     std::chrono::duration_cast<std::chrono::steady_clock::duration>(std::chrono::milliseconds(200));
+}
+
 FrameRateLinkerId RSRenderFrameRateLinker::GenerateId()
 {
     static pid_t pid_ = GetRealPid();
@@ -30,7 +36,7 @@ FrameRateLinkerId RSRenderFrameRateLinker::GenerateId()
 
     auto currentId = currentId_.fetch_add(1, std::memory_order_relaxed);
     if (currentId == UINT32_MAX) {
-        ROSEN_LOGE("RSRenderFrameRateLinker Id overflow");
+        ROSEN_LOGE("%{public}s: RSRenderFrameRateLinker Id overflow", __func__);
     }
 
     // concat two 32-bit numbers to one 64-bit number
@@ -80,6 +86,13 @@ RSRenderFrameRateLinker::~RSRenderFrameRateLinker()
 void RSRenderFrameRateLinker::SetExpectedRange(const FrameRateRange& range)
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    if (expectedRange_.preferred_ != range.preferred_) {
+        for (auto& [_, cb] : expectedFpsChangeCallbacks_) {
+            if (cb) {
+                cb->OnFrameRateLinkerExpectedFpsUpdate(ExtractPid(id_), xcomponentId_, range.preferred_);
+            }
+        }
+    }
     if (expectedRange_ != range) {
         expectedRange_ = range;
         Notify();
@@ -115,16 +128,6 @@ void RSRenderFrameRateLinker::SetAnimatorExpectedFrameRate(int32_t animatorExpec
     }
 }
 
-void RSRenderFrameRateLinker::SetVsyncName(const std::string& vsyncName)
-{
-    vsyncName_ = vsyncName;
-}
-
-void RSRenderFrameRateLinker::SetWindowNodeId(uint64_t windowNodeId)
-{
-    windowNodeId_ = windowNodeId;
-}
-
 void RSRenderFrameRateLinker::Copy(const RSRenderFrameRateLinker&& other)
 {
     id_ = other.id_;
@@ -136,8 +139,21 @@ void RSRenderFrameRateLinker::Copy(const RSRenderFrameRateLinker&& other)
 void RSRenderFrameRateLinker::Notify()
 {
     if (observer_ != nullptr) {
-        observer_(*this);
+        observer_();
     }
+}
+
+void RSRenderFrameRateLinker::RegisterExpectedFpsUpdateCallback(pid_t listener,
+    sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback)
+{
+    if (callback == nullptr) {
+        expectedFpsChangeCallbacks_.erase(listener);
+        return;
+    }
+
+    // if this listener has registered a callback before, replace it.
+    expectedFpsChangeCallbacks_[listener] = callback;
+    callback->OnFrameRateLinkerExpectedFpsUpdate(ExtractPid(id_), xcomponentId_, expectedRange_.preferred_);
 }
 
 void RSRenderFrameRateLinker::UpdateNativeVSyncTimePoint()

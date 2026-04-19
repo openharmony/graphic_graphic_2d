@@ -83,18 +83,23 @@ public:
             case RSNGEffectType::VARIABLE_RADIUS_BLUR: return "VariableRadiusBlur";
             case RSNGEffectType::LIGHT_CAVE: return "LightCave";
             case RSNGEffectType::CONTENT_LIGHT: return "ContentLight";
+            case RSNGEffectType::HEAT_DISTORTION: return "HeatDistortion";
+            case RSNGEffectType::BLUR_BUBBLES_RISE: return "BlurBubblesRise";
             case RSNGEffectType::BORDER_LIGHT: return "BorderLight";
             case RSNGEffectType::GASIFY_SCALE_TWIST: return "GasifyScaleTwist";
             case RSNGEffectType::GASIFY_BLUR: return "GasifyBlur";
             case RSNGEffectType::GASIFY: return "Gasify";
+            case RSNGEffectType::PARTICLE_ABLATION: return "ParticleAblation";
             case RSNGEffectType::COLOR_GRADIENT_EFFECT: return "ColorGradientEffect";
             case RSNGEffectType::HARMONIUM_EFFECT: return "HarmoniumEffect";
             case RSNGEffectType::SDF_UNION_OP_SHAPE: return "SDFUnionOpShape";
             case RSNGEffectType::SDF_SMOOTH_UNION_OP_SHAPE: return "SDFSmoothUnionOpShape";
             case RSNGEffectType::SDF_RRECT_SHAPE: return "SDFRRectShape";
+            case RSNGEffectType::SDF_TRIANGLE_SHAPE: return "SDFTriangleShape";
             case RSNGEffectType::SDF_PIXELMAP_SHAPE: return "SDFPixelmapShape";
             case RSNGEffectType::SDF_TRANSFORM_SHAPE: return "SDFTransformShape";
             case RSNGEffectType::SDF_EMPTY_SHAPE: return "SDFEmptyShape";
+            case RSNGEffectType::SDF_DISTORT_OP_SHAPE: return "SDFDistortOpShape";
             case RSNGEffectType::IMAGE_MASK: return "ImageMask";
             case RSNGEffectType::USE_EFFECT_MASK: return "UseEffectMask";
             case RSNGEffectType::AIBAR_GLOW: return "AIBarGlow";
@@ -111,7 +116,9 @@ public:
             case RSNGEffectType::DUPOLI_NOISE_MASK : return "DupoliNoiseMask";
             case RSNGEffectType::NOISY_FRAME_GRADIENT_MASK: return "NoisyFrameGradientMask";
             case RSNGEffectType::SDF_EDGE_LIGHT: return "SDFEdgeLight";
+            case RSNGEffectType::SDF_EDGE_LIGHT_EFFECT: return "SDFEdgeLightEffect";
             case RSNGEffectType::MAGNIFIER: return "Magnifier";
+            case RSNGEffectType::DISTORTION_COLLAPSE: return "DistortionCollapse";
             default: return "UNKNOWN";
         }
     }
@@ -222,6 +229,7 @@ public:
     virtual std::string Dump() const = 0;
     virtual uint32_t CalculateHash() = 0;
     virtual void CalculateHashInner(uint32_t& hash) = 0;
+    virtual bool CanSkipFrame() = 0;
 
     bool ContainsType(RSNGEffectType type)
     {
@@ -239,6 +247,7 @@ protected:
     [[nodiscard]] virtual bool OnUnmarshalling(Parcel& parcel) = 0;
     virtual void DumpProperties(std::string& out) const {}
     virtual std::string DumpProperties() const = 0;
+    virtual bool CanCurrentFilterSkipFrame() = 0;
 
     size_t GetEffectCount() const
     {
@@ -256,7 +265,7 @@ protected:
     template <typename U, typename R>
     friend class RSNGEffectBase;
 
-    template <typename U, RSNGEffectType T, typename... Tags>
+    template <typename U, typename RenderEffectTemplate, RSNGEffectType T, typename... Tags>
     friend class RSNGEffectTemplate;
 };
 
@@ -415,7 +424,17 @@ public:
         }
     }
 
+    bool CanSkipFrame() override
+    {
+        bool isSkip = CanCurrentFilterSkipFrame();
+        if (Base::nextEffect_) {
+            isSkip &= Base::nextEffect_->CanSkipFrame();
+        }
+        return isSkip;
+    }
 protected:
+    virtual bool CanCurrentFilterSkipFrame() override { return false; }
+
     [[nodiscard]] bool OnUnmarshalling(Parcel& parcel) override
     {
         // Type has been covered in Unmarshalling
@@ -457,7 +476,7 @@ protected:
 
     std::tuple<PropertyTags...> properties_;
 
-    template <typename U, RSNGEffectType T, typename... Tags>
+    template <typename U, typename RenderEffectTemplate, RSNGEffectType T, typename... Tags>
     friend class RSNGEffectTemplate;
 };
 } // namespace Rosen

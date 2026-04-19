@@ -31,8 +31,10 @@
 
 #include "message_parcel.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "transaction/rs_client_to_render_connection.h"
+#include "transaction/zidl/rs_client_to_render_connection_stub.h"
 #include "render_server/transaction/rs_client_to_service_connection.h"
-#include "platform/ohos/rs_irender_service.h"
+#include "platform/ohos/transaction/zidl/rs_irender_service.h"
 #include "securec.h"
 #include "render_server/transaction/zidl/rs_client_to_service_connection_stub.h"
 #include "transaction/rs_transaction_proxy.h"
@@ -56,10 +58,13 @@ const uint8_t DO_SET_BRIGHTNESS_INFO_CHANGE_CALLBACK = 11;
 const uint8_t DO_GET_BRIGHTNESS_INFO = 12;
 const uint8_t TARGET_SIZE = 13;
 } // namespace
-RSMainThread* g_mainThread = nullptr;
-sptr<RSIConnectionToken> g_token = nullptr;
+RSMainThread* g_mainThread = OHOS::Rosen::RSMainThread::Instance();
 sptr<RSClientToServiceConnectionStub> g_toServiceConnectionStub = nullptr;
 sptr<RSClientToServiceConnection> g_toServiceConnection = nullptr;
+sptr<RSClientToRenderConnection> g_toRenderConnection = nullptr;
+sptr<RSClientToRenderConnectionStub> g_toRenderConnectionStub = nullptr;
+sptr<RSVsyncManager> g_vsyncManager = nullptr;
+
 std::string g_originTag = "";
 
 void WriteUnirenderConfig(std::string& tag)
@@ -90,19 +95,17 @@ void SetUp(FuzzedDataProvider& fdp)
     std::string tag = enableForAll ? "ENABLED_FOR_ALL" : "DISABLED";
     WriteUnirenderConfig(tag);
     RSUniRenderJudgement::InitUniRenderConfig();
-    g_toServiceConnection->mainThread_ = g_mainThread;
 }
 
 void TearDown()
 {
     WriteUnirenderConfig(g_originTag);
-    g_toServiceConnection->mainThread_ = nullptr;
 }
 
 /* Fuzzer test GetPixelFormat */
 void DoGetPixelFormat(FuzzedDataProvider& fdp)
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_PIXEL_FORMAT);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_PIXEL_FORMAT);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -115,7 +118,7 @@ void DoGetPixelFormat(FuzzedDataProvider& fdp)
 /* Fuzzer test SetPixelFormat */
 void DoSetPixelFormat(FuzzedDataProvider& fdp)
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_PIXEL_FORMAT);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_PIXEL_FORMAT);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -130,7 +133,7 @@ void DoSetPixelFormat(FuzzedDataProvider& fdp)
 /* Fuzzer test GetScreenSupportedHDRFormats */
 void DoGetScreenSupportedHDRFormats(FuzzedDataProvider& fdp)
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_HDR_FORMATS);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_HDR_FORMATS);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -143,7 +146,7 @@ void DoGetScreenSupportedHDRFormats(FuzzedDataProvider& fdp)
 /* Fuzzer test GetScreenHDRFormat */
 void DoGetScreenHDRFormat(FuzzedDataProvider& fdp)
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_HDR_FORMAT);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_HDR_FORMAT);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -156,7 +159,7 @@ void DoGetScreenHDRFormat(FuzzedDataProvider& fdp)
 /* Fuzzer test SetScreenHDRFormat */
 void DoSetScreenHDRFormat(FuzzedDataProvider& fdp)
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_HDR_FORMAT);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_HDR_FORMAT);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -171,7 +174,7 @@ void DoSetScreenHDRFormat(FuzzedDataProvider& fdp)
 /* Fuzzer test GetScreenSupportedColorSpaces */
 void DoGetScreenSupportedColorSpaces(FuzzedDataProvider& fdp)
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_COLORSPACES);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_COLORSPACES);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -184,7 +187,7 @@ void DoGetScreenSupportedColorSpaces(FuzzedDataProvider& fdp)
 /* Fuzzer test GetScreenColorSpace */
 void DoGetScreenColorSpace(FuzzedDataProvider& fdp)
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_COLORSPACE);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_COLORSPACE);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -197,7 +200,7 @@ void DoGetScreenColorSpace(FuzzedDataProvider& fdp)
 /* Fuzzer test SetScreenColorSpace */
 void DoSetScreenColorSpace(FuzzedDataProvider& fdp)
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_COLORSPACE);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_COLORSPACE);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -221,9 +224,6 @@ void DoSetColorFollow(FuzzedDataProvider& fdp)
         auto& context = mainThread->GetContext();
         context.GetMutableNodeMap().surfaceNodeMap_.emplace(config.id, surfaceNode);
     }).wait();
-
-    bool isColorFollow = fdp.ConsumeBool();
-    g_toServiceConnectionStub->SetColorFollow(config.name, isColorFollow);
 
     mainThread->ScheduleTask([=]() {
         auto& context = mainThread->GetContext();
@@ -256,7 +256,8 @@ void DoSetLayerTop(FuzzedDataProvider& fdp)
 /* Fuzzer test SetBrightnessInfoChangeCallback */
 void DoSetBrightnessInfoChangeCallback(FuzzedDataProvider& fdp)
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK);
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToServiceConnectionInterfaceCode::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -273,13 +274,13 @@ void DoSetBrightnessInfoChangeCallback(FuzzedDataProvider& fdp)
 /* Fuzzer test GetBrightnessInfo */
 void DoGetBrightnessInfo(FuzzedDataProvider& fdp)
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_BRIGHTNESS_INFO);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_BRIGHTNESS_INFO);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
-    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    dataParcel.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     dataParcel.WriteUint64(fdp.ConsumeIntegral<uint64_t>());
-    g_toServiceConnectionStub->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    g_toRenderConnectionStub->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 /* Fuzzer test SetForceRefresh */
@@ -295,9 +296,6 @@ void DoSetForceRefresh(FuzzedDataProvider& fdp)
         context.GetMutableNodeMap().surfaceNodeMap_.emplace(config.id, surfaceNode);
     }).wait();
 
-    bool isForceRefresh = fdp.ConsumeBool();
-    g_toServiceConnectionStub->SetForceRefresh(config.name, isForceRefresh);
-
     mainThread->ScheduleTask([=]() {
         auto& context = mainThread->GetContext();
         context.GetMutableNodeMap().surfaceNodeMap_.erase(config.id);
@@ -309,22 +307,21 @@ void DoSetForceRefresh(FuzzedDataProvider& fdp)
 /* Fuzzer envirement */
 extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 {
-    OHOS::Rosen::g_mainThread = OHOS::Rosen::RSMainThread::Instance();
-    OHOS::Rosen::g_mainThread->runner_ = OHOS::AppExecFwk::EventRunner::Create(true);
-    OHOS::Rosen::g_mainThread->handler_ =
-        std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::Rosen::g_mainThread->runner_);
-    OHOS::Rosen::g_token = new OHOS::IRemoteStub<OHOS::Rosen::RSIConnectionToken>();
-    auto generator = OHOS::Rosen::impl::VSyncGenerator::GetInstance();
-    auto appVSyncController = new OHOS::Rosen::VSyncController(generator, 0);
-    OHOS::Rosen::DVSyncFeatureParam dvsyncParam;
-    auto appVSyncDistributor = new OHOS::Rosen::VSyncDistributor(appVSyncController, "app", dvsyncParam);
-    OHOS::Rosen::g_toServiceConnection = new OHOS::Rosen::RSClientToServiceConnection(getpid(), nullptr, nullptr,
-        OHOS::Rosen::RSScreenManager::GetInstance(), OHOS::Rosen::g_token->AsObject(), appVSyncDistributor);
+    auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
+    OHOS::Rosen::g_mainThread->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
+    OHOS::Rosen::g_mainThread->handler_->eventRunner_->Run();
+
+    auto screenManager_ = OHOS::sptr<OHOS::Rosen::RSScreenManager>::MakeSptr();
+    OHOS::Rosen::g_vsyncManager = OHOS::sptr<OHOS::Rosen::RSVsyncManager>::MakeSptr();
+    OHOS::Rosen::g_vsyncManager->init(screenManager_);
+
+    OHOS::Rosen::g_toServiceConnection = new OHOS::Rosen::RSClientToServiceConnection(
+        getpid(), nullptr, nullptr, nullptr, nullptr, OHOS::Rosen::g_vsyncManager->GetVsyncManagerAgent());
+
+    OHOS::Rosen::g_toRenderConnection = new OHOS::Rosen::RSClientToRenderConnection(getpid(), nullptr, nullptr);
+
     OHOS::Rosen::g_toServiceConnectionStub = OHOS::Rosen::g_toServiceConnection;
-#ifdef RS_ENABLE_VK
-    OHOS::Rosen::RsVulkanContext::GetSingleton().InitVulkanContextForUniRender("");
-#endif
-    // OHOS::Rosen::RSHardwareThread::Instance().Start();
+    OHOS::Rosen::g_toRenderConnectionStub = OHOS::Rosen::g_toRenderConnection;
     return 0;
 }
 

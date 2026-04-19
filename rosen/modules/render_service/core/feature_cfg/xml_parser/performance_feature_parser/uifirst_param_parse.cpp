@@ -25,7 +25,8 @@ UIFirstSwitchType UIFirstParamParse::GetUIFirstSwitchType(const std::string& inp
         {"CardUIFirstEnabled", UIFirstSwitchType::CARD_UIFIRST_ENABLED},
         {"CacheOptimizeRotateEnabled", UIFirstSwitchType::ROTATE_ENABLED},
         {"FreeMultiWindowEnabled", UIFirstSwitchType::FREE_MULTI_WINDOW_ENABLED},
-        {"OcclusionEnabled", UIFirstSwitchType::OCCLUSION_ENABLED}
+        {"OcclusionEnabled", UIFirstSwitchType::OCCLUSION_ENABLED},
+        {"ShadowEnabled", UIFirstSwitchType::LEASH_ALL_ENABLED}
     };
 
     auto it = uifirstSwitchTypeMap.find(input);
@@ -86,6 +87,11 @@ int32_t UIFirstParamParse::ParseUIFirstInternal(xmlNode &node)
                 UIFirstParam::SetOcclusionEnabled(isEnabled);
                 RS_LOGI("UIFirstParamParse parse OcclusionEnabled %{public}d",
                     UIFirstParam::IsOcclusionEnabled());
+                break;
+            case UIFirstSwitchType::LEASH_ALL_ENABLED:
+                UIFirstParam::SetUIFirstLeashAllEnable(isEnabled);
+                RS_LOGI("UIFirstParamParse parse UIFirstShadowEnable %{public}d",
+                    UIFirstParam::IsUIFirstLeashAllEnable());
                 break;
             default:
                 RS_LOGE("UIFirstParamParse %{public}s is not support!", name.c_str());

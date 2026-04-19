@@ -208,6 +208,7 @@ void RSHpaeManager::OnSync(bool isHdrOn)
     RSHpaeBaseData::GetInstance().SetIsFirstFrame(IsFirstFrame());
     RSHpaeBaseData::GetInstance().SetBlurContentChanged(false);
     RSHpaeBaseData::GetInstance().SetDesktopOffTree(false);
+    RSHpaeBaseData::GetInstance().SetScaleFactor(hpaeScaleFactor_);
 
     // graphic pattern
     RSHpaeFfrtPatternManager::Instance().MHCSetVsyncId(hpaeVsyncId_);
@@ -298,8 +299,17 @@ void RSHpaeManager::RegisterHpaeCallback(RSRenderNode& node, const std::shared_p
 
     uint32_t bufWidth = phyWidth / HPAE_SCALE_FACTOR;
     uint32_t bufHeight = phyHeight / HPAE_SCALE_FACTOR;
-    if (UNLIKELY(bufWidth == 0 || bufHeight == 0 || bufWidth > HPAE_BUFFER_MAX_WIDTH ||
-        bufHeight > HPAE_BUFFER_MAX_HEIGHT)) {
+    hpaeScaleFactor_ = HPAE_SCALE_FACTOR;
+    if (bufWidth > HPAE_BUFFER_MAX_WIDTH || bufHeight > HPAE_BUFFER_MAX_HEIGHT) {
+        // find a bigger scale factor
+        float widthScaleFactor = (float)phyWidth / (float)HPAE_BUFFER_MAX_WIDTH;
+        float heightScaleFactor = (float)phyHeight / (float)HPAE_BUFFER_MAX_HEIGHT;
+        hpaeScaleFactor_ = std::max(widthScaleFactor, heightScaleFactor);
+        bufWidth = static_cast<uint32_t>(phyWidth / hpaeScaleFactor_);
+        bufHeight = static_cast<uint32_t>(phyHeight / hpaeScaleFactor_);
+    }
+
+    if (UNLIKELY(bufWidth == 0 || bufHeight == 0)) {
         return;
     }
 

@@ -127,7 +127,7 @@ public:
      *                - true: Freeze current content
      *                - false: Resume normal rendering pipeline
      */
-    void SetFreeze(bool isFreeze) override;
+    void SetFreeze(bool isFreeze, bool isMarkedByUI = false) override;
 
     /**
      * @brief Sets the HDR display properties.

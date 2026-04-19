@@ -85,4 +85,183 @@ HWTEST_F(RSRenderShapeBaseTest, RSNGRenderShapeBaseUnmarshallingTest011, TestSiz
     EXPECT_TRUE(RSNGRenderShapeBase::Unmarshalling(parcel, result));
 }
 
+HWTEST_F(RSRenderShapeBaseTest, CalcRect_NullShape_ReturnsBound, TestSize.Level1)
+{
+    RectF bound(10.0f, 20.0f, 100.0f, 200.0f);
+    std::shared_ptr<RSNGRenderShapeBase> shape = nullptr;
+
+    RectF result = RSNGRenderShapeHelper::CalcRect(shape, bound);
+
+    EXPECT_FLOAT_EQ(result.GetLeft(), bound.GetLeft());
+    EXPECT_FLOAT_EQ(result.GetTop(), bound.GetTop());
+    EXPECT_FLOAT_EQ(result.GetWidth(), bound.GetWidth());
+    EXPECT_FLOAT_EQ(result.GetHeight(), bound.GetHeight());
+}
+
+HWTEST_F(RSRenderShapeBaseTest, CalcRect_SDFUnionOpShape_ReturnsBound, TestSize.Level1)
+{
+    RectF bound(10.0f, 20.0f, 100.0f, 200.0f);
+    auto shape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_UNION_OP_SHAPE);
+
+    ASSERT_NE(shape, nullptr);
+
+    RectF result = RSNGRenderShapeHelper::CalcRect(shape, bound);
+
+    EXPECT_FLOAT_EQ(result.GetLeft(), bound.GetLeft());
+    EXPECT_FLOAT_EQ(result.GetTop(), bound.GetTop());
+    EXPECT_FLOAT_EQ(result.GetWidth(), bound.GetWidth());
+    EXPECT_FLOAT_EQ(result.GetHeight(), bound.GetHeight());
+}
+
+HWTEST_F(RSRenderShapeBaseTest, CalcRect_SDFSmoothUnionOpShape_ReturnsBound, TestSize.Level1)
+{
+    RectF bound(50.0f, 60.0f, 150.0f, 250.0f);
+    auto shape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_SMOOTH_UNION_OP_SHAPE);
+
+    ASSERT_NE(shape, nullptr);
+
+    RectF result = RSNGRenderShapeHelper::CalcRect(shape, bound);
+
+    EXPECT_FLOAT_EQ(result.GetLeft(), bound.GetLeft());
+    EXPECT_FLOAT_EQ(result.GetTop(), bound.GetTop());
+    EXPECT_FLOAT_EQ(result.GetWidth(), bound.GetWidth());
+    EXPECT_FLOAT_EQ(result.GetHeight(), bound.GetHeight());
+}
+
+HWTEST_F(RSRenderShapeBaseTest, CalcRect_SDFRRectShape_ReturnsBound, TestSize.Level1)
+{
+    RectF bound(0.0f, 0.0f, 200.0f, 300.0f);
+    auto shape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+
+    ASSERT_NE(shape, nullptr);
+
+    RectF result = RSNGRenderShapeHelper::CalcRect(shape, bound);
+
+    EXPECT_FLOAT_EQ(result.GetLeft(), bound.GetLeft());
+    EXPECT_FLOAT_EQ(result.GetTop(), bound.GetTop());
+    EXPECT_FLOAT_EQ(result.GetWidth(), bound.GetWidth());
+    EXPECT_FLOAT_EQ(result.GetHeight(), bound.GetHeight());
+}
+
+HWTEST_F(RSRenderShapeBaseTest, CalcRect_SDFTriangleShape_ReturnsBound, TestSize.Level1)
+{
+    RectF bound(100.0f, 100.0f, 300.0f, 400.0f);
+    auto shape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_TRIANGLE_SHAPE);
+
+    ASSERT_NE(shape, nullptr);
+
+    RectF result = RSNGRenderShapeHelper::CalcRect(shape, bound);
+
+    EXPECT_FLOAT_EQ(result.GetLeft(), bound.GetLeft());
+    EXPECT_FLOAT_EQ(result.GetTop(), bound.GetTop());
+    EXPECT_FLOAT_EQ(result.GetWidth(), bound.GetWidth());
+    EXPECT_FLOAT_EQ(result.GetHeight(), bound.GetHeight());
+}
+
+HWTEST_F(RSRenderShapeBaseTest, CalcRect_SDFPixelmapShape_ReturnsBound, TestSize.Level1)
+{
+    RectF bound(25.0f, 35.0f, 125.0f, 235.0f);
+    auto shape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_PIXELMAP_SHAPE);
+
+    ASSERT_NE(shape, nullptr);
+
+    RectF result = RSNGRenderShapeHelper::CalcRect(shape, bound);
+
+    EXPECT_FLOAT_EQ(result.GetLeft(), bound.GetLeft());
+    EXPECT_FLOAT_EQ(result.GetTop(), bound.GetTop());
+    EXPECT_FLOAT_EQ(result.GetWidth(), bound.GetWidth());
+    EXPECT_FLOAT_EQ(result.GetHeight(), bound.GetHeight());
+}
+
+HWTEST_F(RSRenderShapeBaseTest, CalcRect_SDFDFTransformShape_ReturnsBound, TestSize.Level1)
+{
+    RectF bound(10.0f, 20.0f, 110.0f, 220.0f);
+    auto shape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_TRANSFORM_SHAPE);
+
+    ASSERT_NE(shape, nullptr);
+
+    RectF result = RSNGRenderShapeHelper::CalcRect(shape, bound);
+
+    EXPECT_FLOAT_EQ(result.GetLeft(), bound.GetLeft());
+    EXPECT_FLOAT_EQ(result.GetTop(), bound.GetTop());
+    EXPECT_FLOAT_EQ(result.GetWidth(), bound.GetWidth());
+    EXPECT_FLOAT_EQ(result.GetHeight(), bound.GetHeight());
+}
+
+HWTEST_F(RSRenderShapeBaseTest, CalcRect_SDFEmptyShape_ReturnsBound, TestSize.Level1)
+{
+    RectF bound(0.0f, 0.0f, 0.0f, 0.0f);
+    auto shape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_EMPTY_SHAPE);
+
+    ASSERT_NE(shape, nullptr);
+
+    RectF result = RSNGRenderShapeHelper::CalcRect(shape, bound);
+
+    EXPECT_FLOAT_EQ(result.GetLeft(), bound.GetLeft());
+    EXPECT_FLOAT_EQ(result.GetTop(), bound.GetTop());
+    EXPECT_FLOAT_EQ(result.GetWidth(), bound.GetWidth());
+    EXPECT_FLOAT_EQ(result.GetHeight(), bound.GetHeight());
+}
+
+HWTEST_F(RSRenderShapeBaseTest, CalcRect_SDFDistortOpShape_WithNullBase_ReturnsBound, TestSize.Level1)
+{
+    RectF bound(10.0f, 20.0f, 100.0f, 200.0f);
+    auto shape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_DISTORT_OP_SHAPE);
+
+    ASSERT_NE(shape, nullptr);
+
+    RectF result = RSNGRenderShapeHelper::CalcRect(shape, bound);
+
+    EXPECT_FLOAT_EQ(result.GetLeft(), bound.GetLeft());
+    EXPECT_FLOAT_EQ(result.GetTop(), bound.GetTop());
+    EXPECT_FLOAT_EQ(result.GetWidth(), bound.GetWidth());
+    EXPECT_FLOAT_EQ(result.GetHeight(), bound.GetHeight());
+}
+
+HWTEST_F(RSRenderShapeBaseTest, CalcRect_TransformDrawRectIsUpdated, TestSize.Level1)
+{
+    RectF bound(10.0f, 20.0f, 100.0f, 200.0f);
+    auto shape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_UNION_OP_SHAPE);
+
+    ASSERT_NE(shape, nullptr);
+
+    RSNGRenderShapeHelper::CalcRect(shape, bound);
+    const RectF& transformDrawRect = shape->GetTransformDrawRect();
+
+    EXPECT_FLOAT_EQ(transformDrawRect.GetLeft(), bound.GetLeft());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetTop(), bound.GetTop());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetWidth(), bound.GetWidth());
+    EXPECT_FLOAT_EQ(transformDrawRect.GetHeight(), bound.GetHeight());
+}
+
+HWTEST_F(RSRenderShapeBaseTest, CalcRect_NegativeBoundValues, TestSize.Level1)
+{
+    RectF bound(-10.0f, -20.0f, 100.0f, 200.0f);
+    auto shape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+
+    ASSERT_NE(shape, nullptr);
+
+    RectF result = RSNGRenderShapeHelper::CalcRect(shape, bound);
+
+    EXPECT_FLOAT_EQ(result.GetLeft(), bound.GetLeft());
+    EXPECT_FLOAT_EQ(result.GetTop(), bound.GetTop());
+    EXPECT_FLOAT_EQ(result.GetWidth(), bound.GetWidth());
+    EXPECT_FLOAT_EQ(result.GetHeight(), bound.GetHeight());
+}
+
+HWTEST_F(RSRenderShapeBaseTest, CalcRect_LargeBoundValues, TestSize.Level1)
+{
+    RectF bound(0.0f, 0.0f, 10000.0f, 10000.0f);
+    auto shape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_TRIANGLE_SHAPE);
+
+    ASSERT_NE(shape, nullptr);
+
+    RectF result = RSNGRenderShapeHelper::CalcRect(shape, bound);
+
+    EXPECT_FLOAT_EQ(result.GetLeft(), bound.GetLeft());
+    EXPECT_FLOAT_EQ(result.GetTop(), bound.GetTop());
+    EXPECT_FLOAT_EQ(result.GetWidth(), bound.GetWidth());
+    EXPECT_FLOAT_EQ(result.GetHeight(), bound.GetHeight());
+}
+
 } // namespace OHOS::Rosen

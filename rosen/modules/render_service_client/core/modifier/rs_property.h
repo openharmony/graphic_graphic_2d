@@ -82,8 +82,8 @@ class RSNGMaskBase;
 class RSNGShapeBase;
 class RSLinearGradientBlurPara;
 class MotionBlurParam;
-class RSMagnifierParams;
 class ParticleNoiseFields;
+class ParticleFieldCollection;
 class RSShader;
 class RSNGEffectUtils;
 
@@ -284,6 +284,7 @@ private:
     friend class RSPathAnimation;
     friend class ModifierNG::RSModifier;
     friend class RSNode;
+    friend class RSSurfaceNode;
     friend class RSKeyframeAnimation;
     friend class RSInterpolatingSpringAnimation;
     friend class RSImplicitTransitionParam;

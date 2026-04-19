@@ -293,10 +293,14 @@ public:
 
     /**
      * @brief              Scale Image using the specified options.
-     * @param  srcImage    Source Image.
-     * @param  dstImage    Destination Image.
+     * Use AAE hardware to scale Image
+     * Performance is lower than Nearest and Bilinear. Verify if the scaling performance meets requirements before use.
+     * Supported scaling factor: 0.5 to 2.0.
+     * Maximum image width and height: below 4K.
+     * @param  srcImage    Source Image. Must be DMA buffer-converted.
+     * @param  dstImage    Destination Image. Must be DMA buffer-converted.
      * @param  optionData  Option Data. The top and left in src or dst rect need to be alined to 4
-     * @return             The scaling operation result.
+     * @return             The scaling operation result. Return value should be checked.
      */
     static ScaleImageResult ScaleImage(const std::shared_ptr<Image>& srcImage, const std::shared_ptr<Image>& dstImage,
         const ScalingOption& optionData);

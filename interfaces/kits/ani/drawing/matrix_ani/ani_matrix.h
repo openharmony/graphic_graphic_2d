@@ -44,7 +44,7 @@ public:
     static void PostTranslate(ani_env* env, ani_object obj, ani_double dx, ani_double dy);
     static ani_object GetAll(ani_env* env, ani_object obj);
     static void SetMatrix(ani_env* env, ani_object obj, ani_array aniValueArrayObj);
-    static void SetMatrixWithObject(ani_env* env, ani_object obj, ani_object matrixArryaObj);
+    static void SetMatrixWithObject(ani_env* env, ani_object obj, ani_object matrixArrayObj);
     static ani_boolean MapRect(ani_env* env, ani_object obj, ani_object aniDstRectObj, ani_object aniSrcRectObj);
     static void PostRotate(ani_env* env, ani_object obj, ani_double degree, ani_double px, ani_double py);
     static ani_boolean Invert(ani_env* env, ani_object obj, ani_object aniMatrixObj);

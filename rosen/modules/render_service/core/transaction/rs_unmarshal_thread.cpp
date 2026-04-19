@@ -16,9 +16,9 @@
 #include "transaction/rs_unmarshal_thread.h"
 
 #include "app_mgr_client.h"
+#include "engine/rs_base_render_util.h"
 #include "ffrt_inner.h"
 #include "hisysevent.h"
-#include "pipeline/render_thread/rs_base_render_util.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_unmarshal_task_manager.h"
 #include "platform/common/rs_log.h"
@@ -34,6 +34,11 @@
 #include "rs_trace.h"
 #include "platform/common/rs_hisysevent.h"
 
+#ifdef RS_ENABLE_UNI_RENDER
+#include "ability_manager_client.h"
+#include "xcollie/process_kill_reason.h"
+#endif
+
 #ifdef RES_SCHED_ENABLE
 #include "qos.h"
 #endif
@@ -42,6 +47,7 @@ namespace OHOS::Rosen {
 namespace {
 constexpr size_t TRANSACTION_DATA_ALARM_COUNT = 10000;
 constexpr size_t TRANSACTION_DATA_KILL_COUNT = 20000;
+constexpr int MAX_CONCURRENCY = 3;
 const char* TRANSACTION_REPORT_NAME = "IPC_DATA_OVER_ERROR";
 
 const std::shared_ptr<AppExecFwk::AppMgrClient> GetAppMgrClient()
@@ -60,6 +66,11 @@ RSUnmarshalThread& RSUnmarshalThread::Instance()
 
 void RSUnmarshalThread::Start()
 {
+    if (RSSystemProperties::GetUnmarshalParallelEnabled()) {
+        parallelQueue_ = std::make_shared<ffrt::queue>(
+            ffrt::queue_concurrent, "RSUnmarshalThreadParallel",
+            ffrt::queue_attr().qos(ffrt::qos_user_interactive).max_concurrency(MAX_CONCURRENCY));
+    }
     queue_ = std::make_shared<ffrt::queue>(
         static_cast<ffrt::queue_type>(ffrt_inner_queue_type_t::ffrt_queue_eventhandler_adapter), "RSUnmarshalThread",
         ffrt::queue_attr().qos(ffrt::qos_user_interactive));
@@ -73,6 +84,35 @@ void RSUnmarshalThread::PostTask(const std::function<void()>& task, const std::s
                                  .name(name.c_str())
                                  .delay(0)
                                  .priority(static_cast<ffrt_queue_priority_t>(ffrt_inner_queue_priority_immediate)));
+    }
+}
+
+void RSUnmarshalThread::PostParallelTask(const std::function<void()>& task, const std::string& name)
+{
+    if (parallelQueue_) {
+        ffrt::task_handle handle =
+            parallelQueue_->submit_h(
+                std::move(task), ffrt::task_attr()
+                                 .name(name.c_str())
+                                 .delay(0)
+                                 .priority(static_cast<ffrt_queue_priority_t>(ffrt_inner_queue_priority_immediate)));
+        std::lock_guard<std::mutex> lock(transactionDataMutex_);
+        cachedHandles_.emplace_back(handle);
+    }
+}
+
+void RSUnmarshalThread::WaitUntilParallelTasksFinished()
+{
+    if (!parallelQueue_ || !RSSystemProperties::GetUnmarshalParallelEnabled()) {
+        return;
+    }
+    std::vector<ffrt::task_handle> cachedHandles;
+    {
+        std::lock_guard<std::mutex> lock(transactionDataMutex_);
+        std::swap(cachedHandles, cachedHandles_);
+    }
+    for (auto& handle : cachedHandles) {
+        parallelQueue_->wait(handle);
     }
 }
 
@@ -94,6 +134,9 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
         return;
     }
     bool isPendingUnmarshal = (parcel->GetDataSize() > MIN_PENDING_REQUEST_SYNC_DATA_SIZE);
+    bool unmarshalParallel = RSSystemProperties::GetUnmarshalParallelEnabled() &&
+                             ashmemFdWorker == nullptr &&
+                             parcel->GetDataSize() > RSSystemProperties::GetUnmarshalParallelMinDataSize();
     RSTaskMessage::RSTask task = [this, parcel = parcel, isPendingUnmarshal, isNonSystemAppCalling, callingPid,
         ashmemFdWorker = std::shared_ptr(std::move(ashmemFdWorker)), ashmemFlowControlUnit, parcelNumber]() {
         RSMarshallingHelper::SetCallingPid(callingPid);
@@ -102,9 +145,9 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
             ashmemFdWorker->PushFdsToContainer();
         }
         static thread_local int unmarshalTid = gettid();
-        RsFrameReport::GetInstance().ReportUnmarshalData(unmarshalTid, parcel->GetDataSize());
+        RsFrameReport::ReportUnmarshalData(unmarshalTid, parcel->GetDataSize());
         auto transData = RSBaseRenderUtil::ParseTransactionData(*parcel, parcelNumber);
-        RsFrameReport::GetInstance().ReportUnmarshalData(unmarshalTid, 0);
+        RsFrameReport::ReportUnmarshalData(unmarshalTid, 0);
         if (ashmemFdWorker) {
             // ashmem parcel fds will be closed in ~AshmemFdWorker() instead of ~MessageParcel()
             parcel->FlushBuffer();
@@ -147,7 +190,7 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
         // ashmem parcel flow control ends in the destructor of ashmemFlowControlUnit
     };
     {
-        PostTask(task);
+        unmarshalParallel ? PostParallelTask(task) : PostTask(task);
         /* a task has been posted, it means cachedTransactionDataMap_ will not been empty.
          * so set willHaveCachedData_ to true
          */
@@ -259,10 +302,17 @@ bool RSUnmarshalThread::ReportTransactionDataStatistics(pid_t pid,
     if (!isNonSystemAppCalling || !terminateEnabled) {
         return false;
     }
+#ifdef RS_ENABLE_UNI_RENDER
     if (totalCount > TRANSACTION_DATA_KILL_COUNT && preCount <= TRANSACTION_DATA_KILL_COUNT) {
-        int res = appMgrClient->KillApplicationByUid(bundleName, uid);
-        return res == AppExecFwk::RESULT_OK;
+        AAFwk::ExitReasonCompability exitReason{
+            AAFwk::Reason::REASON_RESOURCE_CONTROL,
+            "RS_TRANSACTION_DATA_OVERLIMIT"
+        };
+        exitReason.killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_RS_TRANSACTION_DATA_OVERLIMIT;
+        int res = AAFwk::AbilityManagerClient::GetInstance()->KillAppWithReason(pid, exitReason);
+        return res == ERR_OK;
     }
+#endif
     return false;
 }
 

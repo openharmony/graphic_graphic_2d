@@ -15,8 +15,6 @@
 
 #include "image_enhance_param_parse.h"
 
-#include "hgm_core.h"
-
 namespace OHOS::Rosen {
 int32_t ImageEnhanceParamParse::ParseFeatureParam(FeatureParamMapType& featureMap, xmlNode& node)
 {
@@ -68,11 +66,6 @@ int32_t ImageEnhanceParamParse::ParseImageEnhanceInternal(xmlNode& node)
         ParseFeatureMultiParamForApp(node) != PARSE_EXEC_SUCCESS) {
         return PARSE_INTERNAL_FAIL;
     }
-    HgmTaskHandleThread::Instance().PostTask([]() {
-        auto& hgmCore = HgmCore::Instance();
-        hgmCore.SetImageEnhanceScene(ImageEnhanceParam::GetImageEnhanceScene());
-        RS_LOGI("ImageEnhanceParamParse postTask about ImageEnhanceScene");
-    });
     return PARSE_EXEC_SUCCESS;
 }
 
@@ -123,7 +116,7 @@ int32_t ImageEnhanceParamParse::ParseImageEnhanceParam(xmlNode& node)
             }
         },
         { "MinScaleRatio", [this] (xmlNode& node) {
-            return ExtractValue<float>(node, "%f", params_.minScaleRatio);
+                return ExtractValue<float>(node, "%f", params_.minScaleRatio);
             }
         },
         { "MaxScaleRatio", [this] (xmlNode& node) {
@@ -179,26 +172,25 @@ int32_t ImageEnhanceParamParse::ParseImageEnhanceAlgoParam(xmlNode& node)
     RSImageDetailEnhanceAlgoParams algoParams;
     RSImageDetailEnhanceRangeParams params;
     const std::unordered_map<std::string, std::function<bool(xmlNode&)>> handlers = {
-        { "RangeMin",
-            [this, &params] (xmlNode& node) { return ExtractValue<float>(node, "%f", params.rangeMin); }
-        },
-        { "RangeMax",
-            [this, &params] (xmlNode& node) { return ExtractValue<float>(node, "%f", params.rangeMax); }
-        },
+        { "RangeMin", [this, &params] (xmlNode& node) {
+            return ExtractValue<float>(node, "%f", params.rangeMin);
+        } },
+        { "RangeMax", [this, &params] (xmlNode& node) {
+            return ExtractValue<float>(node, "%f", params.rangeMax);
+        } },
         { "param", [this, &params, &algoParams] (xmlNode& node) {
-                if (!ExtractValue<float>(node, "%f", params.effectParam)) {
-                    return false;
-                }
-                algoParams.rangeParams.push_back(params);
-                return true;
+            if (!ExtractValue<float>(node, "%f", params.effectParam)) {
+                return false;
             }
-        },
-        { "MinSize",
-            [this, &algoParams] (xmlNode& node) { return ExtractValue<int>(node, "%d", algoParams.minSize); }
-        },
-        { "MaxSize",
-            [this, &algoParams] (xmlNode& node) { return ExtractValue<int>(node, "%d", algoParams.maxSize); }
-        },
+            algoParams.rangeParams.push_back(params);
+            return true;
+        } },
+        { "MinSize", [this, &algoParams] (xmlNode& node) {
+            return ExtractValue<int>(node, "%d", algoParams.minSize);
+        } },
+        { "MaxSize", [this, &algoParams] (xmlNode& node) {
+            return ExtractValue<int>(node, "%d", algoParams.maxSize);
+        } },
     };
     for (; currNode != nullptr; currNode = currNode->next) {
         if (currNode->type != XML_ELEMENT_NODE) {

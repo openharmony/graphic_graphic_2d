@@ -37,6 +37,11 @@ ohos_unittest("native_image_test") {
     "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
     "$graphic_2d_root:libnative_image",
   ]
+
+  include_dirs = [
+    "$graphic_2d_root/interfaces/inner_api/surface",
+    "$graphic_2d_root/frameworks/surfaceimage/include",
+  ]
   external_deps = [
     "bounds_checking_function:libsec_shared",
     "drivers_interface_display:libdisplay_commontype_proxy_1.0",

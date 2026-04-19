@@ -392,6 +392,53 @@ ohos_unittest("RSDrawCmdTest") {
   subsystem_name = "graphic"
 }
 
+##############################  RSSurfaceBufferCallbackManagerTest  ##################################
+ohos_unittest("RSSurfaceBufferCallbackManagerTest") {
+  module_out_path = module_output_path
+  if (defined(use_rosen_drawing) && use_rosen_drawing) {
+    defines = [ "USE_ROSEN_DRAWING" ]
+  }
+
+  sources = [ "rs_surface_buffer_callback_manager_test.cpp" ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
+  ]
+  external_deps = [
+    "c_utils:utils",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "hitrace:hitrace_meter",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+    "googletest:gmock",
+  ]
+
+  subsystem_name = "graphic"
+}
+
 ##############################  RSEffectRenderNodeTest  ##################################
 ohos_unittest("RSEffectRenderNodeTest") {
   module_out_path = module_output_path
@@ -1501,6 +1548,7 @@ group("unittest") {
     ":RSScreenRenderNodeTest",
     ":RSDrawCmdListTest",
     ":RSDrawCmdTest",
+    ":RSSurfaceBufferCallbackManagerTest",
     ":RSEffectRenderNodeTest",
     ":RSLogicalDisplayRenderNodeTest",
     ":RSExtendRecordingCanvasTest",
@@ -1513,6 +1561,7 @@ group("unittest") {
     ":RSRenderNodeAllocatorTest",
     ":RSRenderNodeGCTest",
     ":RSRenderNodeMapTest",
+    ":RSRenderNodeTest",
     ":RSRenderNodeTest2",
     ":RSRootRenderNodeTest",
     ":RSSurfaceHandlerTest",

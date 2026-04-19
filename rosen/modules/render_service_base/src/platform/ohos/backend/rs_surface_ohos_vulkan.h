@@ -29,6 +29,7 @@
 #include "image/image.h"
 #include "platform/ohos/rs_surface_ohos.h"
 #include "rs_surface_frame_ohos_vulkan.h"
+#include "rs_trace.h"
 #include <surface.h>
 
 typedef enum VkSemaphoreExtTypeHUAWEI {
@@ -71,6 +72,7 @@ public:
     }
     void WaitSurfaceClear()
     {
+        RS_TRACE_NAME_FMT("RSSurfaceOhosVulkan WaitSurfaceClear mSkContext FlushAndSubmit");
         if (mSkContext) {
             mSkContext->FlushAndSubmit(true);
         }

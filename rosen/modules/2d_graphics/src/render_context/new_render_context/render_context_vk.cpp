@@ -53,29 +53,61 @@ bool RenderContextVK::SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawi
         return true;
     }
     if (drawingContext == nullptr) {
-        drawingContext = RsVulkanContext::GetSingleton(cacheDir_).CreateDrawingContext();
+        drawingContext = RsVulkanContext::GetSingleton().CreateDrawingContext();
     }
     std::shared_ptr<Drawing::GPUContext> drGPUContext(drawingContext);
     drGPUContext_ = std::move(drGPUContext);
     return true;
 }
 
-std::string RenderContextVK::GetShaderCacheSize() const
+void RenderContextVK::SetRenderContextType(uint8_t type)
 {
-    if (RsVulkanContext::GetSingleton().GetMemoryHandler()) {
-        return RsVulkanContext::GetSingleton().GetMemoryHandler()->QuerryShader();
+    RenderContextVKType renderContextType = static_cast<RenderContextVKType>(type);
+    if (renderContextType == RenderContextVKType::PROTECTED_REDRAW) {
+        isProtected_.store(true, std::memory_order_release);
+        RsVulkanContext::GetSingleton().SetIsProtected(true);
+    } else if (renderContextType == RenderContextVKType::UNPROTECTED_REDRAW) {
+        isProtected_.store(false, std::memory_order_release);
+        RsVulkanContext::GetSingleton().SetIsProtected(false);
     }
-    LOGD("GetShaderCacheSize no shader cache");
-    return "";
+    // if RsVulkanContext Singleton not call SetIsProtected, it means RenderContextVKType is BASIC_RENDER.
 }
 
-std::string RenderContextVK::CleanAllShaderCache() const
+void RenderContextVK::ChangeProtectedState(bool isProtected)
 {
-    if (RsVulkanContext::GetSingleton().GetMemoryHandler()) {
-        return RsVulkanContext::GetSingleton().GetMemoryHandler()->ClearShader();
+    RsVulkanContext::GetSingleton().SetIsProtected(isProtected);
+
+    // Use compare_exchange_strong to avoid race condition
+    // Only update drGPUContext_ if the value actually changes
+    bool expected = !isProtected;
+    if (isProtected_.compare_exchange_strong(expected, isProtected, std::memory_order_acq_rel,
+                                             std::memory_order_acquire)) {
+        // The value was different from expected, so it actually changed
+        drGPUContext_ = RsVulkanContext::GetSingleton().GetDrawingContext();
     }
-    LOGD("CleanAllShaderCache no shader cache");
-    return "";
+    // If compare_exchange_strong returns false, expected now contains the current value
+    // In this case, we just need to ensure isProtected_ is set to the correct value
+    isProtected_.store(isProtected, std::memory_order_release);
+}
+
+bool RenderContextVK::QueryMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
+{
+    LOGI("RenderContextVK::QueryMaxGpuBufferSize: using Vulkan backend");
+    auto& vkContext = RsVulkanContext::GetSingleton();
+    VkPhysicalDevice physicalDevice = vkContext.GetPhysicalDevice();
+    if (physicalDevice == VK_NULL_HANDLE) {
+        LOGE("RenderContextVK::QueryMaxGpuBufferSize: Vulkan physical device is null");
+        return false;
+    }
+
+    VkPhysicalDeviceProperties deviceProperties;
+    vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
+
+    maxWidth = deviceProperties.limits.maxImageDimension2D;
+    maxHeight = deviceProperties.limits.maxImageDimension2D;
+
+    LOGI("RenderContextVK::QueryMaxGpuBufferSize: Vulkan max image dimension = %u", maxWidth);
+    return true;
 }
 } // namespace Rosen
 } // namespace OHOS

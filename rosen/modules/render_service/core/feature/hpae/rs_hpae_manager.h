@@ -113,6 +113,7 @@ private:
 
     BufferRequestConfig prevBufferConfig_ {};
     bool prevIsHebc_ = true;
+    float hpaeScaleFactor_ = 1.f;
 };
 } // namespace Rosen
 } // namespace OHOS

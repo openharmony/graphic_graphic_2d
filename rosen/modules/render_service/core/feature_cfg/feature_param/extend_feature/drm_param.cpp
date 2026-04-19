@@ -17,16 +17,6 @@
 
 namespace OHOS::Rosen {
 
-bool DRMParam::IsDrmEnable()
-{
-    return isDrmEnable_;
-}
-
-void DRMParam::SetDrmEnable(bool isEnable)
-{
-    isDrmEnable_ = isEnable;
-}
-
 bool DRMParam::IsMockAllBlurEffectIntersectWithDRMEnable()
 {
     return isMockAllBlurEffectIntersectWithDRMEnable_;

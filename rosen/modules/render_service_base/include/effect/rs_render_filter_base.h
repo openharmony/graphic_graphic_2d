@@ -52,6 +52,11 @@ private:
     friend class RSNGRenderFilterHelper;
 };
 
+class RSB_EXPORT RSNGRenderFilterTemplateHelper {
+public:
+    static bool CheckFilterSkipFrame(RSNGEffectType type, const std::shared_ptr<RSNGRenderFilterBase>& filter);
+};
+
 template<RSNGEffectType Type, typename... PropertyTags>
 class RSNGRenderFilterTemplate :
     public RSNGRenderEffectTemplate<RSNGRenderFilterBase, Type, PropertyTags...> {
@@ -86,6 +91,12 @@ public:
 
 protected:
     virtual void OnGenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffect>) {}
+
+    virtual bool CanCurrentFilterSkipFrame() override
+    {
+        return RSNGRenderFilterTemplateHelper::CheckFilterSkipFrame(Type,
+            std::enable_shared_from_this<RSNGRenderFilterBase>::shared_from_this());
+    }
 };
 
 class RSNGRenderFilterHelper {

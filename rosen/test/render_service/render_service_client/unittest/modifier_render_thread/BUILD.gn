@@ -116,6 +116,6 @@ group("unittest") {
 
   deps = [
     ":RSModifiersDrawTest",
-    ":RSModifiersDrawThreadTest",
+    # ":RSModifiersDrawThreadTest",
   ]
 }

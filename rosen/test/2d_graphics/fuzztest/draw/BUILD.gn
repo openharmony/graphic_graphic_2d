@@ -23,6 +23,7 @@ group("fuzztest") {
     "hmsymbol_fuzzer:fuzztest",
     "imagefilter_fuzzer:fuzztest",
     "paint_fuzzer:fuzztest",
+    "particle_fuzzer:fuzztest",
     "path_fuzzer:fuzztest",
     "pathiterator_fuzzer:fuzztest",
     "pen_fuzzer:fuzztest",

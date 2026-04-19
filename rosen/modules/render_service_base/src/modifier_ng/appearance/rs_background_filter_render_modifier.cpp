@@ -27,8 +27,6 @@ const RSBackgroundFilterRenderModifier::LegacyPropertyApplierMap
                 &RSProperties::GetWaterRippleProgress> },
         { RSPropertyType::WATER_RIPPLE_PARAMS,
             RSRenderModifier::PropertyApplyHelper<RSWaterRipplePara, &RSProperties::SetWaterRippleParams> },
-        { RSPropertyType::MAGNIFIER_PARA, RSRenderModifier::PropertyApplyHelper<std::shared_ptr<RSMagnifierParams>,
-                                              &RSProperties::SetMagnifierParams> },
         { RSPropertyType::BACKGROUND_BLUR_RADIUS,
             RSRenderModifier::PropertyApplyHelperAdd<float, &RSProperties::SetBackgroundBlurRadius,
                 &RSProperties::GetBackgroundBlurRadius> },
@@ -62,7 +60,6 @@ void RSBackgroundFilterRenderModifier::ResetProperties(RSProperties& properties)
     properties.SetSystemBarEffect(false);
     properties.SetWaterRippleProgress(0.f);
     properties.SetWaterRippleParams(std::nullopt);
-    properties.SetMagnifierParams(nullptr);
     properties.SetBackgroundBlurRadius(0.f);
     properties.SetBackgroundBlurSaturation(1.f);
     properties.SetBackgroundBlurBrightness(1.f);

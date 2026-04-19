@@ -40,6 +40,7 @@ const std::string TEST_XML_CONTENT = (R"(<?xml version="1.0" encoding="UTF-8" st
     -->
     <HgmConfig version="1.0" xmlns:xi="http://www.w3.org/2001/XInclude">
     <Param name="default_refreshrate_mode" value="-1"/>
+    <Param name="hover_frame_up_config" value="1"/>
     <Param name="p3_node_count_config" value="1"/>
     <Param name="is_covered_surface_close_p3_config" value="1"/>
     <Params name="refresh_rate_4settings">
@@ -183,6 +184,7 @@ const std::string TEST_XML_CONTENT_1 = (R"(<?xml version="1.0" encoding="UTF-8" 
     -->
     <HgmConfig version="1.0" xmlns:xi="http://www.w3.org/2001/XInclude">
     <Param name="default_refreshrate_mode" value="-1"/>
+    <Param name="hover_frame_up_config" value="1"/>
     <Param name="p3_node_count_config" value="1"/>
     <Param name="is_covered_surface_close_p3_config" value="1"/>
     <Params name="refresh_rate_4settings">

@@ -27,6 +27,7 @@
 #include "drawable/rs_logical_display_render_node_drawable.h"
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "engine/rs_base_render_util.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
 #endif
@@ -36,7 +37,6 @@
 #include "params/rs_screen_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "pipeline/render_thread/rs_base_render_util.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -340,7 +340,7 @@ Occlusion::Region RSUniFilterDirtyComputeUtil::GetVisibleEffectRegion(RSRenderNo
     return childEffectRegion;
 }
 
-RectI RSUniFilterDirtyComputeUtil::GetVisibleFilterRect(const RSSurfaceRenderNode& node)
+RectI RSUniFilterDirtyComputeUtil::GetVisibleFilterRect(const RSRenderNode& node)
 {
     auto context = node.GetContext().lock();
     RectI visibleFilterRect;
@@ -362,22 +362,18 @@ RectI RSUniFilterDirtyComputeUtil::GetVisibleFilterRect(const RSSurfaceRenderNod
 }
 
 void RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(
-    RSScreenRenderParams& params, DrawableV2::RSScreenRenderNodeDrawable& screenDrawable,
-    const sptr<RSScreenManager>& screenManager)
+    RSScreenRenderParams& params, bool isCurrentFrameDirty)
 {
     // All other factors that may prevent skipping virtual expand display need to be considered
     // update accumulated dirty region
     params.SetAccumulatedDirty(params.GetAccumulatedDirty() ||
-        (screenDrawable.GetSyncDirtyManager()->IsCurrentFrameDirty() || params.GetMainAndLeashSurfaceDirty()));
+        (isCurrentFrameDirty || params.GetMainAndLeashSurfaceDirty()));
 
     // update accumulated hdr status changed
     params.SetAccumulatedHdrStatusChanged(params.GetAccumulatedHdrStatusChanged() || params.IsHDRStatusChanged());
 
     // update accumulated special layer status changed
-    if (screenManager == nullptr) {
-        return;
-    }
-    auto currentBlackList = screenManager->GetVirtualScreenBlackList(params.GetScreenId());
+    auto currentBlackList = RSSpecialLayerUtils::GetMergeBlackList(params.GetScreenProperty());
     if (currentBlackList != params.GetLastBlackList()) {
         params.SetLastBlackList(currentBlackList);
         params.SetAccumulatedSpecialLayerStatusChanged(true);
@@ -444,11 +440,6 @@ bool RSUniDirtyComputeUtil::CheckCurrentFrameHasDirtyInVirtual(
         RS_LOGD("CheckCurrentFrameHasDirtyInVirtual, failed to get mirroredRenderParams!");
         return false;
     }
-    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
-    if (screenManager == nullptr) {
-        RS_LOGD("CheckCurrentFrameHasDirtyInVirtual, failed to get screen manager!");
-        return false;
-    }
 
     auto screenDirtyManager = mainDrawable->GetSyncDirtyManager();
     if (screenDirtyManager == nullptr) {
@@ -463,6 +454,8 @@ bool RSUniDirtyComputeUtil::CheckCurrentFrameHasDirtyInVirtual(
     }
     const auto& displayDrawables = mirrorScreenParams->GetDisplayDrawables();
     auto& curAllSurfaceDrawables = mainScreenParams->GetAllMainAndLeashSurfaceDrawables();
+    auto curBlackList = RSSpecialLayerUtils::GetMergeBlackList(mirrorScreenParams->GetScreenProperty());
+    auto curTypeBlackList = mirrorScreenParams->GetScreenProperty().GetTypeBlackList();
     for (const auto& drawable : displayDrawables) {
         if (drawable == nullptr) {
             continue;
@@ -472,8 +465,6 @@ bool RSUniDirtyComputeUtil::CheckCurrentFrameHasDirtyInVirtual(
             continue;
         }
         ScreenId screenId = displayParams->GetScreenId();
-        auto curTypeBlackList = screenManager->GetVirtualScreenTypeBlackList(screenId);
-
         const std::map<RSSurfaceNodeType, RectI>& typeHwcRectList =
             screenDirtyManager->GetTypeHwcDirtyRegion();
         for (auto& typeHwcRect : typeHwcRectList) {

@@ -37,8 +37,7 @@ public:
     static std::vector<RectI> GetFilpDirtyRects(const std::vector<RectI>& srcRects, const ScreenInfo& screenInfo);
     static std::vector<RectI> FilpRects(const std::vector<RectI>& srcRects, const ScreenInfo& screenInfo);
     static GraphicIRect IntersectRect(const GraphicIRect& first, const GraphicIRect& second);
-    static void UpdateVirtualExpandScreenAccumulatedParams(RSScreenRenderParams& params,
-        DrawableV2::RSScreenRenderNodeDrawable& screenDrawable, const sptr<RSScreenManager>& screenManager);
+    static void UpdateVirtualExpandScreenAccumulatedParams(RSScreenRenderParams& params, bool isCurrentFrameDirty);
     static bool CheckVirtualExpandScreenSkip(
         RSScreenRenderParams& params, DrawableV2::RSScreenRenderNodeDrawable& screenDrawable);
     static bool CheckCurrentFrameHasDirtyInVirtual(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable);
@@ -79,7 +78,7 @@ public:
     static void DealWithFilterDirtyRegion(Occlusion::Region& damageRegion, Occlusion::Region& drawRegion,
         DrawableV2::RSScreenRenderNodeDrawable& screenDrawable, const std::optional<Drawing::Matrix>& matrix,
         bool dirtyAlign = false);
-    static RectI GetVisibleFilterRect(const RSSurfaceRenderNode& node);
+    static RectI GetVisibleFilterRect(const RSRenderNode& node);
 private:
     static bool DealWithFilterDirtyForScreen(Occlusion::Region& damageRegion, Occlusion::Region& drawRegion,
         DrawableV2::RSScreenRenderNodeDrawable& screenDrawable, const std::optional<Drawing::Matrix>& matrix);

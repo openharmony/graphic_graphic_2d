@@ -193,7 +193,7 @@ void RSCanvasDrawingRenderNode::ContentStyleSlotUpdate()
     // update content_style when node not on tree, need check (waitSync_ false, not on tree, never on tree
     // not texture exportnode, unirender mode)
     // if canvas drawing node never on tree, should not update, it will lost renderParams->localDrawRect_
-    if (IsWaitSync() || IsOnTheTree() || isNeverOnTree_ || !stagingRenderParams_ ||
+    if (waitSync_ || IsOnTheTree() || isNeverOnTree_ || !stagingRenderParams_ ||
         !RSUniRenderJudgement::IsUniRender() || GetIsTextureExportNode()) {
         return;
     }
@@ -202,7 +202,8 @@ void RSCanvasDrawingRenderNode::ContentStyleSlotUpdate()
         return;
     }
 #ifdef RS_ENABLE_GPU
-    auto surfaceParams = GetStagingRenderParams()->GetCanvasDrawingSurfaceParams();
+    auto stagingRenderParams = static_cast<RSCanvasDrawingRenderParams*>(GetStagingRenderParams().get());
+    auto surfaceParams = stagingRenderParams->GetCanvasDrawingSurfaceParams();
     if (surfaceParams.width == 0 || surfaceParams.height == 0) {
         RS_LOGI_LIMIT("RSCanvasDrawingRenderNode::ContentStyleSlotUpdate Area Size Error, NodeId[%{public}" PRIu64 "]"
             "width[%{public}d], height[%{public}d]", GetId(), surfaceParams.width, surfaceParams.height);
@@ -218,7 +219,7 @@ void RSCanvasDrawingRenderNode::ContentStyleSlotUpdate()
 
     UpdateDrawableVecV2();
 
-    if (!IsWaitSync()) {
+    if (!waitSync_) {
         RS_LOGE("RSCanvasDrawingRenderNode::ContentStyleSlotUpdate NodeId[%{public}" PRIu64
                 "] UpdateDrawableVecV2 failed, dirtySlots empty", GetId());
         return;
@@ -698,11 +699,12 @@ void RSCanvasDrawingRenderNode::ResetSurface(int width, int height, uint32_t res
         colorSpace = appSurfaceNode->GetColorSpace();
     }
 #endif
+    auto stagingRenderParams = static_cast<RSCanvasDrawingRenderParams*>(stagingRenderParams_.get());
 #ifdef RS_ENABLE_GPU
-    stagingRenderParams_->SetCanvasDrawingSurfaceChanged(true);
-    stagingRenderParams_->SetCanvasDrawingSurfaceParams(width, height, colorSpace);
+    stagingRenderParams->SetCanvasDrawingSurfaceChanged(true);
+    stagingRenderParams->SetCanvasDrawingSurfaceParams(width, height, colorSpace);
 #endif
-    stagingRenderParams_->SetCanvasDrawingResetSurfaceIndex(resetSurfaceIndex);
+    stagingRenderParams->SetCanvasDrawingResetSurfaceIndex(resetSurfaceIndex);
     lastResetSurfaceTime_ = std::chrono::time_point_cast<std::chrono::milliseconds>(
         std::chrono::system_clock::now()).time_since_epoch().count();
     opCountAfterReset_ = 0;
@@ -718,13 +720,18 @@ void RSCanvasDrawingRenderNode::OnApplyModifiers()
     modifiersApplied_ = true;
 }
 
-void RSCanvasDrawingRenderNode::OnSync()
+void RSCanvasDrawingRenderNode::AfterSync()
 {
-    RSRenderNode::OnSync();
     if (modifiersApplied_) {
         modifiersApplied_ = false;
         ClearResource();
     }
+
+    // Reset Sync Flag
+    if (waitSync_) {
+        renderDrawable_->SetNeedDraw(true);
+    }
+    waitSync_ = false;
 }
 
 void RSCanvasDrawingRenderNode::AccumulateLastDirtyTypes()

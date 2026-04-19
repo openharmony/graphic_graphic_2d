@@ -56,10 +56,6 @@ private:
         const TestCaseParams& testCaseParams);
     static bool WriteRandomStringAndStringPairVector(MessageParcel& messageParcel,
         const TestCaseParams& testCaseParams);
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-    static bool WriteRandomPointerLuminanceChangeCallbackSptr(MessageParcel& messageParcel,
-        const TestCaseParams& testCaseParams);
-#endif
     static bool WriteRandomFrameRateLinkerExpectedFpsUpdateCallbackSptr(MessageParcel& messageParcel,
         const TestCaseParams& testCaseParams);
     static bool WriteRandomOcclusionChangeCallbackSptr(MessageParcel& messageParcel,
@@ -71,6 +67,8 @@ private:
     static bool WriteRandomUIExtensionCallbackSptr(MessageParcel& messageParcel,
         const TestCaseParams& testCaseParams);
     static bool WriteRandomScreenChangeCallbackSptr(MessageParcel& messageParcel,
+        const TestCaseParams& testCaseParams);
+    static bool WriteRandomScreenSwitchingNotifyCallbackSptr(MessageParcel& messageParcel,
         const TestCaseParams& testCaseParams);
     static bool WriteRandomSurfaceCaptureCallbackSptr(MessageParcel& messageParcel,
         const TestCaseParams& testCaseParams);

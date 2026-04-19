@@ -13,10 +13,11 @@
  * limitations under the License.
  */
 
+#include <gtest/gtest.h>
 #include "vsync_sampler.h"
 #include "vsync_generator.h"
 
-#include <gtest/gtest.h>
+#include "event_handler.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -551,6 +552,211 @@ HWTEST_F(VSyncSamplerTest, SetAdaptive, Function | MediumTest| Level3)
     ASSERT_EQ(static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->isAdaptive_, false);
     vsyncSampler->SetAdaptive(true);
     ASSERT_EQ(static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr())->isAdaptive_, true);
+}
+
+/*
+* Function: RegSetScreenVsyncEnabledCallbackForRenderService
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test RegSetScreenVsyncEnabledCallbackForRenderService
+ */
+HWTEST_F(VSyncSamplerTest, RegSetScreenVsyncEnabledCallbackForRenderService, Function | MediumTest| Level3)
+{
+    auto sampler = static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr());
+    sampler->updateVsyncEnabledScreenIdCallback_ = [](bool vsyncEnabledScreenId)->bool{
+    return false;};
+    sampler->RegSetScreenVsyncEnabledCallbackForRenderService(true, nullptr);
+    ASSERT_NE(sampler->updateVsyncEnabledScreenIdCallback_, nullptr);
+    sampler->updateVsyncEnabledScreenIdCallback_ = nullptr;
+}
+
+/*
+* Function: RegSetScreenVsyncEnabledCallbackForRenderService
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test RegSetScreenVsyncEnabledCallbackForRenderService when
+                      updateVsyncEnabledScreenIdCallback_ is nullptr
+ *                 2. test RegSetScreenVsyncEnabledCallbackForRenderService when
+                      updateVsyncEnabledScreenIdCallback_ return true
+ *                 3. test RegSetScreenVsyncEnabledCallbackForRenderService when
+                      handler is nullptr
+ */
+HWTEST_F(VSyncSamplerTest, RegSetScreenVsyncEnabledCallbackForRenderService002, Function | MediumTest| Level3)
+{
+    ScreenId vsyncEnabledScreenId = 0;
+    auto sampler = static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr());
+    sampler->updateVsyncEnabledScreenIdCallback_ = nullptr;
+    sampler->RegSetScreenVsyncEnabledCallbackForRenderService(vsyncEnabledScreenId, nullptr);
+    sampler->updateVsyncEnabledScreenIdCallback_ = [](bool vsyncEnabledScreenId)->bool{
+        return true;};
+    sampler->RegSetScreenVsyncEnabledCallbackForRenderService(vsyncEnabledScreenId, nullptr);
+    std::shared_ptr<OHOS::AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create(false);
+    std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler = std::make_shared<AppExecFwk::EventHandler>(runner);
+    sampler->RegSetScreenVsyncEnabledCallbackForRenderService(vsyncEnabledScreenId + 1, nullptr);
+    ASSERT_NE(sampler->vsyncEnabledScreenId_, vsyncEnabledScreenId);
+    sampler->updateVsyncEnabledScreenIdCallback_ = nullptr;
+}
+
+/*
+* Function: ProcessVSyncScreenIdWhilePowerStatusChanged
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test ProcessVSyncScreenIdWhilePowerStatusChanged
+ */
+HWTEST_F(VSyncSamplerTest, ProcessVSyncScreenIdWhilePowerStatusChanged, Function | MediumTest| Level3)
+{
+    VSyncSamplerTest::vsyncSampler->ProcessVSyncScreenIdWhilePowerStatusChanged(100,
+    ScreenPowerStatus::POWER_STATUS_ON, nullptr, false);
+    auto sampler = static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr());
+    ASSERT_EQ(sampler->judgeVSyncEnabledScreenWhilePowerStatusChangedCallback_, nullptr);
+}
+
+/*
+* Function: ProcessVSyncScreenIdWhilePowerStatusChanged
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test ProcessVSyncScreenIdWhilePowerStatusChanged002
+ */
+HWTEST_F(VSyncSamplerTest, ProcessVSyncScreenIdWhilePowerStatusChanged002, Function | MediumTest| Level3)
+{
+    auto sampler = static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr());
+    sampler->ProcessVSyncScreenIdWhilePowerStatusChanged(100, ScreenPowerStatus::POWER_STATUS_OFF, nullptr, false);
+    sampler->ProcessVSyncScreenIdWhilePowerStatusChanged(100, ScreenPowerStatus::POWER_STATUS_SUSPEND, nullptr, false);
+
+    ASSERT_EQ(sampler->judgeVSyncEnabledScreenWhilePowerStatusChangedCallback_, nullptr);
+    sampler->vsyncEnabledScreenId_ = 0;
+    sampler->RegJudgeVSyncEnabledScreenWhilePowerStatusChangedCallback([](ScreenId screenId, ScreenPowerStatus status,
+        ScreenId enabledScreenId)->ScreenId{return 0;});
+    sampler->ProcessVSyncScreenIdWhilePowerStatusChanged(100, ScreenPowerStatus::POWER_STATUS_ON, nullptr, true);
+    sampler->vsyncEnabledScreenId_ = 1;
+    sampler->ProcessVSyncScreenIdWhilePowerStatusChanged(100, ScreenPowerStatus::POWER_STATUS_ON, nullptr, true);
+    ASSERT_NE(sampler->judgeVSyncEnabledScreenWhilePowerStatusChangedCallback_, nullptr);
+}
+
+/*
+* Function: JudgeVSyncEnabledScreenWhileHotPlug
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test JudgeVSyncEnabledScreenWhileHotPlug
+ */
+HWTEST_F(VSyncSamplerTest, JudgeVSyncEnabledScreenWhileHotPlug, Function | MediumTest| Level3)
+{   uint64_t id = 100;
+    VSyncSamplerTest::vsyncSampler->SetVsyncEnabledScreenId(id);
+    VSyncSamplerTest::vsyncSampler->RegUpdateFoldScreenConnectStatusLockedCallback([](uint64_t screenId,
+    bool connected){return;});
+    uint64_t enableId = VSyncSamplerTest::vsyncSampler->JudgeVSyncEnabledScreenWhileHotPlug(id + 1, true);
+    ASSERT_EQ(enableId, id);
+}
+
+/*
+* Function: JudgeVSyncEnabledScreenWhileHotPlug
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test JudgeVSyncEnabledScreenWhileHotPlug002
+ */
+HWTEST_F(VSyncSamplerTest, JudgeVSyncEnabledScreenWhileHotPlug002, Function | MediumTest| Level3)
+{
+    ScreenId id = 100;
+    auto sampler = static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr());
+    sampler->SetVsyncEnabledScreenId(id);
+    sampler->updateFoldScreenConnectStatusLockedCallback_ = nullptr;
+    ScreenId enableId = sampler->JudgeVSyncEnabledScreenWhileHotPlug(id + 1, true);
+    ASSERT_EQ(enableId, INVALID_SCREEN_ID);
+    sampler->vsyncEnabledScreenId_ = -1;
+    sampler->RegUpdateFoldScreenConnectStatusLockedCallback([](ScreenId screenId, bool connected) {return;});
+    enableId = sampler->JudgeVSyncEnabledScreenWhileHotPlug(id, true);
+    ASSERT_EQ(enableId, id);
+    sampler->vsyncEnabledScreenId_ = id + 1;
+    enableId = sampler->JudgeVSyncEnabledScreenWhileHotPlug(id, false);
+    ASSERT_EQ(enableId, sampler->vsyncEnabledScreenId_);
+    sampler->vsyncEnabledScreenId_ = id;
+    sampler->RegGetScreenVsyncEnableByIdCallback([](uint64_t vsyncEnabledScreenId)->ScreenId{return 0;});
+    enableId = sampler->JudgeVSyncEnabledScreenWhileHotPlug(id, false);
+    ASSERT_EQ(enableId, 0);
+}
+
+/*
+* Function: RegUpdateVsyncEnabledScreenIdCallback
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test RegUpdateVsyncEnabledScreenIdCallback
+ */
+HWTEST_F(VSyncSamplerTest, RegUpdateVsyncEnabledScreenIdCallback, Function | MediumTest| Level3)
+{
+    auto sampler = static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr());
+    sampler->RegUpdateVsyncEnabledScreenIdCallback([](uint64_t screenId)->bool{return true;});
+    ASSERT_NE(sampler->updateVsyncEnabledScreenIdCallback_, nullptr);
+    sampler->updateVsyncEnabledScreenIdCallback_ = nullptr;
+}
+
+/*
+* Function: RegJudgeVSyncEnabledScreenWhilePowerStatusChangedCallback
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test RegJudgeVSyncEnabledScreenWhilePowerStatusChangedCallback
+ */
+HWTEST_F(VSyncSamplerTest, RegJudgeVSyncEnabledScreenWhilePowerStatusChangedCallback, Function | MediumTest| Level3)
+{
+    auto sampler = static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr());
+    sampler->RegJudgeVSyncEnabledScreenWhilePowerStatusChangedCallback([](uint64_t screenId,
+    ScreenPowerStatus status, uint64_t enabledScreenId)->uint64_t{return 0;});
+    ASSERT_NE(sampler->judgeVSyncEnabledScreenWhilePowerStatusChangedCallback_, nullptr);
+    sampler->judgeVSyncEnabledScreenWhilePowerStatusChangedCallback_ = nullptr;
+}
+
+/*
+* Function: RegUpdateFoldScreenConnectStatusLockedCallback
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test RegUpdateFoldScreenConnectStatusLockedCallback
+ */
+HWTEST_F(VSyncSamplerTest, RegUpdateFoldScreenConnectStatusLockedCallback, Function | MediumTest| Level3)
+{
+    auto sampler = static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr());
+    sampler->RegUpdateFoldScreenConnectStatusLockedCallback([](uint64_t screenId,
+    bool connected){return;});
+    ASSERT_NE(sampler->updateFoldScreenConnectStatusLockedCallback_, nullptr);
+    sampler->updateFoldScreenConnectStatusLockedCallback_ = nullptr;
+}
+
+/*
+* Function: RegSetScreenVsyncEnableByIdCallback
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test RegSetScreenVsyncEnableByIdCallback
+ */
+HWTEST_F(VSyncSamplerTest, RegSetScreenVsyncEnableByIdCallback, Function | MediumTest| Level3)
+{
+    auto sampler = static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr());
+    sampler->RegSetScreenVsyncEnableByIdCallback([](uint64_t vsyncEnabledScreenId,
+    uint64_t screenId, bool enabled){return;});
+    ASSERT_NE(sampler->setScreenVsyncEnableByIdCallback_, nullptr);
+    sampler->setScreenVsyncEnableByIdCallback_ = nullptr;
+}
+
+/*
+* Function: RegGetScreenVsyncEnableByIdCallback
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test RegGetScreenVsyncEnableByIdCallback
+ */
+HWTEST_F(VSyncSamplerTest, RegGetScreenVsyncEnableByIdCallback, Function | MediumTest| Level3)
+{
+    auto sampler = static_cast<impl::VSyncSampler*>(vsyncSampler.GetRefPtr());
+    sampler->RegGetScreenVsyncEnableByIdCallback([](uint64_t vsyncEnabledScreenId)->uint64_t{return 0;});
+    ASSERT_NE(sampler->getScreenVsyncEnableByIdCallback_, nullptr);
+    sampler->getScreenVsyncEnableByIdCallback_ = nullptr;
 }
 } // namespace
 } // namespace Rosen

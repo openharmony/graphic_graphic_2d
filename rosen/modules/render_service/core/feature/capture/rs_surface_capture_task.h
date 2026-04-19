@@ -22,9 +22,9 @@
 #include "system/rs_system_parameters.h"
 #include "draw/canvas.h"
 #include "draw/surface.h"
+#include "engine/rs_base_render_engine.h"
 #include "utils/matrix.h"
 #include "ipc_callbacks/surface_capture_callback.h"
-#include "pipeline/render_thread/rs_base_render_engine.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -97,7 +97,7 @@ private:
         bool isUniRender = false);
 
     std::unique_ptr<Media::PixelMap> CreatePixelMapByDisplayNode(std::shared_ptr<RSLogicalDisplayRenderNode> node,
-        bool isUniRender = false);
+        bool isUniRender, std::shared_ptr<Drawing::ColorSpace>& colorSpace);
 
     NodeId nodeId_ = INVALID_NODEID;
 

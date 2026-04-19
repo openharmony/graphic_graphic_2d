@@ -177,6 +177,7 @@ void AniGlobalClass::InitDrawingClass(ani_env* env)
     shadowLayer = AniFindClass(env, ANI_CLASS_SHADOW_LAYER_NAME);
     textBlob = AniFindClass(env, ANI_CLASS_TEXT_BLOB_NAME);
     rectUtils = AniFindClass(env, ANI_CLASS_RECT_UTILS_NAME);
+    pointUtils = AniFindClass(env, ANI_CLASS_POINT_UTILS_NAME);
     region = AniFindClass(env, ANI_CLASS_REGION_NAME);
     roundRect = AniFindClass(env, ANI_CLASS_ROUND_RECT_NAME);
     tool = AniFindClass(env, ANI_CLASS_TOOL_NAME);

@@ -42,8 +42,6 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
-#include "transaction/rs_client_to_render_connection.h"
-#include "render_server/transaction/rs_client_to_service_connection.h"
 #include "render/rs_typeface_cache.h"
 #include "surface_capture_param.h"
 #include "graphic_feature_param_manager.h"
@@ -55,6 +53,9 @@
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/native_buffer_utils.h"
 #endif
+
+#include "transaction/rs_client_to_render_connection.h"
+#include "transaction/rs_client_to_service_connection.h"
 
 namespace OHOS::Rosen {
 
@@ -108,7 +109,6 @@ static uint64_t g_calcPerfNodeTime[CALC_PERF_NODE_TIME_COUNT_MAX];
 static int g_nodeListPerfCalcIndex = -1;
 
 static std::string g_testDataFrame;
-static std::vector<RSRenderNode::SharedPtr> g_childOfDisplayNodes;
 static uint32_t g_recordParcelNumber = 0;
 static bool g_playbackImmediate = false;
 static std::unordered_map<std::string, std::string> g_recordRsMetric;
@@ -246,11 +246,29 @@ void RSProfiler::MarshalFirstFrameNodesLoop()
 
 bool RSProfiler::IsPowerOffScreen()
 {
-    auto screenManager = CreateOrGetScreenManager();
-    if (!screenManager) {
+    if (!context_) {
+        HRPE("RSProfiler::IsPowerOffScreen context is nullptr");
         return false;
     }
-    return screenManager->IsAllScreensPowerOff();
+    const auto& nodeMap = context_->GetNodeMap();
+    if (nodeMap.screenNodeMap_.empty()) {
+        HRPI("RSProfiler::IsPowerOffScreen has no screenRenderNode");
+        return false;
+    }
+    bool hasScreenPowerOn = false;
+    nodeMap.TraverseScreenNodes(
+        [&hasScreenPowerOn](const std::shared_ptr<RSScreenRenderNode>& screenRenderNode) {
+            if (!screenRenderNode) {
+                return;
+            }
+            ScreenPowerStatus powerStatus = screenRenderNode->GetScreenProperty().GetScreenInfo().powerStatus;
+            if (powerStatus != ScreenPowerStatus::POWER_STATUS_OFF &&
+                powerStatus != ScreenPowerStatus::POWER_STATUS_SUSPEND) {
+                hasScreenPowerOn = true;
+            }
+        }
+    );
+    return !hasScreenPowerOn;
 }
 
 void DeviceInfoToCaptureData(double time, const DeviceInfo& in, RSCaptureData& out)
@@ -349,7 +367,7 @@ void RSProfiler::SetDirtyRegion(const Occlusion::Region& dirtyRegion)
 void RSProfiler::Init(RSRenderService* renderService)
 {
     g_renderService = renderService;
-    g_mainThread = g_renderService ? g_renderService->mainThread_ : nullptr;
+    g_mainThread = g_renderService ? g_renderService->renderPipeline_->GetMainThread() : nullptr;
     context_ = g_mainThread ? g_mainThread->context_.get() : nullptr;
 
     RSSystemProperties::SetProfilerDisabled();
@@ -426,7 +444,8 @@ uint64_t RSProfiler::WriteRemoteRequest(pid_t pid, uint32_t code, MessageParcel&
     return g_recordParcelNumber;
 }
 
-uint64_t RSProfiler::OnRemoteRequest(RSIClientToServiceConnection* connection, uint32_t code,
+template<class Connection>
+uint64_t RSProfiler::ProcessRemoteRequest(Connection* connection, uint32_t code,
     MessageParcel& parcel, MessageParcel& /*reply*/, MessageOption& option)
 {
     g_counterOnRemoteRequest++;
@@ -436,7 +455,7 @@ uint64_t RSProfiler::OnRemoteRequest(RSIClientToServiceConnection* connection, u
 
     if (IsRecording()) {
         constexpr size_t BYTE_SIZE_FOR_ASHMEM = 4;
-        if (code == static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::COMMIT_TRANSACTION) &&
+        if (code == static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::COMMIT_TRANSACTION) &&
             parcel.GetDataSize() >= BYTE_SIZE_FOR_ASHMEM) {
             const uint32_t *data = reinterpret_cast<const uint32_t*>(parcel.GetData());
             if (data && *data) {
@@ -445,13 +464,11 @@ uint64_t RSProfiler::OnRemoteRequest(RSIClientToServiceConnection* connection, u
             }
         }
         const pid_t pid = GetConnectionPid(connection);
-        const auto& pids = g_recordFile.GetHeaderPids();
-        if (std::find(std::begin(pids), std::end(pids), pid) != std::end(pids)) {
-            return WriteRemoteRequest(pid, code, parcel, option);
-        }
-    } else {
-        g_recordParcelNumber = 0;
+        g_recordFile.AddHeaderPid(pid);
+        return WriteRemoteRequest(pid, code, parcel, option);
     }
+
+    g_recordParcelNumber = 0;
 
     if (IsLoadSaveFirstScreenInProgress()) {
         // saving screen right now
@@ -462,6 +479,18 @@ uint64_t RSProfiler::OnRemoteRequest(RSIClientToServiceConnection* connection, u
         SetMode(Mode::READ);
     }
     return 0;
+}
+
+uint64_t RSProfiler::OnRemoteRequest(RSIClientToRenderConnection* connection, uint32_t code,
+    MessageParcel& parcel, MessageParcel& reply, MessageOption& option)
+{
+    return ProcessRemoteRequest(connection, code, parcel, reply, option);
+}
+
+uint64_t RSProfiler::OnRemoteRequest(RSIClientToServiceConnection* connection, uint32_t code, MessageParcel& parcel,
+    MessageParcel& reply, MessageOption& option)
+{
+    return ProcessRemoteRequest(connection, code, parcel, reply, option);
 }
 
 void RSProfiler::OnRecvParcel(const MessageParcel* parcel, RSTransactionData* data)
@@ -483,59 +512,59 @@ void RSProfiler::CreateMockConnection(pid_t pid)
 
     auto tokenObj = new IRemoteStub<RSIConnectionToken>();
 
-    sptr<RSIClientToServiceConnection> newConn(new RSClientToServiceConnection(pid, g_renderService,
-        g_mainThread, g_renderService->screenManager_, tokenObj, g_renderService->appVSyncDistributor_));
+    sptr<RSScreenManagerAgent> screenManagerAgent = new RSScreenManagerAgent(g_renderService->screenManager_);
+    sptr<RSRenderServiceAgent> renderServiceAgent = sptr<RSRenderServiceAgent>::MakeSptr(*g_renderService);
+    sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent =
+        sptr<RSRenderProcessManagerAgent>::MakeSptr(g_renderService->renderProcessManager_);
+    sptr<RSIClientToServiceConnection> newConn(
+        new RSClientToServiceConnection(pid, renderServiceAgent, renderProcessManagerAgent, screenManagerAgent,
+                                        tokenObj, g_renderService->vsyncManager_->GetVsyncManagerAgent()));
+
+    sptr<RSRenderPipelineAgent> renderPipelineAgent = new RSRenderPipelineAgent(g_renderService->renderPipeline_);
+    // Force it: RSClientToRenderConnection constructor has this line,
+    // but fails on token_->AddDeathRecipient(connDeathRecipient_)
+    if (renderPipelineAgent) {
+        renderPipelineAgent->AddTransactionDataPidInfo(pid);
+    }
 
     sptr<RSIClientToRenderConnection> newRenderConn(
-        new RSClientToRenderConnection(pid, g_renderService, g_mainThread, g_renderService->screenManager_,
-        tokenObj, g_renderService->appVSyncDistributor_));
- 
-    std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> tmp;
+        new RSClientToRenderConnection(pid, renderPipelineAgent, tokenObj));
 
-    std::unique_lock<std::mutex> lock(g_renderService->mutex_);
-    // if connections_ has the same token one, replace it.
-    if (g_renderService->connections_.count(tokenObj) > 0) {
-        tmp = g_renderService->connections_.at(tokenObj);
+    std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> tmp;
+    const std::unique_lock<std::mutex> lock(g_renderService->mutex_);
+    auto it = g_renderService->connections_.find(tokenObj);
+    if (it != g_renderService->connections_.end()) {
+        tmp = it->second;
     }
     g_renderService->connections_[tokenObj] = {newConn, newRenderConn};
-    lock.unlock();
-    g_mainThread->AddTransactionDataPidInfo(pid);
 }
 
-RSClientToServiceConnection* RSProfiler::GetConnection(pid_t pid)
+sptr<IRemoteObject> RSProfiler::GetConnection(pid_t pid, const std::u16string& type)
 {
     if (!g_renderService) {
         return nullptr;
     }
 
-    std::unique_lock<std::mutex> lock(g_renderService->mutex_);
+    const auto serviceConnection = (type == RSIClientToServiceConnection::GetDescriptor());
 
-    for (const auto& pair : g_renderService->connections_) {
-        auto connection = static_cast<RSClientToServiceConnection*>(pair.second.first.GetRefPtr());
-        if (connection->remotePid_ == pid) {
-            return connection;
+    const std::unique_lock<std::mutex> lock(g_renderService->mutex_);
+    for (const auto& [token, pair] : g_renderService->connections_) {
+        const auto& [clientToService, clientToRender] = pair;
+        if ((GetConnectionPid(clientToService) == pid) && (GetConnectionPid(clientToRender) == pid)) {
+            return serviceConnection ? clientToService->AsObject() : clientToRender->AsObject();
         }
     }
-
     return nullptr;
+}
+
+pid_t RSProfiler::GetConnectionPid(RSIClientToRenderConnection* connection)
+{
+    return connection ? static_cast<RSClientToRenderConnection*>(connection)->remotePid_ : 0;
 }
 
 pid_t RSProfiler::GetConnectionPid(RSIClientToServiceConnection* connection)
 {
-    if (!g_renderService || !connection) {
-        return 0;
-    }
-
-    std::unique_lock<std::mutex> lock(g_renderService->mutex_);
-
-    for (const auto& pair : g_renderService->connections_) {
-        auto renderServiceConnection = static_cast<RSClientToServiceConnection*>(pair.second.first.GetRefPtr());
-        if (renderServiceConnection == connection) {
-            return renderServiceConnection->remotePid_;
-        }
-    }
-
-    return 0;
+    return connection ? static_cast<RSClientToServiceConnection*>(connection)->remotePid_ : 0;
 }
 
 std::vector<pid_t> RSProfiler::GetConnectionsPids()
@@ -544,7 +573,7 @@ std::vector<pid_t> RSProfiler::GetConnectionsPids()
         return {};
     }
 
-    std::unique_lock<std::mutex> lock(g_renderService->mutex_);
+    const std::unique_lock<std::mutex> lock(g_renderService->mutex_);
     std::vector<pid_t> pids;
     pids.reserve(g_renderService->connections_.size());
     for (const auto& pair : g_renderService->connections_) {
@@ -1083,27 +1112,37 @@ void RSProfiler::UnmarshalSelfDrawingBuffers()
 
 void RSProfiler::SurfaceNodeUpdateBuffer(std::shared_ptr<RSRenderNode> node, sptr<SurfaceBuffer> buffer)
 {
-    auto surfaceNode = std::static_pointer_cast<RSSurfaceRenderNode>(node);
-    if (!surfaceNode) {
-        HRPE("SurfaceNodeUpdateBuffer: failed get surface node");
-        return;
-    }
-    auto handler = surfaceNode->GetRSSurfaceHandler();
-    if (!handler) {
-        HRPE("SurfaceNodeUpdateBuffer: handler not found");
+    if (!g_mainThread) {
+        HRPE("SurfaceNodeUpdateBuffer: Invalid main thread");
         return;
     }
 
-    BufferFlushConfigWithDamages flushConfig = {
-        .damages = { {
+    if (!buffer || !buffer->GetWidth() || !buffer->GetHeight()) {
+        HRPE("SurfaceNodeUpdateBuffer: Invalid surface buffer");
+        return;
+    }
+
+    const auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>();
+    if (!surfaceNode) {
+        HRPE("SurfaceNodeUpdateBuffer: Invalid surface node");
+        return;
+    }
+
+    const auto surfaceHandler = surfaceNode->GetRSSurfaceHandler();
+    if (!surfaceHandler) {
+        HRPE("SurfaceNodeUpdateBuffer: Invalid surface handler");
+        return;
+    }
+
+    g_mainThread->PostSyncTask([surfaceNode, surfaceHandler, buffer] {
+        const Rect extent {
             .w = buffer->GetWidth(),
             .h = buffer->GetHeight(),
-        } },
-    };
-    g_mainThread->PostSyncTask([&handler, &surfaceNode, &buffer, &flushConfig] {
-        handler->SetBuffer(buffer, SyncFence::InvalidFence(), flushConfig.damages[0], 0);
-        surfaceNode->UpdateBufferInfo(buffer, flushConfig.damages[0], handler->GetAcquireFence(), nullptr);
-
+        };
+        surfaceHandler->SetBuffer(buffer, SyncFence::InvalidFence(), extent, 0, nullptr);
+        surfaceNode->UpdateBufferInfo(surfaceHandler->GetBuffer(), surfaceHandler->GetBufferOwnerCount(), extent,
+            surfaceHandler->GetAcquireFence(), surfaceHandler->GetPreBuffer(),
+            surfaceHandler->GetPreBufferOwnerCount());
         surfaceNode->SetNodeDirty(true);
         surfaceNode->SetDirty();
         surfaceNode->SetContentDirty();
@@ -1330,27 +1369,6 @@ std::string RSProfiler::TypefaceUnmarshalling(std::stringstream& stream, uint32_
     return "";
 }
 
-void RSProfiler::HiddenSpaceTurnOn()
-{
-    if (!g_childOfDisplayNodes.empty()) {
-        HiddenSpaceTurnOff();
-    }
-
-    auto logicalDisplayNode = GetLogicalDisplay();
-    if (logicalDisplayNode == nullptr) {
-        HRPE("RSProfiler::HiddenSpaceTurnOn Logical Display is nullptr");
-        return;
-    }
-    if (auto rootNode = GetRenderNode(Utils::PatchNodeId(0))) {
-        g_childOfDisplayNodes = *logicalDisplayNode->GetChildren();
-
-        logicalDisplayNode->ClearChildren();
-        logicalDisplayNode->AddChild(rootNode);
-    }
-
-    g_mainThread->SetDirtyFlag();
-    AwakeRenderServiceThread();
-}
 
 void RSProfiler::PrintVsync(const ArgList& args)
 {
@@ -1384,56 +1402,82 @@ void RSProfiler::PrintTime(const ArgList& args)
     SendMessage("%s", response.c_str());
 }
 
-std::shared_ptr<RSRenderNode> RSProfiler::GetLogicalDisplay()
+std::vector<std::shared_ptr<RSLogicalDisplayRenderNode>> RSProfiler::GetLogicalDisplayNodes()
 {
-    const auto& rootRenderNode = context_->GetGlobalRootRenderNode();
-    if (rootRenderNode == nullptr) {
-        return nullptr;
+    if (!context_) {
+        return {};
+    }
+    std::vector<std::shared_ptr<RSLogicalDisplayRenderNode>> displays;
+    context_->GetNodeMap().TraverseLogicalDisplayNodes(
+        [&displays](const std::shared_ptr<RSLogicalDisplayRenderNode>& display) {
+            if (display) {
+                displays.push_back(display);
+            }
+        });
+
+    std::sort(displays.begin(), displays.end(),
+        [](const std::shared_ptr<RSLogicalDisplayRenderNode>& a, const std::shared_ptr<RSLogicalDisplayRenderNode>& b) {
+            return a->GetScreenId() < b->GetScreenId();
+        });
+    return displays;
+}
+
+void RSProfiler::HiddenSpaceTurnOn()
+{
+    if (IsHiddenSpaceEnabled()) {
+        HiddenSpaceTurnOff();
     }
 
-    const auto& children = *rootRenderNode->GetChildren();
-    if (children.empty()) {
-        return nullptr;
+    const auto root = GetRenderNode(Utils::PatchNodeId(0));
+    if (!root || !root->GetChildrenCount()) {
+        HRPE("HiddenSpaceTurnOn: Invalid mock root");
+        return;
     }
-    for (const auto& screenNode : children) {   // apply multiple screen nodes
-        if (!screenNode) {
-            continue;
-        }
-        const auto& screenNodeChildren = screenNode->GetChildren();
-        if (!screenNodeChildren || screenNodeChildren->empty()) {
-            continue;
-        }
-        return screenNodeChildren->front(); // return display node
+
+    const auto displays = GetLogicalDisplayNodes();
+    if (displays.empty()) {
+        HRPE("HiddenSpaceTurnOn: Logical displays not found");
+        return;
     }
-    return nullptr;
+
+    const std::vector<RSRenderNode::SharedPtr> empty;
+    const auto count = std::min(static_cast<uint32_t>(displays.size()), root->GetChildrenCount());
+    for (uint32_t i = 0; i < count; i++) {
+        const auto newScreen = std::next(root->GetChildrenList().begin(), i)->lock();
+        const auto newDisplay = newScreen ? newScreen->GetFirstChild() : nullptr;
+        if (newDisplay && newDisplay->GetChildrenCount()) {
+            const auto& oldDisplay = displays[i];
+            const auto oldChildren = oldDisplay->GetChildren();
+            displayChildren_[oldDisplay] = oldChildren ? *oldChildren : empty;
+            oldDisplay->ClearChildren();
+            for (const auto& node : newDisplay->GetChildrenList()) {
+                oldDisplay->AddChild(node.lock());
+            }
+        }
+    }
+
+    AwakeRenderServiceThread();
 }
 
 void RSProfiler::HiddenSpaceTurnOff()
 {
-    auto logicalDisplayNode = GetLogicalDisplay();
-    if (logicalDisplayNode == nullptr) {
-        HRPE("RSProfiler::HiddenSpaceTurnOff Logical Display is nullptr");
-        return;
-    }
-
-    logicalDisplayNode->ClearChildren();
-    for (const auto& child : g_childOfDisplayNodes) {
-        logicalDisplayNode->AddChild(child);
-    }
-    auto& listPostponed = RSProfiler::GetChildOfDisplayNodesPostponed();
-    for (const auto& childWeak : listPostponed) {
-        if (auto child = childWeak.lock()) {
-            logicalDisplayNode->AddChild(child);
+    for (const auto& [display, children] : displayChildren_) {
+        display->ClearChildren();
+        for (const auto& child : children) {
+            display->AddChild(child);
         }
     }
-    listPostponed.clear();
+    displayChildren_.clear();
+
     FilterMockNode(*context_);
     RSTypefaceCache::Instance().ReplayClear();
-    g_childOfDisplayNodes.clear();
-
-    g_mainThread->SetDirtyFlag();
 
     AwakeRenderServiceThread();
+}
+
+bool RSProfiler::IsHiddenSpaceEnabled()
+{
+    return !displayChildren_.empty();
 }
 
 void RSProfiler::SaveRdc(const ArgList& args)
@@ -1733,13 +1777,11 @@ void RSProfiler::DumpTreeToJson(const ArgList& args)
     }
 }
 
-
 void RSProfiler::DumpNodeSurface(const ArgList& args)
 {
-    if (g_renderService) {
-        std::string out;
-        g_renderService->DumpSurfaceNode(out, Utils::GetRootNodeId(args.Node()));
-        Respond(out);
+    if (context_) {
+        const auto node = context_->GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(Utils::GetRootNodeId(args.Node()));
+        SendMessage("%s", node ? DumpSurfaceNode(*node).data() : "Invalid node id");
     }
 }
 
@@ -2011,7 +2053,7 @@ void RSProfiler::TestLoadFrame(const ArgList& args)
 
 void RSProfiler::TestSwitch(const ArgList& args)
 {
-    if (g_childOfDisplayNodes.empty()) {
+    if (!IsHiddenSpaceEnabled()) {
         HiddenSpaceTurnOn();
         Respond("OK: HiddenSpaceTurnOn");
     } else {
@@ -2054,7 +2096,7 @@ void RSProfiler::ClearTestTree(const ArgList& args)
 
 void RSProfiler::RecordStart(const ArgList& args)
 {
-    if (!IsNoneMode() || !g_childOfDisplayNodes.empty()) {
+    if (!IsNoneMode() || IsHiddenSpaceEnabled()) {
         SendMessage("Record: Start failed. Playback/Saving is in progress");
         return;
     }
@@ -2096,6 +2138,11 @@ void RSProfiler::RecordStart(const ArgList& args)
         g_recordFile.Create(path);
     }
 
+    if (!g_recordFile.IsOpen()) {
+        SendMessage("Record: Start failed: Cannot create file");
+        return;
+    }
+
     g_recordMinVsync = g_recordMaxVsync = 0;
 
     g_recordFile.AddLayer(); // add 0 layer
@@ -2133,11 +2180,6 @@ void RSProfiler::RecordStart(const ArgList& args)
         SetMarshalFirstFrameThreadFlag(false);
     });
     threadNodeMarshall.detach();
-
-    const std::vector<pid_t> pids = GetConnectionsPids();
-    for (pid_t pid : pids) {
-        g_recordFile.AddHeaderPid(pid);
-    }
 
     g_recordFile.LayerAddHeaderProperty(0, "MetricsList", RsMetricGetList());
 
@@ -2220,7 +2262,7 @@ void RSProfiler::PlaybackPrepareFirstFrame(const ArgList& args)
         return;
     }
 
-    if (g_playbackFile.IsOpen() || !g_childOfDisplayNodes.empty()) {
+    if (g_playbackFile.IsOpen() || IsHiddenSpaceEnabled()) {
         Respond("FAILED: rsrecord_replay_prepare was already called");
         return;
     }
@@ -2297,7 +2339,7 @@ void RSProfiler::PlaybackStart(const ArgList& args)
         return;
     }
 
-    if (!g_playbackFile.IsOpen() || !g_childOfDisplayNodes.empty()) {
+    if (!g_playbackFile.IsOpen() || IsHiddenSpaceEnabled()) {
         Respond("FAILED: rsrecord_replay was already called");
         return;
     }
@@ -2328,7 +2370,7 @@ void RSProfiler::PlaybackStart(const ArgList& args)
         double eofTime = g_playbackFile.GetEOFTime();
         while (IsPlaying()) {
             int64_t nextPacketTimeNano =
-                Utils::ToNanoseconds(PlaybackUpdate(PlaybackDeltaTime(), eofTime, advanceTime));
+                static_cast<int64_t>(Utils::ToNanoseconds(PlaybackUpdate(PlaybackDeltaTime(), eofTime, advanceTime)));
             // timeout - sleep time to next packet
             int64_t timeout = nextPacketTimeNano - PlaybackDeltaTimeNano();
             if (timeout < 0) {
@@ -2359,19 +2401,18 @@ void RSProfiler::PlaybackStart(const ArgList& args)
 
 void RSProfiler::PlaybackStop(const ArgList& args)
 {
-    if (!g_playbackFile.IsOpen() && g_childOfDisplayNodes.empty()) {
+    if (!g_playbackFile.IsOpen() && !IsHiddenSpaceEnabled()) {
         Respond("FAILED: Playback stop - no rsrecord_replay_* was called previously");
         return;
     }
     SetMode(Mode::NONE);
-    if (g_childOfDisplayNodes.empty()) {
-        // rsrecord_replay_prepare was called but rsrecord_replay_start was not
-        g_playbackFile.Close();
-        g_childOfDisplayNodes.clear();
-    } else {
-        g_playbackShouldBeTerminated = true;
-        HiddenSpaceTurnOff();
+
+    if (!IsHiddenSpaceEnabled()) {
+        g_playbackFile.Close(); // PlaybackPrepareFirstFrame only was called
     }
+
+    g_playbackShouldBeTerminated = true;
+    HiddenSpaceTurnOff();
     FilterMockNode(*context_);
     constexpr int maxCountForSecurity = 1000;
     for (int i = 0; !RSRenderNodeGC::Instance().IsBucketQueueEmpty() && i < maxCountForSecurity; i++) {
@@ -2394,55 +2435,72 @@ int64_t RSProfiler::PlaybackDeltaTimeNano()
     return static_cast<int64_t>(NowNano()) - static_cast<int64_t>(GetReplayStartTimeNano());
 }
 
+std::u16string GetConnectionType(MessageParcel& parcel)
+{
+    const auto offset = parcel.GetReadPosition();
+    auto token = parcel.ReadInterfaceToken();
+    parcel.RewindRead(offset);
+    return token;
+}
+
+void ReadRemoteRequest(
+    const std::vector<uint8_t>& data, pid_t& pid, uint32_t& code, MessageParcel& parcel, MessageOption& option)
+{
+    std::stringstream stream(std::ios::in | std::ios::out | std::ios::binary);
+    stream.write(reinterpret_cast<const char*>(data.data()), static_cast<std::streamsize>(data.size()));
+    stream.seekg(0);
+
+    pid = 0;
+    stream.read(reinterpret_cast<char*>(&pid), sizeof(pid));
+
+    code = 0;
+    stream.read(reinterpret_cast<char*>(&code), sizeof(code));
+
+    size_t size = 0;
+    stream.read(reinterpret_cast<char*>(&size), sizeof(size));
+
+    if (size > 0) {
+        std::vector<char> data(size, 0);
+        stream.read(data.data(), static_cast<std::streamsize>(size));
+        parcel.SetMaxCapacity(size + 1);
+        parcel.WriteBuffer(data.data(), size);
+    }
+
+    int32_t flags = 0;
+    stream.read(reinterpret_cast<char*>(&flags), sizeof(flags));
+
+    int32_t waitTime = 0;
+    stream.read(reinterpret_cast<char*>(&waitTime), sizeof(waitTime));
+
+    option.SetFlags(flags);
+    option.SetWaitTime(waitTime);
+}
+
 double RSProfiler::PlaybackUpdate(double deltaTime, double eofTime, double advanceTime)
 {
+    const auto& pids = g_playbackFile.GetHeaderPids();
+
     std::vector<uint8_t> data;
     double readTime = 0.0;
+
     while (!g_playbackShouldBeTerminated && g_playbackFile.ReadRSData(deltaTime + advanceTime, data, readTime)) {
-        std::stringstream stream(std::ios::in | std::ios::out | std::ios::binary);
-        stream.write(reinterpret_cast<const char*>(data.data()), data.size());
-        stream.seekg(0);
-
         pid_t pid = 0;
-        stream.read(reinterpret_cast<char*>(&pid), sizeof(pid));
+        uint32_t code = 0;
+        AlignedMessageParcel parcel;
+        MessageOption option;
+        ReadRemoteRequest(data, pid, code, parcel.parcel, option);
 
-        RSClientToServiceConnection* connection = GetConnection(Utils::GetMockPid(pid));
-        if (!connection) {
-            const std::vector<pid_t>& pids = g_playbackFile.GetHeaderPids();
-            if (!pids.empty()) {
-                connection = GetConnection(Utils::GetMockPid(pids[0]));
-            }
+        const auto type = GetConnectionType(parcel.parcel);
+        auto connection = GetConnection(Utils::GetMockPid(pid), type);
+        if (!connection && !pids.empty()) {
+            connection = GetConnection(Utils::GetMockPid(pids[0]), type);
         }
 
         if (connection) {
-            uint32_t code = 0;
-            stream.read(reinterpret_cast<char*>(&code), sizeof(code));
-
-            size_t dataSize = 0;
-            stream.read(reinterpret_cast<char*>(&dataSize), sizeof(dataSize));
-
-            auto* data = new uint8_t[dataSize];
-            stream.read(reinterpret_cast<char*>(data), dataSize);
-
-            int32_t flags = 0;
-            stream.read(reinterpret_cast<char*>(&flags), sizeof(flags));
-
-            int32_t waitTime = 0;
-            stream.read(reinterpret_cast<char*>(&waitTime), sizeof(waitTime));
-
-            AlignedMessageParcel parcel;
-            parcel.parcel.SetMaxCapacity(dataSize + 1);
-            parcel.parcel.WriteBuffer(data, dataSize);
-
-            delete[] data;
-
-            MessageOption option;
-            option.SetFlags(flags);
-            option.SetWaitTime(waitTime);
-
             MessageParcel reply;
-            connection->OnRemoteRequest(code, parcel.parcel, reply, option);
+            connection->SendRequest(code, parcel.parcel, reply, option);
         }
+
         if (g_playbackImmediate) {
             deltaTime = readTime;
             break;

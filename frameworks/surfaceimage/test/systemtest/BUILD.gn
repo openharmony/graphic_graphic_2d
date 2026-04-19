@@ -40,6 +40,11 @@ ohos_unittest("native_image_system_test_st") {
     "$graphic_2d_root:libnative_image",
   ]
 
+  include_dirs = [
+    "$graphic_2d_root/interfaces/inner_api/surface",
+    "$graphic_2d_root/frameworks/surfaceimage/include",
+  ]
+
   external_deps = [
     "hilog:libhilog",
     "samgr:samgr_proxy",

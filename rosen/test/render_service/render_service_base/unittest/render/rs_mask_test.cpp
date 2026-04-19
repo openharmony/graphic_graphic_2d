@@ -354,6 +354,25 @@ HWTEST_F(RSMaskTest, MarshallingPathAndBrushTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: MarshallingPathAndBrushTest002
+ * @tc.desc: Verify function MarshallingPathAndBrush
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMaskTest, MarshallingPathAndBrushTest002, TestSize.Level1)
+{
+    Parcel parcel;
+    auto mask = std::make_shared<RSMask>();
+    Drawing::Brush brush;
+    Drawing::UIColor color(0.5f, 0.6f, 0.7f, 0.8f, 2.0f);
+    brush.SetUIColor(color, nullptr);
+    mask->SetMaskBrush(brush);
+    Drawing::Pen pen;
+    pen.SetUIColor(color, nullptr);
+    mask->SetMaskPen(pen);
+    EXPECT_TRUE(mask->MarshallingPathAndBrush(parcel));
+}
+
+/**
  * @tc.name: MarshlingandUnMarshling001
  * @tc.desc:
  * @tc.type:FUNC

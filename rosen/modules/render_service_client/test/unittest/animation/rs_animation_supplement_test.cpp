@@ -35,6 +35,7 @@
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_display_node.h"
 #include "ui/rs_proxy_node.h"
+#include "ui/rs_ui_context_manager.h"
 #include "ui/rs_ui_director.h"
 
 using namespace testing;
@@ -48,7 +49,7 @@ class RSAnimationTest : public RSAnimationBaseTest {
 
 class RSAnimationMock : public RSAnimation {
 public:
-    RSAnimationMock() : RSAnimation() {}
+    explicit RSAnimationMock(const std::shared_ptr<RSUIContext>& rsUIContext) : RSAnimation(rsUIContext) {}
     ~RSAnimationMock() = default;
     void StartInner(const std::shared_ptr<RSNode>& target)
     {
@@ -133,7 +134,10 @@ public:
 };
 class RSKeyframeAnimationMock : public RSKeyframeAnimation {
 public:
-    explicit RSKeyframeAnimationMock(std::shared_ptr<RSPropertyBase> property) : RSKeyframeAnimation(property) {}
+    explicit RSKeyframeAnimationMock(
+        const std::shared_ptr<RSUIContext>& rsUIContext, std::shared_ptr<RSPropertyBase> property)
+        : RSKeyframeAnimation(rsUIContext, property)
+    {}
     ~RSKeyframeAnimationMock() = default;
 
     void OnStart() override
@@ -158,7 +162,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest001, TestSize.Level1)
     /**
      * @tc.steps: step1. init
      */
-    auto animation = std::make_shared<RSAnimationMock>();
+    auto animation = std::make_shared<RSAnimationMock>(rsUiDirector->GetRSUIContext());
     std::function<void()> callback = nullptr;
     animation->SetFinishCallback(callback);
     callback = []() {
@@ -180,7 +184,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest002, TestSize.Level1)
     /**
      * @tc.steps: step1. init
      */
-    auto animation = std::make_shared<RSAnimationMock>();
+    auto animation = std::make_shared<RSAnimationMock>(rsUiDirector->GetRSUIContext());
     EXPECT_TRUE(!animation->IsStarted());
     EXPECT_TRUE(!animation->IsRunning());
     EXPECT_TRUE(!animation->IsPaused());
@@ -226,7 +230,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest003, TestSize.Level1)
     /**
      * @tc.steps: step1. init
      */
-    auto animation = std::make_shared<RSAnimationMock>();
+    auto animation = std::make_shared<RSAnimationMock>(rsUiDirector->GetRSUIContext());
     auto renderAnimation = std::make_shared<RSRenderAnimationMock>(animation->GetId());
     animation->SetFraction(-1.0f);
     animation->SetFraction(0.5f);
@@ -303,13 +307,15 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest004, TestSize.Level1)
 
 class RSPathAnimationMock : public RSPathAnimation {
 public:
-    RSPathAnimationMock(std::shared_ptr<RSPropertyBase> property, const std::shared_ptr<RSPath>& animationPath)
-        : RSPathAnimation(property, animationPath)
+    RSPathAnimationMock(const std::shared_ptr<RSUIContext>& rsUIContext, std::shared_ptr<RSPropertyBase> property,
+        const std::shared_ptr<RSPath>& animationPath)
+        : RSPathAnimation(rsUIContext, property, animationPath)
     {}
-    RSPathAnimationMock(std::shared_ptr<RSPropertyBase> property, const std::string& path,
-        const std::shared_ptr<RSPropertyBase>& startValue,
+    RSPathAnimationMock(const std::shared_ptr<RSUIContext>& rsUIContext, std::shared_ptr<RSPropertyBase> property,
+        const std::string& path, const std::shared_ptr<RSPropertyBase>& startValue,
         const std::shared_ptr<RSPropertyBase>& endValue)
-        : RSPathAnimation(property, path, startValue, endValue) {}
+        : RSPathAnimation(rsUIContext, property, path, startValue, endValue)
+    {}
     ~RSPathAnimationMock() = default;
 
     void OnStart()
@@ -370,7 +376,8 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest007, TestSize.Level1)
     Vector4f endData(5.f, 6.f, 2.f, 3.f);
     auto endValue = std::make_shared<RSAnimatableProperty<Vector4f>>(endData);
     keyframeParam->AddKeyframe(animation, startValue, endValue);
-    animation = std::make_shared<RSKeyframeAnimation>(startValue);
+    // animation = std::make_shared<RSKeyframeAnimation>(rsUiDirector->GetRSUIContext(), startValue);
+    animation = std::make_shared<RSKeyframeAnimation>(rsUiDirector->GetRSUIContext(), nullptr); // car 2 compile
     keyframeParam->AddKeyframe(animation, startValue, endValue);
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest007 end";
 }
@@ -397,30 +404,32 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest008, TestSize.Level1)
     auto startValue = std::make_shared<RSAnimatableProperty<Vector4f>>(startData);
     Vector4f endData(5.f, 6.f, 2.f, 3.f);
     auto endValue = std::make_shared<RSAnimatableProperty<Vector4f>>(endData);
-    auto animation = pathParam->CreateAnimation(property, startValue, endValue);
+    auto animation = pathParam->CreateAnimation(rsUiDirector->GetRSUIContext(), property, startValue, endValue);
 
     option = std::make_shared<RSMotionPathOption>("abc");
     auto pathParam2 = std::make_shared<RSImplicitPathAnimationParam>(
         protocol, RSAnimationTimingCurve::LINEAR, option);
-    auto animation2 = pathParam->CreateAnimation(property, startValue, endValue);
+    auto animation2 = pathParam->CreateAnimation(rsUiDirector->GetRSUIContext(), property, startValue, endValue);
 
     auto springParam = std::make_shared<RSImplicitSpringAnimationParam>(protocol, RSAnimationTimingCurve::LINEAR);
-    auto animation3 = springParam->CreateAnimation(property, startValue, endValue);
+    auto animation3 = springParam->CreateAnimation(rsUiDirector->GetRSUIContext(), property, startValue, endValue);
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest008 end";
 }
 
 class RSTransitionTest : public RSTransition {
 public:
-    RSTransitionTest(const std::shared_ptr<const RSTransitionEffect>& effect, bool isTransitionIn)
-        : RSTransition(effect, isTransitionIn)
+    RSTransitionTest(const std::shared_ptr<RSUIContext>& rsUIContext,
+        const std::shared_ptr<const RSTransitionEffect>& effect, bool isTransitionIn)
+        : RSTransition(rsUIContext, effect, isTransitionIn)
     {}
     virtual ~RSTransitionTest() = default;
 };
 
 class RSTransitionMock : public RSTransition {
 public:
-    RSTransitionMock(const std::shared_ptr<const RSTransitionEffect>& effect, bool isTransitionIn)
-        : RSTransition(effect, isTransitionIn)
+    RSTransitionMock(const std::shared_ptr<RSUIContext>& rsUIContext,
+        const std::shared_ptr<const RSTransitionEffect>& effect, bool isTransitionIn)
+        : RSTransition(rsUIContext, effect, isTransitionIn)
     {}
     virtual ~RSTransitionMock() = default;
 
@@ -438,7 +447,7 @@ public:
 HWTEST_F(RSAnimationTest, RSTransitionTest001, TestSize.Level1)
 {
     std::shared_ptr<const RSTransitionEffect> effect;
-    auto animation = std::make_shared<RSTransitionMock>(effect, true);
+    auto animation = std::make_shared<RSTransitionMock>(rsUiDirector->GetRSUIContext(), effect, true);
     ASSERT_NE(animation, nullptr);
     animation->OnStart();
 }
@@ -478,7 +487,8 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest013, TestSize.Level1)
      * @tc.steps: step1. init
      */
     std::shared_ptr<RSPropertyBase> property = std::make_shared<RSAnimatableProperty<float>>(0.1f);
-    std::shared_ptr<RSKeyframeAnimationMock> animation = std::make_shared<RSKeyframeAnimationMock>(property);
+    std::shared_ptr<RSKeyframeAnimationMock> animation =
+        std::make_shared<RSKeyframeAnimationMock>(rsUiDirector->GetRSUIContext(), property);
     std::shared_ptr<RSPropertyBase> value1 = std::make_shared<RSAnimatableProperty<float>>(0.2f);
     std::vector<std::tuple<float, std::shared_ptr<RSPropertyBase>, RSAnimationTimingCurve>> keyframes;
     keyframes.push_back({ 0.5f, value1, RSAnimationTimingCurve::LINEAR });
@@ -505,7 +515,8 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest014, TestSize.Level1)
      * @tc.steps: step1. init
      */
     std::shared_ptr<RSPropertyBase> property = std::make_shared<RSAnimatableProperty<float>>(0.1f);
-    std::shared_ptr<RSKeyframeAnimationMock> animation = std::make_shared<RSKeyframeAnimationMock>(property);
+    std::shared_ptr<RSKeyframeAnimationMock> animation =
+        std::make_shared<RSKeyframeAnimationMock>(rsUiDirector->GetRSUIContext(), property);
     animation->InitInterpolationValue();
     animation->OnStart();
     std::shared_ptr<RSPropertyBase> value1 = std::make_shared<RSAnimatableProperty<float>>(0.2f);
@@ -539,9 +550,12 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest015, TestSize.Level1)
      * @tc.steps: step1. init
      */
     std::shared_ptr<RSPropertyBase> property = std::make_shared<RSAnimatableProperty<float>>(0.1f);
-    std::shared_ptr<RSKeyframeAnimationMock> animation1 = std::make_shared<RSKeyframeAnimationMock>(property);
-    std::shared_ptr<RSKeyframeAnimationMock> animation2 = std::make_shared<RSKeyframeAnimationMock>(property);
-    std::shared_ptr<RSKeyframeAnimationMock> animation3 = std::make_shared<RSKeyframeAnimationMock>(property);
+    std::shared_ptr<RSKeyframeAnimationMock> animation1 =
+        std::make_shared<RSKeyframeAnimationMock>(rsUiDirector->GetRSUIContext(), property);
+    std::shared_ptr<RSKeyframeAnimationMock> animation2 =
+        std::make_shared<RSKeyframeAnimationMock>(rsUiDirector->GetRSUIContext(), property);
+    std::shared_ptr<RSKeyframeAnimationMock> animation3 =
+        std::make_shared<RSKeyframeAnimationMock>(rsUiDirector->GetRSUIContext(), property);
     std::shared_ptr<RSNode> node1 = RSCanvasNode::Create();
     struct RSSurfaceNodeConfig surfaceNodeConfig = {.SurfaceNodeName = "test"};
     std::shared_ptr<RSNode> node2 = RSSurfaceNode::Create(surfaceNodeConfig, false);
@@ -576,14 +590,15 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest017, TestSize.Level1)
     Vector4f data(1.f, 1.f, 1.f, 1.f);
     std::shared_ptr<RSAnimatableProperty<Vector4f>> property;
     std::shared_ptr<RSPath> path = std::make_shared<RSPath>();
-    auto animation1 = std::make_shared<RSPathAnimationMock>(property, path);
+    auto animation1 = std::make_shared<RSPathAnimationMock>(rsUiDirector->GetRSUIContext(), property, path);
     animation1->OnCallFinishCallback();
     property = std::make_shared<RSAnimatableProperty<Vector4f>>(data);
     Vector2f startData(0.f, 1.f);
     auto startValue = std::make_shared<RSAnimatableProperty<Vector2f>>(startData);
     Vector2f endData(5.f, 6.f);
     auto endValue = std::make_shared<RSAnimatableProperty<Vector2f>>(endData);
-    auto animation = std::make_shared<RSPathAnimationMock>(property, "abc", startValue, endValue);
+    auto animation =
+        std::make_shared<RSPathAnimationMock>(rsUiDirector->GetRSUIContext(), property, "abc", startValue, endValue);
     EXPECT_TRUE(animation != nullptr);
     animation->SetTimingCurve(RSAnimationTimingCurve::LINEAR);
     auto curve = animation->GetTimingCurve();
@@ -633,13 +648,14 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest018, TestSize.Level1)
     auto startValue = std::make_shared<RSAnimatableProperty<Vector2f>>(startData);
     Vector2f endData(5.f, 6.f);
     auto endValue = std::make_shared<RSAnimatableProperty<Vector2f>>(endData);
-    auto animation = std::make_shared<RSPathAnimationMock>(property, "abc", startValue, endValue);
+    auto animation =
+        std::make_shared<RSPathAnimationMock>(rsUiDirector->GetRSUIContext(), property, "abc", startValue, endValue);
     animation->InitInterpolationValue();
 
     std::shared_ptr<RSPathAnimationMock> animation1 =
-        std::make_shared<RSPathAnimationMock>(property, "abc", startValue, endValue);
+        std::make_shared<RSPathAnimationMock>(rsUiDirector->GetRSUIContext(), property, "abc", startValue, endValue);
     std::shared_ptr<RSPathAnimationMock> animation2 =
-        std::make_shared<RSPathAnimationMock>(property, "abc", startValue, endValue);
+        std::make_shared<RSPathAnimationMock>(rsUiDirector->GetRSUIContext(), property, "abc", startValue, endValue);
     struct RSSurfaceNodeConfig surfaceNodeConfig = {.SurfaceNodeName = "test"};
     std::shared_ptr<RSNode> node1 = RSSurfaceNode::Create(surfaceNodeConfig, false);
     std::shared_ptr<RSNode> node2 = RSSurfaceNode::Create(surfaceNodeConfig, true);
@@ -653,12 +669,15 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest018, TestSize.Level1)
 
 class RSSpringAnimationMock : public RSSpringAnimation {
 public:
-    RSSpringAnimationMock(std::shared_ptr<RSPropertyBase> property, const std::shared_ptr<RSPropertyBase>& byValue)
-        : RSSpringAnimation(property, byValue) {}
+    RSSpringAnimationMock(const std::shared_ptr<RSUIContext>& rsUIContext, std::shared_ptr<RSPropertyBase> property,
+        const std::shared_ptr<RSPropertyBase>& byValue)
+        : RSSpringAnimation(rsUIContext, property, byValue)
+    {}
 
-    RSSpringAnimationMock(std::shared_ptr<RSPropertyBase> property, const std::shared_ptr<RSPropertyBase>& startValue,
-        const std::shared_ptr<RSPropertyBase>& endValue)
-        : RSSpringAnimation(property, startValue, endValue) {}
+    RSSpringAnimationMock(const std::shared_ptr<RSUIContext>& rsUIContext, std::shared_ptr<RSPropertyBase> property,
+        const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue)
+        : RSSpringAnimation(rsUIContext, property, startValue, endValue)
+    {}
     ~RSSpringAnimationMock() = default;
 
     void OnStart() override
@@ -681,9 +700,10 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest019, TestSize.Level1)
     auto property = std::make_shared<RSAnimatableProperty<float>>(1.f);
     auto value1 = std::make_shared<RSAnimatableProperty<float>>(2.f);
     auto value2 = std::make_shared<RSAnimatableProperty<float>>(3.f);
-    std::shared_ptr<RSSpringAnimationMock> animation1 = std::make_shared<RSSpringAnimationMock>(property, value1);
+    std::shared_ptr<RSSpringAnimationMock> animation1 =
+        std::make_shared<RSSpringAnimationMock>(rsUiDirector->GetRSUIContext(), property, value1);
     std::shared_ptr<RSSpringAnimationMock> animation2 =
-        std::make_shared<RSSpringAnimationMock>(property, value1, value2);
+        std::make_shared<RSSpringAnimationMock>(rsUiDirector->GetRSUIContext(), property, value1, value2);
     animation1->SetTimingCurve(RSAnimationTimingCurve::LINEAR);
     auto curve = RSAnimationTimingCurve::CreateSpringCurve(1.f, 2.f, 3.f, 4.f);
     animation1->SetTimingCurve(curve);
@@ -699,7 +719,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest019, TestSize.Level1)
     animation1->OnStart();
 
     std::shared_ptr<RSSpringAnimationMock> animation3 =
-        std::make_shared<RSSpringAnimationMock>(property, value1, value2);
+        std::make_shared<RSSpringAnimationMock>(rsUiDirector->GetRSUIContext(), property, value1, value2);
     struct RSSurfaceNodeConfig surfaceNodeConfig = {.SurfaceNodeName = "test"};
     std::shared_ptr<RSNode> node1 = RSSurfaceNode::Create(surfaceNodeConfig, false);
     std::shared_ptr<RSNode> node2 = RSSurfaceNode::Create(surfaceNodeConfig, true);
@@ -814,7 +834,8 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest021, TestSize.Level1)
     modifierManager.HasUIRunningAnimation();
     auto animatablProperty = std::make_shared<RSAnimatableProperty<float>>(1.f);
     auto value = std::make_shared<RSAnimatableProperty<float>>(1.f);
-    auto springAnimation = std::make_shared<RSSpringAnimationMock>(animatablProperty, value);
+    auto springAnimation =
+        std::make_shared<RSSpringAnimationMock>(rsUiDirector->GetRSUIContext(), animatablProperty, value);
     modifierManager.RegisterSpringAnimation(springAnimation->GetPropertyId(), springAnimation->GetId());
     modifierManager.UnregisterSpringAnimation(springAnimation->GetPropertyId(), springAnimation->GetId());
     modifierManager.QuerySpringAnimation(springAnimation->GetPropertyId());

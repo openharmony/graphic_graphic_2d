@@ -41,7 +41,6 @@ public:
     static RSWaterRipplePara GetRandomRSWaterRipplePara();
     static RSFlyOutPara GetRandomRSFlyOutPara();
     static std::shared_ptr<MotionBlurParam> GetRandomMotionBlurParamSharedPtr();
-    static std::shared_ptr<RSMagnifierParams> GetRandomRSMagnifierParamsSharedPtr();
     static std::vector<std::shared_ptr<EmitterUpdater>> GetRandomEmitterUpdaterSharedPtrVector(
         const std::string& sizeType = "normal");
     static ShapeType GetRandomShapeType();
@@ -94,6 +93,7 @@ public:
     static std::vector<Vector4f> GetRandomSmallVectorVector4f();
     static std::shared_ptr<Media::PixelMap> GetRandomPixelMap();
     static RSShadowBlenderPara GetRandomRSShadowBlenderPara();
+    static RSHdrDarkenBlenderPara GetRandomRSHdrDarkenBlenderPara();
 
 #ifndef ROSEN_CROSS_PLATFORM
     static GraphicColorGamut GetRandomGraphicColorGamut();

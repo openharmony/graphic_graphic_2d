@@ -67,8 +67,9 @@ public:
     void AddPropertyToPendingSyncList(const std::shared_ptr<RSPropertyBase>& property);
     CancelAnimationStatus SyncProperties(const std::shared_ptr<RSUIContext>& rsUIContext);
 
-    std::shared_ptr<RSAnimation> CreateEmptyAnimation(std::shared_ptr<RSPropertyBase> property,
-        const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue) const;
+    std::shared_ptr<RSAnimation> CreateEmptyAnimation(const std::shared_ptr<RSUIContext>& rsUIContext,
+        std::shared_ptr<RSPropertyBase> property, const std::shared_ptr<RSPropertyBase>& startValue,
+        const std::shared_ptr<RSPropertyBase>& endValue) const;
 
 private:
     bool ExecuteSyncPropertiesTask(
@@ -84,8 +85,9 @@ public:
 
     ~RSImplicitCurveAnimationParam() override = default;
 
-    std::shared_ptr<RSAnimation> CreateAnimation(std::shared_ptr<RSPropertyBase> property,
-        const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue) const;
+    std::shared_ptr<RSAnimation> CreateAnimation(const std::shared_ptr<RSUIContext>& rsUIContext,
+        std::shared_ptr<RSPropertyBase> property, const std::shared_ptr<RSPropertyBase>& startValue,
+        const std::shared_ptr<RSPropertyBase>& endValue) const;
 
 private:
     RSAnimationTimingCurve timingCurve_;
@@ -99,8 +101,8 @@ public:
 
     ~RSImplicitKeyframeAnimationParam() override = default;
 
-    std::shared_ptr<RSAnimation> CreateAnimation(
-        std::shared_ptr<RSPropertyBase> property, const bool& isCreateDurationKeyframe, const int& startDuration,
+    std::shared_ptr<RSAnimation> CreateAnimation(const std::shared_ptr<RSUIContext>& rsUIContext,
+        std::shared_ptr<RSPropertyBase> property, const bool isCreateDurationKeyframe, const int startDuration,
         const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue) const;
 
     void AddKeyframe(std::shared_ptr<RSAnimation>& animation, const std::shared_ptr<RSPropertyBase>& startValue,
@@ -122,8 +124,9 @@ public:
 
     ~RSImplicitPathAnimationParam() override = default;
 
-    std::shared_ptr<RSAnimation> CreateAnimation(std::shared_ptr<RSPropertyBase> property,
-        const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue) const;
+    std::shared_ptr<RSAnimation> CreateAnimation(const std::shared_ptr<RSUIContext>& rsUIContext,
+        std::shared_ptr<RSPropertyBase> property, const std::shared_ptr<RSPropertyBase>& startValue,
+        const std::shared_ptr<RSPropertyBase>& endValue) const;
 
 private:
     RSAnimationTimingCurve timingCurve_;
@@ -136,8 +139,9 @@ public:
         const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve);
     ~RSImplicitSpringAnimationParam() override = default;
 
-    std::shared_ptr<RSAnimation> CreateAnimation(std::shared_ptr<RSPropertyBase> property,
-        const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue) const;
+    std::shared_ptr<RSAnimation> CreateAnimation(const std::shared_ptr<RSUIContext>& rsUIContext,
+        std::shared_ptr<RSPropertyBase> property, const std::shared_ptr<RSPropertyBase>& startValue,
+        const std::shared_ptr<RSPropertyBase>& endValue) const;
 
 private:
     RSAnimationTimingCurve timingCurve_;
@@ -149,8 +153,9 @@ public:
         const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve);
     ~RSImplicitInterpolatingSpringAnimationParam() override = default;
 
-    std::shared_ptr<RSAnimation> CreateAnimation(std::shared_ptr<RSPropertyBase> property,
-        const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue) const;
+    std::shared_ptr<RSAnimation> CreateAnimation(const std::shared_ptr<RSUIContext>& rsUIContext,
+        std::shared_ptr<RSPropertyBase> property, const std::shared_ptr<RSPropertyBase>& startValue,
+        const std::shared_ptr<RSPropertyBase>& endValue) const;
 
 private:
     RSAnimationTimingCurve timingCurve_;
@@ -163,10 +168,7 @@ public:
         bool isTransitionIn);
     ~RSImplicitTransitionParam() override = default;
 
-    std::shared_ptr<RSAnimation> CreateAnimation();
-
-    std::shared_ptr<RSAnimation> CreateAnimation(const std::shared_ptr<RSPropertyBase>& property,
-        const std::shared_ptr<RSPropertyBase>& startValue, const std::shared_ptr<RSPropertyBase>& endValue);
+    std::shared_ptr<RSAnimation> CreateAnimation(const std::shared_ptr<RSUIContext>& rsUIContext);
 
 private:
     RSAnimationTimingCurve timingCurve_;
