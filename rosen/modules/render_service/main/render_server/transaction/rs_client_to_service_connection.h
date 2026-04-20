@@ -45,7 +45,8 @@ public:
         sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent,
         sptr<RSScreenManagerAgent> screenManagerAgent,
         sptr<IRemoteObject> token,
-        sptr<RSVsyncManagerAgent> vsyncManagerAgent);
+        sptr<RSVsyncManagerAgent> vsyncManagerAgent,
+        bool needRefresh = false);
     ~RSClientToServiceConnection() noexcept;
     RSClientToServiceConnection(const RSClientToServiceConnection&) = delete;
     RSClientToServiceConnection& operator=(const RSClientToServiceConnection&) = delete;
@@ -443,6 +444,7 @@ private:
     const std::string VOTER_SCENE_GPU = "VOTER_SCENE_GPU";
     static const std::string GPU_FREQ_PREF;
     sptr<RSVsyncManagerAgent> vsyncManagerAgent_ = nullptr;
+    bool needRefresh_ = false;
 
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;

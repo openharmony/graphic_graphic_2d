@@ -414,7 +414,7 @@ private:
     RSRenderInterface(sptr<IRemoteObject>& connectToRenderRemote);
 
     bool CreateNode(const RSSurfaceRenderNodeConfig& config);
-    bool CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId);
+    bool CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId);
     std::shared_ptr<RSSurface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, bool unobscured = false);
     RSInterfaceErrorCode SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent);
     void SetHardwareEnabled(NodeId id, bool isEnabled,
@@ -429,6 +429,7 @@ private:
     friend class RSApplicationAgentImpl;
     friend class RSDisplayNode;
     friend class RSSurfaceNode;
+    friend class RSUIContextManager;
 };
 }
 }

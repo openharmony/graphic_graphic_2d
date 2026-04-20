@@ -78,6 +78,10 @@ std::shared_ptr<RSUIContext> RSUIContextManager::CreateRSUIContext(sptr<IRemoteO
     rsUIContextMap_[token] = newContext;
     if (isDividedRender_) {
         hasCreateRSUIContext_ = true;
+        auto transactionProxy = RSTransactionProxy::GetInstance();
+        if (auto rsRenderInterface = newContext->GetRSRenderInterface()) {
+            transactionProxy->SetRSRenderPipelineClient(rsRenderInterface->GetRSRenderPipelineClient());
+        }
     }
     return newContext;
 }

@@ -734,7 +734,7 @@ bool DoCreateNode1()
     displayNodeConfig.isSync = GetData<bool>();
     uint64_t nodeId = GetData<uint64_t>();
     bool success;
-    rsToRenderConn_->CreateNode(displayNodeConfig, nodeId, success);
+    rsToRenderConn_->CreateDisplayNode(displayNodeConfig, nodeId, success);
     return true;
 }
 

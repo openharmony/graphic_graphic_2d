@@ -116,17 +116,22 @@ RSClientToServiceConnection::RSClientToServiceConnection(
     sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent,
     sptr<RSScreenManagerAgent> screenManagerAgent,
     sptr<IRemoteObject> token,
-    sptr<RSVsyncManagerAgent> vsyncManagerAgent)
+    sptr<RSVsyncManagerAgent> vsyncManagerAgent,
+    bool needRefresh)
     : remotePid_(remotePid),
       renderServiceAgent_(renderServiceAgent),
       renderProcessManagerAgent_(renderProcessManagerAgent),
       screenManagerAgent_(screenManagerAgent),
       token_(token),
       connDeathRecipient_(new RSConnectionDeathRecipient(this)),
-      vsyncManagerAgent_(vsyncManagerAgent)
+      vsyncManagerAgent_(vsyncManagerAgent),
+      needRefresh_(needRefresh)
 {
     if (token_ == nullptr || !token_->AddDeathRecipient(connDeathRecipient_)) {
         RS_LOGW("RSClientToServiceConnection: Failed to set death recipient.");
+    }
+    if (needRefresh_) {
+        RegisterRemoteRefreshCallback();
     }
     if (renderServiceAgent_ == nullptr) {
         RS_LOGE("RSClientToServiceConnection: renderServiceAgent_ is nullptr");

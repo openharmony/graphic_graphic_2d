@@ -23,7 +23,7 @@
 namespace OHOS {
 namespace Rosen {
 sptr<RSIClientToRenderConnection> RSConnectToRenderProcess::CreateRenderConnection(
-    const sptr<RSIConnectionToken>& token)
+    const sptr<RSIConnectionToken>& token, bool needRefresh)
 {
     if (!token) {
         RS_LOGE("%{public}s: token is nullptr.", __func__);
@@ -34,7 +34,8 @@ sptr<RSIClientToRenderConnection> RSConnectToRenderProcess::CreateRenderConnecti
         return renderConnection;
     }
     pid_t remotePid = GetCallingPid();
-    auto newRenderConn = sptr<RSClientToRenderConnection>::MakeSptr(remotePid, renderPipelineAgent_, tokenObj);
+    auto newRenderConn =
+        sptr<RSClientToRenderConnection>::MakeSptr(remotePid, renderPipelineAgent_, tokenObj, needRefresh);
     renderPipelineAgent_->AddTransactionDataPidInfo(remotePid);
     renderPipelineAgent_->AddConnection(tokenObj, newRenderConn);
     return newRenderConn;

@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "app_image_observer_manager.h"
 #include "transaction/rs_render_pipeline_client.h"
 
 #include <iremote_stub.h>
@@ -71,7 +72,9 @@ RSRenderPipelineClient::RSRenderPipelineClient(sptr<IRemoteObject>& connectToRen
             return;
         }
         token_ = new IRemoteStub<RSIConnectionToken>();
-        clientToRenderConnection_ = conn->CreateRenderConnection(token_);
+        bool needRefresh = AppExecFwk::AppImageObserverManager::GetInstance().IsBeforeImageCreationPoint();
+        ROSEN_LOGI("RSRenderPipelineClient call CreateConnection, needRefresh:[%{public}d]", needRefresh);
+        clientToRenderConnection_ = conn->CreateRenderConnection(token_, needRefresh);
     } else {
         clientToRenderConnection_ = RSRenderServiceConnectHub::GetClientToRenderConnection();
     }
@@ -110,14 +113,14 @@ void RSRenderPipelineClient::RegisterApplicationAgent(uint32_t pid, sptr<IApplic
     }
 }
 
-bool RSRenderPipelineClient::CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId)
+bool RSRenderPipelineClient::CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId)
 {
     if (clientToRenderConnection_ == nullptr) {
         ROSEN_LOGE("RSRenderPipelineClient::CreateNode clientToRenderConnection_ nullptr");
         return false;
     }
     bool success;
-    clientToRenderConnection_->CreateNode(displayNodeConfig, nodeId, success);
+    clientToRenderConnection_->CreateDisplayNode(displayNodeConfig, nodeId, success);
     return success;
 }
 
@@ -424,7 +427,8 @@ bool RSRenderPipelineClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<Surfa
     if (surfaceCaptureCbDirector_ == nullptr) {
         surfaceCaptureCbDirector_ = new SurfaceCaptureCallbackDirector(this);
     }
-    clientToRenderConnection_->TakeSurfaceCapture(id, surfaceCaptureCbDirector_, captureConfig, blurParam, specifiedAreaRect);
+    clientToRenderConnection_->TakeSurfaceCapture(
+        id, surfaceCaptureCbDirector_, captureConfig, blurParam, specifiedAreaRect);
     return true;
 }
 
@@ -501,7 +505,8 @@ bool RSRenderPipelineClient::SetWindowFreezeImmediately(NodeId id, bool isFreeze
     if (surfaceCaptureCbDirector_ == nullptr) {
         surfaceCaptureCbDirector_ = new SurfaceCaptureCallbackDirector(this);
     }
-    clientToRenderConnection_->SetWindowFreezeImmediately(id, isFreeze, surfaceCaptureCbDirector_, captureConfig, blurParam);
+    clientToRenderConnection_->SetWindowFreezeImmediately(
+        id, isFreeze, surfaceCaptureCbDirector_, captureConfig, blurParam);
     return true;
 }
 

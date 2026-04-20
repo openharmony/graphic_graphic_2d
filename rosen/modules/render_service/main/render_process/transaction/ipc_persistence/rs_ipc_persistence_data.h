@@ -91,7 +91,7 @@ private:
 class SetBehindWindowFilterEnabledPersistenceData : public RSIpcPersistenceDataBase {
 public:
     SetBehindWindowFilterEnabledPersistenceData() = default;
-    SetBehindWindowFilterEnabledPersistenceData(bool enabled) : enabled_(enabled) {}
+    explicit SetBehindWindowFilterEnabledPersistenceData(bool enabled) : enabled_(enabled) {}
     ~SetBehindWindowFilterEnabledPersistenceData() noexcept override = default;
 
     RSIpcPersistenceType GetType() const override { return RSIpcPersistenceType::SET_BEHIND_WINDOW_FILTER_ENABLED; }

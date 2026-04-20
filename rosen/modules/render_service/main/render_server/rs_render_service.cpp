@@ -311,10 +311,11 @@ std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
         renderProcessManagerAgent,
         screenManagerAgent,
         tokenObj,
-        vsyncManager_->GetVsyncManagerAgent()));
+        vsyncManager_->GetVsyncManagerAgent(),
+        needRefresh));
     sptr<RSRenderPipelineAgent> renderPipelineAgent = new RSRenderPipelineAgent(renderPipeline_);
     sptr<RSIClientToRenderConnection> newRenderConn(
-        new RSClientToRenderConnection(remotePid, renderPipelineAgent, tokenObj));
+        new RSClientToRenderConnection(remotePid, renderPipelineAgent, tokenObj, needRefresh));
     if (needRefresh) {
         newConn->RegisterRemoteRefreshCallback();
         newRenderConn->RegisterRemoteRefreshCallback();
@@ -490,7 +491,6 @@ void RSRenderService::ScreenManagerListener::OnGlobalBlacklistChanged(const std:
 std::pair<sptr<IRSRenderToComposerConnection>, sptr<VSyncConnection>> RSRenderService::GetProcessInfo(
     ScreenId screenId, sptr<IRemoteObject> vsyncToken)
 {
-    // TODO: 异常判断
     auto renderToComposerConnection = rsRenderComposerManager_->GetRSComposerConnection(screenId);
     auto vsyncConnection =
         sptr<VSyncConnection>::MakeSptr(vsyncManager_->GetVSyncRSDistributor(), "render_process", vsyncToken);

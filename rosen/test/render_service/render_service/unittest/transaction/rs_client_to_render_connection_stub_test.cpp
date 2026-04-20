@@ -3692,10 +3692,10 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RenderPipelineAgentNullptrTest002, 
     std::shared_ptr<RSRenderPipeline> nullPipeline = nullptr;
     sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(nullPipeline);
 
-    // Test CreateNode with RSDisplayNodeConfig
+    // Test CreateDisplayNode with RSDisplayNodeConfig
     RSDisplayNodeConfig displayConfig;
     bool success = false;
-    ErrCode ret = agent->CreateNode(displayConfig, 123, success);
+    ErrCode ret = agent->CreateDisplayNode(displayConfig, 123, success);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 
     // Test CreateNode with RSSurfaceRenderNodeConfig

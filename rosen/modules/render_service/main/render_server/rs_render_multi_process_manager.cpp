@@ -57,8 +57,7 @@ int32_t ForkAndExec(GroupId groupId)
             exit(-1);
         }
         std::string processName = "render_service:" + std::to_string(groupId);
-        const char* binName = processName.c_str();
-        char* argv[] = { const_cast<char*>(binName), NULL };
+        char* argv[] = { const_cast<char*>(processName.c_str()), nullptr };
         if (execv("/system/bin/render_process", argv) == -1) {
             RS_LOGE("%{public}s: Fork execv command failed, errorno:%{public}d, errormsg:%{public}s", __func__, errno,
                 strerror(errno));
@@ -79,7 +78,7 @@ RSMultiRenderProcessManager::RSMultiRenderProcessManager(RSRenderService& render
     sa.sa_handler = sigchld_handler;
     sa.sa_flags = SA_RESTART;
     sigemptyset(&sa.sa_mask);
-    if (sigaction(SIGCHLD, &sa, NULL) == -1) {
+    if (sigaction(SIGCHLD, &sa, nullptr) == -1) {
         RS_LOGE("Error setting SIGCHLD handler, errorno:%{public}d, errormsg:%{public}s", errno, strerror(errno));
         exit(-1);
     }

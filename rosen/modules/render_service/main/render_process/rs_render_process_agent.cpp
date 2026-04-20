@@ -15,7 +15,6 @@
 
 #include "rs_render_process_agent.h"
 
-// #include "dfx/rs_process_dump_manager.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "platform/common/rs_log.h"
 #include "screen_manager/rs_screen_property.h"

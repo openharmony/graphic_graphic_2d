@@ -455,13 +455,13 @@ void RSRenderInterface::SetWindowContainer(NodeId nodeId, bool value)
     renderPipelineClient_->SetWindowContainer(nodeId, value);
 }
 
-bool RSRenderInterface::CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId)
+bool RSRenderInterface::CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId)
 {
     if (renderPipelineClient_ == nullptr) {
         ROSEN_LOGE("RSRenderInterface::CreateNode renderPipelineClient_ nullptr");
         return false;
     }
-    return renderPipelineClient_->CreateNode(displayNodeConfig, nodeId);
+    return renderPipelineClient_->CreateDisplayNode(displayNodeConfig, nodeId);
 }
  
 bool RSRenderInterface::CreateNode(const RSSurfaceRenderNodeConfig& config)

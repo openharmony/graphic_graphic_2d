@@ -36,6 +36,10 @@
 #include "command/rs_animation_command.h"
 #include "common/rs_common_def.h"
 #include "transaction/rs_irender_client.h"
+#ifndef ROSEN_CROSS_PLATFORM
+#include "platform/ohos/transaction/zidl/rs_iclient_to_render_connection.h"
+#endif
+#include "transaction/rs_render_pipeline_client.h"
 
 namespace OHOS {
 class Surface;
@@ -47,9 +51,9 @@ class RSUIContext;
 class RSTransactionHandler;
 using TaskRunner = std::function<void(const std::function<void()>&, uint32_t)>;
 using FlushEmptyCallback = std::function<bool(const uint64_t)>;
-// using CommitTransactionCallback =
-//     std::function<void(std::shared_ptr<RSIRenderClient>&, std::unique_ptr<RSTransactionData>&&, uint32_t&,
-//     std::shared_ptr<RSTransactionHandler>)>;
+using CommitTransactionCallback =
+    std::function<void(std::shared_ptr<RSRenderPipelineClient>&, std::unique_ptr<RSTransactionData>&&, uint32_t&,
+    std::shared_ptr<RSTransactionHandler>)>;
 
 /**
  * @class RSUIDirector
@@ -343,6 +347,7 @@ private:
     void Init(sptr<IRemoteObject>& connectToRenderRemote, std::shared_ptr<RSUIContext> rsUIContext);
     void ReportUiSkipEvent(const std::string& abilityName);
     void AttachSurface();
+    static std::shared_ptr<RSUIDirector> CreateRSUIDirector();
     static void RecvMessages();
     static void RecvMessages(std::shared_ptr<RSTransactionData> cmds);
     static void ProcessInstanceMessages(
@@ -361,7 +366,7 @@ private:
     static bool RequestVsyncCallback(int32_t instanceId);
 
     void InitHybridRender();
-    // void SetCommitTransactionCallback(CommitTransactionCallback commitTransactionCallback);
+    void SetCommitTransactionCallback(CommitTransactionCallback commitTransactionCallback);
 
     RSUIDirector() = default;
     RSUIDirector(const RSUIDirector&) = delete;
@@ -395,6 +400,7 @@ private:
     friend class RSApplicationAgentImpl;
     friend class RSRenderThread;
     friend class RSImplicitAnimator;
+    friend class RSTextureExport;
 };
 } // namespace Rosen
 } // namespace OHOS

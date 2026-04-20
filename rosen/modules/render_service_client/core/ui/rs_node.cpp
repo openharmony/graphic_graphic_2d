@@ -2917,7 +2917,6 @@ void RSNode::NotifyTransition(const std::shared_ptr<const RSTransitionEffect>& e
         return;
     }
     auto implicitAnimator = rsUIContext_->GetRSImplicitAnimator();
-
     if (!implicitAnimator->NeedImplicitAnimation()) {
         return;
     }

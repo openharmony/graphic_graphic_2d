@@ -105,7 +105,6 @@ HWTEST_F(RSRenderProcessTest, RenderProcessCopyConstructorTest001, TestSize.Leve
     ASSERT_NE(renderProcess, nullptr);
 
     // RSRenderProcess has deleted copy constructor
-    // This test verifies the design intent
     ASSERT_TRUE(renderProcess != nullptr);
 }
 
@@ -121,7 +120,6 @@ HWTEST_F(RSRenderProcessTest, RenderProcessAssignmentTest001, TestSize.Level1)
     ASSERT_NE(renderProcess, nullptr);
 
     // RSRenderProcess has deleted assignment operator
-    // This test verifies the design intent
     ASSERT_TRUE(renderProcess != nullptr);
 }
 

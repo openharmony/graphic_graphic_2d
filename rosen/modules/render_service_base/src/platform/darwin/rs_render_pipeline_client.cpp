@@ -20,6 +20,9 @@
 namespace OHOS {
 namespace Rosen {
 
+RSRenderPipelineClient::RSRenderPipelineClient(sptr<IRemoteObject>& connectToRenderRemote)
+{
+}
 
 void RSRenderPipelineClient::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
 {
@@ -29,7 +32,7 @@ void RSRenderPipelineClient::ExecuteSynchronousTask(const std::shared_ptr<RSSync
 {
 }
 
-bool RSRenderPipelineClient::CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId)
+bool RSRenderPipelineClient::CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId)
 {
     return {};
 }
@@ -217,10 +220,6 @@ void RSRenderPipelineClient::ClearSurfaceWatermarkForNodes(pid_t pid, const std:
     const std::vector<NodeId> &nodeIdList)
 {
 }
-    
-void RSRenderPipelineClient::ClearSurfaceWatermark(pid_t pid, const std::string &name)
-{
-}
 
 int32_t RSRenderPipelineClient::RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback)
 {
@@ -272,6 +271,10 @@ int32_t RSRenderPipelineClient::StartFrameStabilityCollection(
 int32_t RSRenderPipelineClient::GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result)
 {
     return 0;
+}
+
+void RSRenderPipelineClient::SetFreeMultiWindowStatus(bool enable)
+{
 }
 } // namespace Rosen
 } // namespace OHOS

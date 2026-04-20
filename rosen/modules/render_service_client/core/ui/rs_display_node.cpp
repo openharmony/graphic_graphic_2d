@@ -58,7 +58,7 @@ RSDisplayNode::SharedPtr RSDisplayNode::Create(
             }
         }
     } else {
-        if (!node->CreateNode(displayNodeConfig, node->GetId())) {
+        if (!node->CreateDisplayNode(displayNodeConfig, node->GetId())) {
             ROSEN_LOGE("RSDisplayNode::Create: CreateNode Failed.");
             return nullptr;
         }
@@ -72,14 +72,14 @@ RSDisplayNode::SharedPtr RSDisplayNode::Create(
     return node;
 }
 
-bool RSDisplayNode::CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId)
+bool RSDisplayNode::CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId)
 {
     auto rsUIContext = GetRSUIContext();
     if (rsUIContext == nullptr || rsUIContext->GetRSRenderInterface() == nullptr) {
         ROSEN_LOGE("RSDisplayNode::CreateNode uiContext is nullptr");
         return false;
     }
-    return rsUIContext->GetRSRenderInterface()->CreateNode(displayNodeConfig, nodeId);
+    return rsUIContext->GetRSRenderInterface()->CreateDisplayNode(displayNodeConfig, nodeId);
 }
 
 // LCOV_EXCL_START

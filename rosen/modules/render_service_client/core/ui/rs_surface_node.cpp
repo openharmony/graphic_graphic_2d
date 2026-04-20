@@ -1178,7 +1178,6 @@ RSInterfaceErrorCode RSSurfaceNode::SetHidePrivacyContent(bool needHidePrivacyCo
     if (rsUIContext == nullptr || rsUIContext->GetRSRenderInterface() == nullptr) {
         ROSEN_LOGE("RSDisplayNode::SetHidePrivacyContent uiContext is nullptr");
         return RSInterfaceErrorCode::UNKNOWN_ERROR;
- 
     }
     return rsUIContext->GetRSRenderInterface()->SetHidePrivacyContent(GetId(), needHidePrivacyContent);
 }

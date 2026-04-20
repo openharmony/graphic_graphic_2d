@@ -199,7 +199,7 @@ ErrCode RSClientToRenderConnectionProxy::ExecuteSynchronousTask(const std::share
     return ERR_OK;
 }
 
-ErrCode RSClientToRenderConnectionProxy::CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
+ErrCode RSClientToRenderConnectionProxy::CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
     bool& success)
 {
     MessageParcel data;

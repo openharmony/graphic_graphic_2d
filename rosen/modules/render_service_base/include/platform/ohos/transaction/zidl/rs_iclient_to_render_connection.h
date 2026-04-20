@@ -87,7 +87,7 @@ public:
 
     virtual ErrCode ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) = 0;
 
-    virtual ErrCode CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
+    virtual ErrCode CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
         bool& success) = 0;
 
     virtual ErrCode CreateNode(const RSSurfaceRenderNodeConfig& config, bool& success) = 0;

@@ -27,7 +27,7 @@ class RSRenderToServiceConnection : public RSRenderToServiceConnectionStub {
 public:
     RSRenderToServiceConnection(sptr<RSRenderServiceAgent> renderServiceAgent,
         sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent, sptr<RSScreenManagerAgent> screenManagerAgent);
-    ~RSRenderToServiceConnection() noexcept = default;
+    ~RSRenderToServiceConnection() noexcept override = default;
 
     RSRenderToServiceConnection(const RSRenderToServiceConnection&) = delete;
     RSRenderToServiceConnection& operator=(const RSRenderToServiceConnection&) = delete;

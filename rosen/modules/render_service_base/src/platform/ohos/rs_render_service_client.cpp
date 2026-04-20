@@ -416,7 +416,7 @@ public:
     ~CustomScreenChangeCallback() override {};
 
     void OnScreenChanged(ScreenId id, ScreenEvent event,
-        ScreenChangeReason reason, sptr<IRemoteObject> obj = nullptr) override
+        ScreenChangeReason reason, sptr<IRemoteObject> obj) override
     {
         if (cb_ != nullptr) {
             cb_(id, event, reason, obj);

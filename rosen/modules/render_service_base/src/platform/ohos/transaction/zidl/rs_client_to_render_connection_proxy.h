@@ -36,7 +36,7 @@ public:
     bool FillParcelWithTransactionData(std::unique_ptr<RSTransactionData>& transactionData,
         std::shared_ptr<MessageParcel>& data);
 
-    ErrCode CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
+    ErrCode CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
         bool& success) override;
 
     ErrCode CreateNode(const RSSurfaceRenderNodeConfig& config, bool& success) override;

@@ -35,7 +35,7 @@ class RSClientToRenderConnection : public RSClientToRenderConnectionStub {
 public:
     RSClientToRenderConnection(
     pid_t remotePid,
-    sptr<RSRenderPipelineAgent> renderPipelineAgent, sptr<IRemoteObject> token);
+    sptr<RSRenderPipelineAgent> renderPipelineAgent, sptr<IRemoteObject> token, bool needRefresh = false);
     ~RSClientToRenderConnection() noexcept;
     RSClientToRenderConnection(const RSClientToRenderConnection&) = delete;
     RSClientToRenderConnection& operator=(const RSClientToRenderConnection&) = delete;
@@ -60,7 +60,7 @@ private:
     ErrCode CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
     ErrCode ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
     
-    ErrCode CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
+    ErrCode CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
         bool& success) override;
 
     ErrCode CreateNode(const RSSurfaceRenderNodeConfig& config, bool& success) override;
@@ -218,6 +218,7 @@ private:
 
     mutable std::mutex mutex_;
     bool cleanDone_ = false;
+    bool needRefresh_ = true;
     const std::string VOTER_SCENE_BLUR = "VOTER_SCENE_BLUR";
     const std::string VOTER_SCENE_GPU = "VOTER_SCENE_GPU";
     static const std::string GPU_FREQ_PREF;

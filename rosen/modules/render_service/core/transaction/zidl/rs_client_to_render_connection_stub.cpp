@@ -486,7 +486,7 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 .mirrorSourceRotation = mirrorSourceRotation,
             };
             bool success;
-            if (CreateNode(config, id, success) != ERR_OK || !reply.WriteBool(success)) {
+            if (CreateDisplayNode(config, id, success) != ERR_OK || !reply.WriteBool(success)) {
                 ret = ERR_INVALID_REPLY;
             }
             break;

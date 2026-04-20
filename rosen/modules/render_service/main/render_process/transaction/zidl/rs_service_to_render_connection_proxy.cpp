@@ -33,8 +33,8 @@
 
 namespace OHOS {
 namespace Rosen {
-RSServiceToRenderConnectionProxy::RSServiceToRenderConnectionProxy(const sptr<IRemoteObject>& impl) :
-    IRemoteProxy<RSIServiceToRenderConnection>(impl) {}
+RSServiceToRenderConnectionProxy::RSServiceToRenderConnectionProxy(const sptr<IRemoteObject>& impl)
+    : IRemoteProxy<RSIServiceToRenderConnection>(impl) {}
 
 bool RSServiceToRenderConnectionProxy::NotifyScreenConnectInfoToRender(const sptr<RSScreenProperty>& screenProperty,
     const sptr<IRSRenderToComposerConnection>& renderToComposerConn,

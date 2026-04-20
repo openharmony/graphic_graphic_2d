@@ -37,7 +37,7 @@ void DoCreateDisplayNode(FuzzedDataProvider& fdp)
         .isMirrored = fdp.ConsumeBool(),
         .mirrorNodeId = fdp.ConsumeIntegral<uint64_t>(),
         .isSync = fdp.ConsumeBool() };
-    g_renderPipelineClient->CreateNode(displayNodeConfig, static_cast<NodeId>(nodeId));
+    g_renderPipelineClient->CreateDisplayNode(displayNodeConfig, static_cast<NodeId>(nodeId));
 }
 
 } // anonymous namespace

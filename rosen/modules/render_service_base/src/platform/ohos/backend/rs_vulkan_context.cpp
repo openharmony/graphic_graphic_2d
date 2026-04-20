@@ -421,7 +421,7 @@ bool RsVulkanInterface::CreateDevice(bool isProtected, bool isHtsEnable)
         ROSEN_LOGE("CreateDevice: No graphics queue family found");
         return false;
     }
-    // If multiple queues are needed, queue priorities should be set.	 
+    // If multiple queues are needed, queue priorities should be set.
     // when it is greater than 0.5 indicates high priority and less than 0.5 indicates low priority
     const float priorities[1] = {1.0f};
     VkDeviceQueueCreateFlags deviceQueueCreateFlags = isProtected ? VK_DEVICE_QUEUE_CREATE_PROTECTED_BIT : 0;

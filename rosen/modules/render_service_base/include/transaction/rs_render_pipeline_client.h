@@ -18,7 +18,6 @@
 
 #include "common/rs_common_def.h"
 #include "rs_client_render_comm_def_info.h"
-#include "platform/ohos/transaction/zidl/rs_iclient_to_render_connection.h"
 #include <functional>
 #include <map>
 #include <memory>
@@ -27,6 +26,7 @@
 #include <refbase.h>
 #include <surface_type.h>
 #ifndef ROSEN_CROSS_PLATFORM
+#include "platform/ohos/transaction/zidl/rs_iclient_to_render_connection.h"
 #include <surface.h>
 #include <utility>
 #endif
@@ -66,6 +66,7 @@
 
 namespace OHOS {
 namespace Rosen {
+class RSIClientToRenderConnection;
 // normal callback functor for client users.
 using ScreenChangeCallback = std::function<void(ScreenId, ScreenEvent, ScreenChangeReason, sptr<IRemoteObject>)>;
 using BrightnessInfoChangeCallback = std::function<void(ScreenId, BrightnessInfo)>;
@@ -91,7 +92,7 @@ public:
 
     void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
 
-    bool CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId);
+    bool CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId);
 
     bool CreateNode(const RSSurfaceRenderNodeConfig& config);
 

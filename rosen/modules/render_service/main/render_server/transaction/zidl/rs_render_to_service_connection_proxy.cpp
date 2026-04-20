@@ -21,8 +21,8 @@
 
 namespace OHOS {
 namespace Rosen {
-RSRenderToServiceConnectionProxy::RSRenderToServiceConnectionProxy(const sptr<IRemoteObject>& impl) :
-    IRemoteProxy<RSIRenderToServiceConnection>(impl) {}
+RSRenderToServiceConnectionProxy::RSRenderToServiceConnectionProxy(const sptr<IRemoteObject>& impl)
+    : IRemoteProxy<RSIRenderToServiceConnection>(impl) {}
 
 bool RSRenderToServiceConnectionProxy::NotifyRenderProcessInitFinished(
     const sptr<IRemoteObject>& serviceToRenderConnection, const sptr<IRemoteObject>& connectToRenderConnection)

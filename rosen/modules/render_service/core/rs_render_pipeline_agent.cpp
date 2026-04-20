@@ -169,7 +169,7 @@ ErrCode RSRenderPipelineAgent::ExecuteSynchronousTask(const std::shared_ptr<RSSy
     return ERR_OK;
 }
 
-ErrCode RSRenderPipelineAgent::CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
+ErrCode RSRenderPipelineAgent::CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
     bool& success)
 {
     if (rsRenderPipeline_ == nullptr) {
