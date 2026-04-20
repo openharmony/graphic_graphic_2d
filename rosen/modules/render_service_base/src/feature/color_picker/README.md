@@ -70,11 +70,14 @@ Controls when color picks occur to prevent excessive GPU work:
 
 ```
 Main Thread (Prepare Phase)
-├─ PrepareColorPickers() - called every frame
+├─ QuickPrepare() - while traversing a node inside its current surface
+│  └─ If current surface dirty region intersects the color picker rect:
+│     └─ ScheduleColorPickIfReady() → PostTask(COLOR_PICK_THIS_FRAME, delay)
+├─ PrepareColorPickers() - called every frame after dirty collection
 │  ├─ CollectColorPickerNodeIds() - find all ColorPicker nodes
 │  └─ For each node:
 │     ├─ PrepareColorPickerFrame() - handle state transitions
-│     └─ If dirty region intersects:
+│     └─ If dirty region from surfaces below intersects:
 │        └─ ScheduleColorPickIfReady() → PostTask(COLOR_PICK_THIS_FRAME, delay)
 │
 Main Thread (Delayed Task)
@@ -105,7 +108,8 @@ Uses fence-based synchronization:
 
 ## HWC Integration
 
-When color picker needs to pick (`COLOR_PICK_THIS_FRAME`), HWC is disabled for intersecting surfaces via `HandleColorPickerHwcDisable()`.
+When color picker needs to pick (`COLOR_PICK_THIS_FRAME`),
+`HandleColorPickerHwcDisable()` disables HWC on intersecting surfaces.
 
 ## IPC Callback (CLIENT_CALLBACK Strategy)
 

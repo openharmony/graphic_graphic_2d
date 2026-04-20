@@ -3485,6 +3485,10 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeS
     // planning: only do this if node is dirty
     node.UpdateRenderParams();
 
+    if (curSurfaceDirtyManager_) {
+        ScheduleColorPickIfCurrentSurfaceDirty(node, *curSurfaceDirtyManager_);
+    }
+
     // Check if HWC should be disabled for ColorPicker node
     HandleColorPickerHwcDisable(node);
 
@@ -3545,6 +3549,8 @@ void RSUniRenderVisitor::UpdateFilterRegionInSkippedSurfaceNode(
         }
 #endif
 
+        ScheduleColorPickIfCurrentSurfaceDirty(*filterNode, dirtyManager);
+
         // Check if HWC should be disabled for ColorPicker node
         HandleColorPickerHwcDisable(*filterNode);
 
@@ -3574,6 +3580,8 @@ void RSUniRenderVisitor::CheckFilterNodeInSkippedSubTreeNeedClearCache(
         if (filterNode == nullptr) {
             continue;
         }
+
+        ScheduleColorPickIfCurrentSurfaceDirty(*filterNode, dirtyManager);
 
         // Check if HWC should be disabled for ColorPicker node
         HandleColorPickerHwcDisable(*filterNode);
@@ -3654,6 +3662,8 @@ void RSUniRenderVisitor::CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache(
         if (filterNode == nullptr) {
             continue;
         }
+
+        ScheduleColorPickIfCurrentSurfaceDirty(*filterNode, dirtyManager);
 
         // Check if HWC should be disabled for ColorPicker node
         HandleColorPickerHwcDisable(*filterNode);
@@ -4240,6 +4250,11 @@ bool RSUniRenderVisitor::IsCurrentSubTreeForcePrepare(RSRenderNode& node)
     return false;
 }
 
+namespace {
+void PostColorPickerStateTask(RSRenderNode::WeakPtr weakNode, DrawableV2::ColorPickerState state,
+    int64_t delayTime);
+}
+
 void RSUniRenderVisitor::HandleColorPickerHwcDisable(RSRenderNode& node)
 {
     auto colorPicker = node.GetColorPickerDrawable();
@@ -4251,6 +4266,33 @@ void RSUniRenderVisitor::HandleColorPickerHwcDisable(RSRenderNode& node)
         RectI colorPickerRect = node.GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
         hwcVisitor_->colorPickerHwcDisabledSurfaces_.emplace(curSurfaceNode_->GetId(),
             std::make_pair(node.GetId(), colorPickerRect));
+    }
+}
+
+void RSUniRenderVisitor::ScheduleColorPickIfCurrentSurfaceDirty(
+    RSRenderNode& node, RSDirtyRegionManager& dirtyManager)
+{
+    if (!curSurfaceNode_) {
+        return;
+    }
+
+    if (!RSColorPickerUtils::DirtyInCurrentSurface(node, dirtyManager.GetCurrentFrameDirtyRegion())) {
+        return;
+    }
+
+    auto drawable = node.GetColorPickerDrawable();
+    if (!drawable) {
+        RS_LOGW("ScheduleColorPickIfCurrentSurfaceDirty: node %" PRIu64 " missing drawable", node.GetId());
+        return;
+    }
+
+    auto* ctx = RSMainThread::Instance();
+    constexpr uint64_t DEFAULT_VSYNC_TIME = 0;
+    const uint64_t vsyncTime = ctx ? ctx->GetCurrentVsyncTime() : DEFAULT_VSYNC_TIME;
+    int64_t delayTime = drawable->ScheduleColorPickIfReady(vsyncTime);
+    if (delayTime >= 0) {
+        PostColorPickerStateTask(
+            node.weak_from_this(), DrawableV2::ColorPickerState::COLOR_PICK_THIS_FRAME, delayTime);
     }
 }
 
@@ -4310,7 +4352,7 @@ void RSUniRenderVisitor::PrepareColorPickers()
             PostColorPickerStateTask(filterNode->weak_from_this(), DrawableV2::ColorPickerState::PREPARING, 0);
         }
 
-        if (RSColorPickerUtils::IsColorPickerDirty(*filterNode, surfaces)) {
+        if (RSColorPickerUtils::DirtyInSurfacesBelow(*filterNode, surfaces)) {
             auto drawable = filterNode->GetColorPickerDrawable();
             if (!drawable) {
                 RS_LOGW("recorded colorPicker node doesn't have drawable");

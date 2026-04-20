@@ -378,6 +378,7 @@ private:
     void DisableOccludedHwcNodeInSkippedSubTree(const RSRenderNode& node) const;
 
     void HandleColorPickerHwcDisable(RSRenderNode& node);
+    void ScheduleColorPickIfCurrentSurfaceDirty(RSRenderNode& node, RSDirtyRegionManager& dirtyManager);
     /**
      * @brief Prepare color pickers with dirty region intersection checking
      */
