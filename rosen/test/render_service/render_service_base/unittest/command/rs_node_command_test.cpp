@@ -79,7 +79,7 @@ HWTEST_F(RSNodeCommandTest, MarkNodeGroupTest, TestSize.Level1)
 HWTEST_F(RSNodeCommandTest, MarkLayerTest, TestSize.Level1)
 {
     {
-        const std::string debugKey = "rosen.graphic.layerEnabled";
+        const std::string debugKey = "rosen.graphic.layerDebugEnabled";
         (void)system::SetParameter(debugKey, "1");
         EXPECT_TRUE(RSSystemProperties::GetLayerDebugEnabled());
 
@@ -95,7 +95,7 @@ HWTEST_F(RSNodeCommandTest, MarkLayerTest, TestSize.Level1)
         ASSERT_NE(canvasNode, nullptr);
     }
     {
-        const std::string debugKey = "rosen.graphic.layerEnabled";
+        const std::string debugKey = "rosen.graphic.layerDebugEnabled";
         (void)system::SetParameter(debugKey, "0");
         EXPECT_FALSE(RSSystemProperties::GetLayerDebugEnabled());
 

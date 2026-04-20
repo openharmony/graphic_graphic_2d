@@ -52,7 +52,7 @@ void RSLayerCacheManager::LayerCacheRegionDfx(
     auto layerRect = drawable->GetRenderParams()->GetBounds();
 
     Drawing::Brush brush;
-    brush.SetColor(Drawing::Color(0x8090EE90));
+    brush.SetColor(Drawing::Color(0x8090EE90)); // green
     brush.SetAntiAlias(true);
     brush.SetAlphaF(RECT_PEN_ALPHA);
     std::shared_ptr<Drawing::Typeface> typeFace = nullptr;
@@ -77,9 +77,9 @@ bool RSLayerCacheManager::ShouldEnableLayerCache(
     auto& params = drawable->GetRenderParams();
 
     // totalLayerCacheMB > LAYER_CACHE_SIZE_THRESHOLD is not mandatory. You can cancel it when adding a scenario.
-    bool shouldEnableLayerCache = (gpuMemMB + totalLayerCacheMB) > LAYER_CACHE_GPU_MEMORY_THRESHOLD ||
-                                 totalLayerCacheMB > LAYER_CACHE_SIZE_THRESHOLD;
-    if (shouldEnableLayerCache) {
+    bool shouldDisisableLayerCache = (gpuMemMB + totalLayerCacheMB) > LAYER_CACHE_GPU_MEMORY_THRESHOLD ||
+                                     totalLayerCacheMB > LAYER_CACHE_SIZE_THRESHOLD;
+    if (shouldDisisableLayerCache) {
         params->SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
         return false;
     }
@@ -89,7 +89,9 @@ bool RSLayerCacheManager::ShouldEnableLayerCache(
     auto height = bounds.GetHeight();
     totalLayerCacheMB += static_cast<float>(width * height * PER_PIXEL_SIZE) / (1024.f * 1024.f);
 
-    if (totalLayerCacheMB > LAYER_CACHE_SIZE_THRESHOLD) {
+    shouldDisisableLayerCache = (gpuMemMB + totalLayerCacheMB) > LAYER_CACHE_GPU_MEMORY_THRESHOLD ||
+                                totalLayerCacheMB > LAYER_CACHE_SIZE_THRESHOLD;
+    if (shouldDisisableLayerCache) {
         params->SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
         return false;
     }
