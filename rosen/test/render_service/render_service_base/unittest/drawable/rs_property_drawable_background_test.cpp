@@ -1292,6 +1292,92 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawable007, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RSShadowDrawable008
+ * @tc.desc: Test OnUpdate with SDF shape and clipBounds, clipBounds takes priority
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawable008, TestSize.Level1)
+{
+    NodeId id = 3;
+    RSRenderNode node(id);
+    auto shadowDrawable = std::make_shared<DrawableV2::RSShadowDrawable>();
+
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_UNION_OP_SHAPE);
+    EXPECT_NE(sdfShape, nullptr);
+    node.GetMutableRenderProperties().SetSDFShape(sdfShape);
+
+    Drawing::Path drawingPath;
+    drawingPath.AddRect(0, 0, 100, 100);
+    auto clipBounds = RSPath::CreateRSPath(drawingPath);
+    node.GetMutableRenderProperties().SetClipBounds(clipBounds);
+
+    node.GetMutableRenderProperties().SetShadowColor(Color());
+    node.GetMutableRenderProperties().SetShadowRadius(1.0f);
+    shadowDrawable->OnUpdate(node);
+    shadowDrawable->OnSync();
+    EXPECT_EQ(shadowDrawable->geContainer_, nullptr);
+}
+
+/**
+ * @tc.name: RSShadowDrawable009
+ * @tc.desc: Test OnUpdate with SDF shape and shadowPath, shadowPath takes priority
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawable009, TestSize.Level1)
+{
+    NodeId id = 3;
+    RSRenderNode node(id);
+    auto shadowDrawable = std::make_shared<DrawableV2::RSShadowDrawable>();
+
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_UNION_OP_SHAPE);
+    EXPECT_NE(sdfShape, nullptr);
+    node.GetMutableRenderProperties().SetSDFShape(sdfShape);
+
+    Drawing::Path drawingPath;
+    drawingPath.AddCircle(50, 50, 30);
+    auto shadowPath = RSPath::CreateRSPath(drawingPath);
+    node.GetMutableRenderProperties().SetShadowPath(shadowPath);
+
+    node.GetMutableRenderProperties().SetShadowColor(Color());
+    node.GetMutableRenderProperties().SetShadowRadius(1.0f);
+    shadowDrawable->OnUpdate(node);
+    shadowDrawable->OnSync();
+    EXPECT_EQ(shadowDrawable->geContainer_, nullptr);
+}
+
+/**
+ * @tc.name: RSShadowDrawable010
+ * @tc.desc: Test OnUpdate with SDF shape, shadowPath and clipBounds all set
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawable010, TestSize.Level1)
+{
+    NodeId id = 3;
+    RSRenderNode node(id);
+    auto shadowDrawable = std::make_shared<DrawableV2::RSShadowDrawable>();
+
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_UNION_OP_SHAPE);
+    EXPECT_NE(sdfShape, nullptr);
+    node.GetMutableRenderProperties().SetSDFShape(sdfShape);
+
+    Drawing::Path shadowDrawingPath;
+    shadowDrawingPath.AddCircle(50, 50, 30);
+    auto shadowPath = RSPath::CreateRSPath(shadowDrawingPath);
+    node.GetMutableRenderProperties().SetShadowPath(shadowPath);
+
+    Drawing::Path clipDrawingPath;
+    clipDrawingPath.AddRect(0, 0, 100, 100);
+    auto clipBounds = RSPath::CreateRSPath(clipDrawingPath);
+    node.GetMutableRenderProperties().SetClipBounds(clipBounds);
+
+    node.GetMutableRenderProperties().SetShadowColor(Color());
+    node.GetMutableRenderProperties().SetShadowRadius(1.0f);
+    shadowDrawable->OnUpdate(node);
+    shadowDrawable->OnSync();
+    EXPECT_EQ(shadowDrawable->geContainer_, nullptr);
+}
+
+/**
  * @tc.name: RSMaterialFilterDrawableOnUpdate003
  * @tc.desc: Test OnUpdate with clipBounds set
  * @tc.type:FUNC
