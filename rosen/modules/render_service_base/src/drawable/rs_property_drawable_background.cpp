@@ -151,7 +151,7 @@ void RSShadowDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect
     if (colorStrategy_ != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
         shadowColor = RSPropertyDrawableUtils::GetColorForShadowSyn(canvas, path, color_, colorStrategy_);
     }
-    bool isSdfShadow = geContainer_ && ROSEN_GE(radius_, 0.f);
+    bool isSdfShadow = geContainer_.get() != nullptr;
     if (isSdfShadow) {
         auto drawingShadowColor = Drawing::Color(shadowColor.GetRed(), shadowColor.GetGreen(),
             shadowColor.GetBlue(), shadowColor.GetAlpha());
