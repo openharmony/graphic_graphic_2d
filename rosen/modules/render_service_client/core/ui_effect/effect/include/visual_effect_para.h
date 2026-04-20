@@ -35,7 +35,6 @@ public:
         ROUNDED_RECT_FLOWLIGHT_EFFECT,
         HARMONIUM_EFFECT,
         FROSTED_GLASS_EFFECT,
-        SPATIAL_POINT_LIGHT_EFFECT,
         // The value in OpenHarmony project should be less than this value.
         HDS_EFFECT_BEGIN = 2048,
     };
