@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef TEST_FLIP_EFFECT_FUZZER_H
-#define TEST_FLIP_EFFECT_FUZZER_H
+#ifndef TEST_TEXTFLIPEFFECT_FUZZER_H
+#define TEST_TEXTFLIPEFFECT_FUZZER_H
 
 #include <climits>
 #include <cstdint>
@@ -23,4 +23,4 @@
 
 #define FUZZ_PROJECT_NAME "textflipeffect_fuzzer"
 
-#endif // TEST_FLIP_EFFECT_FUZZER_H
+#endif // TEST_TEXTFLIPEFFECT_FUZZER_H

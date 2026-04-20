@@ -16,7 +16,7 @@
 #include <cstddef>
 #include <fuzzer/FuzzedDataProvider.h>
 #include "rosen_text/symbol_gradient.h"
-#include "symbol_gradient_fuzzer.h"
+#include "symbolgradient_fuzzer.h"
 
 namespace OHOS {
 namespace Rosen {

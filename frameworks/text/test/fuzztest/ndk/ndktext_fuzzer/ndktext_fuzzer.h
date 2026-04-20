@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,15 +13,9 @@
  * limitations under the License.
  */
 
-#ifndef TEST_TEXT_LINE_BASE_FUZZER_H
-#define TEST_TEXT_LINE_BASE_FUZZER_H
+#ifndef TEST_FUZZTEST_NDKTEXT_FUZZER_H
+#define TEST_FUZZTEST_NDKTEXT_FUZZER_H
 
-#include <climits>
-#include <cstdint>
-#include <cstdio>
-#include <cstdlib>
+#define FUZZ_PROJECT_NAME "ndktext_fuzzer"
 
-#define FUZZ_PROJECT_NAME "textlinebase_fuzzer"
-
-constexpr inline size_t DATA_MAX_ENUM_SIZE1 = 4;
-#endif // TEST_TEXT_LINE_BASE_FUZZER_H
+#endif // TEST_FUZZTEST_NDKTEXT_FUZZER_H

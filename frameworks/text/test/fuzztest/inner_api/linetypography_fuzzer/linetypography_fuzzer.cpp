@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "line_typography_fuzzer.h"
+#include "linetypography_fuzzer.h"
 
 #include <codecvt>
 #include <cstddef>

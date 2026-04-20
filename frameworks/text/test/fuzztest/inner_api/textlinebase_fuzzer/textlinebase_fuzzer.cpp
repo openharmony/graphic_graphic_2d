@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "text_line_base_fuzzer.h"
+#include "textlinebase_fuzzer.h"
 
 #include <cstddef>
 #include <fuzzer/FuzzedDataProvider.h>

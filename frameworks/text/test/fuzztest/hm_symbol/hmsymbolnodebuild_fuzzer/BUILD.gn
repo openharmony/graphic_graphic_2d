@@ -32,7 +32,7 @@ ohos_fuzztest("HmSymbolNodeBuildFuzzTest") {
     "../",
   ]
 
-  sources = [ "hm_symbol_node_build_fuzzer.cpp" ]
+  sources = [ "hmsymbolnodebuild_fuzzer.cpp" ]
 
   cflags = [
     "-g",

@@ -1,4 +1,4 @@
-# Copyright (c) 2023 Huawei Device Co., Ltd.
+# Copyright (c) 2026 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -18,7 +18,7 @@ import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 ##############################fuzztest##########################################
-ohos_fuzztest("NdkTypographyFuzzTest") {
+ohos_fuzztest("NdkStyleAttrsFuzzTest") {
   module_out_path = text_fuzz_out_path
   fuzz_config_file = "."
 
@@ -37,13 +37,12 @@ ohos_fuzztest("NdkTypographyFuzzTest") {
     "-fno-omit-frame-pointer",
     "-std=c++17",
   ]
-  sources = [ "ndktypography_fuzzer.cpp" ]
+  sources = [ "ndkstyleattrs_fuzzer.cpp" ]
 
   deps = [
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk:native_drawing_ndk",
   ]
-  external_deps = [ "c_utils:utils" ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
@@ -55,7 +54,7 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    ":NdkTypographyFuzzTest",
+    ":NdkStyleAttrsFuzzTest",
   ]
 }
 ###############################################################################
