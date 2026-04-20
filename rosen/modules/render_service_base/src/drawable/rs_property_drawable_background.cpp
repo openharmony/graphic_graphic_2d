@@ -100,15 +100,19 @@ bool RSShadowDrawable::OnUpdate(const RSRenderNode& node)
     needSync_ = true;
 
     stagingGeContainer_ = nullptr;
-    if (auto sdfShape = properties.GetSDFShape()) {
-        std::shared_ptr<Drawing::GEVisualEffect> geVisualEffect = sdfShape->GenerateGEVisualEffect();
-        std::shared_ptr<Drawing::GEShaderShape> geShape =
-            geVisualEffect ? geVisualEffect->GenerateShaderShape() : nullptr;
-        auto geFilter = std::make_shared<Drawing::GEVisualEffect>(
-            Drawing::GE_SHADER_SDF_SHADOW, Drawing::DrawingPaintType::BRUSH);
-        geFilter->SetParam(Drawing::GE_SHADER_SDF_SHADOW_SHAPE, geShape);
-        stagingGeContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
-        stagingGeContainer_->AddToChainedFilter(geFilter);
+    auto shadowPath = properties.GetShadowPath();
+    bool hasClipBounds = properties.GetClipBounds() != nullptr;
+    if (!shadowPath && !hasClipBounds) {
+        if (auto sdfShape = properties.GetSDFShape()) {
+            std::shared_ptr<Drawing::GEVisualEffect> geVisualEffect = sdfShape->GenerateGEVisualEffect();
+            std::shared_ptr<Drawing::GEShaderShape> geShape =
+                geVisualEffect ? geVisualEffect->GenerateShaderShape() : nullptr;
+            auto geFilter = std::make_shared<Drawing::GEVisualEffect>(
+                Drawing::GE_SHADER_SDF_SHADOW, Drawing::DrawingPaintType::BRUSH);
+            geFilter->SetParam(Drawing::GE_SHADER_SDF_SHADOW_SHAPE, geShape);
+            stagingGeContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
+            stagingGeContainer_->AddToChainedFilter(geFilter);
+        }
     }
     return true;
 }
