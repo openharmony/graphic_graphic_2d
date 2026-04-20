@@ -998,6 +998,10 @@ bool RSMaterialFilterDrawable::OnUpdate(const RSRenderNode& node)
         drawingFilter, node.GetId());
     stagingEmptyShape_ = node.GetRenderProperties().GetSDFShape() &&
         node.GetRenderProperties().GetSDFShape()->GetType() == RSNGEffectType::SDF_EMPTY_SHAPE;
+    auto clipBounds = node.GetRenderProperties().GetClipBounds();
+    stagingClipPath_ = clipBounds
+        ? std::make_shared<Drawing::Path>(clipBounds->GetDrawingPath())
+        : nullptr;
     RecordFilterInfos(rsFilter);
     needSync_ = true;
     stagingFilter_ = rsFilter;
@@ -1009,6 +1013,7 @@ void RSMaterialFilterDrawable::OnSync()
 {
     if (needSync_) {
         emptyShape_ = stagingEmptyShape_;
+        clipPath_ = std::move(stagingClipPath_);
     }
     RSFilterDrawable::OnSync();
 }
@@ -1019,10 +1024,14 @@ void RSMaterialFilterDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Re
         return;
     }
     auto filter = std::static_pointer_cast<RSDrawingFilter>(filter_);
+    Drawing::AutoCanvasRestore acr(*canvas, clipPath_ != nullptr);
+    if (clipPath_) {
+        canvas->ClipPath(*clipPath_, Drawing::ClipOp::INTERSECT, true);
+    }
     if (renderIntersectWithDRM_) {
         RSPropertyDrawableUtils::DrawColorUsingSDFWithDRM(canvas, rect, renderIsDarkColorMode_,
             filter->GetGEContainer(), Drawing::GE_FILTER_FROSTED_GLASS, Drawing::GE_FILTER_FROSTED_GLASS_SHAPE);
-            return;
+        return;
     }
     RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(canvas, filter);
     RectF bound = (rect != nullptr ?
