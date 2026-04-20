@@ -1058,27 +1058,25 @@ GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light
 /*
  * Test spatial point light with frame gradient mask
  * Tests frame gradient mask with different corner radius
+ * FrameGradientMask: InnerFrameWidth and OuterFrameWidth are float types
  */
 GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Mask_FrameGradient_Test)
 {
     const size_t columnCount = 4;
     const size_t rowCount = 1;
-    const std::vector<float> cornerRadii = {0.0f, 0.1f, 0.25f, 0.5f};
+    const std::vector<float> cornerRadii = {0.0f, 10.0f, 20.0f, 50.0f};
+    constexpr float innerFrameWidth = 12.0f;
+    constexpr float outerFrameWidth = 24.0f;
 
     for (size_t i = 0; i < cornerRadii.size(); i++) {
         auto frameGradientMask = std::make_shared<RSNGFrameGradientMask>();
         frameGradientMask->Setter<FrameGradientMaskInnerBezierTag>(Vector4f{0.0f, 0.0f, 1.0f, 1.0f});
-        frameGradientMask->Setter<FrameGradientMaskOuterBezierTag>(Vector4f{0.0f, 0.0f, 1.0f, 1.0f});
+        frameGradientMask->Setter<FrameGradientMaskOuterBezierTag>(Vector4f{0.0f, 1.0f, 0.0f, 1.0f});
         frameGradientMask->Setter<FrameGradientMaskCornerRadiusTag>(cornerRadii[i]);
-        frameGradientMask->Setter<FrameGradientMaskInnerFrameWidthTag>(Vector2f{0.1f, 0.1f});
-        frameGradientMask->Setter<FrameGradientMaskOuterFrameWidthTag>(Vector2f{0.2f, 0.2f});
-        frameGradientMask->Setter<FrameGradientMaskRectWHTag>(Vector2f{1.0f, 1.0f});
+        frameGradientMask->Setter<FrameGradientMaskInnerFrameWidthTag>(innerFrameWidth);
+        frameGradientMask->Setter<FrameGradientMaskOuterFrameWidthTag>(outerFrameWidth);
+        frameGradientMask->Setter<FrameGradientMaskRectWHTag>(Vector2f{300.0f, 500.0f});
         frameGradientMask->Setter<FrameGradientMaskRectPosTag>(Vector2f{0.0f, 0.0f});
-        frameGradientMask->Setter<FrameGradientMaskAxialFeatherStrengthTag>(0.5f);
-        frameGradientMask->Setter<FrameGradientMaskAxialCenterTag>(0.5f);
-        frameGradientMask->Setter<FrameGradientMaskAxialCoreWidthTag>(0.1f);
-        frameGradientMask->Setter<FrameGradientMaskAxialDirectionTag>(0.0f);
-        frameGradientMask->Setter<FrameGradientMaskBoxAngleDegTag>(0.0f);
 
         auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
         InitSpatialPointLight(spatialPointLight);
@@ -1091,32 +1089,24 @@ GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light
 
 /*
  * Test spatial point light with frame gradient mask and inner/outer frame width
+ * FrameGradientMask: InnerFrameWidth and OuterFrameWidth are float types
  */
 GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Mask_FrameGradient_Width_Test)
 {
     const size_t columnCount = 4;
     const size_t rowCount = 1;
-    const std::vector<std::pair<Vector2f, Vector2f>> frameWidthParams = {
-        {Vector2f{0.05f, 0.05f}, Vector2f{0.1f, 0.1f}},
-        {Vector2f{0.1f, 0.1f}, Vector2f{0.2f, 0.2f}},
-        {Vector2f{0.2f, 0.2f}, Vector2f{0.3f, 0.3f}},
-        {Vector2f{0.0f, 0.0f}, Vector2f{0.5f, 0.5f}}
-    };
+    const std::vector<float> innerFrameWidthValues = {5.0f, 10.0f, 15.0f, 20.0f};
+    const std::vector<float> outerFrameWidthValues = {10.0f, 15.0f, 20.0f, 25.0f};
 
-    for (size_t i = 0; i < frameWidthParams.size(); i++) {
+    for (size_t i = 0; i < innerFrameWidthValues.size(); i++) {
         auto frameGradientMask = std::make_shared<RSNGFrameGradientMask>();
         frameGradientMask->Setter<FrameGradientMaskInnerBezierTag>(Vector4f{0.0f, 0.0f, 1.0f, 1.0f});
-        frameGradientMask->Setter<FrameGradientMaskOuterBezierTag>(Vector4f{0.0f, 0.0f, 1.0f, 1.0f});
-        frameGradientMask->Setter<FrameGradientMaskCornerRadiusTag>(0.25f);
-        frameGradientMask->Setter<FrameGradientMaskInnerFrameWidthTag>(frameWidthParams[i].first);
-        frameGradientMask->Setter<FrameGradientMaskOuterFrameWidthTag>(frameWidthParams[i].second);
-        frameGradientMask->Setter<FrameGradientMaskRectWHTag>(Vector2f{1.0f, 1.0f});
+        frameGradientMask->Setter<FrameGradientMaskOuterBezierTag>(Vector4f{0.0f, 1.0f, 0.0f, 1.0f});
+        frameGradientMask->Setter<FrameGradientMaskCornerRadiusTag>(25.0f);
+        frameGradientMask->Setter<FrameGradientMaskInnerFrameWidthTag>(innerFrameWidthValues[i]);
+        frameGradientMask->Setter<FrameGradientMaskOuterFrameWidthTag>(outerFrameWidthValues[i]);
+        frameGradientMask->Setter<FrameGradientMaskRectWHTag>(Vector2f{300.0f, 500.0f});
         frameGradientMask->Setter<FrameGradientMaskRectPosTag>(Vector2f{0.0f, 0.0f});
-        frameGradientMask->Setter<FrameGradientMaskAxialFeatherStrengthTag>(0.5f);
-        frameGradientMask->Setter<FrameGradientMaskAxialCenterTag>(0.5f);
-        frameGradientMask->Setter<FrameGradientMaskAxialCoreWidthTag>(0.1f);
-        frameGradientMask->Setter<FrameGradientMaskAxialDirectionTag>(0.0f);
-        frameGradientMask->Setter<FrameGradientMaskBoxAngleDegTag>(0.0f);
 
         auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
         InitSpatialPointLight(spatialPointLight);
