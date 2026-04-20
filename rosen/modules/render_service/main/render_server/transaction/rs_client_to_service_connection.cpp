@@ -1234,70 +1234,94 @@ int32_t RSClientToServiceConnection::GetScreenHDRCapability(ScreenId id, RSScree
     return screenManagerAgent_->GetScreenHDRCapability(id, screenHdrCapability);
 }
 
-int32_t RSClientToServiceConnection::GetPixelFormat(ScreenId id, GraphicPixelFormat& pixelFormat)
+ErrCode RSClientToServiceConnection::GetPixelFormat(ScreenId id, GraphicPixelFormat& pixelFormat, int32_t& resCode)
 {
     if (!screenManagerAgent_) {
+        resCode = StatusCode::SCREEN_NOT_FOUND;
         return ERR_INVALID_VALUE;
     }
-    return screenManagerAgent_->GetPixelFormat(id, pixelFormat);
+    resCode = screenManagerAgent_->GetPixelFormat(id, pixelFormat);
+    return ERR_OK;
 }
 
-int32_t RSClientToServiceConnection::SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat)
-{
-    if (!screenManagerAgent_) {
-        return StatusCode::SCREEN_NOT_FOUND;
-    }
-    return screenManagerAgent_->SetPixelFormat(id, pixelFormat);
-}
 
-int32_t RSClientToServiceConnection::GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats,
-    sptr<RSIScreenSupportedHdrFormatsCallback> callback)
+ErrCode RSClientToServiceConnection::SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat, int32_t& resCode)
 {
     if (!screenManagerAgent_) {
-        return StatusCode::SCREEN_NOT_FOUND;
-    }
-    return screenManagerAgent_->GetScreenSupportedHDRFormats(id, hdrFormats, callback);
-}
-
-int32_t RSClientToServiceConnection::GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat)
-{
-    if (!screenManagerAgent_) {
+        resCode = StatusCode::SCREEN_NOT_FOUND;
         return ERR_INVALID_VALUE;
     }
-    return screenManagerAgent_->GetScreenHDRFormat(id, hdrFormat);
-}
-
-int32_t RSClientToServiceConnection::SetScreenHDRFormat(ScreenId id, int32_t modeIdx)
-{
-    if (!screenManagerAgent_) {
+    if (pixelFormat < 0 ||
+        (pixelFormat >= GRAPHIC_PIXEL_FMT_END_OF_VALID && pixelFormat != GRAPHIC_PIXEL_FMT_VENDER_MASK)) {
+        resCode = StatusCode::INVALID_ARGUMENTS;
         return ERR_INVALID_VALUE;
     }
-    return screenManagerAgent_->SetScreenHDRFormat(id, modeIdx);
+    resCode = screenManagerAgent_->SetPixelFormat(id, pixelFormat);
+    return ERR_OK;
 }
 
-int32_t RSClientToServiceConnection::GetScreenSupportedColorSpaces(
-    ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces)
+ErrCode RSClientToServiceConnection::GetScreenSupportedHDRFormats(ScreenId id,
+    std::vector<ScreenHDRFormat>& hdrFormats, int32_t& resCode, sptr<RSIScreenSupportedHdrFormatsCallback> callback)
 {
     if (!screenManagerAgent_) {
-        return StatusCode::SCREEN_NOT_FOUND;
+        resCode = StatusCode::SCREEN_NOT_FOUND;
+        return ERR_INVALID_VALUE;
     }
-    return screenManagerAgent_->GetScreenSupportedColorSpaces(id, colorSpaces);
+    resCode = screenManagerAgent_->GetScreenSupportedHDRFormats(id, hdrFormats, callback);
+    return ERR_OK;
 }
 
-int32_t RSClientToServiceConnection::GetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType& colorSpace)
+ErrCode RSClientToServiceConnection::GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat, int32_t& resCode)
 {
     if (!screenManagerAgent_) {
-        return StatusCode::SCREEN_NOT_FOUND;
+        resCode = StatusCode::SCREEN_NOT_FOUND;
+        return ERR_INVALID_VALUE;
     }
-    return screenManagerAgent_->GetScreenColorSpace(id, colorSpace);
+    resCode = screenManagerAgent_->GetScreenHDRFormat(id, hdrFormat);
+    return ERR_OK;
 }
 
-int32_t RSClientToServiceConnection::SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace)
+ErrCode RSClientToServiceConnection::SetScreenHDRFormat(ScreenId id, int32_t modeIdx, int32_t& resCode)
 {
     if (!screenManagerAgent_) {
-        return StatusCode::SCREEN_NOT_FOUND;
+        resCode = StatusCode::SCREEN_NOT_FOUND;
+        return ERR_INVALID_VALUE;
     }
-    return screenManagerAgent_->SetScreenColorSpace(id, colorSpace);
+    resCode = screenManagerAgent_->SetScreenHDRFormat(id, modeIdx);
+    return ERR_OK;
+}
+
+ErrCode RSClientToServiceConnection::GetScreenSupportedColorSpaces(
+    ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces, int32_t& resCode)
+{
+    if (!screenManagerAgent_) {
+        resCode = StatusCode::SCREEN_NOT_FOUND;
+        return ERR_INVALID_VALUE;
+    }
+    resCode = screenManagerAgent_->GetScreenSupportedColorSpaces(id, colorSpaces);
+    return ERR_OK;
+}
+
+ErrCode RSClientToServiceConnection::GetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType& colorSpace,
+    int32_t& resCode)
+{
+    if (!screenManagerAgent_) {
+        resCode = StatusCode::SCREEN_NOT_FOUND;
+        return ERR_INVALID_VALUE;
+    }
+    resCode = screenManagerAgent_->GetScreenColorSpace(id, colorSpace);
+    return ERR_OK;
+}
+
+ErrCode RSClientToServiceConnection::SetScreenColorSpace(
+    ScreenId id, GraphicCM_ColorSpaceType colorSpace, int32_t& resCode)
+{
+    if (!screenManagerAgent_) {
+        resCode = StatusCode::SCREEN_NOT_FOUND;
+        return ERR_INVALID_VALUE;
+    }
+    resCode = screenManagerAgent_->SetScreenColorSpace(id, colorSpace);
+    return ERR_OK;
 }
 
 int32_t RSClientToServiceConnection::GetScreenType(ScreenId id, RSScreenType& screenType)
