@@ -255,12 +255,12 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_PointLight_Extreme
         lightSource->SetBounds({ 100, (int)i * 350 + 100, 100, 100 });
         lightSource->SetLightPosition(
             std::get<0>(lightPositions[i]), std::get<1>(lightPositions[i]), std::get<2>(lightPositions[i]));
-        lightSource->SetLightIntensity(LIGHT_INTENSITY_DEFAULT);
+        lightSource->SetLightIntensity(10.f);
         lightSource->SetLightColor(COLOR_YELLOW);
 
-        lightSource->SetBackgroundColor(COLOR_RED);
+        lightSource->SetBackgroundColor(COLOR_DARK_GRAY);
         lightSource->SetIlluminatedType(static_cast<uint32_t>(IlluminatedType::CONTENT));
-        lightSource->SetIlluminatedBorderWidth(20.0f);
+        lightSource->SetIlluminatedBorderWidth(40.0f);
         GetRootNode()->AddChild(lightSource);
         RegisterNode(lightSource);
     }
@@ -289,19 +289,18 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_PointLight_Extreme
 /* Test: multiple light sources illuminating single node */
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_PointLight_Multiple_Sources)
 {
-    auto lightSource = RSCanvasNode::Create();
-    lightSource->SetBackgroundColor(COLOR_RED);
-    lightSource->SetIlluminatedType(static_cast<uint32_t>(IlluminatedType::CONTENT));
-    lightSource->SetIlluminatedBorderWidth(30.0f);
-
-
     std::vector<std::tuple<float, float, float, uint32_t>> lightParams = {
         { 0.0f, 0.0f, LIGHT_HEIGHT_DEFAULT, COLOR_RED }, { 400.0f, 0.0f, LIGHT_HEIGHT_DEFAULT, COLOR_GREEN },
         { 0.0f, 400.0f, LIGHT_HEIGHT_DEFAULT, COLOR_BLUE }, { 400.0f, 400.0f, LIGHT_HEIGHT_DEFAULT, COLOR_YELLOW }
     };
 
     for (const auto& params : lightParams) {
+        auto lightSource = RSCanvasNode::Create();
         lightSource->SetBounds({ std::get<0>(params), std::get<1>(params), 100, 100 });
+        lightSource->SetBackgroundColor(COLOR_DARK_GRAY);
+        lightSource->SetIlluminatedType(static_cast<uint32_t>(IlluminatedType::CONTENT));
+        lightSource->SetIlluminatedBorderWidth(30.0f);
+
         lightSource->SetLightPosition(LIGHT_HEIGHT_DEFAULT, LIGHT_HEIGHT_DEFAULT, std::get<2>(params));
         lightSource->SetLightIntensity(LIGHT_INTENSITY_DEFAULT);
         lightSource->SetLightColor(std::get<3>(params));
@@ -313,16 +312,16 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_PointLight_Multipl
 /* Test: single light source illuminating multiple nodes */
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_PointLight_Multiple_Illuminated)
 {
-    auto lightSource = RSCanvasNode::Create();
-    lightSource->SetLightPosition(100.0f, 100.0f, 100.0f);
-    lightSource->SetLightIntensity(LIGHT_INTENSITY_DEFAULT);
-    lightSource->SetLightColor(COLOR_YELLOW);
-
     std::vector<std::tuple<int, int, uint32_t>> illuminatedParams = { { 100, 100, COLOR_RED },
         { 500, 100, COLOR_GREEN }, { 100, 500, COLOR_BLUE }, { 500, 500, COLOR_YELLOW } };
 
     for (const auto& params : illuminatedParams) {
+        auto lightSource = RSCanvasNode::Create();
         lightSource->SetBounds({ std::get<0>(params), std::get<1>(params), 200, 200 });
+        lightSource->SetLightPosition(100.0f, 100.0f, 100.0f);
+        lightSource->SetLightIntensity(LIGHT_INTENSITY_DEFAULT);
+        lightSource->SetLightColor(COLOR_YELLOW);
+
         lightSource->SetBackgroundColor(std::get<2>(params));
         lightSource->SetIlluminatedType(static_cast<uint32_t>(IlluminatedType::CONTENT));
         lightSource->SetIlluminatedBorderWidth(25.0f);
@@ -334,18 +333,18 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_PointLight_Multipl
 /* Test: different lightSource types */
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_PointLight_Different_Types)
 {
-    auto lightSource = RSCanvasNode::Create();
-    lightSource->SetLightPosition(100.0f, 100.0f, 80.0f);
-    lightSource->SetLightIntensity(LIGHT_INTENSITY_DEFAULT);
-    lightSource->SetLightColor(COLOR_YELLOW);
-
     std::vector<uint32_t> illuminatedTypes = { 2, 3, 4, 5, 6 };
 
     for (size_t i = 0; i < illuminatedTypes.size(); i++) {
+        auto lightSource = RSCanvasNode::Create();
         int x = (i % 3) * 350 + 100;
         int y = (i / 3) * 400 + 100;
         lightSource->SetBounds({ x, y, 250, 250 });
-        lightSource->SetBackgroundColor(COLOR_RED);
+        lightSource->SetLightPosition(100.0f, 100.0f, 80.0f);
+        lightSource->SetLightIntensity(30.f);
+        lightSource->SetLightColor(COLOR_YELLOW);
+
+        lightSource->SetBackgroundColor(COLOR_DARK_GRAY);
         lightSource->SetIlluminatedType(illuminatedTypes[i]);
         lightSource->SetIlluminatedBorderWidth(20.0f);
         GetRootNode()->AddChild(lightSource);
@@ -356,17 +355,19 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_PointLight_Differe
 /* Test: varying lightSource border widths */
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_PointLight_Varying_Border_Widths)
 {
-    auto lightSource = RSCanvasNode::Create();
-    lightSource->SetLightPosition(100.0f, 100.0f, 80.0f);
-    lightSource->SetLightIntensity(LIGHT_INTENSITY_DEFAULT);
-    lightSource->SetLightColor(COLOR_YELLOW);
+
 
     std::vector<float> borderWidths = { 5.0f, 15.0f, 30.0f, LIGHT_HEIGHT_DEFAULT, 80.0f };
 
     for (size_t i = 0; i < borderWidths.size(); i++) {
+        auto lightSource = RSCanvasNode::Create();
         int x = (i % 3) * 350 + 100;
         int y = (i / 3) * 400 + 100;
         lightSource->SetBounds({ x, y, 250, 250 });
+        lightSource->SetLightPosition(100.0f, 100.0f, 80.0f);
+        lightSource->SetLightIntensity(LIGHT_INTENSITY_DEFAULT);
+        lightSource->SetLightColor(COLOR_YELLOW);
+
         lightSource->SetBackgroundColor(COLOR_RED);
         lightSource->SetIlluminatedType(static_cast<uint32_t>(IlluminatedType::CONTENT));
         lightSource->SetIlluminatedBorderWidth(borderWidths[i]);
@@ -387,7 +388,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_PointLight_Differe
         lightSource->SetLightIntensity(LIGHT_INTENSITY_DEFAULT);
         lightSource->SetLightColor(COLOR_YELLOW);
 
-        lightSource->SetBackgroundColor(COLOR_RED);
+        lightSource->SetBackgroundColor(COLOR_DARK_GRAY);
         lightSource->SetIlluminatedType(static_cast<uint32_t>(IlluminatedType::CONTENT));
         lightSource->SetIlluminatedBorderWidth(20.0f);
         GetRootNode()->AddChild(lightSource);
@@ -438,22 +439,16 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_PointLight_Complex
         { 800.0f, 200.0f, 60.0f, COLOR_GREEN }, { 200.0f, 800.0f, 60.0f, COLOR_BLUE },
         { 800.0f, 800.0f, 60.0f, COLOR_YELLOW } };
 
+    std::vector<std::tuple<int, int, uint32_t>> illuminatedParams = { { 350, 350, COLOR_GRAY },
+        { 650, 350, COLOR_GRAY }, { 350, 650, COLOR_GRAY }, { 650, 650, COLOR_GRAY } };
+
     for (const auto& params : lightParams) {
         auto lightSource = RSCanvasNode::Create();
         lightSource->SetBounds({ std::get<0>(params) - 50, std::get<1>(params) - 50, 100, 100 });
         lightSource->SetLightPosition(LIGHT_HEIGHT_DEFAULT, LIGHT_HEIGHT_DEFAULT, std::get<2>(params));
         lightSource->SetLightIntensity(LIGHT_INTENSITY_DEFAULT);
         lightSource->SetLightColor(std::get<3>(params));
-        GetRootNode()->AddChild(lightSource);
-        RegisterNode(lightSource);
-    }
 
-    std::vector<std::tuple<int, int, uint32_t>> illuminatedParams = { { 350, 350, COLOR_GRAY },
-        { 650, 350, COLOR_GRAY }, { 350, 650, COLOR_GRAY }, { 650, 650, COLOR_GRAY } };
-
-    for (const auto& params : illuminatedParams) {
-        auto lightSource = RSCanvasNode::Create();
-        lightSource->SetBounds({ std::get<0>(params), std::get<1>(params), 200, 200 });
         lightSource->SetBackgroundColor(std::get<2>(params));
         lightSource->SetIlluminatedType(static_cast<uint32_t>(IlluminatedType::CONTENT));
         lightSource->SetIlluminatedBorderWidth(25.0f);
