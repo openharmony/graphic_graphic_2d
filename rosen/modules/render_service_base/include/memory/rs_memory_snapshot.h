@@ -28,15 +28,21 @@ struct MemorySnapshotInfo {
     int32_t uid;
     std::string bundleName = "";
     size_t cpuMemory = 0;
-    size_t gpuMemory = 0;
+    size_t nativeGpuMemory = 0;
+    size_t engineGpuMemory = 0;
 
     size_t TotalMemory() const
     {
-        return cpuMemory + gpuMemory;
+        return cpuMemory + nativeGpuMemory + engineGpuMemory;
+    }
+
+    size_t GpuMemory() const
+    {
+        return nativeGpuMemory + engineGpuMemory;
     }
 };
 
-using MemoryOverflowCalllback = std::function<bool(pid_t, uint64_t, bool)>;
+using MemoryOverflowCalllback = std::function<bool(pid_t, MemorySnapshotInfo info, bool)>;
 class RSB_EXPORT MemorySnapshot {
 public:
     static MemorySnapshot& Instance();
@@ -46,7 +52,8 @@ public:
     void EraseSnapshotInfoByPid(const std::set<pid_t>& exitedPidSet);
     void UpdateGpuMemoryInfo(const std::unordered_map<pid_t, size_t>& gpuInfo,
         std::unordered_map<pid_t, MemorySnapshotInfo>& pidForReport, bool& isTotalOver);
-    void InitMemoryLimit(MemoryOverflowCalllback callback, uint64_t warning, uint64_t overflow, uint64_t totalSize);
+    void InitMemoryLimit(MemoryOverflowCalllback callback, uint64_t warning, uint64_t cpuOverflow,
+        uint64_t gpuOverflow, uint64_t totalSize);
     void GetMemorySnapshot(std::unordered_map<pid_t, MemorySnapshotInfo>& map);
     void GetDirtyMemorySnapshot(std::vector<pid_t>& list);
     void FillMemorySnapshot(std::unordered_map<pid_t, MemorySnapshotInfo>& infoMap);
@@ -54,6 +61,18 @@ public:
     void PrintMemorySnapshotToHilog();
     void SetMemSnapshotPrintHilogLimit(int memSnapshotPrintHilogLimit);
     int GetMemSnapshotPrintHilogLimit();
+    
+    /**
+    * @brief Update GPU memory information for a process.
+    * @param pid Process ID.
+    * @param memorysize Memory size in bytes.
+    * @param isAdd True to allocate, false to free.
+    * @param isEngine True for engine GPU memory, false for native GPU memory.
+    * @return true on success.
+    */
+    bool UpdateGpuInfo(pid_t pid, size_t memorysize, bool isAdd, bool isEngine);
+    void SetAbnormalProcess(pid_t pid);
+    bool IsAbnormalProcess(pid_t pid);
 private:
     MemorySnapshot() = default;
     ~MemorySnapshot() = default;
@@ -65,6 +84,7 @@ private:
     void FindMaxValues(std::vector<MemorySnapshotInfo>& memorySnapshotsList,
         size_t& maxCpu, size_t& maxGpu, size_t& maxSum);
     float CalculateRiskScore(const MemorySnapshotInfo memorySnapshotInfo, size_t maxCpu, size_t maxGpu, size_t maxSum);
+    void UpdateGpuInfoHelper(MemorySnapshotInfo& info, const size_t memorySize, bool isAdd, bool isEngine);
 
     std::mutex mutex_;
     std::unordered_map<pid_t, MemorySnapshotInfo> appMemorySnapshots_;
@@ -72,11 +92,14 @@ private:
 
     uint64_t singleMemoryWarning_ = UINT64_MAX; // warning threshold for total memory of a single process
     uint64_t singleCpuMemoryLimit_ = UINT64_MAX; // error threshold for cpu memory of a single process
+    uint64_t singleGpuMemoryLimit_ = UINT64_MAX; // error threshold for gpu memory of a single process
     uint64_t totalMemoryLimit_ = UINT64_MAX; // error threshold for total memory of all process
-    size_t totalMemory_ = 0; // record the total memory of all processes
-    MemoryOverflowCalllback callback_ = nullptr;
+    size_t totalCpuMemory_ = 0; // record the total memory of all processes
+    size_t totalGpuMemory_ = 0; // record the total memory of all processes
+    MemoryOverflowCalllback memoryOverflowCallback_ = nullptr;
     int64_t memorySnapshotHilogTime_ = 0;
-    int memSnapshotPrintHilogLimit_ = 0;
+    size_t memSnapshotPrintHilogLimit_ = 0;
+    std::unordered_set<pid_t> killProcessSet_;
 };
 } // namespace OHOS
 } // namespace Rosen

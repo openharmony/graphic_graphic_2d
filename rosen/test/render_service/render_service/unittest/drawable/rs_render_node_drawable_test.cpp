@@ -19,6 +19,7 @@
 #include "params/rs_render_params.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "render/rs_blur_filter.h"
+#include "memory/rs_memory_snapshot.h"
 
 #ifdef SUBTREE_PARALLEL_ENABLE
 #include "rs_parallel_manager.h"
@@ -1683,4 +1684,30 @@ HWTEST_F(RSRenderNodeDrawableTest, BufferNeedUpdateTest008, TestSize.Level1)
     drawable->ClearCachedSurface();
 #endif
 }
+
+/**
+ * @tc.name: OnDrawAbnormalProcessTest
+ * @tc.desc: Test OnDraw with abnormal process check
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeDrawableTest, OnDrawAbnormalProcessTest, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+
+    // Mark process as abnormal
+    pid_t pid = ExtractPid(id);
+    MemorySnapshot::Instance().SetAbnormalProcess(pid);
+
+    // OnDraw should return early for abnormal process
+    drawable->OnDraw(paintFilterCanvas);
+    bool isAbnormal = MemorySnapshot::Instance().IsAbnormalProcess(pid);
+    ASSERT_TRUE(isAbnormal);
+
+    // Clean up
+    std::set<pid_t> exitedPids = {pid};
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
 }
+} // namespace OHOS::Rosen

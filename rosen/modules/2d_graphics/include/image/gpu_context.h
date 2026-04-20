@@ -333,28 +333,18 @@ public:
      * @param size              Memory size limit.
      */
     void InitGpuMemoryLimit(MemoryOverflowCalllback callback, uint64_t size);
-
-    /**
-     * @brief                   Init gpu memory limit.
-     * @param callback          Memory over report calllback.
-     * @param intervalLimit     Report time interval limit.
-     * @param size              Memory size limit.
-     */
-    void InitGpuMemoryReportLimit(MemoryOverReportCallback callback, size_t intervalLimit, size_t size);
-
-    /**
-     * @brief                   get gpu info.
-     * @param typeInfo          statistical gpu info by tag.
-     * @param pidInfo           statistical gpu info by pid.
-     */
-    void GetGpuMemoryInfo(std::unordered_map<std::string, std::pair<size_t, size_t>>& typeInfo,
-        std::unordered_map<pid_t, size_t>& pidInfo);
     
     /**
      * @brief                   set abnormal pid.
      * @param pid               abnormal pid.
      */
     void SetAbnormalPid(pid_t pid);
+
+    /**
+     * @brief Register GPU memory statistics callback.
+     * @param callback Callback for memory allocation/deallocation.
+     */
+    void InitGpuMemoryInfoStatProc(GpuMemoryInfoStatProcCallback callback);
 
 #ifdef RS_ENABLE_VK
     /**

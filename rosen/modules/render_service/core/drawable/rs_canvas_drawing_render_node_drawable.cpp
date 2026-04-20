@@ -29,6 +29,7 @@
 #include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/sk_resource_manager.h"
 #include "platform/common/rs_log.h"
+#include "memory/rs_memory_snapshot.h"
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 #include "memory/rs_canvas_dma_buffer_cache.h"
 #include "platform/ohos/backend/surface_buffer_utils.h"
@@ -81,6 +82,10 @@ RSRenderNodeDrawable::Ptr RSCanvasDrawingRenderNodeDrawable::OnGenerate(std::sha
 
 void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
+    if (MemorySnapshot::Instance().IsAbnormalProcess(ExtractPid(GetId()))) {
+        RS_LOGE("RSCanvasDrawingRenderNodeDrawable::OnDraw abnormal process %{public}d .", ExtractPid(GetId()));
+        return;
+    }
     SetDrawSkipType(DrawSkipType::NONE);
     std::unique_lock<std::recursive_mutex> lock(drawableMutex_);
     RSRenderNodeSingleDrawableLocker singleLocker(this);
@@ -827,7 +832,7 @@ void RSCanvasDrawingRenderNodeDrawable::CreateGpuSurface(const Drawing::ImageInf
     newVulkanCleanupHelper = vulkanCleanupHelper_ == nullptr;
     if (newVulkanCleanupHelper) {
         vulkanCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
-            vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
+            vkTextureInfo, RSTagTracker::GetCurrentGpuResourceTag(gpuContext.get()).fPid);
     }
     REAL_ALLOC_CONFIG_SET_STATUS(true);
     surface_ = Drawing::Surface::MakeFromBackendTexture(gpuContext.get(), backendTexture_.GetTextureInfo(),

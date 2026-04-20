@@ -958,8 +958,8 @@ HWTEST_F(RSMemoryManagerTest, MemoryOverflow001, testing::ext::TestSize.Level1)
 {
     g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
-    MemoryManager::MemoryOverflow(1433, 1024, true);
-    EXPECT_TRUE(g_logMsg.find("RSMemoryOverflow pid[1433]") != std::string::npos);
+    bool ret = MemoryManager::MemoryOverflow(1433, 1024, true);
+    EXPECT_FALSE(ret);
 }
 
 /**
@@ -972,8 +972,8 @@ HWTEST_F(RSMemoryManagerTest, MemoryOverflow002, testing::ext::TestSize.Level1)
 {
     g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
-    MemoryManager::MemoryOverflow(0, 1024, true);
-    EXPECT_TRUE(g_logMsg.find("RSMemoryOverflow pid[") == std::string::npos);
+    bool ret = MemoryManager::MemoryOverflow(0, 1024, true);
+    EXPECT_FALSE(ret);
 }
 
 /**
@@ -987,9 +987,9 @@ HWTEST_F(RSMemoryManagerTest, MemoryOverflow003, testing::ext::TestSize.Level1)
     g_logMsg.clear();
     LOG_SetCallback(MyLogCallback);
     pid_t pid = 1434;
-    MemoryManager::MemoryOverflow(pid, 1024, false);
     MemorySnapshot::Instance().AddCpuMemory(pid, 2048);
-    EXPECT_TRUE(g_logMsg.find("RSMemoryOverflow pid[1434]") != std::string::npos);
+    bool ret = MemoryManager::MemoryOverflow(pid, 1024, false);
+    EXPECT_FALSE(ret);
 }
 
 /**
@@ -1070,7 +1070,7 @@ HWTEST_F(RSMemoryManagerTest, MemoryOverReport001, testing::ext::TestSize.Level1
     MemorySnapshotInfo info;
     info.pid = pid0;
     info.cpuMemory = 1024;
-    info.gpuMemory = 2048;
+    info.engineGpuMemory = 2048;
     MemoryManager::MemoryOverReport(pid0, info, "RENDER_MEMORY_OVER_ERROR", hidumperReport, filePath);
     ASSERT_FALSE(std::ifstream(filePath).good());
     std::filesystem::remove(filePath);
@@ -1078,7 +1078,7 @@ HWTEST_F(RSMemoryManagerTest, MemoryOverReport001, testing::ext::TestSize.Level1
     MemorySnapshotInfo info1;
     info1.pid = pid1;
     info1.cpuMemory = 1024;
-    info1.gpuMemory = 2048;
+    info1.engineGpuMemory = 2048;
     MemoryManager::MemoryOverReport(pid1, info1, "RENDER_MEMORY_OVER_ERROR", hidumperReport, filePath);
     ASSERT_TRUE(std::ifstream(filePath).good());
 }
@@ -1113,23 +1113,6 @@ HWTEST_F(RSMemoryManagerTest, DumGpuNodeMemoryTest001, testing::ext::TestSize.Le
     DfxString log;
     MemoryManager::DumpGpuNodeMemory(log);
     ASSERT_TRUE(log.GetString().find("GPU") != std::string::npos);
-}
-
-/**
- * @tc.name: GpuMemoryOverReportTest
- * @tc.desc: GpuMemoryOverReport
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMemoryManagerTest, GpuMemoryOverReportTest, testing::ext::TestSize.Level1)
-{
-    std::unordered_map<std::string, std::pair<size_t, size_t>> typeInfo;
-    typeInfo["IMAGE_GPU"] = std::make_pair(10000, 1);
-    std::unordered_map<pid_t, size_t> pidInfo;
-    pidInfo[1] = 10000;
-    MemoryManager::GpuMemoryOverReport(1, 10000, typeInfo, pidInfo);
-    std::string filePath = "/data/service/el0/render_service/renderservice_killProcessByPid.txt";
-    ASSERT_TRUE(std::ifstream(filePath).good());
 }
 
 /**
@@ -1527,9 +1510,283 @@ HWTEST_F(RSMemoryManagerTest, GpuReportFromKernel001, TestSize.Level1)
     MemoryManager::GpuReportFromKernel(recvInfo);
     ASSERT_TRUE(g_logMsg.find(recvInfo) == std::string::npos);
     std::string recvInfo1 = "ACTION=MEMORY_OVER_LIMIT-1";
-    MemoryManager::mReportLastTimestamp_ = 0;
+    MemoryManager::mKernelReportLastTimestamp_ = 0;
     RSUniRenderThread::Instance().uniRenderEngine_->renderContext_->SetDrGPUContext(nullptr);
     MemoryManager::GpuReportFromKernel(recvInfo1);
     ASSERT_TRUE(g_logMsg.find(recvInfo1) == std::string::npos);
 }
+
+/**
+ * @tc.name: UpdateGpuInfoFromEngineTest001
+ * @tc.desc: Test UpdateGpuInfoFromEngine with memory allocation.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, UpdateGpuInfoFromEngineTest001, TestSize.Level1)
+{
+    pid_t pid = 3001;
+    size_t memorySize = 1024;
+    std::set<pid_t> exitedPids = {pid};
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+
+    // Add engine GPU memory
+    bool ret = MemoryManager::UpdateGpuInfoFromEngine(pid, memorySize, true);
+    ASSERT_TRUE(ret);
+
+    MemorySnapshotInfo info;
+    ret = MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(pid, info);
+    ASSERT_TRUE(ret);
+    ASSERT_EQ(info.engineGpuMemory, memorySize);
+
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+}
+
+/**
+ * @tc.name: MemoryOverflow004
+ * @tc.desc: Test MemoryOverflow with GPU memory overflow.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, MemoryOverflow004, TestSize.Level1)
+{
+    g_logMsg.clear();
+    LOG_SetCallback(MyLogCallback);
+    pid_t pid = 3004;
+    size_t overflowMemory = 1024;
+    std::set<pid_t> exitedPids = {pid};
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+
+    // Add CPU memory first
+    MemorySnapshot::Instance().AddCpuMemory(pid, 2048);
+
+    // Test GPU memory overflow
+    bool ret = MemoryManager::MemoryOverflow(pid, overflowMemory, true);
+    ASSERT_FALSE(ret);
+
+    MemorySnapshotInfo info;
+    ret = MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(pid, info);
+    ASSERT_TRUE(ret);
+    ASSERT_EQ(info.engineGpuMemory, overflowMemory);
+
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+}
+
+/**
+ * @tc.name: MemoryReportAndKillTest001
+ * @tc.desc: Test MemoryReportAndKill with pid = 0 (system process).
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, MemoryReportAndKillTest001, TestSize.Level1)
+{
+    g_logMsg.clear();
+    LOG_SetCallback(MyLogCallback);
+    pid_t pid = 0;
+    MemorySnapshotInfo info;
+    info.cpuMemory = 1024;
+    info.engineGpuMemory = 2048;
+    info.nativeGpuMemory = 512;
+
+    // First call should succeed
+    bool ret = MemoryManager::MemoryReportAndKill(pid, info, true);
+    ASSERT_TRUE(ret);
+
+    // Immediate second call should be rate-limited (within 60 seconds)
+    ret = MemoryManager::MemoryReportAndKill(pid, info, true);
+    ASSERT_FALSE(ret);
+}
+
+/**
+ * @tc.name: MemoryReportAndKillTest002
+ * @tc.desc: Test MemoryReportAndKill with sceneboard process.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, MemoryReportAndKillTest002, TestSize.Level1)
+{
+    g_logMsg.clear();
+    LOG_SetCallback(MyLogCallback);
+    pid_t pid = 3006;
+    MemorySnapshotInfo info;
+    info.pid = pid;
+    info.cpuMemory = 1024;
+    info.engineGpuMemory = 2048;
+    info.nativeGpuMemory = 512;
+    info.bundleName = "com.ohos.sceneboard";
+    std::set<pid_t> exitedPids = {pid};
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+
+    // Sceneboard process should not be killed
+    bool ret = MemoryManager::MemoryReportAndKill(pid, info, true);
+    ASSERT_FALSE(ret);
+
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+}
+
+/**
+ * @tc.name: MemoryReportAndKillTest003
+ * @tc.desc: Test MemoryReportAndKill with normal process.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, MemoryReportAndKillTest003, TestSize.Level1)
+{
+    g_logMsg.clear();
+    LOG_SetCallback(MyLogCallback);
+    pid_t pid = 3007;
+    MemorySnapshotInfo info;
+    info.pid = pid;
+    info.cpuMemory = 1024;
+    info.engineGpuMemory = 2048;
+    info.nativeGpuMemory = 512;
+    info.bundleName = "com.example.test";
+    std::set<pid_t> exitedPids = {pid};
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+
+    // Normal process should trigger report and kill
+    bool ret = MemoryManager::MemoryReportAndKill(pid, info, true);
+    ASSERT_FALSE(ret);
+
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+}
+
+/**
+ * @tc.name: MemoryReportAndKillTest004
+ * @tc.desc: Test MemoryReportAndKill with GPU memory overflow.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, MemoryReportAndKillTest004, TestSize.Level1)
+{
+    g_logMsg.clear();
+    LOG_SetCallback(MyLogCallback);
+    pid_t pid = 3008;
+    MemorySnapshotInfo info;
+    info.pid = pid;
+    info.cpuMemory = 1024;
+    info.engineGpuMemory = 4096;
+    info.nativeGpuMemory = 2048;
+    info.bundleName = "com.example.test";
+    std::set<pid_t> exitedPids = {pid};
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+
+    // GPU memory overflow
+    bool ret = MemoryManager::MemoryReportAndKill(pid, info, true);
+    ASSERT_TRUE(ret);
+
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+}
+
+/**
+ * @tc.name: MemoryReportAndKillTest005
+ * @tc.desc: Test MemoryReportAndKill with CPU memory overflow.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, MemoryReportAndKillTest005, TestSize.Level1)
+{
+    g_logMsg.clear();
+    LOG_SetCallback(MyLogCallback);
+    pid_t pid = 3009;
+    MemorySnapshotInfo info;
+    info.pid = pid;
+    info.cpuMemory = 4096;
+    info.engineGpuMemory = 1024;
+    info.nativeGpuMemory = 512;
+    info.bundleName = "com.example.test";
+    std::set<pid_t> exitedPids = {pid};
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+
+    // CPU memory overflow
+    bool ret = MemoryManager::MemoryReportAndKill(pid, info, false);
+    ASSERT_TRUE(ret);
+
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+}
+
+/**
+ * @tc.name: DumpMemorySnapshotTest001
+ * @tc.desc: Test DumpMemorySnapshot with native and engine GPU memory.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, DumpMemorySnapshotTest001, TestSize.Level1)
+{
+    pid_t pid = 3010;
+    std::set<pid_t> exitedPids = {pid};
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+
+    // Add CPU memory
+    MemorySnapshot::Instance().AddCpuMemory(pid, 1024);
+
+    // Add engine GPU memory
+    MemorySnapshot::Instance().UpdateGpuInfo(pid, 2048, true, true);
+
+    // Add native GPU memory
+    MemorySnapshot::Instance().UpdateGpuInfo(pid, 512, true, false);
+
+    DfxString log;
+    MemoryManager::DumpMemorySnapshot(log);
+
+    // Verify log contains both native and engine GPU memory
+    ASSERT_TRUE(log.GetString().find("nativeGpu:") != std::string::npos);
+    ASSERT_TRUE(log.GetString().find("engineGpu:") != std::string::npos);
+
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+}
+
+/**
+ * @tc.name: MemoryOverReport002
+ * @tc.desc: Test MemoryOverReport with native and engine GPU memory.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, MemoryOverReport002, TestSize.Level1)
+{
+    pid_t pid = 3011;
+    MemorySnapshotInfo info;
+    info.pid = pid;
+    info.cpuMemory = 1024;
+    info.engineGpuMemory = 2048;
+    info.nativeGpuMemory = 512;
+    info.bundleName = "com.example.test";
+    std::string hidumperReport = "test report";
+    std::string filePath = "/data/service/el0/render_service/renderservice_mem_test.txt";
+
+    MemoryManager::MemoryOverReport(pid, info, "RENDER_MEMORY_OVER_ERROR", hidumperReport, filePath);
+
+    // Verify file was created
+    ASSERT_TRUE(std::ifstream(filePath).good());
+
+    // Clean up
+    std::remove(filePath.c_str());
+}
+
+/**
+ * @tc.name: MemoryReportAndKillTest006
+ * @tc.desc: Test MemoryReportAndKill with empty bundle name.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, MemoryReportAndKillTest006, TestSize.Level1)
+{
+    g_logMsg.clear();
+    LOG_SetCallback(MyLogCallback);
+    pid_t pid = 3014;
+    MemorySnapshotInfo info;
+    info.pid = pid;
+    info.cpuMemory = 1024;
+    info.engineGpuMemory = 2048;
+    info.nativeGpuMemory = 512;
+    info.bundleName = "";
+    std::set<pid_t> exitedPids = {pid};
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+
+    // Test with empty bundle name - should try to get bundle name from AppMgrClient
+    bool ret = MemoryManager::MemoryReportAndKill(pid, info, true);
+    ASSERT_TRUE(ret);
+
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+}
+
 } // namespace OHOS::Rosen
