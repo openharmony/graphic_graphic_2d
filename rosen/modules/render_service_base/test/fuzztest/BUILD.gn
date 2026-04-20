@@ -20,5 +20,9 @@ group("fuzztest") {
     "rsnodeshowingcommand_fuzzer:fuzztest",
     "rsrenderinteractiveimplictanimator_fuzzer:fuzztest",
     "rsspringmodelbase_fuzzer:fuzztest",
+    "rs_gpu_dirty_region_collection_fuzzer:fuzztest",
+    "rs_hardware_compose_disabled_reason_collection_fuzzer:fuzztest",
+    "rs_hdr_collection_fuzzer:fuzztest",
+    "rs_layer_compose_collection_fuzzer:fuzztest",
   ]
 }
