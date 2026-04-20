@@ -240,21 +240,17 @@ void GPUContext::InitGpuMemoryLimit(MemoryOverflowCalllback callback, uint64_t s
     impl_->InitGpuMemoryLimit(callback, size);
 }
 
-void GPUContext::InitGpuMemoryReportLimit(MemoryOverReportCallback callback, size_t intervalLimit, size_t size)
-{
-    impl_->InitGpuMemoryReportLimit(callback, intervalLimit, size);
-}
-
-void GPUContext::GetGpuMemoryInfo(std::unordered_map<std::string, std::pair<size_t, size_t>>& typeInfo,
-    std::unordered_map<pid_t, size_t>& pidInfo)
-{
-    impl_->GetGpuMemoryInfo(typeInfo, pidInfo);
-}
-    
+// LCOV_EXCL_START
 void GPUContext::SetAbnormalPid(pid_t pid)
 {
     impl_->SetAbnormalPid(pid);
 }
+
+void GPUContext::InitGpuMemoryInfoStatProc(GpuMemoryInfoStatProcCallback callback)
+{
+    impl_->InitGpuMemoryInfoStatProc(callback);
+}
+// LCOV_EXCL_STOP
 
 void GPUContext::ResetContext()
 {

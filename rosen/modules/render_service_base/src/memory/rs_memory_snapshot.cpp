@@ -45,6 +45,7 @@ void MemorySnapshot::AddCpuMemory(const pid_t pid, const size_t size)
     MemorySnapshotInfo& mInfo = appMemorySnapshots_[pid];
     mInfo.pid = pid;
     mInfo.cpuMemory += size;
+    totalCpuMemory_ += size;
 }
 
 void MemorySnapshot::RemoveCpuMemory(const pid_t pid, const size_t size)
@@ -54,6 +55,7 @@ void MemorySnapshot::RemoveCpuMemory(const pid_t pid, const size_t size)
     if (it != appMemorySnapshots_.end()) {
         if (it->second.cpuMemory >= size) {
             it->second.cpuMemory -= size;
+            totalCpuMemory_ -= size;
         }
     }
 }
@@ -76,23 +78,23 @@ void MemorySnapshot::UpdateGpuMemoryInfo(const std::unordered_map<pid_t, size_t>
     for (auto& [pid, info] : appMemorySnapshots_) {
         auto it = gpuInfo.find(pid);
         if (it != gpuInfo.end()) {
-            totalMemory_ = totalMemory_ - info.gpuMemory + it->second;
-            info.gpuMemory = it->second;
+            totalGpuMemory_ = totalGpuMemory_ - info.engineGpuMemory + it->second;
+            info.engineGpuMemory = it->second;
         }
         if (info.TotalMemory() > singleMemoryWarning_) {
             pidForReport.emplace(pid, info);
         }
     }
-    if (totalMemory_ > totalMemoryLimit_) {
+    if (totalGpuMemory_ > totalMemoryLimit_) {
         pidForReport = appMemorySnapshots_;
         isTotalOver = true;
     }
     if (memSnapshotPrintHilogLimit_ > 0) {
-        if (totalMemory_ > memSnapshotPrintHilogLimit_) {
+        if (totalGpuMemory_ > memSnapshotPrintHilogLimit_) {
             PrintMemorySnapshotToHilog();
         }
     } else {
-        if (totalMemory_ > MEMORY_SNAPSHOT_PRINT_HILOG_LIMIT) {
+        if (totalGpuMemory_ > MEMORY_SNAPSHOT_PRINT_HILOG_LIMIT) {
             PrintMemorySnapshotToHilog();
         }
     }
@@ -115,19 +117,22 @@ void MemorySnapshot::EraseSnapshotInfoByPid(const std::set<pid_t>& exitedPidSet)
     for (auto pid : exitedPidSet) {
         auto it = appMemorySnapshots_.find(pid);
         if (it != appMemorySnapshots_.end()) {
-            totalMemory_ -= it->second.gpuMemory;
+            totalGpuMemory_ = totalGpuMemory_ - it->second.engineGpuMemory - it->second.nativeGpuMemory;
+            totalCpuMemory_ -= it->second.cpuMemory;
             appMemorySnapshots_.erase(it);
         }
+        killProcessSet_.erase(pid);
     }
 }
 
-void MemorySnapshot::InitMemoryLimit(MemoryOverflowCalllback callback,
-    uint64_t warning, uint64_t overflow, uint64_t totalSize)
+void MemorySnapshot::InitMemoryLimit(MemoryOverflowCalllback callback, uint64_t warning, uint64_t cpuOverflow,
+    uint64_t gpuOverflow, uint64_t totalSize)
 {
-    if (callback_ == nullptr) {
-        callback_ = callback;
+    if (memoryOverflowCallback_ == nullptr) {
+        memoryOverflowCallback_ = callback;
         singleMemoryWarning_ = warning;
-        singleCpuMemoryLimit_ = overflow;
+        singleCpuMemoryLimit_ = cpuOverflow;
+        singleGpuMemoryLimit_ = gpuOverflow;
         totalMemoryLimit_ = totalSize;
     }
 }
@@ -159,7 +164,7 @@ void MemorySnapshot::FillMemorySnapshot(std::unordered_map<pid_t, MemorySnapshot
 
 size_t MemorySnapshot::GetTotalMemory()
 {
-    return totalMemory_;
+    return totalCpuMemory_ + totalGpuMemory_;
 }
 
 void MemorySnapshot::PrintMemorySnapshotToHilog()
@@ -184,12 +189,12 @@ void MemorySnapshot::PrintMemorySnapshotToHilog()
             return scoreA > scoreB;
         });
 
-    RS_LOGE("TotalMemoryOverReport. TotalMemory:[%{public}zuKB]", totalMemory_ / MEMUNIT_RATE);
+    RS_LOGE("TotalMemoryOverReport. totalGpuMemory:[%{public}zuKB]", totalGpuMemory_ / MEMUNIT_RATE);
     for (size_t i = 0 ; i < HILOG_INFO_COUNT && i < memorySnapshotsList.size() ; i++) {
         MemorySnapshotInfo info = memorySnapshotsList[i];
         RS_LOGE("pid : %{public}d %{public}s, cpu : %{public}zuKB, gpu : %{public}zuKB",
             static_cast<int32_t>(info.pid), info.bundleName.c_str(),
-            info.cpuMemory / MEMUNIT_RATE, info.gpuMemory / MEMUNIT_RATE);
+            info.cpuMemory / MEMUNIT_RATE, (info.nativeGpuMemory + info.engineGpuMemory) / MEMUNIT_RATE);
     }
 
     memorySnapshotHilogTime_ = currentTime + MEMORY_SNAPSHOT_INTERVAL;
@@ -206,8 +211,8 @@ void MemorySnapshot::FindMaxValues(std::vector<MemorySnapshotInfo>& memorySnapsh
             maxCpu = snapshotInfo.cpuMemory;
         }
 
-        if (snapshotInfo.gpuMemory > maxGpu) {
-            maxGpu = snapshotInfo.gpuMemory;
+        if (snapshotInfo.nativeGpuMemory + snapshotInfo.engineGpuMemory > maxGpu) {
+            maxGpu = snapshotInfo.nativeGpuMemory + snapshotInfo.engineGpuMemory;
         }
 
         size_t totalMemory = snapshotInfo.TotalMemory();
@@ -221,9 +226,85 @@ float MemorySnapshot::CalculateRiskScore(const MemorySnapshotInfo snapshotInfo,
     size_t maxCpu, size_t maxGpu, size_t maxSum)
 {
     float normCpu = (maxCpu == 0) ? 0 : static_cast<float>(snapshotInfo.cpuMemory) / maxCpu;
-    float normGpu = (maxGpu == 0) ? 0 : static_cast<float>(snapshotInfo.gpuMemory) / maxGpu;
+    float normGpu =
+        (maxGpu == 0) ? 0 : static_cast<float>(snapshotInfo.nativeGpuMemory + snapshotInfo.engineGpuMemory) / maxGpu;
     float normSum = (maxSum == 0) ? 0 : static_cast<float>(snapshotInfo.TotalMemory()) / maxSum;
     return WEIGHT_CPU * normCpu + WEIGHT_GPU * normGpu + WEIGHT_SUM * normSum;
+}
+
+bool MemorySnapshot::UpdateGpuInfo(pid_t pid, size_t memorysize, bool isAdd, bool isEngine)
+{
+    MemorySnapshotInfo info;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        auto it = appMemorySnapshots_.find(pid);
+        if (it != appMemorySnapshots_.end()) {
+            info = it->second;
+        }
+        UpdateGpuInfoHelper(info, memorysize, isAdd, isEngine);
+        appMemorySnapshots_[pid] = info;
+    }
+
+    // if gpu over, need to kill process.
+    if (pid > 0 && info.engineGpuMemory + info.nativeGpuMemory > singleGpuMemoryLimit_ &&
+        killProcessSet_.count(pid) == 0 && memoryOverflowCallback_ && memoryOverflowCallback_(pid, info, true)) {
+        killProcessSet_.insert(pid);
+    }
+    
+    return true;
+}
+
+void MemorySnapshot::UpdateGpuInfoHelper(MemorySnapshotInfo& info, const size_t memorySize, bool isAdd, bool isEngine)
+{
+    if (isEngine) {
+        if (isAdd) {
+            info.engineGpuMemory += memorySize;
+        } else {
+            if (memorySize > info.engineGpuMemory) {
+                RS_LOGE("UpdateGpuInfo exception engineGpuMemory:%{public}zu memorySize:%{public}zu pid:%{public}d",
+                    info.engineGpuMemory, memorySize, static_cast<int32_t>(info.pid));
+                info.engineGpuMemory = 0;
+            } else {
+                info.engineGpuMemory -= memorySize;
+            }
+        }
+    } else {
+        if (isAdd) {
+            info.nativeGpuMemory += memorySize;
+        } else {
+            if (memorySize > info.nativeGpuMemory) {
+                RS_LOGE("UpdateGpuInfo exception nativeGpuMemory:%{public}zu memorySize:%{public}zu pid:%{public}d",
+                    info.nativeGpuMemory, memorySize, static_cast<int32_t>(info.pid));
+                info.nativeGpuMemory = 0;
+            } else {
+                info.nativeGpuMemory -= memorySize;
+            }
+        }
+    }
+
+    if (isAdd) {
+        totalGpuMemory_ += memorySize;
+    } else {
+        if (memorySize > totalGpuMemory_) {
+            RS_LOGE("UpdateGpuInfo exception totalGpuMemory_:%{public}zu memorySize:%{public}zu pid:%{public}d",
+                totalGpuMemory_, memorySize, static_cast<int32_t>(info.pid));
+            totalGpuMemory_ = 0;
+        } else {
+            totalGpuMemory_ -= memorySize;
+        }
+    }
+}
+
+void MemorySnapshot::SetAbnormalProcess(pid_t pid)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    killProcessSet_.insert(pid);
+}
+
+bool MemorySnapshot::IsAbnormalProcess(pid_t pid)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return killProcessSet_.count(pid) > 0;
 }
 }
 } // namespace OHOS::Rosen

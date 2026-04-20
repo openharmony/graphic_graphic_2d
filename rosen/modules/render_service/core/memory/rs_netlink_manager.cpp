@@ -29,8 +29,10 @@
 #include "feature_cfg/feature_param/extend_feature/mem_param.h"
 
 namespace OHOS::Rosen {
+namespace {
 constexpr uint32_t UEVENT_MSG_LEN = 1024;
 const std::string UEVENT_MSG_TAG = "ACTION=MEMORY_OVER_LIMIT";
+}
 
 void RSNetlinkListener::RunListener()
 {
