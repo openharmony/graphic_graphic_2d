@@ -15,8 +15,6 @@
 
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
-
-#include "draw/color.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
 #include "ui_effect/property/include/rs_ui_mask_base.h"
 
@@ -25,217 +23,200 @@ using namespace testing::ext;
 
 namespace OHOS::Rosen {
 
-namespace {
-constexpr int SCREEN_WIDTH = 1200;
-constexpr int SCREEN_HEIGHT = 2000;
-constexpr int NODE_SIZE = 500;
-constexpr int OFFSET_X = 100;
-constexpr int OFFSET_Y = 100;
-constexpr int GAP = 550;
-constexpr int HALF_DIVISOR = 2;
-
-// Reference: render_service_client_spatial_point_light_demo.cpp
-constexpr float DEFAULT_INTENSITY = 2.0f;
-constexpr float DEFAULT_ATTENUATION = 5.0f;
-constexpr float DEFAULT_LIGHT_Z = 100.0f;
+void InitSpatialPointLight(std::shared_ptr<RSNGSpatialPointLight>& spatialPointLight)
+{
+    if (!spatialPointLight) {
+        return;
+    }
+    spatialPointLight->Setter<SpatialPointLightLightPositionTag>(Vector3f{600.0f, 1000.0f, 100.0f});
+    spatialPointLight->Setter<SpatialPointLightLightColorTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
+    spatialPointLight->Setter<SpatialPointLightLightIntensityTag>(2.0f);
+    spatialPointLight->Setter<SpatialPointLightAttenuationTag>(5.0f);
 }
 
-class SpatialPointLightShaderTest : public RSGraphicTest {
+namespace {
+const std::string TEST_IMAGE_PATH = "/data/local/tmp/Images/backGroundImage.jpg";
+const int SCREEN_WIDTH = 1200;
+const int SCREEN_HEIGHT = 2000;
+
+const std::vector<Vector4f> lightColors = {
+    Vector4f{1.0f, 0.0f, 0.0f, 1.0f},
+    Vector4f{0.0f, 1.0f, 0.0f, 1.0f},
+    Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
+    Vector4f{1.0f, 1.0f, 1.0f, 1.0f}
+};
+
+const std::vector<float> lightIntensities = {0.0f, 1.0f, 2.0f, 5.0f};
+
+const std::vector<float> lightAttenuations = {1.0f, 5.0f, 10.0f, 50.0f};
+
+const std::vector<float> lightZDepths = {50.0f, 100.0f, 200.0f, 500.0f};
+
+const std::vector<float> extremeIntensities = {-1.0f, -10.0f, 100.0f, 9999.0f};
+
+const std::vector<float> extremeAttenuations = {-1.0f, -10.0f, 1000.0f, 1e10f};
+}
+
+class NGShaderSpatialPointLightTest : public RSGraphicTest {
 public:
     void BeforeEach() override
     {
         SetScreenSize(SCREEN_WIDTH, SCREEN_HEIGHT);
-        SetSurfaceColor(RSColor(0xff000000));
+    }
+
+private:
+    void SetUpTestNode(const size_t i, const size_t columnCount, const size_t rowCount,
+        std::shared_ptr<RSNGSpatialPointLight>& spatialPointLight)
+    {
+        if (columnCount == 0 || rowCount == 0) {
+            return;
+        }
+        const size_t sizeX = SCREEN_WIDTH / columnCount;
+        const size_t sizeY = SCREEN_HEIGHT / rowCount;
+        const size_t x = (i % columnCount) * sizeX;
+        const size_t y = (i / columnCount) * sizeY;
+
+        // Set light position to center of current node
+        spatialPointLight->Setter<SpatialPointLightLightPositionTag>(
+            Vector3f{x + sizeX / 2.0f, y + sizeY / 2.0f, 100.0f});
+
+        auto testNode = SetUpNodeBgImage(TEST_IMAGE_PATH, {x, y, sizeX, sizeY});
+        testNode->SetBackgroundNGShader(spatialPointLight);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
     }
 };
 
-/* Basic Test: single node without mask */
-GRAPHIC_TEST(SpatialPointLightShaderTest, CONTENT_DISPLAY_TEST,
-    SpatialPointLightShader_Basic_001)
+GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Color_Test)
 {
-    auto shader = std::make_shared<Rosen::RSNGSpatialPointLight>();
-    shader->Setter<Rosen::SpatialPointLightLightIntensityTag>(DEFAULT_INTENSITY);
-    shader->Setter<Rosen::SpatialPointLightLightPositionTag>(
-        Vector3f(OFFSET_X + NODE_SIZE / HALF_DIVISOR, OFFSET_Y + NODE_SIZE / HALF_DIVISOR, DEFAULT_LIGHT_Z));
-    shader->Setter<Rosen::SpatialPointLightLightColorTag>(Vector4f(1.0f, 1.0f, 1.0f, 1.0f));
-    shader->Setter<Rosen::SpatialPointLightAttenuationTag>(DEFAULT_ATTENUATION);
+    const size_t columnCount = 4;
+    const size_t rowCount = 1;
 
-    auto testNode = RSCanvasNode::Create();
-    testNode->SetBounds({ OFFSET_X, OFFSET_Y, NODE_SIZE, NODE_SIZE });
-    testNode->SetBackgroundColor(0xFF333333);
-    testNode->SetBackgroundNGShader(shader);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
-}
+    for (size_t i = 0; i < lightColors.size(); i++) {
+        auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
+        InitSpatialPointLight(spatialPointLight);
+        spatialPointLight->Setter<SpatialPointLightLightColorTag>(lightColors[i]);
 
-/* Basic Test: high intensity light */
-GRAPHIC_TEST(SpatialPointLightShaderTest, CONTENT_DISPLAY_TEST,
-    SpatialPointLightShader_Basic_002)
-{
-    auto shader = std::make_shared<Rosen::RSNGSpatialPointLight>();
-    shader->Setter<Rosen::SpatialPointLightLightIntensityTag>(5.0f);
-    shader->Setter<Rosen::SpatialPointLightLightPositionTag>(
-        Vector3f(OFFSET_X + NODE_SIZE / HALF_DIVISOR, OFFSET_Y + NODE_SIZE / HALF_DIVISOR, DEFAULT_LIGHT_Z));
-    shader->Setter<Rosen::SpatialPointLightLightColorTag>(Vector4f(1.0f, 0.5f, 0.0f, 1.0f));
-    shader->Setter<Rosen::SpatialPointLightAttenuationTag>(10.0f);
-
-    auto testNode = RSCanvasNode::Create();
-    testNode->SetBounds({ OFFSET_X + GAP, OFFSET_Y, NODE_SIZE, NODE_SIZE });
-    testNode->SetBackgroundColor(0xFF222222);
-    testNode->SetBackgroundNGShader(shader);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
-}
-
-/* Intensity Test: different intensity values */
-GRAPHIC_TEST(SpatialPointLightShaderTest, CONTENT_DISPLAY_TEST,
-    SpatialPointLightShader_Intensity_001)
-{
-    float intensityList[] = { 1.0f, 2.0f, 5.0f, 10.0f };
-    for (int i = 0; i < 4; i++) {
-        auto shader = std::make_shared<Rosen::RSNGSpatialPointLight>();
-        shader->Setter<Rosen::SpatialPointLightLightIntensityTag>(intensityList[i]);
-        shader->Setter<Rosen::SpatialPointLightLightPositionTag>(
-            Vector3f(OFFSET_X + i * GAP + NODE_SIZE / HALF_DIVISOR, 
-                     OFFSET_Y + 600 + NODE_SIZE / HALF_DIVISOR, DEFAULT_LIGHT_Z));
-        shader->Setter<Rosen::SpatialPointLightLightColorTag>(Vector4f(1.0f, 1.0f, 1.0f, 1.0f));
-        shader->Setter<Rosen::SpatialPointLightAttenuationTag>(DEFAULT_ATTENUATION);
-
-        auto testNode = RSCanvasNode::Create();
-        testNode->SetBounds({ OFFSET_X + i * GAP, OFFSET_Y + 600, NODE_SIZE, NODE_SIZE });
-        testNode->SetBackgroundColor(0xFF303030);
-        testNode->SetBackgroundNGShader(shader);
-        GetRootNode()->AddChild(testNode);
-        RegisterNode(testNode);
+        SetUpTestNode(i, columnCount, rowCount, spatialPointLight);
     }
 }
 
-/* Attenuation Test: different attenuation values */
-GRAPHIC_TEST(SpatialPointLightShaderTest, CONTENT_DISPLAY_TEST,
-    SpatialPointLightShader_Attenuation_001)
+GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Intensity_Boundary_Test)
 {
-    float attenuationList[] = { 1.0f, 5.0f, 10.0f, 50.0f };
-    for (int i = 0; i < 4; i++) {
-        auto shader = std::make_shared<Rosen::RSNGSpatialPointLight>();
-        shader->Setter<Rosen::SpatialPointLightLightIntensityTag>(DEFAULT_INTENSITY);
-        shader->Setter<Rosen::SpatialPointLightLightPositionTag>(
-            Vector3f(OFFSET_X + i * GAP + NODE_SIZE / HALF_DIVISOR, 
-                     OFFSET_Y + 1200 + NODE_SIZE / HALF_DIVISOR, DEFAULT_LIGHT_Z));
-        shader->Setter<Rosen::SpatialPointLightLightColorTag>(Vector4f(1.0f, 1.0f, 1.0f, 1.0f));
-        shader->Setter<Rosen::SpatialPointLightAttenuationTag>(attenuationList[i]);
+    const size_t columnCount = 4;
+    const size_t rowCount = 1;
 
-        auto testNode = RSCanvasNode::Create();
-        testNode->SetBounds({ OFFSET_X + i * GAP, OFFSET_Y + 1200, NODE_SIZE, NODE_SIZE });
-        testNode->SetBackgroundColor(0xFF303030);
-        testNode->SetBackgroundNGShader(shader);
-        GetRootNode()->AddChild(testNode);
-        RegisterNode(testNode);
+    for (size_t i = 0; i < lightIntensities.size(); i++) {
+        auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
+        InitSpatialPointLight(spatialPointLight);
+        spatialPointLight->Setter<SpatialPointLightLightIntensityTag>(lightIntensities[i]);
+
+        SetUpTestNode(i, columnCount, rowCount, spatialPointLight);
     }
 }
 
-/* Color Test: RGB primary colors */
-GRAPHIC_TEST(SpatialPointLightShaderTest, CONTENT_DISPLAY_TEST,
-    SpatialPointLightShader_Color_001)
+GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Attenuation_Boundary_Test)
 {
-    Vector4f colorList[] = {
-        Vector4f(1.0f, 0.0f, 0.0f, 1.0f),
-        Vector4f(0.0f, 1.0f, 0.0f, 1.0f),
-        Vector4f(0.0f, 0.0f, 1.0f, 1.0f),
-        Vector4f(1.0f, 1.0f, 1.0f, 1.0f)
-    };
-    for (int i = 0; i < 4; i++) {
-        auto shader = std::make_shared<Rosen::RSNGSpatialPointLight>();
-        shader->Setter<Rosen::SpatialPointLightLightIntensityTag>(DEFAULT_INTENSITY);
-        shader->Setter<Rosen::SpatialPointLightLightPositionTag>(
-            Vector3f(OFFSET_X + i * GAP + NODE_SIZE / HALF_DIVISOR, 
-                     OFFSET_Y + 1800 + NODE_SIZE / HALF_DIVISOR, DEFAULT_LIGHT_Z));
-        shader->Setter<Rosen::SpatialPointLightLightColorTag>(colorList[i]);
-        shader->Setter<Rosen::SpatialPointLightAttenuationTag>(DEFAULT_ATTENUATION);
+    const size_t columnCount = 4;
+    const size_t rowCount = 1;
 
-        auto testNode = RSCanvasNode::Create();
-        testNode->SetBounds({ OFFSET_X + i * GAP, OFFSET_Y + 1800, NODE_SIZE, NODE_SIZE });
-        testNode->SetBackgroundColor(0xFF202020);
-        testNode->SetBackgroundNGShader(shader);
-        GetRootNode()->AddChild(testNode);
-        RegisterNode(testNode);
+    for (size_t i = 0; i < lightAttenuations.size(); i++) {
+        auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
+        InitSpatialPointLight(spatialPointLight);
+        spatialPointLight->Setter<SpatialPointLightAttenuationTag>(lightAttenuations[i]);
+
+        SetUpTestNode(i, columnCount, rowCount, spatialPointLight);
     }
 }
 
-/* Mask Test: with RadialGradientMask */
-GRAPHIC_TEST(SpatialPointLightShaderTest, CONTENT_DISPLAY_TEST,
-    SpatialPointLightShader_Mask_001)
+GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Z_Depth_Test)
 {
-    auto radialMask = std::make_shared<Rosen::RSNGRadialGradientMask>();
-    radialMask->Setter<Rosen::RadialGradientMaskCenterTag>(Vector2f(0.5f, 0.5f));
-    radialMask->Setter<Rosen::RadialGradientMaskRadiusXTag>(0.4f);
-    radialMask->Setter<Rosen::RadialGradientMaskRadiusYTag>(0.4f);
-    radialMask->Setter<Rosen::RadialGradientMaskColorsTag>(std::vector<float>{1.0f, 0.0f});
-    radialMask->Setter<Rosen::RadialGradientMaskPositionsTag>(std::vector<float>{0.0f, 1.0f});
+    const size_t columnCount = 4;
+    const size_t rowCount = 1;
 
-    auto shader = std::make_shared<Rosen::RSNGSpatialPointLight>();
-    shader->Setter<Rosen::SpatialPointLightLightIntensityTag>(DEFAULT_INTENSITY);
-    shader->Setter<Rosen::SpatialPointLightLightPositionTag>(
-        Vector3f(OFFSET_X + NODE_SIZE / HALF_DIVISOR, OFFSET_Y + NODE_SIZE / HALF_DIVISOR, DEFAULT_LIGHT_Z));
-    shader->Setter<Rosen::SpatialPointLightLightColorTag>(Vector4f(1.0f, 1.0f, 1.0f, 1.0f));
-    shader->Setter<Rosen::SpatialPointLightAttenuationTag>(DEFAULT_ATTENUATION);
-    shader->Setter<Rosen::SpatialPointLightMaskTag>(
-        std::static_pointer_cast<Rosen::RSNGMaskBase>(radialMask));
+    for (size_t i = 0; i < lightZDepths.size(); i++) {
+        auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
+        InitSpatialPointLight(spatialPointLight);
+        
+        const size_t sizeX = SCREEN_WIDTH / columnCount;
+        const size_t sizeY = SCREEN_HEIGHT / rowCount;
+        const size_t x = (i % columnCount) * sizeX;
+        const size_t y = (i / columnCount) * sizeY;
+        spatialPointLight->Setter<SpatialPointLightLightPositionTag>(
+            Vector3f{x + sizeX / 2.0f, y + sizeY / 2.0f, lightZDepths[i]});
 
-    auto testNode = RSCanvasNode::Create();
-    testNode->SetBounds({ OFFSET_X + 700, OFFSET_Y, NODE_SIZE, NODE_SIZE });
-    testNode->SetBackgroundColor(0xFF303030);
-    testNode->SetBackgroundNGShader(shader);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
+        SetUpTestNode(i, columnCount, rowCount, spatialPointLight);
+    }
 }
 
-/* Mask Test: with RippleMask */
-GRAPHIC_TEST(SpatialPointLightShaderTest, CONTENT_DISPLAY_TEST,
-    SpatialPointLightShader_Mask_002)
+GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Intensity_Extreme_Values_Test)
 {
-    auto rippleMask = std::make_shared<Rosen::RSNGRippleMask>();
-    rippleMask->Setter<Rosen::RippleMaskCenterTag>(Vector2f(0.5f, 0.5f));
-    rippleMask->Setter<Rosen::RippleMaskRadiusTag>(100.0f);
-    rippleMask->Setter<Rosen::RippleMaskWidthTag>(50.0f);
-    rippleMask->Setter<Rosen::RippleMaskOffsetTag>(0.0f);
+    const size_t columnCount = 4;
+    const size_t rowCount = 1;
 
-    auto shader = std::make_shared<Rosen::RSNGSpatialPointLight>();
-    shader->Setter<Rosen::SpatialPointLightLightIntensityTag>(DEFAULT_INTENSITY);
-    shader->Setter<Rosen::SpatialPointLightLightPositionTag>(
-        Vector3f(OFFSET_X + NODE_SIZE / HALF_DIVISOR, OFFSET_Y + NODE_SIZE / HALF_DIVISOR, DEFAULT_LIGHT_Z));
-    shader->Setter<Rosen::SpatialPointLightLightColorTag>(Vector4f(1.0f, 1.0f, 1.0f, 1.0f));
-    shader->Setter<Rosen::SpatialPointLightAttenuationTag>(DEFAULT_ATTENUATION);
-    shader->Setter<Rosen::SpatialPointLightMaskTag>(
-        std::static_pointer_cast<Rosen::RSNGMaskBase>(rippleMask));
+    for (size_t i = 0; i < extremeIntensities.size(); i++) {
+        auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
+        InitSpatialPointLight(spatialPointLight);
+        spatialPointLight->Setter<SpatialPointLightLightIntensityTag>(extremeIntensities[i]);
 
-    auto testNode = RSCanvasNode::Create();
-    testNode->SetBounds({ OFFSET_X + 700, OFFSET_Y + 600, NODE_SIZE, NODE_SIZE });
-    testNode->SetBackgroundColor(0xFF303030);
-    testNode->SetBackgroundNGShader(shader);
-    GetRootNode()->AddChild(testNode);
-    RegisterNode(testNode);
+        SetUpTestNode(i, columnCount, rowCount, spatialPointLight);
+    }
 }
 
-/* Z-axis Test: different light heights */
-GRAPHIC_TEST(SpatialPointLightShaderTest, CONTENT_DISPLAY_TEST,
-    SpatialPointLightShader_ZAxis_001)
+GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Attenuation_Extreme_Values_Test)
 {
-    float zList[] = { 50.0f, 100.0f, 200.0f, 500.0f };
-    for (int i = 0; i < 4; i++) {
-        auto shader = std::make_shared<Rosen::RSNGSpatialPointLight>();
-        shader->Setter<Rosen::SpatialPointLightLightIntensityTag>(DEFAULT_INTENSITY);
-        shader->Setter<Rosen::SpatialPointLightLightPositionTag>(
-            Vector3f(OFFSET_X + i * GAP + NODE_SIZE / HALF_DIVISOR, 
-                     OFFSET_Y + 1200 + NODE_SIZE / HALF_DIVISOR, zList[i]));
-        shader->Setter<Rosen::SpatialPointLightLightColorTag>(Vector4f(1.0f, 1.0f, 1.0f, 1.0f));
-        shader->Setter<Rosen::SpatialPointLightAttenuationTag>(DEFAULT_ATTENUATION);
+    const size_t columnCount = 4;
+    const size_t rowCount = 1;
 
-        auto testNode = RSCanvasNode::Create();
-        testNode->SetBounds({ OFFSET_X + i * GAP, OFFSET_Y + 1200, NODE_SIZE, NODE_SIZE });
-        testNode->SetBackgroundColor(0xFF282828);
-        testNode->SetBackgroundNGShader(shader);
-        GetRootNode()->AddChild(testNode);
-        RegisterNode(testNode);
+    for (size_t i = 0; i < extremeAttenuations.size(); i++) {
+        auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
+        InitSpatialPointLight(spatialPointLight);
+        spatialPointLight->Setter<SpatialPointLightAttenuationTag>(extremeAttenuations[i]);
+
+        SetUpTestNode(i, columnCount, rowCount, spatialPointLight);
+    }
+}
+
+GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Mask_RadialGradient_Test)
+{
+    const size_t columnCount = 2;
+    const size_t rowCount = 1;
+
+    for (size_t i = 0; i < columnCount * rowCount; i++) {
+        auto radialMask = std::make_shared<RSNGRadialGradientMask>();
+        radialMask->Setter<RadialGradientMaskCenterTag>(Vector2f{0.5f, 0.5f});
+        radialMask->Setter<RadialGradientMaskRadiusXTag>(0.4f);
+        radialMask->Setter<RadialGradientMaskRadiusYTag>(0.4f);
+        radialMask->Setter<RadialGradientMaskColorsTag>(std::vector<float>{1.0f, 0.0f});
+        radialMask->Setter<RadialGradientMaskPositionsTag>(std::vector<float>{0.0f, 1.0f});
+
+        auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
+        InitSpatialPointLight(spatialPointLight);
+        spatialPointLight->Setter<SpatialPointLightMaskTag>(
+            std::static_pointer_cast<RSNGMaskBase>(radialMask));
+
+        SetUpTestNode(i, columnCount, rowCount, spatialPointLight);
+    }
+}
+
+GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Mask_Ripple_Test)
+{
+    const size_t columnCount = 2;
+    const size_t rowCount = 1;
+
+    for (size_t i = 0; i < columnCount * rowCount; i++) {
+        auto rippleMask = std::make_shared<RSNGRippleMask>();
+        rippleMask->Setter<RippleMaskCenterTag>(Vector2f{0.5f, 0.5f});
+        rippleMask->Setter<RippleMaskRadiusTag>(100.0f);
+        rippleMask->Setter<RippleMaskWidthTag>(50.0f);
+        rippleMask->Setter<RippleMaskOffsetTag>(0.0f);
+
+        auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
+        InitSpatialPointLight(spatialPointLight);
+        spatialPointLight->Setter<SpatialPointLightMaskTag>(
+            std::static_pointer_cast<RSNGMaskBase>(rippleMask));
+
+        SetUpTestNode(i, columnCount, rowCount, spatialPointLight);
     }
 }
 
