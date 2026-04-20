@@ -30,7 +30,7 @@ constexpr float DEFAULT_LIGHT_Y = 1000.0f;
 constexpr float DEFAULT_LIGHT_Z = 100.0f;
 constexpr float DEFAULT_LIGHT_INTENSITY = 2.0f;
 constexpr float DEFAULT_LIGHT_ATTENUATION = 5.0f;
-constexpr Vector4f DEFAULT_LIGHT_COLOR = Vector4f{1.0f, 0.5f, 0.0f, 1.0f}; // Orange
+const Vector4f DEFAULT_LIGHT_COLOR = Vector4f{1.0f, 0.5f, 0.0f, 1.0f}; // Orange
 
 // Default shader cascade parameters
 constexpr float DEFAULT_BORDER_LIGHT_INTENSITY = 0.5f;
