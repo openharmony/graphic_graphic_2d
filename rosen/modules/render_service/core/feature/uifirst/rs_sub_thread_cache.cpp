@@ -389,7 +389,7 @@ void RsSubThreadCache::InitCacheSurface(Drawing::GPUContext* gpuContext,
             return;
         }
         cacheCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
-            vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
+            vkTextureInfo, RSTagTracker::GetCurrentGpuResourceTag(gpuContext).fPid);
         cacheSurface_ = Drawing::Surface::MakeFromBackendTexture(
             gpuContext, cacheBackendTexture_.GetTextureInfo(), Drawing::TextureOrigin::BOTTOM_LEFT,
             1, colorType, colorSpace, NativeBufferUtils::DeleteVkImage, cacheCleanupHelper_);

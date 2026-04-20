@@ -34,6 +34,7 @@
 #include "system/rs_system_parameters.h"
 #include "string_utils.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "memory/rs_memory_snapshot.h"
 #ifdef SUBTREE_PARALLEL_ENABLE
 #include "rs_parallel_manager.h"
 #include "rs_parallel_misc.h"
@@ -102,6 +103,10 @@ void RSRenderNodeDrawable::Draw(Drawing::Canvas& canvas)
  */
 void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
+    if (MemorySnapshot::Instance().IsAbnormalProcess(ExtractPid(GetId()))) {
+        RS_LOGE("RSRenderNodeDrawable::OnDraw abnormal process %{public}d .", ExtractPid(GetId()));
+        return;
+    }
     auto& captureParam = RSUniRenderThread::GetCaptureParam();
     if (canvas.GetUICapture() && captureParam.captureFinished_) {
         return;
@@ -708,7 +713,7 @@ void RSRenderNodeDrawable::InitCachedSurface(Drawing::GPUContext* gpuContext, co
             return;
         }
         vulkanCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
-            vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
+            vkTextureInfo, RSTagTracker::GetCurrentGpuResourceTag(gpuContext).fPid);
         REAL_ALLOC_CONFIG_SET_STATUS(true);
         cachedSurface_ = Drawing::Surface::MakeFromBackendTexture(gpuContext, cachedBackendTexture_.GetTextureInfo(),
             Drawing::TextureOrigin::BOTTOM_LEFT, 1, colorType, colorSpace,

@@ -35,7 +35,6 @@ const uint8_t DO_RELEASE_UNLOCK_GPU_RES_BY_PID = 2;
 const uint8_t DO_RELEASE_UNLOCK_GPU_RES_BY_NODE_ID = 3;
 const uint8_t DO_PURGE_CACHE_BETWEEN_FRAMES = 4;
 const uint8_t DO_MEMORY_OVERFLOW = 5;
-const uint8_t DO_GPU_MEMORY_OVER_REPORT = 6;
 const uint8_t DO_ERASE_PID_INFO = 7;
 const uint8_t DO_RELEASE_UNLOCK_GPU_RES_BY_BOOL = 8;
 const uint8_t DO_SET_GPU_MEMORY_LIMIT = 9;
@@ -116,27 +115,6 @@ void DoMemoryOverflow(FuzzedDataProvider& fdp)
     MemoryManager::MemoryOverflow(pid, overflowMemory, isGpu);
 }
 
-void DoGpuMemoryOverReport(FuzzedDataProvider& fdp)
-{
-    pid_t pid = static_cast<pid_t>(fdp.ConsumeIntegral<int32_t>());
-    size_t overflowMemory = fdp.ConsumeIntegral<size_t>();
-
-    // Construct typeInfo map
-    std::unordered_map<std::string, std::pair<size_t, size_t>> typeInfo;
-    std::string typeKey = fdp.ConsumeRandomLengthString(16);
-    size_t typeSize = fdp.ConsumeIntegral<size_t>();
-    size_t typeCount = fdp.ConsumeIntegral<size_t>();
-    typeInfo[typeKey] = std::make_pair(typeSize, typeCount);
-
-    // Construct pidInfo map
-    std::unordered_map<pid_t, size_t> pidInfo;
-    pid_t infoPid = static_cast<pid_t>(fdp.ConsumeIntegral<int32_t>());
-    size_t infoSize = fdp.ConsumeIntegral<size_t>();
-    pidInfo[infoPid] = infoSize;
-
-    MemoryManager::GpuMemoryOverReport(pid, overflowMemory, typeInfo, pidInfo);
-}
-
 void DoErasePidInfo(FuzzedDataProvider& fdp)
 {
     std::set<pid_t> exitedPidSet = CreateFuzzedPidSet(fdp, MAX_FUZZ_PID_SET_SIZE);
@@ -201,9 +179,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_MEMORY_OVERFLOW:
             OHOS::Rosen::DoMemoryOverflow(fdp);
-            break;
-        case OHOS::Rosen::DO_GPU_MEMORY_OVER_REPORT:
-            OHOS::Rosen::DoGpuMemoryOverReport(fdp);
             break;
         case OHOS::Rosen::DO_ERASE_PID_INFO:
             OHOS::Rosen::DoErasePidInfo(fdp);

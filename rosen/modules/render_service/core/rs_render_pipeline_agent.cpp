@@ -1768,7 +1768,8 @@ int32_t RSRenderPipelineAgent::GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB)
         RS_LOGD("RSRenderPipelineAgent::GetPidGpuMemoryInMB fail to find pid!");
         return ERR_INVALID_VALUE;
     }
-    gpuMemInMB = static_cast<float>(memorySnapshotInfo.gpuMemory) / MEM_BYTE_TO_MB;
+    gpuMemInMB =
+        static_cast<float>(memorySnapshotInfo.engineGpuMemory + memorySnapshotInfo.nativeGpuMemory) / MEM_BYTE_TO_MB;
     RS_LOGD("RSRenderPipelineAgent::GetPidGpuMemoryInMB called succ");
     return ERR_OK;
 }

@@ -33,6 +33,7 @@
 #include "draw/surface.h"
 #include "image/image.h"
 #include "drawing/engine_adapter/skia_adapter/skia_color_space.h"
+#include "memory/rs_memory_snapshot.h"
 
 namespace OHOS::Rosen {
 struct DestroySemaphoreInfo {
@@ -61,19 +62,60 @@ struct DestroySemaphoreInfo {
 namespace NativeBufferUtils {
 constexpr uint32_t VKIMAGE_LIMIT_SIZE = 10000 * 10000; // Vk-Image Size need less than 10000*10000
 void DeleteVkImage(void* context);
+enum VulkanCleanType {
+    EXTERNAL,   //dma
+    NATIVE,     //gpu
+};
+
 class VulkanCleanupHelper {
 public:
-    VulkanCleanupHelper(RsVulkanContext& vkContext, VkImage image, VkDeviceMemory memory)
+    VulkanCleanupHelper(RsVulkanContext& vkContext, VkImage image, VkDeviceMemory memory,
+        const VulkanCleanType cleanType = VulkanCleanType::EXTERNAL, const pid_t pid = 0,
+        const size_t memSize = 0)
         : fDevice_(vkContext.GetDevice()),
           fImage_(image),
           fMemory_(memory),
           fDestroyImage_(vkContext.GetRsVulkanInterface().vkDestroyImage),
           fFreeMemory_(vkContext.GetRsVulkanInterface().vkFreeMemory),
-          fRefCnt_(1) {}
+          cleanType_(cleanType),
+          pid_(pid),
+          memSize_(memSize),
+          fRefCnt_(1)
+    {
+        // gpu info statics--increase
+        if (cleanType_ == VulkanCleanType::NATIVE && RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+            MemorySnapshot::Instance().UpdateGpuInfo(pid_, memSize_, true, false);
+        }
+    }
+
+    VulkanCleanupHelper(
+        RsVulkanContext& vkContext, const std::shared_ptr<Drawing::VKTextureInfo> vkTextureInfo, const pid_t pid = 0)
+        : fDevice_(vkContext.GetDevice()),
+          fImage_(vkTextureInfo->vkImage),
+          fMemory_(vkTextureInfo->vkAlloc.memory),
+          fDestroyImage_(vkContext.GetRsVulkanInterface().vkDestroyImage),
+          fFreeMemory_(vkContext.GetRsVulkanInterface().vkFreeMemory),
+          cleanType_(vkTextureInfo->vkAlloc.source == Drawing::VKMemSource::NATIVE
+                ? NativeBufferUtils::VulkanCleanType::NATIVE
+                : NativeBufferUtils::VulkanCleanType::EXTERNAL),
+          pid_(pid),
+          memSize_(vkTextureInfo->vkAlloc.size),
+          fRefCnt_(1)
+    {
+        // gpu info statics--increase
+        if (cleanType_ == VulkanCleanType::NATIVE && RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+            MemorySnapshot::Instance().UpdateGpuInfo(pid_, memSize_, true, false);
+        }
+    }
+
     ~VulkanCleanupHelper()
     {
         fDestroyImage_(fDevice_, fImage_, nullptr);
         fFreeMemory_(fDevice_, fMemory_, nullptr);
+        // gpu info statics--decrease
+        if (cleanType_ == VulkanCleanType::NATIVE && RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+            MemorySnapshot::Instance().UpdateGpuInfo(pid_, memSize_, false, false);
+        }
     }
 
     VulkanCleanupHelper* Ref()
@@ -95,6 +137,9 @@ private:
     VkDeviceMemory fMemory_;
     PFN_vkDestroyImage fDestroyImage_;
     PFN_vkFreeMemory fFreeMemory_;
+    VulkanCleanType cleanType_;     // memory type: dma/gpu
+    pid_t pid_;                     // pid of memory resource
+    size_t memSize_;                // memory size
     mutable std::atomic<int32_t> fRefCnt_;
 };
 
