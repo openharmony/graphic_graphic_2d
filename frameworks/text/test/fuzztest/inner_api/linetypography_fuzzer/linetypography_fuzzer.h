@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,9 +13,14 @@
  * limitations under the License.
  */
 
-#ifndef TEST_FUZZTEST_DRAWING_FUZZER_H
-#define TEST_FUZZTEST_DRAWING_FUZZER_H
+#ifndef TEST_LINETYPOGRAPHY_FUZZER_H
+#define TEST_LINETYPOGRAPHY_FUZZER_H
 
-#define FUZZ_PROJECT_NAME "ndktext_fuzzer"
+#include <climits>
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
 
-#endif // TEST_FUZZTEST_DRAWING_FUZZER_H
+#define FUZZ_PROJECT_NAME "linetypography_fuzzer"
+
+#endif // TEST_LINETYPOGRAPHY_FUZZER_H

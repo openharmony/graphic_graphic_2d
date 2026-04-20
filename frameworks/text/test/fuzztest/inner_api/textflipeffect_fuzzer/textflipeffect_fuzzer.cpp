@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "text_flip_effect_fuzzer.h"
+#include "textflipeffect_fuzzer.h"
 #include "text_flip_effect.h"
 #include "typography.h"
 #include "typography_create.h"
@@ -29,9 +29,11 @@ void TextFlipEffectFuzzTest(const uint8_t* data, size_t size)
     FuzzedDataProvider fdp(data, size);
     Drawing::Canvas canvas;
     auto textEffect = TextEffectFactoryCreator::GetInstance().CreateTextEffect(TextEffectStrategy::FLIP);
+    std::string direction = fdp.ConsumeRandomLengthString();
+    std::string blurEnable = fdp.ConsumeRandomLengthString();
     std::unordered_map<TextEffectAttribute, std::string> config = {
-        {TextEffectAttribute::FLIP_DIRECTION, "up"},
-        {TextEffectAttribute::BLUR_ENABLE, "false"},
+        {TextEffectAttribute::FLIP_DIRECTION, direction},
+        {TextEffectAttribute::BLUR_ENABLE, blurEnable},
     };
     textEffect->UpdateEffectConfig(config);
     OHOS::Rosen::TypographyStyle typographyStyle0;

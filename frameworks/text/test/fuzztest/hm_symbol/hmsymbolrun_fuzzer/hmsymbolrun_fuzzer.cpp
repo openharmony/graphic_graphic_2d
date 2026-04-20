@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "hm_symbol_run_fuzzer.h"
+#include "hmsymbolrun_fuzzer.h"
 
 #include <cstddef>
 #include <fuzzer/FuzzedDataProvider.h>

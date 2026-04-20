@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "drawing_text_typography_fuzzer.h"
+#include "ndktypography_fuzzer.h"
 
 #include <cstddef>
 #include <fuzzer/FuzzedDataProvider.h>
@@ -21,6 +21,11 @@
 
 namespace OHOS::Rosen::Drawing {
 constexpr inline size_t DATA_MAX_LAYOUT_WIDTH = 100;
+constexpr inline uint32_t FUZZ_TEXT_MAX_LINES = 40;
+constexpr inline float FUZZ_TEXT_FONT_SIZE = 40.0f;
+constexpr inline int FUZZ_PLACEHOLDER_WIDTH = 10;
+constexpr inline int FUZZ_PLACEHOLDER_HEIGHT = 5;
+constexpr inline uint32_t FUZZ_BITMAP_SIZE = 20;
 
 void SetTypographyStyle(OH_Drawing_TypographyStyle* typoStyle, FuzzedDataProvider& fdp)
 {
@@ -33,7 +38,7 @@ void SetTypographyStyle(OH_Drawing_TypographyStyle* typoStyle, FuzzedDataProvide
 
     OH_Drawing_SetTypographyTextDirection(typoStyle, fdp.ConsumeIntegral<uint32_t>());
     OH_Drawing_SetTypographyTextAlign(typoStyle, fdp.ConsumeIntegral<uint32_t>());
-    OH_Drawing_SetTypographyTextMaxLines(typoStyle, 40);
+    OH_Drawing_SetTypographyTextMaxLines(typoStyle, FUZZ_TEXT_MAX_LINES);
     OH_Drawing_SetTypographyTextBreakStrategy(typoStyle, fdp.ConsumeIntegral<uint32_t>());
     OH_Drawing_SetTypographyTextWordBreakType(typoStyle, fdp.ConsumeIntegral<uint32_t>());
     OH_Drawing_SetTypographyTextHalfLeading(typoStyle, fdp.ConsumeIntegral<uint32_t>());
@@ -42,7 +47,7 @@ void SetTypographyStyle(OH_Drawing_TypographyStyle* typoStyle, FuzzedDataProvide
     OH_Drawing_SetTypographyTextFontStyle(typoStyle, fdp.ConsumeIntegral<uint32_t>());
     OH_Drawing_SetTypographyTextFontFamily(typoStyle, str.c_str());
     OH_Drawing_SetTypographyTextFontFamily(typoStyle, fontFamiliesTest);
-    OH_Drawing_SetTypographyTextFontSize(typoStyle, 40.0f);
+    OH_Drawing_SetTypographyTextFontSize(typoStyle, FUZZ_TEXT_FONT_SIZE);
     OH_Drawing_SetTypographyTextFontHeight(typoStyle, fdp.ConsumeIntegral<uint32_t>());
     OH_Drawing_SetTypographyTextHalfLeading(typoStyle, fdp.ConsumeIntegral<uint32_t>());
     OH_Drawing_SetTypographyTextUseLineStyle(typoStyle, fdp.ConsumeBool());
@@ -50,7 +55,7 @@ void SetTypographyStyle(OH_Drawing_TypographyStyle* typoStyle, FuzzedDataProvide
     OH_Drawing_SetTypographyTextLineStyleFontStyle(typoStyle, fdp.ConsumeIntegral<uint32_t>());
     OH_Drawing_SetTypographyTextLineStyleFontFamilies(typoStyle, 1, fontFamilies);
     OH_Drawing_SetTypographyTextLineStyleFontFamilies(typoStyle, 1, fontFamilies1);
-    OH_Drawing_SetTypographyTextLineStyleFontSize(typoStyle, 40.0f);
+    OH_Drawing_SetTypographyTextLineStyleFontSize(typoStyle, FUZZ_TEXT_FONT_SIZE);
     OH_Drawing_SetTypographyTextLineStyleFontHeight(typoStyle, fdp.ConsumeIntegral<uint32_t>());
     OH_Drawing_SetTypographyTextLineStyleHalfLeading(typoStyle, fdp.ConsumeIntegral<uint32_t>());
     OH_Drawing_SetTypographyTextLineStyleSpacingScale(typoStyle, fdp.ConsumeIntegral<uint32_t>());
@@ -59,13 +64,8 @@ void SetTypographyStyle(OH_Drawing_TypographyStyle* typoStyle, FuzzedDataProvide
     OH_Drawing_SetTypographyTextSplitRatio(typoStyle, fdp.ConsumeIntegral<uint32_t>());
 }
 
-OH_Drawing_TypographyStyle* UpdateTypographyStyle(OH_Drawing_TypographyStyle* typoStyle, FuzzedDataProvider& fdp)
+void QueryTypographyStyle(OH_Drawing_TypographyStyle* typoStyle, FuzzedDataProvider& fdp)
 {
-    OH_Drawing_TextStyle* textstyle = OH_Drawing_CreateTextStyle();
-    OH_Drawing_SetTypographyTextStyle(typoStyle, textstyle);
-    OH_Drawing_DestroyTextStyle(textstyle);
-    SetTypographyStyle(typoStyle, fdp);
-    OH_Drawing_DestroyTextStyle(OH_Drawing_TypographyGetTextStyle(typoStyle));
     OH_Drawing_TypographyGetEffectiveAlignment(typoStyle);
     OH_Drawing_TypographyIsLineUnlimited(typoStyle);
     OH_Drawing_TypographyIsEllipsized(typoStyle);
@@ -101,9 +101,7 @@ OH_Drawing_TypographyStyle* UpdateTypographyStyle(OH_Drawing_TypographyStyle* ty
     OH_Drawing_TypographyStyleDestroyStrutStyle(getStrutStyle);
     OH_Drawing_TypographyStyleSetHintsEnabled(typoStyle, fdp.ConsumeBool());
     std::shared_ptr<OH_Drawing_FontStyleStruct> structStyle = std::make_shared<OH_Drawing_FontStyleStruct>();
-    if (fdp.remaining_bytes() >= sizeof(OH_Drawing_FontStyleStruct)) {
-        fdp.ConsumeData(structStyle.get(), sizeof(OH_Drawing_FontStyleStruct));
-    }
+    fdp.ConsumeData(structStyle.get(), sizeof(OH_Drawing_FontStyleStruct));
     OH_Drawing_SetTypographyStyleFontStyleStruct(typoStyle, *structStyle);
     OH_Drawing_TypographyStyleGetFontStyleStruct(typoStyle);
     OH_Drawing_TextTab* textTab =
@@ -112,6 +110,16 @@ OH_Drawing_TypographyStyle* UpdateTypographyStyle(OH_Drawing_TypographyStyle* ty
     OH_Drawing_GetTextTabLocation(textTab);
     OH_Drawing_SetTypographyTextTab(typoStyle, textTab);
     OH_Drawing_DestroyTextTab(textTab);
+}
+
+OH_Drawing_TypographyStyle* UpdateTypographyStyle(OH_Drawing_TypographyStyle* typoStyle, FuzzedDataProvider& fdp)
+{
+    OH_Drawing_TextStyle* textstyle = OH_Drawing_CreateTextStyle();
+    OH_Drawing_SetTypographyTextStyle(typoStyle, textstyle);
+    OH_Drawing_DestroyTextStyle(textstyle);
+    SetTypographyStyle(typoStyle, fdp);
+    OH_Drawing_DestroyTextStyle(OH_Drawing_TypographyGetTextStyle(typoStyle));
+    QueryTypographyStyle(typoStyle, fdp);
     return typoStyle;
 }
 
@@ -122,7 +130,7 @@ void SetTextStyle(OH_Drawing_TextStyle* txtStyle, FuzzedDataProvider& fdp)
     uint32_t blue = fdp.ConsumeIntegral<uint32_t>();
     uint32_t alpha = fdp.ConsumeIntegral<uint32_t>();
     OH_Drawing_SetTextStyleColor(txtStyle, OH_Drawing_ColorSetArgb(alpha, red, gree, blue));
-    OH_Drawing_SetTextStyleFontSize(txtStyle, 40.0f);
+    OH_Drawing_SetTextStyleFontSize(txtStyle, FUZZ_TEXT_FONT_SIZE);
     OH_Drawing_SetTextStyleFontWeight(txtStyle, fdp.ConsumeIntegral<uint32_t>());
     OH_Drawing_SetTextStyleBaseLine(txtStyle, fdp.ConsumeIntegral<uint32_t>());
     OH_Drawing_SetTextStyleDecoration(txtStyle, fdp.ConsumeIntegral<uint32_t>());
@@ -206,9 +214,7 @@ OH_Drawing_TextStyle* CreateTextStyle(OH_Drawing_TextStyle* txtStyle, FuzzedData
     OH_Drawing_TextStyleSetPlaceholder(txtStyle);
     OH_Drawing_TextStyleIsPlaceholder(txtStyle);
     std::shared_ptr<OH_Drawing_FontStyleStruct> structStyle = std::make_shared<OH_Drawing_FontStyleStruct>();
-    if (fdp.remaining_bytes() >= sizeof(OH_Drawing_FontStyleStruct)) {
-        fdp.ConsumeData(structStyle.get(), sizeof(OH_Drawing_FontStyleStruct));
-    }
+    fdp.ConsumeData(structStyle.get(), sizeof(OH_Drawing_FontStyleStruct));
     OH_Drawing_SetTextStyleFontStyleStruct(txtStyle, *structStyle);
     OH_Drawing_TextStyleGetFontStyleStruct(txtStyle);
     OH_Drawing_DestroyTextStyle(comparedStyle);
@@ -219,8 +225,8 @@ OH_Drawing_TextStyle* CreateTextStyle(OH_Drawing_TextStyle* txtStyle, FuzzedData
 OH_Drawing_TypographyCreate* CreateTypographyHandler(OH_Drawing_TypographyCreate* handler,
     OH_Drawing_TypographyStyle* typoStyle, OH_Drawing_TextStyle* txtStyle, FuzzedDataProvider& fdp)
 {
-    int width = 10.0;
-    int height = 5.0;
+    int width = FUZZ_PLACEHOLDER_WIDTH;
+    int height = FUZZ_PLACEHOLDER_HEIGHT;
     OH_Drawing_PlaceholderSpan placeholder = { .width = width,
         .height = height,
         .alignment = ALIGNMENT_OFFSET_AT_BASELINE,
@@ -289,9 +295,7 @@ OH_Drawing_Typography* CreateTypography(
     OH_Drawing_TypographyGetLineInfo(
         typography, fdp.ConsumeIntegral<uint32_t>(), fdp.ConsumeBool(), fdp.ConsumeBool(), lineMetrics);
     std::shared_ptr<OH_Drawing_LineMetrics> metrics = std::make_shared<OH_Drawing_LineMetrics>();
-    if (fdp.remaining_bytes() >= sizeof(OH_Drawing_LineMetrics)) {
-        fdp.ConsumeData(metrics.get(), sizeof(OH_Drawing_LineMetrics));
-    }
+    fdp.ConsumeData(metrics.get(), sizeof(OH_Drawing_LineMetrics));
     OH_Drawing_TypographyGetLineMetricsAt(typography, fdp.ConsumeIntegral<uint32_t>(), metrics.get());
     float indents[] = { fdp.ConsumeIntegral<uint32_t>(), fdp.ConsumeIntegral<uint32_t>() };
     OH_Drawing_TypographySetIndents(typography, sizeof(indents) / sizeof(float), indents);
@@ -299,7 +303,7 @@ OH_Drawing_Typography* CreateTypography(
     OH_Drawing_TypographyMarkDirty(typography);
     OH_Drawing_TypographyGetUnresolvedGlyphsCount(typography);
     OH_Drawing_TypographyUpdateFontSize(
-        typography, fdp.ConsumeIntegral<size_t>(), fdp.ConsumeIntegral<size_t>(), 40.0f + 1);
+        typography, fdp.ConsumeIntegral<size_t>(), fdp.ConsumeIntegral<size_t>(), FUZZ_TEXT_FONT_SIZE + 1);
     size_t size;
     OH_Drawing_Font_Metrics* fontMetrics =
         OH_Drawing_TypographyGetLineFontMetrics(typography, fdp.ConsumeIntegral<size_t>(), &size);
@@ -313,7 +317,7 @@ OH_Drawing_Bitmap* CreateBitmap()
     OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreate();
     OH_Drawing_BitmapFormat cFormat { COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE };
     // 这里使用随机的 width 和 width 可能会 crash ，所以暂时使用常量 20
-    OH_Drawing_BitmapBuild(bitmap, 20, 20, &cFormat);
+    OH_Drawing_BitmapBuild(bitmap, FUZZ_BITMAP_SIZE, FUZZ_BITMAP_SIZE, &cFormat);
     OH_Drawing_BitmapGetWidth(bitmap);
     OH_Drawing_BitmapGetHeight(bitmap);
     return bitmap;

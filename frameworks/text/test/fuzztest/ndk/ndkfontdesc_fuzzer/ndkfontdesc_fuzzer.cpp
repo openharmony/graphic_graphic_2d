@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "drawing_text_font_descriptor_fuzzer.h"
+#include "ndkfontdesc_fuzzer.h"
 
 #include <fuzzer/FuzzedDataProvider.h>
 
@@ -67,6 +67,64 @@ void OHDrawingTextFontFullDescriptorTest(const uint8_t* data, size_t size)
     OH_Drawing_DestroyFontFullDescriptors(pathArray);
 }
 
+void OHDrawingTextFontVariationAxisAttrsTest(const uint8_t* data, size_t size)
+{
+    FuzzedDataProvider fdp(data, size);
+    auto pathArray = OH_Drawing_GetFontFullDescriptorsFromPath("/system/fonts/NotoSansCJK-Regular.ttc");
+    auto desc = OH_Drawing_GetFontFullDescriptorByIndex(pathArray, fdp.ConsumeIntegral<size_t>());
+
+    // Test variation axis attributes
+    OH_Drawing_Array* axisArray =
+        OH_Drawing_GetFontFullDescriptorAttributeArray(desc, FULL_DESCRIPTOR_ATTR_O_VARIATION_AXIS);
+    size_t axisCount = OH_Drawing_GetDrawingArraySize(axisArray);
+    for (size_t i = 0; i < axisCount; i++) {
+        OH_Drawing_FontVariationAxis* axis = OH_Drawing_GetFontVariationAxisByIndex(axisArray, i);
+        OH_Drawing_FontVariationAxisAttributeId axisId =
+            static_cast<OH_Drawing_FontVariationAxisAttributeId>(fdp.ConsumeIntegral<uint8_t>());
+        double doubleValue = 0.0;
+        OH_Drawing_GetFontVariationAxisAttributeDouble(axis, axisId, &doubleValue);
+        int intValue = 0;
+        OH_Drawing_GetFontVariationAxisAttributeInt(axis, axisId, &intValue);
+        OH_Drawing_String strValue = { nullptr, 0 };
+        OH_Drawing_GetFontVariationAxisAttributeStr(axis, axisId, &strValue);
+        free(strValue.strData);
+
+        // Test with nullptr
+        OH_Drawing_GetFontVariationAxisAttributeDouble(nullptr, axisId, &doubleValue);
+        OH_Drawing_GetFontVariationAxisAttributeDouble(axis, axisId, nullptr);
+        OH_Drawing_GetFontVariationAxisAttributeInt(nullptr, axisId, &intValue);
+        OH_Drawing_GetFontVariationAxisAttributeInt(axis, axisId, nullptr);
+        OH_Drawing_GetFontVariationAxisAttributeStr(nullptr, axisId, &strValue);
+        OH_Drawing_GetFontVariationAxisAttributeStr(axis, axisId, nullptr);
+    }
+    OH_Drawing_DestroyFontVariationAxis(axisArray);
+
+    // Test variation instance attributes
+    OH_Drawing_Array* instanceArray =
+        OH_Drawing_GetFontFullDescriptorAttributeArray(desc, FULL_DESCRIPTOR_ATTR_O_VARIATION_INSTANCE);
+    size_t instanceCount = OH_Drawing_GetDrawingArraySize(instanceArray);
+    for (size_t i = 0; i < instanceCount; i++) {
+        OH_Drawing_FontVariationInstance* instance = OH_Drawing_GetFontVariationInstanceByIndex(instanceArray, i);
+        OH_Drawing_FontVariationInstanceAttributeId instId =
+            static_cast<OH_Drawing_FontVariationInstanceAttributeId>(fdp.ConsumeIntegral<uint8_t>());
+        OH_Drawing_String strValue = { nullptr, 0 };
+        OH_Drawing_GetFontVariationInstanceAttributeStr(instance, instId, &strValue);
+        free(strValue.strData);
+
+        // Test instance coordinate
+        size_t coordLen = 0;
+        OH_Drawing_FontVariationInstanceCoordinate* coord =
+            OH_Drawing_GetFontVariationInstanceCoordinate(instance, &coordLen);
+
+        // Test with nullptr
+        OH_Drawing_GetFontVariationInstanceAttributeStr(nullptr, instId, &strValue);
+        OH_Drawing_GetFontVariationInstanceAttributeStr(instance, instId, nullptr);
+        free(coord);
+    }
+    OH_Drawing_DestroyFontVariationInstance(instanceArray);
+    OH_Drawing_DestroyFontFullDescriptors(pathArray);
+}
+
 void OHDrawingTextFontPathTest(const uint8_t* data, size_t size)
 {
     FuzzedDataProvider fdp(data, size);
@@ -88,6 +146,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     /* Run your code on data */
     OHOS::Rosen::Drawing::OHDrawingTextFontDescriptorTest(data, size);
     OHOS::Rosen::Drawing::OHDrawingTextFontFullDescriptorTest(data, size);
+    OHOS::Rosen::Drawing::OHDrawingTextFontVariationAxisAttrsTest(data, size);
     OHOS::Rosen::Drawing::OHDrawingTextFontPathTest(data, size);
     return 0;
 }
