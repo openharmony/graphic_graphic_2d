@@ -1939,8 +1939,7 @@ bool RSUniRenderVisitor::HasAncestorRenderGroup(NodeId nodeId) const
 bool RSUniRenderVisitor::IsNodeInBlackList(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNodePtr) const
 {
     auto specialLayerManager = surfaceNodePtr->GetSpecialLayerMgr();
-    if ((surfaceNodePtr->IsLeashWindow() &&
-            allBlackList_.find(surfaceNodePtr->GetLeashPersistentId()) != allBlackList_.end()) ||
+    if (allBlackList_.find(surfaceNodePtr->GetLeashPersistentId()) != allBlackList_.end() ||
         allBlackList_.find(surfaceNodePtr->GetId()) != allBlackList_.end() ||
         specialLayerManager.Find(HAS_GENERAL_SPECIAL)) {
         return true;
