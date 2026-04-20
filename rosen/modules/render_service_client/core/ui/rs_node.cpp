@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2426,7 +2426,8 @@ void RSNode::SetVisualEffect(const VisualEffect* visualEffect)
         if (visualEffectPara->GetParaType() == VisualEffectPara::BORDER_LIGHT_EFFECT ||
             visualEffectPara->GetParaType() == VisualEffectPara::COLOR_GRADIENT_EFFECT ||
             visualEffectPara->GetParaType() == VisualEffectPara::HARMONIUM_EFFECT ||
-            visualEffectPara->GetParaType() == VisualEffectPara::FROSTED_GLASS_EFFECT) {
+            visualEffectPara->GetParaType() == VisualEffectPara::FROSTED_GLASS_EFFECT ||
+            visualEffectPara->GetParaType() == VisualEffectPara::SPATIAL_POINT_LIGHT_EFFECT) {
             SetBackgroundNGShader(RSNGShaderBase::Create(visualEffectPara));
         }
 
@@ -4532,7 +4533,7 @@ void RSNode::SetInstanceId(int32_t instanceId)
 {
     instanceId_ = instanceId;
     auto rsUIContext = rsUIContext_;
-    // use client multi don’t need
+    // use client multi don鈥檛 need
     if (rsUIContext == nullptr) {
         RSNodeMap::MutableInstance().RegisterNodeInstanceId(id_, instanceId_);
     }
