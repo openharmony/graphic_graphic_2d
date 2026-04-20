@@ -4532,7 +4532,7 @@ void RSNode::SetInstanceId(int32_t instanceId)
 {
     instanceId_ = instanceId;
     auto rsUIContext = rsUIContext_;
-    // use client multi don鈥檛 need
+    // use client multi don’t need
     if (rsUIContext == nullptr) {
         RSNodeMap::MutableInstance().RegisterNodeInstanceId(id_, instanceId_);
     }
