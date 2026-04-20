@@ -607,7 +607,7 @@ void RSSystemProperties::SetCacheEnabledForRotation(bool flag)
 
 bool RSSystemProperties::GetCacheEnabledForRotation()
 {
-    return cacheEnabledForRotation_;
+    return cacheEnabledForRotation_.load();
 }
 
 ParallelRenderingType RSSystemProperties::GetPrepareParallelRenderingEnabled()
