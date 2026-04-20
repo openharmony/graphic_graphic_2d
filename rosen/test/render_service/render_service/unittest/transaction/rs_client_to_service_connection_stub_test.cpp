@@ -4349,6 +4349,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, RegisterTypefaceTest002, TestSize.
     EXPECT_NE(
         connectionStub_->RegisterTypeface(sharedTypeface, needUpdate), -1);
     EXPECT_TRUE(connectionStub_->UnRegisterTypeface(typeface->GetHash()));
+    EXPECT_TRUE(connectionStub_->UnRegisterTypeface(sharedTypeface.id_));
 }
 
 /**
@@ -4408,18 +4409,13 @@ HWTEST_F(RSClientToServiceConnectionStubTest, RegisterTypefaceTest004, TestSize.
     uint64_t uniqueId = (static_cast<uint64_t>(pid) << 32) | static_cast<uint64_t>(typeface->GetHash());
 
     // First registration to cache it
-    int32_t needUpdate = 0;
-    Drawing::SharedTypeface sharedTypeface1;
-    sharedTypeface1.id_ = uniqueId;
-    sharedTypeface1.size_ = typeface->GetSize();
-    sharedTypeface1.fd_ = typeface->GetFd();
+    int32_t needUpdate = -1;
+    Drawing::SharedTypeface sharedTypeface1(uniqueId, typeface);
     EXPECT_NE(connectionStub_->RegisterTypeface(sharedTypeface1, needUpdate), -1);
+    EXPECT_EQ(needUpdate, 0);
 
     // Second registration with same hash - should hit cached typeface path (line 1401)
-    Drawing::SharedTypeface sharedTypeface2;
-    sharedTypeface2.id_ = uniqueId;
-    sharedTypeface2.size_ = typeface->GetSize();
-    sharedTypeface2.fd_ = typeface->GetFd();
+    Drawing::SharedTypeface sharedTypeface2(uniqueId, typeface);
     needUpdate = 0;
     int32_t result = connectionStub_->RegisterTypeface(sharedTypeface2, needUpdate);
     EXPECT_NE(result, -1);
