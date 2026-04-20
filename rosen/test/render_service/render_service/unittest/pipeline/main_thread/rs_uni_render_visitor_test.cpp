@@ -9291,6 +9291,55 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareColorPickers004, TestSize.Level1)
 }
 
 /**
+ * @tc.name: PrepareColorPickers005
+ * @tc.desc: Test PrepareColorPickers uses surface dark mode instead of global dark mode
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVisitorTest, PrepareColorPickers005, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    auto rsContext = std::make_shared<RSContext>();
+    NodeId screenId = 0;
+    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(1, screenId, rsContext);
+    ASSERT_NE(rsUniRenderVisitor->curScreenNode_, nullptr);
+
+    auto* mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->SetGlobalDarkColorMode(false);
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetDarkColorMode(true);
+    surfaceNode->instanceRootNodeId_ = surfaceNode->GetId();
+
+    constexpr NodeId filterNodeId = 101;
+    auto filterNode = std::make_shared<RSRenderNode>(filterNodeId);
+    ASSERT_NE(filterNode, nullptr);
+    filterNode->instanceRootNodeId_ = surfaceNode->GetId();
+    filterNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = { 0, 0, 500, 500 };
+
+    auto colorPickerDrawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, filterNodeId);
+    colorPickerDrawable->stagingState_ = DrawableV2::ColorPickerState::COLOR_PICK_THIS_FRAME;
+    filterNode->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = colorPickerDrawable;
+    filterNode->GetMutableRenderProperties().SetColorPickerStrategy(
+        static_cast<int>(ColorPickStrategyType::AVERAGE));
+    filterNode->GetMutableRenderProperties().SetColorPickerInterval(1000);
+
+    auto& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(filterNode);
+    nodeMap.RegisterRenderNode(surfaceNode);
+    surfaceNode->visibleFilterChild_.push_back(filterNodeId);
+    rsUniRenderVisitor->curScreenNode_->GetAllMainAndLeashSurfaces().push_back(surfaceNode);
+
+    rsUniRenderVisitor->PrepareColorPickers();
+
+    EXPECT_TRUE(colorPickerDrawable->stagingIsSystemDarkColorMode_);
+    nodeMap.UnregisterRenderNode(filterNodeId);
+}
+
+/**
  * @tc.name: HandleColorPickerHwcDisable005
  * @tc.desc: Test HandleColorPickerHwcDisable with SCHEDULED state (no HWC disable)
  * @tc.type: FUNC
