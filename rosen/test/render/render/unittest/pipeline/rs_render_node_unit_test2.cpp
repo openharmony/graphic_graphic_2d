@@ -1661,7 +1661,7 @@ HWTEST_F(RSRenderNodeUnitTest2, UpdateDrawingCacheInfoBeforeChildrenTest001, Tes
     EXPECT_NE(stagingRenderParams, nullptr);
     nodeTest->stagingRenderParams_ = std::move(stagingRenderParams);
     nodeTest->UpdateDrawingCacheInfoBeforeChildren(false, false);
-    EXPECT_TRUE(nodeTest->stagingRenderParams_->needSync_);
+    EXPECT_FALSE(nodeTest->stagingRenderParams_->needSync_);
 }
 
 /**

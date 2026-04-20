@@ -4676,6 +4676,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateDrawingCacheInfoAfterChildrenBlacklistTes
     rsUniRenderVisitor->AddRenderGroupCacheRoot(*cacheRoot);
 
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1);
+    cacheRoot->AddChild(surfaceNode);
     rsUniRenderVisitor->allBlackList_.insert(1);
     surfaceNode->InitRenderParams();
     rsUniRenderVisitor->UpdateDrawingCacheInfoAfterChildren(*surfaceNode);
