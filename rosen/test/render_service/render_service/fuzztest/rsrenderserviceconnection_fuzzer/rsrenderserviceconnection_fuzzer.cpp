@@ -964,9 +964,10 @@ bool DoSetPixelFormat()
     }
     uint64_t id = GetData<uint64_t>();
     uint32_t pixelFormat = GetData<uint32_t>();
-    rsToServiceConn_->SetPixelFormat(id, static_cast<GraphicPixelFormat>(pixelFormat));
+    int32_t resCode;
+    rsToServiceConn_->SetPixelFormat(id, static_cast<GraphicPixelFormat>(pixelFormat), resCode);
     GraphicPixelFormat pixelFormat1;
-    rsToServiceConn_->GetPixelFormat(id, pixelFormat1);
+    rsToServiceConn_->GetPixelFormat(id, pixelFormat1, resCode);
     return true;
 }
 
@@ -977,11 +978,12 @@ bool DOGetScreenSupportedHDRFormats()
     }
     uint64_t id = GetData<uint64_t>();
     int32_t modeIdx = GetData<int32_t>();
-    rsToServiceConn_->SetScreenHDRFormat(id, modeIdx);
+    int32_t resCode;
+    rsToServiceConn_->SetScreenHDRFormat(id, modeIdx, resCode);
     ScreenHDRFormat hdrFormat;
-    rsToServiceConn_->GetScreenHDRFormat(id, hdrFormat);
+    rsToServiceConn_->GetScreenHDRFormat(id, hdrFormat, resCode);
     std::vector<ScreenHDRFormat> hdrFormats;
-    rsToServiceConn_->GetScreenSupportedHDRFormats(id, hdrFormats);
+    rsToServiceConn_->GetScreenSupportedHDRFormats(id, hdrFormats, resCode);
     return true;
 }
 
@@ -992,9 +994,10 @@ bool DOGetScreenSupportedColorSpaces()
     }
     uint64_t id = GetData<uint64_t>();
     uint32_t colorSpace = GetData<uint32_t>();
-    rsToServiceConn_->SetScreenColorSpace(id, static_cast<GraphicCM_ColorSpaceType>(colorSpace));
+    int32_t resCode;
+    rsToServiceConn_->SetScreenColorSpace(id, static_cast<GraphicCM_ColorSpaceType>(colorSpace), resCode);
     std::vector<GraphicCM_ColorSpaceType> colorSpaces;
-    rsToServiceConn_->GetScreenSupportedColorSpaces(id, colorSpaces);
+    rsToServiceConn_->GetScreenSupportedColorSpaces(id, colorSpaces, resCode);
     return true;
 }
 
