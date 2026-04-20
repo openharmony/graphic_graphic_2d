@@ -15,6 +15,7 @@
 
 #include "effect/rs_render_shape_base.h"
 #include "ng_sdf_test_utils.h"
+#include "render/rs_path.h"
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 #include "ui/rs_union_node.h"
@@ -1461,6 +1462,125 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_Transform_InvalidMatrix_Test)
         backgroundTestNode->SetSDFShape(transformShape);
 
         auto childNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        childNode->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+        GetRootNode()->AddChild(childNode);
+        RegisterNode(childNode);
+    }
+}
+
+GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_MaterialFilter_ClipPath_Shape_Test)
+{
+    int columnCount = 2;
+    int rowCount = 2;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight / rowCount;
+
+    std::vector<Drawing::Path> drawingPath(4, Drawing::Path());
+    drawingPath[0].AddRect(50, 50, 500, 800, Drawing::PathDirection::CW_DIRECTION);
+    drawingPath[1].AddCircle(280, 450, 400);
+    std::vector<Drawing::Point> triangle = { { 50, 50 }, { 500, 50 }, { 280, 800 } };
+    drawingPath[2].AddPoly(triangle, 3, true);
+    std::vector<Drawing::Point> star = { { 280, 30 }, { 340, 200 }, { 520, 200 }, { 380, 310 },
+        { 420, 490 }, { 280, 390 }, { 140, 490 }, { 180, 310 }, { 40, 200 }, { 220, 200 } };
+    drawingPath[3].AddPoly(star, 10, true);
+
+    for (int i = 0; i < rowCount * columnCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+
+        auto backgroundTestNode = RSCanvasNode::Create();
+        Rosen::Vector4f bounds{ 0, 0, sizeX, sizeY };
+        backgroundTestNode->SetBounds(bounds);
+        backgroundTestNode->SetFrame(bounds);
+        backgroundTestNode->SetMaterialNGFilter(frostedGlassFilter);
+
+        auto clipPath = RSPath::CreateRSPath(drawingPath[i]);
+        backgroundTestNode->SetClipToBounds(true);
+        backgroundTestNode->SetClipBounds(clipPath);
+
+        auto childNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, sizeX, sizeY });
+        childNode->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+        GetRootNode()->AddChild(childNode);
+        RegisterNode(childNode);
+    }
+}
+
+GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_MaterialFilter_ClipPath_Compare_Test)
+{
+    int columnCount = 2;
+    int rowCount = 1;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight / rowCount;
+
+    for (int i = 0; i < columnCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+
+        int x = i * sizeX;
+        int y = 0;
+
+        auto backgroundTestNode = RSCanvasNode::Create();
+        Rosen::Vector4f bounds{ 0, 0, sizeX, sizeY };
+        backgroundTestNode->SetBounds(bounds);
+        backgroundTestNode->SetFrame(bounds);
+        backgroundTestNode->SetMaterialNGFilter(frostedGlassFilter);
+
+        if (i == 1) {
+            Drawing::Path drawingPath;
+            drawingPath.AddCircle(sizeX / 2, sizeY / 2, std::min(sizeX, sizeY) / 2 - 50);
+            auto clipPath = RSPath::CreateRSPath(drawingPath);
+            backgroundTestNode->SetClipToBounds(true);
+            backgroundTestNode->SetClipBounds(clipPath);
+        }
+
+        auto childNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, sizeX, sizeY });
+        childNode->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+        GetRootNode()->AddChild(childNode);
+        RegisterNode(childNode);
+    }
+}
+
+GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_MaterialFilter_SmoothUnion_ClipPath_Test)
+{
+    int columnCount = 1;
+    int rowCount = 2;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight / rowCount;
+
+    std::vector<Drawing::Path> drawingPath(2, Drawing::Path());
+    drawingPath[0].AddCircle(sizeX / 2, sizeY / 2, std::min(sizeX, sizeY) / 2 - 50);
+    std::vector<Drawing::Point> pentagon = { { sizeX / 2, 50 }, { sizeX - 80, sizeY / 2 - 80 },
+        { sizeX - 150, sizeY - 80 }, { 150, sizeY - 80 }, { 80, sizeY / 2 - 80 } };
+    drawingPath[1].AddPoly(pentagon, 5, true);
+
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+
+        auto backgroundTestNode = RSCanvasNode::Create();
+        Rosen::Vector4f bounds{ 0, 0, sizeX, sizeY };
+        backgroundTestNode->SetBounds(bounds);
+        backgroundTestNode->SetFrame(bounds);
+        backgroundTestNode->SetMaterialNGFilter(frostedGlassFilter);
+
+        std::shared_ptr<RSNGShapeBase> sdfShape;
+        InitSmoothUnionShapes(sdfShape, rectXParams[1], rectYParams[1], 30.0f);
+        backgroundTestNode->SetSDFShape(sdfShape);
+
+        auto clipPath = RSPath::CreateRSPath(drawingPath[i]);
+        backgroundTestNode->SetClipToBounds(true);
+        backgroundTestNode->SetClipBounds(clipPath);
+
+        auto childNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, sizeX, sizeY });
         childNode->AddChild(backgroundTestNode);
         RegisterNode(backgroundTestNode);
         GetRootNode()->AddChild(childNode);
