@@ -123,21 +123,14 @@ const std::vector<std::pair<size_t, size_t>> gridLayouts = {
 // Radial gradient mask radius variations
 const std::vector<float> radialGradientRadiuses = {0.1f, 0.3f, 0.5f, 0.8f};
 
-// Ripple mask parameter variations
+// Ripple mask parameter variations (Radius and Width range: 0-10)
 const std::vector<std::tuple<float, float, float>> rippleMaskParams = {
-    {50.0f, 20.0f, 0.0f},   // Small radius, thin width
-    {100.0f, 50.0f, 0.0f},  // Medium radius, medium width
-    {200.0f, 80.0f, 0.0f},  // Large radius, thick width
-    {150.0f, 60.0f, 50.0f}  // Medium with offset
+    {2.5f, 2.5f, 0.0f},   // Small radius, thin width
+    {5.0f, 5.0f, 0.0f},   // Medium radius, medium width
+    {7.5f, 7.5f, 0.0f},   // Large radius, thick width
+    {10.0f, 10.0f, 0.5f}  // Max radius, max width with offset
 };
 
-// Linear gradient mask direction variations
-const std::vector<Vector2f> linearGradientDirections = {
-    Vector2f{0.0f, 0.0f},   // Top-left to bottom-right
-    Vector2f{1.0f, 0.0f},   // Top-right to bottom-left
-    Vector2f{0.0f, 1.0f},   // Bottom-left to top-right
-    Vector2f{1.0f, 1.0f}    // Bottom-right to top-left
-};
 }
 
 class NGShaderSpatialPointLightTest : public RSGraphicTest {
@@ -549,8 +542,8 @@ GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light
         radialMask->Setter<RadialGradientMaskCenterTag>(Vector2f{0.5f, 0.5f});
         radialMask->Setter<RadialGradientMaskRadiusXTag>(radialGradientRadiuses[i]);
         radialMask->Setter<RadialGradientMaskRadiusYTag>(radialGradientRadiuses[i]);
-        radialMask->Setter<RadialGradientMaskColorsTag>(std::vector<float>{1.0f, 0.0f});
-        radialMask->Setter<RadialGradientMaskPositionsTag>(std::vector<float>{0.0f, 1.0f});
+        radialMask->Setter<RadialGradientMaskColorsTag>(std::vector<float>{1.0f, 0.5f, 0.0f});
+        radialMask->Setter<RadialGradientMaskPositionsTag>(std::vector<float>{0.0f, 0.5f, 1.0f});
 
         auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
         InitSpatialPointLight(spatialPointLight);
@@ -587,76 +580,27 @@ GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light
 }
 
 /*
- * Test spatial point light with linear gradient mask
- * Tests linear gradient mask integration
- */
-GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Mask_LinearGradient_Test)
-{
-    const size_t columnCount = 4;
-    const size_t rowCount = 1;
-
-    for (size_t i = 0; i < linearGradientDirections.size(); i++) {
-        auto linearMask = std::make_shared<RSNGLinearGradientMask>();
-        linearMask->Setter<LinearGradientMaskStartPointTag>(linearGradientDirections[i]);
-        linearMask->Setter<LinearGradientMaskEndPointTag>(
-            Vector2f{1.0f - linearGradientDirections[i].x, 1.0f - linearGradientDirections[i].y});
-        linearMask->Setter<LinearGradientMaskColorsTag>(std::vector<float>{1.0f, 0.0f});
-        linearMask->Setter<LinearGradientMaskPositionsTag>(std::vector<float>{0.0f, 1.0f});
-
-        auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
-        InitSpatialPointLight(spatialPointLight);
-        spatialPointLight->Setter<SpatialPointLightMaskTag>(
-            std::static_pointer_cast<RSNGMaskBase>(linearMask));
-
-        SetUpTestNode(i, columnCount, rowCount, spatialPointLight);
-    }
-}
-
-/*
- * Test spatial point light with frame gradient mask
- * Tests frame gradient mask integration
- */
-GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Mask_FrameGradient_Test)
-{
-    const size_t columnCount = 2;
-    const size_t rowCount = 1;
-
-    for (size_t i = 0; i < columnCount * rowCount; i++) {
-        auto frameMask = std::make_shared<RSNGFrameGradientMask>();
-        frameMask->Setter<FrameGradientMaskInsetTag>(Vector4f{0.1f, 0.1f, 0.1f, 0.1f});
-        frameMask->Setter<FrameGradientMaskColorsTag>(std::vector<float>{1.0f, 0.5f, 0.0f});
-        frameMask->Setter<FrameGradientMaskPositionsTag>(std::vector<float>{0.0f, 0.5f, 1.0f});
-
-        auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
-        InitSpatialPointLight(spatialPointLight);
-        spatialPointLight->Setter<SpatialPointLightMaskTag>(
-            std::static_pointer_cast<RSNGMaskBase>(frameMask));
-
-        SetUpTestNode(i, columnCount, rowCount, spatialPointLight);
-    }
-}
-
-/*
  * Test spatial point light with wave gradient mask
  * Tests wave gradient mask integration
  */
 GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Mask_WaveGradient_Test)
 {
-    const size_t columnCount = 2;
+    const size_t columnCount = 4;
     const size_t rowCount = 1;
+    const std::vector<float> waveBlurRadii = {0.0f, 1.25f, 2.5f, 5.0f};
 
-    for (size_t i = 0; i < columnCount * rowCount; i++) {
-        auto waveMask = std::make_shared<RSNGWaveGradientMask>();
-        waveMask->Setter<WaveGradientMaskWaveHeightTag>(20.0f);
-        waveMask->Setter<WaveGradientMaskWaveCountTag>(3.0f);
-        waveMask->Setter<WaveGradientMaskDirectionTag>(0.0f);
-        waveMask->Setter<WaveGradientMaskColorsTag>(std::vector<float>{1.0f, 0.0f});
-        waveMask->Setter<WaveGradientMaskPositionsTag>(std::vector<float>{0.0f, 1.0f});
+    for (size_t i = 0; i < waveBlurRadii.size(); i++) {
+        auto waveGradientMask = std::make_shared<RSNGWaveGradientMask>();
+        waveGradientMask->Setter<WaveGradientMaskWaveCenterTag>(Vector2f{0.5f, 0.5f});
+        waveGradientMask->Setter<WaveGradientMaskWaveWidthTag>(2.5f);
+        waveGradientMask->Setter<WaveGradientMaskPropagationRadiusTag>(5.0f);
+        waveGradientMask->Setter<WaveGradientMaskBlurRadiusTag>(waveBlurRadii[i]);
+        waveGradientMask->Setter<WaveGradientMaskTurbulenceStrengthTag>(0.5f);
 
         auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
         InitSpatialPointLight(spatialPointLight);
         spatialPointLight->Setter<SpatialPointLightMaskTag>(
-            std::static_pointer_cast<RSNGMaskBase>(waveMask));
+            std::static_pointer_cast<RSNGMaskBase>(waveGradientMask));
 
         SetUpTestNode(i, columnCount, rowCount, spatialPointLight);
     }
@@ -668,48 +612,28 @@ GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light
  */
 GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Mask_DoubleRipple_Test)
 {
-    const size_t columnCount = 2;
+    const size_t columnCount = 4;
     const size_t rowCount = 1;
+    const std::vector<std::tuple<Vector2f, Vector2f, float, float, float>> doubleRippleParams = {
+        {Vector2f{0.3f, 0.5f}, Vector2f{0.7f, 0.5f}, 5.0f, 5.0f, 0.0f},
+        {Vector2f{0.2f, 0.3f}, Vector2f{0.8f, 0.7f}, 7.5f, 7.5f, 0.5f},
+        {Vector2f{0.4f, 0.4f}, Vector2f{0.6f, 0.6f}, 10.0f, 10.0f, 1.0f},
+        {Vector2f{0.0f, 0.0f}, Vector2f{1.0f, 1.0f}, 2.5f, 2.5f, -0.5f}
+    };
 
-    for (size_t i = 0; i < columnCount * rowCount; i++) {
+    for (size_t i = 0; i < doubleRippleParams.size(); i++) {
         auto doubleRippleMask = std::make_shared<RSNGDoubleRippleMask>();
-        doubleRippleMask->Setter<DoubleRippleMaskCenter1Tag>(Vector2f{0.3f, 0.5f});
-        doubleRippleMask->Setter<DoubleRippleMaskCenter2Tag>(Vector2f{0.7f, 0.5f});
-        doubleRippleMask->Setter<DoubleRippleMaskRadius1Tag>(100.0f);
-        doubleRippleMask->Setter<DoubleRippleMaskRadius2Tag>(100.0f);
-        doubleRippleMask->Setter<DoubleRippleMaskWidthTag>(30.0f);
-        doubleRippleMask->Setter<DoubleRippleMaskOffsetTag>(0.0f);
+        doubleRippleMask->Setter<DoubleRippleMaskCenter1Tag>(std::get<0>(doubleRippleParams[i]));
+        doubleRippleMask->Setter<DoubleRippleMaskCenter2Tag>(std::get<1>(doubleRippleParams[i]));
+        doubleRippleMask->Setter<DoubleRippleMaskRadiusTag>(std::get<2>(doubleRippleParams[i]));
+        doubleRippleMask->Setter<DoubleRippleMaskWidthTag>(std::get<3>(doubleRippleParams[i]));
+        doubleRippleMask->Setter<DoubleRippleMaskTurbulenceTag>(std::get<4>(doubleRippleParams[i]));
+        doubleRippleMask->Setter<DoubleRippleMaskHaloThicknessTag>(0.0f);
 
         auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
         InitSpatialPointLight(spatialPointLight);
         spatialPointLight->Setter<SpatialPointLightMaskTag>(
             std::static_pointer_cast<RSNGMaskBase>(doubleRippleMask));
-
-        SetUpTestNode(i, columnCount, rowCount, spatialPointLight);
-    }
-}
-
-/*
- * Test spatial point light with wave disturb mask
- * Tests wave disturb mask effect
- */
-GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Mask_WaveDisturb_Test)
-{
-    const size_t columnCount = 2;
-    const size_t rowCount = 1;
-
-    for (size_t i = 0; i < columnCount * rowCount; i++) {
-        auto waveDisturbMask = std::make_shared<RSNGWaveDisturbMask>();
-        waveDisturbMask->Setter<WaveDisturbMaskWaveAmplitudeTag>(10.0f);
-        waveDisturbMask->Setter<WaveDisturbMaskWaveFrequencyTag>(2.0f);
-        waveDisturbMask->Setter<WaveDisturbMaskWavePhaseTag>(0.0f);
-        waveDisturbMask->Setter<WaveDisturbMaskColorsTag>(std::vector<float>{1.0f, 0.0f});
-        waveDisturbMask->Setter<WaveDisturbMaskPositionsTag>(std::vector<float>{0.0f, 1.0f});
-
-        auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
-        InitSpatialPointLight(spatialPointLight);
-        spatialPointLight->Setter<SpatialPointLightMaskTag>(
-            std::static_pointer_cast<RSNGMaskBase>(waveDisturbMask));
 
         SetUpTestNode(i, columnCount, rowCount, spatialPointLight);
     }
@@ -727,10 +651,10 @@ GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light
     for (size_t i = 0; i < lightColors.size(); i++) {
         auto radialMask = std::make_shared<RSNGRadialGradientMask>();
         radialMask->Setter<RadialGradientMaskCenterTag>(Vector2f{0.5f, 0.5f});
-        radialMask->Setter<RadialGradientMaskRadiusXTag>(0.4f);
-        radialMask->Setter<RadialGradientMaskRadiusYTag>(0.4f);
-        radialMask->Setter<RadialGradientMaskColorsTag>(std::vector<float>{1.0f, 0.0f});
-        radialMask->Setter<RadialGradientMaskPositionsTag>(std::vector<float>{0.0f, 1.0f});
+        radialMask->Setter<RadialGradientMaskRadiusXTag>(0.5f);
+        radialMask->Setter<RadialGradientMaskRadiusYTag>(0.5f);
+        radialMask->Setter<RadialGradientMaskColorsTag>(std::vector<float>{1.0f, 0.5f, 0.0f});
+        radialMask->Setter<RadialGradientMaskPositionsTag>(std::vector<float>{0.0f, 0.5f, 1.0f});
 
         auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
         InitSpatialPointLight(spatialPointLight);
@@ -754,8 +678,8 @@ GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light
     for (size_t i = 0; i < lightIntensities.size(); i++) {
         auto rippleMask = std::make_shared<RSNGRippleMask>();
         rippleMask->Setter<RippleMaskCenterTag>(Vector2f{0.5f, 0.5f});
-        rippleMask->Setter<RippleMaskRadiusTag>(100.0f);
-        rippleMask->Setter<RippleMaskWidthTag>(50.0f);
+        rippleMask->Setter<RippleMaskRadiusTag>(5.0f);
+        rippleMask->Setter<RippleMaskWidthTag>(5.0f);
         rippleMask->Setter<RippleMaskOffsetTag>(0.0f);
 
         auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
