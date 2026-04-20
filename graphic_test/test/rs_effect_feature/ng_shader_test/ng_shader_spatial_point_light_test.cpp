@@ -24,15 +24,49 @@ using namespace testing::ext;
 
 namespace OHOS::Rosen {
 
+// Default SpatialPointLight parameters
+constexpr float DEFAULT_LIGHT_X = 600.0f;
+constexpr float DEFAULT_LIGHT_Y = 1000.0f;
+constexpr float DEFAULT_LIGHT_Z = 100.0f;
+constexpr float DEFAULT_LIGHT_INTENSITY = 2.0f;
+constexpr float DEFAULT_LIGHT_ATTENUATION = 5.0f;
+constexpr Vector4f DEFAULT_LIGHT_COLOR = Vector4f{1.0f, 0.5f, 0.0f, 1.0f}; // Orange
+
+// Default shader cascade parameters
+constexpr float DEFAULT_BORDER_LIGHT_INTENSITY = 0.5f;
+constexpr float DEFAULT_BORDER_LIGHT_WIDTH = 20.0f;
+constexpr float DEFAULT_BORDER_LIGHT_CORNER_RADIUS = 15.0f;
+constexpr float DEFAULT_AURORA_NOISE_VALUE = 0.5f;
+constexpr float DEFAULT_AURORA_FREQ_X = 3.0f;
+constexpr float DEFAULT_AURORA_FREQ_Y = 5.0f;
+constexpr float DEFAULT_HALO_RADIUS = 50.0f;
+constexpr float DEFAULT_HALO_NOISE = 0.5f;
+constexpr float DEFAULT_RIPPLE_RADIUS = 50.0f;
+constexpr float DEFAULT_RIPPLE_THICKNESS = 10.0f;
+constexpr float DEFAULT_WAVE_WIDTH = 2.5f;
+constexpr float DEFAULT_PROPAGATION_RADIUS = 5.0f;
+constexpr float DEFAULT_TURBULENCE_STRENGTH = 0.5f;
+
+// FrameGradientMask default parameters
+constexpr float DEFAULT_FRAME_WIDTH = 300.0f;
+constexpr float DEFAULT_FRAME_HEIGHT = 500.0f;
+constexpr float DEFAULT_FRAME_CORNER_RADIUS = 25.0f;
+
+// Cascade intensity values
+constexpr float PRIMARY_LIGHT_INTENSITY = 1.5f;
+constexpr float SECONDARY_LIGHT_INTENSITY = 1.0f;
+constexpr float SECONDARY_LIGHT_ALPHA = 0.5f;
+
 void InitSpatialPointLight(std::shared_ptr<RSNGSpatialPointLight>& spatialPointLight)
 {
     if (!spatialPointLight) {
         return;
     }
-    spatialPointLight->Setter<SpatialPointLightLightPositionTag>(Vector3f{600.0f, 1000.0f, 100.0f});
-    spatialPointLight->Setter<SpatialPointLightLightColorTag>(Vector4f{1.0f, 0.5f, 0.0f, 1.0f}); // Orange color
-    spatialPointLight->Setter<SpatialPointLightLightIntensityTag>(2.0f);
-    spatialPointLight->Setter<SpatialPointLightAttenuationTag>(5.0f);
+    spatialPointLight->Setter<SpatialPointLightLightPositionTag>(
+        Vector3f{DEFAULT_LIGHT_X, DEFAULT_LIGHT_Y, DEFAULT_LIGHT_Z});
+    spatialPointLight->Setter<SpatialPointLightLightColorTag>(DEFAULT_LIGHT_COLOR);
+    spatialPointLight->Setter<SpatialPointLightLightIntensityTag>(DEFAULT_LIGHT_INTENSITY);
+    spatialPointLight->Setter<SpatialPointLightAttenuationTag>(DEFAULT_LIGHT_ATTENUATION);
 }
 
 namespace {
@@ -65,19 +99,19 @@ const std::vector<Vector4f> lightColorsWithAlpha = {
 };
 
 // Intensity boundary values
-const std::vector<float> lightIntensities = {0.0f, 1.0f, 2.0f, 5.0f};
+const std::vector<float> lightIntensities = {0.0f, 1.0f, DEFAULT_LIGHT_INTENSITY, 5.0f};
 
 // Extended intensity values
 const std::vector<float> extendedIntensities = {0.5f, 1.5f, 3.0f, 10.0f};
 
 // Attenuation boundary values
-const std::vector<float> lightAttenuations = {1.0f, 5.0f, 10.0f, 50.0f};
+const std::vector<float> lightAttenuations = {1.0f, DEFAULT_LIGHT_ATTENUATION, 10.0f, 50.0f};
 
 // Extended attenuation values
-const std::vector<float> extendedAttenuations = {2.0f, 3.0f, 20.0f, 100.0f};
+const std::vector<float> extendedAttenuations = {DEFAULT_LIGHT_INTENSITY, 3.0f, 20.0f, 100.0f};
 
 // Light Z depth values (height above surface)
-const std::vector<float> lightZDepths = {10.0f, 50.0f, 100.0f, 500.0f};
+const std::vector<float> lightZDepths = {10.0f, 50.0f, DEFAULT_LIGHT_Z, 500.0f};
 
 // Extended Z depth values
 const std::vector<float> extendedZDepths = {25.0f, 75.0f, 200.0f, 1000.0f};
@@ -107,17 +141,9 @@ const std::vector<float> invalidValues = {
 
 // Parameter combinations for interaction testing
 const std::vector<std::tuple<Vector4f, float, float>> colorIntensityAttenuationCombinations = {
-    {Vector4f{1.0f, 0.0f, 0.0f, 1.0f}, 1.0f, 5.0f},    // Red, low intensity, normal attenuation
-    {Vector4f{0.0f, 1.0f, 0.0f, 1.0f}, 3.0f, 10.0f},   // Green, high intensity, high attenuation
-    {Vector4f{0.0f, 0.0f, 1.0f, 1.0f}, 5.0f, 2.0f}     // Blue, very high intensity, low attenuation
-};
-
-// Grid layout configurations for multi-light testing
-const std::vector<std::pair<size_t, size_t>> gridLayouts = {
-    {2, 2},  // 4 lights in 2x2 grid
-    {3, 2},  // 6 lights in 3x2 grid
-    {4, 3},  // 12 lights in 4x3 grid
-    {2, 4}   // 8 lights in 2x4 grid
+    {Vector4f{1.0f, 0.0f, 0.0f, 1.0f}, 1.0f, DEFAULT_LIGHT_ATTENUATION},  // Red, low intensity, normal attenuation
+    {Vector4f{0.0f, 1.0f, 0.0f, 1.0f}, 3.0f, 10.0f},                       // Green, high intensity, high attenuation
+    {Vector4f{0.0f, 0.0f, 1.0f, 1.0f}, 5.0f, DEFAULT_LIGHT_INTENSITY}      // Blue, very high intensity, low attenuation
 };
 
 // Radial gradient mask radius variations
@@ -131,6 +157,14 @@ const std::vector<std::tuple<float, float, float>> rippleMaskParams = {
     {10.0f, 10.0f, 0.5f}  // Max radius, max width with offset
 };
 
+// Frame gradient mask width variations
+const std::vector<float> innerFrameWidthValues = {5.0f, 10.0f, 15.0f, 20.0f};
+const std::vector<float> outerFrameWidthValues = {10.0f, 15.0f, 20.0f, 25.0f};
+const std::vector<float> cornerRadiusValues = {0.0f, 10.0f, 20.0f, 50.0f};
+
+constexpr float INNER_FRAME_WIDTH = 12.0f;
+constexpr float OUTER_FRAME_WIDTH = 24.0f;
+
 }
 
 class NGShaderSpatialPointLightTest : public RSGraphicTest {
@@ -142,7 +176,7 @@ public:
 
 private:
     void SetUpTestNode(const size_t i, const size_t columnCount, const size_t rowCount,
-        std::shared_ptr<RSNGSpatialPointLight>& spatialPointLight, float zDepth = 100.0f)
+        std::shared_ptr<RSNGSpatialPointLight>& spatialPointLight, float zDepth = DEFAULT_LIGHT_Z)
     {
         if (columnCount == 0 || rowCount == 0) {
             return;
@@ -154,7 +188,7 @@ private:
 
         // Set light position to center of current node
         spatialPointLight->Setter<SpatialPointLightLightPositionTag>(
-            Vector3f{x + sizeX / 2.0f, y + sizeY / 2.0f, zDepth});
+            Vector3f{x + sizeX / 2, y + sizeY / 2, zDepth});
 
         auto testNode = SetUpNodeBgImage(TEST_IMAGE_PATH, {x, y, sizeX, sizeY});
         testNode->SetBackgroundNGShader(spatialPointLight);
@@ -307,7 +341,7 @@ GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light
         const size_t x = (i % columnCount) * sizeX;
         const size_t y = (i / columnCount) * sizeY;
         spatialPointLight->Setter<SpatialPointLightLightPositionTag>(
-            Vector3f{x + sizeX / 2.0f, y + sizeY / 2.0f, lightZDepths[i]});
+            Vector3f{x + sizeX / 2, y + sizeY / 2, lightZDepths[i]});
 
         SetUpTestNode(i, columnCount, rowCount, spatialPointLight, lightZDepths[i]);
     }
@@ -331,7 +365,7 @@ GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light
         const size_t x = (i % columnCount) * sizeX;
         const size_t y = (i / columnCount) * sizeY;
         spatialPointLight->Setter<SpatialPointLightLightPositionTag>(
-            Vector3f{x + sizeX / 2.0f, y + sizeY / 2.0f, extendedZDepths[i]});
+            Vector3f{x + sizeX / 2, y + sizeY / 2, extendedZDepths[i]});
 
         SetUpTestNode(i, columnCount, rowCount, spatialPointLight, extendedZDepths[i]);
     }
@@ -355,7 +389,7 @@ GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light
         const size_t x = (i % columnCount) * sizeX;
         const size_t y = (i / columnCount) * sizeY;
         spatialPointLight->Setter<SpatialPointLightLightPositionTag>(
-            Vector3f{x + sizeX / 2.0f + lightXOffsets[i], y + sizeY / 2.0f, 100.0f});
+            Vector3f{x + sizeX / 2 + lightXOffsets[i], y + sizeY / 2, DEFAULT_LIGHT_Z});
 
         SetUpTestNode(i, columnCount, rowCount, spatialPointLight);
     }
@@ -379,7 +413,7 @@ GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light
         const size_t x = (i % columnCount) * sizeX;
         const size_t y = (i / columnCount) * sizeY;
         spatialPointLight->Setter<SpatialPointLightLightPositionTag>(
-            Vector3f{x + sizeX / 2.0f, y + sizeY / 2.0f + lightYOffsets[i], 100.0f});
+            Vector3f{x + sizeX / 2, y + sizeY / 2 + lightYOffsets[i], DEFAULT_LIGHT_Z});
 
         SetUpTestNode(i, columnCount, rowCount, spatialPointLight);
     }
@@ -504,7 +538,7 @@ GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light
         const size_t x = (i % columnCount) * sizeX;
         const size_t y = (i / columnCount) * sizeY;
         spatialPointLight->Setter<SpatialPointLightLightPositionTag>(
-            Vector3f{x + sizeX / 2.0f, y + sizeY / 2.0f, extremeZDepths[i]});
+            Vector3f{x + sizeX / 2, y + sizeY / 2, extremeZDepths[i]});
 
         SetUpTestNode(i, columnCount, rowCount, spatialPointLight);
     }
@@ -592,10 +626,10 @@ GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light
     for (size_t i = 0; i < waveBlurRadii.size(); i++) {
         auto waveGradientMask = std::make_shared<RSNGWaveGradientMask>();
         waveGradientMask->Setter<WaveGradientMaskWaveCenterTag>(Vector2f{0.5f, 0.5f});
-        waveGradientMask->Setter<WaveGradientMaskWaveWidthTag>(2.5f);
-        waveGradientMask->Setter<WaveGradientMaskPropagationRadiusTag>(5.0f);
+        waveGradientMask->Setter<WaveGradientMaskWaveWidthTag>(DEFAULT_WAVE_WIDTH);
+        waveGradientMask->Setter<WaveGradientMaskPropagationRadiusTag>(DEFAULT_PROPAGATION_RADIUS);
         waveGradientMask->Setter<WaveGradientMaskBlurRadiusTag>(waveBlurRadii[i]);
-        waveGradientMask->Setter<WaveGradientMaskTurbulenceStrengthTag>(0.5f);
+        waveGradientMask->Setter<WaveGradientMaskTurbulenceStrengthTag>(DEFAULT_TURBULENCE_STRENGTH);
 
         auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
         InitSpatialPointLight(spatialPointLight);
@@ -703,10 +737,10 @@ void InitBorderLightForCascade(std::shared_ptr<RSNGBorderLight>& borderLight)
     }
     borderLight->Setter<BorderLightPositionTag>(Vector3f{0.5f, 0.5f, 0.5f});
     borderLight->Setter<BorderLightColorTag>(Vector4f{0.0f, 1.0f, 1.0f, 1.0f}); // Cyan
-    borderLight->Setter<BorderLightIntensityTag>(0.5f);
-    borderLight->Setter<BorderLightWidthTag>(20.0f);
+    borderLight->Setter<BorderLightIntensityTag>(DEFAULT_BORDER_LIGHT_INTENSITY);
+    borderLight->Setter<BorderLightWidthTag>(DEFAULT_BORDER_LIGHT_WIDTH);
     borderLight->Setter<BorderLightRotationAngleTag>(Vector3f{0.0f, 0.0f, 0.0f});
-    borderLight->Setter<BorderLightCornerRadiusTag>(15.0f);
+    borderLight->Setter<BorderLightCornerRadiusTag>(DEFAULT_BORDER_LIGHT_CORNER_RADIUS);
 }
 
 void InitCircleFlowlightForCascade(std::shared_ptr<RSNGCircleFlowlight>& circleFlowlight)
@@ -714,19 +748,20 @@ void InitCircleFlowlightForCascade(std::shared_ptr<RSNGCircleFlowlight>& circleF
     if (!circleFlowlight) {
         return;
     }
-    circleFlowlight->Setter<CircleFlowlightColor0Tag>(Vector4f{1.0f, 0.5f, 0.0f, 1.0f});
+    circleFlowlight->Setter<CircleFlowlightColor0Tag>(DEFAULT_LIGHT_COLOR);
     circleFlowlight->Setter<CircleFlowlightColor1Tag>(Vector4f{0.0f, 1.0f, 0.5f, 1.0f});
     circleFlowlight->Setter<CircleFlowlightColor2Tag>(Vector4f{0.5f, 0.0f, 1.0f, 1.0f});
     circleFlowlight->Setter<CircleFlowlightColor3Tag>(Vector4f{1.0f, 1.0f, 0.0f, 1.0f});
     circleFlowlight->Setter<CircleFlowlightRotationFrequencyTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
-    circleFlowlight->Setter<CircleFlowlightRotationAmplitudeTag>(Vector4f{0.5f, 0.5f, 0.5f, 0.5f});
+    circleFlowlight->Setter<CircleFlowlightRotationAmplitudeTag>(
+        Vector4f{0.5f, 0.5f, 0.5f, 0.5f});
     circleFlowlight->Setter<CircleFlowlightRotationSeedTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
     circleFlowlight->Setter<CircleFlowlightGradientXTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
     circleFlowlight->Setter<CircleFlowlightGradientYTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
     circleFlowlight->Setter<CircleFlowlightStrengthTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
     circleFlowlight->Setter<CircleFlowlightDistortStrengthTag>(1.0f);
     circleFlowlight->Setter<CircleFlowlightBlendGradientTag>(1.0f);
-    circleFlowlight->Setter<CircleFlowlightProgressTag>(0.5f);
+    circleFlowlight->Setter<CircleFlowlightProgressTag>(DEFAULT_AURORA_NOISE_VALUE);
 }
 
 void InitAuroraNoiseForCascade(std::shared_ptr<RSNGAuroraNoise>& auroraNoise)
@@ -734,29 +769,9 @@ void InitAuroraNoiseForCascade(std::shared_ptr<RSNGAuroraNoise>& auroraNoise)
     if (!auroraNoise) {
         return;
     }
-    auroraNoise->Setter<AuroraNoiseNoiseTag>(0.5f);
-    auroraNoise->Setter<AuroraNoiseFreqXTag>(3.0f);
-    auroraNoise->Setter<AuroraNoiseFreqYTag>(5.0f);
-}
-
-void InitParticleCircularHaloForCascade(std::shared_ptr<RSNGParticleCircularHalo>& particleHalo)
-{
-    if (!particleHalo) {
-        return;
-    }
-    particleHalo->Setter<ParticleCircularHaloCenterTag>(Vector2f{0.5f, 0.5f});
-    particleHalo->Setter<ParticleCircularHaloRadiusTag>(50.0f);
-    particleHalo->Setter<ParticleCircularHaloNoiseTag>(0.5f);
-}
-
-void InitWavyRippleLightForCascade(std::shared_ptr<RSNGWavyRippleLight>& wavyRipple)
-{
-    if (!wavyRipple) {
-        return;
-    }
-    wavyRipple->Setter<WavyRippleLightCenterTag>(Vector2f{0.5f, 0.5f});
-    wavyRipple->Setter<WavyRippleLightRadiusTag>(50.0f);
-    wavyRipple->Setter<WavyRippleLightThicknessTag>(10.0f);
+    auroraNoise->Setter<AuroraNoiseNoiseTag>(DEFAULT_AURORA_NOISE_VALUE);
+    auroraNoise->Setter<AuroraNoiseFreqXTag>(DEFAULT_AURORA_FREQ_X);
+    auroraNoise->Setter<AuroraNoiseFreqYTag>(DEFAULT_AURORA_FREQ_Y);
 }
 
 // SpatialPointLight + BorderLight cascade - first order
@@ -773,14 +788,12 @@ GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light
         auto borderLight = std::make_shared<RSNGBorderLight>();
         InitBorderLightForCascade(borderLight);
         borderLight->Setter<BorderLightColorTag>(
-            Vector4f{lightColors[i][0], lightColors[i][1], lightColors[i][2], 0.5f});
+            Vector4f{lightColors[i][0], lightColors[i][1], lightColors[i][2], SECONDARY_LIGHT_ALPHA});
 
         spatialPointLight->Append(borderLight);
         SetUpTestNode(i, columnCount, rowCount, spatialPointLight);
     }
 }
-
-
 
 // SpatialPointLight + CircleFlowlight cascade - first order
 GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Append_Circle_Flowlight_First_Test)
@@ -801,8 +814,6 @@ GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light
         SetUpTestNode(i, columnCount, rowCount, spatialPointLight);
     }
 }
-
-
 
 // SpatialPointLight + AuroraNoise cascade
 GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Append_Aurora_Noise_Test)
@@ -828,7 +839,7 @@ GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light
 {
     const size_t columnCount = 4;
     const size_t rowCount = 1;
-    const std::vector<float> noiseValues = {0.0f, 0.3f, 0.5f, 1.0f};
+    const std::vector<float> noiseValues = {0.0f, 0.3f, DEFAULT_HALO_NOISE, 1.0f};
 
     for (size_t i = 0; i < noiseValues.size(); i++) {
         auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
@@ -836,7 +847,7 @@ GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light
 
         auto particleHalo = std::make_shared<RSNGParticleCircularHalo>();
         particleHalo->Setter<ParticleCircularHaloCenterTag>(Vector2f{0.5f, 0.5f});
-        particleHalo->Setter<ParticleCircularHaloRadiusTag>(50.0f);
+        particleHalo->Setter<ParticleCircularHaloRadiusTag>(DEFAULT_HALO_RADIUS);
         particleHalo->Setter<ParticleCircularHaloNoiseTag>(noiseValues[i]);
 
         spatialPointLight->Append(particleHalo);
@@ -849,21 +860,16 @@ GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light
 {
     const size_t columnCount = 4;
     const size_t rowCount = 1;
-    const std::vector<std::tuple<Vector2f, float, float>> wavyRippleParams = {
-        {Vector2f{0.5f, 0.5f}, 50.0f, 10.0f},
-        {Vector2f{0.3f, 0.3f}, 100.0f, 15.0f},
-        {Vector2f{0.7f, 0.7f}, 200.0f, 20.0f},
-        {Vector2f{0.0f, 0.0f}, 300.0f, 5.0f}
-    };
+    const std::vector<float> thicknessValues = {5.0f, DEFAULT_RIPPLE_THICKNESS, 15.0f, 20.0f};
 
-    for (size_t i = 0; i < wavyRippleParams.size(); i++) {
+    for (size_t i = 0; i < thicknessValues.size(); i++) {
         auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
         InitSpatialPointLight(spatialPointLight);
 
         auto wavyRipple = std::make_shared<RSNGWavyRippleLight>();
-        wavyRipple->Setter<WavyRippleLightCenterTag>(std::get<0>(wavyRippleParams[i]));
-        wavyRipple->Setter<WavyRippleLightRadiusTag>(std::get<1>(wavyRippleParams[i]));
-        wavyRipple->Setter<WavyRippleLightThicknessTag>(std::get<2>(wavyRippleParams[i]));
+        wavyRipple->Setter<WavyRippleLightCenterTag>(Vector2f{0.5f, 0.5f});
+        wavyRipple->Setter<WavyRippleLightRadiusTag>(DEFAULT_RIPPLE_RADIUS);
+        wavyRipple->Setter<WavyRippleLightThicknessTag>(thicknessValues[i]);
 
         spatialPointLight->Append(wavyRipple);
         SetUpTestNode(i, columnCount, rowCount, spatialPointLight);
@@ -916,7 +922,7 @@ GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light
         const size_t y = (i / columnCount) * sizeY;
 
         spatialPointLight->Setter<SpatialPointLightLightPositionTag>(
-            Vector3f{x + sizeX / 2.0f, y + sizeY / 2.0f, 100.0f});
+            Vector3f{x + sizeX / 2, y + sizeY / 2, DEFAULT_LIGHT_Z});
 
         auto testNode = SetUpNodeBgImage(FOREGROUND_IMAGE_PATH, {x, y, sizeX, sizeY});
         testNode->SetForegroundShader(spatialPointLight);
@@ -942,7 +948,7 @@ GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light
         const size_t y = (i / columnCount) * sizeY;
 
         spatialPointLight->Setter<SpatialPointLightLightPositionTag>(
-            Vector3f{x + sizeX / 2.0f, y + sizeY / 2.0f, 100.0f});
+            Vector3f{x + sizeX / 2, y + sizeY / 2, DEFAULT_LIGHT_Z});
 
         auto testNode = SetUpNodeBgImage(FOREGROUND_IMAGE_PATH, {x, y, sizeX, sizeY});
         testNode->SetForegroundShader(spatialPointLight);
@@ -973,7 +979,7 @@ GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light
         const size_t y = (i / columnCount) * sizeY;
 
         spatialPointLight->Setter<SpatialPointLightLightPositionTag>(
-            Vector3f{x + sizeX / 2.0f, y + sizeY / 2.0f, 100.0f});
+            Vector3f{x + sizeX / 2, y + sizeY / 2, DEFAULT_LIGHT_Z});
 
         auto testNode = SetUpNodeBgImage(FOREGROUND_IMAGE_PATH, {x, y, sizeX, sizeY});
         testNode->SetForegroundShader(spatialPointLight);
@@ -996,13 +1002,14 @@ GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Double_Spatial_Poin
         auto spatialPointLight1 = std::make_shared<RSNGSpatialPointLight>();
         InitSpatialPointLight(spatialPointLight1);
         spatialPointLight1->Setter<SpatialPointLightLightColorTag>(lightColors[i]);
-        spatialPointLight1->Setter<SpatialPointLightLightIntensityTag>(1.5f);
+        spatialPointLight1->Setter<SpatialPointLightLightIntensityTag>(PRIMARY_LIGHT_INTENSITY);
 
         auto spatialPointLight2 = std::make_shared<RSNGSpatialPointLight>();
         InitSpatialPointLight(spatialPointLight2);
         spatialPointLight2->Setter<SpatialPointLightLightColorTag>(
-            Vector4f{1.0f - lightColors[i][0], 1.0f - lightColors[i][1], 1.0f - lightColors[i][2], 0.5f});
-        spatialPointLight2->Setter<SpatialPointLightLightIntensityTag>(1.0f);
+            Vector4f{1.0f - lightColors[i][0], 1.0f - lightColors[i][1],
+                    1.0f - lightColors[i][2], SECONDARY_LIGHT_ALPHA});
+        spatialPointLight2->Setter<SpatialPointLightLightIntensityTag>(SECONDARY_LIGHT_INTENSITY);
 
         spatialPointLight1->Append(spatialPointLight2);
         SetUpTestNode(i, columnCount, rowCount, spatialPointLight1);
@@ -1058,24 +1065,21 @@ GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light
 /*
  * Test spatial point light with frame gradient mask
  * Tests frame gradient mask with different corner radius
- * FrameGradientMask: InnerFrameWidth and OuterFrameWidth are float types
  */
 GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Mask_FrameGradient_Test)
 {
     const size_t columnCount = 4;
     const size_t rowCount = 1;
-    const std::vector<float> cornerRadii = {0.0f, 10.0f, 20.0f, 50.0f};
-    constexpr float innerFrameWidth = 12.0f;
-    constexpr float outerFrameWidth = 24.0f;
 
-    for (size_t i = 0; i < cornerRadii.size(); i++) {
+    for (size_t i = 0; i < cornerRadiusValues.size(); i++) {
         auto frameGradientMask = std::make_shared<RSNGFrameGradientMask>();
         frameGradientMask->Setter<FrameGradientMaskInnerBezierTag>(Vector4f{0.0f, 0.0f, 1.0f, 1.0f});
         frameGradientMask->Setter<FrameGradientMaskOuterBezierTag>(Vector4f{0.0f, 1.0f, 0.0f, 1.0f});
-        frameGradientMask->Setter<FrameGradientMaskCornerRadiusTag>(cornerRadii[i]);
-        frameGradientMask->Setter<FrameGradientMaskInnerFrameWidthTag>(innerFrameWidth);
-        frameGradientMask->Setter<FrameGradientMaskOuterFrameWidthTag>(outerFrameWidth);
-        frameGradientMask->Setter<FrameGradientMaskRectWHTag>(Vector2f{300.0f, 500.0f});
+        frameGradientMask->Setter<FrameGradientMaskCornerRadiusTag>(cornerRadiusValues[i]);
+        frameGradientMask->Setter<FrameGradientMaskInnerFrameWidthTag>(INNER_FRAME_WIDTH);
+        frameGradientMask->Setter<FrameGradientMaskOuterFrameWidthTag>(OUTER_FRAME_WIDTH);
+        frameGradientMask->Setter<FrameGradientMaskRectWHTag>(
+            Vector2f{DEFAULT_FRAME_WIDTH, DEFAULT_FRAME_HEIGHT});
         frameGradientMask->Setter<FrameGradientMaskRectPosTag>(Vector2f{0.0f, 0.0f});
 
         auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
@@ -1089,23 +1093,21 @@ GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light
 
 /*
  * Test spatial point light with frame gradient mask and inner/outer frame width
- * FrameGradientMask: InnerFrameWidth and OuterFrameWidth are float types
  */
 GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Mask_FrameGradient_Width_Test)
 {
     const size_t columnCount = 4;
     const size_t rowCount = 1;
-    const std::vector<float> innerFrameWidthValues = {5.0f, 10.0f, 15.0f, 20.0f};
-    const std::vector<float> outerFrameWidthValues = {10.0f, 15.0f, 20.0f, 25.0f};
 
     for (size_t i = 0; i < innerFrameWidthValues.size(); i++) {
         auto frameGradientMask = std::make_shared<RSNGFrameGradientMask>();
         frameGradientMask->Setter<FrameGradientMaskInnerBezierTag>(Vector4f{0.0f, 0.0f, 1.0f, 1.0f});
         frameGradientMask->Setter<FrameGradientMaskOuterBezierTag>(Vector4f{0.0f, 1.0f, 0.0f, 1.0f});
-        frameGradientMask->Setter<FrameGradientMaskCornerRadiusTag>(25.0f);
+        frameGradientMask->Setter<FrameGradientMaskCornerRadiusTag>(DEFAULT_FRAME_CORNER_RADIUS);
         frameGradientMask->Setter<FrameGradientMaskInnerFrameWidthTag>(innerFrameWidthValues[i]);
         frameGradientMask->Setter<FrameGradientMaskOuterFrameWidthTag>(outerFrameWidthValues[i]);
-        frameGradientMask->Setter<FrameGradientMaskRectWHTag>(Vector2f{300.0f, 500.0f});
+        frameGradientMask->Setter<FrameGradientMaskRectWHTag>(
+            Vector2f{DEFAULT_FRAME_WIDTH, DEFAULT_FRAME_HEIGHT});
         frameGradientMask->Setter<FrameGradientMaskRectPosTag>(Vector2f{0.0f, 0.0f});
 
         auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
@@ -1145,8 +1147,8 @@ GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light
         const size_t x = (i % columnCount) * sizeX;
         const size_t y = (i / columnCount) * sizeY;
         spatialPointLight->Setter<SpatialPointLightLightPositionTag>(
-            Vector3f{x + sizeX / 2.0f + xyOffsets[i].first,
-                    y + sizeY / 2.0f + xyOffsets[i].second, 100.0f});
+            Vector3f{x + sizeX / 2 + xyOffsets[i].first,
+                    y + sizeY / 2 + xyOffsets[i].second, DEFAULT_LIGHT_Z});
 
         SetUpTestNode(i, columnCount, rowCount, spatialPointLight);
     }
@@ -1161,10 +1163,10 @@ GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light
     const size_t columnCount = 4;
     const size_t rowCount = 1;
     const std::vector<std::tuple<float, float, float>> positionIntensityParams = {
-        {100.0f, 50.0f, 1.0f},   // Low Z, low intensity
-        {100.0f, 200.0f, 2.0f},  // Medium Z, medium intensity
-        {100.0f, 500.0f, 3.0f},  // High Z, high intensity
-        {100.0f, 1000.0f, 5.0f}  // Very high Z, very high intensity
+        {100.0f, 50.0f, 1.0f},               // Low Z, low intensity
+        {100.0f, 200.0f, DEFAULT_LIGHT_INTENSITY},  // Medium Z, medium intensity
+        {100.0f, 500.0f, 3.0f},              // High Z, high intensity
+        {100.0f, 1000.0f, 5.0f}              // Very high Z, very high intensity
     };
 
     for (size_t i = 0; i < positionIntensityParams.size(); i++) {
@@ -1176,7 +1178,7 @@ GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light
         const size_t x = (i % columnCount) * sizeX;
         const size_t y = (i / columnCount) * sizeY;
         spatialPointLight->Setter<SpatialPointLightLightPositionTag>(
-            Vector3f{x + sizeX / 2.0f, y + sizeY / 2.0f, std::get<1>(positionIntensityParams[i])});
+            Vector3f{x + sizeX / 2, y + sizeY / 2, std::get<1>(positionIntensityParams[i])});
         spatialPointLight->Setter<SpatialPointLightLightIntensityTag>(
             std::get<2>(positionIntensityParams[i]));
 
@@ -1190,13 +1192,12 @@ GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light
 
 /*
  * Test spatial point light + WavyRippleLight cascade
- * WavyRippleLight only has: Center, Radius, Thickness
  */
 GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Append_WavyRippleLight_Test)
 {
     const size_t columnCount = 4;
     const size_t rowCount = 1;
-    const std::vector<float> thicknessValues = {5.0f, 10.0f, 15.0f, 20.0f};
+    const std::vector<float> thicknessValues = {5.0f, DEFAULT_RIPPLE_THICKNESS, 15.0f, 20.0f};
 
     for (size_t i = 0; i < lightColors.size(); i++) {
         auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
@@ -1205,7 +1206,7 @@ GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light
 
         auto wavyRippleLight = std::make_shared<RSNGWavyRippleLight>();
         wavyRippleLight->Setter<WavyRippleLightCenterTag>(Vector2f{0.5f, 0.5f});
-        wavyRippleLight->Setter<WavyRippleLightRadiusTag>(50.0f);
+        wavyRippleLight->Setter<WavyRippleLightRadiusTag>(DEFAULT_RIPPLE_RADIUS);
         wavyRippleLight->Setter<WavyRippleLightThicknessTag>(thicknessValues[i]);
 
         spatialPointLight->Append(wavyRippleLight);
@@ -1215,13 +1216,12 @@ GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light
 
 /*
  * Test spatial point light + ParticleCircularHalo cascade
- * ParticleCircularHalo only has: Center, Radius, Noise
  */
 GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Append_ParticleCircularHalo_Test)
 {
     const size_t columnCount = 4;
     const size_t rowCount = 1;
-    const std::vector<float> noiseValues = {0.0f, 0.3f, 0.5f, 1.0f};
+    const std::vector<float> noiseValues = {0.0f, 0.3f, DEFAULT_HALO_NOISE, 1.0f};
 
     for (size_t i = 0; i < lightColors.size(); i++) {
         auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
@@ -1230,7 +1230,7 @@ GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light
 
         auto particleCircularHalo = std::make_shared<RSNGParticleCircularHalo>();
         particleCircularHalo->Setter<ParticleCircularHaloCenterTag>(Vector2f{0.5f, 0.5f});
-        particleCircularHalo->Setter<ParticleCircularHaloRadiusTag>(50.0f);
+        particleCircularHalo->Setter<ParticleCircularHaloRadiusTag>(DEFAULT_HALO_RADIUS);
         particleCircularHalo->Setter<ParticleCircularHaloNoiseTag>(noiseValues[i]);
 
         spatialPointLight->Append(particleCircularHalo);
