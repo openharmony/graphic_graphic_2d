@@ -239,7 +239,7 @@ public:
 
     bool IsWatermarkFlagChanged() const
     {
-        return lastWatermarkFlag_ != watermarkFlag_;
+        return lastWatermarkFlag_ != watermarkFlag_ || lastWatermarkImg_ != watermarkImg_;
     }
 
     uint64_t GetFrameCount() const
@@ -611,6 +611,7 @@ private:
     bool isNeedResetClearMemoryTask_ = false;
     bool watermarkFlag_ = false;
     bool lastWatermarkFlag_ = false;
+    std::shared_ptr<Drawing::Image> lastWatermarkImg_ = nullptr;
     bool hasProtectedLayer_ = false;
     bool hasSurfaceLockLayer_ = false;
     DeviceType deviceType_ = DeviceType::PHONE;
