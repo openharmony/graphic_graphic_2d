@@ -1571,6 +1571,14 @@ public:
 
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
+    void SetDarkColorMode(bool isDarkColorMode)
+    {
+        isDarkColorMode_ = isDarkColorMode;
+    }
+    bool GetDarkColorMode() const
+    {
+        return isDarkColorMode_;
+    }
     void SetHidePrivacyContent(bool needHidePrivacyContent);
     void SetNeedOffscreen(bool needOffscreen);
     void SetSdrNit(float sdrNit);
@@ -1882,6 +1890,7 @@ private:
     bool isHwcGlobalPositionEnabled_ = false;
     bool isHwcCrossNode_ = false;
     bool hasFingerprint_ = false;
+    bool isDarkColorMode_ = false;
     // hdr video
     HdrStatus hdrVideoSurface_ = HdrStatus::NO_HDR;
     bool zOrderChanged_ = false;

@@ -1795,6 +1795,27 @@ HWTEST_F(RSSurfaceNodeTest, GetSkipDraw, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetDarkColorMode
+ * @tc.desc: Test function SetDarkColorMode
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, SetDarkColorMode, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+
+    surfaceNode->SetDarkColorMode(true);
+    EXPECT_TRUE(surfaceNode->GetDarkColorMode());
+
+    surfaceNode->SetDarkColorMode(false);
+    EXPECT_FALSE(surfaceNode->GetDarkColorMode());
+
+    surfaceNode->SetDarkColorMode(false);
+    EXPECT_FALSE(surfaceNode->GetDarkColorMode());
+}
+
+/**
  * @tc.name: SetAbilityState
  * @tc.desc: Test function SetAbilityState
  * @tc.type: FUNC
