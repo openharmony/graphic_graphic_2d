@@ -521,6 +521,9 @@ void RSCanvasDrawingRenderNodeDrawable::ProcessCPURenderInBackgroundThread(std::
     auto drawable = RSRenderNodeDrawableAdapter::GetDrawableById(nodeId);
     RSBackgroundThread::Instance().PostTask([drawable, cmds, surface, ctx, nodeId]() {
         if (!cmds || cmds->IsEmpty() || !surface || !ctx || !drawable) {
+            RS_LOGE("RSCanvasDrawingRenderNodeDrawable::ProcessCPURenderInBackgroundThread: cmds null: %{public}d, "
+                    "surface null: %{public}d, context null: %{public}d, drawable null: %{public}d",
+                cmds == nullptr, surface == nullptr, ctx == nullptr, drawable == nullptr);
             return;
         }
         Drawing::GPUResourceTag::SetCurrentNodeId(nodeId);
