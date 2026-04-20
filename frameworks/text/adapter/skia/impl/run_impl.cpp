@@ -161,7 +161,12 @@ TextStyle RunImpl::GetTextStyle() const
         return {};
     }
 
-    return SkStyleToSPTextStyle(runBase_->GetTextStyle(), paints_);
+    const skt::TextStyle* textStyle = runBase_->GetTextStyle();
+    if (textStyle == nullptr) {
+        return {};
+    }
+
+    return SkStyleToSPTextStyle(*textStyle, paints_);
 }
 } // namespace SPText
 } // namespace Rosen
