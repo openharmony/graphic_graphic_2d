@@ -219,6 +219,7 @@ static const napi_property_descriptor g_properties[] = {
     DECLARE_NAPI_FUNCTION("isClipEmpty", JsCanvas::IsClipEmpty),
     DECLARE_NAPI_FUNCTION("quickRejectPath", JsCanvas::QuickRejectPath),
     DECLARE_NAPI_FUNCTION("quickRejectRect", JsCanvas::QuickRejectRect),
+    DECLARE_NAPI_FUNCTION("isOpaque", JsCanvas::IsOpaque),
     DECLARE_NAPI_STATIC_FUNCTION("__createTransfer__", JsCanvas::CanvasTransferDynamic),
 };
 
@@ -478,7 +479,7 @@ napi_value JsCanvas::OnDrawArc(napi_env env, napi_callback_info info)
         ROSEN_LOGE("JsCanvas::OnDrawArc canvas is null");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
-    
+
     napi_value argv[ARGC_THREE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_THREE);
 
@@ -1270,7 +1271,7 @@ napi_value JsCanvas::OnDrawPixelMapMesh(napi_env env, napi_callback_info info)
         ROSEN_LOGE("JsCanvas::OnDrawPixelMapMesh create array with size of vertices failed");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Size of vertices exceed memory limit.");
     }
-    
+
     for (uint32_t i = 0; i < verticesSize; i++) {
         napi_value tempVertex = nullptr;
         napi_get_element(env, verticesArray, i, &tempVertex);
@@ -2683,5 +2684,20 @@ napi_value JsCanvas::CanvasTransferDynamic(napi_env env, napi_callback_info info
     return result;
 }
 
+napi_value JsCanvas::IsOpaque(napi_env env, napi_callback_info info)
+{
+    JsCanvas* me = CheckParamsAndGetThis<JsCanvas>(env, info);
+    return (me != nullptr) ? me->OnIsOpaque(env, info) : nullptr;
+}
+
+napi_value JsCanvas::OnIsOpaque(napi_env env, napi_callback_info info)
+{
+    if (m_canvas == nullptr) {
+        ROSEN_LOGE("JsCanvas::OnIsOpaque canvas is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    return CreateJsValue(env, m_canvas->IsOpaque());
+}
 } // namespace Drawing
 } // namespace OHOS::Rosen

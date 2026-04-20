@@ -911,6 +911,11 @@ void CoreCanvas::InsertOpaqueRegion(const std::vector<RectI>& rects)
 {
     impl_->InsertOpaqueRegion(rects);
 }
+
+bool CoreCanvas::IsOpaque() const
+{
+    return impl_->IsOpaque();
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

@@ -1264,6 +1264,16 @@ namespace drawing {
     native isClipEmpty(): boolean;
 
     /**
+     * Checks whether the current layer that drawn into the device is opaque.
+     *
+     * @returns { boolean } Returns true if the current layer that drawn into the device is opaque.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @stagemodelonly
+     * @since 26.0.0
+     */
+    native isOpaque(): boolean;
+
+    /**
      * Sets a matrix for the canvas. Subsequent drawing and clipping operations will be affected by this matrix in terms of shape and position.
      * @param { Matrix } matrix - Declares functions related to the matrix object in the drawing module.
      * @throws { BusinessError } 401 - Parameter error. Possible causes: 1. Mandatory parameters are left unspecified;
@@ -2307,7 +2317,7 @@ namespace drawing {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 24 static
      */
-    native makeFromCurrent(typefaceArguments: TypefaceArguments): Typeface | undefined;    
+    native makeFromCurrent(typefaceArguments: TypefaceArguments): Typeface | undefined;
   }
 
   /**
@@ -3125,7 +3135,7 @@ namespace drawing {
     }
 
     private static native latticeTransferStaticNative(input: ESValue): Object;
-    
+
     static latticeTransferDynamic(input: Object): Any {
       let lattice = input as Lattice;
       if (!lattice) {
@@ -3565,14 +3575,14 @@ namespace drawing {
      */
     native rectStaysRect(): boolean;
 
-    /** 
-     * Sets matrix to the copy of anther matrix object. 
-     * @param { Array<double> | Matrix } matrix - Indicates the Matrix object to copy. 
-     * @syscap SystemCapability.Graphics.Drawing 
-     * @crossplatform 
-     * @since 20 dynamic 
-     * @since 23 static 
-    */ 
+    /**
+     * Sets matrix to the copy of anther matrix object.
+     * @param { Array<double> | Matrix } matrix - Indicates the Matrix object to copy.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @crossplatform
+     * @since 20 dynamic
+     * @since 23 static
+    */
     native setMatrix(matrix: Array<double> | Matrix): void;
 
     /**
@@ -4003,7 +4013,7 @@ namespace drawing {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 24
      */
-    static native createFromImage(pixelmap: image.PixelMap, srcRect?: common2D.Rect | null, dstRect?: common2D.Rect | null): ImageFilter | undefined;  
+    static native createFromImage(pixelmap: image.PixelMap, srcRect?: common2D.Rect | null, dstRect?: common2D.Rect | null): ImageFilter | undefined;
   }
 
   /**
@@ -4437,7 +4447,7 @@ namespace drawing {
      * @since 20
      */
     native rConicTo(ctrlX: double, ctrlY: double, endX: double, endY: double, weight: double): void;
-  
+
       /**
      * Draws a cubic Bezier curve from the last point of this path to a point relative to the last point.
      * If the path is empty, the start point (0, 0) is used.
@@ -4709,7 +4719,7 @@ namespace drawing {
 
     /**
      * Checks whether a path is closed.
-     * 
+     *
      * @returns { boolean } - Check result. The value true means that the path is closed, and false means the opposite.
      * @syscap SystemCapability.Graphics.Drawing
      * @since 20
@@ -4718,7 +4728,7 @@ namespace drawing {
 
     /**
      * Obtains a transformation matrix at a specific position along the path, which represents the coordinates and orientation of that point.
-     * 
+     *
      * @param { boolean } forceClosed - Whether the path is measured as a closed path.
      *     The value true means that the path is considered closed
      *     during measurement, and false means that the path is measured based on the actual closed status.
@@ -5123,7 +5133,7 @@ namespace drawing {
      * @since 20
      */
     static native create(blurRadius: double, x: double, y: double, color: common2D.Color): ShadowLayer | undefined;
-    
+
     /**
      * Creates a ShadowLayer object.
      *
@@ -5528,7 +5538,7 @@ namespace drawing {
      * @since 20
      */
     native setRect(left: int, top: int, right: int, bottom: int): boolean;
-  
+
     /**
      * Checks whether another region is contained in this region.
      * @param { Region } other - Region object.
@@ -6087,7 +6097,7 @@ namespace drawing {
      * @since 24
      */
     static native centerX(rect: common2D.Rect): double;
- 
+
     /**
      * Makes a deep copy of a 2D rectangular object.
      * @param { common2D.Rect } src - Indicates the source rectangle to copy.
@@ -6097,7 +6107,7 @@ namespace drawing {
      * @since 24
      */
     static native makeCopy(src: common2D.Rect): common2D.Rect | undefined;
- 
+
     /**
      * Makes a 2D rectangular object from boundary coordinates.
      * @param { double } left - Indicates the X-coordinate of the left edge.
@@ -6111,7 +6121,7 @@ namespace drawing {
      * @since 24
      */
     static native makeLtrb(left: double, top: double, right: double, bottom: double): common2D.Rect | undefined;
- 
+
     /**
      * Makes an uninitialized 2D rectangular object with zero dimensions and origin at (0, 0).
      *
@@ -6122,7 +6132,7 @@ namespace drawing {
      * @since 24
      */
     static native makeEmpty(): common2D.Rect | undefined;
- 
+
     /**
      * Sets a 2D rectangular object to the union of itself and another.
      *
@@ -6133,7 +6143,7 @@ namespace drawing {
      * @since 24
      */
     static native union(rect: common2D.Rect, other: common2D.Rect): void;
- 
+
     /**
      * Calculates the y-coordinate of the center point of the 2D rectangular object.
      *
@@ -6144,7 +6154,7 @@ namespace drawing {
      * @since 24
      */
     static native centerY(rect: common2D.Rect): double;
- 
+
     /**
      * Checks if two 2D rectangular objects intersect.
      *
@@ -6156,8 +6166,8 @@ namespace drawing {
      * @since 24
      */
     static native isIntersect(rect: common2D.Rect, other: common2D.Rect): boolean;
- 
-    
+
+
     /**
      * Offsets the rectangle to a specific position and kepps the width and height unchanged.
      *
@@ -6169,7 +6179,7 @@ namespace drawing {
      * @since 24
      */
     static native offsetTo(rect: common2D.Rect, newLeft: double, newTop: double): void;
- 
+
     /**
      * Sets the boundary coordinates of a 2D rectangular object with that of specific value.
      * @param { common2D.Rect } rect - Indicates the Rect object to be modified.
@@ -6182,34 +6192,34 @@ namespace drawing {
      * @since 24
      */
     static native setLtrb(rect: common2D.Rect, left: double, top: double, right: double, bottom: double): void;
-    
-    /** 
-     * Checks if one 2D rectangular object contains a specific point. 
-     * 
-     * @param { common2D.Rect } rect - The container Rect object. 
-     * @param { double } x - Indicates the X-coordinate of the point to check. 
-     * @param { double } y - Indicates the Y-coordinate of the point to check. 
-     * @returns { boolean } - Returns true if 'rect' contains the specified point; returns false otherwise. 
-     * @static 
-     * @syscap SystemCapability.Graphics.Drawing 
-     * @since 24 
-     */ 
-    static native contains(rect: common2D.Rect, x: double, y: double): boolean; 
-   
-    /** 
-     * Checks if one 2D rectangular object fully contains the specified boundary coordinates. 
-     * 
-     * @param { common2D.Rect } rect - The container Rect object. 
-     * @param { double } left - Indicates the left boundary of the target region. 
-     * @param { double } top - Indicates the top boundary of the target region. 
-     * @param { double } right - Indicates the right boundary of the target region. 
-     * @param { double } bottom - Indicates the bottom boundary of the target region. 
-     * @returns { boolean } - Returns true if 'rect' fully contains the specified boundary coordinates; 
-     *     returns false otherwise. 
-     * @static 
-     * @syscap SystemCapability.Graphics.Drawing 
-     * @since 24 
-     */ 
+
+    /**
+     * Checks if one 2D rectangular object contains a specific point.
+     *
+     * @param { common2D.Rect } rect - The container Rect object.
+     * @param { double } x - Indicates the X-coordinate of the point to check.
+     * @param { double } y - Indicates the Y-coordinate of the point to check.
+     * @returns { boolean } - Returns true if 'rect' contains the specified point; returns false otherwise.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    static native contains(rect: common2D.Rect, x: double, y: double): boolean;
+
+    /**
+     * Checks if one 2D rectangular object fully contains the specified boundary coordinates.
+     *
+     * @param { common2D.Rect } rect - The container Rect object.
+     * @param { double } left - Indicates the left boundary of the target region.
+     * @param { double } top - Indicates the top boundary of the target region.
+     * @param { double } right - Indicates the right boundary of the target region.
+     * @param { double } bottom - Indicates the bottom boundary of the target region.
+     * @returns { boolean } - Returns true if 'rect' fully contains the specified boundary coordinates;
+     *     returns false otherwise.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
     static native contains(rect: common2D.Rect, left: double, top: double, right: double, bottom: double): boolean;
 
     /**
@@ -6220,7 +6230,7 @@ namespace drawing {
      * @since 24
      */
     static native setEmpty(rect: common2D.Rect): void;
- 
+
     /**
      * Sets the boundary coordinates of a 2D rectangular object with that of another.
      * @param { common2D.Rect } rect - Indicates the Rect object to be modified.

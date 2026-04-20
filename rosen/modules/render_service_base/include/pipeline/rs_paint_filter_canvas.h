@@ -555,7 +555,7 @@ protected:
 
     bool CopyCachedEffectData(std::shared_ptr<CachedEffectData>& dstEffectData,
         const std::shared_ptr<CachedEffectData>& srcEffectData, const RSPaintFilterCanvas& srcCanvas);
-    
+
     inline bool NeedReplaceColor(Drawing::Color color)
     {
         return color.IsPlaceholder() && !envStack_.empty() && envStack_.top().fractionColorReady_;
