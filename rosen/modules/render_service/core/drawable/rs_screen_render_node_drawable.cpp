@@ -49,7 +49,6 @@
 #include "params/rs_screen_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "feature/hdr/rs_hdr_util.h"
-#include "feature/layer/rs_layer_cache_manager.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/main_thread/rs_uni_render_listener.h"
