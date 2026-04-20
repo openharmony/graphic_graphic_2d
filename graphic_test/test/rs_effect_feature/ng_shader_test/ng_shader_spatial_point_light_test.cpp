@@ -17,6 +17,7 @@
 #include "rs_graphic_test_img.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
 #include "ui_effect/property/include/rs_ui_mask_base.h"
+#include <limits>
 
 using namespace testing;
 using namespace testing::ext;
@@ -29,7 +30,7 @@ void InitSpatialPointLight(std::shared_ptr<RSNGSpatialPointLight>& spatialPointL
         return;
     }
     spatialPointLight->Setter<SpatialPointLightLightPositionTag>(Vector3f{600.0f, 1000.0f, 100.0f});
-    spatialPointLight->Setter<SpatialPointLightLightColorTag>(Vector4f{1.0f, 0.5f, 0.0f, 1.0f}); // Orange color, more visible
+    spatialPointLight->Setter<SpatialPointLightLightColorTag>(Vector4f{1.0f, 0.5f, 0.0f, 1.0f}); // Orange color
     spatialPointLight->Setter<SpatialPointLightLightIntensityTag>(2.0f);
     spatialPointLight->Setter<SpatialPointLightAttenuationTag>(5.0f);
 }
@@ -39,22 +40,104 @@ const std::string TEST_IMAGE_PATH = "/data/local/tmp/Images/backGroundImage.jpg"
 const int SCREEN_WIDTH = 1200;
 const int SCREEN_HEIGHT = 2000;
 
+// Basic color variations (RGBA)
 const std::vector<Vector4f> lightColors = {
-    Vector4f{1.0f, 0.0f, 0.0f, 1.0f},
-    Vector4f{0.0f, 1.0f, 0.0f, 1.0f},
-    Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
-    Vector4f{1.0f, 1.0f, 1.0f, 1.0f}
+    Vector4f{1.0f, 0.0f, 0.0f, 1.0f},   // Red
+    Vector4f{0.0f, 1.0f, 0.0f, 1.0f},   // Green
+    Vector4f{0.0f, 0.0f, 1.0f, 1.0f},   // Blue
+    Vector4f{1.0f, 1.0f, 1.0f, 1.0f}    // White
 };
 
+// Extended color variations including mixed colors
+const std::vector<Vector4f> extendedLightColors = {
+    Vector4f{1.0f, 0.5f, 0.0f, 1.0f},   // Orange
+    Vector4f{0.5f, 0.0f, 1.0f, 1.0f},   // Purple
+    Vector4f{0.0f, 1.0f, 0.5f, 1.0f},   // Cyan-green
+    Vector4f{1.0f, 1.0f, 0.0f, 1.0f}    // Yellow
+};
+
+// Color alpha variations
+const std::vector<Vector4f> lightColorsWithAlpha = {
+    Vector4f{1.0f, 0.0f, 0.0f, 0.25f},  // Red, low alpha
+    Vector4f{1.0f, 0.0f, 0.0f, 0.5f},   // Red, medium alpha
+    Vector4f{1.0f, 0.0f, 0.0f, 0.75f},  // Red, high alpha
+    Vector4f{1.0f, 0.0f, 0.0f, 1.0f}    // Red, full alpha
+};
+
+// Intensity boundary values
 const std::vector<float> lightIntensities = {0.0f, 1.0f, 2.0f, 5.0f};
 
+// Extended intensity values
+const std::vector<float> extendedIntensities = {0.5f, 1.5f, 3.0f, 10.0f};
+
+// Attenuation boundary values
 const std::vector<float> lightAttenuations = {1.0f, 5.0f, 10.0f, 50.0f};
 
-const std::vector<float> lightZDepths = {50.0f, 100.0f, 200.0f, 500.0f};
+// Extended attenuation values
+const std::vector<float> extendedAttenuations = {2.0f, 3.0f, 20.0f, 100.0f};
 
+// Light Z depth values (height above surface)
+const std::vector<float> lightZDepths = {10.0f, 50.0f, 100.0f, 500.0f};
+
+// Extended Z depth values
+const std::vector<float> extendedZDepths = {25.0f, 75.0f, 200.0f, 1000.0f};
+
+// Light X position variations (horizontal offset from center)
+const std::vector<float> lightXOffsets = {-100.0f, -50.0f, 50.0f, 100.0f};
+
+// Light Y position variations (vertical offset from center)
+const std::vector<float> lightYOffsets = {-100.0f, -50.0f, 50.0f, 100.0f};
+
+// Extreme intensity values for robustness testing
 const std::vector<float> extremeIntensities = {-1.0f, -10.0f, 100.0f, 9999.0f};
 
+// Extreme attenuation values
 const std::vector<float> extremeAttenuations = {-1.0f, -10.0f, 1000.0f, 1e10f};
+
+// Extreme Z depth values
+const std::vector<float> extremeZDepths = {-100.0f, 0.0f, 10000.0f, 1e6f};
+
+// Invalid values including NaN and infinity
+const std::vector<float> invalidValues = {
+    std::numeric_limits<float>::quiet_NaN(),
+    std::numeric_limits<float>::infinity(),
+    -std::numeric_limits<float>::infinity(),
+    std::numeric_limits<float>::denorm_min()
+};
+
+// Parameter combinations for interaction testing
+const std::vector<std::tuple<Vector4f, float, float>> colorIntensityAttenuationCombinations = {
+    {Vector4f{1.0f, 0.0f, 0.0f, 1.0f}, 1.0f, 5.0f},    // Red, low intensity, normal attenuation
+    {Vector4f{0.0f, 1.0f, 0.0f, 1.0f}, 3.0f, 10.0f},   // Green, high intensity, high attenuation
+    {Vector4f{0.0f, 0.0f, 1.0f, 1.0f}, 5.0f, 2.0f}     // Blue, very high intensity, low attenuation
+};
+
+// Grid layout configurations for multi-light testing
+const std::vector<std::pair<size_t, size_t>> gridLayouts = {
+    {2, 2},  // 4 lights in 2x2 grid
+    {3, 2},  // 6 lights in 3x2 grid
+    {4, 3},  // 12 lights in 4x3 grid
+    {2, 4}   // 8 lights in 2x4 grid
+};
+
+// Radial gradient mask radius variations
+const std::vector<float> radialGradientRadiuses = {0.1f, 0.3f, 0.5f, 0.8f};
+
+// Ripple mask parameter variations
+const std::vector<std::tuple<float, float, float>> rippleMaskParams = {
+    {50.0f, 20.0f, 0.0f},   // Small radius, thin width
+    {100.0f, 50.0f, 0.0f},  // Medium radius, medium width
+    {200.0f, 80.0f, 0.0f},  // Large radius, thick width
+    {150.0f, 60.0f, 50.0f}  // Medium with offset
+};
+
+// Linear gradient mask direction variations
+const std::vector<Vector2f> linearGradientDirections = {
+    Vector2f{0.0f, 0.0f},   // Top-left to bottom-right
+    Vector2f{1.0f, 0.0f},   // Top-right to bottom-left
+    Vector2f{0.0f, 1.0f},   // Bottom-left to top-right
+    Vector2f{1.0f, 1.0f}    // Bottom-right to top-left
+};
 }
 
 class NGShaderSpatialPointLightTest : public RSGraphicTest {
@@ -66,7 +149,7 @@ public:
 
 private:
     void SetUpTestNode(const size_t i, const size_t columnCount, const size_t rowCount,
-        std::shared_ptr<RSNGSpatialPointLight>& spatialPointLight)
+        std::shared_ptr<RSNGSpatialPointLight>& spatialPointLight, float zDepth = 100.0f)
     {
         if (columnCount == 0 || rowCount == 0) {
             return;
@@ -78,7 +161,7 @@ private:
 
         // Set light position to center of current node
         spatialPointLight->Setter<SpatialPointLightLightPositionTag>(
-            Vector3f{x + sizeX / 2.0f, y + sizeY / 2.0f, 100.0f});
+            Vector3f{x + sizeX / 2.0f, y + sizeY / 2.0f, zDepth});
 
         auto testNode = SetUpNodeBgImage(TEST_IMAGE_PATH, {x, y, sizeX, sizeY});
         testNode->SetBackgroundNGShader(spatialPointLight);
@@ -87,6 +170,10 @@ private:
     }
 };
 
+/*
+ * Test spatial point light with basic colors (RGB + White)
+ * Tests 4 basic color combinations
+ */
 GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Color_Test)
 {
     const size_t columnCount = 4;
@@ -101,6 +188,46 @@ GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light
     }
 }
 
+/*
+ * Test spatial point light with extended colors (mixed colors)
+ * Tests 4 extended color combinations including orange, purple, cyan-green, yellow
+ */
+GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Extended_Color_Test)
+{
+    const size_t columnCount = 4;
+    const size_t rowCount = 1;
+
+    for (size_t i = 0; i < extendedLightColors.size(); i++) {
+        auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
+        InitSpatialPointLight(spatialPointLight);
+        spatialPointLight->Setter<SpatialPointLightLightColorTag>(extendedLightColors[i]);
+
+        SetUpTestNode(i, columnCount, rowCount, spatialPointLight);
+    }
+}
+
+/*
+ * Test spatial point light with color alpha variations
+ * Tests how alpha channel affects light transparency
+ */
+GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Color_Alpha_Test)
+{
+    const size_t columnCount = 4;
+    const size_t rowCount = 1;
+
+    for (size_t i = 0; i < lightColorsWithAlpha.size(); i++) {
+        auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
+        InitSpatialPointLight(spatialPointLight);
+        spatialPointLight->Setter<SpatialPointLightLightColorTag>(lightColorsWithAlpha[i]);
+
+        SetUpTestNode(i, columnCount, rowCount, spatialPointLight);
+    }
+}
+
+/*
+ * Test spatial point light with boundary intensity values
+ * Tests 4 intensity levels: 0 (no effect), low, normal, high
+ */
 GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Intensity_Boundary_Test)
 {
     const size_t columnCount = 4;
@@ -115,6 +242,28 @@ GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light
     }
 }
 
+/*
+ * Test spatial point light with extended intensity values
+ * Tests additional intensity variations
+ */
+GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Extended_Intensity_Test)
+{
+    const size_t columnCount = 4;
+    const size_t rowCount = 1;
+
+    for (size_t i = 0; i < extendedIntensities.size(); i++) {
+        auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
+        InitSpatialPointLight(spatialPointLight);
+        spatialPointLight->Setter<SpatialPointLightLightIntensityTag>(extendedIntensities[i]);
+
+        SetUpTestNode(i, columnCount, rowCount, spatialPointLight);
+    }
+}
+
+/*
+ * Test spatial point light with boundary attenuation values
+ * Tests how attenuation affects light spread/range
+ */
 GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Attenuation_Boundary_Test)
 {
     const size_t columnCount = 4;
@@ -129,6 +278,28 @@ GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light
     }
 }
 
+/*
+ * Test spatial point light with extended attenuation values
+ * Tests additional attenuation variations
+ */
+GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Extended_Attenuation_Test)
+{
+    const size_t columnCount = 4;
+    const size_t rowCount = 1;
+
+    for (size_t i = 0; i < extendedAttenuations.size(); i++) {
+        auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
+        InitSpatialPointLight(spatialPointLight);
+        spatialPointLight->Setter<SpatialPointLightAttenuationTag>(extendedAttenuations[i]);
+
+        SetUpTestNode(i, columnCount, rowCount, spatialPointLight);
+    }
+}
+
+/*
+ * Test spatial point light with Z depth variations
+ * Tests how light height affects the lighting effect
+ */
 GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Z_Depth_Test)
 {
     const size_t columnCount = 4;
@@ -137,7 +308,7 @@ GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light
     for (size_t i = 0; i < lightZDepths.size(); i++) {
         auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
         InitSpatialPointLight(spatialPointLight);
-        
+
         const size_t sizeX = SCREEN_WIDTH / columnCount;
         const size_t sizeY = SCREEN_HEIGHT / rowCount;
         const size_t x = (i % columnCount) * sizeX;
@@ -145,10 +316,151 @@ GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light
         spatialPointLight->Setter<SpatialPointLightLightPositionTag>(
             Vector3f{x + sizeX / 2.0f, y + sizeY / 2.0f, lightZDepths[i]});
 
+        SetUpTestNode(i, columnCount, rowCount, spatialPointLight, lightZDepths[i]);
+    }
+}
+
+/*
+ * Test spatial point light with extended Z depth values
+ * Tests additional Z depth variations
+ */
+GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Extended_Z_Depth_Test)
+{
+    const size_t columnCount = 4;
+    const size_t rowCount = 1;
+
+    for (size_t i = 0; i < extendedZDepths.size(); i++) {
+        auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
+        InitSpatialPointLight(spatialPointLight);
+
+        const size_t sizeX = SCREEN_WIDTH / columnCount;
+        const size_t sizeY = SCREEN_HEIGHT / rowCount;
+        const size_t x = (i % columnCount) * sizeX;
+        const size_t y = (i / columnCount) * sizeY;
+        spatialPointLight->Setter<SpatialPointLightLightPositionTag>(
+            Vector3f{x + sizeX / 2.0f, y + sizeY / 2.0f, extendedZDepths[i]});
+
+        SetUpTestNode(i, columnCount, rowCount, spatialPointLight, extendedZDepths[i]);
+    }
+}
+
+/*
+ * Test spatial point light with X position offset variations
+ * Tests horizontal light position offset from node center
+ */
+GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_X_Offset_Test)
+{
+    const size_t columnCount = 4;
+    const size_t rowCount = 1;
+
+    for (size_t i = 0; i < lightXOffsets.size(); i++) {
+        auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
+        InitSpatialPointLight(spatialPointLight);
+
+        const size_t sizeX = SCREEN_WIDTH / columnCount;
+        const size_t sizeY = SCREEN_HEIGHT / rowCount;
+        const size_t x = (i % columnCount) * sizeX;
+        const size_t y = (i / columnCount) * sizeY;
+        spatialPointLight->Setter<SpatialPointLightLightPositionTag>(
+            Vector3f{x + sizeX / 2.0f + lightXOffsets[i], y + sizeY / 2.0f, 100.0f});
+
         SetUpTestNode(i, columnCount, rowCount, spatialPointLight);
     }
 }
 
+/*
+ * Test spatial point light with Y position offset variations
+ * Tests vertical light position offset from node center
+ */
+GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Y_Offset_Test)
+{
+    const size_t columnCount = 4;
+    const size_t rowCount = 1;
+
+    for (size_t i = 0; i < lightYOffsets.size(); i++) {
+        auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
+        InitSpatialPointLight(spatialPointLight);
+
+        const size_t sizeX = SCREEN_WIDTH / columnCount;
+        const size_t sizeY = SCREEN_HEIGHT / rowCount;
+        const size_t x = (i % columnCount) * sizeX;
+        const size_t y = (i / columnCount) * sizeY;
+        spatialPointLight->Setter<SpatialPointLightLightPositionTag>(
+            Vector3f{x + sizeX / 2.0f, y + sizeY / 2.0f + lightYOffsets[i], 100.0f});
+
+        SetUpTestNode(i, columnCount, rowCount, spatialPointLight);
+    }
+}
+
+/*
+ * Test spatial point light with color, intensity, and attenuation combinations
+ * Tests parameter interaction effects
+ */
+GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Combination_Test)
+{
+    const size_t columnCount = 3;
+    const size_t rowCount = 1;
+
+    for (size_t i = 0; i < colorIntensityAttenuationCombinations.size(); i++) {
+        auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
+        InitSpatialPointLight(spatialPointLight);
+        spatialPointLight->Setter<SpatialPointLightLightColorTag>(
+            std::get<0>(colorIntensityAttenuationCombinations[i]));
+        spatialPointLight->Setter<SpatialPointLightLightIntensityTag>(
+            std::get<1>(colorIntensityAttenuationCombinations[i]));
+        spatialPointLight->Setter<SpatialPointLightAttenuationTag>(
+            std::get<2>(colorIntensityAttenuationCombinations[i]));
+
+        SetUpTestNode(i, columnCount, rowCount, spatialPointLight);
+    }
+}
+
+/*
+ * Test spatial point light with grid layout (2x2)
+ * Tests multiple lights in grid arrangement
+ */
+GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Grid_2x2_Test)
+{
+    const size_t columnCount = 2;
+    const size_t rowCount = 2;
+    const size_t totalNodes = columnCount * rowCount;
+
+    for (size_t i = 0; i < totalNodes; i++) {
+        auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
+        InitSpatialPointLight(spatialPointLight);
+        // Vary color based on position
+        spatialPointLight->Setter<SpatialPointLightLightColorTag>(
+            lightColors[i % lightColors.size()]);
+
+        SetUpTestNode(i, columnCount, rowCount, spatialPointLight);
+    }
+}
+
+/*
+ * Test spatial point light with grid layout (3x2)
+ * Tests multiple lights in grid arrangement
+ */
+GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Grid_3x2_Test)
+{
+    const size_t columnCount = 3;
+    const size_t rowCount = 2;
+    const size_t totalNodes = columnCount * rowCount;
+
+    for (size_t i = 0; i < totalNodes; i++) {
+        auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
+        InitSpatialPointLight(spatialPointLight);
+        // Vary intensity based on position
+        spatialPointLight->Setter<SpatialPointLightLightIntensityTag>(
+            lightIntensities[i % lightIntensities.size()]);
+
+        SetUpTestNode(i, columnCount, rowCount, spatialPointLight);
+    }
+}
+
+/*
+ * Test spatial point light with extreme intensity values
+ * Tests robustness against extreme/malicious inputs
+ */
 GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Intensity_Extreme_Values_Test)
 {
     const size_t columnCount = 4;
@@ -163,6 +475,10 @@ GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light
     }
 }
 
+/*
+ * Test spatial point light with extreme attenuation values
+ * Tests robustness against extreme/malicious inputs
+ */
 GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Attenuation_Extreme_Values_Test)
 {
     const size_t columnCount = 4;
@@ -177,16 +493,62 @@ GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light
     }
 }
 
-GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Mask_RadialGradient_Test)
+/*
+ * Test spatial point light with extreme Z depth values
+ * Tests robustness against extreme position inputs
+ */
+GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Z_Depth_Extreme_Values_Test)
 {
-    const size_t columnCount = 2;
+    const size_t columnCount = 4;
     const size_t rowCount = 1;
 
-    for (size_t i = 0; i < columnCount * rowCount; i++) {
+    for (size_t i = 0; i < extremeZDepths.size(); i++) {
+        auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
+        InitSpatialPointLight(spatialPointLight);
+
+        const size_t sizeX = SCREEN_WIDTH / columnCount;
+        const size_t sizeY = SCREEN_HEIGHT / rowCount;
+        const size_t x = (i % columnCount) * sizeX;
+        const size_t y = (i / columnCount) * sizeY;
+        spatialPointLight->Setter<SpatialPointLightLightPositionTag>(
+            Vector3f{x + sizeX / 2.0f, y + sizeY / 2.0f, extremeZDepths[i]});
+
+        SetUpTestNode(i, columnCount, rowCount, spatialPointLight);
+    }
+}
+
+/*
+ * Test spatial point light with invalid values (NaN, infinity)
+ * Tests robustness against special floating-point values
+ */
+GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Intensity_Invalid_Values_Test)
+{
+    const size_t columnCount = 4;
+    const size_t rowCount = 1;
+
+    for (size_t i = 0; i < invalidValues.size(); i++) {
+        auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
+        InitSpatialPointLight(spatialPointLight);
+        spatialPointLight->Setter<SpatialPointLightLightIntensityTag>(invalidValues[i]);
+
+        SetUpTestNode(i, columnCount, rowCount, spatialPointLight);
+    }
+}
+
+/*
+ * Test spatial point light with radial gradient mask
+ * Tests mask integration with point light
+ */
+GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Mask_RadialGradient_Test)
+{
+    const size_t columnCount = 4;
+    const size_t rowCount = 1;
+
+    for (size_t i = 0; i < radialGradientRadiuses.size(); i++) {
         auto radialMask = std::make_shared<RSNGRadialGradientMask>();
         radialMask->Setter<RadialGradientMaskCenterTag>(Vector2f{0.5f, 0.5f});
-        radialMask->Setter<RadialGradientMaskRadiusXTag>(0.4f);
-        radialMask->Setter<RadialGradientMaskRadiusYTag>(0.4f);
+        radialMask->Setter<RadialGradientMaskRadiusXTag>(radialGradientRadiuses[i]);
+        radialMask->Setter<RadialGradientMaskRadiusYTag>(radialGradientRadiuses[i]);
         radialMask->Setter<RadialGradientMaskColorsTag>(std::vector<float>{1.0f, 0.0f});
         radialMask->Setter<RadialGradientMaskPositionsTag>(std::vector<float>{0.0f, 1.0f});
 
@@ -199,12 +561,197 @@ GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light
     }
 }
 
+/*
+ * Test spatial point light with ripple mask variations
+ * Tests different ripple mask parameters
+ */
 GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Mask_Ripple_Test)
+{
+    const size_t columnCount = 4;
+    const size_t rowCount = 1;
+
+    for (size_t i = 0; i < rippleMaskParams.size(); i++) {
+        auto rippleMask = std::make_shared<RSNGRippleMask>();
+        rippleMask->Setter<RippleMaskCenterTag>(Vector2f{0.5f, 0.5f});
+        rippleMask->Setter<RippleMaskRadiusTag>(std::get<0>(rippleMaskParams[i]));
+        rippleMask->Setter<RippleMaskWidthTag>(std::get<1>(rippleMaskParams[i]));
+        rippleMask->Setter<RippleMaskOffsetTag>(std::get<2>(rippleMaskParams[i]));
+
+        auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
+        InitSpatialPointLight(spatialPointLight);
+        spatialPointLight->Setter<SpatialPointLightMaskTag>(
+            std::static_pointer_cast<RSNGMaskBase>(rippleMask));
+
+        SetUpTestNode(i, columnCount, rowCount, spatialPointLight);
+    }
+}
+
+/*
+ * Test spatial point light with linear gradient mask
+ * Tests linear gradient mask integration
+ */
+GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Mask_LinearGradient_Test)
+{
+    const size_t columnCount = 4;
+    const size_t rowCount = 1;
+
+    for (size_t i = 0; i < linearGradientDirections.size(); i++) {
+        auto linearMask = std::make_shared<RSNGLinearGradientMask>();
+        linearMask->Setter<LinearGradientMaskStartPointTag>(linearGradientDirections[i]);
+        linearMask->Setter<LinearGradientMaskEndPointTag>(
+            Vector2f{1.0f - linearGradientDirections[i].x, 1.0f - linearGradientDirections[i].y});
+        linearMask->Setter<LinearGradientMaskColorsTag>(std::vector<float>{1.0f, 0.0f});
+        linearMask->Setter<LinearGradientMaskPositionsTag>(std::vector<float>{0.0f, 1.0f});
+
+        auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
+        InitSpatialPointLight(spatialPointLight);
+        spatialPointLight->Setter<SpatialPointLightMaskTag>(
+            std::static_pointer_cast<RSNGMaskBase>(linearMask));
+
+        SetUpTestNode(i, columnCount, rowCount, spatialPointLight);
+    }
+}
+
+/*
+ * Test spatial point light with frame gradient mask
+ * Tests frame gradient mask integration
+ */
+GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Mask_FrameGradient_Test)
 {
     const size_t columnCount = 2;
     const size_t rowCount = 1;
 
     for (size_t i = 0; i < columnCount * rowCount; i++) {
+        auto frameMask = std::make_shared<RSNGFrameGradientMask>();
+        frameMask->Setter<FrameGradientMaskInsetTag>(Vector4f{0.1f, 0.1f, 0.1f, 0.1f});
+        frameMask->Setter<FrameGradientMaskColorsTag>(std::vector<float>{1.0f, 0.5f, 0.0f});
+        frameMask->Setter<FrameGradientMaskPositionsTag>(std::vector<float>{0.0f, 0.5f, 1.0f});
+
+        auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
+        InitSpatialPointLight(spatialPointLight);
+        spatialPointLight->Setter<SpatialPointLightMaskTag>(
+            std::static_pointer_cast<RSNGMaskBase>(frameMask));
+
+        SetUpTestNode(i, columnCount, rowCount, spatialPointLight);
+    }
+}
+
+/*
+ * Test spatial point light with wave gradient mask
+ * Tests wave gradient mask integration
+ */
+GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Mask_WaveGradient_Test)
+{
+    const size_t columnCount = 2;
+    const size_t rowCount = 1;
+
+    for (size_t i = 0; i < columnCount * rowCount; i++) {
+        auto waveMask = std::make_shared<RSNGWaveGradientMask>();
+        waveMask->Setter<WaveGradientMaskWaveHeightTag>(20.0f);
+        waveMask->Setter<WaveGradientMaskWaveCountTag>(3.0f);
+        waveMask->Setter<WaveGradientMaskDirectionTag>(0.0f);
+        waveMask->Setter<WaveGradientMaskColorsTag>(std::vector<float>{1.0f, 0.0f});
+        waveMask->Setter<WaveGradientMaskPositionsTag>(std::vector<float>{0.0f, 1.0f});
+
+        auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
+        InitSpatialPointLight(spatialPointLight);
+        spatialPointLight->Setter<SpatialPointLightMaskTag>(
+            std::static_pointer_cast<RSNGMaskBase>(waveMask));
+
+        SetUpTestNode(i, columnCount, rowCount, spatialPointLight);
+    }
+}
+
+/*
+ * Test spatial point light with double ripple mask
+ * Tests double ripple mask effect
+ */
+GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Mask_DoubleRipple_Test)
+{
+    const size_t columnCount = 2;
+    const size_t rowCount = 1;
+
+    for (size_t i = 0; i < columnCount * rowCount; i++) {
+        auto doubleRippleMask = std::make_shared<RSNGDoubleRippleMask>();
+        doubleRippleMask->Setter<DoubleRippleMaskCenter1Tag>(Vector2f{0.3f, 0.5f});
+        doubleRippleMask->Setter<DoubleRippleMaskCenter2Tag>(Vector2f{0.7f, 0.5f});
+        doubleRippleMask->Setter<DoubleRippleMaskRadius1Tag>(100.0f);
+        doubleRippleMask->Setter<DoubleRippleMaskRadius2Tag>(100.0f);
+        doubleRippleMask->Setter<DoubleRippleMaskWidthTag>(30.0f);
+        doubleRippleMask->Setter<DoubleRippleMaskOffsetTag>(0.0f);
+
+        auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
+        InitSpatialPointLight(spatialPointLight);
+        spatialPointLight->Setter<SpatialPointLightMaskTag>(
+            std::static_pointer_cast<RSNGMaskBase>(doubleRippleMask));
+
+        SetUpTestNode(i, columnCount, rowCount, spatialPointLight);
+    }
+}
+
+/*
+ * Test spatial point light with wave disturb mask
+ * Tests wave disturb mask effect
+ */
+GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Mask_WaveDisturb_Test)
+{
+    const size_t columnCount = 2;
+    const size_t rowCount = 1;
+
+    for (size_t i = 0; i < columnCount * rowCount; i++) {
+        auto waveDisturbMask = std::make_shared<RSNGWaveDisturbMask>();
+        waveDisturbMask->Setter<WaveDisturbMaskWaveAmplitudeTag>(10.0f);
+        waveDisturbMask->Setter<WaveDisturbMaskWaveFrequencyTag>(2.0f);
+        waveDisturbMask->Setter<WaveDisturbMaskWavePhaseTag>(0.0f);
+        waveDisturbMask->Setter<WaveDisturbMaskColorsTag>(std::vector<float>{1.0f, 0.0f});
+        waveDisturbMask->Setter<WaveDisturbMaskPositionsTag>(std::vector<float>{0.0f, 1.0f});
+
+        auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
+        InitSpatialPointLight(spatialPointLight);
+        spatialPointLight->Setter<SpatialPointLightMaskTag>(
+            std::static_pointer_cast<RSNGMaskBase>(waveDisturbMask));
+
+        SetUpTestNode(i, columnCount, rowCount, spatialPointLight);
+    }
+}
+
+/*
+ * Test spatial point light with mask and color combination
+ * Tests mask with different light colors
+ */
+GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Mask_Color_Combination_Test)
+{
+    const size_t columnCount = 4;
+    const size_t rowCount = 1;
+
+    for (size_t i = 0; i < lightColors.size(); i++) {
+        auto radialMask = std::make_shared<RSNGRadialGradientMask>();
+        radialMask->Setter<RadialGradientMaskCenterTag>(Vector2f{0.5f, 0.5f});
+        radialMask->Setter<RadialGradientMaskRadiusXTag>(0.4f);
+        radialMask->Setter<RadialGradientMaskRadiusYTag>(0.4f);
+        radialMask->Setter<RadialGradientMaskColorsTag>(std::vector<float>{1.0f, 0.0f});
+        radialMask->Setter<RadialGradientMaskPositionsTag>(std::vector<float>{0.0f, 1.0f});
+
+        auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
+        InitSpatialPointLight(spatialPointLight);
+        spatialPointLight->Setter<SpatialPointLightLightColorTag>(lightColors[i]);
+        spatialPointLight->Setter<SpatialPointLightMaskTag>(
+            std::static_pointer_cast<RSNGMaskBase>(radialMask));
+
+        SetUpTestNode(i, columnCount, rowCount, spatialPointLight);
+    }
+}
+
+/*
+ * Test spatial point light with mask and intensity combination
+ * Tests mask with different intensity values
+ */
+GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light_Mask_Intensity_Combination_Test)
+{
+    const size_t columnCount = 4;
+    const size_t rowCount = 1;
+
+    for (size_t i = 0; i < lightIntensities.size(); i++) {
         auto rippleMask = std::make_shared<RSNGRippleMask>();
         rippleMask->Setter<RippleMaskCenterTag>(Vector2f{0.5f, 0.5f});
         rippleMask->Setter<RippleMaskRadiusTag>(100.0f);
@@ -213,6 +760,7 @@ GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light
 
         auto spatialPointLight = std::make_shared<RSNGSpatialPointLight>();
         InitSpatialPointLight(spatialPointLight);
+        spatialPointLight->Setter<SpatialPointLightLightIntensityTag>(lightIntensities[i]);
         spatialPointLight->Setter<SpatialPointLightMaskTag>(
             std::static_pointer_cast<RSNGMaskBase>(rippleMask));
 
