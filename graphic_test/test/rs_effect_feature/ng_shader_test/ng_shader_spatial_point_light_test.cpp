@@ -773,7 +773,7 @@ GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light
         auto borderLight = std::make_shared<RSNGBorderLight>();
         InitBorderLightForCascade(borderLight);
         borderLight->Setter<BorderLightColorTag>(
-            Vector4f{lightColors[i].x, lightColors[i].y, lightColors[i].z, 0.5f});
+            Vector4f{lightColors[i][0], lightColors[i][1], lightColors[i][2], 0.5f});
 
         spatialPointLight->Append(borderLight);
         SetUpTestNode(i, columnCount, rowCount, spatialPointLight);
@@ -815,7 +815,7 @@ GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Spatial_Point_Light
         InitSpatialPointLight(spatialPointLight);
         spatialPointLight->Setter<SpatialPointLightLightColorTag>(lightColors[i]);
 
-        auto auroraNoise = std::make_shared<RSNGAuroraNoiseShader>();
+        auto auroraNoise = std::make_shared<RSNGAuroraNoise>();
         InitAuroraNoiseForCascade(auroraNoise);
 
         spatialPointLight->Append(auroraNoise);
@@ -1001,7 +1001,7 @@ GRAPHIC_TEST(NGShaderSpatialPointLightTest, EFFECT_TEST, Set_Double_Spatial_Poin
         auto spatialPointLight2 = std::make_shared<RSNGSpatialPointLight>();
         InitSpatialPointLight(spatialPointLight2);
         spatialPointLight2->Setter<SpatialPointLightLightColorTag>(
-            Vector4f{1.0f - lightColors[i].x, 1.0f - lightColors[i].y, 1.0f - lightColors[i].z, 0.5f});
+            Vector4f{1.0f - lightColors[i][0], 1.0f - lightColors[i][1], 1.0f - lightColors[i][2], 0.5f});
         spatialPointLight2->Setter<SpatialPointLightLightIntensityTag>(1.0f);
 
         spatialPointLight1->Append(spatialPointLight2);
