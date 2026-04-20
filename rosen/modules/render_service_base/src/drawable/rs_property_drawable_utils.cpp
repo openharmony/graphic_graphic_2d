@@ -1905,6 +1905,7 @@ void RSPropertyDrawableUtils::UpdatePropertiesToSpatialGlassEffect(const RSPrope
             nodeId);
         effectShader->Setter<SpatialGlassEffectShapeRenderTag>(sdfShape,
             PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+        return;
     }
     auto sdfRRect = properties.GetRRectForSDF();
     auto sdfRRectShape = std::static_pointer_cast<RSNGRenderSDFRRectShape>(
