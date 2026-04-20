@@ -29,7 +29,7 @@ void InitSpatialPointLight(std::shared_ptr<RSNGSpatialPointLight>& spatialPointL
         return;
     }
     spatialPointLight->Setter<SpatialPointLightLightPositionTag>(Vector3f{600.0f, 1000.0f, 100.0f});
-    spatialPointLight->Setter<SpatialPointLightLightColorTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
+    spatialPointLight->Setter<SpatialPointLightLightColorTag>(Vector4f{1.0f, 0.5f, 0.0f, 1.0f}); // Orange color, more visible
     spatialPointLight->Setter<SpatialPointLightLightIntensityTag>(2.0f);
     spatialPointLight->Setter<SpatialPointLightAttenuationTag>(5.0f);
 }
