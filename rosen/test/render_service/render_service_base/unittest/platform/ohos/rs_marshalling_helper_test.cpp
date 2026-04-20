@@ -2172,7 +2172,7 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingDrawCmdListObjectCreationFailureT
  */
 HWTEST_F(RSMarshallingHelperTest, UnmarshallingPixelMapFdCountExceedLimitTest, TestSize.Level1)
 {
-    constexpr int32_t TEST_FD_COUNT = 25001;
+    constexpr int32_t TEST_FD_COUNT = 29001;
     constexpr int32_t TEST_PID = 10001;
     constexpr uint64_t TEST_UNIQUE_ID = static_cast<uint64_t>(TEST_PID) << 32;
 
