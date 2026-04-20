@@ -421,7 +421,7 @@ private:
 
     static inline bool isUniRenderEnabled_ = false;
     inline static bool isDrawTextAsBitmap_ = false;
-    inline static bool cacheEnabledForRotation_ = false;
+    inline static std::atomic_bool cacheEnabledForRotation_ = false;
     static inline bool forceHpsBlurDisabled_ = false;
     static inline bool debugFmtTraceEnable_ = false;
     static inline bool animationTestEnable_ = false;
