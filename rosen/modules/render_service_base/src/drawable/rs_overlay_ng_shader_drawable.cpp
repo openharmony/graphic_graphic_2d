@@ -289,11 +289,11 @@ bool RSOverlayNGShaderDrawable::OnUpdate(const RSRenderNode& node)
         return false;
     }
     const auto& lightSourcesAndPosMap = illuminatedPtr->GetLightSourcesAndPosMap();
+    stagingLightSourcesAndPosVec_.clear();
     if (lightSourcesAndPosMap.empty()) {
         stagingEnableEDREffect_ = false;
         return true;
     }
-    stagingLightSourcesAndPosVec_.clear();
     stagingLightSourcesAndPosVec_.reserve(lightSourcesAndPosMap.size());
     for (auto& [lightSourcePtr, pos] : lightSourcesAndPosMap) {
         stagingLightSourcesAndPosVec_.emplace_back(std::move(*lightSourcePtr), std::move(pos));
