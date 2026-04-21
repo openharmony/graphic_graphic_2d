@@ -287,14 +287,16 @@ HWTEST_F(RSIpcPersistenceDataTest, SelfDrawingNodeRectChangeCallbackPersistenceD
     EXPECT_EQ(data.GetType(), RSIpcPersistenceType::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK);
 }
 
-HWTEST_F(RSIpcPersistenceDataTest, SelfDrawingNodeRectChangeCallbackPersistenceDataGetCallingPidTest001, TestSize.Level1)
+HWTEST_F(RSIpcPersistenceDataTest, SelfDrawingNodeRectChangeCallbackPersistenceDataGetCallingPidTest001,
+    TestSize.Level1)
 {
     RectConstraint constraint;
     auto data = SelfDrawingNodeRectChangeCallbackPersistenceData(1000, constraint, nullptr);
     EXPECT_EQ(data.GetCallingPid(), 1000);
 }
 
-HWTEST_F(RSIpcPersistenceDataTest, SelfDrawingNodeRectChangeCallbackPersistenceDataGetCallingPidTest002, TestSize.Level1)
+HWTEST_F(RSIpcPersistenceDataTest, SelfDrawingNodeRectChangeCallbackPersistenceDataGetCallingPidTest002,
+    TestSize.Level1)
 {
     RectConstraint constraint;
     auto data = SelfDrawingNodeRectChangeCallbackPersistenceData(2000, constraint, nullptr);

@@ -31,6 +31,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr int32_t MAX_RETRIES = 5;
+constexpr int32_t DEFAULT_MAX_FD = 1024;
 
 void sigchld_handler(int sig)
 {
@@ -52,7 +53,9 @@ int32_t ForkAndExec(GroupId groupId)
     }
     if (pid == 0) {
         long maxfd = sysconf(_SC_OPEN_MAX);
-        if (maxfd < 0) maxfd = 1024;
+        if (maxfd < 0) {
+            maxfd = DEFAULT_MAX_FD;
+        }
         for (int fd = 3; fd < maxfd; fd++) {
             close(fd);
         }

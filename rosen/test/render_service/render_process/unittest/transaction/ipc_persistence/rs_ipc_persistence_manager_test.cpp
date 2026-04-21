@@ -160,7 +160,8 @@ HWTEST_F(RSIpcPersistenceManagerTest, UnregisterByTypeTest001, TestSize.Level1)
 HWTEST_F(RSIpcPersistenceManagerTest, UnregisterByTypeTest002, TestSize.Level1)
 {
     auto data1 = std::make_shared<MockPersistenceData>(RSIpcPersistenceType::SET_WATERMARK, 1000);
-    auto data2 = std::make_shared<MockPersistenceData>(RSIpcPersistenceType::SHOW_WATERMARK, IPC_PERSISTENCE_DEFAULT_PID);
+    auto data2 = std::make_shared<MockPersistenceData>(
+        RSIpcPersistenceType::SHOW_WATERMARK, IPC_PERSISTENCE_DEFAULT_PID);
     manager_->RegisterWithCallingPid(data1);
     manager_->RegisterWithoutCallingPid(data2);
     manager_->UnregisterByType(RSIpcPersistenceType::SET_WATERMARK);
@@ -233,8 +234,10 @@ HWTEST_F(RSIpcPersistenceManagerTest, UnregisterWithoutCallingPidByTypeTest001, 
 
 HWTEST_F(RSIpcPersistenceManagerTest, UnregisterWithoutCallingPidByTypeTest002, TestSize.Level1)
 {
-    auto data1 = std::make_shared<MockPersistenceData>(RSIpcPersistenceType::SHOW_WATERMARK, IPC_PERSISTENCE_DEFAULT_PID);
-    auto data2 = std::make_shared<MockPersistenceData>(RSIpcPersistenceType::SET_BEHIND_WINDOW_FILTER_ENABLED, IPC_PERSISTENCE_DEFAULT_PID);
+    auto data1 = std::make_shared<MockPersistenceData>(
+        RSIpcPersistenceType::SHOW_WATERMARK, IPC_PERSISTENCE_DEFAULT_PID);
+    auto data2 = std::make_shared<MockPersistenceData>(
+        RSIpcPersistenceType::SET_BEHIND_WINDOW_FILTER_ENABLED, IPC_PERSISTENCE_DEFAULT_PID);
     manager_->RegisterWithoutCallingPid(data1);
     manager_->RegisterWithoutCallingPid(data2);
     manager_->UnregisterWithoutCallingPidByType(RSIpcPersistenceType::SHOW_WATERMARK);
@@ -382,7 +385,8 @@ HWTEST_F(RSIpcPersistenceManagerTest, MultipleOperationsTest001, TestSize.Level1
 {
     auto data1 = std::make_shared<MockPersistenceData>(RSIpcPersistenceType::SET_WATERMARK, 1000);
     auto data2 = std::make_shared<MockPersistenceData>(RSIpcPersistenceType::ON_HWC_EVENT, 2000);
-    auto data3 = std::make_shared<MockPersistenceData>(RSIpcPersistenceType::SHOW_WATERMARK, IPC_PERSISTENCE_DEFAULT_PID);
+    auto data3 = std::make_shared<MockPersistenceData>(
+        RSIpcPersistenceType::SHOW_WATERMARK, IPC_PERSISTENCE_DEFAULT_PID);
     
     manager_->RegisterWithCallingPid(data1);
     manager_->RegisterWithCallingPid(data2);

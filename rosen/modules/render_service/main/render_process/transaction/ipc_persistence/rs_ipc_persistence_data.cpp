@@ -233,7 +233,8 @@ SelfDrawingNodeRectChangeCallbackPersistenceData* SelfDrawingNodeRectChangeCallb
         return nullptr;
     }
     if (size > MAX_PID_SIZE_NUMBER) {
-        RS_LOGE("SelfDrawingNodeRectChangeCallbackPersistenceData::Unmarshalling: pids size exceeds MAX_PID_SIZE_NUMBER");
+        RS_LOGE(
+            "SelfDrawingNodeRectChangeCallbackPersistenceData::Unmarshalling: pids size exceeds MAX_PID_SIZE_NUMBER");
         return nullptr;
     }
     for (uint32_t i = 0; i < size; ++i) {
