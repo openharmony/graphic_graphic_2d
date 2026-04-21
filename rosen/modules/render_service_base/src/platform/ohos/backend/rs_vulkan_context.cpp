@@ -14,14 +14,12 @@
  */
 
 #include "platform/ohos/backend/rs_vulkan_context.h"
-
-#include <dlfcn.h>
 #include <memory>
 #include <mutex>
-#include <string_view>
 #include <unordered_set>
+#include <string_view>
+#include <dlfcn.h>
 #include <vector>
-
 #include "common/rs_optional_trace.h"
 #include "platform/common/rs_log.h"
 #include "render_context/memory_handler.h"
@@ -33,6 +31,7 @@
 #include "utils/system_properties.h"
 #include "vulkan/vulkan_core.h"
 #include "vulkan/vulkan_ohos.h"
+#include "sync_fence.h"
 
 #define ACQUIRE_PROC(name, context)                         \
     if (!(vk##name = AcquireProc("vk" #name, context))) {   \
@@ -47,6 +46,7 @@ std::map<int, DrawingContextProperty> RsVulkanContext::drawingContextMap_;
 std::mutex RsVulkanContext::drawingContextMutex_;
 std::recursive_mutex RsVulkanContext::recyclableSingletonMutex_;
 bool RsVulkanContext::isRecyclable_ = true;
+bool RsVulkanContext::isMultiProcess_ = false;
 std::atomic<bool> RsVulkanContext::isRecyclableSingletonValid_ = false;
 std::atomic<bool> RsVulkanContext::isInited_ = false;
 void* RsVulkanInterface::handle_ = nullptr;
@@ -84,8 +84,6 @@ static const int GR_CHUNK_SIZE = 1048576;
 static const int GR_CACHE_MAX_COUNT = 8192;
 static const size_t GR_CACHE_MAX_BYTE_SIZE = 96 * (1 << 20);
 static const int32_t CACHE_LIMITS_TIMES = 5;  // this will change RS memory!
-static const int32_t MAX_SEMAPHORE_FENCE_COUNT = 3000;
-static const int32_t SEMAPHORE_STATS_INTERVAL = 144000;
 std::atomic<uint64_t> RsVulkanInterface::callbackSemaphoreInfofdDupCnt_ = 0;
 std::atomic<uint64_t> RsVulkanInterface::callbackSemaphoreInfoRSDerefCnt_ = 0;
 std::atomic<uint64_t> RsVulkanInterface::callbackSemaphoreInfo2DEngineDerefCnt_ = 0;
@@ -93,51 +91,18 @@ std::atomic<uint64_t> RsVulkanInterface::callbackSemaphoreInfo2DEngineDefensiveD
 std::atomic<uint64_t> RsVulkanInterface::callbackSemaphoreInfoFlushCnt_ = 0;
 std::atomic<uint64_t> RsVulkanInterface::callbackSemaphoreInfo2DEngineCallCnt_ = 0;
 
-bool RsVulkanInterface::Init(VulkanInterfaceType vulkanInterfaceType, bool isProtected, bool isHtsEnable)
+void RsVulkanInterface::Init(VulkanInterfaceType vulkanInterfaceType, bool isProtected, bool isHtsEnable)
 {
-    RS_TRACE_NAME("RsVulkanInterface::Init");
-    RS_LOGI("RsVulkanInterface::Init: Starting initialization for interface type %{public}d",
-        static_cast<int>(vulkanInterfaceType));
-
     acquiredMandatoryProcAddresses_ = false;
 
     acquiredMandatoryProcAddresses_ = OpenLibraryHandle() && SetupLoaderProcAddresses();
-    if (!acquiredMandatoryProcAddresses_) {
-        RS_LOGE("RsVulkanInterface::Init: Failed to acquire mandatory proc addresses");
-        return false;
-    }
 
     interfaceType_ = vulkanInterfaceType;
-
-    RS_LOGI("RsVulkanInterface::Init: Step 1 - CreateInstance started");
-    if (!CreateInstance()) {
-        RS_LOGE("RsVulkanInterface::Init: Failed to create instance");
-        return false;
-    }
-    RS_LOGI("RsVulkanInterface::Init: Step 1 - CreateInstance completed");
-
-    RS_LOGI("RsVulkanInterface::Init: Step 2 - SelectPhysicalDevice started");
-    if (!SelectPhysicalDevice(isProtected)) {
-        RS_LOGE("RsVulkanInterface::Init: Failed to select physical device");
-        return false;
-    }
-    RS_LOGI("RsVulkanInterface::Init: Step 2 - SelectPhysicalDevice completed");
-
-    RS_LOGI("RsVulkanInterface::Init: Step 3 - CreateDevice started");
-    if (!CreateDevice(isProtected, isHtsEnable)) {
-        RS_LOGE("RsVulkanInterface::Init: Failed to create device");
-        return false;
-    }
-    RS_LOGI("RsVulkanInterface::Init: Step 3 - CreateDevice completed");
-
-    RS_LOGI("RsVulkanInterface::Init: Step 4 - CreateSkiaBackendContext started");
+    CreateInstance();
+    SelectPhysicalDevice(isProtected);
+    CreateDevice(isProtected, isHtsEnable);
     std::unique_lock<std::mutex> lock(vkMutex_);
-    if (!CreateSkiaBackendContext(&backendContext_, isProtected)) {
-        RS_LOGE("RsVulkanInterface::Init: Failed to create Skia backend context");
-        return false;
-    }
-    RS_LOGI("RsVulkanInterface::Init: Step 4 - CreateSkiaBackendContext completed");
-    return true;
+    CreateSkiaBackendContext(&backendContext_, isProtected);
 }
 
 RsVulkanInterface::~RsVulkanInterface()
@@ -175,7 +140,7 @@ bool RsVulkanInterface::SetupLoaderProcAddresses()
     vkGetInstanceProcAddr = reinterpret_cast<PFN_vkGetInstanceProcAddr>(dlsym(handle_, "vkGetInstanceProcAddr"));
     vkGetDeviceProcAddr = reinterpret_cast<PFN_vkGetDeviceProcAddr>(dlsym(handle_, "vkGetDeviceProcAddr"));
     vkEnumerateInstanceExtensionProperties = reinterpret_cast<PFN_vkEnumerateInstanceExtensionProperties>(
-        dlsym(handle_, "vkEnumerateInstanceExtensionProperties"));
+          dlsym(handle_, "vkEnumerateInstanceExtensionProperties"));
     vkCreateInstance = reinterpret_cast<PFN_vkCreateInstance>(dlsym(handle_, "vkCreateInstance"));
 
     if (!vkGetInstanceProcAddr) {
@@ -189,9 +154,7 @@ bool RsVulkanInterface::SetupLoaderProcAddresses()
 
 bool RsVulkanInterface::CreateInstance()
 {
-    RS_TRACE_NAME("RsVulkanInterface::CreateInstance");
     if (!acquiredMandatoryProcAddresses_) {
-        ROSEN_LOGE("CreateInstance: Mandatory proc addresses not acquired");
         return false;
     }
 
@@ -220,7 +183,6 @@ bool RsVulkanInterface::CreateInstance()
             ROSEN_LOGE("Could not create vulkan instance");
             return false;
         }
-        ROSEN_LOGI("Vulkan instance created successfully");
     }
 
     ACQUIRE_PROC(CreateDevice, instance_);
@@ -239,39 +201,23 @@ bool RsVulkanInterface::CreateInstance()
 
 bool RsVulkanInterface::SelectPhysicalDevice(bool isProtected)
 {
-    RS_TRACE_NAME("RsVulkanInterface::SelectPhysicalDevice");
     if (!instance_) {
-        ROSEN_LOGE("SelectPhysicalDevice: Instance is null");
         return false;
     }
     uint32_t deviceCount = 0;
     if (vkEnumeratePhysicalDevices(instance_, &deviceCount, nullptr) != VK_SUCCESS) {
-        ROSEN_LOGE("SelectPhysicalDevice: Failed to enumerate physical devices (count)");
-        return false;
-    }
-
-    if (deviceCount == 0) {
-        ROSEN_LOGE("SelectPhysicalDevice: No physical devices found");
+        ROSEN_LOGE("vkEnumeratePhysicalDevices failed");
         return false;
     }
 
     std::vector<VkPhysicalDevice> physicalDevices;
     physicalDevices.resize(deviceCount);
     if (vkEnumeratePhysicalDevices(instance_, &deviceCount, physicalDevices.data()) != VK_SUCCESS) {
-        ROSEN_LOGE("SelectPhysicalDevice: Failed to enumerate physical devices (data)");
+        ROSEN_LOGE("vkEnumeratePhysicalDevices failed");
         return false;
     }
     physicalDevice_ = physicalDevices[0];
-    ROSEN_LOGI("SelectPhysicalDevice: Selected physical device %{public}u of %{public}u", 0, deviceCount);
-
-    VkPhysicalDeviceProperties physDevProps;
-    vkGetPhysicalDeviceProperties(physicalDevice_, &physDevProps);
-    physicalDeviceApiVersion_ = physDevProps.apiVersion;
-    ROSEN_LOGI("SelectPhysicalDevice: Physical device API version %{public}u.%{public}u.%{public}u",
-        VK_VERSION_MAJOR(physicalDeviceApiVersion_), VK_VERSION_MINOR(physicalDeviceApiVersion_),
-        VK_VERSION_PATCH(physicalDeviceApiVersion_));
-
-    VkPhysicalDeviceProperties2 physDevProps2 = {
+    VkPhysicalDeviceProperties2 physDevProps = {
         VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2,
         0,
         {},
@@ -282,23 +228,15 @@ bool RsVulkanInterface::SelectPhysicalDevice(bool isProtected)
         {},
     };
     if (isProtected) {
-        physDevProps2.pNext = &protMemProps;
+        physDevProps.pNext = &protMemProps;
     }
-    vkGetPhysicalDeviceProperties2(physicalDevice_, &physDevProps2);
+    vkGetPhysicalDeviceProperties2(physicalDevice_, &physDevProps);
     return true;
 }
 
 void RsVulkanInterface::ConfigureFeatures(bool isProtected)
 {
-    CleanupFeatureChain();
-    if (!InitializeFeatureChain(isProtected)) {
-        ROSEN_LOGE("ConfigureFeatures: Failed to initialize feature chain");
-    }
-}
-
-bool RsVulkanInterface::InitializeFeatureChain(bool isProtected)
-{
-    ycbcrFeature_.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLER_YCBCR_CONVERSION_FEATURES;
+    ycbcrFeature_.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLER_YCBCR_CONVERSION_FEATURES,
     ycbcrFeature_.pNext = nullptr;
     sync2Feature_.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES;
     sync2Feature_.pNext = &ycbcrFeature_;
@@ -308,108 +246,69 @@ bool RsVulkanInterface::InitializeFeatureChain(bool isProtected)
     timelineFeature_.pNext = &bindlessFeature_;
     physicalDeviceFeatures2_.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
     physicalDeviceFeatures2_.pNext = &timelineFeature_;
-
+    void** tailPnext = &ycbcrFeature_.pNext;
     protectedMemoryFeatures_ = new VkPhysicalDeviceProtectedMemoryFeatures;
     if (isProtected) {
-        if (physicalDeviceApiVersion_ < VK_API_VERSION_1_1) {
-            ROSEN_LOGE("InitializeFeatureChain: Protected memory requires Vulkan API version 1.1 or higher");
-            return false;
-        }
         protectedMemoryFeatures_->sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROTECTED_MEMORY_FEATURES;
         protectedMemoryFeatures_->pNext = nullptr;
-        ycbcrFeature_.pNext = protectedMemoryFeatures_;
-    }
-
-    return true;
-}
-
-void RsVulkanInterface::CleanupFeatureChain()
-{
-    if (protectedMemoryFeatures_ != nullptr) {
-        delete protectedMemoryFeatures_;
-        protectedMemoryFeatures_ = nullptr;
+        *tailPnext = protectedMemoryFeatures_;
+        tailPnext = &protectedMemoryFeatures_->pNext;
     }
 }
 
 void RsVulkanInterface::ConfigureExtensions()
 {
-    RS_TRACE_NAME("RsVulkanInterface::ConfigureExtensions");
     deviceExtensions_ = gMandatoryDeviceExtensions;
-
     uint32_t count = 0;
+    std::vector<VkExtensionProperties> supportedExtensions;
     if (vkEnumerateDeviceExtensionProperties(physicalDevice_, nullptr, &count, nullptr) != VK_SUCCESS) {
-        ROSEN_LOGE("ConfigureExtensions: Failed to get device extension count");
+        ROSEN_LOGE("Failed to get device extension count, try to create device with mandatory extensions only!");
         return;
     }
-
-    if (count == 0) {
-        ROSEN_LOGW("ConfigureExtensions: No device extensions found");
-        return;
-    }
-
-    std::vector<VkExtensionProperties> supportedExtensions(count);
+    supportedExtensions.resize(count);
     if (vkEnumerateDeviceExtensionProperties(physicalDevice_, nullptr, &count,
         supportedExtensions.data()) != VK_SUCCESS) {
-        ROSEN_LOGE("ConfigureExtensions: Failed to get device extensions");
+        ROSEN_LOGE("Failed to get device extensions, try to create device with mandatory extensions only!");
         return;
     }
-
     std::unordered_set<std::string_view> extensionNames;
-    for (const auto& prop : supportedExtensions) {
+    for (auto& prop: supportedExtensions) {
         extensionNames.emplace(prop.extensionName);
     }
-
-    uint32_t optionalEnabledCount = 0;
-    for (const auto& ext : gOptionalDeviceExtensions) {
+    for (auto& ext: gOptionalDeviceExtensions) {
         if (extensionNames.find(ext) != extensionNames.end()) {
             deviceExtensions_.emplace_back(ext);
-            optionalEnabledCount++;
         }
     }
-
 #ifdef ROSEN_OHOS
     if (Drawing::SystemProperties::IsVkImageDfxEnabled()) {
-        uint32_t debugEnabledCount = 0;
-        for (const auto& ext : gOptionalDeviceExtensionsDebug) {
-            if (extensionNames.find(ext) != extensionNames.end()) {
-                deviceExtensions_.emplace_back(ext);
-                debugEnabledCount++;
-            } else {
-                ROSEN_LOGW("ConfigureExtensions: Optional debug extension %{public}s not found", ext);
+        for (auto& ext: gOptionalDeviceExtensionsDebug) {
+            if (extensionNames.find(ext) == extensionNames.end()) {
+                ROSEN_LOGE("Optional device extension %{public}s not found! Skip it.", ext);
+                continue;
             }
+            deviceExtensions_.emplace_back(ext);
         }
-        ROSEN_LOGI("ConfigureExtensions: Enabled %{public}u debug extensions", debugEnabledCount);
     }
 #endif
-
-    for (const auto& ext : gMandatoryDeviceExtensions) {
+    for (auto& ext: gMandatoryDeviceExtensions) {
         if (extensionNames.find(ext) == extensionNames.end()) {
-            ROSEN_LOGE("ConfigureExtensions: Mandatory extension %{public}s not found!", ext);
+            ROSEN_LOGE("Mandatory device extension %{public}s not found! Try to enable it anyway.", ext);
         }
     }
-
-    ROSEN_LOGI("ConfigureExtensions: Enabled %{public}u optional extensions", optionalEnabledCount);
 }
 
 bool RsVulkanInterface::CreateDevice(bool isProtected, bool isHtsEnable)
 {
-    RS_TRACE_NAME("RsVulkanInterface::CreateDevice");
     if (!physicalDevice_) {
-        ROSEN_LOGE("CreateDevice: Physical device is null");
         return false;
     }
-    uint32_t queueCount = 0;
+    uint32_t queueCount;
     vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice_, &queueCount, nullptr);
-
-    if (queueCount == 0) {
-        ROSEN_LOGE("CreateDevice: No queue families found");
-        return false;
-    }
 
     std::vector<VkQueueFamilyProperties> queueProps(queueCount);
     vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice_, &queueCount, queueProps.data());
 
-    graphicsQueueFamilyIndex_ = UINT32_MAX;
     for (uint32_t i = 0; i < queueCount; i++) {
         if (queueProps[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
             graphicsQueueFamilyIndex_ = i;
@@ -418,7 +317,7 @@ bool RsVulkanInterface::CreateDevice(bool isProtected, bool isHtsEnable)
     }
 
     if (graphicsQueueFamilyIndex_ == UINT32_MAX) {
-        ROSEN_LOGE("CreateDevice: No graphics queue family found");
+        ROSEN_LOGE("graphicsQueueFamilyIndex_ is not valid");
         return false;
     }
     // If multiple queues are needed, queue priorities should be set.
@@ -446,7 +345,7 @@ bool RsVulkanInterface::CreateDevice(bool isProtected, bool isHtsEnable)
         .ppEnabledExtensionNames = deviceExtensions_.data(), .pEnabledFeatures = nullptr,
     };
     if (vkCreateDevice(physicalDevice_, &createInfo, nullptr, &device_) != VK_SUCCESS) {
-        ROSEN_LOGE("CreateDevice: vkCreateDevice failed");
+        ROSEN_LOGE("vkCreateDevice failed");
         SetVulkanDeviceStatus(VulkanDeviceStatus::CREATE_FAIL);
         return false;
     }
@@ -509,10 +408,6 @@ bool RsVulkanInterface::SetupDeviceProcAddresses(VkDevice device)
     ACQUIRE_PROC(ImportSemaphoreFdKHR, device_);
     ACQUIRE_PROC(GetSemaphoreFdKHR, device_);
 
-    if (!vkBindImageMemory2 || !vkCreateImage) {
-        ROSEN_LOGE("SetupDeviceProcAddresses: get function pointer fail!");
-        return false;
-    }
     return true;
 }
 
@@ -639,7 +534,8 @@ VkSemaphore RsVulkanInterface::RequireSemaphore()
 {
     {
         std::lock_guard<std::mutex> lock(semaphoreLock_);
-        if (usedSemaphoreFenceList_.size() >= MAX_SEMAPHORE_FENCE_COUNT) {
+        // 3000 means too many used semaphore fences
+        if (usedSemaphoreFenceList_.size() >= 3000) {
             RS_LOGE("Too many used semaphore fences, count [%{public}zu] ", usedSemaphoreFenceList_.size());
             for (auto&& semaphoreFence : usedSemaphoreFenceList_) {
                 if (semaphoreFence.fence != nullptr) {
@@ -659,9 +555,9 @@ VkSemaphore RsVulkanInterface::RequireSemaphore()
                 it++;
             }
         }
+        // 144000 : print once every 20min at most.
         if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN &&
-            RsVulkanInterface::callbackSemaphoreInfofdDupCnt_.load(std::memory_order_relaxed) %
-                SEMAPHORE_STATS_INTERVAL == 0) {
+            RsVulkanInterface::callbackSemaphoreInfofdDupCnt_.load(std::memory_order_relaxed) % 144000 == 0) {
             RS_LOGI("used fences, surface flush count[%{public}" PRIu64 "],"
                 "dup fence count[%{public}" PRIu64 "], rs deref count[%{public}" PRIu64 "],"
                 "call 2DEngineDeref count[%{public}" PRIu64 "], 2DEngine deref count[%{public}" PRIu64 "],"
@@ -683,7 +579,6 @@ VkSemaphore RsVulkanInterface::RequireSemaphore()
     VkSemaphore semaphore;
     auto err = vkCreateSemaphore(device_, &semaphoreInfo, nullptr, &semaphore);
     if (err != VK_SUCCESS) {
-        RS_LOGE("RequireSemaphore: Failed to create semaphore, error %{public}d", err);
         return VK_NULL_HANDLE;
     }
     return semaphore;
@@ -704,7 +599,6 @@ VkSemaphore RsVulkanInterface::RequireTimelineSemaphore()
     VkSemaphore semaphore;
     auto err = vkCreateSemaphore(device_, &semaphoreInfo, nullptr, &semaphore);
     if (err != VK_SUCCESS) {
-        RS_LOGE("RequireTimelineSemaphore: Failed to create timeline semaphore, error %{public}d", err);
         return VK_NULL_HANDLE;
     }
     return semaphore;
@@ -742,10 +636,7 @@ void RsVulkanContext::InitVulkanContextForHybridRender()
     RS_TRACE_NAME("InitVulkanContextForHybridRender");
     auto vulkanInterface = std::make_shared<RsVulkanInterface>();
     // init drawing context for RT thread bind to backendContext.
-    if (!vulkanInterface->Init(VulkanInterfaceType::BASIC_RENDER, false)) {
-        RS_LOGE("InitVulkanContextForHybridRender: Failed to initialize Vulkan interface");
-        return;
-    }
+    vulkanInterface->Init(VulkanInterfaceType::BASIC_RENDER, false);
     vulkanInterface->CreateDrawingContext();
 
     vulkanInterfaceVec_[size_t(VulkanInterfaceType::BASIC_RENDER)] = std::move(vulkanInterface);
@@ -753,31 +644,24 @@ void RsVulkanContext::InitVulkanContextForHybridRender()
 
 void RsVulkanContext::InitVulkanContextForUniRender()
 {
-    RS_TRACE_NAME("InitVulkanContextForUniRender");
-    // create vulkan interface for render thread.
-    auto uniRenderVulkanInterface = std::make_shared<RsVulkanInterface>();
-    // init drawing context for RT thread bind to backendContext.
-    if (!uniRenderVulkanInterface->Init(VulkanInterfaceType::BASIC_RENDER, false, true)) {
-        RS_LOGE("InitVulkanContextForUniRender: Failed to initialize basic render Vulkan interface");
-        return;
+    RS_LOGI("InitVulkanContextForUniRender::%{public}d", IsMultiProcess());
+    if (!IsMultiProcess()) {
+        // create vulkan interface for render thread.
+        auto uniRenderVulkanInterface = std::make_shared<RsVulkanInterface>();
+        uniRenderVulkanInterface->Init(VulkanInterfaceType::BASIC_RENDER, false, true);
+        // init drawing context for RT thread bind to backendContext.
+        uniRenderVulkanInterface->CreateDrawingContext();
+        vulkanInterfaceVec_[size_t(VulkanInterfaceType::BASIC_RENDER)] = std::move(uniRenderVulkanInterface);
     }
-    uniRenderVulkanInterface->CreateDrawingContext();
     // create vulkan interface for hardware thread (unprotected).
     auto unprotectedReDrawVulkanInterface = std::make_shared<RsVulkanInterface>();
-    if (!unprotectedReDrawVulkanInterface->Init(VulkanInterfaceType::UNPROTECTED_REDRAW, false, false)) {
-        RS_LOGE("InitVulkanContextForUniRender: Failed to initialize unprotected redraw Vulkan interface");
-        return;
-    }
-    vulkanInterfaceVec_[size_t(VulkanInterfaceType::BASIC_RENDER)] = std::move(uniRenderVulkanInterface);
+    unprotectedReDrawVulkanInterface->Init(VulkanInterfaceType::UNPROTECTED_REDRAW, false, false);
     vulkanInterfaceVec_[size_t(VulkanInterfaceType::UNPROTECTED_REDRAW)] = std::move(unprotectedReDrawVulkanInterface);
 #ifdef IS_ENABLE_DRM
     isProtected_ = true;
     auto protectedReDrawVulkanInterface = std::make_shared<RsVulkanInterface>();
+    protectedReDrawVulkanInterface->Init(VulkanInterfaceType::PROTECTED_REDRAW, true, false);
     // DRM needs to adapt vkQueue in the future.
-    if (!protectedReDrawVulkanInterface->Init(VulkanInterfaceType::PROTECTED_REDRAW, true, false)) {
-        RS_LOGE("InitVulkanContextForUniRender: Failed to initialize protected redraw Vulkan interface");
-        return;
-    }
     protectedReDrawVulkanInterface->CreateDrawingContext();
     vulkanInterfaceVec_[size_t(VulkanInterfaceType::PROTECTED_REDRAW)] = std::move(protectedReDrawVulkanInterface);
     isProtected_ = false;
@@ -1056,9 +940,19 @@ bool RsVulkanContext::IsRecyclable()
     return isRecyclable_;
 }
 
+bool RsVulkanContext::IsMultiProcess()
+{
+    return isMultiProcess_;
+}
+
 void RsVulkanContext::SetRecyclable(bool isRecyclable)
 {
     isRecyclable_ = isRecyclable;
+}
+
+void RsVulkanContext::SetIsMultiProcess(bool isMultiProcess)
+{
+    isMultiProcess_ = isMultiProcesss;
 }
 
 void RsVulkanContext::ClearGrContext(bool isProtected)
@@ -1068,5 +962,5 @@ void RsVulkanContext::ClearGrContext(bool isProtected)
     isProtected_ = isProtected;
     GetDrawingContext()->ResetContext();
 }
-} // namespace Rosen
-} // namespace OHOS
+}
+}

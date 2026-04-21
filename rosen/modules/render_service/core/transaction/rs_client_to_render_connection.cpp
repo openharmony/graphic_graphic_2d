@@ -174,10 +174,10 @@ void RSClientToRenderConnection::CleanAll(bool toDelete) noexcept
         cleanDone_ = true;
     }
 
-    // if (toDelete) {
-    //     auto token = iface_cast<RSIConnectionToken>(GetToken());
-    //     renderPipelineAgent_->RemoveConnection(token);
-    // }
+    if (toDelete) {
+        auto token = iface_cast<RSIConnectionToken>(GetToken());
+        renderPipelineAgent_->RemoveConnection(token);
+    }
 }
 
 void RSClientToRenderConnection::CleanForRefresh() noexcept
@@ -684,6 +684,43 @@ ErrCode RSClientToRenderConnection::GetMaxGpuBufferSize(uint32_t& maxWidth, uint
     }
 
     return renderPipelineAgent_->GetMaxGpuBufferSize(maxWidth, maxHeight);
+}
+
+int32_t RSClientToRenderConnection::RegisterFrameStabilityDetection(
+    const FrameStabilityTarget& target,
+    const FrameStabilityConfig& config,
+    sptr<RSIFrameStabilityCallback> callback)
+{
+    if (renderPipelineAgent_ == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+    return renderPipelineAgent_->RegisterFrameStabilityDetection(remotePid_, target, config, callback);
+}
+
+int32_t RSClientToRenderConnection::UnregisterFrameStabilityDetection(const FrameStabilityTarget& target)
+{
+    if (renderPipelineAgent_ == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+    return renderPipelineAgent_->UnregisterFrameStabilityDetection(remotePid_, target);
+}
+
+int32_t RSClientToRenderConnection::StartFrameStabilityCollection(
+    const FrameStabilityTarget& target,
+    const FrameStabilityConfig& config)
+{
+    if (renderPipelineAgent_ == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+    return renderPipelineAgent_->StartFrameStabilityCollection(remotePid_, target, config);
+}
+
+int32_t RSClientToRenderConnection::GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result)
+{
+    if (renderPipelineAgent_ == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+    return renderPipelineAgent_->GetFrameStabilityResult(remotePid_, target, result);
 }
 
 void RSClientToRenderConnection::SetFreeMultiWindowStatus(bool enable)

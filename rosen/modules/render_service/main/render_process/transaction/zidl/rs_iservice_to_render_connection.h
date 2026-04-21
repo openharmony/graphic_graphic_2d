@@ -27,7 +27,6 @@
 #include "info_collection/rs_layer_compose_collection.h"
 #include "screen_manager/rs_screen_property.h"
 #include "ipc_callbacks/rs_iuiextension_callback.h"
-#include "feature/capture/rs_ui_capture.h"
 #include "common/rs_self_draw_rect_change_callback_constraint.h"
 #include "ipc_callbacks/dfx/rs_dump_callback.h"
 

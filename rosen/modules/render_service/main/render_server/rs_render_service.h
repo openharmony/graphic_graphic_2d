@@ -18,7 +18,6 @@
 
 #include <event_handler.h>
 #include <map>
-#include <unordered_set>
 
 #include "rs_game_frame_handler.h"
 #include "rs_render_mode_config.h"
@@ -92,7 +91,7 @@ private:
         ScreenId screenId, sptr<IRemoteObject> vsyncToken);
 
     // Initialization related
-    void ParseRenderModeConfig();
+    void InitRenderServerConfig();
     void InitCCMConfig();
     bool CoreComponentsInit();
     void HgmInit();

@@ -15,6 +15,9 @@
 
 #include "rs_ipc_persistence_data.h"
 
+#include <cstdint>
+
+#include "platform/common/rs_log.h"
 #include "rs_render_pipeline_agent.h"
 #include "transaction/rs_marshalling_helper.h"
 
@@ -40,16 +43,20 @@ SetWatermarkPersistenceData* SetWatermarkPersistenceData::Unmarshalling(Parcel& 
 {
     auto result = std::make_unique<SetWatermarkPersistenceData>();
     if (!RSMarshallingHelper::Unmarshalling(parcel, result->pid_)) {
+        RS_LOGE("SetWatermarkPersistenceData::Unmarshalling: failed to read pid");
         return nullptr;
     }
     if (!RSMarshallingHelper::Unmarshalling(parcel, result->name_)) {
+        RS_LOGE("SetWatermarkPersistenceData::Unmarshalling: failed to read name");
         return nullptr;
     }
     if (result->watermark_ = std::shared_ptr<Media::PixelMap>(parcel.ReadParcelable<Media::PixelMap>());
         !result->watermark_) {
+        RS_LOGE("SetWatermarkPersistenceData::Unmarshalling: failed to read watermark");
         return nullptr;
     }
     if (!RSMarshallingHelper::Unmarshalling(parcel, result->success_)) {
+        RS_LOGE("SetWatermarkPersistenceData::Unmarshalling: failed to read success");
         return nullptr;
     }
     return result.release();
@@ -75,9 +82,11 @@ ShowWatermarkPersistenceData* ShowWatermarkPersistenceData::Unmarshalling(Parcel
     auto result = std::make_unique<ShowWatermarkPersistenceData>();
     if (result->watermarkImg_ = std::shared_ptr<Media::PixelMap>(parcel.ReadParcelable<Media::PixelMap>());
         !result->watermarkImg_) {
+        RS_LOGE("ShowWatermarkPersistenceData::Unmarshalling: failed to read watermarkImg");
         return nullptr;
     }
     if (!RSMarshallingHelper::Unmarshalling(parcel, result->isShow_)) {
+        RS_LOGE("ShowWatermarkPersistenceData::Unmarshalling: failed to read isShow");
         return nullptr;
     }
     return result.release();
@@ -102,12 +111,15 @@ OnHwcEventPersistenceData* OnHwcEventPersistenceData::Unmarshalling(Parcel& parc
 {
     auto result = std::make_unique<OnHwcEventPersistenceData>();
     if (!RSMarshallingHelper::Unmarshalling(parcel, result->deviceId_)) {
+        RS_LOGE("OnHwcEventPersistenceData::Unmarshalling: failed to read deviceId");
         return nullptr;
     }
     if (!RSMarshallingHelper::Unmarshalling(parcel, result->eventId_)) {
+        RS_LOGE("OnHwcEventPersistenceData::Unmarshalling: failed to read eventId");
         return nullptr;
     }
     if (!RSMarshallingHelper::Unmarshalling(parcel, result->eventData_)) {
+        RS_LOGE("OnHwcEventPersistenceData::Unmarshalling: failed to read eventData");
         return nullptr;
     }
     return result.release();
@@ -130,6 +142,7 @@ SetBehindWindowFilterEnabledPersistenceData* SetBehindWindowFilterEnabledPersist
 {
     auto result = std::make_unique<SetBehindWindowFilterEnabledPersistenceData>();
     if (!RSMarshallingHelper::Unmarshalling(parcel, result->enabled_)) {
+        RS_LOGE("SetBehindWindowFilterEnabledPersistenceData::Unmarshalling: failed to read enabled");
         return nullptr;
     }
     return result.release();
@@ -153,9 +166,11 @@ SetShowRefreshRateEnabledPersistenceData* SetShowRefreshRateEnabledPersistenceDa
 {
     auto result = std::make_unique<SetShowRefreshRateEnabledPersistenceData>();
     if (!RSMarshallingHelper::Unmarshalling(parcel, result->enabled_)) {
+        RS_LOGE("SetShowRefreshRateEnabledPersistenceData::Unmarshalling: failed to read enabled");
         return nullptr;
     }
     if (!RSMarshallingHelper::Unmarshalling(parcel, result->type_)) {
+        RS_LOGE("SetShowRefreshRateEnabledPersistenceData::Unmarshalling: failed to read type");
         return nullptr;
     }
     return result.release();
@@ -176,7 +191,12 @@ bool SelfDrawingNodeRectChangeCallbackPersistenceData::Marshalling(Parcel& parce
         return false;
     }
 
-    uint32_t size = constraint_.pids.size();
+    size_t pidsSize = constraint_.pids.size();
+    if (pidsSize > UINT32_MAX) {
+        RS_LOGE("%{public}s: pids.size() exceeds UINT32_MAX", __func__);
+        return false;
+    }
+    uint32_t size = static_cast<uint32_t>(pidsSize);
     if (!message->WriteUint32(size)) {
         return false;
     }
@@ -204,18 +224,22 @@ SelfDrawingNodeRectChangeCallbackPersistenceData* SelfDrawingNodeRectChangeCallb
     auto result = std::make_unique<SelfDrawingNodeRectChangeCallbackPersistenceData>();
     MessageParcel* message = static_cast<MessageParcel*>(&parcel);
     if (!message->ReadInt32(result->pid_)) {
+        RS_LOGE("SelfDrawingNodeRectChangeCallbackPersistenceData::Unmarshalling: failed to read pid");
         return nullptr;
     }
     uint32_t size;
     if (!message->ReadUint32(size)) {
+        RS_LOGE("SelfDrawingNodeRectChangeCallbackPersistenceData::Unmarshalling: failed to read pids size");
         return nullptr;
     }
     if (size > MAX_PID_SIZE_NUMBER) {
+        RS_LOGE("SelfDrawingNodeRectChangeCallbackPersistenceData::Unmarshalling: pids size exceeds MAX_PID_SIZE_NUMBER");
         return nullptr;
     }
     for (uint32_t i = 0; i < size; ++i) {
         pid_t pid;
         if (!message->ReadInt32(pid)) {
+            RS_LOGE("SelfDrawingNodeRectChangeCallbackPersistenceData::Unmarshalling: failed to read pid in pids");
             return nullptr;
         }
         result->constraint_.pids.insert(pid);
@@ -224,15 +248,18 @@ SelfDrawingNodeRectChangeCallbackPersistenceData* SelfDrawingNodeRectChangeCallb
         !message->ReadInt32(result->constraint_.range.lowLimit.height) ||
         !message->ReadInt32(result->constraint_.range.highLimit.width) ||
         !message->ReadInt32(result->constraint_.range.highLimit.height)) {
+        RS_LOGE("SelfDrawingNodeRectChangeCallbackPersistenceData::Unmarshalling: failed to read range");
         return nullptr;
     }
 
     auto remoteObject = message->ReadRemoteObject();
     if (remoteObject == nullptr) {
+        RS_LOGE("SelfDrawingNodeRectChangeCallbackPersistenceData::Unmarshalling: failed to read remoteObject");
         return nullptr;
     }
     result->callback_ = iface_cast<RSISelfDrawingNodeRectChangeCallback>(remoteObject);
     if (result->callback_ == nullptr) {
+        RS_LOGE("SelfDrawingNodeRectChangeCallbackPersistenceData::Unmarshalling: failed to cast callback");
         return nullptr;
     }
     return result.release();

@@ -17,11 +17,24 @@
 
 #include "platform/common/rs_log.h"
 #include "render_process/rs_render_process.h"
+#include "render_process/transaction/ipc_persistence/rs_ipc_persistence_def.h"
+#include "rs_render_pipeline_agent.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+
+class MockIpcPersistenceData : public RSIpcPersistenceDataBase {
+public:
+    RSIpcPersistenceType GetType() const override { return RSIpcPersistenceType::DEFAULT; }
+    bool Marshalling(Parcel& parcel) const override { return true; }
+    void Apply(const sptr<RSRenderPipelineAgent>& renderPipelineAgent) override
+    {
+        applyCount++;
+    }
+    int applyCount = 0;
+};
 
 class RSRenderProcessTest : public testing::Test {
 public:
@@ -157,6 +170,144 @@ HWTEST_F(RSRenderProcessTest, RenderProcessNullptrTest001, TestSize.Level1)
 
     renderProcess = sptr<RSRenderProcess>::MakeSptr();
     ASSERT_NE(renderProcess, nullptr);
+}
+
+/**
+ * @tc.name: RunTest001
+ * @tc.desc: Test RSRenderProcess::Run with null runner does not crash
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderProcessTest, RunTest001, TestSize.Level1)
+{
+    auto renderProcess = sptr<RSRenderProcess>::MakeSptr();
+    ASSERT_NE(renderProcess, nullptr);
+    ASSERT_EQ(renderProcess->runner_, nullptr);
+    renderProcess->Run();
+}
+
+/**
+ * @tc.name: ConnectToRenderServiceTest001
+ * @tc.desc: Test ConnectToRenderService returns nullptr when system services are unavailable
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderProcessTest, ConnectToRenderServiceTest001, TestSize.Level1)
+{
+    auto renderProcess = sptr<RSRenderProcess>::MakeSptr();
+    ASSERT_NE(renderProcess, nullptr);
+    auto result = renderProcess->ConnectToRenderService();
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: InitTest002
+ * @tc.desc: Test RSRenderProcess::Init returns false when ConnectToRenderService fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderProcessTest, InitTest002, TestSize.Level1)
+{
+    auto renderProcess = sptr<RSRenderProcess>::MakeSptr();
+    ASSERT_NE(renderProcess, nullptr);
+    bool result = renderProcess->Init();
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: InitTest003
+ * @tc.desc: Test RSRenderProcess::Init sets runner and handler even when it fails
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderProcessTest, InitTest003, TestSize.Level1)
+{
+    auto renderProcess = sptr<RSRenderProcess>::MakeSptr();
+    ASSERT_NE(renderProcess, nullptr);
+    ASSERT_EQ(renderProcess->runner_, nullptr);
+    ASSERT_EQ(renderProcess->handler_, nullptr);
+    bool result = renderProcess->Init();
+    EXPECT_FALSE(result);
+    EXPECT_NE(renderProcess->runner_, nullptr);
+    EXPECT_NE(renderProcess->handler_, nullptr);
+}
+
+/**
+ * @tc.name: ApplyIpcPersistenceDataTest001
+ * @tc.desc: Test ApplyIpcPersistenceData with empty data map
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderProcessTest, ApplyIpcPersistenceDataTest001, TestSize.Level1)
+{
+    auto renderProcess = sptr<RSRenderProcess>::MakeSptr();
+    ASSERT_NE(renderProcess, nullptr);
+    auto emptyData = std::make_shared<IpcPersistenceTypeToDataMap>();
+    sptr<RSRenderPipelineAgent> nullAgent = nullptr;
+    renderProcess->ApplyIpcPersistenceData(nullAgent, emptyData);
+    EXPECT_TRUE(emptyData->empty());
+}
+
+/**
+ * @tc.name: ApplyIpcPersistenceDataTest002
+ * @tc.desc: Test ApplyIpcPersistenceData with single entry verifies Apply is called
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderProcessTest, ApplyIpcPersistenceDataTest002, TestSize.Level1)
+{
+    auto renderProcess = sptr<RSRenderProcess>::MakeSptr();
+    ASSERT_NE(renderProcess, nullptr);
+    auto dataMap = std::make_shared<IpcPersistenceTypeToDataMap>();
+    auto mockData = std::make_shared<MockIpcPersistenceData>();
+    (*dataMap)[RSIpcPersistenceType::DEFAULT].push_back(mockData);
+    sptr<RSRenderPipelineAgent> nullAgent = nullptr;
+    renderProcess->ApplyIpcPersistenceData(nullAgent, dataMap);
+    EXPECT_EQ(mockData->applyCount, 1);
+    EXPECT_EQ(dataMap->size(), 1u);
+}
+
+/**
+ * @tc.name: ApplyIpcPersistenceDataTest003
+ * @tc.desc: Test ApplyIpcPersistenceData with multiple entries across types
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderProcessTest, ApplyIpcPersistenceDataTest003, TestSize.Level1)
+{
+    auto renderProcess = sptr<RSRenderProcess>::MakeSptr();
+    ASSERT_NE(renderProcess, nullptr);
+    auto dataMap = std::make_shared<IpcPersistenceTypeToDataMap>();
+    auto mockData1 = std::make_shared<MockIpcPersistenceData>();
+    auto mockData2 = std::make_shared<MockIpcPersistenceData>();
+    auto mockData3 = std::make_shared<MockIpcPersistenceData>();
+    (*dataMap)[RSIpcPersistenceType::SET_WATERMARK].push_back(mockData1);
+    (*dataMap)[RSIpcPersistenceType::SET_WATERMARK].push_back(mockData2);
+    (*dataMap)[RSIpcPersistenceType::SHOW_WATERMARK].push_back(mockData3);
+    sptr<RSRenderPipelineAgent> nullAgent = nullptr;
+    renderProcess->ApplyIpcPersistenceData(nullAgent, dataMap);
+    EXPECT_EQ(mockData1->applyCount, 1);
+    EXPECT_EQ(mockData2->applyCount, 1);
+    EXPECT_EQ(mockData3->applyCount, 1);
+    EXPECT_EQ(dataMap->size(), 2u);
+}
+
+/**
+ * @tc.name: ApplyIpcPersistenceDataTest004
+ * @tc.desc: Test ApplyIpcPersistenceData with empty vector in data map
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderProcessTest, ApplyIpcPersistenceDataTest004, TestSize.Level1)
+{
+    auto renderProcess = sptr<RSRenderProcess>::MakeSptr();
+    ASSERT_NE(renderProcess, nullptr);
+    auto dataMap = std::make_shared<IpcPersistenceTypeToDataMap>();
+    (*dataMap)[RSIpcPersistenceType::ON_HWC_EVENT] = {};
+    sptr<RSRenderPipelineAgent> nullAgent = nullptr;
+    renderProcess->ApplyIpcPersistenceData(nullAgent, dataMap);
+    EXPECT_EQ(dataMap->size(), 1u);
+    EXPECT_TRUE(dataMap->at(RSIpcPersistenceType::ON_HWC_EVENT).empty());
 }
 
 } // namespace OHOS::Rosen

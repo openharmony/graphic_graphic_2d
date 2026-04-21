@@ -42,6 +42,10 @@ bool RSRenderToServiceConnection::NotifyRenderProcessInitFinished(
 {
     auto serviceToRenderConn = iface_cast<RSIServiceToRenderConnection>(serviceToRenderConnection);
     auto connectToRenderConn = iface_cast<RSIConnectToRenderProcess>(connectToRenderConnection);
+    if (!serviceToRenderConn || !connectToRenderConn) {
+        RS_LOGE("%{public}s: iface_cast failed", __func__);
+        return false;
+    }
     renderProcessManagerAgent_->SetRenderProcessReadyPromise(GetCallingPid(), serviceToRenderConn, connectToRenderConn);
     return true;
 }
@@ -56,12 +60,23 @@ sptr<ReplyToRenderInfo> RSRenderToServiceConnection::SendProcessInfo(
     const auto remotePid = GetCallingPid();
     auto composerToRenderConn =
         iface_cast<IRSComposerToRenderConnection>(connectToServiceInfo->composerToRenderConnection_);
+    if (!composerToRenderConn) {
+        RS_LOGE("%{public}s: composerToRenderConn is nullptr", __func__);
+        return nullptr;
+    }
     // preparing required infos
     RS_LOGI("%{public}s: Preparing Required Infos", __func__);
     auto [rsScreenProperty, replayData] = renderProcessManagerAgent_->GetProcessInfo(remotePid, composerToRenderConn);
+    if (!rsScreenProperty) {
+        RS_LOGE("%{public}s: rsScreenProperty is nullptr", __func__);
+        return nullptr;
+    }
     auto [renderToComposerConnection, vsyncConnection] =
         renderServiceAgent_->GetProcessInfo(rsScreenProperty->GetScreenId(), connectToServiceInfo->vsyncToken_);
-
+    if (!renderToComposerConnection || !vsyncConnection) {
+        RS_LOGE("%{public}s: renderToComposerConnection or vsyncConnection is nullptr", __func__);
+        return nullptr;
+    }
     return sptr<ReplyToRenderInfo>::MakeSptr(
         renderToComposerConnection->AsObject(), rsScreenProperty, vsyncConnection->AsObject(), replayData);
 }

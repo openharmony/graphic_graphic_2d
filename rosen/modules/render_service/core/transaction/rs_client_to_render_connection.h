@@ -167,6 +167,20 @@ private:
     std::string GetBundleName(pid_t pid) override;
     int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection) override;
 
+    int32_t RegisterFrameStabilityDetection(
+        const FrameStabilityTarget& target,
+        const FrameStabilityConfig& config,
+        sptr<RSIFrameStabilityCallback> callback
+    ) override;
+
+    int32_t UnregisterFrameStabilityDetection(const FrameStabilityTarget& target) override;
+
+    int32_t StartFrameStabilityCollection(
+        const FrameStabilityTarget& target,
+        const FrameStabilityConfig& config
+    ) override;
+
+    int32_t GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result) override;
     ErrCode GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight) override;
 
     void SetFreeMultiWindowStatus(bool enable) override;

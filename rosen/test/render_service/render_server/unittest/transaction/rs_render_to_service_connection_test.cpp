@@ -86,4 +86,58 @@ HWTEST_F(RSRenderToServiceConnectionTest, NotifyScreenSwitchFinishedTest, TestSi
     g_rsConn->NotifyScreenSwitchFinished(screenId);
     ASSERT_TRUE(g_rsConn);
 }
+
+/**
+ * @tc.name: NotifyRenderProcessInitFinishedTest
+ * @tc.desc: Test NotifyRenderProcessInitFinished with null remote objects
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSRenderToServiceConnectionTest, NotifyRenderProcessInitFinishedTest, TestSize.Level1)
+{
+    sptr<IRemoteObject> serviceToRenderConnection = nullptr;
+    sptr<IRemoteObject> connectToRenderConnection = nullptr;
+    auto ret = g_rsConn->NotifyRenderProcessInitFinished(serviceToRenderConnection, connectToRenderConnection);
+    EXPECT_TRUE(ret);
+}
+
+/**
+ * @tc.name: SendProcessInfoNullInfoTest
+ * @tc.desc: Test SendProcessInfo with null connectToServiceInfo
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSRenderToServiceConnectionTest, SendProcessInfoNullInfoTest, TestSize.Level1)
+{
+    sptr<ConnectToServiceInfo> connectToServiceInfo = nullptr;
+    auto ret = g_rsConn->SendProcessInfo(connectToServiceInfo);
+    EXPECT_EQ(ret, nullptr);
+}
+
+/**
+ * @tc.name: SendProcessInfoNullComposerConnTest
+ * @tc.desc: Test SendProcessInfo with null composerToRenderConnection_
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSRenderToServiceConnectionTest, SendProcessInfoNullComposerConnTest, TestSize.Level1)
+{
+    auto connectToServiceInfo = sptr<ConnectToServiceInfo>::MakeSptr(nullptr, nullptr);
+    auto ret = g_rsConn->SendProcessInfo(connectToServiceInfo);
+    EXPECT_EQ(ret, nullptr);
+}
+
+/**
+ * @tc.name: SendProcessInfoNullVsyncTokenTest
+ * @tc.desc: Test SendProcessInfo with valid composerToRenderConnection but null vsyncToken
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSRenderToServiceConnectionTest, SendProcessInfoNullVsyncTokenTest, TestSize.Level1)
+{
+    sptr<IRemoteObject> fakeComposerConn = sptr<IRemoteObject>::MakeSptr();
+    auto connectToServiceInfo = sptr<ConnectToServiceInfo>::MakeSptr(fakeComposerConn, nullptr);
+    auto ret = g_rsConn->SendProcessInfo(connectToServiceInfo);
+    EXPECT_EQ(ret, nullptr);
+}
 } // namespace OHOS::Rosen

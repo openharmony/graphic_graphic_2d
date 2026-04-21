@@ -197,6 +197,22 @@ public:
     virtual int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection) = 0;
 
     virtual int32_t GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight) = 0;
+
+    virtual int32_t RegisterFrameStabilityDetection(
+        const FrameStabilityTarget& target,
+        const FrameStabilityConfig& config,
+        sptr<RSIFrameStabilityCallback> callback
+    ) = 0;
+
+    virtual int32_t UnregisterFrameStabilityDetection(const FrameStabilityTarget& target) = 0;
+
+    virtual int32_t StartFrameStabilityCollection(
+        const FrameStabilityTarget& target,
+        const FrameStabilityConfig& config
+    ) = 0;
+
+    virtual int32_t GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result) = 0;
+    
     virtual void RegisterRemoteRefreshCallback() = 0;
 
     virtual void SetFreeMultiWindowStatus(bool enable) = 0;

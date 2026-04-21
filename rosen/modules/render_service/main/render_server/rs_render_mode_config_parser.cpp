@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,7 +31,7 @@ namespace Rosen {
 namespace {
 std::optional<std::string> GetConfigPath()
 {
-    std::string fileSuffix = "etc/graphic/render_mode_config.xml";
+    std::string fileSuffix = "etc/graphic/graphic_render_server_config.xml";
     char pathBuff[MAX_PATH_LEN] = { '\0' };
     char* flexConfigPath = GetOneCfgFile(fileSuffix.c_str(), pathBuff, MAX_PATH_LEN);
     if (!flexConfigPath) {
@@ -82,7 +82,7 @@ int32_t RSRenderModeConfigParser::LoadConfigurations()
         return RENDER_MODE_PARSE_FILE_LOAD_FAIL;
     }
     std::string configPath = configPathOpt.value();
-    xmlDoc* doc = xmlReadFile(configPath.c_str(), nullptr, 0);
+    xmlDoc* doc = xmlReadFile(configPath.c_str(), nullptr, XML_PARSE_NONET);
     if (!doc) {
         RS_LOGE("%{public}s: xmlReadFile failed for %{public}s", __func__, configPath.c_str());
         return RENDER_MODE_PARSE_FILE_LOAD_FAIL;

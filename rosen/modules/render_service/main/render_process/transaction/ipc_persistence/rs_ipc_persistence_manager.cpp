@@ -15,6 +15,7 @@
 
 #include "rs_ipc_persistence_manager.h"
 
+#include "platform/common/rs_log.h"
 #include "rs_ipc_persistence_data.h"
 
 #undef LOG_TAG
@@ -35,7 +36,7 @@ IpcPersistenceTypeToDataMap RSIpcPersistenceManager::GetReplayData() const
 
 void RSIpcPersistenceManager::RegisterWithCallingPid(std::shared_ptr<RSIpcPersistenceDataBase> data)
 {
-    if (data->GetCallingPid() == IPC_PERSISTENCE_DEFAULT_PID) {
+    if (!data || data->GetCallingPid() == IPC_PERSISTENCE_DEFAULT_PID) {
         return;
     }
     std::lock_guard<std::mutex> lock(mutex_);
@@ -45,7 +46,7 @@ void RSIpcPersistenceManager::RegisterWithCallingPid(std::shared_ptr<RSIpcPersis
 
 void RSIpcPersistenceManager::RegisterWithoutCallingPid(std::shared_ptr<RSIpcPersistenceDataBase> data)
 {
-    if (data->GetCallingPid() != IPC_PERSISTENCE_DEFAULT_PID) {
+    if (!data || data->GetCallingPid() != IPC_PERSISTENCE_DEFAULT_PID) {
         return;
     }
     std::lock_guard<std::mutex> lock(mutex_);
@@ -139,6 +140,7 @@ std::optional<IpcPersistenceTypeToDataMap> RSIpcPersistenceManager::Unmarshallin
 {
     uint32_t mapSize;
     if (!parcel.ReadUint32(mapSize) || mapSize > MAX_MAP_SIZE) {
+        RS_LOGE("Unmarshalling: dataVecSize %{public}u exceeds max %{public}u", mapSize, MAX_MAP_SIZE);
         return std::nullopt;
     }
     IpcPersistenceTypeToDataMap result;
@@ -150,6 +152,7 @@ std::optional<IpcPersistenceTypeToDataMap> RSIpcPersistenceManager::Unmarshallin
         auto ipcPersistenceType = static_cast<RSIpcPersistenceType>(type);
         uint32_t dataVecSize;
         if (!parcel.ReadUint32(dataVecSize) || dataVecSize > MAX_VECTOR_SIZE) {
+            RS_LOGE("Unmarshalling: dataVecSize %{public}u exceeds max %{public}u", dataVecSize, MAX_VECTOR_SIZE);
             return std::nullopt;
         }
         for (uint32_t j = 0; j < dataVecSize; j++) {
@@ -184,6 +187,7 @@ std::optional<IpcPersistenceTypeToDataMap> RSIpcPersistenceManager::Unmarshallin
             if (data) {
                 result[ipcPersistenceType].emplace_back(data);
             } else {
+                RS_LOGE("Unmarshalling: failed to unmarshall data for type %{public}u", type);
                 return std::nullopt;
             }
         }

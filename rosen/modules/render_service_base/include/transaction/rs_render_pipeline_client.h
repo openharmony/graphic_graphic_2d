@@ -201,6 +201,20 @@ public:
 
     void SetFreeMultiWindowStatus(bool enable);
 
+    int32_t RegisterFrameStabilityDetection(
+        const FrameStabilityTarget& target,
+        const FrameStabilityConfig& config,
+        const FrameStabilityCallback& callback
+    );
+
+    int32_t UnregisterFrameStabilityDetection(const FrameStabilityTarget& target);
+
+    int32_t StartFrameStabilityCollection(
+        const FrameStabilityTarget& target,
+        const FrameStabilityConfig& config
+    );
+
+    int32_t GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result);
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
         std::shared_ptr<Media::PixelMap> pixelmap, CaptureError captureErrorCode,
