@@ -109,6 +109,12 @@ static std::unordered_map<RSNGEffectType, ShaderGetDrawRect> getDrawRectLUT = {
                 sdfEdgeLightEffect->Getter<OHOS::Rosen::SDFEdgeLightEffectMaxBorderWidthRenderTag>()->Get();
             auto outerBorderBloomWidth =
                 sdfEdgeLightEffect->Getter<OHOS::Rosen::SDFEdgeLightEffectOuterBorderBloomWidthRenderTag>()->Get();
+            auto sdfShape =
+                sdfEdgeLightEffect->Getter<OHOS::Rosen::SDFEdgeLightEffectSDFShapeRenderTag>()->Get();
+            if (sdfShape) {
+                auto transformRect = sdfShape->GetTransformDrawRect();
+                return transformRect.MakeOutset(std::max(maxBorderWidth, outerBorderBloomWidth));
+            }
             return rect.MakeOutset(std::max(maxBorderWidth, outerBorderBloomWidth));
         }
     }
