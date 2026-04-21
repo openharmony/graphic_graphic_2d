@@ -231,6 +231,11 @@ ErrCode RSClientToRenderConnectionProxy::CreateNode(const RSDisplayNodeConfig& d
         success = false;
         return ERR_INVALID_VALUE;
     }
+    if (!data.WriteUint32(static_cast<uint32_t>(displayNodeConfig.mirrorSourceRotation))) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::CreateNode: WriteUint32 Config.MirrorSourceRotation err.");
+        success = false;
+        return ERR_INVALID_VALUE;
+    }
     option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_DISPLAY_NODE);
     int32_t err = SendRequest(code, data, reply, option);
@@ -672,7 +677,12 @@ bool RSClientToRenderConnectionProxy::GetHighContrastTextState()
         ROSEN_LOGE("RSClientToRenderConnectionProxy::GetHighContrastTextState: Send Request err.");
         return false;
     }
-    return reply.ReadBool();
+    bool replyMessage = false;
+    if (!reply.ReadBool(replyMessage)) {
+        ROSEN_LOGE("%{public}s: ReadBool result failed", __func__);
+        return false;
+    }
+    return replyMessage;
 }
 
 ErrCode RSClientToRenderConnectionProxy::SetFocusAppInfo(const FocusAppInfo& info, int32_t& repCode)
@@ -720,7 +730,7 @@ ErrCode RSClientToRenderConnectionProxy::SetFocusAppInfo(const FocusAppInfo& inf
         repCode = RS_CONNECTION_ERROR;
         return ERR_INVALID_VALUE;
     }
-    repCode = reply.ReadInt32();
+    repCode = SUCCESS;
     return ERR_OK;
 }
 
@@ -779,7 +789,7 @@ RSClientToRenderConnectionProxy::TakeSurfaceCaptureSoloNode(
     MessageParcel reply;
     MessageOption option;
     std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> pixelMapIdPairVector;
-    option.SetFlags(MessageOption::TF_SYNC);
+    option.SetFlags(MessageOption::TF_SYNC | MessageOption::TF_IMAGE);
     if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("RSClientToRenderConnectionProxy::TakeSurfaceCaptureSoloNode: WriteInterfaceToken err.");
         return pixelMapIdPairVector;
@@ -1055,7 +1065,7 @@ bool RSClientToRenderConnectionProxy::WriteSurfaceCaptureAreaRect(
     return true;
 }
 
-ErrCode RSClientToRenderConnectionProxy::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+ErrCode RSClientToRenderConnectionProxy::SetHwcNodeBounds(NodeId rsNodeId, float positionX, float positionY,
     float positionZ, float positionW)
 {
     MessageParcel data;
@@ -1207,7 +1217,11 @@ ErrCode RSClientToRenderConnectionProxy::SetAncoForceDoDirect(bool direct, bool&
             res = false;
             return ERR_INVALID_VALUE;
         }
-        res = reply.ReadBool();
+        if (!reply.ReadBool(res)) {
+            ROSEN_LOGE("SetAncoForceDoDirect ReadBool direct failed!");
+            res = false;
+            return READ_PARCEL_ERR;
+        }
         return ERR_OK;
     } else {
         ROSEN_LOGE("SetAncoForceDoDirect: WriteBool direct err.");
@@ -1719,6 +1733,29 @@ int32_t RSClientToRenderConnectionProxy::SetLogicalCameraRotationCorrection(
         return READ_PARCEL_ERR;
     }
     return result;
+}
+
+int32_t RSClientToRenderConnectionProxy::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("GetMaxGpuBufferSize: WriteInterfaceToken GetDescriptor err.");
+        return ERR_INVALID_VALUE;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_MAX_GPU_BUFFER_SIZE);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("GetMaxGpuBufferSize: Send Request err.");
+        return ERR_INVALID_VALUE;
+    }
+    if (!reply.ReadUint32(maxWidth) || !reply.ReadUint32(maxHeight)) {
+        ROSEN_LOGE("GetMaxGpuBufferSize: Read failed");
+        return READ_PARCEL_ERR;
+    }
+    return ERR_OK;
 }
 
 int32_t RSClientToRenderConnectionProxy::RegisterFrameStabilityDetection(

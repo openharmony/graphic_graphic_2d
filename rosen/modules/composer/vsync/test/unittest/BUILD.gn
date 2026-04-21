@@ -55,6 +55,7 @@ ohos_unittest("dvsync_lib_manager_test") {
     "samgr:samgr_proxy",
     "googletest:gmock_main",
     "ipc:ipc_core",
+    "ipc:ipc_single",
   ]
 }
 

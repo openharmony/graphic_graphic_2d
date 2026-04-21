@@ -82,5 +82,12 @@ void RSRenderServiceAgent::RemoveToken(const sptr<RSIConnectionToken>& token)
 {
     renderService_.RemoveConnection(token);
 }
+
+void RSRenderServiceAgent::HandleGameSceneChanged() const
+{
+    if (auto& handler = renderService_.GetGameFrameHandler()) {
+        handler->HandleGameSceneChanged();
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

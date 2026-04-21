@@ -38,6 +38,8 @@ public:
         ani_env* env, const OHOS::Rosen::TypographyStyle& style, ani_object& obj);
     static ani_object ParseStrutStyleToAni(ani_env* env, const OHOS::Rosen::TypographyStyle& style);
     static ani_object ParseTextTabToAni(ani_env* env, const OHOS::Rosen::TextTab& textTab);
+    static void ParseDoubleArrayField(
+        ani_env* env, ani_object obj, const ani_method getPropertyMethod, std::vector<double>& array);
 };
 } // namespace OHOS::Text::ANI
 #endif // OHOS_TEXT_ANI_PARAGRAPH_STYLE_CONVERTER_H

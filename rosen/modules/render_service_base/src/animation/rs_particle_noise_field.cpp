@@ -15,25 +15,37 @@
 
 #include "animation/rs_particle_noise_field.h"
 
+#include <parcel.h>
+
+#include "common/rs_common_def.h"
+
 namespace OHOS {
 namespace Rosen {
 constexpr float EPSILON = 1e-3;
+constexpr float INV_2_EPSILON = 1.0f / (2.0f * EPSILON);
 constexpr float HALF = 0.5f;
 constexpr float FEATHERMAX = 100.f;
-constexpr int SQUARE_NUM = 2;
+
+ParticleNoiseField::~ParticleNoiseField() = default;
+
 bool ParticleNoiseField::IsPointInField(
-    const Vector2f& point, const ShapeType& fieldShape, const Vector2f& fieldCenter, float width, float height)
+    const Vector2f& point, const ShapeType& fieldShape, const Vector2f& fieldCenter, float width, float height) const
 {
     if (fieldShape == ShapeType::RECT) {
-        return ((point.x_ > fieldCenter_.x_ - width * HALF) && (point.x_ < fieldCenter_.x_ + width * HALF) &&
-                (point.y_ >= fieldCenter_.y_ - height * HALF) && (point.y_ < fieldCenter_.y_ + height * HALF));
+        return ((point.x_ > fieldCenter.x_ - width * HALF) && (point.x_ < fieldCenter.x_ + width * HALF) &&
+                (point.y_ >= fieldCenter.y_ - height * HALF) && (point.y_ < fieldCenter.y_ + height * HALF));
     } else {
-        double normX = (point.x_ - fieldCenter_.x_) * (point.x_ - fieldCenter_.x_);
-        double normY = (point.y_ - fieldCenter_.y_) * (point.y_ - fieldCenter_.y_);
+        double normX = (point.x_ - fieldCenter.x_) * (point.x_ - fieldCenter.x_);
+        double normY = (point.y_ - fieldCenter.y_) * (point.y_ - fieldCenter.y_);
         return ROSEN_EQ(width, 0.f) || ROSEN_EQ(height, 0.f) ? false :
                (normX / (width * HALF * width * HALF) + normY / (height * HALF * height * HALF) <= 1.0);
     }
     return false;
+}
+
+bool ParticleNoiseField::IsPointInRegion(const Vector2f& point) const
+{
+    return IsPointInField(point, regionShape_, regionPosition_, regionSize_.x_, regionSize_.y_);
 }
 
 float ParticleNoiseField::CalculateDistanceToRectangleEdge(
@@ -73,9 +85,11 @@ float ParticleNoiseField::CalculateDistanceToRectangleEdge(
     }
     // The smallest value of t, which is the first time the particle will reach the boundary.
     float tEdge = *std::min_element(times.begin(), times.end());
-    
+
     // Calculates the distance to the border.
-    float distance = std::sqrt(std::pow(tEdge * direction.x_, 2) + std::pow(tEdge * direction.y_, 2));
+    float dx = tEdge * direction.x_;
+    float dy = tEdge * direction.y_;
+    float distance = std::sqrt(dx * dx + dy * dy);
     return distance;
 }
 
@@ -93,7 +107,7 @@ float ParticleNoiseField::CalculateDistanceToEllipseEdge(const Vector2f& directi
     float x = a * std::cos(t);
     float y = b * std::sin(t);
 
-    return std::sqrt(std::pow(x, SQUARE_NUM) + std::pow(y, SQUARE_NUM));
+    return std::sqrt(x * x + y * y);
 }
 
 float ParticleNoiseField::CalculateFeatherEffect(float distanceToEdge, float featherWidth)
@@ -110,22 +124,22 @@ float ParticleNoiseField::CalculateFeatherEffect(float distanceToEdge, float fea
 
 Vector2f ParticleNoiseField::ApplyField(const Vector2f& position, float deltaTime)
 {
-    if (fieldShape_ == ShapeType::CIRCLE) {
-        fieldSize_.x_ = std::min(fieldSize_.x_, fieldSize_.y_);
-        fieldSize_.y_ = fieldSize_.x_;
+    if (regionShape_ == ShapeType::CIRCLE) {
+        regionSize_.x_ = std::min(regionSize_.x_, regionSize_.y_);
+        regionSize_.y_ = regionSize_.x_;
     }
-    if (IsPointInField(position, fieldShape_, fieldCenter_, fieldSize_.x_, fieldSize_.y_) && fieldStrength_ != 0) {
-        Vector2f direction = position - fieldCenter_;
+    if (IsPointInRegion(position) && fieldStrength_ != 0) {
+        Vector2f direction = position - regionPosition_;
         float distance = direction.GetLength();
         float forceMagnitude = static_cast<float>(fieldStrength_);
-        float featherWidth = fieldSize_.x_ * (fieldFeather_ / FEATHERMAX);
+        float featherWidth = regionSize_.x_ * (fieldFeather_ / FEATHERMAX);
         float edgeDistance = 0.f;
-        if (fieldShape_ == ShapeType::CIRCLE) {
-            edgeDistance = fieldSize_.x_;
-        } else if (fieldShape_ == ShapeType::ELLIPSE) {
-            edgeDistance = CalculateDistanceToEllipseEdge(direction, fieldCenter_, fieldSize_);
+        if (regionShape_ == ShapeType::CIRCLE) {
+            edgeDistance = regionSize_.x_;
+        } else if (regionShape_ == ShapeType::ELLIPSE) {
+            edgeDistance = CalculateDistanceToEllipseEdge(direction, regionPosition_, regionSize_);
         } else {
-            edgeDistance = CalculateDistanceToRectangleEdge(position, direction, fieldCenter_, fieldSize_);
+            edgeDistance = CalculateDistanceToRectangleEdge(position, direction, regionPosition_, regionSize_);
         }
 
         if (fieldStrength_ < 0 && !ROSEN_EQ(deltaTime, 0.f)) {
@@ -143,11 +157,78 @@ Vector2f ParticleNoiseField::ApplyField(const Vector2f& position, float deltaTim
 
 Vector2f ParticleNoiseField::ApplyCurlNoise(const Vector2f& position)
 {
-    if (IsPointInField(position, fieldShape_, fieldCenter_, fieldSize_.x_, fieldSize_.y_)) {
-        PerlinNoise2D noise(noiseScale_, noiseFrequency_, noiseAmplitude_);
-        return noise.Curl(position.x_, position.y_) * noiseScale_;
+    if (!IsPointInRegion(position)) {
+        return Vector2f { 0.f, 0.f };
     }
-    return Vector2f { 0.f, 0.f };
+    if (!cachedNoise_) {
+        cachedNoise_ = std::make_shared<PerlinNoise2D>(noiseFrequency_, noiseAmplitude_);
+    }
+    return cachedNoise_->Curl(position.x_, position.y_) * noiseScale_;
+}
+
+Vector2f ParticleNoiseField::Apply(const Vector2f& position, float deltaTime)
+{
+    return ApplyField(position, deltaTime) + ApplyCurlNoise(position);
+}
+
+bool ParticleNoiseField::Equals(const ParticleFieldBase& rhs) const
+{
+    const auto& other = static_cast<const ParticleNoiseField&>(rhs);
+    return fieldStrength_ == other.fieldStrength_ &&
+           fieldFeather_ == other.fieldFeather_ &&
+           ROSEN_EQ(noiseScale_, other.noiseScale_) &&
+           ROSEN_EQ(noiseFrequency_, other.noiseFrequency_) &&
+           ROSEN_EQ(noiseAmplitude_, other.noiseAmplitude_);
+}
+
+void ParticleNoiseField::Dump(std::string& out) const
+{
+    out += "ParticleNoiseField[";
+    out += "fieldStrength:" + std::to_string(fieldStrength_);
+    out += " fieldShape:" + std::to_string(static_cast<int>(regionShape_));
+    out += " fieldSize[x:" + std::to_string(regionSize_.x_) + " y:";
+    out += std::to_string(regionSize_.y_) + "]";
+    out += " fieldCenter[x:" + std::to_string(regionPosition_.x_) + " y:";
+    out += std::to_string(regionPosition_.y_) + "] fieldFeather:" + std::to_string(fieldFeather_);
+    out += " noiseScale:" + std::to_string(noiseScale_);
+    out += " noiseFrequency:" + std::to_string(noiseFrequency_);
+    out += " noiseAmplitude:" + std::to_string(noiseAmplitude_) + "]";
+}
+
+bool ParticleNoiseField::MarshalSpecific(Parcel& parcel) const
+{
+    bool success = parcel.WriteInt32(fieldStrength_);
+    success = success && parcel.WriteUint16(fieldFeather_);
+    success = success && parcel.WriteFloat(noiseScale_);
+    success = success && parcel.WriteFloat(noiseFrequency_);
+    success = success && parcel.WriteFloat(noiseAmplitude_);
+    return success;
+}
+
+bool ParticleNoiseField::UnmarshalSpecific(Parcel& parcel)
+{
+    int32_t strength = 0;
+    if (!parcel.ReadInt32(strength)) {
+        return false;
+    }
+    fieldStrength_ = strength;
+
+    uint16_t feather = 0;
+    if (!parcel.ReadUint16(feather)) {
+        return false;
+    }
+    fieldFeather_ = feather;
+
+    if (!parcel.ReadFloat(noiseScale_)) {
+        return false;
+    }
+    if (!parcel.ReadFloat(noiseFrequency_)) {
+        return false;
+    }
+    if (!parcel.ReadFloat(noiseAmplitude_)) {
+        return false;
+    }
+    return true;
 }
 
 void ParticleNoiseFields::Dump(std::string& out) const
@@ -158,11 +239,12 @@ void ParticleNoiseFields::Dump(std::string& out) const
         if (field != nullptr) {
             found = true;
             out += "field[fieldStrength:" + std::to_string(field->fieldStrength_);
-            out += " fieldShape:"  + std::to_string(static_cast<int>(field->fieldShape_));
-            out += " fieldSize[x:" + std::to_string(field->fieldSize_.x_) + " y:";
-            out += std::to_string(field->fieldSize_.y_) + "]";
-            out += " fieldCenter[x:" + std::to_string(field->fieldCenter_.x_) + " y:";
-            out += std::to_string(field->fieldCenter_.y_) + "] fieldFeather:" + std::to_string(field->fieldFeather_);
+            out += " fieldShape:"  + std::to_string(static_cast<int>(field->regionShape_));
+            out += " fieldSize[x:" + std::to_string(field->regionSize_.x_) + " y:";
+            out += std::to_string(field->regionSize_.y_) + "]";
+            out += " fieldCenter[x:" + std::to_string(field->regionPosition_.x_) + " y:";
+            out += std::to_string(field->regionPosition_.y_) + "] fieldFeather:" +
+                   std::to_string(field->fieldFeather_);
             out += " noiseScale:" + std::to_string(field->noiseScale_);
             out += " noiseFrequency:" + std::to_string(field->noiseFrequency_);
             out += " noiseAmplitude:" + std::to_string(field->noiseAmplitude_) + "] ";
@@ -201,11 +283,9 @@ float PerlinNoise2D::Grad(int hash, float x, float y)
     return ((h & 1) == 0 ? u : -u) + ((h & 2) == 0 ? v : -v); // h & 2 check the h's second least bit
 }
 
-PerlinNoise2D::PerlinNoise2D(float noiseScale, float noiseFrequency, float noiseAmplitude)
+PerlinNoise2D::PerlinNoise2D(float noiseFrequency, float noiseAmplitude)
+    : noiseFrequency_(noiseFrequency), noiseAmplitude_(noiseAmplitude)
 {
-    noiseScale_ = noiseScale;
-    noiseFrequency_ = noiseFrequency;
-    noiseAmplitude_ = noiseAmplitude;
     // Initialize permutation vector with values from 0 to 255
     p.resize(256); // 256 is the vector size
     std::iota(p.begin(), p.end(), 0);
@@ -258,8 +338,8 @@ Vector2f PerlinNoise2D::Curl(float x, float y)
 
     // The result of the two-dimensional curl is the vector obtained by rotating the gradient by 90 degrees.
     // Assume that Curl has a value only in the Z component (rotation in the two-dimensional plane).
-    float curlx = -noise_dy / (2 * EPSILON);
-    float curly = noise_dx / (2 * EPSILON);
+    float curlx = -noise_dy * INV_2_EPSILON;
+    float curly = noise_dx * INV_2_EPSILON;
 
     return Vector2f(curlx, curly);
 }

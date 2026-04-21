@@ -17,6 +17,7 @@
 
 #include "brightness_blender.h"
 #include "shadow_blender.h"
+#include "hdr_darken_blender.h"
 #include "visual_effect_para.h"
 
 namespace OHOS {

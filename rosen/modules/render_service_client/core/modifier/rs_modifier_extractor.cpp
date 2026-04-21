@@ -393,6 +393,11 @@ float RSModifierExtractor::GetHDRBrightnessFactor() const
     GET_PROPERTY_FROM_MODIFIERS_NG(float, HDR_BRIGHTNESS, HDR_BRIGHTNESS_FACTOR, 1.0f, =);
 }
 
+float RSModifierExtractor::GetHDRColorHeadroom() const
+{
+    GET_PROPERTY_FROM_MODIFIERS_NG(float, HDR_BRIGHTNESS, HDR_COLOR_HEADROOM, 1.0f, =);
+}
+
 float RSModifierExtractor::GetLightUpEffectDegree() const
 {
     GET_PROPERTY_FROM_MODIFIERS_NG(float, COMPOSITING_FILTER, LIGHT_UP_EFFECT_DEGREE, 0.f, =);
@@ -490,32 +495,32 @@ bool RSModifierExtractor::GetFgBlurDisableSystemAdaptation() const
 
 float RSModifierExtractor::GetLightIntensity() const
 {
-    GET_PROPERTY_FROM_MODIFIERS_NG(float, POINT_LIGHT, LIGHT_INTENSITY, 0.f, =);
+    GET_PROPERTY_FROM_MODIFIERS_NG(float, OVERLAY_NG_SHADER, LIGHT_INTENSITY, 0.f, =);
 }
 
 Vector4f RSModifierExtractor::GetLightPosition() const
 {
-    GET_PROPERTY_FROM_MODIFIERS_NG(Vector4f, POINT_LIGHT, LIGHT_POSITION, Vector4f(0.f), =);
+    GET_PROPERTY_FROM_MODIFIERS_NG(Vector4f, OVERLAY_NG_SHADER, LIGHT_POSITION, (Vector4f(0.f)), =);
 }
 
 float RSModifierExtractor::GetIlluminatedBorderWidth() const
 {
-    GET_PROPERTY_FROM_MODIFIERS_NG(float, POINT_LIGHT, ILLUMINATED_BORDER_WIDTH, 0.f, =);
+    GET_PROPERTY_FROM_MODIFIERS_NG(float, OVERLAY_NG_SHADER, ILLUMINATED_BORDER_WIDTH, 0.f, =);
 }
 
 int RSModifierExtractor::GetIlluminatedType() const
 {
-    GET_PROPERTY_FROM_MODIFIERS_NG(int, POINT_LIGHT, ILLUMINATED_TYPE, 0, =);
+    GET_PROPERTY_FROM_MODIFIERS_NG(int, OVERLAY_NG_SHADER, ILLUMINATED_TYPE, 0, =);
 }
 
 float RSModifierExtractor::GetBloom() const
 {
-    GET_PROPERTY_FROM_MODIFIERS_NG(float, POINT_LIGHT, BLOOM, 0.f, =);
+    GET_PROPERTY_FROM_MODIFIERS_NG(float, OVERLAY_NG_SHADER, BLOOM, 0.f, =);
 }
 
 Color RSModifierExtractor::GetLightColor() const
 {
-    GET_PROPERTY_FROM_MODIFIERS_NG(Color, POINT_LIGHT, LIGHT_COLOR, RgbPalette::White(), =);
+    GET_PROPERTY_FROM_MODIFIERS_NG(Color, OVERLAY_NG_SHADER, LIGHT_COLOR, (RgbPalette::White()), =);
 }
 
 int RSModifierExtractor::GetColorBlendMode() const

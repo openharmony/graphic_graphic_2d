@@ -1805,6 +1805,22 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, DoDumpTest, TestSize.Level2)
         auto res = g_connectionStub->OnRemoteRequest(code, data, reply, option);
         EXPECT_EQ(res, ERR_NULL_OBJECT);
     }
+
+    // case 3: args size too big
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor());
+        std::vector<std::u16string> args = { u"screen" };
+        args.resize(100, u"screen");
+        data.WriteString16Vector(args);
+        sptr<MockRSBrightnessInfoChangeCallback> callback = new MockRSBrightnessInfoChangeCallback();
+        data.WriteRemoteObject(callback->AsObject());
+        uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::DFX_DUMP);
+        auto res = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+        EXPECT_EQ(res, ERR_INVALID_DATA);
+    }
 }
 
 /**
@@ -1852,5 +1868,71 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, SetCurtainScreenUsingStatusTest, T
         auto res = g_connectionStub->OnRemoteRequest(code, data, reply, option);
         EXPECT_EQ(res, ERR_NONE);
     }
+}
+
+/**
+ * @tc.name: RegisterSharedTypefaceStubTest001
+ * @tc.desc: Test REGISTER_SHARED_TYPEFACE when unmarshalling fails
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, RegisterSharedTypefaceStubTest001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::REGISTER_SHARED_TYPEFACE);
+    // Not writing SharedTypeface data, causing Unmarshalling to fail
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: RegisterSharedTypefaceStubTest002
+ * @tc.desc: Test REGISTER_SHARED_TYPEFACE with valid SharedTypeface data
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, RegisterSharedTypefaceStubTest002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::REGISTER_SHARED_TYPEFACE);
+
+    Drawing::SharedTypeface sharedTypeface;
+    sharedTypeface.originId_ = 100;
+    sharedTypeface.hasFontArgs_ = false;
+    ASSERT_TRUE(RSMarshallingHelper::Marshalling(data, sharedTypeface));
+
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_NONE);
+}
+
+/**
+ * @tc.name: RegisterSharedTypefaceStubTest003
+ * @tc.desc: Test REGISTER_SHARED_TYPEFACE when reply.WriteBool fails
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSServiceToRenderConnectionStubTest, RegisterSharedTypefaceStubTest003, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    ASSERT_TRUE(data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor()));
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::REGISTER_SHARED_TYPEFACE);
+
+    Drawing::SharedTypeface sharedTypeface;
+    sharedTypeface.originId_ = 100;
+    sharedTypeface.hasFontArgs_ = false;
+    ASSERT_TRUE(RSMarshallingHelper::Marshalling(data, sharedTypeface));
+    // Set reply capacity to 0 to make WriteBool fail
+    SetLeftSize(reply, 0);
+
+    auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_REPLY);
 }
 } // namespace OHOS::Rosen

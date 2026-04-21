@@ -43,6 +43,7 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "memory/rs_memory_snapshot.h"
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 #include "pipeline/magic_pointer_render/rs_magic_pointer_render_manager.h"
 #endif
@@ -105,34 +106,36 @@ RSSurfaceRenderNodeDrawable::RSSurfaceRenderNodeDrawable(std::shared_ptr<const R
 
     id_ = surfaceNode->GetId();
 
-    UpdatePipelineParamForSelfDraw(SurfaceFpsOpType::SURFACE_FPS_ADD);
+    if (IsSelfDrawingType()) {
+        AddSurfaceFpsOpStatic(SurfaceFpsOpType::SURFACE_FPS_ADD, id_, name_, uniqueId_);
+    }
 }
 
 RSSurfaceRenderNodeDrawable::~RSSurfaceRenderNodeDrawable()
 {
-    UpdatePipelineParamForSelfDraw(SurfaceFpsOpType::SURFACE_FPS_REMOVE);
+    if (IsSelfDrawingType()) {
+        RSMainThread::Instance()->PostTask([id = id_, name = name_, uniqueId = uniqueId_]() {
+            AddSurfaceFpsOpStatic(SurfaceFpsOpType::SURFACE_FPS_REMOVE, id, name, uniqueId);
+        });
+    }
 }
 
-void RSSurfaceRenderNodeDrawable::UpdatePipelineParamForSelfDraw(SurfaceFpsOpType surfaceFpsOpType)
+void RSSurfaceRenderNodeDrawable::AddSurfaceFpsOpStatic(
+    SurfaceFpsOpType surfaceFpsOpType, NodeId id, const std::string& name, uint64_t uniqueId)
 {
-    if (!IsSelfDrawingType()) {
-        return;
-    }
-
-    if (auto composerClientMgr = RSUniRenderThread::Instance().GetComposerClientManager()) {
-        SurfaceFpsOp op {
-            static_cast<uint32_t>(surfaceFpsOpType),
-            id_,
-            name_,
-            uniqueId_,
-        };
-        PipelineParam param = composerClientMgr->GetPipelineParam(curDisplayScreenId_);
-        param.SurfaceFpsOpList.push_back(op);
-        param.SurfaceFpsOpNum++;
-        composerClientMgr->UpdatePipelineParam(curDisplayScreenId_, param);
-        RS_LOGD("update surfaceFps op id: %{public}" PRIu64 ", name: %{public}s, type: %{public}u",
-                id_, name_.c_str(), surfaceFpsOpType);
-    }
+    SurfaceFpsOp op {
+        static_cast<uint32_t>(surfaceFpsOpType),
+        id,
+        name,
+        uniqueId,
+    };
+    RSMainThread::Instance()->AddSurfaceFpsOp(op);
+    RS_OPTIONAL_TRACE_NAME_FMT("Add SurfaceFpsOp type: %u, id: %" PRIu64 ", name: %s, uniqueId: %" PRIu64,
+                               surfaceFpsOpType, id, name.c_str(), uniqueId);
+    RS_LOGD("update surfaceFps op id: %{public}" PRIu64 ", "
+            "name: %{public}s, "
+            "type: %{public}u, "
+            "uniqueId: %{public}" PRIu64, id, name.c_str(), surfaceFpsOpType, uniqueId);
 }
 
 RSRenderNodeDrawable::Ptr RSSurfaceRenderNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)
@@ -144,7 +147,7 @@ RSRenderNodeDrawable::Ptr RSSurfaceRenderNodeDrawable::OnGenerate(std::shared_pt
 bool RSSurfaceRenderNodeDrawable::CheckDrawAndCacheWindowContent(RSSurfaceRenderParams& surfaceParams,
     RSRenderThreadParams& uniParams)
 {
-    if (RSUniRenderThread::GetCaptureParam().isMirror_) {
+    if (RSUniRenderThread::IsInCaptureProcess()) {
         return false;
     }
     if (!surfaceParams.GetNeedCacheSurface()) {
@@ -668,6 +671,10 @@ NodeId RSSurfaceRenderNodeDrawable::GetWhiteListPersistentId(
 
 void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
+    if (MemorySnapshot::Instance().IsAbnormalProcess(ExtractPid(GetId()))) {
+        RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw abnormal process %{public}d .", ExtractPid(GetId()));
+        return;
+    }
     SetDrawSkipType(DrawSkipType::NONE);
     if (!ShouldPaint()) {
         SetDrawSkipType(DrawSkipType::SHOULD_NOT_PAINT);
@@ -948,7 +955,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     OnGeneralProcess(*curCanvas_, *surfaceParams, *uniParam, isSelfDrawingSurface);
     if (surfaceParams->GetRSFreezeFlag() && GetCacheImageByCapture() && !isUiFirstNode) {
         RS_TRACE_NAME("Drawing cachedImage by capture");
-        DrawCachedImage(*curCanvas_, surfaceParams->GetCacheSize(), nullptr, surfaceParams->GetRSFreezeFlag());
+        DrawCachedImage(*curCanvas_, *surfaceParams);
     } else {
         if (GetCacheImageByCapture()) {
             SetCacheImageByCapture(nullptr);
@@ -1436,7 +1443,7 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
                                                        surfaceParams.GetBufferOwnerCount());
 
             // Use to adapt to AIBar DSS solution
-            Color solidLayerColor = RgbPalette::Transparent();
+            Color solidLayerColor = RgbPalette::Black();
             if (surfaceParams.GetIsHwcEnabledBySolidLayer()) {
                 solidLayerColor = surfaceParams.GetSolidLayerColor();
                 RS_TRACE_NAME_FMT("solidLayer enabled, color:%08x", solidLayerColor.AsArgbInt());
@@ -1459,20 +1466,7 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
     }
 
     RSAutoCanvasRestore arc(&canvas);
-    surfaceParams.SetGlobalAlpha(1.0f);
-    uint32_t threadId = canvas.GetParallelThreadId();
-    auto params = RSUniRenderUtil::CreateBufferDrawParam(*this, false, threadId);
-    params.ignoreAlpha = surfaceParams.GetSurfaceBufferOpaque();
-    params.targetColorGamut = GetAncestorDisplayColorGamut(surfaceParams);
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-    params.sdrNits = surfaceParams.GetSdrNit();
-    params.tmoNits = surfaceParams.GetDisplayNit();
-    params.displayNits = params.tmoNits / std::pow(surfaceParams.GetBrightnessRatio(), GAMMA2_2); // gamma 2.2
-    // color temperature
-    params.layerLinearMatrix = surfaceParams.GetLayerLinearMatrix();
-    params.hasMetadata = surfaceParams.GetSdrHasMetadata();
-#endif
-    params.colorFollow = surfaceParams.GetColorFollow(); // force the buffer to follow the colorspace of canvas
+    auto params = RSUniRenderUtil::DealWithBufferDrawParam(canvas, surfaceParams, *this);
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
     if (IsHardwareEnabledTopSurface() && RSUniRenderThread::Instance().GetRSRenderThreadParams()->HasMirrorDisplay()) {
         RSMagicPointerRenderManager::GetInstance().SetCacheImgForPointer(canvas.GetSurface()->GetImageSnapshot());
@@ -1555,6 +1549,12 @@ bool RSSurfaceRenderNodeDrawable::DrawRelatedNode(RSPaintFilterCanvas& canvas,
 bool RSSurfaceRenderNodeDrawable::DrawRelatedSourceNode(RSPaintFilterCanvas& canvas,
     RSSurfaceRenderParams& surfaceParams)
 {
+    if (surfaceParams.IsNeedClearRelatedCache()) {
+        ClearRelatedSourceCache();
+        surfaceParams.SetNeedClearRelatedCache(false);
+        return false;
+    }
+
     if (!surfaceParams.ClonedSourceNode()) {
         return false;
     }

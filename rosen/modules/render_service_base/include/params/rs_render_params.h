@@ -81,19 +81,20 @@ struct PipelineParam {
     uint32_t pendingScreenRefreshRate = 0;
     bool isForceRefresh = false;
     bool hasGameScene = false;
-    uint32_t SurfaceFpsOpNum = 0;
-    std::vector<SurfaceFpsOp> SurfaceFpsOpList;
     bool hasLppVideo = false;
 
-    void ResetSurfaceFpsOp()
-    {
-        SurfaceFpsOpNum = 0;
-        SurfaceFpsOpList.clear();
-    }
+    uint32_t SurfaceFpsOpNum = 0;
+    std::vector<SurfaceFpsOp> SurfaceFpsOpList;
 
     uint32_t GetSurfaceFpsOpNum() const
     {
-        return (SurfaceFpsOpNum < SurfaceFpsOpList.size()) ? SurfaceFpsOpNum : SurfaceFpsOpList.size();
+        return static_cast<uint32_t>(SurfaceFpsOpList.size());
+    }
+
+    void AddSurfaceFpsOp(const SurfaceFpsOp& op)
+    {
+        SurfaceFpsOpList.emplace_back(op);
+        SurfaceFpsOpNum = static_cast<uint32_t>(SurfaceFpsOpList.size());
     }
 };
 
@@ -110,12 +111,6 @@ public:
         MemoryTrack::Instance().UnRegisterNodeMem(ExtractPid(GetId()),
             sizeof(*this), MEMORY_TYPE::MEM_RENDER_DRAWABLE_NODE);
     }
-
-    struct SurfaceParam {
-        int width = 0;
-        int height = 0;
-        GraphicColorGamut colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-    };
 
     void SetDirtyType(RSRenderParamsDirtyType dirtyType);
 
@@ -352,11 +347,10 @@ public:
     {
         return drawingCacheIncludeProperty_;
     }
-    void SetRSFreezeFlag(bool freezeFlag);
-    bool GetRSFreezeFlag() const
-    {
-        return freezeFlag_;
-    }
+    void SetRSFreezeFlag(bool freezeFlag, bool isMarkedByUI = false);
+    bool GetRSFreezeFlag() const;
+    RSRenderGroupCache::RSFreezeFlag GetRSFreezeFlagType() const;
+    bool IsFreezedByUser() const;
     // !used for RenderGroup
 
     void OpincSetIsSuggest(bool isSuggest);
@@ -393,28 +387,6 @@ public:
     {
         return shadowRect_;
     }
-
-    // One-time trigger, needs to be manually reset false in main/RT thread after each sync operation
-    void OnCanvasDrawingSurfaceChange(const std::unique_ptr<RSRenderParams>& target);
-    bool GetCanvasDrawingSurfaceChanged() const
-    {
-        return canvasDrawingNodeSurfaceChanged_;
-    }
-    void SetCanvasDrawingSurfaceChanged(bool changeFlag);
-
-    uint32_t GetCanvasDrawingResetSurfaceIndex() const
-    {
-        return canvasDrawingResetSurfaceIndex_;
-    }
-
-    void SetCanvasDrawingResetSurfaceIndex(uint32_t index);
-
-    SurfaceParam GetCanvasDrawingSurfaceParams()
-    {
-        return surfaceParams_;
-    }
-    void SetCanvasDrawingSurfaceParams(int width, int height,
-        GraphicColorGamut colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
 
     void SetStartingWindowFlag(bool b)
     {
@@ -463,7 +435,6 @@ public:
     RSRenderParams& operator=(RSRenderParams&&) = delete;
 
     virtual void OnSync(const std::unique_ptr<RSRenderParams>& target);
-    virtual void OnPartialSync(const std::unique_ptr<RSRenderParams>& target) {}
 
     // dfx
     virtual std::string ToString() const;
@@ -554,9 +525,6 @@ public:
         return cloneSourceDrawable_;
     }
     void SetCloneSourceDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable);
-    // canvas drawing node
-    virtual bool IsNeedProcess() const { return true; }
-    virtual void SetNeedProcess(bool isNeedProcess) {}
     virtual bool IsFirstLevelCrossNode() const { return isFirstLevelCrossNode_; }
     virtual void SetFirstLevelCrossNode(bool firstLevelCrossNode) { isFirstLevelCrossNode_ = firstLevelCrossNode; }
     CrossNodeOffScreenRenderDebugType GetCrossNodeOffScreenStatus() const
@@ -630,7 +598,6 @@ private:
     HdrStatus hdrStatus_ = HdrStatus::NO_HDR;
     bool childHasVisibleHDRContent_ = false;
     GraphicColorGamut nodeColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-    bool freezeFlag_ = false;
     bool childHasVisibleEffect_ = false;
     bool childHasVisibleFilter_ = false;
     bool hasSandBox_ = false;
@@ -641,8 +608,6 @@ private:
     bool isSnapshotSkipLayer_ = false;
     bool shouldPaint_ = false;
     bool contentEmpty_  = false;
-    std::atomic_bool canvasDrawingNodeSurfaceChanged_ = false;
-    std::atomic_uint32_t canvasDrawingResetSurfaceIndex_ = 0;
     bool alphaOffScreen_ = false;
     Drawing::Rect shadowRect_;
     RSDrawingCacheType drawingCacheType_ = RSDrawingCacheType::DISABLED_CACHE;
@@ -660,7 +625,6 @@ private:
     bool effectNodeShouldPaint_ = false;
     bool hasGlobalCorner_ = false;
     bool hasBlurFilter_ = false;
-    SurfaceParam surfaceParams_;
     NodeId firstLevelNodeId_ = INVALID_NODEID;
     NodeId uifirstRootNodeId_ = INVALID_NODEID;
     NodeId instanceRootNodeId_ = INVALID_NODEID;

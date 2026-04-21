@@ -207,45 +207,6 @@ HWTEST_F(RSColorPickerThreadTest, PostTaskWithinLimitTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: RegisterStateTransitionCallbackTest
- * @tc.desc: Test RegisterStateTransitionCallback and TransitionState work together
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSColorPickerThreadTest, RegisterStateTransitionCallbackTest, TestSize.Level1)
-{
-    std::atomic<bool> callbackInvoked {false};
-    std::atomic<uint64_t> receivedNodeId {0};
-    std::atomic<uint8_t> receivedState {0};
-    std::atomic<int64_t> receivedDelay {0};
-
-    auto callback = [&callbackInvoked, &receivedNodeId, &receivedState, &receivedDelay](
-                        uint64_t nodeId, DrawableV2::ColorPickerState state, int64_t delayTime) -> void {
-        callbackInvoked.store(true);
-        receivedNodeId.store(nodeId);
-        receivedState.store(static_cast<uint8_t>(state));
-        receivedDelay.store(delayTime);
-    };
-
-    RSColorPickerThread::Instance().RegisterStateTransitionCallback(callback);
-
-    constexpr uint64_t testNodeId = 12345;
-    constexpr int64_t testDelay = 100;
-    RSColorPickerThread::Instance().TransitionState(
-        testNodeId, DrawableV2::ColorPickerState::COLOR_PICK_THIS_FRAME, testDelay);
-
-    EXPECT_TRUE(callbackInvoked.load());
-    EXPECT_EQ(receivedNodeId.load(), testNodeId);
-    EXPECT_EQ(receivedState.load(), static_cast<uint8_t>(DrawableV2::ColorPickerState::COLOR_PICK_THIS_FRAME));
-    EXPECT_EQ(receivedDelay.load(), testDelay); // Register null callback
-
-    RSColorPickerThread::Instance().RegisterStateTransitionCallback(nullptr);
-
-    // Should not crash when TransitionState is called
-    RSColorPickerThread::Instance().TransitionState(1, DrawableV2::ColorPickerState::COLOR_PICK_THIS_FRAME, 0);
-}
-
-/**
  * @tc.name: NotifyClientTest
  * @tc.desc: Test NotifyClient calls the registered callback with correct parameters
  * @tc.type: FUNC

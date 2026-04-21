@@ -68,6 +68,8 @@ private:
         const TestCaseParams& testCaseParams);
     static bool WriteRandomScreenChangeCallbackSptr(MessageParcel& messageParcel,
         const TestCaseParams& testCaseParams);
+    static bool WriteRandomScreenSwitchingNotifyCallbackSptr(MessageParcel& messageParcel,
+        const TestCaseParams& testCaseParams);
     static bool WriteRandomSurfaceCaptureCallbackSptr(MessageParcel& messageParcel,
         const TestCaseParams& testCaseParams);
     static bool WriteRandomBrightnessInfoChangeCallbackSptr(MessageParcel& messageParcel,

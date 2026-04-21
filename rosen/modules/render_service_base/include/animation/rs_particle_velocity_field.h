@@ -20,6 +20,7 @@
 #include <memory>
 #include <vector>
 
+#include "animation/rs_particle_field_base.h"
 #include "animation/rs_particle_noise_field.h"
 #include "common/rs_vector2.h"
 #include "common/rs_macros.h"
@@ -27,14 +28,9 @@
 namespace OHOS {
 namespace Rosen {
 
-class RSB_EXPORT ParticleVelocityField {
+class RSB_EXPORT ParticleVelocityField : public ParticleFieldBase {
 public:
     Vector2f velocity_;                 // Incremental velocity vector (x, y components)
-
-    // Region support
-    ShapeType regionShape_ { ShapeType::RECT };
-    Vector2f regionPosition_ { 0.0f, 0.0f };
-    Vector2f regionSize_ { 0.0f, 0.0f };  // [width, height] as diameters (consistent with NoiseField)
 
     ParticleVelocityField() = default;
 
@@ -43,22 +39,22 @@ public:
 
     ParticleVelocityField(const ParticleVelocityField& field) = default;
     ParticleVelocityField& operator=(const ParticleVelocityField& field) = default;
-    ~ParticleVelocityField() = default;
+    ~ParticleVelocityField() override = default;
+
+    ParticleFieldType GetType() const override { return ParticleFieldType::VELOCITY; }
+    Vector2f Apply(const Vector2f& position, float deltaTime) override;
+    bool Equals(const ParticleFieldBase& rhs) const override;
+    void Dump(std::string& out) const override;
+    bool MarshalSpecific(Parcel& parcel) const override;
+    bool UnmarshalSpecific(Parcel& parcel) override;
 
     Vector2f ApplyVelocityField(const Vector2f& particlePos, float deltaTime);
+    bool IsPointInRegion(const Vector2f& point) const override;
 
     bool operator==(const ParticleVelocityField& rhs) const
     {
-        return (this->velocity_ == rhs.velocity_) &&
-               (this->regionShape_ == rhs.regionShape_) &&
-               (this->regionPosition_ == rhs.regionPosition_) &&
-               (this->regionSize_ == rhs.regionSize_);
+        return ParticleFieldBase::operator==(rhs);
     }
-
-    void Dump(std::string& out) const;
-
-private:
-    bool IsPointInRegion(const Vector2f& point) const;
 };
 
 class RSB_EXPORT ParticleVelocityFields {

@@ -51,15 +51,25 @@ public:
     void SetColor(const Color& c);
     void SetARGB(int a, int r, int g, int b);
     void SetColor(const Color4f& cf, std::shared_ptr<ColorSpace> colorSpace = nullptr);
+    void SetUIColor(const UIColor& color, std::shared_ptr<ColorSpace> colorSpace = nullptr);
     const Color& GetColor() const { return color_; }
     const Color4f& GetColor4f() { return color_.GetColor4f(); }
+    const UIColor& GetUIColor() const { return hdrColor_; }
+    bool HasUIColor() const { return isHdrColor_; }
     const std::shared_ptr<ColorSpace> GetColorSpace() const { return colorSpace_; }
     const ColorSpace* GetColorSpacePtr() const { return colorSpace_.get(); }
 
     void SetAlpha(uint32_t a);
     void SetAlphaF(scalar a);
-    inline uint32_t GetAlpha() const { return color_.GetAlpha(); }
-    inline scalar GetAlphaF() const { return color_.GetAlphaF(); }
+    inline uint32_t GetAlpha() const
+    {
+        return isHdrColor_ ? static_cast<uint32_t>(round(hdrColor_.GetAlpha() * Color::RGB_MAX)) : color_.GetAlpha();
+    }
+
+    inline scalar GetAlphaF() const
+    {
+        return isHdrColor_ ? hdrColor_.GetAlpha() : color_.GetAlphaF();
+    }
 
     void SetWidth(scalar width);
     scalar GetWidth() const { return width_; }
@@ -129,6 +139,8 @@ private:
 
     Color color_ = Color::COLOR_BLACK;
     Filter filter_;
+    UIColor hdrColor_ = UIColor();
+    bool isHdrColor_ = false;
 };
 } // namespace Drawing
 } // namespace Rosen

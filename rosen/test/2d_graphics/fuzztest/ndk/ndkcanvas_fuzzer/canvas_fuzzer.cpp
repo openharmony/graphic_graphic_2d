@@ -448,6 +448,9 @@ void CanvasFuzzTest001(const uint8_t* data, size_t size)
     OH_Drawing_CanvasResetMatrix(canvas);
     OH_Drawing_CanvasResetMatrix(nullptr);
 
+    OH_Drawing_CanvasResetClip(canvas);
+    OH_Drawing_CanvasResetClip(nullptr);
+
     OH_Drawing_CanvasClear(canvas, GetObject<uint32_t>());
     OH_Drawing_CanvasClear(nullptr, GetObject<uint32_t>());
 

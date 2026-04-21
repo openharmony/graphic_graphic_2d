@@ -58,7 +58,8 @@ bool RSMemorySnapshotFuzzTest(const uint8_t* data, size_t size)
     auto& instance = MemorySnapshot::Instance();
     pid_t tempPid = GetData<pid_t>();
     size_t tempSize = GetData<size_t>();
-    instance.InitMemoryLimit(nullptr, GetData<uint64_t>(), GetData<uint64_t>(), GetData<uint64_t>());
+    instance.InitMemoryLimit(nullptr, GetData<uint64_t>(), GetData<uint64_t>(), GetData<uint64_t>(),
+        GetData<uint64_t>());
     instance.AddCpuMemory(tempPid, tempSize);
     
     MemorySnapshotInfo info;

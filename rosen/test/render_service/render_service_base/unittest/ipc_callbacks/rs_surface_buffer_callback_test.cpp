@@ -35,5 +35,20 @@ void RSDefaultSurfaceBufferCallbackTest::SetUpTestCase() {}
 void RSDefaultSurfaceBufferCallbackTest::TearDownTestCase() {}
 void RSDefaultSurfaceBufferCallbackTest::SetUp() {}
 void RSDefaultSurfaceBufferCallbackTest::TearDown() {}
+
+/**
+ * @tc.name: ConstructorTest
+ * @tc.desc: Verify the Constructor
+ * @tc.type:FUNC
+ * @tc.require: issueIB2AHG
+ */
+HWTEST_F(RSDefaultSurfaceBufferCallbackTest, Constructor, TestSize.Level1)
+{
+    DefaultSurfaceBufferCallbackFuncs funcs{};
+    funcs.OnFinish = [](const FinishCallbackRet&) {};
+    funcs.OnAfterAcquireBuffer = [](const AfterAcquireBufferRet&) {};
+    sptr<RSDefaultSurfaceBufferCallback> callback = new RSDefaultSurfaceBufferCallback(funcs);
+    EXPECT_TRUE(callback->finishCallback_ != nullptr);
+}
 } // namespace Rosen
 } // namespace OHOS

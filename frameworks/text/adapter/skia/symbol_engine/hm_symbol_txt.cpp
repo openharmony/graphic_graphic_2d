@@ -222,6 +222,43 @@ bool HMSymbolTxt::GetFirstActive() const
 {
     return isFirstActive_;
 }
+
+void HMSymbolTxt::SetRenderUIColor(const std::vector<Drawing::UIColor>& uiColors,
+    const std::vector<SymbolColorSpace>& colorSpaces)
+{
+    symbolColor_.colorType = SymbolColorType::COLOR_TYPE;
+    symbolColor_.gradients.clear();
+    for (size_t i = 0; i < uiColors.size(); ++i) {
+        SymbolColorSpace cs = (i < colorSpaces.size()) ? colorSpaces[i] : SymbolColorSpace::SRGB;
+        auto gradient = std::make_shared<SymbolGradient>();
+        gradient->SetUIColors({ uiColors[i] }, cs);
+        symbolColor_.gradients.push_back(gradient);
+    }
+}
+
+std::vector<Drawing::UIColor> HMSymbolTxt::GetUIColors() const
+{
+    std::vector<Drawing::UIColor> result;
+    for (const auto& gradient : symbolColor_.gradients) {
+        if (gradient == nullptr || gradient->GetUIColors().empty()) {
+            continue;
+        }
+        result.push_back(gradient->GetUIColors()[0]);
+    }
+    return result;
+}
+
+std::vector<SymbolColorSpace> HMSymbolTxt::GetColorSpaces() const
+{
+    std::vector<SymbolColorSpace> result;
+    for (const auto& gradient : symbolColor_.gradients) {
+        if (gradient == nullptr) {
+            continue;
+        }
+        result.push_back(gradient->GetColorSpace());
+    }
+    return result;
+}
 } // SPText
 } // Rosen
 } // OHOS

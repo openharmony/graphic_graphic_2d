@@ -122,6 +122,166 @@ HWTEST_F(RSRenderDisplaySyncTest, OnFrameSkip, TestSize.Level1)
 }
 
 /**
+ * @tc.name: OnFrameSkipForAnimate001
+ * @tc.desc: Test OnFrameSkipForAnimate
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderDisplaySyncTest, OnFrameSkipForAnimate001, TestSize.Level1)
+{
+    uint64_t id = 1;
+    auto displaySync = std::make_shared<RSRenderDisplaySync>(id);
+    ASSERT_NE(displaySync, nullptr);
+
+    FrameRateRange range = {0, 120, 60};
+    displaySync->SetExpectedFrameRateRange(range);
+
+    uint64_t timestamp = 107265354180;
+    int64_t period = 8333333;
+    bool isDisplaySyncEnabled = true;
+    int64_t nextFrameTime = 0;
+    bool isFrameSkip = displaySync->OnFrameSkipForAnimate(timestamp, period, isDisplaySyncEnabled, nextFrameTime);
+    EXPECT_EQ(isFrameSkip, false);
+    EXPECT_EQ(nextFrameTime, 107282020846);
+
+    timestamp = 107273687513;
+    isFrameSkip = displaySync->OnFrameSkipForAnimate(timestamp, period, isDisplaySyncEnabled, nextFrameTime);
+    EXPECT_EQ(isFrameSkip, true);
+    EXPECT_EQ(nextFrameTime, 107282020846);
+
+    timestamp = 107293131957;
+    period = 11111111;
+    isFrameSkip = displaySync->OnFrameSkipForAnimate(timestamp, period, isDisplaySyncEnabled, nextFrameTime);
+    EXPECT_EQ(isFrameSkip, false);
+    EXPECT_EQ(nextFrameTime, 107304243068);
+
+    timestamp = 107304243068;
+    isDisplaySyncEnabled = false;
+    isFrameSkip = displaySync->OnFrameSkipForAnimate(timestamp, period, isDisplaySyncEnabled, nextFrameTime);
+    EXPECT_EQ(isFrameSkip, false);
+    EXPECT_EQ(nextFrameTime, 0);
+
+    timestamp = 107304243068;
+    isDisplaySyncEnabled = true;
+    isFrameSkip = displaySync->OnFrameSkipForAnimate(timestamp, period, isDisplaySyncEnabled, nextFrameTime);
+    EXPECT_EQ(isFrameSkip, false);
+    EXPECT_EQ(nextFrameTime, 107315354179);
+
+    timestamp = 107304243068;
+    isFrameSkip = displaySync->OnFrameSkipForAnimate(timestamp, period, isDisplaySyncEnabled, nextFrameTime);
+    EXPECT_EQ(isFrameSkip, false);
+    EXPECT_EQ(nextFrameTime, 0);
+}
+
+/**
+ * @tc.name: OnFrameSkipForAnimate002
+ * @tc.desc: Test OnFrameSkipForAnimate
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderDisplaySyncTest, OnFrameSkipForAnimate002, TestSize.Level1)
+{
+    uint64_t id = 1;
+    auto displaySync = std::make_shared<RSRenderDisplaySync>(id);
+    ASSERT_NE(displaySync, nullptr);
+
+    FrameRateRange range = {0, 120, 60};
+    displaySync->SetExpectedFrameRateRange(range);
+
+    uint64_t timestamp = 107265354180;
+    int64_t period = 0;
+    bool isDisplaySyncEnabled = true;
+    int64_t nextFrameTime = 123;
+    bool isFrameSkip = displaySync->OnFrameSkipForAnimate(timestamp, period, isDisplaySyncEnabled, nextFrameTime);
+    EXPECT_EQ(isFrameSkip, false);
+    EXPECT_EQ(nextFrameTime, 0);
+
+    FrameRateRange zeroRange = {0, 120, 0};
+    displaySync->SetExpectedFrameRateRange(zeroRange);
+    period = 8333333;
+    nextFrameTime = 123;
+    isFrameSkip = displaySync->OnFrameSkipForAnimate(timestamp, period, isDisplaySyncEnabled, nextFrameTime);
+    EXPECT_EQ(isFrameSkip, false);
+    EXPECT_EQ(nextFrameTime, 0);
+
+    displaySync->SetExpectedFrameRateRange(range);
+    displaySync->timestamp_ = 1000000000;
+    displaySync->currentPeriod_ = 8333333;
+    displaySync->currentFrameRate_ = 0;
+    displaySync->vsyncTriggerCount_ = 0;
+    displaySync->skipPeriodCount_ = 1;
+    displaySync->skipPeriodCountNeedUpdate_ = false;
+
+    timestamp = 1008333333;
+    nextFrameTime = 123;
+    isFrameSkip = displaySync->OnFrameSkipForAnimate(timestamp, period, isDisplaySyncEnabled, nextFrameTime);
+    EXPECT_EQ(isFrameSkip, false);
+    EXPECT_EQ(nextFrameTime, 0);
+}
+
+/**
+ * @tc.name: OnFrameSkipForAnimate003
+ * @tc.desc: Test OnFrameSkipForAnimate
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderDisplaySyncTest, OnFrameSkipForAnimate003, TestSize.Level1)
+{
+    uint64_t id = 1;
+    auto displaySync = std::make_shared<RSRenderDisplaySync>(id);
+    ASSERT_NE(displaySync, nullptr);
+
+    FrameRateRange range = {0, 120, 60};
+    displaySync->SetExpectedFrameRateRange(range);
+
+    displaySync->timestamp_ = 1000000000;
+    displaySync->currentPeriod_ = 8333333;
+    displaySync->currentFrameRate_ = 120;
+    displaySync->vsyncTriggerCount_ = 1;
+    displaySync->skipPeriodCount_ = 2;
+    displaySync->skipPeriodCountNeedUpdate_ = false;
+
+    uint64_t timestamp = 1016666666;
+    int64_t period = 8333333;
+    bool isDisplaySyncEnabled = true;
+    int64_t nextFrameTime = 0;
+    bool isFrameSkip = displaySync->OnFrameSkipForAnimate(timestamp, period, isDisplaySyncEnabled, nextFrameTime);
+    EXPECT_EQ(isFrameSkip, false);
+    EXPECT_EQ(nextFrameTime, 1024999999);
+}
+
+/**
+ * @tc.name: OnFrameSkipForAnimate004
+ * @tc.desc: Test OnFrameSkipForAnimate
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderDisplaySyncTest, OnFrameSkipForAnimate004, TestSize.Level1)
+{
+    uint64_t id = 1;
+    auto displaySync = std::make_shared<RSRenderDisplaySync>(id);
+    ASSERT_NE(displaySync, nullptr);
+ 
+    FrameRateRange range = {0, 120, 5};
+    displaySync->SetExpectedFrameRateRange(range);
+    displaySync->timestamp_ = 1000000000;
+    displaySync->currentPeriod_ = 8333333;
+    displaySync->currentFrameRate_ = 60;
+    displaySync->vsyncTriggerCount_ = 100;
+    displaySync->skipPeriodCount_ = 24;
+    displaySync->skipPeriodCountNeedUpdate_ = false;
+ 
+    int64_t timestamp = 1016666666;
+    int64_t period = 16666666;
+    bool isDisplaySyncEnabled = true;
+    int64_t nextFrameTime = 0;
+    displaySync->OnFrameSkipForAnimate(timestamp, period, isDisplaySyncEnabled, nextFrameTime);
+    EXPECT_EQ(displaySync->vsyncTriggerCount_, 101);
+    EXPECT_EQ(displaySync->currentFrameRate_, 60);
+    EXPECT_EQ(displaySync->skipPeriodCountNeedUpdate_, false);
+}
+
+/**
  * @tc.name: CalcSkipRateCount
  * @tc.desc: Test CalcSkipRateCount
  * @tc.type: FUNC

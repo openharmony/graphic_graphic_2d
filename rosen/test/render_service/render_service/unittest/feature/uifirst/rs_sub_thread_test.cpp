@@ -17,8 +17,8 @@
 
 #include "feature/uifirst/rs_sub_thread.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
-#include "pipeline/render_thread/rs_base_render_engine.h"
-#include "pipeline/render_thread/rs_uni_render_engine.h"
+#include "engine/rs_base_render_engine.h"
+#include "engine/rs_uni_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/rs_test_util.h"
 

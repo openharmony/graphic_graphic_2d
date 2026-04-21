@@ -39,6 +39,7 @@ public:
     void SetFgBrightnessFract(float fract);
     void SetFgBrightnessHdr(bool hdr);
     void SetShadowBlenderParams(const std::optional<RSShadowBlenderPara>& params);
+    void SetHdrDarkenBlenderParams(const std::optional<RSHdrDarkenBlenderPara>& params);
 
     RSColorBlendMode GetColorBlendMode() const;
     RSColorBlendApplyType GetColorBlendApplyType() const;
@@ -49,6 +50,7 @@ public:
     float GetFgBrightnessFract() const;
     bool GetFgBrightnessHdr() const;
     std::optional<RSShadowBlenderPara> GetShadowBlenderParams() const;
+    std::optional<RSHdrDarkenBlenderPara> GetHdrDarkenBlenderParams() const;
 };
 } // namespace OHOS::Rosen::ModifierNG
 #endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_APPEARANCE_RS_BLEND_MODIFIER_H

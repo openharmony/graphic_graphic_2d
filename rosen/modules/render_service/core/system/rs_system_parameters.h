@@ -75,16 +75,15 @@ public:
     static bool GetControlBufferConsumeEnabled();
     static bool GetHideNotchStatus();
     static bool GetHpaeBlurEnabled();
+    static bool GetHveBlurEnabled();
     static bool GetTcacheEnabled();
     static bool GetDumpCanvasDrawingNodeEnabled();
     static bool IsNeedScRGBForP3(const GraphicColorGamut& currentGamut);
     static bool GetWiredScreenOndrawEnabled();
     static bool GetDebugMirrorOndrawEnabled();
     static bool GetIsCopybitSupported();
-    static bool GetMultimediaEnableCameraRotationCompensation();
     static bool GetArsrPreEnabled();
     static bool GetCanvasDrawingNodeRegionEnabled();
-    static int32_t GetWindowScreenScanType();
     static int32_t GetPurgeableResourceLimit();
     static bool GetAnimationOcclusionEnabled();
     static bool GetDDGRSLREnabled();
@@ -93,6 +92,7 @@ public:
     static bool GetUIFirstStartingWindowCacheEnabled();
     static bool GetUIFirstOcclusionEnabled();
     static bool GetUIFirstOcclusionDebugEnabled();
+    static bool GetCropRectDebugOverlayEnabled();
 };
 
 } // namespace Rosen

@@ -408,64 +408,6 @@ void RSTypefaceCache::HandleDelayDestroyQueue()
     }
 }
 
-void RSTypefaceCache::Dump() const
-{
-    RS_LOGI("RSTypefaceCache Dump: [");
-    RS_LOGI("RSTypefaceCache Dump: "
-            "%{public}-6s %{public}-16s %{public}-16s %{public}-4s %{public}-26s %{public}10s %{public}10s",
-            "pid", "typefaceID", "hash_value", "ref", "familyname", "size(B)", "size(MB)");
-    constexpr double KB = 1024.0;
-    constexpr double MB = KB * KB;
-    for (auto co : typefaceHashCode_) {
-        auto iter = typefaceHashMap_.find(co.second);
-        if (iter != typefaceHashMap_.end()) {
-            auto [typeface, ref] = iter->second;
-
-            int pid = GetTypefacePid(co.first);
-            uint64_t typefaceId = co.first;
-            uint64_t hash = co.second;
-            const std::string& family = typeface->GetFamilyName();
-            double sizeMB = static_cast<double>(typeface->GetSize()) / MB;
-            RS_LOGI("RSTypefaceCache Dump: "
-                    "%{public}6d %{public}16" PRIu64 " %{public}16" PRIu64
-                    " %{public}4u %{public}26s %{public}10u %{public}10.2f",
-                    pid, typefaceId, hash, ref, family.c_str(), typeface->GetSize(), sizeMB);
-        }
-    }
-    RS_LOGI("RSTypefaceCache Dump ]");
-}
-
-uint32_t CalcCustomFontPss()
-{
-    std::string s;
-#ifdef IS_OHOS
-    LoadStringFromFile("/proc/self/smaps", s);
-#endif
-    std::stringstream iss(s);
-    std::string line;
-    bool inCustomFont = false;
-    uint32_t pss = 0;
-
-    while (std::getline(iss, line)) {
-        if (line.find('-') != std::string::npos && line.find("dev/ashmem/") != std::string::npos) {
-            inCustomFont = (line.find("[custom font]") != std::string::npos);
-            continue;
-        }
-
-        if (inCustomFont && line.rfind("Pss:", 0) == 0) {
-            std::istringstream pssLine(line);
-            std::string key;
-            std::string unit;
-            uint32_t value = 0;
-            pssLine >> key >> value >> unit;
-            pss += value;
-            inCustomFont = false;
-        }
-    }
-
-    return pss;
-}
-
 void RSTypefaceCache::Dump(DfxString& log) const
 {
     RS_TRACE_NAME_FMT("RSTypefaceCache::Dump typefaceHashCode size:%d", typefaceHashCode_.size());
@@ -474,33 +416,35 @@ void RSTypefaceCache::Dump(DfxString& log) const
         [](uint32_t sum, const auto& item) { return sum + std::get<0>(item.second)->GetSize(); });
     constexpr double KB = 1024.0;
     constexpr double MB = KB * KB;
-    log.AppendFormat("------------------------------------\n");
-    log.AppendFormat("RSTypefaceCache Dump:\nTotal: %.2fKB, %.2fMB\n",
-        static_cast<double>(totalMem) / KB, static_cast<double>(totalMem) / MB);
-    double pssMem = static_cast<double>(CalcCustomFontPss());
-    log.AppendFormat("Pss:   %.2fKB %.2fMB\n", pssMem, pssMem / KB);
-    log.AppendFormat("%-6s %-16s %-4s %-26s %-10s %-10s\n",
-        "pid", "hash_value", "ref", "familyname", "size(B)", "size(MB)");
-    std::set<std::pair<int, uint64_t>> processedPairs;
-    for (auto co : typefaceHashCode_) {
-        auto iter = typefaceHashMap_.find(co.second);
-        if (iter == typefaceHashMap_.end()) {
-            continue;
-        }
-        auto [typeface, ref] = iter->second;
+    log.AppendFormat("RSTypefaceCache Dump:\n");
+    log.AppendFormat(
+        "  Total: %.2fKB (%.2fMB)\n", static_cast<double>(totalMem) / KB, static_cast<double>(totalMem) / MB);
+    log.AppendFormat("  Entries: %zu\n", typefaceHashMap_.size());
+    log.AppendFormat("%-6s %-16s %-16s %-4s %-26s %-20s\n", "PID", "UniqueId", "Hash", "Ref", "FamilyName", "Size");
 
-        int pid = GetTypefacePid(co.first);
-        uint64_t hash = co.second;
+    std::unordered_map<uint64_t, std::vector<uint64_t>> hashToUniqueIds;
+    for (const auto& [uniqueId, hash] : typefaceHashCode_) {
+        hashToUniqueIds[hash].push_back(uniqueId);
+    }
+
+    for (const auto& [hash, tuple] : typefaceHashMap_) {
+        auto [typeface, ref] = tuple;
         const std::string& family = typeface->GetFamilyName();
         double sizeMB = static_cast<double>(typeface->GetSize()) / MB;
-        
-        std::pair<int, uint64_t> currentPair = {pid, hash};
-        if (processedPairs.find(currentPair) == processedPairs.end()) {
-            log.AppendFormat("%-6d %-16" PRIu64 " %-4u %-26s %-10u %-10.2f\n",
-                pid, hash, ref, family.c_str(), typeface->GetSize(), sizeMB);
-            processedPairs.insert(currentPair);
+
+        auto it = hashToUniqueIds.find(hash);
+        if (it == hashToUniqueIds.end() || it->second.empty()) {
+            log.AppendFormat("%-6s %-16s %016" PRIx64 " %-4u %-26s %-10u (%.2fMB)\n", "-", "-", hash, ref,
+                family.c_str(), typeface->GetSize(), sizeMB);
+            continue;
+        }
+        for (uint64_t uniqueId : it->second) {
+            int32_t pid = static_cast<int32_t>(GetTypefacePid(uniqueId));
+            log.AppendFormat("%-6d %-16u %016" PRIx64 " %-4u %-26s %-10u (%.2fMB)\n", pid, GetTypefaceId(uniqueId),
+                hash, ref, family.c_str(), typeface->GetSize(), sizeMB);
         }
     }
+    log.AppendFormat("------------------------------------\n");
 }
 
 void RSTypefaceCache::ReplaySerialize(std::stringstream& stream)

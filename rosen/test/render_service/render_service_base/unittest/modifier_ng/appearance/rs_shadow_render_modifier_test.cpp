@@ -60,7 +60,7 @@ HWTEST_F(RSShadowRenderModifierNGTypeTest, RSShadowRenderModifierTest, TestSize.
     EXPECT_EQ(properties.GetShadowOffsetX(), 0.0f);
     EXPECT_EQ(properties.GetShadowOffsetY(), 0.0f);
     EXPECT_EQ(properties.GetShadowElevation(), 0.0f);
-    EXPECT_EQ(properties.GetShadowRadius(), 0.0f);
+    EXPECT_EQ(properties.GetShadowRadius(), -1.0f);
     EXPECT_EQ(properties.GetShadowPath(), nullptr);
     EXPECT_EQ(properties.GetShadowMask(), false);
     EXPECT_EQ(properties.GetShadowColorStrategy(), static_cast<int>(SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE));

@@ -38,6 +38,8 @@ public:
     std::shared_ptr<ParticleRippleFields> GetParticleRippleFields() const;
     void SetParticleVelocityFields(const std::shared_ptr<ParticleVelocityFields>& para);
     std::shared_ptr<ParticleVelocityFields> GetParticleVelocityFields() const;
+    void SetParticleFields(const std::shared_ptr<ParticleFieldCollection>& para);
+    std::shared_ptr<ParticleFieldCollection> GetParticleFields() const;
 };
 } // namespace OHOS::Rosen::ModifierNG
 #endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_APPEARANCE_RS_PARTICLE_EFFECT_MODIFIER_H

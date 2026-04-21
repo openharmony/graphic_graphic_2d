@@ -21,7 +21,7 @@ using namespace testing::ext;
 
 namespace OHOS::Rosen {
 namespace {
-const std::string BG_TEST_JPG_PATH = "/data/local/tmp/bg_test.jpg";
+const std::string FG_TEST_JPG_PATH = "/data/local/tmp/fg_test.jpg";
 }
 
 class OHFilterMapColorByBrightnessTest : public RSGraphicTest {
@@ -59,7 +59,7 @@ GRAPHIC_TEST(OHFilterMapColorByBrightnessTest, EFFECT_TEST, MapColorByBrightness
     auto sizeY = screenHeight * columnCount / rowCount;
 
     for (int i = 0; i < rowCount; i++) {
-        auto pixelMapNative = CreateTestPixelMap(BG_TEST_JPG_PATH);
+        auto pixelMapNative = CreateTestPixelMap(FG_TEST_JPG_PATH);
         auto ohFilter = CreateFilter(pixelMapNative);
 
         auto colors = mapColorByBrightnessParams1[i].colors;
@@ -88,7 +88,7 @@ GRAPHIC_TEST(OHFilterMapColorByBrightnessTest, EFFECT_TEST, MapColorByBrightness
     auto sizeY = screenHeight * columnCount / rowCount;
 
     for (int i = 0; i < rowCount; i++) {
-        auto pixelMapNative = CreateTestPixelMap(BG_TEST_JPG_PATH);
+        auto pixelMapNative = CreateTestPixelMap(FG_TEST_JPG_PATH);
         auto ohFilter = CreateFilter(pixelMapNative);
 
         auto colors = mapColorByBrightnessParams2[i].colors;

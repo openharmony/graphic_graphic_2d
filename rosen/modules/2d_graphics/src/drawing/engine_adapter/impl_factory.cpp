@@ -17,6 +17,7 @@
 
 #include "effect/runtime_effect.h"
 #include "skia_adapter/skia_impl_factory.h"
+#include "utils/log.h"
 #include "utils/matrix.h"
 #include "utils/system_properties.h"
 #ifdef ENABLE_DDGR_OPTIMIZE
@@ -217,6 +218,28 @@ std::unique_ptr<PathIteratorImpl> ImplFactory::CreatePathIteratorImpl(const Path
     }
 #endif
     return EngineImplFactory::CreatePathIterator(path);
+}
+
+std::unique_ptr<ParticleBuilderImpl> ImplFactory::CreateParticleBuilderImpl()
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRImplFactory::CreateParticleBuilder();
+    }
+#endif
+    LOGI("ImplFactory::CreateParticleBuilderImpl does not support particle builder.");
+    return nullptr;
+}
+
+std::unique_ptr<ParticleEffectImpl> ImplFactory::CreateParticleEffectImpl()
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRImplFactory::CreateParticleEffect();
+    }
+#endif
+    LOGI("ImplFactory::CreateParticleEffectImpl does not support particle effect.");
+    return nullptr;
 }
 
 std::unique_ptr<ColorFilterImpl> ImplFactory::CreateColorFilterImpl()

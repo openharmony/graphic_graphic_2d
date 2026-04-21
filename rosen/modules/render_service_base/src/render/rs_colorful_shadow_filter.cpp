@@ -45,8 +45,8 @@ std::string RSColorfulShadowFilter::GetDescription()
 
 bool RSColorfulShadowFilter::IsValid() const
 {
-    constexpr float epsilon = 0.999f;  // if blur radius less than 1, do not need to draw
-    return blurRadius_ > epsilon;
+    constexpr float epsilon = 0.f;  // if blur radius less than 0.f, do not need to draw
+    return ROSEN_GE(blurRadius_, epsilon);
 }
 
 void RSColorfulShadowFilter::SetShadowColorMask(Color color)
@@ -95,21 +95,27 @@ void RSColorfulShadowFilter::DrawImageRect(Drawing::Canvas &canvas, const std::s
         ROSEN_LOGE("RSColorfulShadowFilter::DrawImageRect error");
         return;
     }
-
+    auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
     if (IsValid()) {
-        // draw blur image
+        float blurThreshold = 0.999f;
+        bool isBlurValid = ROSEN_GNE(blurRadius_, blurThreshold);
+
         canvas.Translate(offsetX_, offsetY_);
         std::shared_ptr<Drawing::Image> imageTemp = image;
         if (isColorMask_) {
             imageTemp = DrawImageRectWithColor(canvas, image);
             imageTemp = imageTemp == nullptr ? image : imageTemp;
         }
-        RSForegroundEffectFilter::DrawImageRect(canvas, imageTemp, src, dst);
+        if (isBlurValid) {
+            // draw blur image as shadow
+            RSForegroundEffectFilter::DrawImageRect(canvas, imageTemp, src, dst);
+        } else {
+            // draw clear image as shadow
+            canvas.DrawImage(*imageTemp, 0.f, 0.f, samplingOptions);
+        }
         canvas.Translate(-offsetX_, -offsetY_);
     }
-
     // draw clear image
-    auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
     canvas.DrawImage(*image, 0.f, 0.f, samplingOptions);
 }
 }  // namespace Rosen

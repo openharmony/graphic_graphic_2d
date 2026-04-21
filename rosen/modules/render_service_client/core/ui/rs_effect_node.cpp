@@ -48,7 +48,7 @@ RSEffectNode::SharedPtr RSEffectNode::Create(
     return node;
 }
 
-void RSEffectNode::SetFreeze(bool isFreeze)
+void RSEffectNode::SetFreeze(bool isFreeze, bool isMarkedByUI)
 {
     if (!IsUniRenderEnabled()) {
         ROSEN_LOGE("SetFreeze is not supported in separate render");
@@ -59,7 +59,7 @@ void RSEffectNode::SetFreeze(bool isFreeze)
         ROSEN_LOGI("RSEffectNode[%{public}lld]::SetFreeze: %{public}d", static_cast<long long>(GetId()), isFreeze);
     }
     preFreeze_ = isFreeze;
-    std::unique_ptr<RSCommand> command = std::make_unique<RSSetFreeze>(GetId(), isFreeze);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSetFreeze>(GetId(), isFreeze, isMarkedByUI);
     AddCommand(command, true);
 }
 

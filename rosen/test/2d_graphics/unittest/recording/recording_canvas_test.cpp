@@ -18,6 +18,8 @@
 #include "recording/draw_cmd.h"
 #include "recording/recording_canvas.h"
 #include "draw/path.h"
+#include "draw/ui_color.h"
+#include "effect/particle_builder.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -982,6 +984,27 @@ HWTEST_F(RecordingCanvasTest, ClipRegion001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ResetClip001
+ * @tc.desc: Test the playback of the ResetClip function.
+ * @tc.type: FUNC
+ * @tc.require: I7K0BS
+ */
+HWTEST_F(RecordingCanvasTest, ResetClip001, TestSize.Level1)
+{
+    auto recordingCanvas1 = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT);
+    auto recordingCanvas2 = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT, false);
+    EXPECT_TRUE(recordingCanvas1 != nullptr && recordingCanvas2 != nullptr);
+    recordingCanvas1->ResetClip();
+    recordingCanvas2->ResetClip();
+    auto drawCmdList1 = recordingCanvas1->GetDrawCmdList();
+    auto drawCmdList2 = recordingCanvas2->GetDrawCmdList();
+    EXPECT_TRUE(drawCmdList1 != nullptr && drawCmdList2 != nullptr);
+    Canvas canvas;
+    drawCmdList1->Playback(canvas);
+    drawCmdList2->Playback(canvas);
+}
+
+/**
  * @tc.name: SetMatrix001
  * @tc.desc: Test the playback of the SetMatrix function.
  * @tc.type: FUNC
@@ -1392,6 +1415,162 @@ HWTEST_F(RecordingCanvasTest, DrawImageNineTest001, TestSize.Level1)
     image.BuildFromBitmap(bitmap);
     recordingCanvas->DrawImageNine(&image, center, dst, FilterMode::LINEAR, &brush);
     recordingCanvas->DrawImageNine(&image, center, dst, FilterMode::LINEAR, nullptr);
+}
+
+/**
+ * @tc.name: DrawUIColor001
+ * @tc.desc: Test playback of DrawUIColor function.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RecordingCanvasTest, DrawUIColor001, TestSize.Level1)
+{
+    auto recordingCanvas1 = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT);
+    auto recordingCanvas2 = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT, false);
+    EXPECT_TRUE(recordingCanvas1 != nullptr && recordingCanvas2 != nullptr);
+    UIColor color(0.5f, 0.6f, 0.7f, 0.8f, 2.0f);
+    recordingCanvas1->DrawUIColor(color);
+    recordingCanvas2->DrawUIColor(color);
+    auto drawCmdList1 = recordingCanvas1->GetDrawCmdList();
+    auto drawCmdList2 = recordingCanvas2->GetDrawCmdList();
+    EXPECT_TRUE(drawCmdList1 != nullptr && drawCmdList2 != nullptr);
+    Canvas canvas;
+    drawCmdList1->Playback(canvas);
+    drawCmdList2->Playback(canvas);
+}
+
+/**
+ * @tc.name: DrawUIColor002
+ * @tc.desc: Test playback of DrawUIColor function with different blend modes.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RecordingCanvasTest, DrawUIColor002, TestSize.Level1)
+{
+    auto recordingCanvas1 = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT);
+    auto recordingCanvas2 = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT, false);
+    EXPECT_TRUE(recordingCanvas1 != nullptr && recordingCanvas2 != nullptr);
+    UIColor color(0.0f, 1.0f, 0.0f, 0.5f, 1.5f);
+    recordingCanvas1->DrawUIColor(color, BlendMode::MULTIPLY);
+    recordingCanvas2->DrawUIColor(color, BlendMode::MULTIPLY);
+    auto drawCmdList1 = recordingCanvas1->GetDrawCmdList();
+    auto drawCmdList2 = recordingCanvas2->GetDrawCmdList();
+    EXPECT_TRUE(drawCmdList1 != nullptr && drawCmdList2 != nullptr);
+    Canvas canvas;
+    drawCmdList1->Playback(canvas);
+    drawCmdList2->Playback(canvas);
+}
+
+/**
+ * @tc.name: DrawUIColor003
+ * @tc.desc: Test playback of DrawUIColor function with default color.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RecordingCanvasTest, DrawUIColor003, TestSize.Level1)
+{
+    auto recordingCanvas1 = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT);
+    auto recordingCanvas2 = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT, false);
+    EXPECT_TRUE(recordingCanvas1 != nullptr && recordingCanvas2 != nullptr);
+    UIColor color;
+    recordingCanvas1->DrawUIColor(color);
+    recordingCanvas2->DrawUIColor(color);
+    auto drawCmdList1 = recordingCanvas1->GetDrawCmdList();
+    auto drawCmdList2 = recordingCanvas2->GetDrawCmdList();
+    EXPECT_TRUE(drawCmdList1 != nullptr && drawCmdList2 != nullptr);
+    Canvas canvas;
+    drawCmdList1->Playback(canvas);
+    drawCmdList2->Playback(canvas);
+}
+
+/**
+ * @tc.name: DrawParticle001
+ * @tc.desc: Test RecordingCanvas DrawParticle with null particle effect.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RecordingCanvasTest, DrawParticleNullParticleEffect, TestSize.Level1)
+{
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT);
+    ASSERT_TRUE(recordingCanvas != nullptr);
+    recordingCanvas->DrawParticle(nullptr);
+    auto drawCmdList = recordingCanvas->GetDrawCmdList();
+    ASSERT_TRUE(drawCmdList != nullptr);
+}
+ 
+/**
+ * @tc.name: DrawParticle002
+ * @tc.desc: Test RecordingCanvas DrawParticle with valid particle effect.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RecordingCanvasTest, DrawParticleValidParticleEffect, TestSize.Level1)
+{
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT);
+    ASSERT_TRUE(recordingCanvas != nullptr);
+ 
+    auto builder = std::make_shared<ParticleBuilder>();
+    builder->SetUpdateCode("void main() { }");
+    auto particleEffect = builder->MakeParticleEffect(1024);
+    ASSERT_NE(particleEffect, nullptr);
+ 
+    recordingCanvas->DrawParticle(particleEffect);
+    auto drawCmdList = recordingCanvas->GetDrawCmdList();
+    ASSERT_TRUE(drawCmdList != nullptr);
+    ASSERT_FALSE(drawCmdList->IsEmpty());
+}
+ 
+/**
+ * @tc.name: DrawParticle003
+ * @tc.desc: Test RecordingCanvas DrawParticle with config data.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RecordingCanvasTest, DrawParticleWithConfig, TestSize.Level1)
+{
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT);
+    ASSERT_TRUE(recordingCanvas != nullptr);
+ 
+    auto builder = std::make_shared<ParticleBuilder>();
+    std::string configStr = "float value;";
+    builder->AddConfigData("testConfig", configStr, 16);
+    builder->SetUpdateCode("void main() { }");
+    auto particleEffect = builder->MakeParticleEffect(1024);
+    ASSERT_NE(particleEffect, nullptr);
+
+    float data = 1.0f;
+    particleEffect->UpdateConfigData("testConfig", &data, 0, sizeof(data));
+
+    recordingCanvas->DrawParticle(particleEffect);
+    auto drawCmdList = recordingCanvas->GetDrawCmdList();
+    ASSERT_TRUE(drawCmdList != nullptr);
+
+    Canvas canvas;
+    drawCmdList->Playback(canvas);
+    EXPECT_EQ(recordingCanvas->GetWidth(), CANAS_WIDTH);
+    EXPECT_EQ(recordingCanvas->GetHeight(), CANAS_HEIGHT);
+    EXPECT_FALSE(drawCmdList->IsEmpty());
+}
+
+/**
+ * @tc.name: DrawParticle004
+ * @tc.desc: Test RecordingCanvas DrawParticle with false addDrawOpImmediate
+ * @tc.type: FUNC
+ * @tc.require: AR000
+ */
+HWTEST_F(RecordingCanvasTest, DrawParticleNotImmediate, TestSize.Level1)
+{
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT, false);
+    ASSERT_TRUE(recordingCanvas != nullptr);
+    
+    auto builder = std::make_shared<ParticleBuilder>();
+    builder->SetUpdateCode("void main() { }");
+    auto particleEffect = builder->MakeParticleEffect(1024);
+    ASSERT_NE(particleEffect, nullptr);
+    
+    recordingCanvas->DrawParticle(particleEffect);
+    auto drawCmdList = recordingCanvas->GetDrawCmdList();
+    ASSERT_TRUE(drawCmdList != nullptr);
 }
 } // namespace Drawing
 } // namespace Rosen

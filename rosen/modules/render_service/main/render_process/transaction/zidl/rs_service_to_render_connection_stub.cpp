@@ -21,6 +21,7 @@
 #include "rs_profiler.h"
 #include "common/rs_xcollie.h"
 #include "platform/common/rs_log.h"
+#include "gfx/dump/rs_dump_manager.h"
 
 #undef LOG_TAG
 #define LOG_TAG "RSServiceToRenderConnectionStub"
@@ -333,6 +334,11 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
+            if (args.size() > cmdMap_.size()) {
+                RS_LOGE("RSRenderServiceStub::DFX_DUMP Read size too big failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             auto remoteObject = data.ReadRemoteObject();
             if (!remoteObject) {
                 RS_LOGE("RSRenderServiceStub::DFX_DUMP Read Object failed!");
@@ -477,6 +483,20 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             }
             RS_PROFILER_PATCH_TYPEFACE_GLOBALID(data, uniqueId);
             UnRegisterTypeface(uniqueId);
+            break;
+        }
+        case static_cast<uint32_t>(
+            RSIServiceToRenderConnectionInterfaceCode::REGISTER_SHARED_TYPEFACE): {
+            Drawing::SharedTypeface sharedTypeface;
+            if (!RSMarshallingHelper::Unmarshalling(data, sharedTypeface)) {
+                RS_LOGE("RSServiceToRenderStub::REGISTER_SHARED_TYPEFACE Unmarshalling failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            bool result = RegisterTypeface(sharedTypeface, false);
+            if (!reply.WriteBool(result)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::REGISTER_UIEXTENSION_CALLBACK): {

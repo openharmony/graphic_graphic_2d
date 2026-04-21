@@ -20,7 +20,9 @@
 #include "common/rs_common_def.h"
 #include "common/rs_special_layer_manager.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/render_thread/rs_uni_render_virtual_processor.h"
 #include "platform/common/rs_log.h"
+#include "system/rs_system_parameters.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -365,5 +367,97 @@ DrawType RSSpecialLayerUtils::GetDrawTypeInSnapshot(const RSSurfaceRenderParams&
     }
     return DrawType::NONE;
 }
+
+void RSSpecialLayerUtils::SetWhiteListRectToMetaData(RSPaintFilterCanvas& canvas, const RSRenderThreadParams& uniParam,
+    const RSScreenProperty& mirrorProperty)
+{
+    // Validate processor
+    auto processor = uniParam.GetRSProcessor();
+    if (processor == nullptr) {
+        return;
+    }
+    auto virtualProcesser = RSProcessor::ReinterpretCast<RSUniRenderVirtualProcessor>(processor);
+    if (virtualProcesser == nullptr) {
+        return;
+    }
+
+    // If there is no or more than one whitelist rect, do not set crop rect
+    auto screenId = mirrorProperty.GetScreenId();
+    const auto& whiteListRects = uniParam.GetWhiteListRectByScreenId(screenId);
+    if (whiteListRects.size() != 1) {
+        RS_LOGD("%{public}s: skip crop setting, screen %{public}" PRIu64 " whitelist rect count = %{public}zu",
+            __func__, screenId, whiteListRects.size());
+        return;
+    }
+
+    // Map rect with canvas matrix
+    const auto& rectI = whiteListRects[0];
+    Drawing::Rect src(rectI.GetLeft(), rectI.GetTop(), rectI.GetRight(), rectI.GetBottom());
+    Drawing::Rect dst;
+    canvas.GetTotalMatrix().MapRect(dst, src);
+
+    // Pixel expansion for floating-point rounding, and safely convert to uint32_t, preventing undefined behavior
+    uint32_t left = ConvertFloatToUint32(std::floor(dst.GetLeft()));
+    uint32_t top = ConvertFloatToUint32(std::floor(dst.GetTop()));
+    uint32_t right = ConvertFloatToUint32(std::ceil(dst.GetRight()));
+    uint32_t bottom = ConvertFloatToUint32(std::ceil(dst.GetBottom()));
+    uint32_t width = right >= left ? right - left : 0;
+    uint32_t height = bottom >= top ? bottom - top : 0;
+    HDI::Display::Graphic::Common::V1_0::BufferHandleMetaRegion metaRegion {left, top, width, height};
+
+    RS_TRACE_NAME_FMT("%s:screen %" PRIu64 " set white list rect[%" PRIu32 ", %" PRIu32 ", %" PRIu32 ", %" PRIu32 "]",
+        __func__, screenId, metaRegion.left, metaRegion.top, metaRegion.width, metaRegion.height);
+    virtualProcesser->SetCropRectForMetadata(metaRegion);
+    RS_LOGD("%{public}s: screen %{public}" PRIu64 " set white list rect"
+        "[%{public}" PRIu32 ", %{public}" PRIu32 ", %{public}" PRIu32 ", %{public}" PRIu32 "]",
+        __func__, screenId, metaRegion.left, metaRegion.top, metaRegion.width, metaRegion.height);
+    DrawCropRectDebugOverlay(canvas, metaRegion);
+}
+
+void RSSpecialLayerUtils::DrawCropRectDebugOverlay(
+    RSPaintFilterCanvas& canvas, const HDI::Display::Graphic::Common::V1_0::BufferHandleMetaRegion& metaRegion)
+{
+    if (!RSSystemParameters::GetCropRectDebugOverlayEnabled()) {
+        return;
+    }
+    RSAutoCanvasRestore acr(&canvas);
+    canvas.SetMatrix(Drawing::Matrix());
+    Drawing::Pen debugPen;
+    debugPen.SetColor(Drawing::Color::COLOR_YELLOW);
+    float width = 4.0f;
+    debugPen.SetWidth(width);
+    canvas.AttachPen(debugPen);
+    Drawing::Rect cropRect(
+        metaRegion.left, metaRegion.top, metaRegion.left + metaRegion.width, metaRegion.top + metaRegion.height);
+    canvas.DrawRect(cropRect);
+    canvas.DetachPen();
+}
+
+uint32_t RSSpecialLayerUtils::ConvertFloatToUint32(float value)
+{
+    if (ROSEN_LE(value, 0.f)) {
+        return 0u;
+    }
+    if (ROSEN_GE(value, static_cast<float>(UINT32_MAX))) {
+        return UINT32_MAX;
+    }
+    return static_cast<uint32_t>(value);
+}
+
+void RSSpecialLayerUtils::CollectWhiteListRect(const RSSurfaceRenderNode& node, bool hasMirrorDisplay, bool isRotating)
+{
+    if (!hasMirrorDisplay || isRotating) {
+        return;
+    }
+    auto boundsGeometry = node.GetRenderProperties().GetBoundsGeometry();
+    if (boundsGeometry == nullptr) {
+        RS_LOGE("%{public}s boundsGeometry is nullptr.", __func__);
+        return;
+    }
+    auto screenIds = ScreenSpecialLayerInfo::QueryEnableScreen(
+        SpecialLayerType::IS_WHITE_LIST, {node.GetId(), node.GetLeashPersistentId()});
+    RSMainThread::Instance()->AddWhiteListRect(screenIds, boundsGeometry->GetAbsRect());
+}
 } // namespace Rosen
 } // namespace OHOS
+

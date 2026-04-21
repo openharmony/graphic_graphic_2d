@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -63,7 +63,9 @@ void RSPropertyDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* re
     RSTagTracker tagTracker(canvas ? canvas->GetGPUContext() : nullptr,
         RSTagTracker::SOURCETYPE::SOURCE_RSPROPERTYDRAWABLE);
 #endif
-    drawCmdList_->Playback(*canvas);
+    if (drawCmdList_) {
+        drawCmdList_->Playback(*canvas);
+    }
     if (!propertyDescription_.empty()) {
         RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO, "RSPropertyDrawable:: %s, bounds:%s",
             propertyDescription_.c_str(), rect->ToString().c_str());
@@ -132,8 +134,6 @@ RSDrawable::Ptr RSClipToBoundsDrawable::OnGenerate(const RSRenderNode& node)
 
 bool RSClipToBoundsDrawable::OnUpdate(const RSRenderNode& node)
 {
-    // if the specifications change here,
-    // the RSRenderNode::GetChildClipRegion needs to be modified accordingly.
     const RSProperties& properties = node.GetRenderProperties();
     stagingGeContainer_ = nullptr;
     if (auto sdfShape = properties.GetSDFShape()) {

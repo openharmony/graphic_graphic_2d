@@ -207,14 +207,17 @@ bool RSUiCaptureSoloTaskParallel::Run()
     }
     canvas.SetMatrix(relativeMatrix);
 
+    RSUniRenderThread::BufferManagerGuard bufferGuard;
     RSUniRenderThread::SetCaptureParam(CaptureParam(true, true, false, false, false, false, false, true));
     nodeDrawable_->OnCapture(canvas);
     RSUniRenderThread::ResetCaptureParam();
 
 #if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
 #ifdef RS_ENABLE_UNI_RENDER
-    RSUniRenderUtil::OptimizedFlushAndSubmit(surface, grContext, GetFeatureParamValue("UICaptureConfig",
-        &UICaptureParam::IsUseOptimizedFlushAndSubmitEnabled).value_or(false));
+    sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
+    RSUniRenderUtil::OptimizedFlushAndSubmit(surface, grContext, acquireFence,
+        GetFeatureParamValue("UICaptureConfig", &UICaptureParam::IsUseOptimizedFlushAndSubmitEnabled).value_or(false));
+    bufferGuard.SetAcquireFence(acquireFence);
     bool snapshotDmaEnabled = system::GetBoolParameter("rosen.snapshotDma.enabled", true);
     bool isEnableFeature = GetFeatureParamValue("CaptureConfig",
         &CaptureBaseParam::IsSnapshotWithDMAEnabled).value_or(false);

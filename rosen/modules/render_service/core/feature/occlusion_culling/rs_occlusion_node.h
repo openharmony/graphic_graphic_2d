@@ -78,6 +78,64 @@ protected:
             !ROSEN_EQ(renderProperties.GetPerspZ(), 0.f) || !ROSEN_EQ(renderProperties.GetPerspW(), 1.f);
     }
 
+    int16_t SafeCast(float value) const
+    {
+        return static_cast<int16_t>(std::clamp(value, static_cast<float>(INT16_MIN), static_cast<float>(INT16_MAX)));
+    }
+
+    RectI16 ComputeOuter(const RectF& drawRect) const
+    {
+        if (drawRect.IsEmpty()) {
+            return RectI16();
+        }
+        auto left = SafeCast(std::floor(drawRect.GetLeft()));
+        auto right = SafeCast(std::ceil(drawRect.GetRight()));
+        auto top = SafeCast(std::floor(drawRect.GetTop()));
+        auto bottom = SafeCast(std::ceil(drawRect.GetBottom()));
+        return (left >= right || top >= bottom) ? RectI16() : RectI16(left, top, right - left, bottom - top);
+    }
+
+    RectI16 ComputeInner(const RectF& drawRect, const Vector4f& cornerRadius) const
+    {
+        if (drawRect.IsEmpty()) {
+            return RectI16();
+        }
+        auto left = SafeCast(std::ceil(drawRect.GetLeft()));
+        auto right = SafeCast(std::floor(drawRect.GetRight()));
+        auto top = SafeCast(std::ceil(drawRect.GetTop() + std::max(cornerRadius.x_, cornerRadius.y_)));
+        auto bottom = SafeCast(std::floor(drawRect.GetBottom() - std::max(cornerRadius.w_, cornerRadius.z_)));
+        return (left >= right || top >= bottom) ? RectI16() : RectI16(left, top, right - left, bottom - top);
+    }
+
+    RectI16 ComputeInner(const RRect& clipRRect) const
+    {
+        Vector4f cornerRadius {
+            std::max(clipRRect.radius_[0].x_, clipRRect.radius_[0].y_),
+            std::max(clipRRect.radius_[1].x_, clipRRect.radius_[1].y_),
+            std::max(clipRRect.radius_[2].x_, clipRRect.radius_[2].y_),
+            std::max(clipRRect.radius_[3].x_, clipRRect.radius_[3].y_)
+        };
+        return ComputeInner(clipRRect.rect_, cornerRadius);
+    }
+
+    void TransformByCenterScalingAndTranslation(RectF& rect, const Vector2f& centerPoint,
+        const Vector2f& scale, const Vector2f& translate) const
+    {
+        rect.left_ = centerPoint.x_ + (rect.left_ - centerPoint.x_) * scale.x_ + translate.x_;
+        rect.top_ = centerPoint.y_ + (rect.top_ - centerPoint.y_) * scale.y_ + translate.y_;
+        rect.width_ = rect.width_ * scale.x_;
+        rect.height_ = rect.height_ * scale.y_;
+    }
+
+    void TransformToAbsoluteCoord(RectF& rect, const Vector2f& totalScale, const Vector2f& parentAbsPos) const
+    {
+        rect.left_ *= totalScale.x_;
+        rect.top_ *= totalScale.y_;
+        rect.width_ *= totalScale.x_;
+        rect.height_ *= totalScale.y_;
+        rect.Move(parentAbsPos.x_, parentAbsPos.y_);
+    }
+
 private:
     void CalculateDrawRect(const RSRenderNode& node, const RSProperties& renderProperties);
     bool IsOutOfRootRect(const RectI16 &rect);
@@ -100,6 +158,7 @@ private:
     bool isSubTreeIgnored_ = false;
     bool hasChildrenOutOfRect_ = false;
     bool isNeedClip_ = false;
+    bool isNeedClipFrame_ = false;
     bool isOutOfRootRect_ = false;
     bool isAlphaNeed_ = false;
     bool isBgOpaque_ = false;
@@ -121,6 +180,7 @@ private:
     RectI16 clipInnerRect_;
     RectI16 outerRect_;
     RectI16 innerRect_;
+    std::unique_ptr<RRect> clipRRect_;
 
     // Node relationship
     std::weak_ptr<OcclusionNode> rootOcclusionNode_;

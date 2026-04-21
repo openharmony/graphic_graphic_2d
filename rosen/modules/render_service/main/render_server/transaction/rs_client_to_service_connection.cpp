@@ -34,6 +34,7 @@
 #include "dirty_region/rs_gpu_dirty_collector.h"
 #include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
+#include "engine/rs_uni_render_engine.h"
 #include "feature/capture/rs_ui_capture.h"
 #include "feature/capture/rs_uni_ui_capture.h"
 #include "feature/capture/rs_surface_capture_task.h"
@@ -65,7 +66,6 @@
 #include "feature/hyper_graphic_manager/rs_render_frame_rate_linker_map.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/main_thread/rs_render_service_listener.h"
-#include "pipeline/render_thread/rs_uni_render_engine.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -106,6 +106,7 @@ constexpr uint64_t MAX_TIME_OUT_NS = 1e9;
 constexpr int64_t MAX_FREEZE_SCREEN_TIME = 3000;
 const std::string UNFREEZE_SCREEN_TASK_NAME = "UNFREEZE_SCREEN_TASK";
 }
+const std::string RSClientToServiceConnection::GPU_FREQ_PREF = "GPU_FREQ_PREF";
 // we guarantee that when constructing this object,
 // all these pointers are valid, so will not check them.
 RSClientToServiceConnection::RSClientToServiceConnection(
@@ -148,6 +149,17 @@ RSClientToServiceConnection::~RSClientToServiceConnection() noexcept
     CleanAll();
 }
 
+void RSClientToServiceConnection::RegisterRemoteRefreshCallback()
+{
+    RS_LOGI("RSClientToServiceConnection::RegisterRemoteRefreshCallback");
+    if (!connRefreshRecipient_) {
+        connRefreshRecipient_ = new RSConnectionRefreshRecipient(this);
+    }
+    if (token_ == nullptr || !token_->AddRefreshRecipient(connRefreshRecipient_)) {
+        RS_LOGE("RSClientToServiceConnection: Failed to set refresh recipient");
+    }
+}
+
 void RSClientToServiceConnection::CleanVirtualScreens() noexcept
 {
     if (!screenManagerAgent_) {
@@ -155,22 +167,15 @@ void RSClientToServiceConnection::CleanVirtualScreens() noexcept
         return;
     }
     screenManagerAgent_->CleanVirtualScreens();
-    screenManagerAgent_->SetScreenChangeCallback(nullptr);
 }
 
-void RSClientToServiceConnection::CleanAll(bool toDelete) noexcept
+void RSClientToServiceConnection::CleanForRefresh() noexcept
 {
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        if (cleanDone_) {
-            return;
-        }
-    }
     if (!renderServiceAgent_) {
         return;
     }
-    RS_LOGD("CleanAll() start.");
-    RS_TRACE_NAME("RSClientToServiceConnection CleanAll begin, remotePid: " + std::to_string(remotePid_));
+    RS_LOGD("CleanForRefresh() start.");
+    RS_TRACE_NAME("RSClientToServiceConnection CleanForRefresh begin, remotePid: " + std::to_string(remotePid_));
     renderServiceAgent_->ScheduleTask(
         [weakThis = wptr<RSClientToServiceConnection>(this)]() {
             sptr<RSClientToServiceConnection> connection = weakThis.promote();
@@ -184,6 +189,32 @@ void RSClientToServiceConnection::CleanAll(bool toDelete) noexcept
     if (hgmContext_ != nullptr) {
         hgmContext_->CleanAllWhenServiceConnectionDie(remotePid_);
     }
+    RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(remotePid_);
+
+    {
+        std::lock_guard<std::mutex> lock(pidToBundleMutex_);
+        pidToBundleName_.clear();
+    }
+    RS_LOGD("CleanForRefresh() end.");
+    RS_TRACE_NAME("RSClientToServiceConnection CleanForRefresh end, remotePid: " + std::to_string(remotePid_));
+}
+
+void RSClientToServiceConnection::CleanAll(bool toDelete) noexcept
+{
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (cleanDone_) {
+            return;
+        }
+    }
+    if (!renderServiceAgent_) {
+        return;
+    }
+
+    RS_LOGD("CleanAll() start.");
+    RS_TRACE_NAME("RSClientToServiceConnection CleanAll begin, remotePid: " + std::to_string(remotePid_));
+
+    CleanForRefresh();
 
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -197,10 +228,6 @@ void RSClientToServiceConnection::CleanAll(bool toDelete) noexcept
 
     RS_LOGD("CleanAll() end.");
     RS_TRACE_NAME("RSClientToServiceConnection CleanAll end, remotePid: " + std::to_string(remotePid_));
-    {
-        std::lock_guard<std::mutex> lock(pidToBundleMutex_);
-        pidToBundleName_.clear();
-    }
 }
 
 RSClientToServiceConnection::RSConnectionDeathRecipient::RSConnectionDeathRecipient(
@@ -228,6 +255,34 @@ void RSClientToServiceConnection::RSConnectionDeathRecipient::OnRemoteDied(const
     }
 
     rsConn->CleanAll(true);
+}
+
+RSClientToServiceConnection::RSConnectionRefreshRecipient::RSConnectionRefreshRecipient(
+    wptr<RSClientToServiceConnection> conn) : conn_(conn)
+{
+}
+
+void RSClientToServiceConnection::RSConnectionRefreshRecipient::OnRemoteRefreshed(const wptr<IRemoteObject>& token)
+{
+    auto tokenSptr = token.promote();
+    if (tokenSptr == nullptr) {
+        RS_LOGW("RSClientToServiceConnection::RSConnectionRefreshRecipient: can't promote remote object");
+        return;
+    }
+
+    auto rsConn = conn_.promote();
+    if (rsConn == nullptr) {
+        RS_LOGW("RSConnectionRefreshRecipient::OnRemoteRefreshed: RSClientToServiceConnection was dead, do not hing");
+        return;
+    }
+
+    if (rsConn->GetToken() != tokenSptr) {
+        RS_LOGI("RSConnectionRefreshRecipient::OnRemoteRefreshed: token  doesn't match, ignore it");
+        return;
+    }
+    RS_LOGI("RSConnectionRefreshRecipient::OnRemoteRefreshed: call CleanForRefresh");
+
+    rsConn->CleanForRefresh();
 }
 
 ErrCode RSClientToServiceConnection::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
@@ -576,11 +631,7 @@ int32_t RSClientToServiceConnection::SetScreenChangeCallback(sptr<RSIScreenChang
     }
 
     // update
-    int32_t status;
-    renderServiceAgent_->ScheduleTask([this, callback, &status]() {
-        status = screenManagerAgent_->SetScreenChangeCallback(callback);
-    }).wait();
-    return status;
+    return screenManagerAgent_->SetScreenChangeCallback(callback);
 }
 
 int32_t RSClientToServiceConnection::SetScreenSwitchingNotifyCallback(sptr<RSIScreenSwitchingNotifyCallback> callback)
@@ -591,8 +642,7 @@ int32_t RSClientToServiceConnection::SetScreenSwitchingNotifyCallback(sptr<RSISc
     }
 
     // update
-    int32_t status = screenManagerAgent_->SetScreenSwitchingNotifyCallback(callback);
-    return status;
+    return screenManagerAgent_->SetScreenSwitchingNotifyCallback(callback);
 }
 
 int32_t RSClientToServiceConnection::SetBrightnessInfoChangeCallback(sptr<RSIBrightnessInfoChangeCallback> callback)
@@ -905,6 +955,24 @@ int32_t RSClientToServiceConnection::SetDualScreenState(ScreenId id, DualScreenS
         return StatusCode::SCREEN_NOT_FOUND;
     }
     return screenManagerAgent_->SetDualScreenState(id, status);
+}
+
+int32_t RSClientToServiceConnection::SetAsMainScreen(ScreenId screenId, bool isMainScreen)
+{
+    if (!screenManagerAgent_) {
+        RS_LOGE("%{public}s screenManagerAgent is null, screenId: %{public}" PRIu64, __func__, screenId);
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    return screenManagerAgent_->SetAsMainScreen(screenId, isMainScreen);
+}
+
+ScreenId RSClientToServiceConnection::GetMainScreenId()
+{
+    if (!screenManagerAgent_) {
+        RS_LOGE("%{public}s screenManagerAgent is null", __func__);
+        return INVALID_SCREEN_ID;
+    }
+    return screenManagerAgent_->GetMainScreenId();
 }
 
 RSVirtualScreenResolution RSClientToServiceConnection::GetVirtualScreenResolution(ScreenId id)
@@ -1287,63 +1355,123 @@ bool RSClientToServiceConnection::RegisterTypeface(uint64_t globalUniqueId,
 int32_t RSClientToServiceConnection::RegisterTypeface(Drawing::SharedTypeface& sharedTypeface, int32_t& needUpdate)
 {
     if (sharedTypeface.originId_ > 0) {
-        ::close(sharedTypeface.fd_);
-        needUpdate = -1;
-        return RSTypefaceCache::Instance().InsertVariationTypeface(sharedTypeface);
+        return RegisterVariationTypeface(sharedTypeface, needUpdate);
     }
+    return RegisterAshmemTypeface(sharedTypeface, needUpdate);
+}
+
+int32_t RSClientToServiceConnection::RegisterVariationTypeface(
+    Drawing::SharedTypeface& sharedTypeface, int32_t& needUpdate)
+{
+    needUpdate = 0;
+    RS_LOGI_LIMIT("RegisterTypeface(var): %{public}s", sharedTypeface.ToString().c_str());
+    int32_t result = RSTypefaceCache::Instance().InsertVariationTypeface(sharedTypeface);
+    if (result >= 0) {
+        bool forwardSuccess = ForwardToRenderServers(
+            [&](sptr<RSIServiceToRenderConnection>& conn) -> bool { return conn->RegisterTypeface(sharedTypeface); });
+        if (!forwardSuccess) {
+            RS_LOGE("RegisterTypeface(var): failed to forward to rp %{public}s", sharedTypeface.ToString().c_str());
+            result = -1;
+            needUpdate = -1;
+        }
+    }
+    return result;
+}
+
+int32_t RSClientToServiceConnection::RegisterAshmemTypeface(
+    Drawing::SharedTypeface& sharedTypeface, int32_t& needUpdate)
+{
     if (sharedTypeface.fd_ < 0 || sharedTypeface.size_ == 0) {
-        RS_LOGE("RegisterTypeface: invalid parameters");
-        ::close(sharedTypeface.fd_);
+        RS_LOGE("RegisterTypeface(ashmem): invalid parameters, %{public}s", sharedTypeface.ToString().c_str());
         needUpdate = -1;
         return -1;
     }
     int realSize = AshmemGetSize(sharedTypeface.fd_);
     if (realSize < 0 || static_cast<uint32_t>(realSize) < sharedTypeface.size_) {
-        RS_LOGE("RegisterTypeface, realSize < 0 or realSize < given size");
+        RS_LOGE("RegisterTypeface(ashmem), invalid ashmem size, %{public}s", sharedTypeface.ToString().c_str());
         ::close(sharedTypeface.fd_);
         needUpdate = -1;
         return -1;
     }
+
+    // Try to reuse cached typeface
     auto tf = RSTypefaceCache::Instance().UpdateDrawingTypefaceRef(sharedTypeface);
     if (tf != nullptr) {
         ::close(sharedTypeface.fd_);
-        sharedTypeface.fd_ = -1;
         needUpdate = 1;
-        RS_LOGI("RegisterTypeface: Find same typeface in cache, use existed typeface.");
+        RS_LOGI("RegisterTypeface(reuse): %{public}s", sharedTypeface.ToString().c_str());
+        Drawing::SharedTypeface sharedTfForForward(sharedTypeface.id_, tf);
+        bool forwardSuccess = ForwardToRenderServers([&](sptr<RSIServiceToRenderConnection>& conn) -> bool {
+            return conn->RegisterTypeface(sharedTfForForward);
+        });
+        if (!forwardSuccess) {
+            RS_LOGE("RegisterTypeface(reuse): failed to forward to rp, %{public}s", sharedTypeface.ToString().c_str());
+        }
         return tf->GetFd();
     }
-    RS_LOGI("RegisterTypeface: Failed to find typeface in cache, create a new typeface.");
+
+    // Create new typeface from ashmem
     needUpdate = 0;
     tf = Drawing::Typeface::MakeFromAshmem(sharedTypeface);
-    if (tf != nullptr) {
-        RSTypefaceCache::Instance().CacheDrawingTypeface(sharedTypeface.id_, tf);
-        sharedTypeface.fd_ = -1;
-        return tf->GetFd();
+    if (tf == nullptr) {
+        ::close(sharedTypeface.fd_);
+        needUpdate = -1;
+        RS_LOGE("RegisterTypeface(new): failed to register typeface, %{public}s", sharedTypeface.ToString().c_str());
+        return -1;
     }
-    ::close(sharedTypeface.fd_);
+    RS_LOGI("RegisterTypeface(new): %{public}s", sharedTypeface.ToString().c_str());
+    RSTypefaceCache::Instance().CacheDrawingTypeface(sharedTypeface.id_, tf);
     sharedTypeface.fd_ = -1;
-    needUpdate = -1;
-    RS_LOGE("RegisterTypeface: failed to register typeface");
-    return -1;
+    Drawing::SharedTypeface sharedTfForForward(sharedTypeface.id_, tf);
+    bool forwardSuccess = ForwardToRenderServers([&](sptr<RSIServiceToRenderConnection>& conn) -> bool {
+        return conn->RegisterTypeface(sharedTfForForward);
+    });
+    if (!forwardSuccess) {
+        RS_LOGE("RegisterTypeface(new): failed to forward to rp, %{public}s", sharedTypeface.ToString().c_str());
+        needUpdate = -1;
+        return -1;
+    }
+    return tf->GetFd();
 }
-    
-bool RSClientToServiceConnection::UnRegisterTypeface(uint64_t globalUniqueId)
+
+bool RSClientToServiceConnection::ForwardToRenderServers(
+    const std::function<bool(sptr<RSIServiceToRenderConnection>&)>& action)
 {
     if (renderProcessManagerAgent_ == nullptr) {
         RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
         return false;
     }
-
     auto serviceToRenderConns = renderProcessManagerAgent_->GetServiceToRenderConns();
-    if (serviceToRenderConns.size() == 0) {
-        RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
-        return false;
-    }
-    bool result = true;
+    bool allSuccess = true;
     for (auto conn : serviceToRenderConns) {
-        result &= conn->UnRegisterTypeface(globalUniqueId);
+        allSuccess &= action(conn);
     }
-    return result;
+    return allSuccess;
+}
+
+bool RSClientToServiceConnection::UnRegisterTypeface(uint64_t globalUniqueId)
+{
+    RS_LOGI("UnRegisterTypeface, pid[%{public}d], uniqueid:%{public}u", RSTypefaceCache::GetTypefacePid(globalUniqueId),
+        RSTypefaceCache::GetTypefaceId(globalUniqueId));
+    auto typeface = RSTypefaceCache::Instance().GetDrawingTypefaceCache(globalUniqueId);
+    if (typeface == nullptr) {
+        return true;
+    }
+    uint32_t uniqueId = typeface->GetUniqueID();
+    // Free cpu cache, this only valid in skia path. When deprecating skia, this can be removed.
+    auto task = [uniqueId]() {
+        auto context = RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
+        if (context) {
+            context->FreeCpuCache(uniqueId);
+            context->PurgeUnlockAndSafeCacheGpuResources();
+        }
+    };
+    RSUniRenderThread::Instance().PostTask(task);
+
+    RSTypefaceCache::Instance().RemoveDrawingTypefaceByGlobalUniqueId(globalUniqueId);
+    return ForwardToRenderServers([&](sptr<RSIServiceToRenderConnection>& conn) -> bool {
+        return conn->UnRegisterTypeface(globalUniqueId);
+    });
 }
 
 int32_t RSClientToServiceConnection::GetDisplayIdentificationData(ScreenId id, uint8_t& outPort,
@@ -1443,6 +1571,17 @@ int32_t RSClientToServiceConnection::RegisterFirstFrameCommitCallback(
     std::lock_guard<std::mutex> lock(mutex_);
     RSFirstFrameNotifier::GetInstance().RegisterFirstFrameCommitCallback(remotePid_, callback);
     return StatusCode::SUCCESS;
+}
+
+int32_t RSClientToServiceConnection::RegisterExposedEventCallback(
+    const RSExposedEventType type, const sptr<RSIExposedEventCallback> callback)
+{
+    if (screenManagerAgent_ == nullptr) {
+        RS_LOGE("%{public}s: screenManagerAgent_ is nullptr", __func__);
+        return SCREEN_NOT_FOUND;
+    }
+
+    return screenManagerAgent_->SetExposedEventCallback(type, callback);
 }
 
 int32_t RSClientToServiceConnection::RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
@@ -1729,6 +1868,9 @@ void RSClientToServiceConnection::ReportGameStateData(GameStateData info)
     }
     for (auto conn : serviceToRenderConns) {
         conn->ReportGameStateData(info);
+    }
+    if (renderServiceAgent_ != nullptr) {
+        renderServiceAgent_->HandleGameSceneChanged();
     }
 }
 

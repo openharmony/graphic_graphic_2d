@@ -74,6 +74,7 @@ public:
 
     // Font
     bool RegisterTypeface(uint64_t globalUniqueId, std::shared_ptr<Drawing::Typeface>& typeface) override;
+    bool RegisterTypeface(Drawing::SharedTypeface& sharedTypeface, bool isLocal = true) override;
     bool UnRegisterTypeface(uint64_t globalUniqueId) override;
 
     // Hgm

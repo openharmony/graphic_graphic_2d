@@ -36,11 +36,26 @@ public:
     static std::shared_ptr<Drawing::DrawCmdList> FinishDrawing(RSDrawingContext& ctx);
 };
 
+/**
+ * @class RSCustomModifier
+ *
+ * @brief Draws the custom content.
+ *
+ * @note It is prohibited to modify any properties of the node during the draw process, otherwise
+ * it may cause drawing abnormalities.
+ */
 class RSC_EXPORT RSCustomModifier : public RSModifier {
 public:
     RSCustomModifier() = default;
     ~RSCustomModifier() override = default;
 
+    /**
+     * @brief Draws the custom content.
+     *
+     * @param context The drawing context used to render the custom content.
+     * @note It is prohibited to modify any properties of the node in this function, otherwise
+     * it may cause drawing abnormalities.
+     */
     virtual void Draw(RSDrawingContext& context) const = 0;
 
     void SetNoNeedUICaptured(bool noNeedUICaptured)

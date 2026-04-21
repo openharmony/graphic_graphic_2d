@@ -128,7 +128,6 @@ private:
 
     std::atomic<bool> isEnable_ = true;
     GCLevel nodeGCLevel_ = GCLevel::IDLE;
-    GCLevel drawableGCLevel_ = GCLevel::IDLE;
     gcTask mainTask_ = nullptr;
     gcTask renderTask_ = nullptr;
 
@@ -154,7 +153,7 @@ private:
     std::function<void()> imageReleaseFunc_;
     std::function<void(bool)> drawableReleaseFunc_;
 
-    bool isNodeOffTreeMemReleaseEnabled_ = true;
+    bool isNodeOffTreeMemReleaseEnabled_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

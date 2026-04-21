@@ -15,7 +15,7 @@
 
 #include "gtest/gtest.h"
 
-#include "feature/hyper_graphic_manager/rs_vblank_idle_corrector.h"
+#include "hyper_graphic_manager/rs_vblank_idle_corrector.h"
 #include "hgm_core.h"
 #include "screen_manager/rs_screen_manager.h"
 

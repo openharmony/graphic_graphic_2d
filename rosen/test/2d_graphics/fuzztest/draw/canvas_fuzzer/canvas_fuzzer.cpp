@@ -18,12 +18,14 @@
 #include <cstdint>
 #include "get_object.h"
 #include "draw/canvas.h"
+#include "effect/particle_builder.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 static constexpr int32_t BITMAP_WIDTH = 300;
 static constexpr int32_t BITMAP_HEIGHT = 300;
+static constexpr size_t  MAX_SIZE = 5000;
 
 bool CanvasFuzzTest(const uint8_t* data, size_t size)
 {
@@ -183,6 +185,69 @@ bool CanvasFuzzTestHpsEdgeLight(const uint8_t* data, size_t size)
     return true;
 }
 
+bool CanvasFuzzTestInsertOpaqueRegion(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    Canvas canvas;
+
+    // Generate random opaque rects count (0-10)
+    uint32_t rectCount = GetObject<uint32_t>() % 11;
+    std::vector<RectI> opaqueRects;
+
+    for (uint32_t i = 0; i < rectCount; i++) {
+        int32_t left = GetObject<int32_t>() % 1000;
+        int32_t top = GetObject<int32_t>() % 1000;
+        int32_t right = GetObject<int32_t>() % 1000;
+        int32_t bottom = GetObject<int32_t>() % 1000;
+        opaqueRects.emplace_back(left, top, right, bottom);
+    }
+
+    // Call InsertOpaqueRegion with generated rects
+    canvas.InsertOpaqueRegion(opaqueRects);
+
+    // Test with empty rects
+    std::vector<RectI> emptyRects;
+    canvas.InsertOpaqueRegion(emptyRects);
+
+    return true;
+}
+
+bool CanvasFuzzTestParticle(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    Canvas canvas;
+    auto builder = std::make_shared<Drawing::ParticleBuilder>();
+    if (!builder) {
+        return false;
+    }
+    size_t length = GetObject<size_t>() % MAX_SIZE + 1;
+    char* dataText = new char[length];
+    for (size_t i = 0; i < length; i++) {
+        dataText[i] = GetObject<char>();
+    }
+    dataText[length - 1] = '\0';
+    builder->SetUpdateCode(std::string(dataText));
+    uint32_t maxParticleCount = GetObject<uint32_t>();
+    auto effect = builder->MakeParticleEffect(maxParticleCount);
+    if (!effect) {
+        return false;
+    }
+    canvas.DrawParticle(effect);
+    bool doSave = GetObject<bool>();
+    AutoCanvasRestore(canvas, doSave);
+    if (dataText != nullptr) {
+        delete [] dataText;
+        dataText = nullptr;
+    }
+
+    return true;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -200,5 +265,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::CanvasFuzzTest001(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTest002(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTestHpsEdgeLight(data, size);
+    OHOS::Rosen::Drawing::CanvasFuzzTestInsertOpaqueRegion(data, size);
+    OHOS::Rosen::Drawing::CanvasFuzzTestParticle(data, size);
     return 0;
 }

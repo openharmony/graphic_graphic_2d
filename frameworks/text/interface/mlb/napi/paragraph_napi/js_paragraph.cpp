@@ -111,6 +111,7 @@ napi_property_descriptor properties[] = {
     DECLARE_NAPI_FUNCTION("didExceedMaxLines", JsParagraph::DidExceedMaxLines),
     DECLARE_NAPI_FUNCTION("getTextLines", JsParagraph::GetTextLines),
     DECLARE_NAPI_FUNCTION("getActualTextRange", JsParagraph::GetActualTextRange),
+    DECLARE_NAPI_FUNCTION("getVisibleTextRanges", JsParagraph::GetVisibleTextRanges),
     DECLARE_NAPI_FUNCTION("getLineMetrics", JsParagraph::GetLineMetrics),
     DECLARE_NAPI_FUNCTION("getFontMetricsByTextStyle", JsParagraph::GetFontMetricsByTextStyle),
     DECLARE_NAPI_FUNCTION("getLineFontMetrics", JsParagraph::GetLineFontMetrics),
@@ -833,6 +834,34 @@ napi_value JsParagraph::OnGetActualTextRange(napi_env env, napi_callback_info in
     }
     OHOS::Rosen::Boundary range = paragraph_->GetActualTextRange(lineNumber, includeSpaces);
     return GetRangeAndConvertToJsValue(env, &range);
+}
+
+napi_value JsParagraph::GetVisibleTextRanges(napi_env env, napi_callback_info info)
+{
+    JsParagraph* me = CheckParamsAndGetThis<JsParagraph>(env, info);
+    return (me != nullptr) ? me->OnGetVisibleTextRanges(env, info) : nullptr;
+}
+
+napi_value JsParagraph::OnGetVisibleTextRanges(napi_env env, napi_callback_info info)
+{
+    if (paragraph_ == nullptr) {
+        TEXT_LOGE("Null paragraph");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    std::vector<TextRange> visibleRanges = paragraph_->GetVisibleTextRanges();
+    napi_value returnArray = nullptr;
+    NAPI_CALL(env, napi_create_array(env, &returnArray));
+
+    uint32_t num = static_cast<uint32_t>(visibleRanges.size());
+    for (uint32_t index = 0; index < num; ++index) {
+        // Convert TextRange to Boundary for conversion
+        Boundary range{visibleRanges[index].start, visibleRanges[index].end};
+        napi_value tempValue = GetRangeAndConvertToJsValue(env, &range);
+        NAPI_CALL(env, napi_set_element(env, returnArray, index, tempValue));
+    }
+
+    return returnArray;
 }
 
 napi_value JsParagraph::GetLineMetrics(napi_env env, napi_callback_info info)

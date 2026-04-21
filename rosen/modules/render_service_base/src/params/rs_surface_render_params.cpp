@@ -607,17 +607,14 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
         targetSurfaceParams->preBufferOwnerCount_ = preBufferOwnerCount_;
         targetSurfaceParams->acquireFence_ = acquireFence_;
         targetSurfaceParams->damageRect_ = damageRect_;
-        if (layerInfo_.useDeviceOffline && isHardwareEnabled_) {
-            // hpae offline: while using hpae offline and going directly composition, set to false
-            bufferSynced_ = offlineOriginBufferSynced_;
-        } else {
-            if (preBufferOwnerCount_ != nullptr && bufferSynced_ == false) {
-                RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceRenderParams::OnSync RSSurfaceRenderNode RSBufferManager::DecRef "
-                    "bufferId %" PRIu64, preBufferOwnerCount_->bufferId_);
-                preBufferOwnerCount_->DecRef();
-            }
-            bufferSynced_ = true;
+        RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceRenderParams::OnSync RSSurfaceRenderNode RSBufferManager::DecRef ");
+        if (preBufferOwnerCount_ != nullptr && bufferSynced_ == false && preBufferOwnerCount_->DecRef()) {
+            targetSurfaceParams->preBuffer_ = nullptr;
+            preBuffer_ = nullptr;
+            targetSurfaceParams->preBufferOwnerCount_ = nullptr;
+            preBufferOwnerCount_ = nullptr;
         }
+        bufferSynced_ = true;
         dirtyType_.reset(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY);
     }
 #endif
@@ -632,6 +629,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isCloneNode_ = isCloneNode_;
     targetSurfaceParams->isRelated_ = isRelated_;
     targetSurfaceParams->isRelatedSourceNode_ = isRelatedSourceNode_;
+    targetSurfaceParams->needClearRelatedCache_ = needClearRelatedCache_;
     targetSurfaceParams->clonedSourceNode_ = clonedSourceNode_;
     targetSurfaceParams->alpha_ = alpha_;
     targetSurfaceParams->isSpherizeValid_ = isSpherizeValid_;
@@ -733,18 +731,9 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->appRotationCorrection_ = appRotationCorrection_;
     targetSurfaceParams->rotationCorrectionDegree_ = rotationCorrectionDegree_;
     targetSurfaceParams->isParticipateInOcclusion_ = isParticipateInOcclusion_;
-    RSRenderParams::OnSync(target);
-}
-
-void RSSurfaceRenderParams::OnPartialSync(const std::unique_ptr<RSRenderParams>& target)
-{
-    auto targetSurfaceParams = static_cast<RSSurfaceRenderParams*>(target.get());
-    if (targetSurfaceParams == nullptr) {
-        RS_LOGE("RSSurfaceRenderParams::OnPartialSync targetSurfaceParams is nullptr");
-        return;
-    }
     targetSurfaceParams->isUIFirstLeashAllEnable_ = isUIFirstLeashAllEnable_;
-    targetSurfaceParams->isUIFirstLeashAllEnableChange_ = isUIFirstLeashAllEnableChange_;
+    targetSurfaceParams->isPartialSynced_ = isPartialSynced_;
+    RSRenderParams::OnSync(target);
 }
 
 std::string RSSurfaceRenderParams::ToString() const
@@ -881,7 +870,6 @@ void RSSurfaceRenderParams::SetUIFirstLeashAllEnable(bool enable)
         return;
     }
     isUIFirstLeashAllEnable_ = enable;
-    isUIFirstLeashAllEnableChange_ = true;
     needSync_ = true;
 }
 
@@ -890,14 +878,18 @@ bool RSSurfaceRenderParams::IsUIFirstLeashAllEnable() const
     return isUIFirstLeashAllEnable_;
 }
 
-void RSSurfaceRenderParams::SetUIFirstLeashAllEnableChange(bool isChanged)
+void RSSurfaceRenderParams::SetPartialSynced(bool isPartialSynced)
 {
-    isUIFirstLeashAllEnableChange_ = isChanged;
+    if (isPartialSynced_ == isPartialSynced) {
+        return;
+    }
+    isPartialSynced_ = isPartialSynced;
+    needSync_ = true;
 }
 
-bool RSSurfaceRenderParams::IsUIFirstLeashAllEnableChange() const
+bool RSSurfaceRenderParams::IsPartialSynced() const
 {
-    return isUIFirstLeashAllEnableChange_;
+    return isPartialSynced_;
 }
 
 void RSSurfaceRenderParams::SwapRelatedRenderParams(RSSurfaceRenderParams& relatedRenderParams)

@@ -80,6 +80,8 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_SET_SURFACE_BUFFER_OPAQUE = 45,
     SURFACE_NODE_SET_CONTAINER_WINDOW_TRANSPARENT = 46,
     SURFACE_NODE_SET_APP_ROTATION_CORRECTION = 47,
+    SURFACE_NODE_SET_HDR_TYPE = 48,
+    SURFACE_NODE_SET_DARK_COLOR_MODE = 49,
 };
 
 class RSB_EXPORT SurfaceNodeCommandHelper {
@@ -139,6 +141,8 @@ public:
     static void SetSurfaceBufferOpaque(RSContext& context, NodeId nodeId, bool isOpaque);
     static void SetContainerWindowTransparent(RSContext& context, NodeId nodeId, bool isContainerWindowTransparent);
     static void SetAppRotationCorrection(RSContext& context, NodeId nodeId, ScreenRotation appRotationCorrection);
+    static void SetHDRType(RSContext& context, NodeId nodeId, uint32_t hdrType);
+    static void SetDarkColorMode(RSContext& context, NodeId nodeId, bool isDarkColorMode);
 };
 
 ADD_COMMAND(RSSurfaceNodeCreate,
@@ -249,6 +253,9 @@ ADD_COMMAND(RSSurfaceNodeSetHDRPresent,
 ADD_COMMAND(RSSurfaceNodeSetSkipDraw,
     ARG(PERMISSION_SYSTEM, SURFACE_NODE, SURFACE_NODE_SET_SKIP_DRAW,
         SurfaceNodeCommandHelper::SetSkipDraw, NodeId, bool))
+ADD_COMMAND(RSSurfaceNodeSetDarkColorMode,
+    ARG(PERMISSION_SYSTEM, SURFACE_NODE, SURFACE_NODE_SET_DARK_COLOR_MODE,
+        SurfaceNodeCommandHelper::SetDarkColorMode, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetRegionToBeMagnified,
     ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_REGION_TO_BE_MAGNIFIED,
         SurfaceNodeCommandHelper::SetRegionToBeMagnified, NodeId, Vector4<int>))
@@ -288,6 +295,9 @@ ADD_COMMAND(RSSurfaceNodeSetContainerWindowTransparent,
 ADD_COMMAND(RSSurfaceNodeSetAppRotationCorrection,
     ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_APP_ROTATION_CORRECTION,
         SurfaceNodeCommandHelper::SetAppRotationCorrection, NodeId, ScreenRotation))
+ADD_COMMAND(RSSurfaceNodeSetHDRType,
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_HDR_TYPE,
+        SurfaceNodeCommandHelper::SetHDRType, NodeId, uint32_t))
 } // namespace Rosen
 } // namespace OHOS
 #endif // ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_SURFACE_NODE_COMMAND_H

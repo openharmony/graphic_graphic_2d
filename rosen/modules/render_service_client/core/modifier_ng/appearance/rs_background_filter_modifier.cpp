@@ -46,16 +46,6 @@ std::optional<RSWaterRipplePara> RSBackgroundFilterModifier::GetWaterRippleParam
     return GetterOptional<RSWaterRipplePara>(RSPropertyType::WATER_RIPPLE_PARAMS);
 }
 
-void RSBackgroundFilterModifier::SetMagnifierParams(const std::shared_ptr<RSMagnifierParams>& params)
-{
-    Setter<RSProperty, std::shared_ptr<RSMagnifierParams>>(RSPropertyType::MAGNIFIER_PARA, params);
-}
-
-std::shared_ptr<RSMagnifierParams> RSBackgroundFilterModifier::GetMagnifierParams() const
-{
-    return Getter<std::shared_ptr<RSMagnifierParams>>(RSPropertyType::MAGNIFIER_PARA, nullptr);
-}
-
 void RSBackgroundFilterModifier::SetBackgroundBlurRadius(float backgroundBlurRadius)
 {
     Setter(RSPropertyType::BACKGROUND_BLUR_RADIUS, backgroundBlurRadius);

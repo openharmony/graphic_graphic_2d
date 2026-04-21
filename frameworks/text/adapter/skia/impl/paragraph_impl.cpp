@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <limits>
 #include <numeric>
+#include <sstream>
 
 #include "common_utils/path_util.h"
 #include "common_utils/pixel_map_util.h"
@@ -45,7 +46,7 @@ namespace Rosen {
 namespace SPText {
 using PaintID = skt::ParagraphPainter::PaintID;
 constexpr double INFINITE_WIDTH = std::numeric_limits<double>::max();
-constexpr size_t INFINTE_RANGE_INDEX = std::numeric_limits<size_t>::max();
+constexpr size_t INFINITE_RANGE_INDEX = std::numeric_limits<size_t>::max();
 
 namespace {
 std::vector<TextBox> GetTxtTextBoxes(const std::vector<skt::TextBox>& skiaBoxes)
@@ -272,10 +273,17 @@ Range<size_t> ParagraphImpl::GetActualTextRange(int lineNumber, bool includeSpac
     }
 }
 
-Range<size_t> ParagraphImpl::GetEllipsisTextRange()
+Range<size_t> ParagraphImpl::GetEllipsisTextRange() const
 {
     skt::SkRange<size_t> range = paragraph_->getEllipsisTextRange();
     return Range<size_t>(range.start, range.end);
+}
+
+std::vector<TextRange> ParagraphImpl::GetVisibleTextRanges() const
+{
+    std::vector<TextRange> visibleRanges;
+    BuildFitStrRange(visibleRanges);
+    return visibleRanges;
 }
 
 std::vector<skt::LineMetrics> ParagraphImpl::GetLineMetrics()
@@ -547,9 +555,53 @@ void ParagraphImpl::SetLayoutState(size_t state)
     paragraph_->setState(static_cast<skt::InternalState>(state));
 }
 
+std::string ParagraphImpl::DumpSymbolInfo() const
+{
+    std::ostringstream symbolInfo;
+    for (size_t i = 0; i < hmSymbols_.size(); ++i) {
+        const auto& symbolRun = hmSymbols_[i];
+        if (symbolRun == nullptr) {
+            continue;
+        }
+        const auto& symbolTxt = symbolRun->GetSymbolTxt();
+        auto colors = symbolTxt.GetRenderColor();
+        auto uiColors = symbolTxt.GetUIColors();
+        auto colorSpaces = symbolTxt.GetColorSpaces();
+
+        symbolInfo << "{SymbolRun" << i
+                   << "}uid:" << symbolTxt.GetSymbolUid()
+                   << ",rmode:" << static_cast<int>(symbolTxt.GetRenderMode())
+                   << ",clrCnt:" << colors.size();
+        for (size_t j = 0; j < colors.size(); ++j) {
+            symbolInfo << ",clr" << j << ":["
+                       << static_cast<int>(colors[j].r) << ","
+                       << static_cast<int>(colors[j].g) << ","
+                       << static_cast<int>(colors[j].b) << ","
+                       << colors[j].a << "]";
+        }
+        symbolInfo << ".uiClrCnt:" << uiColors.size();
+        for (size_t j = 0; j < uiColors.size(); ++j) {
+            symbolInfo << ",uiClr" << j << ":["
+                       << uiColors[j].GetRed() << ","
+                       << uiColors[j].GetGreen() << ","
+                       << uiColors[j].GetBlue() << ","
+                       << uiColors[j].GetAlpha() << ","
+                       << uiColors[j].GetHeadroom() << "],";
+            if (j < colorSpaces.size()) {
+                symbolInfo << "cspace" << j << ":" << static_cast<int>(colorSpaces[j]);
+            }
+        }
+    }
+    return symbolInfo.str();
+}
+
 std::string ParagraphImpl::GetDumpInfo() const
 {
-    return paragraph_->GetDumpInfo();
+    std::string dumpInfo = paragraph_->GetDumpInfo();
+    if (!hmSymbols_.empty()) {
+        return dumpInfo + DumpSymbolInfo();
+    }
+    return dumpInfo;
 }
 
 ParagraphStyle ParagraphImpl::GetParagraphStyle() const
@@ -595,7 +647,7 @@ TextDisplayState ParagraphImpl::GetTextDisplayState() const
         return TextDisplayState::UNKNOWN;
     }
     skt::SkRange<size_t> range = paragraph_->getEllipsisTextRange();
-    if (range.start != INFINTE_RANGE_INDEX) {
+    if (range.start != INFINITE_RANGE_INDEX) {
         return TextDisplayState::OMITTED;
     }
     if (paragraph_->didExceedMaxLines()) {
@@ -613,13 +665,16 @@ std::shared_ptr<OHOS::Media::PixelMap> ParagraphImpl::GetTextPathImageByIndex(
         return nullptr;
     }
     
+    // If not all glyph paths in the range are successfully obtained, return nullptr to avoid
+    // returning an incomplete path result that could lead to rendering anomalies.
     skt::SkRange<size_t> range{start, end};
-    std::vector<skt::PathInfo> pathInfos = paragraph_->getTextPathByClusterRange(range);
-    if (pathInfos.empty()) {
-        TEXT_LOGD("No path info found for range: [%{public}zu, %{public}zu)", start, end);
+    auto [pathInfos, allSuccess] = paragraph_->getTextPathByClusterRange(range);
+    if (!allSuccess || pathInfos.empty()) {
+        TEXT_LOGD("Failed to get all path info for range: [%{public}zu, %{public}zu) path size: %{public}zu", start,
+            end, pathInfos.size());
         return nullptr;
     }
-    
+
     if (fill) {
         for (size_t i = 0; i < pathInfos.size(); i++) {
             auto& pathInfo = pathInfos[i];
@@ -631,6 +686,26 @@ std::shared_ptr<OHOS::Media::PixelMap> ParagraphImpl::GetTextPathImageByIndex(
         }
     }
     return TextPixelMapUtil::CreatePixelMap(options, pathInfos);
+}
+
+std::vector<TextPathInfo> ParagraphImpl::GetTextPathsByIndex(size_t start, size_t end) const
+{
+    if (start >= end) {
+        TEXT_LOGW("Invalid range: [%{public}zu, %{public}zu)", start, end);
+        return {};
+    }
+    skt::SkRange<size_t> range { start, end };
+    auto [pathInfos, allSuccess] = paragraph_->getTextPathByClusterRange(range);
+    if (!allSuccess || pathInfos.empty()) {
+        TEXT_LOGD("No path info found for range: [%{public}zu, %{public}zu)", start, end);
+        return {};
+    }
+    std::vector<TextPathInfo> result;
+    result.reserve(pathInfos.size());
+    for (auto& pathInfo : pathInfos) {
+        result.push_back({ std::move(pathInfo.path), pathInfo.point });
+    }
+    return result;
 }
 #endif
 
@@ -654,19 +729,28 @@ TextLayoutResult ParagraphImpl::LayoutWithConstraints(const TextRectSize& limitR
     return layoutResult;
 }
 
-void ParagraphImpl::BuildFitStrRange(std::vector<TextRange>& fitRanges)
+void ParagraphImpl::BuildFitStrRange(std::vector<TextRange>& fitRanges) const
 {
     Range<size_t> ellipsisRange = GetEllipsisTextRange();
     skt::TextRange textRange = paragraph_->getUtf16TextRange();
     skt::TextRange lastLineTextRange = paragraph_->getLineUtf16TextRange(GetLineCount() - 1, true);
     // If there is no ellipsis, the fit range is 0 to end index of last line.
-    if (ellipsisRange.start == INFINTE_RANGE_INDEX) {
+    if (ellipsisRange.start == INFINITE_RANGE_INDEX) {
         fitRanges.push_back({0, lastLineTextRange.end});
         return;
     }
 
+    // In MIDDLE ellipsis mode with text ending in \n followed by more characters,
+    // ellipsisRange is based on fGhostClusterRange (including \n cluster) while
+    // lastLineTextRange is based on fText (ending before \n), causing ellipsisRange.end
+    // to potentially exceed lastLineTextRange.end.
+    if (ellipsisRange.end > lastLineTextRange.end) {
+        ellipsisRange.end = lastLineTextRange.end;
+    }
+
     // If there is one line head ellipsis, the fit range is the text range after ellipsis.
-    if (ellipsisRange.start == 0) {
+    if (ellipsisRange.start == 0 &&
+        paragraph_->getParagraphStyle().getEllipsisMod() == skt::EllipsisModal::HEAD) {
         fitRanges.push_back({ellipsisRange.end, lastLineTextRange.end});
     } else {
         fitRanges.push_back({textRange.start, ellipsisRange.start});

@@ -271,7 +271,7 @@ bool RSInterfaces::FreezeScreen(std::shared_ptr<RSDisplayNode> node, bool isFree
     return renderInterface_->FreezeScreen(node, isFreeze, needSync);
 }
 
-bool RSInterfaces::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+bool RSInterfaces::SetHwcNodeBounds(NodeId rsNodeId, float positionX, float positionY,
     float positionZ, float positionW)
 {
     return renderInterface_->SetHwcNodeBounds(rsNodeId, positionX, positionY, positionZ, positionW);
@@ -520,6 +520,18 @@ int32_t RSInterfaces::SetDualScreenState(ScreenId id, DualScreenStatus status)
     return renderServiceClient_->SetDualScreenState(id, status);
 }
 
+int32_t RSInterfaces::SetAsMainScreen(ScreenId screenId, bool isMainScreen)
+{
+    ROSEN_LOGI("RSInterfaces::SetAsMainScreen. screenId[%{public}" PRIu64 "] isMainScreen[%{public}d]",
+               screenId, isMainScreen);
+    return renderServiceClient_->SetAsMainScreen(screenId, isMainScreen);
+}
+
+ScreenId RSInterfaces::GetMainScreenId()
+{
+    return renderServiceClient_->GetMainScreenId();
+}
+
 #endif // !ROSEN_ARKUI_X
 bool RSInterfaces::TakeSurfaceCaptureForUIWithoutUni(NodeId id,
     std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY)
@@ -762,6 +774,17 @@ int32_t RSInterfaces::RegisterFirstFrameCommitCallback(const FirstFrameCommitCal
 int32_t RSInterfaces::UnRegisterFirstFrameCommitCallback()
 {
     return renderServiceClient_->RegisterFirstFrameCommitCallback(nullptr);
+}
+
+int32_t RSInterfaces::RegisterExposedEventCallback(
+    const RSExposedEventType type, const RSExposedEventCallback& callback)
+{
+    return renderServiceClient_->RegisterExposedEventCallback(type, callback);
+}
+
+int32_t RSInterfaces::UnRegisterExposedEventCallback(const RSExposedEventType type)
+{
+    return renderServiceClient_->RegisterExposedEventCallback(type, nullptr);
 }
 
 int32_t RSInterfaces::RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
@@ -1100,6 +1123,13 @@ int32_t RSInterfaces::GetPidGpuMemoryInMB(pid_t pid, float& gpuMemInMB)
     auto ret = renderServiceClient_->GetPidGpuMemoryInMB(pid, gpuMemInMB);
     return ret;
 }
+
+int32_t RSInterfaces::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
+{
+    RS_LOGI("RSInterfaces::GetMaxGpuBufferSize called");
+    return renderInterface_->GetMaxGpuBufferSize(maxWidth, maxHeight);
+}
+
 // LCOV_EXCL_START
 bool RSInterfaces::GetHighContrastTextState()
 {

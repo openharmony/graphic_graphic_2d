@@ -73,6 +73,24 @@ bool RSRenderGroupCache::SetNeedClipHoleForFilter(bool val)
     return true;
 }
 
+bool RSRenderGroupCache::SetRSFreezeFlag(bool freezeFlag, bool isMarkedByUI)
+{
+    RSFreezeFlag originFreezeFlag = freezeFlag_;
+    RSFreezeFlag incomingFreezeFlag = isMarkedByUI ? RSFreezeFlag::FREEZED_BY_UI : RSFreezeFlag::FREEZED_BY_USER;
+    if (freezeFlag) {
+        freezeFlag_ |= incomingFreezeFlag;
+    } else {
+        freezeFlag_ &= ~incomingFreezeFlag;
+    }
+    if (freezeFlag_ == originFreezeFlag) {
+        // freezeFlag_ does not changed
+        return false;
+    } else {
+        // freezeFlag_ changed
+        return true;
+    }
+}
+
 AutoRenderGroupExcludedSubTreeGuard::AutoRenderGroupExcludedSubTreeGuard(
     NodeId& curExcludedRootNodeId, bool isCurNodeExcluded, NodeId curNodeId)
     : curExcludedRootNodeId_(curExcludedRootNodeId)

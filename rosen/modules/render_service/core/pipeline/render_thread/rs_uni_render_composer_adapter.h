@@ -18,10 +18,10 @@
 
 #include "hdi_backend.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/render_thread/rs_base_surface_util.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_render_node_map.h"
-#include "rs_base_render_util.h"
 #include "rs_composer_adapter.h"
 #include "rs_render_composer_manager.h"
 

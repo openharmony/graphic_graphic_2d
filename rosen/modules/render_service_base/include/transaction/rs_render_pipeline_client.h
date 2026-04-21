@@ -147,7 +147,7 @@ public:
     bool TakeUICaptureInRange(
         NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig);
 
-    bool SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+    bool SetHwcNodeBounds(NodeId rsNodeId, float positionX, float positionY,
         float positionZ, float positionW);
 
     int32_t SetFocusAppInfo(const FocusAppInfo& info);
@@ -196,6 +196,8 @@ public:
 #endif
 
     int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection);
+
+    int32_t GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight);
 
     int32_t RegisterFrameStabilityDetection(
         const FrameStabilityTarget& target,

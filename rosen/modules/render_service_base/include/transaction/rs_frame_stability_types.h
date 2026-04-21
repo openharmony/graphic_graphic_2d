@@ -20,9 +20,18 @@
 
 namespace OHOS {
 namespace Rosen {
+constexpr uint32_t MIN_STABLE_DURATION = 100;
+constexpr uint32_t MAX_STABLE_DURATION = 5000;
+constexpr float MIN_CHANGE_PERCENT = 0.0f;
+constexpr float MAX_CHANGE_PERCENT = 1.0f;
 enum class FrameStabilityErrorCode : int32_t {
     SUCCESS = 0,
-    NULL_CALLBACK
+    NULL_CALLBACK,
+    TARGET_ID_ALREADY_REGISTERED,
+    TARGET_ID_NOT_REGISTERED,
+    CONNECTIONS_OCCUPIED,
+    INVALID_ID,
+    UNKNOWN
 };
 
 enum class FrameStabilityTargetType : uint32_t {
@@ -37,6 +46,9 @@ struct FrameStabilityConfig {
     float changePercent = 0.0f;
 };
 
+// Target for frame stability detection or collection, identified by an ID and type
+// For screen type, the ID is the screenId; for window type, the ID is the surfaceNodeId
+// Currently, only the main screen and virtual extension screen are supported
 struct FrameStabilityTarget {
     uint64_t id = 0;
     FrameStabilityTargetType type = FrameStabilityTargetType::SCREEN;

@@ -437,17 +437,9 @@ public:
     {
         return bufferSynced_;
     }
-    // hpae offline: when surface node using hpae offline and doing directly compotition,
-    // the origin buffer will not be synced by hwc.
-    // While taking capture, bufferSynced_ should be set to false
-    void SetOfflineOriginBufferSynced(bool bufferSynced)
-    {
-        offlineOriginBufferSynced_ = bufferSynced;
-    }
 #endif
 
     virtual void OnSync(const std::unique_ptr<RSRenderParams>& target) override;
-    virtual void OnPartialSync(const std::unique_ptr<RSRenderParams>& target) override;
 
     void SetRoundedCornerRegion(const Occlusion::Region& roundedCornerRegion)
     {
@@ -653,6 +645,16 @@ public:
         isRelatedSourceNode_ = value;
     }
 
+    void SetNeedClearRelatedCache(bool value)
+    {
+        needClearRelatedCache_ = value;
+    }
+
+    bool IsNeedClearRelatedCache()
+    {
+        return needClearRelatedCache_;
+    }
+
     bool IsRelatedSourceNode() const
     {
         return isRelatedSourceNode_;
@@ -831,8 +833,8 @@ public:
 
     void SetUIFirstLeashAllEnable(bool isEnable);
     bool IsUIFirstLeashAllEnable() const override;
-    void SetUIFirstLeashAllEnableChange(bool isChanged);
-    bool IsUIFirstLeashAllEnableChange() const;
+    void SetPartialSynced(bool isPartialSynced);
+    bool IsPartialSynced() const;
 
     void SwapRelatedRenderParams(RSSurfaceRenderParams& relatedRenderParams);
 private:
@@ -850,6 +852,7 @@ private:
     bool isRelated_ = false;
     bool clonedSourceNode_ = false;
     bool isRelatedSourceNode_ = false;
+    bool needClearRelatedCache_ = false;
     bool isTransparent_ = false;
     bool isSpherizeValid_ = false;
     bool isAttractionValid_ = false;
@@ -902,7 +905,6 @@ private:
     bool bufferSynced_ = true;
     std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> preBufferOwnerCount_ = nullptr;
     std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount_ = nullptr;
-    bool offlineOriginBufferSynced_ = true;
 #endif
     bool isHardwareEnabled_ = false;
     bool needMakeImage_ = false;
@@ -977,7 +979,9 @@ private:
     bool isSurfaceBufferOpaque_ = false;
     bool isParticipateInOcclusion_ = false;
     bool isUIFirstLeashAllEnable_ = false;
-    bool isUIFirstLeashAllEnableChange_ = false;
+    // When onSync is triggered on the uifirst root node and the child thread drawing task
+    // is incomplete, partial synchronization is executed instead.
+    bool isPartialSynced_ = false;
 
     // only used for window capture
     sptr<RSISurfaceCaptureCallback> captureCallback_;

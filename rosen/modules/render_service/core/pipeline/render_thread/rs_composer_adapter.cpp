@@ -21,12 +21,12 @@
 #include <sys/time.h>
 
 #include "common/rs_common_def.h"
-#include "feature/gpuComposition/rs_gpu_cache_manager.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "draw/canvas.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "gpuComposition/rs_gpu_cache_manager.h"
 #include "pipeline/render_thread/rs_divided_render_util.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_surface_handler.h"
@@ -556,7 +556,7 @@ RSLayerPtr RSComposerAdapter::CreateLayer(RSScreenRenderNode& node) const
     }
     auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(drawable);
     auto surfaceHandler = screenDrawable->GetMutableRSSurfaceHandlerOnDraw();
-    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler)) {
+    if (!RSBaseSurfaceUtil::ConsumeAndUpdateBuffer(*surfaceHandler)) {
         RS_LOGE("RSComposerAdapter::CreateLayer consume buffer failed.");
         return nullptr;
     }

@@ -92,6 +92,11 @@ HWTEST_F(PropertiesTest, SetShadowRadiusTest, TestSize.Level1)
     radius = -1.0f;
     properties.SetShadowRadius(radius);
     EXPECT_FALSE(properties.GetEffect().shadow_->IsValid());
+
+    properties.GetEffect().shadow_->elevation_ = -1.f;
+    radius = 0.0f;
+    properties.SetShadowRadius(radius);
+    EXPECT_TRUE(properties.GetEffect().shadow_->IsValid());
 }
 
 /**
@@ -1570,6 +1575,39 @@ HWTEST_F(PropertiesTest, GetMaterialFilter001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetGravityHotZoneTest001
+ * @tc.desc: test SetGravityHotZone with different value
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetGravityHotZoneTest001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetGravityHotZone(0.5f);
+    EXPECT_FLOAT_EQ(properties.gravityHotZone_, 0.5f);
+    EXPECT_TRUE(properties.isDrawn_);
+    EXPECT_TRUE(properties.filterNeedUpdate_);
+    EXPECT_TRUE(properties.isDirty_);
+}
+
+/**
+ * @tc.name: SetGravityHotZoneTest002
+ * @tc.desc: test SetGravityHotZone with same value
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetGravityHotZoneTest002, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetGravityHotZone(0.5f);
+    properties.isDrawn_ = false;
+    properties.filterNeedUpdate_ = false;
+    properties.isDirty_ = false;
+    properties.SetGravityHotZone(0.5f);
+    EXPECT_FALSE(properties.isDrawn_);
+    EXPECT_FALSE(properties.filterNeedUpdate_);
+    EXPECT_FALSE(properties.isDirty_);
+}
+
+/**
  * @tc.name: GenerateMaterialFilter001
  * @tc.desc: test GenerateMaterialFilter
  * @tc.type: FUNC
@@ -1638,6 +1676,110 @@ HWTEST_F(PropertiesTest, GetRRectForSDFTest003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GenerateMaterialFilter003
+ * @tc.desc: test GenerateMaterialFilter with FROSTED_GLASS type
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, GenerateMaterialFilter003, TestSize.Level1)
+{
+    RSProperties properties;
+    std::shared_ptr<RSNGRenderFilterBase> filter = RSNGRenderFilterBase::Create(RSNGEffectType::FROSTED_GLASS);
+    properties.GetEffect().mtNGRenderFilter_ = filter;
+    ASSERT_NE(properties.GetMaterialNGFilter(), nullptr);
+    properties.GenerateMaterialFilter();
+    ASSERT_NE(properties.GetEffect().materialFilter_, nullptr);
+    EXPECT_EQ(properties.GetEffect().materialFilter_->GetFilterType(), RSFilter::COMPOUND_EFFECT);
+}
+
+/**
+ * @tc.name: GenerateMaterialFilter004
+ * @tc.desc: test GenerateMaterialFilter with multiple calls
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, GenerateMaterialFilter004, TestSize.Level1)
+{
+    RSProperties properties;
+    std::shared_ptr<RSNGRenderFilterBase> filter1 = RSNGRenderFilterBase::Create(RSNGEffectType::BLUR);
+    properties.GetEffect().mtNGRenderFilter_ = filter1;
+    properties.GenerateMaterialFilter();
+    ASSERT_NE(properties.GetEffect().materialFilter_, nullptr);
+    EXPECT_EQ(properties.GetEffect().materialFilter_->GetFilterType(), RSFilter::COMPOUND_EFFECT);
+
+    std::shared_ptr<RSNGRenderFilterBase> filter2 = RSNGRenderFilterBase::Create(RSNGEffectType::FROSTED_GLASS);
+    properties.GetEffect().mtNGRenderFilter_ = filter2;
+    properties.GenerateMaterialFilter();
+    ASSERT_NE(properties.GetEffect().materialFilter_, nullptr);
+    EXPECT_EQ(properties.GetEffect().materialFilter_->GetFilterType(), RSFilter::COMPOUND_EFFECT);
+}
+
+/**
+ * @tc.name: ComposeNGRenderFilter001
+ * @tc.desc: test ComposeNGRenderFilter with FROSTED_GLASS_BLUR type (originFilter is null)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, ComposeNGRenderFilter001, TestSize.Level1)
+{
+    RSProperties properties;
+    std::shared_ptr<RSNGRenderFilterBase> filter = RSNGRenderFilterBase::Create(RSNGEffectType::FROSTED_GLASS_BLUR);
+    std::shared_ptr<RSFilter> originFilter = nullptr;
+    properties.ComposeNGRenderFilter(originFilter, filter);
+    ASSERT_NE(originFilter, nullptr);
+    EXPECT_EQ(originFilter->GetFilterType(), RSFilter::COMPOUND_EFFECT);
+    auto drawingFilter = std::static_pointer_cast<RSDrawingFilter>(originFilter);
+    ASSERT_NE(drawingFilter, nullptr);
+    ASSERT_NE(drawingFilter->GetNGRenderFilter(), nullptr);
+}
+
+/**
+ * @tc.name: ComposeNGRenderFilter002
+ * @tc.desc: test ComposeNGRenderFilter with FROSTED_GLASS_BLUR type (originFilter is not null)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, ComposeNGRenderFilter002, TestSize.Level1)
+{
+    RSProperties properties;
+    std::shared_ptr<RSFilter> originFilter = std::make_shared<RSDrawingFilter>();
+    std::shared_ptr<RSNGRenderFilterBase> filter = RSNGRenderFilterBase::Create(RSNGEffectType::FROSTED_GLASS_BLUR);
+    properties.ComposeNGRenderFilter(originFilter, filter);
+    ASSERT_NE(originFilter, nullptr);
+    EXPECT_EQ(originFilter->GetFilterType(), RSFilter::COMPOUND_EFFECT);
+    auto drawingFilter = std::static_pointer_cast<RSDrawingFilter>(originFilter);
+    ASSERT_NE(drawingFilter, nullptr);
+    ASSERT_NE(drawingFilter->GetNGRenderFilter(), nullptr);
+}
+
+/**
+ * @tc.name: HdrDarkenBlenderTest
+ * @tc.desc: test HdrDarkenBlender SetParams, GetParams, Invalid and Description.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, HdrDarkenBlenderTest, TestSize.Level1)
+{
+    RSProperties properties;
+    std::optional<RSHdrDarkenBlenderPara> paramsNull = std::nullopt;
+    properties.SetHdrDarkenBlenderParams(paramsNull);
+    EXPECT_FALSE(properties.isDrawn_);
+    std::string description = "hdrDarkenBlenderParams is nullopt";
+    EXPECT_EQ(description, properties.GetHdrDarkenBlenderDescription());
+
+    float hdrBrightnessRatio = 1.0;
+    float grayscaleFactorR = 0.299;
+    float grayscaleFactorG = 0.587;
+    float grayscaleFactorB = 0.114;
+    auto params = std::optional<RSHdrDarkenBlenderPara>({ hdrBrightnessRatio, { grayscaleFactorR,
+                                                            grayscaleFactorG, grayscaleFactorB } });
+    properties.SetHdrDarkenBlenderParams(params);
+    EXPECT_TRUE(properties.isDrawn_);
+    EXPECT_TRUE(properties.GetHdrDarkenBlenderParams().has_value());
+    EXPECT_TRUE(properties.IsHdrDarkenBlenderValid());
+    description = "HdrDarkenBlender, hdrBrightnessRatio: " + std::to_string(hdrBrightnessRatio) +
+        ", grayscaleFactor.r: " + std::to_string(grayscaleFactorR) +
+        ", grayscaleFactor.g: " + std::to_string(grayscaleFactorG) +
+        ", grayscaleFactor.b: " + std::to_string(grayscaleFactorB);
+    EXPECT_EQ(description, properties.GetHdrDarkenBlenderDescription());
+}
+
+/**
  * @tc.name: NeedClipHoleForFilterTest
  * @tc.desc: test NeedClipHoleForFilter with different filter configurations
  * @tc.type: FUNC
@@ -1653,6 +1795,244 @@ HWTEST_F(PropertiesTest, NeedClipHoleForRenderGroupTest, TestSize.Level1)
 
     properties.GetEffect().colorFilter_ = nullptr;
     EXPECT_FALSE(properties.NeedClipHoleForRenderGroup());
+}
+
+/**
+ * @tc.name: SetHDRColorHeadroomTest
+ * @tc.desc: test SetHDRColorHeadroom multiple calls
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(PropertiesTest, SetHDRColorHeadroomTest, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetHDRColorHeadroom(0.5f);
+    EXPECT_FLOAT_EQ(properties.GetHDRColorHeadroom(), 0.5f);
+    properties.SetHDRColorHeadroom(1.0f);
+    EXPECT_FLOAT_EQ(properties.GetHDRColorHeadroom(), 1.0f);
+    properties.SetHDRColorHeadroom(3.5f);
+    EXPECT_FLOAT_EQ(properties.GetHDRColorHeadroom(), 3.5f);
+}
+
+/**
+ * @tc.name: SetSDFUnionModeTest001
+ * @tc.desc: test SetSDFUnionMode and GetSDFUnionMode
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetSDFUnionModeTest001, TestSize.Level1)
+{
+    RSProperties properties;
+    int defaultMode = properties.GetSDFUnionMode();
+    EXPECT_EQ(defaultMode, 0);
+
+    properties.SetSDFUnionMode(1);
+    EXPECT_EQ(properties.GetSDFUnionMode(), 1);
+    EXPECT_TRUE(properties.isDrawn_);
+    EXPECT_TRUE(properties.filterNeedUpdate_);
+    EXPECT_TRUE(properties.IsDirty());
+
+    properties.isDrawn_ = false;
+    properties.filterNeedUpdate_ = false;
+    properties.ResetDirty();
+
+    properties.SetSDFUnionMode(0);
+    EXPECT_EQ(properties.GetSDFUnionMode(), 0);
+    EXPECT_TRUE(properties.isDrawn_);
+    EXPECT_TRUE(properties.filterNeedUpdate_);
+    EXPECT_TRUE(properties.IsDirty());
+
+    properties.isDrawn_ = false;
+    properties.filterNeedUpdate_ = false;
+    properties.ResetDirty();
+
+    properties.SetSDFUnionMode(0);
+    EXPECT_EQ(properties.GetSDFUnionMode(), 0);
+    EXPECT_FALSE(properties.isDrawn_);
+    EXPECT_FALSE(properties.filterNeedUpdate_);
+    EXPECT_FALSE(properties.IsDirty());
+}
+
+/**
+ * @tc.name: SetGravityPullCenterFlagTest001
+ * @tc.desc: test SetGravityPullCenterFlag and GetGravityPullCenterFlag
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetGravityPullCenterFlagTest001, TestSize.Level1)
+{
+    RSProperties properties;
+    bool defaultFlag = properties.GetGravityPullCenterFlag();
+    EXPECT_EQ(defaultFlag, false);
+
+    properties.SetGravityPullCenterFlag(true);
+    EXPECT_EQ(properties.GetGravityPullCenterFlag(), true);
+    EXPECT_TRUE(properties.isDrawn_);
+    EXPECT_TRUE(properties.filterNeedUpdate_);
+    EXPECT_TRUE(properties.IsDirty());
+
+    properties.isDrawn_ = false;
+    properties.filterNeedUpdate_ = false;
+    properties.ResetDirty();
+
+    properties.SetGravityPullCenterFlag(false);
+    EXPECT_EQ(properties.GetGravityPullCenterFlag(), false);
+    EXPECT_TRUE(properties.isDrawn_);
+    EXPECT_TRUE(properties.filterNeedUpdate_);
+    EXPECT_TRUE(properties.IsDirty());
+
+    properties.isDrawn_ = false;
+    properties.filterNeedUpdate_ = false;
+    properties.ResetDirty();
+
+    properties.SetGravityPullCenterFlag(false);
+    EXPECT_EQ(properties.GetGravityPullCenterFlag(), false);
+    EXPECT_FALSE(properties.isDrawn_);
+    EXPECT_FALSE(properties.filterNeedUpdate_);
+    EXPECT_FALSE(properties.IsDirty());
+}
+
+/**
+ * @tc.name: SetGravityPullStrengthTest001
+ * @tc.desc: test SetGravityPullStrength and GetGravityPullStrength
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetGravityPullStrengthTest001, TestSize.Level1)
+{
+    RSProperties properties;
+    float defaultStrength = properties.GetGravityPullStrength();
+    EXPECT_EQ(defaultStrength, 0.0f);
+
+    properties.SetGravityPullStrength(0.5f);
+    EXPECT_EQ(properties.GetGravityPullStrength(), 0.5f);
+    EXPECT_TRUE(properties.isDrawn_);
+    EXPECT_TRUE(properties.filterNeedUpdate_);
+    EXPECT_TRUE(properties.IsDirty());
+
+    properties.isDrawn_ = false;
+    properties.filterNeedUpdate_ = false;
+    properties.ResetDirty();
+
+    properties.SetGravityPullStrength(1.0f);
+    EXPECT_EQ(properties.GetGravityPullStrength(), 1.0f);
+    EXPECT_TRUE(properties.isDrawn_);
+    EXPECT_TRUE(properties.filterNeedUpdate_);
+    EXPECT_TRUE(properties.IsDirty());
+
+    properties.isDrawn_ = false;
+    properties.filterNeedUpdate_ = false;
+    properties.ResetDirty();
+
+    properties.SetGravityPullStrength(1.0f);
+    EXPECT_EQ(properties.GetGravityPullStrength(), 1.0f);
+    EXPECT_FALSE(properties.isDrawn_);
+    EXPECT_FALSE(properties.filterNeedUpdate_);
+    EXPECT_FALSE(properties.IsDirty());
+}
+
+/**
+ * @tc.name: GetHDRColorMaxHeadroomTest
+ * @tc.desc: test GetHDRColorMaxHeadroom
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(PropertiesTest, GetHDRColorMaxHeadroomTest, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.UpdateHDRColorMaxHeadroom(2.0f, 1.5f);
+    EXPECT_FLOAT_EQ(properties.GetHDRColorMaxHeadroom(), 2.0f);
+    properties.UpdateHDRColorMaxHeadroom(3.0f, 2.5f);
+    EXPECT_FLOAT_EQ(properties.GetHDRColorMaxHeadroom(), 3.0f);
+}
+
+/**
+ * @tc.name: HDRColorHeadroomEnabledTest
+ * @tc.desc: test HDRColorHeadroomEnabled interaction
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(PropertiesTest, HDRColorHeadroomEnabledTest, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetHDRColorHeadroom(1.0f);
+    EXPECT_FALSE(properties.HDRColorHeadroomEnabled());
+    properties.SetHDRColorHeadroom(2.0f);
+    EXPECT_TRUE(properties.HDRColorHeadroomEnabled());
+    properties.SetHDRColorHeadroom(1.0f);
+    EXPECT_FALSE(properties.HDRColorHeadroomEnabled());
+}
+
+/**
+ * @tc.name: UpdateHDRColorMaxHeadroomTest
+ * @tc.desc: test UpdateHDRColorMaxHeadroom methods
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(PropertiesTest, UpdateHDRColorMaxHeadroomTest, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetHDRColorHeadroom(2.5f);
+    EXPECT_FLOAT_EQ(properties.GetHDRColorHeadroom(), 2.5f);
+    EXPECT_TRUE(properties.HDRColorHeadroomEnabled());
+
+    properties.UpdateHDRColorMaxHeadroom(3.0f, 2.0f);
+    EXPECT_FLOAT_EQ(properties.GetHDRColorMaxHeadroom(), 3.0f);
+
+    properties.SetHDRColorHeadroom(1.0f);
+    EXPECT_FLOAT_EQ(properties.GetHDRColorHeadroom(), 1.0f);
+    EXPECT_FALSE(properties.HDRColorHeadroomEnabled());
+}
+
+/**
+ * @tc.name: UpdateHDRColorMaxHeadroomTest1
+ * @tc.desc: test UpdateHDRColorMaxHeadroom methods
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(PropertiesTest, UpdateHDRColorMaxHeadroomTest1, TestSize.Level1)
+{
+    RSProperties properties;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(1);
+    NodeId surfaceNodeId = 2; // surface node id
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId);
+    properties.backref_ = canvasNode;
+    auto stagingRenderParams = std::make_unique<RSRenderParams>(0);
+    canvasNode->stagingRenderParams_ = std::move(stagingRenderParams);
+    canvasNode->instanceRootNodeId_ = surfaceNodeId;
+
+    canvasNode->isOnTheTree_ = false;
+    properties.SetHDRColorHeadroom(1.0f);
+    EXPECT_EQ(properties.GetHDRColorHeadroom(), 1.0f);
+    float headroom = 2.0f;
+    properties.SetHDRColorHeadroom(headroom);
+    EXPECT_EQ(properties.GetHDRColorHeadroom(), headroom);
+
+    canvasNode->isOnTheTree_ = true;
+    properties.SetHDRColorHeadroom(2.0f);
+    EXPECT_TRUE(properties.HDRColorHeadroomEnabled());
+}
+
+/**
+ * @tc.name: SetLastEquivalentDarkMode001
+ * @tc.desc: test results of SetLastEquivalentDarkMode
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetLastEquivalentDarkMode001, TestSize.Level1)
+{
+    RSProperties properties;
+
+    properties.SetLastEquivalentDarkMode(EquivalentDarkMode::LIGHT);
+    auto colorPicker = properties.GetColorPicker();
+    ASSERT_NE(colorPicker, nullptr);
+    EXPECT_EQ(colorPicker->lastEquivalentDarkMode, EquivalentDarkMode::LIGHT);
+
+    properties.SetLastEquivalentDarkMode(EquivalentDarkMode::DARK);
+    colorPicker = properties.GetColorPicker();
+    ASSERT_NE(colorPicker, nullptr);
+    EXPECT_EQ(colorPicker->lastEquivalentDarkMode, EquivalentDarkMode::DARK);
+
+    properties.SetLastEquivalentDarkMode(EquivalentDarkMode::INVALID);
+    colorPicker = properties.GetColorPicker();
+    ASSERT_NE(colorPicker, nullptr);
+    EXPECT_EQ(colorPicker->lastEquivalentDarkMode, EquivalentDarkMode::INVALID);
 }
 } // namespace Rosen
 } // namespace OHOS

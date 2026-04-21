@@ -17,7 +17,7 @@
 #include "surface_buffer_impl.h"
 
 #include "drawable/rs_screen_render_node_drawable.h"
-#include "feature/gpuComposition/rs_egl_image_manager.h"
+#include "gpuComposition/rs_egl_image_manager.h"
 #include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/rs_test_util.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/main_thread/rs_main_thread.h"

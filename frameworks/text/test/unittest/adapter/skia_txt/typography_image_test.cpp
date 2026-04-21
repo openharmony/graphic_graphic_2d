@@ -286,5 +286,147 @@ HWTEST_F(OH_Drawing_TypographyImageTest, TypographyGetTextPathImageByIndexTest01
     std::shared_ptr<OHOS::Media::PixelMap> pixelMap = typography_->GetTextPathImageByIndex(0, SIZE_MAX, options, false);
     ASSERT_EQ(pixelMap, nullptr);
 }
+
+/*
+ * @tc.name: TypographyGetTextPathsByIndexTest001
+ * @tc.desc: test for get text paths by index with full range
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyImageTest, TypographyGetTextPathsByIndexTest001, TestSize.Level0)
+{
+    typographyCreate_->AppendText(u"0123456789:");
+    typography_ = typographyCreate_->CreateTypography();
+    ASSERT_NE(typography_, nullptr);
+    double maxWidth = 500;
+    typography_->Layout(maxWidth);
+    auto result = typography_->GetTextPathsByIndex(0, 11);
+    EXPECT_EQ(result.size(), 11);
+}
+
+/*
+ * @tc.name: TypographyGetTextPathsByIndexTest002
+ * @tc.desc: test for get text paths by index with partial range
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyImageTest, TypographyGetTextPathsByIndexTest002, TestSize.Level0)
+{
+    typographyCreate_->AppendText(u"0123456789:");
+    typography_ = typographyCreate_->CreateTypography();
+    ASSERT_NE(typography_, nullptr);
+    double maxWidth = 500;
+    typography_->Layout(maxWidth);
+    auto result = typography_->GetTextPathsByIndex(3, 8);
+    EXPECT_EQ(result.size(), 5);
+}
+
+/*
+ * @tc.name: TypographyGetTextPathsByIndexTest003
+ * @tc.desc: test for get text paths by index without layout
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyImageTest, TypographyGetTextPathsByIndexTest003, TestSize.Level0)
+{
+    typographyCreate_->AppendText(u"0123456789:");
+    typography_ = typographyCreate_->CreateTypography();
+    ASSERT_NE(typography_, nullptr);
+    auto result = typography_->GetTextPathsByIndex(3, 8);
+    EXPECT_TRUE(result.empty());
+}
+
+/*
+ * @tc.name: TypographyGetTextPathsByIndexTest004
+ * @tc.desc: test for get text paths by index with invalid negative indices
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyImageTest, TypographyGetTextPathsByIndexTest004, TestSize.Level0)
+{
+    typographyCreate_->AppendText(u"0123456789:");
+    typography_ = typographyCreate_->CreateTypography();
+    ASSERT_NE(typography_, nullptr);
+    double maxWidth = 500;
+    typography_->Layout(maxWidth);
+    auto result = typography_->GetTextPathsByIndex(-100, -1);
+    EXPECT_TRUE(result.empty());
+}
+
+/*
+ * @tc.name: TypographyGetTextPathsByIndexTest005
+ * @tc.desc: test for get text paths by index with inverted range
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyImageTest, TypographyGetTextPathsByIndexTest005, TestSize.Level0)
+{
+    typographyCreate_->AppendText(u"0123456789:");
+    typography_ = typographyCreate_->CreateTypography();
+    ASSERT_NE(typography_, nullptr);
+    double maxWidth = 500;
+    typography_->Layout(maxWidth);
+    auto result = typography_->GetTextPathsByIndex(7, 1);
+    EXPECT_TRUE(result.empty());
+}
+
+/*
+ * @tc.name: TypographyGetTextPathsByIndexTest006
+ * @tc.desc: test for get text paths by index with range exceeding text length
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyImageTest, TypographyGetTextPathsByIndexTest006, TestSize.Level0)
+{
+    typographyCreate_->AppendText(u"0123456789:");
+    typography_ = typographyCreate_->CreateTypography();
+    ASSERT_NE(typography_, nullptr);
+    double maxWidth = 500;
+    typography_->Layout(maxWidth);
+    auto result = typography_->GetTextPathsByIndex(2, 15);
+    EXPECT_EQ(result.size(), 9);
+}
+
+/*
+ * @tc.name: TypographyGetTextPathsByIndexTest007
+ * @tc.desc: test for get text paths by index with SIZE_MAX range
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyImageTest, TypographyGetTextPathsByIndexTest007, TestSize.Level0)
+{
+    typographyCreate_->AppendText(u"0123456789:");
+    typography_ = typographyCreate_->CreateTypography();
+    ASSERT_NE(typography_, nullptr);
+    double maxWidth = 500;
+    typography_->Layout(maxWidth);
+    auto result = typography_->GetTextPathsByIndex(0, SIZE_MAX);
+    EXPECT_EQ(result.size(), 11);
+}
+
+/*
+ * @tc.name: TypographyGetTextPathsByIndexTest008
+ * @tc.desc: test for get text paths by index with default parameters (all glyphs)
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyImageTest, TypographyGetTextPathsByIndexTest008, TestSize.Level0)
+{
+    typographyCreate_->AppendText(u"0123456789:");
+    typography_ = typographyCreate_->CreateTypography();
+    ASSERT_NE(typography_, nullptr);
+    double maxWidth = 500;
+    typography_->Layout(maxWidth);
+    auto result = typography_->GetTextPathsByIndex();
+    EXPECT_EQ(result.size(), 11);
+}
+
+/*
+ * @tc.name: TypographyGetTextPathsByIndexTest009
+ * @tc.desc: test for get text paths by index with bitmap font
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyImageTest, TypographyGetTextPathsByIndexTest009, TestSize.Level0)
+{
+    typographyCreate_->AppendText(u"0123😊456789:");
+    typography_ = typographyCreate_->CreateTypography();
+    ASSERT_NE(typography_, nullptr);
+    double maxWidth = 500;
+    typography_->Layout(maxWidth);
+    auto result = typography_->GetTextPathsByIndex();
+    EXPECT_EQ(result.size(), 0);
+}
 } // namespace Rosen
 } // namespace OHOS

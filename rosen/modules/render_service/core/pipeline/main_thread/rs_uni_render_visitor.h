@@ -22,9 +22,10 @@
 #include <parameters.h>
 #include <set>
 
-#include "pipeline/render_thread/rs_base_render_engine.h"
+#include "engine/rs_base_render_engine.h"
 #include "system/rs_system_parameters.h"
 
+#include "feature/anco_manager/rs_anco_manager.h"
 #include "feature/hwc/rs_uni_hwc_prevalidate_util.h"
 #include "feature/pointer_window_manager/rs_pointer_window_manager.h"
 #include "feature/round_corner_display/rs_rcd_render_manager.h"
@@ -226,6 +227,7 @@ private:
     void PrevalidateHwcNode();
     bool PrepareForCloneNode(RSSurfaceRenderNode& node);
     void UpdateInfoForClonedNode(RSSurfaceRenderNode& node);
+    bool IsSourceNodeDirty(RSSurfaceRenderNode& node);
     void PrepareForCrossNode(RSSurfaceRenderNode& node);
 
     // use in QuickPrepareSurfaceRenderNode, update SurfaceRenderNode's uiFirst status
@@ -289,8 +291,9 @@ private:
 
     bool ForcePrepareSubTree()
     {
-        return (curSurfaceNode_ && curSurfaceNode_->GetNeedCollectHwcNode()) || IsAccessibilityConfigChanged() ||
-               isFirstFrameAfterScreenRotation_ || isCurSubTreeForcePrepare_;
+        return (curSurfaceNode_ && (curSurfaceNode_->GetNeedCollectHwcNode() ||
+                                    RSAncoManager::Instance()->IsAncoType(curSurfaceNode_->GetName()))) ||
+               IsAccessibilityConfigChanged() || isFirstFrameAfterScreenRotation_ || isCurSubTreeForcePrepare_;
     }
     // Wish to force prepare specific subtrees? Add conditions here
     bool IsCurrentSubTreeForcePrepare(RSRenderNode& node);
@@ -398,6 +401,7 @@ private:
     std::shared_ptr<RSDirtyRegionManager> curLayerPartRenderDirtyManager_;
     std::shared_ptr<RSSurfaceRenderNode> curSurfaceNode_;
     std::shared_ptr<RSUnionRenderNode> curUnionNode_;
+    std::shared_ptr<RSDynamicLayerSkipController> dynamicLayerSkipController_;
     RSSpecialLayerManager specialLayerManager_;
 
     bool hasFingerprint_ = false;
@@ -442,7 +446,6 @@ private:
     // vector of Appwindow nodes ids not contain subAppWindow nodes ids in current frame
     std::queue<NodeId> curMainAndLeashWindowNodesIds_;
     RectI prepareClipRect_{0, 0, 0, 0}; // renderNode clip rect used in Prepare
-    RectI prepareDirtyRegionClipRect_{0, 0, 0, 0}; // only used in dirty region clip rect calculation
     /*
      * surfaceRenderNode clip rect used in Prepare.
      * use as the clip bounds of the filter with a custom snapshot/drawing rect.
@@ -543,6 +546,9 @@ private:
 
     // used for force prepare current subtree this frame
     bool isCurSubTreeForcePrepare_ = false;
+
+    // used for check whether anco has dimmer
+    bool hasAncoDimmer_ = false;
 };
 
 class RSSubTreePrepareController {

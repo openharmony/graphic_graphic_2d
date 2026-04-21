@@ -36,11 +36,10 @@ public:
 
     bool Init() override;
     bool AbandonContext() override;
-    std::string GetShaderCacheSize() const override;
-    std::string CleanAllShaderCache() const override;
     bool SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawingContext = nullptr) override;
     void SetRenderContextType(uint8_t type) override;
     void ChangeProtectedState(bool isProtected) override;
+    bool QueryMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight) override;
     #ifdef ROSEN_ARKUI_X
     void AddSurface() override {}
     void DeleteSurface() override {}

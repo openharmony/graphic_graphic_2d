@@ -290,7 +290,7 @@ public:
      *                - true: Freeze current frame into static texture
      *                - false: Resume normal buffer updates
      */
-    void SetFreeze(bool isFreeze) override;
+    void SetFreeze(bool isFreeze, bool isMarkedByUI = false) override;
     
     // codes for arkui-x
 #ifdef USE_SURFACE_TEXTURE
@@ -321,6 +321,8 @@ public:
     void SetHDRPresent(bool hdrPresent, NodeId id);
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
+    void SetDarkColorMode(bool isDark);
+    bool GetDarkColorMode() const;
     void SetWatermarkEnabled(const std::string& name, bool isEnabled);
     void SetAbilityState(RSSurfaceNodeAbilityState abilityState);
     RSSurfaceNodeAbilityState GetAbilityState() const;
@@ -360,6 +362,8 @@ public:
     void SetContainerWindowTransparent(bool isContainerWindowTransparent);
     void SetAppRotationCorrection(ScreenRotation appRotationCorrection);
     void SetHDRBrightnessWithType(const float& hdrBrightness, uint32_t hdrType);
+    void SetIsDepthResource(bool isDepthResource);
+
 protected:
     bool NeedForcedSendToRemote() const override;
     RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode,
@@ -395,6 +399,7 @@ private:
         SharedPtr shadowNode, ModifierNG::RSPropertyType propertyType);
 
     void DumpSubClass(std::string& out) const override;
+    void SetHDRType(uint32_t hdrType);
 
     std::shared_ptr<RSSurface> surface_;
     std::string name_;
@@ -418,6 +423,7 @@ private:
     RSSurfaceNodeAbilityState abilityState_ = RSSurfaceNodeAbilityState::FOREGROUND;
     bool isFrameGravityNewVersionEnabled_ = false;
     bool isSurfaceBufferOpaque_ = false;
+    bool isDarkColorMode_ = false;
     LeashPersistentId leashPersistentId_ = INVALID_LEASH_PERSISTENTID;
     RSSurfaceNodeType surfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
     std::shared_ptr<RSCompositeLayerUtils> compositeLayerUtils_;

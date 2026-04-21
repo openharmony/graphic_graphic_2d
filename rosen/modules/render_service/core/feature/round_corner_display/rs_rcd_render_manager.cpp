@@ -213,17 +213,6 @@ RSRcdSurfaceRenderNodePtr RSRcdRenderManager::GetBottomRenderNode(NodeId id)
     return bottomRcdNode;
 }
 
-void RSRcdRenderManager::DrawRoundCorner(RSPaintFilterCanvas& canvas, const std::vector<RSLayerPtr>& layers)
-{
-    RS_TRACE_NAME("RSRcdRenderManager::DrawRoundCorner");
-    for (auto& layer : layers) {
-        if (layer == nullptr || !layer->IsScreenRCDLayer()) {
-            continue;
-        }
-        RSRcdSurfaceRenderNode::DrawRsRCDLayer(canvas, layer);
-    }
-}
-
 void RSRcdRenderManager::DoProcessRenderTask(NodeId id, const RcdProcessInfo& info)
 {
     RS_TRACE_BEGIN("RSUniRender:DoRCDProcessTask");

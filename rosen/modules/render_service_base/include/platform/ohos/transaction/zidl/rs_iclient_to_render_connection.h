@@ -148,7 +148,7 @@ public:
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) = 0;
 
     virtual ErrCode SetHwcNodeBounds(
-        int64_t rsNodeId, float positionX, float positionY, float positionZ, float positionW) = 0;
+        NodeId rsNodeId, float positionX, float positionY, float positionZ, float positionW) = 0;
 
     virtual int32_t GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo) = 0;
 
@@ -198,6 +198,8 @@ public:
     virtual int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id) = 0;
     virtual int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection) = 0;
 
+    virtual int32_t GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight) = 0;
+
     virtual int32_t RegisterFrameStabilityDetection(
         const FrameStabilityTarget& target,
         const FrameStabilityConfig& config,
@@ -212,6 +214,8 @@ public:
     ) = 0;
 
     virtual int32_t GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result) = 0;
+
+    virtual void RegisterRemoteRefreshCallback() = 0;
 };
 
 } // namespace Rosen

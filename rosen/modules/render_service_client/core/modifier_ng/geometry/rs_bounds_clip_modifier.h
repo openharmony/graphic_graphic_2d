@@ -46,6 +46,8 @@ public:
     Vector4f GetCornerRadius() const;
     void SetCornerApplyType(RSCornerApplyType type);
     RSCornerApplyType GetCornerApplyType() const;
+    void SetSDFShape(const std::shared_ptr<RSNGShapeBase>& shape);
+    std::shared_ptr<RSNGShapeBase> GetSDFShape() const;
 };
 } // namespace OHOS::Rosen::ModifierNG
 #endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_GEOMETRY_RS_BOUNDS_CLIP_MODIFIER_H

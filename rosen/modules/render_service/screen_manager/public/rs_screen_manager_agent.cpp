@@ -48,10 +48,55 @@ void RSScreenManagerAgentListener::OnScreenDisconnected(ScreenId id, ScreenChang
     screenChangeCallback_->OnScreenChanged(id, ScreenEvent::DISCONNECTED, reason);
 }
 
+void RSScreenManagerAgentListener::OnHwcEvent(
+    uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (eventId == static_cast<uint32_t>(HwcEvent::HWCEVENT_EXT_SCREEN_NOT_SUPPORT)) {
+        auto it = exposedEventCallbacks_.find(RSExposedEventType::EXT_SCREEN_UNSUPPORT);
+        if (it != exposedEventCallbacks_.end() && it->second != nullptr) {
+            auto callback = it->second;
+            auto data = std::make_shared<RSExtScreenUnsupportData>();
+            RS_LOGI("RSScreenManagerAgentListener::OnHwcEvent - EXT_SCREEN_UNSUPPORT detected,"
+                "deviceId is %{public}u, eventId is %{public}u", deviceId, eventId);
+            callback->OnDisplayEvent(data);
+        }
+    }
+}
+
+void RSScreenManagerAgentListener::OnScreenSwitchingNotify(bool status)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!screenSwitchingNotifyCallback_) {
+        RS_LOGD("RSScreenManagerAgentListener::%{public}s screenSwitchingNotifyCallback is nullptr.", __func__);
+        return;
+    }
+
+    RS_LOGI("%{public}s: status: %{public}d", __func__, status);
+    screenSwitchingNotifyCallback_->OnScreenSwitchingNotify(status);
+}
+
 void RSScreenManagerAgentListener::SetScreenChangeCallback(sptr<RSIScreenChangeCallback> screenChangeCallback)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     screenChangeCallback_ = screenChangeCallback;
+}
+
+void RSScreenManagerAgentListener::SetExposedEventCallback(
+    const RSExposedEventType type, const sptr<RSIExposedEventCallback> callback)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    exposedEventCallbacks_[type] = callback;
+    RS_LOGI("%{public}s: set callback for the event type: %{public}u", __func__, static_cast<uint32_t>(type));
+}
+
+void RSScreenManagerAgentListener::SetScreenSwitchingNotifyCallback(
+    sptr<RSIScreenSwitchingNotifyCallback> screenSwitchingNotifyCallback)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    screenSwitchingNotifyCallback_ = screenSwitchingNotifyCallback;
+    RS_LOGI("%{public}s: set screen switching notify callback succeed.", __func__);
+    RS_OPTIONAL_TRACE_NAME("set screen switching notify callback succeed");
 }
 
 RSScreenManagerAgent::RSScreenManagerAgent(sptr<RSScreenManager> screenManager) : screenManager_(screenManager)
@@ -75,6 +120,13 @@ int32_t RSScreenManagerAgent::SetScreenChangeCallback(const sptr<RSIScreenChange
         screenManager_->ExecuteCallback(callback);
     }
     agentListener_->SetScreenChangeCallback(callback);
+    return SUCCESS;
+}
+
+int32_t RSScreenManagerAgent::SetExposedEventCallback(
+    const RSExposedEventType type, const sptr<RSIExposedEventCallback>& callback)
+{
+    agentListener_->SetExposedEventCallback(type, callback);
     return SUCCESS;
 }
 
@@ -337,11 +389,8 @@ int32_t RSScreenManagerAgent::RemoveVirtualScreenWhiteList(ScreenId id, const st
 
 int32_t RSScreenManagerAgent::SetScreenSwitchingNotifyCallback(sptr<RSIScreenSwitchingNotifyCallback> callback)
 {
-    if (!screenManager_) {
-        RS_LOGW("%{public}s screenManager_ is nullptr", __func__);
-        return StatusCode::SCREEN_NOT_FOUND;
-    }
-    return screenManager_->SetScreenSwitchingNotifyCallback(callback);
+    agentListener_->SetScreenSwitchingNotifyCallback(callback);
+    return SUCCESS;
 }
 
 int32_t RSScreenManagerAgent::SetVirtualScreenSecurityExemptionList(
@@ -721,6 +770,24 @@ int32_t RSScreenManagerAgent::SetDualScreenState(ScreenId id, DualScreenStatus s
         return StatusCode::SCREEN_NOT_FOUND;
     }
     return screenManager_->SetDualScreenState(id, status);
+}
+
+int32_t RSScreenManagerAgent::SetAsMainScreen(ScreenId screenId, bool isMainScreen)
+{
+    if (!screenManager_) {
+        RS_LOGW("%{public}s screenManager_ is nullptr", __func__);
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    return screenManager_->SetAsMainScreen(screenId, isMainScreen);
+}
+
+ScreenId RSScreenManagerAgent::GetMainScreenId()
+{
+    if (!screenManager_) {
+        RS_LOGW("%{public}s screenManager_ is nullptr", __func__);
+        return INVALID_SCREEN_ID;
+    }
+    return screenManager_->GetMainScreenId();
 }
 
 PanelPowerStatus RSScreenManagerAgent::GetPanelPowerStatus(ScreenId id) const

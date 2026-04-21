@@ -210,6 +210,9 @@ public:
     ani_method paragraphStyleFallbackLineSpacing;
     ani_method paragraphStyleOrphanCharOptimization;
     ani_method paragraphStyleLineSpacing;
+    ani_method paragraphStyleFirstLineIndent;
+    ani_method paragraphStyleTailIndents;
+    ani_method paragraphStyleHeadIndents;
     ani_method strutStyleFontStyle;
     ani_method strutStyleFontWidth;
     ani_method strutStyleFontWeight;

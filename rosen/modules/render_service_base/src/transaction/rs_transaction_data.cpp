@@ -158,7 +158,12 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
         }
         ++marshallingIndex_;
         ++marshaledSize;
-        if (parcel.GetDataSize() > PARCEL_SPLIT_THRESHOLD) {
+        bool transactionDataSplit = parcel.GetDataSize() > PARCEL_SPLIT_THRESHOLD ||
+            (RSSystemProperties::GetUnmarshalParallelEnabled() &&
+            parcel.GetDataSize() > RSSystemProperties::GetUnmarshalParallelMinDataSize() && !needSync_);
+        if (transactionDataSplit) {
+            // data split to several parcels, which will be parallel unmarshalled using FFRT.
+            RS_OPTIONAL_TRACE_NAME_FMT("RSTransactionData::Marshalling data split size: [%zu]", parcel.GetDataSize());
             break;
         }
     }
@@ -241,6 +246,24 @@ void RSTransactionData::AddCommand(std::unique_ptr<RSCommand>&& command, NodeId 
     if (command) {
         command->indexVerifier_ = payload_.size();
         payload_.emplace_back(nodeId, followType, std::move(command));
+    }
+}
+
+void RSTransactionData::MoveCommandByNodeId(std::unique_ptr<RSTransactionData>& transactionData, NodeId nodeId)
+{
+    size_t indexVerifier = 0;
+    for (auto it = payload_.begin(); it != payload_.end();) {
+        auto& command = std::get<2>(*it);
+        if (command) {
+            if (command->GetNodeId() == nodeId) {
+                transactionData->AddCommand(command, std::get<0>(*it), std::get<1>(*it));
+                it = payload_.erase(it);
+                continue;
+            }
+            command->indexVerifier_ = indexVerifier;
+        }
+        ++indexVerifier;
+        ++it;
     }
 }
 

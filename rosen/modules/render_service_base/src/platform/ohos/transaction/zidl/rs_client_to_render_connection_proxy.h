@@ -96,7 +96,7 @@ public:
         NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) override;
 
-    ErrCode SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+    ErrCode SetHwcNodeBounds(NodeId rsNodeId, float positionX, float positionY,
         float positionZ, float positionW) override;
     
     int32_t GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo) override;
@@ -149,6 +149,8 @@ public:
     ErrCode RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback) override;
     int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection) override;
 
+    int32_t GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight) override;
+
     int32_t RegisterSurfaceOcclusionChangeCallback(
         NodeId id, sptr<RSISurfaceOcclusionChangeCallback> callback, std::vector<float>& partitionPoints) override;
 
@@ -168,8 +170,11 @@ public:
     ) override;
 
     int32_t GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result) override;
-    
+
     void RemoveToken() override {};
+
+    void RegisterRemoteRefreshCallback() override {};
+
     static inline BrokerDelegator<RSClientToRenderConnectionProxy> delegator_;
 
     pid_t pid_ = GetRealPid();

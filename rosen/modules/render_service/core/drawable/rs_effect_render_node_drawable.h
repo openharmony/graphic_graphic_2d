@@ -44,9 +44,15 @@ private:
         Drawing::Canvas& canvas, const Drawing::Rect& bounds, RSPaintFilterCanvas* paintFilterCanvas);
     inline bool IsBlurNotRequired(RSEffectRenderParams* effectParams, RSPaintFilterCanvas* paintFilterCanvas) const
     {
-        return drawCmdIndex_.backgroundFilterIndex_ == -1 || !effectParams->GetHasEffectChildren() ||
-            (!effectParams->GetHasEffectChildrenWithoutEmptyRect() && !paintFilterCanvas->GetIsParallelCanvas()) ||
-            !(RSSystemProperties::GetEffectMergeEnabled() && RSFilterCacheManager::isCCMEffectMergeEnable_);
+        if (drawCmdIndex_.backgroundFilterIndex_ == -1 || !RSSystemProperties::GetEffectMergeEnabled() ||
+            !RSFilterCacheManager::isCCMEffectMergeEnable_) {
+            return true;
+        }
+        if (paintFilterCanvas->GetUICapture()) {
+            return false;
+        }
+        return !effectParams->GetHasEffectChildren() ||
+            (!effectParams->GetHasEffectChildrenWithoutEmptyRect() && !paintFilterCanvas->GetIsParallelCanvas());
     }
 };
 } // namespace DrawableV2

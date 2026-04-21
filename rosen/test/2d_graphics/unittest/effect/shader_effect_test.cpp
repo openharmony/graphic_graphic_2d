@@ -18,6 +18,7 @@
 #include "effect/shader_effect.h"
 #include "effect/shader_effect_lazy.h"
 #include "draw/blend_mode.h"
+#include "draw/ui_color.h"
 #ifdef RS_ENABLE_GPU
 #include "image/gpu_context.h"
 #endif
@@ -467,6 +468,108 @@ HWTEST_F(ShaderEffectTest, CreateSweepGradient003, TestSize.Level1)
     Point centerPoint;
     std::vector<Color4f> colors;
     colors.push_back({0.1, 0.1, 0.1, 1.0f});
+    std::shared_ptr<ColorSpace> colorSpace = std::make_shared<ColorSpace>();
+    std::vector<scalar> position;
+    TileMode tileMode = TileMode::REPEAT;
+    scalar startAngle = 10.2f;
+    scalar endAngle = 10.5f;
+    auto newShaderEffect =
+        ShaderEffect::CreateSweepGradient(centerPoint, colors, colorSpace, position, tileMode, startAngle,
+        endAngle, nullptr);
+    EXPECT_TRUE(newShaderEffect != nullptr);
+    colors.clear();
+    auto newShaderEffect2 =
+        ShaderEffect::CreateSweepGradient(centerPoint, colors, colorSpace, position, tileMode, startAngle,
+        endAngle, nullptr);
+    EXPECT_TRUE(newShaderEffect2 != nullptr);
+}
+
+/*
+ * @tc.name: CreateLinearGradient004
+ * @tc.desc: Test CreateLinearGradient with UIColor
+ * @tc.type: FUNC
+ * @tc.author:
+ */
+HWTEST_F(ShaderEffectTest, CreateLinearGradient004, TestSize.Level1)
+{
+    Point startPoint;
+    Point endPoint;
+    std::vector<UIColor> colors;
+    colors.push_back(UIColor(0.1f, 0.2f, 0.3f, 1.0f, 10.0f));
+    std::shared_ptr<ColorSpace> colorSpace = std::make_shared<ColorSpace>();
+    std::vector<scalar> position;
+    auto newShaderEffect = ShaderEffect::CreateLinearGradient(startPoint, endPoint, colors, colorSpace,
+        position, TileMode::CLAMP);
+    EXPECT_TRUE(newShaderEffect != nullptr);
+    colors.clear();
+    auto newShaderEffect2 = ShaderEffect::CreateLinearGradient(startPoint, endPoint, colors, colorSpace,
+        position, TileMode::CLAMP);
+    EXPECT_TRUE(newShaderEffect2 != nullptr);
+}
+
+/*
+ * @tc.name: CreateRadialGradient004
+ * @tc.desc: Test CreateRadialGradient with UIColor
+ * @tc.type: FUNC
+ * @tc.author:
+ */
+HWTEST_F(ShaderEffectTest, CreateRadialGradient004, TestSize.Level1)
+{
+    Point centerPoint;
+    scalar radius = 2.5f;
+    std::vector<UIColor> colors;
+    colors.push_back(UIColor(0.5f, 0.6f, 0.7f, 0.8f, 3.0f));
+    std::shared_ptr<ColorSpace> colorSpace = std::make_shared<ColorSpace>();
+    std::vector<scalar> position;
+    TileMode tileMode = TileMode::REPEAT;
+    Matrix matrix;
+    auto newShaderEffect = ShaderEffect::CreateRadialGradient(centerPoint, radius, colors, colorSpace, position,
+        tileMode, &matrix);
+    EXPECT_TRUE(newShaderEffect != nullptr);
+    colors.clear();
+    auto newShaderEffect2 = ShaderEffect::CreateRadialGradient(centerPoint, radius, colors, colorSpace, position,
+        tileMode, &matrix);
+    EXPECT_TRUE(newShaderEffect2 != nullptr);
+}
+
+/*
+ * @tc.name: CreateTwoPointConical004
+ * @tc.desc: Test CreateTwoPointConical with UIColor
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(ShaderEffectTest, CreateTwoPointConical004, TestSize.Level1)
+{
+    Point startPoint;
+    scalar startRadius = 0.1f;
+    Point endPoint;
+    scalar endRadius = 0.7f;
+    std::vector<UIColor> colors;
+    colors.push_back(UIColor(0.8f, 0.9f, 1.0f, 1.0f, 2.0f));
+    std::shared_ptr<ColorSpace> colorSpace = std::make_shared<ColorSpace>();
+    std::vector<scalar> position;
+    TileMode tileMode = TileMode::REPEAT;
+    Matrix matrix;
+    auto newShaderEffect = ShaderEffect::CreateTwoPointConical(startPoint, startRadius, endPoint, endRadius, colors,
+        colorSpace, position, tileMode, &matrix);
+    EXPECT_TRUE(newShaderEffect != nullptr);
+    colors.clear();
+    auto newShaderEffect2 = ShaderEffect::CreateTwoPointConical(startPoint, startRadius, endPoint, endRadius, colors,
+        colorSpace, position, tileMode, &matrix);
+    EXPECT_TRUE(newShaderEffect2 != nullptr);
+}
+
+/*
+ * @tc.name: CreateSweepGradient004
+ * @tc.desc: Test CreateSweepGradient with UIColor
+ * @tc.type: FUNC
+ * @tc.author:
+ */
+HWTEST_F(ShaderEffectTest, CreateSweepGradient004, TestSize.Level1)
+{
+    Point centerPoint;
+    std::vector<UIColor> colors;
+    colors.push_back(UIColor(0.3f, 0.4f, 0.5f, 0.9f, 3.0f));
     std::shared_ptr<ColorSpace> colorSpace = std::make_shared<ColorSpace>();
     std::vector<scalar> position;
     TileMode tileMode = TileMode::REPEAT;

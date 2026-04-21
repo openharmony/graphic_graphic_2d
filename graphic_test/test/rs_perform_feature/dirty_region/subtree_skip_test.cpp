@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -30,6 +30,7 @@ namespace {
 constexpr uint32_t COLOR_YELLOW = 0xFFFFFF00;
 constexpr uint32_t COLOR_BLUE = 0xFF0000FF;
 constexpr uint32_t COLOR_CYAN = 0xFF00FFFF;
+constexpr uint32_t COLOR_RED = 0xFFFF0000;
 constexpr uint32_t SLEEP_TIME_FOR_PROXY = 1000000;
 constexpr int ABILITY_BGALPHA = 255;
 } //namespace
@@ -132,7 +133,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip01)
     animateNode->SetTranslate({ 0, 0 });
 
     Vector2f translate3 = { -800, 0 };
-    int duration = 10000;
+    int duration = 2500; // duration 2.5s
     DoAnimation(animateNode, translate3, duration);
 
     auto pureCanvas = RSCanvasNode::Create();
@@ -208,7 +209,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip02)
     animateNode->SetTranslate({ 0, 0 });
 
     Vector2f translate = { 0, 600 };
-    int duration = 10000;
+    int duration = 1500; // duration 1.5s
     DoAnimation(animateNode, translate, duration);
 
     Vector4f bounds4 = { 500, 200, 1200, 1200 };
@@ -260,7 +261,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip03)
     animateNode->SetTranslate({ 0, 0 });
 
     Vector2f translate = { 0, 600 };
-    int duration = 10000;
+    int duration = 1500; // duration 1.5s
     DoAnimation(animateNode, translate, duration);
 
     Vector4f bounds4 = { 500, 200, 1200, 1200 };
@@ -312,7 +313,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip04)
     animateNode->SetTranslate({ 0, 0 });
 
     Vector2f translate = { 0, 600 };
-    int duration = 10000;
+    int duration = 1500; // duration 1.5s
     DoAnimation(animateNode, translate, duration);
 
     Vector4f bounds4 = { 500, 200, 1200, 1200 };
@@ -363,7 +364,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip05)
     animateNode->SetTranslate({ 0, 0 });
 
     Vector2f translate = { 0, 600 };
-    int duration = 10000;
+    int duration = 1500; // duration 1.5s
     DoAnimation(animateNode, translate, duration);
 
     Vector4f bounds4 = { 500, 200, 1200, 1200 };
@@ -415,7 +416,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip06)
     animateNode->SetTranslate({ 0, 0 });
 
     Vector2f translate = { 0, 600 };
-    int duration = 10000;
+    int duration = 1500; // duration 1.5s
     DoAnimation(animateNode, translate, duration);
 
     Vector4f bounds4 = { 500, 200, 1200, 1200 };
@@ -467,7 +468,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip07)
     animateNode->SetTranslate({ 0, 0 });
 
     Vector2f translate = { 0, 600 };
-    int duration = 10000;
+    int duration = 1500; // duration 1.5s
     DoAnimation(animateNode, translate, duration);
 
     Vector4f bounds4 = { 500, 200, 1200, 1200 };
@@ -520,7 +521,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip08)
     animateNode->SetTranslate({ 0, 0 });
 
     Vector2f translate = { 0, 600 };
-    int duration = 10000;
+    int duration = 1500; // duration 1.5s
     DoAnimation(animateNode, translate, duration);
 
     Vector4f bounds4 = { 500, 200, 1200, 1200 };
@@ -572,7 +573,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip09)
     animateNode->SetTranslate({ 0, 0 });
 
     Vector2f translate = { 0, 600 };
-    int duration = 10000;
+    int duration = 1500; // duration 1.5s
     DoAnimation(animateNode, translate, duration);
 
     Vector4f bounds4 = { 500, 200, 1200, 1200 };
@@ -631,7 +632,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip10)
     animateNode->SetTranslate({ 0, 0 });
 
     Vector2f translate = { 0, 600 };
-    int duration = 10000;
+    int duration = 1500; // duration 1.5s
     DoAnimation(animateNode, translate, duration);
 
     Vector4f bounds4 = { 500, 200, 1200, 1200 };
@@ -686,7 +687,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip11)
     animateNode->SetTranslate({ 0, 0 });
 
     Vector2f translate = { 0, 600 };
-    int duration = 10000;
+    int duration = 1500; // duration 1.5s
     DoAnimation(animateNode, translate, duration);
 
     Vector4f bounds4 = { 500, 200, 1200, 1200 };
@@ -743,7 +744,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip12)
     animateNode->SetTranslate({ 0, 0 });
 
     Vector2f translate = { 0, 600 };
-    int duration = 10000;
+    int duration = 1500; // duration 1.5s
     DoAnimation(animateNode, translate, duration);
 
     Vector4f bounds4 = { 500, 200, 1200, 1200 };
@@ -798,7 +799,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip13)
     animateNode->SetTranslate({ 0, 0 });
 
     Vector2f translate = { 0, 600 };
-    int duration = 10000;
+    int duration = 1500; // duration 1.5s
     DoAnimation(animateNode, translate, duration);
 
     Vector4f bounds4 = { 500, 200, 1200, 1200 };
@@ -851,7 +852,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip14)
     animateNode->SetTranslate({ 0, 0 });
 
     Vector2f translate = { 0, 600 };
-    int duration = 10000;
+    int duration = 2500; // duration 2.5s
     DoAnimation(animateNode, translate, duration);
 
     Vector4f bounds4 = { -300, -300, 1200, 1200 };
@@ -911,7 +912,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip15)
     animateNode->SetTranslate({ 0, 0 });
 
     Vector2f translate = { 0, 600 };
-    int duration = 10000;
+    int duration = 2500; // duration 2.5s
     DoAnimation(animateNode, translate, duration);
 
     Vector4f bounds4 = { -300, -300, 1200, 1200 };
@@ -974,7 +975,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip16)
     animateNode->SetTranslate({ 0, 0 });
 
     Vector2f translate = { 0, 600 };
-    int duration = 10000;
+    int duration = 2500; // duration 2.5s
     DoAnimation(animateNode, translate, duration);
 
     Vector4f bounds4 = { -300, -300, 1200, 1200 };
@@ -1039,7 +1040,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip17)
     animateNode->SetTranslate({ 0, 0 });
 
     Vector2f translate = { 0, 600 };
-    int duration = 10000;
+    int duration = 2500; // duration 2.5s
     DoAnimation(animateNode, translate, duration);
 
     Vector4f bounds4 = { -300, -300, 1200, 1200 };
@@ -1461,6 +1462,176 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip25)
     drawingPath2.AddRect(0, 0, 900, 900, Drawing::PathDirection::CW_DIRECTION);
     auto clipPath2 = RSPath::CreateRSPath(drawingPath2);
     parentCanvasNode->SetClipBounds(clipPath2);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    TestCaseCapture();
+}
+
+/*
+ * @tc.name: SubTreeSkip26
+ * @tc.desc: parent has frameOffset and sets clip to frames
+ * @tc.type: FUNC
+ * @tc.require: issue22843
+ */
+GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip26)
+{
+    Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
+    auto backgroundNode = RSCanvasNode::Create();
+    RegisterNode(backgroundNode);
+    backgroundNode->SetBounds(bounds);
+    backgroundNode->SetFrame(bounds);
+    backgroundNode->SetBackgroundColor(COLOR_CYAN);
+
+    Vector4f bounds2 = { 300, 300, 800, 800 };
+    Vector4f frame = { 500, 500, 500, 500 };
+    auto parentCanvasNode = RSCanvasNode::Create();
+    RegisterNode(parentCanvasNode);
+    parentCanvasNode->SetBounds(bounds2);
+    parentCanvasNode->SetFrame(frame);
+    parentCanvasNode->SetClipToFrame(true);
+    parentCanvasNode->SetBackgroundColor(COLOR_BLUE);
+
+    Vector4f bounds3 = { 0, 0, 200, 200 };
+    auto animateNode = RSCanvasNode::Create();
+    RegisterNode(animateNode);
+    animateNode->SetBounds(bounds3);
+    animateNode->SetBackgroundColor(COLOR_RED);
+    animateNode->SetTranslate({ 0, 0 });
+
+    Vector4f bounds4 = { 0, 0, 600, 600 };
+    auto childCanvasNode = RSCanvasNode::Create();
+    RegisterNode(childCanvasNode);
+    childCanvasNode->SetBounds(bounds4);
+    childCanvasNode->SetBackgroundColor(COLOR_YELLOW);
+
+    GetRootNode()->AddChild(backgroundNode);
+    backgroundNode->RSNode::AddChild(parentCanvasNode);
+    parentCanvasNode->RSNode::AddChild(childCanvasNode);
+    parentCanvasNode->RSNode::AddChild(animateNode);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    Vector2f translate = { 500, 500 };
+    int duration = 500; // duration 0.5s
+    DoAnimation(animateNode, translate, duration);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    TestCaseCapture();
+}
+
+/*
+ * @tc.name: SubTreeSkip27
+ * @tc.desc: parent has frameOffset and sets clip to frames with scale
+ * @tc.type: FUNC
+ * @tc.require: issue22843
+ */
+GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip27)
+{
+    Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
+    auto backgroundNode = RSCanvasNode::Create();
+    RegisterNode(backgroundNode);
+    backgroundNode->SetBounds(bounds);
+    backgroundNode->SetFrame(bounds);
+    backgroundNode->SetBackgroundColor(COLOR_CYAN);
+
+    Vector4f bounds2 = { 300, 300, 800, 800 };
+    Vector4f frame = { 500, 500, 500, 500 };
+    auto parentCanvasNode = RSCanvasNode::Create();
+    RegisterNode(parentCanvasNode);
+    parentCanvasNode->SetBounds(bounds2);
+    parentCanvasNode->SetFrame(frame);
+    parentCanvasNode->SetClipToFrame(true);
+    parentCanvasNode->SetScale(1.5f, 1.5f);
+    parentCanvasNode->SetBackgroundColor(COLOR_BLUE);
+
+    Vector4f bounds3 = { 0, 0, 200, 200 };
+    auto animateNode = RSCanvasNode::Create();
+    RegisterNode(animateNode);
+    animateNode->SetBounds(bounds3);
+    animateNode->SetBackgroundColor(COLOR_RED);
+    animateNode->SetTranslate({ 0, 0 });
+
+    Vector4f bounds4 = { 0, 0, 800, 800 };
+    auto childCanvasNode = RSCanvasNode::Create();
+    RegisterNode(childCanvasNode);
+    childCanvasNode->SetBounds(bounds4);
+    childCanvasNode->SetBackgroundColor(COLOR_YELLOW);
+
+    GetRootNode()->AddChild(backgroundNode);
+    backgroundNode->RSNode::AddChild(parentCanvasNode);
+    parentCanvasNode->RSNode::AddChild(childCanvasNode);
+    parentCanvasNode->RSNode::AddChild(animateNode);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    Vector2f translate = { 500, 500 };
+    int duration = 500; // duration 0.5s
+    DoAnimation(animateNode, translate, duration);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    TestCaseCapture();
+}
+
+/*
+ * @tc.name: SubTreeSkip28
+ * @tc.desc: parent has frameOffset and sets clip to frames with translate
+ * @tc.type: FUNC
+ * @tc.require: issue22843
+ */
+GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip28)
+{
+    Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
+    auto backgroundNode = RSCanvasNode::Create();
+    RegisterNode(backgroundNode);
+    backgroundNode->SetBounds(bounds);
+    backgroundNode->SetFrame(bounds);
+    backgroundNode->SetBackgroundColor(COLOR_CYAN);
+
+    Vector4f bounds1 = { 100, 100, 900, 900 };
+    auto translateNode = RSCanvasNode::Create();
+    RegisterNode(translateNode);
+    translateNode->SetBounds(bounds1);
+    translateNode->SetBackgroundColor(COLOR_RED);
+
+    Vector4f bounds2 = { 300, 300, 800, 800 };
+    Vector4f frame = { 500, 500, 500, 500 };
+    auto parentCanvasNode = RSCanvasNode::Create();
+    RegisterNode(parentCanvasNode);
+    parentCanvasNode->SetBounds(bounds2);
+    parentCanvasNode->SetFrame(frame);
+    parentCanvasNode->SetClipToFrame(true);
+    parentCanvasNode->SetBackgroundColor(COLOR_BLUE);
+
+    Vector4f bounds3 = { 0, 0, 200, 200 };
+    auto animateNode = RSCanvasNode::Create();
+    RegisterNode(animateNode);
+    animateNode->SetBounds(bounds3);
+    animateNode->SetBackgroundColor(COLOR_RED);
+    animateNode->SetTranslate({ 0, 0 });
+
+    Vector4f bounds4 = { 0, 0, 800, 800 };
+    auto childCanvasNode = RSCanvasNode::Create();
+    RegisterNode(childCanvasNode);
+    childCanvasNode->SetBounds(bounds4);
+    childCanvasNode->SetBackgroundColor(COLOR_YELLOW);
+
+    GetRootNode()->AddChild(backgroundNode);
+    backgroundNode->RSNode::AddChild(translateNode);
+    translateNode->RSNode::AddChild(parentCanvasNode);
+    parentCanvasNode->RSNode::AddChild(childCanvasNode);
+    parentCanvasNode->RSNode::AddChild(animateNode);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    Vector2f translate = { 500, 500 };
+    int duration = 500; // duration 0.5s
+    DoAnimation(animateNode, translate, duration);
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
 

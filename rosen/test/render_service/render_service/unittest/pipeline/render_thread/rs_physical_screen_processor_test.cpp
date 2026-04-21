@@ -16,7 +16,7 @@
 #include "gtest/gtest.h"
 #include "limit_number.h"
 #include "pipeline/render_thread/rs_physical_screen_processor.h"
-#include "pipeline/render_thread/rs_uni_render_engine.h"
+#include "engine/rs_uni_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/main_thread/rs_render_service_listener.h"
@@ -554,8 +554,8 @@ HWTEST_F(RSPhysicalScreenProcessorTest, MirrorAdaptiveMatrix_Rotation90, TestSiz
     processor->mirroredScreenInfo_.width = 50;
     processor->mirroredScreenInfo_.height = 40;
     processor->CalculateMirrorAdaptiveMatrix();
-    EXPECT_NEAR(processor->mirrorAdaptiveMatrix_.Get(Drawing::Matrix::TRANS_X), -90.0f, 1e-3f);
-    EXPECT_NEAR(processor->mirrorAdaptiveMatrix_.Get(Drawing::Matrix::TRANS_Y), 10.0f, 1e-3f);
+    EXPECT_NEAR(processor->mirrorAdaptiveMatrix_.Get(Drawing::Matrix::TRANS_X), 18.0f, 1e-3f);
+    EXPECT_NEAR(processor->mirrorAdaptiveMatrix_.Get(Drawing::Matrix::TRANS_Y), 80.0f, 1e-3f);
 }
 
 /**
@@ -572,8 +572,8 @@ HWTEST_F(RSPhysicalScreenProcessorTest, MirrorAdaptiveMatrix_Rotation180, TestSi
     processor->mirroredScreenInfo_.width = 50;
     processor->mirroredScreenInfo_.height = 40;
     processor->CalculateMirrorAdaptiveMatrix();
-    EXPECT_NEAR(processor->mirrorAdaptiveMatrix_.Get(Drawing::Matrix::TRANS_X), -100.0f, 1e-3f);
-    EXPECT_NEAR(processor->mirrorAdaptiveMatrix_.Get(Drawing::Matrix::TRANS_Y), -80.0f, 1e-3f);
+    EXPECT_NEAR(processor->mirrorAdaptiveMatrix_.Get(Drawing::Matrix::TRANS_X), 100.0f, 1e-3f);
+    EXPECT_NEAR(processor->mirrorAdaptiveMatrix_.Get(Drawing::Matrix::TRANS_Y), 80.0f, 1e-3f);
 }
 
 /**
@@ -590,8 +590,8 @@ HWTEST_F(RSPhysicalScreenProcessorTest, MirrorAdaptiveMatrix_Rotation270, TestSi
     processor->mirroredScreenInfo_.width = 50;
     processor->mirroredScreenInfo_.height = 40;
     processor->CalculateMirrorAdaptiveMatrix();
-    EXPECT_NEAR(processor->mirrorAdaptiveMatrix_.Get(Drawing::Matrix::TRANS_X), -10.0f, 1e-3f);
-    EXPECT_NEAR(processor->mirrorAdaptiveMatrix_.Get(Drawing::Matrix::TRANS_Y), -90.0f, 1e-3f);
+    EXPECT_NEAR(processor->mirrorAdaptiveMatrix_.Get(Drawing::Matrix::TRANS_X), 82.0f, 1e-3f);
+    EXPECT_NEAR(processor->mirrorAdaptiveMatrix_.Get(Drawing::Matrix::TRANS_Y), 0.0f, 1e-3f);
 }
 
 /**

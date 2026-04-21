@@ -292,6 +292,13 @@ public:
     void SetRSRootNode(std::shared_ptr<RSRootNode> rootNode);
 
     /**
+     * @brief Gets the descendant count of the UI root node.
+     *
+     * @return The count of descendant nodes in the UI tree. Returns 0 if root node is not set.
+     */
+    size_t GetUIDescendantCount() const;
+
+    /**
      * @brief Identify typical resident processes of the system, such as FSR, SCB, inputMethod.
      *
      * @param isTypicalResidentProcess means whether the relevant services are disabled.

@@ -309,7 +309,7 @@ HWTEST_F(RSPointerWindowManagerTest, SetHwcNodeBoundsTest, TestSize.Level1)
     auto& rsPointerWindowManager = RSPointerWindowManager::Instance();
     rsPointerWindowManager.SetRsNodeId(1);
     EXPECT_EQ(rsPointerWindowManager.GetRsNodeId(), 1);
-    int nodeId2 = 2;
+    NodeId nodeId2 = 2;
     rsPointerWindowManager.SetRsNodeId(nodeId2);
     rsPointerWindowManager.SetHwcNodeBounds(nodeId2, 1.0, 1.0, 1.0, 1.0);
     EXPECT_EQ(rsPointerWindowManager.GetRsNodeId(), nodeId2);

@@ -140,11 +140,11 @@ void NdkTypographyStyleEllipsisTest::TearDown()
 }
 
 /*
- * @tc.name: TypographyStyleAttributeEllipsisModalTest001
+ * @tc.name: TypographyStyleAttributeEllipsisModalInvalidParameter
  * @tc.desc: test invalid data for ellipsis modal via attribute API.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyStyleAttributeEllipsisModalTest001, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyStyleAttributeEllipsisModalInvalidParameter, TestSize.Level0)
 {
     // Test for invalid SetTypographyStyleAttributeInt
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
@@ -170,11 +170,11 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyStyleAttributeEllipsisModalTe
 }
 
 /*
- * @tc.name: TypographyStyleAttributeEllipsisModalTest002
+ * @tc.name: TypographyStyleAttributeEllipsisModalValidParameter
  * @tc.desc: test valid data for ellipsis modal via attribute API.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyStyleAttributeEllipsisModalTest002, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyStyleAttributeEllipsisModalValidParameter, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     ASSERT_NE(typoStyle, nullptr);
@@ -195,12 +195,12 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyStyleAttributeEllipsisModalTe
 }
 
 /*
- * @tc.name: TypographyMultiHeadEllipsisStyleChange001
+ * @tc.name: TypographyMultiHeadEllipsisVerySmallWidthCannotFit
  * @tc.desc: test for miltiline head ellipsis style: span change, layoutWidth is very small and
  * the maxWidth can’t even fit.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisStyleChange001, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisVerySmallWidthCannotFit, TestSize.Level0)
 {
     vector<std::string> textVec = { "test ellipisis", "测试标题", "这是正文", "好" };
     constexpr int maxline = 1;
@@ -215,12 +215,12 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisStyleChange0
 }
 
 /*
- * @tc.name: TypographyMultiHeadEllipsisStyleChange002
+ * @tc.name: TypographyMultiHeadEllipsisSmallWidthOnlyEllipsis
  * @tc.desc: test for miltiline head ellipsis style: span change, layoutWidth is small and the paragraph contains
  * only the ellipsis
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisStyleChange002, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisSmallWidthOnlyEllipsis, TestSize.Level0)
 {
     vector<std::string> textVec = { "test ellipisis", "测试标题", "这是正文", "好" };
     constexpr int maxline = 1;
@@ -236,11 +236,11 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisStyleChange0
 }
 
 /*
- * @tc.name: TypographyMultiHeadEllipsisStyleChange003
+ * @tc.name: TypographyMultiHeadEllipsisSpanBoundarySpan2Span3
  * @tc.desc: test for miltiline head ellipsis style: span change. It marks the boundary between span2 and span3.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisStyleChange003, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisSpanBoundarySpan2Span3, TestSize.Level0)
 {
     vector<std::string> textVec = { "test ellipisis", "测试标题", "这是正文", "好" };
     constexpr int maxline = 1;
@@ -254,11 +254,11 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisStyleChange0
 }
 
 /*
- * @tc.name: TypographyMultiHeadEllipsisStyleChange004
+ * @tc.name: TypographyMultiHeadEllipsisMaxLine2
  * @tc.desc: test for miltiline head ellipsis style: maxline is over 1.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisStyleChange004, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisMaxLine2, TestSize.Level0)
 {
     vector<std::string> textVec = { "test ellipisis", "测试标题", "这是正文", "好" };
     constexpr int maxline = 2;
@@ -275,11 +275,11 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisStyleChange0
 }
 
 /*
- * @tc.name: TypographyMultiHeadEllipsisStyleChange005
+ * @tc.name: TypographyMultiHeadEllipsisMaxLine3
  * @tc.desc: test for miltiline head ellipsis style: maxline is 3.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisStyleChange005, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisMaxLine3, TestSize.Level0)
 {
     vector<std::string> textVec = { "test ellipisis", "测试标题", "这是正文", "好" };
     constexpr int maxline = 3;
@@ -296,12 +296,12 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisStyleChange0
 }
 
 /*
- * @tc.name: TypographyMultiHeadEllipsisStyleChange006
+ * @tc.name: TypographyMultiHeadEllipsisMaxLine2HardBreakSmallWidth
  * @tc.desc: test for miltiline head ellipsis style: maxline is over 1, text has hardbreak and layout width
  * is very small.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisStyleChange006, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisMaxLine2HardBreakSmallWidth, TestSize.Level0)
 {
     vector<std::string> textVec = { "A\n", "B\n", "C\n", "D\n" };
     constexpr int maxline = 2;
@@ -319,11 +319,11 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisStyleChange0
 }
 
 /*
- * @tc.name: TypographyMultiHeadEllipsisStyleChange007
+ * @tc.name: TypographyMultiHeadEllipsisMaxLine2HardBreak
  * @tc.desc: test for miltiline head ellipsis style: maxline is over 1 and text has hardbreak.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisStyleChange007, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisMaxLine2HardBreak, TestSize.Level0)
 {
     vector<std::string> textVec = { "A\n", "B\n", "C\n", "D\n" };
     constexpr int maxline = 2;
@@ -341,12 +341,12 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisStyleChange0
 }
 
 /*
- * @tc.name: TypographyMultiHeadEllipsisStyleChange008
+ * @tc.name: TypographyMultiHeadEllipsisMaxLine3OnlyHardBreaks
  * @tc.desc: test for miltiline head ellipsis style: maxline is over 1, breakStrategy is balance and
  * text has hardbreak.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisStyleChange008, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisMaxLine3OnlyHardBreaks, TestSize.Level0)
 {
     vector<std::string> textVec = { "\n", "\n", "\n", "\n" };
     constexpr int maxline = 3;
@@ -363,12 +363,12 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisStyleChange0
 }
 
 /*
- * @tc.name: TypographyMultiHeadEllipsisStyleChange009
+ * @tc.name: TypographyMultiHeadEllipsisMaxLine3RightToLeftUyghur
  * @tc.desc: test for miltiline head ellipsis style: maxline is over 1, breakStrategy is balance and
  * text has hardbreak.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisStyleChange009, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisMaxLine3RightToLeftUyghur, TestSize.Level0)
 {
     vector<std::string> textVec = { "بەلگىسى ئۇسلۇبى", "سىناق چەكمە", "ئۇسلۇبى", "سىناق چەكمە" };
     constexpr int maxline = 3;
@@ -384,13 +384,13 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisStyleChange0
 }
 
 /*
- * @tc.name: TypographyMultiHeadEllipsisStyleChange010
+ * @tc.name: MultiHeadEllipsisBalancedSpanBoundarySpan3Placeholder
  * @tc.desc: test for miltiline head ellipsis style: span change and breakStrategy is balance.
  * It marks the boundary between span3 and placeholderspan.
  * in the text styles.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisStyleChange010, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, MultiHeadEllipsisBalancedSpanBoundarySpan3Placeholder, TestSize.Level0)
 {
     vector<std::string> textVec = { "test ellipisis", "测试标题", "这是正文", "好" };
     constexpr int maxline = 1;
@@ -407,11 +407,11 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisStyleChange0
 }
 
 /*
- * @tc.name: TypographyMultiHeadEllipsisStyleChange011
+ * @tc.name: TypographyMultiHeadEllipsisBalancedMaxLine3
  * @tc.desc: test for miltiline head ellipsis style: maxline is over 1 and breakStrategy is balance.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisStyleChange011, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisBalancedMaxLine3, TestSize.Level0)
 {
     vector<std::string> textVec = { "test ellipisis", "测试标题", "这是正文", "好" };
     constexpr int maxline = 3;
@@ -428,12 +428,12 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisStyleChange0
 }
 
 /*
- * @tc.name: TypographyMultiHeadEllipsisStyleChange012
+ * @tc.name: MultiHeadEllipsisBalancedMaxLine2HardBreakSmallWidth
  * @tc.desc: test for miltiline head ellipsis style: maxline is over 1, text has hardbreak, layout width
  * is very small and breakStrategy is balance.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisStyleChange012, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, MultiHeadEllipsisBalancedMaxLine2HardBreakSmallWidth, TestSize.Level0)
 {
     vector<std::string> textVec = { "A\n", "B\n", "C\n", "D\n" };
     constexpr int maxline = 2;
@@ -451,12 +451,12 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisStyleChange0
 }
 
 /*
- * @tc.name: TypographyMultiHeadEllipsisStyleChange013
+ * @tc.name: TypographyMultiHeadEllipsisBalancedMaxLine2HardBreak
  * @tc.desc: test for miltiline head ellipsis style: maxline is over 1 and text has hardbreak
  * and breakStrategy is balance.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisStyleChange013, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisBalancedMaxLine2HardBreak, TestSize.Level0)
 {
     vector<std::string> textVec = { "A\n", "B\n", "C\n", "D\n" };
     constexpr int maxline = 2;
@@ -474,12 +474,12 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisStyleChange0
 }
 
 /*
- * @tc.name: TypographyMultiHeadEllipsisStyleChange014
+ * @tc.name: TypographyMultiHeadEllipsisBalancedMaxLine3OnlyHardBreaks
  * @tc.desc: test for miltiline head ellipsis style: maxline is over 1, breakStrategy is balance and
  * text has only hardbreak.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisStyleChange014, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisBalancedMaxLine3OnlyHardBreaks, TestSize.Level0)
 {
     vector<std::string> textVec = { "\n", "\n", "\n", "\n" };
     constexpr int maxline = 3;
@@ -496,12 +496,12 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisStyleChange0
 }
 
 /*
- * @tc.name: TypographyMultiHeadEllipsisStyleChange015
+ * @tc.name: TypographyMultiHeadEllipsisBalancedMaxLine3RightToLeftUyghur
  * @tc.desc: test for miltiline head ellipsis style: maxline is over 1, breakStrategy is balance, R2L-ur,
  * text has hardbreak.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisStyleChange015, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisBalancedMaxLine3RightToLeftUyghur, TestSize.Level0)
 {
     vector<std::string> textVec = { "بەلگىسى ئۇسلۇبى", "سىناق چەكمە", "ئۇسلۇبى", "سىناق چەكمە" };
     constexpr int maxline = 3;
@@ -518,12 +518,12 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisStyleChange0
 }
 
 /*
- * @tc.name: TypographyMultiHeadEllipsisStyleChange016
+ * @tc.name: TypographyMultiHeadEllipsisVerticalAlignCenter
  * @tc.desc: test for miltiline head ellipsis style: open vertical align.
  * text has hardbreak.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisStyleChange016, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisVerticalAlignCenter, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_SetTypographyTextMaxLines(typoStyle, 2);
@@ -562,12 +562,12 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiHeadEllipsisStyleChange0
 }
 
 /*
- * @tc.name: TypographyMultiMiddleEllipsisStyleChange001
+ * @tc.name: TypographyMultiMiddleEllipsisVerySmallWidthCannotFit
  * @tc.desc: test for miltiline middle ellipsis style: span change, layoutWidth is very small and
  * the maxWidth can’t even fit.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisStyleChange001, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisVerySmallWidthCannotFit, TestSize.Level0)
 {
     vector<std::string> textVec = { "test ellipisis", "测试标题", "这是正文", "好" };
     constexpr int maxline = 1;
@@ -582,12 +582,12 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisStyleChang
 }
 
 /*
- * @tc.name: TypographyMultiMiddleEllipsisStyleChange002
+ * @tc.name: TypographyMultiMiddleEllipsisSmallWidthOnlyEllipsis
  * @tc.desc: test for miltiline middle ellipsis style: span change, layoutWidth is small and the paragraph contains
  * only the ellipsis
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisStyleChange002, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisSmallWidthOnlyEllipsis, TestSize.Level0)
 {
     vector<std::string> textVec = { "test ellipisis", "测试标题", "这是正文", "好" };
     constexpr int maxline = 1;
@@ -602,11 +602,11 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisStyleChang
 }
 
 /*
- * @tc.name: TypographyMultiMiddleEllipsisStyleChange003
+ * @tc.name: TypographyMultiMiddleEllipsisSpanBoundarySpan2Span3
  * @tc.desc: test for miltiline middle ellipsis style: span change. It marks the boundary between span2 and span3.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisStyleChange003, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisSpanBoundarySpan2Span3, TestSize.Level0)
 {
     vector<std::string> textVec = { "test ellipisis", "测试标题", "这是正文", "好" };
     constexpr int maxline = 1;
@@ -620,11 +620,11 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisStyleChang
 }
 
 /*
- * @tc.name: TypographyMultiMiddleEllipsisStyleChange004
+ * @tc.name: TypographyMultiMiddleEllipsisMaxLine2
  * @tc.desc: test for miltiline middle ellipsis style: maxline is over 1.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisStyleChange004, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisMaxLine2, TestSize.Level0)
 {
     vector<std::string> textVec = { "test ellipisis", "测试标题", "这是正文", "好" };
     constexpr int maxline = 2;
@@ -641,11 +641,11 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisStyleChang
 }
 
 /*
- * @tc.name: TypographyMultiMiddleEllipsisStyleChange005
+ * @tc.name: TypographyMultiMiddleEllipsisMaxLine3
  * @tc.desc: test for miltiline middle ellipsis style: maxline is 3.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisStyleChange005, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisMaxLine3, TestSize.Level0)
 {
     vector<std::string> textVec = { "test ellipisis", "测试标题", "这是正文", "好" };
     constexpr int maxline = 3;
@@ -662,12 +662,12 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisStyleChang
 }
 
 /*
- * @tc.name: TypographyMultiMiddleEllipsisStyleChange006
+ * @tc.name: TypographyMultiMiddleEllipsisMaxLine2HardBreakSmallWidth
  * @tc.desc: test for miltiline middle ellipsis style: maxline is over 1, text has hardbreak and layout width
  * is very small.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisStyleChange006, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisMaxLine2HardBreakSmallWidth, TestSize.Level0)
 {
     vector<std::string> textVec = { "A\n", "B\n", "C\n", "D\n" };
     constexpr int maxline = 2;
@@ -684,11 +684,11 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisStyleChang
 }
 
 /*
- * @tc.name: TypographyMultiMiddleEllipsisStyleChange007
+ * @tc.name: TypographyMultiMiddleEllipsisMaxLine2HardBreak
  * @tc.desc: test for miltiline middle ellipsis style: maxline is over 1 and text has hardbreak.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisStyleChange007, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisMaxLine2HardBreak, TestSize.Level0)
 {
     vector<std::string> textVec = { "A\n", "B\n", "C\n", "D\n" };
     constexpr int maxline = 2;
@@ -706,12 +706,12 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisStyleChang
 }
 
 /*
- * @tc.name: TypographyMultiMiddleEllipsisStyleChange008
+ * @tc.name: TypographyMultiMiddleEllipsisMaxLine3OnlyHardBreaks
  * @tc.desc: test for miltiline middle ellipsis style: maxline is over 1, breakStrategy is balance and
  * text has hardbreak.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisStyleChange008, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisMaxLine3OnlyHardBreaks, TestSize.Level0)
 {
     vector<std::string> textVec = { "\n", "\n", "\n", "\n" };
     constexpr int maxline = 3;
@@ -728,12 +728,12 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisStyleChang
 }
 
 /*
- * @tc.name: TypographyMultiMiddleEllipsisStyleChange009
+ * @tc.name: TypographyMultiMiddleEllipsisMaxLine3RightToLeftUyghur
  * @tc.desc: test for miltiline middle ellipsis style: maxline is over 1, breakStrategy is balance and
  * text has hardbreak.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisStyleChange009, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisMaxLine3RightToLeftUyghur, TestSize.Level0)
 {
     vector<std::string> textVec = { "بەلگىسى ئۇسلۇبى", "سىناق چەكمە", "ئۇسلۇبى", "سىناق چەكمە" };
     constexpr int maxline = 3;
@@ -750,13 +750,13 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisStyleChang
 }
 
 /*
- * @tc.name: TypographyMultiMiddleEllipsisStyleChange010
+ * @tc.name: MultiMiddleEllipsisBalancedSpanBoundarySpan3Placeholder
  * @tc.desc: test for miltiline middle ellipsis style: span change and breakStrategy is balance.
  * It marks the boundary between span3 and placeholderspan.
  * in the text styles.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisStyleChange010, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, MultiMiddleEllipsisBalancedSpanBoundarySpan3Placeholder, TestSize.Level0)
 {
     vector<std::string> textVec = { "test ellipisis", "测试标题", "这是正文", "好" };
     constexpr int maxline = 1;
@@ -770,11 +770,11 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisStyleChang
 }
 
 /*
- * @tc.name: TypographyMultiMiddleEllipsisStyleChange011
+ * @tc.name: TypographyMultiMiddleEllipsisBalancedMaxLine3
  * @tc.desc: test for miltiline middle ellipsis style: maxline is over 1 and breakStrategy is balance.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisStyleChange011, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisBalancedMaxLine3, TestSize.Level0)
 {
     vector<std::string> textVec = { "test ellipisis", "测试标题", "这是正文", "好" };
     constexpr int maxline = 3;
@@ -791,12 +791,12 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisStyleChang
 }
 
 /*
- * @tc.name: TypographyMultiMiddleEllipsisStyleChange012
+ * @tc.name: MultiMiddleEllipsisBalancedMaxLine2HardBreakSmallWidth
  * @tc.desc: test for miltiline middle ellipsis style: maxline is over 1, text has hardbreak, layout width
  * is very small and breakStrategy is balance.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisStyleChange012, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, MultiMiddleEllipsisBalancedMaxLine2HardBreakSmallWidth, TestSize.Level0)
 {
     vector<std::string> textVec = { "A\n", "B\n", "C\n", "D\n" };
     constexpr int maxline = 2;
@@ -813,12 +813,12 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisStyleChang
 }
 
 /*
- * @tc.name: TypographyMultiMiddleEllipsisStyleChange013
+ * @tc.name: TypographyMultiMiddleEllipsisBalancedMaxLine2HardBreak
  * @tc.desc: test for miltiline middle ellipsis style: maxline is over 1 and text has hardbreak
  * and breakStrategy is balance.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisStyleChange013, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisBalancedMaxLine2HardBreak, TestSize.Level0)
 {
     vector<std::string> textVec = { "A\n", "B\n", "C\n", "D\n" };
     constexpr int maxline = 2;
@@ -836,12 +836,12 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisStyleChang
 }
 
 /*
- * @tc.name: TypographyMultiMiddleEllipsisStyleChange014
+ * @tc.name: TypographyMultiMiddleEllipsisBalancedMaxLine3OnlyHardBreaks
  * @tc.desc: test for miltiline middle ellipsis style: maxline is over 1, breakStrategy is balance and
  * text has only hardbreak.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisStyleChange014, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisBalancedMaxLine3OnlyHardBreaks, TestSize.Level0)
 {
     vector<std::string> textVec = { "\n", "\n", "\n", "\n" };
     constexpr int maxline = 3;
@@ -858,12 +858,12 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisStyleChang
 }
 
 /*
- * @tc.name: TypographyMultiMiddleEllipsisStyleChange015
+ * @tc.name: MultiMiddleEllipsisBalancedMaxLine3RightToLeftUyghur
  * @tc.desc: test for miltiline middle ellipsis style: maxline is over 1, breakStrategy is balance, R2L-ur,
  * text has hardbreak.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisStyleChange015, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, MultiMiddleEllipsisBalancedMaxLine3RightToLeftUyghur, TestSize.Level0)
 {
     vector<std::string> textVec = { "بەلگىسى ئۇسلۇبى", "سىناق چەكمە", "ئۇسلۇبى", "سىناق چەكمە" };
     constexpr int maxline = 3;
@@ -880,12 +880,12 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMultiMiddleEllipsisStyleChang
 }
 
 /*
- * @tc.name: TypographyEllipsisStyleChange001
+ * @tc.name: TypographyTailEllipsisVerySmallWidthCannotFit
  * @tc.desc: test for tail ellipsis style: span change, layoutWidth is very small and the maxWidth can’t even fit
  * the ellipsis, yet an ellipsis is still drawn.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange001, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyTailEllipsisVerySmallWidthCannotFit, TestSize.Level0)
 {
     vector<std::string> textVec = { "test ellipisis", "测试标题", "这是正文", "好" };
     constexpr int maxline = 1;
@@ -900,12 +900,12 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange001, TestS
 }
 
 /*
- * @tc.name: TypographyEllipsisStyleChange002
+ * @tc.name: TypographyTailEllipsisSmallWidthOnlyEllipsis
  * @tc.desc: test for tail ellipsis style: span change, layoutWidth is small and the paragraph contains only
  * the ellipsis
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange002, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyTailEllipsisSmallWidthOnlyEllipsis, TestSize.Level0)
 {
     vector<std::string> textVec = { "test ellipisis", "测试标题", "这是正文", "好" };
     constexpr int maxline = 1;
@@ -920,12 +920,12 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange002, TestS
 }
 
 /*
- * @tc.name: TypographyEllipsisStyleChange003
+ * @tc.name: TypographyTailEllipsisFallbackSpan1Span2
  * @tc.desc: test for tail ellipsis style: span change. The code will take the shapestring fallback branch
  * (between span1 and span2)
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange003, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyTailEllipsisFallbackSpan1Span2, TestSize.Level0)
 {
     vector<std::string> textVec = { "test ellipisis", "测试标题", "这是正文", "好" };
     constexpr int maxline = 1;
@@ -939,11 +939,11 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange003, TestS
 }
 
 /*
- * @tc.name: TypographyEllipsisStyleChange004
+ * @tc.name: TypographyTailEllipsisSpanBoundarySpan2Span3
  * @tc.desc: test for tail ellipsis style: span change. It marks the boundary between span2 and span3 in textstyles
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange004, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyTailEllipsisSpanBoundarySpan2Span3, TestSize.Level0)
 {
     vector<std::string> textVec = { "test ellipisis", "测试标题", "这是正文", "好" };
     constexpr int maxline = 1;
@@ -957,12 +957,12 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange004, TestS
 }
 
 /*
- * @tc.name: TypographyEllipsisStyleChange005
+ * @tc.name: TypographyTailEllipsisSpanBoundarySpan3Placeholder
  * @tc.desc: test for tail ellipsis style: span change. It marks the boundary between span3 and placeholderspan
  * in the text styles.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange005, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyTailEllipsisSpanBoundarySpan3Placeholder, TestSize.Level0)
 {
     vector<std::string> textVec = { "test ellipisis", "测试标题", "这是正文", "好" };
     constexpr int maxline = 1;
@@ -976,12 +976,12 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange005, TestS
 }
 
 /*
- * @tc.name: TypographyEllipsisStyleChange006
+ * @tc.name: TypographyTailEllipsisSpanBoundaryPlaceholderSpan4
  * @tc.desc: test for tail ellipsis style: span change. It marks the boundary between placeholderspan and span4
  * in the text styles.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange006, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyTailEllipsisSpanBoundaryPlaceholderSpan4, TestSize.Level0)
 {
     vector<std::string> textVec = { "test ellipisis", "测试标题", "这是正文", "好" };
     constexpr int maxline = 1;
@@ -995,11 +995,11 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange006, TestS
 }
 
 /*
- * @tc.name: TypographyEllipsisStyleChange007
+ * @tc.name: TypographyTailEllipsisMaxLine3SpanBoundarySpan2Span3
  * @tc.desc: test for tail ellipsis style: span change. It marks the boundary between span2 and span3 in textstyles
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange007, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyTailEllipsisMaxLine3SpanBoundarySpan2Span3, TestSize.Level0)
 {
     vector<std::string> textVec = { "test ellipisis", "测试标题", "这是正文", "好" };
     constexpr int maxline = 3;
@@ -1013,12 +1013,12 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange007, TestS
 }
 
 /*
- * @tc.name: TypographyEllipsisStyleChange008
+ * @tc.name: TypographyMiddleEllipsisVerySmallWidthCannotFit
  * @tc.desc: test for middle ellipsis style: span change: layoutWidth is very small and the maxWidth can’t even fit
  * the ellipsis, yet an ellipsis is still drawn.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange008, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMiddleEllipsisVerySmallWidthCannotFit, TestSize.Level0)
 {
     vector<std::string> textVec = { "A", "测试标题", "这是正文", "ELLIPSIS MODAL MIDDLE" };
     constexpr int maxline = 1;
@@ -1033,12 +1033,12 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange008, TestS
 }
 
 /*
- * @tc.name: TypographyEllipsisStyleChange009
+ * @tc.name: TypographyMiddleEllipsisSmallWidthOnlyEllipsis
  * @tc.desc: test for middle ellipsis style: span change: layoutWidth is very small and the paragraph contains only
  * the ellipsis
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange009, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMiddleEllipsisSmallWidthOnlyEllipsis, TestSize.Level0)
 {
     vector<std::string> textVec = { "A", "测试标题", "这是正文", "ELLIPSIS MODAL MIDDLE" };
     constexpr int maxline = 1;
@@ -1053,11 +1053,11 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange009, TestS
 }
 
 /*
- * @tc.name: TypographyEllipsisStyleChange010
+ * @tc.name: TypographyMiddleEllipsisSingleClusterAndEllipsis
  * @tc.desc: test for middle ellipsis style: span change: contains only one cluster and ellipsis.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange010, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMiddleEllipsisSingleClusterAndEllipsis, TestSize.Level0)
 {
     vector<std::string> textVec = { "A", "测试标题", "这是正文", "ELLIPSIS MODAL MIDDLE" };
     constexpr int maxline = 1;
@@ -1071,11 +1071,11 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange010, TestS
 }
 
 /*
- * @tc.name: TypographyEllipsisStyleChange011
+ * @tc.name: TypographyMiddleEllipsisSpanBoundarySpan1Span2
  * @tc.desc: test for middle ellipsis style: span change: the boundary between span1 and span2.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange011, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMiddleEllipsisSpanBoundarySpan1Span2, TestSize.Level0)
 {
     vector<std::string> textVec = { "A", "测试标题", "这是正文", "ELLIPSIS MODAL MIDDLE" };
     constexpr int maxline = 1;
@@ -1089,11 +1089,11 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange011, TestS
 }
 
 /*
- * @tc.name: TypographyEllipsisStyleChange012
+ * @tc.name: TypographyMiddleEllipsisSpanBoundarySpan2Span3
  * @tc.desc: test for middle ellipsis style: span change: the boundary between span2 and span3.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange012, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMiddleEllipsisSpanBoundarySpan2Span3, TestSize.Level0)
 {
     vector<std::string> textVec = { "A", "测试标题", "这是正文", "ELLIPSIS MODAL MIDDLE" };
     constexpr int maxline = 1;
@@ -1107,11 +1107,11 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange012, TestS
 }
 
 /*
- * @tc.name: TypographyEllipsisStyleChange013
+ * @tc.name: TypographyMiddleEllipsisSpanBoundarySpan3Span4
  * @tc.desc: test for middle ellipsis style: span change: the boundary between span3 and span4.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange013, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyMiddleEllipsisSpanBoundarySpan3Span4, TestSize.Level0)
 {
     vector<std::string> textVec = { "A", "测试标题", "这是正文", "ELLIPSIS MODAL MIDDLE" };
     constexpr int maxline = 1;
@@ -1125,11 +1125,11 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange013, TestS
 }
 
 /*
- * @tc.name: TypographyEllipsisStyleChange014
+ * @tc.name: TypographyHeadEllipsisVerySmallWidthCannotFit
  * @tc.desc: test for head ellipsis style: span change: layoutWidth is even smaller than the width of the ellipsis
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange014, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyHeadEllipsisVerySmallWidthCannotFit, TestSize.Level0)
 {
     vector<std::string> textVec = { "A", "测试标题", "这是正文", "ELLIPSIS MODAL HEAD" };
     constexpr int maxline = 1;
@@ -1144,11 +1144,11 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange014, TestS
 }
 
 /*
- * @tc.name: TypographyEllipsisStyleChange015
+ * @tc.name: TypographyHeadEllipsisSmallWidthBiggerThanEllipsis
  * @tc.desc: test for head ellipsis style: span change: layoutWidth is bigger than the width of the ellipsis
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange015, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyHeadEllipsisSmallWidthBiggerThanEllipsis, TestSize.Level0)
 {
     vector<std::string> textVec = { "A", "测试标题", "这是正文", "ELLIPSIS MODAL HEAD" };
     constexpr int maxline = 1;
@@ -1164,11 +1164,11 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange015, TestS
 }
 
 /*
- * @tc.name: TypographyEllipsisStyleChange016
+ * @tc.name: TypographyHeadEllipsisInheritsFirstClusterStyle
  * @tc.desc: test for head ellipsis style: span change: ellipsis always inherits the style of the first cluster
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange016, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyHeadEllipsisInheritsFirstClusterStyle, TestSize.Level0)
 {
     vector<std::string> textVec = { "A", "测试标题", "这是正文", "ELLIPSIS MODAL HEAD" };
     constexpr int maxline = 1;
@@ -1183,11 +1183,11 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange016, TestS
 }
 
 /*
- * @tc.name: TypographyEllipsisStyleChange017
+ * @tc.name: TypographyHeadEllipsisLargeWidthSpanChange
  * @tc.desc: test for head ellipsis style: span change.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange017, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyHeadEllipsisLargeWidthSpanChange, TestSize.Level0)
 {
     vector<std::string> textVec = { "A", "测试标题", "这是正文", "ELLIPSIS MODAL HEAD" };
     constexpr int maxline = 1;
@@ -1202,11 +1202,11 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange017, TestS
 }
 
 /*
- * @tc.name: TypographyEllipsisStyleChange018
+ * @tc.name: TypographyTailEllipsisOnlyHardLineBreaks
  * @tc.desc: test for tail ellipsis style: only Hard line-break
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange018, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyTailEllipsisOnlyHardLineBreaks, TestSize.Level0)
 {
     vector<std::string> textVec = { "\n", "\n", "\n", "\n" };
     constexpr int maxline = 1;
@@ -1219,11 +1219,11 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange018, TestS
 }
 
 /*
- * @tc.name: TypographyEllipsisStyleChange019
+ * @tc.name: TypographyTailEllipsisHardBreakAndClustersMaxLine2
  * @tc.desc: test for tail ellipsis style: Hard line-break and other clusters
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange019, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyTailEllipsisHardBreakAndClustersMaxLine2, TestSize.Level0)
 {
     vector<std::string> textVec = { "A\n", "B\n", "C\n", "D\n" };
     constexpr int maxline = 2;
@@ -1236,11 +1236,11 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange019, TestS
 }
 
 /*
- * @tc.name: TypographyEllipsisStyleChange020
+ * @tc.name: TypographyTailEllipsisHardBreakWithinSpanMaxLine2
  * @tc.desc: test for tail ellipsis style: Hard line-break and other clusters
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange020, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyTailEllipsisHardBreakWithinSpanMaxLine2, TestSize.Level0)
 {
     vector<std::string> textVec = { "A\nB", "\n", "C\n", "D\n" };
     constexpr int maxline = 2;
@@ -1254,11 +1254,11 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange020, TestS
 }
 
 /*
- * @tc.name: TypographyEllipsisStyleChange021
+ * @tc.name: TypographyTailEllipsisRightToLeftUyghurWithPlaceholder
  * @tc.desc: test for tail ellipsis style: R2L-ur and placeholder
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange021, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyTailEllipsisRightToLeftUyghurWithPlaceholder, TestSize.Level0)
 {
     vector<std::string> textVec = { "بەلگىسى ئۇسلۇبى", "سىناق چەكمە", "ئۇسلۇبى", "سىناق چەكمە" };
     constexpr int maxline = 1;
@@ -1272,11 +1272,11 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange021, TestS
 }
 
 /*
- * @tc.name: TypographyEllipsisStyleChange022
+ * @tc.name: TypographyTailEllipsisMixedRtlLtrWidth500
  * @tc.desc: test for tail ellipsis style: RTL and LTR mixed layout
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange022, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyTailEllipsisMixedRtlLtrWidth500, TestSize.Level0)
 {
     vector<std::string> textVec = { "测试", "test", "测试", "سىناق چەكمە" };
     constexpr int maxline = 1;
@@ -1289,11 +1289,11 @@ HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange022, TestS
 }
 
 /*
- * @tc.name: TypographyEllipsisStyleChange023
+ * @tc.name: TypographyTailEllipsisMixedRtlLtrWidth700
  * @tc.desc: test for tail ellipsis style: RTL and LTR mixed layout
  * @tc.type: FUNC
  */
-HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyEllipsisStyleChange023, TestSize.Level0)
+HWTEST_F(NdkTypographyStyleEllipsisTest, TypographyTailEllipsisMixedRtlLtrWidth700, TestSize.Level0)
 {
     vector<std::string> textVec = { "测试", "test", "测试", "سىناق چەكمە" };
     constexpr int maxline = 1;

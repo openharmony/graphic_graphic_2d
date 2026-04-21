@@ -322,7 +322,7 @@ void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurface
     sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
     RSUniRenderUtil::OptimizedFlushAndSubmit(cacheSurface, grContext_.get(), acquireFence, optFenceWait);
     bufferGuard.SetAcquireFence(acquireFence);
-    rsSubThreadCache.UpdateCacheSurfaceInfo(nodeDrawable, surfaceParams);
+    rsSubThreadCache.UpdateCacheSurfaceInfo(nodeDrawable.get(), surfaceParams);
     rsSubThreadCache.UpdateBackendTexture();
     rsSubThreadCache.SetCacheBehindWindowData(rscanvas->GetCacheBehindWindowData());
     // uifirst_debug dump img, run following commands to grant permissions before dump, otherwise dump maybe fail:
