@@ -132,7 +132,7 @@ protected:
     float boundsWidth_ = 0.0f;
     float boundsHeight_ = 0.0f;
 
-    bool IsBackFace() const;
+    bool IsBackFace(const Drawing::Matrix& matrix) const;
 
     void GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRenderParams& params);
     void CheckCacheTypeAndDraw(Drawing::Canvas& canvas, const RSRenderParams& params, bool isInCapture = false);

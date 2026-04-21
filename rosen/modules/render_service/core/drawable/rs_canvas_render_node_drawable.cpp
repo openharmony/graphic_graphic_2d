@@ -91,8 +91,19 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         SetDrawSkipType(DrawSkipType::RENDER_PARAMS_NULL);
         return;
     }
-    Drawing::GPUResourceTag::SetCurrentNodeId(GetId());
+
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
+    bool isDoubleSided = params->GetDoubleSidedEnabled();
+    if (!isDoubleSided) {
+        auto totalMatrix = paintFilterCanvas->GetTotalMatrix();
+        totalMatrix.PreConcat(params->GetMatrix());
+        if (IsBackFace(totalMatrix)) {
+            SetDrawSkipType(DrawSkipType::BACKFACE_SKIP);
+            RS_TRACE_NAME_FMT("RSCanvasRenderNodeDrawable::OnDraw backface skip, id:%" PRIu64, nodeId_);
+            return;
+        }
+    }
+    Drawing::GPUResourceTag::SetCurrentNodeId(GetId());
     if (params->GetStartingWindowFlag() && paintFilterCanvas) { // do not draw startingwindows in subthread
         if (paintFilterCanvas->GetIsParallelCanvas()) {
             SetDrawSkipType(DrawSkipType::PARALLEL_CANVAS_SKIP);
@@ -122,14 +133,6 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 #endif
-
-    bool isBackFace = IsBackFace();
-    bool isDoubleSided = params->GetDoubleSidedEnabled();
-    if (!isDoubleSided && isBackFace) {
-        SetDrawSkipType(DrawSkipType::BACKFACE_SKIP);
-        RS_TRACE_NAME_FMT("RSCanvasRenderNodeDrawable::OnDraw backface skip, id:%" PRIu64, nodeId_);
-        return;
-    }
 
     RSRenderNodeSingleDrawableLocker singleLocker(this);
     if (UNLIKELY(!singleLocker.IsLocked())) {

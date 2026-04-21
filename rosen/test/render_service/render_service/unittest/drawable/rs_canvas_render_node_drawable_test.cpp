@@ -480,7 +480,7 @@ HWTEST(RSCanvasRenderNodeDrawableTest, IsBackFaceTest001, TestSize.Level1)
     matrix.SetScale(-1.0f, 1.0f);
     canvasDrawable->renderParams_->SetMatrix(matrix);
 
-    bool isBackFace = canvasDrawable->IsBackFace();
+    bool isBackFace = canvasDrawable->IsBackFace(matrix);
     ASSERT_TRUE(isBackFace);
 }
 
@@ -504,7 +504,7 @@ HWTEST(RSCanvasRenderNodeDrawableTest, IsBackFaceTest002, TestSize.Level1)
     matrix.SetScale(1.0f, -1.0f);
     canvasDrawable->renderParams_->SetMatrix(matrix);
 
-    bool isBackFace = canvasDrawable->IsBackFace();
+    bool isBackFace = canvasDrawable->IsBackFace(matrix);
     ASSERT_TRUE(isBackFace);
 }
 
@@ -528,7 +528,7 @@ HWTEST(RSCanvasRenderNodeDrawableTest, IsBackFaceTest003, TestSize.Level1)
     matrix.SetScale(2.0f, 2.0f);
     canvasDrawable->renderParams_->SetMatrix(matrix);
 
-    bool isBackFace = canvasDrawable->IsBackFace();
+    bool isBackFace = canvasDrawable->IsBackFace(matrix);
     ASSERT_FALSE(isBackFace);
 }
 
@@ -552,7 +552,7 @@ HWTEST(RSCanvasRenderNodeDrawableTest, IsBackFaceTest004, TestSize.Level1)
     matrix.SetScale(-1.0f, -1.0f);
     canvasDrawable->renderParams_->SetMatrix(matrix);
 
-    bool isBackFace = canvasDrawable->IsBackFace();
+    bool isBackFace = canvasDrawable->IsBackFace(matrix);
     ASSERT_FALSE(isBackFace);
 }
 
@@ -576,26 +576,7 @@ HWTEST(RSCanvasRenderNodeDrawableTest, IsBackFaceTest005, TestSize.Level1)
     matrix.Reset();
     canvasDrawable->renderParams_->SetMatrix(matrix);
 
-    bool isBackFace = canvasDrawable->IsBackFace();
-    ASSERT_FALSE(isBackFace);
-}
-
-/**
- * @tc.name: IsBackFaceTest006
- * @tc.desc: Test IsBackFace with null renderParams
- * @tc.type: FUNC
- * @tc.require: issueIXXXXX
- */
-HWTEST(RSCanvasRenderNodeDrawableTest, IsBackFaceTest006, TestSize.Level1)
-{
-    NodeId nodeId = 0;
-    auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
-    auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
-    ASSERT_NE(canvasDrawable, nullptr);
-
-    canvasDrawable->renderParams_ = nullptr;
-
-    bool isBackFace = canvasDrawable->IsBackFace();
+    bool isBackFace = canvasDrawable->IsBackFace(matrix);
     ASSERT_FALSE(isBackFace);
 }
 
@@ -619,7 +600,7 @@ HWTEST(RSCanvasRenderNodeDrawableTest, IsBackFaceTest007, TestSize.Level1)
     matrix.PostRotate(180.0f);
     canvasDrawable->renderParams_->SetMatrix(matrix);
 
-    bool isBackFace = canvasDrawable->IsBackFace();
+    bool isBackFace = canvasDrawable->IsBackFace(matrix);
     ASSERT_FALSE(isBackFace);
 }
 
@@ -643,7 +624,7 @@ HWTEST(RSCanvasRenderNodeDrawableTest, IsBackFaceTest008, TestSize.Level1)
     matrix.SetSkew(0.5f, 0.5f);
     canvasDrawable->renderParams_->SetMatrix(matrix);
 
-    bool isBackFace = canvasDrawable->IsBackFace();
+    bool isBackFace = canvasDrawable->IsBackFace(matrix);
     ASSERT_FALSE(isBackFace);
 }
 
@@ -710,7 +691,7 @@ HWTEST(RSCanvasRenderNodeDrawableTest, DoubleSidedTest003, TestSize.Level1)
     canvasDrawable->renderParams_->SetDoubleSidedEnabled(true);
     
     bool isDoubleSided = canvasDrawable->renderParams_->GetDoubleSidedEnabled();
-    bool isBackFace = canvasDrawable->IsBackFace();
+    bool isBackFace = canvasDrawable->IsBackFace(matrix);
     ASSERT_TRUE(isDoubleSided);
     ASSERT_TRUE(isBackFace);
 }
@@ -737,7 +718,7 @@ HWTEST(RSCanvasRenderNodeDrawableTest, DoubleSidedTest004, TestSize.Level1)
     canvasDrawable->renderParams_->SetDoubleSidedEnabled(false);
     
     bool isDoubleSided = canvasDrawable->renderParams_->GetDoubleSidedEnabled();
-    bool isBackFace = canvasDrawable->IsBackFace();
+    bool isBackFace = canvasDrawable->IsBackFace(matrix);
     ASSERT_FALSE(isDoubleSided);
     ASSERT_TRUE(isBackFace);
 }
@@ -764,7 +745,7 @@ HWTEST(RSCanvasRenderNodeDrawableTest, DoubleSidedTest005, TestSize.Level1)
     canvasDrawable->renderParams_->SetDoubleSidedEnabled(false);
     
     bool isDoubleSided = canvasDrawable->renderParams_->GetDoubleSidedEnabled();
-    bool isBackFace = canvasDrawable->IsBackFace();
+    bool isBackFace = canvasDrawable->IsBackFace(matrix);
     ASSERT_FALSE(isDoubleSided);
     ASSERT_FALSE(isBackFace);
 }
@@ -814,7 +795,7 @@ HWTEST(RSCanvasRenderNodeDrawableTest, IsBackFaceTest011, TestSize.Level1)
     matrix.SetAll(values);
     canvasDrawable->renderParams_->SetMatrix(matrix);
 
-    bool result = canvasDrawable->IsBackFace();
+    bool result = canvasDrawable->IsBackFace(matrix);
     ASSERT_TRUE(result);
 }
 
@@ -840,7 +821,7 @@ HWTEST(RSCanvasRenderNodeDrawableTest, IsBackFaceTest012, TestSize.Level1)
     matrix.SetAll(values);
     canvasDrawable->renderParams_->SetMatrix(matrix);
 
-    bool result = canvasDrawable->IsBackFace();
+    bool result = canvasDrawable->IsBackFace(matrix);
     ASSERT_FALSE(result);
 }
 

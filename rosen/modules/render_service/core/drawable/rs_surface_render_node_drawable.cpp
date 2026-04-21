@@ -700,13 +700,16 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
-    bool isBackFace = IsBackFace();
     bool isDoubleSided = surfaceParams->GetDoubleSidedEnabled();
-    if (!isDoubleSided && isBackFace) {
-        SetDrawSkipType(DrawSkipType::BACKFACE_SKIP);
-        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw[%s] backface skip, id:%" PRIu64,
-            name_.c_str(), surfaceParams->GetId());
-        return;
+    if (!isDoubleSided) {
+        auto totalMatrix = rscanvas->GetTotalMatrix();
+        totalMatrix.PreConcat(surfaceParams->GetMatrix());
+        if (IsBackFace(totalMatrix)) {
+            SetDrawSkipType(DrawSkipType::BACKFACE_SKIP);
+            RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw[%s] backface skip, id:%" PRIu64,
+                name_.c_str(), surfaceParams->GetId());
+            return;
+        }
     }
 
     if (surfaceParams->IsUnobscuredUIExtension() && !UIExtensionNeedToDraw()) {

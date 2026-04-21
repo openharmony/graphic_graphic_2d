@@ -1221,14 +1221,8 @@ void RSRenderNodeDrawable::ClearOpincState()
     RSOpincDrawCache::SetOpincBlockNodeSkip(true);
 }
 
-bool RSRenderNodeDrawable::IsBackFace() const
+bool RSRenderNodeDrawable::IsBackFace(const Drawing::Matrix& matrix) const
 {
-    const auto& params = GetRenderParams();
-    if (!params) {
-        return false;
-    }
-
-    const auto& matrix = params->GetMatrix();
     Drawing::Matrix::Buffer buffer;
     matrix.GetAll(buffer);
 
