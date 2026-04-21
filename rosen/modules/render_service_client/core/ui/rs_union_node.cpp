@@ -28,6 +28,7 @@ namespace Rosen {
 RSUnionNode::SharedPtr RSUnionNode::Create(
     bool isRenderServiceNode, bool isTextureExportNode, std::shared_ptr<RSUIContext> rsUIContext)
 {
+#ifndef ROSEN_ARKUI_X    
     SharedPtr node(new RSUnionNode(isRenderServiceNode, isTextureExportNode, rsUIContext));
     if (rsUIContext != nullptr) {
         rsUIContext->GetMutableNodeMap().RegisterNode(node);
@@ -47,6 +48,9 @@ RSUnionNode::SharedPtr RSUnionNode::Create(
     transaction->AddCommand(command, node->IsRenderServiceNode());
     node->SetUIContextToken();
     return node;
+#else
+    return nullptr;
+#endif
 }
 
 void RSUnionNode::SetUnionSpacing(float spacing)
