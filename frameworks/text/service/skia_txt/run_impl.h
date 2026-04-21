@@ -47,7 +47,6 @@ public:
 
 private:
     std::unique_ptr<SPText::Run> run_ = nullptr;
-    TextStyle textStyle_;
 };
 } // namespace AdapterTxt
 } // namespace Rosen
