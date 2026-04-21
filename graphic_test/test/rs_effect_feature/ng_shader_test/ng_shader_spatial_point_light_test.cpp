@@ -74,8 +74,8 @@ void InitSpatialPointLight(std::shared_ptr<RSNGSpatialPointLight>& spatialPointL
 
 namespace {
 const std::string TEST_IMAGE_PATH = "/data/local/tmp/Images/backGroundImage.jpg";
-constexpr int SCREEN_WIDTH = 1200;
-constexpr int SCREEN_HEIGHT = 2000;
+constexpr int32_t SCREEN_WIDTH = 1200;
+constexpr int32_t SCREEN_HEIGHT = 2000;
 
 // Basic color variations (RGBA)
 const std::vector<Vector4f> lightColors = {
