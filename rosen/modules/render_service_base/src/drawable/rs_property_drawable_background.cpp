@@ -101,6 +101,9 @@ bool RSShadowDrawable::OnUpdate(const RSRenderNode& node)
     needSync_ = true;
 
     stagingGeContainer_ = nullptr;
+    // Shadow shape priority: shadowPath > clipBounds > SDF shape > RRect.
+    // If shadowPath or clipBounds is set, path_ already carries the correct shape
+    // from CreateShadowPath above, so skip SDF shadow and use the normal draw path.
     if (shadowPath || clipBounds) {
         return true;
     }
