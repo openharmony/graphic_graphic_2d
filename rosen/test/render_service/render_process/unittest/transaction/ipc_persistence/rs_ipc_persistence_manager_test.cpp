@@ -104,7 +104,8 @@ HWTEST_F(RSIpcPersistenceManagerTest, RegisterWithCallingPidTest001, TestSize.Le
 
 HWTEST_F(RSIpcPersistenceManagerTest, RegisterWithCallingPidTest002, TestSize.Level1)
 {
-    auto data = std::make_shared<MockPersistenceData>(RSIpcPersistenceType::SET_WATERMARK, IPC_PERSISTENCE_DEFAULT_PID);
+    auto data = std::make_shared<MockPersistenceData>(
+        RSIpcPersistenceType::SET_WATERMARK, IPC_PERSISTENCE_DEFAULT_PID);
     manager_->RegisterWithCallingPid(data);
     auto replayData = manager_->GetReplayData();
     EXPECT_TRUE(replayData.empty());
@@ -122,7 +123,8 @@ HWTEST_F(RSIpcPersistenceManagerTest, RegisterWithCallingPidTest003, TestSize.Le
 
 HWTEST_F(RSIpcPersistenceManagerTest, RegisterWithoutCallingPidTest001, TestSize.Level1)
 {
-    auto data = std::make_shared<MockPersistenceData>(RSIpcPersistenceType::SHOW_WATERMARK, IPC_PERSISTENCE_DEFAULT_PID);
+    auto data = std::make_shared<MockPersistenceData>(
+        RSIpcPersistenceType::SHOW_WATERMARK, IPC_PERSISTENCE_DEFAULT_PID);
     manager_->RegisterWithoutCallingPid(data);
     auto replayData = manager_->GetReplayData();
     EXPECT_FALSE(replayData.empty());
@@ -140,8 +142,10 @@ HWTEST_F(RSIpcPersistenceManagerTest, RegisterWithoutCallingPidTest002, TestSize
 
 HWTEST_F(RSIpcPersistenceManagerTest, RegisterWithoutCallingPidTest003, TestSize.Level1)
 {
-    auto data1 = std::make_shared<MockPersistenceData>(RSIpcPersistenceType::SHOW_WATERMARK, IPC_PERSISTENCE_DEFAULT_PID);
-    auto data2 = std::make_shared<MockPersistenceData>(RSIpcPersistenceType::SHOW_WATERMARK, IPC_PERSISTENCE_DEFAULT_PID);
+    auto data1 = std::make_shared<MockPersistenceData>(
+        RSIpcPersistenceType::SHOW_WATERMARK, IPC_PERSISTENCE_DEFAULT_PID);
+    auto data2 = std::make_shared<MockPersistenceData>(
+        RSIpcPersistenceType::SHOW_WATERMARK, IPC_PERSISTENCE_DEFAULT_PID);
     manager_->RegisterWithoutCallingPid(data1);
     manager_->RegisterWithoutCallingPid(data2);
     auto replayData = manager_->GetReplayData();
@@ -225,7 +229,8 @@ HWTEST_F(RSIpcPersistenceManagerTest, UnregisterByTypeAndCallingPidTest002, Test
 
 HWTEST_F(RSIpcPersistenceManagerTest, UnregisterWithoutCallingPidByTypeTest001, TestSize.Level1)
 {
-    auto data = std::make_shared<MockPersistenceData>(RSIpcPersistenceType::SHOW_WATERMARK, IPC_PERSISTENCE_DEFAULT_PID);
+    auto data = std::make_shared<MockPersistenceData>(
+        RSIpcPersistenceType::SHOW_WATERMARK, IPC_PERSISTENCE_DEFAULT_PID);
     manager_->RegisterWithoutCallingPid(data);
     manager_->UnregisterWithoutCallingPidByType(RSIpcPersistenceType::SHOW_WATERMARK);
     auto replayData = manager_->GetReplayData();
