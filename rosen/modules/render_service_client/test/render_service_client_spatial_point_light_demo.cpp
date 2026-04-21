@@ -31,25 +31,25 @@ using namespace OHOS::Rosen;
 constexpr uint64_t SCREEN_ID = 0;
 
 namespace {
-constexpr int WINDOW_OFFSET = 200;
-constexpr int WINDOW_WIDTH = 1500;
-constexpr int WINDOW_HEIGHT = 2000;
+constexpr int32_t WINDOW_OFFSET = 200;
+constexpr int32_t WINDOW_WIDTH = 1500;
+constexpr int32_t WINDOW_HEIGHT = 2000;
 
-constexpr int NODE_X = 200;
-constexpr int NODE_Y = 500;
-constexpr int NODE_WIDTH = 1000;
-constexpr int NODE_HEIGHT = 800;
-constexpr int HALF_DIVISOR = 2;
+constexpr int32_t NODE_X = 200;
+constexpr int32_t NODE_Y = 500;
+constexpr int32_t NODE_WIDTH = 1000;
+constexpr int32_t NODE_HEIGHT = 800;
+constexpr int32_t HALF_DIVISOR = 2;
 
 constexpr float DEFAULT_INTENSITY = 2.0f;
 constexpr float DEFAULT_ATTENUATION = 0.3f;
 constexpr float DEFAULT_LIGHT_Z = 100.0f;
 
 constexpr float ANIMATION_FRAME_INTERVAL_US = 50000;
-constexpr int ANIMATION_FRAME_COUNT = 60;
-constexpr int MASK_SWITCH_INTERVAL = 3;
-constexpr int DEMO_INIT_WAIT_SECONDS = 2;
-constexpr int DEMO_ANIMATION_WAIT_SECONDS = 1;
+constexpr int32_t ANIMATION_FRAME_COUNT = 60;
+constexpr int32_t MASK_SWITCH_INTERVAL = 3;
+constexpr int32_t DEMO_INIT_WAIT_SECONDS = 2;
+constexpr int32_t DEMO_ANIMATION_WAIT_SECONDS = 1;
 
 const std::string SURFACE_NODE_NAME = "spatial_point_light_demo";
 
