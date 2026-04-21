@@ -30,6 +30,7 @@
 #include "drawable/dfx/rs_dirty_rects_dfx.h"
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "engine/rs_base_render_util.h"
 #include "feature/anco_manager/rs_anco_manager.h"
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
@@ -40,7 +41,6 @@
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_screen_render_params.h"
 #include "params/rs_surface_render_params.h"
-#include "rs_base_render_util.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -839,11 +839,13 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const RSLayerPtr& la
     params.paint.SetFilter(filter);
     params.paint.SetAlpha(layer->GetAlpha().gAlpha);
 
-    sptr<SurfaceBuffer> buffer = layer->GetBuffer();
+    sptr<SurfaceBuffer> buffer = layer->GetUseDeviceOffline() ?
+        layer->GetHpaeOriginalInfo().originalBuffer : layer->GetBuffer();
     if (buffer == nullptr) {
         return params;
     }
-    params.acquireFence = layer->GetAcquireFence();
+    params.acquireFence = layer->GetUseDeviceOffline() ?
+        layer->GetHpaeOriginalInfo().originalAcquireFence : layer->GetAcquireFence();
     params.buffer = buffer;
     SetSrcRect(params, buffer);
     auto boundRect = layer->GetBoundSize();
@@ -851,13 +853,14 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const RSLayerPtr& la
 
     auto layerMatrix = layer->GetMatrix();
     params.matrix = Drawing::Matrix();
-    bool rotationFixed = layer->GetRotationFixed() || layer->GetUseDeviceOffline();
+    bool rotationFixed = layer->GetRotationFixed();
     auto dstRect = layer->GetLayerSize();
     if (rotationFixed) {
         // if rotation fixed or use hpae offline,
         // not use [total matrix + bounds] to draw buffer, use [src + dst + transform]
         params.matrix.PreTranslate(static_cast<float>(dstRect.x), static_cast<float>(dstRect.y));
-        auto srcRect = layer->GetCropRect();
+        auto srcRect = layer->GetUseDeviceOffline() ?
+            layer->GetHpaeOriginalInfo().originalCropRect : layer->GetCropRect();
         params.srcRect = Drawing::Rect(srcRect.x, srcRect.y, srcRect.x + srcRect.w, srcRect.y + srcRect.h);
     } else {
         params.matrix.SetMatrix(layerMatrix.scaleX, layerMatrix.skewX, layerMatrix.transX, layerMatrix.skewY,
@@ -865,7 +868,8 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const RSLayerPtr& la
     }
     // rotation degree anti-clockwise
     int nodeRotation = rotationFixed ? 0 : RSUniRenderUtil::GetRotationFromMatrix(params.matrix);
-    auto layerTransform = layer->GetTransform();
+    auto layerTransform = layer->GetUseDeviceOffline() ?
+        layer->GetHpaeOriginalInfo().originalTransformType : layer->GetTransform();
     // calculate clockwise rotation degree excluded rotation in total matrix
     int realRotation = (nodeRotation +
         RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(layerTransform))) % 360;
@@ -877,7 +881,7 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const RSLayerPtr& la
         rotationFixed ? static_cast<float>(dstRect.w) : static_cast<float>(boundRect.w),
         rotationFixed ? static_cast<float>(dstRect.h) : static_cast<float>(boundRect.h) };
     if (rotationFixed) {
-        auto gravity = layer->GetUseDeviceOffline() ? Gravity::RESIZE : static_cast<Gravity>(layer->GetGravity());
+        auto gravity = static_cast<Gravity>(layer->GetGravity());
         DealWithRotationAndGravityForRotationFixed(transform, gravity, localBounds, params);
     } else {
         RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, static_cast<Gravity>(layer->GetGravity()),
@@ -1631,6 +1635,110 @@ void RSUniRenderUtil::SwitchColorFilterWithP3(RSPaintFilterCanvas& canvas,
     Drawing::AutoCanvasRestore acr(canvas, true);
     canvas.ResetMatrix();
     canvas.DrawImage(*offscreenImage, 0.f, 0.f, Drawing::SamplingOptions());
+}
+
+bool RSUniRenderUtil::ProcessSingleSelfDrawingNode(RSPaintFilterCanvas& canvas,
+    RSScreenRenderParams& screenParams, RSLogicalDisplayRenderParams& displayParams)
+{
+    if (!RSSystemProperties::GetVirtualSelfDrawOptEnabled() ||
+        !screenParams.GetLayerSkipContext().screenLayerInvalid_) {
+        RS_LOGD(" %{public}s disabled or screenLayer is invalid", __func__);
+        return false;
+    }
+    const auto& fullScreenSelfDrawingSurface = screenParams.GetLayerSkipContext().relevantSurfaceNodeIds_;
+    // only handle a single self drawing node
+    if (fullScreenSelfDrawingSurface.size() != 1) {
+        RS_LOGD(" %{public}s more than one full-screen self drawing node exists", __func__);
+        return false;
+    }
+    auto surfaceId = fullScreenSelfDrawingSurface[0];
+    auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(surfaceId);
+    if (drawable == nullptr || drawable->GetNodeType() != RSRenderNodeType::SURFACE_NODE) {
+        RS_LOGD(" %{public}s drawable is invalid", __func__);
+        return false;
+    }
+    auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
+    if (DrawSingleSelfDrawingNode(canvas, surfaceDrawable, displayParams)) {
+        RS_TRACE_NAME_FMT("%s Draw single self drawing node: [%" PRIu64 "], name: %s",
+            __func__, surfaceDrawable->GetId(), surfaceDrawable->GetName().c_str());
+        return true;
+    }
+    return false;
+}
+
+bool RSUniRenderUtil::DrawSingleSelfDrawingNode(RSPaintFilterCanvas& canvas,
+    const std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& surfaceDrawable,
+    RSLogicalDisplayRenderParams& displayParams)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
+    if (UNLIKELY(surfaceParams == nullptr)) {
+        RS_LOGD(" %{public}s surface Param is nullptr", __func__);
+        return false;
+    }
+
+    //Not enabled for special layer nodes
+    const auto& whiteList = RSUniRenderThread::Instance().GetWhiteList();
+    const auto& specialLayerMgr = surfaceParams->GetSpecialLayerMgr();
+    if (displayParams.IsSecurityDisplay() && (specialLayerMgr.Find(HAS_GENERAL_SPECIAL) ||
+        specialLayerMgr.FindWithScreen(displayParams.GetScreenId(), SpecialLayerType::HAS_BLACK_LIST) ||
+        !whiteList.empty())) {
+        return false;
+    }
+    auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
+    if (UNLIKELY(renderEngine == nullptr)) {
+        RS_LOGD(" %{public}s name:%{public}s nodeId:[%{public}" PRIu64 "],  renderEngine is nullptr",
+            __func__, surfaceParams->GetName().c_str(), surfaceParams->GetId());
+        return false;
+    }
+    RSAutoCanvasRestore arc(&canvas);
+    auto params = ProcessCanvasBySurfaceNode(canvas, *surfaceParams, *surfaceDrawable);
+
+    renderEngine->DrawSurfaceNodeWithParams(canvas, *surfaceDrawable, params);
+    RSUniRenderThread::Instance().OnDrawBuffer(
+        surfaceDrawable->GetConsumerOnDraw(), params.buffer, surfaceParams->GetBufferOwnerCount());
+    return true;
+}
+
+BufferDrawParam RSUniRenderUtil::DealWithBufferDrawParam(
+    RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams,
+    DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable)
+{
+    surfaceParams.SetGlobalAlpha(1.0f);
+    uint32_t threadId = canvas.GetParallelThreadId();
+    auto params = RSUniRenderUtil::CreateBufferDrawParam(surfaceDrawable, false, threadId);
+    params.ignoreAlpha = surfaceParams.GetSurfaceBufferOpaque();
+    params.targetColorGamut = surfaceDrawable.GetAncestorDisplayColorGamut(surfaceParams);
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    params.sdrNits = surfaceParams.GetSdrNit();
+    params.tmoNits = surfaceParams.GetDisplayNit();
+    params.displayNits = params.tmoNits / std::pow(surfaceParams.GetBrightnessRatio(), GAMMA2_2); // gamma 2.2
+    // color temperature
+    params.layerLinearMatrix = surfaceParams.GetLayerLinearMatrix();
+    params.hasMetadata = surfaceParams.GetSdrHasMetadata();
+#endif
+    params.colorFollow = surfaceParams.GetColorFollow(); // force the buffer to follow the colorspace of canvas
+    return params;
+}
+
+BufferDrawParam RSUniRenderUtil::ProcessCanvasBySurfaceNode(
+    RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams,
+    DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable)
+{
+    const auto& matrix = surfaceParams.GetLayerInfo().matrix;
+    canvas.ConcatMatrix(matrix);
+    auto params = DealWithBufferDrawParam(canvas, surfaceParams, surfaceDrawable);
+    auto bgColor = surfaceParams.GetBackgroundColor();
+    if (surfaceParams.GetHardwareEnabled() && surfaceParams.GetIsHwcEnabledBySolidLayer()) {
+        bgColor = surfaceParams.GetSolidLayerColor();
+        RS_LOGD("solidLayer enabled, %{public}s, name:%{public}s nodeId:[%{public}" PRIu64 "], brush set color: "
+            "%{public}08x", __func__, surfaceParams.GetName().c_str(), surfaceParams.GetId(), bgColor.AsArgbInt());
+    }
+    Drawing::Brush brush;
+    brush.SetColor(Drawing::Color(bgColor.AsArgbInt()));
+    canvas.AttachBrush(brush);
+    canvas.DrawRect(surfaceParams.GetBounds());
+    canvas.DetachBrush();
+    return params;
 }
 } // namespace Rosen
 } // namespace OHOS

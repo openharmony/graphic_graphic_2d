@@ -15,6 +15,8 @@
 
 #include "feature/color_picker/rs_color_picker_utils.h"
 
+#include <atomic>
+
 #include "feature/color_picker/i_color_picker_manager.h"
 #include "feature/color_picker/rs_color_picker_thread.h"
 #include "feature/color_picker/rs_hetero_color_picker.h"
@@ -25,10 +27,12 @@
 #include "drawable/rs_color_picker_drawable.h"
 #include "drawable/rs_property_drawable_utils.h"
 #include "image/gpu_context.h"
+#include "memory/rs_tag_tracker.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
+#include "render/rs_high_performance_visual_engine.h"
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 #include "include/gpu/ganesh/vk/GrVkBackendSemaphore.h"
@@ -43,6 +47,30 @@ namespace {
 constexpr float RED_LUMINANCE_COEFF = 0.299f;
 constexpr float GREEN_LUMINANCE_COEFF = 0.587f;
 constexpr float BLUE_LUMINANCE_COEFF = 0.114f;
+
+constexpr uint32_t FENCE_DEBUG_LOG_INTERVAL = 100;
+std::atomic<int64_t> g_fenceFdCnt = 0;
+std::atomic<uint64_t> g_fenceDebugEventCount = 0;
+
+void LogFenceDebugEvent(int64_t fenceCount)
+{
+    auto eventCount = g_fenceDebugEventCount.fetch_add(1, std::memory_order_acq_rel) + 1;
+    if (eventCount % FENCE_DEBUG_LOG_INTERVAL == 0) {
+        RS_LOGI("ColorPicker fence debug: liveFence= %{public}" PRId64, fenceCount);
+    }
+}
+
+[[maybe_unused]] void TrackFenceCreate()
+{
+    auto fenceCount = g_fenceFdCnt.fetch_add(1, std::memory_order_acq_rel) + 1;
+    LogFenceDebugEvent(fenceCount);
+}
+
+[[maybe_unused]] void TrackFenceDestroy()
+{
+    auto fenceCount = g_fenceFdCnt.fetch_sub(1, std::memory_order_acq_rel) - 1;
+    LogFenceDebugEvent(fenceCount);
+}
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 bool WaitFence(const sptr<SyncFence>& fence)
@@ -63,6 +91,7 @@ bool WaitFence(const sptr<SyncFence>& fence)
 bool ExecColorPick(const std::weak_ptr<IColorPickerManager>& weakManager, ColorPickerInfo& info)
 {
     RS_OPTIONAL_TRACE_NAME("ColorPicker::ExecColorPick");
+    sptr<SyncFence> fence = new SyncFence(info.fenceFd_);
     auto manager = weakManager.lock();
     if (!manager) {
         RS_LOGE("ColorPicker: manager is null");
@@ -77,12 +106,9 @@ bool ExecColorPick(const std::weak_ptr<IColorPickerManager>& weakManager, ColorP
     }
 
     // Wait for GPU to finish writing to the texture before accessing it
-    if (info.fenceFd_ != -1) {
-        sptr<SyncFence> fence = new SyncFence(info.fenceFd_);
-        if (!WaitFence(fence)) {
-            RS_LOGE("ColorPicker: fence wait failed");
-            return false;
-        }
+    if (!WaitFence(fence)) {
+        RS_LOGE("ColorPicker: fence wait failed");
+        return false;
     }
 
     auto image = std::make_shared<Drawing::Image>();
@@ -132,8 +158,8 @@ float CalculateLuminance(Drawing::ColorQuad color)
     return red * RED_LUMINANCE_COEFF + green * GREEN_LUMINANCE_COEFF + blue * BLUE_LUMINANCE_COEFF;
 }
 
-void ScheduleColorPickWithSemaphore(
-    Drawing::Surface& surface, std::weak_ptr<IColorPickerManager> weakManager, std::unique_ptr<ColorPickerInfo> info)
+void ScheduleColorPickWithSemaphore(Drawing::Surface& surface, std::weak_ptr<IColorPickerManager> weakManager,
+    std::unique_ptr<ColorPickerInfo> info, Drawing::GPUContext& gpuCtx)
 {
     RS_OPTIONAL_TRACE_NAME("ColorPicker::ScheduleColorPickWithSemaphore");
     if (!info) {
@@ -156,16 +182,24 @@ void ScheduleColorPickWithSemaphore(
     flushInfo.finishedProc = [](void* context) { DestroySemaphoreInfo::DestroySemaphore(context); };
     flushInfo.finishedContext = destroyInfo;
     surface.Flush(&flushInfo);
+    gpuCtx.Submit();
     // Get fence fd from semaphore right after flush
     NativeBufferUtils::GetFenceFdFromSemaphore(semaphore, info->fenceFd_);
+    if (info->fenceFd_ == -1) {
+        RS_LOGE("ScheduleColorPickWithSemaphore: failed to get fence fd from semaphore");
+        DestroySemaphoreInfo::DestroySemaphore(destroyInfo);
+        return;
+    }
+    TrackFenceCreate();
 
     // Post task directly to ColorPickerThread with fence for GPU synchronization
     auto infoPtr = info.release();
     RSColorPickerThread::Instance().PostTask([infoPtr, destroyInfo]() {
         ExecColorPick(infoPtr->manager_, *infoPtr);
+        TrackFenceDestroy();
         DestroySemaphoreInfo::DestroySemaphore(destroyInfo); // semaphore inits with ref count = 2
         delete infoPtr;
-    });
+        }, false);
 #else
     return;
 #endif
@@ -226,7 +260,15 @@ bool ExtractSnapshotAndScheduleColorPick(
         return false;
     }
 
-    auto snapshot = drawingSurface->GetImageSnapshot(snapshotIBounds, false);
+#ifdef RS_ENABLE_GPU
+    RSTagTracker tracker(canvas.GetGPUContext(), RSTagTracker::TAG_COLOR_PICKER_SNAPSHOT);
+#endif
+    std::shared_ptr<Drawing::Image> snapshot;
+    if (HveFilter::GetHveFilter().GetSurfaceNodeSize() > 0) {
+        snapshot = HveFilter::GetHveFilter().SampleLayer(canvas, snapshotIBounds);
+    } else {
+        snapshot = drawingSurface->GetImageSnapshot(snapshotIBounds, false);
+    }
     if (!snapshot) {
         RS_LOGE("ExtractSnapshotAndScheduleColorPick: snapshot is null");
         return false;
@@ -239,9 +281,18 @@ bool ExtractSnapshotAndScheduleColorPick(
     }
 
     // Fall back to standard color picker with semaphore
+#ifdef RS_ENABLE_GPU
+    auto gpuCtx = canvas.GetGPUContext();
+#else
+    std::shared_ptr<Drawing::GPUContext> gpuCtx = nullptr;
+#endif
+    if (!gpuCtx) {
+        RS_LOGE("ExtractSnapshotAndScheduleColorPick: gpuContext is null");
+        return false;
+    }
     auto weakManager = std::weak_ptr<IColorPickerManager>(manager);
     auto colorPickerInfo = CreateColorPickerInfo(drawingSurface, snapshot, weakManager);
-    ScheduleColorPickWithSemaphore(*drawingSurface, weakManager, std::move(colorPickerInfo));
+    ScheduleColorPickWithSemaphore(*drawingSurface, weakManager, std::move(colorPickerInfo), *gpuCtx);
     return true;
 }
 

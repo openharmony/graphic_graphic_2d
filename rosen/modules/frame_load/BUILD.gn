@@ -35,15 +35,25 @@ ohos_source_set("frame_load") {
     "-fvisibility-inlines-hidden",
   ]
 
-  sources = [ "src/rs_frame_blur_predict.cpp" ]
+  sources = [
+    "src/rs_frame_blur_predict.cpp",
+    "src/rs_frame_deadline_predict.cpp",
+  ]
 
   include_dirs = [
     "include",
+    "$graphic_2d_root/rosen/modules/frame_report/include",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/soft_vsync_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
   ]
 
   external_deps = [
     "hilog:libhilog",
+    "libxml2:libxml2",
     "skia:skia_canvaskit",
   ]
 

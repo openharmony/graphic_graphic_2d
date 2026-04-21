@@ -457,6 +457,8 @@ public:
     void SetIsWindowFreezeCapture(bool isWindowFreezeCapture);
     bool GetIsDrawingCache() const;
     void SetIsDrawingCache(bool isDrawingCache);
+    bool GetIsDrawingOffscreenMirror() const;
+    void SetIsDrawingOffscreenMirror(bool isDrawingOffscreenMirror);
     void SetEffectIntersectWithDRM(bool intersect);
     bool GetEffectIntersectWithDRM() const;
     void SetDarkColorMode(bool isDark);
@@ -600,6 +602,7 @@ private:
     bool isWindowFreezeCapture_ = false;
     // Drawing window cache or uifirst cache
     bool isDrawingCache_ = false;
+    bool isDrawingOffscreenMirror_ = false;
     std::shared_ptr<CacheBehindWindowData> cacheBehindWindowData_ = nullptr;
     Occlusion::Region drawnRegion_;
     uint32_t threadId_;

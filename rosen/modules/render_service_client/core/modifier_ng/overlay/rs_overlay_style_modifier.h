@@ -19,6 +19,15 @@
 #include "modifier_ng/custom/rs_custom_modifier.h"
 
 namespace OHOS::Rosen::ModifierNG {
+
+/**
+ * @class RSOverlayStyleModifier
+ *
+ * @brief Draws the custom overlay content.
+ *
+ * @note It is prohibited to modify any properties of the node during the draw process, otherwise
+ * it may cause drawing abnormalities.
+ */
 class RSC_EXPORT RSOverlayStyleModifier : public RSCustomModifier {
 public:
     RSOverlayStyleModifier() = default;
@@ -30,6 +39,13 @@ public:
         return Type;
     }
 
+    /**
+     * @brief Draws the custom content.
+     *
+     * @param context The drawing context used to render the custom content.
+     * @note It is prohibited to modify any properties of the node in this function, otherwise
+     * it may cause drawing abnormalities.
+     */
     void Draw(RSDrawingContext& context) const override
     {
         return;

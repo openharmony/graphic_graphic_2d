@@ -57,6 +57,7 @@
 #include "hisysevent.h"
 #include "image/gpu_context.h"
 #include "platform/common/rs_hisysevent.h"
+#include "mem_mgr_client.h"
 
 #ifdef RS_ENABLE_UNI_RENDER
 #include "ability_manager_client.h"
@@ -64,7 +65,7 @@
 #endif
 
 #ifdef RS_ENABLE_VK
-#include "feature/gpuComposition/rs_vk_image_manager.h"
+#include "gpuComposition/rs_vk_image_manager.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
 static inline const char* GetThreadName()
@@ -84,6 +85,10 @@ const std::string KERNEL_CONFIG_PATH = "/system/etc/hiview/kernel_leak_config.js
 const std::string GPUMEM_INFO_PATH = "/proc/gpumem_process_info";
 const std::string GPUMEM_NODEINFO_PATH = "/proc/gpu_memory";
 const std::string EVENT_ENTER_RECENTS = "GESTURE_TO_RECENTS";
+const std::string EVENT_CLEAR_ONE_RET = "CLEAR_1_RECENT_ANI";
+const std::string EVENT_CLEAR_ALL_RET = "CLEAR_All_RECENT_ANI";
+const std::string EVENT_RECENT_REALIGN = "RECENT_REALIGN_ANI";
+const std::string EVENT_RECENT_HOME = "EXIT_RECENT_2_HOME_ANI";
 const std::string GPU_RS_LEAK = "ResourceLeak(GpuRsLeak)";
 const std::string SCB_BUNDLE_NAME = "com.ohos.sceneboard";
 const std::string GRAPHIC_MEM_DIR = "/data/service/el0/render_service/";
@@ -107,6 +112,7 @@ uint32_t MemoryManager::frameCount_ = 0;
 uint64_t MemoryManager::memoryWarning_ = UINT64_MAX;
 uint64_t MemoryManager::gpuMemoryControl_ = UINT64_MAX;
 uint64_t MemoryManager::totalMemoryReportTime_ = 0;
+uint64_t MemoryManager::mKernelReportLastTimestamp_ = 0;
 
 static std::string Data2String(std::string data, uint32_t targetNumber)
 {
@@ -572,6 +578,7 @@ static std::tuple<uint64_t, std::string, RectI, bool> FindGeoByIdLite(uint64_t n
 void MemoryManager::DumpRenderServiceMemory(DfxString& log, bool isLite)
 {
     log.AppendFormat("\n----------\nRenderService caches:\n");
+    RSTypefaceCache::Instance().Dump(log);
     if (isLite) {
         MemoryTrack::Instance().DumpMemoryStatistics(log, FindGeoByIdLite, isLite);
         RenderServiceAllSurfaceDump(log);
@@ -580,10 +587,6 @@ void MemoryManager::DumpRenderServiceMemory(DfxString& log, bool isLite)
         RenderServiceAllNodeDump(log);
         RenderServiceAllSurfaceDump(log);
     }
-#ifdef RS_ENABLE_VK
-    RsVulkanMemStat& memStat = RsVulkanContext::GetSingleton().GetRsVkMemStat();
-    memStat.DumpMemoryStatistics(&gpuTracer);
-#endif
 }
 
 void MemoryManager::DumpDrawingCpuMemory(DfxString& log)
@@ -771,10 +774,6 @@ void MemoryManager::DumpDrawingGpuMemory(DfxString& log, const Drawing::GPUConte
     gpuContext->GetResourceCacheUsage(nullptr, &cacheUsed);
     log.AppendFormat("\ngpu limit = %zu ( used = %zu ):\n", cacheLimit, cacheUsed);
 
-    /* ShaderCache */
-    log.AppendFormat("\n---------------\nShader Caches:\n");
-    std::shared_ptr<RenderContext> rendercontext = RenderContext::Create();
-    log.AppendFormat(rendercontext->GetShaderCacheSize().c_str());
     // gpu stat
     if (!isLite) {
         DumpGpuStats(log, gpuContext);
@@ -867,7 +866,8 @@ void MemoryManager::DumpMemorySnapshot(DfxString& log)
         std::string infoStr = "pid: " + std::to_string(pid) +
             ", uid: " + std::to_string(snapshotInfo.uid) + ", bundleName: " + snapshotInfo.bundleName +
             ", cpu: " + std::to_string(snapshotInfo.cpuMemory / MEMUNIT_RATE) +
-            "KB, gpu: " + std::to_string(snapshotInfo.gpuMemory / MEMUNIT_RATE) + "KB";
+            "KB, nativeGpu: " + std::to_string(snapshotInfo.nativeGpuMemory / MEMUNIT_RATE) +
+            "KB, engineGpu: " + std::to_string(snapshotInfo.engineGpuMemory / MEMUNIT_RATE) + "KB";
         log.AppendFormat("%s\n", infoStr.c_str());
     }
 }
@@ -938,7 +938,8 @@ void MemoryManager::InitMemoryLimit()
     uint64_t totalMemoryWarning = ParseMemoryLimit(rsWatchPoint, "total_threshold");
     cJSON_Delete(root);
 
-    MemorySnapshot::Instance().InitMemoryLimit(MemoryOverflow, memoryWarning_, cpuMemoryControl, totalMemoryWarning);
+    MemorySnapshot::Instance().InitMemoryLimit(
+        MemoryReportAndKill, memoryWarning_, cpuMemoryControl, gpuMemoryControl_, totalMemoryWarning);
 }
 
 void MemoryManager::SetGpuMemoryLimit(Drawing::GPUContext* gpuContext)
@@ -947,8 +948,13 @@ void MemoryManager::SetGpuMemoryLimit(Drawing::GPUContext* gpuContext)
         RS_LOGW("MemoryManager::SetGpuMemoryLimit gpuContext is nullptr or gpuMemoryControl_ is uninitialized");
         return;
     }
-    gpuContext->InitGpuMemoryLimit(MemoryOverflow, gpuMemoryControl_);
-    gpuContext->InitGpuMemoryReportLimit(GpuMemoryOverReport, GPU_REPORT_INTERVAL, gpuMemoryControl_);
+    gpuContext->InitGpuMemoryLimit(MemoryOverflow, gpuMemoryControl_);  // skia
+    gpuContext->InitGpuMemoryInfoStatProc(UpdateGpuInfoFromEngine);     // ddgr
+}
+
+bool MemoryManager::UpdateGpuInfoFromEngine(pid_t pid, size_t memorySize, bool isAdd)
+{
+    return MemorySnapshot::Instance().UpdateGpuInfo(pid, memorySize, isAdd, true);
 }
 
 void MemoryManager::MemoryOverCheck(Drawing::GPUContext* gpuContext)
@@ -962,7 +968,9 @@ void MemoryManager::MemoryOverCheck(Drawing::GPUContext* gpuContext)
 
     FillMemorySnapshot();
     std::unordered_map<pid_t, size_t> gpuMemory;
-    gpuContext->GetUpdatedMemoryMap(gpuMemory);
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        gpuContext->GetUpdatedMemoryMap(gpuMemory);
+    }
 
     auto task = [gpuMemory = std::move(gpuMemory)]() {
         std::unordered_map<pid_t, MemorySnapshotInfo> infoMap;
@@ -1020,9 +1028,12 @@ void MemoryManager::FillMemorySnapshot()
     MemorySnapshot::Instance().FillMemorySnapshot(infoMap);
 }
 
-static void KillProcessByPid(const pid_t pid, const MemorySnapshotInfo& info, const std::string& reason)
+static bool KillProcessByPid(const pid_t pid, const MemorySnapshotInfo& info)
 {
 #ifdef RS_ENABLE_UNI_RENDER
+    std::string reason = "RENDER_MEMORY_OVER_ERROR: cpu[" + std::to_string(info.cpuMemory)
+        + "], gpu[" + std::to_string(info.engineGpuMemory + info.nativeGpuMemory) + "], total["
+        + std::to_string(info.TotalMemory()) + "]";
     if (pid > 0) {
         AAFwk::ExitReasonCompability killReason{AAFwk::Reason::REASON_RESOURCE_CONTROL, KILL_PROCESS_TYPE, reason};
         killReason.killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_RESOURCE_LEAK_GPU_RS_LEAK;
@@ -1031,92 +1042,153 @@ static void KillProcessByPid(const pid_t pid, const MemorySnapshotInfo& info, co
         std::string logInfo = "KillProcessByPid, pid: " + std::to_string(pid) + ", process name: " + info.bundleName +
             "killStatus: " + std::to_string(ret) + ", reason: " + reason;
         RS_LOGE("%{public}s", logInfo.c_str());
+        return ret == ERR_OK;
     }
 #endif
+    return false;
+}
+
+bool MemoryManager::NeedReportFromKernel(pid_t& abnormalPid)
+{
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        return false;
+    }
+    auto time = std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::steady_clock::now());
+    auto timestamp = static_cast<uint64_t>(time.time_since_epoch().count());
+    if (timestamp - mKernelReportLastTimestamp_ < GPU_REPORT_INTERVAL) {
+        return false;
+    }
+
+    std::unordered_map<pid_t, MemorySnapshotInfo> snapshotInfo;
+    MemorySnapshot::Instance().GetMemorySnapshot(snapshotInfo);
+    std::vector<std::pair<pid_t, MemorySnapshotInfo>> sortedPidInfo(snapshotInfo.begin(), snapshotInfo.end());
+    std::sort(sortedPidInfo.begin(), sortedPidInfo.end(),
+        [](const std::pair<pid_t, MemorySnapshotInfo>& info1, const std::pair<pid_t, MemorySnapshotInfo>& info2) {
+            return info1.second.GpuMemory() > info2.second.GpuMemory();
+        });
+    // find abnormal pid with the max gpu memory.
+    abnormalPid = 0;
+    size_t maxIndex = 0;
+    while (maxIndex < sortedPidInfo.size() && sortedPidInfo[maxIndex].first == 0) {
+        maxIndex++;
+    }
+    if (maxIndex + 1 < sortedPidInfo.size() &&
+        sortedPidInfo[maxIndex].second.GpuMemory() - sortedPidInfo[maxIndex + 1].second.GpuMemory() >
+        MEMParam::GetKernelReportMemInterval() * MEMUNIT_RATE * MEMUNIT_RATE) {
+        abnormalPid = sortedPidInfo[maxIndex].first;
+    }
+    if (abnormalPid == 0) {
+        RS_LOGE("MemoryManager::IsNeedReportFromKernel abnormalPid is 0");
+        return false;
+    }
+    // status of available memory.
+    int32_t availableMem = 0;
+    Memory::MemMgrClient::GetInstance().GetAvailableMemory(availableMem);
+    if (availableMem > MEMParam::GetKernelReportAvailableMemLimit() * MEMUNIT_RATE) {
+        RS_LOGE("MemoryManager::IsNeedReportFromKernel availableMem:%{public}d", availableMem);
+        return false;
+    }
+
+    mKernelReportLastTimestamp_ = timestamp;
+    return true;
+}
+
+void MemoryManager::GpuReportFromKernel(const std::string& recvInfo)
+{
+    pid_t abnormalPid = 0;
+    if (!NeedReportFromKernel(abnormalPid)) {
+        return;
+    }
+    RS_TRACE_NAME("MemoryManager::GpuReportFromKernel");
+    RS_LOGE("MemoryManager::GpuReportFromKernel recvInfo:%{public}s", recvInfo.c_str());
+
+    MemorySnapshotInfo info;
+    MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(abnormalPid, info);
+    MemoryReportAndKill(abnormalPid, info, true);
 }
 
 bool MemoryManager::MemoryOverflow(pid_t pid, size_t overflowMemory, bool isGpu)
 {
-    if (pid == 0) {
-        RS_LOGD("MemoryManager::MemoryOverflow pid = 0");
-        return false;
-    }
     MemorySnapshotInfo info;
     MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(pid, info);
     if (isGpu) {
-        info.gpuMemory = overflowMemory;
+        info.engineGpuMemory = overflowMemory;
     }
+    return MemoryReportAndKill(pid, info, isGpu);
+}
+
+bool MemoryManager::MemoryReportAndKill(pid_t pid, MemorySnapshotInfo info, bool isGpu)
+{
+    if (pid == 0) {
+        RS_LOGE("MemoryReportAndKill pid = 0, cpu[%{public}zu] nativeGpu[%{public}zu], engineGpu[%{public}zu]",
+            info.cpuMemory, info.nativeGpuMemory, info.engineGpuMemory);
+        return false;
+    }
+    RS_TRACE_NAME_FMT("MemoryReportAndKill pid:%d", pid);
     if (info.bundleName.empty()) {
         auto& appMgrClient = RSSingleton<AppExecFwk::AppMgrClient>::GetInstance();
         appMgrClient.GetBundleNameByPid(pid, info.bundleName, info.uid);
     }
     if (info.bundleName == SCB_BUNDLE_NAME && !MEMParam::IsKillScbEnabled()) {
+        RS_LOGE(
+            "sceneboard memory over, pid[%{public}d] cpu[%{public}zu] nativeGpu[%{public}zu], engineGpu[%{public}zu]",
+            pid, info.cpuMemory, info.nativeGpuMemory, info.engineGpuMemory);
         return false;
     }
-    if (IS_BETA) {
-        RSMainThread::Instance()->PostTask([pid, info]() mutable {
-            RS_TRACE_NAME_FMT("RSMem Dump Task");
-            std::unordered_set<std::u16string> argSets;
-            std::string dumpString = "";
-            std::string type = MEM_GPU_TYPE;
-            DumpMem(argSets, dumpString, type, 0);
-            std::string filePath = GRAPHIC_MEM_DIR + "renderservice_mem_kill_report.txt";
-            MemoryOverReport(pid, info, RSEventName::RENDER_MEMORY_OVER_ERROR, dumpString, filePath);
-        });
-    } else {
-        std::string filePath = GRAPHIC_MEM_DIR + "renderservice_mem_kill_report.txt";
-        MemoryOverReport(pid, info, RSEventName::RENDER_MEMORY_OVER_ERROR, "", filePath);
+    
+    // set abnormal pid to intercept drawing.
+    MemorySnapshot::Instance().SetAbnormalProcess(pid);
+    DfxString dfxLog;
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        auto gpuContext = RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext()->GetSharedDrGPUContext();
+        if (gpuContext) {
+            // set abnormal pid to intercept drawing.
+            gpuContext->SetAbnormalPid(pid);
+            // dump gpu info
+            std::string pidName = std::to_string(pid);
+            Drawing::GPUResourceTag processTag(pid, 0, 0, 0, pidName);
+            DumpGpuCache(dfxLog, gpuContext.get(), &processTag, pidName);
+            std::string unirenderName = "unirender";
+            DumpGpuCache(dfxLog, gpuContext.get(), nullptr, pidName);
+            for (uint32_t tagtype = RSTagTracker::TAG_SAVELAYER_DRAW_NODE; tagtype <= RSTagTracker::TAG_CAPTURE;
+                tagtype++) {
+                Drawing::GPUResourceTag resourceTag(
+                    0, 0, 0, tagtype, RSTagTracker::TagType2String(static_cast<RSTagTracker::TAGTYPE>(tagtype)));
+                Drawing::TraceMemoryDump gpuTrace("category", true);
+                gpuContext->DumpMemoryStatisticsByTag(&gpuTrace, resourceTag);
+            }
+        } else {
+            dfxLog.AppendFormat("MemoryReportAndKill gpuContext is nullptr");
+        }
     }
-    std::string reason = "RENDER_MEMORY_OVER_ERROR: cpu[" + std::to_string(info.cpuMemory)
-        + "], gpu[" + std::to_string(info.gpuMemory) + "], total["
-        + std::to_string(info.TotalMemory()) + "]";
 
-    KillProcessByPid(pid, info, reason);
-    RS_LOGE("RSMemoryOverflow pid[%{public}d] cpu[%{public}zu] gpu[%{public}zu]", pid, info.cpuMemory, info.gpuMemory);
-    return true;
-}
-
-bool MemoryManager::GpuMemoryOverReport(pid_t pid, size_t overflowMemory,
-    std::unordered_map<std::string, std::pair<size_t, size_t>> typeInfo, std::unordered_map<pid_t, size_t> pidInfo)
-{
-    RS_TRACE_NAME("MemoryManager::GpuMemoryOverReport");
-    std::string gpuInfo = "total gpu info:\n";
-    for (const auto &[type, info] : typeInfo) {
-        gpuInfo += type + ": " + std::to_string(info.first / MEMUNIT_RATE) + "KB (" + std::to_string(info.second) +
-            " entries)\n";
-    }
-    gpuInfo += "\ngpu memory data of pid:\n";
-    for (const auto &[pid, memSize] : pidInfo) {
-        MemorySnapshotInfo info;
-        MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(pid, info);
-        info.gpuMemory = memSize;
-        gpuInfo += "pid: " + std::to_string(pid) + ", bundleName: " + info.bundleName +
-            ", gpu: " +  std::to_string(memSize / MEMUNIT_RATE) + "KB\n";
-    }
-    MemorySnapshotInfo maxInfo;
-    MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(pid, maxInfo);
-    maxInfo.gpuMemory = overflowMemory;
-    gpuInfo += "\nRENDER_MEMORY_OVER_ERROR: cpu[" + std::to_string(maxInfo.cpuMemory) +
-        "], gpu[" + std::to_string(maxInfo.gpuMemory) + "], total[" + std::to_string(maxInfo.TotalMemory()) + "]" +
-        " KillProcessByPid, pid: " + std::to_string(pid) + ", process name: " + maxInfo.bundleName;
     std::string filePath = GRAPHIC_MEM_DIR + "renderservice_killProcessByPid.txt";
-    MemoryOverReport(pid, maxInfo, RSEventName::RENDER_MEMORY_OVER_ERROR, gpuInfo, filePath);
-    return true;
+    MemoryOverReport(pid, info, RSEventName::RENDER_MEMORY_OVER_ERROR, dfxLog.GetString(), filePath);
+    return KillProcessByPid(pid, info);
 }
 
 void MemoryManager::MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& info, const std::string& reportName,
     const std::string& hidumperReport, const std::string& filePath)
 {
+    if (pid == 0) {
+        RS_LOGE("MemoryManager::MemoryOverReport pid:0 cpu[%{public}zu] gpu[%{public}zu]",
+            info.cpuMemory, info.GpuMemory());
+        return;
+    }
     std::string gpuMemInfo;
+    gpuMemInfo.append(hidumperReport);
+    DfxString dfxLog;
+    DumpMemorySnapshot(dfxLog);
+    gpuMemInfo.append(dfxLog.GetString());
+
     std::ifstream gpuMemInfoFile;
     gpuMemInfoFile.open(GPUMEM_INFO_PATH);
     if (gpuMemInfoFile.is_open()) {
         std::stringstream gpuMemInfoStream;
         gpuMemInfoStream << gpuMemInfoFile.rdbuf();
-        gpuMemInfo = gpuMemInfoStream.str();
+        gpuMemInfo.append(gpuMemInfoStream.str());
         gpuMemInfoFile.close();
     } else {
-        gpuMemInfo = reportName;
         RS_LOGE("MemoryManager::MemoryOverReport can not open gpumem info");
     }
 
@@ -1128,12 +1200,13 @@ void MemoryManager::MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& 
         "TYPE", "GPU",
         "BUNDLE_NAME", info.bundleName,
         "CPU_MEMORY", info.cpuMemory,
-        "GPU_MEMORY", info.gpuMemory,
+        "GPU_MEMORY", info.nativeGpuMemory + info.engineGpuMemory,
         "TOTAL_MEMORY", info.TotalMemory(),
         "FILEPATH", filePath);
-    RS_LOGW("hisysevent writ result=%{public}d, send event [FRAMEWORK,PROCESS_KILL], "
-        "pid[%{public}d] bundleName[%{public}s] cpu[%{public}zu] gpu[%{public}zu] total[%{public}zu]",
-        ret, pid, info.bundleName.c_str(), info.cpuMemory, info.gpuMemory, info.TotalMemory());
+    RS_LOGE("hisysevent writ result=%{public}d, send event [FRAMEWORK,%{public}s], "
+            "pid[%{public}d] bundleName[%{public}s] cpu[%{public}zu] gpu[%{public}zu] total[%{public}zu]",
+        ret, reportName.c_str(), pid, info.bundleName.c_str(), info.cpuMemory,
+        info.nativeGpuMemory + info.engineGpuMemory, info.TotalMemory());
 }
 
 void MemoryManager::WriteInfoToFile(
@@ -1235,6 +1308,7 @@ void RSReclaimMemoryManager::TriggerReclaimTask()
         bool isTimeToReclaim = std::chrono::duration_cast<std::chrono::milliseconds>(
             currentTime - lastClearAppTime).count() < CLEAR_TWO_APPS_TIME;
         if (isTimeToReclaim) {
+            RS_LOGI("RSReclaimMemoryManager::TriggerReclaimTask");
             unirenderThread.ReclaimMemory();
             unirenderThread.SetTimeToReclaim(true);
             isReclaimInterrupt_.store(false);
@@ -1245,8 +1319,10 @@ void RSReclaimMemoryManager::TriggerReclaimTask()
 
 void RSReclaimMemoryManager::InterruptReclaimTask(const std::string& sceneId)
 {
+    bool notInterrupt = sceneId == EVENT_ENTER_RECENTS || sceneId == EVENT_CLEAR_ONE_RET ||
+        sceneId == EVENT_CLEAR_ALL_RET || sceneId == EVENT_RECENT_REALIGN || sceneId == EVENT_RECENT_HOME;
     // When operate in launcher, interrupt reclaim task.
-    if (!isReclaimInterrupt_.load() && sceneId != EVENT_ENTER_RECENTS) {
+    if (!isReclaimInterrupt_.load() && !notInterrupt) {
         isReclaimInterrupt_.store(true);
     }
 }

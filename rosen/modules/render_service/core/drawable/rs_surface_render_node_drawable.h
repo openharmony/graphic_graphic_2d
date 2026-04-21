@@ -26,9 +26,9 @@
 
 #include "common/rs_common_def.h"
 #include "drawable/rs_render_node_drawable.h"
+#include "engine/rs_base_render_engine.h"
 #include "params/rs_surface_render_params.h"
 #include "params/rs_screen_render_params.h"
-#include "pipeline/render_thread/rs_base_render_engine.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "feature/uifirst/rs_draw_window_cache.h"
 #include "feature/uifirst/rs_sub_thread_cache.h"
@@ -207,7 +207,9 @@ private:
                 surfaceNodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE ||
                 surfaceNodeType_ == RSSurfaceNodeType::CURSOR_NODE;
     }
-    void UpdatePipelineParamForSelfDraw(SurfaceFpsOpType surfaceFpsOpType);
+
+    static void AddSurfaceFpsOpStatic(
+        SurfaceFpsOpType surfaceFpsOpType, NodeId id, const std::string& name, uint64_t uniqueId);
 
     void TryResumeLastBuffer(sptr<SurfaceBuffer> buffer);
 #ifdef SUBTREE_PARALLEL_ENABLE

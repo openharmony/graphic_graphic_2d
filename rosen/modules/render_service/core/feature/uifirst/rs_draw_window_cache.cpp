@@ -52,15 +52,7 @@ void RSDrawWindowCache::DrawAndCacheWindowContent(DrawableV2::RSSurfaceRenderNod
     paint.SetAntiAlias(true);
     canvas.AttachBrush(paint);
     auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NONE);
-    auto& subCache = surfaceDrawable->GetRsSubThreadCache();
-    std::vector<Drawing::RectI> opaqueRects;
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
-    if (surfaceParams && !surfaceParams->ClonedSourceNode()) {
-        Drawing::Rect imgDrawRect = { 0, 0, cacheImage->GetWidth(), cacheImage->GetHeight() };
-        subCache.InsertOpaqueRegion(canvas, surfaceDrawable, opaqueRects, imgDrawRect);
-    }
     canvas.DrawImage(*cacheImage, 0, 0, samplingOptions);
-    subCache.DrawOpaqueRegionDfx(canvas, opaqueRects);
     canvas.DetachBrush();
 }
 
@@ -228,11 +220,6 @@ void RSDrawWindowCache::DrawCache(DrawableV2::RSSurfaceRenderNodeDrawable* surfa
     auto translateX = gravityMatrix.Get(Drawing::Matrix::TRANS_X);
     auto translateY = gravityMatrix.Get(Drawing::Matrix::TRANS_Y);
     auto& subCache = surfaceDrawable->GetRsSubThreadCache();
-    std::vector<Drawing::RectI> opaqueRects;
-    if (!surfaceParams.ClonedSourceNode()) {
-        Drawing::Rect imgDrawRect = { translateX, translateY, cacheImage->GetWidth(), cacheImage->GetHeight() };
-        subCache.InsertOpaqueRegion(canvas, surfaceDrawable, opaqueRects, imgDrawRect);
-    }
     // draw BehindWindowFilter
     subCache.DrawBehindWindowBeforeCache(canvas, translateX, translateY);
     // draw content/children
@@ -242,7 +229,6 @@ void RSDrawWindowCache::DrawCache(DrawableV2::RSSurfaceRenderNodeDrawable* surfa
     surfaceDrawable->DrawForeground(canvas, boundSize);
     // draw watermark
     surfaceDrawable->DrawCommSurfaceWatermark(canvas, surfaceParams);
-    subCache.DrawOpaqueRegionDfx(canvas, opaqueRects);
 }
 #endif
 

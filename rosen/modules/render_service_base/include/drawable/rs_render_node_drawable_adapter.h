@@ -298,6 +298,11 @@ public:
         std::lock_guard<std::mutex> lock(rsLayerMutex_);
         rsLayersPerScreen_[screenId] = layer;
     }
+
+    void ClearUnifiedFilterRegion();
+    void AddRectToUnifiedFilterRegion(const Drawing::RectI& rect);
+    bool IntersectsWithUnifiedRegion(const Drawing::RectI& rect) const;
+
 protected:
     // Util functions
     std::string DumpDrawableVec(const std::shared_ptr<RSRenderNode>& renderNode) const;
@@ -369,6 +374,7 @@ protected:
     RSDrawable::DrawList drawCmdList_;
     std::vector<FilterNodeInfo> filterInfoVec_;
     std::unordered_map<NodeId, Drawing::Matrix> withoutFilterMatrixMap_;
+    Drawing::Region unifiedFilterRegion_;
     size_t filterNodeSize_ = 0;
     std::shared_ptr<DrawableV2::RSFilterDrawable> backgroundFilterDrawable_ = nullptr;
     std::shared_ptr<DrawableV2::RSFilterDrawable> materialFilterDrawable_ = nullptr;

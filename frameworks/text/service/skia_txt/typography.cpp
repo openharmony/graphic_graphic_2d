@@ -326,11 +326,17 @@ Boundary Typography::GetActualTextRange(int lineNumber, bool includeSpaces)
     return Convert(range);
 }
 
-Boundary Typography::GetEllipsisTextRange()
+Boundary Typography::GetEllipsisTextRange() const
 {
     std::shared_lock<std::shared_mutex> readLock(mutex_);
     auto range = paragraph_->GetEllipsisTextRange();
     return Convert(range);
+}
+
+std::vector<TextRange> Typography::GetVisibleTextRanges() const
+{
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
+    return paragraph_->GetVisibleTextRanges();
 }
 
 double Typography::GetLineHeight(int lineNumber)
@@ -663,6 +669,17 @@ std::shared_ptr<OHOS::Media::PixelMap> Typography::GetTextPathImageByIndex(
         "fill %{public}d, options %{public}d %{public}d %{public}f %{public}f",
         start, end, fill, options.width, options.height, options.offsetX, options.offsetY);
     return paragraph_->GetTextPathImageByIndex(start, end, options, fill);
+}
+
+std::vector<TextPathInfo> Typography::GetTextPathsByIndex(size_t start, size_t end) const
+{
+    TEXT_TRACE_FUNC();
+    std::shared_lock<std::shared_mutex> readLock(mutex_);
+    if (paragraph_ == nullptr) {
+        return {};
+    }
+    TEXT_LOGD("Getting text paths by index: start %{public}zu, end %{public}zu", start, end);
+    return paragraph_->GetTextPathsByIndex(start, end);
 }
 #endif
 

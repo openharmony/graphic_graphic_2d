@@ -421,7 +421,8 @@ HWTEST_F(VSyncDistributorTest, SetFrameIsRender002, Function | MediumTest| Level
 HWTEST_F(VSyncDistributorTest, GetRealTimeOffsetOfDvsync001, Function | MediumTest| Level3)
 {
     int64_t time = 1000;
-    uint64_t offset = VSyncDistributorTest::vsyncDistributor->GetRealTimeOffsetOfDvsync(time);
+    int64_t preTime = 0;
+    uint64_t offset = VSyncDistributorTest::vsyncDistributor->GetRealTimeOffsetOfDvsync(time, preTime);
     ASSERT_EQ(offset, 0);
 }
 

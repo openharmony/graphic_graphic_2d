@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -48,7 +48,6 @@ public:
     static void ClearVirtualExpandScreenAccumulatedDirtyRegions(
         DrawableV2::RSScreenRenderNodeDrawable& screenDrawable, RSScreenRenderParams& params);
     static bool HasMirrorDisplay();
-    static void UpdatePrepareDirtyRegionClip(RSRenderNode& node, RectI& prepareDirtyRegionClip);
 };
 
 class DirtyStatusAutoUpdate {
@@ -79,7 +78,7 @@ public:
     static void DealWithFilterDirtyRegion(Occlusion::Region& damageRegion, Occlusion::Region& drawRegion,
         DrawableV2::RSScreenRenderNodeDrawable& screenDrawable, const std::optional<Drawing::Matrix>& matrix,
         bool dirtyAlign = false);
-    static RectI GetVisibleFilterRect(const RSSurfaceRenderNode& node);
+    static RectI GetVisibleFilterRect(const RSRenderNode& node);
 private:
     static bool DealWithFilterDirtyForScreen(Occlusion::Region& damageRegion, Occlusion::Region& drawRegion,
         DrawableV2::RSScreenRenderNodeDrawable& screenDrawable, const std::optional<Drawing::Matrix>& matrix);

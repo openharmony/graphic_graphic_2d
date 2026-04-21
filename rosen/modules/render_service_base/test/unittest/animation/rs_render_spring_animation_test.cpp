@@ -806,6 +806,9 @@ HWTEST_F(RSRenderSpringAnimationTest, GetSpringStatus004, TestSize.Level1)
     EXPECT_TRUE(startValue == renderSpringAnimation->startValue_);
     EXPECT_TRUE(endValue == renderSpringAnimation->endValue_);
     EXPECT_TRUE(velocity == renderSpringAnimation->initialVelocity_);
+
+    // Restore animationScale to default value
+    renderSpringAnimation->animationFraction_.SetAnimationScale(1.0f);
 }
 
 /**

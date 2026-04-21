@@ -25,7 +25,6 @@
 #include <thread>
 
 #include "refbase.h"
-#include "pipeline/render_thread/rs_base_render_engine.h"
 #include "pipeline/render_thread/rs_draw_frame.h"
 #include "vsync_manager_agent.h"
 #include "vsync_receiver.h"
@@ -35,6 +34,7 @@
 #include "common/rs_thread_handler.h"
 #include "common/rs_thread_looper.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
+#include "engine/rs_base_render_engine.h"
 #include "ipc_callbacks/iapplication_agent.h"
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
 #include "ipc_callbacks/rs_isurface_occlusion_change_callback.h"
@@ -63,9 +63,6 @@
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 
 namespace OHOS::Rosen {
-namespace DrawableV2 {
-enum class ColorPickerState : uint8_t;
-}
 #if defined(ACCESSIBILITY_ENABLE)
 class AccessibilityObserver;
 #endif
@@ -130,6 +127,7 @@ public:
     void ResetAnimateNodeFlag();
     void GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize);
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply = false, pid_t pid = -1);
+    void AddWhiteListRect(const std::unordered_set<ScreenId>& screenIds, RectI rect);
 
     void SetForceRsDVsync(const std::string& sceneId);
     void GetNodeInfo(std::unordered_map<int, std::pair<int, int>>& node_info,
@@ -180,7 +178,7 @@ public:
     void ClearSurfaceOcclusionChangeCallback(pid_t pid);
     bool SurfaceOcclusionCallBackIfOnTreeStateChanged();
 
-    void ClearTransactionDataPidInfo(pid_t remotePid);
+    void ClearTransactionDataPidInfo(pid_t remotePid, bool forRefresh = false);
     void AddTransactionDataPidInfo(pid_t remotePid);
 
     void SetFocusAppInfo(const FocusAppInfo& info);
@@ -357,7 +355,7 @@ public:
         return isOverDrawEnabledOfCurFrame_ != isOverDrawEnabledOfLastFrame_;
     }
 
-    uint64_t GetRealTimeOffsetOfDvsync(int64_t time);
+    uint64_t GetRealTimeOffsetOfDvsync(int64_t time, int64_t& preTime);
 
     bool IsFoldScreenSwitching() const;
     bool IsMultiDisplay() const;
@@ -412,7 +410,6 @@ public:
     void DVSyncUpdate(uint64_t dvsyncTime, uint64_t vsyncTime);
     void MarkNodeDirty(uint64_t nodeId);
     void SendColorPickerCallback(uint64_t nodeId, uint32_t color);
-    void ColorPickerStateTransition(uint64_t nodeId, DrawableV2::ColorPickerState state, int64_t delayTime = 0);
 
     void SetHasSurfaceLockLayer(bool hasSurfaceLockLayer);
     bool HasDRMOrSurfaceLockLayer() const;
@@ -427,7 +424,8 @@ public:
 
     bool TransitionDataMutexLockIfNoCommands();
     void TransitionDataMutexUnlock();
-    void CleanResources(pid_t pid);
+    void CleanResources(pid_t pid, bool forRefresh = false);
+    bool GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight);
     
     const std::shared_ptr<RSHwcContext>& GetHwcContext() const { return hwcContext_; }
 
@@ -437,6 +435,11 @@ public:
     }
 
     uint64_t GetVsyncId() const { return vsyncId_; }
+
+    // for surface fps op
+    void AddSurfaceFpsOp(const SurfaceFpsOp& op);
+    std::vector<SurfaceFpsOp> GetSurfaceFpsOpList();
+    void RmvSurfaceFpsOp(const std::vector<SurfaceFpsOp>& rmvList);
 
 private:
     // TransactionDataIndexMap is Pid to {index of RSTransactionData, vector of std::unique_ptr<RSTransactionData>}
@@ -458,6 +461,8 @@ private:
     void DestroyScreenNode(ScreenId screenId);
     void HandleScreenPropertyRefreshOneFrame(ScreenId id, ScreenPropertyType type);
     void HandlePowerStatusChanged(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
+    void HandlePhysicalModeParamsChanged(
+        ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
     void UpdateScreenProperty(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property);
     void UpdateSubSurfaceCnt();
     void HandleGameNode();
@@ -824,6 +829,10 @@ private:
     std::shared_ptr<HgmRenderContext> hgmRenderContext_ = nullptr;
     std::shared_ptr<RSComposerClientManager> composerClientManager_ = nullptr;
     uint32_t curFrameBufferReclaimCount_ = 0;
+
+    // for surface fps op
+    std::unordered_map<NodeId, SurfaceFpsOp> addSurfaceFpsOpMap_;
+    std::unordered_map<NodeId, SurfaceFpsOp> rmvSurfaceFpsOpMap_;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

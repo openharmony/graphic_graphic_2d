@@ -105,10 +105,16 @@ ErrCode RSServiceToRenderConnectionProxy::CreatePixelMapFromSurface(sptr<Surface
         return ERR_INVALID_VALUE;
     }
 
-    if (reply.ReadBool()) {
+    bool result{false};
+    if (!reply.ReadBool(result)) {
+        ROSEN_LOGE("CreatePixelMapFromSurface: Invalid data format.");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (result) {
         pixelMap.reset(Media::PixelMap::Unmarshalling(reply));
     } else {
-        ROSEN_LOGE("CreatePixelMapFromSurface: ReadBool err.");
+        ROSEN_LOGE("CreatePixelMapFromSurface: Read result false.");
     }
     return ERR_OK;
 }
@@ -1023,7 +1029,7 @@ bool RSServiceToRenderConnectionProxy::RegisterTypeface(uint64_t globalUniqueId,
     bool result{false};
     if (!reply.ReadBool(result)) {
         ROSEN_LOGE("%{public}s: Read result failed", __func__);
-        return READ_PARCEL_ERR;
+        return false;
     }
     return result;
 }
@@ -1049,6 +1055,34 @@ bool RSServiceToRenderConnectionProxy::UnRegisterTypeface(uint64_t globalUniqueI
         return false;
     }
     return true;
+}
+
+bool RSServiceToRenderConnectionProxy::RegisterTypeface(Drawing::SharedTypeface& sharedTypeface, bool isLocal)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
+        RS_LOGE("%{public}s: WriteInterfaceToken GetDescriptor err.", __func__);
+        return false;
+    }
+    if (!RSMarshallingHelper::Marshalling(data, sharedTypeface)) {
+        RS_LOGE("%{public}s: Marshalling SharedTypeface failed.", __func__);
+        return false;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::REGISTER_SHARED_TYPEFACE);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        RS_LOGE("%{public}s: SendRequest failed", __func__);
+        return false;
+    }
+    bool result { false };
+    if (!reply.ReadBool(result)) {
+        ROSEN_LOGE("%{public}s: Read result failed", __func__);
+        return false;
+    }
+    return result;
 }
 
 void RSServiceToRenderConnectionProxy::HgmForceUpdateTask(bool flag, const std::string& fromWhom)

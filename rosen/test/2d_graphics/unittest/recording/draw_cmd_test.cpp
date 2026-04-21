@@ -17,6 +17,8 @@
 #include "gtest/gtest.h"
 
 #include "draw/surface.h"
+#include "draw/ui_color.h"
+#include "effect/particle_builder.h"
 #include "pixel_map.h"
 #include "recording/cmd_list.h"
 #include "recording/cmd_list_helper.h"
@@ -137,6 +139,47 @@ HWTEST_F(DrawCmdTest, BrushHandleToBrush001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: BrushHandleToBrush002
+ * @tc.desc: Test BrushHandleToBrush
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, BrushHandleToBrush002, TestSize.Level1)
+{
+    BrushHandle brushHandle;
+    brushHandle.colorFilterHandle.size = 1;
+    brushHandle.colorSpaceHandle.size = 1;
+    brushHandle.shaderEffectHandle.size = 1;
+    brushHandle.imageFilterHandle.size = 1;
+    brushHandle.maskFilterHandle.size = 1;
+    brushHandle.uiColor = UIColor(0.5, 0.6, 0.7, 1.0, 1.0);
+    brushHandle.SetIsUIColor(true);
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    EXPECT_TRUE(drawCmdList != nullptr);
+    Brush brush;
+    DrawOpItem::BrushHandleToBrush(brushHandle, *drawCmdList, brush);
+    EXPECT_TRUE(brush.HasUIColor());
+}
+
+/**
+ * @tc.name: BrushToBrushHandle001
+ * @tc.desc: Test BrushToBrushHandle
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, BrushToBrushHandle001, TestSize.Level1)
+{
+    auto cmdList = std::make_shared<Drawing::DrawCmdList>();
+    cmdList->SetHybridRenderType(Drawing::DrawCmdList::HybridRenderType::TEXT);
+    Drawing::Brush brush;
+    UIColor color(0.5f, 0.6f, 0.7f, 0.8f, 2.0f);
+    brush.SetUIColor(color, nullptr);
+    Drawing::BrushHandle brushHandle;
+    Drawing::DrawOpItem::BrushToBrushHandle(brush, *cmdList, brushHandle);
+    EXPECT_TRUE(brushHandle.IsUIColor());
+}
+
+/**
  * @tc.name: GeneratePaintFromHandle001
  * @tc.desc: Test GeneratePaintFromHandle
  * @tc.type: FUNC
@@ -153,6 +196,28 @@ HWTEST_F(DrawCmdTest, GeneratePaintFromHandle001, TestSize.Level1)
     Paint paint;
     paint.SetStyle(Paint::PaintStyle::PAINT_FILL_STROKE);
     DrawOpItem::GeneratePaintFromHandle(paintHandle, *drawCmdList, paint);
+}
+
+/**
+ * @tc.name: GeneratePaintFromHandle002
+ * @tc.desc: Test GeneratePaintFromHandle
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, GeneratePaintFromHandle002, TestSize.Level1)
+{
+    PaintHandle paintHandle;
+    paintHandle.colorSpaceHandle.size = 1;
+    paintHandle.imageFilterHandle.size = 1;
+    paintHandle.pathEffectHandle.size = 1;
+    paintHandle.uiColor = UIColor(0.5, 0.6, 0.7, 1.0, 1.0);
+    paintHandle.SetIsUIColor(true);
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    EXPECT_TRUE(drawCmdList != nullptr);
+    Paint paint;
+    paint.SetStyle(Paint::PaintStyle::PAINT_FILL_STROKE);
+    DrawOpItem::GeneratePaintFromHandle(paintHandle, *drawCmdList, paint);
+    EXPECT_TRUE(paint.HasUIColor());
 }
 
 /**
@@ -177,6 +242,31 @@ HWTEST_F(DrawCmdTest, GenerateHandleFromPaint001, TestSize.Level1)
     paint.SetShaderEffect(ShaderEffect::CreateColorShader(0xFF000000));
     paint.SetStyle(Paint::PaintStyle::PAINT_FILL_STROKE);
     DrawOpItem::GenerateHandleFromPaint(*drawCmdList, paint, paintHandle);
+}
+
+/**
+ * @tc.name: GenerateHandleFromPaint002
+ * @tc.desc: Test GenerateHandleFromPaint
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, GenerateHandleFromPaint002, TestSize.Level1)
+{
+    PaintHandle paintHandle;
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    EXPECT_TRUE(drawCmdList != nullptr);
+    Paint paint;
+    Filter filter;
+    paint.SetFilter(filter);
+    auto space = std::make_shared<ColorSpace>();
+    UIColor color(0.5f, 0.6f, 0.7f, 0.8f, 1.0f);
+    paint.SetUIColor(color, space);
+    auto pathEffect = PathEffect::CreateCornerPathEffect(10);
+    paint.SetPathEffect(pathEffect);
+    paint.SetShaderEffect(ShaderEffect::CreateColorShader(0xFF000000));
+    paint.SetStyle(Paint::PaintStyle::PAINT_FILL_STROKE);
+    DrawOpItem::GenerateHandleFromPaint(*drawCmdList, paint, paintHandle);
+    EXPECT_TRUE(paintHandle.IsUIColor());
 }
 
 /**
@@ -205,7 +295,7 @@ HWTEST_F(DrawCmdTest, DrawCmdTestBlurDrawLooper001, TestSize.Level1)
     EXPECT_NE(blurDrawLooper1, nullptr);
     paint1.SetLooper(blurDrawLooper1);
 
-    PaintHandle paintHandle { 0 };
+    PaintHandle paintHandle;
     DrawOpItem::GenerateHandleFromPaint(*drawCmdList, paint1, paintHandle);
     EXPECT_TRUE(paintHandle.isAntiAlias);
     EXPECT_NE(paintHandle.blurDrawLooperHandle.size, 0);
@@ -237,7 +327,7 @@ HWTEST_F(DrawCmdTest, DrawCmdTestBlurDrawLooper002, TestSize.Level1)
     paint1.SetAntiAlias(true);
     paint1.SetLooper(nullptr);
 
-    PaintHandle paintHandle { 0 };
+    PaintHandle paintHandle;
     DrawOpItem::GenerateHandleFromPaint(*drawCmdList, paint1, paintHandle);
     EXPECT_TRUE(paintHandle.isAntiAlias);
     EXPECT_EQ(paintHandle.blurDrawLooperHandle.offset, 0);
@@ -607,7 +697,7 @@ HWTEST_F(DrawCmdTest, Marshalling010, TestSize.Level1)
     RectI recti;
     Rect rect;
     BrushHandle brushHandle;
-    DrawImageNineOpItem::ConstructorHandle handle{opDataHandle, recti, rect, FilterMode::NEAREST, brushHandle, true};
+    DrawImageNineOpItem::ConstructorHandle handle { opDataHandle, recti, rect, FilterMode::NEAREST, brushHandle, true };
     Image image;
     Brush brush;
     DrawImageNineOpItem opItem{&image, recti, rect, FilterMode::NEAREST, &brush};
@@ -1507,6 +1597,21 @@ HWTEST_F(DrawCmdTest, ResetMatrixOpItem_Marshalling001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ResetClipOpItem_Marshalling001
+ * @tc.desc: Test ResetClipOpItem_Marshalling
+ * @tc.type: FUNC
+ * @tc.require: IAKWZL
+ */
+HWTEST_F(DrawCmdTest, ResetClipOpItem_Marshalling001, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({nullptr, 0}, false);
+    ResetClipOpItem opItem;
+    ASSERT_TRUE(drawCmdList != nullptr);
+    opItem.Marshalling(*drawCmdList);
+    EXPECT_EQ(drawCmdList->opCnt_, 1);
+}
+
+/**
  * @tc.name: SetMatrixOpItem_Marshalling001
  * @tc.desc: Test SetMatrixOpItem_Marshalling
  * @tc.type: FUNC
@@ -1612,10 +1717,9 @@ HWTEST_F(DrawCmdTest, UnmarshallingPlayer, TestSize.Level1)
     {
         auto drawCmdList = std::make_shared<DrawCmdList>(DrawCmdList::UnmarshalMode::DEFERRED);
         auto type = DrawOpItem::RECT_OPITEM;
-        auto paintHandle = Drawing::PaintHandle {
-            .style = Drawing::Paint::PaintStyle::PAINT_FILL,
-            .color = { Drawing::Color::COLOR_WHITE },
-        };
+        Drawing::PaintHandle paintHandle;
+        paintHandle.style = Drawing::Paint::PaintStyle::PAINT_FILL;
+        paintHandle.color = { Drawing::Color::COLOR_WHITE };
         auto rect = Drawing::Rect(0, 0, 0, 0);
         auto roundRect = Drawing::RoundRect(rect, 0.f, 0.f);
         auto handle = std::make_shared<DrawRoundRectOpItem::ConstructorHandle>(
@@ -1700,6 +1804,304 @@ HWTEST_F(DrawCmdTest, GetOpItemCmdlistDrawRegion003, TestSize.Level1)
     opItem.path_->MoveTo(1.0f, 2.0f);
     opItem.path_->LineTo(3.0f, 4.0f);
     ASSERT_FALSE(opItem.GetOpItemCmdlistDrawRegion().IsEmpty());
+}
+
+/**
+ * @tc.name: Marshalling022
+ * @tc.desc: Test Marshalling for DrawUIColorOpItem
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, Marshalling022, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    EXPECT_TRUE(drawCmdList != nullptr);
+    UIColor color(0.5f, 0.6f, 0.7f, 0.8f, 2.0f);
+    DrawUIColorOpItem::ConstructorHandle handle{color, BlendMode::SRC_OVER};
+    DrawUIColorOpItem opItem{&handle};
+    opItem.Marshalling(*drawCmdList);
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(10, 10); // 10: width, height
+    opItem.Playback(recordingCanvas.get(), nullptr);
+}
+
+/**
+ * @tc.name: PaintHandle001
+ * @tc.desc: Test PaintHandle SetIsUIColor and IsUIColor
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, PaintHandle001, TestSize.Level1)
+{
+    PaintHandle paintHandle;
+    paintHandle.SetIsUIColor(true);
+    EXPECT_TRUE(paintHandle.IsUIColor());
+    paintHandle.SetIsUIColor(false);
+    EXPECT_FALSE(paintHandle.IsUIColor());
+}
+
+/**
+ * @tc.name: PaintHandle002
+ * @tc.desc: Test PaintHandle SetBlenderEnabled and GetBlenderEnabled
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, PaintHandle002, TestSize.Level1)
+{
+    PaintHandle paintHandle;
+    paintHandle.SetBlenderEnabled(true);
+    EXPECT_TRUE(paintHandle.GetBlenderEnabled());
+    paintHandle.SetBlenderEnabled(false);
+    EXPECT_FALSE(paintHandle.GetBlenderEnabled());
+}
+
+/**
+ * @tc.name: PaintHandle003
+ * @tc.desc: Test PaintHandle copy constructor
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, PaintHandle003, TestSize.Level1)
+{
+    PaintHandle paintHandle;
+    paintHandle.SetIsUIColor(true);
+    paintHandle.SetBlenderEnabled(true);
+    PaintHandle copyHandle(paintHandle);
+    EXPECT_TRUE(copyHandle.IsUIColor());
+    EXPECT_TRUE(copyHandle.GetBlenderEnabled());
+}
+
+/**
+ * @tc.name: BrushHandle001
+ * @tc.desc: Test BrushHandle SetIsUIColor and IsUIColor
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, BrushHandle001, TestSize.Level1)
+{
+    BrushHandle brushHandle;
+    brushHandle.SetIsUIColor(true);
+    EXPECT_TRUE(brushHandle.IsUIColor());
+    brushHandle.SetIsUIColor(false);
+    EXPECT_FALSE(brushHandle.IsUIColor());
+}
+
+/**
+ * @tc.name: BrushHandle002
+ * @tc.desc: Test BrushHandle SetBlenderEnabled and GetBlenderEnabled
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, BrushHandle002, TestSize.Level1)
+{
+    BrushHandle brushHandle;
+    brushHandle.SetBlenderEnabled(true);
+    EXPECT_TRUE(brushHandle.GetBlenderEnabled());
+    brushHandle.SetBlenderEnabled(false);
+    EXPECT_FALSE(brushHandle.GetBlenderEnabled());
+}
+
+/**
+ * @tc.name: BrushHandle003
+ * @tc.desc: Test BrushHandle copy constructor
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, BrushHandle003, TestSize.Level1)
+{
+    BrushHandle brushHandle;
+    brushHandle.SetIsUIColor(true);
+    brushHandle.SetBlenderEnabled(true);
+    BrushHandle copyHandle(brushHandle);
+    EXPECT_TRUE(copyHandle.IsUIColor());
+    EXPECT_TRUE(copyHandle.GetBlenderEnabled());
+}
+
+/**
+ * @tc.name: PenHandle001
+ * @tc.desc: Test PenHandle SetIsUIColor and IsUIColor
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, PenHandle001, TestSize.Level1)
+{
+    PenHandle penHandle;
+    penHandle.SetIsUIColor(true);
+    EXPECT_TRUE(penHandle.IsUIColor());
+    penHandle.SetIsUIColor(false);
+    EXPECT_FALSE(penHandle.IsUIColor());
+}
+
+/**
+ * @tc.name: PenHandle002
+ * @tc.desc: Test PenHandle SetCapStyle and GetCapStyle
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, PenHandle002, TestSize.Level1)
+{
+    PenHandle penHandle;
+    penHandle.SetCapStyle(Pen::CapStyle::ROUND_CAP);
+    EXPECT_EQ(penHandle.GetCapStyle(), Pen::CapStyle::ROUND_CAP);
+    penHandle.SetCapStyle(Pen::CapStyle::FLAT_CAP);
+    EXPECT_EQ(penHandle.GetCapStyle(), Pen::CapStyle::FLAT_CAP);
+    penHandle.SetCapStyle(Pen::CapStyle::SQUARE_CAP);
+    EXPECT_EQ(penHandle.GetCapStyle(), Pen::CapStyle::SQUARE_CAP);
+}
+
+/**
+ * @tc.name: PenHandle003
+ * @tc.desc: Test PenHandle copy constructor
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, PenHandle003, TestSize.Level1)
+{
+    PenHandle penHandle;
+    penHandle.SetIsUIColor(true);
+    penHandle.SetCapStyle(Pen::CapStyle::ROUND_CAP);
+    PenHandle copyHandle(penHandle);
+    EXPECT_TRUE(copyHandle.IsUIColor());
+    EXPECT_EQ(copyHandle.GetCapStyle(), Pen::CapStyle::ROUND_CAP);
+}
+
+/**
+ * @tc.name: PenHandle004
+ * @tc.desc: Test PenHandle SetIsUIColor preserves CapStyle
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, PenHandle004, TestSize.Level1)
+{
+    PenHandle penHandle;
+    penHandle.SetCapStyle(Pen::CapStyle::ROUND_CAP);
+    penHandle.SetIsUIColor(true);
+    EXPECT_TRUE(penHandle.IsUIColor());
+    EXPECT_EQ(penHandle.GetCapStyle(), Pen::CapStyle::ROUND_CAP);
+    penHandle.SetIsUIColor(false);
+    EXPECT_FALSE(penHandle.IsUIColor());
+    EXPECT_EQ(penHandle.GetCapStyle(), Pen::CapStyle::ROUND_CAP);
+}
+
+/**
+ * @tc.name: DrawParticleOpItem001
+ * @tc.desc: Test DrawParticleOpItem constructor with particle effect
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, DrawParticleOpItem001, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+
+    auto builder = std::make_shared<ParticleBuilder>();
+    builder->SetUpdateCode("void main() { }");
+    auto particleEffect = builder->MakeParticleEffect(1024);
+    ASSERT_NE(particleEffect, nullptr);
+
+    DrawParticleOpItem opItem(particleEffect);
+    opItem.Marshalling(*drawCmdList);
+
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(10, 10);
+    opItem.Playback(recordingCanvas.get(), nullptr);
+    EXPECT_TRUE(recordingCanvas != nullptr);
+    EXPECT_EQ(recordingCanvas->GetWidth(), 10);
+    EXPECT_EQ(recordingCanvas->GetHeight(), 10);
+}
+ 
+/**
+ * @tc.name: DrawParticleOpItem002
+ * @tc.desc: Test DrawParticleOpItem constructor with cmdlist handle
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, DrawParticleOpItem002, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+
+    auto builder = std::make_shared<ParticleBuilder>();
+    builder->SetUpdateCode("void main() { }");
+    auto particleEffect = builder->MakeParticleEffect(1024);
+    ASSERT_NE(particleEffect, nullptr);
+
+    OpDataHandle particleEffectHandle = CmdListHelper::AddParticleEffectToCmdList(*drawCmdList, particleEffect);
+    DrawParticleOpItem::ConstructorHandle handle(particleEffectHandle);
+ 
+    DrawParticleOpItem opItem(*drawCmdList, &handle);
+    opItem.Marshalling(*drawCmdList);
+
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(10, 10);
+    opItem.Playback(recordingCanvas.get(), nullptr);
+    EXPECT_TRUE(recordingCanvas != nullptr);
+}
+ 
+/**
+ * @tc.name: DrawParticleOpItem003
+ * @tc.desc: Test DrawParticleOpItem Unmarshalling
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, DrawParticleOpItem003, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+ 
+    auto builder = std::make_shared<ParticleBuilder>();
+    builder->SetUpdateCode("void main() { }");
+    auto particleEffect = builder->MakeParticleEffect(1024);
+    ASSERT_NE(particleEffect, nullptr);
+ 
+    DrawParticleOpItem opItem(particleEffect);
+    opItem.Marshalling(*drawCmdList);
+ 
+    OpDataHandle particleEffectHandle = CmdListHelper::AddParticleEffectToCmdList(*drawCmdList, particleEffect);
+    DrawParticleOpItem::ConstructorHandle handle(particleEffectHandle);
+    auto unmarshalledOpItem = DrawParticleOpItem::Unmarshalling(*drawCmdList, &handle);
+    ASSERT_NE(unmarshalledOpItem, nullptr);
+}
+ 
+/**
+ * @tc.name: DrawParticleOpItem004
+ * @tc.desc: Test DrawParticleOpItem Dump
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, DrawParticleOpItem004, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+ 
+    auto builder = std::make_shared<ParticleBuilder>();
+    builder->SetUpdateCode("void main() { }");
+    auto particleEffect = builder->MakeParticleEffect(1024);
+    ASSERT_NE(particleEffect, nullptr);
+ 
+    DrawParticleOpItem opItem(particleEffect);
+    std::string out;
+    opItem.Dump(out);
+    EXPECT_FALSE(out.empty());
+}
+ 
+/**
+ * @tc.name: DrawParticleOpItem005
+ * @tc.desc: Test DrawParticleOpItem constructor with null handle
+ * @tc.type: FUNC
+ * @tc.require: AR000
+ */
+HWTEST_F(DrawCmdTest, DrawParticleOpItemNullHandle, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+
+    DrawParticleOpItem::ConstructorHandle* nullHandle = nullptr;
+    DrawParticleOpItem opItem(*drawCmdList, nullHandle);
+    opItem.Marshalling(*drawCmdList);
+
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(10, 10);
+    opItem.Playback(recordingCanvas.get(), nullptr);
+    EXPECT_TRUE(recordingCanvas != nullptr);
+    EXPECT_EQ(recordingCanvas->GetWidth(), 10);
+    EXPECT_EQ(recordingCanvas->GetHeight(), 10);
 }
 } // namespace Drawing
 } // namespace Rosen

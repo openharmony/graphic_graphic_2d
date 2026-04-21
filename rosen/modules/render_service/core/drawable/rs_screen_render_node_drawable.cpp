@@ -32,11 +32,14 @@
 #include "common/rs_singleton.h"
 #include "common/rs_special_layer_manager.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "engine/rs_base_render_engine.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
 #endif
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "feature/drm/rs_drm_util.h"
+#include "feature/frame_stability/rs_frame_stability_manager.h"
+#include "feature/layer/rs_layer_cache_manager.h"
 #include "feature/pointer_window_manager/rs_pointer_window_manager.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "feature/round_corner_display/rs_rcd_render_manager.h"
@@ -49,10 +52,9 @@
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/main_thread/rs_uni_render_listener.h"
-#include "pipeline/render_thread/rs_base_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #ifdef RS_ENABLE_GPU
-#include "feature/gpuComposition/rs_gpu_cache_manager.h"
+#include "gpuComposition/rs_gpu_cache_manager.h"
 #endif
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/render_thread/rs_uni_render_virtual_processor.h"
@@ -171,6 +173,7 @@ RSScreenRenderNodeDrawable::~RSScreenRenderNodeDrawable()
     auto curScreenId = params ? params->GetScreenId() : INVALID_SCREEN_ID;
     RSUniRenderThread::Instance().UnRegisterCond(curScreenId);
     RSPointerWindowManager::Instance().RemoveCommitResult(GetId());
+    RSFrameStabilityManager::GetInstance().CleanResourcesByScreenId(curScreenId);
 }
 
 RSRenderNodeDrawable::Ptr RSScreenRenderNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)
@@ -396,6 +399,12 @@ bool RSScreenRenderNodeDrawable::CheckScreenNodeSkip(
     auto rcdInfo = std::make_unique<RcdInfo>();
     const auto& screenProperty = params.GetScreenProperty();
     DoScreenRcdTask(params.GetId(), processor, rcdInfo, screenProperty);
+
+    // record current frame refresh area to frame stability manager
+    std::vector<RectI> refreshRects({ syncDirtyManager_->GetHwcDirtyRegion() });
+    RSFrameStabilityManager::GetInstance().RecordCurrentFrameDirty(
+        params.GetScreenId(), refreshRects, screenProperty.GetWidth() * screenProperty.GetHeight());
+
     processor->PostProcess();
     return true;
 }
@@ -675,16 +684,19 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     if (!screenProperty.IsVirtual()) {
         if (auto composerClientManager = RSUniRenderThread::Instance().GetComposerClientManager()) {
-            PipelineParam param = composerClientManager->GetPipelineParam(paramScreenId);
-            param.frameTimestamp = RSUniRenderThread::Instance().GetCurrentTimestamp();
-            param.actualTimestamp = RSUniRenderThread::Instance().GetActualTimestamp();
-            param.fastComposeTimeStampDiff = RSUniRenderThread::Instance().GetFastComposeTimeStampDiff();
-            param.vsyncId = RSUniRenderThread::Instance().GetVsyncId();
-            param.pendingConstraintRelativeTime = RSUniRenderThread::Instance().GetPendingConstraintRelativeTime();
-            param.pendingScreenRefreshRate = RSUniRenderThread::Instance().GetPendingScreenRefreshRate();
-            param.isForceRefresh = RSUniRenderThread::Instance().GetForceRefreshFlag();
-            param.hasGameScene = RSUniRenderThread::Instance().GetHasGameScene();
-            param.hasLppVideo = RSUniRenderThread::Instance().GetHasLppVideo();
+            PipelineParam param = {
+                .frameTimestamp = RSUniRenderThread::Instance().GetCurrentTimestamp(),
+                .actualTimestamp = RSUniRenderThread::Instance().GetActualTimestamp(),
+                .fastComposeTimeStampDiff = RSUniRenderThread::Instance().GetFastComposeTimeStampDiff(),
+                .vsyncId = RSUniRenderThread::Instance().GetVsyncId(),
+                .pendingConstraintRelativeTime = RSUniRenderThread::Instance().GetPendingConstraintRelativeTime(),
+                .pendingScreenRefreshRate = RSUniRenderThread::Instance().GetPendingScreenRefreshRate(),
+                .isForceRefresh = RSUniRenderThread::Instance().GetForceRefreshFlag(),
+                .hasGameScene = RSUniRenderThread::Instance().GetHasGameScene(),
+                .hasLppVideo = RSUniRenderThread::Instance().GetHasLppVideo(),
+                .SurfaceFpsOpNum = RSUniRenderThread::Instance().GetSurfaceFpsOpNum(),
+                .SurfaceFpsOpList = RSUniRenderThread::Instance().GetSurfaceFpsOpList(),
+            };
             composerClientManager->UpdatePipelineParam(paramScreenId, param);
         }
     }
@@ -756,14 +768,18 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             params->ResetVirtualExpandAccumulatedParams();
         } else {
             RS_LOGD("RSScreenRenderNodeDrawable::OnDraw Expand screen.");
-            bool isOpDropped = uniParam->IsOpDropped();
-            uniParam->SetOpDropped(uniParam->IsVirtualExpandScreenDirtyEnabled());
             auto expandProcessor = RSProcessor::ReinterpretCast<RSUniRenderVirtualProcessor>(processor);
             if (!expandProcessor) {
                 SetDrawSkipType(DrawSkipType::EXPAND_PROCESSOR_NULL);
                 RS_LOGE("RSScreenRenderNodeDrawable::OnDraw expandProcessor is null!");
                 return;
             }
+            bool isOpDropped = uniParam->IsOpDropped();
+            bool isVirtualExpandScreenDirtyEnabled = uniParam->IsVirtualExpandScreenDirtyEnabled();
+            if (expandProcessor->IsVirtualExpandScale()) {
+                uniParam->SetVirtualExpandScreenDirtyEnabled(false);
+            }
+            uniParam->SetOpDropped(uniParam->IsVirtualExpandScreenDirtyEnabled());
             RSDirtyRectsDfx rsDirtyRectsDfx(*this);
             std::vector<RectI> damageRegionRects;
             RSUniDirtyComputeUtil::MergeVirtualExpandScreenAccumulatedDirtyRegions(*this, *params);
@@ -777,6 +793,13 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                 std::vector<RectI> emptyRects = {};
                 expandProcessor->SetRoiRegionToCodec(emptyRects);
             }
+
+            // record current frame refresh area to frame stability manager
+            std::vector<RectI> refreshRects(damageRegionRects);
+            refreshRects.emplace_back(syncDirtyManager_->GetHwcDirtyRegion());
+            RSFrameStabilityManager::GetInstance().RecordCurrentFrameDirty(
+                paramScreenId, refreshRects, screenInfo.width * screenInfo.height);
+
             rsDirtyRectsDfx.SetVirtualDirtyRects(damageRegionRects, screenInfo);
             curCanvas_ = expandProcessor->GetCanvas();
             curCanvas_->Save();
@@ -808,6 +831,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                 rsDirtyRectsDfx.OnDrawVirtual(*curCanvas_);
             }
             uniParam->SetOpDropped(isOpDropped);
+            uniParam->SetVirtualExpandScreenDirtyEnabled(isVirtualExpandScreenDirtyEnabled);
         }
         DrawCurtainScreen();
         processor->PostProcess();
@@ -849,17 +873,16 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         SetScreenNodeSkipFlag(*uniParam, true);
         return;
     }
+    params->GetLayerSkipContext().Reset();
     SetScreenNodeSkipFlag(*uniParam, false);
     RSMainThread::Instance()->SetFrameIsRender(true);
 
     CheckAndUpdateFilterCacheOcclusion(*params, screenInfo);
-    bool isRGBA1010108Enabled = RSHdrUtil::GetRGBA1010108Enabled();
-    bool isNeed10bit = isHdrOn || (params->GetNewColorSpace() == GRAPHIC_COLOR_GAMUT_BT2020 && isRGBA1010108Enabled);
-    if (isNeed10bit) {
-        params->SetNewPixelFormat(isRGBA1010108Enabled && params->GetExistHWCNode() ?
+    if (isHdrOn) {
+        params->SetNewPixelFormat(RSBaseHdrUtil::GetRGBA1010108Enabled() && params->GetExistHWCNode() ?
             GRAPHIC_PIXEL_FMT_RGBA_1010108 : GRAPHIC_PIXEL_FMT_RGBA_1010102);
     }
-    // hpae offline: post offline task
+    // hpae_offline: post offline task
     CheckAndPostAsyncProcessOfflineTask();
 #if defined(ROSEN_OHOS)
     bool isHebc = (RSAncoManager::Instance()->GetAncoHebcStatus() != AncoHebcStatus::NOT_USE_HEBC);
@@ -894,6 +917,12 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         }
     }
 
+    // record current frame refresh area to frame stability manager
+    std::vector<RectI> refreshRects(damageRegionrects);
+    refreshRects.emplace_back(syncDirtyManager_->GetHwcDirtyRegion());
+    RSFrameStabilityManager::GetInstance().RecordCurrentFrameDirty(
+        paramScreenId, refreshRects, screenInfo.width * screenInfo.height);
+
     auto drSurface = renderFrame->GetFrame()->GetSurface();
     if (!drSurface) {
         SetDrawSkipType(DrawSkipType::SURFACE_NULL);
@@ -907,6 +936,10 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RS_LOGE("RSScreenRenderNodeDrawable::OnDraw failed to create canvas");
         return;
     }
+
+    auto& layerCacheManager = RSLayerCacheManager::Instance();
+    layerCacheManager.HandleLayerDrawables(*curCanvas_);
+
     curCanvas_->SetDrawnRegion(params->GetDrawnRegion());
     curCanvas_->SetTargetColorGamut(params->GetNewColorSpace());
     curCanvas_->SetScreenId(paramScreenId);
@@ -992,7 +1025,6 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         }
     }
     RenderOverDraw();
-    CheckAndClearRelatedSourceNodeCache(*params);
     RSMainThread::Instance()->SetDirtyFlag(false);
 
     if (Drawing::PerformanceCaculate::GetDrawingFlushPrint()) {
@@ -1032,7 +1064,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         }
         if (drawable->GetRenderParams()->GetHardwareEnabled()) {
             auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
-            // hpae offline: wait task and create layer
+            // hpae_offline: wait task and create layer
             if (surfaceParams->GetLayerInfo().useDeviceOffline &&
                 ProcessOfflineSurfaceDrawable(processor, surfaceDrawable, true)) {
                 continue;
@@ -1111,7 +1143,7 @@ bool RSScreenRenderNodeDrawable::CreateSurface(sptr<IBufferConsumerListener> lis
         RS_LOGI("RSScreenRenderNodeDrawable::CreateSurface already created, return");
         return true;
     }
-    consumer = IConsumerSurface::Create("ScreenNode");
+    consumer = IConsumerSurface::Create(RENDER_NODE_NAME);
     if (consumer == nullptr) {
         RS_LOGE("RSScreenRenderNodeDrawable::CreateSurface get consumer surface fail");
         return false;
@@ -1259,20 +1291,5 @@ bool RSScreenRenderNodeDrawable::CheckScreenFreezeSkip(RSScreenRenderParams& par
         return true;
     }
     return false;
-}
-
-void RSScreenRenderNodeDrawable::CheckAndClearRelatedSourceNodeCache(RSScreenRenderParams& params)
-{
-    auto cloneNodeMap = params.GetCloneNodeMap();
-    for (auto &iter : cloneNodeMap) {
-        auto surfaceDrawable =
-            std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(iter.second.lock());
-        if (!surfaceDrawable) {
-            RS_LOGE("RSScreenRenderNodeDrawable::CheckAndClearRelatedSourceNodeCache"
-                " surfaceDrawable is nullptr");
-            continue;
-        }
-        surfaceDrawable->ClearRelatedSourceCache();
-    }
 }
 } // namespace OHOS::Rosen::DrawableV2

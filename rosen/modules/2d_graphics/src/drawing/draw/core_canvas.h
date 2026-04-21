@@ -342,6 +342,19 @@ public:
     virtual void DrawColor(ColorQuad color, BlendMode mode = BlendMode::SRC_OVER);
 
     /**
+     * @brief Fills clip with color color. Mode determines how ARGB is combined with destination.
+     * @param color UIColor representing HDR color.
+     * @param mode  BlendMode used to combine source color and destination.
+     */
+    virtual void DrawUIColor(UIColor color, BlendMode mode = BlendMode::SRC_OVER);
+
+    /**
+     * @brief Draws Particle with a ParticleEffect.
+     * @param particle ParticleEffect to draw.
+     */
+    virtual void DrawParticle(std::shared_ptr<ParticleEffect> particle);
+
+    /**
      * @brief Draws Region on the Canvas.
      * @param region Region to draw.
      */

@@ -39,6 +39,7 @@ public:
         TAG_CANVAS_DRAWING_NODE,
         TAG_UNTAGGED,
         TAG_CAPTURE,
+        TAG_COLOR_PICKER_SNAPSHOT,
     };
     enum SOURCETYPE : uint32_t {
         SOURCE_OTHER,
@@ -75,6 +76,7 @@ public:
     ~RSTagTracker();
     static void UpdateReleaseResourceEnabled(bool releaseResEnabled);
     static std::string TagType2String(TAGTYPE type);
+    static Drawing::GPUResourceTag GetCurrentGpuResourceTag(Drawing::GPUContext* gpuContext);
 private:
     bool isSetTagEnd_ = false;
     std::shared_ptr<Drawing::GPUContext> gpuContext_ = nullptr;

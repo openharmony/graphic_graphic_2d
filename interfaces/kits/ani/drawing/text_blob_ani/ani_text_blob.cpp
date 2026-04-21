@@ -220,7 +220,11 @@ ani_object AniTextBlob::MakeFromRunBuffer(ani_env* env, ani_object obj, ani_arra
         runBuffer = textBlobBuilder->AllocRunPos(*font, size);
     } else {
         ani_boolean isRectNullptr = ANI_TRUE;
-        env->Reference_IsNull(aniRectObj, &isRectNullptr);
+        ani_status status = env->Reference_IsNull(aniRectObj, &isRectNullptr);
+        if (status != ANI_OK) {
+            ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter2 type.");
+            return CreateAniUndefined(env);
+        }
         Drawing::Rect drawingRect;
         if (!isRectNullptr && !GetRectFromAniRectObj(env, aniRectObj, drawingRect)) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter2 type.");
@@ -286,8 +290,8 @@ bool AniTextBlob::MakeRunBuffer(ani_env* env, TextBlobBuilder::RunBuffer& runBuf
         }
         ani_object aniRunBuffer =  static_cast<ani_object>(runBufferRef);
         ani_boolean isRunBufferClass;
-        env->Object_InstanceOf(aniRunBuffer, runBufferClass, &isRunBufferClass);
-        if (!isRunBufferClass) {
+        ani_status status = env->Object_InstanceOf(aniRunBuffer, runBufferClass, &isRunBufferClass);
+        if (status != ANI_OK || !isRunBufferClass) {
             return false;
         }
 

@@ -46,8 +46,8 @@ bool CheckIfEnableOpengl()
 }
 
 namespace OHOS {
-EglWrapperDispatchTable gWrapperHook;
-GlHookTable gGlHookNoContext;
+EglWrapperDispatchTable gWrapperHook{};
+GlHookTable gGlHookNoContext{};
 #if USE_IGRAPHICS_EXTENDS_HOOKS
 GlHookTable g_glHookCSDR;
 GlHookTable g_glHookSingle;

@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef TEST_CONVERT_FUZZER_H
-#define TEST_CONVERT_FUZZER_H
+#ifndef TEST_RUN_FUZZER_H
+#define TEST_RUN_FUZZER_H
 
 #include <climits>
 #include <cstdint>
@@ -34,4 +34,4 @@ constexpr inline size_t DATA_MAX_ENUM_SIZE1 = 3;
 constexpr inline size_t DATA_MAX_ENUM_SIZE2 = 4;
 constexpr inline size_t DATA_MAX_ENUM_SIZE3 = 7;
 
-#endif // TEST_CONVERT_FUZZER_H
+#endif // TEST_RUN_FUZZER_H

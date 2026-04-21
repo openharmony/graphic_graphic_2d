@@ -192,6 +192,32 @@ HWTEST_F(RSDrawFrameTest, ClearDrawableResourceTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ClearDrawableMemory
+ * @tc.desc: test ClearDrawableMemory
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDrawFrameTest, ClearDrawableMemoryTest, TestSize.Level1)
+{
+    RSDrawFrame drawFrame;
+    drawFrame.rsParallelType_ = RsParallelType::RS_PARALLEL_TYPE_SYNC;
+    drawFrame.ClearDrawableMemory(false);
+    drawFrame.ClearDrawableMemory(true);
+    ASSERT_TRUE(drawFrame.rsParallelType_ == RsParallelType::RS_PARALLEL_TYPE_SYNC);
+    drawFrame.rsParallelType_ = RsParallelType::RS_PARALLEL_TYPE_SINGLE_THREAD;
+    drawFrame.ClearDrawableMemory(false);
+    drawFrame.ClearDrawableMemory(true);
+    ASSERT_TRUE(drawFrame.rsParallelType_ == RsParallelType::RS_PARALLEL_TYPE_SINGLE_THREAD);
+    drawFrame.rsParallelType_ = RsParallelType::RS_PARALLEL_TYPE_ASYNC;
+    drawFrame.ClearDrawableMemory(false);
+    drawFrame.ClearDrawableMemory(true);
+    ASSERT_TRUE(drawFrame.rsParallelType_ == RsParallelType::RS_PARALLEL_TYPE_ASYNC);
+    drawFrame.rsParallelType_ = static_cast<RsParallelType>(100);
+    drawFrame.ClearDrawableMemory(false);
+    drawFrame.ClearDrawableMemory(true);
+    ASSERT_TRUE(drawFrame.rsParallelType_ != RsParallelType::RS_PARALLEL_TYPE_ASYNC);
+}
+
+/**
  * @tc.name: StartEndCheckShortPathTest
  * @tc.desc: StartCheck then EndCheck quickly should not increase longFrameCount_
  * @tc.type: FUNC

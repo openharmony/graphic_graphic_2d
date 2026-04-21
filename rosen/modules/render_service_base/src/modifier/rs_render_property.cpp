@@ -19,6 +19,7 @@
 
 #include "rs_profiler.h"
 
+#include "animation/rs_particle_field_collection.h"
 #include "animation/rs_particle_ripple_field.h"
 #include "animation/rs_particle_velocity_field.h"
 #include "animation/rs_render_particle.h"
@@ -422,15 +423,6 @@ void RSRenderProperty<std::shared_ptr<MotionBlurParam>>::Dump(std::string& out) 
 }
 
 template<>
-void RSRenderProperty<std::shared_ptr<RSMagnifierParams>>::Dump(std::string& out) const
-{
-    auto property = Get();
-    if (property != nullptr) {
-        property->Dump(out);
-    }
-}
-
-template<>
 void RSRenderProperty<std::vector<std::shared_ptr<EmitterUpdater>>>::Dump(std::string& out) const
 {
     auto property = Get();
@@ -470,6 +462,15 @@ void RSRenderProperty<std::shared_ptr<ParticleRippleFields>>::Dump(std::string& 
 
 template<>
 void RSRenderProperty<std::shared_ptr<ParticleVelocityFields>>::Dump(std::string& out) const
+{
+    auto property = Get();
+    if (property != nullptr) {
+        property->Dump(out);
+    }
+}
+
+template<>
+void RSRenderProperty<std::shared_ptr<ParticleFieldCollection>>::Dump(std::string& out) const
 {
     auto property = Get();
     if (property != nullptr) {
@@ -595,6 +596,9 @@ void RSRenderProperty<RSDynamicBrightnessPara>::Dump(std::string& out) const
 {}
 template<>
 void RSRenderProperty<RSShadowBlenderPara>::Dump(std::string& out) const
+{}
+template<>
+void RSRenderProperty<RSHdrDarkenBlenderPara>::Dump(std::string& out) const
 {}
 template<>
 void RSRenderProperty<std::vector<Vector2f>>::Dump(std::string& out) const

@@ -32,7 +32,7 @@ public:
     void SetTaskEndWithTime(uint64_t time);
     void NotifyPackageEvent(const std::vector<std::string>& packageList);
     void SetBufferInfo(const BufferInfo& bufferInfo);
-    uint64_t GetRealTimeOffsetOfDvsync(int64_t time);
+    uint64_t GetRealTimeOffsetOfDvsync(int64_t time, int64_t& preTime);
     void SetHardwareTaskNum(uint32_t num);
     uint64_t CheckVsyncReceivedAndGetRelTs(uint64_t timestamp);
     void PrintConnectionsStatus();

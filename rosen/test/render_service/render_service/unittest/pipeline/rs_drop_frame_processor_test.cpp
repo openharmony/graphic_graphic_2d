@@ -16,7 +16,7 @@
 #include "gtest/gtest.h"
 #include "limit_number.h"
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "pipeline/render_thread/rs_base_render_util.h"
+#include "engine/rs_base_render_util.h"
 #include "pipeline/main_thread/rs_render_service_listener.h"
 #include "pipeline/rs_test_util.h"
 #include "surface.h"
@@ -79,7 +79,7 @@ HWTEST_F(RSDropFrameProcessorTest, DropFrameProcessorTest001, TestSize.Level1)
     RSSurfaceRenderNodeConfig config;
     rsNode = std::make_shared<RSSurfaceRenderNode>(config);
     rsNode->GetRSSurfaceHandler()->SetConsumer(nullptr);
-    GSError result = RSBaseRenderUtil::DropFrameProcess(*rsNode->GetRSSurfaceHandler());
+    GSError result = RSBaseSurfaceUtil::DropFrameProcess(*rsNode->GetRSSurfaceHandler());
     ASSERT_EQ(result, OHOS::GSERROR_NO_CONSUMER);
 }
 
@@ -134,7 +134,7 @@ HWTEST_F(RSDropFrameProcessorTest, DropFrameProcessorTest002, TestSize.Level1)
         ret = surfaceConsumer->AcquireBuffer(cbuffer, acquireFence, timestamp, damage);
     }
     // create RSHardwareProcessor
-    GSError result = RSBaseRenderUtil::DropFrameProcess(*rsNode->GetRSSurfaceHandler());
+    GSError result = RSBaseSurfaceUtil::DropFrameProcess(*rsNode->GetRSSurfaceHandler());
     ASSERT_EQ(result, OHOS::GSERROR_NO_BUFFER);
     csurf->UnregisterConsumerListener();
 }
@@ -181,7 +181,7 @@ HWTEST_F(RSDropFrameProcessorTest, DropFrameProcessorTest003, TestSize.Level1)
     }
 
     // create RSHardwareProcessor
-    GSError result = RSBaseRenderUtil::DropFrameProcess(*rsNode->GetRSSurfaceHandler());
+    GSError result = RSBaseSurfaceUtil::DropFrameProcess(*rsNode->GetRSSurfaceHandler());
     ASSERT_EQ(result, OHOS::GSERROR_OK);
     csurf->UnregisterConsumerListener();
 }

@@ -57,12 +57,15 @@ public:
     {
         return curThreadInfo_.first;
     }
+
     void ResetSurface();
-    virtual bool IsNeedDraw() const override
+
+    bool IsNeedDraw() const override
     {
         return needDraw_;
     }
-    virtual void SetNeedDraw(bool flag) override
+
+    void SetNeedDraw(bool flag) override
     {
         needDraw_ = flag;
     }

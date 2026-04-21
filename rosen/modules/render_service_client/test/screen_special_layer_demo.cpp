@@ -65,6 +65,8 @@ int main(int argc, char* argv[])
         ScreenSpecialLayerDemoUtils::PrintPersistId();
     } else if (func == "EnableGlobalBlackList") {
         ScreenSpecialLayerDemoUtils::EnableGlobalBlackList(argc, argv);
+    } else if (func == "SetVirtualScreenRefreshRate") {
+        ScreenSpecialLayerDemoUtils::SetVirtualScreenRefreshRate(argc, argv);
     } else if (MODIFY_LIST_FUNC_MAP.find(func) != MODIFY_LIST_FUNC_MAP.end()) {
         ScreenSpecialLayerDemoUtils::ModifySpecialLayerList(argc, argv);
     } else {

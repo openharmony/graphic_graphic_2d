@@ -54,10 +54,10 @@ ohos_shared_library("libgraphic_utils") {
   }
 
   deps = [
-    ":color_manager",
-    ":sandbox_utils",
-    ":scoped_bytrace",
-    ":test_header",
+    "color_manager:color_manager",
+    "sandbox:sandbox_utils",
+    "scoped_bytrace:scoped_bytrace",
+    "test_header:test_header",
     "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
     "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
   ]

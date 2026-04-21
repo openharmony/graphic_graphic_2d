@@ -76,6 +76,8 @@ if (is_arkui_x) {
     ]
 
     deps = [
+      "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:EGL",
+      "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
       "//foundation/graphic/graphic_2d/rosen/modules/effect/color_picker:color_picker",
       "//foundation/graphic/graphic_2d/rosen/modules/effect/skia_effectChain:skeffectchain",
     ]
@@ -103,6 +105,8 @@ if (is_arkui_x) {
     ]
 
     deps = [
+      "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:EGL",
+      "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
       "//foundation/graphic/graphic_2d/rosen/modules/effect/color_picker:color_picker",
       "//foundation/graphic/graphic_2d/rosen/modules/effect/skia_effectChain:skeffectchain",
     ]

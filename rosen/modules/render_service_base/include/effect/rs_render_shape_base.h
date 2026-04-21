@@ -36,6 +36,14 @@ public:
     [[nodiscard]] static bool Unmarshalling(Parcel& parcel, std::shared_ptr<RSNGRenderShapeBase>& val);
 
     virtual std::shared_ptr<Drawing::GEVisualEffect> GenerateGEVisualEffect() { return nullptr; }
+
+    const RectF& GetTransformDrawRect() const { return transformDrawRect_; };
+
+protected:
+    RectF transformDrawRect_;
+
+private:
+    friend class RSNGRenderShapeHelper;
 };
 
 template<RSNGEffectType Type, typename... PropertyTags>
@@ -64,6 +72,11 @@ public:
 
 protected:
     virtual void OnGenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffect>) {}
+};
+
+class RSNGRenderShapeHelper {
+public:
+    static RectF CalcRect(const std::shared_ptr<RSNGRenderShapeBase>& shape, const RectF& bound);
 };
 
 #define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##RenderTag

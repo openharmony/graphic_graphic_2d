@@ -336,7 +336,7 @@ bool RSRenderInterface::SetAncoForceDoDirect(bool direct)
     return renderPipelineClient_->SetAncoForceDoDirect(direct);
 }
 
-bool RSRenderInterface::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+bool RSRenderInterface::SetHwcNodeBounds(NodeId rsNodeId, float positionX, float positionY,
     float positionZ, float positionW)
 {
     if (renderPipelineClient_ == nullptr) {
@@ -385,6 +385,22 @@ int32_t RSRenderInterface::GetBrightnessInfo(ScreenId screenId, BrightnessInfo& 
 int32_t RSRenderInterface::GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus)
 {
     return renderPipelineClient_->GetScreenHDRStatus(id, hdrStatus);
+}
+
+int32_t RSRenderInterface::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
+{
+    if (!RSSystemProperties::GetUniRenderEnabled()) {
+        RS_LOGI("UniRender Disabled, PostSyncTask to RenderThread");
+        bool querySuccess = false;
+        auto queryGpuLimits = [&maxWidth, &maxHeight, &querySuccess]() {
+            querySuccess = RSRenderThread::Instance().QueryMaxGpuBufferSize(maxWidth, maxHeight);
+        };
+        RSRenderThread::Instance().PostSyncTask(queryGpuLimits);
+        return querySuccess ? 0 : -1;
+    } else {
+        RS_LOGI("UniRender, using render pipeline");
+        return renderPipelineClient_->GetMaxGpuBufferSize(maxWidth, maxHeight);
+    }
 }
 
 bool RSRenderInterface::GetHighContrastTextState()

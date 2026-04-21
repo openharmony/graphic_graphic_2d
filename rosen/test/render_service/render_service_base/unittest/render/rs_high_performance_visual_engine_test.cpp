@@ -14,9 +14,12 @@
  */
 #include "gtest/gtest.h"
 
-#include "utils/rect.h"
-#include "render/rs_high_performance_visual_engine.h"
+#include "pipeline/rs_canvas_render_node.h"
+#include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
+#include "pipeline/rs_surface_render_node.h"
+#include "render/rs_high_performance_visual_engine.h"
+#include "utils/rect.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -29,11 +32,41 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+    std::shared_ptr<RSSurfaceRenderNode> rootSurfaceNode;
+    std::shared_ptr<RSEffectRenderNode> effectNode;
+    std::shared_ptr<RSEffectRenderNode> validTargetNode;
+    std::shared_ptr<RSEffectRenderNode> invalidTargetNode;
+    std::shared_ptr<RSRenderNode> renderNode;
+    std::shared_ptr<RSSurfaceRenderNode> surfaceNode;
+    static constexpr uint32_t MAX_FILTER_SIZE = 500;
+    static constexpr uint32_t ROOT_SURFACE_NODE_ID = 1;
+    static constexpr uint32_t EFFECT_NODE_ID = 2;
+    static constexpr uint32_t VALID_TARGET_NODE_ID = 3;
+    static constexpr uint32_t INVALID_TARGET_NODE_ID = 4;
+    static constexpr uint32_t RENDER_NODE_ID = 5;
+    static constexpr uint32_t SURFACE_NODE_ID = 6;
 };
 
 void RSHveFilterTest::SetUpTestCase() {}
 void RSHveFilterTest::TearDownTestCase() {}
-void RSHveFilterTest::SetUp() {}
+void RSHveFilterTest::SetUp()
+{
+    rootSurfaceNode = std::make_shared<RSSurfaceRenderNode>(ROOT_SURFACE_NODE_ID);
+    effectNode = std::make_shared<RSEffectRenderNode>(EFFECT_NODE_ID);
+    validTargetNode = std::make_shared<RSEffectRenderNode>(VALID_TARGET_NODE_ID);
+    invalidTargetNode = std::make_shared<RSEffectRenderNode>(INVALID_TARGET_NODE_ID);
+    renderNode = std::make_shared<RSRenderNode>(RENDER_NODE_ID);
+    surfaceNode = std::make_shared<RSSurfaceRenderNode>(SURFACE_NODE_ID);
+
+    validTargetNode->GetMutableRenderProperties().SetUseEffect(true);
+    validTargetNode->SetGlobalAlpha(1.0f);
+    validTargetNode->UpdateChildrenOutOfRectFlag(false);
+    invalidTargetNode->GetMutableRenderProperties().SetUseEffect(false);
+
+    rootSurfaceNode->AddChild(effectNode);
+    effectNode->AddChild(validTargetNode);
+    validTargetNode->AddChild(renderNode);
+}
 void RSHveFilterTest::TearDown() {}
 
 /**
@@ -85,6 +118,48 @@ HWTEST_F(RSHveFilterTest, GetSurfaceNodeSizeTest, TestSize.Level1)
 {
     HveFilter filter;
     EXPECT_EQ(filter.GetSurfaceNodeSize(), 0);
+}
+
+/**
+ * @tc.name: HasValidEffectTest
+ * @tc.desc: Verify function HasValidEffect
+ * @tc.type:FUNC
+ * @tc.require: issuesI9UWCD
+ */
+HWTEST_F(RSHveFilterTest, HasValidEffectTest, TestSize.Level1)
+{
+    HveFilter filter;
+    EXPECT_FALSE(filter.HasValidEffect(nullptr));
+    filter.HasValidEffect(rootSurfaceNode.get());
+    EXPECT_FALSE(filter.HasValidEffect(invalidTargetNode.get()));
+    filter.HasValidEffect(validTargetNode.get());
+    validTargetNode->SetGlobalAlpha(0.5f);
+    EXPECT_FALSE(filter.HasValidEffect(validTargetNode.get()));
+    validTargetNode->SetGlobalAlpha(1.0f);
+    validTargetNode->UpdateChildrenOutOfRectFlag(true);
+    EXPECT_FALSE(filter.HasValidEffect(validTargetNode.get()));
+    rootSurfaceNode->RemoveChild(effectNode);
+    EXPECT_FALSE(filter.HasValidEffect(rootSurfaceNode.get()));
+    filter.HasValidEffect(renderNode.get());
+}
+
+/**
+ * @tc.name: CheckPreconditionTest
+ * @tc.desc: Verify function CheckPrecondition
+ * @tc.type:FUNC
+ * @tc.require: issuesI9UWCD
+ */
+HWTEST_F(RSHveFilterTest, CheckPreconditionTest, TestSize.Level1)
+{
+    HveFilter filter;
+    RectI filterRect = {0, 0, 100, 100};
+    renderNode->GetMutableRenderProperties().SetUseEffect(true);
+    filter.CheckPrecondition(*renderNode, filterRect, *surfaceNode);
+    filterRect.SetRight(600);
+    filterRect.SetBottom(600);
+    EXPECT_FALSE(filter.CheckPrecondition(*renderNode, filterRect, *surfaceNode));
+    renderNode->GetMutableRenderProperties().SetUseEffect(false);
+    filter.CheckPrecondition(*renderNode, filterRect, *surfaceNode);
 }
 
 /**

@@ -41,6 +41,16 @@ public:
     static void AddOrRemoveAppPidToMap(bool isNodeSingleFrameComposer, pid_t pid);
     static bool IsShouldProcessByIpcThread(pid_t pid);
 
+    static uint32_t GetVisibleWinCount()
+    {
+        return visibleWinCount_.load();
+    }
+
+    static void SetVisibleWinCount(uint32_t count)
+    {
+        visibleWinCount_.store(count);
+    }
+
 private:
     bool FindSingleFrameModifierNG(const std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>>& modifierList);
     void EraseSingleFrameModifierNG(std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>>& modifierList);
@@ -54,6 +64,7 @@ private:
     static std::mutex ipcThreadIdMapMutex_;
     static std::map<pid_t, uint64_t> appPidMap_;
     static std::mutex appPidMapMutex_;
+    static std::atomic<uint32_t> visibleWinCount_;
 };
 } // namespace Rosen
 } // namespace OHOS

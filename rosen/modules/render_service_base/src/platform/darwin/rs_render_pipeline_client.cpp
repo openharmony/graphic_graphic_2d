@@ -148,7 +148,7 @@ bool RSRenderPipelineClient::TakeUICaptureInRange(
     return true;
 }
 
-bool RSRenderPipelineClient::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+bool RSRenderPipelineClient::SetHwcNodeBounds(NodeId rsNodeId, float positionX, float positionY,
     float positionZ, float positionW)
 {
     return true;
@@ -247,6 +247,11 @@ int32_t RSRenderPipelineClient::UnRegisterSurfaceOcclusionChangeCallback(NodeId 
 int32_t RSRenderPipelineClient::SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection)
 {
     return 0;
+}
+
+int32_t RSRenderPipelineClient::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
+{
+    return false;
 }
 
 int32_t RSRenderPipelineClient::RegisterFrameStabilityDetection(

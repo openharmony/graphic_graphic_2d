@@ -331,6 +331,42 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, CheckScreenNodeSkipTest, TestSize.Level
 }
 
 /**
+ * @tc.name: CheckScreenNodeSkipTest002
+ * @tc.desc: Test CheckScreenNodeSkip, if uni-render layer is/is not valid layer.
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, CheckScreenNodeSkipTest002, TestSize.Level1)
+{
+    bool sysPropInit = RSSystemProperties::GetDynamicLayerSkipEnabled();
+    ASSERT_NE(renderNode_, nullptr);
+    ASSERT_NE(screenDrawable_, nullptr);
+    ASSERT_NE(screenDrawable_->renderParams_, nullptr);
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
+    auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType(), params->GetScreenId());
+    auto uniProcessor = std::static_pointer_cast<RSUniRenderProcessor>(processor);
+    // case 1 : layer invalid
+    {
+        params->layerSkipContext_.screenLayerInvalid_ = true;
+        system::SetParameter("rosen.dynamiclayerskip.enabled", "1");
+        ASSERT_TRUE(screenDrawable_->CheckScreenNodeSkip(*params, uniProcessor));
+        system::SetParameter("rosen.dynamiclayerskip.enabled", "0");
+        ASSERT_TRUE(screenDrawable_->CheckScreenNodeSkip(*params, uniProcessor));
+    }
+    // case 2 : layer valid
+    {
+        params->layerSkipContext_.screenLayerInvalid_ = false;
+        system::SetParameter("rosen.dynamiclayerskip.enabled", "1");
+        ASSERT_TRUE(screenDrawable_->CheckScreenNodeSkip(*params, uniProcessor));
+        system::SetParameter("rosen.dynamiclayerskip.enabled", "0");
+        ASSERT_TRUE(screenDrawable_->CheckScreenNodeSkip(*params, uniProcessor));
+    }
+    system::SetParameter("rosen.dynamiclayerskip.enabled", std::to_string(sysPropInit));
+}
+
+/**
  * @tc.name: CheckFilterCacheFullyCovered
  * @tc.desc: Test CheckFilterCacheFullyCovered
  * @tc.type: FUNC
@@ -1833,40 +1869,4 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, UpdateSurfaceDrawRegionTest, TestSize.L
     screenDrawable_->UpdateSurfaceDrawRegion(canvas, params);
 }
 #endif
-
-/**
- * @tc.name: CheckAndClearRelatedSourceNodeCache
- * @tc.desc: Test CheckAndClearRelatedSourceNodeCache
- * @tc.type: FUNC
- * @tc.require: #I9NVOG
- */
-HWTEST_F(RSScreenRenderNodeDrawableTest, CheckAndClearRelatedSourceNodeCacheTest, TestSize.Level2)
-{
-    ASSERT_NE(screenDrawable_, nullptr);
-    RSScreenRenderParams* params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
-    ASSERT_NE(params, nullptr);
-    screenDrawable_->CheckAndClearRelatedSourceNodeCache(*params);
-
-    NodeId id = 1;
-    ASSERT_EQ(params->GetCloneNodeMap().size(), 0);
-    params->cloneNodeMap_[id];
-    params->cloneNodeMap_[id + 1];
-    screenDrawable_->CheckAndClearRelatedSourceNodeCache(*params);
-    ASSERT_NE(params->GetCloneNodeMap().size(), 0);
-
-    auto surfaceRenderNode = RSTestUtil::CreateSurfaceNode();
-    ASSERT_NE(surfaceRenderNode, nullptr);
-    auto surfaceRenderNodeDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
-        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceRenderNode));
-    ASSERT_NE(surfaceRenderNodeDrawable, nullptr);
-    DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr
-        surfaceNodeRenderDrawableSharedPtr(surfaceRenderNodeDrawable);
-    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr
-        surfaceNodeRenderDrawableWeakPtr(surfaceNodeRenderDrawableSharedPtr);
-    surfaceRenderNodeDrawable->relatedSourceNodeCache_ = std::make_shared<Drawing::Image>();
-    params->cloneNodeMap_[id] = surfaceNodeRenderDrawableWeakPtr;
-    ASSERT_NE(surfaceRenderNodeDrawable->relatedSourceNodeCache_, nullptr);
-    screenDrawable_->CheckAndClearRelatedSourceNodeCache(*params);
-    ASSERT_EQ(surfaceRenderNodeDrawable->relatedSourceNodeCache_, nullptr);
-}
 } // namespace OHOS::Rosen

@@ -19,7 +19,7 @@
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_canvas_drawing_node.h"
 #include "feature/capture/rs_surface_capture_task_parallel.h"
-#include "pipeline/render_thread/rs_uni_render_engine.h"
+#include "engine/rs_uni_render_engine.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -990,7 +990,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, RunHDR001, TestSize.Level2)
     captureConfig.mainScreenRect = {0.f, 0.f, 480.f, 320.f};
     RSSurfaceCaptureTaskParallel task(nodeId, captureConfig);
     bool ret = task.CreateResources();
-    EXPECT_EQ(ret, false);
+    EXPECT_NE(ret, false);
 
     sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
     ASSERT_EQ(callback != nullptr, true);

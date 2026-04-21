@@ -43,9 +43,8 @@ public:
 
     virtual bool Init() = 0;
     virtual bool AbandonContext() = 0;
-    virtual std::string GetShaderCacheSize() const = 0;
-    virtual std::string CleanAllShaderCache() const = 0;
     virtual bool SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawingContext = nullptr) = 0;
+    virtual bool QueryMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight) = 0;
 
     static std::shared_ptr<Drawing::ColorSpace> ConvertColorGamutToColorSpace(GraphicColorGamut colorGamut);
 
@@ -128,7 +127,6 @@ protected:
     bool isUniRender_ = false;
     bool isUniRenderMode_ = false;
     std::string cacheDir_ = "";
-    std::shared_ptr<MemoryHandler> mHandler_ = nullptr;
     int32_t pixelFormat_ = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     #ifdef ROSEN_ARKUI_X

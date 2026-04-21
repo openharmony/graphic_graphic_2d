@@ -20,7 +20,7 @@
 #include "common/rs_common_tools.h"
 #include "drawable/rs_color_picker_drawable.h"
 #include "drawable/rs_misc_drawable.h"
-#include "drawable/rs_point_light_drawable.h"
+#include "drawable/rs_overlay_ng_shader_drawable.h"
 #include "drawable/rs_property_drawable.h"
 #include "drawable/rs_property_drawable_background.h"
 #include "drawable/rs_property_drawable_foreground.h"
@@ -54,7 +54,7 @@ static const std::unordered_map<ModifierNG::RSModifierType, RSDrawableSlot> g_pr
     { ModifierNG::RSModifierType::PIXEL_STRETCH,                RSDrawableSlot::PIXEL_STRETCH },
     { ModifierNG::RSModifierType::USE_EFFECT,                   RSDrawableSlot::USE_EFFECT },
     { ModifierNG::RSModifierType::BLENDER,                      RSDrawableSlot::BLENDER },
-    { ModifierNG::RSModifierType::POINT_LIGHT,                  RSDrawableSlot::POINT_LIGHT },
+    { ModifierNG::RSModifierType::OVERLAY_NG_SHADER,            RSDrawableSlot::OVERLAY_NG_SHADER },
     { ModifierNG::RSModifierType::PARTICLE_EFFECT,              RSDrawableSlot::PARTICLE_EFFECT },
     { ModifierNG::RSModifierType::COMPOSITING_FILTER,           RSDrawableSlot::COMPOSITING_FILTER },
     { ModifierNG::RSModifierType::BACKGROUND_FILTER,            RSDrawableSlot::BACKGROUND_FILTER },
@@ -134,7 +134,7 @@ static const std::array<RSDrawable::Generator, GEN_LUT_SIZE> g_drawableGenerator
     nullptr,                                                         // FG_RESTORE_BOUNDS,
 
     // No clip (unless ClipToBounds is set)
-    RSPointLightDrawable::OnGenerate,                                // POINT_LIGHT,
+    RSOverlayNGShaderDrawable::OnGenerate,                           // OVERLAY_NG_SHADER,
     RSBorderDrawable::OnGenerate,                                    // BORDER,
     ModifierGenerator<ModifierNG::RSModifierType::OVERLAY_STYLE>,    // OVERLAY,
     RSParticleDrawable::OnGenerate,                                  // PARTICLE_EFFECT,
@@ -367,10 +367,11 @@ constexpr std::array boundsDirtyTypes = {
     RSDrawableSlot::FRAME_OFFSET,
     RSDrawableSlot::FG_CLIP_TO_BOUNDS,
     RSDrawableSlot::FOREGROUND_COLOR,
-    RSDrawableSlot::POINT_LIGHT,
+    RSDrawableSlot::OVERLAY_NG_SHADER,
     RSDrawableSlot::BORDER,
     RSDrawableSlot::PIXEL_STRETCH,
     RSDrawableSlot::RESTORE_FOREGROUND_FILTER,
+    RSDrawableSlot::FOREGROUND_SHADER,
 };
 constexpr std::array frameDirtyTypes = {
     RSDrawableSlot::CLIP_TO_FRAME,

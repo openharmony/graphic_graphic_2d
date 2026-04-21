@@ -17,6 +17,7 @@
 #include "rs_sub_thread_cache.h"
 
 #include <memory>
+#include <sstream>
 
 #include "impl_interface/region_impl.h"
 #include "rs_trace.h"
@@ -44,7 +45,6 @@
 #include "rs_frame_report.h"
 #include "utils/rect.h"
 #include "utils/region.h"
-#include "uifirst_param.h"
 #ifdef RS_ENABLE_VK
 #ifdef USE_M133_SKIA
 #include "include/gpu/ganesh/vk/GrVkBackendSurface.h"
@@ -72,7 +72,9 @@ constexpr float SCALE_DIFF = 0.01f;
 namespace OHOS::Rosen::DrawableV2 {
 RsSubThreadCache::RsSubThreadCache()
     : syncUifirstDirtyManager_(std::make_shared<RSDirtyRegionManager>())
-{}
+{
+    isOcclusionEnabled_ = RSUifirstManager::Instance().IsOcclusionEnabled();
+}
 
 CacheProcessStatus RsSubThreadCache::GetCacheSurfaceProcessedStatus() const
 {
@@ -263,18 +265,19 @@ bool RsSubThreadCache::DrawCacheSurface(DrawableV2::RSSurfaceRenderNodeDrawable*
     auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
     auto translateX = gravityMatrix.Get(Drawing::Matrix::TRANS_X);
     auto translateY = gravityMatrix.Get(Drawing::Matrix::TRANS_Y);
+    bool cacheSizeMatchBound = IsCacheSizeMatchBound(cacheCompletedSurfaceRect_, boundSize);
     std::vector<Drawing::RectI> opaqueRects;
-    Drawing::Rect imgDrawRect = { translateX, translateY, imageWidth, imageHeight };
-    InsertOpaqueRegion(canvas, surfaceDrawable, opaqueRects, imgDrawRect);
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
+    if (isOcclusionEnabled_ && cacheSizeMatchBound) {
+        Drawing::Rect imgDrawRect = { translateX, translateY, imageWidth, imageHeight };
+        InsertOpaqueRegion(canvas, surfaceDrawable, opaqueRects, imgDrawRect);
+    }
     DrawBehindWindowBeforeCache(canvas, translateX, translateY, surfaceDrawable);
     if (cacheCompletedSurfaceInfo_.isContainShadow) {
         translateX += cacheCompletedSurfaceRect_.GetLeft();
         translateY += cacheCompletedSurfaceRect_.GetTop();
     }
-    bool isShouldClipShadow = (!surfaceParams->IsUIFirstLeashAllEnable() ||
-        surfaceParams->IsUIFirstLeashAllEnableChange()) && cacheCompletedSurfaceInfo_.isContainShadow;
-    if (isShouldClipShadow) {
+    bool needClipShadow = !cacheSizeMatchBound && cacheCompletedSurfaceInfo_.isContainShadow;
+    if (needClipShadow) {
         Drawing::Rect rect = { 0, 0, imageWidth, imageHeight };
         canvas.ClipRect(rect);
     }
@@ -386,7 +389,7 @@ void RsSubThreadCache::InitCacheSurface(Drawing::GPUContext* gpuContext,
             return;
         }
         cacheCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
-            vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory, vkTextureInfo->vkAlloc.statName);
+            vkTextureInfo, RSTagTracker::GetCurrentGpuResourceTag(gpuContext).fPid);
         cacheSurface_ = Drawing::Surface::MakeFromBackendTexture(
             gpuContext, cacheBackendTexture_.GetTextureInfo(), Drawing::TextureOrigin::BOTTOM_LEFT,
             1, colorType, colorSpace, NativeBufferUtils::DeleteVkImage, cacheCleanupHelper_);
@@ -980,7 +983,7 @@ void RsSubThreadCache::SetHighPostPriority(bool postPriority)
     isHighPostPriority_ = postPriority;
 }
 
-void RsSubThreadCache::UpdateCacheSurfaceInfo(std::shared_ptr<RSSurfaceRenderNodeDrawable> surfaceDrawable,
+void RsSubThreadCache::UpdateCacheSurfaceInfo(RSSurfaceRenderNodeDrawable* surfaceDrawable,
     RSSurfaceRenderParams* surfaceParams)
 {
     if (!surfaceDrawable || !surfaceParams) {
@@ -991,6 +994,45 @@ void RsSubThreadCache::UpdateCacheSurfaceInfo(std::shared_ptr<RSSurfaceRenderNod
     cacheSurfaceInfo_.alpha = surfaceParams->GetGlobalAlpha();
     cacheSurfaceInfo_.isContainShadow = surfaceParams->IsUIFirstLeashAllEnable();
     cacheSurfaceInfo_.processedSubSurfaceNodeIds = surfaceParams->GetAllSubSurfaceNodeIds();
+    if (const auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams()) {
+        cacheSurfaceInfo_.vsyncId = uniParam->GetVsyncId();
+    }
+    if (isOcclusionEnabled_) {
+        CalculateSurfaceOpaqueRegion(surfaceDrawable, surfaceParams, cacheSurfaceInfo_.opaqueRegion,
+            cacheSurfaceInfo_.absDrawRect);
+    }
+}
+
+void RsSubThreadCache::CalculateSurfaceOpaqueRegion(RSSurfaceRenderNodeDrawable* surfaceDrawable,
+    RSSurfaceRenderParams* surfaceParams, Occlusion::Region& opaqueRegion, RectI& absDrawRect)
+{
+    opaqueRegion.Reset();
+    absDrawRect = {};
+    if (!surfaceParams->IsLeashWindow()) {
+        if (surfaceParams->GetIsParticipateInOcclusion()) {
+            opaqueRegion = surfaceParams->GetOpaqueRegion();
+            absDrawRect = surfaceParams->GetAbsDrawRect();
+        }
+        return;
+    }
+
+    auto& subSurfaceIds = surfaceParams->GetAllSubSurfaceNodeIds();
+    // Only handle the case where a leash has exactly one child surface.
+    if (subSurfaceIds.size() != 1) {
+        return;
+    }
+    for (const auto& item : surfaceDrawable->GetDrawableVectorById(subSurfaceIds)) {
+        auto childNodeDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(item);
+        if (!childNodeDrawable) {
+            continue;
+        }
+        auto childParams = static_cast<RSSurfaceRenderParams*>(childNodeDrawable->GetRenderParams().get());
+        if (!childParams || !childParams->GetIsParticipateInOcclusion()) {
+            continue;
+        }
+        opaqueRegion = childParams->GetOpaqueRegion();
+        absDrawRect = childParams->GetAbsDrawRect();
+    }
 }
 
 bool RsSubThreadCache::DrawUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
@@ -1093,9 +1135,10 @@ bool RsSubThreadCache::DealWithUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawa
         return false;
     }
     if (RSUniRenderThread::GetCaptureParam().isSnapshot_) {
-        HILOG_COMM_INFO("%{public}s name:%{public}s surfaceCount:%{public}d nodeCount:%{public}d alpha:%{public}f",
-            __func__, surfaceDrawable->GetName().c_str(), cacheCompletedSurfaceInfo_.processedSurfaceCount,
-            cacheCompletedSurfaceInfo_.processedNodeCount, cacheCompletedSurfaceInfo_.alpha);
+        HILOG_COMM_INFO("%{public}s name:%{public}s surfaceCount:%{public}d nodeCount:%{public}d alpha:%{public}f" \
+            "vsyncId:%{public}" PRIu64, __func__, surfaceDrawable->GetName().c_str(),
+            cacheCompletedSurfaceInfo_.processedSurfaceCount, cacheCompletedSurfaceInfo_.processedNodeCount,
+            cacheCompletedSurfaceInfo_.alpha, cacheCompletedSurfaceInfo_.vsyncId);
     }
     // if its sub tree has a blacklist, draw empty cache
     const auto& specialLayerManager = surfaceParams.GetSpecialLayerMgr();
@@ -1133,7 +1176,7 @@ bool RsSubThreadCache::DealWithUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawa
     }
 
     bool needDrawInUniRenderThread = !cacheCompletedSurfaceInfo_.isContainShadow ||
-        (!surfaceParams.IsUIFirstLeashAllEnable() || surfaceParams.IsUIFirstLeashAllEnableChange());
+        !IsCacheSizeMatchBound(cacheCompletedSurfaceRect_, surfaceParams.GetCacheSize());
     auto stencilVal = surfaceParams.GetStencilVal();
     if (needDrawInUniRenderThread) {
         if (surfaceParams.IsLeashWindow()) {
@@ -1256,57 +1299,75 @@ void RsSubThreadCache::DrawBehindWindowBeforeCache(RSPaintFilterCanvas& canvas,
 }
 
 void RsSubThreadCache::InsertOpaqueRegion(RSPaintFilterCanvas& canvas,
-    DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
-    std::vector<Drawing::RectI>& opaqueRects, const Drawing::Rect& imgDrawRect)
+    DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable, std::vector<Drawing::RectI>& opaqueRects,
+    const Drawing::Rect& imgDrawRect)
 {
-    if (!RSUifirstManager::Instance().IsOcclusionEnabled()) {
+    auto& uniParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    if (uniParams && uniParams->IsMirrorScreen()) {
         return;
     }
 
-    if (!surfaceDrawable) {
+    if (UNLIKELY(!surfaceDrawable)) {
         RS_LOGE("InsertOpaqueRegion surfaceDrawable is nullptr");
         return;
     }
 
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
-    if (!surfaceParams) {
-        RS_LOGE("InsertOpaqueRegion surfaceParams is nullptr");
+    // Disabled because these nodes are rendered concurrently across multiple screens.
+    if (!surfaceParams || surfaceParams->ClonedSourceNode() || surfaceParams->IsCrossNode() ||
+        surfaceParams->IsRelatedSourceNode()) {
         return;
     }
 
-    Occlusion::Region opaqueRegion;
-    // if leash window, we should consider the opaque region of all sub surface nodes
-    if (surfaceParams->IsLeashWindow()) {
-        for (const auto& item : surfaceDrawable->GetDrawableVectorById(surfaceParams->GetAllSubSurfaceNodeIds())) {
-            auto childNodeDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(item);
-            if (!childNodeDrawable) {
-                continue;
-            }
-            auto childParams = static_cast<RSSurfaceRenderParams*>(childNodeDrawable->GetRenderParams().get());
-            if (!childParams || !childParams->GetIsParticipateInOcclusion()) {
-                continue;
-            }
-            opaqueRegion.OrSelf(childParams->GetOpaqueRegion());
+    Occlusion::Region cachedOpaqueRegion = cacheCompletedSurfaceInfo_.opaqueRegion;
+    auto cachedAbsDrawRect = cacheCompletedSurfaceInfo_.absDrawRect;
+    if (cachedOpaqueRegion.IsEmpty() || cachedAbsDrawRect.IsEmpty()) {
+        return;
+    }
+    RectI curAbsDrawRect;
+    Occlusion::Region curOpaqueRegion;
+    CalculateSurfaceOpaqueRegion(surfaceDrawable, surfaceParams, curOpaqueRegion, curAbsDrawRect);
+    bool isDrawAreaChanged = (curAbsDrawRect != cachedAbsDrawRect);
+    // Disabled because the opaque region computed on the main thread cannot be retrieved when partial sync is executed
+    if (isDrawAreaChanged && surfaceParams->IsPartialSynced()) {
+        return;
+    }
+
+    Occlusion::Region calculatedOpaqueRegion;
+    if (isDrawAreaChanged) {
+        float widthScale = static_cast<float>(curAbsDrawRect.GetWidth()) / cachedAbsDrawRect.GetWidth();
+        float heightScale = static_cast<float>(curAbsDrawRect.GetHeight()) / cachedAbsDrawRect.GetHeight();
+        // Calculates the final opaque region after scaling, based on the relative change ratio of AbsDrawRect.
+        for (const auto& opaqueRect : cachedOpaqueRegion.GetRegionRectIs()) {
+            // offset = current absDrawRect + (cached opaqueRegionOffset - cached absDrawRect) * scaleRatio.
+            float left = curAbsDrawRect.GetLeft() + (opaqueRect.GetLeft() - cachedAbsDrawRect.GetLeft()) * widthScale;
+            float top = curAbsDrawRect.GetTop() + (opaqueRect.GetTop() - cachedAbsDrawRect.GetTop()) * heightScale;
+            float width = opaqueRect.GetWidth() * widthScale;
+            float height = opaqueRect.GetHeight() * heightScale;
+            Occlusion::Rect scaledOpaqueRect(static_cast<int32_t>(std::ceil(left)),
+                static_cast<int32_t>(std::ceil(top)), static_cast<int32_t>(std::floor(left + width)),
+                static_cast<int32_t>(std::floor(top + height)));
+            Occlusion::Region scaledRegion(scaledOpaqueRect);
+            calculatedOpaqueRegion.OrSelf(scaledRegion);
         }
     } else {
-        opaqueRegion = surfaceParams->GetOpaqueRegion();
+        calculatedOpaqueRegion = cachedOpaqueRegion;
     }
+    calculatedOpaqueRegion.AndSelf(curOpaqueRegion);
 
     Drawing::Rect absImgDrawRect;
     // Map the imgDrawRect to absolute coordinate, because the opaque region is in absolute coordinate.
     canvas.GetTotalMatrix().MapRect(absImgDrawRect, imgDrawRect);
-    Drawing::RectI absImgDrawRectI(
-        static_cast<int>(std::ceil(absImgDrawRect.GetLeft())),
-        static_cast<int>(std::ceil(absImgDrawRect.GetTop())),
-        static_cast<int>(std::floor(absImgDrawRect.GetRight())),
-        static_cast<int>(std::floor(absImgDrawRect.GetBottom()))
-    );
+    Drawing::RectI absImgDrawRectI(static_cast<int32_t>(std::ceil(absImgDrawRect.GetLeft())),
+        static_cast<int32_t>(std::ceil(absImgDrawRect.GetTop())),
+        static_cast<int32_t>(std::floor(absImgDrawRect.GetRight())),
+        static_cast<int32_t>(std::floor(absImgDrawRect.GetBottom())));
 
-    for (const auto& opaqueRect : opaqueRegion.GetRegionRectIs()) {
+    for (const auto& opaqueRect : calculatedOpaqueRegion.GetRegionRectIs()) {
         Drawing::RectI rect(opaqueRect.GetLeft(), opaqueRect.GetTop(), opaqueRect.GetRight(), opaqueRect.GetBottom());
         // Intersect with absImgDrawRectI to get the actual opaque region on screen.
-        rect.Intersect(absImgDrawRectI);
-        if (!rect.IsEmpty()) {
+        bool isIntersect = rect.Intersect(absImgDrawRectI);
+        if (isIntersect) {
             opaqueRects.push_back(rect);
         }
     }
@@ -1316,12 +1377,12 @@ void RsSubThreadCache::InsertOpaqueRegion(RSPaintFilterCanvas& canvas,
 
 void RsSubThreadCache::DrawOpaqueRegionDfx(RSPaintFilterCanvas& canvas, const std::vector<Drawing::RectI>& opaqueRects)
 {
-    if (!RSUifirstManager::Instance().IsOcclusionEnabled() || !RSSystemParameters::GetUIFirstOcclusionDebugEnabled()) {
+    if (!isOcclusionEnabled_ || !RSSystemParameters::GetUIFirstOcclusionDebugEnabled()) {
         return;
     }
     RSAutoCanvasRestore acr(&canvas);
     canvas.ResetMatrix();
-    std::string opaqueRectsStr;
+    std::ostringstream opaqueRectsStr;
     for (const auto& rect : opaqueRects) {
         Drawing::Brush brush;
         brush.SetColor(Drawing::Color::COLOR_RED);
@@ -1330,10 +1391,10 @@ void RsSubThreadCache::DrawOpaqueRegionDfx(RSPaintFilterCanvas& canvas, const st
         canvas.DrawRect(rect);
         canvas.DetachBrush();
 
-        opaqueRectsStr += "[" + std::to_string(rect.GetLeft()) + " " + std::to_string(rect.GetTop()) +
-                          " " + std::to_string(rect.GetWidth()) + " " + std::to_string(rect.GetHeight()) + "] ";
+        opaqueRectsStr << "[" << rect.GetLeft() << " " << rect.GetTop() << " "
+                       << rect.GetWidth() << " " << rect.GetHeight() << "] ";
     }
-    RS_TRACE_NAME_FMT("DrawOpaqueRegionDfx opaqueRects: %s", opaqueRectsStr.c_str());
+    RS_TRACE_NAME_FMT("DrawOpaqueRegionDfx opaqueRects: %s", opaqueRectsStr.str().c_str());
 }
 
 void RsSubThreadCache::SetUifirstSurfaceCacheContentStatic(bool staticContent)
@@ -1346,4 +1407,8 @@ bool RsSubThreadCache::GetUifirstSurfaceCacheContentStatic() const
     return uifirstSurfaceCacheContentStatic_;
 }
 
+bool RsSubThreadCache::IsCacheSizeMatchBound(const RectF& cacheSize, const Vector2f& boundSize)
+{
+    return ROSEN_EQ(cacheSize.GetWidth(), boundSize.x_) && ROSEN_EQ(cacheSize.GetHeight(), boundSize.y_);
+}
 } // namespace OHOS::Rosen

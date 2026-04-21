@@ -267,6 +267,50 @@ HWTEST_F(RSMarshallingHelperTest, MarshallingSharedTypefaceTest002, TestSize.Lev
 }
 
 /**
+ * @tc.name: MarshallingSharedTypefaceTest003
+ * @tc.desc: Verify Marshalling/Unmarshalling with originId_ > 0 (variation typeface skips fd)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, MarshallingSharedTypefaceTest003, TestSize.Level1)
+{
+    MessageParcel parcel;
+    Drawing::SharedTypeface sharedTypeface;
+    sharedTypeface.originId_ = 12345;
+    sharedTypeface.fd_ = -1;
+    sharedTypeface.hasFontArgs_ = false;
+    // originId_ > 0: fd should NOT be marshalled, so fd_ = -1 is OK
+    EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel, sharedTypeface));
+
+    Drawing::SharedTypeface newSharedTypeface;
+    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, newSharedTypeface));
+    EXPECT_EQ(sharedTypeface.originId_, newSharedTypeface.originId_);
+    EXPECT_EQ(sharedTypeface.hasFontArgs_, newSharedTypeface.hasFontArgs_);
+}
+
+/**
+ * @tc.name: MarshallingSharedTypefaceTest004
+ * @tc.desc: Verify Marshalling/Unmarshalling with originId_ > 0 and font args
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, MarshallingSharedTypefaceTest004, TestSize.Level1)
+{
+    MessageParcel parcel;
+    Drawing::SharedTypeface sharedTypeface;
+    sharedTypeface.originId_ = 999;
+    sharedTypeface.fd_ = -1;
+    sharedTypeface.hasFontArgs_ = true;
+    sharedTypeface.coords_ = { { 2003265652, 100.0 } };
+    EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel, sharedTypeface));
+
+    Drawing::SharedTypeface newSharedTypeface;
+    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, newSharedTypeface));
+    EXPECT_EQ(sharedTypeface.originId_, newSharedTypeface.originId_);
+    EXPECT_EQ(sharedTypeface.hasFontArgs_, newSharedTypeface.hasFontArgs_);
+    EXPECT_EQ(sharedTypeface.coords_.size(), newSharedTypeface.coords_.size());
+    EXPECT_EQ(sharedTypeface.coords_[0].axis, newSharedTypeface.coords_[0].axis);
+}
+
+/**
  * @tc.name: MarshallingTest004
  * @tc.desc: Verify function Marshalling
  * @tc.type:FUNC
@@ -2117,6 +2161,48 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingDrawCmdListObjectCreationFailureT
     if (originalFunc) {
         Drawing::ObjectHelper::Instance().Register(
             static_cast<int32_t>(Drawing::Object::ObjectType::SHADER_EFFECT), 888, originalFunc);
+    }
+}
+
+/**
+ * @tc.name: UnmarshallingPixelMapFdCountExceedLimitTest
+ * @tc.desc: Verify function Unmarshalling PixelMap when fd count exceeds limit
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingPixelMapFdCountExceedLimitTest, TestSize.Level1)
+{
+    constexpr int32_t TEST_FD_COUNT = 29001;
+    constexpr int32_t TEST_PID = 10001;
+    constexpr uint64_t TEST_UNIQUE_ID = static_cast<uint64_t>(TEST_PID) << 32;
+
+    Media::InitializationOptions opts;
+    opts.size.width = 100;
+    opts.size.height = 100;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+    opts.allocatorType = Media::AllocatorType::SHARE_MEM_ALLOC;
+
+    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+
+    Parcel parcel;
+    EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel, pixelMap));
+
+    MemoryInfo memInfo = {
+        pixelMap->GetByteCount(), TEST_PID, 0, pixelMap->GetUniqueId(),
+        MEMORY_TYPE::MEM_PIXELMAP, Media::AllocatorType::SHARE_MEM_ALLOC, Media::PixelFormat::RGBA_8888
+    };
+
+    for (int32_t i = 0; i < TEST_FD_COUNT; i++) {
+        MemoryTrack::Instance().AddPictureRecord(reinterpret_cast<const void*>(i), memInfo);
+    }
+
+    std::shared_ptr<Media::PixelMap> unmarshalledVal;
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, unmarshalledVal, TEST_UNIQUE_ID));
+
+    for (int32_t i = 0; i < TEST_FD_COUNT; i++) {
+        MemoryTrack::Instance().RemovePictureRecord(reinterpret_cast<const void*>(i));
     }
 }
 

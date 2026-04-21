@@ -52,7 +52,7 @@ VSyncReceiver::VSyncReceiver(const sptr<IVSyncConnection>& conn,
 {
 };
 
-void VSyncReceiver::RegisterFileDescriptorListener(bool hasVsyncThread)
+void VSyncReceiver::RegisterFileDescriptorListener(bool hasVsyncThread, bool needAddFd)
 {
     auto selfToken = IPCSkeleton::GetSelfTokenID();
     auto tokenType = Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(static_cast<uint32_t>(selfToken));
@@ -62,14 +62,18 @@ void VSyncReceiver::RegisterFileDescriptorListener(bool hasVsyncThread)
         (static_cast<int32_t>(AppExecFwk::EventQueue::Priority::IDLE) >= APP_VSYNC_PRIORITY)) {
         listener_->SetDeamonWaiter();
         listener_->SetType(AppExecFwk::FileDescriptorListener::ListenerType::LTYPE_VSYNC);
-        looper_->AddFileDescriptorListener(fd_, AppExecFwk::FILE_DESCRIPTOR_INPUT_EVENT, listener_, "vSyncTask",
-            static_cast<AppExecFwk::EventQueue::Priority>(APP_VSYNC_PRIORITY));
+        if (needAddFd) {
+            looper_->AddFileDescriptorListener(fd_, AppExecFwk::FILE_DESCRIPTOR_INPUT_EVENT, listener_, "vSyncTask",
+                static_cast<AppExecFwk::EventQueue::Priority>(APP_VSYNC_PRIORITY));
+        }
     } else {
-        looper_->AddFileDescriptorListener(fd_, AppExecFwk::FILE_DESCRIPTOR_INPUT_EVENT, listener_, "vSyncTask");
+        if (needAddFd) {
+            looper_->AddFileDescriptorListener(fd_, AppExecFwk::FILE_DESCRIPTOR_INPUT_EVENT, listener_, "vSyncTask");
+        }
     }
 }
 
-VsyncError VSyncReceiver::Init()
+VsyncError VSyncReceiver::Init(bool needAddFd)
 {
     std::lock_guard<std::mutex> locker(initMutex_);
     if (init_) {
@@ -121,7 +125,7 @@ VsyncError VSyncReceiver::Init()
         return true;
     });
 
-    RegisterFileDescriptorListener(hasVsyncThread);
+    RegisterFileDescriptorListener(hasVsyncThread, needAddFd);
     init_ = true;
     return VSYNC_ERROR_OK;
 }

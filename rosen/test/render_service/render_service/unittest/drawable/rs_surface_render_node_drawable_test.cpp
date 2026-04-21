@@ -20,13 +20,14 @@
 #include "params/rs_effect_render_params.h"
 #include "params/rs_render_thread_params.h"
 #include "pipeline/render_thread/rs_render_engine.h"
-#include "pipeline/render_thread/rs_uni_render_engine.h"
+#include "engine/rs_uni_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_test_util.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
+#include "memory/rs_memory_snapshot.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -2370,6 +2371,12 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawRelatedSourceNodeTest, TestSize.Le
     bmp.ClearWithColor(Drawing::Color::COLOR_RED);
     surfaceDrawable_->relatedSourceNodeCache_ = bmp.MakeImage();
     ASSERT_TRUE(surfaceDrawable_->DrawRelatedSourceNode(*canvas_, *surfaceParams));
+
+    surfaceParams->SetNeedClearRelatedCache(true);
+    ASSERT_TRUE(surfaceParams->IsNeedClearRelatedCache());
+    ASSERT_FALSE(surfaceDrawable_->DrawRelatedSourceNode(*canvas_, *surfaceParams));
+    ASSERT_EQ(surfaceDrawable_->relatedSourceNodeCache_, nullptr);
+    ASSERT_FALSE(surfaceParams->IsNeedClearRelatedCache());
 }
 
 /**
@@ -2923,4 +2930,53 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDraw_HasDRMInVirtualScreen, TestSize
     // Call OnDraw which should trigger HasDRMInVirtualScreen and DrawRectWithColor
     surfaceDrawable_->OnDraw(*canvas_);
 }
+
+/**
+ * @tc.name: Destructor_SelfDrawingType
+ * @tc.desc: Test destructor with self drawing type to cover PostTask branch
+ * @tc.type: FUNC
+ * @tc.require: issue23146
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, Destructor_SelfDrawingType, TestSize.Level1)
+{
+    NodeId id = 1;
+    const RSSurfaceRenderNodeConfig config = {.id = id, .surfaceWindowType = SurfaceWindowType::SCB_SCREEN_LOCK};
+    auto renderNode = std::make_shared<RSSurfaceRenderNode>(config);
+    renderNode->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    auto drawable = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
+    ASSERT_NE(drawable, nullptr);
+
+    auto surfaceDrawable = static_cast<RSSurfaceRenderNodeDrawable*>(drawable);
+    ASSERT_NE(surfaceDrawable, nullptr);
+
+    // Set surface node type to SELF_DRAWING_NODE to trigger IsSelfDrawingType() == true in destructor
+    surfaceDrawable->id_ = id;
+    surfaceDrawable->name_ = "test_surface";
+    surfaceDrawable->uniqueId_ = 12345;
+
+    // Manually delete to call destructor and trigger PostTask branch
+    delete drawable;
 }
+
+/**
+ * @tc.name: OnDrawAbnormalProcessTest
+ * @tc.desc: Test OnDraw with abnormal process check
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDrawAbnormalProcessTest, TestSize.Level1)
+{
+    // Mark process as abnormal
+    pid_t pid = ExtractPid(DEFAULT_ID);
+    MemorySnapshot::Instance().SetAbnormalProcess(pid);
+
+    // OnDraw should return early for abnormal process
+    surfaceDrawable_->OnDraw(*canvas_);
+    bool isAbnormal = MemorySnapshot::Instance().IsAbnormalProcess(pid);
+    ASSERT_TRUE(isAbnormal);
+    
+    // Clean up
+    std::set<pid_t> exitedPids = {pid};
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+}
+} // namespace OHOS::Rosen

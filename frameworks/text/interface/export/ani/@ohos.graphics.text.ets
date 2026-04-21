@@ -87,6 +87,7 @@ export default namespace text {
       }) as Promise<void>;
     }
     native clearCaches(): void;
+    native setParagraphCachesEnabled(enable: boolean): void;
 
     private static native nativeTransferStatic(input: ESValue): Object;
     static transferStatic(input: Any): Object {
@@ -195,6 +196,7 @@ export default namespace text {
     native didExceedMaxLines(): boolean;
     native getTextLines(): Array<TextLine>;
     native getActualTextRange(lineNumber: int, includeSpaces: boolean): Range;
+    native getVisibleTextRanges(): Array<Range>;
     native getLineMetrics(): Array<LineMetrics>;
     getLineMetrics(lineNumber: int): LineMetrics | undefined {
         return this.nativeGetLineMetricsAt(lineNumber);
@@ -380,6 +382,9 @@ export default namespace text {
     verticalAlign?: TextVerticalAlign;
     compressHeadPunctuation?: boolean;
     lineSpacing?: double;
+    firstLineHeadIndent?: double;
+    tailIndents?: Array<double>;
+    headIndents?: Array<double>;
   }
 
   class ParagraphStyleInternal implements ParagraphStyle {
@@ -400,6 +405,9 @@ export default namespace text {
     verticalAlign?: TextVerticalAlign;
     compressHeadPunctuation?: boolean;
     lineSpacing?: double;
+    firstLineHeadIndent?: double;
+    tailIndents?: Array<double>;
+    headIndents?: Array<double>;
     constructor(
       orphanCharOptimization?: boolean,
       fallbackLineSpacing?: boolean,
@@ -417,7 +425,10 @@ export default namespace text {
       autoSpace?: boolean,
       verticalAlign?: TextVerticalAlign,
       compressHeadPunctuation?: boolean,
-      lineSpacing?: double
+      lineSpacing?: double,
+      firstLineHeadIndent?: double,
+      tailIndents?: Array<double>,
+      headIndents?: Array<double>
     ) {
       this.orphanCharOptimization = orphanCharOptimization;
       this.fallbackLineSpacing = fallbackLineSpacing;
@@ -436,6 +447,9 @@ export default namespace text {
       this.verticalAlign = verticalAlign;
       this.compressHeadPunctuation = compressHeadPunctuation;
       this.lineSpacing = lineSpacing;
+      this.firstLineHeadIndent = firstLineHeadIndent;
+      this.tailIndents = tailIndents;
+      this.headIndents = headIndents;
     }
   }
 

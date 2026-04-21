@@ -24,7 +24,7 @@
 #include "limit_number.h"
 #include "metadata_helper.h"
 #include "params/rs_screen_render_params.h"
-#include "pipeline/render_thread/rs_uni_render_engine.h"
+#include "engine/rs_uni_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_processor.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/rs_logical_display_render_node.h"
@@ -216,6 +216,27 @@ HWTEST_F(RSUniRenderProcessorTest, ProcessScreenSurfaceTest, TestSize.Level1)
         constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[0];
         RSScreenRenderNode node(nodeId, screenId, context);
         auto size = renderProcessor->layers_.size();
+        renderProcessor->ProcessScreenSurface(node);
+        EXPECT_EQ(renderProcessor->layers_.size(), size);
+    }
+}
+
+/**
+ * @tc.name: ProcessScreenSurfaceTest002
+ * @tc.desc: Verify function ProcessScreenSurface
+ * @tc.type:FUNC
+ * @tc.require:issuesI9KRF1
+ */
+HWTEST_F(RSUniRenderProcessorTest, ProcessScreenSurfaceTest002, TestSize.Level1)
+{
+    ScreenId screenId = 0;
+    std::weak_ptr<RSContext> context = {};
+    if (RSUniRenderJudgement::IsUniRender()) {
+        constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[0];
+        RSScreenRenderNode node(nodeId, screenId, context);
+        auto size = renderProcessor->layers_.size();
+        auto layerSkipController = node.GetDynamicLayerSkipController();
+        layerSkipController->screenLayerInvalid_ = true;
         renderProcessor->ProcessScreenSurface(node);
         EXPECT_EQ(renderProcessor->layers_.size(), size);
     }

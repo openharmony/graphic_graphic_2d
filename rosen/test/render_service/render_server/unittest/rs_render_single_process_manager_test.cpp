@@ -144,7 +144,7 @@ void RSRenderSingleProcessManagerTest::SetUpTestCase()
     renderService_.handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
     renderService_.renderProcessManager_ = sptr<RSSingleRenderProcessManagerMock>::MakeSptr(renderService_);
     renderService_.rsRenderComposerManager_ = std::make_shared<RSRenderComposerManager>(
-        renderService_.handler_, nullptr);
+        renderService_.handler_);
 }
 void RSRenderSingleProcessManagerTest::TearDownTestCase()
 {

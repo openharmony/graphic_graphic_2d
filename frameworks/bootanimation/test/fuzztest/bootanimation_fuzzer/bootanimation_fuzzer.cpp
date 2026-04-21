@@ -15,66 +15,26 @@
 
 #include "bootanimation_fuzzer.h"
 
-#include <cstdint>
-#include <securec.h>
+#include <fuzzer/FuzzedDataProvider.h>
 
 #include "boot_animation_utils.h"
 
 namespace OHOS {
-    namespace {
-        const uint8_t* g_data = nullptr;
-        size_t g_size = 0;
-        size_t g_pos;
-    }
-
-    /*
-    * describe: get data from outside untrusted data(g_data) which size is according to sizeof(T)
-    * tips: only support basic type
-    */
-    template<class T>
-    T GetData()
+    void BootAnimationUtilsFuzzerTest(FuzzedDataProvider& fdp)
     {
-        T object {};
-        size_t objectSize = sizeof(object);
-        if (g_data == nullptr || objectSize > g_size - g_pos) {
-            return object;
-        }
-        errno_t ret = memcpy_s(&object, objectSize, g_data + g_pos, objectSize);
-        if (ret != EOK) {
-            return {};
-        }
-        g_pos += objectSize;
-        return object;
-    }
-
-    void BootAnimationUtilsFuzzerTest()
-    {
-        // get data
-        bool isEnabled = GetData<bool>();
+        bool isEnabled = fdp.ConsumeBool();
         BootAnimationUtils::SetBootAnimationSoundEnabled(isEnabled);
-        BootAnimationUtils::GetBootAnimationSoundEnabled();
-    }
-
-    bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
-    {
-        if (data == nullptr) {
-            return false;
-        }
-        // initialize
-        g_data = data;
-        g_size = size;
-        g_pos = 0;
-
-        BootAnimationUtilsFuzzerTest();
-        return true;
     }
 }
 
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
-    /* Run your code on data */
-    OHOS::DoSomethingInterestingWithMyAPI(data, size);
+    if (data == nullptr) {
+        return -1;
+    }
+    FuzzedDataProvider fdp(data, size);
+    OHOS::BootAnimationUtilsFuzzerTest(fdp);
     return 0;
 }
 

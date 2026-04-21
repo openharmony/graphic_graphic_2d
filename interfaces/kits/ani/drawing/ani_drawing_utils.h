@@ -80,7 +80,9 @@ ani_status CreateBusinessError(ani_env* env, int32_t error, const char* message,
 inline ani_string CreateAniString(ani_env* env, const std::string& stdStr)
 {
     ani_string aniString;
-    env->String_NewUTF8(stdStr.c_str(), stdStr.size(), &aniString);
+    if (env->String_NewUTF8(stdStr.c_str(), stdStr.size(), &aniString) != ANI_OK) {
+        return {};
+    }
     return aniString;
 }
 
@@ -205,14 +207,18 @@ inline bool CheckInt32OutOfRange(ani_int val, int32_t lowerBound, int32_t upperB
 inline bool IsUndefined(ani_env* env, ani_ref ref)
 {
     ani_boolean isUndefined = ANI_FALSE;
-    env->Reference_IsUndefined(ref, &isUndefined);
+    if (env->Reference_IsUndefined(ref, &isUndefined) != ANI_OK) {
+        return ANI_FALSE;
+    }
     return isUndefined;
 }
 
 inline bool IsNull(ani_env* env, ani_ref ref)
 {
     ani_boolean isNull = ANI_FALSE;
-    env->Reference_IsNull(ref, &isNull);
+    if (env->Reference_IsNull(ref, &isNull) != ANI_OK) {
+        return ANI_FALSE;
+    }
     return isNull;
 }
 

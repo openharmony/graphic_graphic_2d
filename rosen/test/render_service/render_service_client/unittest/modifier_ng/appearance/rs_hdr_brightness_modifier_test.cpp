@@ -52,5 +52,8 @@ HWTEST_F(RSHDRBrightnessModifierNGTypeTest, RSHDRBrightnessModifierTest, TestSiz
 
     modifier->SetHDRBrightness(1.0f);
     EXPECT_EQ(modifier->GetHDRBrightness(), 1.0f);
+
+    modifier->SetHDRColorHeadroom(2.0f);
+    EXPECT_EQ(modifier->GetHDRColorHeadroom(), 2.0f);
 }
 } // namespace OHOS::Rosen

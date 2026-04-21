@@ -129,6 +129,8 @@ typedef enum : uint32_t {
     DISP_INTF_VGA,
     DISP_INTF_MIPI,
     DISP_INTF_PANEL,
+    DISP_INTF_DP,
+    DISP_INTF_EDP,
     DISP_INTF_BUTT,
     DISP_INVALID,
 } ScreenInterfaceType;

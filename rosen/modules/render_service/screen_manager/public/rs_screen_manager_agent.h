@@ -16,8 +16,10 @@
 #ifndef RS_SCREEN_MANAGER_AGENT_H
 #define RS_SCREEN_MANAGER_AGENT_H
 
+#include "common/rs_event_def.h"
 #include "ipc_callbacks/screen_change_callback.h"
 #include "ipc_callbacks/screen_supported_hdr_formats_callback.h"
+#include "ipc_callbacks/rs_iexposed_event_callback.h"
 #include "screen_manager/rs_screen_manager.h"
 
 namespace OHOS {
@@ -27,13 +29,20 @@ class RSScreenManagerAgent;
 class RSScreenManagerAgentListener : public RSIScreenManagerAgentListener {
 public:
     RSScreenManagerAgentListener() = default;
-    void OnScreenConnected(ScreenId id, ScreenChangeReason reason, sptr<IRemoteObject> remoteConn);
-    void OnScreenDisconnected(ScreenId id, ScreenChangeReason reason);
+    void OnScreenConnected(ScreenId id, ScreenChangeReason reason, sptr<IRemoteObject> remoteConn) override;
+    void OnScreenDisconnected(ScreenId id, ScreenChangeReason reason) override;
+    void OnScreenSwitchingNotify(bool status) override;
+    void OnHwcEvent(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData) override;
+
     void SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback);
+    void SetScreenSwitchingNotifyCallback(sptr<RSIScreenSwitchingNotifyCallback> screenSwitchingNotifyCallback);
+    void SetExposedEventCallback(const RSExposedEventType type, const sptr<RSIExposedEventCallback> callback);
 
 private:
     std::mutex mutex_;
     sptr<RSIScreenChangeCallback> screenChangeCallback_;
+    sptr<RSIScreenSwitchingNotifyCallback> screenSwitchingNotifyCallback_;
+    std::unordered_map<RSExposedEventType, sptr<RSIExposedEventCallback>> exposedEventCallbacks_;
 };
 
 class RSScreenManagerAgent : public RefBase {
@@ -42,6 +51,7 @@ public:
     ~RSScreenManagerAgent();
 
     int32_t SetScreenChangeCallback(const sptr<RSIScreenChangeCallback>& callback);
+    int32_t SetExposedEventCallback(const RSExposedEventType type, const sptr<RSIExposedEventCallback>& callback);
 
     ErrCode GetDefaultScreenId(uint64_t& screenId);
     ErrCode GetActiveScreenId(uint64_t& screenId);
@@ -122,6 +132,8 @@ public:
     void SetScreenSwitchStatus(bool status);
     void SetScreenFrameGravity(ScreenId id, int32_t gravity);
     int32_t SetDualScreenState(ScreenId id, DualScreenStatus status);
+    int32_t SetAsMainScreen(ScreenId screenId, bool isMainScreen);
+    ScreenId GetMainScreenId();
     PanelPowerStatus GetPanelPowerStatus(ScreenId id) const;
 
 private:

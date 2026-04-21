@@ -66,7 +66,8 @@ public:
         TextEncoding encodeType = TextEncoding::UTF8) const override;
     Boundary GetWordBoundaryByIndex(size_t index) override;
     Boundary GetActualTextRange(int lineNumber, bool includeSpaces) override;
-    Boundary GetEllipsisTextRange() override;
+    Boundary GetEllipsisTextRange() const override;
+    std::vector<TextRange> GetVisibleTextRanges() const override;
     double GetLineHeight(int lineNumber) override;
     double GetLineWidth(int lineNumber) override;
     void SetAnimation(
@@ -103,6 +104,7 @@ public:
 #ifdef ENABLE_OHOS_ENHANCE
     std::shared_ptr<OHOS::Media::PixelMap> GetTextPathImageByIndex(
         size_t start, size_t end, const ImageOptions& options, bool fill) const override;
+    std::vector<TextPathInfo> GetTextPathsByIndex(size_t start = 0, size_t end = SIZE_MAX) const override;
 #endif
 
 private:

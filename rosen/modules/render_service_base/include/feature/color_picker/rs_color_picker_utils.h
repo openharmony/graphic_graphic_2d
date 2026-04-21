@@ -109,7 +109,7 @@ bool ExtractSnapshotAndScheduleColorPick(
  * @param colorPickerInfo A struct containing color space, bitmap format, backend texture, and image
  */
 void ScheduleColorPickWithSemaphore(Drawing::Surface& surface, std::weak_ptr<IColorPickerManager> manager,
-    std::unique_ptr<ColorPickerInfo> colorPickerInfo);
+    std::unique_ptr<ColorPickerInfo> colorPickerInfo, Drawing::GPUContext& gpuCtx);
 
 /**
  * @brief Obtain the corresponding dark color and light color based on the placeholder

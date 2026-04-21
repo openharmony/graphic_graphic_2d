@@ -115,7 +115,9 @@ public:
 
     Range<size_t> GetActualTextRange(int lineNumber, bool includeSpaces) override;
 
-    Range<size_t> GetEllipsisTextRange() override;
+    Range<size_t> GetEllipsisTextRange() const override;
+
+    std::vector<TextRange> GetVisibleTextRanges() const override;
 
     std::vector<skt::LineMetrics> GetLineMetrics() override;
 
@@ -191,6 +193,7 @@ public:
      */
     std::shared_ptr<OHOS::Media::PixelMap> GetTextPathImageByIndex(
         size_t start, size_t end, const ImageOptions& options, bool fill) const override;
+    std::vector<TextPathInfo> GetTextPathsByIndex(size_t start = 0, size_t end = SIZE_MAX) const override;
 #endif
 
 private:
@@ -215,11 +218,11 @@ private:
     void UpdatePaintsBySkiaBlock(skt::Block& skiaBlock, const std::optional<RSBrush>& brush);
 
     void InitSymbolRuns();
-
     void UpdateSymbolRun(const HMSymbolTxt& symbolStyle, std::shared_ptr<HMSymbolRun>& hmSymbolRun,
         skt::InternalState& state, size_t index);
+    std::string DumpSymbolInfo() const;
 
-    void BuildFitStrRange(std::vector<TextRange>& fitRanges);
+    void BuildFitStrRange(std::vector<TextRange>& fitRanges) const;
     void MarkAttributeUpdated()
     {
         updateAttr = true;

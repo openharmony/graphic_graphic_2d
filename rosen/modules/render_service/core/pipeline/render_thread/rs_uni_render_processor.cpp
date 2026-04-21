@@ -23,7 +23,6 @@
 #include "surface_type.h"
 
 #include "common/rs_common_hook.h"
-#include "feature/gpuComposition/rs_gpu_cache_manager.h"
 #include "common/rs_optional_trace.h"
 #include "dirty_region/rs_gpu_dirty_collector.h"
 #include "display_engine/rs_luminance_control.h"
@@ -38,6 +37,8 @@
 // hpae offline
 #include "feature/hwc/hpae_offline/rs_hpae_offline_processor.h"
 #include "feature/hwc/hpae_offline/rs_hpae_offline_util.h"
+#include "gpuComposition/rs_gpu_cache_manager.h"
+#include "hpae_offline/rs_hpae_offline_layer_info.h"
 #include "info_collection/rs_layer_compose_collection.h"
 #include "params/rs_screen_render_params.h"
 #include "params/rs_surface_render_params.h"
@@ -115,11 +116,41 @@ void RSUniRenderProcessor::PostProcess()
                 continue;
             }
             bufferOwnerCount->SetUniBufferOwner(uniBufferOwnerCount->bufferId_, screenInfo_.id);
+            if (!layer->GetUseDeviceOffline()) {
+                continue;
+            }
+            // Handle original buffer owner count for hpae offline layer only
+            auto& hpaeInfo = layer->GetHpaeOriginalInfo();
+            auto originalBuffer = hpaeInfo.originalBuffer;
+            if (originalBuffer == nullptr) {
+                continue;
+            }
+            uniBufferOwnerCount->InsertUniOnDrawSet(layer->GetRSLayerId(), originalBuffer->GetBufferId());
+            auto originalBufferOwnerCount = layer->GetOriginalBufferOwnerCount();
+            if (originalBufferOwnerCount == nullptr) {
+                continue;
+            }
+            originalBufferOwnerCount->SetUniBufferOwner(uniBufferOwnerCount->bufferId_, screenInfo_.id);
         }
     }
     uniComposerAdapter_->CommitLayers();
     LayerComposeCollection::GetInstance().UpdateUniformOrOfflineComposeFrameNumberForDFX(layers_.size());
     RS_LOGD("RSUniRenderProcessor::PostProcess layers_:%{public}zu", layers_.size());
+}
+
+static void SetDeviceOfflineOriginalInfo(RSLayerPtr& layer, RSSurfaceRenderParams& params)
+{
+    HpaeOriginalInfo hpaeOriginalInfo = {
+        params.GetBuffer(),
+        params.GetPreBuffer(),
+        params.GetAcquireFence(),
+        params.GetLayerInfo().transformType,
+        params.GetLayerInfo().srcRect
+    };
+    layer->SetHpaeOriginalInfo(hpaeOriginalInfo);
+    if (params.GetBufferOwnerCount()) {
+        layer->SetOriginalBufferOwnerCount(params.GetBufferOwnerCount());
+    }
 }
 
 void RSUniRenderProcessor::CreateLayer(RSSurfaceRenderNode& node, RSSurfaceRenderParams& params,
@@ -263,16 +294,9 @@ void RSUniRenderProcessor::CreateSolidColorLayer(RSLayerPtr layer, RSSurfaceRend
         solidColorLayerProperty.zOrder = layer->GetZorder() - 1;
     }
     solidColorLayerProperty.transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
-    auto dstRect = params.layerInfo_.dstRect;
-    auto rogWidthRatio = uniComposerAdapter_->GetScreenInfo().GetRogWidthRatio();
-    auto rogHeightRatio = uniComposerAdapter_->GetScreenInfo().GetRogHeightRatio();
-    GraphicIRect layerRect = { static_cast<int32_t>(std::floor(dstRect.x * rogWidthRatio)),
-        static_cast<int32_t>(std::floor(dstRect.y * rogHeightRatio)),
-        static_cast<int32_t>(std::ceil(dstRect.w * rogWidthRatio)),
-        static_cast<int32_t>(std::ceil(dstRect.h * rogHeightRatio)) };
-    RS_OPTIONAL_TRACE_NAME_FMT("CreateSolidColorLayer name:%s id:%" PRIu64 " dst:[%d, %d, %d, %d] "
-        "adjustDst:[%d, %d, %d, %d] color:%08x",
-        params.GetName().c_str(), params.GetId(), dstRect.x, dstRect.y, dstRect.w, dstRect.h,
+    auto layerRect = layer->GetLayerSize();
+    RS_OPTIONAL_TRACE_NAME_FMT("CreateSolidColorLayer name:%s id:%" PRIu64 " dst:[%d, %d, %d, %d] color:%08x",
+        params.GetName().c_str(), params.GetId(),
         layerRect.x, layerRect.y, layerRect.w, layerRect.h, color.AsArgbInt());
     solidColorLayerProperty.layerRect = layerRect;
     solidColorLayerProperty.compositionType = GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR;
@@ -332,10 +356,10 @@ RSLayerPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, spt
     layer->SetSurface(consumer);
     layer->SetBuffer(buffer, acquireFence);
     layer->SetPreBuffer(preBuffer);
-    if (!offlineResult) {
-        // while using hpae_offline, prebuffer should not be consumed by dss
-        params.SetPreBuffer(nullptr, nullptr);
+    if (offlineResult) {
+        SetDeviceOfflineOriginalInfo(layer, params);
     }
+    params.SetPreBuffer(nullptr, nullptr);
     layer->SetZorder(layerInfo.zOrder);
     if (params.GetTunnelLayerId()) {
         RS_TRACE_NAME_FMT("%s lpp set tunnel layer type", __func__);
@@ -349,14 +373,20 @@ RSLayerPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, spt
     // Alpha of 255 indicates opacity
     alpha.gAlpha = static_cast<uint8_t>(std::clamp(layerInfo.alpha, 0.0f, 1.0f) * RGBA_MAX);
     layer->SetAlpha(alpha);
-    GraphicIRect dstRect = layerInfo.dstRect;
+    GraphicIRect dstRect = { layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h };
     if (layerInfo.layerType != GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR) {
         auto rogWidthRatio = uniComposerAdapter_->GetScreenInfo().GetRogWidthRatio();
         auto rogHeightRatio = uniComposerAdapter_->GetScreenInfo().GetRogHeightRatio();
-        dstRect = { static_cast<int32_t>(std::floor(layerInfo.dstRect.x * rogWidthRatio)),
-            static_cast<int32_t>(std::floor(layerInfo.dstRect.y * rogHeightRatio)),
-            static_cast<int32_t>(std::ceil(layerInfo.dstRect.w * rogWidthRatio)),
-            static_cast<int32_t>(std::ceil(layerInfo.dstRect.h * rogHeightRatio)) };
+        Drawing::Rect originDstRect = { dstRect.x, dstRect.y, dstRect.x + dstRect.w, dstRect.y + dstRect.h };
+        Drawing::Rect adjustedDstRect = { static_cast<int32_t>(std::floor(originDstRect.GetLeft() * rogWidthRatio)),
+            static_cast<int32_t>(std::floor(originDstRect.GetTop() * rogHeightRatio)),
+            static_cast<int32_t>(std::ceil(originDstRect.GetRight() * rogWidthRatio)),
+            static_cast<int32_t>(std::ceil(originDstRect.GetBottom() * rogHeightRatio)) };
+        Drawing::Rect screen = { 0.f, 0.f,
+            uniComposerAdapter_->GetScreenInfo().phyWidth, uniComposerAdapter_->GetScreenInfo().phyHeight };
+        adjustedDstRect.Intersect(screen);
+        dstRect = {adjustedDstRect.left_, adjustedDstRect.top_,
+            adjustedDstRect.GetWidth(), adjustedDstRect.GetHeight()};
     }
     if (layerInfo.layerType == GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR &&
         ((layerInfo.dstRect.w != layerInfo.srcRect.w) || (layerInfo.dstRect.h != layerInfo.srcRect.h))) {
@@ -435,6 +465,7 @@ RSLayerPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, spt
     } else {
         layer->SetCropRect(layerInfo.srcRect);
         layer->SetTransform(layerInfo.transformType);
+        layer->SetUseDeviceOffline(false);
     }
     if (layerInfo.layerType == GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR) {
         layer->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);

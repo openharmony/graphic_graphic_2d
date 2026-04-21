@@ -594,6 +594,46 @@ HWTEST_F(RSOpincCacheTest, GetLayerPartRenderDirtyManager002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetLayerPartRenderDirtyFlag001
+ * @tc.desc: test results of SetLayerPartRenderDirtyFlag and GetLayerPartRenderDirtyFlag
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSOpincCacheTest, SetLayerPartRenderDirtyFlag001, TestSize.Level1)
+{
+    RSRenderNode renderNode(0);
+    auto& opincCache = renderNode.GetOpincCache();
+
+    opincCache.SetLayerPartRenderDirtyFlag(true);
+    ASSERT_TRUE(opincCache.GetLayerPartRenderDirtyFlag());
+
+    opincCache.SetLayerPartRenderDirtyFlag(false);
+    ASSERT_FALSE(opincCache.GetLayerPartRenderDirtyFlag());
+}
+
+/**
+ * @tc.name: SetLayerPartRenderOldAbsDrawRect001
+ * @tc.desc: test results of SetLayerPartRenderOldAbsDrawRect and GetLayerPartRenderOldAbsDrawRect
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSOpincCacheTest, SetLayerPartRenderOldAbsDrawRect001, TestSize.Level1)
+{
+    constexpr int32_t rectLeft = 10;
+    constexpr int32_t rectTop = 10;
+    constexpr int32_t rectWidth = 100;
+    constexpr int32_t rectHeight = 100;
+
+    RSRenderNode renderNode(0);
+    auto& opincCache = renderNode.GetOpincCache();
+    RectI absDrawRect = { rectLeft, rectTop, rectWidth, rectHeight };
+
+    opincCache.SetLayerPartRenderOldAbsDrawRect(absDrawRect);
+
+    ASSERT_EQ(opincCache.GetLayerPartRenderOldAbsDrawRect(), absDrawRect);
+}
+
+/**
  * @tc.name: GetCacheChangeFlag001
  * @tc.desc: test results of GetCacheChangeFlag
  * @tc.type: FUNC

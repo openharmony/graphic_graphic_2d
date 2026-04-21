@@ -77,7 +77,6 @@ public:
         ATTRACTION_EFFECT,
         WATER_RIPPLE,
         COMPOUND_EFFECT,
-        MAGNIFIER,
         FLY_OUT,
         DISTORT,
         ALWAYS_SNAPSHOT,
@@ -92,6 +91,7 @@ public:
         GASIFY_SCALE_TWIST,
         GASIFY_BLUR,
         GASIFY,
+        PARTICLE_ABLATION,
         FROSTED_GLASS,
         FROSTED_GLASS_BLUR,
     };

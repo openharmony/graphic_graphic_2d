@@ -56,8 +56,7 @@ protected:
     virtual std::string State2String(State state) const { return std::to_string(state); }
     virtual bool CheckChangeStateValid(State lastState, State newState) { return true; }
     // callback should be run in same thread
-    virtual void ExecuteCallback(const std::function<void()>& callback)
-    {
+    virtual void ExecuteCallback(const std::function<void()>& callback) {
         if (callback != nullptr) {
             callback();
         }
@@ -78,8 +77,7 @@ private:
 };
 
 template<typename State, typename Event>
-void HgmStateMachine<State, Event>::ChangeState(State state)
-{
+void HgmStateMachine<State, Event>::ChangeState(State state) {
     ExecuteCallback([this, state = state]() {
         auto lastState = state_.load();
         if (lastState == state) {
@@ -113,8 +111,7 @@ void HgmStateMachine<State, Event>::ChangeState(State state)
 }
 
 template<typename State, typename Event>
-void HgmStateMachine<State, Event>::OnEvent(Event event)
-{
+void HgmStateMachine<State, Event>::OnEvent(Event event) {
     if (auto iter = eventCallbacks_.find(event); iter != eventCallbacks_.end()) {
         if (iter->second != nullptr) {
             ExecuteCallback([callback = iter->second, event = event]() { callback(event); });
@@ -123,38 +120,32 @@ void HgmStateMachine<State, Event>::OnEvent(Event event)
 }
 
 template<typename State, typename Event>
-int32_t HgmStateMachine<State, Event>::RegisterEnterStateCallback(State state, const StateChangeCallback& callback)
-{
+int32_t HgmStateMachine<State, Event>::RegisterEnterStateCallback(State state, const StateChangeCallback& callback) {
     return RegisterStateChangeCallback(enterStateCallbacks_, state, callback);
 }
 
 template<typename State, typename Event>
-void HgmStateMachine<State, Event>::UnRegisterEnterStateCallback(State state, int32_t callbackId)
-{
+void HgmStateMachine<State, Event>::UnRegisterEnterStateCallback(State state, int32_t callbackId) {
     return UnRegisterStateChangeCallback(enterStateCallbacks_, state, callbackId);
 }
 
 template<typename State, typename Event>
-int32_t HgmStateMachine<State, Event>::RegisterExitStateCallback(State state, const StateChangeCallback& callback)
-{
+int32_t HgmStateMachine<State, Event>::RegisterExitStateCallback(State state, const StateChangeCallback& callback) {
     return RegisterStateChangeCallback(exitStateCallbacks_, state, callback);
 }
 
 template<typename State, typename Event>
-void HgmStateMachine<State, Event>::UnRegisterExitStateCallback(State state, int32_t callbackId)
-{
+void HgmStateMachine<State, Event>::UnRegisterExitStateCallback(State state, int32_t callbackId) {
     return UnRegisterStateChangeCallback(exitStateCallbacks_, state, callbackId);
 }
 
 template<typename State, typename Event>
-void HgmStateMachine<State, Event>::RegisterEventCallback(Event event, const EventCallback& callback)
-{
+void HgmStateMachine<State, Event>::RegisterEventCallback(Event event, const EventCallback& callback) {
     eventCallbacks_[event] = callback;
 }
 
 template<typename State, typename Event>
-void HgmStateMachine<State, Event>::UnRegisterEventCallback(Event event)
-{
+void HgmStateMachine<State, Event>::UnRegisterEventCallback(Event event) {
     if (auto iter = eventCallbacks_.find(event); iter != eventCallbacks_.end()) {
         eventCallbacks_.erase(iter);
     }
@@ -162,8 +153,7 @@ void HgmStateMachine<State, Event>::UnRegisterEventCallback(Event event)
 
 template<typename State, typename Event>
 int32_t HgmStateMachine<State, Event>::RegisterStateChangeCallback(
-    StateChangeCallbacksType& callbacks, State state, const StateChangeCallback& callback)
-{
+    StateChangeCallbacksType& callbacks, State state, const StateChangeCallback& callback) {
     stateCallbackId_++;
     callbacks[state][stateCallbackId_.load()] = callback;
     return stateCallbackId_;
@@ -171,8 +161,7 @@ int32_t HgmStateMachine<State, Event>::RegisterStateChangeCallback(
 
 template<typename State, typename Event>
 void HgmStateMachine<State, Event>::UnRegisterStateChangeCallback(
-    StateChangeCallbacksType& callbacks, State state, int32_t callbackId)
-{
+    StateChangeCallbacksType& callbacks, State state, int32_t callbackId) {
     if (auto iter = callbacks.find(state); iter != callbacks.end()) {
         if (auto toDelCallbackIter = iter->second; toDelCallbackIter != iter->second.end()) {
             iter->second.erase(toDelCallbackIter);

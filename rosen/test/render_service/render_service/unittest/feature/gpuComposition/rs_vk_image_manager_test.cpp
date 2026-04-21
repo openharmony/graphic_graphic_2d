@@ -15,8 +15,8 @@
 
 #include "gtest/gtest.h"
 #include "parameters.h"
-#include "feature/gpuComposition/rs_vk_image_manager.h"
-#include "pipeline/render_thread/rs_base_render_engine.h"
+#include "gpuComposition/rs_vk_image_manager.h"
+#include "engine/rs_base_render_engine.h"
 #include "platform/common/rs_system_properties.h"
 #include "recording/recording_canvas.h"
 #include "surface_buffer_impl.h"

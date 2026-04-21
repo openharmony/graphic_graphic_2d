@@ -25,6 +25,7 @@
 #include "drawable/rs_color_picker_drawable.h"
 #include "drawable/rs_misc_drawable.h"
 #include "drawable/rs_render_node_shadow_drawable.h"
+#include "feature/uifirst/rs_drawable_updater.h"
 #include "params/rs_canvas_drawing_render_params.h"
 #include "params/rs_effect_render_params.h"
 #include "params/rs_logical_display_render_params.h"
@@ -395,6 +396,8 @@ void RSRenderNodeDrawableAdapter::DrawAllUifirst(
         return;
     }
 
+    UpdateSaveRestoreDrawable(uifirstDrawCmdList_);
+
     const auto& drawCmdList = uifirstDrawCmdList_;
 
     auto end = uifirstDrawCmdIndex_.endIndex_;
@@ -591,7 +594,6 @@ void RSRenderNodeDrawableAdapter::SkipDrawSubtreeAndClipHole(
         "ClipHoleForBlurOrExcludedSubtree Rect:[%.2f, %.2f]", filterRect.GetWidth(), filterRect.GetHeight());
     Drawing::AutoCanvasRestore arc(*curCanvas, true);
     auto matrix = canvas.GetTotalMatrix();
-    AlignRectToDevicePixels(matrix, filterRect);
     matrix.Set(Drawing::Matrix::TRANS_X, std::floor(matrix.Get(Drawing::Matrix::TRANS_X)));
     matrix.Set(Drawing::Matrix::TRANS_Y, std::ceil(matrix.Get(Drawing::Matrix::TRANS_Y)));
     canvas.SetMatrix(matrix);
@@ -604,16 +606,40 @@ void RSRenderNodeDrawableAdapter::SkipDrawSubtreeAndClipHole(
 void RSRenderNodeDrawableAdapter::UpdateFilterInfoForNodeGroup(RSPaintFilterCanvas* curCanvas)
 {
     if (curDrawingCacheRoot_ != nullptr) {
+        const auto clipBounds = curCanvas->GetDeviceClipBounds();
         auto iter = std::find_if(curDrawingCacheRoot_->filterInfoVec_.begin(),
             curDrawingCacheRoot_->filterInfoVec_.end(),
             [nodeId = GetId()](const auto& item) -> bool { return item.nodeId_ == nodeId; });
         if (iter != curDrawingCacheRoot_->filterInfoVec_.end()) {
-            iter->rectVec_.emplace_back(curCanvas->GetDeviceClipBounds());
+            iter->rectVec_.emplace_back(clipBounds);
         } else {
             curDrawingCacheRoot_->filterInfoVec_.emplace_back(
-                FilterNodeInfo(GetId(), curCanvas->GetTotalMatrix(), { curCanvas->GetDeviceClipBounds() }));
+                FilterNodeInfo(GetId(), curCanvas->GetTotalMatrix(), { clipBounds }));
         }
+        curDrawingCacheRoot_->AddRectToUnifiedFilterRegion(clipBounds);
     }
+}
+
+void RSRenderNodeDrawableAdapter::ClearUnifiedFilterRegion()
+{
+    unifiedFilterRegion_.SetEmpty();
+}
+
+void RSRenderNodeDrawableAdapter::AddRectToUnifiedFilterRegion(const Drawing::RectI& rect)
+{
+    Drawing::Region region;
+    region.SetRect(rect);
+    unifiedFilterRegion_.Op(region, Drawing::RegionOp::UNION);
+}
+
+bool RSRenderNodeDrawableAdapter::IntersectsWithUnifiedRegion(const Drawing::RectI& rect) const
+{
+    if (unifiedFilterRegion_.IsEmpty()) {
+        return false;
+    }
+    Drawing::Region region;
+    region.SetRect(rect);
+    return !unifiedFilterRegion_.QuickReject(region);
 }
 
 Drawing::Rect RSRenderNodeDrawableAdapter::GetFilterRelativeRect(const Drawing::Rect& rect) const

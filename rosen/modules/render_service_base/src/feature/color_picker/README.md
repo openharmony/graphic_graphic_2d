@@ -49,15 +49,16 @@ Controls when color picks occur to prevent excessive GPU work:
 ```
 ┌─────────────┐                              ┌──────────────┐
 │  PREPARING  │ ──ScheduleColorPickIfReady──>│   SCHEDULED  │
-│             │    (post delayed task)        │              │
+│             │    (return delay, caller     │              │
+│             │     posts delayed task)      │              │
 └──────┬──────┘                               └──────┬───────┘
        │                                             │
        │                                      delayed task
        ▼                                             ▼
 ┌──────────────────┐                     ┌──────────────────┐
 │  PREPARING       │ <────────────────────│ COLOR_PICK_THIS  │
-│                  │  TransitionState     │     _FRAME       │
-└──────────────────┘  (after pick)       └──────────────────┘
+│                  │  (after pick)        │     _FRAME       │
+└──────────────────┘                      └──────────────────┘
 ```
 
 **States:**
@@ -74,10 +75,10 @@ Main Thread (Prepare Phase)
 │  └─ For each node:
 │     ├─ PrepareColorPickerFrame() - handle state transitions
 │     └─ If dirty region intersects:
-│        └─ ScheduleColorPickIfReady() → TransitionState(COLOR_PICK_THIS_FRAME, delay)
+│        └─ ScheduleColorPickIfReady() → PostTask(COLOR_PICK_THIS_FRAME, delay)
 │
 Main Thread (Delayed Task)
-└─ ColorPickerStateTransition() - set state, mark dirty
+└─ Set state to COLOR_PICK_THIS_FRAME, mark node dirty, request vsync
 
 Render Thread (Draw Phase)
 └─ OnDraw()
