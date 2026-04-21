@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "feature/layer/rs_layer_cache_manager.h" 
+#include "feature/layer/rs_layer_cache_manager.h"
 
 #include "gtest/gtest.h"
 
