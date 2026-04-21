@@ -337,7 +337,7 @@ public:
     void RunMaskSwitchDemo()
     {
         std::cout << "Running mask switch demo..." << std::endl;
-        for (int32_t i = 0; i < MASK_COUNT; i++) {
+        for (int i = 0; i < MASK_COUNT; i++) {
             SwitchMask(static_cast<MaskType>(i));
             sleep(MASK_SWITCH_INTERVAL);
         }
