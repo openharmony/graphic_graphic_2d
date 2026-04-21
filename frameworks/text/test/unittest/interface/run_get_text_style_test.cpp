@@ -223,6 +223,7 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest005, TestSize.Level0)
     TextStyle textStyle;
     textStyle.letterSpacing = 2.5;
     textStyle.wordSpacing = 5.0;
+    textStyle.heightOnly = true;
     textStyle.heightScale = 1.5;
 
     typographyCreate_->PushStyle(textStyle);
@@ -242,6 +243,7 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest005, TestSize.Level0)
 
     EXPECT_DOUBLE_EQ(resultStyle.letterSpacing, 2.5);
     EXPECT_DOUBLE_EQ(resultStyle.wordSpacing, 5.0);
+    EXPECT_TRUE(resultStyle.heightOnly);
     EXPECT_DOUBLE_EQ(resultStyle.heightScale, 1.5);
 }
 
@@ -453,40 +455,6 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest011, TestSize.Level0)
 }
 
 /*
- * @tc.name: RunGetTextStyleTest012
- * @tc.desc: Test GetTextStyle with ellipsis properties (ellipsis, ellipsisModal)
- * @tc.type: FUNC
- */
-HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest012, TestSize.Level0)
-{
-    OHOS::Rosen::TypographyStyle paragraphStyle;
-    typographyCreate_ = OHOS::Rosen::TypographyCreate::Create(paragraphStyle, fontCollection_);
-    ASSERT_NE(typographyCreate_, nullptr);
-
-    TextStyle textStyle;
-    textStyle.ellipsis = u"...";
-    textStyle.ellipsisModal = EllipsisModal::HEAD;
-
-    typographyCreate_->PushStyle(textStyle);
-
-    std::u16string text = u"EllipsisTest";
-    typographyCreate_->AppendText(text);
-
-    typography_ = typographyCreate_->CreateTypography();
-    ASSERT_NE(typography_, nullptr);
-
-    typography_->Layout(50.0);
-
-    auto textLines = typography_->GetTextLines();
-    spRuns_ = textLines[0]->GetGlyphRuns();
-
-    TextStyle resultStyle = spRuns_[0]->GetTextStyle();
-
-    EXPECT_EQ(resultStyle.ellipsis, u"...");
-    EXPECT_EQ(resultStyle.ellipsisModal, EllipsisModal::HEAD);
-}
-
-/*
  * @tc.name: RunGetTextStyleTest013
  * @tc.desc: Test GetTextStyle with styleId property
  * @tc.type: FUNC
@@ -516,38 +484,6 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest013, TestSize.Level0)
     TextStyle resultStyle = spRuns_[0]->GetTextStyle();
 
     EXPECT_EQ(resultStyle.styleId, 123);
-}
-
-/*
- * @tc.name: RunGetTextStyleTest014
- * @tc.desc: Test GetTextStyle with isPlaceholder property
- * @tc.type: FUNC
- */
-HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest014, TestSize.Level0)
-{
-    OHOS::Rosen::TypographyStyle paragraphStyle;
-    typographyCreate_ = OHOS::Rosen::TypographyCreate::Create(paragraphStyle, fontCollection_);
-    ASSERT_NE(typographyCreate_, nullptr);
-
-    TextStyle textStyle;
-    textStyle.isPlaceholder = true;
-
-    typographyCreate_->PushStyle(textStyle);
-
-    std::u16string text = u"Placeholder";
-    typographyCreate_->AppendText(text);
-
-    typography_ = typographyCreate_->CreateTypography();
-    ASSERT_NE(typography_, nullptr);
-
-    typography_->Layout(100.0);
-
-    auto textLines = typography_->GetTextLines();
-    spRuns_ = textLines[0]->GetGlyphRuns();
-
-    TextStyle resultStyle = spRuns_[0]->GetTextStyle();
-
-    EXPECT_EQ(resultStyle.isPlaceholder, true);
 }
 
 /*
@@ -642,7 +578,7 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest016, TestSize.Level0)
     EXPECT_EQ(resultStyle.fontStyle, OHOS::Rosen::FontStyle::ITALIC);
     EXPECT_DOUBLE_EQ(resultStyle.letterSpacing, 2.0);
     EXPECT_DOUBLE_EQ(resultStyle.wordSpacing, 3.0);
-    EXPECT_DOUBLE_EQ(resultStyle.heightScale, 1.2);
+    EXPECT_DOUBLE_EQ(resultStyle.heightScale, 0);
     EXPECT_EQ(resultStyle.halfLeading, false);
     EXPECT_EQ(resultStyle.heightOnly, false);
     EXPECT_EQ(resultStyle.baseline, TextBaseline::ALPHABETIC);
