@@ -294,16 +294,9 @@ void RSUniRenderProcessor::CreateSolidColorLayer(RSLayerPtr layer, RSSurfaceRend
         solidColorLayerProperty.zOrder = layer->GetZorder() - 1;
     }
     solidColorLayerProperty.transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
-    auto dstRect = params.layerInfo_.dstRect;
-    auto rogWidthRatio = uniComposerAdapter_->GetScreenInfo().GetRogWidthRatio();
-    auto rogHeightRatio = uniComposerAdapter_->GetScreenInfo().GetRogHeightRatio();
-    GraphicIRect layerRect = { static_cast<int32_t>(std::floor(dstRect.x * rogWidthRatio)),
-        static_cast<int32_t>(std::floor(dstRect.y * rogHeightRatio)),
-        static_cast<int32_t>(std::ceil(dstRect.w * rogWidthRatio)),
-        static_cast<int32_t>(std::ceil(dstRect.h * rogHeightRatio)) };
-    RS_OPTIONAL_TRACE_NAME_FMT("CreateSolidColorLayer name:%s id:%" PRIu64 " dst:[%d, %d, %d, %d] "
-        "adjustDst:[%d, %d, %d, %d] color:%08x",
-        params.GetName().c_str(), params.GetId(), dstRect.x, dstRect.y, dstRect.w, dstRect.h,
+    auto layerRect = layer->GetLayerSize();
+    RS_OPTIONAL_TRACE_NAME_FMT("CreateSolidColorLayer name:%s id:%" PRIu64 " dst:[%d, %d, %d, %d] color:%08x",
+        params.GetName().c_str(), params.GetId(),
         layerRect.x, layerRect.y, layerRect.w, layerRect.h, color.AsArgbInt());
     solidColorLayerProperty.layerRect = layerRect;
     solidColorLayerProperty.compositionType = GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR;
@@ -380,14 +373,20 @@ RSLayerPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, spt
     // Alpha of 255 indicates opacity
     alpha.gAlpha = static_cast<uint8_t>(std::clamp(layerInfo.alpha, 0.0f, 1.0f) * RGBA_MAX);
     layer->SetAlpha(alpha);
-    GraphicIRect dstRect = layerInfo.dstRect;
+    GraphicIRect dstRect = { layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h };
     if (layerInfo.layerType != GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR) {
         auto rogWidthRatio = uniComposerAdapter_->GetScreenInfo().GetRogWidthRatio();
         auto rogHeightRatio = uniComposerAdapter_->GetScreenInfo().GetRogHeightRatio();
-        dstRect = { static_cast<int32_t>(std::floor(layerInfo.dstRect.x * rogWidthRatio)),
-            static_cast<int32_t>(std::floor(layerInfo.dstRect.y * rogHeightRatio)),
-            static_cast<int32_t>(std::ceil(layerInfo.dstRect.w * rogWidthRatio)),
-            static_cast<int32_t>(std::ceil(layerInfo.dstRect.h * rogHeightRatio)) };
+        Drawing::Rect originDstRect = { dstRect.x, dstRect.y, dstRect.x + dstRect.w, dstRect.y + dstRect.h };
+        Drawing::Rect adjustedDstRect = { static_cast<int32_t>(std::floor(originDstRect.GetLeft() * rogWidthRatio)),
+            static_cast<int32_t>(std::floor(originDstRect.GetTop() * rogHeightRatio)),
+            static_cast<int32_t>(std::ceil(originDstRect.GetRight() * rogWidthRatio)),
+            static_cast<int32_t>(std::ceil(originDstRect.GetBottom() * rogHeightRatio)) };
+        Drawing::Rect screen = { 0.f, 0.f,
+            uniComposerAdapter_->GetScreenInfo().phyWidth, uniComposerAdapter_->GetScreenInfo().phyHeight };
+        adjustedDstRect.Intersect(screen);
+        dstRect = {adjustedDstRect.left_, adjustedDstRect.top_,
+            adjustedDstRect.GetWidth(), adjustedDstRect.GetHeight()};
     }
     if (layerInfo.layerType == GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR &&
         ((layerInfo.dstRect.w != layerInfo.srcRect.w) || (layerInfo.dstRect.h != layerInfo.srcRect.h))) {

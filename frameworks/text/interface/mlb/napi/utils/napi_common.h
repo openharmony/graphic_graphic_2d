@@ -486,6 +486,18 @@ inline napi_value CreateArrayStringJsValue(napi_env env, const std::vector<std::
     return jsArray;
 }
 
+inline napi_value CreateArrayDoubleJsValue(napi_env env, const std::vector<double>& vectorDouble)
+{
+    napi_value jsArray = nullptr;
+    if (napi_create_array_with_length(env, vectorDouble.size(), &jsArray) == napi_ok) {
+        size_t index = 0;
+        for (const auto& value : vectorDouble) {
+            napi_set_element(env, jsArray, index++, CreateJsNumber(env, value));
+        }
+    }
+    return jsArray;
+}
+
 inline napi_value CreateStringJsValue(napi_env env, const std::u16string& u16String)
 {
     napi_value jsStr = nullptr;

@@ -109,7 +109,6 @@ static uint64_t g_calcPerfNodeTime[CALC_PERF_NODE_TIME_COUNT_MAX];
 static int g_nodeListPerfCalcIndex = -1;
 
 static std::string g_testDataFrame;
-static std::vector<RSRenderNode::SharedPtr> g_childOfDisplayNodes;
 static uint32_t g_recordParcelNumber = 0;
 static bool g_playbackImmediate = false;
 static std::unordered_map<std::string, std::string> g_recordRsMetric;
@@ -1370,27 +1369,6 @@ std::string RSProfiler::TypefaceUnmarshalling(std::stringstream& stream, uint32_
     return "";
 }
 
-void RSProfiler::HiddenSpaceTurnOn()
-{
-    if (!g_childOfDisplayNodes.empty()) {
-        HiddenSpaceTurnOff();
-    }
-
-    auto logicalDisplayNode = GetLogicalDisplay();
-    if (logicalDisplayNode == nullptr) {
-        HRPE("RSProfiler::HiddenSpaceTurnOn Logical Display is nullptr");
-        return;
-    }
-    if (auto rootNode = GetRenderNode(Utils::PatchNodeId(0))) {
-        g_childOfDisplayNodes = *logicalDisplayNode->GetChildren();
-
-        logicalDisplayNode->ClearChildren();
-        logicalDisplayNode->AddChild(rootNode);
-    }
-
-    g_mainThread->SetDirtyFlag();
-    AwakeRenderServiceThread();
-}
 
 void RSProfiler::PrintVsync(const ArgList& args)
 {
@@ -1424,56 +1402,82 @@ void RSProfiler::PrintTime(const ArgList& args)
     SendMessage("%s", response.c_str());
 }
 
-std::shared_ptr<RSRenderNode> RSProfiler::GetLogicalDisplay()
+std::vector<std::shared_ptr<RSLogicalDisplayRenderNode>> RSProfiler::GetLogicalDisplayNodes()
 {
-    const auto& rootRenderNode = context_->GetGlobalRootRenderNode();
-    if (rootRenderNode == nullptr) {
-        return nullptr;
+    if (!context_) {
+        return {};
+    }
+    std::vector<std::shared_ptr<RSLogicalDisplayRenderNode>> displays;
+    context_->GetNodeMap().TraverseLogicalDisplayNodes(
+        [&displays](const std::shared_ptr<RSLogicalDisplayRenderNode>& display) {
+            if (display) {
+                displays.push_back(display);
+            }
+        });
+
+    std::sort(displays.begin(), displays.end(),
+        [](const std::shared_ptr<RSLogicalDisplayRenderNode>& a, const std::shared_ptr<RSLogicalDisplayRenderNode>& b) {
+            return a->GetScreenId() < b->GetScreenId();
+        });
+    return displays;
+}
+
+void RSProfiler::HiddenSpaceTurnOn()
+{
+    if (IsHiddenSpaceEnabled()) {
+        HiddenSpaceTurnOff();
     }
 
-    const auto& children = *rootRenderNode->GetChildren();
-    if (children.empty()) {
-        return nullptr;
+    const auto root = GetRenderNode(Utils::PatchNodeId(0));
+    if (!root || !root->GetChildrenCount()) {
+        HRPE("HiddenSpaceTurnOn: Invalid mock root");
+        return;
     }
-    for (const auto& screenNode : children) {   // apply multiple screen nodes
-        if (!screenNode) {
-            continue;
-        }
-        const auto& screenNodeChildren = screenNode->GetChildren();
-        if (!screenNodeChildren || screenNodeChildren->empty()) {
-            continue;
-        }
-        return screenNodeChildren->front(); // return display node
+
+    const auto displays = GetLogicalDisplayNodes();
+    if (displays.empty()) {
+        HRPE("HiddenSpaceTurnOn: Logical displays not found");
+        return;
     }
-    return nullptr;
+
+    const std::vector<RSRenderNode::SharedPtr> empty;
+    const auto count = std::min(static_cast<uint32_t>(displays.size()), root->GetChildrenCount());
+    for (uint32_t i = 0; i < count; i++) {
+        const auto newScreen = std::next(root->GetChildrenList().begin(), i)->lock();
+        const auto newDisplay = newScreen ? newScreen->GetFirstChild() : nullptr;
+        if (newDisplay && newDisplay->GetChildrenCount()) {
+            const auto& oldDisplay = displays[i];
+            const auto oldChildren = oldDisplay->GetChildren();
+            displayChildren_[oldDisplay] = oldChildren ? *oldChildren : empty;
+            oldDisplay->ClearChildren();
+            for (const auto& node : newDisplay->GetChildrenList()) {
+                oldDisplay->AddChild(node.lock());
+            }
+        }
+    }
+
+    AwakeRenderServiceThread();
 }
 
 void RSProfiler::HiddenSpaceTurnOff()
 {
-    auto logicalDisplayNode = GetLogicalDisplay();
-    if (logicalDisplayNode == nullptr) {
-        HRPE("RSProfiler::HiddenSpaceTurnOff Logical Display is nullptr");
-        return;
-    }
-
-    logicalDisplayNode->ClearChildren();
-    for (const auto& child : g_childOfDisplayNodes) {
-        logicalDisplayNode->AddChild(child);
-    }
-    auto& listPostponed = RSProfiler::GetChildOfDisplayNodesPostponed();
-    for (const auto& childWeak : listPostponed) {
-        if (auto child = childWeak.lock()) {
-            logicalDisplayNode->AddChild(child);
+    for (const auto& [display, children] : displayChildren_) {
+        display->ClearChildren();
+        for (const auto& child : children) {
+            display->AddChild(child);
         }
     }
-    listPostponed.clear();
+    displayChildren_.clear();
+
     FilterMockNode(*context_);
     RSTypefaceCache::Instance().ReplayClear();
-    g_childOfDisplayNodes.clear();
-
-    g_mainThread->SetDirtyFlag();
 
     AwakeRenderServiceThread();
+}
+
+bool RSProfiler::IsHiddenSpaceEnabled()
+{
+    return !displayChildren_.empty();
 }
 
 void RSProfiler::SaveRdc(const ArgList& args)
@@ -2049,7 +2053,7 @@ void RSProfiler::TestLoadFrame(const ArgList& args)
 
 void RSProfiler::TestSwitch(const ArgList& args)
 {
-    if (g_childOfDisplayNodes.empty()) {
+    if (!IsHiddenSpaceEnabled()) {
         HiddenSpaceTurnOn();
         Respond("OK: HiddenSpaceTurnOn");
     } else {
@@ -2092,7 +2096,7 @@ void RSProfiler::ClearTestTree(const ArgList& args)
 
 void RSProfiler::RecordStart(const ArgList& args)
 {
-    if (!IsNoneMode() || !g_childOfDisplayNodes.empty()) {
+    if (!IsNoneMode() || IsHiddenSpaceEnabled()) {
         SendMessage("Record: Start failed. Playback/Saving is in progress");
         return;
     }
@@ -2258,7 +2262,7 @@ void RSProfiler::PlaybackPrepareFirstFrame(const ArgList& args)
         return;
     }
 
-    if (g_playbackFile.IsOpen() || !g_childOfDisplayNodes.empty()) {
+    if (g_playbackFile.IsOpen() || IsHiddenSpaceEnabled()) {
         Respond("FAILED: rsrecord_replay_prepare was already called");
         return;
     }
@@ -2335,7 +2339,7 @@ void RSProfiler::PlaybackStart(const ArgList& args)
         return;
     }
 
-    if (!g_playbackFile.IsOpen() || !g_childOfDisplayNodes.empty()) {
+    if (!g_playbackFile.IsOpen() || IsHiddenSpaceEnabled()) {
         Respond("FAILED: rsrecord_replay was already called");
         return;
     }
@@ -2397,19 +2401,18 @@ void RSProfiler::PlaybackStart(const ArgList& args)
 
 void RSProfiler::PlaybackStop(const ArgList& args)
 {
-    if (!g_playbackFile.IsOpen() && g_childOfDisplayNodes.empty()) {
+    if (!g_playbackFile.IsOpen() && !IsHiddenSpaceEnabled()) {
         Respond("FAILED: Playback stop - no rsrecord_replay_* was called previously");
         return;
     }
     SetMode(Mode::NONE);
-    if (g_childOfDisplayNodes.empty()) {
-        // rsrecord_replay_prepare was called but rsrecord_replay_start was not
-        g_playbackFile.Close();
-        g_childOfDisplayNodes.clear();
-    } else {
-        g_playbackShouldBeTerminated = true;
-        HiddenSpaceTurnOff();
+
+    if (!IsHiddenSpaceEnabled()) {
+        g_playbackFile.Close(); // PlaybackPrepareFirstFrame only was called
     }
+
+    g_playbackShouldBeTerminated = true;
+    HiddenSpaceTurnOff();
     FilterMockNode(*context_);
     constexpr int maxCountForSecurity = 1000;
     for (int i = 0; !RSRenderNodeGC::Instance().IsBucketQueueEmpty() && i < maxCountForSecurity; i++) {

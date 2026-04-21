@@ -15,193 +15,138 @@
 
 #include "rsuidisplaysoloist_fuzzer.h"
 
-#include <cstddef>
-#include <cstdint>
-#include <securec.h>
+#include <fuzzer/FuzzedDataProvider.h>
 
 #include "feature/hyper_graphic_manager/rs_ui_display_soloist.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace {
-const uint8_t* DATA = nullptr;
-size_t g_size = 0;
-size_t g_pos;
-} // namespace
+const uint8_t DO_START = 0;
+const uint8_t DO_STOP = 1;
+const uint8_t DO_REMOVE_SOLOIST = 2;
+const uint8_t DO_INSERT_ON_VSYNC_CALLBACK = 3;
+const uint8_t DO_INSERT_FRAME_RATE_RANGE = 4;
+const uint8_t DO_INSERT_USE_EXCLUSIVE_THREAD_FLAG = 5;
+const uint8_t DO_SET_VSYNC_RATE = 6;
+const uint8_t DO_SET_MAIN_FRAME_RATE_LINKER_ENABLE = 7;
+const uint8_t TARGET_SIZE = 8;
 
-template<class T>
-T GetData()
+void DoStart(FuzzedDataProvider& fdp)
 {
-    T object {};
-    size_t objectSize = sizeof(object);
-    if (DATA == nullptr || objectSize > g_size - g_pos) {
-        return object;
-    }
-    errno_t ret = memcpy_s(&object, objectSize, DATA + g_pos, objectSize);
-    if (ret != EOK) {
-        return {};
-    }
-    g_pos += objectSize;
-    return object;
-}
-
-bool DoStart(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
-    SoloistIdType id = GetData<uint32_t>();
+    SoloistIdType id = fdp.ConsumeIntegral<uint32_t>();
     RSDisplaySoloistManager::GetInstance().Start(id);
-    return true;
+    std::unique_lock<std::mutex> lock(RSDisplaySoloistManager::GetInstance().dataUpdateMtx_);
+    RSDisplaySoloistManager::GetInstance().idToSoloistMap_.erase(id);
 }
 
-bool DoStop(const uint8_t* data, size_t size)
+void DoStop(FuzzedDataProvider& fdp)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
-    SoloistIdType id = GetData<uint32_t>();
+    SoloistIdType id = fdp.ConsumeIntegral<uint32_t>();
     RSDisplaySoloistManager::GetInstance().Stop(id);
-    return true;
+    std::unique_lock<std::mutex> lock(RSDisplaySoloistManager::GetInstance().dataUpdateMtx_);
+    RSDisplaySoloistManager::GetInstance().idToSoloistMap_.erase(id);
 }
 
-bool DoRemoveSoloist(const uint8_t* data, size_t size)
+void DoRemoveSoloist(FuzzedDataProvider& fdp)
 {
-        if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
-    SoloistIdType id = GetData<uint32_t>();
+    SoloistIdType id = fdp.ConsumeIntegral<uint32_t>();
     RSDisplaySoloistManager::GetInstance().RemoveSoloist(id);
-    return true;
+    std::unique_lock<std::mutex> lock(RSDisplaySoloistManager::GetInstance().dataUpdateMtx_);
+    RSDisplaySoloistManager::GetInstance().idToSoloistMap_.erase(id);
 }
 
-bool DoInsertOnVsyncCallback(const uint8_t* data, size_t size)
+void DoInsertOnVsyncCallback(FuzzedDataProvider& fdp)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
-    SoloistIdType id = GetData<uint32_t>();
-    auto callback = [](long long timestamp, long long targetTimestamp, void* callbackData) {
+    SoloistIdType id = fdp.ConsumeIntegral<uint32_t>();
+    auto callback = [](long long timestamp, long long targetTimestamp, void* data) {
         (void)timestamp;
         (void)targetTimestamp;
-        (void)callbackData;
+        (void)data;
     };
-    bool useNullCallback = GetData<bool>();
+    bool useNullCallback = fdp.ConsumeBool();
     if (useNullCallback) {
         RSDisplaySoloistManager::GetInstance().InsertOnVsyncCallback(id, nullptr, nullptr);
     } else {
         RSDisplaySoloistManager::GetInstance().InsertOnVsyncCallback(id, callback, nullptr);
     }
-    return true;
+    std::unique_lock<std::mutex> lock(RSDisplaySoloistManager::GetInstance().dataUpdateMtx_);
+    RSDisplaySoloistManager::GetInstance().idToSoloistMap_.erase(id);
 }
 
-bool DoInsertFrameRateRange(const uint8_t* data, size_t size)
+void DoInsertFrameRateRange(FuzzedDataProvider& fdp)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
-    SoloistIdType id = GetData<uint32_t>();
+    SoloistIdType id = fdp.ConsumeIntegral<uint32_t>();
     FrameRateRange frameRateRange;
-    frameRateRange.min_ = GetData<int32_t>();
-    frameRateRange.max_ = GetData<int32_t>();
-    frameRateRange.preferred_ = GetData<int32_t>();
-    frameRateRange.type_ = GetData<uint32_t>();
+    frameRateRange.min_ = fdp.ConsumeIntegral<int32_t>();
+    frameRateRange.max_ = fdp.ConsumeIntegral<int32_t>();
+    frameRateRange.preferred_ = fdp.ConsumeIntegral<int32_t>();
+    frameRateRange.type_ = fdp.ConsumeIntegral<uint32_t>();
     RSDisplaySoloistManager::GetInstance().InsertFrameRateRange(id, frameRateRange);
-    return true;
+    std::unique_lock<std::mutex> lock(RSDisplaySoloistManager::GetInstance().dataUpdateMtx_);
+    RSDisplaySoloistManager::GetInstance().idToSoloistMap_.erase(id);
 }
 
-bool DoInsertUseExclusiveThreadFlag(const uint8_t* data, size_t size)
+void DoInsertUseExclusiveThreadFlag(FuzzedDataProvider& fdp)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
-    SoloistIdType id = GetData<uint32_t>();
-    bool useExclusiveThread = GetData<bool>();
+    SoloistIdType id = fdp.ConsumeIntegral<uint32_t>();
+    bool useExclusiveThread = fdp.ConsumeBool();
     RSDisplaySoloistManager::GetInstance().InsertUseExclusiveThreadFlag(id, useExclusiveThread);
-    return true;
+    std::unique_lock<std::mutex> lock(RSDisplaySoloistManager::GetInstance().dataUpdateMtx_);
+    RSDisplaySoloistManager::GetInstance().idToSoloistMap_.erase(id);
 }
 
-bool DoSetVSyncRate(const uint8_t* data, size_t size)
+void DoSetVSyncRate(FuzzedDataProvider& fdp)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
-    int32_t vsyncRate = GetData<int32_t>();
+    int32_t vsyncRate = fdp.ConsumeIntegral<int32_t>();
     RSDisplaySoloistManager::GetInstance().SetVSyncRate(vsyncRate);
-    return true;
 }
 
-bool DoSetMainFrameRateLinkerEnable(const uint8_t* data, size_t size)
+void DoSetMainFrameRateLinkerEnable(FuzzedDataProvider& fdp)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-
-    bool enabled = GetData<bool>();
+    bool enabled = fdp.ConsumeBool();
     RSDisplaySoloistManager::GetInstance().SetMainFrameRateLinkerEnable(enabled);
-    return true;
 }
+} // namespace
 } // namespace Rosen
 } // namespace OHOS
 
-/* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
-    /* Run your code on data */
-    OHOS::Rosen::DoStart(data, size);
-    OHOS::Rosen::DoStop(data, size);
-    OHOS::Rosen::DoRemoveSoloist(data, size);
-    OHOS::Rosen::DoInsertOnVsyncCallback(data, size);
-    OHOS::Rosen::DoInsertFrameRateRange(data, size);
-    OHOS::Rosen::DoInsertUseExclusiveThreadFlag(data, size);
-    OHOS::Rosen::DoSetVSyncRate(data, size);
-    OHOS::Rosen::DoSetMainFrameRateLinkerEnable(data, size);
+    if (data == nullptr || size == 0) {
+        return -1;
+    }
+
+    FuzzedDataProvider fdp(data, size);
+
+    uint8_t tarPos = fdp.ConsumeIntegral<uint8_t>() % OHOS::Rosen::TARGET_SIZE;
+    switch (tarPos) {
+        case OHOS::Rosen::DO_START:
+            OHOS::Rosen::DoStart(fdp);
+            break;
+        case OHOS::Rosen::DO_STOP:
+            OHOS::Rosen::DoStop(fdp);
+            break;
+        case OHOS::Rosen::DO_REMOVE_SOLOIST:
+            OHOS::Rosen::DoRemoveSoloist(fdp);
+            break;
+        case OHOS::Rosen::DO_INSERT_ON_VSYNC_CALLBACK:
+            OHOS::Rosen::DoInsertOnVsyncCallback(fdp);
+            break;
+        case OHOS::Rosen::DO_INSERT_FRAME_RATE_RANGE:
+            OHOS::Rosen::DoInsertFrameRateRange(fdp);
+            break;
+        case OHOS::Rosen::DO_INSERT_USE_EXCLUSIVE_THREAD_FLAG:
+            OHOS::Rosen::DoInsertUseExclusiveThreadFlag(fdp);
+            break;
+        case OHOS::Rosen::DO_SET_VSYNC_RATE:
+            OHOS::Rosen::DoSetVSyncRate(fdp);
+            break;
+        case OHOS::Rosen::DO_SET_MAIN_FRAME_RATE_LINKER_ENABLE:
+            OHOS::Rosen::DoSetMainFrameRateLinkerEnable(fdp);
+            break;
+        default:
+            return -1;
+    }
     return 0;
 }

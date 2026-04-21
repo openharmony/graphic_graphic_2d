@@ -24,6 +24,7 @@ namespace {
 constexpr size_t EXPECTED_MATCH_COUNT = 3;
 constexpr size_t BUFFER_SIZE = 4096;
 constexpr int ENABLE_GLOBAL_BLACKLIST_PARAM_SIZE = 4;
+constexpr int SET_SCREEN_REFRESHRATE_PARAM_SIZE = 5;
 constexpr int DECIMAL_BASE = 10;
 const char* GREP_PERSISTID_FROM_RSTREE = "hidumper -s 10 -a RSTree | grep persistId";
 const std::string POPEN_ERR = "popen failed";
@@ -98,6 +99,26 @@ void ScreenSpecialLayerDemoUtils::EnableGlobalBlackList(int argc, char* argv[])
     RSInterfaces::GetInstance().SetCastScreenEnableSkipWindow(screenId, enable);
 }
 
+void ScreenSpecialLayerDemoUtils::SetVirtualScreenRefreshRate(int argc, char* argv[])
+{
+    if (argc != SET_SCREEN_REFRESHRATE_PARAM_SIZE) {
+        std::cerr << "Invalid parameter size.";
+        return;
+    }
+
+    // argv[0]:file path, argv[1]:command, argv[2]:screenId, argv[3]:maxRefreshRate, argv[4]:actualRefreshRate
+    ScreenId screenId = std::strtoul(argv[2], nullptr, DECIMAL_BASE);
+    uint32_t maxRefreshRate = 60;
+    if (!ParseUint32Param(argv[3], maxRefreshRate)) {
+        return;
+    }
+    uint32_t actualRefreshRate = 60;
+    if (!ParseUint32Param(argv[4], actualRefreshRate)) {
+        return;
+    }
+    RSInterfaces::GetInstance().SetVirtualScreenRefreshRate(screenId, maxRefreshRate, actualRefreshRate);
+}
+
 bool ScreenSpecialLayerDemoUtils::ParseBoolParam(char* input, bool& output)
 {
     if (input == nullptr) {
@@ -116,6 +137,27 @@ bool ScreenSpecialLayerDemoUtils::ParseBoolParam(char* input, bool& output)
     }
     std::cerr << "Invalid parameter.";
     return false;
+}
+
+bool ScreenSpecialLayerDemoUtils::ParseUint32Param(char* input, uint32_t& output)
+{
+    if (input == nullptr) {
+        std::cerr << "input is nullptr, parse failed.";
+        return false;
+    }
+
+    char* endPtr = nullptr;
+    unsigned long result = std::strtoul(input, &endPtr, DECIMAL_BASE);
+    if (endPtr == input || *endPtr != '\0') {
+        std::cerr << "Invalid parameter.";
+        return false;
+    }
+    if (result > UINT32_MAX) {
+        std::cerr << "Parameter out of range.";
+        return false;
+    }
+    output = static_cast<uint32_t>(result);
+    return true;
 }
 
 void ScreenSpecialLayerDemoUtils::ModifySpecialLayerList(int argc, char* argv[])

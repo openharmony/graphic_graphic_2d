@@ -841,9 +841,10 @@ std::shared_ptr<RSSurfaceOhos> RSRenderComposer::CreateFrameBufferSurfaceOhos(co
     return rsSurface;
 }
 
-void RSRenderComposer::RedrawScreenRCD(RSPaintFilterCanvas& canvas, const std::vector<std::shared_ptr<RSLayer>>& layers)
+void RSRenderComposer::RedrawScreenRCD(RSPaintFilterCanvas& canvas, const std::vector<std::shared_ptr<RSLayer>>& layers,
+    const Vector2f& rogRatio)
 {
-    RS_TRACE_NAME_FMT("%s screenId : %" PRIu64, __func__, screenId_);
+    RS_TRACE_NAME_FMT("%s screenId : %" PRIu64 " rog: %f %f", __func__, screenId_, rogRatio.x_, rogRatio.y_);
     std::vector<std::shared_ptr<RSLayer>> rcdLayerInfoList;
     for (const auto& layer : layers) {
         if (layer == nullptr) {
@@ -859,7 +860,7 @@ void RSRenderComposer::RedrawScreenRCD(RSPaintFilterCanvas& canvas, const std::v
             continue;
         }
     }
-    RSRenderRcdDraw::DrawRoundCorner(canvas, rcdLayerInfoList);
+    RSRenderRcdDraw::DrawRoundCorner(canvas, rcdLayerInfoList, rogRatio);
 }
 
 void RSRenderComposer::ResetScreenRCDRedrawState(std::vector<std::shared_ptr<RSLayer>>& layers)
@@ -968,7 +969,8 @@ void RSRenderComposer::Redraw(const sptr<Surface>& surface, const std::vector<st
 #else
     uniRenderEngine_->DrawLayers(*canvas, layers, false, composerScreenInfo_);
 #endif
-    RedrawScreenRCD(*canvas, layers);
+    RedrawScreenRCD(*canvas, layers, Vector2f(composerScreenInfo_.GetRogWidthRatio(),
+        composerScreenInfo_.GetRogHeightRatio()));
 #ifdef RS_ENABLE_TV_PQ_METADATA
     auto rsSurface = renderFrame->GetSurface();
     RSTvMetadataUtil::CopyFromLayersToSurface(layers, rsSurface);

@@ -89,6 +89,7 @@ public:
             case RSNGEffectType::GASIFY_SCALE_TWIST: return "GasifyScaleTwist";
             case RSNGEffectType::GASIFY_BLUR: return "GasifyBlur";
             case RSNGEffectType::GASIFY: return "Gasify";
+            case RSNGEffectType::PARTICLE_ABLATION: return "ParticleAblation";
             case RSNGEffectType::COLOR_GRADIENT_EFFECT: return "ColorGradientEffect";
             case RSNGEffectType::HARMONIUM_EFFECT: return "HarmoniumEffect";
             case RSNGEffectType::SDF_UNION_OP_SHAPE: return "SDFUnionOpShape";
@@ -264,7 +265,7 @@ protected:
     template <typename U, typename R>
     friend class RSNGEffectBase;
 
-    template <typename U, RSNGEffectType T, typename... Tags>
+    template <typename U, typename RenderEffectTemplate, RSNGEffectType T, typename... Tags>
     friend class RSNGEffectTemplate;
 };
 
@@ -475,7 +476,7 @@ protected:
 
     std::tuple<PropertyTags...> properties_;
 
-    template <typename U, RSNGEffectType T, typename... Tags>
+    template <typename U, typename RenderEffectTemplate, RSNGEffectType T, typename... Tags>
     friend class RSNGEffectTemplate;
 };
 } // namespace Rosen

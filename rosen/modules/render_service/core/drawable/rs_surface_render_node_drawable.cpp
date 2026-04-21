@@ -43,6 +43,7 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "memory/rs_memory_snapshot.h"
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 #include "pipeline/magic_pointer_render/rs_magic_pointer_render_manager.h"
 #endif
@@ -146,7 +147,7 @@ RSRenderNodeDrawable::Ptr RSSurfaceRenderNodeDrawable::OnGenerate(std::shared_pt
 bool RSSurfaceRenderNodeDrawable::CheckDrawAndCacheWindowContent(RSSurfaceRenderParams& surfaceParams,
     RSRenderThreadParams& uniParams)
 {
-    if (RSUniRenderThread::GetCaptureParam().isMirror_) {
+    if (RSUniRenderThread::IsInCaptureProcess()) {
         return false;
     }
     if (!surfaceParams.GetNeedCacheSurface()) {
@@ -670,6 +671,10 @@ NodeId RSSurfaceRenderNodeDrawable::GetWhiteListPersistentId(
 
 void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
+    if (MemorySnapshot::Instance().IsAbnormalProcess(ExtractPid(GetId()))) {
+        RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw abnormal process %{public}d .", ExtractPid(GetId()));
+        return;
+    }
     SetDrawSkipType(DrawSkipType::NONE);
     if (!ShouldPaint()) {
         SetDrawSkipType(DrawSkipType::SHOULD_NOT_PAINT);
@@ -1451,7 +1456,7 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
                                                        surfaceParams.GetBufferOwnerCount());
 
             // Use to adapt to AIBar DSS solution
-            Color solidLayerColor = RgbPalette::Transparent();
+            Color solidLayerColor = RgbPalette::Black();
             if (surfaceParams.GetIsHwcEnabledBySolidLayer()) {
                 solidLayerColor = surfaceParams.GetSolidLayerColor();
                 RS_TRACE_NAME_FMT("solidLayer enabled, color:%08x", solidLayerColor.AsArgbInt());

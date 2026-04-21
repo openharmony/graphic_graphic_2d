@@ -33,9 +33,6 @@ namespace {
 constexpr int32_t FD_COUNT_DMA = 2;
 constexpr int32_t FD_COUNT_SHARE_MEM = 1;
 constexpr int32_t INVALID_PID = 0;
-#ifdef RS_ENABLE_UNI_RENDER
-constexpr int32_t KILL_PROCESS_TYPE = 301;
-#endif
 const std::string ASHMEM_INFO_PATH = "/proc/ashmem_process_info";
 const std::string DMABUF_INFO_PATH = "/proc/process_dmabuf_info";
 const std::string RS_FD_MEM_PATH = "/data/service/el0/render_service/renderservice_fdmem.txt";
@@ -124,8 +121,6 @@ void RSPixelMapFdTrack::ClearFdRecordByPid(int32_t pid)
 void RSPixelMapFdTrack::CheckFdRecordAndGetPidsToKill(std::unordered_map<int32_t, int32_t>& pidsToKill,
     int32_t pid) const
 {
-    RS_TRACE_NAME("RSPixelMapFdTrack::CheckFdRecordAndGetPidsToKill");
-
     std::lock_guard<std::mutex> lock(mutex_);
     // step 1: If current pid exceeds fd limit, add current pid to the kill queue.
     int32_t fdCount = 0;
@@ -184,7 +179,7 @@ bool RSPixelMapFdTrack::KillProcessByPid(int32_t pid, const std::string& reason)
     RS_TRACE_NAME_FMT("RSPixelMapFdTrack::KillProcessByPid pid %" PRId32, pid);
 
 #ifdef RS_ENABLE_UNI_RENDER
-    AAFwk::ExitReasonCompability killReason{AAFwk::Reason::REASON_RESOURCE_CONTROL, KILL_PROCESS_TYPE, reason};
+    AAFwk::ExitReasonCompability killReason{AAFwk::Reason::REASON_RESOURCE_CONTROL, reason};
     killReason.killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_FD_EXCEEDS_LIMIT;
     int32_t ret = AAFwk::AbilityManagerClient::GetInstance()->KillAppWithReason(pid, killReason);
     ROSEN_LOGE("RSPixelMapFdTrack::KillProcessByPid, pid = %{public}" PRId32 " ret = %{public}" PRId32, pid, ret);

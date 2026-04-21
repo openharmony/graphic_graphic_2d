@@ -70,6 +70,7 @@ enum RSNodeCommandType : uint16_t {
     UPDATE_MODIFIER_NG_SHAPE_BASE_PTR = 0x012B,
     UPDATE_MODIFIER_VECTOR_VECTOR4F = 0x012C,
     UPDATE_MODIFIER_HDR_DARKEN_BLENDER_PARA = 0x012D,
+    UPDATE_MODIFIER_PARTICLE_FIELDS_PTR = 0x0131,
 
     SET_FREEZE = 0x0200,
     SET_DRAW_REGION = 0x0201,
@@ -95,7 +96,7 @@ enum RSNodeCommandType : uint16_t {
 
     SET_NODE_NAME = 0x0600,
     UPDATE_MODIFIER_MOTION_BLUR_PTR = 0x0601,
-    UPDATE_MODIFIER_MAGNIFIER_PTR = 0x0602,
+
     UPDATE_MODIFIER_WATER_RIPPLE = 0x0603,
     UPDATE_MODIFIER_FLY_OUT = 0x0604,
     REMOVE_ALL_MODIFIERS = 0x0605,
@@ -263,10 +264,6 @@ ADD_COMMAND(RSUpdatePropertyMotionBlurPara,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_MOTION_BLUR_PTR,
         RSNodeCommandHelper::UpdateProperty<std::shared_ptr<MotionBlurParam>>,
         NodeId, std::shared_ptr<MotionBlurParam>, PropertyId, PropertyUpdateType))
-ADD_COMMAND(RSUpdatePropertyMagnifierPara,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_MAGNIFIER_PTR,
-        RSNodeCommandHelper::UpdateProperty<std::shared_ptr<RSMagnifierParams>>,
-        NodeId, std::shared_ptr<RSMagnifierParams>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyEmitterUpdater,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_EMITTER_UPDATER_PTR,
         RSNodeCommandHelper::UpdateProperty<std::vector<std::shared_ptr<EmitterUpdater>>>,
@@ -283,6 +280,10 @@ ADD_COMMAND(RSUpdatePropertyParticleVelocityFields,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_VELOCITY_FIELD_PTR,
         RSNodeCommandHelper::UpdateProperty<std::shared_ptr<ParticleVelocityFields>>,
         NodeId, std::shared_ptr<ParticleVelocityFields>, PropertyId, PropertyUpdateType))
+ADD_COMMAND(RSUpdatePropertyParticleFields,
+    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_PARTICLE_FIELDS_PTR,
+        RSNodeCommandHelper::UpdateProperty<std::shared_ptr<ParticleFieldCollection>>,
+        NodeId, std::shared_ptr<ParticleFieldCollection>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyShader,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_SHADER_PTR,
         RSNodeCommandHelper::UpdateProperty<std::shared_ptr<RSShader>>,

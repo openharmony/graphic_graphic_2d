@@ -46,61 +46,33 @@ public:
     HgmScreen(ScreenId id, int32_t mode, ScreenSize& screenSize);
     virtual ~HgmScreen();
 
-    ScreenId GetId() const {
-        return id_;
-    }
+    ScreenId GetId() const { return id_; }
 
-    uint32_t GetActiveMode() const {
-        return activeModeId_;
-    }
+    uint32_t GetActiveMode() const { return activeModeId_; }
 
-    std::unordered_set<uint32_t> GetSupportedRates() const {
-        return supportedRefreshRates_;
-    }
+    std::unordered_set<uint32_t> GetSupportedRates() const { return supportedRefreshRates_; }
 
-    bool IsSupportRate(uint32_t rate) const {
-        return supportedRefreshRates_.find(rate) != supportedRefreshRates_.end() ? true : false;
-    }
+    bool IsSupportRate(uint32_t rate) const { return supportedRefreshRates_.find(rate) != supportedRefreshRates_.end(); }
 
-    int32_t GetActiveRefreshRateMode() const {
-        return customFrameRateMode_;
-    }
+    int32_t GetActiveRefreshRateMode() const { return customFrameRateMode_; }
 
-    int32_t GetWidth() const {
-        return width_;
-    }
+    int32_t GetWidth() const { return width_; }
 
-    int32_t GetHeight() const {
-        return height_;
-    }
+    int32_t GetHeight() const { return height_; }
 
-    int32_t GetPhyWidth() const {
-        return phyWidth_;
-    }
+    int32_t GetPhyWidth() const { return phyWidth_; }
 
-    int32_t GetPhyHeight() const {
-        return phyHeight_;
-    }
+    int32_t GetPhyHeight() const { return phyHeight_; }
 
-    float GetPpi() const {
-        return ppi_;
-    }
+    float GetPpi() const { return ppi_; }
 
-    float GetXDpi() const {
-        return xDpi_;
-    }
+    float GetXDpi() const { return xDpi_; }
 
-    float GetYDpi() const {
-        return yDpi_;
-    }
+    float GetYDpi() const { return yDpi_; }
 
-    bool GetSelfOwnedScreenFlag() const {
-        return isSelfOwnedScreenFlag_.load();
-    }
+    bool GetSelfOwnedScreenFlag() const { return isSelfOwnedScreenFlag_.load(); }
 
-    void SetSelfOwnedScreenFlag(bool isSelfOwnedScreen) {
-        isSelfOwnedScreenFlag_.store(isSelfOwnedScreen);
-    }
+    void SetSelfOwnedScreenFlag(bool isSelfOwnedScreen) { isSelfOwnedScreenFlag_.store(isSelfOwnedScreen); }
 
     uint32_t GetActiveRefreshRate() const;
     int32_t SetActiveRefreshRate(int32_t sceneId, uint32_t rate);
@@ -115,8 +87,7 @@ private:
 
         ~ScreenProfile() = default;
 
-        bool operator==(const ScreenProfile& rValue) const
-        {
+        bool operator==(const ScreenProfile& rValue) const {
             if (rValue.GetWidth() != width_ || rValue.GetHeight() != height_ ||
                 rValue.GetRate() != refreshrate_) {
                 return false;
@@ -124,25 +95,13 @@ private:
             return true;
         }
 
-        int32_t GetWidth() const
-        {
-            return width_;
-        }
+        int32_t GetWidth() const { return width_; }
 
-        int32_t GetHeight() const
-        {
-            return height_;
-        }
+        int32_t GetHeight() const { return height_; }
 
-        uint32_t GetRate() const
-        {
-            return refreshrate_;
-        }
+        uint32_t GetRate() const { return refreshrate_; }
 
-        int32_t GetModeId() const
-        {
-            return modeId_;
-        }
+        int32_t GetModeId() const { return modeId_; }
 
     private:
         int32_t width_ = -1;

@@ -649,6 +649,14 @@ HWTEST_F(NdkTypographyTest, TypographyStyleAttributeDoubleArrayTest001, TestSize
     OH_Drawing_ErrorCode errorCodeThree = OH_Drawing_SetTypographyStyleAttributeDoubleArray(
         typoStyle, TYPOGRAPHY_STYLE_ATTR_DA_LINE_HEAD_INDENT, values, 0);
     EXPECT_EQ(errorCodeThree, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    double nagetiveValues[] = { -10.0 };
+    // negative arrayValue
+    errorCodeThree = OH_Drawing_SetTypographyStyleAttributeDoubleArray(
+        typoStyle, TYPOGRAPHY_STYLE_ATTR_DA_LINE_HEAD_INDENT, nagetiveValues, 1);
+    EXPECT_EQ(errorCodeThree, OH_DRAWING_ERROR_INVALID_PARAMETER);
+    errorCodeThree = OH_Drawing_SetTypographyStyleAttributeDoubleArray(
+        typoStyle, TYPOGRAPHY_STYLE_ATTR_DA_LINE_TAIL_INDENT, nagetiveValues, 1);
+    EXPECT_EQ(errorCodeThree, OH_DRAWING_ERROR_INVALID_PARAMETER);
     // mismatched attribute id (using double id for array setter)
     OH_Drawing_ErrorCode errorCodeFour = OH_Drawing_SetTypographyStyleAttributeDoubleArray(
         typoStyle, TYPOGRAPHY_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, values, 1);
@@ -833,12 +841,12 @@ HWTEST_F(NdkTypographyTest, TypographyStyleFirstLineHeadIndentTest003, TestSize.
     ASSERT_NE(typoStyle, nullptr);
     OH_Drawing_ErrorCode setCode = OH_Drawing_SetTypographyStyleAttributeDouble(
         typoStyle, TYPOGRAPHY_STYLE_ATTR_D_FIRST_LINE_HEAD_INDENT, -20.0);
-    EXPECT_EQ(setCode, OH_DRAWING_SUCCESS);
+    EXPECT_EQ(setCode, OH_DRAWING_ERROR_INVALID_PARAMETER);
     double value = 0.0;
     OH_Drawing_ErrorCode getCode = OH_Drawing_GetTypographyStyleAttributeDouble(
         typoStyle, TYPOGRAPHY_STYLE_ATTR_D_FIRST_LINE_HEAD_INDENT, &value);
     EXPECT_EQ(getCode, OH_DRAWING_SUCCESS);
-    EXPECT_NEAR(value, -20.0, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(value, -1.0, FLOAT_DATA_EPSILON);
     OH_Drawing_DestroyTypographyStyle(typoStyle);
 }
 } // namespace OHOS

@@ -382,7 +382,7 @@ export default namespace text {
     verticalAlign?: TextVerticalAlign;
     compressHeadPunctuation?: boolean;
     lineSpacing?: double;
-    firstLineIndent?: double;
+    firstLineHeadIndent?: double;
     tailIndents?: Array<double>;
     headIndents?: Array<double>;
   }
@@ -405,6 +405,9 @@ export default namespace text {
     verticalAlign?: TextVerticalAlign;
     compressHeadPunctuation?: boolean;
     lineSpacing?: double;
+    firstLineHeadIndent?: double;
+    tailIndents?: Array<double>;
+    headIndents?: Array<double>;
     constructor(
       orphanCharOptimization?: boolean,
       fallbackLineSpacing?: boolean,
@@ -422,7 +425,10 @@ export default namespace text {
       autoSpace?: boolean,
       verticalAlign?: TextVerticalAlign,
       compressHeadPunctuation?: boolean,
-      lineSpacing?: double
+      lineSpacing?: double,
+      firstLineHeadIndent?: double,
+      tailIndents?: Array<double>,
+      headIndents?: Array<double>
     ) {
       this.orphanCharOptimization = orphanCharOptimization;
       this.fallbackLineSpacing = fallbackLineSpacing;
@@ -441,6 +447,9 @@ export default namespace text {
       this.verticalAlign = verticalAlign;
       this.compressHeadPunctuation = compressHeadPunctuation;
       this.lineSpacing = lineSpacing;
+      this.firstLineHeadIndent = firstLineHeadIndent;
+      this.tailIndents = tailIndents;
+      this.headIndents = headIndents;
     }
   }
 

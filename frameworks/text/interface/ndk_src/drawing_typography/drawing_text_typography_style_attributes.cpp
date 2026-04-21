@@ -157,6 +157,9 @@ namespace OHOS::Rosen::Text {
 
     OH_Drawing_ErrorCode SetFirstLineHeadIndent(TypographyStyle* style, double value)
     {
+        if (value < 0) {
+            return OH_DRAWING_ERROR_INVALID_PARAMETER;
+        }
         style->firstLineIndent = value;
         return OH_DRAWING_SUCCESS;
     }
@@ -169,6 +172,11 @@ namespace OHOS::Rosen::Text {
 
     OH_Drawing_ErrorCode SetLineHeadIndents(TypographyStyle* style, const double* arrayValue, size_t arrayLength)
     {
+        for (size_t i = 0; i < arrayLength; i++) {
+            if (arrayValue[i] < 0) {
+                return OH_DRAWING_ERROR_INVALID_PARAMETER;
+            }
+        }
         style->headIndents.clear();
         style->headIndents.reserve(arrayLength);
         for (size_t i = 0; i < arrayLength; i++) {
@@ -191,6 +199,11 @@ namespace OHOS::Rosen::Text {
 
     OH_Drawing_ErrorCode SetLineTailIndents(TypographyStyle* style, const double* arrayValue, size_t arrayLength)
     {
+        for (size_t i = 0; i < arrayLength; i++) {
+            if (arrayValue[i] < 0) {
+                return OH_DRAWING_ERROR_INVALID_PARAMETER;
+            }
+        }
         style->tailIndents.clear();
         style->tailIndents.reserve(arrayLength);
         for (size_t i = 0; i < arrayLength; i++) {

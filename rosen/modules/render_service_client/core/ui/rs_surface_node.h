@@ -321,6 +321,8 @@ public:
     void SetHDRPresent(bool hdrPresent, NodeId id);
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
+    void SetDarkColorMode(bool isDark);
+    bool GetDarkColorMode() const;
     void SetWatermarkEnabled(const std::string& name, bool isEnabled);
     void SetAbilityState(RSSurfaceNodeAbilityState abilityState);
     RSSurfaceNodeAbilityState GetAbilityState() const;
@@ -421,6 +423,7 @@ private:
     RSSurfaceNodeAbilityState abilityState_ = RSSurfaceNodeAbilityState::FOREGROUND;
     bool isFrameGravityNewVersionEnabled_ = false;
     bool isSurfaceBufferOpaque_ = false;
+    bool isDarkColorMode_ = false;
     LeashPersistentId leashPersistentId_ = INVALID_LEASH_PERSISTENTID;
     RSSurfaceNodeType surfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
     std::shared_ptr<RSCompositeLayerUtils> compositeLayerUtils_;

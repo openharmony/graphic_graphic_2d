@@ -35,7 +35,6 @@
 #include "render/rs_motion_blur_filter.h"
 #include "render/rs_render_kawase_blur_filter.h"
 #include "render/rs_render_linear_gradient_blur_filter.h"
-#include "render/rs_render_magnifier_filter.h"
 #include "render/rs_render_maskcolor_filter.h"
 #include "render/rs_render_mesa_blur_filter.h"
 #ifdef USE_M133_SKIA
@@ -61,8 +60,8 @@ std::shared_ptr<Drawing::RuntimeEffect> RSPropertyDrawableUtils::hdrDarkenBlende
 void RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(
     Drawing::Canvas* canvas, const std::shared_ptr<RSDrawingFilter>& filter)
 {
-    auto effect = filter->GetNGRenderFilter();
-    if (!effect || effect->GetType() != RSNGEffectType::FROSTED_GLASS || canvas == nullptr) {
+    if (!filter->GetGEContainer() || !filter->GetGEContainer()->GetGEVisualEffect(Drawing::GE_FILTER_FROSTED_GLASS) ||
+        !canvas) {
         return;
     }
     auto color = static_cast<RSPaintFilterCanvas*>(canvas)->GetColorPicked(ColorPlaceholder::SURFACE_CONTRAST);
@@ -416,13 +415,6 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
         paintFilterCanvas->SetAlpha(1.0);
     }
     auto imageClipIBounds = snapshotRect.value_or(clipIBounds);
-    auto magnifierShaderFilter = filter->GetShaderFilterWithType(RSUIFilterType::MAGNIFIER);
-    if (magnifierShaderFilter != nullptr) {
-        auto tmpFilter = std::static_pointer_cast<RSMagnifierShaderFilter>(magnifierShaderFilter);
-        auto canvasMatrix = canvas->GetTotalMatrix();
-        tmpFilter->SetMagnifierOffset(canvasMatrix);
-        imageClipIBounds.Offset(tmpFilter->GetMagnifierOffsetX(), tmpFilter->GetMagnifierOffsetY());
-    }
 
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     // Optional use cacheManager to draw filter
@@ -1808,6 +1800,7 @@ void RSPropertyDrawableUtils::ApplySDFShapeToFilter(const RSProperties& properti
         }
         return;
     }
+    ApplySDFShapeToMagnifier(properties, renderFilter, nodeId);
     if (renderFilter->GetType() != RSNGEffectType::FROSTED_GLASS) {
         return;
     }
@@ -1867,6 +1860,35 @@ void RSPropertyDrawableUtils::ApplySDFShapeToEffect(const RSProperties& properti
                 PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
         }
     }
+}
+
+void RSPropertyDrawableUtils::ApplySDFShapeToMagnifier(
+    const RSProperties& properties, const std::shared_ptr<RSNGRenderFilterBase>& renderFilter, NodeId nodeId)
+{
+    if (!renderFilter || renderFilter->GetType() != RSNGEffectType::MAGNIFIER) {
+        return;
+    }
+
+    const auto& filter = std::static_pointer_cast<RSNGRenderMagnifierFilter>(renderFilter);
+    auto sdfShape = properties.GetSDFShape();
+    if (sdfShape) {
+        filter->Setter<MagnifierSDFShapeRenderTag>(sdfShape, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+        ROSEN_LOGD("RSPropertyDrawableUtils::ApplySDFShapeToMagnifier properties.GetSDFShape()");
+        return;
+    }
+    auto nodeRRect = properties.GetRRectForSDF();
+    auto width = filter->Getter<OHOS::Rosen::MagnifierWidthRenderTag>()->Get();
+    auto height = filter->Getter<OHOS::Rosen::MagnifierHeightRenderTag>()->Get();
+    auto radius = filter->Getter<OHOS::Rosen::MagnifierCornerRadiusRenderTag>()->Get();
+    auto left = (nodeRRect.rect_.GetWidth()-width) * 0.5f;
+    auto top = (nodeRRect.rect_.GetHeight()-height) * 0.5f;
+    auto sdfRRect = RRect { RectT<float> { left, top, width, height }, radius, radius };
+    auto shapeBase = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    auto sdfRRectShape = std::static_pointer_cast<RSNGRenderSDFRRectShape>(shapeBase);
+    ROSEN_LOGD("RSPropertyDrawableUtils::ApplySDFShapeToMagnifier, rrect %{public}s, node %{public}" PRIu64,
+        sdfRRect.ToString().c_str(), nodeId);
+    sdfRRectShape->Setter<SDFRRectShapeRRectRenderTag>(sdfRRect);
+    filter->Setter<MagnifierSDFShapeRenderTag>(sdfRRectShape, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
 }
 } // namespace Rosen
 } // namespace OHOS

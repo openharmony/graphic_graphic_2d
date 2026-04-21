@@ -344,6 +344,13 @@ void SurfaceNodeCommandHelper::SetSkipDraw(RSContext& context, NodeId nodeId, bo
     }
 }
 
+void SurfaceNodeCommandHelper::SetDarkColorMode(RSContext& context, NodeId nodeId, bool isDarkColorMode)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
+        node->SetDarkColorMode(isDarkColorMode);
+    }
+}
+
 void SurfaceNodeCommandHelper::SetWatermarkEnabled(RSContext& context, NodeId nodeId,
     const std::string& name, bool isEnabled)
 {

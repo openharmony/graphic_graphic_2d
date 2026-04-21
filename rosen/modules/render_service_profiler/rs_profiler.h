@@ -542,7 +542,6 @@ public:
     RSB_EXPORT static int64_t AnimeSetStartTime(AnimationId id, int64_t nanoTime);
     RSB_EXPORT static void ReplayFixTrIndex(uint64_t curIndex, uint64_t& lastIndex);
 
-    RSB_EXPORT static std::vector<RSRenderNode::WeakPtr>& GetChildOfDisplayNodesPostponed();
     RSB_EXPORT static void MarshallingTouch(NodeId nodeId);
 
     RSB_EXPORT static void SendMessageBase(const std::string& msg);
@@ -780,9 +779,11 @@ private:
     static bool IsLoadSaveFirstScreenInProgress();
     static std::string FirstFrameMarshalling(uint32_t fileVersion, bool betaRecordingStarted = false);
     static std::string FirstFrameUnmarshalling(const std::string& data, uint32_t fileVersion);
-    static void HiddenSpaceTurnOff();
     static void HiddenSpaceTurnOn();
-    static std::shared_ptr<RSRenderNode> GetLogicalDisplay();
+    static void HiddenSpaceTurnOff();
+    static bool IsHiddenSpaceEnabled();
+    static std::vector<std::shared_ptr<RSLogicalDisplayRenderNode>> GetLogicalDisplayNodes();
+    static uint64_t GetRootNodeId();
 
     static void ScheduleTask(std::function<void()>&& task);
     static void RequestNextVSync();
@@ -941,7 +942,9 @@ private:
     friend class TestTreeBuilder;
     friend class RSClientToServiceConnection;
 
-    static uint64_t GetRootNodeId();
+    using LogicalDisplayChildren =
+        std::unordered_map<std::shared_ptr<RSLogicalDisplayRenderNode>, std::vector<RSRenderNode::SharedPtr>>;
+    RSB_EXPORT static LogicalDisplayChildren displayChildren_;
 };
 
 } // namespace OHOS::Rosen

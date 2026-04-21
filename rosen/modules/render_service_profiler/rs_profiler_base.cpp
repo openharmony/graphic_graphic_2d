@@ -48,6 +48,7 @@
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
+#include "pipeline/rs_logical_display_render_node.h"
 #include "transaction/rs_ashmem_helper.h"
 
 #include "ge_shader_filter.h"
@@ -55,6 +56,7 @@
 namespace OHOS::Rosen {
 std::atomic_bool RSProfiler::recordAbortRequested_ = false;
 std::atomic_uint32_t RSProfiler::mode_ = static_cast<uint32_t>(Mode::NONE);
+RSProfiler::LogicalDisplayChildren RSProfiler::displayChildren_;
     static thread_local uint32_t g_subMode = static_cast<uint32_t>(SubMode::NONE);
 static std::vector<pid_t> g_pids;
 static pid_t g_pid = 0;
@@ -89,7 +91,6 @@ bool RSProfiler::betaRecordingEnabled_ = RSSystemProperties::GetBetaRecordingMod
 std::atomic<int8_t> RSProfiler::signalFlagChanged_ = 0;
 std::atomic_bool RSProfiler::dcnRedraw_ = false;
 std::atomic_bool RSProfiler::renderNodeKeepDrawCmdList_ = false;
-std::vector<RSRenderNode::WeakPtr> g_childOfDisplayNodesPostponed;
 std::unordered_map<AnimationId, int64_t> RSProfiler::animationsTimes_;
 
 static TextureRecordType g_textureRecordType = TextureRecordType::LZ4;
@@ -1791,19 +1792,15 @@ bool RSProfiler::ProcessAddChild(RSRenderNode* parent, RSRenderNode::SharedPtr c
         return false;
     }
 
-    if (parent->GetType() == RSRenderNodeType::SCREEN_NODE &&
-        ! (child->GetId() & Utils::ComposeNodeId(Utils::GetMockPid(0), 0))) {
-        // BLOCK LOCK-SCREEN ATTACH TO SCREEN
-        g_childOfDisplayNodesPostponed.clear();
-        g_childOfDisplayNodesPostponed.emplace_back(child);
-        return true;
+    // Disable lock screen during playback
+    if (!Utils::IsNodeIdPatched(child->GetId())) {
+        const auto display = displayChildren_.find(parent->ReinterpretCastTo<RSLogicalDisplayRenderNode>());
+        if (display != displayChildren_.end()) {
+            display->second.push_back(child);
+            return true;
+        }
     }
     return false;
-}
-
-std::vector<RSRenderNode::WeakPtr>& RSProfiler::GetChildOfDisplayNodesPostponed()
-{
-    return g_childOfDisplayNodesPostponed;
 }
 
 void RSProfiler::RequestRecordAbort()

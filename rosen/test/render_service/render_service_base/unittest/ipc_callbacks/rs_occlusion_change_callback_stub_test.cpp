@@ -97,4 +97,47 @@ HWTEST_F(RSOcclusionChangeCallbackStubTest, OnRemoteRequest003, TestSize.Level1)
     int res = rsOcclusionChangeCallbackStub->OnRemoteRequest(code, data, reply, option);
     EXPECT_TRUE(res != ERR_NONE);
 }
+
+/**
+ * @tc.name: OnRemoteRequest004
+ * @tc.desc: Verify function OnRemoteRequest with valid RSOcclusionData (if branch false)
+ * @tc.type: FUNC
+ * @tc.require: issue23264
+ */
+HWTEST_F(RSOcclusionChangeCallbackStubTest, OnRemoteRequest004, TestSize.Level2)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    auto rsOcclusionChangeCallbackStub = std::make_shared<RSOcclusionChangeCallbackStubMock>();
+    auto code = static_cast<uint32_t>(RSIOcclusionChangeCallbackInterfaceCode::ON_OCCLUSION_VISIBLE_CHANGED);
+    data.WriteInterfaceToken(RSIOcclusionChangeCallback::GetDescriptor());
+
+    auto occlusionData = std::make_shared<RSOcclusionData>();
+    data.WriteParcelable(occlusionData.get());
+
+    int res = rsOcclusionChangeCallbackStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_TRUE(res == ERR_NONE);
+}
+
+/**
+ * @tc.name: OnRemoteRequest005
+ * @tc.desc: Verify function OnRemoteRequest with invalid RSOcclusionData (if branch true)
+ * @tc.type: FUNC
+ * @tc.require: issue23264
+ */
+HWTEST_F(RSOcclusionChangeCallbackStubTest, OnRemoteRequest005, TestSize.Level2)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    auto rsOcclusionChangeCallbackStub = std::make_shared<RSOcclusionChangeCallbackStubMock>();
+    auto code = static_cast<uint32_t>(RSIOcclusionChangeCallbackInterfaceCode::ON_OCCLUSION_VISIBLE_CHANGED);
+    data.WriteInterfaceToken(RSIOcclusionChangeCallback::GetDescriptor());
+
+    data.WriteUint32(0);
+
+    int res = rsOcclusionChangeCallbackStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_TRUE(res == ERR_INVALID_DATA);
+}
 } // namespace OHOS::Rosen

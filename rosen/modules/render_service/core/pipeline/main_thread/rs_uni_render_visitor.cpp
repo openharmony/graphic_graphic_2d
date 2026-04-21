@@ -1478,6 +1478,10 @@ bool RSUniRenderVisitor::PrepareForCloneNode(RSSurfaceRenderNode& node)
     node.UpdateRenderParams();
     node.AddToPendingSyncList();
     UpdateInfoForClonedNode(*clonedNode);
+    if (node.IsRelated() && IsSourceNodeDirty(*clonedNode)) {
+        node.SetDirty();
+        return false;
+    }
     return true;
 }
 
@@ -1487,10 +1491,40 @@ void RSUniRenderVisitor::UpdateInfoForClonedNode(RSSurfaceRenderNode& node)
     bool isClonedNode = node.IsRelatedSourceNode() ||
                         (cloneNodeMap_.find(sourceId) != cloneNodeMap_.end());
     node.UpdateInfoForClonedNode(isClonedNode);
+    node.ClearRelatedSourceCache(node.IsRelatedSourceNode() && IsSourceNodeDirty(node));
+}
 
-    if (node.IsRelatedSourceNode()) {
-        node.ClearRelatedSourceCache();
+bool RSUniRenderVisitor::IsSourceNodeDirty(RSSurfaceRenderNode& sourceNode)
+{
+    if (sourceNode.IsDirty() || sourceNode.IsSubTreeDirty()) {
+        return true;
     }
+
+    if (sourceNode.dirtyManager_ &&
+        !sourceNode.dirtyManager_->GetCurrentFrameDirtyRegion().IsEmpty()) {
+        return true;
+    }
+
+    if (sourceNode.IsLeashWindow()) {
+        auto children = sourceNode.GetChildrenList();
+        if (children.empty()) {
+            return false;
+        }
+        for (const auto& child : children) {
+            auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child.lock());
+            if (!node) {
+                continue;
+            }
+            if (node->IsDirty() || node->IsSubTreeDirty()) {
+                return true;
+            }
+            if (node->dirtyManager_ &&
+                !node->dirtyManager_->GetCurrentFrameDirtyRegion().IsEmpty()) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 void RSUniRenderVisitor::PrepareForCrossNode(RSSurfaceRenderNode& node)
@@ -2210,6 +2244,7 @@ bool RSUniRenderVisitor::InitScreenInfo(RSScreenRenderNode& node)
     node.SetPixelFormat(GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888);
     node.SetBrightnessRatio(1.0f);
     node.SetExistHWCNode(false);
+    node.SetSdrNits(RSLuminanceControl::Get().GetSdrDisplayNits(node.GetScreenId()));
     CheckLuminanceStatusChange(curScreenNode_->GetScreenId());
 
     // 2 init screenManager info
@@ -4240,13 +4275,14 @@ void RSUniRenderVisitor::PrepareColorPickers()
     const auto colorPickerNodeIds = RSColorPickerUtils::CollectColorPickerNodeIds(surfaces, nodeMap);
 
     const uint64_t vsyncTime = ctx->GetCurrentVsyncTime();
-    const bool darkMode = ctx->GetGlobalDarkColorMode();
     for (auto nodeId : colorPickerNodeIds) {
         auto filterNode = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
-        if (!filterNode) {
+        auto surfaceRootNode = filterNode ? filterNode->GetInstanceRootNode() : nullptr;
+        auto surfaceNode = surfaceRootNode ? surfaceRootNode->ReinterpretCastTo<RSSurfaceRenderNode>() : nullptr;
+        if (!filterNode || !surfaceNode) {
             continue;
         }
-        const bool resetState = filterNode->PrepareColorPicker(darkMode);
+        const bool resetState = filterNode->PrepareColorPicker(surfaceNode->GetDarkColorMode());
         if (resetState) {
             // Reset to PREPARING state after color pick is complete
             PostColorPickerStateTask(filterNode->weak_from_this(), DrawableV2::ColorPickerState::PREPARING, 0);

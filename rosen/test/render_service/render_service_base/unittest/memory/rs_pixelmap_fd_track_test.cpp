@@ -355,7 +355,7 @@ HWTEST_F(RSPixelMapFdTrackTest, CheckFdRecordAndGetPidsToKillTest001, testing::e
     int32_t pid = 100;
     Media::AllocatorType allocType = Media::AllocatorType::SHARE_MEM_ALLOC;
 
-    for (int32_t i = 0; i < 25001; i++) {
+    for (int32_t i = 0; i < 29001; i++) {
         const void* addr = reinterpret_cast<const void*>(0x1000 + i * 8);
         tracker.AddFdRecord(pid, addr, allocType);
     }
@@ -365,7 +365,7 @@ HWTEST_F(RSPixelMapFdTrackTest, CheckFdRecordAndGetPidsToKillTest001, testing::e
 
     EXPECT_FALSE(pidsToKill.empty());
     EXPECT_EQ(pidsToKill.size(), 1);
-    EXPECT_EQ(pidsToKill[pid], 25001);
+    EXPECT_EQ(pidsToKill[pid], 29001);
 }
 
 /**
@@ -1008,7 +1008,7 @@ HWTEST_F(RSPixelMapFdTrackTest, CheckFdCountByPidExceedsLimitTest001, testing::e
     int32_t pid = 100;
     Media::AllocatorType allocType = Media::AllocatorType::SHARE_MEM_ALLOC;
 
-    for (int32_t i = 0; i < 25001; i++) {
+    for (int32_t i = 0; i < 29001; i++) {
         const void* addr = reinterpret_cast<const void*>(0x1000 + i * 8);
         tracker.AddFdRecord(pid, addr, allocType);
     }
@@ -1016,7 +1016,7 @@ HWTEST_F(RSPixelMapFdTrackTest, CheckFdCountByPidExceedsLimitTest001, testing::e
     int32_t fdCount = 0;
     bool result = tracker.CheckFdCountByPid(pid, fdCount);
     EXPECT_FALSE(result);
-    EXPECT_GT(fdCount, 25000);
+    EXPECT_GT(fdCount, 29000);
 }
 
 /**
@@ -1031,7 +1031,7 @@ HWTEST_F(RSPixelMapFdTrackTest, CheckFdCountByPidExceedsLimitTest002, testing::e
     int32_t pid = 100;
     Media::AllocatorType allocType = Media::AllocatorType::DMA_ALLOC;
 
-    for (int32_t i = 0; i < 12501; i++) {
+    for (int32_t i = 0; i < 14501; i++) {
         const void* addr = reinterpret_cast<const void*>(0x1000 + i * 8);
         tracker.AddFdRecord(pid, addr, allocType);
     }
@@ -1039,7 +1039,7 @@ HWTEST_F(RSPixelMapFdTrackTest, CheckFdCountByPidExceedsLimitTest002, testing::e
     int32_t fdCount = 0;
     bool result = tracker.CheckFdCountByPid(pid, fdCount);
     EXPECT_FALSE(result);
-    EXPECT_GT(fdCount, 25000);
+    EXPECT_GT(fdCount, 29000);
 }
 
 /**

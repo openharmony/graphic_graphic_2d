@@ -86,6 +86,9 @@ HWTEST_F(RSAnimationFractionTest, GetAnimationFraction001, TestSize.Level1)
     std::tie(result, isDelay, isFinished, isRepeatFinished) = fraction.GetAnimationFraction(0, leftDelayTime, false);
     EXPECT_FALSE(result);
 
+    // Restore animationScale to default value
+    RSAnimationFraction::OnAnimationScaleChangedCallback("persist.sys.graphic.animationscale", "1", nullptr);
+
     GTEST_LOG_(INFO) << "RSAnimationFractionTest GetAnimationFraction001 end";
 }
 

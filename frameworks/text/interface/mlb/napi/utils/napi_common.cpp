@@ -976,6 +976,12 @@ napi_value CreateTypographyStyleJsValue(napi_env env, const TypographyStyle& typ
             CreateJsValue(env, typographyStyle.fallbackLineSpacing));
         napi_set_named_property(env, objValue, "orphanCharOptimization",
             CreateJsValue(env, typographyStyle.orphanCharOptimization));
+        napi_set_named_property(env, objValue, "firstLineHeadIndent",
+            CreateJsNumber(env, typographyStyle.firstLineIndent));
+        napi_set_named_property(env, objValue, "tailIndents",
+            CreateArrayDoubleJsValue(env, typographyStyle.tailIndents));
+        napi_set_named_property(env, objValue, "headIndents",
+            CreateArrayDoubleJsValue(env, typographyStyle.headIndents));
     }
     return objValue;
 }

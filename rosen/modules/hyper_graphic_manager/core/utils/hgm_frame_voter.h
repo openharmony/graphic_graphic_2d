@@ -63,14 +63,12 @@ private:
         std::vector<std::string>::iterator& voterIter, VoteInfo& resultVoteInfo, VoteRange& mergedVoteRange);
     bool ProcessVoteIter(std::vector<std::string>::iterator& voterIter,
         VoteInfo& resultVoteInfo, VoteRange& voteRange, bool& voterGamesEffective);
-    void MarkVoteChange(const std::string& voter = "")
-    {
+    void MarkVoteChange(const std::string& voter = "") {
         if (markVoteChange_) {
             markVoteChange_(voter);
         }
     }
-    bool NeedSkipVoterTouch(bool existVoterLTPO)
-    {
+    bool NeedSkipVoterTouch(bool existVoterLTPO) {
         if (existVoterLTPO && isTouchUpLTPOFirstPeriod_ && isTouchUpLTPOFirstDynamicMode_) {
             return true;
         }

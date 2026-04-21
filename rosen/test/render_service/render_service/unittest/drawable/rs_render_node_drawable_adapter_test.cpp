@@ -541,6 +541,63 @@ HWTEST(RSRenderNodeDrawableAdapterTest, InitRenderParamsTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UnifiedFilterRegionTest
+ * @tc.desc: Test unified filter region add, intersect and clear behavior
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST(RSRenderNodeDrawableAdapterTest, UnifiedFilterRegionTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(100);
+    auto adapter = std::make_shared<RSRenderNodeDrawable>(std::move(node));
+    Drawing::RectI baseRect(0, 0, 10, 10);
+    Drawing::RectI overlapRect(5, 5, 15, 15);
+    Drawing::RectI disjointRect(20, 20, 30, 30);
+
+    EXPECT_FALSE(adapter->IntersectsWithUnifiedRegion(baseRect));
+
+    adapter->AddRectToUnifiedFilterRegion(baseRect);
+    EXPECT_TRUE(adapter->IntersectsWithUnifiedRegion(overlapRect));
+    EXPECT_FALSE(adapter->IntersectsWithUnifiedRegion(disjointRect));
+
+    adapter->ClearUnifiedFilterRegion();
+    EXPECT_FALSE(adapter->IntersectsWithUnifiedRegion(overlapRect));
+}
+
+/**
+ * @tc.name: UpdateFilterInfoForNodeGroupTest
+ * @tc.desc: Test filter info update for null root, new node and existing node branches
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST(RSRenderNodeDrawableAdapterTest, UpdateFilterInfoForNodeGroupTest, TestSize.Level1)
+{
+    auto rootNode = std::make_shared<RSRenderNode>(101);
+    auto rootDrawable = std::make_shared<RSRenderNodeDrawable>(rootNode);
+    auto childNode = std::make_shared<RSRenderNode>(102);
+    auto childDrawable = std::make_shared<RSRenderNodeDrawable>(childNode);
+    Drawing::Canvas drawingCanvas(100, 100);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    const auto clipBounds = canvas.GetDeviceClipBounds();
+
+    RSRenderNodeDrawableAdapter::curDrawingCacheRoot_ = nullptr;
+    childDrawable->UpdateFilterInfoForNodeGroup(&canvas);
+    EXPECT_TRUE(rootDrawable->filterInfoVec_.empty());
+
+    RSRenderNodeDrawableAdapter::curDrawingCacheRoot_ = rootDrawable.get();
+    childDrawable->UpdateFilterInfoForNodeGroup(&canvas);
+    ASSERT_EQ(rootDrawable->filterInfoVec_.size(), 1u);
+    EXPECT_EQ(rootDrawable->filterInfoVec_[0].nodeId_, childDrawable->GetId());
+    EXPECT_EQ(rootDrawable->filterInfoVec_[0].rectVec_.size(), 1u);
+    EXPECT_TRUE(rootDrawable->IntersectsWithUnifiedRegion(clipBounds));
+
+    childDrawable->UpdateFilterInfoForNodeGroup(&canvas);
+    ASSERT_EQ(rootDrawable->filterInfoVec_.size(), 1u);
+    EXPECT_EQ(rootDrawable->filterInfoVec_[0].rectVec_.size(), 2u);
+    RSRenderNodeDrawableAdapter::curDrawingCacheRoot_ = nullptr;
+}
+
+/**
  * @tc.name: GetSkipIndexTest
  * @tc.desc: Test GetSkipIndex
  * @tc.type: FUNC

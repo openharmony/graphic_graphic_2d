@@ -50,7 +50,7 @@ private:
     static void FilterAshmemInfoByPid(std::string& out, const std::string& info, int32_t pid);
     static void FilterDmaBufInfoByPid(std::string& out, const std::string& info, int32_t pid);
 
-    static constexpr int32_t MAX_APP_FD = 25000; // the maximum fd count held by a single application
+    static constexpr int32_t MAX_APP_FD = 29000; // the maximum fd count held by a single application
     static constexpr int32_t MAX_TOTAL_FD = 29000; // the maximum fd total held by all applications
 
     int32_t fdTotal_ = 0;

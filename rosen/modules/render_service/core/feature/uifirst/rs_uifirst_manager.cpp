@@ -992,7 +992,6 @@ void RSUifirstManager::ProcessSubDoneNode()
     ProcessDoneNode(); // release finish drawable
     UpdateSkipSyncNode();
     RestoreSkipSyncNode();
-    ResetCurrentFrameDeletedCardNodes();
 }
 
 static inline void SetUifirstSkipPartialSync(const std::shared_ptr<RSRenderNode> &node, bool needSync)
@@ -1492,7 +1491,6 @@ void RSUifirstManager::OnProcessEventResponse(DataBaseRs& info)
         it->disableNodes.clear();
     }
     globalFrameEvent_.push_back(std::move(eventInfo));
-    currentFrameCanSkipFirstWait_ = EventsCanSkipFirstWait(globalFrameEvent_);
 }
 
 void RSUifirstManager::OnProcessEventComplete(DataBaseRs& info)
@@ -1530,7 +1528,6 @@ void RSUifirstManager::PrepareCurrentFrameEvent()
         const auto& nodeMap = mainThread_->GetContext().GetNodeMap();
         entryViewNodeId_ = nodeMap.GetEntryViewNodeId();
         negativeScreenNodeId_ = nodeMap.GetNegativeScreenNodeId();
-        scbPid_ = ExtractPid(entryViewNodeId_);
     }
     {
         std::lock_guard<std::mutex> lock(globalFrameEventMutex_);
@@ -1548,13 +1545,11 @@ void RSUifirstManager::PrepareCurrentFrameEvent()
             it++;
         }
         if (globalFrameEvent_.empty()) {
-            currentFrameCanSkipFirstWait_ = false;
             return;
         }
         // copy global to current, judge leashwindow stop
         currentFrameEvent_.assign(globalFrameEvent_.begin(), globalFrameEvent_.end());
     }
-    currentFrameCanSkipFirstWait_ = EventsCanSkipFirstWait(currentFrameEvent_);
 }
 
 void RSUifirstManager::OnProcessAnimateScene(SystemAnimatedScenes systemAnimatedScene)
@@ -1599,36 +1594,6 @@ bool RSUifirstManager::NodeIsInCardWhiteList(RSRenderNode& node)
     if ((entryViewNodeId_ != INVALID_NODEID) && (negativeScreenNodeId_ != INVALID_NODEID)) {
         auto instanceRootId = node.GetInstanceRootNodeId();
         if (instanceRootId == entryViewNodeId_ || instanceRootId == negativeScreenNodeId_) {
-            return true;
-        }
-    }
-    return false;
-}
-
-bool RSUifirstManager::IsCardSkipFirstWaitScene(std::string& scene, int32_t appPid)
-{
-    if (appPid != scbPid_) {
-        return false;
-    }
-    for (auto& item : cardCanSkipFirstWaitScene_) {
-        if ((scene.find(item) != std::string::npos)) {
-            return true;
-        }
-    }
-    return false;
-}
-
-bool RSUifirstManager::EventsCanSkipFirstWait(std::vector<EventInfo>& events)
-{
-    if (events.empty()) {
-        return false;
-    }
-    if (isCurrentFrameHasCardNodeReCreate_) {
-        RS_OPTIONAL_TRACE_NAME("uifirst current frame can't skip wait");
-        return false;
-    }
-    for (auto& item : events) {
-        if (IsCardSkipFirstWaitScene(item.sceneId, item.appPid)) {
             return true;
         }
     }
@@ -2211,7 +2176,6 @@ void RSUifirstManager::UpdateChildrenDirtyRect(RSSurfaceRenderNode& node)
 
 void RSUifirstManager::ProcessTreeStateChange(RSSurfaceRenderNode& node)
 {
-    RSUifirstManager::Instance().CheckCurrentFrameHasCardNodeReCreate(node);
     // Planning: do not clear complete image for card
     if (node.IsOnTheTree()) {
         return;
@@ -2233,26 +2197,6 @@ void RSUifirstManager::DisableUifirstNode(RSSurfaceRenderNode& node)
 void RSUifirstManager::AddCapturedNodes(NodeId id)
 {
     capturedNodes_.push_back(id);
-}
-
-void RSUifirstManager::ResetCurrentFrameDeletedCardNodes()
-{
-    currentFrameDeletedCardNodes_.clear();
-    isCurrentFrameHasCardNodeReCreate_ = false;
-}
-
-void RSUifirstManager::CheckCurrentFrameHasCardNodeReCreate(const RSSurfaceRenderNode& node)
-{
-    if (node.GetSurfaceNodeType() != RSSurfaceNodeType::ABILITY_COMPONENT_NODE ||
-        node.GetName().find(ARKTSCARDNODE_NAME) == std::string::npos) {
-        return;
-    }
-    if (!node.IsOnTheTree()) {
-        currentFrameDeletedCardNodes_.emplace_back(node.GetId());
-    } else if (std::find(currentFrameDeletedCardNodes_.begin(), currentFrameDeletedCardNodes_.end(),
-        node.GetId()) != currentFrameDeletedCardNodes_.end()) {
-        isCurrentFrameHasCardNodeReCreate_ = true;
-    }
 }
 
 bool RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(const RSRenderParams& params, bool checkMatch)

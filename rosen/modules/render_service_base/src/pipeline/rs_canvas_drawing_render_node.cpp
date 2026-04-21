@@ -193,7 +193,7 @@ void RSCanvasDrawingRenderNode::ContentStyleSlotUpdate()
     // update content_style when node not on tree, need check (waitSync_ false, not on tree, never on tree
     // not texture exportnode, unirender mode)
     // if canvas drawing node never on tree, should not update, it will lost renderParams->localDrawRect_
-    if (IsWaitSync() || IsOnTheTree() || isNeverOnTree_ || !stagingRenderParams_ ||
+    if (waitSync_ || IsOnTheTree() || isNeverOnTree_ || !stagingRenderParams_ ||
         !RSUniRenderJudgement::IsUniRender() || GetIsTextureExportNode()) {
         return;
     }
@@ -219,7 +219,7 @@ void RSCanvasDrawingRenderNode::ContentStyleSlotUpdate()
 
     UpdateDrawableVecV2();
 
-    if (!IsWaitSync()) {
+    if (!waitSync_) {
         RS_LOGE("RSCanvasDrawingRenderNode::ContentStyleSlotUpdate NodeId[%{public}" PRIu64
                 "] UpdateDrawableVecV2 failed, dirtySlots empty", GetId());
         return;
@@ -720,13 +720,18 @@ void RSCanvasDrawingRenderNode::OnApplyModifiers()
     modifiersApplied_ = true;
 }
 
-void RSCanvasDrawingRenderNode::OnSync()
+void RSCanvasDrawingRenderNode::AfterSync()
 {
-    RSRenderNode::OnSync();
     if (modifiersApplied_) {
         modifiersApplied_ = false;
         ClearResource();
     }
+
+    // Reset Sync Flag
+    if (waitSync_) {
+        renderDrawable_->SetNeedDraw(true);
+    }
+    waitSync_ = false;
 }
 
 void RSCanvasDrawingRenderNode::AccumulateLastDirtyTypes()

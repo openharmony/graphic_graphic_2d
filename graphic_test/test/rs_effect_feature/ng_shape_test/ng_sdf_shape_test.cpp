@@ -33,6 +33,29 @@ public:
         SetScreenSize(screenWidth, screenHeight);
     }
 
+    static std::shared_ptr<Rosen::RSCanvasNode> CreateUnionNode(Rosen::Vector4f bounds, float spacing = 100.0f,
+        int unionMode = 1)
+    {
+        auto node = RSUnionNode::Create();
+        node->SetBounds(bounds);
+        node->SetFrame(bounds);
+        node->SetUnionSpacing(spacing);
+        node->SetUnionMode(unionMode);
+        return node;
+    }
+
+    static std::shared_ptr<Rosen::RSCanvasNode> CreateUnionChildNode(Rosen::Vector4f bounds, bool isCenter = false,
+        float strength = 30.0f, float hotZone = 200.0f)
+    {
+        auto node = RSCanvasNode::Create();
+        node->SetBounds(bounds);
+        node->SetUseUnion(true);
+        node->SetGravityPullCenterFlag(isCenter);
+        node->SetGravityPullStrength(strength);
+        node->SetGravityHotZone(hotZone);
+        return node;
+    }
+
 private:
     const int screenWidth = 1200;
     const int screenHeight = 2000;
@@ -439,6 +462,45 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_Union_Container_Rect_Test)
             childYRect.GetHeight());
         childY->SetBounds(childYRectBounds);
         childY->SetUseUnion(true);
+        unionNode->AddChild(childY);
+        RegisterNode(childY);
+    }
+}
+
+GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_Union_Container_Gravity_Test)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(rectXParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    const float centerScale = 0.6f;
+    auto centerSize = Rosen::Vector2f{rectXParams[0].rect_.GetWidth(), rectXParams[0].rect_.GetHeight()} * centerScale;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        Rosen::Vector4f bounds(x, y, sizeX, sizeY);
+        auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", bounds);
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+
+        Rosen::Vector4f unionNodeBounds(0, 0, sizeX, sizeY);
+        auto unionNode = CreateUnionNode(unionNodeBounds);
+        unionNode->SetMaterialNGFilter(frostedGlassFilter);
+        backgroundTestNode->AddChild(unionNode);
+        RegisterNode(unionNode);
+
+        auto childXRect = rectXParams[i].rect_;
+        Rosen::Vector4f childXRectBounds(childXRect.GetLeft(), childXRect.GetTop(), centerSize.x_, centerSize.y_);
+        auto childX = CreateUnionChildNode(childXRectBounds, true);
+        unionNode->AddChild(childX);
+        RegisterNode(childX);
+
+        auto childYRect = rectYParams[i].rect_;
+        Rosen::Vector4f childYRectBounds(childYRect.GetLeft(), childYRect.GetTop(), childYRect.GetWidth(),
+            childYRect.GetHeight());
+        auto childY = CreateUnionChildNode(childYRectBounds, false);
         unionNode->AddChild(childY);
         RegisterNode(childY);
     }
