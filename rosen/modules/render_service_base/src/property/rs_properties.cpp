@@ -5734,11 +5734,9 @@ RRect RSProperties::GetRRectForSDF() const
 {
     RRect sdfRRect;
     if (GetClipToRRect()) {
-        auto rrect = GetClipRRect();
-        sdfRRect = RRect(rrect.rect_, rrect.radius_[0].x_, rrect.radius_[0].y_);
+        sdfRRect = GetClipRRect();
     } else if (!GetCornerRadius().IsZero()) {
-        auto rrect = GetRRect();
-        sdfRRect = RRect(rrect.rect_, rrect.radius_[0].x_, rrect.radius_[0].y_);
+        sdfRRect = GetRRect();
     } else {
         sdfRRect.rect_ = GetBoundsRect();
     }
