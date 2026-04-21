@@ -1835,7 +1835,8 @@
     "writeInterfaceToken": false,
     "messageOption": "TF_ASYNC",
     "commandList": "RSMarkLayer*100",
-    "commandListRepeat": 1
+    "commandListRepeat": 1,
+    "connectionType": 0
   },
   {
     "testCaseDesc": "COMMIT_TRANSACTION_TEST_186",
