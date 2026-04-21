@@ -1332,8 +1332,32 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
         RSUniRenderThread::GetCaptureParam().isSingleSurface_ &&
         !RSUniRenderThread::GetCaptureParam().isSystemCalling_;
     bool enableVisibleRect = RSUniRenderThread::Instance().GetEnableVisibleRect();
-    if (!(specialLayerManager.Find(HAS_GENERAL_SPECIAL) || surfaceParams.GetHDRPresent() || hasHidePrivacyContent ||
-        enableVisibleRect || !IsVisibleRegionEqualOnPhysicalAndVirtual(surfaceParams))) {
+    bool hasUifirstCachedTexture = subThreadCache_.HasCachedTexture();
+    uint64_t uifirstVsyncId = subThreadCache_.GetCompletedCacheSurfaceVsyncId();
+
+    bool isUIFirstCacheAllowed = !(specialLayerManager.Find(HAS_GENERAL_SPECIAL) || surfaceParams.GetHDRPresent() ||
+        hasHidePrivacyContent || enableVisibleRect || !IsVisibleRegionEqualOnPhysicalAndVirtual(surfaceParams));
+
+    RS_TRACE_NAME_FMT(
+        "isUIFirstCacheAllowed: [%d], "
+        "hasGeneralSpecial: [%d], "
+        "getHdrPresent: [%d], "
+        "hasHidePrivacyContent: [%d], "
+        "enableVisibleRect: [%d], "
+        "IsVisibleRegionEqualOnPhysicalAndVirtual: [%d], "
+        "hasUifirstCachedTexture: [%d], "
+        "uifirstVsyncId: [%" PRIu64 "]. ",
+        isUIFirstCacheAllowed,
+        specialLayerManager.Find(HAS_GENERAL_SPECIAL),
+        surfaceParams.GetHDRPresent(),
+        hasHidePrivacyContent,
+        enableVisibleRect,
+        IsVisibleRegionEqualOnPhysicalAndVirtual(surfaceParams),
+        hasUifirstCachedTexture,
+        uifirstVsyncId
+    );
+
+    if (isUIFirstCacheAllowed) {
         // not use uifirst when dirty in window capture process
         bool surfaceCapNotUsingUIFirst = RSUniRenderThread::GetCaptureParam().hasDirtyContent_;
         if (surfaceCapNotUsingUIFirst) {

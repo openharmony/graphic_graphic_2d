@@ -105,6 +105,8 @@ void RSDrawFrame::RenderFrame()
     RSMhcManager::Instance().UpdateFrameId();
 #endif
     RSUifirstManager::Instance().PostUifistSubTasks();
+    RSMainThread::Instance()->CheckWindowCapTasks();
+    RSMainThread::Instance()->ProcessWindowCapTasks();
     UnblockMainThread();
     RsFrameReport::CheckUnblockMainThreadPoint();
     Render();

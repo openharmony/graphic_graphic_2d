@@ -1037,7 +1037,8 @@ bool RSClientToRenderConnectionProxy::WriteSurfaceCaptureConfig(
         !data.WriteBool(captureConfig.colorSpace.second) ||
         !data.WriteUint32(captureConfig.dynamicRangeMode.first) ||
         !data.WriteBool(captureConfig.dynamicRangeMode.second) ||
-        !data.WriteBool(captureConfig.isSyncRender)) {
+        !data.WriteBool(captureConfig.isSyncRender) ||
+        !data.WriteBool(captureConfig.windowSync)) {
         ROSEN_LOGE("WriteSurfaceCaptureConfig: WriteSurfaceCaptureConfig captureConfig err.");
         return false;
     }

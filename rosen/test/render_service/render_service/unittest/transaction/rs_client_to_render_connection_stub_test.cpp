@@ -293,6 +293,7 @@ void g_WriteSurfaceCaptureConfigMock(RSSurfaceCaptureConfig& captureConfig, Mess
     data.WriteUint32(captureConfig.dynamicRangeMode.first);
     data.WriteBool(captureConfig.dynamicRangeMode.second);
     data.WriteBool(captureConfig.isSyncRender);
+    data.WriteBool(captureConfig.windowSync);
 }
 
 /**
