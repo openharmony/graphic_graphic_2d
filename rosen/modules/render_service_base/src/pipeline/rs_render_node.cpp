@@ -1934,8 +1934,6 @@ void RSRenderNode::CollectAndUpdateLocalEffectRect()
         }
         selfDrawRect_ = selfDrawRect_.JoinRect(filter->GetRect(boundsRect, EffectRectType::TOTAL));
     }
-    const auto& shader = GetRenderProperties().GetForegroundShader();
-    selfDrawRect_ = selfDrawRect_.JoinRect(RSNGRenderShaderHelper::CalcRect(shader, boundsRect));
     const auto& overlayNGShader = GetRenderProperties().GetOverlayNGShader();
     selfDrawRect_ = selfDrawRect_.JoinRect(RSNGRenderShaderHelper::CalcRect(overlayNGShader, boundsRect));
 }

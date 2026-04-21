@@ -1314,7 +1314,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, ApplySDFShapeToEffect002, testing::ext::Te
 {
     RSProperties properties;
     NodeId nodeId = 1;
-    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::BLUR);
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
     RSPropertyDrawableUtils::ApplySDFShapeToEffect(properties, shader, nodeId);
     ASSERT_NE(shader, nullptr);
     EXPECT_NE(shader->GetType(), RSNGEffectType::SDF_EDGE_LIGHT_EFFECT);
