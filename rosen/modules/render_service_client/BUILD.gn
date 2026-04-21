@@ -233,6 +233,7 @@ template("render_service_client_source_set") {
         "core/ui/rs_display_node.cpp",
         "core/feature/window_keyframe/rs_window_keyframe_node.cpp",
         "core/feature/hyper_graphic_manager/rs_frame_rate_linker.cpp",
+        "core/ui_effect/property/src/rs_ui_mask_base.cpp",
       ]
       defines += [ "CROSS_PLATFORM" ]
     }
