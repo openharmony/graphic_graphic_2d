@@ -328,6 +328,22 @@ namespace effectKit {
     getHighestSaturationColor(): Color;
     getAverageColor(): Color;
     isBlackOrWhiteOrGrayColor(color: long): boolean;
+    getMorandiShadowColor(): Color;
+    getDeepenImmersionColor(): Color;
+    getImmersiveBackgroundColor(): Color;
+    getImmersiveForegroundColor(): Color;
+    discriminatePictureLightDegree(): PictureLightDegree;
+    getReverseColor(): Color;
+  }
+
+  export enum PictureLightDegree {
+    UNKOWN_LIGHT_COLOR_DEGREE_PICTURE = 0,
+    EXTREMELY_LIGHT_COLOR_PICTURE = 1,
+    LIGHT_COLOR_PICTURE = 2,
+    DARK_COLOR_PICTURE = 3,
+    EXTREMELY_DARK_COLOR_PICTURE = 4,
+    FLOWERY_PICTURE = 5,
+    EXTREMELY_FLOWERY_PICTURE = 6,
   }
 
   export class ColorPickerInternal implements ColorPicker {
@@ -347,6 +363,12 @@ namespace effectKit {
     public native getHighestSaturationColorNative(): Color;
     public native getAverageColorNative(): Color;
     public native isBlackOrWhiteOrGrayColorNative(color: long): boolean;
+    public native getMorandiShadowColorNative(): Color;
+    public native getDeepenImmersionColorNative(): Color;
+    public native getImmersiveBackgroundColorNative(): Color;
+    public native getImmersiveForegroundColorNative(): Color;
+    public native discriminatePictureLightDegreeNative(): PictureLightDegree;
+    public native getReverseColorNative(): Color;
     private static native kitTransferStaticNative(input: ESValue): Object;
 	private static native kitTransferDynamicNative(nativeObj: long): ESValue;
 
@@ -380,6 +402,24 @@ namespace effectKit {
     }
     public isBlackOrWhiteOrGrayColor(color: long): boolean {
       return this.isBlackOrWhiteOrGrayColorNative(color);
+    }
+    public getMorandiShadowColor(): Color {
+      return this.getMorandiShadowColorNative();
+    }
+    public getDeepenImmersionColor(): Color {
+      return this.getDeepenImmersionColorNative();
+    }
+    public getImmersiveBackgroundColor(): Color {
+      return this.getImmersiveBackgroundColorNative();
+    }
+    public getImmersiveForegroundColor(): Color {
+      return this.getImmersiveForegroundColorNative();
+    }
+    public discriminatePictureLightDegree(): PictureLightDegree {
+      return this.discriminatePictureLightDegreeNative();
+    }
+    public getReverseColor(): Color {
+      return this.getReverseColorNative();
     }
     public static kitTransferStatic(input: Any): Object {
 	  return ColorPickerInternal.kitTransferStaticNative(ESValue.wrap(input));
