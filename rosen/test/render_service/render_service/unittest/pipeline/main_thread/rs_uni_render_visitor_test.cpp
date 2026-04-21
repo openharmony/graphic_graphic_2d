@@ -4649,19 +4649,19 @@ HWTEST_F(RSUniRenderVisitorTest, IsNodeInBlackListTest, TestSize.Level1)
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     rsUniRenderVisitor->isDrawingCacheEnabled_ = true;
 
-    // Test SURFACE_NODE not in blacklist (should return false)
+    // Test SURFACE_NODE not in special set (should return false)
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1);
     surfaceNode->InitRenderParams();
     EXPECT_FALSE(rsUniRenderVisitor->IsNodeInBlackList(surfaceNode));
 
-    // Add to blacklist and test
+    // Add to blacknode and test
     rsUniRenderVisitor->allBlackList_.insert(1);
     EXPECT_TRUE(rsUniRenderVisitor->IsNodeInBlackList(surfaceNode));
 }
 
 /**
  * @tc.name: UpdateDrawingCacheInfoAfterChildrenBlacklistTest
- * @tc.desc: Test UpdateDrawingCacheInfoAfterChildren with blacklist logic
+ * @tc.desc: Test UpdateDrawingCacheInfoAfterChildren with special node logic
  * @tc.type: FUNC
  * @tc.require: issues/20738
  */

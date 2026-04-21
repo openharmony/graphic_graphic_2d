@@ -377,7 +377,7 @@ CM_INLINE void RSRenderNodeDrawable::CheckCacheTypeAndDraw(
         "RSRenderNodeDrawable::CheckCacheTAD hasFilter:%{public}d drawingCacheType:%{public}d",
         hasFilter, params.GetDrawingCacheType());
     auto originalCacheType = GetCacheType();
-    // can not draw cache because blacklist node in capture process, such as security layers...
+    // can not draw cache because special node in capture process, such as security layers...
     if (GetCacheType() != DrawableCacheType::NONE && params.NodeGroupHasChildInBlacklist() && isInCapture) {
         SetCacheType(DrawableCacheType::NONE);
     }
