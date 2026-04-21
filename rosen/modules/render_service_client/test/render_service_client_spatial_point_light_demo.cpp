@@ -266,7 +266,7 @@ public:
     {
         std::cout << "Running intensity animation..." << std::endl;
         float phase = 0.0f;
-        for (int frame = 0; frame < ANIMATION_FRAME_COUNT; frame++) {
+        for (int32_t frame = 0; frame < ANIMATION_FRAME_COUNT; frame++) {
             phase += 0.1f;
             float intensity = 0.5f + 2.0f * (0.5f + 0.5f * sin(phase));
             UpdateShader(intensity,
@@ -286,7 +286,7 @@ public:
         float centerX = NODE_X + NODE_WIDTH / HALF_DIVISOR;
         float centerY = NODE_Y + NODE_HEIGHT / HALF_DIVISOR;
         float radius = 200.0f;
-        for (int frame = 0; frame < ANIMATION_FRAME_COUNT; frame++) {
+        for (int32_t frame = 0; frame < ANIMATION_FRAME_COUNT; frame++) {
             float angle = frame * 0.1f;
             float x = centerX + radius * cos(angle);
             float y = centerY + radius * sin(angle);
@@ -306,7 +306,7 @@ public:
     {
         std::cout << "Running color animation..." << std::endl;
         float phase = 0.0f;
-        for (int frame = 0; frame < ANIMATION_FRAME_COUNT; frame++) {
+        for (int32_t frame = 0; frame < ANIMATION_FRAME_COUNT; frame++) {
             phase += 0.05f;
             float r = 0.5f + 0.5f * sin(phase);
             float g = 0.5f + 0.5f * sin(phase + 2.094f);
@@ -337,7 +337,7 @@ public:
     void RunMaskSwitchDemo()
     {
         std::cout << "Running mask switch demo..." << std::endl;
-        for (int i = 0; i < MASK_COUNT; i++) {
+        for (int32_t i = 0; i < MASK_COUNT; i++) {
             SwitchMask(static_cast<MaskType>(i));
             sleep(MASK_SWITCH_INTERVAL);
         }
