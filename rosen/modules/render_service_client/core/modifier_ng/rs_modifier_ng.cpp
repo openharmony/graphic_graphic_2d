@@ -146,7 +146,6 @@ static const std::unordered_map<RSPropertyType, ThresholdType> g_propertyTypeToT
     { RSPropertyType::FLY_OUT_PARAMS, ThresholdType::ZERO },
     { RSPropertyType::DISTORTION_K, ThresholdType::COARSE },
     { RSPropertyType::DYNAMIC_DIM_DEGREE, ThresholdType::COARSE },
-    { RSPropertyType::MAGNIFIER_PARA, ThresholdType::ZERO },
     { RSPropertyType::BACKGROUND_BLUR_RADIUS, ThresholdType::COARSE },
     { RSPropertyType::BACKGROUND_BLUR_SATURATION, ThresholdType::COARSE },
     { RSPropertyType::BACKGROUND_BLUR_BRIGHTNESS, ThresholdType::COARSE },

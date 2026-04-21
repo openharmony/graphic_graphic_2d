@@ -2853,6 +2853,10 @@ void DrawParticleOpItem::Marshalling(DrawCmdList& cmdList)
 
 void DrawParticleOpItem::Playback(Canvas* canvas, const Rect* rect)
 {
+    if (particleEffect_ == nullptr) {
+        LOGE("DrawParticleOpItem::Playback: particleEffect_ is null");
+        return;
+    }
     canvas->DrawParticle(particleEffect_);
 }
 

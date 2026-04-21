@@ -32,7 +32,7 @@ ohos_fuzztest("SymbolGradientFuzzTest") {
     "../",
   ]
 
-  sources = [ "symbol_gradient_fuzzer.cpp" ]
+  sources = [ "symbolgradient_fuzzer.cpp" ]
 
   cflags = [
     "-g",

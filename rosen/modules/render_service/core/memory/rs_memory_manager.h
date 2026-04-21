@@ -53,8 +53,6 @@ public:
     static void SetGpuMemoryLimit(Drawing::GPUContext* gpuContext);
     static void MemoryOverCheck(Drawing::GPUContext* gpuContext);
     static bool MemoryOverflow(pid_t pid, size_t overflowMemory, bool isGpu);
-    static bool GpuMemoryOverReport(pid_t pid, size_t overflowMemory,
-        std::unordered_map<std::string, std::pair<size_t, size_t>> typeInfo, std::unordered_map<pid_t, size_t> pidInfo);
     static void CheckIsClearApp();
     static void VmaDefragment(Drawing::GPUContext* gpuContext);
     static void SetGpuCacheSuppressWindowSwitch(Drawing::GPUContext* gpuContext, bool enabled);
@@ -73,7 +71,9 @@ public:
         pid_t pid = 0, bool isLite = false);
     static void DumpGpuMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString,
         const std::string& type);
+    static bool MemoryReportAndKill(pid_t pid, MemorySnapshotInfo info, bool isGpu);
     static void GpuReportFromKernel(const std::string& recvInfo);
+    static bool UpdateGpuInfoFromEngine(pid_t pid, size_t memorySize, bool isAdd);
 private:
     // rs memory = rs + skia cpu + skia gpu
     static void DumpRenderServiceMemory(DfxString& log, bool isLite = false);
@@ -95,9 +95,7 @@ private:
         const std::string& hidumperReport);
     static void TotalMemoryOverReport(const std::unordered_map<pid_t, MemorySnapshotInfo>& infoMap);
     static void ErasePidInfo(const std::set<pid_t>& exitedPidSet);
-    static bool NeedReportFromKernel(pid_t& abnormalPid,
-        std::unordered_map<std::string, std::pair<size_t, size_t>>& typeInfo,
-        std::unordered_map<pid_t, size_t>& pidInfo);
+    static bool NeedReportFromKernel(pid_t& abnormalPid);
 
     static std::mutex mutex_;
     static std::unordered_map<pid_t, uint64_t> pidInfo_;
@@ -105,7 +103,7 @@ private:
     static uint64_t memoryWarning_;
     static uint64_t gpuMemoryControl_;
     static uint64_t totalMemoryReportTime_;
-    static uint64_t mReportLastTimestamp_;
+    static uint64_t mKernelReportLastTimestamp_;
 };
 
 class RSB_EXPORT RSReclaimMemoryManager {

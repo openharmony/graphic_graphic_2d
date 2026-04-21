@@ -142,6 +142,9 @@ void ConvertBasicParagraphStyle(const skt::ParagraphStyle& skStyle, ParagraphSty
     paraStyle.minLineHeight = skStyle.getTextStyle().getMinLineHeight();
     paraStyle.lineHeightStyle = static_cast<LineHeightStyle>(skStyle.getTextStyle().getLineHeightStyle());
     paraStyle.orphanCharOptimization = skStyle.getOrphanCharOptimization();
+    paraStyle.firstLineIndent = SkScalarToDouble(skStyle.getFirstLineIndent());
+    paraStyle.tailIndents = skStyle.getTailIndents();
+    paraStyle.headIndents = skStyle.getHeadIndents();
 }
 
 void ConvertStrutStyle(const skt::StrutStyle& strutStyle, ParagraphStyle& paraStyle)

@@ -154,9 +154,8 @@ bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(uint32_t zorder,
         info.perFrameParameters["SourceCropTuning"] = std::vector<int8_t> {0};
     }
 
-    if (arsrPreEnabled_ && CheckIfDoArsrPre(node)) {
+    if (node->GetArsrTag()) {
         info.perFrameParameters["ArsrDoEnhance"] = std::vector<int8_t> {1};
-        node->SetArsrTag(true);
     }
     CheckIfDoCopybit(node, transform, info);
     node->SetDeviceOfflineEnable(false);

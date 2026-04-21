@@ -27,6 +27,7 @@
 
 #include "src/core/SkOpts.h"
 
+#include "animation/rs_particle_field_collection.h"
 #include "animation/rs_particle_ripple_field.h"
 #include "animation/rs_particle_velocity_field.h"
 #include "animation/rs_render_particle_animation.h"
@@ -68,7 +69,6 @@
 #include "render/rs_render_kawase_blur_filter.h"
 #include "render/rs_render_light_blur_filter.h"
 #include "render/rs_render_linear_gradient_blur_filter.h"
-#include "render/rs_render_magnifier_filter.h"
 #include "render/rs_render_maskcolor_filter.h"
 #include "render/rs_render_mesa_blur_filter.h"
 #include "render/rs_render_water_ripple_filter.h"
@@ -1283,6 +1283,34 @@ void RSProperties::SetParticleVelocityFields(const std::shared_ptr<ParticleVeloc
     contentDirty_ = true;
 }
 
+void RSProperties::SetParticleFields(const std::shared_ptr<ParticleFieldCollection>& para)
+{
+    particleFields_ = para;
+    if (para) {
+        isDrawn_ = true;
+        auto renderNode = backref_.lock();
+        if (renderNode == nullptr) {
+            return;
+        }
+        auto animation = renderNode->GetAnimationManager().GetParticleAnimation();
+        if (animation == nullptr) {
+            return;
+        }
+        auto particleAnimation = std::static_pointer_cast<RSRenderParticleAnimation>(animation);
+        if (particleAnimation) {
+            particleAnimation->UpdateFields(para);
+        }
+    }
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+const std::shared_ptr<ParticleFieldCollection>& RSProperties::GetParticleFields() const
+{
+    return particleFields_;
+}
+
 void RSProperties::SetColorPickerPlaceholder(int placeholder)
 {
     if (!colorPicker_) {
@@ -1873,33 +1901,6 @@ void RSProperties::SetMotionBlurPara(const std::shared_ptr<MotionBlurParam>& par
     SetDirty();
     filterNeedUpdate_ = true;
     contentDirty_ = true;
-}
-
-void RSProperties::SetMagnifierParams(const std::shared_ptr<RSMagnifierParams>& para)
-{
-    GetEffect().magnifierPara_ = para;
-
-    if (para) {
-        isDrawn_ = true;
-    }
-    SetDirty();
-    filterNeedUpdate_ = true;
-    contentDirty_ = true;
-}
-
-bool RSProperties::GetMagnifierDirty() const
-{
-    const auto& magnifierPara = GetMagnifierPara();
-    return magnifierPara && ROSEN_GNE(magnifierPara->factor_, 0.f);
-}
-
-const std::shared_ptr<RSMagnifierParams>& RSProperties::GetMagnifierPara() const
-{
-    static const std::shared_ptr<RSMagnifierParams> defaultValue = nullptr;
-    if (effect_) {
-        return effect_->magnifierPara_;
-    }
-    return defaultValue;
 }
 
 const std::shared_ptr<RSLinearGradientBlurPara>& RSProperties::GetLinearGradientBlurPara() const
@@ -3648,15 +3649,6 @@ void RSProperties::GenerateLinearGradientBlurFilter()
     GetFilter()->SetFilterType(RSFilter::LINEAR_GRADIENT_BLUR);
 }
 
-void RSProperties::GenerateMagnifierFilter()
-{
-    auto magnifierFilter = std::make_shared<RSMagnifierShaderFilter>(GetMagnifierPara());
-
-    std::shared_ptr<RSDrawingFilter> originalFilter = std::make_shared<RSDrawingFilter>(magnifierFilter);
-    backgroundFilter_ = originalFilter;
-    backgroundFilter_->SetFilterType(RSFilter::MAGNIFIER);
-}
-
 void RSProperties::GenerateWaterRippleFilter()
 {
     const auto& waterRippleParams = GetWaterRippleParams();
@@ -3889,9 +3881,6 @@ void RSProperties::StatBackgroundFilter()
     if (GetAiInvert().has_value() || GetSystemBarEffect()) {
         params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::AIBAR)]++;
     }
-    if (GetMagnifierPara() && ROSEN_GNE(GetMagnifierPara()->factor_, 0.f)) {
-        params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::MAGNIFIER)]++;
-    }
     if (IsBackgroundMaterialFilterValid()) {
         params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::BG_MATERIALBLUR)]++;
     }
@@ -3989,8 +3978,6 @@ void RSProperties::GenerateBackgroundFilter()
     }
     if (GetAiInvert().has_value() || GetSystemBarEffect()) {
         GenerateAIBarFilter();
-    } else if (GetMagnifierPara() && ROSEN_GNE(GetMagnifierPara()->factor_, 0.f)) {
-        GenerateMagnifierFilter();
     } else if (IsBackgroundMaterialFilterValid()) {
         GenerateBackgroundMaterialBlurFilter();
     } else if (IsBackgroundBlurRadiusXValid() && IsBackgroundBlurRadiusYValid()) {

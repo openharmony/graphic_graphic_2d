@@ -32,7 +32,6 @@
 #include "render/rs_hdr_ui_brightness_filter.h"
 #include "render/rs_render_kawase_blur_filter.h"
 #include "render/rs_render_linear_gradient_blur_filter.h"
-#include "render/rs_render_magnifier_filter.h"
 #include "render/rs_material_filter.h"
 #include "render/rs_motion_blur_filter.h"
 #include "render/rs_skia_filter.h"
@@ -70,7 +69,6 @@ std::shared_ptr<RSFilter> RandomRSFilter::GetRandomRSFilter()
         RandomRSFilter::GetRandomHDRUIBrightnessFilter,
         RandomRSFilter::GetRandomColorfulShadowFilter,
         RandomRSFilter::GetRandomAttractionEffectFilter,
-        RandomRSFilter::GetRandomMagnifierShaderFilter,
         RandomRSFilter::GetRandomWaterRippleShaderFilter,
         RandomRSFilter::GetRandomFlyOutShaderFilter,
         RandomRSFilter::GetRandomDistortionFilter,
@@ -191,17 +189,6 @@ std::shared_ptr<RSFilter> RandomRSFilter::GetRandomAttractionEffectFilter()
     float height = RandomData::GetRandomFloat();
     Vector2f pt = RandomData::GetRandomVector2f();
     filter->CalculateWindowStatus(width, height, pt);
-    return filter;
-}
-
-std::shared_ptr<RSFilter> RandomRSFilter::GetRandomMagnifierShaderFilter()
-{
-    auto para = RandomData::GetRandomRSMagnifierParamsSharedPtr();
-    auto shaderFilter = std::make_shared<RSMagnifierShaderFilter>(para);
-    auto matrix = RandomData::GetRandomDrawingMatrix();
-    shaderFilter->SetMagnifierOffset(matrix);
-    auto filter = std::make_shared<RSDrawingFilter>(shaderFilter);
-    filter->SetFilterType(RSFilter::MAGNIFIER);
     return filter;
 }
 

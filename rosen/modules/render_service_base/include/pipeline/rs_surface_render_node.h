@@ -410,6 +410,16 @@ public:
         return intersectWithAIBar_;
     }
 
+    void SetIntersectWithFilterNode(bool intersectOrNot)
+    {
+        intersectWithFilterNode_ = intersectOrNot;
+    }
+
+    bool GetIntersectWithFilterNode() const
+    {
+        return intersectWithFilterNode_;
+    }
+
     bool IsHardwareForcedDisabledByFilter() const
     {
         return isHardwareForcedDisabledByFilter_;
@@ -1561,6 +1571,14 @@ public:
 
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
+    void SetDarkColorMode(bool isDarkColorMode)
+    {
+        isDarkColorMode_ = isDarkColorMode;
+    }
+    bool GetDarkColorMode() const
+    {
+        return isDarkColorMode_;
+    }
     void SetHidePrivacyContent(bool needHidePrivacyContent);
     void SetNeedOffscreen(bool needOffscreen);
     void SetSdrNit(float sdrNit);
@@ -1713,6 +1731,16 @@ public:
         hdrBrightnessFactor_ = hdrBrightnessFactor;
     }
 
+    float GetHDRDimmingFactor() const
+    {
+        return hdrDimmingFactor_;
+    }
+
+    void SetHDRDimmingFactor(float hdrDimmingFactor)
+    {
+        hdrDimmingFactor_ = hdrDimmingFactor;
+    }
+
     void SetApiCompatibleVersion(uint32_t apiCompatibleVersion);
     uint32_t GetApiCompatibleVersion()
     {
@@ -1854,7 +1882,7 @@ private:
         std::shared_ptr<ModifierNG::RSRenderModifier> newModifier);
     
     void CountRelatedNode(bool isIncrement);
-    void ClearRelatedSourceCache();
+    void ClearRelatedSourceCache(bool value);
 
     RSSpecialLayerManager specialLayerManager_;
     bool specialLayerChanged_ = false;
@@ -1862,6 +1890,7 @@ private:
     bool isHwcGlobalPositionEnabled_ = false;
     bool isHwcCrossNode_ = false;
     bool hasFingerprint_ = false;
+    bool isDarkColorMode_ = false;
     // hdr video
     HdrStatus hdrVideoSurface_ = HdrStatus::NO_HDR;
     bool zOrderChanged_ = false;
@@ -1918,6 +1947,7 @@ private:
     bool isHardwareForcedDisabled_ = false;
     bool hardwareNeedMakeImage_ = false;
     bool intersectWithAIBar_ = false;
+    bool intersectWithFilterNode_ = false;
     bool isHardwareForcedDisabledByFilter_ = false;
     // For certain buffer format(YUV), dss restriction on src : srcRect % 2 == 0
     // To avoid switch between gpu and dss during sliding, we disable dss when srcHeight != bufferHeight
@@ -2002,6 +2032,7 @@ private:
     int32_t displayNit_ = 500; // default sdr luminance
     float brightnessRatio_ = 1.0f; // no ratio by default
     float hdrBrightnessFactor_ = 1.0f; // no discount by default
+    float hdrDimmingFactor_ = 1.0f; // no discount by default
     float localZOrder_ = 0.0f;
     uint32_t processZOrder_ = -1;
     int32_t nodeCost_ = 0;

@@ -29,7 +29,7 @@ namespace {
 void DoSetHwcNodeBounds(FuzzedDataProvider& fdp)
 {
     // Construct parameters from fuzz data
-    int64_t rsNodeId = fdp.ConsumeIntegral<int64_t>();
+    uint64_t rsNodeId = fdp.ConsumeIntegral<uint64_t>();
     float positionX = fdp.ConsumeFloatingPoint<float>();
     float positionY = fdp.ConsumeFloatingPoint<float>();
     float positionZ = fdp.ConsumeFloatingPoint<float>();

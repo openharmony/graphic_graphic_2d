@@ -855,12 +855,6 @@ void RSNode::SetMotionPathOption(const std::shared_ptr<RSMotionPathOption>& moti
     UpdateModifierMotionPathOption();
 }
 
-void RSNode::SetMagnifierParams(const std::shared_ptr<RSMagnifierParams>& para)
-{
-    SetPropertyNG<ModifierNG::RSBackgroundFilterModifier, &ModifierNG::RSBackgroundFilterModifier::SetMagnifierParams>(
-        para);
-}
-
 const std::shared_ptr<RSMotionPathOption> RSNode::GetMotionPathOption() const
 {
     return motionPathOption_;
@@ -1789,6 +1783,12 @@ void RSNode::SetParticleVelocityFields(const std::shared_ptr<ParticleVelocityFie
 {
     SetPropertyNG<ModifierNG::RSParticleEffectModifier,
         &ModifierNG::RSParticleEffectModifier::SetParticleVelocityFields>(para);
+}
+
+void RSNode::SetParticleFields(const std::shared_ptr<ParticleFieldCollection>& para)
+{
+    SetPropertyNG<ModifierNG::RSParticleEffectModifier,
+        &ModifierNG::RSParticleEffectModifier::SetParticleFields>(para);
 }
 
 // foreground

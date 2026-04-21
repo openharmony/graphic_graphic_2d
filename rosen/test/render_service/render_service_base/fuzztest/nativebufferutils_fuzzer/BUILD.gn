@@ -28,7 +28,6 @@ ohos_fuzztest("NativeBufferUtilsFuzzTest") {
     "$graphic_2d_root/rosen/modules/render_service_base/include",
   ]
   deps = [
-    "$graphic_2d_root:libvulkan",
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
@@ -42,6 +41,11 @@ ohos_fuzztest("NativeBufferUtilsFuzzTest") {
     "eventhandler:libeventhandler",
     "hilog:libhilog",
   ]
+
+  if (graphic_2d_feature_enable_vulkan) {
+    external_deps += [ "vulkan-loader:vulkan_loader" ]
+  }
+
   cflags = [
     "-g",
     "-O0",

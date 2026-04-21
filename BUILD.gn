@@ -59,10 +59,6 @@ ohos_prebuilt_etc("graphic.rc") {
 
 ## Install graphic.rc to /system/etc/init/graphic.rc }}}
 
-group("libvulkan") {
-  public_external_deps = libvulkan
-}
-
 group("libnative_image") {
   deps = [ "frameworks/surfaceimage:libnative_image" ]
 }

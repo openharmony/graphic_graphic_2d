@@ -135,12 +135,14 @@ bool RSHdrUtil::UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId 
         surfaceNode.SetHDRBrightnessFactor(brightnessFactor);
         surfaceNode.SetContentDirty();
     }
+    auto hdrStatus = HdrStatus::NO_HDR;
+    float hdrDimmingFactor = rsLuminance.HdrDimmingProcess(screenId, surfaceNode.GetId());
     if (hdrStaticMetadataVec.size() != sizeof(HdrStaticMetadata) || hdrStaticMetadataVec.data() == nullptr) {
         RS_LOGD("hdrStaticMetadataVec is invalid");
-        auto hdrStatus = RSBaseHdrUtil::CheckIsHdrSurfaceBuffer(surfaceBuffer);
+        hdrStatus = RSBaseHdrUtil::CheckIsHdrSurfaceBuffer(surfaceBuffer);
         if (hdrStatus == HdrStatus::AI_HDR_VIDEO_GAINMAP || hdrStatus == HdrStatus::AI_HDR_VIDEO_GTM) {
             float hdrBrightness = static_cast<HDRType>(surfaceNode.GetHDRType()) == HDRType::DEFAULT?
-                1.0f : surfaceNode.GetHDRBrightness();
+                hdrDimmingFactor : surfaceNode.GetHDRBrightness();
             scaler = rsLuminance.CalScaler(1.0f, std::vector<uint8_t>{}, hdrBrightness * brightnessFactor, hdrStatus);
         } else {
             scaler = surfaceNode.GetHDRBrightness() * brightnessFactor * (scaler - 1.0f) + 1.0f;
@@ -150,9 +152,22 @@ bool RSHdrUtil::UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId 
         scaler = rsLuminance.CalScaler(data.cta861.maxContentLightLevel, ret == GSERROR_OK ? hdrDynamicMetadataVec :
             std::vector<uint8_t>{}, surfaceNode.GetHDRBrightness() * brightnessFactor, HdrStatus::HDR_VIDEO);
     }
+    if (ROSEN_NE(surfaceNode.GetHDRDimmingFactor(), hdrDimmingFactor)) {
+        RS_LOGD("RSHdrUtil::UpdateSurfaceNodeNit GetHDRDimmingFactor: %{public}f, "
+            "hdrDimmingFactor: %{public}f, nodeId: %{public}" PRIu64 "",
+            surfaceNode.GetHDRDimmingFactor(), hdrDimmingFactor, surfaceNode.GetId());
+        surfaceNode.SetHDRDimmingFactor(hdrDimmingFactor);
+        surfaceNode.SetContentDirty();
+    }
 
     float sdrNits = rsLuminance.GetSdrDisplayNits(screenId);
     float displayNits = rsLuminance.GetDisplayNits(screenId);
+#ifndef ROSEN_CROSS_PLATFORM
+    if (ROSEN_GNE(sdrNits, 0.0f)) {
+        scaler = std::clamp(scaler, 1.0f, displayNits / sdrNits);
+        rsLuminance.UpdateMetadataBasedOnScaler(surfaceBuffer, scaler, hdrStatus);
+    }
+#endif
 
     float layerNits = std::clamp(sdrNits * scaler, sdrNits, displayNits);
     surfaceNode.SetDisplayNit(layerNits);
@@ -164,9 +179,11 @@ bool RSHdrUtil::UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId 
     }
     // color temperature
     UpdateSurfaceNodeLayerLinearMatrix(surfaceNode, screenId);
-    RS_LOGD("RSHdrUtil::UpdateSurfaceNodeNit layerNits: %{public}.2f, displayNits: %{public}.2f,"
-        " sdrNits: %{public}.2f, scaler: %{public}.2f, HDRBrightness: %{public}f, brightnessFactor: %{public}f",
-        layerNits, displayNits, sdrNits, scaler, surfaceNode.GetHDRBrightness(), brightnessFactor);
+    RS_LOGD("RSHdrUtil::UpdateSurfaceNodeNit screenId: %{public}" PRIu64 ", nodeId: %{public}" PRIu64 ","
+        " layerNits: %{public}.2f, displayNits: %{public}.2f, sdrNits: %{public}.2f, scaler: %{public}.2f,"
+        " HDRBrightness: %{public}f, brightnessFactor: %{public}f, hdrDimmingFactor: %{public}.2f",
+        screenId, surfaceNode.GetId(), layerNits, displayNits, sdrNits, scaler, surfaceNode.GetHDRBrightness(),
+        brightnessFactor, hdrDimmingFactor);
     return true;
 }
 
@@ -195,6 +212,7 @@ void RSHdrUtil::UpdateSelfDrawingNodesNit(RSScreenRenderNode& node)
             }
         }
     }
+    RSLuminanceControl::Get().HdrDimmingPostProcess(node.GetScreenId());
 }
 
 void RSHdrUtil::UpdateSurfaceNodeLayerLinearMatrix(RSSurfaceRenderNode& surfaceNode, ScreenId screenId)
@@ -275,18 +293,25 @@ void RSHdrUtil::CheckPixelFormatWithSelfDrawingNode(RSSurfaceRenderNode& surface
     }
     auto screenId = screenNode.GetScreenId();
     screenNode.CollectHdrStatus(surfaceNode.GetVideoHdrStatus());
-
+    bool isHWCDisabled = surfaceNode.IsHardwareForcedDisabled();
+    bool isHDRNode = surfaceNode.GetVideoHdrStatus() != HdrStatus::NO_HDR;
+    bool isSdrNitsChanged = ROSEN_NE(screenNode.GetSdrNits(), screenNode.GetLastSdrNits());
+    bool isNeedSetDirty = isHWCDisabled && isHDRNode && isSdrNitsChanged;
+    if (isNeedSetDirty) {
+        RS_TRACE_NAME_FMT("%s surfaceNode: %s SetDirty", __func__, surfaceNode.GetName().c_str());
+        surfaceNode.SetContentDirty();
+    }
     if (RSLuminanceControl::Get().IsForceCloseHdr()) {
         RS_LOGD("RSHdrUtil::CheckPixelFormatWithSelfDrawingNode node(%{public}s) forceCloseHdr.",
             surfaceNode.GetName().c_str());
         return;
     }
-    if (!surfaceNode.IsHardwareForcedDisabled()) {
+    if (!isHWCDisabled) {
         RS_LOGD("RSHdrUtil::CheckPixelFormatWithSelfDrawingNode node(%{public}s) is hardware-enabled",
             surfaceNode.GetName().c_str());
         return;
     }
-    if (surfaceNode.GetVideoHdrStatus() != HdrStatus::NO_HDR) {
+    if (isHDRNode) {
         SetHDRParam(screenNode, surfaceNode, false);
         if (screenNode.GetIsLuminanceStatusChange()) {
             surfaceNode.SetContentDirty();

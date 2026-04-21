@@ -89,9 +89,10 @@ HWTEST_F(RSScreenChangeCallbackStubTest, OnRemoteRequest003, TestSize.Level1)
     MessageOption option;
     auto rsScreenChangeCallbackStub = std::make_shared<RSScreenChangeCallbackStubMock>();
     ASSERT_NE(rsScreenChangeCallbackStub, nullptr);
-    uint32_t code = static_cast<uint32_t>(RSIScreenChangeCallbackInterfaceCode::ON_SCREEN_CHANGED);
+    uint32_t code = std::numeric_limits<uint32_t>::max();
+    data.WriteInterfaceToken(RSIScreenChangeCallback::GetDescriptor());
     int res = rsScreenChangeCallbackStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_TRUE(res == ERR_INVALID_STATE);
+    EXPECT_TRUE(res != ERR_NONE);
 }
 
 /**
@@ -106,10 +107,80 @@ HWTEST_F(RSScreenChangeCallbackStubTest, OnRemoteRequest004, TestSize.Level1)
     MessageOption option;
     auto rsScreenChangeCallbackStub = std::make_shared<RSScreenChangeCallbackStubMock>();
     ASSERT_NE(rsScreenChangeCallbackStub, nullptr);
-    uint32_t code = std::numeric_limits<uint32_t>::max();
+    auto code = static_cast<uint32_t>(RSIScreenChangeCallbackInterfaceCode::ON_SCREEN_CHANGED);
     data.WriteInterfaceToken(RSIScreenChangeCallback::GetDescriptor());
+    data.WriteUint64(0); // screenId
+    data.WriteUint8(0); // event
+    data.WriteUint8(0); // reason
     int res = rsScreenChangeCallbackStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_TRUE(res != ERR_NONE);
+    EXPECT_TRUE(res == ERR_INVALID_DATA);
 }
 
+/**
+ * @tc.name: OnRemoteRequest005
+ * @tc.desc: Verify function OnRemoteRequest
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSScreenChangeCallbackStubTest, OnRemoteRequest005, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    auto rsScreenChangeCallbackStub = std::make_shared<RSScreenChangeCallbackStubMock>();
+    ASSERT_NE(rsScreenChangeCallbackStub, nullptr);
+    auto code = static_cast<uint32_t>(RSIScreenChangeCallbackInterfaceCode::ON_SCREEN_CHANGED);
+    data.WriteInterfaceToken(RSIScreenChangeCallback::GetDescriptor());
+    data.WriteUint64(0); // screenId
+    data.WriteUint8(0); // event
+    data.WriteUint8(0); // reason
+    data.WriteBool(false); // hasRemoteObj
+    int res = rsScreenChangeCallbackStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_TRUE(res == ERR_NONE);
+}
+
+/**
+ * @tc.name: OnRemoteRequest006
+ * @tc.desc: Verify function OnRemoteRequest
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSScreenChangeCallbackStubTest, OnRemoteRequest006, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    auto rsScreenChangeCallbackStub = std::make_shared<RSScreenChangeCallbackStubMock>();
+    ASSERT_NE(rsScreenChangeCallbackStub, nullptr);
+    auto code = static_cast<uint32_t>(RSIScreenChangeCallbackInterfaceCode::ON_SCREEN_CHANGED);
+    data.WriteInterfaceToken(RSIScreenChangeCallback::GetDescriptor());
+    data.WriteUint64(0); // screenId
+    data.WriteUint8(0); // event
+    data.WriteUint8(0); // reason
+    data.WriteBool(true); // hasRemoteObj
+    int res = rsScreenChangeCallbackStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_TRUE(res == ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: OnRemoteRequest007
+ * @tc.desc: Verify function OnRemoteRequest
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSScreenChangeCallbackStubTest, OnRemoteRequest007, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    auto rsScreenChangeCallbackStub = std::make_shared<RSScreenChangeCallbackStubMock>();
+    ASSERT_NE(rsScreenChangeCallbackStub, nullptr);
+    auto code = static_cast<uint32_t>(RSIScreenChangeCallbackInterfaceCode::ON_SCREEN_CHANGED);
+    data.WriteInterfaceToken(RSIScreenChangeCallback::GetDescriptor());
+    data.WriteUint64(0); // screenId
+    data.WriteUint8(0); // event
+    data.WriteUint8(0); // reason
+    data.WriteBool(true); // hasRemoteObj
+    sptr<IRemoteObject> obj = sptr<RSScreenChangeCallbackStubMock>::MakeSptr();
+    data.WriteRemoteObject(obj); // remoteObj
+    int res = rsScreenChangeCallbackStub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_TRUE(res == ERR_NONE);
+}
 } // namespace OHOS::Rosen

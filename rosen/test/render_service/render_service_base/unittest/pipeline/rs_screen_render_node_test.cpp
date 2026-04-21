@@ -408,6 +408,22 @@ HWTEST_F(RSScreenRenderNodeTest, ExistHWCNodeTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetSdrNitsTest
+ * @tc.desc: test results of SetSdrNits
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderNodeTest, SetSdrNitsTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSScreenRenderNode>(id, 0, context);
+    node->SetSdrNits(100.0f);
+    EXPECT_EQ(ROSEN_EQ(node->GetSdrNits(), 100.0f), true);
+    node->SetSdrNits(200.0f);
+    EXPECT_EQ(ROSEN_EQ(node->GetSdrNits(), 200.0f), true);
+    EXPECT_EQ(ROSEN_EQ(node->GetLastSdrNits(), 100.0f), true);
+}
+
+/**
  * @tc.name: SetHDRPresentTest
  * @tc.desc: test results of SetHDRPresent
  * @tc.type:FUNC

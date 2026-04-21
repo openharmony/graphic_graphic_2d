@@ -19,16 +19,16 @@
 #include <cmath>
 #include <random>
 
+#include "animation/rs_particle_field_base.h"
 #include "rs_render_particle.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSB_EXPORT ParticleNoiseField {
+class PerlinNoise2D;
+
+class RSB_EXPORT ParticleNoiseField : public ParticleFieldBase {
 public:
     int fieldStrength_ { 0 };
-    ShapeType fieldShape_;
-    Vector2f fieldSize_;
-    Vector2f fieldCenter_;
     uint16_t fieldFeather_ { 0 };
     float noiseScale_ { 0.0 };
     float noiseFrequency_ { 0.0 };
@@ -37,33 +37,44 @@ public:
     explicit ParticleNoiseField(const int fieldStrength, const ShapeType& fieldShape, const Vector2f& fieldSize,
         const Vector2f& fieldCenter, uint16_t fieldFeather, float noiseScale, float noiseFrequency,
         float noiseAmplitude)
-        : fieldStrength_(fieldStrength), fieldShape_(fieldShape), fieldSize_(fieldSize), fieldCenter_(fieldCenter),
-          fieldFeather_(fieldFeather), noiseScale_(noiseScale), noiseFrequency_(noiseFrequency),
-          noiseAmplitude_(noiseAmplitude)
-    {}
+        : fieldStrength_(fieldStrength), fieldFeather_(fieldFeather),
+          noiseScale_(noiseScale), noiseFrequency_(noiseFrequency), noiseAmplitude_(noiseAmplitude)
+    {
+        regionShape_ = fieldShape;
+        regionSize_ = fieldSize;
+        regionPosition_ = fieldCenter;
+    }
+    ParticleNoiseField() = default;
     ParticleNoiseField(const ParticleNoiseField& config) = default;
     ParticleNoiseField& operator=(const ParticleNoiseField& config) = default;
-    ~ParticleNoiseField() = default;
+    ~ParticleNoiseField() override;
+
+    ParticleFieldType GetType() const override { return ParticleFieldType::NOISE; }
+    Vector2f Apply(const Vector2f& position, float deltaTime) override;
+    bool Equals(const ParticleFieldBase& rhs) const override;
+    void Dump(std::string& out) const override;
+    bool MarshalSpecific(Parcel& parcel) const override;
+    bool UnmarshalSpecific(Parcel& parcel) override;
+
     float CalculateFeatherEffect(float distanceToEdge, float featherWidth);
     Vector2f ApplyField(const Vector2f& position, float deltaTime);
     Vector2f ApplyCurlNoise(const Vector2f& position);
+    bool IsPointInRegion(const Vector2f& point) const override;
 
     bool operator==(const ParticleNoiseField& rhs) const
     {
-        bool equal = (this->fieldStrength_ == rhs.fieldStrength_) && (this->fieldShape_ == rhs.fieldShape_) &&
-                     (this->fieldSize_ == rhs.fieldSize_) && (this->fieldCenter_ == rhs.fieldCenter_) &&
-                     (this->fieldFeather_ == rhs.fieldFeather_) && (this->noiseScale_ == rhs.noiseScale_) &&
-                     (this->noiseFrequency_ == rhs.noiseFrequency_) && (this->noiseAmplitude_ == rhs.noiseAmplitude_);
-        return equal;
+        return ParticleFieldBase::operator==(rhs);
     }
 
 private:
     bool IsPointInField(
-        const Vector2f& point, const ShapeType& fieldShape, const Vector2f& fieldCenter, float width, float height);
+        const Vector2f& point, const ShapeType& fieldShape,
+        const Vector2f& fieldCenter, float width, float height) const;
     float CalculateDistanceToRectangleEdge(
         const Vector2f& position, const Vector2f& direction, const Vector2f& center, const Vector2f& size);
     float CalculateDistanceToEllipseEdge(
         const Vector2f& direction, const Vector2f& center, const Vector2f& axes);
+    std::shared_ptr<PerlinNoise2D> cachedNoise_;
 };
 
 class RSB_EXPORT PerlinNoise2D {
@@ -72,12 +83,11 @@ private:
     float Fade(float t);
     float Lerp(float t, float a, float b);
     float Grad(int hash, float x, float y);
-    float noiseScale_ { 0.0 };
     float noiseFrequency_ { 0.0 };
     float noiseAmplitude_ { 0.0 };
 
 public:
-    PerlinNoise2D(float noiseScale, float noiseFrequency, float noiseAmplitude);
+    PerlinNoise2D(float noiseFrequency, float noiseAmplitude);
     float Noise(float x, float y);
     Vector2f Curl(float x, float y);
 };
@@ -131,7 +141,7 @@ public:
     {
         return fields_ == rhs.fields_;
     }
-    
+
     void Dump(std::string& out) const;
 };
 

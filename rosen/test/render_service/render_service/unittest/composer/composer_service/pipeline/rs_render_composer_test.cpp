@@ -2689,7 +2689,7 @@ HWTEST_F(RsRenderComposerTest, RedrawScreenRCD, TestSize.Level1)
     auto rcdLayer1 = std::static_pointer_cast<RSLayer>(std::make_shared<RSRenderSurfaceRCDLayer>());
     layers.emplace_back(rcdLayer1);
     EXPECT_NE(layers.size(), 0u);
-    rsRenderComposer_->RedrawScreenRCD(paintFilterCanvas, layers);
+    rsRenderComposer_->RedrawScreenRCD(paintFilterCanvas, layers, Vector2f(1.0f, 1.0f));
 }
 
 /**
@@ -5763,7 +5763,7 @@ HWTEST_F(RsRenderComposerTest, RedrawScreenRCD_CompositionDevice_Skip, TestSize.
     layers.push_back(layer);
 
     // Call RedrawScreenRCD - layer with DEVICE composition type should be skipped (line 859 continue)
-    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers);
+    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers, Vector2f(1.0f, 1.0f));
 
     // The test verifies the code path when line 856 condition is true
     // The layer should not be added to rcdLayerInfoList
@@ -5798,7 +5798,7 @@ HWTEST_F(RsRenderComposerTest, RedrawScreenRCD_CompositionDeviceClear_Skip, Test
     layers.push_back(layer);
 
     // Call RedrawScreenRCD - layer with DEVICE_CLEAR composition type should be skipped (line 859 continue)
-    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers);
+    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers, Vector2f(1.0f, 1.0f));
 
     // The test verifies the code path when line 857 condition is true
     // The layer should not be added to rcdLayerInfoList
@@ -5833,7 +5833,7 @@ HWTEST_F(RsRenderComposerTest, RedrawScreenRCD_CompositionSolidColor_Skip, TestS
     layers.push_back(layer);
 
     // Call RedrawScreenRCD - layer with SOLID_COLOR composition type should be skipped (line 859 continue)
-    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers);
+    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers, Vector2f(1.0f, 1.0f));
 
     // The test verifies the code path when line 858 condition is true
     // The layer should not be added to rcdLayerInfoList
@@ -5876,7 +5876,7 @@ HWTEST_F(RsRenderComposerTest, RedrawScreenRCD_AllThreeCompositionTypes_Skip, Te
     layers.push_back(layer3);
 
     // Call RedrawScreenRCD - all layers should be skipped (line 859 continue)
-    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers);
+    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers, Vector2f(1.0f, 1.0f));
 
     // The test verifies the code path when all conditions are true
     // All three layers should be skipped and not added to rcdLayerInfoList
@@ -5914,7 +5914,7 @@ HWTEST_F(RsRenderComposerTest, RedrawScreenRCD_OtherCompositionType_Processed, T
     layers.push_back(layer);
 
     // Call RedrawScreenRCD - layer should not be skipped (lines 856-858 false)
-    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers);
+    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers, Vector2f(1.0f, 1.0f));
 
     // The test verifies the code path when all conditions at lines 856-858 are false
     // The layer should NOT be skipped (but won't be added to rcdLayerInfoList if not RCD layer)
@@ -5952,7 +5952,7 @@ HWTEST_F(RsRenderComposerTest, RedrawScreenRCD_RcdLayer_Processed, TestSize.Leve
     layers.push_back(rcdLayer);
 
     // Call RedrawScreenRCD - RCD layer should be added to rcdLayerInfoList (line 862)
-    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers);
+    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers, Vector2f(1.0f, 1.0f));
 
     // Verify RCD layer properties
     EXPECT_TRUE(rcdLayer->IsScreenRCDLayer());
@@ -5986,7 +5986,7 @@ HWTEST_F(RsRenderComposerTest, RedrawScreenRCD_NullptrLayer_Skipped, TestSize.Le
     layers.push_back(nullptr);
 
     // Call RedrawScreenRCD - nullptr layer should be skipped (line 854 continue)
-    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers);
+    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers, Vector2f(1.0f, 1.0f));
 
     // Verify the function handles nullptr layers gracefully
     // The test verifies the code path when line 853 condition is true
@@ -6026,7 +6026,7 @@ HWTEST_F(RsRenderComposerTest, RedrawScreenRCD_NullptrLayerAndNormalLayer, TestS
     layers.push_back(layer);
 
     // Call RedrawScreenRCD - nullptr should be skipped, normal layer should be processed
-    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers);
+    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers, Vector2f(1.0f, 1.0f));
 
     // The test verifies mixed handling:
     // - nullptr layer should be skipped (line 854 continue)
@@ -6067,7 +6067,7 @@ HWTEST_F(RsRenderComposerTest, RedrawScreenRCD_DeviceTypeAndNullptr, TestSize.Le
     // Call RedrawScreenRCD
     // - nullptr should be skipped (line 854 continue)
     // - DEVICE type should be skipped (line 859 continue)
-    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers);
+    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers, Vector2f(1.0f, 1.0f));
 
     // Verify both layers should be skipped
 }
@@ -6118,7 +6118,7 @@ HWTEST_F(RsRenderComposerTest, RedrawScreenRCD_AllSkipConditions, TestSize.Level
     // - layer1 (DEVICE): line 859 continue
     // - layer2 (DEVICE_CLEAR): line 859 continue
     // - layer3 (SOLID_COLOR): line 859 continue
-    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers);
+    rsRenderComposerTmp->RedrawScreenRCD(paintFilterCanvas, layers, Vector2f(1.0f, 1.0f));
 
     // Verify all skip conditions are covered
     EXPECT_EQ(layers.size(), 4u);

@@ -480,7 +480,7 @@ OH_Drawing_ErrorCode OH_Drawing_PathConvertToSvgString(
 {
     const Path* path = CastToPath(cPath);
     if (path == nullptr || count == nullptr) {
-        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
     }
 
     std::string str = path->ConvertToSVGString();
@@ -492,11 +492,11 @@ OH_Drawing_ErrorCode OH_Drawing_PathConvertToSvgString(
         return OH_DRAWING_SUCCESS;
     }
     if (capacity < requiredSize) {
-        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
     }
 
     if (memcpy_s(svgString, capacity, str.c_str(), requiredSize) != EOK) {
-        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
     }
     return OH_DRAWING_SUCCESS;
 }
@@ -712,7 +712,7 @@ OH_Drawing_ErrorCode OH_Drawing_PathGetPointData(
 {
     const Path* drawingPath = CastToPath(path);
     if (drawingPath == nullptr || count == nullptr) {
-        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
     }
 
     std::vector<Point> pointData = drawingPath->GetPointData();
@@ -735,7 +735,7 @@ OH_Drawing_ErrorCode OH_Drawing_PathGetVerbData(
 {
     const Path* drawingPath = CastToPath(path);
     if (drawingPath == nullptr || count == nullptr) {
-        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
     }
 
     std::vector<PathVerb> verbData = drawingPath->GetVerbData();
@@ -757,7 +757,7 @@ OH_Drawing_ErrorCode OH_Drawing_PathGetConicWeightData(
 {
     const Path* drawingPath = CastToPath(path);
     if (drawingPath == nullptr || count == nullptr) {
-        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
     }
 
     std::vector<float> conicWeightData = drawingPath->GetConicWeightData();

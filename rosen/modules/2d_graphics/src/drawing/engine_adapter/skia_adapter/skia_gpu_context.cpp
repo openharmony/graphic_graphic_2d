@@ -500,24 +500,17 @@ void SkiaGPUContext::InitGpuMemoryLimit(MemoryOverflowCalllback callback, uint64
     }
     grContext_->initGpuMemoryLimit(callback, size);
 }
-
-void SkiaGPUContext::InitGpuMemoryReportLimit(MemoryOverReportCallback callback, size_t intervalLimit, size_t size)
-{
-    // Skia Not Implement InitGpuMemoryReportLimit
-    LOGD("SkiaGPUContext::InitGpuMemoryReportLimit, not implement");
-}
-
-void SkiaGPUContext::GetGpuMemoryInfo(std::unordered_map<std::string, std::pair<size_t, size_t>>& typeInfo,
-    std::unordered_map<pid_t, size_t>& pidInfo)
-{
-    // Skia Not Implement GetGpuMemoryInfo
-    LOGD("SkiaGPUContext::GetGpuMemoryInfo, not implement");
-}
     
 void SkiaGPUContext::SetAbnormalPid(pid_t pid)
 {
     // Skia Not Implement SetAbnormalPid
     LOGD("SkiaGPUContext::SetAbnormalPid, not implement");
+}
+
+void SkiaGPUContext::InitGpuMemoryInfoStatProc(GpuMemoryInfoStatProcCallback callback)
+{
+    // Skia Not Implement InitGpuMemoryInfoStatProc
+    LOGD("SkiaGPUContext::InitGpuMemoryInfoStatProc, not implement");
 }
 
 #ifdef RS_ENABLE_VK

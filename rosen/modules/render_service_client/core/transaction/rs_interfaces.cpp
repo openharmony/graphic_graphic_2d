@@ -271,7 +271,7 @@ bool RSInterfaces::FreezeScreen(std::shared_ptr<RSDisplayNode> node, bool isFree
     return renderInterface_->FreezeScreen(node, isFreeze, needSync);
 }
 
-bool RSInterfaces::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+bool RSInterfaces::SetHwcNodeBounds(NodeId rsNodeId, float positionX, float positionY,
     float positionZ, float positionW)
 {
     return renderInterface_->SetHwcNodeBounds(rsNodeId, positionX, positionY, positionZ, positionW);

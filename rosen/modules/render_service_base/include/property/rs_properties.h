@@ -33,7 +33,6 @@
 #include "render/rs_filter_cache_manager.h"
 #include "render/rs_gradient_blur_para.h"
 #include "render/rs_image.h"
-#include "render/rs_magnifier_para.h"
 #include "render/rs_mask.h"
 #include "render/rs_motion_blur_filter.h"
 #include "render/rs_path.h"
@@ -45,6 +44,7 @@ namespace Rosen {
 class RSRenderNode;
 class RSObjAbsGeometry;
 class RSNGRenderFilterBase;
+class ParticleFieldCollection;
 class ParticleRippleFields;
 class ParticleVelocityFields;
 struct ColorPickerParam;
@@ -377,6 +377,8 @@ public:
     void SetParticleNoiseFields(const std::shared_ptr<ParticleNoiseFields>& para);
     void SetParticleRippleFields(const std::shared_ptr<ParticleRippleFields>& para);
     void SetParticleVelocityFields(const std::shared_ptr<ParticleVelocityFields>& para);
+    void SetParticleFields(const std::shared_ptr<ParticleFieldCollection>& para);
+    const std::shared_ptr<ParticleFieldCollection>& GetParticleFields() const;
     void SetDynamicLightUpRate(const std::optional<float>& rate);
     void SetDynamicLightUpDegree(const std::optional<float>& lightUpDegree);
     void SetDynamicDimDegree(const std::optional<float>& DimDegree);
@@ -463,7 +465,6 @@ public:
     std::optional<RSDynamicBrightnessPara> GetBgBrightnessParams() const;
 
     void SetMotionBlurPara(const std::shared_ptr<MotionBlurParam>& para);
-    void SetMagnifierParams(const std::shared_ptr<RSMagnifierParams>& para);
     const std::shared_ptr<RSFilter>& GetBackgroundFilter() const
     {
         return backgroundFilter_;
@@ -487,7 +488,6 @@ public:
         return defaultValue;
     }
     const std::shared_ptr<MotionBlurParam>& GetMotionBlurPara() const;
-    const std::shared_ptr<RSMagnifierParams>& GetMagnifierPara() const;
     bool DisableHWCForFilter() const;
     bool NeedClipHoleForRenderGroup() const;
     bool NeedFilter() const;
@@ -755,7 +755,6 @@ public:
     bool IsHdrDarkenBlenderValid() const;
     void SetDistortionDirty(bool distortionEffectDirty);
     bool GetDistortionDirty() const;
-    bool GetMagnifierDirty() const;
     std::string GetFgBrightnessDescription() const;
     std::string GetBgBrightnessDescription() const;
     std::string GetShadowBlenderDescription() const;
@@ -948,7 +947,6 @@ private:
         std::optional<Vector2f> greyCoef_;
         float flyOutDegree_ = 0.0f;
         std::optional<RSFlyOutPara> flyOutParams_ = std::nullopt;
-        std::shared_ptr<RSMagnifierParams> magnifierPara_ = nullptr;
         std::optional<float> dynamicLightUpRate_;
         std::optional<float> dynamicLightUpDegree_;
         std::optional<float> dynamicDimDegree_;
@@ -1037,7 +1035,6 @@ private:
     void GenerateAlwaysSnapshotFilter();
     void GenerateWaterRippleFilter();
     void GenerateLinearGradientBlurFilter();
-    void GenerateMagnifierFilter();
     void ComposeNGRenderFilter(
         std::shared_ptr<RSFilter>& originFilter, std::shared_ptr<RSNGRenderFilterBase> filter);
 
@@ -1125,6 +1122,7 @@ private:
     std::shared_ptr<RectF> drawRegion_ = nullptr;
     std::shared_ptr<ParticleRippleFields> particleRippleFields_ = nullptr;
     std::shared_ptr<ParticleVelocityFields> particleVelocityFields_ = nullptr;
+    std::shared_ptr<ParticleFieldCollection> particleFields_ = nullptr;
     std::shared_ptr<RSBorder> border_ = nullptr;
     std::shared_ptr<RSBorder> outline_ = nullptr;
     std::shared_ptr<RSPath> clipPath_ = nullptr;
@@ -1150,7 +1148,7 @@ private:
     void StatBackgroundFilter();
     void StatCompositingFilter();
     void StatForegroundFilter();
-    
+
     // OnApplyModifiers hooks
     void CheckEmptyBounds();
     void GenerateColorFilter();

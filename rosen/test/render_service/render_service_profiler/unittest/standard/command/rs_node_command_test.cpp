@@ -99,7 +99,7 @@ HWTEST_F(RSNodeCommandTypeTest, FixNodeCommandTest002, Level1 | Standard)
     value = 0x0600;
     EXPECT_EQ(static_cast<uint16_t>(SET_NODE_NAME), value++);
     EXPECT_EQ(static_cast<uint16_t>(UPDATE_MODIFIER_MOTION_BLUR_PTR), value++);
-    EXPECT_EQ(static_cast<uint16_t>(UPDATE_MODIFIER_MAGNIFIER_PTR), value++);
+    value = 0x0603;
     EXPECT_EQ(static_cast<uint16_t>(UPDATE_MODIFIER_WATER_RIPPLE), value++);
     EXPECT_EQ(static_cast<uint16_t>(UPDATE_MODIFIER_FLY_OUT), value++);
     EXPECT_EQ(static_cast<uint16_t>(REMOVE_ALL_MODIFIERS), value++);

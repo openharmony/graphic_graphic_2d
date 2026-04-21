@@ -692,6 +692,10 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
         if (isOnTheTree_) {
             AddPreFirstLevelNodeIdSet(child->GetPreFirstLevelNodeIdSet());
         }
+        if (child->GetType() == RSRenderNodeType::SURFACE_NODE) {
+            RS_LOGI("RSRenderNode::SetIsOnTheTree: CurNode:[%{public}" PRIu64 "] SurfaceNodeChild[%{public}" PRIu64 "],"
+                    " isOnTheTree: %{public}d", GetId(), child->GetId(), flag);
+        }
         child->SetIsOnTheTree(flag, instanceRootNodeId, firstLevelNodeId, cacheNodeId, uifirstRootNodeId, screenNodeId,
             logicalDisplayNodeId);
     }
@@ -761,7 +765,7 @@ void RSRenderNode::ResetChildRelevantFlags()
     SetHasChildExcludedFromNodeGroup(false);
     SetChildHasVisibleHDRContent(false);
     ResetNodeColorSpace();
-    subTreeHasDrawContent_ = false;
+    layerContentBits_[LayerDrawContent::SUBTREE] = false;
     RSPointLightManager::Instance(GetLogicalDisplayNodeId())->SetChildHasVisibleIlluminated(shared_from_this(), false);
 }
 
@@ -1155,8 +1159,8 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
         out += ", IsSubTreeSkipped: " + std::to_string(curFrameInfoDetail_.curFrameSubTreeSkipped);
         out += ", ReverseChildren: " + std::to_string(curFrameInfoDetail_.curFrameReverseChildren);
         out += ", zOrder: " + std::to_string(hwcRecorder_.GetZOrderForHwcEnableByFilter());
-        out += ", hasDrawContent: " + std::to_string(hasDrawContent_);
-        out += ", hasChildrenDrawContent: " + std::to_string(subTreeHasDrawContent_);
+        out += ", hasDrawContent: " + std::to_string(layerContentBits_[LayerDrawContent::SELF]);
+        out += ", hasChildrenDrawContent: " + std::to_string(layerContentBits_[LayerDrawContent::SUBTREE]);
     }
 #endif
 
@@ -1481,7 +1485,7 @@ void RSRenderNode::SetDirty(bool forceAddToActiveList)
     isParentTreeDirty_ = true;
     SetParentSubTreeDirty();
     dirtyStatus_ = NodeDirty::DIRTY;
-    needUpdateDrawContent_ = true;
+    layerContentBits_[LayerDrawContent::UPDATE] = true;
 }
 
 void RSRenderNode::CollectSurface(
@@ -1917,15 +1921,6 @@ void RSRenderNode::CollectAndUpdateLocalDistortionEffectRect()
     selfDrawRect_ = selfDrawRect_.JoinRect(localDistortionEffectRect.ConvertTo<float>());
 }
 
-void RSRenderNode::CollectAndUpdateLocalMagnifierEffectRect()
-{
-    // update magnifier effect's dirty region if it changes
-    if (GetRenderProperties().GetMagnifierDirty()) {
-        RectI localMagnifierEffectRect;
-        RSPropertiesPainter::GetMagnifierEffectDirtyRect(localMagnifierEffectRect, GetRenderProperties());
-        selfDrawRect_ = selfDrawRect_.JoinRect(localMagnifierEffectRect.ConvertTo<float>());
-    }
-}
 
 void RSRenderNode::CollectAndUpdateLocalEffectRect()
 {
@@ -1942,6 +1937,8 @@ void RSRenderNode::CollectAndUpdateLocalEffectRect()
     }
     const auto& shader = GetRenderProperties().GetForegroundShader();
     selfDrawRect_ = selfDrawRect_.JoinRect(RSNGRenderShaderHelper::CalcRect(shader, boundsRect));
+    const auto& overlayNGShader = GetRenderProperties().GetOverlayNGShader();
+    selfDrawRect_ = selfDrawRect_.JoinRect(RSNGRenderShaderHelper::CalcRect(overlayNGShader, boundsRect));
 }
 
 void RSRenderNode::UpdateBufferDirtyRegion()
@@ -2006,7 +2003,6 @@ bool RSRenderNode::UpdateSelfDrawRect()
     CollectAndUpdateLocalOutlineRect();
     CollectAndUpdateLocalPixelStretchRect();
     CollectAndUpdateLocalDistortionEffectRect();
-    CollectAndUpdateLocalMagnifierEffectRect();
     CollectAndUpdateLocalEffectRect();
     return !selfDrawRect_.IsNearEqual(prevSelfDrawRect);
 }
@@ -3346,9 +3342,9 @@ void RSRenderNode::UpdateDrawableVecV2()
     // save/clip/restore.
     RS_LOGI_IF(DEBUG_NODE,
         "RSRenderNode::update drawable VecV2 drawableChanged:%{public}d", drawableChanged);
-    if (GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
-        auto canvasdrawingnode = ReinterpretCastTo<RSCanvasDrawingRenderNode>();
-        drawableChanged |= canvasdrawingnode->GetIsPostPlaybacked();
+    auto canvasDrawingNode = ReinterpretCastTo<RSCanvasDrawingRenderNode>();
+    if (canvasDrawingNode != nullptr) {
+        drawableChanged |= canvasDrawingNode->GetIsPostPlaybacked();
     }
     if (drawableChanged || dirtySlots.count(RSDrawableSlot::CLIP_TO_BOUNDS)) {
         // Step 3: Recalculate save/clip/restore on demands
@@ -3375,8 +3371,9 @@ void RSRenderNode::UpdateDrawableVecV2()
     } else {
         dirtySlots_.insert(dirtySlots.begin(), dirtySlots.end());
     }
-
-    waitSync_ = true;
+    if (canvasDrawingNode != nullptr) {
+        canvasDrawingNode->SetWaitSync(true);
+    }
 #endif
 }
 
@@ -4672,12 +4669,9 @@ void RSRenderNode::OnSync()
     backgroundFilterRegionChanged_ = false;
     backgroundFilterInteractWithDirty_ = false;
 
-    // Reset Sync Flag
-    // only canvas drawing node use SetNeedDraw function
-    if (GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE && waitSync_) {
-        renderDrawable_->SetNeedDraw(true);
+    if (auto canvasDrawingNode = ReinterpretCastTo<RSCanvasDrawingRenderNode>()) {
+        canvasDrawingNode->AfterSync();
     }
-    waitSync_ = false;
 
     lastFrameSynced_ = !isLeashWindowPartialSkip;
 }

@@ -269,11 +269,11 @@ public:
             case RSPropertyType::PARTICLE_NOISE_FIELD: return "ParticleNoiseField";
             case RSPropertyType::PARTICLE_RIPPLE_FIELD: return "ParticleRippleField";
             case RSPropertyType::PARTICLE_VELOCITY_FIELD: return "ParticleVelocityField";
+            case RSPropertyType::PARTICLE_FIELDS: return "ParticleFields";
             case RSPropertyType::FLY_OUT_DEGREE: return "FlyOutDegree";
             case RSPropertyType::FLY_OUT_PARAMS: return "FlyOutParams";
             case RSPropertyType::DISTORTION_K: return "DistortionK";
             case RSPropertyType::DYNAMIC_DIM_DEGREE: return "DynamicDimDegree";
-            case RSPropertyType::MAGNIFIER_PARA: return "MagnifierPara";
             case RSPropertyType::BACKGROUND_BLUR_RADIUS: return "BackgroundBlurRadius";
             case RSPropertyType::BACKGROUND_BLUR_SATURATION: return "BackgroundBlurSaturation";
             case RSPropertyType::BACKGROUND_BLUR_BRIGHTNESS: return "BackgroundBlurBrightness";

@@ -72,7 +72,6 @@ ohos_unittest("RSRenderServiceBaseBackendTest") {
   ]
 
   deps = [
-    "$graphic_2d_root:libvulkan",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
@@ -88,6 +87,10 @@ ohos_unittest("RSRenderServiceBaseBackendTest") {
     "vulkan-headers:vulkan_headers",
     "ffrt:libffrt",
   ]
+
+  if (graphic_2d_feature_enable_vulkan) {
+    external_deps += [ "vulkan-loader:vulkan_loader" ]
+  }
 
   subsystem_name = "graphic"
 }

@@ -1350,10 +1350,42 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, CreateGpuSurfaceTest, TestSize.L
     drawable->backendTexture_ = NativeBufferUtils::MakeBackendTexture(imageInfo.width_, imageInfo.height_, getpid());
     auto vkTextureInfo = drawable->backendTexture_.GetTextureInfo().GetVKTextureInfo();
     drawable->vulkanCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
-        vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory, vkTextureInfo->vkAlloc.statName);
+        vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
     newVulkanCleanupHelper = false;
     drawable->CreateGpuSurface(imageInfo, gpuContext, newVulkanCleanupHelper, false);
     ASSERT_EQ(drawable->surface_, nullptr);
 }
 #endif
+
+/**
+ * @tc.name: OnDrawAbnormalProcessTest
+ * @tc.desc: Test OnDraw with abnormal process check
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnDrawAbnormalProcessTest, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    NodeId nodeId = 1;
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(nodeId, rsContext->weak_from_this());
+    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
+    drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    drawable->renderParams_->shouldPaint_ = true;
+    drawable->renderParams_->contentEmpty_ = false;
+
+    // Mark process as abnormal
+    pid_t pid = ExtractPid(nodeId);
+    MemorySnapshot::Instance().SetAbnormalProcess(pid);
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    
+    // OnDraw should return early for abnormal process
+    drawable->OnDraw(canvas);
+    bool isAbnormal = MemorySnapshot::Instance().IsAbnormalProcess(pid);
+    ASSERT_TRUE(isAbnormal);
+    
+    // Clean up
+    std::set<pid_t> exitedPids = {pid};
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+}
 }

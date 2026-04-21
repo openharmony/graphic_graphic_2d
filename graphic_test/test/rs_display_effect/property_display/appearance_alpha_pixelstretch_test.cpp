@@ -142,53 +142,6 @@ GRAPHIC_TEST(AppearanceTest12, CONTENT_DISPLAY_TEST, Appearance__Alpha_MotionBlu
     }
 }
 
-GRAPHIC_TEST(AppearanceTest12, CONTENT_DISPLAY_TEST, Appearance__Alpha_MagnifierParams_Test)
-{
-    int columnCount = 1;
-    int rowCount = 2;
-    auto sizeX = screenWidth / columnCount;
-    auto sizeY = screenHeight / rowCount;
-
-    int x = (0 % columnCount) * sizeX;
-    int y = (0 / columnCount) * sizeY;
-    std::string testImagePath = "/data/local/tmp/Images/3200x2000.jpg";
-    auto testNodeBackGround1 = SetUpNodeBgImage(testImagePath, { x, y, sizeX - 10, sizeY - 10 });
-    testNodeBackGround1->SetAlpha(0.8f);
-    testNodeBackGround1->SetBorderStyle(0, 0, 0, 0);
-    testNodeBackGround1->SetBorderWidth(5, 5, 5, 5);
-    testNodeBackGround1->SetBorderColor(Vector4<Color>(RgbPalette::Green()));
-    auto magnifierParams1 = std::make_shared<Rosen::RSMagnifierParams>();
-    magnifierParams1->factor_ = 3;
-    magnifierParams1->width_ = 200;
-    magnifierParams1->height_ = 200;
-    magnifierParams1->cornerRadius_ = 20;
-    magnifierParams1->borderWidth_ = 5;
-    magnifierParams1->offsetX_ = 50;
-    magnifierParams1->offsetY_ = 50;
-    testNodeBackGround1->SetMagnifierParams(magnifierParams1);
-    GetRootNode()->AddChild(testNodeBackGround1);
-    RegisterNode(testNodeBackGround1);
-
-    x = (1 % columnCount) * sizeX;
-    y = (1 / columnCount) * sizeY;
-    auto testNodeBackGround2 = SetUpNodeBgImage(testImagePath, { x, y, sizeX - 10, sizeY - 10 });
-    testNodeBackGround2->SetAlpha(0.7f);
-    testNodeBackGround2->SetBorderStyle(0, 0, 0, 0);
-    testNodeBackGround2->SetBorderWidth(5, 5, 5, 5);
-    testNodeBackGround2->SetBorderColor(Vector4<Color>(RgbPalette::Green()));
-    auto magnifierParams2 = std::make_shared<Rosen::RSMagnifierParams>();
-    magnifierParams2->factor_ = 10;
-    magnifierParams2->width_ = 250;
-    magnifierParams2->height_ = 250;
-    magnifierParams2->cornerRadius_ = 50;
-    magnifierParams2->borderWidth_ = 15;
-    magnifierParams2->offsetX_ = 30;
-    magnifierParams2->offsetY_ = 60;
-    testNodeBackGround2->SetMagnifierParams(magnifierParams2);
-    GetRootNode()->AddChild(testNodeBackGround2);
-    RegisterNode(testNodeBackGround2);
-}
-
 GRAPHIC_TEST(AppearanceTest12, CONTENT_DISPLAY_TEST, Appearance__Alpha_FrameGravity_Test)
 {
     int columnCount = 4;

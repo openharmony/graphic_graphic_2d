@@ -68,6 +68,7 @@ private:
     std::shared_ptr<RSFontMgr> testFontManager_{nullptr};
     std::shared_ptr<RSFontMgr> globalFontManager_{nullptr};
     bool enableFontFallback_;
+    bool paragraphCacheEnabled_{true};
 
     sk_sp<skia::textlayout::FontCollection> sktFontCollection_;
     mutable std::shared_mutex collectionMutex_;

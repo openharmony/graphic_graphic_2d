@@ -97,7 +97,6 @@ enum class RSPropertyType : uint8_t {
     GRAVITY,
     HRP_PLACEHOLDER_2, // HRP: delete it
     LINEAR_GRADIENT_BLUR_PARA,
-    MAGNIFIER_PARAMS,
     MOTION_BLUR_PARAM,
     VECTOR_EMITTER_UPDATER,
     PARTICLE_NOISE_FIELD,
@@ -122,6 +121,7 @@ enum class RSPropertyType : uint8_t {
     SHADOW_BLENDER_PARAMS,
     RS_NG_RENDER_SHAPE_BASE,
     HDR_DARKEN_BLENDER_PARAMS,
+    PARTICLE_FIELDS,
 };
 
 enum class RSPropertyUnit : uint8_t {

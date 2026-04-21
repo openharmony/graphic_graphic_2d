@@ -51,6 +51,7 @@
 #include "screen_manager/rs_screen.h"
 #include "feature/capture/rs_capture_pixelmap_manager.h"
 #include "feature/color_picker/rs_color_picker_thread.h"
+#include "render/rs_typeface_cache.h"
 #include "render_process/transaction/rs_service_to_render_connection.h"
 #include "render_server/transaction/rs_render_to_service_connection.h"
 #include "render_service/composer/composer_client/connection/rs_composer_to_render_connection.h"
@@ -4348,6 +4349,115 @@ HWTEST_F(RSClientToServiceConnectionStubTest, RegisterTypefaceTest002, TestSize.
     EXPECT_NE(
         connectionStub_->RegisterTypeface(sharedTypeface, needUpdate), -1);
     EXPECT_TRUE(connectionStub_->UnRegisterTypeface(typeface->GetHash()));
+    EXPECT_TRUE(connectionStub_->UnRegisterTypeface(sharedTypeface.id_));
+}
+
+/**
+ * @tc.name: RegisterTypefaceTest003
+ * @tc.desc: test RegisterVariationTypeface via RegisterTypeface(SharedTypeface) with originId_ > 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, RegisterTypefaceTest003, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    std::vector<char> content;
+    LoadBufferFromFile("/system/fonts/Roboto-Regular.ttf", content);
+    std::shared_ptr<Drawing::Typeface> baseTypeface =
+        Drawing::Typeface::MakeFromAshmem(reinterpret_cast<const uint8_t*>(content.data()), content.size(), 0, "test");
+    ASSERT_NE(baseTypeface, nullptr);
+
+    // Cache base typeface first
+    pid_t pid = getpid();
+    uint64_t baseUniqueId = (static_cast<uint64_t>(pid) << 32) | static_cast<uint64_t>(baseTypeface->GetUniqueID());
+    RSTypefaceCache::Instance().CacheDrawingTypeface(baseUniqueId, baseTypeface);
+
+    // Create variation typeface
+    Drawing::FontArguments fontArgs;
+    std::vector<Drawing::FontArguments::VariationPosition::Coordinate> coords = { { 2003265652, 100.0f } };
+    fontArgs.SetVariationDesignPosition({ coords.data(), coords.size() });
+    auto variationTypeface = baseTypeface->MakeClone(fontArgs);
+    ASSERT_NE(variationTypeface, nullptr);
+
+    uint64_t varUniqueId = (static_cast<uint64_t>(pid) << 32) | static_cast<uint64_t>(variationTypeface->GetUniqueID());
+    variationTypeface->SetFd(baseTypeface->GetFd());
+    Drawing::SharedTypeface sharedTypeface(varUniqueId, variationTypeface);
+    sharedTypeface.originId_ = baseUniqueId;
+
+    int32_t needUpdate = 0;
+    int32_t result = connectionStub_->RegisterTypeface(sharedTypeface, needUpdate);
+    EXPECT_NE(result, -1);
+
+    RSTypefaceCache::Instance().RemoveDrawingTypefaceByGlobalUniqueId(baseUniqueId);
+    RSTypefaceCache::Instance().RemoveDrawingTypefaceByGlobalUniqueId(varUniqueId);
+}
+
+/**
+ * @tc.name: RegisterTypefaceTest004
+ * @tc.desc: test RegisterAshmemTypeface with cached typeface reuse
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, RegisterTypefaceTest004, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    std::vector<char> content;
+    LoadBufferFromFile("/system/fonts/Roboto-Regular.ttf", content);
+    std::shared_ptr<Drawing::Typeface> typeface =
+        Drawing::Typeface::MakeFromAshmem(reinterpret_cast<const uint8_t*>(content.data()), content.size(), 0, "test");
+    ASSERT_NE(typeface, nullptr);
+
+    pid_t pid = getpid();
+    uint64_t uniqueId = (static_cast<uint64_t>(pid) << 32) | static_cast<uint64_t>(typeface->GetHash());
+
+    // First registration to cache it
+    int32_t needUpdate = -1;
+    Drawing::SharedTypeface sharedTypeface1(uniqueId, typeface);
+    EXPECT_NE(connectionStub_->RegisterTypeface(sharedTypeface1, needUpdate), -1);
+    EXPECT_EQ(needUpdate, 0);
+
+    // Second registration with same hash - should hit cached typeface path (line 1401)
+    Drawing::SharedTypeface sharedTypeface2(uniqueId, typeface);
+    needUpdate = 0;
+    int32_t result = connectionStub_->RegisterTypeface(sharedTypeface2, needUpdate);
+    EXPECT_NE(result, -1);
+    // needUpdate should be 1 when reusing cached typeface
+    EXPECT_EQ(needUpdate, 1);
+
+    RSTypefaceCache::Instance().RemoveDrawingTypefaceByGlobalUniqueId(uniqueId);
+}
+
+/**
+ * @tc.name: RegisterTypefaceTest005
+ * @tc.desc: test RegisterAshmemTypeface with invalid parameters (fd < 0)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, RegisterTypefaceTest005, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    Drawing::SharedTypeface sharedTypeface;
+    sharedTypeface.id_ = 123;
+    sharedTypeface.originId_ = 0;
+    sharedTypeface.fd_ = -1;
+    sharedTypeface.size_ = 0;
+    int32_t needUpdate = 0;
+    EXPECT_EQ(connectionStub_->RegisterTypeface(sharedTypeface, needUpdate), -1);
+}
+
+/**
+ * @tc.name: RegisterTypefaceTest006
+ * @tc.desc: test UnRegisterTypeface with cached typeface covers full path
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, RegisterTypefaceTest006, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    auto typeface = Drawing::Typeface::MakeDefault();
+    ASSERT_NE(typeface, nullptr);
+    pid_t pid = getpid();
+    uint64_t uniqueId = (static_cast<uint64_t>(pid) << 32) | typeface->GetUniqueID();
+    RSTypefaceCache::Instance().CacheDrawingTypeface(uniqueId, typeface);
+
+    bool ret = connectionStub_->UnRegisterTypeface(uniqueId);
+    EXPECT_TRUE(ret);
 }
 
 /**
@@ -5195,6 +5305,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, ReportGameStateTest001, TestSize.L
         iface_cast<RSClientToServiceConnection>(connectionStub_);
     EXPECT_NE(clientToServiceConnection, nullptr);
     EXPECT_NE(clientToServiceConnection->renderServiceAgent_, nullptr);
+    clientToServiceConnection->renderServiceAgent_->renderService_.InitGameFrameHandler();
     auto& handler = clientToServiceConnection->renderServiceAgent_->renderService_.GetGameFrameHandler();
     EXPECT_NE(handler, nullptr);
     GameStateData data = { 0, 0, 0, 0, "bundleName" };

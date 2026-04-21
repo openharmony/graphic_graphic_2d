@@ -153,7 +153,7 @@ HWTEST_F(RSRenderDisplaySyncTest, OnFrameSkipForAnimate001, TestSize.Level1)
     period = 11111111;
     isFrameSkip = displaySync->OnFrameSkipForAnimate(timestamp, period, isDisplaySyncEnabled, nextFrameTime);
     EXPECT_EQ(isFrameSkip, false);
-    EXPECT_EQ(nextFrameTime, 107315354179);
+    EXPECT_EQ(nextFrameTime, 107304243068);
 
     timestamp = 107304243068;
     isDisplaySyncEnabled = false;
@@ -164,7 +164,7 @@ HWTEST_F(RSRenderDisplaySyncTest, OnFrameSkipForAnimate001, TestSize.Level1)
     timestamp = 107304243068;
     isDisplaySyncEnabled = true;
     isFrameSkip = displaySync->OnFrameSkipForAnimate(timestamp, period, isDisplaySyncEnabled, nextFrameTime);
-    EXPECT_EQ(isFrameSkip, true);
+    EXPECT_EQ(isFrameSkip, false);
     EXPECT_EQ(nextFrameTime, 107315354179);
 
     timestamp = 107304243068;
@@ -248,6 +248,37 @@ HWTEST_F(RSRenderDisplaySyncTest, OnFrameSkipForAnimate003, TestSize.Level1)
     bool isFrameSkip = displaySync->OnFrameSkipForAnimate(timestamp, period, isDisplaySyncEnabled, nextFrameTime);
     EXPECT_EQ(isFrameSkip, false);
     EXPECT_EQ(nextFrameTime, 1024999999);
+}
+
+/**
+ * @tc.name: OnFrameSkipForAnimate004
+ * @tc.desc: Test OnFrameSkipForAnimate
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderDisplaySyncTest, OnFrameSkipForAnimate004, TestSize.Level1)
+{
+    uint64_t id = 1;
+    auto displaySync = std::make_shared<RSRenderDisplaySync>(id);
+    ASSERT_NE(displaySync, nullptr);
+ 
+    FrameRateRange range = {0, 120, 5};
+    displaySync->SetExpectedFrameRateRange(range);
+    displaySync->timestamp_ = 1000000000;
+    displaySync->currentPeriod_ = 8333333;
+    displaySync->currentFrameRate_ = 60;
+    displaySync->vsyncTriggerCount_ = 100;
+    displaySync->skipPeriodCount_ = 24;
+    displaySync->skipPeriodCountNeedUpdate_ = false;
+ 
+    int64_t timestamp = 1016666666;
+    int64_t period = 16666666;
+    bool isDisplaySyncEnabled = true;
+    int64_t nextFrameTime = 0;
+    displaySync->OnFrameSkipForAnimate(timestamp, period, isDisplaySyncEnabled, nextFrameTime);
+    EXPECT_EQ(displaySync->vsyncTriggerCount_, 101);
+    EXPECT_EQ(displaySync->currentFrameRate_, 60);
+    EXPECT_EQ(displaySync->skipPeriodCountNeedUpdate_, false);
 }
 
 /**

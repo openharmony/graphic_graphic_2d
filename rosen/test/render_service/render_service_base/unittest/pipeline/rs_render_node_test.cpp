@@ -1191,6 +1191,7 @@ HWTEST_F(RSRenderNodeTest, OnSyncTest1, TestSize.Level1)
     node->needClearSurface_ = true;
     std::function<void()> clearTask = []() { printf("ClearSurfaceTask CallBack\n"); };
     node->GetOpincCache().isOpincRootFlag_ = true;
+    node->nodeGroupType_ = RSRenderNode::NodeGroupType::GROUPED_BY_LAYER;
     node->OnSync();
     EXPECT_TRUE(node->dirtySlots_.empty());
     EXPECT_FALSE(node->drawCmdListNeedSync_);
