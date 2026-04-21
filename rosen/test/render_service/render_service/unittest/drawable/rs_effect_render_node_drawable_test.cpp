@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <parameters.h>
+
 #include "gtest/gtest.h"
 #include "drawable/rs_color_picker_drawable.h"
 #include "drawable/rs_effect_render_node_drawable.h"
@@ -326,5 +328,123 @@ HWTEST_F(RSEffectRenderNodeDrawableTest, GenerateEffectDataOnDemandWithColorPick
 
     // Call GenerateEffectDataOnDemand - should not crash and return true
     EXPECT_TRUE(drawable->GenerateEffectDataOnDemand(&params, paintFilterCanvas, bounds, &paintFilterCanvas));
+}
+
+/**
+ * @tc.name: IsBlurNotRequired001
+ * @tc.desc: Test IsBlurNotRequired when drawCmdIndex_.backgroundFilterIndex_ == -1
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSEffectRenderNodeDrawableTest, IsBlurNotRequiredWithUICapture001, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    auto drawable = std::make_shared<RSEffectRenderNodeDrawable>(std::move(node));
+    Drawing::Canvas canvas(1024, 1920);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    RSEffectRenderParams params(nodeId);
+
+    drawable->drawCmdIndex_.backgroundFilterIndex_ = -1;
+    EXPECT_TRUE(drawable->IsBlurNotRequired(&params, &paintFilterCanvas));
+}
+
+/**
+ * @tc.name: IsBlurNotRequired002
+ * @tc.desc: Test IsBlurNotRequired when RSSystemProperties::GetEffectMergeEnabled == false
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSEffectRenderNodeDrawableTest, IsBlurNotRequired002, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    auto drawable = std::make_shared<RSEffectRenderNodeDrawable>(std::move(node));
+    Drawing::Canvas canvas(1024, 1920);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    RSEffectRenderParams params(nodeId);
+
+    drawable->drawCmdIndex_.backgroundFilterIndex_ = 0;
+    (void)system::SetParameter("rosen.graphic.effectMergeEnabled", "0");
+    int param = (int)RSSystemProperties::GetEffectMergeEnabled();
+    ASSERT_EQ(param, 0);
+    EXPECT_TRUE(drawable->IsBlurNotRequired(&params, &paintFilterCanvas));
+
+    (void)system::SetParameter("rosen.graphic.effectMergeEnabled", "1");
+    param = (int)RSSystemProperties::GetEffectMergeEnabled();
+    ASSERT_EQ(param, 1);
+}
+
+/**
+ * @tc.name: IsBlurNotRequired003
+ * @tc.desc: Test IsBlurNotRequired when RSFilterCacheManager::isCCMEffectMergeEnable_ == false
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSEffectRenderNodeDrawableTest, IsBlurNotRequired003, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    auto drawable = std::make_shared<RSEffectRenderNodeDrawable>(std::move(node));
+    Drawing::Canvas canvas(1024, 1920);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    RSEffectRenderParams params(nodeId);
+
+    drawable->drawCmdIndex_.backgroundFilterIndex_ = 0;
+    RSFilterCacheManager::isCCMEffectMergeEnable_ = false;
+    EXPECT_TRUE(drawable->IsBlurNotRequired(&params, &paintFilterCanvas));
+}
+
+/**
+ * @tc.name: IsBlurNotRequired004
+ * @tc.desc: Test IsBlurNotRequired when GetUICapture is true
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSEffectRenderNodeDrawableTest, IsBlurNotRequired004, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    auto drawable = std::make_shared<RSEffectRenderNodeDrawable>(std::move(node));
+    Drawing::Canvas canvas(1024, 1920);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    RSEffectRenderParams params(nodeId);
+
+    drawable->drawCmdIndex_.backgroundFilterIndex_ = 0;
+    RSFilterCacheManager::isCCMEffectMergeEnable_ = true;
+
+    paintFilterCanvas.SetUICapture(true);
+    EXPECT_FALSE(drawable->IsBlurNotRequired(&params, &paintFilterCanvas));
+}
+
+/**
+ * @tc.name: IsBlurNotRequired005
+ * @tc.desc: Test IsBlurNotRequired when GetUICapture is false with different params
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSEffectRenderNodeDrawableTest, IsBlurNotRequired005, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    auto drawable = std::make_shared<RSEffectRenderNodeDrawable>(std::move(node));
+    Drawing::Canvas canvas(1024, 1920);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    RSEffectRenderParams params(nodeId);
+
+    drawable->drawCmdIndex_.backgroundFilterIndex_ = 0;
+    RSFilterCacheManager::isCCMEffectMergeEnable_ = true;
+
+    paintFilterCanvas.SetUICapture(false);
+    params.SetHasEffectChildren(false);
+    EXPECT_TRUE(drawable->IsBlurNotRequired(&params, &paintFilterCanvas));
+
+    params.SetHasEffectChildren(true);
+    params.SetHasEffectChildrenWithoutEmptyRect(false);
+    paintFilterCanvas.SetIsParallelCanvas(false);
+    EXPECT_TRUE(drawable->IsBlurNotRequired(&params, &paintFilterCanvas));
+
+    params.SetHasEffectChildrenWithoutEmptyRect(true);
+    EXPECT_FALSE(drawable->IsBlurNotRequired(&params, &paintFilterCanvas));
 }
 }
