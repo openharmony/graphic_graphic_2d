@@ -98,6 +98,10 @@ static std::unordered_map<RSNGEffectType, ShaderCreator> creatorLUT = {
             return std::make_shared<RSNGRenderSDFEdgeLightEffect>();
         }
     },
+    {RSNGEffectType::SPATIAL_POINT_LIGHT, [] {
+            return std::make_shared<RSNGRenderSpatialPointLight>();
+        }
+    },
 };
 
 using ShaderGetDrawRect = std::function<RectF(std::shared_ptr<RSNGRenderShaderBase>, const RectF&)>;
