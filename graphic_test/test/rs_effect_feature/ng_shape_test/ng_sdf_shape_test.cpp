@@ -1587,4 +1587,174 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_MaterialFilter_SmoothUnion_ClipPat
         RegisterNode(childNode);
     }
 }
+
+// ClipPath + RRect SDF shape + frosted glass
+GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_MaterialFilter_ClipPath_RRectShape_Test)
+{
+    int columnCount = 2;
+    int rowCount = 2;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight / rowCount;
+
+    std::vector<Drawing::Path> drawingPath(4, Drawing::Path());
+    drawingPath[0].AddCircle(sizeX / 2, sizeY / 2, std::min(sizeX, sizeY) / 2 - 50);
+    std::vector<Drawing::Point> pentagon = { { sizeX / 2, 50 }, { sizeX - 80, sizeY / 2 - 80 },
+        { sizeX - 150, sizeY - 80 }, { 150, sizeY - 80 }, { 80, sizeY / 2 - 80 } };
+    drawingPath[1].AddPoly(pentagon, 5, true);
+    drawingPath[2].AddRect(80, 80, sizeX - 80, sizeY - 80, Drawing::PathDirection::CW_DIRECTION);
+    std::vector<Drawing::Point> hexagon = { { sizeX / 2, 50 }, { sizeX - 50, sizeY / 3 },
+        { sizeX - 50, sizeY * 2 / 3 }, { sizeX / 2, sizeY - 50 }, { 50, sizeY * 2 / 3 }, { 50, sizeY / 3 } };
+    drawingPath[3].AddPoly(hexagon, 6, true);
+
+    std::vector<RRect> rrectList = {
+        RRect{RectT<float>{100, 100, 200, 200}, 20.0f, 20.0f},
+        RRect{RectT<float>{50, 50, 300, 300}, 50.0f, 50.0f},
+        RRect{RectT<float>{80, 80, 250, 150}, 30.0f, 30.0f},
+        RRect{RectT<float>{120, 120, 180, 250}, 40.0f, 40.0f},
+    };
+
+    for (int i = 0; i < rowCount * columnCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+
+        auto backgroundTestNode = RSCanvasNode::Create();
+        Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
+        backgroundTestNode->SetBounds(bounds);
+        backgroundTestNode->SetFrame(bounds);
+        backgroundTestNode->SetMaterialNGFilter(frostedGlassFilter);
+
+        auto childShape = CreateShape(RSNGEffectType::SDF_RRECT_SHAPE);
+        auto rRectChildShape = std::static_pointer_cast<RSNGSDFRRectShape>(childShape);
+        rRectChildShape->Setter<SDFRRectShapeRRectTag>(rrectList[i]);
+        backgroundTestNode->SetSDFShape(childShape);
+
+        auto clipPath = RSPath::CreateRSPath(drawingPath[i]);
+        backgroundTestNode->SetClipToBounds(true);
+        backgroundTestNode->SetClipBounds(clipPath);
+
+        auto childNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        childNode->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+        GetRootNode()->AddChild(childNode);
+        RegisterNode(childNode);
+    }
+}
+
+// ClipPath + UnionOp SDF shape + frosted glass
+GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_MaterialFilter_ClipPath_UnionOpShape_Test)
+{
+    int columnCount = 2;
+    int rowCount = 1;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight / rowCount;
+
+    std::vector<Drawing::Path> drawingPath(2, Drawing::Path());
+    drawingPath[0].AddCircle(sizeX / 2, sizeY / 2, std::min(sizeX, sizeY) / 2 - 50);
+    std::vector<Drawing::Point> pentagon = { { sizeX / 2, 50 }, { sizeX - 80, sizeY / 2 - 80 },
+        { sizeX - 150, sizeY - 80 }, { 150, sizeY - 80 }, { 80, sizeY / 2 - 80 } };
+    drawingPath[1].AddPoly(pentagon, 5, true);
+
+    for (int i = 0; i < 2; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+
+        auto backgroundTestNode = RSCanvasNode::Create();
+        Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
+        backgroundTestNode->SetBounds(bounds);
+        backgroundTestNode->SetFrame(bounds);
+        backgroundTestNode->SetMaterialNGFilter(frostedGlassFilter);
+
+        auto unionShape = CreateShape(RSNGEffectType::SDF_UNION_OP_SHAPE);
+        auto unionOpShape = std::static_pointer_cast<RSNGSDFUnionOpShape>(unionShape);
+
+        auto childShapeX = CreateShape(RSNGEffectType::SDF_RRECT_SHAPE);
+        auto rRectChildShapeX = std::static_pointer_cast<RSNGSDFRRectShape>(childShapeX);
+        rRectChildShapeX->Setter<SDFRRectShapeRRectTag>(
+            RRect{RectT<float>{100, 100, 200, 200}, 20.0f, 20.0f});
+        unionOpShape->Setter<SDFUnionOpShapeShapeXTag>(childShapeX);
+
+        auto childShapeY = CreateShape(RSNGEffectType::SDF_RRECT_SHAPE);
+        auto rRectChildShapeY = std::static_pointer_cast<RSNGSDFRRectShape>(childShapeY);
+        rRectChildShapeY->Setter<SDFRRectShapeRRectTag>(
+            RRect{RectT<float>{200, 200, 200, 200}, 20.0f, 20.0f});
+        unionOpShape->Setter<SDFUnionOpShapeShapeYTag>(childShapeY);
+
+        backgroundTestNode->SetSDFShape(unionShape);
+
+        auto clipPath = RSPath::CreateRSPath(drawingPath[i]);
+        backgroundTestNode->SetClipToBounds(true);
+        backgroundTestNode->SetClipBounds(clipPath);
+
+        auto childNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        childNode->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+        GetRootNode()->AddChild(childNode);
+        RegisterNode(childNode);
+    }
+}
+
+// ClipPath with various shapes + RRect SDF shape + frosted glass
+GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_MaterialFilter_ClipPath_ShapeVariety_Test)
+{
+    int columnCount = 2;
+    int rowCount = 2;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight / rowCount;
+
+    std::vector<Drawing::Path> drawingPath(4, Drawing::Path());
+    // Ellipse
+    drawingPath[0].AddOval(Drawing::Rect(50, 100, sizeX - 50, sizeY - 100));
+    // Pentagon
+    std::vector<Drawing::Point> pentagon = { { sizeX / 2, 50 }, { sizeX - 80, sizeY / 2 - 80 },
+        { sizeX - 150, sizeY - 80 }, { 150, sizeY - 80 }, { 80, sizeY / 2 - 80 } };
+    drawingPath[1].AddPoly(pentagon, 5, true);
+    // Hexagon
+    std::vector<Drawing::Point> hexagon = { { sizeX / 2, 50 }, { sizeX - 50, sizeY / 3 },
+        { sizeX - 50, sizeY * 2 / 3 }, { sizeX / 2, sizeY - 50 }, { 50, sizeY * 2 / 3 }, { 50, sizeY / 3 } };
+    drawingPath[2].AddPoly(hexagon, 6, true);
+    // Star
+    std::vector<Drawing::Point> star = { { sizeX / 2, 30 }, { sizeX / 2 + 60, sizeY / 2 - 100 },
+        { sizeX / 2 + 150, sizeY / 2 - 100 }, { sizeX / 2 + 80, sizeY / 2 },
+        { sizeX / 2 + 110, sizeY / 2 + 120 }, { sizeX / 2, sizeY / 2 + 50 },
+        { sizeX / 2 - 110, sizeY / 2 + 120 }, { sizeX / 2 - 80, sizeY / 2 },
+        { sizeX / 2 - 150, sizeY / 2 - 100 }, { sizeX / 2 - 60, sizeY / 2 - 100 } };
+    drawingPath[3].AddPoly(star, 10, true);
+
+    for (int i = 0; i < rowCount * columnCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+
+        auto backgroundTestNode = RSCanvasNode::Create();
+        Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
+        backgroundTestNode->SetBounds(bounds);
+        backgroundTestNode->SetFrame(bounds);
+        backgroundTestNode->SetMaterialNGFilter(frostedGlassFilter);
+
+        auto childShape = CreateShape(RSNGEffectType::SDF_RRECT_SHAPE);
+        auto rRectChildShape = std::static_pointer_cast<RSNGSDFRRectShape>(childShape);
+        rRectChildShape->Setter<SDFRRectShapeRRectTag>(
+            RRect{RectT<float>{80, 80, sizeX - 160, sizeY - 160}, 30.0f, 30.0f});
+        backgroundTestNode->SetSDFShape(childShape);
+
+        auto clipPath = RSPath::CreateRSPath(drawingPath[i]);
+        backgroundTestNode->SetClipToBounds(true);
+        backgroundTestNode->SetClipBounds(clipPath);
+
+        auto childNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        childNode->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+        GetRootNode()->AddChild(childNode);
+        RegisterNode(childNode);
+    }
+}
+
 }  // namespace OHOS::Rosen
