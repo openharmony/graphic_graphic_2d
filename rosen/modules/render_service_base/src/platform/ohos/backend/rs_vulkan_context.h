@@ -28,8 +28,8 @@
 
 #define VK_NO_PROTOTYPES 1
 
-#include "rs_vulkan_mem_statistic.h"
 #include "vulkan/vulkan.h"
+#include "rs_vulkan_mem_statistic.h"
 
 #include "image/gpu_context.h"
 
@@ -78,7 +78,7 @@ public:
         RsVulkanInterface& mVkContext;
         VkSemaphore mSemaphore;
         int mFenceFd;
-
+        
         int mRefs = 2; // 2 : both skia and rs hold fence fd
         int mRSRefs = 1; // 1 : rs hold fence fd
         int m2DEngineRefs = 1; // 1 : skia or ddgr hold fence fd
@@ -172,7 +172,7 @@ public:
 
     RsVulkanInterface() {};
     ~RsVulkanInterface();
-    bool Init(VulkanInterfaceType vulkanInterfaceType, bool isProtected = false, bool isHtsEnable = false);
+    void Init(VulkanInterfaceType vulkanInterfaceType, bool isProtected = false, bool isHtsEnable = false);
     bool CreateInstance();
     bool SelectPhysicalDevice(bool isProtected = false);
     bool CreateDevice(bool isProtected = false, bool isHtsEnable = false);
@@ -271,7 +271,6 @@ private:
     uint32_t graphicsQueueFamilyIndex_ = UINT32_MAX;
     VkDevice device_ = VK_NULL_HANDLE;
     VkQueue queue_ = VK_NULL_HANDLE;
-    uint32_t physicalDeviceApiVersion_ = 0;
     VkPhysicalDeviceFeatures2 physicalDeviceFeatures2_;
     VkPhysicalDeviceProtectedMemoryFeatures* protectedMemoryFeatures_ = nullptr;
     VkPhysicalDeviceSamplerYcbcrConversionFeatures ycbcrFeature_;
@@ -299,8 +298,6 @@ private:
     bool SetupDeviceProcAddresses(VkDevice device);
     void ConfigureFeatures(bool isProtected);
     void ConfigureExtensions();
-    bool InitializeFeatureChain(bool isProtected);
-    void CleanupFeatureChain();
     PFN_vkVoidFunction AcquireProc(
         const char* proc_name,
         const VkInstance& instance) const;
@@ -404,8 +401,10 @@ public:
     bool GetIsProtected() const;
 
     static bool IsRecyclable();
+    static bool IsMultiProcess();
 
     static void SetRecyclable(bool isRecyclable);
+    static void SetIsMultiProcess(bool isMultiProcess);
 
     static void SaveNewDrawingContext(int tid, std::shared_ptr<Drawing::GPUContext> drawingContext);
 
@@ -426,6 +425,7 @@ private:
     // use for recyclable singleton
     static std::recursive_mutex recyclableSingletonMutex_;
     static bool isRecyclable_;
+    static bool isMultiProcess_;
     // isRecyclableSingletonValid_ : true -> has been initialized and is valid , false -> has been released
     static std::atomic<bool> isRecyclableSingletonValid_;
     // use to mark current process has created vulkan context at least once

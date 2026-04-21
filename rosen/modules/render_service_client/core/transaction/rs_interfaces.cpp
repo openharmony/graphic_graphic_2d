@@ -198,12 +198,10 @@ void RSInterfaces::ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& n
     const std::vector<NodeId>& nodeIdList)
 {
     return;
-    // renderInterface_->ClearSurfaceWatermarkForNodes(pid, name, nodeIdList);
 }
 
 void RSInterfaces::ClearSurfaceWatermark(pid_t pid, const std::string& name)
 {
-    // renderInterface_->ClearSurfaceWatermark(pid, name);
 }
 
 int32_t RSInterfaces::SetScreenChangeCallback(const ScreenChangeCallback &callback)
@@ -250,7 +248,6 @@ bool RSInterfaces::TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node,
     std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
 {
     return false;
-    // return renderInterface_->TakeSurfaceCapture(node, callback, captureConfig);
 }
 
 bool RSInterfaces::TakeSurfaceCaptureWithBlur(std::shared_ptr<RSSurfaceNode> node,
@@ -293,7 +290,6 @@ bool RSInterfaces::TakeSurfaceCapture(std::shared_ptr<RSDisplayNode> node,
     std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
 {
     return false;
-    // return renderInterface_->TakeSurfaceCapture(node, callback, captureConfig);
 }
 
 bool RSInterfaces::TakeSurfaceCapture(NodeId id,
@@ -816,7 +812,6 @@ int32_t RSInterfaces::UnRegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 void RSRenderInterface::RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback)
 {
-    // renderInterface_->RegisterCanvasCallback(callback);
 }
 
 int32_t RSRenderInterface::SubmitCanvasPreAllocatedBuffer(
@@ -1023,7 +1018,6 @@ void RSInterfaces::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
 
 void RSInterfaces::DropFrameByPid(const std::vector<int32_t>& pidList, int32_t dropFrameLevel)
 {
-    // renderInterface_->DropFrameByPid(pidList, dropFrameLevel);
 }
 
 int32_t RSInterfaces::RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback, bool unobscured)
@@ -1044,7 +1038,6 @@ bool RSInterfaces::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus scree
 void RSInterfaces::SetFreeMultiWindowStatus(bool enable)
 {
     return;
-    // renderInterface_->SetFreeMultiWindowStatus(enable);
 }
 
 bool RSInterfaces::RegisterTransactionDataCallback(uint64_t token, uint64_t timeStamp, std::function<void()> callback)
@@ -1065,7 +1058,6 @@ bool RSInterfaces::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
 
 void RSInterfaces::SetLayerTopForHWC(NodeId nodeId, bool isTop, uint32_t zOrder)
 {
-    // renderInterface_->SetLayerTopForHWC(nodeId, isTop, zOrder);
 }
 
 void RSInterfaces::SetLayerTop(const std::string &nodeIdStr, bool isTop)
@@ -1092,7 +1084,6 @@ void RSInterfaces::NotifyScreenSwitched()
 
 void RSInterfaces::SetWindowContainer(NodeId nodeId, bool value)
 {
-    // renderInterface_->SetWindowContainer(nodeId, value);
 }
 
 int32_t RSInterfaces::RegisterSelfDrawingNodeRectChangeCallback(
@@ -1155,7 +1146,6 @@ bool RSInterfaces::GetBehindWindowFilterEnabled(bool& enabled)
 
 void RSInterfaces::ClearUifirstCache(NodeId id)
 {
-    // renderInterface_->ClearUifirstCache(id);
 }
 
 void RSInterfaces::AvcodecVideoStart(const std::vector<uint64_t>& uniqueIdList,

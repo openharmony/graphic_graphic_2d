@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -121,8 +121,15 @@ bool RSRenderProcess::Init()
     auto renderToComposerConnection = iface_cast<IRSRenderToComposerConnection>(replyToRenderInfo->composeConnection_);
     auto& rsScreenProperty = replyToRenderInfo->rsScreenProperty_;
     auto vsyncConn = iface_cast<IVSyncConnection>(replyToRenderInfo->vsyncConn_);
+    if (!renderToComposerConnection || !rsScreenProperty || !vsyncConn) {
+        RS_LOGE("%{public}s: renderToComposerConnection or rsScreenProperty or vsyncConn is nullptr", __func__);
+        return false;
+    }
     auto receiver = std::make_shared<VSyncReceiver>(vsyncConn, vsyncToken->AsObject(), handler_, "render_process");
-    receiver->Init();
+    if (!receiver->Init()) {
+        RS_LOGE("%{public}s: VSyncReceiver Init failed", __func__);
+        return false;
+    }
 
     // create render pipeline
     RS_LOGI("%{public}s: RenderPipeline Create", __func__);
@@ -133,7 +140,7 @@ bool RSRenderProcess::Init()
     // replay global ipc
     RS_LOGI("%{public}s: Replay Global Ipc", __func__);
     auto renderPipelineAgent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline_);
-    ApplyIpcPersistenceData(renderPipelineAgent, replyToRenderInfo->replayData_);
+    ApplyIpcPersistenceData(renderPipelineAgent, *replyToRenderInfo->replayData_);
 
     auto renderProcessAgent = sptr<RSRenderProcessAgent>::MakeSptr(*this);
     // called from service
@@ -177,10 +184,13 @@ sptr<RSIRenderToServiceConnection> RSRenderProcess::ConnectToRenderService()
 }
 
 void RSRenderProcess::ApplyIpcPersistenceData(const sptr<RSRenderPipelineAgent>& renderPipelineAgent,
-    const std::shared_ptr<IpcPersistenceTypeToDataMap>& replayData)
+    const IpcPersistenceTypeToDataMap& replayData)
 {
-    for (const auto& [type, dataVec] : *replayData) {
+    for (const auto& [type, dataVec] : replayData) {
         for (const auto& data : dataVec) {
+            if (!data) {
+                continue;
+            }
             data->Apply(renderPipelineAgent);
         }
     }

@@ -26,7 +26,6 @@
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/buffer_clear_callback.h"
 #include "ipc_callbacks/screen_supported_hdr_formats_callback.h"
-#include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "rs_render_composer_manager.h"
 #include "zidl/rs_client_to_service_connection_stub.h"
 #include "screen_manager/public/rs_screen_manager_agent.h"

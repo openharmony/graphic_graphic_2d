@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,7 +28,7 @@ bool RSRenderProcessAgent::NotifyScreenConnectInfoToRender(const sptr<RSScreenPr
     const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
     const sptr<IRSComposerToRenderConnection>& composerToRenderConn)
 {
-    return renderProcess_.handler_->PostTask([this, screenProperty, renderToComposerConn, composerToRenderConn] {
+    return renderProcess_.handler_->PostSyncTask([this, screenProperty, renderToComposerConn, composerToRenderConn] {
         RS_LOGI("%{public}s: screenId[%{public}" PRIu64 "] width[%{public}d] height[%{public}d]", __func__,
             screenProperty->GetScreenId(), screenProperty->GetWidth(), screenProperty->GetHeight());
         renderProcess_.renderPipeline_->OnScreenConnected(
@@ -38,7 +38,7 @@ bool RSRenderProcessAgent::NotifyScreenConnectInfoToRender(const sptr<RSScreenPr
 
 bool RSRenderProcessAgent::NotifyScreenDisconnectInfoToRender(ScreenId screenId)
 {
-    return renderProcess_.handler_->PostTask([this, screenId] {
+    return renderProcess_.handler_->PostSyncTask([this, screenId] {
         RS_LOGI("%{public}s: screenId[%{public}" PRIu64 "]", __func__, screenId);
         renderProcess_.renderPipeline_->OnScreenDisconnected(screenId);
     });
@@ -47,7 +47,7 @@ bool RSRenderProcessAgent::NotifyScreenDisconnectInfoToRender(ScreenId screenId)
 bool RSRenderProcessAgent::NotifyScreenPropertyChangedInfoToRender(
     ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& screenProperty)
 {
-    return renderProcess_.handler_->PostTask([this, id, type, screenProperty] {
+    return renderProcess_.handler_->PostSyncTask([this, id, type, screenProperty] {
         renderProcess_.renderPipeline_->OnScreenPropertyChanged(id, type, screenProperty);
     });
 }

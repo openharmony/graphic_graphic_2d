@@ -273,5 +273,6 @@ group("unittest") {
         ":RSServiceToRenderConnectionProxyTest",
         ":RSServiceToRenderConnectionStubTest",
         ":RSServiceToRenderConnectionTest",
+        "ipc_persistence:unittest",
     ]
 }

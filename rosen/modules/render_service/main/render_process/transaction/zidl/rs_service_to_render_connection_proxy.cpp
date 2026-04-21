@@ -22,7 +22,7 @@
 #include <vector>
 #include "buffer_utils.h"
 #include "rs_trace.h"
-
+#include "feature/capture/rs_ui_capture.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "transaction/rs_ashmem_helper.h"
@@ -1353,7 +1353,12 @@ int32_t RSServiceToRenderConnectionProxy::RegisterSelfDrawingNodeRectChangeCallb
         return WRITE_PARCEL_ERR;
     }
 
-    uint32_t size = constraint.pids.size();
+    size_t pidsSize = constraint.pids.size();
+    if (pidsSize > UINT32_MAX) {
+        ROSEN_LOGE("RegisterSelfDrawingNodeRectChangeCallback: pids.size() exceeds UINT32_MAX.");
+        return WRITE_PARCEL_ERR;
+    }
+    uint32_t size = static_cast<uint32_t>(pidsSize);
     if (!data.WriteUint32(size)) {
         ROSEN_LOGE("RegisterSelfDrawingNodeRectChangeCallback: Write size err.");
         return WRITE_PARCEL_ERR;

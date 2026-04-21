@@ -93,8 +93,8 @@ bool RSRenderService::Init()
         mallopt(M_DELAYED_FREE, M_DELAYED_FREE_ENABLE);
     }
 
-    // Render mode config parsing
-    ParseRenderModeConfig();
+    // Render server config initialization
+    InitRenderServerConfig();
 
     // CCM config parsing
     InitCCMConfig();
@@ -121,7 +121,7 @@ bool RSRenderService::Init()
     return true;
 }
 
-void RSRenderService::ParseRenderModeConfig()
+void RSRenderService::InitRenderServerConfig()
 {
     RS_LOGI("%{public}s: multiprocess parse start", __func__);
     renderModeConfig_ = RSRenderModeConfigParser().BuildRenderConfig();
@@ -148,7 +148,10 @@ bool RSRenderService::CoreComponentsInit()
 
     // vsync manager
     vsyncManager_ = sptr<RSVsyncManager>::MakeSptr();
-    vsyncManager_->init(screenManager_, renderModeConfig_->GetIsMultiProcessModeEnabled());
+    if (vsyncManager_->init(screenManager_, renderModeConfig_->GetIsMultiProcessModeEnabled()) != 0) {
+        RS_LOGE("%{public}s: vsyncManager init failed", __func__);
+        return false;
+    }
 
     RSBaseRenderEngine::RegisterUniRenderUtilCallback(RSUniRenderUtil::CreateLayerBufferDrawParam,
         RSUniRenderUtil::DrawRectForDfx);
@@ -199,6 +202,8 @@ void RSRenderService::FeatureComponentInit()
 #ifdef RS_ENABLE_VK
     if (Drawing::SystemProperties::IsUseVulkan()) {
         RsVulkanContext::SetRecyclable(false);
+        RS_LOGT("SetIsMultiProcess::%{public}d", renderModeConfig_->GetIsMultiProcessModeEnabled());
+        RsVulkanContext::SetIsMultiProcess(renderModeConfig_->GetIsMultiProcessModeEnabled());
     }
 #endif
 

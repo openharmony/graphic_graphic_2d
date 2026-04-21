@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,6 +19,7 @@
 #include <csignal>
 #include <sys/prctl.h>
 #include <sys/wait.h>
+#include <unistd.h>
 
 #include "rs_render_composer_manager.h"
 #include "rs_render_service.h"
@@ -50,18 +51,23 @@ int32_t ForkAndExec(GroupId groupId)
         return -1;
     }
     if (pid == 0) {
+        long maxfd = sysconf(_SC_OPEN_MAX);
+        if (maxfd < 0) maxfd = 1024;
+        for (int fd = 3; fd < maxfd; fd++) {
+            close(fd);
+        }
         RS_LOGW("%{public}s: Forked success self %{public}d, parent %{public}d", __func__, getpid(), getppid());
         if (prctl(PR_SET_PDEATHSIG, SIGKILL) == -1) {
             RS_LOGE("%{public}s: prctl(PR_SET_PDEATHSIG, SIGKILL), errorno:%{public}d, errormsg:%{public}s", __func__,
                 errno, strerror(errno));
-            exit(-1);
+            _exit(-1);
         }
         std::string processName = "render_service:" + std::to_string(groupId);
         char* argv[] = { const_cast<char*>(processName.c_str()), nullptr };
         if (execv("/system/bin/render_process", argv) == -1) {
             RS_LOGE("%{public}s: Fork execv command failed, errorno:%{public}d, errormsg:%{public}s", __func__, errno,
                 strerror(errno));
-            exit(-1);
+            _exit(-1);
         }
         return 0;
     } else {
@@ -177,7 +183,11 @@ sptr<IRemoteObject> RSMultiRenderProcessManager::HandleExistingGroup(
     auto composerToRenderConn = GotComposerToRenderConnByPid(pid);
 
     auto serviceToRenderConnection = GotServiceToRenderConnByPid(pid);
-    serviceToRenderConnection->NotifyScreenConnectInfoToRender(property, renderToComposerConn, composerToRenderConn);
+    if (!serviceToRenderConnection->NotifyScreenConnectInfoToRender(property,
+        renderToComposerConn, composerToRenderConn)) {
+        RS_LOGE("%{public}s: NotifyScreenConnectInfoToRender failed, screenId=%{public}" PRIu64, __func__, screenId);
+        return nullptr;
+    }
 
     auto connectToRender = GotConnectToRenderConnByPid(pid);
     return connectToRender->AsObject();
@@ -227,7 +237,9 @@ void RSMultiRenderProcessManager::OnScreenDisconnected(ScreenId screenId)
         RS_LOGE("%{public}s: serviceToRenderConnection is nullptr", __func__);
         return;
     }
-    serviceToRenderConnection->NotifyScreenDisconnectInfoToRender(screenId);
+    if (!serviceToRenderConnection->NotifyScreenDisconnectInfoToRender(screenId)) {
+        RS_LOGE("%{public}s: NotifyScreenDisconnectInfoToRender failed, screenId=%{public}" PRIu64, __func__, screenId);
+    }
 }
 
 void RSMultiRenderProcessManager::OnScreenPropertyChanged(
@@ -243,7 +255,10 @@ void RSMultiRenderProcessManager::OnScreenPropertyChanged(
         RS_LOGE("%{public}s: serviceToRenderConnection is nullptr", __func__);
         return;
     }
-    serviceToRenderConnection->NotifyScreenPropertyChangedInfoToRender(screenId, type, property);
+    if (!serviceToRenderConnection->NotifyScreenPropertyChangedInfoToRender(screenId, type, property)) {
+        RS_LOGE("%{public}s: NotifyScreenPropertyChangedInfoToRender failed, screenId=%{public}" PRIu64,
+            __func__, screenId);
+    }
 }
 
 void RSMultiRenderProcessManager::OnScreenRefresh(ScreenId screenId)
@@ -270,11 +285,17 @@ void RSMultiRenderProcessManager::OnVirtualScreenConnected(
     ScreenId oldPhysicalScreenId = InsertVirtualToPhysicalScreenMap(screenId, associatedScreenId);
     if (oldPhysicalScreenId != INVALID_SCREEN_ID) {
         if (auto oldScreenServiceToRenderConn = GetServiceToRenderConn(oldPhysicalScreenId)) {
-            oldScreenServiceToRenderConn->NotifyScreenDisconnectInfoToRender(screenId);
+            if (!oldScreenServiceToRenderConn->NotifyScreenDisconnectInfoToRender(screenId)) {
+                RS_LOGE("%{public}s: NotifyScreenDisconnectInfoToRender failed, screenId=%{public}" PRIu64,
+                    __func__, screenId);
+            }
         }
     }
 
-    serviceToRenderConnection->NotifyScreenConnectInfoToRender(property, nullptr, nullptr);
+    if (!serviceToRenderConnection->NotifyScreenConnectInfoToRender(property, nullptr, nullptr)) {
+        RS_LOGE("%{public}s: NotifyScreenConnectInfoToRender failed, screenId=%{public}" PRIu64,
+            __func__, screenId);
+    }
 }
 
 void RSMultiRenderProcessManager::OnVirtualScreenDisconnected(ScreenId screenId)
@@ -288,7 +309,10 @@ void RSMultiRenderProcessManager::OnVirtualScreenDisconnected(ScreenId screenId)
         RS_LOGE("%{public}s: serviceToRenderConnection is nullptr", __func__);
         return;
     }
-    serviceToRenderConnection->NotifyScreenDisconnectInfoToRender(screenId);
+    if (!serviceToRenderConnection->NotifyScreenDisconnectInfoToRender(screenId)) {
+        RS_LOGE("%{public}s: NotifyScreenDisconnectInfoToRender failed, screenId=%{public}" PRIu64,
+            __func__, screenId);
+    }
 }
 
 sptr<RSIServiceToRenderConnection> RSMultiRenderProcessManager::GetServiceToRenderConn(ScreenId screenId) const
