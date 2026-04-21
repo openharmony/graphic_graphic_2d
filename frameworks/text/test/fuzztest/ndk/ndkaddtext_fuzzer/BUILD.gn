@@ -31,7 +31,7 @@ ohos_fuzztest("NdkAddTextFuzzTest") {
     "-fno-omit-frame-pointer",
     "-std=c++17",
   ]
-  sources = [ "drawing_add_text_fuzzer.cpp" ]
+  sources = [ "ndkaddtext_fuzzer.cpp" ]
 
   deps = [
     "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk:native_drawing_ndk",

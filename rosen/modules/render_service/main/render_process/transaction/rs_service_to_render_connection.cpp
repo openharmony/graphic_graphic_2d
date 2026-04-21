@@ -154,6 +154,11 @@ bool RSServiceToRenderConnection::RegisterTypeface(uint64_t globalUniqueId,
     return renderPipelineAgent_->RegisterTypeface(globalUniqueId, typeface);
 }
 
+bool RSServiceToRenderConnection::RegisterTypeface(Drawing::SharedTypeface& sharedTypeface, bool isLocal)
+{
+    return renderPipelineAgent_->RegisterTypeface(sharedTypeface, isLocal);
+}
+
 bool RSServiceToRenderConnection::UnRegisterTypeface(uint64_t globalUniqueId)
 {
     return renderPipelineAgent_->UnRegisterTypeface(globalUniqueId);

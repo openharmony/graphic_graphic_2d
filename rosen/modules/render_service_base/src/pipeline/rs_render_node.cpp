@@ -1936,6 +1936,8 @@ void RSRenderNode::CollectAndUpdateLocalEffectRect()
     }
     const auto& shader = GetRenderProperties().GetForegroundShader();
     selfDrawRect_ = selfDrawRect_.JoinRect(RSNGRenderShaderHelper::CalcRect(shader, boundsRect));
+    const auto& overlayNGShader = GetRenderProperties().GetOverlayNGShader();
+    selfDrawRect_ = selfDrawRect_.JoinRect(RSNGRenderShaderHelper::CalcRect(overlayNGShader, boundsRect));
 }
 
 void RSRenderNode::UpdateBufferDirtyRegion()
@@ -3339,9 +3341,9 @@ void RSRenderNode::UpdateDrawableVecV2()
     // save/clip/restore.
     RS_LOGI_IF(DEBUG_NODE,
         "RSRenderNode::update drawable VecV2 drawableChanged:%{public}d", drawableChanged);
-    if (GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
-        auto canvasdrawingnode = ReinterpretCastTo<RSCanvasDrawingRenderNode>();
-        drawableChanged |= canvasdrawingnode->GetIsPostPlaybacked();
+    auto canvasDrawingNode = ReinterpretCastTo<RSCanvasDrawingRenderNode>();
+    if (canvasDrawingNode != nullptr) {
+        drawableChanged |= canvasDrawingNode->GetIsPostPlaybacked();
     }
     if (drawableChanged || dirtySlots.count(RSDrawableSlot::CLIP_TO_BOUNDS)) {
         // Step 3: Recalculate save/clip/restore on demands
@@ -3368,8 +3370,9 @@ void RSRenderNode::UpdateDrawableVecV2()
     } else {
         dirtySlots_.insert(dirtySlots.begin(), dirtySlots.end());
     }
-
-    waitSync_ = true;
+    if (canvasDrawingNode != nullptr) {
+        canvasDrawingNode->SetWaitSync(true);
+    }
 #endif
 }
 
@@ -4654,12 +4657,9 @@ void RSRenderNode::OnSync()
     backgroundFilterRegionChanged_ = false;
     backgroundFilterInteractWithDirty_ = false;
 
-    // Reset Sync Flag
-    // only canvas drawing node use SetNeedDraw function
-    if (GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE && waitSync_) {
-        renderDrawable_->SetNeedDraw(true);
+    if (auto canvasDrawingNode = ReinterpretCastTo<RSCanvasDrawingRenderNode>()) {
+        canvasDrawingNode->AfterSync();
     }
-    waitSync_ = false;
 
     lastFrameSynced_ = !isLeashWindowPartialSkip;
 }

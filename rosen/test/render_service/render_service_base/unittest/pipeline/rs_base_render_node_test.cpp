@@ -914,23 +914,70 @@ HWTEST_F(RSBaseRenderNodeTest, UpdateDisplaySyncRange, TestSize.Level1)
 }
 
 /**
- * @tc.name: Animate
+ * @tc.name: Animate001
  * @tc.desc: test results of Animate
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueI9KBCZ
  */
-HWTEST_F(RSBaseRenderNodeTest, Animate, TestSize.Level1)
+HWTEST_F(RSBaseRenderNodeTest, Animate001, TestSize.Level1)
 {
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
     int64_t timestamp = 4;
     int64_t period = 2;
     bool isDisplaySyncEnabled = true;
     int64_t leftDelayTime = 0;
-    node->Animate(timestamp, leftDelayTime, period, isDisplaySyncEnabled);
-
+    int64_t nextFrameTime = 0;
+    node->Animate(timestamp, leftDelayTime, nextFrameTime, period, isDisplaySyncEnabled);
+ 
     node->displaySync_ = std::make_unique<RSRenderDisplaySync>(1);
-    node->Animate(timestamp, leftDelayTime, period, isDisplaySyncEnabled);
+    node->displaySync_->SetExpectedFrameRateRange({0, 120, 60});
+    node->displaySync_->timestamp_ = 1000000000;
+    node->displaySync_->currentPeriod_ = 8333333;
+    node->displaySync_->currentFrameRate_ = 120;
+    node->displaySync_->vsyncTriggerCount_ = 1;
+    node->displaySync_->skipPeriodCount_ = 2;
+    node->displaySync_->skipPeriodCountNeedUpdate_ = false;
+ 
+    timestamp = 1016666666;
+    period = 8333333;
+    leftDelayTime = 1;
+    nextFrameTime = 1;
+    node->Animate(timestamp, leftDelayTime, nextFrameTime, period, isDisplaySyncEnabled);
+    EXPECT_EQ(leftDelayTime, 1);
+ 
     ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: Animate002
+ * @tc.desc: test results of Animate
+ * @tc.type: FUNC
+ * @tc.require: issueI9KBCZ
+ */
+HWTEST_F(RSBaseRenderNodeTest, Animate002, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+ 
+    node->displaySync_ = std::make_unique<RSRenderDisplaySync>(1);
+    ASSERT_NE(node->displaySync_, nullptr);
+ 
+    node->displaySync_->SetExpectedFrameRateRange({0, 120, 5});
+    node->displaySync_->timestamp_ = 1000000000;
+    node->displaySync_->currentPeriod_ = 16666666;
+    node->displaySync_->currentFrameRate_ = 60;
+    node->displaySync_->vsyncTriggerCount_ = 60;
+    node->displaySync_->skipPeriodCount_ = 12;
+    node->displaySync_->skipPeriodCountNeedUpdate_ = true;
+ 
+    int64_t timestamp = 1016666666;
+    int64_t period = 16666666;
+    bool isDisplaySyncEnabled = true;
+    int64_t minLeftDelayTime = 1;
+    int64_t nextFrameTime = 0;
+    node->Animate(timestamp, minLeftDelayTime, nextFrameTime, period, isDisplaySyncEnabled);
+ 
+    EXPECT_EQ(minLeftDelayTime, 0);
 }
 
 /**

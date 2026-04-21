@@ -107,7 +107,7 @@ struct is_property_tag<PropertyTagBase<Name, PropertyType>> : std::true_type {};
 template <typename T>
 inline constexpr bool is_property_tag_v = is_property_tag<T>::value;
 
-template <typename Base, RSNGEffectType Type, typename... PropertyTags>
+template <typename Base, typename RenderEffectTemplate, RSNGEffectType Type, typename... PropertyTags>
 class RSNGEffectTemplate : public Base {
     static_assert(std::is_base_of_v<RSNGEffectBase<Base, typename Base::RenderEffectBase>, Base>,
         "RSNGEffectTemplate: Base must be a subclass of RSNGEffectBase<Base>");
@@ -115,8 +115,6 @@ class RSNGEffectTemplate : public Base {
     static_assert((is_property_tag_v<PropertyTags> && ...), "RSNGEffectTemplate: All properties must be PropertyTags");
 
 public:
-    using RenderEffectTemplate = RSNGRenderEffectTemplate<typename Base::RenderEffectBase,
-        Type, typename PropertyTags::RenderPropertyTagType...>;
     using ValuesTypeTuple = std::tuple<typename PropertyTags::ValueType...>;
 
     RSNGEffectTemplate() = default;

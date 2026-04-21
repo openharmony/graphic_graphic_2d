@@ -267,6 +267,50 @@ HWTEST_F(RSMarshallingHelperTest, MarshallingSharedTypefaceTest002, TestSize.Lev
 }
 
 /**
+ * @tc.name: MarshallingSharedTypefaceTest003
+ * @tc.desc: Verify Marshalling/Unmarshalling with originId_ > 0 (variation typeface skips fd)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, MarshallingSharedTypefaceTest003, TestSize.Level1)
+{
+    MessageParcel parcel;
+    Drawing::SharedTypeface sharedTypeface;
+    sharedTypeface.originId_ = 12345;
+    sharedTypeface.fd_ = -1;
+    sharedTypeface.hasFontArgs_ = false;
+    // originId_ > 0: fd should NOT be marshalled, so fd_ = -1 is OK
+    EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel, sharedTypeface));
+
+    Drawing::SharedTypeface newSharedTypeface;
+    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, newSharedTypeface));
+    EXPECT_EQ(sharedTypeface.originId_, newSharedTypeface.originId_);
+    EXPECT_EQ(sharedTypeface.hasFontArgs_, newSharedTypeface.hasFontArgs_);
+}
+
+/**
+ * @tc.name: MarshallingSharedTypefaceTest004
+ * @tc.desc: Verify Marshalling/Unmarshalling with originId_ > 0 and font args
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMarshallingHelperTest, MarshallingSharedTypefaceTest004, TestSize.Level1)
+{
+    MessageParcel parcel;
+    Drawing::SharedTypeface sharedTypeface;
+    sharedTypeface.originId_ = 999;
+    sharedTypeface.fd_ = -1;
+    sharedTypeface.hasFontArgs_ = true;
+    sharedTypeface.coords_ = { { 2003265652, 100.0 } };
+    EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel, sharedTypeface));
+
+    Drawing::SharedTypeface newSharedTypeface;
+    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, newSharedTypeface));
+    EXPECT_EQ(sharedTypeface.originId_, newSharedTypeface.originId_);
+    EXPECT_EQ(sharedTypeface.hasFontArgs_, newSharedTypeface.hasFontArgs_);
+    EXPECT_EQ(sharedTypeface.coords_.size(), newSharedTypeface.coords_.size());
+    EXPECT_EQ(sharedTypeface.coords_[0].axis, newSharedTypeface.coords_[0].axis);
+}
+
+/**
  * @tc.name: MarshallingTest004
  * @tc.desc: Verify function Marshalling
  * @tc.type:FUNC
@@ -2128,7 +2172,7 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingDrawCmdListObjectCreationFailureT
  */
 HWTEST_F(RSMarshallingHelperTest, UnmarshallingPixelMapFdCountExceedLimitTest, TestSize.Level1)
 {
-    constexpr int32_t TEST_FD_COUNT = 25001;
+    constexpr int32_t TEST_FD_COUNT = 29001;
     constexpr int32_t TEST_PID = 10001;
     constexpr uint64_t TEST_UNIQUE_ID = static_cast<uint64_t>(TEST_PID) << 32;
 

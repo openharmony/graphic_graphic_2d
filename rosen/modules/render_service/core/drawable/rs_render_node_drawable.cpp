@@ -34,6 +34,7 @@
 #include "system/rs_system_parameters.h"
 #include "string_utils.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "memory/rs_memory_snapshot.h"
 #ifdef SUBTREE_PARALLEL_ENABLE
 #include "rs_parallel_manager.h"
 #include "rs_parallel_misc.h"
@@ -102,6 +103,10 @@ void RSRenderNodeDrawable::Draw(Drawing::Canvas& canvas)
  */
 void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
+    if (MemorySnapshot::Instance().IsAbnormalProcess(ExtractPid(GetId()))) {
+        RS_LOGE("RSRenderNodeDrawable::OnDraw abnormal process %{public}d .", ExtractPid(GetId()));
+        return;
+    }
     auto& captureParam = RSUniRenderThread::GetCaptureParam();
     if (canvas.GetUICapture() && captureParam.captureFinished_) {
         return;
@@ -398,7 +403,8 @@ CM_INLINE void RSRenderNodeDrawable::CheckCacheTypeAndDraw(
     // in case of generating cache with filter in offscreen, clip hole for filter/shadow but drawing others
     if (isOffScreenWithClipHole_) {
         if (params.IsExcludedFromNodeGroup() ||
-            (HasFilterOrEffect(params) && params.GetForegroundFilterCache() == nullptr)) {
+            (HasFilterOrEffect(params) && params.GetForegroundFilterCache() == nullptr) ||
+            IsOverlappedWithExistingFilters(canvas, params)) {
             RS_TRACE_NAME_FMT("Skip draw excluded node or filter on cache id:% " PRIu64, GetId());
             SkipDrawSubtreeAndClipHole(canvas, params);
             RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
@@ -543,6 +549,22 @@ bool RSRenderNodeDrawable::IsIntersectedWithFilter(std::vector<FilterNodeInfo>::
         }
     }
     return isIntersected;
+}
+
+bool RSRenderNodeDrawable::IsOverlappedWithExistingFilters(Drawing::Canvas& canvas, const RSRenderParams& params)
+    const
+{
+    if (!curDrawingCacheRoot_) {
+        return false;
+    }
+    const auto& rootParams = curDrawingCacheRoot_->GetRenderParams();
+    if (!rootParams || !rootParams->GetLayerPartRenderEnabled()) {
+        return false;
+    }
+    auto matrix = canvas.GetTotalMatrix();
+    Drawing::Rect dst;
+    matrix.MapRect(dst, params.GetBounds());
+    return curDrawingCacheRoot_->IntersectsWithUnifiedRegion(dst.RoundOut());
 }
 
 void RSRenderNodeDrawable::ClearDrawingCacheDataMap()
@@ -708,7 +730,7 @@ void RSRenderNodeDrawable::InitCachedSurface(Drawing::GPUContext* gpuContext, co
             return;
         }
         vulkanCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
-            vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
+            vkTextureInfo, RSTagTracker::GetCurrentGpuResourceTag(gpuContext).fPid);
         REAL_ALLOC_CONFIG_SET_STATUS(true);
         cachedSurface_ = Drawing::Surface::MakeFromBackendTexture(gpuContext, cachedBackendTexture_.GetTextureInfo(),
             Drawing::TextureOrigin::BOTTOM_LEFT, 1, colorType, colorSpace,
@@ -1016,6 +1038,9 @@ bool RSRenderNodeDrawable::BufferNeedUpdate(std::shared_ptr<Drawing::Surface>& c
 
 void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSRenderParams& params)
 {
+    if (curDrawingCacheRoot_) {
+        curDrawingCacheRoot_->ClearUnifiedFilterRegion();
+    }
     auto startTime = RSPerfMonitorReporter::GetInstance().StartRendergroupMonitor();
     auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     pid_t threadId = gettid();

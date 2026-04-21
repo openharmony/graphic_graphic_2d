@@ -78,7 +78,6 @@ public:
         uint64_t globalUniqueId = 0;
         uint32_t refCount = 0;
     };
-    void Dump() const;
     void Dump(DfxString& log) const;
 
 private:

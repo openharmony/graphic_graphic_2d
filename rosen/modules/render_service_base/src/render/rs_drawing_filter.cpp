@@ -597,7 +597,7 @@ void RSDrawingFilter::ApplyImageEffect(Drawing::Canvas& canvas, const std::share
         }
         return;
     }
-    if (geRender->IsGasifyFilter()) {
+    if (geRender->IsNeedExpansionFilter()) {
         Drawing::Rect rect;
         rect.SetTop(attr.dst.GetTop());
         rect.SetLeft(attr.dst.GetLeft());

@@ -38,6 +38,46 @@ class TypographyRelayoutTest : public testing::Test {
 };
 
 /*
+ * @tc.name: OHDrawingTypographyRelayoutCacheCrashTest001
+ * @tc.desc: test for relayout and use cache crash when set compressHeadPunctuation.
+ * @tc.type: FUNC
+ */
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutCacheCrashTest001, TestSize.Level0)
+{
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.fontSize = 43.75;
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.compressHeadPunctuation = true;
+    std::u16string text = u"汇聚爱优腾芒四大平台，海量内容等你看：《疯狂动物城2》《乘风2026》《白日...";
+
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+        
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate1 =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    typographyCreate1->PushStyle(textStyle);
+    typographyCreate1->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography1 = typographyCreate1->CreateTypography();
+
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate2 =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    typographyCreate2->PushStyle(textStyle);
+    typographyCreate2->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography2 = typographyCreate2->CreateTypography();
+    OHOS::Rosen::Drawing::Canvas canvas;
+    typography2->Layout(906);
+    double longestLineWithIndent2 = typography2->GetLongestLineWithIndent();
+    typography1->Layout(1006);
+    typography1->Paint(&canvas, 0, 0);
+    double longestLineWithIndent1 = typography1->GetLongestLineWithIndent();
+    typography1->Layout(906);
+    typography1->Paint(&canvas, 0, 0);
+    double longestLineWithIndent = typography1->GetLongestLineWithIndent();
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(longestLineWithIndent2, longestLineWithIndent));
+    EXPECT_FALSE(skia::textlayout::nearlyEqual(longestLineWithIndent1, longestLineWithIndent));
+}
+
+/*
  * @tc.name: OHDrawingTypographyRelayoutTest001
  * @tc.desc: test for relayout but not change paragraph style and text style
  * @tc.type: FUNC

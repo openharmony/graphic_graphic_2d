@@ -17,6 +17,7 @@
 #define RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_RENDER_PARTICLE_SYSTEM_H
 
 #include "rs_render_particle_emitter.h"
+#include "rs_particle_field_collection.h"
 namespace OHOS {
 namespace Rosen {
 class RSB_EXPORT RSRenderParticleSystem : RSRenderParticleEffector {
@@ -35,6 +36,7 @@ public:
     void UpdateRippleField(const std::shared_ptr<ParticleRippleFields>& particleRippleFields,
         bool isIncrementalUpdate = true);
     void UpdateVelocityField(const std::shared_ptr<ParticleVelocityFields>& particleVelocityFields);
+    void UpdateFields(const std::shared_ptr<ParticleFieldCollection>& fields);
     const std::vector<std::shared_ptr<RSRenderParticleEmitter>>& GetParticleEmitter() const
     {
         return emitters_;
@@ -58,6 +60,7 @@ private:
     std::shared_ptr<ParticleNoiseFields> particleNoiseFields_;
     std::shared_ptr<ParticleRippleFields> particleRippleFields_;
     std::shared_ptr<ParticleVelocityFields> particleVelocityFields_;
+    std::shared_ptr<ParticleFieldCollection> particleFields_;
     std::vector<std::shared_ptr<RSImage>> imageVector_;
 };
 } // namespace Rosen

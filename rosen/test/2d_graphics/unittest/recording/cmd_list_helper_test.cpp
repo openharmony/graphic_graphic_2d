@@ -19,6 +19,7 @@
 #include "effect/filter.h"
 #include "effect/image_filter_lazy.h"
 #include "effect/shader_effect_lazy.h"
+#include "effect/particle_builder.h"
 #include "image/image.h"
 #include "message_parcel.h"
 #include "pixel_map.h"
@@ -1672,6 +1673,157 @@ HWTEST_F(CmdListHelperTest, GetImageFilterFromCmdListWrongObjectType001, TestSiz
 
     // Verify the expected return value when object type doesn't match
     EXPECT_EQ(retrievedFilter, nullptr);
+}
+
+/**
+ * @tc.name: AddParticleEffectToCmdList001
+ * @tc.desc: Test AddParticleEffectToCmdList with null particle effect
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(CmdListHelperTest, AddParticleEffectToCmdListNull, TestSize.Level1)
+{
+    auto cmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    std::shared_ptr<ParticleEffect> particleEffect = nullptr;
+    OpDataHandle handle = CmdListHelper::AddParticleEffectToCmdList(*cmdList, particleEffect);
+    EXPECT_EQ(handle.offset, 0);
+    EXPECT_EQ(handle.size, 0);
+}
+ 
+/**
+ * @tc.name: AddParticleEffectToCmdList002
+ * @tc.desc: Test AddParticleEffectToCmdList with valid particle effect
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(CmdListHelperTest, AddParticleEffectToCmdListValid, TestSize.Level1)
+{
+    auto cmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(cmdList != nullptr);
+ 
+    auto builder = std::make_shared<ParticleBuilder>();
+    builder->SetUpdateCode("void main() { }");
+    auto particleEffect = builder->MakeParticleEffect(1024);
+    ASSERT_NE(particleEffect, nullptr);
+ 
+    OpDataHandle handle = CmdListHelper::AddParticleEffectToCmdList(*cmdList, particleEffect);
+    EXPECT_TRUE(handle.size > 0);
+}
+ 
+/**
+ * @tc.name: AddParticleEffectToCmdList003
+ * @tc.desc: Test AddParticleEffectToCmdList with zero max particle size (empty serialize data)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(CmdListHelperTest, AddParticleEffectToCmdListEmptyData, TestSize.Level1)
+{
+    auto cmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(cmdList != nullptr);
+    
+    auto builder = std::make_shared<ParticleBuilder>();
+    builder->SetUpdateCode("void main() { }");
+    auto particleEffect = builder->MakeParticleEffect(0);  // zero size
+    EXPECT_EQ(particleEffect, nullptr);
+    
+    OpDataHandle handle = CmdListHelper::AddParticleEffectToCmdList(*cmdList, particleEffect);
+    EXPECT_EQ(handle.offset, 0);
+    EXPECT_EQ(handle.size, 0);
+}
+ 
+/**
+ * @tc.name: GetParticleEffectFromCmdList004
+ * @tc.desc: Test GetParticleEffectFromCmdList with offset 0
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(CmdListHelperTest, GetParticleEffectFromCmdListOffsetZero, TestSize.Level1)
+{
+    auto cmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    OpDataHandle handle;
+    handle.offset = 0;  // zero offset
+    handle.size = 1;
+    auto particleEffect = CmdListHelper::GetParticleEffectFromCmdList(*cmdList, handle);
+    EXPECT_EQ(particleEffect, nullptr);
+}
+ 
+/**
+ * @tc.name: GetParticleEffectFromCmdList005
+ * @tc.desc: Test GetParticleEffectFromCmdList with size 0
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(CmdListHelperTest, GetParticleEffectFromCmdListSizeZero, TestSize.Level1)
+{
+    auto cmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    OpDataHandle handle;
+    handle.offset = 1;
+    handle.size = 0;  // zero size
+    auto particleEffect = CmdListHelper::GetParticleEffectFromCmdList(*cmdList, handle);
+    EXPECT_EQ(particleEffect, nullptr);
+}
+ 
+/**
+ * @tc.name: GetParticleEffectFromCmdList001
+ * @tc.desc: Test GetParticleEffectFromCmdList with invalid handle
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(CmdListHelperTest, GetParticleEffectFromCmdListInvalid, TestSize.Level1)
+{
+    auto cmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    OpDataHandle handle;
+    handle.offset = 9999;
+    handle.size = 0;
+    auto particleEffect = CmdListHelper::GetParticleEffectFromCmdList(*cmdList, handle);
+    EXPECT_EQ(particleEffect, nullptr);
+}
+ 
+/**
+ * @tc.name: GetParticleEffectFromCmdList002
+ * @tc.desc: Test GetParticleEffectFromCmdList with valid particle effect
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(CmdListHelperTest, GetParticleEffectFromCmdListValid, TestSize.Level1)
+{
+    auto cmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(cmdList != nullptr);
+ 
+    auto builder = std::make_shared<ParticleBuilder>();
+    builder->SetUpdateCode("void main() { }");
+    auto particleEffect = builder->MakeParticleEffect(1024);
+    EXPECT_TRUE(particleEffect);
+ 
+    OpDataHandle handle = CmdListHelper::AddParticleEffectToCmdList(*cmdList, particleEffect);
+    auto retrievedEffect = CmdListHelper::GetParticleEffectFromCmdList(*cmdList, handle);
+    EXPECT_TRUE(retrievedEffect);
+}
+ 
+/**
+ * @tc.name: ParticleEffectRoundTrip001
+ * @tc.desc: Test particle effect round trip through cmdList
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(CmdListHelperTest, ParticleEffectRoundTrip, TestSize.Level1)
+{
+    auto cmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(cmdList != nullptr);
+ 
+    auto builder = std::make_shared<ParticleBuilder>();
+    std::string configStr = "uniform TestBlock { float value; };";
+    builder->AddConfigData("testConfig", configStr, 16);
+    builder->SetUpdateCode("void main() { }");
+    auto originalEffect = builder->MakeParticleEffect(1024);
+    ASSERT_NE(originalEffect, nullptr);
+ 
+    float data = 1.0f;
+    originalEffect->UpdateConfigData("testConfig", &data, 0, sizeof(data));
+ 
+    OpDataHandle handle = CmdListHelper::AddParticleEffectToCmdList(*cmdList, originalEffect);
+    auto retrievedEffect = CmdListHelper::GetParticleEffectFromCmdList(*cmdList, handle);
+    EXPECT_TRUE(retrievedEffect);
 }
 } // namespace Drawing
 } // namespace Rosen

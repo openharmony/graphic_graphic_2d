@@ -856,6 +856,7 @@ public:
     void SetParticleNoiseFields(const std::shared_ptr<ParticleNoiseFields>& para);
     void SetParticleRippleFields(const std::shared_ptr<ParticleRippleFields>& para);
     void SetParticleVelocityFields(const std::shared_ptr<ParticleVelocityFields>& para);
+    void SetParticleFields(const std::shared_ptr<ParticleFieldCollection>& para);
 
     /**
      * @brief Sets the foreground color of the node.

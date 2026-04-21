@@ -16,6 +16,7 @@
 #ifndef RENDER_SERVICE_PIPELINE_RS_CLIENT_TO_SERVICE_CONNECTION_H
 #define RENDER_SERVICE_PIPELINE_RS_CLIENT_TO_SERVICE_CONNECTION_H
 
+#include <functional>
 #include <mutex>
 #include <unordered_set>
 #include <unordered_map>
@@ -69,6 +70,10 @@ private:
     void CleanForRefresh() noexcept;
 
     void CleanAll(bool toDelete = false) noexcept;
+
+    int32_t RegisterVariationTypeface(Drawing::SharedTypeface& sharedTypeface, int32_t& needUpdate);
+    int32_t RegisterAshmemTypeface(Drawing::SharedTypeface& sharedTypeface, int32_t& needUpdate);
+    bool ForwardToRenderServers(const std::function<bool(sptr<RSIServiceToRenderConnection>&)>& action);
 
     // IPC RSIRenderServiceConnection Interfaces
     ErrCode CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;

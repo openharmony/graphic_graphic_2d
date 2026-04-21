@@ -167,7 +167,7 @@ HWTEST_F(FontCollectionTest, FontCollectionTest010, TestSize.Level0)
 
     BuildAndLayout(fontCollection, u"Test Cache Clear, This is an english text.");
     // Verify cache has entries before disabling
-    EXPECT_GT(paragraphCache->count(), 0);
+    EXPECT_EQ(paragraphCache->count(), 1);
 
     // Disable cache should clear all existing entries
     fontCollection->SetCachesEnabled(false);
@@ -216,7 +216,7 @@ HWTEST_F(FontCollectionTest, FontCollectionTest012, TestSize.Level0)
 
     BuildAndLayout(fontCollection, u"Cache re-enable test, This is an english text.");
     // Cache re-enabled, updateParagraph should write after Layout
-    EXPECT_GT(paragraphCache->count(), 0);
+    EXPECT_EQ(paragraphCache->count(), 1);
 }
 
 /*

@@ -33,6 +33,8 @@
 #include "animation/rs_particle_noise_field.h"
 #include "animation/rs_particle_ripple_field.h"
 #include "animation/rs_particle_velocity_field.h"
+#include "animation/rs_particle_field_factory.h"
+#include "animation/rs_particle_field_collection.h"
 #include "animation/rs_render_curve_animation.h"
 #include "animation/rs_render_interpolating_spring_animation.h"
 #include "animation/rs_render_keyframe_animation.h"
@@ -531,8 +533,12 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, Drawing::SharedTypeface& v
     success &= Marshalling(parcel, val.size_);
     success &= Marshalling(parcel, val.index_);
     success &= Marshalling(parcel, val.hash_);
-    RS_PROFILER_WRITE_SHARED_TYPEFACE(parcel, val);
-    success &= static_cast<MessageParcel*>(&parcel)->WriteFileDescriptor(val.fd_);
+    // originId_ == 0: base typeface from ashmem, fd is required for reconstruction
+    // originId_ > 0: variation typeface, receiver derives from cached base typeface, no fd needed
+    if (val.originId_ == 0) {
+        RS_PROFILER_WRITE_SHARED_TYPEFACE(parcel, val);
+        success &= static_cast<MessageParcel*>(&parcel)->WriteFileDescriptor(val.fd_);
+    }
     success &= Marshalling(parcel, val.hasFontArgs_);
 
     if (!val.hasFontArgs_) {
@@ -572,9 +578,13 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, Drawing::SharedTypeface&
     success &= Unmarshalling(parcel, hash);
     if (success) { val.hash_ = hash; }
 
-    RS_PROFILER_READ_SHARED_TYPEFACE(parcel, val);
-    if (val.fd_ < 0) {
-        success = false;
+    // originId_ == 0: base typeface from ashmem, fd is required for reconstruction
+    // originId_ > 0: variation typeface, receiver derives from cached base typeface, no fd needed
+    if (val.originId_ == 0) {
+        RS_PROFILER_READ_SHARED_TYPEFACE(parcel, val);
+        if (val.fd_ < 0) {
+            success = false;
+        }
     }
     success &= Unmarshalling(parcel, hasFontArgs);
     if (success) { val.hasFontArgs_ = hasFontArgs; }
@@ -1221,9 +1231,9 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Part
         return flag;
     }
     bool success = parcel.WriteInt32(1) && Marshalling(parcel, val->fieldStrength_);
-    success &= Marshalling(parcel, val->fieldShape_);
-    success &= Marshalling(parcel, val->fieldSize_.x_) && Marshalling(parcel, val->fieldSize_.y_);
-    success &= Marshalling(parcel, val->fieldCenter_.x_) && Marshalling(parcel, val->fieldCenter_.y_);
+    success &= Marshalling(parcel, val->regionShape_);
+    success &= Marshalling(parcel, val->regionSize_.x_) && Marshalling(parcel, val->regionSize_.y_);
+    success &= Marshalling(parcel, val->regionPosition_.x_) && Marshalling(parcel, val->regionPosition_.y_);
     success &= Marshalling(parcel, val->fieldFeather_) &&  Marshalling(parcel, val->noiseScale_);
     success &= Marshalling(parcel, val->noiseFrequency_) &&  Marshalling(parcel, val->noiseAmplitude_);
     if (!success) {
@@ -1546,6 +1556,16 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Particle
         val = velocityFields;
     }
     return success;
+}
+
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<ParticleFieldCollection>& val)
+{
+    return ParticleFieldFactory::Marshalling(parcel, val);
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<ParticleFieldCollection>& val)
+{
+    return ParticleFieldFactory::Unmarshalling(parcel, val);
 }
 
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const EmitterConfig& val)
@@ -3247,6 +3267,7 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleRippleFields>)        \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleVelocityField>)         \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleVelocityFields>)        \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<ParticleFieldCollection>)       \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                                     \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector3f)                                     \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<uint32_t>)                            \

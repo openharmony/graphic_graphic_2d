@@ -1127,6 +1127,24 @@ bool RSSurfaceNode::GetSkipDraw() const
     return isSkipDraw_;
 }
 
+void RSSurfaceNode::SetDarkColorMode(bool isDark)
+{
+    if (isDarkColorMode_ == isDark) {
+        return;
+    }
+    isDarkColorMode_ = isDark;
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeSetDarkColorMode>(GetId(), isDark);
+    AddCommand(command, true);
+    ROSEN_LOGD("RSSurfaceNode::SetDarkColorMode, surfaceNodeId:[%" PRIu64 "] isDarkColorMode:%s", GetId(),
+        isDark ? "true" : "false");
+}
+
+bool RSSurfaceNode::GetDarkColorMode() const
+{
+    return isDarkColorMode_;
+}
+
 void RSSurfaceNode::RegisterNodeMap()
 {
     auto rsContext = GetRSUIContext();

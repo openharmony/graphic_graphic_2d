@@ -167,6 +167,7 @@ public:
     int32_t RegisterUIExtensionCallback(pid_t pid, uint64_t userId, sptr<RSIUIExtensionCallback> callback,
         bool unobscured = false);
     bool RegisterTypeface(uint64_t globalUniqueId, std::shared_ptr<Drawing::Typeface>& typeface);
+    bool RegisterTypeface(Drawing::SharedTypeface& sharedTypeface, bool isLocal = true);
     bool UnRegisterTypeface(uint64_t globalUniqueId);
     int32_t GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB);
     ErrCode RepaintEverything();

@@ -4065,17 +4065,17 @@ void RSSurfaceRenderNode::CountRelatedNode(bool isIncrement)
     relatedNodeNum_ += isIncrement ? 1 : -1;
     SetRelatedSourceNode(relatedNodeNum_ > 0);
     if (!IsRelatedSourceNode()) {
-        ClearRelatedSourceCache();
+        ClearRelatedSourceCache(true);
     }
 }
 
-void RSSurfaceRenderNode::ClearRelatedSourceCache()
+void RSSurfaceRenderNode::ClearRelatedSourceCache(bool value)
 {
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (surfaceParams == nullptr) {
         return;
     }
-    surfaceParams->SetNeedClearRelatedCache(true);
+    surfaceParams->SetNeedClearRelatedCache(value);
     AddToPendingSyncList();
 }
 } // namespace Rosen

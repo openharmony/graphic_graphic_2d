@@ -566,6 +566,20 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             UnRegisterTypeface(uniqueId);
             break;
         }
+        case static_cast<uint32_t>(
+            RSIServiceToRenderConnectionInterfaceCode::REGISTER_SHARED_TYPEFACE): {
+            Drawing::SharedTypeface sharedTypeface;
+            if (!RSMarshallingHelper::Unmarshalling(data, sharedTypeface)) {
+                RS_LOGE("RSServiceToRenderStub::REGISTER_SHARED_TYPEFACE Unmarshalling failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            bool result = RegisterTypeface(sharedTypeface, false);
+            if (!reply.WriteBool(result)) {
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::REGISTER_UIEXTENSION_CALLBACK): {
             uint64_t userId{0};
             pid_t pid;
