@@ -163,6 +163,7 @@ void RSNodeGetShowingPropertiesAndCancelAnimation::Process(RSContext& context)
         if (!node) {
             ROSEN_LOGE("RSNodeGetShowingPropertiesAndCancelAnimation::Process, "
                 "node [%{public}" PRIu64 "] is null!", nodeId);
+            success_ = false;
             continue;
         }
         if (auto prop = node->GetProperty(propertyId)) {
