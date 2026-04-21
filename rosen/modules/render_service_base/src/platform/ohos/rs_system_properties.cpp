@@ -1276,6 +1276,14 @@ bool RSSystemProperties::GetLayerPartRenderDebugEnabled()
     return ConvertToInt(enable, 1) != 0;
 }
 
+bool RSSystemProperties::GetLayerDebugEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.layerDebugEnabled", "0");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
 bool RSSystemProperties::GetFilterCacheMemThresholdEnabled()
 {
     static bool filterCacheMemThresholdEnabled =

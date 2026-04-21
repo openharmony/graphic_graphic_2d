@@ -19,6 +19,7 @@
 #include "common/rs_optional_trace.h"
 #include "display_engine/rs_luminance_control.h"
 #include "feature/hdr/rs_hdr_util.h"
+#include "feature/layer/rs_layer_cache_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "feature_cfg/feature_param/performance_feature/opinc_param.h"
 #include "gfx/performance/rs_perfmonitor_reporter.h"
@@ -1119,6 +1120,9 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     isOpDropped_ = isOpDropped;
 
     GetOpincDrawCache().PopLayerPartRenderDirtyRegion(params, *cacheCanvas);
+
+    auto& layerCacheManager = OHOS::Rosen::RSLayerCacheManager::Instance();
+    layerCacheManager.LayerCacheRegionDfx(shared_from_this(), *cacheCanvas);
     // get image & backend
     {
         std::scoped_lock<std::recursive_mutex> lock(cacheMutex_);
