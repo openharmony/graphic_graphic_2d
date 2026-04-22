@@ -233,6 +233,7 @@ public:
     ani_method textStyleFontStyle;
     ani_method textStyleBaseline;
     ani_method textStyleFontFamilies;
+    ani_method textStyleFontTypefaces;
     ani_method textStyleFontSize;
     ani_method textStyleLetterSpacing;
     ani_method textStyleWordSpacing;
