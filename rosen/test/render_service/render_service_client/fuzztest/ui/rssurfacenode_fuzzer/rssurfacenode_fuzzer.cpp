@@ -169,6 +169,9 @@ bool DoSetAndGet()
     surfaceNode->SetIsNotifyUIBufferAvailable(available);
     bool isHidden = GetData<bool>();
     surfaceNode->MarkUIHidden(isHidden);
+    bool isDarkColorMode = GetData<bool>();
+    surfaceNode->SetDarkColorMode(isDarkColorMode);
+    surfaceNode->GetDarkColorMode();
     GraphicColorGamut colorSpace = GetData<GraphicColorGamut>();
     surfaceNode->SetColorSpace(colorSpace);
     surfaceNode->GetColorSpace();
