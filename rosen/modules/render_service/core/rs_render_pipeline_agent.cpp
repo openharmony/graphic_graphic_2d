@@ -1456,7 +1456,7 @@ void RSRenderPipelineAgent::CollectSurfaceBuffersByProcessId(
                 static_cast<int>(bufferInfo.dstRect_.GetHeight())
             );
             textureBufferVector.push_back(std::make_tuple(bufferInfo.surfaceBuffer_, surfaceName, absRect));
-            RS_LOGD("CollectSurfaceBuffersByProcessId: Added texture buffer from pid=%{public}d, uid=%{public}llu, "
+            RS_LOGD("CollectSurfaceBuffersByProcessId: Added texture buffer from pid=%{public}d, uid=[%{public}" PRIu64 ",] "
                     "bufferId=%{public}u, size=%{public}dx%{public}d",
                     bufferInfo.pid_, bufferInfo.uid_,
                     bufferInfo.surfaceBuffer_->GetSeqNum(),
