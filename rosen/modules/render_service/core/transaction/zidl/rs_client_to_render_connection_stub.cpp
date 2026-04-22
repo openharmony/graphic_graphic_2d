@@ -60,6 +60,7 @@ static constexpr int MAX_SECURITY_EXEMPTION_LIST_NUMBER = 1024; // securityExemp
 const uint32_t MAX_VOTER_SIZE = 100;
 constexpr uint32_t MAX_PID_SIZE_NUMBER = 100000;
 constexpr uint32_t MAX_DROP_FRAME_PID_LIST_SIZE = 1024;
+constexpr size_t MAX_NODE_ID_LIST_SIZE = 1000;
 
 #ifdef RES_SCHED_ENABLE
 const uint32_t RS_IPC_QOS_LEVEL = 7;
@@ -1357,6 +1358,11 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
 
             if (!data.ReadUInt64Vector(&nodeIdList)) {
                 RS_LOGE("RSClientToRenderConnectionStub::SET_SURFACE_WATERMARK Read nodeIdList failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (nodeIdList.size() > MAX_NODE_ID_LIST_SIZE) {
+                RS_LOGE("RSClientToRenderConnectionStub::SET_SURFACE_WATERMARK nodeIdList size exceeds limit!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
