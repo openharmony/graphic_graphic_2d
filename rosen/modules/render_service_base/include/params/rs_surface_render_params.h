@@ -37,9 +37,9 @@ namespace OHOS::Rosen {
 class RSSurfaceRenderNode;
 struct RSLayerInfo {
 #ifndef ROSEN_CROSS_PLATFORM
-    GraphicIRect srcRect;
-    GraphicIRect dstRect;
-    GraphicIRect boundRect;
+    GraphicIRect srcRect = {0};
+    GraphicIRect dstRect = {0};
+    GraphicIRect boundRect = {0};
     Drawing::Matrix matrix;
     int32_t gravity = 0;
     int32_t zOrder = 0;
