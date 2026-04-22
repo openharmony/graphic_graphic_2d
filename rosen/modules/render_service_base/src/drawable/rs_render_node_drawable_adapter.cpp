@@ -808,10 +808,6 @@ const RectI RSRenderNodeDrawableAdapter::GetFilterCachedRegion() const
     }
     return rect;
 }
-void RSRenderNodeDrawableAdapter::SetSkipCacheLayer(bool hasSkipCacheLayer)
-{
-    hasSkipCacheLayer_ = hasSkipCacheLayer;
-}
 
 void RSRenderNodeDrawableAdapter::ApplyForegroundColorIfNeed(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
 {

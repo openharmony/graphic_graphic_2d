@@ -4599,6 +4599,91 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo010, TestSize.Level2)
 }
 
 /**
+ * @tc.name: TraverseRenderGroupCacheRootsTest
+ * @tc.desc: Test TraverseRenderGroupCacheRoots
+ * @tc.type: FUNC
+ * @tc.require: issues/20738
+ */
+HWTEST_F(RSUniRenderVisitorTest, TraverseRenderGroupCacheRootsTest, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    // Test empty cache roots
+    bool visited = false;
+    rsUniRenderVisitor->TraverseRenderGroupCacheRoots(
+        [&visited](const std::shared_ptr<RSCanvasRenderNode>& node) { visited = true; });
+    EXPECT_FALSE(visited);
+
+    // Add cache roots
+    auto cacheRoot1 = std::make_shared<RSCanvasRenderNode>(1);
+    cacheRoot1->InitRenderParams();
+    cacheRoot1->SetDrawingCacheType(RSDrawingCacheType::FORCED_CACHE);
+
+    auto cacheRoot2 = std::make_shared<RSCanvasRenderNode>(2);
+    cacheRoot2->InitRenderParams();
+    cacheRoot2->SetDrawingCacheType(RSDrawingCacheType::FORCED_CACHE);
+
+    rsUniRenderVisitor->AddRenderGroupCacheRoot(*cacheRoot1);
+    rsUniRenderVisitor->AddRenderGroupCacheRoot(*cacheRoot2);
+
+    // Test traversal
+    std::vector<NodeId> visitedIds;
+    rsUniRenderVisitor->TraverseRenderGroupCacheRoots(
+        [&visitedIds](const std::shared_ptr<RSCanvasRenderNode>& node) { visitedIds.push_back(node->GetId()); });
+
+    EXPECT_EQ(visitedIds.size(), 2);
+    EXPECT_NE(std::find(visitedIds.begin(), visitedIds.end(), 1), visitedIds.end());
+    EXPECT_NE(std::find(visitedIds.begin(), visitedIds.end(), 2), visitedIds.end());
+}
+
+/**
+ * @tc.name: IsNodeInBlackListTest
+ * @tc.desc: Test IsNodeInBlackList
+ * @tc.type: FUNC
+ * @tc.require: issues/20738
+ */
+HWTEST_F(RSUniRenderVisitorTest, IsNodeInBlackListTest, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->isDrawingCacheEnabled_ = true;
+
+    // Test SURFACE_NODE not in special set (should return false)
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1);
+    surfaceNode->InitRenderParams();
+    EXPECT_FALSE(rsUniRenderVisitor->IsNodeInBlackList(surfaceNode));
+
+    // Add to blacknode and test
+    rsUniRenderVisitor->allBlackList_.insert(1);
+    EXPECT_TRUE(rsUniRenderVisitor->IsNodeInBlackList(surfaceNode));
+}
+
+/**
+ * @tc.name: UpdateDrawingCacheInfoAfterChildrenBlacklistTest
+ * @tc.desc: Test UpdateDrawingCacheInfoAfterChildren with special node logic
+ * @tc.type: FUNC
+ * @tc.require: issues/20738
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateDrawingCacheInfoAfterChildrenBlacklistTest, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    auto cacheRoot = std::make_shared<RSCanvasRenderNode>(2);
+    cacheRoot->InitRenderParams();
+    cacheRoot->SetDrawingCacheType(RSDrawingCacheType::FORCED_CACHE);
+    rsUniRenderVisitor->AddRenderGroupCacheRoot(*cacheRoot);
+
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1);
+    cacheRoot->AddChild(surfaceNode);
+    rsUniRenderVisitor->allBlackList_.insert(1);
+    surfaceNode->InitRenderParams();
+    rsUniRenderVisitor->UpdateDrawingCacheInfoAfterChildren(*surfaceNode);
+    EXPECT_TRUE(cacheRoot->GetStagingRenderParams()->NodeGroupHasChildInBlacklist());
+}
+
+/**
  * @tc.name: SetRenderGroupSubTreeDirtyIfNeedTest
  * @tc.desc: Test SetRenderGroupSubTreeDirtyIfNeed
  * @tc.type: FUNC

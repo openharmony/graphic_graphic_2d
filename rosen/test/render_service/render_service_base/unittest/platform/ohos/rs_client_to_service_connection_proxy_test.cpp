@@ -1042,11 +1042,8 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, GetPixelFormat, TestSize.Level1)
 {
     ScreenId id = 1;
     GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_BGRA_8888;
-    int32_t resCode;
-    proxy->SetPixelFormat(id, pixelFormat, resCode);
-    EXPECT_EQ(resCode, RS_CONNECTION_ERROR);
-    proxy->GetPixelFormat(id, pixelFormat, resCode);
-    ASSERT_EQ(resCode, RS_CONNECTION_ERROR);
+    EXPECT_EQ(proxy->SetPixelFormat(id, pixelFormat), 2);
+    ASSERT_EQ(proxy->GetPixelFormat(id, pixelFormat), 2);
 }
 
 /**
@@ -1059,12 +1056,9 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, GetScreenHDRFormat, TestSize.Leve
 {
     ScreenId id = 1;
     std::vector<ScreenHDRFormat> hdrFormats;
-    int32_t resCode;
-    proxy->GetScreenSupportedHDRFormats(id, hdrFormats, resCode);
-    ASSERT_EQ(resCode, RS_CONNECTION_ERROR);
+    ASSERT_EQ(proxy->GetScreenSupportedHDRFormats(id, hdrFormats), 2);
     ScreenHDRFormat hdrFormat = IMAGE_HDR_ISO_DUAL;
-    proxy->GetScreenHDRFormat(id, hdrFormat, resCode);
-    ASSERT_EQ(resCode, RS_CONNECTION_ERROR);
+    ASSERT_EQ(proxy->GetScreenHDRFormat(id, hdrFormat), 2);
 }
 
 /**
@@ -1077,12 +1071,9 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SetScreenHDRFormat, TestSize.Leve
 {
     ScreenId id = 1;
     int32_t modeIdx = 1;
-    int32_t resCode;
-    proxy->SetScreenHDRFormat(id, modeIdx, resCode);
-    ASSERT_EQ(resCode, RS_CONNECTION_ERROR);
+    ASSERT_EQ(proxy->SetScreenHDRFormat(id, modeIdx), 2);
     std::vector<GraphicCM_ColorSpaceType> colorSpaces;
-    proxy->GetScreenSupportedColorSpaces(id, colorSpaces, resCode);
-    ASSERT_EQ(resCode, RS_CONNECTION_ERROR);
+    ASSERT_EQ(proxy->GetScreenSupportedColorSpaces(id, colorSpaces), 2);
 }
 
 /**
@@ -1095,12 +1086,8 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, GetScreenColorSpace, TestSize.Lev
 {
     ScreenId id = 1;
     GraphicCM_ColorSpaceType colorSpace = GraphicCM_ColorSpaceType::GRAPHIC_CM_SRGB_FULL;
-    int32_t resCode;
-    proxy->SetScreenColorSpace(id, colorSpace, resCode);
-    ASSERT_EQ(resCode, RS_CONNECTION_ERROR);
-    std::vector<GraphicCM_ColorSpaceType> colorSpaces;
-    proxy->GetScreenColorSpace(id, colorSpace, resCode);
-    ASSERT_EQ(resCode, RS_CONNECTION_ERROR);
+    ASSERT_EQ(proxy->SetScreenColorSpace(id, colorSpace), 2);
+    ASSERT_EQ(proxy->GetScreenColorSpace(id, colorSpace), 2);
 }
 
 /**

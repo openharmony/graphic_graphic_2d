@@ -15,10 +15,13 @@
 
 #include "animation/rs_interactive_implict_animator.h"
 
+#include <cmath>
+
 #include "sandbox_utils.h"
 
 #include "command/rs_animation_command.h"
 #include "platform/common/rs_log.h"
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -54,16 +57,83 @@ std::shared_ptr<RSInteractiveImplictAnimator> RSInteractiveImplictAnimator::Crea
         new RSInteractiveImplictAnimator(rsUIContext, timingProtocol, timingCurve));
 }
 
-RSInteractiveImplictAnimator::RSInteractiveImplictAnimator(
-    const std::shared_ptr<RSUIContext> rsUIContext, const RSAnimationTimingProtocol& timingProtocol,
+bool RSInteractiveImplictAnimator::ValidateTimingProtocol(RSAnimationTimingProtocol& timingProtocol)
+{
+    int duration = timingProtocol.GetDuration();
+    if (duration <= 0) {
+        ROSEN_LOGE("RSInteractiveImplictAnimator::ValidateTimingProtocol: Invalid duration[%{public}d]. Animation "
+            "creation failed.", duration);
+        return false;
+    }
+
+    int startDelay = timingProtocol.GetStartDelay();
+    if (startDelay < 0) {
+        ROSEN_LOGW("RSInteractiveImplictAnimator::ValidateTimingProtocol: Invalid startDelay[%{public}d] (negative). "
+            "Using default value 0.", startDelay);
+        timingProtocol.SetStartDelay(0);
+    }
+
+    float speed = timingProtocol.GetSpeed();
+    if (ROSEN_LE(speed, 0.0f) || std::isinf(speed) || std::isnan(speed)) {
+        ROSEN_LOGW("RSInteractiveImplictAnimator::ValidateTimingProtocol: Invalid speed[%{public}f]. Using default "
+            "value 1.0f.", speed);
+        timingProtocol.SetSpeed(1.0f);
+    }
+
+    int repeatCount = timingProtocol.GetRepeatCount();
+    if (repeatCount < -1 || repeatCount == 0) {
+        ROSEN_LOGW("RSInteractiveImplictAnimator::ValidateTimingProtocol: Invalid repeatCount[%{public}d]. Using 1.",
+            repeatCount);
+        timingProtocol.SetRepeatCount(1);
+    }
+
+    return true;
+}
+
+std::weak_ptr<RSInteractiveImplictAnimator> RSInteractiveImplictAnimator::CreateGroup(
+    const std::shared_ptr<RSUIContext> rsUIContext, RSAnimationTimingProtocol& timingProtocol,
     const RSAnimationTimingCurve& timingCurve)
-    : id_(GenerateId()), rsUIContext_(rsUIContext), timingProtocol_(timingProtocol), timingCurve_(timingCurve)
+{
+    if (!rsUIContext) {
+        ROSEN_LOGE("RSInteractiveImplictAnimator::CreateGroup - rsUIContext is null");
+        return std::weak_ptr<RSInteractiveImplictAnimator>();
+    }
+
+    if (!ValidateTimingProtocol(timingProtocol)) {
+        return std::weak_ptr<RSInteractiveImplictAnimator>();
+    }
+
+    auto animator = std::shared_ptr<RSInteractiveImplictAnimator>(
+        new RSInteractiveImplictAnimator(rsUIContext, timingProtocol, timingCurve, true));
+    rsUIContext->AddInteractiveImplictAnimator(animator);
+
+    RS_TRACE_NAME_FMT("CreateGroupAnimator groupId[%llu] duration[%d] startDelay[%d] repeatCount[%d] autoReverse[%d] "
+        "speed[%f] direction[%d]", animator->GetId(), timingProtocol.GetDuration(), timingProtocol.GetStartDelay(),
+        timingProtocol.GetRepeatCount(), timingProtocol.GetAutoReverse(),
+        timingProtocol.GetSpeed(), static_cast<int>(timingProtocol.GetDirection()));
+
+    ROSEN_LOGI("CreateGroupAnimator groupId[%{public}" PRIu64 "] duration[%{public}d] startDelay[%{public}d] "
+        "repeatCount[%{public}d] autoReverse[%{public}d] speed[%{public}f] direction[%{public}d]",
+        animator->GetId(), timingProtocol.GetDuration(), timingProtocol.GetStartDelay(),
+        timingProtocol.GetRepeatCount(), timingProtocol.GetAutoReverse(),
+        timingProtocol.GetSpeed(), static_cast<int>(timingProtocol.GetDirection()));
+
+    return animator;
+}
+
+RSInteractiveImplictAnimator::RSInteractiveImplictAnimator(const std::shared_ptr<RSUIContext> rsUIContext,
+    const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve, bool isGroupAnimator)
+    : id_(GenerateId()), rsUIContext_(rsUIContext), timingProtocol_(timingProtocol), timingCurve_(timingCurve),
+      isGroupAnimator_(isGroupAnimator)
 {
     InitUniRenderEnabled();
 }
 
 RSInteractiveImplictAnimator::~RSInteractiveImplictAnimator()
 {
+    if (isGroupAnimator_) {
+        return;
+    }
     std::unique_ptr<RSCommand> command = std::make_unique<RSInteractiveAnimatorDestory>(id_);
     AddCommand(command, IsUniRenderEnabled());
     if (!IsUniRenderEnabled()) {
@@ -105,6 +175,7 @@ std::shared_ptr<InteractiveAnimatorFinishCallback> RSInteractiveImplictAnimator:
 
 size_t RSInteractiveImplictAnimator::AddImplictAnimation(std::function<void()> callback)
 {
+    RS_TRACE_FUNC();
     if (state_ != RSInteractiveAnimationState::INACTIVE && state_ != RSInteractiveAnimationState::ACTIVE) {
         ROSEN_LOGE("RSInteractiveImplictAnimator::AddImplictAnimation failed, state_ is error");
         return 0;
@@ -120,7 +191,7 @@ size_t RSInteractiveImplictAnimator::AddImplictAnimation(std::function<void()> c
         return 0;
     }
 
-    implicitAnimator->OpenInterActiveImplicitAnimation(true, timingProtocol_, timingCurve_, nullptr);
+    implicitAnimator->OpenInterActiveImplicitAnimation(true, isGroupAnimator_, timingProtocol_, timingCurve_, nullptr);
     callback();
     auto animations = implicitAnimator->CloseInterActiveImplicitAnimation(true);
 
@@ -131,6 +202,7 @@ size_t RSInteractiveImplictAnimator::AddImplictAnimation(std::function<void()> c
         }
         std::weak_ptr<RSAnimation> weakAnimation = animation;
         animation->SetInteractiveFinishCallback(GetAnimatorFinishCallback());
+        animation->InvertStagingValue(isGroupAnimator_, timingProtocol_);
         animations_.emplace_back(weakAnimation, nodeId);
     }
     state_ = RSInteractiveAnimationState::ACTIVE;
@@ -139,6 +211,7 @@ size_t RSInteractiveImplictAnimator::AddImplictAnimation(std::function<void()> c
 
 size_t RSInteractiveImplictAnimator::AddAnimation(std::function<void()> callback)
 {
+    RS_TRACE_FUNC();
     if (state_ != RSInteractiveAnimationState::INACTIVE && state_ != RSInteractiveAnimationState::ACTIVE) {
         ROSEN_LOGE("RSInteractiveImplictAnimator::AddAnimation failed, state_ is error");
         return 0;
@@ -150,7 +223,7 @@ size_t RSInteractiveImplictAnimator::AddAnimation(std::function<void()> callback
     }
     auto implicitAnimator = rsUIContext->GetRSImplicitAnimator();
 
-    implicitAnimator->OpenInterActiveImplicitAnimation(false, timingProtocol_, timingCurve_, nullptr);
+    implicitAnimator->OpenInterActiveImplicitAnimation(false, isGroupAnimator_, timingProtocol_, timingCurve_, nullptr);
     callback();
     auto animations = implicitAnimator->CloseInterActiveImplicitAnimation(false);
 
@@ -161,6 +234,7 @@ size_t RSInteractiveImplictAnimator::AddAnimation(std::function<void()> callback
         }
         std::weak_ptr<RSAnimation> weakAnimation = animation;
         animation->SetInteractiveFinishCallback(GetAnimatorFinishCallback());
+        animation->InvertStagingValue(isGroupAnimator_, timingProtocol_);
         animations_.emplace_back(weakAnimation, nodeId);
     }
     state_ = RSInteractiveAnimationState::ACTIVE;
@@ -169,6 +243,7 @@ size_t RSInteractiveImplictAnimator::AddAnimation(std::function<void()> callback
 
 int32_t RSInteractiveImplictAnimator::StartAnimation()
 {
+    RS_TRACE_FUNC();
     if (state_ != RSInteractiveAnimationState::ACTIVE) {
         ROSEN_LOGE("StartAnimation failed, state_ is error");
         return static_cast<int32_t>(StartAnimationErrorCode::INVALID_STATUS);
@@ -178,6 +253,7 @@ int32_t RSInteractiveImplictAnimator::StartAnimation()
         ROSEN_LOGE("StartAnimation failed, animations size is error");
         return static_cast<int32_t>(StartAnimationErrorCode::INVALID_ANIMATIONS);
     }
+
     auto rsUIContext = rsUIContext_.lock();
     if (rsUIContext == nullptr) {
         ROSEN_LOGE("StartAnimation failed, rsUIContext is null!");
@@ -188,6 +264,10 @@ int32_t RSInteractiveImplictAnimator::StartAnimation()
         auto animation = item.lock();
         auto target = rsUIContext->GetNodeMap().GetNode<RSNode>(nodeId);
         if (target != nullptr && animation != nullptr) {
+            // For group animators, multiply group speed with child animation speed
+            if (isGroupAnimator_) {
+                animation->SetSpeed(timingProtocol_.GetSpeed() * animation->GetSpeed());
+            }
             animation->InteractiveContinue();
             if (!animation->IsUiAnimation()) {
                 renderAnimations.emplace_back(nodeId, animation->GetId());
@@ -201,18 +281,37 @@ int32_t RSInteractiveImplictAnimator::StartAnimation()
         ROSEN_LOGE("Failed to start interactive animation, transaction proxy is null!");
         return static_cast<int32_t>(StartAnimationErrorCode::INVALID_PROXY);
     }
-    std::unique_ptr<RSCommand> command = std::make_unique<RSInteractiveAnimatorCreate>(id_, renderAnimations, true);
-    AddCommand(command, IsUniRenderEnabled());
-    if (!IsUniRenderEnabled()) {
-        std::unique_ptr<RSCommand> commandForRemote =
-            std::make_unique<RSInteractiveAnimatorCreate>(id_, renderAnimations, true);
-        AddCommand(commandForRemote, true);
-    }
+
+    SendCreateAnimatorCommand(renderAnimations);
     return static_cast<int32_t>(StartAnimationErrorCode::SUCCESS);
+}
+
+void RSInteractiveImplictAnimator::SendCreateAnimatorCommand(
+    const std::vector<std::pair<NodeId, AnimationId>>& renderAnimations)
+{
+    if (isGroupAnimator_) {
+        std::unique_ptr<RSCommand> command =
+            std::make_unique<RSInteractiveAnimatorCreateGroup>(id_, renderAnimations, true, timingProtocol_);
+        AddCommand(command, IsUniRenderEnabled());
+        if (!IsUniRenderEnabled()) {
+            std::unique_ptr<RSCommand> commandForRemote =
+                std::make_unique<RSInteractiveAnimatorCreateGroup>(id_, renderAnimations, true, timingProtocol_);
+            AddCommand(commandForRemote, true);
+        }
+    } else {
+        std::unique_ptr<RSCommand> command = std::make_unique<RSInteractiveAnimatorCreate>(id_, renderAnimations, true);
+        AddCommand(command, IsUniRenderEnabled());
+        if (!IsUniRenderEnabled()) {
+            std::unique_ptr<RSCommand> commandForRemote =
+                std::make_unique<RSInteractiveAnimatorCreate>(id_, renderAnimations, true);
+            AddCommand(commandForRemote, true);
+        }
+    }
 }
 
 void RSInteractiveImplictAnimator::PauseAnimation()
 {
+    RS_TRACE_FUNC();
     if (state_ != RSInteractiveAnimationState::RUNNING) {
         ROSEN_LOGE("PauseAnimation failed, state_ is error");
         return;
@@ -241,6 +340,7 @@ void RSInteractiveImplictAnimator::PauseAnimation()
 
 void RSInteractiveImplictAnimator::ContinueAnimation()
 {
+    RS_TRACE_FUNC();
     if (state_ != RSInteractiveAnimationState::PAUSED) {
         ROSEN_LOGE("ContinueAnimation failed, state_ is error");
         return;
@@ -271,6 +371,7 @@ void RSInteractiveImplictAnimator::ContinueAnimation()
 
 void RSInteractiveImplictAnimator::FinishAnimation(RSInteractiveAnimationPosition position)
 {
+    RS_TRACE_FUNC();
     if (state_ != RSInteractiveAnimationState::RUNNING && state_ != RSInteractiveAnimationState::PAUSED) {
         ROSEN_LOGE("FinishAnimation failed, state_ is error");
         return;
@@ -305,6 +406,7 @@ void RSInteractiveImplictAnimator::FinishAnimation(RSInteractiveAnimationPositio
 
 void RSInteractiveImplictAnimator::FinishOnCurrent()
 {
+    RS_TRACE_FUNC();
     auto rsUIContext = rsUIContext_.lock();
     if (rsUIContext == nullptr) {
         ROSEN_LOGE("FinishOnCurrent failed, rsUIContext is null!");
@@ -355,6 +457,7 @@ void RSInteractiveImplictAnimator::FinishOnCurrent()
 
 void RSInteractiveImplictAnimator::ReverseAnimation()
 {
+    RS_TRACE_FUNC();
     if (state_ != RSInteractiveAnimationState::PAUSED) {
         ROSEN_LOGE("ReverseAnimation failed, state_ is error");
         return;
@@ -442,6 +545,13 @@ void RSInteractiveImplictAnimator::CallFinishCallback()
     animations_.clear();
     fractionAnimationId_ = 0;
     fractionNodeId_ = 0;
+
+    if (isGroupAnimator_) {
+        if (auto rsUIContext = rsUIContext_.lock()) {
+            rsUIContext->RemoveInteractiveImplictAnimator(id_);
+        }
+    }
+
     if (finishCallback_) {
         finishCallback_();
     }

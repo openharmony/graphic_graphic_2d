@@ -136,7 +136,10 @@ bool RSClipToBoundsDrawable::OnUpdate(const RSRenderNode& node)
 {
     const RSProperties& properties = node.GetRenderProperties();
     stagingGeContainer_ = nullptr;
-    if (auto sdfShape = properties.GetSDFShape()) {
+    if (properties.GetClipBounds() != nullptr) {
+        stagingType_ = RSClipToBoundsType::CLIP_PATH;
+        stagingDrawingPath_ = properties.GetClipBounds()->GetDrawingPath();
+    } else if (auto sdfShape = properties.GetSDFShape()) {
         stagingType_ = RSClipToBoundsType::CLIP_SDF;
         std::shared_ptr<Drawing::GEVisualEffect> geVisualEffect = sdfShape->GenerateGEVisualEffect();
         std::shared_ptr<Drawing::GEShaderShape> geShape =
@@ -146,9 +149,6 @@ bool RSClipToBoundsDrawable::OnUpdate(const RSRenderNode& node)
         geFilter->SetParam(Drawing::GE_SHADER_SDF_CLIP_SHAPE, geShape);
         stagingGeContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
         stagingGeContainer_->AddToChainedFilter(geFilter);
-    } else if (properties.GetClipBounds() != nullptr) {
-        stagingType_ = RSClipToBoundsType::CLIP_PATH;
-        stagingDrawingPath_ = properties.GetClipBounds()->GetDrawingPath();
     } else if (properties.GetClipToRRect()) {
         stagingType_ = RSClipToBoundsType::CLIP_RRECT;
         stagingClipRRect_ = RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetClipRRect());

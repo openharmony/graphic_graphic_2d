@@ -16,6 +16,8 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_INTERACTIVE_IMPLICT_ANIMATOR_H
 #define RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_INTERACTIVE_IMPLICT_ANIMATOR_H
 
+#include <functional>
+#include <memory>
 #include <vector>
 
 #include "animation/rs_animation.h"
@@ -25,6 +27,7 @@
 
 namespace OHOS {
 namespace Rosen {
+class RSUIContext;
 
 enum class RSInteractiveAnimationState {
     INACTIVE,
@@ -39,20 +42,20 @@ public:
     static std::shared_ptr<RSInteractiveImplictAnimator> Create(
         const std::shared_ptr<RSUIContext> rsUIContext, const RSAnimationTimingProtocol& timingProtocol,
         const RSAnimationTimingCurve& timingCurve);
-    /*
-     * @brief add animations form callback
-     * @param callback use property set change or RSNode::Animate to create aniamtion
-     *                 property set use animator protocal and curve create animation
-     *                 RSNode::Animate use self Animate protocal and curve crate aniamtion
-     *
-     */
+
+    static std::weak_ptr<RSInteractiveImplictAnimator> CreateGroup(const std::shared_ptr<RSUIContext> rsUIContext,
+        RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve);
+
     size_t AddImplictAnimation(std::function<void()> callback);
     /*
      * @brief add animations form callback
-     * @param callback use RSNode::Animate to create aniamtion
+     * @param callback use RSNode::Animate to create animation
      *                 just use RSNode::Animate can create animation
-     *                 RSNode::Animate use self Animate protocal and curve crate aniamtion
-     *
+     *                 RSNode::Animate use self Animate protocal and curve crate animation
+     *                 In group animation context, can add:
+     *                 - Common property animations (e.g., alpha, scale, translate, rotate)
+     *                 - Keyframe animations (using RSNode::Animate with keyframes)
+     *                 - Motion path animations (using RSNode::Animate with motion path)
      */
     size_t AddAnimation(std::function<void()> callback);
 
@@ -80,23 +83,27 @@ public:
     void SetFraction(float fraction);
     float GetFraction();
 
-    RSInteractiveAnimationState GetStatus() const
-    {
-        return state_;
-    }
+    RSInteractiveAnimationState GetStatus() const { return state_; }
 
-    /*
-     * @brief set callback of all animation finish
-     * @param finishCallback all animations in animator use this finishcallback, just one
-     */
+    InteractiveImplictAnimatorId GetId() const { return id_; }
+
     void SetFinishCallBack(const std::function<void()>& finishCallback);
+
 protected:
-    explicit RSInteractiveImplictAnimator(
-        const std::shared_ptr<RSUIContext> rsUIContext, const RSAnimationTimingProtocol& timingProtocol,
-        const RSAnimationTimingCurve& timingCurve);
+    RSInteractiveImplictAnimator(const std::shared_ptr<RSUIContext> rsUIContext,
+        const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve,
+        bool isGroupAnimator = false);
+
 private:
     static InteractiveImplictAnimatorId GenerateId();
     const InteractiveImplictAnimatorId id_;
+
+    /**
+     * @brief Validate animation timing protocol parameters and fix invalid values (except duration)
+     * @param timingProtocol The timing protocol to validate and fix
+     * @return true if duration is valid, false otherwise
+     */
+    static bool ValidateTimingProtocol(RSAnimationTimingProtocol& timingProtocol);
 
     static void InitUniRenderEnabled();
     bool IsUniRenderEnabled() const;
@@ -105,6 +112,7 @@ private:
     void AddCommand(std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand = false,
         FollowType followType = FollowType::NONE, NodeId nodeId = 0) const;
     std::shared_ptr<InteractiveAnimatorFinishCallback> GetAnimatorFinishCallback();
+    void SendCreateAnimatorCommand(const std::vector<std::pair<NodeId, AnimationId>>& renderAnimations);
 
     RSInteractiveAnimationState state_ { RSInteractiveAnimationState::INACTIVE };
     std::weak_ptr<RSUIContext> rsUIContext_;
@@ -116,6 +124,8 @@ private:
     std::weak_ptr<InteractiveAnimatorFinishCallback> animatorCallback_;
     AnimationId fractionAnimationId_ { 0 };
     NodeId fractionNodeId_ { 0 };
+
+    bool isGroupAnimator_ { false };
 };
 } // namespace Rosen
 } // namespace OHOS

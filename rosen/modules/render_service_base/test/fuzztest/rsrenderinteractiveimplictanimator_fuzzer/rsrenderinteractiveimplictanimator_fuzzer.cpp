@@ -20,6 +20,7 @@
 #include "animation/rs_render_curve_animation.h"
 #include "animation/rs_render_interactive_implict_animator_map.h"
 #include "animation/rs_render_interactive_implict_animator.h"
+#include "command/rs_message_processor.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_context.h"
 
@@ -105,6 +106,59 @@ namespace OHOS {
         context->GetInteractiveImplictAnimatorMap().UnregisterInteractiveImplictAnimator(animatorId);
     }
 
+    void RSRenderTimeDrivenGroupAnimatorFuzzerTest()
+    {
+        auto animatorId = GetData<InteractiveImplictAnimatorId>();
+        auto nodeId1 = GetData<NodeId>();
+        auto animationId1 = GetData<AnimationId>();
+        auto propertyId = GetData<PropertyId>();
+        auto position = GetData<RSInteractiveAnimationPosition>();
+        auto fraction = GetData<float>();
+        auto duration = GetData<int>();
+        auto startDelay = GetData<int>();
+        auto repeatCount = GetData<int>();
+        auto speed = GetData<float>();
+        auto autoReverse = GetData<bool>();
+        auto value1 = GetData<float>();
+        auto timestamp = GetData<int64_t>();
+        int64_t minLeftDelayTime = GetData<int64_t>();
+
+        RSAnimationTimingProtocol timingProtocol;
+        timingProtocol.SetDuration(duration);
+        timingProtocol.SetStartDelay(startDelay);
+        timingProtocol.SetRepeatCount(repeatCount);
+        timingProtocol.SetSpeed(speed);
+        timingProtocol.SetAutoReverse(autoReverse);
+        auto context = std::make_shared<RSContext>();
+        auto groupAnimator = std::make_shared<RSRenderTimeDrivenGroupAnimator>(animatorId, context, timingProtocol);
+
+        auto renderNode1 = std::make_shared<RSCanvasRenderNode>(nodeId1);
+        context->GetMutableNodeMap().RegisterRenderNode(renderNode1);
+        auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(value1);
+        auto renderCurveAnimation1 =
+            std::make_shared<RSRenderCurveAnimation>(animationId1, propertyId, property1, property1, property1);
+        renderNode1->GetAnimationManager().AddAnimation(renderCurveAnimation1);
+
+        std::vector<std::pair<NodeId, AnimationId>> animations;
+        animations.emplace_back(nodeId1, animationId1);
+        groupAnimator->AddAnimations(animations);
+        groupAnimator->StartAnimator();
+        groupAnimator->OnAnimate(timestamp, minLeftDelayTime);
+        groupAnimator->SetStartTime(timestamp);
+        groupAnimator->PauseAnimator();
+        groupAnimator->ContinueAnimator();
+        groupAnimator->ReverseAnimator();
+        groupAnimator->SetFractionAnimator(fraction);
+        groupAnimator->RemoveActiveChildAnimation(animationId1);
+        groupAnimator->FinishAnimator(position);
+
+        context->GetInteractiveImplictAnimatorMap().RegisterInteractiveImplictAnimator(groupAnimator);
+        context->GetInteractiveImplictAnimatorMap().UpdateGroupAnimators(timestamp, minLeftDelayTime);
+        context->GetInteractiveImplictAnimatorMap().UnregisterInteractiveImplictAnimator(animatorId);
+
+        RSMessageProcessor::Instance().GetAllTransactions();
+    }
+
     bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     {
         if (data == nullptr) {
@@ -115,6 +169,7 @@ namespace OHOS {
         size_ = size;
         pos = 0;
         RSRenderInteractiveImplictAnimatorAndMapFuzzerTest();
+        RSRenderTimeDrivenGroupAnimatorFuzzerTest();
         return true;
     }
 }

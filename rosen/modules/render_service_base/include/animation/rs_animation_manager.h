@@ -90,6 +90,7 @@ private:
     AnimationId preDrawCmdListAnimationId_;
     friend class RSRenderNode;
     friend class RSRenderCurveAnimation;
+    friend class RSRenderTimeDrivenGroupAnimator;
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif

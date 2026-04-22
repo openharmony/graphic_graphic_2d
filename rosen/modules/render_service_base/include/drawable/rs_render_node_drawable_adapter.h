@@ -202,8 +202,6 @@ public:
     void SetSkip(SkipType type) { skipType_ = type; }
     SkipType GetSkipType() { return skipType_; }
 
-    void SetSkipCacheLayer(bool hasSkipCacheLayer);
-
     bool IsFilterCacheValidForOcclusion() const;
     const RectI GetFilterCachedRegion() const;
 
@@ -385,9 +383,7 @@ protected:
 #else
     static RSRenderNodeDrawableAdapter* curDrawingCacheRoot_;
 #endif
-    // if the node needs to avoid drawing cache because of some layers, such as the security layer...
-    bool hasSkipCacheLayer_ = false;
-    
+
     ClearSurfaceTask clearSurfaceTask_ = nullptr;
 private:
     const static size_t MAX_FILTER_CACHE_TYPES = 3;

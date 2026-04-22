@@ -1748,14 +1748,13 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             GraphicPixelFormat pixelFormat;
-            int32_t resCode;
-            GetPixelFormat(id, pixelFormat, resCode);
-            if (!reply.WriteInt32(resCode)) {
+            int32_t result = GetPixelFormat(id, pixelFormat);
+            if (!reply.WriteInt32(result)) {
                 RS_LOGE("RSClientToServiceConnectionStub::GET_PIXEL_FORMAT Write result failed!");
                 ret = ERR_INVALID_REPLY;
                 break;
             }
-            if (resCode != StatusCode::SUCCESS) {
+            if (result != StatusCode::SUCCESS) {
                 break;
             }
             if (!reply.WriteUint32(static_cast<uint32_t>(pixelFormat))) {
@@ -1778,9 +1777,8 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             GraphicPixelFormat pixelFormat = static_cast<GraphicPixelFormat>(pixel);
-            int32_t resCode;
-            SetPixelFormat(id, pixelFormat, resCode);
-            if (!reply.WriteInt32(resCode)) {
+            int32_t result = SetPixelFormat(id, pixelFormat);
+            if (!reply.WriteInt32(result)) {
                 RS_LOGE("RSClientToServiceConnectionStub::SET_PIXEL_FORMAT Write result failed!");
                 ret = ERR_INVALID_REPLY;
             }
@@ -1817,14 +1815,13 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             }
             std::vector<uint32_t> hdrFormatsSend;
             std::vector<ScreenHDRFormat> hdrFormats;
-            int32_t resCode;
-            GetScreenSupportedHDRFormats(id, hdrFormats, resCode, cb);
-            if (!reply.WriteInt32(resCode)) {
+            int32_t result = GetScreenSupportedHDRFormats(id, hdrFormats, cb);
+            if (!reply.WriteInt32(result)) {
                 RS_LOGE("RSClientToServiceConnectionStub::GET_SCREEN_SUPPORTED_HDR_FORMATS Write result failed!");
                 ret = ERR_INVALID_REPLY;
                 break;
             }
-            if (resCode != StatusCode::SUCCESS) {
+            if (result != StatusCode::SUCCESS) {
                 break;
             }
             std::copy(hdrFormats.begin(), hdrFormats.end(), std::back_inserter(hdrFormatsSend));
@@ -1843,14 +1840,13 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             ScreenHDRFormat hdrFormat;
-            int32_t resCode;
-            GetScreenHDRFormat(id, hdrFormat, resCode);
-            if (!reply.WriteInt32(resCode)) {
-                RS_LOGE("RSClientToServiceConnectionStub::GET_SCREEN_HDR_FORMAT Write resCode failed!");
+            int32_t result = GetScreenHDRFormat(id, hdrFormat);
+            if (!reply.WriteInt32(result)) {
+                RS_LOGE("RSClientToServiceConnectionStub::GET_SCREEN_HDR_FORMAT Write result failed!");
                 ret = ERR_INVALID_REPLY;
                 break;
             }
-            if (resCode != StatusCode::SUCCESS) {
+            if (result != StatusCode::SUCCESS) {
                 break;
             }
             if (!reply.WriteUint32(hdrFormat)) {
@@ -1867,10 +1863,9 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            int32_t resCode;
-            SetScreenHDRFormat(id, modeIdx, resCode);
-            if (!reply.WriteInt32(resCode)) {
-                RS_LOGE("RSClientToServiceConnectionStub::SET_SCREEN_HDR_FORMAT Write resCode failed!");
+            int32_t result = SetScreenHDRFormat(id, modeIdx);
+            if (!reply.WriteInt32(result)) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_SCREEN_HDR_FORMAT Write parcel failed!");
                 ret = ERR_INVALID_REPLY;
             }
             break;
@@ -1884,14 +1879,13 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             }
             std::vector<uint32_t> colorSpacesSend;
             std::vector<GraphicCM_ColorSpaceType> colorSpaces;
-            int32_t resCode;
-            GetScreenSupportedColorSpaces(id, colorSpaces, resCode);
-            if (!reply.WriteInt32(resCode)) {
-                RS_LOGE("RSClientToServiceConnectionStub::GET_SCREEN_SUPPORTED_COLORSPACES Write resCode failed!");
+            int32_t result = GetScreenSupportedColorSpaces(id, colorSpaces);
+            if (!reply.WriteInt32(result)) {
+                RS_LOGE("RSClientToServiceConnectionStub::GET_SCREEN_SUPPORTED_COLORSPACES Write parcel failed!");
                 ret = ERR_INVALID_REPLY;
                 break;
             }
-            if (resCode != StatusCode::SUCCESS) {
+            if (result != StatusCode::SUCCESS) {
                 break;
             }
             std::copy(colorSpaces.begin(), colorSpaces.end(), std::back_inserter(colorSpacesSend));
@@ -1910,14 +1904,13 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             GraphicCM_ColorSpaceType colorSpace;
-            int32_t resCode;
-            GetScreenColorSpace(id, colorSpace, resCode);
-            if (!reply.WriteInt32(resCode)) {
+            int32_t result = GetScreenColorSpace(id, colorSpace);
+            if (!reply.WriteInt32(result)) {
                 RS_LOGE("RSClientToServiceConnectionStub::GET_SCREEN_COLORSPACE Write result failed!");
                 ret = ERR_INVALID_REPLY;
                 break;
             }
-            if (resCode != StatusCode::SUCCESS) {
+            if (result != StatusCode::SUCCESS) {
                 break;
             }
             if (!reply.WriteUint32(colorSpace)) {
@@ -1940,9 +1933,8 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             GraphicCM_ColorSpaceType colorSpace = static_cast<GraphicCM_ColorSpaceType>(color);
-            int32_t resCode;
-            SetScreenColorSpace(id, colorSpace, resCode);
-            if (!reply.WriteInt32(resCode)) {
+            int32_t result = SetScreenColorSpace(id, colorSpace);
+            if (!reply.WriteInt32(result)) {
                 RS_LOGE("RSClientToServiceConnectionStub::SET_SCREEN_COLORSPACE Write result failed!");
                 ret = ERR_INVALID_REPLY;
             }

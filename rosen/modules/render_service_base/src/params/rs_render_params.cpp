@@ -290,6 +290,27 @@ bool RSRenderParams::ChildHasTranslateOnSqueeze() const
     return false;
 }
 
+void RSRenderParams::SetNodeGroupHasChildInBlacklist(bool inBlacklist)
+{
+    if (NodeGroupHasChildInBlacklist() == inBlacklist) {
+        return;
+    }
+    if (!renderGroupCache_) {
+        renderGroupCache_ = std::make_unique<RSRenderGroupCache>();
+    }
+    if (renderGroupCache_ && renderGroupCache_->SetNodeGroupHasChildInBlacklist(inBlacklist)) {
+        needSync_ = true;
+    }
+}
+
+bool RSRenderParams::NodeGroupHasChildInBlacklist() const
+{
+    if (renderGroupCache_) {
+        return renderGroupCache_->NodeGroupHasChildInBlacklist();
+    }
+    return false;
+}
+
 void RSRenderParams::SetNeedClipHoleForFilter(bool val)
 {
     if (NeedClipHoleForFilter() == val) {
@@ -598,7 +619,6 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->isDrawingCacheChanged_ = target->isDrawingCacheChanged_ || isDrawingCacheChanged_;
     target->shadowRect_ = shadowRect_;
     target->drawingCacheIncludeProperty_ = drawingCacheIncludeProperty_;
-    target->isNodeGroupHasChildInBlacklist_ = isNodeGroupHasChildInBlacklist_;
     if (renderGroupCache_) {
         target->renderGroupCache_ = std::make_unique<RSRenderGroupCache>(*renderGroupCache_);
     }

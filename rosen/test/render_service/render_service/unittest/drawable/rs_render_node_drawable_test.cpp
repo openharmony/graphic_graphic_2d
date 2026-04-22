@@ -275,6 +275,58 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckCacheTypeAndDrawTest003, TestSize.Level1
 }
 
 /**
+ * @tc.name: CheckCacheTypeAndDrawTest004
+ * @tc.desc: Test CheckCacheTypeAndDraw with NodeGroupHasChildInBlacklist in capture process
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSRenderNodeDrawableTest, CheckCacheTypeAndDrawTest004, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    Drawing::Canvas canvas;
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+
+    // Test when cache type is not NONE, NodeGroupHasChildInBlacklist is true, and in capture process
+    drawable->SetCacheType(DrawableCacheType::CONTENT);
+    ASSERT_EQ(drawable->GetCacheType(), DrawableCacheType::CONTENT);
+
+    // Set NodeGroupHasChildInBlacklist to true
+    params.SetNodeGroupHasChildInBlacklist(true);
+    ASSERT_TRUE(params.NodeGroupHasChildInBlacklist());
+
+    // Set capture process state to true
+    CaptureParam param;
+    param.isSnapshot_ = true;
+    RSUniRenderThread::SetCaptureParam(param);
+    ASSERT_TRUE(RSUniRenderThread::IsInCaptureProcess());
+
+    // CheckCacheTypeAndDraw should set cache type to NONE when all conditions are met
+    drawable->CheckCacheTypeAndDraw(canvas, params, true);
+    EXPECT_EQ(drawable->GetCacheType(), DrawableCacheType::NONE);
+
+    // Reset capture state
+    RSUniRenderThread::SetCaptureParam(CaptureParam());
+
+    // Reset for next test
+    drawable->SetCacheType(DrawableCacheType::CONTENT);
+    params.SetNodeGroupHasChildInBlacklist(false);
+
+    // Test when cache type is NONE - should not change
+    ASSERT_EQ(drawable->GetCacheType(), DrawableCacheType::CONTENT);
+    params.SetNodeGroupHasChildInBlacklist(true);
+    drawable->SetCacheType(DrawableCacheType::NONE);
+    drawable->CheckCacheTypeAndDraw(canvas, params, true);
+    EXPECT_EQ(drawable->GetCacheType(), DrawableCacheType::NONE);
+
+    // Test when not in capture process - should not change cache type
+    drawable->SetCacheType(DrawableCacheType::CONTENT);
+    ASSERT_EQ(drawable->GetCacheType(), DrawableCacheType::CONTENT);
+    RSUniRenderThread::SetCaptureParam(CaptureParam());
+    drawable->CheckCacheTypeAndDraw(canvas, params, false);
+    EXPECT_EQ(drawable->GetCacheType(), DrawableCacheType::CONTENT);
+}
+
+/**
  * @tc.name: IsOverlappedWithExistingFiltersTest001
  * @tc.desc: Cover all branches of IsOverlappedWithExistingFilters
  * @tc.type: FUNC

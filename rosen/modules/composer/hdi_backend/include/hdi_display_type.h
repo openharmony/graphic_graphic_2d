@@ -59,6 +59,8 @@ typedef enum {
     GRAPHIC_DISP_INTF_VGA,            /**< VGA interface */
     GRAPHIC_DISP_INTF_MIPI,           /**< MIPI interface */
     GRAPHIC_DISP_INTF_PANEL,          /**< PANEL interface */
+    GRAPHIC_DISP_INTF_DP,             /**< DP interface */
+    GRAPHIC_DISP_INTF_EDP,            /**< EDP interface */
     GRAPHIC_DISP_INTF_BUTT,
 } GraphicInterfaceType;
 

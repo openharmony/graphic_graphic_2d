@@ -152,6 +152,7 @@ napi_value ColorPickerNapi::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("getImmersiveBackgroundColor", GetImmersiveBackgroundColor),
         DECLARE_NAPI_FUNCTION("getImmersiveForegroundColor", GetImmersiveForegroundColor),
         DECLARE_NAPI_FUNCTION("discriminatePictureLightDegree", DiscriminatePictureLightDegree),
+        DECLARE_NAPI_FUNCTION("discriminatePitureLightDegree", DiscriminatePictureLightDegree), // To be deprecated
         DECLARE_NAPI_FUNCTION("getComplexityDegree", ComplexityDegree),
         DECLARE_NAPI_FUNCTION("getShadeDegree", ShadeDegree),
         DECLARE_NAPI_FUNCTION("getReverseColor", GetReverseColor),

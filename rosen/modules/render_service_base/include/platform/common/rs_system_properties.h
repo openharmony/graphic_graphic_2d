@@ -327,6 +327,7 @@ public:
     static bool GetOpincCacheMemThresholdEnabled();
     static bool GetLayerPartRenderEnabled();
     static bool GetLayerPartRenderDebugEnabled();
+    static bool GetLayerDebugEnabled();
     static bool GetFilterCacheMemThresholdEnabled();
     static bool GetSkipDisplayIfScreenOffEnabled();
     static bool GetBatchRemovingOnRemoteDiedEnabled();
@@ -421,7 +422,7 @@ private:
 
     static inline bool isUniRenderEnabled_ = false;
     inline static bool isDrawTextAsBitmap_ = false;
-    inline static bool cacheEnabledForRotation_ = false;
+    inline static std::atomic_bool cacheEnabledForRotation_ = false;
     static inline bool forceHpsBlurDisabled_ = false;
     static inline bool debugFmtTraceEnable_ = false;
     static inline bool animationTestEnable_ = false;

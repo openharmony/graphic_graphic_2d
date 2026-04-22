@@ -149,6 +149,16 @@ void RSPropertyAnimation::UpdateStagingValueOnInteractiveFinish(RSInteractiveAni
     SetPropertyValue(targetValue);
 }
 
+void RSPropertyAnimation::InvertStagingValue(bool isGroupAnimator, const RSAnimationTimingProtocol& timingProtocol)
+{
+    if (!isGroupAnimator) {
+        return;
+    }
+    if (timingProtocol.GetAutoReverse() && timingProtocol.GetRepeatCount() % NUMBER_FOR_HALF == 0) {
+        SetPropertyValue(startValue_);
+    }
+}
+
 void RSPropertyAnimation::SetPropertyOnAllAnimationFinish()
 {
     if (property_ != nullptr) {

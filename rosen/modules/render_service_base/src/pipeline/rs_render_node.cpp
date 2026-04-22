@@ -1603,6 +1603,7 @@ void RSRenderNode::UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation, b
 {
     auto foregroundFilterCache = GetRenderProperties().GetForegroundFilterCache();
     bool rotateOptimize = RSSystemProperties::GetCacheOptimizeRotateEnable() ? false : isScreenRotation;
+    SetNodeGroupHasChildInBlacklist(false);
     if (!ShouldPaint() || (rotateOptimize && !foregroundFilterCache) || isOnExcludedSubTree) {
         SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
         return;
@@ -1704,6 +1705,10 @@ void RSRenderNode::FallbackAnimationsToRoot()
         animation->Detach(true);
         // avoid infinite loop for fallback animation
         animation->SetRepeatCount(1);
+        if (animation->IsGroupAnimationChild()) {
+            animation->Attach(target.get());
+            animation->RemoveFromGroupAnimator();
+        }
         target->animationManager_.AddAnimation(std::move(animation));
     }
     animationManager_.animations_.clear();
@@ -1934,8 +1939,6 @@ void RSRenderNode::CollectAndUpdateLocalEffectRect()
         }
         selfDrawRect_ = selfDrawRect_.JoinRect(filter->GetRect(boundsRect, EffectRectType::TOTAL));
     }
-    const auto& shader = GetRenderProperties().GetForegroundShader();
-    selfDrawRect_ = selfDrawRect_.JoinRect(RSNGRenderShaderHelper::CalcRect(shader, boundsRect));
     const auto& overlayNGShader = GetRenderProperties().GetOverlayNGShader();
     selfDrawRect_ = selfDrawRect_.JoinRect(RSNGRenderShaderHelper::CalcRect(overlayNGShader, boundsRect));
 }
@@ -3744,6 +3747,13 @@ void RSRenderNode::SetChildHasTranslateOnSqueeze(bool val)
 #endif
 }
 
+void RSRenderNode::SetNodeGroupHasChildInBlacklist(bool inBlacklist)
+{
+#ifdef RS_ENABLE_GPU
+    stagingRenderParams_->SetNodeGroupHasChildInBlacklist(inBlacklist);
+#endif
+}
+
 bool RSRenderNode::IsNodeGroupIncludeProperty() const
 {
     return nodeGroupIncludeProperty_;
@@ -5322,8 +5332,7 @@ void RSRenderNode::MapAndUpdateChildrenRect()
     }
 }
 
-void RSRenderNode::UpdateDrawingCacheInfoAfterChildren(bool isInBlackList,
-    const std::unordered_set<NodeId>& childHasProtectedNodeSet)
+void RSRenderNode::UpdateDrawingCacheInfoAfterChildren(const std::unordered_set<NodeId>& childHasProtectedNodeSet)
 {
     RS_LOGI_IF(DEBUG_NODE, "RSRenderNode::UpdateDrawingCacheInfoAC"
         " startingWindowFlag_:%{public}d HasChildrenOutOfRect:%{public}d drawingCacheType:%{public}d",
@@ -5332,9 +5341,6 @@ void RSRenderNode::UpdateDrawingCacheInfoAfterChildren(bool isInBlackList,
         SetDrawingCacheChanged(true);
         SetRenderGroupSubTreeDirty(false); // reset subtree dirty
         RS_OPTIONAL_TRACE_NAME_FMT("DrawingCacheInfoAfter::renderGroup subtree dirty, id:%" PRIu64, GetId());
-    }
-    if (isInBlackList) {
-        stagingRenderParams_->SetNodeGroupHasChildInBlacklist(true);
     }
     if (HasChildrenOutOfRect() && GetDrawingCacheType() == RSDrawingCacheType::TARGETED_CACHE) {
         RS_OPTIONAL_TRACE_NAME_FMT("DrawingCacheInfoAfter ChildrenOutOfRect id:%llu", GetId());
