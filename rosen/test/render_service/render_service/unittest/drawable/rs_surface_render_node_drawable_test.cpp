@@ -2979,7 +2979,6 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDrawAbnormalProcessTest, TestSize.Le
     std::set<pid_t> exitedPids = {pid};
     MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
 }
-} // namespace OHOS::Rosen
 
 /**
  * @tc.name: BackFaceSkipTest001
@@ -3067,4 +3066,4 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, BackFaceSkipTest003, TestSize.Level2)
 
     ASSERT_NE(surfaceDrawable_->GetDrawSkipType(), DrawSkipType::BACKFACE_SKIP);
 }
-}
+} // namespace OHOS::Rosen
