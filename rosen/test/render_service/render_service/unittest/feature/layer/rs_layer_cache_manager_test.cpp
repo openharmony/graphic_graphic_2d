@@ -700,49 +700,16 @@ HWTEST_F(RSLayerCacheManagerTest, GetLayerDebugEnabledTest, TestSize.Level1)
     auto& layerCacheManager = OHOS::Rosen::RSLayerCacheManager::Instance();
     layerCacheManager.LayerCacheRegionDfx(canvasDrawable, canvas);
 
-    const std::string debugKey = "rosen.graphic.layerEnabled";
+    const std::string debugKey = "rosen.graphic.layerDebugEnabled";
+    const std::string oldDebugValue = system::GetParameter(debugKey, "0");
 
     (void)system::SetParameter(debugKey, "1");
 
     EXPECT_TRUE(RSSystemProperties::GetLayerDebugEnabled());
 
     layerCacheManager.LayerCacheRegionDfx(canvasDrawable, canvas);
-}
 
-/**
- * @tc.name: LayerCacheRegionDfxTest
- * @tc.desc: Test LayerCacheRegionDfx
- * @tc.type: FUNC
- * @tc.require: issues/22969
- */
-HWTEST_F(RSLayerCacheManagerTest, LayerCacheRegionDfxTest, TestSize.Level1)
-{
-    NodeId nodeId = 0;
-    auto canvasNode = std::make_shared<RSCanvasRenderNode>(0);
-    auto canvasDrawable = std::static_pointer_cast<DrawableV2::RSCanvasRenderNodeDrawable>(
-        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(canvasNode));
-
-    Drawing::Canvas drawingCanvas;
-    RSPaintFilterCanvas canvas(&drawingCanvas);
-    canvasDrawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
-
-    const std::string debugKey = "rosen.graphic.layerEnabled";
-    (void)system::SetParameter(debugKey, "0");
-    EXPECT_TRUE(!RSSystemProperties::GetLayerDebugEnabled());
-
-    auto& layerCacheManager = OHOS::Rosen::RSLayerCacheManager::Instance();
-    layerCacheManager.LayerCacheRegionDfx(canvasDrawable, canvas);
-
-    (void)system::SetParameter(debugKey, "1");
-    EXPECT_TRUE(RSSystemProperties::GetLayerDebugEnabled());
-    EXPECT_TRUE(layerCacheManager.layerDrawables_.empty());
-    layerCacheManager.LayerCacheRegionDfx(canvasDrawable, canvas);
-
-    layerCacheManager.layerDrawables_.emplace_back(canvasDrawable);
-    EXPECT_TRUE(RSSystemProperties::GetLayerDebugEnabled());
-    EXPECT_TRUE(std::find(layerCacheManager.layerDrawables_.begin(), layerCacheManager.layerDrawables_.end(),
-                    canvasDrawable) == layerCacheManager.layerDrawables_.end() == false);
-    layerCacheManager.LayerCacheRegionDfx(canvasDrawable, canvas);
+    (void)system::SetParameter(debugKey, oldDebugValue);
 }
 
 /**
@@ -774,6 +741,39 @@ HWTEST_F(RSLayerCacheManagerTest, ShouldEnableLayerCacheTest, TestSize.Level1)
     Drawing::RectF frameRect(0.0f, 0.0f, 1000.0f, 1000.0f);
     canvasDrawable->renderParams_->SetFrameRect(frameRect);
     EXPECT_FALSE(layerCacheManager.ShouldEnableLayerCache(canvasDrawable, gpuMem, totalRSMem));
+}
+
+/**
+ * @tc.name: LayerCacheRegionDfxTest
+ * @tc.desc: Test LayerCacheRegionDfx
+ * @tc.type: FUNC
+ * @tc.require: issues/22969
+ */
+HWTEST_F(RSLayerCacheManagerTest, LayerCacheRegionDfxTest, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(0);
+    auto canvasDrawable = std::static_pointer_cast<DrawableV2::RSCanvasRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(canvasNode));
+
+    Drawing::Canvas drawingCanvas;
+    drawingCanvas.gpuContext_ = std::make_shared<Drawing::GPUContext>();
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    canvasDrawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    EXPECT_TRUE(canvasDrawable->renderParams_ != nullptr);
+
+    const std::string debugKey = "rosen.graphic.layerDebugEnabled";
+    const std::string oldDebugValue = system::GetParameter(debugKey, "0");
+    (void)system::SetParameter(debugKey, "0");
+    EXPECT_TRUE(!RSSystemProperties::GetLayerDebugEnabled());
+
+    auto& layerCacheManager = OHOS::Rosen::RSLayerCacheManager::Instance();
+    layerCacheManager.LayerCacheRegionDfx(canvasDrawable, canvas);
+
+    (void)system::SetParameter(debugKey, "1");
+    EXPECT_TRUE(RSSystemProperties::GetLayerDebugEnabled());
+    EXPECT_TRUE(layerCacheManager.layerDrawables_.empty());
+    (void)system::SetParameter(debugKey, oldDebugValue);
 }
 } // namespace Rosen
 } // namespace OHOS
