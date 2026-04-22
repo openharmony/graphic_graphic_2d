@@ -103,7 +103,8 @@ HWTEST_F(RSTimingCurveAnimationTest, CreateCustomCurveTest002, TestSize.Level1)
     canvasNode->AddModifier(modifier);
     auto timingCurve = RSAnimationTimingCurve::CreateCustomCurve([](float input) { return input * 2.f; });
     RSAnimationTimingProtocol protocol;
-    auto animations = RSNode::Animate(nullptr, protocol, timingCurve, [&property]() { property->Set(ANIMATION_DOUBLE_SCALE); });
+    auto animations =
+        RSNode::Animate(nullptr, protocol, timingCurve, [&property]() { property->Set(ANIMATION_DOUBLE_SCALE); });
     /**
      * @tc.steps: step2. start animation test
      */
@@ -187,7 +188,8 @@ HWTEST_F(RSTimingCurveAnimationTest, CreateCubicCurveTest002, TestSize.Level1)
     canvasNode->AddModifier(scaleModifier);
     RSAnimationTimingCurve timingCurve = RSAnimationTimingCurve::CreateCubicCurve(0.25f, 0.1f, 0.25f, 1.0f);
     RSAnimationTimingProtocol protocol;
-    auto animations = RSNode::Animate(nullptr, protocol, timingCurve, [&property]() { property->Set(ANIMATION_DOUBLE_SCALE); });
+    auto animations =
+        RSNode::Animate(nullptr, protocol, timingCurve, [&property]() { property->Set(ANIMATION_DOUBLE_SCALE); });
     /**
      * @tc.steps: step2. start animation test
      */
@@ -243,7 +245,8 @@ HWTEST_F(RSTimingCurveAnimationTest, CreateStepsCurveTest001, TestSize.Level1)
     canvasNode->AddModifier(scaleModifier);
     auto timingCurve = RSAnimationTimingCurve::CreateStepsCurve(5, StepsCurvePosition::START);
     RSAnimationTimingProtocol protocol;
-    auto animations = RSNode::Animate(nullptr, protocol, timingCurve, [&property]() { property->Set(ANIMATION_DOUBLE_SCALE); });
+    auto animations =
+        RSNode::Animate(nullptr, protocol, timingCurve, [&property]() { property->Set(ANIMATION_DOUBLE_SCALE); });
     /**
      * @tc.steps: step2. start animation test
      */
@@ -299,7 +302,8 @@ HWTEST_F(RSTimingCurveAnimationTest, CreateSpringCurveTest001, TestSize.Level1)
     canvasNode->AddModifier(scaleModifier);
     auto timingCurve = RSAnimationTimingCurve::CreateSpringCurve(0.1f, 0.2f, 0.3f, 0.4f);
     RSAnimationTimingProtocol protocol;
-    auto animations = RSNode::Animate(nullptr, protocol, timingCurve, [&property]() { property->Set(ANIMATION_DOUBLE_SCALE); });
+    auto animations =
+        RSNode::Animate(nullptr, protocol, timingCurve, [&property]() { property->Set(ANIMATION_DOUBLE_SCALE); });
     /**
      * @tc.steps: step2. start animation test
      */
@@ -327,7 +331,8 @@ HWTEST_F(RSTimingCurveAnimationTest, CreateSpringCurveTest002, TestSize.Level1)
     canvasNode->AddModifier(scaleModifier);
     auto timingCurve = RSAnimationTimingCurve::CreateSpringCurve(0.4f, 0.3f, 0.2f, 0.1f);
     RSAnimationTimingProtocol protocol;
-    auto animations = RSNode::Animate(nullptr, protocol, timingCurve, [&property]() { property->Set(ANIMATION_DOUBLE_SCALE); });
+    auto animations =
+        RSNode::Animate(nullptr, protocol, timingCurve, [&property]() { property->Set(ANIMATION_DOUBLE_SCALE); });
     /**
      * @tc.steps: step2. start animation test
      */
