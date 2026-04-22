@@ -15,6 +15,7 @@
 
 #include "ui/rs_ui_context.h"
 
+#include "animation/rs_interactive_implict_animator.h"
 #include "command/rs_animation_command.h"
 #include "command/rs_node_command.h"
 #include "modifier/rs_modifier_manager_map.h"
@@ -233,6 +234,22 @@ void RSUIContext::MoveModifier(std::shared_ptr<RSUIContext> dstUIContext, NodeId
     if (auto dstModifierManager = dstUIContext->GetRSModifierManager()) {
         rsModifierManager_->MoveModifier(dstModifierManager, nodeId);
     }
+}
+
+void RSUIContext::AddInteractiveImplictAnimator(const std::shared_ptr<RSInteractiveImplictAnimator>& animator)
+{
+    if (!animator) {
+        ROSEN_LOGE("RSUIContext::AddInteractiveImplictAnimator - animator is null");
+        return;
+    }
+    std::lock_guard<std::mutex> lock(interactiveImplictAnimatorMutex_);
+    interactiveImplictAnimators_.emplace(animator->GetId(), animator);
+}
+
+void RSUIContext::RemoveInteractiveImplictAnimator(InteractiveImplictAnimatorId id)
+{
+    std::lock_guard<std::mutex> lock(interactiveImplictAnimatorMutex_);
+    interactiveImplictAnimators_.erase(id);
 }
 } // namespace Rosen
 } // namespace OHOS

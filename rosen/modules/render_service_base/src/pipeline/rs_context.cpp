@@ -120,6 +120,11 @@ void RSContext::AddSyncFinishAnimationList(NodeId nodeId, AnimationId animationI
     needSyncFinishAnimationList_.push_back({nodeId, animationId, token});
 }
 
+bool RSContext::UpdateGroupAnimators(int64_t timestamp, int64_t& minLeftDelayTime)
+{
+    return interactiveImplictAnimatorMap_.UpdateGroupAnimators(timestamp, minLeftDelayTime);
+}
+
 std::unordered_map<std::string, pid_t> RSContext::GetUIFrameworkDirtyNodeNameMap()
 {
     std::unordered_map<std::string, pid_t> uiFrameworkDirtyNodeNameMap;

@@ -298,7 +298,7 @@ void RSNode::OpenImplicitAnimation(const RSAnimationTimingProtocol& timingProtoc
     }
 
     std::shared_ptr<AnimationFinishCallback> animationFinishCallback;
-    if (finishCallback != nullptr) {
+    if (finishCallback != nullptr && implicitAnimator->GetInteractiveAnimatorType() != InteractiveAnimatorType::GROUP) {
         animationFinishCallback =
             std::make_shared<AnimationFinishCallback>(finishCallback, timingProtocol.GetFinishCallbackType());
     }
@@ -317,7 +317,7 @@ void RSNode::OpenImplicitAnimation(const std::shared_ptr<RSUIContext> rsUIContex
     }
 
     std::shared_ptr<AnimationFinishCallback> animationFinishCallback;
-    if (finishCallback != nullptr) {
+    if (finishCallback != nullptr && implicitAnimator->GetInteractiveAnimatorType() != InteractiveAnimatorType::GROUP) {
         animationFinishCallback =
             std::make_shared<AnimationFinishCallback>(finishCallback, timingProtocol.GetFinishCallbackType());
     }
@@ -504,6 +504,7 @@ std::vector<std::shared_ptr<RSAnimation>> RSNode::Animate(const RSAnimationTimin
     const RSAnimationTimingCurve& timingCurve, const PropertyCallback& propertyCallback,
     const std::function<void()>& finishCallback, const std::function<void()>& repeatCallback)
 {
+    RS_TRACE_FUNC();
     if (propertyCallback == nullptr) {
         ROSEN_LOGE("Failed to add curve animation, property callback is null!");
         return {};
@@ -515,7 +516,7 @@ std::vector<std::shared_ptr<RSAnimation>> RSNode::Animate(const RSAnimationTimin
         return {};
     }
     std::shared_ptr<AnimationFinishCallback> animationFinishCallback;
-    if (finishCallback != nullptr) {
+    if (finishCallback != nullptr && implicitAnimator->GetInteractiveAnimatorType() != InteractiveAnimatorType::GROUP) {
         animationFinishCallback =
             std::make_shared<AnimationFinishCallback>(finishCallback, timingProtocol.GetFinishCallbackType());
     }
@@ -534,6 +535,7 @@ std::vector<std::shared_ptr<RSAnimation>> RSNode::Animate(const std::shared_ptr<
     const RSAnimationTimingCurve& timingCurve, const PropertyCallback& propertyCallback,
     const std::function<void()>& finishCallback, const std::function<void()>& repeatCallback)
 {
+    RS_TRACE_FUNC();
     if (propertyCallback == nullptr) {
         ROSEN_LOGE("Failed to add curve animation, property callback is null!");
         return {};
@@ -546,7 +548,7 @@ std::vector<std::shared_ptr<RSAnimation>> RSNode::Animate(const std::shared_ptr<
         return {};
     }
     std::shared_ptr<AnimationFinishCallback> animationFinishCallback;
-    if (finishCallback != nullptr) {
+    if (finishCallback != nullptr && implicitAnimator->GetInteractiveAnimatorType() != InteractiveAnimatorType::GROUP) {
         animationFinishCallback =
             std::make_shared<AnimationFinishCallback>(finishCallback, timingProtocol.GetFinishCallbackType());
     }
@@ -563,6 +565,7 @@ std::vector<std::shared_ptr<RSAnimation>> RSNode::Animate(const std::shared_ptr<
 std::vector<std::shared_ptr<RSAnimation>> RSNode::AnimateWithCurrentOptions(
     const PropertyCallback& propertyCallback, const std::function<void()>& finishCallback, bool timingSensitive)
 {
+    RS_TRACE_FUNC();
     if (propertyCallback == nullptr) {
         ROSEN_LOGE("Failed to add curve animation, property callback is null!");
         return {};
@@ -581,8 +584,11 @@ std::vector<std::shared_ptr<RSAnimation>> RSNode::AnimateWithCurrentOptions(
     }
     auto finishCallbackType =
         timingSensitive ? FinishCallbackType::TIME_SENSITIVE : FinishCallbackType::TIME_INSENSITIVE;
-    // re-use the current options and replace the finish callback
-    auto animationFinishCallback = std::make_shared<AnimationFinishCallback>(finishCallback, finishCallbackType);
+    std::shared_ptr<AnimationFinishCallback> animationFinishCallback;
+    if (implicitAnimator->GetInteractiveAnimatorType() != InteractiveAnimatorType::GROUP) {
+        // re-use the current options and replace the finish callback
+        animationFinishCallback = std::make_shared<AnimationFinishCallback>(finishCallback, finishCallbackType);
+    }
     implicitAnimator->OpenImplicitAnimation(std::move(animationFinishCallback));
     propertyCallback();
     return implicitAnimator->CloseImplicitAnimation();
@@ -592,6 +598,7 @@ std::vector<std::shared_ptr<RSAnimation>> RSNode::AnimateWithCurrentOptions(
     const std::shared_ptr<RSUIContext> rsUIContext, const PropertyCallback& propertyCallback,
     const std::function<void()>& finishCallback, bool timingSensitive)
 {
+    RS_TRACE_FUNC();
     if (propertyCallback == nullptr) {
         ROSEN_LOGE("Failed to add curve animation, property callback is null!");
         return {};
@@ -611,8 +618,11 @@ std::vector<std::shared_ptr<RSAnimation>> RSNode::AnimateWithCurrentOptions(
     }
     auto finishCallbackType =
         timingSensitive ? FinishCallbackType::TIME_SENSITIVE : FinishCallbackType::TIME_INSENSITIVE;
-    // re-use the current options and replace the finish callback
-    auto animationFinishCallback = std::make_shared<AnimationFinishCallback>(finishCallback, finishCallbackType);
+    std::shared_ptr<AnimationFinishCallback> animationFinishCallback;
+    if (implicitAnimator->GetInteractiveAnimatorType() != InteractiveAnimatorType::GROUP) {
+        // re-use the current options and replace the finish callback
+        animationFinishCallback = std::make_shared<AnimationFinishCallback>(finishCallback, finishCallbackType);
+    }
     implicitAnimator->OpenImplicitAnimation(std::move(animationFinishCallback));
     propertyCallback();
     return implicitAnimator->CloseImplicitAnimation();
@@ -622,6 +632,7 @@ std::vector<std::shared_ptr<RSAnimation>> RSNode::AnimateWithCurrentCallback(
     const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve,
     const PropertyCallback& propertyCallback)
 {
+    RS_TRACE_FUNC();
     if (propertyCallback == nullptr) {
         ROSEN_LOGE("Failed to add curve animation, property callback is null!");
         return {};
@@ -643,6 +654,7 @@ std::vector<std::shared_ptr<RSAnimation>> RSNode::AnimateWithCurrentCallback(
     const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve,
     const PropertyCallback& propertyCallback)
 {
+    RS_TRACE_FUNC();
     if (propertyCallback == nullptr) {
         ROSEN_LOGE("Failed to add curve animation, property callback is null!");
         return {};
