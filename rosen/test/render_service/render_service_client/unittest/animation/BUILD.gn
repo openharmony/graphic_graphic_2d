@@ -23,6 +23,7 @@ ohos_unittest("RSRenderServiceClientAnimationTest") {
   module_out_path = module_output_path
 
   sources = [
+    "rs_animation_others_test.cpp",
     "rs_animation_test.cpp",
     "rs_implicit_animation_param_test.cpp",
     "rs_implicit_animator_test.cpp",

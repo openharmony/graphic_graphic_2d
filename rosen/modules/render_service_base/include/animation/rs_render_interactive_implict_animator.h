@@ -16,42 +16,98 @@
 #define RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_RENDER_INTERACTIVE_IMPLICT_ANIMATOR_H
 
 #include <refbase.h>
+#include <unordered_map>
 #include <vector>
 
 #include "animation/rs_animation_common.h"
+#include "animation/rs_animation_fraction.h"
+#include "animation/rs_animation_timing_protocol.h"
+#include "animation/rs_render_animation.h"
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSContext;
+class RSRenderAnimation;
 
-class RSB_EXPORT RSRenderInteractiveImplictAnimator :
-    public std::enable_shared_from_this<RSRenderInteractiveImplictAnimator> {
+enum class GroupAnimatorState {
+    INITIALIZED,
+    RUNNING,
+    PAUSED,
+    FINISHED,
+};
+
+class RSB_EXPORT RSRenderInteractiveImplictAnimator
+    : public std::enable_shared_from_this<RSRenderInteractiveImplictAnimator> {
 public:
-    explicit RSRenderInteractiveImplictAnimator
-        (InteractiveImplictAnimatorId id, const std::weak_ptr<RSContext>& context = {});
-    ~RSRenderInteractiveImplictAnimator() = default;
+    explicit RSRenderInteractiveImplictAnimator(
+        InteractiveImplictAnimatorId id, const std::weak_ptr<RSContext>& context = {});
+    virtual ~RSRenderInteractiveImplictAnimator() = default;
 
     void AddAnimations(std::vector<std::pair<NodeId, AnimationId>> animations);
-    void PauseAnimator();
-    void ContinueAnimator();
-    void FinishAnimator(RSInteractiveAnimationPosition finishPos);
-    void ReverseAnimator();
-    void SetFractionAnimator(float fraction);
 
-    inline InteractiveImplictAnimatorId GetId() const
-    {
-        return id_;
-    }
-private:
-    RSRenderInteractiveImplictAnimator() = default;
+    virtual void PauseAnimator();
+    virtual void ContinueAnimator();
+    virtual void FinishAnimator(RSInteractiveAnimationPosition finishPos);
+    virtual void ReverseAnimator();
+    virtual void SetFractionAnimator(float fraction);
+
+    inline InteractiveImplictAnimatorId GetId() const { return id_; }
+
+    virtual bool IsTimeDriven() const { return false; }
+
+    virtual bool IsRunning() const { return false; }
+
+protected:
+    explicit RSRenderInteractiveImplictAnimator() = default;
+
     InteractiveImplictAnimatorId id_ = 0;
     std::weak_ptr<RSContext> context_ = {};
-    std::vector<std::pair<NodeId, AnimationId>> animations_ = {};
+    std::vector<std::weak_ptr<RSRenderAnimation>> cachedAnimations_;
 
     friend class RSContext;
 };
+
+class RSB_EXPORT RSRenderTimeDrivenGroupAnimator : public RSRenderInteractiveImplictAnimator {
+public:
+    RSRenderTimeDrivenGroupAnimator(InteractiveImplictAnimatorId id,
+        const std::weak_ptr<RSContext>& context, const RSAnimationTimingProtocol& timingProtocol);
+    ~RSRenderTimeDrivenGroupAnimator() override = default;
+
+    void OnAnimate(int64_t timestamp, int64_t& minLeftDelayTime);
+    void SetStartTime(int64_t time);
+
+    bool IsTimeDriven() const override { return true; }
+
+    bool IsRunning() const override { return state_ == GroupAnimatorState::RUNNING; }
+
+    const RSAnimationTimingProtocol& GetTimingProtocol() const { return timingProtocol_; }
+
+    void StartAnimator();
+    void PauseAnimator() override;
+    void ContinueAnimator() override;
+    void FinishAnimator(RSInteractiveAnimationPosition finishPos) override;
+    void RemoveActiveChildAnimation(AnimationId animationId);
+
+private:
+    bool IsStarted() const { return state_ != GroupAnimatorState::INITIALIZED; }
+    RSAnimationTimingProtocol timingProtocol_;
+    GroupAnimatorState state_ = GroupAnimatorState::INITIALIZED;
+    bool needUpdateStartTime_ = false;
+    RSAnimationFraction animationFraction_;
+
+    // Record GROUP_WAITING animations before pause for restoration on resume
+    std::unordered_set<AnimationId> groupWaitingAnimationIds_;
+
+    // Track active child animations (empty when all finished)
+    std::unordered_set<AnimationId> activeChildAnimations_;
+
+    void StartChildAnimations();
+    void ResetChildAnimations();
+    void UpdateFraction(int64_t timestamp, int64_t& minLeftDelayTime);
+};
+
 } // namespace Rosen
 } // namespace OHOS
 

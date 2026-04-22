@@ -134,6 +134,22 @@ namespace OHOS {
         AnimationCommandHelper::ReverseInteractiveAnimator(context, animatorId);
         AnimationCommandHelper::SetFractionInteractiveAnimator(context, animatorId, fraction);
         AnimationCommandHelper::DestoryInteractiveAnimator(context, animatorId);
+
+        // test CreateInteractiveAnimatorGroup
+        RSAnimationTimingProtocol timingProtocol;
+        int duration = GetData<int>();
+        int startDelay = GetData<int>();
+        int repeatCount = GetData<int>();
+        float speed = GetData<float>();
+        bool autoReverse = GetData<bool>();
+        timingProtocol.SetDuration(duration);
+        timingProtocol.SetStartDelay(startDelay);
+        timingProtocol.SetRepeatCount(repeatCount);
+        timingProtocol.SetSpeed(speed);
+        timingProtocol.SetAutoReverse(autoReverse);
+
+        AnimationCommandHelper::CreateInteractiveAnimatorGroup(
+            context, animatorId, animations, isImmediately, timingProtocol);
     }
 
     bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)

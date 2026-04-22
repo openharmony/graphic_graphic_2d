@@ -1705,6 +1705,10 @@ void RSRenderNode::FallbackAnimationsToRoot()
         animation->Detach(true);
         // avoid infinite loop for fallback animation
         animation->SetRepeatCount(1);
+        if (animation->IsGroupAnimationChild()) {
+            animation->Attach(target.get());
+            animation->RemoveFromGroupAnimator();
+        }
         target->animationManager_.AddAnimation(std::move(animation));
     }
     animationManager_.animations_.clear();
