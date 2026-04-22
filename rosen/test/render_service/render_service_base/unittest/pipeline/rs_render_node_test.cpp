@@ -2764,10 +2764,6 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoAfterChildrenTest003, TestSize.
     nodeTest->nodeGroupType_ = RSRenderNode::GROUPED_BY_USER;
     nodeTest->CheckDrawingCacheType();
     EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::FORCED_CACHE);
-    nodeTest->UpdateDrawingCacheInfoAfterChildren(true);
-    auto& stagingRenderParams = nodeTest->GetStagingRenderParams();
-    EXPECT_NE(stagingRenderParams, nullptr);
-    EXPECT_EQ(stagingRenderParams->NodeGroupHasChildInBlacklist(), true);
 }
 
 /**
@@ -2787,14 +2783,10 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoAfterChildrenTest004, TestSize.
     childNode->InitRenderParams();
     nodeTest->AddChild(childNode, 1);
     nodeTest->GenerateFullChildrenList();
-    bool isInBlackList = false;
 
     nodeTest->nodeGroupType_ = RSRenderNode::GROUPED_BY_USER;
     nodeTest->CheckDrawingCacheType();
     EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::FORCED_CACHE);
-
-    nodeTest->UpdateDrawingCacheInfoAfterChildren(isInBlackList);
-    EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
 }
 
 /**
@@ -2821,7 +2813,7 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoAfterChildrenTest005, TestSize.
 
     std::unordered_set<NodeId> childHasProtectedNodeSet;
     childHasProtectedNodeSet.insert(nodeTest->GetId());
-    nodeTest->UpdateDrawingCacheInfoAfterChildren(false, childHasProtectedNodeSet);
+    nodeTest->UpdateDrawingCacheInfoAfterChildren(childHasProtectedNodeSet);
     EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
 }
 
@@ -2849,7 +2841,7 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoAfterChildrenTest006, TestSize.
 
     std::unordered_set<NodeId> childHasProtectedNodeSet;
     childHasProtectedNodeSet.insert(nodeTest->GetId());
-    nodeTest->UpdateDrawingCacheInfoAfterChildren(false, childHasProtectedNodeSet);
+    nodeTest->UpdateDrawingCacheInfoAfterChildren(childHasProtectedNodeSet);
     nodeTest->UpdateDrawingCacheInfoAfterChildren();
     EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::FORCED_CACHE);
 }

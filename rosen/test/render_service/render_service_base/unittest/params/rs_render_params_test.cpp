@@ -602,6 +602,46 @@ HWTEST_F(RSRenderParamsTest, SetChildHasTranslateOnSqueezeTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetNodeGroupHasChildInBlacklistTest
+ * @tc.desc: Test SetNodeGroupHasChildInBlacklist
+ * @tc.type: FUNC
+ * @tc.require: issues/20738
+ */
+HWTEST_F(RSRenderParamsTest, SetNodeGroupHasChildInBlacklistTest, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
+    std::unique_ptr<RSRenderParams> target = std::make_unique<RSRenderParams>(id);
+    RSRenderParams params(id);
+    auto renderParams = static_cast<RSRenderParams*>(target.get());
+
+    // Test initial state
+    EXPECT_FALSE(renderParams->NodeGroupHasChildInBlacklist());
+    ASSERT_EQ(renderParams->renderGroupCache_, nullptr);
+
+    // Test setting to true
+    renderParams->SetNodeGroupHasChildInBlacklist(true);
+    EXPECT_TRUE(renderParams->NodeGroupHasChildInBlacklist());
+    ASSERT_NE(renderParams->renderGroupCache_, nullptr);
+    EXPECT_TRUE(renderParams->needSync_);
+
+    // Test setting to false
+    renderParams->SetNodeGroupHasChildInBlacklist(false);
+    EXPECT_FALSE(renderParams->NodeGroupHasChildInBlacklist());
+    EXPECT_TRUE(renderParams->needSync_);
+
+    // Test setting same value (should not need sync)
+    renderParams->needSync_ = false;
+    renderParams->SetNodeGroupHasChildInBlacklist(false);
+    EXPECT_FALSE(renderParams->NodeGroupHasChildInBlacklist());
+    EXPECT_FALSE(renderParams->needSync_);
+
+    // Test setting to true again
+    renderParams->SetNodeGroupHasChildInBlacklist(true);
+    EXPECT_TRUE(renderParams->NodeGroupHasChildInBlacklist());
+    EXPECT_TRUE(renderParams->needSync_);
+}
+
+/**
  * @tc.name: SetDrawingCacheIncludeProperty_001
  * @tc.desc: Test function SetDrawingCacheIncludeProperty
  * @tc.type:FUNC
