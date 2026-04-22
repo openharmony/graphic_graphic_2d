@@ -539,6 +539,8 @@ HWTEST_F(RSHdrUtilTest, UpdateSurfaceNodeNitTest002, TestSize.Level1)
     retUpdateNit = RSHdrUtil::UpdateSurfaceNodeNit(*node, 0, scaler); // not update surfaceNode HDRBrightnessFactor
     ASSERT_EQ(retUpdateNit, true);
     EXPECT_EQ(node->GetHDRBrightnessFactor(), 0.5f);
+    node->SetHDRDimmingFactor(0.5f);
+    EXPECT_EQ(node->GetHDRDimmingFactor(), 0.5f);
 }
 
 /**
