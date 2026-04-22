@@ -65,7 +65,7 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(
     if (!isWindow) {
         return Create(surfaceNodeConfig, RSSurfaceNodeType::SELF_DRAWING_NODE, isWindow, false, rsUIContext);
     }
-    return Create(surfaceNodeConfig, RSSurfaceNodeType::DEFAULT, isWindow);
+    return Create(surfaceNodeConfig, RSSurfaceNodeType::DEFAULT, isWindow, false, rsUIContext);
 }
 
 RSSurfaceNode::SharedPtr RSSurfaceNode::CreateSurfaceNode(const RSSurfaceNodeConfig &surfaceNodeConfig, bool isWindow)
