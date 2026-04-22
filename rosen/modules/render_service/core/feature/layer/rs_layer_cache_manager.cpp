@@ -80,19 +80,17 @@ bool RSLayerCacheManager::ShouldEnableLayerCache(
     bool shouldDisisableLayerCache = (gpuMemMB + totalLayerCacheMB) > LAYER_CACHE_GPU_MEMORY_THRESHOLD ||
                                      totalLayerCacheMB > LAYER_CACHE_SIZE_THRESHOLD;
     if (shouldDisisableLayerCache) {
-        params->SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
         return false;
     }
 
     Drawing::Rect bounds = params->GetFrameRect();
-    auto width = bounds.GetWidth();
-    auto height = bounds.GetHeight();
+    auto width = static_cast<float>(bounds.GetWidth());
+    auto height = static_cast<float>(bounds.GetHeight());
     totalLayerCacheMB += static_cast<float>(width * height * PER_PIXEL_SIZE) / (1024.f * 1024.f);
 
     shouldDisisableLayerCache = (gpuMemMB + totalLayerCacheMB) > LAYER_CACHE_GPU_MEMORY_THRESHOLD ||
                                 totalLayerCacheMB > LAYER_CACHE_SIZE_THRESHOLD;
     if (shouldDisisableLayerCache) {
-        params->SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
         return false;
     }
     return true;
@@ -141,28 +139,31 @@ void RSLayerCacheManager::TryPrepareLayerCache(
 
 void RSLayerCacheManager::HandleLayerDrawables(RSPaintFilterCanvas& canvas)
 {
-    if (!canvas.GetGPUContext()) {
+    bool isLayerEmpty = layerDrawables_.empty() || !canvas.GetGPUContext();
+    if (isLayerEmpty) {
         layerDrawables_.clear();
         return;
     }
 
+    size_t gpuMemBytes = 0;
+    canvas.GetGPUContext()->GetResourceCacheUsage(nullptr, &gpuMemBytes);
+
+    float gpuMemMB = static_cast<float>(gpuMemBytes) / (1024.f * 1024.f);
     float totalLayerCacheMB = 0;
     for (auto& drawableAdapter : layerDrawables_) {
         auto drawablePtr = std::static_pointer_cast<DrawableV2::RSCanvasRenderNodeDrawable>(drawableAdapter);
-        if (!drawablePtr->GetRenderParams()) {
+
+        bool isSuggestedOpinc = !drawablePtr->GetRenderParams() || drawablePtr->GetRenderParams()->OpincIsSuggest();
+        RS_OPTIONAL_TRACE_NAME_FMT(
+            "LayerDrawable TryPrepareLayerCache, isOpinc:%d, id: %" PRId64 "", isSuggestedOpinc, drawablePtr->GetId());
+        if (isSuggestedOpinc) {
             continue;
         }
 
-        RS_OPTIONAL_TRACE_NAME_FMT("LayerDrawable TryPrepareLayerCache, isOpinc:%d, id: %" PRId64 "",
-            drawablePtr->GetRenderParams()->OpincIsSuggest(), drawablePtr->GetId());
-
-        size_t gpuMemBytes = 0;
-        canvas.GetGPUContext()->GetResourceCacheUsage(nullptr, &gpuMemBytes);
-        float gpuMemMB = static_cast<float>(gpuMemBytes)/(1024.f * 1024.f);
-        bool isLayerEnabled = (drawablePtr->GetRenderParams()->OpincIsSuggest() == false) &&
-                              ShouldEnableLayerCache(drawablePtr, gpuMemMB, totalLayerCacheMB);
-        if (isLayerEnabled) {
+        if (ShouldEnableLayerCache(drawablePtr, gpuMemMB, totalLayerCacheMB)) {
             TryPrepareLayerCache(drawablePtr, canvas);
+        } else {
+            drawablePtr->GetRenderParams()->SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
         }
     }
     layerDrawables_.clear();
