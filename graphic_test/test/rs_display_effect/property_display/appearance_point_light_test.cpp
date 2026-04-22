@@ -439,7 +439,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_PointLight_Complex
         lightSource->SetLightIntensity(lightIntensityDefault);
         lightSource->SetLightColor(std::get<3>(params));
 
-        lightSource->SetBackgroundColor(std::get<2>(params));
+        lightSource->SetBackgroundColor(colorDarkGray);
         lightSource->SetIlluminatedType(static_cast<uint32_t>(IlluminatedType::CONTENT));
         lightSource->SetIlluminatedBorderWidth(25.0f);
         GetRootNode()->AddChild(lightSource);
