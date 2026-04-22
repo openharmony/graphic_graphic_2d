@@ -774,6 +774,10 @@ void MemoryManager::DumpDrawingGpuMemory(DfxString& log, const Drawing::GPUConte
     gpuContext->GetResourceCacheUsage(nullptr, &cacheUsed);
     log.AppendFormat("\ngpu limit = %zu ( used = %zu ):\n", cacheLimit, cacheUsed);
 
+    /* ShaderCache */
+    log.AppendFormat("\n---------------\nShader Caches:\n");
+    std::shared_ptr<RenderContext> rendercontext = RenderContext::Create();
+    log.AppendFormat(rendercontext->GetShaderCacheSize().c_str());
     // gpu stat
     if (!isLite) {
         DumpGpuStats(log, gpuContext);

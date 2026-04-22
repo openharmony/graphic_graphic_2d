@@ -35,6 +35,46 @@ void RenderContextGLTest::SetUp() {}
 void RenderContextGLTest::TearDown() {}
 
 /**
+ * @tc.name: CleanAllShaderCache
+ * @tc.desc: Verify the CleanAllShaderCache of RenderContextGLTest
+ * @tc.type: FUNC
+*/
+HWTEST_F(RenderContextGLTest, CleanAllShaderCache, TestSize.Level1)
+{
+    if (RSSystemProperties::IsUseVulkan()) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
+    auto renderContext = std::make_shared<RenderContextGL>();
+    std::string result = renderContext->CleanAllShaderCache();
+    EXPECT_EQ(result, "");
+
+    renderContext->SetUpGpuContext();
+    result = renderContext->CleanAllShaderCache();
+    EXPECT_EQ(result, "");
+}
+
+/**
+ * @tc.name: GetShaderCacheSize
+ * @tc.desc: Verify the GetShaderCacheSize of RenderContextGLTest
+ * @tc.type: FUNC
+*/
+HWTEST_F(RenderContextGLTest, GetShaderCacheSize, TestSize.Level1)
+{
+    if (RSSystemProperties::IsUseVulkan()) {
+        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
+        return;
+    }
+    auto renderContext = std::make_shared<RenderContextGL>();
+    auto result = renderContext->GetShaderCacheSize();
+    EXPECT_EQ(result, "");
+
+    renderContext->SetUpGpuContext();
+    result = renderContext->GetShaderCacheSize();
+    EXPECT_NE(result, "");
+}
+
+/**
  * @tc.name: ClearRedundantResources
  * @tc.desc: Verify the ClearRedundantResources of RenderContextGLTest
  * @tc.type: FUNC
