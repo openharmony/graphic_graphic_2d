@@ -75,6 +75,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsVulkanContext.GetVulkanVersion();
     rsVulkanContext.CreateDrawingContext();
     rsVulkanContext.GetDrawingContext();
+    rsVulkanContext.GetMemoryHandler();
     rsVulkanContext.GetIsProtected();
     rsVulkanContext.ClearGrContext();
     return true;
