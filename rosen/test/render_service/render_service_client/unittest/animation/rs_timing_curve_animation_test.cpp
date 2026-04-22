@@ -490,7 +490,8 @@ HWTEST_F(RSTimingCurveAnimationTest, CreateCubicCurveTest005, TestSize.Level1)
     canvasNode->AddModifier(scaleModifier);
     RSAnimationTimingCurve timingCurve = RSAnimationTimingCurve::CreateCubicCurve(0.234f, 0.12f, 0.25f, 1.0f);
     RSAnimationTimingProtocol protocol;
-    auto animations = RSNode::Animate(nullptr, protocol, timingCurve, [&property]() { property->Set(ANIMATION_DOUBLE_SCALE); });
+    auto animations =
+        RSNode::Animate(nullptr, protocol, timingCurve, [&property]() { property->Set(ANIMATION_DOUBLE_SCALE); });
     /**
      * @tc.steps: step2. start animation test
      */

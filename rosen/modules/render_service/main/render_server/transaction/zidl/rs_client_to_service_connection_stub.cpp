@@ -760,22 +760,31 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_ACTIVE_SCREEN_ID_CHANGED_CALLBACK): {
             sptr<RSIActiveScreenIdChangedCallback> callback = nullptr;
-            sptr<IRemoteObject> remoteObject = nullptr;
-            bool readRemoteObject = data.ReadBool();
-            if (readRemoteObject) {
-                remoteObject = data.ReadRemoteObject();
-            }
-            if (remoteObject) {
-                callback = iface_cast<RSIActiveScreenIdChangedCallback>(remoteObject);
-            } else {
+            bool readRemoteObject = false;
+            if (!data.ReadBool(readRemoteObject)) {
                 RS_LOGE(
-                    "RSClientToServiceConnectionStub::SET_ACTIVE_SCREEN_ID_CHANGED_CALLBACK ReadRemoteObject failed!");
+                    "RSClientToServiceConnectionStub::SET_ACTIVE_SCREEN_ID_CHANGED_CALLBACK read ReadRemoteObject "
+                    "failed!");
                 ret = ERR_INVALID_DATA;
+                break;
             }
-            if (!callback) {
-                RS_LOGE("RSClientToServiceConnectionStub::SET_ACTIVE_SCREEN_ID_CHANGED_CALLBACK cast remoteObject to "
-                        "RSIActiveScreenIdChangedCallback failed!");
-                ret = ERR_INVALID_DATA;
+            if (readRemoteObject) {
+                sptr<IRemoteObject> remoteObject = nullptr;
+                remoteObject = data.ReadRemoteObject();
+                if (remoteObject) {
+                    callback = iface_cast<RSIActiveScreenIdChangedCallback>(remoteObject);
+                } else {
+                    RS_LOGE("RSClientToServiceConnectionStub::SET_ACTIVE_SCREEN_ID_CHANGED_CALLBACK ReadRemoteObject "
+                            "failed!");
+                    ret = ERR_INVALID_DATA;
+                    break;
+                }
+                if (!callback) {
+                    RS_LOGE("RSClientToServiceConnectionStub::SET_ACTIVE_SCREEN_ID_CHANGED_CALLBACK cast "
+                            "failed!");
+                    ret = ERR_INVALID_DATA;
+                    break;
+                }
             }
             SetActiveScreenIdChangedCallback(callback);
             break;
