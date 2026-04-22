@@ -22,6 +22,9 @@
 #include "draw/color.h"
 #include "rs_trace.h"
 
+#include "parameter.h"
+#include "parameters.h"
+
 #include "common/rs_background_thread.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "feature/hdr/rs_hdr_util.h"
@@ -50,6 +53,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
+constexpr uint32_t ALPHA_MASK = 0xFF000000;
 #ifdef RS_ENABLE_GPU
 inline void DrawCapturedImg(Drawing::Image& image,
     Drawing::Surface& surface, const Drawing::BackendTexture& backendTexture,
