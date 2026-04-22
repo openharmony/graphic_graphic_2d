@@ -24,19 +24,7 @@ namespace OHOS::Rosen {
 namespace {
 constexpr GroupId TEST_GROUP_ID_0 = 0;
 constexpr GroupId DEFAULT_GROUP_ID = 0;
-constexpr int32_t PARSE_EXEC_SUCCESS = 0;
-constexpr int32_t PARSE_ERROR = -1;
-constexpr int32_t TEST_SCREEN_ID_100 = 100;
-constexpr int32_t TEST_SCREEN_ID_101 = 101;
-constexpr GroupId TEST_GROUP_ID_1 = 1;
-constexpr GroupId TEST_GROUP_ID_3 = 3;
-constexpr GroupId TEST_GROUP_ID_5 = 5;
-constexpr size_t EXPECTED_TWO_GROUPS = 2;
 
-xmlDocPtr StringToXmlDoc(const std::string& xmlContent)
-{
-    return xmlReadMemory(xmlContent.c_str(), xmlContent.size(), nullptr, nullptr, 0);
-}
 } // namespace
 
 class RSRenderModeConfigParserTest : public testing::Test {

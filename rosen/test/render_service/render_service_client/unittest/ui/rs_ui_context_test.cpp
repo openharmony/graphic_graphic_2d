@@ -47,8 +47,9 @@ void RSUIContextTest::TearDown() {}
  */
 HWTEST_F(RSUIContextTest, PostDelayTaskTest001, TestSize.Level1)
 {
-    auto uiContext1 = RSUIContextManager::MutableInstance().CreateRSUIContext();
-    auto uiContext2 = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto uiContext1 = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
+    auto uiContext2 = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     ASSERT_TRUE(RSUIContextManager::Instance().rsUIContextMap_.size() > 1);
     bool flag = false;
     const std::function<void()>& task = [&flag]() { flag = true; };
@@ -64,8 +65,9 @@ HWTEST_F(RSUIContextTest, PostDelayTaskTest001, TestSize.Level1)
  */
 HWTEST_F(RSUIContextTest, PostDelayTaskTest002, TestSize.Level1)
 {
-    auto uiContext1 = RSUIContextManager::MutableInstance().CreateRSUIContext();
-    auto uiContext2 = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto uiContext1 = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
+    auto uiContext2 = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     ASSERT_TRUE(RSUIContextManager::Instance().rsUIContextMap_.size() > 1);
     uiContext2->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); });
     ASSERT_FALSE(uiContext1->HasTaskRunner());
@@ -88,7 +90,8 @@ HWTEST_F(RSUIContextTest, PostDelayTaskTest002, TestSize.Level1)
  */
 HWTEST_F(RSUIContextTest, SetRequestVsyncCallback, TestSize.Level1)
 {
-    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     ASSERT_TRUE(uiContext != nullptr);
     ASSERT_TRUE(RSUIContextManager::Instance().rsUIContextMap_.size() > 1);
     uiContext->SetRequestVsyncCallback(nullptr);
@@ -101,7 +104,8 @@ HWTEST_F(RSUIContextTest, SetRequestVsyncCallback, TestSize.Level1)
  */
 HWTEST_F(RSUIContextTest, RequestVsyncCallback, TestSize.Level1)
 {
-    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     ASSERT_TRUE(uiContext != nullptr);
     ASSERT_TRUE(RSUIContextManager::Instance().rsUIContextMap_.size() > 1);
     uiContext->SetRequestVsyncCallback(nullptr);
@@ -123,7 +127,8 @@ HWTEST_F(RSUIContextTest, RequestVsyncCallback, TestSize.Level1)
 HWTEST_F(RSUIContextTest, DumpNodeTreeProcessorTest001, TestSize.Level1)
 {
 #ifdef RS_ENABLE_UNI_RENDER
-    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     auto transaction = uiContext->GetRSTransaction();
     ASSERT_NE(transaction, nullptr);
     auto canvasNode = RSCanvasNode::Create(false, false, uiContext);
@@ -142,7 +147,8 @@ HWTEST_F(RSUIContextTest, DumpNodeTreeProcessorTest001, TestSize.Level1)
 HWTEST_F(RSUIContextTest, DumpNodeTreeProcessorTest002, TestSize.Level1)
 {
 #ifdef RS_ENABLE_UNI_RENDER
-    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     auto transaction = uiContext->GetRSTransaction();
     ASSERT_NE(transaction, nullptr);
     std::string out = "";
@@ -161,7 +167,8 @@ HWTEST_F(RSUIContextTest, DumpNodeTreeProcessorTest003, TestSize.Level1)
 {
     bool enable = RSSystemProperties::GetRSClientMultiInstanceEnabled();
     if (enable) {
-        auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+        OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+        auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
         uiContext->rsTransactionHandler_ = nullptr;
         auto transaction = uiContext->GetRSTransaction();
         ASSERT_EQ(transaction, nullptr);
@@ -225,7 +232,8 @@ HWTEST_F(RSUIContextTest, CloseAllSyncTransactionTest001, TestSize.Level1)
     RSUIContextManager::MutableInstance().CloseAllSyncTransaction(syncId);
 
     RSUIContextManager::MutableInstance().isMultiInstanceOpen_ = true;
-    RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     ASSERT_FALSE(RSUIContextManager::MutableInstance().rsUIContextMap_.empty());
     RSUIContextManager::MutableInstance().CloseAllSyncTransaction(syncId);
 
@@ -235,7 +243,7 @@ HWTEST_F(RSUIContextTest, CloseAllSyncTransactionTest001, TestSize.Level1)
     RSUIContextManager::MutableInstance().CloseAllSyncTransaction(syncId);
 
     RSUIContextManager::MutableInstance().rsUIContextMap_.clear();
-    RSUIContextManager::MutableInstance().CreateRSUIContext();
+    RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     ASSERT_FALSE(RSUIContextManager::MutableInstance().rsUIContextMap_.empty());
     auto syncHandler =
         RSUIContextManager::MutableInstance().rsUIContextMap_.begin()->second->GetSyncTransactionHandler();
@@ -244,7 +252,7 @@ HWTEST_F(RSUIContextTest, CloseAllSyncTransactionTest001, TestSize.Level1)
     RSUIContextManager::MutableInstance().CloseAllSyncTransaction(syncId);
 
     RSUIContextManager::MutableInstance().rsUIContextMap_.clear();
-    RSUIContextManager::MutableInstance().CreateRSUIContext();
+    RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     ASSERT_FALSE(RSUIContextManager::MutableInstance().rsUIContextMap_.empty());
     auto syncHandler1 =
         RSUIContextManager::MutableInstance().rsUIContextMap_.begin()->second->GetSyncTransactionHandler();
@@ -262,7 +270,8 @@ HWTEST_F(RSUIContextTest, CloseAllSyncTransactionTest001, TestSize.Level1)
  */
 HWTEST_F(RSUIContextTest, MoveModifierTest001, TestSize.Level1)
 {
-    auto curContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto curContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     curContext->rsModifierManager_ = std::make_shared<RSModifierManager>();
     auto canvasNode = RSCanvasNode::Create(false, false, curContext);
     auto rsCustomModifier = std::make_shared<ModifierNG::RSContentStyleModifier>();
@@ -273,7 +282,7 @@ HWTEST_F(RSUIContextTest, MoveModifierTest001, TestSize.Level1)
     curContext->rsModifierManager_->AddModifier(notMoveModifier);
     ASSERT_EQ(curContext->rsModifierManager_->modifiers_.size(), 2);
 
-    auto newContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    auto newContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     newContext->rsModifierManager_ = std::make_shared<RSModifierManager>();
 
     curContext->MoveModifier(newContext, canvasNode->GetId());
@@ -289,7 +298,8 @@ HWTEST_F(RSUIContextTest, MoveModifierTest001, TestSize.Level1)
 HWTEST_F(RSUIContextTest, MoveModifierTest002, TestSize.Level1)
 {
     NodeId id = 0;
-    auto curContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto curContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     curContext->rsModifierManager_ = nullptr;
     curContext->MoveModifier(nullptr, id);
 
@@ -310,11 +320,12 @@ HWTEST_F(RSUIContextTest, MoveModifierTest002, TestSize.Level1)
 HWTEST_F(RSUIContextTest, MoveModifierTest003, TestSize.Level1)
 {
     NodeId id = 0;
-    auto curContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto curContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     curContext->rsModifierManager_ = nullptr;
     ASSERT_EQ(curContext->rsModifierManager_, nullptr);
 
-    auto newContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    auto newContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     newContext->rsModifierManager_ = std::make_shared<RSModifierManager>();
     ASSERT_NE(newContext->rsModifierManager_, nullptr);
 
@@ -329,7 +340,8 @@ HWTEST_F(RSUIContextTest, MoveModifierTest003, TestSize.Level1)
  */
 HWTEST_F(RSUIContextTest, UiPiplineNum001, TestSize.Level1)
 {
-    auto curContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto curContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     ASSERT_EQ(curContext->GetUiPiplineNum(), UI_PiPLINE_NUM_UNDEFINED);
  
     curContext->DetachFromUI();
@@ -343,7 +355,8 @@ HWTEST_F(RSUIContextTest, UiPiplineNum001, TestSize.Level1)
  */
 HWTEST_F(RSUIContextTest, UiPiplineNum002, TestSize.Level1)
 {
-    auto curContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto curContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     ASSERT_EQ(curContext->GetUiPiplineNum(), UI_PiPLINE_NUM_UNDEFINED);
  
     curContext->DetachFromUI();
@@ -372,7 +385,8 @@ HWTEST_F(RSUIContextTest, UiPiplineNum002, TestSize.Level1)
  */
 HWTEST_F(RSUIContextTest, UiPiplineNum003, TestSize.Level1)
 {
-    auto curContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto curContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
 
     curContext->AttachFromUI();
     ASSERT_EQ(curContext->GetUiPiplineNum(), 1);
@@ -397,7 +411,8 @@ HWTEST_F(RSUIContextTest, UiPiplineNum003, TestSize.Level1)
  */
 HWTEST_F(RSUIContextTest, UiPiplineNum004, TestSize.Level1)
 {
-    auto curContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto curContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     ASSERT_EQ(curContext->GetUiPiplineNum(), UI_PiPLINE_NUM_UNDEFINED);
  
     curContext->DetachFromUI();
@@ -432,10 +447,11 @@ HWTEST_F(RSUIContextTest, UiPiplineNum004, TestSize.Level1)
  */
 HWTEST_F(RSUIContextTest, UiPiplineNum005, TestSize.Level1)
 {
-    auto curContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto curContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     ASSERT_EQ(curContext->GetUiPiplineNum(), UI_PiPLINE_NUM_UNDEFINED);
 
-    auto newContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    auto newContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     ASSERT_EQ(newContext->GetUiPiplineNum(), UI_PiPLINE_NUM_UNDEFINED);
  
     curContext->DetachFromUI();
@@ -500,7 +516,8 @@ HWTEST_F(RSUIContextTest, UiPiplineNum005, TestSize.Level1)
  */
 HWTEST_F(RSUIContextTest, UiPiplineNum006, TestSize.Level1)
 {
-    auto curContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto curContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     ASSERT_EQ(curContext->GetUiPiplineNum(), UI_PiPLINE_NUM_UNDEFINED);
 
     curContext->AttachFromUI();
@@ -515,7 +532,7 @@ HWTEST_F(RSUIContextTest, UiPiplineNum006, TestSize.Level1)
     curContext->DetachFromUI();
     ASSERT_EQ(curContext->GetUiPiplineNum(), 0);
 
-    auto newContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    auto newContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     ASSERT_EQ(newContext->GetUiPiplineNum(), UI_PiPLINE_NUM_UNDEFINED);
 
     newContext->AttachFromUI();

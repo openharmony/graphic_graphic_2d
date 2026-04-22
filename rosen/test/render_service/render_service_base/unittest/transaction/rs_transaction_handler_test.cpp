@@ -109,7 +109,7 @@ HWTEST_F(RSTransactionHandlerTest, FlushImplicitTransactionHybridRender002, Test
         std::make_unique<RSAnimationCallback>(nodeId, 1, 1, AnimationCallbackEvent::FINISHED);
     transaction->AddRemoteCommand(command, nodeId, FollowType::NONE);
     CommitTransactionCallback callback =
-        [] (std::shared_ptr<RSIRenderClient> &renderServiceClient,
+        [] (std::shared_ptr<OHOS::Rosen::RSRenderPipelineClient> &rsRenderPipelineClient,
         std::unique_ptr<RSTransactionData>&& rsTransactionData, uint32_t& transactionDataIndex,
         std::shared_ptr<RSTransactionHandler>) {};
     RSTransactionHandler::SetCommitTransactionCallback(callback);

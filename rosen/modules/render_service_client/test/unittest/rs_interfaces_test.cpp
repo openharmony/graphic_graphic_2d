@@ -847,7 +847,7 @@ HWTEST_F(RSInterfacesTest, SetScreenChangeCallback, Function | SmallTest | Level
     ScreenChangeReason errorReason = ScreenChangeReason::DEFAULT;
     bool callbacked = false;
     auto callback = [&screenId, &screenEvent, &errorReason, &callbacked]
-        (ScreenId id, ScreenEvent event, ScreenChangeReason reason) {
+        (ScreenId id, ScreenEvent event, ScreenChangeReason reason, sptr<IRemoteObject> remote) {
         screenId = id;
         screenEvent = event;
         errorReason = reason;

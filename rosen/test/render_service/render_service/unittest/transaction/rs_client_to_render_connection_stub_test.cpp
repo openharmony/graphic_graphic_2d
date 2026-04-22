@@ -69,9 +69,6 @@ constexpr const int WAIT_HANDLER_TIME = 1; // 1s
 constexpr const int WAIT_HANDLER_TIME_COUNT = 5;
 constexpr const int SURFACE_NODE_ID = 1003;
 constexpr const int TEST_NULLPTR_CONN_PID = 10;
-constexpr const uint64_t DEFAULT_ID = 100;
-constexpr const uint32_t DEFAULT_STABLE_DURATION = 1000;
-constexpr const float DEFAULT_CHANGE_PERCENT = 0.5f;
 };
 
 namespace OHOS::Rosen {
@@ -4014,7 +4011,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RenderPipelineAgentNullptrTest011, 
     // Test RegisterTypeface
     uint64_t globalUniqueId = 12345;
     std::shared_ptr<Drawing::Typeface> typeface = nullptr;
-    ret = agent->RegisterTypeface(globalUniqueId, typeface);
+    auto ret = agent->RegisterTypeface(globalUniqueId, typeface);
     EXPECT_EQ(ret, false);
 
     // Test UnRegisterTypeface

@@ -80,7 +80,7 @@ namespace OHOS {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetTranslate({ 0, 0 });
         auto interactiveAnimator = RSInteractiveImplictAnimator::Create(
-            protocol, RSAnimationTimingCurve::DEFAULT);
+            nullptr, protocol, RSAnimationTimingCurve::DEFAULT);
         interactiveAnimator->SetFinishCallBack([]() {});
         interactiveAnimator->CallFinishCallback();
         interactiveAnimator->FinishOnCurrent();
@@ -116,10 +116,10 @@ namespace OHOS {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetTranslate({ 0, 0 });
         auto interactiveAnimator = RSInteractiveImplictAnimator::Create(
-            protocol, RSAnimationTimingCurve::DEFAULT);
+            nullptr, protocol, RSAnimationTimingCurve::DEFAULT);
         interactiveAnimator->SetFinishCallBack([]() {});
         interactiveAnimator->AddAnimation([&]() {
-            RSNode::Animate(protocol, RSAnimationTimingCurve::DEFAULT, [&]() {
+            RSNode::Animate(nullptr, protocol, RSAnimationTimingCurve::DEFAULT, [&]() {
                 canvasNode->SetTranslate({ translateX, translateY });
             }, []() {});
         });
@@ -153,7 +153,7 @@ namespace OHOS {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetTranslate({ 0, 0 });
         auto interactiveAnimator = RSInteractiveImplictAnimator::Create(
-            protocol, RSAnimationTimingCurve::DEFAULT);
+            nullptr, protocol, RSAnimationTimingCurve::DEFAULT);
         interactiveAnimator->SetFinishCallBack([]() {});
         interactiveAnimator->AddAnimation([&]() {
             canvasNode->SetTranslate({ translateX, translateY });

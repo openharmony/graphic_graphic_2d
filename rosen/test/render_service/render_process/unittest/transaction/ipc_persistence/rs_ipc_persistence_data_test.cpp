@@ -16,7 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "rs_ipc_persistence_data.h"
-
+#include "core/rs_render_pipeline_agent.h"
 using namespace testing;
 using namespace testing::ext;
 

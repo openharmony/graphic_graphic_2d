@@ -138,22 +138,6 @@ HWTEST_F(RSRenderServiceAgentTest, PostSyncTaskImmediate001, TestSize.Level1)
 }
 
 /**
- * @tc.name: ProcessHgmFrameRateTest
- * @tc.desc: Test
- * @tc.type: FUNC
- * @tc.require: issueIBRN69
- */
-HWTEST_F(RSRenderServiceAgentTest, ProcessHgmFrameRateTest, TestSize.Level1)
-{
-    int32_t timeStamp = 1;
-    int32_t vsyncId = 1;
-    sptr<HgmProcessToServiceInfo> processToServiceInfo = sptr<HgmProcessToServiceInfo>::MakeSptr();
-    sptr<HgmServiceToProcessInfo> serviceToProcessInfo = sptr<HgmServiceToProcessInfo>::MakeSptr();
-    g_rsAgent->ProcessHgmFrameRate(timeStamp, vsyncId, processToServiceInfo, serviceToProcessInfo);
-    ASSERT_TRUE(g_rsAgent);
-}
-
-/**
  * @tc.name: HandleGameSceneChanged001
  * @tc.desc: HandleGameSceneChanged Test with RsGameFrameHandler nullptr.
  * @tc.type: FUNC

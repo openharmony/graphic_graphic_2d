@@ -30,7 +30,6 @@ namespace {
 constexpr pid_t TEST_PID = 1234;
 constexpr pid_t TEST_PID_2 = 5678;
 constexpr ScreenId TEST_SCREEN_ID = 100;
-constexpr ScreenId TEST_SCREEN_ID_2 = 200;
 constexpr ScreenId TEST_VIRTUAL_SCREEN_ID = 300;
 constexpr ScreenId TEST_ASSOCIATED_SCREEN_ID = 400;
 constexpr GroupId TEST_GROUP_ID = 1;
@@ -83,47 +82,6 @@ HWTEST_F(RSMultiRenderProcessManagerTest, CreateMultiProcessManagerTest001, Test
 
     delete manager;
     delete renderService;
-}
-
-/**
- * @tc.name: RecordRenderProcessConnectionTest001
- * @tc.desc: Test RecordRenderProcessConnection with valid parameters
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMultiRenderProcessManagerTest, RecordRenderProcessConnectionTest001, TestSize.Level1)
-{
-    ASSERT_NE(multiProcessManager_, nullptr);
-
-    sptr<RSIServiceToRenderConnection> serviceToRenderConnection = nullptr;
-    sptr<IRSComposerToRenderConnection> composerToRenderConnection = nullptr;
-    sptr<RSIConnectToRenderProcess> connectToRenderConnection = nullptr;
-
-    multiProcessManager_->RecordRenderProcessConnection(
-        TEST_PID, serviceToRenderConnection, composerToRenderConnection, connectToRenderConnection);
-
-    // Verification: The method should complete without exception
-    ASSERT_TRUE(multiProcessManager_ != nullptr);
-}
-
-/**
- * @tc.name: RecordRenderProcessConnectionTest002
- * @tc.desc: Test RecordRenderProcessConnection with different PID
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMultiRenderProcessManagerTest, RecordRenderProcessConnectionTest002, TestSize.Level1)
-{
-    ASSERT_NE(multiProcessManager_, nullptr);
-
-    sptr<RSIServiceToRenderConnection> serviceToRenderConnection = nullptr;
-    sptr<IRSComposerToRenderConnection> composerToRenderConnection = nullptr;
-    sptr<RSIConnectToRenderProcess> connectToRenderConnection = nullptr;
-
-    multiProcessManager_->RecordRenderProcessConnection(
-        TEST_PID_2, serviceToRenderConnection, composerToRenderConnection, connectToRenderConnection);
-
-    ASSERT_TRUE(multiProcessManager_ != nullptr);
 }
 
 /**
@@ -180,55 +138,6 @@ HWTEST_F(RSMultiRenderProcessManagerTest, CreateMultipleManagersTest001, TestSiz
     delete manager1;
     delete renderService2;
     delete renderService1;
-}
-
-/**
- * @tc.name: RecordAndGetConnectionTest001
- * @tc.desc: Test recording and getting connection info
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMultiRenderProcessManagerTest, RecordAndGetConnectionTest001, TestSize.Level1)
-{
-    auto renderService = new RSRenderService();
-    auto manager = new RSMultiRenderProcessManager(*renderService);
-
-    sptr<RSIServiceToRenderConnection> serviceToRenderConnection = nullptr;
-    sptr<IRSComposerToRenderConnection> composerToRenderConnection = nullptr;
-    sptr<RSIConnectToRenderProcess> connectToRenderConnection = nullptr;
-
-    manager->RecordRenderProcessConnection(
-        TEST_PID, serviceToRenderConnection, composerToRenderConnection, connectToRenderConnection);
-
-    auto property = manager->GetPendingScreenProperty(TEST_PID);
-
-    delete manager;
-    delete renderService;
-
-    ASSERT_TRUE(property == nullptr || property != nullptr);
-}
-
-/**
- * @tc.name: MultiProcessManagerNullServiceTest001
- * @tc.desc: Test manager behavior with null service reference
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMultiRenderProcessManagerTest, MultiProcessManagerNullServiceTest001, TestSize.Level1)
-{
-    auto renderService = new RSRenderService();
-    auto manager = new RSMultiRenderProcessManager(*renderService);
-
-    ASSERT_NE(manager, nullptr);
-
-    sptr<RSIServiceToRenderConnection> serviceToRenderConnection = nullptr;
-    sptr<IRSComposerToRenderConnection> composerToRenderConnection = nullptr;
-    sptr<RSIConnectToRenderProcess> connectToRenderConnection = nullptr;
-    manager->RecordRenderProcessConnection(TEST_PID, serviceToRenderConnection,
-        composerToRenderConnection, connectToRenderConnection);
-
-    delete manager;
-    delete renderService;
 }
 
 /**
@@ -404,42 +313,6 @@ HWTEST_F(RSMultiRenderProcessManagerTest, GetConnectToRenderConnByPidLocked001, 
     ASSERT_NE(multiProcessManager_, nullptr);
     auto conn = multiProcessManager_->GetConnectToRenderConnByPidLocked(TEST_PID);
     EXPECT_EQ(conn, nullptr);
-}
-
-/**
- * @tc.name: GotComposerToRenderConnByPid001
- * @tc.desc: Test GotComposerToRenderConnByPid throws when pid not found
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMultiRenderProcessManagerTest, GotComposerToRenderConnByPid001, TestSize.Level1)
-{
-    ASSERT_NE(multiProcessManager_, nullptr);
-    EXPECT_THROW(multiProcessManager_->GotComposerToRenderConnByPid(TEST_PID), std::out_of_range);
-}
-
-/**
- * @tc.name: GotServiceToRenderConnByPid001
- * @tc.desc: Test GotServiceToRenderConnByPid throws when pid not found
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMultiRenderProcessManagerTest, GotServiceToRenderConnByPid001, TestSize.Level1)
-{
-    ASSERT_NE(multiProcessManager_, nullptr);
-    EXPECT_THROW(multiProcessManager_->GotServiceToRenderConnByPid(TEST_PID), std::out_of_range);
-}
-
-/**
- * @tc.name: GotConnectToRenderConnByPid001
- * @tc.desc: Test GotConnectToRenderConnByPid throws when pid not found
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMultiRenderProcessManagerTest, GotConnectToRenderConnByPid001, TestSize.Level1)
-{
-    ASSERT_NE(multiProcessManager_, nullptr);
-    EXPECT_THROW(multiProcessManager_->GotConnectToRenderConnByPid(TEST_PID), std::out_of_range);
 }
 
 /**

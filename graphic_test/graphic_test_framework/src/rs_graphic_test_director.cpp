@@ -181,7 +181,7 @@ void RSGraphicTestDirector::InitProfilerThread()
 void RSGraphicTestDirector::Run()
 {
     Reset();
-    rsUiDirector_ = RSUIDirector::Create();
+    rsUiDirector_ = RSUIDirector::Create(nullptr, nullptr);
 
     rsUiDirector_->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) {
         if (task) {

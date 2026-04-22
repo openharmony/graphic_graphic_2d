@@ -62,7 +62,8 @@ HWTEST_F(RSPathAnimationTest, SetEndFractionTest, Level1)
     auto prop = nullptr;
     auto animationPath = nullptr;
     float frac = 1.0f;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     RSPathAnimation rsPathAnimation(rsUIContext, prop, animationPath);
     rsPathAnimation.SetEndFraction(frac);
     ASSERT_TRUE(res);
@@ -79,7 +80,8 @@ HWTEST_F(RSPathAnimationTest, SetPathNeedAddOriginTest, Level1)
     bool needAddOrigin = true;
     auto prop = nullptr;
     auto animationPath = nullptr;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     RSPathAnimation rsPathAnimation(rsUIContext, prop, animationPath);
     rsPathAnimation.SetPathNeedAddOrigin(needAddOrigin);
     ASSERT_TRUE(res);
@@ -96,7 +98,8 @@ HWTEST_F(RSPathAnimationTest, InitInterpolationValueVector2fTest01, Level1)
     auto property1 = std::make_shared<RSAnimatableProperty<Vector2f>>(PATH_ANIMATION_START_VALUE);
     auto path = RSPath::CreateRSPath(ANIMATION_PATH);
 
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     auto rsPathAnimation = std::make_shared<RSPathAnimation>(rsUIContext, property, path);
     rsPathAnimation->isNeedPath_ = true;
     rsPathAnimation->startValue_ = property1;
@@ -116,7 +119,8 @@ HWTEST_F(RSPathAnimationTest, InitInterpolationValueVector2fTest02, Level1)
     auto property2 = std::make_shared<RSAnimatableProperty<Vector2f>>(PATH_ANIMATION_END_VALUE);
     auto path = RSPath::CreateRSPath(ANIMATION_PATH);
 
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     auto rsPathAnimation = std::make_shared<RSPathAnimation>(rsUIContext, property, path);
     rsPathAnimation->isNeedPath_ = true;
     rsPathAnimation->startValue_ = property1;
@@ -137,7 +141,8 @@ HWTEST_F(RSPathAnimationTest, InitInterpolationValueVector3fTest01, Level1)
     auto property2 = std::make_shared<RSAnimatableProperty<Vector3f>>(PATH_ANIMATION_END_3F_VALUE);
     auto path = RSPath::CreateRSPath(ANIMATION_PATH);
 
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     auto rsPathAnimation = std::make_shared<RSPathAnimation>(rsUIContext, property, path);
     rsPathAnimation->isNeedPath_ = true;
     rsPathAnimation->startValue_ = property1;
@@ -157,7 +162,8 @@ HWTEST_F(RSPathAnimationTest, InitInterpolationValueVector4fTest01, Level1)
     auto property1 = std::make_shared<RSAnimatableProperty<Vector4f>>(PATH_ANIMATION_START_4F_VALUE);
     auto path = RSPath::CreateRSPath(ANIMATION_PATH);
 
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     auto rsPathAnimation = std::make_shared<RSPathAnimation>(rsUIContext, property, path);
     rsPathAnimation->isNeedPath_ = true;
     rsPathAnimation->startValue_ = property1;
@@ -177,7 +183,8 @@ HWTEST_F(RSPathAnimationTest, InitInterpolationValueVector4fTest02, Level1)
     auto property2 = std::make_shared<RSAnimatableProperty<Vector4f>>(PATH_ANIMATION_END_4F_VALUE);
     auto path = RSPath::CreateRSPath(ANIMATION_PATH);
 
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     auto rsPathAnimation = std::make_shared<RSPathAnimation>(rsUIContext, property, path);
     rsPathAnimation->isNeedPath_ = true;
     rsPathAnimation->startValue_ = property1;
@@ -198,7 +205,8 @@ HWTEST_F(RSPathAnimationTest, PreProcessPathVector2fTest, Level1)
     auto property2 = std::make_shared<RSAnimatableProperty<Vector2f>>(PATH_ANIMATION_END_VALUE);
     auto path = RSPath::CreateRSPath(ANIMATION_PATH);
 
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     auto rsPathAnimation = std::make_shared<RSPathAnimation>(rsUIContext, property, path);
     auto ret = rsPathAnimation->PreProcessPath(ANIMATION_PATH, property1, nullptr);
     EXPECT_EQ(ret, nullptr);
@@ -218,7 +226,8 @@ HWTEST_F(RSPathAnimationTest, PreProcessPathVector3fTest, Level1)
     auto property2 = std::make_shared<RSAnimatableProperty<Vector3f>>(PATH_ANIMATION_END_3F_VALUE);
     auto path = RSPath::CreateRSPath(ANIMATION_PATH);
 
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     auto rsPathAnimation = std::make_shared<RSPathAnimation>(rsUIContext, property, path);
     auto ret = rsPathAnimation->PreProcessPath(ANIMATION_PATH, property1, nullptr);
     EXPECT_EQ(ret, nullptr);
@@ -238,7 +247,8 @@ HWTEST_F(RSPathAnimationTest, PreProcessPathVector4fTest, Level1)
     auto property2 = std::make_shared<RSAnimatableProperty<Vector4f>>(PATH_ANIMATION_END_4F_VALUE);
     auto path = RSPath::CreateRSPath(ANIMATION_PATH);
 
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     auto rsPathAnimation = std::make_shared<RSPathAnimation>(rsUIContext, property, path);
     auto ret = rsPathAnimation->PreProcessPath(ANIMATION_PATH, property1, nullptr);
     EXPECT_EQ(ret, nullptr);
@@ -259,7 +269,8 @@ HWTEST_F(RSPathAnimationTest, InitNeedPathVector4fTest, Level1)
     auto property3f = std::make_shared<RSAnimatableProperty<Vector3f>>(PATH_ANIMATION_DEFAULT_3F_VALUE);
     auto path = RSPath::CreateRSPath(ANIMATION_PATH);
 
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     auto rsPathAnimation = std::make_shared<RSPathAnimation>(rsUIContext, property, path);
     rsPathAnimation->isNeedPath_ = false;
     rsPathAnimation->InitNeedPath(property3f, nullptr);

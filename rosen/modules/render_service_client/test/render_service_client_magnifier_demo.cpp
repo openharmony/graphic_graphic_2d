@@ -129,7 +129,7 @@ class MagnifierTestDemo {
 public:
     MagnifierTestDemo()
     {
-        rsUiDirector_ = RSUIDirector::Create();
+        rsUiDirector_ = RSUIDirector::Create(nullptr, nullptr);
         if (rsUiDirector_ == nullptr) {
             std::cout << "Failed to create ui director!" << std::endl;
             return;

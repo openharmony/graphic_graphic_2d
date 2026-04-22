@@ -279,7 +279,8 @@ HWTEST_F(RSImplicitAnimatorTest, ProcessEmptyAnimationTest001, TestSize.Level1)
  */
 HWTEST_F(RSImplicitAnimatorTest, ProcessEmptyAnimationTest002, TestSize.Level1)
 {
-    auto rsUIContext = std::make_shared<RSUIContext>();
+        OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     auto implicitAnimator = std::make_shared<RSImplicitAnimator>();
     implicitAnimator->SetRSUIContext(rsUIContext);
 
@@ -451,7 +452,8 @@ HWTEST_F(RSImplicitAnimatorTest, ProcessAnimationFinishCallbackGuaranteeTaskTest
  */
 HWTEST_F(RSImplicitAnimatorTest, GetRSImplicitAnimator, TestSize.Level1)
 {
-    auto rsUIContext = std::make_shared<RSUIContext>();
+        OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     // repeat count
     int count = 10;
     // thread count

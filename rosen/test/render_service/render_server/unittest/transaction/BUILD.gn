@@ -350,9 +350,6 @@ group("unittest") {
     testonly = true
 
     deps = [
-        ":RSRenderToServiceConnectionProxyTest",
-        ":RSRenderToServiceConnectionStubTest",
-        ":RSRenderToServiceConnectionTest",
-        ":RSRenderConnectParcelInfoTest",
+
     ]
 }

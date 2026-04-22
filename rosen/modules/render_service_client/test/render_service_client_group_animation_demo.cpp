@@ -2771,8 +2771,8 @@ void GroupAnimationTestThirtyNine(std::shared_ptr<RSUIDirector> rsUiDirector,
 bool StartTest(int testCase = -1)
 {
     // Create rsUIContext
-    std::shared_ptr<RSUIDirector> rsUiDirector = RSUIDirector::Create();
-    rsUiDirector->Init(true, true);
+    std::shared_ptr<RSUIDirector> rsUiDirector = RSUIDirector::Create(nullptr, nullptr);
+    
     auto uiContext = rsUiDirector->GetRSUIContext();
     auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
     auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);

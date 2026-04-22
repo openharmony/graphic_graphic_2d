@@ -46,7 +46,8 @@ public:
 
 void RSPipelineClientTest::SetUpTestCase()
 {
-    rsClient = std::make_shared<RSRenderPipelineClient>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    rsClient = std::make_shared<RSRenderPipelineClient>(connectToRenderRemote);
     uint64_t tokenId;
     const char* perms[2];
     perms[0] = "ohos.permission.CAPTURE_SCREEN";
