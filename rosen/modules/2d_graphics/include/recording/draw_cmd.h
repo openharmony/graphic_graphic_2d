@@ -927,21 +927,20 @@ private:
 class DrawTextBlobOpItem : public DrawWithPaintOpItem {
 public:
     struct ConstructorHandle : public OpItem {
-        ConstructorHandle(const OpDataHandle& textBlob, const uint64_t& globalUniqueId,
-            TextContrast textContrast, scalar x, scalar y, bool preferSpeedOverQuality,
-            const PaintHandle& paintHandle)
+        ConstructorHandle(const OpDataHandle& textBlob, const uint64_t& globalUniqueId, bool preferSpeedOverQuality,
+            TextContrast textContrast, scalar x, scalar y, const PaintHandle& paintHandle)
             : OpItem(DrawOpItem::TEXT_BLOB_OPITEM), textBlob(textBlob), globalUniqueId(globalUniqueId),
-              textContrast(textContrast), x(x), y(y), preferSpeedOverQuality(preferSpeedOverQuality),
+              preferSpeedOverQuality(preferSpeedOverQuality), textContrast(textContrast), x(x), y(y),
               paintHandle(paintHandle) {}
         ~ConstructorHandle() override = default;
         static bool GenerateCachedOpItem(DrawCmdList& cmdList, const TextBlob* textBlob, scalar x, scalar y, Paint& p);
         bool GenerateCachedOpItem(DrawCmdList& cmdList, Canvas* canvas);
         OpDataHandle textBlob;
         uint64_t globalUniqueId;
+        bool preferSpeedOverQuality;
         TextContrast textContrast;
         scalar x;
         scalar y;
-        bool preferSpeedOverQuality;
         PaintHandle paintHandle;
     };
     DrawTextBlobOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
