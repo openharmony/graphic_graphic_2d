@@ -114,8 +114,9 @@ protected:
     virtual void OnResume();
     virtual void OnFinish();
     virtual void OnSetFraction(float fraction);
-    virtual void OnUpdateStagingValue(bool isFirstStart) {};
-    virtual void UpdateStagingValueOnInteractiveFinish(RSInteractiveAnimationPosition pos) {};
+    virtual void OnUpdateStagingValue(bool isFirstStart) {}
+    virtual void UpdateStagingValueOnInteractiveFinish(RSInteractiveAnimationPosition pos) {}
+    virtual void InvertStagingValue(bool isGroupAnimator, const RSAnimationTimingProtocol& timingProtocol) {}
     virtual PropertyId GetPropertyId() const;
 
     void StartInner(const std::shared_ptr<RSNode>& target);

@@ -19,6 +19,7 @@
 #include "common/rs_optional_trace.h"
 #include "display_engine/rs_luminance_control.h"
 #include "feature/hdr/rs_hdr_util.h"
+#include "feature/layer/rs_layer_cache_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "feature_cfg/feature_param/performance_feature/opinc_param.h"
 #include "gfx/performance/rs_perfmonitor_reporter.h"
@@ -250,7 +251,6 @@ CM_INLINE void RSRenderNodeDrawable::GenerateCacheIfNeed(
             params.IsFreezedByUser());
         RSRenderNodeDrawableAdapter* root = curDrawingCacheRoot_;
         curDrawingCacheRoot_ = this;
-        hasSkipCacheLayer_ = false;
         UpdateCacheSurface(canvas, params);
         curDrawingCacheRoot_ = root;
         return;
@@ -268,7 +268,6 @@ CM_INLINE void RSRenderNodeDrawable::GenerateCacheIfNeed(
         RS_TRACE_NAME_FMT("UpdateCacheSurface with filter id:%" PRIu64 "", nodeId_);
         RSRenderNodeDrawableAdapter* root = curDrawingCacheRoot_;
         curDrawingCacheRoot_ = this;
-        hasSkipCacheLayer_ = false;
         UpdateCacheSurface(canvas, params);
         // if this NodeGroup contains other nodeGroup with filter, we should reset the isOffScreenWithClipHole_
         isOffScreenWithClipHole_ = isOffScreenWithClipHole;
@@ -384,8 +383,8 @@ CM_INLINE void RSRenderNodeDrawable::CheckCacheTypeAndDraw(
         "RSRenderNodeDrawable::CheckCacheTAD hasFilter:%{public}d drawingCacheType:%{public}d",
         hasFilter, params.GetDrawingCacheType());
     auto originalCacheType = GetCacheType();
-    // can not draw cache because skipCacheLayer in capture process, such as security layers...
-    if (GetCacheType() != DrawableCacheType::NONE && hasSkipCacheLayer_ && isInCapture) {
+    // can not draw cache because special node in capture process, such as security layers...
+    if (GetCacheType() != DrawableCacheType::NONE && params.NodeGroupHasChildInBlacklist() && isInCapture) {
         SetCacheType(DrawableCacheType::NONE);
     }
     if (hasFilter && params.GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE &&
@@ -457,9 +456,6 @@ void RSRenderNodeDrawable::DrawWithNodeGroupCache(Drawing::Canvas& canvas, const
     RS_OPTIONAL_TRACE_NAME_FMT("DrawCachedImage id:%llu", nodeId_);
     RS_LOGD("RSRenderNodeDrawable::CheckCacheTAD drawingCacheIncludeProperty is %{public}d",
         params.GetDrawingCacheIncludeProperty());
-    if (hasSkipCacheLayer_ && curDrawingCacheRoot_) {
-        curDrawingCacheRoot_->SetSkipCacheLayer(true);
-    }
 
     auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     if (!curCanvas) {
@@ -1119,6 +1115,9 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     isOpDropped_ = isOpDropped;
 
     GetOpincDrawCache().PopLayerPartRenderDirtyRegion(params, *cacheCanvas);
+
+    auto& layerCacheManager = OHOS::Rosen::RSLayerCacheManager::Instance();
+    layerCacheManager.LayerCacheRegionDfx(shared_from_this(), *cacheCanvas);
     // get image & backend
     {
         std::scoped_lock<std::recursive_mutex> lock(cacheMutex_);

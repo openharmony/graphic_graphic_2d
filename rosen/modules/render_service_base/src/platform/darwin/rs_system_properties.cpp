@@ -658,6 +658,11 @@ bool RSSystemProperties::GetLayerPartRenderDebugEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetLayerDebugEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetFilterCacheMemThresholdEnabled()
 {
     return false;

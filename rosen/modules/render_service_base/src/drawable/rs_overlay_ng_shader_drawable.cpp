@@ -772,7 +772,7 @@ void RSOverlayNGShaderDrawable::DrawBorderLight(Drawing::Canvas& canvas,
         DrawSDFBorderLight(canvas, shader);
         return;
     }
-    
+
     pen.SetShaderEffect(shader);
     float borderWidth = std::ceil(borderWidth_);
     pen.SetWidth(borderWidth);

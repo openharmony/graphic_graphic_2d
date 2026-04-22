@@ -45,6 +45,8 @@
 
 namespace OHOS {
 namespace Rosen {
+class RSInteractiveImplictAnimator;
+
 using TaskRunner = std::function<void(const std::function<void()>&, uint32_t)>;
 
 /**
@@ -204,6 +206,20 @@ public:
 
     void MoveModifier(std::shared_ptr<RSUIContext> dstUIContext, NodeId nodeId);
 
+    /**
+     * @brief Adds an interactive implicit animator to the context.
+     *
+     * @param animator The shared pointer to the RSInteractiveImplictAnimator to be added.
+     */
+    void AddInteractiveImplictAnimator(const std::shared_ptr<RSInteractiveImplictAnimator>& animator);
+
+    /**
+     * @brief Removes an interactive implicit animator from the context.
+     *
+     * @param id The ID of the RSInteractiveImplictAnimator to be removed.
+     */
+    void RemoveInteractiveImplictAnimator(InteractiveImplictAnimatorId id);
+
 private:
     RSUIContext(uint64_t token, sptr<IRemoteObject>& connectToRenderRemote);
     RSUIContext(uint64_t token);
@@ -226,6 +242,9 @@ private:
     std::unordered_map<AnimationId, std::shared_ptr<RSAnimation>> animations_;
     std::unordered_map<PropertyId, uint32_t> animatingPropertyNum_;
     std::recursive_mutex animationMutex_;
+    std::unordered_map<InteractiveImplictAnimatorId, std::shared_ptr<RSInteractiveImplictAnimator>>
+        interactiveImplictAnimators_;
+    std::mutex interactiveImplictAnimatorMutex_;
 
     TaskRunner taskRunner_ = TaskRunner();
     sptr<IRemoteObject> connectToRenderRemote_;

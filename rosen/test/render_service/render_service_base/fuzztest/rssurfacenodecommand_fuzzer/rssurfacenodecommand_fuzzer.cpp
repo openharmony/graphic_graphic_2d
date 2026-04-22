@@ -131,10 +131,12 @@ bool DoSurfacenodecommand002(const uint8_t* data, size_t size)
     uint8_t surfaceNodeType = GetData<uint8_t>();
     bool isHidden = GetData<bool>();
     bool isOpaque = GetData<bool>();
+    bool isDarkColorMode = GetData<bool>();
     SurfaceNodeCommandHelper::SetGlobalPositionEnabled(context, id, isEnabled);
     SurfaceNodeCommandHelper::SetAnimationFinished(context, id);
     SurfaceNodeCommandHelper::SetSurfaceNodeType(context, id, surfaceNodeType);
     SurfaceNodeCommandHelper::MarkUIHidden(context, id, isHidden);
+    SurfaceNodeCommandHelper::SetDarkColorMode(context, id, isDarkColorMode);
     SurfaceNodeCommandHelper::SetFrameGravityNewVersionEnabled(context, id, isEnabled);
     SurfaceNodeCommandHelper::SetSurfaceBufferOpaque(context, id, isOpaque);
     return true;

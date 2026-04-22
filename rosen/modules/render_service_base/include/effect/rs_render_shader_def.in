@@ -283,3 +283,11 @@ DECLARE_SHADER(SDFEdgeLightEffect, SDF_EDGE_LIGHT_EFFECT,
     ADD_PROPERTY_TAG(SDFEdgeLightEffect, LightMask),
     ADD_PROPERTY_TAG(SDFEdgeLightEffect, SDFShape)
 );
+
+DECLARE_SHADER(SpatialPointLight, SPATIAL_POINT_LIGHT,
+    ADD_PROPERTY_TAG(SpatialPointLight, LightIntensity),
+    ADD_PROPERTY_TAG(SpatialPointLight, LightPosition),
+    ADD_PROPERTY_TAG(SpatialPointLight, Attenuation),
+    ADD_PROPERTY_TAG(SpatialPointLight, LightColor),
+    ADD_PROPERTY_TAG(SpatialPointLight, Mask)
+);

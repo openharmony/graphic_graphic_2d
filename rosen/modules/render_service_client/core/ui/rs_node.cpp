@@ -299,7 +299,7 @@ void RSNode::OpenImplicitAnimation(const std::shared_ptr<RSUIContext> rsUIContex
     auto implicitAnimator = rsUIContext->GetRSImplicitAnimator();
 
     std::shared_ptr<AnimationFinishCallback> animationFinishCallback;
-    if (finishCallback != nullptr) {
+    if (finishCallback != nullptr && implicitAnimator->GetInteractiveAnimatorType() != InteractiveAnimatorType::GROUP) {
         animationFinishCallback =
             std::make_shared<AnimationFinishCallback>(finishCallback, timingProtocol.GetFinishCallbackType());
     }
@@ -414,6 +414,7 @@ std::vector<std::shared_ptr<RSAnimation>> RSNode::Animate(const std::shared_ptr<
     const PropertyCallback& propertyCallback, const std::function<void()>& finishCallback,
     const std::function<void()>& repeatCallback)
 {
+    RS_TRACE_FUNC();
     if (propertyCallback == nullptr) {
         ROSEN_LOGE("RSNode::Animate, property callback is null!");
         return {};
@@ -425,7 +426,7 @@ std::vector<std::shared_ptr<RSAnimation>> RSNode::Animate(const std::shared_ptr<
 
     auto implicitAnimator = rsUIContext->GetRSImplicitAnimator();
     std::shared_ptr<AnimationFinishCallback> animationFinishCallback;
-    if (finishCallback != nullptr) {
+    if (finishCallback != nullptr && implicitAnimator->GetInteractiveAnimatorType() != InteractiveAnimatorType::GROUP) {
         animationFinishCallback =
             std::make_shared<AnimationFinishCallback>(finishCallback, timingProtocol.GetFinishCallbackType());
     }
@@ -443,6 +444,7 @@ std::vector<std::shared_ptr<RSAnimation>> RSNode::AnimateWithCurrentOptions(
     const std::shared_ptr<RSUIContext> rsUIContext, const PropertyCallback& propertyCallback,
     const std::function<void()>& finishCallback, bool timingSensitive)
 {
+    RS_TRACE_FUNC();
     if (propertyCallback == nullptr) {
         ROSEN_LOGE("RSNode::AnimateWithCurrentOptions, property callback is null!");
         return {};
@@ -461,8 +463,11 @@ std::vector<std::shared_ptr<RSAnimation>> RSNode::AnimateWithCurrentOptions(
     auto implicitAnimator = rsUIContext->GetRSImplicitAnimator();
     auto finishCallbackType =
         timingSensitive ? FinishCallbackType::TIME_SENSITIVE : FinishCallbackType::TIME_INSENSITIVE;
-    // re-use the current options and replace the finish callback
-    auto animationFinishCallback = std::make_shared<AnimationFinishCallback>(finishCallback, finishCallbackType);
+    std::shared_ptr<AnimationFinishCallback> animationFinishCallback;
+    if (implicitAnimator->GetInteractiveAnimatorType() != InteractiveAnimatorType::GROUP) {
+        // re-use the current options and replace the finish callback
+        animationFinishCallback = std::make_shared<AnimationFinishCallback>(finishCallback, finishCallbackType);
+    }
     implicitAnimator->OpenImplicitAnimation(std::move(animationFinishCallback));
     propertyCallback();
     return implicitAnimator->CloseImplicitAnimation();
@@ -472,6 +477,7 @@ std::vector<std::shared_ptr<RSAnimation>> RSNode::AnimateWithCurrentCallback(
     const std::shared_ptr<RSUIContext> rsUIContext, const RSAnimationTimingProtocol& timingProtocol,
     const RSAnimationTimingCurve& timingCurve, const PropertyCallback& propertyCallback)
 {
+    RS_TRACE_FUNC();
     if (propertyCallback == nullptr) {
         ROSEN_LOGE("RSNode::AnimateWithCurrentCallback, property callback is null!");
         return {};

@@ -543,6 +543,19 @@ namespace OHOS {
         auto animationId = GetData<AnimationId>();
         auto fraction = GetData<float>();
         auto pos = GetData<RSInteractiveAnimationPosition>();
+        auto isGroupAnimator = GetData<bool>();
+        auto duration = GetData<int>();
+        auto startDelay = GetData<int>();
+        auto repeatCount = GetData<int>();
+        auto speed = GetData<float>();
+        auto autoReverse = GetData<bool>();
+
+        RSAnimationTimingProtocol timingProtocol;
+        timingProtocol.SetDuration(duration);
+        timingProtocol.SetStartDelay(startDelay);
+        timingProtocol.SetRepeatCount(repeatCount);
+        timingProtocol.SetSpeed(speed);
+        timingProtocol.SetAutoReverse(autoReverse);
 
         // have uianiamtion
         auto animation1 = std::make_shared<RSAnimation>(rsUIContext);
@@ -571,6 +584,7 @@ namespace OHOS {
         animation2->StartInner(canvasNode);
         animation2->StartCustomAnimation(renderAnimation);
         animation2->InteractiveFinish(pos);
+        animation2->InvertStagingValue(isGroupAnimator, timingProtocol);
         auto rsUiDirector = RSUIDirector::Create(nullptr, nullptr);
         rsUiDirector->SendMessages();
     }
