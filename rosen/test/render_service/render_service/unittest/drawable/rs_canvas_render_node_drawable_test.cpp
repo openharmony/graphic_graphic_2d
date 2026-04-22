@@ -492,7 +492,6 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnDrawAbnormalProcessTest, TestSize.Level
     std::set<pid_t> exitedPids = {pid};
     MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
 }
-} // namespace OHOS::Rosen
 
 /**
  * @tc.name: IsBackFaceTest001
@@ -977,4 +976,4 @@ HWTEST(RSCanvasRenderNodeDrawableTest, BackFaceSkipTest003, TestSize.Level2)
 
     RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
 }
-}
+} // namespace OHOS::Rosen
