@@ -419,6 +419,7 @@ void SurfaceNodeCommandHelper::DetachFromWindowContainer(RSContext& context, Nod
         RS_LOGE("SurfaceNodeCommandHelper::DetachFromWindowContainer Invalid surfaceRenderNode");
         return;
     }
+    surfaceRenderNode->attachedInfo_ = std::nullopt;
     nodeMap.TraverseLogicalDisplayNodes(
         [surfaceRenderNode, screenId](const std::shared_ptr<RSLogicalDisplayRenderNode>& displayRenderNode) {
             if (displayRenderNode == nullptr || displayRenderNode->GetScreenId() != screenId ||
