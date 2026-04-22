@@ -3249,34 +3249,6 @@ HWTEST_F(RSScreenManagerTest, SetScreenFrameGravityTest, TestSize.Level1)
 }
 
 /*
- * @tc.name: ExecuteCallbackTest
- * @tc.desc: Test ExecuteCallbackTest
- * @tc.type: FUNC
- */
-HWTEST_F(RSScreenManagerTest, ExecuteCallbackTest, TestSize.Level1)
-{
-    ASSERT_NE(screenManager_, nullptr);
-    const auto callback = sptr<RSIScreenChangeCallbackConfig>::MakeSptr();
-    ASSERT_NE(callback, nullptr);
-    screenManager_->screens_.clear();
-    screenManager_->ExecuteCallback(callback);
-    screenManager_->screens_[0] = nullptr;
-    screenManager_->ExecuteCallback(callback);
-    {
-        ScreenId screenId = 1;
-        VirtualScreenConfigs cfgVirtual;
-        cfgVirtual.id = screenId;
-        auto rsScreen = std::make_shared<RSScreen>(cfgVirtual);
-        rsScreen->property_.SetIsVirtual(true);
-        screenManager_->screens_[screenId] = rsScreen;
-    }
-    screenManager_->ExecuteCallback(callback);
-    screenManager_->screens_[2] = std::make_shared<RSScreen>(0);
-    screenManager_->ExecuteCallback(callback);
-    screenManager_->screens_.clear();
-}
-
-/*
  * @tc.name: ProcessScreenDisConnectedTest
  * @tc.desc: Test ProcessScreenDisConnected
  * @tc.type: FUNC

@@ -159,8 +159,8 @@ void runWithWindow(std::string testCaseName, std::function<std::shared_ptr<TestB
     cout << "[INFO] dtk create window success: " << rect.width_ << " " << rect.height_ << endl;
     auto surfaceNode = window->GetSurfaceNode();
 
-    auto rsUiDirector = RSUIDirector::Create();
-    rsUiDirector->Init();
+    auto rsUiDirector = RSUIDirector::Create(nullptr, nullptr);
+    
     RSTransaction::FlushImplicitTransaction();
     usleep(100000); // sleep 100000 microsecond
     

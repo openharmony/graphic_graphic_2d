@@ -60,7 +60,6 @@ sptr<RSClientToRenderConnectionStub> toRenderConnectionStub_ = nullptr;
 sptr<OHOS::Rosen::RSRenderService> renderService_ = nullptr;
 
 namespace {
-const uint8_t DO_GET_HIGH_CONTRAST_TEXT_STATE = 0;
 const uint8_t DO_COMMIT_TRANSACTION = 1;
 const uint8_t DO_CREATE_NODE = 2;
 const uint8_t DO_CREATE_NODE_AND_SURFACE = 3;
@@ -280,7 +279,9 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
     OHOS::Rosen::renderService_->vsyncManager_->init(OHOS::Rosen::renderService_->screenManager_);
 
     OHOS::Rosen::renderService_->renderProcessManager_ =
-        OHOS::Rosen::RSRenderProcessManager::Create(*OHOS::Rosen::renderService_);
+        OHOS::Rosen::RSRenderProcessManager::Create(*OHOS::Rosen::renderService_, [](uint64_t timestamp,
+            uint64_t vsyncId, const OHOS::sptr<OHOS::Rosen::HgmProcessToServiceInfo>& processToServiceInfo,
+            const OHOS::sptr<OHOS::Rosen::HgmServiceToProcessInfo>& serviceToProcessInfo) {});
 
     auto renderServiceAgent_ = OHOS::sptr<OHOS::Rosen::RSRenderServiceAgent>::MakeSptr(*OHOS::Rosen::renderService_);
     OHOS::sptr<OHOS::Rosen::RSRenderProcessManagerAgent> renderProcessManagerAgent_ =

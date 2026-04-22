@@ -251,8 +251,8 @@ void ContentTransitionTestFive(std::shared_ptr<ContentTransitionModifier> conten
 bool StartTest()
 {
     // create rsUIContext
-    std::shared_ptr<RSUIDirector> rsUiDirector = RSUIDirector::Create();
-    rsUiDirector->Init(true, true);
+    std::shared_ptr<RSUIDirector> rsUiDirector = RSUIDirector::Create(nullptr, nullptr);
+    
     auto uiContext = rsUiDirector->GetRSUIContext();
     if (uiContext) {
         std::cout << "RSUIDirector::Create success" << std::endl;

@@ -96,8 +96,7 @@ private:
  */
 GRAPHIC_TEST(MultiInstanceTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_MOVE_MODIFIER_TEST_001)
 {
-    auto uiDirector = RSUIDirector::Create();
-    uiDirector->Init(true, true);
+    auto uiDirector = RSUIDirector::Create(nullptr, nullptr);
     auto uiContext = uiDirector->GetRSUIContext();
 
     auto rootNode = RSRootNode::Create(false, false, uiContext);
@@ -119,8 +118,7 @@ GRAPHIC_TEST(MultiInstanceTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_MOVE_MODIFIER
     customModifier->SetBackgroundColor(Drawing::Color::COLOR_BLUE);
     canvasNode->AddModifier(customModifier);
 
-    auto newUIDirector = RSUIDirector::Create();
-    newUIDirector->Init(true, true);
+    auto newUIDirector = RSUIDirector::Create(nullptr, nullptr);
     auto newUIContext = newUIDirector->GetRSUIContext();
     rootNode->SetRSUIContext(newUIContext);
 

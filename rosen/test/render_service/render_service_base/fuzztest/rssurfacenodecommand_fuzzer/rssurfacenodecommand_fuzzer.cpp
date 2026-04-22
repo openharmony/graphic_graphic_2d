@@ -85,7 +85,7 @@ bool DoSurfacenodecommand(const uint8_t* data, size_t size)
     SurfaceNodeCommandHelper::SetFingerprint(context, id, GetData<bool>());
     SurfaceNodeCommandHelper::SetColorSpace(context, id, GetData<GraphicColorGamut>());
     SurfaceNodeCommandHelper::UpdateSurfaceDefaultSize(context, id, GetData<float>(), GetData<float>());
-    SurfaceNodeCommandHelper::ConnectToNodeInRenderService(context, id);
+    SurfaceNodeCommandHelper::ConnectToNodeInRenderService(context, id, nullptr);
     SurfaceNodeCommandHelper::SetCallbackForRenderThreadRefresh(context, id, GetData<bool>());
     SurfaceNodeCommandHelper::SetContextBounds(context, id, bounds);
     SurfaceNodeCommandHelper::SetIsTextureExportNode(context, id, GetData<bool>());

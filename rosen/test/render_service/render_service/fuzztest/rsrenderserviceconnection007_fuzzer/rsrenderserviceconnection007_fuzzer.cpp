@@ -354,7 +354,9 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
     runner->Run();
     OHOS::Rosen::renderService_->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
     OHOS::Rosen::renderService_->renderProcessManager_ =
-        OHOS::Rosen::RSRenderProcessManager::Create(*OHOS::Rosen::renderService_);
+        OHOS::Rosen::RSRenderProcessManager::Create(*OHOS::Rosen::renderService_, [](uint64_t timestamp,
+            uint64_t vsyncId, const OHOS::sptr<OHOS::Rosen::HgmProcessToServiceInfo>& processToServiceInfo,
+            const OHOS::sptr<OHOS::Rosen::HgmServiceToProcessInfo>& serviceToProcessInfo) {});
 
     auto vsyncManager = OHOS::sptr<OHOS::Rosen::RSVsyncManager>::MakeSptr();
     vsyncManager->appVSyncDistributor_ = appVSyncDistributor_;

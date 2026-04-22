@@ -74,8 +74,8 @@ bool InitSurface()
     rootNode->AddChild(node2);
     node1->AddChild(node3);
     node3->AddChild(node4);
-    auto rsUiDirector = RSUIDirector::Create();
-    rsUiDirector->Init();
+    auto rsUiDirector = RSUIDirector::Create(nullptr, nullptr);
+    
     rsUiDirector->SetRSRootNode(rootNode->ReinterpretCastTo<RSRootNode>());
     rsUiDirector->SetRSSurfaceNode(surfaceNode);
     rsUiDirector->SendMessages();

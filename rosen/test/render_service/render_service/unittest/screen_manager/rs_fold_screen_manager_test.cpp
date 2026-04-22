@@ -45,7 +45,7 @@ void RSFoldScreenManagerTest::SetUpTestCase()
     rsScreenManager_ = new RSScreenManager();
     rsScreenPreprocessor_ = new RSScreenPreprocessor(*rsScreenManager_, *rsScreenManager_->callbackMgr_, nullptr,
                                                      rsScreenManager_->isFoldScreenFlag_);
-    foldScreenManager_ = new RSFoldScreenManager(*rsScreenPreprocessor_);
+    foldScreenManager_ = new RSFoldScreenManager(*rsScreenPreprocessor_, nullptr);
 }
 
 void RSFoldScreenManagerTest::TearDownTestCase()
@@ -70,19 +70,19 @@ HWTEST_F(RSFoldScreenManagerTest, HandleSensorDataTest, TestSize.Level1)
     EXPECT_EQ(foldScreenManager_->activeScreenId_, foldScreenManager_->externalScreenId_);
     foldScreenManager_->HandleSensorData(0.f);
     EXPECT_EQ(foldScreenManager_->activeScreenId_, foldScreenManager_->externalScreenId_);
-    foldScreenManager_->isPostureSensorDataHandled_ = false;
     foldScreenManager_->HandleSensorData(0.f);
     EXPECT_EQ(foldScreenManager_->activeScreenId_, foldScreenManager_->externalScreenId_);
     foldScreenManager_->HandleSensorData(180.f);
     EXPECT_EQ(foldScreenManager_->activeScreenId_, foldScreenManager_->innerScreenId_);
     foldScreenManager_->HandleSensorData(180.f);
     EXPECT_EQ(foldScreenManager_->activeScreenId_, foldScreenManager_->innerScreenId_);
-    foldScreenManager_->isPostureSensorDataHandled_ = false;
     foldScreenManager_->HandleSensorData(180.f);
     EXPECT_EQ(foldScreenManager_->activeScreenId_, foldScreenManager_->innerScreenId_);
     foldScreenManager_->HandleSensorData(0.f);
     EXPECT_EQ(foldScreenManager_->activeScreenId_, foldScreenManager_->externalScreenId_);
     foldScreenManager_->activeScreenId_ = 0;
+    foldScreenManager_->HandleSensorData(-1.f);
+    foldScreenManager_->HandleSensorData(200.f);
 }
 
 /*

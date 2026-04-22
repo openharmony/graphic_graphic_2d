@@ -108,8 +108,8 @@ int main()
     scene->GoForeground();
     auto surfaceNode = window->GetSurfaceNode();
 
-    auto rsUiDirector = RSUIDirector::Create();
-    rsUiDirector->Init();
+    auto rsUiDirector = RSUIDirector::Create(nullptr, nullptr);
+    
     auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
     auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
     rsUiDirector->SetUITaskRunner(

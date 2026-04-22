@@ -127,17 +127,4 @@ HWTEST_F(RSRenderToServiceConnectionTest, SendProcessInfoNullComposerConnTest, T
     EXPECT_EQ(ret, nullptr);
 }
 
-/**
- * @tc.name: SendProcessInfoNullVsyncTokenTest
- * @tc.desc: Test SendProcessInfo with valid composerToRenderConnection but null vsyncToken
- * @tc.type: FUNC
- * @tc.require: issueIBRN69
- */
-HWTEST_F(RSRenderToServiceConnectionTest, SendProcessInfoNullVsyncTokenTest, TestSize.Level1)
-{
-    sptr<IRemoteObject> fakeComposerConn = sptr<IRemoteObject>::MakeSptr();
-    auto connectToServiceInfo = sptr<ConnectToServiceInfo>::MakeSptr(fakeComposerConn, nullptr);
-    auto ret = g_rsConn->SendProcessInfo(connectToServiceInfo);
-    EXPECT_EQ(ret, nullptr);
-}
 } // namespace OHOS::Rosen

@@ -250,7 +250,8 @@ HWTEST_F(RSNodeTest, destruction001, TestSize.Level1)
 {
     auto rootNode = RSCanvasNode::Create();
     ASSERT_TRUE(rootNode != nullptr);
-    rootNode->rsUIContext_ = std::make_shared<RSUIContext>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    rootNode->rsUIContext_ = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     rootNode->skipDestroyCommandInDestructor_ = true;
 }
 
@@ -264,7 +265,8 @@ HWTEST_F(RSNodeTest, destruction002, TestSize.Level1)
 {
     auto rootNode = RSCanvasNode::Create();
     ASSERT_TRUE(rootNode != nullptr);
-    rootNode->rsUIContext_ = std::make_shared<RSUIContext>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    rootNode->rsUIContext_ = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     rootNode->skipDestroyCommandInDestructor_ = false;
 }
 

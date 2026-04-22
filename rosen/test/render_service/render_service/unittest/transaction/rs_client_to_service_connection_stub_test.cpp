@@ -5043,11 +5043,9 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase007, TestSize.Level
     connection->SetForceRefresh(pkgName, false);
     connection->renderProcessManagerAgent_ = nullptr;
     // test SetFreeMultiWindowStatus and SetColorFollow
-    connection->SetFreeMultiWindowStatus(false);
     connection->SetColorFollow(pkgName, false);
     connection->renderProcessManagerAgent_ = renderProcessManagerAgent;
     ASSERT_NE(connection->renderProcessManagerAgent_, nullptr);
-    connection->SetFreeMultiWindowStatus(false);
     connection->SetColorFollow(pkgName, false);
 }
 

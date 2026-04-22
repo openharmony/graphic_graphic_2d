@@ -63,7 +63,8 @@ HWTEST_F(RSUnionNodeTest, CreateTest002, TestSize.Level1)
 {
     bool isRenderServiceNode = false;
     bool isTextureExportNode = true;
-    auto rsUIContext = std::make_shared<RSUIContext>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
 
     auto result = RSUnionNode::Create(isRenderServiceNode, isTextureExportNode, rsUIContext);
 
@@ -81,7 +82,8 @@ HWTEST_F(RSUnionNodeTest, CreateTest003, TestSize.Level1)
 {
     bool isRenderServiceNode = true;
     bool isTextureExportNode = false;
-    auto rsUIContext = std::make_shared<RSUIContext>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
 
     auto result = RSUnionNode::Create(isRenderServiceNode, isTextureExportNode, rsUIContext);
 
@@ -99,7 +101,8 @@ HWTEST_F(RSUnionNodeTest, CreateTest004, TestSize.Level1)
 {
     bool isRenderServiceNode = false;
     bool isTextureExportNode = true;
-    auto rsUIContext = std::make_shared<RSUIContext>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
 
     auto result = RSUnionNode::Create(isRenderServiceNode, isTextureExportNode, rsUIContext);
 
@@ -142,8 +145,8 @@ HWTEST_F(RSUnionNodeTest, RegisterNodeMap001, TestSize.Level1)
     EXPECT_NE(node, nullptr);
     node->id_ = 1;
     node->RegisterNodeMap();
-
-    auto rsUIContext1 = std::make_shared<RSUIContext>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext1 = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     node->rsUIContext_ = rsUIContext1;
     node->RegisterNodeMap();
     ASSERT_NE(rsUIContext1->GetMutableNodeMap().GetNode(1), nullptr);

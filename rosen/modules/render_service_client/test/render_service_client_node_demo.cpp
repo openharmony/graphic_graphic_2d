@@ -85,8 +85,8 @@ int main()
     std::cout << "rs node demo create window " << rect.width_ << " " << rect.height_ << std::endl;
     auto surfaceNode = window->GetSurfaceNode();
 
-    auto rsUiDirector = RSUIDirector::Create();
-    rsUiDirector->Init();
+    auto rsUiDirector = RSUIDirector::Create(nullptr, nullptr);
+    
     RSTransaction::FlushImplicitTransaction();
     sleep(1);
 
@@ -106,7 +106,7 @@ int main()
 
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(3000);
-    RSNode::Animate(protocol, RSAnimationTimingCurve::EASE_IN_OUT, [&]() {
+    RSNode::Animate(nullptr, protocol, RSAnimationTimingCurve::EASE_IN_OUT, [&]() {
         nodes[0]->SetRotationY(360.f);
         nodes[1]->SetRotationY(360.f);
         nodes[2]->SetRotationX(360.f);
