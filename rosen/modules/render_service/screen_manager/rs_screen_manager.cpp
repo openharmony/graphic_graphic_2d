@@ -1018,10 +1018,12 @@ RSScreenData RSScreenManager::GetScreenData(ScreenId id) const
     GetScreenActiveMode(id, activeMode);
     std::vector<RSScreenModeInfo> supportModes = GetScreenSupportedModes(id);
     ScreenPowerStatus powerStatus = GetScreenPowerStatus(id);
+    ScreenConnectionType connectionType = GetScreenConnectionType(id);
     screenData.SetCapability(capability);
     screenData.SetActivityModeInfo(activeMode);
     screenData.SetSupportModeInfo(supportModes);
     screenData.SetPowerStatus(powerStatus);
+    screenData.SetScreenConnectionType(connectionType);
     return screenData;
 }
 
