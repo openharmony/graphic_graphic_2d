@@ -526,6 +526,11 @@ ohos_unittest("RSUifirstManagerTest") {
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
     "uifirst/rs_uifirst_manager_test.cpp",
   ]
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = true
+  }
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
