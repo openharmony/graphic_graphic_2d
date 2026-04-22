@@ -136,6 +136,10 @@ void RSCanvasParagraphPainter::drawTextBlob(const std::shared_ptr<RSTextBlob>& b
     SkASSERT(!std::holds_alternative<SkPaint>(paint));
     const PaintRecord& pr = paints_[std::get<PaintID>(paint)];
 
+    if (blob != nullptr) {
+        blob->SetSpeedOverQualityPreferred(forceReuseRasterResult_);
+    }
+
     if (pr.isSymbolGlyph && G_IS_HM_SYMBOL_TXT_ENABLE) {
         std::vector<RSPoint> points;
         RSTextBlob::GetDrawingPointsForTextBlob(blob.get(), points);

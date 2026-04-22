@@ -208,6 +208,7 @@ export default namespace text {
     native getProcessState(): TextProcessState;
     native getTextDisplayState(): TextDisplayState;
     native getParagraphStyle(): ParagraphStyle;
+    native forceReuseRasterResult(isForce: boolean): void;
     native getCharacterRangeForGlyphRange(glyphRange: Range, encoding: drawing.TextEncoding): Array<Range>;
     native getGlyphRangeForCharacterRange(characterRange: Range, encoding: drawing.TextEncoding): Array<Range>;
     native getCharacterPositionAtCoordinate(x: double, y: double, encoding: drawing.TextEncoding): PositionWithAffinity;
