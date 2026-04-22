@@ -4851,25 +4851,21 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase004, TestSize.Level
     connection->GetScreenHDRCapability(INVALID_SCREEN_ID, screenHdrCapability);
     // test GetPixelFormat and SetPixelFormat
     GraphicPixelFormat pixelFormat = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_CLUT8;
-    int32_t pixelFormatResCode = 0;
-    connection->SetPixelFormat(INVALID_SCREEN_ID, pixelFormat, pixelFormatResCode);
-    connection->GetPixelFormat(INVALID_SCREEN_ID, pixelFormat, pixelFormatResCode);
+    connection->SetPixelFormat(INVALID_SCREEN_ID, pixelFormat);
+    connection->GetPixelFormat(INVALID_SCREEN_ID, pixelFormat);
     // test GetScreenSupportedHDRFormats
     std::vector<ScreenHDRFormat> hdrFormats = {};
-    int32_t hdrFormatsResCode = 0;
-    connection->GetScreenSupportedHDRFormats(INVALID_SCREEN_ID, hdrFormats, hdrFormatsResCode, nullptr);
+    connection->GetScreenSupportedHDRFormats(INVALID_SCREEN_ID, hdrFormats);
     // test GetScreenHDRFormat
     ScreenHDRFormat hdrFormat;
-    int32_t hdrFormatResCode = 0;
-    connection->GetScreenHDRFormat(INVALID_SCREEN_ID, hdrFormat, hdrFormatResCode);
+    connection->GetScreenHDRFormat(INVALID_SCREEN_ID, hdrFormat);
     // test GetScreenSupportedColorSpaces
     std::vector<GraphicCM_ColorSpaceType> colorSpaces;
-    int32_t colorSpacesResCode = 0;
-    connection->GetScreenSupportedColorSpaces(INVALID_SCREEN_ID, colorSpaces, colorSpacesResCode);
+    connection->GetScreenSupportedColorSpaces(INVALID_SCREEN_ID, colorSpaces);
     // test GetScreenColorSpace and SetScreenColorSpace
     GraphicCM_ColorSpaceType colorSpace = GraphicCM_ColorSpaceType::GRAPHIC_CM_COLORSPACE_NONE;
-    connection->SetScreenColorSpace(INVALID_SCREEN_ID, colorSpace, colorSpacesResCode);
-    connection->GetScreenColorSpace(INVALID_SCREEN_ID, colorSpace, colorSpacesResCode);
+    connection->SetScreenColorSpace(INVALID_SCREEN_ID, colorSpace);
+    connection->GetScreenColorSpace(INVALID_SCREEN_ID, colorSpace);
 }
 
 /**
