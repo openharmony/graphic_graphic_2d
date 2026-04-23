@@ -1734,38 +1734,6 @@ HWTEST_F(DrawCmdTest, UnmarshallingPlayer, TestSize.Level1)
 }
 
 /**
- * @tc.name: DrawGlyphs
- * @tc.desc: Test DrawGlyphs
- * @tc.type: FUNC
- * @tc.require: I9120P
- */
-HWTEST_F(DrawCmdTest, DrawGlyphs000, TestSize.Level1)
-{
-    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
-    EXPECT_TRUE(drawCmdList != nullptr);
-    uint64_t globalUniqueId = 1;
-    PaintHandle paintHandle;
-    OpFontHandle fontHandle;
-    Point point;
-    std::pair<size_t, size_t> glyphs;
-    std::pair<size_t, size_t> positions;
-    DrawGlyphsOpItem::ConstructorHandle handle{glyphs, positions, point,
-                                               fontHandle, globalUniqueId, paintHandle};
-    Paint paint;
-    Font font;
-    std::vector<uint16_t> glyphs2;
-    std::vector<Point> position2;
-    DrawGlyphsOpItem opItem{glyphs2, position2, point, &font, paint};
-    opItem.Marshalling(*drawCmdList);
-    auto recordingCanvas = std::make_shared<RecordingCanvas>(10, 10); // 10: width, height
-    opItem.Playback(recordingCanvas.get(), nullptr);
-    DrawGlyphsOpItem opItem1 { *drawCmdList, &handle };
-    opItem1.Marshalling(*drawCmdList);
-    opItem1.Unmarshalling(*drawCmdList, &handle);
-    delete drawCmdList;
-}
-
-/**
  * @tc.name: GetOpItemCmdlistDrawRegion001
  * @tc.desc: Test functions GetOpItemCmdlistDrawRegion for DrawTextBlobOpItem
  * @tc.type: FUNC
@@ -1946,6 +1914,37 @@ HWTEST_F(DrawCmdTest, BrushHandle003, TestSize.Level1)
     BrushHandle copyHandle(brushHandle);
     EXPECT_TRUE(copyHandle.IsUIColor());
     EXPECT_TRUE(copyHandle.GetBlenderEnabled());
+}
+
+/**
+ * @tc.name: DrawGlyphs
+ * @tc.desc: Test DrawGlyphs
+ * @tc.type: FUNC
+ * @tc.require: I9120P
+ */
+HWTEST_F(DrawCmdTest, DrawGlyphs000, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    EXPECT_TRUE(drawCmdList != nullptr);
+    uint64_t globalUniqueId = 1;
+    PaintHandle paintHandle;
+    OpFontHandle fontHandle;
+    Point point;
+    std::pair<size_t, size_t> glyphs;
+    std::pair<size_t, size_t> positions;
+    DrawGlyphsOpItem::ConstructorHandle handle{glyphs, positions, point,
+                                               fontHandle, globalUniqueId, paintHandle};
+    Paint paint;
+    Font font;
+    std::vector<uint16_t> glyphs2;
+    std::vector<Point> position2;
+    DrawGlyphsOpItem opItem{glyphs2, position2, point, &font, paint};
+    opItem.Marshalling(*drawCmdList);
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(10, 10); // 10: width, height
+    opItem.Playback(recordingCanvas.get(), nullptr);
+    DrawGlyphsOpItem opItem1 { *drawCmdList, &handle };
+    opItem1.Marshalling(*drawCmdList);
+    opItem1.Unmarshalling(*drawCmdList, &handle);
 }
 
 /**
