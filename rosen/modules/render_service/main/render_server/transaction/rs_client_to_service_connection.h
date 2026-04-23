@@ -16,6 +16,7 @@
 #ifndef RENDER_SERVICE_PIPELINE_RS_CLIENT_TO_SERVICE_CONNECTION_H
 #define RENDER_SERVICE_PIPELINE_RS_CLIENT_TO_SERVICE_CONNECTION_H
 
+#include <functional>
 #include <mutex>
 #include <unordered_set>
 #include <unordered_map>
@@ -67,6 +68,10 @@ private:
     void CleanForRefresh() noexcept;
 
     void CleanAll(bool toDelete = false) noexcept;
+
+    int32_t RegisterVariationTypeface(Drawing::SharedTypeface& sharedTypeface, int32_t& needUpdate);
+    int32_t RegisterAshmemTypeface(Drawing::SharedTypeface& sharedTypeface, int32_t& needUpdate);
+    bool ForwardToRenderServers(const std::function<bool(sptr<RSIServiceToRenderConnection>&)>& action);
 
     // IPC RSIRenderServiceConnection Interfaces
     ErrCode CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
@@ -226,23 +231,22 @@ private:
 
     int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability) override;
 
-    ErrCode GetPixelFormat(ScreenId id, GraphicPixelFormat& pixelFormat, int32_t& resCode) override;
+    int32_t GetPixelFormat(ScreenId id, GraphicPixelFormat& pixelFormat) override;
 
-    ErrCode SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat, int32_t& resCode) override;
+    int32_t SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat) override;
 
-    ErrCode GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats,
-        int32_t& resCode, sptr<RSIScreenSupportedHdrFormatsCallback> callback = nullptr) override;
+    int32_t GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats,
+        sptr<RSIScreenSupportedHdrFormatsCallback> callback = nullptr) override;
 
-    ErrCode GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat, int32_t& resCode) override;
+    int32_t GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat) override;
 
-    ErrCode SetScreenHDRFormat(ScreenId id, int32_t modeIdx, int32_t& resCode) override;
+    int32_t SetScreenHDRFormat(ScreenId id, int32_t modeIdx) override;
 
-    ErrCode GetScreenSupportedColorSpaces(
-        ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces, int32_t& resCode) override;
+    int32_t GetScreenSupportedColorSpaces(ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces) override;
 
-    ErrCode GetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType& colorSpace, int32_t& resCode) override;
+    int32_t GetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType& colorSpace) override;
 
-    ErrCode SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace, int32_t& resCode) override;
+    int32_t SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace) override;
 
     int32_t GetScreenType(ScreenId id, RSScreenType& screenType) override;
 

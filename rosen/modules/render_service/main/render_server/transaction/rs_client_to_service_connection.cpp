@@ -189,6 +189,7 @@ void RSClientToServiceConnection::CleanForRefresh() noexcept
     if (hgmContext_ != nullptr) {
         hgmContext_->CleanAllWhenServiceConnectionDie(remotePid_);
     }
+    RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(remotePid_);
 
     {
         std::lock_guard<std::mutex> lock(pidToBundleMutex_);
@@ -1233,94 +1234,70 @@ int32_t RSClientToServiceConnection::GetScreenHDRCapability(ScreenId id, RSScree
     return screenManagerAgent_->GetScreenHDRCapability(id, screenHdrCapability);
 }
 
-ErrCode RSClientToServiceConnection::GetPixelFormat(ScreenId id, GraphicPixelFormat& pixelFormat, int32_t& resCode)
+int32_t RSClientToServiceConnection::GetPixelFormat(ScreenId id, GraphicPixelFormat& pixelFormat)
 {
     if (!screenManagerAgent_) {
-        resCode = StatusCode::SCREEN_NOT_FOUND;
         return ERR_INVALID_VALUE;
     }
-    resCode = screenManagerAgent_->GetPixelFormat(id, pixelFormat);
-    return ERR_OK;
+    return screenManagerAgent_->GetPixelFormat(id, pixelFormat);
 }
 
-
-ErrCode RSClientToServiceConnection::SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat, int32_t& resCode)
+int32_t RSClientToServiceConnection::SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat)
 {
     if (!screenManagerAgent_) {
-        resCode = StatusCode::SCREEN_NOT_FOUND;
-        return ERR_INVALID_VALUE;
+        return StatusCode::SCREEN_NOT_FOUND;
     }
-    if (pixelFormat < 0 ||
-        (pixelFormat >= GRAPHIC_PIXEL_FMT_END_OF_VALID && pixelFormat != GRAPHIC_PIXEL_FMT_VENDER_MASK)) {
-        resCode = StatusCode::INVALID_ARGUMENTS;
-        return ERR_INVALID_VALUE;
-    }
-    resCode = screenManagerAgent_->SetPixelFormat(id, pixelFormat);
-    return ERR_OK;
+    return screenManagerAgent_->SetPixelFormat(id, pixelFormat);
 }
 
-ErrCode RSClientToServiceConnection::GetScreenSupportedHDRFormats(ScreenId id,
-    std::vector<ScreenHDRFormat>& hdrFormats, int32_t& resCode, sptr<RSIScreenSupportedHdrFormatsCallback> callback)
+int32_t RSClientToServiceConnection::GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats,
+    sptr<RSIScreenSupportedHdrFormatsCallback> callback)
 {
     if (!screenManagerAgent_) {
-        resCode = StatusCode::SCREEN_NOT_FOUND;
-        return ERR_INVALID_VALUE;
+        return StatusCode::SCREEN_NOT_FOUND;
     }
-    resCode = screenManagerAgent_->GetScreenSupportedHDRFormats(id, hdrFormats, callback);
-    return ERR_OK;
+    return screenManagerAgent_->GetScreenSupportedHDRFormats(id, hdrFormats, callback);
 }
 
-ErrCode RSClientToServiceConnection::GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat, int32_t& resCode)
+int32_t RSClientToServiceConnection::GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat)
 {
     if (!screenManagerAgent_) {
-        resCode = StatusCode::SCREEN_NOT_FOUND;
         return ERR_INVALID_VALUE;
     }
-    resCode = screenManagerAgent_->GetScreenHDRFormat(id, hdrFormat);
-    return ERR_OK;
+    return screenManagerAgent_->GetScreenHDRFormat(id, hdrFormat);
 }
 
-ErrCode RSClientToServiceConnection::SetScreenHDRFormat(ScreenId id, int32_t modeIdx, int32_t& resCode)
+int32_t RSClientToServiceConnection::SetScreenHDRFormat(ScreenId id, int32_t modeIdx)
 {
     if (!screenManagerAgent_) {
-        resCode = StatusCode::SCREEN_NOT_FOUND;
         return ERR_INVALID_VALUE;
     }
-    resCode = screenManagerAgent_->SetScreenHDRFormat(id, modeIdx);
-    return ERR_OK;
+    return screenManagerAgent_->SetScreenHDRFormat(id, modeIdx);
 }
 
-ErrCode RSClientToServiceConnection::GetScreenSupportedColorSpaces(
-    ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces, int32_t& resCode)
+int32_t RSClientToServiceConnection::GetScreenSupportedColorSpaces(
+    ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces)
 {
     if (!screenManagerAgent_) {
-        resCode = StatusCode::SCREEN_NOT_FOUND;
-        return ERR_INVALID_VALUE;
+        return StatusCode::SCREEN_NOT_FOUND;
     }
-    resCode = screenManagerAgent_->GetScreenSupportedColorSpaces(id, colorSpaces);
-    return ERR_OK;
+    return screenManagerAgent_->GetScreenSupportedColorSpaces(id, colorSpaces);
 }
 
-ErrCode RSClientToServiceConnection::GetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType& colorSpace,
-    int32_t& resCode)
+int32_t RSClientToServiceConnection::GetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType& colorSpace)
 {
     if (!screenManagerAgent_) {
-        resCode = StatusCode::SCREEN_NOT_FOUND;
-        return ERR_INVALID_VALUE;
+        return StatusCode::SCREEN_NOT_FOUND;
     }
-    resCode = screenManagerAgent_->GetScreenColorSpace(id, colorSpace);
-    return ERR_OK;
+    return screenManagerAgent_->GetScreenColorSpace(id, colorSpace);
 }
 
-ErrCode RSClientToServiceConnection::SetScreenColorSpace(
-    ScreenId id, GraphicCM_ColorSpaceType colorSpace, int32_t& resCode)
+int32_t RSClientToServiceConnection::SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace)
 {
     if (!screenManagerAgent_) {
-        resCode = StatusCode::SCREEN_NOT_FOUND;
-        return ERR_INVALID_VALUE;
+        return StatusCode::SCREEN_NOT_FOUND;
     }
-    resCode = screenManagerAgent_->SetScreenColorSpace(id, colorSpace);
-    return ERR_OK;
+    return screenManagerAgent_->SetScreenColorSpace(id, colorSpace);
 }
 
 int32_t RSClientToServiceConnection::GetScreenType(ScreenId id, RSScreenType& screenType)
@@ -1354,63 +1331,123 @@ bool RSClientToServiceConnection::RegisterTypeface(uint64_t globalUniqueId,
 int32_t RSClientToServiceConnection::RegisterTypeface(Drawing::SharedTypeface& sharedTypeface, int32_t& needUpdate)
 {
     if (sharedTypeface.originId_ > 0) {
-        ::close(sharedTypeface.fd_);
-        needUpdate = -1;
-        return RSTypefaceCache::Instance().InsertVariationTypeface(sharedTypeface);
+        return RegisterVariationTypeface(sharedTypeface, needUpdate);
     }
+    return RegisterAshmemTypeface(sharedTypeface, needUpdate);
+}
+
+int32_t RSClientToServiceConnection::RegisterVariationTypeface(
+    Drawing::SharedTypeface& sharedTypeface, int32_t& needUpdate)
+{
+    needUpdate = 0;
+    RS_LOGI_LIMIT("RegisterTypeface(var): %{public}s", sharedTypeface.ToString().c_str());
+    int32_t result = RSTypefaceCache::Instance().InsertVariationTypeface(sharedTypeface);
+    if (result >= 0) {
+        bool forwardSuccess = ForwardToRenderServers(
+            [&](sptr<RSIServiceToRenderConnection>& conn) -> bool { return conn->RegisterTypeface(sharedTypeface); });
+        if (!forwardSuccess) {
+            RS_LOGE("RegisterTypeface(var): failed to forward to rp %{public}s", sharedTypeface.ToString().c_str());
+            result = -1;
+            needUpdate = -1;
+        }
+    }
+    return result;
+}
+
+int32_t RSClientToServiceConnection::RegisterAshmemTypeface(
+    Drawing::SharedTypeface& sharedTypeface, int32_t& needUpdate)
+{
     if (sharedTypeface.fd_ < 0 || sharedTypeface.size_ == 0) {
-        RS_LOGE("RegisterTypeface: invalid parameters");
-        ::close(sharedTypeface.fd_);
+        RS_LOGE("RegisterTypeface(ashmem): invalid parameters, %{public}s", sharedTypeface.ToString().c_str());
         needUpdate = -1;
         return -1;
     }
     int realSize = AshmemGetSize(sharedTypeface.fd_);
     if (realSize < 0 || static_cast<uint32_t>(realSize) < sharedTypeface.size_) {
-        RS_LOGE("RegisterTypeface, realSize < 0 or realSize < given size");
+        RS_LOGE("RegisterTypeface(ashmem), invalid ashmem size, %{public}s", sharedTypeface.ToString().c_str());
         ::close(sharedTypeface.fd_);
         needUpdate = -1;
         return -1;
     }
+
+    // Try to reuse cached typeface
     auto tf = RSTypefaceCache::Instance().UpdateDrawingTypefaceRef(sharedTypeface);
     if (tf != nullptr) {
         ::close(sharedTypeface.fd_);
-        sharedTypeface.fd_ = -1;
         needUpdate = 1;
-        RS_LOGI("RegisterTypeface: Find same typeface in cache, use existed typeface.");
+        RS_LOGI("RegisterTypeface(reuse): %{public}s", sharedTypeface.ToString().c_str());
+        Drawing::SharedTypeface sharedTfForForward(sharedTypeface.id_, tf);
+        bool forwardSuccess = ForwardToRenderServers([&](sptr<RSIServiceToRenderConnection>& conn) -> bool {
+            return conn->RegisterTypeface(sharedTfForForward);
+        });
+        if (!forwardSuccess) {
+            RS_LOGE("RegisterTypeface(reuse): failed to forward to rp, %{public}s", sharedTypeface.ToString().c_str());
+        }
         return tf->GetFd();
     }
-    RS_LOGI("RegisterTypeface: Failed to find typeface in cache, create a new typeface.");
+
+    // Create new typeface from ashmem
     needUpdate = 0;
     tf = Drawing::Typeface::MakeFromAshmem(sharedTypeface);
-    if (tf != nullptr) {
-        RSTypefaceCache::Instance().CacheDrawingTypeface(sharedTypeface.id_, tf);
-        sharedTypeface.fd_ = -1;
-        return tf->GetFd();
+    if (tf == nullptr) {
+        ::close(sharedTypeface.fd_);
+        needUpdate = -1;
+        RS_LOGE("RegisterTypeface(new): failed to register typeface, %{public}s", sharedTypeface.ToString().c_str());
+        return -1;
     }
-    ::close(sharedTypeface.fd_);
+    RS_LOGI("RegisterTypeface(new): %{public}s", sharedTypeface.ToString().c_str());
+    RSTypefaceCache::Instance().CacheDrawingTypeface(sharedTypeface.id_, tf);
     sharedTypeface.fd_ = -1;
-    needUpdate = -1;
-    RS_LOGE("RegisterTypeface: failed to register typeface");
-    return -1;
+    Drawing::SharedTypeface sharedTfForForward(sharedTypeface.id_, tf);
+    bool forwardSuccess = ForwardToRenderServers([&](sptr<RSIServiceToRenderConnection>& conn) -> bool {
+        return conn->RegisterTypeface(sharedTfForForward);
+    });
+    if (!forwardSuccess) {
+        RS_LOGE("RegisterTypeface(new): failed to forward to rp, %{public}s", sharedTypeface.ToString().c_str());
+        needUpdate = -1;
+        return -1;
+    }
+    return tf->GetFd();
 }
-    
-bool RSClientToServiceConnection::UnRegisterTypeface(uint64_t globalUniqueId)
+
+bool RSClientToServiceConnection::ForwardToRenderServers(
+    const std::function<bool(sptr<RSIServiceToRenderConnection>&)>& action)
 {
     if (renderProcessManagerAgent_ == nullptr) {
         RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
         return false;
     }
-
     auto serviceToRenderConns = renderProcessManagerAgent_->GetServiceToRenderConns();
-    if (serviceToRenderConns.size() == 0) {
-        RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
-        return false;
-    }
-    bool result = true;
+    bool allSuccess = true;
     for (auto conn : serviceToRenderConns) {
-        result &= conn->UnRegisterTypeface(globalUniqueId);
+        allSuccess &= action(conn);
     }
-    return result;
+    return allSuccess;
+}
+
+bool RSClientToServiceConnection::UnRegisterTypeface(uint64_t globalUniqueId)
+{
+    RS_LOGI("UnRegisterTypeface, pid[%{public}d], uniqueid:%{public}u", RSTypefaceCache::GetTypefacePid(globalUniqueId),
+        RSTypefaceCache::GetTypefaceId(globalUniqueId));
+    auto typeface = RSTypefaceCache::Instance().GetDrawingTypefaceCache(globalUniqueId);
+    if (typeface == nullptr) {
+        return true;
+    }
+    uint32_t uniqueId = typeface->GetUniqueID();
+    // Free cpu cache, this only valid in skia path. When deprecating skia, this can be removed.
+    auto task = [uniqueId]() {
+        auto context = RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
+        if (context) {
+            context->FreeCpuCache(uniqueId);
+            context->PurgeUnlockAndSafeCacheGpuResources();
+        }
+    };
+    RSUniRenderThread::Instance().PostTask(task);
+
+    RSTypefaceCache::Instance().RemoveDrawingTypefaceByGlobalUniqueId(globalUniqueId);
+    return ForwardToRenderServers([&](sptr<RSIServiceToRenderConnection>& conn) -> bool {
+        return conn->UnRegisterTypeface(globalUniqueId);
+    });
 }
 
 int32_t RSClientToServiceConnection::GetDisplayIdentificationData(ScreenId id, uint8_t& outPort,

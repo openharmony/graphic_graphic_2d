@@ -227,6 +227,7 @@ private:
     void PrevalidateHwcNode();
     bool PrepareForCloneNode(RSSurfaceRenderNode& node);
     void UpdateInfoForClonedNode(RSSurfaceRenderNode& node);
+    bool IsSourceNodeDirty(RSSurfaceRenderNode& node);
     void PrepareForCrossNode(RSSurfaceRenderNode& node);
 
     // use in QuickPrepareSurfaceRenderNode, update SurfaceRenderNode's uiFirst status
@@ -334,6 +335,9 @@ private:
     void SetRenderGroupSubTreeDirtyIfNeed(const RSRenderNode& node);
     bool IsOnRenderGroupExcludedSubTree() const;
     bool HasAncestorRenderGroup(NodeId nodeId) const;
+    bool IsNodeInBlackList(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNodePtr) const;
+    void TraverseRenderGroupCacheRoots(
+        std::function<void(const std::shared_ptr<RSCanvasRenderNode>&)> func) const;
     // !used for renderGroup
 
     /* Check whether gpu overdraw buffer feature can be enabled on the RenderNode

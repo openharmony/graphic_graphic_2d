@@ -30,6 +30,8 @@ public:
     std::shared_ptr<RSRenderInteractiveImplictAnimator> GetInteractiveImplictAnimator(
         InteractiveImplictAnimatorId id);
 
+    bool UpdateGroupAnimators(int64_t timestamp, int64_t& minLeftDelayTime);
+
 private:
     explicit RSRenderInteractiveImplictAnimatorMap();
     ~RSRenderInteractiveImplictAnimatorMap() = default;
@@ -38,7 +40,6 @@ private:
     RSRenderInteractiveImplictAnimatorMap& operator=(const RSRenderInteractiveImplictAnimatorMap&) = delete;
     RSRenderInteractiveImplictAnimatorMap& operator=(const RSRenderInteractiveImplictAnimatorMap&&) = delete;
 
-private:
     std::unordered_map<InteractiveImplictAnimatorId,
         std::shared_ptr<RSRenderInteractiveImplictAnimator>> interactiveImplictAnimatorMap_;
 

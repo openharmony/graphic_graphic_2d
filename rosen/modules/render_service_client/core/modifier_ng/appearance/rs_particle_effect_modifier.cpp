@@ -55,4 +55,14 @@ std::shared_ptr<ParticleVelocityFields> RSParticleEffectModifier::GetParticleVel
 {
     return Getter<std::shared_ptr<ParticleVelocityFields>>(RSPropertyType::PARTICLE_VELOCITY_FIELD, {});
 }
+
+void RSParticleEffectModifier::SetParticleFields(const std::shared_ptr<ParticleFieldCollection>& para)
+{
+    Setter<RSProperty, std::shared_ptr<ParticleFieldCollection>>(RSPropertyType::PARTICLE_FIELDS, para);
+}
+
+std::shared_ptr<ParticleFieldCollection> RSParticleEffectModifier::GetParticleFields() const
+{
+    return Getter<std::shared_ptr<ParticleFieldCollection>>(RSPropertyType::PARTICLE_FIELDS, {});
+}
 } // namespace OHOS::Rosen::ModifierNG

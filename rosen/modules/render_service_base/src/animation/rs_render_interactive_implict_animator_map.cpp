@@ -15,6 +15,7 @@
 
 #include "animation/rs_render_interactive_implict_animator_map.h"
 #include "animation/rs_render_interactive_implict_animator.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -29,18 +30,42 @@ bool RSRenderInteractiveImplictAnimatorMap::RegisterInteractiveImplictAnimator(c
     if (interactiveImplictAnimatorMap_.count(id)) {
         return false;
     }
+    RS_LOGI("RSRenderInteractiveImplictAnimatorMap::RegisterInteractiveImplictAnimator "
+        "map size: %{public}zu, id: %{public}" PRIu64, interactiveImplictAnimatorMap_.size(), id);
     interactiveImplictAnimatorMap_.emplace(id, animatorPtr);
     return true;
 }
 
 void RSRenderInteractiveImplictAnimatorMap::UnregisterInteractiveImplictAnimator(InteractiveImplictAnimatorId id)
 {
+    RS_LOGI("RSRenderInteractiveImplictAnimatorMap::UnregisterInteractiveImplictAnimator "
+        "map size: %{public}zu, id: %{public}" PRIu64, interactiveImplictAnimatorMap_.size(), id);
     interactiveImplictAnimatorMap_.erase(id);
 }
 
 AnimatorPtr RSRenderInteractiveImplictAnimatorMap::GetInteractiveImplictAnimator(InteractiveImplictAnimatorId id)
 {
     return interactiveImplictAnimatorMap_.count(id) ? interactiveImplictAnimatorMap_[id] : nullptr;
+}
+
+bool RSRenderInteractiveImplictAnimatorMap::UpdateGroupAnimators(int64_t timestamp, int64_t& minLeftDelayTime)
+{
+    bool hasRunningGroupAnimators = false;
+    std::vector<std::shared_ptr<RSRenderTimeDrivenGroupAnimator>> timeDrivenAnimators;
+    for (auto& [id, animator] : interactiveImplictAnimatorMap_) {
+        if (animator && animator->IsTimeDriven()) {
+            timeDrivenAnimators.push_back(
+                std::static_pointer_cast<RSRenderTimeDrivenGroupAnimator>(animator));
+        }
+    }
+    for (auto& animator : timeDrivenAnimators) {
+        animator->OnAnimate(timestamp, minLeftDelayTime);
+        if (animator->IsRunning()) {
+            hasRunningGroupAnimators = true;
+        }
+    }
+
+    return hasRunningGroupAnimators;
 }
 } // namespace Rosen
 } // namespace OHOS

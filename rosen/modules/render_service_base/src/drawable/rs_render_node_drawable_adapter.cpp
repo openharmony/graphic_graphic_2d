@@ -606,16 +606,40 @@ void RSRenderNodeDrawableAdapter::SkipDrawSubtreeAndClipHole(
 void RSRenderNodeDrawableAdapter::UpdateFilterInfoForNodeGroup(RSPaintFilterCanvas* curCanvas)
 {
     if (curDrawingCacheRoot_ != nullptr) {
+        const auto clipBounds = curCanvas->GetDeviceClipBounds();
         auto iter = std::find_if(curDrawingCacheRoot_->filterInfoVec_.begin(),
             curDrawingCacheRoot_->filterInfoVec_.end(),
             [nodeId = GetId()](const auto& item) -> bool { return item.nodeId_ == nodeId; });
         if (iter != curDrawingCacheRoot_->filterInfoVec_.end()) {
-            iter->rectVec_.emplace_back(curCanvas->GetDeviceClipBounds());
+            iter->rectVec_.emplace_back(clipBounds);
         } else {
             curDrawingCacheRoot_->filterInfoVec_.emplace_back(
-                FilterNodeInfo(GetId(), curCanvas->GetTotalMatrix(), { curCanvas->GetDeviceClipBounds() }));
+                FilterNodeInfo(GetId(), curCanvas->GetTotalMatrix(), { clipBounds }));
         }
+        curDrawingCacheRoot_->AddRectToUnifiedFilterRegion(clipBounds);
     }
+}
+
+void RSRenderNodeDrawableAdapter::ClearUnifiedFilterRegion()
+{
+    unifiedFilterRegion_.SetEmpty();
+}
+
+void RSRenderNodeDrawableAdapter::AddRectToUnifiedFilterRegion(const Drawing::RectI& rect)
+{
+    Drawing::Region region;
+    region.SetRect(rect);
+    unifiedFilterRegion_.Op(region, Drawing::RegionOp::UNION);
+}
+
+bool RSRenderNodeDrawableAdapter::IntersectsWithUnifiedRegion(const Drawing::RectI& rect) const
+{
+    if (unifiedFilterRegion_.IsEmpty()) {
+        return false;
+    }
+    Drawing::Region region;
+    region.SetRect(rect);
+    return !unifiedFilterRegion_.QuickReject(region);
 }
 
 Drawing::Rect RSRenderNodeDrawableAdapter::GetFilterRelativeRect(const Drawing::Rect& rect) const
@@ -783,10 +807,6 @@ const RectI RSRenderNodeDrawableAdapter::GetFilterCachedRegion() const
         }
     }
     return rect;
-}
-void RSRenderNodeDrawableAdapter::SetSkipCacheLayer(bool hasSkipCacheLayer)
-{
-    hasSkipCacheLayer_ = hasSkipCacheLayer;
 }
 
 void RSRenderNodeDrawableAdapter::ApplyForegroundColorIfNeed(Drawing::Canvas& canvas, const Drawing::Rect& rect) const

@@ -43,6 +43,7 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "memory/rs_memory_snapshot.h"
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 #include "pipeline/magic_pointer_render/rs_magic_pointer_render_manager.h"
 #endif
@@ -670,6 +671,10 @@ NodeId RSSurfaceRenderNodeDrawable::GetWhiteListPersistentId(
 
 void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
+    if (MemorySnapshot::Instance().IsAbnormalProcess(ExtractPid(GetId()))) {
+        RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw abnormal process %{public}d .", ExtractPid(GetId()));
+        return;
+    }
     SetDrawSkipType(DrawSkipType::NONE);
     if (!ShouldPaint()) {
         SetDrawSkipType(DrawSkipType::SHOULD_NOT_PAINT);
@@ -765,14 +770,6 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
     auto specialLayerManager = surfaceParams->GetSpecialLayerMgr();
-    hasSkipCacheLayer_ = (specialLayerManager.Find(SpecialLayerType::SECURITY) && !uniParam->GetSecExemption()) ||
-                         specialLayerManager.Find(SpecialLayerType::SKIP) ||
-                         surfaceParams->NodeGroupHasChildInBlacklist();
-    if (curDrawingCacheRoot_ && hasSkipCacheLayer_) {
-        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw hasSkipCacheLayer id:%" PRIu64, surfaceParams->GetId());
-        curDrawingCacheRoot_->SetSkipCacheLayer(true);
-    }
-
     if (surfaceParams->GetHardCursorStatus()) {
         SetDrawSkipType(DrawSkipType::HARD_CURSOR_ENAbLED);
         RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw hardcursor skip name:%s, id:%" PRIu64,

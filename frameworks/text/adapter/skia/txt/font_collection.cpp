@@ -149,7 +149,7 @@ sk_sp<skia::textlayout::FontCollection> FontCollection::CreateSktFontCollection(
         if (!enableFontFallback_) {
             sktFontCollection_->disableFontFallback();
         }
-        sktFontCollection_->setCachesEnabled(enableCaches_);
+        sktFontCollection_->setCachesEnabled(paragraphCacheEnabled_);
         // Register internal clone callback using std::bind
         // This callback handles variation typeface cloning through VariationFontCache
         auto internalCallback = [this](
@@ -217,7 +217,7 @@ void FontCollection::RemoveVariationCacheByOriginalUniqueId(uint32_t originalUni
 void FontCollection::SetCachesEnabled(bool enable)
 {
     std::unique_lock lock(collectionMutex_);
-    enableCaches_ = enable;
+    paragraphCacheEnabled_ = enable;
     TEXT_LOGI("Paragraph cache enabled: %{public}d", enable);
     if (sktFontCollection_ != nullptr) {
         sktFontCollection_->setCachesEnabled(enable);

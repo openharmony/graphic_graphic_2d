@@ -62,6 +62,12 @@ public:
         return childHasTranslateOnSqueeze_;
     }
 
+    bool SetNodeGroupHasChildInBlacklist(bool inBlacklist);
+    bool NodeGroupHasChildInBlacklist() const
+    {
+        return nodeGroupHasChildInBlacklist_;
+    }
+
     bool SetNeedClipHoleForFilter(bool val);
     bool NeedClipHoleForFilter() const
     {
@@ -92,6 +98,7 @@ private:
     bool isExcludedStateChanged_ = false;
     bool isCachedSubTreeDirty_ = false;
     bool childHasTranslateOnSqueeze_ = false;
+    bool nodeGroupHasChildInBlacklist_ = false;
     bool needClipHoleForFilter_ = false;
     RSFreezeFlag freezeFlag_ = RSFreezeFlag::NONE;
 };

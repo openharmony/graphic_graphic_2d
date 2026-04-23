@@ -1835,7 +1835,8 @@
     "writeInterfaceToken": false,
     "messageOption": "TF_ASYNC",
     "commandList": "RSMarkLayer*100",
-    "commandListRepeat": 1
+    "commandListRepeat": 1,
+    "connectionType": 0
   },
   {
     "testCaseDesc": "COMMIT_TRANSACTION_TEST_186",
@@ -1845,6 +1846,16 @@
     "messageOption": "TF_ASYNC",
     "commandList": "RSSurfaceNodeSetHDRType*100",
     "commandListRepeat": 1
+  },
+  {
+    "testCaseDesc": "COMMIT_TRANSACTION_TEST_187",
+    "interfaceName": "COMMIT_TRANSACTION",
+    "inputParams": "WriteRSTransactionData",
+    "writeInterfaceToken": false,
+    "messageOption": "TF_ASYNC",
+    "commandList": "RSSurfaceNodeSetDarkColorMode*100",
+    "commandListRepeat": 1,
+    "connectionType": 0
   },
   {
     "testCaseDesc": "GET_UNI_RENDER_ENABLED_TEST_001",

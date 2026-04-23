@@ -52,6 +52,12 @@ class RSNode;
 class RSUIContext;
 enum class CancelAnimationStatus;
 
+enum class InteractiveAnimatorType {
+    NONE,
+    INTERACTIVE,
+    GROUP,
+};
+
 class RSC_EXPORT RSImplicitAnimator {
 public:
     RSImplicitAnimator(pid_t tid = gettid()) : tid_(tid) {}
@@ -76,8 +82,9 @@ public:
     CancelAnimationStatus CloseImplicitCancelAnimation();
 
     // open implicit animation with given animation options and finish callback
-    int OpenInterActiveImplicitAnimation(bool isAddImplictAnimation, const RSAnimationTimingProtocol& timingProtocol,
-        const RSAnimationTimingCurve& timingCurve, std::shared_ptr<AnimationFinishCallback>&& finishCallback);
+    int OpenInterActiveImplicitAnimation(bool isAddImplictAnimation, bool isGroupAnimator,
+        const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve,
+        std::shared_ptr<AnimationFinishCallback>&& finishCallback);
     // interactive animator close implicit animation and return all animations
     std::vector<std::pair<std::shared_ptr<RSAnimation>, NodeId>> CloseInterActiveImplicitAnimation(
         bool isAddImplictAnimation);
@@ -111,6 +118,8 @@ public:
     void ApplyAnimationSpeedMultiplier(float multiplier = 1.0f);
 
     pid_t GetTid() const { return tid_; }
+    
+    InteractiveAnimatorType GetInteractiveAnimatorType() const { return interactiveAnimatorType_; }
 
 private:
     void EndImplicitAnimation();
@@ -121,7 +130,7 @@ private:
 
     void CloseImplicitAnimationInner();
     void ProcessEmptyAnimations(const std::shared_ptr<AnimationFinishCallback>& finishCallback);
-    void ProcessAnimationFinishCallbackGuaranteeTask();
+    void ProcessAnimationFinishCallbackGuaranteeTask(bool hasUiAnimation);
 
     static float EstimateAnimationDuration(
         const RSAnimationTimingProtocol& protocol, const RSAnimationTimingCurve& curve);
@@ -152,7 +161,7 @@ private:
     pid_t tid_ { 0 };
 
     std::stack<std::vector<std::pair<std::shared_ptr<RSAnimation>, NodeId>>> interactiveImplicitAnimations_;
-    bool isAddInteractiveAnimator_ { false };
+    InteractiveAnimatorType interactiveAnimatorType_ { InteractiveAnimatorType::NONE };
     std::weak_ptr<RSUIContext> rsUIContext_;
     float speedMultiplier_ = 1.0f;
     friend class RSImplicitAnimatorMap;

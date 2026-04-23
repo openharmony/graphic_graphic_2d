@@ -37,7 +37,7 @@ ohos_fuzztest("NdkFontDescFuzzTest") {
     "-fno-omit-frame-pointer",
     "-std=c++17",
   ]
-  sources = [ "drawing_text_font_descriptor_fuzzer.cpp" ]
+  sources = [ "ndkfontdesc_fuzzer.cpp" ]
 
   deps = [
     "$graphic_2d_root/rosen/modules/2d_graphics/drawing_ndk:native_drawing_ndk",

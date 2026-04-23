@@ -18,6 +18,7 @@
 
 #include "draw/surface.h"
 #include "draw/ui_color.h"
+#include "effect/particle_builder.h"
 #include "pixel_map.h"
 #include "recording/cmd_list.h"
 #include "recording/cmd_list_helper.h"
@@ -1981,6 +1982,127 @@ HWTEST_F(DrawCmdTest, PenHandle004, TestSize.Level1)
     EXPECT_EQ(penHandle.GetCapStyle(), Pen::CapStyle::ROUND_CAP);
 }
 
+/**
+ * @tc.name: DrawParticleOpItem001
+ * @tc.desc: Test DrawParticleOpItem constructor with particle effect
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, DrawParticleOpItem001, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+
+    auto builder = std::make_shared<ParticleBuilder>();
+    builder->SetUpdateCode("void main() { }");
+    auto particleEffect = builder->MakeParticleEffect(1024);
+    ASSERT_NE(particleEffect, nullptr);
+
+    DrawParticleOpItem opItem(particleEffect);
+    opItem.Marshalling(*drawCmdList);
+
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(10, 10);
+    opItem.Playback(recordingCanvas.get(), nullptr);
+    EXPECT_TRUE(recordingCanvas != nullptr);
+    EXPECT_EQ(recordingCanvas->GetWidth(), 10);
+    EXPECT_EQ(recordingCanvas->GetHeight(), 10);
+}
+ 
+/**
+ * @tc.name: DrawParticleOpItem002
+ * @tc.desc: Test DrawParticleOpItem constructor with cmdlist handle
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, DrawParticleOpItem002, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+
+    auto builder = std::make_shared<ParticleBuilder>();
+    builder->SetUpdateCode("void main() { }");
+    auto particleEffect = builder->MakeParticleEffect(1024);
+    ASSERT_NE(particleEffect, nullptr);
+
+    OpDataHandle particleEffectHandle = CmdListHelper::AddParticleEffectToCmdList(*drawCmdList, particleEffect);
+    DrawParticleOpItem::ConstructorHandle handle(particleEffectHandle);
+ 
+    DrawParticleOpItem opItem(*drawCmdList, &handle);
+    opItem.Marshalling(*drawCmdList);
+
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(10, 10);
+    opItem.Playback(recordingCanvas.get(), nullptr);
+    EXPECT_TRUE(recordingCanvas != nullptr);
+}
+ 
+/**
+ * @tc.name: DrawParticleOpItem003
+ * @tc.desc: Test DrawParticleOpItem Unmarshalling
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, DrawParticleOpItem003, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+ 
+    auto builder = std::make_shared<ParticleBuilder>();
+    builder->SetUpdateCode("void main() { }");
+    auto particleEffect = builder->MakeParticleEffect(1024);
+    ASSERT_NE(particleEffect, nullptr);
+ 
+    DrawParticleOpItem opItem(particleEffect);
+    opItem.Marshalling(*drawCmdList);
+ 
+    OpDataHandle particleEffectHandle = CmdListHelper::AddParticleEffectToCmdList(*drawCmdList, particleEffect);
+    DrawParticleOpItem::ConstructorHandle handle(particleEffectHandle);
+    auto unmarshalledOpItem = DrawParticleOpItem::Unmarshalling(*drawCmdList, &handle);
+    ASSERT_NE(unmarshalledOpItem, nullptr);
+}
+ 
+/**
+ * @tc.name: DrawParticleOpItem004
+ * @tc.desc: Test DrawParticleOpItem Dump
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DrawCmdTest, DrawParticleOpItem004, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+ 
+    auto builder = std::make_shared<ParticleBuilder>();
+    builder->SetUpdateCode("void main() { }");
+    auto particleEffect = builder->MakeParticleEffect(1024);
+    ASSERT_NE(particleEffect, nullptr);
+ 
+    DrawParticleOpItem opItem(particleEffect);
+    std::string out;
+    opItem.Dump(out);
+    EXPECT_FALSE(out.empty());
+}
+ 
+/**
+ * @tc.name: DrawParticleOpItem005
+ * @tc.desc: Test DrawParticleOpItem constructor with null handle
+ * @tc.type: FUNC
+ * @tc.require: AR000
+ */
+HWTEST_F(DrawCmdTest, DrawParticleOpItemNullHandle, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    ASSERT_TRUE(drawCmdList != nullptr);
+
+    DrawParticleOpItem::ConstructorHandle* nullHandle = nullptr;
+    DrawParticleOpItem opItem(*drawCmdList, nullHandle);
+    opItem.Marshalling(*drawCmdList);
+
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(10, 10);
+    opItem.Playback(recordingCanvas.get(), nullptr);
+    EXPECT_TRUE(recordingCanvas != nullptr);
+    EXPECT_EQ(recordingCanvas->GetWidth(), 10);
+    EXPECT_EQ(recordingCanvas->GetHeight(), 10);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

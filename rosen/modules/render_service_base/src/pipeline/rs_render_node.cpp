@@ -1603,6 +1603,7 @@ void RSRenderNode::UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation, b
 {
     auto foregroundFilterCache = GetRenderProperties().GetForegroundFilterCache();
     bool rotateOptimize = RSSystemProperties::GetCacheOptimizeRotateEnable() ? false : isScreenRotation;
+    SetNodeGroupHasChildInBlacklist(false);
     if (!ShouldPaint() || (rotateOptimize && !foregroundFilterCache) || isOnExcludedSubTree) {
         SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
         return;
@@ -1704,6 +1705,10 @@ void RSRenderNode::FallbackAnimationsToRoot()
         animation->Detach(true);
         // avoid infinite loop for fallback animation
         animation->SetRepeatCount(1);
+        if (animation->IsGroupAnimationChild()) {
+            animation->Attach(target.get());
+            animation->RemoveFromGroupAnimator();
+        }
         target->animationManager_.AddAnimation(std::move(animation));
     }
     animationManager_.animations_.clear();
@@ -1934,8 +1939,8 @@ void RSRenderNode::CollectAndUpdateLocalEffectRect()
         }
         selfDrawRect_ = selfDrawRect_.JoinRect(filter->GetRect(boundsRect, EffectRectType::TOTAL));
     }
-    const auto& shader = GetRenderProperties().GetForegroundShader();
-    selfDrawRect_ = selfDrawRect_.JoinRect(RSNGRenderShaderHelper::CalcRect(shader, boundsRect));
+    const auto& overlayNGShader = GetRenderProperties().GetOverlayNGShader();
+    selfDrawRect_ = selfDrawRect_.JoinRect(RSNGRenderShaderHelper::CalcRect(overlayNGShader, boundsRect));
 }
 
 void RSRenderNode::UpdateBufferDirtyRegion()
@@ -3339,9 +3344,9 @@ void RSRenderNode::UpdateDrawableVecV2()
     // save/clip/restore.
     RS_LOGI_IF(DEBUG_NODE,
         "RSRenderNode::update drawable VecV2 drawableChanged:%{public}d", drawableChanged);
-    if (GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
-        auto canvasdrawingnode = ReinterpretCastTo<RSCanvasDrawingRenderNode>();
-        drawableChanged |= canvasdrawingnode->GetIsPostPlaybacked();
+    auto canvasDrawingNode = ReinterpretCastTo<RSCanvasDrawingRenderNode>();
+    if (canvasDrawingNode != nullptr) {
+        drawableChanged |= canvasDrawingNode->GetIsPostPlaybacked();
     }
     if (drawableChanged || dirtySlots.count(RSDrawableSlot::CLIP_TO_BOUNDS)) {
         // Step 3: Recalculate save/clip/restore on demands
@@ -3368,8 +3373,9 @@ void RSRenderNode::UpdateDrawableVecV2()
     } else {
         dirtySlots_.insert(dirtySlots.begin(), dirtySlots.end());
     }
-
-    waitSync_ = true;
+    if (canvasDrawingNode != nullptr) {
+        canvasDrawingNode->SetWaitSync(true);
+    }
 #endif
 }
 
@@ -3738,6 +3744,13 @@ void RSRenderNode::SetChildHasTranslateOnSqueeze(bool val)
 {
 #ifdef RS_ENABLE_GPU
     stagingRenderParams_->SetChildHasTranslateOnSqueeze(val);
+#endif
+}
+
+void RSRenderNode::SetNodeGroupHasChildInBlacklist(bool inBlacklist)
+{
+#ifdef RS_ENABLE_GPU
+    stagingRenderParams_->SetNodeGroupHasChildInBlacklist(inBlacklist);
 #endif
 }
 
@@ -4655,12 +4668,9 @@ void RSRenderNode::OnSync()
     backgroundFilterRegionChanged_ = false;
     backgroundFilterInteractWithDirty_ = false;
 
-    // Reset Sync Flag
-    // only canvas drawing node use SetNeedDraw function
-    if (GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE && waitSync_) {
-        renderDrawable_->SetNeedDraw(true);
+    if (auto canvasDrawingNode = ReinterpretCastTo<RSCanvasDrawingRenderNode>()) {
+        canvasDrawingNode->AfterSync();
     }
-    waitSync_ = false;
 
     lastFrameSynced_ = !isLeashWindowPartialSkip;
 }
@@ -5323,8 +5333,7 @@ void RSRenderNode::MapAndUpdateChildrenRect()
     }
 }
 
-void RSRenderNode::UpdateDrawingCacheInfoAfterChildren(bool isInBlackList,
-    const std::unordered_set<NodeId>& childHasProtectedNodeSet)
+void RSRenderNode::UpdateDrawingCacheInfoAfterChildren(const std::unordered_set<NodeId>& childHasProtectedNodeSet)
 {
     RS_LOGI_IF(DEBUG_NODE, "RSRenderNode::UpdateDrawingCacheInfoAC"
         " startingWindowFlag_:%{public}d HasChildrenOutOfRect:%{public}d drawingCacheType:%{public}d",
@@ -5333,9 +5342,6 @@ void RSRenderNode::UpdateDrawingCacheInfoAfterChildren(bool isInBlackList,
         SetDrawingCacheChanged(true);
         SetRenderGroupSubTreeDirty(false); // reset subtree dirty
         RS_OPTIONAL_TRACE_NAME_FMT("DrawingCacheInfoAfter::renderGroup subtree dirty, id:%" PRIu64, GetId());
-    }
-    if (isInBlackList) {
-        stagingRenderParams_->SetNodeGroupHasChildInBlacklist(true);
     }
     if (HasChildrenOutOfRect() && GetDrawingCacheType() == RSDrawingCacheType::TARGETED_CACHE) {
         RS_OPTIONAL_TRACE_NAME_FMT("DrawingCacheInfoAfter ChildrenOutOfRect id:%llu", GetId());

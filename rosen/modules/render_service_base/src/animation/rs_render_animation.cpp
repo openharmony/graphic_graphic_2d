@@ -15,6 +15,7 @@
 
 #include "animation/rs_render_animation.h"
 
+#include "animation/rs_render_interactive_implict_animator.h"
 #include "command/rs_animation_command.h"
 #include "common/rs_optional_trace.h"
 #include "pipeline/rs_canvas_render_node.h"
@@ -85,6 +86,11 @@ bool RSRenderAnimation::IsRunning() const
     return state_ == AnimationState::RUNNING;
 }
 
+bool RSRenderAnimation::IsGroupWaiting() const
+{
+    return state_ == AnimationState::GROUP_WAITING;
+}
+
 bool RSRenderAnimation::IsPaused() const
 {
     return state_ == AnimationState::PAUSED;
@@ -149,8 +155,8 @@ void RSRenderAnimation::Start()
 void RSRenderAnimation::Finish()
 {
     RS_LOGI_LIMIT("Animation[%{public}" PRIu64 "] received finish", id_);
-    if (!IsPaused() && !IsRunning()) {
-        ROSEN_LOGD("Failed to finish animation, animation is not running!");
+    if (!IsPaused() && !IsRunning() && !IsGroupWaiting()) {
+        ROSEN_LOGD("Failed to finish animation, animation is not running or groupWaiting!");
         return;
     }
 
@@ -160,8 +166,8 @@ void RSRenderAnimation::Finish()
 
 void RSRenderAnimation::FinishOnPosition(RSInteractiveAnimationPosition pos)
 {
-    if (!IsPaused() && !IsRunning()) {
-        ROSEN_LOGD("Failed to finish animation, animation is not running!");
+    if (!IsPaused() && !IsRunning() && !IsGroupWaiting()) {
+        ROSEN_LOGD("Failed to finish animation, animation is not running or groupWaiting!");
         return;
     }
 
@@ -176,8 +182,8 @@ void RSRenderAnimation::FinishOnPosition(RSInteractiveAnimationPosition pos)
 
 void RSRenderAnimation::FinishOnCurrentPosition()
 {
-    if (!IsPaused() && !IsRunning()) {
-        ROSEN_LOGD("Failed to finish animation, animation is not running!");
+    if (!IsPaused() && !IsRunning() && !IsGroupWaiting()) {
+        ROSEN_LOGD("Failed to finish animation, animation is not running or groupWaiting!");
         return;
     }
 
@@ -187,8 +193,9 @@ void RSRenderAnimation::FinishOnCurrentPosition()
 void RSRenderAnimation::Pause()
 {
     RS_LOGI_LIMIT("Animation[%{public}" PRIu64 "] received pause", id_);
-    if (!IsRunning()) {
-        ROSEN_LOGE("Failed to pause animation, animation is not running!");
+    RS_TRACE_NAME_FMT("RSRenderAnimation::Pause animate[%llu]", id_);
+    if (!IsRunning() && !IsGroupWaiting()) {
+        ROSEN_LOGE("Failed to pause animation, animation is not running or groupWaiting!");
         return;
     }
 
@@ -198,6 +205,7 @@ void RSRenderAnimation::Pause()
 void RSRenderAnimation::Resume()
 {
     RS_LOGI_LIMIT("Animation[%{public}" PRIu64 "] received resume", id_);
+    RS_TRACE_NAME_FMT("RSRenderAnimation::Resume animate[%llu]", id_);
     if (!IsPaused()) {
         ROSEN_LOGE("Failed to resume animation, animation is not paused!");
         return;
@@ -207,6 +215,19 @@ void RSRenderAnimation::Resume()
     needUpdateStartTime_ = true;
 
     UpdateFractionAfterContinue();
+}
+
+void RSRenderAnimation::ResumeGroupWaiting()
+{
+    RS_LOGI_LIMIT("Animation[%{public}" PRIu64 "] resume to GROUP_WAITING", id_);
+    RS_TRACE_NAME_FMT("RSRenderAnimation::ResumeGroupWaiting animate[%llu]", id_);
+    if (!IsPaused()) {
+        ROSEN_LOGE("Failed to resume animation to GROUP_WAITING, animation is not paused!");
+        return;
+    }
+
+    state_ = AnimationState::GROUP_WAITING;
+    needUpdateStartTime_ = true;
 }
 
 void RSRenderAnimation::SetFraction(float fraction)
@@ -231,6 +252,10 @@ void RSRenderAnimation::SetReversedAndContinue()
     Resume();
 }
 
+void RSRenderAnimation::FlipDirection()
+{
+    animationFraction_.FlipDirection();
+}
 
 void RSRenderAnimation::SetReversed(bool isReversed)
 {
@@ -250,6 +275,17 @@ RSRenderNode* RSRenderAnimation::GetTarget() const
 void RSRenderAnimation::SetFractionInner(float fraction)
 {
     animationFraction_.UpdateRemainTimeFraction(fraction);
+}
+
+void RSRenderAnimation::Restart()
+{
+    if (!IsRunning() && !IsGroupWaiting()) {
+        ROSEN_LOGE("Failed to Restart animation, animation is not running or groupWaiting!");
+        return;
+    }
+    animationFraction_.ResetFraction();
+    OnSetFraction(0.0f);
+    state_ = AnimationState::RUNNING;
 }
 
 void RSRenderAnimation::ProcessFillModeOnStart(float startFraction)
@@ -277,14 +313,33 @@ void RSRenderAnimation::ProcessOnRepeatFinish()
     RSMessageProcessor::Instance().AddUIMessage(ExtractPid(id_), command);
 }
 
+void RSRenderAnimation::AnimateOnGroupWaiting(int64_t time, bool isCustom)
+{
+    if (needUpdateStartTime_) {
+        SetStartTime(time);
+    }
+
+    int64_t deltaTime = time - animationFraction_.GetLastFrameTime();
+    animationFraction_.SetLastFrameTime(time);
+    if (deltaTime > 0 && animationFraction_.UpdateGroupWaitingTime(deltaTime, isCustom)) {
+        RS_TRACE_NAME_FMT("AnimateOnGroupWaiting GROUP_WAITING finished, resume RUNNING animationId=%" PRIu64, id_);
+        state_ = AnimationState::RUNNING;
+    }
+}
+
 bool RSRenderAnimation::Animate(int64_t time, int64_t& minLeftDelayTime, bool isCustom)
 {
     // calculateAnimationValue_ is embedded modify for stat animate frame drop
     calculateAnimationValue_ = true;
+    if (IsGroupWaiting()) {
+        minLeftDelayTime = 0;
+        calculateAnimationValue_ = false;
+        AnimateOnGroupWaiting(time, isCustom);
+        return false;
+    }
 
     if (!IsRunning()) {
-        ROSEN_LOGD("RSRenderAnimation::Animate, IsRunning is false!");
-        RS_OPTIONAL_TRACE_NAME_FMT("Animation[%llu] animate not running, state is [%d]", id_, state_);
+        RS_TRACE_NAME_FMT("RSRenderAnimation::Animate Animation[%llu] animate not running, state is [%d]", id_, state_);
         return state_ == AnimationState::FINISHED;
     }
 
@@ -312,10 +367,10 @@ bool RSRenderAnimation::Animate(int64_t time, int64_t& minLeftDelayTime, bool is
     // convert time to fraction
     auto [fraction, isInStartDelay, isFinished, isRepeatFinished] =
         animationFraction_.GetAnimationFraction(time, minLeftDelayTime, isCustom);
+
     if (isInStartDelay) {
         calculateAnimationValue_ = false;
         ProcessFillModeOnStart(fraction);
-        ROSEN_LOGD("RSRenderAnimation::Animate, isInStartDelay is true");
         return false;
     }
 
@@ -330,8 +385,11 @@ bool RSRenderAnimation::Animate(int64_t time, int64_t& minLeftDelayTime, bool is
     if (isFinished) {
         RS_PROFILER_ANIMATION_DURATION_STOP(id_, time);
         ProcessFillModeOnFinish(fraction);
-        ROSEN_LOGD("RSRenderAnimation::Animate, isFinished is true");
-        return true;
+        if (isGroupAnimationChild_) {
+            RS_TRACE_NAME_FMT("RSRenderAnimation::Animate Animation[%llu] animate state change to GROUP_WAITING", id_);
+            state_ = AnimationState::GROUP_WAITING;
+            return false;
+        }
     }
     return isFinished;
 }
@@ -343,6 +401,17 @@ void RSRenderAnimation::SetStartTime(int64_t time)
     time = RS_PROFILER_ANIME_SET_START_TIME(id_, time);
     animationFraction_.SetLastFrameTime(time);
     needUpdateStartTime_ = false;
+}
+
+void RSRenderAnimation::RemoveFromGroupAnimator()
+{
+    if (!isGroupAnimationChild_) {
+        return;
+    }
+
+    if (auto groupAnimator = groupAnimator_.lock()) {
+        groupAnimator->RemoveActiveChildAnimation(id_);
+    }
 }
 
 const std::shared_ptr<RSRenderPropertyBase>& RSRenderAnimation::GetAnimateVelocity() const

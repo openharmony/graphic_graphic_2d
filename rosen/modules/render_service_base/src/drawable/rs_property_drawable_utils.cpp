@@ -60,8 +60,8 @@ std::shared_ptr<Drawing::RuntimeEffect> RSPropertyDrawableUtils::hdrDarkenBlende
 void RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(
     Drawing::Canvas* canvas, const std::shared_ptr<RSDrawingFilter>& filter)
 {
-    auto effect = filter->GetNGRenderFilter();
-    if (!effect || effect->GetType() != RSNGEffectType::FROSTED_GLASS || canvas == nullptr) {
+    if (!filter->GetGEContainer() || !filter->GetGEContainer()->GetGEVisualEffect(Drawing::GE_FILTER_FROSTED_GLASS) ||
+        !canvas) {
         return;
     }
     auto color = static_cast<RSPaintFilterCanvas*>(canvas)->GetColorPicked(ColorPlaceholder::SURFACE_CONTRAST);
@@ -1827,7 +1827,7 @@ std::shared_ptr<RSNGRenderShapeBase> RSPropertyDrawableUtils::CreateDefaultRRect
     NodeId nodeId)
 {
     auto sdfRRectShape = std::static_pointer_cast<RSNGRenderSDFRRectShape>(
-                RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE));
+        RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE));
     if (sdfRRectShape == nullptr) {
         ROSEN_LOGE("RSPropertyDrawableUtils::CreateDefaultRRectShape, SDF_RRECT_SHAPE is null, node %{public}" PRIu64,
             nodeId);
@@ -1847,7 +1847,7 @@ void RSPropertyDrawableUtils::ApplySDFShapeToEffect(const RSProperties& properti
     if (shader->GetType() == RSNGEffectType::SDF_EDGE_LIGHT_EFFECT) {
         const auto& effectShader = std::static_pointer_cast<RSNGRenderSDFEdgeLightEffect>(shader);
         if (sdfShape) {
-            ROSEN_LOGD("RSPropertyDrawableUtils::ApplySDFShapeToEffect, SDF_EDGE_LIGT_EFFECT, node %{public}" PRIu64,
+            ROSEN_LOGD("RSPropertyDrawableUtils::ApplySDFShapeToEffect, SDF_EDGE_LIGHT_EFFECT, node %{public}" PRIu64,
                 nodeId);
             effectShader->Setter<SDFEdgeLightEffectSDFShapeRenderTag>(sdfShape,
                 PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
@@ -1858,6 +1858,7 @@ void RSPropertyDrawableUtils::ApplySDFShapeToEffect(const RSProperties& properti
             auto sdfRRectShape = CreateDefaultRRectShape(sdfRRect, nodeId);
             effectShader->Setter<SDFEdgeLightEffectSDFShapeRenderTag>(sdfRRectShape,
                 PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+            RSNGRenderShapeHelper::CalcRect(sdfRRectShape, properties.GetBoundsRect());
         }
     }
 }

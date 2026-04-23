@@ -609,6 +609,26 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetForeground001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetDarkColorModeTest
+ * @tc.desc: Verify function SetDarkColorMode
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, SetDarkColorModeTest, TestSize.Level1)
+{
+    RSContext context;
+    SurfaceNodeCommandHelper::SetDarkColorMode(context, 0, true);
+    SurfaceNodeCommandHelper::Create(context, 1);
+    SurfaceNodeCommandHelper::SetDarkColorMode(context, 1, true);
+
+    auto surfaceNode = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(1);
+    ASSERT_NE(surfaceNode, nullptr);
+    EXPECT_TRUE(surfaceNode->GetDarkColorMode());
+
+    SurfaceNodeCommandHelper::SetDarkColorMode(context, 1, false);
+    EXPECT_FALSE(surfaceNode->GetDarkColorMode());
+}
+
+/**
  * @tc.name: SetSurfaceId001
  * @tc.desc: SetIsNotifyUIBufferAvailable test.
  * @tc.type: FUNC

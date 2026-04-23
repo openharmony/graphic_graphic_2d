@@ -315,11 +315,6 @@ public:
         isRepaintBoundary_ = isRepaintBoundary;
     }
 
-    inline bool IsWaitSync() const
-    {
-        return waitSync_;
-    }
-
     using ChildrenListSharedPtr = std::shared_ptr<const std::vector<std::shared_ptr<RSRenderNode>>>;
     // return children and disappeared children, not guaranteed to be sorted by z-index
     ChildrenListSharedPtr GetChildren() const;
@@ -738,10 +733,10 @@ public:
     void MarkForegroundFilterCache();
     NodeGroupType GetNodeGroupType() const;
     void SetChildHasTranslateOnSqueeze(bool val);
+    void SetNodeGroupHasChildInBlacklist(bool inBlacklist);
     bool IsNodeGroupIncludeProperty() const;
     void UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation, bool isOnExcludedSubTree);
-    void UpdateDrawingCacheInfoAfterChildren(
-        bool isInBlackList = false, const std::unordered_set<NodeId>& childHasProtectedNodeSet = {});
+    void UpdateDrawingCacheInfoAfterChildren(const std::unordered_set<NodeId>& childHasProtectedNodeSet = {});
     // !used for renderGroup
 
     void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer, pid_t pid = 0);
@@ -1172,7 +1167,6 @@ protected:
     bool needClearSurface_ = false;
     bool isBootAnimation_ = false;
     bool lastFrameHasVisibleEffectWithoutEmptyRect_ = false;
-    bool waitSync_ = false;
     mutable bool isFullChildrenListValid_ = true;
     mutable bool isChildrenSorted_ = true;
     mutable bool childrenHasSharedTransition_ = false;

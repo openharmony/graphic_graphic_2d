@@ -32,16 +32,12 @@ namespace HgmDetail {
 template<typename Task>
 class ScheduledTask : public RefBase {
 public:
-    static auto Create(Task&& task)
-    {
+    static auto Create(Task&& task) {
         sptr<ScheduledTask<Task>> t(new ScheduledTask(std::forward<Task&&>(task)));
         return std::make_pair(t, t->task_.get_future());
     }
 
-    void Run()
-    {
-        task_();
-    }
+    void Run() { task_(); }
 
 private:
     explicit ScheduledTask(Task&& task) : task_(std::move(task)) {}
@@ -55,9 +51,7 @@ private:
 class HgmTaskHandleThread {
 public:
     static HgmTaskHandleThread& Instance();
-    const std::shared_ptr<ffrt::queue> GetQueue() const {
-        return queue_;
-    }
+    const std::shared_ptr<ffrt::queue> GetQueue() const { return queue_; }
     // IMPORTANT: std::move transfers ownership of the task to the queue_
     // After this call, the original task object is moved-from and must not be reused
     void PostTask(const std::function<void()>& task, int64_t delayTime = 0);
@@ -66,8 +60,7 @@ public:
     void DetectMultiThreadingCalls();
     void RemoveEvent(std::string eventId);
     template<typename Task, typename Return = std::invoke_result_t<Task>>
-    std::future<Return> ScheduleTask(Task&& task)
-    {
+    std::future<Return> ScheduleTask(Task&& task) {
         auto [scheduledTask, taskFuture] = HgmDetail::ScheduledTask<Task>::Create(std::forward<Task&&>(task));
         PostTask([t(std::move(scheduledTask))]() { t->Run(); });
         return std::move(taskFuture);
@@ -75,10 +68,7 @@ public:
 
 private:
     HgmTaskHandleThread();
-    ~HgmTaskHandleThread()
-    {
-        queue_ = nullptr;
-    }
+    ~HgmTaskHandleThread() { queue_ = nullptr; }
     HgmTaskHandleThread(const HgmTaskHandleThread&);
     HgmTaskHandleThread(const HgmTaskHandleThread&&);
     HgmTaskHandleThread& operator=(const HgmTaskHandleThread&);

@@ -27,6 +27,7 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_test_util.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
+#include "memory/rs_memory_snapshot.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -1539,12 +1540,16 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnGeneralProcessAndCache, TestSize.Lev
     RSPaintFilterCanvas canvas(surface.get());
     auto uniParams = std::make_shared<RSRenderThreadParams>();
     ASSERT_NE(uniParams, nullptr);
+
+    bool tmp = RSUniRenderThread::GetCaptureParam().isSnapshot_;
+    RSUniRenderThread::GetCaptureParam().isSnapshot_ = false;
     surfaceDrawable_->OnGeneralProcess(canvas, *surfaceParams, *uniParams, false);
     ASSERT_TRUE(surfaceDrawable_->GetRsSubThreadCache().GetRSDrawWindowCache().HasCache());
 
     surfaceDrawable_->needCacheRelatedSourceNode_ = true;
     surfaceDrawable_->OnGeneralProcess(canvas, *surfaceParams, *uniParams, false);
     ASSERT_TRUE(surfaceDrawable_->HasRelatedSourceNodeCache());
+    RSUniRenderThread::GetCaptureParam().isSnapshot_ = tmp;
 }
 
 /**
@@ -1848,42 +1853,6 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDraw005, TestSize.Level2)
     // test protected layer
     surfaceParams->specialLayerManager_.Set(SpecialLayerType::PROTECTED, true);
     surfaceDrawable_->OnDraw(*canvas_);
-}
-
-/**
- * @tc.name: OnDraw006
- * @tc.desc: Test OnDraw when CheckIfSurfaceSkipInMirrorOrScreenshot return true
- * @tc.type: FUNC
- * @tc.require: #I9NVOG
- */
-HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDraw006, TestSize.Level1)
-{
-    ASSERT_NE(surfaceDrawable_, nullptr);
-    ASSERT_NE(drawable_->renderParams_, nullptr);
-    drawable_->renderParams_->shouldPaint_ = true;
-    drawable_->renderParams_->contentEmpty_ = false;
-    canvas_->canvas_->gpuContext_ = std::make_shared<Drawing::GPUContext>();
-
-    NodeId id = 10086;
-    auto renderNode = std::make_shared<RSRenderNode>(id);
-    ASSERT_NE(renderNode, nullptr);
-    auto drawingCacheRoot = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode);
-    ASSERT_NE(drawingCacheRoot, nullptr);
-    drawable_->curDrawingCacheRoot_ = drawingCacheRoot.get();
-    ASSERT_NE(drawable_->curDrawingCacheRoot_, nullptr);
-
-    auto params = std::make_unique<RSRenderThreadParams>();
-    params->isMirrorScreen_ = false;
-    params->SetSecurityDisplay(true);
-    RSUniRenderThread::Instance().Sync(std::move(params));
-    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
-
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
-    ASSERT_TRUE(surfaceParams);
-    surfaceParams->isNodeGroupHasChildInBlacklist_ = true;
-    EXPECT_TRUE(surfaceParams->NodeGroupHasChildInBlacklist());
-    surfaceDrawable_->OnDraw(*drawingCanvas_);
-    EXPECT_TRUE(surfaceDrawable_->hasSkipCacheLayer_);
 }
 
 /**
@@ -2956,4 +2925,26 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, Destructor_SelfDrawingType, TestSize.L
     // Manually delete to call destructor and trigger PostTask branch
     delete drawable;
 }
+
+/**
+ * @tc.name: OnDrawAbnormalProcessTest
+ * @tc.desc: Test OnDraw with abnormal process check
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDrawAbnormalProcessTest, TestSize.Level1)
+{
+    // Mark process as abnormal
+    pid_t pid = ExtractPid(DEFAULT_ID);
+    MemorySnapshot::Instance().SetAbnormalProcess(pid);
+
+    // OnDraw should return early for abnormal process
+    surfaceDrawable_->OnDraw(*canvas_);
+    bool isAbnormal = MemorySnapshot::Instance().IsAbnormalProcess(pid);
+    ASSERT_TRUE(isAbnormal);
+    
+    // Clean up
+    std::set<pid_t> exitedPids = {pid};
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
 }
+} // namespace OHOS::Rosen

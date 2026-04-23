@@ -19,6 +19,7 @@
 #include "recording/recording_canvas.h"
 #include "draw/path.h"
 #include "draw/ui_color.h"
+#include "effect/particle_builder.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -1480,6 +1481,96 @@ HWTEST_F(RecordingCanvasTest, DrawUIColor003, TestSize.Level1)
     Canvas canvas;
     drawCmdList1->Playback(canvas);
     drawCmdList2->Playback(canvas);
+}
+
+/**
+ * @tc.name: DrawParticle001
+ * @tc.desc: Test RecordingCanvas DrawParticle with null particle effect.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RecordingCanvasTest, DrawParticleNullParticleEffect, TestSize.Level1)
+{
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT);
+    ASSERT_TRUE(recordingCanvas != nullptr);
+    recordingCanvas->DrawParticle(nullptr);
+    auto drawCmdList = recordingCanvas->GetDrawCmdList();
+    ASSERT_TRUE(drawCmdList != nullptr);
+}
+ 
+/**
+ * @tc.name: DrawParticle002
+ * @tc.desc: Test RecordingCanvas DrawParticle with valid particle effect.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RecordingCanvasTest, DrawParticleValidParticleEffect, TestSize.Level1)
+{
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT);
+    ASSERT_TRUE(recordingCanvas != nullptr);
+ 
+    auto builder = std::make_shared<ParticleBuilder>();
+    builder->SetUpdateCode("void main() { }");
+    auto particleEffect = builder->MakeParticleEffect(1024);
+    ASSERT_NE(particleEffect, nullptr);
+ 
+    recordingCanvas->DrawParticle(particleEffect);
+    auto drawCmdList = recordingCanvas->GetDrawCmdList();
+    ASSERT_TRUE(drawCmdList != nullptr);
+    ASSERT_FALSE(drawCmdList->IsEmpty());
+}
+ 
+/**
+ * @tc.name: DrawParticle003
+ * @tc.desc: Test RecordingCanvas DrawParticle with config data.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RecordingCanvasTest, DrawParticleWithConfig, TestSize.Level1)
+{
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT);
+    ASSERT_TRUE(recordingCanvas != nullptr);
+ 
+    auto builder = std::make_shared<ParticleBuilder>();
+    std::string configStr = "float value;";
+    builder->AddConfigData("testConfig", configStr, 16);
+    builder->SetUpdateCode("void main() { }");
+    auto particleEffect = builder->MakeParticleEffect(1024);
+    ASSERT_NE(particleEffect, nullptr);
+
+    float data = 1.0f;
+    particleEffect->UpdateConfigData("testConfig", &data, 0, sizeof(data));
+
+    recordingCanvas->DrawParticle(particleEffect);
+    auto drawCmdList = recordingCanvas->GetDrawCmdList();
+    ASSERT_TRUE(drawCmdList != nullptr);
+
+    Canvas canvas;
+    drawCmdList->Playback(canvas);
+    EXPECT_EQ(recordingCanvas->GetWidth(), CANAS_WIDTH);
+    EXPECT_EQ(recordingCanvas->GetHeight(), CANAS_HEIGHT);
+    EXPECT_FALSE(drawCmdList->IsEmpty());
+}
+
+/**
+ * @tc.name: DrawParticle004
+ * @tc.desc: Test RecordingCanvas DrawParticle with false addDrawOpImmediate
+ * @tc.type: FUNC
+ * @tc.require: AR000
+ */
+HWTEST_F(RecordingCanvasTest, DrawParticleNotImmediate, TestSize.Level1)
+{
+    auto recordingCanvas = std::make_shared<RecordingCanvas>(CANAS_WIDTH, CANAS_HEIGHT, false);
+    ASSERT_TRUE(recordingCanvas != nullptr);
+    
+    auto builder = std::make_shared<ParticleBuilder>();
+    builder->SetUpdateCode("void main() { }");
+    auto particleEffect = builder->MakeParticleEffect(1024);
+    ASSERT_NE(particleEffect, nullptr);
+    
+    recordingCanvas->DrawParticle(particleEffect);
+    auto drawCmdList = recordingCanvas->GetDrawCmdList();
+    ASSERT_TRUE(drawCmdList != nullptr);
 }
 } // namespace Drawing
 } // namespace Rosen

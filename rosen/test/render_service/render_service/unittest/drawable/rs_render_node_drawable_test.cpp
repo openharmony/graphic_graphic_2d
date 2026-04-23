@@ -19,6 +19,7 @@
 #include "params/rs_render_params.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "render/rs_blur_filter.h"
+#include "memory/rs_memory_snapshot.h"
 
 #ifdef SUBTREE_PARALLEL_ENABLE
 #include "rs_parallel_manager.h"
@@ -271,6 +272,126 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckCacheTypeAndDrawTest003, TestSize.Level1
     params.childHasVisibleFilter_ = true;
     drawable->CheckCacheTypeAndDraw(canvas, params);
     ASSERT_TRUE(params.ChildHasVisibleFilter());
+}
+
+/**
+ * @tc.name: CheckCacheTypeAndDrawTest004
+ * @tc.desc: Test CheckCacheTypeAndDraw with NodeGroupHasChildInBlacklist in capture process
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSRenderNodeDrawableTest, CheckCacheTypeAndDrawTest004, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    Drawing::Canvas canvas;
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+
+    // Test when cache type is not NONE, NodeGroupHasChildInBlacklist is true, and in capture process
+    drawable->SetCacheType(DrawableCacheType::CONTENT);
+    ASSERT_EQ(drawable->GetCacheType(), DrawableCacheType::CONTENT);
+
+    // Set NodeGroupHasChildInBlacklist to true
+    params.SetNodeGroupHasChildInBlacklist(true);
+    ASSERT_TRUE(params.NodeGroupHasChildInBlacklist());
+
+    // Set capture process state to true
+    CaptureParam param;
+    param.isSnapshot_ = true;
+    RSUniRenderThread::SetCaptureParam(param);
+    ASSERT_TRUE(RSUniRenderThread::IsInCaptureProcess());
+
+    // CheckCacheTypeAndDraw should set cache type to NONE when all conditions are met
+    drawable->CheckCacheTypeAndDraw(canvas, params, true);
+    EXPECT_EQ(drawable->GetCacheType(), DrawableCacheType::NONE);
+
+    // Reset capture state
+    RSUniRenderThread::SetCaptureParam(CaptureParam());
+
+    // Reset for next test
+    drawable->SetCacheType(DrawableCacheType::CONTENT);
+    params.SetNodeGroupHasChildInBlacklist(false);
+
+    // Test when cache type is NONE - should not change
+    ASSERT_EQ(drawable->GetCacheType(), DrawableCacheType::CONTENT);
+    params.SetNodeGroupHasChildInBlacklist(true);
+    drawable->SetCacheType(DrawableCacheType::NONE);
+    drawable->CheckCacheTypeAndDraw(canvas, params, true);
+    EXPECT_EQ(drawable->GetCacheType(), DrawableCacheType::NONE);
+
+    // Test when not in capture process - should not change cache type
+    drawable->SetCacheType(DrawableCacheType::CONTENT);
+    ASSERT_EQ(drawable->GetCacheType(), DrawableCacheType::CONTENT);
+    RSUniRenderThread::SetCaptureParam(CaptureParam());
+    drawable->CheckCacheTypeAndDraw(canvas, params, false);
+    EXPECT_EQ(drawable->GetCacheType(), DrawableCacheType::CONTENT);
+}
+
+/**
+ * @tc.name: IsOverlappedWithExistingFiltersTest001
+ * @tc.desc: Cover all branches of IsOverlappedWithExistingFilters
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSRenderNodeDrawableTest, IsOverlappedWithExistingFiltersTest001, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    Drawing::Canvas canvas(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    params.SetBoundsRect(Drawing::RectF(0.0f, 0.0f, 10.0f, 10.0f));
+
+    drawable->curDrawingCacheRoot_ = nullptr;
+    EXPECT_FALSE(drawable->IsOverlappedWithExistingFilters(canvas, params));
+
+    auto rootRenderNode = std::make_shared<RSRenderNode>(1);
+    auto rootDrawable = RSRenderNodeDrawable::OnGenerate(rootRenderNode);
+    ASSERT_NE(rootDrawable, nullptr);
+    drawable->curDrawingCacheRoot_ = rootDrawable;
+
+    rootDrawable->renderParams_.reset();
+    EXPECT_FALSE(drawable->IsOverlappedWithExistingFilters(canvas, params));
+
+    rootDrawable->renderParams_ = std::make_unique<RSRenderParams>(rootDrawable->GetId());
+    EXPECT_NE(rootDrawable->renderParams_, nullptr);
+    rootDrawable->renderParams_->SetLayerPartRenderEnabled(false);
+    EXPECT_FALSE(drawable->IsOverlappedWithExistingFilters(canvas, params));
+
+    rootDrawable->renderParams_->SetLayerPartRenderEnabled(true);
+    EXPECT_FALSE(drawable->IsOverlappedWithExistingFilters(canvas, params));
+
+    rootDrawable->AddRectToUnifiedFilterRegion(Drawing::RectI(0, 0, 10, 10));
+    EXPECT_TRUE(drawable->IsOverlappedWithExistingFilters(canvas, params));
+    drawable->curDrawingCacheRoot_ = nullptr;
+}
+
+/**
+ * @tc.name: CheckCacheTypeAndDrawOverlapWithExistingFilters001
+ * @tc.desc: Cover overlap-triggered skip branch in CheckCacheTypeAndDraw
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSRenderNodeDrawableTest, CheckCacheTypeAndDrawOverlapWithExistingFilters001, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    auto rootRenderNode = std::make_shared<RSRenderNode>(2);
+    auto rootDrawable = RSRenderNodeDrawable::OnGenerate(rootRenderNode);
+    ASSERT_NE(rootDrawable, nullptr);
+
+    Drawing::Canvas canvas(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    params.SetBoundsRect(Drawing::RectF(0.0f, 0.0f, 10.0f, 10.0f));
+    rootDrawable->renderParams_ = std::make_unique<RSRenderParams>(rootDrawable->GetId());
+    EXPECT_NE(rootDrawable->renderParams_, nullptr);
+    rootDrawable->renderParams_->SetLayerPartRenderEnabled(true);
+    rootDrawable->AddRectToUnifiedFilterRegion(Drawing::RectI(0, 0, 10, 10));
+
+    drawable->curDrawingCacheRoot_ = rootDrawable;
+    drawable->isOffScreenWithClipHole_ = true;
+    drawable->CheckCacheTypeAndDraw(paintFilterCanvas, params);
+
+    EXPECT_TRUE(rootDrawable->filterInfoVec_.empty());
+    EXPECT_EQ(rootDrawable->withoutFilterMatrixMap_.count(drawable->GetId()), 0u);
+    drawable->curDrawingCacheRoot_ = nullptr;
 }
 
 /**
@@ -944,6 +1065,30 @@ HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheSurfaceLayerPartRenderDirtyRegion0
     drawable->UpdateCacheSurface(paintFilterCanvas, params);
 
     ASSERT_NE(drawable->cachedSurface_, nullptr);
+}
+
+/**
+ * @tc.name: UpdateCacheSurfaceClearUnifiedFilterRegion001
+ * @tc.desc: Cover unified filter region clear branch in UpdateCacheSurface
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheSurfaceClearUnifiedFilterRegion001, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    Drawing::Canvas canvas(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    Drawing::RectI rect(0, 0, 10, 10);
+
+    drawable->AddRectToUnifiedFilterRegion(rect);
+    ASSERT_TRUE(drawable->IntersectsWithUnifiedRegion(rect));
+
+    drawable->curDrawingCacheRoot_ = drawable.get();
+    drawable->UpdateCacheSurface(paintFilterCanvas, params);
+
+    EXPECT_FALSE(drawable->IntersectsWithUnifiedRegion(rect));
+    drawable->curDrawingCacheRoot_ = nullptr;
 }
 
 /**
@@ -1683,4 +1828,30 @@ HWTEST_F(RSRenderNodeDrawableTest, BufferNeedUpdateTest008, TestSize.Level1)
     drawable->ClearCachedSurface();
 #endif
 }
+
+/**
+ * @tc.name: OnDrawAbnormalProcessTest
+ * @tc.desc: Test OnDraw with abnormal process check
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeDrawableTest, OnDrawAbnormalProcessTest, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+
+    // Mark process as abnormal
+    pid_t pid = ExtractPid(id);
+    MemorySnapshot::Instance().SetAbnormalProcess(pid);
+
+    // OnDraw should return early for abnormal process
+    drawable->OnDraw(paintFilterCanvas);
+    bool isAbnormal = MemorySnapshot::Instance().IsAbnormalProcess(pid);
+    ASSERT_TRUE(isAbnormal);
+
+    // Clean up
+    std::set<pid_t> exitedPids = {pid};
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
 }
+} // namespace OHOS::Rosen

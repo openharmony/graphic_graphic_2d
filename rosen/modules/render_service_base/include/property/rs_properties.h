@@ -44,6 +44,7 @@ namespace Rosen {
 class RSRenderNode;
 class RSObjAbsGeometry;
 class RSNGRenderFilterBase;
+class ParticleFieldCollection;
 class ParticleRippleFields;
 class ParticleVelocityFields;
 struct ColorPickerParam;
@@ -376,6 +377,8 @@ public:
     void SetParticleNoiseFields(const std::shared_ptr<ParticleNoiseFields>& para);
     void SetParticleRippleFields(const std::shared_ptr<ParticleRippleFields>& para);
     void SetParticleVelocityFields(const std::shared_ptr<ParticleVelocityFields>& para);
+    void SetParticleFields(const std::shared_ptr<ParticleFieldCollection>& para);
+    const std::shared_ptr<ParticleFieldCollection>& GetParticleFields() const;
     void SetDynamicLightUpRate(const std::optional<float>& rate);
     void SetDynamicLightUpDegree(const std::optional<float>& lightUpDegree);
     void SetDynamicDimDegree(const std::optional<float>& DimDegree);
@@ -1118,6 +1121,7 @@ private:
     std::shared_ptr<RectF> drawRegion_ = nullptr;
     std::shared_ptr<ParticleRippleFields> particleRippleFields_ = nullptr;
     std::shared_ptr<ParticleVelocityFields> particleVelocityFields_ = nullptr;
+    std::shared_ptr<ParticleFieldCollection> particleFields_ = nullptr;
     std::shared_ptr<RSBorder> border_ = nullptr;
     std::shared_ptr<RSBorder> outline_ = nullptr;
     std::shared_ptr<RSPath> clipPath_ = nullptr;
@@ -1143,7 +1147,7 @@ private:
     void StatBackgroundFilter();
     void StatCompositingFilter();
     void StatForegroundFilter();
-    
+
     // OnApplyModifiers hooks
     void CheckEmptyBounds();
     void GenerateColorFilter();

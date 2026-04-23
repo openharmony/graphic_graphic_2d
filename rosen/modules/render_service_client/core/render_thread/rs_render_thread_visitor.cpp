@@ -982,11 +982,11 @@ void RSRenderThreadVisitor::ClipHoleForSurfaceNode(RSSurfaceRenderNode& node)
             canvas_->GetTotalMatrix().Get(Drawing::Matrix::TRANS_Y), width, height);
     }
     if (node.IsNotifyRTBufferAvailable() == true) {
-        ROSEN_LOGI("RSRenderThreadVisitor::ClipHoleForSurfaceNode node : %{public}" PRIu64 ","
+        ROSEN_LOGD("RSRenderThreadVisitor::ClipHoleForSurfaceNode node : %{public}" PRIu64 ","
             "clip [%{public}f, %{public}f, %{public}f, %{public}f]", node.GetId(), x, y, width, height);
         canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
     } else {
-        ROSEN_LOGI("RSRenderThreadVisitor::ClipHoleForSurfaceNode node : %{public}" PRIu64 ","
+        ROSEN_LOGD("RSRenderThreadVisitor::ClipHoleForSurfaceNode node : %{public}" PRIu64 ","
             "not clip [%{public}f, %{public}f, %{public}f, %{public}f]", node.GetId(), x, y, width, height);
         auto backgroundColor = node.GetRenderProperties().GetBackgroundColor();
         if (backgroundColor != RgbPalette::Transparent()) {

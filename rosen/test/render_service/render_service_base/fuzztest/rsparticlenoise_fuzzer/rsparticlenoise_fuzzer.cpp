@@ -132,9 +132,8 @@ bool DoPerlinNoise2D(const uint8_t* data, size_t size)
 
     float a = GetData<float>();
     float b = GetData<float>();
-    float c = GetData<float>();
     float d = GetData<float>();
-    PerlinNoise2D noise2D(a, b, c);
+    PerlinNoise2D noise2D(a, b);
     float e = GetData<float>();
     float f = GetData<float>();
     float g = GetData<float>();

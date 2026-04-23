@@ -24,7 +24,7 @@ using namespace testing::ext;
 namespace OHOS::Rosen {
 namespace {
     constexpr int SCREEN_WIDTH = 1200;
-    constexpr int SCREEN_HEIGHT = 960;
+    constexpr int SCREEN_HEIGHT = 2000;
     constexpr int SLEEP_TIME_FOR_PROXY = 50000; // 50ms
     constexpr uint32_t BIG_PIXELMAP_WIDTH = 6 * 1024;
     constexpr uint32_t BIG_PIXELMAP_HEIGHT = 1024;
@@ -37,7 +37,11 @@ namespace {
 class WatermarktTest : public RSGraphicTest {
 public:
     // called before each tests
-    void BeforeEach() override {}
+    void BeforeEach() override
+    {
+        SetScreenSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+        SetSurfaceColor(RSColor(0xffff0000));
+    }
     // called after each tests
     void AfterEach() override
     {

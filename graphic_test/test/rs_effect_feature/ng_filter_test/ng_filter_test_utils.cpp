@@ -112,6 +112,10 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorFilter = {
             return std::make_shared<RSNGGasifyFilter>();
         }
     },
+    {RSNGEffectType::PARTICLE_ABLATION, [] {
+            return std::make_shared<RSNGParticleAblationFilter>();
+        }
+    },
     {RSNGEffectType::DISTORTION_COLLAPSE, [] {
             return std::make_shared<RSNGDistortionCollapseFilter>();
         }

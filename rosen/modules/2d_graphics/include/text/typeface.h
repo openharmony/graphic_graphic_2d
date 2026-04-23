@@ -19,6 +19,7 @@
 #include <functional>
 #include <memory>
 #include <cstdint>
+#include <sstream>
 #include <vector>
 
 #ifdef REGISTERING
@@ -228,6 +229,9 @@ private:
 };
 
 struct SharedTypeface {
+    // id_ layout: high 32 bits = pid, low 32 bits = typeface uniqueId
+    static constexpr int TYPEFACE_ID_SHIFT = 32;
+
     uint64_t id_ = 0;
     uint64_t originId_ = 0;
     uint32_t size_ = 0;
@@ -237,15 +241,37 @@ struct SharedTypeface {
     bool hasFontArgs_ = false;
     std::vector<FontArguments::VariationPosition::Coordinate> coords_;
     SharedTypeface() {};
-    SharedTypeface(uint64_t id, std::shared_ptr<Typeface>& typeface) : id_(id), size_(typeface->GetSize()),
-        fd_(typeface->GetFd()), hash_(typeface->GetHash()), index_(typeface->GetIndex()) {
-            int coordsCount = typeface->GetVariationDesignPosition(nullptr, 0);
-            if (coordsCount > 0) {
-                hasFontArgs_ = true;
-                coords_.resize(coordsCount);
-                typeface->GetVariationDesignPosition(coords_.data(), coordsCount);
-            }
+    SharedTypeface(uint64_t id, std::shared_ptr<Typeface>& typeface)
+        : id_(id),
+          size_(typeface->GetSize()),
+          fd_(typeface->GetFd()),
+          hash_(typeface->GetHash()),
+          index_(typeface->GetIndex())
+    {
+        int coordsCount = typeface->GetVariationDesignPosition(nullptr, 0);
+        if (coordsCount > 0) {
+            hasFontArgs_ = true;
+            coords_.resize(coordsCount);
+            typeface->GetVariationDesignPosition(coords_.data(), coordsCount);
         }
+    }
+
+    std::string ToString() const
+    {
+        std::stringstream ss;
+        ss << "SharedTypeface {\n"
+           << "  pid: " << static_cast<uint32_t>(id_ >> TYPEFACE_ID_SHIFT) << "\n"
+           << "  uniqueId: " << static_cast<uint32_t>(UINT32_MAX & id_) << "\n"
+           << "  originId: " << originId_ << "\n"
+           << "  size: " << size_ << "\n"
+           << "  fd: " << fd_ << "\n"
+           << "  hash: " << std::hex << hash_ << std::dec << "\n"
+           << "  index: " << index_ << "\n"
+           << "  hasFontArgs: " << (hasFontArgs_ ? "true" : "false") << "\n"
+           << "  coordsCount: " << coords_.size() << "\n"
+           << "}";
+        return ss.str();
+    }
 };
 
 } // namespace Drawing

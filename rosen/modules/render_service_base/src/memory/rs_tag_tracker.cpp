@@ -171,4 +171,13 @@ RSTagTracker::~RSTagTracker()
     }
 #endif
 }
+
+Drawing::GPUResourceTag RSTagTracker::GetCurrentGpuResourceTag(Drawing::GPUContext* gpuContext)
+{
+    Drawing::GPUResourceTag tag;
+#if defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)
+    tag = gpuContext->GetCurrentGpuResourceTag();
+#endif
+    return tag;
+}
 } // namespace OHOS::Rosen

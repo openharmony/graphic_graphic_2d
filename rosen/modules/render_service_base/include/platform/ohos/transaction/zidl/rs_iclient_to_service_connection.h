@@ -238,23 +238,22 @@ public:
 
     virtual int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability) = 0;
 
-    virtual ErrCode GetPixelFormat(ScreenId id, GraphicPixelFormat& pixelFormat, int32_t& resCode) = 0;
+    virtual int32_t GetPixelFormat(ScreenId id, GraphicPixelFormat& pixelFormat) = 0;
 
-    virtual ErrCode SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat, int32_t& resCode) = 0;
+    virtual int32_t SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat) = 0;
 
-    virtual ErrCode GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats,
-        int32_t& resCode, sptr<RSIScreenSupportedHdrFormatsCallback> callback = nullptr) = 0;
+    virtual int32_t GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats,
+        sptr<RSIScreenSupportedHdrFormatsCallback> callback = nullptr) = 0;
 
-    virtual ErrCode GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat, int32_t& resCode) = 0;
+    virtual int32_t GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat) = 0;
 
-    virtual ErrCode SetScreenHDRFormat(ScreenId id, int32_t modeIdx, int32_t& resCode) = 0;
+    virtual int32_t SetScreenHDRFormat(ScreenId id, int32_t modeIdx) = 0;
 
-    virtual ErrCode GetScreenSupportedColorSpaces(
-        ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces, int32_t& resCode) = 0;
+    virtual int32_t GetScreenSupportedColorSpaces(ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces) = 0;
 
-    virtual ErrCode GetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType& colorSpace, int32_t& resCode) = 0;
+    virtual int32_t GetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType& colorSpace) = 0;
 
-    virtual ErrCode SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace, int32_t& resCode) = 0;
+    virtual int32_t SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace) = 0;
 
     virtual int32_t GetScreenType(ScreenId id, RSScreenType& screenType) = 0;
 

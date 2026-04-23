@@ -634,8 +634,6 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
         std::bind(&RSMainThread::MarkNodeDirty, this, std::placeholders::_1));
     RSColorPickerThread::Instance().RegisterNotifyClientCallback(
         std::bind(&RSMainThread::SendColorPickerCallback, this, std::placeholders::_1, std::placeholders::_2));
-    RSSystemProperties::WatchSystemProperty(HIDE_NOTCH_STATUS, OnHideNotchStatusCallback, nullptr);
-    RSSystemProperties::WatchSystemProperty(DRAWING_CACHE_DFX, OnDrawingCacheDfxSwitchCallback, nullptr);
     rsVsyncManagerAgent_ = rsVsyncManagerAgent;
     if (isUniRender_) {
 #ifdef RS_ENABLE_GPU
@@ -675,6 +673,8 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
     InitGPUCacheManager();
 #endif
 
+    RSSystemProperties::WatchSystemProperty(HIDE_NOTCH_STATUS, OnHideNotchStatusCallback, nullptr);
+    RSSystemProperties::WatchSystemProperty(DRAWING_CACHE_DFX, OnDrawingCacheDfxSwitchCallback, nullptr);
     RSOpincManager::Instance().SetOPIncSwitch(OPIncParam::IsOPIncEnable());
     RSUifirstManager::Instance().ReadUIFirstCcmParam();
     auto PostTaskProxy = [](RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
@@ -2744,6 +2744,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
         if (!screenNode->GetHDRPresent()) {
             screenNode->SetBrightnessRatio(rsLuminance.GetHdrBrightnessRatio(screenId, 0));
         }
+        RSLuminanceControl::Get().HdrDimmingPostProcess(screenId);
         RSPointerWindowManager::Instance().HardCursorCreateLayerForDirect(processor);
         auto rcdInfo = std::make_unique<RcdInfo>();
         DoScreenRcdTask(screenNode->GetId(), processor, rcdInfo, screenNode->GetScreenProperty());
@@ -3568,20 +3569,27 @@ void RSMainThread::Animate(uint64_t timestamp)
 {
     RS_TRACE_FUNC();
     lastAnimateTimestamp_ = timestamp;
-    if (context_->animatingNodeList_.empty()) {
+
+    int64_t minLeftDelayTime = RSSystemProperties::GetAnimationDelayOptimizeEnabled() ? INT64_MAX : 0;
+    bool hasRunningGroupAnimators = context_->UpdateGroupAnimators(timestamp, minLeftDelayTime);
+    if (hasRunningGroupAnimators) {
+        RS_TRACE_NAME_FMT("Animate groupAnimation hasRunningGroupAnimators:%d, minLeftDelayTime:%ld",
+            hasRunningGroupAnimators, minLeftDelayTime);
+    }
+
+    if (context_->animatingNodeList_.empty() && !hasRunningGroupAnimators) {
         doWindowAnimate_ = false;
         context_->SetRequestedNextVsyncAnimate(false);
         return;
     }
     UpdateAnimateNodeFlag();
     bool curWinAnim = false;
-    bool needRequestNextVsync = false;
+    bool needRequestNextVsync = hasRunningGroupAnimators;
     // isCalculateAnimationValue is embedded modify for stat animate frame drop
     bool isCalculateAnimationValue = false;
     bool isRateDeciderEnabled = (context_->animatingNodeList_.size() <= CAL_NODE_PREFERRED_FPS_LIMIT);
     bool isDisplaySyncEnabled = true;
     int64_t period = 0;
-    int64_t minLeftDelayTime = RSSystemProperties::GetAnimationDelayOptimizeEnabled() ? INT64_MAX : 0;
     if (receiver_) {
         receiver_->GetVSyncPeriod(period);
     }

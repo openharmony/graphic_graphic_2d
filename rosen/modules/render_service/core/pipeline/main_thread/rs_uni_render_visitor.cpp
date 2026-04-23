@@ -1478,6 +1478,10 @@ bool RSUniRenderVisitor::PrepareForCloneNode(RSSurfaceRenderNode& node)
     node.UpdateRenderParams();
     node.AddToPendingSyncList();
     UpdateInfoForClonedNode(*clonedNode);
+    if (node.IsRelated() && IsSourceNodeDirty(*clonedNode)) {
+        node.SetDirty();
+        return false;
+    }
     return true;
 }
 
@@ -1487,10 +1491,40 @@ void RSUniRenderVisitor::UpdateInfoForClonedNode(RSSurfaceRenderNode& node)
     bool isClonedNode = node.IsRelatedSourceNode() ||
                         (cloneNodeMap_.find(sourceId) != cloneNodeMap_.end());
     node.UpdateInfoForClonedNode(isClonedNode);
+    node.ClearRelatedSourceCache(node.IsRelatedSourceNode() && IsSourceNodeDirty(node));
+}
 
-    if (node.IsRelatedSourceNode()) {
-        node.ClearRelatedSourceCache();
+bool RSUniRenderVisitor::IsSourceNodeDirty(RSSurfaceRenderNode& sourceNode)
+{
+    if (sourceNode.IsDirty() || sourceNode.IsSubTreeDirty()) {
+        return true;
     }
+
+    if (sourceNode.dirtyManager_ &&
+        !sourceNode.dirtyManager_->GetCurrentFrameDirtyRegion().IsEmpty()) {
+        return true;
+    }
+
+    if (sourceNode.IsLeashWindow()) {
+        auto children = sourceNode.GetChildrenList();
+        if (children.empty()) {
+            return false;
+        }
+        for (const auto& child : children) {
+            auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child.lock());
+            if (!node) {
+                continue;
+            }
+            if (node->IsDirty() || node->IsSubTreeDirty()) {
+                return true;
+            }
+            if (node->dirtyManager_ &&
+                !node->dirtyManager_->GetCurrentFrameDirtyRegion().IsEmpty()) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 void RSUniRenderVisitor::PrepareForCrossNode(RSSurfaceRenderNode& node)
@@ -1849,15 +1883,15 @@ void RSUniRenderVisitor::UpdateDrawingCacheInfoBeforeChildren(RSCanvasRenderNode
 void RSUniRenderVisitor::UpdateDrawingCacheInfoAfterChildren(RSRenderNode& node)
 {
     if (isDrawingCacheEnabled_) {
-        bool isInBlackList = false;
-        if (node.GetType() == RSRenderNodeType::SURFACE_NODE) {
-            auto& surfaceNode = static_cast<RSSurfaceRenderNode&>(node);
-            if ((surfaceNode.IsLeashWindow() &&
-                allBlackList_.find(surfaceNode.GetLeashPersistentId()) != allBlackList_.end()) ||
-                allBlackList_.find(surfaceNode.GetId()) != allBlackList_.end()) {
-                isInBlackList = true;
+        auto surfaceNode = node.ReinterpretCastTo<RSSurfaceRenderNode>();
+        if (surfaceNode && IsNodeInBlackList(surfaceNode)) {
+            TraverseRenderGroupCacheRoots([](const std::shared_ptr<RSCanvasRenderNode>& renderGroupCacheRoot) {
+            if (renderGroupCacheRoot) {
+                renderGroupCacheRoot->SetNodeGroupHasChildInBlacklist(true);
             }
+        });
         }
+
         bool hasFilter = node.ChildHasVisibleFilter() || node.ChildHasVisibleEffect();
         bool hasAncestorRenderGroup = HasAncestorRenderGroup(node.GetId());
         // when renderGroup nested with blur,
@@ -1866,7 +1900,15 @@ void RSUniRenderVisitor::UpdateDrawingCacheInfoAfterChildren(RSRenderNode& node)
             node.SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
             RS_TRACE_NAME_FMT("Disable inner render group, id:%llu", node.GetId());
         }
-        node.UpdateDrawingCacheInfoAfterChildren(isInBlackList, childHasProtectedNodeSet_);
+        node.UpdateDrawingCacheInfoAfterChildren(childHasProtectedNodeSet_);
+    }
+}
+
+void RSUniRenderVisitor::TraverseRenderGroupCacheRoots(
+    std::function<void(const std::shared_ptr<RSCanvasRenderNode>&)> func) const
+{
+    for (const auto& [_, node] : renderGroupCacheRoots_) {
+        func(node);
     }
 }
 
@@ -1892,6 +1934,17 @@ bool RSUniRenderVisitor::HasAncestorRenderGroup(NodeId nodeId) const
 {
     return (renderGroupCacheRoots_.count(nodeId) > 0) ? renderGroupCacheRoots_.size() > 1
                                                       : !renderGroupCacheRoots_.empty();
+}
+
+bool RSUniRenderVisitor::IsNodeInBlackList(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNodePtr) const
+{
+    auto specialLayerManager = surfaceNodePtr->GetSpecialLayerMgr();
+    if (allBlackList_.find(surfaceNodePtr->GetLeashPersistentId()) != allBlackList_.end() ||
+        allBlackList_.find(surfaceNodePtr->GetId()) != allBlackList_.end() ||
+        specialLayerManager.Find(HAS_GENERAL_SPECIAL)) {
+        return true;
+    }
+    return false;
 }
 
 void RSUniRenderVisitor::SetRenderGroupSubTreeDirtyIfNeed(const RSRenderNode& node)
@@ -4242,13 +4295,14 @@ void RSUniRenderVisitor::PrepareColorPickers()
     const auto colorPickerNodeIds = RSColorPickerUtils::CollectColorPickerNodeIds(surfaces, nodeMap);
 
     const uint64_t vsyncTime = ctx->GetCurrentVsyncTime();
-    const bool darkMode = ctx->GetGlobalDarkColorMode();
     for (auto nodeId : colorPickerNodeIds) {
         auto filterNode = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
-        if (!filterNode) {
+        auto surfaceRootNode = filterNode ? filterNode->GetInstanceRootNode() : nullptr;
+        auto surfaceNode = surfaceRootNode ? surfaceRootNode->ReinterpretCastTo<RSSurfaceRenderNode>() : nullptr;
+        if (!filterNode || !surfaceNode) {
             continue;
         }
-        const bool resetState = filterNode->PrepareColorPicker(darkMode);
+        const bool resetState = filterNode->PrepareColorPicker(surfaceNode->GetDarkColorMode());
         if (resetState) {
             // Reset to PREPARING state after color pick is complete
             PostColorPickerStateTask(filterNode->weak_from_this(), DrawableV2::ColorPickerState::PREPARING, 0);

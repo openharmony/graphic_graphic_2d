@@ -76,6 +76,7 @@ public:
     ~RSTagTracker();
     static void UpdateReleaseResourceEnabled(bool releaseResEnabled);
     static std::string TagType2String(TAGTYPE type);
+    static Drawing::GPUResourceTag GetCurrentGpuResourceTag(Drawing::GPUContext* gpuContext);
 private:
     bool isSetTagEnd_ = false;
     std::shared_ptr<Drawing::GPUContext> gpuContext_ = nullptr;

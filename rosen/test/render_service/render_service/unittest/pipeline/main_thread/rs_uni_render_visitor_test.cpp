@@ -1824,6 +1824,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateInfoForClonedNode001, TestSize.Level1)
     
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceRenderNode->stagingRenderParams_.get());
     surfaceRenderNode->SetRelatedSourceNode(true);
+    surfaceRenderNode->SetDirty();
     ASSERT_TRUE(surfaceRenderNode->IsRelatedSourceNode());
 
     rsUniRenderVisitor->cloneNodeMap_.clear();
@@ -1870,9 +1871,16 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareForCloneNode002, TestSize.Level1)
     result = rsUniRenderVisitor->PrepareForCloneNode(*surfaceRenderNode);
     ASSERT_FALSE(result);
 
-    surfaceRenderNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(surfaceRenderNode->GetId());
+    surfaceRenderNode->InitRenderParams();
     surfaceRenderNode->SetRelated(true);
     ASSERT_TRUE(surfaceRenderNode->IsRelated());
+    surfaceRenderNodeCloned->ResetDirtyStatus();
+    result = rsUniRenderVisitor->PrepareForCloneNode(*surfaceRenderNode);
+    ASSERT_TRUE(result);
+    surfaceRenderNodeCloned->SetDirty();
+    result = rsUniRenderVisitor->PrepareForCloneNode(*surfaceRenderNode);
+    ASSERT_FALSE(result);
+
     surfaceRenderNodeCloned->SetSurfaceNodeType(RSSurfaceNodeType::NODE_MAX);
     result = rsUniRenderVisitor->PrepareForCloneNode(*surfaceRenderNode);
     ASSERT_FALSE(result);
@@ -4588,6 +4596,91 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo010, TestSize.Level2)
     node->GetMutableRenderProperties().SetTranslate({1.0f, 1.0f});
     rsUniRenderVisitor->CollectEffectInfo(*node);
     EXPECT_TRUE(parent->stagingRenderParams_->ChildHasTranslateOnSqueeze());
+}
+
+/**
+ * @tc.name: TraverseRenderGroupCacheRootsTest
+ * @tc.desc: Test TraverseRenderGroupCacheRoots
+ * @tc.type: FUNC
+ * @tc.require: issues/20738
+ */
+HWTEST_F(RSUniRenderVisitorTest, TraverseRenderGroupCacheRootsTest, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    // Test empty cache roots
+    bool visited = false;
+    rsUniRenderVisitor->TraverseRenderGroupCacheRoots(
+        [&visited](const std::shared_ptr<RSCanvasRenderNode>& node) { visited = true; });
+    EXPECT_FALSE(visited);
+
+    // Add cache roots
+    auto cacheRoot1 = std::make_shared<RSCanvasRenderNode>(1);
+    cacheRoot1->InitRenderParams();
+    cacheRoot1->SetDrawingCacheType(RSDrawingCacheType::FORCED_CACHE);
+
+    auto cacheRoot2 = std::make_shared<RSCanvasRenderNode>(2);
+    cacheRoot2->InitRenderParams();
+    cacheRoot2->SetDrawingCacheType(RSDrawingCacheType::FORCED_CACHE);
+
+    rsUniRenderVisitor->AddRenderGroupCacheRoot(*cacheRoot1);
+    rsUniRenderVisitor->AddRenderGroupCacheRoot(*cacheRoot2);
+
+    // Test traversal
+    std::vector<NodeId> visitedIds;
+    rsUniRenderVisitor->TraverseRenderGroupCacheRoots(
+        [&visitedIds](const std::shared_ptr<RSCanvasRenderNode>& node) { visitedIds.push_back(node->GetId()); });
+
+    EXPECT_EQ(visitedIds.size(), 2);
+    EXPECT_NE(std::find(visitedIds.begin(), visitedIds.end(), 1), visitedIds.end());
+    EXPECT_NE(std::find(visitedIds.begin(), visitedIds.end(), 2), visitedIds.end());
+}
+
+/**
+ * @tc.name: IsNodeInBlackListTest
+ * @tc.desc: Test IsNodeInBlackList
+ * @tc.type: FUNC
+ * @tc.require: issues/20738
+ */
+HWTEST_F(RSUniRenderVisitorTest, IsNodeInBlackListTest, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->isDrawingCacheEnabled_ = true;
+
+    // Test SURFACE_NODE not in special set (should return false)
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1);
+    surfaceNode->InitRenderParams();
+    EXPECT_FALSE(rsUniRenderVisitor->IsNodeInBlackList(surfaceNode));
+
+    // Add to blacknode and test
+    rsUniRenderVisitor->allBlackList_.insert(1);
+    EXPECT_TRUE(rsUniRenderVisitor->IsNodeInBlackList(surfaceNode));
+}
+
+/**
+ * @tc.name: UpdateDrawingCacheInfoAfterChildrenBlacklistTest
+ * @tc.desc: Test UpdateDrawingCacheInfoAfterChildren with special node logic
+ * @tc.type: FUNC
+ * @tc.require: issues/20738
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateDrawingCacheInfoAfterChildrenBlacklistTest, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    auto cacheRoot = std::make_shared<RSCanvasRenderNode>(2);
+    cacheRoot->InitRenderParams();
+    cacheRoot->SetDrawingCacheType(RSDrawingCacheType::FORCED_CACHE);
+    rsUniRenderVisitor->AddRenderGroupCacheRoot(*cacheRoot);
+
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1);
+    cacheRoot->AddChild(surfaceNode);
+    rsUniRenderVisitor->allBlackList_.insert(1);
+    surfaceNode->InitRenderParams();
+    rsUniRenderVisitor->UpdateDrawingCacheInfoAfterChildren(*surfaceNode);
+    EXPECT_TRUE(cacheRoot->GetStagingRenderParams()->NodeGroupHasChildInBlacklist());
 }
 
 /**
@@ -9283,6 +9376,55 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareColorPickers004, TestSize.Level1)
 }
 
 /**
+ * @tc.name: PrepareColorPickers005
+ * @tc.desc: Test PrepareColorPickers uses surface dark mode instead of global dark mode
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVisitorTest, PrepareColorPickers005, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    auto rsContext = std::make_shared<RSContext>();
+    NodeId screenId = 0;
+    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(1, screenId, rsContext);
+    ASSERT_NE(rsUniRenderVisitor->curScreenNode_, nullptr);
+
+    auto* mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->SetGlobalDarkColorMode(false);
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetDarkColorMode(true);
+    surfaceNode->instanceRootNodeId_ = surfaceNode->GetId();
+
+    constexpr NodeId filterNodeId = 101;
+    auto filterNode = std::make_shared<RSRenderNode>(filterNodeId);
+    ASSERT_NE(filterNode, nullptr);
+    filterNode->instanceRootNodeId_ = surfaceNode->GetId();
+    filterNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = { 0, 0, 500, 500 };
+
+    auto colorPickerDrawable = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, filterNodeId);
+    colorPickerDrawable->stagingState_ = DrawableV2::ColorPickerState::COLOR_PICK_THIS_FRAME;
+    filterNode->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER)] = colorPickerDrawable;
+    filterNode->GetMutableRenderProperties().SetColorPickerStrategy(
+        static_cast<int>(ColorPickStrategyType::AVERAGE));
+    filterNode->GetMutableRenderProperties().SetColorPickerInterval(1000);
+
+    auto& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(filterNode);
+    nodeMap.RegisterRenderNode(surfaceNode);
+    surfaceNode->visibleFilterChild_.push_back(filterNodeId);
+    rsUniRenderVisitor->curScreenNode_->GetAllMainAndLeashSurfaces().push_back(surfaceNode);
+
+    rsUniRenderVisitor->PrepareColorPickers();
+
+    EXPECT_TRUE(colorPickerDrawable->stagingIsSystemDarkColorMode_);
+    nodeMap.UnregisterRenderNode(filterNodeId);
+}
+
+/**
  * @tc.name: HandleColorPickerHwcDisable005
  * @tc.desc: Test HandleColorPickerHwcDisable with SCHEDULED state (no HWC disable)
  * @tc.type: FUNC
@@ -9632,6 +9774,154 @@ HWTEST_F(RSUniRenderVisitorTest, PrevalidateHwcNode004, TestSize.Level2)
     // When TunnelLayerId == 0 and other conditions are met, node->SetDeviceOfflineEnable(true) is called
     // and the function continues, so isHardwareForcedDisabled_ should remain false
     EXPECT_FALSE(surfaceNode->isHardwareForcedDisabled_);
+}
+
+/**
+ * @tc.name: IsSourceNodeDirtyTest001
+ * @tc.desc: Test IsSourceNodeDirty returns true when sourceNode is dirty
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVisitorTest, IsSourceNodeDirtyTest001, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    RSSurfaceRenderNodeConfig config;
+    config.id = 1;
+    auto sourceNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    ASSERT_NE(sourceNode, nullptr);
+    sourceNode->InitRenderParams();
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    bool result = rsUniRenderVisitor->IsSourceNodeDirty(*sourceNode);
+    EXPECT_FALSE(result);
+    // Set source node sub tree dirty
+    sourceNode->isSubTreeDirty_ = true;
+    result = rsUniRenderVisitor->IsSourceNodeDirty(*sourceNode);
+    EXPECT_TRUE(result);
+    // Set source node as dirty
+    sourceNode->SetDirty();
+    result = rsUniRenderVisitor->IsSourceNodeDirty(*sourceNode);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: IsSourceNodeDirtyTest002
+ * @tc.desc: Test IsSourceNodeDirty returns true when sourceNode's dirtyManager has dirty region
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVisitorTest, IsSourceNodeDirtyTest002, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    RSSurfaceRenderNodeConfig config;
+    config.id = 2;
+    auto sourceNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    ASSERT_NE(sourceNode, nullptr);
+    sourceNode->InitRenderParams();
+
+    // Create dirty manager and set dirty region
+    auto dirtyManager = std::make_shared<RSDirtyRegionManager>();
+    RectI dirtyRect = {0, 0, 100, 100};
+    dirtyManager->MergeDirtyRect(dirtyRect);
+    sourceNode->dirtyManager_ = dirtyManager;
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    // IsSourceNodeDirty should return true when dirtyManager has non-empty dirty region
+    bool result = rsUniRenderVisitor->IsSourceNodeDirty(*sourceNode);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: IsSourceNodeDirtyTest003
+ * @tc.desc: Test IsSourceNodeDirty returns true when leash window has dirty children
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVisitorTest, IsSourceNodeDirtyTest003, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    RSSurfaceRenderNodeConfig config;
+    config.id = 4;
+    auto leashWindowNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    ASSERT_NE(leashWindowNode, nullptr);
+    leashWindowNode->InitRenderParams();
+    leashWindowNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+
+    // Create child node with dirty state
+    RSSurfaceRenderNodeConfig childConfig;
+    childConfig.id = 5;
+    auto childNode = std::make_shared<RSSurfaceRenderNode>(childConfig, rsContext->weak_from_this());
+    ASSERT_NE(childNode, nullptr);
+    childNode->InitRenderParams();
+    
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    // no children
+    bool result = rsUniRenderVisitor->IsSourceNodeDirty(*leashWindowNode);
+    EXPECT_FALSE(result);
+
+    // Add child to leash window but no dirty
+    leashWindowNode->AddChild(childNode, -1);
+    leashWindowNode->isSubTreeDirty_ = false;
+    result = rsUniRenderVisitor->IsSourceNodeDirty(*leashWindowNode);
+    EXPECT_FALSE(result);
+
+    // child subtree dirty
+    childNode->isSubTreeDirty_ = true;
+    result = rsUniRenderVisitor->IsSourceNodeDirty(*leashWindowNode);
+    EXPECT_TRUE(result);
+
+    // child dirty
+    childNode->SetDirty();
+    result = rsUniRenderVisitor->IsSourceNodeDirty(*leashWindowNode);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: IsSourceNodeDirtyTest004
+ * @tc.desc: Test IsSourceNodeDirty returns true when sourceNode's child has dirty region
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVisitorTest, IsSourceNodeDirtyTest004, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    RSSurfaceRenderNodeConfig config;
+    config.id = 7;
+    auto leashWindowNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    ASSERT_NE(leashWindowNode, nullptr);
+    leashWindowNode->InitRenderParams();
+    leashWindowNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+
+    // Create child node with dirtyManager having non-empty dirty region
+    RSSurfaceRenderNodeConfig childConfig;
+    childConfig.id = 8;
+    NodeId canvasNodeId = 9;
+    auto childNode = std::make_shared<RSSurfaceRenderNode>(childConfig, rsContext->weak_from_this());
+    auto canvasChildNode = std::make_shared<RSCanvasRenderNode>(canvasNodeId, rsContext->weak_from_this());
+    ASSERT_NE(childNode, nullptr);
+    childNode->InitRenderParams();
+
+    auto childDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    RectI dirtyRect = {0, 0, 200, 200};
+    childDirtyManager->MergeDirtyRect(dirtyRect);
+    childNode->dirtyManager_ = childDirtyManager;
+
+    // Add child to leash window
+    leashWindowNode->AddChild(childNode, -1);
+    leashWindowNode->AddChild(canvasChildNode, -1);
+    leashWindowNode->isSubTreeDirty_ = false;
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    // IsSourceNodeDirty should return true when child has non-empty dirty region
+    bool result = rsUniRenderVisitor->IsSourceNodeDirty(*leashWindowNode);
+    EXPECT_TRUE(result);
 }
 } // namespace OHOS::Rosen
 #endif // RS_ENABLE_UNI_RENDER

@@ -134,7 +134,7 @@ HWTEST_F(RSMemorySnapshotTest, GetMemorySnapshotInfoByPidTest001, testing::ext::
     ASSERT_TRUE(ret);
     ASSERT_EQ(expectedInfo.pid, pid);
     ASSERT_EQ(expectedInfo.cpuMemory, cpuSize);
-    ASSERT_EQ(expectedInfo.gpuMemory, 0);
+    ASSERT_EQ(expectedInfo.engineGpuMemory, 0);
     MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
 }
 
@@ -191,7 +191,7 @@ HWTEST_F(RSMemorySnapshotTest, CalculateRiskScoreTest001, testing::ext::TestSize
 {
     MemorySnapshotInfo snapshot;
     snapshot.cpuMemory = 1024;
-    snapshot.gpuMemory = 2048;
+    snapshot.engineGpuMemory = 2048;
     size_t maxCpu = 2048;
     size_t maxGpu = 4096;
     size_t maxSum = 4096;
@@ -258,9 +258,9 @@ HWTEST_F(RSMemorySnapshotTest, GetTotalMemoryTest001, testing::ext::TestSize.Lev
     pid_t pid = 5001;
     size_t initialTotal = MemorySnapshot::Instance().GetTotalMemory();
     MemorySnapshot::Instance().AddCpuMemory(pid, 1024);
-    ASSERT_EQ(MemorySnapshot::Instance().GetTotalMemory(), initialTotal);
+    ASSERT_EQ(MemorySnapshot::Instance().GetTotalMemory(), initialTotal + 1024);
     MemorySnapshot::Instance().RemoveCpuMemory(pid, 512);
-    ASSERT_EQ(MemorySnapshot::Instance().GetTotalMemory(), initialTotal);
+    ASSERT_EQ(MemorySnapshot::Instance().GetTotalMemory(), initialTotal + 512);
     MemorySnapshot::Instance().EraseSnapshotInfoByPid({pid});
     ASSERT_EQ(MemorySnapshot::Instance().GetTotalMemory(), initialTotal);
     std::set<pid_t> exitedPids = {pid};
@@ -275,9 +275,9 @@ HWTEST_F(RSMemorySnapshotTest, GetTotalMemoryTest001, testing::ext::TestSize.Lev
  */
 HWTEST_F(RSMemorySnapshotTest, InitMemoryLimitTest001, testing::ext::TestSize.Level1)
 {
-    auto callback = [](pid_t, size_t, bool) {return true; };
-    MemorySnapshot::Instance().InitMemoryLimit(callback, 1000, 2000, 3000);
-    MemorySnapshot::Instance().InitMemoryLimit(nullptr, 5000, 6000, 7000);
+    auto callback = [](pid_t, MemorySnapshotInfo, bool) {return true; };
+    MemorySnapshot::Instance().InitMemoryLimit(callback, 1000, 2000, 2000, 3000);
+    MemorySnapshot::Instance().InitMemoryLimit(nullptr, 5000, 6000, 6000, 7000);
     ASSERT_EQ(MemorySnapshot::Instance().singleMemoryWarning_, 1000);
     ASSERT_EQ(MemorySnapshot::Instance().totalMemoryLimit_, 3000);
 }
@@ -354,7 +354,7 @@ HWTEST_F(RSMemorySnapshotTest, UpdateGpuMemoryInfoTest002, testing::ext::TestSiz
     bool ret = MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(pid, info);
     ASSERT_TRUE(ret);
     ASSERT_EQ(info.cpuMemory, cpuSize);
-    ASSERT_EQ(info.gpuMemory, 0);
+    ASSERT_EQ(info.engineGpuMemory, 0);
 
     MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
 }
@@ -367,8 +367,8 @@ HWTEST_F(RSMemorySnapshotTest, UpdateGpuMemoryInfoTest002, testing::ext::TestSiz
  */
 HWTEST_F(RSMemorySnapshotTest, UpdateGpuMemoryInfoTest003, testing::ext::TestSize.Level1)
 {
-    auto callback = [](pid_t, size_t, bool) {return true; };
-    MemorySnapshot::Instance().InitMemoryLimit(callback, 500, 2000, 3000);
+    auto callback = [](pid_t, MemorySnapshotInfo, bool) {return true; };
+    MemorySnapshot::Instance().InitMemoryLimit(callback, 500, 2000, 2000, 3000);
 
     pid_t pid = 1008;
     size_t cpuSize = 1024;
@@ -397,8 +397,8 @@ HWTEST_F(RSMemorySnapshotTest, UpdateGpuMemoryInfoTest003, testing::ext::TestSiz
  */
 HWTEST_F(RSMemorySnapshotTest, UpdateGpuMemoryInfoTest004, testing::ext::TestSize.Level1)
 {
-    auto callback = [](pid_t, size_t, bool) {return true; };
-    MemorySnapshot::Instance().InitMemoryLimit(callback, 10000, 20000, 1000);
+    auto callback = [](pid_t, MemorySnapshotInfo, bool) {return true; };
+    MemorySnapshot::Instance().InitMemoryLimit(callback, 10000, 20000, 20000, 1000);
 
     pid_t pid1 = 1009;
     pid_t pid2 = 1010;
@@ -444,7 +444,7 @@ HWTEST_F(RSMemorySnapshotTest, UpdateGpuMemoryInfoTest005, testing::ext::TestSiz
     bool ret = MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(pid, info);
     ASSERT_TRUE(ret);
     ASSERT_EQ(info.cpuMemory, 1400 * 1024 * 1024);
-    ASSERT_EQ(info.gpuMemory, 0);
+    ASSERT_EQ(info.engineGpuMemory, 0);
 
     MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
 }
@@ -493,7 +493,7 @@ HWTEST_F(RSMemorySnapshotTest, UpdateGpuMemoryInfoTest006, testing::ext::TestSiz
     bool ret = MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(pid, info);
     ASSERT_TRUE(ret);
     ASSERT_EQ(info.cpuMemory, 500 * 1024 * 1024);
-    ASSERT_EQ(info.gpuMemory, 300 * 1024 * 1024);
+    ASSERT_EQ(info.engineGpuMemory, 300 * 1024 * 1024);
     ASSERT_EQ(info.TotalMemory(), 800 * 1024 * 1024);
 
     // Note: isTotalOver depends on accumulated totalMemory_ and totalMemoryLimit_ from singleton state
@@ -679,7 +679,7 @@ HWTEST_F(RSMemorySnapshotTest, CalculateRiskScoreTest002, testing::ext::TestSize
 {
     MemorySnapshotInfo snapshot;
     snapshot.cpuMemory = 1024;
-    snapshot.gpuMemory = 2048;
+    snapshot.engineGpuMemory = 2048;
     size_t maxCpu = 0;
     size_t maxGpu = 0;
     size_t maxSum = 0;
@@ -699,7 +699,7 @@ HWTEST_F(RSMemorySnapshotTest, CalculateRiskScoreTest003, testing::ext::TestSize
 {
     MemorySnapshotInfo snapshot;
     snapshot.cpuMemory = 1024;
-    snapshot.gpuMemory = 2048;
+    snapshot.engineGpuMemory = 2048;
     size_t maxCpu = 2048;
     size_t maxGpu = 0;
     size_t maxSum = 6144;
@@ -879,12 +879,305 @@ HWTEST_F(RSMemorySnapshotTest, UpdateGpuMemoryInfoTest007, testing::ext::TestSiz
     MemorySnapshotInfo info;
     bool ret = MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(pid, info);
     ASSERT_TRUE(ret);
-    ASSERT_EQ(info.gpuMemory, 1400 * 1024 * 1024);
+    ASSERT_EQ(info.engineGpuMemory, 1400 * 1024 * 1024);
 
     // Verify totalMemory_ increased by 1400MB
     size_t finalTotal = MemorySnapshot::Instance().GetTotalMemory();
     ASSERT_GE(finalTotal, initialTotal + 1400 * 1024 * 1024 - 1024); // Allow small margin for rounding
 
     MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+}
+
+/**
+ * @tc.name: UpdateGpuInfoTest001
+ * @tc.desc: Test UpdateGpuInfo with engine GPU memory allocation.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemorySnapshotTest, UpdateGpuInfoTest001, testing::ext::TestSize.Level1)
+{
+    pid_t pid = 2001;
+    size_t memorySize = 1024;
+    std::set<pid_t> exitedPids = {pid};
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+
+    // Add engine GPU memory
+    bool ret = MemorySnapshot::Instance().UpdateGpuInfo(pid, memorySize, true, true);
+    ASSERT_TRUE(ret);
+
+    MemorySnapshotInfo info;
+    ret = MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(pid, info);
+    ASSERT_TRUE(ret);
+    ASSERT_EQ(info.engineGpuMemory, memorySize);
+    ASSERT_EQ(info.nativeGpuMemory, 0);
+
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+}
+
+/**
+ * @tc.name: UpdateGpuInfoTest002
+ * @tc.desc: Test UpdateGpuInfo with native GPU memory allocation.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemorySnapshotTest, UpdateGpuInfoTest002, testing::ext::TestSize.Level1)
+{
+    pid_t pid = 2002;
+    size_t memorySize = 2048;
+    std::set<pid_t> exitedPids = {pid};
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+
+    // Add native GPU memory
+    bool ret = MemorySnapshot::Instance().UpdateGpuInfo(pid, memorySize, true, false);
+    ASSERT_TRUE(ret);
+
+    MemorySnapshotInfo info;
+    ret = MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(pid, info);
+    ASSERT_TRUE(ret);
+    ASSERT_EQ(info.nativeGpuMemory, memorySize);
+    ASSERT_EQ(info.engineGpuMemory, 0);
+
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+}
+
+/**
+ * @tc.name: UpdateGpuInfoTest003
+ * @tc.desc: Test UpdateGpuInfo with GPU memory deallocation.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemorySnapshotTest, UpdateGpuInfoTest003, testing::ext::TestSize.Level1)
+{
+    pid_t pid = 2003;
+    size_t addSize = 4096;
+    size_t removeSize = 1024;
+    std::set<pid_t> exitedPids = {pid};
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+
+    // Add engine GPU memory
+    MemorySnapshot::Instance().UpdateGpuInfo(pid, addSize, true, true);
+
+    // Remove engine GPU memory
+    bool ret = MemorySnapshot::Instance().UpdateGpuInfo(pid, removeSize, false, true);
+    ASSERT_TRUE(ret);
+
+    MemorySnapshotInfo info;
+    ret = MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(pid, info);
+    ASSERT_TRUE(ret);
+    ASSERT_EQ(info.engineGpuMemory, addSize - removeSize);
+
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+}
+
+/**
+ * @tc.name: UpdateGpuInfoTest004
+ * @tc.desc: Test UpdateGpuInfo with mixed engine and native GPU memory.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemorySnapshotTest, UpdateGpuInfoTest004, testing::ext::TestSize.Level1)
+{
+    pid_t pid = 2004;
+    size_t engineSize = 1024;
+    size_t nativeSize = 2048;
+    std::set<pid_t> exitedPids = {pid};
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+
+    // Add engine GPU memory
+    MemorySnapshot::Instance().UpdateGpuInfo(pid, engineSize, true, true);
+
+    // Add native GPU memory
+    MemorySnapshot::Instance().UpdateGpuInfo(pid, nativeSize, true, false);
+
+    MemorySnapshotInfo info;
+    bool ret = MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(pid, info);
+    ASSERT_TRUE(ret);
+    ASSERT_EQ(info.engineGpuMemory, engineSize);
+    ASSERT_EQ(info.nativeGpuMemory, nativeSize);
+    ASSERT_EQ(info.TotalMemory(), engineSize + nativeSize);
+
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+}
+
+/**
+ * @tc.name: IsAbnormalProcessTest001
+ * @tc.desc: Test IsAbnormalProcess for normal process.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemorySnapshotTest, IsAbnormalProcessTest001, testing::ext::TestSize.Level1)
+{
+    pid_t pid = 2006;
+    std::set<pid_t> exitedPids = {pid};
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+
+    bool isAbnormal = MemorySnapshot::Instance().IsAbnormalProcess(pid);
+    ASSERT_FALSE(isAbnormal);
+
+    MemorySnapshot::Instance().SetAbnormalProcess(pid);
+    isAbnormal = MemorySnapshot::Instance().IsAbnormalProcess(pid);
+    ASSERT_TRUE(isAbnormal);
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+}
+
+/**
+ * @tc.name: UpdateGpuInfoTest006
+ * @tc.desc: Test UpdateGpuInfo with deallocation exceeding current memory.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemorySnapshotTest, UpdateGpuInfoTest006, testing::ext::TestSize.Level1)
+{
+    pid_t pid = 2008;
+    size_t addSize = 1024;
+    size_t removeSize = 2048;
+    std::set<pid_t> exitedPids = {pid};
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+
+    // Add engine GPU memory
+    MemorySnapshot::Instance().UpdateGpuInfo(pid, addSize, true, true);
+
+    // Try to remove more than added - should set to 0
+    bool ret = MemorySnapshot::Instance().UpdateGpuInfo(pid, removeSize, false, true);
+    ASSERT_TRUE(ret);
+
+    MemorySnapshotInfo info;
+    ret = MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(pid, info);
+    ASSERT_TRUE(ret);
+    ASSERT_EQ(info.engineGpuMemory, 0);
+
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+}
+
+/**
+ * @tc.name: EraseSnapshotInfoByPidTest003
+ * @tc.desc: Test EraseSnapshotInfoByPid removes process from killProcessSet_.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemorySnapshotTest, EraseSnapshotInfoByPidTest003, testing::ext::TestSize.Level1)
+{
+    pid_t pid = 2009;
+    std::set<pid_t> exitedPids = {pid};
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+
+    // Initialize memory limit with callback
+    auto callback = [](pid_t, MemorySnapshotInfo, bool) { return true; };
+    MemorySnapshot::Instance().InitMemoryLimit(callback, 10000, 10000, 500, 10000);
+
+    // Mark process as abnormal
+    MemorySnapshot::Instance().UpdateGpuInfo(pid, 10000, true, true);
+    ASSERT_TRUE(MemorySnapshot::Instance().IsAbnormalProcess(pid));
+
+    // Erase process - should remove from killProcessSet_
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+    ASSERT_FALSE(MemorySnapshot::Instance().IsAbnormalProcess(pid));
+}
+
+/**
+ * @tc.name: UpdateGpuInfoTest007
+ * @tc.desc: Test UpdateGpuInfo with pid = 0 (system process).
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemorySnapshotTest, UpdateGpuInfoTest007, testing::ext::TestSize.Level1)
+{
+    pid_t pid = 0;
+    size_t memorySize = 1024;
+
+    // Add GPU memory for pid 0
+    bool ret = MemorySnapshot::Instance().UpdateGpuInfo(pid, memorySize, true, true);
+    ASSERT_TRUE(ret);
+
+    MemorySnapshotInfo info;
+    ret = MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(pid, info);
+    ASSERT_TRUE(ret);
+    ASSERT_EQ(info.engineGpuMemory, memorySize);
+
+    // Remove GPU memory for pid 0
+    ret = MemorySnapshot::Instance().UpdateGpuInfo(pid, memorySize, false, true);
+    ASSERT_TRUE(ret);
+
+    ret = MemorySnapshot::Instance().GetMemorySnapshotInfoByPid(pid, info);
+    ASSERT_TRUE(ret);
+    ASSERT_EQ(info.engineGpuMemory, 0);
+
+    std::set<pid_t> exitedPids = {pid};
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+}
+
+/**
+ * @tc.name: MemorySnapshotInfoTotalMemoryTest001
+ * @tc.desc: Test MemorySnapshotInfo::TotalMemory with native and engine GPU memory.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemorySnapshotTest, MemorySnapshotInfoTotalMemoryTest001, testing::ext::TestSize.Level1)
+{
+    MemorySnapshotInfo info;
+    info.cpuMemory = 1024;
+    info.nativeGpuMemory = 2048;
+    info.engineGpuMemory = 4096;
+
+    size_t total = info.TotalMemory();
+    ASSERT_EQ(total, 1024 + 2048 + 4096);
+}
+
+/**
+ * @tc.name: UpdateGpuInfoTest008
+ * @tc.desc: Test UpdateGpuInfo updates totalMemory_ correctly.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemorySnapshotTest, UpdateGpuInfoTest008, testing::ext::TestSize.Level1)
+{
+    pid_t pid = 2010;
+    size_t initialTotal = MemorySnapshot::Instance().GetTotalMemory();
+    size_t memorySize = 1024;
+    std::set<pid_t> exitedPids = {pid};
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+
+    // Add engine GPU memory
+    MemorySnapshot::Instance().UpdateGpuInfo(pid, memorySize, true, true);
+    ASSERT_EQ(MemorySnapshot::Instance().GetTotalMemory(), initialTotal + memorySize);
+
+    // Add native GPU memory
+    MemorySnapshot::Instance().UpdateGpuInfo(pid, memorySize, true, false);
+    ASSERT_EQ(MemorySnapshot::Instance().GetTotalMemory(), initialTotal + memorySize * 2);
+
+    // Remove engine GPU memory
+    MemorySnapshot::Instance().UpdateGpuInfo(pid, memorySize, false, true);
+    ASSERT_EQ(MemorySnapshot::Instance().GetTotalMemory(), initialTotal + memorySize);
+
+    // Remove native GPU memory
+    MemorySnapshot::Instance().UpdateGpuInfo(pid, memorySize, false, false);
+    ASSERT_EQ(MemorySnapshot::Instance().GetTotalMemory(), initialTotal);
+
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+}
+
+/**
+ * @tc.name: EraseSnapshotInfoByPidTest004
+ * @tc.desc: Test EraseSnapshotInfoByPid subtracts nativeGpuMemory from totalMemory_.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemorySnapshotTest, EraseSnapshotInfoByPidTest004, testing::ext::TestSize.Level1)
+{
+    pid_t pid = 2012;
+    size_t initialTotal = MemorySnapshot::Instance().GetTotalMemory();
+    size_t engineSize = 1024;
+    size_t nativeSize = 2048;
+    std::set<pid_t> exitedPids = {pid};
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+
+    // Add both engine and native GPU memory
+    MemorySnapshot::Instance().UpdateGpuInfo(pid, engineSize, true, true);
+    MemorySnapshot::Instance().UpdateGpuInfo(pid, nativeSize, true, false);
+    ASSERT_EQ(MemorySnapshot::Instance().GetTotalMemory(), initialTotal + engineSize + nativeSize);
+
+    // Erase process - should subtract both from totalMemory_
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+    ASSERT_EQ(MemorySnapshot::Instance().GetTotalMemory(), initialTotal);
 }
 } // namespace OHOS::Rosen

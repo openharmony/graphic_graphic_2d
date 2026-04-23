@@ -64,6 +64,8 @@ protected:
 
     void UpdateStagingValueOnInteractiveFinish(RSInteractiveAnimationPosition pos) override;
 
+    void InvertStagingValue(bool isGroupAnimator, const RSAnimationTimingProtocol& timingProtocol) override;
+
     void SetPropertyOnAllAnimationFinish() override;
 
     std::shared_ptr<RSPropertyBase> property_;

@@ -252,6 +252,11 @@ void AniParagraphStyleConverter::ParseTypographyStyleToAni(
         AniTextUtils::CreateAniOptionalEnum(env, AniGlobalEnum::GetInstance().textVerticalAlign,
             aniGetEnumIndex(AniTextEnum::textVerticalAlign, static_cast<uint32_t>(style.verticalAlignment))),
         AniTextUtils::CreateAniBooleanObj(env, style.compressHeadPunctuation),
-        AniTextUtils::CreateAniDoubleObj(env, style.lineSpacing));
+        AniTextUtils::CreateAniDoubleObj(env, style.lineSpacing),
+        AniTextUtils::CreateAniDoubleObj(env, style.firstLineIndent),
+        AniTextUtils::CreateAniArrayAndInitData(env, style.tailIndents, style.tailIndents.size(),
+            [](ani_env* env, const double& item) { return AniTextUtils::CreateAniDoubleObj(env, item); }),
+        AniTextUtils::CreateAniArrayAndInitData(env, style.headIndents, style.headIndents.size(),
+            [](ani_env* env, const double& item) { return AniTextUtils::CreateAniDoubleObj(env, item); }));
 }
 } // namespace OHOS::Text::ANI

@@ -84,6 +84,7 @@ public:
 
     // Font
     virtual bool RegisterTypeface(uint64_t globalUniqueId, std::shared_ptr<Drawing::Typeface>& typeface) = 0;
+    virtual bool RegisterTypeface(Drawing::SharedTypeface& sharedTypeface, bool isLocal = true) = 0;
     virtual bool UnRegisterTypeface(uint64_t globalUniqueId) = 0;
 
     // Hgm

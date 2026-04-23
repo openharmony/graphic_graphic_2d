@@ -73,6 +73,7 @@ class ParticleRippleField;
 class ParticleRippleFields;
 class ParticleVelocityField;
 class ParticleVelocityFields;
+class ParticleFieldCollection;
 template<typename T>
 class RenderParticleParaType;
 class AnnulusRegion;
@@ -89,6 +90,7 @@ class RSRenderPathAnimation;
 class RSRenderSpringAnimation;
 class RSRenderTransition;
 class RSRenderTransitionEffect;
+class RSAnimationTimingProtocol;
 class RSRenderPropertyBase;
 template<typename T>
 class RSRenderProperty;
@@ -258,6 +260,7 @@ public:
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleRippleFields>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleVelocityField>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleVelocityFields>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleFieldCollection>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSNGRenderFilterBase>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSNGRenderMaskBase>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSNGRenderShaderBase>)
@@ -286,6 +289,7 @@ public:
     // animation
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderTransition>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderTransitionEffect>)
+    DECLARE_FUNCTION_OVERLOAD(RSAnimationTimingProtocol)
 
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ModifierNG::RSRenderModifier>)
 #undef DECLARE_FUNCTION_OVERLOAD

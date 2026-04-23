@@ -16,6 +16,8 @@
 #include "animation/rs_render_particle_system.h"
 
 #include <cstddef>
+
+#include "animation/rs_particle_ripple_field.h"
 namespace OHOS {
 namespace Rosen {
 RSRenderParticleSystem::RSRenderParticleSystem(
@@ -65,16 +67,28 @@ void RSRenderParticleSystem::UpdateParticle(
     if (activeParticles.empty()) {
         return;
     }
-    if (particleRippleFields_ != nullptr) {
-        particleRippleFields_->UpdateAllRipples(static_cast<float>(deltaTime) / NS_TO_S);
-    }
-    for (auto it = activeParticles.begin(); it != activeParticles.end();) {
-        // std::shared_ptr<RSRenderParticle> particle = *it;
-        if ((*it) == nullptr || !(*it)->IsAlive()) {
-            it = activeParticles.erase(it);
-        } else {
-            Update((*it), particleNoiseFields_, particleRippleFields_, particleVelocityFields_, deltaTime);
-            ++it;
+    // Prefer unified particleFields_ if available, fall back to old separate fields
+    if (particleFields_) {
+        particleFields_->UpdateAll(static_cast<float>(deltaTime) / NS_TO_S);
+        for (auto it = activeParticles.begin(); it != activeParticles.end();) {
+            if ((*it) == nullptr || !(*it)->IsAlive()) {
+                it = activeParticles.erase(it);
+            } else {
+                Update((*it), particleFields_, deltaTime);
+                ++it;
+            }
+        }
+    } else {
+        if (particleRippleFields_ != nullptr) {
+            particleRippleFields_->UpdateAllRipples(static_cast<float>(deltaTime) / NS_TO_S);
+        }
+        for (auto it = activeParticles.begin(); it != activeParticles.end();) {
+            if ((*it) == nullptr || !(*it)->IsAlive()) {
+                it = activeParticles.erase(it);
+            } else {
+                Update((*it), particleNoiseFields_, particleRippleFields_, particleVelocityFields_, deltaTime);
+                ++it;
+            }
         }
     }
 }
@@ -143,6 +157,113 @@ void RSRenderParticleSystem::UpdateRippleField(const std::shared_ptr<ParticleRip
 void RSRenderParticleSystem::UpdateVelocityField(const std::shared_ptr<ParticleVelocityFields>& particleVelocityFields)
 {
     particleVelocityFields_ = particleVelocityFields;
+}
+
+namespace {
+constexpr uint32_t FIELD_TYPE_MAX = static_cast<uint32_t>(ParticleFieldType::MAX);
+
+// Collect existing fields of a specific type (used for ripple lifeTime preservation).
+std::vector<std::shared_ptr<ParticleFieldBase>> CollectFieldsByType(
+    const ParticleFieldCollection& fields, ParticleFieldType type)
+{
+    std::vector<std::shared_ptr<ParticleFieldBase>> result;
+    for (const auto& f : fields.fields_) {
+        if (f != nullptr && f->GetType() == type) {
+            result.push_back(f);
+        }
+    }
+    return result;
+}
+
+// Check if two ripples have identical parameters (excluding lifeTime_).
+bool IsSameRippleParam(const ParticleRippleField& lhs, const ParticleRippleField& rhs)
+{
+    return lhs.center_ == rhs.center_ &&
+           ROSEN_EQ(lhs.amplitude_, rhs.amplitude_) &&
+           ROSEN_EQ(lhs.wavelength_, rhs.wavelength_) &&
+           ROSEN_EQ(lhs.waveSpeed_, rhs.waveSpeed_) &&
+           ROSEN_EQ(lhs.attenuation_, rhs.attenuation_) &&
+           lhs.regionShape_ == rhs.regionShape_ &&
+           lhs.regionPosition_ == rhs.regionPosition_ &&
+           lhs.regionSize_ == rhs.regionSize_;
+}
+
+// Preserve lifeTime_ from the matching old ripple (by index) when parameters are identical.
+void TryPreserveRippleLifeTime(
+    ParticleFieldBase& newField,
+    const std::vector<std::shared_ptr<ParticleFieldBase>>& oldRipples,
+    size_t rippleIndex)
+{
+    if (rippleIndex >= oldRipples.size()) {
+        return;
+    }
+    const auto& oldPtr = oldRipples[rippleIndex];
+    if (oldPtr == nullptr) {
+        return;
+    }
+    if (newField.GetType() != ParticleFieldType::RIPPLE ||
+        oldPtr->GetType() != ParticleFieldType::RIPPLE) {
+        return;
+    }
+    auto& newRipple = static_cast<ParticleRippleField&>(newField);
+    const auto& oldRipple = static_cast<const ParticleRippleField&>(*oldPtr);
+    if (IsSameRippleParam(newRipple, oldRipple)) {
+        newRipple.lifeTime_ = oldRipple.lifeTime_;
+    }
+}
+} // namespace
+
+void RSRenderParticleSystem::UpdateFields(const std::shared_ptr<ParticleFieldCollection>& fields)
+{
+    if (fields == nullptr) {
+        return;
+    }
+    if (particleFields_ == nullptr) {
+        particleFields_ = fields;
+        return;
+    }
+    // Guard against self-assignment (same Collection passed in twice).
+    if (particleFields_.get() == fields.get()) {
+        return;
+    }
+
+    // Snapshot the new fields into a local vector to avoid any aliasing risk
+    // with particleFields_->fields_ during the mutation below.
+    const std::vector<std::shared_ptr<ParticleFieldBase>> newFields = fields->fields_;
+
+    bool hasType[FIELD_TYPE_MAX] = {};
+    for (const auto& f : newFields) {
+        if (f == nullptr) {
+            continue;
+        }
+        uint32_t idx = static_cast<uint32_t>(f->GetType());
+        if (idx < FIELD_TYPE_MAX) {
+            hasType[idx] = true;
+        }
+    }
+
+    std::vector<std::shared_ptr<ParticleFieldBase>> oldRipples;
+    if (hasType[static_cast<uint32_t>(ParticleFieldType::RIPPLE)]) {
+        oldRipples = CollectFieldsByType(*particleFields_, ParticleFieldType::RIPPLE);
+    }
+
+    for (uint32_t i = 0; i < FIELD_TYPE_MAX; ++i) {
+        if (hasType[i]) {
+            particleFields_->RemoveByType(static_cast<ParticleFieldType>(i));
+        }
+    }
+
+    size_t rippleIndex = 0;
+    for (const auto& newField : newFields) {
+        if (newField == nullptr) {
+            continue;
+        }
+        if (newField->GetType() == ParticleFieldType::RIPPLE) {
+            TryPreserveRippleLifeTime(*newField, oldRipples, rippleIndex);
+            rippleIndex++;
+        }
+        particleFields_->Add(newField);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

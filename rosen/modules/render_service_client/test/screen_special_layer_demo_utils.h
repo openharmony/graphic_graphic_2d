@@ -60,7 +60,9 @@ public:
     static std::map<std::string, std::string> GetAllPersistId();
     static std::string DumpRsTree();
     static void EnableGlobalBlackList(int argc, char* argv[]);
+    static void SetVirtualScreenRefreshRate(int argc, char* argv[]);
     static bool ParseBoolParam(char* input, bool& output);
+    static bool ParseUint32Param(char* input, uint32_t& output);
     static void ModifySpecialLayerList(int argc, char* argv[]);
 };
 } // namespace Rosen

@@ -532,20 +532,6 @@ HWTEST_F(GpuContextTest, InitGpuMemoryLimitTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: InitGpuMemoryReportLimitTest001
- * @tc.desc: Test for initiating gpu memory limit.
- * @tc.type: FUNC
- * @tc.require: I774GD
- */
-HWTEST_F(GpuContextTest, InitGpuMemoryReportLimitTest001, TestSize.Level1)
-{
-    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
-    ASSERT_TRUE(gpuContext != nullptr);
-    uint64_t size = 1024 * 2;
-    gpuContext->InitGpuMemoryReportLimit(nullptr, 60, size);
-}
-
-/**
  * @tc.name: ResetContextTest001
  * @tc.desc: Test for resetting context.
  * @tc.type: FUNC
@@ -770,22 +756,6 @@ HWTEST_F(GpuContextTest, GPUContextOptionsSetIsUniRenderTest, TestSize.Level1)
     EXPECT_EQ(options.GetIsUniRender(), false);
     options.SetIsUniRender(true);
     EXPECT_EQ(options.GetIsUniRender(), true);
-}
-
-/**
- * @tc.name: GetGpuMemoryInfoTest001
- * @tc.desc: Test for GetGpuMemoryInfo
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(GpuContextTest, GetGpuMemoryInfoTest001, TestSize.Level1)
-{
-    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
-    ASSERT_TRUE(gpuContext != nullptr);
-    std::unordered_map<std::string, std::pair<size_t, size_t>> typeInfo;
-    std::unordered_map<pid_t, size_t> pidInfo;
-    gpuContext->GetGpuMemoryInfo(typeInfo, pidInfo);
-    ASSERT_TRUE(typeInfo.size() == 0);
 }
 
 /**

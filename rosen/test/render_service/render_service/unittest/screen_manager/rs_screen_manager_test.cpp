@@ -885,6 +885,7 @@ HWTEST_F(RSScreenManagerTest, GetScreenData_002, TestSize.Level1)
     ASSERT_EQ(screenData.GetActivityModeInfo().GetScreenModeId(), -1);  // virtual screen not support active mode.
     ASSERT_EQ(screenData.GetSupportModeInfo().size(), 0);
     ASSERT_EQ(screenData.GetPowerStatus(), INVALID_POWER_STATUS);
+    ASSERT_EQ(screenData.GetScreenConnectionType(), INVALID_DISPLAY_CONNECTION_TYPE);
 }
 
 /*
@@ -904,6 +905,7 @@ HWTEST_F(RSScreenManagerTest, GetScreenData_003, TestSize.Level1)
     screenManager_->SetScreenPowerStatus(screenId, POWER_STATUS_ON_ADVANCED);
     RSScreenData screenData = screenManager_->GetScreenData(screenId);
     ASSERT_EQ(screenData.GetPowerStatus(), POWER_STATUS_ON_ADVANCED);
+    ASSERT_EQ(screenData.GetScreenConnectionType(), INVALID_DISPLAY_CONNECTION_TYPE);
 }
 
 /*

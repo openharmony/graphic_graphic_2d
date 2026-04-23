@@ -326,7 +326,7 @@ HWTEST_F(RSNGRenderShaderBaseTest, CalcRect001, TestSize.Level1)
  */
 HWTEST_F(RSNGRenderShaderBaseTest, CalcRect002, TestSize.Level1)
 {
-    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::BLUR);
+    auto shader = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
     ASSERT_NE(shader, nullptr);
     RectF bound(0.0f, 0.0f, 100.0f, 100.0f);
     RectF result = RSNGRenderShaderHelper::CalcRect(shader, bound);
@@ -351,8 +351,8 @@ HWTEST_F(RSNGRenderShaderBaseTest, CalcRect003, TestSize.Level1)
         PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
     RectF bound(0.0f, 0.0f, 100.0f, 100.0f);
     RectF result = RSNGRenderShaderHelper::CalcRect(shader, bound);
-    RectF expected(-maxBorderWidth, -maxBorderWidth, 100.0f + maxBorderWidth,
-        100.0f + maxBorderWidth);
+    RectF expected(-maxBorderWidth, -maxBorderWidth, 100.0f + maxBorderWidth * 2.0f,
+        100.0f + maxBorderWidth * 2.0f);
     EXPECT_TRUE(result == expected);
 }
 /**
@@ -375,7 +375,7 @@ HWTEST_F(RSNGRenderShaderBaseTest, CalcRect004, TestSize.Level1)
     RectF bound(0.0f, 0.0f, 100.0f, 100.0f);
     RectF result = RSNGRenderShaderHelper::CalcRect(shader, bound);
     RectF expected(-outerBorderBloomWidth, -outerBorderBloomWidth,
-        100.0f + outerBorderBloomWidth, 100.0f + outerBorderBloomWidth);
+        100.0f + outerBorderBloomWidth * 2.0f, 100.0f + outerBorderBloomWidth * 2.0f);
     EXPECT_TRUE(result == expected);
 }
 /**
@@ -386,7 +386,7 @@ HWTEST_F(RSNGRenderShaderBaseTest, CalcRect004, TestSize.Level1)
  */
 HWTEST_F(RSNGRenderShaderBaseTest, CalcRect005, TestSize.Level1)
 {
-    auto head = RSNGRenderShaderBase::Create(RSNGEffectType::BLUR);
+    auto head = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
     auto next = RSNGRenderShaderBase::Create(RSNGEffectType::SDF_EDGE_LIGHT_EFFECT);
     ASSERT_NE(head, nullptr);
     ASSERT_NE(next, nullptr);
@@ -401,7 +401,7 @@ HWTEST_F(RSNGRenderShaderBaseTest, CalcRect005, TestSize.Level1)
     RectF bound(0.0f, 0.0f, 100.0f, 100.0f);
     RectF result = RSNGRenderShaderHelper::CalcRect(head, bound);
     RectF expected(-outerBorderBloomWidth, -outerBorderBloomWidth,
-        100.0f + outerBorderBloomWidth, 100.0f + outerBorderBloomWidth);
+        100.0f + outerBorderBloomWidth * 2.0f, 100.0f + outerBorderBloomWidth * 2.0f);
     EXPECT_TRUE(result == expected);
 }
 /**

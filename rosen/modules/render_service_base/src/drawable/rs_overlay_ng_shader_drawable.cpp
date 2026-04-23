@@ -258,6 +258,10 @@ void RSOverlayNGShaderDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::R
 #endif
     if (visualEffectContainer_ != nullptr && rect != nullptr) {
         auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
+
+        // Pass the original bounds of the component to the GEVisualEffectContainer
+        visualEffectContainer_->SetGeometry(canvas->GetTotalMatrix(), *rect, *rect,
+            rect->GetWidth(), rect->GetHeight());
         geRender->DrawShaderEffect(*canvas, *(visualEffectContainer_),
             drawRect_.IsEmpty() ? *rect : RSPropertyDrawableUtils::Rect2DrawingRect(drawRect_));
     } else {
@@ -275,6 +279,7 @@ bool RSOverlayNGShaderDrawable::OnUpdate(const RSRenderNode& node)
         stagingOverlayShader_ = overlayShader;
         RSPropertyDrawableUtils::ApplySDFShapeToEffect(properties, overlayShader, node.GetId());
 
+        // Need to expand drawing rect to draw effects outside of the component
         auto bounds = node.GetRenderProperties().GetBoundsRect();
         stagingDrawRect_ = RSNGRenderShaderHelper::CalcRect(overlayShader, bounds);
         return true;
@@ -767,7 +772,7 @@ void RSOverlayNGShaderDrawable::DrawBorderLight(Drawing::Canvas& canvas,
         DrawSDFBorderLight(canvas, shader);
         return;
     }
-    
+
     pen.SetShaderEffect(shader);
     float borderWidth = std::ceil(borderWidth_);
     pen.SetWidth(borderWidth);
