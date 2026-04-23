@@ -1540,12 +1540,16 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnGeneralProcessAndCache, TestSize.Lev
     RSPaintFilterCanvas canvas(surface.get());
     auto uniParams = std::make_shared<RSRenderThreadParams>();
     ASSERT_NE(uniParams, nullptr);
+
+    bool tmp = RSUniRenderThread::GetCaptureParam().isSnapshot_;
+    RSUniRenderThread::GetCaptureParam().isSnapshot_ = false;
     surfaceDrawable_->OnGeneralProcess(canvas, *surfaceParams, *uniParams, false);
     ASSERT_TRUE(surfaceDrawable_->GetRsSubThreadCache().GetRSDrawWindowCache().HasCache());
 
     surfaceDrawable_->needCacheRelatedSourceNode_ = true;
     surfaceDrawable_->OnGeneralProcess(canvas, *surfaceParams, *uniParams, false);
     ASSERT_TRUE(surfaceDrawable_->HasRelatedSourceNodeCache());
+    RSUniRenderThread::GetCaptureParam().isSnapshot_ = tmp;
 }
 
 /**

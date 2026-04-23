@@ -1046,11 +1046,10 @@ void RSMaterialFilterDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Re
         RectF(rect->GetLeft(), rect->GetTop(), rect->GetWidth(), rect->GetHeight()) : RectF());
     Drawing::RectI snapshotRect = GetAbsRenderEffectRect(*canvas, EffectRectType::SNAPSHOT, bound);
     Drawing::RectI drawRect = GetAbsRenderEffectRect(*canvas, EffectRectType::DRAW, bound);
-    RectF snapshotRelativeRect = GetRenderRelativeRect(EffectRectType::SNAPSHOT, bound);
     RS_TRACE_NAME_FMT("RSMaterialFilterDrawable::OnDraw node[%llu] ", renderNodeId_);
     if (rect) {
         filter->SetGeometry(canvas->GetTotalMatrix(), Drawing::Rect(snapshotRect), Drawing::Rect(drawRect),
-            snapshotRelativeRect.GetWidth(), snapshotRelativeRect.GetHeight());
+            rect->GetWidth(), rect->GetHeight());
     }
     int64_t startBlurTime = Drawing::PerfmonitorReporter::GetCurrentTime();
     RSPropertyDrawableUtils::DrawFilter(canvas, filter_,

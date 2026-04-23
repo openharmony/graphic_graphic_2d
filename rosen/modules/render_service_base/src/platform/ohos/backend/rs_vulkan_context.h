@@ -72,6 +72,7 @@ struct DrawingContextProperty {
     bool protectRecyclable = false;
 };
 
+class MemoryHandler;
 class RsVulkanInterface {
 public:
     struct CallbackSemaphoreInfo {
@@ -180,6 +181,11 @@ public:
 
     bool IsValid() const;
     skgpu::VulkanGetProc CreateSkiaGetProc() const;
+    const std::shared_ptr<MemoryHandler> GetMemoryHandler() const
+    {
+        return memHandler_;
+    }
+
 #define DEFINE_FUNC(name) Func<PFN_vk##name> vk##name
 
     DEFINE_FUNC(AllocateMemory);
@@ -238,8 +244,8 @@ public:
         return std::to_string(VK_API_VERSION_1_2);
     }
 
-    std::shared_ptr<Drawing::GPUContext> CreateDrawingContext();
-    std::shared_ptr<Drawing::GPUContext> DoCreateDrawingContext();
+    std::shared_ptr<Drawing::GPUContext> CreateDrawingContext(std::string cacheDir = "");
+    std::shared_ptr<Drawing::GPUContext> DoCreateDrawingContext(std::string cacheDir = "");
     std::shared_ptr<Drawing::GPUContext> GetDrawingContext();
 
     VulkanInterfaceType GetInterfaceType() const
@@ -303,6 +309,7 @@ private:
         const VkInstance& instance) const;
     PFN_vkVoidFunction AcquireProc(const char* proc_name, const VkDevice& device) const;
     std::shared_ptr<Drawing::GPUContext> CreateNewDrawingContext(bool isProtected = false);
+    std::shared_ptr<MemoryHandler> memHandler_;
 
     struct semaphoreFence {
         VkSemaphore semaphore;
@@ -326,11 +333,11 @@ public:
     private:
         std::function<void()> destructCallback_;
     };
-    static RsVulkanContext& GetSingleton();
+    static RsVulkanContext& GetSingleton(const std::string& cacheDir = "");
     static void ReleaseRecyclableSingleton();
-    explicit RsVulkanContext();
-    void InitVulkanContextForHybridRender();
-    void InitVulkanContextForUniRender();
+    explicit RsVulkanContext(std::string cacheDir = "");
+    void InitVulkanContextForHybridRender(const std::string& cacheDir);
+    void InitVulkanContextForUniRender(const std::string& cacheDir);
     ~RsVulkanContext();
 
     RsVulkanContext(const RsVulkanContext&) = delete;
@@ -384,8 +391,8 @@ public:
     }
 
     std::shared_ptr<Drawing::GPUContext> CreateDrawingContext();
-    std::shared_ptr<Drawing::GPUContext> GetDrawingContext();
-    std::shared_ptr<Drawing::GPUContext> GetRecyclableDrawingContext();
+    std::shared_ptr<Drawing::GPUContext> GetDrawingContext(const std::string& cacheDir = "");
+    std::shared_ptr<Drawing::GPUContext> GetRecyclableDrawingContext(const std::string& cacheDir = "");
     static void ReleaseDrawingContextMap();
     static void ReleaseRecyclableDrawingContext();
     static void ReleaseDrawingContextForThread(int tid);
@@ -397,6 +404,11 @@ public:
 
     static VKAPI_ATTR VkResult HookedVkQueueSignalReleaseImageOHOS(VkQueue queue, uint32_t waitSemaphoreCount,
         const VkSemaphore* pWaitSemaphores, VkImage image, int32_t* pNativeFenceFd);
+
+    const std::shared_ptr<MemoryHandler> GetMemoryHandler()
+    {
+        return GetRsVulkanInterface().GetMemoryHandler();
+    }
 
     bool GetIsProtected() const;
 
@@ -413,8 +425,8 @@ public:
     static bool IsRecyclableSingletonValid();
 
 private:
-    static RsVulkanContext& GetRecyclableSingleton();
-    static std::unique_ptr<RsVulkanContext>& GetRecyclableSingletonPtr();
+    static RsVulkanContext& GetRecyclableSingleton(const std::string& cacheDir = "");
+    static std::unique_ptr<RsVulkanContext>& GetRecyclableSingletonPtr(const std::string& cacheDir = "");
     static bool CheckDrawingContextRecyclable();
     static thread_local bool isProtected_;
     static thread_local VulkanInterfaceType vulkanInterfaceType_;
