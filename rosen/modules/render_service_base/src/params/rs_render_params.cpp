@@ -65,7 +65,17 @@ void RSRenderParams::ApplyAlphaAndMatrixToCanvas(RSPaintFilterCanvas& canvas, bo
 {
     if (UNLIKELY(HasSandBox())) {
         if (applyMatrix) {
-            canvas.SetMatrix(parentSurfaceMatrix_);
+            auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
+            auto originalCanvas = paintFilterCanvas->GetOriginalCanvas();
+            if (originalCanvas && !paintFilterCanvas->GetOffscreenDataList().empty()) {
+                originalCanvas->GetTotalMatrix().MapRect(dst, dst);
+                Drawing::Matrix invertOriginalCanvasMatrix;
+                originalCanvas->GetTotalMatrix().Invert(invertOriginalCanvasMatrix);
+                canvas.SetMatrix(invertOriginalCanvasMatrix);
+                canvas.ConcatMatrix(parentSurfaceMatrix_);
+            } else {
+                canvas.SetMatrix(parentSurfaceMatrix_);
+            }
             canvas.ConcatMatrix(matrix_);
         }
         canvas.SetAlpha(alpha_);
