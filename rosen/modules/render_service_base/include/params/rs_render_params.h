@@ -131,10 +131,6 @@ public:
 
     void ApplyAlphaAndMatrixToCanvas(RSPaintFilterCanvas& canvas, bool applyMatrix = true) const;
 
-    void ApplySandboxMatrixToCanvas(RSPaintFilterCanvas& canvas) const;
-
-    void ApplyOffscreenMatrixInverse(RSPaintFilterCanvas& canvas) const;
-
     void SetBoundsRect(const Drawing::RectF& boundsRect);
     const Drawing::Rect& GetBounds() const
     {
@@ -578,6 +574,7 @@ protected:
     std::bitset<RSRenderParamsDirtyType::MAX_DIRTY_TYPE> dirtyType_;
 
 private:
+    void ApplySandboxMatrixToCanvas(RSPaintFilterCanvas& canvas) const;
     NodeId id_;
     RSRenderParamsType paramsType_ = RSRenderParamsType::RS_PARAM_DEFAULT;
     RSRenderNodeType renderNodeType_ = RSRenderNodeType::RS_NODE;
