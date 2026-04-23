@@ -64,21 +64,35 @@ void RSRenderParams::SetMatrix(const Drawing::Matrix& matrix)
 void RSRenderParams::ApplyAlphaAndMatrixToCanvas(RSPaintFilterCanvas& canvas, bool applyMatrix) const
 {
     if (UNLIKELY(HasSandBox())) {
-        if (applyMatrix) {
-            auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
-            auto originalCanvas = paintFilterCanvas->GetOriginalCanvas();
-            if (originalCanvas && !paintFilterCanvas->GetOffscreenDataList().empty()) {
-                originalCanvas->GetTotalMatrix().MapRect(dst, dst);
-                Drawing::Matrix invertOriginalCanvasMatrix;
-                originalCanvas->GetTotalMatrix().Invert(invertOriginalCanvasMatrix);
-                canvas.SetMatrix(invertOriginalCanvasMatrix);
-                canvas.ConcatMatrix(parentSurfaceMatrix_);
-            } else {
-                canvas.SetMatrix(parentSurfaceMatrix_);
-            }
-            canvas.ConcatMatrix(matrix_);
-        }
         canvas.SetAlpha(alpha_);
+        if (!applyMatrix) {
+            return;
+        }
+        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
+        auto offscreenCanvasVector = paintFilterCanvas->GetOffscreenCanvasVector();
+        auto originalCanvas = paintFilterCanvas->GetOriginalCanvas();
+        if (!originalCanvas || paintFilterCanvas->GetOffscreenDataList().empty()) {
+            canvas.SetMatrix(parentSurfaceMatrix_);
+            canvas.ConcatMatrix(matrix_);
+            return;
+        }
+        Drawing::Matrix combinedMatrix;
+        Drawing::Matrix invertMatrix;
+        // skip current canvas, concat all stacked offscreen canvas
+        for (size_t i = 1; i < offscreenCanvasVector.size(); ++i) {
+            const auto& offscreenCanvas = offscreenCanvasVector[i];
+            if (offscreenCanvas) {
+                offscreenCanvas->GetTotalMatrix().Invert(invertMatrix);
+                combinedMatrix.Concat(invertMatrix);
+            }
+        }
+        if (originalCanvas) {
+            originalCanvas->GetTotalMatrix().Invert(invertMatrix);
+            combinedMatrix.Concat(invertMatrix);
+        }
+        canvas.SetMatrix(combinedMatrix);
+        canvas.ConcatMatrix(parentSurfaceMatrix_);
+        canvas.ConcatMatrix(matrix_);
     } else {
         if (applyMatrix) {
             canvas.ConcatMatrix(matrix_);
