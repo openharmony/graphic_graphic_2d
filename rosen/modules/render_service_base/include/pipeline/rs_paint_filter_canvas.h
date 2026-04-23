@@ -104,6 +104,8 @@ public:
     void DrawImageRect(const Drawing::Image& image,
         const Drawing::Rect& dst, const Drawing::SamplingOptions& sampling) override;
     void DrawPicture(const Drawing::Picture& picture) override;
+    void DrawGlyphs(int count, const uint16_t glyphs[], const Drawing::Point positions[],
+                    Drawing::Point origin, const Drawing::Font* font) override;
     void DrawTextBlob(const Drawing::TextBlob* blob, const Drawing::scalar x, const Drawing::scalar y) override;
 
     void ClearStencil(const Drawing::RectI& rect, uint32_t stencilVal) override;

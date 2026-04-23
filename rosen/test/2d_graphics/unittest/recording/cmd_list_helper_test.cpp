@@ -569,6 +569,20 @@ HWTEST_F(CmdListHelperTest, Picture, TestSize.Level1)
 }
 
 /**
+ * @tc.name: FontInfo
+ * @tc.desc: Test the FontInfo function.
+ * @tc.type: FUNC
+ * @tc.require: XXXXXXXX
+ */
+HWTEST_F(CmdListHelperTest, FontInfo, TestSize.Level1)
+{
+    auto cmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    OpDataHandle handle = CmdListHelper::AddFontToCmdList(*cmdList, nullptr);
+    auto sptr = CmdListHelper::GetFontFromCmdList(*cmdList, handle);
+    EXPECT_EQ(sptr, nullptr);
+}
+
+/**
  * @tc.name: TextBlob
  * @tc.desc: Test the TextBlob function.
  * @tc.type: FUNC
