@@ -100,7 +100,7 @@ public:
         return 0; // invalidId
     }
 
-    NodeId GetSecondaryNodeId() const override
+    NodeId GetTargetNodeId() const override
     {
         if constexpr (std::tuple_size<decltype(params_)>::value > 1) {
             using secondType = typename std::tuple_element<1, decltype(params_)>::type;
@@ -108,7 +108,7 @@ public:
                 return std::get<1>(params_);
             }
         }
-        return 0;
+        return RSCommand::GetTargetNodeId();
     }
 
     uint64_t GetToken() const override

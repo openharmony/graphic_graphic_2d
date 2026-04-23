@@ -103,9 +103,9 @@ public:
         return 0;
     }
 
-    virtual NodeId GetSecondaryNodeId() const
+    virtual NodeId GetTargetNodeId() const
     {
-        return 0;
+        return GetNodeId();
     }
 
     virtual uint64_t GetToken() const
