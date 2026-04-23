@@ -8636,4 +8636,97 @@ HWTEST_F(RSNodeTest, GetPropertyByTypeTest, TestSize.Level1)
         ModifierNG::RSPropertyType::BACKGROUND_COLOR);
     EXPECT_NE(property, nullptr);
 }
+
+/**
+ * @tc.name: RegenerateTreeHierarchyCommands001
+ * @tc.desc: No children, should not generate any commands
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, RegenerateTreeHierarchyCommands001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    ASSERT_TRUE(rsNode != nullptr);
+    rsNode->RegenerateTreeHierarchyCommands();
+    EXPECT_TRUE(rsNode->children_.empty());
+}
+
+/**
+ * @tc.name: RegenerateTreeHierarchyCommands002
+ * @tc.desc: With children, should generate AddChild commands
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, RegenerateTreeHierarchyCommands002, TestSize.Level1)
+{
+    auto parentNode = RSCanvasNode::Create();
+    ASSERT_TRUE(parentNode != nullptr);
+    auto childNode = RSCanvasNode::Create();
+    ASSERT_TRUE(childNode != nullptr);
+    parentNode->AddChild(childNode, -1);
+
+    auto transaction = parentNode->GetRSUIContext()->GetRSTransaction();
+    ASSERT_TRUE(transaction != nullptr);
+    transaction->implicitCommonTransactionData_->Clear();
+    transaction->implicitRemoteTransactionData_->Clear();
+
+    parentNode->RegenerateTreeHierarchyCommands();
+    EXPECT_FALSE(transaction->implicitCommonTransactionData_->IsEmpty());
+}
+
+/**
+ * @tc.name: RegenerateTreeHierarchyCommands003
+ * @tc.desc: Expired weak_ptr child should be skipped
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, RegenerateTreeHierarchyCommands003, TestSize.Level1)
+{
+    auto parentNode = RSCanvasNode::Create();
+    ASSERT_TRUE(parentNode != nullptr);
+    {
+        auto childNode = RSCanvasNode::Create();
+        ASSERT_TRUE(childNode != nullptr);
+        parentNode->AddChild(childNode, -1);
+    }
+
+    auto transaction = parentNode->GetRSUIContext()->GetRSTransaction();
+    ASSERT_TRUE(transaction != nullptr);
+    transaction->implicitCommonTransactionData_->Clear();
+
+    parentNode->RegenerateTreeHierarchyCommands();
+    // Child weak_ptr should be expired and skipped
+    EXPECT_TRUE(transaction->implicitCommonTransactionData_->IsEmpty());
+}
+
+/**
+ * @tc.name: SetRSUIContext002
+ * @tc.desc: Switch UIContext should exclude tree hierarchy commands and regenerate them
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest, SetRSUIContext002, TestSize.Level1)
+{
+    auto enable = RSSystemProperties::GetRSClientMultiInstanceEnabled();
+    if (enable) {
+        auto uiDirector1 = RSUIDirector::Create();
+        auto rsUIContext1 = uiDirector1->GetRSUIContext();
+        auto uiDirector2 = RSUIDirector::Create();
+        auto rsUIContext2 = uiDirector2->GetRSUIContext();
+
+        auto parentNode = RSCanvasNode::Create(false, false, rsUIContext1);
+        ASSERT_TRUE(parentNode != nullptr);
+        auto childNode = RSCanvasNode::Create(false, false, rsUIContext1);
+        ASSERT_TRUE(childNode != nullptr);
+        parentNode->AddChild(childNode, -1);
+
+        auto preTransaction = rsUIContext1->GetRSTransaction();
+        auto curTransaction = rsUIContext2->GetRSTransaction();
+        ASSERT_TRUE(preTransaction != nullptr);
+        ASSERT_TRUE(curTransaction != nullptr);
+
+        preTransaction->implicitCommonTransactionData_->Clear();
+        curTransaction->implicitCommonTransactionData_->Clear();
+
+        parentNode->SetRSUIContext(rsUIContext2);
+        EXPECT_EQ(parentNode->GetRSUIContext(), rsUIContext2);
+    }
+}
+
 } // namespace OHOS::Rosen
