@@ -71,7 +71,7 @@ static std::once_flag g_initHybridCallback;
 std::shared_ptr<RSUIDirector> RSUIDirector::Create(sptr<IRemoteObject> connectToRenderRemote,
     std::shared_ptr<RSUIContext> rsUIContext)
 {
-    std::shared_ptr<RSUIDirector> rsUIDirector = std::make_shared<RSUIDirector>();
+    std::shared_ptr<RSUIDirector> rsUIDirector = std::shared_ptr<RSUIDirector>(new RSUIDirector());
     rsUIDirector->Init(connectToRenderRemote, rsUIContext);
     return rsUIDirector;
 }
@@ -234,7 +234,7 @@ uint32_t RSUIDirector::GetHybridRenderTextBlobLenCount()
 
 std::shared_ptr<RSUIDirector> RSUIDirector::CreateRSUIDirector()
 {
-    std::shared_ptr<RSUIDirector> rsUIDirector = std::make_shared<RSUIDirector>();
+    std::shared_ptr<RSUIDirector> rsUIDirector = std::shared_ptr<RSUIDirector>(new RSUIDirector());
     return rsUIDirector;
 }
 

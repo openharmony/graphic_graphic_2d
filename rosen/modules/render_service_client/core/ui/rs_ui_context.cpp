@@ -27,7 +27,7 @@ namespace Rosen {
 RSUIContext::RSUIContext(uint64_t token, sptr<IRemoteObject>& connectToRenderRemote) : token_(token)
 {
     connectToRenderRemote_ = connectToRenderRemote;
-    rsRenderInterface_ = std::make_shared<RSRenderInterface>(connectToRenderRemote);
+    rsRenderInterface_ = std::shared_ptr<RSRenderInterface>(new RSRenderInterface(connectToRenderRemote));
     rsTransactionHandler_ =
         std::make_shared<RSTransactionHandler>(token, rsRenderInterface_->GetRSRenderPipelineClient());
     rsSyncTransactionHandler_ = std::shared_ptr<RSSyncTransactionHandler>(new RSSyncTransactionHandler());
