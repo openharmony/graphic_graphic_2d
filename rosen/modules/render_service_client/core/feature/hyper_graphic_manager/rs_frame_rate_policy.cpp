@@ -58,26 +58,24 @@ void RSFrameRatePolicy::HgmConfigChangeCallback(std::shared_ptr<RSHgmConfigData>
         ROSEN_LOGE("RSFrameRatePolicy configData is null");
         return;
     }
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        pageNameList_ = configData->GetPageNameList();
-        auto data = configData->GetConfigData();
-        if (data.empty()) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    pageNameList_ = configData->GetPageNameList();
+    auto data = configData->GetConfigData();
+    if (data.empty()) {
+        return;
+    }
+    ppi_ = configData->GetPpi();
+    xDpi_ = configData->GetXDpi();
+    yDpi_ = configData->GetYDpi();
+    for (auto item : data) {
+        if (item.animType.empty() || item.animName.empty()) {
             return;
         }
-        ppi_ = configData->GetPpi();
-        xDpi_ = configData->GetXDpi();
-        yDpi_ = configData->GetYDpi();
-        for (auto item : data) {
-            if (item.animType.empty() || item.animName.empty()) {
-                return;
-            }
-            animAttributes_[item.animType][item.animName] = {item.minSpeed, item.maxSpeed, item.preferredFps};
-            ROSEN_LOGD("RSFrameRatePolicy: config item type = %{public}s, name = %{public}s, "\
-                "minSpeed = %{public}d, maxSpeed = %{public}d, preferredFps = %{public}d",
-                item.animType.c_str(), item.animName.c_str(), static_cast<int>(item.minSpeed),
-                static_cast<int>(item.maxSpeed), static_cast<int>(item.preferredFps));
-        }
+        animAttributes_[item.animType][item.animName] = {item.minSpeed, item.maxSpeed, item.preferredFps};
+        ROSEN_LOGD("RSFrameRatePolicy: config item type = %{public}s, name = %{public}s, "\
+            "minSpeed = %{public}d, maxSpeed = %{public}d, preferredFps = %{public}d",
+            item.animType.c_str(), item.animName.c_str(), static_cast<int>(item.minSpeed),
+            static_cast<int>(item.maxSpeed), static_cast<int>(item.preferredFps));
     }
 }
 
