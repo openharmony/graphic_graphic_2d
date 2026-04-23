@@ -411,11 +411,10 @@ void RSRenderTimeDrivenGroupAnimator::FinishAnimator(RSInteractiveAnimationPosit
             continue;
         }
 
+        animation->FinishOnPosition(finishPos);
         auto& animationManager = node->GetAnimationManager();
         animationManager.OnAnimationFinished(animation);
         animationManager.RemoveAnimation(animation->GetAnimationId());
-
-        animation->FinishOnPosition(finishPos);
     }
     state_ = GroupAnimatorState::FINISHED;
     context->GetInteractiveImplictAnimatorMap().UnregisterInteractiveImplictAnimator(id_);
