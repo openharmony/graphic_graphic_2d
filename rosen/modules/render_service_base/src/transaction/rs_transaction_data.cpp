@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "command/rs_base_node_command.h"
 #include "command/rs_canvas_node_command.h"
 #include "command/rs_command.h"
 #include "command/rs_command_factory.h"
@@ -261,6 +262,59 @@ void RSTransactionData::MoveCommandByNodeId(std::unique_ptr<RSTransactionData>& 
                 continue;
             }
             command->indexVerifier_ = indexVerifier;
+        }
+        ++indexVerifier;
+        ++it;
+    }
+}
+
+const std::set<uint16_t>& RSTransactionData::GetTreeHierarchyCommandSubTypes()
+{
+    static const std::set<uint16_t> treeHierarchySubTypes = {
+        RSBaseNodeCommandType::BASE_NODE_ADD_CHILD,
+        RSBaseNodeCommandType::BASE_NODE_MOVE_CHILD,
+        RSBaseNodeCommandType::BASE_NODE_ADD_CROSS_PARENT_CHILD,
+        RSBaseNodeCommandType::BASE_NODE_REMOVE_CHILD,
+        RSBaseNodeCommandType::BASE_NODE_REMOVE_CROSS_PARENT_CHILD,
+        RSBaseNodeCommandType::BASE_NODE_ADD_CROSS_SCREEN_CHILD,
+        RSBaseNodeCommandType::BASE_NODE_REMOVE_CROSS_SCREEN_CHILD,
+        RSBaseNodeCommandType::BASE_NODE_REMOVE_FROM_TREE,
+    };
+    return treeHierarchySubTypes;
+}
+
+bool RSTransactionData::IsTreeHierarchyCommand(uint16_t commandType, uint16_t commandSubType)
+{
+    return (commandType == RSCommandType::BASE_NODE) &&
+        (GetTreeHierarchyCommandSubTypes().count(commandSubType) > 0);
+}
+
+void RSTransactionData::MoveCommandByNodeIdExcludeTreeCommands(
+    std::unique_ptr<RSTransactionData>& transactionData, NodeId nodeId)
+{
+    size_t indexVerifier = 0;
+    for (auto it = payload_.begin(); it != payload_.end();) {
+        auto& command = std::get<2>(*it);
+        if (command) {
+            bool isTreeHierarchyCommand = IsTreeHierarchyCommand(command->GetType(), command->GetSubType());
+            // RemoveFromTree has only one NodeId param, match by GetNodeId();
+            // other commands have two NodeId params, match by GetSecondaryNodeId().
+            bool isMatch =
+                isTreeHierarchyCommand && (command->GetSubType() == RSBaseNodeCommandType::BASE_NODE_REMOVE_FROM_TREE
+                                                  ? command->GetNodeId() == nodeId
+                                                  : command->GetSecondaryNodeId() == nodeId);
+            if (!isMatch) {
+                if (command->GetNodeId() == nodeId) {
+                    transactionData->AddCommand(command, std::get<0>(*it), std::get<1>(*it));
+                    it = payload_.erase(it);
+                    continue;
+                } else {
+                    command->indexVerifier_ = indexVerifier;
+                }
+            } else {
+                it = payload_.erase(it);
+                continue;
+            }
         }
         ++indexVerifier;
         ++it;

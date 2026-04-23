@@ -103,6 +103,11 @@ public:
         return 0;
     }
 
+    virtual NodeId GetSecondaryNodeId() const
+    {
+        return 0;
+    }
+
     virtual uint64_t GetToken() const
     {
         return 0;
