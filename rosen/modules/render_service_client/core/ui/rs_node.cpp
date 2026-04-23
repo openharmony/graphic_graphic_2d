@@ -4073,11 +4073,9 @@ void RSNode::AddChildInner(SharedPtr child, int index)
 
     AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);
     if (child->GetRSUIContext() != GetRSUIContext()) {
-        ROSEN_LOGW("RSNode::AddChildInner, child and parent have different RSUIContext, "
-                   "nodeId: %{public}" PRIu64 ", childId: %{public}" PRIu64
-                   ", parentToken: %{public}" PRIu64 ", childToken: %{public}" PRIu64,
-            id_, childId,
-            GetRSUIContext() ? GetRSUIContext()->GetToken() : 0,
+        ROSEN_LOGW("RSNode::AddChildInner, child and parent have different RSUIContext, nodeId: %{public}" PRIu64
+                   ", childId: %{public}" PRIu64 ", parentToken: %{public}" PRIu64 ", childToken: %{public}" PRIu64,
+            id_, childId, GetRSUIContext() ? GetRSUIContext()->GetToken() : 0,
             child->GetRSUIContext() ? child->GetRSUIContext()->GetToken() : 0);
     }
     if (child->GetType() == RSUINodeType::SURFACE_NODE) {
