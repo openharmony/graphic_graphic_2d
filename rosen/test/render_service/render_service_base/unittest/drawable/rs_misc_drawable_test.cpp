@@ -372,6 +372,83 @@ HWTEST_F(RSChildrenDrawableTest, RSBeginBlenderDrawable003, TestSize.Level1)
     EXPECT_NE(filterCanvas->envStack_.top().blender_, nullptr);
 }
 
+
+/**
+ * @tc.name: RSBeginBlenderDrawable004
+ * @tc.desc: Test OnGenerate for hdrDarken blender
+ * @tc.type:FUNC
+ * @tc.require: issueICLU4I
+ */
+HWTEST_F(RSChildrenDrawableTest, RSBeginBlenderDrawable004, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    ASSERT_EQ(DrawableV2::RSBeginBlenderDrawable::OnGenerate(node), nullptr);
+
+    auto params = std::optional<RSHdrDarkenBlenderPara>({ 1.0, { 0.299, 0.587, 0.114 } });
+    node.GetMutableRenderProperties().SetHdrDarkenBlenderParams(params);
+    auto drawable = std::static_pointer_cast<DrawableV2::RSBeginBlenderDrawable>(
+        DrawableV2::RSBeginBlenderDrawable::OnGenerate(node));
+    ASSERT_NE(drawable, nullptr);
+
+    drawable->OnSync();
+    ASSERT_FALSE(drawable->needSync_);
+    drawable->OnSync();
+    ASSERT_FALSE(drawable->needSync_);
+}
+
+/**
+ * @tc.name: RSBeginBlenderDrawable005
+ * @tc.desc: Test OnGenerate for hdrDarken blender
+ * @tc.type:FUNC
+ * @tc.require: issueICLU4I
+ */
+HWTEST_F(RSChildrenDrawableTest, RSBeginBlenderDrawable005, TestSize.Level1)
+{
+    NodeId id = 2;
+    RSRenderNode node(id);
+    ASSERT_EQ(DrawableV2::RSBeginBlenderDrawable::OnGenerate(node), nullptr);
+
+    auto params = std::optional<RSHdrDarkenBlenderPara>({1.0});
+    node.GetMutableRenderProperties().SetHdrDarkenBlenderParams(params);
+    auto drawable = std::static_pointer_cast<DrawableV2::RSBeginBlenderDrawable>(
+        DrawableV2::RSBeginBlenderDrawable::OnGenerate(node));
+    ASSERT_NE(drawable, nullptr);
+
+    auto params1 = node.GetMutableRenderProperties().GetHdrDarkenBlenderParams();
+    ASSERT_EQ(params1, params);
+    drawable->OnSync();
+    ASSERT_FALSE(drawable->needSync_);
+    drawable->OnSync();
+    ASSERT_FALSE(drawable->needSync_);
+}
+
+/**
+ * @tc.name: RSBeginBlenderDrawable006
+ * @tc.desc: Test OnGenerate for hdrDarken blender
+ * @tc.type:FUNC
+ * @tc.require: issueICLU4I
+ */
+HWTEST_F(RSChildrenDrawableTest, RSBeginBlenderDrawable006, TestSize.Level1)
+{
+    NodeId id = 2;
+    RSRenderNode node(id);
+    ASSERT_EQ(DrawableV2::RSBeginBlenderDrawable::OnGenerate(node), nullptr);
+
+    auto params = std::optional<RSHdrDarkenBlenderPara>({ 1.0, { 0.2, 0.5, 0.1 } });
+    node.GetMutableRenderProperties().SetHdrDarkenBlenderParams(params);
+    auto drawable = std::static_pointer_cast<DrawableV2::RSBeginBlenderDrawable>(
+        DrawableV2::RSBeginBlenderDrawable::OnGenerate(node));
+    ASSERT_NE(drawable, nullptr);
+
+    auto params1 = node.GetMutableRenderProperties().GetHdrDarkenBlenderParams();
+    ASSERT_EQ(params1, params);
+    drawable->OnSync();
+    ASSERT_FALSE(drawable->needSync_);
+    drawable->OnSync();
+    ASSERT_FALSE(drawable->needSync_);
+}
+
 /**
  * @tc.name: RSEndBlenderDrawable001
  * @tc.desc: Test OnGenerate

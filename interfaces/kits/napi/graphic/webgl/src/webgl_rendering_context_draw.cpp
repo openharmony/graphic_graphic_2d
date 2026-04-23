@@ -315,14 +315,12 @@ napi_value WebGLRenderingContextBaseImpl::ReadPixels(napi_env env, const PixelsA
             "buffer is nullptr or GetBufferSize failed");
         return NVal::CreateNull(env).val_;
     }
-    uint64_t size = static_cast<uint64_t>(buffer->GetBufferSize());
-    if (size < static_cast<uint64_t>(offset)) {
-        SET_ERROR(WebGLRenderingContextBase::INVALID_VALUE);
-        return NVal::CreateNull(env).val_;
-    }
-    size = size - static_cast<uint64_t>(offset);
-    GLenum result = CheckReadPixelsArg(env, arg, size);
-    if (!result) {
+    uint64_t bufferSize = static_cast<uint64_t>(buffer->GetBufferSize());
+    uint64_t dstOffset = static_cast<uint64_t>(offset);
+
+    // Pass full buffer size and offset separately to CheckReadPixelsArg
+    GLenum result = CheckReadPixelsArg(env, arg, bufferSize, dstOffset);
+    if (result != WebGLRenderingContextBase::NO_ERROR) {
         SET_ERROR(result);
         return NVal::CreateNull(env).val_;
     }
@@ -342,7 +340,9 @@ napi_value WebGLRenderingContextBaseImpl::ReadPixels(
         return NVal::CreateNull(env).val_;
     }
 
-    GLenum result = CheckReadPixelsArg(env, arg, static_cast<int64_t>(bufferData.GetBufferLength()));
+    // (TypedArray returns element count, so we need to multiply by element size)
+    GLenum result = CheckReadPixelsArg(env, arg, static_cast<uint64_t>(bufferData.GetBufferLength()),
+        static_cast<uint64_t>(dstOffset));
     if (result != WebGLRenderingContextBase::NO_ERROR) {
         SET_ERROR(result);
         return NVal::CreateNull(env).val_;

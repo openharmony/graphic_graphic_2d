@@ -72,7 +72,7 @@ private:
     static napi_value GetDeepenImmersionColor(napi_env env, napi_callback_info info);
     static napi_value GetImmersiveBackgroundColor(napi_env env, napi_callback_info info);
     static napi_value GetImmersiveForegroundColor(napi_env env, napi_callback_info info);
-    static napi_value DiscriminatePitureLightDegree(napi_env env, napi_callback_info info);
+    static napi_value DiscriminatePictureLightDegree(napi_env env, napi_callback_info info);
     static napi_value GetReverseColor(napi_env env, napi_callback_info info);
     static napi_value GetTopProportionColors(napi_env env, napi_callback_info info);
     static napi_value GetTopProportionColorsAndPercentage(napi_env env, napi_callback_info info);

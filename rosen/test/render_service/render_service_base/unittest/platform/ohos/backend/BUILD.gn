@@ -64,17 +64,18 @@ ohos_unittest("RSRenderServiceBaseBackendTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/pipeline",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/connection",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/external_depend",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/command",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl",
   ]
 
   deps = [
-    "$graphic_2d_root:libvulkan",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
 
   external_deps = [
@@ -86,6 +87,10 @@ ohos_unittest("RSRenderServiceBaseBackendTest") {
     "vulkan-headers:vulkan_headers",
     "ffrt:libffrt",
   ]
+
+  if (graphic_2d_feature_enable_vulkan) {
+    external_deps += [ "vulkan-loader:vulkan_loader" ]
+  }
 
   subsystem_name = "graphic"
 }

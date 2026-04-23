@@ -31,7 +31,6 @@ sptr<RSIClientToRenderConnection> RSConnectToRenderProcessProxy::CreateRenderCon
     MessageOption option;
 
     option.SetFlags(MessageOption::TF_SYNC);
-    ROSEN_LOGE("RSConnectToRenderProcessProxy::%{public}s, %{public}p", __func__, token.GetRefPtr());
 
     if (!data.WriteInterfaceToken(RSIConnectToRenderProcess::GetDescriptor())) {
         ROSEN_LOGE("RSConnectToRenderProcessProxy::CreateRenderConnection GetDescriptor err.");
@@ -54,8 +53,6 @@ sptr<RSIClientToRenderConnection> RSConnectToRenderProcessProxy::CreateRenderCon
         if (hasRemoteObj) {
             auto obj = reply.ReadRemoteObject();
             newConn = iface_cast<RSIClientToRenderConnection>(obj);
-            ROSEN_LOGI("RSConnectToRenderProcessProxy::%{public}s, end!! %{public}p -> %{public}p", __func__,
-                obj.GetRefPtr(), newConn.GetRefPtr());
         }
     }
     return newConn;

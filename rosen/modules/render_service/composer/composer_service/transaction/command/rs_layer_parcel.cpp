@@ -71,6 +71,14 @@ void RSLayerParcelHelper::UpdateRSRCDLayerCmd(std::shared_ptr<RSRenderComposerCo
         rsLayer = std::make_shared<RSRenderSurfaceRCDLayer>();
         context->AddRSRenderLayer(layerId, rsLayer);
     }
+    if (!rsLayer->IsScreenRCDLayer()) {
+        // Rcdlayer initialized as RSRenderSurfaceLayer must be convert to RSRenderSurfaceRCDLayer vis pixelmap property
+        auto rcdLayer = std::make_shared<RSRenderSurfaceRCDLayer>();
+        rcdLayer->CopyLayerInfo(rsLayer);
+        rcdLayer->UpdateRSLayerCmd(command);
+        context->AddRSRenderLayer(layerId, rcdLayer);
+        return;
+    }
     rsLayer->UpdateRSLayerCmd(command);
     ROSEN_LOGD("%{public}s rslayermap size:%{public}d", __func__,
         static_cast<int32_t>(context->GetRSRenderLayerCount()));

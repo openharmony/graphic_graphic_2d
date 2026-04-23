@@ -41,6 +41,7 @@ public:
     static napi_value GetGlobalInstance(napi_env env, napi_callback_info info);
     static napi_value GetLocalInstance(napi_env env, napi_callback_info info);
     static napi_value ClearCaches(napi_env env, napi_callback_info info);
+    static napi_value SetCachesEnabled(napi_env env, napi_callback_info info);
     static napi_value LoadFontAsync(napi_env env, napi_callback_info info);
     static napi_value LoadFontAsyncWithCheck(napi_env env, napi_callback_info info);
     static napi_value UnloadFontSync(napi_env env, napi_callback_info info);
@@ -58,6 +59,7 @@ private:
     NapiTextResult OnUnloadFont(napi_env env, napi_callback_info info);
     NapiTextResult OnUnloadFontAsync(napi_env env, napi_callback_info info);
     NapiTextResult OnClearCaches(napi_env env, napi_callback_info info);
+    NapiTextResult OnSetCachesEnabled(napi_env env, napi_callback_info info);
     NapiTextResult LoadFontFromPath(const std::string path, const std::string familyName, uint32_t index = 0);
     NapiTextResult OnLoadFontAsync(napi_env env, napi_callback_info info, bool withCheck = false);
     void OnLoadFontAsyncExecutor(sptr<FontArgumentsConcreteContext> context);

@@ -1,0 +1,345 @@
+/*
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#ifndef RENDER_SERVICE_COMPOSER_SERVICE_EXTERNER_DEPEND_ENGINE_BASE_RENDER_ENGINE_H
+#define RENDER_SERVICE_COMPOSER_SERVICE_EXTERNER_DEPEND_ENGINE_BASE_RENDER_ENGINE_H
+
+#include <atomic>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <set>
+
+#include "engine/rs_base_render_util.h"
+#include "hdi_layer_info.h"
+#include "pipeline/rs_paint_filter_canvas.h"
+#include "pipeline/rs_screen_render_node.h"
+#include "pipeline/rs_surface_render_node.h"
+#include "rs_layer.h"
+#include "sync_fence.h"
+#ifdef RS_ENABLE_VK
+#include "gpuComposition/rs_vk_image_manager.h"
+#include "platform/ohos/backend/rs_surface_frame_ohos_vulkan.h"
+#include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
+#endif
+#ifdef USE_M133_SKIA
+#include "include/gpu/ganesh/GrDirectContext.h"
+#else
+#include "include/gpu/GrDirectContext.h"
+#endif
+#include "rs_layer_transaction_data.h"
+
+#include "platform/drawing/rs_surface_frame.h"
+#include "platform/ohos/rs_surface_ohos.h"
+#if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
+#include "render_context/render_context.h"
+#endif // RS_ENABLE_GL || RS_ENABLE_VK
+#if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU)) || defined(RS_ENABLE_VK)
+#include "gpuComposition/rs_image_manager.h"
+#endif // RS_ENABLE_EGLIMAGE
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+#include "colorspace_converter_display.h"
+#endif
+
+namespace OHOS {
+namespace Rosen {
+
+// Forward declarations
+class RSRenderComposerClient;
+class GPUCacheManager;
+
+namespace DrawableV2 {
+class RSSurfaceRenderNodeDrawable;
+}
+struct FrameContextConfig {
+public:
+    explicit FrameContextConfig(bool isProtected)
+    {
+        this->isProtected = isProtected;
+    }
+    bool isProtected = false;
+    bool isVirtual = false;
+    int32_t timeOut = 3000; // ms
+};
+// The RenderFrame can do auto flush
+class RSRenderFrame {
+public:
+    // we guarantee when constructing this object, all parameters are valid.
+    RSRenderFrame(const std::shared_ptr<RSSurfaceOhos>& target, std::unique_ptr<RSSurfaceFrame>&& frame)
+        : targetSurface_(target), surfaceFrame_(std::move(frame))
+    {
+    }
+    ~RSRenderFrame() noexcept
+    {
+        Flush();
+    }
+
+    // noncopyable
+    RSRenderFrame(const RSRenderFrame&) = delete;
+    void operator=(const RSRenderFrame&) = delete;
+    void Flush() noexcept
+    {
+        if (targetSurface_ != nullptr && surfaceFrame_ != nullptr) {
+            targetSurface_->FlushFrame(surfaceFrame_);
+#if defined(RS_ENABLE_VK)
+            if (surfaceFrame_->GetType() == RSSurfaceFrameType::RS_SURFACE_FRAME_OHOS_VULKAN) {
+                auto frameOhosVulkan = static_cast<RSSurfaceFrameOhosVulkan*>(surfaceFrame_.get());
+                if (frameOhosVulkan) {
+                    acquireFence_ = frameOhosVulkan->GetAcquireFence();
+                }
+            }
+#endif // RS_ENABLE_VK
+            targetSurface_ = nullptr;
+            surfaceFrame_ = nullptr;
+        }
+    }
+
+    void CancelCurrentFrame()
+    {
+        if (targetSurface_ != nullptr) {
+#if defined(RS_ENABLE_VK)
+            if (RSSystemProperties::IsUseVulkan()) {
+                auto surfaceVK = static_cast<RSSurfaceOhosVulkan*>(targetSurface_.get());
+                if (surfaceVK != nullptr) {
+                    surfaceVK->CancelBufferForCurrentFrame();
+                }
+            }
+#endif
+        }
+    }
+
+    const std::shared_ptr<RSSurfaceOhos>& GetSurface() const
+    {
+        return targetSurface_;
+    }
+    const std::unique_ptr<RSSurfaceFrame>& GetFrame() const
+    {
+        return surfaceFrame_;
+    }
+    const sptr<SyncFence>& GetAcquireFence() const
+    {
+        return acquireFence_;
+    }
+    std::unique_ptr<RSPaintFilterCanvas> GetCanvas()
+    {
+        return std::make_unique<RSPaintFilterCanvas>(surfaceFrame_->GetSurface().get());
+    }
+
+    int32_t GetBufferAge()
+    {
+        return surfaceFrame_ != nullptr ? surfaceFrame_->GetBufferAge() : 0;
+    }
+
+    void SetDamageRegion(const std::vector<RectI> &rects)
+    {
+        if (surfaceFrame_ == nullptr) {
+            return;
+        }
+        const auto surface = surfaceFrame_->GetSurface();
+        if (surface != nullptr) {
+            surfaceFrame_->SetDamageRegion(
+                CheckAndVerifyDamageRegion(rects, RectI(0, 0, surface->Width(), surface->Height())));
+        }
+    }
+    // some frame maynot need to call FlushFrame
+    void Reset()
+    {
+        targetSurface_ = nullptr;
+        surfaceFrame_ = nullptr;
+    }
+
+protected:
+    std::vector<RectI> CheckAndVerifyDamageRegion(const std::vector<RectI>& rects,
+        const RectI& surfaceRect) const;
+
+private:
+    std::shared_ptr<RSSurfaceOhos> targetSurface_;
+    std::unique_ptr<RSSurfaceFrame> surfaceFrame_;
+    sptr<SyncFence> acquireFence_ = SyncFence::InvalidFence();
+};
+
+// function that will be called before drawing Buffer / Image.
+using PreProcessFunc = std::function<void(RSPaintFilterCanvas&, BufferDrawParam&)>;
+// function that will be called after drawing Buffer / Image.
+using PostProcessFunc = std::function<void(RSPaintFilterCanvas&, BufferDrawParam&)>;
+using CreateLayerBufferDrawParamFunc = std::function<BufferDrawParam(const RSLayerPtr&, bool)>;
+using DrawRectForDfxFunc =
+    std::function<void(RSPaintFilterCanvas&, const RectI&, Drawing::Color, float, const std::string&)>;
+#ifdef HETERO_HDR_ENABLE
+using GenerateHDRHeteroShaderFunc = std::function<void(BufferDrawParam&, std::shared_ptr<Drawing::ShaderEffect>&)>;
+using UpdateHDRHeteroParamsFunc =
+    std::function<bool(RSPaintFilterCanvas&, const DrawableV2::RSSurfaceRenderNodeDrawable&, BufferDrawParam&)>;
+using GetHDRSurfaceHandlerFunc = std::function<std::shared_ptr<RSSurfaceHandler>()>;
+#endif
+
+struct VideoInfo {
+    std::shared_ptr<Drawing::ColorSpace> drawingColorSpace_ = nullptr;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    GSError retGetColorSpaceInfo_ = GSERROR_OK;
+    Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter parameter_ = {};
+#endif
+};
+
+enum class RenderEngineType : uint8_t {
+    BASIC_RENDER = 0,
+    PROTECTED_REDRAW,
+    UNPROTECTED_REDRAW,
+    MAX_INTERFACE_TYPE,
+};
+
+// This render engine aims to do the client composition for all surfaces that hardware can't handle.
+class RSBaseRenderEngine {
+public:
+    RSBaseRenderEngine();
+    virtual ~RSBaseRenderEngine() noexcept;
+    void Init(RenderEngineType type = RenderEngineType::BASIC_RENDER);
+    RSBaseRenderEngine(const RSBaseRenderEngine&) = delete;
+    void operator=(const RSBaseRenderEngine&) = delete;
+
+    // [PLANNING]: this is a work-around for the lack of colorgamut conversion and yuv support in GPU.
+    // We should remove this function in someday.
+    static bool NeedForceCPU(const std::vector<RSLayerPtr>& layers);
+
+    // There would only one user(thread) to renderFrame(request frame) at one time.
+    // for framebuffer surface
+    std::unique_ptr<RSRenderFrame> RequestFrame(const sptr<Surface>& targetSurface,
+        const BufferRequestConfig& config, bool forceCPU = false, bool useAFBC = true,
+        const FrameContextConfig& frameContextConfig = FrameContextConfig(false));
+
+    // There would only one user(thread) to renderFrame(request frame) at one time.
+    std::unique_ptr<RSRenderFrame> RequestFrame(const std::shared_ptr<RSSurfaceOhos>& rsSurface,
+        const BufferRequestConfig& config, bool forceCPU = false, bool useAFBC = true,
+        const FrameContextConfig& frameContextConfig = FrameContextConfig(false));
+    std::shared_ptr<RSSurfaceOhos> MakeRSSurface(const sptr<Surface>& targetSurface, bool forceCPU);
+    static void SetUiTimeStamp(const std::unique_ptr<RSRenderFrame>& renderFrame,
+        std::shared_ptr<RSSurfaceOhos> surfaceOhos);
+
+    virtual void DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node,
+        BufferDrawParam& params, PreProcessFunc preProcess = nullptr, PostProcessFunc postProcess = nullptr) = 0;
+    virtual void DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas,
+        DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, BufferDrawParam& params,
+        PreProcessFunc preProcess = nullptr, PostProcessFunc postProcess = nullptr) {}
+
+    void DrawScreenNodeWithParams(RSPaintFilterCanvas& canvas, RSScreenRenderNode& node,
+        BufferDrawParam& params);
+    void DrawScreenNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceHandler& surfaceHandler,
+        BufferDrawParam& params);
+    void RegisterDeleteBufferListener(const sptr<IConsumerSurface>& consumer, bool isForUniRedraw = false);
+    std::function<void(uint64_t)> CreateBufferDeleteCallback() const;
+
+    // GPU cache management
+    std::shared_ptr<GPUCacheManager> GetGPUCacheManager() const { return gpuCacheManager_; }
+    void SetGPUCacheManager(std::shared_ptr<GPUCacheManager> manager) { gpuCacheManager_ = std::move(manager); }
+    std::shared_ptr<Drawing::Image> CreateImageFromBuffer(RSPaintFilterCanvas& canvas,
+        BufferDrawParam& params, VideoInfo& videoInfo);
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    virtual void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<RSLayerPtr>& layers, bool forceCPU = false,
+        const ComposerScreenInfo& composerScreenInfo = {},
+        GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB) = 0;
+#else
+    virtual void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<RSLayerPtr>& layers, bool forceCPU = false,
+        const ComposerScreenInfo& composerScreenInfo = {}) = 0;
+#endif
+
+    static void DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
+
+    void ShrinkCachesIfNeeded(bool isForUniRedraw = false);
+    void ClearCacheSet(const std::unordered_set<uint64_t>& unmappedCache);
+    static void SetColorFilterMode(ColorFilterMode mode);
+    static ColorFilterMode GetColorFilterMode();
+    static void SetHighContrast(bool enabled);
+    static bool IsHighContrastEnabled();
+
+#if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
+    const std::shared_ptr<RenderContext>& GetRenderContext()
+    {
+        return renderContext_;
+    }
+#endif // RS_ENABLE_GL || RS_ENABLE_VK
+    void ResetCurrentContext();
+#if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU)) || defined(RS_ENABLE_VK)
+    const std::shared_ptr<RSImageManager>& GetImageManager()
+    {
+        return imageManager_;
+    }
+#endif // RS_ENABLE_EGLIMAGE
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    void ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffect>& inputShader, BufferDrawParam& params,
+        Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter& parameter,
+        const RSPaintFilterCanvas::HDRProperties& hdrProperties = RSPaintFilterCanvas::HDRProperties{});
+#endif
+    static std::shared_ptr<Drawing::ColorSpace> ConvertColorGamutToDrawingColorSpace(GraphicColorGamut colorGamut);
+    static std::shared_ptr<Drawing::ColorSpace> ConvertColorSpaceNameToDrawingColorSpace(
+        OHOS::ColorManager::ColorSpaceName colorSpaceName);
+    static std::shared_ptr<Drawing::ColorSpace> GetCanvasColorSpace(const RSPaintFilterCanvas& canvas);
+#ifdef RS_ENABLE_VK
+    const std::shared_ptr<Drawing::GPUContext> GetSkContext() const
+    {
+        return skContext_;
+    }
+#endif
+    void DumpVkImageInfo(std::string &dumpString);
+    static void RegisterUniRenderUtilCallback(
+        const CreateLayerBufferDrawParamFunc createLayerBufferDrawParamCallback,
+        const DrawRectForDfxFunc drawRectForDfxCallback);
+#ifdef HETERO_HDR_ENABLE
+    static void RegisterHeteroHDRCallback(
+        const GenerateHDRHeteroShaderFunc generateHDRHeteroShaderCallback,
+        const UpdateHDRHeteroParamsFunc updateHDRHeteroParamsCallback,
+        const GetHDRSurfaceHandlerFunc getHDRSurfaceHandlerCallback);
+#endif
+
+protected:
+    void DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
+
+    static inline std::mutex colorFilterMutex_;
+    static inline ColorFilterMode colorFilterMode_ = ColorFilterMode::COLOR_FILTER_END;
+    static inline std::atomic_bool isHighContrastEnabled_ = false;
+    static inline CreateLayerBufferDrawParamFunc createLayerBufferDrawParamCallback_ = nullptr;
+    static inline DrawRectForDfxFunc drawRectForDfxCallback_ = nullptr;
+#ifdef HETERO_HDR_ENABLE
+    static inline GenerateHDRHeteroShaderFunc generateHDRHeteroShaderCallback_ = nullptr;
+    static inline UpdateHDRHeteroParamsFunc updateHDRHeteroParamsCallback_ = nullptr;
+    static inline GetHDRSurfaceHandlerFunc getHDRSurfaceHandlerCallback_ = nullptr;
+#endif
+
+private:
+    static void DrawImageRect(RSPaintFilterCanvas& canvas, std::shared_ptr<Drawing::Image> image,
+        BufferDrawParam& params, Drawing::SamplingOptions& samplingOptions);
+
+    static bool NeedBilinearInterpolation(const BufferDrawParam& params, const Drawing::Matrix& matrix);
+
+#if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
+    std::shared_ptr<RenderContext> renderContext_ = nullptr;
+#endif // RS_ENABLE_GL || RS_ENABLE_VK
+#ifdef RS_ENABLE_VK
+    std::shared_ptr<Drawing::GPUContext> skContext_ = nullptr;
+#endif
+    std::shared_ptr<RSImageManager> imageManager_ = nullptr;
+    std::shared_ptr<GPUCacheManager> gpuCacheManager_ = nullptr;
+    using SurfaceId = uint64_t;
+
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    static bool SetColorSpaceConverterDisplayParameter(
+        const BufferDrawParam& params, Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter& parameter);
+    static bool ConvertDrawingColorSpaceToSpaceInfo(const std::shared_ptr<Drawing::ColorSpace>& colorSpace,
+        HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceInfo& colorSpaceInfo);
+    std::shared_ptr<Media::VideoProcessingEngine::ColorSpaceConverterDisplay> colorSpaceConverterDisplay_ = nullptr;
+#endif
+};
+} // namespace Rosen
+} // namespace OHOS
+#endif // RENDER_SERVICE_COMPOSER_SERVICE_EXTERNER_DEPEND_ENGINE_BASE_RENDER_ENGINE_H

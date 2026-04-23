@@ -18,4 +18,45 @@
 namespace OHOS::Rosen {
 RSCanvasDrawingRenderParams::RSCanvasDrawingRenderParams(NodeId id) : RSRenderParams(id) {}
 
+void RSCanvasDrawingRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
+{
+    RSRenderParams::OnSync(target);
+    if (!canvasDrawingNodeSurfaceChanged_) {
+        return;
+    }
+    auto targetParams = static_cast<RSCanvasDrawingRenderParams*>(target.get());
+    targetParams->canvasDrawingNodeSurfaceChanged_ = true;
+    targetParams->surfaceParams_.width = surfaceParams_.width;
+    targetParams->surfaceParams_.height = surfaceParams_.height;
+    targetParams->surfaceParams_.colorSpace = surfaceParams_.colorSpace;
+    targetParams->canvasDrawingResetSurfaceIndex_ = canvasDrawingResetSurfaceIndex_.load();
+    if (GetParamsType() == RSRenderParamsType::RS_PARAM_OWNED_BY_DRAWABLE) {
+        return;
+    }
+    canvasDrawingNodeSurfaceChanged_ = false;
+}
+
+void RSCanvasDrawingRenderParams::SetCanvasDrawingSurfaceChanged(bool changeFlag)
+{
+    if (changeFlag) {
+        needSync_ = true;
+    }
+    canvasDrawingNodeSurfaceChanged_ = changeFlag;
+}
+
+void RSCanvasDrawingRenderParams::SetCanvasDrawingResetSurfaceIndex(uint32_t index)
+{
+    if (index == canvasDrawingResetSurfaceIndex_) {
+        return;
+    }
+    canvasDrawingResetSurfaceIndex_.store(index);
+    needSync_ = true;
+}
+
+void RSCanvasDrawingRenderParams::SetCanvasDrawingSurfaceParams(int width, int height, GraphicColorGamut colorSpace)
+{
+    surfaceParams_.width = width;
+    surfaceParams_.height = height;
+    surfaceParams_.colorSpace = colorSpace;
+}
 } // namespace OHOS::Rosen

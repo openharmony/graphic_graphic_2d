@@ -17,12 +17,11 @@
 
 #include <memory>
 
-#include "render_thread/rs_base_render_util.h"
-#include "main_thread/rs_main_thread.h"
-
 #include "common/rs_obj_abs_geometry.h"
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_logical_display_render_node_drawable.h"
+#include "engine/rs_base_render_util.h"
+#include "main_thread/rs_main_thread.h"
 #include "params/rs_screen_render_params.h"
 #include "params/rs_logical_display_render_params.h"
 #include "pipeline/rs_screen_render_node.h"

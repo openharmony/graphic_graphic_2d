@@ -66,7 +66,6 @@ class RSMask;
 class RSPath;
 class RSLinearGradientBlurPara;
 class MotionBlurParam;
-class RSMagnifierParams;
 class EmitterUpdater;
 class ParticleNoiseField;
 class ParticleNoiseFields;
@@ -74,6 +73,7 @@ class ParticleRippleField;
 class ParticleRippleFields;
 class ParticleVelocityField;
 class ParticleVelocityFields;
+class ParticleFieldCollection;
 template<typename T>
 class RenderParticleParaType;
 class AnnulusRegion;
@@ -90,6 +90,7 @@ class RSRenderPathAnimation;
 class RSRenderSpringAnimation;
 class RSRenderTransition;
 class RSRenderTransitionEffect;
+class RSAnimationTimingProtocol;
 class RSRenderPropertyBase;
 template<typename T>
 class RSRenderProperty;
@@ -251,7 +252,6 @@ public:
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSPath>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSLinearGradientBlurPara>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<MotionBlurParam>)
-    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSMagnifierParams>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<EmitterUpdater>)
     DECLARE_FUNCTION_OVERLOAD(std::vector<std::shared_ptr<EmitterUpdater>>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleNoiseField>)
@@ -260,6 +260,7 @@ public:
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleRippleFields>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleVelocityField>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleVelocityFields>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleFieldCollection>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSNGRenderFilterBase>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSNGRenderMaskBase>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSNGRenderShaderBase>)
@@ -288,6 +289,7 @@ public:
     // animation
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderTransition>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderTransitionEffect>)
+    DECLARE_FUNCTION_OVERLOAD(RSAnimationTimingProtocol)
 
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ModifierNG::RSRenderModifier>)
 #undef DECLARE_FUNCTION_OVERLOAD
@@ -538,7 +540,6 @@ private:
 
     static constexpr size_t MAX_DATA_SIZE = 128 * 1024 * 1024; // 128M
     static constexpr size_t MIN_DATA_SIZE = 8 * 1024;          // 8k
-    static constexpr size_t MAX_FD = 30000;
 
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;

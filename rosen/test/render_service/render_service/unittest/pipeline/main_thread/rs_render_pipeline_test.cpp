@@ -25,6 +25,7 @@
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "rs_surface_layer.h"
 #include "screen_manager/rs_screen_property.h"
 
 using namespace testing;
@@ -554,5 +555,74 @@ HWTEST_F(RSRenderPipelineTest, OnScreenPropertyChanged_MultipleTypes_NoRemoval, 
         sptr<ScreenProperty<std::pair<uint32_t, uint32_t>>>::MakeSptr(std::make_pair(0u, 0u)));
 
     EXPECT_NE(pipeline->composerClientManager_->GetComposerClient(sid), nullptr);
+}
+
+/**
+ * @tc.name: OnScreenConnected_CallbackExecuted
+ * @tc.desc: OnScreenConnected should set callback and it should be executed to clear surfaceFpsOpList
+ * @tc.type: FUNC
+ * @tc.require: issue22921
+ */
+HWTEST_F(RSRenderPipelineTest, OnScreenConnected_CallbackExecuted, TestSize.Level1)
+{
+    sptr<RSRenderPipeline> pipeline = new RSRenderPipeline();
+    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
+    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
+    pipeline->composerClientManager_ = rsComposerClientMgr;
+    pipeline->uniRenderThread_ = &RSUniRenderThread::Instance();
+    pipeline->mainThread_ = RSMainThread::Instance();
+    ASSERT_NE(pipeline->mainThread_, nullptr);
+
+    auto property = sptr<RSScreenProperty>::MakeSptr();
+    auto virtProp = sptr<ScreenProperty<bool>>::MakeSptr(false);
+    property->Set(ScreenPropertyType::IS_VIRTUAL, virtProp);
+    
+    auto hdiOutput = HdiOutput::CreateHdiOutput(property->GetScreenId());
+    hdiOutput->Init();
+
+    std::shared_ptr<RSRenderComposer> rsRenderComposer = std::make_shared<RSRenderComposer>(hdiOutput, property);
+    std::shared_ptr<RSRenderComposerAgent> rsRenderComposerAgent =
+        std::make_shared<RSRenderComposerAgent>(rsRenderComposer);
+
+    sptr<RSRenderToComposerConnection> renderToComposerConn = sptr<RSRenderToComposerConnection>::MakeSptr(
+        "conn_callback", property->GetScreenId(), rsRenderComposerAgent);
+    sptr<RSComposerToRenderConnection> composerToRenderConn = new RSComposerToRenderConnection();
+    pipeline->OnScreenConnected(property, renderToComposerConn, composerToRenderConn, hdiOutput);
+
+    auto client = pipeline->composerClientManager_->GetComposerClient(property->GetScreenId());
+    ASSERT_NE(client, nullptr);
+    auto context = client->GetComposerContext();
+    ASSERT_NE(context, nullptr);
+
+    auto layer = std::make_shared<RSSurfaceLayer>(property->GetScreenId(), context);
+    layer->SetTunnelHandleChange(true);
+
+    SurfaceFpsOp addOp {static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_ADD), 1, "test_surface", 100};
+    SurfaceFpsOp removeOp {static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_REMOVE), 2, "test_surface2", 200};
+
+    pipeline->mainThread_->AddSurfaceFpsOp(addOp);
+    pipeline->mainThread_->AddSurfaceFpsOp(removeOp);
+
+    ComposerInfo composerInfo;
+    client->CommitLayers(composerInfo);
+
+    auto surfaceFpsOpListBefore = pipeline->mainThread_->GetSurfaceFpsOpList();
+    EXPECT_EQ(surfaceFpsOpListBefore.size(), 2u);
+
+    client->pipelineParam_.SurfaceFpsOpList.push_back(addOp);
+    client->pipelineParam_.SurfaceFpsOpList.push_back(removeOp);
+
+    layer->SetTunnelHandleChange(false);
+    client->CommitLayers(composerInfo);
+
+    auto surfaceFpsOpListAfter = pipeline->mainThread_->GetSurfaceFpsOpList();
+    EXPECT_EQ(surfaceFpsOpListAfter.size(), 0u);
+
+    pipeline->composerClientManager_->GetComposerClient(
+        property->GetScreenId())->SetRmvSurfaceFpsOpCallback(nullptr);
+    layer->SetTunnelHandleChange(true);
+    client->CommitLayers(composerInfo);
+    surfaceFpsOpListAfter = pipeline->mainThread_->GetSurfaceFpsOpList();
+    EXPECT_EQ(surfaceFpsOpListAfter.size(), 0u);
 }
 } // namespace OHOS::Rosen

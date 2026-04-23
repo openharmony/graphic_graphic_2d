@@ -532,20 +532,6 @@ HWTEST_F(GpuContextTest, InitGpuMemoryLimitTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: InitGpuMemoryReportLimitTest001
- * @tc.desc: Test for initiating gpu memory limit.
- * @tc.type: FUNC
- * @tc.require: I774GD
- */
-HWTEST_F(GpuContextTest, InitGpuMemoryReportLimitTest001, TestSize.Level1)
-{
-    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
-    ASSERT_TRUE(gpuContext != nullptr);
-    uint64_t size = 1024 * 2;
-    gpuContext->InitGpuMemoryReportLimit(nullptr, 60, size);
-}
-
-/**
  * @tc.name: ResetContextTest001
  * @tc.desc: Test for resetting context.
  * @tc.type: FUNC
@@ -771,6 +757,21 @@ HWTEST_F(GpuContextTest, GPUContextOptionsSetIsUniRenderTest, TestSize.Level1)
     options.SetIsUniRender(true);
     EXPECT_EQ(options.GetIsUniRender(), true);
 }
+
+/**
+ * @tc.name: SetAbnormalPidTest001
+ * @tc.desc: Test for SetAbnormalPid
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(GpuContextTest, SetAbnormalPidTest001, TestSize.Level1)
+{
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    pid_t pid = 1234;
+    gpuContext->SetAbnormalPid(pid);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

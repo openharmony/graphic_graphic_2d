@@ -111,6 +111,7 @@ napi_property_descriptor properties[] = {
     DECLARE_NAPI_FUNCTION("didExceedMaxLines", JsParagraph::DidExceedMaxLines),
     DECLARE_NAPI_FUNCTION("getTextLines", JsParagraph::GetTextLines),
     DECLARE_NAPI_FUNCTION("getActualTextRange", JsParagraph::GetActualTextRange),
+    DECLARE_NAPI_FUNCTION("getVisibleTextRanges", JsParagraph::GetVisibleTextRanges),
     DECLARE_NAPI_FUNCTION("getLineMetrics", JsParagraph::GetLineMetrics),
     DECLARE_NAPI_FUNCTION("getFontMetricsByTextStyle", JsParagraph::GetFontMetricsByTextStyle),
     DECLARE_NAPI_FUNCTION("getLineFontMetrics", JsParagraph::GetLineFontMetrics),
@@ -118,6 +119,9 @@ napi_property_descriptor properties[] = {
     DECLARE_NAPI_FUNCTION("isStrutStyleEqual", JsParagraph::IsStrutStyleEqual),
     DECLARE_NAPI_FUNCTION("updateColor", JsParagraph::UpdateColor),
     DECLARE_NAPI_FUNCTION("updateDecoration", JsParagraph::UpdateDecoration),
+    DECLARE_NAPI_FUNCTION("getProcessState", JsParagraph::GetProcessState),
+    DECLARE_NAPI_FUNCTION("getTextDisplayState", JsParagraph::GetTextDisplayState),
+    DECLARE_NAPI_FUNCTION("getParagraphStyle", JsParagraph::GetParagraphStyle),
 };
 }
 
@@ -832,6 +836,34 @@ napi_value JsParagraph::OnGetActualTextRange(napi_env env, napi_callback_info in
     return GetRangeAndConvertToJsValue(env, &range);
 }
 
+napi_value JsParagraph::GetVisibleTextRanges(napi_env env, napi_callback_info info)
+{
+    JsParagraph* me = CheckParamsAndGetThis<JsParagraph>(env, info);
+    return (me != nullptr) ? me->OnGetVisibleTextRanges(env, info) : nullptr;
+}
+
+napi_value JsParagraph::OnGetVisibleTextRanges(napi_env env, napi_callback_info info)
+{
+    if (paragraph_ == nullptr) {
+        TEXT_LOGE("Null paragraph");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    std::vector<TextRange> visibleRanges = paragraph_->GetVisibleTextRanges();
+    napi_value returnArray = nullptr;
+    NAPI_CALL(env, napi_create_array(env, &returnArray));
+
+    uint32_t num = static_cast<uint32_t>(visibleRanges.size());
+    for (uint32_t index = 0; index < num; ++index) {
+        // Convert TextRange to Boundary for conversion
+        Boundary range{visibleRanges[index].start, visibleRanges[index].end};
+        napi_value tempValue = GetRangeAndConvertToJsValue(env, &range);
+        NAPI_CALL(env, napi_set_element(env, returnArray, index, tempValue));
+    }
+
+    return returnArray;
+}
+
 napi_value JsParagraph::GetLineMetrics(napi_env env, napi_callback_info info)
 {
     size_t argc = ARGC_ONE;
@@ -1163,6 +1195,54 @@ napi_value JsParagraph::OnLayoutWithConstraints(napi_env env, napi_callback_info
     }
     TextLayoutResult layoutResult = paragraph_->LayoutWithConstraints(textRect);
     return CreateLayoutResultJsValue(env, layoutResult);
+}
+
+napi_value JsParagraph::GetProcessState(napi_env env, napi_callback_info info)
+{
+    JsParagraph* me = CheckParamsAndGetThis<JsParagraph>(env, info);
+    return (me != nullptr) ? me->OnGetProcessState(env, info) : nullptr;
+}
+
+napi_value JsParagraph::OnGetProcessState(napi_env env, napi_callback_info info)
+{
+    if (paragraph_ == nullptr) {
+        TEXT_LOGE("Null paragraph");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    int processState = static_cast<int>(paragraph_->GetProcessState());
+    return CreateJsNumber(env, processState);
+}
+
+napi_value JsParagraph::GetTextDisplayState(napi_env env, napi_callback_info info)
+{
+    JsParagraph* me = CheckParamsAndGetThis<JsParagraph>(env, info);
+    return (me != nullptr) ? me->OnGetTextDisplayState(env, info) : nullptr;
+}
+
+napi_value JsParagraph::OnGetTextDisplayState(napi_env env, napi_callback_info info)
+{
+    if (paragraph_ == nullptr) {
+        TEXT_LOGE("Null paragraph");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    int displayState = static_cast<int>(paragraph_->GetTextDisplayState());
+    return CreateJsNumber(env, displayState);
+}
+
+napi_value JsParagraph::GetParagraphStyle(napi_env env, napi_callback_info info)
+{
+    JsParagraph* me = CheckParamsAndGetThis<JsParagraph>(env, info);
+    return (me != nullptr) ? me->OnGetParagraphStyle(env, info) : nullptr;
+}
+
+napi_value JsParagraph::OnGetParagraphStyle(napi_env env, napi_callback_info info)
+{
+    if (paragraph_ == nullptr) {
+        TEXT_LOGE("Null paragraph");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    TypographyStyle typographyStyle = paragraph_->GetParagraphStyle();
+    return CreateTypographyStyleJsValue(env, typographyStyle);
 }
 
 napi_value JsParagraph::IsStrutStyleEqual(napi_env env, napi_callback_info info)

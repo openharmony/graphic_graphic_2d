@@ -62,7 +62,7 @@ void RSRenderComposerClientTest::TearDown() {}
 std::shared_ptr<RSComposerClient> CreateClient()
 {
     std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
-    auto mgr = std::make_shared<RSRenderComposerManager>(handler, nullptr);
+    auto mgr = std::make_shared<RSRenderComposerManager>(handler);
     auto output = std::make_shared<HdiOutput>(0);
     output->Init();
     sptr<RSScreenProperty> property = new RSScreenProperty();

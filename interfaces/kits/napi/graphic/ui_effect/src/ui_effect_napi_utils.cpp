@@ -80,6 +80,28 @@ bool ParseJsDoubleValue(napi_env env, napi_value jsObject, const std::string& na
     return true;
 }
 
+bool ParsegrayscaleFactor(napi_env env, napi_value jsObject, Vector3f& values)
+{
+    uint32_t length = 0;
+    if (napi_get_array_length(env, jsObject, &length) != napi_ok || length != NUM_3) {
+        return false;
+    }
+    double val;
+    if (!ConvertDoubleValueFromJsElement(env, jsObject, NUM_0, val)) {
+        return false;
+    }
+    values[NUM_0] = static_cast<float>(val);
+    if (!ConvertDoubleValueFromJsElement(env, jsObject, NUM_1, val)) {
+        return false;
+    }
+    values[NUM_1] = static_cast<float>(val);
+    if (!ConvertDoubleValueFromJsElement(env, jsObject, NUM_2, val)) {
+        return false;
+    }
+    values[NUM_2] = static_cast<float>(val);
+    return true;
+}
+
 bool ParseJsBoolValue(napi_env env, napi_value jsObject, const std::string& name, bool& data)
 {
     napi_value value = nullptr;
@@ -260,6 +282,18 @@ std::string UIEffectNapiUtils::GetBundleName()
     return bundleInfo.applicationInfo.bundleName;
 #else
     return "";
+#endif
+}
+
+bool UIEffectNapiUtils::CheckPermission(const std::string& permission)
+{
+#ifdef ENABLE_IPC_SECURITY
+    auto tokenID = OHOS::IPCSkeleton::GetCallingTokenID();
+    int result = Security::AccessToken::AccessTokenKit::VerifyAccessToken(
+        tokenID, permission, false);
+    return result == Security::AccessToken::PERMISSION_GRANTED;
+#else
+    return true;
 #endif
 }
 

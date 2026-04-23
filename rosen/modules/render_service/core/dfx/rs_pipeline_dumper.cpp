@@ -281,6 +281,12 @@ void RSPipelineDumper::RegisterMemFuncs(std::shared_ptr<RSPipelineDumpManager> r
         DumpMem(argSets, dumpString);
     };
 
+    // Mem lite
+    RSDumpFunc memDumpLiteFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
+                                    std::string &dumpString) -> void {
+        DumpMem(argSets, dumpString, true);
+    };
+
     // pid mem
     RSDumpFunc existPidMemFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
                                         std::string &dumpString) -> void {
@@ -288,10 +294,18 @@ void RSPipelineDumper::RegisterMemFuncs(std::shared_ptr<RSPipelineDumpManager> r
         DumpExistPidMem(argSets, dumpString);
     };
 
+    // gpu mem
+    RSDumpFunc gpuMemDumpFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
+                                        std::string &dumpString) -> void {
+        DumpGpuMem(argSets, dumpString);
+    };
+
     std::vector<RSDumpHander> handers = {
         { RSDumpID::SURFACE_MEM_INFO, surfaceMemFunc },
         { RSDumpID::MEM_INFO, memDumpFunc },
+        { RSDumpID::MEM_INFO_LITE, memDumpLiteFunc },
         { RSDumpID::EXIST_PID_MEM_INFO, existPidMemFunc },
+        { RSDumpID::GPU_MEM_INFO, gpuMemDumpFunc },
     };
 
     rpDumpManager->Register(handers);
@@ -524,7 +538,7 @@ void RSPipelineDumper::DumpSurfaceNode(std::string& dumpString, NodeId id) const
     consumer->Dump(dumpString);
 }
 
-void RSPipelineDumper::DumpMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const
+void RSPipelineDumper::DumpMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString, bool isLite) const
 {
     if (!RSUniRenderJudgement::IsUniRender()) {
         dumpString.append("\n---------------\nNot in UniRender and no information");
@@ -533,17 +547,31 @@ void RSPipelineDumper::DumpMem(std::unordered_set<std::u16string>& argSets, std:
     std::string type;
     if (argSets.size() > 1) {
         argSets.erase(u"dumpMem");
-        if (!argSets.empty()) {
-            type = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
-        }
+        type = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
     }
     int pid = 0;
     if (!type.empty() && IsNumber(type)) {
         pid = std::atoi(type.c_str());
     }
-    ScheduleTask([this, &argSets, &dumpString, &type, &pid]() {
-            return RSMainThread::Instance()->DumpMem(argSets, dumpString, type, pid);
-        });
+    ScheduleTask([this, &argSets, &dumpString, &type, &pid, isLite]() {
+        return MemoryManager::DumpMem(argSets, dumpString, type, pid, isLite);
+    });
+}
+
+void RSPipelineDumper::DumpGpuMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const
+{
+    if (!RSUniRenderJudgement::IsUniRender()) {
+        dumpString.append("\n---------------\nNot in UniRender and no information");
+        return;
+    }
+    std::string type;
+    if (argSets.size() > 1) {
+        argSets.erase(u"dumpGpuMem");
+        type = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
+    }
+    ScheduleTask([this, &argSets, &dumpString, &type]() {
+        return MemoryManager::DumpGpuMem(argSets, dumpString, type);
+    });
 }
 
 void RSPipelineDumper::WindowHitchsDump(

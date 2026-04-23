@@ -126,6 +126,22 @@ bool RSIClientToRenderConnectionInterfaceCodeAccessVerifier::IsExclusiveVerifica
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REGISTER_OCCLUSION_CHANGE_CALLBACK");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_FRAME_STABILITY_DETECTION): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REGISTER_FRAME_STABILITY_DETECTION");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::UNREGISTER_FRAME_STABILITY_DETECTION): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::UNREGISTER_FRAME_STABILITY_DETECTION");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::START_FRAME_STABILITY_COLLECTION): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::START_FRAME_STABILITY_COLLECTION");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_FRAME_STABILITY_RESULT): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_FRAME_STABILITY_RESULT");
+            break;
+        }
         default: {
             break;
         }

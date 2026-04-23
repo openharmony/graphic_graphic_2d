@@ -23,7 +23,7 @@ class TypefaceAutoRegister {
 public:
     TypefaceAutoRegister()
     {
-#ifdef ARKUI_X_ENABLE
+#if defined(ARKUI_X_ENABLE) || defined(ROSEN_PREVIEW)
         auto registerCB = [](std::shared_ptr<Drawing::Typeface> tf) { return 1; };
         auto destroyedCB = [](uint32_t id) {};
 #else

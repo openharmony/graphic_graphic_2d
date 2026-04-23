@@ -32,10 +32,45 @@ namespace OHOS {
 namespace Rosen {
 constexpr float MIN_SPEED = 1e-3f;
 
+float RSImplicitAnimator::EstimateAnimationDuration(
+    const RSAnimationTimingProtocol& protocol, const RSAnimationTimingCurve& curve)
+{
+    constexpr float SECOND_TO_MILLISECOND = 1e3;
+    constexpr float BLEND_DURATION = 1.0f;
+
+    if (protocol.GetRepeatCount() == -1 || ROSEN_EQ(protocol.GetSpeed(), 0.0f)) {
+        return 0;
+    }
+
+    float duration = 0;
+    if (curve.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING) {
+        // Interpolating curves
+        duration = protocol.GetDuration() * protocol.GetRepeatCount() + protocol.GetStartDelay();
+    } else if (const auto& params = curve.springParams_) {
+        // Spring curves
+        auto model = std::make_unique<RSSpringModel<float>>(params->response_, params->dampingRatio_, BLEND_DURATION,
+            params->initialVelocity_, params->minimumAmplitudeRatio_);
+        duration = std::lroundf(model->EstimateDuration() * SECOND_TO_MILLISECOND) * protocol.GetRepeatCount() +
+            protocol.GetStartDelay();
+    }
+    duration *= RSSystemProperties::GetAnimationScale() / protocol.GetSpeed();
+    return duration;
+}
+
 int RSImplicitAnimator::OpenImplicitAnimation(const RSAnimationTimingProtocol& timingProtocol,
     const RSAnimationTimingCurve& timingCurve, std::shared_ptr<AnimationFinishCallback>&& finishCallback,
     std::shared_ptr<AnimationRepeatCallback>&& repeatCallback)
 {
+    RS_TRACE_FUNC();
+    // Estimate duration and store in finishCallback BEFORE moving it
+    // Need to consider speedMultiplier_ since actual animation speed will be modified in PushImplicitParam
+    if (finishCallback != nullptr) {
+        RSAnimationTimingProtocol actualProtocol = timingProtocol;
+        actualProtocol.SetSpeed(timingProtocol.GetSpeed() * speedMultiplier_);
+        float duration = EstimateAnimationDuration(actualProtocol, timingCurve);
+        finishCallback->SetEstimatedDuration(duration);
+    }
+
     globalImplicitParams_.push({ timingProtocol, timingCurve, std::move(finishCallback),
         std::move(repeatCallback) });
     implicitAnimations_.push({});
@@ -149,6 +184,7 @@ void RSImplicitAnimator::ProcessEmptyAnimations(const std::shared_ptr<AnimationF
 
 std::vector<std::shared_ptr<RSAnimation>> RSImplicitAnimator::CloseImplicitAnimation()
 {
+    RS_TRACE_FUNC();
     if (!CheckImplicitAnimationConditions()) {
         ROSEN_LOGD("Failed to close implicit animation, need to open implicit animation firstly!");
         return {};
@@ -187,10 +223,10 @@ std::vector<std::shared_ptr<RSAnimation>> RSImplicitAnimator::CloseImplicitAnima
         }
         // this will actually create the RSRenderKeyframeAnimation
         keyframeAnimation->SetFinishCallback(finishCallback);
-        if (isAddInteractiveAnimator_) {
+        if (interactiveAnimatorType_ != InteractiveAnimatorType::NONE) {
             interactiveImplicitAnimations_.top().emplace_back(keyframeAnimation, target->GetId());
         }
-        target->AddAnimation(keyframeAnimation, !isAddInteractiveAnimator_);
+        target->AddAnimation(keyframeAnimation, interactiveAnimatorType_ == InteractiveAnimatorType::NONE);
         resultAnimations.emplace_back(keyframeAnimation);
         hasUiAnimation = hasUiAnimation || keyframeAnimation->IsUiAnimation();
     }
@@ -198,44 +234,34 @@ std::vector<std::shared_ptr<RSAnimation>> RSImplicitAnimator::CloseImplicitAnima
     for (const auto& [animation, nodeId] : currentAnimations) {
         animation->SetFinishCallback(finishCallback);
         resultAnimations.emplace_back(animation);
-        if (isAddInteractiveAnimator_) {
+        if (interactiveAnimatorType_ != InteractiveAnimatorType::NONE) {
             interactiveImplicitAnimations_.top().emplace_back(animation, nodeId);
         }
         hasUiAnimation = hasUiAnimation || animation->IsUiAnimation();
     }
 
-    if (!hasUiAnimation) {
-        ProcessAnimationFinishCallbackGuaranteeTask();
-    }
+    ProcessAnimationFinishCallbackGuaranteeTask(hasUiAnimation);
     CloseImplicitAnimationInner();
     return resultAnimations;
 }
 
-void RSImplicitAnimator::ProcessAnimationFinishCallbackGuaranteeTask()
+void RSImplicitAnimator::ProcessAnimationFinishCallbackGuaranteeTask(bool hasUiAnimation)
 {
-    constexpr float SECOND_TO_MILLISECOND = 1e3;
     constexpr float MIN_DURATION = 1000.0f;
     constexpr int MULTIPLES_DURATION = 2;
-    constexpr float BLEND_DURATION = 1.0f;
 
-    const auto& [protocol, curve, finishCallback, unused] = globalImplicitParams_.top();
-    if (finishCallback == nullptr || protocol.GetRepeatCount() == -1) {
+    // Only process callback guarantee task for non-UI animations in non-interactive mode
+    if (hasUiAnimation || interactiveAnimatorType_ != InteractiveAnimatorType::NONE) {
         return;
     }
 
-    // estimate duration
-    float duration = 0;
-    if (curve.type_ == RSAnimationTimingCurve::CurveType::INTERPOLATING) {
-        // Interpolating curves
-        duration = protocol.GetDuration() * protocol.GetRepeatCount() + protocol.GetStartDelay();
-    } else if (const auto& params = curve.springParams_) {
-        // Spring curves
-        auto model = std::make_unique<RSSpringModel<float>>(params->response_, params->dampingRatio_, BLEND_DURATION,
-            params->initialVelocity_, params->minimumAmplitudeRatio_);
-        duration = std::lroundf(model->EstimateDuration() * SECOND_TO_MILLISECOND) * protocol.GetRepeatCount() +
-            protocol.GetStartDelay();
+    const auto& [protocol, curve, finishCallback, unused] = globalImplicitParams_.top();
+    if (finishCallback == nullptr || protocol.GetRepeatCount() == -1 || ROSEN_EQ(protocol.GetSpeed(), 0.0f)) {
+        return;
     }
-    duration *= RSSystemProperties::GetAnimationScale();
+
+    // Get estimated duration(ms) from finishCallback
+    float duration = finishCallback->GetEstimatedDuration();
     if (duration < EPSILON) {
         return;
     }
@@ -244,8 +270,7 @@ void RSImplicitAnimator::ProcessAnimationFinishCallbackGuaranteeTask()
         auto callback = weakCallback.lock();
         if (callback && callback->IsValid() && !callback->HasAnimationBeenPaused()) {
             ROSEN_LOGW("Animation finish callback is not executed in estimated time. params : type[%{public}d] "
-                       "duration[%{public}f]",
-                type, duration);
+                "duration[%{public}f]", type, duration);
             callback->Execute();
         }
     };
@@ -277,11 +302,12 @@ CancelAnimationStatus RSImplicitAnimator::CloseImplicitCancelAnimation()
     return ret;
 }
 
-int RSImplicitAnimator::OpenInterActiveImplicitAnimation(bool isAddImplictAnimation,
+int RSImplicitAnimator::OpenInterActiveImplicitAnimation(bool isAddImplictAnimation, bool isGroupAnimator,
     const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve,
     std::shared_ptr<AnimationFinishCallback>&& finishCallback)
 {
-    isAddInteractiveAnimator_ = true;
+    RS_TRACE_FUNC();
+    interactiveAnimatorType_ = isGroupAnimator ? InteractiveAnimatorType::GROUP : InteractiveAnimatorType::INTERACTIVE;
     interactiveImplicitAnimations_.push({});
     return isAddImplictAnimation ?
         OpenImplicitAnimation(timingProtocol, timingCurve, std::move(finishCallback), nullptr) : 0;
@@ -290,6 +316,7 @@ int RSImplicitAnimator::OpenInterActiveImplicitAnimation(bool isAddImplictAnimat
 std::vector<std::pair<std::shared_ptr<RSAnimation>, NodeId>> RSImplicitAnimator::CloseInterActiveImplicitAnimation(
     bool isAddImplictAnimation)
 {
+    RS_TRACE_FUNC();
     if (interactiveImplicitAnimations_.empty()) {
         ROSEN_LOGD("Failed to close interactive implicit animation, need to open implicit animation firstly!");
         return {};
@@ -320,7 +347,7 @@ std::vector<std::pair<std::shared_ptr<RSAnimation>, NodeId>> RSImplicitAnimator:
         CloseImplicitAnimationInner();
     }
     interactiveImplicitAnimations_.pop();
-    isAddInteractiveAnimator_ = false;
+    interactiveAnimatorType_ = InteractiveAnimatorType::NONE;
     return resultAnimations;
 }
 
@@ -729,7 +756,7 @@ void RSImplicitAnimator::CreateImplicitAnimation(const std::shared_ptr<RSNode>& 
         // RSImplicitAnimator::CloseImplicitAnimation.
         return;
     }
-    target->AddAnimation(animation, !isAddInteractiveAnimator_);
+    target->AddAnimation(animation, interactiveAnimatorType_ == InteractiveAnimatorType::NONE);
     implicitAnimations_.top().emplace_back(animation, target->GetId());
     return;
 }

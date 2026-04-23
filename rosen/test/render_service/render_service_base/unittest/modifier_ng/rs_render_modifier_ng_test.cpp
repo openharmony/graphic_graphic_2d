@@ -208,9 +208,9 @@ HWTEST_F(RSRenderModifierNGTest, UnmarshallingTest, TestSize.Level1)
     Parcel parcel2;
     auto property = std::make_shared<RSRenderProperty<float>>();
     renderModifier2->AttachProperty(ModifierNG::RSPropertyType::ALPHA, property);
-    ret = renderModifier2->Marshalling(parcel2);
+    ret = renderModifier2->Marshalling(parcel2, false);
     EXPECT_TRUE(ret);
-    renderModifier3 = ModifierNG::RSRenderModifier::Unmarshalling(parcel2);
+    renderModifier3 = ModifierNG::RSRenderModifier::Unmarshalling(parcel2, false);
     EXPECT_NE(renderModifier3, nullptr);
 
     Parcel parcel3;

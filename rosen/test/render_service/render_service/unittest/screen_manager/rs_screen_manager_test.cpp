@@ -346,6 +346,50 @@ HWTEST_F(RSScreenManagerTest, SetDualScreenState_002, TestSize.Level1)
 }
 
 /*
+ * @tc.name: SetAsMainScreenTest001
+ * @tc.desc: Test SetAsMainScreen with invalid ScreenId
+ * @tc.type: FUNC
+ * @tc.require: #23043
+ */
+HWTEST_F(RSScreenManagerTest, SetAsMainScreenTest001, TestSize.Level1)
+{
+    ASSERT_NE(screenManager_, nullptr);
+    int32_t result = screenManager_->SetAsMainScreen(INVALID_SCREEN_ID, true);
+    EXPECT_NE(result, StatusCode::SUCCESS);
+
+    ScreenId id = 0;
+    result = screenManager_->SetAsMainScreen(id, false);
+    EXPECT_EQ(result, StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: GetMainScreenIdTest001
+ * @tc.desc: Test GetMainScreenId returns INVALID_SCREEN_ID when no screen is set as main
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(RSScreenManagerTest, GetMainScreenIdTest001, TestSize.Level1)
+{
+    ASSERT_NE(screenManager_, nullptr);
+
+    int32_t ret = screenManager_->SetAsMainScreen(0, true);
+    EXPECT_EQ(ret, StatusCode::SUCCESS);
+    ScreenId result = screenManager_->GetMainScreenId();
+    EXPECT_EQ(result, 0);
+
+    // Ensure no screen is set as main
+    for (auto& [screenId, screen] : screenManager_->screens_) {
+        if (screen) {
+            screen->SetAsMainScreen(false);
+        }
+    }
+
+    // Should return INVALID_SCREEN_ID when no main screen exists
+    result = screenManager_->GetMainScreenId();
+    EXPECT_EQ(result, INVALID_SCREEN_ID);
+}
+
+/*
  * @tc.name: SetVirtualScreenResolution_001
  * @tc.desc: Test SetVirtualScreenResolution
  * @tc.type: FUNC
@@ -841,6 +885,7 @@ HWTEST_F(RSScreenManagerTest, GetScreenData_002, TestSize.Level1)
     ASSERT_EQ(screenData.GetActivityModeInfo().GetScreenModeId(), -1);  // virtual screen not support active mode.
     ASSERT_EQ(screenData.GetSupportModeInfo().size(), 0);
     ASSERT_EQ(screenData.GetPowerStatus(), INVALID_POWER_STATUS);
+    ASSERT_EQ(screenData.GetScreenConnectionType(), INVALID_DISPLAY_CONNECTION_TYPE);
 }
 
 /*
@@ -860,6 +905,7 @@ HWTEST_F(RSScreenManagerTest, GetScreenData_003, TestSize.Level1)
     screenManager_->SetScreenPowerStatus(screenId, POWER_STATUS_ON_ADVANCED);
     RSScreenData screenData = screenManager_->GetScreenData(screenId);
     ASSERT_EQ(screenData.GetPowerStatus(), POWER_STATUS_ON_ADVANCED);
+    ASSERT_EQ(screenData.GetScreenConnectionType(), INVALID_DISPLAY_CONNECTION_TYPE);
 }
 
 /*
@@ -3033,7 +3079,7 @@ HWTEST_F(RSScreenManagerTest, ProcessScreenConnected01, TestSize.Level1)
     screenManager_->isFoldScreenFlag_ = true;
     screenManager_->ProcessScreenConnected(id);
     bool found = screenManager_->foldScreenIds_.find(id) != screenManager_->foldScreenIds_.end();
-    ASSERT_TRUE(found);
+    ASSERT_FALSE(found);
 
     id = 1;
     screenManager_->ProcessScreenConnected(id);
@@ -3202,20 +3248,6 @@ HWTEST_F(RSScreenManagerTest, SetScreenFrameGravityTest, TestSize.Level1)
     screenManager_->SetScreenFrameGravity(0, 0);
     screenManager_->screens_[0] = std::make_shared<RSScreen>(0);
     screenManager_->SetScreenFrameGravity(0, 0);
-}
-
-/*
- * @tc.name: NotifySwitchingCallbackTest
- * @tc.desc: Test NotifySwitchingCallback
- * @tc.type: FUNC
- */
-HWTEST_F(RSScreenManagerTest, NotifySwitchingCallbackTest, TestSize.Level1)
-{
-    ASSERT_NE(screenManager_, nullptr);
-    screenManager_->screenSwitchingNotifyCallback_ = nullptr;
-    screenManager_->NotifySwitchingCallback(false);
-    screenManager_->screenSwitchingNotifyCallback_ = sptr<RSIScreenSwitchingNotifyCallbackConfig>::MakeSptr();
-    screenManager_->NotifySwitchingCallback(false);
 }
 
 /*
@@ -3395,8 +3427,6 @@ HWTEST_F(RSScreenManagerTest, AddVirtualScreenBlackList006, TestSize.Level2)
 
     std::vector<NodeId> blackList1(1);
     ASSERT_EQ(screenManager_->AddVirtualScreenBlackList(mirrorId1, blackList1), StatusCode::SUCCESS);
-    std::vector<NodeId> blackList2(MAX_SPECIAL_LAYER_NUM);
-    ASSERT_NE(screenManager_->AddVirtualScreenBlackList(mirrorId2, blackList2), StatusCode::SUCCESS);
 
     // restore
     {

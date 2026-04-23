@@ -114,7 +114,7 @@ bool DrawCmdFuzzTest003(const uint8_t* data, size_t size)
 
     PaintHandle paintHandle;
     paintHandle.isAntiAlias = GetObject<bool>();
-    paintHandle.blenderEnabled = GetObject<bool>();
+    paintHandle.SetBlenderEnabled(GetObject<bool>());
     paintHandle.width = GetObject<scalar>();
     paintHandle.miterLimit = GetObject<scalar>();
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
@@ -158,7 +158,7 @@ bool DrawCmdFuzzTest004(const uint8_t* data, size_t size)
 
     PaintHandle paintHandle;
     paintHandle.isAntiAlias = GetObject<bool>();
-    paintHandle.blenderEnabled = GetObject<bool>();
+    paintHandle.SetBlenderEnabled(GetObject<bool>());
     paintHandle.width = GetObject<scalar>();
     paintHandle.miterLimit = GetObject<scalar>();
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
@@ -250,7 +250,7 @@ bool DrawCmdFuzzTest006(const uint8_t* data, size_t size)
     uint32_t type = GetObject<uint32_t>();
     PaintHandle paintHandle;
     paintHandle.isAntiAlias = GetObject<bool>();
-    paintHandle.blenderEnabled = GetObject<bool>();
+    paintHandle.SetBlenderEnabled(GetObject<bool>());
     paintHandle.width = GetObject<scalar>();
     paintHandle.miterLimit = GetObject<scalar>();
     DrawWithPaintOpItem drawWithPaintOpItem = DrawWithPaintOpItem(*drawCmdList, paintHandle, type);
@@ -284,7 +284,7 @@ bool DrawCmdFuzzTest007(const uint8_t* data, size_t size)
     static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     PaintHandle paintHandle;
     paintHandle.isAntiAlias = GetObject<bool>();
-    paintHandle.blenderEnabled = GetObject<bool>();
+    paintHandle.SetBlenderEnabled(GetObject<bool>());
     paintHandle.width = GetObject<scalar>();
     paintHandle.miterLimit = GetObject<scalar>();
     int32_t x = GetObject<int32_t>();
@@ -379,7 +379,7 @@ bool DrawCmdFuzzTest009(const uint8_t* data, size_t size)
     std::pair<uint32_t, size_t> pts = { GetObject<uint32_t>(), length };
     PaintHandle paintHandle;
     paintHandle.isAntiAlias = GetObject<bool>();
-    paintHandle.blenderEnabled = GetObject<bool>();
+    paintHandle.SetBlenderEnabled(GetObject<bool>());
     paintHandle.width = GetObject<scalar>();
     paintHandle.miterLimit = GetObject<scalar>();
     DrawPointsOpItem::ConstructorHandle constructorHandle = DrawPointsOpItem::ConstructorHandle(
@@ -429,7 +429,7 @@ bool DrawCmdFuzzTest010(const uint8_t* data, size_t size)
     OpDataHandle pathT { GetObject<uint32_t>(), GetObject<size_t>() };
     PaintHandle paintHandle;
     paintHandle.isAntiAlias = GetObject<bool>();
-    paintHandle.blenderEnabled = GetObject<bool>();
+    paintHandle.SetBlenderEnabled(GetObject<bool>());
     paintHandle.width = GetObject<scalar>();
     paintHandle.miterLimit = GetObject<scalar>();
     DrawPathOpItem::ConstructorHandle constructorHandle = DrawPathOpItem::ConstructorHandle(pathT, paintHandle);
@@ -623,7 +623,7 @@ bool DrawCmdFuzzTest015(const uint8_t* data, size_t size)
     Point endPt { endPtX, endPtY };
     PaintHandle paintHandle;
     paintHandle.isAntiAlias = GetObject<bool>();
-    paintHandle.blenderEnabled = GetObject<bool>();
+    paintHandle.SetBlenderEnabled(GetObject<bool>());
     paintHandle.width = GetObject<scalar>();
     paintHandle.miterLimit = GetObject<scalar>();
     DrawLineOpItem::ConstructorHandle constructorHandle = DrawLineOpItem::ConstructorHandle(
@@ -686,7 +686,7 @@ bool DrawCmdFuzzTest017(const uint8_t* data, size_t size)
     Rect rect { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
     PaintHandle paintHandle;
     paintHandle.isAntiAlias = GetObject<bool>();
-    paintHandle.blenderEnabled = GetObject<bool>();
+    paintHandle.SetBlenderEnabled(GetObject<bool>());
     paintHandle.width = GetObject<scalar>();
     paintHandle.miterLimit = GetObject<scalar>();
     DrawRectOpItem::ConstructorHandle constructorHandle = DrawRectOpItem::ConstructorHandle(rect, paintHandle);
@@ -746,7 +746,7 @@ bool DrawCmdFuzzTest019(const uint8_t* data, size_t size)
     RoundRect roundRect = RoundRect(rect, xRad, yRad);
     PaintHandle paintHandle;
     paintHandle.isAntiAlias = GetObject<bool>();
-    paintHandle.blenderEnabled = GetObject<bool>();
+    paintHandle.SetBlenderEnabled(GetObject<bool>());
     paintHandle.width = GetObject<scalar>();
     paintHandle.miterLimit = GetObject<scalar>();
     DrawRoundRectOpItem::ConstructorHandle constructorHandle = DrawRoundRectOpItem::ConstructorHandle(
@@ -814,7 +814,7 @@ bool DrawCmdFuzzTest021(const uint8_t* data, size_t size)
     RoundRect outerRRect = RoundRect(otherRect, xRadT, yRadT);
     PaintHandle paintHandle;
     paintHandle.isAntiAlias = GetObject<bool>();
-    paintHandle.blenderEnabled = GetObject<bool>();
+    paintHandle.SetBlenderEnabled(GetObject<bool>());
     paintHandle.width = GetObject<scalar>();
     paintHandle.miterLimit = GetObject<scalar>();
     DrawNestedRoundRectOpItem::ConstructorHandle constructorHandle = DrawNestedRoundRectOpItem::ConstructorHandle(
@@ -881,7 +881,7 @@ bool DrawCmdFuzzTest023(const uint8_t* data, size_t size)
     scalar sweepAngle = GetObject<scalar>();
     PaintHandle paintHandle;
     paintHandle.isAntiAlias = GetObject<bool>();
-    paintHandle.blenderEnabled = GetObject<bool>();
+    paintHandle.SetBlenderEnabled(GetObject<bool>());
     paintHandle.width = GetObject<scalar>();
     paintHandle.miterLimit = GetObject<scalar>();
     DrawArcOpItem::ConstructorHandle constructorHandle = DrawArcOpItem::ConstructorHandle(
@@ -943,7 +943,7 @@ bool DrawCmdFuzzTest025(const uint8_t* data, size_t size)
     scalar sweepAngle = GetObject<scalar>();
     PaintHandle paintHandle;
     paintHandle.isAntiAlias = GetObject<bool>();
-    paintHandle.blenderEnabled = GetObject<bool>();
+    paintHandle.SetBlenderEnabled(GetObject<bool>());
     paintHandle.width = GetObject<scalar>();
     paintHandle.miterLimit = GetObject<scalar>();
     DrawPieOpItem::ConstructorHandle constructorHandle = DrawPieOpItem::ConstructorHandle(
@@ -1003,7 +1003,7 @@ bool DrawCmdFuzzTest027(const uint8_t* data, size_t size)
     Rect rect { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
     PaintHandle paintHandle;
     paintHandle.isAntiAlias = GetObject<bool>();
-    paintHandle.blenderEnabled = GetObject<bool>();
+    paintHandle.SetBlenderEnabled(GetObject<bool>());
     paintHandle.width = GetObject<scalar>();
     paintHandle.miterLimit = GetObject<scalar>();
     DrawOvalOpItem::ConstructorHandle constructorHandle = DrawOvalOpItem::ConstructorHandle(rect, paintHandle);
@@ -1063,7 +1063,7 @@ bool DrawCmdFuzzTest029(const uint8_t* data, size_t size)
     scalar radius = GetObject<scalar>();
     PaintHandle paintHandle;
     paintHandle.isAntiAlias = GetObject<bool>();
-    paintHandle.blenderEnabled = GetObject<bool>();
+    paintHandle.SetBlenderEnabled(GetObject<bool>());
     paintHandle.width = GetObject<scalar>();
     paintHandle.miterLimit = GetObject<scalar>();
     DrawCircleOpItem::ConstructorHandle constructorHandle = DrawCircleOpItem::ConstructorHandle(
@@ -1325,7 +1325,7 @@ bool DrawCmdFuzzTest039(const uint8_t* data, size_t size)
     OpDataHandle regionT { GetObject<uint32_t>(), GetObject<size_t>() };
     PaintHandle paintHandle;
     paintHandle.isAntiAlias = GetObject<bool>();
-    paintHandle.blenderEnabled = GetObject<bool>();
+    paintHandle.SetBlenderEnabled(GetObject<bool>());
     paintHandle.width = GetObject<scalar>();
     paintHandle.miterLimit = GetObject<scalar>();
     DrawRegionOpItem::ConstructorHandle constructorHandle = DrawRegionOpItem::ConstructorHandle(regionT, paintHandle);
@@ -1383,7 +1383,7 @@ bool DrawCmdFuzzTest040(const uint8_t* data, size_t size)
     OpDataHandle verticesT { GetObject<uint32_t>(), GetObject<size_t>() };
     PaintHandle paintHandle;
     paintHandle.isAntiAlias = GetObject<bool>();
-    paintHandle.blenderEnabled = GetObject<bool>();
+    paintHandle.SetBlenderEnabled(GetObject<bool>());
     paintHandle.width = GetObject<scalar>();
     paintHandle.miterLimit = GetObject<scalar>();
     DrawVerticesOpItem::ConstructorHandle constructorHandle = DrawVerticesOpItem::ConstructorHandle(verticesT,
@@ -1560,7 +1560,7 @@ bool DrawCmdFuzzTest044(const uint8_t* data, size_t size)
     OpDataHandle imageT { GetObject<uint32_t>(), GetObject<size_t>() };
     PaintHandle paintHandle;
     paintHandle.isAntiAlias = GetObject<bool>();
-    paintHandle.blenderEnabled = GetObject<bool>();
+    paintHandle.SetBlenderEnabled(GetObject<bool>());
     paintHandle.width = GetObject<scalar>();
     paintHandle.miterLimit = GetObject<scalar>();
     LatticeHandle latticeHandle;
@@ -1627,7 +1627,7 @@ bool DrawCmdFuzzTest045(const uint8_t* data, size_t size)
     std::pair<uint32_t, size_t> colorsT = { GetObject<uint32_t>(), GetObject<size_t>() };
     PaintHandle paintHandle;
     paintHandle.isAntiAlias = GetObject<bool>();
-    paintHandle.blenderEnabled = GetObject<bool>();
+    paintHandle.SetBlenderEnabled(GetObject<bool>());
     paintHandle.width = GetObject<scalar>();
     paintHandle.miterLimit = GetObject<scalar>();
     DrawAtlasOpItem::ConstructorHandle constructorHandle = DrawAtlasOpItem::ConstructorHandle(atlas, xformT, texT,
@@ -1665,7 +1665,7 @@ bool DrawCmdFuzzTest046(const uint8_t* data, size_t size)
     std::pair<uint32_t, size_t> colorsT = { GetObject<uint32_t>(), GetObject<size_t>() };
     PaintHandle paintHandle;
     paintHandle.isAntiAlias = GetObject<bool>();
-    paintHandle.blenderEnabled = GetObject<bool>();
+    paintHandle.SetBlenderEnabled(GetObject<bool>());
     paintHandle.width = GetObject<scalar>();
     paintHandle.miterLimit = GetObject<scalar>();
     BlendMode mode = GetObject<BlendMode>();
@@ -1721,7 +1721,7 @@ bool DrawCmdFuzzTest047(const uint8_t* data, size_t size)
     ImageHandle bitmapT { GetObject<uint32_t>(), GetObject<size_t>(), GetObject<int32_t>(), GetObject<int32_t>() };
     PaintHandle paintHandle;
     paintHandle.isAntiAlias = GetObject<bool>();
-    paintHandle.blenderEnabled = GetObject<bool>();
+    paintHandle.SetBlenderEnabled(GetObject<bool>());
     paintHandle.width = GetObject<scalar>();
     paintHandle.miterLimit = GetObject<scalar>();
     DrawBitmapOpItem::ConstructorHandle constructorHandle = DrawBitmapOpItem::ConstructorHandle(bitmapT,
@@ -1779,7 +1779,7 @@ bool DrawCmdFuzzTest048(const uint8_t* data, size_t size)
     OpDataHandle imageT { GetObject<uint32_t>(), GetObject<size_t>() };
     PaintHandle paintHandle;
     paintHandle.isAntiAlias = GetObject<bool>();
-    paintHandle.blenderEnabled = GetObject<bool>();
+    paintHandle.SetBlenderEnabled(GetObject<bool>());
     paintHandle.width = GetObject<scalar>();
     paintHandle.miterLimit = GetObject<scalar>();
     DrawImageOpItem::ConstructorHandle constructorHandle = DrawImageOpItem::ConstructorHandle(imageT, px, py,
@@ -1840,7 +1840,7 @@ bool DrawCmdFuzzTest049(const uint8_t* data, size_t size)
     OpDataHandle imageT { GetObject<uint32_t>(), GetObject<size_t>() };
     PaintHandle paintHandle;
     paintHandle.isAntiAlias = GetObject<bool>();
-    paintHandle.blenderEnabled = GetObject<bool>();
+    paintHandle.SetBlenderEnabled(GetObject<bool>());
     paintHandle.width = GetObject<scalar>();
     paintHandle.miterLimit = GetObject<scalar>();
     DrawImageRectOpItem::ConstructorHandle constructorHandle = DrawImageRectOpItem::ConstructorHandle(imageT, src, dst,
@@ -1918,7 +1918,7 @@ bool DrawCmdFuzzTest051(const uint8_t* data, size_t size)
     scalar y = GetObject<scalar>();
     PaintHandle paintHandle;
     paintHandle.isAntiAlias = GetObject<bool>();
-    paintHandle.blenderEnabled = GetObject<bool>();
+    paintHandle.SetBlenderEnabled(GetObject<bool>());
     paintHandle.width = GetObject<scalar>();
     paintHandle.miterLimit = GetObject<scalar>();
     DrawTextBlobOpItem::ConstructorHandle constructorHandle = DrawTextBlobOpItem::ConstructorHandle(textBlob,
@@ -1992,7 +1992,7 @@ bool DrawCmdFuzzTest053(const uint8_t* data, size_t size)
     Point locate { x, y };
     PaintHandle paintHandle;
     paintHandle.isAntiAlias = GetObject<bool>();
-    paintHandle.blenderEnabled = GetObject<bool>();
+    paintHandle.SetBlenderEnabled(GetObject<bool>());
     paintHandle.width = GetObject<scalar>();
     paintHandle.miterLimit = GetObject<scalar>();
     DrawSymbolOpItem::ConstructorHandle constructorHandle = DrawSymbolOpItem::ConstructorHandle(symbolHandle, locate,
@@ -2951,6 +2951,210 @@ bool DrawCmdFuzzTest082(const uint8_t* data, size_t size)
     }
     return true;
 }
+
+bool DrawCmdFuzzTest083(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    size_t length = GetObject<size_t>() % MAX_SIZE + 1;
+    char* dataText = new char[length];
+    for (size_t i = 0; i < length; i++) {
+        dataText[i] = GetObject<char>();
+    }
+    std::pair<const void*, size_t> cmdListData;
+    cmdListData.first = static_cast<const void*>(dataText);
+    cmdListData.second = length;
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
+    ResetClipOpItem::ConstructorHandle constructorHandle = ResetClipOpItem::ConstructorHandle();
+    ResetClipOpItem resetClipOpItem = ResetClipOpItem();
+    resetClipOpItem.Marshalling(*drawCmdList);
+    ResetClipOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
+    if (dataText != nullptr) {
+        delete [] dataText;
+        dataText = nullptr;
+    }
+    return true;
+}
+
+bool DrawCmdFuzzTest084(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    ResetClipOpItem resetClipOpItem = ResetClipOpItem();
+    int32_t width = GetObject<int32_t>();
+    int32_t height = GetObject<int32_t>();
+    Canvas canvas = Canvas(width, height);
+    Rect rectT { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
+    resetClipOpItem.Playback(&canvas, &rectT);
+    return true;
+}
+
+bool DrawCmdFuzzTest085(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    BrushHandle brushHandle;
+    brushHandle.colorFilterHandle.size = GetObject<size_t>();
+    brushHandle.colorSpaceHandle.size = GetObject<size_t>();
+    brushHandle.shaderEffectHandle.size = GetObject<size_t>();
+    brushHandle.imageFilterHandle.size = GetObject<size_t>();
+    brushHandle.maskFilterHandle.size = GetObject<size_t>();
+    size_t length = GetObject<size_t>() % MAX_SIZE + 1;
+    char* dataText = new char[length];
+    for (size_t i = 0; i < length; i++) {
+        dataText[i] = GetObject<char>();
+    }
+    std::pair<const void*, size_t> cmdListData;
+    cmdListData.first = static_cast<const void*>(dataText);
+    cmdListData.second = length;
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
+    float alpha = GetObject<float>();
+    float red = GetObject<float>();
+    float blue = GetObject<float>();
+    float green = GetObject<float>();
+    float headroom = GetObject<float>();
+    UIColor color = UIColor(red, green, blue, alpha, headroom);
+    Brush brush = Brush(color);
+    uint32_t mode = GetObject<uint32_t>();
+    bool isAntiAlias = GetObject<bool>();
+    brush.SetBlendMode(static_cast<BlendMode>(mode % BLENDMODE_SIZE));
+    brush.SetAntiAlias(isAntiAlias);
+    DrawOpItem::BrushToBrushHandle(brush, *drawCmdList, brushHandle);
+    if (dataText != nullptr) {
+        delete [] dataText;
+        dataText = nullptr;
+    }
+    return true;
+}
+
+bool DrawCmdFuzzTest086(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    PaintHandle paintHandle;
+    paintHandle.isAntiAlias = GetObject<bool>();
+    paintHandle.SetBlenderEnabled(GetObject<bool>());
+    paintHandle.width = GetObject<scalar>();
+    paintHandle.miterLimit = GetObject<scalar>();
+    size_t length = GetObject<size_t>() % MAX_SIZE + 1;
+    char* dataText = new char[length];
+    for (size_t i = 0; i < length; i++) {
+        dataText[i] = GetObject<char>();
+    }
+    std::pair<const void*, size_t> cmdListData;
+    cmdListData.first = static_cast<const void*>(dataText);
+    cmdListData.second = length;
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
+    float alpha = GetObject<float>();
+    float red = GetObject<float>();
+    float blue = GetObject<float>();
+    float green = GetObject<float>();
+    float headroom = GetObject<float>();
+    UIColor color = UIColor(red, green, blue, alpha, headroom);
+    Paint paint = Paint();
+    paint.SetUIColor(color);
+    uint32_t style = GetObject<uint32_t>();
+    paint.SetStyle(static_cast<Paint::PaintStyle>(style % PAINTSTYLE_SIZE));
+    DrawOpItem::GeneratePaintFromHandle(paintHandle, *drawCmdList, paint);
+    if (dataText != nullptr) {
+        delete [] dataText;
+        dataText = nullptr;
+    }
+    return true;
+}
+
+bool DrawCmdFuzzTest087(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    PaintHandle paintHandle;
+    paintHandle.isAntiAlias = GetObject<bool>();
+    paintHandle.SetBlenderEnabled(GetObject<bool>());
+    paintHandle.width = GetObject<scalar>();
+    paintHandle.miterLimit = GetObject<scalar>();
+    size_t length = GetObject<size_t>() % MAX_SIZE + 1;
+    char* dataText = new char[length];
+    for (size_t i = 0; i < length; i++) {
+        dataText[i] = GetObject<char>();
+    }
+    std::pair<const void*, size_t> cmdListData;
+    cmdListData.first = static_cast<const void*>(dataText);
+    cmdListData.second = length;
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
+    float alpha = GetObject<float>();
+    float red = GetObject<float>();
+    float blue = GetObject<float>();
+    float green = GetObject<float>();
+    float headroom = GetObject<float>();
+    UIColor color = UIColor(red, green, blue, alpha, headroom);
+    Paint paint = Paint();
+    paint.SetUIColor(color);
+    scalar width = GetObject<scalar>();
+    uint32_t mode = GetObject<uint32_t>();
+    bool isAntiAlias = GetObject<bool>();
+    paint.SetWidth(width);
+    paint.SetBlendMode(static_cast<BlendMode>(mode % BLENDMODE_SIZE));
+    paint.SetAntiAlias(isAntiAlias);
+    DrawOpItem::GenerateHandleFromPaint(*drawCmdList, paint, paintHandle);
+    if (dataText != nullptr) {
+        delete [] dataText;
+        dataText = nullptr;
+    }
+    return true;
+}
+
+bool DrawCmdFuzzTest088(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    BrushHandle brushHandle;
+    brushHandle.colorFilterHandle.size = GetObject<size_t>();
+    brushHandle.colorSpaceHandle.size = GetObject<size_t>();
+    brushHandle.shaderEffectHandle.size = GetObject<size_t>();
+    brushHandle.imageFilterHandle.size = GetObject<size_t>();
+    brushHandle.maskFilterHandle.size = GetObject<size_t>();
+    size_t length = GetObject<size_t>() % MAX_SIZE + 1;
+    char* dataText = new char[length];
+    for (size_t i = 0; i < length; i++) {
+        dataText[i] = GetObject<char>();
+    }
+    std::pair<const void*, size_t> cmdListData;
+    cmdListData.first = static_cast<const void*>(dataText);
+    cmdListData.second = length;
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
+    Brush brush;
+    float alpha = GetObject<float>();
+    float red = GetObject<float>();
+    float blue = GetObject<float>();
+    float green = GetObject<float>();
+    float headroom = GetObject<float>();
+    UIColor color = UIColor(red, green, blue, alpha, headroom);
+    brush.SetUIColor(color, nullptr);
+    DrawOpItem::BrushHandleToBrush(brushHandle, *drawCmdList, brush);
+    if (dataText != nullptr) {
+        delete [] dataText;
+        dataText = nullptr;
+    }
+    return true;
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -3046,6 +3250,11 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::DrawCmdFuzzTest080(data, size);
     OHOS::Rosen::Drawing::DrawCmdFuzzTest081(data, size);
     OHOS::Rosen::Drawing::DrawCmdFuzzTest082(data, size);
-
+    OHOS::Rosen::Drawing::DrawCmdFuzzTest083(data, size);
+    OHOS::Rosen::Drawing::DrawCmdFuzzTest084(data, size);
+    OHOS::Rosen::Drawing::DrawCmdFuzzTest085(data, size);
+    OHOS::Rosen::Drawing::DrawCmdFuzzTest086(data, size);
+    OHOS::Rosen::Drawing::DrawCmdFuzzTest087(data, size);
+    OHOS::Rosen::Drawing::DrawCmdFuzzTest088(data, size);
     return 0;
 }

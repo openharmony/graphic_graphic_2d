@@ -31,7 +31,6 @@
 #include "render/rs_render_kawase_blur_filter.h"
 #include "render/rs_render_linear_gradient_blur_filter.h"
 #include "render/rs_skia_filter.h"
-#include "render/rs_render_magnifier_filter.h"
 #include "render/rs_material_filter.h"
 #include "platform/common/rs_system_properties.h"
 
@@ -296,7 +295,7 @@ void RSPropertiesPainter::GetShadowDirtyRect(RectI& dirtyShadow, const RSPropert
         Drawing::Point3 lightPos = { pt[0].GetX(), pt[0].GetY(), DEFAULT_LIGHT_HEIGHT };
         emptyCanvas->GetLocalShadowBounds(matrix, path, planeParams, lightPos, DEFAULT_LIGHT_RADIUS,
             Drawing::ShadowFlags::TRANSPARENT_OCCLUDER, true, shadowRect);
-    } else {
+    } else if (ROSEN_GNE(properties.GetShadowRadius(), 0.f)) {
         Drawing::Brush brush;
         brush.SetAntiAlias(true);
         Drawing::Filter filter;
@@ -576,13 +575,6 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
 
     auto clipIBounds = canvas.GetDeviceClipBounds();
     auto imageClipIBounds = clipIBounds;
-    auto magnifierShaderFilter = filter->GetShaderFilterWithType(RSUIFilterType::MAGNIFIER);
-    if (magnifierShaderFilter != nullptr) {
-        auto tmpFilter = std::static_pointer_cast<RSMagnifierShaderFilter>(magnifierShaderFilter);
-        auto canvasMatrix = canvas.GetTotalMatrix();
-        tmpFilter->SetMagnifierOffset(canvasMatrix);
-        imageClipIBounds.Offset(tmpFilter->GetMagnifierOffsetX(), tmpFilter->GetMagnifierOffsetY());
-    }
 
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     // Optional use cacheManager to draw filter
@@ -820,6 +812,20 @@ void RSPropertiesPainter::GetForegroundNGFilterDirtyRect(RectI& dirtyForegroundE
         dirtyForegroundEffect.top_ = std::floor(drawingRect.GetTop());
         dirtyForegroundEffect.width_ = scale.x_;
         dirtyForegroundEffect.height_ = scale.y_;
+    } else if (foregroundNGFilter->GetType() == RSNGEffectType::PARTICLE_ABLATION) {
+        auto boundsRect = properties.GetBoundsRect();
+        auto& geoPtr = properties.GetBoundsGeometry();
+        Drawing::Matrix matrix = (geoPtr && isAbsCoordinate) ? geoPtr->GetAbsMatrix() : Drawing::Matrix();
+        auto drawingRect = Rect2DrawingRect(boundsRect);
+        matrix.MapRect(drawingRect, drawingRect);
+        auto filter = std::static_pointer_cast<RSNGRenderParticleAblationFilter>(foregroundNGFilter);
+        auto scale = filter->Getter<ParticleAblationExpansionSizeRenderTag>()->Get();
+        auto offsetx = (scale.x_ - drawingRect.GetWidth()) / 2; //2 : half width
+        auto offsety = (scale.y_ - drawingRect.GetHeight()) / 2; //2 : half height
+        dirtyForegroundEffect.left_ = std::floor(drawingRect.GetLeft()) - offsetx;
+        dirtyForegroundEffect.top_ = std::floor(drawingRect.GetTop()) - offsety;
+        dirtyForegroundEffect.width_ = scale.x_;
+        dirtyForegroundEffect.height_ = scale.y_;
     }
 }
 
@@ -836,23 +842,6 @@ void RSPropertiesPainter::GetDistortionEffectDirtyRect(RectI& dirtyDistortionEff
         dirtyDistortionEffect.width_ = dirtyWidth;
         dirtyDistortionEffect.height_ = dirtyWidth;
     }
-}
-
-// calculate the magnifier effect's dirty area
-void RSPropertiesPainter::GetMagnifierEffectDirtyRect(RectI& dirtyMagnifierEffect, const RSProperties& properties)
-{
-    const auto& magnifierPara = properties.GetMagnifierPara();
-    if (!magnifierPara) {
-        return;
-    }
-    auto boundsRect = properties.GetBoundsRect();
-    auto scaledBounds = RectF(boundsRect.left_ + magnifierPara->offsetX_, boundsRect.top_ + magnifierPara->offsetY_,
-        boundsRect.width_, boundsRect.height_);
-    auto drawingRect = Rect2DrawingRect(scaledBounds);
-        dirtyMagnifierEffect.left_ = static_cast<int>(std::floor(drawingRect.GetLeft()));
-    dirtyMagnifierEffect.top_ = static_cast<int>(std::floor(drawingRect.GetTop()));
-    dirtyMagnifierEffect.width_ = static_cast<int>(std::ceil(drawingRect.GetRight())) - dirtyMagnifierEffect.left_ ;
-    dirtyMagnifierEffect.height_ = static_cast<int>(std::ceil(drawingRect.GetBottom())) - dirtyMagnifierEffect.top_;
 }
 
 Drawing::ColorQuad RSPropertiesPainter::CalcAverageColor(std::shared_ptr<Drawing::Image> imageSnapshot)

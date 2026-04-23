@@ -69,6 +69,80 @@ HWTEST_F(NativeDrawingPointTest, NativeDrawingPointTest_PointGetAndSet001, TestS
     OH_Drawing_PointDestroy(centerPt);
     OH_Drawing_PointDestroy(nullptr);
 }
+
+/*
+ * @tc.name: NativeDrawingPointTest_PointNegate001
+ * @tc.desc: test for negating the coordinates of the point.
+ * @tc.type: FUNC
+ * @tc.require: 22992
+ */
+HWTEST_F(NativeDrawingPointTest, NativeDrawingPointTest_PointNegate001, TestSize.Level1)
+{
+    OH_Drawing_Point* point = OH_Drawing_PointCreate(3.5f, -4.5f);
+    EXPECT_EQ(OH_Drawing_PointNegate(point), OH_DRAWING_SUCCESS);
+    float x, y;
+    OH_Drawing_PointGetX(point, &x);
+    OH_Drawing_PointGetY(point, &y);
+    EXPECT_TRUE(IsScalarAlmostEqual(x, -3.5f));
+    EXPECT_TRUE(IsScalarAlmostEqual(y, 4.5f));
+    OH_Drawing_PointDestroy(point);
+    EXPECT_EQ(OH_Drawing_PointNegate(nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+}
+
+/*
+ * @tc.name: NativeDrawingPointTest_PointNegate002
+ * @tc.desc: test for negating the coordinates of the point (0, 0).
+ * @tc.type: FUNC
+ * @tc.require: 22992
+ */
+HWTEST_F(NativeDrawingPointTest, NativeDrawingPointTest_PointNegate002, TestSize.Level1)
+{
+    OH_Drawing_Point* point1 = OH_Drawing_PointCreate(0.0f, 0.0f);
+    EXPECT_EQ(OH_Drawing_PointNegate(point1), OH_DRAWING_SUCCESS);
+    float x, y;
+    OH_Drawing_PointGetX(point1, &x);
+    OH_Drawing_PointGetY(point1, &y);
+    EXPECT_TRUE(IsScalarAlmostEqual(x, 0.0f));
+    EXPECT_TRUE(IsScalarAlmostEqual(y, 0.0f));
+    OH_Drawing_PointDestroy(point1);
+}
+
+/*
+ * @tc.name: NativeDrawingPointTest_PointOffset001
+ * @tc.desc: test for offsetting the coordinates of the point.
+ * @tc.type: FUNC
+ * @tc.require: 22992
+ */
+HWTEST_F(NativeDrawingPointTest, NativeDrawingPointTest_PointOffset001, TestSize.Level1)
+{
+    OH_Drawing_Point* point = OH_Drawing_PointCreate(3.5f, 4.5f);
+    EXPECT_EQ(OH_Drawing_PointOffset(point, 2.0f, -1.0f), OH_DRAWING_SUCCESS);
+    float x, y;
+    OH_Drawing_PointGetX(point, &x);
+    OH_Drawing_PointGetY(point, &y);
+    EXPECT_TRUE(IsScalarAlmostEqual(x, 5.5f));
+    EXPECT_TRUE(IsScalarAlmostEqual(y, 3.5f));
+    OH_Drawing_PointDestroy(point);
+    EXPECT_EQ(OH_Drawing_PointOffset(nullptr, 1.0f, 2.0f), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+}
+
+/*
+ * @tc.name: NativeDrawingPointTest_PointOffset002
+ * @tc.desc: test for offsetting the coordinates of the point with zero offset.
+ * @tc.type: FUNC
+ * @tc.require: 22992
+ */
+HWTEST_F(NativeDrawingPointTest, NativeDrawingPointTest_PointOffset002, TestSize.Level1)
+{
+    OH_Drawing_Point* point = OH_Drawing_PointCreate(3.5f, 4.5f);
+    EXPECT_EQ(OH_Drawing_PointOffset(point, 0.0f, 0.0f), OH_DRAWING_SUCCESS);
+    float x, y;
+    OH_Drawing_PointGetX(point, &x);
+    OH_Drawing_PointGetY(point, &y);
+    EXPECT_TRUE(IsScalarAlmostEqual(x, 3.5f));
+    EXPECT_TRUE(IsScalarAlmostEqual(y, 4.5f));
+    OH_Drawing_PointDestroy(point);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

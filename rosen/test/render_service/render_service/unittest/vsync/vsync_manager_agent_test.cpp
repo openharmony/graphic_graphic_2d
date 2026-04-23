@@ -188,11 +188,12 @@ HWTEST_F(VSyncManagerAgentTest, SetBufferInfo, Function | MediumTest| Level0)
 HWTEST_F(VSyncManagerAgentTest, GetRealTimeOffsetOfDvsync, Function | MediumTest| Level0)
 {
     int64_t time = SystemTime();
+    int64_t preTime = 0;
     auto rsDistributor = vsyncManagerAgent_->rsVsyncDistributor_;
-    uint64_t res = vsyncManagerAgent_->GetRealTimeOffsetOfDvsync(time);
+    uint64_t res = vsyncManagerAgent_->GetRealTimeOffsetOfDvsync(time, preTime);
     ASSERT_EQ(res, 0);
     vsyncManagerAgent_->rsVsyncDistributor_ = nullptr;
-    res = vsyncManagerAgent_->GetRealTimeOffsetOfDvsync(time);
+    res = vsyncManagerAgent_->GetRealTimeOffsetOfDvsync(time, preTime);
     ASSERT_EQ(res, 0);
     vsyncManagerAgent_->rsVsyncDistributor_ = rsDistributor;
 }

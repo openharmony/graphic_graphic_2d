@@ -14,6 +14,7 @@
  */
 
 #include "gtest/gtest.h"
+#include "animation/rs_animation.h"
 #include "animation/rs_implicit_animator.h"
 #include <sys/types.h>
 #include <unistd.h>
@@ -145,4 +146,170 @@ HWTEST_F(RSImplicitAnimatorTest, CreateImplicitAnimationTest, Level1)
     rsImplicitAnimator.CreateImplicitAnimation(nullptr, nullptr, nullptr, nullptr);
     ASSERT_FALSE(res);
 }
+
+/**
+ * @tc.name: CloseImplicitAnimation001
+ * @tc.desc: Test CloseImplicitAnimation without opening implicit animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSImplicitAnimatorTest, CloseImplicitAnimation001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSImplicitAnimatorTest CloseImplicitAnimation001 start";
+    RSImplicitAnimator rsImplicitAnimator;
+
+    // Cover branch: CheckImplicitAnimationConditions() == false
+    auto result = rsImplicitAnimator.CloseImplicitAnimation();
+    ASSERT_TRUE(result.empty());
+
+    GTEST_LOG_(INFO) << "RSImplicitAnimatorTest CloseImplicitAnimation001 end";
+}
+
+/**
+ * @tc.name: CloseImplicitAnimation002
+ * @tc.desc: Test CloseImplicitAnimation with empty animations
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSImplicitAnimatorTest, CloseImplicitAnimation002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSImplicitAnimatorTest CloseImplicitAnimation002 start";
+    RSImplicitAnimator rsImplicitAnimator;
+
+    RSAnimationTimingProtocol timingProtocol;
+    timingProtocol.SetDuration(1000);
+    RSAnimationTimingCurve timingCurve;
+    std::function<void()> callback;
+    auto finishCallback = std::make_shared<AnimationFinishCallback>(callback);
+
+    // Open implicit animation
+    rsImplicitAnimator.OpenImplicitAnimation(timingProtocol, timingCurve, std::move(finishCallback));
+
+    // Close without adding any animations
+    // Cover branch: currentAnimations.empty() && currentKeyframeAnimations.empty() -> ProcessEmptyAnimations
+    auto result = rsImplicitAnimator.CloseImplicitAnimation();
+    ASSERT_TRUE(result.empty());
+
+    GTEST_LOG_(INFO) << "RSImplicitAnimatorTest CloseImplicitAnimation002 end";
+}
+
+/**
+ * @tc.name: CloseImplicitAnimation003
+ * @tc.desc: Test CloseImplicitAnimation with !hasUiAnimation && interactiveAnimatorType_ ==
+ * InteractiveAnimatorType::NONE (true branch)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSImplicitAnimatorTest, CloseImplicitAnimation003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSImplicitAnimatorTest CloseImplicitAnimation003 start";
+    RSImplicitAnimator rsImplicitAnimator;
+
+    RSAnimationTimingProtocol timingProtocol;
+    timingProtocol.SetDuration(1000);
+    RSAnimationTimingCurve timingCurve;
+    std::function<void()> callback;
+    auto finishCallback = std::make_shared<AnimationFinishCallback>(callback);
+
+    // Open implicit animation (interactiveAnimatorType_ = InteractiveAnimatorType::NONE by default)
+    rsImplicitAnimator.OpenImplicitAnimation(timingProtocol, timingCurve, std::move(finishCallback));
+
+    // Close without UI animations
+    // Cover branch: !hasUiAnimation && interactiveAnimatorType_ == InteractiveAnimatorType::NONE ->
+    // ProcessAnimationFinishCallbackGuaranteeTask
+    auto result = rsImplicitAnimator.CloseImplicitAnimation();
+    ASSERT_TRUE(result.empty());
+
+    GTEST_LOG_(INFO) << "RSImplicitAnimatorTest CloseImplicitAnimation003 end";
+}
+
+/**
+ * @tc.name: CloseImplicitAnimation004
+ * @tc.desc: Test CloseImplicitAnimation with hasUiAnimation && interactiveAnimatorType_ ==
+ * InteractiveAnimatorType::NONE (false branch)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSImplicitAnimatorTest, CloseImplicitAnimation004, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSImplicitAnimatorTest CloseImplicitAnimation004 start";
+    RSImplicitAnimator rsImplicitAnimator;
+
+    RSAnimationTimingProtocol timingProtocol;
+    timingProtocol.SetDuration(1000);
+    RSAnimationTimingCurve timingCurve;
+    std::function<void()> callback;
+    auto finishCallback = std::make_shared<AnimationFinishCallback>(callback);
+
+    // Open implicit animation (interactiveAnimatorType_ = InteractiveAnimatorType::NONE)
+    rsImplicitAnimator.OpenImplicitAnimation(timingProtocol, timingCurve, std::move(finishCallback));
+
+    // Begin keyframe animation to create a UI animation
+    rsImplicitAnimator.BeginImplicitKeyFrameAnimation(1.0f);
+
+    // Close with UI animation
+    // Cover branch: hasUiAnimation && interactiveAnimatorType_ == InteractiveAnimatorType::NONE -> skip
+    // ProcessAnimationFinishCallbackGuaranteeTask
+    auto result = rsImplicitAnimator.CloseImplicitAnimation();
+
+    GTEST_LOG_(INFO) << "RSImplicitAnimatorTest CloseImplicitAnimation004 end";
+}
+
+/**
+ * @tc.name: CloseImplicitAnimation005
+ * @tc.desc: Test CloseImplicitAnimation with !hasUiAnimation && interactiveAnimatorType_ ==
+ * InteractiveAnimatorType::GROUP (false branch)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSImplicitAnimatorTest, CloseImplicitAnimation005, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSImplicitAnimatorTest CloseImplicitAnimation005 start";
+    RSImplicitAnimator rsImplicitAnimator;
+
+    RSAnimationTimingProtocol timingProtocol;
+    timingProtocol.SetDuration(1000);
+    RSAnimationTimingCurve timingCurve;
+    std::function<void()> callback;
+    auto finishCallback = std::make_shared<AnimationFinishCallback>(callback);
+
+    // Open interactive implicit animation (isAddImplictAnimation = true, isGroupAnimator = true)
+    rsImplicitAnimator.OpenInterActiveImplicitAnimation(
+        true, true, timingProtocol, timingCurve, std::move(finishCallback));
+
+    // Close without UI animations but with interactiveAnimatorType_ == InteractiveAnimatorType::GROUP
+    // Cover branch: !hasUiAnimation && interactiveAnimatorType_ == InteractiveAnimatorType::GROUP -> skip
+    // ProcessAnimationFinishCallbackGuaranteeTask
+    auto result = rsImplicitAnimator.CloseImplicitAnimation();
+
+    GTEST_LOG_(INFO) << "RSImplicitAnimatorTest CloseImplicitAnimation005 end";
+}
+
+/**
+ * @tc.name: CloseImplicitAnimation006
+ * @tc.desc: Test CloseImplicitAnimation with hasUiAnimation && interactiveAnimatorType_ ==
+ * InteractiveAnimatorType::GROUP (false branch)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSImplicitAnimatorTest, CloseImplicitAnimation006, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSImplicitAnimatorTest CloseImplicitAnimation006 start";
+    RSImplicitAnimator rsImplicitAnimator;
+
+    RSAnimationTimingProtocol timingProtocol;
+    timingProtocol.SetDuration(1000);
+    RSAnimationTimingCurve timingCurve;
+    std::function<void()> callback;
+    auto finishCallback = std::make_shared<AnimationFinishCallback>(callback);
+
+    // Open interactive implicit animation (isAddImplictAnimation = true, isGroupAnimator = true)
+    rsImplicitAnimator.OpenInterActiveImplicitAnimation(
+        true, true, timingProtocol, timingCurve, std::move(finishCallback));
+
+    // Begin keyframe animation to create a UI animation
+    rsImplicitAnimator.BeginImplicitKeyFrameAnimation(1.0f);
+
+    // Close with UI animation and interactiveAnimatorType_ == InteractiveAnimatorType::GROUP
+    // Cover branch: hasUiAnimation && interactiveAnimatorType_ == InteractiveAnimatorType::GROUP -> skip
+    // ProcessAnimationFinishCallbackGuaranteeTask
+    auto result = rsImplicitAnimator.CloseImplicitAnimation();
+
+    GTEST_LOG_(INFO) << "RSImplicitAnimatorTest CloseImplicitAnimation006 end";
+}
+
 }

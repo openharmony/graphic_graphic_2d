@@ -35,7 +35,17 @@ namespace OHOS::Rosen {
 namespace {
 constexpr uint32_t delay_110Ms = 110;
 constexpr const char* HGM_CONFIG_PATH = "/sys_prod/etc/graphic/hgm_policy_config.xml";
+std::string g_testStr = HGM_CONFIG_PATH;
 }
+
+std::string GetHgmXmlPath()
+{
+    if (g_testStr == HGM_CONFIG_PATH) {
+        return HGM_CONFIG_PATH;
+    }
+    return "";
+}
+
 class HgmRenderContextTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -62,6 +72,11 @@ HWTEST_F(HgmRenderContextTest, InitHgmConfigTest, TestSize.Level1)
     std::unordered_map<std::string, std::string> solidLayerConfig;
     std::vector<std::string> appBufferList;
     HgmRenderContext hgmRenderContext(renderToServiceConnection);
+
+    g_testStr = "";
+    EXPECT_EQ(hgmRenderContext.InitHgmConfig(sourceTuningConfig, solidLayerConfig, appBufferList), XML_FILE_LOAD_FAIL);
+    g_testStr = HGM_CONFIG_PATH;
+
     if (auto xmlDocument_ = xmlReadFile(HGM_CONFIG_PATH, nullptr, 0)) {
         EXPECT_EQ(hgmRenderContext.InitHgmConfig(sourceTuningConfig, solidLayerConfig, appBufferList), EXEC_SUCCESS);
     } else {

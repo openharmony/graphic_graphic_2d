@@ -33,12 +33,16 @@ public:
     bool DoBufferResume(sptr<SurfaceBuffer> buffer);
     bool CheckBufferReclaim();
     void RemoveBufferReclaim(uint64_t bufferId);
-
-    static void BufferDestructorCallBack(uint64_t bufferId);
+    void AddUICaptureNode(NodeId nodeId);
+    void RemoveUICaptureNode(NodeId nodeId);
+    bool CheckSameProcessUICaptureNode(NodeId nodeId);
 
 private:
+    static void BufferDestructorCallBack(uint64_t bufferId);
     mutable std::mutex mutex_;
     std::set<uint64_t> bufferReclaimNumsSet_;
+    std::mutex uiCaptureNodeMapMutex_;
+    std::map<uint32_t, std::map<NodeId, uint32_t>> uiCaptureNodeMap_;
 };
 } // namespace Rosen
 } // namespace OHOS

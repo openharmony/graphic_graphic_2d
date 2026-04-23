@@ -72,15 +72,20 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSScreenRender
     auto mirroredScreenDrawable =
         std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(params->GetMirrorSourceDrawable().lock());
     auto virtualScreenColorSpace = params->GetNewColorSpace();
+    auto childDrawables = params->GetDisplayDrawables();
+    if (childDrawables.empty() || childDrawables.front() == nullptr) {
+        RS_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::InitForRenderThread: no child display under screen");
+        RS_LOGE("RSUniRenderVirtualProcessor::InitForRenderThread: no child display under screen");
+        return false;
+    }
+    auto displayDrawable = childDrawables.front();
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable->GetRenderParams().get());
+    if (!displayParams) {
+        RS_LOGE("RSUniRenderVirtualProcessor::InitForRenderThread: displayParams is nullptr");
+        return false;
+    }
     if (mirroredScreenDrawable) {
         mirroredScreenNodeId_ = mirroredScreenDrawable->GetId();
-        auto childDrawables = params->GetDisplayDrawables();
-        if (childDrawables.empty() || childDrawables.front() == nullptr) {
-            RS_LOGE("RSUniRenderVirtualProcessor::InitForRenderThread: no child display in mirror screen");
-            return false;
-        }
-        auto displayDrawable = childDrawables.front();
-        auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable->GetRenderParams().get());
         auto mirroredDisplayDrawable = std::static_pointer_cast<DrawableV2::RSLogicalDisplayRenderNodeDrawable>(
             displayParams->GetMirrorSourceDrawable().lock());
         if (!mirroredDisplayDrawable) {
@@ -107,6 +112,16 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSScreenRender
         }
         expandScreenHDR = RSHdrUtil::IsHDRCast(params, renderFrameConfig_);
         RS_LOGD("RSUniRenderVirtualProcessor::Init HDRCast expandScreenHDR: %{public}d", expandScreenHDR);
+        float displayWidth = displayParams->GetFixedWidth();
+        float displayHeight = displayParams->GetFixedHeight();
+        float screenWidth = static_cast<float>(screenProperty.GetWidth());
+        float screenHeight = static_cast<float>(screenProperty.GetHeight());
+        if ((ROSEN_NE(displayWidth, screenWidth) || ROSEN_NE(displayHeight, screenHeight)) &&
+            ROSEN_GNE(displayWidth, 0.0f) && ROSEN_GNE(displayHeight, 0.0f)) {
+            isVirtualExpandScale_ = true;
+            virtualExpandScaleX_ = screenWidth / displayWidth;
+            virtualExpandScaleY_ = screenHeight / displayHeight;
+        }
     }
 
     SetVirtualScreenSize(screenDrawable);
@@ -159,10 +174,9 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSScreenRender
     }
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     RSHdrUtil::EraseHDRMetadataKey(renderFrame_);
-    if (mirrorScreenHDR || expandScreenHDR) {
-        if (RSHdrUtil::SetMetadata(RSHDRUtilConst::HDR_CAST_OUT_COLORSPACE, renderFrame_) != GSERROR_OK) {
-            RS_LOGD("RSUniRenderVirtualProcessor::Init SetMetadata failed");
-        }
+    bool isHDRCast = mirrorScreenHDR || expandScreenHDR;
+    if (RSHdrUtil::SetMetadata(RSHDRUtilConst::HDR_CAST_OUT_COLORSPACE, renderFrame_, isHDRCast) != GSERROR_OK) {
+        RS_LOGD("RSUniRenderVirtualProcessor::Init SetMetadata failed");
     }
 #endif
     canvas_ = renderFrame_->GetCanvas();
@@ -317,6 +331,35 @@ GSError RSUniRenderVirtualProcessor::SetColorSpaceForMetadata(GraphicColorGamut 
     return buffer->SetMetadata(ATTRKEY_COLORSPACE_INFO, colorSpaceVec);
 }
 
+bool RSUniRenderVirtualProcessor::SetCropRectForMetadata(
+    const HDI::Display::Graphic::Common::V1_0::BufferHandleMetaRegion& metaRegion)
+{
+    if (renderFrame_ == nullptr) {
+        RS_LOGD("%{public}s : renderFrame is nullptr.", __func__);
+        return false;
+    }
+    auto rsSurface = renderFrame_->GetSurface();
+    if (rsSurface == nullptr) {
+        RS_LOGD("%{public}s : surface is nullptr.", __func__);
+        return false;
+    }
+    auto buffer = rsSurface->GetCurrentBuffer();
+    if (buffer == nullptr) {
+        RS_LOGD("%{public}s : buffer is nullptr.", __func__);
+        return false;
+    }
+    std::vector<uint8_t> data;
+    if (MetadataHelper::ConvertMetadataToVec(metaRegion, data) != GSERROR_OK) {
+        RS_LOGD("%{public}s : ConvertMetadataToVec failed.", __func__);
+        return false;
+    }
+    if (buffer->SetMetadata(HDI::Display::Graphic::Common::V1_0::ATTRKEY_CROP_REGION, data) != GSERROR_OK) {
+        RS_LOGD("%{public}s : SetMetadata failed.", __func__);
+        return false;
+    }
+    return true;
+}
+
 void RSUniRenderVirtualProcessor::SetDirtyInfo(const std::vector<RectI>& damageRegion)
 {
     if (renderFrame_ == nullptr) {
@@ -456,6 +499,17 @@ void RSUniRenderVirtualProcessor::ScaleMirrorIfNeed(const ScreenRotation angle, 
     } else {
         canvas.Translate(-mirroredTranslateX_, -mirroredTranslateY_);
     }
+}
+
+void RSUniRenderVirtualProcessor::ScaleExpandIfNeed(RSPaintFilterCanvas* canvas)
+{
+    if (!isVirtualExpandScale_) {
+        return;
+    }
+
+    canvas->Scale(virtualExpandScaleX_, virtualExpandScaleY_);
+    RS_LOGD("RSUniRenderVirtualProcessor::ScaleExpandIfNeed: scaleX: %{public}f, scaleY: %{public}f",
+        virtualExpandScaleX_, virtualExpandScaleY_);
 }
 
 void RSUniRenderVirtualProcessor::MergeMirrorFenceToHardwareEnabledDrawables()

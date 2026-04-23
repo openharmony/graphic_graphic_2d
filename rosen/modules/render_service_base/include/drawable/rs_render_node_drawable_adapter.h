@@ -202,8 +202,6 @@ public:
     void SetSkip(SkipType type) { skipType_ = type; }
     SkipType GetSkipType() { return skipType_; }
 
-    void SetSkipCacheLayer(bool hasSkipCacheLayer);
-
     bool IsFilterCacheValidForOcclusion() const;
     const RectI GetFilterCachedRegion() const;
 
@@ -298,15 +296,23 @@ public:
         std::lock_guard<std::mutex> lock(rsLayerMutex_);
         rsLayersPerScreen_[screenId] = layer;
     }
+
+    void ClearUnifiedFilterRegion();
+    void AddRectToUnifiedFilterRegion(const Drawing::RectI& rect);
+    bool IntersectsWithUnifiedRegion(const Drawing::RectI& rect) const;
+
 protected:
     // Util functions
     std::string DumpDrawableVec(const std::shared_ptr<RSRenderNode>& renderNode) const;
     bool QuickReject(Drawing::Canvas& canvas, const RectF& localDrawRect);
     bool HasFilterOrEffect(const RSRenderParams& params) const;
+    void AlignRectToDevicePixels(const Drawing::Matrix& matrix, Drawing::Rect& rect);
 
     // Draw functions
     void DrawAll(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawUifirstContentChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect);
+    void DrawAllUifirst(Drawing::Canvas& canvas, const Drawing::Rect& rect);
+    void DrawClipBounds(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawBackground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawBackgroundWithOutSaveAll(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawLeashWindowBackground(Drawing::Canvas& canvas, const Drawing::Rect& rect,
@@ -366,6 +372,7 @@ protected:
     RSDrawable::DrawList drawCmdList_;
     std::vector<FilterNodeInfo> filterInfoVec_;
     std::unordered_map<NodeId, Drawing::Matrix> withoutFilterMatrixMap_;
+    Drawing::Region unifiedFilterRegion_;
     size_t filterNodeSize_ = 0;
     std::shared_ptr<DrawableV2::RSFilterDrawable> backgroundFilterDrawable_ = nullptr;
     std::shared_ptr<DrawableV2::RSFilterDrawable> materialFilterDrawable_ = nullptr;
@@ -376,9 +383,7 @@ protected:
 #else
     static RSRenderNodeDrawableAdapter* curDrawingCacheRoot_;
 #endif
-    // if the node needs to avoid drawing cache because of some layers, such as the security layer...
-    bool hasSkipCacheLayer_ = false;
-    
+
     ClearSurfaceTask clearSurfaceTask_ = nullptr;
 private:
     const static size_t MAX_FILTER_CACHE_TYPES = 3;

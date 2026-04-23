@@ -176,6 +176,7 @@ ohos_shared_library("drawing_ani") {
     "image_filter_ani/ani_image_filter.cpp",
     "mask_filter_ani/ani_mask_filter.cpp",
     "shadow_layer_ani/ani_shadow_layer.cpp",
+    "point_utils_ani/ani_point_utils.cpp",
   ]
 
   deps = [

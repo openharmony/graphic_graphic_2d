@@ -167,8 +167,9 @@ public:
         return true;
     }
 
-    bool Marshalling(Parcel& parcel) const;
-    [[nodiscard]] static std::shared_ptr<RSRenderModifier> Unmarshalling(Parcel& parcel);
+    bool Marshalling(Parcel& parcel, bool includeEnableDeduplication = true) const;
+    [[nodiscard]] static std::shared_ptr<RSRenderModifier> Unmarshalling(
+        Parcel& parcel, bool includeEnableDeduplication = true);
 
     inline bool HasProperty(RSPropertyType type) const
     {

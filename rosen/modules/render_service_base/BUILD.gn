@@ -89,6 +89,9 @@ ohos_source_set("render_service_base_src") {
     "src/animation/rs_animation_trace_utils.cpp",
     "src/animation/rs_cubic_bezier_interpolator.cpp",
     "src/animation/rs_interpolator.cpp",
+    "src/animation/rs_particle_field_base.cpp",
+    "src/animation/rs_particle_field_collection.cpp",
+    "src/animation/rs_particle_field_factory.cpp",
     "src/animation/rs_particle_noise_field.cpp",
     "src/animation/rs_particle_ripple_field.cpp",
     "src/animation/rs_particle_velocity_field.cpp",
@@ -135,7 +138,7 @@ ohos_source_set("render_service_base_src") {
     "src/modifier_ng/appearance/rs_outline_render_modifier.cpp",
     "src/modifier_ng/appearance/rs_particle_effect_render_modifier.cpp",
     "src/modifier_ng/appearance/rs_pixel_stretch_render_modifier.cpp",
-    "src/modifier_ng/appearance/rs_point_light_render_modifier.cpp",
+    "src/modifier_ng/appearance/rs_overlay_ng_shader_render_modifier.cpp",
     "src/modifier_ng/appearance/rs_shadow_render_modifier.cpp",
     "src/modifier_ng/appearance/rs_use_effect_render_modifier.cpp",
     "src/modifier_ng/appearance/rs_visibility_render_modifier.cpp",
@@ -176,7 +179,7 @@ ohos_source_set("render_service_base_src") {
     #common
     "src/common/rs_background_thread.cpp",
     "src/common/rs_color.cpp",
-    "src/common/rs_common_def.cpp",
+    "src/common/rs_event_def.cpp",
     "src/common/rs_common_tools.cpp",
     "src/common/rs_exception_check.cpp",
     "src/common/rs_obj_abs_geometry.cpp",
@@ -207,6 +210,10 @@ ohos_source_set("render_service_base_src") {
     "src/ipc_callbacks/rs_first_frame_commit_callback_stub.cpp",
     "src/ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_proxy.cpp",
     "src/ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_stub.cpp",
+    "src/ipc_callbacks/rs_frame_stability_callback_proxy.cpp",
+    "src/ipc_callbacks/rs_frame_stability_callback_stub.cpp",
+    "src/ipc_callbacks/rs_exposed_event_callback_proxy.cpp",
+    "src/ipc_callbacks/rs_exposed_event_callback_stub.cpp",
     "src/ipc_callbacks/rs_occlusion_change_callback_proxy.cpp",
     "src/ipc_callbacks/rs_occlusion_change_callback_stub.cpp",
     "src/ipc_callbacks/rs_rt_refresh_callback.cpp",
@@ -223,6 +230,8 @@ ohos_source_set("render_service_base_src") {
     "src/ipc_callbacks/rs_uiextension_callback_stub.cpp",
     "src/ipc_callbacks/screen_change_callback_proxy.cpp",
     "src/ipc_callbacks/screen_change_callback_stub.cpp",
+    "src/ipc_callbacks/screen_supported_hdr_formats_callback_proxy.cpp",
+    "src/ipc_callbacks/screen_supported_hdr_formats_callback_stub.cpp",
     "src/ipc_callbacks/brightness_info_change_callback_proxy.cpp",
     "src/ipc_callbacks/brightness_info_change_callback_stub.cpp",
     "src/ipc_callbacks/screen_switching_notify_callback_proxy.cpp",
@@ -240,6 +249,7 @@ ohos_source_set("render_service_base_src") {
     "src/memory/rs_memory_graphic.cpp",
     "src/memory/rs_memory_snapshot.cpp",
     "src/memory/rs_memory_track.cpp",
+    "src/memory/rs_pixelmap_fd_track.cpp",
     "src/memory/rs_tag_tracker.cpp",
 
     #pipeline
@@ -333,7 +343,6 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_render_kawase_blur_filter.cpp",
     "src/render/rs_render_light_blur_filter.cpp",
     "src/render/rs_render_linear_gradient_blur_filter.cpp",
-    "src/render/rs_render_magnifier_filter.cpp",
     "src/render/rs_render_maskcolor_filter.cpp",
     "src/render/rs_render_mesa_blur_filter.cpp",
     "src/render/rs_render_water_ripple_filter.cpp",
@@ -387,10 +396,12 @@ ohos_source_set("render_service_base_src") {
     "src/feature/color_picker/rs_color_picker_thread.cpp",
     "src/feature/color_picker/rs_color_picker_utils.cpp",
     "src/feature/color_picker/rs_hetero_color_picker.cpp",
+    "src/feature/dynamic_layer_skip/rs_dynamic_layer_skip_controller.cpp",
     "src/feature/hdr/rs_colorspace_util.cpp",
     "src/feature/hyper_graphic_manager/rs_render_frame_rate_linker.cpp",
     "src/feature/hyper_graphic_manager/rs_render_frame_rate_linker_map.cpp",
     "src/feature/image_detail_enhancer/rs_image_detail_enhancer_thread.cpp",
+    "src/feature/layer/rs_layer_cache_manager_base.cpp",
     "src/feature/opinc/rs_opinc_cache.cpp",
     "src/feature/opinc/rs_opinc_manager.cpp",
     "src/feature/power_off_render_skip/rs_power_off_render_controller.cpp",
@@ -417,7 +428,7 @@ ohos_source_set("render_service_base_src") {
       "src/drawable/rs_property_drawable.cpp",
       "src/drawable/rs_property_drawable_background.cpp",
       "src/drawable/rs_property_drawable_foreground.cpp",
-      "src/drawable/rs_point_light_drawable.cpp",
+      "src/drawable/rs_overlay_ng_shader_drawable.cpp",
       "src/drawable/rs_property_drawable_utils.cpp",
       "src/drawable/rs_render_node_drawable_adapter.cpp",
       "src/drawable/rs_render_node_shadow_drawable.cpp",
@@ -477,6 +488,8 @@ ohos_source_set("render_service_base_src") {
       "src/ipc_callbacks/buffer_clear_callback_stub.cpp",
       "src/ipc_callbacks/hgm_config_change_callback_proxy.cpp",
       "src/ipc_callbacks/hgm_config_change_callback_stub.cpp",
+      "src/ipc_callbacks/rs_frame_stability_callback_proxy.cpp",
+      "src/ipc_callbacks/rs_frame_stability_callback_stub.cpp",
       "src/ipc_callbacks/rs_occlusion_change_callback_proxy.cpp",
       "src/ipc_callbacks/rs_occlusion_change_callback_stub.cpp",
       "src/ipc_callbacks/rs_surface_occlusion_change_callback_proxy.cpp",
@@ -699,6 +712,12 @@ ohos_source_set("render_service_base_src") {
     sources +=
         graphic_2d_math_tools_configs.librender_service_ext_math_tools_sources
     sources -= graphic_2d_math_tools_configs.librender_service_ext_math_tools_sources_del
+  }
+
+  if (defined(graphic_2d_dynamic_layer_skip_configs.vendor_root)) {
+    sources +=
+        graphic_2d_dynamic_layer_skip_configs.librender_service_ext_dynamic_layer_skip_sources
+    sources -= graphic_2d_dynamic_layer_skip_configs.librender_service_ext_dynamic_layer_skip_sources_del
   }
 
   if (defined(use_rosen_drawing) && use_rosen_drawing) {

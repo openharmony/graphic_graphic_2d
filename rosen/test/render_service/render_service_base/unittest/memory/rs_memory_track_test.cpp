@@ -548,94 +548,6 @@ HWTEST_F(RSMemoryTrackTest, AddPictureRecordTest, testing::ext::TestSize.Level1)
 }
 
 /**
- * @tc.name: AddPictureRecordTest2
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMemoryTrackTest, AddPictureRecordTest2, testing::ext::TestSize.Level1)
-{
-    const void* addr1 = reinterpret_cast<void*>(0x1000);
-    const void* addr2 = reinterpret_cast<void*>(0x2000);
-    const void* addr3 = reinterpret_cast<void*>(0x3000);
-    MemoryInfo info1 = {2 * 1024 * 1024, 123, 0, 0, MEMORY_TYPE::MEM_PIXELMAP,
-        Media::AllocatorType::SHARE_MEM_ALLOC, Media::PixelFormat::ARGB_8888};
-    MemoryInfo info2 = {3 * 1024 * 1024, 234, 0, 0, MEMORY_TYPE::MEM_PIXELMAP,
-        Media::AllocatorType::SHARE_MEM_ALLOC, Media::PixelFormat::ARGB_8888};
-    MemoryInfo info3 = {3 * 1024 * 1024, 345, 0, 0, MEMORY_TYPE::MEM_SKIMAGE,
-        Media::AllocatorType::SHARE_MEM_ALLOC, Media::PixelFormat::ARGB_8888};
-    MemoryTrack& test1 =  MemoryTrack::Instance();
-    test1.AddPictureRecord(addr1, info1);
-    test1.AddPictureRecord(addr2, info2);
-    test1.AddPictureRecord(addr3, info3);
-    EXPECT_EQ(test1.CountFdRecordOfPid(123), 1);
-    EXPECT_EQ(test1.CountFdRecordOfPid(234), 1);
-    EXPECT_EQ(test1.CountFdRecordOfPid(345), 0);
-    test1.RemovePictureRecord(addr1);
-    test1.RemovePictureRecord(addr2);
-    test1.RemovePictureRecord(addr3);
-}
-
-/**
- * @tc.name: AddPictureRecordTest3
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMemoryTrackTest, AddPictureRecordTest3, testing::ext::TestSize.Level1)
-{
-    const void* addr1 = reinterpret_cast<void*>(0x1000);
-    const void* addr2 = reinterpret_cast<void*>(0x2000);
-    const void* addr3 = reinterpret_cast<void*>(0x3000);
-    MemoryInfo info1 = {2 * 1024 * 1024, 123, 0, 0, MEMORY_TYPE::MEM_PIXELMAP,
-        Media::AllocatorType::SHARE_MEM_ALLOC, Media::PixelFormat::ARGB_8888};
-    MemoryTrack& test1 =  MemoryTrack::Instance();
-    test1.AddPictureRecord(addr1, info1);
-    test1.AddPictureRecord(addr2, info1);
-    test1.AddPictureRecord(addr3, info1);
-    EXPECT_EQ(test1.CountFdRecordOfPid(123), 3);
-    test1.RemovePictureRecord(addr1);
-    test1.RemovePictureRecord(addr2);
-    test1.RemovePictureRecord(addr3);
-}
-
-/**
- * @tc.name: CountFdRecordOfPidTest
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMemoryTrackTest, CountFdRecordOfPidTest, testing::ext::TestSize.Level1)
-{
-    const void* addr1 = reinterpret_cast<void*>(0x1000);
-    MemoryInfo info1 = {2 * 1024 * 1024, 123, 0, 0, MEMORY_TYPE::MEM_PIXELMAP,
-        Media::AllocatorType::SHARE_MEM_ALLOC, Media::PixelFormat::ARGB_8888};
-    MemoryTrack& test1 =  MemoryTrack::Instance();
-    test1.AddPictureRecord(addr1, info1);
-    EXPECT_EQ(test1.CountFdRecordOfPid(123), 1);
-    test1.RemovePictureRecord(addr1);
-}
-
-/**
- * @tc.name: CountFdRecordOfPidTest2
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMemoryTrackTest, CountFdRecordOfPidTest2, testing::ext::TestSize.Level1)
-{
-    const void* addr1 = reinterpret_cast<void*>(0x1000);
-    MemoryInfo info1 = {2 * 1024 * 1024, 123, 0, 0, MEMORY_TYPE::MEM_PIXELMAP,
-        Media::AllocatorType::SHARE_MEM_ALLOC, Media::PixelFormat::ARGB_8888};
-    MemoryTrack& test1 =  MemoryTrack::Instance();
-    EXPECT_EQ(test1.CountFdRecordOfPid(234), 0);
-    EXPECT_EQ(test1.CountFdRecordOfPid(123), 0);
-    test1.AddPictureRecord(addr1, info1);
-    EXPECT_EQ(test1.CountFdRecordOfPid(123), 1);
-    test1.RemovePictureRecord(addr1);
-}
-
-/**
  * @tc.name: RemovePictureRecordTest
  * @tc.desc: test
  * @tc.type: FUNC
@@ -650,109 +562,6 @@ HWTEST_F(RSMemoryTrackTest, RemovePictureRecordTest, testing::ext::TestSize.Leve
     EXPECT_TRUE(test1.memPicRecord_.count(addr));
     test1.RemovePictureRecord(addr);
     EXPECT_FALSE(test1.memPicRecord_.count(addr));
-}
-
-/**
- * @tc.name: RemovePictureRecordTest2
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMemoryTrackTest, RemovePictureRecordTest2, testing::ext::TestSize.Level1)
-{
-    const void* addr1 = reinterpret_cast<void*>(0x1000);
-    const void* addr2 = reinterpret_cast<void*>(0x2000);
-    const void* addr3 = reinterpret_cast<void*>(0x3000);
-    MemoryInfo info1 = {2 * 1024 * 1024, 123, 0, 0, MEMORY_TYPE::MEM_PIXELMAP,
-        Media::AllocatorType::SHARE_MEM_ALLOC, Media::PixelFormat::ARGB_8888};
-    MemoryInfo info2 = {3 * 1024 * 1024, 234, 0, 0, MEMORY_TYPE::MEM_PIXELMAP,
-        Media::AllocatorType::SHARE_MEM_ALLOC, Media::PixelFormat::ARGB_8888};
-    MemoryInfo info3 = {3 * 1024 * 1024, 345, 0, 0, MEMORY_TYPE::MEM_SKIMAGE,
-        Media::AllocatorType::SHARE_MEM_ALLOC, Media::PixelFormat::ARGB_8888};
-    MemoryTrack& test1 =  MemoryTrack::Instance();
-    test1.AddPictureRecord(addr1, info1);
-    test1.AddPictureRecord(addr2, info2);
-    test1.AddPictureRecord(addr3, info3);
-    test1.RemovePictureRecord(addr1);
-    EXPECT_EQ(test1.CountFdRecordOfPid(123), 0);
-    EXPECT_EQ(test1.CountFdRecordOfPid(234), 1);
-    EXPECT_EQ(test1.CountFdRecordOfPid(345), 0);
-    test1.RemovePictureRecord(addr2);
-    test1.RemovePictureRecord(addr3);
-}
-
-/**
- * @tc.name: RemovePictureRecordTest3
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMemoryTrackTest, RemovePictureRecordTest3, testing::ext::TestSize.Level1)
-{
-    const void* addr1 = reinterpret_cast<void*>(0x1000);
-    const void* addr2 = reinterpret_cast<void*>(0x2000);
-    const void* addr3 = reinterpret_cast<void*>(0x3000);
-    MemoryInfo info1 = {2 * 1024 * 1024, 123, 0, 0, MEMORY_TYPE::MEM_PIXELMAP,
-        Media::AllocatorType::SHARE_MEM_ALLOC, Media::PixelFormat::ARGB_8888};
-    MemoryTrack& test1 =  MemoryTrack::Instance();
-    test1.AddPictureRecord(addr1, info1);
-    test1.AddPictureRecord(addr2, info1);
-    test1.AddPictureRecord(addr3, info1);
-    test1.RemovePictureRecord(addr1);
-    EXPECT_EQ(test1.CountFdRecordOfPid(123), 2);
-    test1.RemovePictureRecord(addr2);
-    test1.RemovePictureRecord(addr3);
-}
-
-/**
- * @tc.name: KillProcessByPid
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMemoryTrackTest, KillProcessByPid, testing::ext::TestSize.Level1)
-{
-    uint32_t pid = 1234;
-    std::string reason = "test reason";
-    
-    const void* addr1 = reinterpret_cast<void*>(0x1000);
-    MemoryInfo info1 = {2 * 1024 * 1024, pid, 0, 0, MEMORY_TYPE::MEM_PIXELMAP,
-        Media::AllocatorType::SHARE_MEM_ALLOC, Media::PixelFormat::ARGB_8888};
-    MemoryTrack& test1 =  MemoryTrack::Instance();
-    test1.AddPictureRecord(addr1, info1);
-    EXPECT_EQ(test1.CountFdRecordOfPid(pid), 1);
-    MemoryTrack::Instance().KillProcessByPid(pid, reason);
-    test1.RemovePictureRecord(addr1);
-}
-
-/**
- * @tc.name: FdOverReport
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMemoryTrackTest, FdOverReport, testing::ext::TestSize.Level1)
-{
-    pid_t pid = 1234;
-    std::string hidumperReport = "report";
-    MemoryTrack::Instance().FdOverReport(pid, "RENDER_MEMORY_OVER_WARNING", hidumperReport);
-    std::string filePath = "/data/service/el0/render_service/renderservice_fdmem.txt";
-    ASSERT_FALSE(std::ifstream(filePath).good());
-}
-
-/**
- * @tc.name: WriteInfoToFile
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMemoryTrackTest, WriteInfoToFile, testing::ext::TestSize.Level1)
-{
-    std::string memInfo = "info";
-    std::string hidumperReport = "";
-    std::string filePath = "/data/service/el0/render_service/renderservice_fdmem.txt";
-    MemoryTrack::Instance().WriteInfoToFile(filePath, memInfo, hidumperReport);
-    ASSERT_FALSE(std::ifstream(filePath).good());
 }
 
 /**
@@ -773,6 +582,259 @@ HWTEST_F(RSMemoryTrackTest, UpdatePictureInfoTest, testing::ext::TestSize.Level1
     auto itr = test1.memPicRecord_.find(addr);
     MemoryInfo info2 = itr->second;
     EXPECT_EQ(-1, info2.pid);  //1.for test
+}
+
+/**
+ * @tc.name: AddPictureRecordWithPixelMapTest
+ * * @tc.desc: Test AddPictureRecord with MEM_PIXELMAP type triggers fd tracking.
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSMemoryTrackTest, AddPictureRecordWithPixelMapTest, testing::ext::TestSize.Level1)
+{
+    const void* addr = reinterpret_cast<void*>(0x3000);
+    MemoryInfo info;
+    info.type = MEMORY_TYPE::MEM_PIXELMAP;
+    info.pid = 11001;
+    info.allocType = OHOS::Media::AllocatorType::HEAP_ALLOC;
+    MemoryTrack& test1 = MemoryTrack::Instance();
+    test1.AddPictureRecord(addr, info);
+    EXPECT_TRUE(test1.memPicRecord_.count(addr));
+    test1.RemovePictureRecord(addr);
+}
+
+/**
+ * @tc.name: AddPictureRecordWithSkImageTest
+ * @tc.desc: Test AddPictureRecord with MEM_SKIMAGE type does not trigger fd tracking.
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSMemoryTrackTest, AddPictureRecordWithSkImageTest, testing::ext::TestSize.Level1)
+{
+    const void* addr = reinterpret_cast<void*>(0x4000);
+    MemoryInfo info;
+    info.type = MEMORY_TYPE::MEM_SKIMAGE;
+    info.pid = 11002;
+    info.allocType = OHOS::Media::AllocatorType::HEAP_ALLOC;
+    MemoryTrack& test1 = MemoryTrack::Instance();
+    test1.AddPictureRecord(addr, info);
+    EXPECT_TRUE(test1.memPicRecord_.count(addr));
+    test1.RemovePictureRecord(addr);
+}
+
+/**
+ * @tc.name: AddPictureRecordWithDmaAllocTest
+ * @tc.desc: Test AddPictureRecord with DMA_ALLOC allocator type.
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSMemoryTrackTest, AddPictureRecordWithDmaAllocTest, testing::ext::TestSize.Level1)
+{
+    const void* addr = reinterpret_cast<void*>(0x5000);
+    MemoryInfo info;
+    info.type = MEMORY_TYPE::MEM_PIXELMAP;
+    info.pid = 11003;
+    info.allocType = OHOS::Media::AllocatorType::DMA_ALLOC;
+    MemoryTrack& test1 = MemoryTrack::Instance();
+    test1.AddPictureRecord(addr, info);
+    EXPECT_TRUE(test1.memPicRecord_.count(addr));
+    test1.RemovePictureRecord(addr);
+}
+
+/**
+ * @tc.name: RemovePictureRecordWithPixelMapTest
+ * @tc.desc: Test RemovePictureRecord with MEM_PIXELMAP type triggers fd tracking removal.
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSMemoryTrackTest, RemovePictureRecordWithPixelMapTest, testing::ext::TestSize.Level1)
+{
+    const void* addr = reinterpret_cast<void*>(0x6000);
+    MemoryInfo info;
+    info.type = MEMORY_TYPE::MEM_PIXELMAP;
+    info.pid = 11004;
+    info.allocType = OHOS::Media::AllocatorType::SHARE_MEM_ALLOC;
+    MemoryTrack& test1 = MemoryTrack::Instance();
+    test1.AddPictureRecord(addr, info);
+    EXPECT_TRUE(test1.memPicRecord_.count(addr));
+    test1.RemovePictureRecord(addr);
+    EXPECT_FALSE(test1.memPicRecord_.count(addr));
+}
+
+/**
+ * @tc.name: RemovePictureRecordWithSkImageTest
+ * @tc.desc: Test RemovePictureRecord with MEM_SKIMAGE type does not trigger fd tracking removal.
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSMemoryTrackTest, RemovePictureRecordWithSkImageTest, testing::ext::TestSize.Level1)
+{
+    const void* addr = reinterpret_cast<void*>(0x7000);
+    MemoryInfo info;
+    info.type = MEMORY_TYPE::MEM_SKIMAGE;
+    info.pid = 11005;
+    info.allocType = OHOS::Media::AllocatorType::HEAP_ALLOC;
+    MemoryTrack& test1 = MemoryTrack::Instance();
+    test1.AddPictureRecord(addr, info);
+    EXPECT_TRUE(test1.memPicRecord_.count(addr));
+    test1.RemovePictureRecord(addr);
+    EXPECT_FALSE(test1.memPicRecord_.count(addr));
+}
+
+/**
+ * @tc.name: RemoveNonExistentPictureRecordTest
+ * @tc.desc: Test RemovePictureRecord with non-existent address.
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSMemoryTrackTest, RemoveNonExistentPictureRecordTest, testing::ext::TestSize.Level1)
+{
+    const void* addr = reinterpret_cast<void*>(0x8000);
+    MemoryTrack& test1 = MemoryTrack::Instance();
+    EXPECT_FALSE(test1.memPicRecord_.count(addr));
+    test1.RemovePictureRecord(addr);
+    EXPECT_FALSE(test1.memPicRecord_.count(addr));
+}
+
+/**
+ * @tc.name: CheckPixelMapFdCountAndKillProcessTest001
+ * @tc.desc: Test CheckPixelMapFdCountAndKillProcess with no pixelmap records.
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSMemoryTrackTest, CheckPixelMapFdCountAndKillProcessTest001, testing::ext::TestSize.Level1)
+{
+    uint32_t pid = 12001;
+    bool result = MemoryTrack::Instance().CheckPixelMapFdCountAndKillProcess(pid);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: CheckPixelMapFdCountAndKillProcessTest002
+ * @tc.desc: Test CheckPixelMapFdCountAndKillProcess with pixelmap records.
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSMemoryTrackTest, CheckPixelMapFdCountAndKillProcessTest002, testing::ext::TestSize.Level1)
+{
+    const void* addr = reinterpret_cast<void*>(0x9000);
+    MemoryInfo info;
+    info.type = MEMORY_TYPE::MEM_PIXELMAP;
+    info.pid = 12002;
+    info.allocType = OHOS::Media::AllocatorType::HEAP_ALLOC;
+    MemoryTrack& test1 = MemoryTrack::Instance();
+    test1.AddPictureRecord(addr, info);
+    bool result = test1.CheckPixelMapFdCountAndKillProcess(info.pid);
+    EXPECT_TRUE(result);
+    test1.RemovePictureRecord(addr);
+}
+
+/**
+ * @tc.name: MultiplePixelMapRecordsSamePidTest
+ * @tc.desc: Test adding multiple PixelMap records for the same PID.
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSMemoryTrackTest, MultiplePixelMapRecordsSamePidTest, testing::ext::TestSize.Level1)
+{
+    const void* addr1 = reinterpret_cast<void*>(0xA000);
+    const void* addr2 = reinterpret_cast<void*>(0xA100);
+    const void* addr3 = reinterpret_cast<void*>(0xA200);
+    MemoryInfo info;
+    info.type = MEMORY_TYPE::MEM_PIXELMAP;
+    info.pid = 13001;
+    info.allocType = OHOS::Media::AllocatorType::HEAP_ALLOC;
+
+    MemoryTrack& test1 = MemoryTrack::Instance();
+    test1.AddPictureRecord(addr1, info);
+    test1.AddPictureRecord(addr2, info);
+    test1.AddPictureRecord(addr3, info);
+
+    EXPECT_TRUE(test1.memPicRecord_.count(addr1));
+    EXPECT_TRUE(test1.memPicRecord_.count(addr2));
+    EXPECT_TRUE(test1.memPicRecord_.count(addr3));
+
+    test1.RemovePictureRecord(addr1);
+    test1.RemovePictureRecord(addr2);
+    test1.RemovePictureRecord(addr3);
+}
+
+/**
+ * @tc.name: MultiplePixelMapRecordsDifferentPidTest
+ * @tc.desc: Test adding PixelMap records for different PIDs.
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSMemoryTrackTest, MultiplePixelMapRecordsDifferentPidTest, testing::ext::TestSize.Level1)
+{
+    const void* addr1 = reinterpret_cast<void*>(0xB000);
+    const void* addr2 = reinterpret_cast<void*>(0xB100);
+    MemoryInfo info1;
+    info1.type = MEMORY_TYPE::MEM_PIXELMAP;
+    info1.pid = 14001;
+    info1.allocType = OHOS::Media::AllocatorType::HEAP_ALLOC;
+
+    MemoryInfo info2;
+    info2.type = MEMORY_TYPE::MEM_PIXELMAP;
+    info2.pid = 14002;
+    info2.allocType = OHOS::Media::AllocatorType::SHARE_MEM_ALLOC;
+
+    MemoryTrack& test1 = MemoryTrack::Instance();
+    test1.AddPictureRecord(addr1, info1);
+    test1.AddPictureRecord(addr2, info2);
+
+    EXPECT_TRUE(test1.memPicRecord_.count(addr1));
+    EXPECT_TRUE(test1.memPicRecord_.count(addr2));
+
+    test1.RemovePictureRecord(addr1);
+    test1.RemovePictureRecord(addr2);
+}
+
+/**
+ * @tc.name: PixelMapRecordWithDifferentAllocatorTypesTest
+ * @tc.desc: Test PixelMap records with different allocator types.
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSMemoryTrackTest, PixelMapRecordWithDifferentAllocatorTypesTest, testing::ext::TestSize.Level1)
+{
+    const void* addr1 = reinterpret_cast<void*>(0xC000);
+    const void* addr2 = reinterpret_cast<void*>(0xC100);
+    const void* addr3 = reinterpret_cast<void*>(0xC200);
+    const void* addr4 = reinterpret_cast<void*>(0xC300);
+    const void* addr5 = reinterpret_cast<void*>(0xC400);
+
+    MemoryInfo info;
+    info.type = MEMORY_TYPE::MEM_PIXELMAP;
+    info.pid = 15001;
+
+    info.allocType = OHOS::Media::AllocatorType::DEFAULT;
+    MemoryTrack::Instance().AddPictureRecord(addr1, info);
+
+    info.allocType = OHOS::Media::AllocatorType::HEAP_ALLOC;
+    MemoryTrack::Instance().AddPictureRecord(addr2, info);
+
+    info.allocType = OHOS::Media::AllocatorType::SHARE_MEM_ALLOC;
+    MemoryTrack::Instance().AddPictureRecord(addr3, info);
+
+    info.allocType = OHOS::Media::AllocatorType::CUSTOM_ALLOC;
+    MemoryTrack::Instance().AddPictureRecord(addr4, info);
+
+    info.allocType = OHOS::Media::AllocatorType::DMA_ALLOC;
+    MemoryTrack::Instance().AddPictureRecord(addr5, info);
+
+    MemoryTrack& test1 = MemoryTrack::Instance();
+    EXPECT_TRUE(test1.memPicRecord_.count(addr1));
+    EXPECT_TRUE(test1.memPicRecord_.count(addr2));
+    EXPECT_TRUE(test1.memPicRecord_.count(addr3));
+    EXPECT_TRUE(test1.memPicRecord_.count(addr4));
+    EXPECT_TRUE(test1.memPicRecord_.count(addr5));
+
+    test1.RemovePictureRecord(addr1);
+    test1.RemovePictureRecord(addr2);
+    test1.RemovePictureRecord(addr3);
+    test1.RemovePictureRecord(addr4);
+    test1.RemovePictureRecord(addr5);
 }
 
 /**
@@ -1062,165 +1124,4 @@ HWTEST_F(RSMemoryTrackTest, GetNodeOnTreeStatusTest002, testing::ext::TestSize.L
     EXPECT_EQ(MemoryTrack::Instance().GetNodeOnTreeStatus(addr), NODE_ON_TREE_STATUS::STATUS_OFF_TREE);
 }
 #endif
-
-/**
- * @tc.name: FilterAshmemInfoByPid_NormalCase
- * @tc.desc: Test filtering ashmem log by pid with matching entries.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMemoryTrackTest, FilterAshmemInfoByPid_NormalCase, testing::ext::TestSize.Level1)
-{
-    std::string input =
-        "Process ashmem overview info:\n"
-        "---------------------------------------------------------------------------------\n"
-        "Process_name Virtual_size Physical_size\n"
-        "Total ashmem  of [xxxxx] virtual size is  541, physical size is 4096\n"
-        "Process ashmem detail info:\n"
-        "---------------------------------------------------------------------------------\n"
-        "Process_name\tProcess_ID\tFd\tCnode_idx\tApplicant_Pid\tAshmem_name\tVirtual_size\tPhysical_size\tmagic\n"
-        "XXXXX\t815\t22\t328234\t816\tdev/ashmem/EXTRawData\t541\t4096\t7\n"
-        "XXXXX\t816\t22\t328234\t816\tdev/ashmem/EXTRawData\t541\t4096\t7\n"
-        "XXXXX\t817\t22\t328234\t816\tdev/ashmem/EXTRawData\t541\t4096\t7\n"
-        "---------------------------------------------------------------------------------\n";
-
-    std::string expectedOutput =
-        "Process ashmem overview info:\n"
-        "---------------------------------------------------------------------------------\n"
-        "Process_name Virtual_size Physical_size\n"
-        "Total ashmem  of [xxxxx] virtual size is  541, physical size is 4096\n"
-        "Process ashmem detail info:\n"
-        "---------------------------------------------------------------------------------\n"
-        "Process_name\tProcess_ID\tFd\tCnode_idx\tApplicant_Pid\tAshmem_name\tVirtual_size\tPhysical_size\tmagic\n"
-        "XXXXX\t816\t22\t328234\t816\tdev/ashmem/EXTRawData\t541\t4096\t7\n"
-        "---------------------------------------------------------------------------------\n";
-
-    std::string output;
-    MemoryTrack::FilterAshmemInfoByPid(output, input, 816);
-
-    ASSERT_EQ(output, expectedOutput);
-}
-
-/**
- * @tc.name: FilterAshmemInfoByPid_EmptyInput
- * @tc.desc: Test filtering ashmem log with empty input.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMemoryTrackTest, FilterAshmemInfoByPid_EmptyInput, testing::ext::TestSize.Level1)
-{
-    std::string input = "";
-    std::string expectedOutput = "";
-    std::string output;
-    MemoryTrack::FilterAshmemInfoByPid(output, input, 816);
-
-    ASSERT_EQ(output, expectedOutput);
-}
-
-/**
- * @tc.name: FilterAshmemInfoByPid_NoMatch
- * @tc.desc: Test filtering ashmem log with no matching pid.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMemoryTrackTest, FilterAshmemInfoByPid_NoMatch, testing::ext::TestSize.Level1)
-{
-    std::string input =
-        "Process ashmem overview info:\n"
-        "---------------------------------------------------------------------------------\n"
-        "Process_name Virtual_size Physical_size\n"
-        "Total ashmem  of [xxxxx] virtual size is  541, physical size is 4096\n"
-        "Process ashmem detail info:\n"
-        "---------------------------------------------------------------------------------\n"
-        "Process_name\tProcess_ID\tFd\tCnode_idx\tApplicant_Pid\tAshmem_name\tVirtual_size\tPhysical_size\tmagic\n"
-        "XXXXX\t815\t22\t328234\t816\tdev/ashmem/EXTRawData\t541\t4096\t7\n"
-        "---------------------------------------------------------------------------------\n";
-
-    std::string expectedOutput =
-        "Process ashmem overview info:\n"
-        "---------------------------------------------------------------------------------\n"
-        "Process_name Virtual_size Physical_size\n"
-        "Total ashmem  of [xxxxx] virtual size is  541, physical size is 4096\n"
-        "Process ashmem detail info:\n"
-        "---------------------------------------------------------------------------------\n"
-        "Process_name\tProcess_ID\tFd\tCnode_idx\tApplicant_Pid\tAshmem_name\tVirtual_size\tPhysical_size\tmagic\n"
-        "---------------------------------------------------------------------------------\n";
-
-    std::string output;
-    MemoryTrack::FilterAshmemInfoByPid(output, input, 999);
-
-    ASSERT_EQ(output, expectedOutput);
-}
-
-/**
- * @tc.name: FilterDmaheapInfoByPid_NormalCase
- * @tc.desc: Test filtering dmaheap log by pid with matching entries.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMemoryTrackTest, FilterDmaheapInfoByPid_NormalCase, testing::ext::TestSize.Level1)
-{
-    std::string input =
-        "Dma-buf objects usage of processes:\n"
-        "Process    pid    fd    size_bytes    ino    exp_pid    exp_task_comm    buf_name    exp_name\n"
-        "xxxxx    439    14    12288    2    439    xxxxx    NULL    vmalloc\n"
-        "xxxxx    439    17    12288    5    439    xxxxx    NULL    vmalloc\n"
-        "Total dmabuf size of xxxxx: 49152 bytes\n"
-        "yyyyy    500     12    3686400    1    500    yyyyy    NULL    vmalloc\n"
-        "yyyyy    500     20    3686400    42    499    yyyyy    525    vmalloc\n"
-        "Total dmabuf size of yyyyy: 25804800 bytes\n";
-
-    std::string expectedOutput =
-        "Dma-buf objects usage of processes:\n"
-        "Process    pid    fd    size_bytes    ino    exp_pid    exp_task_comm    buf_name    exp_name\n"
-        "yyyyy    500     12    3686400    1    500    yyyyy    NULL    vmalloc\n"
-        "yyyyy    500     20    3686400    42    499    yyyyy    525    vmalloc\n"
-        "Total dmabuf size of yyyyy: 25804800 bytes\n";
-
-    std::string output;
-    MemoryTrack::FilterDmaheapInfoByPid(output, input, 500);
-
-    ASSERT_EQ(output, expectedOutput);
-}
-
-/**
- * @tc.name: FilterDmaheapInfoByPid_EmptyInput
- * @tc.desc: Test filtering dmaheap log with empty input.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMemoryTrackTest, FilterDmaheapInfoByPid_EmptyInput, testing::ext::TestSize.Level1)
-{
-    std::string input = "";
-    std::string expectedOutput = "";
-    std::string output;
-    MemoryTrack::FilterDmaheapInfoByPid(output, input, 500);
-
-    ASSERT_EQ(output, expectedOutput);
-}
-
-/**
- * @tc.name: FilterDmaheapInfoByPid_NoMatch
- * @tc.desc: Test filtering dmaheap log with no matching pid.
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMemoryTrackTest, FilterDmaheapInfoByPid_NoMatch, testing::ext::TestSize.Level1)
-{
-    std::string input =
-        "Dma-buf objects usage of processes:\n"
-        "Process    pid    fd    size_bytes    ino    exp_pid    exp_task_comm    buf_name    exp_name\n"
-        "xxxxx    439    14    12288    2    439    xxxxx    NULL    vmalloc\n"
-        "Total dmabuf size of xxxxx: 49152 bytes\n";
-
-    std::string expectedOutput =
-        "Dma-buf objects usage of processes:\n"
-        "Process    pid    fd    size_bytes    ino    exp_pid    exp_task_comm    buf_name    exp_name\n";
-
-    std::string output;
-    MemoryTrack::FilterDmaheapInfoByPid(output, input, 999);
-
-    ASSERT_EQ(output, expectedOutput);
-}
-
 } // namespace OHOS::Rosen

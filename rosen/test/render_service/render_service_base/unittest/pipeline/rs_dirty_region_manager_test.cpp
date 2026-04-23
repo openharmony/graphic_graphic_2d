@@ -27,8 +27,10 @@ using namespace testing::ext;
 
 namespace OHOS::Rosen {
 namespace {
-    const RectI DEFAULT_RECT = {0, 0, 100, 100};
-}
+const RectI DEFAULT_RECT = { 0, 0, 100, 100 };
+const int32_t MAX_DIRTY_RECT_LIMITATION_PER_NODE = 10;
+const int MIN_DIRTY_RECT_LIMITATION = 1;
+} // namespace
 class RSDirtyRegionManagerTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -83,6 +85,84 @@ HWTEST_F(RSDirtyRegionManagerTest, SetBufferAge001, TestSize.Level1)
 
     age = 1;
     ASSERT_TRUE(rsDirtyManager->SetBufferAge(age));
+}
+
+/*
+ * @tc.name: OnSyncCurrentFrameDirtyState001
+ * @tc.desc: test OnSync copies current frame dirty region into target manager
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSDirtyRegionManagerTest, OnSyncCurrentFrameDirtyState001, Function | SmallTest | Level2)
+{
+    constexpr int32_t rectLeft = 10;
+    constexpr int32_t rectTop = 10;
+    constexpr int32_t rectWidth = 100;
+    constexpr int32_t rectHeight = 100;
+
+    auto targetManager = std::make_shared<RSDirtyRegionManager>();
+    ASSERT_NE(targetManager, nullptr);
+
+    RectI dirtyRect(rectLeft, rectTop, rectWidth, rectHeight);
+    rsDirtyManager->SetCurrentFrameDirtyRect(dirtyRect);
+
+    rsDirtyManager->OnSync(targetManager);
+
+    ASSERT_EQ(targetManager->GetCurrentFrameDirtyRegion(), dirtyRect);
+    ASSERT_TRUE(rsDirtyManager->GetCurrentFrameDirtyRegion().IsEmpty());
+}
+
+/*
+ * @tc.name: OnSyncCurrentFrameDirtyStateChange002
+ * @tc.desc: test OnSync copies dirty region with partial render state changed
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSDirtyRegionManagerTest, OnSyncCurrentFrameDirtyStateChange002, Function | SmallTest | Level2)
+{
+    auto targetManager = std::make_shared<RSDirtyRegionManager>();
+    ASSERT_NE(targetManager, nullptr);
+
+    RectI dirtyRect(1, 2, 3, 4);
+    rsDirtyManager->SetPartialRenderEnabled(false);
+    rsDirtyManager->SetCurrentFrameDirtyRect(dirtyRect);
+
+    rsDirtyManager->OnSync(targetManager);
+
+    ASSERT_EQ(targetManager->GetCurrentFrameDirtyRegion(), dirtyRect);
+}
+
+/*
+ * @tc.name: HasUifirstChildState001
+ * @tc.desc: test SetHasUifirstChild and HasUifirstChild
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSDirtyRegionManagerTest, HasUifirstChildState001, Function | SmallTest | Level2)
+{
+    ASSERT_FALSE(rsDirtyManager->HasUifirstChild());
+
+    rsDirtyManager->SetHasUifirstChild(true);
+    ASSERT_TRUE(rsDirtyManager->HasUifirstChild());
+
+    rsDirtyManager->SetHasUifirstChild(false);
+    ASSERT_FALSE(rsDirtyManager->HasUifirstChild());
+}
+
+/*
+ * @tc.name: ClearResetsHasUifirstChild001
+ * @tc.desc: test Clear resets hasUifirstChild state
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST_F(RSDirtyRegionManagerTest, ClearResetsHasUifirstChild001, Function | SmallTest | Level2)
+{
+    rsDirtyManager->SetHasUifirstChild(true);
+    ASSERT_TRUE(rsDirtyManager->HasUifirstChild());
+
+    rsDirtyManager->Clear();
+
+    ASSERT_FALSE(rsDirtyManager->HasUifirstChild());
 }
 
 /**
@@ -289,7 +369,7 @@ HWTEST_F(RSDirtyRegionManagerTest, UpdateDirtyValid, Function | SmallTest | Leve
     validRects.push_back(RectI(20, -50, 180, 360));
     RectI joinedRect = RectI();
     RectI curDirtyRect = RectI();
-    std::vector<int> advancedDirtyRegionArea = {129600, 145800, 154800};
+    std::vector<int> advancedDirtyRegionArea = { 129600, 145800, 154800 };
 
     for (int i = 0; i < validRects.size(); ++i) {
         rsDirtyManager->SetAdvancedDirtyRegionType(AdvancedDirtyRegionType::SET_ADVANCED_SURFACE_AND_DISPLAY);
@@ -375,8 +455,7 @@ HWTEST_F(RSDirtyRegionManagerTest, GetRectFlipWithinSurface, Function | SmallTes
         int32_t flippedTop = surfaceHeight - oriRect.top_ - oriRect.height_;
         RectI expectedRect = RectI(oriRect.left_, flippedTop, oriRect.width_, oriRect.height_);
         EXPECT_EQ(flippedRect, expectedRect);
-    }
-    else {
+    } else {
         RectI flippedRect = rsDirtyManager->GetRectFlipWithinSurface(oriRect);
         EXPECT_EQ(flippedRect, oriRect);
     }
@@ -515,6 +594,32 @@ HWTEST_F(RSDirtyRegionManagerTest, MergeDirtyRectAfterMergeHistory, TestSize.Lev
 }
 
 /**
+ * @tc.name: MergeDirtyRectAfterMergeHistory
+ * @tc.desc: test results of MergeDirtyRectAfterMergeHistory
+ * @tc.type: FUNC
+ * @tc.require: issue23321
+ */
+HWTEST_F(RSDirtyRegionManagerTest, MergeDirtyRectAfterMergeHistoryDirtyRegionNotEmpty, TestSize.Level1)
+{
+    RSDirtyRegionManager dirtyManager;
+    RectI rect1 = { 0, 0, 100, 100 };
+    RectI rect2 = { 50, 50, 100, 100 };
+    RectI expected = { 0, 0, 150, 150 };
+
+    dirtyManager.MergeDirtyRectAfterMergeHistory(rect1);
+    EXPECT_FALSE(dirtyManager.dirtyRegion_.IsEmpty());
+    EXPECT_EQ(dirtyManager.dirtyRegion_, rect1);
+
+    dirtyManager.MergeDirtyRectAfterMergeHistory(rect2);
+    EXPECT_EQ(dirtyManager.dirtyRegion_, expected);
+
+    RectI rect3 = { 200, 200, 50, 50 };
+    RectI expected2 = { 0, 0, 250, 250 };
+    dirtyManager.MergeDirtyRectAfterMergeHistory(rect3);
+    EXPECT_EQ(dirtyManager.dirtyRegion_, expected2);
+}
+
+/**
  * @tc.name: MergeHwcDirtyRect
  * @tc.desc: test if MergeHwcDirtyRect can merge successfully
  * @tc.type:FUNC
@@ -634,6 +739,110 @@ HWTEST_F(RSDirtyRegionManagerTest, GetIntersectedVisitedDirtyRect, TestSize.Leve
     RectI rect = { 1, 1, 1, 1 };
     fun.GetIntersectedVisitedDirtyRect(rect);
     EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: GetIntersectedVisitedDirtyRectEmptyVisitedRegions
+ * @tc.desc: test results of GetIntersectedVisitedDirtyRectEmptyVisitedRegions
+ * @tc.type: FUNC
+ * @tc.require: issue23321
+ */
+HWTEST_F(RSDirtyRegionManagerTest, GetIntersectedVisitedDirtyRectEmptyVisitedRegions, TestSize.Level1)
+{
+    RSDirtyRegionManager dirtyManager;
+    RectI currentFrameDirty = { 0, 0, 100, 100 };
+    dirtyManager.currentFrameDirtyRegion_ = currentFrameDirty;
+
+    RectI absRect = { 50, 50, 20, 20 };
+    RectI result = dirtyManager.GetIntersectedVisitedDirtyRect(absRect);
+
+    EXPECT_EQ(result, currentFrameDirty);
+}
+
+/**
+ * @tc.name: GetIntersectedVisitedDirtyRectAbsRectInsideCurrentFrame
+ * @tc.desc: test results of GetIntersectedVisitedDirtyRectAbsRectInsideCurrentFrame
+ * @tc.type: FUNC
+ * @tc.require: issue23321
+ */
+HWTEST_F(RSDirtyRegionManagerTest, GetIntersectedVisitedDirtyRectAbsRectInsideCurrentFrame, TestSize.Level1)
+{
+    RSDirtyRegionManager dirtyManager;
+    RectI currentFrameDirty = { 0, 0, 100, 100 };
+    dirtyManager.currentFrameDirtyRegion_ = currentFrameDirty;
+
+    std::vector<RectI> visitedRects = { { 10, 10, 50, 50 }, { 60, 60, 30, 30 } };
+    dirtyManager.UpdateVisitedDirtyRects(visitedRects);
+
+    RectI absRect = { 20, 20, 10, 10 };
+    RectI result = dirtyManager.GetIntersectedVisitedDirtyRect(absRect);
+
+    EXPECT_EQ(result, currentFrameDirty);
+}
+
+/**
+ * @tc.name: GetIntersectedVisitedDirtyRectWithVisitedRegions
+ * @tc.desc: test results of GetIntersectedVisitedDirtyRectWithVisitedRegions
+ * @tc.type: FUNC
+ * @tc.require: issue23321
+ */
+HWTEST_F(RSDirtyRegionManagerTest, GetIntersectedVisitedDirtyRectWithVisitedRegions, TestSize.Level1)
+{
+    RSDirtyRegionManager dirtyManager;
+    RectI currentFrameDirty = { 0, 0, 100, 100 };
+    dirtyManager.currentFrameDirtyRegion_ = currentFrameDirty;
+
+    std::vector<RectI> visitedRects = { { 150, 150, 50, 50 } };
+    dirtyManager.UpdateVisitedDirtyRects(visitedRects);
+
+    RectI absRect = { 140, 140, 100, 100 };
+    RectI result = dirtyManager.GetIntersectedVisitedDirtyRect(absRect);
+
+    RectI expected = { 0, 0, 200, 200 };
+    EXPECT_EQ(result, expected);
+}
+
+/**
+ * @tc.name: GetIntersectedVisitedDirtyRectEmptyCurrentFrame
+ * @tc.desc: test results of GetIntersectedVisitedDirtyRectEmptyCurrentFrame
+ * @tc.type: FUNC
+ * @tc.require: issue23321
+ */
+HWTEST_F(RSDirtyRegionManagerTest, GetIntersectedVisitedDirtyRectEmptyCurrentFrame, TestSize.Level1)
+{
+    RSDirtyRegionManager dirtyManager;
+    RectI emptyRect;
+    dirtyManager.currentFrameDirtyRegion_ = emptyRect;
+
+    std::vector<RectI> visitedRects = { { 10, 10, 50, 50 } };
+    dirtyManager.UpdateVisitedDirtyRects(visitedRects);
+
+    RectI absRect = { 5, 5, 20, 20 };
+    RectI result = dirtyManager.GetIntersectedVisitedDirtyRect(absRect);
+
+    RectI expected = { 10, 10, 15, 15 };
+    EXPECT_EQ(result, expected);
+}
+
+/**
+ * @tc.name: GetIntersectedVisitedDirtyRectNoIntersection
+ * @tc.desc: test results of GetIntersectedVisitedDirtyRectNoIntersection
+ * @tc.type: FUNC
+ * @tc.require: issue23321
+ */
+HWTEST_F(RSDirtyRegionManagerTest, GetIntersectedVisitedDirtyRectNoIntersection, TestSize.Level1)
+{
+    RSDirtyRegionManager dirtyManager;
+    RectI currentFrameDirty = { 0, 0, 100, 100 };
+    dirtyManager.currentFrameDirtyRegion_ = currentFrameDirty;
+
+    std::vector<RectI> visitedRects = { { 200, 200, 50, 50 } };
+    dirtyManager.UpdateVisitedDirtyRects(visitedRects);
+
+    RectI absRect = { 150, 150, 10, 10 };
+    RectI result = dirtyManager.GetIntersectedVisitedDirtyRect(absRect);
+
+    EXPECT_EQ(result, currentFrameDirty);
 }
 
 /**
@@ -765,7 +974,7 @@ HWTEST_F(RSDirtyRegionManagerTest, SetDirtyRegionForQuickReject, TestSize.Level1
 {
     RSDirtyRegionManager fun;
     RectI rect = RectI(0, 0, 100, 100);
-    fun.SetDirtyRegionForQuickReject({rect});
+    fun.SetDirtyRegionForQuickReject({ rect });
     auto rects = fun.GetDirtyRegionForQuickReject();
     EXPECT_EQ(static_cast<int>(rects.size()), 1);
     EXPECT_EQ(rects[0], rect);
@@ -913,6 +1122,304 @@ HWTEST_F(RSDirtyRegionManagerTest, SetMaxNumOfDirtyRects, Function | SmallTest |
 }
 
 /**
+ * @tc.name: SetOffset
+ * @tc.desc: test SetOffset can set offset values correctly
+ * @tc.type: FUNC
+ * @tc.require: issue23321
+ */
+HWTEST_F(RSDirtyRegionManagerTest, SetOffset, TestSize.Level1)
+{
+    RSDirtyRegionManager dirtyManager;
+    int32_t offsetX = 10;
+    int32_t offsetY = 20;
+
+    dirtyManager.SetOffset(offsetX, offsetY);
+    EXPECT_FALSE(dirtyManager.HasOffset());
+}
+
+/**
+ * @tc.name: SetOffsetAndGetOffsetedDirtyRegion
+ * @tc.desc: test SetOffset and GetOffsetedDirtyRegion work together
+ * @tc.type: FUNC
+ * @tc.require: issue23321
+ */
+HWTEST_F(RSDirtyRegionManagerTest, SetOffsetAndGetOffsetedDirtyRegion, TestSize.Level1)
+{
+    RSDirtyRegionManager dirtyManager;
+    RectI dirtyRegion = { 0, 0, 100, 100 };
+    dirtyManager.dirtyRegion_ = dirtyRegion;
+
+    int32_t offsetX = 50;
+    int32_t offsetY = 30;
+    dirtyManager.SetOffset(offsetX, offsetY);
+
+    RectI offsetRegion = dirtyManager.GetOffsetedDirtyRegion();
+    RectI expected = { 50, 30, 100, 100 };
+    EXPECT_EQ(offsetRegion, expected);
+}
+
+/**
+ * @tc.name: SetOffsetNegativeValues
+ * @tc.desc: test SetOffset with negative values
+ * @tc.type: FUNC
+ * @tc.require: issue23321
+ */
+HWTEST_F(RSDirtyRegionManagerTest, SetOffsetNegativeValues, TestSize.Level1)
+{
+    RSDirtyRegionManager dirtyManager;
+    int32_t offsetX = -10;
+    int32_t offsetY = -20;
+
+    dirtyManager.SetOffset(offsetX, offsetY);
+    EXPECT_FALSE(dirtyManager.HasOffset());
+
+    RectI dirtyRegion = { 50, 50, 100, 100 };
+    dirtyManager.dirtyRegion_ = dirtyRegion;
+
+    RectI offsetRegion = dirtyManager.GetOffsetedDirtyRegion();
+    RectI expected = { 40, 30, 100, 100 };
+    EXPECT_EQ(offsetRegion, expected);
+}
+
+/**
+ * @tc.name: SetOffsetZeroValues
+ * @tc.desc: test SetOffset with zero values
+ * @tc.type: FUNC
+ * @tc.require: issue23321
+ */
+HWTEST_F(RSDirtyRegionManagerTest, SetOffsetZeroValues, TestSize.Level1)
+{
+    RSDirtyRegionManager dirtyManager;
+    int32_t offsetX = 0;
+    int32_t offsetY = 0;
+
+    dirtyManager.SetOffset(offsetX, offsetY);
+    EXPECT_FALSE(dirtyManager.HasOffset());
+}
+
+/**
+ * @tc.name: GetOffsetedDirtyRegionEmptyDirtyRegion
+ * @tc.desc: test GetOffsetedDirtyRegion with empty dirty region
+ * @tc.type: FUNC
+ * @tc.require: issue23321
+ */
+HWTEST_F(RSDirtyRegionManagerTest, GetOffsetedDirtyRegionEmptyDirtyRegion, TestSize.Level1)
+{
+    RSDirtyRegionManager dirtyManager;
+    RectI emptyRect;
+    dirtyManager.dirtyRegion_ = emptyRect;
+
+    int32_t offsetX = 50;
+    int32_t offsetY = 30;
+    dirtyManager.SetOffset(offsetX, offsetY);
+
+    RectI offsetRegion = dirtyManager.GetOffsetedDirtyRegion();
+    EXPECT_TRUE(offsetRegion.IsEmpty());
+}
+
+/**
+ * @tc.name: GetOffsetedDirtyRegionLargeOffset
+ * @tc.desc: test GetOffsetedDirtyRegion with large offset values
+ * @tc.type: FUNC
+ * @tc.require: issue23321
+ */
+HWTEST_F(RSDirtyRegionManagerTest, GetOffsetedDirtyRegionLargeOffset, TestSize.Level1)
+{
+    RSDirtyRegionManager dirtyManager;
+    RectI dirtyRegion = { 0, 0, 100, 100 };
+    dirtyManager.dirtyRegion_ = dirtyRegion;
+
+    int32_t offsetX = 1000;
+    int32_t offsetY = 2000;
+    dirtyManager.SetOffset(offsetX, offsetY);
+
+    RectI offsetRegion = dirtyManager.GetOffsetedDirtyRegion();
+    RectI expected = { 1000, 2000, 100, 100 };
+    EXPECT_EQ(offsetRegion, expected);
+}
+
+/**
+ * @tc.name: GetOffsetedDirtyRegionOnlyPositiveOffsetX
+ * @tc.desc: test GetOffsetedDirtyRegion with only positive X offset
+ * @tc.type: FUNC
+ * @tc.require: issue23321
+ */
+HWTEST_F(RSDirtyRegionManagerTest, GetOffsetedDirtyRegionOnlyPositiveOffsetX, TestSize.Level1)
+{
+    RSDirtyRegionManager dirtyManager;
+    RectI dirtyRegion = { 0, 0, 100, 100 };
+    dirtyManager.dirtyRegion_ = dirtyRegion;
+
+    int32_t offsetX = 50;
+    int32_t offsetY = 0;
+    dirtyManager.SetOffset(offsetX, offsetY);
+
+    RectI offsetRegion = dirtyManager.GetOffsetedDirtyRegion();
+    RectI expected = { 50, 0, 100, 100 };
+    EXPECT_EQ(offsetRegion, expected);
+}
+
+/**
+ * @tc.name: GetOffsetedDirtyRegionOnlyPositiveOffsetY
+ * @tc.desc: test GetOffsetedDirtyRegion with only positive Y offset
+ * @tc.type: FUNC
+ * @tc.require: issue23321
+ */
+HWTEST_F(RSDirtyRegionManagerTest, GetOffsetedDirtyRegionOnlyPositiveOffsetY, TestSize.Level1)
+{
+    RSDirtyRegionManager dirtyManager;
+    RectI dirtyRegion = { 0, 0, 100, 100 };
+    dirtyManager.dirtyRegion_ = dirtyRegion;
+
+    int32_t offsetX = 0;
+    int32_t offsetY = 50;
+    dirtyManager.SetOffset(offsetX, offsetY);
+
+    RectI offsetRegion = dirtyManager.GetOffsetedDirtyRegion();
+    RectI expected = { 0, 50, 100, 100 };
+    EXPECT_EQ(offsetRegion, expected);
+}
+
+/**
+ * @tc.name: GetOffsetedDirtyRegionOnlyNegativeOffsetX
+ * @tc.desc: test GetOffsetedDirtyRegion with only negative X offset
+ * @tc.type: FUNC
+ * @tc.require: issue23321
+ */
+HWTEST_F(RSDirtyRegionManagerTest, GetOffsetedDirtyRegionOnlyNegativeOffsetX, TestSize.Level1)
+{
+    RSDirtyRegionManager dirtyManager;
+    RectI dirtyRegion = { 100, 0, 100, 100 };
+    dirtyManager.dirtyRegion_ = dirtyRegion;
+
+    int32_t offsetX = -50;
+    int32_t offsetY = 0;
+    dirtyManager.SetOffset(offsetX, offsetY);
+
+    RectI offsetRegion = dirtyManager.GetOffsetedDirtyRegion();
+    RectI expected = { 50, 0, 100, 100 };
+    EXPECT_EQ(offsetRegion, expected);
+}
+
+/**
+ * @tc.name: GetOffsetedDirtyRegionOnlyNegativeOffsetY
+ * @tc.desc: test GetOffsetedDirtyRegion with only negative Y offset
+ * @tc.type: FUNC
+ * @tc.require: issue23321
+ */
+HWTEST_F(RSDirtyRegionManagerTest, GetOffsetedDirtyRegionOnlyNegativeOffsetY, TestSize.Level1)
+{
+    RSDirtyRegionManager dirtyManager;
+    RectI dirtyRegion = { 0, 100, 100, 100 };
+    dirtyManager.dirtyRegion_ = dirtyRegion;
+
+    int32_t offsetX = 0;
+    int32_t offsetY = -50;
+    dirtyManager.SetOffset(offsetX, offsetY);
+
+    RectI offsetRegion = dirtyManager.GetOffsetedDirtyRegion();
+    RectI expected = { 0, 50, 100, 100 };
+    EXPECT_EQ(offsetRegion, expected);
+}
+
+/**
+ * @tc.name: GetOffsetedDirtyRegionLargeDirtyRegion
+ * @tc.desc: test GetOffsetedDirtyRegion with large dirty region
+ * @tc.type: FUNC
+ * @tc.require: issue23321
+ */
+HWTEST_F(RSDirtyRegionManagerTest, GetOffsetedDirtyRegionLargeDirtyRegion, TestSize.Level1)
+{
+    RSDirtyRegionManager dirtyManager;
+    RectI dirtyRegion = { 0, 0, 1920, 1080 };
+    dirtyManager.dirtyRegion_ = dirtyRegion;
+
+    int32_t offsetX = 100;
+    int32_t offsetY = 50;
+    dirtyManager.SetOffset(offsetX, offsetY);
+
+    RectI offsetRegion = dirtyManager.GetOffsetedDirtyRegion();
+    RectI expected = { 100, 50, 1920, 1080 };
+    EXPECT_EQ(offsetRegion, expected);
+}
+
+/**
+ * @tc.name: MergeSurfaceRectWithActiveSurfaceRect
+ * @tc.desc: test MergeSurfaceRect uses activeSurfaceRect when available
+ * @tc.type: FUNC
+ * @tc.require: issue23321
+ */
+HWTEST_F(RSDirtyRegionManagerTest, MergeSurfaceRectWithActiveSurfaceRect, TestSize.Level1)
+{
+    RSDirtyRegionManager dirtyManager;
+    RectI activeSurfaceRect = { 0, 0, 200, 200 };
+    dirtyManager.activeSurfaceRect_ = activeSurfaceRect;
+
+    dirtyManager.MergeSurfaceRect();
+
+    EXPECT_FALSE(dirtyManager.GetCurrentFrameDirtyRegion().IsEmpty());
+    EXPECT_EQ(dirtyManager.GetCurrentFrameDirtyRegion(), activeSurfaceRect);
+}
+
+/**
+ * @tc.name: MergeSurfaceRectWithSurfaceRect
+ * @tc.desc: test MergeSurfaceRect uses surfaceRect when activeSurfaceRect is empty
+ * @tc.type: FUNC
+ * @tc.require: issue23321
+ */
+HWTEST_F(RSDirtyRegionManagerTest, MergeSurfaceRectWithSurfaceRect, TestSize.Level1)
+{
+    RSDirtyRegionManager dirtyManager;
+    RectI surfaceRect = { 0, 0, 300, 300 };
+    dirtyManager.surfaceRect_ = surfaceRect;
+    dirtyManager.activeSurfaceRect_ = RectI();
+
+    dirtyManager.MergeSurfaceRect();
+
+    EXPECT_FALSE(dirtyManager.GetCurrentFrameDirtyRegion().IsEmpty());
+    EXPECT_EQ(dirtyManager.GetCurrentFrameDirtyRegion(), surfaceRect);
+}
+
+/**
+ * @tc.name: MergeSurfaceRectMultipleTimes
+ * @tc.desc: test MergeSurfaceRect can be called multiple times
+ * @tc.type: FUNC
+ * @tc.require: issue23321
+ */
+HWTEST_F(RSDirtyRegionManagerTest, MergeSurfaceRectMultipleTimes, TestSize.Level1)
+{
+    RSDirtyRegionManager dirtyManager;
+    RectI surfaceRect = { 0, 0, 100, 100 };
+    dirtyManager.surfaceRect_ = surfaceRect;
+    dirtyManager.activeSurfaceRect_ = RectI();
+
+    dirtyManager.MergeSurfaceRect();
+    EXPECT_EQ(dirtyManager.GetCurrentFrameDirtyRegion(), surfaceRect);
+
+    dirtyManager.MergeSurfaceRect();
+    EXPECT_EQ(dirtyManager.GetCurrentFrameDirtyRegion(), surfaceRect);
+}
+
+/**
+ * @tc.name: MergeSurfaceRectWithDisplayDirtyManager
+ * @tc.desc: test MergeSurfaceRect with display dirty manager
+ * @tc.type: FUNC
+ * @tc.require: issue23321
+ */
+HWTEST_F(RSDirtyRegionManagerTest, MergeSurfaceRectWithDisplayDirtyManager, TestSize.Level1)
+{
+    RSDirtyRegionManager dirtyManager(true);
+    RectI activeSurfaceRect = { 0, 0, 150, 150 };
+    dirtyManager.activeSurfaceRect_ = activeSurfaceRect;
+
+    dirtyManager.MergeSurfaceRect();
+
+    EXPECT_FALSE(dirtyManager.GetCurrentFrameDirtyRegion().IsEmpty());
+    EXPECT_EQ(dirtyManager.GetCurrentFrameDirtyRegion(), activeSurfaceRect);
+    EXPECT_FALSE(dirtyManager.mergedDirtyRegions_.empty());
+}
+
+/**
  * @tc.name: GetEnabled
  * @tc.desc: test invalid input for Enabled
  * @tc.type:FUNC
@@ -925,5 +1432,131 @@ HWTEST_F(RSDirtyRegionManagerTest, GetEnabled, Function | SmallTest | TestSize.L
     EXPECT_FALSE(fun.GetEnabledChanged());
     fun.SetPartialRenderEnabled(true);
     EXPECT_TRUE(fun.GetEnabledChanged());
+}
+
+/**
+ * @tc.name: UpdateMaxNumOfDirtyRectByStateDispMgrDisabled
+ * @tc.desc: test UpdateMaxNumOfDirtyRectByState with display manager and disabled type
+ * @tc.type: FUNC
+ * @tc.require:  issue23321
+ */
+HWTEST_F(
+    RSDirtyRegionManagerTest, UpdateMaxNumOfDirtyRectByStateDispMgrDisabled, Function | SmallTest | TestSize.Level2)
+{
+    RSDirtyRegionManager dirtyManager(true);
+    dirtyManager.SetAdvancedDirtyRegionType(AdvancedDirtyRegionType::DISABLED);
+    dirtyManager.UpdateMaxNumOfDirtyRectByState();
+    EXPECT_EQ(dirtyManager.maxNumOfDirtyRects_, MIN_DIRTY_RECT_LIMITATION);
+}
+
+/**
+ * @tc.name: UpdateMaxNumOfDirtyRectByStateWithDiverseType
+ * @tc.desc: test UpdateMaxNumOfDirtyRectByState with display manager and SET_ADVANCED_SURFACE_AND_DISPLAY type
+ * @tc.type: FUNC
+ * @tc.require:  issue23321
+ */
+HWTEST_F(RSDirtyRegionManagerTest, UpdateMaxNumOfDirtyRectByStateWithDiverseType,
+    Function | SmallTest | TestSize.Level2)
+{
+    RSDirtyRegionManager dirtyManager(true);
+    dirtyManager.SetAdvancedDirtyRegionType(AdvancedDirtyRegionType::SET_ADVANCED_SURFACE_AND_DISPLAY);
+    dirtyManager.UpdateMaxNumOfDirtyRectByState();
+    EXPECT_EQ(dirtyManager.maxNumOfDirtyRects_, MAX_DIRTY_RECT_LIMITATION_PER_NODE);
+}
+
+/**
+ * @tc.name: UpdateMaxNumOfDirtyRectByStateSetDispAdv
+ * @tc.desc: test UpdateMaxNumOfDirtyRectByState with display manager and SET_ADVANCED_DISPLAY type
+ * @tc.type: FUNC
+ * @tc.require:  issue23321
+ */
+HWTEST_F(
+    RSDirtyRegionManagerTest, UpdateMaxNumOfDirtyRectByStateSetDispAdv, Function | SmallTest | TestSize.Level2)
+{
+    RSDirtyRegionManager dirtyManager(true);
+    dirtyManager.SetAdvancedDirtyRegionType(AdvancedDirtyRegionType::SET_ADVANCED_DISPLAY);
+    dirtyManager.UpdateMaxNumOfDirtyRectByState();
+    EXPECT_EQ(dirtyManager.maxNumOfDirtyRects_, MAX_DIRTY_RECT_LIMITATION_PER_NODE);
+}
+
+/**
+ * @tc.name: UpdateMaxNumOfDirtyRectByStateSurfMgrDisabled
+ * @tc.desc: test UpdateMaxNumOfDirtyRectByState with surface manager and disabled type
+ * @tc.type: FUNC
+ * @tc.require:  issue23321
+ */
+HWTEST_F(RSDirtyRegionManagerTest, UpdateMaxNumOfDirtyRectByStateSurfMgrDisabled,
+    Function | SmallTest | TestSize.Level2)
+{
+    RSDirtyRegionManager dirtyManager(false);
+    dirtyManager.SetAdvancedDirtyRegionType(AdvancedDirtyRegionType::DISABLED);
+    dirtyManager.UpdateMaxNumOfDirtyRectByState();
+    EXPECT_EQ(dirtyManager.maxNumOfDirtyRects_, MIN_DIRTY_RECT_LIMITATION);
+}
+
+/**
+ * @tc.name: UpdateMaxNumOfDirtyRectByStateSetDiverseAdv
+ * @tc.desc: test UpdateMaxNumOfDirtyRectByState with surface manager and SET_ADVANCED_SURFACE_AND_DISPLAY type
+ * @tc.type: FUNC
+ * @tc.require:  issue23321
+ */
+HWTEST_F(RSDirtyRegionManagerTest, UpdateMaxNumOfDirtyRectByStateSetDiverseAdv,
+    Function | SmallTest | TestSize.Level2)
+{
+    RSDirtyRegionManager dirtyManager(false);
+    dirtyManager.SetAdvancedDirtyRegionType(AdvancedDirtyRegionType::SET_ADVANCED_SURFACE_AND_DISPLAY);
+    dirtyManager.UpdateMaxNumOfDirtyRectByState();
+    EXPECT_EQ(dirtyManager.maxNumOfDirtyRects_, MAX_DIRTY_RECT_LIMITATION_PER_NODE);
+}
+
+/**
+ * @tc.name: UpdateMaxNumOfDirtyRectByStateSetAdvDisp
+ * @tc.desc: test UpdateMaxNumOfDirtyRectByState with surface manager and SET_ADVANCED_DISPLAY type
+ * @tc.type: FUNC
+ * @tc.require:  issue23321
+ */
+HWTEST_F(
+    RSDirtyRegionManagerTest, UpdateMaxNumOfDirtyRectByStateSetAdvDisp, Function | SmallTest | TestSize.Level2)
+{
+    RSDirtyRegionManager dirtyManager(false);
+    dirtyManager.SetAdvancedDirtyRegionType(AdvancedDirtyRegionType::SET_ADVANCED_DISPLAY);
+    dirtyManager.UpdateMaxNumOfDirtyRectByState();
+    EXPECT_EQ(dirtyManager.maxNumOfDirtyRects_, MIN_DIRTY_RECT_LIMITATION);
+}
+
+/**
+ * @tc.name: UpdateMaxNumOfDirtyRectByStateDefaultConstructor
+ * @tc.desc: test UpdateMaxNumOfDirtyRectByState with default constructor
+ * @tc.type: FUNC
+ * @tc.require:  issue23321
+ */
+HWTEST_F(
+    RSDirtyRegionManagerTest, UpdateMaxNumOfDirtyRectByStateDefaultConstructor, Function | SmallTest | TestSize.Level2)
+{
+    RSDirtyRegionManager dirtyManager;
+    dirtyManager.UpdateMaxNumOfDirtyRectByState();
+    EXPECT_EQ(dirtyManager.maxNumOfDirtyRects_, MIN_DIRTY_RECT_LIMITATION);
+}
+
+/**
+ * @tc.name: UpdateMaxNumOfDirtyRectByStateMultipleCalls
+ * @tc.desc: test UpdateMaxNumOfDirtyRectByState can be called multiple times
+ * @tc.type: FUNC
+ * @tc.require:  issue23321
+ */
+HWTEST_F(RSDirtyRegionManagerTest, UpdateMaxNumOfDirtyRectByStateMultipleCalls, Function | SmallTest | TestSize.Level2)
+{
+    RSDirtyRegionManager dirtyManager(true);
+    dirtyManager.SetAdvancedDirtyRegionType(AdvancedDirtyRegionType::DISABLED);
+    dirtyManager.UpdateMaxNumOfDirtyRectByState();
+    EXPECT_EQ(dirtyManager.maxNumOfDirtyRects_, MIN_DIRTY_RECT_LIMITATION);
+
+    dirtyManager.SetAdvancedDirtyRegionType(AdvancedDirtyRegionType::SET_ADVANCED_SURFACE_AND_DISPLAY);
+    dirtyManager.UpdateMaxNumOfDirtyRectByState();
+    EXPECT_EQ(dirtyManager.maxNumOfDirtyRects_, MAX_DIRTY_RECT_LIMITATION_PER_NODE);
+
+    dirtyManager.SetAdvancedDirtyRegionType(AdvancedDirtyRegionType::DISABLED);
+    dirtyManager.UpdateMaxNumOfDirtyRectByState();
+    EXPECT_EQ(dirtyManager.maxNumOfDirtyRects_, MIN_DIRTY_RECT_LIMITATION);
 }
 } // namespace OHOS::Rosen

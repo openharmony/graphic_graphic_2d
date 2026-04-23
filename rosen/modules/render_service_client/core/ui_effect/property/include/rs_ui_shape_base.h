@@ -23,7 +23,7 @@
 namespace OHOS {
 namespace Rosen {
 
-class RSNGShapeBase : public RSNGEffectBase<RSNGShapeBase, RSNGRenderShapeBase> {
+class RSC_EXPORT RSNGShapeBase : public RSNGEffectBase<RSNGShapeBase, RSNGRenderShapeBase> {
 public:
     virtual ~RSNGShapeBase() = default;
 
@@ -31,7 +31,8 @@ public:
 };
 
 template<RSNGEffectType Type, typename... PropertyTags>
-using RSNGShapeTemplate = RSNGEffectTemplate<RSNGShapeBase, Type, PropertyTags...>;
+using RSNGShapeTemplate = RSNGEffectTemplate<RSNGShapeBase,
+        RSNGRenderShapeTemplate<Type, typename PropertyTags::RenderPropertyTagType...>, Type, PropertyTags...>;
 
 #define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##Tag
 

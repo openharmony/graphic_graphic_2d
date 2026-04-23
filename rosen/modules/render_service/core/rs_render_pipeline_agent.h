@@ -82,7 +82,7 @@ public:
         NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
         RSSurfaceCapturePermissions permissions);
 
-    ErrCode SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+    ErrCode SetHwcNodeBounds(NodeId rsNodeId, float positionX, float positionY,
         float positionZ, float positionW);
 
     ErrCode GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus, int32_t& resCode);
@@ -104,6 +104,8 @@ public:
     void ClearUifirstCache(NodeId id);
 
     int32_t SetLogicalCameraRotationCorrection(ScreenId screenId, ScreenRotation logicalCorrection);
+
+    ErrCode GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight);
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     void RegisterCanvasCallback(pid_t remotePid, sptr<RSICanvasSurfaceBufferCallback> callback);
@@ -167,11 +169,12 @@ public:
     int32_t RegisterUIExtensionCallback(pid_t pid, uint64_t userId, sptr<RSIUIExtensionCallback> callback,
         bool unobscured = false);
     bool RegisterTypeface(uint64_t globalUniqueId, std::shared_ptr<Drawing::Typeface>& typeface);
+    bool RegisterTypeface(Drawing::SharedTypeface& sharedTypeface, bool isLocal = true);
     bool UnRegisterTypeface(uint64_t globalUniqueId);
     int32_t GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB);
     ErrCode RepaintEverything();
     ErrCode SetColorFollow(const std::string &nodeIdStr, bool isColorFollow);
-    void CleanAll(pid_t pid);
+    void Clean(pid_t pid, bool forRefresh = false);
     void SetFreeMultiWindowStatus(bool enable);
     int32_t RegisterSelfDrawingNodeRectChangeCallback(
         pid_t remotePid, const RectConstraint& constraint, sptr<RSISelfDrawingNodeRectChangeCallback> callback);
@@ -204,6 +207,18 @@ public:
     void AddTransactionDataPidInfo(pid_t remotePid);
     void AddConnection(sptr<IRemoteObject>& token, sptr<RSIClientToRenderConnection> connectToRenderConnection);
     sptr<RSIClientToRenderConnection> FindClientToRenderConnection(const sptr<IRemoteObject>& token);
+    int32_t RegisterFrameStabilityDetection(
+        pid_t pid,
+        const FrameStabilityTarget& target,
+        const FrameStabilityConfig& config,
+        sptr<RSIFrameStabilityCallback> callback
+    );
+    int32_t UnregisterFrameStabilityDetection(pid_t pid, const FrameStabilityTarget& target);
+    int32_t StartFrameStabilityCollection(
+        pid_t pid,
+        const FrameStabilityTarget& target,
+        const FrameStabilityConfig& config);
+    int32_t GetFrameStabilityResult(pid_t pid, const FrameStabilityTarget& target, bool& result);
 private:
     std::shared_ptr<RSRenderPipeline>& rsRenderPipeline_;
     std::unordered_map<pid_t, std::string> pidToBundleName_;

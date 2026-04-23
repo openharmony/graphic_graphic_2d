@@ -54,6 +54,18 @@ bool IsSystemApp()
 #endif
 }
 
+bool CheckPermission(const std::string& permission)
+{
+#ifdef ENABLE_IPC_SECURITY
+    auto tokenID = OHOS::IPCSkeleton::GetCallingTokenID();
+    int result = OHOS::Security::AccessToken::AccessTokenKit::VerifyAccessToken(
+        tokenID, permission, false);
+    return result == OHOS::Security::AccessToken::PERMISSION_GRANTED;
+#else
+    return true;
+#endif
+}
+
 void ClampVector4f(OHOS::Rosen::Vector4f& v, float minx, float maxn)
 {
     for (auto& data : v.data_) {

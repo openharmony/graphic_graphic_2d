@@ -209,4 +209,100 @@ HWTEST_F(RSHwcContextTest, CheckPackageInConfigList005, TestSize.Level1)
     EXPECT_FALSE(rsCommonHook.GetHardwareEnabledByBackgroundAlphaFlag());
     EXPECT_FALSE(rsCommonHook.GetIsWhiteListForSolidColorLayerFlag());
 }
+
+/**
+ * @tc.name: GetMutableSourceTuningConfig001
+ * @tc.desc: Test GetMutableSourceTuningConfig
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHwcContextTest, GetMutableSourceTuningConfig001, TestSize.Level1)
+{
+    std::unordered_map<std::string, std::string> sourceTuningConfig;
+    std::unordered_map<std::string, std::string> solidLayerConfig;
+    auto hwcContext = std::make_shared<RSHwcContext>(sourceTuningConfig, solidLayerConfig);
+    ASSERT_NE(hwcContext, nullptr);
+
+    auto& mutableConfig = hwcContext->GetMutableSourceTuningConfig();
+    EXPECT_EQ(mutableConfig.size(), 0);
+
+    mutableConfig["com.test.app1"] = "1";
+    mutableConfig["com.test.app2"] = "2";
+    EXPECT_EQ(mutableConfig.size(), 2);
+    EXPECT_EQ(mutableConfig["com.test.app1"], "1");
+    EXPECT_EQ(mutableConfig["com.test.app2"], "2");
+}
+
+/**
+ * @tc.name: GetMutableSourceTuningConfig002
+ * @tc.desc: Test GetMutableSourceTuningConfig modify config
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHwcContextTest, GetMutableSourceTuningConfig002, TestSize.Level1)
+{
+    std::unordered_map<std::string, std::string> sourceTuningConfig;
+    std::unordered_map<std::string, std::string> solidLayerConfig;
+    auto hwcContext = std::make_shared<RSHwcContext>(sourceTuningConfig, solidLayerConfig);
+    ASSERT_NE(hwcContext, nullptr);
+
+    auto& mutableConfig = hwcContext->GetMutableSourceTuningConfig();
+    mutableConfig["com.test.default"] = "0";
+    EXPECT_EQ(mutableConfig.size(), 1);
+    EXPECT_EQ(mutableConfig["com.test.default"], "0");
+
+    mutableConfig["com.test.default"] = "3";
+    EXPECT_EQ(mutableConfig["com.test.default"], "3");
+
+    mutableConfig.erase("com.test.default");
+    EXPECT_EQ(mutableConfig.size(), 0);
+}
+
+/**
+ * @tc.name: GetMutableSolidLayerConfig001
+ * @tc.desc: Test GetMutableSolidLayerConfig
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHwcContextTest, GetMutableSolidLayerConfig001, TestSize.Level1)
+{
+    std::unordered_map<std::string, std::string> sourceTuningConfig;
+    std::unordered_map<std::string, std::string> solidLayerConfig;
+    auto hwcContext = std::make_shared<RSHwcContext>(sourceTuningConfig, solidLayerConfig);
+    ASSERT_NE(hwcContext, nullptr);
+
+    auto& mutableConfig = hwcContext->GetMutableSolidLayerConfig();
+    EXPECT_EQ(mutableConfig.size(), 0);
+
+    mutableConfig["com.test.solid1"] = "1";
+    mutableConfig["com.test.solid2"] = "2";
+    EXPECT_EQ(mutableConfig.size(), 2);
+    EXPECT_EQ(mutableConfig["com.test.solid1"], "1");
+    EXPECT_EQ(mutableConfig["com.test.solid2"], "2");
+}
+
+/**
+ * @tc.name: GetMutableSolidLayerConfig002
+ * @tc.desc: Test GetMutableSolidLayerConfig modify config
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHwcContextTest, GetMutableSolidLayerConfig002, TestSize.Level1)
+{
+    std::unordered_map<std::string, std::string> sourceTuningConfig;
+    std::unordered_map<std::string, std::string> solidLayerConfig;
+    auto hwcContext = std::make_shared<RSHwcContext>(sourceTuningConfig, solidLayerConfig);
+    ASSERT_NE(hwcContext, nullptr);
+
+    auto& mutableConfig = hwcContext->GetMutableSolidLayerConfig();
+    mutableConfig["com.test.solid_default"] = "1";
+    EXPECT_EQ(mutableConfig.size(), 1);
+    EXPECT_EQ(mutableConfig["com.test.solid_default"], "1");
+
+    mutableConfig["com.test.solid_default"] = "2";
+    EXPECT_EQ(mutableConfig["com.test.solid_default"], "2");
+
+    mutableConfig.erase("com.test.solid_default");
+    EXPECT_EQ(mutableConfig.size(), 0);
+}
 } // namespace OHOS::Rosen

@@ -51,7 +51,6 @@ declare_args() {
   graphic_2d_feature_enable_opengl_to_vulkan = false
   graphic_2d_feature_screenless_enable = false
   graphic_2d_feature_tv_metadata_enable = false
-  graphic_2d_modifier_ng_enable = true
   graphic_2d_feature_upgrade_skia = true
   graphic_2d_feature_enable_rdo = false
   graphic_2d_feature_enable_memory_info_manager = false
@@ -133,17 +132,11 @@ if (graphic_2d_feature_ace_enable_gpu) {
   ace_enable_gpu = true
   rs_enable_gpu = true
   surface_enable_gpu = true
-
-  libvulkan = []
-  if (graphic_2d_feature_enable_vulkan) {
-    libvulkan += [ "vulkan-loader:vulkan_loader" ]
-  }
 } else {
   gpu_defines += [ "ACE_DISABLE_GL" ]
   ace_enable_gpu = false
   rs_enable_gpu = false
   surface_enable_gpu = false
-  libvulkan = []
 }
 
 if (graphic_2d_feature_subtree_parallel_enable) {
@@ -171,7 +164,8 @@ if (graphic_2d_feature_rs_enable_eglimage || current_os == "android") {
 
 if (graphic_2d_feature_rs_enable_uni_render) {
   graphic_2d_feature_enable_sdf = false
-  if (graphic_2d_feature_product == "phone") {
+  if (graphic_2d_feature_product == "phone" ||
+    graphic_2d_feature_product == "tablet") {
     graphic_2d_feature_enable_chipset_vsync = true
   }
   gpu_defines += [ "RS_ENABLE_UNI_RENDER" ]
@@ -227,6 +221,11 @@ check_broker_ext_file_args = [
   "--filename",
   rebase_path(
       "//foundation/graphic/graphic_2d_ext/ohcore/build/broker_config.gni"),
+]
+check_dynamic_layer_skip_args = [
+  "--filename",
+  rebase_path(
+      "//foundation/graphic/graphic_2d_ext/dynamic_layer_skip/build/dynamic_layer_skip.gni"),
 ]
 check_math_tools_ext_file_args = [
   "--filename",
@@ -317,6 +316,15 @@ if (path_exists("//foundation/graphic/graphic_2d_ext/math_tools/build/math_tools
   }
 }
 
+graphic_2d_dynamic_layer_skip_configs = {
+}
+if (path_exists("//foundation/graphic/graphic_2d_ext/dynamic_layer_skip/build/dynamic_layer_skip.gni")) {
+  graphic_2d_dynamic_layer_skip_configs = {
+    import(
+      "//foundation/graphic/graphic_2d_ext/dynamic_layer_skip/build/dynamic_layer_skip.gni")
+  }
+}
+
 check_platform_ext_file_args = [
   "--filename",
   rebase_path("//foundation/graphic/graphic_2d_ext/platform/config.gni"),
@@ -366,6 +374,14 @@ if (path_exists("//foundation/graphic/graphic_2d_ext/mhc/build/mhc_config.gni"))
   graphic_2d_mhc_configs = {
     import(
       "//foundation/graphic/graphic_2d_ext/mhc/build/mhc_config.gni")
+  }
+}
+
+graphic_2d_car_features_configs = {}
+if (path_exists("//foundation/graphic/graphic_2d_ext/car_features/build/car_features_config.gni")) {
+  graphic_2d_car_features_configs = {
+    import(
+      "//foundation/graphic/graphic_2d_ext/car_features/build/car_features_config.gni")
   }
 }
 

@@ -28,8 +28,9 @@
 
 #include <common/rs_rect.h>
 #include <screen_manager/screen_types.h>
-
 #include "rs_screen_thread_safe_property.h"
+
+#include "ipc_callbacks/screen_supported_hdr_formats_callback.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -45,7 +46,7 @@ struct VirtualScreenConfigs {
     std::unordered_set<uint64_t> whiteList = {};
 };
 
-class RSScreen {
+class RSScreen : public std::enable_shared_from_this<RSScreen> {
 public:
     explicit RSScreen(ScreenId id);
     explicit RSScreen(const VirtualScreenConfigs& configs);
@@ -94,6 +95,8 @@ public:
     PanelPowerStatus GetPanelPowerStatus() const;
 
     int32_t SetDualScreenState(DualScreenStatus status);
+    int32_t SetAsMainScreen(bool isMainScreen);
+    bool IsMainScreen() const;
 
     void SetScreenBacklight(uint32_t level);
     int32_t GetScreenBacklight() const;
@@ -110,7 +113,9 @@ public:
 
     int32_t SetScreenHDRFormat(int32_t modeIdx);
     int32_t GetScreenHDRFormat(ScreenHDRFormat& hdrFormat) const;
-    int32_t GetScreenSupportedHDRFormats(std::vector<ScreenHDRFormat>& hdrFormats) const;
+    int32_t GetScreenSupportedHDRFormats(std::vector<ScreenHDRFormat>& hdrFormats,
+        sptr<RSIScreenSupportedHdrFormatsCallback> callback = nullptr);
+    void GetScreenSupportedHDRFormatsCallBack(sptr<RSIScreenSupportedHdrFormatsCallback> callback);
     const GraphicHDRCapability& GetHDRCapability();
     int32_t GetScreenSupportedMetaDataKeys(std::vector<ScreenHDRMetadataKey>& keys) const;
 
@@ -214,6 +219,7 @@ private:
     std::vector<ScreenHDRFormat> supportedVirtualHDRFormats_ = {
         NOT_SUPPORT_HDR };
     std::vector<ScreenHDRFormat> supportedPhysicalHDRFormats_;
+    std::atomic<bool> specialHDRFormatsInit_ = false;
 
     static std::map<GraphicColorGamut, GraphicCM_ColorSpaceType> RS_TO_COMMON_COLOR_SPACE_TYPE_MAP;
     static std::map<GraphicCM_ColorSpaceType, GraphicColorGamut> COMMON_COLOR_SPACE_TYPE_TO_RS_MAP;

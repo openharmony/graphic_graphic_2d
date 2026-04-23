@@ -37,7 +37,7 @@ using SetUiDVSyncConfigFunc = void (*)(int32_t bufferCount, bool compositeSceneE
     const std::vector<std::string>& rsDvsyncAnimationList);
 using GetUiCommandDelayTimeFunc = int64_t (*)();
 using UpdatePendingReferenceTimeFunc = void (*)(int64_t& timeStamp);
-using GetRealTimeOffsetOfDvsyncFunc = uint64_t (*)(int64_t time);
+using GetRealTimeOffsetOfDvsyncFunc = uint64_t (*)(int64_t time, int64_t& preTime);
 using SetHardwareTaskNumFunc = void (*)(uint32_t num);
 using SetPhysicalScreenNumFunc = void (*)(uint32_t num);
 using SetTaskEndWithTimeFunc = void (*)(uint64_t time);
@@ -104,7 +104,7 @@ public:
         const std::vector<std::string>& rsDvsyncAnimationList);
     int64_t GetUiCommandDelayTime();
     void UpdatePendingReferenceTime(int64_t& timeStamp);
-    uint64_t GetRealTimeOffsetOfDvsync(int64_t time);
+    uint64_t GetRealTimeOffsetOfDvsync(int64_t time, int64_t& preTime);
     void SetHardwareTaskNum(uint32_t num);
     void SetPhysicalScreenNum(uint32_t num);
     void SetTaskEndWithTime(uint64_t time);

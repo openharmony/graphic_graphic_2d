@@ -24,9 +24,9 @@ namespace {
 constexpr std::string_view RUNMETRICS_SIGN = "C{" ANI_INTERFACE_TEXT_STYLE "}C{" ANI_INTERFACE_FONT_METRICS "}:";
 constexpr CacheKey RUNMETRICS_KEY{ANI_CLASS_RUNMETRICS, "<ctor>", RUNMETRICS_SIGN};
 constexpr CacheKey MAP_SET_KEY{ANI_MAP, "set", "YY:C{std.core.Map}"};
-constexpr CacheKey BUSINESS_ERROR_KEY{ANI_BUSINESS_ERROR, "<ctor>", "C{std.core.String}C{escompat.ErrorOptions}:"};
+constexpr CacheKey BUSINESS_ERROR_KEY{ANI_BUSINESS_ERROR, "<ctor>", "C{std.core.String}C{std.core.ErrorOptions}:"};
 constexpr CacheKey ARRAY_KEY{ANI_ARRAY, "<ctor>", "i:"};
-constexpr CacheKey MAP_KEY{ANI_MAP, "<ctor>", ":"};
+constexpr CacheKey MAP_KEY{ANI_MAP, "<ctor>", "X{C{std.core.Iterable}C{std.core.Null}C{std.core.ReadonlyArray}}:"};
 constexpr CacheKey DOUBLE_KEY{ANI_DOUBLE, "<ctor>", "d:"};
 constexpr CacheKey INT_KEY{ANI_INT, "<ctor>", "i:"};
 constexpr CacheKey BOOLEAN_KEY{ANI_BOOLEAN, "<ctor>", "z:"};
@@ -107,8 +107,16 @@ constexpr CacheKey PARAGRAPH_STYLE_INCLUDE_FONT_PADDING_KEY{
     ANI_INTERFACE_PARAGRAPH_STYLE, "<get>includeFontPadding", ANI_WRAP_RETURN_C(ANI_BOOLEAN)};
 constexpr CacheKey PARAGRAPH_STYLE_FALLBACK_LINE_SPACING_KEY{
     ANI_INTERFACE_PARAGRAPH_STYLE, "<get>fallbackLineSpacing", ANI_WRAP_RETURN_C(ANI_BOOLEAN)};
+constexpr CacheKey PARAGRAPH_STYLE_ORPHAN_CHAR_OPTIMIZATION_KEY{
+    ANI_INTERFACE_PARAGRAPH_STYLE, "<get>orphanCharOptimization", ANI_WRAP_RETURN_C(ANI_BOOLEAN)};
 constexpr CacheKey PARAGRAPH_STYLE_LINE_SPACING_KEY{
     ANI_INTERFACE_PARAGRAPH_STYLE, "<get>lineSpacing", ANI_WRAP_RETURN_C(ANI_DOUBLE)};
+constexpr CacheKey PARAGRAPH_STYLE_FIRST_LINE_INDENT_KEY{
+    ANI_INTERFACE_PARAGRAPH_STYLE, "<get>firstLineHeadIndent", ANI_WRAP_RETURN_C(ANI_DOUBLE)};
+constexpr CacheKey PARAGRAPH_STYLE_TAIL_INDENTS_KEY{
+    ANI_INTERFACE_PARAGRAPH_STYLE, "<get>tailIndents", ANI_WRAP_RETURN_C(ANI_ARRAY)};
+constexpr CacheKey PARAGRAPH_STYLE_HEAD_INDENTS_KEY{
+    ANI_INTERFACE_PARAGRAPH_STYLE, "<get>headIndents", ANI_WRAP_RETURN_C(ANI_ARRAY)};
 
 constexpr CacheKey STRUT_STYLE_FONT_STYLE_KEY{
     ANI_INTERFACE_STRUT_STYLE, "<get>fontStyle", ANI_WRAP_RETURN_E(ANI_ENUM_FONT_STYLE)};
@@ -275,6 +283,22 @@ constexpr std::string_view TEXT_LAYOUT_RESULT_SIGN = "C{std.core.Array}C{" ANI_I
 constexpr CacheKey TEXT_LAYOUT_RESULT_KEY{ANI_CLASS_TEXT_LAYOUT_RESULT, "<ctor>", TEXT_LAYOUT_RESULT_SIGN};
 
 constexpr CacheKey LINE_TYPESET_GET_NATIVE_KEY{ANI_CLASS_LINE_TYPESET, TEXT_GET_NATIVE, ":l"};
+
+constexpr CacheKey TEXT_TAB_INTERNAL_KEY{ANI_CLASS_TEXT_TAB_INTERNAL, "<ctor>", "E{" ANI_ENUM_TEXT_ALIGN "}d:"};
+
+constexpr std::string_view STRUT_STYLE_INTERNAL_SIGN =
+    "C{std.core.Array}E{" ANI_ENUM_FONT_STYLE "}E{" ANI_ENUM_FONT_WIDTH "}E{" ANI_ENUM_FONT_WEIGHT "}C{" ANI_DOUBLE
+    "}C{" ANI_DOUBLE "}C{" ANI_DOUBLE "}C{" ANI_BOOLEAN "}C{" ANI_BOOLEAN "}C{" ANI_BOOLEAN "}C{" ANI_BOOLEAN "}:";
+constexpr CacheKey STRUT_STYLE_INTERNAL_KEY{ANI_CLASS_STRUT_STYLE_INTERNAL, "<ctor>", STRUT_STYLE_INTERNAL_SIGN};
+
+constexpr std::string_view PARAGRAPH_STYLE_INTERNAL_SIGN =
+    "C{" ANI_BOOLEAN "}C{" ANI_BOOLEAN "}C{" ANI_BOOLEAN "}C{" ANI_INTERFACE_TEXT_STYLE "}E{" ANI_ENUM_TEXT_DIRECTION
+    "}E{" ANI_ENUM_TEXT_ALIGN "}E{" ANI_ENUM_WORD_BREAK "}C{" ANI_INT "}E{" ANI_ENUM_BREAK_STRATEGY
+    "}C{" ANI_INTERFACE_STRUT_STYLE "}E{" ANI_ENUM_TEXT_HEIGHT_BEHAVIOR "}C{" ANI_INTERFACE_TEXT_TAB "}C{" ANI_BOOLEAN
+    "}C{" ANI_BOOLEAN "}E{" ANI_ENUM_TEXT_VERTICAL_ALIGN "}C{" ANI_BOOLEAN "}C{" ANI_DOUBLE "}C{" ANI_DOUBLE
+    "}C{" ANI_ARRAY "}C{" ANI_ARRAY "}:";
+constexpr CacheKey PARAGRAPH_STYLE_INTERNAL_KEY{
+    ANI_CLASS_PARAGRAPH_STYLE_INTERNAL, "<ctor>", PARAGRAPH_STYLE_INTERNAL_SIGN};
 } // namespace
 
 void AniGlobalNamespace::Init(ani_env* env)
@@ -319,6 +343,9 @@ void AniGlobalClass::Init(ani_env* env)
     paragraphStyle = AniFindClass(env, ANI_INTERFACE_PARAGRAPH_STYLE);
     strutStyle = AniFindClass(env, ANI_INTERFACE_STRUT_STYLE);
     textTab = AniFindClass(env, ANI_INTERFACE_TEXT_TAB);
+    textTabInternal = AniFindClass(env, ANI_CLASS_TEXT_TAB_INTERNAL);
+    strutStyleInternal = AniFindClass(env, ANI_CLASS_STRUT_STYLE_INTERNAL);
+    paragraphStyleInternal = AniFindClass(env, ANI_CLASS_PARAGRAPH_STYLE_INTERNAL);
     point = AniFindClass(env, ANI_INTERFACE_POINT);
     path = AniFindClass(env, ANI_CLASS_PATH);
     placeholderSpan = AniFindClass(env, ANI_INTERFACE_PLACEHOLDER_SPAN);
@@ -340,6 +367,13 @@ void AniGlobalEnum::Init(ani_env* env)
     textDecorationStyle = AniFindEnum(env, ANI_ENUM_TEXT_DECORATION_STYLE);
     textBadgeType = AniFindEnum(env, ANI_ENUM_TEXT_BADGE_TYPE);
     lineHeightStyle = AniFindEnum(env, ANI_ENUM_TEXT_LINE_HEIGHT_STYLE_TYPE);
+    textProcessState = AniFindEnum(env, ANI_ENUM_TEXT_PROCESS_STATE);
+    textDisplayState = AniFindEnum(env, ANI_ENUM_TEXT_DISPLAY_STATE);
+    textAlign = AniFindEnum(env, ANI_ENUM_TEXT_ALIGN);
+    wordBreak = AniFindEnum(env, ANI_ENUM_WORD_BREAK);
+    breakStrategy = AniFindEnum(env, ANI_ENUM_BREAK_STRATEGY);
+    textHeightBehavior = AniFindEnum(env, ANI_ENUM_TEXT_HEIGHT_BEHAVIOR);
+    textVerticalAlign = AniFindEnum(env, ANI_ENUM_TEXT_VERTICAL_ALIGN);
 }
 
 void AniGlobalMethod::Init(ani_env* env)
@@ -364,6 +398,7 @@ void AniGlobalMethod::Init(ani_env* env)
     InitTextTabMethod(env);
     InitTextLayoutResultMethod(env);
     InitTextRectSizeMethod(env);
+    InitParagraphStyleInternalMethod(env);
 }
 
 void AniGlobalMethod::InitBaseMethod(ani_env* env)
@@ -471,8 +506,16 @@ void AniGlobalMethod::InitParagraphStyleMethod(ani_env* env)
         env, AniGlobalClass::GetInstance().paragraphStyle, PARAGRAPH_STYLE_INCLUDE_FONT_PADDING_KEY);
     paragraphStyleFallbackLineSpacing = AniClassFindMethod(
         env, AniGlobalClass::GetInstance().paragraphStyle, PARAGRAPH_STYLE_FALLBACK_LINE_SPACING_KEY);
+    paragraphStyleOrphanCharOptimization = AniClassFindMethod(
+        env, AniGlobalClass::GetInstance().paragraphStyle, PARAGRAPH_STYLE_ORPHAN_CHAR_OPTIMIZATION_KEY);
     paragraphStyleLineSpacing = AniClassFindMethod(
         env, AniGlobalClass::GetInstance().paragraphStyle, PARAGRAPH_STYLE_LINE_SPACING_KEY);
+    paragraphStyleFirstLineIndent = AniClassFindMethod(
+        env, AniGlobalClass::GetInstance().paragraphStyle, PARAGRAPH_STYLE_FIRST_LINE_INDENT_KEY);
+    paragraphStyleTailIndents = AniClassFindMethod(
+        env, AniGlobalClass::GetInstance().paragraphStyle, PARAGRAPH_STYLE_TAIL_INDENTS_KEY);
+    paragraphStyleHeadIndents = AniClassFindMethod(
+        env, AniGlobalClass::GetInstance().paragraphStyle, PARAGRAPH_STYLE_HEAD_INDENTS_KEY);
 }
 void AniGlobalMethod::InitStrutStyleMethod(ani_env* env)
 {
@@ -660,6 +703,15 @@ void AniGlobalMethod::InitTextRectSizeMethod(ani_env* env)
     textRectSizeCtor = AniClassFindMethod(env, AniGlobalClass::GetInstance().textRectSize, TEXT_RECT_SIZE_KEY);
     textRectSizeWidth = AniClassFindMethod(env, AniGlobalClass::GetInstance().textRectSize, TEXT_RECT_SIZE_WIDTH_KEY);
     textRectSizeHeight = AniClassFindMethod(env, AniGlobalClass::GetInstance().textRectSize, TEXT_RECT_SIZE_HEIGHT_KEY);
+}
+
+void AniGlobalMethod::InitParagraphStyleInternalMethod(ani_env* env)
+{
+    textTabInternalCtor = AniClassFindMethod(env, AniGlobalClass::GetInstance().textTabInternal, TEXT_TAB_INTERNAL_KEY);
+    strutStyleInternalCtor =
+        AniClassFindMethod(env, AniGlobalClass::GetInstance().strutStyleInternal, STRUT_STYLE_INTERNAL_KEY);
+    paragraphStyleInternalCtor =
+        AniClassFindMethod(env, AniGlobalClass::GetInstance().paragraphStyleInternal, PARAGRAPH_STYLE_INTERNAL_KEY);
 }
 
 ani_status InitAniGlobalRef(ani_vm* vm)

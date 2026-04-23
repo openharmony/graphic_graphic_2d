@@ -108,9 +108,14 @@ public:
     double maxLineHeight{std::numeric_limits<float>::max()};
     double minLineHeight{0.0f};
     double lineSpacing{0.0f};
+    double firstLineIndent{-1.0f};
+    std::vector<double> tailIndents;
+    std::vector<double> headIndents;
     LineHeightStyle lineHeightStyle{LineHeightStyle::kFontSize};
     bool includeFontPadding{false};
     bool fallbackLineSpacing{false};
+    bool orphanCharOptimization{false};
+    bool useLocaleForTextBreak{false};
 };
 } // namespace SPText
 } // namespace Rosen

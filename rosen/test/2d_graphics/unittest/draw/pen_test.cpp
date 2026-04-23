@@ -962,6 +962,114 @@ HWTEST_F(PenTest, GetShaderEffectPtr001, TestSize.Level1)
     pen->SetShaderEffect(shaderEffect);
     ASSERT_NE(pen->GetShaderEffectPtr(), nullptr);
 }
+
+/**
+ * @tc.name: CreatePenWithUIColor001
+ * @tc.desc: Test for Create Pen With UIColor
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PenTest, CreatePenWithUIColor001, TestSize.Level1)
+{
+    UIColor color(0.5f, 0.6f, 0.7f, 0.8f, 2.0f);
+    Pen pen(color);
+    EXPECT_TRUE(pen.HasUIColor());
+    EXPECT_FLOAT_EQ(pen.GetUIColor().GetRed(), 0.5f);
+    EXPECT_FLOAT_EQ(pen.GetUIColor().GetGreen(), 0.6f);
+    EXPECT_FLOAT_EQ(pen.GetUIColor().GetBlue(), 0.7f);
+    EXPECT_FLOAT_EQ(pen.GetUIColor().GetAlpha(), 0.8f);
+    EXPECT_FLOAT_EQ(pen.GetUIColor().GetHeadroom(), 2.0f);
+}
+
+/**
+ * @tc.name: SetUIColorThenSetColor001
+ * @tc.desc: Test for SetUIColor Then SetColor
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PenTest, SetUIColorThenSetColor001, TestSize.Level1)
+{
+    Pen pen;
+    UIColor uiColor(0.5f, 0.6f, 0.7f, 0.8f, 2.0f);
+    pen.SetUIColor(uiColor, nullptr);
+    EXPECT_TRUE(pen.HasUIColor());
+
+    Color normalColor(100, 150, 200, 255);
+    pen.SetColor(normalColor);
+    EXPECT_FALSE(pen.HasUIColor());
+}
+
+/**
+ * @tc.name: AssignmentOperatorWithUIColor001
+ * @tc.desc: Test for Assignment Operator then SetUIColor
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PenTest, AssignmentOperatorWithUIColor001, TestSize.Level1)
+{
+    Pen pen1;
+    UIColor color(0.5f, 0.6f, 0.7f, 0.8f, 2.0f);
+    pen1.SetUIColor(color, nullptr);
+    Pen pen2;
+    pen2 = pen1;
+    EXPECT_TRUE(pen2.HasUIColor());
+    EXPECT_FLOAT_EQ(pen2.GetUIColor().GetRed(), 0.5f);
+    EXPECT_FLOAT_EQ(pen2.GetUIColor().GetGreen(), 0.6f);
+}
+
+/**
+ * @tc.name: OperatorEqualWithUIColor001
+ * @tc.desc: Test for Operator Equal With SetUIColor
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PenTest, OperatorEqualWithUIColor001, TestSize.Level1)
+{
+    Pen pen1;
+    Pen pen2;
+    UIColor color(0.5f, 0.6f, 0.7f, 0.8f, 2.0f);
+    pen1.SetUIColor(color, nullptr);
+    pen2 = pen1;
+    EXPECT_TRUE(pen1 == pen2);
+
+    UIColor color1(0.5f, 0.6f, 0.7f, 0.8f, 2.0f);
+    UIColor color2(0.3f, 0.4f, 0.5f, 0.6f, 1.5f);
+    pen1.SetUIColor(color1, nullptr);
+    pen2.SetUIColor(color2, nullptr);
+    EXPECT_TRUE(pen1 != pen2);
+}
+
+/**
+ * @tc.name: Reset001
+ * @tc.desc: Test for Reset
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PenTest, Reset001, TestSize.Level1)
+{
+    Pen pen;
+    UIColor color(0.5f, 0.6f, 0.7f, 0.8f, 2.0f);
+    pen.SetUIColor(color, nullptr);
+    EXPECT_TRUE(pen.HasUIColor());
+    pen.Reset();
+    EXPECT_FALSE(pen.HasUIColor());
+}
+
+/**
+ * @tc.name: Dump002
+ * @tc.desc: Test for Dump
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PenTest, Dump002, TestSize.Level1)
+{
+    Pen pen;
+    UIColor color(0.5f, 0.6f, 0.7f, 0.8f, 2.0f);
+    pen.SetUIColor(color, nullptr);
+    std::string out;
+    pen.Dump(out);
+    EXPECT_FALSE(out.empty());
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

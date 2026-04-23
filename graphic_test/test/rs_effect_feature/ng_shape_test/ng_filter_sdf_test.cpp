@@ -115,9 +115,6 @@ GRAPHIC_TEST(NGFilterSDFTest, EFFECT_TEST, Set_NG_Filter_SDF_Border_Test_1)
         std::shared_ptr<RSNGShapeBase> sdfShape;
         InitSmoothUnionShapes(sdfShape, rectXParams[rectIndex], rectYParams[rectIndex], sdfShapeSpacingParams[i]);
         testNode->SetSDFShape(sdfShape);
-        testNode->SetBorderWidth(5.0f); // 5.0f is radius
-        testNode->SetBorderColor(0xFFFF0000);
-        testNode->SetBorderStyle(0);
         testNode->SetClipToBounds(i <= columnCount);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -146,9 +143,6 @@ GRAPHIC_TEST(NGFilterSDFTest, EFFECT_TEST, Set_NG_Filter_SDF_Shadow_Border_Test_
         testNode->SetSDFShape(sdfShape);
         testNode->SetShadowRadius(25.0f); // 25.0f is radius
         testNode->SetShadowColor(0xFF00FF00);
-        testNode->SetBorderWidth(5.0f); // 5.0f is radius
-        testNode->SetBorderColor(0xFFFF0000);
-        testNode->SetBorderStyle(0);
         testNode->SetClipToBounds(true);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -178,9 +172,6 @@ GRAPHIC_TEST(NGFilterSDFTest, EFFECT_TEST, Set_NG_Filter_SDF_Shadow_Border_Test_
         testNode->SetSDFShape(sdfShape);
         testNode->SetShadowRadius(25.0f); // 25.0f is radius
         testNode->SetShadowColor(0xFF00FF00);
-        testNode->SetBorderWidth(5.0f); // 5.0f is radius
-        testNode->SetBorderColor(0xFFFF0000);
-        testNode->SetBorderStyle(0);
         testNode->SetClipToBounds(i <= columnCount);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -211,9 +202,6 @@ GRAPHIC_TEST(NGFilterSDFTest, EFFECT_TEST, Set_NG_Filter_SDF_Clip_Test_1)
         if (i < (rowCount - columnCount)) {
             testNode->SetShadowRadius(25.0f); // 25.0f is radius
             testNode->SetShadowColor(0xff00ff00);
-            testNode->SetBorderWidth(5.0f); // 5.0f is radius
-            testNode->SetBorderColor(0xffff0000);
-            testNode->SetBorderStyle(0);
         }
         testNode->SetClipToBounds((i % columnCount) == 0);
         auto testChlidNode = RSCanvasNode::Create();
@@ -286,9 +274,6 @@ GRAPHIC_TEST(NGFilterSDFTest, EFFECT_TEST, Set_NG_Filter_Pixelmap_SDF_Border_Tes
         pixelmapChildShape->Setter<SDFPixelmapShapeImageTag>(pixelmap);
 
         testNode->SetSDFShape(pixelmapChildShape);
-        testNode->SetBorderWidth(5.0f); // 5.0f is radius
-        testNode->SetBorderColor(0xFFFF0000);
-        testNode->SetBorderStyle(0);
         testNode->SetClipToBounds(i <= columnCount);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -322,9 +307,6 @@ GRAPHIC_TEST(NGFilterSDFTest, EFFECT_TEST, Set_NG_Filter_Pixelmap_SDF_Shadow_Bor
         testNode->SetSDFShape(pixelmapChildShape);
         testNode->SetShadowRadius(25.0f); // 25.0f is radius
         testNode->SetShadowColor(0xFF00FF00);
-        testNode->SetBorderWidth(5.0f); // 5.0f is radius
-        testNode->SetBorderColor(0xFFFF0000);
-        testNode->SetBorderStyle(0);
         testNode->SetClipToBounds(true);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);

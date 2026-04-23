@@ -169,6 +169,8 @@ int32_t XMLParser::ParseSubSequentParams(xmlNode& node, std::string& paraName)
         setResult = ParseSimplex(node, mParsedData_->videoCallLayerConfig_);
     } else if (paraName == "vrate_control_config") {
         setResult = ParseSimplex(node, mParsedData_->vRateControlList_);
+    } else if (paraName == "hover_frame_up_config") {
+        mParsedData_->hoverFrameUpSwitch_ = ExtractPropertyValue("switch", node) == "1";
     } else {
         setResult = EXEC_SUCCESS;
     }

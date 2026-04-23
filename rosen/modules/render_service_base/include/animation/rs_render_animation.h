@@ -26,12 +26,14 @@
 namespace OHOS {
 namespace Rosen {
 class RSRenderNode;
+class RSRenderTimeDrivenGroupAnimator;
 
 enum class AnimationState {
     INITIALIZED,
     RUNNING,
     PAUSED,
     FINISHED,
+    GROUP_WAITING, // Child animation finished, waiting for next cycle in group animation
 };
 
 class RSB_EXPORT RSRenderAnimation : public Parcelable {
@@ -46,8 +48,11 @@ public:
     void Finish();
     void FinishOnPosition(RSInteractiveAnimationPosition pos);
     void SetReversedAndContinue();
+    void FlipDirection();
+    void Restart();
     void Pause();
     void Resume();
+    void ResumeGroupWaiting();
     void SetFraction(float fraction);
     void SetReversed(bool isReversed);
     bool Marshalling(Parcel& parcel) const override;
@@ -57,118 +62,57 @@ public:
     bool IsRunning() const;
     bool IsPaused() const;
     bool IsFinished() const;
+    bool IsGroupWaiting() const;
     void DumpAnimation(std::string& out) const;
     virtual void DumpAnimationInfo(std::string& out) const;
 
-    void SetAnimationId(AnimationId id)
+    void SetAnimationId(AnimationId id) { id_ = id; }
+
+    void SetDuration(int value) { animationFraction_.SetDuration(value); }
+    int GetDuration() const { return animationFraction_.GetDuration(); }
+
+    void SetStartDelay(int value) { animationFraction_.SetStartDelay(value); }
+    int GetStartDelay() const { return animationFraction_.GetStartDelay(); }
+
+    void SetRepeatCount(int value) { animationFraction_.SetRepeatCount(value); }
+    int GetRepeatCount() const { return animationFraction_.GetRepeatCount(); }
+
+    void SetSpeed(float value) { animationFraction_.SetSpeed(value); }
+    float GetSpeed() const { return animationFraction_.GetSpeed(); }
+
+    void SetAutoReverse(bool value) { animationFraction_.SetAutoReverse(value); }
+    bool GetAutoReverse() const { return animationFraction_.GetAutoReverse(); }
+
+    void SetFillMode(const FillMode& value) { animationFraction_.SetFillMode(value); }
+    const FillMode& GetFillMode() const { return animationFraction_.GetFillMode(); }
+
+    void SetDirection(bool isForward) { animationFraction_.SetDirection(isForward); }
+
+    bool GetDirection() const { return animationFraction_.GetDirection(); }
+
+    bool IsGroupAnimationChild() const { return isGroupAnimationChild_; }
+
+    void SetGroupAnimator(const std::shared_ptr<RSRenderTimeDrivenGroupAnimator>& groupAnimator)
     {
-        id_ = id;
+        isGroupAnimationChild_ = true;
+        groupAnimator_ = groupAnimator;
     }
 
-    void SetDuration(int value)
-    {
-        animationFraction_.SetDuration(value);
-    }
+    void RemoveFromGroupAnimator();
 
-    int GetDuration() const
-    {
-        return animationFraction_.GetDuration();
-    }
+    void SetFrameRateRange(FrameRateRange range) { animationFraction_.SetFrameRateRange(range); }
 
-    void SetStartDelay(int value)
-    {
-        animationFraction_.SetStartDelay(value);
-    }
+    FrameRateRange GetFrameRateRange() const { return animationFraction_.GetFrameRateRange(); }
 
-    int GetStartDelay() const
-    {
-        return animationFraction_.GetStartDelay();
-    }
+    bool IsCalculateAniamtionValue() const { return calculateAnimationValue_; }
 
-    void SetRepeatCount(int value)
-    {
-        animationFraction_.SetRepeatCount(value);
-    }
+    bool GetNeedUpdateStartTime() const { return needUpdateStartTime_; }
 
-    int GetRepeatCount() const
-    {
-        return animationFraction_.GetRepeatCount();
-    }
+    void SetValueFraction(float fraction) { lastValueFraction_ = fraction; }
 
-    void SetSpeed(float value)
-    {
-        animationFraction_.SetSpeed(value);
-    }
+    float GetValueFraction() const { return lastValueFraction_; }
 
-    float GetSpeed() const
-    {
-        return animationFraction_.GetSpeed();
-    }
-
-    void SetAutoReverse(bool value)
-    {
-        animationFraction_.SetAutoReverse(value);
-    }
-
-    bool GetAutoReverse() const
-    {
-        return animationFraction_.GetAutoReverse();
-    }
-
-    void SetFillMode(const FillMode& value)
-    {
-        animationFraction_.SetFillMode(value);
-    }
-
-    const FillMode& GetFillMode() const
-    {
-        return animationFraction_.GetFillMode();
-    }
-
-    void SetDirection(bool isForward)
-    {
-        animationFraction_.SetDirection(isForward);
-    }
-
-    bool GetDirection() const
-    {
-        return animationFraction_.GetDirection();
-    }
-
-    void SetFrameRateRange(FrameRateRange range)
-    {
-        animationFraction_.SetFrameRateRange(range);
-    }
-
-    FrameRateRange GetFrameRateRange() const
-    {
-        return animationFraction_.GetFrameRateRange();
-    }
-
-    bool IsCalculateAniamtionValue() const
-    {
-        return calculateAnimationValue_;
-    }
-
-    bool GetNeedUpdateStartTime() const
-    {
-        return needUpdateStartTime_;
-    }
-
-    void SetValueFraction(float fraction)
-    {
-        lastValueFraction_ = fraction;
-    }
-
-    float GetValueFraction() const
-    {
-        return lastValueFraction_;
-    }
-
-    uint64_t GetToken() const
-    {
-        return token_;
-    }
+    uint64_t GetToken() const { return token_; }
     void Attach(RSRenderNode* renderNode);
     void Detach(bool forceDetach = false);
     RSRenderNode* GetTarget() const;
@@ -219,10 +163,7 @@ protected:
 
     void FinishOnCurrentPosition();
 
-    void SetToken(uint64_t token)
-    {
-        token_ = token;
-    }
+    void SetToken(uint64_t token) { token_ = token; }
 
     RSAnimationFraction animationFraction_;
 
@@ -240,15 +181,10 @@ private:
 
     void ProcessOnRepeatFinish();
 
-    void SetRepeatCallbackEnable(bool isEnable)
-    {
-        animationFraction_.SetRepeatCallbackEnable(isEnable);
-    }
+    void AnimateOnGroupWaiting(int64_t time, bool isCustom);
 
-    bool GetRepeatCallbackEnable() const
-    {
-        return animationFraction_.GetRepeatCallbackEnable();
-    }
+    void SetRepeatCallbackEnable(bool isEnable) { animationFraction_.SetRepeatCallbackEnable(isEnable); }
+    bool GetRepeatCallbackEnable() const { return animationFraction_.GetRepeatCallbackEnable(); }
 
     AnimationId id_ = 0;
     NodeId targetId_ = 0;
@@ -259,9 +195,12 @@ private:
     RSRenderNode* target_ { nullptr };
     float lastValueFraction_ { 0.0f };
     uint64_t token_ = 0;
+    bool isGroupAnimationChild_ { false };
+    std::weak_ptr<RSRenderTimeDrivenGroupAnimator> groupAnimator_;
 
     friend class RSAnimation;
     friend class RSRenderCurveAnimation;
+    friend class RSRenderTimeDrivenGroupAnimator;
     friend class RSModifierManager;
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;

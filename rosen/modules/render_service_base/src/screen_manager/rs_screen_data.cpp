@@ -21,9 +21,11 @@ namespace Rosen {
 constexpr uint32_t MAX_MODE_COUNT = 1024;
 
 RSScreenData::RSScreenData(RSScreenCapability capability, RSScreenModeInfo activityModeInfo,
-    const std::vector<RSScreenModeInfo>& supportModeInfo, ScreenPowerStatus powerStatus)
+    const std::vector<RSScreenModeInfo>& supportModeInfo, ScreenPowerStatus powerStatus,
+    ScreenConnectionType connectionType)
     : capability_(capability), activityModeInfo_(activityModeInfo),
-    supportModeInfo_(supportModeInfo), powerStatus_(powerStatus)
+    supportModeInfo_(supportModeInfo), powerStatus_(powerStatus),
+    connectionType_(connectionType)
 {
 }
 
@@ -47,6 +49,10 @@ void RSScreenData::SetPowerStatus(ScreenPowerStatus powerStatus)
     powerStatus_ = powerStatus;
 }
 
+void RSScreenData::SetScreenConnectionType(ScreenConnectionType connectionType)
+{
+    connectionType_ = connectionType;
+}
 
 RSScreenCapability RSScreenData::GetCapability() const
 {
@@ -66,6 +72,11 @@ const std::vector<RSScreenModeInfo>& RSScreenData::GetSupportModeInfo() const
 ScreenPowerStatus RSScreenData::GetPowerStatus() const
 {
     return powerStatus_;
+}
+
+ScreenConnectionType RSScreenData::GetScreenConnectionType() const
+{
+    return connectionType_;
 }
 
 bool RSScreenData::WriteVector(const std::vector<RSScreenModeInfo> &supportModes, Parcel &parcel) const
@@ -118,6 +129,10 @@ bool RSScreenData::Marshalling(Parcel &parcel) const
         ROSEN_LOGE("RSScreenData::Marshalling WriteUint8 failed");
         return false;
     }
+    if (!parcel.WriteUint32(static_cast<uint32_t>(connectionType_))) {
+        ROSEN_LOGE("RSScreenData::Marshalling WriteUint32 2 failed");
+        return false;
+    }
     return true;
 }
 
@@ -128,6 +143,7 @@ RSScreenData* RSScreenData::Unmarshalling(Parcel &parcel)
     uint32_t modeCount;
     std::vector<RSScreenModeInfo> supportModeInfo;
     uint8_t powerStatus;
+    uint32_t connectionType;
     capability = parcel.ReadParcelable<RSScreenCapability>();
     if (capability == nullptr) {
         return nullptr;
@@ -147,8 +163,13 @@ RSScreenData* RSScreenData::Unmarshalling(Parcel &parcel)
         ROSEN_LOGE("RSScreenData::Unmarshalling ReadUint8 failed");
         return nullptr;
     }
+    if (!parcel.ReadUint32(connectionType)) {
+        ROSEN_LOGE("RSScreenData::Unmarshalling ReadUint32 2 failed");
+        return nullptr;
+    }
     RSScreenData* screenData = new RSScreenData(*capability, *activityModeInfo,
-        supportModeInfo, static_cast<ScreenPowerStatus>(powerStatus));
+        supportModeInfo, static_cast<ScreenPowerStatus>(powerStatus),
+        static_cast<ScreenConnectionType>(connectionType));
     return screenData;
 }
 }

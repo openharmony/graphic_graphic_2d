@@ -125,6 +125,8 @@ void RSAnimationFractionFuzzerTest1()
     fraction.UpdateReverseState(true);
     fraction.IsStartRunning(time, startDelayNs, isCustom);
     fraction.CalculateLeftDelayTime(startDelayNs, isCustom);
+    fraction.FlipDirection();
+    fraction.UpdateGroupWaitingTime(time, isCustom);
 }
 
 bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)

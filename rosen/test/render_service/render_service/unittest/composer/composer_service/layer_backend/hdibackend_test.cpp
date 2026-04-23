@@ -13,9 +13,10 @@
  * limitations under the License.
  */
 
+#include <gtest/gtest.h>
+
 #include "hdi_backend.h"
 #include "mock_hdi_device.h"
-#include <gtest/gtest.h>
 
 using namespace testing;
 using namespace testing::ext;
@@ -41,15 +42,15 @@ void HdiBackendTest::SetUpTestCase()
 void HdiBackendTest::TearDownTestCase() {}
 
 namespace {
-/*
-* Function: SetHdiBackendDevice001
-* Type: Function
-* Rank: Important(1)
-* EnvConditions: N/A
-* CaseDescription: 1. call SetHdiBackendDevice
-*                  2. check ret
-*/
-HWTEST_F(HdiBackendTest, SetHdiBackendDevice001, Function | MediumTest| Level3)
+/**
+ * Function: SetHdiBackendDevice001
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call SetHdiBackendDevice
+ *                  2. check ret
+ */
+HWTEST_F(HdiBackendTest, SetHdiBackendDevice001, Function | MediumTest | Level3)
 {
     // hdiDeviceMock_ is nullptr
     ASSERT_EQ(HdiBackendTest::hdiBackend_->SetHdiBackendDevice(nullptr), ROSEN_ERROR_INVALID_ARGUMENTS);
@@ -59,28 +60,28 @@ HWTEST_F(HdiBackendTest, SetHdiBackendDevice001, Function | MediumTest| Level3)
     ASSERT_EQ(HdiBackendTest::hdiBackend_->SetHdiBackendDevice(HdiBackendTest::hdiDeviceMock_), ROSEN_ERROR_OK);
 }
 
-/*
-* Function: RegScreenHotplug001
-* Type: Function
-* Rank: Important(1)
-* EnvConditions: N/A
-* CaseDescription: 1. call RegScreenHotplug(nullptr, nullptr)
-*                  2. check ret
-*/
-HWTEST_F(HdiBackendTest, RegScreenHotplug001, Function | MediumTest| Level3)
+/**
+ * Function: RegScreenHotplug001
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call RegScreenHotplug(nullptr, nullptr)
+ *                  2. check ret
+ */
+HWTEST_F(HdiBackendTest, RegScreenHotplug001, Function | MediumTest | Level3)
 {
     ASSERT_EQ(HdiBackendTest::hdiBackend_->RegScreenHotplug(nullptr, nullptr), ROSEN_ERROR_INVALID_ARGUMENTS);
 }
 
-/*
-* Function: RegScreenHotplug002
-* Type: Function
-* Rank: Important(1)
-* EnvConditions: N/A
-* CaseDescription: 1. call RegScreenHotplug(func, nullptr)
-*                  2. check ret
-*/
-HWTEST_F(HdiBackendTest, RegScreenHotplug002, Function | MediumTest| Level3)
+/**
+ *   Function: RegScreenHotplug002
+ *   Type: Function
+ *   Rank: Important(1)
+ *   EnvConditions: N/A
+ *   CaseDescription: 1. call RegScreenHotplug(func, nullptr)
+ *                    2. check ret
+ */
+HWTEST_F(HdiBackendTest, RegScreenHotplug002, Function | MediumTest | Level3)
 {
     HdiBackendTest::hdiBackend_->device_ = HdiBackendTest::hdiDeviceMock_;
     auto func = [](OutputPtr& output, bool connected, void* data) -> void {
@@ -94,28 +95,28 @@ HWTEST_F(HdiBackendTest, RegScreenHotplug002, Function | MediumTest| Level3)
     ASSERT_EQ(HdiBackendTest::hdiBackend_->RegScreenHotplug(func, nullptr), ROSEN_ERROR_API_FAILED);
 }
 
-/*
-* Function: RegScreenRefresh001
-* Type: Function
-* Rank: Important(1)
-* EnvConditions: N/A
-* CaseDescription: 1. call RegScreenRefresh(nullptr, nullptr)
-*                  2. check ret
-*/
-HWTEST_F(HdiBackendTest, RegScreenRefresh001, Function | MediumTest| Level3)
+/**
+ * Function: RegScreenRefresh001
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call RegScreenRefresh(nullptr, nullptr)
+ *                  2. check ret
+ */
+HWTEST_F(HdiBackendTest, RegScreenRefresh001, Function | MediumTest | Level3)
 {
     ASSERT_EQ(HdiBackendTest::hdiBackend_->RegScreenRefresh(nullptr, nullptr), ROSEN_ERROR_INVALID_ARGUMENTS);
 }
 
-/*
-* Function: RegScreenRefresh002
-* Type: Function
-* Rank: Important(1)
-* EnvConditions: N/A
-* CaseDescription: 1. call RegScreenRefresh(func, nullptr)
-*                  2. check ret
-*/
-HWTEST_F(HdiBackendTest, RegScreenRefresh002, Function | MediumTest| Level3)
+/**
+ * Function: RegScreenRefresh002
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call RegScreenRefresh(func, nullptr)
+ *                  2. check ret
+ */
+HWTEST_F(HdiBackendTest, RegScreenRefresh002, Function | MediumTest | Level3)
 {
     HdiBackendTest::hdiBackend_->device_ = HdiBackendTest::hdiDeviceMock_;
     EXPECT_CALL(*hdiDeviceMock_, RegRefreshCallback(_, _)).WillRepeatedly(testing::Return(0));
@@ -128,28 +129,28 @@ HWTEST_F(HdiBackendTest, RegScreenRefresh002, Function | MediumTest| Level3)
     ASSERT_EQ(HdiBackendTest::hdiBackend_->RegScreenRefresh(func, nullptr), ROSEN_ERROR_API_FAILED);
 }
 
-/*
-* Function: RegHwcDeadListener001
-* Type: Function
-* Rank: Important(1)
-* EnvConditions: N/A
-* CaseDescription: 1. call RegHwcDeadListener
-*                  2. check ret
-*/
-HWTEST_F(HdiBackendTest, RegHwcDeadListener001, Function | MediumTest| Level3)
+/**
+ * Function: RegHwcDeadListener001
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call RegHwcDeadListener
+ *                  2. check ret
+ */
+HWTEST_F(HdiBackendTest, RegHwcDeadListener001, Function | MediumTest | Level3)
 {
     ASSERT_EQ(HdiBackendTest::hdiBackend_->RegHwcDeadListener(nullptr, nullptr), ROSEN_ERROR_INVALID_ARGUMENTS);
 }
 
-/*
-* Function: RegHwcDeadListener002
-* Type: Function
-* Rank: Important(1)
-* EnvConditions: N/A
-* CaseDescription: 1. call RegHwcDeadListener
-*                  2. check ret
-*/
-HWTEST_F(HdiBackendTest, RegHwcDeadListener002, Function | MediumTest| Level3)
+/**
+ * Function: RegHwcDeadListener002
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call RegHwcDeadListener
+ *                  2. check ret
+ */
+HWTEST_F(HdiBackendTest, RegHwcDeadListener002, Function | MediumTest | Level3)
 {
     auto func = [](void* data) -> void { (void)data; };
     EXPECT_CALL(*hdiDeviceMock_, RegHwcDeadCallback(_, _)).WillRepeatedly(testing::Return(false));
@@ -161,16 +162,16 @@ HWTEST_F(HdiBackendTest, RegHwcDeadListener002, Function | MediumTest| Level3)
     ASSERT_EQ(ret, ROSEN_ERROR_OK);
 }
 
-/*
-* Function: SetVsyncSamplerEnabled
-* Type: Function
-* Rank: Important(1)
-* EnvConditions: N/A
-* CaseDescription: 1. call SetVsyncSamplerEnabled()
-*                  2. call GetVsyncSamplerEnabled
-*                  3. check ret
-*/
-HWTEST_F(HdiBackendTest, SetVsyncSamplerEnabled, Function | MediumTest| Level3)
+/**
+ * Function: SetVsyncSamplerEnabled
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call SetVsyncSamplerEnabled()
+ *                  2. call GetVsyncSamplerEnabled
+ *                  3. check ret
+ */
+HWTEST_F(HdiBackendTest, SetVsyncSamplerEnabled, Function | MediumTest | Level3)
 {
     OutputPtr output = HdiOutput::CreateHdiOutput(0);
     hdiBackend_->SetVsyncSamplerEnabled(nullptr, false);
@@ -179,15 +180,15 @@ HWTEST_F(HdiBackendTest, SetVsyncSamplerEnabled, Function | MediumTest| Level3)
     ASSERT_EQ(hdiBackend_->GetVsyncSamplerEnabled(output), false);
 }
 
-/*
-* Function: ResetDevice
-* Type: Function
-* Rank: Important(1)
-* EnvConditions: N/A
-* CaseDescription: 1. call ResetDevice()
-*                  2. check ret
-*/
-HWTEST_F(HdiBackendTest, ResetDevice, Function | MediumTest| Level3)
+/**
+ * Function: ResetDevice
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call ResetDevice()
+ *                  2. check ret
+ */
+HWTEST_F(HdiBackendTest, ResetDevice, Function | MediumTest | Level3)
 {
     EXPECT_CALL(*hdiDeviceMock_, Destroy());
     hdiBackend_->ResetDevice();
@@ -198,7 +199,7 @@ HWTEST_F(HdiBackendTest, ResetDevice, Function | MediumTest| Level3)
     EXPECT_EQ(hdiBackend_->outputs_.size(), 0);
 }
 
-/*
+/**
  * Function: RegScreenVBlankIdleCallback001
  * Type: Function
  * Rank: Important(1)
@@ -224,7 +225,7 @@ HWTEST_F(HdiBackendTest, RegScreenVBlankIdleCallback001, Function | MediumTest |
     EXPECT_EQ(res, ROSEN_ERROR_API_FAILED);
 }
 
-/*
+/**
  * Function: SetPendingMode001
  * Type: Function
  * Rank: Important(1)
@@ -252,7 +253,7 @@ HWTEST_F(HdiBackendTest, SetPendingMode001, Function | MediumTest | Level3)
     EXPECT_EQ(pendingPeriod, period);
 }
 
-/*
+/**
  * Function: StartSample001
  * Type: Function
  * Rank: Important(1)
@@ -277,7 +278,7 @@ HWTEST_F(HdiBackendTest, StartSample001, Function | MediumTest | Level3)
     EXPECT_TRUE(static_cast<impl::VSyncSampler*>(output->sampler_.GetRefPtr())->hardwareVSyncStatus_);
 }
 
-/*
+/**
  * Function: RegHwcEventCallback001
  * Type: Function
  * Rank: Important(1)
@@ -285,7 +286,7 @@ HWTEST_F(HdiBackendTest, StartSample001, Function | MediumTest | Level3)
  * CaseDescription: 1. call egHwcEventCallback
  *                  2. check ret
  */
-HWTEST_F(HdiBackendTest, RegHwcEventCallback001, Function | MediumTest| Level3)
+HWTEST_F(HdiBackendTest, RegHwcEventCallback001, Function | MediumTest | Level3)
 {
     RosenError res = hdiBackend_->RegHwcEventCallback(nullptr, nullptr);
     EXPECT_EQ(res, ROSEN_ERROR_INVALID_ARGUMENTS);
@@ -300,13 +301,13 @@ HWTEST_F(HdiBackendTest, RegHwcEventCallback001, Function | MediumTest| Level3)
     hdiBackend_->device_ = hdiDeviceMock_;
     RosenError ret = HdiBackendTest::hdiBackend_->RegHwcEventCallback(func, nullptr);
     ASSERT_EQ(ret, ROSEN_ERROR_API_FAILED);
- 
+
     EXPECT_CALL(*hdiDeviceMock_, RegHwcEventCallback(_, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
     ret = HdiBackendTest::hdiBackend_->RegHwcEventCallback(func, nullptr);
     ASSERT_EQ(ret, ROSEN_ERROR_OK);
 }
 
-/*
+/**
  * Function: OnHdiBackendHotPlugEvent
  * Type: Function
  * Rank: Important(1)
@@ -315,7 +316,7 @@ HWTEST_F(HdiBackendTest, RegHwcEventCallback001, Function | MediumTest| Level3)
  *                  2. call OnHdiBackendHotPlugEvent
  *                  3. check result
  */
-HWTEST_F(HdiBackendTest, OnHdiBackendHotPlugEvent, Function | MediumTest| Level3)
+HWTEST_F(HdiBackendTest, OnHdiBackendHotPlugEvent, Function | MediumTest | Level3)
 {
     HdiBackend* data = HdiBackend::GetInstance();
     EXPECT_NE(data, nullptr);
@@ -328,14 +329,14 @@ HWTEST_F(HdiBackendTest, OnHdiBackendHotPlugEvent, Function | MediumTest| Level3
     EXPECT_EQ(data->outputs_.find(1), data->outputs_.end());
 }
 
-/*
+/**
  * Function: OnHdiBackendHotPlugEvent_ConnectCreatesOutput
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
  * CaseDescription: connected=true creates output in backend map
  */
-HWTEST_F(HdiBackendTest, OnHdiBackendHotPlugEvent_ConnectCreatesOutput, Function | MediumTest| Level3)
+HWTEST_F(HdiBackendTest, OnHdiBackendHotPlugEvent_ConnectCreatesOutput, Function | MediumTest | Level3)
 {
     auto backend = HdiBackend::GetInstance();
     backend->outputs_.clear();
@@ -348,7 +349,7 @@ HWTEST_F(HdiBackendTest, OnHdiBackendHotPlugEvent_ConnectCreatesOutput, Function
     EXPECT_EQ(backend->outputs_.find(99), backend->outputs_.end());
 }
 
-/*
+/**
  * Function: OnHdiBackendRefreshEvent
  * Type: Function
  * Rank: Important(1)
@@ -357,7 +358,7 @@ HWTEST_F(HdiBackendTest, OnHdiBackendHotPlugEvent_ConnectCreatesOutput, Function
  *                  2. call OnHdiBackendRefreshEvent
  *                  3. check result
  */
-HWTEST_F(HdiBackendTest, OnHdiBackendRefreshEvent, Function | MediumTest| Level3)
+HWTEST_F(HdiBackendTest, OnHdiBackendRefreshEvent, Function | MediumTest | Level3)
 {
     HdiBackend* data = HdiBackend::GetInstance();
     EXPECT_NE(data, nullptr);
@@ -367,7 +368,7 @@ HWTEST_F(HdiBackendTest, OnHdiBackendRefreshEvent, Function | MediumTest| Level3
     EXPECT_NE(data, nullptr);
 }
 
-/*
+/**
  * Function: OnScreenRefresh
  * Type: Function
  * Rank: Important(1)
@@ -376,12 +377,12 @@ HWTEST_F(HdiBackendTest, OnHdiBackendRefreshEvent, Function | MediumTest| Level3
  *                  2. call OnScreenRefresh
  *                  3. check result
  */
-HWTEST_F(HdiBackendTest, OnScreenRefresh, Function | MediumTest| Level3)
+HWTEST_F(HdiBackendTest, OnScreenRefresh, Function | MediumTest | Level3)
 {
     HdiBackend* data = HdiBackend::GetInstance();
     EXPECT_NE(data, nullptr);
     data->OnScreenRefresh(0);
-    std::atomic<bool> ran{false};
+    std::atomic<bool> ran { false };
     auto onScreenRefreshFunc = [&ran](uint32_t, void*) -> void { ran.store(true); };
     EXPECT_CALL(*hdiDeviceMock_, RegRefreshCallback(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_EQ(data->RegScreenRefresh(onScreenRefreshFunc, data), ROSEN_ERROR_OK);
@@ -578,7 +579,7 @@ HWTEST_F(HdiBackendTest, OnScreenHotplug_CallbackNotNull_Executed, Function | Me
     OutputPtr output = HdiOutput::CreateHdiOutput(100);
     backend->outputs_[100] = output;
 
-    std::atomic<bool> callbackCalled{false};
+    std::atomic<bool> callbackCalled { false };
     auto func = [&callbackCalled](OutputPtr& output, bool connected, void* data) -> void {
         (void)output;
         (void)connected;
@@ -738,7 +739,7 @@ HWTEST_F(HdiBackendTest, OnScreenRefresh_CallbackNull_Skipped, Function | Medium
 HWTEST_F(HdiBackendTest, OnScreenRefresh_CallbackNotNull_Executed, Function | MediumTest | Level3)
 {
     HdiBackend* backend = HdiBackend::GetInstance();
-    std::atomic<bool> callbackCalled{false};
+    std::atomic<bool> callbackCalled { false };
     auto func = [&callbackCalled](uint32_t, void*) -> void { callbackCalled.store(true); };
     EXPECT_CALL(*hdiDeviceMock_, RegRefreshCallback(_, _)).WillRepeatedly(testing::Return(0));
     backend->RegScreenRefresh(func, backend);
@@ -909,7 +910,7 @@ HWTEST_F(HdiBackendTest, OnHdiBackendConnected_CreateAndRegisterOutput, Function
     auto backend = HdiBackend::GetInstance();
     backend->outputs_.clear();
 
-    std::atomic<uint32_t> screenId{0};
+    std::atomic<uint32_t> screenId { 0 };
     auto hotplugFunc = [&screenId](OutputPtr& output, bool connected, void* data) -> void {
         if (connected) {
             screenId.store(output->GetScreenId());

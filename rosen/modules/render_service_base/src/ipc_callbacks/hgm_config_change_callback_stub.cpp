@@ -32,6 +32,11 @@ int RSHgmConfigChangeCallbackStub::OnRemoteRequest(
     switch (code) {
         case static_cast<uint32_t>(RSIHgmConfigChangeCallbackInterfaceCode::ON_HGM_CONFIG_CHANGED): {
             std::shared_ptr<RSHgmConfigData> configData(data.ReadParcelable<RSHgmConfigData>());
+            if (configData == nullptr) {
+                RS_LOGE("RSHgmConfigChangeCallbackStub::ON_HGM_CONFIG_CHANGED read data failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             OnHgmConfigChanged(configData);
             break;
         }

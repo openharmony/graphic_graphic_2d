@@ -38,7 +38,8 @@ public:
 };
 
 template<RSNGEffectType Type, typename... PropertyTags>
-using RSNGFilterTemplate = RSNGEffectTemplate<RSNGFilterBase, Type, PropertyTags...>;
+using RSNGFilterTemplate = RSNGEffectTemplate<RSNGFilterBase,
+        RSNGRenderFilterTemplate<Type, typename PropertyTags::RenderPropertyTagType...>, Type, PropertyTags...>;
 
 #define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##Tag
 

@@ -135,7 +135,8 @@ bool RSFrameRatePolicy::GetTouchOrPointerAction(int32_t pointerAction)
         pointerAction == TOUCH_UP || pointerAction == TOUCH_BUTTON_DOWN ||
         pointerAction == TOUCH_BUTTON_UP || pointerAction == TOUCH_PULL_DOWN ||
         pointerAction == TOUCH_PULL_UP || pointerAction == AXIS_BEGIN ||
-        pointerAction == AXIS_END) {
+        pointerAction == AXIS_END || pointerAction == POINTER_ACTION_PROXIMITY_IN ||
+        pointerAction == POINTER_ACTION_PROXIMITY_OUT) {
         return true;
     }
     if (pointerAction == TOUCH_MOVE || pointerAction == TOUCH_PULL_MOVE) {

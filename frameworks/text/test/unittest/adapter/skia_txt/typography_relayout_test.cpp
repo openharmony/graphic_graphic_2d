@@ -38,6 +38,46 @@ class TypographyRelayoutTest : public testing::Test {
 };
 
 /*
+ * @tc.name: OHDrawingTypographyRelayoutCacheCrashTest001
+ * @tc.desc: test for relayout and use cache crash when set compressHeadPunctuation.
+ * @tc.type: FUNC
+ */
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutCacheCrashTest001, TestSize.Level0)
+{
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.fontSize = 43.75;
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.compressHeadPunctuation = true;
+    std::u16string text = u"汇聚爱优腾芒四大平台，海量内容等你看：《疯狂动物城2》《乘风2026》《白日...";
+
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+        
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate1 =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    typographyCreate1->PushStyle(textStyle);
+    typographyCreate1->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography1 = typographyCreate1->CreateTypography();
+
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate2 =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    typographyCreate2->PushStyle(textStyle);
+    typographyCreate2->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography2 = typographyCreate2->CreateTypography();
+    OHOS::Rosen::Drawing::Canvas canvas;
+    typography2->Layout(906);
+    double longestLineWithIndent2 = typography2->GetLongestLineWithIndent();
+    typography1->Layout(1006);
+    typography1->Paint(&canvas, 0, 0);
+    double longestLineWithIndent1 = typography1->GetLongestLineWithIndent();
+    typography1->Layout(906);
+    typography1->Paint(&canvas, 0, 0);
+    double longestLineWithIndent = typography1->GetLongestLineWithIndent();
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(longestLineWithIndent2, longestLineWithIndent));
+    EXPECT_FALSE(skia::textlayout::nearlyEqual(longestLineWithIndent1, longestLineWithIndent));
+}
+
+/*
  * @tc.name: OHDrawingTypographyRelayoutTest001
  * @tc.desc: test for relayout but not change paragraph style and text style
  * @tc.type: FUNC
@@ -1629,6 +1669,210 @@ HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest0040, TestSize.L
     typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
     
     EXPECT_EQ(skParagraph->fRuns.size(), 1);
+}
+
+/*
+ * @tc.name: OHDrawingTypographyRelayoutTest0041
+ * @tc.desc: test for relayout paragraph style first line indent
+ * @tc.type: FUNC
+ */
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest0041, TestSize.Level0)
+{
+    double maxWidth = LAYOUT_WIDTH;
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    std::u16string text = u"relayout indent test for first line indent";
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.fontSize = 14;
+    typographyCreate->PushStyle(textStyle);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    typography->Layout(maxWidth);
+
+    typographyStyle.firstLineIndent = 50.0;
+    std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)> styleBitset;
+    styleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::FIRST_LINE_INDENT));
+    typographyStyle.relayoutChangeBitmap = styleBitset;
+    std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
+    relayoutTextStyles.push_back(textStyle);
+    typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
+    double relayoutLongestLineWithIndent = typography->GetLongestLineWithIndent();
+
+    EXPECT_DOUBLE_EQ(relayoutLongestLineWithIndent, 295.9930419921875);
+}
+
+/*
+ * @tc.name: OHDrawingTypographyRelayoutTest0042
+ * @tc.desc: test for relayout paragraph style first line indent with negative value
+ * @tc.type: FUNC
+ */
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest0042, TestSize.Level0)
+{
+    double maxWidth = LAYOUT_WIDTH;
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    std::u16string text = u"relayout indent test for first line indent negative";
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.fontSize = 14;
+    typographyCreate->PushStyle(textStyle);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    typography->Layout(maxWidth);
+    double preLongestLineWithIndent = typography->GetLongestLineWithIndent();
+
+    // Negative firstLineIndent (< 0) should be ignored by the relayout handler
+    typographyStyle.firstLineIndent = -10.0;
+    std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)> styleBitset;
+    styleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::FIRST_LINE_INDENT));
+    typographyStyle.relayoutChangeBitmap = styleBitset;
+    std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
+    relayoutTextStyles.push_back(textStyle);
+    typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
+    double relayoutLongestLineWithIndent = typography->GetLongestLineWithIndent();
+
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(preLongestLineWithIndent, relayoutLongestLineWithIndent));
+}
+
+/*
+ * @tc.name: OHDrawingTypographyRelayoutTest0043
+ * @tc.desc: test for relayout paragraph style head indents
+ * @tc.type: FUNC
+ */
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest0043, TestSize.Level0)
+{
+    double maxWidth = LAYOUT_WIDTH;
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    std::u16string text = u"relayout indent test for head indents";
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.fontSize = 14;
+    typographyCreate->PushStyle(textStyle);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    typography->Layout(maxWidth);
+
+    typographyStyle.headIndents = { 50.0, 0.0 };
+    std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)> styleBitset;
+    styleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::LINE_HEAD_INDENTS));
+    typographyStyle.relayoutChangeBitmap = styleBitset;
+    std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
+    relayoutTextStyles.push_back(textStyle);
+    typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
+    double relayoutLongestLineWithIndent = typography->GetLongestLineWithIndent();
+
+    EXPECT_DOUBLE_EQ(relayoutLongestLineWithIndent, 283.25308227539062);
+}
+
+/*
+ * @tc.name: OHDrawingTypographyRelayoutTest0044
+ * @tc.desc: test for relayout paragraph style head indents with negative value
+ * @tc.type: FUNC
+ */
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest0044, TestSize.Level0)
+{
+    double maxWidth = LAYOUT_WIDTH;
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    std::u16string text = u"relayout indent test for head indents negative";
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.fontSize = 14;
+    typographyCreate->PushStyle(textStyle);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    typography->Layout(maxWidth);
+    double preLongestLineWithIndent = typography->GetLongestLineWithIndent();
+
+    // Negative values in headIndents should be ignored by the relayout handler
+    typographyStyle.headIndents = { 50.0, -10.0 };
+    std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)> styleBitset;
+    styleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::LINE_HEAD_INDENTS));
+    typographyStyle.relayoutChangeBitmap = styleBitset;
+    std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
+    relayoutTextStyles.push_back(textStyle);
+    typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
+    double relayoutLongestLineWithIndent = typography->GetLongestLineWithIndent();
+
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(preLongestLineWithIndent, relayoutLongestLineWithIndent));
+}
+
+/*
+ * @tc.name: OHDrawingTypographyRelayoutTest0045
+ * @tc.desc: test for relayout paragraph style tail indents
+ * @tc.type: FUNC
+ */
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest0045, TestSize.Level0)
+{
+    double maxWidth = LAYOUT_WIDTH;
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    std::u16string text = u"relayout indent test for tail indents";
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.fontSize = 14;
+    typographyCreate->PushStyle(textStyle);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    typography->Layout(maxWidth);
+
+    typographyStyle.tailIndents = { 50.0 };
+    std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)> styleBitset;
+    styleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::LINE_TAIL_INDENTS));
+    typographyStyle.relayoutChangeBitmap = styleBitset;
+    std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
+    relayoutTextStyles.push_back(textStyle);
+    typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
+    double relayoutLongestLineWithIndent = typography->GetLongestLineWithIndent();
+
+    EXPECT_DOUBLE_EQ(relayoutLongestLineWithIndent, 320.84912109375);
+}
+
+/*
+ * @tc.name: OHDrawingTypographyRelayoutTest0046
+ * @tc.desc: test for relayout paragraph style tail indents with negative value
+ * @tc.type: FUNC
+ */
+HWTEST_F(TypographyRelayoutTest, OHDrawingTypographyRelayoutTest0046, TestSize.Level0)
+{
+    double maxWidth = LAYOUT_WIDTH;
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    std::u16string text = u"relayout indent test for tail indents negative";
+    OHOS::Rosen::TextStyle textStyle;
+    textStyle.fontSize = 14;
+    typographyCreate->PushStyle(textStyle);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+    typography->Layout(maxWidth);
+    double preLongestLineWithIndent = typography->GetLongestLineWithIndent();
+
+    // Negative values in tailIndents should be ignored by the relayout handler
+    typographyStyle.tailIndents = { -20.0 };
+    std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)> styleBitset;
+    styleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::LINE_TAIL_INDENTS));
+    typographyStyle.relayoutChangeBitmap = styleBitset;
+    std::vector<OHOS::Rosen::TextStyle> relayoutTextStyles;
+    relayoutTextStyles.push_back(textStyle);
+    typography->Relayout(maxWidth, typographyStyle, relayoutTextStyles);
+    double relayoutLongestLineWithIndent = typography->GetLongestLineWithIndent();
+
+    EXPECT_TRUE(skia::textlayout::nearlyEqual(preLongestLineWithIndent, relayoutLongestLineWithIndent));
 }
 } // namespace Rosen
 } // namespace OHOS

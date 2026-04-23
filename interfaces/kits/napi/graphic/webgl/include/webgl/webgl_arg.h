@@ -532,6 +532,8 @@ public:
     {
         return data_;
     }
+
+    size_t GetElementCount() const;
 private:
     WebGLReadBufferArg(const WebGLReadBufferArg&) = delete;
     WebGLReadBufferArg& operator=(const WebGLReadBufferArg&) = delete;

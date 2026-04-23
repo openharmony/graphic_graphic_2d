@@ -19,6 +19,7 @@
 #include "gtest/gtest.h"
 #include "param/sys_param.h"
 #include "screen_manager/rs_screen_manager.h"
+#include "screen_manager/rs_screen.h"
 #include "screen_manager/rs_screen_preprocessor.h"
 
 using namespace testing;
@@ -42,50 +43,30 @@ public:
 
 void RSScreenPreprocessorTest::SetUpTestCase() {}
 void RSScreenPreprocessorTest::TearDownTestCase() {}
-void RSScreenPreprocessorTest::SetUp() {}
+void RSScreenPreprocessorTest::SetUp()
+{
+    preprocessor_->Init();
+}
 void RSScreenPreprocessorTest::TearDown() {}
 
 /*
  * @tc.name: OnHotPlugTest001
- * @tc.desc: Test OnHotPlug when output is nullptr
+ * @tc.desc: Test OnHotPlug
  * @tc.type: FUNC
  * @tc.require: issueIBBM19
  */
 HWTEST_F(RSScreenPreprocessorTest, OnHotPlugTest001, TestSize.Level1)
 {
-    uint32_t screenId = 1000;
-    auto output = std::make_shared<HdiOutput>(screenId);
-    output.reset();
-    RSScreenPreprocessor::OnHotPlug(output, false, nullptr);
     ASSERT_NE(preprocessor_, nullptr);
-}
-
-/*
- * @tc.name: OnHotPlugTest002
- * @tc.desc: Test OnHotPlug when data is nullptr
- * @tc.type: FUNC
- * @tc.require: issueIBBM19
- */
-HWTEST_F(RSScreenPreprocessorTest, OnHotPlugTest002, TestSize.Level1)
-{
     uint32_t screenId = 1000;
-    auto output = std::make_shared<HdiOutput>(screenId);
+    // output is nullptr
+    std::shared_ptr<HdiOutput> output = nullptr;
     RSScreenPreprocessor::OnHotPlug(output, false, nullptr);
-    ASSERT_NE(preprocessor_, nullptr);
-}
-
-/*
- * @tc.name: OnHotPlugTest003
- * @tc.desc: Test OnHotPlug when no nullptr
- * @tc.type: FUNC
- * @tc.require: issueIBBM19
- */
-HWTEST_F(RSScreenPreprocessorTest, OnHotPlugTest003, TestSize.Level1)
-{
-    uint32_t screenId = 1000;
-    auto output = std::make_shared<HdiOutput>(screenId);
+    // output not nullptr, processor is nullptr
+    output = std::make_shared<HdiOutput>(screenId);
+    RSScreenPreprocessor::OnHotPlug(output, false, nullptr);
+    // output not nullptr, processor not nullptr
     RSScreenPreprocessor::OnHotPlug(output, false, preprocessor_.get());
-    ASSERT_NE(preprocessor_, nullptr);
 }
 
 /*
@@ -96,46 +77,29 @@ HWTEST_F(RSScreenPreprocessorTest, OnHotPlugTest003, TestSize.Level1)
  */
 HWTEST_F(RSScreenPreprocessorTest, OnRefreshTest001, TestSize.Level1)
 {
-    uint32_t screenId = 1000;
-    RSScreenPreprocessor::OnRefresh(screenId, nullptr);
     ASSERT_NE(preprocessor_, nullptr);
-}
-
-/*
- * @tc.name: OnRefreshTest002
- * @tc.desc: Test OnRefresh when data is not nullptr
- * @tc.type: FUNC
- * @tc.require: issueIBBM19
- */
-HWTEST_F(RSScreenPreprocessorTest, OnRefreshTest002, TestSize.Level1)
-{
     uint32_t screenId = 1000;
-    RSScreenPreprocessor::OnRefresh(screenId, preprocessor_.get());
-    ASSERT_NE(preprocessor_, nullptr);
+    void* data = nullptr;
+    RSScreenPreprocessor::OnRefresh(screenId, data);
+    data = static_cast<void*>(preprocessor_.get());
+    RSScreenPreprocessor::OnRefresh(screenId, data);
 }
 
 /*
  * @tc.name: OnHwcDeadTest001
- * @tc.desc: Test OnHwcDead when data is nullptr
+ * @tc.desc: Test OnHwcDead
  * @tc.type: FUNC
  * @tc.require: issueIBBM19
  */
 HWTEST_F(RSScreenPreprocessorTest, OnHwcDeadTest001, TestSize.Level1)
 {
+    ASSERT_NE(preprocessor_, nullptr);
+    // Test OnHwcDead when data is nullptr
+    void* data = nullptr;
     RSScreenPreprocessor::OnHwcDead(nullptr);
-    ASSERT_NE(preprocessor_, nullptr);
-}
-
-/*
- * @tc.name: OnHwcDeadTest002
- * @tc.desc: Test OnHwcDead when data is not nullptr
- * @tc.type: FUNC
- * @tc.require: issueIBBM19
- */
-HWTEST_F(RSScreenPreprocessorTest, OnHwcDeadTest002, TestSize.Level1)
-{
-    RSScreenPreprocessor::OnHwcDead(preprocessor_.get());
-    ASSERT_NE(preprocessor_, nullptr);
+    // Test OnHwcDead when data is not nullptr
+    data = static_cast<void*>(preprocessor_.get());
+    RSScreenPreprocessor::OnHwcDead(data);
 }
 
 /*
@@ -146,11 +110,11 @@ HWTEST_F(RSScreenPreprocessorTest, OnHwcDeadTest002, TestSize.Level1)
  */
 HWTEST_F(RSScreenPreprocessorTest, OnHwcEventTest001, TestSize.Level1)
 {
+    ASSERT_NE(preprocessor_, nullptr);
     uint32_t deviceId = 1000;
     uint32_t eventId = 1000;
     std::vector<int32_t> eventData;
     RSScreenPreprocessor::OnHwcEvent(deviceId, eventId, eventData, nullptr);
-    ASSERT_NE(preprocessor_, nullptr);
 }
 
 /*
@@ -161,11 +125,11 @@ HWTEST_F(RSScreenPreprocessorTest, OnHwcEventTest001, TestSize.Level1)
  */
 HWTEST_F(RSScreenPreprocessorTest, OnHwcEventTest002, TestSize.Level1)
 {
+    ASSERT_NE(preprocessor_, nullptr);
     uint32_t deviceId = 1000;
     uint32_t eventId = 1000;
     std::vector<int32_t> eventData;
     RSScreenPreprocessor::OnHwcEvent(deviceId, eventId, eventData, preprocessor_.get());
-    ASSERT_NE(preprocessor_, nullptr);
 }
 
 /*
@@ -176,36 +140,13 @@ HWTEST_F(RSScreenPreprocessorTest, OnHwcEventTest002, TestSize.Level1)
  */
 HWTEST_F(RSScreenPreprocessorTest, OnScreenVBlankIdleTest001, TestSize.Level1)
 {
+    ASSERT_NE(preprocessor_, nullptr);
     uint32_t devId = 1000;
     uint64_t ns = 1000;
+    void* data = nullptr;
     RSScreenPreprocessor::OnScreenVBlankIdle(devId, ns, nullptr);
-    ASSERT_NE(preprocessor_, nullptr);
-}
-
-/*
- * @tc.name: OnScreenVBlankIdleTest002
- * @tc.desc: Test OnScreenVBlankIdle when data is not nullptr
- * @tc.type: FUNC
- * @tc.require: issueIBBM19
- */
-HWTEST_F(RSScreenPreprocessorTest, OnScreenVBlankIdleTest002, TestSize.Level1)
-{
-    uint32_t devId = 1000;
-    uint64_t ns = 1000;
-    RSScreenPreprocessor::OnScreenVBlankIdle(devId, ns, preprocessor_.get());
-    ASSERT_NE(preprocessor_, nullptr);
-}
-
-/*
- * @tc.name: InitTest001
- * @tc.desc: Test Init
- * @tc.type: FUNC
- * @tc.require: issueIBBM19
- */
-HWTEST_F(RSScreenPreprocessorTest, InitTest001, TestSize.Level1)
-{
-    preprocessor_->Init();
-    ASSERT_NE(preprocessor_, nullptr);
+    data = static_cast<void*>(preprocessor_.get());
+    RSScreenPreprocessor::OnScreenVBlankIdle(devId, ns, data);
 }
 
 /*
@@ -216,11 +157,11 @@ HWTEST_F(RSScreenPreprocessorTest, InitTest001, TestSize.Level1)
  */
 HWTEST_F(RSScreenPreprocessorTest, OnHotPlugEventTest001, TestSize.Level1)
 {
+    ASSERT_NE(preprocessor_, nullptr);
     uint32_t screenId = 1000;
     auto output = std::make_shared<HdiOutput>(screenId);
     preprocessor_->isHwcDead_ = true;
     preprocessor_->OnHotPlugEvent(output, false);
-    ASSERT_NE(preprocessor_, nullptr);
 }
 
 /*
@@ -231,13 +172,13 @@ HWTEST_F(RSScreenPreprocessorTest, OnHotPlugEventTest001, TestSize.Level1)
  */
 HWTEST_F(RSScreenPreprocessorTest, OnHotPlugEventTest002, TestSize.Level1)
 {
+    ASSERT_NE(preprocessor_, nullptr);
     uint32_t screenId = 1000;
     auto output = std::make_shared<HdiOutput>(screenId);
     ScreenHotPlugEvent screenHotPlugEvent;
     preprocessor_->pendingHotPlugEvents_.emplace(screenId, screenHotPlugEvent);
     preprocessor_->isHwcDead_ = false;
     preprocessor_->OnHotPlugEvent(output, false);
-    ASSERT_NE(preprocessor_, nullptr);
 }
 
 /*
@@ -248,6 +189,7 @@ HWTEST_F(RSScreenPreprocessorTest, OnHotPlugEventTest002, TestSize.Level1)
  */
 HWTEST_F(RSScreenPreprocessorTest, ProcessScreenHotPlugEventsTest001, TestSize.Level1)
 {
+    ASSERT_NE(preprocessor_, nullptr);
     uint32_t screenId = 1000;
     auto output = std::make_shared<HdiOutput>(screenId);
     output.reset();
@@ -255,7 +197,6 @@ HWTEST_F(RSScreenPreprocessorTest, ProcessScreenHotPlugEventsTest001, TestSize.L
     screenHotPlugEvent.output = output;
     preprocessor_->pendingHotPlugEvents_.emplace(screenId, screenHotPlugEvent);
     preprocessor_->ProcessScreenHotPlugEvents();
-    ASSERT_NE(preprocessor_, nullptr);
 }
 
 /*
@@ -266,6 +207,7 @@ HWTEST_F(RSScreenPreprocessorTest, ProcessScreenHotPlugEventsTest001, TestSize.L
  */
 HWTEST_F(RSScreenPreprocessorTest, ProcessScreenHotPlugEventsTest002, TestSize.Level1)
 {
+    ASSERT_NE(preprocessor_, nullptr);
     uint32_t screenId = 1000;
     auto output = std::make_shared<HdiOutput>(screenId);
     ScreenHotPlugEvent screenHotPlugEvent;
@@ -273,7 +215,6 @@ HWTEST_F(RSScreenPreprocessorTest, ProcessScreenHotPlugEventsTest002, TestSize.L
     screenHotPlugEvent.connected = false;
     preprocessor_->pendingHotPlugEvents_.emplace(screenId, screenHotPlugEvent);
     preprocessor_->ProcessScreenHotPlugEvents();
-    ASSERT_NE(preprocessor_, nullptr);
 }
 
 /*
@@ -284,6 +225,7 @@ HWTEST_F(RSScreenPreprocessorTest, ProcessScreenHotPlugEventsTest002, TestSize.L
  */
 HWTEST_F(RSScreenPreprocessorTest, ProcessScreenHotPlugEventsTest003, TestSize.Level1)
 {
+    ASSERT_NE(preprocessor_, nullptr);
     uint32_t screenId = 1000;
     auto output = std::make_shared<HdiOutput>(screenId);
     ScreenHotPlugEvent screenHotPlugEvent;
@@ -291,20 +233,6 @@ HWTEST_F(RSScreenPreprocessorTest, ProcessScreenHotPlugEventsTest003, TestSize.L
     screenHotPlugEvent.connected = true;
     preprocessor_->pendingHotPlugEvents_.emplace(screenId, screenHotPlugEvent);
     preprocessor_->ProcessScreenHotPlugEvents();
-    ASSERT_NE(preprocessor_, nullptr);
-}
-
-/*
- * @tc.name: ProcessScreenHotPlugEventsTest004
- * @tc.desc: Test ProcessScreenHotPlugEvents when screenManager_ is nullptr
- * @tc.type: FUNC
- * @tc.require: issueIBBM19
- */
-HWTEST_F(RSScreenPreprocessorTest, ProcessScreenHotPlugEventsTest004, TestSize.Level1)
-{
-    screenManager_ = nullptr;
-    preprocessor_->ProcessScreenHotPlugEvents();
-    ASSERT_NE(preprocessor_, nullptr);
 }
 
 /*
@@ -315,43 +243,16 @@ HWTEST_F(RSScreenPreprocessorTest, ProcessScreenHotPlugEventsTest004, TestSize.L
  */
 HWTEST_F(RSScreenPreprocessorTest, ConfigureScreenConnectedTest001, TestSize.Level1)
 {
-    screenManager_ = nullptr;
-    uint32_t screenId = 1000;
-    auto output = std::make_shared<HdiOutput>(screenId);
-    preprocessor_->ConfigureScreenConnected(output);
     ASSERT_NE(preprocessor_, nullptr);
-}
-
-/*
- * @tc.name: ConfigureScreenConnectedTest002
- * @tc.desc: Test ConfigureScreenConnected when callbackMgrWeak_ is nullptr
- * @tc.type: FUNC
- * @tc.require: issueIBBM19
- */
-HWTEST_F(RSScreenPreprocessorTest, ConfigureScreenConnectedTest002, TestSize.Level1)
-{
     uint32_t screenId = 1000;
+    preprocessor_->screenManager_.screens_.clear();
+    preprocessor_->screenManager_.screens_[screenId] = std::make_shared<RSScreen>(screenId);
     auto output = std::make_shared<HdiOutput>(screenId);
-    callbackMgr_.reset();
     preprocessor_->isHwcDead_ = false;
     preprocessor_->ConfigureScreenConnected(output);
-    ASSERT_NE(preprocessor_, nullptr);
-}
-
-/*
- * @tc.name: ConfigureScreenConnectedTest003
- * @tc.desc: Test ConfigureScreenConnected when callbackMgrWeak_ is nullptr
- * @tc.type: FUNC
- * @tc.require: issueIBBM19
- */
-HWTEST_F(RSScreenPreprocessorTest, ConfigureScreenConnectedTest003, TestSize.Level1)
-{
-    uint32_t screenId = 0;
-    auto output = std::make_shared<HdiOutput>(screenId);
-    callbackMgr_.reset();
     preprocessor_->isHwcDead_ = true;
+    output = std::make_shared<HdiOutput>(screenId + 1);
     preprocessor_->ConfigureScreenConnected(output);
-    ASSERT_NE(preprocessor_, nullptr);
 }
 
 /*
@@ -362,106 +263,48 @@ HWTEST_F(RSScreenPreprocessorTest, ConfigureScreenConnectedTest003, TestSize.Lev
  */
 HWTEST_F(RSScreenPreprocessorTest, ConfigureScreenDisconnectedTest001, TestSize.Level1)
 {
-    screenManager_ = nullptr;
+    ASSERT_NE(preprocessor_, nullptr);
     uint32_t screenId = 1000;
+    preprocessor_->screenManager_.screens_.clear();
+    preprocessor_->screenManager_.screens_[screenId] = std::make_shared<RSScreen>(screenId);
     auto output = std::make_shared<HdiOutput>(screenId);
     preprocessor_->ConfigureScreenDisconnected(output);
-    ASSERT_NE(preprocessor_, nullptr);
-}
-
-/*
- * @tc.name: ConfigureScreenDisconnectedTest002
- * @tc.desc: Test ConfigureScreenDisconnected when screenManager_ is not nullptr
- * @tc.type: FUNC
- * @tc.require: issueIBBM19
- */
-HWTEST_F(RSScreenPreprocessorTest, ConfigureScreenDisconnectedTest002, TestSize.Level1)
-{
-    uint32_t screenId = 0;
-    auto output = std::make_shared<HdiOutput>(screenId);
+    output = std::make_shared<HdiOutput>(screenId + 1);
     preprocessor_->ConfigureScreenDisconnected(output);
-    ASSERT_NE(preprocessor_, nullptr);
-}
-
-/*
- * @tc.name: ConfigureScreenDisconnectedTest003
- * @tc.desc: Test ConfigureScreenDisconnected when screenManager_ is not nullptr
- * @tc.type: FUNC
- * @tc.require: issueIBBM19
- */
-HWTEST_F(RSScreenPreprocessorTest, ConfigureScreenDisconnectedTest003, TestSize.Level1)
-{
-    uint32_t screenId = 0;
-    auto output = std::make_shared<HdiOutput>(screenId);
-    callbackMgr_.reset();
-    preprocessor_->ConfigureScreenDisconnected(output);
-    ASSERT_NE(preprocessor_, nullptr);
 }
 
 /*
  * @tc.name: OnRefreshEventTest001
- * @tc.desc: Test OnRefreshEvent when screenManager_ is not nullptr
+ * @tc.desc: Test OnRefreshEvent
  * @tc.type: FUNC
  * @tc.require: issueIBBM19
  */
 HWTEST_F(RSScreenPreprocessorTest, OnRefreshEventTest001, TestSize.Level1)
 {
+    ASSERT_NE(preprocessor_, nullptr);
     uint32_t screenId = 1000;
     preprocessor_->OnRefreshEvent(screenId);
-    ASSERT_NE(preprocessor_, nullptr);
-}
-
-/*
- * @tc.name: OnRefreshEventTest002
- * @tc.desc: Test OnRefreshEvent when screenManager_ is nullptr
- * @tc.type: FUNC
- * @tc.require: issueIBBM19
- */
-HWTEST_F(RSScreenPreprocessorTest, OnRefreshEventTest002, TestSize.Level1)
-{
-    screenManager_ = nullptr;
-    uint32_t screenId = 1000;
+    screenId = 1001;
     preprocessor_->OnRefreshEvent(screenId);
-    ASSERT_NE(preprocessor_, nullptr);
 }
 
 /*
  * @tc.name: OnHwcDeadEventTest001
- * @tc.desc: Test OnHwcDeadEvent when screenManager_ is nullptr
+ * @tc.desc: Test OnHwcDeadEvent
  * @tc.type: FUNC
  * @tc.require: issueIBBM19
  */
 HWTEST_F(RSScreenPreprocessorTest, OnHwcDeadEventTest001, TestSize.Level1)
 {
-    screenManager_ = nullptr;
-    preprocessor_->OnHwcDeadEvent();
     ASSERT_NE(preprocessor_, nullptr);
-}
-
-/*
- * @tc.name: OnHwcDeadEventTest002
- * @tc.desc: Test OnHwcDeadEvent when composer_ is nullptr
- * @tc.type: FUNC
- * @tc.require: issueIBBM19
- */
-HWTEST_F(RSScreenPreprocessorTest, OnHwcDeadEventTest002, TestSize.Level1)
-{
-    preprocessor_->composer_ = nullptr;
-    preprocessor_->OnHwcDeadEvent();
-    ASSERT_NE(preprocessor_, nullptr);
-}
-
-/*
- * @tc.name: OnHwcDeadEventTest003
- * @tc.desc: Test OnHwcDeadEvent when composer_ is not nullptr
- * @tc.type: FUNC
- * @tc.require: issueIBBM19
- */
-HWTEST_F(RSScreenPreprocessorTest, OnHwcDeadEventTest003, TestSize.Level1)
-{
+    preprocessor_->screenManager_.screens_[1] = std::make_shared<RSScreen>(1);
     preprocessor_->composer_ = HdiBackend::GetInstance();
     preprocessor_->OnHwcDeadEvent();
-    ASSERT_NE(preprocessor_, nullptr);
+    usleep(50000);
+    preprocessor_->composer_ = nullptr;
+    preprocessor_->OnHwcDeadEvent();
+    usleep(50000);
+    preprocessor_->composer_ = HdiBackend::GetInstance();
 }
 
 /*
@@ -472,12 +315,11 @@ HWTEST_F(RSScreenPreprocessorTest, OnHwcDeadEventTest003, TestSize.Level1)
  */
 HWTEST_F(RSScreenPreprocessorTest, OnHwcEventCallbackTest001, TestSize.Level1)
 {
+    ASSERT_NE(preprocessor_, nullptr);
     uint32_t deviceId = 1000;
     uint32_t eventId = 1000;
     std::vector<int32_t> eventData;
-    screenManager_ = nullptr;
     preprocessor_->OnHwcEventCallback(deviceId, eventId, eventData);
-    ASSERT_NE(preprocessor_, nullptr);
 }
 
 /*
@@ -488,11 +330,11 @@ HWTEST_F(RSScreenPreprocessorTest, OnHwcEventCallbackTest001, TestSize.Level1)
  */
 HWTEST_F(RSScreenPreprocessorTest, OnHwcEventCallbackTest002, TestSize.Level1)
 {
+    ASSERT_NE(preprocessor_, nullptr);
     uint32_t deviceId = 1000;
     uint32_t eventId = 1000;
     std::vector<int32_t> eventData;
     preprocessor_->OnHwcEventCallback(deviceId, eventId, eventData);
-    ASSERT_NE(preprocessor_, nullptr);
 }
 
 /*
@@ -503,6 +345,7 @@ HWTEST_F(RSScreenPreprocessorTest, OnHwcEventCallbackTest002, TestSize.Level1)
  */
 HWTEST_F(RSScreenPreprocessorTest, OnScreenVBlankIdleEventTest001, TestSize.Level1)
 {
+    ASSERT_NE(preprocessor_, nullptr);
     uint32_t devId = 1000;
     uint64_t ns = 1000;
     preprocessor_->OnScreenVBlankIdleEvent(devId, ns);
@@ -511,43 +354,33 @@ HWTEST_F(RSScreenPreprocessorTest, OnScreenVBlankIdleEventTest001, TestSize.Leve
 
 /*
  * @tc.name: OnScreenVBlankIdleEventTest002
- * @tc.desc: Test OnScreenVBlankIdleEvent when screenManager_ is nullptr
+ * @tc.desc: Test OnScreenVBlankIdleEvent
  * @tc.type: FUNC
  * @tc.require: issueIBBM19
  */
 HWTEST_F(RSScreenPreprocessorTest, OnScreenVBlankIdleEventTest002, TestSize.Level1)
 {
+    ASSERT_NE(preprocessor_, nullptr);
     uint32_t devId = 1000;
     uint64_t ns = 1000;
-    screenManager_ = nullptr;
     preprocessor_->OnScreenVBlankIdleEvent(devId, ns);
     ASSERT_NE(preprocessor_, nullptr);
 }
 
 /*
  * @tc.name: ScheduleTaskTest001
- * @tc.desc: Test ScheduleTask when mainHandler_ is nullptr
+ * @tc.desc: Test ScheduleTask
  * @tc.type: FUNC
  * @tc.require: issueIBBM19
  */
 HWTEST_F(RSScreenPreprocessorTest, ScheduleTaskTest001, TestSize.Level1)
 {
+    ASSERT_NE(preprocessor_, nullptr);
     std::function<void()> task;
+    auto handler = preprocessor_->mainHandler_;
     preprocessor_->mainHandler_ = nullptr;
     preprocessor_->ScheduleTask(task);
-    ASSERT_NE(preprocessor_, nullptr);
-}
-
-/*
- * @tc.name: ScheduleTaskTest002
- * @tc.desc: Test ScheduleTask when mainHandler_ is not nullptr
- * @tc.type: FUNC
- * @tc.require: issueIBBM19
- */
-HWTEST_F(RSScreenPreprocessorTest, ScheduleTaskTest002, TestSize.Level1)
-{
-    std::function<void()> task;
+    preprocessor_->mainHandler_ = handler;
     preprocessor_->ScheduleTask(task);
-    ASSERT_NE(preprocessor_, nullptr);
 }
 } // namespace OHOS::Rosen

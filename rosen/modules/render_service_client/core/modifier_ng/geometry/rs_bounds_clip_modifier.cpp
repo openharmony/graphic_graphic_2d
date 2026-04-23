@@ -56,4 +56,14 @@ RSCornerApplyType RSBoundsClipModifier::GetCornerApplyType() const
 {
     return static_cast<RSCornerApplyType>(Getter(RSPropertyType::CORNER_APPLY_TYPE, 0));
 }
+
+void RSBoundsClipModifier::SetSDFShape(const std::shared_ptr<RSNGShapeBase>& shape)
+{
+    Setter<RSProperty, std::shared_ptr<RSNGShapeBase>>(RSPropertyType::SDF_SHAPE, shape);
+}
+
+std::shared_ptr<RSNGShapeBase> RSBoundsClipModifier::GetSDFShape() const
+{
+    return Getter<std::shared_ptr<RSNGShapeBase>>(RSPropertyType::SDF_SHAPE, nullptr);
+}
 } // namespace OHOS::Rosen::ModifierNG

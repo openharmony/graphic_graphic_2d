@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,13 +20,14 @@
 #include "params/rs_effect_render_params.h"
 #include "params/rs_render_thread_params.h"
 #include "pipeline/render_thread/rs_render_engine.h"
-#include "pipeline/render_thread/rs_uni_render_engine.h"
+#include "engine/rs_uni_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_test_util.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
+#include "memory/rs_memory_snapshot.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -1539,12 +1540,16 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnGeneralProcessAndCache, TestSize.Lev
     RSPaintFilterCanvas canvas(surface.get());
     auto uniParams = std::make_shared<RSRenderThreadParams>();
     ASSERT_NE(uniParams, nullptr);
+
+    bool tmp = RSUniRenderThread::GetCaptureParam().isSnapshot_;
+    RSUniRenderThread::GetCaptureParam().isSnapshot_ = false;
     surfaceDrawable_->OnGeneralProcess(canvas, *surfaceParams, *uniParams, false);
     ASSERT_TRUE(surfaceDrawable_->GetRsSubThreadCache().GetRSDrawWindowCache().HasCache());
 
     surfaceDrawable_->needCacheRelatedSourceNode_ = true;
     surfaceDrawable_->OnGeneralProcess(canvas, *surfaceParams, *uniParams, false);
     ASSERT_TRUE(surfaceDrawable_->HasRelatedSourceNodeCache());
+    RSUniRenderThread::GetCaptureParam().isSnapshot_ = tmp;
 }
 
 /**
@@ -1851,42 +1856,6 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDraw005, TestSize.Level2)
 }
 
 /**
- * @tc.name: OnDraw006
- * @tc.desc: Test OnDraw when CheckIfSurfaceSkipInMirrorOrScreenshot return true
- * @tc.type: FUNC
- * @tc.require: #I9NVOG
- */
-HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDraw006, TestSize.Level1)
-{
-    ASSERT_NE(surfaceDrawable_, nullptr);
-    ASSERT_NE(drawable_->renderParams_, nullptr);
-    drawable_->renderParams_->shouldPaint_ = true;
-    drawable_->renderParams_->contentEmpty_ = false;
-    canvas_->canvas_->gpuContext_ = std::make_shared<Drawing::GPUContext>();
-
-    NodeId id = 10086;
-    auto renderNode = std::make_shared<RSRenderNode>(id);
-    ASSERT_NE(renderNode, nullptr);
-    auto drawingCacheRoot = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode);
-    ASSERT_NE(drawingCacheRoot, nullptr);
-    drawable_->curDrawingCacheRoot_ = drawingCacheRoot.get();
-    ASSERT_NE(drawable_->curDrawingCacheRoot_, nullptr);
-
-    auto params = std::make_unique<RSRenderThreadParams>();
-    params->isMirrorScreen_ = false;
-    params->SetSecurityDisplay(true);
-    RSUniRenderThread::Instance().Sync(std::move(params));
-    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
-
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
-    ASSERT_TRUE(surfaceParams);
-    surfaceParams->isNodeGroupHasChildInBlacklist_ = true;
-    EXPECT_TRUE(surfaceParams->NodeGroupHasChildInBlacklist());
-    surfaceDrawable_->OnDraw(*drawingCanvas_);
-    EXPECT_TRUE(surfaceDrawable_->hasSkipCacheLayer_);
-}
-
-/**
  * @tc.name: OnDraw008
  * @tc.desc: Test OnDraw when use isSyncRender
  * @tc.type: FUNC
@@ -2137,21 +2106,6 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawWatermark01, TestSize.Level1)
 #endif
 
 /**
- * @tc.name: DrawSpecialLayer001
- * @tc.desc: test DrawSpecialLayer while renderThreadParams_ = nullptr
- * @tc.type: FUNC
- * @tc.require: issueICWNX9
- */
-HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawSpecialLayer001, TestSize.Level2)
-{
-    ASSERT_NE(surfaceDrawable_, nullptr);
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
-    ASSERT_NE(surfaceParams, nullptr);
-    RSRenderThreadParamsManager::Instance().renderThreadParams_ = nullptr;
-    ASSERT_FALSE(surfaceDrawable_->DrawSpecialLayer(*canvas_, *surfaceParams));
-}
-
-/**
  * @tc.name: CaptureSurface010
  * @tc.desc: test CaptureSurface while renderThreadParams_ = nullptr
  * @tc.type: FUNC
@@ -2385,6 +2339,12 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawRelatedSourceNodeTest, TestSize.Le
     bmp.ClearWithColor(Drawing::Color::COLOR_RED);
     surfaceDrawable_->relatedSourceNodeCache_ = bmp.MakeImage();
     ASSERT_TRUE(surfaceDrawable_->DrawRelatedSourceNode(*canvas_, *surfaceParams));
+
+    surfaceParams->SetNeedClearRelatedCache(true);
+    ASSERT_TRUE(surfaceParams->IsNeedClearRelatedCache());
+    ASSERT_FALSE(surfaceDrawable_->DrawRelatedSourceNode(*canvas_, *surfaceParams));
+    ASSERT_EQ(surfaceDrawable_->relatedSourceNodeCache_, nullptr);
+    ASSERT_FALSE(surfaceParams->IsNeedClearRelatedCache());
 }
 
 /**
@@ -2431,6 +2391,39 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, ClearRelatedSourceCacheTest, TestSize.
     ASSERT_NE(surfaceDrawable_->relatedSourceNodeCache_, nullptr);
     surfaceDrawable_->ClearRelatedSourceCache();
     ASSERT_EQ(surfaceDrawable_->relatedSourceNodeCache_, nullptr);
+}
+
+/**
+ * @tc.name: TryResumeLastBufferTest
+ * @tc.desc: Test TryResumeLastBufferTest
+ * @tc.type: FUNC
+ * @tc.require: issue#913
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, TryResumeLastBufferTest, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto buffer = OHOS::SurfaceBuffer::Create();
+    EXPECT_TRUE(buffer != nullptr);
+    BufferRequestConfig requestConfig = {
+        .width = 100,
+        .height = 100,
+        .strideAlignment = 0x8, // set 0x8 as default value to alloc SurfaceBufferImpl
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888, // PixelFormat
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_MEM_MMZ_CACHE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+        .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB,
+        .transform = GraphicTransformType::GRAPHIC_ROTATE_NONE,
+    };
+    GSError ret = buffer->Alloc(requestConfig);
+    EXPECT_EQ(ret, GSERROR_OK);
+    if (ret != GSERROR_OK) {
+        return;
+    }
+    EXPECT_EQ(buffer->TryReclaim(), GSERROR_OK);
+    EXPECT_TRUE(buffer->IsReclaimed());
+    // buffer is not reclaimed by RSBufferReclaim, TryResumeLastBuffer shouild fail
+    surfaceDrawable_->TryResumeLastBuffer(buffer);
+    EXPECT_TRUE(buffer->IsReclaimed());
 }
 
 /**
@@ -2808,4 +2801,150 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OcclusionSkip005, TestSize.Level1)
     // Reset for next test
     RSRenderNodeDrawable::isOpDropped_ = true;
 }
+
+/**
+ * @tc.name: DrawSpecialLayer_DRAW_WHITE
+ * @tc.desc: Test DrawSpecialLayer when drawType returns DRAW_WHITE to trigger DrawRectWithColor with white color
+ * @tc.type: FUNC
+ * @tc.require: issue22101
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawSpecialLayer_DRAW_WHITE, TestSize.Level2)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SECURITY, true);
+
+    CaptureParam captureParam;
+    captureParam.isSnapshot_ = true;
+    captureParam.isSingleSurface_ = true;
+    captureParam.isNeedBlur_ = false;
+    captureParam.isSelfCapture_ = false;
+    RSUniRenderThread::SetCaptureParam(captureParam);
+
+    RSRenderThreadParams uniParam;
+    ASSERT_TRUE(surfaceDrawable_->DrawSpecialLayer(*canvas_, *surfaceParams, uniParam));
 }
+
+/**
+ * @tc.name: DrawSpecialLayer_DRAW_BLACK
+ * @tc.desc: Test DrawSpecialLayer when drawType returns DRAW_BLACK to trigger DrawRectWithColor with black color
+ * @tc.type: FUNC
+ * @tc.require: issue22101
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawSpecialLayer_DRAW_BLACK, TestSize.Level2)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SECURITY, true);
+
+    RSRenderThreadParams uniParam;
+    uniParam.SetSecurityDisplay(true);
+    uniParam.SetSecExemption(false);
+
+    ASSERT_TRUE(surfaceDrawable_->DrawSpecialLayer(*canvas_, *surfaceParams, uniParam));
+}
+
+/**
+ * @tc.name: DrawSpecialLayer_SKIP_DRAW_SecurityDisplay
+ * @tc.desc: Test DrawSpecialLayer when drawType returns SKIP_DRAW in security display mode
+ * @tc.type: FUNC
+ * @tc.require: issue22101
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawSpecialLayer_SKIP_DRAW_SecurityDisplay, TestSize.Level2)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SKIP, true);
+
+    RSRenderThreadParams uniParam;
+    uniParam.SetSecurityDisplay(true);
+
+    ASSERT_TRUE(surfaceDrawable_->DrawSpecialLayer(*canvas_, *surfaceParams, uniParam));
+}
+
+/**
+ * @tc.name: OnDraw_HasDRMInVirtualScreen
+ * @tc.desc: Test OnDraw when HasDRMInVirtualScreen returns true to trigger DrawRectWithColor with black color
+ * @tc.type: FUNC
+ * @tc.require: issue22101
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDraw_HasDRMInVirtualScreen, TestSize.Level2)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+
+    // Set up ancestor screen drawable with virtual screen property
+    auto screenNode = std::make_shared<RSScreenRenderNode>(1, 1);
+    auto screenDrawable = std::make_shared<DrawableV2::RSScreenRenderNodeDrawable>(std::move(screenNode));
+    screenDrawable->renderParams_ = std::make_unique<RSScreenRenderParams>(1);
+    auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable->renderParams_.get());
+    ASSERT_NE(screenParams, nullptr);
+
+    // Set screen as virtual and protected
+    screenParams->screenProperty_.Set<ScreenPropertyType::IS_VIRTUAL>(true);
+    surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
+
+    // Set ancestor screen drawable for surface params
+    surfaceParams->ancestorScreenDrawable_ = screenDrawable;
+
+    // Enable paint
+    drawable_->renderParams_->shouldPaint_ = true;
+    drawable_->renderParams_->contentEmpty_ = false;
+
+    // Call OnDraw which should trigger HasDRMInVirtualScreen and DrawRectWithColor
+    surfaceDrawable_->OnDraw(*canvas_);
+}
+
+/**
+ * @tc.name: Destructor_SelfDrawingType
+ * @tc.desc: Test destructor with self drawing type to cover PostTask branch
+ * @tc.type: FUNC
+ * @tc.require: issue23146
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, Destructor_SelfDrawingType, TestSize.Level1)
+{
+    NodeId id = 1;
+    const RSSurfaceRenderNodeConfig config = {.id = id, .surfaceWindowType = SurfaceWindowType::SCB_SCREEN_LOCK};
+    auto renderNode = std::make_shared<RSSurfaceRenderNode>(config);
+    renderNode->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    auto drawable = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
+    ASSERT_NE(drawable, nullptr);
+
+    auto surfaceDrawable = static_cast<RSSurfaceRenderNodeDrawable*>(drawable);
+    ASSERT_NE(surfaceDrawable, nullptr);
+
+    // Set surface node type to SELF_DRAWING_NODE to trigger IsSelfDrawingType() == true in destructor
+    surfaceDrawable->id_ = id;
+    surfaceDrawable->name_ = "test_surface";
+    surfaceDrawable->uniqueId_ = 12345;
+
+    // Manually delete to call destructor and trigger PostTask branch
+    delete drawable;
+}
+
+/**
+ * @tc.name: OnDrawAbnormalProcessTest
+ * @tc.desc: Test OnDraw with abnormal process check
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDrawAbnormalProcessTest, TestSize.Level1)
+{
+    // Mark process as abnormal
+    pid_t pid = ExtractPid(DEFAULT_ID);
+    MemorySnapshot::Instance().SetAbnormalProcess(pid);
+
+    // OnDraw should return early for abnormal process
+    surfaceDrawable_->OnDraw(*canvas_);
+    bool isAbnormal = MemorySnapshot::Instance().IsAbnormalProcess(pid);
+    ASSERT_TRUE(isAbnormal);
+    
+    // Clean up
+    std::set<pid_t> exitedPids = {pid};
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+}
+} // namespace OHOS::Rosen

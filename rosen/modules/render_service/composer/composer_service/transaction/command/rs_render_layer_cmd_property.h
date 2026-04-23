@@ -25,6 +25,7 @@
 #include "common/rs_macros.h"
 #include "graphic_common.h"
 #include "hdi_display_type.h"
+#include "hpae_offline/rs_hpae_offline_layer_info.h"
 #include "iconsumer_surface.h"
 #include "message_parcel.h"
 #include "platform/common/rs_log.h"
@@ -389,6 +390,145 @@ public:
 
 protected:
     T stagingValue_ {};
+};
+
+template<>
+struct RSRenderLayerCmdProperty<HpaeOriginalInfo> : public RSRenderLayerPropertyBase {
+    using ValueType = HpaeOriginalInfo;
+    HpaeOriginalInfo stagingValue_ {};
+    RSRenderLayerCmdProperty() = default;
+    explicit RSRenderLayerCmdProperty(const HpaeOriginalInfo& value) : stagingValue_(value) {}
+    ~RSRenderLayerCmdProperty() override = default;
+ 
+    void Set(const HpaeOriginalInfo& value) { stagingValue_ = value; }
+
+    HpaeOriginalInfo Get() const { return stagingValue_; }
+
+    bool Marshalling(OHOS::MessageParcel& parcel, const HpaeOriginalInfo& value)
+    {
+        // originalBuffer
+        if (value.originalBuffer == nullptr) {
+            parcel.WriteBool(false);
+        } else {
+            parcel.WriteBool(true);
+            GSError ret = value.originalBuffer->WriteAllPropertiesToMessageParcel(parcel);
+            if (ret != GSERROR_OK) {
+                return false;
+            }
+        }
+        // originalPreBuffer
+        if (value.originalPreBuffer == nullptr) {
+            parcel.WriteBool(false);
+        } else {
+            parcel.WriteBool(true);
+            GSError ret = value.originalPreBuffer->WriteAllPropertiesToMessageParcel(parcel);
+            if (ret != GSERROR_OK) {
+                return false;
+            }
+        }
+        // originalTransformType
+        if (!parcel.WriteUint32(static_cast<uint32_t>(value.originalTransformType))) {
+            return false;
+        }
+        // originalAcquireFence
+        if (value.originalAcquireFence == nullptr) {
+            if (!parcel.WriteBool(false)) {
+                return false;
+            }
+        } else {
+            if (!parcel.WriteBool(true)) {
+                return false;
+            }
+            if (!value.originalAcquireFence->WriteToMessageParcel(parcel)) {
+                return false;
+            }
+        }
+        // originalCropRect
+        if (!parcel.WriteUnpadBuffer(&value.originalCropRect, sizeof(GraphicIRect))) {
+            return false;
+        }
+        return true;
+    }
+ 
+    bool OnMarshalling(OHOS::MessageParcel& parcel, const HpaeOriginalInfo& value)
+    {
+        return Marshalling(parcel, value);
+    }
+ 
+    bool OnUnmarshalling(OHOS::MessageParcel& parcel, std::shared_ptr<RSRenderLayerCmdProperty<HpaeOriginalInfo>>& val)
+    {
+        HpaeOriginalInfo value;
+        if (!UnmarshallingValue(parcel, value)) {
+            return false;
+        }
+        val = std::make_shared<RSRenderLayerCmdProperty<HpaeOriginalInfo>>(value);
+        return true;
+    }
+ 
+    bool UnmarshallingValue(OHOS::MessageParcel& parcel, HpaeOriginalInfo& value)
+    {
+        // originalBuffer
+        if (!UnmarshallingSurfaceBuffer(parcel, value.originalBuffer)) {
+            return false;
+        }
+        // originalPreBuffer
+        if (!UnmarshallingSurfaceBuffer(parcel, value.originalPreBuffer)) {
+            return false;
+        }
+        // originalTransformType
+        uint32_t transformTypeVal = 0;
+        if (!parcel.ReadUint32(transformTypeVal)) {
+            return false;
+        }
+        value.originalTransformType = static_cast<GraphicTransformType>(transformTypeVal);
+        // originalAcquireFence
+        if (!UnmarshallingSyncFence(parcel, value.originalAcquireFence)) {
+            return false;
+        }
+        // originalCropRect
+        const uint8_t* cropRectBuff = parcel.ReadUnpadBuffer(sizeof(GraphicIRect));
+        if (cropRectBuff == nullptr) {
+            return false;
+        }
+        value.originalCropRect = *(reinterpret_cast<const GraphicIRect*>(cropRectBuff));
+        return true;
+    }
+ 
+    bool UnmarshallingSurfaceBuffer(OHOS::MessageParcel& parcel, sptr<SurfaceBuffer>& buffer)
+    {
+        bool hasBuffer = false;
+        if (!parcel.ReadBool(hasBuffer)) {
+            return false;
+        }
+        if (hasBuffer) {
+            buffer = SurfaceBuffer::Create();
+            if (buffer == nullptr) {
+                return false;
+            }
+            GSError ret = buffer->ReadFromMessageParcel(parcel);
+            if (ret != GSERROR_OK) {
+                return false;
+            }
+        }
+        return true;
+    }
+ 
+    bool UnmarshallingSyncFence(OHOS::MessageParcel& parcel, sptr<SyncFence>& fence)
+    {
+        bool hasFence = false;
+        if (!parcel.ReadBool(hasFence)) {
+            return false;
+        }
+        if (hasFence) {
+            auto readSafeFdFunc = [](OHOS::MessageParcel& parcel,
+                std::function<int(OHOS::MessageParcel&)> readFdDefaultFunc) -> int {
+                return parcel.ReadFileDescriptor();
+            };
+            OHOS::MessageParcel* msgParcel = static_cast<OHOS::MessageParcel*>(&parcel);
+            fence = SyncFence::ReadFromMessageParcel(*msgParcel, readSafeFdFunc);
+        }
+        return true;
+    }
 };
 } // namespace Rosen
 } // namespace OHOS

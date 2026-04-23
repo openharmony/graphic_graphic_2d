@@ -32,7 +32,9 @@ public:
 };
 
 template<RSNGEffectType Type, typename... PropertyTags>
-using RSNGShaderTemplate = RSNGEffectTemplate<RSNGShaderBase, Type, PropertyTags...>;
+using RSNGShaderTemplate = RSNGEffectTemplate<RSNGShaderBase,
+        RSNGRenderShaderTemplate<Type, typename PropertyTags::RenderPropertyTagType...>, Type, PropertyTags...>;
+
 
 #define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##Tag
 

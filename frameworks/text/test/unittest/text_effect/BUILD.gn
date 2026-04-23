@@ -46,6 +46,7 @@ ohos_unittest("text_effect_test") {
     "bounds_checking_function:libsec_shared",
     "googletest:gmock",
     "hilog:libhilog",
+    "ipc:ipc_single",
     "image_framework:image_native",
   ]
 

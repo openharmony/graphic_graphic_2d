@@ -23,6 +23,7 @@ public:
         NONE,
         BRIGHTNESS_BLENDER,
         SHADOW_BLENDER,
+        HDR_DARKEN_BLENDER,
     };
     Blender() = default;
     virtual ~Blender() = default;

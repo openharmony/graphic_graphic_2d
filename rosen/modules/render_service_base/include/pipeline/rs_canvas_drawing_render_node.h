@@ -73,8 +73,12 @@ public:
     bool CheckCachedOp();
     bool HasCachedOp() const;
 
+    void SetWaitSync(bool waitSync)
+    {
+        waitSync_ = waitSync;
+    }
+
 protected:
-    void OnSync() override;
     void OnApplyModifiers() override;
 
 private:
@@ -89,6 +93,7 @@ private:
     void ReportOpCount(const std::list<Drawing::DrawCmdListPtr>& cmdLists) const;
     void SplitDrawCmdList(size_t firstOpCount, Drawing::DrawCmdListPtr drawCmdList, bool splitOrigin);
     size_t ApplyCachedCmdList();
+    void AfterSync();
     void ClearResource();
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     bool ResetSurfaceWithTexture(int width, int height, RSPaintFilterCanvas& canvas);
@@ -101,6 +106,7 @@ private:
     bool isPostPlaybacked_ = false;
     bool lastOverflowStatus_ = false;
     std::atomic<bool> isNeedProcess_ = false;
+    bool waitSync_ = false;
     // Used in uni render thread.
     uint32_t drawingNodeRenderID = UNI_MAIN_THREAD_INDEX;
     std::shared_ptr<Drawing::Surface> surface_;

@@ -48,30 +48,21 @@ public:
     float GetStartFraction() const;
     float GetEndFraction() const;
     void SetDirectionAfterStart(const ForwardDirection& direction);
+    void FlipDirection();
     void SetLastFrameTime(int64_t lastFrameTime);
     int64_t GetLastFrameTime() const;
     void ResetFraction();
     int GetRemainingRepeatCount() const;
     bool GetCurrentIsReverseCycle() const;
-    float GetCurrentTimeFraction() const
-    {
-        return currentTimeFraction_;
-    }
+    float GetCurrentTimeFraction() const { return currentTimeFraction_; }
 
-    void SetRepeatCallbackEnable(bool isEnable)
-    {
-        isRepeatCallbackEnable_ = isEnable;
-    }
+    void SetRepeatCallbackEnable(bool isEnable) { isRepeatCallbackEnable_ = isEnable; }
 
-    bool GetRepeatCallbackEnable() const
-    {
-        return isRepeatCallbackEnable_;
-    }
+    bool GetRepeatCallbackEnable() const { return isRepeatCallbackEnable_; }
 
-    int64_t GetRunningTime() const
-    {
-        return runningTime_;
-    }
+    int64_t GetRunningTime() const { return runningTime_; }
+
+    bool UpdateGroupWaitingTime(int64_t deltaTime, bool isCustom);
 
 private:
     bool IsInRepeat() const;
@@ -92,6 +83,8 @@ private:
     bool currentIsReverseCycle_ { false };
     int64_t lastFrameTime_ { -1 };
     bool isRepeatCallbackEnable_ {false};
+    // Time accumulated during GROUP_WAITING state, used for autoReverse delay(Unit in ns)
+    int64_t groupWaitingTime_ { 0 };
 };
 } // namespace Rosen
 } // namespace OHOS

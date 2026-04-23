@@ -62,7 +62,7 @@ GRAPHIC_TEST(OHFilterWaterDropletTransitionTest, EFFECT_TEST, WaterDropletTransi
     for (int i = 0; i < rowCount; i++) {
         auto bgPixelMapNative = CreateTestPixelMap(BG_TEST_JPG_PATH);
         auto fgPixelMapNative = CreateTestPixelMap(FG_TEST_JPG_PATH);
-        auto ohFilter = CreateFilter(bgPixelMapNative);
+        auto ohFilter = CreateFilter(fgPixelMapNative);
 
         OH_Filter_WaterDropletParams params = {};
         params.position = waterDropletPositionParams[i];
@@ -79,12 +79,12 @@ GRAPHIC_TEST(OHFilterWaterDropletTransitionTest, EFFECT_TEST, WaterDropletTransi
         params.progress = waterDropletProgressParams[i];
 
         bool inverse = (i < 3) ? false : true;
-        OH_Filter_WaterDropletTransition(ohFilter, fgPixelMapNative, &params, inverse);
-        OH_Filter_GetEffectPixelMap(ohFilter, &bgPixelMapNative);
+        OH_Filter_WaterDropletTransition(ohFilter, bgPixelMapNative, &params, inverse);
+        OH_Filter_GetEffectPixelMap(ohFilter, &fgPixelMapNative);
 
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        DrawBackgroundNodeOHPixelMap(bgPixelMapNative, {x, y, sizeX, sizeY});
+        DrawBackgroundNodeOHPixelMap(fgPixelMapNative, {x, y, sizeX, sizeY});
         OH_Filter_Release(ohFilter);
     }
 }

@@ -905,8 +905,8 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, SetVirtualScreenSurfaceT
     ASSERT_NE(displayNode, nullptr);
     LOGI("SetVirtualScreenSurfaceTest001 screenId[%{public}" PRIu64 "], nodeId[%{public}" PRIu64 "]",
         screenId, displayNode->GetId());
-    displayNode->SetBounds({ 0, 0, 1000, 1000 });
-    displayNode->SetFrame({ 0, 0, 1000, 1000 });
+    displayNode->SetBounds({ 0, 0, 640, 1000 });
+    displayNode->SetFrame({ 0, 0, 640, 1000 });
     displayNode->SetBackgroundColor(SK_ColorBLUE);
     RSSurfaceNodeConfig surfaceNodeConfig;
     surfaceNodeConfig.isSync = true;
@@ -949,8 +949,8 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, SetVirtualScreenSurfaceT
     ASSERT_NE(displayNode, nullptr);
     LOGI("SetVirtualScreenSurfaceTest002 screenId[%{public}" PRIu64 "], nodeId[%{public}" PRIu64 "]",
         screenId, displayNode->GetId());
-    displayNode->SetBounds({ 0, 0, 1000, 1000 });
-    displayNode->SetFrame({ 0, 0, 1000, 1000 });
+    displayNode->SetBounds({ 0, 0, 640, 640 });
+    displayNode->SetFrame({ 0, 0, 640, 640 });
     displayNode->SetBackgroundColor(SK_ColorBLUE);
     RSSurfaceNodeConfig surfaceNodeConfig;
     surfaceNodeConfig.isSync = true;
@@ -1207,6 +1207,94 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, SetVirtualScreenBlackLis
 
     RSInterfaces::GetInstance().RemoveVirtualScreen(screenId1);
     RSInterfaces::GetInstance().RemoveVirtualScreen(screenId2);
+}
+
+/**
+ * @tc.name: BlacklistAndWhitelistTest001
+ * @tc.desc: test blacklist in virtual expand screen
+ * @tc.type: FUNC
+ * @tc.require: issue20923
+ */
+GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, BlacklistAndWhitelistTest001)
+{
+    Vector4f rect1(0, 0, DEFAULT_BOUND_WIDTH, DEFAULT_BOUND_HEIGHT);
+    auto surfaceNode1 = CreateSurfaceNodeWithConfig("TestExpandScreen_01", rect1, SK_ColorGREEN);
+    ASSERT_NE(surfaceNode1, nullptr);
+
+    Vector4f rect2(0, 0, DEFAULT_BOUND_WIDTH / 2.f, DEFAULT_BOUND_HEIGHT / 2.f);
+    auto surfaceNode2 = CreateSurfaceNodeWithConfig("TestExpandScreen_02", rect2, SK_ColorBLUE);
+    ASSERT_NE(surfaceNode2, nullptr);
+
+    // create virtual screen
+    ScreenId screenId = RSInterfaces::GetInstance().CreateVirtualScreen(
+        "MULTI_SCREEN_TEST_029", DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT, nullptr, INVALID_SCREEN_ID, -1, {});
+    ASSERT_NE(screenId, INVALID_SCREEN_ID);
+    // set virtual screen black list
+    std::vector<NodeId> list = {surfaceNode1->GetId()};
+    RSInterfaces::GetInstance().SetVirtualScreenBlackList(screenId, list);
+
+    // create csurface and psurface
+    auto [csurface, psurface] = CreateConsumerAndProducerSurface();
+    ASSERT_NE(csurface, nullptr);
+    ASSERT_NE(psurface, nullptr);
+    // set psurface
+    RSInterfaces::GetInstance().SetVirtualScreenSurface(screenId, psurface);
+
+    RSDisplayNodeConfig displayNodeConfig = { screenId, false, 0, true };
+    Vector4f displayRect(0, 0, DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT);
+    auto displayNode = CreateDisplayNodeWithConfig(displayNodeConfig, displayRect, SK_ColorYELLOW, true);
+    ASSERT_NE(displayNode, nullptr);
+    // add surface node as display node child
+    displayNode->RSNode::AddChild(surfaceNode1);
+    displayNode->RSNode::AddChild(surfaceNode2);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    RSInterfaces::GetInstance().RemoveVirtualScreen(screenId);
+}
+
+/**
+ * @tc.name: BlacklistAndWhitelistTest002
+ * @tc.desc: test whitelist & blacklist in virtual expand screen
+ * @tc.type: FUNC
+ * @tc.require: issue20923
+ */
+GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, BlacklistAndWhitelistTest002)
+{
+    Vector4f rect1(0, 0, DEFAULT_BOUND_WIDTH, DEFAULT_BOUND_HEIGHT);
+    auto surfaceNode1 = CreateSurfaceNodeWithConfig("TestExpandScreen_01", rect1, SK_ColorGREEN);
+    ASSERT_NE(surfaceNode1, nullptr);
+
+    Vector4f rect2(DEFAULT_BOUND_WIDTH, DEFAULT_BOUND_HEIGHT, DEFAULT_BOUND_WIDTH, DEFAULT_BOUND_HEIGHT);
+    auto surfaceNode2 = CreateSurfaceNodeWithConfig("TestExpandScreen_02", rect2, SK_ColorBLUE);
+    ASSERT_NE(surfaceNode2, nullptr);
+
+    // create virtual screen
+    ScreenId screenId = RSInterfaces::GetInstance().CreateVirtualScreen("MULTI_SCREEN_TEST_030",
+        DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT, nullptr, INVALID_SCREEN_ID, -1, {surfaceNode1->GetId()});
+    ASSERT_NE(screenId, INVALID_SCREEN_ID);
+    // set virtual screen black list
+    std::vector<NodeId> list = {surfaceNode1->GetId()};
+    RSInterfaces::GetInstance().SetVirtualScreenBlackList(screenId, list);
+
+    // create csurface and psurface
+    auto [csurface, psurface] = CreateConsumerAndProducerSurface();
+    ASSERT_NE(csurface, nullptr);
+    ASSERT_NE(psurface, nullptr);
+    // set psurface
+    RSInterfaces::GetInstance().SetVirtualScreenSurface(screenId, psurface);
+
+    RSDisplayNodeConfig displayNodeConfig = { screenId, false, 0, true };
+    Vector4f displayRect(0, 0, DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT);
+    auto displayNode = CreateDisplayNodeWithConfig(displayNodeConfig, displayRect, SK_ColorYELLOW, true);
+    ASSERT_NE(displayNode, nullptr);
+    // add surface node as display node child
+    displayNode->RSNode::AddChild(surfaceNode1);
+    displayNode->RSNode::AddChild(surfaceNode2);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    RSInterfaces::GetInstance().RemoveVirtualScreen(screenId);
 }
 
 /*
@@ -3919,5 +4007,537 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, SetVirtualScreenStatusTe
     }
 
     RSInterfaces::GetInstance().RemoveVirtualScreen(screenId);
+}
+
+/*
+ * @tc.name: VirtualScreenSupportRenderResolutionTest001
+ * @tc.desc: test virtual screen support rendering resolution when display resolution is smaller than screen resolution
+ * @tc.type: FUNC
+ */
+GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, VirtualScreenSupportRenderResolutionTest001)
+{
+    RSInterfaces& rsInterfaces = RSInterfaces::GetInstance();
+
+    // Create Virtual Screen
+    uint32_t width = 200;
+    uint32_t height = 200;
+    ScreenId screenId = rsInterfaces.CreateVirtualScreen(__func__, width, height, nullptr, INVALID_SCREEN_ID);
+    ASSERT_NE(screenId, INVALID_SCREEN_ID);
+
+    // Set Surface for Virtual Screen
+    auto [csurface, psurface] = CreateConsumerAndProducerSurface();
+    ASSERT_NE(csurface, nullptr);
+    ASSERT_NE(psurface, nullptr);
+    rsInterfaces.SetVirtualScreenSurface(screenId, psurface);
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    // Create Display Node
+    RSDisplayNodeConfig displayNodeConfig {
+        .screenId = screenId,
+        .isMirrored = false,
+        .mirrorNodeId = 0,
+        .isSync = true
+    };
+    Vector4f displayRect(0, 0, 100, 100);
+    auto displayNode = CreateDisplayNodeWithConfig(displayNodeConfig, displayRect, SK_ColorGREEN, true);
+    ASSERT_NE(displayNode, nullptr);
+
+    // Create Surface Node
+    Vector4f surfaceNodeRect(0, 0, 100, 100);
+    auto surfaceNode = CreateSurfaceNodeWithConfig(__func__, surfaceNodeRect, SK_ColorYELLOW);
+    ASSERT_NE(surfaceNode, nullptr);
+    displayNode->RSNode::AddChild(surfaceNode);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    rsInterfaces.RemoveVirtualScreen(screenId);
+}
+
+/*
+ * @tc.name: VirtualScreenSupportRenderResolutionTest002
+ * @tc.desc: test virtual screen support rendering resolution when display resolution is equal to screen resolution
+ * @tc.type: FUNC
+ */
+GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, VirtualScreenSupportRenderResolutionTest002)
+{
+    RSInterfaces& rsInterfaces = RSInterfaces::GetInstance();
+
+    // Create Virtual Screen
+    uint32_t width = 200;
+    uint32_t height = 200;
+    ScreenId screenId = rsInterfaces.CreateVirtualScreen(__func__, width, height, nullptr, INVALID_SCREEN_ID);
+    ASSERT_NE(screenId, INVALID_SCREEN_ID);
+
+    // Set Surface for Virtual Screen
+    auto [csurface, psurface] = CreateConsumerAndProducerSurface();
+    ASSERT_NE(csurface, nullptr);
+    ASSERT_NE(psurface, nullptr);
+    rsInterfaces.SetVirtualScreenSurface(screenId, psurface);
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    // Create Display Node
+    RSDisplayNodeConfig displayNodeConfig {
+        .screenId = screenId,
+        .isMirrored = false,
+        .mirrorNodeId = 0,
+        .isSync = true
+    };
+    Vector4f displayRect(0, 0, 200, 200);
+    auto displayNode = CreateDisplayNodeWithConfig(displayNodeConfig, displayRect, SK_ColorGREEN, true);
+    ASSERT_NE(displayNode, nullptr);
+
+    // Create Surface Node
+    Vector4f surfaceNodeRect(0, 0, 100, 100);
+    auto surfaceNode = CreateSurfaceNodeWithConfig(__func__, surfaceNodeRect, SK_ColorYELLOW);
+    ASSERT_NE(surfaceNode, nullptr);
+    displayNode->RSNode::AddChild(surfaceNode);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    rsInterfaces.RemoveVirtualScreen(screenId);
+}
+
+/*
+ * @tc.name: VirtualScreenSupportRenderResolutionTest003
+ * @tc.desc: test virtual screen support rendering resolution when display resolution is larger than screen resolution
+ * @tc.type: FUNC
+ */
+GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, VirtualScreenSupportRenderResolutionTest003)
+{
+    RSInterfaces& rsInterfaces = RSInterfaces::GetInstance();
+
+    // Create Virtual Screen
+    uint32_t width = 200;
+    uint32_t height = 200;
+    ScreenId screenId = rsInterfaces.CreateVirtualScreen(__func__, width, height, nullptr, INVALID_SCREEN_ID);
+    ASSERT_NE(screenId, INVALID_SCREEN_ID);
+
+    // Set Surface for Virtual Screen
+    auto [csurface, psurface] = CreateConsumerAndProducerSurface();
+    ASSERT_NE(csurface, nullptr);
+    ASSERT_NE(psurface, nullptr);
+    rsInterfaces.SetVirtualScreenSurface(screenId, psurface);
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    // Create Display Node
+    RSDisplayNodeConfig displayNodeConfig {
+        .screenId = screenId,
+        .isMirrored = false,
+        .mirrorNodeId = 0,
+        .isSync = true
+    };
+    Vector4f displayRect(0, 0, 300, 300);
+    auto displayNode = CreateDisplayNodeWithConfig(displayNodeConfig, displayRect, SK_ColorGREEN, true);
+    ASSERT_NE(displayNode, nullptr);
+
+    // Create Surface Node
+    Vector4f surfaceNodeRect(0, 0, 100, 100);
+    auto surfaceNode = CreateSurfaceNodeWithConfig(__func__, surfaceNodeRect, SK_ColorYELLOW);
+    ASSERT_NE(surfaceNode, nullptr);
+    displayNode->RSNode::AddChild(surfaceNode);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    rsInterfaces.RemoveVirtualScreen(screenId);
+}
+
+/**
+ * @tc.name: SetSkipLayerTest001
+ * @tc.desc: test SetSkipLayer in virtual mirror screen (non security display)
+ * @tc.type: FUNC
+ * @tc.require: issue23278
+ */
+GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, SetSkipLayerTest001)
+{
+    // create surface node (skip layer)
+    Vector4f surfaceRect1(0, 0, DEFAULT_BOUND_WIDTH, DEFAULT_BOUND_HEIGHT);
+    auto surfaceNode = CreateSurfaceNodeWithConfig("TestMirrorScreen_01", surfaceRect1, SK_ColorRED);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetSkipLayer(true);
+
+    // create main screen
+    ScreenId screenId1 = RSInterfaces::GetInstance().CreateVirtualScreen(
+        "screen001", DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT, nullptr, INVALID_SCREEN_ID, 0, {});
+    ASSERT_NE(screenId1, INVALID_SCREEN_ID);
+    // create main display
+    RSDisplayNodeConfig displayNodeConfig1 = { screenId1, false, 0, true };
+    Vector4f displayRect(0, 0, DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT);
+    auto displayNode1 = CreateDisplayNodeWithConfig(displayNodeConfig1, displayRect, SK_ColorYELLOW, true);
+    ASSERT_NE(displayNode1, nullptr);
+    // add child
+    displayNode1->RSNode::AddChild(surfaceNode);
+
+    // create mirror screen
+    ScreenId screenId2 = RSInterfaces::GetInstance().CreateVirtualScreen("screen002",
+        DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT, nullptr, INVALID_SCREEN_ID, 0, {});
+    ASSERT_NE(screenId2, INVALID_SCREEN_ID);
+    auto [csurface, psurface] = CreateConsumerAndProducerSurface();
+    ASSERT_NE(csurface, nullptr);
+    ASSERT_NE(psurface, nullptr);
+    RSInterfaces::GetInstance().SetVirtualScreenSurface(screenId2, psurface);
+
+    // create mirror display (non security display)
+    RSDisplayNodeConfig displayNodeConfig2 = { screenId2, true, displayNode1->GetId(), true };
+    auto displayNode2 = CreateDisplayNodeWithConfig(displayNodeConfig2, displayRect, SK_ColorRED, false);
+    ASSERT_NE(displayNode2, nullptr);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    RSInterfaces::GetInstance().RemoveVirtualScreen(screenId1);
+    RSInterfaces::GetInstance().RemoveVirtualScreen(screenId2);
+}
+
+/*
+ * @tc.name: SetSkipLayerTest002
+ * @tc.desc: test SetSkipLayer in virtual mirror screen (security display)
+ * @tc.type: FUNC
+ * @tc.require: issue23278
+ */
+GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, SetSkipLayerTest002)
+{
+    // create surface node (skip layer)
+    Vector4f surfaceRect1(0, 0, DEFAULT_BOUND_WIDTH, DEFAULT_BOUND_HEIGHT);
+    auto surfaceNode = CreateSurfaceNodeWithConfig("TestMirrorScreen_01", surfaceRect1, SK_ColorRED);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetSkipLayer(true);
+
+    // create main screen
+    ScreenId screenId1 = RSInterfaces::GetInstance().CreateVirtualScreen(
+        "screen001", DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT, nullptr, INVALID_SCREEN_ID, 0, {});
+    ASSERT_NE(screenId1, INVALID_SCREEN_ID);
+    // create main display
+    RSDisplayNodeConfig displayNodeConfig1 = { screenId1, false, 0, true };
+    Vector4f displayRect(0, 0, DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT);
+    auto displayNode1 = CreateDisplayNodeWithConfig(displayNodeConfig1, displayRect, SK_ColorYELLOW, true);
+    ASSERT_NE(displayNode1, nullptr);
+    // add child
+    displayNode1->RSNode::AddChild(surfaceNode);
+
+    // create mirror screen
+    ScreenId screenId2 = RSInterfaces::GetInstance().CreateVirtualScreen("screen002",
+        DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT, nullptr, INVALID_SCREEN_ID, 0, {});
+    ASSERT_NE(screenId2, INVALID_SCREEN_ID);
+    auto [csurface, psurface] = CreateConsumerAndProducerSurface();
+    ASSERT_NE(csurface, nullptr);
+    ASSERT_NE(psurface, nullptr);
+    RSInterfaces::GetInstance().SetVirtualScreenSurface(screenId2, psurface);
+
+    // create mirror display (security display)
+    RSDisplayNodeConfig displayNodeConfig2 = { screenId2, true, displayNode1->GetId(), true };
+    auto displayNode2 = CreateDisplayNodeWithConfig(displayNodeConfig2, displayRect, SK_ColorRED, true);
+    ASSERT_NE(displayNode2, nullptr);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    RSInterfaces::GetInstance().RemoveVirtualScreen(screenId1);
+    RSInterfaces::GetInstance().RemoveVirtualScreen(screenId2);
+}
+
+/*
+ * @tc.name: SetSkipLayerTest003
+ * @tc.desc: test SetSkipLayer(sub window) in virtual mirror screen (non security display)
+ * @tc.type: FUNC
+ * @tc.require: issue23278
+ */
+GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, SetSkipLayerTest003)
+{
+    // create surface node 1
+    Vector4f surfaceRect1(0, 0, DEFAULT_BOUND_WIDTH, DEFAULT_BOUND_HEIGHT);
+    auto surfaceNode1 = CreateSurfaceNodeWithConfig("TestMirrorScreen_01", surfaceRect1, SK_ColorGREEN);
+    ASSERT_NE(surfaceNode1, nullptr);
+    // create surface node 2 (skip layer)
+    Vector4f surfaceRect2(0, 0, DEFAULT_BOUND_WIDTH / 2.f, DEFAULT_BOUND_HEIGHT / 2.f);
+    auto surfaceNode2 = CreateSurfaceNodeWithConfig("TestMirrorScreen_02", surfaceRect2, SK_ColorBLUE);
+    ASSERT_NE(surfaceNode2, nullptr);
+    surfaceNode2->SetSkipLayer(true);
+
+    // create main screen
+    ScreenId screenId1 = RSInterfaces::GetInstance().CreateVirtualScreen(
+        "screen001", DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT, nullptr, INVALID_SCREEN_ID, 0, {});
+    ASSERT_NE(screenId1, INVALID_SCREEN_ID);
+    // create main display
+    RSDisplayNodeConfig displayNodeConfig1 = { screenId1, false, 0, true };
+    Vector4f displayRect(0, 0, DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT);
+    auto displayNode1 = CreateDisplayNodeWithConfig(displayNodeConfig1, displayRect, SK_ColorYELLOW, true);
+    ASSERT_NE(displayNode1, nullptr);
+
+    // add child
+    displayNode1->RSNode::AddChild(surfaceNode1);
+    surfaceNode1->RSNode::AddChild(surfaceNode2);
+
+    // create mirror screen
+    ScreenId screenId2 = RSInterfaces::GetInstance().CreateVirtualScreen("screen002",
+        DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT, nullptr, INVALID_SCREEN_ID, 0, {});
+    ASSERT_NE(screenId2, INVALID_SCREEN_ID);
+    auto [csurface, psurface] = CreateConsumerAndProducerSurface();
+    ASSERT_NE(csurface, nullptr);
+    ASSERT_NE(psurface, nullptr);
+    RSInterfaces::GetInstance().SetVirtualScreenSurface(screenId2, psurface);
+
+    // create mirror display (non security display)
+    RSDisplayNodeConfig displayNodeConfig2 = { screenId2, true, displayNode1->GetId(), true };
+    auto displayNode2 = CreateDisplayNodeWithConfig(displayNodeConfig2, displayRect, SK_ColorRED, false);
+    ASSERT_NE(displayNode2, nullptr);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    RSInterfaces::GetInstance().RemoveVirtualScreen(screenId1);
+    RSInterfaces::GetInstance().RemoveVirtualScreen(screenId2);
+}
+
+/*
+ * @tc.name: SetSkipLayerTest004
+ * @tc.desc: test SetSkipLayer(sub window) in virtual mirror screen (security display)
+ * @tc.type: FUNC
+ * @tc.require: issue23278
+ */
+GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, SetSkipLayerTest004)
+{
+    // create surface node 1
+    Vector4f surfaceRect1(0, 0, DEFAULT_BOUND_WIDTH, DEFAULT_BOUND_HEIGHT);
+    auto surfaceNode1 = CreateSurfaceNodeWithConfig("TestMirrorScreen_01", surfaceRect1, SK_ColorGREEN);
+    ASSERT_NE(surfaceNode1, nullptr);
+    // create surface node 2 (skip layer)
+    Vector4f surfaceRect2(0, 0, DEFAULT_BOUND_WIDTH / 2.f, DEFAULT_BOUND_HEIGHT / 2.f);
+    auto surfaceNode2 = CreateSurfaceNodeWithConfig("TestMirrorScreen_02", surfaceRect2, SK_ColorBLUE);
+    ASSERT_NE(surfaceNode2, nullptr);
+    surfaceNode2->SetSkipLayer(true);
+
+    // create main screen
+    ScreenId screenId1 = RSInterfaces::GetInstance().CreateVirtualScreen(
+        "screen001", DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT, nullptr, INVALID_SCREEN_ID, 0, {});
+    ASSERT_NE(screenId1, INVALID_SCREEN_ID);
+    // create main display
+    RSDisplayNodeConfig displayNodeConfig1 = { screenId1, false, 0, true };
+    Vector4f displayRect(0, 0, DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT);
+    auto displayNode1 = CreateDisplayNodeWithConfig(displayNodeConfig1, displayRect, SK_ColorYELLOW, true);
+    ASSERT_NE(displayNode1, nullptr);
+
+    // add child
+    displayNode1->RSNode::AddChild(surfaceNode1);
+    surfaceNode1->RSNode::AddChild(surfaceNode2);
+
+    // create mirror screen
+    ScreenId screenId2 = RSInterfaces::GetInstance().CreateVirtualScreen("screen002",
+        DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT, nullptr, INVALID_SCREEN_ID, 0, {});
+    ASSERT_NE(screenId2, INVALID_SCREEN_ID);
+    auto [csurface, psurface] = CreateConsumerAndProducerSurface();
+    ASSERT_NE(csurface, nullptr);
+    ASSERT_NE(psurface, nullptr);
+    RSInterfaces::GetInstance().SetVirtualScreenSurface(screenId2, psurface);
+
+    // create mirror display (security display)
+    RSDisplayNodeConfig displayNodeConfig2 = { screenId2, true, displayNode1->GetId(), true };
+    auto displayNode2 = CreateDisplayNodeWithConfig(displayNodeConfig2, displayRect, SK_ColorRED, true);
+    ASSERT_NE(displayNode2, nullptr);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    RSInterfaces::GetInstance().RemoveVirtualScreen(screenId1);
+    RSInterfaces::GetInstance().RemoveVirtualScreen(screenId2);
+}
+
+/*
+ * @tc.name: SetSkipLayerTest005
+ * @tc.desc: test SetSkipLayer(sibling node) in virtual mirror screen (non security display)
+ * @tc.type: FUNC
+ * @tc.require: issue23278
+ */
+GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, SetSkipLayerTest005)
+{
+    // create surface node 1
+    Vector4f surfaceRect1(0, 0, DEFAULT_BOUND_WIDTH, DEFAULT_BOUND_HEIGHT);
+    auto surfaceNode1 = CreateSurfaceNodeWithConfig("TestMirrorScreen_01", surfaceRect1, SK_ColorGREEN);
+    ASSERT_NE(surfaceNode1, nullptr);
+    // create surface node 2 (skip layer)
+    Vector4f surfaceRect2(DEFAULT_BOUND_WIDTH, DEFAULT_BOUND_HEIGHT, DEFAULT_BOUND_WIDTH, DEFAULT_BOUND_HEIGHT);
+    auto surfaceNode2 = CreateSurfaceNodeWithConfig("TestMirrorScreen_02", surfaceRect2, SK_ColorBLUE);
+    ASSERT_NE(surfaceNode2, nullptr);
+    surfaceNode2->SetSkipLayer(true);
+
+
+    // create main screen
+    ScreenId screenId1 = RSInterfaces::GetInstance().CreateVirtualScreen(
+        "screen001", DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT, nullptr, INVALID_SCREEN_ID, 0, {});
+    ASSERT_NE(screenId1, INVALID_SCREEN_ID);
+    // create main display
+    RSDisplayNodeConfig displayNodeConfig1 = { screenId1, false, 0, true };
+    Vector4f displayRect(0, 0, DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT);
+    auto displayNode1 = CreateDisplayNodeWithConfig(displayNodeConfig1, displayRect, SK_ColorYELLOW, true);
+    ASSERT_NE(displayNode1, nullptr);
+
+    // add child
+    displayNode1->RSNode::AddChild(surfaceNode1);
+    displayNode1->RSNode::AddChild(surfaceNode2);
+
+    // create mirror screen
+    ScreenId screenId2 = RSInterfaces::GetInstance().CreateVirtualScreen("screen002",
+        DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT, nullptr, INVALID_SCREEN_ID, 0, {});
+    ASSERT_NE(screenId2, INVALID_SCREEN_ID);
+    auto [csurface, psurface] = CreateConsumerAndProducerSurface();
+    ASSERT_NE(csurface, nullptr);
+    ASSERT_NE(psurface, nullptr);
+    RSInterfaces::GetInstance().SetVirtualScreenSurface(screenId2, psurface);
+
+    // create mirror display (non security display)
+    RSDisplayNodeConfig displayNodeConfig2 = { screenId2, true, displayNode1->GetId(), true };
+    auto displayNode2 = CreateDisplayNodeWithConfig(displayNodeConfig2, displayRect, SK_ColorRED, false);
+    ASSERT_NE(displayNode2, nullptr);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    RSInterfaces::GetInstance().RemoveVirtualScreen(screenId1);
+    RSInterfaces::GetInstance().RemoveVirtualScreen(screenId2);
+}
+
+/*
+ * @tc.name: SetSkipLayerTest006
+ * @tc.desc: test SetSkipLayer(sibling node) in virtual mirror screen (security display)
+ * @tc.type: FUNC
+ * @tc.require: issue23278
+ */
+GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, SetSkipLayerTest006)
+{
+    // create surface node 1
+    Vector4f surfaceRect1(0, 0, DEFAULT_BOUND_WIDTH, DEFAULT_BOUND_HEIGHT);
+    auto surfaceNode1 = CreateSurfaceNodeWithConfig("TestMirrorScreen_01", surfaceRect1, SK_ColorGREEN);
+    ASSERT_NE(surfaceNode1, nullptr);
+    // create surface node 2 (skip layer)
+    Vector4f surfaceRect2(DEFAULT_BOUND_WIDTH, DEFAULT_BOUND_HEIGHT, DEFAULT_BOUND_WIDTH, DEFAULT_BOUND_HEIGHT);
+    auto surfaceNode2 = CreateSurfaceNodeWithConfig("TestMirrorScreen_02", surfaceRect2, SK_ColorBLUE);
+    ASSERT_NE(surfaceNode2, nullptr);
+    surfaceNode2->SetSkipLayer(true);
+
+
+    // create main screen
+    ScreenId screenId1 = RSInterfaces::GetInstance().CreateVirtualScreen(
+        "screen001", DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT, nullptr, INVALID_SCREEN_ID, 0, {});
+    ASSERT_NE(screenId1, INVALID_SCREEN_ID);
+    // create main display
+    RSDisplayNodeConfig displayNodeConfig1 = { screenId1, false, 0, true };
+    Vector4f displayRect(0, 0, DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT);
+    auto displayNode1 = CreateDisplayNodeWithConfig(displayNodeConfig1, displayRect, SK_ColorYELLOW, true);
+    ASSERT_NE(displayNode1, nullptr);
+
+    // add child
+    displayNode1->RSNode::AddChild(surfaceNode1);
+    displayNode1->RSNode::AddChild(surfaceNode2);
+
+    // create mirror screen
+    ScreenId screenId2 = RSInterfaces::GetInstance().CreateVirtualScreen("screen002",
+        DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT, nullptr, INVALID_SCREEN_ID, 0, {});
+    ASSERT_NE(screenId2, INVALID_SCREEN_ID);
+    auto [csurface, psurface] = CreateConsumerAndProducerSurface();
+    ASSERT_NE(csurface, nullptr);
+    ASSERT_NE(psurface, nullptr);
+    RSInterfaces::GetInstance().SetVirtualScreenSurface(screenId2, psurface);
+
+    // create mirror display (security display)
+    RSDisplayNodeConfig displayNodeConfig2 = { screenId2, true, displayNode1->GetId(), true };
+    auto displayNode2 = CreateDisplayNodeWithConfig(displayNodeConfig2, displayRect, SK_ColorRED, true);
+    ASSERT_NE(displayNode2, nullptr);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    RSInterfaces::GetInstance().RemoveVirtualScreen(screenId1);
+    RSInterfaces::GetInstance().RemoveVirtualScreen(screenId2);
+}
+
+/*
+ * @tc.name: SetSnapshotSkipLayerTest001
+ * @tc.desc: test SetSnapshotSkipLayer in virtual mirror screen (non security display)
+ * @tc.type: FUNC
+ * @tc.require: issue23278
+ */
+GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, SetSnapshotSkipLayerTest001)
+{
+    // create surface node (snapshot skip layer)
+    Vector4f surfaceRect1(0, 0, DEFAULT_BOUND_WIDTH, DEFAULT_BOUND_HEIGHT);
+    auto surfaceNode = CreateSurfaceNodeWithConfig("TestMirrorScreen_01", surfaceRect1, SK_ColorRED);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetSnapshotSkipLayer(true);
+
+    // create main screen
+    ScreenId screenId1 = RSInterfaces::GetInstance().CreateVirtualScreen(
+        "screen001", DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT, nullptr, INVALID_SCREEN_ID, 0, {});
+    ASSERT_NE(screenId1, INVALID_SCREEN_ID);
+    // create main display
+    RSDisplayNodeConfig displayNodeConfig1 = { screenId1, false, 0, true };
+    Vector4f displayRect(0, 0, DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT);
+    auto displayNode1 = CreateDisplayNodeWithConfig(displayNodeConfig1, displayRect, SK_ColorYELLOW, true);
+    ASSERT_NE(displayNode1, nullptr);
+    // add child
+    displayNode1->RSNode::AddChild(surfaceNode);
+
+    // create mirror screen
+    ScreenId screenId2 = RSInterfaces::GetInstance().CreateVirtualScreen("screen002",
+        DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT, nullptr, INVALID_SCREEN_ID, 0, {});
+    ASSERT_NE(screenId2, INVALID_SCREEN_ID);
+    auto [csurface, psurface] = CreateConsumerAndProducerSurface();
+    ASSERT_NE(csurface, nullptr);
+    ASSERT_NE(psurface, nullptr);
+    RSInterfaces::GetInstance().SetVirtualScreenSurface(screenId2, psurface);
+
+    // create mirror display (non security display)
+    RSDisplayNodeConfig displayNodeConfig2 = { screenId2, true, displayNode1->GetId(), true };
+    auto displayNode2 = CreateDisplayNodeWithConfig(displayNodeConfig2, displayRect, SK_ColorRED, false);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    RSInterfaces::GetInstance().RemoveVirtualScreen(screenId1);
+    RSInterfaces::GetInstance().RemoveVirtualScreen(screenId2);
+}
+
+/*
+ * @tc.name: SetSnapshotSkipLayerTest002
+ * @tc.desc: test SetSnapshotSkipLayer in virtual mirror screen (security display)
+ * @tc.type: FUNC
+ * @tc.require: issue23278
+ */
+GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, SetSnapshotSkipLayerTest002)
+{
+    // create surface node (snapshot skip layer)
+    Vector4f surfaceRect1(0, 0, DEFAULT_BOUND_WIDTH, DEFAULT_BOUND_HEIGHT);
+    auto surfaceNode = CreateSurfaceNodeWithConfig("TestMirrorScreen_01", surfaceRect1, SK_ColorRED);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetSnapshotSkipLayer(true);
+
+    // create main screen
+    ScreenId screenId1 = RSInterfaces::GetInstance().CreateVirtualScreen(
+        "screen001", DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT, nullptr, INVALID_SCREEN_ID, 0, {});
+    ASSERT_NE(screenId1, INVALID_SCREEN_ID);
+    // create main display
+    RSDisplayNodeConfig displayNodeConfig1 = { screenId1, false, 0, true };
+    Vector4f displayRect(0, 0, DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT);
+    auto displayNode1 = CreateDisplayNodeWithConfig(displayNodeConfig1, displayRect, SK_ColorYELLOW, true);
+    ASSERT_NE(displayNode1, nullptr);
+    // add child
+    displayNode1->RSNode::AddChild(surfaceNode);
+
+    // create mirror screen
+    ScreenId screenId2 = RSInterfaces::GetInstance().CreateVirtualScreen("screen002",
+        DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT, nullptr, INVALID_SCREEN_ID, 0, {});
+    ASSERT_NE(screenId2, INVALID_SCREEN_ID);
+    auto [csurface, psurface] = CreateConsumerAndProducerSurface();
+    ASSERT_NE(csurface, nullptr);
+    ASSERT_NE(psurface, nullptr);
+    RSInterfaces::GetInstance().SetVirtualScreenSurface(screenId2, psurface);
+
+    // create mirror display (security display)
+    RSDisplayNodeConfig displayNodeConfig2 = { screenId2, true, displayNode1->GetId(), true };
+    auto displayNode2 = CreateDisplayNodeWithConfig(displayNodeConfig2, displayRect, SK_ColorRED, true);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    RSInterfaces::GetInstance().RemoveVirtualScreen(screenId1);
+    RSInterfaces::GetInstance().RemoveVirtualScreen(screenId2);
 }
 } // namespace OHOS::Rosen

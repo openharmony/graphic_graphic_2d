@@ -296,12 +296,12 @@ void DVSyncLibManager::UpdatePendingReferenceTime(int64_t& timeStamp)
     updatePendingReferenceTimeFunc_(timeStamp);
 }
 
-uint64_t DVSyncLibManager::GetRealTimeOffsetOfDvsync(int64_t time)
+uint64_t DVSyncLibManager::GetRealTimeOffsetOfDvsync(int64_t time, int64_t& preTime)
 {
     if (getRealTimeOffsetOfDvsyncFunc_ == nullptr) {
         return 0;
     }
-    return getRealTimeOffsetOfDvsyncFunc_(time);
+    return getRealTimeOffsetOfDvsyncFunc_(time, preTime);
 }
 
 void DVSyncLibManager::SetHardwareTaskNum(uint32_t num)

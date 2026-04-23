@@ -17,6 +17,8 @@
 #define RS_COLORSPACE_UTIL_H
 
 #include "color_space.h"
+
+#include "common/rs_macros.h"
 #include "draw/canvas.h"
 #include "effect/color_space.h"
 #ifndef ROSEN_CROSS_PLATFORM
@@ -29,7 +31,7 @@
 namespace OHOS {
 namespace Rosen {
 
-class RSColorSpaceUtil {
+class RS_EXPORT RSColorSpaceUtil {
 public:
     RSColorSpaceUtil() = default;
     ~RSColorSpaceUtil() = default;

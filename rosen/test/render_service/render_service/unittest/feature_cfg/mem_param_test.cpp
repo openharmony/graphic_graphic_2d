@@ -76,5 +76,47 @@ HWTEST_F(MEMParamTest, v, Function | SmallTest | Level1)
     memParam.SetKillScbEnabled(isKillScbEnabled);
     EXPECT_EQ(memParam.IsKillScbEnabled(), isKillScbEnabled);
 }
+
+/**
+ * @tc.name: SetKernelReportEnabled
+ * @tc.desc: Verify the SetKernelReportEnabled function
+ * @tc.type: FUNC
+ * @tc.require: #IBIE4T
+ */
+HWTEST_F(MEMParamTest, SetKernelReportEnabled, Function | SmallTest | Level1)
+{
+    bool isEnabled = false;
+    MEMParam memParam;
+    memParam.SetKernelReportEnabled(isEnabled);
+    EXPECT_EQ(memParam.IsKernelReportEnabled(), isEnabled);
+}
+
+/**
+ * @tc.name: SetKernelReportAvailableMemLimit
+ * @tc.desc: Verify the SetKernelReportAvailableMemLimit function
+ * @tc.type: FUNC
+ * @tc.require: #IBIE4T
+ */
+HWTEST_F(MEMParamTest, SetKernelReportAvailableMemLimit, Function | SmallTest | Level1)
+{
+    int limit = 1000;
+    MEMParam memParam;
+    memParam.SetKernelReportAvailableMemLimit(limit);
+    EXPECT_EQ(memParam.GetKernelReportAvailableMemLimit(), limit);
+}
+
+/**
+ * @tc.name: SetKernelReportMemInterval
+ * @tc.desc: Verify the SetKernelReportMemInterval function
+ * @tc.type: FUNC
+ * @tc.require: #IBIE4T
+ */
+HWTEST_F(MEMParamTest, SetKernelReportMemInterval, Function | SmallTest | Level1)
+{
+    int size = 200;
+    MEMParam memParam;
+    memParam.SetKernelReportMemInterval(size);
+    EXPECT_EQ(memParam.GetKernelReportMemInterval(), size);
+}
 } // namespace Rosen
 } // namespace OHOS
