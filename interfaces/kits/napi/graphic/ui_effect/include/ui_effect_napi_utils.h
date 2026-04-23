@@ -80,6 +80,13 @@ do \
 
 #define UIEFFECT_ARRAY_SIZE(array) (sizeof(array) / sizeof((array)[0]))
 
+#if defined(HISTOGRAM_MANAGEMENT_ENABLE) && (HISTOGRAM_MANAGEMENT_ENABLE==1)
+#include "histogram_plugin_macros.h"
+#define API_STATS_HISTOGRAM(...) HISTOGRAM_BOOLEAN(__VA_ARGS__)
+#else
+#define API_STATS_HISTOGRAM(...)
+#endif
+
 namespace OHOS {
 namespace Rosen {
 namespace UIEffect {
