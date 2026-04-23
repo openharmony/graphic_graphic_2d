@@ -62,7 +62,8 @@ HWTEST_F(RSCurveAnimationTest, InvertStagingValue001, TestSize.Level1)
     auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
     auto startProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
     auto endProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_END_BOUNDS);
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     auto curveAnimation = std::make_shared<RSCurveAnimation>(rsUIContext, property, startProperty, endProperty);
 
     RSAnimationTimingProtocol timingProtocol;
@@ -91,7 +92,8 @@ HWTEST_F(RSCurveAnimationTest, InvertStagingValue002, TestSize.Level1)
     auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
     auto startProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
     auto endProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_END_BOUNDS);
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     auto curveAnimation = std::make_shared<RSCurveAnimation>(rsUIContext, property, startProperty, endProperty);
 
     RSAnimationTimingProtocol timingProtocol;
@@ -122,7 +124,8 @@ HWTEST_F(RSCurveAnimationTest, InvertStagingValue003, TestSize.Level1)
     auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
     auto startProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
     auto endProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_END_BOUNDS);
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     auto curveAnimation = std::make_shared<RSCurveAnimation>(rsUIContext, property, startProperty, endProperty);
 
     RSAnimationTimingProtocol timingProtocol;
@@ -153,7 +156,8 @@ HWTEST_F(RSCurveAnimationTest, InvertStagingValue004, TestSize.Level1)
     auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
     auto startProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
     auto endProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_END_BOUNDS);
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     auto curveAnimation = std::make_shared<RSCurveAnimation>(rsUIContext, property, startProperty, endProperty);
 
     RSAnimationTimingProtocol timingProtocol;
@@ -183,7 +187,8 @@ HWTEST_F(RSCurveAnimationTest, InvertStagingValue005, TestSize.Level1)
     auto property = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
     auto startProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
     auto endProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_END_BOUNDS);
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     auto curveAnimation = std::make_shared<RSCurveAnimation>(rsUIContext, property, startProperty, endProperty);
 
     RSAnimationTimingProtocol timingProtocol;

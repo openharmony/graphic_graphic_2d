@@ -237,7 +237,8 @@ namespace OHOS {
         g_pos = 0;
 
         if (!g_rsUIContext) {
-            g_rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+            OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+            g_rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
         }
 
         RSInteractiveImplictAnimatorAddImplictAnimationFuzzTest();

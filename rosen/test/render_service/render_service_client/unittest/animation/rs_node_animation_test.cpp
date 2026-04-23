@@ -22,7 +22,6 @@
 #include "animation/rs_animation_timing_curve.h"
 #include "animation/rs_animation_timing_protocol.h"
 #include "animation/rs_implicit_animator.h"
-#include "animation/rs_implicit_animator_map.h"
 #include "animation/rs_interactive_implict_animator.h"
 #include "animation/rs_render_animation.h"
 #include "common/rs_vector2.h"
@@ -385,7 +384,8 @@ HWTEST_F(RSNodeAnimationTest, FallbackAnimationsToRoot005, TestSize.Level1)
  */
 HWTEST_F(RSNodeAnimationTest, OpenImplicitAnimationWithGroupAnimator001, TestSize.Level1)
 {
-    auto rsUIContext = std::make_shared<RSUIContext>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     auto node = RSCanvasNode::Create(false, false, rsUIContext);
 
     RSAnimationTimingProtocol timingProtocol;
@@ -418,7 +418,8 @@ HWTEST_F(RSNodeAnimationTest, OpenImplicitAnimationWithGroupAnimator001, TestSiz
  */
 HWTEST_F(RSNodeAnimationTest, OpenImplicitAnimationWithNoneAnimator001, TestSize.Level1)
 {
-    auto rsUIContext = std::make_shared<RSUIContext>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     auto node = RSCanvasNode::Create(false, false, rsUIContext);
 
     RSAnimationTimingProtocol timingProtocol;
@@ -449,7 +450,8 @@ HWTEST_F(RSNodeAnimationTest, OpenImplicitAnimationWithNoneAnimator001, TestSize
  */
 HWTEST_F(RSNodeAnimationTest, OpenImplicitAnimationWithGroupAnimator002, TestSize.Level1)
 {
-    auto rsUIContext = std::make_shared<RSUIContext>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     auto node = RSCanvasNode::Create(false, false, rsUIContext);
 
     RSAnimationTimingProtocol timingProtocol;
@@ -473,7 +475,8 @@ HWTEST_F(RSNodeAnimationTest, OpenImplicitAnimationWithGroupAnimator002, TestSiz
  */
 HWTEST_F(RSNodeAnimationTest, AnimateWithGroupAnimator001, TestSize.Level1)
 {
-    auto rsUIContext = std::make_shared<RSUIContext>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     auto node = RSCanvasNode::Create(false, false, rsUIContext);
 
     auto implicitAnimator = rsUIContext->GetRSImplicitAnimator();
@@ -500,7 +503,8 @@ HWTEST_F(RSNodeAnimationTest, AnimateWithGroupAnimator001, TestSize.Level1)
  */
 HWTEST_F(RSNodeAnimationTest, AnimateWithGroupAnimator002, TestSize.Level1)
 {
-    auto rsUIContext = std::make_shared<RSUIContext>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     auto node = RSCanvasNode::Create(false, false, rsUIContext);
 
     auto implicitAnimator = rsUIContext->GetRSImplicitAnimator();
@@ -526,7 +530,8 @@ HWTEST_F(RSNodeAnimationTest, AnimateWithGroupAnimator002, TestSize.Level1)
  */
 HWTEST_F(RSNodeAnimationTest, AnimateWithCurrentOptionsGroupAnimator001, TestSize.Level1)
 {
-    auto rsUIContext = std::make_shared<RSUIContext>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     auto node = RSCanvasNode::Create(false, false, rsUIContext);
 
     RSAnimationTimingProtocol timingProtocol;
@@ -556,7 +561,8 @@ HWTEST_F(RSNodeAnimationTest, AnimateWithCurrentOptionsGroupAnimator001, TestSiz
  */
 HWTEST_F(RSNodeAnimationTest, AnimateWithCurrentOptionsWithoutGroup001, TestSize.Level1)
 {
-    auto rsUIContext = std::make_shared<RSUIContext>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     auto node = RSCanvasNode::Create(false, false, rsUIContext);
 
     RSAnimationTimingProtocol timingProtocol;
@@ -583,7 +589,8 @@ HWTEST_F(RSNodeAnimationTest, AnimateWithCurrentOptionsWithoutGroup001, TestSize
  */
 HWTEST_F(RSNodeAnimationTest, AnimateWithCurrentCallbackGroupAnimator001, TestSize.Level1)
 {
-    auto rsUIContext = std::make_shared<RSUIContext>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     auto node = RSCanvasNode::Create(false, false, rsUIContext);
 
     auto implicitAnimator = rsUIContext->GetRSImplicitAnimator();
@@ -601,178 +608,14 @@ HWTEST_F(RSNodeAnimationTest, AnimateWithCurrentCallbackGroupAnimator001, TestSi
 }
 
 /**
- * @tc.name: OpenImplicitAnimationWithoutContextGroup001
- * @tc.desc: Test OpenImplicitAnimation without rsUIContext param with GROUP animator type and finishCallback
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeAnimationTest, OpenImplicitAnimationWithoutContextGroup001, TestSize.Level1)
-{
-    auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator();
-    ASSERT_NE(implicitAnimator, nullptr);
-
-    implicitAnimator->interactiveAnimatorType_ = InteractiveAnimatorType::GROUP;
-
-    RSAnimationTimingProtocol timingProtocol;
-    timingProtocol.SetDuration(1000);
-    RSAnimationTimingCurve timingCurve = RSAnimationTimingCurve::LINEAR;
-
-    bool callbackCalled = false;
-    auto finishCallback = [&callbackCalled]() { callbackCalled = true; };
-
-    RSNode::OpenImplicitAnimation(timingProtocol, timingCurve, finishCallback);
-
-    const auto& params = implicitAnimator->globalImplicitParams_;
-    ASSERT_FALSE(params.empty());
-    const auto& [protocol, curve, callback, repeatCallback] = params.top();
-    EXPECT_EQ(callback, nullptr);
-
-    implicitAnimator->CloseImplicitAnimation();
-    implicitAnimator->interactiveAnimatorType_ = InteractiveAnimatorType::NONE;
-}
-
-/**
- * @tc.name: OpenImplicitAnimationWithoutContextGroup002
- * @tc.desc: Test OpenImplicitAnimation without rsUIContext param with GROUP animator type and null callback
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeAnimationTest, OpenImplicitAnimationWithoutContextGroup002, TestSize.Level1)
-{
-    auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator();
-    ASSERT_NE(implicitAnimator, nullptr);
-
-    implicitAnimator->interactiveAnimatorType_ = InteractiveAnimatorType::GROUP;
-
-    RSAnimationTimingProtocol timingProtocol;
-    timingProtocol.SetDuration(1000);
-    RSAnimationTimingCurve timingCurve = RSAnimationTimingCurve::LINEAR;
-
-    std::function<void()> nullCallback = nullptr;
-    RSNode::OpenImplicitAnimation(timingProtocol, timingCurve, nullCallback);
-
-    const auto& params = implicitAnimator->globalImplicitParams_;
-    ASSERT_FALSE(params.empty());
-    const auto& [protocol, curve, callback, repeatCallback] = params.top();
-    EXPECT_EQ(callback, nullptr);
-
-    implicitAnimator->CloseImplicitAnimation();
-    implicitAnimator->interactiveAnimatorType_ = InteractiveAnimatorType::NONE;
-}
-
-/**
- * @tc.name: OpenImplicitAnimationWithoutContextNone001
- * @tc.desc: Test OpenImplicitAnimation without rsUIContext param with NONE animator type and finishCallback
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeAnimationTest, OpenImplicitAnimationWithoutContextNone001, TestSize.Level1)
-{
-    auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator();
-    ASSERT_NE(implicitAnimator, nullptr);
-
-    implicitAnimator->interactiveAnimatorType_ = InteractiveAnimatorType::NONE;
-
-    RSAnimationTimingProtocol timingProtocol;
-    timingProtocol.SetDuration(1000);
-    RSAnimationTimingCurve timingCurve = RSAnimationTimingCurve::LINEAR;
-
-    bool callbackCalled = false;
-    auto finishCallback = [&callbackCalled]() { callbackCalled = true; };
-
-    RSNode::OpenImplicitAnimation(timingProtocol, timingCurve, finishCallback);
-
-    const auto& params = implicitAnimator->globalImplicitParams_;
-    ASSERT_FALSE(params.empty());
-    const auto& [protocol, curve, callback, repeatCallback] = params.top();
-    EXPECT_NE(callback, nullptr);
-
-    implicitAnimator->CloseImplicitAnimation();
-}
-
-/**
- * @tc.name: AnimateWithoutContextGroup001
- * @tc.desc: Test Animate without rsUIContext param with GROUP animator type and finishCallback
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeAnimationTest, AnimateWithoutContextGroup001, TestSize.Level1)
-{
-    auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator();
-    ASSERT_NE(implicitAnimator, nullptr);
-    implicitAnimator->interactiveAnimatorType_ = InteractiveAnimatorType::GROUP;
-
-    auto node = RSCanvasNode::Create();
-    RSAnimationTimingProtocol timingProtocol;
-    timingProtocol.SetDuration(1000);
-    RSAnimationTimingCurve timingCurve = RSAnimationTimingCurve::LINEAR;
-
-    bool callbackCalled = false;
-    auto finishCallback = [&callbackCalled]() { callbackCalled = true; };
-
-    auto animations = RSNode::Animate(timingProtocol, timingCurve,
-        [&node]() { node->SetTranslate(Vector2f(100.0f, 0.0f)); }, finishCallback);
-
-    const auto& params = implicitAnimator->globalImplicitParams_;
-    if (!params.empty()) {
-        const auto& [protocol, curve, callback, repeatCallback] = params.top();
-        EXPECT_EQ(callback, nullptr);
-    }
-
-    implicitAnimator->interactiveAnimatorType_ = InteractiveAnimatorType::NONE;
-}
-
-/**
- * @tc.name: AnimateWithoutContextGroup002
- * @tc.desc: Test Animate without rsUIContext param with GROUP animator type and null finishCallback
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeAnimationTest, AnimateWithoutContextGroup002, TestSize.Level1)
-{
-    auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator();
-    ASSERT_NE(implicitAnimator, nullptr);
-    implicitAnimator->interactiveAnimatorType_ = InteractiveAnimatorType::GROUP;
-
-    auto node = RSCanvasNode::Create();
-    RSAnimationTimingProtocol timingProtocol;
-    timingProtocol.SetDuration(1000);
-    RSAnimationTimingCurve timingCurve = RSAnimationTimingCurve::LINEAR;
-
-    std::function<void()> nullCallback = nullptr;
-
-    auto animations = RSNode::Animate(timingProtocol, timingCurve,
-        [&node]() { node->SetTranslate(Vector2f(100.0f, 0.0f)); }, nullCallback);
-
-    implicitAnimator->interactiveAnimatorType_ = InteractiveAnimatorType::NONE;
-}
-
-/**
- * @tc.name: AnimateWithoutContextNone001
- * @tc.desc: Test Animate without rsUIContext param with NONE animator type and finishCallback
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeAnimationTest, AnimateWithoutContextNone001, TestSize.Level1)
-{
-    auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator();
-    ASSERT_NE(implicitAnimator, nullptr);
-    implicitAnimator->interactiveAnimatorType_ = InteractiveAnimatorType::NONE;
-
-    auto node = RSCanvasNode::Create();
-    RSAnimationTimingProtocol timingProtocol;
-    timingProtocol.SetDuration(1000);
-    RSAnimationTimingCurve timingCurve = RSAnimationTimingCurve::LINEAR;
-
-    bool callbackCalled = false;
-    auto finishCallback = [&callbackCalled]() { callbackCalled = true; };
-
-    auto animations = RSNode::Animate(timingProtocol, timingCurve,
-        [&node]() { node->SetTranslate(Vector2f(100.0f, 0.0f)); }, finishCallback);
-}
-
-/**
  * @tc.name: AnimateWithNoneAnimator001
  * @tc.desc: Test Animate with rsUIContext param with NONE animator type and finishCallback
  * @tc.type: FUNC
  */
 HWTEST_F(RSNodeAnimationTest, AnimateWithNoneAnimator001, TestSize.Level1)
 {
-    auto rsUIContext = std::make_shared<RSUIContext>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     auto node = RSCanvasNode::Create(false, false, rsUIContext);
 
     RSAnimationTimingProtocol timingProtocol;
@@ -784,58 +627,5 @@ HWTEST_F(RSNodeAnimationTest, AnimateWithNoneAnimator001, TestSize.Level1)
 
     auto animations = RSNode::Animate(rsUIContext, timingProtocol, timingCurve,
         [&node]() { node->SetTranslate(Vector2f(100.0f, 0.0f)); }, finishCallback);
-}
-
-/**
- * @tc.name: AnimateWithCurrentOptionsWithoutContextGroup001
- * @tc.desc: Test AnimateWithCurrentOptions without rsUIContext param with GROUP animator type
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeAnimationTest, AnimateWithCurrentOptionsWithoutContextGroup001, TestSize.Level1)
-{
-    auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator();
-    ASSERT_NE(implicitAnimator, nullptr);
-    implicitAnimator->interactiveAnimatorType_ = InteractiveAnimatorType::GROUP;
-
-    RSAnimationTimingProtocol timingProtocol;
-    timingProtocol.SetDuration(1000);
-    RSAnimationTimingCurve timingCurve = RSAnimationTimingCurve::LINEAR;
-    implicitAnimator->OpenImplicitAnimation(timingProtocol, timingCurve, nullptr);
-
-    auto node = RSCanvasNode::Create();
-    bool callbackCalled = false;
-    auto finishCallback = [&callbackCalled]() { callbackCalled = true; };
-
-    auto animations = RSNode::AnimateWithCurrentOptions(
-        [&node]() { node->SetTranslate(Vector2f(100.0f, 0.0f)); }, finishCallback, true);
-
-    implicitAnimator->CloseImplicitAnimation();
-    implicitAnimator->interactiveAnimatorType_ = InteractiveAnimatorType::NONE;
-}
-
-/**
- * @tc.name: AnimateWithCurrentOptionsWithoutContextNone001
- * @tc.desc: Test AnimateWithCurrentOptions without rsUIContext param with NONE animator type
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeAnimationTest, AnimateWithCurrentOptionsWithoutContextNone001, TestSize.Level1)
-{
-    auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator();
-    ASSERT_NE(implicitAnimator, nullptr);
-    implicitAnimator->interactiveAnimatorType_ = InteractiveAnimatorType::NONE;
-
-    RSAnimationTimingProtocol timingProtocol;
-    timingProtocol.SetDuration(1000);
-    RSAnimationTimingCurve timingCurve = RSAnimationTimingCurve::LINEAR;
-    implicitAnimator->OpenImplicitAnimation(timingProtocol, timingCurve, nullptr);
-
-    auto node = RSCanvasNode::Create();
-    bool callbackCalled = false;
-    auto finishCallback = [&callbackCalled]() { callbackCalled = true; };
-
-    auto animations = RSNode::AnimateWithCurrentOptions(
-        [&node]() { node->SetTranslate(Vector2f(100.0f, 0.0f)); }, finishCallback, true);
-
-    implicitAnimator->CloseImplicitAnimation();
 }
 } // namespace OHOS::Rosen
