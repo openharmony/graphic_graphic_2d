@@ -79,17 +79,6 @@ bool DoGetType()
     return true;
 }
 
-bool DoAttachRSSurfaceNode()
-{
-    // test
-    bool isRenderServiceNode = GetData<bool>();
-    auto node = std::make_shared<RSRootNode>(isRenderServiceNode);
-    Rosen::RSSurfaceNodeConfig config;
-    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
-    node->AttachRSSurfaceNode(surfaceNode);
-    return true;
-}
-
 bool DoSetEnableRender()
 {
     // test
