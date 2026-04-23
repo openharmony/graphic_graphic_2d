@@ -137,6 +137,22 @@ HWTEST_F(RSImageCacheTest, ReleaseDrawingImageCacheTest, TestSize.Level1)
     imageCache.CacheDrawingImage(1, img);
     imageCache.ReleaseDrawingImageCache(0);
     EXPECT_FALSE(imageCache.drawingImageCache_.empty());
+    imageCache.ReleaseDrawingImageCache(1);
+    EXPECT_TRUE(imageCache.drawingImageCache_.empty());
+
+    imageCache.CacheDrawingImage(1, img);
+    img = nullptr;
+    imageCache.ReleaseDrawingImageCache(1);
+    EXPECT_TRUE(imageCache.drawingImageCache_.empty());
+
+    auto img2 = std::make_shared<Drawing::Image>();
+    imageCache.CacheDrawingImage(2, img2);
+    imageCache.IncreaseDrawingImageCacheRefCount(2);
+    imageCache.IncreaseDrawingImageCacheRefCount(2);
+    imageCache.ReleaseDrawingImageCache(2);
+    EXPECT_FALSE(imageCache.drawingImageCache_.empty());
+    imageCache.ReleaseDrawingImageCache(2);
+    EXPECT_TRUE(imageCache.drawingImageCache_.empty());
     imageCache.drawingImageCache_.clear();
 }
 
