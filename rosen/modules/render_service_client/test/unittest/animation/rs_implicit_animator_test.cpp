@@ -283,7 +283,7 @@ HWTEST_F(RSImplicitAnimatorTest, ProcessEmptyAnimationTest001, TestSize.Level1)
  */
 HWTEST_F(RSImplicitAnimatorTest, ProcessEmptyAnimationTest002, TestSize.Level1)
 {
-        OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
     auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     auto implicitAnimator = std::make_shared<RSImplicitAnimator>();
     implicitAnimator->SetRSUIContext(rsUIContext);

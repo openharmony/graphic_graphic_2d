@@ -76,7 +76,8 @@ HWTEST_F(RSInteractiveImplictAnimatorTest, CreateGroup002, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSInteractiveImplictAnimatorTest CreateGroup002 start";
 
-    auto rsUIContext = std::make_shared<RSUIContext>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     RSAnimationTimingProtocol timingProtocol;
     RSAnimationTimingCurve timingCurve;
     timingProtocol.SetDuration(-100); // Invalid duration
@@ -99,7 +100,8 @@ HWTEST_F(RSInteractiveImplictAnimatorTest, CreateGroup003, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSInteractiveImplictAnimatorTest CreateGroup003 start";
 
-    auto rsUIContext = std::make_shared<RSUIContext>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     RSAnimationTimingProtocol timingProtocol;
     RSAnimationTimingCurve timingCurve;
     timingProtocol.SetDuration(1000);
@@ -293,7 +295,8 @@ HWTEST_F(RSInteractiveImplictAnimatorTest, Destructor001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSInteractiveImplictAnimatorTest Destructor001 start";
 
-    auto rsUIContext = std::make_shared<RSUIContext>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     RSAnimationTimingProtocol timingProtocol;
     RSAnimationTimingCurve timingCurve;
     timingProtocol.SetDuration(1000);
@@ -318,7 +321,8 @@ HWTEST_F(RSInteractiveImplictAnimatorTest, Destructor002, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSInteractiveImplictAnimatorTest Destructor002 start";
 
-    auto rsUIContext = std::make_shared<RSUIContext>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     RSAnimationTimingProtocol timingProtocol;
     RSAnimationTimingCurve timingCurve;
     timingProtocol.SetDuration(1000);
@@ -343,7 +347,8 @@ HWTEST_F(RSInteractiveImplictAnimatorTest, CallFinishCallback001, TestSize.Level
 {
     GTEST_LOG_(INFO) << "RSInteractiveImplictAnimatorTest CallFinishCallback001 start";
 
-    auto rsUIContext = std::make_shared<RSUIContext>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     RSAnimationTimingProtocol timingProtocol;
     RSAnimationTimingCurve timingCurve;
     timingProtocol.SetDuration(1000);
@@ -372,7 +377,8 @@ HWTEST_F(RSInteractiveImplictAnimatorTest, CallFinishCallback002, TestSize.Level
 {
     GTEST_LOG_(INFO) << "RSInteractiveImplictAnimatorTest CallFinishCallback002 start";
 
-    auto rsUIContext = std::make_shared<RSUIContext>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     RSAnimationTimingProtocol timingProtocol;
     RSAnimationTimingCurve timingCurve;
     timingProtocol.SetDuration(1000);
@@ -396,7 +402,8 @@ HWTEST_F(RSInteractiveImplictAnimatorTest, CallFinishCallback003, TestSize.Level
 {
     GTEST_LOG_(INFO) << "RSInteractiveImplictAnimatorTest CallFinishCallback003 start";
 
-    auto rsUIContext = std::make_shared<RSUIContext>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     RSAnimationTimingProtocol timingProtocol;
     RSAnimationTimingCurve timingCurve;
     timingProtocol.SetDuration(1000);
@@ -426,7 +433,8 @@ HWTEST_F(RSInteractiveImplictAnimatorTest, CallFinishCallback004, TestSize.Level
 {
     GTEST_LOG_(INFO) << "RSInteractiveImplictAnimatorTest CallFinishCallback004 start";
 
-    auto rsUIContext = std::make_shared<RSUIContext>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     RSAnimationTimingProtocol timingProtocol;
     RSAnimationTimingCurve timingCurve;
     timingProtocol.SetDuration(1000);
@@ -453,7 +461,8 @@ HWTEST_F(RSInteractiveImplictAnimatorTest, CallFinishCallback005, TestSize.Level
 {
     GTEST_LOG_(INFO) << "RSInteractiveImplictAnimatorTest CallFinishCallback005 start";
 
-    auto rsUIContext = std::make_shared<RSUIContext>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     RSAnimationTimingProtocol timingProtocol;
     RSAnimationTimingCurve timingCurve;
     timingProtocol.SetDuration(1000);
@@ -483,7 +492,8 @@ HWTEST_F(RSInteractiveImplictAnimatorTest, StartAnimation001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSInteractiveImplictAnimatorTest StartAnimation001 start";
 
-    auto rsUIContext = std::make_shared<RSUIContext>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     RSAnimationTimingProtocol timingProtocol;
     RSAnimationTimingCurve timingCurve;
     timingProtocol.SetDuration(1000);
@@ -526,7 +536,8 @@ HWTEST_F(RSInteractiveImplictAnimatorTest, StartAnimation002, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSInteractiveImplictAnimatorTest StartAnimation002 start";
 
-    auto rsUIContext = std::make_shared<RSUIContext>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     RSAnimationTimingProtocol timingProtocol;
     RSAnimationTimingCurve timingCurve;
     timingProtocol.SetDuration(1000);
@@ -569,7 +580,8 @@ HWTEST_F(RSInteractiveImplictAnimatorTest, StartAnimation003, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSInteractiveImplictAnimatorTest StartAnimation003 start";
 
-    auto rsUIContext = std::make_shared<RSUIContext>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     RSAnimationTimingProtocol timingProtocol;
     RSAnimationTimingCurve timingCurve;
     timingProtocol.SetDuration(1000);
@@ -593,7 +605,8 @@ HWTEST_F(RSInteractiveImplictAnimatorTest, SendCreateAnimatorCommand001, TestSiz
 {
     GTEST_LOG_(INFO) << "RSInteractiveImplictAnimatorTest SendCreateAnimatorCommand001 start";
 
-    auto rsUIContext = std::make_shared<RSUIContext>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     RSAnimationTimingProtocol timingProtocol;
     RSAnimationTimingCurve timingCurve;
     timingProtocol.SetDuration(1000);
@@ -621,7 +634,8 @@ HWTEST_F(RSInteractiveImplictAnimatorTest, SendCreateAnimatorCommand002, TestSiz
 {
     GTEST_LOG_(INFO) << "RSInteractiveImplictAnimatorTest SendCreateAnimatorCommand002 start";
 
-    auto rsUIContext = std::make_shared<RSUIContext>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     RSAnimationTimingProtocol timingProtocol;
     RSAnimationTimingCurve timingCurve;
     timingProtocol.SetDuration(1000);
@@ -648,7 +662,8 @@ HWTEST_F(RSInteractiveImplictAnimatorTest, SendCreateAnimatorCommand003, TestSiz
 {
     GTEST_LOG_(INFO) << "RSInteractiveImplictAnimatorTest SendCreateAnimatorCommand003 start";
 
-    auto rsUIContext = std::make_shared<RSUIContext>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     RSAnimationTimingProtocol timingProtocol;
     RSAnimationTimingCurve timingCurve;
     timingProtocol.SetDuration(1000);
@@ -680,7 +695,8 @@ HWTEST_F(RSInteractiveImplictAnimatorTest, SendCreateAnimatorCommand004, TestSiz
 {
     GTEST_LOG_(INFO) << "RSInteractiveImplictAnimatorTest SendCreateAnimatorCommand004 start";
 
-    auto rsUIContext = std::make_shared<RSUIContext>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     RSAnimationTimingProtocol timingProtocol;
     RSAnimationTimingCurve timingCurve;
     timingProtocol.SetDuration(1000);
@@ -712,7 +728,8 @@ HWTEST_F(RSInteractiveImplictAnimatorTest, SendCreateAnimatorCommand005, TestSiz
 {
     GTEST_LOG_(INFO) << "RSInteractiveImplictAnimatorTest SendCreateAnimatorCommand005 start";
 
-    auto rsUIContext = std::make_shared<RSUIContext>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     RSAnimationTimingProtocol timingProtocol;
     RSAnimationTimingCurve timingCurve;
     timingProtocol.SetDuration(1000);
