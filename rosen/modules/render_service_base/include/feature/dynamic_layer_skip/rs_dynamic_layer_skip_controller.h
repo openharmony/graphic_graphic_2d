@@ -47,6 +47,9 @@ public:
 
     void VisitRenderNode(std::shared_ptr<RSSurfaceRenderNode> surfaceNode, RSRenderNode& node);
 
+    void DetectScreenLayerValidityInner(
+        std::shared_ptr<RSRenderNode> node, Occlusion::Region& targetArea, int32_t totalTargetCount);
+
     void DetectScreenLayerValidity(RSSurfaceRenderNode& rootNode);
 
     bool HasFullScreenSelfDrawingSurface(RSSurfaceRenderNode& rootNode) const;
@@ -57,7 +60,7 @@ private:
     bool screenLayerInvalid_ = false;
     bool globalOccluderDetected_ = false;
     NodeId occluderInstanceRootNodeId_ = INVALID_NODEID;
-    std::vector<RSSurfaceRenderNode::WeakPtr> fullScreenSelfDrawingSurface_ = {};
+    std::vector<RSSurfaceRenderNode::WeakPtr> targetSelfDrawingSurface_ = {};
     bool globalDisabled_ = false;
     int32_t visitedRenderNodeCount_ = 0;
 
