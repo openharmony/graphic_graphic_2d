@@ -331,7 +331,8 @@ void RecordingCanvasFuzzTest009(const uint8_t* data, size_t size)
     uint16_t glyphs[] = {GetObject<int>(), GetObject<int>()};
     Font font;
     Point point;
-    recordcanvas.DrawGlyphs(2, glyphs, pts.data(), point, &font);
+    int glyphCount = 2; // 2 is for test
+    recordcanvas.DrawGlyphs(glyphCount, glyphs, pts.data(), point, &font);
 }
 
 void RecordingCanvasFuzzTest007(const uint8_t* data, size_t size)
