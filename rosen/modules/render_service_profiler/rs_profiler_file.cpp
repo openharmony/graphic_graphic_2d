@@ -409,8 +409,7 @@ std::string RSFile::LayerReadHeader(RSFileLayer& layer)
         return "Cannot read layer.property";
     }
 
-    layer.property.Deserialize(properties);
-    if (!properties.empty() && layer.property.Empty()) {
+    if (!layer.property.Deserialize(properties)) {
         return "Cannot read layer.property";
     }
 
