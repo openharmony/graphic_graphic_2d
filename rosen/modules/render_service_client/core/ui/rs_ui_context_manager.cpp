@@ -74,7 +74,7 @@ std::shared_ptr<RSUIContext> RSUIContextManager::CreateRSUIContext(sptr<IRemoteO
         ROSEN_LOGW("RSUIContextManager::CreateRSUIContext: context token %{public}" PRIu64 " already exists", token);
         return iter->second;
     }
-    auto newContext = std::shared_ptr<RSUIContext>(new RSUIContext(token, connectToRenderRemote));
+    auto newContext = std::make_shared<RSUIContext>(token, connectToRenderRemote);
     rsUIContextMap_[token] = newContext;
     if (isDividedRender_) {
         hasCreateRSUIContext_ = true;
