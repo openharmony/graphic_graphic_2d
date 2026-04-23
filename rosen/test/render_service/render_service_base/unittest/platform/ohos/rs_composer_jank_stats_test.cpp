@@ -190,7 +190,7 @@ HWTEST_F(RSComposerJankStatsTest, CheckRefreshRate001, TestSize.Level1)
 
 /**
  * @tc.name: CheckRefreshRate002
- * @tc.desc: Verify CheckRefreshRate with all refresh rates less than 60Hz
+ * @tc.desc: Verify CheckRefreshRate with all refresh rates less than 60Hz and not all equal
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -198,10 +198,10 @@ HWTEST_F(RSComposerJankStatsTest, CheckRefreshRate002, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSComposerJankStatsTest-begin CheckRefreshRate002";
     RSComposerJankStats instance;
-    instance.refreshRates_ = {30, 30, 30, 30, 30, 30, 30, 30, 30};
+    instance.refreshRates_ = {30, 35, 40, 45, 30, 35, 40, 45, 30};
 
     instance.CheckRefreshRate();
-    EXPECT_TRUE(instance.IsAllEqual());
+    EXPECT_FALSE(instance.IsAllEqual());
     EXPECT_TRUE(instance.IsAllLessThan60Hz());
     GTEST_LOG_(INFO) << "RSComposerJankStatsTest-end CheckRefreshRate002";
 }
@@ -268,7 +268,7 @@ HWTEST_F(RSComposerJankStatsTest, CheckRefreshRate005, TestSize.Level1)
 
 /**
  * @tc.name: CheckRefreshRate006
- * @tc.desc: Verify CheckRefreshRate with unstable refresh rates (falls through all conditions)
+ * @tc.desc: Verify CheckRefreshRate with middle peak false (left side condition fails)
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -276,7 +276,6 @@ HWTEST_F(RSComposerJankStatsTest, CheckRefreshRate006, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSComposerJankStatsTest-begin CheckRefreshRate006";
     RSComposerJankStats instance;
-    // rates[4]=50 < rates[3]=70 → middle peak condition false
     instance.refreshRates_ = {90, 60, 80, 70, 50, 60, 65, 55, 70};
 
     int midRate = instance.GetRate(FRAME_WINDOW_MIDDLE_NUM);
@@ -284,8 +283,32 @@ HWTEST_F(RSComposerJankStatsTest, CheckRefreshRate006, TestSize.Level1)
     int rightRate = instance.GetRate(FRAME_WINDOW_MIDDLE_NUM + 1);
     instance.CheckRefreshRate();
 
+    EXPECT_FALSE(midRate >= leftRate);
     EXPECT_FALSE(midRate >= leftRate && midRate >= rightRate);
     GTEST_LOG_(INFO) << "RSComposerJankStatsTest-end CheckRefreshRate006";
+}
+
+/**
+ * @tc.name: CheckRefreshRate007
+ * @tc.desc: Verify CheckRefreshRate with middle peak false (right side condition fails)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSComposerJankStatsTest, CheckRefreshRate007, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSComposerJankStatsTest-begin CheckRefreshRate007";
+    RSComposerJankStats instance;
+    instance.refreshRates_ = {60, 65, 70, 75, 80, 90, 50, 45, 40};
+
+    int midRate = instance.GetRate(FRAME_WINDOW_MIDDLE_NUM);
+    int leftRate = instance.GetRate(FRAME_WINDOW_MIDDLE_NUM - 1);
+    int rightRate = instance.GetRate(FRAME_WINDOW_MIDDLE_NUM + 1);
+    instance.CheckRefreshRate();
+
+    EXPECT_TRUE(midRate >= leftRate);
+    EXPECT_FALSE(midRate >= rightRate);
+    EXPECT_FALSE(midRate >= leftRate && midRate >= rightRate);
+    GTEST_LOG_(INFO) << "RSComposerJankStatsTest-end CheckRefreshRate007";
 }
 
 /**
@@ -304,6 +327,8 @@ HWTEST_F(RSComposerJankStatsTest, GetRate001, TestSize.Level1)
     EXPECT_EQ(instance.GetRate(FRAME_WINDOW_MIDDLE_NUM), 50);
     EXPECT_EQ(instance.GetRate(REFRESH_RATE_WINDOW_SIZE - 1), 90);
     EXPECT_EQ(instance.GetRate(-1), 0);
+    EXPECT_EQ(instance.GetRate(REFRESH_RATE_WINDOW_SIZE), 0);
+    EXPECT_EQ(instance.GetRate(100), 0);
     GTEST_LOG_(INFO) << "RSComposerJankStatsTest-end GetRate001";
 }
 
