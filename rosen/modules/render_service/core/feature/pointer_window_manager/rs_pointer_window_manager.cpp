@@ -147,7 +147,9 @@ void RSPointerWindowManager::HardCursorCreateLayerForDirect(std::shared_ptr<RSPr
 #ifdef RS_ENABLE_GPU
     auto& hardCursorNodeMap = GetHardCursorNode();
     for (auto& [_, hardCursorNode] :  hardCursorNodeMap) {
-        if (hardCursorNode && hardCursorNode->IsHardwareEnabledTopSurface()) {
+        bool isHardCursorEnabled = hardCursorNode && hardCursorNode->IsHardwareEnabledTopSurface() &&
+            hardCursorNode->GetHardCursorStatus();
+        if (isHardCursorEnabled) {
             auto surfaceHandler = hardCursorNode->GetRSSurfaceHandler();
             if (!surfaceHandler) {
                 continue;
