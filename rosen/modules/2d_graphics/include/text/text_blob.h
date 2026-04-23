@@ -30,7 +30,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-enum class TextContrast {
+enum class TextContrast : uint8_t {
     FOLLOW_SYSTEM, // Follow the system configuration.
     DISABLE_CONTRAST, // Do not follow the system, APP prohibits high contrast.
     ENABLE_CONTRAST // Do not follow the system, APP enables high contrast.

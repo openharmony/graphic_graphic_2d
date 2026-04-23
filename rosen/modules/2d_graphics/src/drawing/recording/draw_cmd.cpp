@@ -1675,7 +1675,6 @@ DrawTextBlobOpItem::DrawTextBlobOpItem(const DrawCmdList& cmdList, DrawTextBlobO
     : DrawWithPaintOpItem(cmdList, handle->paintHandle, TEXT_BLOB_OPITEM), x_(handle->x), y_(handle->y)
 {
     globalUniqueId_ = handle->globalUniqueId;
-    preferSpeedOverQuality_ = handle->preferSpeedOverQuality;
     textContrast_ = handle->textContrast;
     textBlob_ = CmdListHelper::GetTextBlobFromCmdList(cmdList,
                                                       handle->textBlob,
