@@ -1973,6 +1973,8 @@ HWTEST_F(RSTransactionHandlerTest, MoveCommandByNodeIdExcludeTreeCommands001, Te
     preTransaction->renderThreadClient_.reset();
     NodeId nodeId = 1;
     preTransaction->MoveCommandByNodeIdExcludeTreeCommands(curTransaction, nodeId);
+    EXPECT_TRUE(preTransaction->IsEmpty());
+    EXPECT_TRUE(curTransaction->IsEmpty());
 }
 
 /**
@@ -1996,7 +1998,7 @@ HWTEST_F(RSTransactionHandlerTest, MoveCommonCommandByNodeIdExcludeTreeCommands0
 
 /**
  * @tc.name: MoveCommonCommandByNodeIdExcludeTreeCommands002
- * @tc.desc: Source stack empty, target stack non-empty, move to target top
+ * @tc.desc: Source stack empty, target stack non-empty
  * @tc.type: FUNC
  */
 HWTEST_F(RSTransactionHandlerTest, MoveCommonCommandByNodeIdExcludeTreeCommands002, TestSize.Level1)
@@ -2011,7 +2013,7 @@ HWTEST_F(RSTransactionHandlerTest, MoveCommonCommandByNodeIdExcludeTreeCommands0
 
     preTransaction->MoveCommonCommandByNodeIdExcludeTreeCommands(curTransaction, nodeId);
     EXPECT_TRUE(preTransaction->implicitCommonTransactionData_->IsEmpty());
-    EXPECT_FALSE(curTransaction->implicitCommonTransactionDataStack_.top()->IsEmpty());
+    EXPECT_FALSE(curTransaction->implicitCommonTransactionData_->IsEmpty());
 }
 
 /**
@@ -2078,7 +2080,7 @@ HWTEST_F(RSTransactionHandlerTest, MoveRemoteCommandByNodeIdExcludeTreeCommands0
 
 /**
  * @tc.name: MoveRemoteCommandByNodeIdExcludeTreeCommands002
- * @tc.desc: Source stack empty, target stack non-empty, move to target top
+ * @tc.desc: Source stack empty, target stack non-empty
  * @tc.type: FUNC
  */
 HWTEST_F(RSTransactionHandlerTest, MoveRemoteCommandByNodeIdExcludeTreeCommands002, TestSize.Level1)
@@ -2094,7 +2096,7 @@ HWTEST_F(RSTransactionHandlerTest, MoveRemoteCommandByNodeIdExcludeTreeCommands0
 
     preTransaction->MoveRemoteCommandByNodeIdExcludeTreeCommands(curTransaction, nodeId);
     EXPECT_TRUE(preTransaction->implicitRemoteTransactionData_->IsEmpty());
-    EXPECT_FALSE(curTransaction->implicitRemoteTransactionDataStack_.top()->IsEmpty());
+    EXPECT_FALSE(curTransaction->implicitRemoteTransactionData_->IsEmpty());
 }
 
 /**
