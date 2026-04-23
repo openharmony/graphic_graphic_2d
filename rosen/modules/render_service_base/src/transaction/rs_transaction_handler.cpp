@@ -470,11 +470,21 @@ void RSTransactionHandler::MoveCommonCommandByNodeId(
 void RSTransactionHandler::MoveCommonCommandByNodeIdExcludeTreeCommands(
     std::shared_ptr<RSTransactionHandler> transactionHandler, NodeId nodeId)
 {
-    if (!implicitCommonTransactionDataStack_.empty() &&
-        !transactionHandler->implicitCommonTransactionDataStack_.empty()) {
-        implicitCommonTransactionDataStack_.top()->MoveCommandByNodeIdExcludeTreeCommands(
-            transactionHandler->implicitCommonTransactionDataStack_.top(), nodeId);
+    std::unique_ptr<RSTransactionData>& targetData = !transactionHandler->implicitCommonTransactionDataStack_.empty()
+        ? transactionHandler->implicitCommonTransactionDataStack_.top()
+        : transactionHandler->implicitCommonTransactionData_;
+
+    std::stack<std::unique_ptr<RSTransactionData>> tempStack;
+    while (!implicitCommonTransactionDataStack_.empty()) {
+        tempStack.push(std::move(implicitCommonTransactionDataStack_.top()));
+        implicitCommonTransactionDataStack_.pop();
     }
+    while (!tempStack.empty()) {
+        tempStack.top()->MoveCommandByNodeIdExcludeTreeCommands(targetData, nodeId);
+        implicitCommonTransactionDataStack_.push(std::move(tempStack.top()));
+        tempStack.pop();
+    }
+
     implicitCommonTransactionData_->MoveCommandByNodeIdExcludeTreeCommands(
         transactionHandler->implicitCommonTransactionData_, nodeId);
 }
@@ -491,11 +501,21 @@ void RSTransactionHandler::AddRemoteCommand(std::unique_ptr<RSCommand>& command,
 void RSTransactionHandler::MoveRemoteCommandByNodeIdExcludeTreeCommands(
     std::shared_ptr<RSTransactionHandler> transactionHandler, NodeId nodeId)
 {
-    if (!implicitRemoteTransactionDataStack_.empty() &&
-        !transactionHandler->implicitRemoteTransactionDataStack_.empty()) {
-        implicitRemoteTransactionDataStack_.top()->MoveCommandByNodeIdExcludeTreeCommands(
-            transactionHandler->implicitRemoteTransactionDataStack_.top(), nodeId);
+    std::unique_ptr<RSTransactionData>& targetData = !transactionHandler->implicitRemoteTransactionDataStack_.empty()
+        ? transactionHandler->implicitRemoteTransactionDataStack_.top()
+        : transactionHandler->implicitRemoteTransactionData_;
+
+    std::stack<std::unique_ptr<RSTransactionData>> tempStack;
+    while (!implicitRemoteTransactionDataStack_.empty()) {
+        tempStack.push(std::move(implicitRemoteTransactionDataStack_.top()));
+        implicitRemoteTransactionDataStack_.pop();
     }
+    while (!tempStack.empty()) {
+        tempStack.top()->MoveCommandByNodeIdExcludeTreeCommands(targetData, nodeId);
+        implicitRemoteTransactionDataStack_.push(std::move(tempStack.top()));
+        tempStack.pop();
+    }
+
     implicitRemoteTransactionData_->MoveCommandByNodeIdExcludeTreeCommands(
         transactionHandler->implicitRemoteTransactionData_, nodeId);
 }
