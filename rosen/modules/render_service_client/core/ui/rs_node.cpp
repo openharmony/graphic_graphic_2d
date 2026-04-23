@@ -1555,6 +1555,8 @@ void RSNode::SetRSUIContext(std::shared_ptr<RSUIContext> rsUIContext)
         auto preTransaction = preUIContext->GetRSTransaction();
         auto curTransaction = rsUIContext->GetRSTransaction();
         if (preTransaction && curTransaction) {
+            // Move non-tree commands to the new UIContext. Tree hierarchy commands
+            // are excluded because they must be regenerated for the new context.
             preTransaction->MoveCommandByNodeIdExcludeTreeCommands(curTransaction, id_);
             RegenerateTreeHierarchyCommands();
         }
@@ -1562,8 +1564,14 @@ void RSNode::SetRSUIContext(std::shared_ptr<RSUIContext> rsUIContext)
     SetUIContextToken();
 }
 
+// Regenerates tree hierarchy commands (AddChild) for all children after
+// UIContext switching. This ensures the new UIContext builds the correct
+// node tree structure, since tree hierarchy commands are excluded during
+// command migration.
 void RSNode::RegenerateTreeHierarchyCommands()
 {
+    ROSEN_LOGI("RegenerateTreeHierarchyCommands nodeId:%{public}" PRIu64 " children:%{public}zu",
+        id_, children_.size());
     for (uint32_t index = 0; index < children_.size(); index++) {
         auto childPtr = children_[index].lock();
         if (childPtr == nullptr) {

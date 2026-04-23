@@ -470,11 +470,17 @@ void RSTransactionHandler::MoveCommonCommandByNodeId(
 void RSTransactionHandler::MoveCommonCommandByNodeIdExcludeTreeCommands(
     std::shared_ptr<RSTransactionHandler> transactionHandler, NodeId nodeId)
 {
+    // Choose target: if destination stack is not empty, move to its top;
+    // otherwise move to the destination implicit transaction data.
     std::unique_ptr<RSTransactionData>& targetData = !transactionHandler->implicitCommonTransactionDataStack_.empty()
         ? transactionHandler->implicitCommonTransactionDataStack_.top()
         : transactionHandler->implicitCommonTransactionData_;
 
+    // std::stack does not support iteration, so we temporarily pop all elements
+    // to a secondary stack, process each one, and then push them back to
+    // preserve the original stack order and structure.
     std::stack<std::unique_ptr<RSTransactionData>> tempStack;
+    size_t stackDepth = implicitCommonTransactionDataStack_.size();
     while (!implicitCommonTransactionDataStack_.empty()) {
         tempStack.push(std::move(implicitCommonTransactionDataStack_.top()));
         implicitCommonTransactionDataStack_.pop();
@@ -487,6 +493,8 @@ void RSTransactionHandler::MoveCommonCommandByNodeIdExcludeTreeCommands(
 
     implicitCommonTransactionData_->MoveCommandByNodeIdExcludeTreeCommands(
         transactionHandler->implicitCommonTransactionData_, nodeId);
+    RS_LOGI("MoveCommonCommandByNodeIdExcludeTreeCommands nodeId:%{public}" PRIu64
+            " stackDepth:%{public}zu", nodeId, stackDepth);
 }
 
 void RSTransactionHandler::AddRemoteCommand(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType)
@@ -501,11 +509,17 @@ void RSTransactionHandler::AddRemoteCommand(std::unique_ptr<RSCommand>& command,
 void RSTransactionHandler::MoveRemoteCommandByNodeIdExcludeTreeCommands(
     std::shared_ptr<RSTransactionHandler> transactionHandler, NodeId nodeId)
 {
+    // Choose target: if destination stack is not empty, move to its top;
+    // otherwise move to the destination implicit transaction data.
     std::unique_ptr<RSTransactionData>& targetData = !transactionHandler->implicitRemoteTransactionDataStack_.empty()
         ? transactionHandler->implicitRemoteTransactionDataStack_.top()
         : transactionHandler->implicitRemoteTransactionData_;
 
+    // std::stack does not support iteration, so we temporarily pop all elements
+    // to a secondary stack, process each one, and then push them back to
+    // preserve the original stack order and structure.
     std::stack<std::unique_ptr<RSTransactionData>> tempStack;
+    size_t stackDepth = implicitRemoteTransactionDataStack_.size();
     while (!implicitRemoteTransactionDataStack_.empty()) {
         tempStack.push(std::move(implicitRemoteTransactionDataStack_.top()));
         implicitRemoteTransactionDataStack_.pop();
@@ -518,6 +532,8 @@ void RSTransactionHandler::MoveRemoteCommandByNodeIdExcludeTreeCommands(
 
     implicitRemoteTransactionData_->MoveCommandByNodeIdExcludeTreeCommands(
         transactionHandler->implicitRemoteTransactionData_, nodeId);
+    RS_LOGI("MoveRemoteCommandByNodeIdExcludeTreeCommands nodeId:%{public}" PRIu64
+            " stackDepth:%{public}zu", nodeId, stackDepth);
 }
 
 void RSTransactionHandler::MoveRemoteCommandByNodeId(
