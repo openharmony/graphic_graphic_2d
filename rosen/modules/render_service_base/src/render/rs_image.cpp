@@ -32,7 +32,9 @@
 #include "rs_profiler.h"
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
+#include "metadata_helper.h"
 #include "render/rs_colorspace_convert.h"
+#include "v2_2/cm_color_space.h"
 #endif
 
 namespace OHOS {
@@ -42,6 +44,10 @@ constexpr int32_t CORNER_SIZE = 4;
 constexpr float CENTER_ALIGNED_FACTOR = 2.f;
 constexpr int32_t DEGREE_NINETY = 90;
 constexpr int32_t REPEAT_LOOP_TIME_LIMIT = 5000;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+constexpr int32_t CM_COMPONENT_EDR = static_cast<int32_t>(HDI::Display::Graphic::Common::V2_2::CM_COMPONENT_EDR);
+constexpr float DEFAULT_SDR_NITS = 203.0f;
+#endif
 }
 
 RSImage::~RSImage()
@@ -93,8 +99,13 @@ bool RSImage::HDRConvert(const Drawing::SamplingOptions& sampling, Drawing::Canv
         RS_LOGE("bhdr pixelMap_ || image_ is nullptr");
         return false;
     }
-    RS_LOGD("RSImage::HDRConvert HDRDraw pixelMap_ IsHdr: %{public}d", pixelMap_->IsHdr());
-    if (!pixelMap_->IsHdr() && !IsHDRUiCapture()) {
+    bool isHDRPixelMap = pixelMap_->IsHdr();
+    bool isEDRSurface = IsEDRSurface();
+    bool isHDRUiCapture = IsHDRUiCapture();
+    RS_LOGD("RSImage::HDRConvert HDRDraw pixelMap_ IsHdr: %{public}d, isEDRSurface: %{public}d, "
+        "isHDRUiCapture: %{public}d, nodeId: %{public}" PRIu64 "",
+        isHDRPixelMap, isEDRSurface, isHDRUiCapture, nodeId_);
+    if (!isHDRPixelMap && !isHDRUiCapture && !isEDRSurface) {
         return false;
     }
 
@@ -123,21 +134,73 @@ bool RSImage::HDRConvert(const Drawing::SamplingOptions& sampling, Drawing::Canv
     sptr<SurfaceBuffer> sfBuffer(surfaceBuffer);
     RSPaintFilterCanvas& rscanvas = static_cast<RSPaintFilterCanvas&>(canvas);
     auto targetColorSpace = RSColorSpaceUtil::GetColorGamutFromCanvas(canvas);
+    rscanvas.SetEDRSurface(isEDRSurface);
+    if (isEDRSurface) {
+        using namespace HDI::Display::Graphic::Common::V1_0;
+        CM_HDR_Metadata_Type edrMetadataType = static_cast<CM_HDR_Metadata_Type>(CM_COMPONENT_EDR);
+        MetadataHelper::SetHDRMetadataType(sfBuffer, edrMetadataType);
+    }
     auto shotType = rscanvas.GetScreenshotType();
     bool isSDRCapture = shotType == RSPaintFilterCanvas::ScreenshotType::SDR_SCREENSHOT ||
-        shotType == RSPaintFilterCanvas::ScreenshotType::SDR_WINDOWSHOT;
-    if (LIKELY(!rscanvas.IsOnMultipleScreen() && !isSDRCapture && rscanvas.GetHdrOn() &&
-        RSSystemProperties::GetHdrImageEnabled())) {
-        RSColorSpaceConvert::Instance().ColorSpaceConvertor(imageShader, sfBuffer, paint_, targetColorSpace,
-            rscanvas.GetScreenId(), dynamicRangeMode_, rscanvas.GetHDRProperties());
-    } else {
-        RSColorSpaceConvert::Instance().ColorSpaceConvertor(imageShader, sfBuffer, paint_, targetColorSpace,
-            rscanvas.GetScreenId(), DynamicRangeMode::STANDARD, rscanvas.GetHDRProperties());
+        shotType == RSPaintFilterCanvas::ScreenshotType::SDR_WINDOWSHOT ||
+        shotType == RSPaintFilterCanvas::ScreenshotType::SDR_UICAPTURE;
+
+    bool isHDRTmo = LIKELY(!rscanvas.IsOnMultipleScreen() && !isSDRCapture && rscanvas.GetHdrOn() &&
+        RSSystemProperties::GetHdrImageEnabled());
+    if (!RSColorSpaceConvert::Instance().ColorSpaceConvertor(imageShader, sfBuffer, paint_, targetColorSpace,
+        rscanvas.GetScreenId(), isHDRTmo ? dynamicRangeMode_ : DynamicRangeMode::STANDARD,
+        rscanvas.GetHDRProperties())) {
+        return false;
     }
     canvas.AttachPaint(paint_);
     // Avoid cross-thread destruction
     paint_.SetShaderEffect(nullptr);
     return true;
+#else
+    return false;
+#endif
+}
+
+bool RSImage::IsEDRSurface() const
+{
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    using namespace HDI::Display::Graphic::Common::V1_0;
+    if (dynamicRangeMode_ == DynamicRangeMode::STANDARD) {
+        return false;
+    }
+    if (pixelMap_->GetAllocatorType() != Media::AllocatorType::DMA_ALLOC) {
+        return false;
+    }
+    SurfaceBuffer* buffer = reinterpret_cast<SurfaceBuffer*>(pixelMap_->GetFd());
+    if (buffer == nullptr) {
+        RS_LOGE("RSImage::IsEDRSurface surfaceBuffer is nullptr");
+        return false;
+    }
+    sptr<SurfaceBuffer> surfaceBuffer(buffer);
+    std::vector<uint8_t> hdrStaticMetadataVec;
+    GSError ret = GSERROR_OK;
+    RSColorSpaceConvert::Instance().GetHDRStaticMetadata(surfaceBuffer, hdrStaticMetadataVec, ret);
+    bool hdrStaticMetadataExist = hdrStaticMetadataVec.data() != nullptr &&
+        hdrStaticMetadataVec.size() == sizeof(HdrStaticMetadata);
+    if (!hdrStaticMetadataExist) {
+        return false;
+    }
+    CM_HDR_Metadata_Type hdrMetadataType = CM_METADATA_NONE;
+    ret = MetadataHelper::GetHDRMetadataType(surfaceBuffer, hdrMetadataType);
+    bool noneHDRMetadataType = ret != GSERROR_OK || hdrMetadataType == CM_METADATA_NONE ||
+        static_cast<int32_t>(hdrMetadataType) ==
+        static_cast<int32_t>(HDI::Display::Graphic::Common::V2_2::CM_COMPONENT_EDR);
+    if (!noneHDRMetadataType) {
+        return false;
+    }
+    CM_ColorSpaceInfo colorSpaceInfo;
+    bool isHDRTransFunc = MetadataHelper::GetColorSpaceInfo(surfaceBuffer, colorSpaceInfo) == GSERROR_OK &&
+        (colorSpaceInfo.transfunc == TRANSFUNC_PQ || colorSpaceInfo.transfunc == TRANSFUNC_HLG);
+    if (isHDRTransFunc) {
+        return false;
+    }
+    const auto& data = *reinterpret_cast<HdrStaticMetadata*>(hdrStaticMetadataVec.data());
+    return ROSEN_GNE(data.cta861.maxContentLightLevel, DEFAULT_SDR_NITS);
 #else
     return false;
 #endif

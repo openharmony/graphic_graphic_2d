@@ -1019,6 +1019,7 @@ bool RSClientToRenderConnectionProxy::WriteSurfaceCaptureConfig(
         !data.WriteBool(captureConfig.useDma) || !data.WriteBool(captureConfig.useCurWindow) ||
         !data.WriteUint8(static_cast<uint8_t>(captureConfig.captureType)) || !data.WriteBool(captureConfig.isSync) ||
         !data.WriteBool(captureConfig.isHdrCapture) ||
+        !data.WriteUint32(static_cast<uint32_t>(captureConfig.displayIntent)) ||
         !data.WriteBool(captureConfig.needF16WindowCaptureForScRGB) ||
         !data.WriteBool(captureConfig.needErrorCode) ||
         !data.WriteFloat(captureConfig.mainScreenRect.left_) ||

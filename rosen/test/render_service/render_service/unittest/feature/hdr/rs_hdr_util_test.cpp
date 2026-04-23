@@ -541,6 +541,24 @@ HWTEST_F(RSHdrUtilTest, UpdateSurfaceNodeNitTest002, TestSize.Level1)
     EXPECT_EQ(node->GetHDRBrightnessFactor(), 0.5f);
     node->SetHDRDimmingFactor(0.5f);
     EXPECT_EQ(node->GetHDRDimmingFactor(), 0.5f);
+
+    using namespace OHOS::HDI::Display::Graphic::Common::V1_0;
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+
+    ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler() != nullptr);
+    auto buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
+    ASSERT_TRUE(buffer != nullptr);
+    ASSERT_TRUE(buffer->GetBufferHandle() != nullptr);
+
+    CM_HDR_Metadata_Type hdrMetadataType = CM_METADATA_NONE;
+    Media::VideoProcessingEngine::HdrStaticMetadata staticMetadata;
+    staticMetadata.cta861.maxContentLightLevel = 400.0f;
+    MetadataHelper::SetHDRMetadataType(buffer, hdrMetadataType);
+    MetadataHelper::SetHDRStaticMetadata(buffer, staticMetadata);
+    bool ret = RSBaseHdrUtil::CheckIsHDRSelfProcessingBuffer(buffer);
+    EXPECT_EQ(ret, true);
+    RSHdrUtil::UpdateSurfaceNodeNit(*surfaceNode, 0);
 }
 
 /**

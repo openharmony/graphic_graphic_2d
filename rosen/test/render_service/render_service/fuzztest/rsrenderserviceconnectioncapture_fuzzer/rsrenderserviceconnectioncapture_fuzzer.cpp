@@ -130,6 +130,7 @@ bool WriteSurfaceCaptureConfig(RSSurfaceCaptureConfig& captureConfig, MessagePar
     captureConfig.captureType = (SurfaceCaptureType)GetData<uint8_t>();
     captureConfig.isSync = GetData<bool>();
     captureConfig.isHdrCapture = GetData<bool>();
+    captureConfig.displayIntent = (DisplayIntent)GetData<uint32_t>();
     captureConfig.needF16WindowCaptureForScRGB = GetData<bool>();
     captureConfig.mainScreenRect.left_ = GetData<float>();
     captureConfig.mainScreenRect.top_ = GetData<float>();
@@ -148,6 +149,7 @@ bool WriteSurfaceCaptureConfig(RSSurfaceCaptureConfig& captureConfig, MessagePar
         !data.WriteBool(captureConfig.useDma) || !data.WriteBool(captureConfig.useCurWindow) ||
         !data.WriteUint8(static_cast<uint8_t>(captureConfig.captureType)) || !data.WriteBool(captureConfig.isSync) ||
         !data.WriteBool(captureConfig.isHdrCapture) ||
+        !data.WriteUint32(static_cast<uint32_t>(captureConfig.displayIntent)) ||
         !data.WriteBool(captureConfig.needF16WindowCaptureForScRGB) ||
         !data.WriteFloat(captureConfig.mainScreenRect.left_) ||
         !data.WriteFloat(captureConfig.mainScreenRect.top_) ||

@@ -243,6 +243,7 @@ bool RSSurfaceCaptureTaskParallel::CreateResources()
             DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(displayNode));
         pixelMap_ = CreatePixelMapByDisplayNode(displayNode);
         auto screenNode = std::static_pointer_cast<RSScreenRenderNode>(displayNode->GetParent().lock());
+        screenId_ = screenNode ? screenNode->GetScreenId() : INVALID_SCREEN_ID;
         // When the app calls HDR screenshot and the screen contains HDR content, two pixelmaps need to be captured.
         if (captureConfig_.isHdrCapture && screenNode && (screenNode->GetDisplayHdrStatus() != HdrStatus::NO_HDR)) {
             pixelMapHDR_ = CreatePixelMapByDisplayNode(displayNode, true);
@@ -276,6 +277,7 @@ bool RSSurfaceCaptureTaskParallel::Run(
     RSPaintFilterCanvas canvas(surface.get());
     canvas.Scale(captureConfig_.scaleX, captureConfig_.scaleY);
     canvas.SetDisableFilterCache(true);
+    canvas.SetScreenId(screenId_);
     RSSurfaceRenderParams* curNodeParams = nullptr;
     RSUniRenderThread::BufferManagerGuard bufferGuard;
     if (surfaceNodeDrawable_) {
@@ -294,7 +296,6 @@ bool RSSurfaceCaptureTaskParallel::Run(
         canvas.SetScreenshotType(type);
         canvas.SetOnMultipleScreen(!isHDRCapture); // not isHDRCapture means tmo to sdr
         canvas.SetHdrOn(isHDRCapture);
-        canvas.SetScreenId(screenId_);
         canvas.SetIsWindowFreezeCapture(captureParam.isFreeze);
         canvas.Clear(captureParam.config.backGroundColor);
         surfaceNodeDrawable_->OnCapture(canvas);
@@ -389,11 +390,13 @@ bool RSSurfaceCaptureTaskParallel::DrawHDRSurfaceContent(
     }
     canvas.SetOnMultipleScreen(!isOnHDR); // not isOnHDR means tmo to sdr
     canvas.SetHdrOn(isOnHDR);
+    canvas.SetScreenId(screenId_);
     canvas.SetDisableFilterCache(true);
     RSSurfaceRenderParams* curNodeParams = nullptr;
     if (displayNodeDrawable_) {
         RSPaintFilterCanvas::ScreenshotType type = isOnHDR ? RSPaintFilterCanvas::ScreenshotType::HDR_SCREENSHOT :
             RSPaintFilterCanvas::ScreenshotType::SDR_SCREENSHOT;
+        canvas.SetDisplayIntent(captureConfig_.displayIntent);
         CaptureDisplayNode(*displayNodeDrawable_, canvas, captureParam, type);
     } else {
         RS_LOGE("RSSurfaceCaptureTaskParallel::DrawHDRSurfaceContent: Invalid RSRenderNodeDrawable!");
