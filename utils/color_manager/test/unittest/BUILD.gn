@@ -25,7 +25,10 @@ ohos_unittest("ColorManagerTest") {
   module_out_path = module_out_path
   sources = [ "color_manager_test.cpp" ]
   deps = [ ":color_manager_test_common" ]
-  external_deps = [ "hilog:libhilog" ]
+  external_deps = [
+    "hilog:libhilog",
+    "skia:skia_canvaskit",
+  ]
 }
 
 config("color_manager_test_config") {
@@ -41,16 +44,19 @@ config("color_manager_test_config") {
 ohos_static_library("color_manager_test_common") {
   visibility = [ ":*" ]
   testonly = true
-  public_configs = [ ":color_manager_test_config" ]
+  public_configs = [
+    ":color_manager_test_config",
+    "//foundation/graphic/graphic_2d/utils/color_manager:color_manager_public_config",
+  ]
 
-  public_deps = [
+  deps = [
     "//foundation/graphic/graphic_2d/utils/color_manager:color_manager",
   ]
-  public_external_deps = [
+  external_deps = [
+    "hilog:libhilog",
+    "googletest:gtest_main",
     "skia:skia_canvaskit",
-    "googletest:gtest_main"
   ]
-  external_deps = [ "hilog:libhilog" ]
   subsystem_name = "graphic"
   part_name = "graphic_2d"
 }
