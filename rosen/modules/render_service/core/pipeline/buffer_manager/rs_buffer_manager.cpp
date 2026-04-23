@@ -370,6 +370,7 @@ void RSBufferManager::ReleaseBufferById(uint64_t bufferId)
     auto consumer = info.consumer_;
     auto buffer = info.buffer_.promote();
     if (consumer == nullptr || buffer == nullptr) {
+        pendingReleaseBuffers_.erase(iter);
         RS_LOGE("RSBufferManager::ReleaseBufferById consumer or buffer is null");
         return;
     }
