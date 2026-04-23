@@ -131,6 +131,10 @@ public:
 
     void ApplyAlphaAndMatrixToCanvas(RSPaintFilterCanvas& canvas, bool applyMatrix = true) const;
 
+    void ApplySandboxMatrixToCanvas(RSPaintFilterCanvas& canvas) const;
+
+    void ApplyOffscreenMatrixInverse(RSPaintFilterCanvas& canvas) const;
+
     void SetBoundsRect(const Drawing::RectF& boundsRect);
     const Drawing::Rect& GetBounds() const
     {

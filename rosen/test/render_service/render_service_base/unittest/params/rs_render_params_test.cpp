@@ -1149,5 +1149,4 @@ HWTEST_F(RSRenderParamsTest, SetNodeColorSpace002, TestSize.Level1)
     EXPECT_EQ(params.GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
     EXPECT_FALSE(params.needSync_);
 }
-
 } // namespace OHOS::Rosen
