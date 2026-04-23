@@ -2241,6 +2241,8 @@ private:
 
     void AddChildInner(SharedPtr child, int index);
 
+    void RegenerateTreeHierarchyCommands();
+
     bool AddCommandInner(std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand,
         FollowType followType, NodeId nodeId) const;
 

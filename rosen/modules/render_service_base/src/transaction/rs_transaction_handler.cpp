@@ -108,6 +108,23 @@ void RSTransactionHandler::MoveCommandByNodeId(std::shared_ptr<RSTransactionHand
     }
 }
 
+void RSTransactionHandler::MoveCommandByNodeIdExcludeTreeCommands(
+    std::shared_ptr<RSTransactionHandler> transactionHandler, NodeId nodeId)
+{
+    if (renderPipelineClient_ == nullptr && renderThreadClient_ == nullptr) {
+        RS_LOGE("RSTransactionHandler::MoveCommandByNodeIdExcludeTreeCommands GetCommand fail");
+        return;
+    }
+    std::unique_lock<std::mutex> cmdLock(mutex_);
+    std::unique_lock<std::mutex> dstHandlerCmdLock(transactionHandler->mutex_);
+    if (renderPipelineClient_ != nullptr) {
+        MoveRemoteCommandByNodeIdExcludeTreeCommands(transactionHandler, nodeId);
+    }
+    if (renderThreadClient_ != nullptr) {
+        MoveCommonCommandByNodeIdExcludeTreeCommands(transactionHandler, nodeId);
+    }
+}
+
 void RSTransactionHandler::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task, bool isRenderServiceTask)
 {
     if (!task) {
@@ -450,6 +467,18 @@ void RSTransactionHandler::MoveCommonCommandByNodeId(
     implicitCommonTransactionData_->MoveCommandByNodeId(transactionHandler->implicitCommonTransactionData_, nodeId);
 }
 
+void RSTransactionHandler::MoveCommonCommandByNodeIdExcludeTreeCommands(
+    std::shared_ptr<RSTransactionHandler> transactionHandler, NodeId nodeId)
+{
+    if (!implicitCommonTransactionDataStack_.empty() &&
+        !transactionHandler->implicitCommonTransactionDataStack_.empty()) {
+        implicitCommonTransactionDataStack_.top()->MoveCommandByNodeIdExcludeTreeCommands(
+            transactionHandler->implicitCommonTransactionDataStack_.top(), nodeId);
+    }
+    implicitCommonTransactionData_->MoveCommandByNodeIdExcludeTreeCommands(
+        transactionHandler->implicitCommonTransactionData_, nodeId);
+}
+
 void RSTransactionHandler::AddRemoteCommand(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType)
 {
     if (!implicitRemoteTransactionDataStack_.empty()) {
@@ -457,6 +486,18 @@ void RSTransactionHandler::AddRemoteCommand(std::unique_ptr<RSCommand>& command,
         return;
     }
     implicitRemoteTransactionData_->AddCommand(command, nodeId, followType);
+}
+
+void RSTransactionHandler::MoveRemoteCommandByNodeIdExcludeTreeCommands(
+    std::shared_ptr<RSTransactionHandler> transactionHandler, NodeId nodeId)
+{
+    if (!implicitRemoteTransactionDataStack_.empty() &&
+        !transactionHandler->implicitRemoteTransactionDataStack_.empty()) {
+        implicitRemoteTransactionDataStack_.top()->MoveCommandByNodeIdExcludeTreeCommands(
+            transactionHandler->implicitRemoteTransactionDataStack_.top(), nodeId);
+    }
+    implicitRemoteTransactionData_->MoveCommandByNodeIdExcludeTreeCommands(
+        transactionHandler->implicitRemoteTransactionData_, nodeId);
 }
 
 void RSTransactionHandler::MoveRemoteCommandByNodeId(

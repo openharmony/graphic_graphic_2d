@@ -100,6 +100,17 @@ public:
         return 0; // invalidId
     }
 
+    NodeId GetSecondaryNodeId() const override
+    {
+        if constexpr (std::tuple_size<decltype(params_)>::value > 1) {
+            using secondType = typename std::tuple_element<1, decltype(params_)>::type;
+            if constexpr (std::is_same<NodeId, secondType>::value) {
+                return std::get<1>(params_);
+            }
+        }
+        return 0;
+    }
+
     uint64_t GetToken() const override
     {
         if (GetType() == RSCommandType::ANIMATION) {

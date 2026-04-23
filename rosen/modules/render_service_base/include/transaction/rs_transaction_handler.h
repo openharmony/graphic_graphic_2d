@@ -50,6 +50,7 @@ public:
     void AddCommandFromRT(
         std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType = FollowType::FOLLOW_TO_PARENT);
     void MoveCommandByNodeId(std::shared_ptr<RSTransactionHandler> transactionHandler, NodeId nodeId);
+    void MoveCommandByNodeIdExcludeTreeCommands(std::shared_ptr<RSTransactionHandler> transactionHandler, NodeId nodeId);
 
     void FlushImplicitTransaction(uint64_t timestamp = 0, const std::string& abilityName = "",
         bool dvsyncTimeUpdate = false, uint64_t dvsyncTime = 0);
@@ -101,8 +102,10 @@ private:
     RSTransactionHandler& operator=(const RSTransactionHandler&&) = delete;
     void AddCommonCommand(std::unique_ptr<RSCommand>& command);
     void MoveCommonCommandByNodeId(std::shared_ptr<RSTransactionHandler> transactionHandler, NodeId nodeId);
+    void MoveCommonCommandByNodeIdExcludeTreeCommands(std::shared_ptr<RSTransactionHandler> transactionHandler, NodeId nodeId);
     void AddRemoteCommand(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType);
     void MoveRemoteCommandByNodeId(std::shared_ptr<RSTransactionHandler> transactionHandler, NodeId nodeId);
+    void MoveRemoteCommandByNodeIdExcludeTreeCommands(std::shared_ptr<RSTransactionHandler> transactionHandler, NodeId nodeId);
     void ProcessSyncTransactionStack(std::stack<std::unique_ptr<RSTransactionData>>& stack,
         RSIRenderClient& client, uint64_t syncId, uint64_t timestamp, pid_t tid, const std::string& abilityName);
     // Command Transaction Triggered by UI Thread.
