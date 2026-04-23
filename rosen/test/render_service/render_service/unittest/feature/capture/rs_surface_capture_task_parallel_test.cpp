@@ -527,7 +527,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateResources006, TestSize.Level2)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSMainThreadTest, AddWindowCapTask001, TestSize.Level1)
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, AddWindowCapTask001, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
@@ -551,7 +551,7 @@ HWTEST_F(RSMainThreadTest, AddWindowCapTask001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSMainThreadTest, AddWindowCapTask002, TestSize.Level1)
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, AddWindowCapTask002, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
@@ -573,7 +573,7 @@ HWTEST_F(RSMainThreadTest, AddWindowCapTask002, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSMainThreadTest, CheckWindowCapTasks001, TestSize.Level1)
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CheckWindowCapTasks001, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
@@ -593,7 +593,7 @@ HWTEST_F(RSMainThreadTest, CheckWindowCapTasks001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSMainThreadTest, CheckWindowCapTasks002, TestSize.Level1)
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CheckWindowCapTasks002, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
@@ -622,7 +622,7 @@ HWTEST_F(RSMainThreadTest, CheckWindowCapTasks002, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSMainThreadTest, CheckWindowCapTasks003, TestSize.Level1)
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CheckWindowCapTasks003, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
@@ -659,7 +659,7 @@ HWTEST_F(RSMainThreadTest, CheckWindowCapTasks003, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSMainThreadTest, CheckWindowCapTasks004, TestSize.Level1)
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CheckWindowCapTasks004, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
@@ -697,7 +697,7 @@ HWTEST_F(RSMainThreadTest, CheckWindowCapTasks004, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSMainThreadTest, CheckWindowCapTasks005, TestSize.Level1)
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CheckWindowCapTasks005, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
@@ -734,7 +734,7 @@ HWTEST_F(RSMainThreadTest, CheckWindowCapTasks005, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSMainThreadTest, CheckWindowCapTasks006, TestSize.Level1)
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CheckWindowCapTasks006, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
@@ -779,7 +779,7 @@ HWTEST_F(RSMainThreadTest, CheckWindowCapTasks006, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSMainThreadTest, CheckWindowCapTasks007, TestSize.Level1)
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CheckWindowCapTasks007, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
@@ -816,7 +816,7 @@ HWTEST_F(RSMainThreadTest, CheckWindowCapTasks007, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSMainThreadTest, CheckWindowCapTasks008, TestSize.Level1)
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CheckWindowCapTasks008, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
@@ -855,7 +855,7 @@ HWTEST_F(RSMainThreadTest, CheckWindowCapTasks008, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSMainThreadTest, ProcessWindowCapTasks001, TestSize.Level1)
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, ProcessWindowCapTasks001, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
@@ -871,7 +871,7 @@ HWTEST_F(RSMainThreadTest, ProcessWindowCapTasks001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSMainThreadTest, ProcessWindowCapTasks002, TestSize.Level1)
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, ProcessWindowCapTasks002, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
