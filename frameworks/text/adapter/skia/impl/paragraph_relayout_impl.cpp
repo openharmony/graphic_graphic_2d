@@ -273,14 +273,21 @@ namespace {
         },
 
         [](skt::Paragraph& paragraph, const ParagraphStyle& style, skt::InternalState& state) {
-            skt::StrutStyle& strutStyle =  paragraph.getParagraphStyle().exportStrutStyle();
+            skt::ParagraphStyle& paragraphStyle = paragraph.getParagraphStyle();
+            skt::StrutStyle& strutStyle =  paragraphStyle.exportStrutStyle();
             strutStyle.setLineBreakStrategy(static_cast<skt::LineBreakStrategy>(style.breakStrategy));
+            if (paragraphStyle.getUseLocaleForTextBreak()) {
+                state = skt::kUnknown;
+            }
             state = std::min(skt::InternalState::kShaped, state);
         },
 
         [](skt::Paragraph& paragraph, const ParagraphStyle& style, skt::InternalState& state) {
-            paragraph.getParagraphStyle().exportStrutStyle()
-                .setWordBreakType(static_cast<skt::WordBreakType>(style.wordBreakType));
+            skt::ParagraphStyle& paragraphStyle = paragraph.getParagraphStyle();
+            paragraphStyle.exportStrutStyle().setWordBreakType(static_cast<skt::WordBreakType>(style.wordBreakType));
+            if (paragraphStyle.getUseLocaleForTextBreak()) {
+                state = skt::kUnknown;
+            }
             state = std::min(skt::InternalState::kShaped, state);
         },
 

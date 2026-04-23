@@ -21,6 +21,7 @@
 #include "service/skia_txt/font_collection.h"
 #include "service/skia_txt/typography_create.h"
 #include "service/skia_txt/typography.h"
+#include "typography_types.h"
 
 #include <codecvt>
 #include <locale>
@@ -98,6 +99,32 @@ public:
         TypographyStyle typographyStyle;
         typographyStyle.locale = locale;
         typographyStyle.useLocaleForTextBreak = useLocaleForTextBreak;
+        TextStyle textStyle;
+        textStyle.locale = locale;
+        // Test for fontSize 50
+        textStyle.fontSize = 50;
+        typographyStyle.SetTextStyle(textStyle);
+
+        typographyCreate_ = TypographyCreate::Create(typographyStyle, fontCollection_);
+        ASSERT_NE(typographyCreate_, nullptr);
+
+        typographyCreate_->PushStyle(textStyle);
+        std::u16string text = StrToU16Str(str);
+        typographyCreate_->AppendText(text);
+        typography_ = typographyCreate_->CreateTypography();
+        ASSERT_NE(typography_, nullptr);
+
+        typography_->Layout(layoutWidth);
+    }
+
+    void LayoutForLineBreakStrategyTest(std::string str, double layoutWidth, BreakStrategy strategy,
+        WordBreakType breakType, std::string locale = "zh-Hans")
+    {
+        TypographyStyle typographyStyle;
+        typographyStyle.locale = locale;
+        typographyStyle.useLocaleForTextBreak = true;
+        typographyStyle.breakStrategy = strategy;
+        typographyStyle.wordBreakType = breakType;
         TextStyle textStyle;
         textStyle.locale = locale;
         // Test for fontSize 50
@@ -292,25 +319,6 @@ HWTEST_F(OHDrawingUseLocaleForTextBreakTest, OHDrawingUseLocaleForTextBreakTest0
 
 /*
  * @tc.name: OHDrawingUseLocaleForTextBreakEmailTest001
- * @tc.desc: Test email address soft break with locale-aware text breaking enabled
- * @tc.type: FUNC
- *
- * Scenario: Test "sample@sample.com" with useLocaleForTextBreak = true
- *           Font size: 50, Max width: 420, locale: en-US
- *           Target: Verify email address breaks after @ symbol, second line starts with '.'
- */
-HWTEST_F(OHDrawingUseLocaleForTextBreakTest, OHDrawingUseLocaleForTextBreakEmailTest001, TestSize.Level0)
-{
-    LayoutForLocaleTest(true, "sample@sample.com", 420, "en-US");
-    size_t lineCount = typography_->GetLineCount();
-    EXPECT_EQ(lineCount, 2);
-    uint16_t firstGlyphId = GetFirstGlyphIdOfLine(1, typography_);
-    // Verify the second line starts with '.' glyph (DOT_GLYPH_ID = 766)
-    EXPECT_EQ(firstGlyphId, DOT_GLYPH_ID);
-}
-
-/*
- * @tc.name: OHDrawingUseLocaleForTextBreakEmailTest002
  * @tc.desc: Test email address soft break with locale-aware text breaking disabled
  * @tc.type: FUNC
  *
@@ -318,7 +326,7 @@ HWTEST_F(OHDrawingUseLocaleForTextBreakTest, OHDrawingUseLocaleForTextBreakEmail
  *           Font size: 50, Max width: 420, locale: en-US
  *           Target: Verify email address doesn't break at '.' without locale-aware text breaking
  */
-HWTEST_F(OHDrawingUseLocaleForTextBreakTest, OHDrawingUseLocaleForTextBreakEmailTest002, TestSize.Level0)
+HWTEST_F(OHDrawingUseLocaleForTextBreakTest, OHDrawingUseLocaleForTextBreakEmailTest001, TestSize.Level0)
 {
     LayoutForLocaleTest(false, "sample@sample.com", 420, "en-US");
     size_t lineCount = typography_->GetLineCount();
@@ -329,26 +337,7 @@ HWTEST_F(OHDrawingUseLocaleForTextBreakTest, OHDrawingUseLocaleForTextBreakEmail
 }
 
 /*
- * @tc.name: OHDrawingUseLocaleForTextBreakEmailTest003
- * @tc.desc: Test email with Chinese text and @ symbol
- * @tc.type: FUNC
- *
- * Scenario: Test "你好www@jfkls.40000000024.166acom" with useLocaleForTextBreak = true
- *           Font size: 50, Max width: 480, locale: zh-Hans
- *           Target: Verify Chinese text with email breaks correctly, second line starts with '.'
- */
-HWTEST_F(OHDrawingUseLocaleForTextBreakTest, OHDrawingUseLocaleForTextBreakEmailTest003, TestSize.Level0)
-{
-    LayoutForLocaleTest(true, "你好www@jfkls.40000000024.166acom", 480, "en-US");
-    size_t lineCount = typography_->GetLineCount();
-    EXPECT_EQ(lineCount, 3);
-    uint16_t firstGlyphId = GetFirstGlyphIdOfLine(2, typography_);
-    // Verify the second line starts with '.' glyph (DOT_GLYPH_ID = 766)
-    EXPECT_EQ(firstGlyphId, DOT_GLYPH_ID);
-}
-
-/*
- * @tc.name: OHDrawingUseLocaleForTextBreakEmailTest004
+ * @tc.name: OHDrawingUseLocaleForTextBreakEmailTest002
  * @tc.desc: Test email with Chinese text and @ symbol but disable useLocaleForTextBreak
  * @tc.type: FUNC
  *
@@ -356,7 +345,7 @@ HWTEST_F(OHDrawingUseLocaleForTextBreakTest, OHDrawingUseLocaleForTextBreakEmail
  *           Font size: 50, Max width: 480, locale: zh-Hans
  *           Target: Verify Chinese text with email breaks correctly, second line starts with 'w'
  */
-HWTEST_F(OHDrawingUseLocaleForTextBreakTest, OHDrawingUseLocaleForTextBreakEmailTest004, TestSize.Level0)
+HWTEST_F(OHDrawingUseLocaleForTextBreakTest, OHDrawingUseLocaleForTextBreakEmailTest002, TestSize.Level0)
 {
     LayoutForLocaleTest(false, "你好www@jfkls.40000000024.166acom", 480, "en-US");
     size_t lineCount = typography_->GetLineCount();
@@ -728,6 +717,322 @@ HWTEST_F(OHDrawingUseLocaleForTextBreakTest, OHDrawingUseLocaleForTextBreakPunct
     uint16_t firstGlyphId = GetFirstGlyphIdOfLine(1, typography_);
     // Expect glyph's code is "说"
     EXPECT_EQ(firstGlyphId, CHARACTER_SHUO_GLYPH_ZH);
+}
+
+// ============ BreakWord Email Breaking Function Tests ============
+
+/*
+ * @tc.name: OHDrawingBreakWordEmailBreakTest001
+ * @tc.desc: Test basic email address breaking with BREAK_WORD and HIGH_QUALITY
+ * @tc.type: FUNC
+ *
+ * Scenario: Test "Hello World 12345678@example.com" with BREAK_WORD + HIGH_QUALITY
+ *           Font size: 50, Max width: 485
+ *           Target: Verify email address breaks within characters, second line starts with digit
+ */
+HWTEST_F(OHDrawingUseLocaleForTextBreakTest, OHDrawingBreakWordEmailBreakTest001, TestSize.Level0)
+{
+    LayoutForLineBreakStrategyTest("Hello World 12345678@example.com", 485, BreakStrategy::HIGH_QUALITY,
+        WordBreakType::BREAK_WORD);
+    size_t lineCount = typography_->GetLineCount();
+    EXPECT_EQ(lineCount, 2);
+    uint16_t firstGlyphId = GetFirstGlyphIdOfLine(1, typography_);
+    // Verify the second line starts with '8'
+    EXPECT_EQ(firstGlyphId, 641);
+}
+
+/*
+ * @tc.name: OHDrawingBreakWordEmailBreakTest002
+ * @tc.desc: Test email address with multiple dots
+ * @tc.type: FUNC
+ *
+ * Scenario: Test "Email: user.name@domain.co.uk" with BREAK_WORD + HIGH_QUALITY
+ *           Font size: 50, Max width: 395
+ *           Target: Verify email with multiple dots breaks correctly
+ */
+HWTEST_F(OHDrawingUseLocaleForTextBreakTest, OHDrawingBreakWordEmailBreakTest002, TestSize.Level0)
+{
+    LayoutForLineBreakStrategyTest("Email: user.name@domain.co.uk", 395, BreakStrategy::HIGH_QUALITY,
+        WordBreakType::BREAK_WORD);
+    size_t lineCount = typography_->GetLineCount();
+    EXPECT_EQ(lineCount, 2);
+    uint16_t firstGlyphId = GetFirstGlyphIdOfLine(1, typography_);
+    // Verify the second line starts with @ symbol
+    EXPECT_EQ(firstGlyphId, 844);
+}
+
+/*
+ * @tc.name: OHDrawingBreakWordEmailBreakTest003
+ * @tc.desc: Test text with email pattern (@ symbol)
+ * @tc.type: FUNC
+ *
+ * Scenario: Test "Hello World Wonderful" with BREAK_WORD + HIGH_QUALITY
+ *           Font size: 50, Max width: 500
+ *           Target: Verify non-email text doesn't break within words
+ */
+HWTEST_F(OHDrawingUseLocaleForTextBreakTest, OHDrawingBreakWordEmailBreakTest003, TestSize.Level0)
+{
+    LayoutForLineBreakStrategyTest("Hello World Wonderful user.name@domain.co.uk", 500, BreakStrategy::HIGH_QUALITY,
+        WordBreakType::BREAK_WORD);
+    size_t lineCount = typography_->GetLineCount();
+    EXPECT_EQ(lineCount, 3);
+    uint16_t firstGlyphId = GetFirstGlyphIdOfLine(1, typography_);
+    // Verify the second line starts with 'W'
+    EXPECT_EQ(firstGlyphId, 170);
+}
+
+/*
+ * @tc.name: OHDrawingBreakWordEmailBreakTest004
+ * @tc.desc: Test text with @ but no dot (not an email)
+ * @tc.type: FUNC
+ *
+ * Scenario: Test "user@localhost server" with BREAK_WORD + HIGH_QUALITY
+ *           Font size: 50, Max width: 450
+ *           Target: Verify text with @ but no dot doesn't break as email
+ */
+HWTEST_F(OHDrawingUseLocaleForTextBreakTest, OHDrawingBreakWordEmailBreakTest004, TestSize.Level0)
+{
+    LayoutForLineBreakStrategyTest("user@localhost server", 450, BreakStrategy::HIGH_QUALITY,
+        WordBreakType::BREAK_WORD);
+    size_t lineCount = typography_->GetLineCount();
+    EXPECT_EQ(lineCount, 2);
+    uint16_t firstGlyphId = GetFirstGlyphIdOfLine(1, typography_);
+    // Verify the second line starts with 's'
+    EXPECT_EQ(firstGlyphId, 333);
+}
+
+/*
+ * @tc.name: OHDrawingBreakWordEmailBreakTest005
+ * @tc.desc: Test email with dot before @ (invalid email pattern)
+ * @tc.type: FUNC
+ *
+ * Scenario: Test "email user.name@domain" with BREAK_WORD + HIGH_QUALITY
+ *           Font size: 50, Max width: 500
+ *           Target: Verify email with dot before @ but no dot after @ is not treated as valid email
+ */
+HWTEST_F(OHDrawingUseLocaleForTextBreakTest, OHDrawingBreakWordEmailBreakTest005, TestSize.Level0)
+{
+    LayoutForLineBreakStrategyTest("email user.name@domain", 500, BreakStrategy::HIGH_QUALITY,
+        WordBreakType::BREAK_WORD);
+    size_t lineCount = typography_->GetLineCount();
+    // Should break at word boundary only (not as email)
+    EXPECT_EQ(lineCount, 2);
+    uint16_t firstGlyphId = GetFirstGlyphIdOfLine(1, typography_);
+    // Verify the second line starts with 'u'
+    EXPECT_EQ(firstGlyphId, 346);
+}
+
+/*
+ * @tc.name: OHDrawingBreakWordEmailBreakTest006
+ * @tc.desc: Test BREAK_WORD with GREEDY strategy (no email breaking)
+ * @tc.type: FUNC
+ *
+ * Scenario: Test "Contact: test@example.com" with BREAK_WORD + GREEDY
+ *           Font size: 50, Max width: 460
+ *           Target: Verify GREEDY strategy doesn't apply email breaking enhancement
+ */
+HWTEST_F(OHDrawingUseLocaleForTextBreakTest, OHDrawingBreakWordEmailBreakTest006, TestSize.Level0)
+{
+    LayoutForLineBreakStrategyTest("Contact: test@example.com", 460, BreakStrategy::GREEDY,
+        WordBreakType::BREAK_WORD);
+    size_t lineCount = typography_->GetLineCount();
+    EXPECT_EQ(lineCount, 2);
+    uint16_t firstGlyphId = GetFirstGlyphIdOfLine(1, typography_);
+    // Verify the second line starts with 't'
+    EXPECT_EQ(firstGlyphId, 341);
+}
+
+/*
+ * @tc.name: OHDrawingBreakWordEmailBreakTest007
+ * @tc.desc: Test BREAK_ALL instead of BREAK_WORD (no email breaking)
+ * @tc.type: FUNC
+ *
+ * Scenario: Test "info@company.com" with BREAK_ALL + HIGH_QUALITY
+ *           Font size: 50, Max width: 349
+ *           Target: Verify BREAK_ALL doesn't apply email-specific breaking (uses general BREAK_ALL logic)
+ */
+HWTEST_F(OHDrawingUseLocaleForTextBreakTest, OHDrawingBreakWordEmailBreakTest007, TestSize.Level0)
+{
+    LayoutForLineBreakStrategyTest("info@company.com", 349, BreakStrategy::HIGH_QUALITY,
+        WordBreakType::BREAK_ALL);
+    size_t lineCount = typography_->GetLineCount();
+    // BREAK_ALL allows breaks after any character (except punctuation)
+    EXPECT_EQ(lineCount, 2);
+    uint16_t firstGlyphId = GetFirstGlyphIdOfLine(1, typography_);
+    // Verify the second line starts with '.'
+    EXPECT_EQ(firstGlyphId, DOT_GLYPH_ID);
+}
+
+/*
+ * @tc.name: OHDrawingBreakWordEmailBreakTest008
+ * @tc.desc: Test multiple emails in one line
+ * @tc.type: FUNC
+ *
+ * Scenario: Test "Email1: a@b.com Email2: x@y.z" with BREAK_WORD + HIGH_QUALITY
+ *           Font size: 50, Max width: 560
+ *           Target: Verify multiple email addresses are correctly identified and broken
+ */
+HWTEST_F(OHDrawingUseLocaleForTextBreakTest, OHDrawingBreakWordEmailBreakTest008, TestSize.Level0)
+{
+    LayoutForLineBreakStrategyTest("Email1: a@b.com Email2: x@y.z", 560, BreakStrategy::HIGH_QUALITY,
+        WordBreakType::BREAK_WORD);
+    size_t lineCount = typography_->GetLineCount();
+    EXPECT_EQ(lineCount, 2);
+    uint16_t firstGlyphId = GetFirstGlyphIdOfLine(1, typography_);
+    // Verify the second line starts with 'E'
+    EXPECT_EQ(firstGlyphId, 41);
+}
+
+/*
+ * @tc.name: OHDrawingBreakWordEmailBreakTest009
+ * @tc.desc: Test for relayout word break type with email pattern (@ symbol)
+ * @tc.type: FUNC
+ *
+ * Scenario: Test "Hello World 12345678@example.com" with BREAK_WORD + HIGH_QUALITY
+ *           Font size: 50, Max width: 500
+ *           Target: Verify non-email text doesn't break within words
+ */
+HWTEST_F(OHDrawingUseLocaleForTextBreakTest, OHDrawingBreakWordEmailBreakTest009, TestSize.Level0)
+{
+    fontCollection_->ClearCaches();
+    LayoutForLineBreakStrategyTest("Hello World 12345678@example.com", 485, BreakStrategy::GREEDY,
+        WordBreakType::BREAK_WORD);
+    TypographyStyle typographyStyle;
+    typographyStyle.breakStrategy = BreakStrategy::HIGH_QUALITY;
+    std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)> styleBitset;
+    styleBitset.set(static_cast<size_t>(RelayoutParagraphStyleAttribute::BREAKSTRAGY));
+    typographyStyle.relayoutChangeBitmap = styleBitset;
+    TextStyle textStyle;
+    std::vector<OHOS::Rosen::TextStyle> relayouttextstyles;
+    relayouttextstyles.push_back(textStyle);
+    typography_->Relayout(485, typographyStyle, relayouttextstyles);
+
+    size_t lineCount = typography_->GetLineCount();
+    EXPECT_EQ(lineCount, 2);
+    uint16_t firstGlyphId = GetFirstGlyphIdOfLine(1, typography_);
+    // Verify the second line starts with '8'
+    EXPECT_EQ(firstGlyphId, 641);
+}
+
+// ============ HighQuality + BreakAll Punctuation Tests ============
+
+/*
+ * @tc.name: OHDrawingHighQualityBreakAllPunctuationTest001
+ * @tc.desc: Test Chinese comma (，) doesn't appear at line start with HIGH_QUALITY + BREAK_ALL
+ * @tc.type: FUNC
+ *
+ * Scenario: Test "这是一段很长的文本内容，用于测试标点符号的断行行为" with HIGH_QUALITY + BREAK_ALL
+ *           Font size: 50, Max width: 580
+ *           Target: Verify Chinese comma (，) doesn't appear at the start of any line
+ */
+HWTEST_F(OHDrawingUseLocaleForTextBreakTest, OHDrawingHighQualityBreakAllPunctuationTest001, TestSize.Level0)
+{
+    LayoutForLineBreakStrategyTest("这是一段很长的文本内容，用于测试标点符号的断行行为", 580,
+        BreakStrategy::HIGH_QUALITY, WordBreakType::BREAK_ALL);
+    size_t lineCount = typography_->GetLineCount();
+    EXPECT_EQ(lineCount, 3);
+    uint16_t firstGlyphId = GetFirstGlyphIdOfLine(1, typography_);
+    // Verify the second line starts with '容'
+    EXPECT_EQ(firstGlyphId, 10985);
+}
+
+/*
+ * @tc.name: OHDrawingHighQualityBreakAllPunctuationTest002
+ * @tc.desc: Test Chinese period (。) doesn't appear at line start with HIGH_QUALITY + BREAK_ALL
+ * @tc.type: FUNC
+ *
+ * Scenario: Test "这是一个测试句子。这是另一个测试句子。" with HIGH_QUALITY + BREAK_ALL
+ *           Font size: 50, Max width: 440
+ *           Target: Verify Chinese period (。) doesn't appear at the start of any line
+ */
+HWTEST_F(OHDrawingUseLocaleForTextBreakTest, OHDrawingHighQualityBreakAllPunctuationTest002, TestSize.Level0)
+{
+    LayoutForLineBreakStrategyTest("这是一个测试句子。这是另一个测试句子。", 440,
+        BreakStrategy::HIGH_QUALITY, WordBreakType::BREAK_ALL);
+    size_t lineCount = typography_->GetLineCount();
+    EXPECT_EQ(lineCount, 3);
+    uint16_t firstGlyphId = GetFirstGlyphIdOfLine(1, typography_);
+    // Verify the second line starts with '子'
+    EXPECT_NE(firstGlyphId, 124);
+}
+
+/*
+ * @tc.name: OHDrawingHighQualityBreakAllPunctuationTest003
+ * @tc.desc: Test English comma (,) doesn't appear at line start with HIGH_QUALITY + BREAK_ALL
+ * @tc.type: FUNC
+ *
+ * Scenario: Test "This is a long English text, with punctuation marks for testing" with HIGH_QUALITY + BREAK_ALL
+ *           Font size: 50, Max width: 584
+ *           Target: Verify English comma (,) doesn't appear at the start of any line
+ */
+HWTEST_F(OHDrawingUseLocaleForTextBreakTest, OHDrawingHighQualityBreakAllPunctuationTest003, TestSize.Level0)
+{
+    LayoutForLineBreakStrategyTest("This is a long English text, with punctuation marks for testing", 584,
+        BreakStrategy::HIGH_QUALITY, WordBreakType::BREAK_ALL);
+    size_t lineCount = typography_->GetLineCount();
+    EXPECT_EQ(lineCount, 3);
+    uint16_t firstGlyphId = GetFirstGlyphIdOfLine(1, typography_);
+    // Verify the second line starts with 't'
+    EXPECT_NE(firstGlyphId, 124);
+}
+
+/*
+ * @tc.name: OHDrawingHighQualityBreakAllPunctuationTest004
+ * @tc.desc: Test mixed Chinese and English punctuation with HIGH_QUALITY + BREAK_ALL
+ * @tc.type: FUNC
+ *
+ * Scenario: Test "这是中文，This is English text.混合文本测试" with HIGH_QUALITY + BREAK_ALL
+ *           Font size: 50, Max width: 214
+ *           Target: Verify punctuation marks don't appear at line starts in mixed text
+ */
+HWTEST_F(OHDrawingUseLocaleForTextBreakTest, OHDrawingHighQualityBreakAllPunctuationTest004, TestSize.Level0)
+{
+    LayoutForLineBreakStrategyTest("这是中文，This is English text.混合文本测试", 214,
+        BreakStrategy::HIGH_QUALITY, WordBreakType::BREAK_ALL);
+    size_t lineCount = typography_->GetLineCount();
+    EXPECT_EQ(lineCount, 5);
+    uint16_t firstGlyphId = GetFirstGlyphIdOfLine(1, typography_);
+    EXPECT_EQ(firstGlyphId, 13495);
+}
+
+/*
+ * @tc.name: OHDrawingHighQualityBreakAllPunctuationTest005
+ * @tc.desc: Test BREAK_ALL with GREEDY strategy (punctuation may appear at line start)
+ * @tc.type: FUNC
+ *
+ * Scenario: Test "这是一段很长文本，测试不同断行策略的效果" with BREAK_ALL + GREEDY
+ *           Font size: 50, Max width: 430
+ *           Target: Verify GREEDY strategy may allow punctuation at line starts (different from HIGH_QUALITY)
+ */
+HWTEST_F(OHDrawingUseLocaleForTextBreakTest, OHDrawingHighQualityBreakAllPunctuationTest005, TestSize.Level0)
+{
+    LayoutForLineBreakStrategyTest("这是一段很长文本，测试不同断行策略的效果", 430,
+        BreakStrategy::GREEDY, WordBreakType::BREAK_ALL);
+    size_t lineCount = typography_->GetLineCount();
+    // GREEDY strategy may have different line breaking behavior
+    EXPECT_EQ(lineCount, 3);
+    uint16_t firstGlyphId = GetFirstGlyphIdOfLine(1, typography_);
+    // Verify the second line starts with '，'
+    EXPECT_NE(firstGlyphId, 124);
+}
+
+/*
+ * @tc.name: OHDrawingHighQualityBreakAllPunctuationTest006
+ * @tc.desc: Test Chinese text with multiple punctuation marks
+ * @tc.type: FUNC
+ *
+ * Scenario: Test "你好，世界！这是测试；今天天气很好。" with HIGH_QUALITY + BREAK_ALL
+ *           Font size: 50, Max width: 113
+ *           Target: Verify various Chinese punctuation marks (，！；。) don't appear at line starts
+ */
+HWTEST_F(OHDrawingUseLocaleForTextBreakTest, OHDrawingHighQualityBreakAllPunctuationTest006, TestSize.Level0)
+{
+    LayoutForLineBreakStrategyTest("你好，世界！这是测试；今天天气很好。", 113,
+        BreakStrategy::HIGH_QUALITY, WordBreakType::BREAK_ALL);
+    size_t lineCount = typography_->GetLineCount();
+    EXPECT_EQ(lineCount, 11);
+    uint16_t firstGlyphId = GetFirstGlyphIdOfLine(1, typography_);
+    EXPECT_EQ(firstGlyphId, 10413);
 }
 } // namespace Rosen
 } // namespace OHOS
