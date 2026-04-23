@@ -491,12 +491,12 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByS
     opts.size.height = ceil(pixmapHeight * captureConfig_.scaleY);
     RS_LOGI("RSSurfaceCaptureTaskParallel::CreatePixelMapBySurfaceNode: NodeId:[%{public}" PRIu64 "],"
         " origin pixelmap size: [%{public}u, %{public}u],"
-        " scale: [%{public}f, %{public}f],"
+        " scale: [%{public}f, %{public}f], windowSync: [%{public}d],"
         " useDma: [%{public}d], useCurWindow: [%{public}d],"
         " isOnTheTree: [%{public}d], isVisible: [%{public}d], isF16Capture: [%{public}d]"
         " backGroundColor: [%{public}d]",
         node->GetId(), pixmapWidth, pixmapHeight, captureConfig_.scaleX, captureConfig_.scaleY,
-        captureConfig_.useDma, captureConfig_.useCurWindow, node->IsOnTheTree(),
+        captureConfig_.windowSync, captureConfig_.useDma, captureConfig_.useCurWindow, node->IsOnTheTree(),
         !surfaceNode_->GetVisibleRegion().IsEmpty(), isF16Capture, captureConfig_.backGroundColor);
     std::unique_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
     if (pixelMap) {
