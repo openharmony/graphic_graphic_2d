@@ -57,6 +57,11 @@ public:
         return refractOutPx_;
     }
 
+    void SetSkipFrameEnable(bool isSkipFrameEnable)
+    {
+        isSkipFrameEnable_ = isSkipFrameEnable;
+    }
+
     bool GetSkipFrameEnable() const
     {
         return isSkipFrameEnable_;
