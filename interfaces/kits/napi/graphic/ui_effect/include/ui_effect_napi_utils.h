@@ -124,6 +124,7 @@ constexpr uint32_t NUM_30 = 30;
 constexpr uint32_t NUM_1000 = 1000;
 constexpr int32_t ERR_NO_PERMISSION = 201;
 constexpr int32_t ERR_NOT_SYSTEM_APP = 202;
+constexpr int32_t ERR_INVALID_PARAM = 401;
 
 bool ConvertDoubleValueFromJsElement(napi_env env, napi_value jsObject, uint32_t idx, double& data);
 bool ParseJsDoubleValue(napi_env env, napi_value jsObject, double& data);
