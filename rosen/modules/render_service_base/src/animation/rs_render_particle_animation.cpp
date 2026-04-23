@@ -150,6 +150,19 @@ void RSRenderParticleAnimation::UpdateVelocityField(
     }
 }
 
+void RSRenderParticleAnimation::UpdateFields(const std::shared_ptr<ParticleFieldCollection>& fields)
+{
+    if (fields == nullptr) {
+        return;
+    } else if (particleFields_ != nullptr && *particleFields_ == *fields) {
+        return;
+    }
+    particleFields_ = fields;
+    if (particleSystem_) {
+        particleSystem_->UpdateFields(fields);
+    }
+}
+
 void RSRenderParticleAnimation::OnAttach()
 {
     auto target = GetTarget();

@@ -25,7 +25,7 @@ ohos_unittest("RSRenderServiceBaseRSDrawableTest") {
     "rs_color_picker_drawable_test.cpp",
     "rs_drawable_test.cpp",
     "rs_misc_drawable_test.cpp",
-    "rs_point_light_drawable_test.cpp",
+    "rs_overlay_ng_shader_drawable_test.cpp",
     "rs_property_drawable_background_test.cpp",
     "rs_property_drawable_foreground_test.cpp",
     "rs_property_drawable_test.cpp",

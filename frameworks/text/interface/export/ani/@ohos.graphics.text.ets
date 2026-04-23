@@ -87,6 +87,7 @@ export default namespace text {
       }) as Promise<void>;
     }
     native clearCaches(): void;
+    native setParagraphCachesEnabled(enable: boolean): void;
 
     private static native nativeTransferStatic(input: ESValue): Object;
     static transferStatic(input: Any): Object {
@@ -195,6 +196,7 @@ export default namespace text {
     native didExceedMaxLines(): boolean;
     native getTextLines(): Array<TextLine>;
     native getActualTextRange(lineNumber: int, includeSpaces: boolean): Range;
+    native getVisibleTextRanges(): Array<Range>;
     native getLineMetrics(): Array<LineMetrics>;
     getLineMetrics(lineNumber: int): LineMetrics | undefined {
         return this.nativeGetLineMetricsAt(lineNumber);
@@ -203,6 +205,9 @@ export default namespace text {
     private native nativeGetLineMetricsAt(lineNumber: int): LineMetrics | undefined;
     native updateColor(color: common2D.Color): void;
     native updateDecoration(decoration: Decoration): void;
+    native getProcessState(): TextProcessState;
+    native getTextDisplayState(): TextDisplayState;
+    native getParagraphStyle(): ParagraphStyle;
     native getCharacterRangeForGlyphRange(glyphRange: Range, encoding: drawing.TextEncoding): Array<Range>;
     native getGlyphRangeForCharacterRange(characterRange: Range, encoding: drawing.TextEncoding): Array<Range>;
     native getCharacterPositionAtCoordinate(x: double, y: double, encoding: drawing.TextEncoding): PositionWithAffinity;
@@ -303,12 +308,64 @@ export default namespace text {
     halfLeading?: boolean;
   }
 
+  class StrutStyleInternal implements StrutStyle {
+    fontFamilies?: Array<string>;
+    fontStyle?: FontStyle;
+    fontWidth?: FontWidth;
+    fontWeight?: FontWeight;
+    fontSize?: double;
+    height?: double;
+    leading?: double;
+    forceHeight?: boolean;
+    enabled?: boolean;
+    heightOverride?: boolean;
+    halfLeading?: boolean;
+    constructor(
+      fontFamilies?: Array<string>,
+      fontStyle?: FontStyle,
+      fontWidth?: FontWidth,
+      fontWeight?: FontWeight,
+      fontSize?: double,
+      height?: double,
+      leading?: double,
+      forceHeight?: boolean,
+      enabled?: boolean,
+      heightOverride?: boolean,
+      halfLeading?: boolean
+    ) {
+      this.fontFamilies = fontFamilies;
+      this.fontStyle = fontStyle;
+      this.fontWidth = fontWidth;
+      this.fontWeight = fontWeight;
+      this.fontSize = fontSize;
+      this.height = height;
+      this.leading = leading;
+      this.forceHeight = forceHeight;
+      this.enabled = enabled;
+      this.heightOverride = heightOverride;
+      this.halfLeading = halfLeading;
+    }
+  }
+
   export interface TextTab {
     alignment: TextAlign;
     location: double;
   }
 
+  class TextTabInternal implements TextTab {
+    alignment: TextAlign;
+    location: double;
+    constructor(
+      alignment: TextAlign,
+      location: double
+    ) {
+      this.alignment = alignment;
+      this.location = location;
+    }
+  }
+
   export interface ParagraphStyle {
+    orphanCharOptimization?: boolean;
     fallbackLineSpacing?: boolean;
     includeFontPadding?: boolean;
     textStyle?: TextStyle;
@@ -325,6 +382,75 @@ export default namespace text {
     verticalAlign?: TextVerticalAlign;
     compressHeadPunctuation?: boolean;
     lineSpacing?: double;
+    firstLineHeadIndent?: double;
+    tailIndents?: Array<double>;
+    headIndents?: Array<double>;
+  }
+
+  class ParagraphStyleInternal implements ParagraphStyle {
+    orphanCharOptimization?: boolean;
+    fallbackLineSpacing?: boolean;
+    includeFontPadding?: boolean;
+    textStyle?: TextStyle;
+    textDirection?: TextDirection;
+    align?: TextAlign;
+    wordBreak?: WordBreak;
+    maxLines?: int;
+    breakStrategy?: BreakStrategy;
+    strutStyle?: StrutStyle;
+    textHeightBehavior?: TextHeightBehavior;
+    tab?: TextTab;
+    trailingSpaceOptimized?: boolean;
+    autoSpace?: boolean;
+    verticalAlign?: TextVerticalAlign;
+    compressHeadPunctuation?: boolean;
+    lineSpacing?: double;
+    firstLineHeadIndent?: double;
+    tailIndents?: Array<double>;
+    headIndents?: Array<double>;
+    constructor(
+      orphanCharOptimization?: boolean,
+      fallbackLineSpacing?: boolean,
+      includeFontPadding?: boolean,
+      textStyle?: TextStyle,
+      textDirection?: TextDirection,
+      align?: TextAlign,
+      wordBreak?: WordBreak,
+      maxLines?: int,
+      breakStrategy?: BreakStrategy,
+      strutStyle?: StrutStyle,
+      textHeightBehavior?: TextHeightBehavior,
+      tab?: TextTab,
+      trailingSpaceOptimized?: boolean,
+      autoSpace?: boolean,
+      verticalAlign?: TextVerticalAlign,
+      compressHeadPunctuation?: boolean,
+      lineSpacing?: double,
+      firstLineHeadIndent?: double,
+      tailIndents?: Array<double>,
+      headIndents?: Array<double>
+    ) {
+      this.orphanCharOptimization = orphanCharOptimization;
+      this.fallbackLineSpacing = fallbackLineSpacing;
+      this.includeFontPadding = includeFontPadding;
+      this.textStyle = textStyle;
+      this.textDirection = textDirection;
+      this.align = align;
+      this.wordBreak = wordBreak;
+      this.maxLines = maxLines;
+      this.breakStrategy = breakStrategy;
+      this.strutStyle = strutStyle;
+      this.textHeightBehavior = textHeightBehavior;
+      this.tab = tab;
+      this.trailingSpaceOptimized = trailingSpaceOptimized;
+      this.autoSpace = autoSpace;
+      this.verticalAlign = verticalAlign;
+      this.compressHeadPunctuation = compressHeadPunctuation;
+      this.lineSpacing = lineSpacing;
+      this.firstLineHeadIndent = firstLineHeadIndent;
+      this.tailIndents = tailIndents;
+      this.headIndents = headIndents;
+    }
   }
 
   export interface TextShadow {
@@ -1119,6 +1245,23 @@ export default namespace text {
   export enum TextUndefinedGlyphDisplay {
     USE_DEFAULT,
     USE_TOFU,
+  }
+
+  export enum TextProcessState {
+    INIT = 0,
+    INDEXED = 1,
+    SHAPED = 2,
+    LINE_BROKEN = 3,
+    FORMATTED = 4,
+    PAINT = 5,
+    UPDATE_ATTRIBUTE = 6,
+  }
+
+  export enum TextDisplayState {
+    UNKNOWN = 0,
+    ALL = 1,
+    CLIP = 2,
+    OMITTED = 3,
   }
 
   export native function setTextUndefinedGlyphDisplay(noGlyphShow: TextUndefinedGlyphDisplay): void;

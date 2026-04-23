@@ -535,7 +535,7 @@ sptr<SurfaceBuffer> RSRenderSurfaceLayer::GetBuffer() const
 {
     auto sbuffer = sbuffer_.promote();
     if (sbuffer == nullptr) {
-        RS_LOGE("%{public}s layer id: %{public}" PRIu64 "buffer is released", __func__, rsLayerId_);
+        RS_LOGE("%{public}s layer id: %{public}" PRIu64 " buffer is released", __func__, rsLayerId_);
         return nullptr;
     }
     return sbuffer;
@@ -550,7 +550,7 @@ sptr<SurfaceBuffer> RSRenderSurfaceLayer::GetPreBuffer() const
 {
     auto pbuffer = pbuffer_.promote();
     if (pbuffer == nullptr) {
-        RS_LOGE("%{public}s layer id: %{public}" PRIu64 "buffer is released", __func__, rsLayerId_);
+        RS_LOGD("%{public}s layer id: %{public}" PRIu64 " buffer is released", __func__, rsLayerId_);
         return nullptr;
     }
     return pbuffer;
@@ -606,15 +606,35 @@ GraphicSolidColorLayerProperty RSRenderSurfaceLayer::GetSolidColorLayerProperty(
     return solidColorLayerProperty_;
 }
 
+// hpae_offline begin
 void RSRenderSurfaceLayer::SetUseDeviceOffline(bool useOffline)
 {
+    if (useDeviceOffline_ && !useOffline) {
+        // offline switch to online, clear original buffer info
+        hpaeOriginalInfo_.originalBuffer = nullptr;
+        hpaeOriginalInfo_.originalPreBuffer = nullptr;
+        hpaeOriginalInfo_.originalAcquireFence = nullptr;
+        hpaeOriginalInfo_.originalTransformType = GraphicTransformType::GRAPHIC_ROTATE_BUTT;
+        hpaeOriginalInfo_.originalCropRect = {0, 0, 0, 0};
+    }
     useDeviceOffline_ = useOffline;
 }
-
+ 
 bool RSRenderSurfaceLayer::GetUseDeviceOffline() const
 {
     return useDeviceOffline_;
 }
+ 
+void RSRenderSurfaceLayer::SetHpaeOriginalInfo(const HpaeOriginalInfo& hpaeOriginalInfo)
+{
+    hpaeOriginalInfo_ = hpaeOriginalInfo;
+}
+ 
+const HpaeOriginalInfo& RSRenderSurfaceLayer::GetHpaeOriginalInfo() const
+{
+    return hpaeOriginalInfo_;
+}
+// hpae_offline end
 
 void RSRenderSurfaceLayer::SetIgnoreAlpha(bool ignoreAlpha)
 {

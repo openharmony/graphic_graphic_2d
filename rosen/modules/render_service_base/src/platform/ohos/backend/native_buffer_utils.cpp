@@ -651,11 +651,6 @@ Drawing::BackendTexture SetBackendTexture(RsVulkanInterface& vkContext, VkDevice
 
     vkContext.vkBindImageMemory(device, image, memory, 0);
 
-    OHOS::Rosen::RsVulkanMemStat& memStat = vkContext.GetRsVkMemStat();
-    auto time = std::chrono::time_point_cast<std::chrono::microseconds>(std::chrono::system_clock::now());
-    std::string timeStamp = std::to_string(static_cast<uint64_t>(time.time_since_epoch().count()));
-    memStat.InsertResource(timeStamp, pid, static_cast<uint64_t>(memRequirements.size));
-
     OHOS::Rosen::Drawing::BackendTexture backendTexture(true);
     OHOS::Rosen::Drawing::TextureInfo textureInfo;
     textureInfo.SetWidth(width);
@@ -666,7 +661,6 @@ Drawing::BackendTexture SetBackendTexture(RsVulkanInterface& vkContext, VkDevice
     vkImageInfo->vkImage = image;
     vkImageInfo->vkAlloc.memory = memory;
     vkImageInfo->vkAlloc.size = memRequirements.size;
-    vkImageInfo->vkAlloc.statName = timeStamp;
 
     SetVkImageInfo(vkImageInfo, imageInfo);
     textureInfo.SetVKTextureInfo(vkImageInfo);

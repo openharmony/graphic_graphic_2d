@@ -28,6 +28,7 @@
 #include <system_ability_definition.h>
 #include <unistd.h>
 
+#include "common/rs_event_def.h"
 #include "command/rs_animation_command.h"
 #include "command/rs_node_showing_command.h"
 #include "platform/ohos/transaction/zidl/rs_client_to_service_connection_proxy.h"
@@ -132,6 +133,8 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     sptr<RSIScreenSwitchingNotifyCallback> switchingNotifyCallback;
     auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    RSExposedEventType type = static_cast<RSExposedEventType>(GetData<uint32_t>());
+    sptr<RSIExposedEventCallback> rsIExposedEventCallback = iface_cast<RSIExposedEventCallback>(remoteObject);
     sptr<RSIOcclusionChangeCallback> rsIOcclusionChangeCallback = iface_cast<RSIOcclusionChangeCallback>(remoteObject);
     sptr<RSISurfaceOcclusionChangeCallback> callbackTwo = iface_cast<RSISurfaceOcclusionChangeCallback>(remoteObject);
     sptr<RSIHgmConfigChangeCallback> rsIHgmConfigChangeCallback = iface_cast<RSIHgmConfigChangeCallback>(remoteObject);
@@ -247,14 +250,14 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsClientToServiceConnectionProxy.SetScreenColorGamut(id1, uid);
     rsClientToServiceConnectionProxy.SetScreenGamutMap(id1, screenGamutMap);
     rsClientToServiceConnectionProxy.GetScreenHDRCapability(id1, screenHdrCapability);
-    rsClientToServiceConnectionProxy.GetPixelFormat(id1, pixelFormat, resCode);
-    rsClientToServiceConnectionProxy.SetPixelFormat(id1, pixelFormat, resCode);
-    rsClientToServiceConnectionProxy.GetScreenSupportedHDRFormats(id1, hdrFormats, resCode);
-    rsClientToServiceConnectionProxy.GetScreenHDRFormat(id1, screenHDRFormat, resCode);
-    rsClientToServiceConnectionProxy.SetScreenHDRFormat(id1, pid1, resCode);
-    rsClientToServiceConnectionProxy.GetScreenSupportedColorSpaces(id1, colorSpaces, resCode);
-    rsClientToServiceConnectionProxy.GetScreenColorSpace(id1, colorSpace, resCode);
-    rsClientToServiceConnectionProxy.SetScreenColorSpace(id1, colorSpace, resCode);
+    rsClientToServiceConnectionProxy.GetPixelFormat(id1, pixelFormat);
+    rsClientToServiceConnectionProxy.SetPixelFormat(id1, pixelFormat);
+    rsClientToServiceConnectionProxy.GetScreenSupportedHDRFormats(id1, hdrFormats);
+    rsClientToServiceConnectionProxy.GetScreenHDRFormat(id1, screenHDRFormat);
+    rsClientToServiceConnectionProxy.SetScreenHDRFormat(id1, pid1);
+    rsClientToServiceConnectionProxy.GetScreenSupportedColorSpaces(id1, colorSpaces);
+    rsClientToServiceConnectionProxy.GetScreenColorSpace(id1, colorSpace);
+    rsClientToServiceConnectionProxy.SetScreenColorSpace(id1, colorSpace);
     rsClientToServiceConnectionProxy.GetScreenType(id1, screenType);
     rsClientToRenderConnectionProxy.GetBitmap(id1, bitmap, getBitmapSuccess);
     rsClientToRenderConnectionProxy.GetPixelmap(id1, pixelmap, &rect, drawCmdList, getPixelmapSuccess);
@@ -265,6 +268,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsClientToServiceConnectionProxy.RegisterHgmRefreshRateModeChangeCallback(rsIHgmConfigChangeCallback);
     rsClientToServiceConnectionProxy.RegisterHgmRefreshRateUpdateCallback(rsIHgmConfigChangeCallback);
     rsClientToServiceConnectionProxy.RegisterFirstFrameCommitCallback(rsIFirstFrameCommitCallback);
+    rsClientToServiceConnectionProxy.RegisterExposedEventCallback(type, rsIExposedEventCallback);
     rsClientToRenderConnectionProxy.SetSystemAnimatedScenes(systemAnimatedScenes, false, success);
     rsClientToServiceConnectionProxy.ShowWatermark(watermarkImg, true);
     rsClientToServiceConnectionProxy.ResizeVirtualScreen(id1, width, height);

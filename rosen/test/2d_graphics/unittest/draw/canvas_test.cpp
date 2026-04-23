@@ -16,6 +16,8 @@
 #include "gtest/gtest.h"
 
 #include "draw/canvas.h"
+#include "draw/ui_color.h"
+#include "effect/particle_builder.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -1226,6 +1228,57 @@ HWTEST_F(CanvasTest, RecordStateGPUContextTest, TestSize.Level1)
     ASSERT_TRUE(stateRecordCanvas->GetGPUContext() == nullptr);
 }
 
+/**
+ * @tc.name: CanvasDrawUIColorTest
+ * @tc.desc: Test for DrawUIColor function.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(CanvasTest, CanvasDrawUIColorTest, TestSize.Level1)
+{
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    UIColor color(0.5f, 0.6f, 0.7f, 0.8f, 2.0f);
+    canvas->DrawUIColor(color);
+}
+
+/**
+ * @tc.name: DrawParticleTest001
+ * @tc.desc: Test DrawParticle with null particle effect.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(CanvasTest, DrawParticleNullParticleEffect, TestSize.Level1)
+{
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    std::shared_ptr<ParticleEffect> particleEffect = nullptr;
+    canvas->DrawParticle(particleEffect);
+    EXPECT_TRUE(canvas != nullptr);
+}
+ 
+/**
+ * @tc.name: DrawParticleTest002
+ * @tc.desc: Test DrawParticle with valid particle effect.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(CanvasTest, DrawParticleValidParticleEffect, TestSize.Level1)
+{
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+
+    auto builder = std::make_shared<ParticleBuilder>();
+    ASSERT_TRUE(builder != nullptr);
+
+    builder->SetUpdateCode("void main() { }");
+    auto particleEffect = builder->MakeParticleEffect(1024);
+    ASSERT_TRUE(particleEffect != nullptr);
+
+    canvas->DrawParticle(particleEffect);
+    auto data = particleEffect->Serialize();
+    EXPECT_TRUE(data != nullptr);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

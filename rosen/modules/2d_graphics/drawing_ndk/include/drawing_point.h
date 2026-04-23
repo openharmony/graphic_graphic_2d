@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -98,6 +98,30 @@ OH_Drawing_ErrorCode OH_Drawing_PointGetY(const OH_Drawing_Point* point, float* 
  * @version 1.0
  */
 OH_Drawing_ErrorCode OH_Drawing_PointSet(OH_Drawing_Point* point, float x, float y);
+
+/**
+ * @brief Negates the point's coordinates.
+ *
+ * @param point Indicates the pointer to an <b>OH_Drawing_Point</b> object.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if point is nullptr.
+ * @since 26.0.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_PointNegate(OH_Drawing_Point* point);
+
+/**
+ * @brief Offsets the point's coordinates by dx, dy.
+ *
+ * @param point Indicates the pointer to an <b>OH_Drawing_Point</b> object.
+ * @param dx Indicates the distance to offset on the x-axis in pixels.
+ * @param dy Indicates the distance to offset on the y-axis in pixels.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if point is nullptr.
+ * @since 26.0.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_PointOffset(OH_Drawing_Point* point, float dx, float dy);
 
 /**
  * @brief Destroys an <b>OH_Drawing_Point</b> object and reclaims the memory occupied by the object.

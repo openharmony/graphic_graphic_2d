@@ -39,7 +39,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr int32_t IDLE_TIMER_EXPIRED = 200; // ms
+constexpr int32_t IDLE_TIMER_EXPIRED = 300; // ms
 constexpr int32_t CHANGE_GENERATOR_RATE_VALID_TIMEOUT = 20; // ms
 constexpr int64_t UNI_RENDER_VSYNC_OFFSET = 5000000; // ns
 constexpr int64_t UNI_RENDER_VSYNC_OFFSET_DELAY_MODE = -3300000; // ns
@@ -175,8 +175,8 @@ void HgmFrameRateManager::RegisterCoreCallbacksAndInitController(sptr<VSyncContr
             if (RSUniRenderJudgement::IsUniRender()) {
                 auto& hgmCore = HgmCore::Instance();
                 int64_t offset = hgmCore.IsDelayMode() ? UNI_RENDER_VSYNC_OFFSET_DELAY_MODE : UNI_RENDER_VSYNC_OFFSET;
-                rsController->SetPhaseOffset(hgmCore.GetRsPhaseOffset(offset));
-                appController->SetPhaseOffset(hgmCore.GetAppPhaseOffset(offset));
+                rsController->SetPhaseOffset(offset);
+                appController->SetPhaseOffset(offset);
             }
             CreateVSyncGenerator()->SetVSyncMode(VSYNC_MODE_LTPS);
         }
@@ -703,6 +703,7 @@ uint32_t HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRate
         }
     } else if (stylusFlag) {
         supportRefreshRateVec = stylusVec_;
+        RS_TRACE_NAME_FMT("%s: stylusVec size = %zu", __func__, stylusVec_.size());
         HGM_LOGD("stylusVec size = %{public}zu", stylusVec_.size());
     } else {
         supportRefreshRateVec = HgmCore::Instance().GetScreenSupportedRefreshRates(id);
@@ -832,6 +833,17 @@ void HgmFrameRateManager::HandleTouchTask(pid_t pid, int32_t touchStatus, int32_
         cleanPidCallback_[pid].insert(CleanPidCallbackType::TOUCH_EVENT);
     }
 
+    // if hover frame up switch is open, POINTER_ACTION_PROXIMITY_IN and
+    // POINTER_ACTION_PROXIMITY_OUT need to transform to TOUCH_DOWN and TOUCH_UP
+    if (auto configData = HgmCore::Instance().GetPolicyConfigData();
+        configData != nullptr && configData->hoverFrameUpSwitch_) {
+        if (touchStatus == POINTER_ACTION_PROXIMITY_IN) {
+            touchStatus = TOUCH_DOWN;
+        } else if (touchStatus == POINTER_ACTION_PROXIMITY_OUT) {
+            touchStatus = TOUCH_UP;
+        }
+    }
+
     if (touchStatus == TOUCH_DOWN || touchStatus == TOUCH_PULL_DOWN) {
         HGM_LOGD("[touch manager] down");
         PolicyConfigData::StrategyConfig strategyRes;
@@ -942,17 +954,7 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
         return;
     }
 
-    auto& hgmScreenInfo = HgmScreenInfo::GetInstance();
-    auto isLtpo = hgmScreenInfo.IsLtpoType(hgmScreenInfo.GetScreenType(id));
-    std::string curScreenName = "screen" + std::to_string(id) + "_" + (isLtpo ? "LTPO" : "LTPS");
-
-    isLtpo_.store(isLtpo);
-    lastCurScreenId_.store(curScreenId_.load());
-    curScreenId_.store(id);
-    hgmCore.SetActiveScreenId(curScreenId_.load());
-    HGM_LOGD("curScreen change:%{public}d", static_cast<int>(curScreenId_.load()));
-
-    HandleScreenFrameRate(curScreenName);
+    HandleScreenLtpoConfig(id);
     HandlePageUrlEvent();
 }
 
@@ -960,18 +962,39 @@ void HgmFrameRateManager::HandleScreenRectFrameRate(ScreenId id, const Rect& act
 {
     RS_TRACE_NAME_FMT("%s: screenId:%d activeRect(%d, %d, %d, %d)",
         __func__, id, activeRect.x, activeRect.y, activeRect.w, activeRect.h);
-    if (auto screen = HgmCore::Instance().GetScreen(id); !screen || !screen->GetSelfOwnedScreenFlag()) {
+    auto& hgmCore = HgmCore::Instance();
+    if (auto screen = hgmCore.GetScreen(id);
+        !screen || !screen->GetSelfOwnedScreenFlag()) {
         return;
     }
-    auto& hgmScreenInfo = HgmScreenInfo::GetInstance();
-    auto isLtpo = hgmScreenInfo.IsLtpoType(hgmScreenInfo.GetScreenType(id));
+    if (hgmCore.GetPolicyConfigData() == nullptr) {
+        return;
+    }
+    activeRectScreenId_ = id;
+    activeRect_ = activeRect;
+    HandleScreenLtpoConfig(id);
+}
 
-    std::string curScreenName = "screen" + std::to_string(id) + "_" + (isLtpo ? "LTPO" : "LTPS");
-    curScreenName += "_" + std::to_string(activeRect.x);
-    curScreenName += "_" + std::to_string(activeRect.y);
-    curScreenName += "_" + std::to_string(activeRect.w);
-    curScreenName += "_" + std::to_string(activeRect.h);
+void HgmFrameRateManager::HandleScreenLtpoConfig(ScreenId id)
+{
+    if (curScreenId_.load() != id) {
+        auto& hgmScreenInfo = HgmScreenInfo::GetInstance();
+        auto isLtpo = hgmScreenInfo.IsLtpoType(hgmScreenInfo.GetScreenType(id));
+        isLtpo_.store(isLtpo);
+        lastCurScreenId_.store(curScreenId_.load());
+        curScreenId_.store(id);
+        auto& hgmCore = HgmCore::Instance();
+        hgmCore.SetActiveScreenId(curScreenId_.load());
+    }
 
+    std::string curScreenName = "screen" + std::to_string(id) + "_" + (isLtpo_ ? "LTPO" : "LTPS");
+    if (id == activeRectScreenId_) {
+        curScreenName += "_" + std::to_string(activeRect_.x);
+        curScreenName += "_" + std::to_string(activeRect_.y);
+        curScreenName += "_" + std::to_string(activeRect_.w);
+        curScreenName += "_" + std::to_string(activeRect_.h);
+    }
+    HGM_LOGD("curScreen id:%{public}d name:%{public}s", static_cast<int>(curScreenId_.load()), curScreenName.c_str());
     HandleScreenFrameRate(curScreenName);
 }
 
@@ -1318,7 +1341,10 @@ VoteInfo HgmFrameRateManager::ProcessRefreshRateVote()
 
 int32_t HgmFrameRateManager::AdaptiveStatus() const
 {
-    return asStateForFps_.load() ? isAdaptive_.load() : SupportASStatus::NOT_SUPPORT;
+    if (auto isAdaptive = isAdaptive_.load(); isAdaptive != SupportASStatus::SUPPORT_AS) {
+        return isAdaptive;
+    }
+    return asStateForFps_.load() ? SupportASStatus::SUPPORT_AS : SupportASStatus::NOT_SUPPORT;
 }
 
 void HgmFrameRateManager::UpdateASStateForFps(bool state)
@@ -1326,6 +1352,7 @@ void HgmFrameRateManager::UpdateASStateForFps(bool state)
     if (asStateForFps_.exchange(state) != state) {
         CreateVSyncSampler()->SetAdaptive(AdaptiveStatus() == SupportASStatus::SUPPORT_AS);
         RS_TRACE_NAME_FMT("ASStateForFps change new state: %d", state);
+        TriggerAdaptiveVsyncUpdateCallback();
     }
 }
 
@@ -1658,6 +1685,16 @@ void HgmFrameRateManager::TriggerAdaptiveVsyncUpdateCallback()
 bool HgmFrameRateManager::IsNeedAdaptiveAfterUpdateMode()
 {
     return controller_ != nullptr && controller_->IsNeedAdaptiveAfterUpdateMode();
+}
+
+void HgmFrameRateManager::AddScreenInit()
+{
+    SyncHgmConfigUpdateCallback();
+    if (auto configData = HgmCore::Instance().GetPolicyConfigData()) {
+        GetLowBrightVec(configData);
+        GetAncoLowBrightVec(configData);
+        GetStylusVec(configData);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

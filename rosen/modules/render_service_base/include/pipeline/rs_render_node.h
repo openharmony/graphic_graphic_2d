@@ -84,6 +84,13 @@ struct CurFrameInfoDetail {
     bool curFrameReverseChildren = false;
 };
 
+enum LayerDrawContent : size_t {
+    SELF = 0,       // whether the node itself has draw content
+    SUBTREE = 1,    // whether the subtree has draw content, determined by all its descendants
+    UPDATE = 2,     // whether the node has update content in current frame, used for dynamic layer skip optimization
+    MAX = 3
+};
+
 class RSB_EXPORT RSRenderNode : public std::enable_shared_from_this<RSRenderNode> {
 public:
     using WeakPtr = std::weak_ptr<RSRenderNode>;
@@ -235,7 +242,7 @@ public:
     bool IsOnlyBasicGeoTransform() const;
     void ForceMergeSubTreeDirtyRegion(RSDirtyRegionManager& dirtyManager, const RectI& clipRect);
     void SubTreeSkipPrepare(RSDirtyRegionManager& dirtymanager, bool isDirty, bool accumGeoDirty,
-        const RectI& clipRect);
+        const RectI& clipRect, const std::shared_ptr<RSDirtyRegionManager>& layerPartRenderDirtyManager = nullptr);
     inline bool LastFrameSubTreeSkipped() const
     {
         return lastFrameSubTreeSkipped_;
@@ -306,11 +313,6 @@ public:
     inline void MarkRepaintBoundary(bool isRepaintBoundary)
     {
         isRepaintBoundary_ = isRepaintBoundary;
-    }
-
-    inline bool IsWaitSync() const
-    {
-        return waitSync_;
     }
 
     using ChildrenListSharedPtr = std::shared_ptr<const std::vector<std::shared_ptr<RSRenderNode>>>;
@@ -468,7 +470,8 @@ public:
     }
 
     std::tuple<bool, bool, bool> Animate(
-        int64_t timestamp, int64_t& minLeftDelayTime, int64_t period = 0, bool isDisplaySyncEnabled = false);
+        int64_t timestamp, int64_t& minLeftDelayTime, int64_t& nextFrameTime,
+        int64_t period = 0, bool isDisplaySyncEnabled = false);
 
     // check if all clip properties are enabled
     bool IsClipBound() const;
@@ -596,7 +599,7 @@ public:
     void NodePostPrepare(
         std::shared_ptr<RSSurfaceRenderNode> curSurfaceNode, const RectI& clipRect);
 
-    void SetStaticCached(bool isStaticCached);
+    void SetStaticCached(bool isStaticCached, bool isMarkedByUI = false);
     virtual bool IsStaticCached() const;
     void SetNodeName(const std::string& nodeName);
     const std::string& GetNodeName() const;
@@ -715,7 +718,8 @@ public:
         GROUPED_BY_UI = GROUPED_BY_ANIM << 1,
         GROUPED_BY_USER = GROUPED_BY_UI << 1,
         GROUPED_BY_FOREGROUND_FILTER = GROUPED_BY_USER << 1,
-        GROUP_TYPE_BUTT = GROUPED_BY_FOREGROUND_FILTER,
+        GROUPED_BY_LAYER = GROUPED_BY_FOREGROUND_FILTER << 1,
+        GROUP_TYPE_BUTT = GROUPED_BY_LAYER,
     };
     void MarkNodeGroup(NodeGroupType type, bool isNodeGroup, bool includeProperty);
     void ExcludedFromNodeGroup(bool isExcluded);
@@ -729,10 +733,10 @@ public:
     void MarkForegroundFilterCache();
     NodeGroupType GetNodeGroupType() const;
     void SetChildHasTranslateOnSqueeze(bool val);
+    void SetNodeGroupHasChildInBlacklist(bool inBlacklist);
     bool IsNodeGroupIncludeProperty() const;
     void UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation, bool isOnExcludedSubTree);
-    void UpdateDrawingCacheInfoAfterChildren(
-        bool isInBlackList = false, const std::unordered_set<NodeId>& childHasProtectedNodeSet = {});
+    void UpdateDrawingCacheInfoAfterChildren(const std::unordered_set<NodeId>& childHasProtectedNodeSet = {});
     // !used for renderGroup
 
     void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer, pid_t pid = 0);
@@ -846,6 +850,10 @@ public:
     void SetUifirstSkipPartialSync(bool skip)
     {
         uifirstSkipPartialSync_ = skip;
+    }
+    bool IsUifirstSkipPartialSync() const
+    {
+        return uifirstSkipPartialSync_;
     }
 
     void SetForceUpdateByUifirst(bool b)
@@ -967,7 +975,7 @@ public:
     void ResetNodeColorSpace();
     void SetNodeColorSpace(GraphicColorGamut colorSpace);
     GraphicColorGamut GetNodeColorSpace() const;
-    virtual void MarkNodeColorSpace(bool isP3) {}
+    virtual void MarkNodeColorSpace(int8_t colorSpace) {}
 
     void SetEnableHdrEffect(bool enableHdrEffect);
 
@@ -1070,8 +1078,9 @@ public:
     }
 
     std::shared_ptr<DrawableV2::RSColorPickerDrawable> GetColorPickerDrawable() const;
-    // returns true if color picker will execute this frame
-    bool PrepareColorPickerForExecution(uint64_t vsyncTime, bool darkMode);
+    // Called every frame to handle state transitions and sync
+    // return true if current state is COLOR_PICK and need to transition back to PREPARING
+    bool PrepareColorPicker(bool darkMode);
     // returns true if node only has ColorPickerDrawable without any real filter
     bool IsColorPickerOnlyNode() const;
 
@@ -1158,7 +1167,6 @@ protected:
     bool needClearSurface_ = false;
     bool isBootAnimation_ = false;
     bool lastFrameHasVisibleEffectWithoutEmptyRect_ = false;
-    bool waitSync_ = false;
     mutable bool isFullChildrenListValid_ = true;
     mutable bool isChildrenSorted_ = true;
     mutable bool childrenHasSharedTransition_ = false;
@@ -1225,8 +1233,8 @@ private:
     bool childHasVisibleEffect_ = false;  // only collect visible children has useeffect
     bool hasChildrenOutOfRect_ = false;
 
-    // for layer part render
-    bool layerPartRenderDirtyFlag_ = false;
+    // for decide whether has true draw content
+    std::bitset<LayerDrawContent::MAX> layerContentBits_;
 
     bool isSubTreeDirty_ = false;
     bool isTreeStateChangeDirty_ = false;
@@ -1339,12 +1347,8 @@ private:
     std::unordered_set<NodeId> visibleEffectChild_;
     Drawing::Matrix oldMatrix_;
     Drawing::Matrix oldAbsMatrix_;
-#ifdef RS_ENABLE_MEMORY_DOWNTREE
     mutable std::unique_ptr<RSDrawable::Vec> drawableVec_;
     bool released_ = false;
-#else
-    mutable RSDrawable::Vec drawableVec_;
-#endif
     RSAnimationManager animationManager_;
     RSOpincCache opincCache_;
     std::unordered_set<NodeId> subtreeParallelNodes_;
@@ -1411,7 +1415,6 @@ private:
     void CollectAndUpdateLocalPixelStretchRect();
     void CollectAndUpdateLocalForegroundEffectRect();
     void CollectAndUpdateLocalDistortionEffectRect();
-    void CollectAndUpdateLocalMagnifierEffectRect();
     void CollectAndUpdateLocalEffectRect();
     // update drawrect based on self's info
     void UpdateBufferDirtyRegion();
@@ -1435,6 +1438,9 @@ private:
     void ResetAndApplyModifiers();
 
     void InitRenderDrawableAndDrawableVec();
+
+    void DirtySlotsPartialSync();
+
     RSDrawable::Vec& GetDrawableVec(const char*) const;
     void ResetFilterInfo();
     friend class DrawFuncOpItem;
@@ -1452,6 +1458,7 @@ private:
     friend class ModifierNG::RSRenderModifier;
     friend class ModifierNG::RSForegroundFilterRenderModifier;
     friend class ModifierNG::RSBackgroundFilterRenderModifier;
+    friend class RSDynamicLayerSkipController;
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif

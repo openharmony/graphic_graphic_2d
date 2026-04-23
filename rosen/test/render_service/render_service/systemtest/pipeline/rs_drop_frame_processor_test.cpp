@@ -15,8 +15,9 @@
 
 #include "gtest/gtest.h"
 #include "limit_number.h"
-#include "pipeline/render_thread/rs_base_render_util.h"
+#include "engine/rs_base_render_util.h"
 #include "pipeline/main_thread/rs_render_service_listener.h"
+#include "pipeline/render_thread/rs_base_surface_util.h"
 #include "../../unittest/pipeline/rs_test_util.h"
 #include "surface.h"
 
@@ -118,7 +119,7 @@ HWTEST_F(RSDropFrameProcessorTest, TestDropFrame001, TestSize.Level1)
     }
     
     // create RSHardwareProcessor
-    RSBaseRenderUtil::DropFrameProcess(*rsNode->GetRSSurfaceHandler());
+    RSBaseSurfaceUtil::DropFrameProcess(*rsNode->GetRSSurfaceHandler());
     ASSERT_EQ(2, rsNode->GetRSSurfaceHandler()->GetAvailableBufferCount());
 }
 } // namespace OHOS::Rosen

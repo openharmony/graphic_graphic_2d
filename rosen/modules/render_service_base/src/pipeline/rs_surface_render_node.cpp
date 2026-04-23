@@ -1113,7 +1113,7 @@ void RSSurfaceRenderNode::UpdateVirtualScreenWhiteListInfo()
     auto screenIds = ScreenSpecialLayerInfo::QueryEnableScreen(
         SpecialLayerType::IS_WHITE_LIST, {GetId(), GetLeashPersistentId()});
     SetScreensWithSubTreeWhitelist(screenIds);
-    RSRenderNode::SyncWhiteListInfoToParent();
+    SyncWhiteListInfoToParent();
 }
 
 void RSSurfaceRenderNode::SyncPrivacyContentInfoToFirstLevelNode()
@@ -1168,7 +1168,6 @@ void RSSurfaceRenderNode::SetClonedNodeInfo(NodeId id, bool needOffscreen, bool 
     }
     clonedSurfaceNode->clonedSourceNodeNeedOffscreen_ = isRelated || needOffscreen;
     isCloneNode_ = (id != INVALID_NODEID);
-    clonedSurfaceNode->SetRelatedSourceNode(isRelated);
     SetRelated(isCloneNode_ && isRelated);
     clonedSourceNodeId_ = id;
     RS_LOGD("RSSurfaceRenderNode::SetClonedNodeInfo clonedNode[%{public}" PRIu64 "] needOffscreen: %{public}d"
@@ -1221,7 +1220,6 @@ void RSSurfaceRenderNode::SetHDRPresent(bool hasHdrPresent)
 
 void RSSurfaceRenderNode::IncreaseHDRNum(HDRComponentType hdrType)
 {
-    std::lock_guard<std::mutex> lockGuard(mutexHDR_);
     if (hdrType == HDRComponentType::IMAGE) {
         hdrPhotoNum_++;
         RS_LOGD("RSSurfaceRenderNode::IncreaseHDRNum HDRClient hdrPhotoNum_: %{public}d", hdrPhotoNum_);
@@ -1231,12 +1229,14 @@ void RSSurfaceRenderNode::IncreaseHDRNum(HDRComponentType hdrType)
     } else if (hdrType == HDRComponentType::EFFECT) {
         hdrEffectNum_++;
         RS_LOGD("RSSurfaceRenderNode::IncreaseHDRNum HDRClient hdrEffectNum_: %{public}d", hdrEffectNum_);
+    } else if (hdrType == HDRComponentType::HDRCOLOR) {
+        hdrColorNum_++;
+        RS_LOGD("RSSurfaceRenderNode::IncreaseHDRNum HDRClient hdrColorNum_: %{public}d", hdrColorNum_);
     }
 }
 
 void RSSurfaceRenderNode::ReduceHDRNum(HDRComponentType hdrType)
 {
-    std::lock_guard<std::mutex> lockGuard(mutexHDR_);
     if (hdrType == HDRComponentType::IMAGE) {
         if (hdrPhotoNum_ == 0) {
             ROSEN_LOGE("RSSurfaceRenderNode::ReduceHDRNum error");
@@ -1258,6 +1258,13 @@ void RSSurfaceRenderNode::ReduceHDRNum(HDRComponentType hdrType)
         }
         hdrEffectNum_--;
         RS_LOGD("RSSurfaceRenderNode::ReduceHDRNum HDRClient hdrEffectNum_: %{public}d", hdrEffectNum_);
+    } else if (hdrType == HDRComponentType::HDRCOLOR) {
+        if (hdrColorNum_ == 0) {
+            ROSEN_LOGE("RSSurfaceRenderNode::ReduceHDRNum hdrColor error");
+            return;
+        }
+        hdrColorNum_--;
+        RS_LOGD("RSSurfaceRenderNode::ReduceHDRNum HDRClient hdrColorNum_: %{public}d", hdrColorNum_);
     }
 }
 
@@ -1311,6 +1318,11 @@ void RSSurfaceRenderNode::ReduceCanvasGamutNum(GraphicColorGamut gamut)
 bool RSSurfaceRenderNode::IsHdrEffectColorGamut() const
 {
     return hdrEffectNum_ > 0;
+}
+
+bool RSSurfaceRenderNode::HDRColorHeadroomEnabled()
+{
+    return hdrColorNum_ > 0;
 }
 
 void RSSurfaceRenderNode::SetForceUIFirstChanged(bool forceUIFirstChanged)
@@ -1449,6 +1461,9 @@ void RSSurfaceRenderNode::SetColorSpace(GraphicColorGamut colorSpace)
 
 GraphicColorGamut RSSurfaceRenderNode::GetColorSpace() const
 {
+    if (RsCommonHook::Instance().IsForceSRGBOutputEnabled()) {
+        return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    }
     if (!RSSystemProperties::GetWideColorSpaceEnabled()) {
         return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     }
@@ -2435,6 +2450,7 @@ void RSSurfaceRenderNode::OnSync()
             return;
         }
         surfaceParams->SetNeedSync(true);
+        surfaceParams->SetPartialSynced(IsUifirstSkipPartialSync());
     }
     RSRenderNode::OnSync();
 #endif
@@ -2486,6 +2502,16 @@ bool RSSurfaceRenderNode::CheckParticipateInOcclusion(bool isAnimationOcclusionS
         return false;
     }
     return true;
+}
+
+void RSSurfaceRenderNode::UpdateLayerPartRenderStatus(std::shared_ptr<RSDirtyRegionManager>& dirtyManager)
+{
+    if (dirtyManager == nullptr) {
+        return;
+    }
+    if (GetLastFrameUifirstFlag() != MultiThreadCacheType::NONE || GetSubThreadAssignable()) {
+        dirtyManager->SetHasUifirstChild(true);
+    }
 }
 
 void RSSurfaceRenderNode::RotateCorner(int rotationDegree, Vector4<int>& cornerRadius) const
@@ -3769,6 +3795,16 @@ bool RSSurfaceRenderNode::GetSurfaceBufferOpaque() const
     return isSurfaceBufferOpaque_;
 }
 
+void RSSurfaceRenderNode::SetHDRType(uint32_t hdrType)
+{
+    hdrType_ = hdrType;
+}
+
+uint32_t RSSurfaceRenderNode::GetHDRType() const
+{
+    return hdrType_;
+}
+
 bool RSSurfaceRenderNode::isForcedClipHole() const
 {
     const std::string& tvPlayerBundleName = RsCommonHook::Instance().GetTvPlayerBundleName();
@@ -3833,6 +3869,9 @@ GraphicColorGamut RSSurfaceRenderNode::GamutCollector::GetCurGamut() const
 
 GraphicColorGamut RSSurfaceRenderNode::GamutCollector::GetFirstLevelNodeGamut() const
 {
+    if (RsCommonHook::Instance().IsForceSRGBOutputEnabled()) {
+        return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    }
     if (!RSSystemProperties::GetWideColorSpaceEnabled()) {
         return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     }
@@ -3962,13 +4001,23 @@ bool RSSurfaceRenderNode::IsRelatedSourceNode() const
 
 void RSSurfaceRenderNode::SetIsParticipateInOcclusion(bool isParticipate)
 {
-    isParticipateInOcclusion_ = isParticipate;
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (surfaceParams == nullptr) {
         return;
     }
-    surfaceParams->SetIsParticipateInOcclusion(isParticipateInOcclusion_);
-    AddToPendingSyncList();
+    surfaceParams->SetIsParticipateInOcclusion(isParticipate);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+}
+
+bool RSSurfaceRenderNode::GetIsParticipateInOcclusion() const
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        return true;
+    }
+    return surfaceParams->GetIsParticipateInOcclusion();
 }
 
 void RSSurfaceRenderNode::EmplaceSameTypeModifier(
@@ -4009,6 +4058,25 @@ void RSSurfaceRenderNode::CopyModifierValue(ModifierNG::RSPropertyType propertyT
     if (newModifier->HasProperty(propertyType) && oldModifier->HasProperty(propertyType)) {
         oldModifier->Setter(propertyType, newModifier->Getter<T>(propertyType));
     }
+}
+
+void RSSurfaceRenderNode::CountRelatedNode(bool isIncrement)
+{
+    relatedNodeNum_ += isIncrement ? 1 : -1;
+    SetRelatedSourceNode(relatedNodeNum_ > 0);
+    if (!IsRelatedSourceNode()) {
+        ClearRelatedSourceCache(true);
+    }
+}
+
+void RSSurfaceRenderNode::ClearRelatedSourceCache(bool value)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        return;
+    }
+    surfaceParams->SetNeedClearRelatedCache(value);
+    AddToPendingSyncList();
 }
 } // namespace Rosen
 } // namespace OHOS

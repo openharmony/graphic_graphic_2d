@@ -25,10 +25,7 @@ public:
     ChronoSteadyClock() = default;
     ~ChronoSteadyClock() = default;
 
-    static std::chrono::steady_clock::time_point Now()
-    {
-        return std::chrono::steady_clock::now();
-    }
+    static std::chrono::steady_clock::time_point Now() { return std::chrono::steady_clock::now(); }
 };
 
 class HgmSimpleTimer {

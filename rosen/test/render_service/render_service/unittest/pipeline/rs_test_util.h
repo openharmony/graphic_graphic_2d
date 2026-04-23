@@ -18,7 +18,7 @@
 
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "iconsumer_surface.h"
-#include "pipeline/render_thread/rs_base_render_util.h"
+#include "engine/rs_base_render_util.h"
 #include "pipeline/main_thread/rs_render_service_listener.h"
 #include "surface.h"
 

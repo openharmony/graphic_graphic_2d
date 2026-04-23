@@ -168,6 +168,23 @@ struct TextLayoutResult {
     TextRectSize correctRect{};
 };
 
+enum class TextProcessState {
+    INIT = 0,
+    INDEXED = 1,
+    SHAPED = 2,
+    LINE_BROKEN = 3,
+    FORMATTED = 4,
+    PAINT = 5,
+    UPDATE_ATTRIBUTE = 6,
+};
+
+enum class TextDisplayState {
+    UNKNOWN = 0,
+    ALL = 1,
+    CLIP = 2,
+    OMITTED = 3,
+};
+
 } // namespace Rosen
 } // namespace OHOS
 

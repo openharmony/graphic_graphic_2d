@@ -25,9 +25,10 @@
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/render_thread/rs_render_engine.h"
-#include "pipeline/render_thread/rs_uni_render_engine.h"
+#include "engine/rs_uni_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_virtual_processor.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/main_thread/rs_uni_render_listener.h"
 #include "pipeline/rs_processor_factory.h"
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 #include "platform/ohos/backend/rs_surface_frame_ohos_vulkan.h"
@@ -37,6 +38,7 @@
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/rs_test_util.h"
 #include "params/rs_screen_render_params.h"
+#include "platform/ohos/backend/rs_surface_frame_ohos_raster.h"
 #include "platform/ohos/backend/rs_surface_ohos_gl.h"
 #include "platform/ohos/backend/rs_surface_ohos_raster.h"
 #include "surface_buffer_impl.h"
@@ -47,9 +49,13 @@ using namespace OHOS::Rosen::DrawableV2;
 
 namespace OHOS::Rosen {
 namespace {
-    constexpr uint32_t DEFAULT_CANVAS_WIDTH = 800;
-    constexpr uint32_t DEFAULT_CANVAS_HEIGHT = 600;
-    constexpr NodeId DEFAULT_ID = 0xFFFF;
+constexpr uint32_t DEFAULT_CANVAS_WIDTH = 800;
+constexpr uint32_t DEFAULT_CANVAS_HEIGHT = 600;
+constexpr NodeId DEFAULT_ID = 0xFFFF;
+#ifdef RS_ENABLE_VK
+constexpr int32_t DEFAULT_BUFFER_AGE = 10;
+#endif
+const HDI::Display::Graphic::Common::V1_0::BufferHandleMetaRegion DEFAULT_META_REGION {0, 0, 100, 100};
 }
 BufferRequestConfig requestConfig = {
     .width = 0x100,
@@ -134,6 +140,7 @@ void RSUniRenderVirtualProcessorTest::SetUp()
     renderNode->InitRenderParams();
     displayDrawable_ =
         std::static_pointer_cast<RSLogicalDisplayRenderNodeDrawable>(renderNode->GetRenderDrawable()).get();
+    screenManager_->Init(nullptr);
     RSTestUtil::InitRenderNodeGC();
 }
 void RSUniRenderVirtualProcessorTest::TearDown()
@@ -351,43 +358,6 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, MergeMirrorFenceToHardwareEnabledDrawa
     RSUniRenderThread::Instance().Sync(std::move(newUniParam));
     close(fenceFd);
 }
-
-/**
- * @tc.name: SetVirtualScreenFenceToRenderThreadTest
- * @tc.desc: Test SetVirtualScreenFenceToRenderThread
- * @tc.type: FUNC
- * @tc.require: issue20000
- */
-HWTEST_F(RSUniRenderVirtualProcessorTest, SetVirtualScreenFenceToRenderThreadTest, TestSize.Level2)
-{
-    std::shared_ptr<RSComposerClientManager> rsComposerClientMgr = std::make_shared<RSComposerClientManager>();
-    RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
-    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_MIRROR_COMPOSITE, 0);
-    auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
-    ASSERT_NE(virtualProcessor, nullptr);
-    virtualProcessor->SetVirtualScreenFenceToRenderThread();
-
-    auto csurf = IConsumerSurface::Create();
-    auto producer = csurf->GetProducer();
-    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
-    std::shared_ptr<RSSurfaceOhosVulkan> rsSurface1 = std::make_shared<RSSurfaceOhosVulkan>(pSurface);
-    auto tmpSurface = std::make_shared<Drawing::Surface>();
-    auto surfaceFrame = std::make_unique<RSSurfaceFrameOhosVulkan>(tmpSurface, 100, 100, 10);
-    virtualProcessor->renderFrame_ = std::make_unique<RSRenderFrame>(rsSurface1, std::move(surfaceFrame));
-    ASSERT_NE(virtualProcessor->renderFrame_, nullptr);
-    ASSERT_NE(virtualProcessor->renderFrame_->surfaceFrame_, nullptr);
-
-    ASSERT_FALSE(virtualProcessor->renderFrame_->acquireFence_->IsValid());
-    virtualProcessor->SetVirtualScreenFenceToRenderThread();
-    virtualProcessor->renderFrame_->acquireFence_ = nullptr;
-    virtualProcessor->SetVirtualScreenFenceToRenderThread();
-
-    int fenceFd = open("/data/local/tmpfile", O_RDONLY | O_CREAT);
-    virtualProcessor->renderFrame_->acquireFence_ = sptr<SyncFence>(new SyncFence(::dup(fenceFd)));
-    ASSERT_TRUE(virtualProcessor->renderFrame_->acquireFence_->IsValid());
-    virtualProcessor->SetVirtualScreenFenceToRenderThread();
-    close(fenceFd);
-}
 #endif // RS_ENABLE_VK
 
 /**
@@ -477,7 +447,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, InitForRenderThread003, TestSize.Level
     ASSERT_NE(nativeWindowBuffer, nullptr);
     rsSurface1->mSurfaceList.emplace_back(nativeWindowBuffer);
     virtualProcessor->InitForRenderThread(*virtualRenderDrawable, renderEngine);
-    auto res = RSHdrUtil::SetMetadata(RSHDRUtilConst::HDR_CAST_OUT_COLORSPACE, virtualProcessor->renderFrame_);
+    auto res = RSHdrUtil::SetMetadata(RSHDRUtilConst::HDR_CAST_OUT_COLORSPACE, virtualProcessor->renderFrame_, true);
     EXPECT_EQ(GSERROR_OK, res);
 }
 #endif
@@ -503,6 +473,83 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, OriginScreenRotation, TestSize.Level2)
     virtualProcessor->OriginScreenRotation(ScreenRotation::ROTATION_90, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
     virtualProcessor->OriginScreenRotation(ScreenRotation::ROTATION_180, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
     virtualProcessor->OriginScreenRotation(ScreenRotation::ROTATION_270, DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+}
+
+/**
+ * @tc.name: InitForRenderThreadTest001
+ * @tc.desc: Test RSUniRenderVirtualProcessor.InitForRenderThread
+ * @tc.type: FUNC
+ * @tc.require: #23004
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, InitForRenderThreadTest001, TestSize.Level1)
+{
+    ScreenId screenId = screenManager_->CreateVirtualScreen("InitForRenderThreadTest001", 1920, 1080,
+        nullptr, INVALID_SCREEN_ID, 0, {});
+    screenManager_->SetVirtualScreenStatus(screenId, VirtualScreenStatus::VIRTUAL_SCREEN_PLAY);
+
+    NodeId screenNodeId = 100;
+    auto screenRenderNode = std::make_shared<RSScreenRenderNode>(screenNodeId, screenId);
+    screenRenderNode->InitRenderParams();
+
+    auto screenDrawable = std::static_pointer_cast<RSScreenRenderNodeDrawable>(screenRenderNode->GetRenderDrawable());
+    ASSERT_NE(screenDrawable, nullptr);
+    auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable->GetRenderParams().get());
+    ASSERT_NE(screenParams, nullptr);
+
+    auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
+    ASSERT_NE(renderEngine, nullptr);
+
+    RSUniRenderVirtualProcessor processor;
+    screenParams->logicalDisplayNodeDrawables_.clear();
+    ASSERT_TRUE(screenParams->GetDisplayDrawables().empty());
+    processor.InitForRenderThread(*screenDrawable, renderEngine);
+
+    screenParams->logicalDisplayNodeDrawables_.clear();
+    screenParams->logicalDisplayNodeDrawables_.emplace_back(nullptr);
+    ASSERT_FALSE(screenParams->GetDisplayDrawables().empty());
+    ASSERT_EQ(screenParams->GetDisplayDrawables().front(), nullptr);
+    processor.InitForRenderThread(*screenDrawable, renderEngine);
+
+    NodeId displayNodeId = 200;
+    RSDisplayNodeConfig config;
+    auto displayRenderNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config);
+    displayRenderNode->InitRenderParams();
+    auto displayDrawable =
+        std::static_pointer_cast<RSLogicalDisplayRenderNodeDrawable>(displayRenderNode->GetRenderDrawable());
+    ASSERT_NE(displayDrawable, nullptr);
+
+    screenParams->logicalDisplayNodeDrawables_.clear();
+    screenParams->logicalDisplayNodeDrawables_.emplace_back(displayDrawable);
+    ASSERT_FALSE(screenParams->GetDisplayDrawables().empty());
+    ASSERT_NE(screenParams->GetDisplayDrawables().front(), nullptr);
+    processor.InitForRenderThread(*screenDrawable, renderEngine);
+
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable->GetRenderParams().get());
+    ASSERT_NE(displayParams, nullptr);
+
+    displayParams->fixedWidth_ = 960.0f;
+    displayParams->fixedHeight_ = 540.0f;
+    screenParams->screenProperty_.Set<ScreenPropertyType::RENDER_RESOLUTION>({960.0f, 540.0f});
+    processor.InitForRenderThread(*screenDrawable, renderEngine);
+
+    displayParams->fixedWidth_ = 0.0f;
+    displayParams->fixedHeight_ = 1080.0f;
+    screenParams->screenProperty_.Set<ScreenPropertyType::RENDER_RESOLUTION>({960.0f, 540.0f});
+    processor.InitForRenderThread(*screenDrawable, renderEngine);
+
+    displayParams->fixedWidth_ = 960.0f;
+    displayParams->fixedHeight_ = 0.0f;
+    screenParams->screenProperty_.Set<ScreenPropertyType::RENDER_RESOLUTION>({960.0f, 540.0f});
+    processor.InitForRenderThread(*screenDrawable, renderEngine);
+
+    displayParams->fixedWidth_ = 1920.0f;
+    displayParams->fixedHeight_ = 1080.0f;
+    screenParams->screenProperty_.Set<ScreenPropertyType::RENDER_RESOLUTION>({960.0f, 540.0f});
+    processor.InitForRenderThread(*screenDrawable, renderEngine);
+
+    displayDrawable->renderParams_ = nullptr;
+    bool res = processor.InitForRenderThread(*screenDrawable, renderEngine);
+    ASSERT_FALSE(res);
 }
 
 /**
@@ -1055,6 +1102,27 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, ScaleMirrorIfNeedTest, TestSize.Level2
 }
 
 /**
+ * @tc.name: ScaleExpandIfNeedTest001
+ * @tc.desc: test ScaleExpandIfNeed
+ * @tc.type: FUNC
+ * @tc.require: #23004
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, ScaleExpandIfNeedTest001, TestSize.Level2)
+{
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas paintCanvas(&canvas);
+
+    RSUniRenderVirtualProcessor processor;
+    processor.isVirtualExpandScale_ = true;
+    processor.ScaleExpandIfNeed(&paintCanvas);
+    EXPECT_TRUE(processor.isVirtualExpandScale_);
+
+    processor.isVirtualExpandScale_ = false;
+    processor.ScaleExpandIfNeed(&paintCanvas);
+    EXPECT_FALSE(processor.isVirtualExpandScale_);
+}
+
+/**
  * @tc.name: Fill scaling test
  * @tc.desc: test Fill scaling mode
  * @tc.type:FUNC
@@ -1591,35 +1659,31 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, GetFrameAcquireFence_RenderFrameValidT
 {
     ASSERT_NE(virtualProcessor_, nullptr);
 
-    // Create a valid renderFrame
+    // Create a mock RSRenderFrame to test GetFrameAcquireFence
+    // In unit test environment, surface RequestBuffer may fail, so we create a mock frame
     auto consumer = IConsumerSurface::Create("test_acquire_fence");
     ASSERT_NE(consumer, nullptr);
     auto producer = consumer->GetProducer();
     auto pSurface = Surface::CreateSurfaceAsProducer(producer);
     ASSERT_NE(pSurface, nullptr);
 
-    // Create RSSurfaceOhosRaster to request frame
     auto rsSurface = std::make_shared<RSSurfaceOhosRaster>(pSurface);
     ASSERT_NE(rsSurface, nullptr);
 
-    auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
-    ASSERT_NE(renderEngine, nullptr);
+    // Create a mock RSSurfaceFrameOhosRaster
+    auto mockFrame = std::make_unique<RSSurfaceFrameOhosRaster>(100, 100);
 
-    BufferRequestConfig config { 100, 100, 8, GRAPHIC_PIXEL_FMT_RGBA_8888,
-        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE, 0, GRAPHIC_COLOR_GAMUT_SRGB,
-        GraphicTransformType::GRAPHIC_ROTATE_NONE };
-    FrameContextConfig frameCtx(false);
-    frameCtx.isVirtual = true;
+    // Create RSRenderFrame with the mock surface and frame
+    virtualProcessor_->renderFrame_ = std::make_unique<RSRenderFrame>(
+        std::static_pointer_cast<RSSurfaceOhos>(rsSurface),
+        std::move(mockFrame));
 
-    virtualProcessor_->renderFrame_ = renderEngine->RequestFrame(
-        std::static_pointer_cast<RSSurfaceOhos>(rsSurface), config, true, false, frameCtx);
+    ASSERT_NE(virtualProcessor_->renderFrame_, nullptr);
 
-    if (virtualProcessor_->renderFrame_ != nullptr) {
-        // Should return valid acquire fence from renderFrame
-        auto fence = virtualProcessor_->GetFrameAcquireFence();
-        ASSERT_NE(fence, nullptr);
-        // Fence might be invalid if frame wasn't flushed yet, but function should not crash
-    }
+    // Should return acquire fence from renderFrame (might be invalid but should not be nullptr)
+    auto fence = virtualProcessor_->GetFrameAcquireFence();
+    ASSERT_NE(fence, nullptr);
+    // Fence might be invalid if frame wasn't flushed yet, but function should not crash
 
     // Clean up renderFrame_ to prevent crash on test teardown
     virtualProcessor_->renderFrame_ = nullptr;
@@ -1838,5 +1902,110 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, CanvasClipRegionForUniscaleMode_Disabl
 
     // Should clip region with default rect when enableVisibleRect_ is false
     EXPECT_NO_FATAL_FAILURE(virtualProcessor_->CanvasClipRegionForUniscaleMode(matrix, isSamplingOn));
+}
+
+/**
+ * @tc.name: SetCropRectForMetadata001
+ * @tc.desc: Test SetCropRectForMetadata with null renderFrame
+ * @tc.type: FUNC
+ * @tc.require: issue22999
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, SetCropRectForMetadata001, TestSize.Level2)
+{
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    
+    // Test with null renderFrame - should return false
+    ASSERT_FALSE(processor->SetCropRectForMetadata(DEFAULT_META_REGION));
+}
+
+/**
+ * @tc.name: SetCropRectForMetadata002
+ * @tc.desc: Test SetCropRectForMetadata with null surface
+ * @tc.type: FUNC
+ * @tc.require: issue22999
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, SetCropRectForMetadata002, TestSize.Level2)
+{
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    
+    // Set up renderFrame with null surface
+    processor->renderFrame_ = std::make_unique<RSRenderFrame>(nullptr, nullptr);
+    
+    // Test with null surface - should return false
+    ASSERT_FALSE(processor->SetCropRectForMetadata(DEFAULT_META_REGION));
+}
+
+/**
+ * @tc.name: SetCropRectForMetadata003
+ * @tc.desc: Test SetCropRectForMetadata with null buffer
+ * @tc.type: FUNC
+ * @tc.require: issue22999
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, SetCropRectForMetadata003, TestSize.Level2)
+{
+#ifdef RS_ENABLE_VK
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        return;
+    }
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    ASSERT_NE(producer, nullptr);
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(pSurface, nullptr);
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    
+    // Set up renderFrame with surface but null buffer
+    std::shared_ptr<RSSurfaceOhosVulkan> rsSurface = std::make_shared<RSSurfaceOhosVulkan>(pSurface);
+    auto surfaceFrame = std::make_unique<RSSurfaceFrameOhosVulkan>(
+        std::make_shared<Drawing::Surface>(), DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT, DEFAULT_BUFFER_AGE);
+    processor->renderFrame_ = std::make_unique<RSRenderFrame>(rsSurface, std::move(surfaceFrame));
+    
+    // Test with null buffer - should return false
+    ASSERT_FALSE(processor->SetCropRectForMetadata(DEFAULT_META_REGION));
+#endif
+}
+
+/**
+ * @tc.name: SetCropRectForMetadata004
+ * @tc.desc: Test SetCropRectForMetadata with valid condition
+ * @tc.type: FUNC
+ * @tc.require: issue22999
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, SetCropRectForMetadata004, TestSize.Level2)
+{
+#ifdef RS_ENABLE_VK
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        return;
+    }
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    ASSERT_NE(producer, nullptr);
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(pSurface, nullptr);
+    auto processor = std::make_shared<RSUniRenderVirtualProcessor>();
+    auto surfaceHandler = std::make_shared<RSSurfaceHandler>(0);
+    sptr<IBufferConsumerListener> listener = new RSUniRenderListener(surfaceHandler);
+    csurface->RegisterConsumerListener(listener);
+
+    // Create native buffer
+    sptr<SurfaceBuffer> buffer = nullptr;
+    int32_t fence;
+    pSurface->RequestBuffer(buffer, fence, requestConfig);
+    NativeWindowBuffer* nativeWindowBuffer = OH_NativeWindow_CreateNativeWindowBufferFromSurfaceBuffer(&buffer);
+    
+    // Set up renderFrame with surface which has buffer
+    std::shared_ptr<RSSurfaceOhosVulkan> rsSurface = std::make_shared<RSSurfaceOhosVulkan>(pSurface);
+    rsSurface->mSurfaceList.emplace_back(nativeWindowBuffer);
+    auto surfaceFrame = std::make_unique<RSSurfaceFrameOhosVulkan>(
+        std::make_shared<Drawing::Surface>(), DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT, DEFAULT_BUFFER_AGE);
+    processor->renderFrame_ = std::make_unique<RSRenderFrame>(rsSurface, std::move(surfaceFrame));
+    
+    // Test with valid buffer - should return true
+    ASSERT_TRUE(processor->SetCropRectForMetadata(DEFAULT_META_REGION));
+#endif
 }
 } // namespace OHOS::Rosen

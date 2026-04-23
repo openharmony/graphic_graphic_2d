@@ -131,6 +131,42 @@ ShaderEffect::ShaderEffect(ShaderEffectType t, const Point& centerPt, const std:
     impl_->InitWithSweepGradient(centerPt, colors, colorSpace, pos, mode, startAngle, endAngle, matrix);
 }
 
+/* LinearGradient */
+ShaderEffect::ShaderEffect(ShaderEffectType t, const Point& startPt, const Point& endPt,
+    const std::vector<UIColor>& colors, std::shared_ptr<ColorSpace> colorSpace,
+    const std::vector<scalar>& pos, TileMode mode, const Matrix *matrix) noexcept
+    : ShaderEffect(t)
+{
+    impl_->InitWithLinearGradient(startPt, endPt, colors, colorSpace, pos, mode, matrix);
+}
+
+/* RadialGradient */
+ShaderEffect::ShaderEffect(ShaderEffectType t, const Point& centerPt, scalar radius,
+    const std::vector<UIColor>& colors, std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos,
+    TileMode mode, const Matrix *matrix) noexcept
+    : ShaderEffect(t)
+{
+    impl_->InitWithRadialGradient(centerPt, radius, colors, colorSpace, pos, mode, matrix);
+}
+
+/* TwoPointConicalGradient */
+ShaderEffect::ShaderEffect(ShaderEffectType t, const Point& startPt, scalar startRadius, const Point& endPt,
+    scalar endRadius, const std::vector<UIColor>& colors, std::shared_ptr<ColorSpace> colorSpace,
+    const std::vector<scalar>& pos, TileMode mode, const Matrix *matrix) noexcept
+    : ShaderEffect(t)
+{
+    impl_->InitWithTwoPointConical(startPt, startRadius, endPt, endRadius, colors, colorSpace, pos, mode, matrix);
+}
+
+/* SweepGradient */
+ShaderEffect::ShaderEffect(ShaderEffectType t, const Point& centerPt, const std::vector<UIColor>& colors,
+    std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos, TileMode mode, scalar startAngle,
+    scalar endAngle, const Matrix *matrix) noexcept
+    : ShaderEffect(t)
+{
+    impl_->InitWithSweepGradient(centerPt, colors, colorSpace, pos, mode, startAngle, endAngle, matrix);
+}
+
 /* ExtendShader */
 ShaderEffect::ShaderEffect(ShaderEffectType t, std::shared_ptr<ExtendObject> object) noexcept
     : type_(t), impl_(ImplFactory::CreateShaderEffectImpl()), object_(object) {}
@@ -267,6 +303,38 @@ std::shared_ptr<ShaderEffect> ShaderEffect::CreateExtendShader(std::shared_ptr<E
 std::shared_ptr<ShaderEffect> ShaderEffect::CreateSdfShader(const SDFShapeBase& shape)
 {
     return std::make_shared<ShaderEffect>(ShaderEffect::ShaderEffectType::SDF_SHADER, shape);
+}
+
+std::shared_ptr<ShaderEffect> ShaderEffect::CreateLinearGradient(const Point& startPt, const Point& endPt,
+    const std::vector<UIColor>& colors, std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos,
+    TileMode mode, const Matrix *matrix)
+{
+    return std::make_shared<ShaderEffect>(ShaderEffect::ShaderEffectType::LINEAR_GRADIENT, startPt, endPt, colors,
+        colorSpace, pos, mode, matrix);
+}
+
+std::shared_ptr<ShaderEffect> ShaderEffect::CreateRadialGradient(const Point& centerPt, scalar radius,
+    const std::vector<UIColor>& colors, std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos,
+    TileMode mode, const Matrix *matrix)
+{
+    return std::make_shared<ShaderEffect>(ShaderEffect::ShaderEffectType::RADIAL_GRADIENT, centerPt, radius, colors,
+        colorSpace, pos, mode, matrix);
+}
+
+std::shared_ptr<ShaderEffect> ShaderEffect::CreateTwoPointConical(const Point& startPt, scalar startRadius,
+    const Point& endPt, scalar endRadius, const std::vector<UIColor>& colors, std::shared_ptr<ColorSpace> colorSpace,
+    const std::vector<scalar>& pos, TileMode mode, const Matrix *matrix)
+{
+    return std::make_shared<ShaderEffect>(ShaderEffect::ShaderEffectType::CONICAL_GRADIENT, startPt, startRadius,
+        endPt, endRadius, colors, colorSpace, pos, mode, matrix);
+}
+
+std::shared_ptr<ShaderEffect> ShaderEffect::CreateSweepGradient(const Point& centerPt, const std::vector<UIColor>& colors,
+    std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos, TileMode mode, scalar startAngle,
+    scalar endAngle, const Matrix* matrix)
+{
+    return std::make_shared<ShaderEffect>(ShaderEffect::ShaderEffectType::SWEEP_GRADIENT,
+        centerPt, colors, colorSpace, pos, mode, startAngle, endAngle, matrix);
 }
 
 #ifdef RS_ENABLE_GPU

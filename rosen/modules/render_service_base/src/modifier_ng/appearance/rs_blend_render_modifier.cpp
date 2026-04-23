@@ -34,6 +34,8 @@ const RSBlendRenderModifier::LegacyPropertyApplierMap RSBlendRenderModifier::Leg
         RSRenderModifier::PropertyApplyHelper<bool, &RSProperties::SetFgBrightnessHdr> },
     { RSPropertyType::SHADOW_BLENDER_PARAMS,
         RSRenderModifier::PropertyApplyHelper<RSShadowBlenderPara, &RSProperties::SetShadowBlenderParams> },
+    { RSPropertyType::HDR_DARKEN_BLENDER_PARAMS,
+        RSRenderModifier::PropertyApplyHelper<RSHdrDarkenBlenderPara, &RSProperties::SetHdrDarkenBlenderParams> },
 };
 
 void RSBlendRenderModifier::ResetProperties(RSProperties& properties)
@@ -47,5 +49,6 @@ void RSBlendRenderModifier::ResetProperties(RSProperties& properties)
     properties.SetFgBrightnessFract(1.f);
     properties.SetFgBrightnessHdr(false);
     properties.SetShadowBlenderParams(std::nullopt);
+    properties.SetHdrDarkenBlenderParams(std::nullopt);
 }
 } // namespace OHOS::Rosen::ModifierNG

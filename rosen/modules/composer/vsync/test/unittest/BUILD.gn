@@ -20,6 +20,7 @@ group("unittest") {
   testonly = true
 
   deps = [
+    ":dvsync_lib_manager_test",
     ":native_vsync_test",
     ":vsync_connection_test",
     ":vsync_controller_test",
@@ -45,9 +46,17 @@ ohos_unittest("dvsync_lib_manager_test") {
 
   deps = [
     ":vsync_test_common",
+    "//foundation/graphic/graphic_2d/rosen/modules/composer/native_vsync:libnative_vsync",
+    "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync:libvsync",
   ]
 
-  external_deps = [ "eventhandler:libeventhandler" ]
+  external_deps = [
+    "eventhandler:libeventhandler",
+    "samgr:samgr_proxy",
+    "googletest:gmock_main",
+    "ipc:ipc_core",
+    "ipc:ipc_single",
+  ]
 }
 
 ## UnitTest dvsync_lib_manager_test }}}

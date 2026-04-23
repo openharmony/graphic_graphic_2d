@@ -269,6 +269,16 @@ int32_t RSRenderServiceClient::SetDualScreenState(ScreenId id, DualScreenStatus 
     return StatusCode::RS_CONNECTION_ERROR;
 }
 
+int32_t RSRenderServiceClient::SetAsMainScreen(ScreenId screenId, bool isMainScreen)
+{
+    return StatusCode::RS_CONNECTION_ERROR;
+}
+
+ScreenId RSRenderServiceClient::GetMainScreenId()
+{
+    return INVALID_SCREEN_ID;
+}
+
 RSScreenModeInfo RSRenderServiceClient::GetScreenActiveMode(ScreenId id)
 {
     return {};
@@ -373,7 +383,8 @@ int32_t RSRenderServiceClient::SetPixelFormat(ScreenId id, GraphicPixelFormat pi
     return {};
 }
 
-int32_t RSRenderServiceClient::GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats)
+int32_t RSRenderServiceClient::GetScreenSupportedHDRFormats(ScreenId id,
+    std::vector<ScreenHDRFormat>& hdrFormats, const ScreenSupportedHDRFormatsCallback& callback)
 {
     return {};
 }
@@ -501,6 +512,12 @@ int32_t RSRenderServiceClient::RegisterHgmRefreshRateUpdateCallback(
 
 int32_t RSRenderServiceClient::RegisterFirstFrameCommitCallback(
     const FirstFrameCommitCallback& callback)
+{
+    return {};
+}
+
+int32_t RSRenderServiceClient::RegisterExposedEventCallback(
+    const RSExposedEventType type, const RSExposedEventCallback& callback)
 {
     return {};
 }

@@ -16,7 +16,7 @@
 #ifndef RS_CORE_PIPELINE_VIRTUAL_SCREEN_PROCESSOR_H
 #define RS_CORE_PIPELINE_VIRTUAL_SCREEN_PROCESSOR_H
 
-#include "rs_base_render_engine.h"
+#include "engine/rs_base_render_engine.h"
 #include "pipeline/rs_processor.h"
 
 namespace OHOS {

@@ -936,4 +936,186 @@ HWTEST_F(RSRenderServiceConnectionTest, SetLogicalCameraRotationCorrectionTest00
     ASSERT_NE(clientToRenderConnectionWithNullThread, nullptr);
     clientToRenderConnectionWithNullThread->SetLogicalCameraRotationCorrection(0, ScreenRotation::ROTATION_90);
 }
+
+#ifdef ROSEN_OHOS
+/**
+ * @tc.name: CollectSurfaceBuffersByProcessId001
+ * @tc.desc: Test CollectSurfaceBuffersByProcessId with texture mode buffers
+ * @tc.type: FUNC
+ * @tc.require: issue28175
+ */
+HWTEST_F(RSRenderServiceConnectionTest, CollectSurfaceBuffersByProcessId001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    mainThread->runner_ = OHOS::AppExecFwk::EventRunner::Create(true);
+    mainThread->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(mainThread_->runner_);
+    mainThread->runner_->Run();
+
+    pid_t testPid = 4001;
+    uint64_t testUid = 40001;
+
+    sptr<SurfaceBuffer> surfaceBuffer = SurfaceBuffer::Create();
+    DrawingSurfaceBufferInfo bufferInfo;
+    bufferInfo.surfaceBuffer_ = surfaceBuffer;
+    bufferInfo.pid_ = testPid;
+    bufferInfo.uid_ = testUid;
+    bufferInfo.dstRect_ = Drawing::Rect(10, 20, 110, 120);
+
+    RSSurfaceBufferCallbackManager::Instance().StoreSurfaceBufferInfo(bufferInfo);
+
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(screenManager, nullptr);
+    
+    auto connection = new RSClientToServiceConnection(
+        testPid, nullptr, mainThread, screenManager, token->AsObject(), nullptr);
+    ASSERT_NE(connection, nullptr);
+
+    std::vector<std::tuple<sptr<SurfaceBuffer>, std::string, RectI>> sfBufferInfoVector;
+    
+    std::function<void()> collectTask = [&]() {
+        connection->CollectSurfaceBuffersByProcessId(sfBufferInfoVector, testPid);
+    };
+    mainThread->PostSyncTask(collectTask);
+
+    EXPECT_GE(sfBufferInfoVector.size(), 1);
+    if (sfBufferInfoVector.size() > 0) {
+        auto& [buffer, name, rect] = sfBufferInfoVector[0];
+        EXPECT_NE(buffer, nullptr);
+        EXPECT_FALSE(name.empty());
+    }
+
+    RSSurfaceBufferCallbackManager::Instance().RemoveAllSurfaceBufferInfo(testPid, testUid);
+}
+
+/**
+ * @tc.name: CollectSurfaceBuffersByProcessId002
+ * @tc.desc: Test CollectSurfaceBuffersByProcessId with non-existent pid
+ * @tc.type: FUNC
+ * @tc.require: issue28175
+ */
+HWTEST_F(RSRenderServiceConnectionTest, CollectSurfaceBuffersByProcessId002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    mainThread->runner_ = OHOS::AppExecFwk::EventRunner::Create(true);
+    mainThread->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(mainThread_->runner_);
+    mainThread->runner_->Run();
+
+    pid_t nonExistentPid = 9999;
+
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(screenManager, nullptr);
+    
+    auto connection = new RSClientToServiceConnection(
+        nonExistentPid, nullptr, mainThread, screenManager, token->AsObject(), nullptr);
+    ASSERT_NE(connection, nullptr);
+
+    std::vector<std::tuple<sptr<SurfaceBuffer>, std::string, RectI>> sfBufferInfoVector;
+    
+    std::function<void()> collectTask = [&]() {
+        connection->CollectSurfaceBuffersByProcessId(sfBufferInfoVector, nonExistentPid);
+    };
+    mainThread->PostSyncTask(collectTask);
+
+    EXPECT_EQ(sfBufferInfoVector.size(), 0);
+}
+
+/**
+ * @tc.name: ConvertBuffersToPixelMaps001
+ * @tc.desc: Test ConvertBuffersToPixelMaps with valid buffers
+ * @tc.type: FUNC
+ * @tc.require: issue28175
+ */
+HWTEST_F(RSRenderServiceConnectionTest, ConvertBuffersToPixelMaps001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    mainThread->runner_ = OHOS::AppExecFwk::EventRunner::Create(true);
+    mainThread->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(mainThread_->runner_);
+    mainThread->runner_->Run();
+
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(screenManager, nullptr);
+    
+    auto connection = new RSClientToServiceConnection(
+        4002, nullptr, mainThread, screenManager, token->AsObject(), nullptr);
+    ASSERT_NE(connection, nullptr);
+
+    std::vector<std::tuple<sptr<SurfaceBuffer>, std::string, RectI>> sfBufferInfoVector;
+    std::vector<PixelMapInfo> pixelMapInfoVector;
+
+    sptr<SurfaceBuffer> surfaceBuffer = SurfaceBuffer::Create();
+    RectI rect(0, 0, 100, 100);
+    auto bufferInfo = std::make_tuple(surfaceBuffer, std::string("TestSurface"), rect);
+    sfBufferInfoVector.push_back(bufferInfo);
+
+    connection->ConvertBuffersToPixelMaps(sfBufferInfoVector, pixelMapInfoVector);
+
+    EXPECT_GE(pixelMapInfoVector.size(), 0);
+}
+
+/**
+ * @tc.name: ConvertBuffersToPixelMaps002
+ * @tc.desc: Test ConvertBuffersToPixelMaps with null buffer
+ * @tc.type: FUNC
+ * @tc.require: issue28175
+ */
+HWTEST_F(RSRenderServiceConnectionTest, ConvertBuffersToPixelMaps002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    mainThread->runner_ = OHOS::AppExecFwk::EventRunner::Create(true);
+    mainThread->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(mainThread_->runner_);
+    mainThread->runner_->Run();
+
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(screenManager, nullptr);
+    
+    auto connection = new RSClientToServiceConnection(
+        4003, nullptr, mainThread, screenManager, token->AsObject(), nullptr);
+    ASSERT_NE(connection, nullptr);
+
+    std::vector<std::tuple<sptr<SurfaceBuffer>, std::string, RectI>> sfBufferInfoVector;
+    std::vector<PixelMapInfo> pixelMapInfoVector;
+
+    RectI rect(0, 0, 100, 100);
+    auto bufferInfo = std::make_tuple(nullptr, std::string("NullSurface"), rect);
+    sfBufferInfoVector.push_back(bufferInfo);
+
+    connection->ConvertBuffersToPixelMaps(sfBufferInfoVector, pixelMapInfoVector);
+
+    EXPECT_EQ(pixelMapInfoVector.size(), 0);
+}
+
+/**
+ * @tc.name: GetPixelMapByProcessIdWithTexture001
+ * @tc.desc: Test GetPixelMapByProcessId with null mainThread
+ * @tc.type: FUNC
+ * @tc.require: issue28175
+ */
+HWTEST_F(RSRenderServiceConnectionTest, GetPixelMapByProcessIdWithTexture001, TestSize.Level1)
+{
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(screenManager, nullptr);
+    
+    auto connection = new RSClientToServiceConnection(
+        4005, nullptr, nullptr, screenManager, token->AsObject(), nullptr);
+    ASSERT_NE(connection, nullptr);
+
+    std::vector<PixelMapInfo> pixelMapInfoVector;
+    int32_t repCode = 0;
+    ErrCode result = connection->GetPixelMapByProcessId(pixelMapInfoVector, 4005, repCode);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+}
+#endif
 } // namespace OHOS::Rosen

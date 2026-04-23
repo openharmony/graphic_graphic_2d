@@ -51,8 +51,7 @@ uint32_t VariationFontCache::CalculateHashKey(uint32_t originalUniqueId,
     uint32_t hash = 0x9e3779b9;
     // Both 6 and 2 are interference positions
     hash ^= originalUniqueId + (hash << 6) + (hash >> 2);
-    // Both 6 and 2 are interference positions
-    hash ^= std::hash<skia::textlayout::FontArguments>()(fontArgs) + (hash << 6) + (hash >> 2);
+    hash ^= std::hash<skia::textlayout::FontArguments>()(fontArgs);
     return hash;
 }
 

@@ -1280,9 +1280,9 @@ void VSyncDistributor::UpdatePendingReferenceTime(int64_t &timeStamp)
     DVSyncLibManager::Instance().UpdatePendingReferenceTime(timeStamp);
 }
 
-uint64_t VSyncDistributor::GetRealTimeOffsetOfDvsync(int64_t time)
+uint64_t VSyncDistributor::GetRealTimeOffsetOfDvsync(int64_t time, int64_t& preTime)
 {
-    return DVSyncLibManager::Instance().GetRealTimeOffsetOfDvsync(time);
+    return DVSyncLibManager::Instance().GetRealTimeOffsetOfDvsync(time, preTime);
 }
 
 void VSyncDistributor::SetHardwareTaskNum(uint32_t num)
@@ -1435,17 +1435,22 @@ void VSyncDistributor::SetBufferInfo(const BufferInfo& bufferInfo)
         RS_TRACE_NAME("SetBufferInfo, app is not requested");
         return;
     }
+    bool needPreexecute = false;
     sptr<VSyncConnection> connection = nullptr;
-    DVSyncLibManager::Instance().GetVSyncConnectionApp(connection);
-    if (connection == nullptr) {
-        RS_TRACE_NAME("SetBufferInfo, connection is nullptr");
-        return;
-    }
     int64_t timestamp = 0;
     int64_t period = 0;
     int64_t vsyncCount = 0;
-    bool needPreexecute = DVSyncCheckPreexecuteAndUpdateTs(connection, timestamp, period, vsyncCount);
-    RS_TRACE_NAME_FMT("SetBufferInfo, needPreexecute:%d", needPreexecute);
+    {
+        std::lock_guard<std::mutex> locker(mutex_);
+        
+        DVSyncLibManager::Instance().GetVSyncConnectionApp(connection);
+        if (connection == nullptr) {
+            RS_TRACE_NAME("SetBufferInfo, connection is nullptr");
+            return;
+        }
+        needPreexecute = DVSyncCheckPreexecuteAndUpdateTs(connection, timestamp, period, vsyncCount);
+        RS_TRACE_NAME_FMT("SetBufferInfo, needPreexecute:%d", needPreexecute);
+    }
     if (needPreexecute) {
         ConnPostEvent(connection, timestamp, period, vsyncCount);
     }

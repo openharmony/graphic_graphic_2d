@@ -131,11 +131,17 @@ public:
     void AddOpincCacheMem(int64_t cacheMem);
     void ReduceOpincCacheMem(int64_t cacheMem);
 
-    void PushLayerPartRenderDirtyRegion(const RSRenderParams& params,
-        RSPaintFilterCanvas& canvas, int nodeCount);
+    void PushLayerPartRenderDirtyRegion(const RSRenderParams& params, RSPaintFilterCanvas& curCanvas,
+        RSPaintFilterCanvas& cacheCanvas, int nodeCount);
     void LayerPartRenderClipDirtyRegion(const RSRenderParams& params,
-        bool* isOffScreenWithClipHole, RSPaintFilterCanvas& canvas);
-    void PopLayerPartRenderDirtyRegion(const RSRenderParams& params, RSPaintFilterCanvas& canvas);
+        RSPaintFilterCanvas& canvas);
+    void PopLayerPartRenderDirtyRegion(const RSRenderParams& params,
+        RSPaintFilterCanvas& canvas);
+    void ResetUpdateLayerPartRenderCache()
+    {
+        layerPartRenderUnchangeCount_ = 0;
+    }
+
 protected:
     thread_local static inline NodeStrategyType nodeCacheType_ = NodeStrategyType::CACHE_NONE;
     static RectI screenRectInfo_;
@@ -163,6 +169,7 @@ private:
     static thread_local bool opincBlockNodeSkip_;
     static thread_local int opincRootNodeCount_;
     Drawing::Region layerPartRenderDirtyRegion_;
+    int32_t layerPartRenderUnchangeCount_ = 0;
 }; // RSOpincDrawCache
 }
 }

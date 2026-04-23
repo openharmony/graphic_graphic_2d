@@ -31,7 +31,7 @@ ohos_fuzztest("HmSymbolTxtFuzzTest") {
     "../",
   ]
 
-  sources = [ "hm_symbol_txt_fuzzer.cpp" ]
+  sources = [ "hmsymboltxt_fuzzer.cpp" ]
 
   cflags = [
     "-g",

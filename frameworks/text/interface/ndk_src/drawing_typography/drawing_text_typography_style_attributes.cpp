@@ -34,6 +34,10 @@ namespace OHOS::Rosen::Text {
 
     typedef OH_Drawing_ErrorCode (*TypographyStyleBoolGetter)(const TypographyStyle*, bool*);
 
+    typedef OH_Drawing_ErrorCode (*TypographyStyleDoubleArraySetter)(TypographyStyle*, const double*, size_t);
+
+    typedef OH_Drawing_ErrorCode (*TypographyStyleDoubleArrayGetter)(const TypographyStyle*, double**, size_t*);
+
     OH_Drawing_ErrorCode SetLineSpacing(TypographyStyle* style, double value)
     {
         style->lineSpacing = value;
@@ -151,11 +155,81 @@ namespace OHOS::Rosen::Text {
         return OH_DRAWING_SUCCESS;
     }
 
+    OH_Drawing_ErrorCode SetFirstLineHeadIndent(TypographyStyle* style, double value)
+    {
+        if (value < 0) {
+            return OH_DRAWING_ERROR_INVALID_PARAMETER;
+        }
+        style->firstLineIndent = value;
+        return OH_DRAWING_SUCCESS;
+    }
+
+    OH_Drawing_ErrorCode GetFirstLineHeadIndent(const TypographyStyle* style, double* value)
+    {
+        *value = style->firstLineIndent;
+        return OH_DRAWING_SUCCESS;
+    }
+
+    OH_Drawing_ErrorCode SetLineHeadIndents(TypographyStyle* style, const double* arrayValue, size_t arrayLength)
+    {
+        for (size_t i = 0; i < arrayLength; i++) {
+            if (arrayValue[i] < 0) {
+                return OH_DRAWING_ERROR_INVALID_PARAMETER;
+            }
+        }
+        style->headIndents.clear();
+        style->headIndents.reserve(arrayLength);
+        for (size_t i = 0; i < arrayLength; i++) {
+            style->headIndents.push_back(arrayValue[i]);
+        }
+        return OH_DRAWING_SUCCESS;
+    }
+
+    OH_Drawing_ErrorCode GetLineHeadIndents(const TypographyStyle* style, double** arrayValue, size_t* arrayLength)
+    {
+        if (style->headIndents.empty()) {
+            *arrayValue = nullptr;
+            *arrayLength = 0;
+            return OH_DRAWING_SUCCESS;
+        }
+        *arrayLength = style->headIndents.size();
+        *arrayValue = const_cast<double*>(style->headIndents.data());
+        return OH_DRAWING_SUCCESS;
+    }
+
+    OH_Drawing_ErrorCode SetLineTailIndents(TypographyStyle* style, const double* arrayValue, size_t arrayLength)
+    {
+        for (size_t i = 0; i < arrayLength; i++) {
+            if (arrayValue[i] < 0) {
+                return OH_DRAWING_ERROR_INVALID_PARAMETER;
+            }
+        }
+        style->tailIndents.clear();
+        style->tailIndents.reserve(arrayLength);
+        for (size_t i = 0; i < arrayLength; i++) {
+            style->tailIndents.push_back(arrayValue[i]);
+        }
+        return OH_DRAWING_SUCCESS;
+    }
+
+    OH_Drawing_ErrorCode GetLineTailIndents(const TypographyStyle* style, double** arrayValue, size_t* arrayLength)
+    {
+        if (style->tailIndents.empty()) {
+            *arrayValue = nullptr;
+            *arrayLength = 0;
+            return OH_DRAWING_SUCCESS;
+        }
+        *arrayLength = style->tailIndents.size();
+        *arrayValue = const_cast<double*>(style->tailIndents.data());
+        return OH_DRAWING_SUCCESS;
+    }
+
     static std::unordered_map<OH_Drawing_TypographyStyleAttributeId, TypographyStyleDoubleSetter>
         g_typographyStyleDoubleSetters = {
             { TYPOGRAPHY_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, SetLineHeightMaximum },
             { TYPOGRAPHY_STYLE_ATTR_D_LINE_HEIGHT_MINIMUM, SetLineHeightMinimum },
             { TYPOGRAPHY_STYLE_ATTR_D_LINE_SPACING, SetLineSpacing },
+            { TYPOGRAPHY_STYLE_ATTR_D_FIRST_LINE_HEAD_INDENT, SetFirstLineHeadIndent },
         };
 
     static std::unordered_map<OH_Drawing_TypographyStyleAttributeId, TypographyStyleDoubleGetter>
@@ -163,6 +237,7 @@ namespace OHOS::Rosen::Text {
             { TYPOGRAPHY_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, GetLineHeightMaximum },
             { TYPOGRAPHY_STYLE_ATTR_D_LINE_HEIGHT_MINIMUM, GetLineHeightMinimum },
             { TYPOGRAPHY_STYLE_ATTR_D_LINE_SPACING, GetLineSpacing },
+            { TYPOGRAPHY_STYLE_ATTR_D_FIRST_LINE_HEAD_INDENT, GetFirstLineHeadIndent },
     };
 
     static std::unordered_map<OH_Drawing_TypographyStyleAttributeId, TypographyStyleIntSetter>
@@ -191,6 +266,18 @@ namespace OHOS::Rosen::Text {
             { TYPOGRAPHY_STYLE_ATTR_B_COMPRESS_HEAD_PUNCTUATION, GetCompressHeadPunctuation },
             { TYPOGRAPHY_STYLE_ATTR_B_INCLUDE_FONT_PADDING, GetIncludeFontPadding },
             { TYPOGRAPHY_STYLE_ATTR_B_FALLBACK_LINE_SPACING, GetFallbackLineSpacing },
+    };
+
+    static std::unordered_map<OH_Drawing_TypographyStyleAttributeId, TypographyStyleDoubleArraySetter>
+        g_typographyStyleDoubleArraySetters = {
+            { TYPOGRAPHY_STYLE_ATTR_DA_LINE_HEAD_INDENT, SetLineHeadIndents },
+            { TYPOGRAPHY_STYLE_ATTR_DA_LINE_TAIL_INDENT, SetLineTailIndents },
+    };
+
+    static std::unordered_map<OH_Drawing_TypographyStyleAttributeId, TypographyStyleDoubleArrayGetter>
+        g_typographyStyleDoubleArrayGetters = {
+            { TYPOGRAPHY_STYLE_ATTR_DA_LINE_HEAD_INDENT, GetLineHeadIndents },
+            { TYPOGRAPHY_STYLE_ATTR_DA_LINE_TAIL_INDENT, GetLineTailIndents },
     };
 }
 
@@ -270,4 +357,30 @@ OH_Drawing_ErrorCode OH_Drawing_GetTypographyStyleAttributeBool(OH_Drawing_Typog
         return OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH;
     }
     return it->second(reinterpret_cast<const TypographyStyle*>(style), value);
+}
+
+OH_Drawing_ErrorCode OH_Drawing_SetTypographyStyleAttributeDoubleArray(OH_Drawing_TypographyStyle* style,
+    OH_Drawing_TypographyStyleAttributeId id, double* arrayValue, size_t arrayLength)
+{
+    if (style == nullptr || arrayValue == nullptr || arrayLength == 0) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    auto it = Text::g_typographyStyleDoubleArraySetters.find(id);
+    if (it == Text::g_typographyStyleDoubleArraySetters.end()) {
+        return OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH;
+    }
+    return it->second(reinterpret_cast<TypographyStyle*>(style), arrayValue, arrayLength);
+}
+
+OH_Drawing_ErrorCode OH_Drawing_GetTypographyStyleAttributeDoubleArray(const OH_Drawing_TypographyStyle* style,
+    OH_Drawing_TypographyStyleAttributeId id, double** arrayValue, size_t* arrayLength)
+{
+    if (style == nullptr || arrayValue == nullptr || arrayLength == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    auto it = Text::g_typographyStyleDoubleArrayGetters.find(id);
+    if (it == Text::g_typographyStyleDoubleArrayGetters.end()) {
+        return OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH;
+    }
+    return it->second(reinterpret_cast<const TypographyStyle*>(style), arrayValue, arrayLength);
 }

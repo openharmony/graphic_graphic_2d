@@ -67,6 +67,7 @@ const std::unordered_map<std::string, std::function<bool(MessageParcel&, const T
     DECLARE_WRITE_RANDOM(SurfaceOcclusionChangeCallbackSptr),
     DECLARE_WRITE_RANDOM(UIExtensionCallbackSptr),
     DECLARE_WRITE_RANDOM(ScreenChangeCallbackSptr),
+    DECLARE_WRITE_RANDOM(ScreenSwitchingNotifyCallbackSptr),
     DECLARE_WRITE_RANDOM(SurfaceCaptureCallbackSptr),
     DECLARE_WRITE_RANDOM(BrightnessInfoChangeCallbackSptr),
     DECLARE_WRITE_RANDOM(TransactionDataCallbackSptr),
@@ -398,6 +399,22 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomScreenChangeCallbackSptr(Messa
     sptr<RSIScreenChangeCallback> obj = new CustomScreenChangeCallback(callback);
     if (!messageParcel.WriteRemoteObject(obj->AsObject())) {
         SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomScreenChangeCallbackSptr "
+            "WriteRemoteObject failed");
+        return false;
+    }
+    return true;
+}
+
+bool MessageParcelCustomizedTypeUtils::WriteRandomScreenSwitchingNotifyCallbackSptr(MessageParcel& messageParcel,
+    const TestCaseParams& /* testCaseParams */)
+{
+    ScreenSwitchingNotifyCallback callback = [](bool status) {
+        SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomScreenSwitchingNotifyCallbackSptr sleep 6s");
+        usleep(DELAY);
+    };
+    sptr<RSIScreenSwitchingNotifyCallback> obj = new CustomScreenSwitchingNotifyCallback(callback);
+    if (!messageParcel.WriteRemoteObject(obj->AsObject())) {
+        SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomScreenSwitchingNotifyCallbackSptr "
             "WriteRemoteObject failed");
         return false;
     }

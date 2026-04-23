@@ -486,6 +486,18 @@ inline napi_value CreateArrayStringJsValue(napi_env env, const std::vector<std::
     return jsArray;
 }
 
+inline napi_value CreateArrayDoubleJsValue(napi_env env, const std::vector<double>& vectorDouble)
+{
+    napi_value jsArray = nullptr;
+    if (napi_create_array_with_length(env, vectorDouble.size(), &jsArray) == napi_ok) {
+        size_t index = 0;
+        for (const auto& value : vectorDouble) {
+            napi_set_element(env, jsArray, index++, CreateJsNumber(env, value));
+        }
+    }
+    return jsArray;
+}
+
 inline napi_value CreateStringJsValue(napi_env env, const std::u16string& u16String)
 {
     napi_value jsStr = nullptr;
@@ -504,6 +516,8 @@ napi_value CreateShadowArrayJsValue(napi_env env, const std::vector<TextShadow>&
 napi_value CreateDecrationJsValue(napi_env env, TextStyle textStyle);
 
 napi_value CreateTextStyleJsValue(napi_env env, TextStyle textStyle);
+
+napi_value CreateTypographyStyleJsValue(napi_env env, const TypographyStyle& typographyStyle);
 
 napi_value CreateFontMetricsJsValue(napi_env env, Drawing::FontMetrics& fontMetrics);
 

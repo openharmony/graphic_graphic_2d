@@ -16,11 +16,11 @@
 #include "gtest/gtest.h"
 
 #ifdef RS_ENABLE_VK
-#include "feature/gpuComposition/rs_vk_image_manager.h"
+#include "gpuComposition/rs_vk_image_manager.h"
 #else
-#include "feature/gpuComposition/rs_egl_image_manager.h"
+#include "gpuComposition/rs_egl_image_manager.h"
 #endif
-#include "pipeline/render_thread/rs_base_render_engine.h"
+#include "engine/rs_base_render_engine.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/rs_test_util.h"
 #include "recording/recording_canvas.h"

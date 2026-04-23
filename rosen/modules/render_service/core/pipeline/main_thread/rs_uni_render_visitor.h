@@ -22,9 +22,10 @@
 #include <parameters.h>
 #include <set>
 
-#include "pipeline/render_thread/rs_base_render_engine.h"
+#include "engine/rs_base_render_engine.h"
 #include "system/rs_system_parameters.h"
 
+#include "feature/anco_manager/rs_anco_manager.h"
 #include "feature/hwc/rs_uni_hwc_prevalidate_util.h"
 #include "feature/pointer_window_manager/rs_pointer_window_manager.h"
 #include "feature/round_corner_display/rs_rcd_render_manager.h"
@@ -226,6 +227,7 @@ private:
     void PrevalidateHwcNode();
     bool PrepareForCloneNode(RSSurfaceRenderNode& node);
     void UpdateInfoForClonedNode(RSSurfaceRenderNode& node);
+    bool IsSourceNodeDirty(RSSurfaceRenderNode& node);
     void PrepareForCrossNode(RSSurfaceRenderNode& node);
 
     // use in QuickPrepareSurfaceRenderNode, update SurfaceRenderNode's uiFirst status
@@ -289,8 +291,9 @@ private:
 
     bool ForcePrepareSubTree()
     {
-        return (curSurfaceNode_ && curSurfaceNode_->GetNeedCollectHwcNode()) || IsAccessibilityConfigChanged() ||
-               isFirstFrameAfterScreenRotation_ || isCurSubTreeForcePrepare_;
+        return (curSurfaceNode_ && (curSurfaceNode_->GetNeedCollectHwcNode() ||
+                                    RSAncoManager::Instance()->IsAncoType(curSurfaceNode_->GetName()))) ||
+               IsAccessibilityConfigChanged() || isFirstFrameAfterScreenRotation_ || isCurSubTreeForcePrepare_;
     }
     // Wish to force prepare specific subtrees? Add conditions here
     bool IsCurrentSubTreeForcePrepare(RSRenderNode& node);
@@ -332,6 +335,9 @@ private:
     void SetRenderGroupSubTreeDirtyIfNeed(const RSRenderNode& node);
     bool IsOnRenderGroupExcludedSubTree() const;
     bool HasAncestorRenderGroup(NodeId nodeId) const;
+    bool IsNodeInBlackList(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNodePtr) const;
+    void TraverseRenderGroupCacheRoots(
+        std::function<void(const std::shared_ptr<RSCanvasRenderNode>&)> func) const;
     // !used for renderGroup
 
     /* Check whether gpu overdraw buffer feature can be enabled on the RenderNode
@@ -371,7 +377,11 @@ private:
 
     void DisableOccludedHwcNodeInSkippedSubTree(const RSRenderNode& node) const;
 
-    void PrepareColorPickerDrawable(RSRenderNode& node);
+    void HandleColorPickerHwcDisable(RSRenderNode& node);
+    /**
+     * @brief Prepare color pickers with dirty region intersection checking
+     */
+    void PrepareColorPickers();
 
     friend class RSUniHwcVisitor;
     std::unique_ptr<RSUniHwcVisitor> hwcVisitor_;
@@ -394,6 +404,7 @@ private:
     std::shared_ptr<RSDirtyRegionManager> curLayerPartRenderDirtyManager_;
     std::shared_ptr<RSSurfaceRenderNode> curSurfaceNode_;
     std::shared_ptr<RSUnionRenderNode> curUnionNode_;
+    std::shared_ptr<RSDynamicLayerSkipController> dynamicLayerSkipController_;
     RSSpecialLayerManager specialLayerManager_;
 
     bool hasFingerprint_ = false;
@@ -538,6 +549,9 @@ private:
 
     // used for force prepare current subtree this frame
     bool isCurSubTreeForcePrepare_ = false;
+
+    // used for check whether anco has dimmer
+    bool hasAncoDimmer_ = false;
 };
 
 class RSSubTreePrepareController {

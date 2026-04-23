@@ -41,7 +41,8 @@ const uint8_t DO_SET_ROG_SCREEN_RESOLUTION = 11;
 const uint8_t DO_SET_SCREEN_ACTIVE_MODE = 12;
 const uint8_t DO_SET_SCREEN_CHANGE_CALLBACK = 13;
 const uint8_t DO_SET_SCREEN_FRAME_GRAVITY = 14;
-const uint8_t TARGET_SIZE = 15;
+const uint8_t DO_SET_AS_MAIN_SCREEN = 15;
+const uint8_t TARGET_SIZE = 16;
 
 void DoSetScreenPowerStatus(FuzzedDataProvider& fdp)
 {
@@ -120,6 +121,13 @@ void DoSetDualScreenState(FuzzedDataProvider& fdp)
     ScreenId id = fdp.ConsumeIntegral<uint64_t>();
     DualScreenStatus status = static_cast<DualScreenStatus>(fdp.ConsumeIntegral<uint64_t>());
     g_rsInterfaces->SetDualScreenState(id, status);
+}
+
+void DoSetAsMainScreen(FuzzedDataProvider& fdp)
+{
+    ScreenId id = fdp.ConsumeIntegral<uint64_t>();
+    bool isMainScreen = fdp.ConsumeBool();
+    g_rsInterfaces->SetAsMainScreen(id, isMainScreen);
 }
 
 void DoSetMirrorScreenVisibleRect(FuzzedDataProvider& fdp)
@@ -226,6 +234,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_SET_DUAL_SCREEN_STATE:
             OHOS::Rosen::DoSetDualScreenState(fdp);
+            break;
+        case OHOS::Rosen::DO_SET_AS_MAIN_SCREEN:
+            OHOS::Rosen::DoSetAsMainScreen(fdp);
             break;
         case OHOS::Rosen::DO_SET_MIRROR_SCREEN_VISIBLE_RECT:
             OHOS::Rosen::DoSetMirrorScreenVisibleRect(fdp);

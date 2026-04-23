@@ -62,6 +62,8 @@ enum TouchStatus : uint32_t {
     TOUCH_PULL_DOWN = 12,
     TOUCH_PULL_MOVE = 13,
     TOUCH_PULL_UP = 14,
+    POINTER_ACTION_PROXIMITY_IN = 35,
+    POINTER_ACTION_PROXIMITY_OUT = 36,
 };
 
 enum TouchSourceType : int32_t {
@@ -101,6 +103,8 @@ class HgmFrameRateManager {
 public:
     HgmFrameRateManager();
     ~HgmFrameRateManager() noexcept = default;
+
+    void AddScreenInit();
 
     void HandleLightFactorStatus(pid_t pid, int32_t state);
     void HandlePackageEvent(pid_t pid, const std::vector<std::string>& packageList);
@@ -180,7 +184,6 @@ public:
 
     void SetHgmConfigUpdateCallback(
         std::function<void(std::shared_ptr<RPHgmConfigData>, bool, bool, int32_t)> hgmConfigUpdateCallback);
-    void SyncHgmConfigUpdateCallback();
 
     const VoteInfo& GetLastVoteInfo() const { return lastVoteInfo_; }
 
@@ -210,6 +213,7 @@ private:
     void HandleMultiSelfOwnedScreenEvent(pid_t pid, EventInfo eventInfo);
     void HandleTouchTask(pid_t pid, int32_t touchStatus, int32_t touchCnt);
     void HandlePointerTask(pid_t pid, int32_t pointerStatus, int32_t pointerCnt);
+    void HandleScreenLtpoConfig(ScreenId id);
     void HandleScreenFrameRate(std::string curScreenName);
     void UpdateScreenFrameRate();
     void RegisterUpTimeoutAndDownEvent();
@@ -239,6 +243,7 @@ private:
     void CheckNeedUpdateAppOffset(uint32_t refreshRate, uint32_t controllerRate);
     void CheckForceUpdateCallback(uint32_t refreshRate);
     void HandleLowPowerSlideSceneEvent(const std::string& sceneName, bool eventStatus);
+    void SyncHgmConfigUpdateCallback();
     void TriggerHgmConfigUpdateCallback(std::shared_ptr<RPHgmConfigData> configData, bool ltpoEnabled, bool isDelayMode,
         int32_t pipelineOffsetPulseNum);
     void TriggerAdaptiveVsyncUpdateCallback();
@@ -327,6 +332,9 @@ private:
 
     bool isLowPowerSlide_ = false;
     bool slideModeChange_ = false;
+
+    ScreenId activeRectScreenId_ = INVALID_SCREEN_ID;
+    Rect activeRect_ { 0, 0, 0, 0 };
 
     std::function<void(std::shared_ptr<RPHgmConfigData>, bool, bool, int32_t)> hgmConfigUpdateCallback_ = nullptr;
 };

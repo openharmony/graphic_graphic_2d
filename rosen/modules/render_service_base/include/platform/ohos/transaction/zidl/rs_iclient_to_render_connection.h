@@ -57,10 +57,12 @@
 #include "screen_manager/rs_screen_mode_info.h"
 #include "screen_manager/screen_types.h"
 #include "screen_manager/rs_virtual_screen_resolution.h"
+#include "transaction/rs_frame_stability_types.h"
 #include "transaction/rs_transaction_data.h"
 
 #include "transaction/rs_render_service_client_info.h"
 #include "ivsync_connection.h"
+#include "ipc_callbacks/rs_iframe_stability_callback.h"
 #include "ipc_callbacks/rs_ihgm_config_change_callback.h"
 #include "ipc_callbacks/rs_ifirst_frame_commit_callback.h"
 #include "ipc_callbacks/rs_iocclusion_change_callback.h"
@@ -146,7 +148,7 @@ public:
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) = 0;
 
     virtual ErrCode SetHwcNodeBounds(
-        int64_t rsNodeId, float positionX, float positionY, float positionZ, float positionW) = 0;
+        NodeId rsNodeId, float positionX, float positionY, float positionZ, float positionW) = 0;
 
     virtual int32_t GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo) = 0;
 
@@ -195,6 +197,25 @@ public:
 
     virtual int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id) = 0;
     virtual int32_t SetLogicalCameraRotationCorrection(ScreenId id, ScreenRotation logicalCorrection) = 0;
+
+    virtual int32_t GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight) = 0;
+
+    virtual int32_t RegisterFrameStabilityDetection(
+        const FrameStabilityTarget& target,
+        const FrameStabilityConfig& config,
+        sptr<RSIFrameStabilityCallback> callback
+    ) = 0;
+
+    virtual int32_t UnregisterFrameStabilityDetection(const FrameStabilityTarget& target) = 0;
+
+    virtual int32_t StartFrameStabilityCollection(
+        const FrameStabilityTarget& target,
+        const FrameStabilityConfig& config
+    ) = 0;
+
+    virtual int32_t GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result) = 0;
+
+    virtual void RegisterRemoteRefreshCallback() = 0;
 };
 
 } // namespace Rosen

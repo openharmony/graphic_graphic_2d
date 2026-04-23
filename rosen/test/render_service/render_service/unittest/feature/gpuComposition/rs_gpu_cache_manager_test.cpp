@@ -23,7 +23,7 @@
 
 #include "gtest/gtest.h"
 
-#include "feature/gpuComposition/rs_gpu_cache_manager.h"
+#include "gpuComposition/rs_gpu_cache_manager.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 
 using namespace testing;

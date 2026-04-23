@@ -249,24 +249,17 @@ void RSRenderParticleEffector::UpdateAccelerationValue(
     particle->SetAccelerationValue(accelerationValue);
 }
 
+// New unified UpdatePosition using ParticleFieldCollection
 void RSRenderParticleEffector::UpdatePosition(const std::shared_ptr<RSRenderParticle>& particle,
-    const std::shared_ptr<ParticleNoiseFields>& particleNoiseFields,
-    const std::shared_ptr<ParticleRippleFields>& particleRippleFields,
-    const std::shared_ptr<ParticleVelocityFields>& particleVelocityFields, float deltaTime)
+    const std::shared_ptr<ParticleFieldCollection>& fields, float deltaTime)
 {
     if (particle == nullptr) {
         return;
     }
     auto position = particle->GetPosition();
     auto fieldForce = Vector2f(0.f, 0.f);
-    if (particleNoiseFields != nullptr) {
-        fieldForce = particleNoiseFields->ApplyAllFields(position, deltaTime);
-    }
-    if (particleRippleFields != nullptr) {
-        fieldForce += particleRippleFields->ApplyAllRippleFields(position, deltaTime);
-    }
-    if (particleVelocityFields != nullptr) {
-        fieldForce += particleVelocityFields->ApplyAllVelocityFields(position, deltaTime);
+    if (fields) {
+        fieldForce = fields->ApplyAll(position, deltaTime);
     }
     auto accelerationValue = particle->GetAccelerationValue();
     auto accelerationAngle = particle->GetAccelerationAngle();
@@ -289,6 +282,32 @@ void RSRenderParticleEffector::UpdatePosition(const std::shared_ptr<RSRenderPart
     }
 }
 
+// Old UpdatePosition (deprecated) — bridges to unified collection
+void RSRenderParticleEffector::UpdatePosition(const std::shared_ptr<RSRenderParticle>& particle,
+    const std::shared_ptr<ParticleNoiseFields>& particleNoiseFields,
+    const std::shared_ptr<ParticleRippleFields>& particleRippleFields,
+    const std::shared_ptr<ParticleVelocityFields>& particleVelocityFields, float deltaTime)
+{
+    // Deprecated bridge: assemble a temporary collection
+    auto fields = std::make_shared<ParticleFieldCollection>();
+    if (particleNoiseFields) {
+        for (auto& f : particleNoiseFields->fields_) {
+            fields->Add(f);
+        }
+    }
+    if (particleRippleFields) {
+        for (auto& f : particleRippleFields->rippleFields_) {
+            fields->Add(f);
+        }
+    }
+    if (particleVelocityFields) {
+        for (auto& f : particleVelocityFields->velocityFields_) {
+            fields->Add(f);
+        }
+    }
+    UpdatePosition(particle, fields, deltaTime);
+}
+
 void RSRenderParticleEffector::UpdateActiveTime(const std::shared_ptr<RSRenderParticle>& particle, int64_t deltaTime)
 {
     if (particle == nullptr) {
@@ -299,11 +318,9 @@ void RSRenderParticleEffector::UpdateActiveTime(const std::shared_ptr<RSRenderPa
     particle->SetActiveTime(activeTime);
 }
 
-// Apply effector to particle
+// New unified Update using ParticleFieldCollection
 void RSRenderParticleEffector::Update(const std::shared_ptr<RSRenderParticle>& particle,
-    const std::shared_ptr<ParticleNoiseFields>& particleNoiseFields,
-    const std::shared_ptr<ParticleRippleFields>& particleRippleFields,
-    const std::shared_ptr<ParticleVelocityFields>& particleVelocityFields, int64_t deltaTime)
+    const std::shared_ptr<ParticleFieldCollection>& fields, int64_t deltaTime)
 {
     if (particle == nullptr) {
         return;
@@ -315,8 +332,34 @@ void RSRenderParticleEffector::Update(const std::shared_ptr<RSRenderParticle>& p
     UpdateOpacity(particle, dt);
     UpdateScale(particle, dt);
     UpdateSpin(particle, dt);
-    UpdatePosition(particle, particleNoiseFields, particleRippleFields, particleVelocityFields, dt);
+    UpdatePosition(particle, fields, dt);
     UpdateActiveTime(particle, deltaTime);
+}
+
+// Old Update (deprecated) — bridges to unified collection
+void RSRenderParticleEffector::Update(const std::shared_ptr<RSRenderParticle>& particle,
+    const std::shared_ptr<ParticleNoiseFields>& particleNoiseFields,
+    const std::shared_ptr<ParticleRippleFields>& particleRippleFields,
+    const std::shared_ptr<ParticleVelocityFields>& particleVelocityFields, int64_t deltaTime)
+{
+    // Deprecated bridge: assemble a temporary collection and delegate
+    auto fields = std::make_shared<ParticleFieldCollection>();
+    if (particleNoiseFields) {
+        for (auto& f : particleNoiseFields->fields_) {
+            fields->Add(f);
+        }
+    }
+    if (particleRippleFields) {
+        for (auto& f : particleRippleFields->rippleFields_) {
+            fields->Add(f);
+        }
+    }
+    if (particleVelocityFields) {
+        for (auto& f : particleVelocityFields->velocityFields_) {
+            fields->Add(f);
+        }
+    }
+    Update(particle, fields, deltaTime);
 }
 
 } // namespace Rosen

@@ -1353,11 +1353,6 @@ void DrawSurfaceBufferOpItem::Clear()
         nativeWindowBuffer_ = nullptr;
     }
 #endif
-
-    if (surfaceBufferInfo_.surfaceBuffer_ != nullptr) {
-        RSSurfaceBufferCallbackManager::Instance().RemoveSurfaceBufferInfo(
-            surfaceBufferInfo_.surfaceBuffer_->GetSeqNum());
-    }
 }
 
 void DrawSurfaceBufferOpItem::DealWithRotate(Canvas* canvas)

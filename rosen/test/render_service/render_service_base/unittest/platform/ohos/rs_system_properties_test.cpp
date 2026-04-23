@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -141,16 +141,13 @@ HWTEST_F(RSSystemPropertiesTest, SetPixelCheckEnabled, TestSize.Level1)
 /**
  * @tc.name: SetInstantRecording
  * @tc.desc: SetInstantRecording Test
- * @tc.type:FUNC
+ * @tc.type: FUNC
  * @tc.require: issueI9JZWC
  */
 HWTEST_F(RSSystemPropertiesTest, SetInstantRecording, TestSize.Level1)
 {
-    bool flag = true;
-    RSSystemProperties::SetInstantRecording(flag);
-    ASSERT_TRUE(flag);
-    flag = false;
-    RSSystemProperties::SetInstantRecording(flag);
+    RSSystemProperties::SetInstantRecording(false);
+    ASSERT_FALSE(RSSystemProperties::GetInstantRecording());
 }
 
 /**
@@ -1199,7 +1196,10 @@ HWTEST_F(RSSystemPropertiesTest, GetSupportScreenFreezeEnabledTest, TestSize.Lev
  */
 HWTEST_F(RSSystemPropertiesTest, GetScaleImageAsyncEnabledTest, TestSize.Level1)
 {
+    auto ret = system::GetParameter("rosen.isEnabledScaleImageAsync.enabled", "1");
+    system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", "1");
     EXPECT_TRUE(RSSystemProperties::GetScaleImageAsyncEnabled());
+    system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", ret);
 }
 
 /**

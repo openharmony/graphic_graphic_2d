@@ -18,6 +18,10 @@
 
 #include "animation/rs_particle_ripple_field.h"
 
+#include <parcel.h>
+
+#include "common/rs_common_def.h"
+
 namespace OHOS {
 namespace Rosen {
 
@@ -79,7 +83,7 @@ float ParticleRippleField::CalculateForceStrength(float distance)
 
     float recoilCoeff = areaRatio * sigma * (static_cast<float>(M_PI) * 0.5f)
                         / std::max(1e-3f, tailW);
-    
+
     const float dtTail = 0.5f * tailW / std::max(1e-3f, waveSpeed_);
     recoilCoeff *= std::exp(attenuation_ * dtTail);
 
@@ -121,6 +125,65 @@ bool ParticleRippleField::IsPointInRegion(const Vector2f& point) const
         default:
             return true;
     }
+}
+
+Vector2f ParticleRippleField::Apply(const Vector2f& position, float deltaTime)
+{
+    return ApplyRippleField(position, deltaTime);
+}
+
+void ParticleRippleField::Update(float deltaTime)
+{
+    UpdateRipple(deltaTime);
+}
+
+bool ParticleRippleField::Equals(const ParticleFieldBase& rhs) const
+{
+    const auto& other = static_cast<const ParticleRippleField&>(rhs);
+    return (center_ == other.center_) &&
+           ROSEN_EQ(amplitude_, other.amplitude_) &&
+           ROSEN_EQ(wavelength_, other.wavelength_) &&
+           ROSEN_EQ(waveSpeed_, other.waveSpeed_) &&
+           ROSEN_EQ(attenuation_, other.attenuation_) &&
+           ROSEN_EQ(lifeTime_, other.lifeTime_);
+}
+
+bool ParticleRippleField::MarshalSpecific(Parcel& parcel) const
+{
+    bool success = parcel.WriteFloat(center_.x_) && parcel.WriteFloat(center_.y_);
+    success = success && parcel.WriteFloat(amplitude_);
+    success = success && parcel.WriteFloat(wavelength_);
+    success = success && parcel.WriteFloat(waveSpeed_);
+    success = success && parcel.WriteFloat(attenuation_);
+    success = success && parcel.WriteFloat(lifeTime_);
+    return success;
+}
+
+bool ParticleRippleField::UnmarshalSpecific(Parcel& parcel)
+{
+    float cx = 0.0f;
+    float cy = 0.0f;
+    if (!parcel.ReadFloat(cx) || !parcel.ReadFloat(cy)) {
+        return false;
+    }
+    center_ = Vector2f(cx, cy);
+
+    if (!parcel.ReadFloat(amplitude_)) {
+        return false;
+    }
+    if (!parcel.ReadFloat(wavelength_)) {
+        return false;
+    }
+    if (!parcel.ReadFloat(waveSpeed_)) {
+        return false;
+    }
+    if (!parcel.ReadFloat(attenuation_)) {
+        return false;
+    }
+    if (!parcel.ReadFloat(lifeTime_)) {
+        return false;
+    }
+    return true;
 }
 
 void ParticleRippleField::Dump(std::string& out) const

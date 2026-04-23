@@ -484,7 +484,7 @@ namespace drawing {
       if (addr == 0) {
         return null;
       }
-      let module = ESValue.load("@ohos.graphics.drawing");
+      let module = ESValue.load(`@ohos:graphics.drawing`);
       let hasProperty: boolean = module.hasProperty("SamplingOptions");
       if (!hasProperty) {
         return null;
@@ -587,7 +587,7 @@ namespace drawing {
       }
       let pixelMapAddr = Canvas.getPixelMapAddr(canvas);
       let owned = Canvas.getOwned(canvas);
-      let module = ESValue.load("@ohos.graphics.drawing");
+      let module = ESValue.load(`@ohos:graphics.drawing`);
       let hasProperty: boolean = module.hasProperty("Canvas");
       if (!hasProperty) {
         return null;
@@ -1247,7 +1247,7 @@ namespace drawing {
      * @since 20
      */
     native concatMatrix(matrix: Matrix): void;
-  
+
     /**
      * Clips a region on the canvas.
      * @param { Region } region - Region object, which indicates the range to clip.
@@ -1298,6 +1298,15 @@ namespace drawing {
     native resetMatrix(): void;
 
     /**
+     * Resets the clip status.
+     *
+     * @syscap SystemCapability.Graphics.Drawing
+     * @stagemodelonly
+     * @since 26.0.0
+     */
+    native resetClip(): void;
+
+    /**
      * Checks whether the path is not intersecting with the canvas area. The canvas area includes its boundaries.
      * @param { Path } path - Path to draw.
      * @returns { boolean } Returns true if path is not intersect; returns false otherwise.
@@ -1314,7 +1323,7 @@ namespace drawing {
      * @since 20
      */
     native quickRejectRect(rect: common2D.Rect): boolean;
-    
+
     /**
      * Draws a single character with font feature.
      * @param { string } text - A string containing only a single character.
@@ -1415,7 +1424,7 @@ namespace drawing {
       if (addr == 0) {
         return null;
       }
-      let module = ESValue.load("@ohos.graphics.drawing");
+      let module = ESValue.load(`@ohos:graphics.drawing`);
       let hasProperty: boolean = module.hasProperty("ColorFilter");
       if (!hasProperty) {
         return null;
@@ -1582,7 +1591,7 @@ namespace drawing {
       if (addr == 0) {
         return null;
       }
-      let module = ESValue.load("@ohos.graphics.drawing");
+      let module = ESValue.load(`@ohos:graphics.drawing`);
       let hasProperty: boolean = module.hasProperty("Pen");
       if (!hasProperty) {
         return null;
@@ -1963,7 +1972,7 @@ namespace drawing {
       if (addr == 0) {
         return null;
       }
-      let module = ESValue.load("@ohos.graphics.drawing");
+      let module = ESValue.load(`@ohos:graphics.drawing`);
       let hasProperty: boolean = module.hasProperty("Brush");
       if (!hasProperty) {
         return null;
@@ -2217,7 +2226,7 @@ namespace drawing {
       if (addr == 0) {
         return null;
       }
-      let module = ESValue.load("@ohos.graphics.drawing");
+      let module = ESValue.load(`@ohos:graphics.drawing`);
       let hasProperty: boolean = module.hasProperty("Typeface");
       if (!hasProperty) {
         return null;
@@ -2429,7 +2438,7 @@ namespace drawing {
       if (addr == 0) {
         return null;
       }
-      let module = ESValue.load("@ohos.graphics.drawing");
+      let module = ESValue.load(`@ohos:graphics.drawing`);
       let hasProperty: boolean = module.hasProperty("Font");
       if (!hasProperty) {
         return null;
@@ -3143,7 +3152,7 @@ namespace drawing {
       if (addr == 0) {
         return null;
       }
-      let module = ESValue.load("@ohos.graphics.drawing");
+      let module = ESValue.load(`@ohos:graphics.drawing`);
       let hasProperty: boolean = module.hasProperty("Lattice");
       if (!hasProperty) {
         return null;
@@ -3269,7 +3278,7 @@ namespace drawing {
       if (addr == 0) {
         return null;
       }
-      let module = ESValue.load("@ohos.graphics.drawing");
+      let module = ESValue.load(`@ohos:graphics.drawing`);
       let hasProperty: boolean = module.hasProperty("Matrix");
       if (!hasProperty) {
         return null;
@@ -3370,11 +3379,11 @@ namespace drawing {
 
     /**
      * Checks whether this matrix is an identity matrix.
-     * @returns { Boolean } Returns true if matrix is identity; returns false otherwise.
+     * @returns { boolean } Returns true if matrix is identity; returns false otherwise.
      * @syscap SystemCapability.Graphics.Drawing
      * @since 20
      */
-    native isIdentity(): Boolean;
+    native isIdentity(): boolean;
 
     /**
      * Obtains the value of a given index in this matrix. The index ranges from 0 to 8.
@@ -4281,7 +4290,7 @@ namespace drawing {
       if (addr == 0) {
         return null;
       }
-      let module = ESValue.load("@ohos.graphics.drawing");
+      let module = ESValue.load(`@ohos:graphics.drawing`);
       let hasProperty: boolean = module.hasProperty("Path");
       if (!hasProperty) {
         return null;
@@ -4757,6 +4766,46 @@ namespace drawing {
     native buildFromSvgString(str: string): boolean;
 
     /**
+     * Converts path to an SVG string.
+     *
+     * @returns { string } The SVG string of the path.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @stagemodelonly
+     * @since 26.0.0
+     */
+    native convertToSvgString(): string;
+
+    /**
+     * Gets path point data.
+     *
+     * @returns { Array<common2D.Point> } path points array.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @stagemodelonly
+     * @since 26.0.0 dynamic&static
+     */
+    native getPointData(): Array<common2D.Point>;
+
+    /**
+     * Gets path verb data.
+     *
+     * @returns { Array<PathIteratorVerb> } path verbs array.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @stagemodelonly
+     * @since 26.0.0 dynamic&static
+     */
+    native getVerbData(): Array<PathIteratorVerb>;
+
+    /**
+     * Gets path conic weight data.
+     *
+     * @returns { Array<double> } path conic weight array.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @stagemodelonly
+     * @since 26.0.0 dynamic&static
+     */
+    native getConicWeightData(): Array<double>;
+
+    /**
      * Obtains the operation iterator of this path.
      *
      * @returns { PathIterator | undefined } Indicates the pointer to an pathIterator object.
@@ -4867,6 +4916,26 @@ namespace drawing {
      * @since 24
      */
     native getFillType(): PathFillType | undefined;
+
+    /**
+     * Gets the last point of the path.
+     * 
+     * @returns { common2D.Point | undefined } - Returns the last point of the path, or undefined if the path is empty.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @stagemodelonly
+     * @since 26.0.0 static
+     */
+    native getLastPoint(): common2D.Point | undefined;
+
+    /**
+     * Checks if two paths are equal.
+     * @param { Path } path - Another Path object to compare.
+     * @returns { boolean } - Returns true if the two paths are equal, otherwise returns false.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @stagemodelonly
+     * @since 26.0.0 dynamic&static
+     */
+    native isEqual(path: Path): boolean;
   }
 
     /**
@@ -5411,7 +5480,7 @@ namespace drawing {
       if (addr == 0) {
         return null;
       }
-      let module = ESValue.load("@ohos.graphics.drawing");
+      let module = ESValue.load(`@ohos:graphics.drawing`);
       let hasProperty: boolean = module.hasProperty("Region");
       if (!hasProperty) {
         return null;
@@ -5707,7 +5776,7 @@ namespace drawing {
       if (addr == 0) {
         return null;
       }
-      let module = ESValue.load("@ohos.graphics.drawing");
+      let module = ESValue.load(`@ohos:graphics.drawing`);
       let hasProperty: boolean = module.hasProperty("RoundRect");
       if (!hasProperty) {
         return null;
@@ -6178,6 +6247,39 @@ namespace drawing {
      * @since 24
      */
     static native setRect(rect: common2D.Rect, other: common2D.Rect): void;
+  }
+
+  /**
+   * This class offers a comprehensive set of operations for handling common2D Point objects.
+   *
+   * @syscap SystemCapability.Graphics.Drawing
+   * @stagemodelonly
+   * @since 26.0.0
+   */
+  export class PointUtils {
+    static { loadLibraryWithPermissionCheck("drawing_ani_core", "@ohos.graphics.drawing"); }
+
+    /**
+     * Negates the point's coordinates.
+     *
+     * @param { common2D.Point } point - Specifies the point to be negated.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @stagemodelonly
+     * @since 26.0.0
+     */
+    static native negate(point: common2D.Point): void;
+
+    /**
+     * Offsets the point's coordinates by dx, dy.
+     *
+     * @param { common2D.Point } point - Specifies the point to be offset.
+     * @param { double } dx - Indicates the distance to offset on the x-axis in pixels.
+     * @param { double } dy - Indicates the distance to offset on the y-axis in pixels.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @stagemodelonly
+     * @since 26.0.0
+     */
+    static native offset(point: common2D.Point, dx: double, dy: double): void;
   }
 
   /**

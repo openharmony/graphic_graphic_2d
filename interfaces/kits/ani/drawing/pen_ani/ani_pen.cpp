@@ -197,7 +197,10 @@ void AniPen::SetColorFilter(ani_env* env, ani_object obj, ani_object objColorFil
     }
 
     ani_boolean isNull = ANI_TRUE;
-    env->Reference_IsNull(objColorFilter, &isNull);
+    if (env->Reference_IsNull(objColorFilter, &isNull) != ANI_OK) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return;
+    }
     AniColorFilter* aniColorFilter = nullptr;
     if (!isNull) {
         aniColorFilter = GetNativeFromObj<AniColorFilter>(env, objColorFilter,
@@ -532,7 +535,10 @@ void AniPen::SetPathEffect(ani_env* env, ani_object obj, ani_object aniPathEffec
         return;
     }
     ani_boolean isNull = ANI_TRUE;
-    env->Reference_IsNull(aniPathEffectObj, &isNull);
+    if (env->Reference_IsNull(aniPathEffectObj, &isNull) != ANI_OK) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return;
+    }
     AniPathEffect* aniPathEffect = nullptr;
     if (!isNull) {
         aniPathEffect = GetNativeFromObj<AniPathEffect>(env, aniPathEffectObj,
@@ -553,7 +559,10 @@ void AniPen::SetImageFilter(ani_env* env, ani_object obj, ani_object aniImageFil
         return;
     }
     ani_boolean isNull = ANI_TRUE;
-    env->Reference_IsNull(aniImageFilterObj, &isNull);
+    if (env->Reference_IsNull(aniImageFilterObj, &isNull) != ANI_OK) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return;
+    }
     AniImageFilter* aniImageFilter = nullptr;
     if (!isNull) {
         aniImageFilter = GetNativeFromObj<AniImageFilter>(env, aniImageFilterObj,
@@ -576,7 +585,10 @@ void AniPen::SetMaskFilter(ani_env* env, ani_object obj, ani_object aniMaskFilte
         return;
     }
     ani_boolean isNull = ANI_TRUE;
-    env->Reference_IsNull(aniMaskFilterObj, &isNull);
+    if (env->Reference_IsNull(aniMaskFilterObj, &isNull) != ANI_OK) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return;
+    }
     AniMaskFilter* aniMaskFilter = nullptr;
     if (!isNull) {
         aniMaskFilter = GetNativeFromObj<AniMaskFilter>(env, aniMaskFilterObj,
@@ -599,7 +611,10 @@ void AniPen::SetShadowLayer(ani_env* env, ani_object obj, ani_object aniShadowLa
         return;
     }
     ani_boolean isNull = ANI_TRUE;
-    env->Reference_IsNull(aniShadowLayerObj, &isNull);
+    if (env->Reference_IsNull(aniShadowLayerObj, &isNull) != ANI_OK) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return;
+    }
     AniShadowLayer* aniShadowLayer = nullptr;
     if (!isNull) {
         aniShadowLayer = GetNativeFromObj<AniShadowLayer>(env, aniShadowLayerObj,
@@ -620,7 +635,10 @@ void AniPen::SetShaderEffect(ani_env* env, ani_object obj, ani_object aniShaderE
         return;
     }
     ani_boolean isNull = ANI_TRUE;
-    env->Reference_IsNull(aniShaderEffectObj, &isNull);
+    if (env->Reference_IsNull(aniShaderEffectObj, &isNull) != ANI_OK) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return;
+    }
     AniShaderEffect* aniShaderEffect = nullptr;
     if (!isNull) {
         aniShaderEffect = GetNativeFromObj<AniShaderEffect>(env, aniShaderEffectObj,

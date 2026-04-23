@@ -26,6 +26,7 @@
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_property_drawable_utils.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "engine/rs_uni_render_engine.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/hpae/rs_hpae_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
@@ -48,7 +49,6 @@
 #include "platform/ohos/rs_node_stats.h"
 #include "rs_render_composer_manager.h"
 #include "rs_trace.h"
-#include "rs_uni_render_engine.h"
 #include "rs_uni_render_util.h"
 #include "static_factory.h"
 #include "surface.h"
@@ -510,6 +510,18 @@ uint32_t RSUniRenderThread::GetDefaultScreenRefreshRate() const
     return renderThreadParams ? renderThreadParams->GetDynamicRefreshRate() : 0;
 }
 
+uint32_t RSUniRenderThread::GetSurfaceFpsOpNum() const
+{
+    auto& renderThreadParams = GetRSRenderThreadParams();
+    return renderThreadParams ? renderThreadParams->GetSurfaceFpsOpNum() : 0;
+}
+
+std::vector<SurfaceFpsOp> RSUniRenderThread::GetSurfaceFpsOpList() const
+{
+    auto& renderThreadParams = GetRSRenderThreadParams();
+    return renderThreadParams ? renderThreadParams->GetSurfaceFpsOpList() : std::vector<SurfaceFpsOp>();
+}
+
 #ifdef RES_SCHED_ENABLE
 void RSUniRenderThread::SubScribeSystemAbility()
 {
@@ -723,14 +735,7 @@ static void TrimMemEmptyType(Drawing::GPUContext* gpuContext)
     gpuContext->FreeGpuResources();
     gpuContext->PurgeUnlockedResources(true);
     std::shared_ptr<RenderContext> rendercontext = RenderContext::Create();
-    rendercontext->CleanAllShaderCache();
     gpuContext->FlushAndSubmit(true);
-}
-
-static void TrimMemShaderType()
-{
-    std::shared_ptr<RenderContext> rendercontext = RenderContext::Create();
-    rendercontext->CleanAllShaderCache();
 }
 
 static void TrimMemGpuLimitType(Drawing::GPUContext* gpuContext, std::string& dumpString,
@@ -990,6 +995,7 @@ void RSUniRenderThread::ResetClearMemoryTask(bool isDoDirectComposition)
         RemoveTask(RECLAIM_MEMORY);
         SetIsPostedReclaimMemoryTask(false);
         if (ifInterrupt) {
+            RS_LOGE("RSUniRenderThread::ResetClearMemoryTask happen interrupt");
             isTimeToReclaim_.store(false);
             RSReclaimMemoryManager::Instance().SetReclaimInterrupt(false);
         } else if (!isDoDirectComposition) {

@@ -29,7 +29,6 @@ namespace Rosen {
 namespace {
 constexpr const char* DEFAULT_SURFACE_NODE_NAME = "DefaultSurfaceNodeName";
 constexpr const char* FRAMEWORK_XWEB_NAME = "oh_xweb_";
-constexpr const char* HGM_CONFIG_PATH = "/sys_prod/etc/graphic/hgm_policy_config.xml";
 constexpr uint32_t MULTI_WINDOW_PERF_START_NUM = 2;
 }
 
@@ -47,7 +46,7 @@ int32_t HgmRenderContext::InitHgmConfig(std::unordered_map<std::string, std::str
     std::unordered_map<std::string, std::string>& solidLayerConfig, std::vector<std::string>& appBufferList)
 {
     auto parser = std::make_unique<RPHgmXMLParser>();
-    if (parser->LoadConfiguration(HGM_CONFIG_PATH) != EXEC_SUCCESS) {
+    if (parser->LoadConfiguration(GetHgmXmlPath().c_str()) != EXEC_SUCCESS) {
         HGM_LOGW("failed to load hgm xml configuration file");
         return XML_FILE_LOAD_FAIL;
     }

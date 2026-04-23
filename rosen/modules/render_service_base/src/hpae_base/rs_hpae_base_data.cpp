@@ -61,6 +61,16 @@ bool RSHpaeBaseData::GetDesktopOffTree()
     return desktopOffTree_;
 }
 
+void RSHpaeBaseData::SetScaleFactor(float factor)
+{
+    hpaeScaleFactor_ = factor;
+}
+
+float RSHpaeBaseData::GetScaleFactor() const
+{
+    return hpaeScaleFactor_;
+}
+
 void RSHpaeBaseData::SetHpaeInputBuffer(HpaeBufferInfo& inputBuffer)
 {
     inputBufferQueue_.clear();

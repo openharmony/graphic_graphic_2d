@@ -53,7 +53,7 @@ bool RenderContextVK::SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawi
         return true;
     }
     if (drawingContext == nullptr) {
-        drawingContext = RsVulkanContext::GetSingleton(cacheDir_).CreateDrawingContext();
+        drawingContext = RsVulkanContext::GetSingleton().CreateDrawingContext();
     }
     std::shared_ptr<Drawing::GPUContext> drGPUContext(drawingContext);
     drGPUContext_ = std::move(drGPUContext);
@@ -90,22 +90,24 @@ void RenderContextVK::ChangeProtectedState(bool isProtected)
     isProtected_.store(isProtected, std::memory_order_release);
 }
 
-std::string RenderContextVK::GetShaderCacheSize() const
+bool RenderContextVK::QueryMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)
 {
-    if (RsVulkanContext::GetSingleton().GetMemoryHandler()) {
-        return RsVulkanContext::GetSingleton().GetMemoryHandler()->QuerryShader();
+    LOGI("RenderContextVK::QueryMaxGpuBufferSize: using Vulkan backend");
+    auto& vkContext = RsVulkanContext::GetSingleton();
+    VkPhysicalDevice physicalDevice = vkContext.GetPhysicalDevice();
+    if (physicalDevice == VK_NULL_HANDLE) {
+        LOGE("RenderContextVK::QueryMaxGpuBufferSize: Vulkan physical device is null");
+        return false;
     }
-    LOGD("GetShaderCacheSize no shader cache");
-    return "";
-}
 
-std::string RenderContextVK::CleanAllShaderCache() const
-{
-    if (RsVulkanContext::GetSingleton().GetMemoryHandler()) {
-        return RsVulkanContext::GetSingleton().GetMemoryHandler()->ClearShader();
-    }
-    LOGD("CleanAllShaderCache no shader cache");
-    return "";
+    VkPhysicalDeviceProperties deviceProperties;
+    vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
+
+    maxWidth = deviceProperties.limits.maxImageDimension2D;
+    maxHeight = deviceProperties.limits.maxImageDimension2D;
+
+    LOGI("RenderContextVK::QueryMaxGpuBufferSize: Vulkan max image dimension = %u", maxWidth);
+    return true;
 }
 } // namespace Rosen
 } // namespace OHOS

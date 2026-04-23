@@ -505,6 +505,7 @@ ScreenId RSScreenManager::CreateVirtualScreen(
     RS_LOGI("%{public}s: create virtual screen(id %{public}" PRIu64 "), width %{public}u, height %{public}u."
         "associatedScreenId %{public}" PRIu64,
         __func__, newId, width, height, associatedScreenId);
+    RSSpecialLayerUtils::DumpScreenSpecialLayer(__func__, SpecialLayerType::IS_WHITE_LIST, newId, configs.whiteList);
     return newId;
 }
 
@@ -848,6 +849,46 @@ int32_t RSScreenManager::SetDualScreenState(ScreenId id, DualScreenStatus status
     return screen->SetDualScreenState(status);
 }
 
+int32_t RSScreenManager::SetAsMainScreen(ScreenId screenId, bool isMainScreen)
+{
+    auto screen = GetScreen(screenId);
+    if (screen == nullptr) {
+        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, screenId);
+        return SCREEN_NOT_FOUND;
+    }
+
+    // Reset other screens before setting the main screen to ensure the main screen is unique.
+    if (isMainScreen) {
+        std::lock_guard<std::mutex> lock(screenMapMutex_);
+        for (const auto& [id, screen] : screens_) {
+            if (screen && id != screenId) {
+                screen->SetAsMainScreen(false);
+            }
+        }
+    }
+
+    RS_LOGI("%{public}s: screenId[%{public}" PRIu64 "] isMainScreen[%{public}d]", __func__, screenId, isMainScreen);
+    return screen->SetAsMainScreen(isMainScreen);
+}
+
+ScreenId RSScreenManager::GetMainScreenId()
+{
+    std::lock_guard<std::mutex> lock(screenMapMutex_);
+    ScreenId mainScreenId = INVALID_SCREEN_ID;
+    for (const auto& [screenId, screen] : screens_) {
+        if (!screen || !screen->IsMainScreen()) {
+            continue;
+        }
+        mainScreenId = screenId;
+    }
+
+    if (mainScreenId == INVALID_SCREEN_ID) {
+        RS_LOGW("%{public}s: No main screen found", __func__);
+    }
+
+    return mainScreenId;
+}
+
 int32_t RSScreenManager::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
     if (width > MAX_VIRTUAL_SCREEN_WIDTH || height > MAX_VIRTUAL_SCREEN_HEIGHT) {
@@ -977,10 +1018,12 @@ RSScreenData RSScreenManager::GetScreenData(ScreenId id) const
     GetScreenActiveMode(id, activeMode);
     std::vector<RSScreenModeInfo> supportModes = GetScreenSupportedModes(id);
     ScreenPowerStatus powerStatus = GetScreenPowerStatus(id);
+    ScreenConnectionType connectionType = GetScreenConnectionType(id);
     screenData.SetCapability(capability);
     screenData.SetActivityModeInfo(activeMode);
     screenData.SetSupportModeInfo(supportModes);
     screenData.SetPowerStatus(powerStatus);
+    screenData.SetScreenConnectionType(connectionType);
     return screenData;
 }
 
@@ -1071,14 +1114,6 @@ bool RSScreenManager::GetVirtualScreenAutoRotation(ScreenId id) const
         return false;
     }
     return screen->GetVirtualScreenAutoRotation();
-}
-
-int32_t RSScreenManager::SetScreenSwitchingNotifyCallback(const sptr<RSIScreenSwitchingNotifyCallback>& callback)
-{
-    std::lock_guard<std::shared_mutex> lock(screenSwitchingNotifyCallbackMutex_);
-    screenSwitchingNotifyCallback_ = callback;
-    RS_LOGI("%{public}s: set screen switching notify callback succeed.", __func__);
-    return SUCCESS;
 }
 
 void RSScreenManager::DisplayDump(std::string& dumpString)
@@ -1320,7 +1355,8 @@ int32_t RSScreenManager::SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFor
     return screen->SetPixelFormat(pixelFormat);
 }
 
-int32_t RSScreenManager::GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats) const
+int32_t RSScreenManager::GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats,
+    sptr<RSIScreenSupportedHdrFormatsCallback> callback) const
 {
     auto screen = GetScreen(id);
     if (screen == nullptr) {
@@ -1328,7 +1364,7 @@ int32_t RSScreenManager::GetScreenSupportedHDRFormats(ScreenId id, std::vector<S
         return StatusCode::SCREEN_NOT_FOUND;
     }
     RS_OPTIONAL_TRACE_NAME_FMT("RSScreenManager::%s, id:[%" PRIu64 "].", __func__, id);
-    return screen->GetScreenSupportedHDRFormats(hdrFormats);
+    return screen->GetScreenSupportedHDRFormats(hdrFormats, callback);
 }
 
 int32_t RSScreenManager::GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat) const
@@ -1424,7 +1460,7 @@ void RSScreenManager::SetScreenSwitchStatus(bool status)
     }
     RS_LOGI("%{public}s: set isScreenSwitching_ = %{public}d", __func__, status);
     if (!status) {
-        NotifySwitchingCallback(status);
+        callbackMgr_->NotifySwitchingCallback(status);
     }
 }
 
@@ -1452,18 +1488,6 @@ bool RSScreenManager::AnyScreenFits(std::function<bool(const ScreenNode&)> func)
 {
     std::lock_guard<std::mutex> lock(screenMapMutex_);
     return std::any_of(screens_.cbegin(), screens_.cend(), func);
-}
-
-void RSScreenManager::NotifySwitchingCallback(bool status) const
-{
-    std::shared_lock<std::shared_mutex> lock(screenSwitchingNotifyCallbackMutex_);
-    if (screenSwitchingNotifyCallback_ == nullptr) {
-        RS_LOGI("%{public}s: screenSwitchingNotifyCallback_ is nullptr! status: %{public}d", __func__, status);
-        return;
-    }
-
-    RS_LOGI("%{public}s: status: %{public}d", __func__, status);
-    screenSwitchingNotifyCallback_->OnScreenSwitchingNotify(status);
 }
 
 std::shared_ptr<RSScreen> RSScreenManager::GetScreen(ScreenId id) const

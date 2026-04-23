@@ -40,9 +40,19 @@ Pen::Pen(int rgba) noexcept : Pen()
     brush_.SetColor(rgba);
 }
 
+Pen::Pen(const UIColor& c) noexcept : Pen()
+{
+    brush_.SetUIColor(c, nullptr);
+}
+
 Color Pen::GetColor() const
 {
     return brush_.GetColor();
+}
+
+UIColor Pen::GetUIColor() const
+{
+    return brush_.GetUIColor();
 }
 
 void Pen::SetColor(const Color& c)
@@ -53,6 +63,11 @@ void Pen::SetColor(const Color& c)
 void Pen::SetColor(uint32_t c)
 {
     brush_.SetColor(c);
+}
+
+void Pen::SetUIColor(const UIColor& c, std::shared_ptr<ColorSpace> s)
+{
+    brush_.SetUIColor(c, s);
 }
 
 void Pen::SetARGB(int a, int r, int g, int b)
