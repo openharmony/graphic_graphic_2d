@@ -148,7 +148,7 @@ bool RSRenderService::CoreComponentsInit()
 
     // vsync manager
     vsyncManager_ = sptr<RSVsyncManager>::MakeSptr();
-    if (vsyncManager_->init(screenManager_, renderModeConfig_->GetIsMultiProcessModeEnabled()) != 0) {
+    if (!vsyncManager_->init(screenManager_, renderModeConfig_->GetIsMultiProcessModeEnabled())) {
         RS_LOGE("%{public}s: vsyncManager init failed", __func__);
         return false;
     }
