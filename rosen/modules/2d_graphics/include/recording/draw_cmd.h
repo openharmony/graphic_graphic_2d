@@ -937,7 +937,9 @@ public:
         bool GenerateCachedOpItem(DrawCmdList& cmdList, Canvas* canvas);
         OpDataHandle textBlob;
         uint64_t globalUniqueId;
-        bool preferSpeedOverQuality;
+        bool preferSpeedOverQuality = false;
+        uint16_t padding = 0; // to keep the original data structure for adding preferSpeedOverQuality &
+                              // changing TextContrast from int to uint8_t.
         TextContrast textContrast;
         scalar x;
         scalar y;
@@ -967,7 +969,6 @@ private:
     scalar y_;
     std::shared_ptr<TextBlob> textBlob_;
     uint64_t globalUniqueId_;
-    bool preferSpeedOverQuality_ = false;
     TextContrast textContrast_ = TextContrast::FOLLOW_SYSTEM;
     bool IsHighContrastEnable(Canvas* canvas, TextContrast value) const;
 };
