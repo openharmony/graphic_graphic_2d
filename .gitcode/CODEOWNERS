@@ -282,3 +282,18 @@ rosen/modules/render_service/core/drawable/dfx/rs_dirty_rects_dfx.cpp @chenlushe
 
 [capture]
 rosen/modules/render_service/core/feature/capture @chuchengcheng
+
+[rs_render_context]
+rosen/modules/render_service_base/src/platform/ohos/backend/rs_vulkan_context.cpp @andrew1993
+rosen/modules/render_service_base/src/platform/ohos/backend/rs_vulkan_context.h @andrew1993
+rosen/modules/render_service_base/src/platform/ohos/backend/native_buffer_utils.cpp @andrew1993
+rosen/modules/render_service_base/src/platform/ohos/backend/native_buffer_utils.h @andrew1993
+rosen/modules/2d_graphics/src/render_context/render_context.h @andrew1993
+rosen/modules/2d_graphics/src/render_context/render_context.cpp @andrew1993
+rosen/modules/2d_graphics/src/render_context/new_render_context/render_context_vk.h @andrew1993
+rosen/modules/2d_graphics/src/render_context/new_render_context/render_context_vk.cpp @andrew1993
+rosen/modules/2d_graphics/src/render_context/new_render_context/render_context_gl.h @andrew1993
+rosen/modules/2d_graphics/src/render_context/new_render_context/render_context_gl.cpp @andrew1993
+
+[vulkan]
+frameworks/vulkan_layers/swapchain_layer/swapchain_layer.cpp @GaoPan_t
