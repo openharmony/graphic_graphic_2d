@@ -1914,7 +1914,8 @@ void RSPropertyDrawableUtils::UpdatePropertiesToSpatialGlassEffect(const RSPrope
     ROSEN_LOGD("RSPropertyDrawableUtils::UpdatePropertiesToSpatialGlassEffect rrect %{public}s, node %{public}" PRIu64,
         sdfRRect.ToString().c_str(), nodeId);
     sdfRRectShape->Setter<SDFRRectShapeRRectRenderTag>(sdfRRect);
-    effectShader->Setter<SpatialGlassEffectSdfShapeRenderTag>(sdfRRectShape, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
+    effectShader->Setter<SpatialGlassEffectSdfShapeRenderTag>(sdfRRectShape,
+        PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
 }
 
 } // namespace Rosen
