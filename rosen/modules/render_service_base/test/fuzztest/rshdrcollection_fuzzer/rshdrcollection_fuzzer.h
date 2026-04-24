@@ -23,6 +23,6 @@
 #include <cstdlib>
 #include <fcntl.h>
 
-#define FUZZ_PROJECT_NAME "rs_hdr_collection_fuzzer"
+#define FUZZ_PROJECT_NAME "rshdrcollection_fuzzer"
 
 #endif // RS_HDR_COLLECTION_FUZZER_H

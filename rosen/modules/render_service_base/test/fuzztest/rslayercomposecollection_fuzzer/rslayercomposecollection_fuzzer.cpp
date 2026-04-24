@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "rs_layer_compose_collection_fuzzer.h"
+#include "rslayercomposecollection_fuzzer.h"
 
 #include <fuzzer/FuzzedDataProvider.h>
 
@@ -26,12 +26,44 @@ LayerComposeCollection* g_layercomposecollection = nullptr;
 
 namespace {
 constexpr uint8_t DO_METHOD_UPDATE_UNIFORM_OR_OFFLINE_COMPOSE = 0;
-constexpr uint8_t TARGET_SIZE = 1;
+constexpr uint8_t DO_METHOD_UPDATE_REDRAW_FRAME_NUMBER = 1;
+constexpr uint8_t DO_METHOD_UPDATE_DRAW_IMAGE_NUMBER = 2;
+constexpr uint8_t DO_METHOD_GET_LAYER_COMPOSE_INFO = 3;
+constexpr uint8_t DO_METHOD_RESET_LAYER_COMPOSE_INFO = 4;
+constexpr uint8_t TARGET_SIZE = 5;
 
 void DoUpdateUniformOrOfflineComposeFrameNumberForDFX(FuzzedDataProvider& fdp)
 {
-    size_t layerSize = fdp.ConsumeIntegral<size_t>() % 16;
+    size_t layerSize = fdp.ConsumeIntegral<size_t>();
     g_layercomposecollection->UpdateUniformOrOfflineComposeFrameNumberForDFX(layerSize);
+}
+
+void DoUpdateRedrawFrameNumberForDFX(FuzzedDataProvider& fdp)
+{
+    // LCOV_EXCL_START
+    g_layercomposecollection->UpdateRedrawFrameNumberForDFX();
+    // LCOV_EXCL_STOP
+}
+
+void DoUpdateDrawImageNumberForDFX(FuzzedDataProvider& fdp)
+{
+    // LCOV_EXCL_START
+    g_layercomposecollection->UpdateDrawImageNumberForDFX();
+    // LCOV_EXCL_STOP
+}
+
+void DoGetLayerComposeInfo(FuzzedDataProvider& fdp)
+{
+    // LCOV_EXCL_START
+    g_layercomposecollection->GetLayerComposeInfo();
+    // LCOV_EXCL_STOP
+}
+
+void DoResetLayerComposeInfo(FuzzedDataProvider& fdp)
+{
+    // LCOV_EXCL_START
+    g_layercomposecollection->ResetLayerComposeInfo();
+    // LCOV_EXCL_STOP
 }
 
 } // namespace
@@ -57,6 +89,18 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     switch (tarPos) {
         case OHOS::Rosen::DO_METHOD_UPDATE_UNIFORM_OR_OFFLINE_COMPOSE:
             OHOS::Rosen::DoUpdateUniformOrOfflineComposeFrameNumberForDFX(fdp);
+            break;
+        case OHOS::Rosen::DO_METHOD_UPDATE_REDRAW_FRAME_NUMBER:
+            OHOS::Rosen::DoUpdateRedrawFrameNumberForDFX(fdp);
+            break;
+        case OHOS::Rosen::DO_METHOD_UPDATE_DRAW_IMAGE_NUMBER:
+            OHOS::Rosen::DoUpdateDrawImageNumberForDFX(fdp);
+            break;
+        case OHOS::Rosen::DO_METHOD_GET_LAYER_COMPOSE_INFO:
+            OHOS::Rosen::DoGetLayerComposeInfo(fdp);
+            break;
+        case OHOS::Rosen::DO_METHOD_RESET_LAYER_COMPOSE_INFO:
+            OHOS::Rosen::DoResetLayerComposeInfo(fdp);
             break;
         default:
             return -1;

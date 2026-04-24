@@ -23,6 +23,7 @@ ohos_unittest("RSRenderServiceBaseInfoCollectionTest") {
 
   sources = [
     "rs_gpu_dirty_region_collection_test.cpp",
+    
     "rs_hdr_collection_test.cpp",
   ]
 

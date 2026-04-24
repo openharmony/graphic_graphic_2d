@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "rs_gpu_dirty_region_collection_fuzzer.h"
+#include "rsgpudirtyregioncollection_fuzzer.h"
 
 #include <fuzzer/FuzzedDataProvider.h>
 
@@ -31,13 +31,20 @@ constexpr uint8_t DO_METHOD_UPDATE_ACTIVE_DIRTY_INFO_VEC = 0;
 constexpr uint8_t DO_METHOD_UPDATE_ACTIVE_DIRTY_INFO_RECT = 1;
 constexpr uint8_t DO_METHOD_UPDATE_GLOBAL_DIRTY_INFO = 2;
 constexpr uint8_t DO_METHOD_ADD_SKIP_PROCESS_FRAMES = 3;
-constexpr uint8_t TARGET_SIZE = 4;
+constexpr uint8_t DO_METHOD_ADD_COMMAND_NUMBER = 4;
+constexpr uint8_t DO_METHOD_ADD_CONSUME_BUFFER_NUMBER = 5;
+constexpr uint8_t DO_METHOD_ADD_FRAME_ANIMATION_NUMBER = 6;
+constexpr uint8_t DO_METHOD_GET_ACTIVE_DIRTY_REGION_INFO = 7;
+constexpr uint8_t DO_METHOD_GET_GLOBAL_DIRTY_REGION_INFO = 8;
+constexpr uint8_t DO_METHOD_RESET_ACTIVE_DIRTY_REGION_INFO = 9;
+constexpr uint8_t DO_METHOD_RESET_GLOBAL_DIRTY_REGION_INFO = 10;
+constexpr uint8_t TARGET_SIZE = 11;
 
 void DoUpdateActiveDirtyInfoForDFXVec(FuzzedDataProvider& fdp)
 {
     NodeId id = fdp.ConsumeIntegral<NodeId>();
     std::string windowName = fdp.ConsumeRandomLengthString(64);
-    size_t vecSize = fdp.ConsumeIntegral<uint8_t>() % 4;
+    size_t vecSize = fdp.ConsumeIntegral<uint8_t>();
     std::vector<RectI> rectIs;
     for (size_t i = 0; i < vecSize; i++) {
         RectI rect;
@@ -78,6 +85,55 @@ void DoAddSkipProcessFramesNumberForDFX(FuzzedDataProvider& fdp)
     g_gpudirtyregioncollection->AddSkipProcessFramesNumberForDFX(sendingPid);
 }
 
+void DoAddCommandNumberForDFX(FuzzedDataProvider& fdp)
+{
+    // LCOV_EXCL_START
+    g_gpudirtyregioncollection->AddCommandNumberForDFX();
+    // LCOV_EXCL_STOP
+}
+
+void DoAddConsumeBufferNumberForDFX(FuzzedDataProvider& fdp)
+{
+    // LCOV_EXCL_START
+    g_gpudirtyregioncollection->AddConsumeBufferNumberForDFX();
+    // LCOV_EXCL_STOP
+}
+
+void DoAddFrameAnimationNumberForDFX(FuzzedDataProvider& fdp)
+{
+    // LCOV_EXCL_START
+    g_gpudirtyregioncollection->AddFrameAnimationNumberForDFX();
+    // LCOV_EXCL_STOP
+}
+
+void DoGetActiveDirtyRegionInfo(FuzzedDataProvider& fdp)
+{
+    // LCOV_EXCL_START
+    g_gpudirtyregioncollection->GetActiveDirtyRegionInfo();
+    // LCOV_EXCL_STOP
+}
+
+void DoGetGlobalDirtyRegionInfo(FuzzedDataProvider& fdp)
+{
+    // LCOV_EXCL_START
+    g_gpudirtyregioncollection->GetGlobalDirtyRegionInfo();
+    // LCOV_EXCL_STOP
+}
+
+void DoResetActiveDirtyRegionInfo(FuzzedDataProvider& fdp)
+{
+    // LCOV_EXCL_START
+    g_gpudirtyregioncollection->ResetActiveDirtyRegionInfo();
+    // LCOV_EXCL_STOP
+}
+
+void DoResetGlobalDirtyRegionInfo(FuzzedDataProvider& fdp)
+{
+    // LCOV_EXCL_START
+    g_gpudirtyregioncollection->ResetGlobalDirtyRegionInfo();
+    // LCOV_EXCL_STOP
+}
+
 } // namespace
 
 } // namespace Rosen
@@ -110,6 +166,27 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_METHOD_ADD_SKIP_PROCESS_FRAMES:
             OHOS::Rosen::DoAddSkipProcessFramesNumberForDFX(fdp);
+            break;
+        case OHOS::Rosen::DO_METHOD_ADD_COMMAND_NUMBER:
+            OHOS::Rosen::DoAddCommandNumberForDFX(fdp);
+            break;
+        case OHOS::Rosen::DO_METHOD_ADD_CONSUME_BUFFER_NUMBER:
+            OHOS::Rosen::DoAddConsumeBufferNumberForDFX(fdp);
+            break;
+        case OHOS::Rosen::DO_METHOD_ADD_FRAME_ANIMATION_NUMBER:
+            OHOS::Rosen::DoAddFrameAnimationNumberForDFX(fdp);
+            break;
+        case OHOS::Rosen::DO_METHOD_GET_ACTIVE_DIRTY_REGION_INFO:
+            OHOS::Rosen::DoGetActiveDirtyRegionInfo(fdp);
+            break;
+        case OHOS::Rosen::DO_METHOD_GET_GLOBAL_DIRTY_REGION_INFO:
+            OHOS::Rosen::DoGetGlobalDirtyRegionInfo(fdp);
+            break;
+        case OHOS::Rosen::DO_METHOD_RESET_ACTIVE_DIRTY_REGION_INFO:
+            OHOS::Rosen::DoResetActiveDirtyRegionInfo(fdp);
+            break;
+        case OHOS::Rosen::DO_METHOD_RESET_GLOBAL_DIRTY_REGION_INFO:
+            OHOS::Rosen::DoResetGlobalDirtyRegionInfo(fdp);
             break;
         default:
             return -1;

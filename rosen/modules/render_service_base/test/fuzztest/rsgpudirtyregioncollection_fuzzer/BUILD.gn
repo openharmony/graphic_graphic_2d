@@ -17,7 +17,7 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 module_output_path = "graphic_2d/graphic_2d"
 
 ohos_fuzztest("RSGpuDirtyRegionCollectionFuzzTest") {
-  fuzz_config_file = "$graphic_2d_root/rosen/modules/render_service_base/test/fuzztest/rs_gpu_dirty_region_collection_fuzzer"
+  fuzz_config_file = "$graphic_2d_root/rosen/modules/render_service_base/test/fuzztest/rsgpudirtyregioncollection_fuzzer"
   module_out_path = module_output_path
 
   include_dirs =
@@ -30,7 +30,7 @@ ohos_fuzztest("RSGpuDirtyRegionCollectionFuzzTest") {
     "-Dprivate=public",
     "-Dprotected=public",
   ]
-  sources = [ "rs_gpu_dirty_region_collection_fuzzer.cpp" ]
+  sources = [ "rsgpudirtyregioncollection_fuzzer.cpp" ]
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
   ]

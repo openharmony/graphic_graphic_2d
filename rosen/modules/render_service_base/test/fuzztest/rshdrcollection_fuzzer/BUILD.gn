@@ -17,7 +17,7 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 module_output_path = "graphic_2d/graphic_2d"
 
 ohos_fuzztest("RSHdrCollectionFuzzTest") {
-  fuzz_config_file = "$graphic_2d_root/rosen/modules/render_service_base/test/fuzztest/rs_hdr_collection_fuzzer"
+  fuzz_config_file = "$graphic_2d_root/rosen/modules/render_service_base/test/fuzztest/rshdrcollection_fuzzer"
   module_out_path = module_output_path
 
   include_dirs =
@@ -30,7 +30,7 @@ ohos_fuzztest("RSHdrCollectionFuzzTest") {
     "-Dprivate=public",
     "-Dprotected=public",
   ]
-  sources = [ "rs_hdr_collection_fuzzer.cpp" ]
+  sources = [ "rshdrcollection_fuzzer.cpp" ]
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
   ]

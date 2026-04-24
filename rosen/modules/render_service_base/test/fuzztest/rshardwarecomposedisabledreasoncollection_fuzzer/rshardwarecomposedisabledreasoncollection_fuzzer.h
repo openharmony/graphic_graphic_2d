@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef RS_GPU_DIRTY_REGION_COLLECTION_FUZZER_H
-#define RS_GPU_DIRTY_REGION_COLLECTION_FUZZER_H
+#ifndef RS_HARDWARE_COMPOSE_DISABLED_REASON_COLLECTION_FUZZER_H
+#define RS_HARDWARE_COMPOSE_DISABLED_REASON_COLLECTION_FUZZER_H
 
 #include <cstdint>
 #include <unistd.h>
@@ -23,6 +23,6 @@
 #include <cstdlib>
 #include <fcntl.h>
 
-#define FUZZ_PROJECT_NAME "rs_gpu_dirty_region_collection_fuzzer"
+#define FUZZ_PROJECT_NAME "rshardwarecomposedisabledreasoncollection_fuzzer"
 
-#endif // RS_GPU_DIRTY_REGION_COLLECTION_FUZZER_H
+#endif // RS_HARDWARE_COMPOSE_DISABLED_REASON_COLLECTION_FUZZER_H

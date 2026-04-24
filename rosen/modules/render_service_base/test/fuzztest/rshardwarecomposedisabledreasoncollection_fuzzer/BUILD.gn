@@ -16,8 +16,8 @@ import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 module_output_path = "graphic_2d/graphic_2d"
 
-ohos_fuzztest("RSLayerComposeCollectionFuzzTest") {
-  fuzz_config_file = "$graphic_2d_root/rosen/modules/render_service_base/test/fuzztest/rs_layer_compose_collection_fuzzer"
+ohos_fuzztest("RSHardwareComposeDisabledReasonCollectionFuzzTest") {
+  fuzz_config_file = "$graphic_2d_root/rosen/modules/render_service_base/test/fuzztest/rshardwarecomposedisabledreasoncollection_fuzzer"
   module_out_path = module_output_path
 
   include_dirs =
@@ -30,7 +30,7 @@ ohos_fuzztest("RSLayerComposeCollectionFuzzTest") {
     "-Dprivate=public",
     "-Dprotected=public",
   ]
-  sources = [ "rs_layer_compose_collection_fuzzer.cpp" ]
+  sources = [ "rshardwarecomposedisabledreasoncollection_fuzzer.cpp" ]
   deps = [
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
   ]
@@ -45,6 +45,6 @@ group("fuzztest") {
   testonly = true
   deps = []
   deps += [
-    ":RSLayerComposeCollectionFuzzTest",
+    ":RSHardwareComposeDisabledReasonCollectionFuzzTest",
   ]
 }

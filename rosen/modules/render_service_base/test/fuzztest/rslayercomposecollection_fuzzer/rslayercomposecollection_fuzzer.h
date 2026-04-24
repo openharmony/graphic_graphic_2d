@@ -23,6 +23,6 @@
 #include <cstdlib>
 #include <fcntl.h>
 
-#define FUZZ_PROJECT_NAME "rs_layer_compose_collection_fuzzer"
+#define FUZZ_PROJECT_NAME "rslayercomposecollection_fuzzer"
 
 #endif // RS_LAYER_COMPOSE_COLLECTION_FUZZER_H
