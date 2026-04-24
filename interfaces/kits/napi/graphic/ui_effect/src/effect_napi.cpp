@@ -690,7 +690,6 @@ napi_value EffectNapi::CreateHdrDarkenBlender(napi_env env, napi_callback_info i
     UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && (realArgc == NUM_1 || realArgc == NUM_2), nullptr,
         UIEFFECT_LOG_E("EffectNapi CreateHdrDarkenBlender parsing input fail"));
-        UIEFFECT_LOG_E("EffectNapi CreateHdrDarkenBlender parsing input fail"));
 
     if (!CheckNullOrUndefined(env, argv[NUM_0], "hdrBrightnessRatio")) {
         return nullptr;
