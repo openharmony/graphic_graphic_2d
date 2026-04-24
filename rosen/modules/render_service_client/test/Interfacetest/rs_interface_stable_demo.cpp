@@ -1168,8 +1168,6 @@ void TestAccessibility(InterfaceClientFrameTest &testFrame)
     auto& rsInterfaces = RSInterfaces::GetInstance();
 
     // Normal call
-    auto highContrastState = rsInterfaces.GetHighContrastTextState();
-    (void)highContrastState;
     rsInterfaces.SetBehindWindowFilterEnabled(true);
     rsInterfaces.SetBehindWindowFilterEnabled(false);
 
@@ -1575,7 +1573,8 @@ void TestFreezeScreenDefaults(InterfaceClientFrameTest &testFrame)
 // 52.1 Test CreateNode with RSDisplayNodeConfig
 void TestCreateNodeDisplayConfig(InterfaceClientFrameTest &testFrame)
 {
-    auto rsClient = std::make_shared<RSRenderPipelineClient>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsClient = std::make_shared<RSRenderPipelineClient>(connectToRenderRemote);
 
     RSDisplayNodeConfig displayNodeConfig;
     displayNodeConfig.screenId = 0;
@@ -1606,7 +1605,8 @@ void TestCreateNodeDisplayConfig(InterfaceClientFrameTest &testFrame)
 // 52.2 Test CreateNode with RSSurfaceRenderNodeConfig
 void TestCreateNodeSurfaceConfig(InterfaceClientFrameTest &testFrame)
 {
-    auto rsClient = std::make_shared<RSRenderPipelineClient>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsClient = std::make_shared<RSRenderPipelineClient>(connectToRenderRemote);
 
     RSSurfaceRenderNodeConfig config;
     config.id = 1;
@@ -1630,7 +1630,8 @@ void TestCreateNodeSurfaceConfig(InterfaceClientFrameTest &testFrame)
 // 52.3 Test GetBitmap
 void TestGetBitmap(InterfaceClientFrameTest &testFrame)
 {
-    auto rsClient = std::make_shared<RSRenderPipelineClient>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsClient = std::make_shared<RSRenderPipelineClient>(connectToRenderRemote);
 
     Drawing::Bitmap bitmap;
     NodeId testNodeId = 1;
@@ -1646,7 +1647,8 @@ void TestGetBitmap(InterfaceClientFrameTest &testFrame)
 // 52.4 Test CreateNodeAndSurface
 void TestCreateNodeAndSurface(InterfaceClientFrameTest &testFrame)
 {
-    auto rsClient = std::make_shared<RSRenderPipelineClient>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsClient = std::make_shared<RSRenderPipelineClient>(connectToRenderRemote);
 
     RSSurfaceRenderNodeConfig config;
     config.id = 1;
@@ -1669,7 +1671,8 @@ void TestCreateNodeAndSurface(InterfaceClientFrameTest &testFrame)
 // 52.5 Test GetPixelmap
 void TestGetPixelmap(InterfaceClientFrameTest &testFrame)
 {
-    auto rsClient = std::make_shared<RSRenderPipelineClient>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsClient = std::make_shared<RSRenderPipelineClient>(connectToRenderRemote);
 
     std::shared_ptr<Media::PixelMap> pixelmap = nullptr;
     NodeId testNodeId = 1;
@@ -1695,7 +1698,8 @@ void TestGetPixelmap(InterfaceClientFrameTest &testFrame)
 // 52.6 Test SetHidePrivacyContent
 void TestSetHidePrivacyContent(InterfaceClientFrameTest &testFrame)
 {
-    auto rsClient = std::make_shared<RSRenderPipelineClient>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsClient = std::make_shared<RSRenderPipelineClient>(connectToRenderRemote);
 
     NodeId testNodeId = 1;
 
@@ -1713,7 +1717,8 @@ void TestSetHidePrivacyContent(InterfaceClientFrameTest &testFrame)
 // 52.7 Test SetHardwareEnabled
 void TestSetHardwareEnabled(InterfaceClientFrameTest &testFrame)
 {
-    auto rsClient = std::make_shared<RSRenderPipelineClient>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsClient = std::make_shared<RSRenderPipelineClient>(connectToRenderRemote);
 
     NodeId testNodeId = 1;
 

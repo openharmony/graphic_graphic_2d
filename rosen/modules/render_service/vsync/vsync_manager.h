@@ -40,7 +40,7 @@ public:
     sptr<VSyncController> GetVSyncRSController();
     sptr<VSyncController> GetVSyncAppController();
     sptr<VSyncSampler> GetVSyncSampler();
-    bool init(sptr<RSScreenManager> screenManager);
+    bool init(sptr<RSScreenManager> screenManager, bool isMultiProcessMode = false);
     ScreenId OnScreenConnected(ScreenId screenId, std::shared_ptr<AppExecFwk::EventHandler> handler);
     void OnScreenDisconnected(ScreenId id, std::shared_ptr<AppExecFwk::EventHandler> handler);
     void OnScreenPropertyChanged(ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& property,
@@ -51,8 +51,8 @@ public:
     sptr<RSVsyncManagerAgent> GetVsyncManagerAgent();
 
 private:
-    bool VsyncComponentInit();
-    DVSyncFeatureParam InitDVSyncParams();
+    bool VsyncComponentInit(bool isMultiProcessMode = false);
+    DVSyncFeatureParam InitDVSyncParams(bool isMultiProcessMode = false);
     void RegSetScreenVsyncEnabledCallbackForRenderService(ScreenId vsyncEnabledScreenId,
         std::shared_ptr<AppExecFwk::EventHandler> handler);
     uint64_t JudgeVSyncEnabledScreenWhileHotPlug(ScreenId screenId, bool connected);

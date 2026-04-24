@@ -686,19 +686,6 @@ HWTEST_F(RSClientToServiceConnectionStubTest, TestRSRenderServiceConnectionStub0
 }
 
 /**
- * @tc.name: TestRSRenderServiceConnectionStub010
- * @tc.desc: Test if the code not exists.
- * @tc.type: FUNC
- * @tc.require: issueIB31K8
- */
-HWTEST_F(RSClientToServiceConnectionStubTest, TestRSRenderServiceConnectionStub010, TestSize.Level1)
-{
-    ASSERT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS)),
-        ERR_INVALID_DATA);
-}
-
-/**
  * @tc.name: TestRSRenderServiceConnectionStub011
  * @tc.desc: Test
  * @tc.type: FUNC
@@ -5052,11 +5039,9 @@ HWTEST_F(RSClientToServiceConnectionStubTest, testnullptrCase007, TestSize.Level
     connection->SetForceRefresh(pkgName, false);
     connection->renderProcessManagerAgent_ = nullptr;
     // test SetFreeMultiWindowStatus and SetColorFollow
-    connection->SetFreeMultiWindowStatus(false);
     connection->SetColorFollow(pkgName, false);
     connection->renderProcessManagerAgent_ = renderProcessManagerAgent;
     ASSERT_NE(connection->renderProcessManagerAgent_, nullptr);
-    connection->SetFreeMultiWindowStatus(false);
     connection->SetColorFollow(pkgName, false);
 }
 

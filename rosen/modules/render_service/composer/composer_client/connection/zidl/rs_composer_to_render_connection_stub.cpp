@@ -121,7 +121,7 @@ int32_t RSComposerToRenderConnectionStub::ReleaseLayerBuffersStub(MessageParcel&
                 return parcel.ReadFileDescriptor();
             };
             uint32_t sequence;
-            auto ret = ReadSurfaceBufferImpl(data, sequence, buffer, readSafeFdFunc);
+            auto ret = ReadSurfaceBufferImplWithAllProperties(data, sequence, buffer, readSafeFdFunc);
             if (ret != GSERROR_OK) {
                 return ERR_INVALID_DATA;
             }

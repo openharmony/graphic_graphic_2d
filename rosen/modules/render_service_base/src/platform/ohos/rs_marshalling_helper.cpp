@@ -3642,5 +3642,48 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RSRenderParticleVector& 
 {
     return false;
 }
+
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, sptr<Surface> surface)
+{
+    if (surface != nullptr) {
+        auto producer = surface->GetProducer();
+        if (producer != nullptr) {
+            if (!parcel.WriteBool(true)) {
+                return false;
+            }
+            if (!parcel.WriteRemoteObject(producer->AsObject())) {
+                return false;
+            }
+        } else {
+            if (!parcel.WriteBool(false)) {
+                return false;
+            }
+        }
+    } else {
+        if (!parcel.WriteBool(false)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, sptr<Surface>& surface)
+{
+    surface = nullptr;
+    bool hasSurface{false};
+    if (!parcel.ReadBool(hasSurface)) {
+        return false;
+    }
+    if (hasSurface) {
+        auto remoteObject = static_cast<MessageParcel*>(&parcel)->ReadRemoteObject();
+        if (remoteObject == nullptr) {
+            return false;
+        }
+        auto bufferProducer = iface_cast<IBufferProducer>(remoteObject);
+        surface = Surface::CreateSurfaceAsProducer(bufferProducer);
+    }
+    return true;
+}
+
 } // namespace Rosen
 } // namespace OHOS

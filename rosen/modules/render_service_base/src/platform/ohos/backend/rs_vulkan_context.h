@@ -188,66 +188,34 @@ public:
 
 #define DEFINE_FUNC(name) Func<PFN_vk##name> vk##name
 
-    DEFINE_FUNC(AcquireNextImageKHR);
-    DEFINE_FUNC(AllocateCommandBuffers);
     DEFINE_FUNC(AllocateMemory);
-    DEFINE_FUNC(BeginCommandBuffer);
     DEFINE_FUNC(BindImageMemory);
     DEFINE_FUNC(BindImageMemory2);
-    DEFINE_FUNC(CmdPipelineBarrier);
-    DEFINE_FUNC(CreateCommandPool);
-    DEFINE_FUNC(CreateDebugReportCallbackEXT);
     DEFINE_FUNC(CreateDevice);
-    DEFINE_FUNC(CreateFence);
     DEFINE_FUNC(CreateImage);
-    DEFINE_FUNC(CreateImageView);
     DEFINE_FUNC(CreateInstance);
     DEFINE_FUNC(CreateSemaphore);
-    DEFINE_FUNC(CreateSwapchainKHR);
-    DEFINE_FUNC(DestroyCommandPool);
-    DEFINE_FUNC(DestroyDebugReportCallbackEXT);
     DEFINE_FUNC(DestroyDevice);
-    DEFINE_FUNC(DestroyFence);
     DEFINE_FUNC(DestroyImage);
-    DEFINE_FUNC(DestroyImageView);
     DEFINE_FUNC(DestroyInstance);
     DEFINE_FUNC(DestroySemaphore);
-    DEFINE_FUNC(DestroySurfaceKHR);
-    DEFINE_FUNC(DestroySwapchainKHR);
     DEFINE_FUNC(DeviceWaitIdle);
-    DEFINE_FUNC(EndCommandBuffer);
     DEFINE_FUNC(EnumerateDeviceExtensionProperties);
-    DEFINE_FUNC(EnumerateDeviceLayerProperties);
     DEFINE_FUNC(EnumerateInstanceExtensionProperties);
-    DEFINE_FUNC(EnumerateInstanceLayerProperties);
     DEFINE_FUNC(EnumeratePhysicalDevices);
-    DEFINE_FUNC(FreeCommandBuffers);
     DEFINE_FUNC(FreeMemory);
     DEFINE_FUNC(GetDeviceProcAddr);
-    DEFINE_FUNC(GetDeviceQueue);
     DEFINE_FUNC(GetImageMemoryRequirements);
     DEFINE_FUNC(GetInstanceProcAddr);
     DEFINE_FUNC(GetPhysicalDeviceFeatures);
     DEFINE_FUNC(GetPhysicalDeviceQueueFamilyProperties);
     DEFINE_FUNC(QueueSubmit);
-    DEFINE_FUNC(QueueWaitIdle);
-    DEFINE_FUNC(ResetCommandBuffer);
-    DEFINE_FUNC(ResetFences);
-    DEFINE_FUNC(WaitForFences);
-    DEFINE_FUNC(GetPhysicalDeviceSurfaceCapabilitiesKHR);
-    DEFINE_FUNC(GetPhysicalDeviceSurfaceFormatsKHR);
-    DEFINE_FUNC(GetPhysicalDeviceSurfacePresentModesKHR);
-    DEFINE_FUNC(GetPhysicalDeviceSurfaceSupportKHR);
-    DEFINE_FUNC(GetSwapchainImagesKHR);
-    DEFINE_FUNC(QueuePresentKHR);
-    DEFINE_FUNC(CreateSurfaceOHOS);
     DEFINE_FUNC(GetPhysicalDeviceMemoryProperties);
     DEFINE_FUNC(GetPhysicalDeviceMemoryProperties2);
     DEFINE_FUNC(GetNativeBufferPropertiesOHOS);
     DEFINE_FUNC(QueueSignalReleaseImageOHOS);
     DEFINE_FUNC(ImportSemaphoreFdKHR);
     DEFINE_FUNC(GetPhysicalDeviceFeatures2);
-    DEFINE_FUNC(SetFreqAdjustEnable);
     DEFINE_FUNC(GetSemaphoreFdKHR);
 #undef DEFINE_FUNC
 
@@ -445,8 +413,10 @@ public:
     bool GetIsProtected() const;
 
     static bool IsRecyclable();
+    static bool IsMultiProcess();
 
     static void SetRecyclable(bool isRecyclable);
+    static void SetIsMultiProcess(bool isMultiProcess);
 
     static void SaveNewDrawingContext(int tid, std::shared_ptr<Drawing::GPUContext> drawingContext);
 
@@ -467,6 +437,7 @@ private:
     // use for recyclable singleton
     static std::recursive_mutex recyclableSingletonMutex_;
     static bool isRecyclable_;
+    static bool isMultiProcess_;
     // isRecyclableSingletonValid_ : true -> has been initialized and is valid , false -> has been released
     static std::atomic<bool> isRecyclableSingletonValid_;
     // use to mark current process has created vulkan context at least once

@@ -69,9 +69,6 @@ constexpr const int WAIT_HANDLER_TIME = 1; // 1s
 constexpr const int WAIT_HANDLER_TIME_COUNT = 5;
 constexpr const int SURFACE_NODE_ID = 1003;
 constexpr const int TEST_NULLPTR_CONN_PID = 10;
-constexpr const uint64_t DEFAULT_ID = 100;
-constexpr const uint32_t DEFAULT_STABLE_DURATION = 1000;
-constexpr const float DEFAULT_CHANGE_PERCENT = 0.5f;
 };
 
 namespace OHOS::Rosen {
@@ -3692,10 +3689,10 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RenderPipelineAgentNullptrTest002, 
     std::shared_ptr<RSRenderPipeline> nullPipeline = nullptr;
     sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(nullPipeline);
 
-    // Test CreateNode with RSDisplayNodeConfig
+    // Test CreateDisplayNode with RSDisplayNodeConfig
     RSDisplayNodeConfig displayConfig;
     bool success = false;
-    ErrCode ret = agent->CreateNode(displayConfig, 123, success);
+    ErrCode ret = agent->CreateDisplayNode(displayConfig, 123, success);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 
     // Test CreateNode with RSSurfaceRenderNodeConfig
@@ -4011,14 +4008,10 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RenderPipelineAgentNullptrTest011, 
     std::shared_ptr<RSRenderPipeline> nullPipeline = nullptr;
     sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(nullPipeline);
 
-    // Test GetHighContrastTextState
-    bool ret = agent->GetHighContrastTextState();
-    EXPECT_EQ(ret, false);
-
     // Test RegisterTypeface
     uint64_t globalUniqueId = 12345;
     std::shared_ptr<Drawing::Typeface> typeface = nullptr;
-    ret = agent->RegisterTypeface(globalUniqueId, typeface);
+    auto ret = agent->RegisterTypeface(globalUniqueId, typeface);
     EXPECT_EQ(ret, false);
 
     // Test UnRegisterTypeface
@@ -4056,10 +4049,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RenderPipelineAgentNullptrTest012, 
     // Test ShowWatermark
     std::shared_ptr<Media::PixelMap> watermarkImg = nullptr;
     agent->ShowWatermark(watermarkImg, true);
-    // Should return without crash
-
-    // Test SetFreeMultiWindowStatus
-    agent->SetFreeMultiWindowStatus(true);
     // Should return without crash
 
     // Test HgmForceUpdateTask
@@ -4440,26 +4429,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, CommitTransaction_ZeroPid_012, Test
 }
 
 /**
- * @tc.name: GetHighContrastTextStateTest001
- * @tc.desc: Test GetHighContrastTextState
- * branch)
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSClientToRenderConnectionStubTest, GetHighContrastTextStateTest001, TestSize.Level1)
-{
-    ASSERT_NE(connectionStub_, nullptr);
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
-    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_HIGH_CONTRAST_TEXT_STATE);
-
-    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(res, ERR_NONE);
-}
-
-/**
  * @tc.name: CreateNodeAndSurfaceTest001
  * @tc.desc: Test CreateNodeAndSurfaceTest when surfacenode is self drawing node
  * branch)
@@ -4729,338 +4698,53 @@ HWTEST_F(RSClientToRenderConnectionStubTest, GetPixelMapTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: RegisterFrameStabilityDetectionTest001
- * @tc.desc: Test RegisterFrameStabilityDetection with missing parameters
+ * @tc.name: SetFreeMultiWindowStatusTest001
+ * @tc.desc: Test SetFreeMultiWindowStatus with missing parameters
  * @tc.type: FUNC
- * @tc.require: issues22734
+ * @tc.require:
  */
-HWTEST_F(RSClientToRenderConnectionStubTest, RegisterFrameStabilityDetectionTest001, TestSize.Level1)
+HWTEST_F(RSClientToRenderConnectionStubTest, SetFreeMultiWindowStatusTest001, TestSize.Level1)
 {
     ASSERT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_FRAME_STABILITY_DETECTION)),
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS)),
         ERR_INVALID_DATA);
 }
 
 /**
- * @tc.name: RegisterFrameStabilityDetectionTest002
- * @tc.desc: Test RegisterFrameStabilityDetection with valid parameters
+ * @tc.name: SetFreeMultiWindowStatusTest002
+ * @tc.desc: Test SetFreeMultiWindowStatus with valid parameters
  * @tc.type: FUNC
- * @tc.require: issues22734
+ * @tc.require:
  */
-HWTEST_F(RSClientToRenderConnectionStubTest, RegisterFrameStabilityDetectionTest002, TestSize.Level1)
+HWTEST_F(RSClientToRenderConnectionStubTest, SetFreeMultiWindowStatusTest002, TestSize.Level1)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
-    data.WriteUint64(DEFAULT_ID);
-    data.WriteUint32(static_cast<uint32_t>(FrameStabilityTargetType::SCREEN));
-    data.WriteUint32(DEFAULT_STABLE_DURATION);
-    data.WriteFloat(DEFAULT_CHANGE_PERCENT);
-    sptr<RSFrameStabilityCallbackStubMock> callback = new RSFrameStabilityCallbackStubMock();
-    data.WriteRemoteObject(callback->AsObject());
+    data.WriteBool(true);
     uint32_t code = static_cast<uint32_t>(
-        RSIClientToRenderConnectionInterfaceCode::REGISTER_FRAME_STABILITY_DETECTION);
+        RSIClientToRenderConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS);
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(res, ERR_INVALID_REPLY);
+    ASSERT_EQ(res, ERR_NONE);
 }
 
 /**
- * @tc.name: RegisterFrameStabilityDetectionTest003
- * @tc.desc: Test RegisterFrameStabilityDetection with invalid parameters
+ * @tc.name: SetFreeMultiWindowStatusTest003
+ * @tc.desc: Test SetFreeMultiWindowStatus with false parameter
  * @tc.type: FUNC
- * @tc.require: issues22734
+ * @tc.require:
  */
-HWTEST_F(RSClientToRenderConnectionStubTest, RegisterFrameStabilityDetectionTest003, TestSize.Level1)
+HWTEST_F(RSClientToRenderConnectionStubTest, SetFreeMultiWindowStatusTest003, TestSize.Level1)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
-    data.WriteUint64(DEFAULT_ID);
-    data.WriteUint32(static_cast<uint32_t>(FrameStabilityTargetType::SCREEN));
+    data.WriteBool(false);
     uint32_t code = static_cast<uint32_t>(
-        RSIClientToRenderConnectionInterfaceCode::REGISTER_FRAME_STABILITY_DETECTION);
+        RSIClientToRenderConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS);
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(res, ERR_INVALID_DATA);
-
-    MessageParcel dataHasStableDuration;
-    dataHasStableDuration.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
-    dataHasStableDuration.WriteUint64(DEFAULT_ID);
-    dataHasStableDuration.WriteUint32(static_cast<uint32_t>(FrameStabilityTargetType::SCREEN));
-    dataHasStableDuration.WriteUint32(DEFAULT_STABLE_DURATION);
-    res = connectionStub_->OnRemoteRequest(code, dataHasStableDuration, reply, option);
-    ASSERT_EQ(res, ERR_INVALID_DATA);
-
-    MessageParcel dataHasStableConfig;
-    dataHasStableConfig.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
-    dataHasStableConfig.WriteUint64(DEFAULT_ID);
-    dataHasStableConfig.WriteUint8(0);
-    dataHasStableConfig.WriteUint32(DEFAULT_STABLE_DURATION);
-    dataHasStableConfig.WriteFloat(DEFAULT_CHANGE_PERCENT);
-    res = connectionStub_->OnRemoteRequest(code, dataHasStableConfig, reply, option);
-    ASSERT_EQ(res, ERR_NULL_OBJECT);
-}
-
-/**
- * @tc.name: UnregisterFrameStabilityDetectionTest001
- * @tc.desc: Test UnregisterFrameStabilityDetection with missing parameters
- * @tc.type: FUNC
- * @tc.require: issues22734
- */
-HWTEST_F(RSClientToRenderConnectionStubTest, UnregisterFrameStabilityDetectionTest001, TestSize.Level1)
-{
-    ASSERT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::UNREGISTER_FRAME_STABILITY_DETECTION)),
-        ERR_INVALID_DATA);
-}
-
-/**
- * @tc.name: UnregisterFrameStabilityDetectionTest002
- * @tc.desc: Test UnregisterFrameStabilityDetection with valid parameters
- * @tc.type: FUNC
- * @tc.require: issues22734
- */
-HWTEST_F(RSClientToRenderConnectionStubTest, UnregisterFrameStabilityDetectionTest002, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
-    data.WriteUint64(DEFAULT_ID);
-    data.WriteUint32(static_cast<uint32_t>(FrameStabilityTargetType::SCREEN));
-    uint32_t code = static_cast<uint32_t>(
-        RSIClientToRenderConnectionInterfaceCode::UNREGISTER_FRAME_STABILITY_DETECTION);
-    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(res, ERR_INVALID_REPLY);
-}
-
-/**
- * @tc.name: StartFrameStabilityCollectionTest001
- * @tc.desc: Test StartFrameStabilityCollection with missing parameters
- * @tc.type: FUNC
- * @tc.require: issues22734
- */
-HWTEST_F(RSClientToRenderConnectionStubTest, StartFrameStabilityCollectionTest001, TestSize.Level1)
-{
-    ASSERT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::START_FRAME_STABILITY_COLLECTION)),
-        ERR_INVALID_DATA);
-}
-
-/**
- * @tc.name: StartFrameStabilityCollectionTest002
- * @tc.desc: Test StartFrameStabilityCollection with valid parameters
- * @tc.type: FUNC
- * @tc.require: issues22734
- */
-HWTEST_F(RSClientToRenderConnectionStubTest, StartFrameStabilityCollectionTest002, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
-    data.WriteUint64(DEFAULT_ID);
-    data.WriteUint32(static_cast<uint32_t>(FrameStabilityTargetType::SCREEN));
-    data.WriteUint32(DEFAULT_STABLE_DURATION);
-    data.WriteFloat(DEFAULT_CHANGE_PERCENT);
-    uint32_t code = static_cast<uint32_t>(
-        RSIClientToRenderConnectionInterfaceCode::START_FRAME_STABILITY_COLLECTION);
-    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(res, ERR_INVALID_REPLY);
-}
-
-/**
- * @tc.name: StartFrameStabilityCollectionTest003
- * @tc.desc: Test StartFrameStabilityCollection with invalid parameters
- * @tc.type: FUNC
- * @tc.require: issues22734
- */
-HWTEST_F(RSClientToRenderConnectionStubTest, StartFrameStabilityCollectionTest003, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
-    data.WriteUint64(DEFAULT_ID);
-    data.WriteUint32(static_cast<uint32_t>(FrameStabilityTargetType::SCREEN));
-    uint32_t code = static_cast<uint32_t>(
-        RSIClientToRenderConnectionInterfaceCode::START_FRAME_STABILITY_COLLECTION);
-    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(res, ERR_INVALID_DATA);
-
-    MessageParcel dataHasStableDuration;
-    dataHasStableDuration.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
-    dataHasStableDuration.WriteUint64(DEFAULT_ID);
-    dataHasStableDuration.WriteUint8(0);
-    dataHasStableDuration.WriteUint32(DEFAULT_CHANGE_PERCENT);
-    res = connectionStub_->OnRemoteRequest(code, dataHasStableDuration, reply, option);
-    ASSERT_EQ(res, ERR_INVALID_DATA);
-}
-
-/**
- * @tc.name: GetFrameStabilityResultTest001
- * @tc.desc: Test GetFrameStabilityResult with missing parameters
- * @tc.type: FUNC
- * @tc.require: issues22734
- */
-HWTEST_F(RSClientToRenderConnectionStubTest, GetFrameStabilityResultTest001, TestSize.Level1)
-{
-    ASSERT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_FRAME_STABILITY_RESULT)),
-        ERR_INVALID_DATA);
-}
-
-/**
- * @tc.name: GetFrameStabilityResultTest002
- * @tc.desc: Test GetFrameStabilityResult with valid parameters
- * @tc.type: FUNC
- * @tc.require: issues22734
- */
-HWTEST_F(RSClientToRenderConnectionStubTest, GetFrameStabilityResultTest002, TestSize.Level1)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
-    data.WriteUint64(DEFAULT_ID);
-    data.WriteUint32(static_cast<uint32_t>(FrameStabilityTargetType::SCREEN));
-    uint32_t code = static_cast<uint32_t>(
-        RSIClientToRenderConnectionInterfaceCode::GET_FRAME_STABILITY_RESULT);
-    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(res, ERR_INVALID_REPLY);
-}
-
-/**
- * @tc.name: RegisterRemoteRefreshCallbackTest
- * @tc.desc: Test RegisterRemoteRefreshCallback with normal and edge cases
- * @tc.type: FUNC
- */
-HWTEST_F(RSClientToRenderConnectionStubTest, RegisterRemoteRefreshCallbackTest, TestSize.Level1)
-{
-    // Test with valid connection
-    auto testToken = new IRemoteStub<RSIConnectionToken>();
-    auto testConnection = new RSClientToRenderConnection(TEST_NULLPTR_CONN_PID,
-        renderPipelineAgent_, testToken->AsObject());
-    ASSERT_NE(testConnection, nullptr);
-
-    // First call should create recipient
-    testConnection->RegisterRemoteRefreshCallback();
-    EXPECT_NE(testConnection->connRefreshRecipient_, nullptr);
-
-    // Second call should not create new recipient (already exists)
-    auto firstRecipient = testConnection->connRefreshRecipient_;
-    testConnection->RegisterRemoteRefreshCallback();
-    EXPECT_EQ(testConnection->connRefreshRecipient_, firstRecipient);
-}
-
-/**
- * @tc.name: CleanForRefreshTest001
- * @tc.desc: Test CleanForRefresh when renderPipelineAgent_ is nullptr
- * @tc.type: FUNC
- */
-HWTEST_F(RSClientToRenderConnectionStubTest, CleanForRefreshTest001, TestSize.Level1)
-{
-    auto testToken = new IRemoteStub<RSIConnectionToken>();
-    auto testConnection = new RSClientToRenderConnection(TEST_NULLPTR_CONN_PID,
-        nullptr, testToken->AsObject());
-    ASSERT_NE(testConnection, nullptr);
-    ASSERT_EQ(testConnection->renderPipelineAgent_, nullptr);
-
-    // Should return early without crash when renderPipelineAgent_ is nullptr
-    testConnection->CleanForRefresh();
-    // Verify connection remains valid after CleanForRefresh
-    EXPECT_EQ(testConnection->renderPipelineAgent_, nullptr);
-}
-
-/**
- * @tc.name: CleanForRefreshTest002
- * @tc.desc: Test CleanForRefresh normal path
- * @tc.type: FUNC
- */
-HWTEST_F(RSClientToRenderConnectionStubTest, CleanForRefreshTest002, TestSize.Level1)
-{
-    auto testToken = new IRemoteStub<RSIConnectionToken>();
-    auto testConnection = new RSClientToRenderConnection(TEST_NULLPTR_CONN_PID,
-        renderPipelineAgent_, testToken->AsObject());
-    ASSERT_NE(testConnection, nullptr);
-    ASSERT_NE(testConnection->renderPipelineAgent_, nullptr);
-    EXPECT_EQ(testConnection->remotePid_, TEST_NULLPTR_CONN_PID);
-
-    // Should call Clean with forRefresh=true
-    testConnection->CleanForRefresh();
-    // Verify connection and agent remain valid after CleanForRefresh
-    EXPECT_NE(testConnection->renderPipelineAgent_, nullptr);
-}
-
-/**
- * @tc.name: RSConnectionRefreshRecipientTest001
- * @tc.desc: Test RSConnectionRefreshRecipient::OnRemoteRefreshed with nullptr token
- * @tc.type: FUNC
- */
-HWTEST_F(RSClientToRenderConnectionStubTest, RSConnectionRefreshRecipientTest001, TestSize.Level1)
-{
-    auto testToken = new IRemoteStub<RSIConnectionToken>();
-    auto testConnection = new RSClientToRenderConnection(TEST_NULLPTR_CONN_PID,
-        renderPipelineAgent_, testToken->AsObject());
-    ASSERT_NE(testConnection, nullptr);
-
-    auto refreshRecipient = new RSClientToRenderConnection::RSConnectionRefreshRecipient(testConnection);
-    ASSERT_NE(refreshRecipient, nullptr);
-
-    // Verify initial state
-    ASSERT_NE(refreshRecipient->conn_, nullptr);
-
-    // Test with nullptr token (wptr with nullptr)
-    wptr<IRemoteObject> nullToken;
-    refreshRecipient->OnRemoteRefreshed(nullToken);
-    // Should return early when token is nullptr, connection should remain valid
-    EXPECT_NE(testConnection, nullptr);
-}
-
-/**
- * @tc.name: RSConnectionRefreshRecipientTest002
- * @tc.desc: Test RSConnectionRefreshRecipient::OnRemoteRefreshed with valid connection
- * @tc.type: FUNC
- */
-HWTEST_F(RSClientToRenderConnectionStubTest, RSConnectionRefreshRecipientTest002, TestSize.Level1)
-{
-    auto testToken = new IRemoteStub<RSIConnectionToken>();
-    sptr<RSClientToRenderConnection> testConnection = new RSClientToRenderConnection(TEST_NULLPTR_CONN_PID,
-        renderPipelineAgent_, testToken->AsObject());
-    ASSERT_NE(testConnection, nullptr);
-
-    wptr<RSClientToRenderConnection> weakConn = testConnection;
-    auto refreshRecipient = new RSClientToRenderConnection::RSConnectionRefreshRecipient(weakConn);
-    ASSERT_NE(refreshRecipient, nullptr);
-    ASSERT_NE(refreshRecipient->conn_, nullptr);
-
-    // Test with valid token and valid connection - should handle gracefully
-    refreshRecipient->OnRemoteRefreshed(testToken->AsObject());
-    // Verify weak reference returns valid connection after OnRemoteRefreshed
-    EXPECT_NE(refreshRecipient->conn_.promote(), nullptr);
-}
-
-/**
- * @tc.name: RSConnectionRefreshRecipientTest003
- * @tc.desc: Test RSConnectionRefreshRecipient::OnRemoteRefreshed with matching token
- * @tc.type: FUNC
- */
-HWTEST_F(RSClientToRenderConnectionStubTest, RSConnectionRefreshRecipientTest003, TestSize.Level1)
-{
-    auto testToken = new IRemoteStub<RSIConnectionToken>();
-    auto testConnection = new RSClientToRenderConnection(TEST_NULLPTR_CONN_PID,
-        renderPipelineAgent_, testToken->AsObject());
-    ASSERT_NE(testConnection, nullptr);
-    ASSERT_NE(testConnection->renderPipelineAgent_, nullptr);
-    ASSERT_EQ(testConnection->GetToken(), testToken->AsObject());
-
-    auto refreshRecipient = new RSClientToRenderConnection::RSConnectionRefreshRecipient(testConnection);
-    ASSERT_NE(refreshRecipient, nullptr);
-
-    // Test with matching token - should call CleanForRefresh
-    refreshRecipient->OnRemoteRefreshed(testToken->AsObject());
-    // Verify connection remains valid after OnRemoteRefreshed
-    EXPECT_NE(testConnection, nullptr);
+    ASSERT_EQ(res, ERR_NONE);
 }
 } // namespace OHOS::Rosen

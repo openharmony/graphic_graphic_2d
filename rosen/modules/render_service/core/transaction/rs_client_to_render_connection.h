@@ -35,7 +35,7 @@ class RSClientToRenderConnection : public RSClientToRenderConnectionStub {
 public:
     RSClientToRenderConnection(
     pid_t remotePid,
-    sptr<RSRenderPipelineAgent> renderPipelineAgent, sptr<IRemoteObject> token);
+    sptr<RSRenderPipelineAgent> renderPipelineAgent, sptr<IRemoteObject> token, bool needRefresh = false);
     ~RSClientToRenderConnection() noexcept;
     RSClientToRenderConnection(const RSClientToRenderConnection&) = delete;
     RSClientToRenderConnection& operator=(const RSClientToRenderConnection&) = delete;
@@ -60,7 +60,7 @@ private:
     ErrCode CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
     ErrCode ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
     
-    ErrCode CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
+    ErrCode CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
         bool& success) override;
 
     ErrCode CreateNode(const RSSurfaceRenderNodeConfig& config, bool& success) override;
@@ -90,8 +90,6 @@ private:
         SelfDrawingNodeType selfDrawingType, bool dynamicHardwareEnable) override;
 
     ErrCode SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent, uint32_t& resCode) override;
-
-    bool GetHighContrastTextState() override;
 
     ErrCode SetFocusAppInfo(const FocusAppInfo& info, int32_t& repCode) override;
 
@@ -185,6 +183,8 @@ private:
     int32_t GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result) override;
     ErrCode GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight) override;
 
+    void SetFreeMultiWindowStatus(bool enable) override;
+
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;
     sptr<RSRenderPipelineAgent> renderPipelineAgent_;
@@ -232,6 +232,7 @@ private:
 
     mutable std::mutex mutex_;
     bool cleanDone_ = false;
+    bool needRefresh_ = true;
     const std::string VOTER_SCENE_BLUR = "VOTER_SCENE_BLUR";
     const std::string VOTER_SCENE_GPU = "VOTER_SCENE_GPU";
     static const std::string GPU_FREQ_PREF;

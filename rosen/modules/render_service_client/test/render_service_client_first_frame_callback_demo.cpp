@@ -58,8 +58,8 @@ int main()
     std::cout << "render service client first frame callback demo start!" << std::endl;
     std::shared_ptr<RSNode> rootNode;
     std::vector<std::shared_ptr<RSCanvasNode>> nodes;
-    std::shared_ptr<RSUIDirector> rsUiDirector = RSUIDirector::Create();
-    rsUiDirector->Init(true, true);
+    std::shared_ptr<RSUIDirector> rsUiDirector = RSUIDirector::Create(nullptr, nullptr);
+    
     auto uiContext = rsUiDirector->GetRSUIContext();
     RSSurfaceNodeConfig surfaceNodeConfig;
     surfaceNodeConfig.SurfaceNodeName = "AppMain_Window";

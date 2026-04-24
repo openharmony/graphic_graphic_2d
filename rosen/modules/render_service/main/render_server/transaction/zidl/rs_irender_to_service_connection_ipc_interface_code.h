@@ -22,9 +22,10 @@ namespace OHOS {
 namespace Rosen {
 
 enum class RSIRenderToServiceConnectionInterfaceCode : CodeUnderlyingType {
-    REPLY_DUMP_RESULT_TO_SERVICE = 1,
-    NOTIFY_PROCESS_FRAME_RATE = 2,
-    NOTIFY_SCREEN_SWITCH_FINISHED = 3,
+    NOTIFY_RENDER_PROCESS_READY = 0,
+    SEND_PROCESS_INFO,
+    NOTIFY_PROCESS_FRAME_RATE,
+    NOTIFY_SCREEN_SWITCH_FINISHED,
 };
 
 } // namespace Rosen

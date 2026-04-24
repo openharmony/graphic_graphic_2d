@@ -168,10 +168,11 @@ void DoSetScreenActiveMode(FuzzedDataProvider& fdp)
 void DoSetScreenChangeCallback(FuzzedDataProvider& fdp)
 {
     ScreenId screenId = fdp.ConsumeIntegral<uint64_t>();
-    auto callback = [screenId](ScreenId id, ScreenEvent e, ScreenChangeReason r) {
+    auto callback = [screenId](ScreenId id, ScreenEvent e, ScreenChangeReason r, sptr<IRemoteObject> d) {
         (void)id;
         (void)e;
         (void)r;
+        (void)d;
     };
     g_rsInterfaces->SetScreenChangeCallback(callback);
 }

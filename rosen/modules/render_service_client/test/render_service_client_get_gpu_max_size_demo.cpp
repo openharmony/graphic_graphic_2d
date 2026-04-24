@@ -113,8 +113,8 @@ int main()
     cout << "ScreenId: " << screenId << endl;
     surfaceNode->AttachToDisplay(screenId);
 
-    auto rsUiDirector = RSUIDirector::Create();
-    rsUiDirector->Init();
+    auto rsUiDirector = RSUIDirector::Create(nullptr, nullptr);
+    
     RSTransaction::FlushImplicitTransaction();
     cout << "rs local gpu max size demo init" << endl;
     rsUiDirector->SetRSSurfaceNode(surfaceNode);

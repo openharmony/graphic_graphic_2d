@@ -455,12 +455,12 @@ HWTEST_F(RSRenderServiceConnectionTest, SetSurfaceCustomWatermarkTest002, TestSi
     mainThread->context_->nodeMap.UnregisterRenderNode(surfaceNodeId1);
 }
 /**
- * @tc.name: CreateNode
- * @tc.desc: CreateNode
+ * @tc.name: CreateDisplayNode
+ * @tc.desc: CreateDisplayNode
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSRenderServiceConnectionTest, CreateNode, TestSize.Level1)
+HWTEST_F(RSRenderServiceConnectionTest, CreateDisplayNode, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
@@ -475,14 +475,14 @@ HWTEST_F(RSRenderServiceConnectionTest, CreateNode, TestSize.Level1)
     RSDisplayNodeConfig displayNodeConfig = {};
     NodeId nodeId = 1;
     bool result = true;
-    rsRenderServiceConnection->CreateNode(displayNodeConfig, nodeId, result);
+    rsRenderServiceConnection->CreateDisplayNode(displayNodeConfig, nodeId, result);
     EXPECT_TRUE(result);
 
     // create displayNode with async postTask (sync task processor not ready, but isRunning_ was set to true)
     // at this time, CreateNode will first try to post sync task
     nodeId = 2;
     mainThread->isRunning_ = true;
-    rsRenderServiceConnection->CreateNode(displayNodeConfig, nodeId, result);
+    rsRenderServiceConnection->CreateDisplayNode(displayNodeConfig, nodeId, result);
     EXPECT_TRUE(result);
 }
 

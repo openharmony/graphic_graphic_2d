@@ -124,8 +124,8 @@ int main()
 
     // Build rosen renderThread & create nodes
     std::cout << "rs app demo stage " << cnt++ << std::endl;
-    auto rsUiDirector = RSUIDirector::Create();
-    rsUiDirector->Init();
+    auto rsUiDirector = RSUIDirector::Create(nullptr, nullptr);
+    
     auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
     auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
     rsUiDirector->SetUITaskRunner(

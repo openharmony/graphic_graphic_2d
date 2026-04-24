@@ -53,5 +53,41 @@ HWTEST_F(RSLogTest, RSLogOutput001, TestSize.Level1)
     EXPECT_NE(tag, -1);
 }
 
+/**
+ * @tc.name: RSUserLogTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLogTest, RSUserLogTest, TestSize.Level1)
+{
+    uint64_t screenId = 100;
+    RS_USER_LOGI(screenId, "USER_TEST LOGI with screenId=%{public}" PRIu64, screenId);
+    RS_USER_LOGD(screenId, "USER_TEST LOGD with screenId=%{public}" PRIu64, screenId);
+    RS_USER_LOGW(screenId, "USER_TEST LOGW with screenId=%{public}" PRIu64, screenId);
+    RS_USER_LOGE(screenId, "USER_TEST LOGE with screenId=%{public}" PRIu64, screenId);
+    RS_USER_LOGF(screenId, "USER_TEST LOGF with screenId=%{public}" PRIu64, screenId);
+    // Test USER conditional log macros true
+    RS_USER_LOGI_IF(true, screenId, "USER_TEST LOGI_IF true with screenId=%{public}" PRIu64, screenId);
+    RS_USER_LOGD_IF(true, screenId, "USER_TEST LOGD_IF true with screenId=%{public}" PRIu64, screenId);
+    RS_USER_LOGW_IF(true, screenId, "USER_TEST LOGW_IF true with screenId=%{public}" PRIu64, screenId);
+    RS_USER_LOGE_IF(true, screenId, "USER_TEST LOGE_IF true with screenId=%{public}" PRIu64, screenId);
+    RS_USER_LOGF_IF(true, screenId, "USER_TEST LOGF_IF true with screenId=%{public}" PRIu64, screenId);
+    // Test USER conditional log macros false
+    RS_USER_LOGI_IF(false, screenId, "USER_TEST LOGI_IF false with screenId=%{public}" PRIu64, screenId);
+    RS_USER_LOGD_IF(false, screenId, "USER_TEST LOGD_IF false with screenId=%{public}" PRIu64, screenId);
+    RS_USER_LOGW_IF(false, screenId, "USER_TEST LOGW_IF false with screenId=%{public}" PRIu64, screenId);
+    RS_USER_LOGE_IF(false, screenId, "USER_TEST LOGE_IF false with screenId=%{public}" PRIu64, screenId);
+    RS_USER_LOGF_IF(false, screenId, "USER_TEST LOGF_IF false with screenId=%{public}" PRIu64, screenId);
+    // Test USER rate-limit log macros
+    for (int i = 0; i < 10; i++) {
+        RS_USER_LOGE_LIMIT(TestUserTraceAndLog, 0, screenId,
+                            "USER_TEST LOGE_LIMIT with screenId=%{public}" PRIu64, screenId);
+        RS_USER_LOGI_LIMIT(TestUserTraceAndLog, 0, screenId,
+                            "USER_TEST LOGI_LIMIT with screenId=%{public}" PRIu64, screenId);
+    }
+    
+    EXPECT_NE(screenId, 0);
+}
 } // namespace Rosen
 } // namespace OHOS

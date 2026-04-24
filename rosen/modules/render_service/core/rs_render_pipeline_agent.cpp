@@ -169,7 +169,7 @@ ErrCode RSRenderPipelineAgent::ExecuteSynchronousTask(const std::shared_ptr<RSSy
     return ERR_OK;
 }
 
-ErrCode RSRenderPipelineAgent::CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
+ErrCode RSRenderPipelineAgent::CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
     bool& success)
 {
     if (rsRenderPipeline_ == nullptr) {
@@ -341,14 +341,6 @@ ErrCode RSRenderPipelineAgent::SetHidePrivacyContent(NodeId id, bool needHidePri
     rsRenderPipeline_->PostMainThreadTask(task);
     resCode = static_cast<uint32_t>(RSInterfaceErrorCode::NO_ERROR);
     return ERR_OK;
-}
-
-bool RSRenderPipelineAgent::GetHighContrastTextState()
-{
-    if (rsRenderPipeline_ == nullptr) {
-        return false;
-    }
-    return RSBaseRenderEngine::IsHighContrastEnabled();
 }
 
 ErrCode RSRenderPipelineAgent::SetFocusAppInfo(const FocusAppInfo& info, int32_t& repCode)

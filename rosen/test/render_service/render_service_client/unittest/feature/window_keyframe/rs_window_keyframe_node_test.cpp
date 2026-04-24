@@ -48,8 +48,8 @@ HWTEST_F(RSWindowKeyFrameNodeTest, Create001, TestSize.Level1)
 	// return shared_ptr
     RSWindowKeyFrameNode::SharedPtr keyframeNode = RSWindowKeyFrameNode::Create();
     ASSERT_NE(keyframeNode, nullptr);
-
-    auto rsUiCtx = std::make_shared<RSUIContext>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUiCtx = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     keyframeNode = RSWindowKeyFrameNode::Create(false, false, rsUiCtx);
     ASSERT_NE(keyframeNode, nullptr);
 }
@@ -196,7 +196,8 @@ HWTEST_F(RSWindowKeyFrameNodeTest, ReadFromParcel, TestSize.Level1)
  */
 HWTEST_F(RSWindowKeyFrameNodeTest, RegisterNodeMap, TestSize.Level1)
 {
-    auto rsUiCtx = std::make_shared<RSUIContext>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUiCtx = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     RSWindowKeyFrameNode::SharedPtr keyframeNode = std::make_shared<RSWindowKeyFrameNode>(false);
     ASSERT_NE(keyframeNode, nullptr);
 
@@ -218,7 +219,8 @@ HWTEST_F(RSWindowKeyFrameNodeTest, RegisterNodeMap, TestSize.Level1)
  */
 HWTEST_F(RSWindowKeyFrameNodeTest, SetLinkedNodeId, TestSize.Level1)
 {
-    auto rsUiCtx = std::make_shared<RSUIContext>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUiCtx = std::make_shared<RSUIContext>(0, connectToRenderRemote);
     RSWindowKeyFrameNode::SharedPtr keyframeNode = std::make_shared<RSWindowKeyFrameNode>(false);
     ASSERT_NE(keyframeNode, nullptr);
 

@@ -23,7 +23,7 @@ namespace Rosen {
 class RSRenderService;
 class RSSingleRenderProcessManager final : public RSRenderProcessManager {
 public:
-    explicit RSSingleRenderProcessManager(RSRenderService& renderService);
+    explicit RSSingleRenderProcessManager(RSRenderService& renderService, HgmProcessCallback hgmProcessCallback);
     ~RSSingleRenderProcessManager() noexcept override = default;
 
     sptr<IRemoteObject> OnScreenConnected(ScreenId id,

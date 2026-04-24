@@ -46,6 +46,7 @@ std::map<int, DrawingContextProperty> RsVulkanContext::drawingContextMap_;
 std::mutex RsVulkanContext::drawingContextMutex_;
 std::recursive_mutex RsVulkanContext::recyclableSingletonMutex_;
 bool RsVulkanContext::isRecyclable_ = true;
+bool RsVulkanContext::isMultiProcess_ = false;
 std::atomic<bool> RsVulkanContext::isRecyclableSingletonValid_ = false;
 std::atomic<bool> RsVulkanContext::isInited_ = false;
 void* RsVulkanInterface::handle_ = nullptr;
@@ -95,6 +96,7 @@ void RsVulkanInterface::Init(VulkanInterfaceType vulkanInterfaceType, bool isPro
     acquiredMandatoryProcAddresses_ = false;
     memHandler_ = nullptr;
     acquiredMandatoryProcAddresses_ = OpenLibraryHandle() && SetupLoaderProcAddresses();
+
     interfaceType_ = vulkanInterfaceType;
     CreateInstance();
     SelectPhysicalDevice(isProtected);
@@ -637,8 +639,8 @@ void RsVulkanContext::InitVulkanContextForHybridRender(const std::string& cacheD
         RS_TRACE_NAME("Init hybrid render vk context without cache dir, this may cause redundant shader compiling.");
     }
     auto vulkanInterface = std::make_shared<RsVulkanInterface>();
-    vulkanInterface->Init(VulkanInterfaceType::BASIC_RENDER, false);
     // init drawing context for RT thread bind to backendContext.
+    vulkanInterface->Init(VulkanInterfaceType::BASIC_RENDER, false);
     vulkanInterface->CreateDrawingContext(cacheDir);
 
     vulkanInterfaceVec_[size_t(VulkanInterfaceType::BASIC_RENDER)] = std::move(vulkanInterface);
@@ -646,15 +648,18 @@ void RsVulkanContext::InitVulkanContextForHybridRender(const std::string& cacheD
 
 void RsVulkanContext::InitVulkanContextForUniRender(const std::string& cacheDir)
 {
-    // create vulkan interface for render thread.
-    auto uniRenderVulkanInterface = std::make_shared<RsVulkanInterface>();
-    uniRenderVulkanInterface->Init(VulkanInterfaceType::BASIC_RENDER, false, true);
-    // init drawing context for RT thread bind to backendContext.
-    uniRenderVulkanInterface->CreateDrawingContext(cacheDir);
+    RS_LOGI("InitVulkanContextForUniRender::%{public}d", IsMultiProcess());
+    if (!IsMultiProcess()) {
+        // create vulkan interface for render thread.
+        auto uniRenderVulkanInterface = std::make_shared<RsVulkanInterface>();
+        uniRenderVulkanInterface->Init(VulkanInterfaceType::BASIC_RENDER, false, true);
+        // init drawing context for RT thread bind to backendContext.
+        uniRenderVulkanInterface->CreateDrawingContext(cacheDir);
+        vulkanInterfaceVec_[size_t(VulkanInterfaceType::BASIC_RENDER)] = std::move(uniRenderVulkanInterface);
+    }
     // create vulkan interface for hardware thread (unprotected).
     auto unprotectedReDrawVulkanInterface = std::make_shared<RsVulkanInterface>();
     unprotectedReDrawVulkanInterface->Init(VulkanInterfaceType::UNPROTECTED_REDRAW, false, false);
-    vulkanInterfaceVec_[size_t(VulkanInterfaceType::BASIC_RENDER)] = std::move(uniRenderVulkanInterface);
     vulkanInterfaceVec_[size_t(VulkanInterfaceType::UNPROTECTED_REDRAW)] = std::move(unprotectedReDrawVulkanInterface);
 #ifdef IS_ENABLE_DRM
     isProtected_ = true;
@@ -940,9 +945,19 @@ bool RsVulkanContext::IsRecyclable()
     return isRecyclable_;
 }
 
+bool RsVulkanContext::IsMultiProcess()
+{
+    return isMultiProcess_;
+}
+
 void RsVulkanContext::SetRecyclable(bool isRecyclable)
 {
     isRecyclable_ = isRecyclable;
+}
+
+void RsVulkanContext::SetIsMultiProcess(bool isMultiProcess)
+{
+    isMultiProcess_ = isMultiProcesss;
 }
 
 void RsVulkanContext::ClearGrContext(bool isProtected)

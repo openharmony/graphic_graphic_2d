@@ -301,7 +301,8 @@ HWTEST_F(RSTransactionTest, ProcessAllSyncTransactionTest001, TestSize.Level1)
     rsTransaction->ProcessAllSyncTransaction();
 
     RSUIContextManager::MutableInstance().isMultiInstanceOpen_ = true;
-    auto newContext = std::make_shared<RSUIContext>(token);
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto newContext = std::make_shared<RSUIContext>(token, connectToRenderRemote);
     RSUIContextManager::MutableInstance().rsUIContextMap_[token] = newContext;
     EXPECT_NE(RSUIContextManager::Instance().GetRSUIContext(token), nullptr);
     rsTransaction->ProcessAllSyncTransaction();
@@ -324,7 +325,8 @@ HWTEST_F(RSTransactionTest, ProcessAllSyncTransactionTest002, TestSize.Level1)
     rsTransaction->subSyncTransactions_[token] = 0;
 
     RSUIContextManager::MutableInstance().isMultiInstanceOpen_ = true;
-    auto newContext = std::make_shared<RSUIContext>(token);
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto newContext = std::make_shared<RSUIContext>(token, connectToRenderRemote);
     RSUIContextManager::MutableInstance().rsUIContextMap_[token] = newContext;
     EXPECT_NE(RSUIContextManager::Instance().GetRSUIContext(token), nullptr);
     rsTransaction->ProcessAllSyncTransaction();

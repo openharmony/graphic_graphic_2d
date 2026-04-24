@@ -142,6 +142,8 @@ class ScreenPropertyBase : public Parcelable {
 public:
     ScreenPropertyBase() = default;
     virtual ~ScreenPropertyBase() = default;
+
+    RSB_EXPORT static bool Unmarshalling(Parcel& data, ScreenPropertyType type, sptr<ScreenPropertyBase>& property);
 };
 
 template<typename T>

@@ -97,7 +97,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     FuzzedDataProvider fdp(data, size);
     bool isRenderServiceNode = fdp.ConsumeBool();
     bool isTextureExportNode = fdp.ConsumeBool();
-    auto rsUIContext = std::make_shared<OHOS::Rosen::RSUIContext>();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = std::make_shared<OHOS::Rosen::RSUIContext>(0, connectToRenderRemote);
     OHOS::Rosen::g_keyframeNode = OHOS::Rosen::RSWindowKeyFrameNode::Create(isRenderServiceNode,
         isTextureExportNode, rsUIContext);
 

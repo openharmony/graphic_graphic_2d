@@ -187,7 +187,7 @@ bool DoCreateNode()
     }
     RSDisplayNodeConfig config2;
     NodeId nodeId = GetData<NodeId>();
-    displayNode->CreateNode(config2, nodeId);
+    displayNode->CreateDisplayNode(config2, nodeId);
     return true;
 }
 

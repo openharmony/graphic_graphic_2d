@@ -33,6 +33,7 @@ RSUIContextManager::RSUIContextManager()
     g_instanceValid.store(true);
     isMultiInstanceOpen_ = RSSystemProperties::GetRSClientMultiInstanceEnabled();
     handler_ = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::GetMainEventRunner());
+    isDividedRender_ = !RSSystemProperties::GetUniRenderEnabled();
     RS_LOGI("multi-instance, create RSUIContextManager, isMultiInstanceOpen_ %{public}d", isMultiInstanceOpen_);
 }
 
@@ -54,12 +55,18 @@ const RSUIContextManager& RSUIContextManager::Instance()
     return MutableInstance();
 }
 
-std::shared_ptr<RSUIContext> RSUIContextManager::CreateRSUIContext()
+std::shared_ptr<RSUIContext> RSUIContextManager::CreateRSUIContext(sptr<IRemoteObject>& connectToRenderRemote)
 {
     if (!isMultiInstanceOpen_ || !g_instanceValid.load()) {
         return nullptr;
     }
     std::unique_lock<std::mutex> lock(mutex_);
+    // 针对分离渲染，每个进程只会生成一个rsUIContext
+    if (hasCreateRSUIContext_ && isDividedRender_) {
+        for (const auto &[_, ctx] : rsUIContextMap_) {
+            return ctx;
+        }
+    }
     int32_t tid = gettid();
     uint64_t token = GenerateToken(tid);
     auto iter = rsUIContextMap_.find(token);
@@ -67,8 +74,15 @@ std::shared_ptr<RSUIContext> RSUIContextManager::CreateRSUIContext()
         ROSEN_LOGW("RSUIContextManager::CreateRSUIContext: context token %{public}" PRIu64 " already exists", token);
         return iter->second;
     }
-    auto newContext = std::shared_ptr<RSUIContext>(new RSUIContext(token));
+    auto newContext = std::shared_ptr<RSUIContext>(new RSUIContext(token, connectToRenderRemote));
     rsUIContextMap_[token] = newContext;
+    if (isDividedRender_) {
+        hasCreateRSUIContext_ = true;
+        auto transactionProxy = RSTransactionProxy::GetInstance();
+        if (auto rsRenderInterface = newContext->GetRSRenderInterface()) {
+            transactionProxy->SetRSRenderPipelineClient(rsRenderInterface->GetRSRenderPipelineClient());
+        }
+    }
     return newContext;
 }
 
@@ -87,7 +101,7 @@ const std::shared_ptr<RSUIContext> RSUIContextManager::GetRSUIContext(uint64_t t
 
 void RSUIContextManager::DestroyContext(uint64_t token)
 {
-    if (!isMultiInstanceOpen_ || !g_instanceValid.load()) {
+    if (!isMultiInstanceOpen_ || !g_instanceValid.load() || isDividedRender_) {
         return;
     }
     std::unique_lock<std::mutex> lock(mutex_);

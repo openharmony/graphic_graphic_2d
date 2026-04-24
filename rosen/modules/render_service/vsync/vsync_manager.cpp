@@ -32,13 +32,13 @@ void RSVsyncManager::SetScreenManager(sptr<RSScreenManager> screenManager)
     screenManager_ = screenManager;
 }
 
-bool RSVsyncManager::init(sptr<RSScreenManager> screenManager)
+bool RSVsyncManager::init(sptr<RSScreenManager> screenManager, bool isMultiProcessMode)
 {
     SetScreenManager(screenManager);
-    return VsyncComponentInit();
+    return VsyncComponentInit(isMultiProcessMode);
 }
 
-bool RSVsyncManager::VsyncComponentInit()
+bool RSVsyncManager::VsyncComponentInit(bool isMultiProcessMode)
 {
     if (screenManager_ == nullptr) {
         return false;
@@ -80,7 +80,7 @@ bool RSVsyncManager::VsyncComponentInit()
         return this->screenManager_->GetScreenVsyncEnableById(vsyncEnabledScreenId);
     });
 
-    auto dvsyncParam = InitDVSyncParams();
+    auto dvsyncParam = InitDVSyncParams(isMultiProcessMode);
     rsVSyncDistributor_ = new VSyncDistributor(rsVSyncController_, "rs", dvsyncParam);
     rsVSyncDistributor_->InitDVSync(dvsyncParam);
     appVSyncDistributor_ = new VSyncDistributor(appVSyncController_, "app", dvsyncParam);
@@ -202,13 +202,13 @@ sptr<VSyncSampler> RSVsyncManager::GetVSyncSampler()
     return vsyncSampler_;
 }
 
-DVSyncFeatureParam RSVsyncManager::InitDVSyncParams()
+DVSyncFeatureParam RSVsyncManager::InitDVSyncParams(bool isMultiProcessMode)
 {
     std::vector<bool> switchParams = {
-        DVSyncParam::IsDVSyncEnable(),
-        DVSyncParam::IsUiDVSyncEnable(),
-        DVSyncParam::IsNativeDVSyncEnable(),
-        DVSyncParam::IsAdaptiveDVSyncEnable(),
+        DVSyncParam::IsDVSyncEnable() && !isMultiProcessMode,
+        DVSyncParam::IsUiDVSyncEnable() && !isMultiProcessMode,
+        DVSyncParam::IsNativeDVSyncEnable() && !isMultiProcessMode,
+        DVSyncParam::IsAdaptiveDVSyncEnable() && !isMultiProcessMode,
     };
     std::vector<uint32_t> bufferCountParams = {
         DVSyncParam::GetUiBufferCount(),

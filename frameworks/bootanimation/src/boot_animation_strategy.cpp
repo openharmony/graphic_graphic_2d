@@ -19,11 +19,13 @@
 #include "log.h"
 #include <parameters.h>
 #include "util.h"
+#include "transaction/rs_interfaces.h"
 
 namespace OHOS {
 namespace {
     constexpr const char* DUE_UPDATE_TYPE_PARAM = "persist.dupdate_engine.update_type";
     constexpr const char* HMOS_UPDATE_PARAM = "persist.update.hmos_to_next_flag";
+    constexpr uint32_t WAIT_FOR_ACTIVE_SCREEN_ID_CHANGE = 1000;
     const std::string DUE_UPDATE_TYPE_MANUAL = "manual";
     const std::string DUE_UPDATE_TYPE_NIGHT = "night";
 }
@@ -85,5 +87,84 @@ bool BootAnimationStrategy::IsOtaUpdate() const
     bool isHmosUpdate = system::GetIntParameter(HMOS_UPDATE_PARAM, -1) == 1;
     LOGI("isSingleUpdate: %{public}d, isHmosUpdate: %{public}d", isSingleUpdate, isHmosUpdate);
     return isSingleUpdate || isHmosUpdate;
+}
+
+void BootAnimationStrategy::GetConnectToRenderMap(int count)
+{
+    LOGI("BootAnimationStrategy::%{public}s set screen change callback start.", __func__);
+    auto cv = std::make_shared<std::condition_variable>();
+    std::weak_ptr<BootAnimationStrategy> weakThis = shared_from_this();
+    Rosen::RSInterfaces::GetInstance().SetScreenChangeCallback(
+        [cv, weakThis](Rosen::ScreenId rsScreenId, Rosen::ScreenEvent screenEvent,
+            Rosen::ScreenChangeReason reason, sptr<IRemoteObject> connectToRender) {
+            auto sharedThis = weakThis.lock();
+            if (!sharedThis) {
+                LOGE("BootAnimationStrategy::GetConnectToRenderMap shared this is null.");
+                return;
+            }
+            LOGI("BootAnimationStrategy::Screen connected:" BPUBU64 "", rsScreenId);
+            {
+                std::lock_guard<std::mutex> lock(sharedThis->connectToRenderMapMtx_);
+                sharedThis->connectToRenderMap_.emplace(rsScreenId, connectToRender);
+            }
+            cv->notify_all();
+        });
+    {
+        std::unique_lock<std::mutex> lock(connectToRenderMapMtx_);
+        LOGI("BootAnimationStrategy::GetConnectToRenderMap start infinite waiting for %{public}d screens.", count);
+        cv->wait(lock, [this, count]() {
+            return this->connectToRenderMap_.size() >= static_cast<size_t>(count);
+        });
+        
+        LOGI("BootAnimationStrategy::GetConnectToRenderMap wait finished. Currently got %{public}zu.",
+             this->connectToRenderMap_.size());
+    }
+    LOGI("BootAnimationStrategy::%{public}s set screen change callback end.", __func__);
+}
+
+void BootAnimationStrategy::SubscribeActiveScreenIdChanged()
+{
+    LOGI("BootAnimationStrategy::%{public}s get active screen id start.", __func__);
+    auto cv = std::make_shared<std::condition_variable>();
+    std::weak_ptr<BootAnimationStrategy> weakThis = shared_from_this();
+    Rosen::RSInterfaces::GetInstance().SetActiveScreenIdChangedCallback(
+        [cv, weakThis](Rosen::ScreenId changedActiveScreenId) {
+            auto sharedThis = weakThis.lock();
+            if (!sharedThis) {
+                LOGE("BootAnimationStrategy::Subscribe... shared this is null, screenId:" BPUBU64 "",
+                     changedActiveScreenId);
+                return;
+            }
+            LOGI("BootAnimationStrategy::Subscribe... active screen id changed to " BPUBU64 "",
+                 changedActiveScreenId);
+            {
+                std::lock_guard<std::mutex> lock(sharedThis->activeScreenIdMtx_);
+                sharedThis->activeScreenId_ = changedActiveScreenId;
+            }
+            cv->notify_all();
+        });
+    {
+        std::unique_lock<std::mutex> lock(activeScreenIdMtx_);
+        bool success = cv->wait_for(lock,
+            std::chrono::milliseconds(WAIT_FOR_ACTIVE_SCREEN_ID_CHANGE),
+            [weakThis]() {
+                auto sharedThis = weakThis.lock();
+                if (!sharedThis) {
+                    LOGE("SubscribeActiveScreenIdChanged shared this is null during wait.");
+                    return true;
+                }
+                return sharedThis->activeScreenId_ != Rosen::INVALID_SCREEN_ID;
+            });
+        if (!success) {
+            LOGI("BootAnimationStrategy::%{public}s wait for active screenId timeout.", __func__);
+        }
+    }
+    LOGI("BootAnimationStrategy::%{public}s get active screen id end", __func__);
+}
+
+Rosen::ScreenId BootAnimationStrategy::GetActiveScreenId()
+{
+    std::unique_lock<std::mutex> lock(activeScreenIdMtx_);
+    return activeScreenId_;
 }
 } // namespace OHOS

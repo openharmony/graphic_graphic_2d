@@ -368,7 +368,7 @@ HWTEST_F(RSServiceClientTest, SetScreenChangeCallback001, TestSize.Level1)
     ScreenChangeReason errorReason = ScreenChangeReason::DEFAULT;
     bool callbacked = false;
     auto callback = [&screenId, &screenEvent, &errorReason, &callbacked]
-        (ScreenId id, ScreenEvent event, ScreenChangeReason reason) {
+        (ScreenId id, ScreenEvent event, ScreenChangeReason reason, sptr<IRemoteObject> remote) {
         screenId = id;
         screenEvent = event;
         errorReason = reason;
@@ -1133,18 +1133,6 @@ HWTEST_F(RSServiceClientTest, RegisterUIExtensionCallback_002, TestSize.Level1)
     uint64_t userId = 0;
     EXPECT_NE(rsClient->RegisterUIExtensionCallback(userId, callback),
         StatusCode::INVALID_ARGUMENTS);
-}
-
-/**
- * @tc.name: SetFreeMultiWindowStatus Test
- * @tc.desc: SetFreeMultiWindowStatus, input true
- * @tc.type:FUNC
- * @tc.require: issueIANPC2
- */
-HWTEST_F(RSServiceClientTest, SetFreeMultiWindowStatus, TestSize.Level1)
-{
-    ASSERT_NE(rsClient, nullptr);
-    rsClient->SetFreeMultiWindowStatus(true);
 }
 
 /**

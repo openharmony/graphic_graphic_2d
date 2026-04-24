@@ -24,6 +24,7 @@
 
 namespace OHOS {
 namespace Rosen {
+
 class RSRenderServiceProxy : public IRemoteProxy<RSIRenderService> {
 public:
     explicit RSRenderServiceProxy(const sptr<IRemoteObject>& impl);
@@ -32,6 +33,7 @@ public:
     std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
         CreateConnection(const sptr<RSIConnectionToken>& token, bool needRefresh = false) override;
     bool RemoveConnection(const sptr<RSIConnectionToken>& token) override;
+    sptr<IRemoteObject> RegisterRenderProcessConnection() override;
 
 private:
     static inline BrokerDelegator<RSRenderServiceProxy> delegator_;
