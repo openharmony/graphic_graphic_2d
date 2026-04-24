@@ -1194,7 +1194,13 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Emit
 
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<EmitterUpdater>& val)
 {
-    if (parcel.ReadInt32() == -1) {
+    int32_t flag = 0;
+    if (!parcel.ReadInt32(flag)) {
+        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling EmitterUpdater ReadInt32 failed");
+        val = nullptr;
+        return false;
+    }
+    if (flag == -1) {
         val = nullptr;
         return true;
     }
@@ -1279,9 +1285,14 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Part
 
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<ParticleNoiseField>& val)
 {
-    if (parcel.ReadInt32() == -1) {
-        val = nullptr;
+    int32_t flag = 0;
+    if (!parcel.ReadInt32(flag)) {
         ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ParticleNoiseField ReadInt32 failed");
+        val = nullptr;
+        return false;
+    }
+    if (flag == -1) {
+        val = nullptr;
         return true;
     }
     int fieldStrength = 0;
@@ -1339,11 +1350,17 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Part
  
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<ParticleRippleField>& val)
 {
-    if (parcel.ReadInt32() == -1) {
+    int32_t flag = 0;
+    if (!parcel.ReadInt32(flag)) {
+        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ParticleRippleField ReadInt32 failed");
+        val = nullptr;
+        return false;
+    }
+    if (flag == -1) {
         val = nullptr;
         return true;
     }
-    
+
     Vector2f center;
     float amplitude = 0.0f;
     float wavelength = 0.0f;
@@ -1404,11 +1421,17 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Part
  
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<ParticleVelocityField>& val)
 {
-    if (parcel.ReadInt32() == -1) {
+    int32_t flag = 0;
+    if (!parcel.ReadInt32(flag)) {
+        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ParticleVelocityField ReadInt32 failed");
+        val = nullptr;
+        return false;
+    }
+    if (flag == -1) {
         val = nullptr;
         return true;
     }
-    
+
     Vector2f velocity;
  
     uint32_t regionShape = 0;
@@ -1753,7 +1776,11 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, RenderParticleParaType<f
     if (updator == ParticleUpdator::RANDOM) {
         success &= Unmarshalling(parcel, randomStart) && Unmarshalling(parcel, randomEnd);
     } else if (updator == ParticleUpdator::CURVE) {
-        uint32_t valChangeOverLifeSize = parcel.ReadUint32();
+        uint32_t valChangeOverLifeSize = 0;
+        if (!parcel.ReadUint32(valChangeOverLifeSize)) {
+            ROSEN_LOGE("RSMarshallingHelper::Unmarshalling RenderParticleParaType ReadUint32 failed");
+            return false;
+        }
         if (valChangeOverLifeSize > SIZE_UPPER_LIMIT) {
             return false;
         }
@@ -1892,7 +1919,13 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Part
 
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<ParticleRenderParams>& val)
 {
-    if (parcel.ReadInt32() == -1) {
+    int32_t flag = 0;
+    if (!parcel.ReadInt32(flag)) {
+        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling ParticleRenderParams ReadInt32 failed");
+        val = nullptr;
+        return false;
+    }
+    if (flag == -1) {
         val = nullptr;
         return true;
     }
