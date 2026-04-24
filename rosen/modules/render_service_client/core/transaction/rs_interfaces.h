@@ -231,12 +231,15 @@ public:
      * @param watermark Watermark pixelmap.
      * @param maxSize The maximum supported image size is 6MB. if the maximum image size exceeds 512Kb,
      * the time to draw the watermark will increase. In such cases, consider using DMA mode for pixelMap
+     * @param rowCount Number of rows for grid watermark layout. 0 means no grid (single image).
+     * @param colCount Number of columns for grid watermark layout. 0 means no grid (single image).
      * @attention watermark has a maximum of 1000 images.
      * @attention When not using a watermark, the watermark image should be released.
      * @return set watermark success return true, else return false.
      */
     bool SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark,
-        SaSurfaceWatermarkMaxSize maxSize = SaSurfaceWatermarkMaxSize::SA_WATER_MARK_DEFAULT_SIZE);
+        SaSurfaceWatermarkMaxSize maxSize = SaSurfaceWatermarkMaxSize::SA_WATER_MARK_DEFAULT_SIZE,
+        uint32_t rowCount = 0, uint32_t colCount = 0);
 
     /**
      * @brief Set watermark for surfaceNode.
@@ -255,7 +258,8 @@ public:
      */
     uint32_t SetSurfaceWatermark(pid_t pid,
         const std::string &name, const std::shared_ptr<Media::PixelMap> &watermark,
-        const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType);
+        const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType,
+        uint32_t rowCount = 0, uint32_t colCount = 0);
 
     /**
      * @brief Clear watermark for select surfaceNodes.

@@ -426,7 +426,8 @@ ErrCode RSClientToServiceConnection::CreatePixelMapFromSurface(sptr<Surface> sur
 }
 
 ErrCode RSClientToServiceConnection::SetWatermark(
-    const std::string& name, std::shared_ptr<Media::PixelMap> watermark, bool& success)
+    const std::string& name, std::shared_ptr<Media::PixelMap> watermark, bool& success,
+    uint32_t rowCount, uint32_t colCount)
 {
     if (renderProcessManagerAgent_ == nullptr) {
         RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
@@ -446,7 +447,8 @@ ErrCode RSClientToServiceConnection::SetWatermark(
     }
     for (auto conn : serviceToRenderConns) {
         bool successTmp = true;
-        if (conn->SetWatermark(callingPid, name, watermark, successTmp) != ERR_OK || successTmp != true) {
+        if (conn->SetWatermark(callingPid, name, watermark, successTmp, rowCount, colCount) != ERR_OK ||
+            successTmp != true) {
             RS_LOGE("RSClientToServiceConnection::SetWatermark a connection failed!");
             success = false;
             return ERR_INVALID_VALUE;

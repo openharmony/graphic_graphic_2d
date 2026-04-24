@@ -218,10 +218,12 @@ public:
     SystemAnimatedScenes GetSystemAnimatedScenes();
     bool GetIsRegularAnimation() const;
     // Save marks, and use it for SurfaceNodes later.
-    void SetWatermark(const pid_t& pid, const std::string& name, std::shared_ptr<Media::PixelMap> watermark);
+    void SetWatermark(const pid_t& pid, const std::string& name, std::shared_ptr<Media::PixelMap> watermark,
+        uint32_t rowCount = 0, uint32_t colCount = 0);
     uint32_t SetSurfaceWatermark(pid_t pid, const std::string& name,
         std::shared_ptr<Media::PixelMap> watermark, const std::vector<NodeId>& nodeIdList,
-        SurfaceWatermarkType watermarkType, bool isSystemCalling = false);
+        SurfaceWatermarkType watermarkType, bool isSystemCalling = false,
+        uint32_t rowCount = 0, uint32_t colCount = 0);
     void ClearSurfaceWatermark(pid_t pid, const std::string& name, bool isSystemCalling);
     void ClearSurfaceWatermark(pid_t pid);
     void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,

@@ -4190,6 +4190,58 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawWatermarkIfNeed003, TestSiz
 }
 
 /**
+ * @tc.name: DrawWatermarkIfNeedGridTest
+ * @tc.desc: Test DrawWatermarkIfNeed with grid watermark (rowCount > 0 && colCount > 0)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawWatermarkIfNeedGridTest, TestSize.Level2)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(displayDrawable_->curCanvas_, nullptr);
+    auto params = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    ASSERT_TRUE(params);
+    ScreenId screenId = 100;
+    uint32_t width = 400;
+    uint32_t height = 400;
+    params->SetScreenId(screenId);
+
+    Media::InitializationOptions opts;
+    opts.size.width = width;
+    opts.size.height = height;
+    opts.editable = true;
+    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_TRUE(pixelMap != nullptr);
+    auto img = RSPixelMapUtil::ExtractDrawingImage(pixelMap);
+    ASSERT_TRUE(img != nullptr);
+
+    auto rsRenderThreadParams = std::make_unique<RSRenderThreadParams>();
+    rsRenderThreadParams->SetWatermark(true, img, 2, 2);
+    RSUniRenderThread::Instance().Sync(std::move(rsRenderThreadParams));
+    auto& renderThreadParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    EXPECT_EQ(renderThreadParams->GetWatermarkRowCount(), 2);
+    EXPECT_EQ(renderThreadParams->GetWatermarkColCount(), 2);
+
+    Drawing::Canvas drawingCanvas(400, 400);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    displayDrawable_->DrawWatermarkIfNeed(canvas);
+
+    rsRenderThreadParams = std::make_unique<RSRenderThreadParams>();
+    rsRenderThreadParams->SetWatermark(true, img, 0, 0);
+    RSUniRenderThread::Instance().Sync(std::move(rsRenderThreadParams));
+    displayDrawable_->DrawWatermarkIfNeed(canvas);
+
+    rsRenderThreadParams = std::make_unique<RSRenderThreadParams>();
+    rsRenderThreadParams->SetWatermark(true, img, 1, 0);
+    RSUniRenderThread::Instance().Sync(std::move(rsRenderThreadParams));
+    displayDrawable_->DrawWatermarkIfNeed(canvas);
+
+    rsRenderThreadParams = std::make_unique<RSRenderThreadParams>();
+    rsRenderThreadParams->SetWatermark(false, nullptr, 0, 0);
+    RSUniRenderThread::Instance().Sync(std::move(rsRenderThreadParams));
+}
+
+/**
  * @tc.name: GetScreenParamsTest
  * @tc.desc: Test GetScreenParams when ancestorScreenDrawable_->nodeType_ is not SCREEN_NODE
  * @tc.type: FUNC

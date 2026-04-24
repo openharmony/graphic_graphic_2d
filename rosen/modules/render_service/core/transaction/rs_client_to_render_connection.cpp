@@ -599,7 +599,8 @@ int32_t RSClientToRenderConnection::SubmitCanvasPreAllocatedBuffer(
 
 uint32_t RSClientToRenderConnection::SetSurfaceWatermark(pid_t pid, const std::string &name,
     const std::shared_ptr<Media::PixelMap> &watermark,
-    const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType)
+    const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType,
+    uint32_t rowCount, uint32_t colCount)
 {
     if (renderPipelineAgent_ == nullptr) {
         return WATER_MARK_RS_CONNECTION_ERROR;
@@ -608,7 +609,7 @@ uint32_t RSClientToRenderConnection::SetSurfaceWatermark(pid_t pid, const std::s
         RSIClientToRenderConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ +
         "::SET_SURFACE_WATERMARK");
     return renderPipelineAgent_->SetSurfaceWatermark(pid, name, watermark,
-        nodeIdList, watermarkType, isSystemCalling);
+        nodeIdList, watermarkType, isSystemCalling, rowCount, colCount);
 }
     
 void RSClientToRenderConnection::ClearSurfaceWatermarkForNodes(pid_t pid, const std::string &name,

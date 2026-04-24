@@ -18,6 +18,7 @@
 
 #include <memory>
 #include <vector>
+#include "common/rs_common_def.h"
 #include "common/rs_occlusion_region.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_screen_render_node.h"
@@ -315,13 +316,30 @@ public:
         return watermarkImg_;
     }
 
-    void SetWatermark(bool watermarkFlag, const std::shared_ptr<Drawing::Image>& watermarkImg)
+    void SetWatermark(bool watermarkFlag, const std::shared_ptr<Drawing::Image>& watermarkImg,
+        uint32_t rowCount = 0, uint32_t colCount = 0)
     {
         watermarkFlag_ = watermarkFlag;
         watermarkImg_ = watermarkImg;
+        watermarkRowCount_ = rowCount;
+        watermarkColCount_ = colCount;
     }
 
-    void SetWatermarks(std::unordered_map<std::string, std::pair<std::shared_ptr<Drawing::Image>, pid_t>>& watermarks);
+    uint32_t GetWatermarkRowCount() const
+    {
+        return watermarkRowCount_;
+    }
+
+    uint32_t GetWatermarkColCount() const
+    {
+        return watermarkColCount_;
+    }
+
+    uint32_t GetWatermarkRowCount(const std::string& name) const;
+    uint32_t GetWatermarkColCount(const std::string& name) const;
+
+    void SetWatermarks(std::unordered_map<std::string, std::pair<std::shared_ptr<Drawing::Image>, pid_t>>& watermarks,
+        std::unordered_map<std::string, std::pair<uint32_t, uint32_t>>& gridCounts);
 
     void SetOcclusionEnabled(bool isOcclusionEnabled)
     {
@@ -666,7 +684,10 @@ private:
     Occlusion::Region accumulatedDirtyRegion_;
     bool watermarkFlag_ = false;
     std::shared_ptr<Drawing::Image> watermarkImg_ = nullptr;
+    uint32_t watermarkRowCount_ = 0;
+    uint32_t watermarkColCount_ = 0;
     std::unordered_map<std::string, std::pair<std::shared_ptr<Drawing::Image>, pid_t>> surfaceWatermarks_;
+    std::unordered_map<std::string, std::pair<uint32_t, uint32_t>> surfaceWatermarkGridCounts_;
     std::shared_ptr<RSSLRScaleFunction> slrManager_ = nullptr;
     RSPowerOffRenderController powerOffRenderController_;
     bool isOverDrawEnabled_ = false;

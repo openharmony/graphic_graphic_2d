@@ -332,14 +332,15 @@ int32_t RSRenderServiceClient::RemoveVirtualScreenWhiteList(ScreenId id, const s
     return repCode;
 }
 
-bool RSRenderServiceClient::SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark)
+bool RSRenderServiceClient::SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark,
+    uint32_t rowCount, uint32_t colCount)
 {
     auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         return false;
     }
     bool success;
-    clientToService->SetWatermark(name, watermark, success);
+    clientToService->SetWatermark(name, watermark, success, rowCount, colCount);
     return success;
 }
 

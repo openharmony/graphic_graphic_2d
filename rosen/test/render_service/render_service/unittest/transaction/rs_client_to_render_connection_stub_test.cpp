@@ -1328,6 +1328,19 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SetSurfaceWatermarkSub001, TestSize
     data5.WriteUInt64Vector(nodeList);
     data5.WriteUint8(static_cast<uint8_t>(0));
     res = connectionStub_->OnRemoteRequest(code, data5, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel data6;
+    data6.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data6.WriteInt32(2);
+    data6.WriteString(name);
+    data6.WriteBool(true);
+    data6.WriteParcelable(pixelmap.get());
+    data6.WriteUInt64Vector(nodeList);
+    data6.WriteUint8(static_cast<uint8_t>(0));
+    data6.WriteUint32(2);
+    data6.WriteUint32(3);
+    res = connectionStub_->OnRemoteRequest(code, data6, reply, option);
 }
 
 /**

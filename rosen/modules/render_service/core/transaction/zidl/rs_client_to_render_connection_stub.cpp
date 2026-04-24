@@ -1357,8 +1357,20 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
+            uint32_t rowCount = 0;
+            uint32_t colCount = 0;
+            if (!data.ReadUint32(rowCount)) {
+                RS_LOGE("RSClientToRenderConnectionStub::SET_SURFACE_WATERMARK Read rowCount failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (!data.ReadUint32(colCount)) {
+                RS_LOGE("RSClientToRenderConnectionStub::SET_SURFACE_WATERMARK Read colCount failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             auto errCode = SetSurfaceWatermark(pid, name, watermark, nodeIdList,
-                static_cast<SurfaceWatermarkType>(watermarkType));
+                static_cast<SurfaceWatermarkType>(watermarkType), rowCount, colCount);
             if (!reply.WriteUint32(errCode)) {
                 RS_LOGE("RSClientToRenderConnectionStub::SET_SURFACE_WATERMARK write errCode failed!");
                 ret = ERR_INVALID_DATA;
