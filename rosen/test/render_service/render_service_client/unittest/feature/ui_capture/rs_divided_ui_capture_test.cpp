@@ -624,5 +624,68 @@ HWTEST_F(RSDividedUICaptureTest, PrepareEffectRenderNode, TestSize.Level1)
     rsDividedUICaptureVisitor.PrepareEffectRenderNode(node);
     EXPECT_TRUE(true);
 }
+
+/**
+ * @tc.name: IsRectValid
+ * @tc.desc: test results of IsRectValid
+ * @tc.type: FUNC
+ * @tc.require: issues23112
+ */
+HWTEST_F(RSDividedUICaptureTest, IsRectValid, TestSize.Level1)
+{
+    NodeId nodeId = 12345;
+    Drawing::Rect validRect = {0, 0, 100, 100};
+
+    // Test 1: Node is nullptr, should return false
+    EXPECT_FALSE(RSDividedUICapture::IsRectValid(nodeId, validRect));
+
+    // Create and register a node
+    auto rsNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    rsNode->GetMutableRenderProperties().SetBounds({0, 0, 200, 200});
+    RSRenderThread::Instance().GetContext().GetMutableNodeMap().RegisterRenderNode(rsNode);
+
+    // Test 2: Invalid rect (left > right), should return false
+    Drawing::Rect invalidRect1 = {100, 0, 0, 100};
+    EXPECT_FALSE(RSDividedUICapture::IsRectValid(nodeId, invalidRect1));
+
+    // Test 3: Invalid rect (top > bottom), should return false
+    Drawing::Rect invalidRect2 = {0, 100, 100, 0};
+    EXPECT_FALSE(RSDividedUICapture::IsRectValid(nodeId, invalidRect2));
+
+    // Test 4: Width exceeds node bounds, should return false
+    Drawing::Rect invalidRect3 = {0, 0, 201, 100};
+    EXPECT_FALSE(RSDividedUICapture::IsRectValid(nodeId, invalidRect3));
+
+    // Test 5: Height exceeds node bounds, should return false
+    Drawing::Rect invalidRect4 = {0, 0, 100, 201};
+    EXPECT_FALSE(RSDividedUICapture::IsRectValid(nodeId, invalidRect4));
+
+    // Test 6: Left < 0, should return false
+    Drawing::Rect invalidRect5 = {-1, 0, 100, 100};
+    EXPECT_FALSE(RSDividedUICapture::IsRectValid(nodeId, invalidRect5));
+
+    // Test 7: Top < 0, should return false
+    Drawing::Rect invalidRect6 = {0, -1, 100, 100};
+    EXPECT_FALSE(RSDividedUICapture::IsRectValid(nodeId, invalidRect6));
+
+    // Test 8: Right exceeds node bounds, should return false
+    Drawing::Rect invalidRect7 = {50, 0, 201, 100};
+    EXPECT_FALSE(RSDividedUICapture::IsRectValid(nodeId, invalidRect7));
+
+    // Test 9: Bottom exceeds node bounds, should return false
+    Drawing::Rect invalidRect8 = {0, 50, 100, 201};
+    EXPECT_FALSE(RSDividedUICapture::IsRectValid(nodeId, invalidRect8));
+
+    // Test 10: Valid rect within bounds, should return true
+    Drawing::Rect validRect2 = {10, 10, 190, 190};
+    EXPECT_TRUE(RSDividedUICapture::IsRectValid(nodeId, validRect2));
+
+    // Test 11: Exact bounds, should return true
+    Drawing::Rect validRect3 = {0, 0, 200, 200};
+    EXPECT_TRUE(RSDividedUICapture::IsRectValid(nodeId, validRect3));
+
+    // Clean up
+    RSRenderThread::Instance().GetContext().GetMutableNodeMap().UnregisterRenderNode(nodeId);
+}
 } // namespace Rosen
 } // namespace OHOS
