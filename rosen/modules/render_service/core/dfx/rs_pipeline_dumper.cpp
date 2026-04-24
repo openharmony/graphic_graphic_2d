@@ -217,10 +217,18 @@ void RSPipelineDumper::RegisterRSGfxFuncs(std::shared_ptr<RSPipelineDumpManager>
 
 void RSPipelineDumper::RegisterRSTreeFuncs(std::shared_ptr<RSPipelineDumpManager> rpDumpManager)
 {
-    // RS not on Tree
-    RSDumpFunc rsNotOnTreeFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
-                                        std::string &dumpString) -> void {
-        ScheduleTask([this, &dumpString]() { DumpNodesNotOnTheTree(dumpString); });
+    // RS surface node not on Tree
+    RSDumpFunc rsSurfaceNodeNotOnTreeFunc = [this](const std::u16string& cmd,
+                                                std::unordered_set<std::u16string>& argSets,
+                                                std::string& dumpString) -> void {
+        ScheduleTask([this, &dumpString]() { DumpSurfaceNodesNotOnTree(dumpString); });
+    };
+
+    // RS render node not on Tree
+    RSDumpFunc rsRenderNodeNotOnTreeFunc = [this](const std::u16string& cmd,
+                                                std::unordered_set<std::u16string>& argSets,
+                                                std::string& dumpString) -> void {
+        ScheduleTask([this, &dumpString]() { DumpRenderNodesNotOnTree(dumpString); });
     };
 
     // RS Tree
@@ -257,7 +265,8 @@ void RSPipelineDumper::RegisterRSTreeFuncs(std::shared_ptr<RSPipelineDumpManager
     };
 
     std::vector<RSDumpHander> handers = {
-        { RSDumpID::RS_NOT_ON_TREE_INFO, rsNotOnTreeFunc },
+        { RSDumpID::RS_NOT_ON_TREE_INFO, rsSurfaceNodeNotOnTreeFunc },
+        { RSDumpID::RS_RENDER_NODE_NOT_ON_TREE_INFO, rsRenderNodeNotOnTreeFunc },
         { RSDumpID::RENDER_NODE_INFO, rsTreeFunc, RS_MAIN_THREAD_TAG },
         { RSDumpID::SURFACENODE_INFO, surfaceNodeFunc },
         { RSDumpID::MULTI_RSTREES_INFO, multiRSTreesFunc },
@@ -384,10 +393,10 @@ void RSPipelineDumper::RegisterSurfaceInfoFuncs(std::shared_ptr<RSPipelineDumpMa
     rpDumpManager->Register(handers);
 }
 
-void RSPipelineDumper::DumpNodesNotOnTheTree(std::string& dumpString) const
+void RSPipelineDumper::DumpSurfaceNodesNotOnTree(std::string& dumpString) const
 {
     dumpString.append("\n");
-    dumpString.append("-- Node Not On Tree\n");
+    dumpString.append("-- Surface Node Not On Tree\n");
 
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     nodeMap.TraversalNodes([&dumpString](const std::shared_ptr<RSBaseRenderNode>& node) {
@@ -403,6 +412,20 @@ void RSPipelineDumper::DumpNodesNotOnTheTree(std::string& dumpString) const
                 return;
             }
             surfaceConsumer->Dump(dumpString);
+        }
+    });
+}
+
+void RSPipelineDumper::DumpRenderNodesNotOnTree(std::string& dumpString) const
+{
+    dumpString.append("\n-- Render Node Not On Tree\n");
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    nodeMap.TraversalNodes([&dumpString](const std::shared_ptr<RSBaseRenderNode>& node) {
+        if (node == nullptr) {
+            return;
+        }
+        if (!node->IsOnTheTree() && node->GetParent().lock() == nullptr) {
+            node->DumpTree(0, dumpString);
         }
     });
 }
