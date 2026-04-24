@@ -102,6 +102,7 @@ ohos_unittest("2d_graphics_ndk_test") {
     "hilog:libhilog",
     "image_framework:pixelmap",
     "openssl:libcrypto_shared",
+    "napi:ace_napi",
   ]
 
   platform = current_os
