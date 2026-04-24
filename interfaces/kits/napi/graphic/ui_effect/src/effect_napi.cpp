@@ -669,7 +669,8 @@ static bool CheckNullOrUndefined(napi_env env, napi_value argv, const char* para
 {
     napi_valuetype type = UIEffectNapiUtils::GetType(env, argv);
     if (type == napi_null || type == napi_undefined) {
-        std::string msg = std::string("EffectNapi CreateHdrDarkenBlender failed, ") + paramName + " is null or undefined";
+        std::string msg =
+            std::string("EffectNapi CreateHdrDarkenBlender failed, ") + paramName + " is null or undefined";
         UIEFFECT_LOG_E("EffectNapi CreateHdrDarkenBlender %{public}s is null or undefined", paramName);
         napi_throw_error(env, std::to_string(ERR_INVALID_PARAM).c_str(), msg.c_str());
         return false;
