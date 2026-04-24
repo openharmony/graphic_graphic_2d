@@ -1171,6 +1171,22 @@ bool MemoryManager::MemoryReportAndKill(pid_t pid, MemorySnapshotInfo info, bool
     return KillProcessByPid(pid, info);
 }
 
+void MemoryManager::DumpNodesInfoForReport(std::string& log, const pid_t pid)
+{
+    RS_TRACE_NAME("MemoryManager::DumpNodesInfoForReport");
+    RSMainThread::Instance()->RenderServiceTreeDump(log, true, false);
+    log.append("\n-- Render Node Not On Tree\n");
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    nodeMap.TraversalNodes([&log, pid](const std::shared_ptr<RSBaseRenderNode>& node) {
+        if (node == nullptr || ExtractPid(node->GetId()) != pid) {
+            return;
+        }
+        if (!node->IsOnTheTree() && node->GetParent().lock() == nullptr) {
+            node->DumpTree(0, log);
+        }
+    });
+}
+
 void MemoryManager::MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& info, const std::string& reportName,
     const std::string& hidumperReport, const std::string& filePath)
 {
@@ -1179,12 +1195,11 @@ void MemoryManager::MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& 
             info.cpuMemory, info.GpuMemory());
         return;
     }
+    RS_TRACE_NAME("MemoryManager::MemoryOverReport HiSysEventWrite");
     std::string gpuMemInfo;
-    gpuMemInfo.append(hidumperReport);
     DfxString dfxLog;
     DumpMemorySnapshot(dfxLog);
     gpuMemInfo.append(dfxLog.GetString());
-
     std::ifstream gpuMemInfoFile;
     gpuMemInfoFile.open(GPUMEM_INFO_PATH);
     if (gpuMemInfoFile.is_open()) {
@@ -1192,21 +1207,28 @@ void MemoryManager::MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& 
         gpuMemInfoStream << gpuMemInfoFile.rdbuf();
         gpuMemInfo.append(gpuMemInfoStream.str());
         gpuMemInfoFile.close();
-    } else {
-        RS_LOGE("MemoryManager::MemoryOverReport can not open gpumem info");
+    }
+    if (reportName == RSEventName::RENDER_MEMORY_OVER_ERROR) {
+        RSMainThread::Instance()->PostTask([=]() mutable {
+            std::string log;
+            DumpNodesInfoForReport(log, pid);
+            gpuMemInfo.append(log);
+            WriteInfoToFile(filePath, gpuMemInfo, hidumperReport);
+            int ret = RSHiSysEvent::EventWrite(reportName, RSEventType::RS_STATISTIC, "PID", pid, "TYPE", "GPU",
+                "BUNDLE_NAME", info.bundleName, "CPU_MEMORY", info.cpuMemory, "GPU_MEMORY",
+                info.nativeGpuMemory + info.engineGpuMemory, "TOTAL_MEMORY", info.TotalMemory(), "FILEPATH", filePath);
+            RS_LOGE("hisysevent writ result=%{public}d, send event [FRAMEWORK,%{public}s], "
+                    "pid[%{public}d] bundleName[%{public}s] cpu[%{public}zu] gpu[%{public}zu] total[%{public}zu]",
+                ret, reportName.c_str(), pid, info.bundleName.c_str(), info.cpuMemory,
+                info.nativeGpuMemory + info.engineGpuMemory, info.TotalMemory());
+        });
+        return;
     }
 
-    RS_TRACE_NAME("MemoryManager::MemoryOverReport HiSysEventWrite");
     WriteInfoToFile(filePath, gpuMemInfo, hidumperReport);
-
-    int ret = RSHiSysEvent::EventWrite(reportName, RSEventType::RS_STATISTIC,
-        "PID", pid,
-        "TYPE", "GPU",
-        "BUNDLE_NAME", info.bundleName,
-        "CPU_MEMORY", info.cpuMemory,
-        "GPU_MEMORY", info.nativeGpuMemory + info.engineGpuMemory,
-        "TOTAL_MEMORY", info.TotalMemory(),
-        "FILEPATH", filePath);
+    int ret = RSHiSysEvent::EventWrite(reportName, RSEventType::RS_STATISTIC, "PID", pid, "TYPE", "GPU", "BUNDLE_NAME",
+        info.bundleName, "CPU_MEMORY", info.cpuMemory, "GPU_MEMORY", info.nativeGpuMemory + info.engineGpuMemory,
+        "TOTAL_MEMORY", info.TotalMemory(), "FILEPATH", filePath);
     RS_LOGE("hisysevent writ result=%{public}d, send event [FRAMEWORK,%{public}s], "
             "pid[%{public}d] bundleName[%{public}s] cpu[%{public}zu] gpu[%{public}zu] total[%{public}zu]",
         ret, reportName.c_str(), pid, info.bundleName.c_str(), info.cpuMemory,
