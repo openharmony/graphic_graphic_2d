@@ -4197,7 +4197,7 @@ void RSRenderNode::UpdateVisibleFilterChild(RSRenderNode& childNode)
 void RSRenderNode::UpdateVisibleEffectChild(RSRenderNode& childNode)
 {
     if (childNode.GetRenderProperties().GetUseEffect() || childNode.GetRenderProperties().HasHarmonium() ||
-        childNode.GetRenderProperties().HasHarmonium()) {
+        childNode.GetRenderProperties().HasSpatialGlassEffect()) {
         visibleEffectChild_.emplace(childNode.GetId());
     }
     auto& childEffectNodes = childNode.GetVisibleEffectChild();
