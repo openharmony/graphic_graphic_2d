@@ -771,6 +771,7 @@ ohos_executable("render_process") {
   external_deps = [
     "c_utils:utils",
     "graphic_surface:surface",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
