@@ -1958,6 +1958,8 @@ public:
      */
     void MarkLayerPartRender(bool isLayerPartRender);
 
+    void ReSortChildrenByZIndex();
+
 protected:
     explicit RSNode(
         bool isRenderServiceNode, bool isTextureExportNode = false, std::shared_ptr<RSUIContext> rsUIContext = nullptr,
