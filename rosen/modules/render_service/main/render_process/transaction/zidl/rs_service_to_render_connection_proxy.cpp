@@ -875,7 +875,7 @@ void RSServiceToRenderConnectionProxy::SetVmaCacheStatus(bool flag)
 }
 
 ErrCode RSServiceToRenderConnectionProxy::SetWatermark(pid_t callingPid, const std::string& name,
-    std::shared_ptr<Media::PixelMap> watermark, bool& success)
+    std::shared_ptr<Media::PixelMap> watermark, bool& success, uint32_t rowCount, uint32_t colCount)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -898,6 +898,11 @@ ErrCode RSServiceToRenderConnectionProxy::SetWatermark(pid_t callingPid, const s
     }
     if (!data.WriteParcelable(watermark.get())) {
         ROSEN_LOGE("%{public}s: WriteParcelable watermark.get() err.", __func__);
+        success = false;
+        return ERR_INVALID_VALUE;
+    }
+    if (!data.WriteUint32(rowCount) || !data.WriteUint32(colCount)) {
+        ROSEN_LOGE("%{public}s: WriteUint32 rowCount/colCount err.", __func__);
         success = false;
         return ERR_INVALID_VALUE;
     }

@@ -580,6 +580,54 @@ HWTEST_F(RSUniRenderThreadTest, GetWatermarkImg, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetWatermarkRowCount
+ * @tc.desc: Test GetWatermarkRowCount
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderThreadTest, GetWatermarkRowCount, TestSize.Level1)
+{
+    RSUniRenderThread& instance = RSUniRenderThread::Instance();
+    auto& renderThreadParams = instance.GetRSRenderThreadParams();
+    auto rowCount = renderThreadParams->GetWatermarkRowCount();
+    ASSERT_EQ(rowCount, 0);
+
+    auto rsRenderThreadParams = std::make_unique<RSRenderThreadParams>();
+    rsRenderThreadParams->SetWatermark(true, nullptr, 2, 3);
+    RSUniRenderThread::Instance().Sync(std::move(rsRenderThreadParams));
+    rowCount = renderThreadParams->GetWatermarkRowCount();
+    ASSERT_EQ(rowCount, 2);
+
+    rsRenderThreadParams = std::make_unique<RSRenderThreadParams>();
+    rsRenderThreadParams->SetWatermark(false, nullptr, 0, 0);
+    RSUniRenderThread::Instance().Sync(std::move(rsRenderThreadParams));
+}
+
+/**
+ * @tc.name: GetWatermarkColCount
+ * @tc.desc: Test GetWatermarkColCount
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderThreadTest, GetWatermarkColCount, TestSize.Level1)
+{
+    RSUniRenderThread& instance = RSUniRenderThread::Instance();
+    auto& renderThreadParams = instance.GetRSRenderThreadParams();
+    auto colCount = renderThreadParams->GetWatermarkColCount();
+    ASSERT_EQ(colCount, 0);
+
+    auto rsRenderThreadParams = std::make_unique<RSRenderThreadParams>();
+    rsRenderThreadParams->SetWatermark(true, nullptr, 2, 3);
+    RSUniRenderThread::Instance().Sync(std::move(rsRenderThreadParams));
+    colCount = renderThreadParams->GetWatermarkColCount();
+    ASSERT_EQ(colCount, 3);
+
+    rsRenderThreadParams = std::make_unique<RSRenderThreadParams>();
+    rsRenderThreadParams->SetWatermark(false, nullptr, 0, 0);
+    RSUniRenderThread::Instance().Sync(std::move(rsRenderThreadParams));
+}
+
+/**
  * @tc.name: AddToReleaseQueueTest
  * @tc.desc: Test AddToReleaseQueue
  * @tc.type: FUNC

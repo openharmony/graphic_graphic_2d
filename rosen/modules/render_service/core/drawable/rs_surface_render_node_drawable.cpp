@@ -16,6 +16,8 @@
 #include "drawable/rs_surface_render_node_drawable.h"
 
 #include "acquire_fence_manager.h"
+#include "effect/runtime_shader_builder.h"
+#include "feature/watermark/rs_surface_watermark.h"
 #include "impl_interface/region_impl.h"
 #include "rs_trace.h"
 #include "rs_frame_report.h"
@@ -256,7 +258,7 @@ void RSSurfaceRenderNodeDrawable::OnGeneralProcess(RSPaintFilterCanvas& canvas,
     // 5. Draw foreground of this node by the main canvas.
     DrawForeground(canvas, bounds);
 
-    DrawCommSurfaceWatermark(canvas, surfaceParams);
+    RSSurfaceWatermarkHelper::DrawCommSurfaceWatermark(canvas, surfaceParams);
 
     if (surfaceParams.IsCrossNode() &&
         uniParams.GetCrossNodeOffScreenStatus() == CrossNodeOffScreenRenderDebugType::ENABLE_DFX) {
@@ -327,48 +329,6 @@ void RSSurfaceRenderNodeDrawable::DrawMagnificationRegion(
         regionToBeMagnified.x_, regionToBeMagnified.y_, regionToBeMagnified.z_, regionToBeMagnified.w_);
 
     return ;
-}
-
-void RSSurfaceRenderNodeDrawable::DrawCommSurfaceWatermark(RSPaintFilterCanvas& canvas,
-    const RSSurfaceRenderParams& params)
-{
-    if (params.IsSystemWatermarkEmpty() && params.IsCustomWatermarkEmpty()) {
-        RS_LOGE("SurfaceNodeDrawable DrawCommSurfaceWatermark Name:%{public}s Id:%{public}" PRIu64
-            " water mark count is zero", GetName().c_str(), params.GetId());
-        return;
-    }
-    RS_TRACE_NAME("RSSurfaceRenderNodeDrawable::DrawCommSurfaceWatermark");
-    for (auto watermarkType = static_cast<uint8_t>(CUSTOM_WATER_MARK);
-        watermarkType < static_cast<uint8_t>(SYSTEM_WATER_MARK); watermarkType++) {
-        DrawWatermark(canvas, params, static_cast<SurfaceWatermarkType>(watermarkType));
-    }
-}
-
-void RSSurfaceRenderNodeDrawable::DrawWatermark(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& params,
-    const SurfaceWatermarkType &watermarkType)
-{
-    auto& renderThreadParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
-    if (!renderThreadParams) {
-        RS_LOGE("SurfaceNodeDrawable DrawWatermark renderThreadParams is nullptr");
-        return;
-    }
-    auto surfaceRect = params.GetBounds();
-    for (const auto& [name, isEnabled] : params.GetSurfaceWatermarkEnabledMap(watermarkType)) {
-        if (!isEnabled) {
-            continue;
-        }
-        auto imagePtr = renderThreadParams->GetWatermark(name);
-        if (!imagePtr || imagePtr->GetWidth() == 0 || imagePtr->GetHeight() == 0) {
-            continue;
-        }
-        Drawing::Brush brush;
-        brush.SetShaderEffect(Drawing::ShaderEffect::CreateImageShader(
-            *imagePtr, Drawing::TileMode::REPEAT, Drawing::TileMode::REPEAT,
-            Drawing::SamplingOptions(), Drawing::Matrix()));
-        canvas.AttachBrush(brush);
-        canvas.DrawRect(surfaceRect);
-        canvas.DetachBrush();
-    }
 }
 
 Drawing::Region RSSurfaceRenderNodeDrawable::CalculateVisibleDirtyRegion(

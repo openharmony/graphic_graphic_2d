@@ -17,6 +17,7 @@
 
 #include <fuzzer/FuzzedDataProvider.h>
 
+#include "common/rs_common_def.h"
 #include "transaction/rs_interfaces.h"
 
 namespace OHOS {
@@ -50,7 +51,10 @@ void DoSetWatermark(FuzzedDataProvider& fdp)
     opts.useSourceIfMatch = fdp.ConsumeBool();
 
     std::shared_ptr<Media::PixelMap> watermark = Media::PixelMap::Create(opts);
-    g_rsInterfaces->SetWatermark(name, watermark);
+    uint32_t rowCount = fdp.ConsumeIntegral<uint32_t>();
+    uint32_t colCount = fdp.ConsumeIntegral<uint32_t>();
+    g_rsInterfaces->SetWatermark(name, watermark, SaSurfaceWatermarkMaxSize::SA_WATER_MARK_DEFAULT_SIZE,
+        rowCount, colCount);
 }
 
 void DoSetSurfaceWatermark(FuzzedDataProvider& fdp)
@@ -77,7 +81,9 @@ void DoSetSurfaceWatermark(FuzzedDataProvider& fdp)
         nodeIdList.push_back(fdp.ConsumeIntegral<uint64_t>());
     }
 
-    g_rsInterfaces->SetSurfaceWatermark(pid, name, watermark, nodeIdList, watermarkType);
+    uint32_t rowCount = fdp.ConsumeIntegral<uint32_t>();
+    uint32_t colCount = fdp.ConsumeIntegral<uint32_t>();
+    g_rsInterfaces->SetSurfaceWatermark(pid, name, watermark, nodeIdList, watermarkType, rowCount, colCount);
 }
 
 void DoShowWatermark(FuzzedDataProvider& fdp)

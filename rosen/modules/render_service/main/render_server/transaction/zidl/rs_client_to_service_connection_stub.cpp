@@ -2171,8 +2171,18 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 RS_LOGE("RSClientToServiceConnectionStub::std::shared_ptr<Media::PixelMap> watermark == nullptr");
                 break;
             }
+            uint32_t rowCount = 0;
+            uint32_t colCount = 0;
+            if (!data.ReadUint32(rowCount)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (!data.ReadUint32(colCount)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             bool success = false;
-            if (SetWatermark(name, watermark, success) != ERR_OK || !success) {
+            if (SetWatermark(name, watermark, success, rowCount, colCount) != ERR_OK || !success) {
                 RS_LOGE("RSClientToServiceConnectionStub::SetWatermark failed");
             }
             break;

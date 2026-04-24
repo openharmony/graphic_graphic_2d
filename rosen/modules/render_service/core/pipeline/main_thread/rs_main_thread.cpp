@@ -2833,7 +2833,13 @@ void RSMainThread::Render()
         renderThreadParams_->SetWatermark(watermarkFlag_, watermarkImg_);
         {
             std::lock_guard<std::mutex> lock(watermarkMutex_);
-            renderThreadParams_->SetWatermarks(surfaceWatermarkHelper_.GetSurfaceWatermarks());
+            std::unordered_map<std::string, std::pair<std::shared_ptr<Drawing::Image>, pid_t>> watermarks;
+            std::unordered_map<std::string, std::pair<uint32_t, uint32_t>> gridCounts;
+            for (const auto& [name, info] : surfaceWatermarkHelper_.GetSurfaceWatermarks()) {
+                watermarks[name] = {info.image, info.pid};
+                gridCounts[name] = {info.rowCount, info.colCount};
+            }
+            renderThreadParams_->SetWatermarks(watermarks, gridCounts);
         }
 
         renderThreadParams_->SetCurtainScreenUsingStatus(isCurtainScreenOn_);
@@ -4788,21 +4794,24 @@ bool RSMainThread::IsOcclusionNodesNeedSync(NodeId id, bool useCurWindow)
     return needSync;
 }
 
-void RSMainThread::SetWatermark(const pid_t& pid, const std::string& name, std::shared_ptr<Media::PixelMap> watermark)
+void RSMainThread::SetWatermark(const pid_t& pid, const std::string& name,
+    std::shared_ptr<Media::PixelMap> watermark, uint32_t rowCount, uint32_t colCount)
 {
     std::lock_guard<std::mutex> lock(watermarkMutex_);
-    (void)surfaceWatermarkHelper_.SetSurfaceWatermark(pid, name, watermark, {}, SYSTEM_WATER_MARK, GetContext(), true);
+    (void)surfaceWatermarkHelper_.SetSurfaceWatermark(pid, name, watermark, {}, SYSTEM_WATER_MARK, GetContext(), true,
+        rowCount, colCount);
     SetDirtyFlag();
     RequestNextVSync();
 }
 
 uint32_t RSMainThread::SetSurfaceWatermark(pid_t pid, const std::string& name,
     std::shared_ptr<Media::PixelMap> watermark, const std::vector<NodeId>& nodeIdList,
-    SurfaceWatermarkType watermarkType, bool isSystemCalling)
+    SurfaceWatermarkType watermarkType, bool isSystemCalling,
+    uint32_t rowCount, uint32_t colCount)
 {
     std::lock_guard<std::mutex> lock(watermarkMutex_);
     auto res = surfaceWatermarkHelper_.SetSurfaceWatermark(pid, name, watermark, nodeIdList,
-        watermarkType, GetContext(), isSystemCalling);
+        watermarkType, GetContext(), isSystemCalling, rowCount, colCount);
     SetDirtyFlag(true);
     RequestNextVSync();
     return res;

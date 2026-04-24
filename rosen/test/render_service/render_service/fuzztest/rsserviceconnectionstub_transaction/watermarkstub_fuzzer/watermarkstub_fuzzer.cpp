@@ -84,6 +84,10 @@ void DoSetWatermark(FuzzedDataProvider& fdp)
     if (!dataP.WriteString(name) || !dataP.WriteParcelable(watermark.get())) {
         return;
     }
+    uint32_t rowCount = fdp.ConsumeIntegral<uint32_t>();
+    uint32_t colCount = fdp.ConsumeIntegral<uint32_t>();
+    dataP.WriteUint32(rowCount);
+    dataP.WriteUint32(colCount);
     toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
@@ -104,6 +108,8 @@ void DoSetSurfaceWatermark(FuzzedDataProvider& fdp)
         nodeIdList.push_back(fdp.ConsumeIntegral<NodeId>());
     }
     SurfaceWatermarkType watermarkType = static_cast<SurfaceWatermarkType>(fdp.ConsumeIntegral<uint8_t>());
+    uint32_t rowCount = fdp.ConsumeIntegral<uint32_t>();
+    uint32_t colCount = fdp.ConsumeIntegral<uint32_t>();
     
     if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
         return;
@@ -120,7 +126,8 @@ void DoSetSurfaceWatermark(FuzzedDataProvider& fdp)
             return;
         }
     }
-    if (!dataP.WriteUInt64Vector(nodeIdList) || !dataP.WriteUint8(static_cast<uint8_t>(watermarkType))) {
+    if (!dataP.WriteUInt64Vector(nodeIdList) || !dataP.WriteUint8(static_cast<uint8_t>(watermarkType)) ||
+        !dataP.WriteUint32(rowCount) || !dataP.WriteUint32(colCount)) {
         return;
     }
     toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
