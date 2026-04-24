@@ -804,7 +804,7 @@ std::shared_ptr<Drawing::Surface> EffectImageChain::CreateSurface(bool forceCPU)
         return nullptr;
     }
     
-    RS_TRACE_NAME_FMT("EffectImageChain::CreateGPUSurface Imageinfo:Image_Width:%d, Imageinfo_Height:%d", 
+    RS_TRACE_NAME_FMT("EffectImageChain::CreateGPUSurface Imageinfo:Image_Width:%d, Imageinfo_Height:%d",
         imageInfo_.GetWidth(), imageInfo_.GetHeight());
     auto surface = Drawing::Surface::MakeRenderTarget(gpuContext_.get(), false, imageInfo_);
     return surface;
