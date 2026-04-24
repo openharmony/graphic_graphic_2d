@@ -4504,5 +4504,11 @@ std::shared_ptr<ModifierNG::RSModifier> RSNode::GetModifierCreatedBySetter(Modif
     }
     return nullptr;
 }
+
+void RSNode::ReSortChildrenByZIndex()
+{
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSortChildrenByZIndex>(GetId());
+    AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
+}
 } // namespace Rosen
 } // namespace OHOS

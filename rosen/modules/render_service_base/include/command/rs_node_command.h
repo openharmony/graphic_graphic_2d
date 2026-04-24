@@ -121,6 +121,8 @@ enum RSNodeCommandType : uint16_t {
     MARK_NODE_COLORSPACE = 0x0d00,
 
     COLOR_PICKER_CALLBACK = 0x0e00,
+
+    SORT_CHILDREN_BY_INDEX = 0x0f00,
 };
 
 class RSB_EXPORT RSNodeCommandHelper {
@@ -194,6 +196,8 @@ public:
     using ColorPickerCallbackProcessor = void (*)(NodeId, uint64_t, uint32_t);
     static void ColorPickerCallback(RSContext& context, NodeId nodeId, pid_t pid, uint64_t token, uint32_t color);
     static RSB_EXPORT void SetColorPickerCallbackProcessor(ColorPickerCallbackProcessor processor);
+
+    static void ReSortChildrenByZIndex(RSContext& context, NodeId nodeId);
 };
 
 ADD_COMMAND(RSUpdatePropertyBool,
@@ -451,6 +455,10 @@ ADD_COMMAND(RSRemoveAllModifiersNG,
 ADD_COMMAND(RSColorPickerCallback,
     ARG(PERMISSION_APP, RS_NODE, COLOR_PICKER_CALLBACK,
         RSNodeCommandHelper::ColorPickerCallback, NodeId, pid_t, uint64_t, uint32_t))
+
+ADD_COMMAND(RSSortChildrenByZIndex,
+    ARG(PERMISSION_APP, RS_NODE, SORT_CHILDREN_BY_INDEX,
+        RSNodeCommandHelper::ReSortChildrenByZIndex, NodeId))
 } // namespace Rosen
 } // namespace OHOS
 #endif // ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_NODE_COMMAND_H
