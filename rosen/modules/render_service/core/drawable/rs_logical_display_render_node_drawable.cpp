@@ -201,7 +201,7 @@ void RSLogicalDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             RSUniRenderThread::Instance().SetWhiteList(screenProperty.GetWhiteList());
             curSecExemption_ = params->GetSecurityExemption();
             uniParam->SetSecExemption(curSecExemption_);
-            DrawExpandDisplay(*params, processor);
+            DrawExpandDisplay(*params);
             lastSecExemption_ = curSecExemption_;
         }
         uniParam->SetSecurityDisplay(false);
@@ -396,8 +396,7 @@ void RSLogicalDisplayRenderNodeDrawable::DrawHardwareEnabledNodes(Drawing::Canva
     RSUniRenderUtil::AdjustZOrderAndDrawSurfaceNode(hwcTopNodes, canvas, *screenParams);
 }
 
-void RSLogicalDisplayRenderNodeDrawable::DrawExpandDisplay(RSLogicalDisplayRenderParams& params,
-    std::shared_ptr<RSProcessor> processor)
+void RSLogicalDisplayRenderNodeDrawable::DrawExpandDisplay(RSLogicalDisplayRenderParams& params)
 {
     RS_TRACE_FUNC();
     auto [_, screenParam] = GetScreenParams(params);
@@ -405,14 +404,9 @@ void RSLogicalDisplayRenderNodeDrawable::DrawExpandDisplay(RSLogicalDisplayRende
         RS_LOGE("%{public}s screenParam is nullptr", __func__);
         return;
     }
-    auto virtualProcessor = RSProcessor::ReinterpretCast<RSUniRenderVirtualProcessor>(processor);
-    if (!virtualProcessor) {
-        RS_LOGE("RSScreenRenderNodeDrawable::DrawExpandDisplay virtualProcessor is null");
-        return;
-    }
     const auto& screenProperty = screenParam->GetScreenProperty();
     RSAutoCanvasRestore acr(curCanvas_);
-    virtualProcessor->ScaleExpandIfNeed(curCanvas_);
+    params.ApplyAlphaAndMatrixToCanvas(*curCanvas_);
     if (screenParam->GetHDRPresent()) {
         RS_LOGD("%{public}s HDRCast isHDREnabledVirtualScreen true", __func__);
         curCanvas_->SetHDREnabledVirtualScreen(true);
