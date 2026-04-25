@@ -369,6 +369,14 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_POWER_STATUS");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_AS_MAIN_SCREEN): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_AS_MAIN_SCREEN");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_MAIN_SCREEN): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_MAIN_SCREEN");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::REPORT_EVENT_GAMESTATE): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REPORT_EVENT_GAMESTATE");
             break;
