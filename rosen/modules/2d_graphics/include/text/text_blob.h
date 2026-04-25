@@ -43,8 +43,8 @@ union TextBlobRenderOption {
         uint32_t preferSpeedOverQuality : 1;
     } bits;
 
-    TextBlobRenderOption() : bits{static_cast<uint32_t>(TextContrast::FOLLOW_SYSTEM), false};
-    TextBlobRenderOption(TextContrast tc, bool enable) : bits{static_cast<uint32_t>(tc), enable};
+    TextBlobRenderOption() : bits{static_cast<uint32_t>(TextContrast::FOLLOW_SYSTEM), false} {};
+    TextBlobRenderOption(TextContrast tc, bool enable) : bits{static_cast<uint32_t>(tc), enable} {};
 }
 
 class DRAWING_API ProcessTextConstrast {
