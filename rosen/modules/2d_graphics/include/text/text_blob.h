@@ -135,11 +135,11 @@ public:
     }
 
     void SetTextContrast(TextContrast contrast) {
-        options_.bits.textContrast_ = static_cast<uint32_t>(contrast);
+        options_.bits.textContrast = static_cast<uint32_t>(contrast);
     }
 
     TextContrast GetTextContrast() const {
-        return static_cast<TextContrast>(options_.bits.textContrast_);
+        return static_cast<TextContrast>(options_.bits.textContrast);
     }
 
     class Context {
