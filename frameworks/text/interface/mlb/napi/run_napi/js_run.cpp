@@ -519,7 +519,7 @@ napi_value JsRun::GetTextStyle(napi_env env, napi_callback_info info)
 
 napi_value JsRun::OnGetTextStyle(napi_env env, napi_callback_info info)
 {
-    if (!run_) {
+    if (run_ == nullptr) {
         TEXT_LOGE("Failed run is nullptr");
         return NapiGetUndefined(env);
     }

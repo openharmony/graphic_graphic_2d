@@ -43,7 +43,6 @@ void RunGetTextStyleTest::SetUp()
 {
     fontCollection_ = FontCollection::Create();
     ASSERT_NE(fontCollection_, nullptr);
-    fontCollection_->EnableGlobalFontMgr();
 }
 
 void RunGetTextStyleTest::TearDown()
@@ -518,18 +517,8 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest015, TestSize.Level0)
     EXPECT_EQ(resultStyle.badgeType, TextBadgeType::SUPERSCRIPT);
 }
 
-/*
- * @tc.name: RunGetTextStyleTest016
- * @tc.desc: Test GetTextStyle with combined properties for comprehensive validation
- * @tc.type: FUNC
- */
-HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest016, TestSize.Level0)
+static void ApplyCombinedTextStyle(TextStyle &textStyle)
 {
-    OHOS::Rosen::TypographyStyle paragraphStyle;
-    typographyCreate_ = OHOS::Rosen::TypographyCreate::Create(paragraphStyle, fontCollection_);
-    ASSERT_NE(typographyCreate_, nullptr);
-
-    TextStyle textStyle;
     textStyle.color = Drawing::Color(0xFF00FF00);
     textStyle.decoration = TextDecoration::LINE_THROUGH;
     textStyle.decorationColor = Drawing::Color::COLOR_BLUE;
@@ -551,22 +540,10 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest016, TestSize.Level0)
     textStyle.styleId = 456;
     textStyle.isPlaceholder = false;
     textStyle.badgeType = TextBadgeType::SUBSCRIPT;
+}
 
-    typographyCreate_->PushStyle(textStyle);
-
-    std::u16string text = u"Combined";
-    typographyCreate_->AppendText(text);
-
-    typography_ = typographyCreate_->CreateTypography();
-    ASSERT_NE(typography_, nullptr);
-
-    typography_->Layout(150.0);
-
-    auto textLines = typography_->GetTextLines();
-    spRuns_ = textLines[0]->GetGlyphRuns();
-
-    TextStyle resultStyle = spRuns_[0]->GetTextStyle();
-
+static void VerifyCombinedResultStyle(const TextStyle &resultStyle)
+{
     EXPECT_EQ(resultStyle.color, Drawing::Color(0xFF00FF00));
     EXPECT_EQ(resultStyle.decoration, TextDecoration::LINE_THROUGH);
     EXPECT_EQ(resultStyle.decorationColor, Drawing::Color::COLOR_BLUE);
@@ -589,6 +566,67 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest016, TestSize.Level0)
     EXPECT_EQ(resultStyle.badgeType, TextBadgeType::SUBSCRIPT);
 }
 
+static void ApplyLanguageStyle(TextStyle &style, const std::string &locale, double fontSize,
+    FontWeight weight, Drawing::Color color, int styleId)
+{
+    style.locale = locale;
+    style.fontSize = fontSize;
+    style.fontWeight = weight;
+    style.color = color;
+    style.styleId = styleId;
+}
+
+static void VerifyLanguageResultStyle(const TextStyle &result, const std::string &locale,
+    double fontSize, FontWeight weight, int styleId)
+{
+    EXPECT_EQ(result.locale, locale);
+    EXPECT_DOUBLE_EQ(result.fontSize, fontSize);
+    EXPECT_EQ(result.fontWeight, weight);
+    EXPECT_EQ(result.styleId, styleId);
+}
+
+static void ApplySegmentStyle(TextStyle &style, double fontSize, Drawing::Color color, FontWeight weight, int styleId)
+{
+    style.fontSize = fontSize;
+    style.color = color;
+    style.fontWeight = weight;
+    style.styleId = styleId;
+}
+
+static void VerifySegmentResultStyle(const TextStyle &result, double fontSize,
+    Drawing::Color color, FontWeight weight, int styleId)
+{
+    EXPECT_DOUBLE_EQ(result.fontSize, fontSize);
+    EXPECT_EQ(result.color, color);
+    EXPECT_EQ(result.fontWeight, weight);
+    EXPECT_EQ(result.styleId, styleId);
+}
+
+/*
+ * @tc.name: RunGetTextStyleTest016
+ * @tc.desc: Test GetTextStyle with combined properties for comprehensive validation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest016, TestSize.Level0)
+{
+    OHOS::Rosen::TypographyStyle paragraphStyle;
+    typographyCreate_ = OHOS::Rosen::TypographyCreate::Create(paragraphStyle, fontCollection_);
+    ASSERT_NE(typographyCreate_, nullptr);
+
+    TextStyle textStyle;
+    ApplyCombinedTextStyle(textStyle);
+    typographyCreate_->PushStyle(textStyle);
+    typographyCreate_->AppendText(u"Combined");
+
+    typography_ = typographyCreate_->CreateTypography();
+    ASSERT_NE(typography_, nullptr);
+    typography_->Layout(150.0);
+
+    auto textLines = typography_->GetTextLines();
+    spRuns_ = textLines[0]->GetGlyphRuns();
+    VerifyCombinedResultStyle(spRuns_[0]->GetTextStyle());
+}
+
 /*
  * @tc.name: RunGetTextStyleTest017
  * @tc.desc: Test GetTextStyle with multiple text segments having different styles in one paragraph
@@ -601,60 +639,32 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest017, TestSize.Level0)
     ASSERT_NE(typographyCreate_, nullptr);
 
     TextStyle style1;
-    style1.fontSize = 16.0;
-    style1.color = Drawing::Color::COLOR_RED;
-    style1.fontWeight = FontWeight::W400;
-    style1.styleId = 1;
-
+    ApplySegmentStyle(style1, 16.0, Drawing::Color::COLOR_RED, FontWeight::W400, 1);
     typographyCreate_->PushStyle(style1);
     typographyCreate_->AppendText(u"First");
 
     TextStyle style2;
-    style2.fontSize = 24.0;
-    style2.color = Drawing::Color::COLOR_BLUE;
-    style2.fontWeight = FontWeight::W700;
-    style2.styleId = 2;
-
+    ApplySegmentStyle(style2, 24.0, Drawing::Color::COLOR_BLUE, FontWeight::W700, 2);
     typographyCreate_->PushStyle(style2);
     typographyCreate_->AppendText(u"Second");
 
     TextStyle style3;
-    style3.fontSize = 32.0;
-    style3.color = Drawing::Color::COLOR_GREEN;
-    style3.fontWeight = FontWeight::W900;
-    style3.styleId = 3;
-
+    ApplySegmentStyle(style3, 32.0, Drawing::Color::COLOR_GREEN, FontWeight::W900, 3);
     typographyCreate_->PushStyle(style3);
     typographyCreate_->AppendText(u"Third");
 
     typography_ = typographyCreate_->CreateTypography();
     ASSERT_NE(typography_, nullptr);
-
     typography_->Layout(500.0);
 
     auto textLines = typography_->GetTextLines();
     ASSERT_GT(textLines.size(), 0);
-
     auto runs = textLines[0]->GetGlyphRuns();
     ASSERT_GE(runs.size(), 3);
 
-    TextStyle resultStyle1 = runs[0]->GetTextStyle();
-    EXPECT_DOUBLE_EQ(resultStyle1.fontSize, 16.0);
-    EXPECT_EQ(resultStyle1.color, Drawing::Color::COLOR_RED);
-    EXPECT_EQ(resultStyle1.fontWeight, FontWeight::W400);
-    EXPECT_EQ(resultStyle1.styleId, 1);
-
-    TextStyle resultStyle2 = runs[1]->GetTextStyle();
-    EXPECT_DOUBLE_EQ(resultStyle2.fontSize, 24.0);
-    EXPECT_EQ(resultStyle2.color, Drawing::Color::COLOR_BLUE);
-    EXPECT_EQ(resultStyle2.fontWeight, FontWeight::W700);
-    EXPECT_EQ(resultStyle2.styleId, 2);
-
-    TextStyle resultStyle3 = runs[2]->GetTextStyle();
-    EXPECT_DOUBLE_EQ(resultStyle3.fontSize, 32.0);
-    EXPECT_EQ(resultStyle3.color, Drawing::Color::COLOR_GREEN);
-    EXPECT_EQ(resultStyle3.fontWeight, FontWeight::W900);
-    EXPECT_EQ(resultStyle3.styleId, 3);
+    VerifySegmentResultStyle(runs[0]->GetTextStyle(), 16.0, Drawing::Color::COLOR_RED, FontWeight::W400, 1);
+    VerifySegmentResultStyle(runs[1]->GetTextStyle(), 24.0, Drawing::Color::COLOR_BLUE, FontWeight::W700, 2);
+    VerifySegmentResultStyle(runs[2]->GetTextStyle(), 32.0, Drawing::Color::COLOR_GREEN, FontWeight::W900, 3);
 }
 
 /*
@@ -669,63 +679,32 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest018, TestSize.Level0)
     ASSERT_NE(typographyCreate_, nullptr);
 
     TextStyle englishStyle;
-    englishStyle.locale = "en-US";
-    englishStyle.fontSize = 18.0;
-    englishStyle.fontWeight = FontWeight::W400;
-    englishStyle.color = Drawing::Color::COLOR_BLACK;
-    englishStyle.styleId = 100;
-
+    ApplyLanguageStyle(englishStyle, "en-US", 18.0, FontWeight::W400, Drawing::Color::COLOR_BLACK, 100);
     typographyCreate_->PushStyle(englishStyle);
     typographyCreate_->AppendText(u"English");
 
     TextStyle chineseStyle;
-    chineseStyle.locale = "zh-CN";
-    chineseStyle.fontSize = 20.0;
-    chineseStyle.fontWeight = FontWeight::W500;
-    chineseStyle.color = Drawing::Color::COLOR_RED;
-    chineseStyle.styleId = 200;
-
+    ApplyLanguageStyle(chineseStyle, "zh-CN", 20.0, FontWeight::W500, Drawing::Color::COLOR_RED, 200);
     typographyCreate_->PushStyle(chineseStyle);
     typographyCreate_->AppendText(u"中文测试");
 
     TextStyle arabicStyle;
-    arabicStyle.locale = "ar-SA";
-    arabicStyle.fontSize = 16.0;
-    arabicStyle.fontWeight = FontWeight::W600;
-    arabicStyle.color = Drawing::Color::COLOR_BLUE;
-    arabicStyle.styleId = 300;
-
+    ApplyLanguageStyle(arabicStyle, "ar-SA", 16.0, FontWeight::W600, Drawing::Color::COLOR_BLUE, 300);
     typographyCreate_->PushStyle(arabicStyle);
     typographyCreate_->AppendText(u"اختبار");
 
     typography_ = typographyCreate_->CreateTypography();
     ASSERT_NE(typography_, nullptr);
-
     typography_->Layout(600.0);
 
     auto textLines = typography_->GetTextLines();
     ASSERT_GT(textLines.size(), 0);
-
     auto runs = textLines[0]->GetGlyphRuns();
     ASSERT_GE(runs.size(), 3);
 
-    TextStyle resultEnglish = runs[0]->GetTextStyle();
-    EXPECT_EQ(resultEnglish.locale, "en-US");
-    EXPECT_DOUBLE_EQ(resultEnglish.fontSize, 18.0);
-    EXPECT_EQ(resultEnglish.fontWeight, FontWeight::W400);
-    EXPECT_EQ(resultEnglish.styleId, 100);
-
-    TextStyle resultChinese = runs[1]->GetTextStyle();
-    EXPECT_EQ(resultChinese.locale, "zh-CN");
-    EXPECT_DOUBLE_EQ(resultChinese.fontSize, 20.0);
-    EXPECT_EQ(resultChinese.fontWeight, FontWeight::W500);
-    EXPECT_EQ(resultChinese.styleId, 200);
-
-    TextStyle resultArabic = runs[2]->GetTextStyle();
-    EXPECT_EQ(resultArabic.locale, "ar-SA");
-    EXPECT_DOUBLE_EQ(resultArabic.fontSize, 16.0);
-    EXPECT_EQ(resultArabic.fontWeight, FontWeight::W600);
-    EXPECT_EQ(resultArabic.styleId, 300);
+    VerifyLanguageResultStyle(runs[0]->GetTextStyle(), "en-US", 18.0, FontWeight::W400, 100);
+    VerifyLanguageResultStyle(runs[1]->GetTextStyle(), "zh-CN", 20.0, FontWeight::W500, 200);
+    VerifyLanguageResultStyle(runs[2]->GetTextStyle(), "ar-SA", 16.0, FontWeight::W600, 300);
 }
 
 } // namespace
