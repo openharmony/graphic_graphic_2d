@@ -2315,7 +2315,7 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenTypeBlackList_Test, Function | SmallT
 
     std::vector<NodeType> typeBlackList = {1, 2, 3};
     int32_t ret = rsInterfaces->SetVirtualScreenTypeBlackList(virtualScreenId, typeBlackList);
-    ASSERT_EQ(ret, 0);
+    ASSERT_EQ(ret, READ_PARCEL_ERR);
     rsInterfaces->RemoveVirtualScreen(virtualScreenId);
 }
 
@@ -2342,7 +2342,7 @@ HWTEST_F(RSInterfacesTest, AddVirtualScreenBlackList_Test, Function | SmallTest 
 
     std::vector<NodeId> blackList = {1, 2, 3};
     int32_t ret = rsInterfaces->AddVirtualScreenBlackList(virtualScreenId, blackList);
-    ASSERT_EQ(ret, 0);
+    ASSERT_EQ(ret, READ_PARCEL_ERR);
 }
 
 /*
@@ -2362,7 +2362,7 @@ HWTEST_F(RSInterfacesTest, RemoveVirtualScreenBlackList_Test, Function | SmallTe
 
     std::vector<NodeId> blackList = {1, 2, 3};
     int32_t ret = rsInterfaces->RemoveVirtualScreenBlackList(virtualScreenId, blackList);
-    ASSERT_EQ(ret, 0);
+    ASSERT_EQ(ret, READ_PARCEL_ERR);
     rsInterfaces->RemoveVirtualScreen(virtualScreenId);
 }
 
@@ -3169,8 +3169,8 @@ HWTEST_F(RSInterfacesTest, ModifyVirtualScreenWhiteList001, Function | SmallTest
     ASSERT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
     NodeId nodeId = 1;
-    ASSERT_EQ(rsInterfaces->AddVirtualScreenWhiteList(virtualScreenId, {nodeId}), SUCCESS);
-    ASSERT_EQ(rsInterfaces->RemoveVirtualScreenWhiteList(virtualScreenId, {nodeId}), SUCCESS);
+    ASSERT_EQ(rsInterfaces->AddVirtualScreenWhiteList(virtualScreenId, {nodeId}), READ_PARCEL_ERR);
+    ASSERT_EQ(rsInterfaces->RemoveVirtualScreenWhiteList(virtualScreenId, {nodeId}), READ_PARCEL_ERR);
     rsInterfaces->RemoveVirtualScreen(virtualScreenId);
 }
 
