@@ -48,7 +48,8 @@ typedef enum {
  * @brief Enumerates interface types.
  */
 typedef enum {
-    GRAPHIC_DISP_INTF_HDMI = 0,       /**< HDMI interface */
+    GRAPHIC_DISP_INTF_UNKNOW = 0,     /**< UNKNOW interface */
+    GRAPHIC_DISP_INTF_HDMI,           /**< HDMI interface */
     GRAPHIC_DISP_INTF_LCD,            /**< LCD interface */
     GRAPHIC_DISP_INTF_BT1120,         /**< BT1120 interface */
     GRAPHIC_DISP_INTF_BT656,          /**< BT656 interface */
@@ -61,6 +62,7 @@ typedef enum {
     GRAPHIC_DISP_INTF_PANEL,          /**< PANEL interface */
     GRAPHIC_DISP_INTF_DP,             /**< DP interface */
     GRAPHIC_DISP_INTF_EDP,            /**< EDP interface */
+    GRAPHIC_DISP_INTF_GPMI,           /**< GPMI interface */
     GRAPHIC_DISP_INTF_BUTT,
 } GraphicInterfaceType;
 
