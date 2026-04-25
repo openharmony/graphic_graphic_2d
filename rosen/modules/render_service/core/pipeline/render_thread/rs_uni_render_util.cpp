@@ -1645,19 +1645,44 @@ bool RSUniRenderUtil::ProcessSingleSelfDrawingNode(RSPaintFilterCanvas& canvas,
         RS_LOGD(" %{public}s disabled or screenLayer is invalid", __func__);
         return false;
     }
-    const auto& fullScreenSelfDrawingSurface = screenParams.GetLayerSkipContext().relevantSurfaceNodeIds_;
+    const auto& targetSurfaceNodeIds = screenParams.GetLayerSkipContext().relevantSurfaceNodeIds_;
     // only handle a single self drawing node
-    if (fullScreenSelfDrawingSurface.size() != 1) {
+    if (targetSurfaceNodeIds.size() != 1) {
         RS_LOGD(" %{public}s more than one full-screen self drawing node exists", __func__);
         return false;
     }
-    auto surfaceId = fullScreenSelfDrawingSurface[0];
+    auto surfaceId = targetSurfaceNodeIds[0];
     auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(surfaceId);
     if (drawable == nullptr || drawable->GetNodeType() != RSRenderNodeType::SURFACE_NODE) {
         RS_LOGD(" %{public}s drawable is invalid", __func__);
         return false;
     }
     auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
+    auto targetSurfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
+    if (UNLIKELY(targetSurfaceParams == nullptr)) {
+        RS_LOGD(" %{public}s surface Param is nullptr", __func__);
+        return false;
+    }
+    const auto& hardwareDrawables =
+        RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeDrawables();
+    for (const auto& [_, __, hwDrawablePtr] : hardwareDrawables) {
+        if (hwDrawablePtr == nullptr) {
+            continue;
+        }
+        auto hardwareDrawable = static_cast<DrawableV2::RSSurfaceRenderNodeDrawable*>(hwDrawablePtr.get());
+        if (hardwareDrawable == nullptr) {
+            continue;
+        }
+        auto hardwareParams = static_cast<RSSurfaceRenderParams*>(hardwareDrawable->GetRenderParams().get());
+        if (hardwareParams == nullptr) {
+            continue;
+        }
+        // The non-fullscreen hardwareNode has a higher z-order than the relevantSurfaceNode.
+        if (hardwareParams->GetLayerInfo().zOrder > targetSurfaceParams->GetLayerInfo().zOrder) {
+            RS_LOGD(" %{public}s relevantSurface isn't topLayer", __func__);
+            return false;
+        }
+    }
     if (DrawSingleSelfDrawingNode(canvas, surfaceDrawable, displayParams)) {
         RS_TRACE_NAME_FMT("%s Draw single self drawing node: [%" PRIu64 "], name: %s",
             __func__, surfaceDrawable->GetId(), surfaceDrawable->GetName().c_str());
