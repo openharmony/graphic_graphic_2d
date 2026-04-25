@@ -1621,10 +1621,16 @@ HwcDisabledReasonInfos RSServiceToRenderConnectionProxy::GetHwcDisabledReasonInf
     HwcDisabledReasonInfo hwcDisabledReasonInfo;
     while (size--) {
         for (int32_t pos = 0; pos < HwcDisabledReasons::DISABLED_REASON_LENGTH; pos++) {
-            hwcDisabledReasonInfo.disabledReasonStatistics[pos] = reply.ReadInt32();
+            if (!reply.ReadInt32(hwcDisabledReasonInfo.disabledReasonStatistics[pos])) {
+                ROSEN_LOGE("RSServiceToRenderConnectionProxy::GetHwcDisabledReasonInfo statistics failed");
+                return hwcDisabledReasonInfos;
+            }
         }
-        hwcDisabledReasonInfo.pidOfBelongsApp = reply.ReadInt32();
-        hwcDisabledReasonInfo.nodeName = reply.ReadString();
+        if (!reply.ReadInt32(hwcDisabledReasonInfo.pidOfBelongsApp) ||
+            !reply.ReadString(hwcDisabledReasonInfo.nodeName)) {
+            ROSEN_LOGE("RSServiceToRenderConnectionProxy::GetHwcDisabledReasonInfo pid or nodeName failed");
+            return hwcDisabledReasonInfos;
+        }
         hwcDisabledReasonInfos.emplace_back(hwcDisabledReasonInfo);
     }
     return hwcDisabledReasonInfos;
@@ -1645,7 +1651,10 @@ ErrCode RSServiceToRenderConnectionProxy::GetHdrOnDuration(int64_t& hdrOnDuratio
     if (err != NO_ERROR) {
         return ERR_INVALID_VALUE;
     }
-    hdrOnDuration = reply.ReadInt64();
+    if (!reply.ReadInt64(hdrOnDuration)) {
+        ROSEN_LOGE("RSServiceToRenderConnectionProxy::GetHdrOnDuration Read hdrOnDuration failed");
+        return ERR_INVALID_VALUE;
+    }
     return ERR_OK;
 }
 
