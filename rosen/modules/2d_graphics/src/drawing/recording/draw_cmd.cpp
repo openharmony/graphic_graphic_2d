@@ -1701,10 +1701,10 @@ void DrawTextBlobOpItem::Marshalling(DrawCmdList& cmdList)
         uint32_t typefaceId = ctx.GetTypeface()->GetUniqueID();
         globalUniqueId = (shiftedPid | typefaceId);
     }
+    TextBlobRenderOption opt = TextBlobRenderOption(textBlob_->GetTextContrast(),
+                                                    textBlob_->IsSpeedOverQualityPreferred());
     if (textBlob_) {
-        cmdList.AddOp<ConstructorHandle>(textBlobHandle, globalUniqueId,
-                                         textBlob_->IsSpeedOverQualityPreferred(),
-                                         textBlob_->GetTextContrast(), x_, y_, paintHandle);
+        cmdList.AddOp<ConstructorHandle>(textBlobHandle, globalUniqueId, opt, x_, y_, paintHandle);
     }
 }
 
