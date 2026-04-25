@@ -100,9 +100,11 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     bool isDoubleSided = params->GetDoubleSidedEnabled();
     if (!isDoubleSided) {
-        auto totalMatrix = paintFilterCanvas->GetTotalMatrix();
-        totalMatrix.PreConcat(params->GetMatrix());
-        if (IsBackFace(totalMatrix)) {
+        Drawing::Matrix baseMatrix = params->HasSandBox()
+            ? RSRenderParams::GetParentSurfaceMatrix()
+            : paintFilterCanvas->GetTotalMatrix();
+        baseMatrix.PreConcat(params->GetMatrix());
+        if (IsBackFace(baseMatrix)) {
             SetDrawSkipType(DrawSkipType::BACKFACE_SKIP);
             RS_TRACE_NAME_FMT("RSCanvasRenderNodeDrawable::OnDraw backface skip, id:%" PRIu64, nodeId_);
             return;
