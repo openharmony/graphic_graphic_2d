@@ -1697,7 +1697,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, OnRemoteRequest_CreateVirtualScree
     data.WriteUint32(1920);
     data.WriteUint32(1080);
     data.WriteBool(true);
-    ASSERT_EQ(ERR_INVALID_DATA, connectionStub_->OnRemoteRequest(code, data, reply, option));
+    ASSERT_EQ(ERR_NULL_OBJECT, connectionStub_->OnRemoteRequest(code, data, reply, option));
 }
 
 /**
