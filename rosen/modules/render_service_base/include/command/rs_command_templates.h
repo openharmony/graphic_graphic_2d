@@ -100,6 +100,21 @@ public:
         return 0; // invalidId
     }
 
+    // Returns the second NodeId parameter if it exists (e.g., childNodeId in AddChild).
+    // Otherwise falls back to RSCommand::GetTargetNodeId() which returns GetNodeId().
+    // This allows tree hierarchy commands to identify their target node without
+    // special-casing each subtype externally.
+    NodeId GetTargetNodeId() const override
+    {
+        if constexpr (std::tuple_size<decltype(params_)>::value > 1) {
+            using secondType = typename std::tuple_element<1, decltype(params_)>::type;
+            if constexpr (std::is_same<NodeId, secondType>::value) {
+                return std::get<1>(params_);
+            }
+        }
+        return RSCommand::GetTargetNodeId();
+    }
+
     uint64_t GetToken() const override
     {
         if (GetType() == RSCommandType::ANIMATION) {

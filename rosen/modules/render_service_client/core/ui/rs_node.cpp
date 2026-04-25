@@ -1359,10 +1359,32 @@ void RSNode::SetRSUIContext(std::shared_ptr<RSUIContext> rsUIContext)
         auto preTransaction = preUIContext->GetRSTransaction();
         auto curTransaction = rsUIContext->GetRSTransaction();
         if (preTransaction && curTransaction) {
-            preTransaction->MoveCommandByNodeId(curTransaction, id_);
+            // Move non-tree commands to the new UIContext. Tree hierarchy commands
+            // are excluded because they must be regenerated for the new context.
+            preTransaction->MoveCommandByNodeIdExcludeTreeCommands(curTransaction, id_);
+            RegenerateTreeHierarchyCommands();
         }
     }
     SetUIContextToken();
+}
+
+// Regenerates tree hierarchy commands (AddChild) for all children after
+// UIContext switching. This ensures the new UIContext builds the correct
+// node tree structure, since tree hierarchy commands are excluded during
+// command migration.
+void RSNode::RegenerateTreeHierarchyCommands()
+{
+    ROSEN_LOGI("RegenerateTreeHierarchyCommands nodeId:%{public}" PRIu64 " children:%{public}zu",
+        id_, children_.size());
+    for (uint32_t index = 0; index < children_.size(); index++) {
+        auto childPtr = children_[index].lock();
+        if (childPtr == nullptr) {
+            continue;
+        }
+        auto childId = childPtr->GetHierarchyCommandNodeId();
+        std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeAddChild>(id_, childId, index);
+        AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);
+    }
 }
 
 void RSNode::SetPersp(float persp)
@@ -3824,20 +3846,10 @@ void RSNode::AddChildInner(SharedPtr child, int index)
 
     AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);
     if (child->GetRSUIContext() != GetRSUIContext()) {
-        if (auto surfaceNode = child->ReinterpretCastTo<RSSurfaceNode>()) {
-            HILOG_COMM_INFO("RSNode::AddChild, ParentId:%{public}" PRIu64 ", ParentUIContext is %{public}" PRIu64
-                       " SurfaceNode:[Id: %{public}" PRIu64 ", name: %{public}s uiContext is %{public}" PRIu64 "]",
-                id_, GetRSUIContext() ? GetRSUIContext()->GetToken() : 0, surfaceNode->GetId(),
-                surfaceNode->GetName().c_str(),
-                surfaceNode->GetRSUIContext() ? surfaceNode->GetRSUIContext()->GetToken() : 0);
-            RS_TRACE_NAME_FMT("RSNode::AddChild, ParentId:%" PRIu64 ", ParentUIContext is %" PRIu64
-                              " SurfaceNode:[Id: %" PRIu64 ", name: %s uiContext is %" PRIu64 "]",
-                id_, GetRSUIContext() ? GetRSUIContext()->GetToken() : 0, surfaceNode->GetId(),
-                surfaceNode->GetName().c_str(),
-                surfaceNode->GetRSUIContext() ? surfaceNode->GetRSUIContext()->GetToken() : 0);
-        }
-        std::unique_ptr<RSCommand> child_command = std::make_unique<RSBaseNodeAddChild>(id_, childId, index);
-        child->AddCommand(child_command, IsRenderServiceNode(), GetFollowType(), id_);
+        ROSEN_LOGW("RSNode::AddChildInner, child and parent have different RSUIContext, nodeId: %{public}" PRIu64
+                   ", childId: %{public}" PRIu64 ", parentToken: %{public}" PRIu64 ", childToken: %{public}" PRIu64,
+            id_, childId, GetRSUIContext() ? GetRSUIContext()->GetToken() : 0,
+            child->GetRSUIContext() ? child->GetRSUIContext()->GetToken() : 0);
     }
     if (child->GetType() == RSUINodeType::SURFACE_NODE) {
         auto surfaceNode = RSBaseNode::ReinterpretCast<RSSurfaceNode>(child);
