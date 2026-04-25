@@ -581,6 +581,7 @@ protected:
     std::bitset<RSRenderParamsDirtyType::MAX_DIRTY_TYPE> dirtyType_;
 
 private:
+    void ApplySandboxMatrixToCanvas(RSPaintFilterCanvas& canvas) const;
     NodeId id_;
     RSRenderParamsType paramsType_ = RSRenderParamsType::RS_PARAM_DEFAULT;
     RSRenderNodeType renderNodeType_ = RSRenderNodeType::RS_NODE;
