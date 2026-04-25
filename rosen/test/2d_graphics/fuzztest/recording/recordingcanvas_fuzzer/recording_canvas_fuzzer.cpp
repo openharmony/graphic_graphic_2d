@@ -320,7 +320,7 @@ void RecordingCanvasFuzzTest006(const uint8_t* data, size_t size)
     recordcanvas1.GetSaveCount();
 }
 
-void RecordingCanvasFuzzTest009(const uint8_t* data, size_t size)
+void RecordingCanvasFuzzTest019(const uint8_t* data, size_t size)
 {
     int32_t width = GetObject<int32_t>();
     int32_t height = GetObject<int32_t>();
