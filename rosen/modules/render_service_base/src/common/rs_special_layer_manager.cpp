@@ -61,6 +61,7 @@ std::stack<LeashPersistentId> RSSpecialLayerManager::whiteListRootIds_ = {};
 std::unordered_map<SpecialLayerType, std::unordered_map<NodeId, std::unordered_set<ScreenId>>>
     ScreenSpecialLayerInfo::screenSpecialLayerInfoByNode_ = {};
 std::unordered_set<NodeId> ScreenSpecialLayerInfo::globalBlackList_ = {};
+std::unordered_map<ScreenId, ScreenId> ScreenSpecialLayerInfo::screenMirrorSourceMap_ = {};
 
 void RSSpecialLayerManager::SetWhiteListRootId(LeashPersistentId id)
 {
@@ -379,6 +380,25 @@ void ScreenSpecialLayerInfo::SetGlobalBlackList(const std::unordered_set<NodeId>
 const std::unordered_set<NodeId>& ScreenSpecialLayerInfo::GetGlobalBlackList()
 {
     return globalBlackList_;
+}
+
+void ScreenSpecialLayerInfo::UpdateScreenMirrorSourceMap(ScreenId mirrorScreenId, ScreenId sourceScreenId)
+{
+    screenMirrorSourceMap_[mirrorScreenId] = sourceScreenId;
+}
+
+ScreenId ScreenSpecialLayerInfo::GetMirrorSourceScreenId(ScreenId mirrorScreenId)
+{
+    auto iter = screenMirrorSourceMap_.find(mirrorScreenId);
+    if (iter != screenMirrorSourceMap_.end()) {
+        return iter->second;
+    }
+    return INVALID_SCREEN_ID;
+}
+
+void ScreenSpecialLayerInfo::ClearScreenMirrorSourceMap()
+{
+    screenMirrorSourceMap_.clear();
 }
 } // namespace Rosen
 } // namespace OHOS

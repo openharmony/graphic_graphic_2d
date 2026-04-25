@@ -2427,7 +2427,8 @@ CM_INLINE bool RSUniRenderVisitor::AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNo
     // 5. collect white list rect
     bool isRotating = displayNodeRotationChanged_ || isScreenRotationAnimating_ ||
         RSMainThread::Instance()->GetSystemAnimatedScenes() == SystemAnimatedScenes::SNAPSHOT_ROTATION;
-    RSSpecialLayerUtils::CollectWhiteListRect(node, hasMirrorUsedInSpecialLayer_, isRotating);
+    RSSpecialLayerUtils::CollectWhiteListRect(node, hasMirrorUsedInSpecialLayer_, isRotating,
+        curScreenNode_ ? curScreenNode_->GetScreenId() : INVALID_SCREEN_ID);
     return true;
 }
 
