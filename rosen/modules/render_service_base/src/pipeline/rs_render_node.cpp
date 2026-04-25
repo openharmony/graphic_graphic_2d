@@ -769,6 +769,16 @@ void RSRenderNode::ResetChildRelevantFlags()
     RSPointLightManager::Instance(GetLogicalDisplayNodeId())->SetChildHasVisibleIlluminated(shared_from_this(), false);
 }
 
+void RSRenderNode::UpdateFilterChildRelevantFlagsToParams()
+{
+    if (stagingRenderParams_ == nullptr) {
+        return;
+    }
+
+    stagingRenderParams_->SetChildHasVisibleFilter(childHasVisibleFilter_);
+    stagingRenderParams_->SetChildHasVisibleEffect(childHasVisibleEffect_);
+}
+
 void RSRenderNode::ResetPixelStretchSlot()
 {
     RSDrawable::ResetPixelStretchSlot(*this, GetDrawableVec(__func__));
@@ -5283,6 +5293,7 @@ void RSRenderNode::SubTreeSkipPrepare(
         ClearSubtreeParallelNodes();
 #endif
         ResetChildRelevantFlags();
+        UpdateFilterChildRelevantFlagsToParams();
     }
     SetGeoUpdateDelay(accumGeoDirty);
     UpdateSubTreeInfo(clipRect);
