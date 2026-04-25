@@ -204,11 +204,7 @@ static bool UnmarshallingRecordCmdToDrawCmdList(Parcel& parcel, std::shared_ptr<
         ROSEN_LOGE("unirender: RSMarshallingHelper::UnmarshallingRecordCmdToDrawCmdList failed with null CmdList");
         return false;
     }
-    uint32_t recordCmdSize = 0;
-    if (!parcel.ReadUint32(recordCmdSize)) {
-        ROSEN_LOGE("RSMarshallingHelper::UnmarshallingRecordCmdToDrawCmdList Read recordCmdSize failed");
-        return false;
-    }
+    uint32_t recordCmdSize = parcel.ReadUint32();
     if (recordCmdSize == 0) {
         return true;
     }
@@ -265,11 +261,7 @@ bool UnmarshallingExtendObjectToDrawCmdList(Parcel& parcel, std::shared_ptr<Draw
         ROSEN_LOGE("unirender: RSMarshallingHelper::UnmarshallingExtendObjectToDrawCmdList failed with null CmdList");
         return false;
     }
-    uint32_t objectSize = 0;
-    if (!parcel.ReadUint32(objectSize)) {
-        ROSEN_LOGE("UnmarshallingExtendObjectToDrawCmdList Read objectSize failed");
-        return false;
-    }
+    uint32_t objectSize = parcel.ReadUint32();
     if (objectSize == 0) {
         return true;
     }
@@ -323,11 +315,7 @@ static bool MarshallingDrawingObjectFromDrawCmdList(Parcel& parcel, const std::s
 
 static bool UnmarshallingDrawingObjectToDrawCmdList(Parcel& parcel, std::shared_ptr<Drawing::DrawCmdList>& val)
 {
-    uint32_t objectSize = 0;
-    if (!parcel.ReadUint32(objectSize)) {
-        ROSEN_LOGE("unirender: RSMarshallingHelper::UnmarshallingDrawingObjectToDrawCmdList read objectSize failed");
-        return false;
-    }
+    uint32_t objectSize = parcel.ReadUint32();
     if (objectSize == 0) {
         return true;
     }
@@ -338,17 +326,8 @@ static bool UnmarshallingDrawingObjectToDrawCmdList(Parcel& parcel, std::shared_
     std::vector<std::shared_ptr<Drawing::Object>> objectVec;
     for (uint32_t i = 0; i < objectSize; i++) {
         // Read type and subType for ObjectHelper dispatch
-        int32_t type;
-        if (!parcel.ReadInt32(type)) {
-            ROSEN_LOGE("unirender: RSMarshallingHelper::UnmarshallingDrawingObjectToDrawCmdList, failed to read type");
-            return false;
-        }
-        int32_t subType;
-        if (!parcel.ReadInt32(subType)) {
-            ROSEN_LOGE(
-                "unirender: RSMarshallingHelper::UnmarshallingDrawingObjectToDrawCmdList, failed to read subType");
-            return false;
-        }
+        int32_t type = parcel.ReadInt32();
+        int32_t subType = parcel.ReadInt32();
         int32_t drawingObjDepth = 0;
 
         // Use ObjectHelper to get unmarshalling function and create the appropriate object
@@ -418,11 +397,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, std::shared_ptr<Drawing::D
 
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::Data>& val)
 {
-    uint32_t size = 0;
-    if (!parcel.ReadUint32(size)) {
-        ROSEN_LOGE("unirender: RSMarshallingHelper::Unmarshalling Data size ReadUint32 failed");
-        return false;
-    }
+    uint32_t size = parcel.ReadUint32();
     if (size == UINT32_MAX) {
         val = nullptr;
         return true;
@@ -459,11 +434,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
 
 bool RSMarshallingHelper::SkipData(Parcel& parcel)
 {
-    int32_t size;
-    if (!parcel.ReadInt32(size)) {
-        ROSEN_LOGE("unirender: RSMarshallingHelper::SkipData read size failed");
-        return false;
-    }
+    int32_t size = parcel.ReadInt32();
     if (size <= 0) {
         return true;
     }
@@ -736,12 +707,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
 
 bool RSMarshallingHelper::ReadColorSpaceFromParcel(Parcel& parcel, std::shared_ptr<Drawing::ColorSpace>& colorSpace)
 {
-    uint32_t readSize = 0;
-    if (!parcel.ReadUint32(readSize)) {
-        ROSEN_LOGE("unirender: RSMarshallingHelper::ReadColorSpaceFromParcel read readSize failed");
-        return false;
-    }
-    size_t size = readSize;
+    size_t size = parcel.ReadUint32();
     if (size == 0) {
         colorSpace = nullptr;
     } else {
@@ -877,11 +843,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::Image>& val, void*& imagepixelAddr)
 {
     (void)imagepixelAddr;
-    int32_t type;
-    if (!parcel.ReadInt32(type)) {
-        ROSEN_LOGE("unirender: RSMarshallingHelper::Unmarshalling Drawing::Image read type failed");
-        return false;
-    }
+    int32_t type = parcel.ReadInt32();
     if (type == -1) {
         val = nullptr;
         return true;
@@ -905,11 +867,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
 
 bool RSMarshallingHelper::SkipImage(Parcel& parcel)
 {
-    int32_t type;
-    if (!parcel.ReadInt32(type)) {
-        ROSEN_LOGE("RSMarshallingHelper::SkipImage read type failed");
-        return false;
-    }
+    int32_t type = parcel.ReadInt32();
     if (type == -1) {
         return true;
     }
@@ -963,11 +921,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSSh
 
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSShader>& val)
 {
-    int32_t type;
-    if (!parcel.ReadInt32(type)) {
-        ROSEN_LOGE("unirender: RSMarshallingHelper::Unmarshalling RSShader, read type failed");
-        return false;
-    }
+    int32_t type = parcel.ReadInt32();
     if (type == -1) {
         val = nullptr;
         return true;
@@ -1003,11 +957,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const Drawing::Matrix& val
 
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, Drawing::Matrix& val)
 {
-    uint32_t size = 0;
-    if (!parcel.ReadUint32(size)) {
-        ROSEN_LOGE("RSMarshallingHelper::Unmarshalling Drawing::Matrix read size failed");
-        return false;
-    }
+    uint32_t size = parcel.ReadUint32();
     if (size < sizeof(Drawing::scalar) * Drawing::Matrix::MATRIX_SIZE) {
         ROSEN_LOGE("RSMarshallingHelper::Unmarshalling Drawing::Matrix failed size %{public}u", size);
         return false;
