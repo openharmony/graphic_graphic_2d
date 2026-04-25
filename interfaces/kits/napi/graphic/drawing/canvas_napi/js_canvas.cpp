@@ -182,7 +182,6 @@ static const napi_property_descriptor g_properties[] = {
     DECLARE_NAPI_FUNCTION("drawPath", JsCanvas::DrawPath),
     DECLARE_NAPI_FUNCTION("drawLine", JsCanvas::DrawLine),
     DECLARE_NAPI_FUNCTION("drawTextBlob", JsCanvas::DrawText),
-    DECLARE_NAPI_FUNCTION("drawGlyphs", JsCanvas::DrawGlyphs),
     DECLARE_NAPI_FUNCTION("drawSingleCharacter", JsCanvas::DrawSingleCharacter),
     DECLARE_NAPI_FUNCTION("drawSingleCharacterWithFeatures", JsCanvas::DrawSingleCharacterWithFeatures),
     DECLARE_NAPI_FUNCTION("getTotalMatrix", JsCanvas::GetTotalMatrix),
@@ -221,6 +220,7 @@ static const napi_property_descriptor g_properties[] = {
     DECLARE_NAPI_FUNCTION("quickRejectPath", JsCanvas::QuickRejectPath),
     DECLARE_NAPI_FUNCTION("quickRejectRect", JsCanvas::QuickRejectRect),
     DECLARE_NAPI_STATIC_FUNCTION("__createTransfer__", JsCanvas::CanvasTransferDynamic),
+    DECLARE_NAPI_FUNCTION("drawGlyphs", JsCanvas::DrawGlyphs),
 };
 
 napi_value JsCanvas::Constructor(napi_env env, napi_callback_info info)
