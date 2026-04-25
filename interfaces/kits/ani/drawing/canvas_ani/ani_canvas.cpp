@@ -302,7 +302,6 @@ static const std::array g_methods = {
     ani_native_function { "drawLine", nullptr, reinterpret_cast<void*>(AniCanvas::DrawLine) },
     ani_native_function { "drawSingleCharacter", nullptr, reinterpret_cast<void*>(AniCanvas::DrawSingleCharacter) },
     ani_native_function { "drawTextBlob", nullptr, reinterpret_cast<void*>(AniCanvas::DrawTextBlob) },
-    ani_native_function { "drawGlyphs", nullptr, reinterpret_cast<void*>(AniCanvas::DrawGlyphs) },
     ani_native_function { "drawOval", nullptr, reinterpret_cast<void*>(AniCanvas::DrawOval) },
     ani_native_function { "drawArc", nullptr, reinterpret_cast<void*>(AniCanvas::DrawArc) },
     ani_native_function { "drawArcWithCenter", nullptr, reinterpret_cast<void*>(AniCanvas::DrawArcWithCenter) },
@@ -344,6 +343,7 @@ static const std::array g_methods = {
     ani_native_function { "quickRejectRect", nullptr, reinterpret_cast<void*>(AniCanvas::QuickRejectRect) },
     ani_native_function { "drawSingleCharacterWithFeatures", nullptr,
         reinterpret_cast<void*>(AniCanvas::DrawSingleCharacterWithFeatures) },
+    ani_native_function { "drawGlyphs", nullptr, reinterpret_cast<void*>(AniCanvas::DrawGlyphs) },
 };
 
 ani_status AniCanvas::AniInit(ani_env *env)
