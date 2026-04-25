@@ -927,20 +927,16 @@ private:
 class DrawTextBlobOpItem : public DrawWithPaintOpItem {
 public:
     struct ConstructorHandle : public OpItem {
-        ConstructorHandle(const OpDataHandle& textBlob, const uint64_t& globalUniqueId, bool preferSpeedOverQuality,
-            TextContrast textContrast, scalar x, scalar y, const PaintHandle& paintHandle)
+        ConstructorHandle(const OpDataHandle& textBlob, const uint64_t& globalUniqueId,
+            TextBlobRenderOption opt, scalar x, scalar y, const PaintHandle& paintHandle)
             : OpItem(DrawOpItem::TEXT_BLOB_OPITEM), textBlob(textBlob), globalUniqueId(globalUniqueId),
-              preferSpeedOverQuality(preferSpeedOverQuality), textContrast(textContrast), x(x), y(y),
-              paintHandle(paintHandle) {}
+              options(opt), x(x), y(y), paintHandle(paintHandle) {}
         ~ConstructorHandle() override = default;
         static bool GenerateCachedOpItem(DrawCmdList& cmdList, const TextBlob* textBlob, scalar x, scalar y, Paint& p);
         bool GenerateCachedOpItem(DrawCmdList& cmdList, Canvas* canvas);
         OpDataHandle textBlob;
         uint64_t globalUniqueId;
-        bool preferSpeedOverQuality = false;
-        uint16_t padding = 0; // to keep the original data structure for adding preferSpeedOverQuality &
-                              // changing TextContrast from int to uint8_t.
-        TextContrast textContrast;
+        TextBlobRenderOption options;
         scalar x;
         scalar y;
         PaintHandle paintHandle;
@@ -969,7 +965,7 @@ private:
     scalar y_;
     std::shared_ptr<TextBlob> textBlob_;
     uint64_t globalUniqueId_;
-    TextContrast textContrast_ = TextContrast::FOLLOW_SYSTEM;
+    TextBlobRenderOption options_ = TextBlobRenderOption();
     bool IsHighContrastEnable(Canvas* canvas, TextContrast value) const;
 };
 

@@ -36,6 +36,17 @@ enum class TextContrast : uint8_t {
     ENABLE_CONTRAST // Do not follow the system, APP enables high contrast.
 };
 
+union TextBlobRenderOption {
+    uint32_t rawData = 0;
+    struct {
+        uint32_t textContrast : 31;
+        uint32_t preferSpeedOverQuality : 1;
+    } bits;
+
+    TextBlobRenderOption() : bits{static_cast<uint32_t>(TextContrast::FOLLOW_SYSTEM), false};
+    TextBlobRenderOption(TextContrast tc, bool enable) : bits{static_cast<uint32_t>(tc), enable};
+}
+
 class DRAWING_API ProcessTextConstrast {
 public:
     static ProcessTextConstrast& Instance() {
@@ -116,19 +127,19 @@ public:
     }
 
     bool IsSpeedOverQualityPreferred() const {
-        return this->preferSpeedOverQuality;
+        return options_.bits.preferSpeedOverQuality;
     }
 
     void SetSpeedOverQualityPreferred(bool enable) {
-        this->preferSpeedOverQuality = enable;
+        options_.bits.preferSpeedOverQuality = enable;
     }
 
     void SetTextContrast(TextContrast contrast) {
-        textContrast_ = contrast;
+        options_.bits.textContrast_ = static_cast<uint32_t>(contrast);
     }
 
     TextContrast GetTextContrast() const {
-        return textContrast_;
+        return static_cast<TextContrast>(options_.bits.textContrast_);
     }
 
     class Context {
@@ -163,8 +174,7 @@ public:
 private:
     std::shared_ptr<TextBlobImpl> textBlobImpl_;
     bool isEmoji = false;
-    bool preferSpeedOverQuality = false;
-    TextContrast textContrast_ = TextContrast::FOLLOW_SYSTEM;
+    TextBlobRenderOption options_ = TextBlobRenderOption();
 };
 } // namespace Drawing
 } // namespace Rosen
