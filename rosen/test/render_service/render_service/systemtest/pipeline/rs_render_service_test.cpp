@@ -39,7 +39,7 @@ void RSRenderServiceTest::TearDown() {}
 
 /**
  * @tc.name: TestRenderService001
- * @tc.desc: DumpNodesNotOnTheTree test.
+ * @tc.desc: DumpSurfaceNodesNotOnTree test.
  * @tc.type: FUNC
  * @tc.require: issueI5X0TR
  */
