@@ -1245,4 +1245,26 @@ void RSRenderNodeDrawable::ClearOpincState()
     RSOpincDrawCache::SetOpincBlockNodeSkip(true);
 }
 
+bool RSRenderNodeDrawable::IsBackFace(const Drawing::Matrix& matrix)
+{
+    Drawing::Matrix::Buffer buffer;
+    matrix.GetAll(buffer);
+
+    float a = buffer[0];
+    float b = buffer[1];
+    float c = buffer[2];
+    float d = buffer[3];
+    float e = buffer[4];
+    float f = buffer[5];
+    float g = buffer[6];
+    float h = buffer[7];
+    float i = buffer[8];
+
+    float det = a * (e * i - f * h)
+                  - b * (d * i - f * g)
+                  + c * (d * h - e * g);
+
+    return det < -EPSILON;
+}
+
 } // namespace OHOS::Rosen::DrawableV2

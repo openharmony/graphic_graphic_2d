@@ -96,8 +96,21 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         SetDrawSkipType(DrawSkipType::RENDER_PARAMS_NULL);
         return;
     }
-    Drawing::GPUResourceTag::SetCurrentNodeId(GetId());
+
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
+    bool isDoubleSided = params->GetDoubleSidedEnabled();
+    if (!isDoubleSided) {
+        Drawing::Matrix baseMatrix = params->HasSandBox()
+            ? RSRenderParams::GetParentSurfaceMatrix()
+            : paintFilterCanvas->GetTotalMatrix();
+        baseMatrix.PreConcat(params->GetMatrix());
+        if (IsBackFace(baseMatrix)) {
+            SetDrawSkipType(DrawSkipType::BACKFACE_SKIP);
+            RS_TRACE_NAME_FMT("RSCanvasRenderNodeDrawable::OnDraw backface skip, id:%" PRIu64, nodeId_);
+            return;
+        }
+    }
+    Drawing::GPUResourceTag::SetCurrentNodeId(GetId());
     if (params->GetStartingWindowFlag() && paintFilterCanvas) { // do not draw startingwindows in subthread
         if (paintFilterCanvas->GetIsParallelCanvas()) {
             SetDrawSkipType(DrawSkipType::PARALLEL_CANVAS_SKIP);

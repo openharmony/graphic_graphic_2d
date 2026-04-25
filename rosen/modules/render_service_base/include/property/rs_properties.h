@@ -641,6 +641,8 @@ public:
     {
         return clipToFrame_;
     }
+    void SetDoubleSidedEnabled(bool isDoubleSided);
+    bool GetDoubleSidedEnabled() const;
     void SetVisible(bool visible);
     bool GetVisible() const
     {
@@ -1081,6 +1083,7 @@ private:
     bool hasBounds_ = false;
     bool clipToBounds_ = false;
     bool clipToFrame_ = false;
+    bool isDoubleSided_ = true;
     // partial update
     bool colorFilterNeedUpdate_ = false;
     bool pixelStretchNeedUpdate_ = false;

@@ -39,8 +39,8 @@ public:
 };
 
 /**
- * @tc.name: RSBorderModifierTest
- * @tc.desc: Test Set/Get functions of RSBorderModifier
+ * @tc.name: RSVisibilityModifierTest
+ * @tc.desc: Test Set/Get functions of RSVisibilityModifier (Visible)
  * @tc.type: FUNC
  */
 HWTEST_F(RSVisibilityModifierNGTypeTest, RSVisibilityModifierTest, TestSize.Level1)
@@ -51,5 +51,38 @@ HWTEST_F(RSVisibilityModifierNGTypeTest, RSVisibilityModifierTest, TestSize.Leve
 
     modifier->SetVisible(true);
     EXPECT_EQ(modifier->GetVisible(), true);
+}
+
+/**
+ * @tc.name: RSVisibilityModifierSetDoubleSidedAndGet
+ * @tc.desc: Test SetDoubleSidedEnabled and GetDoubleSidedEnabled
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(RSVisibilityModifierNGTypeTest, RSVisibilityModifierSetDoubleSidedAndGet, TestSize.Level1)
+{
+    std::shared_ptr<ModifierNG::RSVisibilityModifier> modifier = std::make_shared<ModifierNG::RSVisibilityModifier>();
+
+    EXPECT_EQ(modifier->GetDoubleSidedEnabled(), true);
+
+    modifier->SetDoubleSidedEnabled(false);
+    EXPECT_EQ(modifier->GetDoubleSidedEnabled(), false);
+
+    modifier->SetDoubleSidedEnabled(true);
+    EXPECT_EQ(modifier->GetDoubleSidedEnabled(), true);
+}
+
+/**
+ * @tc.name: RSVisibilityModifierTypeStringTestDoubleSided
+ * @tc.desc: Test property type string for DOUBLE_SIDED
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST_F(RSVisibilityModifierNGTypeTest, RSVisibilityModifierTypeStringTestDoubleSided, TestSize.Level1)
+{
+    EXPECT_EQ(ModifierNG::RSModifierTypeString::GetModifierTypeString(ModifierNG::RSModifierType::VISIBILITY),
+        "Visibility");
+    EXPECT_EQ(ModifierNG::RSModifierTypeString::GetPropertyTypeString(ModifierNG::RSPropertyType::DOUBLE_SIDED),
+        "DoubleSided");
 }
 } // namespace OHOS::Rosen

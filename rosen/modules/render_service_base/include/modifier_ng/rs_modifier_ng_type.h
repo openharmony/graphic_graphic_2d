@@ -327,6 +327,7 @@ public:
             case RSPropertyType::COLOR_PICKER_INTERVAL : return "ColorPickerInterval";
             case RSPropertyType::COLOR_PICKER_NOTIFY_THRESHOLD : return "ColorPickerNotifyThreshold";
             case RSPropertyType::COLOR_ADAPTIVE : return "ColorAdaptive";
+            case RSPropertyType::DOUBLE_SIDED: return "DoubleSided";
             case RSPropertyType::CHILDREN: return "Children";
             default: return "Unknown";
         }

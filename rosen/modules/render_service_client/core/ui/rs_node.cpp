@@ -2730,6 +2730,12 @@ void RSNode::SetClipToFrame(bool clipToFrame)
     SetPropertyNG<ModifierNG::RSFrameClipModifier, &ModifierNG::RSFrameClipModifier::SetClipToFrame>(clipToFrame);
 }
 
+void RSNode::SetDoubleSidedEnabled(bool isDoubleSided)
+{
+    SetPropertyNG<ModifierNG::RSVisibilityModifier,
+        &ModifierNG::RSVisibilityModifier::SetDoubleSidedEnabled>(isDoubleSided);
+}
+
 void RSNode::SetCustomClipToFrame(const Vector4f& clipRect)
 {
     SetPropertyNG<ModifierNG::RSFrameClipModifier, &ModifierNG::RSFrameClipModifier::SetCustomClipToFrame>(clipRect);
