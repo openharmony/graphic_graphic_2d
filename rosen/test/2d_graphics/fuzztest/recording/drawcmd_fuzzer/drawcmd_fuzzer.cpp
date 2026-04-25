@@ -2825,7 +2825,7 @@ bool DrawCmdFuzzTest093(const uint8_t* data, size_t size)
     std::vector<uint16_t> glyphIDs(glyphCount);
     std::vector<Point> positions(glyphCount);
     for (uint16_t i = 0; i < glyphCount; i++) {
-        glypgIDs[i] = GetObject<uint16_t>();
+        glyphIDs[i] = GetObject<uint16_t>();
         positions[i] = Point(GetObject<float>(), GetObject<float>());
     }
     DrawGlyphsOpItem drawGlyphsOpItem(glyphIDs, positions, {0, 0}, &font, paint);
