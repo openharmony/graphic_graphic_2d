@@ -145,6 +145,8 @@ public:
     static std::shared_ptr<RSNGRenderShapeBase> CreateDefaultRRectShape(const RRect& sdfRRect, NodeId nodeId);
     static void ApplySDFShapeToMagnifier(const RSProperties& properties,
         const std::shared_ptr<RSNGRenderFilterBase>& shader, NodeId nodeId);
+    static void UpdatePropertiesToSpatialGlassEffect(const RSProperties& properties,
+        const std::shared_ptr<RSNGRenderShaderBase>& shader, NodeId nodeId);
 
 private:
     static std::shared_ptr<Drawing::ColorFilter> GenerateMaterialColorFilter(float sat, float brt);
