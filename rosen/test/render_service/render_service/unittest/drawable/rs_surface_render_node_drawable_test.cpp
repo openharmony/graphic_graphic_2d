@@ -1546,6 +1546,12 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CheckDrawAndCacheWindowContentTest002,
 
     surfaceParams->specialLayerManager_.Set(SpecialLayerType::PROTECTED, false);
     ASSERT_TRUE(surfaceDrawable_->CheckDrawAndCacheWindowContent(*surfaceParams, *uniParams));
+
+    surfaceParams->isRelatedSourceNode_ = false;
+    ASSERT_FALSE(surfaceDrawable_->CheckDrawAndCacheWindowContent(*surfaceParams, *uniParams));
+ 
+    surfaceParams->specialLayerManager_.Set(SpecialLayerType::PROTECTED, true);
+    ASSERT_FALSE(surfaceDrawable_->CheckDrawAndCacheWindowContent(*surfaceParams, *uniParams));
 }
 
 /**
@@ -2336,6 +2342,11 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawRelatedSourceNodeTest, TestSize.Le
     ASSERT_FALSE(surfaceParams->ClonedSourceNode());
 
     surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
+    uniParams->SetDrawRelated(false);
+    ASSERT_FALSE(surfaceParams->ClonedSourceNode());
+ 
+    surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
+    uniParams->SetDrawRelated(true);
     ASSERT_TRUE(surfaceParams->ClonedSourceNode());
     uniParams->SetDrawRelated(false);
     surfaceParams->specialLayerManager_.Set(SpecialLayerType::PROTECTED, false);
