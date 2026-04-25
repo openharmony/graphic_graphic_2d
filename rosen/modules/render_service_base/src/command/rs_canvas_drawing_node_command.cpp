@@ -15,6 +15,7 @@
 
 #include "command/rs_canvas_drawing_node_command.h"
 
+#include "platform/common/rs_log.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
 
@@ -23,6 +24,12 @@ namespace Rosen {
 
 void RSCanvasDrawingNodeCommandHelper::Create(RSContext& context, NodeId id, bool isTextureExportNode)
 {
+    if (context.GetNodeMap().GetNodeCountByPid(ExtractPid(id)) > MAX_NODE_COUNT_PER_PID) {
+        RS_LOGE_LIMIT(__func__, __line__,
+            "GetNodeCountByPid > %{public}u, pid:%{public}u",
+            MAX_NODE_COUNT_PER_PID, static_cast<uint32_t>(ExtractPid(id)));
+        return;
+    }
     auto node = std::shared_ptr<RSCanvasDrawingRenderNode>(new RSCanvasDrawingRenderNode(id,
         context.weak_from_this(), isTextureExportNode), RSRenderNodeGC::NodeDestructor);
     context.GetMutableNodeMap().RegisterRenderNode(node);
