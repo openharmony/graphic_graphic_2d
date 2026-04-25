@@ -976,4 +976,768 @@ HWTEST(RSCanvasRenderNodeDrawableTest, BackFaceSkipTest003, TestSize.Level2)
 
     RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
 }
+
+/**
+ * @tc.name: AccumulatedMatrixTest001
+ * @tc.desc: Parent scale(-1,1) + child identity → accumulated back face
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ *
+ * Scenario: Parent is mirrored horizontally, child has no local transform.
+ * Canvas (parent) matrix: scale(-1, 1),  renderParams (child) matrix: identity
+ * Accumulated = parent × child = scale(-1,1), det = -1 → back face
+ */
+HWTEST(RSCanvasRenderNodeDrawableTest, AccumulatedMatrixTest001, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
+    ASSERT_NE(canvasDrawable, nullptr);
+
+    canvasDrawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    ASSERT_NE(canvasDrawable->renderParams_, nullptr);
+
+    Drawing::Matrix parentMatrix;
+    parentMatrix.SetScale(-1.0f, 1.0f);
+    Drawing::Matrix childMatrix;
+    childMatrix.Reset();
+
+    Drawing::Matrix accumulated = parentMatrix;
+    accumulated.PreConcat(childMatrix);
+
+    bool isBackFace = canvasDrawable->IsBackFace(accumulated);
+    ASSERT_TRUE(isBackFace);
+}
+
+/**
+ * @tc.name: AccumulatedMatrixTest002
+ * @tc.desc: Parent identity + child scale(-1,1) → accumulated back face
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ *
+ * Scenario: Parent has no transform, child is mirrored horizontally.
+ * Accumulated = identity × scale(-1,1) = scale(-1,1), det = -1 → back face
+ */
+HWTEST(RSCanvasRenderNodeDrawableTest, AccumulatedMatrixTest002, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
+    ASSERT_NE(canvasDrawable, nullptr);
+
+    canvasDrawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    ASSERT_NE(canvasDrawable->renderParams_, nullptr);
+
+    Drawing::Matrix parentMatrix;
+    parentMatrix.Reset();
+    Drawing::Matrix childMatrix;
+    childMatrix.SetScale(-1.0f, 1.0f);
+
+    Drawing::Matrix accumulated = parentMatrix;
+    accumulated.PreConcat(childMatrix);
+
+    bool isBackFace = canvasDrawable->IsBackFace(accumulated);
+    ASSERT_TRUE(isBackFace);
+}
+
+/**
+ * @tc.name: AccumulatedMatrixTest003
+ * @tc.desc: Parent scale(-1,1) + child scale(-1,1) → double flip = front face
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ *
+ * Scenario: Both parent and child are mirrored horizontally.
+ * Accumulated = scale(-1,1) × scale(-1,1) = scale(1,1), det = 1 → front face
+ * This is the key case the committer review caught: child alone has det=-1,
+ * but parent+child cancels out.
+ */
+HWTEST(RSCanvasRenderNodeDrawableTest, AccumulatedMatrixTest003, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
+    ASSERT_NE(canvasDrawable, nullptr);
+
+    canvasDrawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    ASSERT_NE(canvasDrawable->renderParams_, nullptr);
+
+    Drawing::Matrix parentMatrix;
+    parentMatrix.SetScale(-1.0f, 1.0f);
+    Drawing::Matrix childMatrix;
+    childMatrix.SetScale(-1.0f, 1.0f);
+
+    Drawing::Matrix accumulated = parentMatrix;
+    accumulated.PreConcat(childMatrix);
+
+    bool isBackFace = canvasDrawable->IsBackFace(accumulated);
+    ASSERT_FALSE(isBackFace);
+}
+
+/**
+ * @tc.name: AccumulatedMatrixTest004
+ * @tc.desc: Parent scale(-1,1) + child scale(1,-1) → det = 1 → front face
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ *
+ * Accumulated = scale(-1,1) × scale(1,-1) = scale(-1,-1), det = (-1)*(-1) = 1 → front face
+ */
+HWTEST(RSCanvasRenderNodeDrawableTest, AccumulatedMatrixTest004, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
+    ASSERT_NE(canvasDrawable, nullptr);
+
+    canvasDrawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    ASSERT_NE(canvasDrawable->renderParams_, nullptr);
+
+    Drawing::Matrix parentMatrix;
+    parentMatrix.SetScale(-1.0f, 1.0f);
+    Drawing::Matrix childMatrix;
+    childMatrix.SetScale(1.0f, -1.0f);
+
+    Drawing::Matrix accumulated = parentMatrix;
+    accumulated.PreConcat(childMatrix);
+
+    bool isBackFace = canvasDrawable->IsBackFace(accumulated);
+    ASSERT_FALSE(isBackFace);
+}
+
+/**
+ * @tc.name: AccumulatedMatrixTest005
+ * @tc.desc: Parent scale(1,-1) + child scale(-1,1) → det = 1 → front face
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ *
+ * Same as 004 but reversed: two single-axis flips cancel each other.
+ */
+HWTEST(RSCanvasRenderNodeDrawableTest, AccumulatedMatrixTest005, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
+    ASSERT_NE(canvasDrawable, nullptr);
+
+    canvasDrawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    ASSERT_NE(canvasDrawable->renderParams_, nullptr);
+
+    Drawing::Matrix parentMatrix;
+    parentMatrix.SetScale(1.0f, -1.0f);
+    Drawing::Matrix childMatrix;
+    childMatrix.SetScale(-1.0f, 1.0f);
+
+    Drawing::Matrix accumulated = parentMatrix;
+    accumulated.PreConcat(childMatrix);
+
+    bool isBackFace = canvasDrawable->IsBackFace(accumulated);
+    ASSERT_FALSE(isBackFace);
+}
+
+/**
+ * @tc.name: AccumulatedMatrixTest006
+ * @tc.desc: Parent rotate(90) + child scale(-1,1) → accumulated back face
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ *
+ * rotate(90°): det = 1 (positive, front), scale(-1,1): det = -1
+ * accumulated det = 1 × (-1) = -1 → back face
+ */
+HWTEST(RSCanvasRenderNodeDrawableTest, AccumulatedMatrixTest006, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
+    ASSERT_NE(canvasDrawable, nullptr);
+
+    canvasDrawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    ASSERT_NE(canvasDrawable->renderParams_, nullptr);
+
+    Drawing::Matrix parentMatrix;
+    parentMatrix.PostRotate(90.0f);
+    Drawing::Matrix childMatrix;
+    childMatrix.SetScale(-1.0f, 1.0f);
+
+    Drawing::Matrix accumulated = parentMatrix;
+    accumulated.PreConcat(childMatrix);
+
+    bool isBackFace = canvasDrawable->IsBackFace(accumulated);
+    ASSERT_TRUE(isBackFace);
+}
+
+/**
+ * @tc.name: AccumulatedMatrixTest007
+ * @tc.desc: Parent rotate(90) + child rotate(90) → det = 1 → front face
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ *
+ * Two 90° rotations: each has det = 1, accumulated det = 1 → front face
+ */
+HWTEST(RSCanvasRenderNodeDrawableTest, AccumulatedMatrixTest007, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
+    ASSERT_NE(canvasDrawable, nullptr);
+
+    canvasDrawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    ASSERT_NE(canvasDrawable->renderParams_, nullptr);
+
+    Drawing::Matrix parentMatrix;
+    parentMatrix.PostRotate(90.0f);
+    Drawing::Matrix childMatrix;
+    childMatrix.PostRotate(90.0f);
+
+    Drawing::Matrix accumulated = parentMatrix;
+    accumulated.PreConcat(childMatrix);
+
+    bool isBackFace = canvasDrawable->IsBackFace(accumulated);
+    ASSERT_FALSE(isBackFace);
+}
+
+/**
+ * @tc.name: AccumulatedMatrixTest008
+ * @tc.desc: Parent scale(-1,1) + child rotate(180) → det = -1 → back face
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ *
+ * scale(-1,1): det = -1, rotate(180°): det = cos²(180)+sin²(180) = 1
+ * accumulated det = -1 × 1 = -1 → back face
+ */
+HWTEST(RSCanvasRenderNodeDrawableTest, AccumulatedMatrixTest008, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
+    ASSERT_NE(canvasDrawable, nullptr);
+
+    canvasDrawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    ASSERT_NE(canvasDrawable->renderParams_, nullptr);
+
+    Drawing::Matrix parentMatrix;
+    parentMatrix.SetScale(-1.0f, 1.0f);
+    Drawing::Matrix childMatrix;
+    childMatrix.PostRotate(180.0f);
+
+    Drawing::Matrix accumulated = parentMatrix;
+    accumulated.PreConcat(childMatrix);
+
+    bool isBackFace = canvasDrawable->IsBackFace(accumulated);
+    ASSERT_TRUE(isBackFace);
+}
+
+/**
+ * @tc.name: AccumulatedMatrixTest009
+ * @tc.desc: Parent skew(0.5,0.5) + child scale(-1,1) → accumulated back face
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ *
+ * skew(0.5,0.5): det = 1*1 - 0.5*0.5 = 0.75, scale(-1,1): det = -1
+ * accumulated det = 0.75 × (-1) = -0.75 → back face
+ */
+HWTEST(RSCanvasRenderNodeDrawableTest, AccumulatedMatrixTest009, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
+    ASSERT_NE(canvasDrawable, nullptr);
+
+    canvasDrawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    ASSERT_NE(canvasDrawable->renderParams_, nullptr);
+
+    Drawing::Matrix parentMatrix;
+    parentMatrix.SetSkew(0.5f, 0.5f);
+    Drawing::Matrix childMatrix;
+    childMatrix.SetScale(-1.0f, 1.0f);
+
+    Drawing::Matrix accumulated = parentMatrix;
+    accumulated.PreConcat(childMatrix);
+
+    bool isBackFace = canvasDrawable->IsBackFace(accumulated);
+    ASSERT_TRUE(isBackFace);
+}
+
+/**
+ * @tc.name: AccumulatedMatrixTest010
+ * @tc.desc: Three-level: grandparent scale(-1,1) + parent scale(-1,1) + child identity
+ *           → front face (two flips cancel)
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST(RSCanvasRenderNodeDrawableTest, AccumulatedMatrixTest010, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
+    ASSERT_NE(canvasDrawable, nullptr);
+
+    canvasDrawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    ASSERT_NE(canvasDrawable->renderParams_, nullptr);
+
+    Drawing::Matrix grandparentMatrix;
+    grandparentMatrix.SetScale(-1.0f, 1.0f);
+    Drawing::Matrix parentMatrix;
+    parentMatrix.SetScale(-1.0f, 1.0f);
+    Drawing::Matrix childMatrix;
+    childMatrix.Reset();
+
+    Drawing::Matrix accumulated = grandparentMatrix;
+    accumulated.PreConcat(parentMatrix);
+    accumulated.PreConcat(childMatrix);
+
+    bool isBackFace = canvasDrawable->IsBackFace(accumulated);
+    ASSERT_FALSE(isBackFace);
+}
+
+/**
+ * @tc.name: AccumulatedMatrixTest011
+ * @tc.desc: Three-level: grandparent scale(-1,1) + parent rotate(45) + child identity
+ *           → one flip → back face
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST(RSCanvasRenderNodeDrawableTest, AccumulatedMatrixTest011, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
+    ASSERT_NE(canvasDrawable, nullptr);
+
+    canvasDrawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    ASSERT_NE(canvasDrawable->renderParams_, nullptr);
+
+    Drawing::Matrix grandparentMatrix;
+    grandparentMatrix.SetScale(-1.0f, 1.0f);
+    Drawing::Matrix parentMatrix;
+    parentMatrix.PostRotate(45.0f);
+    Drawing::Matrix childMatrix;
+    childMatrix.Reset();
+
+    Drawing::Matrix accumulated = grandparentMatrix;
+    accumulated.PreConcat(parentMatrix);
+    accumulated.PreConcat(childMatrix);
+
+    bool isBackFace = canvasDrawable->IsBackFace(accumulated);
+    ASSERT_TRUE(isBackFace);
+}
+
+/**
+ * @tc.name: AccumulatedMatrixTest012
+ * @tc.desc: Three-level: grandparent scale(-1,1) + parent scale(-1,1) + child scale(-1,1)
+ *           → odd number of flips (3) → back face
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ */
+HWTEST(RSCanvasRenderNodeDrawableTest, AccumulatedMatrixTest012, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
+    ASSERT_NE(canvasDrawable, nullptr);
+
+    canvasDrawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    ASSERT_NE(canvasDrawable->renderParams_, nullptr);
+
+    Drawing::Matrix grandparentMatrix;
+    grandparentMatrix.SetScale(-1.0f, 1.0f);
+    Drawing::Matrix parentMatrix;
+    parentMatrix.SetScale(-1.0f, 1.0f);
+    Drawing::Matrix childMatrix;
+    childMatrix.SetScale(-1.0f, 1.0f);
+
+    Drawing::Matrix accumulated = grandparentMatrix;
+    accumulated.PreConcat(parentMatrix);
+    accumulated.PreConcat(childMatrix);
+
+    bool isBackFace = canvasDrawable->IsBackFace(accumulated);
+    ASSERT_TRUE(isBackFace);
+}
+
+/**
+ * @tc.name: AccumulatedMatrixTest013
+ * @tc.desc: Child alone is back face, but parent cancels → front face
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ *
+ * This is the exact scenario from the committer review:
+ * child scale(-1,1) has det = -1 (local back face), but parent scale(-1,1)
+ * makes the accumulated det = 1 (front face). The old code using only the
+ * child's local matrix would wrongly skip this node.
+ */
+HWTEST(RSCanvasRenderNodeDrawableTest, AccumulatedMatrixTest013, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
+    ASSERT_NE(canvasDrawable, nullptr);
+
+    canvasDrawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    ASSERT_NE(canvasDrawable->renderParams_, nullptr);
+
+    Drawing::Matrix childMatrix;
+    childMatrix.SetScale(-1.0f, 1.0f);
+    canvasDrawable->renderParams_->SetMatrix(childMatrix);
+
+    Drawing::Matrix parentMatrix;
+    parentMatrix.SetScale(-1.0f, 1.0f);
+
+    bool childAloneBackFace = canvasDrawable->IsBackFace(childMatrix);
+    ASSERT_TRUE(childAloneBackFace);
+
+    Drawing::Matrix accumulated = parentMatrix;
+    accumulated.PreConcat(childMatrix);
+    bool accumulatedBackFace = canvasDrawable->IsBackFace(accumulated);
+    ASSERT_FALSE(accumulatedBackFace);
+}
+
+/**
+ * @tc.name: AccumulatedMatrixTest014
+ * @tc.desc: Parent with translation + child scale(-1,1) → still back face
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ *
+ * Translation does not affect the determinant.
+ * translate(100,200) × scale(-1,1): det = 1 × (-1) = -1 → back face
+ */
+HWTEST(RSCanvasRenderNodeDrawableTest, AccumulatedMatrixTest014, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
+    ASSERT_NE(canvasDrawable, nullptr);
+
+    canvasDrawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    ASSERT_NE(canvasDrawable->renderParams_, nullptr);
+
+    Drawing::Matrix parentMatrix;
+    parentMatrix.PostTranslate(100.0f, 200.0f);
+    Drawing::Matrix childMatrix;
+    childMatrix.SetScale(-1.0f, 1.0f);
+
+    Drawing::Matrix accumulated = parentMatrix;
+    accumulated.PreConcat(childMatrix);
+
+    bool isBackFace = canvasDrawable->IsBackFace(accumulated);
+    ASSERT_TRUE(isBackFace);
+}
+
+/**
+ * @tc.name: AccumulatedMatrixTest015
+ * @tc.desc: Parent with translation + child rotate(45) → front face
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ *
+ * Translation and rotation both preserve det > 0 → front face.
+ */
+HWTEST(RSCanvasRenderNodeDrawableTest, AccumulatedMatrixTest015, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
+    ASSERT_NE(canvasDrawable, nullptr);
+
+    canvasDrawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    ASSERT_NE(canvasDrawable->renderParams_, nullptr);
+
+    Drawing::Matrix parentMatrix;
+    parentMatrix.PostTranslate(50.0f, 100.0f);
+    Drawing::Matrix childMatrix;
+    childMatrix.PostRotate(45.0f);
+
+    Drawing::Matrix accumulated = parentMatrix;
+    accumulated.PreConcat(childMatrix);
+
+    bool isBackFace = canvasDrawable->IsBackFace(accumulated);
+    ASSERT_FALSE(isBackFace);
+}
+
+/**
+ * @tc.name: AccumulatedMatrixTest016
+ * @tc.desc: Parent scale(2,3) + child scale(-1,1) → accumulated back face
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ *
+ * det(scale(2,3)) = 6 > 0, det(scale(-1,1)) = -1
+ * accumulated det = 6 × (-1) = -6 → back face
+ */
+HWTEST(RSCanvasRenderNodeDrawableTest, AccumulatedMatrixTest016, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
+    ASSERT_NE(canvasDrawable, nullptr);
+
+    canvasDrawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    ASSERT_NE(canvasDrawable->renderParams_, nullptr);
+
+    Drawing::Matrix parentMatrix;
+    parentMatrix.SetScale(2.0f, 3.0f);
+    Drawing::Matrix childMatrix;
+    childMatrix.SetScale(-1.0f, 1.0f);
+
+    Drawing::Matrix accumulated = parentMatrix;
+    accumulated.PreConcat(childMatrix);
+
+    bool isBackFace = canvasDrawable->IsBackFace(accumulated);
+    ASSERT_TRUE(isBackFace);
+}
+
+/**
+ * @tc.name: AccumulatedMatrixTest017
+ * @tc.desc: Parent scale(2,3) + child scale(-1,-1) → accumulated front face
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ *
+ * det(scale(2,3)) = 6, det(scale(-1,-1)) = 1
+ * accumulated det = 6 × 1 = 6 → front face
+ */
+HWTEST(RSCanvasRenderNodeDrawableTest, AccumulatedMatrixTest017, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
+    ASSERT_NE(canvasDrawable, nullptr);
+
+    canvasDrawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    ASSERT_NE(canvasDrawable->renderParams_, nullptr);
+
+    Drawing::Matrix parentMatrix;
+    parentMatrix.SetScale(2.0f, 3.0f);
+    Drawing::Matrix childMatrix;
+    childMatrix.SetScale(-1.0f, -1.0f);
+
+    Drawing::Matrix accumulated = parentMatrix;
+    accumulated.PreConcat(childMatrix);
+
+    bool isBackFace = canvasDrawable->IsBackFace(accumulated);
+    ASSERT_FALSE(isBackFace);
+}
+
+/**
+ * @tc.name: BackFaceSkipTest004
+ * @tc.desc: OnDraw with parent canvas scale(-1,1) + child identity → skip
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ *
+ * Simulates real rendering: canvas has parent transform, renderParams has child's local matrix.
+ */
+HWTEST(RSCanvasRenderNodeDrawableTest, BackFaceSkipTest004, TestSize.Level2)
+{
+    NodeId nodeId = 0;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
+    ASSERT_NE(canvasDrawable, nullptr);
+
+    canvasDrawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    ASSERT_NE(canvasDrawable->renderParams_, nullptr);
+
+    canvasDrawable->renderParams_->shouldPaint_ = true;
+    canvasDrawable->renderParams_->contentEmpty_ = false;
+    canvasDrawable->renderParams_->startingWindowFlag_ = false;
+
+    Drawing::Matrix childMatrix;
+    childMatrix.Reset();
+    canvasDrawable->renderParams_->SetMatrix(childMatrix);
+    canvasDrawable->renderParams_->SetDoubleSidedEnabled(false);
+
+    auto uniParams = std::make_unique<RSRenderThreadParams>();
+    uniParams->SetSecurityDisplay(false);
+    RSUniRenderThread::Instance().Sync(std::move(uniParams));
+    RSUniRenderThread::Instance().SetWhiteList({});
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    Drawing::Matrix parentMatrix;
+    parentMatrix.SetScale(-1.0f, 1.0f);
+    canvas.ConcatMatrix(parentMatrix);
+
+    canvasDrawable->OnDraw(canvas);
+
+    ASSERT_EQ(canvasDrawable->GetDrawSkipType(), DrawSkipType::BACKFACE_SKIP);
+
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
+}
+
+/**
+ * @tc.name: BackFaceSkipTest005
+ * @tc.desc: OnDraw with parent canvas scale(-1,1) + child scale(-1,1) → NOT skip
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ *
+ * Double flip cancels out: parent and child both mirror → accumulated det = 1 → front face.
+ * The old code (using only child's local matrix) would wrongly skip this node.
+ */
+HWTEST(RSCanvasRenderNodeDrawableTest, BackFaceSkipTest005, TestSize.Level2)
+{
+    NodeId nodeId = 0;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
+    ASSERT_NE(canvasDrawable, nullptr);
+
+    canvasDrawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    ASSERT_NE(canvasDrawable->renderParams_, nullptr);
+
+    canvasDrawable->renderParams_->shouldPaint_ = true;
+    canvasDrawable->renderParams_->contentEmpty_ = false;
+    canvasDrawable->renderParams_->startingWindowFlag_ = false;
+
+    Drawing::Matrix childMatrix;
+    childMatrix.SetScale(-1.0f, 1.0f);
+    canvasDrawable->renderParams_->SetMatrix(childMatrix);
+    canvasDrawable->renderParams_->SetDoubleSidedEnabled(false);
+
+    auto uniParams = std::make_unique<RSRenderThreadParams>();
+    uniParams->SetSecurityDisplay(false);
+    RSUniRenderThread::Instance().Sync(std::move(uniParams));
+    RSUniRenderThread::Instance().SetWhiteList({});
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    Drawing::Matrix parentMatrix;
+    parentMatrix.SetScale(-1.0f, 1.0f);
+    canvas.ConcatMatrix(parentMatrix);
+
+    canvasDrawable->OnDraw(canvas);
+
+    ASSERT_NE(canvasDrawable->GetDrawSkipType(), DrawSkipType::BACKFACE_SKIP);
+
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
+}
+
+/**
+ * @tc.name: BackFaceSkipTest006
+ * @tc.desc: OnDraw with parent canvas rotate(45) + child scale(-1,1) → skip
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ *
+ * rotate(45°) preserves orientation (det=1), child flips (det=-1).
+ * Accumulated det = -1 → back face → skip.
+ */
+HWTEST(RSCanvasRenderNodeDrawableTest, BackFaceSkipTest006, TestSize.Level2)
+{
+    NodeId nodeId = 0;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
+    ASSERT_NE(canvasDrawable, nullptr);
+
+    canvasDrawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    ASSERT_NE(canvasDrawable->renderParams_, nullptr);
+
+    canvasDrawable->renderParams_->shouldPaint_ = true;
+    canvasDrawable->renderParams_->contentEmpty_ = false;
+    canvasDrawable->renderParams_->startingWindowFlag_ = false;
+
+    Drawing::Matrix childMatrix;
+    childMatrix.SetScale(-1.0f, 1.0f);
+    canvasDrawable->renderParams_->SetMatrix(childMatrix);
+    canvasDrawable->renderParams_->SetDoubleSidedEnabled(false);
+
+    auto uniParams = std::make_unique<RSRenderThreadParams>();
+    uniParams->SetSecurityDisplay(false);
+    RSUniRenderThread::Instance().Sync(std::move(uniParams));
+    RSUniRenderThread::Instance().SetWhiteList({});
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    Drawing::Matrix parentMatrix;
+    parentMatrix.PostRotate(45.0f);
+    canvas.ConcatMatrix(parentMatrix);
+
+    canvasDrawable->OnDraw(canvas);
+
+    ASSERT_EQ(canvasDrawable->GetDrawSkipType(), DrawSkipType::BACKFACE_SKIP);
+
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
+}
+
+/**
+ * @tc.name: BackFaceSkipTest007
+ * @tc.desc: OnDraw with parent canvas scale(-1,1) + child rotate(30) → skip
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ *
+ * Parent flips, child rotates. rotate(30°) has det=1.
+ * Accumulated det = -1 × 1 = -1 → back face → skip.
+ */
+HWTEST(RSCanvasRenderNodeDrawableTest, BackFaceSkipTest007, TestSize.Level2)
+{
+    NodeId nodeId = 0;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
+    ASSERT_NE(canvasDrawable, nullptr);
+
+    canvasDrawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    ASSERT_NE(canvasDrawable->renderParams_, nullptr);
+
+    canvasDrawable->renderParams_->shouldPaint_ = true;
+    canvasDrawable->renderParams_->contentEmpty_ = false;
+    canvasDrawable->renderParams_->startingWindowFlag_ = false;
+
+    Drawing::Matrix childMatrix;
+    childMatrix.PostRotate(30.0f);
+    canvasDrawable->renderParams_->SetMatrix(childMatrix);
+    canvasDrawable->renderParams_->SetDoubleSidedEnabled(false);
+
+    auto uniParams = std::make_unique<RSRenderThreadParams>();
+    uniParams->SetSecurityDisplay(false);
+    RSUniRenderThread::Instance().Sync(std::move(uniParams));
+    RSUniRenderThread::Instance().SetWhiteList({});
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    Drawing::Matrix parentMatrix;
+    parentMatrix.SetScale(-1.0f, 1.0f);
+    canvas.ConcatMatrix(parentMatrix);
+
+    canvasDrawable->OnDraw(canvas);
+
+    ASSERT_EQ(canvasDrawable->GetDrawSkipType(), DrawSkipType::BACKFACE_SKIP);
+
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
+}
+
+/**
+ * @tc.name: BackFaceSkipTest008
+ * @tc.desc: OnDraw with parent canvas translate(100,200) + child scale(-1,1) → skip
+ * @tc.type: FUNC
+ * @tc.require: issueIXXXXX
+ *
+ * Translation does not affect determinant.
+ * Accumulated det = 1 × (-1) = -1 → back face → skip.
+ */
+HWTEST(RSCanvasRenderNodeDrawableTest, BackFaceSkipTest008, TestSize.Level2)
+{
+    NodeId nodeId = 0;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
+    ASSERT_NE(canvasDrawable, nullptr);
+
+    canvasDrawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    ASSERT_NE(canvasDrawable->renderParams_, nullptr);
+
+    canvasDrawable->renderParams_->shouldPaint_ = true;
+    canvasDrawable->renderParams_->contentEmpty_ = false;
+    canvasDrawable->renderParams_->startingWindowFlag_ = false;
+
+    Drawing::Matrix childMatrix;
+    childMatrix.SetScale(-1.0f, 1.0f);
+    canvasDrawable->renderParams_->SetMatrix(childMatrix);
+    canvasDrawable->renderParams_->SetDoubleSidedEnabled(false);
+
+    auto uniParams = std::make_unique<RSRenderThreadParams>();
+    uniParams->SetSecurityDisplay(false);
+    RSUniRenderThread::Instance().Sync(std::move(uniParams));
+    RSUniRenderThread::Instance().SetWhiteList({});
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    Drawing::Matrix parentMatrix;
+    parentMatrix.PostTranslate(100.0f, 200.0f);
+    canvas.ConcatMatrix(parentMatrix);
+
+    canvasDrawable->OnDraw(canvas);
+
+    ASSERT_EQ(canvasDrawable->GetDrawSkipType(), DrawSkipType::BACKFACE_SKIP);
+
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
+}
 } // namespace OHOS::Rosen
