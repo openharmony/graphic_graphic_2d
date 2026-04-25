@@ -1415,6 +1415,14 @@ public:
 #ifdef USE_SURFACE_TEXTURE
     std::shared_ptr<RSSurfaceTexture> GetSurfaceTexture() const { return surfaceTexture_; };
     void SetSurfaceTexture(const std::shared_ptr<RSSurfaceTexture> &texture) { surfaceTexture_ = texture; }
+    std::function<std::shared_ptr<Media::PixelMap>()> GetSurfaceCaptureCallback() const
+    {
+        return surfaceCaptureCallback_;
+    }
+    void SetSurfaceCaptureCallback(const std::function<std::shared_ptr<Media::PixelMap>()>& callback)
+    {
+        surfaceCaptureCallback_ = callback;
+    }
 #endif
 
     void SetForeground(bool isForeground)
@@ -2080,6 +2088,7 @@ private:
     std::shared_ptr<RSSurfaceHandler> surfaceHandler_;
 #ifdef USE_SURFACE_TEXTURE
     std::shared_ptr<RSSurfaceTexture> surfaceTexture_ {};
+    std::function<std::shared_ptr<Media::PixelMap>()> surfaceCaptureCallback_ = nullptr;
 #endif
     RSBaseRenderNode::WeakPtr ancestorScreenNode_;
     RectI clipRegionFromParent_;
