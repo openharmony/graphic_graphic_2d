@@ -2377,6 +2377,11 @@ bool RSProperties::NeedFilter() const
     return needFilter_;
 }
 
+bool RSProperties::NeedDisabledPartialRender() const
+{
+    return needDisabledPartialRender_;
+}
+
 bool RSProperties::NeedHwcFilter() const
 {
     return needHwcFilter_;
@@ -5410,6 +5415,12 @@ void RSProperties::UpdateFilter()
                   GetForegroundFilterCache() != nullptr || IsWaterRippleValid() || GetNeedDrawBehindWindow() ||
                   GetMask() || GetColorFilter() != nullptr || localMagnificationCap_ || GetPixelStretch().has_value() ||
                   GetMaterialFilter() != nullptr;
+
+    // enable frostedGlassEffect and harmonium by magnifying the child nodes are within the EC range
+    // If new effects are added, it is necessary to assess whether they can partial render.
+    needDisabledPartialRender_ = GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
+                                 localMagnificationCap_ || GetForegroundFilter() != nullptr ||
+                                 GetForegroundFilterCache() != nullptr;
 
     needHwcFilter_ = GetBackgroundFilter() != nullptr || GetFilter() != nullptr || IsLightUpEffectValid() ||
                      IsDynamicLightUpValid() || GetLinearGradientBlurPara() != nullptr ||

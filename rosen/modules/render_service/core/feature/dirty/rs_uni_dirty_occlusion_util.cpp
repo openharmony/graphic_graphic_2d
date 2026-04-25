@@ -80,7 +80,7 @@ bool RSUniDirtyOcclusionUtil::IsParticipateInOcclusion(RSSurfaceRenderNode& node
         (!ancestorNodeHasAnimation || isAnimationOcclusionScenes);
     bool isParticipateInOcclusion = node.CheckParticipateInOcclusion(isAnimationOcclusionScenes) &&
         occlusionInAnimation && !isAllSurfaceVisibleDebugEnabled;
-    RS_OPTIONAL_TRACE_NAME_FMT("RSUniDirtyOcclusionUtil::IsParticipateInOcclusion:[%s] isFocus:[%d] "
+    RS_TRACE_NAME_FMT("RSUniDirtyOcclusionUtil::IsParticipateInOcclusion:[%s] isFocus:[%d] "
         "isAnimationOcclusionScenes:[%d] isRegularAnimation:[%d] ancestorNodeHasAnimation:[%d] "
         "isParticipateInOcclusion:[%d] isAttractionAnimation:[%d]",
         node.GetName().c_str(), isFocus, isAnimationOcclusionScenes, mainThread->GetIsRegularAnimation(),

@@ -203,6 +203,7 @@ public:
     SkipType GetSkipType() { return skipType_; }
 
     bool IsFilterCacheValidForOcclusion() const;
+    bool IsFilterCacheValidForPartialRender() const;
     const RectI GetFilterCachedRegion() const;
 
     size_t GetFilterNodeSize() const
