@@ -707,9 +707,11 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     bool isDoubleSided = surfaceParams->GetDoubleSidedEnabled();
     if (!isDoubleSided) {
-        auto totalMatrix = rscanvas->GetTotalMatrix();
-        totalMatrix.PreConcat(surfaceParams->GetMatrix());
-        if (IsBackFace(totalMatrix)) {
+        Drawing::Matrix baseMatrix = surfaceParams->HasSandBox()
+            ? RSRenderParams::GetParentSurfaceMatrix()
+            : rscanvas->GetTotalMatrix();
+        baseMatrix.PreConcat(surfaceParams->GetMatrix());
+        if (IsBackFace(baseMatrix)) {
             SetDrawSkipType(DrawSkipType::BACKFACE_SKIP);
             RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw[%s] backface skip, id:%" PRIu64,
                 name_.c_str(), surfaceParams->GetId());

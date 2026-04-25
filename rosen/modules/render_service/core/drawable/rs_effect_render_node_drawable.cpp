@@ -59,9 +59,11 @@ void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     bool isDoubleSided = effectParams->GetDoubleSidedEnabled();
     if (!isDoubleSided) {
-        auto totalMatrix = paintFilterCanvas->GetTotalMatrix();
-        totalMatrix.PreConcat(effectParams->GetMatrix());
-        if (IsBackFace(totalMatrix)) {
+        Drawing::Matrix baseMatrix = effectParams->HasSandBox()
+            ? RSRenderParams::GetParentSurfaceMatrix()
+            : paintFilterCanvas->GetTotalMatrix();
+        baseMatrix.PreConcat(effectParams->GetMatrix());
+        if (IsBackFace(baseMatrix)) {
             SetDrawSkipType(DrawSkipType::BACKFACE_SKIP);
             RS_TRACE_NAME_FMT("RSEffectRenderNodeDrawable::OnDraw backface skip, id:%" PRIu64, nodeId_);
             return;
