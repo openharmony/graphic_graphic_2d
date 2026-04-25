@@ -65,7 +65,6 @@ public:
         IMAGE_OPITEM,
         IMAGE_RECT_OPITEM,
         PICTURE_OPITEM,
-        GLYPHS_OPITEM,
         TEXT_BLOB_OPITEM,
         SYMBOL_OPITEM,
         CLIP_RECT_OPITEM,
@@ -105,6 +104,7 @@ public:
         UICOLOR_OPITEM,
         PARTICLE_OPITEM,
         RESET_CLIP_OPITEM,
+        GLYPHS_OPITEM,
     };
 
     static void BrushHandleToBrush(const BrushHandle& brushHandle, const DrawCmdList& cmdList, Brush& brush);
