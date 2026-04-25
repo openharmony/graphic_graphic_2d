@@ -91,10 +91,10 @@ namespace colorSpaceManager {
   native function createByColorSpace(colorSpaceName: ColorSpace): ColorSpaceManager;
   native function createByColorSpacePrimaries(primaries: ColorSpacePrimaries, gamma: double): ColorSpaceManager;
 
-  export function create(colorSpaceName: ColorSpace) {
+  export function create(colorSpaceName: ColorSpace): ColorSpaceManager {
     return createByColorSpace(colorSpaceName);
   }
-  export function create(primaries: ColorSpacePrimaries, gamma: double) {
+  export function create(primaries: ColorSpacePrimaries, gamma: double): ColorSpaceManager {
     return createByColorSpacePrimaries(primaries, gamma);
   }
 }
