@@ -24,6 +24,12 @@ namespace OHOS {
 namespace Rosen {
 void ProxyNodeCommandHelper::Create(RSContext& context, NodeId id, NodeId targetId)
 {
+    if (context.GetNodeMap().GetNodeCountByPid(ExtractPid(id)) > MAX_NODE_COUNT_PER_PID) {
+        RS_LOGE_LIMIT(__func__, __line__,
+            "GetNodeCountByPid > %{public}u, pid:%{public}u",
+            MAX_NODE_COUNT_PER_PID, static_cast<uint32_t>(ExtractPid(id)));
+        return;
+    }
     // PLANNING: if we run in RS and target not found, we should display a warning
     auto targetNode = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(targetId);
     auto node = std::shared_ptr<RSProxyRenderNode>(new RSProxyRenderNode(id,

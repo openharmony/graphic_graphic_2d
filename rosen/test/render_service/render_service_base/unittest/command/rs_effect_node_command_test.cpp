@@ -16,6 +16,8 @@
 #include "gtest/gtest.h"
 
 #include "command/rs_effect_node_command.h"
+#include "common/rs_common_def.h"
+#include "pipeline/rs_effect_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -46,6 +48,25 @@ HWTEST_F(EffectNodeCommandTest, Create, TestSize.Level1)
     NodeId nodeId = static_cast<NodeId>(0);
     EffectNodeCommandHelper::Create(context, nodeId);
     EXPECT_TRUE(nodeId != -1);
+}
+
+/**
+ * @tc.name: CreateDOSProtectionTest
+ * @tc.desc: Verify Create is blocked when node count exceeds MAX_NODE_COUNT_PER_PID
+ * @tc.type: FUNC
+ */
+HWTEST_F(EffectNodeCommandTest, CreateDOSProtectionTest, TestSize.Level1)
+{
+    RSContext context;
+    pid_t pid = 1;
+    for (uint32_t i = 0; i <= MAX_NODE_COUNT_PER_PID; i++) {
+        NodeId existId = MakeNodeId(pid, i);
+        context.nodeMap.renderNodeMap_[pid][existId] =
+            std::make_shared<RSEffectRenderNode>(existId, context.weak_from_this(), false);
+    }
+    NodeId newNodeId = MakeNodeId(pid, MAX_NODE_COUNT_PER_PID + 1);
+    EffectNodeCommandHelper::Create(context, newNodeId);
+    EXPECT_EQ(context.GetNodeMap().GetRenderNode<RSEffectRenderNode>(newNodeId), nullptr);
 }
 
 } // namespace Rosen
