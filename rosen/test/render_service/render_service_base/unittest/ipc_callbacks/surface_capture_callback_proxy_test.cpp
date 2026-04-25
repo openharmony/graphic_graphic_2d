@@ -91,6 +91,8 @@ HWTEST_F(RSSurfaceCaptureCallbackProxyTest, WriteSurfaceCaptureConfig, TestSize.
     ASSERT_TRUE(rsSurfaceCaptureCallbackProxy != nullptr);
     MessageParcel data;
     RSSurfaceCaptureConfig captureConfig;
+    captureConfig.isSyncRender = true;
+    captureConfig.windowSync = true;
     ASSERT_EQ(rsSurfaceCaptureCallbackProxy->WriteSurfaceCaptureConfig(captureConfig, data), true);
 }
 } // namespace Rosen

@@ -290,6 +290,7 @@ void g_WriteSurfaceCaptureConfigMock(RSSurfaceCaptureConfig& captureConfig, Mess
     data.WriteUint32(captureConfig.dynamicRangeMode.first);
     data.WriteBool(captureConfig.dynamicRangeMode.second);
     data.WriteBool(captureConfig.isSyncRender);
+    data.WriteBool(captureConfig.windowSync);
 }
 
 /**
@@ -780,6 +781,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureWithAllWindowsTes
     data.WriteUint32(captureConfig.dynamicRangeMode.first);
     data.WriteBool(captureConfig.dynamicRangeMode.second);
     data.WriteBool(captureConfig.isSyncRender);
+    data.WriteBool(captureConfig.windowSync);
     auto res = connectionStub_->OnRemoteRequest(code, data, reply, option);
 #ifdef RS_ENABLE_UNI_RENDER
     EXPECT_LE(res, ERR_PERMISSION_DENIED);
@@ -1751,6 +1753,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureSoloTest001, Test
     data2.WriteUint32(captureConfig.dynamicRangeMode.first);
     data2.WriteBool(captureConfig.dynamicRangeMode.second);
     data2.WriteBool(captureConfig.isSyncRender);
+    data2.WriteBool(captureConfig.windowSync);
 
     res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
     EXPECT_EQ(res, ERR_NONE);
@@ -1835,6 +1838,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSelfSurfaceCaptureTest001, Test
     data2.WriteUint32(captureConfig.dynamicRangeMode.first);
     data2.WriteBool(captureConfig.dynamicRangeMode.second);
     data2.WriteBool(captureConfig.isSyncRender);
+    data2.WriteBool(captureConfig.windowSync);
     res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
     EXPECT_EQ(res, ERR_NONE);
 }
@@ -1952,6 +1956,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SetWindowFreezeImmediatelyTest001, 
     data3.WriteUint32(captureConfig.dynamicRangeMode.first);
     data3.WriteBool(captureConfig.dynamicRangeMode.second);
     data3.WriteBool(captureConfig.isSyncRender);
+    data3.WriteBool(captureConfig.windowSync);
     // Write blurParam
     data3.WriteBool(false); // isNeedBlur
     data3.WriteFloat(0.0f); // blurRadius
@@ -2115,6 +2120,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeUICaptureInRangeTest001, TestSi
     data2.WriteUint32(captureConfig.dynamicRangeMode.first);
     data2.WriteBool(captureConfig.dynamicRangeMode.second);
     data2.WriteBool(captureConfig.isSyncRender);
+    data2.WriteBool(captureConfig.windowSync);
     res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
     EXPECT_EQ(res, ERR_NONE);
 }

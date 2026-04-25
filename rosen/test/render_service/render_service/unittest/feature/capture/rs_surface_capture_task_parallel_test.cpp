@@ -479,6 +479,416 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateResources005, TestSize.Level2)
 }
 
 /*
+ * @tc.name: CreateResources006
+ * @tc.desc: Test RSSurfaceCaptureTaskParallel.CreateResources with parent leash window
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreateResources006, TestSize.Level2)
+{
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 1.0f;
+    captureConfig.scaleY = 1.0f;
+    captureConfig.useCurWindow = false;
+
+    NodeId leashNodeId = 1000200;
+    NodeId appWindowNodeId = 1000201;
+
+    auto leashNode = std::make_shared<RSSurfaceRenderNode>(leashNodeId);
+    ASSERT_NE(leashNode, nullptr);
+    leashNode->GetMutableRenderProperties().SetBounds({0, 0, 1260, 2720});
+    leashNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    leashNode->shouldPaint_ = true;
+
+    auto appWindowNode = std::make_shared<RSSurfaceRenderNode>(appWindowNodeId);
+    ASSERT_NE(appWindowNode, nullptr);
+    appWindowNode->GetMutableRenderProperties().SetBounds({0, 0, 1260, 2720});
+    appWindowNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    appWindowNode->shouldPaint_ = true;
+    appWindowNode->SetParent(leashNode);
+    leashNode->AddChild(appWindowNode, -1);
+
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    RSRenderNodeMap& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(leashNode);
+    nodeMap.RegisterRenderNode(appWindowNode);
+
+    RSSurfaceCaptureTaskParallel task(appWindowNodeId, captureConfig);
+    ASSERT_EQ(true, task.CreateResources());
+
+    nodeMap.UnregisterRenderNode(leashNodeId);
+    nodeMap.UnregisterRenderNode(appWindowNodeId);
+}
+
+/**
+ * @tc.name: AddWindowCapTask001
+ * @tc.desc: Test Func AddWindowCapTask with basic functionality
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, AddWindowCapTask001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    mainThread->pendingWindowCapTasks_.clear();
+    NodeId nodeId = 1;
+    bool taskExecuted = false;
+    std::function<void()> task = [&taskExecuted]() { taskExecuted = true; };
+
+    mainThread->AddWindowCapTask(nodeId, task);
+
+    ASSERT_EQ(mainThread->pendingWindowCapTasks_.size(), 1u);
+    auto& item = mainThread->pendingWindowCapTasks_[0];
+    ASSERT_EQ(std::get<0>(item), nodeId);
+    mainThread->pendingWindowCapTasks_.clear();
+}
+
+/**
+ * @tc.name: AddWindowCapTask002
+ * @tc.desc: Test Func AddWindowCapTask when node is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, AddWindowCapTask002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    mainThread->pendingWindowCapTasks_.clear();
+    NodeId nodeId = 99999;
+    bool taskExecuted = false;
+    std::function<void()> task = [&taskExecuted]() { taskExecuted = true; };
+
+    mainThread->AddWindowCapTask(nodeId, task);
+
+    ASSERT_EQ(mainThread->pendingWindowCapTasks_.size(), 1u);
+    mainThread->pendingWindowCapTasks_.clear();
+}
+
+/**
+ * @tc.name: CheckWindowCapTasks001
+ * @tc.desc: Test CheckWindowCapTasks with empty pending list
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CheckWindowCapTasks001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    mainThread->pendingWindowCapTasks_.clear();
+    mainThread->windowCapTasks_ = std::queue<std::tuple<NodeId, std::function<void()>>>();
+
+    mainThread->CheckWindowCapTasks();
+
+    ASSERT_TRUE(mainThread->pendingWindowCapTasks_.empty());
+    ASSERT_TRUE(mainThread->windowCapTasks_.empty());
+}
+
+/**
+ * @tc.name: CheckWindowCapTasks002
+ * @tc.desc: Test CheckWindowCapTasks when node is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CheckWindowCapTasks002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
+
+    mainThread->pendingWindowCapTasks_.clear();
+    mainThread->windowCapTasks_ = std::queue<std::tuple<NodeId, std::function<void()>>>();
+
+    NodeId nodeId = 99999;
+    bool taskExecuted = false;
+    std::function<void()> task = [&taskExecuted]() { taskExecuted = true; };
+    uint64_t startTime = mainThread->context_->GetUiCaptureHelper().GetCurrentSteadyTimeMs();
+
+    mainThread->pendingWindowCapTasks_.emplace_back(nodeId, task, startTime, 0, false);
+
+    mainThread->CheckWindowCapTasks();
+
+    ASSERT_EQ(mainThread->windowCapTasks_.size(), 1u);
+    mainThread->pendingWindowCapTasks_.clear();
+    mainThread->windowCapTasks_ = std::queue<std::tuple<NodeId, std::function<void()>>>();
+}
+
+/**
+ * @tc.name: CheckWindowCapTasks003
+ * @tc.desc: Test CheckWindowCapTasks when node is not leash window
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CheckWindowCapTasks003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+
+    NodeId nodeId = surfaceNode->GetId();
+    pid_t pid = ExtractPid(nodeId);
+    mainThread->context_->nodeMap.renderNodeMap_[pid][nodeId] = surfaceNode;
+
+    mainThread->pendingWindowCapTasks_.clear();
+    mainThread->windowCapTasks_ = std::queue<std::tuple<NodeId, std::function<void()>>>();
+
+    bool taskExecuted = false;
+    std::function<void()> task = [&taskExecuted]() { taskExecuted = true; };
+    uint64_t startTime = mainThread->context_->GetUiCaptureHelper().GetCurrentSteadyTimeMs();
+
+    mainThread->pendingWindowCapTasks_.emplace_back(nodeId, task, startTime, 0, false);
+
+    mainThread->CheckWindowCapTasks();
+
+    ASSERT_EQ(mainThread->windowCapTasks_.size(), 1u);
+    mainThread->pendingWindowCapTasks_.clear();
+    mainThread->windowCapTasks_ = std::queue<std::tuple<NodeId, std::function<void()>>>();
+    mainThread->context_->nodeMap.renderNodeMap_[pid].clear();
+}
+
+/**
+ * @tc.name: CheckWindowCapTasks004
+ * @tc.desc: Test CheckWindowCapTasks when currentVsync is 0
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CheckWindowCapTasks004, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    surfaceNode->SetAbilityState(RSSurfaceNodeAbilityState::BACKGROUND);
+
+    NodeId nodeId = surfaceNode->GetId();
+    pid_t pid = ExtractPid(nodeId);
+    mainThread->context_->nodeMap.renderNodeMap_[pid][nodeId] = surfaceNode;
+
+    mainThread->pendingWindowCapTasks_.clear();
+    mainThread->windowCapTasks_ = std::queue<std::tuple<NodeId, std::function<void()>>>();
+
+    bool taskExecuted = false;
+    std::function<void()> task = [&taskExecuted]() { taskExecuted = true; };
+    uint64_t startTime = mainThread->context_->GetUiCaptureHelper().GetCurrentSteadyTimeMs();
+
+    mainThread->pendingWindowCapTasks_.emplace_back(nodeId, task, startTime, 0, false);
+
+    mainThread->CheckWindowCapTasks();
+
+    ASSERT_EQ(mainThread->windowCapTasks_.size(), 1u);
+    mainThread->pendingWindowCapTasks_.clear();
+    mainThread->windowCapTasks_ = std::queue<std::tuple<NodeId, std::function<void()>>>();
+    mainThread->context_->nodeMap.renderNodeMap_[pid].clear();
+}
+
+/**
+ * @tc.name: CheckWindowCapTasks005
+ * @tc.desc: Test CheckWindowCapTasks when task timeout (duration >= 166ms)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CheckWindowCapTasks005, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+
+    NodeId nodeId = surfaceNode->GetId();
+    pid_t pid = ExtractPid(nodeId);
+    mainThread->context_->nodeMap.renderNodeMap_[pid][nodeId] = surfaceNode;
+
+    mainThread->pendingWindowCapTasks_.clear();
+    mainThread->windowCapTasks_ = std::queue<std::tuple<NodeId, std::function<void()>>>();
+
+    bool taskExecuted = false;
+    std::function<void()> task = [&taskExecuted]() { taskExecuted = true; };
+    uint64_t startTime = mainThread->context_->GetUiCaptureHelper().GetCurrentSteadyTimeMs() - 200;
+
+    mainThread->pendingWindowCapTasks_.emplace_back(nodeId, task, startTime, 0, false);
+
+    mainThread->CheckWindowCapTasks();
+
+    ASSERT_EQ(mainThread->windowCapTasks_.size(), 1u);
+    mainThread->pendingWindowCapTasks_.clear();
+    mainThread->windowCapTasks_ = std::queue<std::tuple<NodeId, std::function<void()>>>();
+    mainThread->context_->nodeMap.renderNodeMap_[pid].clear();
+}
+
+/**
+ * @tc.name: CheckWindowCapTasks006
+ * @tc.desc: Test CheckWindowCapTasks when parent node is leash window
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CheckWindowCapTasks006, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
+
+    auto appWindowNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(appWindowNode, nullptr);
+    appWindowNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+
+    auto leashWindowNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(leashWindowNode, nullptr);
+    leashWindowNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+
+    leashWindowNode->AddChild(appWindowNode);
+    appWindowNode->SetParent(leashWindowNode);
+
+    NodeId appNodeId = appWindowNode->GetId();
+    NodeId leashNodeId = leashWindowNode->GetId();
+    pid_t pid = ExtractPid(appNodeId);
+    mainThread->context_->nodeMap.renderNodeMap_[pid][appNodeId] = appWindowNode;
+    mainThread->context_->nodeMap.renderNodeMap_[pid][leashNodeId] = leashWindowNode;
+
+    mainThread->pendingWindowCapTasks_.clear();
+    mainThread->windowCapTasks_ = std::queue<std::tuple<NodeId, std::function<void()>>>();
+
+    bool taskExecuted = false;
+    std::function<void()> task = [&taskExecuted]() { taskExecuted = true; };
+    uint64_t startTime = mainThread->context_->GetUiCaptureHelper().GetCurrentSteadyTimeMs();
+
+    mainThread->pendingWindowCapTasks_.emplace_back(appNodeId, task, startTime, 0, false);
+
+    mainThread->CheckWindowCapTasks();
+
+    mainThread->pendingWindowCapTasks_.clear();
+    mainThread->windowCapTasks_ = std::queue<std::tuple<NodeId, std::function<void()>>>();
+    mainThread->context_->nodeMap.renderNodeMap_[pid].clear();
+}
+
+/**
+ * @tc.name: CheckWindowCapTasks007
+ * @tc.desc: Test CheckWindowCapTasks when node is in BACKGROUND state
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CheckWindowCapTasks007, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    surfaceNode->SetAbilityState(RSSurfaceNodeAbilityState::BACKGROUND);
+
+    NodeId nodeId = surfaceNode->GetId();
+    pid_t pid = ExtractPid(nodeId);
+    mainThread->context_->nodeMap.renderNodeMap_[pid][nodeId] = surfaceNode;
+
+    mainThread->pendingWindowCapTasks_.clear();
+    mainThread->windowCapTasks_ = std::queue<std::tuple<NodeId, std::function<void()>>>();
+
+    bool taskExecuted = false;
+    std::function<void()> task = [&taskExecuted]() { taskExecuted = true; };
+    uint64_t startTime = mainThread->context_->GetUiCaptureHelper().GetCurrentSteadyTimeMs();
+
+    mainThread->pendingWindowCapTasks_.emplace_back(nodeId, task, startTime, 0, false);
+
+    mainThread->CheckWindowCapTasks();
+
+    mainThread->pendingWindowCapTasks_.clear();
+    mainThread->windowCapTasks_ = std::queue<std::tuple<NodeId, std::function<void()>>>();
+    mainThread->context_->nodeMap.renderNodeMap_[pid].clear();
+}
+
+/**
+ * @tc.name: CheckWindowCapTasks008
+ * @tc.desc: Test CheckWindowCapTasks when node is in FOREGROUND state and stays in pending
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CheckWindowCapTasks008, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    surfaceNode->SetAbilityState(RSSurfaceNodeAbilityState::FOREGROUND);
+
+    NodeId nodeId = surfaceNode->GetId();
+    pid_t pid = ExtractPid(nodeId);
+    mainThread->context_->nodeMap.renderNodeMap_[pid][nodeId] = surfaceNode;
+
+    mainThread->pendingWindowCapTasks_.clear();
+    mainThread->windowCapTasks_ = std::queue<std::tuple<NodeId, std::function<void()>>>();
+
+    bool taskExecuted = false;
+    std::function<void()> task = [&taskExecuted]() { taskExecuted = true; };
+    uint64_t startTime = mainThread->context_->GetUiCaptureHelper().GetCurrentSteadyTimeMs();
+
+    mainThread->pendingWindowCapTasks_.emplace_back(nodeId, task, startTime, 0, false);
+
+    mainThread->CheckWindowCapTasks();
+
+    ASSERT_EQ(mainThread->pendingWindowCapTasks_.size(), 1u);
+    ASSERT_TRUE(mainThread->windowCapTasks_.empty());
+    mainThread->pendingWindowCapTasks_.clear();
+    mainThread->windowCapTasks_ = std::queue<std::tuple<NodeId, std::function<void()>>>();
+    mainThread->context_->nodeMap.renderNodeMap_[pid].clear();
+}
+
+/**
+ * @tc.name: ProcessWindowCapTasks001
+ * @tc.desc: Test ProcessWindowCapTasks with empty queue
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, ProcessWindowCapTasks001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    mainThread->windowCapTasks_ = std::queue<std::tuple<NodeId, std::function<void()>>>();
+    mainThread->ProcessWindowCapTasks();
+    ASSERT_TRUE(mainThread->windowCapTasks_.empty());
+}
+
+/**
+ * @tc.name: ProcessWindowCapTasks002
+ * @tc.desc: Test ProcessWindowCapTasks with task in queue
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, ProcessWindowCapTasks002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    mainThread->windowCapTasks_ = std::queue<std::tuple<NodeId, std::function<void()>>>();
+
+    NodeId nodeId = 1;
+    bool taskExecuted = false;
+    std::function<void()> task = [&taskExecuted]() { taskExecuted = true; };
+
+    mainThread->windowCapTasks_.emplace(nodeId, task);
+    ASSERT_EQ(mainThread->windowCapTasks_.size(), 1u);
+    mainThread->ProcessWindowCapTasks();
+    ASSERT_TRUE(mainThread->windowCapTasks_.empty());
+}
+
+/*
  * @tc.name: Run001
  * @tc.desc: Test RSSurfaceCaptureTaskParallel.Run while surface is nullptr
  * @tc.type: FUNC

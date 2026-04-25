@@ -502,7 +502,15 @@ void RSRenderPipelineAgent::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCapture
                 RS_TRACE_NAME_FMT("RSClientToRenderConnection::TakeSurfaceCapture surfaceCap dirtyFlag = true,"
                     " nodeId:[%" PRIu64 "]", id);
             }
-            RSSurfaceCaptureTaskParallel::CheckModifiers(id, captureConfig.useCurWindow);
+            if (node->GetType() == RSRenderNodeType::SURFACE_NODE && captureConfig.windowSync) {
+                RS_TRACE_NAME_FMT("RSRenderPipelineAgent::TakeSurfaceCapture surface windowSync"
+                    ", NodeId: [%" PRIu64 "]", id);
+                std::function<void()> windowCapTask = [callback, captureParam]() {
+                    RSSurfaceCaptureTaskParallel::Capture(callback, captureParam);
+                };
+                RSMainThread::Instance()->AddWindowCapTask(id, windowCapTask);
+                return;
+            }
             RSSurfaceCaptureTaskParallel::Capture(callback, captureParam);
 #endif
         }

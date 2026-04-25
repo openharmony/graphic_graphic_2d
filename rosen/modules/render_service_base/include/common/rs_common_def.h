@@ -403,6 +403,7 @@ struct RSSurfaceCaptureConfig {
     std::pair<uint32_t, bool> dynamicRangeMode = {DEFAULT_DYNAMIC_RANGE_MODE_STANDARD, false};
     bool isSyncRender = false;
     bool isConfigTriggered = false;
+    bool windowSync = false;
 
     // When adding new members, please ensure to add the corresponding comparison logic in the operator== and
     // serialization/deserialization logic in the OnSurfaceCapture method.
@@ -421,7 +422,9 @@ struct RSSurfaceCaptureConfig {
                (specifiedAreaRect == config.specifiedAreaRect) &&
                (backGroundColor == config.backGroundColor) &&
                (colorSpace == config.colorSpace) &&
-               (dynamicRangeMode == config.dynamicRangeMode);
+               (dynamicRangeMode == config.dynamicRangeMode) &&
+               (isSyncRender == config.isSyncRender) &&
+               (windowSync == config.windowSync);
     }
 };
 

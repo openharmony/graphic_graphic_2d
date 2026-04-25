@@ -15,8 +15,10 @@
 
 #include "gtest/gtest.h"
 
+#include "feature/capture/rs_surface_capture_task_parallel.h"
 #include "ipc_callbacks/rs_frame_stability_callback_stub.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/rs_surface_render_node.h"
 #include "rs_render_pipeline_agent.h"
 #include "rs_render_pipeline.h"
 #include "transaction/rs_frame_stability_types.h"
@@ -352,6 +354,90 @@ HWTEST_F(RSRenderPipelineAgentTest, StartFrameStabilityCollection003, TestSize.L
 
     int32_t ret = agent->StartFrameStabilityCollection(1000, VALID_TARGET, DEFAULT_CONFIG);
     EXPECT_NE(ret, static_cast<int32_t>(FrameStabilityErrorCode::INVALID_ID));
+}
+
+/**
+ * @tc.name: TakeSurfaceCaptureWindowSync001
+ * @tc.desc: Test TakeSurfaceCapture with windowSync enabled
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderPipelineAgentTest, TakeSurfaceCaptureWindowSync001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingWindowCapTasks_.clear();
+
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    NodeId nodeId = 1000300;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(nodeId);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+
+    auto& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(surfaceNode);
+
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.windowSync = true;
+    captureConfig.scaleX = 1.0f;
+    captureConfig.scaleY = 1.0f;
+    RSSurfaceCaptureBlurParam blurParam;
+    Drawing::Rect specifiedAreaRect;
+    RSSurfaceCapturePermissions permissions;
+    permissions.isSystemCalling = true;
+
+    sptr<RSISurfaceCaptureCallback> callback = nullptr;
+    agent->TakeSurfaceCapture(nodeId, callback, captureConfig, blurParam, specifiedAreaRect, permissions);
+#if defined(RS_ENABLE_UNI_RENDER)
+    ASSERT_GE(mainThread->pendingWindowCapTasks_.size(), 0u);
+#endif
+    nodeMap.UnregisterRenderNode(nodeId);
+    mainThread->pendingWindowCapTasks_.clear();
+}
+
+/**
+ * @tc.name: TakeSurfaceCaptureWindowSync002
+ * @tc.desc: Test TakeSurfaceCapture with windowSync disabled
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderPipelineAgentTest, TakeSurfaceCaptureWindowSync002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingWindowCapTasks_.clear();
+
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    NodeId nodeId = 1000301;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(nodeId);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+
+    auto& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(surfaceNode);
+
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.windowSync = false;
+    captureConfig.scaleX = 1.0f;
+    captureConfig.scaleY = 1.0f;
+    RSSurfaceCaptureBlurParam blurParam;
+    Drawing::Rect specifiedAreaRect;
+    RSSurfaceCapturePermissions permissions;
+    permissions.isSystemCalling = true;
+
+    sptr<RSISurfaceCaptureCallback> callback = nullptr;
+    agent->TakeSurfaceCapture(nodeId, callback, captureConfig, blurParam, specifiedAreaRect, permissions);
+#if defined(RS_ENABLE_UNI_RENDER)
+    ASSERT_TRUE(mainThread->pendingWindowCapTasks_.empty());
+#endif
+    nodeMap.UnregisterRenderNode(nodeId);
+    mainThread->pendingWindowCapTasks_.clear();
 }
 
 /**
