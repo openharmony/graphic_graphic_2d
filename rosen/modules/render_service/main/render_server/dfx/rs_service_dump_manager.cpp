@@ -108,11 +108,11 @@ void RSServiceDumpManager::DoDump(const std::vector<std::u16string>& args, std::
         RS_TRACE_NAME("RSServiceDumpManager::DoDump args is [ " + cmdStr + " ]");
         RSDumpManager::CmdExec(serviceArgSets, dumpString);
     }
-    if (!processManager || processArgSets.empty()) {
-        return;
-    }
     if (rsDumpCallbackDirector_ == nullptr) {
         rsDumpCallbackDirector_ = new RSDumpCallbackDirector(this);
+    }
+    if (!processManager || processArgSets.empty()) {
+        return;
     }
     if (screenId != INVALID_SCREEN_ID) {
         auto serviceToRenderConn = processManager->GetServiceToRenderConn(screenId);
@@ -156,7 +156,7 @@ ScreenId RSServiceDumpManager::GetScreenIdFormArgs(const std::vector<std::u16str
         }
     }
 
-    ScreenId id = INVALID_SCREEN_ID;
+    ScreenId id = 0;
     for (char c : screenStr) {
         if (id > (std::numeric_limits<ScreenId>::max() - (c - '0')) / DECIMAL_BASE) {
             return INVALID_SCREEN_ID;

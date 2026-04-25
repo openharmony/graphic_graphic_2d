@@ -1501,9 +1501,16 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CheckDrawAndCacheWindowContentTest, Te
     ASSERT_FALSE(surfaceDrawable_->CheckDrawAndCacheWindowContent(*surfaceParams, *uniParams));
 
     surfaceParams->isRelatedSourceNode_ = true;
+    surfaceParams->specialLayerManager_.Set(SpecialLayerType::HAS_PROTECTED, false);
     ASSERT_TRUE(surfaceDrawable_->CheckDrawAndCacheWindowContent(*surfaceParams, *uniParams));
 
+    surfaceParams->specialLayerManager_.Set(SpecialLayerType::HAS_PROTECTED, true);
+    ASSERT_FALSE(surfaceDrawable_->CheckDrawAndCacheWindowContent(*surfaceParams, *uniParams));
+
     surfaceParams->isRelatedSourceNode_ = false;
+    ASSERT_FALSE(surfaceDrawable_->CheckDrawAndCacheWindowContent(*surfaceParams, *uniParams));
+
+    surfaceParams->specialLayerManager_.Set(SpecialLayerType::HAS_PROTECTED, false);
     ASSERT_FALSE(surfaceDrawable_->CheckDrawAndCacheWindowContent(*surfaceParams, *uniParams));
 
     surfaceParams->SetNeedCacheSurface(true);
@@ -2252,7 +2259,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDraw007, TestSize.Level1)
     bmp.Build(width, height, format);
     bmp.ClearWithColor(Drawing::Color::COLOR_RED);
     surfaceDrawable_->relatedSourceNodeCache_ = bmp.MakeImage();
-    ASSERT_TRUE(surfaceDrawable_->DrawRelatedSourceNode(*canvas_, *surfaceParams));
+    ASSERT_TRUE(surfaceDrawable_->DrawRelatedSourceNode(*canvas_, *uniParams, *surfaceParams));
     surfaceDrawable_->OnDraw(*canvas_);
 }
 
@@ -2282,7 +2289,9 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CaptureSurface012, TestSize.Level1)
     bmp.Build(width, height, format);
     bmp.ClearWithColor(Drawing::Color::COLOR_RED);
     surfaceDrawable_->relatedSourceNodeCache_ = bmp.MakeImage();
-    ASSERT_TRUE(surfaceDrawable_->DrawRelatedSourceNode(*canvas_, *surfaceParams));
+    auto& uniParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    ASSERT_NE(uniParams, nullptr);
+    ASSERT_TRUE(surfaceDrawable_->DrawRelatedSourceNode(*canvas_, *uniParams, *surfaceParams));
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
 }
 
@@ -2298,17 +2307,34 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawRelatedSourceNodeTest, TestSize.Le
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
 
+    auto& uniParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    ASSERT_NE(uniParams, nullptr);
+
+    uniParams->SetDrawRelated(true);
+    ASSERT_TRUE(uniParams->IsDrawRelated());
+    ASSERT_FALSE(surfaceDrawable_->DrawRelatedSourceNode(*canvas_, *uniParams, *surfaceParams));
+
+    surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
+    uniParams->SetDrawRelated(false);
+    ASSERT_FALSE(surfaceDrawable_->DrawRelatedSourceNode(*canvas_, *uniParams, *surfaceParams));
+ 
+    surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
+    uniParams->SetDrawRelated(true);
+    ASSERT_TRUE(surfaceDrawable_->DrawRelatedSourceNode(*canvas_, *uniParams, *surfaceParams));
+    uniParams->SetDrawRelated(false);
+    surfaceParams->specialLayerManager_.Set(SpecialLayerType::PROTECTED, false);
+
     surfaceParams->SetIsCloned(false);
     ASSERT_FALSE(surfaceParams->ClonedSourceNode());
-    ASSERT_FALSE(surfaceDrawable_->DrawRelatedSourceNode(*canvas_, *surfaceParams));
+    ASSERT_FALSE(surfaceDrawable_->DrawRelatedSourceNode(*canvas_, *uniParams, *surfaceParams));
 
     surfaceParams->SetIsCloned(true);
     ASSERT_TRUE(surfaceParams->ClonedSourceNode());
-    ASSERT_FALSE(surfaceDrawable_->DrawRelatedSourceNode(*canvas_, *surfaceParams));
+    ASSERT_FALSE(surfaceDrawable_->DrawRelatedSourceNode(*canvas_, *uniParams, *surfaceParams));
 
     surfaceParams->isRelatedSourceNode_ = true;
     ASSERT_TRUE(surfaceParams->IsRelatedSourceNode());
-    ASSERT_FALSE(surfaceDrawable_->DrawRelatedSourceNode(*canvas_, *surfaceParams));
+    ASSERT_FALSE(surfaceDrawable_->DrawRelatedSourceNode(*canvas_, *uniParams, *surfaceParams));
 
     int32_t width = 100;
     int32_t height = 50;
@@ -2319,30 +2345,30 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawRelatedSourceNodeTest, TestSize.Le
     surfaceDrawable_->relatedSourceNodeCache_ = bmp.MakeImage();
     surfaceParams->isRelatedSourceNode_ = false;
     ASSERT_FALSE(surfaceParams->IsRelatedSourceNode());
-    ASSERT_FALSE(surfaceDrawable_->DrawRelatedSourceNode(*canvas_, *surfaceParams));
+    ASSERT_FALSE(surfaceDrawable_->DrawRelatedSourceNode(*canvas_, *uniParams, *surfaceParams));
 
     surfaceParams->isRelatedSourceNode_ = true;
     ASSERT_TRUE(surfaceParams->IsRelatedSourceNode());
-    ASSERT_FALSE(surfaceDrawable_->DrawRelatedSourceNode(*canvas_, *surfaceParams));
+    ASSERT_FALSE(surfaceDrawable_->DrawRelatedSourceNode(*canvas_, *uniParams, *surfaceParams));
 
     bmp.Build(0, height, format);
     bmp.ClearWithColor(Drawing::Color::COLOR_RED);
     surfaceDrawable_->relatedSourceNodeCache_ = bmp.MakeImage();
-    ASSERT_FALSE(surfaceDrawable_->DrawRelatedSourceNode(*canvas_, *surfaceParams));
+    ASSERT_FALSE(surfaceDrawable_->DrawRelatedSourceNode(*canvas_, *uniParams, *surfaceParams));
 
     bmp.Build(width, 0, format);
     bmp.ClearWithColor(Drawing::Color::COLOR_RED);
     surfaceDrawable_->relatedSourceNodeCache_ = bmp.MakeImage();
-    ASSERT_FALSE(surfaceDrawable_->DrawRelatedSourceNode(*canvas_, *surfaceParams));
+    ASSERT_FALSE(surfaceDrawable_->DrawRelatedSourceNode(*canvas_, *uniParams, *surfaceParams));
 
     bmp.Build(width, height, format);
     bmp.ClearWithColor(Drawing::Color::COLOR_RED);
     surfaceDrawable_->relatedSourceNodeCache_ = bmp.MakeImage();
-    ASSERT_TRUE(surfaceDrawable_->DrawRelatedSourceNode(*canvas_, *surfaceParams));
+    ASSERT_TRUE(surfaceDrawable_->DrawRelatedSourceNode(*canvas_, *uniParams, *surfaceParams));
 
     surfaceParams->SetNeedClearRelatedCache(true);
     ASSERT_TRUE(surfaceParams->IsNeedClearRelatedCache());
-    ASSERT_FALSE(surfaceDrawable_->DrawRelatedSourceNode(*canvas_, *surfaceParams));
+    ASSERT_FALSE(surfaceDrawable_->DrawRelatedSourceNode(*canvas_, *uniParams, *surfaceParams));
     ASSERT_EQ(surfaceDrawable_->relatedSourceNodeCache_, nullptr);
     ASSERT_FALSE(surfaceParams->IsNeedClearRelatedCache());
 }
