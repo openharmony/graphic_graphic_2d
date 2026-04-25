@@ -2137,5 +2137,16 @@ void RSPaintFilterCanvas::ClipRRectOptimization(Drawing::RoundRect clipRRect)
     SaveClipRRect(data);
 }
 
+std::vector<std::shared_ptr<Drawing::Canvas>> RSPaintFilterCanvas::GetOffscreenCanvasVector() const
+{
+    std::vector<std::shared_ptr<Drawing::Canvas>> canvasList;
+    auto tempStack = offscreenDataList_;
+    while (!tempStack.empty()) {
+        canvasList.push_back(tempStack.top().offscreenCanvas_);
+        tempStack.pop();
+    }
+    return canvasList;
+}
+
 } // namespace Rosen
 } // namespace OHOS

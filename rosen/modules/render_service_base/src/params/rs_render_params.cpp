@@ -64,11 +64,11 @@ void RSRenderParams::SetMatrix(const Drawing::Matrix& matrix)
 void RSRenderParams::ApplyAlphaAndMatrixToCanvas(RSPaintFilterCanvas& canvas, bool applyMatrix) const
 {
     if (UNLIKELY(HasSandBox())) {
-        if (applyMatrix) {
-            canvas.SetMatrix(parentSurfaceMatrix_);
-            canvas.ConcatMatrix(matrix_);
-        }
         canvas.SetAlpha(alpha_);
+        if (!applyMatrix) {
+            return;
+        }
+        ApplySandboxMatrixToCanvas(canvas);
     } else {
         if (applyMatrix) {
             canvas.ConcatMatrix(matrix_);
@@ -418,6 +418,32 @@ void RSRenderParams::OpincSetCacheChangeFlag(bool state, bool lastFrameSynced)
         needSync_ = needSync_ || (isOpincStateChanged_ || (isOpincStateChanged_ != state));
         isOpincStateChanged_ = isOpincStateChanged_ || state;
     }
+}
+
+void RSRenderParams::ApplySandboxMatrixToCanvas(RSPaintFilterCanvas& canvas) const
+{
+    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
+    auto originalCanvas = paintFilterCanvas->GetOriginalCanvas();
+    if (!originalCanvas || paintFilterCanvas->GetOffscreenDataList().empty()) {
+        canvas.SetMatrix(parentSurfaceMatrix_);
+        canvas.ConcatMatrix(matrix_);
+        return;
+    }
+    Drawing::Matrix combinedMatrix;
+    Drawing::Matrix invertMatrix;
+    auto offscreenCanvasVector = paintFilterCanvas->GetOffscreenCanvasVector();
+    // skip current canvas, concat all stacked offscreen canvas
+    for (size_t i = 1; i < offscreenCanvasVector.size(); ++i) {
+        if (const auto& offscreenCanvas = offscreenCanvasVector[i]) {
+            offscreenCanvas->GetTotalMatrix().Invert(invertMatrix);
+            combinedMatrix.PreConcat(invertMatrix);
+        }
+    }
+    originalCanvas->GetTotalMatrix().Invert(invertMatrix);
+    combinedMatrix.PreConcat(invertMatrix);
+    canvas.SetMatrix(combinedMatrix);
+    canvas.ConcatMatrix(parentSurfaceMatrix_);
+    canvas.ConcatMatrix(matrix_);
 }
 
 void RSRenderParams::SetLayerPartRenderEnabled(bool enable)
