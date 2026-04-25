@@ -453,6 +453,7 @@ public:
 
     // reset accumulated vals before traverses children
     virtual void ResetChildRelevantFlags();
+    virtual void UpdateFilterChildRelevantFlagsToParams();
     // accumulate all valid children's area
     void UpdateChildrenRect(const RectI& subRect);
     void UpdateCurCornerInfo(Vector4f& curCornerRadius, RectI& curCornerRect);
