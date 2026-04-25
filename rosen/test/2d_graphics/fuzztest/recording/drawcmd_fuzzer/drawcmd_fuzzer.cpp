@@ -2828,6 +2828,7 @@ bool DrawCmdFuzzTest093(const uint8_t* data, size_t size)
         glyphIDs[i] = GetObject<uint16_t>();
         positions[i] = Point(GetObject<float>(), GetObject<float>());
     }
+    Paint paint;
     DrawGlyphsOpItem drawGlyphsOpItem(glyphIDs, positions, {0, 0}, &font, paint);
     int32_t width = GetObject<int32_t>();
     int32_t height = GetObject<int32_t>();
