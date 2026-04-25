@@ -616,6 +616,16 @@ public:
     }
 #endif
 
+    void SetDrawRelated(bool value)
+    {
+        isDrawRelated_ = value;
+    }
+
+    bool IsDrawRelated()
+    {
+        return isDrawRelated_;
+    }
+
 private:
     bool virtualDirtyRefresh_ = false;
     // Used by hardware thred
@@ -702,6 +712,7 @@ private:
     bool cachedSurfaceNodeOnTheTree_{false};
     NodeId cachedSurfaceNodeId_{0};
 #endif
+    bool isDrawRelated_ = false;
 
     friend class RSMainThread;
     friend class RSUniRenderVisitor;

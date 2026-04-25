@@ -152,7 +152,8 @@ bool RSSurfaceRenderNodeDrawable::CheckDrawAndCacheWindowContent(RSSurfaceRender
     }
     if (!surfaceParams.GetNeedCacheSurface()) {
         // relatedSourceNode need create cache
-        if (surfaceParams.IsRelatedSourceNode()) {
+        if (surfaceParams.IsRelatedSourceNode() &&
+            !surfaceParams.GetSpecialLayerMgr().Find(SpecialLayerType::HAS_PROTECTED)) {
             SetNeedCacheRelatedSourceNode(true);
             return true;
         }
@@ -840,7 +841,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
-    if (DrawRelatedSourceNode(*rscanvas, *surfaceParams)) {
+    if (DrawRelatedSourceNode(*rscanvas, *uniParam, *surfaceParams)) {
         return;
     }
 
@@ -1343,7 +1344,7 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
         }
     }
     
-    if (DrawRelatedSourceNode(canvas, surfaceParams)) {
+    if (DrawRelatedSourceNode(canvas, *uniParams, surfaceParams)) {
         return;
     }
 
@@ -1527,6 +1528,7 @@ bool RSSurfaceRenderNodeDrawable::DrawRelatedNode(RSPaintFilterCanvas& canvas,
     bool originIsOpDropped = uniParam.IsOpDropped();
     // swap some params in cloneNodeSurfaceParams like cloneNodeParams
     uniParam.SetOpDropped(false);
+    uniParam.SetDrawRelated(true);
     clonedNodeSurfaceParams->SwapRelatedRenderParams(surfaceParams);
     // draw
     RSAutoCanvasRestore acr(&canvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
@@ -1534,13 +1536,20 @@ bool RSSurfaceRenderNodeDrawable::DrawRelatedNode(RSPaintFilterCanvas& canvas,
     isCapture ? clonedNodeRenderDrawable->OnCapture(canvas) : clonedNodeRenderDrawable->OnDraw(canvas);
     // restore cloneNodeSurfaceParams origin params
     uniParam.SetOpDropped(originIsOpDropped);
+    uniParam.SetDrawRelated(false);
     clonedNodeSurfaceParams->SwapRelatedRenderParams(surfaceParams);
     return true;
 }
 
 bool RSSurfaceRenderNodeDrawable::DrawRelatedSourceNode(RSPaintFilterCanvas& canvas,
-    RSSurfaceRenderParams& surfaceParams)
+    RSRenderThreadParams& uniParam, RSSurfaceRenderParams& surfaceParams)
 {
+    if (uniParam.IsDrawRelated() &&
+        surfaceParams.GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
+        DrawRectWithColor(canvas, surfaceParams, Drawing::Color::COLOR_BLACK);
+        return true;
+    }
+
     if (surfaceParams.IsNeedClearRelatedCache()) {
         ClearRelatedSourceCache();
         surfaceParams.SetNeedClearRelatedCache(false);

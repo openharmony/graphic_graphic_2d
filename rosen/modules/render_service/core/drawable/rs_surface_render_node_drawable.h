@@ -178,7 +178,8 @@ private:
         RSSurfaceRenderParams& surfaceParams, std::shared_ptr<RSSurfaceRenderNodeDrawable> clonedNodeRenderDrawable,
         bool isCapture = false);
     // Draw cloneNode source isRelated
-    bool DrawRelatedSourceNode(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
+    bool DrawRelatedSourceNode(RSPaintFilterCanvas& canvas,
+        RSRenderThreadParams& uniParam, RSSurfaceRenderParams& surfaceParams);
     void ApplyCrossScreenOffset(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams);
     void DrawRectWithColor(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams,
         const Drawing::Color& color, bool applyCrossScreenOffset = false);
