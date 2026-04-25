@@ -24,7 +24,7 @@
 namespace OHOS {
 namespace Rosen {
 
-class RSNGMaskToParaHelper {
+class RSC_EXPORT RSNGMaskToParaHelper {
 public:
     static std::shared_ptr<MaskPara> ConvertMaskToPara(std::shared_ptr<RSNGMaskBase> mask);
 };
