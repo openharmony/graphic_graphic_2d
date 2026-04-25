@@ -24,7 +24,7 @@
 namespace OHOS {
 namespace Rosen {
 
-class RSNGFilterToParaHelper {
+class RSC_EXPORT RSNGFilterToParaHelper {
 public:
     static std::shared_ptr<FilterPara> ConvertFilterToPara(std::shared_ptr<RSNGFilterBase> filter);
 };
