@@ -3583,8 +3583,6 @@ void RSRenderNode::SetGlobalAlpha(float alpha)
 #endif
 }
 
-
-
 void RSRenderNode::SetBootAnimation(bool isBootAnimation)
 {
     ROSEN_LOGD("SetBootAnimation:: id:%{public}" PRIu64 "isBootAnimation %{public}d",
