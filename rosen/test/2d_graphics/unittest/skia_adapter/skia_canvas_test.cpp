@@ -1110,9 +1110,9 @@ HWTEST_F(SkiaCanvasTest, DrawGlyphs001, TestSize.Level1)
     Point positions[3] = {{0, 0}, {0, 1}, {0, 2}};
     Font font;
     skiaCanvas->DrawGlyphs(0, nullptr, nullptr, {0, 0}, nullptr, paint);
-    skiaCanvas->DrawGlyphs(0, glyphs, nullptr, {0, 0}, font, paint);
-    skiaCanvas->DrawGlyphs(0, nullptr, positions, {0, 0}, font, paint);
-    skiaCanvas->DrawGlyphs(0, glyphs, positions, {0, 0}, font, paint);
+    skiaCanvas->DrawGlyphs(0, glyphs, nullptr, {0, 0}, &font, paint);
+    skiaCanvas->DrawGlyphs(0, nullptr, positions, {0, 0}, &font, paint);
+    skiaCanvas->DrawGlyphs(0, glyphs, positions, {0, 0}, &font, paint);
     skiaCanvas->ImportSkCanvas(nullptr);
     skiaCanvas->DrawTextBlob(nullptr, 0, 0, paint);
 }
