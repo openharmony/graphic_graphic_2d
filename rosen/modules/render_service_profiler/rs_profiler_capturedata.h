@@ -78,9 +78,9 @@ public:
     void SetTime(float time);
     float GetTime() const;
 
-    void Serialize(class Archive& archive);
-    void Serialize(std::vector<char>& out);
-    void Deserialize(const std::vector<char>& in);
+    bool Serialize(class Archive& archive);
+    bool Serialize(std::vector<char>& out);
+    bool Deserialize(const std::vector<char>& in);
 
     void SetProperty(const std::string& name, const std::string& value);
 
