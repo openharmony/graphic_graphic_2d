@@ -469,8 +469,6 @@ void RSScreenRenderNodeDrawable::CheckFilterCacheFullyCovered(RSSurfaceRenderPar
             bool cacheValid = filterNodeDrawable->IsFilterCacheValidForOcclusion();
             RectI filterCachedRect = filterNodeDrawable->GetFilterCachedRegion();
             surfaceParams.CheckValidFilterCacheFullyCoverTarget(cacheValid, filterCachedRect, screenRect);
-            RSFilterDirtyCollector::RecordFilterCacheValidForOcclusion(filterNodeId,
-                surfaceParams.IsMainWindowType() && cacheValid && screenRect.IsInsideOf(filterCachedRect));
         }
         RS_OPTIONAL_TRACE_NAME_FMT(
             "CheckFilterCacheFullyCovered NodeId[%" PRIu64 "], globalAlpha: %f, "

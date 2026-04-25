@@ -777,6 +777,17 @@ bool RSFilterCacheManager::IsFilterCacheValidForOcclusion()
     return cacheType != FilterCacheType::NONE;
 }
 
+bool RSFilterCacheManager::IsFilterCacheValidForPartialRender() const
+{
+    auto cacheType = GetCachedType();
+    RS_OPTIONAL_TRACE_NAME_FMT("RSFilterCacheManager::IsFilterCacheValidForPartialRender"
+        " cacheType:%d renderClearType_:%d", cacheType, renderClearType_);
+    ROSEN_LOGD("RSFilterCacheManager::IsFilterCacheValidForPartialRender cacheType:%{public}d"
+        " renderClearType_:%{public}d", static_cast<int>(cacheType), static_cast<int>(renderClearType_));
+
+    return cacheType == FilterCacheType::FILTERED_SNAPSHOT;
+}
+
 void RSFilterCacheManager::MarkNodeIsOccluded(bool isOccluded)
 {
     stagingIsOccluded_ = isOccluded;
