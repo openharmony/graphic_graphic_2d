@@ -2270,7 +2270,8 @@ void RSNode::SetVisualEffect(const VisualEffect* visualEffect)
         if (visualEffectPara->GetParaType() == VisualEffectPara::BORDER_LIGHT_EFFECT ||
             visualEffectPara->GetParaType() == VisualEffectPara::COLOR_GRADIENT_EFFECT ||
             visualEffectPara->GetParaType() == VisualEffectPara::HARMONIUM_EFFECT ||
-            visualEffectPara->GetParaType() == VisualEffectPara::FROSTED_GLASS_EFFECT) {
+            visualEffectPara->GetParaType() == VisualEffectPara::FROSTED_GLASS_EFFECT ||
+            visualEffectPara->GetParaType() == VisualEffectPara::SPATIAL_GLASS_EFFECT) {
             SetBackgroundNGShader(RSNGShaderBase::Create(visualEffectPara));
         }
 
