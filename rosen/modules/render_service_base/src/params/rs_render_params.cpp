@@ -425,8 +425,7 @@ void RSRenderParams::ApplySandboxMatrixToCanvas(RSPaintFilterCanvas& canvas) con
     auto offscreenCanvasVector = paintFilterCanvas->GetOffscreenCanvasVector();
     // skip current canvas, concat all stacked offscreen canvas
     for (size_t i = 1; i < offscreenCanvasVector.size(); ++i) {
-        const auto& offscreenCanvas = offscreenCanvasVector[i];
-        if (offscreenCanvas) {
+        if (const auto& offscreenCanvas = offscreenCanvasVector[i]) {
             offscreenCanvas->GetTotalMatrix().Invert(invertMatrix);
             combinedMatrix.PreConcat(invertMatrix);
         }
@@ -436,7 +435,6 @@ void RSRenderParams::ApplySandboxMatrixToCanvas(RSPaintFilterCanvas& canvas) con
     canvas.SetMatrix(combinedMatrix);
     canvas.ConcatMatrix(parentSurfaceMatrix_);
     canvas.ConcatMatrix(matrix_);
-    return;
 }
 
 void RSRenderParams::SetLayerPartRenderEnabled(bool enable)
