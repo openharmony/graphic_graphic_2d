@@ -1501,9 +1501,16 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CheckDrawAndCacheWindowContentTest, Te
     ASSERT_FALSE(surfaceDrawable_->CheckDrawAndCacheWindowContent(*surfaceParams, *uniParams));
 
     surfaceParams->isRelatedSourceNode_ = true;
+    surfaceParams->specialLayerManager_.Set(SpecialLayerType::HAS_PROTECTED, false);
     ASSERT_TRUE(surfaceDrawable_->CheckDrawAndCacheWindowContent(*surfaceParams, *uniParams));
 
+    surfaceParams->specialLayerManager_.Set(SpecialLayerType::HAS_PROTECTED, true);
+    ASSERT_FALSE(surfaceDrawable_->CheckDrawAndCacheWindowContent(*surfaceParams, *uniParams));
+
     surfaceParams->isRelatedSourceNode_ = false;
+    ASSERT_FALSE(surfaceDrawable_->CheckDrawAndCacheWindowContent(*surfaceParams, *uniParams));
+
+    surfaceParams->specialLayerManager_.Set(SpecialLayerType::HAS_PROTECTED, false);
     ASSERT_FALSE(surfaceDrawable_->CheckDrawAndCacheWindowContent(*surfaceParams, *uniParams));
 
     surfaceParams->SetNeedCacheSurface(true);
@@ -1517,40 +1524,6 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CheckDrawAndCacheWindowContentTest, Te
 
     RSUniRenderThread::captureParam_.isSnapshot_ = true;
     ASSERT_TRUE(RSUniRenderThread::IsInCaptureProcess());
-    ASSERT_FALSE(surfaceDrawable_->CheckDrawAndCacheWindowContent(*surfaceParams, *uniParams));
-}
-
-/**
- * @tc.name: CheckDrawAndCacheWindowContentTest002
- * @tc.desc: Test CheckDrawAndCacheWindowContent with RelatedSourceNode and Protected layer
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSSurfaceRenderNodeDrawableTest, CheckDrawAndCacheWindowContentTest002, TestSize.Level1)
-{
-    ASSERT_NE(surfaceDrawable_, nullptr);
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
-    ASSERT_NE(surfaceParams, nullptr);
-    surfaceParams->SetNeedCacheSurface(false);
-    surfaceParams->isCrossNode_ = false;
-
-    auto uniParams = std::make_shared<RSRenderThreadParams>();
-    ASSERT_NE(uniParams, nullptr);
-
-    surfaceParams->isRelatedSourceNode_ = true;
-
-    ASSERT_TRUE(surfaceDrawable_->CheckDrawAndCacheWindowContent(*surfaceParams, *uniParams));
-
-    surfaceParams->specialLayerManager_.Set(SpecialLayerType::PROTECTED, true);
-    ASSERT_FALSE(surfaceDrawable_->CheckDrawAndCacheWindowContent(*surfaceParams, *uniParams));
-
-    surfaceParams->specialLayerManager_.Set(SpecialLayerType::PROTECTED, false);
-    ASSERT_TRUE(surfaceDrawable_->CheckDrawAndCacheWindowContent(*surfaceParams, *uniParams));
-
-    surfaceParams->isRelatedSourceNode_ = false;
-    ASSERT_FALSE(surfaceDrawable_->CheckDrawAndCacheWindowContent(*surfaceParams, *uniParams));
- 
-    surfaceParams->specialLayerManager_.Set(SpecialLayerType::PROTECTED, true);
     ASSERT_FALSE(surfaceDrawable_->CheckDrawAndCacheWindowContent(*surfaceParams, *uniParams));
 }
 
@@ -2339,15 +2312,15 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawRelatedSourceNodeTest, TestSize.Le
 
     uniParams->SetDrawRelated(true);
     ASSERT_TRUE(uniParams->IsDrawRelated());
-    ASSERT_FALSE(surfaceParams->ClonedSourceNode());
+    ASSERT_FALSE(surfaceDrawable_->DrawRelatedSourceNode(*canvas_, *uniParams, *surfaceParams));
 
     surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
     uniParams->SetDrawRelated(false);
-    ASSERT_FALSE(surfaceParams->ClonedSourceNode());
+    ASSERT_FALSE(surfaceDrawable_->DrawRelatedSourceNode(*canvas_, *uniParams, *surfaceParams));
  
     surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
     uniParams->SetDrawRelated(true);
-    ASSERT_TRUE(surfaceParams->ClonedSourceNode());
+    ASSERT_TRUE(surfaceDrawable_->DrawRelatedSourceNode(*canvas_, *uniParams, *surfaceParams));
     uniParams->SetDrawRelated(false);
     surfaceParams->specialLayerManager_.Set(SpecialLayerType::PROTECTED, false);
 
