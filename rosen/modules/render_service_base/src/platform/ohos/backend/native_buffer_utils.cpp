@@ -372,7 +372,7 @@ Drawing::BackendTexture MakeBackendTextureFromNativeBuffer(NativeWindowBuffer* n
     std::shared_ptr<Drawing::VKTextureInfo> imageInfo = std::make_shared<Drawing::VKTextureInfo>();
     imageInfo->vkImage = image;
     imageInfo->vkAlloc.memory = memory;
-    imageInfo->vkAlloc.size = npProps.allocationSize;
+    imageInfo->vkAlloc.size = nbProps.allocationSize;
     imageInfo->vkAlloc.source = Drawing::VKMemSource::EXTERNAL;
     imageInfo->vkProtected = isProtected ? true : false;
     imageInfo->imageTiling = VK_IMAGE_TILING_OPTIMAL;

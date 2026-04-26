@@ -210,6 +210,7 @@ std::shared_ptr<Drawing::Image> RSImageCache::GetRenderDrawingImageCacheByPixelM
 
 void RSImageCache::ReleaseDrawingImageCacheByPixelMapId(uint64_t uniqueId)
 {
+#if 0 //disabled RSImageDetailEnhancerThread
     std::lock_guard<std::mutex> lock(mapMutex_);
     auto it = pixelMapIdRelatedDrawingImageCache_.find(uniqueId);
     if (it != pixelMapIdRelatedDrawingImageCache_.end()) {
@@ -220,6 +221,7 @@ void RSImageCache::ReleaseDrawingImageCacheByPixelMapId(uint64_t uniqueId)
             RSImageDetailEnhancerThread::Instance().SetProcessStatus(uniqueId, false);
         }
     }
+#endif
 }
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)

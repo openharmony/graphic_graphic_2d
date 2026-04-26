@@ -26,6 +26,7 @@
 #include "rs_mhc_manager.h"
 #endif
 #if defined(ROSEN_OHOS)
+//#include "cpp/ffrt_dynamic_graph.h"
 #include "hpae_base/rs_hpae_ffrt_pattern_manager.h"
 #include "hpae_base/rs_hpae_scheduler.h"
 #include "hpae_base/rs_hpae_log.h"
@@ -356,6 +357,7 @@ int GetFftsSemaphore(const uint64_t& frameId, const MHC_PatternTaskName& taskNam
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
     semaphoreInfo.flags = 0;
 
+#if 0 //disabled semaphoreExtTypeCreateInfoHUAWEI
     VkSemaphoreExtTypeCreateInfoHUAWEI semaphoreExtTypeCreateInfoHUAWEI = {};
     semaphoreExtTypeCreateInfoHUAWEI.sType = VK_STRUCTURE_TYPE_SEMAPHORE_EXT_CREATE_INFO;
     semaphoreExtTypeCreateInfoHUAWEI.pNext = nullptr;
@@ -363,14 +365,17 @@ int GetFftsSemaphore(const uint64_t& frameId, const MHC_PatternTaskName& taskNam
     semaphoreExtTypeCreateInfoHUAWEI.semaphoreExtType = VK_SEMAPHORE_EXT_TYPE_FFTS;
     semaphoreExtTypeCreateInfoHUAWEI.eventId = eventId[0];
     semaphoreInfo.pNext = &semaphoreExtTypeCreateInfoHUAWEI;
+#endif
     vkCreateSemaphore(vkDevice, &semaphoreInfo, nullptr, &semaWaitFfts);
 
     semaNotifyFfts = RSHpaeFfrtPatternManager::Instance().GetSemaphoreMap(eventId[1]);
     if (semaNotifyFfts == nullptr) {
         VkSemaphore innerNotifySemaphore;
+#if 0
         semaphoreExtTypeCreateInfoHUAWEI.semaphoreExtType = VK_SEMAPHORE_EXT_TYPE_FFTS;
         semaphoreExtTypeCreateInfoHUAWEI.eventId = eventId[1];
         semaphoreInfo.pNext = &semaphoreExtTypeCreateInfoHUAWEI;
+#endif		
         vkCreateSemaphore(vkDevice, &semaphoreInfo, nullptr, &innerNotifySemaphore);
 
         VkSemaphore* vkInnerNotifySem = new VkSemaphore(innerNotifySemaphore);
