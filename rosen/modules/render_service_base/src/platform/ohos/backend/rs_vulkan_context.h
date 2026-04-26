@@ -32,7 +32,7 @@
 #include "rs_vulkan_mem_statistic.h"
 
 #include "image/gpu_context.h"
-
+#if 0
 typedef enum VkSemaphoreExtTypeHUAWEI {
     VK_SEMAPHORE_EXT_TYPE_HTS_HUAWEI = 0x80000000,
     VK_SEMAPHORE_EXT_TYPE_FFTS = 0x80000001,
@@ -44,7 +44,7 @@ typedef struct VkSemaphoreExtTypeCreateInfoHUAWEI {
     VkSemaphoreExtTypeHUAWEI           semaphoreExtType;
     uint32_t                           eventId;
 }VkSemaphoreExtTypeCreateInfoHUAWEI;
-
+#endif
 #ifdef USE_M133_SKIA
 #include "include/gpu/vk/VulkanExtensions.h"
 #include "include/gpu/vk/VulkanBackendContext.h"

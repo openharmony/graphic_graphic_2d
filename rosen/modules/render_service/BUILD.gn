@@ -348,7 +348,7 @@ ohos_shared_library("librender_service") {
   }
 
   if (graphic_2d_feature_product != "wearable") {
-    defines += [ "IS_ENABLE_DRM" ]
+    #defines += [ "IS_ENABLE_DRM" ]
   }
 
   if (graphic_2d_feature_product == "phone") {
