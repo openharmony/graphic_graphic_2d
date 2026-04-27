@@ -5710,7 +5710,7 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareForUIFirstNode001, TestSize.Level2)
 
     // Clear renderGroupCacheRoots_ for next test
     rsUniRenderVisitor->renderGroupCacheRoots_.clear();
-    rsSurfaceRenderNode->lastFrameUifirstFlag_ = MultiThreadCacheType::LEASH_WINDOW;
+    rsSurfaceRenderNode->uifirstState_.lastFrameCacheType = MultiThreadCacheType::LEASH_WINDOW;
     rsSurfaceRenderNode->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
     rsUniRenderVisitor->PrepareForUIFirstNode(*rsSurfaceRenderNode);
     RSUifirstManager::Instance().isUiFirstOn_ = false;
@@ -5750,6 +5750,39 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareForUIFirstNode002, TestSize.Level2)
     rsSurfaceRenderNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
     rsUniRenderVisitor->PrepareForUIFirstNode(*rsSurfaceRenderNode);
     ASSERT_TRUE(surfaceParams->GetUifirstVisibleFilterRect().IsEmpty());
+}
+
+
+/**
+ * @tc.name: PrepareForUIFirstNode003
+ * @tc.desc: Test PrepareForUIFirstNode with dfx is true
+ * @tc.type: FUNC
+ * @tc.require: issue20192
+ */
+HWTEST_F(RSUniRenderVisitorTest, PrepareForUIFirstNode003, TestSize.Level2)
+{
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    ScreenId id = 1;
+    auto rsScreenRenderNode = std::make_shared<RSScreenRenderNode>(11, id, rsContext->weak_from_this());
+    rsUniRenderVisitor->curScreenNode_ = rsScreenRenderNode;
+
+    rsUniRenderVisitor->isTargetUIFirstDfxEnabled_ = true;
+    rsUniRenderVisitor->PrepareForUIFirstNode(*rsSurfaceRenderNode);
+    EXPECT_FALSE(rsSurfaceRenderNode->uifirstState_.isTargetDfxEnabled);
+
+    rsSurfaceRenderNode->name_ = "surfaceTest";
+    rsUniRenderVisitor->dfxUIFirstSurfaceNames_.push_back("surfaceTest");
+    rsUniRenderVisitor->PrepareForUIFirstNode(*rsSurfaceRenderNode);
+    EXPECT_TRUE(rsSurfaceRenderNode->uifirstState_.isTargetDfxEnabled);
+
+    rsSurfaceRenderNode->uifirstState_.isTargetDfxEnabled = true;
+    rsUniRenderVisitor->PrepareForUIFirstNode(*rsSurfaceRenderNode);
+    EXPECT_TRUE(rsSurfaceRenderNode->uifirstState_.isTargetDfxEnabled);
 }
 
 /**
@@ -7825,9 +7858,9 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareSufaceRenderNode005, TestSize.Level
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     rsUniRenderVisitor->curScreenNode_ = displayNode;
     rsUniRenderVisitor->curLogicalDisplayNode_ = logicalDisplayNode;
-    surfaceNode->subThreadAssignable_ = true;
+    surfaceNode->uifirstState_.subThreadAssignable = true;
     rsUniRenderVisitor->QuickPrepareSurfaceRenderNode(*surfaceNode);
-    surfaceNode->subThreadAssignable_ = false;
+    surfaceNode->uifirstState_.subThreadAssignable = false;
     rsUniRenderVisitor->QuickPrepareSurfaceRenderNode(*surfaceNode);
     RSMainThread::Instance()->focusNodeId_ = 0;
     RSMainThread::Instance()->focusLeashWindowId_ = 0;

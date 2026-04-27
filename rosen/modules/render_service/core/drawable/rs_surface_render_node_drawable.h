@@ -81,6 +81,16 @@ public:
         return subThreadCache_;
     }
 
+    const std::unique_ptr<RSRenderParams>& GetUifirstRenderParams() const
+    {
+        return uifirstRenderParams_;
+    }
+
+    void DrawUifirstContentChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect);
+    void DrawAllUifirst(Drawing::Canvas& canvas, const Drawing::Rect& rect);
+
+    void SyncUifirstDrawCmds() override;
+
     Drawing::Matrix GetGravityMatrix(float imgWidth, float imgHeight);
 
     const Occlusion::Region& GetVisibleDirtyRegion() const;
@@ -251,6 +261,10 @@ private:
     bool lastGlobalPositionEnabled_ = false;
     RsSubThreadCache subThreadCache_;
     friend class RsSubThreadCache;
+
+    DrawCmdIndex uifirstDrawCmdIndex_;
+    std::unique_ptr<RSRenderParams> uifirstRenderParams_;
+    RSDrawable::DrawList uifirstDrawCmdList_;
 
     Drawing::Region curSurfaceDrawRegion_ {};
     mutable std::mutex drawRegionMutex_;

@@ -743,7 +743,6 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, OnSyncWaitSyncTrueTest, TestSize.Level1)
         std::make_shared<RSCanvasDrawingRenderNodeDrawableAdapterTest>(otherNode);
     node->renderDrawable_->renderParams_ = std::make_unique<RSRenderParams>(14);
     node->stagingRenderParams_ = std::make_unique<RSRenderParams>(14);
-    node->uifirstSkipPartialSync_ = true;
     node->SetWaitSync(true);
     node->OnSync();
     EXPECT_FALSE(node->waitSync_);

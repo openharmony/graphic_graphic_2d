@@ -2144,13 +2144,12 @@ HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceContainerRegion, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI9L0VL
  */
-HWTEST_F(RSSurfaceRenderNodeTest, OnSync, TestSize.Level1)
+HWTEST_F(RSSurfaceRenderNodeTest, OnSyncTest001, TestSize.Level1)
 {
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
-    auto surfaceNode2 = std::make_shared<RSSurfaceRenderNode>(id + 1);
     surfaceNode->OnSync();
     ASSERT_EQ(surfaceNode->renderDrawable_, nullptr);
-    surfaceNode->renderDrawable_ = std::make_shared<TestDrawableAdapter>(surfaceNode2);
+    surfaceNode->renderDrawable_ = std::make_shared<TestDrawableAdapter>(surfaceNode);
     surfaceNode->OnSync();
     ASSERT_NE(surfaceNode->renderDrawable_, nullptr);
     surfaceNode->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
@@ -2160,21 +2159,43 @@ HWTEST_F(RSSurfaceRenderNodeTest, OnSync, TestSize.Level1)
     surfaceNode->OnSync();
     ASSERT_TRUE(surfaceNode->IsLeashWindow());
     surfaceNode->nodeType_ = RSSurfaceNodeType::DEFAULT;
-    surfaceNode->SetLastFrameUifirstFlag(MultiThreadCacheType::NONE);
+    surfaceNode->SetLastFrameUifirstCacheType(MultiThreadCacheType::NONE);
     surfaceNode->OnSync();
-    ASSERT_TRUE(surfaceNode->GetLastFrameUifirstFlag() == MultiThreadCacheType::NONE);
+    ASSERT_TRUE(surfaceNode->GetLastFrameUifirstCacheType() == MultiThreadCacheType::NONE);
     surfaceNode->nodeType_ = RSSurfaceNodeType::DEFAULT;
-    surfaceNode->SetLastFrameUifirstFlag(MultiThreadCacheType::LEASH_WINDOW);
+    surfaceNode->SetLastFrameUifirstCacheType(MultiThreadCacheType::LEASH_WINDOW);
     surfaceNode->stagingRenderParams_ = nullptr;
     surfaceNode->OnSync();
-    ASSERT_TRUE(surfaceNode->GetLastFrameUifirstFlag() != MultiThreadCacheType::NONE);
+    ASSERT_TRUE(surfaceNode->GetLastFrameUifirstCacheType() != MultiThreadCacheType::NONE);
     surfaceNode->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id);
     surfaceNode->OnSync();
     ASSERT_NE(surfaceNode->stagingRenderParams_, nullptr);
     surfaceNode->nodeType_ = RSSurfaceNodeType::SCB_SCREEN_NODE;
-    surfaceNode->SetLastFrameUifirstFlag(MultiThreadCacheType::NONE);
+    surfaceNode->SetLastFrameUifirstCacheType(MultiThreadCacheType::NONE);
     surfaceNode->OnSync();
     ASSERT_NE(surfaceNode->stagingRenderParams_, nullptr);
+}
+
+/**
+ * @tc.name: OnSync
+ * @tc.desc: test results of OnSync
+ * @tc.type: FUNC
+ * @tc.require: issueI9L0VL
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, OnSyncTest002, TestSize.Level1)
+{
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id);
+    surfaceNode->renderDrawable_ = std::make_shared<TestDrawableAdapter>(surfaceNode);
+    ASSERT_NE(surfaceNode->renderDrawable_, nullptr);
+    surfaceNode->nodeType_ = RSSurfaceNodeType::ABILITY_COMPONENT_NODE;
+    surfaceNode->uifirstState_.needSync = true;
+    surfaceNode->renderDrawable_->renderParams_ = std::make_unique<RSRenderParams>(surfaceNode->GetId());
+    surfaceNode->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(surfaceNode->GetId());
+    surfaceNode->OnSync();
+
+    surfaceNode->SetUifirstSkipPartialSync(true);
+    surfaceNode->OnSync();
+    EXPECT_FALSE(surfaceNode->lastFrameSynced_);
 }
 
 /**
@@ -2195,17 +2216,17 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdateLayerPartRenderStatus001, TestSize.Level
     ASSERT_NE(dirtyManager, nullptr);
     ASSERT_FALSE(dirtyManager->HasUifirstChild());
 
-    surfaceNode->SetLastFrameUifirstFlag(MultiThreadCacheType::NONE);
+    surfaceNode->SetLastFrameUifirstCacheType(MultiThreadCacheType::NONE);
     surfaceNode->SetSubThreadAssignable(false);
     surfaceNode->UpdateLayerPartRenderStatus(dirtyManager);
     EXPECT_FALSE(dirtyManager->HasUifirstChild());
 
-    surfaceNode->SetLastFrameUifirstFlag(MultiThreadCacheType::LEASH_WINDOW);
+    surfaceNode->SetLastFrameUifirstCacheType(MultiThreadCacheType::LEASH_WINDOW);
     surfaceNode->UpdateLayerPartRenderStatus(dirtyManager);
     EXPECT_TRUE(dirtyManager->HasUifirstChild());
 
     dirtyManager->SetHasUifirstChild(false);
-    surfaceNode->SetLastFrameUifirstFlag(MultiThreadCacheType::NONE);
+    surfaceNode->SetLastFrameUifirstCacheType(MultiThreadCacheType::NONE);
     surfaceNode->SetSubThreadAssignable(true);
     surfaceNode->UpdateLayerPartRenderStatus(dirtyManager);
     EXPECT_TRUE(dirtyManager->HasUifirstChild());

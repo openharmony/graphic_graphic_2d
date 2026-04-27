@@ -86,6 +86,7 @@ void RSSubThreadCacheTest::SetUp()
         RS_LOGE("RSSubThreadCacheTest: failed to init render params.");
         return;
     }
+    surfaceDrawable_->uifirstRenderParams_ = std::make_unique<RSSurfaceRenderParams>(surfaceDrawable_->GetId());
     drawingCanvas_ = std::make_unique<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
     if (drawingCanvas_) {
         canvas_ = std::make_shared<RSPaintFilterCanvas>(drawingCanvas_.get());
@@ -195,12 +196,12 @@ HWTEST_F(RSSubThreadCacheTest, DrawCacheSurfaceTest, TestSize.Level1)
         threadIndex, isUIFirst);
     EXPECT_FALSE(result);
 
-    surfaceDrawable_->boundsWidth_ = 1.f;
+    boundSize.x_ = 1.f;
     result = surfaceDrawable_->GetRsSubThreadCache().DrawCacheSurface(surfaceDrawable_.get(), rscanvas, boundSize,
         threadIndex, isUIFirst);
     EXPECT_FALSE(result);
 
-    surfaceDrawable_->boundsHeight_ = 1.f;
+    boundSize.y_ = 1.f;
     result = surfaceDrawable_->GetRsSubThreadCache().DrawCacheSurface(surfaceDrawable_.get(), rscanvas, boundSize,
         threadIndex, isUIFirst);
     EXPECT_FALSE(result);
@@ -227,7 +228,7 @@ HWTEST_F(RSSubThreadCacheTest, DrawCacheSurfaceTest, TestSize.Level1)
     boundSize.y_ = 50;
     auto recordingEnabled = system::GetParameter("debug.graphic.recording.enabled", "0");
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->GetRenderParams().get());
-    surfaceParams->isUIFirstLeashAllEnable_ = true;
+    surfaceParams->uifirstParams_.leashAllEnabled = true;
     system::SetParameter("debug.graphic.recording.enabled", "1");
     result = surfaceDrawable_->GetRsSubThreadCache().DrawCacheSurface(surfaceDrawable_.get(), rscanvas, boundSize,
         threadIndex, isUIFirst);
@@ -376,7 +377,7 @@ HWTEST_F(RSSubThreadCacheTest, UpdateUifirstDirtyManagerTest, TestSize.Level1)
 
     surfaceDrawable_->GetRsSubThreadCache().isCacheValid_ = false;
     surfaceParams->absDrawRect_ = {0, 0, 15, 15};
-    surfaceParams->isUIFirstLeashAllEnable_ = true;
+    surfaceParams->uifirstParams_.leashAllEnabled = true;
     surfaceParams->windowInfo_.isLeashWindow_ = true;
     surfaceDrawable_->GetRsSubThreadCache().UpdateUifirstDirtyManager(surfaceDrawable_.get());
     ASSERT_EQ(surfaceDrawable_->GetRsSubThreadCache().syncUifirstDirtyManager_->currentFrameDirtyRegion_.GetWidth(),
@@ -421,7 +422,7 @@ HWTEST_F(RSSubThreadCacheTest, CalculateUifirstDirtyRegionTest001, TestSize.Leve
     ASSERT_EQ(isCalculateSucc, true);
 
     visibleFilterRect = {0, 0, 10, 10};
-    surfaceParams->isUIFirstLeashAllEnable_ = true;
+    surfaceParams->uifirstParams_.leashAllEnabled = true;
     surfaceParams->windowInfo_.isLeashWindow_ = true;
     isCalculateSucc = surfaceDrawable_->GetRsSubThreadCache().CalculateUifirstDirtyRegion(surfaceDrawable_.get(),
         dirtyRect, false, visibleFilterRect);
@@ -715,7 +716,7 @@ HWTEST_F(RSSubThreadCacheTest, SubDrawTest001, TestSize.Level1)
     drawingCanvas_ = std::make_unique<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
     auto rscanvas = RSPaintFilterCanvas(drawingCanvas_.get());
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->GetUifirstRenderParams().get());
-    surfaceParams->isUIFirstLeashAllEnable_ = true;
+    surfaceParams->uifirstParams_.leashAllEnabled = true;
     surfaceDrawable_->GetRsSubThreadCache().SubDraw(surfaceDrawable_.get(), rscanvas);
     EXPECT_TRUE(surfaceDrawable_->uifirstDrawCmdList_.empty());
     std::shared_ptr<RSTestDrawable> rsDrawable = std::make_shared<RSTestDrawable>();
@@ -729,8 +730,34 @@ HWTEST_F(RSSubThreadCacheTest, SubDrawTest001, TestSize.Level1)
     surfaceDrawable_->drawCmdIndex_.backgroundColorIndex_ = 0;
     surfaceDrawable_->GetRsSubThreadCache().SubDraw(surfaceDrawable_.get(), rscanvas);
     EXPECT_FALSE(surfaceDrawable_->uifirstDrawCmdList_.empty());
+    surfaceDrawable_->uifirstDrawCmdIndex_.endIndex_ = 0;
+    surfaceDrawable_->GetRsSubThreadCache().SubDraw(surfaceDrawable_.get(), rscanvas);
 }
 
+
+/**
+ * @tc.name: SubDrawTest002
+ * @tc.desc: Test If SubDraw Can Run
+ * @tc.type: FUNC
+ * @tc.require: #IB1MHP
+ */
+HWTEST_F(RSSubThreadCacheTest, SubDrawTest002, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    drawingCanvas_ = std::make_unique<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    auto rscanvas = RSPaintFilterCanvas(drawingCanvas_.get());
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->GetUifirstRenderParams().get());
+    surfaceParams->uifirstParams_.leashAllEnabled = true;
+    auto rsDrawable1 = std::make_shared<RSTestDrawable>();
+    auto rsDrawable2 = std::make_shared<RSTestDrawable>();
+    auto rsDrawable3 = std::make_shared<RSTestDrawable>();
+    surfaceDrawable_->uifirstDrawCmdList_.emplace_back(rsDrawable1);
+    surfaceDrawable_->uifirstDrawCmdList_.emplace_back(rsDrawable2);
+    surfaceDrawable_->uifirstDrawCmdList_.emplace_back(rsDrawable3);
+    surfaceDrawable_->uifirstDrawCmdIndex_.endIndex_ = surfaceDrawable_->uifirstDrawCmdList_.size();
+    surfaceDrawable_->GetRsSubThreadCache().SubDraw(surfaceDrawable_.get(), rscanvas);
+    EXPECT_FALSE(surfaceDrawable_->uifirstDrawCmdList_.empty());
+}
 /**
  * @tc.name: DrawUIFirstCache
  * @tc.desc: Test If DrawUIFirstCache Can Run
@@ -892,7 +919,7 @@ HWTEST_F(RSSubThreadCacheTest, InitCacheSurfaceTest, TestSize.Level1)
     uint32_t threadIndex = 0;
     auto& subCache = surfaceDrawable_->GetRsSubThreadCache();
     auto params = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->GetUifirstRenderParams().get());
-    params->isUIFirstLeashAllEnable_ = true;
+    params->uifirstParams_.leashAllEnabled = true;
     subCache.InitCacheSurface(gpuContext, surfaceDrawable_, func, threadIndex);
     ASSERT_FALSE(subCache.clearCacheSurfaceFunc_);
 
@@ -1200,7 +1227,7 @@ HWTEST_F(RSSubThreadCacheTest, DealWithUIFirstCacheTest006, TestSize.Level1)
 
     RSUniRenderThread::GetCaptureParam().isSnapshot_ = true;
     surfaceDrawable_->GetRsSubThreadCache().cacheCompletedSurfaceInfo_.isContainShadow = true;
-    surfaceParams->isUIFirstLeashAllEnable_ = true;
+    surfaceParams->uifirstParams_.leashAllEnabled = true;
     EXPECT_TRUE(subThreadCache.DealWithUIFirstCache(surfaceDrawable_.get(), *canvas_, *surfaceParams, *uniParams));
 }
 /**
@@ -1439,7 +1466,7 @@ HWTEST_F(RSSubThreadCacheTest, UpdateCacheSurfaceDirtyManagerTest002, TestSize.L
 
     ASSERT_TRUE(subCache.UpdateCacheSurfaceDirtyManager(surfaceDrawable.get(), true, true));
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
-    surfaceParams->isUIFirstLeashAllEnable_ = true;
+    surfaceParams->uifirstParams_.leashAllEnabled = true;
     ASSERT_TRUE(subCache.UpdateCacheSurfaceDirtyManager(surfaceDrawable.get(), false, false));
 }
 

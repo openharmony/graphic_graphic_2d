@@ -483,6 +483,7 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
                 context->MarkNeedPurge(ClearMemoryMoment::SCENEBOARD_SURFACE_NODE_HIDE, RSContext::PurgeType::STRONGLY);
             }
         }
+        uifirstState_.needSync = true;
     } else if (GetSurfaceNodeType() == RSSurfaceNodeType::CURSOR_NODE) {
         FindScreenId();
     }
@@ -1199,14 +1200,24 @@ bool RSSurfaceRenderNode::CheckCloneCircle(std::shared_ptr<RSSurfaceRenderNode> 
 void RSSurfaceRenderNode::SetForceUIFirst(bool forceUIFirst)
 {
     if (forceUIFirst) {
-        forceUIFirstChanged_ = true;
+        uifirstState_.forceStateChanged = true;
     }
-    forceUIFirst_ = forceUIFirst;
+    uifirstState_.forceUIFirst = forceUIFirst;
 }
 
-bool RSSurfaceRenderNode::GetForceDrawWithSkipped() const
+void RSSurfaceRenderNode::MarkUifirstNode(bool isForceFlag, bool isUifirstEnable)
 {
-    return uifirstForceDrawWithSkipped_;
+    RS_TRACE_NAME_FMT("MarkUifirstNode id:%lu, isForceFlag:%d, isUifirstEnable:%d",
+        GetId(), isForceFlag, isUifirstEnable);
+    ROSEN_LOGI("MarkUifirstNode id:%{public}" PRIu64 " isForceFlag:%{public}d, isUifirstEnable:%{public}d",
+        GetId(), isForceFlag, isUifirstEnable);
+    uifirstState_.isForceMarked = isForceFlag;
+    uifirstState_.isEnabled = isUifirstEnable;
+}
+
+bool RSSurfaceRenderNode::GetUifirstNodeForceFlag() const
+{
+    return uifirstState_.isForceMarked;
 }
 
 void RSSurfaceRenderNode::SetHDRPresent(bool hasHdrPresent)
@@ -1327,11 +1338,11 @@ bool RSSurfaceRenderNode::HDRColorHeadroomEnabled()
 
 void RSSurfaceRenderNode::SetForceUIFirstChanged(bool forceUIFirstChanged)
 {
-    forceUIFirstChanged_ = forceUIFirstChanged;
+    uifirstState_.forceStateChanged = forceUIFirstChanged;
 }
 bool RSSurfaceRenderNode::GetForceUIFirstChanged()
 {
-    return forceUIFirstChanged_;
+    return uifirstState_.forceStateChanged;
 }
 
 void RSSurfaceRenderNode::SetAncoForceDoDirect(bool direct)
@@ -1723,7 +1734,7 @@ void RSSurfaceRenderNode::NotifyUIBufferAvailable()
 {
     RS_TRACE_NAME_FMT("RSSurfaceRenderNode::NotifyUIBufferAvailable id:%llu bufferAvailable:%d waitUifirst:%d",
         GetId(), IsNotifyUIBufferAvailable(), IsWaitUifirstFirstFrame());
-    if (isNotifyUIBufferAvailable_ || isWaitUifirstFirstFrame_) {
+    if (isNotifyUIBufferAvailable_ || uifirstState_.isWaitFirstFrame) {
         return;
     }
     isNotifyUIBufferAvailable_ = true;
@@ -2172,7 +2183,7 @@ void RSSurfaceRenderNode::UpdateSurfaceCacheContentStaticFlag(bool isAccessibili
         contentStatic = (!IsSubTreeDirty() || GetForceUpdateByUifirst()) && !IsContentDirty();
     }
     contentStatic = contentStatic && !isAccessibilityChanged;
-    uifirstContentDirty_ = uifirstContentDirty_ || uifirstContentDirty || HasRemovedChild();
+    uifirstState_.contentDirty = uifirstState_.contentDirty || uifirstContentDirty || HasRemovedChild();
     auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (stagingSurfaceParams) {
         stagingSurfaceParams->SetSurfaceCacheContentStatic(contentStatic, lastFrameSynced_);
@@ -2184,7 +2195,7 @@ void RSSurfaceRenderNode::UpdateSurfaceCacheContentStaticFlag(bool isAccessibili
         "name[%s] Id[%" PRIu64 "], contentStatic[%d] subTreeDirty[%d] contentDirty[%d] forceUpdate[%d] "
         "accessibilityChanged[%d] hasRemovedChild[%d], GetChildrenCount[%d], uifirstContentDirty:%d",
         GetName().c_str(), GetId(), contentStatic, IsSubTreeDirty(), IsContentDirty(), GetForceUpdateByUifirst(),
-        isAccessibilityChanged, HasRemovedChild(), GetChildrenCount(), uifirstContentDirty_);
+        isAccessibilityChanged, HasRemovedChild(), GetChildrenCount(), uifirstState_.contentDirty);
 #endif
 }
 
@@ -2443,7 +2454,7 @@ void RSSurfaceRenderNode::OnSync()
     }
     auto syncDirtyManager = renderDrawable_->GetSyncDirtyManager();
     dirtyManager_->OnSync(syncDirtyManager);
-    if (IsMainWindowType() || IsLeashWindow() || GetLastFrameUifirstFlag() != MultiThreadCacheType::NONE) {
+    if (IsMainWindowType() || IsLeashWindow() || GetLastFrameUifirstCacheType() != MultiThreadCacheType::NONE) {
         auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
         if (surfaceParams == nullptr) {
             RS_LOGE("RSSurfaceRenderNode::OnSync surfaceParams is null");
@@ -2509,7 +2520,7 @@ void RSSurfaceRenderNode::UpdateLayerPartRenderStatus(std::shared_ptr<RSDirtyReg
     if (dirtyManager == nullptr) {
         return;
     }
-    if (GetLastFrameUifirstFlag() != MultiThreadCacheType::NONE || GetSubThreadAssignable()) {
+    if (GetLastFrameUifirstCacheType() != MultiThreadCacheType::NONE || GetSubThreadAssignable()) {
         dirtyManager->SetHasUifirstChild(true);
     }
 }
@@ -3562,15 +3573,15 @@ RSSurfaceNodeAbilityState RSSurfaceRenderNode::GetAbilityState() const
 
 bool RSSurfaceRenderNode::IsWaitUifirstFirstFrame() const
 {
-    return isWaitUifirstFirstFrame_;
+    return uifirstState_.isWaitFirstFrame.load();
 }
 
 void RSSurfaceRenderNode::SetWaitUifirstFirstFrame(bool wait)
 {
-    if (isWaitUifirstFirstFrame_ == wait) {
+    if (uifirstState_.isWaitFirstFrame.load() == wait) {
         return;
     }
-    isWaitUifirstFirstFrame_ = wait;
+    uifirstState_.isWaitFirstFrame.store(wait);
     RS_TRACE_NAME_FMT("SetWaitUifirstFirstFrame id:%" PRIu64 ", wait:%d", GetId(), wait);
     RS_LOGI("SetWaitUifirstFirstFrame id:%{public}" PRIu64 ", wait:%{public}d", GetId(), wait);
 }

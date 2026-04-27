@@ -301,6 +301,7 @@ HWTEST_F(RsSubThreadTest, DrawableCache003, TestSize.Level1)
 
     nodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+    nodeDrawable->uifirstRenderParams_ = std::make_unique<RSSurfaceRenderParams>(nodeDrawable->GetId());
     curThread->DrawableCache(nodeDrawable);
     EXPECT_TRUE(curThread->grContext_);
     curThread->DrawableCache(nodeDrawable);

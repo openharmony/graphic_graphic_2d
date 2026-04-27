@@ -65,7 +65,6 @@ public:
         : RSRenderNodeDrawableAdapter(std::move(node))
     {
         renderParams_ = std::make_unique<RSRenderParams>(renderNode_.lock()->GetId());
-        uifirstRenderParams_ = std::make_unique<RSRenderParams>(renderNode_.lock()->GetId());
     }
     ~RSRenderNodeDrawableAdapterBoy() override = default;
 
