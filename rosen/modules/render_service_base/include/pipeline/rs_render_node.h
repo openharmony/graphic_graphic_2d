@@ -847,35 +847,6 @@ public:
     void RecordCurDirtyTypes();
     void AccumulateDirtyTypes();
     void ResetAccumulateDirtyTypes();
-    void SetUifirstSyncFlag(bool needSync);
-    void SetUifirstSkipPartialSync(bool skip)
-    {
-        uifirstSkipPartialSync_ = skip;
-    }
-    bool IsUifirstSkipPartialSync() const
-    {
-        return uifirstSkipPartialSync_;
-    }
-
-    void SetForceUpdateByUifirst(bool b)
-    {
-        forceUpdateByUifirst_ = b;
-    }
-
-    bool GetForceUpdateByUifirst() const
-    {
-        return forceUpdateByUifirst_;
-    }
-
-    MultiThreadCacheType GetLastFrameUifirstFlag()
-    {
-        return lastFrameUifirstFlag_;
-    }
-
-    void SetLastFrameUifirstFlag(MultiThreadCacheType b)
-    {
-        lastFrameUifirstFlag_ = b;
-    }
 
     void SkipSync()
     {
@@ -893,15 +864,8 @@ public:
 
     // will be abandoned
     void MarkUifirstNode(bool isUifirstNode);
-    // Mark uifirst leash node
-    void MarkUifirstNode(bool isForceFlag, bool isUifirstEnable);
-    bool GetUifirstNodeForceFlag() const;
-
-    void SetUIFirstSwitch(RSUIFirstSwitch uiFirstSwitch);
-    RSUIFirstSwitch GetUIFirstSwitch() const
-    {
-        return uiFirstSwitch_;
-    }
+    virtual void SetUIFirstSwitch(RSUIFirstSwitch uiFirstSwitch);
+    virtual RSUIFirstSwitch GetUIFirstSwitch() const { return RSUIFirstSwitch::NONE; }
 
     const RectI GetFilterCachedRegion() const;
     virtual bool EffectNodeShouldPaint() const { return true; };
@@ -1155,6 +1119,12 @@ protected:
         RSDirtyRegionManager& dirtyManager, bool needRequestNextVsync);
     bool IsForceClearOrUseFilterCache(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable);
 #endif
+
+    // Virtual methods for uifirst sync flags - only meaningful for SurfaceNode
+    virtual bool IsUifirstSkipPartialSync() const { return false; }
+    virtual bool GetUifirstNeedSync() const { return false; }
+    virtual void ClearUifirstNeedSync() {}
+    virtual void ClearUifirstSkipPartialSync() {}
     void UpdateDirtySlotsAndPendingNodes(RSDrawableSlot slot);
     void ExpandDirtyRegionWithFilterRegion(RSDirtyRegionManager& dirtyManager)
     {
@@ -1174,18 +1144,14 @@ protected:
     bool isOnTheTree_ = false;
     bool isChildSupportUifirst_ = true;
     bool isUifirstNode_ = true;
-    bool isForceFlag_ = false;
-    bool isUifirstEnable_ = false;
     bool lastFrameSynced_ = true;
     bool srcOrClipedAbsDrawRectChangeFlag_ = false;
     bool startingWindowFlag_ = false;
     bool isNodeSingleFrameComposer_ = false;
     bool childHasSharedTransition_ = false;
     std::atomic<bool> isStaticCached_ = false;
-    RSUIFirstSwitch uiFirstSwitch_ = RSUIFirstSwitch::NONE;
     NodeDirty dirtyStatus_ = NodeDirty::CLEAN;
     NodeDirty curDirtyStatus_ = NodeDirty::CLEAN;
-    int isUifirstDelay_ = 0;
     NodeId drawingCacheRootId_ = INVALID_NODEID;
     mutable std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter> renderDrawable_;
     std::shared_ptr<RSSingleFrameComposer> singleFrameComposer_ = nullptr;
@@ -1251,14 +1217,10 @@ private:
     // since preparation optimization would skip child's dirtyFlag(geoDirty) update
     // it should be recorded and update if marked dirty again
     bool lastFrameHasChildrenOutOfRect_ = false;
-    MultiThreadCacheType lastFrameUifirstFlag_ = MultiThreadCacheType::NONE;
     bool isContainBootAnimation_ = false;
     CacheType cacheType_ = CacheType::NONE;
     bool isDrawingCacheChanged_ = false;
     bool isScale_ = false;
-    bool uifirstNeedSync_ = false; // both cmdlist&param
-    bool uifirstSkipPartialSync_ = false;
-    bool forceUpdateByUifirst_ = false;
     bool backgroundFilterRegionChanged_ = false;
     bool backgroundFilterInteractWithDirty_ = false;
     // for UIExtension info collection

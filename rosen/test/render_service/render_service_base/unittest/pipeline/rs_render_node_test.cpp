@@ -69,7 +69,6 @@ public:
         : RSRenderNodeDrawableAdapter(std::move(node))
     {
         renderParams_ = std::make_unique<RSRenderParams>(renderNode_.lock()->GetId());
-        uifirstRenderParams_ = std::make_unique<RSRenderParams>(renderNode_.lock()->GetId());
     }
     ~RSRenderNodeDrawableAdapterBoy() override = default;
 
@@ -1176,11 +1175,6 @@ HWTEST_F(RSRenderNodeTest, OnSyncTest1, TestSize.Level1)
     node->renderDrawable_->renderParams_ = std::make_unique<RSRenderParams>(0);
     EXPECT_NE(node->renderDrawable_->renderParams_, nullptr);
 
-    node->uifirstNeedSync_ = true;
-    node->renderDrawable_->uifirstRenderParams_ = std::make_unique<RSRenderParams>(0);
-    EXPECT_NE(node->renderDrawable_->uifirstRenderParams_, nullptr);
-
-    node->uifirstSkipPartialSync_ = false;
     node->dirtySlots_.emplace(RSDrawableSlot::BACKGROUND_FILTER);
     auto drawableFilter = std::make_shared<DrawableV2::RSForegroundFilterDrawable>();
     EXPECT_NE(drawableFilter, nullptr);
@@ -1195,7 +1189,6 @@ HWTEST_F(RSRenderNodeTest, OnSyncTest1, TestSize.Level1)
     node->OnSync();
     EXPECT_TRUE(node->dirtySlots_.empty());
     EXPECT_FALSE(node->drawCmdListNeedSync_);
-    EXPECT_FALSE(node->uifirstNeedSync_);
     EXPECT_FALSE(node->needClearSurface_);
 }
 
@@ -1210,12 +1203,10 @@ HWTEST_F(RSRenderNodeTest, OnSyncTest2, TestSize.Level1)
     std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(0);
     EXPECT_NE(node, nullptr);
 
-    node->uifirstSkipPartialSync_ = true;
     node->dirtySlots_.emplace(RSDrawableSlot::BACKGROUND_FILTER);
     node->OnSync();
     EXPECT_TRUE(node->dirtySlots_.empty());
 
-    node->uifirstSkipPartialSync_ = false;
     auto backgroundColorDrawable = std::make_shared<DrawableV2::RSBackgroundColorDrawable>();
     EXPECT_NE(backgroundColorDrawable, nullptr);
     node->GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_COLOR)]
@@ -1224,7 +1215,6 @@ HWTEST_F(RSRenderNodeTest, OnSyncTest2, TestSize.Level1)
     node->OnSync();
     EXPECT_TRUE(node->dirtySlots_.empty());
 
-    node->uifirstSkipPartialSync_ = true;
     auto backgroundColorDrawable2 = std::make_shared<DrawableV2::RSBackgroundColorDrawable>();
     EXPECT_NE(backgroundColorDrawable2, nullptr);
     node->GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_COLOR)]

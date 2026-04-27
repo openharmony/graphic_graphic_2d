@@ -128,9 +128,6 @@ protected:
     static Registrar instance_;
     // indicate whether this drawable is generate from parallel node.
     bool subTreeParallel_ = false;
-    // Only use in RSRenderNode::DrawCacheSurface to calculate scale factor
-    float boundsWidth_ = 0.0f;
-    float boundsHeight_ = 0.0f;
 
     static bool IsBackFace(const Drawing::Matrix& matrix);
 

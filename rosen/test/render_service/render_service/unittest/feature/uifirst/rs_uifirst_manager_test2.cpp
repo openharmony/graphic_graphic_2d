@@ -231,7 +231,7 @@ HWTEST_F(RSUifirstManagerTest2, DoPurgePendingPostNodes001, TestSize.Level1)
     auto node = std::make_shared<RSSurfaceRenderNode>(nodeId);
     adapter = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
-    surfaceRenderNode->lastFrameUifirstFlag_ = MultiThreadCacheType::ARKTS_CARD;
+    surfaceRenderNode->uifirstState_.lastFrameCacheType = MultiThreadCacheType::ARKTS_CARD;
     uifirstManager_.subthreadProcessingNode_.insert(std::make_pair(nodeId, adapter));
     uifirstManager_.DoPurgePendingPostNodes(pendingNode);
     EXPECT_FALSE(pendingNode.empty());
@@ -272,7 +272,7 @@ HWTEST_F(RSUifirstManagerTest2, DoPurgePendingPostNodes002, TestSize.Level1)
     uifirstManager_.UpdateCompletedSurface(surfaceRenderNode->GetId());
 
     surfaceRenderNode->SetGlobalAlpha(1.f);
-    surfaceRenderNode->uifirstContentDirty_ = false;
+    surfaceRenderNode->uifirstState_.contentDirty = false;
     surfaceRenderNode->SetVisibleRegion(emptyRegion);
     surfaceRenderNode->SetVisibleRegionBehindWindow(emptyRegion);
     auto appWindow = RSTestUtil::CreateSurfaceNode();
@@ -288,7 +288,7 @@ HWTEST_F(RSUifirstManagerTest2, DoPurgePendingPostNodes002, TestSize.Level1)
     uifirstManager_.DoPurgePendingPostNodes(pendingNode);
     EXPECT_FALSE(pendingNode.empty());
 
-    surfaceRenderNode->SetLastFrameUifirstFlag(MultiThreadCacheType::NONFOCUS_WINDOW);
+    surfaceRenderNode->SetLastFrameUifirstCacheType(MultiThreadCacheType::NONFOCUS_WINDOW);
     uifirstManager_.DoPurgePendingPostNodes(pendingNode);
     EXPECT_FALSE(pendingNode.empty());
 
@@ -314,8 +314,8 @@ HWTEST_F(RSUifirstManagerTest2, NeedPurgeByBehindWindow001, TestSize.Level1)
     ASSERT_NE(surfaceNode, nullptr);
 
     surfaceNode->SetGlobalAlpha(1.f);
-    surfaceNode->uifirstContentDirty_ = false;
-    surfaceNode->SetLastFrameUifirstFlag(MultiThreadCacheType::NONFOCUS_WINDOW);
+    surfaceNode->uifirstState_.contentDirty = false;
+    surfaceNode->SetLastFrameUifirstCacheType(MultiThreadCacheType::NONFOCUS_WINDOW);
     surfaceNode->SetVisibleRegion(emptyRegion);
     surfaceNode->SetVisibleRegionBehindWindow(emptyRegion);
 
@@ -397,7 +397,7 @@ HWTEST_F(RSUifirstManagerTest2, IsBehindWindowOcclusion001, TestSize.Level1)
     ASSERT_NE(surfaceNode, nullptr);
 
     surfaceNode->SetGlobalAlpha(1.f);
-    surfaceNode->uifirstContentDirty_ = false;
+    surfaceNode->uifirstState_.contentDirty = false;
     surfaceNode->SetVisibleRegion(emptyRegion);
     surfaceNode->SetVisibleRegionBehindWindow(emptyRegion);
     surfaceNode->UpdateChildSubSurfaceNodes(childSubSurfaceNode, true);
@@ -717,14 +717,14 @@ HWTEST_F(RSUifirstManagerTest2, ForceUpdateUifirstNodes001, TestSize.Level1)
     uifirstManager_.isUiFirstOn_ = false;
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_TRUE(uifirstManager_.ForceUpdateUifirstNodes(*surfaceNode));
-    ASSERT_EQ(surfaceNode->GetLastFrameUifirstFlag(), MultiThreadCacheType::NONE);
+    ASSERT_EQ(surfaceNode->GetLastFrameUifirstCacheType(), MultiThreadCacheType::NONE);
 
     // node not support
     uifirstManager_.isUiFirstOn_ = true;
     surfaceNode->isUifirstNode_ = false;
     surfaceNode->isChildSupportUifirst_ = true;
     ASSERT_TRUE(uifirstManager_.ForceUpdateUifirstNodes(*surfaceNode));
-    ASSERT_EQ(surfaceNode->GetLastFrameUifirstFlag(), MultiThreadCacheType::NONE);
+    ASSERT_EQ(surfaceNode->GetLastFrameUifirstCacheType(), MultiThreadCacheType::NONE);
 
     // force disable uifirst
     uifirstManager_.isUiFirstOn_ = true;
@@ -732,7 +732,7 @@ HWTEST_F(RSUifirstManagerTest2, ForceUpdateUifirstNodes001, TestSize.Level1)
     surfaceNode->isChildSupportUifirst_ = true;
     surfaceNode->SetUIFirstSwitch(RSUIFirstSwitch::FORCE_DISABLE);
     ASSERT_TRUE(uifirstManager_.ForceUpdateUifirstNodes(*surfaceNode));
-    ASSERT_EQ(surfaceNode->GetLastFrameUifirstFlag(), MultiThreadCacheType::NONE);
+    ASSERT_EQ(surfaceNode->GetLastFrameUifirstCacheType(), MultiThreadCacheType::NONE);
 
     // protect layer not support
     uifirstManager_.isUiFirstOn_ = true;
@@ -741,7 +741,7 @@ HWTEST_F(RSUifirstManagerTest2, ForceUpdateUifirstNodes001, TestSize.Level1)
     surfaceNode->SetUIFirstSwitch(RSUIFirstSwitch::NONE);
     surfaceNode->GetMultableSpecialLayerMgr().Set(SpecialLayerType::HAS_PROTECTED, true);
     ASSERT_TRUE(uifirstManager_.ForceUpdateUifirstNodes(*surfaceNode));
-    ASSERT_EQ(surfaceNode->GetLastFrameUifirstFlag(), MultiThreadCacheType::NONE);
+    ASSERT_EQ(surfaceNode->GetLastFrameUifirstCacheType(), MultiThreadCacheType::NONE);
 }
 
 /**
@@ -762,23 +762,23 @@ HWTEST_F(RSUifirstManagerTest2, ForceUpdateUifirstNodes002, TestSize.Level1)
     ASSERT_FALSE(uifirstManager_.ForceUpdateUifirstNodes(*surfaceNode));
 
     surfaceNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
-    surfaceNode->SetLastFrameUifirstFlag(MultiThreadCacheType::NONE);
+    surfaceNode->SetLastFrameUifirstCacheType(MultiThreadCacheType::NONE);
     // force enable
     surfaceNode->MarkUifirstNode(true, true);
     ASSERT_TRUE(uifirstManager_.ForceUpdateUifirstNodes(*surfaceNode));
     uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
-    ASSERT_EQ(surfaceNode->GetLastFrameUifirstFlag(), MultiThreadCacheType::LEASH_WINDOW);
+    ASSERT_EQ(surfaceNode->GetLastFrameUifirstCacheType(), MultiThreadCacheType::LEASH_WINDOW);
 
     uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::MULTI));
-    surfaceNode->SetLastFrameUifirstFlag(MultiThreadCacheType::NONE);
+    surfaceNode->SetLastFrameUifirstCacheType(MultiThreadCacheType::NONE);
     ASSERT_TRUE(uifirstManager_.ForceUpdateUifirstNodes(*surfaceNode));
-    ASSERT_EQ(surfaceNode->GetLastFrameUifirstFlag(), MultiThreadCacheType::NONFOCUS_WINDOW);
+    ASSERT_EQ(surfaceNode->GetLastFrameUifirstCacheType(), MultiThreadCacheType::NONFOCUS_WINDOW);
 
     // force disable
     surfaceNode->MarkUifirstNode(true, false);
     ASSERT_TRUE(uifirstManager_.ForceUpdateUifirstNodes(*surfaceNode));
-    ASSERT_EQ(surfaceNode->GetLastFrameUifirstFlag(), MultiThreadCacheType::NONE);
-    surfaceNode->SetLastFrameUifirstFlag(MultiThreadCacheType::NONE);
+    ASSERT_EQ(surfaceNode->GetLastFrameUifirstCacheType(), MultiThreadCacheType::NONE);
+    surfaceNode->SetLastFrameUifirstCacheType(MultiThreadCacheType::NONE);
 }
 
 /**
@@ -800,14 +800,14 @@ HWTEST_F(RSUifirstManagerTest2, ForceUpdateUifirstNodes003, TestSize.Level1)
     // force enable on phone
     uifirstManager_.SetUiFirstType((int)UiFirstCcmType::SINGLE);
     ASSERT_TRUE(uifirstManager_.ForceUpdateUifirstNodes(*surfaceNode));
-    ASSERT_EQ(surfaceNode->GetLastFrameUifirstFlag(), MultiThreadCacheType::LEASH_WINDOW);
-    surfaceNode->SetLastFrameUifirstFlag(MultiThreadCacheType::NONE); // must reset uifirst flag
+    ASSERT_EQ(surfaceNode->GetLastFrameUifirstCacheType(), MultiThreadCacheType::LEASH_WINDOW);
+    surfaceNode->SetLastFrameUifirstCacheType(MultiThreadCacheType::NONE); // must reset uifirst flag
 
     // force enable on pc
     uifirstManager_.SetUiFirstType((int)UiFirstCcmType::MULTI);
     ASSERT_TRUE(uifirstManager_.ForceUpdateUifirstNodes(*surfaceNode));
-    ASSERT_EQ(surfaceNode->GetLastFrameUifirstFlag(), MultiThreadCacheType::NONFOCUS_WINDOW);
-    surfaceNode->SetLastFrameUifirstFlag(MultiThreadCacheType::NONE);
+    ASSERT_EQ(surfaceNode->GetLastFrameUifirstCacheType(), MultiThreadCacheType::NONFOCUS_WINDOW);
+    surfaceNode->SetLastFrameUifirstCacheType(MultiThreadCacheType::NONE);
 }
 
 /**
@@ -1089,14 +1089,14 @@ HWTEST_F(RSUifirstManagerTest2, ProcessFirstFrameCache, TestSize.Level1)
 {
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
 
-    surfaceNode->SetLastFrameUifirstFlag(MultiThreadCacheType::NONE);
+    surfaceNode->SetLastFrameUifirstCacheType(MultiThreadCacheType::NONE);
     surfaceNode->SetSubThreadAssignable(false);
     surfaceNode->SetSelfAndParentShouldPaint(true);
     surfaceNode->SetSkipDraw(false);
     uifirstManager_.ProcessFirstFrameCache(*surfaceNode, MultiThreadCacheType::ARKTS_CARD);
     ASSERT_TRUE(surfaceNode->GetSubThreadAssignable());
 
-    surfaceNode->SetLastFrameUifirstFlag(MultiThreadCacheType::NONE);
+    surfaceNode->SetLastFrameUifirstCacheType(MultiThreadCacheType::NONE);
     surfaceNode->SetSubThreadAssignable(false);
     surfaceNode->SetSelfAndParentShouldPaint(true);
     surfaceNode->SetSkipDraw(false);
@@ -1266,7 +1266,7 @@ HWTEST_F(RSUifirstManagerTest2, ProcessSkippedNodeTest, TestSize.Level1)
     mainThread_->context_->nodeMap.RegisterRenderNode(surfaceNode1);
     auto surfaceNode2 = RSTestUtil::CreateSurfaceNode();
     surfaceNode2->isOnTheTree_ = true;
-    surfaceNode2->lastFrameUifirstFlag_ = MultiThreadCacheType::ARKTS_CARD;
+    surfaceNode2->uifirstState_.lastFrameCacheType = MultiThreadCacheType::ARKTS_CARD;
     skippedNode_.insert(surfaceNode2->GetId());
     mainThread_->context_->nodeMap.RegisterRenderNode(surfaceNode2);
     auto canvasNode = std::make_shared<RSCanvasRenderNode>(++RSTestUtil::id);
@@ -1277,7 +1277,7 @@ HWTEST_F(RSUifirstManagerTest2, ProcessSkippedNodeTest, TestSize.Level1)
 
     auto surfaceNode3 = RSTestUtil::CreateSurfaceNode();
     surfaceNode2->isOnTheTree_ = true;
-    surfaceNode2->lastFrameUifirstFlag_ = MultiThreadCacheType::LEASH_WINDOW;
+    surfaceNode2->uifirstState_.lastFrameCacheType = MultiThreadCacheType::LEASH_WINDOW;
     skippedNode_.insert(surfaceNode3->GetId());
     mainThread_->context_->nodeMap.RegisterRenderNode(surfaceNode3);
     uifirstManager_.ProcessSkippedNode(skippedNode_, true);
@@ -1468,7 +1468,7 @@ HWTEST_F(RSUifirstManagerTest2, IsCacheSizeValid, TestSize.Level2)
 
     /* test case: lastUifirstFlag
     */
-    surfaceNode.SetLastFrameUifirstFlag(MultiThreadCacheType::LEASH_WINDOW);
+    surfaceNode.SetLastFrameUifirstCacheType(MultiThreadCacheType::LEASH_WINDOW);
     ret = uifirstManager_.IsCacheSizeValid(surfaceNode);
     EXPECT_TRUE(ret);
 

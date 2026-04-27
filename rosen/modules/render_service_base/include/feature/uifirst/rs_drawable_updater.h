@@ -19,7 +19,6 @@
 #include <limits>
 #include "drawable/rs_drawable.h"
 #include "drawable/rs_misc_drawable.h"
-#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -55,21 +54,7 @@ static inline bool UpdateRSDrawable(std::shared_ptr<RSDrawable>& drawable, std::
     return true;
 }
 
-static void UpdateSaveRestoreDrawable(RSDrawable::DrawList& drawCmdList)
-{
-    int updated = 0;
-    auto count = std::make_shared<uint32_t>(std::numeric_limits<uint32_t>::max());
-    auto status = std::make_shared<RSPaintFilterCanvas::SaveStatus>();
-    for (auto& drawable : drawCmdList) {
-        if (drawable) {
-            updated += (UpdateRSDrawable<DrawableV2::RSSaveDrawable>(drawable, count) ||
-                        UpdateRSDrawable<DrawableV2::RSRestoreDrawable>(drawable, count) ||
-                        UpdateRSDrawable<DrawableV2::RSCustomSaveDrawable>(drawable, status) ||
-                        UpdateRSDrawable<DrawableV2::RSCustomRestoreDrawable>(drawable, status));
-        }
-    }
-    RS_TRACE_NAME_FMT("UpdateSaveRestoreDrawable updated[%d]", updated);
-}
+RSB_EXPORT void UpdateSaveRestoreDrawable(RSDrawable::DrawList& drawCmdList);
 
 } // namespace Rosen
 } // namespace OHOS

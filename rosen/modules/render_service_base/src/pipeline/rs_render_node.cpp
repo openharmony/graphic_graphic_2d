@@ -3095,10 +3095,6 @@ void RSRenderNode::ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas)
     DrawPropertyDrawable(RSDrawableSlot::RESTORE_ALL, canvas);
 }
 
-void RSRenderNode::SetUifirstSyncFlag(bool needSync)
-{
-    uifirstNeedSync_ = needSync;
-}
 
 std::shared_ptr<RSRenderPropertyBase> RSRenderNode::GetProperty(PropertyId id)
 {
@@ -3997,7 +3993,6 @@ void RSRenderNode::HandleNodeRemovedFromTree()
         static_cast<int8_t>(RSDrawableSlot::CHILDREN), nullptr);
     stagingDrawCmdList_.clear();
     RS_PROFILER_KEEP_DRAW_CMD(drawCmdListNeedSync_); // false only when used for debugging
-    uifirstNeedSync_ = true;
     AddToPendingSyncList();
 }
 
@@ -4599,8 +4594,8 @@ void RSRenderNode::OnSync()
     }
     // uifirstSkipPartialSync means don't need to trylock whether drawable is onDraw or not
     DrawableV2::RSRenderNodeSingleDrawableLocker
-        singleLocker(uifirstSkipPartialSync_ ? nullptr : renderDrawable_.get());
-    if (!uifirstSkipPartialSync_ && UNLIKELY(!singleLocker.IsLocked())) {
+        singleLocker(IsUifirstSkipPartialSync() ? nullptr : renderDrawable_.get());
+    if (!IsUifirstSkipPartialSync() && UNLIKELY(!singleLocker.IsLocked())) {
 #ifdef RS_ENABLE_GPU
         singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
 #endif
@@ -4641,7 +4636,7 @@ void RSRenderNode::OnSync()
         }
         unobscuredUECChildrenNeedSync_ = false;
     }
-    if (!uifirstSkipPartialSync_) {
+    if (!IsUifirstSkipPartialSync()) {
         if (!dirtySlots_.empty()) {
             for (const auto& slot : dirtySlots_) {
                 if (auto& drawable = findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(slot))) {
@@ -4652,13 +4647,9 @@ void RSRenderNode::OnSync()
         }
 
         // copy newest for uifirst root node, now force sync done nodes
-        if (uifirstNeedSync_) {
-            RS_OPTIONAL_TRACE_NAME_FMT("uifirst_sync %lu", GetId());
-            renderDrawable_->uifirstDrawCmdList_.assign(renderDrawable_->drawCmdList_.begin(),
-                                                        renderDrawable_->drawCmdList_.end());
-            renderDrawable_->uifirstDrawCmdIndex_ = renderDrawable_->drawCmdIndex_;
-            renderDrawable_->renderParams_->OnSync(renderDrawable_->uifirstRenderParams_);
-            uifirstNeedSync_ = false;
+        if (GetUifirstNeedSync()) {
+            renderDrawable_->SyncUifirstDrawCmds();
+            ClearUifirstNeedSync();
         }
     } else {
         RS_TRACE_NAME_FMT("partial_sync %lu", GetId());
@@ -4666,7 +4657,7 @@ void RSRenderNode::OnSync()
         if (!uifirstLeashAllEnable) {
             DirtySlotsPartialSync();
         }
-        uifirstSkipPartialSync_ = false;
+        ClearUifirstSkipPartialSync();
         isLeashWindowPartialSkip = true;
     }
 #ifdef RS_ENABLE_GPU
@@ -4818,29 +4809,12 @@ void RSRenderNode::MarkUifirstNode(bool isUifirstNode)
 {
     RS_OPTIONAL_TRACE_NAME_FMT("MarkUifirstNode id:%lu, isUifirstNode:%d", GetId(), isUifirstNode);
     isUifirstNode_ = isUifirstNode;
-    isUifirstDelay_ = 0;
-}
-
-void RSRenderNode::MarkUifirstNode(bool isForceFlag, bool isUifirstEnable)
-{
-    RS_TRACE_NAME_FMT("MarkUifirstNode id:%lu, isForceFlag:%d, isUifirstEnable:%d",
-        GetId(), isForceFlag, isUifirstEnable);
-    ROSEN_LOGI("MarkUifirstNode id:%{public}" PRIu64 " isForceFlag:%{public}d, isUifirstEnable:%{public}d",
-        GetId(), isForceFlag, isUifirstEnable);
-    isForceFlag_ = isForceFlag;
-    isUifirstEnable_ = isUifirstEnable;
-}
-
-bool RSRenderNode::GetUifirstNodeForceFlag() const
-{
-    return isForceFlag_;
 }
 
 void RSRenderNode::SetUIFirstSwitch(RSUIFirstSwitch uiFirstSwitch)
 {
-    uiFirstSwitch_ = uiFirstSwitch;
     if (auto& firstNode = GetFirstLevelNode()) {
-        firstNode->uiFirstSwitch_ = uiFirstSwitch;
+        firstNode->SetUIFirstSwitch(uiFirstSwitch);
     }
 }
 

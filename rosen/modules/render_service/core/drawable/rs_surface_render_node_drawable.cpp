@@ -34,6 +34,7 @@
 #include "feature/special_layer/rs_special_layer_utils.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
+#include "feature/uifirst/rs_drawable_updater.h"
 #include "graphic_feature_param_manager.h"
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_screen_render_params.h"
@@ -668,6 +669,79 @@ NodeId RSSurfaceRenderNodeDrawable::GetWhiteListPersistentId(
     // 2 . when the persistent id of the node doesn't match the whitelist, don't return the persistent id
     return (canvas.GetIsParallelCanvas() || whiteList.find(persistentId) == whiteList.end()) ?
         INVALID_LEASH_PERSISTENTID : persistentId;
+}
+
+void RSSurfaceRenderNodeDrawable::DrawUifirstContentChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect)
+{
+    RSRenderNodeSingleDrawableLocker singleLocker(this);
+    if (UNLIKELY(!singleLocker.IsLocked())) {
+        singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
+        HILOG_COMM_ERROR("RSSurfaceRenderNodeDrawable::DrawUifirstContentChildren node %{public}" PRIu64 " onDraw!!!",
+            GetId());
+        if (RSSystemProperties::GetSingleDrawableLockerEnabled()) {
+            return;
+        }
+    }
+
+    if (uifirstDrawCmdList_.empty()) {
+        return;
+    }
+
+    const auto& drawCmdList = uifirstDrawCmdList_;
+    auto contentIdx = uifirstDrawCmdIndex_.contentIndex_;
+    auto childrenIdx = uifirstDrawCmdIndex_.childrenIndex_;
+    if (0 <= contentIdx && static_cast<size_t>(contentIdx) < drawCmdList.size()) {
+        drawCmdList[contentIdx]->OnDraw(&canvas, &rect);
+    }
+    if (0 <= childrenIdx && static_cast<size_t>(childrenIdx) < drawCmdList.size()) {
+        drawCmdList[childrenIdx]->OnDraw(&canvas, &rect);
+    }
+}
+
+void RSSurfaceRenderNodeDrawable::DrawAllUifirst(Drawing::Canvas& canvas, const Drawing::Rect& rect)
+{
+    if (uifirstDrawCmdList_.empty()) {
+        return;
+    }
+
+    UpdateSaveRestoreDrawable(uifirstDrawCmdList_);
+
+    const auto& drawCmdList = uifirstDrawCmdList_;
+    auto end = uifirstDrawCmdIndex_.endIndex_;
+    if (UNLIKELY(skipType_ != SkipType::NONE)) {
+        auto skipIndex = GetSkipIndex();
+        if (0 <= skipIndex && end > skipIndex) {
+            for (auto i = 0; i < skipIndex; i++) {
+                drawCmdList[i]->OnDraw(&canvas, &rect);
+            }
+            for (auto i = skipIndex + 1; i < end; i++) {
+                drawCmdList[i]->OnDraw(&canvas, &rect);
+            }
+            return;
+        }
+    }
+
+    for (auto i = 0; i < end; i++) {
+#ifdef RS_ENABLE_PREFETCH
+        int prefetchIndex = i + 2;
+        if (prefetchIndex < end) {
+            __builtin_prefetch(&drawCmdList[prefetchIndex], 0, 1);
+        }
+#endif
+        drawCmdList[i]->OnDraw(&canvas, &rect);
+    }
+}
+
+void RSSurfaceRenderNodeDrawable::SyncUifirstDrawCmds()
+{
+    RS_OPTIONAL_TRACE_NAME_FMT("uifirst_sync %" PRIu64, GetId());
+    uifirstDrawCmdList_.assign(drawCmdList_.begin(), drawCmdList_.end());
+    uifirstDrawCmdIndex_ = drawCmdIndex_;
+    if (uifirstRenderParams_ == nullptr) {
+        uifirstRenderParams_ = std::make_unique<RSSurfaceRenderParams>(GetId());
+        uifirstRenderParams_->SetParamsType(RSRenderParamsType::RS_PARAM_OWNED_BY_DRAWABLE_UIFIRST);
+    }
+    renderParams_->OnSync(GetUifirstRenderParams());
 }
 
 void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)

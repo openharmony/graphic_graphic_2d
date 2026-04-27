@@ -344,7 +344,7 @@ HWTEST_F(RSUifirstManagerTest, ProcessForceUpdateNode002, TestSize.Level1)
     uifirstManager_.pendingForceUpdateNode_.push_back(parentNode->GetId());
     uifirstManager_.ProcessForceUpdateNode();
 
-    parentNode->SetLastFrameUifirstFlag(MultiThreadCacheType::ARKTS_CARD);
+    parentNode->SetLastFrameUifirstCacheType(MultiThreadCacheType::ARKTS_CARD);
     uifirstManager_.pendingForceUpdateNode_.push_back(parentNode->GetId());
     uifirstManager_.ProcessForceUpdateNode();
 
@@ -454,7 +454,7 @@ HWTEST_F(RSUifirstManagerTest, CheckVisibleDirtyRegionIsEmpty001, TestSize.Level
 
     // uifirst content dirty
     surfaceNode->SetGlobalAlpha(1.f);
-    surfaceNode->uifirstContentDirty_ = true;
+    surfaceNode->uifirstState_.contentDirty = true;
     RSMainThread::Instance()->SetSystemAnimatedScenes(SystemAnimatedScenes::OTHERS);
     ASSERT_FALSE(uifirstManager_.CheckVisibleDirtyRegionIsEmpty(surfaceNode));
 }
@@ -472,7 +472,7 @@ HWTEST_F(RSUifirstManagerTest, CheckVisibleDirtyRegionIsEmpty002, TestSize.Level
     auto leashWindow = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(leashWindow, nullptr);
     leashWindow->SetGlobalAlpha(1.f);
-    leashWindow->uifirstContentDirty_ = false;
+    leashWindow->uifirstState_.contentDirty = false;
     leashWindow->SetVisibleRegion(visibleRegion);
 
     auto appWindow = RSTestUtil::CreateSurfaceNode();
@@ -538,7 +538,7 @@ HWTEST_F(RSUifirstManagerTest, CheckVisibleDirtyRegionIsEmpty003, TestSize.Level
     ASSERT_TRUE(uifirstManager_.CheckVisibleDirtyRegionIsEmpty(leashWindow));
 
     leashWindow->SetVisibleRegion(visibleRegion);
-    leashWindow->uifirstContentDirty_ = true;
+    leashWindow->uifirstState_.contentDirty = true;
     ASSERT_FALSE(uifirstManager_.CheckVisibleDirtyRegionIsEmpty(leashWindow));
 }
 
@@ -802,10 +802,10 @@ HWTEST_F(RSUifirstManagerTest, UifirstStateChange, TestSize.Level1)
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
     // not support cache type switch, just disable multithread cache
-    surfaceNode->SetLastFrameUifirstFlag(MultiThreadCacheType::LEASH_WINDOW);
+    surfaceNode->SetLastFrameUifirstCacheType(MultiThreadCacheType::LEASH_WINDOW);
     auto currentFrameCacheType = MultiThreadCacheType::NONFOCUS_WINDOW;
     uifirstManager_.UifirstStateChange(*surfaceNode, currentFrameCacheType);
-    ASSERT_EQ(surfaceNode->GetLastFrameUifirstFlag(), MultiThreadCacheType::NONE);
+    ASSERT_EQ(surfaceNode->GetLastFrameUifirstCacheType(), MultiThreadCacheType::NONE);
 }
 
 /**
@@ -819,10 +819,10 @@ HWTEST_F(RSUifirstManagerTest, UifirstStateChange002, TestSize.Level1)
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
     // not support cache type switch, just disable multithread cache
-    surfaceNode->SetLastFrameUifirstFlag(MultiThreadCacheType::NONE);
+    surfaceNode->SetLastFrameUifirstCacheType(MultiThreadCacheType::NONE);
     auto currentFrameCacheType = MultiThreadCacheType::LEASH_WINDOW;
     uifirstManager_.UifirstStateChange(*surfaceNode, currentFrameCacheType);
-    ASSERT_EQ(surfaceNode->GetLastFrameUifirstFlag(), MultiThreadCacheType::LEASH_WINDOW);
+    ASSERT_EQ(surfaceNode->GetLastFrameUifirstCacheType(), MultiThreadCacheType::LEASH_WINDOW);
 }
 
 /**
@@ -836,10 +836,10 @@ HWTEST_F(RSUifirstManagerTest, UifirstStateChange003, TestSize.Level1)
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
 
-    surfaceNode->SetLastFrameUifirstFlag(MultiThreadCacheType::LEASH_WINDOW);
+    surfaceNode->SetLastFrameUifirstCacheType(MultiThreadCacheType::LEASH_WINDOW);
     auto currentFrameCacheType = MultiThreadCacheType::LEASH_WINDOW;
     uifirstManager_.UifirstStateChange(*surfaceNode, currentFrameCacheType);
-    ASSERT_EQ(surfaceNode->GetLastFrameUifirstFlag(), MultiThreadCacheType::LEASH_WINDOW);
+    ASSERT_EQ(surfaceNode->GetLastFrameUifirstCacheType(), MultiThreadCacheType::LEASH_WINDOW);
 }
 
 /**
@@ -853,10 +853,10 @@ HWTEST_F(RSUifirstManagerTest, UifirstStateChange004, TestSize.Level1)
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
 
-    surfaceNode->SetLastFrameUifirstFlag(MultiThreadCacheType::LEASH_WINDOW);
+    surfaceNode->SetLastFrameUifirstCacheType(MultiThreadCacheType::LEASH_WINDOW);
     auto currentFrameCacheType = MultiThreadCacheType::NONE;
     uifirstManager_.UifirstStateChange(*surfaceNode, currentFrameCacheType);
-    ASSERT_EQ(surfaceNode->GetLastFrameUifirstFlag(), MultiThreadCacheType::NONE);
+    ASSERT_EQ(surfaceNode->GetLastFrameUifirstCacheType(), MultiThreadCacheType::NONE);
 }
 
 /**
@@ -876,12 +876,12 @@ HWTEST_F(RSUifirstManagerTest, UifirstStateChange005, TestSize.Level1)
         .isFirst = true
     };
 
-    surfaceNode->SetLastFrameUifirstFlag(MultiThreadCacheType::NONFOCUS_WINDOW);
+    surfaceNode->SetLastFrameUifirstCacheType(MultiThreadCacheType::NONFOCUS_WINDOW);
     auto currentFrameCacheType = MultiThreadCacheType::NONE;
     uifirstManager_.UifirstStateChange(*surfaceNode, currentFrameCacheType);
     ASSERT_EQ(uifirstManager_.pendingNodeBehindWindow_.size(), 0);
 
-    surfaceNode->SetLastFrameUifirstFlag(MultiThreadCacheType::NONFOCUS_WINDOW);
+    surfaceNode->SetLastFrameUifirstCacheType(MultiThreadCacheType::NONFOCUS_WINDOW);
     uifirstManager_.UifirstStateChange(*surfaceNode, currentFrameCacheType);
     ASSERT_EQ(uifirstManager_.pendingNodeBehindWindow_.size(), 0);
 
@@ -944,7 +944,7 @@ HWTEST_F(RSUifirstManagerTest, CheckIfAppWindowHasAnimation002, TestSize.Level1)
     auto surfaceNode2 = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode2, nullptr);
     surfaceNode2->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
-    surfaceNode2->uifirstStartTime_ = 300;
+    surfaceNode2->uifirstState_.uifirstStartTime = 300;
     EXPECT_FALSE(uifirstManager_.CheckIfAppWindowHasAnimation(*surfaceNode2));
     auto& element = uifirstManager_.currentFrameEvent_.back();
     element.sceneId = "ABILITY_OR_PAGE_SWITCH";
@@ -994,17 +994,17 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPhone001, TestSize.Level1)
     surfaceNode1->SetSubThreadAssignable(true);
     // 1. surfaceNode1 only has animation.
     uifirstManager_.UpdateUifirstNodes(*surfaceNode1, true);
-    ASSERT_EQ(surfaceNode1->lastFrameUifirstFlag_, MultiThreadCacheType::LEASH_WINDOW);
+    ASSERT_EQ(surfaceNode1->uifirstState_.lastFrameCacheType, MultiThreadCacheType::LEASH_WINDOW);
     // 2. surfaceNode1 not has animation.
     uifirstManager_.UpdateUifirstNodes(*surfaceNode1, false);
-    ASSERT_EQ(surfaceNode1->lastFrameUifirstFlag_, MultiThreadCacheType::NONE);
+    ASSERT_EQ(surfaceNode1->uifirstState_.lastFrameCacheType, MultiThreadCacheType::NONE);
     // 3. surfaceNode1 has animation and filter.
     uifirstManager_.UpdateUifirstNodes(*surfaceNode1, true);
-    ASSERT_EQ(surfaceNode1->lastFrameUifirstFlag_, MultiThreadCacheType::NONE);
+    ASSERT_EQ(surfaceNode1->uifirstState_.lastFrameCacheType, MultiThreadCacheType::NONE);
     // 4. surfaceNode1 has animation, filter and rotation.
     uifirstManager_.rotationChanged_ = true;
     uifirstManager_.UpdateUifirstNodes(*surfaceNode1, true);
-    ASSERT_EQ(surfaceNode1->lastFrameUifirstFlag_, MultiThreadCacheType::NONE);
+    ASSERT_EQ(surfaceNode1->uifirstState_.lastFrameCacheType, MultiThreadCacheType::NONE);
 
     // 5. surfaceNode2 has animation, WindowType is scb.
     auto surfaceNode2 = RSTestUtil::CreateSurfaceNode();
@@ -1013,14 +1013,14 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPhone001, TestSize.Level1)
     uifirstManager_.rotationChanged_ = false;
     const_cast<SurfaceWindowType&>(surfaceNode2->surfaceWindowType_) = SurfaceWindowType::SYSTEM_SCB_WINDOW;
     uifirstManager_.UpdateUifirstNodes(*surfaceNode2, true);
-    ASSERT_EQ(surfaceNode2->lastFrameUifirstFlag_, MultiThreadCacheType::NONE);
+    ASSERT_EQ(surfaceNode2->uifirstState_.lastFrameCacheType, MultiThreadCacheType::NONE);
 
     // 6. surfaceNode3 has animation, nodeType is self_drawing.
     auto surfaceNode3 = RSTestUtil::CreateSurfaceNode();
     surfaceNode3->SetSurfaceNodeType(RSSurfaceNodeType::SELF_DRAWING_NODE);
     surfaceNode3->firstLevelNodeId_ = surfaceNode3->GetId();
     uifirstManager_.UpdateUifirstNodes(*surfaceNode3, true);
-    ASSERT_EQ(surfaceNode3->lastFrameUifirstFlag_, MultiThreadCacheType::NONE);
+    ASSERT_EQ(surfaceNode3->uifirstState_.lastFrameCacheType, MultiThreadCacheType::NONE);
 }
 
 /**
@@ -1043,7 +1043,7 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPhone002, TestSize.Level1)
     surfaceNode1->UpdateChildSubSurfaceNodes(surfaceNode2, true);
     surfaceNode1->SetSubThreadAssignable(true);
     uifirstManager_.UpdateUifirstNodes(*surfaceNode1, false);
-    ASSERT_EQ(surfaceNode1->lastFrameUifirstFlag_, MultiThreadCacheType::LEASH_WINDOW);
+    ASSERT_EQ(surfaceNode1->uifirstState_.lastFrameCacheType, MultiThreadCacheType::LEASH_WINDOW);
     uifirstManager_.isRecentTaskScene_ = false;
 
     // 3. cardNode
@@ -1063,7 +1063,7 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPhone002, TestSize.Level1)
     surfaceNode3->SetSubThreadAssignable(true);
     uifirstManager_.SetCardUiFirstSwitch(true);
     uifirstManager_.UpdateUifirstNodes(*surfaceNode3, false);
-    ASSERT_EQ(surfaceNode3->lastFrameUifirstFlag_, MultiThreadCacheType::ARKTS_CARD);
+    ASSERT_EQ(surfaceNode3->uifirstState_.lastFrameCacheType, MultiThreadCacheType::ARKTS_CARD);
 }
 
 /**
@@ -1079,17 +1079,17 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPhone003, TestSize.Level1)
     leashWindow->firstLevelNodeId_ = leashWindow->GetId();
     uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
 
-    leashWindow->SetLastFrameUifirstFlag(MultiThreadCacheType::LEASH_WINDOW);
+    leashWindow->SetLastFrameUifirstCacheType(MultiThreadCacheType::LEASH_WINDOW);
     // no starting window
     uifirstManager_.UpdateUifirstNodes(*leashWindow, true);
-    ASSERT_EQ(leashWindow->GetLastFrameUifirstFlag(), MultiThreadCacheType::LEASH_WINDOW);
+    ASSERT_EQ(leashWindow->GetLastFrameUifirstCacheType(), MultiThreadCacheType::LEASH_WINDOW);
 
-    leashWindow->SetLastFrameUifirstFlag(MultiThreadCacheType::NONE);
+    leashWindow->SetLastFrameUifirstCacheType(MultiThreadCacheType::NONE);
     // no starting window
     uifirstManager_.UpdateUifirstNodes(*leashWindow, true);
-    ASSERT_EQ(leashWindow->GetLastFrameUifirstFlag(), MultiThreadCacheType::NONE);
+    ASSERT_EQ(leashWindow->GetLastFrameUifirstCacheType(), MultiThreadCacheType::NONE);
 
-    leashWindow->SetLastFrameUifirstFlag(MultiThreadCacheType::NONE);
+    leashWindow->SetLastFrameUifirstCacheType(MultiThreadCacheType::NONE);
     auto appWindow = RSTestUtil::CreateSurfaceNode();
     appWindow->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
     auto startingWindow = std::make_shared<RSCanvasRenderNode>(1);
@@ -1100,7 +1100,7 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPhone003, TestSize.Level1)
     leashWindow->fullChildrenList_ = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(children);
     // use starting window
     uifirstManager_.UpdateUifirstNodes(*leashWindow, true);
-    ASSERT_EQ(leashWindow->GetLastFrameUifirstFlag(), MultiThreadCacheType::LEASH_WINDOW);
+    ASSERT_EQ(leashWindow->GetLastFrameUifirstCacheType(), MultiThreadCacheType::LEASH_WINDOW);
 }
 
 /**
@@ -1118,21 +1118,21 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPC, TestSize.Level1)
     // 1. surfaceNode1 is focus window, not has animation and filter and rotation.
     mainThread_->focusNodeId_ = surfaceNode1->GetId();
     uifirstManager_.UpdateUifirstNodes(*surfaceNode1, false);
-    ASSERT_EQ(surfaceNode1->lastFrameUifirstFlag_, MultiThreadCacheType::NONE);
+    ASSERT_EQ(surfaceNode1->uifirstState_.lastFrameCacheType, MultiThreadCacheType::NONE);
     // 2. surfaceNode1 is focus window, has animation. first frame
     uifirstManager_.UpdateUifirstNodes(*surfaceNode1, true);
-    ASSERT_EQ(surfaceNode1->lastFrameUifirstFlag_, MultiThreadCacheType::NONE);
+    ASSERT_EQ(surfaceNode1->uifirstState_.lastFrameCacheType, MultiThreadCacheType::NONE);
     // 3. second frame
     uifirstManager_.UpdateUifirstNodes(*surfaceNode1, true);
-    ASSERT_EQ(surfaceNode1->lastFrameUifirstFlag_, MultiThreadCacheType::NONFOCUS_WINDOW);
+    ASSERT_EQ(surfaceNode1->uifirstState_.lastFrameCacheType, MultiThreadCacheType::NONFOCUS_WINDOW);
     // 4. surfaceNode1 is focus window, has animation and transparent, not has filter.
     surfaceNode1->hasTransparentSurface_ = true;
     uifirstManager_.UpdateUifirstNodes(*surfaceNode1, true);
-    ASSERT_EQ(surfaceNode1->lastFrameUifirstFlag_, MultiThreadCacheType::NONFOCUS_WINDOW);
+    ASSERT_EQ(surfaceNode1->uifirstState_.lastFrameCacheType, MultiThreadCacheType::NONFOCUS_WINDOW);
     // 5. surfaceNode1 is focus window, has animation and filter, not has transparent.
     surfaceNode1->hasTransparentSurface_ = false;
     uifirstManager_.UpdateUifirstNodes(*surfaceNode1, true);
-    ASSERT_EQ(surfaceNode1->lastFrameUifirstFlag_, MultiThreadCacheType::NONFOCUS_WINDOW);
+    ASSERT_EQ(surfaceNode1->uifirstState_.lastFrameCacheType, MultiThreadCacheType::NONFOCUS_WINDOW);
     mainThread_->focusNodeId_ = 0;
 
     auto surfaceNode2 = RSTestUtil::CreateSurfaceNode();
@@ -1140,17 +1140,17 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPC, TestSize.Level1)
     surfaceNode2->firstLevelNodeId_ = surfaceNode2->GetId();
     // 5. surfaceNode2 is not focus window, not has filter and transparent. first frame
     uifirstManager_.UpdateUifirstNodes(*surfaceNode2, false);
-    ASSERT_EQ(surfaceNode2->lastFrameUifirstFlag_, MultiThreadCacheType::NONE);
+    ASSERT_EQ(surfaceNode2->uifirstState_.lastFrameCacheType, MultiThreadCacheType::NONE);
     // 6. second frame
     uifirstManager_.UpdateUifirstNodes(*surfaceNode2, false);
-    ASSERT_EQ(surfaceNode2->lastFrameUifirstFlag_, MultiThreadCacheType::NONFOCUS_WINDOW);
+    ASSERT_EQ(surfaceNode2->uifirstState_.lastFrameCacheType, MultiThreadCacheType::NONFOCUS_WINDOW);
     // 7. surfaceNode2 is not focus window, has transparent.
     surfaceNode2->hasTransparentSurface_ = true;
     uifirstManager_.UpdateUifirstNodes(*surfaceNode2, false);
-    ASSERT_EQ(surfaceNode2->lastFrameUifirstFlag_, MultiThreadCacheType::NONFOCUS_WINDOW);
+    ASSERT_EQ(surfaceNode2->uifirstState_.lastFrameCacheType, MultiThreadCacheType::NONFOCUS_WINDOW);
     // 8. surfaceNode2 is not focus window, has filter and transparent.
     uifirstManager_.UpdateUifirstNodes(*surfaceNode2, true);
-    ASSERT_EQ(surfaceNode2->lastFrameUifirstFlag_, MultiThreadCacheType::NONFOCUS_WINDOW);
+    ASSERT_EQ(surfaceNode2->uifirstState_.lastFrameCacheType, MultiThreadCacheType::NONFOCUS_WINDOW);
     // 9. surfaceNode2 is not focus window, not has filter and transparent, has display rotation.
     surfaceNode2->hasTransparentSurface_ = false;
     uifirstManager_.rotationChanged_ = true;
@@ -1207,7 +1207,7 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPC_001, TestSize.Level1)
     leashWindowNode->shouldPaint_ = true;
     leashWindowNode->SetSkipDraw(false);
     visitor->QuickPrepareCanvasRenderNode(*rsCanvasRenderNode);
-    ASSERT_EQ(leashWindowNode->lastFrameUifirstFlag_, MultiThreadCacheType::NONE);
+    ASSERT_EQ(leashWindowNode->uifirstState_.lastFrameCacheType, MultiThreadCacheType::NONE);
     ASSERT_EQ(leashWindowNode->GetSubThreadAssignable(), false);
 
     // case02: shouldpaint of parent node is true but shouldpaint of leashwindow is false
@@ -1215,7 +1215,7 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPC_001, TestSize.Level1)
     leashWindowNode->shouldPaint_ = false;
     leashWindowNode->SetSkipDraw(false);
     visitor->QuickPrepareCanvasRenderNode(*rsCanvasRenderNode);
-    ASSERT_EQ(leashWindowNode->lastFrameUifirstFlag_, MultiThreadCacheType::NONE);
+    ASSERT_EQ(leashWindowNode->uifirstState_.lastFrameCacheType, MultiThreadCacheType::NONE);
     ASSERT_EQ(leashWindowNode->GetSubThreadAssignable(), false);
 
     // case03: shouldpaint of parent node and leashwindow is true, but leashwindow skipdraw is true
@@ -1223,7 +1223,7 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPC_001, TestSize.Level1)
     leashWindowNode->shouldPaint_ = true;
     leashWindowNode->SetSkipDraw(true);
     visitor->QuickPrepareCanvasRenderNode(*rsCanvasRenderNode);
-    ASSERT_EQ(leashWindowNode->lastFrameUifirstFlag_, MultiThreadCacheType::NONE);
+    ASSERT_EQ(leashWindowNode->uifirstState_.lastFrameCacheType, MultiThreadCacheType::NONE);
     ASSERT_EQ(leashWindowNode->GetSubThreadAssignable(), false);
 
     // case04: shouldpaint of parent node and leashwindow is true, but leashwindow skipdraw is false
@@ -1231,7 +1231,7 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPC_001, TestSize.Level1)
     leashWindowNode->shouldPaint_ = true;
     leashWindowNode->SetSkipDraw(false);
     visitor->QuickPrepareCanvasRenderNode(*rsCanvasRenderNode);
-    ASSERT_EQ(leashWindowNode->lastFrameUifirstFlag_, MultiThreadCacheType::NONE);
+    ASSERT_EQ(leashWindowNode->uifirstState_.lastFrameCacheType, MultiThreadCacheType::NONE);
     ASSERT_EQ(leashWindowNode->GetSubThreadAssignable(), true);
 
     // case05: shouldpaint of parent node and leashwindow is true, but leashwindow skipdraw is false
@@ -1239,7 +1239,7 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodesPC_001, TestSize.Level1)
     leashWindowNode->shouldPaint_ = true;
     leashWindowNode->SetSkipDraw(false);
     visitor->QuickPrepareCanvasRenderNode(*rsCanvasRenderNode);
-    ASSERT_EQ(leashWindowNode->lastFrameUifirstFlag_, MultiThreadCacheType::NONFOCUS_WINDOW);
+    ASSERT_EQ(leashWindowNode->uifirstState_.lastFrameCacheType, MultiThreadCacheType::NONFOCUS_WINDOW);
     ASSERT_EQ(leashWindowNode->GetSubThreadAssignable(), true);
 
     // restore uifirstManager_ states
@@ -1362,7 +1362,7 @@ HWTEST_F(RSUifirstManagerTest, UpdateSkipSyncNode001, TestSize.Level1)
     surfaceNode->instanceRootNodeId_ = 10;
     uifirstManager_.UpdateSkipSyncNode();
 
-    surfaceNode->lastFrameUifirstFlag_ = MultiThreadCacheType::ARKTS_CARD;
+    surfaceNode->uifirstState_.lastFrameCacheType = MultiThreadCacheType::ARKTS_CARD;
     uifirstManager_.UpdateSkipSyncNode();
 
     uifirstManager_.subthreadProcessingNode_.clear();
@@ -1429,6 +1429,24 @@ HWTEST_F(RSUifirstManagerTest, CollectSkipSyncNode001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CollectSkipSyncNode001
+ * @tc.desc: Test CollectSkipSyncNode
+ * @tc.type: FUNC
+ * @tc.require: issueIADDL3
+ */
+HWTEST_F(RSUifirstManagerTest, CollectSkipSyncNode002, TestSize.Level1)
+{
+    uifirstManager_.pendingPostCardNodes_.clear();
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    uifirstManager_.pendingPostCardNodes_.insert(std::make_pair(surfaceNode->GetId(), surfaceNode));
+    surfaceNode->instanceRootNodeId_ = 1;
+    surfaceNode->uifirstRootNodeId_ = surfaceNode->GetId();
+    auto res = uifirstManager_.CollectSkipSyncNode(surfaceNode);
+    EXPECT_TRUE(res);
+    uifirstManager_.pendingPostCardNodes_.clear();
+}
+
+/**
  * @tc.name: RestoreSkipSyncNode001
  * @tc.desc: Test RestoreSkipSyncNode
  * @tc.type: FUNC
@@ -1473,7 +1491,7 @@ HWTEST_F(RSUifirstManagerTest, RestoreSkipSyncNode001, TestSize.Level1)
     uifirstManager_.RestoreSkipSyncNode();
     EXPECT_TRUE(uifirstManager_.processingCardNodeSkipSync_.size() == 0);
 
-    surfaceNode->SetLastFrameUifirstFlag(MultiThreadCacheType::ARKTS_CARD);
+    surfaceNode->SetLastFrameUifirstCacheType(MultiThreadCacheType::ARKTS_CARD);
     uifirstManager_.pendingSyncForSkipBefore_.insert(std::make_pair(surfaceNode->GetId(), renderNodeVec2));
     uifirstManager_.RestoreSkipSyncNode();
     EXPECT_TRUE(uifirstManager_.pendingSyncForSkipBefore_.size() == 0);
@@ -2066,16 +2084,16 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodes002, TestSize.Level1)
     surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
     surfaceNode->isChildSupportUifirst_ = true;
     surfaceNode->firstLevelNodeId_ = surfaceNode->GetId();
-    surfaceNode->forceUIFirst_ = true;
+    surfaceNode->uifirstState_.forceUIFirst = true;
     surfaceNode->hasSharedTransitionNode_ = false;
-    surfaceNode->lastFrameUifirstFlag_ = MultiThreadCacheType::NONE;
+    surfaceNode->uifirstState_.lastFrameCacheType = MultiThreadCacheType::NONE;
     uifirstManager_.rotationChanged_ = false;
     uifirstManager_.UpdateUifirstNodes(*surfaceNode, true);
-    EXPECT_TRUE(surfaceNode->GetLastFrameUifirstFlag() == MultiThreadCacheType::NONE);
+    EXPECT_TRUE(surfaceNode->GetLastFrameUifirstCacheType() == MultiThreadCacheType::NONE);
 
-    surfaceNode->lastFrameUifirstFlag_ = MultiThreadCacheType::NONFOCUS_WINDOW;
+    surfaceNode->uifirstState_.lastFrameCacheType = MultiThreadCacheType::NONFOCUS_WINDOW;
     uifirstManager_.UpdateUifirstNodes(*surfaceNode, true);
-    EXPECT_TRUE(surfaceNode->GetLastFrameUifirstFlag() == MultiThreadCacheType::NONFOCUS_WINDOW);
+    EXPECT_TRUE(surfaceNode->GetLastFrameUifirstCacheType() == MultiThreadCacheType::NONFOCUS_WINDOW);
     uifirstManager_.uifirstType_ = UiFirstCcmType::SINGLE;
 }
 

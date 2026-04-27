@@ -29,6 +29,7 @@
 #include "common/rs_special_layer_manager.h"
 #include "common/rs_vector4.h"
 #include "display_engine/rs_luminance_control.h"
+#include "feature/uifirst/rs_uifirst_params.h"
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/buffer_clear_callback.h"
 #include "ipc_callbacks/surface_capture_callback.h"
@@ -752,24 +753,53 @@ public:
     void SetForceUIFirst(bool forceUIFirst);
     bool GetForceUIFirst() const
     {
-        return forceUIFirst_;
+        return uifirstState_.forceUIFirst;
     }
 
-    bool GetForceDrawWithSkipped() const;
-    void SetForceDrawWithSkipped(bool GetForceDrawWithSkipped)
+    // Mark uifirst leash node
+    void MarkUifirstNode(bool isForceFlag, bool isUifirstEnable);
+    bool GetUifirstNodeForceFlag() const;
+
+    MultiThreadCacheType GetLastFrameUifirstCacheType() const
     {
-        uifirstForceDrawWithSkipped_ = GetForceDrawWithSkipped;
+        return uifirstState_.lastFrameCacheType;
     }
 
-    void SetUIFirstIsPurge(bool IsPurge)
+    void SetLastFrameUifirstCacheType(MultiThreadCacheType cacheType)
     {
-        UIFirstIsPurge_ = IsPurge;
+        uifirstState_.lastFrameCacheType = cacheType;
     }
 
-    bool GetUIFirstIsPurge() const
+    bool GetForceUpdateByUifirst() const
     {
-        return UIFirstIsPurge_;
+        return uifirstState_.forceUpdate;
     }
+
+    void SetForceUpdateByUifirst(bool b)
+    {
+        uifirstState_.forceUpdate = b;
+    }
+
+    RSUIFirstSwitch GetUIFirstSwitch() const override
+    {
+        return uifirstState_.switchMode;
+    }
+
+    void SetUIFirstSwitch(RSUIFirstSwitch uiFirstSwitch) override
+    {
+        uifirstState_.switchMode = uiFirstSwitch;
+    }
+
+    bool GetForceDrawWithSkipped() const
+    {
+        return uifirstState_.forceDrawWithSkipped;
+    }
+
+    void SetForceDrawWithSkipped(bool forceDrawWithSkipped)
+    {
+        uifirstState_.forceDrawWithSkipped = forceDrawWithSkipped;
+    }
+
     void SetUifirstStartingWindowId(NodeId id); // only cache app window, first frame not wait
     NodeId GetUifirstStartingWindowId() const;
 
@@ -1381,19 +1411,9 @@ public:
 
     bool GetUifirstContentDirty()
     {
-        bool uifirstContentDirty = uifirstContentDirty_;
-        uifirstContentDirty_ = false;
+        bool uifirstContentDirty = uifirstState_.contentDirty;
+        uifirstState_.contentDirty = false;
         return uifirstContentDirty;
-    }
-
-    size_t GetLastFrameChildrenCnt()
-    {
-        return lastFrameChildrenCnt_;
-    }
-
-    void SetLastFrameChildrenCnt(size_t childrenCnt)
-    {
-        lastFrameChildrenCnt_ = childrenCnt;
     }
 
     bool GetUifirstSupportFlag() override
@@ -1469,21 +1489,47 @@ public:
 
     void SetUifirstStartTime(int64_t startTime)
     {
-        uifirstStartTime_ = startTime;
+        uifirstState_.uifirstStartTime = startTime;
     }
-
     int64_t GetUifirstStartTime() const
     {
-        return uifirstStartTime_;
+        return uifirstState_.uifirstStartTime;
+    }
+
+    void SetUifirstSkipPartialSync(bool skip)
+    {
+        uifirstState_.skipPartialSync = skip;
+    }
+    bool IsUifirstSkipPartialSync() const override
+    {
+        return uifirstState_.skipPartialSync;
+    }
+    void ClearUifirstSkipPartialSync() override
+    {
+        uifirstState_.skipPartialSync = false;
+    }
+
+    void SetUifirstNeedSync(bool needSync)
+    {
+        uifirstState_.needSync = needSync;
+    }
+
+    bool GetUifirstNeedSync() const override
+    {
+        return uifirstState_.needSync;
+    }
+    void ClearUifirstNeedSync() override
+    {
+        uifirstState_.needSync = false;
     }
 
     void SetUifirstHasContentAppWindow(bool hasAppWindow)
     {
-        uifirstHasContentAppWindow_ = hasAppWindow;
+        uifirstState_.hasAppWindow = hasAppWindow;
     }
     bool GetUifirstHasContentAppWindow() const
     {
-        return uifirstHasContentAppWindow_;
+        return uifirstState_.hasAppWindow;
     }
 
     void SetUIFirstVisibleFilterRect(const RectI& rect);
@@ -1682,11 +1728,11 @@ public:
     bool GetNeedCacheSurface() const;
     bool GetSubThreadAssignable() const
     {
-        return subThreadAssignable_;
+        return uifirstState_.subThreadAssignable;
     }
     void SetSubThreadAssignable(bool subThreadAssignable)
     {
-        subThreadAssignable_ = subThreadAssignable;
+        uifirstState_.subThreadAssignable = subThreadAssignable;
     }
     RSSpecialLayerManager& GetMultableSpecialLayerMgr()
     {
@@ -1774,12 +1820,12 @@ public:
     // [Attention] Used in uifirst for checking whether node and parent should paint or not
     void SetSelfAndParentShouldPaint(bool selfAndParentShouldPaint)
     {
-        selfAndParentShouldPaint_ = selfAndParentShouldPaint;
+        uifirstState_.selfAndParentShouldPaint = selfAndParentShouldPaint;
     }
 
     bool GetSelfAndParentShouldPaint() const
     {
-        return selfAndParentShouldPaint_;
+        return uifirstState_.selfAndParentShouldPaint;
     }
 
     inline bool IsHardwareDisabledBySrcRect() const
@@ -1971,18 +2017,12 @@ private:
     // mark if this self-drawing node do not consume buffer when gpu -> hwc
     bool hwcDelayDirtyFlag_ = false;
     bool isForeground_ = false;
-    bool UIFirstIsPurge_ = false;
-    bool isTargetUIFirstDfxEnabled_ = false;
     bool hasSharedTransitionNode_ = false;
     bool lastFrameShouldPaint_ = true;
-    bool uifirstContentDirty_ = false;
     // point window
     bool isHardCursor_ = false;
     bool isLastHardCursor_ = false;
     bool needDrawFocusChange_ = false;
-    bool forceUIFirstChanged_ = false;
-    bool forceUIFirst_ = false;
-    bool uifirstForceDrawWithSkipped_ = false;
     bool hasTransparentSurface_ = false;
     bool isGpuOverDrawBufferOptimizeNode_ = false;
     bool isSubSurfaceNode_ = false;
@@ -1993,11 +2033,10 @@ private:
     bool isHardwareForcedByBackgroundAlpha_ = false;
     bool arsrTag_ = true;
     bool copybitTag_ = false;
-    
+
     // hpae offline
     bool deviceOfflineEnable_ = false;
-    
-    bool subThreadAssignable_ = false;
+
     bool oldNeedDrawBehindWindow_ = false;
     bool isStableSkipReached_ = false;
     RectI skipFrameDirtyRect_;
@@ -2007,8 +2046,6 @@ private:
     std::atomic_bool isBufferAvailable_ = false;
     std::atomic<CacheProcessStatus> cacheProcessStatus_ = CacheProcessStatus::WAITING;
     std::atomic<bool> isNeedSubmitSubThread_ = true;
-    // whether to wait uifirst first frame finished when buffer available callback invoked.
-    std::atomic<bool> isWaitUifirstFirstFrame_ = false;
     std::atomic<bool> hasUnSubmittedOccludedDirtyRegion_ = false;
     static inline std::atomic<bool> ancoForceDoDirect_ = false;
     float contextAlpha_ = 1.0f;
@@ -2077,9 +2114,7 @@ private:
     };
     GamutCollector gamutCollector_;
     // UIFirst
-    int64_t uifirstStartTime_ = -1;
-    bool uifirstHasContentAppWindow_ = false;
-    size_t lastFrameChildrenCnt_ = 0;
+    RSUIFirstNodeState uifirstState_;
     sptr<RSIBufferAvailableCallback> callbackFromRT_ = nullptr;
     sptr<RSIBufferAvailableCallback> callbackFromUI_ = nullptr;
     sptr<RSIBufferClearCallback> clearBufferCallback_ = nullptr;
@@ -2232,9 +2267,6 @@ private:
     std::unordered_map<std::string, bool> watermarkHandles_ = {};
     std::unordered_set<NodeId> childrenBlurBehindWindow_ = {};
     std::unordered_map<NodeId, Drawing::Matrix> crossNodeSkipDisplayConversionMatrices_ = {};
-
-    // used in uifirst for checking whether node and parents should paint or not
-    bool selfAndParentShouldPaint_ = true;
 
     bool isFrameGravityNewVersionEnabled_ = false;
 
