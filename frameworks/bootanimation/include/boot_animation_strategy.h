@@ -35,7 +35,7 @@ public:
 
     bool IsOtaUpdate() const;
 
-    void GetConnectToRenderMap(int count);
+    void GetConnectToRenderMap(int count, uint32_t timeoutMs = 0);
     void SubscribeActiveScreenIdChanged();
 
     Rosen::ScreenId GetActiveScreenId();

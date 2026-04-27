@@ -89,7 +89,7 @@ bool BootAnimationStrategy::IsOtaUpdate() const
     return isSingleUpdate || isHmosUpdate;
 }
 
-void BootAnimationStrategy::GetConnectToRenderMap(int count)
+void BootAnimationStrategy::GetConnectToRenderMap(int count, uint32_t timeoutMs)
 {
     LOGI("BootAnimationStrategy::%{public}s set screen change callback start.", __func__);
     auto cv = std::make_shared<std::condition_variable>();
@@ -111,13 +111,27 @@ void BootAnimationStrategy::GetConnectToRenderMap(int count)
         });
     {
         std::unique_lock<std::mutex> lock(connectToRenderMapMtx_);
-        LOGI("BootAnimationStrategy::GetConnectToRenderMap start infinite waiting for %{public}d screens.", count);
-        cv->wait(lock, [this, count]() {
-            return this->connectToRenderMap_.size() >= static_cast<size_t>(count);
-        });
-        
-        LOGI("BootAnimationStrategy::GetConnectToRenderMap wait finished. Currently got %{public}zu.",
-             this->connectToRenderMap_.size());
+        if (timeoutMs > 0) {
+            LOGI("BootAnimationStrategy::GetConnectToRenderMap start waiting for %{public}d screens, timeout %{public}u ms.",
+                 count, timeoutMs);
+            bool success = cv->wait_for(lock, std::chrono::milliseconds(timeoutMs), [this, count]() {
+                return this->connectToRenderMap_.size() >= static_cast<size_t>(count);
+            });
+            if (!success) {
+                LOGI("BootAnimationStrategy::GetConnectToRenderMap wait timeout. Expected %{public}d, got %{public}zu.",
+                     count, this->connectToRenderMap_.size());
+            } else {
+                LOGI("BootAnimationStrategy::GetConnectToRenderMap wait finished. Currently got %{public}zu.",
+                     this->connectToRenderMap_.size());
+            }
+        } else {
+            LOGI("BootAnimationStrategy::GetConnectToRenderMap start infinite waiting for %{public}d screens.", count);
+            cv->wait(lock, [this, count]() {
+                return this->connectToRenderMap_.size() >= static_cast<size_t>(count);
+            });
+            LOGI("BootAnimationStrategy::GetConnectToRenderMap wait finished. Currently got %{public}zu.",
+                 this->connectToRenderMap_.size());
+        }
     }
     LOGI("BootAnimationStrategy::%{public}s set screen change callback end.", __func__);
 }
