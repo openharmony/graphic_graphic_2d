@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.. All rights reserved.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -477,6 +477,24 @@ public:
     virtual void DrawSVGDOM(const sk_sp<SkSVGDOM>& svgDom);
 
     // text
+    /**
+     * @brief glyphs, their positions, and paint attributes specific to text:
+     * Typeface, text size, text scale x, text skew x, anti-alias, fake bold,
+     * font embedded bitmaps, pen/brush full hinting spacing, LCD text, linear text,
+     * and subpixel text. TextEncoding must be set to TextEncoding::GLYPH_ID.
+     * Elements of pen/brush: anti-alias, BlendMode, color including alpha,
+     * ColorFilter, MaskFilter, PathEffect, Shader, and Brush::Style; apply to blob.
+     * If attach pen to draw text, set Pen::Cap, Pen::Join, and stroke width;
+     * apply to Path created from blob.
+     * @param count Number of glyphs.
+     * @param glyphs Array of glyphIDs.
+     * @param positions offset of each glyph to origin.
+     * @param origin origin of all pos.
+     * @param font Typeface, font size, skew or more other styles.
+     */
+    virtual void DrawGlyphs(int count, const uint16_t glyphs[], const Point positions[],
+                            Point origin, const Font* font);
+
     /**
      * @brief blob contains glyphs, their positions, and paint attributes specific to text:
      * Typeface, text size, text scale x, text skew x, anti-alias, fake bold,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.. All rights reserved.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,6 +25,7 @@
 #include "skia_path.h"
 #include "skia_image_info.h"
 #include "skia_data.h"
+#include "skia_font.h"
 #include "skia_text_blob.h"
 #include "skia_surface.h"
 #include "skia_canvas_autocache.h"
@@ -1016,6 +1017,36 @@ void SkiaCanvas::DrawSVGDOM(const sk_sp<SkSVGDOM>& svgDom)
         return;
     }
     svgDom->render(skCanvas_);
+}
+
+void SkiaCanvas::DrawGlyphs(int count, const uint16_t glyphs[], const Point positions[],
+                            Point origin, const Font* font, const Paint& paint)
+{
+    if (!skCanvas_) {
+        LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
+        return;
+    }
+    if (!font) {
+        LOGD("font is null, return on line %{public}d", __LINE__);
+        return;
+    }
+    if (!glyphs || !positions) {
+        LOGD("array is null, return on line %{public}d", __LINE__);
+        return;
+    }
+    auto skiaFont = font->GetImpl<SkiaFont>();
+    if (!skiaFont) {
+        LOGD("skiaFont is null, return on line %{public}d", __LINE__);
+        return;
+    }
+    auto skFont = skiaFont->GetFont();
+    skPaint_ = defaultPaint_;
+    SkiaPaint::PaintToSkPaint(paint, skPaint_);
+    const SkPoint* skPts = reinterpret_cast<const SkPoint*>(positions);
+    SkPoint skOrigin;
+    skOrigin.fX = origin.GetX();
+    skOrigin.fY = origin.GetY();
+    skCanvas_->drawGlyphs(count, glyphs, skPts, skOrigin, skFont, skPaint_);
 }
 
 void SkiaCanvas::DrawTextBlob(const TextBlob* blob, const scalar x, const scalar y, const Paint& paint)
