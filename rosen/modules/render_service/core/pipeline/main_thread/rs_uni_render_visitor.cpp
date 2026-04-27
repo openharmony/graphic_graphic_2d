@@ -1654,22 +1654,22 @@ CM_INLINE void RSUniRenderVisitor::PrepareForUIFirstNode(RSSurfaceRenderNode& no
     RSUifirstManager::Instance().MarkSubHighPriorityType(node);
     if (isTargetUIFirstDfxEnabled_) {
         auto isTargetUIFirstDfxSurface = CheckIfSurfaceForUIFirstDFX(node.GetName());
-        if (!node.isTargetUIFirstDfxEnabled_ && isTargetUIFirstDfxSurface) {
+        if (!node.uifirstState_.isTargetDfxEnabled && isTargetUIFirstDfxSurface) {
             RS_LOGD("UIFirstDFX Name[%{public}s] ID[%{public}" PRIu64 "] OpenDebug",
                 node.GetName().c_str(), node.GetId());
         }
-        node.isTargetUIFirstDfxEnabled_ = isTargetUIFirstDfxSurface;
+        node.uifirstState_.isTargetDfxEnabled = isTargetUIFirstDfxSurface;
     }
     RSUifirstManager::Instance().UpdateUifirstNodes(node, ancestorNodeHasAnimation_ || node.GetCurFrameHasAnimation());
     RSUifirstManager::Instance().SetUIFirstLeashAllEnable(node);
     RSUifirstManager::Instance().RecordScreenRect(node, curScreenNode_->GetScreenRect());
     if (RSUifirstManager::Instance().IsUIFirstDirtyEnabled() &&
-        node.GetLastFrameUifirstFlag() == MultiThreadCacheType::NONFOCUS_WINDOW) {
+        node.GetLastFrameUifirstCacheType() == MultiThreadCacheType::NONFOCUS_WINDOW) {
         const auto& visibleFilterRect = RSUniFilterDirtyComputeUtil::GetVisibleFilterRect(node);
         node.SetUIFirstVisibleFilterRect(visibleFilterRect);
     }
     bool isUifirstCard = (node.IsAbilityComponent() && node.GetNeedCacheSurface()) ||
-        node.GetLastFrameUifirstFlag() == MultiThreadCacheType::ARKTS_CARD;
+        node.GetLastFrameUifirstCacheType() == MultiThreadCacheType::ARKTS_CARD;
     if (isUifirstCard) {
         for (auto& [_, nodePtr] : renderGroupCacheRoots_) {
             // disable render group because cards will use uifirst cache

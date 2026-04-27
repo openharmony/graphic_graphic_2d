@@ -111,7 +111,7 @@ void RSNodeCommandHelper::ForceUifirstNode(RSContext& context, NodeId nodeId, bo
     bool isUifirstEnable)
 {
     auto& nodeMap = context.GetNodeMap();
-    if (auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId)) {
+    if (auto node = nodeMap.GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
         node->MarkUifirstNode(isForceFlag, isUifirstEnable);
     }
 }

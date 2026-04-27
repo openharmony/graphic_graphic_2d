@@ -37,6 +37,16 @@ namespace OHOS::Rosen {
 constexpr int32_t DEFAULT_CANVAS_SIZE = 100;
 constexpr NodeId DEFAULT_ID = 0xFFFF;
 
+class RSTestDrawable : public RSDrawable {
+public:
+    RSTestDrawable() = default;
+    ~RSTestDrawable() override = default;
+
+    //no need to sync, content_ only used in render thread
+    void OnSync() override {};
+    void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override {};
+};
+
 class RSSurfaceRenderNodeDrawableTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -526,7 +536,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CaptureSurface008, TestSize.Level1)
     ASSERT_TRUE(surfaceParams->GetSpecialLayerMgr().FindWithScreen(virtualScreenId, SpecialLayerType::HAS_BLACK_LIST));
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
 
-    surfaceParams->uiFirstFlag_ = MultiThreadCacheType::LEASH_WINDOW;
+    surfaceParams->uifirstParams_.cacheType = MultiThreadCacheType::LEASH_WINDOW;
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
 
     RSUniRenderThread::GetCaptureParam().isMirror_ = false;
@@ -535,7 +545,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CaptureSurface008, TestSize.Level1)
     surfaceParams->GetMultableSpecialLayerMgr().SetWithScreen(virtualScreenId, SpecialLayerType::HAS_BLACK_LIST, false);
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
 
-    surfaceParams->uiFirstFlag_ = MultiThreadCacheType::NONE;
+    surfaceParams->uifirstParams_.cacheType = MultiThreadCacheType::NONE;
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
 
     surfaceParams->GetMultableSpecialLayerMgr().SetWithScreen(virtualScreenId, SpecialLayerType::HAS_BLACK_LIST, true);
@@ -577,6 +587,55 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CaptureSurface009, TestSize.Level2)
     RSUniRenderThread::SetCaptureParam(captureParam2);
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
     EXPECT_TRUE(uniParams->GetSecExemption());
+}
+
+/**
+ * @tc.name: DrawUifirstContentChildrenTest
+ * @tc.desc: Test DrawUifirstContentChildren
+ * @tc.type: FUNC
+ * @tc.require: issueI9UTMA
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawUifirstContentChildrenTest, TestSize.Level1)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+    Drawing::Canvas canvas;
+    Drawing::Rect rect;
+    surfaceDrawable->DrawUifirstContentChildren(canvas, rect);
+    EXPECT_TRUE(surfaceDrawable->uifirstDrawCmdList_.empty());
+
+    std::shared_ptr<RSTestDrawable> rsDrawable = std::make_shared<RSTestDrawable>();
+    surfaceDrawable->uifirstDrawCmdList_.emplace_back(rsDrawable);
+    EXPECT_FALSE(surfaceDrawable->uifirstDrawCmdList_.empty());
+    surfaceDrawable->uifirstDrawCmdIndex_.contentIndex_ = 0;
+    surfaceDrawable->uifirstDrawCmdIndex_.childrenIndex_ = 0;
+    surfaceDrawable->DrawUifirstContentChildren(canvas, rect);
+
+    surfaceDrawable->uifirstDrawCmdIndex_.contentIndex_ = 1;
+    surfaceDrawable->uifirstDrawCmdIndex_.childrenIndex_ = 1;
+    surfaceDrawable->DrawUifirstContentChildren(canvas, rect);
+
+    surfaceDrawable->uifirstDrawCmdIndex_.contentIndex_ = -1;
+    surfaceDrawable->uifirstDrawCmdIndex_.childrenIndex_ = -1;
+    surfaceDrawable->DrawUifirstContentChildren(canvas, rect);
+}
+
+
+/**
+ * @tc.name: SyncUifirstDrawCmdsTest
+ * @tc.desc: Test SyncUifirstDrawCmds
+ * @tc.type: FUNC
+ * @tc.require: issueI9UTMA
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, SyncUifirstDrawCmdsTest, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    surfaceDrawable_->SyncUifirstDrawCmds();
+    EXPECT_NE(surfaceDrawable_->uifirstRenderParams_, nullptr);
+
+    surfaceDrawable_->SyncUifirstDrawCmds();
+    EXPECT_NE(surfaceDrawable_->uifirstRenderParams_, nullptr);
 }
 
 /**

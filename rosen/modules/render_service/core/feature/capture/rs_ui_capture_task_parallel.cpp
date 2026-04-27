@@ -246,8 +246,8 @@ bool RSUiCaptureTaskParallel::CreateResources(const Drawing::Rect& specifiedArea
         auto curNode = surfaceNode;
         auto parentNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(surfaceNode->GetParent().lock());
         if (parentNode && parentNode->IsLeashWindow() && parentNode->ShouldPaint() &&
-            (parentNode->GetLastFrameUifirstFlag() == MultiThreadCacheType::LEASH_WINDOW ||
-            parentNode->GetLastFrameUifirstFlag() == MultiThreadCacheType::NONFOCUS_WINDOW)) {
+            (parentNode->GetLastFrameUifirstCacheType() == MultiThreadCacheType::LEASH_WINDOW ||
+            parentNode->GetLastFrameUifirstCacheType() == MultiThreadCacheType::NONFOCUS_WINDOW)) {
             curNode = parentNode;
         }
 

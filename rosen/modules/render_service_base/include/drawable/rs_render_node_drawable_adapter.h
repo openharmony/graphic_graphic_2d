@@ -172,11 +172,6 @@ public:
         return renderParams_;
     }
 
-    inline const std::unique_ptr<RSRenderParams>& GetUifirstRenderParams() const
-    {
-        return uifirstRenderParams_;
-    }
-
     inline NodeId GetId() const
     {
         return nodeId_;
@@ -293,6 +288,9 @@ public:
         return RSRenderNodeDrawableType::UNKNOW;
     }
 
+    // UIFirst draw commands sync - only SurfaceNodeDrawable has real implementation
+    virtual void SyncUifirstDrawCmds() {}
+
     void SetRSLayer(ScreenId screenId, const std::shared_ptr<RSLayer>& layer)
     {
         std::lock_guard<std::mutex> lock(rsLayerMutex_);
@@ -312,8 +310,6 @@ protected:
 
     // Draw functions
     void DrawAll(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
-    void DrawUifirstContentChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect);
-    void DrawAllUifirst(Drawing::Canvas& canvas, const Drawing::Rect& rect);
     void DrawClipBounds(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawBackground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawBackgroundWithOutSaveAll(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
@@ -364,13 +360,10 @@ protected:
     std::weak_ptr<const RSRenderNode> renderNode_;
     NodeId nodeId_;
 
-    DrawCmdIndex uifirstDrawCmdIndex_;
     DrawCmdIndex drawCmdIndex_;
     std::unique_ptr<RSRenderParams> renderParams_;
     static std::unordered_map<NodeId, Drawing::Matrix> unobscuredUECMatrixMap_;
     std::shared_ptr<std::unordered_set<NodeId>> UECChildrenIds_ = std::make_shared<std::unordered_set<NodeId>>();
-    std::unique_ptr<RSRenderParams> uifirstRenderParams_;
-    RSDrawable::DrawList uifirstDrawCmdList_;
     RSDrawable::DrawList drawCmdList_;
     std::vector<FilterNodeInfo> filterInfoVec_;
     std::unordered_map<NodeId, Drawing::Matrix> withoutFilterMatrixMap_;
@@ -387,6 +380,9 @@ protected:
 #endif
 
     ClearSurfaceTask clearSurfaceTask_ = nullptr;
+
+    SkipType skipType_ = SkipType::NONE;
+    int8_t GetSkipIndex() const;
 private:
     const static size_t MAX_FILTER_CACHE_TYPES = 3;
     using RSCacheDrawableArray = std::array<std::shared_ptr<DrawableV2::RSFilterDrawable>, MAX_FILTER_CACHE_TYPES>;
@@ -397,8 +393,6 @@ private:
     static inline std::mutex cacheMapMutex_;
     static DrawableVec toClearDrawableVec_;
     static CmdListVec toClearCmdListVec_;
-    SkipType skipType_ = SkipType::NONE;
-    int8_t GetSkipIndex() const;
     std::atomic<DrawSkipType> drawSkipType_ = DrawSkipType::NONE;
     static void RemoveDrawableFromCache(const NodeId nodeId);
     NodeId lastDrawnFilterNodeId_ = 0;

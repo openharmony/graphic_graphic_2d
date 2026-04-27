@@ -25,7 +25,6 @@
 #include "drawable/rs_color_picker_drawable.h"
 #include "drawable/rs_misc_drawable.h"
 #include "drawable/rs_render_node_shadow_drawable.h"
-#include "feature/uifirst/rs_drawable_updater.h"
 #include "params/rs_canvas_drawing_render_params.h"
 #include "params/rs_effect_render_params.h"
 #include "params/rs_logical_display_render_params.h"
@@ -146,31 +145,24 @@ void RSRenderNodeDrawableAdapter::InitRenderParams(const std::shared_ptr<const R
     switch (node->GetType()) {
         case RSRenderNodeType::SURFACE_NODE:
             sharedPtr->renderParams_ = std::make_unique<RSSurfaceRenderParams>(sharedPtr->nodeId_);
-            sharedPtr->uifirstRenderParams_ = std::make_unique<RSSurfaceRenderParams>(sharedPtr->nodeId_);
             break;
         case RSRenderNodeType::SCREEN_NODE:
             sharedPtr->renderParams_ = std::make_unique<RSScreenRenderParams>(sharedPtr->nodeId_);
-            sharedPtr->uifirstRenderParams_ = std::make_unique<RSScreenRenderParams>(sharedPtr->nodeId_);
             break;
         case RSRenderNodeType::EFFECT_NODE:
             sharedPtr->renderParams_ = std::make_unique<RSEffectRenderParams>(sharedPtr->nodeId_);
-            sharedPtr->uifirstRenderParams_ = std::make_unique<RSEffectRenderParams>(sharedPtr->nodeId_);
             break;
         case RSRenderNodeType::CANVAS_DRAWING_NODE:
             sharedPtr->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(sharedPtr->nodeId_);
-            sharedPtr->uifirstRenderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(sharedPtr->nodeId_);
             break;
         case RSRenderNodeType::LOGICAL_DISPLAY_NODE:
             sharedPtr->renderParams_ = std::make_unique<RSLogicalDisplayRenderParams>(sharedPtr->nodeId_);
-            sharedPtr->uifirstRenderParams_ = std::make_unique<RSLogicalDisplayRenderParams>(sharedPtr->nodeId_);
             break;
         default:
             sharedPtr->renderParams_ = std::make_unique<RSRenderParams>(sharedPtr->nodeId_);
-            sharedPtr->uifirstRenderParams_ = std::make_unique<RSRenderParams>(sharedPtr->nodeId_);
             break;
     }
     sharedPtr->renderParams_->SetParamsType(RSRenderParamsType::RS_PARAM_OWNED_BY_DRAWABLE);
-    sharedPtr->uifirstRenderParams_->SetParamsType(RSRenderParamsType::RS_PARAM_OWNED_BY_DRAWABLE_UIFIRST);
 }
 
 RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerateShadowDrawable(
@@ -360,71 +352,6 @@ void RSRenderNodeDrawableAdapter::DrawChildren(Drawing::Canvas& canvas, const Dr
         return;
     }
     drawCmdList_[index]->OnDraw(&canvas, &rect);
-}
-
-void RSRenderNodeDrawableAdapter::DrawUifirstContentChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect)
-{
-    RSRenderNodeSingleDrawableLocker singleLocker(this);
-    if (UNLIKELY(!singleLocker.IsLocked())) {
-        singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
-        HILOG_COMM_ERROR("RSRenderNodeDrawableAdapter::DrawUifirstContentChildren node %{public}" PRIu64 " onDraw!!!",
-            GetId());
-        if (RSSystemProperties::GetSingleDrawableLockerEnabled()) {
-            return;
-        }
-    }
-
-    if (uifirstDrawCmdList_.empty()) {
-        return;
-    }
-
-    const auto& drawCmdList = uifirstDrawCmdList_;
-    auto contentIdx = uifirstDrawCmdIndex_.contentIndex_;
-    auto childrenIdx = uifirstDrawCmdIndex_.childrenIndex_;
-    if (0 <= contentIdx && contentIdx < drawCmdList.size()) {
-        drawCmdList[contentIdx]->OnDraw(&canvas, &rect);
-    }
-    if (0 <= childrenIdx && childrenIdx < drawCmdList.size()) {
-        drawCmdList[childrenIdx]->OnDraw(&canvas, &rect);
-    }
-}
-
-void RSRenderNodeDrawableAdapter::DrawAllUifirst(
-    Drawing::Canvas& canvas, const Drawing::Rect& rect)
-{
-    if (uifirstDrawCmdList_.empty()) {
-        return;
-    }
-
-    UpdateSaveRestoreDrawable(uifirstDrawCmdList_);
-
-    const auto& drawCmdList = uifirstDrawCmdList_;
-
-    auto end = uifirstDrawCmdIndex_.endIndex_;
-    if (UNLIKELY(skipType_ != SkipType::NONE)) {
-        auto skipIndex_ = GetSkipIndex();
-        if (0 <= skipIndex_ && end > skipIndex_) {
-            // skip index is in the range
-            for (auto i = 0; i < skipIndex_; i++) {
-                drawCmdList[i]->OnDraw(&canvas, &rect);
-            }
-            for (auto i = skipIndex_ + 1; i < end; i++) {
-                drawCmdList[i]->OnDraw(&canvas, &rect);
-            }
-            return;
-        }
-        // skip index is not in the range, fall back to normal drawing
-    }
-
-    for (auto i = 0; i < end; i++) {
-#ifdef RS_ENABLE_PREFETCH
-        int prefetchIndex = i + 2;
-        if (prefetchIndex < end) {
-            __builtin_prefetch(&drawCmdList[prefetchIndex], 0, 1);
-        }
-#endif
-        drawCmdList[i]->OnDraw(&canvas, &rect);
-    }
 }
 
 void RSRenderNodeDrawableAdapter::DrawClipBounds(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
