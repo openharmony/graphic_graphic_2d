@@ -1804,6 +1804,7 @@ void RSPropertyDrawableUtils::ApplySDFShapeToFilter(const RSProperties& properti
     if (renderFilter->GetType() != RSNGEffectType::FROSTED_GLASS) {
         return;
     }
+#ifndef ROSEN_ARKUI_X
     const auto& filter = std::static_pointer_cast<RSNGRenderFrostedGlassFilter>(renderFilter);
     auto sdfShape = properties.GetSDFShape();
     if (sdfShape) {
@@ -1821,6 +1822,7 @@ void RSPropertyDrawableUtils::ApplySDFShapeToFilter(const RSProperties& properti
     sdfRRectShape->Setter<SDFRRectShapeRRectRenderTag>(sdfRRect);
     filter->Setter<FrostedGlassShapeRenderTag>(sdfRRectShape, PropertyUpdateType::UPDATE_TYPE_ONLY_VALUE);
     drawingFilter->SetNGRenderFilter(filter);
+#endif
 }
 
 std::shared_ptr<RSNGRenderShapeBase> RSPropertyDrawableUtils::CreateDefaultRRectShape(const RRect& sdfRRect,
