@@ -105,7 +105,6 @@ private:
 
     std::atomic<bool> isPerformanceFirst_;
     std::function<void(bool)> updateSoftVSyncFunc_ { nullptr };
-    std::mutex disableAppFrameMutex_;
 };
 } // namespace Rosen
 } // namespace OHOS
