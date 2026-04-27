@@ -4407,5 +4407,85 @@ HWTEST_F(RSRenderNodeTest, GetNodeColorSpaceForceSRGBTest, TestSize.Level1)
     EXPECT_EQ(nodeTest->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
 }
 
+/**
+ * @tc.name: UpdateFilterChildRelevantFlagsToParams001
+ * @tc.desc: Verify UpdateFilterChildRelevantFlagsToParams returns early when stagingRenderParams_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, UpdateFilterChildRelevantFlagsToParams001, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID);
+    ASSERT_NE(node, nullptr);
+    node->childHasVisibleFilter_ = true;
+    node->childHasVisibleEffect_ = true;
+    node->stagingRenderParams_ = nullptr;
+
+    node->UpdateFilterChildRelevantFlagsToParams();
+
+    ASSERT_EQ(node->stagingRenderParams_, nullptr);
+    ASSERT_TRUE(node->childHasVisibleFilter_);
+    ASSERT_TRUE(node->childHasVisibleEffect_);
+}
+
+/**
+ * @tc.name: UpdateFilterChildRelevantFlagsToParams002
+ * @tc.desc: Verify UpdateFilterChildRelevantFlagsToParams sets child flags to stagingRenderParams correctly
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, UpdateFilterChildRelevantFlagsToParams002, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID);
+    ASSERT_NE(node, nullptr);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(DEFAULT_NODE_ID);
+    ASSERT_NE(node->stagingRenderParams_, nullptr);
+
+    node->childHasVisibleFilter_ = true;
+    node->childHasVisibleEffect_ = true;
+
+    node->UpdateFilterChildRelevantFlagsToParams();
+
+    ASSERT_TRUE(node->stagingRenderParams_->ChildHasVisibleFilter());
+    ASSERT_TRUE(node->stagingRenderParams_->ChildHasVisibleEffect());
+
+    node->childHasVisibleFilter_ = false;
+    node->childHasVisibleEffect_ = false;
+
+    node->UpdateFilterChildRelevantFlagsToParams();
+
+    ASSERT_FALSE(node->stagingRenderParams_->ChildHasVisibleFilter());
+    ASSERT_FALSE(node->stagingRenderParams_->ChildHasVisibleEffect());
+}
+
+/**
+ * @tc.name: UpdateFilterChildRelevantFlagsToParams003
+ * @tc.desc: Verify UpdateFilterChildRelevantFlagsToParams with mixed flag values
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, UpdateFilterChildRelevantFlagsToParams003, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID);
+    ASSERT_NE(node, nullptr);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(DEFAULT_NODE_ID);
+    ASSERT_NE(node->stagingRenderParams_, nullptr);
+
+    node->childHasVisibleFilter_ = true;
+    node->childHasVisibleEffect_ = false;
+
+    node->UpdateFilterChildRelevantFlagsToParams();
+
+    ASSERT_TRUE(node->stagingRenderParams_->ChildHasVisibleFilter());
+    ASSERT_FALSE(node->stagingRenderParams_->ChildHasVisibleEffect());
+
+    node->childHasVisibleFilter_ = false;
+    node->childHasVisibleEffect_ = true;
+
+    node->UpdateFilterChildRelevantFlagsToParams();
+
+    ASSERT_FALSE(node->stagingRenderParams_->ChildHasVisibleFilter());
+    ASSERT_TRUE(node->stagingRenderParams_->ChildHasVisibleEffect());
+}
 } // namespace Rosen
 } // namespace OHOS

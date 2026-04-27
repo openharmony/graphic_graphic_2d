@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -38,10 +38,14 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "transaction/rs_client_to_render_connection.h"
+#include "transaction/rs_render_to_service_connection.h"
 
+#include "rs_render_to_composer_connection.h"
 #include "graphic_feature_param_manager.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "rs_render_composer_manager.h"
+#include "rs_render_mode_config_parser.h"
+#include "system/rs_system_parameters.h"
 
 #include "rs_render_process_manager_agent.h"
 #include "transaction/rs_client_to_service_connection.h"
@@ -51,16 +55,10 @@
 #ifdef RS_ENABLE_RDO
 #include "feature/rdo/rs_rdo.h"
 #endif
+
 #ifdef TP_FEATURE_ENABLE
 #include "screen_manager/touch_screen.h"
 #endif
-#include "system/rs_system_parameters.h"
-#include "text/font_mgr.h"
-#include "transaction/rs_client_to_render_connection.h"
-#include "vsync_generator.h"
-
-#undef LOG_TAG
-#define LOG_TAG "RSRenderService"
 
 #undef LOG_TAG
 #define LOG_TAG "RSRenderService"
@@ -95,11 +93,17 @@ bool RSRenderService::Init()
         mallopt(M_DELAYED_FREE, M_DELAYED_FREE_ENABLE);
     }
 
+    // Render server config initialization
+    InitRenderServerConfig();
+
     // CCM config parsing
     InitCCMConfig();
 
     // Create core components
-    CoreComponentsInit();
+    if (!CoreComponentsInit()) {
+        RS_LOGE("%{public}s: core components init failed", __func__);
+        return false;
+    }
 
     // Create multi-process/single-process mode
     RenderProcessManagerInit();
@@ -117,6 +121,14 @@ bool RSRenderService::Init()
     return true;
 }
 
+void RSRenderService::InitRenderServerConfig()
+{
+    RS_LOGI("%{public}s: multiprocess parse start", __func__);
+    renderModeConfig_ = RSRenderModeConfigParser().BuildRenderConfig();
+    RS_LOGE("%{public}s: renderModeConfig[%{public}d] default_group[%{public}d]", __func__,
+        renderModeConfig_->GetIsMultiProcessModeEnabled(), renderModeConfig_->GetDefaultRenderProcess());
+}
+
 void RSRenderService::InitCCMConfig()
 {
     // feature param parse
@@ -127,17 +139,18 @@ void RSRenderService::InitCCMConfig()
 #endif
 }
 
-void RSRenderService::CoreComponentsInit()
+bool RSRenderService::CoreComponentsInit()
 {
     RS_LOGI("%{public}s", __func__);
 
     // screenManager init
     screenManager_ = sptr<RSScreenManager>::MakeSptr();
 
-    // vsync manger
+    // vsync manager
     vsyncManager_ = sptr<RSVsyncManager>::MakeSptr();
-    if (vsyncManager_->init(screenManager_)) {
-        RS_LOGE("%{public}s: vsync init failed", __func__);
+    if (!vsyncManager_->init(screenManager_, renderModeConfig_->GetIsMultiProcessModeEnabled())) {
+        RS_LOGE("%{public}s: vsyncManager init failed", __func__);
+        return false;
     }
 
     RSBaseRenderEngine::RegisterUniRenderUtilCallback(RSUniRenderUtil::CreateLayerBufferDrawParam,
@@ -148,12 +161,15 @@ void RSRenderService::CoreComponentsInit()
     // hgm init
     HgmInit();
 
-    // reature init
+    // feature init
     FeatureComponentInit();
+
+    return true;
 }
 
 void RSRenderService::HgmInit()
 {
+    RS_LOGI("%{public}s", __func__);
     HgmCore::Instance().RegisterScreenManagerCallbacks(
         std::bind(&RSScreenManager::GetDefaultScreenId, screenManager_.GetRefPtr()),
         std::bind(&RSScreenManager::GetScreenPowerStatus, screenManager_.GetRefPtr(), std::placeholders::_1),
@@ -186,6 +202,8 @@ void RSRenderService::FeatureComponentInit()
 #ifdef RS_ENABLE_VK
     if (Drawing::SystemProperties::IsUseVulkan()) {
         RsVulkanContext::SetRecyclable(false);
+        RS_LOGT("SetIsMultiProcess::%{public}d", renderModeConfig_->GetIsMultiProcessModeEnabled());
+        RsVulkanContext::SetIsMultiProcess(renderModeConfig_->GetIsMultiProcessModeEnabled());
     }
 #endif
 
@@ -198,6 +216,7 @@ void RSRenderService::FeatureComponentInit()
     rsDumper_ = std::make_shared<RSServiceDumper>(handler_, screenManager_, rsRenderComposerManager_);
     rsDumpManager_ = std::make_shared<RSServiceDumpManager>();
     rsDumper_->RsDumpInit(rsDumpManager_);
+
     // rdo init
 #ifdef RS_ENABLE_RDO
     EnableRSCodeCache();
@@ -209,8 +228,16 @@ void RSRenderService::FeatureComponentInit()
 
 void RSRenderService::RenderProcessManagerInit()
 {
-    RS_LOGI("%{public}s", __func__);
-    renderProcessManager_ = RSRenderProcessManager::Create(*this);
+    RS_LOGI("%{public}s:", __func__);
+    HgmProcessCallback hgmProcessCallback = nullptr;
+    if (hgmContext_) {
+        hgmProcessCallback = [hgmContext = hgmContext_](uint64_t timestamp, uint64_t vsyncId,
+                                              const sptr<HgmProcessToServiceInfo>& processToServiceInfo,
+                                              const sptr<HgmServiceToProcessInfo>& serviceToProcessInfo) {
+            hgmContext->ProcessHgmFrameRate(timestamp, vsyncId, processToServiceInfo, serviceToProcessInfo);
+        };
+    }
+    renderProcessManager_ = RSRenderProcessManager::Create(*this, std::move(hgmProcessCallback));
     auto screenManagerListener = sptr<ScreenManagerListener>::MakeSptr(*this);
     screenManager_->RegisterCoreListener(screenManagerListener);
     if (screenManager_->Init(handler_)) {
@@ -233,8 +260,8 @@ bool RSRenderService::SAMgrRegister()
         RS_LOGE("%{public}s: GetSystemAbilityManager fail", __func__);
         return false;
     }
-    
     samgr->AddSystemAbility(RENDER_SERVICE, this);
+
     return true;
 }
 
@@ -244,6 +271,16 @@ void RSRenderService::Run()
         RS_LOGI("%{public}s: MainProcess Run", __func__);
         runner_->Run();
     }
+}
+
+sptr<IRemoteObject> RSRenderService::RegisterRenderProcessConnection()
+{
+    auto renderServiceAgent = sptr<RSRenderServiceAgent>::MakeSptr(*this);
+    auto renderProcessManagerAgent = sptr<RSRenderProcessManagerAgent>::MakeSptr(renderProcessManager_);
+    auto screenManagerAgent = sptr<RSScreenManagerAgent>::MakeSptr(screenManager_);
+    auto renderToServiceConnection =
+        sptr<RSRenderToServiceConnection>::MakeSptr(renderServiceAgent, renderProcessManagerAgent, screenManagerAgent);
+    return renderToServiceConnection->AsObject();
 }
 
 std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> RSRenderService::GetConnection(
@@ -274,11 +311,16 @@ std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
     sptr<RSRenderServiceAgent> renderServiceAgent = sptr<RSRenderServiceAgent>::MakeSptr(*this);
     sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent =
         sptr<RSRenderProcessManagerAgent>::MakeSptr(renderProcessManager_);
-    sptr<RSIClientToServiceConnection> newConn(new RSClientToServiceConnection(remotePid, renderServiceAgent,
-        renderProcessManagerAgent, screenManagerAgent, tokenObj, vsyncManager_->GetVsyncManagerAgent()));
+    sptr<RSIClientToServiceConnection> newConn(new RSClientToServiceConnection(remotePid,
+        renderServiceAgent,
+        renderProcessManagerAgent,
+        screenManagerAgent,
+        tokenObj,
+        vsyncManager_->GetVsyncManagerAgent(),
+        needRefresh));
     sptr<RSRenderPipelineAgent> renderPipelineAgent = new RSRenderPipelineAgent(renderPipeline_);
     sptr<RSIClientToRenderConnection> newRenderConn(
-        new RSClientToRenderConnection(remotePid, renderPipelineAgent, tokenObj));
+        new RSClientToRenderConnection(remotePid, renderPipelineAgent, tokenObj, needRefresh));
     if (needRefresh) {
         newConn->RegisterRemoteRefreshCallback();
         newRenderConn->RegisterRemoteRefreshCallback();
@@ -290,9 +332,8 @@ std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
     if (it != connections_.end()) {
         tmp = it->second;
     }
-    connections_[tokenObj] = { newConn, newRenderConn };
+    connections_[tokenObj] = {newConn, newRenderConn};
     lock.unlock();
-
     return std::make_pair(newConn, newRenderConn);
 }
 
@@ -311,6 +352,7 @@ bool RSRenderService::RemoveConnection(const sptr<RSIConnectionToken>& token)
         RS_LOGE("RemoveConnection: connections_ cannot find token");
         return false;
     }
+
     connections_.erase(iter);
     lock.unlock();
 
@@ -321,7 +363,6 @@ int RSRenderService::Dump(int fd, const std::vector<std::u16string>& args)
 {
     std::string dumpString;
     rsDumpManager_->DoDump(args, dumpString, renderProcessManager_);
-
     if (dumpString.size() == 0) {
         return OHOS::INVALID_OPERATION;
     }
@@ -450,6 +491,16 @@ void RSRenderService::ScreenManagerListener::OnScreenBacklightChanged(ScreenId i
 void RSRenderService::ScreenManagerListener::OnGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList)
 {
     renderService_.renderProcessManager_->OnGlobalBlacklistChanged(globalBlackList);
+}
+
+std::pair<sptr<IRSRenderToComposerConnection>, sptr<VSyncConnection>> RSRenderService::GetProcessInfo(
+    ScreenId screenId, sptr<IRemoteObject> vsyncToken)
+{
+    auto renderToComposerConnection = rsRenderComposerManager_->GetRSComposerConnection(screenId);
+    auto vsyncConnection =
+        sptr<VSyncConnection>::MakeSptr(vsyncManager_->GetVSyncRSDistributor(), "render_process", vsyncToken);
+    vsyncManager_->GetVSyncRSDistributor()->AddConnection(vsyncConnection);
+    return { renderToComposerConnection, vsyncConnection };
 }
 
 void RSRenderService::InitGameFrameHandler()

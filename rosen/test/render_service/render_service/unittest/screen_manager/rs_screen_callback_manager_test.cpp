@@ -231,6 +231,7 @@ HWTEST_F(RSScreenCallbackManagerTest, NotifyHwcEventToAgentListenersTest, TestSi
         {
             onHwcEventCalled = true;
         }
+        void OnActiveScreenIdChanged(ScreenId activeScreenId) override {};
     };
     auto mockAgentListener = sptr<MockAgentListener>::MakeSptr();
     ASSERT_EQ(callbackMgr_->agentListeners_.size(), 0);
@@ -373,7 +374,7 @@ HWTEST_F(RSScreenCallbackManagerTest, NotifyScreenConnectedToAgentListenersTest,
 {
     ScreenId screenId = 100;
     ASSERT_EQ(callbackMgr_->GetCoreListener(), nullptr);
-    callbackMgr_->NotifyScreenConnectedToAgentListeners(screenId, ScreenChangeReason::DEFAULT, nullptr);
+    callbackMgr_->NotifyScreenConnectedToAgentListeners(screenId, ScreenChangeReason::DEFAULT);
 }
 
 /*

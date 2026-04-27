@@ -272,13 +272,12 @@ bool RSCanvasDrawingNode::GetBitmap(Drawing::Bitmap& bitmap,
     std::shared_ptr<Drawing::DrawCmdList> drawCmdList, const Drawing::Rect* rect)
 {
     if (IsRenderServiceNode()) {
-        auto renderPipelineClient = std::static_pointer_cast<RSRenderPipelineClient>(
-            RSIRenderClient::CreateRenderPiplineClient());
-        if (renderPipelineClient == nullptr) {
-            ROSEN_LOGE("RSCanvasDrawingNode::GetBitmap renderServiceClient is nullptr!");
+        auto rsUIContext = GetRSUIContext();
+        if (rsUIContext == nullptr || rsUIContext->GetRSRenderInterface() == nullptr) {
+            ROSEN_LOGE("RSCanvasDrawingNode::GetBitmap uiContext is nullptr");
             return false;
         }
-        bool ret = renderPipelineClient->GetBitmap(GetId(), bitmap);
+        bool ret = rsUIContext->GetRSRenderInterface()->GetBitmap(GetId(), bitmap);
         if (!ret) {
             ROSEN_LOGE("RSCanvasDrawingNode::GetBitmap GetBitmap failed");
             return ret;
@@ -318,13 +317,12 @@ bool RSCanvasDrawingNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pixelmap,
         return false;
     }
     if (IsRenderServiceNode()) {
-        auto rendePipelineClient =
-            std::static_pointer_cast<RSRenderPipelineClient>(RSIRenderClient::CreateRenderPiplineClient());
-        if (rendePipelineClient == nullptr) {
-            ROSEN_LOGE("RSCanvasDrawingNode::GetPixelmap: renderServiceClient is nullptr!");
+        auto rsUIContext = GetRSUIContext();
+        if (rsUIContext == nullptr || rsUIContext->GetRSRenderInterface() == nullptr) {
+            ROSEN_LOGE("RSCanvasDrawingNode::GetPixelmap uiContext is nullptr");
             return false;
         }
-        bool ret = rendePipelineClient->GetPixelmap(GetId(), pixelmap, rect, drawCmdList);
+        bool ret = rsUIContext->GetRSRenderInterface()->GetPixelmap(GetId(), pixelmap, rect, drawCmdList);
         if (!ret || !pixelmap) {
             ROSEN_LOGD("RSCanvasDrawingNode::GetPixelmap: GetPixelmap failed");
             return false;

@@ -30,7 +30,7 @@ namespace Rosen {
 enum HgmDataChangeType {
     ADAPTIVE_VSYNC = 0,
     HGM_CONFIG_DATA,
-    MAX_CHANGE_TYPE
+    MAX_CHANGE_TYPE,
 };
 
 using HgmDataChangeTypes = std::bitset<HgmDataChangeType::MAX_CHANGE_TYPE>;

@@ -164,7 +164,6 @@ private:
     InteractiveAnimatorType interactiveAnimatorType_ { InteractiveAnimatorType::NONE };
     std::weak_ptr<RSUIContext> rsUIContext_;
     float speedMultiplier_ = 1.0f;
-    friend class RSImplicitAnimatorMap;
     friend class RSNode;
     friend class RSUIContext;
 };

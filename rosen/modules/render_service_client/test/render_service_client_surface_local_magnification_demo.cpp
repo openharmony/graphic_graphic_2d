@@ -44,7 +44,7 @@ int main()
         screenId = 0;
     }
 
-    auto rsUiDirector = RSUIDirector::Create();
+    auto rsUiDirector = RSUIDirector::Create(nullptr, nullptr);
     if (rsUiDirector == nullptr) {
         std::cout << "rsUiDirector is nullptr" << std::endl;
         return EXIT_FAILURE;

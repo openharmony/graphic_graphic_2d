@@ -1789,4 +1789,36 @@ HWTEST_F(RSMemoryManagerTest, MemoryReportAndKillTest006, TestSize.Level1)
     MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
 }
 
+/**
+ * @tc.name: DumpNodesInfoForReportTest001
+ * @tc.desc: Test DumpNodesInfoForReport with valid pid.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, DumpNodesInfoForReportTest001, TestSize.Level1)
+{
+    pid_t pid = 0;
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    //create some surface nodes && register them
+    RSSurfaceRenderNodeConfig configwithNoComsumer;
+    configwithNoComsumer.id = 111;
+    auto node1 = std::make_shared<RSSurfaceRenderNode>(configwithNoComsumer);
+    node1->SetIsOnTheTree(true);
+    RSSurfaceRenderNodeConfig configwithComsumer;
+    configwithComsumer.id = 112;
+    auto node2 = RSTestUtil::CreateSurfaceNode(configwithComsumer);
+    node2->SetIsOnTheTree(false);
+    RSSurfaceRenderNodeConfig configwithComsumer1;
+    configwithComsumer1.id = 12300000000000;
+    auto node3 = RSTestUtil::CreateSurfaceNode(configwithComsumer1);
+    node3->SetIsOnTheTree(false);
+    mainThread->GetContext().GetMutableNodeMap().RegisterRenderNode(node1);
+    mainThread->GetContext().GetMutableNodeMap().RegisterRenderNode(node2);
+    mainThread->GetContext().GetMutableNodeMap().RegisterRenderNode(node3);
+
+    std::string log;
+    MemoryManager::DumpNodesInfoForReport(log, pid);
+    ASSERT_TRUE(log.find("Render Node Not On Tree") != std::string::npos);
+}
 } // namespace OHOS::Rosen

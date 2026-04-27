@@ -196,6 +196,8 @@ ohos_source_set("render_service_base_src") {
     "src/delegate/rs_functional_delegate.cpp",
 
     #ipc_callbacks
+    "src/ipc_callbacks/active_screen_id_changed_callback_proxy.cpp",
+    "src/ipc_callbacks/active_screen_id_changed_callback_stub.cpp",
     "src/ipc_callbacks/buffer_available_callback_proxy.cpp",
     "src/ipc_callbacks/buffer_available_callback_stub.cpp",
     "src/ipc_callbacks/buffer_clear_callback_proxy.cpp",
@@ -534,7 +536,7 @@ ohos_source_set("render_service_base_src") {
     if (!use_libfuzzer) {
       cflags += [ "-flto=thin" ]
     }
-    if (enhanced_opt) {
+    if (enhanced_opt && !use_libfuzzer) {
       if (!use_libfuzzer) {
         cflags += [ "-fwhole-program-vtables" ]
       }
@@ -871,7 +873,7 @@ ohos_shared_library("librender_service_base") {
     "$graphic_2d_root/utils/socketpair:socketpair_public_config",
     "$graphic_2d_root/rosen/modules/composer/vsync:vsync_public_config",
   ]
-  if (enhanced_opt) {
+  if (enhanced_opt && !use_libfuzzer) {
     configs = [ ":render_service_base_link_config" ]
   }
 

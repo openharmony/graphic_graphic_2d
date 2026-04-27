@@ -205,7 +205,11 @@ private:
     void AddCommand(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType);
     void AddCommand(std::unique_ptr<RSCommand>&& command, NodeId nodeId, FollowType followType);
     void MoveCommandByNodeId(std::unique_ptr<RSTransactionData>& transactionData, NodeId nodeId);
+    void MoveCommandByNodeIdExcludeTreeCommands(std::unique_ptr<RSTransactionData>& transactionData, NodeId nodeId);
     void MoveAllCommand(std::unique_ptr<RSTransactionData>& transactionData);
+
+    static bool IsTreeHierarchyCommand(uint16_t commandType, uint16_t commandSubType);
+    static const std::set<uint16_t>& GetTreeHierarchyCommandSubTypes();
 
     bool UnmarshallingCommand(Parcel& parcel);
 

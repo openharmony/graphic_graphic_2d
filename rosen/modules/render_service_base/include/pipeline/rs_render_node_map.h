@@ -78,6 +78,7 @@ public:
     NodeId GetNegativeScreenNodeId() const;
     void ObtainScreenLockWindowNodeId(const std::shared_ptr<RSSurfaceRenderNode> surfaceNode);
     void ObtainLauncherNodeId(const std::shared_ptr<RSSurfaceRenderNode> surfaceNode);
+    size_t GetNodeCountByPid(pid_t pid) const;
 
     uint32_t GetVisibleLeashWindowCount() const;
     uint64_t GetSize() const;

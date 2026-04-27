@@ -162,7 +162,9 @@ void RSShadowDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect
         Drawing::GESDFShadowParams shadow {drawingShadowColor, offsetX_, offsetY_,
             radius_, path, isFilled_, elevation_};
         auto geFilter = geContainer_->GetGEVisualEffect(Drawing::GE_SHADER_SDF_SHADOW);
-        geFilter->SetParam(Drawing::GE_SHADER_SDF_SHADOW_SHADOW, shadow);
+        if (geFilter) {
+            geFilter->SetParam(Drawing::GE_SHADER_SDF_SHADOW_SHADOW, shadow);
+        }
         auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
         geRender->DrawShaderEffect(*canvas, *geContainer_, *rect);
         return;
@@ -357,6 +359,7 @@ bool RSBackgroundNGShaderDrawable::OnUpdate(const RSRenderNode& node)
     if (!shader) {
         return false;
     }
+    RSPropertyDrawableUtils::UpdatePropertiesToSpatialGlassEffect(properties, shader, node.GetId());
     needSync_ = true;
     stagingShader_ = shader;
     stagingCornerRadius_ = node.GetRenderProperties().GetCornerRadius().x_;

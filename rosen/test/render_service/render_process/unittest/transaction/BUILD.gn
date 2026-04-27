@@ -60,6 +60,8 @@ ohos_unittest("RSServiceToRenderConnectionProxyTest") {
         "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl",
         "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
         "$graphic_2d_root/rosen/modules/render_service_base/src",
+        "$graphic_2d_root/rosen/modules/render_service/vsync"
+
     ]
 
     sanitize = {
@@ -273,5 +275,6 @@ group("unittest") {
         ":RSServiceToRenderConnectionProxyTest",
         ":RSServiceToRenderConnectionStubTest",
         ":RSServiceToRenderConnectionTest",
+        "ipc_persistence:unittest",
     ]
 }

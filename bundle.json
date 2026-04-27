@@ -165,6 +165,7 @@
             "//foundation/graphic/graphic_2d:default",
             "//foundation/graphic/graphic_2d/rosen/modules/render_service:librender_service",
             "//foundation/graphic/graphic_2d/rosen/modules/render_service:render_service",
+            "//foundation/graphic/graphic_2d/rosen/modules/render_service:render_process",
             "//foundation/graphic/graphic_2d/etc:ohos.para.dac",
             "//foundation/graphic/graphic_2d/etc:ohos.para"
           ]

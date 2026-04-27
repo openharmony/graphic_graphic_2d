@@ -217,6 +217,8 @@ constexpr uint64_t MAX_DYNAMIC_STATUS_TIME = 5000000000;
 constexpr uint64_t MAX_SYSTEM_SCENE_STATUS_TIME = 800000000;
 constexpr uint32_t MULTI_WINDOW_PERF_START_NUM = 2;
 constexpr uint32_t TIME_OF_CAPTURE_TASK_REMAIN = 500;
+// approximately 20 frames in 120 fps
+constexpr uint32_t TIME_OF_WINDOW_CAPTURE_TASK_REMAIN = 166;
 constexpr uint32_t TIME_OF_EIGHT_FRAMES = 8000;
 constexpr uint32_t TIME_OF_THE_FRAMES = 1000;
 constexpr uint32_t WAIT_FOR_RELEASED_BUFFER_TIMEOUT = 3000;
@@ -2381,6 +2383,143 @@ void RSMainThread::ProcessUiCaptureTasks()
         }
     }
 #endif
+}
+
+void RSMainThread::AddWindowCapTask(NodeId id, std::function<void()> task)
+{
+    uint64_t startTime = context_->GetUiCaptureHelper().GetCurrentSteadyTimeMs();
+    RS_TRACE_NAME_FMT("RSMainThread::AddWindowCapTask id: %" PRIu64 ", startTime: %" PRIu64 "ms", id, startTime);
+    pendingWindowCapTasks_.emplace_back(id, task, startTime, 0, false);
+    const auto& nodeMap = context_->GetNodeMap();
+    auto node = nodeMap.GetRenderNode(id);
+    if (!node) {
+        RS_LOGW("RSMainThread::AddWindowCapTask node nullptr, id: %{public}" PRIu64, id);
+    }
+    if (!IsRequestedNextVSync()) {
+        RequestNextVSync();
+    }
+}
+
+void RSMainThread::CheckWindowCapTasks()
+{
+    std::vector<std::tuple<NodeId, std::function<void()>, uint64_t, uint64_t, bool>> remainWindowCapTasks;
+    const auto& nodeMap = context_->GetNodeMap();
+    RS_TRACE_NAME_FMT("RSMainThread::CheckWindowCapCheckTasks");
+    for (auto& item : pendingWindowCapTasks_) {
+        NodeId nodeId = std::get<0>(item);
+        std::function<void()> windowCapTask = std::get<1>(item);
+        uint64_t startTime = std::get<2>(item);
+        uint64_t startVsyncId = std::get<3>(item);
+        bool isBackground = std::get<4>(item);
+        auto node = nodeMap.GetRenderNode(nodeId);
+        uint64_t endTime = context_->GetUiCaptureHelper().GetCurrentSteadyTimeMs();
+        RS_TRACE_NAME_FMT("RSMainThread::CheckWindowCapCheckTasks timeRecorded, node id: %" PRIu64
+            ", endTime: %" PRIu64 "ms", nodeId, endTime);
+        uint64_t duration = endTime - startTime;
+        if (duration >= TIME_OF_WINDOW_CAPTURE_TASK_REMAIN) {
+            RS_TRACE_NAME_FMT("RSMainThread::CheckWindowCapCheckTasks timeout, id: %" PRIu64
+                ", duration: %" PRIu64 "ms", nodeId, duration);
+            RS_LOGW("RSMainThread::CheckWindowCapCheckTasks timeout, id: %{public}" PRIu64
+                ", duration: %{public}" PRIu64 "ms", nodeId, duration);
+            windowCapTasks_.emplace(nodeId, windowCapTask);
+            continue;
+        }
+        if (!node) {
+            RS_TRACE_NAME_FMT("RSMainThread::CheckWindowCapCheckTasks node nullptr");
+            RS_LOGW("RSMainThread::CheckWindowCapCheckTasks node nullptr");
+            windowCapTasks_.emplace(nodeId, windowCapTask);
+            continue;
+        }
+        auto nodeState = node->ReinterpretCastTo<RSSurfaceRenderNode>()->GetAbilityState();
+        auto parentNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node->GetParent().lock());
+        if (parentNode && parentNode->IsLeashWindow() && parentNode->ShouldPaint()) {
+            auto parentNodeState = parentNode->ReinterpretCastTo<RSSurfaceRenderNode>()->GetAbilityState();
+            RS_TRACE_NAME_FMT("RSMainThread::CheckWindowCapCheckTasks nodeState [%s], parentNodeState [%s],"
+                " parentNodeLeashWindow id: [%" PRIu64 "]",
+                nodeState == RSSurfaceNodeAbilityState::BACKGROUND ? "BACKGROUND" : "FOREGROUND",
+                parentNodeState == RSSurfaceNodeAbilityState::BACKGROUND ? "BACKGROUND" : "FOREGROUND",
+                parentNode->GetId());
+            node = parentNode;
+        }
+        // can't use uifirst cache without leashwindow
+        if (!(node->ReinterpretCastTo<RSSurfaceRenderNode>()->IsLeashWindow())) {
+            RS_TRACE_NAME_FMT("RSMainThread::CheckWindowCapCheckTasks node is not leashwindow, no cache");
+            RS_LOGW("RSMainThread::CheckWindowCapCheckTasks node is not leashwindow, no cache, id: %{public}" PRIu64,
+                nodeId);
+            windowCapTasks_.emplace(nodeId, windowCapTask);
+            continue;
+        }
+        if (!isBackground) {
+            // inject vsyncId and true flag when window is in background, or keep it in pending list otherwise
+            if (nodeState == RSSurfaceNodeAbilityState::BACKGROUND) {
+                isBackground = true;
+                startVsyncId = RSUniRenderThread::Instance().GetVsyncId();
+            } else {
+                remainWindowCapTasks.emplace_back(nodeId, windowCapTask, startTime, startVsyncId, isBackground);
+                RS_TRACE_NAME_FMT("RSMainThread::CheckWindowCapCheckTasks keep in pending list");
+                continue;
+            }
+        }
+        auto rawDrawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
+        std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> surfaceNodeDrawable =
+            std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(rawDrawable);
+
+        if (surfaceNodeDrawable) {
+            bool hasUifirstCachedTexture = surfaceNodeDrawable->GetRsSubThreadCache().HasCachedTexture();
+            uint64_t cacheVsync = surfaceNodeDrawable->GetRsSubThreadCache().GetCompletedCacheSurfaceVsyncId();
+            bool isUifirstVsyncLatest = (cacheVsync >= startVsyncId);
+            uint64_t currentVsync = RSUniRenderThread::Instance().GetVsyncId();
+            bool isInSubthreadProcessing = RSUifirstManager::Instance().IsNodeInSubthreadProcessing(node->GetId());
+            RS_TRACE_NAME_FMT("RSMainThread::CheckWindowCapCheckTasks info: "
+                "hasUifirstCachedTexture: [%d], "
+                "cacheVsync: [%" PRIu64 "], "
+                "startVsyncId: [%" PRIu64 "], "
+                "isUifirstVsyncLatest: [%d], "
+                "currentVsync: [%" PRIu64 "], "
+                "isInSubthreadProcessing: [%d], "
+                "nodeId(leash): [%" PRIu64 "].",
+                hasUifirstCachedTexture, cacheVsync, startVsyncId, isUifirstVsyncLatest,
+                currentVsync, isInSubthreadProcessing, node->GetId());
+            if (currentVsync == 0) {
+                RS_TRACE_NAME_FMT("RSMainThread::CheckWindowCapCheckTasks, currentVsync is 0,"
+                    " doing normal capture without cache.");
+                windowCapTasks_.emplace(nodeId, windowCapTask);
+                continue;
+            }
+            if ((hasUifirstCachedTexture && isUifirstVsyncLatest) || !isInSubthreadProcessing) {
+                // condition qualified, process allowed
+                RS_TRACE_NAME_FMT("RSMainThread::CheckWindowCapCheckTasks, normal case");
+                windowCapTasks_.emplace(nodeId, windowCapTask);
+                continue;
+            } else {
+                // keep in loop
+                remainWindowCapTasks.emplace_back(nodeId, windowCapTask, startTime, startVsyncId, isBackground);
+                RS_TRACE_NAME_FMT("RSMainThread::CheckWindowCapCheckTasks, loop again");
+                continue;
+            }
+        } else {
+            RS_TRACE_NAME_FMT("RSMainThread::CheckWindowCapCheckTasks, surfaceNodeDrawable nullptr");
+            RS_LOGE("RSMainThread::CheckWindowCapCheckTasks, surfaceNodeDrawable nullptr, "
+                "id(leash): %{public}" PRIu64, nodeId);
+            windowCapTasks_.emplace(nodeId, windowCapTask);
+            continue;
+        }
+    }
+    pendingWindowCapTasks_.clear();
+    pendingWindowCapTasks_.insert(pendingWindowCapTasks_.end(),
+        remainWindowCapTasks.begin(), remainWindowCapTasks.end());
+    remainWindowCapTasks.clear();
+}
+
+void RSMainThread::ProcessWindowCapTasks()
+{
+    while (!windowCapTasks_.empty()) {
+        NodeId nodeId = std::get<0>(windowCapTasks_.front());
+        auto windowCapTask = std::get<1>(windowCapTasks_.front());
+        windowCapTasks_.pop();
+        RS_TRACE_NAME_FMT("RSMainThread::ProcessWindowCapTasks doing windowCapTask");
+        RSUniRenderThread::Instance().PostTask(windowCapTask);
+    }
 }
 
 void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)

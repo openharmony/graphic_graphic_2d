@@ -32,7 +32,8 @@
 
 namespace OHOS {
 namespace Rosen {
-RSSingleRenderProcessManager::RSSingleRenderProcessManager(RSRenderService& renderService)
+RSSingleRenderProcessManager::RSSingleRenderProcessManager(
+    RSRenderService& renderService, HgmProcessCallback hgmProcessCallback)
     : RSRenderProcessManager(renderService)
 {
     // step1: Create Vsync Connection and Receiver
@@ -44,6 +45,7 @@ RSSingleRenderProcessManager::RSSingleRenderProcessManager(RSRenderService& rend
 
     // step2: Create renderPipeline and Following Connections
     auto renderServiceAgent = sptr<RSRenderServiceAgent>::MakeSptr(renderService);
+    renderServiceAgent->RegisterHgmProcessCallback(std::move(hgmProcessCallback));
     auto renderProcessManagerAgent =
         sptr<RSRenderProcessManagerAgent>::MakeSptr(renderService.renderProcessManager_);
     auto screenManagerAgent = sptr<RSScreenManagerAgent>::MakeSptr(renderService.screenManager_);

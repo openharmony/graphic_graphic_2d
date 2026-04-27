@@ -39,7 +39,8 @@ static std::shared_ptr<RSUIContext> GetRSUIContext()
 {
     static std::shared_ptr<RSUIContext> rsUIContext = nullptr;
     if (rsUIContext == nullptr) {
-        rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+        OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+        rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     }
     return rsUIContext;
 }

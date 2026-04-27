@@ -152,6 +152,7 @@ template("drawing_ndk_source_set") {
         "icu:shared_icuuc",
         "image_framework:image_native",
         "image_framework:pixelmap",
+        "napi:ace_napi",
         "image_framework:pixelmap_ndk",
       ]
 

@@ -24,6 +24,7 @@
 #include "drawing_brush.h"
 #include "drawing_canvas.h"
 #include "drawing_font.h"
+#include "drawing_gpu_context.h"
 #include "drawing_image.h"
 #include "drawing_matrix.h"
 #include "drawing_path.h"
@@ -35,6 +36,7 @@
 #include "drawing_region.h"
 #include "drawing_round_rect.h"
 #include "drawing_sampling_options.h"
+#include "drawing_surface.h"
 #include "drawing_types.h"
 #include "drawing_text_blob.h"
 #include "image/pixelmap_native.h"
@@ -48,6 +50,8 @@ constexpr uint32_t ENUM_RANGE_TWENTY_EIGHT = 28;
 constexpr uint32_t WIDTH_FACTOR = 4;
 constexpr size_t DATA_MIN_SIZE = 2;
 constexpr uint32_t MAX_ARRAY = 500;
+constexpr size_t COLORFORMAT_SIZE = 6;
+constexpr size_t ALPHAFORMAT_SIZE = 4;
 
 namespace OHOS {
 namespace Rosen {
@@ -209,7 +213,7 @@ void CanvasFuzzTest006(const uint8_t* data, size_t size)
     OH_Drawing_CanvasDrawBitmapRect(nullptr, bitmap, rect, rect2, samplingOptions);
     OH_Drawing_CanvasDrawBitmapRect(canvas, nullptr, rect, rect2, samplingOptions);
     OH_Drawing_CanvasDrawBitmapRect(canvas, bitmap, nullptr, rect2, samplingOptions);
-    
+
     OH_Drawing_CanvasDestroy(canvas);
     OH_Drawing_RectDestroy(rect);
     OH_Drawing_RectDestroy(rect2);
@@ -495,7 +499,7 @@ void CanvasFuzzTest010(const uint8_t* data, size_t size)
     for (size_t i = 0; i < width * height; i++) {
         colorData[i] = GetObject<uint8_t>();
     }
-    
+
     OH_PixelmapNative_CreatePixelmap(colorData, dataLength, options, &pixelMap);
     OH_Drawing_PixelMap *drPixelMap = OH_Drawing_PixelMapGetFromOhPixelMapNative(pixelMap);
     OH_Drawing_Rect* srcRect =
@@ -579,7 +583,7 @@ void CanvasFuzzTest017(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
-    
+
     OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreate();
 
     OH_Pixelmap_InitializationOptions *options = nullptr;
@@ -596,7 +600,7 @@ void CanvasFuzzTest017(const uint8_t* data, size_t size)
     for (size_t i = 0; i < width * height; i++) {
         colorData[i] = GetObject<uint8_t>();
     }
-    
+
     OH_PixelmapNative_CreatePixelmap(colorData, dataLength, options, &pixelMap);
     OH_Drawing_PixelMap *drPixelMap = OH_Drawing_PixelMapGetFromOhPixelMapNative(pixelMap);
     OH_Drawing_Rect* srcRect =
@@ -664,7 +668,7 @@ void CanvasFuzzTest016(const uint8_t* data, size_t size)
     }
     str2[count2 - 1] = '\0';
     float val = GetObject<float>();
-    
+
     float x = GetObject<float>();
     float y = GetObject<float>();
 
@@ -771,6 +775,32 @@ void CanvasFuzzTest019(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
+    OH_Drawing_GpuContext* gpuContext = OH_Drawing_GpuContextCreate();
+    int32_t width = GetObject<int32_t>() % MAX_ARRAY;
+    int32_t height = GetObject<int32_t>() % MAX_ARRAY;
+    uint32_t colorType = GetObject<uint32_t>() % MAX_ARRAY;
+    uint32_t alphaType = GetObject<uint32_t>() % MAX_ARRAY;
+    OH_Drawing_Image_Info imageInfo = { width, height,
+        static_cast<OH_Drawing_ColorFormat>(colorType % COLORFORMAT_SIZE),
+        static_cast<OH_Drawing_AlphaFormat>(alphaType % ALPHAFORMAT_SIZE) };
+    uint32_t sizePix = height * width;
+    auto pixels = std::vector<uint32_t>(sizePix, 0);
+    uint32_t rowBytes = width * 4;
+    OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreateFromPixels(&imageInfo, pixels.data(), rowBytes);
+    OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreate();
+    OH_Drawing_CanvasBind(canvas, bitmap);
+    bool isOpaque = false;
+    OH_Drawing_CanvasIsOpaque(canvas, &isOpaque);
+    OH_Drawing_CanvasDestroy(canvas);
+    OH_Drawing_BitmapDestroy(bitmap);
+    OH_Drawing_GpuContextDestroy(gpuContext);
+}
+
+void CanvasFuzzTest020(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return;
+    }
     OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreate();
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     int glyphCount = GetObject<int>() % MAX_ARRAY_MAX + 1;
@@ -822,7 +852,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::g_data = data;
     OHOS::Rosen::Drawing::g_size = size;
     OHOS::Rosen::Drawing::g_pos = 0;
-    
+
     /* Run your code on data */
     OHOS::Rosen::Drawing::CanvasFuzzTest001(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTest002(data, size);
@@ -839,5 +869,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::CanvasFuzzTest016(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTest017(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTest018(data, size);
+    OHOS::Rosen::Drawing::CanvasFuzzTest019(data, size);
     return 0;
 }

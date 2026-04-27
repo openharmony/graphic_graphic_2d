@@ -64,11 +64,11 @@ void RSRenderParams::SetMatrix(const Drawing::Matrix& matrix)
 void RSRenderParams::ApplyAlphaAndMatrixToCanvas(RSPaintFilterCanvas& canvas, bool applyMatrix) const
 {
     if (UNLIKELY(HasSandBox())) {
-        if (applyMatrix) {
-            canvas.SetMatrix(parentSurfaceMatrix_);
-            canvas.ConcatMatrix(matrix_);
-        }
         canvas.SetAlpha(alpha_);
+        if (!applyMatrix) {
+            return;
+        }
+        ApplySandboxMatrixToCanvas(canvas);
     } else {
         if (applyMatrix) {
             canvas.ConcatMatrix(matrix_);
@@ -129,6 +129,15 @@ void RSRenderParams::SetShouldPaint(bool shouldPaint)
         return;
     }
     shouldPaint_ = shouldPaint;
+    needSync_ = true;
+}
+
+void RSRenderParams::SetDoubleSidedEnabled(bool isDoubleSided)
+{
+    if (isDoubleSided_ == isDoubleSided) {
+        return;
+    }
+    isDoubleSided_ = isDoubleSided;
     needSync_ = true;
 }
 
@@ -411,6 +420,32 @@ void RSRenderParams::OpincSetCacheChangeFlag(bool state, bool lastFrameSynced)
     }
 }
 
+void RSRenderParams::ApplySandboxMatrixToCanvas(RSPaintFilterCanvas& canvas) const
+{
+    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
+    auto originalCanvas = paintFilterCanvas->GetOriginalCanvas();
+    if (!originalCanvas || paintFilterCanvas->GetOffscreenDataList().empty()) {
+        canvas.SetMatrix(parentSurfaceMatrix_);
+        canvas.ConcatMatrix(matrix_);
+        return;
+    }
+    Drawing::Matrix combinedMatrix;
+    Drawing::Matrix invertMatrix;
+    auto offscreenCanvasVector = paintFilterCanvas->GetOffscreenCanvasVector();
+    // skip current canvas, concat all stacked offscreen canvas
+    for (size_t i = 1; i < offscreenCanvasVector.size(); ++i) {
+        if (const auto& offscreenCanvas = offscreenCanvasVector[i]) {
+            offscreenCanvas->GetTotalMatrix().Invert(invertMatrix);
+            combinedMatrix.PreConcat(invertMatrix);
+        }
+    }
+    originalCanvas->GetTotalMatrix().Invert(invertMatrix);
+    combinedMatrix.PreConcat(invertMatrix);
+    canvas.SetMatrix(combinedMatrix);
+    canvas.ConcatMatrix(parentSurfaceMatrix_);
+    canvas.ConcatMatrix(matrix_);
+}
+
 void RSRenderParams::SetLayerPartRenderEnabled(bool enable)
 {
     if (isLayerPartRenderEnable_ == enable) {
@@ -493,7 +528,8 @@ void RSRenderParams::SetNodeColorSpace(GraphicColorGamut colorSpace)
 void RSRenderParams::ClearHDRVideoStatus()
 {
     HdrStatus newStatus = static_cast<HdrStatus>(
-        hdrStatus_ & ~(HdrStatus::HDR_VIDEO | HdrStatus::AI_HDR_VIDEO_GTM | HdrStatus::AI_HDR_VIDEO_GAINMAP));
+        hdrStatus_ & ~(HdrStatus::HDR_VIDEO | HdrStatus::AI_HDR_VIDEO_GTM
+            | HdrStatus::AI_HDR_VIDEO_GAINMAP | HdrStatus::AI_HDR_VIDEO_AI2020));
     if (newStatus == hdrStatus_) {
         return;
     }
@@ -646,6 +682,7 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->isLayerPartRenderEnable_ = isLayerPartRenderEnable_;
     target->layerPartRenderCurrentFrameDirtyRegion_ = layerPartRenderCurrentFrameDirtyRegion_;
     target->startingWindowFlag_ = startingWindowFlag_;
+    target->isDoubleSided_ = isDoubleSided_;
     target->absDrawRect_ = absDrawRect_;
     target->firstLevelNodeId_ = firstLevelNodeId_;
     target->uifirstRootNodeId_ = uifirstRootNodeId_;

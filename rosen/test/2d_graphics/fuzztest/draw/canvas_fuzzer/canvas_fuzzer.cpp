@@ -18,6 +18,7 @@
 #include <cstdint>
 #include "get_object.h"
 #include "draw/canvas.h"
+#include "draw/color.h"
 #include "effect/particle_builder.h"
 
 namespace OHOS {
@@ -26,6 +27,8 @@ namespace Drawing {
 static constexpr int32_t BITMAP_WIDTH = 300;
 static constexpr int32_t BITMAP_HEIGHT = 300;
 static constexpr size_t  MAX_SIZE = 5000;
+constexpr size_t COLORFORMAT_SIZE = 12;
+constexpr size_t ALPHAFORMAT_SIZE = 4;
 
 bool CanvasFuzzTest(const uint8_t* data, size_t size)
 {
@@ -155,6 +158,23 @@ bool CanvasFuzzTest002(const uint8_t* data, size_t size)
     return true;
 }
 
+bool CanvasFuzzTest003(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+    Canvas canvas;
+    Bitmap bitmap;
+    uint32_t colorType = GetObject<uint32_t>();
+    uint32_t alphaType = GetObject<uint32_t>();
+    BitmapFormat format {static_cast<ColorType>(colorType % COLORFORMAT_SIZE),
+                         static_cast<AlphaType>(alphaType % ALPHAFORMAT_SIZE) };
+    bitmap.Build(BITMAP_WIDTH, BITMAP_HEIGHT, format); // bitmap width and height
+    canvas.Bind(bitmap);
+    canvas.IsOpaque();
+    return true;
+}
+
 bool CanvasFuzzTestHpsEdgeLight(const uint8_t* data, size_t size)
 {
     Canvas canvas;
@@ -264,6 +284,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::CanvasFuzzTest(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTest001(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTest002(data, size);
+    OHOS::Rosen::Drawing::CanvasFuzzTest003(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTestHpsEdgeLight(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTestInsertOpaqueRegion(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTestParticle(data, size);

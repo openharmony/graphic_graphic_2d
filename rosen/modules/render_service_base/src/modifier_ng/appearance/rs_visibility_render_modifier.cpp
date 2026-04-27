@@ -17,11 +17,13 @@
 
 namespace OHOS::Rosen::ModifierNG {
 const RSVisibilityRenderModifier::LegacyPropertyApplierMap RSVisibilityRenderModifier::LegacyPropertyApplierMap_ = {
-    { RSPropertyType::VISIBLE, RSRenderModifier::PropertyApplyHelper<bool, &RSProperties::SetVisible> }
+    { RSPropertyType::VISIBLE, RSRenderModifier::PropertyApplyHelper<bool, &RSProperties::SetVisible> },
+    { RSPropertyType::DOUBLE_SIDED, RSRenderModifier::PropertyApplyHelper<bool, &RSProperties::SetDoubleSidedEnabled> }
 };
 
 void RSVisibilityRenderModifier::ResetProperties(RSProperties& properties)
 {
     properties.SetVisible(true);
+    properties.SetDoubleSidedEnabled(true);
 }
 } // namespace OHOS::Rosen::ModifierNG

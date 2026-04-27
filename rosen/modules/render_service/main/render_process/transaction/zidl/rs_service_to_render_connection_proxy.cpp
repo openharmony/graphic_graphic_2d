@@ -22,7 +22,7 @@
 #include <vector>
 #include "buffer_utils.h"
 #include "rs_trace.h"
-
+#include "feature/capture/rs_ui_capture.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "transaction/rs_ashmem_helper.h"
@@ -35,6 +35,126 @@ namespace OHOS {
 namespace Rosen {
 RSServiceToRenderConnectionProxy::RSServiceToRenderConnectionProxy(const sptr<IRemoteObject>& impl)
     : IRemoteProxy<RSIServiceToRenderConnection>(impl) {}
+
+bool RSServiceToRenderConnectionProxy::NotifyScreenConnectInfoToRender(const sptr<RSScreenProperty>& screenProperty,
+    const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
+    const sptr<IRSComposerToRenderConnection>& composerToRenderConn)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("%{public}s: WriteInterfaceToken failed", __func__);
+        return false;
+    }
+    if (!data.WriteParcelable(screenProperty.GetRefPtr())) {
+        ROSEN_LOGE("%{public}s: WriteParcelable failed", __func__);
+        return false;
+    }
+    if (renderToComposerConn) {
+        if (!data.WriteBool(true) || !data.WriteRemoteObject(renderToComposerConn->AsObject())) {
+            ROSEN_LOGE("%{public}s: WriteBool or WriteObject failed.", __func__);
+            return false;
+        }
+    } else {
+        if (!data.WriteBool(false)) {
+            ROSEN_LOGE("%{public}s: WriteBool failed.", __func__);
+            return false;
+        }
+    }
+    if (composerToRenderConn) {
+        if (!data.WriteBool(true) || !data.WriteRemoteObject(composerToRenderConn->AsObject())) {
+            ROSEN_LOGE("%{public}s: WriteBool or WriteObject failed.", __func__);
+            return false;
+        }
+    } else {
+        if (!data.WriteBool(false)) {
+            ROSEN_LOGE("%{public}s: WriteBool failed.", __func__);
+            return false;
+        }
+    }
+    uint32_t code =
+        static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("%{public}s: SendRquest failed, err is %{public}d", __func__, err);
+        return false;
+    }
+    bool replyMessage = false;
+    if (!reply.ReadBool(replyMessage)) {
+        ROSEN_LOGE("%{public}s: ReadBool failed", __func__);
+        return false;
+    }
+    return replyMessage;
+}
+
+bool RSServiceToRenderConnectionProxy::NotifyScreenDisconnectInfoToRender(ScreenId screenId)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("%{public}s: WriteInterfaceToken failed", __func__);
+        return false;
+    }
+    if (!data.WriteUint64(screenId)) {
+        ROSEN_LOGE("%{public}s: WriteUint64 failed", __func__);
+        return false;
+    }
+    uint32_t code =
+        static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::NOTIFY_SCREEN_DISCONNECT_INFO_TO_RENDER);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("%{public}s: SendRquest failed, err is %{public}d", __func__, err);
+        return false;
+    }
+    bool replyMessage = false;
+    if (!reply.ReadBool(replyMessage)) {
+        ROSEN_LOGE("%{public}s: ReadBool failed", __func__);
+        return false;
+    }
+    return replyMessage;
+}
+
+bool RSServiceToRenderConnectionProxy::NotifyScreenPropertyChangedInfoToRender(
+    ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& screenProperty)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("%{public}s: WriteInterfaceToken failed", __func__);
+        return false;
+    }
+    if (!data.WriteUint64(id)) {
+        ROSEN_LOGE("%{public}s: WriteUint64 failed", __func__);
+        return false;
+    }
+    if (!data.WriteUint32(static_cast<uint32_t>(type))) {
+        ROSEN_LOGE("%{public}s: WriteUint32 failed", __func__);
+        return false;
+    }
+    if (!screenProperty->Marshalling(data)) {
+        ROSEN_LOGE("%{public}s: WriteParcelable failed", __func__);
+        return false;
+    }
+    uint32_t code =
+        static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::NOTIFY_SCREEN_PROPERTY_CHANGED_INFO_TO_RENDER);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("%{public}s: SendRquest failed, err is %{public}d", __func__, err);
+        return false;
+    }
+    bool replyMessage = false;
+    if (!reply.ReadBool(replyMessage)) {
+        ROSEN_LOGE("%{public}s: ReadBool failed", __func__);
+        return false;
+    }
+    return replyMessage;
+}
 
 ErrCode RSServiceToRenderConnectionProxy::SetForceRefresh(const std::string& nodeIdStr, bool isForceRefresh)
 {
@@ -1213,28 +1333,6 @@ ErrCode RSServiceToRenderConnectionProxy::SetColorFollow(const std::string& node
     return ERR_OK;
 }
 
-void RSServiceToRenderConnectionProxy::SetFreeMultiWindowStatus(bool enable)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
-    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
-        ROSEN_LOGE("SetFreeMultiWindowStatus: WriteInterfaceToken GetDescriptor err.");
-        return;
-    }
-    if (!data.WriteBool(enable)) {
-        ROSEN_LOGE("SetFreeMultiWindowStatus: WriteBool err.");
-        return;
-    }
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
-    if (err != NO_ERROR) {
-        RS_LOGE("RSServiceToRenderConnectionProxy::SetFreeMultiWindowStatus: send request err.");
-        return;
-    }
-}
-
 int32_t RSServiceToRenderConnectionProxy::RegisterSelfDrawingNodeRectChangeCallback(
     pid_t remotePid, const RectConstraint& constraint, sptr<RSISelfDrawingNodeRectChangeCallback> callback)
 {
@@ -1255,7 +1353,12 @@ int32_t RSServiceToRenderConnectionProxy::RegisterSelfDrawingNodeRectChangeCallb
         return WRITE_PARCEL_ERR;
     }
 
-    uint32_t size = constraint.pids.size();
+    size_t pidsSize = constraint.pids.size();
+    if (pidsSize > UINT32_MAX) {
+        ROSEN_LOGE("RegisterSelfDrawingNodeRectChangeCallback: pids.size() exceeds UINT32_MAX.");
+        return WRITE_PARCEL_ERR;
+    }
+    uint32_t size = static_cast<uint32_t>(pidsSize);
     if (!data.WriteUint32(size)) {
         ROSEN_LOGE("RegisterSelfDrawingNodeRectChangeCallback: Write size err.");
         return WRITE_PARCEL_ERR;
@@ -1518,10 +1621,16 @@ HwcDisabledReasonInfos RSServiceToRenderConnectionProxy::GetHwcDisabledReasonInf
     HwcDisabledReasonInfo hwcDisabledReasonInfo;
     while (size--) {
         for (int32_t pos = 0; pos < HwcDisabledReasons::DISABLED_REASON_LENGTH; pos++) {
-            hwcDisabledReasonInfo.disabledReasonStatistics[pos] = reply.ReadInt32();
+            if (!reply.ReadInt32(hwcDisabledReasonInfo.disabledReasonStatistics[pos])) {
+                ROSEN_LOGE("RSServiceToRenderConnectionProxy::GetHwcDisabledReasonInfo statistics failed");
+                return hwcDisabledReasonInfos;
+            }
         }
-        hwcDisabledReasonInfo.pidOfBelongsApp = reply.ReadInt32();
-        hwcDisabledReasonInfo.nodeName = reply.ReadString();
+        if (!reply.ReadInt32(hwcDisabledReasonInfo.pidOfBelongsApp) ||
+            !reply.ReadString(hwcDisabledReasonInfo.nodeName)) {
+            ROSEN_LOGE("RSServiceToRenderConnectionProxy::GetHwcDisabledReasonInfo pid or nodeName failed");
+            return hwcDisabledReasonInfos;
+        }
         hwcDisabledReasonInfos.emplace_back(hwcDisabledReasonInfo);
     }
     return hwcDisabledReasonInfos;
@@ -1542,7 +1651,10 @@ ErrCode RSServiceToRenderConnectionProxy::GetHdrOnDuration(int64_t& hdrOnDuratio
     if (err != NO_ERROR) {
         return ERR_INVALID_VALUE;
     }
-    hdrOnDuration = reply.ReadInt64();
+    if (!reply.ReadInt64(hdrOnDuration)) {
+        ROSEN_LOGE("RSServiceToRenderConnectionProxy::GetHdrOnDuration Read hdrOnDuration failed");
+        return ERR_INVALID_VALUE;
+    }
     return ERR_OK;
 }
 

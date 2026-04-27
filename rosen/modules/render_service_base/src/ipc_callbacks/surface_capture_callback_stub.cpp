@@ -122,7 +122,9 @@ bool RSSurfaceCaptureCallbackStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureConf
         !data.ReadUint32(captureConfig.colorSpace.first) ||
         !data.ReadBool(captureConfig.colorSpace.second) ||
         !data.ReadUint32(captureConfig.dynamicRangeMode.first) ||
-        !data.ReadBool(captureConfig.dynamicRangeMode.second)) {
+        !data.ReadBool(captureConfig.dynamicRangeMode.second) ||
+        !data.ReadBool(captureConfig.isSyncRender) ||
+        !data.ReadBool(captureConfig.windowSync)) {
         RS_LOGE("RSSurfaceCaptureCallbackStub::ReadSurfaceCaptureConfig read parcel failed!");
         return false;
     }

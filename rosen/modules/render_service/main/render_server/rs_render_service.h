@@ -18,12 +18,13 @@
 
 #include <event_handler.h>
 #include <map>
-#include <unordered_set>
 
 #include "rs_game_frame_handler.h"
+#include "rs_render_mode_config.h"
+#include "rs_render_multi_process_manager.h"
 #include "rs_render_pipeline.h"
 #include "rs_render_single_process_manager.h"
-#include "vsync/vsync_manager_agent.h"
+#include "vsync_manager_agent.h"
 #include "vsync_iconnection_token.h"
 #include "vsync_receiver.h"
 #include "dfx/rs_service_dumper.h"
@@ -36,7 +37,6 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSMainThread;
 class RSRenderComposerManager;
 class RSRenderService : public RSRenderServiceStub {
 public:
@@ -80,15 +80,20 @@ private:
     };
 
     // IPC related
+    sptr<IRemoteObject> RegisterRenderProcessConnection() override;
     std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> CreateConnection(
         const sptr<RSIConnectionToken>& token, bool needRefresh = false) override;
     std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> GetConnection(
         const sptr<RSIConnectionToken>& token) override;
     bool RemoveConnection(const sptr<RSIConnectionToken>& token) override;
 
+    std::pair<sptr<IRSRenderToComposerConnection>, sptr<VSyncConnection>> GetProcessInfo(
+        ScreenId screenId, sptr<IRemoteObject> vsyncToken);
+
     // Initialization related
+    void InitRenderServerConfig();
     void InitCCMConfig();
-    void CoreComponentsInit();
+    bool CoreComponentsInit();
     void HgmInit();
     void FeatureComponentInit();
     void RenderProcessManagerInit();
@@ -108,11 +113,11 @@ private:
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
-
     sptr<RSScreenManager> screenManager_ = nullptr;
     sptr<RSVsyncManager> vsyncManager_ = nullptr;
     sptr<RSRenderProcessManager> renderProcessManager_ = nullptr;
     std::shared_ptr<RSRenderComposerManager> rsRenderComposerManager_ = nullptr;
+    std::shared_ptr<const RenderModeConfig> renderModeConfig_ { nullptr };
     std::shared_ptr<HgmContext> hgmContext_ = nullptr;
     std::shared_ptr<RSServiceDumper> rsDumper_ = nullptr;
     std::shared_ptr<RSServiceDumpManager> rsDumpManager_ = nullptr;
@@ -125,9 +130,10 @@ private:
         std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>> connections_;
 
     sptr<RsGameFrameHandler> rsGameFrameHandler_ = nullptr;
-    
+
     friend class RSRenderServiceAgent;
     friend class RSRenderProcessManager;
+    friend class RSMultiRenderProcessManager;
     friend class RSSingleRenderProcessManager;
     friend class RSConnectToRenderProcess;
     friend class RSClientToRenderConnection;

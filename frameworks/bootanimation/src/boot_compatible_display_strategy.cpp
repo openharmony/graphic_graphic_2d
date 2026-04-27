@@ -21,6 +21,56 @@
 
 using namespace OHOS;
 
+bool BootCompatibleDisplayStrategy::PrepareScreenConfig(BootAnimationConfig& config)
+{
+    Rosen::RSInterfaces& interface = Rosen::RSInterfaces::GetInstance();
+    config.screenId = interface.GetDefaultScreenId();
+    if (config.rotateScreenId >= 0) {
+        SubscribeActiveScreenIdChanged();
+        Rosen::ScreenId activeScreenId = GetActiveScreenId();
+        if (activeScreenId != Rosen::INVALID_SCREEN_ID) {
+            config.screenId = activeScreenId;
+        }
+        if (config.screenId > 0) {
+            interface.SetScreenPowerStatus(0, Rosen::ScreenPowerStatus::POWER_STATUS_OFF_FAKE);
+            interface.SetScreenPowerStatus(config.screenId, Rosen::ScreenPowerStatus::POWER_STATUS_ON);
+            config.rotateDegree = 0;
+            config.videoDefaultPath = config.videoExtraPath;
+        }
+    } else {
+        interface.SetScreenPowerStatus(config.screenId, Rosen::ScreenPowerStatus::POWER_STATUS_ON);
+    }
+    if (!config.videoExtPath.empty()) {
+        std::string status = GetHingeStatus();
+        auto iter = config.videoExtPath.find(status);
+        if (iter != config.videoExtPath.end()) {
+            config.videoDefaultPath = iter->second;
+            config.screenStatus = status;
+        }
+    }
+    if (connectToRenderMap_.find(config.screenId) == connectToRenderMap_.end()) {
+        LOGE("screen is not prepare:" BPUBU64 "", config.screenId);
+        return false;
+    }
+    return true;
+}
+
+void BootCompatibleDisplayStrategy::RunAnimationAndOta(BootAnimationConfig& config, int32_t duration)
+{
+    Rosen::RSInterfaces& interface = Rosen::RSInterfaces::GetInstance();
+    Rosen::RSScreenModeInfo modeInfo = interface.GetScreenActiveMode(config.screenId);
+    operator_ = std::make_shared<BootAnimationOperation>();
+    sptr<IRemoteObject> connectToRender = connectToRenderMap_.find(config.screenId)->second;
+    operator_->Init(config, modeInfo.GetScreenWidth(), modeInfo.GetScreenHeight(), duration, connectToRender);
+    if (operator_->GetThread().joinable()) {
+        operator_->GetThread().join();
+    }
+    if (IsOtaUpdate()) {
+        bootCompileProgress_ = std::make_shared<BootCompileProgress>();
+        bootCompileProgress_->Init(configPath_, config, connectToRender);
+    }
+}
+
 void BootCompatibleDisplayStrategy::Display(int32_t duration, std::vector<BootAnimationConfig>& configs)
 {
     LOGI("BootCompatibleDisplayStrategy START");
@@ -29,48 +79,12 @@ void BootCompatibleDisplayStrategy::Display(int32_t duration, std::vector<BootAn
         return;
     }
 
-    Rosen::RSInterfaces& interface = Rosen::RSInterfaces::GetInstance();
+    GetConnectToRenderMap(configs.size());
     for (auto& config : configs) {
-        config.screenId = interface.GetDefaultScreenId();
-        std::vector<Rosen::ScreenId> screenIds = interface.GetAllScreenIds();
-        LOGI("screenIds size: %{public}zu", screenIds.size());
-        if (screenIds.empty()) {
-            break;
+        if (!PrepareScreenConfig(config)) {
+            continue;
         }
-        if (config.rotateScreenId >= 0) {
-            config.screenId = interface.GetActiveScreenId();
-            if (config.screenId > 0) {
-                interface.SetScreenPowerStatus(0, Rosen::ScreenPowerStatus::POWER_STATUS_OFF_FAKE);
-                interface.SetScreenPowerStatus(config.screenId, Rosen::ScreenPowerStatus::POWER_STATUS_ON);
-                config.rotateDegree = 0;
-                config.videoDefaultPath = config.videoExtraPath;
-            }
-        } else {
-            interface.SetScreenPowerStatus(config.screenId, Rosen::ScreenPowerStatus::POWER_STATUS_ON);
-        }
-
-        if (!config.videoExtPath.empty()) {
-            std::string status = GetHingeStatus();
-            auto iter = config.videoExtPath.find(status);
-            if (iter != config.videoExtPath.end()) {
-                config.videoDefaultPath = iter->second;
-                config.screenStatus = status;
-            }
-        }
-
-        Rosen::RSScreenModeInfo modeInfo = interface.GetScreenActiveMode(config.screenId);
-        int32_t screenWidth = modeInfo.GetScreenWidth();
-        int32_t screenHeight = modeInfo.GetScreenHeight();
-        operator_ = std::make_shared<BootAnimationOperation>();
-        operator_->Init(config, screenWidth, screenHeight, duration);
-        if (operator_->GetThread().joinable()) {
-            operator_->GetThread().join();
-        }
-
-        if (IsOtaUpdate()) {
-            bootCompileProgress_ = std::make_shared<BootCompileProgress>();
-            bootCompileProgress_->Init(configPath_, config);
-        }
+        RunAnimationAndOta(config, duration);
     }
 
     while (!CheckExitAnimation()) {

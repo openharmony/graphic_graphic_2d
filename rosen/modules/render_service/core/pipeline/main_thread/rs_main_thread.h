@@ -193,6 +193,10 @@ public:
     void AddUiCaptureTask(NodeId id, std::function<void()> task);
     void ProcessUiCaptureTasks();
 
+    void AddWindowCapTask(NodeId id, std::function<void()> task);
+    void CheckWindowCapTasks();
+    void ProcessWindowCapTasks();
+
     void SetDirtyFlag(bool isDirty = true);
     bool GetDirtyFlag();
     void SetAccessibilityConfigChanged();
@@ -788,6 +792,9 @@ private:
     // for ui captures
     std::vector<std::tuple<NodeId, std::function<void()>>> pendingUiCaptureTasks_;
     std::queue<std::tuple<NodeId, std::function<void()>>> uiCaptureTasks_;
+    // for window captures
+    std::vector<std::tuple<NodeId, std::function<void()>, uint64_t, uint64_t, bool>> pendingWindowCapTasks_;
+    std::queue<std::tuple<NodeId, std::function<void()>>> windowCapTasks_;
     // uiextension
     std::mutex uiExtensionMutex_;
     UIExtensionCallbackData uiExtensionCallbackData_;

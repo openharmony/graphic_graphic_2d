@@ -91,6 +91,8 @@ public:
 
     int32_t SetScreenSwitchingNotifyCallback(sptr<RSIScreenSwitchingNotifyCallback> callback) override;
 
+    int32_t SetActiveScreenIdChangedCallback(sptr<RSIActiveScreenIdChangedCallback> callback) override;
+
     int32_t SetBrightnessInfoChangeCallback(sptr<RSIBrightnessInfoChangeCallback> callback) override;
 
     uint32_t SetScreenActiveMode(ScreenId id, uint32_t modeId) override;
@@ -136,6 +138,8 @@ public:
     ErrCode RepaintEverything() override;
 
     void DisablePowerOffRenderControl(ScreenId id) override;
+    
+    sptr<IRemoteObject> GetConnectToRenderToken(ScreenId screenId) override;
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) override;
 
@@ -298,8 +302,6 @@ public:
         bool unobscured = false) override;
 
     ErrCode SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus, bool& success) override;
-
-    void SetFreeMultiWindowStatus(bool enable) override;
 
     int32_t GetDisplayIdentificationData(ScreenId id, uint8_t& outPort, std::vector<uint8_t>& edidData) override;
 #ifdef TP_FEATURE_ENABLE

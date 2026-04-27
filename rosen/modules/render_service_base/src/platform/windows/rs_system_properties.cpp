@@ -83,7 +83,7 @@ bool RSSystemProperties::GetAnimationDelayOptimizeEnabled()
 
 bool RSSystemProperties::GetRSClientMultiInstanceEnabled()
 {
-    return false;
+    return true;
 }
 
 bool RSSystemProperties::GetDrawOpTraceEnabled()

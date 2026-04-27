@@ -41,7 +41,7 @@ inline HdrStatus CheckAIHDRType(uint8_t metadataType)
         case HDI::Display::Graphic::Common::V2_2::CM_VIDEO_AI_HDR_HIGH_LIGHT:
             return HdrStatus::AI_HDR_VIDEO_GAINMAP;
         case HDI::Display::Graphic::Common::V2_2::CM_VIDEO_AI_HDR_COLOR_ENHANCE:
-            return HdrStatus::AI_HDR_VIDEO_GAINMAP;
+            return HdrStatus::AI_HDR_VIDEO_AI2020;
         default:
             return HdrStatus::NO_HDR;
     }
@@ -186,6 +186,20 @@ bool RSBaseHdrUtil::GetRGBA1010108Enabled()
     static bool rgba1010108 = system::GetBoolParameter("const.graphics.rgba_1010108_supported", false);
     static bool debugSwitch = system::GetBoolParameter("persist.sys.graphic.rgba_1010108.enabled", true);
     return isDDGR && rgba1010108 && debugSwitch;
+}
+
+bool RSBaseHdrUtil::CheckAIHDRStatus(HdrStatus hdrStatus)
+{
+    switch (hdrStatus) {
+        case HdrStatus::AI_HDR_VIDEO_GTM:
+            return true;
+        case HdrStatus::AI_HDR_VIDEO_GAINMAP:
+            return true;
+        case HdrStatus::AI_HDR_VIDEO_AI2020:
+            return true;
+        default:
+            return false;
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

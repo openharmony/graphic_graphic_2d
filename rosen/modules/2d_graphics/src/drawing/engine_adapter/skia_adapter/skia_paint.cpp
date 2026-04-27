@@ -81,12 +81,27 @@ static void ApplyImageFilter(SkPaint& skPaint, std::shared_ptr<ImageFilter> imag
 
 void SkiaPaint::BrushToSkPaint(const Brush& brush, SkPaint& paint)
 {
-    if (const ColorSpace* cs = brush.GetColorSpacePtr()) {
-        auto skColorSpaceImpl = cs->GetImpl<SkiaColorSpace>();
-        sk_sp<SkColorSpace> colorSpace = (skColorSpaceImpl != nullptr) ? skColorSpaceImpl->GetColorSpace() : nullptr;
-        paint.setColor(SkColor4f::FromColor(brush.GetColor().CastToColorQuad()), colorSpace.get());
+    if (brush.HasUIColor()) {
+        Color color;
+        auto uiColor = brush.GetUIColor();
+        color.SetRgbF(uiColor.GetRed(), uiColor.GetGreen(), uiColor.GetBlue(), uiColor.GetAlpha());
+        if (const ColorSpace* cs = brush.GetColorSpacePtr()) {
+            auto skColorSpaceImpl = cs->GetImpl<SkiaColorSpace>();
+            sk_sp<SkColorSpace> colorSpace =
+                (skColorSpaceImpl != nullptr) ? skColorSpaceImpl->GetColorSpace() : nullptr;
+            paint.setColor(SkColor4f::FromColor(color.CastToColorQuad()), colorSpace.get());
+        } else {
+            paint.setColor(color.CastToColorQuad());
+        }
     } else {
-        paint.setColor(brush.GetColor().CastToColorQuad());
+        if (const ColorSpace* cs = brush.GetColorSpacePtr()) {
+            auto skColorSpaceImpl = cs->GetImpl<SkiaColorSpace>();
+            sk_sp<SkColorSpace> colorSpace =
+                (skColorSpaceImpl != nullptr) ? skColorSpaceImpl->GetColorSpace() : nullptr;
+            paint.setColor(SkColor4f::FromColor(brush.GetColor().CastToColorQuad()), colorSpace.get());
+        } else {
+            paint.setColor(brush.GetColor().CastToColorQuad());
+        }
     }
 
     if (brush.GetAlpha() != Color::RGB_MAX) {
@@ -112,12 +127,27 @@ void SkiaPaint::BrushToSkPaint(const Brush& brush, SkPaint& paint)
 
 void SkiaPaint::PenToSkPaint(const Pen& pen, SkPaint& paint)
 {
-    if (const ColorSpace* cs = pen.GetColorSpacePtr()) {
-        auto skColorSpaceImpl = cs->GetImpl<SkiaColorSpace>();
-        sk_sp<SkColorSpace> colorSpace = (skColorSpaceImpl != nullptr) ? skColorSpaceImpl->GetColorSpace() : nullptr;
-        paint.setColor(SkColor4f::FromColor(pen.GetColor().CastToColorQuad()), colorSpace.get());
+    if (pen.HasUIColor()) {
+        Color color;
+        auto uiColor = pen.GetUIColor();
+        color.SetRgbF(uiColor.GetRed(), uiColor.GetGreen(), uiColor.GetBlue(), uiColor.GetAlpha());
+        if (const ColorSpace* cs = pen.GetColorSpacePtr()) {
+            auto skColorSpaceImpl = cs->GetImpl<SkiaColorSpace>();
+            sk_sp<SkColorSpace> colorSpace =
+                (skColorSpaceImpl != nullptr) ? skColorSpaceImpl->GetColorSpace() : nullptr;
+            paint.setColor(SkColor4f::FromColor(color.CastToColorQuad()), colorSpace.get());
+        } else {
+            paint.setColor(color.CastToColorQuad());
+        }
     } else {
-        paint.setColor(pen.GetColor().CastToColorQuad());
+        if (const ColorSpace* cs = pen.GetColorSpacePtr()) {
+            auto skColorSpaceImpl = cs->GetImpl<SkiaColorSpace>();
+            sk_sp<SkColorSpace> colorSpace =
+                (skColorSpaceImpl != nullptr) ? skColorSpaceImpl->GetColorSpace() : nullptr;
+            paint.setColor(SkColor4f::FromColor(pen.GetColor().CastToColorQuad()), colorSpace.get());
+        } else {
+            paint.setColor(pen.GetColor().CastToColorQuad());
+        }
     }
 
     paint.setStrokeMiter(pen.GetMiterLimit());
@@ -153,12 +183,27 @@ void SkiaPaint::PaintToSkPaint(const Paint& paint, SkPaint& skPaint)
 {
     skPaint.setStyle(static_cast<SkPaint::Style>(paint.GetStyle() - Paint::PaintStyle::PAINT_FILL));
 
-    if (const ColorSpace* cs = paint.GetColorSpacePtr()) {
-        auto skColorSpaceImpl = cs->GetImpl<SkiaColorSpace>();
-        sk_sp<SkColorSpace> colorSpace = (skColorSpaceImpl != nullptr) ? skColorSpaceImpl->GetColorSpace() : nullptr;
-        skPaint.setColor(SkColor4f::FromColor(paint.GetColor().CastToColorQuad()), colorSpace.get());
+    if (paint.HasUIColor()) {
+        Color color;
+        auto uiColor = paint.GetUIColor();
+        color.SetRgbF(uiColor.GetRed(), uiColor.GetGreen(), uiColor.GetBlue(), uiColor.GetAlpha());
+        if (const ColorSpace* cs = paint.GetColorSpacePtr()) {
+            auto skColorSpaceImpl = cs->GetImpl<SkiaColorSpace>();
+            sk_sp<SkColorSpace> colorSpace =
+                (skColorSpaceImpl != nullptr) ? skColorSpaceImpl->GetColorSpace() : nullptr;
+            skPaint.setColor(SkColor4f::FromColor(color.CastToColorQuad()), colorSpace.get());
+        } else {
+            skPaint.setColor(color.CastToColorQuad());
+        }
     } else {
-        skPaint.setColor(paint.GetColor().CastToColorQuad());
+        if (const ColorSpace* cs = paint.GetColorSpacePtr()) {
+            auto skColorSpaceImpl = cs->GetImpl<SkiaColorSpace>();
+            sk_sp<SkColorSpace> colorSpace =
+                (skColorSpaceImpl != nullptr) ? skColorSpaceImpl->GetColorSpace() : nullptr;
+            skPaint.setColor(SkColor4f::FromColor(paint.GetColor().CastToColorQuad()), colorSpace.get());
+        } else {
+            skPaint.setColor(paint.GetColor().CastToColorQuad());
+        }
     }
 
     skPaint.setAntiAlias(paint.IsAntiAlias());

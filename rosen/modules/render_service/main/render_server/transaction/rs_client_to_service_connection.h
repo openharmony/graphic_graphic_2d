@@ -22,10 +22,10 @@
 #include <unordered_map>
 
 #include "hgm_config_callback_manager.h"
+#include "ipc_callbacks/active_screen_id_changed_callback.h"
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/buffer_clear_callback.h"
 #include "ipc_callbacks/screen_supported_hdr_formats_callback.h"
-#include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "rs_render_composer_manager.h"
 #include "zidl/rs_client_to_service_connection_stub.h"
 #include "screen_manager/public/rs_screen_manager_agent.h"
@@ -45,7 +45,8 @@ public:
         sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent,
         sptr<RSScreenManagerAgent> screenManagerAgent,
         sptr<IRemoteObject> token,
-        sptr<RSVsyncManagerAgent> vsyncManagerAgent);
+        sptr<RSVsyncManagerAgent> vsyncManagerAgent,
+        bool needRefresh = false);
     ~RSClientToServiceConnection() noexcept;
     RSClientToServiceConnection(const RSClientToServiceConnection&) = delete;
     RSClientToServiceConnection& operator=(const RSClientToServiceConnection&) = delete;
@@ -129,6 +130,8 @@ private:
 
     int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect, bool supportRotation = false) override;
 
+    sptr<IRemoteObject> GetConnectToRenderToken(ScreenId screenId) override;
+
     void ForceRefreshOneFrameWithNextVSync() override;
 
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) override;
@@ -140,6 +143,8 @@ private:
     int32_t SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback) override;
 
     int32_t SetScreenSwitchingNotifyCallback(sptr<RSIScreenSwitchingNotifyCallback> callback) override;
+
+    int32_t SetActiveScreenIdChangedCallback(sptr<RSIActiveScreenIdChangedCallback> callback) override;
 
     int32_t SetBrightnessInfoChangeCallback(sptr<RSIBrightnessInfoChangeCallback> callback) override;
 
@@ -359,8 +364,6 @@ private:
 
     ErrCode SetOptimizeCanvasDirtyPidList(const std::vector<int32_t>& pidList) override;
 
-    void SetFreeMultiWindowStatus(bool enable) override;
-
     ErrCode SetLayerTop(const std::string &nodeIdStr, bool isTop) override;
 
     ErrCode SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh) override;
@@ -444,6 +447,7 @@ private:
     const std::string VOTER_SCENE_GPU = "VOTER_SCENE_GPU";
     static const std::string GPU_FREQ_PREF;
     sptr<RSVsyncManagerAgent> vsyncManagerAgent_ = nullptr;
+    bool needRefresh_ = false;
 
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;

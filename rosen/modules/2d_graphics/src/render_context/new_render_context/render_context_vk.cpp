@@ -53,7 +53,7 @@ bool RenderContextVK::SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawi
         return true;
     }
     if (drawingContext == nullptr) {
-        drawingContext = RsVulkanContext::GetSingleton().CreateDrawingContext();
+        drawingContext = RsVulkanContext::GetSingleton(cacheDir_).CreateDrawingContext();
     }
     std::shared_ptr<Drawing::GPUContext> drGPUContext(drawingContext);
     drGPUContext_ = std::move(drGPUContext);
@@ -88,6 +88,24 @@ void RenderContextVK::ChangeProtectedState(bool isProtected)
     // If compare_exchange_strong returns false, expected now contains the current value
     // In this case, we just need to ensure isProtected_ is set to the correct value
     isProtected_.store(isProtected, std::memory_order_release);
+}
+
+std::string RenderContextVK::GetShaderCacheSize() const
+{
+    if (RsVulkanContext::GetSingleton().GetMemoryHandler()) {
+        return RsVulkanContext::GetSingleton().GetMemoryHandler()->QuerryShader();
+    }
+    LOGD("GetShaderCacheSize no shader cache");
+    return "";
+}
+
+std::string RenderContextVK::CleanAllShaderCache() const
+{
+    if (RsVulkanContext::GetSingleton().GetMemoryHandler()) {
+        return RsVulkanContext::GetSingleton().GetMemoryHandler()->ClearShader();
+    }
+    LOGD("CleanAllShaderCache no shader cache");
+    return "";
 }
 
 bool RenderContextVK::QueryMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight)

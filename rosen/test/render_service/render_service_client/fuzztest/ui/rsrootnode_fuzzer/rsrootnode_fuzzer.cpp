@@ -79,17 +79,6 @@ bool DoGetType()
     return true;
 }
 
-bool DoAttachRSSurfaceNode()
-{
-    // test
-    bool isRenderServiceNode = GetData<bool>();
-    auto node = std::make_shared<RSRootNode>(isRenderServiceNode);
-    Rosen::RSSurfaceNodeConfig config;
-    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
-    node->AttachRSSurfaceNode(surfaceNode);
-    return true;
-}
-
 bool DoSetEnableRender()
 {
     // test
@@ -121,7 +110,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     /* Run your code on data */
     OHOS::Rosen::DoCreate();
     OHOS::Rosen::DoGetType();
-    OHOS::Rosen::DoAttachRSSurfaceNode();
     OHOS::Rosen::DoSetEnableRender();
     OHOS::Rosen::DoOnBoundsSizeChanged();
     return 0;

@@ -120,6 +120,7 @@ public:
             case RSNGEffectType::MAGNIFIER: return "Magnifier";
             case RSNGEffectType::DISTORTION_COLLAPSE: return "DistortionCollapse";
             case RSNGEffectType::SPATIAL_POINT_LIGHT: return "SpatialPointLight";
+            case RSNGEffectType::SPATIAL_GLASS_EFFECT: return "SpatialGlassEffect";
             default: return "UNKNOWN";
         }
     }

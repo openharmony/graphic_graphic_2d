@@ -27,10 +27,15 @@ class RSRenderToServiceConnection : public RSRenderToServiceConnectionStub {
 public:
     RSRenderToServiceConnection(sptr<RSRenderServiceAgent> renderServiceAgent,
         sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent, sptr<RSScreenManagerAgent> screenManagerAgent);
-    ~RSRenderToServiceConnection() noexcept = default;
+    ~RSRenderToServiceConnection() noexcept override = default;
 
     RSRenderToServiceConnection(const RSRenderToServiceConnection&) = delete;
     RSRenderToServiceConnection& operator=(const RSRenderToServiceConnection&) = delete;
+
+    // Process Manager
+    bool NotifyRenderProcessInitFinished(const sptr<IRemoteObject>& serviceToRenderConnection,
+        const sptr<IRemoteObject>& connectToRenderConnection) override;
+    sptr<ReplyToRenderInfo> SendProcessInfo(const sptr<ConnectToServiceInfo>& connectToServiceInfo) override;
 
     // Hgm
     sptr<HgmServiceToProcessInfo> NotifyRpHgmFrameRate(uint64_t timestamp, uint64_t vsyncId,
@@ -38,7 +43,7 @@ public:
 
     // Screen Manager
     void NotifyScreenSwitchFinished(ScreenId screenId) override;
-        
+
 private:
     const sptr<RSRenderServiceAgent> renderServiceAgent_;
     const sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent_;

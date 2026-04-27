@@ -325,34 +325,8 @@ public:
     bool IsRenderServiceNode() const;
     void SetTakeSurfaceForUIFlag();
 
-    static std::vector<std::shared_ptr<RSAnimation>> Animate(const RSAnimationTimingProtocol& timingProtocol,
-        const RSAnimationTimingCurve& timingCurve, const PropertyCallback& callback,
-        const std::function<void()>& finishCallback = nullptr, const std::function<void()>& repeatCallback = nullptr);
-
-    static std::vector<std::shared_ptr<RSAnimation>> AnimateWithCurrentOptions(
-        const PropertyCallback& callback, const std::function<void()>& finishCallback, bool timingSensitive = true);
-    static std::vector<std::shared_ptr<RSAnimation>> AnimateWithCurrentCallback(
-        const RSAnimationTimingProtocol& timingProtocol, const RSAnimationTimingCurve& timingCurve,
-        const PropertyCallback& callback);
-
-    static void RegisterTransitionPair(NodeId inNodeId, NodeId outNodeId, const bool isInSameWindow);
-    static void UnregisterTransitionPair(NodeId inNodeId, NodeId outNodeId);
-
-    static void OpenImplicitAnimation(const RSAnimationTimingProtocol& timingProtocol,
-        const RSAnimationTimingCurve& timingCurve, const std::function<void()>& finishCallback = nullptr);
-    static std::vector<std::shared_ptr<RSAnimation>> CloseImplicitAnimation();
-    static bool CloseImplicitCancelAnimation();
-    static bool IsImplicitAnimationOpen();
-
     static void ExecuteWithoutAnimation(const PropertyCallback& callback,
-        const std::shared_ptr<RSUIContext> rsUIContext = nullptr,
-        std::shared_ptr<RSImplicitAnimator> implicitAnimator = nullptr);
-
-    static void AddKeyFrame(
-        float fraction, const RSAnimationTimingCurve& timingCurve, const PropertyCallback& callback);
-    static void AddKeyFrame(float fraction, const PropertyCallback& callback);
-    static void AddDurationKeyFrame(
-        int duration, const RSAnimationTimingCurve& timingCurve, const PropertyCallback& callback);
+        const std::shared_ptr<RSUIContext> rsUIContext, std::shared_ptr<RSImplicitAnimator> implicitAnimator = nullptr);
 
     // multi-instance
     static std::vector<std::shared_ptr<RSAnimation>> Animate(const std::shared_ptr<RSUIContext> rsUIContext,
@@ -1562,6 +1536,13 @@ public:
     void SetCustomClipToFrame(const Vector4f& clipRect);
 
     /**
+     * @brief Sets whether the node should be double-sided rendered.
+     *
+     * @param isDoubleSided True to enable double-sided rendering; false to enable single-sided rendering.
+     */
+    void SetDoubleSidedEnabled(bool isDoubleSided);
+
+    /**
      * @brief Sets the brightness of HDR (High Dynamic Range).
      *
      * @param hdrBrightness The HDR brightness value to set.
@@ -1984,6 +1965,8 @@ public:
      */
     void MarkLayerPartRender(bool isLayerPartRender);
 
+    void ReSortChildrenByZIndex();
+
 protected:
     explicit RSNode(
         bool isRenderServiceNode, bool isTextureExportNode = false, std::shared_ptr<RSUIContext> rsUIContext = nullptr,
@@ -2000,6 +1983,7 @@ protected:
     bool isRenderServiceNode_;
     bool isTextureExportNode_ = false;
     bool skipDestroyCommandInDestructor_ = false;
+    bool isShadowNode_ = false;
     ExportTypeChangedCallback exportTypeChangedCallback_ = nullptr;
 
     // Used for same layer rendering, to determine whether RT or RS generates renderNode when the type of node switches
@@ -2206,8 +2190,7 @@ private:
     bool FireColorPickerCallback(uint32_t color);
     bool HasPropertyAnimation(const PropertyId& id);
     std::vector<AnimationId> GetAnimationByPropertyId(const PropertyId& id);
-    bool FallbackAnimationsToContext();
-    void FallbackAnimationsToRoot();
+    void FallbackAnimationsToContext();
     void AddAnimationInner(const std::shared_ptr<RSAnimation>& animation);
     void FinishAnimationByProperty(const PropertyId& id);
     void RemoveAnimationInner(const std::shared_ptr<RSAnimation>& animation);
@@ -2240,6 +2223,8 @@ private:
     void LoadRenderNodeIfNeed() const;
 
     void AddChildInner(SharedPtr child, int index);
+
+    void RegenerateTreeHierarchyCommands();
 
     bool AddCommandInner(std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand,
         FollowType followType, NodeId nodeId) const;

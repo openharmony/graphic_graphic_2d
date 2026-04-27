@@ -15,6 +15,8 @@
 
 #include "gtest/gtest.h"
 
+#include <vector>
+
 #include "drawing_bitmap.h"
 #include "drawing_brush.h"
 #include "drawing_canvas.h"
@@ -23,6 +25,7 @@
 #include "drawing_error_code.h"
 #include "drawing_filter.h"
 #include "drawing_font.h"
+#include "drawing_gpu_context.h"
 #include "drawing_helper.h"
 #include "drawing_image.h"
 #include "drawing_image_filter.h"
@@ -41,6 +44,7 @@
 #include "drawing_text_blob.h"
 #include "drawing_typeface.h"
 #include "drawing_memory_stream.h"
+#include "draw/color.h"
 #include "effect/color_filter.h"
 #include "effect/filter.h"
 #include "recording/recording_canvas.h"
@@ -73,6 +77,27 @@ constexpr uint32_t POINT_PARAMETER = 3;
 constexpr uint32_t COLOR_PARAMETER = 3;
 constexpr uint32_t INTNUM_TEN = 10;
 constexpr int32_t NEGATIVE_ONE = -1;
+constexpr int32_t IS_OPAQUE_TEST_WIDTH = 720;
+constexpr int32_t IS_OPAQUE_TEST_HEIGHT = 720;
+
+static void TestIsOpaqueHelper(OH_Drawing_ColorFormat colorType, OH_Drawing_AlphaFormat alphaType, bool expectedOpaque)
+{
+    OH_Drawing_GpuContext* gpuContext = OH_Drawing_GpuContextCreate();
+    OH_Drawing_Image_Info imageInfo = { IS_OPAQUE_TEST_WIDTH, IS_OPAQUE_TEST_HEIGHT, colorType, alphaType };
+    uint32_t sizePix = IS_OPAQUE_TEST_HEIGHT * IS_OPAQUE_TEST_WIDTH;
+    auto pixels = std::vector<uint32_t>(sizePix, 0);
+    uint32_t rowBytes = IS_OPAQUE_TEST_WIDTH * 4;
+    OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreateFromPixels(&imageInfo, pixels.data(), rowBytes);
+    OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreate();
+    OH_Drawing_CanvasBind(canvas, bitmap);
+    bool isOpaque = false;
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_CanvasIsOpaque(canvas, &isOpaque);
+    EXPECT_EQ(errorCode, OH_DRAWING_SUCCESS);
+    EXPECT_EQ(isOpaque, expectedOpaque);
+    OH_Drawing_CanvasDestroy(canvas);
+    OH_Drawing_BitmapDestroy(bitmap);
+    OH_Drawing_GpuContextDestroy(gpuContext);
+}
 
 void NativeDrawingCanvasTest::SetUpTestCase()
 {
@@ -3286,6 +3311,142 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_ResetClip001, TestSize
 {
     EXPECT_EQ(OH_Drawing_CanvasResetClip(nullptr), OH_DRAWING_ERROR_INVALID_PARAMETER);
     EXPECT_EQ(OH_Drawing_CanvasResetClip(canvas_), OH_DRAWING_SUCCESS);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_IsOpaque001
+ * @tc.desc: test for IsOpaque with COLOR_FORMAT_UNKNOWN and ALL AlphaFormat.
+ * @tc.require: 22955
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_IsOpaque001, TestSize.Level1)
+{
+    TestIsOpaqueHelper(OH_Drawing_ColorFormat::COLOR_FORMAT_UNKNOWN, OH_Drawing_AlphaFormat::ALPHA_FORMAT_UNKNOWN,
+        true);
+    TestIsOpaqueHelper(OH_Drawing_ColorFormat::COLOR_FORMAT_UNKNOWN, OH_Drawing_AlphaFormat::ALPHA_FORMAT_OPAQUE,
+        true);
+    TestIsOpaqueHelper(OH_Drawing_ColorFormat::COLOR_FORMAT_UNKNOWN, OH_Drawing_AlphaFormat::ALPHA_FORMAT_PREMUL,
+        true);
+    TestIsOpaqueHelper(OH_Drawing_ColorFormat::COLOR_FORMAT_UNKNOWN, OH_Drawing_AlphaFormat::ALPHA_FORMAT_UNPREMUL,
+        true);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_IsOpaque002
+ * @tc.desc: test for IsOpaque with COLOR_FORMAT_ALPHA_8 and ALL AlphaFormat.
+ * @tc.type: FUNC
+ * @tc.require: 22955
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_IsOpaque002, TestSize.Level1)
+{
+    TestIsOpaqueHelper(OH_Drawing_ColorFormat::COLOR_FORMAT_ALPHA_8, OH_Drawing_AlphaFormat::ALPHA_FORMAT_UNKNOWN,
+        true);
+    TestIsOpaqueHelper(OH_Drawing_ColorFormat::COLOR_FORMAT_ALPHA_8, OH_Drawing_AlphaFormat::ALPHA_FORMAT_OPAQUE,
+        true);
+    TestIsOpaqueHelper(OH_Drawing_ColorFormat::COLOR_FORMAT_ALPHA_8, OH_Drawing_AlphaFormat::ALPHA_FORMAT_PREMUL,
+        false);
+    TestIsOpaqueHelper(OH_Drawing_ColorFormat::COLOR_FORMAT_ALPHA_8, OH_Drawing_AlphaFormat::ALPHA_FORMAT_UNPREMUL,
+        false);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_IsOpaque003
+ * @tc.desc: test for IsOpaque with COLOR_FORMAT_RGB_565 and ALL AlphaFormat.
+ * @tc.type: FUNC
+ * @tc.require: 22955
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_IsOpaque003, TestSize.Level1)
+{
+    TestIsOpaqueHelper(OH_Drawing_ColorFormat::COLOR_FORMAT_RGB_565, OH_Drawing_AlphaFormat::ALPHA_FORMAT_UNKNOWN,
+        true);
+    TestIsOpaqueHelper(OH_Drawing_ColorFormat::COLOR_FORMAT_RGB_565, OH_Drawing_AlphaFormat::ALPHA_FORMAT_OPAQUE,
+        true);
+    TestIsOpaqueHelper(OH_Drawing_ColorFormat::COLOR_FORMAT_RGB_565, OH_Drawing_AlphaFormat::ALPHA_FORMAT_PREMUL,
+        true);
+    TestIsOpaqueHelper(OH_Drawing_ColorFormat::COLOR_FORMAT_RGB_565, OH_Drawing_AlphaFormat::ALPHA_FORMAT_UNPREMUL,
+        true);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_IsOpaque004
+ * @tc.desc: test for IsOpaque with COLOR_FORMAT_ARGB_4444 and ALL AlphaFormat.
+ * @tc.type: FUNC
+ * @tc.require: 22955
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_IsOpaque004, TestSize.Level1)
+{
+    TestIsOpaqueHelper(OH_Drawing_ColorFormat::COLOR_FORMAT_ARGB_4444, OH_Drawing_AlphaFormat::ALPHA_FORMAT_UNKNOWN,
+        true);
+    TestIsOpaqueHelper(OH_Drawing_ColorFormat::COLOR_FORMAT_ARGB_4444, OH_Drawing_AlphaFormat::ALPHA_FORMAT_OPAQUE,
+        true);
+    TestIsOpaqueHelper(OH_Drawing_ColorFormat::COLOR_FORMAT_ARGB_4444, OH_Drawing_AlphaFormat::ALPHA_FORMAT_PREMUL,
+        false);
+    TestIsOpaqueHelper(OH_Drawing_ColorFormat::COLOR_FORMAT_ARGB_4444, OH_Drawing_AlphaFormat::ALPHA_FORMAT_UNPREMUL,
+        false);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_IsOpaque005
+ * @tc.desc: test for IsOpaque with COLOR_FORMAT_RGBA_8888 and ALL AlphaFormat.
+ * @tc.type: FUNC
+ * @tc.require: 22955
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_IsOpaque005, TestSize.Level1)
+{
+    TestIsOpaqueHelper(OH_Drawing_ColorFormat::COLOR_FORMAT_RGBA_8888, OH_Drawing_AlphaFormat::ALPHA_FORMAT_UNKNOWN,
+        true);
+    TestIsOpaqueHelper(OH_Drawing_ColorFormat::COLOR_FORMAT_RGBA_8888, OH_Drawing_AlphaFormat::ALPHA_FORMAT_OPAQUE,
+        true);
+    TestIsOpaqueHelper(OH_Drawing_ColorFormat::COLOR_FORMAT_RGBA_8888, OH_Drawing_AlphaFormat::ALPHA_FORMAT_PREMUL,
+        false);
+    TestIsOpaqueHelper(OH_Drawing_ColorFormat::COLOR_FORMAT_RGBA_8888, OH_Drawing_AlphaFormat::ALPHA_FORMAT_UNPREMUL,
+        false);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_IsOpaque006
+ * @tc.desc: test for IsOpaque with COLOR_FORMAT_BGRA_8888 and ALL AlphaFormat.
+ * @tc.type: FUNC
+ * @tc.require: 22955
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_IsOpaque006, TestSize.Level1)
+{
+    TestIsOpaqueHelper(OH_Drawing_ColorFormat::COLOR_FORMAT_BGRA_8888, OH_Drawing_AlphaFormat::ALPHA_FORMAT_UNKNOWN,
+        true);
+    TestIsOpaqueHelper(OH_Drawing_ColorFormat::COLOR_FORMAT_BGRA_8888, OH_Drawing_AlphaFormat::ALPHA_FORMAT_OPAQUE,
+        true);
+    TestIsOpaqueHelper(OH_Drawing_ColorFormat::COLOR_FORMAT_BGRA_8888, OH_Drawing_AlphaFormat::ALPHA_FORMAT_PREMUL,
+        false);
+    TestIsOpaqueHelper(OH_Drawing_ColorFormat::COLOR_FORMAT_BGRA_8888, OH_Drawing_AlphaFormat::ALPHA_FORMAT_UNPREMUL,
+        false);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_IsOpaque007
+ * @tc.desc: test for IsOpaque with nullptr parameter
+ * @tc.type: FUNC
+ * @tc.require: 22955
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_IsOpaque007, TestSize.Level1)
+{
+    OH_Drawing_GpuContext* gpuContext = OH_Drawing_GpuContextCreate();
+    OH_Drawing_Image_Info imageInfo = { IS_OPAQUE_TEST_WIDTH, IS_OPAQUE_TEST_HEIGHT,
+        OH_Drawing_ColorFormat::COLOR_FORMAT_BGRA_8888, OH_Drawing_AlphaFormat::ALPHA_FORMAT_UNPREMUL };
+    uint32_t sizePix = IS_OPAQUE_TEST_HEIGHT * IS_OPAQUE_TEST_WIDTH;
+    auto pixels = std::vector<uint32_t>(sizePix, 0);
+    uint32_t rowBytes = IS_OPAQUE_TEST_WIDTH * 4;
+    OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreateFromPixels(&imageInfo, pixels.data(), rowBytes);
+    OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreate();
+    OH_Drawing_CanvasBind(canvas, bitmap);
+    bool isOpaque = false;
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_CanvasIsOpaque(canvas, nullptr);
+    EXPECT_EQ(errorCode, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    errorCode = OH_Drawing_CanvasIsOpaque(nullptr, nullptr);
+    EXPECT_EQ(errorCode, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    errorCode = OH_Drawing_CanvasIsOpaque(nullptr, &isOpaque);
+    EXPECT_EQ(errorCode, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    OH_Drawing_CanvasDestroy(canvas);
+    OH_Drawing_BitmapDestroy(bitmap);
+    OH_Drawing_GpuContextDestroy(gpuContext);
 }
 
 } // namespace Drawing

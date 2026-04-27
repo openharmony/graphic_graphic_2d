@@ -28,7 +28,6 @@ class AnimationTest : public RSGraphicTest {
 private:
     const int screenWidth = 1200;
     const int screenHeight = 2000;
-
 public:
     // called before each tests
     void BeforeEach() override
@@ -89,7 +88,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_FinishCallback_Test_1)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     RSNode::Animate(rsUIContext,
         protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
         [this]() {
@@ -116,7 +116,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_RepeatCallback_Test_1)
     protocol.SetDuration(1000);
     protocol.SetRepeatCount(repeatCount);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     RSNode::Animate(rsUIContext,
         protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
         [this]() {
@@ -150,7 +151,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_RepeatCallback_Test_2)
     protocol.SetDuration(1000);
     protocol.SetRepeatCount(repeatCount);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     RSNode::Animate(rsUIContext,
         protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
         [this]() {
@@ -184,7 +186,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_RepeatCallback_Test_3)
     protocol.SetDuration(1000);
     protocol.SetRepeatCount(repeatCount);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     RSNode::Animate(rsUIContext,
         protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
         [this]() {
@@ -218,7 +221,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_RepeatCallback_Test_4)
     protocol.SetDuration(1000);
     protocol.SetRepeatCount(repeatCount);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     RSNode::Animate(rsUIContext,
         protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
         [this]() {
@@ -251,7 +255,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_OpenImplicitAnimation_Test
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
     // just OpenImplicitAnimation
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     RSNode::OpenImplicitAnimation(rsUIContext, protocol, timingCurve, [this]() {
         std::cout << "Animation_OpenImplicitAnimation_Test_1 animation finish callback" << std::endl;
     });
@@ -272,7 +277,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CloseImplicitAnimation_Tes
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
     // just CloseImplicitAnimation
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     RSNode::CloseImplicitAnimation(rsUIContext);
 }
 
@@ -291,7 +297,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_OpenImplicitAnimation_Clos
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
     // OpenImplicitAnimation & CloseImplicitAnimation
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     RSNode::OpenImplicitAnimation(rsUIContext, protocol, timingCurve, [this]() {
         auto finishCallbackNode = FinishCallbackFunc();
         GetRootNode()->AddChild(finishCallbackNode);
@@ -320,7 +327,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_AddKeyFrame_Test_1)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     RSNode::OpenImplicitAnimation(rsUIContext, protocol, timingCurve, [this]() {
         auto finishCallbackNode = FinishCallbackFunc();
         GetRootNode()->AddChild(finishCallbackNode);
@@ -356,19 +364,19 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_AddKeyFrame_Test_2)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    RSNode::OpenImplicitAnimation(protocol, timingCurve, [this]() {
+    RSNode::OpenImplicitAnimation(nullptr, protocol, timingCurve, [this]() {
         auto finishCallbackNode = FinishCallbackFunc();
         GetRootNode()->AddChild(finishCallbackNode);
         RegisterNode(finishCallbackNode);
         std::cout << "Animation_AddKeyFrame_Test_2 animation finish callback" << std::endl;
     });
-    RSNode::AddKeyFrame(
+    RSNode::AddKeyFrame(nullptr,
         keyFrameFractionOne, RSAnimationTimingCurve::EASE_IN, [&]() { animationCustomModifier->SetPosition(500); });
-    RSNode::AddKeyFrame(
+    RSNode::AddKeyFrame(nullptr,
         keyFrameFractionTwo, RSAnimationTimingCurve::LINEAR, [&]() { animationCustomModifier->SetPosition(700); });
-    RSNode::AddKeyFrame(
+    RSNode::AddKeyFrame(nullptr,
         keyFrameFractionThree, RSAnimationTimingCurve::EASE_OUT, [&]() { animationCustomModifier->SetPosition(900); });
-    RSNode::CloseImplicitAnimation();
+    RSNode::CloseImplicitAnimation(nullptr);
 }
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_AddKeyFrame_Test_3)
@@ -388,19 +396,19 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_AddKeyFrame_Test_3)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(800);
     auto timingCurve = RSAnimationTimingCurve::EASE;
-    RSNode::OpenImplicitAnimation(protocol, timingCurve, [this]() {
+    RSNode::OpenImplicitAnimation(nullptr, protocol, timingCurve, [this]() {
         auto finishCallbackNode = FinishCallbackFunc();
         GetRootNode()->AddChild(finishCallbackNode);
         RegisterNode(finishCallbackNode);
         std::cout << "Animation_AddKeyFrame_Test_3 animation finish callback" << std::endl;
     });
-    RSNode::AddKeyFrame(
+    RSNode::AddKeyFrame(nullptr,
         keyFrameFractionOne, RSAnimationTimingCurve::EASE_IN, [&]() { animationCustomModifier->SetPosition(500); });
-    RSNode::AddKeyFrame(
+    RSNode::AddKeyFrame(nullptr,
         keyFrameFractionTwo, RSAnimationTimingCurve::LINEAR, [&]() { animationCustomModifier->SetPosition(700); });
-    RSNode::AddKeyFrame(
+    RSNode::AddKeyFrame(nullptr,
         keyFrameFractionThree, RSAnimationTimingCurve::EASE_OUT, [&]() { animationCustomModifier->SetPosition(900); });
-    RSNode::CloseImplicitAnimation();
+    RSNode::CloseImplicitAnimation(nullptr);
 }
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_AddDurationKeyFrame_Test_1)
@@ -420,7 +428,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_AddDurationKeyFrame_Test_1
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     RSNode::OpenImplicitAnimation(rsUIContext, protocol, timingCurve, [this]() {
         auto finishCallbackNode = FinishCallbackFunc();
         GetRootNode()->AddChild(finishCallbackNode);
@@ -455,9 +464,11 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_1)
     testNode->SetMotionPathOption(motionPathOption);
 
     RSAnimationTimingProtocol protocol;
+    RSAnimationTimingCurve timingCurve;
     protocol.SetDuration(1000);
-    auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
+
     RSNode::Animate(rsUIContext,
         protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
         [this]() {
@@ -486,7 +497,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_2)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     RSNode::Animate(rsUIContext,
         protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
         [this]() {
@@ -515,7 +527,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_3)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     RSNode::Animate(rsUIContext,
         protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
         [this]() {
@@ -546,7 +559,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_4)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     RSNode::Animate(rsUIContext,
         protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
         [this]() {
@@ -577,7 +591,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_5)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     RSNode::Animate(rsUIContext,
         protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
         [this]() {
@@ -608,7 +623,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_6)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     RSNode::Animate(rsUIContext,
         protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
         [this]() {
@@ -639,7 +655,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_7)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     RSNode::Animate(rsUIContext,
         protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
         [this]() {
@@ -670,7 +687,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_8)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     RSNode::Animate(rsUIContext,
         protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
         [this]() {
@@ -701,7 +719,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_9)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     RSNode::Animate(rsUIContext,
         protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
         [this]() {
@@ -731,7 +750,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_10)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     RSNode::Animate(rsUIContext,
         protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
         [this]() {
@@ -761,7 +781,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_11)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     RSNode::Animate(rsUIContext,
         protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
         [this]() {
@@ -791,7 +812,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_12)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     RSNode::Animate(rsUIContext,
         protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
         [this]() {
@@ -816,7 +838,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, AnimateWithCurrentCallback_Test_1)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    RSNode::AnimateWithCurrentCallback(protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); });
+    RSNode::AnimateWithCurrentCallback(nullptr,
+        protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); });
 }
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, AnimateWithCurrentCallback_Test_2)
@@ -833,7 +856,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, AnimateWithCurrentCallback_Test_2)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(100);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    RSNode::AnimateWithCurrentCallback(protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); });
+        RSNode::AnimateWithCurrentCallback(nullptr,
+        protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); });
 }
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, AnimateWithCurrentCallback_Test_3)
@@ -850,7 +874,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, AnimateWithCurrentCallback_Test_3)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(500);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    RSNode::AnimateWithCurrentCallback(protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); });
+        RSNode::AnimateWithCurrentCallback(nullptr,
+        protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); });
 }
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, AnimateWithCurrentCallback_Test_4)
@@ -867,7 +892,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, AnimateWithCurrentCallback_Test_4)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(500);
     auto timingCurve = RSAnimationTimingCurve::LINEAR;
-    RSNode::AnimateWithCurrentCallback(protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); });
+        RSNode::AnimateWithCurrentCallback(nullptr,
+        protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); });
 }
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, AnimateWithCurrentCallback_Test_5)
@@ -884,7 +910,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, AnimateWithCurrentCallback_Test_5)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(500);
     auto timingCurve = RSAnimationTimingCurve::EASE;
-    RSNode::AnimateWithCurrentCallback(protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); });
+        RSNode::AnimateWithCurrentCallback(nullptr,
+        protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); });
 }
 
 GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_IsImplicitAnimationOpen_Test_1)
@@ -898,7 +925,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_IsImplicitAnimationOpen_Te
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
 
-    if (RSNode::IsImplicitAnimationOpen()) {
+    if (RSNode::IsImplicitAnimationOpen(nullptr)) {
         auto node = AddTestNode("implicit animation is open", 100);
         GetRootNode()->AddChild(node);
         RegisterNode(node);
@@ -908,21 +935,21 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_IsImplicitAnimationOpen_Te
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
     // OpenImplicitAnimation & CloseImplicitAnimation
-    RSNode::OpenImplicitAnimation(protocol, timingCurve, [this]() {
+    RSNode::OpenImplicitAnimation(nullptr, protocol, timingCurve, [this]() {
         auto finishCallbackNode = FinishCallbackFunc();
         GetRootNode()->AddChild(finishCallbackNode);
         RegisterNode(finishCallbackNode);
         std::cout << "Animation_IsImplicitAnimationOpen_Test_1 animation finish callback" << std::endl;
     });
-    if (RSNode::IsImplicitAnimationOpen()) {
+    if (RSNode::IsImplicitAnimationOpen(nullptr)) {
         auto node = AddTestNode("implicit animation is open", 200);
         GetRootNode()->AddChild(node);
         RegisterNode(node);
     }
     animationCustomModifier->SetPosition(500);
-    RSNode::CloseImplicitAnimation();
+    RSNode::CloseImplicitAnimation(nullptr);
 
-    if (RSNode::IsImplicitAnimationOpen()) {
+    if (RSNode::IsImplicitAnimationOpen(nullptr)) {
         auto node = AddTestNode("implicit animation is open", 300);
         GetRootNode()->AddChild(node);
         RegisterNode(node);
@@ -940,7 +967,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_RemoveAllAnimations_Test_1
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
 
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
     auto endProperty = std::make_shared<RSAnimatableProperty<float>>(1.0f);
     auto curveAnimation = std::make_shared<RSCurveAnimation>(rsUIContext, property, endProperty);
@@ -977,7 +1005,8 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_RemoveAnimation_Test_1)
     GetRootNode()->AddChild(testNode);
     RegisterNode(testNode);
 
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
     auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
     auto endProperty = std::make_shared<RSAnimatableProperty<float>>(1.0f);
     auto curveAnimation = std::make_shared<RSCurveAnimation>(rsUIContext, property, endProperty);
@@ -1024,7 +1053,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_SetMotionPath_Test_1)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    RSNode::Animate(
+    RSNode::Animate(nullptr,
         protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
         [this]() {
             auto finishCallbackNode = FinishCallbackFunc();
@@ -1056,7 +1085,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_SetMotionPath_Test_2)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    RSNode::Animate(
+    RSNode::Animate(nullptr,
         protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
         [this]() {
             auto finishCallbackNode = FinishCallbackFunc();
@@ -1088,7 +1117,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_SetMotionPath_Test_3)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    RSNode::Animate(
+    RSNode::Animate(nullptr,
         protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
         [this]() {
             auto finishCallbackNode = FinishCallbackFunc();
@@ -1122,7 +1151,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_SetMotionPath_Test_4)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    RSNode::Animate(
+    RSNode::Animate(nullptr,
         protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
         [this]() {
             auto finishCallbackNode = FinishCallbackFunc();
@@ -1156,7 +1185,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_SetMotionPath_Test_5)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    RSNode::Animate(
+    RSNode::Animate(nullptr,
         protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
         [this]() {
             auto finishCallbackNode = FinishCallbackFunc();

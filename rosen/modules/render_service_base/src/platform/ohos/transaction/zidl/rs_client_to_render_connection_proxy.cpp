@@ -199,7 +199,7 @@ ErrCode RSClientToRenderConnectionProxy::ExecuteSynchronousTask(const std::share
     return ERR_OK;
 }
 
-ErrCode RSClientToRenderConnectionProxy::CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
+ErrCode RSClientToRenderConnectionProxy::CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
     bool& success)
 {
     MessageParcel data;
@@ -662,29 +662,6 @@ ErrCode RSClientToRenderConnectionProxy::SetHidePrivacyContent(NodeId id,
     return ERR_OK;
 }
 
-bool RSClientToRenderConnectionProxy::GetHighContrastTextState()
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
-        ROSEN_LOGE("RSClientToRenderConnectionProxy::GetHighContrastTextState: WriteInterfaceToken err.");
-        return false;
-    }
-    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_HIGH_CONTRAST_TEXT_STATE);
-    int32_t err = SendRequest(code, data, reply, option);
-    if (err != NO_ERROR) {
-        ROSEN_LOGE("RSClientToRenderConnectionProxy::GetHighContrastTextState: Send Request err.");
-        return false;
-    }
-    bool replyMessage = false;
-    if (!reply.ReadBool(replyMessage)) {
-        ROSEN_LOGE("%{public}s: ReadBool result failed", __func__);
-        return false;
-    }
-    return replyMessage;
-}
-
 ErrCode RSClientToRenderConnectionProxy::SetFocusAppInfo(const FocusAppInfo& info, int32_t& repCode)
 {
     MessageParcel data;
@@ -1037,7 +1014,8 @@ bool RSClientToRenderConnectionProxy::WriteSurfaceCaptureConfig(
         !data.WriteBool(captureConfig.colorSpace.second) ||
         !data.WriteUint32(captureConfig.dynamicRangeMode.first) ||
         !data.WriteBool(captureConfig.dynamicRangeMode.second) ||
-        !data.WriteBool(captureConfig.isSyncRender)) {
+        !data.WriteBool(captureConfig.isSyncRender) ||
+        !data.WriteBool(captureConfig.windowSync)) {
         ROSEN_LOGE("WriteSurfaceCaptureConfig: WriteSurfaceCaptureConfig captureConfig err.");
         return false;
     }
@@ -1906,5 +1884,29 @@ int32_t RSClientToRenderConnectionProxy::GetFrameStabilityResult(
     }
     return repCode;
 }
+
+void RSClientToRenderConnectionProxy::SetFreeMultiWindowStatus(bool enable)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("SetFreeMultiWindowStatus: WriteInterfaceToken GetDescriptor err.");
+        return;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteBool(enable)) {
+        ROSEN_LOGE("SetFreeMultiWindowStatus: WriteBool enable err.");
+        return;
+    }
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToRenderConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("SetFreeMultiWindowStatus: Send Request err.");
+        return;
+    }
+}
+
 } // namespace Rosen
 } // namespace OHOS

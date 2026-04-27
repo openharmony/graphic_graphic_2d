@@ -22,7 +22,6 @@
 #include "rs_animation_timing_curve.h"
 #include "rs_curve_animation.h"
 #include "rs_implicit_animation_param.h"
-#include "rs_implicit_animator_map.h"
 #include "rs_implicit_animator.h"
 #include "rs_interactive_implict_animator.h"
 #include "rs_interpolating_spring_animation.h"
@@ -403,7 +402,7 @@ namespace OHOS {
         const RSAnimationTimingProtocol timingProtocol = {};
 
         auto interactiveAnimator = RSInteractiveImplictAnimator::Create(
-            timingProtocol, RSAnimationTimingCurve::DEFAULT);
+            nullptr, timingProtocol, RSAnimationTimingCurve::DEFAULT);
         interactiveAnimator->AddImplictAnimation([]() {});
         interactiveAnimator->AddAnimation([]() {});
         interactiveAnimator->StartAnimation();
@@ -479,7 +478,7 @@ namespace OHOS {
         animation->UpdateParamToRenderAnimation(renderAnimation);
         animation->StartCustomAnimation(renderAnimation);
         animation->UpdateParamToRenderAnimation(renderAnimation);
-        auto rsUiDirector = RSUIDirector::Create();
+        auto rsUiDirector = RSUIDirector::Create(nullptr, nullptr);
         rsUiDirector->SendMessages();
     }
 
@@ -534,7 +533,7 @@ namespace OHOS {
         animation3->Start(canvasNode);
         animation3->StartInner(canvasNode);
         animation3->InteractiveFinish(pos);
-        auto rsUiDirector = RSUIDirector::Create();
+        auto rsUiDirector = RSUIDirector::Create(nullptr, nullptr);
         rsUiDirector->SendMessages();
     }
 
@@ -586,7 +585,7 @@ namespace OHOS {
         animation2->StartCustomAnimation(renderAnimation);
         animation2->InteractiveFinish(pos);
         animation2->InvertStagingValue(isGroupAnimator, timingProtocol);
-        auto rsUiDirector = RSUIDirector::Create();
+        auto rsUiDirector = RSUIDirector::Create(nullptr, nullptr);
         rsUiDirector->SendMessages();
     }
 
@@ -599,7 +598,8 @@ namespace OHOS {
         g_data = data;
         g_size = size;
         g_pos = 0;
-        auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+        OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
+        auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
         // get data
         RSModifierManagerMap::Instance()->GetModifierManager();
         RsAnimationTimingCurveFuzzTest();

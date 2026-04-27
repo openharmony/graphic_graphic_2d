@@ -1325,6 +1325,7 @@ GRAPHIC_TEST(AppearanceTest09, CONTENT_DISPLAY_TEST, Appearance_Elevation_ColorS
             childNode->SetBounds({ l, t, w, h });
             childNode->SetCornerRadius(rx);
             childNode->SetBackgroundColor(0xff000000);
+            childNode->SetShadowColor(0xff000000);
             childNode->SetShadowElevation(elevationList[i]);
             childNode->SetSDFShape(childShape);
             childNode->SetShadowColorStrategy(strategyList[i]);

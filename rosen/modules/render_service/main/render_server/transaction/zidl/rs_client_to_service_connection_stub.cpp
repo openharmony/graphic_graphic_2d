@@ -78,6 +78,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_CHANGE_CALLBACK),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_SWITCHING_NOTIFY_CALLBACK),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_ACTIVE_SCREEN_ID_CHANGED_CALLBACK),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_MODE),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_AS_MAIN_SCREEN),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_MAIN_SCREEN),
@@ -179,12 +180,13 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_ACTIVE_DIRTY_REGION_INFO),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_GLOBAL_DIRTY_REGION_INFO),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_LAYER_COMPOSE_INFO),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_HARDWARE_COMPOSE_DISABLED_REASON_INFO),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_HDR_ON_DURATION),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_CAST_SCREEN_ENABLE_SKIP_WINDOW),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REGISTER_UIEXTENSION_CALLBACK),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VMA_CACHE_STATUS),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_STATUS),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NEED_REGISTER_TYPEFACE),
-    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_LAYER_TOP),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_FORCE_REFRESH),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_COLOR_FOLLOW),
@@ -385,6 +387,20 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             if (GetDefaultScreenId(screenId) != ERR_OK || !reply.WriteUint64(screenId)) {
                 RS_LOGE("RSClientToServiceConnectionStub::GET_DEFAULT_SCREEN_ID Write id failed!");
                 ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_CONNECT_TO_RENDER): {
+            ScreenId id{INVALID_SCREEN_ID};
+            if (!data.ReadUint64(id)) {
+                RS_LOGE("RSClientToServiceConnectionStub::GET_CONNECT_TO_RENDER Read parcel fialed");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            auto connectToRender = GetConnectToRenderToken(id);
+            if (!reply.WriteRemoteObject(connectToRender)) {
+                RS_LOGE("RSClientToServiceConnectionStub::GET_CONNECT_TO_RENDER write status fialed");
+                ret = ERR_INVALID_DATA;
             }
             break;
         }
@@ -742,6 +758,37 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 RS_LOGE("RSClientToServiceConnectionStub::SET_SCREEN_SWITCHING_NOTIFY_CALLBACK Write status failed!");
                 ret = ERR_INVALID_REPLY;
             }
+            break;
+        }
+        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_ACTIVE_SCREEN_ID_CHANGED_CALLBACK): {
+            sptr<RSIActiveScreenIdChangedCallback> callback = nullptr;
+            bool readRemoteObject = false;
+            if (!data.ReadBool(readRemoteObject)) {
+                RS_LOGE(
+                    "RSClientToServiceConnectionStub::SET_ACTIVE_SCREEN_ID_CHANGED_CALLBACK read ReadRemoteObject "
+                    "failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (readRemoteObject) {
+                sptr<IRemoteObject> remoteObject = nullptr;
+                remoteObject = data.ReadRemoteObject();
+                if (remoteObject) {
+                    callback = iface_cast<RSIActiveScreenIdChangedCallback>(remoteObject);
+                } else {
+                    RS_LOGE("RSClientToServiceConnectionStub::SET_ACTIVE_SCREEN_ID_CHANGED_CALLBACK ReadRemoteObject "
+                            "failed!");
+                    ret = ERR_INVALID_DATA;
+                    break;
+                }
+                if (!callback) {
+                    RS_LOGE("RSClientToServiceConnectionStub::SET_ACTIVE_SCREEN_ID_CHANGED_CALLBACK cast "
+                            "failed!");
+                    ret = ERR_INVALID_DATA;
+                    break;
+                }
+            }
+            SetActiveScreenIdChangedCallback(callback);
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_MODE): {
@@ -2840,16 +2887,6 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             SetVmaCacheStatus(flag);
-            break;
-        }
-        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS) : {
-            bool enable{false};
-            if (!data.ReadBool(enable)) {
-                RS_LOGE("RSClientToServiceConnectionStub::SET_FREE_MULTI_WINDOW_STATUS Read enable failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            SetFreeMultiWindowStatus(enable);
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_LAYER_TOP) : {

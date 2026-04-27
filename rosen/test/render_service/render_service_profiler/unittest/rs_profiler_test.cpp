@@ -364,7 +364,7 @@ HWTEST_F(RSProfilerTest, LogEventVSync, testing::ext::TestSize.Level1)
     RSFile testFile;
 
     std::string error;
-    testFile.Open("RECORD_IN_MEMORY", error);
+    ASSERT_TRUE(testFile.Open("RECORD_IN_MEMORY", error)) << "Reason: " << error;
 
     EXPECT_TRUE(testFile.IsOpen());
     EXPECT_TRUE(error.empty());
@@ -502,8 +502,8 @@ HWTEST_F(RSProfilerFileTest, ReadAnimationStartTimeTest, TestSize.Level1)
     rsFile.WriteAnimationStartTime();
     rsFile.Close();
 
-    std::string error = "";
-    ASSERT_TRUE(rsFile.Open(fileName, error));
+    std::string error;
+    ASSERT_TRUE(rsFile.Open(fileName, error)) << "Reason: " << error;
     EXPECT_TRUE(rsFile.ReadAnimationStartTime());
     rsFile.Close();
 }
@@ -524,7 +524,7 @@ HWTEST_F(RSProfilerFileTest, ReadHeaderTest, TestSize.Level1)
     rsFile.Close();
 
     std::string error = "HasError";
-    ASSERT_TRUE(rsFile.Open(fileName, error));
+    ASSERT_TRUE(rsFile.Open(fileName, error)) << "Reason: " << error;
     EXPECT_TRUE(error.empty());
     error = rsFile.ReadHeader();
     EXPECT_TRUE(error.empty());
@@ -551,7 +551,7 @@ HWTEST_F(RSProfilerFileTest, GetEOFTimeTest, TestSize.Level1)
     rsFile.Close();
 
     std::string error = "HasError";
-    ASSERT_TRUE(rsFile.Open(fileName, error));
+    ASSERT_TRUE(rsFile.Open(fileName, error)) << "Reason: " << error;
     EXPECT_TRUE(error.empty());
     EXPECT_EQ(rsFile.GetEOFTime(), time);
     rsFile.Close();
@@ -579,7 +579,7 @@ HWTEST_F(RSProfilerFileTest, WriteTrace3DMetricsTest, TestSize.Level1)
     rsFile.Close();
 
     std::string error = "HasError";
-    ASSERT_TRUE(rsFile.Open(fileName, error));
+    ASSERT_TRUE(rsFile.Open(fileName, error)) << "Reason: " << error;
     EXPECT_TRUE(error.empty());
     std::vector<uint8_t> rData = {};
     double readTime = 0;

@@ -805,6 +805,7 @@ ohos_unittest("RSMainThreadTest") {
   include_dirs = [
     "$graphic_2d_root/rosen/modules/utils/",
     "$graphic_2d_root/rosen/test/render_service/render_service/unittest/",
+    "$graphic_2d_root/rosen/modules/render_service/main/render_process",
   ]
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]

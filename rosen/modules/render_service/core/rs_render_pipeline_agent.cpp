@@ -169,7 +169,7 @@ ErrCode RSRenderPipelineAgent::ExecuteSynchronousTask(const std::shared_ptr<RSSy
     return ERR_OK;
 }
 
-ErrCode RSRenderPipelineAgent::CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
+ErrCode RSRenderPipelineAgent::CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
     bool& success)
 {
     if (rsRenderPipeline_ == nullptr) {
@@ -343,14 +343,6 @@ ErrCode RSRenderPipelineAgent::SetHidePrivacyContent(NodeId id, bool needHidePri
     return ERR_OK;
 }
 
-bool RSRenderPipelineAgent::GetHighContrastTextState()
-{
-    if (rsRenderPipeline_ == nullptr) {
-        return false;
-    }
-    return RSBaseRenderEngine::IsHighContrastEnabled();
-}
-
 ErrCode RSRenderPipelineAgent::SetFocusAppInfo(const FocusAppInfo& info, int32_t& repCode)
 {
     if (rsRenderPipeline_ == nullptr) {
@@ -510,7 +502,15 @@ void RSRenderPipelineAgent::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCapture
                 RS_TRACE_NAME_FMT("RSClientToRenderConnection::TakeSurfaceCapture surfaceCap dirtyFlag = true,"
                     " nodeId:[%" PRIu64 "]", id);
             }
-            RSSurfaceCaptureTaskParallel::CheckModifiers(id, captureConfig.useCurWindow);
+            if (node->GetType() == RSRenderNodeType::SURFACE_NODE && captureConfig.windowSync) {
+                RS_TRACE_NAME_FMT("RSRenderPipelineAgent::TakeSurfaceCapture surface windowSync"
+                    ", NodeId: [%" PRIu64 "]", id);
+                std::function<void()> windowCapTask = [callback, captureParam]() {
+                    RSSurfaceCaptureTaskParallel::Capture(callback, captureParam);
+                };
+                RSMainThread::Instance()->AddWindowCapTask(id, windowCapTask);
+                return;
+            }
             RSSurfaceCaptureTaskParallel::Capture(callback, captureParam);
 #endif
         }

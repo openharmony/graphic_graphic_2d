@@ -112,18 +112,22 @@ const std::string RSClientToRenderConnection::GPU_FREQ_PREF = "GPU_FREQ_PREF";
 RSClientToRenderConnection::RSClientToRenderConnection(
     pid_t remotePid,
     sptr<RSRenderPipelineAgent> renderPipelineAgent,
-    sptr<IRemoteObject> token)
+    sptr<IRemoteObject> token,
+    bool needRefresh)
     : remotePid_(remotePid),
       renderPipelineAgent_(renderPipelineAgent),
       token_(token),
       connDeathRecipient_(new RSConnectionDeathRecipient(this)),
-      applicationDeathRecipient_(new RSApplicationRenderThreadDeathRecipient(this))
+      applicationDeathRecipient_(new RSApplicationRenderThreadDeathRecipient(this)),
+      needRefresh_(needRefresh)
 {
     if (token_ == nullptr || !token_->AddDeathRecipient(connDeathRecipient_)) {
         RS_LOGW("RSClientToRenderConnection: Failed to set death recipient.");
         return;
     }
-
+    if (needRefresh_) {
+        RegisterRemoteRefreshCallback();
+    }
     if (renderPipelineAgent_ == nullptr) {
         RS_LOGW("RSClientToRenderConnection: renderPipelineAgent_ is nullptr");
         return;
@@ -285,13 +289,13 @@ ErrCode RSClientToRenderConnection::ExecuteSynchronousTask(const std::shared_ptr
     return renderPipelineAgent_->ExecuteSynchronousTask(task);
 }
 
-ErrCode RSClientToRenderConnection::CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
+ErrCode RSClientToRenderConnection::CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
     bool& success)
 {
     if (renderPipelineAgent_ == nullptr) {
         return ERR_INVALID_VALUE;
     }
-    return renderPipelineAgent_->CreateNode(displayNodeConfig, nodeId, success);
+    return renderPipelineAgent_->CreateDisplayNode(displayNodeConfig, nodeId, success);
 }
 
 ErrCode RSClientToRenderConnection::CreateNode(const RSSurfaceRenderNodeConfig& config, bool& success)
@@ -399,15 +403,6 @@ ErrCode RSClientToRenderConnection::SetHidePrivacyContent(NodeId id, bool needHi
     }
     return renderPipelineAgent_->SetHidePrivacyContent(id, needHidePrivacyContent, resCode);
 }
-
-bool RSClientToRenderConnection::GetHighContrastTextState()
-{
-    if (renderPipelineAgent_ == nullptr) {
-        return false;
-    }
-    return renderPipelineAgent_->GetHighContrastTextState();
-}
-
 
 ErrCode RSClientToRenderConnection::SetFocusAppInfo(const FocusAppInfo& info, int32_t& repCode)
 {
@@ -726,6 +721,14 @@ int32_t RSClientToRenderConnection::GetFrameStabilityResult(const FrameStability
         return ERR_INVALID_VALUE;
     }
     return renderPipelineAgent_->GetFrameStabilityResult(remotePid_, target, result);
+}
+
+void RSClientToRenderConnection::SetFreeMultiWindowStatus(bool enable)
+{
+    if (renderPipelineAgent_ == nullptr) {
+        return;
+    }
+    renderPipelineAgent_->SetFreeMultiWindowStatus(enable);
 }
 } // namespace Rosen
 } // namespace OHOS

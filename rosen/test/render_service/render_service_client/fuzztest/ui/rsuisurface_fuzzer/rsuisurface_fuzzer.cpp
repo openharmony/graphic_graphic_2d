@@ -83,7 +83,6 @@ bool RSUIDirectorFuzzTest(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    bool shouldCreateRenderThread = GetData<bool>();
     RSSurfaceNodeConfig surfaceNodeConfig;
     std::shared_ptr<RSSurfaceNode> surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig);
     uint8_t alpha = GetData<uint8_t>();
@@ -96,8 +95,7 @@ bool RSUIDirectorFuzzTest(const uint8_t* data, size_t size)
     std::string cacheFilePath = GetStringFromData(STR_LEN);
     bool isAppFreeze = GetData<bool>();
 
-    std::shared_ptr<RSUIDirector> uiDirector = RSUIDirector::Create();
-    uiDirector->Init(shouldCreateRenderThread);
+    std::shared_ptr<RSUIDirector> uiDirector = RSUIDirector::Create(nullptr, nullptr);
     uiDirector->SetRSSurfaceNode(surfaceNode);
     uiDirector->SetAbilityBGAlpha(alpha);
     uiDirector->SetRTRenderForced(isRenderForced);

@@ -102,8 +102,8 @@ bool InitSurface()
     // stage 1
     std::function<void()> task = [&rsUiDirector, &nodes, &rootNode, &surfaceNode]() {
         std::cout << "Stage 1" << std::endl;
-        rsUiDirector = RSUIDirector::Create();
-        rsUiDirector->Init(true, true);
+        rsUiDirector = RSUIDirector::Create(nullptr, nullptr);
+        
         auto uiContext = rsUiDirector->GetRSUIContext();
         if (uiContext) {
             std::cout << "stage 1 RSUIDirector::Create success" << std::endl;
@@ -186,7 +186,7 @@ bool InitSurface()
                                       &rsUiDirector]() {
         std::cout << " " << std::endl;
         std::cout << "Stage 2" << std::endl;
-        rsUiDirector2 = RSUIDirector::Create();
+        rsUiDirector2 = RSUIDirector::Create(nullptr, nullptr);
         rsUiDirector2->Init(true, true);
         auto uiContext = rsUiDirector2->GetRSUIContext();
         if (uiContext) {
@@ -272,7 +272,7 @@ bool InitSurface()
                                       &rsUiDirector4, &nodes4] {
         std::cout << " " << std::endl;
         std::cout << "stage 3 " << std::endl;
-        rsUiDirector3 = RSUIDirector::Create();
+        rsUiDirector3 = RSUIDirector::Create(nullptr, nullptr);
         rsUiDirector3->Init(true, true);
         auto uiContext3 = rsUiDirector3->GetRSUIContext();
         if (uiContext3) {
@@ -281,7 +281,7 @@ bool InitSurface()
         } else {
             std::cout << "RSUIContext::Create failed" << std::endl;
         }
-        rsUiDirector4 = RSUIDirector::Create();
+        rsUiDirector4 = RSUIDirector::Create(nullptr, nullptr);
         rsUiDirector4->Init(true, true);
         auto uiContext4 = rsUiDirector4->GetRSUIContext();
         if (uiContext4) {

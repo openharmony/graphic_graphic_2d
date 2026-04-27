@@ -31,7 +31,7 @@ namespace Rosen {
 namespace {
 constexpr uint32_t MAX_PID_SIZE_NUMBER = 100000;
 constexpr uint32_t MAX_LIST_SIZE = 50;
-}
+} // namespace
 
 static void TypefaceXcollieCallback(void* arg)
 {
@@ -62,6 +62,87 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
         return ERR_INVALID_STATE;
     }
     switch (code) {
+        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER): {
+            auto screenProperty = sptr<RSScreenProperty>(data.ReadParcelable<RSScreenProperty>());
+            if (!screenProperty) {
+                RS_LOGE("%{public}s::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER ReadParcelable failed", __func__);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            bool hasComposerConn = false;
+            if (!data.ReadBool(hasComposerConn)) {
+                RS_LOGE("%{public}s::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER ReadBool failed", __func__);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            sptr<IRSRenderToComposerConnection> renderToComposerConn = nullptr;
+            if (hasComposerConn) {
+                if (auto remoteObj1 = data.ReadRemoteObject()) {
+                    renderToComposerConn = iface_cast<IRSRenderToComposerConnection>(remoteObj1);
+                }
+            }
+            bool hasComposerToRenderConn = false;
+            if (!data.ReadBool(hasComposerToRenderConn)) {
+                RS_LOGE("%{public}s::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER ReadBool failed", __func__);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            sptr<IRSComposerToRenderConnection> composerToRenderConn = nullptr;
+            if (hasComposerToRenderConn) {
+                if (auto remoteObj2 = data.ReadRemoteObject()) {
+                    composerToRenderConn = iface_cast<IRSComposerToRenderConnection>(remoteObj2);
+                }
+            }
+            auto replyMessage =
+                NotifyScreenConnectInfoToRender(screenProperty, renderToComposerConn, composerToRenderConn);
+            if (!reply.WriteBool(replyMessage)) {
+                RS_LOGE("%{public}s::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER WriteBool failed", __func__);
+                ret = ERR_INVALID_DATA;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(
+            RSIServiceToRenderConnectionInterfaceCode::NOTIFY_SCREEN_DISCONNECT_INFO_TO_RENDER): {
+            ScreenId screenId = INVALID_SCREEN_ID;
+            if (!data.ReadUint64(screenId)) {
+                RS_LOGE("%{public}s::NOTIFY_SCREEN_DISCONNECT_INFO_TO_RENDER ReadUint64 failed", __func__);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            auto replyMessage = NotifyScreenDisconnectInfoToRender(screenId);
+            if (!reply.WriteBool(replyMessage)) {
+                RS_LOGE("%{public}s::NOTIFY_SCREEN_DISCONNECT_INFO_TO_RENDER WriteBool failed", __func__);
+                ret = ERR_INVALID_DATA;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(
+            RSIServiceToRenderConnectionInterfaceCode::NOTIFY_SCREEN_PROPERTY_CHANGED_INFO_TO_RENDER): {
+            ScreenId id = INVALID_SCREEN_ID;
+            if (!data.ReadUint64(id)) {
+                RS_LOGE("%{public}s::NOTIFY_SCREEN_PROPERTY_CHANGED_INFO_TO_RENDER ReadUint64 id failed", __func__);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            uint32_t typeValue = 0;
+            if (!data.ReadUint32(typeValue)) {
+                RS_LOGE("%{public}s::NOTIFY_SCREEN_PROPERTY_CHANGED_INFO_TO_RENDER ReadUint32 type failed", __func__);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            ScreenPropertyType type = static_cast<ScreenPropertyType>(typeValue);
+            sptr<ScreenPropertyBase> screenProperty = nullptr;
+            if (!ScreenPropertyBase::Unmarshalling(data, type, screenProperty)) {
+                RS_LOGE("%{public}s::NOTIFY_SCREEN_PROPERTY_CHANGED_INFO_TO_RENDER Unmarshalling failed", __func__);
+                return ERR_INVALID_DATA;
+            }
+            auto replyMessage = NotifyScreenPropertyChangedInfoToRender(id, type, screenProperty);
+            if (!reply.WriteBool(replyMessage)) {
+                RS_LOGE("%{public}s::NOTIFY_SCREEN_PROPERTY_CHANGED_INFO_TO_RENDER WriteBool failed", __func__);
+                ret = ERR_INVALID_DATA;
+            }
+            break;
+        }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK): {
             pid_t pid;
             if (!data.ReadInt32(pid)) {
@@ -659,16 +740,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                 break;
             }
             SetColorFollow(nodeIdStr, isColorFollow);
-            break;
-        }
-        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS): {
-            bool enable{false};
-            if (!data.ReadBool(enable)) {
-                RS_LOGE("RSServiceToRenderStub::SET_FREE_MULTI_WINDOW_STATUS read uniqueId failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            SetFreeMultiWindowStatus(enable);
             break;
         }
         case static_cast<uint32_t>(

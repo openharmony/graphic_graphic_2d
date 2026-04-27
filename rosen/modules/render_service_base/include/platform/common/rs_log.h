@@ -275,4 +275,97 @@ private:
     }                                                                                                              \
 }                                                                                                                  \
 
+// USER log macros - basic version
+#define RS_USER_LOGI(screenId, format, ...) \
+    HILOG_INFO(LOG_CORE, "[screen_id=%{public}" PRIu64 "] " format, screenId, ##__VA_ARGS__)
+
+#define RS_USER_LOGD(screenId, format, ...) \
+    HILOG_DEBUG(LOG_CORE, "[screen_id=%{public}" PRIu64 "] " format, screenId, ##__VA_ARGS__)
+
+#define RS_USER_LOGE(screenId, format, ...) \
+    HILOG_ERROR(LOG_CORE, "[screen_id=%{public}" PRIu64 "] " format, screenId, ##__VA_ARGS__)
+
+#define RS_USER_LOGW(screenId, format, ...) \
+    HILOG_WARN(LOG_CORE, "[screen_id=%{public}" PRIu64 "] " format, screenId, ##__VA_ARGS__)
+
+#define RS_USER_LOGF(screenId, format, ...) \
+    HILOG_FATAL(LOG_CORE, "[screen_id=%{public}" PRIu64 "] " format, screenId, ##__VA_ARGS__)
+
+// USER conditional log macros
+#ifndef RS_USER_LOGD_IF
+#define RS_USER_LOGD_IF(cond, screenId, format, ...)                                                            \
+    ((CONDITION(cond))                                                                                          \
+            ? ((void)HILOG_DEBUG(LOG_CORE, "[screen_id=%{public}" PRIu64 "] " format, screenId, ##__VA_ARGS__)) \
+            : (void)0)
+#endif
+
+#ifndef RS_USER_LOGI_IF
+#define RS_USER_LOGI_IF(cond, screenId, format, ...)                                                           \
+    ((CONDITION(cond))                                                                                         \
+            ? ((void)HILOG_INFO(LOG_CORE, "[screen_id=%{public}" PRIu64 "] " format, screenId, ##__VA_ARGS__)) \
+            : (void)0)
+#endif
+
+#ifndef RS_USER_LOGW_IF
+#define RS_USER_LOGW_IF(cond, screenId, format, ...)                                                           \
+    ((CONDITION(cond))                                                                                         \
+            ? ((void)HILOG_WARN(LOG_CORE, "[screen_id=%{public}" PRIu64 "] " format, screenId, ##__VA_ARGS__)) \
+            : (void)0)
+#endif
+
+#ifndef RS_USER_LOGE_IF
+#define RS_USER_LOGE_IF(cond, screenId, format, ...)                                                            \
+    ((CONDITION(cond))                                                                                          \
+            ? ((void)HILOG_ERROR(LOG_CORE, "[screen_id=%{public}" PRIu64 "] " format, screenId, ##__VA_ARGS__)) \
+            : (void)0)
+#endif
+
+#ifndef RS_USER_LOGF_IF
+#define RS_USER_LOGF_IF(cond, screenId, format, ...)                                                            \
+    ((CONDITION(cond))                                                                                          \
+            ? ((void)HILOG_FATAL(LOG_CORE, "[screen_id=%{public}" PRIu64 "] " format, screenId, ##__VA_ARGS__)) \
+            : (void)0)
+#endif
+
+// USER rate-limit log macros
+#define RS_USER_LOGE_LIMIT(func, line, screenId, format, ...)                                                         \
+    {                                                                                                                 \
+        static constexpr uint64_t LOG_PRINT_INTERVAL_IN_SECOND = 60;                                                  \
+        static std::atomic<bool> isFirstTime##func##line##screenId = true;                                            \
+        static std::atomic<uint64_t> prePrintTime##func##line##screenId = static_cast<uint64_t>(                      \
+            std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch())     \
+                .count());                                                                                            \
+        uint64_t currTime = static_cast<uint64_t>(                                                                    \
+            std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch())     \
+                .count());                                                                                            \
+        if ((currTime - prePrintTime##func##line##screenId >= LOG_PRINT_INTERVAL_IN_SECOND) ||                        \
+            isFirstTime##func##line##screenId) {                                                                      \
+            prePrintTime##func##line##screenId = static_cast<uint64_t>(                                               \
+                std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()) \
+                    .count());                                                                                        \
+            isFirstTime##func##line##screenId = false;                                                                \
+            RS_USER_LOGE(screenId, format, ##__VA_ARGS__);                                                            \
+        }                                                                                                             \
+    }
+
+#define RS_USER_LOGI_LIMIT(func, line, screenId, format, ...)                                                         \
+    {                                                                                                                 \
+        static constexpr uint64_t LOG_PRINT_INTERVAL_IN_SECOND = 5;                                                   \
+        static std::atomic<bool> isFirstTime##func##line##screenId = true;                                            \
+        static std::atomic<uint64_t> prePrintTime##func##line##screenId = static_cast<uint64_t>(                      \
+            std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch())     \
+                .count());                                                                                            \
+        uint64_t currTime = static_cast<uint64_t>(                                                                    \
+            std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch())     \
+                .count());                                                                                            \
+        if ((currTime - prePrintTime##func##line##screenId >= LOG_PRINT_INTERVAL_IN_SECOND) ||                        \
+            isFirstTime##func##line##screenId) {                                                                      \
+            prePrintTime##func##line##screenId = static_cast<uint64_t>(                                               \
+                std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()) \
+                    .count());                                                                                        \
+            isFirstTime##func##line##screenId = false;                                                                \
+            RS_USER_LOGI(screenId, format, ##__VA_ARGS__);                                                            \
+        }                                                                                                             \
+    }
+
 #endif // RENDER_SERVICE_BASE_CORE_COMMON_RS_LOG_H

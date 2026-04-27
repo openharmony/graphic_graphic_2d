@@ -131,6 +131,7 @@ enum class DrawSkipType : uint8_t {
     NO_DISPLAY_NODE = 33,
     SCREEN_STATE_INVALID = 35,
     SCREEN_FREEZE = 36,
+    BACKFACE_SKIP = 37,
 };
 
 class RSB_EXPORT RSRenderNodeDrawableAdapter : public std::enable_shared_from_this<RSRenderNodeDrawableAdapter> {
@@ -203,6 +204,7 @@ public:
     SkipType GetSkipType() { return skipType_; }
 
     bool IsFilterCacheValidForOcclusion() const;
+    bool IsFilterCacheValidForPartialRender() const;
     const RectI GetFilterCachedRegion() const;
 
     size_t GetFilterNodeSize() const

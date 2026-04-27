@@ -15,39 +15,33 @@
 
 #include "rs_render_process_manager.h"
 
+#include "rs_ipc_persistence_data.h"
 #include "rs_render_service.h"
-#include "transaction/rs_service_to_render_connection.h"
 
 #undef LOG_TAG
 #define LOG_TAG "RSRenderProcessManager"
 
 namespace OHOS {
 namespace Rosen {
-sptr<RSRenderProcessManager> RSRenderProcessManager::Create(RSRenderService& renderService)
+sptr<RSRenderProcessManager> RSRenderProcessManager::Create(
+    RSRenderService& renderService, HgmProcessCallback hgmProcessCallback)
 {
-    auto renderProcessManager = sptr<RSSingleRenderProcessManager>::MakeSptr(renderService);
+    sptr<RSRenderProcessManager> renderProcessManager;
+    if (renderService.renderModeConfig_->GetIsMultiProcessModeEnabled()) {
+        renderProcessManager = sptr<RSMultiRenderProcessManager>::MakeSptr(renderService);
+    } else {
+        renderProcessManager =
+            sptr<RSSingleRenderProcessManager>::MakeSptr(renderService, std::move(hgmProcessCallback));
+    }
     return renderProcessManager;
-}
-
-void RSRenderProcessManager::OnVBlankIdle(ScreenId id, uint64_t ns)
-{
-}
-
-void RSRenderProcessManager::OnActiveScreenIdChanged(ScreenId activeScreenId)
-{
-}
-
-void RSRenderProcessManager::OnHwcRestored(ScreenId id, const std::shared_ptr<HdiOutput>& output,
-    const sptr<RSScreenProperty>& property)
-{
-}
-
-void RSRenderProcessManager::OnHwcDead(ScreenId id)
-{
 }
 
 void RSRenderProcessManager::OnHwcEvent(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData)
 {
+    if (auto ipcPersistenceManager = GetIpcPersistenceManager()) {
+        auto data = std::make_shared<OnHwcEventPersistenceData>(deviceId, eventId, eventData);
+        ipcPersistenceManager->RegisterWithoutCallingPid(data);
+    }
     auto serviceToRenderConns = GetServiceToRenderConns();
     for (const auto& conn : serviceToRenderConns) {
         RS_LOGI("%{public}s: OnHwcEvent start", __func__);

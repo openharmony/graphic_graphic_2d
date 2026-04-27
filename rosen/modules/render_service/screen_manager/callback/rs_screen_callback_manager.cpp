@@ -52,11 +52,11 @@ void RSScreenCallbackManager::NotifyScreenConnected(const ScreenPresenceEvent& e
     } else {
         RS_LOGI("%{public}s: coreListener is nullptr", __func__);
     }
-    NotifyScreenConnectedToAgentListeners(event.id, ScreenChangeReason::DEFAULT, clientToRenderConnection);
     {
         std::lock_guard<std::mutex> lock(clientToRenderMtx_);
         clientToRenderConns_[event.id] = clientToRenderConnection;
     }
+    NotifyScreenConnectedToAgentListeners(event.id, ScreenChangeReason::DEFAULT);
 }
 
 void RSScreenCallbackManager::NotifyScreenDisconnected(ScreenId screenId)
@@ -99,8 +99,7 @@ void RSScreenCallbackManager::NotifyHwcRestored(const ScreenPresenceEvent& event
     } else {
         RS_LOGI("%{public}s: coreListener is nullptr", __func__);
     }
-    NotifyScreenConnectedToAgentListeners(event.id, ScreenChangeReason::HWCDEAD,
-                                          GetClientToRenderConnection(event.id));
+    NotifyScreenConnectedToAgentListeners(event.id, ScreenChangeReason::HWCDEAD);
 }
 
 void RSScreenCallbackManager::NotifyHwcDead(ScreenId id)
@@ -158,6 +157,31 @@ void RSScreenCallbackManager::NotifyActiveScreenIdChanged(ScreenId activeScreenI
         return;
     }
     coreListener_->OnActiveScreenIdChanged(activeScreenId);
+    NotifyActiveScreenIdChangedToAgentListeners(activeScreenId);
+}
+
+void RSScreenCallbackManager::NotifyActiveScreenIdChangedToAgentListener(
+    ScreenId activeScreenId, sptr<RSIScreenManagerAgentListener> agentListener)
+{
+    if (!agentListener) {
+        RS_LOGE("%{public}s: agentListener is null.", __func__);
+        return;
+    }
+    agentListener->OnActiveScreenIdChanged(activeScreenId);
+}
+
+void RSScreenCallbackManager::NotifyActiveScreenIdChangedToAgentListeners(ScreenId activeScreenId)
+{
+    std::vector<sptr<RSIScreenManagerAgentListener>> agentListeners;
+    {
+        std::lock_guard<std::mutex> lock(agentMtx_);
+        agentListeners = agentListeners_;
+    }
+    RS_LOGI("%{public}s: activeScreenId:%{public}" PRIu64 ", size:%{public}zu",
+        __func__, activeScreenId, agentListeners.size());
+    for (const auto& agentListener : agentListeners) {
+        NotifyActiveScreenIdChangedToAgentListener(activeScreenId, agentListener);
+    }
 }
 
 void RSScreenCallbackManager::NotifyScreenBacklightChanged(ScreenId id, uint32_t level)
@@ -204,25 +228,33 @@ sptr<IRemoteObject> RSScreenCallbackManager::GetClientToRenderConnection(ScreenI
     }
 }
 
-void RSScreenCallbackManager::NotifyScreenConnectedToAgentListeners(ScreenId id,
-    ScreenChangeReason reason, sptr<IRemoteObject> clientToRenderConnection)
+void RSScreenCallbackManager::NotifyScreenConnectedToAgentListeners(ScreenId id, ScreenChangeReason reason)
 {
     std::vector<sptr<RSIScreenManagerAgentListener>> agentListeners;
     {
         std::lock_guard<std::mutex> lock(agentMtx_);
         agentListeners = agentListeners_;
     }
-    RS_LOGI("%{public}s: screen %{public}" PRIu64 "is connected, reason:%{public}u,conn:%{public}s, size:%{public}zu",
-        __func__, id, static_cast<uint8_t>(reason), clientToRenderConnection ? "not nullptr" : "nullptr",
-        agentListeners.size());
+    RS_LOGI("%{public}s: screen %{public}" PRIu64 " is connected, reason:%{public}u, size:%{public}zu",
+        __func__, id, static_cast<uint8_t>(reason), agentListeners.size());
     for (const auto& agentListener : agentListeners) {
-        if (!agentListener) {
-            continue;
-        }
-        agentListener->OnScreenConnected(id, reason, clientToRenderConnection);
+        NotifyScreenConnectedToAgentListener(id, reason, agentListener);
     }
 }
 
+void RSScreenCallbackManager::NotifyScreenConnectedToAgentListener(ScreenId id, ScreenChangeReason reason,
+                                                                   sptr<RSIScreenManagerAgentListener> agentListener)
+{
+    if (!agentListener) {
+        RS_LOGE("%{public}s: agentListener is nullptr.", __func__);
+        return;
+    }
+    sptr<IRemoteObject> conn = GetClientToRenderConnection(id);
+    if (!conn) {
+        RS_LOGE("%{public}s: conn is nullptr.", __func__);
+    }
+    agentListener->OnScreenConnected(id, reason, conn);
+}
 
 void RSScreenCallbackManager::NotifyScreenDisconnectedToAgentListeners(ScreenId id, ScreenChangeReason reason)
 {
@@ -231,7 +263,7 @@ void RSScreenCallbackManager::NotifyScreenDisconnectedToAgentListeners(ScreenId 
         std::lock_guard<std::mutex> lock(agentMtx_);
         agentListeners = agentListeners_;
     }
-    RS_LOGI("%{public}s: screen %{public}" PRIu64 "is disconnected, reason:%{public}u, size:%{public}zu",
+    RS_LOGI("%{public}s: screen %{public}" PRIu64 " is disconnected, reason:%{public}u, size:%{public}zu",
         __func__, id, static_cast<uint8_t>(reason), agentListeners.size());
     for (const auto& agentListener : agentListeners) {
         if (!agentListener) {
