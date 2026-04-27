@@ -1155,6 +1155,9 @@ HWTEST_F(RSScreenTest, CapabilityTypeDump_001, testing::ext::TestSize.Level1)
     rsScreen->CapabilityTypeDump(GRAPHIC_DISP_INTF_BT1120, dumpString);
     rsScreen->CapabilityTypeDump(GRAPHIC_DISP_INTF_BT656, dumpString);
     rsScreen->CapabilityTypeDump(GRAPHIC_DISP_INTF_BUTT, dumpString);
+    rsScreen->CapabilityTypeDump(GRAPHIC_DISP_INTF_DP, dumpString);
+    rsScreen->CapabilityTypeDump(GRAPHIC_DISP_INTF_EDP, dumpString);
+    rsScreen->CapabilityTypeDump(GRAPHIC_DISP_INTF_GPMI, dumpString);
 }
 
 /*
