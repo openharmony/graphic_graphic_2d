@@ -627,5 +627,6 @@ HWTEST_F(RSNodeAnimationTest, AnimateWithNoneAnimator001, TestSize.Level1)
 
     auto animations = RSNode::Animate(rsUIContext, timingProtocol, timingCurve,
         [&node]() { node->SetTranslate(Vector2f(100.0f, 0.0f)); }, finishCallback);
+    ASSERT_TRUE(animations.empty());
 }
 } // namespace OHOS::Rosen
