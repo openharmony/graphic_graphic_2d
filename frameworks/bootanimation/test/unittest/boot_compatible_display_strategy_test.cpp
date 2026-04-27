@@ -86,7 +86,8 @@ HWTEST_F(BootCompatibleDisplayStrategyTest, PrepareScreenConfig_RotateScreenIdZe
  * @tc.desc: Verify the PrepareScreenConfig function with negative rotate screen id.
  * @tc.type: FUNC
  */
-HWTEST_F(BootCompatibleDisplayStrategyTest, PrepareScreenConfig_NegativeRotateScreenId_ExecuteSuccessfully, TestSize.Level1)
+HWTEST_F(BootCompatibleDisplayStrategyTest,
+    PrepareScreenConfig_NegativeRotateScreenId_ExecuteSuccessfully, TestSize.Level1)
 {
     std::shared_ptr<BootCompatibleDisplayStrategy> strategy = std::make_shared<BootCompatibleDisplayStrategy>();
     ASSERT_NE(strategy, nullptr);
