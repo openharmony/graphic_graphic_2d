@@ -1663,6 +1663,11 @@ bool RSUniRenderUtil::ProcessSingleSelfDrawingNode(RSPaintFilterCanvas& canvas,
         RS_LOGD(" %{public}s surface Param is nullptr", __func__);
         return false;
     }
+    // Disable when node is not opaque
+    if (targetSurfaceParams->GetBackgroundColor().GetAlpha() != UINT8_MAX) {
+        RS_LOGD(" %{public}s targetSurfaceParam is not opaque", __func__);
+        return false;
+    }
     const auto& hardwareDrawables =
         RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeDrawables();
     for (const auto& [_, __, hwDrawablePtr] : hardwareDrawables) {
