@@ -87,7 +87,7 @@ private:
     std::unordered_map<WindowId, FrameRateLinkerId> winLinkerMap_;
     std::unordered_map<VsyncName, std::vector<FrameRateLinkerId>> vsyncLinkerMap_;
     std::unordered_map<FrameRateLinkerId, std::pair<uint32_t, bool>> appVoteData_;
-    std::unordered_set<VsyncName> disableFrameSplit_;
+    std::unordered_set<VsyncName> disableAppFrameVsyncNames_;
     std::unordered_map<FrameRateLinkerId, uint32_t> appChangeData_;
     std::weak_ptr<HgmVSyncGeneratorController> controller_;
 
@@ -105,6 +105,7 @@ private:
 
     std::atomic<bool> isPerformanceFirst_;
     std::function<void(bool)> updateSoftVSyncFunc_ { nullptr };
+    std::mutex disableAppFrameMutex_;
 };
 } // namespace Rosen
 } // namespace OHOS

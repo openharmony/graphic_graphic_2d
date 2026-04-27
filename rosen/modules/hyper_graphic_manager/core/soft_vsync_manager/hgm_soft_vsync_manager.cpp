@@ -132,10 +132,13 @@ void HgmSoftVSyncManager::SetWindowExpectedRefreshRate(pid_t pid,
         const EventInfo& eventInfo = voter.second;
 
         if (eventInfo.description == DISABLE_FRAME_SPLIT_MODE) {
-            if (eventInfo.eventStatus) {
-                disableFrameSplit_.insert(vsyncName);
-            } else {
-                disableFrameSplit_.erase(vsyncName);
+            {
+                std::lock_guard<std::mutex> lock(disableAppFrameMutex_);
+                if (eventInfo.eventStatus) {
+                    disableAppFrameVsyncNames_.insert(vsyncName);
+                } else {
+                    disableAppFrameVsyncNames_.erase(vsyncName);
+                }
             }
             RS_TRACE_NAME_FMT("disable frame split update, vsyncName:%s, status:%d",
                 vsyncName.c_str(), eventInfo.eventStatus);
@@ -222,7 +225,12 @@ void HgmSoftVSyncManager::CalcAppFrameRate(
         isPerformanceFirst_ && !isForceUseAppVSync && expectedRange.type_ != NATIVE_VSYNC_FRAME_RATE_TYPE ?
         OLED_NULL_HZ : HgmSoftVSyncManager::GetDrawingFrameRate(currRefreshRate, expectedRange);
     if (appFrameRate != OLED_NULL_HZ && (expectedRange.type_ & NATIVE_VSYNC_FRAME_RATE_TYPE) != 0) {
-        bool isDisableFrameSplit = disableFrameSplit_.find(linker.second->GetVsyncName()) != disableFrameSplit_.end();
+        bool isDisableFrameSplit = false;
+        {
+            std::lock_guard<std::mutex> lock(disableAppFrameMutex_);
+            isDisableFrameSplit = disableAppFrameVsyncNames_.find(linker.second->GetVsyncName()) !=
+                disableAppFrameVsyncNames_.end();
+        }
         appFrameRate = isDisableFrameSplit ? OLED_NULL_HZ : appFrameRate;
     }
     if (CollectGameRateDiscountChange(linker.first, expectedRange, currRefreshRate)) {
