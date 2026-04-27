@@ -27,6 +27,23 @@ using namespace OHOS::Rosen;
 using namespace OHOS::Rosen::Drawing;
 
 namespace {
+// Layout widths
+constexpr double LAYOUT_WIDTH_NARROW = 100.0;
+constexpr double LAYOUT_WIDTH_MEDIUM = 150.0;
+constexpr double LAYOUT_WIDTH_WIDE = 200.0;
+constexpr double LAYOUT_WIDTH_EXTRA_WIDE = 500.0;
+constexpr double LAYOUT_WIDTH_ULTRA_WIDE = 600.0;
+
+// Default font size
+constexpr double DEFAULT_FONT_SIZE = 14.0;
+
+// Test colors
+constexpr uint32_t COLOR_GREEN_OPAQUE = 0xFF00FF00;
+constexpr uint32_t COLOR_BG_BLUE_OPAQUE = 0xFF0000FF;
+
+// Background rect radius
+constexpr double BACKGROUND_RECT_RADIUS = 5.0;
+
 class RunGetTextStyleTest : public testing::Test {
 public:
     void SetUp() override;
@@ -70,7 +87,7 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest001, TestSize.Level0)
     typography_ = typographyCreate_->CreateTypography();
     ASSERT_NE(typography_, nullptr);
 
-    typography_->Layout(100.0);
+    typography_->Layout(LAYOUT_WIDTH_NARROW);
 
     auto textLines = typography_->GetTextLines();
     ASSERT_GT(textLines.size(), 0);
@@ -80,7 +97,7 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest001, TestSize.Level0)
 
     TextStyle textStyle = spRuns_[0]->GetTextStyle();
     EXPECT_EQ(textStyle.color, Drawing::Color::COLOR_WHITE);
-    EXPECT_DOUBLE_EQ(textStyle.fontSize, 14.0);
+    EXPECT_DOUBLE_EQ(textStyle.fontSize, DEFAULT_FONT_SIZE);
 }
 
 /*
@@ -95,7 +112,7 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest002, TestSize.Level0)
     ASSERT_NE(typographyCreate_, nullptr);
 
     TextStyle textStyle;
-    textStyle.fontSize = 24.0;
+    textStyle.fontSize = 24.0; // 24px test font size
     textStyle.fontWeight = FontWeight::W900;
     textStyle.fontWidth = FontWidth::EXPANDED;
     textStyle.fontStyle = OHOS::Rosen::FontStyle::ITALIC;
@@ -109,7 +126,7 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest002, TestSize.Level0)
     typography_ = typographyCreate_->CreateTypography();
     ASSERT_NE(typography_, nullptr);
 
-    typography_->Layout(200.0);
+    typography_->Layout(LAYOUT_WIDTH_WIDE);
 
     auto textLines = typography_->GetTextLines();
     spRuns_ = textLines[0]->GetGlyphRuns();
@@ -140,7 +157,7 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest003, TestSize.Level0)
     auto paragraph1 = paragraphBuilder1->CreateTypography();
     ASSERT_NE(paragraph1, nullptr);
 
-    paragraph1->Layout(100.0);
+    paragraph1->Layout(LAYOUT_WIDTH_NARROW);
 
     auto textLines1 = paragraph1->GetTextLines();
     auto spRuns1 = textLines1[0]->GetGlyphRuns();
@@ -151,21 +168,21 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest003, TestSize.Level0)
     ASSERT_NE(paragraphBuilder2, nullptr);
 
     TextStyle textStyle;
-    textStyle.fontSize = 30.0;
+    textStyle.fontSize = 30.0; // 30px larger font size for comparison
     paragraphBuilder2->PushStyle(textStyle);
     paragraphBuilder2->AppendText(text);
 
     auto paragraph2 = paragraphBuilder2->CreateTypography();
     ASSERT_NE(paragraph2, nullptr);
 
-    paragraph2->Layout(100.0);
+    paragraph2->Layout(LAYOUT_WIDTH_NARROW);
 
     auto textLines2 = paragraph2->GetTextLines();
     auto spRuns2 = textLines2[0]->GetGlyphRuns();
     TextStyle style2 = spRuns2[0]->GetTextStyle();
 
     EXPECT_GT(style2.fontSize, style1.fontSize);
-    EXPECT_DOUBLE_EQ(style1.fontSize, 14.0);
+    EXPECT_DOUBLE_EQ(style1.fontSize, DEFAULT_FONT_SIZE);
     EXPECT_DOUBLE_EQ(style2.fontSize, 30.0);
 }
 
@@ -185,7 +202,7 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest004, TestSize.Level0)
     textStyle.decoration = TextDecoration::UNDERLINE;
     textStyle.decorationColor = Drawing::Color::COLOR_RED;
     textStyle.decorationStyle = TextDecorationStyle::DOUBLE;
-    textStyle.decorationThicknessScale = 2.0;
+    textStyle.decorationThicknessScale = 2.0; // 2x decoration thickness multiplier
 
     typographyCreate_->PushStyle(textStyle);
 
@@ -195,7 +212,7 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest004, TestSize.Level0)
     typography_ = typographyCreate_->CreateTypography();
     ASSERT_NE(typography_, nullptr);
 
-    typography_->Layout(150.0);
+    typography_->Layout(LAYOUT_WIDTH_MEDIUM);
 
     auto textLines = typography_->GetTextLines();
     spRuns_ = textLines[0]->GetGlyphRuns();
@@ -220,10 +237,10 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest005, TestSize.Level0)
     ASSERT_NE(typographyCreate_, nullptr);
 
     TextStyle textStyle;
-    textStyle.letterSpacing = 2.5;
-    textStyle.wordSpacing = 5.0;
+    textStyle.letterSpacing = 2.5; // 2.5px letter spacing
+    textStyle.wordSpacing = 5.0; // 5px word spacing
     textStyle.heightOnly = true;
-    textStyle.heightScale = 1.5;
+    textStyle.heightScale = 1.5; // 1.5x line height multiplier
 
     typographyCreate_->PushStyle(textStyle);
 
@@ -233,7 +250,7 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest005, TestSize.Level0)
     typography_ = typographyCreate_->CreateTypography();
     ASSERT_NE(typography_, nullptr);
 
-    typography_->Layout(200.0);
+    typography_->Layout(LAYOUT_WIDTH_WIDE);
 
     auto textLines = typography_->GetTextLines();
     spRuns_ = textLines[0]->GetGlyphRuns();
@@ -261,8 +278,8 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest006, TestSize.Level0)
     TextStyle textStyle;
     textStyle.halfLeading = true;
     textStyle.heightOnly = true;
-    textStyle.maxLineHeight = 50.0;
-    textStyle.minLineHeight = 10.0;
+    textStyle.maxLineHeight = 50.0; // 50px max line height
+    textStyle.minLineHeight = 10.0; // 10px min line height
     textStyle.lineHeightStyle = LineHeightStyle::kFontSize;
 
     typographyCreate_->PushStyle(textStyle);
@@ -273,7 +290,7 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest006, TestSize.Level0)
     typography_ = typographyCreate_->CreateTypography();
     ASSERT_NE(typography_, nullptr);
 
-    typography_->Layout(150.0);
+    typography_->Layout(LAYOUT_WIDTH_MEDIUM);
 
     auto textLines = typography_->GetTextLines();
     spRuns_ = textLines[0]->GetGlyphRuns();
@@ -300,7 +317,7 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest007, TestSize.Level0)
 
     TextStyle textStyle;
     textStyle.baseline = TextBaseline::IDEOGRAPHIC;
-    textStyle.baseLineShift = 3.5;
+    textStyle.baseLineShift = 3.5; // 3.5px baseline shift
 
     typographyCreate_->PushStyle(textStyle);
 
@@ -310,7 +327,7 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest007, TestSize.Level0)
     typography_ = typographyCreate_->CreateTypography();
     ASSERT_NE(typography_, nullptr);
 
-    typography_->Layout(150.0);
+    typography_->Layout(LAYOUT_WIDTH_MEDIUM);
 
     auto textLines = typography_->GetTextLines();
     spRuns_ = textLines[0]->GetGlyphRuns();
@@ -333,7 +350,7 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest008, TestSize.Level0)
     ASSERT_NE(typographyCreate_, nullptr);
 
     TextStyle textStyle;
-    textStyle.color = Drawing::Color(0xFF00FF00);
+    textStyle.color = Drawing::Color(COLOR_GREEN_OPAQUE);
 
     typographyCreate_->PushStyle(textStyle);
 
@@ -343,14 +360,14 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest008, TestSize.Level0)
     typography_ = typographyCreate_->CreateTypography();
     ASSERT_NE(typography_, nullptr);
 
-    typography_->Layout(100.0);
+    typography_->Layout(LAYOUT_WIDTH_NARROW);
 
     auto textLines = typography_->GetTextLines();
     spRuns_ = textLines[0]->GetGlyphRuns();
 
     TextStyle resultStyle = spRuns_[0]->GetTextStyle();
 
-    EXPECT_EQ(resultStyle.color, Drawing::Color(0xFF00FF00));
+    EXPECT_EQ(resultStyle.color, Drawing::Color(COLOR_GREEN_OPAQUE));
 }
 
 /*
@@ -375,7 +392,7 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest009, TestSize.Level0)
     typography_ = typographyCreate_->CreateTypography();
     ASSERT_NE(typography_, nullptr);
 
-    typography_->Layout(100.0);
+    typography_->Layout(LAYOUT_WIDTH_NARROW);
 
     auto textLines = typography_->GetTextLines();
     spRuns_ = textLines[0]->GetGlyphRuns();
@@ -397,7 +414,8 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest010, TestSize.Level0)
     ASSERT_NE(typographyCreate_, nullptr);
 
     TextStyle textStyle;
-    textStyle.backgroundRect = { 0xFF0000FF, 5.0, 5.0, 5.0, 5.0 };
+    textStyle.backgroundRect = { COLOR_BG_BLUE_OPAQUE, BACKGROUND_RECT_RADIUS, BACKGROUND_RECT_RADIUS,
+        BACKGROUND_RECT_RADIUS, BACKGROUND_RECT_RADIUS };
 
     typographyCreate_->PushStyle(textStyle);
 
@@ -407,18 +425,18 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest010, TestSize.Level0)
     typography_ = typographyCreate_->CreateTypography();
     ASSERT_NE(typography_, nullptr);
 
-    typography_->Layout(100.0);
+    typography_->Layout(LAYOUT_WIDTH_NARROW);
 
     auto textLines = typography_->GetTextLines();
     spRuns_ = textLines[0]->GetGlyphRuns();
 
     TextStyle resultStyle = spRuns_[0]->GetTextStyle();
 
-    EXPECT_EQ(resultStyle.backgroundRect.color, 0xFF0000FFu);
-    EXPECT_DOUBLE_EQ(resultStyle.backgroundRect.leftTopRadius, 5.0);
-    EXPECT_DOUBLE_EQ(resultStyle.backgroundRect.rightTopRadius, 5.0);
-    EXPECT_DOUBLE_EQ(resultStyle.backgroundRect.rightBottomRadius, 5.0);
-    EXPECT_DOUBLE_EQ(resultStyle.backgroundRect.leftBottomRadius, 5.0);
+    EXPECT_EQ(resultStyle.backgroundRect.color, COLOR_BG_BLUE_OPAQUE);
+    EXPECT_DOUBLE_EQ(resultStyle.backgroundRect.leftTopRadius, BACKGROUND_RECT_RADIUS);
+    EXPECT_DOUBLE_EQ(resultStyle.backgroundRect.rightTopRadius, BACKGROUND_RECT_RADIUS);
+    EXPECT_DOUBLE_EQ(resultStyle.backgroundRect.rightBottomRadius, BACKGROUND_RECT_RADIUS);
+    EXPECT_DOUBLE_EQ(resultStyle.backgroundRect.leftBottomRadius, BACKGROUND_RECT_RADIUS);
 }
 
 /*
@@ -443,7 +461,7 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest011, TestSize.Level0)
     typography_ = typographyCreate_->CreateTypography();
     ASSERT_NE(typography_, nullptr);
 
-    typography_->Layout(100.0);
+    typography_->Layout(LAYOUT_WIDTH_NARROW);
 
     auto textLines = typography_->GetTextLines();
     spRuns_ = textLines[0]->GetGlyphRuns();
@@ -465,7 +483,7 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest013, TestSize.Level0)
     ASSERT_NE(typographyCreate_, nullptr);
 
     TextStyle textStyle;
-    textStyle.styleId = 123;
+    textStyle.styleId = 123; // 123: test style ID
 
     typographyCreate_->PushStyle(textStyle);
 
@@ -475,14 +493,14 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest013, TestSize.Level0)
     typography_ = typographyCreate_->CreateTypography();
     ASSERT_NE(typography_, nullptr);
 
-    typography_->Layout(100.0);
+    typography_->Layout(LAYOUT_WIDTH_NARROW);
 
     auto textLines = typography_->GetTextLines();
     spRuns_ = textLines[0]->GetGlyphRuns();
 
     TextStyle resultStyle = spRuns_[0]->GetTextStyle();
 
-    EXPECT_EQ(resultStyle.styleId, 123);
+    EXPECT_EQ(resultStyle.styleId, 123); // 123: test style ID
 }
 
 /*
@@ -507,7 +525,7 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest015, TestSize.Level0)
     typography_ = typographyCreate_->CreateTypography();
     ASSERT_NE(typography_, nullptr);
 
-    typography_->Layout(100.0);
+    typography_->Layout(LAYOUT_WIDTH_NARROW);
 
     auto textLines = typography_->GetTextLines();
     spRuns_ = textLines[0]->GetGlyphRuns();
@@ -519,70 +537,69 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest015, TestSize.Level0)
 
 static void ApplyCombinedTextStyle(TextStyle &textStyle)
 {
-    textStyle.color = Drawing::Color(0xFF00FF00);
+    textStyle.color = Drawing::Color(COLOR_GREEN_OPAQUE);
     textStyle.decoration = TextDecoration::LINE_THROUGH;
     textStyle.decorationColor = Drawing::Color::COLOR_BLUE;
     textStyle.decorationStyle = TextDecorationStyle::DOTTED;
-    textStyle.decorationThicknessScale = 1.5;
-    textStyle.fontSize = 18.0;
+    textStyle.decorationThicknessScale = 1.5; // 1.5x decoration thickness multiplier
+    textStyle.fontSize = 18.0; // 18px test font size
     textStyle.fontWeight = FontWeight::W600;
     textStyle.fontWidth = FontWidth::CONDENSED;
     textStyle.fontStyle = OHOS::Rosen::FontStyle::ITALIC;
     textStyle.fontFamilies = { "serif" };
-    textStyle.letterSpacing = 2.0;
-    textStyle.wordSpacing = 3.0;
-    textStyle.heightScale = 1.2;
+    textStyle.letterSpacing = 2.0; // 2px letter spacing
+    textStyle.wordSpacing = 3.0; // 3px word spacing
+    textStyle.heightScale = 1.2; // 1.2x line height multiplier
     textStyle.halfLeading = false;
     textStyle.heightOnly = false;
     textStyle.baseline = TextBaseline::ALPHABETIC;
-    textStyle.baseLineShift = 1.0;
+    textStyle.baseLineShift = 1.0; // 1px baseline shift
     textStyle.locale = "en-US";
-    textStyle.styleId = 456;
+    textStyle.styleId = 456; // 456: test style ID
     textStyle.isPlaceholder = false;
     textStyle.badgeType = TextBadgeType::SUBSCRIPT;
 }
 
 static void VerifyCombinedResultStyle(const TextStyle &resultStyle)
 {
-    EXPECT_EQ(resultStyle.color, Drawing::Color(0xFF00FF00));
+    EXPECT_EQ(resultStyle.color, Drawing::Color(COLOR_GREEN_OPAQUE));
     EXPECT_EQ(resultStyle.decoration, TextDecoration::LINE_THROUGH);
     EXPECT_EQ(resultStyle.decorationColor, Drawing::Color::COLOR_BLUE);
     EXPECT_EQ(resultStyle.decorationStyle, TextDecorationStyle::DOTTED);
-    EXPECT_DOUBLE_EQ(resultStyle.decorationThicknessScale, 1.5);
-    EXPECT_DOUBLE_EQ(resultStyle.fontSize, 18.0);
+    EXPECT_DOUBLE_EQ(resultStyle.decorationThicknessScale, 1.5); // 1.5x decoration thickness multiplier
+    EXPECT_DOUBLE_EQ(resultStyle.fontSize, 18.0); // 18px test font size
     EXPECT_EQ(resultStyle.fontWeight, FontWeight::W600);
     EXPECT_EQ(resultStyle.fontWidth, FontWidth::CONDENSED);
     EXPECT_EQ(resultStyle.fontStyle, OHOS::Rosen::FontStyle::ITALIC);
-    EXPECT_DOUBLE_EQ(resultStyle.letterSpacing, 2.0);
-    EXPECT_DOUBLE_EQ(resultStyle.wordSpacing, 3.0);
-    EXPECT_DOUBLE_EQ(resultStyle.heightScale, 0);
+    EXPECT_DOUBLE_EQ(resultStyle.letterSpacing, 2.0); // 2px letter spacing
+    EXPECT_DOUBLE_EQ(resultStyle.wordSpacing, 3.0); // 3px word spacing
+    EXPECT_DOUBLE_EQ(resultStyle.heightScale, 0); // heightScale defaults to 0 when heightOnly is false
     EXPECT_EQ(resultStyle.halfLeading, false);
     EXPECT_EQ(resultStyle.heightOnly, false);
     EXPECT_EQ(resultStyle.baseline, TextBaseline::ALPHABETIC);
-    EXPECT_DOUBLE_EQ(resultStyle.baseLineShift, 1.0);
+    EXPECT_DOUBLE_EQ(resultStyle.baseLineShift, 1.0); // 1px baseline shift
     EXPECT_EQ(resultStyle.locale, "en-US");
-    EXPECT_EQ(resultStyle.styleId, 456);
+    EXPECT_EQ(resultStyle.styleId, 456); // 456: test style ID
     EXPECT_EQ(resultStyle.isPlaceholder, false);
     EXPECT_EQ(resultStyle.badgeType, TextBadgeType::SUBSCRIPT);
 }
 
 static void ApplyLanguageStyle(TextStyle &style, const std::string &locale, double fontSize,
-    FontWeight weight, Drawing::Color color, int styleId)
+    FontWeight weight, Drawing::Color color)
 {
     style.locale = locale;
     style.fontSize = fontSize;
     style.fontWeight = weight;
     style.color = color;
-    style.styleId = styleId;
 }
 
-static void VerifyLanguageResultStyle(const TextStyle &result, const std::string &locale,
-    double fontSize, FontWeight weight, int styleId)
+static void VerifyLanguageResultStyle(const TextStyle &result, const std::string &locale, double fontSize,
+    FontWeight weight, Drawing::Color color)
 {
     EXPECT_EQ(result.locale, locale);
     EXPECT_DOUBLE_EQ(result.fontSize, fontSize);
     EXPECT_EQ(result.fontWeight, weight);
-    EXPECT_EQ(result.styleId, styleId);
+    EXPECT_EQ(result.color, color);
 }
 
 static void ApplySegmentStyle(TextStyle &style, double fontSize, Drawing::Color color, FontWeight weight, int styleId)
@@ -620,7 +637,7 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest016, TestSize.Level0)
 
     typography_ = typographyCreate_->CreateTypography();
     ASSERT_NE(typography_, nullptr);
-    typography_->Layout(150.0);
+    typography_->Layout(LAYOUT_WIDTH_MEDIUM);
 
     auto textLines = typography_->GetTextLines();
     spRuns_ = textLines[0]->GetGlyphRuns();
@@ -639,23 +656,23 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest017, TestSize.Level0)
     ASSERT_NE(typographyCreate_, nullptr);
 
     TextStyle style1;
-    ApplySegmentStyle(style1, 16.0, Drawing::Color::COLOR_RED, FontWeight::W400, 1);
+    ApplySegmentStyle(style1, 16.0, Drawing::Color::COLOR_RED, FontWeight::W400, 1); // first segment: 16px
     typographyCreate_->PushStyle(style1);
     typographyCreate_->AppendText(u"First");
 
     TextStyle style2;
-    ApplySegmentStyle(style2, 24.0, Drawing::Color::COLOR_BLUE, FontWeight::W700, 2);
+    ApplySegmentStyle(style2, 24.0, Drawing::Color::COLOR_BLUE, FontWeight::W700, 2); // second segment: 24px
     typographyCreate_->PushStyle(style2);
     typographyCreate_->AppendText(u"Second");
 
     TextStyle style3;
-    ApplySegmentStyle(style3, 32.0, Drawing::Color::COLOR_GREEN, FontWeight::W900, 3);
+    ApplySegmentStyle(style3, 32.0, Drawing::Color::COLOR_GREEN, FontWeight::W900, 3); // third segment: 32px
     typographyCreate_->PushStyle(style3);
     typographyCreate_->AppendText(u"Third");
 
     typography_ = typographyCreate_->CreateTypography();
     ASSERT_NE(typography_, nullptr);
-    typography_->Layout(500.0);
+    typography_->Layout(LAYOUT_WIDTH_EXTRA_WIDE);
 
     auto textLines = typography_->GetTextLines();
     ASSERT_GT(textLines.size(), 0);
@@ -679,32 +696,32 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest018, TestSize.Level0)
     ASSERT_NE(typographyCreate_, nullptr);
 
     TextStyle englishStyle;
-    ApplyLanguageStyle(englishStyle, "en-US", 18.0, FontWeight::W400, Drawing::Color::COLOR_BLACK, 100);
+    ApplyLanguageStyle(englishStyle, "en-US", 18.0, FontWeight::W400, Drawing::Color::COLOR_BLACK); // English 18px
     typographyCreate_->PushStyle(englishStyle);
     typographyCreate_->AppendText(u"English");
 
     TextStyle chineseStyle;
-    ApplyLanguageStyle(chineseStyle, "zh-CN", 20.0, FontWeight::W500, Drawing::Color::COLOR_RED, 200);
+    ApplyLanguageStyle(chineseStyle, "zh-CN", 20.0, FontWeight::W500, Drawing::Color::COLOR_RED); // Chinese 20px
     typographyCreate_->PushStyle(chineseStyle);
     typographyCreate_->AppendText(u"中文测试");
 
     TextStyle arabicStyle;
-    ApplyLanguageStyle(arabicStyle, "ar-SA", 16.0, FontWeight::W600, Drawing::Color::COLOR_BLUE, 300);
+    ApplyLanguageStyle(arabicStyle, "ar-SA", 16.0, FontWeight::W600, Drawing::Color::COLOR_BLUE); // Arabic 16px
     typographyCreate_->PushStyle(arabicStyle);
     typographyCreate_->AppendText(u"اختبار");
 
     typography_ = typographyCreate_->CreateTypography();
     ASSERT_NE(typography_, nullptr);
-    typography_->Layout(600.0);
+    typography_->Layout(LAYOUT_WIDTH_ULTRA_WIDE);
 
     auto textLines = typography_->GetTextLines();
     ASSERT_GT(textLines.size(), 0);
     auto runs = textLines[0]->GetGlyphRuns();
     ASSERT_GE(runs.size(), 3);
 
-    VerifyLanguageResultStyle(runs[0]->GetTextStyle(), "en-US", 18.0, FontWeight::W400, 100);
-    VerifyLanguageResultStyle(runs[1]->GetTextStyle(), "zh-CN", 20.0, FontWeight::W500, 200);
-    VerifyLanguageResultStyle(runs[2]->GetTextStyle(), "ar-SA", 16.0, FontWeight::W600, 300);
+    VerifyLanguageResultStyle(runs[0]->GetTextStyle(), "en-US", 18.0, FontWeight::W400, Drawing::Color::COLOR_BLACK);
+    VerifyLanguageResultStyle(runs[1]->GetTextStyle(), "zh-CN", 20.0, FontWeight::W500, Drawing::Color::COLOR_RED);
+    VerifyLanguageResultStyle(runs[2]->GetTextStyle(), "ar-SA", 16.0, FontWeight::W600, Drawing::Color::COLOR_BLUE);
 }
 
 } // namespace
