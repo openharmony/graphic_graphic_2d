@@ -268,7 +268,7 @@ void RSImage::DrawImageRect(
     //used for ScaleImageAsync
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     RSImageParams rsImageParams = {
-        pixelMap_, nodeId_, dst_, uniqueid_, image_, false, canvas.GetTotalMatrix().Get(Drawing::Matrix::SCALE_X)
+        pixelMap_, nodeId_, dst_, uniqueId_, image_, false, canvas.GetTotalMatrix().Get(Drawing::Matrix::SCALE_X)
     };
     if (RSImageDetailEnhancerThread::Instance().EnhanceImageAsync(canvas, samplingOptions, rsImageParams)) {
         return;
@@ -717,7 +717,7 @@ void RSImage::DrawImageOnCanvas(
 // used for ScaleImageAsync
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
         RSImageParams rsImageParams = {
-            pixelMap_, nodeId_, dst_, uniqueid_, image_, false, canvas.GetTotalMatrix().Get(Drawing::Matrix::SCALE_X)
+            pixelMap_, nodeId_, dst_, uniqueId_, image_, false, canvas.GetTotalMatrix().Get(Drawing::Matrix::SCALE_X)
         };
         std::shared_ptr<Drawing::Image> dstImage =
             RSImageDetailEnhancerThread::Instance().EnhanceImageAsync(isScaledImageAsync_, rsImageParams);
@@ -744,7 +744,7 @@ void RSImage::DrawImageWithFirMatrixRotateOnCanvas(
     canvas.AttachPen(pen);
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     RSImageParams rsImageParams = {
-        pixelMap_, nodeId_, dst_, uniqueid_, image_, true, canvas.GetTotalMatrix().Get(Drawing::Matrix::SCALE_X)
+        pixelMap_, nodeId_, dst_, uniqueId_, image_, true, canvas.GetTotalMatrix().Get(Drawing::Matrix::SCALE_X)
     };
     if (RSImageDetailEnhancerThread::Instance().EnhanceImageAsync(canvas, samplingOptions, rsImageParams)) {
         return;
