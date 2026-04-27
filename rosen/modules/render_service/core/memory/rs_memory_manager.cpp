@@ -25,7 +25,7 @@
 #include <sys/prctl.h>
 #include "include/core/SkGraphics.h"
 #include "rs_trace.h"
-#include "cJSON.h"
+#include "third_party/cJSON/cJSON.h"
 
 #include "memory/rs_dfx_string.h"
 #include "skia_adapter/rs_skia_memory_tracer.h"
@@ -564,7 +564,7 @@ void MemoryManager::DumpRenderServiceMemory(DfxString& log, bool isLite)
     }
 #ifdef RS_ENABLE_VK
     RsVulkanMemStat& memStat = RsVulkanContext::GetSingleton().GetRsVkMemStat();
-    memStat.DumpMemoryStatistics(&gpuTracer);
+    memStat.DumpMemoryStatistics(log);
 #endif
 }
 

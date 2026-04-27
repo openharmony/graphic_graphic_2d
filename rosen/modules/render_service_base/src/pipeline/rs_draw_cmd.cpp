@@ -292,7 +292,7 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
         }
 #endif
 #if defined(RS_ENABLE_VK)
-        if (RSSystemProperties::IsUseVukan() &&
+        if (RSSystemProperties::IsUseVulkan() &&
             GetRsImageCache(canvas, pixelMap, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()),
                             sampling, colorSpace)) {
             rsImage_->SetDmaImage(image_);
@@ -903,12 +903,16 @@ void DrawHybridPixelMapOpItem::Playback(Canvas* canvas, const Rect* rect)
     filter.SetColorFilter(ColorFilter::CreateBlendModeColorFilter(paintCanvas->GetEnvForegroundColor(),
         BlendMode::SRC_ATOP));
     paint_.SetFilter(filter);
+#if 0
     if (isRenderForeground_) {
         objectHandle_->SetPaint(paint_);
         paintCanvas->AttachPaintWithColor(paint_);
     } else {
         paintCanvas->AttachPaint(paint_);
     }
+#endif	
+	paintCanvas->AttachPaint(paint_);
+	
     if (objectHandle_->IsValid() && !WaitFence(fence_)) {
         // if waiting for the fencce failed, reset the fence.
         fence_ = SyncFence::InvalidFence();

@@ -143,7 +143,7 @@ void RSUIDirector::SetFlushEmptyCallback(FlushEmptyCallback flushEmptyCallback)
 
 void RSUIDirector::InitHybridRender()
 {
-#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
+#if 0//def RS_ENABLE_VK
     if (RSSystemProperties::GetHybridRenderEnabled()) {
         CommitTransactionCallback callback =
             [] (std::shared_ptr<RSIRenderClient> &renderServiceClient,
@@ -267,7 +267,7 @@ void RSUIDirector::GoForeground(bool isTextureExport)
             surfaceNode->SetAbilityState(RSSurfaceNodeAbilityState::FOREGROUND);
         }
     }
-#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
+#if 0//def RS_ENABLE_VK
     RSModifiersDraw::InsertForegroundRoot(root_);
 #endif
 }
@@ -301,7 +301,7 @@ void RSUIDirector::GoBackground(bool isTextureExport)
             surfaceNode->SetAbilityState(RSSurfaceNodeAbilityState::BACKGROUND);
         }
         if (isTextureExport || isUniRenderEnabled_) {
-#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
+#if 0//def //RS_ENABLE_VK
             RSModifiersDraw::EraseForegroundRoot(root_);
 #endif
             return;
@@ -312,7 +312,7 @@ void RSUIDirector::GoBackground(bool isTextureExport)
                 std::shared_ptr<RSSurface> rsSurface = RSSurfaceExtractor::ExtractRSSurface(surfaceNode);
                 if (rsSurface == nullptr) {
                     ROSEN_LOGE("rsSurface is nullptr");
-#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
+#if 0 //def //RS_ENABLE_VK
                     RSModifiersDraw::EraseForegroundRoot(root_);
 #endif
                     return;
@@ -331,7 +331,7 @@ void RSUIDirector::GoBackground(bool isTextureExport)
         });
 #endif
     }
-#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
+#if 0//def RS_ENABLE_VK
     RSModifiersDraw::EraseForegroundRoot(root_);
 #endif
 }
@@ -468,7 +468,7 @@ void RSUIDirector::SetDVSyncUpdate(uint64_t dvsyncTime)
 void RSUIDirector::SetCacheDir(const std::string& cacheFilePath)
 {
     cacheDir_ = cacheFilePath;
-#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
+#if 0//def RS_ENABLE_VK
     if (!cacheDir_.empty() && RSSystemProperties::GetHybridRenderEnabled()) {
         RSModifiersDrawThread::Instance().SetCacheDir(cacheDir_);
     }
