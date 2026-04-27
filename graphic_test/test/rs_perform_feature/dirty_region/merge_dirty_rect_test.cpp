@@ -443,7 +443,7 @@ GRAPHIC_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Intersect_Dirty_Rect_Test0
  * @tc.type: FUNC
  * @tc.require: issueICF36K
  */
-GRAPHIC_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiScreen01)
+GRAPHIC_N_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiScreen01)
 {
     auto rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     
@@ -507,7 +507,7 @@ GRAPHIC_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiScre
  * @tc.type: FUNC
  * @tc.require: issueICF36K
  */
-GRAPHIC_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiScreen02)
+GRAPHIC_N_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiScreen02)
 {
     auto rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     
@@ -565,7 +565,7 @@ GRAPHIC_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiScre
  * @tc.type: FUNC
  * @tc.require: issueICF36K
  */
-GRAPHIC_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiScreen_Boundary01)
+GRAPHIC_N_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiScreen_Boundary01)
 {
     auto rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     
@@ -611,7 +611,7 @@ GRAPHIC_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiScre
  * @tc.type: FUNC
  * @tc.require: issueICF36K
  */
-GRAPHIC_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiScreen_Reset01)
+GRAPHIC_N_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiScreen_Reset01)
 {
     auto rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     
@@ -674,7 +674,7 @@ GRAPHIC_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiScre
  * @tc.type: FUNC
  * @tc.require: issueICF36K
  */
-GRAPHIC_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiScreen_Advanced01)
+GRAPHIC_N_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiScreen_Advanced01)
 {
     auto rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     
@@ -741,7 +741,7 @@ GRAPHIC_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiScre
  * @tc.type: FUNC
  * @tc.require: issueICF36K
  */
-GRAPHIC_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiScreen_Surface01)
+GRAPHIC_N_TEST(DirtyRegionTest01, CONTENT_DISPLAY_TEST, Merge_Dirty_Rect_MultiScreen_Surface01)
 {
     auto rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     
