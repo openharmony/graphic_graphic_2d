@@ -32,7 +32,7 @@ public:
     void SetScreenId(ScreenId screenId);
 
 private:
-    uint64_t screenId_ = INVALID_SCREEN_ID;
+    ScreenId screenId_ = INVALID_SCREEN_ID;
     pid_t pid_ = 0;
 };
 }
