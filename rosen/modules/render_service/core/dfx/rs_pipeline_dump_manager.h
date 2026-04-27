@@ -32,8 +32,8 @@ public:
     void SetScreenId(ScreenId screenId);
 
 private:
-    uint64_t screenId_;
-    pid_t pid_;
+    uint64_t screenId_ = INVALID_SCREEN_ID;
+    pid_t pid_ = 0;
 };
 }
 #endif // RENDER_PIPELINE_DFX_RS_PIPELINE_DUMP_MANAGER_H
