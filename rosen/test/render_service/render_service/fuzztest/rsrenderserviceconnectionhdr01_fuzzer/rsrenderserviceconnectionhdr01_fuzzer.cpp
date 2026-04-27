@@ -62,6 +62,7 @@ sptr<RSClientToServiceConnectionStub> g_toServiceConnectionStub = nullptr;
 sptr<RSClientToRenderConnectionStub> g_toRenderConnectionStub = nullptr;
 sptr<RSVsyncManager> g_vsyncManager = nullptr;
 
+
 std::string g_originTag = "";
 
 void WriteUnirenderConfig(std::string& tag)
