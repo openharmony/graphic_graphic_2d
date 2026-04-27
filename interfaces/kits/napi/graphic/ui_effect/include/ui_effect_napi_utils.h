@@ -138,6 +138,9 @@ bool ParseJsPoint(napi_env env, napi_value jsObject, Vector2f& point);
 bool ParseJsLTRBRect(napi_env env, napi_value jsValue, Vector4f& ltrb);
 bool ParseJsVector3f(napi_env env, napi_value jsObject, Vector3f& values);
 bool ParsegrayscaleFactor(napi_env env, napi_value jsObject, Vector3f& values);
+napi_value CreateJsValue(napi_env env, int32_t value);
+napi_value CreateJsValue(napi_env env, const std::string& message);
+napi_value CreateJsError(napi_env env, int32_t errCode, const std::string& message);
 } // namespace UIEffect
 
 class UIEffectNapiUtils {
