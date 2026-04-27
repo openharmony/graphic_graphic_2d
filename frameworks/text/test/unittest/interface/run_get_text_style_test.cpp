@@ -112,7 +112,7 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest002, TestSize.Level0)
     ASSERT_NE(typographyCreate_, nullptr);
 
     TextStyle textStyle;
-    textStyle.fontSize = 24.0; // 24px test font size
+    textStyle.fontSize = 24.0; // 24.0px test font size
     textStyle.fontWeight = FontWeight::W900;
     textStyle.fontWidth = FontWidth::EXPANDED;
     textStyle.fontStyle = OHOS::Rosen::FontStyle::ITALIC;
@@ -168,7 +168,7 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest003, TestSize.Level0)
     ASSERT_NE(paragraphBuilder2, nullptr);
 
     TextStyle textStyle;
-    textStyle.fontSize = 30.0; // 30px larger font size for comparison
+    textStyle.fontSize = 30.0; // 30.0px larger font size for comparison
     paragraphBuilder2->PushStyle(textStyle);
     paragraphBuilder2->AppendText(text);
 
@@ -238,7 +238,7 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest005, TestSize.Level0)
 
     TextStyle textStyle;
     textStyle.letterSpacing = 2.5; // 2.5px letter spacing
-    textStyle.wordSpacing = 5.0; // 5px word spacing
+    textStyle.wordSpacing = 5.0; // 5.0px word spacing
     textStyle.heightOnly = true;
     textStyle.heightScale = 1.5; // 1.5x line height multiplier
 
@@ -278,8 +278,8 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest006, TestSize.Level0)
     TextStyle textStyle;
     textStyle.halfLeading = true;
     textStyle.heightOnly = true;
-    textStyle.maxLineHeight = 50.0; // 50px max line height
-    textStyle.minLineHeight = 10.0; // 10px min line height
+    textStyle.maxLineHeight = 50.0; // 50.0px max line height
+    textStyle.minLineHeight = 10.0; // 10.0px min line height
     textStyle.lineHeightStyle = LineHeightStyle::kFontSize;
 
     typographyCreate_->PushStyle(textStyle);
@@ -542,18 +542,18 @@ static void ApplyCombinedTextStyle(TextStyle &textStyle)
     textStyle.decorationColor = Drawing::Color::COLOR_BLUE;
     textStyle.decorationStyle = TextDecorationStyle::DOTTED;
     textStyle.decorationThicknessScale = 1.5; // 1.5x decoration thickness multiplier
-    textStyle.fontSize = 18.0; // 18px test font size
+    textStyle.fontSize = 18.0; // 18.0px test font size
     textStyle.fontWeight = FontWeight::W600;
     textStyle.fontWidth = FontWidth::CONDENSED;
     textStyle.fontStyle = OHOS::Rosen::FontStyle::ITALIC;
     textStyle.fontFamilies = { "serif" };
-    textStyle.letterSpacing = 2.0; // 2px letter spacing
-    textStyle.wordSpacing = 3.0; // 3px word spacing
+    textStyle.letterSpacing = 2.0; // 2.0px letter spacing
+    textStyle.wordSpacing = 3.0; // 3.0px word spacing
     textStyle.heightScale = 1.2; // 1.2x line height multiplier
     textStyle.halfLeading = false;
     textStyle.heightOnly = false;
     textStyle.baseline = TextBaseline::ALPHABETIC;
-    textStyle.baseLineShift = 1.0; // 1px baseline shift
+    textStyle.baseLineShift = 1.0; // 1.0px baseline shift
     textStyle.locale = "en-US";
     textStyle.styleId = 456; // 456: test style ID
     textStyle.isPlaceholder = false;
@@ -567,17 +567,17 @@ static void VerifyCombinedResultStyle(const TextStyle &resultStyle)
     EXPECT_EQ(resultStyle.decorationColor, Drawing::Color::COLOR_BLUE);
     EXPECT_EQ(resultStyle.decorationStyle, TextDecorationStyle::DOTTED);
     EXPECT_DOUBLE_EQ(resultStyle.decorationThicknessScale, 1.5); // 1.5x decoration thickness multiplier
-    EXPECT_DOUBLE_EQ(resultStyle.fontSize, 18.0); // 18px test font size
+    EXPECT_DOUBLE_EQ(resultStyle.fontSize, 18.0); // 18.0px test font size
     EXPECT_EQ(resultStyle.fontWeight, FontWeight::W600);
     EXPECT_EQ(resultStyle.fontWidth, FontWidth::CONDENSED);
     EXPECT_EQ(resultStyle.fontStyle, OHOS::Rosen::FontStyle::ITALIC);
-    EXPECT_DOUBLE_EQ(resultStyle.letterSpacing, 2.0); // 2px letter spacing
-    EXPECT_DOUBLE_EQ(resultStyle.wordSpacing, 3.0); // 3px word spacing
+    EXPECT_DOUBLE_EQ(resultStyle.letterSpacing, 2.0); // 2.0px letter spacing
+    EXPECT_DOUBLE_EQ(resultStyle.wordSpacing, 3.0); // 3.0px word spacing
     EXPECT_DOUBLE_EQ(resultStyle.heightScale, 0); // heightScale defaults to 0 when heightOnly is false
     EXPECT_EQ(resultStyle.halfLeading, false);
     EXPECT_EQ(resultStyle.heightOnly, false);
     EXPECT_EQ(resultStyle.baseline, TextBaseline::ALPHABETIC);
-    EXPECT_DOUBLE_EQ(resultStyle.baseLineShift, 1.0); // 1px baseline shift
+    EXPECT_DOUBLE_EQ(resultStyle.baseLineShift, 1.0); // 1.0px baseline shift
     EXPECT_EQ(resultStyle.locale, "en-US");
     EXPECT_EQ(resultStyle.styleId, 456); // 456: test style ID
     EXPECT_EQ(resultStyle.isPlaceholder, false);
@@ -656,17 +656,17 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest017, TestSize.Level0)
     ASSERT_NE(typographyCreate_, nullptr);
 
     TextStyle style1;
-    ApplySegmentStyle(style1, 16.0, Drawing::Color::COLOR_RED, FontWeight::W400, 1); // first segment: 16px
+    ApplySegmentStyle(style1, 16.0, Drawing::Color::COLOR_RED, FontWeight::W400, 1); // first segment: 16.0px
     typographyCreate_->PushStyle(style1);
     typographyCreate_->AppendText(u"First");
 
     TextStyle style2;
-    ApplySegmentStyle(style2, 24.0, Drawing::Color::COLOR_BLUE, FontWeight::W700, 2); // second segment: 24px
+    ApplySegmentStyle(style2, 24.0, Drawing::Color::COLOR_BLUE, FontWeight::W700, 2); // second segment: 24.0px
     typographyCreate_->PushStyle(style2);
     typographyCreate_->AppendText(u"Second");
 
     TextStyle style3;
-    ApplySegmentStyle(style3, 32.0, Drawing::Color::COLOR_GREEN, FontWeight::W900, 3); // third segment: 32px
+    ApplySegmentStyle(style3, 32.0, Drawing::Color::COLOR_GREEN, FontWeight::W900, 3); // third segment: 32.0px
     typographyCreate_->PushStyle(style3);
     typographyCreate_->AppendText(u"Third");
 
@@ -696,17 +696,17 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest018, TestSize.Level0)
     ASSERT_NE(typographyCreate_, nullptr);
 
     TextStyle englishStyle;
-    ApplyLanguageStyle(englishStyle, "en-US", 18.0, FontWeight::W400, Drawing::Color::COLOR_BLACK); // English 18px
+    ApplyLanguageStyle(englishStyle, "en-US", 18.0, FontWeight::W400, Drawing::Color::COLOR_BLACK); // English 18.0px
     typographyCreate_->PushStyle(englishStyle);
     typographyCreate_->AppendText(u"English");
 
     TextStyle chineseStyle;
-    ApplyLanguageStyle(chineseStyle, "zh-CN", 20.0, FontWeight::W500, Drawing::Color::COLOR_RED); // Chinese 20px
+    ApplyLanguageStyle(chineseStyle, "zh-CN", 20.0, FontWeight::W500, Drawing::Color::COLOR_RED); // Chinese 20.0px
     typographyCreate_->PushStyle(chineseStyle);
     typographyCreate_->AppendText(u"中文测试");
 
     TextStyle arabicStyle;
-    ApplyLanguageStyle(arabicStyle, "ar-SA", 16.0, FontWeight::W600, Drawing::Color::COLOR_BLUE); // Arabic 16px
+    ApplyLanguageStyle(arabicStyle, "ar-SA", 16.0, FontWeight::W600, Drawing::Color::COLOR_BLUE); // Arabic 16.0px
     typographyCreate_->PushStyle(arabicStyle);
     typographyCreate_->AppendText(u"اختبار");
 
