@@ -240,8 +240,8 @@ Drawing::ColorQuad InterpolateColor(Drawing::ColorQuad start, Drawing::ColorQuad
 }
 
 // render thread
-bool ExtractSnapshotAndScheduleColorPick(
-    RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, const std::shared_ptr<IColorPickerManager>& manager)
+bool ExtractSnapshotAndScheduleColorPick(RSPaintFilterCanvas& canvas,
+    const Drawing::Rect* rect, const std::shared_ptr<IColorPickerManager>& manager, NodeId filterId)
 {
     RS_OPTIONAL_TRACE_NAME("ColorPicker::ExtractSnapshotAndScheduleColorPick");
     if (!rect) {
@@ -265,7 +265,7 @@ bool ExtractSnapshotAndScheduleColorPick(
 #endif
     std::shared_ptr<Drawing::Image> snapshot;
     if (HveFilter::GetHveFilter().GetSurfaceNodeSize() > 0) {
-        snapshot = HveFilter::GetHveFilter().SampleLayer(canvas, snapshotIBounds);
+        snapshot = HveFilter::GetHveFilter().SampleLayer(canvas, snapshotIBounds, filterId);
     } else {
         snapshot = drawingSurface->GetImageSnapshot(snapshotIBounds, false);
     }

@@ -105,7 +105,21 @@ bool HveFilter::CheckPrecondition(const RSRenderNode& renderNode,
     return properties.IsBgBrightnessValid() && HasValidEffect(renderNode.GetParent().lock().get());
 }
 
-std::shared_ptr<Drawing::Image> HveFilter::SampleLayer(RSPaintFilterCanvas& canvas, const Drawing::RectI& srcRect)
+void HveFilter::ClearHveFilterSurfaceNodeMapping()
+{
+    hveFilterToSurfaceNodeMap_.clear();
+}
+
+void PushHveFilterSurfaceNodeMapping(NodeId filterId, NodeId surfaceId)
+{
+    if (hveFilterToSurfaceNodeMap_.find(filterId) == hveFilterToSurfaceNodeMap_.end()) {
+        hveFilterToSurfaceNodeMap_[filterId] = std::vector<NodeId>();
+    }
+    hveFilterToSurfaceNodeMap_[filterId].push_back(surfaceId);
+}
+
+std::shared_ptr<Drawing::Image> HveFilter::SampleLayer(
+    RSPaintFilterCanvas& canvas, const Drawing::RectI& srcRect, NodeID filterId)
 {
     std::lock_guard<std::mutex> lock(hveFilterMtx_);
     auto drawingSurface = canvas.GetSurface();
@@ -131,10 +145,16 @@ std::shared_ptr<Drawing::Image> HveFilter::SampleLayer(RSPaintFilterCanvas& canv
     size_t surfaceNodeSize = vecSurfaceNode.size();
     RS_TRACE_NAME_FMT("surfaceNodeSize:%d", surfaceNodeSize);
     Drawing::RectI dstRect = Drawing::RectI(0, 0, widthUI, heightUI);
+    auto it = hveFilterToSurfaceNodeMap_.find(filterId);
+    const auto& surfaceNodeIds = it->second;
 
     for (size_t i = 0; i < surfaceNodeSize; i++) {
         auto surfaceImage = vecSurfaceNode[i].surfaceImage_;
         if (surfaceImage == nullptr) {
+            continue;
+        }
+        NodeId surfaceId = vecSurfaceNode[i].surfaceNodeId_;
+        if (std::find(surfaceNodeIds.begin(), surfaceNodeIds.end(), surfaceId) = surfaceNodeIds.end()) {
             continue;
         }
         Drawing::Matrix rotateMatrix = vecSurfaceNode[i].matrix_;
@@ -156,7 +176,7 @@ std::shared_ptr<Drawing::Image> HveFilter::SampleLayer(RSPaintFilterCanvas& canv
 
     auto inputImage = drawingSurface->GetImageSnapshot(srcRect);
     if (inputImage != nullptr) {
-        offscreenCanvas->DrawImageRect(*inputImage, srcRect, dstRect, Drawing::SamplingOptions(),
+        offscreenCanvas->DrawImageRect(*inputImage, dstRect, dstRect, Drawing::SamplingOptions(),
             Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
     }
 

@@ -542,7 +542,7 @@ int RSPropertyDrawableUtils::GetAndResetBlurCnt()
 }
 
 void RSPropertyDrawableUtils::DrawBackgroundEffect(
-    RSPaintFilterCanvas* canvas, const std::shared_ptr<RSFilter>& rsFilter,
+    RSPaintFilterCanvas* canvas, const std::shared_ptr<RSFilter>& rsFilter, const NodeId nodeId,
     const std::unique_ptr<RSFilterCacheManager>& cacheManager,
     Drawing::RectI& bounds, bool behindWindow)
 {
@@ -577,7 +577,7 @@ void RSPropertyDrawableUtils::DrawBackgroundEffect(
         if (canvas->GetDeviceClipBounds().IsEmpty()) {
             return;
         }
-        auto&& data = cacheManager->GeneratedCachedEffectData(*canvas, filter, clipIBounds, clipIBounds);
+        auto&& data = cacheManager->GeneratedCachedEffectData(*canvas, filter, nodeId, clipIBounds, clipIBounds);
         cacheManager->CompactFilterCache(); // flag for clear witch cache after drawing
         behindWindow ? canvas->SetBehindWindowData(data) : canvas->SetEffectData(data);
         return;

@@ -93,8 +93,8 @@ std::unique_ptr<ColorPickerInfo> CreateColorPickerInfo(Drawing::Surface* drawing
  * @param manager The color picker manager to handle color updates
  * @return true if scheduling succeeded, false on error
  */
-bool ExtractSnapshotAndScheduleColorPick(
-    RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, const std::shared_ptr<IColorPickerManager>& manager);
+bool ExtractSnapshotAndScheduleColorPick(RSPaintFilterCanvas& canvas,
+    const Drawing::Rect* rect, const std::shared_ptr<IColorPickerManager>& manager, NodeId filterId);
 
 /**
  * @brief Common implementation for scheduling color pick with fence.

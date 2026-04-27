@@ -140,7 +140,7 @@ void RSColorPickerDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect*
     }
 
     if (needColorPick_) {
-        colorPickerManager_->ScheduleColorPick(*paintFilterCanvas, rect, params_);
+        colorPickerManager_->ScheduleColorPick(*paintFilterCanvas, rect, params_, nodeId_);
     }
 }
 

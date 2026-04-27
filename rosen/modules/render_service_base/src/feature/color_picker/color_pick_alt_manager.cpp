@@ -44,7 +44,7 @@ std::optional<Drawing::ColorQuad> ColorPickAltManager::GetColorPick()
 }
 
 void ColorPickAltManager::ScheduleColorPick(
-    RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, const ColorPickerParam& params)
+    RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, const ColorPickerParam& params, NodeID filterId)
 {
     if (params.strategy == ColorPickStrategyType::NONE) {
         return;
@@ -57,7 +57,7 @@ void ColorPickAltManager::ScheduleColorPick(
     }
 
     auto ptr = std::static_pointer_cast<IColorPickerManager>(shared_from_this());
-    RSColorPickerUtils::ExtractSnapshotAndScheduleColorPick(canvas, rect, ptr);
+    RSColorPickerUtils::ExtractSnapshotAndScheduleColorPick(canvas, rect, ptr, filterId);
 }
 
 namespace {

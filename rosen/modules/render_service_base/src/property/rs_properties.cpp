@@ -2340,6 +2340,15 @@ RectF RSProperties::GetBoundsRect() const
     return rect;
 }
 
+NodeId RSProperties::GetRenderNodeId()
+{
+    auto renderNode = backref_.lock();
+    if (renderNode != nullptr) {
+        return renderNode->GetId();
+    }
+    return INVALID_NODEID;
+}
+
 RectF RSProperties::GetFrameRect() const
 {
     return {0, 0, GetFrameWidth(), GetFrameHeight()};

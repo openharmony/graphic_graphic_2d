@@ -1480,8 +1480,8 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
                 solidLayerColor = surfaceParams.GetSolidLayerColor();
                 RS_TRACE_NAME_FMT("solidLayer enabled, color:%08x", solidLayerColor.AsArgbInt());
             }
-            SurfaceNodeInfo surfaceNodeInfo = {
-                surfaceNodeImage, rotateMatrix, params.srcRect, params.dstRect, solidLayerColor};
+            SurfaceNodeInfo surfaceNodeInfo = {surfaceNodeImage, rotateMatrix, params.srcRect, params.dstRect,
+                solidLayerColor, surfaceParams.GetId()};
 
             HveFilter::GetHveFilter().PushSurfaceNodeInfo(surfaceNodeInfo);
         }

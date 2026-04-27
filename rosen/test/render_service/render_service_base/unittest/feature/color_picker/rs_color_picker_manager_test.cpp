@@ -99,9 +99,10 @@ HWTEST_F(RSColorPickerManagerTest, ScheduleColorPickWithNoneStrategyDoesNothing,
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     Drawing::Rect rect(0, 0, 10, 10);
+    NodeId filterId = 1;
 
     ColorPickerParam params(ColorPlaceholder::NONE, ColorPickStrategyType::NONE, 0);
-    manager->ScheduleColorPick(canvas, &rect, params);
+    manager->ScheduleColorPick(canvas, &rect, params, filterId);
 
     auto color = manager->GetColorPick();
     EXPECT_EQ(color.value(), Drawing::Color::COLOR_BLACK);
@@ -113,6 +114,7 @@ HWTEST_F(RSColorPickerManagerTest, ScheduleColorPickContinuesAnimation, TestSize
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     Drawing::Rect rect(0, 0, 10, 10);
+    NodeId filterId = 1;
 
     // Use a dark gray - its contrast is white, different from default black
     const Drawing::ColorQuad darkGray = Drawing::Color::ColorQuadSetARGB(0xFF, 50, 50, 50);
@@ -120,7 +122,7 @@ HWTEST_F(RSColorPickerManagerTest, ScheduleColorPickContinuesAnimation, TestSize
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
     ColorPickerParam params(ColorPlaceholder::NONE, ColorPickStrategyType::AVERAGE, 0);
-    manager->ScheduleColorPick(canvas, &rect, params);
+    manager->ScheduleColorPick(canvas, &rect, params, filterId);
 
     auto color = manager->GetColorPick();
     ASSERT_TRUE(color.has_value());
@@ -133,6 +135,7 @@ HWTEST_F(RSColorPickerManagerTest, ScheduleColorPickWithNullRectReturnsEarly, Te
     auto manager = std::make_shared<RSColorPickerManager>(1);
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
+    NodeId filterId = 1;
 
     ColorPickerParam params(ColorPlaceholder::NONE, ColorPickStrategyType::AVERAGE, 0);
     manager->ScheduleColorPick(canvas, nullptr, params);
@@ -283,9 +286,10 @@ HWTEST_F(ColorPickAltManagerTest, ScheduleColorPickWithNoneStrategyReturnsEarly,
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     Drawing::Rect rect(0, 0, 10, 10);
+    NodeId filterId = 1;
 
     ColorPickerParam params(ColorPlaceholder::NONE, ColorPickStrategyType::NONE, 0);
-    manager->ScheduleColorPick(canvas, &rect, params);
+    manager->ScheduleColorPick(canvas, &rect, params, filterId);
 
     EXPECT_TRUE(true);
 }
@@ -296,10 +300,11 @@ HWTEST_F(ColorPickAltManagerTest, ScheduleColorPickUpdatesThresholds, TestSize.L
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     Drawing::Rect rect(0, 0, 10, 10);
+    NodeId filterId = 1;
 
     ColorPickerParam params(ColorPlaceholder::NONE, ColorPickStrategyType::AVERAGE, 0);
     params.notifyThreshold = {30, 50};
-    manager->ScheduleColorPick(canvas, &rect, params);
+    manager->ScheduleColorPick(canvas, &rect, params, filterId);
 
     EXPECT_TRUE(true);
 }
@@ -309,9 +314,10 @@ HWTEST_F(ColorPickAltManagerTest, ScheduleColorPickWithNullRectReturnsEarly, Tes
     auto manager = std::make_shared<ColorPickAltManager>(1);
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
+    NodeId filterId = 1;
 
     ColorPickerParam params(ColorPlaceholder::NONE, ColorPickStrategyType::AVERAGE, 0);
-    manager->ScheduleColorPick(canvas, nullptr, params);
+    manager->ScheduleColorPick(canvas, nullptr, params, filterId);
 
     EXPECT_TRUE(true);
 }
@@ -365,7 +371,8 @@ HWTEST_F(ColorPickAltManagerTest, GetLuminanceZoneWithDarkLuminance, TestSize.Le
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     Drawing::Rect rect(0, 0, 10, 10);
-    manager->ScheduleColorPick(canvas, &rect, params);
+    NodeId filterId = 1;
+    manager->ScheduleColorPick(canvas, &rect, params, filterId);
 
     manager->HandleColorUpdate(Drawing::Color::ColorQuadSetARGB(0xFF, 50, 50, 50));
     EXPECT_TRUE(true);
@@ -380,7 +387,8 @@ HWTEST_F(ColorPickAltManagerTest, GetLuminanceZoneWithLightLuminance, TestSize.L
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     Drawing::Rect rect(0, 0, 10, 10);
-    manager->ScheduleColorPick(canvas, &rect, params);
+    NodeId filterId = 1;
+    manager->ScheduleColorPick(canvas, &rect, params, filterId);
 
     manager->HandleColorUpdate(Drawing::Color::ColorQuadSetARGB(0xFF, 230, 230, 230));
     EXPECT_TRUE(true);
@@ -395,7 +403,8 @@ HWTEST_F(ColorPickAltManagerTest, GetLuminanceZoneWithNeutralLuminance, TestSize
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     Drawing::Rect rect(0, 0, 10, 10);
-    manager->ScheduleColorPick(canvas, &rect, params);
+    NodeId filterId = 1;
+    manager->ScheduleColorPick(canvas, &rect, params, filterId);
 
     manager->HandleColorUpdate(Drawing::Color::ColorQuadSetARGB(0xFF, 150, 150, 150));
     EXPECT_TRUE(true);
@@ -725,10 +734,11 @@ HWTEST_F(RSColorPickerManagerTest, ScheduleColorPickWithHeteroAcceleration, Test
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     Drawing::Rect rect(0, 0, 10, 10);
+    NodeId filterId = 1;
 
     ColorPickerParam params(ColorPlaceholder::NONE, ColorPickStrategyType::AVERAGE, 0);
 
-    manager->ScheduleColorPick(canvas, &rect, params);
+    manager->ScheduleColorPick(canvas, &rect, params, filterId);
 
     EXPECT_TRUE(true);
 }
@@ -743,9 +753,10 @@ HWTEST_F(RSColorPickerManagerTest, ScheduleColorPickWithNullRect, TestSize.Level
     auto manager = std::make_shared<RSColorPickerManager>(1);
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
+    NodeId filterId = 1;
 
     ColorPickerParam params(ColorPlaceholder::NONE, ColorPickStrategyType::AVERAGE, 0);
-    manager->ScheduleColorPick(canvas, nullptr, params);
+    manager->ScheduleColorPick(canvas, nullptr, params, filterId, filterId);
 
     auto color = manager->GetColorPick();
     EXPECT_EQ(color.value(), Drawing::Color::COLOR_BLACK);
@@ -767,11 +778,12 @@ HWTEST_F(ColorPickAltManagerTest, ScheduleColorPickAltWithParamsRect, TestSize.L
     RSPaintFilterCanvas canvas(&drawingCanvas);
     Drawing::Rect rect1(0, 0, 10, 10);
     Drawing::Rect rect2(5, 5, 15, 15);
+    NodeId filterId = 1;
 
     ColorPickerParam params(ColorPlaceholder::NONE, ColorPickStrategyType::AVERAGE, 0);
     params.rect = rect2;
 
-    manager->ScheduleColorPick(canvas, &rect1, params);
+    manager->ScheduleColorPick(canvas, &rect1, params, filterId);
 
     EXPECT_TRUE(true);
 }
@@ -787,9 +799,10 @@ HWTEST_F(ColorPickAltManagerTest, ScheduleColorPickAltWithHeteroAcceleration, Te
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     Drawing::Rect rect(0, 0, 10, 10);
+    NodeId filterId = 1;
 
     ColorPickerParam params(ColorPlaceholder::NONE, ColorPickStrategyType::AVERAGE, 0);
-    manager->ScheduleColorPick(canvas, &rect, params);
+    manager->ScheduleColorPick(canvas, &rect, params, filterId);
 
     EXPECT_TRUE(true);
 }

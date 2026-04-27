@@ -765,7 +765,7 @@ void RSBackgroundEffectDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::
     }
     RS_TRACE_NAME_FMT("RSBackgroundEffectDrawable::DrawBackgroundEffect nodeId[%lld]", renderNodeId_);
     RSPropertyDrawableUtils::DrawBackgroundEffect(
-        paintFilterCanvas, filter_, cacheManager_, boundsRect);
+        paintFilterCanvas, filter_, renderNodeId_, cacheManager_, boundsRect);
 }
 
 Drawing::RectI RSBackgroundEffectDrawable::GetAbsRenderEffectRect(const Drawing::Canvas& canvas,
