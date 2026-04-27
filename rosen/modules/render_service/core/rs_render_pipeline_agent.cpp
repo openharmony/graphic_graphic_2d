@@ -1201,7 +1201,7 @@ ErrCode RSRenderPipelineAgent::CreateNodeAndSurface(const RSSurfaceRenderNodeCon
                                     RSGpuDirtyCollector::GetInstance().IsGpuDirtyEnable(nodeId) &&
                                     config.nodeType == RSSurfaceNodeType::SELF_DRAWING_NODE;
     if (isUseSelfDrawBufferUsage) {
-        defaultUsage |= BUFFER_USAGE_GPU_RENDER_DIRTY;
+        defaultUsage |= BUFFER_USAGE_AUXILLARY_BUFFER0;
     }
     surface->SetDefaultUsage(defaultUsage | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_HW_COMPOSER);
     node->GetRSSurfaceHandler()->SetConsumer(surface);

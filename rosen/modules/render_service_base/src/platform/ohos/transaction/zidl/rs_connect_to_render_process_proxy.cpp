@@ -51,13 +51,20 @@ sptr<RSIClientToRenderConnection> RSConnectToRenderProcessProxy::CreateRenderCon
         ROSEN_LOGE("RSConnectToRenderProcessProxy::CreateRenderConnection: Send Request err.");
         return nullptr;
     }
-    sptr<RSIClientToRenderConnection> newConn;
     bool hasRemoteObj = false;
-    if (reply.ReadBool(hasRemoteObj)) {
-        if (hasRemoteObj) {
-            auto obj = reply.ReadRemoteObject();
-            newConn = iface_cast<RSIClientToRenderConnection>(obj);
-        }
+    if (!reply.ReadBool(hasRemoteObj) || !hasRemoteObj) {
+        ROSEN_LOGE("RSConnectToRenderProcessProxy::CreateRenderConnection: hasRemoteObj err.");
+        return nullptr;
+    }
+    auto obj = reply.ReadRemoteObject()
+    if (obj == nullptr) {
+        ROSEN_LOGE("RSConnectToRenderProcessProxy::CreateRenderConnection: ReadRemoteObject err.");
+        return nullptr;
+    }
+    sptr<RSIClientToRenderConnection> newConn = iface_cast<RSIClientToRenderConnection>(obj);
+    if (newConn == nullptr) {
+        ROSEN_LOGE("RSConnectToRenderProcessProxy::CreateRenderConnection: RSIClientToRenderConnection err.");
+        return nullptr;
     }
     return newConn;
 }
