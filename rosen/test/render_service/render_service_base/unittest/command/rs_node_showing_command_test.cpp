@@ -359,4 +359,55 @@ HWTEST_F(RSNodeGetAnimationsValueFractionTest, IsCallingPidValid001, TestSize.Le
     context.nodeMap.AddUIExtensionSurfaceNode(surfaceNode);
     EXPECT_TRUE(animation.IsCallingPidValid(1, context.GetNodeMap()));
 }
+
+/**
+ * @tc.name: Process004
+ * @tc.desc: Verify RSNodeGetShowingPropertyAndCancelAnimation Process with non-null animationManager
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeGetShowingPropertyAndCancelAnimationTest, Process004, TestSize.Level1)
+{
+    RSContext context;
+    NodeId targetId = 0;
+
+    auto renderNode = std::make_shared<RSBaseRenderNode>(targetId);
+    context.nodeMap.renderNodeMap_[0][0] = renderNode;
+
+    // Make animationManager_ non-null
+    renderNode->animationManager_ = std::make_shared<RSAnimationManager>();
+    ASSERT_NE(renderNode->GetAnimationManager(), nullptr);
+
+    auto property = std::make_shared<RSRenderProperty<bool>>();
+    RSNodeGetShowingPropertyAndCancelAnimation command(targetId, property);
+    command.Process(context);
+}
+
+/**
+ * @tc.name: Process005
+ * @tc.desc: Verify RSNodeGetShowingPropertiesAndCancelAnimation Process with non-null animationManager
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeGetShowingPropertiesAndCancelAnimationTest, Process005, TestSize.Level1)
+{
+    RSContext context;
+
+    NodeId nodeId = 0;
+    PropertyId propertyId = 1;
+    auto renderNode = std::make_shared<RSBaseRenderNode>(nodeId);
+    context.nodeMap.renderNodeMap_[0][0] = renderNode;
+
+    // Make animationManager_ non-null
+    renderNode->animationManager_ = std::make_shared<RSAnimationManager>();
+
+    auto renderProperty = std::make_shared<RSRenderProperty<bool>>();
+    std::vector<AnimationId> animationIds = { 1 };
+    std::pair<std::pair<NodeId, PropertyId>,
+        std::pair<std::shared_ptr<RSRenderPropertyBase>, std::vector<AnimationId>>>
+        entry(std::make_pair(nodeId, propertyId), std::make_pair(renderProperty, animationIds));
+
+    RSNodeGetShowingPropertiesAndCancelAnimation animation(0);
+    animation.propertiesMap_.insert(entry);
+    animation.Process(context);
+    EXPECT_TRUE(renderProperty != nullptr);
+}
 } // namespace OHOS::Rosen

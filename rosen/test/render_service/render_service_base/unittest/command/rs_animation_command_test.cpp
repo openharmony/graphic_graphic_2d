@@ -14,8 +14,11 @@
  */
 
 #include "gtest/gtest.h"
+#include "animation/rs_render_curve_animation.h"
 #include "animation/rs_render_interactive_implict_animator.h"
+#include "animation/rs_render_particle_animation.h"
 #include "include/command/rs_animation_command.h"
+#include "pipeline/rs_canvas_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -321,6 +324,134 @@ HWTEST_F(RSAnimationCommandTest, CreateInteractiveAnimatorGroup007, TestSize.Lev
     EXPECT_TRUE(animator2 != nullptr);
 
     GTEST_LOG_(INFO) << "RSAnimationCommandTest CreateInteractiveAnimatorGroup007 end";
+}
+
+/**
+ * @tc.name: CreateAnimation001
+ * @tc.desc: Verify CreateAnimation with node and animation both non-null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationCommandTest, CreateAnimation001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationCommandTest CreateAnimation001 start";
+    RSContext context;
+    NodeId targetId = 1;
+
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(targetId);
+    context.GetMutableNodeMap().RegisterRenderNode(renderNode);
+
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    PropertyId propertyId = 1;
+    auto animation = std::make_shared<RSRenderCurveAnimation>(1, propertyId, property, property1, property2);
+    ASSERT_NE(animation, nullptr);
+
+    AnimationCommandHelper::CreateAnimation(context, targetId, animation);
+    auto animationManager = renderNode->GetAnimationManager();
+    ASSERT_NE(animationManager, nullptr);
+    EXPECT_NE(animationManager->GetAnimation(1), nullptr);
+
+    GTEST_LOG_(INFO) << "RSAnimationCommandTest CreateAnimation001 end";
+}
+
+/**
+ * @tc.name: CreateAnimation002
+ * @tc.desc: Verify CreateAnimation with null animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationCommandTest, CreateAnimation002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationCommandTest CreateAnimation002 start";
+    RSContext context;
+    NodeId targetId = 1;
+    AnimationCommandHelper::CreateAnimation(context, targetId, nullptr);
+    GTEST_LOG_(INFO) << "RSAnimationCommandTest CreateAnimation002 end";
+}
+
+/**
+ * @tc.name: CreateParticleAnimationNG001
+ * @tc.desc: Verify CreateParticleAnimationNG with valid node and animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationCommandTest, CreateParticleAnimationNG001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationCommandTest CreateParticleAnimationNG001 start";
+    RSContext context;
+    NodeId targetId = 1;
+    ModifierId modifierId = 1;
+
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(targetId);
+    context.GetMutableNodeMap().RegisterRenderNode(renderNode);
+
+    std::vector<std::shared_ptr<ParticleRenderParams>> params;
+    auto animation = std::make_shared<RSRenderParticleAnimation>(1, 1, params);
+    ASSERT_NE(animation, nullptr);
+
+    AnimationCommandHelper::CreateParticleAnimationNG(context, targetId, modifierId, animation);
+    auto animationManager = renderNode->GetAnimationManager();
+    ASSERT_NE(animationManager, nullptr);
+
+    GTEST_LOG_(INFO) << "RSAnimationCommandTest CreateParticleAnimationNG001 end";
+}
+
+/**
+ * @tc.name: CancelAnimation002
+ * @tc.desc: Verify CancelAnimation with node that has animationManager
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationCommandTest, CancelAnimation002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationCommandTest CancelAnimation002 start";
+    RSContext context;
+    NodeId targetId = 1;
+    PropertyId propertyId = 1;
+
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(targetId);
+    context.GetMutableNodeMap().RegisterRenderNode(renderNode);
+
+    // Make animationManager_ non-null by adding an animation
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animation = std::make_shared<RSRenderCurveAnimation>(1, propertyId, property, property1, property2);
+    renderNode->AddAnimation(animation);
+    ASSERT_NE(renderNode->GetAnimationManager(), nullptr);
+
+    AnimationCommandHelper::CancelAnimation(context, targetId, propertyId);
+
+    GTEST_LOG_(INFO) << "RSAnimationCommandTest CancelAnimation002 end";
+}
+
+/**
+ * @tc.name: GetNodeAndAnimationViaAnimOp001
+ * @tc.desc: Verify GetNodeAndAnimation via AnimOp with non-null animationManager (Pause path)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSAnimationCommandTest, GetNodeAndAnimationViaAnimOp001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSAnimationCommandTest GetNodeAndAnimationViaAnimOp001 start";
+    RSContext context;
+    NodeId targetId = 1;
+    PropertyId propertyId = 1;
+    AnimationId animId = 42;
+
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(targetId);
+    context.GetMutableNodeMap().RegisterRenderNode(renderNode);
+
+    // Make animationManager_ non-null by adding an animation
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animation = std::make_shared<RSRenderCurveAnimation>(animId, propertyId, property, property1, property2);
+    renderNode->AddAnimation(animation);
+    ASSERT_NE(renderNode->GetAnimationManager(), nullptr);
+    ASSERT_NE(renderNode->GetAnimationManager()->GetAnimation(animId), nullptr);
+
+    // Call AnimOp<&RSRenderAnimation::Pause> which calls GetNodeAndAnimation internally
+    AnimationCommandHelper::AnimOp<&RSRenderAnimation::Pause>(context, targetId, animId);
+
+    GTEST_LOG_(INFO) << "RSAnimationCommandTest GetNodeAndAnimationViaAnimOp001 end";
 }
 
 } // namespace OHOS::Rosen

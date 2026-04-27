@@ -14,6 +14,7 @@
  */
 #include "gtest/gtest.h"
 
+#include "animation/rs_render_curve_animation.h"
 #include "pipeline/rs_render_node_allocator.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "drawable/rs_render_node_shadow_drawable.h"
@@ -746,6 +747,35 @@ HWTEST_F(RSRenderNodeGCTest, NodeOffTreeMemReleaseEnabledTest, TestSize.Level1)
     ASSERT_EQ(RSRenderNodeGC::Instance().IsNodeOffTreeMemReleaseEnabled(), true);
     RSRenderNodeGC::Instance().SetNodeOffTreeMemReleaseEnabled(false);
     ASSERT_EQ(RSRenderNodeGC::Instance().IsNodeOffTreeMemReleaseEnabled(), false);
+}
+
+/**
+ * @tc.name: ReleaseOffTreeNodeBucket007
+ * @tc.desc: Cover branch: animationManager non-null in ReleaseOffTreeNodeForBucketMap
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseOffTreeNodeBucket007, TestSize.Level1)
+{
+    RSRenderNodeGC& nodeGC = RSRenderNodeGC::Instance();
+    ClearOffTreeBucketMap();
+    nodeGC.isEnable_ = true;
+
+    pid_t pid = 1;
+    NodeId nodeId = 10000;
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    // Make animationManager_ non-null by adding an animation
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto animation = std::make_shared<RSRenderCurveAnimation>(1, 1, property, property1, property2);
+    renderNode->AddAnimation(animation);
+    ASSERT_NE(renderNode->GetAnimationManager(), nullptr);
+
+    std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>> renderNodeMap;
+    renderNodeMap[nodeId] = renderNode;
+    nodeGC.AddToOffTreeNodeBucket(pid, renderNodeMap);
+    nodeGC.ReleaseOffTreeNodeBucket();
+    EXPECT_TRUE(true);
 }
 
 } // namespace Rosen

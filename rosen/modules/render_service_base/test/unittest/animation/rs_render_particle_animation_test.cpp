@@ -779,5 +779,51 @@ HWTEST_F(RSRenderParticleAnimationTest, ParseParamTokenFail001, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest ParseParamTokenFail001 end";
 }
 
+/**
+ * @tc.name: OnAttach002
+ * @tc.desc: Verify OnAttach with non-null animationManager
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderParticleAnimationTest, OnAttach002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest OnAttach002 start";
+    auto renderParticleAnimation =
+        std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, PROPERTY_ID, particlesRenderParams);
+    ASSERT_TRUE(renderParticleAnimation != nullptr);
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
+    renderParticleAnimation->Attach(renderNode.get());
+    // Make animationManager_ non-null by adding an animation to the node
+    renderNode->AddAnimation(renderParticleAnimation);
+    auto animationManager = renderNode->GetAnimationManager();
+    ASSERT_NE(animationManager, nullptr);
+    // OnAttach with non-null animationManager: will register particle animation
+    renderParticleAnimation->OnAttach();
+    GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest OnAttach002 end";
+}
+
+/**
+ * @tc.name: OnDetach003
+ * @tc.desc: Verify OnDetach with non-null animationManager unregisters particle animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderParticleAnimationTest, OnDetach003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest OnDetach003 start";
+    auto renderParticleAnimation =
+        std::make_shared<RSRenderParticleAnimation>(ANIMATION_ID, PROPERTY_ID, particlesRenderParams);
+    ASSERT_TRUE(renderParticleAnimation != nullptr);
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(ANIMATION_ID);
+    renderParticleAnimation->Attach(renderNode.get());
+    // Make animationManager_ non-null
+    renderNode->AddAnimation(renderParticleAnimation);
+    auto animationManager = renderNode->GetAnimationManager();
+    ASSERT_NE(animationManager, nullptr);
+    // OnAttach registers particle animation
+    renderParticleAnimation->OnAttach();
+    // OnDetach with non-null animationManager: will unregister particle animation
+    renderParticleAnimation->OnDetach();
+    GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest OnDetach003 end";
+}
+
 } // namespace Rosen
 } // namespace OHOS

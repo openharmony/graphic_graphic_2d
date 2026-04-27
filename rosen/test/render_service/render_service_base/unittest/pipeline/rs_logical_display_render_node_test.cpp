@@ -539,4 +539,33 @@ HWTEST_F(RSLogicalDisplayRenderNodeTest, UpdateDimensionsTest, TestSize.Level1)
     renderNode->UpdateFixedSize();
     EXPECT_EQ(renderNode->GetCompositeType(), CompositeType::HARDWARE_COMPOSITE);
 }
+
+/**
+ * @tc.name: IsOnlyHDRAnimationWithNullManager001
+ * @tc.desc: Verify IsOnlyHDRAnimation returns false with null animationManager and HDR modifiers
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeTest, IsOnlyHDRAnimationWithNullManager001, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
+
+    // Add HDR modifiers but NO animationManager (don't add any animation)
+    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr;
+    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
+    property->GetRef() = drawCmdList;
+    property->id_ = 1;
+    ModifierId id = 1;
+
+    auto modifier = ModifierNG::RSRenderModifier::MakeRenderModifier(
+        ModifierNG::RSModifierType::HDR_BRIGHTNESS, property, id, ModifierNG::RSPropertyType::HDR_BRIGHTNESS_FACTOR);
+    RSRootRenderNode::ModifierNGContainer modifiers { modifier };
+    displayNode->modifiersNG_.emplace(ModifierNG::RSModifierType::HDR_BRIGHTNESS, modifiers);
+
+    // animationManager_ is null since no animations were added
+    EXPECT_EQ(displayNode->GetAnimationManager(), nullptr);
+    EXPECT_FALSE(displayNode->IsOnlyHDRAnimation());
+}
 } // namespace OHOS::Rosen
