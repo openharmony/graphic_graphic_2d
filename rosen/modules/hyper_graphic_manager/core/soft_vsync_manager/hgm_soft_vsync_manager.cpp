@@ -137,7 +137,9 @@ void HgmSoftVSyncManager::SetWindowExpectedRefreshRate(pid_t pid,
             } else {
                 disableFrameSplit_.erase(vsyncName);
             }
-            HGM_LOGD("disable frame split update, vsyncName:%{public}s, status:%{public}d",
+            RS_TRACE_NAME_FMT("disable frame split update, vsyncName:%s, status:%d",
+                vsyncName.c_str(), eventInfo.eventStatus);
+            HGM_LOGI("disable frame split update, vsyncName:%{public}s, status:%{public}d",
                 vsyncName.c_str(), eventInfo.eventStatus);
         }
 
@@ -216,10 +218,13 @@ void HgmSoftVSyncManager::CalcAppFrameRate(
             isForceUseAppVSync = appVoteDataIter->second.second;
         }
     }
-    bool isDisableFrameSplit = disableFrameSplit_.find(linker.second->GetVsyncName()) != disableFrameSplit_.end();
     auto appFrameRate =
-        (isPerformanceFirst_ && !isForceUseAppVSync && expectedRange.type_ != NATIVE_VSYNC_FRAME_RATE_TYPE) ||
-        isDisableFrameSplit ? OLED_NULL_HZ : HgmSoftVSyncManager::GetDrawingFrameRate(currRefreshRate, expectedRange);
+        isPerformanceFirst_ && !isForceUseAppVSync && expectedRange.type_ != NATIVE_VSYNC_FRAME_RATE_TYPE ?
+        OLED_NULL_HZ : HgmSoftVSyncManager::GetDrawingFrameRate(currRefreshRate, expectedRange);
+    if (appFrameRate != OLED_NULL_HZ && (expectedRange.type_ & NATIVE_VSYNC_FRAME_RATE_TYPE) != 0) {
+        bool isDisableFrameSplit = disableFrameSplit_.find(linker.second->GetVsyncName()) != disableFrameSplit_.end();
+        appFrameRate = isDisableFrameSplit ? OLED_NULL_HZ : appFrameRate;
+    }
     if (CollectGameRateDiscountChange(linker.first, expectedRange, currRefreshRate)) {
         appFrameRate = static_cast<uint32_t>(expectedRange.preferred_);
     }

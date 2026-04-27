@@ -323,6 +323,86 @@ HWTEST_F(HgmSoftVSyncManagerTest, SetWindowExpectedRefreshRate_vsync002, Functio
     EXPECT_EQ(appVoteData[frameRateLinkerId1].first, 60);
 }
 
+/**
+ * @tc.name: SetWindowExpectedRefreshRate_DisableFrameSplit001
+ * @tc.desc: Test SetWindowExpectedRefreshRate, description is not DISABLE_FRAME_SPLIT_MODE.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmSoftVSyncManagerTest, SetWindowExpectedRefreshRate_DisableFrameSplit001, TestSize.Level1)
+{
+    HgmSoftVSyncManager softVSyncManager;
+    softVSyncManager.disableFrameSplit_.clear();
+ 
+    std::unordered_map<VsyncName, EventInfo> voters;
+    EventInfo eventInfo = {
+        .eventName = "VOTER_HIGH",
+        .eventStatus = true,
+        .minRefreshRate = 60,
+        .maxRefreshRate = 60,
+        .description = "FORCE_USE_APP_VSYNC",
+    };
+    voters["NWeb_12345"] = eventInfo;
+ 
+    softVSyncManager.SetWindowExpectedRefreshRate(12345, voters);
+ 
+    ASSERT_EQ(softVSyncManager.disableFrameSplit_.size(), 0);
+}
+ 
+/**
+ * @tc.name: SetWindowExpectedRefreshRate_DisableFrameSplit002
+ * @tc.desc: Test SetWindowExpectedRefreshRate, insert disableFrameSplit_ when eventStatus is true.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmSoftVSyncManagerTest, SetWindowExpectedRefreshRate_DisableFrameSplit002, TestSize.Level1)
+{
+    HgmSoftVSyncManager softVSyncManager;
+    softVSyncManager.disableFrameSplit_.clear();
+ 
+    std::unordered_map<VsyncName, EventInfo> voters;
+    EventInfo eventInfo = {
+        .eventName = "VOTER_HIGH",
+        .eventStatus = true,
+        .minRefreshRate = 0,
+        .maxRefreshRate = 0,
+        .description = "DISABLE_FRAME_SPLIT",
+    };
+    voters["NWeb_12345"] = eventInfo;
+ 
+    softVSyncManager.SetWindowExpectedRefreshRate(12345, voters);
+ 
+    ASSERT_EQ(softVSyncManager.disableFrameSplit_.size(), 1);
+    ASSERT_NE(softVSyncManager.disableFrameSplit_.find("NWeb_12345"), softVSyncManager.disableFrameSplit_.end());
+}
+ 
+/**
+ * @tc.name: SetWindowExpectedRefreshRate_DisableFrameSplit003
+ * @tc.desc: Test SetWindowExpectedRefreshRate, erase disableFrameSplit_ when eventStatus is false.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmSoftVSyncManagerTest, SetWindowExpectedRefreshRate_DisableFrameSplit003, TestSize.Level1)
+{
+    HgmSoftVSyncManager softVSyncManager;
+    softVSyncManager.disableFrameSplit_.clear();
+    softVSyncManager.disableFrameSplit_.insert("NWeb_12345");
+ 
+    std::unordered_map<VsyncName, EventInfo> voters;
+    EventInfo eventInfo = {
+        .eventName = "VOTER_HIGH",
+        .eventStatus = false,
+        .minRefreshRate = 0,
+        .maxRefreshRate = 0,
+        .description = "DISABLE_FRAME_SPLIT",
+    };
+    voters["NWeb_12345"] = eventInfo;
+ 
+    softVSyncManager.SetWindowExpectedRefreshRate(12345, voters);
+ 
+    ASSERT_EQ(softVSyncManager.disableFrameSplit_.size(), 0);
+    ASSERT_EQ(softVSyncManager.disableFrameSplit_.find("NWeb_12345"), softVSyncManager.disableFrameSplit_.end());
+}
 
 /**
  * @tc.name: GetVRateMiniFPS
