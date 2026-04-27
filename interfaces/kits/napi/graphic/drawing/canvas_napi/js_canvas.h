@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -87,6 +87,7 @@ public:
     static napi_value DrawSingleCharacter(napi_env env, napi_callback_info info);
     static napi_value DrawSingleCharacterWithFeatures(napi_env env, napi_callback_info info);
     static napi_value DrawText(napi_env env, napi_callback_info info);
+    static napi_value DrawGlyphs(napi_env env, napi_callback_info info);
     static napi_value DrawBackground(napi_env env, napi_callback_info info);
     static napi_value DrawRoundRect(napi_env env, napi_callback_info info);
     static napi_value GetTotalMatrix(napi_env env, napi_callback_info info);
@@ -163,6 +164,7 @@ private:
     napi_value OnDrawSingleCharacter(napi_env env, napi_callback_info info);
     napi_value OnDrawSingleCharacterWithFeatures(napi_env env, napi_callback_info info);
     napi_value OnDrawText(napi_env env, napi_callback_info info);
+    napi_value OnDrawGlyphs(napi_env env, napi_callback_info info);
     napi_value OnGetSaveCount(napi_env env, napi_callback_info info);
     napi_value OnGetWidth(napi_env env, napi_callback_info info);
     napi_value OnGetHeight(napi_env env, napi_callback_info info);

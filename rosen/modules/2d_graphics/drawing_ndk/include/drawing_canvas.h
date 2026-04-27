@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -574,6 +574,29 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasDrawSingleCharacterWithFeatures(OH_Drawing
  * @version 1.0
  */
 void OH_Drawing_CanvasDrawTextBlob(OH_Drawing_Canvas*, const OH_Drawing_TextBlob*, float x, float y);
+
+/**
+ * @brief Draws the array of glyphs with specified font. Nothing is drawn if glyphCount is smaller than or equals to 0.
+ *
+ * @param canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param glyphIds Indicates an array of glyph IDs.
+ * @param glyphIdCount Indicates the size of glyphId array.
+ * @param glyphIdOffset Indicates the number of elements to skip before drawing in glyphIds array.
+ * @param positions Indicates an array of positions.
+ * @param positionCount Indicates the size of position array.
+ * @param positionOffset Indicates the number of elements to skip before drawing in positions array.
+ * @param glyphCount Indicates the number of glyphs to be drawn.
+ * @param font Indicates the font used for drawing.
+ * @return Returns the error code.
+ * Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ * Returns {@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if any of canvas, glyphIds, positions and font is nullptr.
+ * Returns {@link OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE} if glyphIdOffset or positionOffset is less than 0, or if
+ * glyphIdCount is less than (glyphIdOffset + glyphCount) or positionCount is less than (positionOffset + glyphCount).
+ * @since 26.0.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_CanvasDrawGlyphs(const OH_Drawing_Canvas* canvas, const int* glyphIds,
+    int glyphIdCount, int glyphIdOffset, const OH_Drawing_Point2D* positions, int positionCount,
+    int positionOffset, int glyphCount, const OH_Drawing_Font* font);
 
 /**
  * @brief Enumerates clip op.

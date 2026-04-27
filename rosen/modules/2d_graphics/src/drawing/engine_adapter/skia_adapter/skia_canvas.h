@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.. All rights reserved.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -142,6 +142,8 @@ public:
     void DrawSVGDOM(const sk_sp<SkSVGDOM>& svgDom) override;
 
     // text
+    void DrawGlyphs(int count, const uint16_t glyphs[], const Point positions[],
+                    Point origin, const Font* font, const Paint& paint) override;
     void DrawTextBlob(const TextBlob* blob, const scalar x, const scalar y, const Paint& paint) override;
 
     // symbol

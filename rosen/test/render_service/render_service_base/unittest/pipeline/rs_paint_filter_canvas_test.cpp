@@ -760,6 +760,21 @@ HWTEST_F(RSPaintFilterCanvasTest, DrawTextBlobTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DrawGlyphsTest
+ * @tc.desc: DrawGlyphs Test
+ * @tc.type:FUNC
+ * @tc.require:issuesI9J2YE
+ */
+HWTEST_F(RSPaintFilterCanvasTest, DrawGlyphsTest, TestSize.Level1)
+{
+    Drawing::Font font;
+    uint16_t glyphs[] = {100, 200};
+    Drawing::Point positions[] = {{100, 200}, {200, 400}};
+    paintFilterCanvas_->DrawGlyphs(2, glyphs, positions, {0, 0}, &font);
+    EXPECT_TRUE(paintFilterCanvas_);
+}
+
+/**
  * @tc.name: ClipRectTest
  * @tc.desc: ClipRect Test
  * @tc.type:FUNC

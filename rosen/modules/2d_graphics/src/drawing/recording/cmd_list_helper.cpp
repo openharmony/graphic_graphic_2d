@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -445,6 +445,61 @@ DrawingGroupInfo CmdListHelper::GetGroupInfoFromCmdList(const CmdList& cmdList, 
     groupInfo.layerIndexes = GetVectorFromCmdList<size_t>(cmdList, groupInfoHandle.vec1);
     groupInfo.maskIndexes = GetVectorFromCmdList<size_t>(cmdList, groupInfoHandle.vec2);
     return groupInfo;
+}
+
+OpFontHandle CmdListHelper::AddFontToCmdList(CmdList& cmdList, const Font* font)
+{
+    if (!font) {
+        return {};
+    }
+    auto typeface = font->GetTypeface();
+    auto data = typeface->Serialize();
+    if (!data || data->GetSize() == 0) {
+        LOGD("font typeface serialize invalid, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return {};
+    }
+    auto offset = cmdList.AddImageData(data->GetData(), data->GetSize());
+    return {offset, data->GetSize(),
+            font->GetSize(), font->GetScaleX(), font->GetSkewX(),
+            font->IsForceAutoHinting(), font->IsEmbeddedBitmaps(), font->IsSubpixel(),
+            font->IsLinearMetrics(), font->IsEmbolden(), font->IsBaselineSnap(),
+            font->GetEdging(), font->GetHinting()};
+}
+
+std::shared_ptr<Font> CmdListHelper::GetFontFromCmdList(const CmdList& cmdList, const OpFontHandle& fontHandle,
+                                                        uint64_t globalUniqueId)
+{
+    if (fontHandle.size == 0) {
+        return nullptr;
+    }
+    std::shared_ptr<Drawing::Typeface> typeface = nullptr;
+    if (DrawOpItem::customTypefaceQueryfunc_) {
+        // uni render
+        typeface = DrawOpItem::customTypefaceQueryfunc_(globalUniqueId);
+    } else if (Drawing::Typeface::GetUniqueIdCallBack()) {
+        // sep render
+        typeface = Drawing::Typeface::GetUniqueIdCallBack()(globalUniqueId);
+    }
+    if (!typeface) {
+        const void* data = cmdList.GetImageData(fontHandle.offset, fontHandle.size);
+        if (!data) {
+            LOGD("font typeface data nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+            return nullptr;
+        }
+        auto typefaceData = std::make_shared<Data>();
+        typefaceData->BuildWithoutCopy(data, fontHandle.size);
+        typeface = Typeface::Deserialize(typefaceData->GetData(), typefaceData->GetSize());
+    }
+    auto result = std::make_shared<Font>(typeface, fontHandle.fontSize, fontHandle.fontScaleX, fontHandle.fontSkewX);
+    result->SetForceAutoHinting(fontHandle.isForceAutoHinting);
+    result->SetEmbeddedBitmaps(fontHandle.isEmbeddedBitmap);
+    result->SetSubpixel(fontHandle.isSubpixel);
+    result->SetLinearMetrics(fontHandle.isLinearMetrics);
+    result->SetEmbolden(fontHandle.isEmbolden);
+    result->SetBaselineSnap(fontHandle.isBaselineSnap);
+    result->SetEdging(fontHandle.fontEdging);
+    result->SetHinting(fontHandle.fontHinting);
+    return result;
 }
 
 OpDataHandle CmdListHelper::AddTextBlobToCmdList(CmdList& cmdList, const TextBlob* textBlob, void* ctx)

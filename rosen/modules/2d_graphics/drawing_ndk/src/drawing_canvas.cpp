@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -837,6 +837,46 @@ void OH_Drawing_CanvasDrawTextBlob(OH_Drawing_Canvas* cCanvas, const OH_Drawing_
         iter->second->MarkDirty();
     }
 #endif
+}
+
+OH_Drawing_ErrorCode OH_Drawing_CanvasDrawGlyphs(const OH_Drawing_Canvas* cCanvas,
+                                                 const int* glyphIds,
+                                                 int glyphIdCount,
+                                                 int glyphIdOffset,
+                                                 const OH_Drawing_Point2D* positions,
+                                                 int positionCount,
+                                                 int positionOffset,
+                                                 int glyphCount,
+                                                 const OH_Drawing_Font* cFont)
+{
+    Canvas* canvas = CastToCanvas(const_cast<OH_Drawing_Canvas*>(cCanvas));
+    const Font* font = CastToFont(cFont);
+    if (canvas == nullptr || font == nullptr || glyphIds == nullptr || positions == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    if ((glyphCount <= 0) || (glyphIdOffset < 0) || (positionOffset < 0) ||
+        (glyphIdCount < (glyphCount + glyphIdOffset)) || (positionCount < (glyphCount + positionOffset))) {
+        return OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
+    }
+    const Point* glyphPositions = reinterpret_cast<const Point*>(positions);
+    std::vector<uint16_t> safeGlyphs;
+    safeGlyphs.reserve(glyphIdCount);
+    for (size_t i = 0; i < glyphIdCount; ++i) {
+        safeGlyphs.push_back(static_cast<uint16_t>(glyphIds[i]));
+    }
+    Drawing::Point origin = Drawing::Point(0, 0);
+    canvas->DrawGlyphs(glyphCount,
+                       safeGlyphs.data() + glyphIdOffset,
+                       glyphPositions + positionOffset,
+                       origin,
+                       font);
+    #ifdef OHOS_PLATFORM
+        auto iter = g_canvasMap.find(canvas);
+        if (iter != g_canvasMap.end() && iter->second != nullptr) {
+            iter->second->MarkDirty();
+        }
+    #endif
+    return OH_DRAWING_SUCCESS;
 }
 
 void OH_Drawing_CanvasClipRect(OH_Drawing_Canvas* cCanvas, const OH_Drawing_Rect* cRect,

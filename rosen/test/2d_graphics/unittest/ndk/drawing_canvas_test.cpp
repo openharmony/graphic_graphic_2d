@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -3263,6 +3263,42 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawSingleCharacterWit
     OH_PixelmapNative_Release(pixelMap);
     free(buffer);
     OH_PixelmapInitializationOptions_Release(options);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_DrawGlyphs001
+ * @tc.desc: test for draw glyphs
+ * @tc.type: FUNC
+ * @tc.require: ICG6L3
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawGlyphs001, TestSize.Level1)
+{
+    OH_Drawing_Font *font = OH_Drawing_FontCreate();
+    EXPECT_NE(font, nullptr);
+    int glyphIds[] = {71, 72, 73};
+    OH_Drawing_Point2D positions[] = {{0, 20}, {0, 40}, {0, 60}};
+    EXPECT_EQ(OH_Drawing_CanvasDrawGlyphs(canvas_, glyphIds, 3, 0, positions, 3, 0, 3, font), OH_DRAWING_SUCCESS);
+
+    EXPECT_EQ(OH_Drawing_CanvasDrawGlyphs(canvas_, glyphIds, 3, 0, positions, 3, 0, -1, font),
+              OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE);
+    EXPECT_EQ(OH_Drawing_CanvasDrawGlyphs(canvas_, glyphIds, 3, -1, positions, 3, 0, 3, font),
+              OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE);
+    EXPECT_EQ(OH_Drawing_CanvasDrawGlyphs(canvas_, glyphIds, 3, 0, positions, 3, -1, 3, font),
+              OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE);
+    EXPECT_EQ(OH_Drawing_CanvasDrawGlyphs(canvas_, glyphIds, 3, 1, positions, 3, 0, 3, font),
+              OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE);
+    EXPECT_EQ(OH_Drawing_CanvasDrawGlyphs(canvas_, glyphIds, 3, 0, positions, 3, 1, 3, font),
+              OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE);
+
+    EXPECT_EQ(OH_Drawing_CanvasDrawGlyphs(nullptr, glyphIds, 3, 0, positions, 3, 0, 3, font),
+              OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_CanvasDrawGlyphs(canvas_, glyphIds, 3, 0, positions, 3, 0, 3, nullptr),
+              OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_CanvasDrawGlyphs(canvas_, nullptr, 3, 0, positions, 3, 0, 3, font),
+              OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_CanvasDrawGlyphs(canvas_, glyphIds, 3, 0, nullptr, 3, 0, 3, font),
+              OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    OH_Drawing_FontDestroy(font);
 }
 
 /*

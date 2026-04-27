@@ -2815,6 +2815,29 @@ bool DrawCmdFuzzTest080(const uint8_t* data, size_t size)
     return true;
 }
 
+bool DrawCmdFuzzTest093(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+    Font font;
+    uint16_t glyphCount = GetObject<uint16_t>() % 10 + 1;
+    std::vector<uint16_t> glyphIDs(glyphCount);
+    std::vector<Point> positions(glyphCount);
+    for (uint16_t i = 0; i < glyphCount; i++) {
+        glyphIDs[i] = GetObject<uint16_t>();
+        positions[i] = Point(GetObject<float>(), GetObject<float>());
+    }
+    Paint paint;
+    DrawGlyphsOpItem drawGlyphsOpItem(glyphIDs, positions, {0, 0}, &font, paint);
+    int32_t width = GetObject<int32_t>();
+    int32_t height = GetObject<int32_t>();
+    Canvas canvas = Canvas(width, height);
+    Rect rect { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
+    drawGlyphsOpItem.Playback(&canvas, &rect);
+    return true;
+}
+
 bool DrawCmdFuzzTest081(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {

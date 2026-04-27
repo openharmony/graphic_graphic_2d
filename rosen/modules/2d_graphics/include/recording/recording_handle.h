@@ -20,6 +20,7 @@
 #include "draw/pen.h"
 #include "effect/filter.h"
 #include "utils/scalar.h"
+#include "text/font_types.h"
 #include "text/hm_symbol.h"
 
 namespace OHOS {
@@ -37,6 +38,22 @@ struct ImageHandle {
 struct OpDataHandle {
     size_t offset = 0;
     size_t size = 0;
+};
+
+struct OpFontHandle {
+    size_t offset = 0;
+    size_t size = 0;
+    float fontSize = 0.f;
+    float fontScaleX = 1.f;
+    float fontSkewX = 0.f;
+    bool isForceAutoHinting = false;
+    bool isEmbeddedBitmap = false;
+    bool isSubpixel = false;
+    bool isLinearMetrics = false;
+    bool isEmbolden = false;
+    bool isBaselineSnap = false;
+    FontEdging fontEdging = FontEdging::ANTI_ALIAS;
+    FontHinting fontHinting = FontHinting::NORMAL;
 };
 
 struct FlattenableHandle {
