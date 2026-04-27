@@ -2366,5 +2366,64 @@ HWTEST_F(RSPaintFilterCanvasTest, IsDrawingOffscreenMirrorTest, TestSize.Level1)
     paintFilterCanvas_->SetIsDrawingOffscreenMirror(true);
     EXPECT_EQ(paintFilterCanvas_->GetIsDrawingOffscreenMirror(), true);
 }
+
+/**
+ * @tc.name: GetOffscreenCanvasVector
+ * @tc.desc: Test offscreen canvas vector has no offscreen element
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPaintFilterCanvasTest, GetOffscreenCanvasVectorTest_No_Offscreen_Canvas, TestSize.Level1)
+{
+    Drawing::Canvas rawCanvas;
+    RSPaintFilterCanvas mainCanvas(&rawCanvas);
+
+    EXPECT_EQ(mainCanvas.GetOffscreenCanvasVector().size(), 0);
+}
+
+/**
+ * @tc.name: GetOffscreenCanvasVector
+ * @tc.desc: Test offscreen canvas vector has one offscreen element
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPaintFilterCanvasTest, GetOffscreenCanvasVectorTest_One_Offscreen_Canvas, TestSize.Level1)
+{
+    Drawing::Canvas rawCanvas;
+    RSPaintFilterCanvas mainCanvas(&rawCanvas);
+    mainCanvas.StoreCanvas();
+
+    auto canvas1 = std::make_shared<Drawing::Canvas>();
+    auto surface = std::make_shared<Drawing::Surface>();
+    auto offscreenCanvas = std::make_shared<RSPaintFilterCanvas>(canvas1.get());
+    mainCanvas.ReplaceMainScreenData(surface, offscreenCanvas);
+
+    EXPECT_EQ(mainCanvas.GetOffscreenCanvasVector().size(), 1);
+}
+
+/**
+ * @tc.name: GetOffscreenCanvasVector
+ * @tc.desc: Test offscreen canvas vector has two offscreen elements
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPaintFilterCanvasTest, GetOffscreenCanvasVectorTest_Two_Offscreen_Canvas, TestSize.Level1)
+{
+    Drawing::Canvas rawCanvas;
+    RSPaintFilterCanvas mainCanvas(&rawCanvas);
+    mainCanvas.StoreCanvas();
+
+    auto canvas1 = std::make_shared<Drawing::Canvas>();
+    auto surface1 = std::make_shared<Drawing::Surface>();
+    auto offscreenCanvas1 = std::make_shared<RSPaintFilterCanvas>(canvas1.get());
+    mainCanvas.ReplaceMainScreenData(surface1, offscreenCanvas1);
+
+    auto canvas2 = std::make_shared<Drawing::Canvas>();
+    auto surface2 = std::make_shared<Drawing::Surface>();
+    auto offscreenCanvas2 = std::make_shared<RSPaintFilterCanvas>(canvas2.get());
+    mainCanvas.ReplaceMainScreenData(surface2, offscreenCanvas2);
+
+    EXPECT_EQ(mainCanvas.GetOffscreenCanvasVector().size(), 2);
+}
 } // namespace Rosen
 } // namespace OHOS
