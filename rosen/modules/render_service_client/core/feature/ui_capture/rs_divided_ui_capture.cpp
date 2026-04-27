@@ -84,6 +84,10 @@ std::shared_ptr<Media::PixelMap> RSDividedUICapture::TakeLocalCapture()
         ROSEN_LOGE("RSDividedUICapture::TakeLocalCapture node is nullptr return");
         return nullptr;
     }
+    if (!node->IsOnTheTree()) {
+        ROSEN_LOGD("RSDividedUICapture::TakeLocalCapture IsNotOnTheTree, Do ApplyModifiers");
+        node->ApplyModifiers();
+    }
     // Validate specifiedAreaRect if it's valid
     if (!IsRectValid(nodeId_, specifiedAreaRect_)) {
         RS_LOGI("RSDividedUICapture::TakeLocalCapture specifiedAreaRect is invalid, fall back to full node");
@@ -91,10 +95,6 @@ std::shared_ptr<Media::PixelMap> RSDividedUICapture::TakeLocalCapture()
     }
     std::shared_ptr<RSDividedUICaptureVisitor> visitor =
         std::make_shared<RSDividedUICaptureVisitor>(nodeId_, scaleX_, scaleY_, specifiedAreaRect_);
-    if (!node->IsOnTheTree()) {
-        ROSEN_LOGD("RSDividedUICapture::TakeLocalCapture IsNotOnTheTree, Do ApplyModifiers");
-        node->ApplyModifiers();
-    }
     std::shared_ptr<Media::PixelMap> pixelmap = CreatePixelMapByNode(node);
     if (pixelmap == nullptr) {
         ROSEN_LOGE("RSDividedUICapture::TakeLocalCapture: pixelmap == nullptr!");
