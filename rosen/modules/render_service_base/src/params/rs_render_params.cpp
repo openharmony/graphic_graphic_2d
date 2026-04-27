@@ -528,7 +528,8 @@ void RSRenderParams::SetNodeColorSpace(GraphicColorGamut colorSpace)
 void RSRenderParams::ClearHDRVideoStatus()
 {
     HdrStatus newStatus = static_cast<HdrStatus>(
-        hdrStatus_ & ~(HdrStatus::HDR_VIDEO | HdrStatus::AI_HDR_VIDEO_GTM | HdrStatus::AI_HDR_VIDEO_GAINMAP));
+        hdrStatus_ & ~(HdrStatus::HDR_VIDEO | HdrStatus::AI_HDR_VIDEO_GTM
+            | HdrStatus::AI_HDR_VIDEO_GAINMAP | HdrStatus::AI_HDR_VIDEO_AI2020));
     if (newStatus == hdrStatus_) {
         return;
     }
