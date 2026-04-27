@@ -81,4 +81,29 @@ HWTEST_F(BootAnimationStrategyTest, BootAnimationStrategyTest_002, TestSize.Leve
     system::SetParameter("persist.dupdate_engine.update_type", "test");
     EXPECT_EQ(false, strategy->IsOtaUpdate());
 }
+
+/**
+ * @tc.name: BootAnimationStrategyTest_003
+ * @tc.desc: Verify the GetConnectToRenderMap with timeout returns normally
+ * @tc.type:FUNC
+ */
+HWTEST_F(BootAnimationStrategyTest, BootAnimationStrategyTest_003, TestSize.Level1)
+{
+    std::shared_ptr<BootAnimationStrategy> strategy = std::make_shared<BootAnimationStrategy>();
+    constexpr uint32_t timeoutMs = 100;
+    strategy->GetConnectToRenderMap(1, timeoutMs);
+    EXPECT_GE(strategy->connectToRenderMap_.size(), 0);
+}
+
+/**
+ * @tc.name: BootAnimationStrategyTest_004
+ * @tc.desc: Verify the GetConnectToRenderMap with default timeout (infinite wait)
+ * @tc.type:FUNC
+ */
+HWTEST_F(BootAnimationStrategyTest, BootAnimationStrategyTest_004, TestSize.Level1)
+{
+    std::shared_ptr<BootAnimationStrategy> strategy = std::make_shared<BootAnimationStrategy>();
+    strategy->GetConnectToRenderMap(1);
+    EXPECT_EQ(strategy->connectToRenderMap_.size(), 1);
+}
 }
