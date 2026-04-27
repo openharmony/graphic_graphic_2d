@@ -34,6 +34,57 @@ void RenderContextVKTest::SetUpTestCase() {}
 void RenderContextVKTest::TearDownTestCase() {}
 void RenderContextVKTest::SetUp() {}
 void RenderContextVKTest::TearDown() {}
+ 
+/**
+ * @tc.name: CleanAllShaderCache
+ * @tc.desc: Verify the CleanAllShaderCache of RenderContextVKTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RenderContextVKTest, CleanAllShaderCache, TestSize.Level1)
+{
+    if (!RSSystemProperties::IsUseVulkan()) {
+        GTEST_LOG_(INFO) << "opengl enable! skip vulkan test case";
+        return;
+    }
+    auto renderContext = std::make_shared<RenderContextVK>();
+    EXPECT_NE(renderContext, nullptr);
+    auto vkContext = RsVulkanContext::GetInstance();
+    if (vkContext == nullptr) {
+        GTEST_LOG_(INFO) << "vulkan context is null, skip test";
+        return;
+    }
+    vkContext->InitVulkanContextForHybridRender();
+    vkContext->vulkanInterfaceType_ = VulkanInterfaceType::BASIC_RENDER;
+    vkContext->vulkanInterfaceVec_[size_t(VulkanInterfaceType::BASIC_RENDER)].memHandle_ = nullptr;
+    auto result = renderContext->CleanAllShaderCache();
+    EXPECT_EQ(result, "");
+}
+}
+ 
+/**
+ * @tc.name: GetShaderCacheSize
+ * @tc.desc: Verify the GetShaderCacheSize of RenderContextVKTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RenderContextVKTest, GetShaderCacheSize, TestSize.Level1)
+{
+    if (!RSSystemProperties::IsUseVulkan()) {
+        GTEST_LOG_(INFO) << "opengl enable! skip vulkan test case";
+        return;
+    }
+    auto renderContext = std::make_shared<RenderContextVK>();
+    EXPECT_NE(renderContext, nullptr);
+    auto vkContext = RsVulkanContext::GetInstance();
+    if (vkContext == nullptr) {
+        GTEST_LOG_(INFO) << "vulkan context is null, skip test";
+        return;
+    }
+    vkContext->InitVulkanContextForHybridRender();
+    vkContext->vulkanInterfaceType_ = VulkanInterfaceType::BASIC_RENDER;
+    vkContext->vulkanInterfaceVec_[size_t(VulkanInterfaceType::BASIC_RENDER)].memHandle_ = nullptr;
+    auto result = renderContext->GetShaderCacheSize();
+    EXPECT_EQ(result, "");
+}
 
 /**
  * @tc.name: SetUpGpuContextTest001

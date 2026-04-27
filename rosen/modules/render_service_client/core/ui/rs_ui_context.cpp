@@ -24,15 +24,15 @@
 
 namespace OHOS {
 namespace Rosen {
-RSUIContext::RSUIContext(uint64_t token) : token_(token)
+RSUIContext::RSUIContext(uint64_t token, sptr<IRemoteObject>& connectToRenderRemote) : token_(token)
 {
-    RS_LOGI("RSUIContext ctor: Token:%{public}" PRIu64, token);
-    rsTransactionHandler_ = std::make_shared<RSTransactionHandler>(token);
+    connectToRenderRemote_ = connectToRenderRemote;
+    rsRenderInterface_ = std::shared_ptr<RSRenderInterface>(new RSRenderInterface(connectToRenderRemote));
+    rsTransactionHandler_ =
+        std::make_shared<RSTransactionHandler>(token, rsRenderInterface_->GetRSRenderPipelineClient());
     rsSyncTransactionHandler_ = std::shared_ptr<RSSyncTransactionHandler>(new RSSyncTransactionHandler());
     rsSyncTransactionHandler_->SetTransactionHandler(rsTransactionHandler_);
 }
-
-RSUIContext::RSUIContext() : RSUIContext(0) {}
 
 RSUIContext::~RSUIContext()
 {

@@ -111,8 +111,8 @@ int main()
         return 0;
     }
 
-    auto rsUiDirector = RSUIDirector::Create();
-    rsUiDirector->Init();
+    auto rsUiDirector = RSUIDirector::Create(nullptr, nullptr);
+    
     RSTransaction::FlushImplicitTransaction();
     sleep(1);
 

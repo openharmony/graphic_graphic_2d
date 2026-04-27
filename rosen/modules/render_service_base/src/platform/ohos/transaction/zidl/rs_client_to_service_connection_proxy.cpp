@@ -868,6 +868,35 @@ int32_t RSClientToServiceConnectionProxy::SetScreenChangeCallback(sptr<RSIScreen
     return ERR_OK;
 }
 
+sptr<IRemoteObject> RSClientToServiceConnectionProxy::GetConnectToRenderToken(ScreenId screenId)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+ 
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::GetConnectToRenderToken GetDescriptor err.");
+        return nullptr;
+    }
+ 
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteUint64(screenId)) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy: WriteRemoteObject callback->AsObject() err.");
+        return nullptr;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_CONNECT_TO_RENDER);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::GetConnectToRenderToken: Send Request err.");
+        return nullptr;
+    }
+    sptr<IRemoteObject> rObj = reply.ReadRemoteObject();
+    if (rObj == nullptr) {
+        return nullptr;
+    }
+    return nullptr;
+}
+
 int32_t RSClientToServiceConnectionProxy::SetScreenSwitchingNotifyCallback(
     sptr<RSIScreenSwitchingNotifyCallback> callback)
 {
@@ -909,6 +938,42 @@ int32_t RSClientToServiceConnectionProxy::SetScreenSwitchingNotifyCallback(
         return READ_PARCEL_ERR;
     }
     return result;
+}
+
+int32_t RSClientToServiceConnectionProxy::SetActiveScreenIdChangedCallback(
+    sptr<RSIActiveScreenIdChangedCallback> callback)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("SetActiveScreenIdChangedCallback: WriteInterfaceToken GetDescriptor err.");
+        return WRITE_PARCEL_ERR;
+    }
+
+    option.SetFlags(MessageOption::TF_ASYNC);
+
+    if (callback) {
+        if (!data.WriteBool(true) || !data.WriteRemoteObject(callback->AsObject())) {
+            ROSEN_LOGE("SetActiveScreenIdChangedCallback: WriteBool[T] OR WriteRemoteObject[CB] err");
+            return WRITE_PARCEL_ERR;
+        }
+    } else {
+        if (!data.WriteBool(false)) {
+            ROSEN_LOGE("SetActiveScreenIdChangedCallback: WriteBool [false] err.");
+            return WRITE_PARCEL_ERR;
+        }
+    }
+
+    uint32_t code = static_cast<uint32_t>(
+        RSIClientToServiceConnectionInterfaceCode::SET_ACTIVE_SCREEN_ID_CHANGED_CALLBACK);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetActiveScreenIdChangedCallback: Send Request err.");
+        return RS_CONNECTION_ERROR;
+    }
+    return SUCCESS;
 }
 
 int32_t RSClientToServiceConnectionProxy::SetBrightnessInfoChangeCallback(
@@ -4443,10 +4508,16 @@ HwcDisabledReasonInfos RSClientToServiceConnectionProxy::GetHwcDisabledReasonInf
     HwcDisabledReasonInfo hwcDisabledReasonInfo;
     while (size--) {
         for (int32_t pos = 0; pos < HwcDisabledReasons::DISABLED_REASON_LENGTH; pos++) {
-            hwcDisabledReasonInfo.disabledReasonStatistics[pos] = reply.ReadInt32();
+            if (!reply.ReadInt32(hwcDisabledReasonInfo.disabledReasonStatistics[pos])) {
+                ROSEN_LOGE("RSClientToServiceConnectionProxy::GetHwcDisabledReasonInfo statistics failed");
+                return hwcDisabledReasonInfos;
+            }
         }
-        hwcDisabledReasonInfo.pidOfBelongsApp = reply.ReadInt32();
-        hwcDisabledReasonInfo.nodeName = reply.ReadString();
+        if (!reply.ReadInt32(hwcDisabledReasonInfo.pidOfBelongsApp) ||
+            !reply.ReadString(hwcDisabledReasonInfo.nodeName)) {
+            ROSEN_LOGE("RSClientToServiceConnectionProxy::GetHwcDisabledReasonInfo pid or nodeName failed");
+            return hwcDisabledReasonInfos;
+        }
         hwcDisabledReasonInfos.emplace_back(hwcDisabledReasonInfo);
     }
     return hwcDisabledReasonInfos;
@@ -4468,7 +4539,10 @@ ErrCode RSClientToServiceConnectionProxy::GetHdrOnDuration(int64_t& hdrOnDuratio
     if (err != NO_ERROR) {
         return ERR_INVALID_VALUE;
     }
-    hdrOnDuration = reply.ReadInt64();
+    if (!reply.ReadInt64(hdrOnDuration)) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::GetHdrOnDuration Read hdrOnDuration failed");
+        return ERR_INVALID_VALUE;
+    }
     return ERR_OK;
 }
 
@@ -4715,27 +4789,6 @@ void RSClientToServiceConnectionProxy::SetColorFollow(const std::string &nodeIdS
             ROSEN_LOGE("RSClientToServiceConnectionProxy::SetColorFollow: Send Request err.");
             return;
         }
-    }
-}
-
-void RSClientToServiceConnectionProxy::SetFreeMultiWindowStatus(bool enable)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
-        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetFreeMultiWindowStatus: write token err.");
-        return;
-    }
-    option.SetFlags(MessageOption::TF_ASYNC);
-    if (!data.WriteBool(enable)) {
-        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetFreeMultiWindowStatus: write bool val err.");
-        return;
-    }
-    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS);
-    int32_t err = SendRequest(code, data, reply, option);
-    if (err != NO_ERROR) {
-        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetFreeMultiWindowStatus: Send Request err.");
     }
 }
 

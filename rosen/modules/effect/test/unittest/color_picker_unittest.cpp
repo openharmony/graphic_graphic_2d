@@ -21,6 +21,7 @@
 #include "effect_errors.h"
 #include "hilog/log.h"
 #include "test_picture_files.h"
+#include <vector>
 
 using namespace testing;
 using namespace testing::ext;
@@ -33,6 +34,32 @@ static constexpr OHOS::HiviewDFX::HiLogLabel LABEL_TEST = {
 
 namespace OHOS {
 namespace Rosen {
+
+namespace {
+constexpr int32_t REGION_TEST_WIDTH = 4;
+constexpr int32_t REGION_TEST_HEIGHT = 4;
+constexpr int32_t REGION_TEST_HALF_HEIGHT = 2;
+constexpr uint32_t REGION_TEST_COLOR_RED = 0xFFFF0000;
+constexpr uint32_t REGION_TEST_COLOR_BLUE = 0xFF0000FF;
+
+std::shared_ptr<PixelMap> CreateTwoColorPixelMap()
+{
+    Media::InitializationOptions opts;
+    opts.size.width = REGION_TEST_WIDTH;
+    opts.size.height = REGION_TEST_HEIGHT;
+    opts.pixelFormat = PixelFormat::ARGB_8888;
+    opts.alphaType = AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+    opts.editable = true;
+
+    std::vector<uint32_t> colors(REGION_TEST_WIDTH * REGION_TEST_HEIGHT, REGION_TEST_COLOR_BLUE);
+    for (int32_t y = 0; y < REGION_TEST_HALF_HEIGHT; y++) {
+        for (int32_t x = 0; x < REGION_TEST_WIDTH; x++) {
+            colors[static_cast<size_t>(y * REGION_TEST_WIDTH + x)] = REGION_TEST_COLOR_RED;
+        }
+    }
+    return std::shared_ptr<PixelMap>(PixelMap::Create(colors.data(), colors.size(), opts).release());
+}
+}
 
 std::shared_ptr<ColorPicker> ColorPickerUnittest::CreateColorPicker()
 {
@@ -356,6 +383,64 @@ HWTEST_F(ColorPickerUnittest, GetMainColorTest003, TestSize.Level1)
     ASSERT_EQ(errorCode, SUCCESS);
     bool ret = color.ColorEqual(ColorManager::Color(0x00000000U));
     EXPECT_EQ(true, ret);
+}
+
+/**
+ * @tc.name: GetMainColorWithRegionTest001
+ * @tc.desc: Ensure GetMainColor honors the selected region.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ColorPickerUnittest, GetMainColorWithRegionTest001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ColorPickerUnittest GetMainColorWithRegionTest001 start";
+
+    uint32_t errorCode = SUCCESS;
+    double topRegion[4] = {0.0, 0.0, 1.0, 0.5};
+    std::shared_ptr<ColorPicker> topPicker =
+        ColorPicker::CreateColorPicker(CreateTwoColorPixelMap(), topRegion, errorCode);
+    ASSERT_EQ(errorCode, SUCCESS);
+    ASSERT_NE(topPicker, nullptr);
+
+    ColorManager::Color topColor;
+    errorCode = topPicker->GetMainColor(topColor);
+    ASSERT_EQ(errorCode, SUCCESS);
+    EXPECT_TRUE(topColor.ColorEqual(ColorManager::Color(1.0f, 0.0f, 0.0f, 1.0f)));
+
+    double bottomRegion[4] = {0.0, 0.5, 1.0, 1.0};
+    std::shared_ptr<ColorPicker> bottomPicker =
+        ColorPicker::CreateColorPicker(CreateTwoColorPixelMap(), bottomRegion, errorCode);
+    ASSERT_EQ(errorCode, SUCCESS);
+    ASSERT_NE(bottomPicker, nullptr);
+
+    ColorManager::Color bottomColor;
+    errorCode = bottomPicker->GetMainColor(bottomColor);
+    ASSERT_EQ(errorCode, SUCCESS);
+    EXPECT_TRUE(bottomColor.ColorEqual(ColorManager::Color(0.0f, 0.0f, 1.0f, 1.0f)));
+}
+
+/**
+ * @tc.name: GetMainColorWithRegionTest002
+ * @tc.desc: Ensure collapsed regions do not fall back to the full image.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ColorPickerUnittest, GetMainColorWithRegionTest002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ColorPickerUnittest GetMainColorWithRegionTest002 start";
+
+    uint32_t errorCode = SUCCESS;
+    double collapsedRegion[4] = {0.0, 0.0, 0.005, 1.0};
+    std::shared_ptr<ColorPicker> picker =
+        ColorPicker::CreateColorPicker(CreateTwoColorPixelMap(), collapsedRegion, errorCode);
+    ASSERT_EQ(errorCode, SUCCESS);
+    ASSERT_NE(picker, nullptr);
+
+    ColorManager::Color color;
+    errorCode = picker->GetMainColor(color);
+    EXPECT_EQ(errorCode, ERR_EFFECT_INVALID_VALUE);
 }
 
 /**

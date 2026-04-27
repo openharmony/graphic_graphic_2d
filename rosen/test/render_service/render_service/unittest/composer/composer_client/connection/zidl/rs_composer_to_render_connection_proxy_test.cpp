@@ -215,7 +215,7 @@ HWTEST_F(RSComposerToRenderConnectionProxyTest, Proxy_ReleaseLayerBuffers_Surfac
     info.releaseBufferFenceVec.push_back(std::tuple(static_cast<RSLayerId>(1u), sb, fence));
 
     int32_t r = proxy.ReleaseLayerBuffers(info);
-    EXPECT_EQ(r, -1);
+    EXPECT_EQ(r, COMPOSITOR_ERROR_OK);
 }
 
 /**
@@ -239,7 +239,7 @@ HWTEST_F(RSComposerToRenderConnectionProxyTest, Proxy_ReleaseLayerBuffers_FenceW
     info.releaseBufferFenceVec.push_back(std::tuple(static_cast<RSLayerId>(2u), sb, invalidFence));
 
     int32_t r = proxy.ReleaseLayerBuffers(info);
-    EXPECT_EQ(r, -1);
+    EXPECT_EQ(r, COMPOSITOR_ERROR_OK);
 }
 /**
  * Function: Proxy_ReleaseLayerBuffers_BufferNullPath

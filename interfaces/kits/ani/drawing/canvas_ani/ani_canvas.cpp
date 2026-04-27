@@ -773,7 +773,7 @@ void AniCanvas::DrawImageNine(ani_env* env, ani_object obj, ani_object pixelmapO
             "AniCanvas::DrawImageNine filterMode is out of range.");
         return;
     }
-    
+
     Canvas* canvas = aniCanvas->GetCanvas();
     if (canvas->GetDrawingType() == Drawing::DrawingType::RECORDING) {
         ExtendRecordingCanvas* canvas_ = reinterpret_cast<ExtendRecordingCanvas*>(canvas);
@@ -943,7 +943,7 @@ void AniCanvas::GetColorsAndDraw(ani_env* env, ani_object colorsObj, int32_t col
         }
     }
     auto canvas = aniCanvas->GetCanvas();
-    
+
     if (colorsSize == 0) {
         DrawingPixelMapMesh(args.pixelMap, args.column, args.row, verticesMesh, nullptr, canvas);
         aniCanvas->NotifyDirty();
@@ -1992,7 +1992,7 @@ ani_object AniCanvas::GetLocalClipBounds(ani_env* env, ani_object obj)
             "AniCanvas::GetLocalClipBounds canvas is nullptr.");
         return aniObj;
     }
-    
+
     Drawing::Rect rect = aniCanvas->GetCanvas()->GetLocalClipBounds();
     CreateRectObj(env, rect, aniObj);
     return aniObj;
@@ -2424,6 +2424,18 @@ ani_boolean AniCanvas::QuickRejectRect(ani_env* env, ani_object obj, ani_object 
     }
     Drawing::Canvas* canvas = aniCanvas->GetCanvas();
     bool result = canvas->QuickReject(drawingRect);
+    return static_cast<ani_boolean>(result);
+}
+
+ani_boolean AniCanvas::IsOpaque(ani_env* env, ani_object obj)
+{
+    auto aniCanvas = GetNativeFromObj<AniCanvas>(env, obj, AniGlobalField::GetInstance().canvasNativeObj);
+    if (aniCanvas == nullptr || aniCanvas->GetCanvas() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniCanvas::IsOpaque canvas is nullptr.");
+        return ANI_FALSE;
+    }
+    Drawing::Canvas* canvas = aniCanvas->GetCanvas();
+    bool result = canvas->IsOpaque();
     return static_cast<ani_boolean>(result);
 }
 

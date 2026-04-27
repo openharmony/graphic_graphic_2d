@@ -491,6 +491,7 @@ public:
     bool DisableHWCForFilter() const;
     bool NeedClipHoleForRenderGroup() const;
     bool NeedFilter() const;
+    bool NeedDisabledPartialRender() const;
     bool NeedHwcFilter() const;
     bool NeedSkipSubtreeParallel() const;
     void SetGreyCoef(const std::optional<Vector2f>& greyCoef);
@@ -640,6 +641,8 @@ public:
     {
         return clipToFrame_;
     }
+    void SetDoubleSidedEnabled(bool isDoubleSided);
+    bool GetDoubleSidedEnabled() const;
     void SetVisible(bool visible);
     bool GetVisible() const
     {
@@ -838,6 +841,7 @@ public:
     }
 
     bool HasHarmonium() const;
+    bool HasSpatialGlassEffect() const;
 
     void SetUseEffect(bool useEffect);
     bool GetUseEffect() const;
@@ -1080,6 +1084,7 @@ private:
     bool hasBounds_ = false;
     bool clipToBounds_ = false;
     bool clipToFrame_ = false;
+    bool isDoubleSided_ = true;
     // partial update
     bool colorFilterNeedUpdate_ = false;
     bool pixelStretchNeedUpdate_ = false;
@@ -1089,9 +1094,11 @@ private:
     bool isDrawn_ = false;
     bool foregroundEffectDirty_ = false;
     bool needFilter_ = false;
+    bool needDisabledPartialRender_ = false;
     bool needHwcFilter_ = false;
     bool needForceSubmit_ = false;
     bool hasHarmonium_ = false;
+    bool hasSpatialGlassEffect_ = false;
     bool useUnion_ = false;
     float gravityPullStrength_ = 0.0f;
     float gravityHotZone_ = 0.0f;

@@ -138,6 +138,11 @@ private:
     double CalcContrastRatioWithWhite() const;
     double CalcRelaticeLuminance(uint32_t color) const;
     double CalcComplexity() const;
+    static Media::Rect BuildRegionRect(const std::shared_ptr<Media::PixelMap>& pixmap, const double* coordinates);
+
+    bool regionSpecified_ = false;
+    bool hasRegion_ = false;
+    Media::Rect regionRect_ {};
 };
 } // namespace Rosen
 } // namespace OHOS

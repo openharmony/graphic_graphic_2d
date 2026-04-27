@@ -106,6 +106,8 @@ public:
      */
     void SetSkShader(const sk_sp<SkShader>& skShader);
 
+    std::vector<Color4f> ConvertUIColorToColor4f(const std::vector<UIColor>& colors);
+
 #ifdef RS_ENABLE_GPU
     void SetGPUContext(std::shared_ptr<GPUContext> gpuContext) override;
 #endif

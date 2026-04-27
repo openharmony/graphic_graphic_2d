@@ -71,6 +71,19 @@ public:
         }
         return hiSysEventWriteRet;
     }
+
+    template<typename... Types>
+    static int UserEventWrite(uint64_t screenId, const std::string& eventName, RSEventType type, Types&&... types)
+    {
+        int hiSysEventWriteRet = HiSysEventWrite(HiDomain::GRAPHIC, eventName, rsEventTypeToEventTypeMap_[type],
+            "SCREEN_ID", screenId, std::forward<Types>(types)...);
+        if (hiSysEventWriteRet != 0) {
+            RS_LOGW("Write RSHiSysEvent failed, eventName: %{public}s, ret: %{public}d", eventName.c_str(),
+                hiSysEventWriteRet);
+        }
+        return hiSysEventWriteRet;
+    }
+
 private:
     using HiDomain = OHOS::HiviewDFX::HiSysEvent::Domain;
     using HiEventType = OHOS::HiviewDFX::HiSysEvent::EventType;

@@ -181,8 +181,8 @@ std::shared_ptr<Drawing::Image> TestBase::MakeImage(int w, int h, MakeImageFunc 
     std::cout << "rs demo create new window success: " << rect.width_ << " " << rect.height_ << std::endl;
     auto surfaceNode = window->GetSurfaceNode();
 
-    auto rsUiDirector = RSUIDirector::Create();
-    rsUiDirector->Init();
+    auto rsUiDirector = RSUIDirector::Create(nullptr, nullptr);
+    
     RSTransaction::FlushImplicitTransaction();
 
     rsUiDirector->SetRSSurfaceNode(surfaceNode);

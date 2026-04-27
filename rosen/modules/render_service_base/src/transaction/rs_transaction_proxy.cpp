@@ -93,7 +93,7 @@ void RSTransactionProxy::AddCommand(std::unique_ptr<RSCommand>& command, bool is
     RS_LOGI_IF(DEBUG_NODE,
         "RSTransactionProxy::add command nodeId:%{public}" PRIu64 " isRenderServiceCommand:%{public}d"
         " followType:%{public}hu", nodeId, isRenderServiceCommand, followType);
-    if (renderPipelineClient_ != nullptr && (isRenderServiceCommand || renderThreadClient_ == nullptr)) {
+    if (renderPipelineClient_ != nullptr && (isRenderServiceCommand || renderPipelineClient_ == nullptr)) {
         #ifdef ROSEN_OHOS
         if (isRenderServiceCommand && command->GetSubType() == RSCommandType::ANIMATION &&
             ExtractPid(nodeId) != getpid() && RSSystemProperties::GetDmaReclaimParam()) {
@@ -186,11 +186,7 @@ void RSTransactionProxy::FlushImplicitTransaction(uint64_t timestamp, const std:
     transactionData->tid_ = tid;
     transactionData->dvsyncTimeUpdate_ = dvsyncTimeUpdate;
     transactionData->dvsyncTime_ = dvsyncTime;
-    if (RSSystemProperties::GetHybridRenderEnabled() && commitTransactionCallback_ != nullptr) {
-        commitTransactionCallback_(renderPipelineClient_,
-            std::move(transactionData), transactionDataIndex_, nullptr);
-        return;
-    }
+    
     renderPipelineClient_->CommitTransaction(transactionData);
     transactionDataIndex_ = transactionData->GetIndex();
 }

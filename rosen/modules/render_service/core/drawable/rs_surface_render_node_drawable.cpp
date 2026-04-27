@@ -152,7 +152,8 @@ bool RSSurfaceRenderNodeDrawable::CheckDrawAndCacheWindowContent(RSSurfaceRender
     }
     if (!surfaceParams.GetNeedCacheSurface()) {
         // relatedSourceNode need create cache
-        if (surfaceParams.IsRelatedSourceNode()) {
+        if (surfaceParams.IsRelatedSourceNode() &&
+            !surfaceParams.GetSpecialLayerMgr().Find(SpecialLayerType::HAS_PROTECTED)) {
             SetNeedCacheRelatedSourceNode(true);
             return true;
         }
@@ -704,6 +705,21 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw params is nullptr");
         return;
     }
+
+    bool isDoubleSided = surfaceParams->GetDoubleSidedEnabled();
+    if (!isDoubleSided) {
+        Drawing::Matrix baseMatrix = surfaceParams->HasSandBox()
+            ? RSRenderParams::GetParentSurfaceMatrix()
+            : rscanvas->GetTotalMatrix();
+        baseMatrix.PreConcat(surfaceParams->GetMatrix());
+        if (IsBackFace(baseMatrix)) {
+            SetDrawSkipType(DrawSkipType::BACKFACE_SKIP);
+            RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw[%s] backface skip, id:%" PRIu64,
+                name_.c_str(), surfaceParams->GetId());
+            return;
+        }
+    }
+
     if (surfaceParams->IsUnobscuredUIExtension() && !UIExtensionNeedToDraw()) {
         RS_LOGE("Current Unobsucred UEC[%{public}s,%{public}" PRIu64 "] needn't to draw",
             name_.c_str(), surfaceParams->GetId());
@@ -840,7 +856,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
-    if (DrawRelatedSourceNode(*rscanvas, *surfaceParams)) {
+    if (DrawRelatedSourceNode(*rscanvas, *uniParam, *surfaceParams)) {
         return;
     }
 
@@ -1324,8 +1340,32 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
         RSUniRenderThread::GetCaptureParam().isSingleSurface_ &&
         !RSUniRenderThread::GetCaptureParam().isSystemCalling_;
     bool enableVisibleRect = RSUniRenderThread::Instance().GetEnableVisibleRect();
-    if (!(specialLayerManager.Find(HAS_GENERAL_SPECIAL) || surfaceParams.GetHDRPresent() || hasHidePrivacyContent ||
-        enableVisibleRect || !IsVisibleRegionEqualOnPhysicalAndVirtual(surfaceParams))) {
+    bool hasUifirstCachedTexture = subThreadCache_.HasCachedTexture();
+    uint64_t uifirstVsyncId = subThreadCache_.GetCompletedCacheSurfaceVsyncId();
+
+    bool isUIFirstCacheAllowed = !(specialLayerManager.Find(HAS_GENERAL_SPECIAL) || surfaceParams.GetHDRPresent() ||
+        hasHidePrivacyContent || enableVisibleRect || !IsVisibleRegionEqualOnPhysicalAndVirtual(surfaceParams));
+
+    RS_TRACE_NAME_FMT(
+        "isUIFirstCacheAllowed: [%d], "
+        "hasGeneralSpecial: [%d], "
+        "getHdrPresent: [%d], "
+        "hasHidePrivacyContent: [%d], "
+        "enableVisibleRect: [%d], "
+        "IsVisibleRegionEqualOnPhysicalAndVirtual: [%d], "
+        "hasUifirstCachedTexture: [%d], "
+        "uifirstVsyncId: [%" PRIu64 "]. ",
+        isUIFirstCacheAllowed,
+        specialLayerManager.Find(HAS_GENERAL_SPECIAL),
+        surfaceParams.GetHDRPresent(),
+        hasHidePrivacyContent,
+        enableVisibleRect,
+        IsVisibleRegionEqualOnPhysicalAndVirtual(surfaceParams),
+        hasUifirstCachedTexture,
+        uifirstVsyncId
+    );
+
+    if (isUIFirstCacheAllowed) {
         // not use uifirst when dirty in window capture process
         bool surfaceCapNotUsingUIFirst = RSUniRenderThread::GetCaptureParam().hasDirtyContent_;
         if (surfaceCapNotUsingUIFirst) {
@@ -1343,7 +1383,7 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
         }
     }
     
-    if (DrawRelatedSourceNode(canvas, surfaceParams)) {
+    if (DrawRelatedSourceNode(canvas, *uniParams, surfaceParams)) {
         return;
     }
 
@@ -1527,6 +1567,7 @@ bool RSSurfaceRenderNodeDrawable::DrawRelatedNode(RSPaintFilterCanvas& canvas,
     bool originIsOpDropped = uniParam.IsOpDropped();
     // swap some params in cloneNodeSurfaceParams like cloneNodeParams
     uniParam.SetOpDropped(false);
+    uniParam.SetDrawRelated(true);
     clonedNodeSurfaceParams->SwapRelatedRenderParams(surfaceParams);
     // draw
     RSAutoCanvasRestore acr(&canvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
@@ -1534,13 +1575,20 @@ bool RSSurfaceRenderNodeDrawable::DrawRelatedNode(RSPaintFilterCanvas& canvas,
     isCapture ? clonedNodeRenderDrawable->OnCapture(canvas) : clonedNodeRenderDrawable->OnDraw(canvas);
     // restore cloneNodeSurfaceParams origin params
     uniParam.SetOpDropped(originIsOpDropped);
+    uniParam.SetDrawRelated(false);
     clonedNodeSurfaceParams->SwapRelatedRenderParams(surfaceParams);
     return true;
 }
 
 bool RSSurfaceRenderNodeDrawable::DrawRelatedSourceNode(RSPaintFilterCanvas& canvas,
-    RSSurfaceRenderParams& surfaceParams)
+    RSRenderThreadParams& uniParam, RSSurfaceRenderParams& surfaceParams)
 {
+    if (uniParam.IsDrawRelated() &&
+        surfaceParams.GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
+        DrawRectWithColor(canvas, surfaceParams, Drawing::Color::COLOR_BLACK);
+        return true;
+    }
+
     if (surfaceParams.IsNeedClearRelatedCache()) {
         ClearRelatedSourceCache();
         surfaceParams.SetNeedClearRelatedCache(false);

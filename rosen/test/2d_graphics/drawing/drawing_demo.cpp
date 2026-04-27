@@ -74,12 +74,11 @@ int DrawingDemo::Test(TestDisplayCanvas* canvas)
 
 int DrawingDemo::InitWindow()
 {
-    rsUiDirector_ = RSUIDirector::Create();
+    rsUiDirector_ = RSUIDirector::Create(nullptr, nullptr);
     if (rsUiDirector_ == nullptr) {
         TestCommon::Log("Failed to create rsUiDirector_");
         return RET_FAILED;
     }
-    rsUiDirector_->Init();
     RSTransaction::FlushImplicitTransaction();
     sleep(1);
     auto surfaceNode = window_->GetSurfaceNode();

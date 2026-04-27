@@ -2301,6 +2301,21 @@ void RSProperties::SetClipToFrame(bool clipToFrame)
     }
 }
 
+void RSProperties::SetDoubleSidedEnabled(bool isDoubleSided)
+{
+    if (isDoubleSided_ != isDoubleSided) {
+        isDoubleSided_ = isDoubleSided;
+        SetDirty();
+        contentDirty_ = true;
+        subTreeAllDirty_ = true;
+    }
+}
+
+bool RSProperties::GetDoubleSidedEnabled() const
+{
+    return isDoubleSided_;
+}
+
 RectF RSProperties::GetLocalBoundsAndFramesRect() const
 {
     auto rect = GetBoundsRect();
@@ -2375,6 +2390,11 @@ RRect RSProperties::GetInnerRRect() const
 bool RSProperties::NeedFilter() const
 {
     return needFilter_;
+}
+
+bool RSProperties::NeedDisabledPartialRender() const
+{
+    return needDisabledPartialRender_;
 }
 
 bool RSProperties::NeedHwcFilter() const
@@ -4068,6 +4088,11 @@ bool RSProperties::HasHarmonium() const
     return hasHarmonium_;
 }
 
+bool RSProperties::HasSpatialGlassEffect() const
+{
+    return hasSpatialGlassEffect_;
+}
+
 void RSProperties::SetNeedDrawBehindWindow(bool needDrawBehindWindow)
 {
     GetEffect().needDrawBehindWindow_ = needDrawBehindWindow;
@@ -5409,7 +5434,13 @@ void RSProperties::UpdateFilter()
                   GetForegroundFilter() != nullptr || IsFgBrightnessValid() || IsBgBrightnessValid() ||
                   GetForegroundFilterCache() != nullptr || IsWaterRippleValid() || GetNeedDrawBehindWindow() ||
                   GetMask() || GetColorFilter() != nullptr || localMagnificationCap_ || GetPixelStretch().has_value() ||
-                  GetMaterialFilter() != nullptr;
+                  GetMaterialFilter() != nullptr || HasSpatialGlassEffect();
+
+    // enable frostedGlassEffect and harmonium by magnifying the child nodes are within the EC range
+    // If new effects are added, it is necessary to assess whether they can partial render.
+    needDisabledPartialRender_ = GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
+                                 localMagnificationCap_ || GetForegroundFilter() != nullptr ||
+                                 GetForegroundFilterCache() != nullptr;
 
     needHwcFilter_ = GetBackgroundFilter() != nullptr || GetFilter() != nullptr || IsLightUpEffectValid() ||
                      IsDynamicLightUpValid() || GetLinearGradientBlurPara() != nullptr ||
@@ -5438,7 +5469,8 @@ bool RSProperties::DisableHWCForFilter() const
         (GetForegroundFilterCache() != nullptr &&
         GetForegroundFilterCache()->GetFilterType() != RSFilter::HDR_UI_BRIGHTNESS) ||
         IsWaterRippleValid() || GetNeedDrawBehindWindow() || GetMask() || GetColorFilter() != nullptr ||
-        localMagnificationCap_ || GetPixelStretch().has_value() || HasHarmonium() || GetMaterialFilter() != nullptr;
+        localMagnificationCap_ || GetPixelStretch().has_value() || HasHarmonium() || HasSpatialGlassEffect() ||
+        GetMaterialFilter() != nullptr;
 }
 
 bool RSProperties::NeedClipHoleForRenderGroup() const
@@ -5660,6 +5692,12 @@ void RSProperties::SetBackgroundNGShader(const std::shared_ptr<RSNGRenderShaderB
         hasHarmonium_ = true;
     }
     if (renderShader != nullptr && renderShader->ContainsType(RSNGEffectType::FROSTED_GLASS_EFFECT)) {
+        filterNeedUpdate_ = true;
+    }
+    if (renderShader != nullptr) {
+        hasSpatialGlassEffect_ = renderShader->ContainsType(RSNGEffectType::SPATIAL_GLASS_EFFECT);
+    }
+    if (hasSpatialGlassEffect_) {
         filterNeedUpdate_ = true;
     }
 }

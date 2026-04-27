@@ -39,7 +39,8 @@ public:
 
     virtual ~BootAnimationOperation();
 
-    void Init(const BootAnimationConfig& config, int32_t width, int32_t height, int32_t duration);
+    void Init(const BootAnimationConfig& config, int32_t width, int32_t height, int32_t duration,
+        sptr<IRemoteObject> connectToRender);
 
     void SetSoundEnable(bool isEnabled);
 
@@ -75,6 +76,7 @@ private:
     std::shared_ptr<OHOS::AppExecFwk::EventRunner> runner_;
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> mainHandler_;
     std::shared_ptr<OHOS::Rosen::RSUIDirector> rsUIDirector_;
+    sptr<IRemoteObject> connectToRender_;
 
     std::shared_ptr<BootPlayer> picPlayer_;
     std::shared_ptr<BootPlayer> soundPlayer_;

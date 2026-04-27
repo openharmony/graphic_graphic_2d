@@ -60,7 +60,6 @@ sptr<RSClientToRenderConnectionStub> toRenderConnectionStub_ = nullptr;
 sptr<OHOS::Rosen::RSRenderService> renderService_ = nullptr;
 
 namespace {
-const uint8_t DO_GET_HIGH_CONTRAST_TEXT_STATE = 0;
 const uint8_t DO_COMMIT_TRANSACTION = 1;
 const uint8_t DO_CREATE_NODE = 2;
 const uint8_t DO_CREATE_NODE_AND_SURFACE = 3;
@@ -103,16 +102,6 @@ bool Init(const uint8_t* data, size_t size)
     return true;
 }
 } // namespace
-
-void DoGetHighContrastTextState()
-{
-    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_HIGH_CONTRAST_TEXT_STATE);
-    MessageOption option;
-    MessageParcel dataParcel;
-    MessageParcel replyParcel;
-    dataParcel.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
-    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
-}
 
 void DoCommitTransaction()
 {
@@ -290,7 +279,9 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
     OHOS::Rosen::renderService_->vsyncManager_->init(OHOS::Rosen::renderService_->screenManager_);
 
     OHOS::Rosen::renderService_->renderProcessManager_ =
-        OHOS::Rosen::RSRenderProcessManager::Create(*OHOS::Rosen::renderService_);
+        OHOS::Rosen::RSRenderProcessManager::Create(*OHOS::Rosen::renderService_, [](uint64_t timestamp,
+            uint64_t vsyncId, const OHOS::sptr<OHOS::Rosen::HgmProcessToServiceInfo>& processToServiceInfo,
+            const OHOS::sptr<OHOS::Rosen::HgmServiceToProcessInfo>& serviceToProcessInfo) {});
 
     auto renderServiceAgent_ = OHOS::sptr<OHOS::Rosen::RSRenderServiceAgent>::MakeSptr(*OHOS::Rosen::renderService_);
     OHOS::sptr<OHOS::Rosen::RSRenderProcessManagerAgent> renderProcessManagerAgent_ =
@@ -335,9 +326,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     /* Run your code on data */
     uint8_t tarPos = OHOS::Rosen::GetData<uint8_t>() % OHOS::Rosen::TARGET_SIZE;
     switch (tarPos) {
-        case OHOS::Rosen::DO_GET_HIGH_CONTRAST_TEXT_STATE:
-            OHOS::Rosen::DoGetHighContrastTextState();
-            break;
         case OHOS::Rosen::DO_COMMIT_TRANSACTION:
             OHOS::Rosen::DoCommitTransaction();
             break;

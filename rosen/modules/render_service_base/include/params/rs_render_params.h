@@ -396,6 +396,13 @@ public:
         return startingWindowFlag_;
     }
 
+    void SetDoubleSidedEnabled(bool isDoubleSided);
+
+    bool GetDoubleSidedEnabled() const
+    {
+        return isDoubleSided_;
+    }
+
     bool IsRepaintBoundary() const;
     void MarkRepaintBoundary(bool isRepaintBoundary);
 
@@ -574,6 +581,7 @@ protected:
     std::bitset<RSRenderParamsDirtyType::MAX_DIRTY_TYPE> dirtyType_;
 
 private:
+    void ApplySandboxMatrixToCanvas(RSPaintFilterCanvas& canvas) const;
     NodeId id_;
     RSRenderParamsType paramsType_ = RSRenderParamsType::RS_PARAM_DEFAULT;
     RSRenderNodeType renderNodeType_ = RSRenderNodeType::RS_NODE;
@@ -614,6 +622,7 @@ private:
     bool isLayerPartRenderEnable_ = false;
     RectI layerPartRenderCurrentFrameDirtyRegion_;
     bool startingWindowFlag_ = false;
+    bool isDoubleSided_ = true;
     bool needFilter_ = false;
     bool effectNodeShouldPaint_ = false;
     bool hasGlobalCorner_ = false;

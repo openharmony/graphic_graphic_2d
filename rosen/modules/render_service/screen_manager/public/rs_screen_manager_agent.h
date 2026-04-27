@@ -20,6 +20,7 @@
 #include "ipc_callbacks/screen_change_callback.h"
 #include "ipc_callbacks/screen_supported_hdr_formats_callback.h"
 #include "ipc_callbacks/rs_iexposed_event_callback.h"
+#include "ipc_callbacks/active_screen_id_changed_callback.h"
 #include "screen_manager/rs_screen_manager.h"
 
 namespace OHOS {
@@ -33,16 +34,19 @@ public:
     void OnScreenDisconnected(ScreenId id, ScreenChangeReason reason) override;
     void OnScreenSwitchingNotify(bool status) override;
     void OnHwcEvent(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData) override;
-
+    void OnActiveScreenIdChanged(ScreenId activeScreenId) override;
     void SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback);
     void SetScreenSwitchingNotifyCallback(sptr<RSIScreenSwitchingNotifyCallback> screenSwitchingNotifyCallback);
     void SetExposedEventCallback(const RSExposedEventType type, const sptr<RSIExposedEventCallback> callback);
+    void SetActiveScreenIdChangedCallback(sptr<RSIActiveScreenIdChangedCallback> callback);
 
 private:
     std::mutex mutex_;
     sptr<RSIScreenChangeCallback> screenChangeCallback_;
     sptr<RSIScreenSwitchingNotifyCallback> screenSwitchingNotifyCallback_;
     std::unordered_map<RSExposedEventType, sptr<RSIExposedEventCallback>> exposedEventCallbacks_;
+    std::mutex activeScreenIdCallbackMutex_;
+    sptr<RSIActiveScreenIdChangedCallback> activeScreenIdChangedCallback_;
 };
 
 class RSScreenManagerAgent : public RefBase {
@@ -79,6 +83,7 @@ public:
     int32_t GetDisplayIdentificationData(ScreenId id, uint8_t& outPort, std::vector<uint8_t>& edidData) const;
 
     int32_t SetScreenSwitchingNotifyCallback(sptr<RSIScreenSwitchingNotifyCallback> callback);
+    int32_t SetActiveScreenIdChangedCallback(sptr<RSIActiveScreenIdChangedCallback> callback);
 
     int32_t SetVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList);
     int32_t SetVirtualScreenTypeBlackList(ScreenId id, const std::vector<uint8_t>& typeBlackList);

@@ -110,19 +110,19 @@ bool Init(const uint8_t* data, size_t size)
 
 void DoCreate(const uint8_t* data, size_t size)
 {
-    RSUIDirector::Create();
+    RSUIDirector::Create(nullptr, nullptr);
 }
 
 void DoGoBackground(const uint8_t* data, size_t size)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     bool isTextureExport = GetData<bool>();
     director->GoBackground(isTextureExport);
 }
 
 void DoGoForeground(const uint8_t* data, size_t size)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     bool isTextureExport = GetData<bool>();
     director->GoForeground(isTextureExport);
     director->StartTextureExport();
@@ -130,37 +130,32 @@ void DoGoForeground(const uint8_t* data, size_t size)
 
 void DoInit(const uint8_t* data, size_t size)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
-    bool shouldCreateRenderThread = GetData<bool>();
-    director->Init(shouldCreateRenderThread);
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
 }
 
 bool DoInit001()
 {
     // test
-    bool isMuitiInstance = GetData<bool>();
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
-    bool shouldCreateRenderThread = GetData<bool>();
-    director->Init(shouldCreateRenderThread, isMuitiInstance);
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     return true;
 }
 
 void DoStartTextureExport(const uint8_t* data, size_t size)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     director->StartTextureExport();
 }
 
 void DoDestroy(const uint8_t* data, size_t size)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     bool isTextureExport = GetData<bool>();
     director->Destroy(isTextureExport);
 }
 
 void DoSetRSSurfaceNode(const uint8_t* data, size_t size)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     director->SetRSSurfaceNode(surfaceNode);
@@ -168,21 +163,21 @@ void DoSetRSSurfaceNode(const uint8_t* data, size_t size)
 
 void DoSetAbilityBGAlpha(const uint8_t* data, size_t size)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     uint8_t alpha = GetData<uint8_t>();
     director->SetAbilityBGAlpha(alpha);
 }
 
 void DoSetRTRenderForced(const uint8_t* data, size_t size)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     bool isRenderForced = GetData<bool>();
     director->SetRTRenderForced(isRenderForced);
 }
 
 void DoSetContainerWindow(const uint8_t* data, size_t size)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     bool hasContainerWindow = GetData<bool>();
     RRect rrect = GetData<RRect>();
     director->SetContainerWindow(hasContainerWindow, rrect);
@@ -190,14 +185,14 @@ void DoSetContainerWindow(const uint8_t* data, size_t size)
 
 void DoSetFlushEmptyCallback(const uint8_t* data, size_t size)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     FlushEmptyCallback flushEmptyCallback;
     director->SetFlushEmptyCallback(flushEmptyCallback);
 }
 
 void DoSetRoot(const uint8_t* data, size_t size)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     NodeId root = GetData<NodeId>();
     director->SetRoot(root);
 
@@ -207,20 +202,20 @@ void DoSetRoot(const uint8_t* data, size_t size)
 
 void DoSetUITaskRunner(const uint8_t* data, size_t size)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     director->SetUITaskRunner([&](const std::function<void()>& task, uint32_t delay) {});
 }
 
 void DoSendMessages(const uint8_t* data, size_t size)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     director->SendMessages();
 }
 
 bool DoSendMessages001()
 {
     // test
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     const std::function<void()>& callback = []() {
         std::cout << "for test" << std::endl;
     };
@@ -230,7 +225,7 @@ bool DoSendMessages001()
 
 void DoSetTimeStamp(const uint8_t* data, size_t size)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     uint64_t timeStamp = GetData<uint64_t>();
     std::string cacheFilePath = "test";
     director->SetTimeStamp(timeStamp, cacheFilePath);
@@ -238,14 +233,14 @@ void DoSetTimeStamp(const uint8_t* data, size_t size)
 
 void DoSetCacheDir(const uint8_t* data, size_t size)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     std::string cacheFilePath = "test";
     director->SetCacheDir(cacheFilePath);
 }
 
 void DoFlushAnimation(const uint8_t* data, size_t size)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     uint64_t timeStamp = GetData<uint64_t>();
     uint64_t vsyncPeriod = GetData<uint64_t>();
     director->FlushAnimation(timeStamp, vsyncPeriod);
@@ -253,33 +248,33 @@ void DoFlushAnimation(const uint8_t* data, size_t size)
 
 void DoFlushModifier(const uint8_t* data, size_t size)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     director->FlushModifier();
 }
 
 void DoHasUIAnimation(const uint8_t* data, size_t size)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     director->HasUIRunningAnimation();
 }
 
 void DoFlushAnimationStartTime(const uint8_t* data, size_t size)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     uint64_t timeStamp = GetData<uint64_t>();
     director->FlushAnimationStartTime(timeStamp);
 }
 
 void DoSetAppFreeze(const uint8_t* data, size_t size)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     bool isAppFreeze = GetData<bool>();
     director->SetAppFreeze(isAppFreeze);
 }
 
 void DoSetRequestVsyncCallback(const uint8_t* data, size_t size)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     const std::function<void()>& callback = []() {
         std::cout << "for test" << std::endl;
     };
@@ -288,7 +283,7 @@ void DoSetRequestVsyncCallback(const uint8_t* data, size_t size)
 
 void DoPostFrameRateTask(const uint8_t* data, size_t size)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     const std::function<void()>& task = []() {
         std::cout << "for test" << std::endl;
     };
@@ -297,31 +292,31 @@ void DoPostFrameRateTask(const uint8_t* data, size_t size)
 
 void DoGetCurrentRefreshRateMode(const uint8_t* data, size_t size)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     director->GetCurrentRefreshRateMode();
 }
 
 void DoGetAnimateExpectedRate(const uint8_t* data, size_t size)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     director->GetAnimateExpectedRate();
 }
 
 void DoAttachSurface(const uint8_t* data, size_t size)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     director->AttachSurface();
 }
 
 void DoRecvMessages001(const uint8_t* data, size_t size)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     director->RecvMessages();
 }
 
 void DoRecvMessages002(const uint8_t* data, size_t size)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     std::shared_ptr<RSTransactionData> cmds = std::make_shared<RSTransactionData>();
     NodeId id = GetData<NodeId>();
     std::unique_ptr<RSCommand> command =
@@ -333,7 +328,7 @@ void DoRecvMessages002(const uint8_t* data, size_t size)
 
 void DoProcessMessages(const uint8_t* data, size_t size)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     std::shared_ptr<RSTransactionData> cmds = std::make_shared<RSTransactionData>();
     director->ProcessMessages(cmds);
 }
@@ -341,7 +336,7 @@ void DoProcessMessages(const uint8_t* data, size_t size)
 bool DoProcessMessages001()
 {
     // test
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     std::shared_ptr<RSTransactionData> cmds = std::make_shared<RSTransactionData>();
     NodeId id = GetData<NodeId>();
     std::unique_ptr<RSCommand> command =
@@ -353,7 +348,7 @@ bool DoProcessMessages001()
 
 void DoAnimationCallbackProcessor(const uint8_t* data, size_t size)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     NodeId nodeId = GetData<NodeId>();
     AnimationId animId = GetData<AnimationId>();
     uint64_t token = GetData<uint64_t>();
@@ -363,7 +358,7 @@ void DoAnimationCallbackProcessor(const uint8_t* data, size_t size)
 
 void DoPostTask(const uint8_t* data, size_t size)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     const std::function<void()>& task = []() {
         std::cout << "for test" << std::endl;
     };
@@ -372,19 +367,19 @@ void DoPostTask(const uint8_t* data, size_t size)
 
 void DoHasFirstFrameAnimation(const uint8_t* data, size_t size)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     director->HasFirstFrameAnimation();
 }
 
 void DoHasUIRunningAnimation(const uint8_t* data, size_t size)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     director->HasUIRunningAnimation();
 }
 
 void DoGetIndex(const uint8_t* data, size_t size)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     director->GetIndex();
 }
 
@@ -393,8 +388,7 @@ void DoDumpNodeTreeProcessor(const uint8_t* data, size_t size)
     NodeId nodeId = GetData<NodeId>();
     pid_t pid = GetData<pid_t>();
     uint32_t taskId = GetData<uint32_t>();
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
-    director->Init(true, true);
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     auto uiContext = director->GetRSUIContext();
     auto token = uiContext ? uiContext->GetToken() : GetData<uint64_t>();
     director->DumpNodeTreeProcessor(nodeId, pid, token, taskId);
@@ -402,7 +396,7 @@ void DoDumpNodeTreeProcessor(const uint8_t* data, size_t size)
 
 void DoPostDelayTask(const uint8_t* data, size_t size)
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     const std::function<void()>& task = []() {
         std::cout << "for test" << std::endl;
     };
@@ -414,14 +408,14 @@ void DoPostDelayTask(const uint8_t* data, size_t size)
 
 void DoSetTypicalResidentProcess()
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     bool isTypicalResidentProcess = GetData<bool>();
     director->SetTypicalResidentProcess(isTypicalResidentProcess);
 }
 
 void DoGetHybridRenderSwitch()
 {
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create(nullptr, nullptr);
     ComponentEnableSwitch bitSeq = GetData<ComponentEnableSwitch>();
     director->GetHybridRenderSwitch(bitSeq);
 }

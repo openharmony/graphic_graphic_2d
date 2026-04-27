@@ -33,6 +33,7 @@ public:
     static bool CheckIsSurfaceBufferWithAiHdrMetadata(const sptr<SurfaceBuffer> surfaceBuffer);
     static void SetBufferHDRParam(BufferDrawParam& params, const RSLayerPtr& layer);
     static bool GetRGBA1010108Enabled();
+    static bool CheckAIHDRStatus(HdrStatus hdrStatus);
 };
 
 } // namespace Rosen

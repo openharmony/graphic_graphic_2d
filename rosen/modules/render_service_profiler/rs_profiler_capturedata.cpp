@@ -101,21 +101,21 @@ uint64_t RSCaptureData::GetPropertyUint64(const std::string& name) const
     return Utils::ToUint64(GetProperty(name));
 }
 
-void RSCaptureData::Serialize(std::vector<char>& out)
+bool RSCaptureData::Serialize(std::vector<char>& out)
 {
     DataWriter archive(out);
-    Serialize(archive);
+    return Serialize(archive);
 }
 
-void RSCaptureData::Deserialize(const std::vector<char>& in)
+bool RSCaptureData::Deserialize(const std::vector<char>& in)
 {
     Reset();
 
     DataReader archive(in);
-    Serialize(archive);
+    return Serialize(archive);
 }
 
-void RSCaptureData::Serialize(Archive& archive)
+bool RSCaptureData::Serialize(Archive& archive)
 {
     archive.Serialize(time_);
 
@@ -124,7 +124,7 @@ void RSCaptureData::Serialize(Archive& archive)
 
     constexpr size_t maxCount = 1024u;
     if (archive.IsReading() && (count > maxCount)) {
-        return;
+        return false;
     }
 
     if (archive.IsReading()) {
@@ -140,6 +140,7 @@ void RSCaptureData::Serialize(Archive& archive)
             archive.Serialize(const_cast<std::string&>(pair.second));
         }
     }
+    return true;
 }
 
 } // namespace OHOS::Rosen

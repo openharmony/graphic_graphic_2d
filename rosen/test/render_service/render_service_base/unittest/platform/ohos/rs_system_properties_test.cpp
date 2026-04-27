@@ -971,7 +971,7 @@ HWTEST_F(RSSystemPropertiesTest, GetASTCEnabled, TestSize.Level1)
  */
 HWTEST_F(RSSystemPropertiesTest, GetCachedBlurPartialRenderEnabled, TestSize.Level1)
 {
-    ASSERT_FALSE(RSSystemProperties::GetCachedBlurPartialRenderEnabled());
+    ASSERT_TRUE(RSSystemProperties::GetCachedBlurPartialRenderEnabled());
 }
 
 /**

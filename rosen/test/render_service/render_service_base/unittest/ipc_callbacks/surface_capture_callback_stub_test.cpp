@@ -330,6 +330,11 @@ HWTEST_F(RSSurfaceCaptureCallbackStubTest, ReadSurfaceCaptureConfigCaptureTypeTe
     EXPECT_EQ(ret, true);
     int res = stub->ReadSurfaceCaptureConfig(captureConfig, data);
     ASSERT_EQ(res, true);
+    captureConfig.isSyncRender = true;
+    captureConfig.windowSync = true;
+    ret = rsSurfaceCaptureCallbackProxy->WriteSurfaceCaptureConfig(captureConfig, data);
+    res = stub->ReadSurfaceCaptureConfig(captureConfig, data);
+    ASSERT_EQ(res, true);
     captureConfig.captureType = SurfaceCaptureType::SURFACE_CAPTURE_TYPE_BUTT;
     ret = rsSurfaceCaptureCallbackProxy->WriteSurfaceCaptureConfig(captureConfig, data);
     res = stub->ReadSurfaceCaptureConfig(captureConfig, data);

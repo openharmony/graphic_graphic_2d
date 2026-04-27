@@ -74,7 +74,8 @@ public:
 float MockRSLuminanceControl::CalScaler(const float& maxContentLightLevel,
     const std::vector<uint8_t>& dynamicMetadata, const float& ratio, HdrStatus hdrStatus)
 {
-    if (hdrStatus == HdrStatus::AI_HDR_VIDEO_GAINMAP || hdrStatus == HdrStatus::AI_HDR_VIDEO_GTM) {
+    if (hdrStatus == HdrStatus::AI_HDR_VIDEO_GAINMAP || hdrStatus == HdrStatus::AI_HDR_VIDEO_GTM
+        || hdrStatus == HdrStatus::AI_HDR_VIDEO_AI2020) {
         return AI_HDR_SCALER;
     } else {
         return HDR_DEFAULT_SCALER * ratio;
@@ -189,6 +190,7 @@ HWTEST_F(RSLuminanceControlTest, LuminanceControl003, TestSize.Level1)
     ratio = 0.5f;
     ASSERT_EQ(luminCtrl.CalScaler(maxCll, dyMetadata, ratio), HDR_DEFAULT_SCALER * ratio);
     ASSERT_EQ(luminCtrl.CalScaler(maxCll, dyMetadata, ratio, HdrStatus::AI_HDR_VIDEO_GAINMAP), AI_HDR_SCALER);
+    ASSERT_EQ(luminCtrl.CalScaler(maxCll, dyMetadata, ratio, HdrStatus::AI_HDR_VIDEO_AI2020), AI_HDR_SCALER);
     ASSERT_EQ(luminCtrl.CalScaler(maxCll, dyMetadata, ratio, HdrStatus::AI_HDR_VIDEO_GTM), AI_HDR_SCALER);
 }
 

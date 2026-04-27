@@ -30,7 +30,7 @@ public:
         std::unique_ptr<RSTransactionData>& transactionData);
     ErrCode ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task);
 
-    ErrCode CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
+    ErrCode CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
         bool& success);
 
     ErrCode CreateNode(const RSSurfaceRenderNodeConfig& config, bool& success);
@@ -52,8 +52,6 @@ public:
         SelfDrawingNodeType selfDrawingType, bool dynamicHardwareEnable);
 
     ErrCode SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent, uint32_t& resCode);
-
-    bool GetHighContrastTextState();
 
     ErrCode SetFocusAppInfo(const FocusAppInfo& info, int32_t& repCode);
 

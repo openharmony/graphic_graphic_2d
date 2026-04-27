@@ -30,6 +30,7 @@
 #include "effect/shader_effect_lazy.h"
 #include "effect/image_filter.h"
 #include "effect/image_filter_lazy.h"
+#include "draw/ui_color.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -356,6 +357,63 @@ HWTEST_F(SkiaPaintTest, PaintWithLazyShader001, TestSize.Level1)
     SkPaint skPaint;
     SkiaPaint::PaintToSkPaint(paint, skPaint);
     EXPECT_TRUE(skPaint.getShader() != nullptr);
+}
+
+/**
+ * @tc.name: BrushToSkPaintWithUIColor001
+ * @tc.desc: Test BrushToSkPaint with UIColor and ColorSpace
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(SkiaPaintTest, BrushToSkPaintWithUIColor001, TestSize.Level1)
+{
+    Brush brush;
+    UIColor uiColor(1.0f, 0.5f, 0.3f, 1.0f);
+    auto colorSpace = std::make_shared<ColorSpace>();
+    brush.SetUIColor(uiColor, colorSpace);
+    SkPaint skPaint;
+    SkiaPaint::BrushToSkPaint(brush, skPaint);
+    brush.SetUIColor(uiColor, nullptr);
+    SkiaPaint::BrushToSkPaint(brush, skPaint);
+    EXPECT_TRUE(brush.HasUIColor());
+}
+
+/**
+ * @tc.name: PenToSkPaintWithUIColor001
+ * @tc.desc: Test PenToSkPaint with UIColor and ColorSpace
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(SkiaPaintTest, PenToSkPaintWithUIColor001, TestSize.Level1)
+{
+    Pen pen;
+    UIColor uiColor(0.7f, 0.5f, 0.2f, 1.0f);
+    auto colorSpace = std::make_shared<ColorSpace>();
+    pen.SetUIColor(uiColor, colorSpace);
+    SkPaint skPaint;
+    SkiaPaint::PenToSkPaint(pen, skPaint);
+    pen.SetUIColor(uiColor, nullptr);
+    SkiaPaint::PenToSkPaint(pen, skPaint);
+    EXPECT_TRUE(pen.HasUIColor());
+}
+
+/**
+ * @tc.name: PaintToSkPaintWithUIColor001
+ * @tc.desc: Test PaintToSkPaint with UIColor and ColorSpace
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(SkiaPaintTest, PaintToSkPaintWithUIColor001, TestSize.Level1)
+{
+    Paint paint;
+    UIColor uiColor(0.9f, 0.4f, 0.2f, 1.0f);
+    auto colorSpace = std::make_shared<ColorSpace>();
+    paint.SetUIColor(uiColor, colorSpace);
+    SkPaint skPaint;
+    SkiaPaint::PaintToSkPaint(paint, skPaint);
+    paint.SetUIColor(uiColor, nullptr);
+    SkiaPaint::PaintToSkPaint(paint, skPaint);
+    EXPECT_TRUE(paint.HasUIColor());
 }
 } // namespace Drawing
 } // namespace Rosen

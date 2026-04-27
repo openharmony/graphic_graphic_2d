@@ -44,6 +44,11 @@ static Canvas* CastToCanvas(OH_Drawing_Canvas* cCanvas)
     return reinterpret_cast<Canvas*>(cCanvas);
 }
 
+static const Canvas* CastToCanvasConst(const OH_Drawing_Canvas* cCanvas)
+{
+    return reinterpret_cast<const Canvas*>(cCanvas);
+}
+
 static const Path& CastToPath(const OH_Drawing_Path& cPath)
 {
     return reinterpret_cast<const Path&>(cPath);
@@ -1298,5 +1303,18 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasQuickRejectRect(OH_Drawing_Canvas* cCanvas
         return OH_DRAWING_ERROR_INVALID_PARAMETER;
     }
     *quickReject = canvas->QuickReject(CastToRect(*cRect));
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_CanvasIsOpaque(const OH_Drawing_Canvas* cCanvas, bool* isOpaque)
+{
+    if (isOpaque == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    const Canvas* canvas = CastToCanvasConst(cCanvas);
+    if (canvas == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    *isOpaque = canvas->IsOpaque();
     return OH_DRAWING_SUCCESS;
 }

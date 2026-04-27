@@ -423,6 +423,8 @@ public:
         return offscreenDataList_;
     }
 
+    std::vector<std::shared_ptr<Drawing::Canvas>> GetOffscreenCanvasVector() const;
+
     void StoreCanvas()
     {
         if (storeMainCanvas_ == nullptr) {

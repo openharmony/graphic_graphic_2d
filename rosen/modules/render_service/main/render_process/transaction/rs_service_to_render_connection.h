@@ -16,9 +16,8 @@
 #ifndef RENDER_SERVICE_MAIN_RENDER_PROCESS_TRANSACTION_RS_SERVICE_TO_RENDER_CONNECTION_H
 #define RENDER_SERVICE_MAIN_RENDER_PROCESS_TRANSACTION_RS_SERVICE_TO_RENDER_CONNECTION_H
 
-#include "render_server/rs_render_service_agent.h"
+#include "rs_render_process_agent.h"
 #include "core/rs_render_pipeline_agent.h"
-
 #include "zidl/rs_service_to_render_connection_stub.h"
 
 namespace OHOS {
@@ -27,20 +26,31 @@ class RSServiceToRenderConnection : public RSServiceToRenderConnectionStub {
 public:
     explicit RSServiceToRenderConnection(sptr<RSRenderPipelineAgent> renderPipelineAgent)
         : renderPipelineAgent_(renderPipelineAgent) {}
-    ~RSServiceToRenderConnection() noexcept = default;
+    RSServiceToRenderConnection(
+        sptr<RSRenderProcessAgent> renderProcessAgent, sptr<RSRenderPipelineAgent> renderPipelineAgent)
+        : renderProcessAgent_(renderProcessAgent), renderPipelineAgent_(renderPipelineAgent) {}
+    ~RSServiceToRenderConnection() noexcept override = default;
 
     RSServiceToRenderConnection(const RSServiceToRenderConnection&) = delete;
     RSServiceToRenderConnection& operator=(const RSServiceToRenderConnection&) = delete;
+
+    // Process Manager
+    bool NotifyScreenConnectInfoToRender(const sptr<RSScreenProperty>& screenProperty,
+        const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
+        const sptr<IRSComposerToRenderConnection>& composerToRenderConn) override;
+    bool NotifyScreenDisconnectInfoToRender(ScreenId screenId) override;
+    bool NotifyScreenPropertyChangedInfoToRender(
+        ScreenId id, ScreenPropertyType type, const sptr<ScreenPropertyBase>& screenProperty) override;
 
     // Screen Manager
     int32_t NotifyScreenRefresh(ScreenId screenId) override;
     void HandleHwcEvent(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData) override;
     void OnScreenBacklightChanged(ScreenId screenId, uint32_t level) override;
     void OnGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList) override;
-    
+
     // Partial Render
     int32_t SetBrightnessInfoChangeCallback(pid_t pid, sptr<RSIBrightnessInfoChangeCallback> callback) override;
-    
+
     // Performance Logging
     ErrCode ReportJankStats() override;
     ErrCode ReportEventResponse(DataBaseRs info) override;
@@ -84,9 +94,6 @@ public:
     void SetShowRefreshRateEnabled(bool enabled, int32_t type) override;
     ErrCode GetShowRefreshRateEnabled(bool& enable) override;
 
-    // Free Multi Window
-    void SetFreeMultiWindowStatus(bool enable) override;
-
     // Overlay
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     ErrCode SetOverlayDisplayMode(int32_t mode) override;
@@ -106,7 +113,7 @@ public:
 
     // Game
     void ReportGameStateData(GameStateData info) override;
-    
+
     // Behind Window Filter
     ErrCode SetBehindWindowFilterEnabled(bool enabled) override;
     ErrCode GetBehindWindowFilterEnabled(bool& enabled) override;
@@ -124,8 +131,8 @@ public:
     void SetVmaCacheStatus(bool flag) override;
 
 private:
-    sptr<RSRenderServiceAgent> renderServiceAgent_ = nullptr;
-    sptr<RSRenderPipelineAgent> renderPipelineAgent_ = nullptr;
+    const sptr<RSRenderProcessAgent> renderProcessAgent_;
+    const sptr<RSRenderPipelineAgent> renderPipelineAgent_;
 };
 
 } // namespace Rosen

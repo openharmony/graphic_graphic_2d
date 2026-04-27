@@ -55,8 +55,22 @@ void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw params is nullptr");
         return;
     }
-    Drawing::GPUResourceTag::SetCurrentNodeId(GetId());
+
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
+    bool isDoubleSided = effectParams->GetDoubleSidedEnabled();
+    if (!isDoubleSided) {
+        Drawing::Matrix baseMatrix = effectParams->HasSandBox()
+            ? RSRenderParams::GetParentSurfaceMatrix()
+            : paintFilterCanvas->GetTotalMatrix();
+        baseMatrix.PreConcat(effectParams->GetMatrix());
+        if (IsBackFace(baseMatrix)) {
+            SetDrawSkipType(DrawSkipType::BACKFACE_SKIP);
+            RS_TRACE_NAME_FMT("RSEffectRenderNodeDrawable::OnDraw backface skip, id:%" PRIu64, nodeId_);
+            return;
+        }
+    }
+
+    Drawing::GPUResourceTag::SetCurrentNodeId(GetId());
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kAll);
 
     paintFilterCanvas->SetEffectIntersectWithDRM(effectParams->GetEffectIntersectWithDRM());

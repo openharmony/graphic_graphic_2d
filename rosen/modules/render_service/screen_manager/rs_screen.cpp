@@ -710,6 +710,18 @@ void RSScreen::CapabilityTypeDump(GraphicInterfaceType capabilityType, std::stri
             dumpString += "DISP_INTF_BT656, ";
             break;
         }
+        case GRAPHIC_DISP_INTF_DP: {
+            dumpString += "DISP_INTF_DP, ";
+            break;
+        }
+        case GRAPHIC_DISP_INTF_EDP: {
+            dumpString += "DISP_INTF_EDP, ";
+            break;
+        }
+        case GRAPHIC_DISP_INTF_GPMI: {
+            dumpString += "DISP_INTF_GPMI, ";
+            break;
+        }
         default:
             dumpString += "INVALID_DISP_INTF, ";
             break;

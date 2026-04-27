@@ -769,6 +769,16 @@ void RSRenderNode::ResetChildRelevantFlags()
     RSPointLightManager::Instance(GetLogicalDisplayNodeId())->SetChildHasVisibleIlluminated(shared_from_this(), false);
 }
 
+void RSRenderNode::UpdateFilterChildRelevantFlagsToParams()
+{
+    if (stagingRenderParams_ == nullptr) {
+        return;
+    }
+
+    stagingRenderParams_->SetChildHasVisibleFilter(childHasVisibleFilter_);
+    stagingRenderParams_->SetChildHasVisibleEffect(childHasVisibleEffect_);
+}
+
 void RSRenderNode::ResetPixelStretchSlot()
 {
     RSDrawable::ResetPixelStretchSlot(*this, GetDrawableVec(__func__));
@@ -3521,7 +3531,7 @@ void RSRenderNode::UpdateEffectRegion(std::optional<Drawing::RectI>& region, boo
         return;
     }
     const auto& property = GetRenderProperties();
-    if (!isForced && !property.GetUseEffect() && !property.HasHarmonium()) {
+    if (!isForced && !property.GetUseEffect() && !property.HasHarmonium() && !property.HasSpatialGlassEffect()) {
         return;
     }
 
@@ -4196,7 +4206,8 @@ void RSRenderNode::UpdateVisibleFilterChild(RSRenderNode& childNode)
 }
 void RSRenderNode::UpdateVisibleEffectChild(RSRenderNode& childNode)
 {
-    if (childNode.GetRenderProperties().GetUseEffect() || childNode.GetRenderProperties().HasHarmonium()) {
+    if (childNode.GetRenderProperties().GetUseEffect() || childNode.GetRenderProperties().HasHarmonium() ||
+        childNode.GetRenderProperties().HasSpatialGlassEffect()) {
         visibleEffectChild_.emplace(childNode.GetId());
     }
     auto& childEffectNodes = childNode.GetVisibleEffectChild();
@@ -4491,6 +4502,7 @@ void RSRenderNode::UpdateRenderParams()
     }
     stagingRenderParams_->MarkRepaintBoundary(isRepaintBoundary_);
     stagingRenderParams_->SetNeedClipHoleForFilter(GetRenderProperties().NeedClipHoleForRenderGroup());
+    stagingRenderParams_->SetDoubleSidedEnabled(GetRenderProperties().GetDoubleSidedEnabled());
 #endif
 }
 
@@ -5283,6 +5295,7 @@ void RSRenderNode::SubTreeSkipPrepare(
         ClearSubtreeParallelNodes();
 #endif
         ResetChildRelevantFlags();
+        UpdateFilterChildRelevantFlagsToParams();
     }
     SetGeoUpdateDelay(accumGeoDirty);
     UpdateSubTreeInfo(clipRect);
@@ -5538,5 +5551,9 @@ uint32_t RSRenderNode::GetHdrUIComponentHeadroom() const
     return RSRenderNode::DEFAULT_HEADROOM_VALUE;
 }
 
+void RSRenderNode::ReSortChildrenByZIndex()
+{
+    isFullChildrenListValid_ = false;
+}
 } // namespace Rosen
 } // namespace OHOS

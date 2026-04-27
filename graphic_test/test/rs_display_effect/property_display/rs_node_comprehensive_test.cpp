@@ -600,7 +600,7 @@ GRAPHIC_TEST(RSNodeComprehensiveTest, CONTENT_DISPLAY_TEST, RSNodeComprehensiveT
         auto testNode = RSCanvasNode::Create();
         testNode->SetBounds({ (int)i * 280 + 50, 50, 250, 250 });
         testNode->SetBackgroundColor(0xffff0000);
-        (void)RSCanvasNode::CloseImplicitCancelAnimation();
+        (void)RSCanvasNode::CloseImplicitCancelAnimation(nullptr);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }
@@ -1144,7 +1144,7 @@ GRAPHIC_TEST(RSNodeComprehensiveTest, CONTENT_DISPLAY_TEST, RSNodeComprehensive_
     node2->SetBounds({ 500, 50, 400, 400 });
     node2->SetBackgroundColor(0xff00ff00);
 
-    RSNode::RegisterTransitionPair(node1->GetId(), node2->GetId(), true);
+    RSNode::RegisterTransitionPair(nullptr, node1->GetId(), node2->GetId(), true);
 
     GetRootNode()->AddChild(node1);
     GetRootNode()->AddChild(node2);
@@ -1167,14 +1167,14 @@ GRAPHIC_TEST(RSNodeComprehensiveTest, CONTENT_DISPLAY_TEST, RSNodeComprehensive_
     node2->SetBounds({ 500, 50, 400, 400 });
     node2->SetBackgroundColor(0xff00ff00);
 
-    RSNode::RegisterTransitionPair(node1->GetId(), node2->GetId(), true);
+    RSNode::RegisterTransitionPair(nullptr, node1->GetId(), node2->GetId(), true);
 
     GetRootNode()->AddChild(node1);
     GetRootNode()->AddChild(node2);
     RegisterNode(node1);
     RegisterNode(node2);
 
-    RSNode::UnregisterTransitionPair(node1->GetId(), node2->GetId());
+    RSNode::UnregisterTransitionPair(nullptr, node1->GetId(), node2->GetId());
 }
 
 // ============================================================================

@@ -469,8 +469,6 @@ void RSScreenRenderNodeDrawable::CheckFilterCacheFullyCovered(RSSurfaceRenderPar
             bool cacheValid = filterNodeDrawable->IsFilterCacheValidForOcclusion();
             RectI filterCachedRect = filterNodeDrawable->GetFilterCachedRegion();
             surfaceParams.CheckValidFilterCacheFullyCoverTarget(cacheValid, filterCachedRect, screenRect);
-            RSFilterDirtyCollector::RecordFilterCacheValidForOcclusion(filterNodeId,
-                surfaceParams.IsMainWindowType() && cacheValid && screenRect.IsInsideOf(filterCachedRect));
         }
         RS_OPTIONAL_TRACE_NAME_FMT(
             "CheckFilterCacheFullyCovered NodeId[%" PRIu64 "], globalAlpha: %f, "
@@ -768,18 +766,14 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             params->ResetVirtualExpandAccumulatedParams();
         } else {
             RS_LOGD("RSScreenRenderNodeDrawable::OnDraw Expand screen.");
+            bool isOpDropped = uniParam->IsOpDropped();
+            uniParam->SetOpDropped(uniParam->IsVirtualExpandScreenDirtyEnabled());
             auto expandProcessor = RSProcessor::ReinterpretCast<RSUniRenderVirtualProcessor>(processor);
             if (!expandProcessor) {
                 SetDrawSkipType(DrawSkipType::EXPAND_PROCESSOR_NULL);
                 RS_LOGE("RSScreenRenderNodeDrawable::OnDraw expandProcessor is null!");
                 return;
             }
-            bool isOpDropped = uniParam->IsOpDropped();
-            bool isVirtualExpandScreenDirtyEnabled = uniParam->IsVirtualExpandScreenDirtyEnabled();
-            if (expandProcessor->IsVirtualExpandScale()) {
-                uniParam->SetVirtualExpandScreenDirtyEnabled(false);
-            }
-            uniParam->SetOpDropped(uniParam->IsVirtualExpandScreenDirtyEnabled());
             RSDirtyRectsDfx rsDirtyRectsDfx(*this);
             std::vector<RectI> damageRegionRects;
             RSUniDirtyComputeUtil::MergeVirtualExpandScreenAccumulatedDirtyRegions(*this, *params);
@@ -831,7 +825,6 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                 rsDirtyRectsDfx.OnDrawVirtual(*curCanvas_);
             }
             uniParam->SetOpDropped(isOpDropped);
-            uniParam->SetVirtualExpandScreenDirtyEnabled(isVirtualExpandScreenDirtyEnabled);
         }
         DrawCurtainScreen();
         processor->PostProcess();

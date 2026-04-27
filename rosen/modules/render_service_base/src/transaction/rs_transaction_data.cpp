@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "command/rs_base_node_command.h"
 #include "command/rs_canvas_node_command.h"
 #include "command/rs_command.h"
 #include "command/rs_command_factory.h"
@@ -265,6 +266,72 @@ void RSTransactionData::MoveCommandByNodeId(std::unique_ptr<RSTransactionData>& 
         ++indexVerifier;
         ++it;
     }
+}
+
+// Returns the set of command subtypes that modify the node tree hierarchy.
+// These commands should not be migrated across UIContext because the tree
+// structure needs to be regenerated in the new context.
+const std::set<uint16_t>& RSTransactionData::GetTreeHierarchyCommandSubTypes()
+{
+    static const std::set<uint16_t> treeHierarchySubTypes = {
+        RSBaseNodeCommandType::BASE_NODE_ADD_CHILD,
+        RSBaseNodeCommandType::BASE_NODE_MOVE_CHILD,
+        RSBaseNodeCommandType::BASE_NODE_ADD_CROSS_PARENT_CHILD,
+        RSBaseNodeCommandType::BASE_NODE_REMOVE_CHILD,
+        RSBaseNodeCommandType::BASE_NODE_REMOVE_CROSS_PARENT_CHILD,
+        RSBaseNodeCommandType::BASE_NODE_ADD_CROSS_SCREEN_CHILD,
+        RSBaseNodeCommandType::BASE_NODE_REMOVE_CROSS_SCREEN_CHILD,
+        RSBaseNodeCommandType::BASE_NODE_REMOVE_FROM_TREE,
+    };
+    return treeHierarchySubTypes;
+}
+
+// Checks whether a command is a tree hierarchy command by its type and subtype.
+bool RSTransactionData::IsTreeHierarchyCommand(uint16_t commandType, uint16_t commandSubType)
+{
+    return (commandType == RSCommandType::BASE_NODE) &&
+        (GetTreeHierarchyCommandSubTypes().count(commandSubType) > 0);
+}
+
+// Moves non-tree-hierarchy commands related to nodeId into transactionData.
+// Tree hierarchy commands that target nodeId are erased directly instead of
+// being moved, to prevent stale tree operations from executing in the wrong
+// UIContext after node migration.
+void RSTransactionData::MoveCommandByNodeIdExcludeTreeCommands(
+    std::unique_ptr<RSTransactionData>& transactionData, NodeId nodeId)
+{
+    size_t indexVerifier = 0;
+    size_t movedCount = 0;
+    size_t erasedCount = 0;
+    for (auto it = payload_.begin(); it != payload_.end();) {
+        auto& command = std::get<2>(*it);
+        if (!command) {
+            ++indexVerifier;
+            ++it;
+            continue;
+        }
+
+        bool isTargetTreeCommand = IsTreeHierarchyCommand(command->GetType(), command->GetSubType()) &&
+            command->GetTargetNodeId() == nodeId;
+        if (isTargetTreeCommand) {
+            it = payload_.erase(it);
+            ++erasedCount;
+            continue;
+        }
+
+        if (command->GetNodeId() == nodeId) {
+            transactionData->AddCommand(command, std::get<0>(*it), std::get<1>(*it));
+            it = payload_.erase(it);
+            ++movedCount;
+            continue;
+        }
+
+        command->indexVerifier_ = indexVerifier;
+        ++indexVerifier;
+        ++it;
+    }
+    RS_LOGD("MoveCommandByNodeIdExcludeTreeCommands nodeId:%{public}" PRIu64
+            " moved:%{public}zu erased:%{public}zu", nodeId, movedCount, erasedCount);
 }
 
 void RSTransactionData::MoveAllCommand(std::unique_ptr<RSTransactionData>& transactionData)

@@ -35,7 +35,8 @@
 namespace OHOS {
 class BootCompileProgress {
 public:
-    void Init(const std::string& configPath, const BootAnimationConfig& config);
+    void Init(const std::string& configPath, const BootAnimationConfig& config,
+        sptr<IRemoteObject> connectToRender);
     ~BootCompileProgress();
 
 private:
@@ -94,6 +95,7 @@ private:
     std::map<int32_t, BootAnimationProgressConfig> progressConfigsMap_;
     sptr<DeathRecipientInner> deathRecipient_ = nullptr;
     sptr<IRemoteObject> renderObj_ = nullptr;
+    sptr<IRemoteObject> connectToRender_;
 };
 } // namespace OHOS
 

@@ -1150,4 +1150,174 @@ HWTEST_F(RSRenderParamsTest, SetNodeColorSpace002, TestSize.Level1)
     EXPECT_FALSE(params.needSync_);
 }
 
+/**
+ * @tc.name: ApplyAlphaAndMatrixToCanvas_HasSandBoxFalse_ApplyMatrixTrue
+ * @tc.desc: Test HasSandBox is false, applyMatrix is true
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderParamsTest, ApplyAlphaAndMatrixToCanvas_HasSandBoxFalse_ApplyMatrixTrue, TestSize.Level1)
+{
+    constexpr NodeId id = 1;
+    RSRenderParams renderParams(id);
+    renderParams.SetAlpha(0.5f);
+    renderParams.SetHasSandBox(false);
+
+    Drawing::Canvas rawCanvas;
+    RSPaintFilterCanvas canvas(&rawCanvas);
+
+    Drawing::Matrix testMatrix;
+    testMatrix.SetScale(2.0f, 2.0f);
+    renderParams.SetMatrix(testMatrix);
+    
+    auto prevMatrix = canvas.GetTotalMatrix();
+    renderParams.ApplyAlphaAndMatrixToCanvas(canvas, true);
+
+    ASSERT_FLOAT_EQ(canvas.GetAlpha(), 0.5f);
+    prevMatrix.PreConcat(testMatrix);
+    ASSERT_TRUE(canvas.GetTotalMatrix() == prevMatrix);
+}
+
+/**
+ * @tc.name: ApplyAlphaAndMatrixToCanvas_HasSandBoxFalse_ApplyMatrixFalse
+ * @tc.desc: Test HasSandBox is false, applyMatrix is false
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderParamsTest, ApplyAlphaAndMatrixToCanvas_HasSandBoxFalse_ApplyMatrixFalse, TestSize.Level1)
+{
+    constexpr NodeId id = 1;
+    RSRenderParams renderParams(id);
+    renderParams.SetAlpha(0.5f);
+    renderParams.SetHasSandBox(false);
+
+    Drawing::Canvas rawCanvas;
+    RSPaintFilterCanvas canvas(&rawCanvas);
+
+    Drawing::Matrix testMatrix;
+    testMatrix.SetScale(2.0f, 2.0f);
+    renderParams.SetMatrix(testMatrix);
+
+    auto prevMatrix = canvas.GetTotalMatrix();
+    renderParams.ApplyAlphaAndMatrixToCanvas(canvas, false);
+
+    ASSERT_FLOAT_EQ(canvas.GetAlpha(), 0.5f);
+    ASSERT_TRUE(canvas.GetTotalMatrix() == prevMatrix);
+}
+
+/**
+ * @tc.name: ApplyAlphaAndMatrixToCanvas_HasSandBoxTrue_ApplyMatrixFalse
+ * @tc.desc: Test HasSandBox is true, applyMatrix is false, return early
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderParamsTest, ApplyAlphaAndMatrixToCanvas_HasSandBoxTrue_ApplyMatrixFalse, TestSize.Level1)
+{
+    constexpr NodeId id = 1;
+    RSRenderParams renderParams(id);
+    renderParams.SetAlpha(0.5f);
+    renderParams.SetHasSandBox(true);
+
+    Drawing::Canvas rawCanvas;
+    RSPaintFilterCanvas canvas(&rawCanvas);
+
+    Drawing::Matrix testMatrix;
+    testMatrix.SetScale(2.0f, 2.0f);
+    renderParams.SetMatrix(testMatrix);
+
+    renderParams.ApplyAlphaAndMatrixToCanvas(canvas, false);
+
+    ASSERT_FLOAT_EQ(canvas.GetAlpha(), 0.5f);
+}
+
+/**
+ * @tc.name: ApplyAlphaAndMatrixToCanvas_HasSandBoxTrue_ApplyMatrixTrue
+ * @tc.desc: Test HasSandBox is true, applyMatrix is true
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderParamsTest, ApplyAlphaAndMatrixToCanvas_HasSandBoxTrue_ApplyMatrixTrue, TestSize.Level1)
+{
+    constexpr NodeId id = 1;
+    RSRenderParams renderParams(id);
+    renderParams.SetAlpha(0.5f);
+    renderParams.SetHasSandBox(true);
+
+    Drawing::Canvas rawCanvas;
+    RSPaintFilterCanvas canvas(&rawCanvas);
+
+    Drawing::Matrix testMatrix;
+    testMatrix.SetScale(2.0f, 2.0f);
+    renderParams.SetMatrix(testMatrix);
+
+    Drawing::Matrix surfaceParentMatrix;
+    surfaceParentMatrix.Translate(100.0f, 100.0f);
+    renderParams.SetParentSurfaceMatrix(surfaceParentMatrix);
+
+    auto prevMatrix = canvas.GetTotalMatrix();
+    renderParams.ApplyAlphaAndMatrixToCanvas(canvas, true);
+
+    ASSERT_FLOAT_EQ(canvas.GetAlpha(), 0.5f);
+    surfaceParentMatrix.PreConcat(testMatrix);
+    ASSERT_TRUE(canvas.GetTotalMatrix() == surfaceParentMatrix);
+}
+
+/**
+ * @tc.name: ApplySandboxMatrixToCanvas_HasSandBoxTrue_NoOffscreenList
+ * @tc.desc: Test no offscreen canvas list
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderParamsTest, ApplySandboxMatrixToCanvas_NoOffscreenList, TestSize.Level1)
+{
+    constexpr NodeId id = 1;
+    RSRenderParams renderParams(id);
+
+    Drawing::Canvas rawCanvas;
+    RSPaintFilterCanvas canvas(&rawCanvas);
+
+    Drawing::Matrix testMatrix;
+    testMatrix.SetScale(2.0f, 2.0f);
+    renderParams.SetMatrix(testMatrix);
+
+    auto parentMatrix = testMatrix;
+    renderParams.SetParentSurfaceMatrix(parentMatrix);
+
+    renderParams.ApplySandboxMatrixToCanvas(canvas);
+
+    auto currentMatrix = canvas.GetTotalMatrix();
+    parentMatrix.PreConcat(testMatrix);
+    ASSERT_TRUE(canvas.GetTotalMatrix() == parentMatrix);
+}
+
+/**
+ * @tc.name: ApplySandboxMatrixToCanvas_HasOriginalCanvas_WithoutOffscreenData
+ * @tc.desc: Test has original canvas but without offscreenData
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderParamsTest, ApplySandboxMatrixToCanvas_HasOriginalCanvas_WithoutOffscreenData, TestSize.Level1)
+{
+    constexpr NodeId id = 1;
+    RSRenderParams renderParams(id);
+    Drawing::Matrix mainMatrix;
+    mainMatrix.SetScale(2.0f, 2.0f);
+
+    Drawing::Canvas rawCanvas;
+    RSPaintFilterCanvas mainCanvas(&rawCanvas);
+    mainCanvas.ConcatMatrix(mainMatrix);
+    mainCanvas.StoreCanvas();
+
+    Drawing::Matrix testMatrix;
+    testMatrix.SetScale(2.0f, 2.0f);
+    renderParams.SetMatrix(testMatrix);
+
+    Drawing::Matrix surfaceParentMatrix;
+    surfaceParentMatrix.Translate(100.0f, 100.0f);
+    renderParams.SetParentSurfaceMatrix(surfaceParentMatrix);
+
+    renderParams.ApplySandboxMatrixToCanvas(mainCanvas);
+    surfaceParentMatrix.PreConcat(testMatrix);
+    ASSERT_TRUE(mainCanvas.GetTotalMatrix() == surfaceParentMatrix);
+}
 } // namespace OHOS::Rosen

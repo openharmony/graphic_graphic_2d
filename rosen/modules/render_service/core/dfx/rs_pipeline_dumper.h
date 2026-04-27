@@ -38,7 +38,8 @@ public:
     void RenderPipelineDumpInit(std::shared_ptr<RSPipelineDumpManager> rpDumpManager);
 
 private:
-    void DumpNodesNotOnTheTree(std::string& dumpString) const;
+    void DumpSurfaceNodesNotOnTree(std::string& dumpString) const;
+    void DumpRenderNodesNotOnTree(std::string& dumpString) const;
     void DumpMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString,
         bool isLite = false) const;
     void DumpGpuMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const;

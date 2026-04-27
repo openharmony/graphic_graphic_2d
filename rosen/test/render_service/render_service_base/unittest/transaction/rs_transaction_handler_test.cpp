@@ -18,6 +18,7 @@
 
 #include "command/rs_animation_command.h"
 #include "command/rs_command.h"
+#include "command/rs_node_command.h"
 #include "transaction/rs_render_service_client.h"
 #include "transaction/rs_transaction_handler.h"
 
@@ -109,7 +110,7 @@ HWTEST_F(RSTransactionHandlerTest, FlushImplicitTransactionHybridRender002, Test
         std::make_unique<RSAnimationCallback>(nodeId, 1, 1, AnimationCallbackEvent::FINISHED);
     transaction->AddRemoteCommand(command, nodeId, FollowType::NONE);
     CommitTransactionCallback callback =
-        [] (std::shared_ptr<RSIRenderClient> &renderServiceClient,
+        [] (std::shared_ptr<OHOS::Rosen::RSRenderPipelineClient> &rsRenderPipelineClient,
         std::unique_ptr<RSTransactionData>&& rsTransactionData, uint32_t& transactionDataIndex,
         std::shared_ptr<RSTransactionHandler>) {};
     RSTransactionHandler::SetCommitTransactionCallback(callback);
@@ -1959,5 +1960,187 @@ HWTEST_F(RSTransactionHandlerTest, MergeSyncTransaction011, TestSize.Level1)
     EXPECT_FALSE(transaction->implicitCommonTransactionDataStack_.empty());
     transaction->MergeSyncTransaction(transactionHandler);
 }
+/**
+ * @tc.name: MoveCommandByNodeIdExcludeTreeCommands001
+ * @tc.desc: Both clients are nullptr, early return with log
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTransactionHandlerTest, MoveCommandByNodeIdExcludeTreeCommands001, TestSize.Level1)
+{
+    auto preTransaction = std::make_shared<RSTransactionHandler>();
+    auto curTransaction = std::make_shared<RSTransactionHandler>();
+    preTransaction->renderPipelineClient_.reset();
+    preTransaction->renderThreadClient_.reset();
+    NodeId nodeId = 1;
+    preTransaction->MoveCommandByNodeIdExcludeTreeCommands(curTransaction, nodeId);
+    EXPECT_TRUE(preTransaction->IsEmpty());
+    EXPECT_TRUE(curTransaction->IsEmpty());
+}
+
+/**
+ * @tc.name: MoveCommonCommandByNodeIdExcludeTreeCommands001
+ * @tc.desc: Source stack empty, target stack empty, move to implicitTransactionData_
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTransactionHandlerTest, MoveCommonCommandByNodeIdExcludeTreeCommands001, TestSize.Level1)
+{
+    auto preTransaction = std::make_shared<RSTransactionHandler>();
+    auto curTransaction = std::make_shared<RSTransactionHandler>();
+
+    NodeId nodeId = 1;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkUifirstNode>(nodeId, true);
+    preTransaction->AddCommand(command, false, FollowType::FOLLOW_TO_PARENT, nodeId);
+
+    preTransaction->MoveCommonCommandByNodeIdExcludeTreeCommands(curTransaction, nodeId);
+    EXPECT_TRUE(preTransaction->implicitCommonTransactionData_->IsEmpty());
+    EXPECT_FALSE(curTransaction->implicitCommonTransactionData_->IsEmpty());
+}
+
+/**
+ * @tc.name: MoveCommonCommandByNodeIdExcludeTreeCommands002
+ * @tc.desc: Source stack empty, target stack non-empty
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTransactionHandlerTest, MoveCommonCommandByNodeIdExcludeTreeCommands002, TestSize.Level1)
+{
+    auto preTransaction = std::make_shared<RSTransactionHandler>();
+    auto curTransaction = std::make_shared<RSTransactionHandler>();
+    curTransaction->Begin();
+
+    NodeId nodeId = 1;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkUifirstNode>(nodeId, true);
+    preTransaction->AddCommand(command, false, FollowType::FOLLOW_TO_PARENT, nodeId);
+
+    preTransaction->MoveCommonCommandByNodeIdExcludeTreeCommands(curTransaction, nodeId);
+    EXPECT_TRUE(preTransaction->implicitCommonTransactionData_->IsEmpty());
+    EXPECT_FALSE(curTransaction->implicitCommonTransactionData_->IsEmpty());
+}
+
+/**
+ * @tc.name: MoveCommonCommandByNodeIdExcludeTreeCommands003
+ * @tc.desc: Source stack non-empty, target stack empty, traverse all layers
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTransactionHandlerTest, MoveCommonCommandByNodeIdExcludeTreeCommands003, TestSize.Level1)
+{
+    auto preTransaction = std::make_shared<RSTransactionHandler>();
+    auto curTransaction = std::make_shared<RSTransactionHandler>();
+    preTransaction->Begin();
+
+    NodeId nodeId = 1;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkUifirstNode>(nodeId, true);
+    preTransaction->AddCommand(command, false, FollowType::FOLLOW_TO_PARENT, nodeId);
+
+    preTransaction->MoveCommonCommandByNodeIdExcludeTreeCommands(curTransaction, nodeId);
+    EXPECT_TRUE(preTransaction->implicitCommonTransactionDataStack_.top()->IsEmpty());
+    EXPECT_FALSE(curTransaction->implicitCommonTransactionData_->IsEmpty());
+}
+
+/**
+ * @tc.name: MoveCommonCommandByNodeIdExcludeTreeCommands004
+ * @tc.desc: Source stack non-empty with multiple layers, target stack non-empty
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTransactionHandlerTest, MoveCommonCommandByNodeIdExcludeTreeCommands004, TestSize.Level1)
+{
+    auto preTransaction = std::make_shared<RSTransactionHandler>();
+    auto curTransaction = std::make_shared<RSTransactionHandler>();
+    preTransaction->Begin();
+    preTransaction->Begin();
+    curTransaction->Begin();
+
+    NodeId nodeId = 1;
+    std::unique_ptr<RSCommand> command1 = std::make_unique<RSMarkUifirstNode>(nodeId, true);
+    preTransaction->AddCommand(command1, false, FollowType::FOLLOW_TO_PARENT, nodeId);
+
+    preTransaction->MoveCommonCommandByNodeIdExcludeTreeCommands(curTransaction, nodeId);
+    // After traversal, all source stack layers should have the command moved
+    EXPECT_FALSE(curTransaction->implicitCommonTransactionDataStack_.top()->IsEmpty());
+}
+
+/**
+ * @tc.name: MoveRemoteCommandByNodeIdExcludeTreeCommands001
+ * @tc.desc: Source stack empty, target stack empty, move to implicitTransactionData_
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTransactionHandlerTest, MoveRemoteCommandByNodeIdExcludeTreeCommands001, TestSize.Level1)
+{
+    auto preTransaction = std::make_shared<RSTransactionHandler>();
+    auto curTransaction = std::make_shared<RSTransactionHandler>();
+
+    NodeId nodeId = 1;
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSAnimationCallback>(nodeId, 1, 1, AnimationCallbackEvent::FINISHED);
+    preTransaction->AddRemoteCommand(command, nodeId, FollowType::NONE);
+
+    preTransaction->MoveRemoteCommandByNodeIdExcludeTreeCommands(curTransaction, nodeId);
+    EXPECT_TRUE(preTransaction->implicitRemoteTransactionData_->IsEmpty());
+    EXPECT_FALSE(curTransaction->implicitRemoteTransactionData_->IsEmpty());
+}
+
+/**
+ * @tc.name: MoveRemoteCommandByNodeIdExcludeTreeCommands002
+ * @tc.desc: Source stack empty, target stack non-empty
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTransactionHandlerTest, MoveRemoteCommandByNodeIdExcludeTreeCommands002, TestSize.Level1)
+{
+    auto preTransaction = std::make_shared<RSTransactionHandler>();
+    auto curTransaction = std::make_shared<RSTransactionHandler>();
+    curTransaction->Begin();
+
+    NodeId nodeId = 1;
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSAnimationCallback>(nodeId, 1, 1, AnimationCallbackEvent::FINISHED);
+    preTransaction->AddRemoteCommand(command, nodeId, FollowType::NONE);
+
+    preTransaction->MoveRemoteCommandByNodeIdExcludeTreeCommands(curTransaction, nodeId);
+    EXPECT_TRUE(preTransaction->implicitRemoteTransactionData_->IsEmpty());
+    EXPECT_FALSE(curTransaction->implicitRemoteTransactionData_->IsEmpty());
+}
+
+/**
+ * @tc.name: MoveRemoteCommandByNodeIdExcludeTreeCommands003
+ * @tc.desc: Source stack non-empty, target stack empty, traverse all layers
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTransactionHandlerTest, MoveRemoteCommandByNodeIdExcludeTreeCommands003, TestSize.Level1)
+{
+    auto preTransaction = std::make_shared<RSTransactionHandler>();
+    auto curTransaction = std::make_shared<RSTransactionHandler>();
+    preTransaction->Begin();
+
+    NodeId nodeId = 1;
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSAnimationCallback>(nodeId, 1, 1, AnimationCallbackEvent::FINISHED);
+    preTransaction->AddRemoteCommand(command, nodeId, FollowType::NONE);
+
+    preTransaction->MoveRemoteCommandByNodeIdExcludeTreeCommands(curTransaction, nodeId);
+    EXPECT_TRUE(preTransaction->implicitRemoteTransactionDataStack_.top()->IsEmpty());
+    EXPECT_FALSE(curTransaction->implicitRemoteTransactionData_->IsEmpty());
+}
+
+/**
+ * @tc.name: MoveRemoteCommandByNodeIdExcludeTreeCommands004
+ * @tc.desc: Source stack non-empty, target stack non-empty, traverse all layers
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTransactionHandlerTest, MoveRemoteCommandByNodeIdExcludeTreeCommands004, TestSize.Level1)
+{
+    auto preTransaction = std::make_shared<RSTransactionHandler>();
+    auto curTransaction = std::make_shared<RSTransactionHandler>();
+    preTransaction->Begin();
+    preTransaction->Begin();
+    curTransaction->Begin();
+
+    NodeId nodeId = 1;
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSAnimationCallback>(nodeId, 1, 1, AnimationCallbackEvent::FINISHED);
+    preTransaction->AddRemoteCommand(command, nodeId, FollowType::NONE);
+
+    preTransaction->MoveRemoteCommandByNodeIdExcludeTreeCommands(curTransaction, nodeId);
+    EXPECT_FALSE(curTransaction->implicitRemoteTransactionDataStack_.top()->IsEmpty());
+}
+
 } // namespace Rosen
 } // namespace OHOS

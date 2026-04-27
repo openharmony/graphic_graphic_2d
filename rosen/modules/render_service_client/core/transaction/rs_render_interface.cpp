@@ -42,8 +42,9 @@ namespace Rosen {
 constexpr uint32_t WATERMARK_NAME_LENGTH_LIMIT = 128;
 #endif
 
-RSRenderInterface::RSRenderInterface() : renderPipelineClient_(std::make_unique<RSRenderPipelineClient>())
+RSRenderInterface::RSRenderInterface(sptr<IRemoteObject>& connectToRenderRemote)
 {
+    renderPipelineClient_ = std::make_shared<RSRenderPipelineClient>(connectToRenderRemote);
 }
 
 RSRenderInterface::~RSRenderInterface() noexcept
@@ -134,20 +135,22 @@ bool RSRenderInterface::TakeSurfaceCaptureForUIWithConfig(std::shared_ptr<RSNode
         return renderPipelineClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig, {},
             captureConfig.specifiedAreaRect);
     } else {
-        return TakeSurfaceCaptureForUIWithoutUni(node->GetId(), callback, captureConfig.scaleX, captureConfig.scaleY);
+        return TakeSurfaceCaptureForUIWithoutUni(
+            node->GetId(), callback, captureConfig.scaleX, captureConfig.scaleY, captureConfig.specifiedAreaRect);
     }
 }
 
 bool RSRenderInterface::TakeSurfaceCaptureForUIWithoutUni(NodeId id,
-    std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY)
+    std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY,
+    const Drawing::Rect& specifiedAreaRect)
 {
-    std::function<void()> offscreenRenderTask = [scaleX, scaleY, callback, id, this]() -> void {
+    std::function<void()> offscreenRenderTask = [scaleX, scaleY, callback, id, specifiedAreaRect, this]() -> void {
         ROSEN_LOGD(
             "RSRenderInterface::TakeSurfaceCaptureForUIWithoutUni callback->OnOffscreenRender nodeId:"
             "[%{public}" PRIu64 "]", id);
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderThread::TakeSurfaceCaptureForUIWithoutUni");
         std::shared_ptr<RSDividedUICapture> rsDividedUICapture =
-            std::make_shared<RSDividedUICapture>(id, scaleX, scaleY);
+            std::make_shared<RSDividedUICapture>(id, scaleX, scaleY, specifiedAreaRect);
         std::shared_ptr<Media::PixelMap> pixelmap = rsDividedUICapture->TakeLocalCapture();
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
         callback->OnSurfaceCapture(pixelmap);
@@ -257,6 +260,25 @@ bool RSRenderInterface::TakeSurfaceCaptureWithAllWindows(std::shared_ptr<RSDispl
         node->GetId(), callback, captureConfig, checkDrmAndSurfaceLock);
 }
 
+bool RSRenderInterface::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
+{
+    if (renderPipelineClient_ == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::GetBitmap renderPipelineClient_ == nullptr!");
+        return false;
+    }
+    return renderPipelineClient_->GetBitmap(id, bitmap);
+}
+ 
+bool RSRenderInterface::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
+    const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
+{
+    if (renderPipelineClient_ == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::GetPixelmap: renderPipelineClient_ is nullptr");
+        return false;
+    }
+    return renderPipelineClient_->GetPixelmap(id, pixelmap, rect, drawCmdList);
+}
+
 bool RSRenderInterface::FreezeScreen(std::shared_ptr<RSDisplayNode> node, bool isFreeze, bool needSync)
 {
     if (!node) {
@@ -300,6 +322,37 @@ bool RSRenderInterface::RegisterTransactionDataCallback(
     return renderPipelineClient_->RegisterTransactionDataCallback(token, timeStamp, callback);
 }
 
+std::shared_ptr<RSSurface> RSRenderInterface::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config,
+    bool unobscured)
+{
+    if (renderPipelineClient_ == nullptr) {
+        ROSEN_LOGE("RSRenderInterface::CreateNodeAndSurface renderPipelineClient_ nullptr");
+        return nullptr;
+    }
+    return renderPipelineClient_->CreateNodeAndSurface(config, unobscured);
+}
+ 
+RSInterfaceErrorCode RSRenderInterface::SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent)
+{
+    if (renderPipelineClient_) {
+        return static_cast<RSInterfaceErrorCode>(
+            renderPipelineClient_->SetHidePrivacyContent(id, needHidePrivacyContent));
+    } else {
+        ROSEN_LOGE("RSRenderInterface::SetHidePrivacyContent renderPipelineClient_ nullptr");
+    }
+    return RSInterfaceErrorCode::UNKNOWN_ERROR;
+}
+ 
+void RSRenderInterface::SetHardwareEnabled(
+    NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType, bool dynamicHardwareEnable)
+{
+    if (renderPipelineClient_) {
+        renderPipelineClient_->SetHardwareEnabled(id, isEnabled, selfDrawingType, dynamicHardwareEnable);
+    } else {
+        ROSEN_LOGE("RSRenderInterface::SetHardwareEnabled renderPipelineClient_ nullptr");
+    }
+}
+
 void RSRenderInterface::ClearUifirstCache(NodeId id)
 {
     if (renderPipelineClient_ == nullptr) {
@@ -325,6 +378,33 @@ int32_t RSRenderInterface::SetFocusAppInfo(const FocusAppInfo& info)
         return ERR_INVALID_VALUE;
     }
     return renderPipelineClient_->SetFocusAppInfo(info);
+}
+
+bool RSRenderInterface::RegisterBufferAvailableListener(
+    NodeId id, const BufferAvailableCallback &callback, bool isFromRenderThread)
+{
+    if (renderPipelineClient_ == nullptr) {
+        RS_TRACE_NAME_FMT("RSRenderInterface::RegisterBufferAvailableListener nullptr id is %lu", id);
+        return false;
+    }
+    return renderPipelineClient_->RegisterBufferAvailableListener(id, callback, isFromRenderThread);
+}
+ 
+bool RSRenderInterface::RegisterBufferClearListener(NodeId id, const BufferClearCallback& callback)
+{
+    if (renderPipelineClient_ == nullptr) {
+        return false;
+    }
+    return renderPipelineClient_->RegisterBufferClearListener(id, callback);
+}
+ 
+ 
+bool RSRenderInterface::UnregisterBufferAvailableListener(NodeId id)
+{
+    if (renderPipelineClient_ == nullptr) {
+        return false;
+    }
+    return renderPipelineClient_->UnregisterBufferAvailableListener(id);
 }
 
 bool RSRenderInterface::SetAncoForceDoDirect(bool direct)
@@ -377,6 +457,24 @@ void RSRenderInterface::SetWindowContainer(NodeId nodeId, bool value)
     renderPipelineClient_->SetWindowContainer(nodeId, value);
 }
 
+bool RSRenderInterface::CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId)
+{
+    if (renderPipelineClient_ == nullptr) {
+        ROSEN_LOGE("RSRenderInterface::CreateNode renderPipelineClient_ nullptr");
+        return false;
+    }
+    return renderPipelineClient_->CreateDisplayNode(displayNodeConfig, nodeId);
+}
+ 
+bool RSRenderInterface::CreateNode(const RSSurfaceRenderNodeConfig& config)
+{
+    if (renderPipelineClient_ == nullptr) {
+        ROSEN_LOGE("RSRenderInterface::CreateNode renderPipelineClient_ nullptr");
+        return false;
+    }
+    return renderPipelineClient_->CreateNode(config);
+}
+
 int32_t RSRenderInterface::GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo)
 {
     return renderPipelineClient_->GetBrightnessInfo(screenId, brightnessInfo);
@@ -401,11 +499,6 @@ int32_t RSRenderInterface::GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& max
         RS_LOGI("UniRender, using render pipeline");
         return renderPipelineClient_->GetMaxGpuBufferSize(maxWidth, maxHeight);
     }
-}
-
-bool RSRenderInterface::GetHighContrastTextState()
-{
-    return renderPipelineClient_->GetHighContrastTextState();
 }
 
 bool RSRenderInterface::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation)
@@ -508,29 +601,9 @@ int32_t RSRenderInterface::SetLogicalCameraRotationCorrection(ScreenId id, Scree
     return renderPipelineClient_->SetLogicalCameraRotationCorrection(id, logicalCorrection);
 }
 
-int32_t RSRenderInterface::RegisterFrameStabilityDetection(
-    const FrameStabilityTarget& target,
-    const FrameStabilityConfig& config,
-    const FrameStabilityCallback& callback)
+void RSRenderInterface::SetFreeMultiWindowStatus(bool enable)
 {
-    return renderPipelineClient_->RegisterFrameStabilityDetection(target, config, callback);
-}
-
-int32_t RSRenderInterface::UnregisterFrameStabilityDetection(const FrameStabilityTarget& target)
-{
-    return renderPipelineClient_->UnregisterFrameStabilityDetection(target);
-}
-
-int32_t RSRenderInterface::StartFrameStabilityCollection(
-    const FrameStabilityTarget& target,
-    const FrameStabilityConfig& config)
-{
-    return renderPipelineClient_->StartFrameStabilityCollection(target, config);
-}
-
-int32_t RSRenderInterface::GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result)
-{
-    return renderPipelineClient_->GetFrameStabilityResult(target, result);
+    renderPipelineClient_->SetFreeMultiWindowStatus(enable);
 }
 }
 }

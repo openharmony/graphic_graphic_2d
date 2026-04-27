@@ -794,6 +794,25 @@ bool RSRenderNodeDrawableAdapter::IsFilterCacheValidForOcclusion() const
         });
 }
 
+bool RSRenderNodeDrawableAdapter::IsFilterCacheValidForPartialRender() const
+{
+    bool sysPropEnable = RSSystemProperties::GetBlurEnabled() && RSSystemProperties::GetFilterCacheEnabled()
+        && RSFilterCacheManager::isCCMFilterCacheEnable_ && RSUniRenderJudgement::IsUniRender();
+    if (!sysPropEnable) {
+        return false;
+    }
+
+    bool val = !filterDrawables_.empty();
+
+    std::for_each(filterDrawables_.begin(), filterDrawables_.end(),
+        [&val] (std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable) {
+            if (filterDrawable != nullptr) {
+                val = val && filterDrawable->IsFilterCacheValidForPartialRender();
+            }
+        });
+    return val;
+}
+
 const RectI RSRenderNodeDrawableAdapter::GetFilterCachedRegion() const
 {
     RectI rect{0, 0, 0, 0};
