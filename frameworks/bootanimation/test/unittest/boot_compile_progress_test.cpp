@@ -15,9 +15,7 @@
 
 #include <gtest/gtest.h>
 
-#define private public
 #include "boot_compile_progress.h"
-#undef private
 #include "boot_animation_strategy.h"
 #include "parameters.h"
 #include "animation/rs_cubic_bezier_interpolator.h"
