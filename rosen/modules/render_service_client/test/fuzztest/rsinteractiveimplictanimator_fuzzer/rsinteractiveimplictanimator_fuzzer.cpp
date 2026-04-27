@@ -19,6 +19,7 @@
 
 #include "rs_animation_timing_curve.h"
 #include "rs_interactive_implict_animator.h"
+#include "transaction/rs_interfaces.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_ui_context_manager.h"
 
@@ -67,6 +68,14 @@ namespace OHOS {
         }
         std::string str(cstr);
         return str;
+    }
+
+    std::shared_ptr<RSUIContext> CreateRSUIContext()
+    {
+        auto screenId = RSInterfaces::GetInstance().GetDefaultScreenId();
+        sptr<IRemoteObject> connectToRender = RSInterfaces::GetInstance().GetConnectToRenderToken(screenId);
+        auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRender);
+        return rsUIContext;
     }
 
     void RSInteractiveImplictAnimatorAddImplictAnimationFuzzTest()
@@ -237,8 +246,7 @@ namespace OHOS {
         g_pos = 0;
 
         if (!g_rsUIContext) {
-            OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-            g_rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRenderRemote);
+            g_rsUIContext = CreateRSUIContext();
         }
 
         RSInteractiveImplictAnimatorAddImplictAnimationFuzzTest();
