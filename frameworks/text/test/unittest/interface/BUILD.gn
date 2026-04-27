@@ -23,9 +23,8 @@ ohos_unittest("rosen_text_interface_test") {
     "run_get_text_style_test.cpp",
     "typography_thread_test.cpp",
   ]
-  include_dirs = [
-    "$rosen_text_root/interface/export/rosen_text",
-  ]
+
+  include_dirs = [ "$rosen_text_root/interface/export/rosen_text" ]
 
   cflags = [
     "-std=c++17",
