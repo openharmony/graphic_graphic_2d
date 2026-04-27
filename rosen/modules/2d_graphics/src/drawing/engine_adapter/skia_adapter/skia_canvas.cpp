@@ -1483,6 +1483,15 @@ void SkiaCanvas::InsertOpaqueRegion(const std::vector<RectI>& opaqueRects)
 {
     LOGD("skia does not support InsertOpaqueRegion");
 }
+
+bool SkiaCanvas::IsOpaque()
+{
+    if (!skCanvas_) {
+        LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
+        return false;
+    }
+    return skCanvas_->isOpaque();
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

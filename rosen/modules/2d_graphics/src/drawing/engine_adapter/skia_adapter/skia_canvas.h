@@ -203,6 +203,7 @@ public:
 
     void InsertOpaqueRegion(const std::vector<RectI>& opaqueRects) override;
 
+    bool IsOpaque() override;
 private:
     void RoundRectCastToSkRRect(const RoundRect& roundRect, SkRRect& skRRect) const;
     bool ConvertToHMSymbolData(const DrawingHMSymbolData& symbol, HMSymbolData& skSymbol);
