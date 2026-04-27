@@ -5551,5 +5551,9 @@ uint32_t RSRenderNode::GetHdrUIComponentHeadroom() const
     return RSRenderNode::DEFAULT_HEADROOM_VALUE;
 }
 
+void RSRenderNode::ReSortChildrenByZIndex()
+{
+    isFullChildrenListValid_ = false;
+}
 } // namespace Rosen
 } // namespace OHOS

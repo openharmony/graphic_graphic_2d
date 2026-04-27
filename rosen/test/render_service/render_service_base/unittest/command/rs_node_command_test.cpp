@@ -651,4 +651,19 @@ HWTEST_F(RSNodeCommandTest, SetColorPickerCallbackProcessorTest, TestSize.Level1
     // Cleanup
     RSNodeCommandHelper::SetColorPickerCallbackProcessor(nullptr);
 }
+
+/**
+ * @tc.name: ReSortChildrenByZIndexTest
+ * @tc.desc: Test ReSortChildrenByZIndex
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeCommandTest, ReSortChildrenByZIndexTest, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 1;
+    auto canvasNode = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
+    RSNodeCommandHelper::ReSortChildrenByZIndex(context, nodeId);
+    ASSERT_NE(canvasNode, nullptr);
+    ASSERT_FALSE(canvasNode->isFullChildrenListValid_);
+}
 } // namespace OHOS::Rosen

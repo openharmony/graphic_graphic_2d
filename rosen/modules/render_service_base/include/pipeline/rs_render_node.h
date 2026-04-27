@@ -1085,6 +1085,7 @@ public:
     // returns true if node only has ColorPickerDrawable without any real filter
     bool IsColorPickerOnlyNode() const;
 
+    void ReSortChildrenByZIndex();
 protected:
     void ResetDirtyStatus();
 

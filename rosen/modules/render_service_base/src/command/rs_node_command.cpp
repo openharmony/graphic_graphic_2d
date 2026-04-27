@@ -376,5 +376,14 @@ void RSNodeCommandHelper::MarkLayer(RSContext& context, NodeId nodeId, bool isLa
         }
     }
 }
+
+void RSNodeCommandHelper::ReSortChildrenByZIndex(RSContext& context, NodeId nodeId)
+{
+    auto& nodeMap = context.GetNodeMap();
+    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
+    if (node) {
+        node->ReSortChildrenByZIndex();
+    }
+}
 } // namespace Rosen
 } // namespace OHOS
