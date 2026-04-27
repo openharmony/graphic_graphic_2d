@@ -75,7 +75,7 @@ RSCanvasNode::RSCanvasNode(bool isRenderServiceNode, NodeId id, bool isTextureEx
 
 RSCanvasNode::~RSCanvasNode()
 {
-#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
+#if 0//def RS_ENABLE_VK
     if (IsHybridRenderCanvas()) {
         RSModifiersDraw::RemoveSurfaceByNodeId(GetId(), true);
     }
@@ -243,7 +243,7 @@ bool RSCanvasNode::GetBitmap(Drawing::Bitmap& bitmap, std::shared_ptr<Drawing::D
         return false;
     }
     bool ret = false;
-#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
+#if 0//def RS_ENABLE_VK
     RSModifiersDrawThread::Instance().PostSyncTask([this, &bitmap, &ret]() {
         auto pixelMap = RSModifiersDraw::GetPixelMapByNodeId(GetId(), false);
         if (pixelMap == nullptr) {
@@ -273,7 +273,7 @@ bool RSCanvasNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pixelMap,
         return false;
     }
     bool ret = false;
-#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
+#if 0//def RS_ENABLE_VK
     RSModifiersDrawThread::Instance().PostSyncTask([this, pixelMap, rect, &ret]() {
         auto srcPixelMap = RSModifiersDraw::GetPixelMapByNodeId(GetId(), false);
         if (srcPixelMap == nullptr) {
@@ -309,7 +309,7 @@ bool RSCanvasNode::ResetSurface(int width, int height)
     if (!IsHybridRenderCanvas()) {
         return false;
     }
-#if defined(RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
+#if 0//def RS_ENABLE_VK
     return RSModifiersDraw::ResetSurfaceByNodeId(width, height, GetId(), true, true);
 #endif
     return false;

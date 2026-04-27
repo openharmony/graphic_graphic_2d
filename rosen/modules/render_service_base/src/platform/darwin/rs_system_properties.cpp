@@ -21,7 +21,7 @@ namespace OHOS {
 namespace Rosen {
 
 #if (defined (ACE_ENABLE_GL) && defined (ACE_ENABLE_VK)) || (defined (RS_ENABLE_GL) && defined (RS_ENABLE_VK))
-const GpuApiType RSSystemProperties::systemGpuApiType_ = GpuApiType::OPENGL;
+const GpuApiType RSSystemProperties::systemGpuApiType_ = GpuApiType::VULKAN;
 #elif defined (ACE_ENABLE_GL) || defined (RS_ENABLE_GL)
 const GpuApiType RSSystemProperties::systemGpuApiType_ = GpuApiType::OPENGL;
 #else

@@ -62,6 +62,7 @@ struct HDSampleInfo {
     float filterBandWidth[2] = {1.0f, 1.0f}; // used in SLR for adjusting image definition.
     float sharpness = 0.15f;                 // used for adjusting sharpness, the adjustment range is 0-1.
     bool isUniformScale = false;
+	float alpha = 0.5f;
 };
 
 class ImageFilterImpl : public BaseImpl {
