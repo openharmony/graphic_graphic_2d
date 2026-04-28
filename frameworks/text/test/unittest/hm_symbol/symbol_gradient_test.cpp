@@ -254,5 +254,445 @@ HWTEST_F(OHHmSymbolGradientTest, SymbolRadialGradient_SetRadius, TestSize.Level0
     gradient.SetRadiusRatio(-0.5f); // -0.5f is RadiusRatios < 0
     EXPECT_EQ(gradient.GetRadiusRatio(), 0.0f);
 }
+
+/*
+ * @tc.name: UIColor_SetGet001
+ * @tc.desc: test SetUIColors and GetUIColors and HasUIColor
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolGradientTest, UIColor_SetGet001, TestSize.Level0)
+{
+    SymbolGradient gradient;
+    // test HasUIColor returns false by default
+    EXPECT_FALSE(gradient.HasUIColor());
+
+    // test SetUIColors and GetUIColors
+    Drawing::UIColor uiColor(1.0f, 0.5f, 0.3f, 1.0f); // RGBA
+    gradient.SetUIColors({ uiColor }, SymbolColorSpace::SRGB);
+    EXPECT_TRUE(gradient.HasUIColor());
+
+    auto uiColors = gradient.GetUIColors();
+    ASSERT_EQ(uiColors.size(), 1); // 1 is the size of uiColors
+    EXPECT_FLOAT_EQ(uiColors[0].GetRed(), 1.0f);
+    EXPECT_FLOAT_EQ(uiColors[0].GetGreen(), 0.5f);
+    EXPECT_FLOAT_EQ(uiColors[0].GetBlue(), 0.3f);
+    EXPECT_FLOAT_EQ(uiColors[0].GetAlpha(), 1.0f);
+}
+
+/*
+ * @tc.name: UIColor_ColorSpace001
+ * @tc.desc: test GetColorSpace with different color spaces
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolGradientTest, UIColor_ColorSpace001, TestSize.Level0)
+{
+    SymbolGradient gradient;
+    // default color space is SRGB
+    EXPECT_EQ(gradient.GetColorSpace(), SymbolColorSpace::SRGB);
+
+    Drawing::UIColor uiColor(1.0f, 0.0f, 0.0f, 1.0f);
+    gradient.SetUIColors({ uiColor }, SymbolColorSpace::DISPLAY_P3);
+    EXPECT_EQ(gradient.GetColorSpace(), SymbolColorSpace::DISPLAY_P3);
+
+    gradient.SetUIColors({ uiColor }, SymbolColorSpace::BT2020);
+    EXPECT_EQ(gradient.GetColorSpace(), SymbolColorSpace::BT2020);
+
+    gradient.SetUIColors({ uiColor }, SymbolColorSpace::SRGB);
+    EXPECT_EQ(gradient.GetColorSpace(), SymbolColorSpace::SRGB);
+}
+
+/*
+ * @tc.name: IsNearlyEqual_UIColor001
+ * @tc.desc: test IsNearlyEqual with UIColor comparison
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolGradientTest, IsNearlyEqual_UIColor001, TestSize.Level0)
+{
+    auto gradient1 = std::make_shared<SymbolGradient>();
+    auto gradient2 = std::make_shared<SymbolGradient>();
+    // 0xFF00FF00 and 0XFFFF0000 is ARGB
+    std::vector<Drawing::Color> colors = {Drawing::Color(0xFF00FF00), Drawing::Color(0XFFFF0000)};
+    gradient1->SetColors(colors);
+    gradient2->SetColors(colors);
+    EXPECT_TRUE(gradient1->IsNearlyEqual(gradient2));
+
+    // test one has UIColor, the other doesn't
+    Drawing::UIColor uiColor(1.0f, 0.0f, 0.0f, 1.0f);
+    gradient1->SetUIColors({ uiColor }, SymbolColorSpace::SRGB);
+    EXPECT_FALSE(gradient1->IsNearlyEqual(gradient2));
+
+    // test same UIColor
+    gradient2->SetUIColors({ uiColor }, SymbolColorSpace::SRGB);
+    EXPECT_TRUE(gradient1->IsNearlyEqual(gradient2));
+
+    // test different UIColor
+    Drawing::UIColor uiColor2(0.0f, 1.0f, 0.0f, 1.0f);
+    gradient1->SetUIColors({ uiColor2 }, SymbolColorSpace::SRGB);
+    EXPECT_FALSE(gradient1->IsNearlyEqual(gradient2));
+}
+
+/*
+ * @tc.name: CreateGradientBrush_UIColor001
+ * @tc.desc: test CreateGradientBrush with UIColor for SymbolGradient
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolGradientTest, CreateGradientBrush_UIColor001, TestSize.Level0)
+{
+    SymbolGradient gradient;
+    Drawing::UIColor uiColor(1.0f, 0.5f, 0.3f, 1.0f);
+    gradient.SetUIColors({ uiColor }, SymbolColorSpace::SRGB);
+    // 0.0f left, 0.0f top, 100.0f right, 100.0f bottom
+    Drawing::Rect bounds = Drawing::Rect(0.0f, 0.0f, 100.0f, 100.0f);
+    gradient.Make(bounds);
+    auto brush = gradient.CreateGradientBrush();
+    EXPECT_TRUE(brush.IsAntiAlias());
+}
+
+/*
+ * @tc.name: CreateGradientPen_UIColor001
+ * @tc.desc: test CreateGradientPen with UIColor for SymbolGradient
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolGradientTest, CreateGradientPen_UIColor001, TestSize.Level0)
+{
+    SymbolGradient gradient;
+    Drawing::UIColor uiColor(1.0f, 0.5f, 0.3f, 1.0f);
+    gradient.SetUIColors({ uiColor }, SymbolColorSpace::DISPLAY_P3);
+    // 0.0f left, 0.0f top, 100.0f right, 100.0f bottom
+    Drawing::Rect bounds = Drawing::Rect(0.0f, 0.0f, 100.0f, 100.0f);
+    gradient.Make(bounds);
+    auto pen = gradient.CreateGradientPen();
+    EXPECT_TRUE(pen.IsAntiAlias());
+}
+
+/*
+ * @tc.name: SymbolLineGradient_UIColor001
+ * @tc.desc: test SymbolLineGradient with UIColor
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolGradientTest, SymbolLineGradient_UIColor001, TestSize.Level0)
+{
+    SymbolLineGradient gradient(45.0f); // 45.0f is angle
+    // 0XFF00FF00 and 0XFFFF0000 is ARGB
+    std::vector<Drawing::Color> colors = {Drawing::Color(0XFF00FF00), Drawing::Color(0XFFFF0000)};
+    std::vector<float> positions = {0.2f, 0.9f}; // 0.2f and 0.9f is position of colors
+    Drawing::UIColor uiColor(1.0f, 0.5f, 0.3f, 1.0f);
+    gradient.SetUIColors({ uiColor }, SymbolColorSpace::SRGB);
+    EXPECT_TRUE(gradient.HasUIColor());
+
+    // 0.0f left, 0.0f top, 100.0f right, 100.0f bottom
+    Drawing::Rect bounds = Drawing::Rect(0.0f, 0.0f, 100.0f, 100.0f);
+    Drawing::Point offset = Drawing::Point(0.5f, 0.6f); // 0.5f: x, 0.6f: y
+    gradient.SetColors(colors);
+    gradient.SetPositions(positions);
+    gradient.Make(bounds);
+    auto brush = gradient.CreateGradientBrush(offset);
+    auto pen = gradient.CreateGradientPen(offset);
+    EXPECT_NE(brush.GetShaderEffect(), nullptr);
+    EXPECT_TRUE(brush.IsAntiAlias());
+    EXPECT_TRUE(pen.IsAntiAlias());
+}
+
+/*
+ * @tc.name: SymbolRadialGradient_UIColor001
+ * @tc.desc: test SymbolRadialGradient with UIColor
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolGradientTest, SymbolRadialGradient_UIColor001, TestSize.Level0)
+{
+    Drawing::Point centerPt = Drawing::Point(0.5f, 0.5f); // 0.5f: x, 0.5f: y
+    float radiusRatio = 0.6f; // 0.6f is radius ratio
+    SymbolRadialGradient gradient(centerPt, radiusRatio);
+    // 0XFF00FF00 and 0XFFFF0000 is ARGB
+    std::vector<Drawing::Color> colors = {Drawing::Color(0XFF00FF00), Drawing::Color(0XFFFF0000)};
+    std::vector<float> positions = {0.2f, 0.9f}; // 0.2f and 0.9f is position of colors
+    Drawing::UIColor uiColor(1.0f, 0.5f, 0.3f, 1.0f);
+    gradient.SetUIColors({ uiColor }, SymbolColorSpace::BT2020);
+    EXPECT_TRUE(gradient.HasUIColor());
+    EXPECT_EQ(gradient.GetColorSpace(), SymbolColorSpace::BT2020);
+
+    // 0.0f left, 0.0f top, 100.0f right, 100.0f bottom
+    Drawing::Rect bounds = Drawing::Rect(0.0f, 0.0f, 100.0f, 100.0f);
+    Drawing::Point offset = Drawing::Point(0.5f, 0.6f); // 0.5f: x, 0.6f: y
+    gradient.SetColors(colors);
+    gradient.SetPositions(positions);
+    gradient.Make(bounds);
+    auto brush = gradient.CreateGradientBrush(offset);
+    auto pen = gradient.CreateGradientPen(offset);
+    EXPECT_NE(brush.GetShaderEffect(), nullptr);
+    EXPECT_TRUE(brush.IsAntiAlias());
+    EXPECT_TRUE(pen.IsAntiAlias());
+}
+
+/*
+ * @tc.name: UIColor_BothColorAndUIColor001
+ * @tc.desc: test SymbolGradient with both Color and UIColor set, UIColor takes priority
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolGradientTest, UIColor_BothColorAndUIColor001, TestSize.Level0)
+{
+    SymbolGradient gradient;
+    // Set Drawing::Color first
+    gradient.SetColors({Drawing::Color(0xFF00FF00)}); // 0xFF00FF00 is ARGB
+    EXPECT_FALSE(gradient.GetColors().empty());
+    EXPECT_FALSE(gradient.HasUIColor());
+
+    // Set UIColor
+    Drawing::UIColor uiColor(1.0f, 0.5f, 0.3f, 1.0f);
+    gradient.SetUIColors({ uiColor }, SymbolColorSpace::DISPLAY_P3);
+
+    // Both are stored, UIColor takes priority in CreateGradientBrush/Pen
+    EXPECT_FALSE(gradient.GetColors().empty());
+    EXPECT_TRUE(gradient.HasUIColor());
+    EXPECT_EQ(gradient.GetColorSpace(), SymbolColorSpace::DISPLAY_P3);
+
+    Drawing::Rect bounds = Drawing::Rect(0.0f, 0.0f, 100.0f, 100.0f);
+    gradient.Make(bounds);
+    auto brush = gradient.CreateGradientBrush();
+    auto pen = gradient.CreateGradientPen();
+    EXPECT_TRUE(brush.IsAntiAlias());
+    EXPECT_TRUE(pen.IsAntiAlias());
+}
+
+/*
+ * @tc.name: SymbolLineGradient_BothColorAndUIColor001
+ * @tc.desc: test SymbolLineGradient with both Color and UIColor set
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolGradientTest, SymbolLineGradient_BothColorAndUIColor001, TestSize.Level0)
+{
+    SymbolLineGradient gradient(90.0f); // 90.0f is angle
+    // 0XFF00FF00 and 0XFFFF0000 is ARGB
+    std::vector<Drawing::Color> colors = {Drawing::Color(0XFF00FF00), Drawing::Color(0XFFFF0000)};
+    std::vector<float> positions = {0.2f, 0.9f}; // 0.2f and 0.9f is position of colors
+    gradient.SetColors(colors);
+    gradient.SetPositions(positions);
+
+    Drawing::UIColor uiColor(1.0f, 0.5f, 0.3f, 1.0f);
+    gradient.SetUIColors({ uiColor }, SymbolColorSpace::BT2020);
+
+    EXPECT_FALSE(gradient.GetColors().empty());
+    EXPECT_TRUE(gradient.HasUIColor());
+    EXPECT_EQ(gradient.GetColorSpace(), SymbolColorSpace::BT2020);
+
+    Drawing::Rect bounds = Drawing::Rect(0.0f, 0.0f, 100.0f, 100.0f);
+    Drawing::Point offset = Drawing::Point(0.5f, 0.6f); // 0.5f: x, 0.6f: y
+    gradient.Make(bounds);
+    auto brush = gradient.CreateGradientBrush(offset);
+    auto pen = gradient.CreateGradientPen(offset);
+    EXPECT_NE(brush.GetShaderEffect(), nullptr);
+    EXPECT_TRUE(brush.IsAntiAlias());
+    EXPECT_TRUE(pen.IsAntiAlias());
+}
+
+/*
+ * @tc.name: SymbolRadialGradient_BothColorAndUIColor001
+ * @tc.desc: test SymbolRadialGradient with both Color and UIColor set
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolGradientTest, SymbolRadialGradient_BothColorAndUIColor001, TestSize.Level0)
+{
+    Drawing::Point centerPt = Drawing::Point(0.5f, 0.5f); // 0.5f: x, 0.5f: y
+    float radiusRatio = 0.6f; // 0.6f is radius ratio
+    SymbolRadialGradient gradient(centerPt, radiusRatio);
+    // 0XFF00FF00 and 0XFFFF0000 is ARGB
+    std::vector<Drawing::Color> colors = {Drawing::Color(0XFF00FF00), Drawing::Color(0XFFFF0000)};
+    std::vector<float> positions = {0.2f, 0.9f}; // 0.2f and 0.9f is position of colors
+    gradient.SetColors(colors);
+    gradient.SetPositions(positions);
+
+    Drawing::UIColor uiColor(1.0f, 0.5f, 0.3f, 1.0f);
+    gradient.SetUIColors({ uiColor }, SymbolColorSpace::SRGB);
+
+    EXPECT_FALSE(gradient.GetColors().empty());
+    EXPECT_TRUE(gradient.HasUIColor());
+
+    Drawing::Rect bounds = Drawing::Rect(0.0f, 0.0f, 100.0f, 100.0f);
+    Drawing::Point offset = Drawing::Point(0.5f, 0.6f); // 0.5f: x, 0.6f: y
+    gradient.Make(bounds);
+    auto brush = gradient.CreateGradientBrush(offset);
+    auto pen = gradient.CreateGradientPen(offset);
+    EXPECT_NE(brush.GetShaderEffect(), nullptr);
+    EXPECT_TRUE(brush.IsAntiAlias());
+    EXPECT_TRUE(pen.IsAntiAlias());
+}
+
+/*
+ * @tc.name: IsNearlyEqual_BothColorAndUIColor001
+ * @tc.desc: test IsNearlyEqual with both Color and UIColor set
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolGradientTest, IsNearlyEqual_BothColorAndUIColor001, TestSize.Level0)
+{
+    auto gradient1 = std::make_shared<SymbolGradient>();
+    auto gradient2 = std::make_shared<SymbolGradient>();
+    // 0xFF00FF00 is ARGB
+    std::vector<Drawing::Color> colors = {Drawing::Color(0xFF00FF00)};
+    Drawing::UIColor uiColor(1.0f, 0.5f, 0.3f, 1.0f);
+
+    // Both have same Color + same UIColor
+    gradient1->SetColors(colors);
+    gradient1->SetUIColors({ uiColor }, SymbolColorSpace::SRGB);
+    gradient2->SetColors(colors);
+    gradient2->SetUIColors({ uiColor }, SymbolColorSpace::SRGB);
+    EXPECT_TRUE(gradient1->IsNearlyEqual(gradient2));
+
+    // Same Color, different UIColor
+    Drawing::UIColor uiColor2(0.0f, 1.0f, 0.0f, 1.0f);
+    gradient2->SetUIColors({ uiColor2 }, SymbolColorSpace::SRGB);
+    EXPECT_FALSE(gradient1->IsNearlyEqual(gradient2));
+}
+
+/*
+ * @tc.name: UIColor_Headroom001
+ * @tc.desc: test UIColor headroom set and get with HDR values
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolGradientTest, UIColor_Headroom001, TestSize.Level0)
+{
+    SymbolGradient gradient;
+    // default headroom is 1.0
+    Drawing::UIColor uiColorDefault(1.0f, 0.5f, 0.3f, 1.0f);
+    EXPECT_FLOAT_EQ(uiColorDefault.GetHeadroom(), 1.0f);
+
+    // SetHeadroom sets HDR headroom > 1.0 (brighter)
+    Drawing::UIColor uiColorBright(1.0f, 0.5f, 0.3f, 1.0f);
+    uiColorBright.SetHeadroom(2.0f);
+    EXPECT_FLOAT_EQ(uiColorBright.GetHeadroom(), 2.0f);
+
+    // SetHeadroom sets HDR headroom = 4.0 (maximum)
+    Drawing::UIColor uiColor(1.0f, 0.5f, 0.3f, 1.0f);
+    uiColor.SetHeadroom(4.0f);
+    EXPECT_FLOAT_EQ(uiColor.GetHeadroom(), 4.0f);
+
+    // Verify UIColor with headroom stored in gradient
+    gradient.SetUIColors({ uiColor }, SymbolColorSpace::BT2020);
+    auto uiColors = gradient.GetUIColors();
+    ASSERT_EQ(uiColors.size(), 1);
+    EXPECT_FLOAT_EQ(uiColors[0].GetHeadroom(), 4.0f);
+    EXPECT_FLOAT_EQ(uiColors[0].GetRed(), 1.0f);
+    EXPECT_FLOAT_EQ(uiColors[0].GetGreen(), 0.5f);
+    EXPECT_FLOAT_EQ(uiColors[0].GetBlue(), 0.3f);
+}
+
+/*
+ * @tc.name: UIColor_ValuesAboveOne001
+ * @tc.desc: test UIColor with RGBA values > 1.0 (HDR range)
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolGradientTest, UIColor_ValuesAboveOne001, TestSize.Level0)
+{
+    // HDR color with RGBA > 1.0, headroom set via SetHeadroom
+    Drawing::UIColor uiColor(2.0f, 3.5f, 1.5f, 1.0f);
+    uiColor.SetHeadroom(4.0f);
+    EXPECT_FLOAT_EQ(uiColor.GetRed(), 2.0f);
+    EXPECT_FLOAT_EQ(uiColor.GetGreen(), 3.5f);
+    EXPECT_FLOAT_EQ(uiColor.GetBlue(), 1.5f);
+    EXPECT_FLOAT_EQ(uiColor.GetAlpha(), 1.0f);
+    EXPECT_FLOAT_EQ(uiColor.GetHeadroom(), 4.0f);
+
+    SymbolGradient gradient;
+    gradient.SetUIColors({ uiColor }, SymbolColorSpace::DISPLAY_P3);
+    EXPECT_TRUE(gradient.HasUIColor());
+
+    auto uiColors = gradient.GetUIColors();
+    ASSERT_EQ(uiColors.size(), 1);
+    EXPECT_FLOAT_EQ(uiColors[0].GetRed(), 2.0f);
+    EXPECT_FLOAT_EQ(uiColors[0].GetGreen(), 3.5f);
+    EXPECT_FLOAT_EQ(uiColors[0].GetBlue(), 1.5f);
+    EXPECT_FLOAT_EQ(uiColors[0].GetHeadroom(), 4.0f);
+}
+
+/*
+ * @tc.name: UIColor_ValuesBelowOne001
+ * @tc.desc: test UIColor with RGBA values < 1.0 (dim HDR)
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolGradientTest, UIColor_ValuesBelowOne001, TestSize.Level0)
+{
+    // Dim color with RGBA < 1.0, headroom default 1.0
+    Drawing::UIColor uiColor(0.1f, 0.2f, 0.05f, 0.3f);
+    EXPECT_FLOAT_EQ(uiColor.GetRed(), 0.1f);
+    EXPECT_FLOAT_EQ(uiColor.GetGreen(), 0.2f);
+    EXPECT_FLOAT_EQ(uiColor.GetBlue(), 0.05f);
+    EXPECT_FLOAT_EQ(uiColor.GetAlpha(), 0.3f);
+    EXPECT_FLOAT_EQ(uiColor.GetHeadroom(), 1.0f);
+
+    SymbolGradient gradient;
+    gradient.SetUIColors({ uiColor }, SymbolColorSpace::SRGB);
+
+    auto uiColors = gradient.GetUIColors();
+    ASSERT_EQ(uiColors.size(), 1);
+    EXPECT_FLOAT_EQ(uiColors[0].GetRed(), 0.1f);
+    EXPECT_FLOAT_EQ(uiColors[0].GetGreen(), 0.2f);
+    EXPECT_FLOAT_EQ(uiColors[0].GetBlue(), 0.05f);
+    EXPECT_FLOAT_EQ(uiColors[0].GetAlpha(), 0.3f);
+    EXPECT_FLOAT_EQ(uiColors[0].GetHeadroom(), 1.0f);
+}
+
+/*
+ * @tc.name: UIColor_AlphaClamp001
+ * @tc.desc: test UIColor alpha is clamped to [0.0, 1.0] by Drawing layer
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolGradientTest, UIColor_AlphaClamp001, TestSize.Level0)
+{
+    // alpha > 1.0 clamped to 1.0
+    Drawing::UIColor uiColorOver(1.0f, 0.5f, 0.3f, 2.0f);
+    EXPECT_FLOAT_EQ(uiColorOver.GetAlpha(), 1.0f);
+
+    // alpha = 0.0 is valid
+    Drawing::UIColor uiColorZero(1.0f, 0.5f, 0.3f, 0.0f);
+    EXPECT_FLOAT_EQ(uiColorZero.GetAlpha(), 0.0f);
+    EXPECT_TRUE(uiColorZero.GetRed() > 0.0f);
+
+    // alpha < 0.0 clamped to 0.0
+    Drawing::UIColor uiColorNeg(1.0f, 0.5f, 0.3f, -1.0f);
+    EXPECT_FLOAT_EQ(uiColorNeg.GetAlpha(), 0.0f);
+}
+
+/*
+ * @tc.name: UIColor_RGBBelowZero001
+ * @tc.desc: test UIColor negative RGB values are clamped to 0.0 by Drawing layer
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolGradientTest, UIColor_RGBBelowZero001, TestSize.Level0)
+{
+    // Negative RGB values clamped to 0.0
+    Drawing::UIColor uiColor(-1.0f, -0.5f, -0.3f, 1.0f);
+    EXPECT_FLOAT_EQ(uiColor.GetRed(), 0.0f);
+    EXPECT_FLOAT_EQ(uiColor.GetGreen(), 0.0f);
+    EXPECT_FLOAT_EQ(uiColor.GetBlue(), 0.0f);
+}
+
+/*
+ * @tc.name: IsNearlyEqual_UIColor_Headroom001
+ * @tc.desc: test IsNearlyEqual with different headroom values
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolGradientTest, IsNearlyEqual_UIColor_Headroom001, TestSize.Level0)
+{
+    auto gradient1 = std::make_shared<SymbolGradient>();
+    auto gradient2 = std::make_shared<SymbolGradient>();
+
+    // Same UIColor with same headroom via SetHeadroom
+    Drawing::UIColor uiColor1(1.0f, 0.5f, 0.3f, 1.0f);
+    uiColor1.SetHeadroom(2.0f);
+    Drawing::UIColor uiColor2(1.0f, 0.5f, 0.3f, 1.0f);
+    uiColor2.SetHeadroom(2.0f);
+    gradient1->SetUIColors({ uiColor1 }, SymbolColorSpace::SRGB);
+    gradient2->SetUIColors({ uiColor2 }, SymbolColorSpace::SRGB);
+    EXPECT_TRUE(gradient1->IsNearlyEqual(gradient2));
+
+    // Same RGBA, different headroom
+    Drawing::UIColor uiColor3(1.0f, 0.5f, 0.3f, 1.0f);
+    uiColor3.SetHeadroom(4.0f);
+    gradient2->SetUIColors({ uiColor3 }, SymbolColorSpace::SRGB);
+    EXPECT_FALSE(gradient1->IsNearlyEqual(gradient2));
+
+    // Different uiColorSize
+    gradient2->SetUIColors({ uiColor3, uiColor3}, SymbolColorSpace::SRGB);
+    EXPECT_FALSE(gradient1->IsNearlyEqual(gradient2));
+}
 } // namespace Rosen
 } // namespace OHOS

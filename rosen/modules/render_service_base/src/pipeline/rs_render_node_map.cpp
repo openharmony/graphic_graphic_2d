@@ -351,9 +351,7 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid, bool immediate)
         // remove all fallback animations belong to given pid
         fallbackNode->GetAnimationManager().FilterAnimationByPid(pid);
     }
-#ifdef RS_ENABLE_MEMORY_DOWNTREE
     RSRenderNodeGC::Instance().ReleaseNodeNotOnTree(pid);
-#endif
 }
 
 void RSRenderNodeMap::TraversalNodes(std::function<void (const std::shared_ptr<RSBaseRenderNode>&)> func) const
@@ -374,6 +372,15 @@ void RSRenderNodeMap::TraversalNodesByPid(int pid,
             func(node);
         }
     }
+}
+
+size_t RSRenderNodeMap::GetNodeCountByPid(pid_t pid) const
+{
+    const auto& itr = renderNodeMap_.find(pid);
+    if (itr != renderNodeMap_.end()) {
+        return itr->second.size();
+    }
+    return 0;
 }
 
 void RSRenderNodeMap::TraverseCanvasDrawingNodes(

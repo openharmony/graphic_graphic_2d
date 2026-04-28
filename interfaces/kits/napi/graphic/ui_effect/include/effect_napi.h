@@ -63,8 +63,6 @@ private:
     static napi_value CreateBrightnessBlender(napi_env env, napi_callback_info info);
     static napi_value CreateHdrBrightnessBlender(napi_env env, napi_callback_info info);
     static napi_value CreateHdrDarkenBlender(napi_env env, napi_callback_info info);
-    static bool CheckHdrDarkenBlender(napi_env env, napi_value jsObject);
-    static bool ParseHdrDarkenBlender(napi_env env, napi_value jsObject, HdrDarkenBlender* blender);
     static napi_value SetBackgroundColorBlender(napi_env env, napi_callback_info info);
     static bool ParseBrightnessBlender(napi_env env, napi_value jsObject, BrightnessBlender* blender);
     static napi_value CreateShadowBlender(napi_env env, napi_callback_info info);

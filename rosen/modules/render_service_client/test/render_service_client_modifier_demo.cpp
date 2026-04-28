@@ -342,8 +342,8 @@ int main()
 
     // Build rosen renderThread & create nodes
     std::cout << "rs app demo stage " << cnt++ << std::endl;
-    auto rsUiDirector = RSUIDirector::Create();
-    rsUiDirector->Init();
+    auto rsUiDirector = RSUIDirector::Create(nullptr, nullptr);
+    
     auto runner = OHOS::AppExecFwk::EventRunner::Create(true);
     auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
     rsUiDirector->SetUITaskRunner(
@@ -379,7 +379,7 @@ int main()
     protocol.SetDuration(3000);
 
     // create property animation
-    RSNode::Animate(protocol, RSAnimationTimingCurve::EASE_IN_OUT, [&]() {
+    RSNode::Animate(nullptr, protocol, RSAnimationTimingCurve::EASE_IN_OUT, [&]() {
         customModifier->SetAlpha(0.8);
         customModifier->SetWidth(720);
         customModifier->SetHeight(1280);
@@ -410,7 +410,7 @@ int main()
     sleep(3);
 
     // create property animation
-    RSNode::Animate(protocol, RSAnimationTimingCurve::EASE_IN_OUT, [&]() {
+    RSNode::Animate(nullptr, protocol, RSAnimationTimingCurve::EASE_IN_OUT, [&]() {
         nodeModifier->SetAlpha(0.2);
         nodeModifier->SetScale(Vector2f(3.f, 3.f));
         nodeModifier->SetColor(Color(255, 0, 255));

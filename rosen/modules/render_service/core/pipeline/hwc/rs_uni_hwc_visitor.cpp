@@ -14,10 +14,13 @@
  */
 #include "rs_uni_hwc_visitor.h"
 
-#include "feature/hwc/rs_uni_hwc_compute_util.h"
 #include "feature/hdr/rs_hdr_util.h"
+#include "feature/hwc/rs_uni_hwc_compute_util.h"
+#include "feature/hwc/rs_uni_hwc_prevalidate_util.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_surface_render_node_utils.h"
+#include "render/rs_high_performance_visual_engine.h"
+#include "system/rs_system_parameters.h"
 
 #include "common/rs_common_hook.h"
 #include "common/rs_optional_trace.h"
@@ -535,7 +538,9 @@ void RSUniHwcVisitor::UpdateHwcNodeEnable()
                 hwcNodePtr->ResetMakeImageState();
             }
         }
-
+        if (RSSystemParameters::GetArsrPreEnabled() && surfaceNode->CheckIfDoArsrPre()) {
+            surfaceNode->SetArsrTag(true);
+        }
         UpdateHwcNodeEnableByGlobalFilter(surfaceNode);
         surfaceNode->ResetNeedCollectHwcNode();
         const auto& hwcNodes = surfaceNode->GetChildHardwareEnabledNodes();
@@ -971,6 +976,21 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByGlobalFilter(std::shared_ptr<RSSurfac
     }
 }
 
+bool RSUniHwcVisitor::IsHveBlurFilterEnabled(
+    const RSRenderNode& filterNode, const std::pair<NodeId, RectI>& filter, RSSurfaceRenderNode& hwcNode)
+{
+    if (!RSSystemParameters::GetHveBlurEnabled() ||
+        !HveFilter::GetHveFilter().CheckPrecondition(filterNode, filter.second, hwcNode) ||
+        hwcNode.GetVideoHdrStatus() != HdrStatus::NO_HDR) {
+        return false;
+    }
+    RS_OPTIONAL_TRACE_FMT("%s: id:%" PRIu64 " isHveEnabled with filterId:% " PRIu64,
+        __func__, hwcNode.GetId(), filter.first);
+    hwcNode.SetHardwareNeedMakeImage(true);
+    hwcNode.SetIntersectWithFilterNode(true);
+    return true;
+}
+
 void RSUniHwcVisitor::UpdateHwcNodeEnableByGlobalCleanFilter(
     const std::vector<std::pair<NodeId, RectI>>& cleanFilter, RSSurfaceRenderNode& hwcNode)
 {
@@ -982,7 +1002,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByGlobalCleanFilter(
         if (!geo->GetAbsRect().IntersectRect(filter->second).IsEmpty()) {
             auto& renderNode = nodeMap.GetRenderNode<RSRenderNode>(filter->first);
             if (renderNode == nullptr) {
-                ROSEN_LOGD("UpdateHwcNodeByFilter: renderNode is null");
+                RS_LOGD("UpdateHwcNodeByFilter: renderNode is null");
                 continue;
             }
 
@@ -994,12 +1014,15 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByGlobalCleanFilter(
                 bool intersectHwcDamage = RSSystemProperties::GetAIBarOptEnabled() ?
                     RSSurfaceRenderNodeUtils::IntersectHwcDamageWith(hwcNode, filter->second) : true;
                 if (renderNode->CheckAndUpdateAIBarCacheStatus(intersectHwcDamage)) {
-                    ROSEN_LOGD("UpdateHwcNodeByFilter: skip intersection for using cache");
+                    RS_LOGD("UpdateHwcNodeByFilter: skip intersection for using cache");
                     continue;
                 } else if (RSSystemProperties::GetHveFilterEnabled()) {
                     checkDrawAIBar = true;
                     continue;
                 }
+            }
+            if (IsHveBlurFilterEnabled(*renderNode, *filter, hwcNode)) {
+                continue;
             }
             auto parentNode = hwcNode.GetParent().lock();
             RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " parentId:%" PRIu64 " disabled by "
@@ -1029,6 +1052,14 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByGlobalDirtyFilter(
     for (auto filter = dirtyFilter.begin(); filter != dirtyFilter.end(); ++filter) {
         auto geo = hwcNode.GetRenderProperties().GetBoundsGeometry();
         if (!geo->GetAbsRect().IntersectRect(filter->second).IsEmpty()) {
+            auto& filterNode = nodeMap.GetRenderNode<RSRenderNode>(filter->first);
+            if (filterNode == nullptr) {
+                RS_LOGD("%s: filterNode is null", __func__);
+                continue;
+            }
+            if (IsHveBlurFilterEnabled(*filterNode, *filter, hwcNode)) {
+                continue;
+            }
             auto parentNode = hwcNode.GetParent().lock();
             RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " parentId:%" PRIu64 " disabled by "
                 "transparentDirtyFilter, filterId:%" PRIu64, hwcNode.GetName().c_str(), hwcNode.GetId(),
@@ -1046,15 +1077,16 @@ namespace {
 void ColorPickerCheckHwcIntersection(const std::shared_ptr<RSSurfaceRenderNode>& hwcNode,
     const RectI& colorPickerRect)
 {
-    if (!hwcNode || !hwcNode->IsOnTheTree() || hwcNode->IsHardwareForcedDisabled() || hwcNode->CheckIfDoArsrPre()) {
+    if (!hwcNode || !hwcNode->IsOnTheTree() || hwcNode->IsHardwareForcedDisabled()) {
         return;
     }
 
     RectI hwcNodeRect = hwcNode->GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
     if (!colorPickerRect.IntersectRect(hwcNodeRect).IsEmpty()) {
-        hwcNode->SetHardwareForcedDisabledState(true);
+        hwcNode->SetIntersectWithFilterNode(true);
+        hwcNode->SetHardwareNeedMakeImage(true);
         RS_OPTIONAL_TRACE_FMT("ColorPicker: rect [%d,%d,%d,%d] intersects node %s id:%" PRIu64
-            " (rect: [%d,%d,%d,%d]) - disabling",
+            " (rect: [%d,%d,%d,%d])",
             colorPickerRect.left_, colorPickerRect.top_, colorPickerRect.width_, colorPickerRect.height_,
             hwcNode->GetName().c_str(), hwcNode->GetId(), hwcNodeRect.left_, hwcNodeRect.top_,
             hwcNodeRect.width_, hwcNodeRect.height_);

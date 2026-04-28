@@ -169,7 +169,7 @@ ErrCode RSRenderPipelineAgent::ExecuteSynchronousTask(const std::shared_ptr<RSSy
     return ERR_OK;
 }
 
-ErrCode RSRenderPipelineAgent::CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
+ErrCode RSRenderPipelineAgent::CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
     bool& success)
 {
     if (rsRenderPipeline_ == nullptr) {
@@ -343,14 +343,6 @@ ErrCode RSRenderPipelineAgent::SetHidePrivacyContent(NodeId id, bool needHidePri
     return ERR_OK;
 }
 
-bool RSRenderPipelineAgent::GetHighContrastTextState()
-{
-    if (rsRenderPipeline_ == nullptr) {
-        return false;
-    }
-    return RSBaseRenderEngine::IsHighContrastEnabled();
-}
-
 ErrCode RSRenderPipelineAgent::SetFocusAppInfo(const FocusAppInfo& info, int32_t& repCode)
 {
     if (rsRenderPipeline_ == nullptr) {
@@ -510,7 +502,15 @@ void RSRenderPipelineAgent::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCapture
                 RS_TRACE_NAME_FMT("RSClientToRenderConnection::TakeSurfaceCapture surfaceCap dirtyFlag = true,"
                     " nodeId:[%" PRIu64 "]", id);
             }
-            RSSurfaceCaptureTaskParallel::CheckModifiers(id, captureConfig.useCurWindow);
+            if (node->GetType() == RSRenderNodeType::SURFACE_NODE && captureConfig.windowSync) {
+                RS_TRACE_NAME_FMT("RSRenderPipelineAgent::TakeSurfaceCapture surface windowSync"
+                    ", NodeId: [%" PRIu64 "]", id);
+                std::function<void()> windowCapTask = [callback, captureParam]() {
+                    RSSurfaceCaptureTaskParallel::Capture(callback, captureParam);
+                };
+                RSMainThread::Instance()->AddWindowCapTask(id, windowCapTask);
+                return;
+            }
             RSSurfaceCaptureTaskParallel::Capture(callback, captureParam);
 #endif
         }
@@ -716,7 +716,7 @@ void RSRenderPipelineAgent::TakeUICaptureInRange(
     rsRenderPipeline_->PostMainThreadTask(captureTask);
 }
 
-ErrCode RSRenderPipelineAgent::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+ErrCode RSRenderPipelineAgent::SetHwcNodeBounds(NodeId rsNodeId, float positionX, float positionY,
     float positionZ, float positionW)
 {
     if (rsRenderPipeline_ == nullptr) {
@@ -1456,7 +1456,7 @@ void RSRenderPipelineAgent::CollectSurfaceBuffersByProcessId(
                 static_cast<int>(bufferInfo.dstRect_.GetHeight())
             );
             textureBufferVector.push_back(std::make_tuple(bufferInfo.surfaceBuffer_, surfaceName, absRect));
-            RS_LOGD("CollectSurfaceBuffersByProcessId: Added texture buffer from pid=%{public}d, uid=%{public}llu, "
+            RS_LOGD("CollectSurfaceBuffersByProcessId: Added texture buffer from pid=%{public}d, uid=[%{public}" PRIu64 ",] "
                     "bufferId=%{public}u, size=%{public}dx%{public}d",
                     bufferInfo.pid_, bufferInfo.uid_,
                     bufferInfo.surfaceBuffer_->GetSeqNum(),
@@ -1720,19 +1720,54 @@ bool RSRenderPipelineAgent::RegisterTypeface(uint64_t globalUniqueId, std::share
     return true;
 }
 
+bool RSRenderPipelineAgent::RegisterTypeface(Drawing::SharedTypeface& sharedTypeface, bool isLocal)
+{
+    if (rsRenderPipeline_ == nullptr) {
+        return false;
+    }
+
+    if (isLocal) {
+        return true;
+    }
+    // Variation typeface: clone from cached base typeface
+    if (sharedTypeface.originId_ > 0) {
+        ::close(sharedTypeface.fd_);
+        RS_LOGI_LIMIT("RSRenderPipelineAgent::RegisterTypeface(var): %{public}s", sharedTypeface.ToString().c_str());
+        return RSTypefaceCache::Instance().InsertVariationTypeface(sharedTypeface) != -1;
+    }
+
+    if (RSTypefaceCache::Instance().UpdateDrawingTypefaceRef(sharedTypeface) != nullptr) {
+        RS_LOGI("RSRenderPipelineAgent::RegisterTypeface(reuse): %{public}s", sharedTypeface.ToString().c_str());
+        ::close(sharedTypeface.fd_);
+        return true;
+    }
+
+    auto tf = Drawing::Typeface::MakeFromAshmem(sharedTypeface);
+    if (tf == nullptr) {
+        RS_LOGE("RSRenderPipelineAgent::RegisterTypeface failed to create typeface from ashmem, %{public}s",
+            sharedTypeface.ToString().c_str());
+        ::close(sharedTypeface.fd_);
+        return false;
+    }
+    RS_LOGI("RSRenderPipelineAgent::RegisterTypeface(new): %{public}s", sharedTypeface.ToString().c_str());
+    RSTypefaceCache::Instance().CacheDrawingTypeface(sharedTypeface.id_, tf);
+    return true;
+}
+
 bool RSRenderPipelineAgent::UnRegisterTypeface(uint64_t globalUniqueId)
 {
     if (rsRenderPipeline_ == nullptr) {
         RS_LOGE("%{public}s: rsRenderPipeline_ is nullptr", __func__);
         return false;
     }
-    RS_LOGW("Unreg typeface, pid[%{public}d], uniqueid:%{public}u", RSTypefaceCache::GetTypefacePid(globalUniqueId),
+    RS_LOGW("UnregisterTypeface, pid[%{public}d], uniqueid:%{public}u", RSTypefaceCache::GetTypefacePid(globalUniqueId),
         RSTypefaceCache::GetTypefaceId(globalUniqueId));
     auto typeface = RSTypefaceCache::Instance().GetDrawingTypefaceCache(globalUniqueId);
     if (typeface == nullptr) {
         return true;
     }
     uint32_t uniqueId = typeface->GetUniqueID();
+    // Free cpu cache, this only valid in skia path. When deprecating skia, this can be removed.
     auto task = [uniqueId]() {
         auto context = RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext()->GetDrGPUContext();
         if (context) {
@@ -1741,7 +1776,8 @@ bool RSRenderPipelineAgent::UnRegisterTypeface(uint64_t globalUniqueId)
         }
     };
     RSUniRenderThread::Instance().PostTask(task);
-    RSTypefaceCache::Instance().AddDelayDestroyQueue(globalUniqueId);
+
+    RSTypefaceCache::Instance().RemoveDrawingTypefaceByGlobalUniqueId(globalUniqueId);
     return true;
 }
 
@@ -1768,7 +1804,8 @@ int32_t RSRenderPipelineAgent::GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB)
         RS_LOGD("RSRenderPipelineAgent::GetPidGpuMemoryInMB fail to find pid!");
         return ERR_INVALID_VALUE;
     }
-    gpuMemInMB = static_cast<float>(memorySnapshotInfo.gpuMemory) / MEM_BYTE_TO_MB;
+    gpuMemInMB =
+        static_cast<float>(memorySnapshotInfo.engineGpuMemory + memorySnapshotInfo.nativeGpuMemory) / MEM_BYTE_TO_MB;
     RS_LOGD("RSRenderPipelineAgent::GetPidGpuMemoryInMB called succ");
     return ERR_OK;
 }
@@ -1788,20 +1825,20 @@ ErrCode RSRenderPipelineAgent::RepaintEverything()
     return ERR_OK;
 }
 
-void RSRenderPipelineAgent::CleanAll(pid_t pid)
+void RSRenderPipelineAgent::Clean(pid_t pid, bool forRefresh)
 {
     if (rsRenderPipeline_ == nullptr) {
         return;
     }
-    RS_LOGD("CleanAll() start.");
-    RS_TRACE_NAME("RSRenderPipelineAgent::CleanAll begin, remotePid: " + std::to_string(pid));
+    RS_LOGD("Clean() start, remotePid: %{public}s, forRefresh: %{public}d", std::to_string(pid).c_str(), forRefresh);
+    RS_TRACE_NAME("RSRenderPipelineAgent::Clean begin, remotePid: " + std::to_string(pid));
     RsCommandVerifyHelper::GetInstance().RemoveCntWithPid(pid);
-    rsRenderPipeline_->ScheduleMainThreadTask(
-        [mainThread = rsRenderPipeline_->GetMainThread(), pid]() {
+    rsRenderPipeline_
+        ->ScheduleMainThreadTask([mainThread = rsRenderPipeline_->GetMainThread(), pid, forRefresh]() {
             if (mainThread == nullptr) {
                 return;
             }
-            mainThread->CleanResources(pid);
+            mainThread->CleanResources(pid, forRefresh);
         }).wait();
     RSSurfaceBufferCallbackManager::Instance().UnregisterSurfaceBufferCallback(pid);
     RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(pid);
@@ -1812,7 +1849,7 @@ void RSRenderPipelineAgent::CleanAll(pid_t pid)
     rsRenderPipeline_->PostUniRenderThreadSyncTask([pid]() {
         RSFrameStabilityManager::GetInstance().CleanResourcesByPid(pid);
     });
-    return;
+    RS_TRACE_NAME("RSRenderPipelineAgent::Clean end, remotePid: " + std::to_string(pid));
 }
 
 ErrCode RSRenderPipelineAgent::SetColorFollow(const std::string& nodeIdStr, bool isColorFollow)

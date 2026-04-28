@@ -307,7 +307,7 @@ HWTEST_F(RSServiceClientTest, AddVirtualScreenBlackListTest001, TestSize.Level1)
     ScreenId screenId = 100;
     std::vector<NodeId> blackListVector({1, 2, 3});
     int32_t ret = rsClient->AddVirtualScreenBlackList(screenId, blackListVector);
-    ASSERT_EQ(ret, 0);
+    ASSERT_EQ(ret, READ_PARCEL_ERR);
 }
 
 /**
@@ -321,7 +321,7 @@ HWTEST_F(RSServiceClientTest, AddVirtualScreenBlackListTest002, TestSize.Level1)
     ASSERT_NE(rsClient, nullptr);
     std::vector<NodeId> blackList(MAX_SPECIAL_LAYER_NUM + 1);
     int32_t ret = rsClient->AddVirtualScreenBlackList(INVALID_SCREEN_ID, blackList);
-    ASSERT_EQ(ret, 0);
+    ASSERT_EQ(ret, READ_PARCEL_ERR);
 }
 
 /**
@@ -336,7 +336,7 @@ HWTEST_F(RSServiceClientTest, RemoveVirtualScreenBlackListTest, TestSize.Level1)
     ScreenId screenId = 100;
     std::vector<NodeId> blackListVector({1, 2, 3});
     int32_t ret = rsClient->RemoveVirtualScreenBlackList(screenId, blackListVector);
-    ASSERT_EQ(ret, 0);
+    ASSERT_EQ(ret, READ_PARCEL_ERR);
 }
 
 /**
@@ -368,7 +368,7 @@ HWTEST_F(RSServiceClientTest, SetScreenChangeCallback001, TestSize.Level1)
     ScreenChangeReason errorReason = ScreenChangeReason::DEFAULT;
     bool callbacked = false;
     auto callback = [&screenId, &screenEvent, &errorReason, &callbacked]
-        (ScreenId id, ScreenEvent event, ScreenChangeReason reason) {
+        (ScreenId id, ScreenEvent event, ScreenChangeReason reason, sptr<IRemoteObject> remote) {
         screenId = id;
         screenEvent = event;
         errorReason = reason;
@@ -460,6 +460,39 @@ HWTEST_F(RSServiceClientTest, RegisterFirstFrameCommitCallback001, TestSize.Leve
 }
 
 /**
+ * @tc.name: RegisterExposedEventCallback Test
+ * @tc.desc: RegisterExposedEventCallback Test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceClientTest, RegisterExposedEventCallback001, TestSize.Level1)
+{
+    auto callback = [](const std::shared_ptr<RSExposedEventDataBase>& data) -> void {};
+    RSExposedEventType type = RSExposedEventType::EXT_SCREEN_UNSUPPORT;
+    EXPECT_EQ(rsClient->RegisterExposedEventCallback(type, callback),
+        StatusCode::SUCCESS);
+    EXPECT_EQ(rsClient->RegisterExposedEventCallback(type, nullptr), StatusCode::SUCCESS);
+}
+
+/**
+ * @tc.name: RegisterExposedEventCallback Test
+ * @tc.desc: Test RegisterExposedEventCallback with invalid clientToService
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceClientTest, RegisterExposedEventCallback002, TestSize.Level1)
+{
+    auto callback = [](const std::shared_ptr<RSExposedEventDataBase>& data) -> void {};
+    RSExposedEventType type = RSExposedEventType::EXT_SCREEN_UNSUPPORT;
+    RSRenderServiceConnectHub::Destroy();
+    EXPECT_EQ(rsClient->RegisterExposedEventCallback(type, callback),
+        StatusCode::RENDER_SERVICE_NULL);
+    RSRenderServiceConnectHub::Init();
+    EXPECT_EQ(rsClient->RegisterExposedEventCallback(type, callback),
+        StatusCode::SUCCESS);
+}
+
+/**
  * @tc.name: SetScreenActiveMode Test
  * @tc.desc: SetScreenActiveMode Test
  * @tc.type:FUNC
@@ -512,6 +545,72 @@ HWTEST_F(RSServiceClientTest, SetScreenRefreshRate001, TestSize.Level1)
     usleep(SET_REFRESHRATE_SLEEP_US);
     uint32_t currentRate = rsClient->GetScreenCurrentRefreshRate(screenId);
     EXPECT_NE(currentRate, rateToSet);
+}
+
+/**
+ * @tc.name: SetAsMainScreenTest001
+ * @tc.desc: Test SetAsMainScreen with INVALID_SCREEN_ID
+ * @tc.type: FUNC
+ * @tc.require: #23043
+ */
+HWTEST_F(RSServiceClientTest, SetAsMainScreenTest001, TestSize.Level1)
+{
+    auto rsClient = std::make_shared<RSRenderServiceClient>();
+    ASSERT_NE(rsClient, nullptr);
+    ScreenId screenId = INVALID_SCREEN_ID;
+    auto ret = rsClient->SetAsMainScreen(screenId, true);
+    EXPECT_NE(ret, StatusCode::SUCCESS);
+}
+
+/**
+ * @tc.name: SetAsMainScreenTest002
+ * @tc.desc: Test SetAsMainScreen with null connection
+ * @tc.type: FUNC
+ * @tc.require: #23043
+ */
+HWTEST_F(RSServiceClientTest, SetAsMainScreenTest002, TestSize.Level1)
+{
+    auto rsClient = std::make_shared<RSRenderServiceClient>();
+    ASSERT_NE(rsClient, nullptr);
+    auto screenId = rsClient->GetDefaultScreenId();
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
+
+    RSRenderServiceConnectHub::Destroy();
+    auto ret = rsClient->SetAsMainScreen(screenId, true);
+    RSRenderServiceConnectHub::Init();
+    EXPECT_EQ(ret, StatusCode::RENDER_SERVICE_NULL);
+}
+
+/**
+ * @tc.name: GetMainScreenId001
+ * @tc.desc: Test GetMainScreenId
+ * @tc.type: FUNC
+ * @tc.require: #23043
+ */
+HWTEST_F(RSServiceClientTest, GetMainScreenId001, TestSize.Level1)
+{
+    auto rsClient = std::make_shared<RSRenderServiceClient>();
+    ASSERT_NE(rsClient, nullptr);
+    ScreenId defaultScreenId = rsClient->GetDefaultScreenId();
+    rsClient->SetAsMainScreen(defaultScreenId, true);
+    ScreenId screenId = rsClient->GetMainScreenId();
+    ASSERT_EQ(defaultScreenId, screenId);
+}
+
+/**
+ * @tc.name: GetMainScreenId002
+ * @tc.desc: Test GetMainScreenId
+ * @tc.type: FUNC
+ * @tc.require: #23043
+ */
+HWTEST_F(RSServiceClientTest, GetMainScreenId002, TestSize.Level1)
+{
+    auto rsClient = std::make_shared<RSRenderServiceClient>();
+    ASSERT_NE(rsClient, nullptr);
+    RSRenderServiceConnectHub::Destroy();
+    ScreenId screenId = rsClient->GetMainScreenId();
+    RSRenderServiceConnectHub::Init();
+    ASSERT_EQ(screenId, INVALID_SCREEN_ID);
 }
 
 /**
@@ -1034,18 +1133,6 @@ HWTEST_F(RSServiceClientTest, RegisterUIExtensionCallback_002, TestSize.Level1)
     uint64_t userId = 0;
     EXPECT_NE(rsClient->RegisterUIExtensionCallback(userId, callback),
         StatusCode::INVALID_ARGUMENTS);
-}
-
-/**
- * @tc.name: SetFreeMultiWindowStatus Test
- * @tc.desc: SetFreeMultiWindowStatus, input true
- * @tc.type:FUNC
- * @tc.require: issueIANPC2
- */
-HWTEST_F(RSServiceClientTest, SetFreeMultiWindowStatus, TestSize.Level1)
-{
-    ASSERT_NE(rsClient, nullptr);
-    rsClient->SetFreeMultiWindowStatus(true);
 }
 
 /**

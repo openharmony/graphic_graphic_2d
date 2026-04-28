@@ -26,7 +26,7 @@
 #ifdef ROSEN_OHOS
 #include "ipc_callbacks/rs_application_agent_stub.h"
 #endif
-
+#include "ui/rs_ui_context.h"
 namespace OHOS {
 namespace Rosen {
 #ifdef ROSEN_OHOS
@@ -43,7 +43,7 @@ public:
     /**
      * @brief register application agent to renderService
      */
-    void RegisterRSApplicationAgent();
+    void RegisterRSApplicationAgent(std::shared_ptr<RSUIContext> rsUIContext);
 
     RSApplicationAgentImpl() = default;
     virtual ~RSApplicationAgentImpl() = default;

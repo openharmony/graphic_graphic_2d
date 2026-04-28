@@ -112,6 +112,7 @@ public:
     bool IsSkippingFrame() const;
     void MarkRotationChanged();
     bool IsFilterCacheValidForOcclusion();
+    bool IsFilterCacheValidForPartialRender() const;
     void MarkNodeIsOccluded(bool isOccluded);
     bool IsFilterCacheValid() const;
     void SwapDataAndInitStagingFlags(std::unique_ptr<RSFilterCacheManager>& cacheManager);

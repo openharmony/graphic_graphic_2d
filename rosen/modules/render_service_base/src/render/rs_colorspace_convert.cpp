@@ -16,6 +16,7 @@
 
 #include <dlfcn.h>
 
+#include "aihdr_enhancer.h"
 #include "display_engine/rs_color_temperature.h"
 #include "display_engine/rs_luminance_control.h"
 #include "effect/image_filter.h"
@@ -197,9 +198,9 @@ bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<Surf
     const RSPaintFilterCanvas::HDRProperties& hdrProperties)
 {
     using namespace HDIV;
-
+    bool isEDRSurface = hdrProperties.isEDRSurface;
     GSError ret = MetadataHelper::GetColorSpaceInfo(surfaceBuffer, parameter.inputColorSpace.colorSpaceInfo);
-    if (ret != GSERROR_OK) {
+    if (ret != GSERROR_OK && !isEDRSurface) {
         RS_LOGE("bhdr GetColorSpaceInfo failed with %{public}u.", ret);
         return false;
     }
@@ -241,8 +242,20 @@ bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<Surf
     parameter.sdrNits = hdrProperties.isHDREnabledVirtualScreen ? RSLuminanceConst::DEFAULT_CAST_SDR_NITS : sdrNits;
     switch (hdrProperties.screenshotType) {
         case RSPaintFilterCanvas::ScreenshotType::HDR_SCREENSHOT:
+            if (hdrProperties.displayIntent == DisplayIntent::CANONICAL) {
+                parameter.tmoNits = dynamicRangeMode != DynamicRangeMode::STANDARD ?
+                    RSLuminanceConst::DEFAULT_CAPTURE_HDR_NITS : RSLuminanceConst::DEFAULT_CAPTURE_SDR_NITS;
+                parameter.sdrNits = RSLuminanceConst::DEFAULT_CAPTURE_SDR_NITS;
+                parameter.currentDisplayNits = RSLuminanceConst::DEFAULT_CAPTURE_HDR_NITS;
+            } else {
+                parameter.tmoNits = std::clamp(sdrNits * scaler, sdrNits, displayNits);
+            }
+            break;
+        case RSPaintFilterCanvas::ScreenshotType::HDR_UICAPTURE:
             parameter.tmoNits = dynamicRangeMode != DynamicRangeMode::STANDARD ?
                 RSLuminanceConst::DEFAULT_CAPTURE_HDR_NITS : RSLuminanceConst::DEFAULT_CAPTURE_SDR_NITS;
+            parameter.sdrNits = RSLuminanceConst::DEFAULT_CAPTURE_SDR_NITS;
+            parameter.currentDisplayNits = RSLuminanceConst::DEFAULT_CAPTURE_HDR_NITS;
             break;
         case RSPaintFilterCanvas::ScreenshotType::HDR_WINDOWSHOT:
             parameter.tmoNits = parameter.currentDisplayNits;

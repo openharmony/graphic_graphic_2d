@@ -33,7 +33,6 @@
 #include "render/rs_filter_cache_manager.h"
 #include "render/rs_gradient_blur_para.h"
 #include "render/rs_image.h"
-#include "render/rs_magnifier_para.h"
 #include "render/rs_mask.h"
 #include "render/rs_motion_blur_filter.h"
 #include "render/rs_path.h"
@@ -45,6 +44,7 @@ namespace Rosen {
 class RSRenderNode;
 class RSObjAbsGeometry;
 class RSNGRenderFilterBase;
+class ParticleFieldCollection;
 class ParticleRippleFields;
 class ParticleVelocityFields;
 struct ColorPickerParam;
@@ -377,6 +377,8 @@ public:
     void SetParticleNoiseFields(const std::shared_ptr<ParticleNoiseFields>& para);
     void SetParticleRippleFields(const std::shared_ptr<ParticleRippleFields>& para);
     void SetParticleVelocityFields(const std::shared_ptr<ParticleVelocityFields>& para);
+    void SetParticleFields(const std::shared_ptr<ParticleFieldCollection>& para);
+    const std::shared_ptr<ParticleFieldCollection>& GetParticleFields() const;
     void SetDynamicLightUpRate(const std::optional<float>& rate);
     void SetDynamicLightUpDegree(const std::optional<float>& lightUpDegree);
     void SetDynamicDimDegree(const std::optional<float>& DimDegree);
@@ -463,7 +465,6 @@ public:
     std::optional<RSDynamicBrightnessPara> GetBgBrightnessParams() const;
 
     void SetMotionBlurPara(const std::shared_ptr<MotionBlurParam>& para);
-    void SetMagnifierParams(const std::shared_ptr<RSMagnifierParams>& para);
     const std::shared_ptr<RSFilter>& GetBackgroundFilter() const
     {
         return backgroundFilter_;
@@ -487,10 +488,10 @@ public:
         return defaultValue;
     }
     const std::shared_ptr<MotionBlurParam>& GetMotionBlurPara() const;
-    const std::shared_ptr<RSMagnifierParams>& GetMagnifierPara() const;
     bool DisableHWCForFilter() const;
     bool NeedClipHoleForRenderGroup() const;
     bool NeedFilter() const;
+    bool NeedDisabledPartialRender() const;
     bool NeedHwcFilter() const;
     bool NeedSkipSubtreeParallel() const;
     void SetGreyCoef(const std::optional<Vector2f>& greyCoef);
@@ -640,6 +641,8 @@ public:
     {
         return clipToFrame_;
     }
+    void SetDoubleSidedEnabled(bool isDoubleSided);
+    bool GetDoubleSidedEnabled() const;
     void SetVisible(bool visible);
     bool GetVisible() const
     {
@@ -753,7 +756,6 @@ public:
     bool IsHdrDarkenBlenderValid() const;
     void SetDistortionDirty(bool distortionEffectDirty);
     bool GetDistortionDirty() const;
-    bool GetMagnifierDirty() const;
     std::string GetFgBrightnessDescription() const;
     std::string GetBgBrightnessDescription() const;
     std::string GetShadowBlenderDescription() const;
@@ -802,6 +804,8 @@ public:
     void SetIlluminatedBorderWidth(float illuminatedBorderWidth);
     void SetIlluminatedType(int illuminatedType);
     void SetBloom(float bloomIntensity);
+    void SetOverlayNGShader(const std::shared_ptr<RSNGRenderShaderBase>& overlayShader);
+
     float GetLightIntensity() const;
     Color GetLightColor() const;
     Vector4f GetLightPosition() const;
@@ -817,6 +821,7 @@ public:
         const auto& illuminatedPtr = GetIlluminated();
         return illuminatedPtr ? illuminatedPtr->GetBloomIntensity() : 0.f;
     }
+    std::shared_ptr<RSNGRenderShaderBase> GetOverlayNGShader() const;
 
     inline const std::shared_ptr<RSLightSource>& GetLightSource() const
     {
@@ -836,6 +841,7 @@ public:
     }
 
     bool HasHarmonium() const;
+    bool HasSpatialGlassEffect() const;
 
     void SetUseEffect(bool useEffect);
     bool GetUseEffect() const;
@@ -852,6 +858,14 @@ public:
 
     void SetUseUnion(bool useUnion);
     bool GetUseUnion() const;
+    void SetSDFUnionMode(int uniModeUC);
+    int GetSDFUnionMode() const;
+    void SetGravityPullCenterFlag(bool isGravityPullModeCenter);
+    bool GetGravityPullCenterFlag() const;
+    void SetGravityPullStrength(float gravityPullStrength);
+    float GetGravityPullStrength() const;
+    void SetGravityHotZone(float hotZone);
+    float GetGravityHotZone() const;
     void SetUnionSpacing(float spacing);
     float GetUnionSpacing() const;
 
@@ -935,7 +949,6 @@ private:
         std::optional<Vector2f> greyCoef_;
         float flyOutDegree_ = 0.0f;
         std::optional<RSFlyOutPara> flyOutParams_ = std::nullopt;
-        std::shared_ptr<RSMagnifierParams> magnifierPara_ = nullptr;
         std::optional<float> dynamicLightUpRate_;
         std::optional<float> dynamicLightUpDegree_;
         std::optional<float> dynamicDimDegree_;
@@ -990,6 +1003,7 @@ private:
         std::shared_ptr<RSNGRenderFilterBase> cgNGRenderFilter_ = nullptr; // for compositing render
         std::shared_ptr<RSNGRenderShaderBase> bgNGRenderShader_ = nullptr;
         std::shared_ptr<RSNGRenderShaderBase> fgRenderShader_ = nullptr;
+        std::shared_ptr<RSNGRenderShaderBase> olRenderShader_ = nullptr; // for overlay shader
         std::shared_ptr<RSFilter> materialFilter_ = nullptr;
     };
     inline float DecreasePrecision(float value)
@@ -1023,7 +1037,6 @@ private:
     void GenerateAlwaysSnapshotFilter();
     void GenerateWaterRippleFilter();
     void GenerateLinearGradientBlurFilter();
-    void GenerateMagnifierFilter();
     void ComposeNGRenderFilter(
         std::shared_ptr<RSFilter>& originFilter, std::shared_ptr<RSNGRenderFilterBase> filter);
 
@@ -1071,6 +1084,7 @@ private:
     bool hasBounds_ = false;
     bool clipToBounds_ = false;
     bool clipToFrame_ = false;
+    bool isDoubleSided_ = true;
     // partial update
     bool colorFilterNeedUpdate_ = false;
     bool pixelStretchNeedUpdate_ = false;
@@ -1080,10 +1094,16 @@ private:
     bool isDrawn_ = false;
     bool foregroundEffectDirty_ = false;
     bool needFilter_ = false;
+    bool needDisabledPartialRender_ = false;
     bool needHwcFilter_ = false;
     bool needForceSubmit_ = false;
     bool hasHarmonium_ = false;
+    bool hasSpatialGlassEffect_ = false;
     bool useUnion_ = false;
+    float gravityPullStrength_ = 0.0f;
+    float gravityHotZone_ = 0.0f;
+    bool isGravityPullModeCenter_ = false; // true, current node is gravity pull center
+    int uniModeUC_ = 0; // 1 GravityPull Mode, 0 SmoothUnion.
     bool alphaOffscreen_ = false;
     std::optional<RRect> clipRRect_;
     bool alphaNeedApply_ = false;
@@ -1106,6 +1126,7 @@ private:
     std::shared_ptr<RectF> drawRegion_ = nullptr;
     std::shared_ptr<ParticleRippleFields> particleRippleFields_ = nullptr;
     std::shared_ptr<ParticleVelocityFields> particleVelocityFields_ = nullptr;
+    std::shared_ptr<ParticleFieldCollection> particleFields_ = nullptr;
     std::shared_ptr<RSBorder> border_ = nullptr;
     std::shared_ptr<RSBorder> outline_ = nullptr;
     std::shared_ptr<RSPath> clipPath_ = nullptr;
@@ -1131,7 +1152,7 @@ private:
     void StatBackgroundFilter();
     void StatCompositingFilter();
     void StatForegroundFilter();
-    
+
     // OnApplyModifiers hooks
     void CheckEmptyBounds();
     void GenerateColorFilter();

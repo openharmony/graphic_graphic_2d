@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "drawable/rs_misc_drawable.h"
+#include "drawable/rs_property_drawable.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
 #include "drawable/rs_render_node_drawable.h"
 #include "params/rs_render_params.h"
@@ -238,23 +239,6 @@ HWTEST(RSRenderNodeDrawableAdapterTest, DumpDrawableTreeTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetRenderParamsAndGetUifirstRenderParamsTest
- * @tc.desc: Test GetRenderParamsAndGetUifirstRenderParams
- * @tc.type: FUNC
- * @tc.require: issueI9UTMA
- */
-HWTEST(RSRenderNodeDrawableAdapterTest, GetRenderParamsAndGetUifirstRenderParamsTest, TestSize.Level1)
-{
-    NodeId id = 4;
-    auto node = std::make_shared<RSRenderNode>(id);
-    auto adapter = std::make_shared<RSRenderNodeDrawable>(std::move(node));
-    const auto& retParams = adapter->GetRenderParams();
-    EXPECT_EQ(retParams, nullptr);
-    const auto& retUifirstParams = adapter->GetUifirstRenderParams();
-    EXPECT_EQ(retUifirstParams, nullptr);
-}
-
-/**
  * @tc.name: DumpDrawableVecTest
  * @tc.desc: Test DumpDrawableVec
  * @tc.type: FUNC
@@ -394,32 +378,6 @@ HWTEST(RSRenderNodeDrawableAdapterTest, DrawRangeImplAndRelatedTest, TestSize.Le
 }
 
 /**
- * @tc.name: DrawUifirstContentChildrenTest
- * @tc.desc: Test DrawUifirstContentChildren
- * @tc.type: FUNC
- * @tc.require: issueI9UTMA
- */
-HWTEST(RSRenderNodeDrawableAdapterTest, DrawUifirstContentChildrenTest, TestSize.Level1)
-{
-    NodeId id = 9;
-    auto node = std::make_shared<RSRenderNode>(id);
-    auto adapter = std::make_shared<RSRenderNodeDrawable>(std::move(node));
-    Drawing::Canvas canvas;
-    Drawing::Rect rect;
-    adapter->DrawUifirstContentChildren(canvas, rect);
-    EXPECT_TRUE(adapter->uifirstDrawCmdList_.empty());
-
-    std::shared_ptr<RSTestDrawable> rsDrawable = std::make_shared<RSTestDrawable>();
-    adapter->uifirstDrawCmdList_.emplace_back(rsDrawable);
-    EXPECT_TRUE(!adapter->uifirstDrawCmdList_.empty());
-    adapter->uifirstDrawCmdIndex_.contentIndex_ = 0;
-    adapter->uifirstDrawCmdIndex_.childrenIndex_ = 0;
-    adapter->DrawUifirstContentChildren(canvas, rect);
-    RSDrawable::DrawList uifirstDrawCmdIndex;
-    adapter->uifirstDrawCmdList_.swap(uifirstDrawCmdIndex);
-}
-
-/**
  * @tc.name: DrawContentTest
  * @tc.desc: Test DrawContent
  * @tc.type: FUNC
@@ -538,6 +496,63 @@ HWTEST(RSRenderNodeDrawableAdapterTest, InitRenderParamsTest, TestSize.Level1)
     RSRenderNodeDrawableAdapter::InitRenderParams(defaultRenderNode, adapter);
     EXPECT_TRUE(adapter->renderParams_ != nullptr);
     adapter->renderParams_.reset(nullptr);
+}
+
+/**
+ * @tc.name: UnifiedFilterRegionTest
+ * @tc.desc: Test unified filter region add, intersect and clear behavior
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST(RSRenderNodeDrawableAdapterTest, UnifiedFilterRegionTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(100);
+    auto adapter = std::make_shared<RSRenderNodeDrawable>(std::move(node));
+    Drawing::RectI baseRect(0, 0, 10, 10);
+    Drawing::RectI overlapRect(5, 5, 15, 15);
+    Drawing::RectI disjointRect(20, 20, 30, 30);
+
+    EXPECT_FALSE(adapter->IntersectsWithUnifiedRegion(baseRect));
+
+    adapter->AddRectToUnifiedFilterRegion(baseRect);
+    EXPECT_TRUE(adapter->IntersectsWithUnifiedRegion(overlapRect));
+    EXPECT_FALSE(adapter->IntersectsWithUnifiedRegion(disjointRect));
+
+    adapter->ClearUnifiedFilterRegion();
+    EXPECT_FALSE(adapter->IntersectsWithUnifiedRegion(overlapRect));
+}
+
+/**
+ * @tc.name: UpdateFilterInfoForNodeGroupTest
+ * @tc.desc: Test filter info update for null root, new node and existing node branches
+ * @tc.type: FUNC
+ * @tc.require: issueLayerPart
+ */
+HWTEST(RSRenderNodeDrawableAdapterTest, UpdateFilterInfoForNodeGroupTest, TestSize.Level1)
+{
+    auto rootNode = std::make_shared<RSRenderNode>(101);
+    auto rootDrawable = std::make_shared<RSRenderNodeDrawable>(rootNode);
+    auto childNode = std::make_shared<RSRenderNode>(102);
+    auto childDrawable = std::make_shared<RSRenderNodeDrawable>(childNode);
+    Drawing::Canvas drawingCanvas(100, 100);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    const auto clipBounds = canvas.GetDeviceClipBounds();
+
+    RSRenderNodeDrawableAdapter::curDrawingCacheRoot_ = nullptr;
+    childDrawable->UpdateFilterInfoForNodeGroup(&canvas);
+    EXPECT_TRUE(rootDrawable->filterInfoVec_.empty());
+
+    RSRenderNodeDrawableAdapter::curDrawingCacheRoot_ = rootDrawable.get();
+    childDrawable->UpdateFilterInfoForNodeGroup(&canvas);
+    ASSERT_EQ(rootDrawable->filterInfoVec_.size(), 1u);
+    EXPECT_EQ(rootDrawable->filterInfoVec_[0].nodeId_, childDrawable->GetId());
+    EXPECT_EQ(rootDrawable->filterInfoVec_[0].rectVec_.size(), 1u);
+    EXPECT_TRUE(rootDrawable->IntersectsWithUnifiedRegion(clipBounds));
+
+    childDrawable->UpdateFilterInfoForNodeGroup(&canvas);
+    ASSERT_EQ(rootDrawable->filterInfoVec_.size(), 1u);
+    EXPECT_EQ(rootDrawable->filterInfoVec_[0].rectVec_.size(), 2u);
+    RSRenderNodeDrawableAdapter::curDrawingCacheRoot_ = nullptr;
 }
 
 /**
@@ -717,6 +732,43 @@ HWTEST(RSRenderNodeDrawableAdapterTest, IsFilterCacheValidForOcclusionTest, Test
         std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(node);
     ASSERT_NE(adapter, nullptr);
     EXPECT_FALSE(adapter->IsFilterCacheValidForOcclusion());
+}
+
+/**
+ * @tc.name: IsFilterCacheValidForPartialRender
+ * @tc.desc: Test IsFilterCacheValidForPartialRender001 sysProp disable
+ * @tc.type: FUNC
+ * @tc.require: issue22993
+ */
+HWTEST(RSRenderNodeDrawableAdapterTest, IsFilterCacheValidForPartialRender001, TestSize.Level1)
+{
+    NodeId id = 18;
+    auto node = std::make_shared<RSRenderNode>(id);
+    std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter> adapter =
+        std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(node);
+    ASSERT_NE(adapter, nullptr);
+    bool defaultSysProp = RSFilterCacheManager::isCCMFilterCacheEnable_;
+    RSFilterCacheManager::isCCMFilterCacheEnable_ = false;
+
+    EXPECT_FALSE(adapter->IsFilterCacheValidForPartialRender());
+
+    RSFilterCacheManager::isCCMFilterCacheEnable_ = defaultSysProp;
+}
+
+/**
+ * @tc.name: IsFilterCacheValidForPartialRender_Background
+ * @tc.desc: Test IsFilterCacheValidForPartialRender_Background
+ * @tc.type: FUNC
+ * @tc.require: issue22993
+ */
+HWTEST(RSRenderNodeDrawableAdapterTest, IsFilterCacheValidForPartialRender_Background, TestSize.Level1)
+{
+    NodeId id = 18;
+    auto node = std::make_shared<RSRenderNode>(id);
+    std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter> adapter =
+        std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(node);
+    ASSERT_NE(adapter, nullptr);
+    EXPECT_TRUE(adapter->IsFilterCacheValidForPartialRender());
 }
 
 /**

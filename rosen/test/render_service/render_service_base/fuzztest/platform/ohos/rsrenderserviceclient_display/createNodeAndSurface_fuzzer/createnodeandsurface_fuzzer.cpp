@@ -14,7 +14,7 @@
  */
 
 #include "createnodeandsurface_fuzzer.h"
-
+#include "transaction/rs_interfaces.h"
 #include <fuzzer/FuzzedDataProvider.h>
 #include <memory>
 
@@ -56,7 +56,10 @@ void DoCreateNodeAndSurface(FuzzedDataProvider& fdp)
 extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
 {
     // Initialize RSRenderPipelineClient using std::make_shared (consistent with business code and TDD)
-    OHOS::Rosen::g_renderPipelineClient = std::make_shared<OHOS::Rosen::RSRenderPipelineClient>();
+auto screenId = OHOS::Rosen::RSInterfaces::GetInstance().GetDefaultScreenId();
+    auto connectToRender =
+        OHOS::Rosen::RSInterfaces::GetInstance().GetConnectToRenderToken(screenId);
+    OHOS::Rosen::g_renderPipelineClient = std::make_shared<OHOS::Rosen::RSRenderPipelineClient>(connectToRender);
     return 0;
 }
 

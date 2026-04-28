@@ -401,17 +401,30 @@ void SkiaShaderEffect::InitWithSdf(const SDFShapeBase& shape)
     shader_ = skShader;
 }
 
+std::vector<Color4f> SkiaShaderEffect::ConvertUIColorToColor4f(const std::vector<UIColor>& colors)
+{
+    size_t colorsCount = colors.size();
+    std::vector<Color4f> generalColors;
+    for (size_t i = 0; i < colorsCount; ++i) {
+        Color4f color4f = { colors[i].GetRed(), colors[i].GetGreen(), colors[i].GetBlue(), colors[i].GetAlpha() };
+        generalColors.push_back(color4f);
+    }
+    return generalColors;
+}
+
 void SkiaShaderEffect::InitWithLinearGradient(const Point& startPt, const Point& endPt,
     const std::vector<UIColor>& colors, std::shared_ptr<ColorSpace> colorSpace,
     const std::vector<scalar>& pos, TileMode mode, const Matrix *matrix)
 {
-    LOGD("SKIA LinearGradient does not support HDR color. %{public}d", __LINE__);
+    auto generalColors = ConvertUIColorToColor4f(colors);
+    InitWithLinearGradient(startPt, endPt, generalColors, colorSpace, pos, mode, matrix);
 }
 
 void SkiaShaderEffect::InitWithRadialGradient(const Point& centerPt, scalar radius, const std::vector<UIColor>& colors,
     std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos, TileMode mode, const Matrix *matrix)
 {
-    LOGD("SKIA RadialGradient does not support HDR color. %{public}d", __LINE__);
+    auto generalColors = ConvertUIColorToColor4f(colors);
+    InitWithRadialGradient(centerPt, radius, generalColors, colorSpace, pos, mode, matrix);
 }
 
 void SkiaShaderEffect::InitWithTwoPointConical(const Point& startPt, scalar startRadius, const Point& endPtr,
@@ -419,14 +432,16 @@ void SkiaShaderEffect::InitWithTwoPointConical(const Point& startPt, scalar star
     const std::vector<scalar>& pos, TileMode mode,
     const Matrix *matrix)
 {
-    LOGD("SKIA ConicalGradient does not support HDR color. %{public}d", __LINE__);
+    auto generalColors = ConvertUIColorToColor4f(colors);
+    InitWithTwoPointConical(startPt, startRadius, endPtr, endRadius, generalColors, colorSpace, pos, mode, matrix);
 }
 
 void SkiaShaderEffect::InitWithSweepGradient(const Point& centerPt, const std::vector<UIColor>& colors,
     std::shared_ptr<ColorSpace> colorSpace, const std::vector<scalar>& pos, TileMode mode, scalar startAngle,
     scalar endAngle, const Matrix *matrix)
 {
-    LOGD("SKIA SweepGradient does not support HDR color. %{public}d", __LINE__);
+    auto generalColors = ConvertUIColorToColor4f(colors);
+    InitWithSweepGradient(centerPt, generalColors, colorSpace, pos, mode, startAngle, endAngle, matrix);
 }
 
 

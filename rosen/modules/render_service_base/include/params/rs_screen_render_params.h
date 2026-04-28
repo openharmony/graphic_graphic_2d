@@ -227,15 +227,12 @@ public:
 
     void SetIsEqualVsyncPeriod(bool isEqualVsyncPeriod) { isEqualVsyncPeriod_ = isEqualVsyncPeriod; }
     bool IsEqualVsyncPeriod() const { return isEqualVsyncPeriod_; }
-    void SetCloneNodeMap(
-        const std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr>& cloneNodeMap);
-    std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr>& GetCloneNodeMap()
-    {
-        return cloneNodeMap_;
-    }
     void SetLogicalCameraRotationCorrection(ScreenRotation logicalCorrection);
     ScreenRotation GetLogicalCameraRotationCorrection() const;
-
+    LayerSkipContext& GetLayerSkipContext()
+    {
+        return layerSkipContext_;
+    }
 private:
 
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> logicalDisplayNodeDrawables_;
@@ -272,6 +269,7 @@ private:
     bool isZoomed_ = false;
     uint32_t mirrorDstCount_ = 0;
     bool hasMirrorScreen_ = false;
+    LayerSkipContext layerSkipContext_;
     Drawing::Matrix slrMatrix_;
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr targetSurfaceRenderNodeDrawable_;
     friend class RSUniRenderVisitor;
@@ -281,7 +279,6 @@ private:
     Occlusion::Region drawnRegion_;
     bool forceFreeze_ = false;
     bool hasMirroredScreenChanged_ = false;
-    std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr> cloneNodeMap_;
     ScreenRotation logicalCameraRotationCorrection_ = ScreenRotation::ROTATION_0;
 };
 } // namespace OHOS::Rosen

@@ -124,7 +124,7 @@ public:
      */
     inline uint32_t GetAlpha() const
     {
-        return color_.GetAlpha();
+        return isHdrColor_ ? static_cast<uint32_t>(round(hdrColor_.GetAlpha() * Color::RGB_MAX)) : color_.GetAlpha();
     }
 
     /**
@@ -133,7 +133,7 @@ public:
      */
     inline scalar GetAlphaF() const
     {
-        return color_.GetAlphaF();
+        return isHdrColor_ ? hdrColor_.GetAlpha() : color_.GetAlphaF();
     }
 
     /**
@@ -142,7 +142,7 @@ public:
      */
     inline scalar GetRedF() const
     {
-        return color_.GetRedF();
+        return isHdrColor_ ? hdrColor_.GetRed() : color_.GetRedF();
     }
 
     /**
@@ -151,7 +151,7 @@ public:
      */
     inline scalar GetGreenF() const
     {
-        return color_.GetGreenF();
+        return isHdrColor_ ? hdrColor_.GetGreen() : color_.GetGreenF();
     }
 
     /**
@@ -160,7 +160,7 @@ public:
      */
     inline scalar GetBlueF() const
     {
-        return color_.GetBlueF();
+        return isHdrColor_ ? hdrColor_.GetBlue() : color_.GetBlueF();
     }
 
     /**

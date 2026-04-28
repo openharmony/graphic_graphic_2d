@@ -87,7 +87,7 @@ public:
 
     virtual ErrCode ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) = 0;
 
-    virtual ErrCode CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
+    virtual ErrCode CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
         bool& success) = 0;
 
     virtual ErrCode CreateNode(const RSSurfaceRenderNodeConfig& config, bool& success) = 0;
@@ -118,8 +118,6 @@ public:
 
     virtual ErrCode SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent, uint32_t& resCode) = 0;
 
-    virtual bool GetHighContrastTextState() = 0;
-
     virtual ErrCode SetFocusAppInfo(const FocusAppInfo& info, int32_t& repCode) = 0;
     
     virtual void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
@@ -148,7 +146,7 @@ public:
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) = 0;
 
     virtual ErrCode SetHwcNodeBounds(
-        int64_t rsNodeId, float positionX, float positionY, float positionZ, float positionW) = 0;
+        NodeId rsNodeId, float positionX, float positionY, float positionZ, float positionW) = 0;
 
     virtual int32_t GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo) = 0;
 
@@ -214,6 +212,10 @@ public:
     ) = 0;
 
     virtual int32_t GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result) = 0;
+    
+    virtual void RegisterRemoteRefreshCallback() = 0;
+
+    virtual void SetFreeMultiWindowStatus(bool enable) = 0;
 };
 
 } // namespace Rosen

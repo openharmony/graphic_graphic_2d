@@ -98,11 +98,11 @@ void NdkUndefinedGlyphDisplayTest::BoundsResult(
 }
 
 /**
- * @tc.name: NdkUndefinedGlyphDisplayTest001
+ * @tc.name: SetUndefinedGlyphUseTofuAndVerifyBounds
  * @tc.desc: Test undefined glyph display use tofu
  * @tc.type: FUNC
  */
-HWTEST_F(NdkUndefinedGlyphDisplayTest, NdkUndefinedGlyphDisplayTest001, TestSize.Level0)
+HWTEST_F(NdkUndefinedGlyphDisplayTest, SetUndefinedGlyphUseTofuAndVerifyBounds, TestSize.Level0)
 {
     OH_Drawing_SetTextUndefinedGlyphDisplay(TEXT_UNDEFINED_GLYPH_USE_TOFU);
     OH_Drawing_Typography* typography = PrepareCreateTypography(text_);
@@ -112,11 +112,11 @@ HWTEST_F(NdkUndefinedGlyphDisplayTest, NdkUndefinedGlyphDisplayTest001, TestSize
 }
 
 /**
- * @tc.name: NdkUndefinedGlyphDisplayTest002
+ * @tc.name: SetUndefinedGlyphUseDefaultAndVerifyBounds
  * @tc.desc: Test undefined glyph display use default
  * @tc.type: FUNC
  */
-HWTEST_F(NdkUndefinedGlyphDisplayTest, NdkUndefinedGlyphDisplayTest002, TestSize.Level0)
+HWTEST_F(NdkUndefinedGlyphDisplayTest, SetUndefinedGlyphUseDefaultAndVerifyBounds, TestSize.Level0)
 {
     OH_Drawing_SetTextUndefinedGlyphDisplay(TEXT_UNDEFINED_GLYPH_USE_DEFAULT);
     OH_Drawing_Typography* typography = PrepareCreateTypography(text_);
@@ -126,11 +126,11 @@ HWTEST_F(NdkUndefinedGlyphDisplayTest, NdkUndefinedGlyphDisplayTest002, TestSize
 }
 
 /**
- * @tc.name: NdkUndefinedGlyphDisplayTest003
+ * @tc.name: SetInvalidUndefinedGlyphDisplayFallsBackToPrevious
  * @tc.desc: Test undefined glyph display use invalid input
  * @tc.type: FUNC
  */
-HWTEST_F(NdkUndefinedGlyphDisplayTest, NdkUndefinedGlyphDisplayTest003, TestSize.Level0)
+HWTEST_F(NdkUndefinedGlyphDisplayTest, SetInvalidUndefinedGlyphDisplayFallsBackToPrevious, TestSize.Level0)
 {
     OH_Drawing_SetTextUndefinedGlyphDisplay(TEXT_UNDEFINED_GLYPH_USE_DEFAULT);
     OH_Drawing_SetTextUndefinedGlyphDisplay(static_cast<OH_Drawing_TextUndefinedGlyphDisplay>(100));
@@ -147,11 +147,11 @@ HWTEST_F(NdkUndefinedGlyphDisplayTest, NdkUndefinedGlyphDisplayTest003, TestSize
 }
 
 /**
- * @tc.name: NdkUndefinedGlyphDisplayTest004
+ * @tc.name: NoGlyphOnlyTextWithDefaultAndTofuMode
  * @tc.desc: Test undefined glyph display use only no glyph
  * @tc.type: FUNC
  */
-HWTEST_F(NdkUndefinedGlyphDisplayTest, NdkUndefinedGlyphDisplayTest004, TestSize.Level0)
+HWTEST_F(NdkUndefinedGlyphDisplayTest, NoGlyphOnlyTextWithDefaultAndTofuMode, TestSize.Level0)
 {
     OH_Drawing_SetTextUndefinedGlyphDisplay(TEXT_UNDEFINED_GLYPH_USE_DEFAULT);
     OH_Drawing_SetTextUndefinedGlyphDisplay(static_cast<OH_Drawing_TextUndefinedGlyphDisplay>(100));
@@ -168,11 +168,11 @@ HWTEST_F(NdkUndefinedGlyphDisplayTest, NdkUndefinedGlyphDisplayTest004, TestSize
 }
 
 /**
- * @tc.name: NdkUndefinedGlyphDisplayTest005
+ * @tc.name: SetFontFamilyWithTofuModeForcesTofu
  * @tc.desc: Test set family name, but still force tofu
  * @tc.type: FUNC
  */
-HWTEST_F(NdkUndefinedGlyphDisplayTest, NdkUndefinedGlyphDisplayTest005, TestSize.Level0)
+HWTEST_F(NdkUndefinedGlyphDisplayTest, SetFontFamilyWithTofuModeForcesTofu, TestSize.Level0)
 {
     OH_Drawing_SetTextUndefinedGlyphDisplay(TEXT_UNDEFINED_GLYPH_USE_TOFU);
     const char* fontFamilies[] = { "Noto Sans" };

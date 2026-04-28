@@ -17,12 +17,15 @@
 #include <gtest/gtest.h>
 
 #include "common/rs_common_def.h"
+#include "common/rs_common_hook.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "dirty_region/rs_optimize_canvas_dirty_collector.h"
 #include "drawable/rs_color_picker_drawable.h"
+#include "drawable/rs_overlay_ng_shader_drawable.h"
 #include "drawable/rs_property_drawable.h"
 #include "drawable/rs_property_drawable_background.h"
 #include "drawable/rs_property_drawable_foreground.h"
+#include "effect/rs_render_shader_base.h"
 #include "modifier_ng/custom/rs_custom_modifier.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "params/rs_render_params.h"
@@ -66,7 +69,6 @@ public:
         : RSRenderNodeDrawableAdapter(std::move(node))
     {
         renderParams_ = std::make_unique<RSRenderParams>(renderNode_.lock()->GetId());
-        uifirstRenderParams_ = std::make_unique<RSRenderParams>(renderNode_.lock()->GetId());
     }
     ~RSRenderNodeDrawableAdapterBoy() override = default;
 
@@ -1173,25 +1175,20 @@ HWTEST_F(RSRenderNodeTest, OnSyncTest1, TestSize.Level1)
     node->renderDrawable_->renderParams_ = std::make_unique<RSRenderParams>(0);
     EXPECT_NE(node->renderDrawable_->renderParams_, nullptr);
 
-    node->uifirstNeedSync_ = true;
-    node->renderDrawable_->uifirstRenderParams_ = std::make_unique<RSRenderParams>(0);
-    EXPECT_NE(node->renderDrawable_->uifirstRenderParams_, nullptr);
-
-    node->uifirstSkipPartialSync_ = false;
     node->dirtySlots_.emplace(RSDrawableSlot::BACKGROUND_FILTER);
     auto drawableFilter = std::make_shared<DrawableV2::RSForegroundFilterDrawable>();
     EXPECT_NE(drawableFilter, nullptr);
 
     node->GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)] = drawableFilter;
     node->drawingCacheType_ = RSDrawingCacheType::FORCED_CACHE;
-    node->stagingRenderParams_->freezeFlag_ = true;
+    node->stagingRenderParams_->SetRSFreezeFlag(true);
     node->needClearSurface_ = true;
     std::function<void()> clearTask = []() { printf("ClearSurfaceTask CallBack\n"); };
     node->GetOpincCache().isOpincRootFlag_ = true;
+    node->nodeGroupType_ = RSRenderNode::NodeGroupType::GROUPED_BY_LAYER;
     node->OnSync();
     EXPECT_TRUE(node->dirtySlots_.empty());
     EXPECT_FALSE(node->drawCmdListNeedSync_);
-    EXPECT_FALSE(node->uifirstNeedSync_);
     EXPECT_FALSE(node->needClearSurface_);
 }
 
@@ -1206,12 +1203,10 @@ HWTEST_F(RSRenderNodeTest, OnSyncTest2, TestSize.Level1)
     std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(0);
     EXPECT_NE(node, nullptr);
 
-    node->uifirstSkipPartialSync_ = true;
     node->dirtySlots_.emplace(RSDrawableSlot::BACKGROUND_FILTER);
     node->OnSync();
     EXPECT_TRUE(node->dirtySlots_.empty());
 
-    node->uifirstSkipPartialSync_ = false;
     auto backgroundColorDrawable = std::make_shared<DrawableV2::RSBackgroundColorDrawable>();
     EXPECT_NE(backgroundColorDrawable, nullptr);
     node->GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_COLOR)]
@@ -1220,7 +1215,6 @@ HWTEST_F(RSRenderNodeTest, OnSyncTest2, TestSize.Level1)
     node->OnSync();
     EXPECT_TRUE(node->dirtySlots_.empty());
 
-    node->uifirstSkipPartialSync_ = true;
     auto backgroundColorDrawable2 = std::make_shared<DrawableV2::RSBackgroundColorDrawable>();
     EXPECT_NE(backgroundColorDrawable2, nullptr);
     node->GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_COLOR)]
@@ -1536,6 +1530,30 @@ HWTEST_F(RSRenderNodeTest, UpdatePointLightDirtySlotTest2, TestSize.Level1)
     node.UpdatePointLightDirtySlot();
     EXPECT_FALSE(node.enableHdrEffect_);
 }
+
+/**
+ * @tc.name: UpdatePointLightDirtySlotTest3
+ * @tc.desc: Test UpdatePointLightDirtySlot with OVERLAY_NG_SHADER drawable set
+ * @tc.type: FUNC
+ * @tc.require: issueI9T3XY
+ */
+HWTEST_F(RSRenderNodeTest, UpdatePointLightDirtySlotTest3, TestSize.Level1)
+{
+    auto sContext = std::make_shared<RSContext>();
+    context = sContext;
+    auto node = std::make_shared<RSRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+    auto overlayDrawable = std::make_shared<DrawableV2::RSOverlayNGShaderDrawable>();
+    ASSERT_NE(overlayDrawable, nullptr);
+    node->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::OVERLAY_NG_SHADER)] = overlayDrawable;
+    EXPECT_TRUE(node->dirtySlots_.empty());
+    auto overlayShader = std::make_shared<RSNGRenderAIBarRectHalo>();
+    node->GetMutableRenderProperties().SetOverlayNGShader(overlayShader);
+    node->UpdatePointLightDirtySlot();
+    EXPECT_FALSE(node->dirtySlots_.empty());
+    EXPECT_TRUE(node->dirtySlots_.count(RSDrawableSlot::OVERLAY_NG_SHADER) > 0);
+}
+
 /**
  * @tc.name: AddToPendingSyncListTest
  * @tc.desc:
@@ -2736,10 +2754,6 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoAfterChildrenTest003, TestSize.
     nodeTest->nodeGroupType_ = RSRenderNode::GROUPED_BY_USER;
     nodeTest->CheckDrawingCacheType();
     EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::FORCED_CACHE);
-    nodeTest->UpdateDrawingCacheInfoAfterChildren(true);
-    auto& stagingRenderParams = nodeTest->GetStagingRenderParams();
-    EXPECT_NE(stagingRenderParams, nullptr);
-    EXPECT_EQ(stagingRenderParams->NodeGroupHasChildInBlacklist(), true);
 }
 
 /**
@@ -2759,14 +2773,10 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoAfterChildrenTest004, TestSize.
     childNode->InitRenderParams();
     nodeTest->AddChild(childNode, 1);
     nodeTest->GenerateFullChildrenList();
-    bool isInBlackList = false;
 
     nodeTest->nodeGroupType_ = RSRenderNode::GROUPED_BY_USER;
     nodeTest->CheckDrawingCacheType();
     EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::FORCED_CACHE);
-
-    nodeTest->UpdateDrawingCacheInfoAfterChildren(isInBlackList);
-    EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
 }
 
 /**
@@ -2793,7 +2803,7 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoAfterChildrenTest005, TestSize.
 
     std::unordered_set<NodeId> childHasProtectedNodeSet;
     childHasProtectedNodeSet.insert(nodeTest->GetId());
-    nodeTest->UpdateDrawingCacheInfoAfterChildren(false, childHasProtectedNodeSet);
+    nodeTest->UpdateDrawingCacheInfoAfterChildren(childHasProtectedNodeSet);
     EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
 }
 
@@ -2821,7 +2831,7 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoAfterChildrenTest006, TestSize.
 
     std::unordered_set<NodeId> childHasProtectedNodeSet;
     childHasProtectedNodeSet.insert(nodeTest->GetId());
-    nodeTest->UpdateDrawingCacheInfoAfterChildren(false, childHasProtectedNodeSet);
+    nodeTest->UpdateDrawingCacheInfoAfterChildren(childHasProtectedNodeSet);
     nodeTest->UpdateDrawingCacheInfoAfterChildren();
     EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::FORCED_CACHE);
 }
@@ -4366,6 +4376,106 @@ HWTEST_F(RSRenderNodeTest, GetColorPickerDrawable002, TestSize.Level1)
     auto retrievedDrawable = node.GetColorPickerDrawable();
     EXPECT_NE(retrievedDrawable, nullptr);
     EXPECT_EQ(retrievedDrawable, colorPickerDrawable);
+}
+
+/**
+ * @tc.name: GetNodeColorSpaceForceSRGBTest
+ * @tc.desc: Verify GetNodeColorSpace returns SRGB when ForceSRGBOutput is enabled
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, GetNodeColorSpaceForceSRGBTest, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
+    nodeTest->InitRenderParams();
+    nodeTest->SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+
+    RsCommonHook::Instance().SetForceSRGBOutput(true);
+    EXPECT_EQ(nodeTest->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+
+    RsCommonHook::Instance().SetForceSRGBOutput(false);
+    EXPECT_EQ(nodeTest->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+}
+
+/**
+ * @tc.name: UpdateFilterChildRelevantFlagsToParams001
+ * @tc.desc: Verify UpdateFilterChildRelevantFlagsToParams returns early when stagingRenderParams_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, UpdateFilterChildRelevantFlagsToParams001, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID);
+    ASSERT_NE(node, nullptr);
+    node->childHasVisibleFilter_ = true;
+    node->childHasVisibleEffect_ = true;
+    node->stagingRenderParams_ = nullptr;
+
+    node->UpdateFilterChildRelevantFlagsToParams();
+
+    ASSERT_EQ(node->stagingRenderParams_, nullptr);
+    ASSERT_TRUE(node->childHasVisibleFilter_);
+    ASSERT_TRUE(node->childHasVisibleEffect_);
+}
+
+/**
+ * @tc.name: UpdateFilterChildRelevantFlagsToParams002
+ * @tc.desc: Verify UpdateFilterChildRelevantFlagsToParams sets child flags to stagingRenderParams correctly
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, UpdateFilterChildRelevantFlagsToParams002, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID);
+    ASSERT_NE(node, nullptr);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(DEFAULT_NODE_ID);
+    ASSERT_NE(node->stagingRenderParams_, nullptr);
+
+    node->childHasVisibleFilter_ = true;
+    node->childHasVisibleEffect_ = true;
+
+    node->UpdateFilterChildRelevantFlagsToParams();
+
+    ASSERT_TRUE(node->stagingRenderParams_->ChildHasVisibleFilter());
+    ASSERT_TRUE(node->stagingRenderParams_->ChildHasVisibleEffect());
+
+    node->childHasVisibleFilter_ = false;
+    node->childHasVisibleEffect_ = false;
+
+    node->UpdateFilterChildRelevantFlagsToParams();
+
+    ASSERT_FALSE(node->stagingRenderParams_->ChildHasVisibleFilter());
+    ASSERT_FALSE(node->stagingRenderParams_->ChildHasVisibleEffect());
+}
+
+/**
+ * @tc.name: UpdateFilterChildRelevantFlagsToParams003
+ * @tc.desc: Verify UpdateFilterChildRelevantFlagsToParams with mixed flag values
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, UpdateFilterChildRelevantFlagsToParams003, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID);
+    ASSERT_NE(node, nullptr);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(DEFAULT_NODE_ID);
+    ASSERT_NE(node->stagingRenderParams_, nullptr);
+
+    node->childHasVisibleFilter_ = true;
+    node->childHasVisibleEffect_ = false;
+
+    node->UpdateFilterChildRelevantFlagsToParams();
+
+    ASSERT_TRUE(node->stagingRenderParams_->ChildHasVisibleFilter());
+    ASSERT_FALSE(node->stagingRenderParams_->ChildHasVisibleEffect());
+
+    node->childHasVisibleFilter_ = false;
+    node->childHasVisibleEffect_ = true;
+
+    node->UpdateFilterChildRelevantFlagsToParams();
+
+    ASSERT_FALSE(node->stagingRenderParams_->ChildHasVisibleFilter());
+    ASSERT_TRUE(node->stagingRenderParams_->ChildHasVisibleEffect());
 }
 } // namespace Rosen
 } // namespace OHOS

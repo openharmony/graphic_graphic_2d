@@ -30,6 +30,7 @@
 #include "command/rs_command.h"
 #include "command/rs_node_showing_command.h"
 #include "common/rs_xcollie.h"
+#include "ipc_callbacks/active_screen_id_changed_callback_stub.h"
 #include "ipc_callbacks/screen_supported_hdr_formats_callback_stub.h"
 #include "ipc_callbacks/brightness_info_change_callback_stub.h"
 #include "ipc_callbacks/pointer_render/pointer_luminance_callback_stub.h"
@@ -46,6 +47,7 @@
 #include "ipc_callbacks/rs_transaction_data_callback_stub.h"
 #include "ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_stub.h"
 #include "ipc_callbacks/rs_uiextension_callback_stub.h"
+#include "ipc_callbacks/rs_exposed_event_callback_stub.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "render/rs_typeface_cache.h"
@@ -64,13 +66,6 @@ std::shared_ptr<RSIRenderClient> RSIRenderClient::CreateRenderServiceClient()
     static std::once_flag once_flag;
     std::call_once(once_flag, []() { client_ = std::make_shared<RSRenderServiceClient>(); });
     return client_;
-}
-
-std::shared_ptr<RSIRenderClient> RSIRenderClient::CreateRenderPiplineClient()
-{
-    static std::once_flag once_flag_render;
-    std::call_once(once_flag_render, []() { renderClient_ = std::make_shared<RSRenderPipelineClient>(); });
-    return renderClient_;
 }
 
 void RSRenderServiceClient::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
@@ -166,6 +161,15 @@ std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
         return nullptr;
     }
     return std::make_shared<VSyncReceiver>(conn, token->AsObject(), looper, name);
+}
+
+sptr<IRemoteObject> RSRenderServiceClient::GetConnectToRenderToken(ScreenId screenId)
+{
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
+    if (clientToService == nullptr) {
+        return nullptr;
+    }
+    return clientToService->GetConnectToRenderToken(screenId);
 }
 
 int32_t RSRenderServiceClient::GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid)
@@ -412,10 +416,10 @@ public:
     ~CustomScreenChangeCallback() override {};
 
     void OnScreenChanged(ScreenId id, ScreenEvent event,
-        ScreenChangeReason reason, sptr<IRemoteObject> obj = nullptr) override
+        ScreenChangeReason reason, sptr<IRemoteObject> obj) override
     {
         if (cb_ != nullptr) {
-            cb_(id, event, reason);
+            cb_(id, event, reason, obj);
         }
     }
 
@@ -466,6 +470,41 @@ int32_t RSRenderServiceClient::SetScreenSwitchingNotifyCallback(const ScreenSwit
     }
 
     return clientToService->SetScreenSwitchingNotifyCallback(cb);
+}
+
+class CustomActiveScreenIdChangedCallback : public RSActiveScreenIdChangedCallbackStub
+{
+public:
+    explicit CustomActiveScreenIdChangedCallback(const ActiveScreenIdChangedCallback& callback) : cb_(callback) {}
+    ~CustomActiveScreenIdChangedCallback() override {};
+
+    void OnActiveScreenIdChanged(ScreenId activeScreenId) override
+    {
+        if (cb_ != nullptr) {
+            cb_(activeScreenId);
+        }
+    }
+
+private:
+    ActiveScreenIdChangedCallback cb_;
+};
+
+int32_t RSRenderServiceClient::SetActiveScreenIdChangedCallback(const ActiveScreenIdChangedCallback& callback)
+{
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
+    if (clientToService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::%{public}s clientToService is null", __func__);
+        return RENDER_SERVICE_NULL;
+    }
+
+    sptr<CustomActiveScreenIdChangedCallback> cb = nullptr;
+    if (callback) {
+        cb = new CustomActiveScreenIdChangedCallback(callback);
+    } else {
+        ROSEN_LOGE("RSRenderServiceClient::%{public}s callback is null.", __func__);
+    }
+
+    return clientToService->SetActiveScreenIdChangedCallback(cb);
 }
 
 class CustomBrightnessInfoChangeCallback : public RSBrightnessInfoChangeCallbackStub
@@ -766,6 +805,28 @@ int32_t RSRenderServiceClient::SetDualScreenState(ScreenId id, DualScreenStatus 
     return clientToService->SetDualScreenState(id, status);
 }
 
+int32_t RSRenderServiceClient::SetAsMainScreen(ScreenId screenId, bool isMainScreen)
+{
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
+    if (clientToService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::%{public}s clientToService is nullptr", __func__);
+        return StatusCode::RENDER_SERVICE_NULL;
+    }
+
+    return clientToService->SetAsMainScreen(screenId, isMainScreen);
+}
+
+ScreenId RSRenderServiceClient::GetMainScreenId()
+{
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
+    if (clientToService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::%{public}s clientToService is nullptr", __func__);
+        return INVALID_SCREEN_ID;
+    }
+
+    return clientToService->GetMainScreenId();
+}
+
 RSScreenModeInfo RSRenderServiceClient::GetScreenActiveMode(ScreenId id)
 {
     auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
@@ -967,9 +1028,7 @@ int32_t RSRenderServiceClient::GetPixelFormat(ScreenId id, GraphicPixelFormat& p
         ROSEN_LOGE("RSRenderServiceClient::GetPixelFormat clientToService == nullptr!");
         return RENDER_SERVICE_NULL;
     }
-    int32_t resCode = SUCCESS;
-    clientToService->GetPixelFormat(id, pixelFormat, resCode);
-    return resCode;
+    return clientToService->GetPixelFormat(id, pixelFormat);
 }
 
 int32_t RSRenderServiceClient::SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat)
@@ -979,9 +1038,7 @@ int32_t RSRenderServiceClient::SetPixelFormat(ScreenId id, GraphicPixelFormat pi
         ROSEN_LOGE("RSRenderServiceClient::SetPixelFormat clientToService == nullptr!");
         return RENDER_SERVICE_NULL;
     }
-    int32_t resCode = SUCCESS;
-    clientToService->SetPixelFormat(id, pixelFormat, resCode);
-    return resCode;
+    return clientToService->SetPixelFormat(id, pixelFormat);
 }
 
 class CustomScreenSupportedHDRFormatsCallback : public RSScreenSupportedHDRFormatsCallbackStub
@@ -1014,9 +1071,7 @@ int32_t RSRenderServiceClient::GetScreenSupportedHDRFormats(ScreenId id, std::ve
     if (callback) {
         cb = new CustomScreenSupportedHDRFormatsCallback(callback);
     }
-    int32_t resCode = SUCCESS;
-    clientToService->GetScreenSupportedHDRFormats(id, hdrFormats, resCode, cb);
-    return resCode;
+    return clientToService->GetScreenSupportedHDRFormats(id, hdrFormats, cb);
 }
 
 int32_t RSRenderServiceClient::GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat)
@@ -1025,9 +1080,7 @@ int32_t RSRenderServiceClient::GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& 
     if (clientToService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
-    int32_t resCode = SUCCESS;
-    clientToService->GetScreenHDRFormat(id, hdrFormat, resCode);
-    return resCode;
+    return clientToService->GetScreenHDRFormat(id, hdrFormat);
 }
 
 int32_t RSRenderServiceClient::SetScreenHDRFormat(ScreenId id, int32_t modeIdx)
@@ -1036,9 +1089,7 @@ int32_t RSRenderServiceClient::SetScreenHDRFormat(ScreenId id, int32_t modeIdx)
     if (clientToService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
-    int32_t resCode = SUCCESS;
-    clientToService->SetScreenHDRFormat(id, modeIdx, resCode);
-    return resCode;
+    return clientToService->SetScreenHDRFormat(id, modeIdx);
 }
 
 int32_t RSRenderServiceClient::GetScreenSupportedColorSpaces(
@@ -1048,9 +1099,7 @@ int32_t RSRenderServiceClient::GetScreenSupportedColorSpaces(
     if (clientToService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
-    int32_t resCode = SUCCESS;
-    clientToService->GetScreenSupportedColorSpaces(id, colorSpaces, resCode);
-    return resCode;
+    return clientToService->GetScreenSupportedColorSpaces(id, colorSpaces);
 }
 
 int32_t RSRenderServiceClient::GetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType& colorSpace)
@@ -1059,9 +1108,7 @@ int32_t RSRenderServiceClient::GetScreenColorSpace(ScreenId id, GraphicCM_ColorS
     if (clientToService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
-    int32_t resCode = SUCCESS;
-    clientToService->GetScreenColorSpace(id, colorSpace, resCode);
-    return resCode;
+    return clientToService->GetScreenColorSpace(id, colorSpace);
 }
 
 int32_t RSRenderServiceClient::SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace)
@@ -1070,9 +1117,7 @@ int32_t RSRenderServiceClient::SetScreenColorSpace(ScreenId id, GraphicCM_ColorS
     if (clientToService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
-    int32_t resCode = SUCCESS;
-    clientToService->SetScreenColorSpace(id, colorSpace, resCode);
-    return resCode;
+    return clientToService->SetScreenColorSpace(id, colorSpace);
 }
 
 int32_t RSRenderServiceClient::GetScreenType(ScreenId id, RSScreenType& screenType)
@@ -1357,6 +1402,42 @@ int32_t RSRenderServiceClient::RegisterFirstFrameCommitCallback(
 
     ROSEN_LOGD("RSRenderServiceClient::RegisterFirstFrameCommitCallback called");
     return clientToService->RegisterFirstFrameCommitCallback(cb);
+}
+
+class CustomExposedEventCallback : public RSExposedEventCallbackStub
+{
+public:
+    explicit CustomExposedEventCallback(const RSExposedEventCallback& callback) : cb_(callback) {}
+    ~CustomExposedEventCallback() override {};
+
+    void OnDisplayEvent(const std::shared_ptr<RSExposedEventDataBase> data) override
+    {
+        ROSEN_LOGI("CustomExposedEventCallback::OnDisplayEvent called, type: %{public}u",
+            static_cast<uint32_t>(data->type_));
+        if (cb_ != nullptr) {
+            cb_(data);
+        }
+    }
+private:
+    RSExposedEventCallback cb_;
+};
+
+int32_t RSRenderServiceClient::RegisterExposedEventCallback(
+    const RSExposedEventType type, const RSExposedEventCallback& callback)
+{
+    sptr<CustomExposedEventCallback> cb = nullptr;
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
+    if (clientToService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::RegisterExposedEventCallback clientToService == nullptr!");
+        return RENDER_SERVICE_NULL;
+    }
+
+    if (callback) {
+        cb = new CustomExposedEventCallback(callback);
+    }
+
+    ROSEN_LOGD("RSRenderServiceClient::RegisterExposedEventCallback called");
+    return clientToService->RegisterExposedEventCallback(type, cb);
 }
 
 class CustomFrameRateLinkerExpectedFpsUpdateCallback : public RSFrameRateLinkerExpectedFpsUpdateCallbackStub
@@ -1704,16 +1785,6 @@ bool RSRenderServiceClient::SetVirtualScreenStatus(ScreenId id, VirtualScreenSta
         clientToService->SetVirtualScreenStatus(id, screenStatus, success);
     }
     return success;
-}
-
-void RSRenderServiceClient::SetFreeMultiWindowStatus(bool enable)
-{
-    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
-    if (clientToService == nullptr) {
-        ROSEN_LOGE("RSRenderServiceClient::SetFreeMultiWindowStatus clientToService == nullptr!");
-        return;
-    }
-    clientToService->SetFreeMultiWindowStatus(enable);
 }
 
 void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop)

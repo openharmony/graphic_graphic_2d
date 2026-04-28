@@ -120,6 +120,7 @@ void RSAnimationManager::FilterAnimationByPid(pid_t pid)
         if (!pair.second) {
             return false;
         }
+        pair.second->RemoveFromGroupAnimator();
         pair.second->Finish();
         pair.second->Detach();
         return true;
@@ -165,14 +166,15 @@ std::tuple<bool, bool, bool> RSAnimationManager::Animate(
             RSAnimationTraceUtils::GetInstance().AddAnimationFinishTrace(
                 "Animation finish background", animation->GetTargetId(), animation->GetAnimationId(), false);
             animation->Finish();
+            animation->RemoveFromGroupAnimator();
         }
         bool isFinished = animation->Animate(time, minLeftDelayTime, false);
         if (isFinished) {
             isCalculateAnimationValue = true;
             OnAnimationFinished(animation);
         } else {
-            hasRunningAnimation = animation->IsRunning() || hasRunningAnimation;
-            needRequestNextVsync = animation->IsRunning() || needRequestNextVsync;
+            hasRunningAnimation = animation->IsRunning() || animation->IsGroupWaiting() || hasRunningAnimation;
+            needRequestNextVsync = animation->IsRunning() || animation->IsGroupWaiting() || needRequestNextVsync;
             isCalculateAnimationValue = animation->IsCalculateAniamtionValue() || isCalculateAnimationValue;
 
             auto range = animation->GetFrameRateRange();
@@ -188,7 +190,6 @@ std::tuple<bool, bool, bool> RSAnimationManager::Animate(
     });
     rateDecider_.MakeDecision(frameRateGetFunc_);
     isCalculateAnimationValue = isCalculateAnimationValue && nodeIsOnTheTree;
-
     return { hasRunningAnimation, needRequestNextVsync, isCalculateAnimationValue };
 }
 
@@ -243,9 +244,7 @@ void RSAnimationManager::OnAnimationFinished(const std::shared_ptr<RSRenderAnima
     NodeId targetId = animation->GetTargetId();
     AnimationId animationId = animation->GetAnimationId();
     uint64_t token = animation->GetToken();
-
-    RSAnimationTraceUtils::GetInstance().AddAnimationFinishTrace(
-        "Animation Send Finish", targetId, animationId, false);
+    RSAnimationTraceUtils::GetInstance().AddAnimationFinishTrace("Animation Send Finish", targetId, animationId, false);
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSAnimationCallback>(targetId, animationId, token, AnimationCallbackEvent::FINISHED);
     RSMessageProcessor::Instance().AddUIMessage(ExtractPid(animationId), command);

@@ -381,6 +381,13 @@ ohos_unittest("RSRenderServiceVisitorTest") {
       "video_processing_engine:videoprocessingengine",
     ]
   }
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
 }
 
 # Build RSComposerAdapterTest
@@ -798,6 +805,7 @@ ohos_unittest("RSMainThreadTest") {
   include_dirs = [
     "$graphic_2d_root/rosen/modules/utils/",
     "$graphic_2d_root/rosen/test/render_service/render_service/unittest/",
+    "$graphic_2d_root/rosen/modules/render_service/main/render_process",
   ]
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
@@ -937,6 +945,13 @@ ohos_unittest("RSUniRenderVirtualProcessorTest") {
       "video_processing_engine:videoprocessingengine",
     ]
   }
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
 }
 
 ## Build RSBaseRenderEngineUnitTest
@@ -1293,6 +1308,7 @@ ohos_unittest("RSUniHwcVisitorTest") {
 config("rs_test_common_public_config") {
   include_dirs = [
     "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/modules/frame_load/include",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",

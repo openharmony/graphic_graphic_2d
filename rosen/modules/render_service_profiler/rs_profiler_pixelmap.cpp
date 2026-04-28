@@ -221,13 +221,16 @@ bool PixelMapStorage::PushSharedMemory(uint64_t id, PixelMap& map)
         return false;
     }
 
-    constexpr size_t skipBytes = 24u;
-    const auto size = static_cast<size_t>(map.GetByteCount());
-    const ImageProperties properties(map);
+    // see PixelMap::Marshalling
+    const auto size = (map.IsAstc() || map.IsYuvFormat() || (map.GetPixelFormat() == Media::PixelFormat::RGBA_F16))
+                          ? static_cast<size_t>(map.GetCapacity())
+                          : static_cast<size_t>(map.GetByteCount());
     if (auto image = MapImage(*reinterpret_cast<const int32_t*>(map.GetFd()), size, PROT_READ)) {
-        auto ret = PushImage(id, GenerateImageData(0, image, size, map), skipBytes, nullptr, &properties);
+        constexpr size_t skipBytes = 24u;
+        const ImageProperties properties(map);
+        const auto result = PushImage(id, GenerateImageData(0, image, size, map), skipBytes, nullptr, &properties);
         UnmapImage(image, size);
-        return ret;
+        return result;
     }
     return false;
 }
@@ -864,7 +867,11 @@ bool RSProfiler::MarshalPixelMap(Parcel& parcel, const std::shared_ptr<Media::Pi
 Media::PixelMap* RSProfiler::UnmarshalPixelMapNstd(Parcel& parcel,
     std::function<int(Parcel& parcel, std::function<int(Parcel&)> readFdDefaultFunc)> readSafeFdFunc)
 {
-    const uint64_t id = parcel.ReadUint64();
+    uint64_t id = 0u;
+    if (!parcel.ReadUint64(id)) {
+        HRPE("UnmarshalPixelMapNstd: Cannot read id");
+        return nullptr;
+    }
 
     if (IsRecordAbortRequested()) {
         return Media::PixelMapRecordParcel::UnmarshallingPixelMapForRecord(parcel, readSafeFdFunc);
@@ -902,7 +909,7 @@ Media::PixelMap* RSProfiler::UnmarshalPixelMap(Parcel& parcel,
 {
     uint8_t flags;
     if (!parcel.ReadUint8(flags)) {
-        HRPE("UnmarshalPixelMap: Unable to read flags");
+        HRPE("UnmarshalPixelMap: Cannot read flags");
         return nullptr;
     }
 
@@ -916,7 +923,11 @@ Media::PixelMap* RSProfiler::UnmarshalPixelMap(Parcel& parcel,
         return UnmarshalPixelMapNstd(parcel, readSafeFdFunc);
     }
 
-    const uint64_t id = parcel.ReadUint64();
+    uint64_t id = 0u;
+    if (!parcel.ReadUint64(id)) {
+        HRPE("UnmarshalPixelMap: Cannot read id");
+        return nullptr;
+    }
 
     if (IsRecordAbortRequested()) {
         return PixelMap::Unmarshalling(parcel, readSafeFdFunc);

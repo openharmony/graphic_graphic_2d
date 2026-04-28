@@ -101,10 +101,12 @@ int RSSurfaceCaptureCallbackStub::OnRemoteRequest(
 bool RSSurfaceCaptureCallbackStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureConfig& captureConfig, MessageParcel& data)
 {
     uint8_t captureType { 0 };
+    uint32_t displayIntent { 0 };
     if (!data.ReadFloat(captureConfig.scaleX) || !data.ReadFloat(captureConfig.scaleY) ||
         !data.ReadBool(captureConfig.useDma) || !data.ReadBool(captureConfig.useCurWindow) ||
         !data.ReadUint8(captureType) || !data.ReadBool(captureConfig.isSync) ||
         !data.ReadBool(captureConfig.isHdrCapture) ||
+        !data.ReadUint32(displayIntent) ||
         !data.ReadBool(captureConfig.needF16WindowCaptureForScRGB) ||
         !data.ReadBool(captureConfig.needErrorCode) ||
         !data.ReadFloat(captureConfig.mainScreenRect.left_) ||
@@ -122,7 +124,9 @@ bool RSSurfaceCaptureCallbackStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureConf
         !data.ReadUint32(captureConfig.colorSpace.first) ||
         !data.ReadBool(captureConfig.colorSpace.second) ||
         !data.ReadUint32(captureConfig.dynamicRangeMode.first) ||
-        !data.ReadBool(captureConfig.dynamicRangeMode.second)) {
+        !data.ReadBool(captureConfig.dynamicRangeMode.second) ||
+        !data.ReadBool(captureConfig.isSyncRender) ||
+        !data.ReadBool(captureConfig.windowSync)) {
         RS_LOGE("RSSurfaceCaptureCallbackStub::ReadSurfaceCaptureConfig read parcel failed!");
         return false;
     }
@@ -131,6 +135,11 @@ bool RSSurfaceCaptureCallbackStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureConf
         return false;
     }
     captureConfig.captureType = static_cast<SurfaceCaptureType>(captureType);
+    if (displayIntent >= static_cast<uint32_t>(DisplayIntent::DISPLAY_INTENT_BUTT)) {
+        RS_LOGE("RSSurfaceCaptureCallbackStub::ReadSurfaceCaptureConfig Read displayIntent failed!");
+        return false;
+    }
+    captureConfig.displayIntent = static_cast<DisplayIntent>(displayIntent);
     return true;
 }
 } // namespace Rosen

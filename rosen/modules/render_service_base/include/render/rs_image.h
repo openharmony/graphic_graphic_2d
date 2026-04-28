@@ -113,6 +113,7 @@ public:
 
     bool HDRConvert(const Drawing::SamplingOptions& sampling, Drawing::Canvas& canvas);
     bool IsHDRUiCapture() const;
+    bool IsEDRSurface() const;
     void SetPaint(Drawing::Paint paint);
     void SetDynamicRangeMode(uint32_t dynamicRangeMode);
 

@@ -22,12 +22,15 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSDumpCallbackProxy : IRemoteProxy<RSIDumpCallback> {
+class RSDumpCallbackProxy : public IRemoteProxy<RSIDumpCallback> {
 public:
     explicit RSDumpCallbackProxy(const sptr<IRemoteObject>& impl);
     virtual ~RSDumpCallbackProxy() noexcept = default;
 
     void OnDumpResult(std::string& dumpResult) override;
+
+private:
+    static inline BrokerDelegator<RSDumpCallbackProxy> delegator_;
 };
 } // namespace Rosen
 } // namespace OHOS

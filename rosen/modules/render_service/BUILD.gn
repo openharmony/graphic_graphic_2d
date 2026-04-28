@@ -143,6 +143,7 @@ ohos_shared_library("librender_service") {
     "core/feature/hyper_graphic_manager/rp_frame_rate_policy.cpp",
     "core/feature/hyper_graphic_manager/rp_hgm_xml_parser.cpp",
     "core/feature/image_enhance/image_enhance_manager.cpp",
+    "core/feature/layer/rs_layer_cache_manager.cpp",
     "core/feature/lpp/render_process/lpp_video_handler.cpp",
     "core/feature/occlusion_culling/rs_occlusion_handler.cpp",
     "core/feature/occlusion_culling/rs_occlusion_node.cpp",
@@ -181,16 +182,23 @@ ohos_shared_library("librender_service") {
     "core/transaction/rs_unmarshal_thread.cpp",
     "core/transaction/zidl/rs_client_to_render_connection_stub.cpp",
     "core/transaction/zidl/rs_connect_to_render_process_stub.cpp",
+    "main/render_process/rs_render_process.cpp",
+    "main/render_process/rs_render_process_agent.cpp",
+    "main/render_process/transaction/ipc_persistence/rs_ipc_persistence_data.cpp",
+    "main/render_process/transaction/ipc_persistence/rs_ipc_persistence_manager.cpp",
     "main/render_process/transaction/rs_service_to_render_connection.cpp",
     "main/render_process/transaction/zidl/rs_service_to_render_connection_proxy.cpp",
     "main/render_process/transaction/zidl/rs_service_to_render_connection_stub.cpp",
+    "main/render_server/rs_render_mode_config_parser.cpp",
     "main/render_server/rs_render_process_manager.cpp",
     "main/render_server/rs_render_process_manager_agent.cpp",
     "main/render_server/rs_render_service.cpp",
     "main/render_server/rs_render_service_agent.cpp",
     "main/render_server/rs_render_single_process_manager.cpp",
+    "main/render_server/rs_render_multi_process_manager.cpp",
     "main/render_server/transaction/rs_client_to_service_connection.cpp",
     "main/render_server/transaction/rs_render_to_service_connection.cpp",
+    "main/render_server/transaction/rs_render_connect_parcel_info.cpp",
     "main/render_server/transaction/zidl/rs_client_to_service_connection_stub.cpp",
     "main/render_server/transaction/zidl/rs_render_service_stub.cpp",
     "main/render_server/transaction/zidl/rs_render_to_service_connection_proxy.cpp",
@@ -202,8 +210,6 @@ ohos_shared_library("librender_service") {
     "screen_manager/rs_screen_manager.cpp",
     "screen_manager/rs_screen_preprocessor.cpp",
     "screen_manager/rs_screen_thread_safe_property.cpp",
-    "vsync/vsync_manager.cpp",
-    "vsync/vsync_manager_agent.cpp",
   ]
 
   #feature_cfg
@@ -282,6 +288,7 @@ ohos_shared_library("librender_service") {
   sources += [
     "$rosen_root/modules/frame_load/src/rs_frame_blur_predict.cpp",
     "$rosen_root/modules/frame_load/src/rs_frame_deadline_predict.cpp",
+    "$rosen_root/modules/frame_load/src/rs_game_frame_handler.cpp",
   ]
 
   if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
@@ -322,6 +329,7 @@ ohos_shared_library("librender_service") {
       "core/feature/uifirst/rs_uifirst_manager.cpp",
       "core/memory/rs_canvas_dma_buffer_cache.cpp",
       "core/memory/rs_memory_manager.cpp",
+      "core/memory/rs_netlink_manager.cpp",
       "core/pipeline/buffer_manager/rs_buffer_manager.cpp",
       "core/pipeline/main_thread/rs_uni_render_listener.cpp",
       "core/pipeline/main_thread/rs_uni_render_visitor.cpp",
@@ -342,7 +350,7 @@ ohos_shared_library("librender_service") {
     defines += [ "IS_ENABLE_DRM" ]
   }
 
-  if (graphic_2d_feature_product == "phone" || graphic_2d_feature_product == "tablet") {
+  if (graphic_2d_feature_product == "phone") {
     defines += ["PREPARE_PHASE_QUICK_SKIP_ENABLED"]
   }
 
@@ -380,14 +388,13 @@ ohos_shared_library("librender_service") {
     "core/transaction",
     "main",
     "main/render_process",
-    "main/render_process/dfx",
-    "main/render_process/transaction/",
-    "main/render_process/transaction/zidl/",
+    "main/render_process/transaction",
+    "main/render_process/transaction/ipc_persistence",
+    "main/render_process/transaction/zidl",
     "main/render_server",
     "main/render_server/dfx",
-    "main/render_server/transaction/",
-    "main/render_server/transaction/zidl/",
-    "main/transaction",
+    "main/render_server/transaction",
+    "main/render_server/transaction/zidl",
     "$graphic_2d_root/rosen/include",
     "$graphic_2d_root/rosen/modules/2d_graphics",
     "$graphic_2d_root/rosen/modules/composer/vsync/include",
@@ -456,6 +463,7 @@ ohos_shared_library("librender_service") {
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
     "$graphic_2d_root/utils/color_manager:color_manager",
     "$graphic_2d_root/utils:socketpair",
+    "$graphic_2d_root/rosen/modules/render_service/vsync:libvsync_manager",
   ]
 
   if (graphic_2d_feature_enable_chipset_vsync) {
@@ -525,7 +533,6 @@ ohos_shared_library("librender_service") {
   }
 
   if (rs_enable_gpu) {
-    public_deps += [ "$graphic_2d_root:libvulkan" ]
     deps += [
       "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
       "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
@@ -566,7 +573,12 @@ ohos_shared_library("librender_service") {
     "samgr:samgr_proxy",
     "window_manager:libwsutils",
     "qos_manager:concurrent_task_client",
+    "config_policy:configpolicy_util",
   ]
+
+  if (graphic_2d_feature_enable_vulkan) {
+    external_deps += [ "vulkan-loader:vulkan_loader" ]
+  }
 
   if (graphic_2d_feature_rs_enable_uni_render) {
     external_deps += [ "ability_runtime:ability_manager" ]
@@ -663,6 +675,7 @@ ohos_executable("render_service") {
     "$graphic_2d_root/interfaces/inner_api/common",
     "$graphic_2d_root/utils/color_manager/export",
     "$graphic_2d_root/utils/socketpair/export",
+    "$graphic_2d_root/rosen/modules/frame_load/include",
     "$graphic_2d_root/rosen/modules/render_service",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl",
@@ -673,6 +686,7 @@ ohos_executable("render_service") {
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/command",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/external_depend",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
@@ -687,6 +701,7 @@ ohos_executable("render_service") {
     "core/feature_cfg/xml_parser",
     "core/feature_cfg/xml_parser/extend_feature_parser",
     "core/feature_cfg/xml_parser/performance_feature_parser",
+    "$graphic_2d_root/rosen/modules/render_service/vsync",
   ]
 
   deps = [
@@ -736,9 +751,15 @@ ohos_executable("render_process") {
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/external_depend",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/command",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/vsync",
   ]
 
   deps = [
@@ -750,6 +771,7 @@ ohos_executable("render_process") {
   external_deps = [
     "c_utils:utils",
     "graphic_surface:surface",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "ipc:ipc_core",
     "samgr:samgr_proxy",

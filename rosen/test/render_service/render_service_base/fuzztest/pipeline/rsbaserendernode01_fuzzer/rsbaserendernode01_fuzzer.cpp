@@ -99,6 +99,7 @@ bool RSBaseRenderNode01FuzzTest(const uint8_t* data, size_t size)
     bool onlyFirstLevel = GetData<bool>();
     bool isContainBootAnimation = GetData<bool>();
     bool isBootAnimation = GetData<bool>();
+    int64_t nextFrameTime = 0;
 
     // test
     std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(id, true, context);
@@ -119,7 +120,7 @@ bool RSBaseRenderNode01FuzzTest(const uint8_t* data, size_t size)
     node->AddCrossParentChild(child, indexChild);
     node->SetContainBootAnimation(isContainBootAnimation);
     node->SetBootAnimation(isBootAnimation);
-    node->Animate(timestamp, delayTime);
+    node->Animate(timestamp, delayTime, nextFrameTime);
     node->HasDisappearingTransition(recursive);
     node->SetTunnelHandleChange(change);
     node->UpdateChildrenOutOfRectFlag(flag);

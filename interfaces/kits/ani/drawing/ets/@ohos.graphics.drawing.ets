@@ -484,7 +484,7 @@ namespace drawing {
       if (addr == 0) {
         return null;
       }
-      let module = ESValue.load("@ohos.graphics.drawing");
+      let module = ESValue.load(`@ohos:graphics.drawing`);
       let hasProperty: boolean = module.hasProperty("SamplingOptions");
       if (!hasProperty) {
         return null;
@@ -587,7 +587,7 @@ namespace drawing {
       }
       let pixelMapAddr = Canvas.getPixelMapAddr(canvas);
       let owned = Canvas.getOwned(canvas);
-      let module = ESValue.load("@ohos.graphics.drawing");
+      let module = ESValue.load(`@ohos:graphics.drawing`);
       let hasProperty: boolean = module.hasProperty("Canvas");
       if (!hasProperty) {
         return null;
@@ -965,6 +965,23 @@ namespace drawing {
     native drawTextBlob(blob: TextBlob, x: double, y: double): void;
 
     /**
+     * Draws the array of glyphs with specified font. Nothing is drawn if glyphCount is smaller than or equals to 0.
+     *
+     * @param { Array<int> } glyphIds - Indicates an array of glyph IDs.
+     * @param { int } glyphIdOffset - Indicates the number of elements to skip before drawing in glyphIds array.
+     * @param { Array<common2D.Point> } positions - Indicates an array of positions.
+     * @param { int } positionOffset - Indicates the number of elements to skip before drawing in positions.
+     * @param { int } glyphCount - Indicates the number of glyphs to be drawn.
+     * @param { Font } font - Indicates the font used for drawing.
+     * @throws { BusinessError } 25900001 - Parameter error. Possible causes: Incorrect parameter range.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @stagemodelonly
+     * @since 26.0.0 dynamic&static
+     */
+    native drawGlyphs(glyphIds: Array<int>, glyphIdOffset: int, positions: Array<common2D.Point>,
+        positionOffset: int, glyphCount: int, font: Font): void;
+
+    /**
      * Draws the pixelmap base on the mesh which is evenly distributed across the pixelmap.
      * @param { image.PixelMap } pixelmap - The pixelmap to draw using the mesh.
      * @param { int } meshWidth - The number of columns in the mesh.
@@ -1230,7 +1247,7 @@ namespace drawing {
      * @since 20
      */
     native concatMatrix(matrix: Matrix): void;
-  
+
     /**
      * Clips a region on the canvas.
      * @param { Region } region - Region object, which indicates the range to clip.
@@ -1262,6 +1279,16 @@ namespace drawing {
      * @since 20
      */
     native isClipEmpty(): boolean;
+
+    /**
+     * Checks whether the current layer that drawn into the device is opaque.
+     *
+     * @returns { boolean } Returns true if the current layer that drawn into the device is opaque.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @stagemodelonly
+     * @since 26.0.0
+     */
+    native isOpaque(): boolean;
 
     /**
      * Sets a matrix for the canvas. Subsequent drawing and clipping operations will be affected by this matrix in terms of shape and position.
@@ -1306,7 +1333,7 @@ namespace drawing {
      * @since 20
      */
     native quickRejectRect(rect: common2D.Rect): boolean;
-    
+
     /**
      * Draws a single character with font feature.
      * @param { string } text - A string containing only a single character.
@@ -1407,7 +1434,7 @@ namespace drawing {
       if (addr == 0) {
         return null;
       }
-      let module = ESValue.load("@ohos.graphics.drawing");
+      let module = ESValue.load(`@ohos:graphics.drawing`);
       let hasProperty: boolean = module.hasProperty("ColorFilter");
       if (!hasProperty) {
         return null;
@@ -1574,7 +1601,7 @@ namespace drawing {
       if (addr == 0) {
         return null;
       }
-      let module = ESValue.load("@ohos.graphics.drawing");
+      let module = ESValue.load(`@ohos:graphics.drawing`);
       let hasProperty: boolean = module.hasProperty("Pen");
       if (!hasProperty) {
         return null;
@@ -1955,7 +1982,7 @@ namespace drawing {
       if (addr == 0) {
         return null;
       }
-      let module = ESValue.load("@ohos.graphics.drawing");
+      let module = ESValue.load(`@ohos:graphics.drawing`);
       let hasProperty: boolean = module.hasProperty("Brush");
       if (!hasProperty) {
         return null;
@@ -2209,7 +2236,7 @@ namespace drawing {
       if (addr == 0) {
         return null;
       }
-      let module = ESValue.load("@ohos.graphics.drawing");
+      let module = ESValue.load(`@ohos:graphics.drawing`);
       let hasProperty: boolean = module.hasProperty("Typeface");
       if (!hasProperty) {
         return null;
@@ -2307,7 +2334,7 @@ namespace drawing {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 24 static
      */
-    native makeFromCurrent(typefaceArguments: TypefaceArguments): Typeface | undefined;    
+    native makeFromCurrent(typefaceArguments: TypefaceArguments): Typeface | undefined;
   }
 
   /**
@@ -2421,7 +2448,7 @@ namespace drawing {
       if (addr == 0) {
         return null;
       }
-      let module = ESValue.load("@ohos.graphics.drawing");
+      let module = ESValue.load(`@ohos:graphics.drawing`);
       let hasProperty: boolean = module.hasProperty("Font");
       if (!hasProperty) {
         return null;
@@ -3125,7 +3152,7 @@ namespace drawing {
     }
 
     private static native latticeTransferStaticNative(input: ESValue): Object;
-    
+
     static latticeTransferDynamic(input: Object): Any {
       let lattice = input as Lattice;
       if (!lattice) {
@@ -3135,7 +3162,7 @@ namespace drawing {
       if (addr == 0) {
         return null;
       }
-      let module = ESValue.load("@ohos.graphics.drawing");
+      let module = ESValue.load(`@ohos:graphics.drawing`);
       let hasProperty: boolean = module.hasProperty("Lattice");
       if (!hasProperty) {
         return null;
@@ -3261,7 +3288,7 @@ namespace drawing {
       if (addr == 0) {
         return null;
       }
-      let module = ESValue.load("@ohos.graphics.drawing");
+      let module = ESValue.load(`@ohos:graphics.drawing`);
       let hasProperty: boolean = module.hasProperty("Matrix");
       if (!hasProperty) {
         return null;
@@ -3565,14 +3592,14 @@ namespace drawing {
      */
     native rectStaysRect(): boolean;
 
-    /** 
-     * Sets matrix to the copy of anther matrix object. 
-     * @param { Array<double> | Matrix } matrix - Indicates the Matrix object to copy. 
-     * @syscap SystemCapability.Graphics.Drawing 
-     * @crossplatform 
-     * @since 20 dynamic 
-     * @since 23 static 
-    */ 
+    /**
+     * Sets matrix to the copy of anther matrix object.
+     * @param { Array<double> | Matrix } matrix - Indicates the Matrix object to copy.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @crossplatform
+     * @since 20 dynamic
+     * @since 23 static
+    */
     native setMatrix(matrix: Array<double> | Matrix): void;
 
     /**
@@ -4003,7 +4030,7 @@ namespace drawing {
      * @syscap SystemCapability.Graphics.Drawing
      * @since 24
      */
-    static native createFromImage(pixelmap: image.PixelMap, srcRect?: common2D.Rect | null, dstRect?: common2D.Rect | null): ImageFilter | undefined;  
+    static native createFromImage(pixelmap: image.PixelMap, srcRect?: common2D.Rect | null, dstRect?: common2D.Rect | null): ImageFilter | undefined;
   }
 
   /**
@@ -4273,7 +4300,7 @@ namespace drawing {
       if (addr == 0) {
         return null;
       }
-      let module = ESValue.load("@ohos.graphics.drawing");
+      let module = ESValue.load(`@ohos:graphics.drawing`);
       let hasProperty: boolean = module.hasProperty("Path");
       if (!hasProperty) {
         return null;
@@ -4437,7 +4464,7 @@ namespace drawing {
      * @since 20
      */
     native rConicTo(ctrlX: double, ctrlY: double, endX: double, endY: double, weight: double): void;
-  
+
       /**
      * Draws a cubic Bezier curve from the last point of this path to a point relative to the last point.
      * If the path is empty, the start point (0, 0) is used.
@@ -4709,7 +4736,7 @@ namespace drawing {
 
     /**
      * Checks whether a path is closed.
-     * 
+     *
      * @returns { boolean } - Check result. The value true means that the path is closed, and false means the opposite.
      * @syscap SystemCapability.Graphics.Drawing
      * @since 20
@@ -4718,7 +4745,7 @@ namespace drawing {
 
     /**
      * Obtains a transformation matrix at a specific position along the path, which represents the coordinates and orientation of that point.
-     * 
+     *
      * @param { boolean } forceClosed - Whether the path is measured as a closed path.
      *     The value true means that the path is considered closed
      *     during measurement, and false means that the path is measured based on the actual closed status.
@@ -4899,6 +4926,26 @@ namespace drawing {
      * @since 24
      */
     native getFillType(): PathFillType | undefined;
+
+    /**
+     * Gets the last point of the path.
+     * 
+     * @returns { common2D.Point | undefined } - Returns the last point of the path, or undefined if the path is empty.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @stagemodelonly
+     * @since 26.0.0 static
+     */
+    native getLastPoint(): common2D.Point | undefined;
+
+    /**
+     * Checks if two paths are equal.
+     * @param { Path } path - Another Path object to compare.
+     * @returns { boolean } - Returns true if the two paths are equal, otherwise returns false.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @stagemodelonly
+     * @since 26.0.0 dynamic&static
+     */
+    native isEqual(path: Path): boolean;
   }
 
     /**
@@ -5103,7 +5150,7 @@ namespace drawing {
      * @since 20
      */
     static native create(blurRadius: double, x: double, y: double, color: common2D.Color): ShadowLayer | undefined;
-    
+
     /**
      * Creates a ShadowLayer object.
      *
@@ -5443,7 +5490,7 @@ namespace drawing {
       if (addr == 0) {
         return null;
       }
-      let module = ESValue.load("@ohos.graphics.drawing");
+      let module = ESValue.load(`@ohos:graphics.drawing`);
       let hasProperty: boolean = module.hasProperty("Region");
       if (!hasProperty) {
         return null;
@@ -5508,7 +5555,7 @@ namespace drawing {
      * @since 20
      */
     native setRect(left: int, top: int, right: int, bottom: int): boolean;
-  
+
     /**
      * Checks whether another region is contained in this region.
      * @param { Region } other - Region object.
@@ -5739,7 +5786,7 @@ namespace drawing {
       if (addr == 0) {
         return null;
       }
-      let module = ESValue.load("@ohos.graphics.drawing");
+      let module = ESValue.load(`@ohos:graphics.drawing`);
       let hasProperty: boolean = module.hasProperty("RoundRect");
       if (!hasProperty) {
         return null;
@@ -6067,7 +6114,7 @@ namespace drawing {
      * @since 24
      */
     static native centerX(rect: common2D.Rect): double;
- 
+
     /**
      * Makes a deep copy of a 2D rectangular object.
      * @param { common2D.Rect } src - Indicates the source rectangle to copy.
@@ -6077,7 +6124,7 @@ namespace drawing {
      * @since 24
      */
     static native makeCopy(src: common2D.Rect): common2D.Rect | undefined;
- 
+
     /**
      * Makes a 2D rectangular object from boundary coordinates.
      * @param { double } left - Indicates the X-coordinate of the left edge.
@@ -6091,7 +6138,7 @@ namespace drawing {
      * @since 24
      */
     static native makeLtrb(left: double, top: double, right: double, bottom: double): common2D.Rect | undefined;
- 
+
     /**
      * Makes an uninitialized 2D rectangular object with zero dimensions and origin at (0, 0).
      *
@@ -6102,7 +6149,7 @@ namespace drawing {
      * @since 24
      */
     static native makeEmpty(): common2D.Rect | undefined;
- 
+
     /**
      * Sets a 2D rectangular object to the union of itself and another.
      *
@@ -6113,7 +6160,7 @@ namespace drawing {
      * @since 24
      */
     static native union(rect: common2D.Rect, other: common2D.Rect): void;
- 
+
     /**
      * Calculates the y-coordinate of the center point of the 2D rectangular object.
      *
@@ -6124,7 +6171,7 @@ namespace drawing {
      * @since 24
      */
     static native centerY(rect: common2D.Rect): double;
- 
+
     /**
      * Checks if two 2D rectangular objects intersect.
      *
@@ -6136,8 +6183,8 @@ namespace drawing {
      * @since 24
      */
     static native isIntersect(rect: common2D.Rect, other: common2D.Rect): boolean;
- 
-    
+
+
     /**
      * Offsets the rectangle to a specific position and kepps the width and height unchanged.
      *
@@ -6149,7 +6196,7 @@ namespace drawing {
      * @since 24
      */
     static native offsetTo(rect: common2D.Rect, newLeft: double, newTop: double): void;
- 
+
     /**
      * Sets the boundary coordinates of a 2D rectangular object with that of specific value.
      * @param { common2D.Rect } rect - Indicates the Rect object to be modified.
@@ -6162,34 +6209,34 @@ namespace drawing {
      * @since 24
      */
     static native setLtrb(rect: common2D.Rect, left: double, top: double, right: double, bottom: double): void;
-    
-    /** 
-     * Checks if one 2D rectangular object contains a specific point. 
-     * 
-     * @param { common2D.Rect } rect - The container Rect object. 
-     * @param { double } x - Indicates the X-coordinate of the point to check. 
-     * @param { double } y - Indicates the Y-coordinate of the point to check. 
-     * @returns { boolean } - Returns true if 'rect' contains the specified point; returns false otherwise. 
-     * @static 
-     * @syscap SystemCapability.Graphics.Drawing 
-     * @since 24 
-     */ 
-    static native contains(rect: common2D.Rect, x: double, y: double): boolean; 
-   
-    /** 
-     * Checks if one 2D rectangular object fully contains the specified boundary coordinates. 
-     * 
-     * @param { common2D.Rect } rect - The container Rect object. 
-     * @param { double } left - Indicates the left boundary of the target region. 
-     * @param { double } top - Indicates the top boundary of the target region. 
-     * @param { double } right - Indicates the right boundary of the target region. 
-     * @param { double } bottom - Indicates the bottom boundary of the target region. 
-     * @returns { boolean } - Returns true if 'rect' fully contains the specified boundary coordinates; 
-     *     returns false otherwise. 
-     * @static 
-     * @syscap SystemCapability.Graphics.Drawing 
-     * @since 24 
-     */ 
+
+    /**
+     * Checks if one 2D rectangular object contains a specific point.
+     *
+     * @param { common2D.Rect } rect - The container Rect object.
+     * @param { double } x - Indicates the X-coordinate of the point to check.
+     * @param { double } y - Indicates the Y-coordinate of the point to check.
+     * @returns { boolean } - Returns true if 'rect' contains the specified point; returns false otherwise.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
+    static native contains(rect: common2D.Rect, x: double, y: double): boolean;
+
+    /**
+     * Checks if one 2D rectangular object fully contains the specified boundary coordinates.
+     *
+     * @param { common2D.Rect } rect - The container Rect object.
+     * @param { double } left - Indicates the left boundary of the target region.
+     * @param { double } top - Indicates the top boundary of the target region.
+     * @param { double } right - Indicates the right boundary of the target region.
+     * @param { double } bottom - Indicates the bottom boundary of the target region.
+     * @returns { boolean } - Returns true if 'rect' fully contains the specified boundary coordinates;
+     *     returns false otherwise.
+     * @static
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 24
+     */
     static native contains(rect: common2D.Rect, left: double, top: double, right: double, bottom: double): boolean;
 
     /**
@@ -6200,7 +6247,7 @@ namespace drawing {
      * @since 24
      */
     static native setEmpty(rect: common2D.Rect): void;
- 
+
     /**
      * Sets the boundary coordinates of a 2D rectangular object with that of another.
      * @param { common2D.Rect } rect - Indicates the Rect object to be modified.
@@ -6210,6 +6257,39 @@ namespace drawing {
      * @since 24
      */
     static native setRect(rect: common2D.Rect, other: common2D.Rect): void;
+  }
+
+  /**
+   * This class offers a comprehensive set of operations for handling common2D Point objects.
+   *
+   * @syscap SystemCapability.Graphics.Drawing
+   * @stagemodelonly
+   * @since 26.0.0
+   */
+  export class PointUtils {
+    static { loadLibraryWithPermissionCheck("drawing_ani_core", "@ohos.graphics.drawing"); }
+
+    /**
+     * Negates the point's coordinates.
+     *
+     * @param { common2D.Point } point - Specifies the point to be negated.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @stagemodelonly
+     * @since 26.0.0
+     */
+    static native negate(point: common2D.Point): void;
+
+    /**
+     * Offsets the point's coordinates by dx, dy.
+     *
+     * @param { common2D.Point } point - Specifies the point to be offset.
+     * @param { double } dx - Indicates the distance to offset on the x-axis in pixels.
+     * @param { double } dy - Indicates the distance to offset on the y-axis in pixels.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @stagemodelonly
+     * @since 26.0.0
+     */
+    static native offset(point: common2D.Point, dx: double, dy: double): void;
   }
 
   /**

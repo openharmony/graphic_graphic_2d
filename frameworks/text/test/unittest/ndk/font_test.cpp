@@ -56,12 +56,12 @@ void NdkFontTest::SetUp() {}
 void NdkFontTest::TearDown() {}
 
 /*
- * @tc.name: GetMetrics001
+ * @tc.name: GetMetricsWithInvalidParams
  * @tc.desc: test for GetMetrics.
  * @tc.type: FUNC
  * @tc.require: AR000GTO5R
  */
-HWTEST_F(NdkFontTest, GetMetrics001, TestSize.Level0)
+HWTEST_F(NdkFontTest, GetMetricsWithInvalidParams, TestSize.Level0)
 {
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     EXPECT_NE(font, nullptr);
@@ -75,11 +75,11 @@ HWTEST_F(NdkFontTest, GetMetrics001, TestSize.Level0)
 }
 
 /*
- * @tc.name: GetMetrics002
+ * @tc.name: GetMetricsSansScData
  * @tc.desc: test for sans sc metrics data.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontTest, GetMetrics002, TestSize.Level0)
+HWTEST_F(NdkFontTest, GetMetricsSansScData, TestSize.Level0)
 {
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     OH_Drawing_Typeface* typeface = OH_Drawing_TypefaceCreateFromFile(TTF_FILE_PATH, 0);
@@ -107,11 +107,11 @@ HWTEST_F(NdkFontTest, GetMetrics002, TestSize.Level0)
 }
 
 /*
- * @tc.name: GetMetrics003
+ * @tc.name: GetMetricsSymbolData
  * @tc.desc: test for symbol metrics data.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontTest, GetMetrics003, TestSize.Level0)
+HWTEST_F(NdkFontTest, GetMetricsSymbolData, TestSize.Level0)
 {
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     OH_Drawing_Typeface* typeface = OH_Drawing_TypefaceCreateFromFile("/system/fonts/HMSymbolVF.ttf", 0);
@@ -139,11 +139,11 @@ HWTEST_F(NdkFontTest, GetMetrics003, TestSize.Level0)
 }
 
 /*
- * @tc.name: GetMetrics004
+ * @tc.name: GetMetricsEmojiData
  * @tc.desc: test for emoji metrics data.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkFontTest, GetMetrics004, TestSize.Level0)
+HWTEST_F(NdkFontTest, GetMetricsEmojiData, TestSize.Level0)
 {
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     OH_Drawing_Typeface* typeface = OH_Drawing_TypefaceCreateFromFile("/system/fonts/HMOSColorEmojiFlags.ttf", 0);
@@ -171,12 +171,12 @@ HWTEST_F(NdkFontTest, GetMetrics004, TestSize.Level0)
 }
 
 /*
- * @tc.name: IsAndSetBaselineSnap002
+ * @tc.name: SetAndGetBaselineSnap
  * @tc.desc: test for SetBaselineSnap and IsBaselineSnap.
  * @tc.type: FUNC
  * @tc.require: AR000GTO5R
  */
-HWTEST_F(NdkFontTest, IsAndSetBaselineSnap002, TestSize.Level0)
+HWTEST_F(NdkFontTest, SetAndGetBaselineSnap, TestSize.Level0)
 {
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     EXPECT_NE(font, nullptr);
@@ -194,12 +194,12 @@ HWTEST_F(NdkFontTest, IsAndSetBaselineSnap002, TestSize.Level0)
 }
 
 /*
- * @tc.name: IsAndSetSubpixel003
+ * @tc.name: SetAndGetSubpixel
  * @tc.desc: test for SetSubpixel and IsSubpixel.
  * @tc.type: FUNC
  * @tc.require: AR000GTO5R
  */
-HWTEST_F(NdkFontTest, IsAndSetSubpixel003, TestSize.Level0)
+HWTEST_F(NdkFontTest, SetAndGetSubpixel, TestSize.Level0)
 {
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     EXPECT_NE(font, nullptr);
@@ -217,12 +217,12 @@ HWTEST_F(NdkFontTest, IsAndSetSubpixel003, TestSize.Level0)
 }
 
 /*
- * @tc.name: TextToGlyphs004
+ * @tc.name: TextToGlyphsAndGetWidths
  * @tc.desc: test for TextToGlyphs.
  * @tc.type: FUNC
  * @tc.require: AR000GTO5R
  */
-HWTEST_F(NdkFontTest, TextToGlyphs004, TestSize.Level0)
+HWTEST_F(NdkFontTest, TextToGlyphsAndGetWidths, TestSize.Level0)
 {
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     OH_Drawing_FontSetTextSize(font, 100); // 100 means font text size
@@ -270,12 +270,12 @@ HWTEST_F(NdkFontTest, TextToGlyphs004, TestSize.Level0)
 }
 
 /*
- * @tc.name: SetAndGetScaleX005
+ * @tc.name: SetAndGetScaleX
  * @tc.desc: test for SetAndGetScaleX.
  * @tc.type: FUNC
  * @tc.require: AR000GTO5R
  */
-HWTEST_F(NdkFontTest, SetAndGetScaleX005, TestSize.Level0)
+HWTEST_F(NdkFontTest, SetAndGetScaleX, TestSize.Level0)
 {
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     EXPECT_NE(font, nullptr);
@@ -290,12 +290,12 @@ HWTEST_F(NdkFontTest, SetAndGetScaleX005, TestSize.Level0)
 }
 
 /*
- * @tc.name: GetAndSetEdging006
+ * @tc.name: GetAndSetEdging
  * @tc.desc: test for GetAndSetEdging.
  * @tc.type: FUNC
  * @tc.require: AR000GTO5R
  */
-HWTEST_F(NdkFontTest, GetAndSetEdging006, TestSize.Level0)
+HWTEST_F(NdkFontTest, GetAndSetEdging, TestSize.Level0)
 {
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     EXPECT_NE(font, nullptr);
@@ -315,12 +315,12 @@ HWTEST_F(NdkFontTest, GetAndSetEdging006, TestSize.Level0)
 }
 
 /*
- * @tc.name: GetAndSetForceAutoHinting007
+ * @tc.name: GetAndSetForceAutoHinting
  * @tc.desc: test for GetAndSetForceAutoHinting.
  * @tc.type: FUNC
  * @tc.require: AR000GTO5R
  */
-HWTEST_F(NdkFontTest, GetAndSetForceAutoHinting007, TestSize.Level0)
+HWTEST_F(NdkFontTest, GetAndSetForceAutoHinting, TestSize.Level0)
 {
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     EXPECT_NE(font, nullptr);
@@ -337,12 +337,12 @@ HWTEST_F(NdkFontTest, GetAndSetForceAutoHinting007, TestSize.Level0)
 }
 
 /*
- * @tc.name: GetAndSetHinting008
+ * @tc.name: GetAndSetHinting
  * @tc.desc: test for GetHinting and SetHinting.
  * @tc.type: FUNC
  * @tc.require: AR000GTO5R
  */
-HWTEST_F(NdkFontTest, GetAndSetHinting008, TestSize.Level0)
+HWTEST_F(NdkFontTest, GetAndSetHinting, TestSize.Level0)
 {
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     EXPECT_NE(font, nullptr);
@@ -360,12 +360,12 @@ HWTEST_F(NdkFontTest, GetAndSetHinting008, TestSize.Level0)
 }
 
 /*
- * @tc.name: GetAndSetEmbeddedBitmaps009
+ * @tc.name: GetAndSetEmbeddedBitmaps
  * @tc.desc: test for GetEmbeddedBitmaps and SetEmbeddedBitmaps.
  * @tc.type: FUNC
  * @tc.require: AR000GTO5R
  */
-HWTEST_F(NdkFontTest, GetAndSetEmbeddedBitmaps009, TestSize.Level0)
+HWTEST_F(NdkFontTest, GetAndSetEmbeddedBitmaps, TestSize.Level0)
 {
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     EXPECT_NE(font, nullptr);
@@ -381,12 +381,12 @@ HWTEST_F(NdkFontTest, GetAndSetEmbeddedBitmaps009, TestSize.Level0)
 }
 
 /*
- * @tc.name: GetTextSize010
+ * @tc.name: SetAndGetTextSize
  * @tc.desc: test for GetTextSize.
  * @tc.type: FUNC
  * @tc.require: AR000GTO5R
  */
-HWTEST_F(NdkFontTest, GetTextSize010, TestSize.Level0)
+HWTEST_F(NdkFontTest, SetAndGetTextSize, TestSize.Level0)
 {
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     EXPECT_NE(font, nullptr);
@@ -401,12 +401,12 @@ HWTEST_F(NdkFontTest, GetTextSize010, TestSize.Level0)
 }
 
 /*
- * @tc.name: GetTextSkewX011
+ * @tc.name: SetAndGetTextSkewX
  * @tc.desc: test for GetTextSkewX.
  * @tc.type: FUNC
  * @tc.require: AR000GTO5R
  */
-HWTEST_F(NdkFontTest, GetTextSkewX011, TestSize.Level0)
+HWTEST_F(NdkFontTest, SetAndGetTextSkewX, TestSize.Level0)
 {
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     EXPECT_NE(font, nullptr);
@@ -421,12 +421,12 @@ HWTEST_F(NdkFontTest, GetTextSkewX011, TestSize.Level0)
 }
 
 /*
- * @tc.name: IsLinearText012
+ * @tc.name: SetAndGetLinearText
  * @tc.desc: test for IsLinearText.
  * @tc.type: FUNC
  * @tc.require: AR000GTO5R
  */
-HWTEST_F(NdkFontTest, IsLinearText012, TestSize.Level0)
+HWTEST_F(NdkFontTest, SetAndGetLinearText, TestSize.Level0)
 {
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     EXPECT_NE(font, nullptr);
@@ -443,12 +443,12 @@ HWTEST_F(NdkFontTest, IsLinearText012, TestSize.Level0)
 }
 
 /*
- * @tc.name: SetFakeBoldText013
+ * @tc.name: SetAndGetFakeBoldText
  * @tc.desc: test for SetFakeBoldText.
  * @tc.type: FUNC
  * @tc.require: AR000GTO5R
  */
-HWTEST_F(NdkFontTest, SetFakeBoldText013, TestSize.Level0)
+HWTEST_F(NdkFontTest, SetAndGetFakeBoldText, TestSize.Level0)
 {
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     EXPECT_NE(font, nullptr);
@@ -465,12 +465,12 @@ HWTEST_F(NdkFontTest, SetFakeBoldText013, TestSize.Level0)
 }
 
 /*
- * @tc.name: FontMeasureText014
+ * @tc.name: FontMeasureText
  * @tc.desc: test for FontMeasureText.
  * @tc.type: FUNC
  * @tc.require: AR000GTO5R
  */
-HWTEST_F(NdkFontTest, FontMeasureText014, TestSize.Level0)
+HWTEST_F(NdkFontTest, FontMeasureText, TestSize.Level0)
 {
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     EXPECT_NE(font, nullptr);
@@ -495,12 +495,12 @@ HWTEST_F(NdkFontTest, FontMeasureText014, TestSize.Level0)
 }
 
 /*
- * @tc.name: FontMeasureSingleCharacter015
+ * @tc.name: FontMeasureSingleCharacter
  * @tc.desc: test for OH_Drawing_FontMeasureSingleCharacter.
  * @tc.type: FUNC
  * @tc.require: AR000GTO5R
  */
-HWTEST_F(NdkFontTest, FontMeasureSingleCharacter015, TestSize.Level0)
+HWTEST_F(NdkFontTest, FontMeasureSingleCharacter, TestSize.Level0)
 {
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     EXPECT_NE(font, nullptr);
@@ -532,12 +532,12 @@ HWTEST_F(NdkFontTest, FontMeasureSingleCharacter015, TestSize.Level0)
 }
 
 /*
- * @tc.name: FontCreatePathForGlyph001
+ * @tc.name: FontGetPathForGlyphCommonChar
  * @tc.desc: test for common character of glyph ID.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(NdkFontTest, FontGetPathForGlyph001, TestSize.Level0)
+HWTEST_F(NdkFontTest, FontGetPathForGlyphCommonChar, TestSize.Level0)
 {
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     EXPECT_NE(font, nullptr);
@@ -561,12 +561,12 @@ HWTEST_F(NdkFontTest, FontGetPathForGlyph001, TestSize.Level0)
 }
 
 /*
- * @tc.name: FontCreatePathForGlyph002
+ * @tc.name: FontGetPathForGlyphSpaceChar
  * @tc.desc: test for space character of glyph ID.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(NdkFontTest, FontGetPathForGlyph002, TestSize.Level0)
+HWTEST_F(NdkFontTest, FontGetPathForGlyphSpaceChar, TestSize.Level0)
 {
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     EXPECT_NE(font, nullptr);
@@ -589,12 +589,12 @@ HWTEST_F(NdkFontTest, FontGetPathForGlyph002, TestSize.Level0)
 }
 
 /*
- * @tc.name: FontCreatePathForGlyph003
+ * @tc.name: FontGetPathForGlyphInvalidParams
  * @tc.desc: test for abnormal parameter
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(NdkFontTest, FontGetPathForGlyph003, TestSize.Level0)
+HWTEST_F(NdkFontTest, FontGetPathForGlyphInvalidParams, TestSize.Level0)
 {
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     EXPECT_NE(font, nullptr);
@@ -617,12 +617,12 @@ HWTEST_F(NdkFontTest, FontGetPathForGlyph003, TestSize.Level0)
 }
 
 /*
- * @tc.name: FontCreatePathForGlyph004
+ * @tc.name: FontGetPathForGlyphNonExistentId
  * @tc.desc: test for non exist glyph ID.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(NdkFontTest, FontGetPathForGlyph004, TestSize.Level0)
+HWTEST_F(NdkFontTest, FontGetPathForGlyphNonExistentId, TestSize.Level0)
 {
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     EXPECT_NE(font, nullptr);
@@ -638,12 +638,12 @@ HWTEST_F(NdkFontTest, FontGetPathForGlyph004, TestSize.Level0)
 }
 
 /*
- * @tc.name: FontGetBounds001
+ * @tc.name: FontGetBoundsCommonChar
  * @tc.desc: test for common character of glyph ID.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(NdkFontTest, FontGetBounds001, TestSize.Level0)
+HWTEST_F(NdkFontTest, FontGetBoundsCommonChar, TestSize.Level0)
 {
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     EXPECT_NE(font, nullptr);
@@ -680,12 +680,12 @@ HWTEST_F(NdkFontTest, FontGetBounds001, TestSize.Level0)
 }
 
 /*
- * @tc.name: FontGetBounds002
+ * @tc.name: FontGetBoundsSpaceChar
  * @tc.desc: test for space character of glyph ID.
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(NdkFontTest, FontGetBounds002, TestSize.Level0)
+HWTEST_F(NdkFontTest, FontGetBoundsSpaceChar, TestSize.Level0)
 {
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     EXPECT_NE(font, nullptr);
@@ -714,12 +714,12 @@ HWTEST_F(NdkFontTest, FontGetBounds002, TestSize.Level0)
 }
 
 /*
- * @tc.name: FontGetBounds003
+ * @tc.name: FontGetBoundsInvalidParams
  * @tc.desc: test for abnormal parameter
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(NdkFontTest, FontGetBounds003, TestSize.Level0)
+HWTEST_F(NdkFontTest, FontGetBoundsInvalidParams, TestSize.Level0)
 {
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     EXPECT_NE(font, nullptr);
@@ -742,12 +742,12 @@ HWTEST_F(NdkFontTest, FontGetBounds003, TestSize.Level0)
 }
 
 /*
- * @tc.name: FontGetTextPath001
+ * @tc.name: FontGetTextPathUtf8CommonChar
  * @tc.desc: test for common character of textpath.
  * @tc.type: FUNC
  * @tc.require: IAKP0I
  */
-HWTEST_F(NdkFontTest, FontGetTextPath001, TestSize.Level0)
+HWTEST_F(NdkFontTest, FontGetTextPathUtf8CommonChar, TestSize.Level0)
 {
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     EXPECT_NE(font, nullptr);
@@ -768,12 +768,12 @@ HWTEST_F(NdkFontTest, FontGetTextPath001, TestSize.Level0)
 }
 
 /*
- * @tc.name: FontGetTextPath002
+ * @tc.name: FontGetTextPathUtf16AndUtf32
  * @tc.desc: test for UTF16 and UTF32 character of textpath.
  * @tc.type: FUNC
  * @tc.require: IAKP0I
  */
-HWTEST_F(NdkFontTest, FontGetTextPath002, TestSize.Level0)
+HWTEST_F(NdkFontTest, FontGetTextPathUtf16AndUtf32, TestSize.Level0)
 {
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     EXPECT_NE(font, nullptr);
@@ -803,12 +803,12 @@ HWTEST_F(NdkFontTest, FontGetTextPath002, TestSize.Level0)
 }
 
 /*
- * @tc.name: FontGetTextPath003
+ * @tc.name: FontGetTextPathSpaceChar
  * @tc.desc: test for space character of textpath.
  * @tc.type: FUNC
  * @tc.require: IAKP0I
  */
-HWTEST_F(NdkFontTest, FontGetTextPath003, TestSize.Level0)
+HWTEST_F(NdkFontTest, FontGetTextPathSpaceChar, TestSize.Level0)
 {
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     EXPECT_NE(font, nullptr);
@@ -830,12 +830,12 @@ HWTEST_F(NdkFontTest, FontGetTextPath003, TestSize.Level0)
 }
 
 /*
- * @tc.name: FontGetTextPath004
+ * @tc.name: FontGetTextPathInvalidParams
  * @tc.desc: test for abnormal paramete of textpath.
  * @tc.type: FUNC
  * @tc.require: IAKP0I
  */
-HWTEST_F(NdkFontTest, FontGetTextPath004, TestSize.Level0)
+HWTEST_F(NdkFontTest, FontGetTextPathInvalidParams, TestSize.Level0)
 {
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     EXPECT_NE(font, nullptr);
@@ -857,12 +857,12 @@ HWTEST_F(NdkFontTest, FontGetTextPath004, TestSize.Level0)
 }
 
 /*
- * @tc.name: FontGetTextPath005
+ * @tc.name: FontGetTextPathNegativeCoords
  * @tc.desc: test for negative coordinates of textpath.
  * @tc.type: FUNC
  * @tc.require: IAKP0I
  */
-HWTEST_F(NdkFontTest, FontGetTextPath005, TestSize.Level0)
+HWTEST_F(NdkFontTest, FontGetTextPathNegativeCoords, TestSize.Level0)
 {
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     EXPECT_NE(font, nullptr);
@@ -883,12 +883,12 @@ HWTEST_F(NdkFontTest, FontGetTextPath005, TestSize.Level0)
 }
 
 /*
- * @tc.name: FontGetTextPath006
+ * @tc.name: FontGetTextPathFromGlyphId
  * @tc.desc: test for conversion of glyphsID to path.
  * @tc.type: FUNC
  * @tc.require: IAKP0I
  */
-HWTEST_F(NdkFontTest, FontGetTextPath006, TestSize.Level0)
+HWTEST_F(NdkFontTest, FontGetTextPathFromGlyphId, TestSize.Level0)
 {
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     EXPECT_NE(font, nullptr);
@@ -914,12 +914,12 @@ HWTEST_F(NdkFontTest, FontGetTextPath006, TestSize.Level0)
 }
 
 /*
- * @tc.name: FontThemeFont001
+ * @tc.name: FontThemeFontFollowed
  * @tc.desc: test for theme font.
  * @tc.type: FUNC
  * @tc.require: IAKP0I
  */
-HWTEST_F(NdkFontTest, FontThemeFont001, TestSize.Level0)
+HWTEST_F(NdkFontTest, FontThemeFontFollowed, TestSize.Level0)
 {
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
     EXPECT_NE(font, nullptr);
@@ -933,12 +933,12 @@ HWTEST_F(NdkFontTest, FontThemeFont001, TestSize.Level0)
 }
 
 /*
- * @tc.name: FontMeasureTextWithBrushOrPen001
+ * @tc.name: FontMeasureTextWithBrushOrPen
  * @tc.desc: test for FontMeasureTextWithBrushOrPen.
  * @tc.type: FUNC
  * @tc.require: AR20250515745872
  */
-HWTEST_F(NdkFontTest, FontMeasureTextWithBrushOrPen001, TestSize.Level0)
+HWTEST_F(NdkFontTest, FontMeasureTextWithBrushOrPen, TestSize.Level0)
 {
     OH_Drawing_Font *font = OH_Drawing_FontCreate();
     OH_Drawing_FontSetTextSize(font, 50);
@@ -991,12 +991,12 @@ HWTEST_F(NdkFontTest, FontMeasureTextWithBrushOrPen001, TestSize.Level0)
 }
 
 /*
- * @tc.name: FontGetWidthsBounds001
+ * @tc.name: FontGetWidthsBoundsWithBrushAndPen
  * @tc.desc: test for FontMeasureTextWithBrushOrPen.
  * @tc.type: FUNC
  * @tc.require: AR20250515745872
  */
-HWTEST_F(NdkFontTest, OH_Drawing_FontGetWidthsBounds001, TestSize.Level0)
+HWTEST_F(NdkFontTest, FontGetWidthsBoundsWithBrushAndPen, TestSize.Level0)
 {
     OH_Drawing_Font *font = OH_Drawing_FontCreate();
     OH_Drawing_FontSetTextSize(font, 50);
@@ -1052,12 +1052,12 @@ HWTEST_F(NdkFontTest, OH_Drawing_FontGetWidthsBounds001, TestSize.Level0)
 }
 
 /*
- * @tc.name: FontGetPos001
+ * @tc.name: FontGetPos
  * @tc.desc: test for FontGetPos.
  * @tc.type: FUNC
  * @tc.require: AR20250515745872
  */
-HWTEST_F(NdkFontTest, OH_Drawing_FontGetPos001, TestSize.Level0)
+HWTEST_F(NdkFontTest, FontGetPos, TestSize.Level0)
 {
     OH_Drawing_Font *font = OH_Drawing_FontCreate();
     OH_Drawing_FontSetTextSize(font, 50);
@@ -1092,12 +1092,12 @@ HWTEST_F(NdkFontTest, OH_Drawing_FontGetPos001, TestSize.Level0)
 }
 
 /*
- * @tc.name: FontGetSpacing001
+ * @tc.name: FontGetSpacing
  * @tc.desc: test for FontGetSpacing.
  * @tc.type: FUNC
  * @tc.require: AR20250515745872
  */
-HWTEST_F(NdkFontTest, OH_Drawing_FontGetSpacing001, TestSize.Level0)
+HWTEST_F(NdkFontTest, FontGetSpacing, TestSize.Level0)
 {
     OH_Drawing_Font *font = OH_Drawing_FontCreate();
     OH_Drawing_FontSetTextSize(font, 30);

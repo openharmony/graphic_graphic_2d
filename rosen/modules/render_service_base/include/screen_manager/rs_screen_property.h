@@ -63,6 +63,7 @@ enum class ScreenPropertyType : uint32_t {
     DISABLE_POWER_OFF_RENDER_CONTROL,
     SCREEN_SWITCH_STATUS,
     SCREEN_FRAME_GRAVITY,
+    IS_MAIN_SCREEN,
 };
 
 template<ScreenPropertyType T>
@@ -135,11 +136,14 @@ DECLARE_PROPERTY_TYPE(ScreenPropertyType::SUPPORTED_COLOR_GAMUTS,
 DECLARE_PROPERTY_TYPE(ScreenPropertyType::DISABLE_POWER_OFF_RENDER_CONTROL, bool, false);
 DECLARE_PROPERTY_TYPE(ScreenPropertyType::SCREEN_SWITCH_STATUS, bool, false);
 DECLARE_PROPERTY_TYPE(ScreenPropertyType::SCREEN_FRAME_GRAVITY, int32_t, static_cast<int32_t>(Gravity::DEFAULT));
+DECLARE_PROPERTY_TYPE(ScreenPropertyType::IS_MAIN_SCREEN, bool, false);
 
 class ScreenPropertyBase : public Parcelable {
 public:
     ScreenPropertyBase() = default;
     virtual ~ScreenPropertyBase() = default;
+
+    RSB_EXPORT static bool Unmarshalling(Parcel& data, ScreenPropertyType type, sptr<ScreenPropertyBase>& property);
 };
 
 template<typename T>
@@ -231,6 +235,7 @@ public:
     bool GetDisablePowerOffRenderControl() const;
     bool IsScreenSwitching() const;
     Gravity GetFrameGravity() const;
+    bool IsMainScreen() const;
 
     ScreenInfo GetScreenInfo() const;
 

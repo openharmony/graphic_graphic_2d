@@ -45,15 +45,9 @@ typedef struct VkSemaphoreExtTypeCreateInfoHUAWEI {
     uint32_t                           eventId;
 }VkSemaphoreExtTypeCreateInfoHUAWEI;
 
-#ifdef USE_M133_SKIA
 #include "include/gpu/vk/VulkanExtensions.h"
 #include "include/gpu/vk/VulkanBackendContext.h"
 #include "include/gpu/ganesh/GrDirectContext.h"
-#else
-#include "include/gpu/vk/GrVkExtensions.h"
-#include "include/gpu/vk/GrVkBackendContext.h"
-#include "include/gpu/GrDirectContext.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -183,22 +177,10 @@ public:
     bool CreateInstance();
     bool SelectPhysicalDevice(bool isProtected = false);
     bool CreateDevice(bool isProtected = false, bool isHtsEnable = false);
-#ifdef USE_M133_SKIA
     bool CreateSkiaBackendContext(skgpu::VulkanBackendContext* context, bool isProtected = false);
-#else
-    bool CreateSkiaBackendContext(GrVkBackendContext* context, bool isProtected = false);
-#endif
-    RsVulkanMemStat& GetRsVkMemStat()
-    {
-        return mVkMemStat;
-    }
 
     bool IsValid() const;
-#ifdef USE_M133_SKIA
     skgpu::VulkanGetProc CreateSkiaGetProc() const;
-#else
-    GrVkGetProc CreateSkiaGetProc() const;
-#endif
     const std::shared_ptr<MemoryHandler> GetMemoryHandler() const
     {
         return memHandler_;
@@ -206,66 +188,34 @@ public:
 
 #define DEFINE_FUNC(name) Func<PFN_vk##name> vk##name
 
-    DEFINE_FUNC(AcquireNextImageKHR);
-    DEFINE_FUNC(AllocateCommandBuffers);
     DEFINE_FUNC(AllocateMemory);
-    DEFINE_FUNC(BeginCommandBuffer);
     DEFINE_FUNC(BindImageMemory);
     DEFINE_FUNC(BindImageMemory2);
-    DEFINE_FUNC(CmdPipelineBarrier);
-    DEFINE_FUNC(CreateCommandPool);
-    DEFINE_FUNC(CreateDebugReportCallbackEXT);
     DEFINE_FUNC(CreateDevice);
-    DEFINE_FUNC(CreateFence);
     DEFINE_FUNC(CreateImage);
-    DEFINE_FUNC(CreateImageView);
     DEFINE_FUNC(CreateInstance);
     DEFINE_FUNC(CreateSemaphore);
-    DEFINE_FUNC(CreateSwapchainKHR);
-    DEFINE_FUNC(DestroyCommandPool);
-    DEFINE_FUNC(DestroyDebugReportCallbackEXT);
     DEFINE_FUNC(DestroyDevice);
-    DEFINE_FUNC(DestroyFence);
     DEFINE_FUNC(DestroyImage);
-    DEFINE_FUNC(DestroyImageView);
     DEFINE_FUNC(DestroyInstance);
     DEFINE_FUNC(DestroySemaphore);
-    DEFINE_FUNC(DestroySurfaceKHR);
-    DEFINE_FUNC(DestroySwapchainKHR);
     DEFINE_FUNC(DeviceWaitIdle);
-    DEFINE_FUNC(EndCommandBuffer);
     DEFINE_FUNC(EnumerateDeviceExtensionProperties);
-    DEFINE_FUNC(EnumerateDeviceLayerProperties);
     DEFINE_FUNC(EnumerateInstanceExtensionProperties);
-    DEFINE_FUNC(EnumerateInstanceLayerProperties);
     DEFINE_FUNC(EnumeratePhysicalDevices);
-    DEFINE_FUNC(FreeCommandBuffers);
     DEFINE_FUNC(FreeMemory);
     DEFINE_FUNC(GetDeviceProcAddr);
-    DEFINE_FUNC(GetDeviceQueue);
     DEFINE_FUNC(GetImageMemoryRequirements);
     DEFINE_FUNC(GetInstanceProcAddr);
     DEFINE_FUNC(GetPhysicalDeviceFeatures);
     DEFINE_FUNC(GetPhysicalDeviceQueueFamilyProperties);
     DEFINE_FUNC(QueueSubmit);
-    DEFINE_FUNC(QueueWaitIdle);
-    DEFINE_FUNC(ResetCommandBuffer);
-    DEFINE_FUNC(ResetFences);
-    DEFINE_FUNC(WaitForFences);
-    DEFINE_FUNC(GetPhysicalDeviceSurfaceCapabilitiesKHR);
-    DEFINE_FUNC(GetPhysicalDeviceSurfaceFormatsKHR);
-    DEFINE_FUNC(GetPhysicalDeviceSurfacePresentModesKHR);
-    DEFINE_FUNC(GetPhysicalDeviceSurfaceSupportKHR);
-    DEFINE_FUNC(GetSwapchainImagesKHR);
-    DEFINE_FUNC(QueuePresentKHR);
-    DEFINE_FUNC(CreateSurfaceOHOS);
     DEFINE_FUNC(GetPhysicalDeviceMemoryProperties);
     DEFINE_FUNC(GetPhysicalDeviceMemoryProperties2);
     DEFINE_FUNC(GetNativeBufferPropertiesOHOS);
     DEFINE_FUNC(QueueSignalReleaseImageOHOS);
     DEFINE_FUNC(ImportSemaphoreFdKHR);
     DEFINE_FUNC(GetPhysicalDeviceFeatures2);
-    DEFINE_FUNC(SetFreqAdjustEnable);
     DEFINE_FUNC(GetSemaphoreFdKHR);
 #undef DEFINE_FUNC
 
@@ -284,11 +234,7 @@ public:
         return backendContext_.fQueue;
     }
 
-#ifdef USE_M133_SKIA
     inline const skgpu::VulkanBackendContext& GetGrVkBackendContext() const noexcept
-#else
-    inline const GrVkBackendContext& GetGrVkBackendContext() const noexcept
-#endif
     {
         return backendContext_;
     }
@@ -339,14 +285,9 @@ private:
     VkPhysicalDeviceTimelineSemaphoreFeatures timelineFeature_;
     std::vector<const char*> deviceExtensions_;
     VkDeviceMemoryExclusiveThresholdHUAWEI deviceMemoryExclusiveThreshold_;
-#ifdef USE_M133_SKIA
+
     skgpu::VulkanExtensions skVkExtensions_;
     skgpu::VulkanBackendContext backendContext_;
-#else
-    GrVkExtensions skVkExtensions_;
-    GrVkBackendContext backendContext_;
-#endif
-    RsVulkanMemStat mVkMemStat;
 
     // static thread_local GrVkBackendContext backendContext_;
     VulkanInterfaceType interfaceType_ = VulkanInterfaceType::BASIC_RENDER;
@@ -414,18 +355,9 @@ public:
         return GetRsVulkanInterface().IsValid();
     }
 
-#ifdef USE_M133_SKIA
     skgpu::VulkanGetProc CreateSkiaGetProc()
-#else
-    GrVkGetProc CreateSkiaGetProc()
-#endif
     {
         return GetRsVulkanInterface().CreateSkiaGetProc();
-    }
-
-    RsVulkanMemStat& GetRsVkMemStat()
-    {
-        return GetRsVulkanInterface().GetRsVkMemStat();
     }
 
     VkPhysicalDevice GetPhysicalDevice()
@@ -443,11 +375,7 @@ public:
         return GetRsVulkanInterface().GetQueue();
     }
 
-#ifdef USE_M133_SKIA
     inline const skgpu::VulkanBackendContext& GetGrVkBackendContext() noexcept
-#else
-    inline const GrVkBackendContext& GetGrVkBackendContext() noexcept
-#endif
     {
         return GetRsVulkanInterface().GetGrVkBackendContext();
     }
@@ -485,8 +413,10 @@ public:
     bool GetIsProtected() const;
 
     static bool IsRecyclable();
+    static bool IsMultiProcess();
 
     static void SetRecyclable(bool isRecyclable);
+    static void SetIsMultiProcess(bool isMultiProcess);
 
     static void SaveNewDrawingContext(int tid, std::shared_ptr<Drawing::GPUContext> drawingContext);
 
@@ -507,6 +437,7 @@ private:
     // use for recyclable singleton
     static std::recursive_mutex recyclableSingletonMutex_;
     static bool isRecyclable_;
+    static bool isMultiProcess_;
     // isRecyclableSingletonValid_ : true -> has been initialized and is valid , false -> has been released
     static std::atomic<bool> isRecyclableSingletonValid_;
     // use to mark current process has created vulkan context at least once

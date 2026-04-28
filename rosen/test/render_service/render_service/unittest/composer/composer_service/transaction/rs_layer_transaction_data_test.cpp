@@ -332,4 +332,50 @@ HWTEST_F(RSLayerTransactionDataTest, Unmarshalling_FullSuccess_MultiParcels, Tes
     EXPECT_EQ(out->GetCommandCount(), 2u);
     delete out;
 }
+
+/**
+ * Function: Unmarshalling_SurfaceFpsOpNum_ExceedsMaxLimit
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. set SurfaceFpsOpNum to value exceeding max limit (50 > 32)
+ *                  2. marshal/unmarshal and verify unmarshalling succeeds with truncated data
+ *                  3. verify SurfaceFpsOpNum is truncated to 32 and only first 32 ops are kept
+ */
+HWTEST_F(RSLayerTransactionDataTest, Unmarshalling_SurfaceFpsOpNum_ExceedsMaxLimit, TestSize.Level1)
+{
+    RSLayerTransactionData data;
+    ComposerInfo info {};
+    info.composerScreenInfo.id = 1u;
+    info.pipelineParam.vsyncId = 1u;
+    info.pipelineParam.SurfaceFpsOpNum = 50u;
+    std::vector<SurfaceFpsOp> fpsOps;
+    fpsOps.reserve(50);
+    for (uint32_t i = 0; i < 50; i++) {
+        SurfaceFpsOp op;
+        op.surfaceFpsOpType = SURFACE_FPS_ADD;
+        op.surfaceNodeId = 1000u + i;
+        op.surfaceName = "surface_" + std::to_string(i);
+        fpsOps.emplace_back(op);
+    }
+    info.pipelineParam.SurfaceFpsOpList = std::move(fpsOps);
+    data.SetComposerInfo(info);
+
+    std::shared_ptr<MessageParcel> parcel = std::make_shared<MessageParcel>();
+    ASSERT_TRUE(data.Marshalling(parcel));
+
+    RSLayerTransactionData* out = RSLayerTransactionData::Unmarshalling(*parcel);
+    ASSERT_NE(out, nullptr);
+
+    auto pipelineParam = out->GetPipelineParam();
+    EXPECT_EQ(pipelineParam.GetSurfaceFpsOpNum(), 32u);
+    EXPECT_EQ(pipelineParam.SurfaceFpsOpList.size(), 32u);
+
+    for (uint32_t i = 0; i < 32u; i++) {
+        EXPECT_EQ(pipelineParam.SurfaceFpsOpList[i].surfaceFpsOpType, SURFACE_FPS_ADD);
+        EXPECT_EQ(pipelineParam.SurfaceFpsOpList[i].surfaceNodeId, 1000u + i);
+        EXPECT_EQ(pipelineParam.SurfaceFpsOpList[i].surfaceName, "surface_" + std::to_string(i));
+    }
+    delete out;
+}
 } // namespace OHOS::Rosen

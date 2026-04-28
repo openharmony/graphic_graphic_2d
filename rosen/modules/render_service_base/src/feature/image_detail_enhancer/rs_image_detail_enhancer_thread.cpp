@@ -72,7 +72,7 @@ RSImageDetailEnhancerThread::RSImageDetailEnhancerThread()
     if (!isParamValidate_) {
         return;
     }
-    ifReleaseAllScaledImage_ = false;
+    ifReleaseAllScaledImage_.store(false);
     params_ = RsCommonHook::Instance().GetImageEnhanceParams();
     slrParams_ = RsCommonHook::Instance().GetImageEnhanceAlgoParams("SLR");
     esrParams_ = RsCommonHook::Instance().GetImageEnhanceAlgoParams("ESR");
@@ -515,13 +515,13 @@ bool RSImageDetailEnhancerThread::GetEnabled()
         RSSystemProperties::GetScaleImageAsyncEnabled() &&
         RSSystemProperties::GetMemoryWatermarkEnabled() &&
         isParamValidate_) {
-        ifReleaseAllScaledImage_ = true;
+        ifReleaseAllScaledImage_.store(true);
         return true;
     }
-    if (ifReleaseAllScaledImage_) {
+    if (ifReleaseAllScaledImage_.load()) {
         ReleaseAllScaledImage();
     }
-    ifReleaseAllScaledImage_ = false;
+    ifReleaseAllScaledImage_.store(false);
     return false;
 #endif
     return false;

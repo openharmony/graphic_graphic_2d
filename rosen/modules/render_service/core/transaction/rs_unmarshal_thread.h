@@ -19,6 +19,7 @@
 #include <mutex>
 #include <unordered_map>
 
+#include "ffrt_inner.h"
 #include "message_parcel.h"
 
 #include "memory/rs_memory_flow_control.h"
@@ -35,6 +36,8 @@ public:
     static RSUnmarshalThread& Instance();
     void Start();
     void PostTask(const std::function<void()>& task, const std::string& name = "");
+    void PostParallelTask(const std::function<void()>& task, const std::string& name = "");
+    void WaitUntilParallelTasksFinished();
     void RemoveTask(const std::string& name = "");
     void RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool isNonSystemAppCalling = false, pid_t callingPid = 0,
         std::unique_ptr<AshmemFdWorker> ashmemFdWorker = nullptr,
@@ -68,6 +71,8 @@ private:
     std::unordered_map<pid_t, size_t> transactionDataStatistics_;
 
     std::shared_ptr<ffrt::queue> queue_ = nullptr;
+    std::shared_ptr<ffrt::queue> parallelQueue_ = nullptr;
+    std::vector<ffrt::task_handle> cachedHandles_;
 };
 }
 #endif // RS_UNMARSHAL_THREAD_H

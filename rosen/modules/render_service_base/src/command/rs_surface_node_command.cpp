@@ -164,10 +164,11 @@ void SurfaceNodeCommandHelper::UpdateSurfaceDefaultSize(RSContext& context, Node
     }
 }
 
-void SurfaceNodeCommandHelper::ConnectToNodeInRenderService(RSContext& context, NodeId id)
+void SurfaceNodeCommandHelper::ConnectToNodeInRenderService(
+    RSContext& context, NodeId id, sptr<IRemoteObject> connectToRender)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
-        node->ConnectToNodeInRenderService();
+        node->ConnectToNodeInRenderService(connectToRender);
     }
 }
 
@@ -285,6 +286,15 @@ void SurfaceNodeCommandHelper::CreateSurfaceExt(RSContext& context, NodeId id,
         node->SetSurfaceTexture(surfaceExt);
     }
 }
+
+void SurfaceNodeCommandHelper::SetSurfaceCaptureCallBack(
+    RSContext& context, NodeId id, std::function<std::shared_ptr<Media::PixelMap>()> callback)
+{
+    auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id);
+    if (node != nullptr) {
+        node->SetSurfaceCaptureCallback(callback);
+    }
+}
 #endif
 
 void SurfaceNodeCommandHelper::SetForceHardwareAndFixRotation(RSContext& context, NodeId nodeId, bool flag)
@@ -344,6 +354,13 @@ void SurfaceNodeCommandHelper::SetSkipDraw(RSContext& context, NodeId nodeId, bo
     }
 }
 
+void SurfaceNodeCommandHelper::SetDarkColorMode(RSContext& context, NodeId nodeId, bool isDarkColorMode)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
+        node->SetDarkColorMode(isDarkColorMode);
+    }
+}
+
 void SurfaceNodeCommandHelper::SetWatermarkEnabled(RSContext& context, NodeId nodeId,
     const std::string& name, bool isEnabled)
 {
@@ -361,10 +378,8 @@ void SurfaceNodeCommandHelper::SetAbilityState(RSContext& context, NodeId nodeId
         return;
     }
     node->SetAbilityState(abilityState);
-#ifdef RS_ENABLE_MEMORY_DOWNTREE
     RSRenderNodeGC::Instance().SetAbilityState(ExtractPid(nodeId),
         abilityState == RSSurfaceNodeAbilityState::BACKGROUND);
-#endif
 }
 
 void SurfaceNodeCommandHelper::SetApiCompatibleVersion(RSContext& context, NodeId nodeId, uint32_t apiCompatibleVersion)
@@ -487,6 +502,13 @@ void SurfaceNodeCommandHelper::SetAppRotationCorrection(
     }
     if (const auto& node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
         node->SetAppRotationCorrection(appRotationCorrection);
+    }
+}
+
+void SurfaceNodeCommandHelper::SetHDRType(RSContext& context, NodeId nodeId, uint32_t hdrType)
+{
+    if (const auto& node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
+        node->SetHDRType(hdrType);
     }
 }
 } // namespace Rosen

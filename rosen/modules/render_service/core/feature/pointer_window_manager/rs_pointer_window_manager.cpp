@@ -61,7 +61,7 @@ void RSPointerWindowManager::UpdatePointerDirtyToGlobalDirty(std::shared_ptr<RSS
 void RSPointerWindowManager::UpdatePointerInfo()
 {
 #ifdef RS_ENABLE_GPU
-    int64_t rsNodeId = 0;
+    NodeId rsNodeId = 0;
     BoundParam boundTemp = {0.0f, 0.0f, 0.0f, 0.0f};
     {
         std::lock_guard<std::mutex> lock(mtx_);
@@ -108,7 +108,7 @@ void RSPointerWindowManager::UpdatePointerInfo()
 #endif
 }
 
-void RSPointerWindowManager::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+void RSPointerWindowManager::SetHwcNodeBounds(NodeId rsNodeId, float positionX, float positionY,
     float positionZ, float positionW)
 {
 #ifdef RS_ENABLE_GPU
@@ -147,7 +147,9 @@ void RSPointerWindowManager::HardCursorCreateLayerForDirect(std::shared_ptr<RSPr
 #ifdef RS_ENABLE_GPU
     auto& hardCursorNodeMap = GetHardCursorNode();
     for (auto& [_, hardCursorNode] :  hardCursorNodeMap) {
-        if (hardCursorNode && hardCursorNode->IsHardwareEnabledTopSurface()) {
+        bool isHardCursorEnabled = hardCursorNode && hardCursorNode->IsHardwareEnabledTopSurface() &&
+            hardCursorNode->GetHardCursorStatus();
+        if (isHardCursorEnabled) {
             auto surfaceHandler = hardCursorNode->GetRSSurfaceHandler();
             if (!surfaceHandler) {
                 continue;

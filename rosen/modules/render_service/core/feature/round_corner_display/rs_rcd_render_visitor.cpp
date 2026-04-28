@@ -57,8 +57,8 @@ bool RSRcdRenderVisitor::ConsumeAndUpdateBuffer(RSRcdSurfaceRenderNode& node)
     bufferOwnerCount->bufferReleaseCb_ = [](uint64_t bufferId) {
         RSUniRenderThread::Instance().ReleaseBufferById(bufferId);
     };
-    RSUniRenderThread::Instance().AddPendingReleaseBuffer(consumer, buffer, SyncFence::InvalidFence());
-
+    RSUniRenderThread::Instance().AddPendingReleaseBuffer(consumer, buffer, SyncFence::InvalidFence(),
+        bufferOwnerCount);
     node.SetBuffer(buffer, acquireFence, damage, timestamp, bufferOwnerCount);
 
     if (!node.SetHardwareResourceToBuffer()) {

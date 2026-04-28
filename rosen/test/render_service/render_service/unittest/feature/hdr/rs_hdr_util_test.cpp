@@ -153,7 +153,7 @@ HWTEST_F(RSHdrUtilTest, CheckIsHdrSurfaceBufferTest, TestSize.Level1)
     memcpy_s(metadataType.data(), metadataType.size(), &hdrType, sizeof(hdrType));
     buffer->SetMetadata(Media::VideoProcessingEngine::ATTRKEY_HDR_METADATA_TYPE, metadataType);
     ret = RSBaseHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
-    ASSERT_EQ(ret, HdrStatus::AI_HDR_VIDEO_GAINMAP);
+    ASSERT_EQ(ret, HdrStatus::AI_HDR_VIDEO_AI2020);
 #endif
 }
 
@@ -486,6 +486,27 @@ HWTEST_F(RSHdrUtilTest, GetRGBA1010108EnabledTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CheckAIHDRStatus
+ * @tc.desc: Test CheckAIHDRStatus
+ * @tc.type: FUNC
+ * @tc.require: issueI6QM6E
+ */
+HWTEST_F(RSHdrUtilTest, CheckAIHDRStatusTest, TestSize.Level1)
+{
+    HdrStatus hdrStatus = HdrStatus::AI_HDR_VIDEO_GTM;
+    EXPECT_EQ(RSBaseHdrUtil::CheckAIHDRStatus(hdrStatus), true);
+
+    hdrStatus = HdrStatus::AI_HDR_VIDEO_GAINMAP;
+    EXPECT_EQ(RSBaseHdrUtil::CheckAIHDRStatus(hdrStatus), true);
+
+    hdrStatus = HdrStatus::AI_HDR_VIDEO_AI2020;
+    EXPECT_EQ(RSBaseHdrUtil::CheckAIHDRStatus(hdrStatus), true);
+
+    hdrStatus = HdrStatus::HDR_VIDEO;
+    EXPECT_EQ(RSBaseHdrUtil::CheckAIHDRStatus(hdrStatus), false);
+}
+
+/**
  * @tc.name: UpdateSurfaceNodeNit001
  * @tc.desc: Test UpdateSurfaceNodeNit
  * @tc.type: FUNC
@@ -539,6 +560,26 @@ HWTEST_F(RSHdrUtilTest, UpdateSurfaceNodeNitTest002, TestSize.Level1)
     retUpdateNit = RSHdrUtil::UpdateSurfaceNodeNit(*node, 0, scaler); // not update surfaceNode HDRBrightnessFactor
     ASSERT_EQ(retUpdateNit, true);
     EXPECT_EQ(node->GetHDRBrightnessFactor(), 0.5f);
+    node->SetHDRDimmingFactor(0.5f);
+    EXPECT_EQ(node->GetHDRDimmingFactor(), 0.5f);
+
+    using namespace OHOS::HDI::Display::Graphic::Common::V1_0;
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+
+    ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler() != nullptr);
+    auto buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
+    ASSERT_TRUE(buffer != nullptr);
+    ASSERT_TRUE(buffer->GetBufferHandle() != nullptr);
+
+    CM_HDR_Metadata_Type hdrMetadataType = CM_METADATA_NONE;
+    Media::VideoProcessingEngine::HdrStaticMetadata staticMetadata;
+    staticMetadata.cta861.maxContentLightLevel = 400.0f;
+    MetadataHelper::SetHDRMetadataType(buffer, hdrMetadataType);
+    MetadataHelper::SetHDRStaticMetadata(buffer, staticMetadata);
+    bool ret = RSBaseHdrUtil::CheckIsHDRSelfProcessingBuffer(buffer);
+    EXPECT_EQ(ret, true);
+    RSHdrUtil::UpdateSurfaceNodeNit(*surfaceNode, 0);
 }
 
 /**
@@ -587,6 +628,14 @@ HWTEST_F(RSHdrUtilTest, UpdateSurfaceNodeNitTest003, TestSize.Level1)
     buffer->SetMetadata(Media::VideoProcessingEngine::ATTRKEY_HDR_METADATA_TYPE, metadataType);
     ret = RSBaseHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
     ASSERT_EQ(ret, HdrStatus::AI_HDR_VIDEO_GAINMAP);
+    RSHdrUtil::UpdateSurfaceNodeNit(*node, 0, scaler);
+
+    hdrType = HDI::Display::Graphic::Common::V2_2::CM_VIDEO_AI_HDR_COLOR_ENHANCE;
+    metadataType.resize(sizeof(hdrType));
+    memcpy_s(metadataType.data(), metadataType.size(), &hdrType, sizeof(hdrType));
+    buffer->SetMetadata(Media::VideoProcessingEngine::ATTRKEY_HDR_METADATA_TYPE, metadataType);
+    ret = RSBaseHdrUtil::CheckIsHdrSurfaceBuffer(buffer);
+    ASSERT_EQ(ret, HdrStatus::AI_HDR_VIDEO_AI2020);
     RSHdrUtil::UpdateSurfaceNodeNit(*node, 0, scaler);
 
     Media::VideoProcessingEngine::HdrStaticMetadata staticMetadata;
@@ -684,13 +733,9 @@ HWTEST_F(RSHdrUtilTest, CheckPixelFormatWithSelfDrawingNodeTest, TestSize.Level1
     surfaceNode->SetHardwareForcedDisabledState(false);
     RSHdrUtil::CheckPixelFormatWithSelfDrawingNode(*surfaceNode, *screenNode);
     surfaceNode->SetHardwareForcedDisabledState(true);
-
-    surfaceNode->context_ = context;
-    NodeId logicalDisplayNodeId = 2U;
-    RSDisplayNodeConfig config;
-    auto logicalDisplayNode = std::make_shared<RSLogicalDisplayRenderNode>(logicalDisplayNodeId, config, context);
-    surfaceNode->logicalDisplayNodeId_ = logicalDisplayNodeId;
-    context->nodeMap.RegisterRenderNode(logicalDisplayNode);
+    RSHdrUtil::CheckPixelFormatWithSelfDrawingNode(*surfaceNode, *screenNode);
+    screenNode->SetSdrNits(100.0f);
+    screenNode->SetSdrNits(200.0f);
     RSHdrUtil::CheckPixelFormatWithSelfDrawingNode(*surfaceNode, *screenNode);
     RSTestUtil::UnregisterConsumerListener();
 }

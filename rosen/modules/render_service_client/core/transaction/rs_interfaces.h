@@ -24,6 +24,7 @@
 #include <memory>
 #include <mutex>
 
+#include "common/rs_event_def.h"
 #include "memory/rs_memory_graphic.h"
 #include "transaction/rs_render_service_client.h"
 #include "ui/rs_display_node.h"
@@ -191,6 +192,8 @@ public:
      */
     int32_t SetScreenChangeCallback(const ScreenChangeCallback &callback);
 
+    sptr<IRemoteObject> GetConnectToRenderToken(ScreenId screenId);
+
     /**
      * @brief Set screen switching status notify callback.
      * on the screen switching status is changed.
@@ -198,6 +201,14 @@ public:
      * @return Returns int32_t, return value == 0 success, otherwise, failed.
      */
     int32_t SetScreenSwitchingNotifyCallback(const ScreenSwitchingNotifyCallback &callback);
+
+    /**
+     * @brief Set active screen id changed callback.
+     * on active screen id is changed.
+     * @param callback Callback of the active screen id changed.
+     * @return Returns int32_t, return value == 0 success, otherwise, failed.
+     */
+    int32_t SetActiveScreenIdChangedCallback(const ActiveScreenIdChangedCallback &callback);
 
     /**
      * @brief Set brightness info change callback.
@@ -422,7 +433,7 @@ public:
      * @param positionW Indicates w coordinate position.
      * @return return true if set success, else return false.
      */
-    bool SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY, float positionZ, float positionW);
+    bool SetHwcNodeBounds(NodeId rsNodeId, float positionX, float positionY, float positionZ, float positionW);
 
     /**
      * @brief Register typeface.
@@ -575,6 +586,20 @@ public:
      * @return 0 means success, others failed.
      */
     int32_t SetDualScreenState(ScreenId id, DualScreenStatus status);
+
+    /**
+     * @brief Set screen as main screen.
+     * @param screenId Id of the screen to set.
+     * @param isMainScreen True means set as main screen, false means not main screen.
+     * @return 0 means success, others failed.
+     */
+    int32_t SetAsMainScreen(ScreenId screenId, bool isMainScreen);
+
+    /**
+     * @brief Get the main screen id.
+     * @return ScreenId of the main screen. Returns INVALID_SCREEN_ID if no main screen is set.
+     */
+    ScreenId GetMainScreenId();
 
     /**
      * @brief Get active mode of the screen.
@@ -979,6 +1004,21 @@ public:
     int32_t UnRegisterFirstFrameCommitCallback();
 
     /**
+     * @brief Register the exposed event callback function.
+     * @param type Indicates specified event that need to be registered.
+     * @param callback Indicates functions that need to be registered.
+     * @return Register result, 0 success, else failed.
+     */
+    int32_t RegisterExposedEventCallback(const RSExposedEventType type, const RSExposedEventCallback& callback);
+
+    /**
+     * @brief UnRegister the Exposed event Callback function.
+     * @param type Indicates specified event that need to be Unregistered.
+     * @return UnRegister result, 0 success, else failed.
+     */
+    int32_t UnRegisterExposedEventCallback(const RSExposedEventType type);
+
+    /**
      * @brief Register FrameRateLinkerExpectedFpsUpdateCallback.
      * @param callback Indicates functions that need to be registered.
      * @return Register result, 0 success, else failed.
@@ -1349,12 +1389,6 @@ public:
      */
     void NotifyPageName(const std::string& packageName, const std::string& pageName, bool isEnter);
 
-    /**
-     * @brief Get high contrast text state.
-     * @return Return true if high contrast text enabled, otherwise false.
-     */
-    bool GetHighContrastTextState();
-
     bool SetBehindWindowFilterEnabled(bool enabled);
 
     bool GetBehindWindowFilterEnabled(bool& enabled);
@@ -1446,7 +1480,8 @@ private:
         float scaleX, float scaleY);
 
     std::unique_ptr<RSRenderServiceClient> renderServiceClient_;
-    std::unique_ptr<RSRenderInterface> renderInterface_;
+    // ToDo renderInterface的接口需要从rsInterface中删除
+    // std::unique_ptr<RSRenderInterface> renderInterface_;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -35,7 +35,7 @@ class RSClientToRenderConnection : public RSClientToRenderConnectionStub {
 public:
     RSClientToRenderConnection(
     pid_t remotePid,
-    sptr<RSRenderPipelineAgent> renderPipelineAgent, sptr<IRemoteObject> token);
+    sptr<RSRenderPipelineAgent> renderPipelineAgent, sptr<IRemoteObject> token, bool needRefresh = false);
     ~RSClientToRenderConnection() noexcept;
     RSClientToRenderConnection(const RSClientToRenderConnection&) = delete;
     RSClientToRenderConnection& operator=(const RSClientToRenderConnection&) = delete;
@@ -50,14 +50,17 @@ public:
         token_ = nullptr;
     }
 
+    void RegisterRemoteRefreshCallback() override;
+
 private:
     void CleanAll(bool toDelete = false) noexcept;
+    void CleanForRefresh() noexcept;
 
     // IPC RSIRenderServiceConnection Interfaces
     ErrCode CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
     ErrCode ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
     
-    ErrCode CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
+    ErrCode CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
         bool& success) override;
 
     ErrCode CreateNode(const RSSurfaceRenderNodeConfig& config, bool& success) override;
@@ -88,8 +91,6 @@ private:
 
     ErrCode SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent, uint32_t& resCode) override;
 
-    bool GetHighContrastTextState() override;
-
     ErrCode SetFocusAppInfo(const FocusAppInfo& info, int32_t& repCode) override;
 
     void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
@@ -117,7 +118,7 @@ private:
         NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) override;
 
-    ErrCode SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+    ErrCode SetHwcNodeBounds(NodeId rsNodeId, float positionX, float positionY,
         float positionZ, float positionW) override;
 
     int32_t GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo) override;
@@ -182,6 +183,8 @@ private:
     int32_t GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result) override;
     ErrCode GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight) override;
 
+    void SetFreeMultiWindowStatus(bool enable) override;
+
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;
     sptr<RSRenderPipelineAgent> renderPipelineAgent_;
@@ -201,6 +204,19 @@ private:
     friend class RSConnectionDeathRecipient;
     sptr<RSConnectionDeathRecipient> connDeathRecipient_;
 
+    class RSConnectionRefreshRecipient : public IRemoteObject::RefreshRecipient {
+    public:
+        explicit RSConnectionRefreshRecipient(wptr<RSClientToRenderConnection> conn);
+        virtual ~RSConnectionRefreshRecipient() = default;
+
+        void OnRemoteRefreshed(const wptr<IRemoteObject>& token) override;
+
+    private:
+        wptr<RSClientToRenderConnection> conn_;
+    };
+    friend class RSConnectionRefreshRecipient;
+    sptr<RSConnectionRefreshRecipient> connRefreshRecipient_;
+
     class RSApplicationRenderThreadDeathRecipient : public IRemoteObject::DeathRecipient {
     public:
         explicit RSApplicationRenderThreadDeathRecipient(wptr<RSClientToRenderConnection> conn);
@@ -216,6 +232,7 @@ private:
 
     mutable std::mutex mutex_;
     bool cleanDone_ = false;
+    bool needRefresh_ = true;
     const std::string VOTER_SCENE_BLUR = "VOTER_SCENE_BLUR";
     const std::string VOTER_SCENE_GPU = "VOTER_SCENE_GPU";
     static const std::string GPU_FREQ_PREF;

@@ -606,4 +606,63 @@ HWTEST_F(RSServiceDumpManagerTest, IsDumpCompleted_True, TestSize.Level1)
     EXPECT_TRUE(dumpString.find("RSProcessDump") != std::string::npos);
 }
 
+/*
+ * @tc.name: GetScreenIdFormArgs_InvalidInput
+ * @tc.desc: Test GetScreenIdFormArgs with various invalid inputs
+ * @tc.type: FUNC
+ * @tc.require: AR000GSH6G
+ */
+HWTEST_F(RSServiceDumpManagerTest, GetScreenIdFormArgs_InvalidInput, TestSize.Level1)
+{
+    // Test case 1: Empty arguments
+    std::vector<std::u16string> args1;
+    EXPECT_EQ(dumpManager_->GetScreenIdFormArgs(args1), INVALID_SCREEN_ID);
+
+    // Test case 2: Insufficient arguments (only 1)
+    std::vector<std::u16string> args2 = { u"-screen" };
+    EXPECT_EQ(dumpManager_->GetScreenIdFormArgs(args2), INVALID_SCREEN_ID);
+
+    // Test case 3: Invalid first argument (not -screen)
+    std::vector<std::u16string> args3 = { u"invalid", u"0" };
+    EXPECT_EQ(dumpManager_->GetScreenIdFormArgs(args3), INVALID_SCREEN_ID);
+
+    // Test case 4: Empty screen id
+    std::vector<std::u16string> args4 = { u"-screen", u"" };
+    EXPECT_EQ(dumpManager_->GetScreenIdFormArgs(args4), INVALID_SCREEN_ID);
+
+    // Test case 5: Non-digit characters in screen id
+    std::vector<std::u16string> args5 = { u"-screen", u"12a" };
+    EXPECT_EQ(dumpManager_->GetScreenIdFormArgs(args5), INVALID_SCREEN_ID);
+
+    // Test case 6: Negative screen id (non-digit)
+    std::vector<std::u16string> args6 = { u"-screen", u"-1" };
+    EXPECT_EQ(dumpManager_->GetScreenIdFormArgs(args6), INVALID_SCREEN_ID);
+
+    // Test case 7: Screen id overflow
+    std::string largeNumber = "999999999999999999999999999999";
+    std::u16string largeNumber16 = std::u16string(largeNumber.begin(), largeNumber.end());
+    std::vector<std::u16string> args7 = { u"-screen", largeNumber16 };
+    EXPECT_EQ(dumpManager_->GetScreenIdFormArgs(args7), INVALID_SCREEN_ID);
+}
+
+/*
+ * @tc.name: GetScreenIdFormArgs_ValidInput
+ * @tc.desc: Test GetScreenIdFormArgs with various valid inputs
+ * @tc.type: FUNC
+ * @tc.require: AR000GSH6G
+ */
+HWTEST_F(RSServiceDumpManagerTest, GetScreenIdFormArgs_ValidInput, TestSize.Level1)
+{
+    // Test case 1: Valid screen id (0)
+    std::vector<std::u16string> args1 = { u"-screen", u"0" };
+    EXPECT_EQ(dumpManager_->GetScreenIdFormArgs(args1), 0);
+
+    // Test case 2: Valid multi-digit screen id (123)
+    std::vector<std::u16string> args2 = { u"-screen", u"123" };
+    EXPECT_EQ(dumpManager_->GetScreenIdFormArgs(args2), 123);
+
+    // Test case 3: Valid screen id with additional args
+    std::vector<std::u16string> args3 = { u"-screen", u"1", u"fps", u"surface" };
+    EXPECT_EQ(dumpManager_->GetScreenIdFormArgs(args3), 1);
+}
 } // namespace OHOS::Rosen

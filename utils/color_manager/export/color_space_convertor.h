@@ -52,8 +52,32 @@ public:
         return ColorSpaceConvertor::p3toSRGBColorSpaceConvertor.Convert(p3ColorValue);
     }
 
+    static Vector3 ConvertSRGBToBT2020ColorSpace(const Vector3& sRGBColorValue)
+    {
+        return ColorSpaceConvertor::sRGBtoBT2020ColorSpaceConvertor.Convert(sRGBColorValue);
+    }
+
+    static Vector3 ConvertP3ToBT2020ColorSpace(const Vector3& p3ColorValue)
+    {
+        return ColorSpaceConvertor::p3toBT2020ColorSpaceConvertor.Convert(p3ColorValue);
+    }
+
+    static Vector3 ConvertBT2020ToP3ColorSpace(const Vector3& bt2020ColorValue)
+    {
+        return ColorSpaceConvertor::bt2020toP3ColorSpaceConvertor.Convert(bt2020ColorValue);
+    }
+
+    static Vector3 ConvertBT2020ToSRGBColorSpace(const Vector3& bt2020ColorValue)
+    {
+        return ColorSpaceConvertor::bt2020toSRGBColorSpaceConvertor.Convert(bt2020ColorValue);
+    }
+
     static ColorSpaceConvertor sRGBtoP3ColorSpaceConvertor;
     static ColorSpaceConvertor p3toSRGBColorSpaceConvertor;
+    static ColorSpaceConvertor sRGBtoBT2020ColorSpaceConvertor;
+    static ColorSpaceConvertor p3toBT2020ColorSpaceConvertor;
+    static ColorSpaceConvertor bt2020toP3ColorSpaceConvertor;
+    static ColorSpaceConvertor bt2020toSRGBColorSpaceConvertor;
 
 private:
     ColorSpace srcColorSpace;

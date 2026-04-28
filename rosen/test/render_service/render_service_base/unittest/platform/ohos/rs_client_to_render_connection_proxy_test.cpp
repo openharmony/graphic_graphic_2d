@@ -163,7 +163,7 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, CreateNodeTest, TestSize.Level1)
     RSDisplayNodeConfig rsDisplayNodeConfig;
     NodeId nodeId = 100;
     bool success = false;
-    ASSERT_EQ(proxy->CreateNode(rsDisplayNodeConfig, nodeId, success), ERR_INVALID_VALUE);
+    ASSERT_EQ(proxy->CreateDisplayNode(rsDisplayNodeConfig, nodeId, success), ERR_INVALID_VALUE);
 }
 
 /**
@@ -373,6 +373,7 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, TakeSurfaceCapture, TestSize.Level
     ASSERT_NE(samgr, nullptr);
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
     callback = iface_cast<RSISurfaceCaptureCallback>(remoteObject);
+    captureConfig.windowSync = true;
     proxy->TakeSurfaceCapture(id, callback, captureConfig, blurParam, specifiedAreaRect);
     ASSERT_EQ(proxy->transactionDataIndex_, 0);
 }

@@ -19,15 +19,16 @@
 #include <cstring>
 #include <string>
 
+#include "animation/rs_animation_common.h"
 #include "common/rs_common_def.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace {
 static constexpr int INFINITE = -1;
-static constexpr int64_t MS_TO_NS = 1000000;
 static constexpr int REVERSE_COUNT = 2;
 static constexpr int MAX_SPEED = 1000000;
 constexpr const char* ANIMATION_SCALE_NAME = "persist.sys.graphic.animationscale";
@@ -78,6 +79,11 @@ void RSAnimationFraction::SetDirectionAfterStart(const ForwardDirection& directi
     direction_ = direction;
 }
 
+void RSAnimationFraction::FlipDirection()
+{
+    direction_ = (direction_ == ForwardDirection::NORMAL) ? ForwardDirection::REVERSE : ForwardDirection::NORMAL;
+}
+
 void RSAnimationFraction::SetLastFrameTime(int64_t lastFrameTime)
 {
     lastFrameTime_ = lastFrameTime;
@@ -104,8 +110,42 @@ bool RSAnimationFraction::IsStartRunning(const int64_t deltaTime, const int64_t 
             runningTime_ -= static_cast<int64_t>(deltaTime * speed_ / animationScale);
         }
     }
-
     return runningTime_ > startDelayNs;
+}
+
+bool RSAnimationFraction::UpdateGroupWaitingTime(int64_t deltaTime, bool isCustom)
+{
+    // When doing round-trip animation, runningTime_ will be less than 0 on the second pass, and the state becomes
+    // groupwaiting. In this case, we should jump out directly and return true.
+    if (runningTime_ <= 0) {
+        return true;
+    }
+
+    const float animationScale = isCustom ? 1.0f : GetAnimationScale();
+    int64_t deltaWithSpeed = ROSEN_EQ(animationScale, 0.0f) ? static_cast<int64_t>(deltaTime * MAX_SPEED)
+        : static_cast<int64_t>(deltaTime * speed_ / animationScale);
+
+    if (direction_ == ForwardDirection::NORMAL) {
+        // Prevent overflow: check if addition would exceed INT64_MAX
+        if (deltaWithSpeed > 0 && groupWaitingTime_ > INT64_MAX - deltaWithSpeed) {
+            ROSEN_LOGW(
+                "RSAnimationFraction::UpdateGroupWaitingTime groupWaitingTime_ would overflow, clamp to INT64_MAX");
+            groupWaitingTime_ = INT64_MAX;
+        } else {
+            groupWaitingTime_ += deltaWithSpeed;
+        }
+        return false;
+    } else {
+        // Prevent underflow: check if subtraction would go below INT64_MIN
+        if (deltaWithSpeed > 0 && groupWaitingTime_ < INT64_MIN + deltaWithSpeed) {
+            ROSEN_LOGW(
+                "RSAnimationFraction::UpdateGroupWaitingTime groupWaitingTime_ would underflow, clamp to INT64_MIN");
+            groupWaitingTime_ = INT64_MIN;
+        } else {
+            groupWaitingTime_ -= deltaWithSpeed;
+        }
+        return groupWaitingTime_ <= 0;
+    }
 }
 
 int64_t RSAnimationFraction::CalculateLeftDelayTime(const int64_t startDelayNs, bool isCustom)
@@ -290,6 +330,7 @@ void RSAnimationFraction::ResetFraction()
     currentTimeFraction_ = 0.0f;
     currentRepeatCount_ = 0;
     currentIsReverseCycle_ = false;
+    groupWaitingTime_ = 0;
 }
 
 int RSAnimationFraction::GetRemainingRepeatCount() const

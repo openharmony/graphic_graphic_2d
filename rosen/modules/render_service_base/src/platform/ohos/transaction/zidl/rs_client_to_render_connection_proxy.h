@@ -36,7 +36,7 @@ public:
     bool FillParcelWithTransactionData(std::unique_ptr<RSTransactionData>& transactionData,
         std::shared_ptr<MessageParcel>& data);
 
-    ErrCode CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
+    ErrCode CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
         bool& success) override;
 
     ErrCode CreateNode(const RSSurfaceRenderNodeConfig& config, bool& success) override;
@@ -67,8 +67,6 @@ public:
 
     ErrCode SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent, uint32_t& resCode) override;
 
-    bool GetHighContrastTextState() override;
-
     ErrCode SetFocusAppInfo(const FocusAppInfo& info, int32_t& repCode) override;
 
     void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
@@ -96,7 +94,7 @@ public:
         NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) override;
 
-    ErrCode SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+    ErrCode SetHwcNodeBounds(NodeId rsNodeId, float positionX, float positionY,
         float positionZ, float positionW) override;
     
     int32_t GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo) override;
@@ -170,8 +168,13 @@ public:
     ) override;
 
     int32_t GetFrameStabilityResult(const FrameStabilityTarget& target, bool& result) override;
-    
+
+    void SetFreeMultiWindowStatus(bool enable) override;
+
     void RemoveToken() override {};
+
+    void RegisterRemoteRefreshCallback() override {};
+
     static inline BrokerDelegator<RSClientToRenderConnectionProxy> delegator_;
 
     pid_t pid_ = GetRealPid();

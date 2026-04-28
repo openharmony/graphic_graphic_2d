@@ -101,36 +101,38 @@ uint64_t RSCaptureData::GetPropertyUint64(const std::string& name) const
     return Utils::ToUint64(GetProperty(name));
 }
 
-void RSCaptureData::Serialize(std::vector<char>& out)
+bool RSCaptureData::Serialize(std::vector<char>& out)
 {
     DataWriter archive(out);
-    Serialize(archive);
+    return Serialize(archive);
 }
 
-void RSCaptureData::Deserialize(const std::vector<char>& in)
+bool RSCaptureData::Deserialize(const std::vector<char>& in)
 {
     Reset();
 
     DataReader archive(in);
-    Serialize(archive);
+    return Serialize(archive);
 }
 
-void RSCaptureData::Serialize(Archive& archive)
+bool RSCaptureData::Serialize(Archive& archive)
 {
     archive.Serialize(time_);
 
-    size_t size = properties_.size();
-    archive.Serialize(size);
+    size_t count = properties_.size();
+    archive.Serialize(count);
+
+    constexpr size_t maxCount = 1024u;
+    if (archive.IsReading() && (count > maxCount)) {
+        return false;
+    }
 
     if (archive.IsReading()) {
-        std::string first;
-        std::string second;
-
-        for (size_t i = 0; i < size; i++) {
-            archive.Serialize(first);
-            archive.Serialize(second);
-
-            properties_[first] = second;
+        for (size_t i = 0; i < count; i++) {
+            std::pair<std::string, std::string> pair;
+            archive.Serialize(pair.first);
+            archive.Serialize(pair.second);
+            properties_.emplace(pair);
         }
     } else {
         for (auto& pair : properties_) {
@@ -138,6 +140,7 @@ void RSCaptureData::Serialize(Archive& archive)
             archive.Serialize(const_cast<std::string&>(pair.second));
         }
     }
+    return true;
 }
 
 } // namespace OHOS::Rosen

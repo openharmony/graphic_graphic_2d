@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 
+#include "command/rs_base_node_command.h"
 #include "command/rs_command.h"
 #include "command/rs_command_factory.h"
 #include "command/rs_node_command.h"
@@ -464,6 +465,223 @@ HWTEST_F(RSTransactionDataTest, MoveAllCommandTest001, TestSize.Level1)
     preTransactionData->MoveAllCommand(curTransactionData);
     ASSERT_TRUE(preTransactionData->IsEmpty());
     ASSERT_FALSE(curTransactionData->IsEmpty());
+}
+
+/**
+ * @tc.name: GetTargetNodeId001
+ * @tc.desc: Test GetTargetNodeId for command with two NodeId params
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTransactionDataTest, GetTargetNodeId001, TestSize.Level1)
+{
+    NodeId parentId = 100;
+    NodeId childId = 200;
+    RSBaseNodeAddChild command(parentId, childId, 0);
+    EXPECT_EQ(command.GetNodeId(), parentId);
+    EXPECT_EQ(command.GetTargetNodeId(), childId);
+}
+
+/**
+ * @tc.name: GetTargetNodeId002
+ * @tc.desc: Test GetTargetNodeId for command with single NodeId param
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTransactionDataTest, GetTargetNodeId002, TestSize.Level1)
+{
+    NodeId nodeId = 100;
+    RSBaseNodeRemoveFromTree command(nodeId);
+    EXPECT_EQ(command.GetNodeId(), nodeId);
+    EXPECT_EQ(command.GetTargetNodeId(), nodeId);
+}
+
+/**
+ * @tc.name: GetTargetNodeId003
+ * @tc.desc: Test GetTargetNodeId for command with non-NodeId second param
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTransactionDataTest, GetTargetNodeId003, TestSize.Level1)
+{
+    NodeId nodeId = 100;
+    RSBaseNodeSetIsCrossNode command(nodeId, true);
+    EXPECT_EQ(command.GetNodeId(), nodeId);
+    EXPECT_EQ(command.GetTargetNodeId(), nodeId);
+}
+
+/**
+ * @tc.name: IsTreeHierarchyCommand001
+ * @tc.desc: Test tree hierarchy command detection
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTransactionDataTest, IsTreeHierarchyCommand001, TestSize.Level1)
+{
+    EXPECT_TRUE(RSTransactionData::IsTreeHierarchyCommand(
+        RSCommandType::BASE_NODE, RSBaseNodeCommandType::BASE_NODE_ADD_CHILD));
+    EXPECT_TRUE(RSTransactionData::IsTreeHierarchyCommand(
+        RSCommandType::BASE_NODE, RSBaseNodeCommandType::BASE_NODE_REMOVE_CHILD));
+    EXPECT_TRUE(RSTransactionData::IsTreeHierarchyCommand(
+        RSCommandType::BASE_NODE, RSBaseNodeCommandType::BASE_NODE_REMOVE_FROM_TREE));
+    EXPECT_FALSE(RSTransactionData::IsTreeHierarchyCommand(
+        RSCommandType::BASE_NODE, RSBaseNodeCommandType::BASE_NODE_DESTROY));
+    EXPECT_FALSE(RSTransactionData::IsTreeHierarchyCommand(
+        RSCommandType::BASE_NODE, RSBaseNodeCommandType::BASE_NODE_CLEAR_CHILDREN));
+    EXPECT_FALSE(RSTransactionData::IsTreeHierarchyCommand(
+        RSCommandType::RS_NODE, RSBaseNodeCommandType::BASE_NODE_ADD_CHILD));
+}
+
+/**
+ * @tc.name: MoveCommandByNodeIdExcludeTreeCommands001
+ * @tc.desc: Empty payload
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTransactionDataTest, MoveCommandByNodeIdExcludeTreeCommands001, TestSize.Level1)
+{
+    auto preTransactionData = std::make_unique<RSTransactionData>();
+    auto curTransactionData = std::make_unique<RSTransactionData>();
+    preTransactionData->MoveCommandByNodeIdExcludeTreeCommands(curTransactionData, 1);
+    EXPECT_TRUE(preTransactionData->IsEmpty());
+    EXPECT_TRUE(curTransactionData->IsEmpty());
+}
+
+/**
+ * @tc.name: MoveCommandByNodeIdExcludeTreeCommands002
+ * @tc.desc: nullptr command should be skipped
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTransactionDataTest, MoveCommandByNodeIdExcludeTreeCommands002, TestSize.Level1)
+{
+    auto preTransactionData = std::make_unique<RSTransactionData>();
+    preTransactionData->payload_.emplace_back(1, FollowType::FOLLOW_TO_PARENT, nullptr);
+    auto curTransactionData = std::make_unique<RSTransactionData>();
+    preTransactionData->MoveCommandByNodeIdExcludeTreeCommands(curTransactionData, 1);
+    EXPECT_FALSE(preTransactionData->IsEmpty());
+    EXPECT_TRUE(curTransactionData->IsEmpty());
+}
+
+/**
+ * @tc.name: MoveCommandByNodeIdExcludeTreeCommands003
+ * @tc.desc: Tree hierarchy command targeting nodeId should be erased
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTransactionDataTest, MoveCommandByNodeIdExcludeTreeCommands003, TestSize.Level1)
+{
+    auto preTransactionData = std::make_unique<RSTransactionData>();
+    NodeId parentId = 100;
+    NodeId childId = 200;
+    std::unique_ptr<RSCommand> addChildCmd = std::make_unique<RSBaseNodeAddChild>(parentId, childId, 0);
+    preTransactionData->AddCommand(addChildCmd, parentId, FollowType::FOLLOW_TO_PARENT);
+
+    auto curTransactionData = std::make_unique<RSTransactionData>();
+    preTransactionData->MoveCommandByNodeIdExcludeTreeCommands(curTransactionData, childId);
+    EXPECT_TRUE(preTransactionData->IsEmpty());
+    EXPECT_TRUE(curTransactionData->IsEmpty());
+}
+
+/**
+ * @tc.name: MoveCommandByNodeIdExcludeTreeCommands004
+ * @tc.desc: Tree hierarchy command not targeting nodeId should be kept
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTransactionDataTest, MoveCommandByNodeIdExcludeTreeCommands004, TestSize.Level1)
+{
+    auto preTransactionData = std::make_unique<RSTransactionData>();
+    NodeId parentId = 100;
+    NodeId childId = 200;
+    std::unique_ptr<RSCommand> addChildCmd = std::make_unique<RSBaseNodeAddChild>(parentId, childId, 0);
+    preTransactionData->AddCommand(addChildCmd, parentId, FollowType::FOLLOW_TO_PARENT);
+
+    auto curTransactionData = std::make_unique<RSTransactionData>();
+    preTransactionData->MoveCommandByNodeIdExcludeTreeCommands(curTransactionData, 999);
+    EXPECT_FALSE(preTransactionData->IsEmpty());
+    EXPECT_TRUE(curTransactionData->IsEmpty());
+}
+
+/**
+ * @tc.name: MoveCommandByNodeIdExcludeTreeCommands005
+ * @tc.desc: Non-tree command matching nodeId should be moved
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTransactionDataTest, MoveCommandByNodeIdExcludeTreeCommands005, TestSize.Level1)
+{
+    auto preTransactionData = std::make_unique<RSTransactionData>();
+    NodeId nodeId = 100;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkUifirstNode>(nodeId, true);
+    preTransactionData->AddCommand(command, nodeId, FollowType::FOLLOW_TO_PARENT);
+
+    auto curTransactionData = std::make_unique<RSTransactionData>();
+    preTransactionData->MoveCommandByNodeIdExcludeTreeCommands(curTransactionData, nodeId);
+    EXPECT_TRUE(preTransactionData->IsEmpty());
+    EXPECT_FALSE(curTransactionData->IsEmpty());
+}
+
+/**
+ * @tc.name: MoveCommandByNodeIdExcludeTreeCommands006
+ * @tc.desc: Non-tree command not matching nodeId should be kept
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTransactionDataTest, MoveCommandByNodeIdExcludeTreeCommands006, TestSize.Level1)
+{
+    auto preTransactionData = std::make_unique<RSTransactionData>();
+    NodeId nodeId = 100;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkUifirstNode>(nodeId, true);
+    preTransactionData->AddCommand(command, nodeId, FollowType::FOLLOW_TO_PARENT);
+
+    auto curTransactionData = std::make_unique<RSTransactionData>();
+    preTransactionData->MoveCommandByNodeIdExcludeTreeCommands(curTransactionData, 999);
+    EXPECT_FALSE(preTransactionData->IsEmpty());
+    EXPECT_TRUE(curTransactionData->IsEmpty());
+}
+
+/**
+ * @tc.name: MoveCommandByNodeIdExcludeTreeCommands007
+ * @tc.desc: RemoveFromTree targeting nodeId should be erased
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTransactionDataTest, MoveCommandByNodeIdExcludeTreeCommands007, TestSize.Level1)
+{
+    auto preTransactionData = std::make_unique<RSTransactionData>();
+    NodeId nodeId = 100;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeRemoveFromTree>(nodeId);
+    preTransactionData->AddCommand(command, nodeId, FollowType::FOLLOW_TO_PARENT);
+
+    auto curTransactionData = std::make_unique<RSTransactionData>();
+    preTransactionData->MoveCommandByNodeIdExcludeTreeCommands(curTransactionData, nodeId);
+    EXPECT_TRUE(preTransactionData->IsEmpty());
+    EXPECT_TRUE(curTransactionData->IsEmpty());
+}
+
+/**
+ * @tc.name: MoveCommandByNodeIdExcludeTreeCommands008
+ * @tc.desc: Mixed commands: tree hierarchy moved if not targeting,
+ *           non-tree moved if matching, others kept
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSTransactionDataTest, MoveCommandByNodeIdExcludeTreeCommands008, TestSize.Level1)
+{
+    auto preTransactionData = std::make_unique<RSTransactionData>();
+    NodeId parentId = 100;
+    NodeId childId = 200;
+    NodeId otherId = 300;
+
+    // Tree hierarchy command: target is childId, operator is parentId
+    std::unique_ptr<RSCommand> addChildCmd = std::make_unique<RSBaseNodeAddChild>(parentId, childId, 0);
+    preTransactionData->AddCommand(addChildCmd, parentId, FollowType::FOLLOW_TO_PARENT);
+
+    // Non-tree command matching parentId
+    std::unique_ptr<RSCommand> markCmd = std::make_unique<RSMarkUifirstNode>(parentId, true);
+    preTransactionData->AddCommand(markCmd, parentId, FollowType::FOLLOW_TO_PARENT);
+
+    // Non-tree command not matching parentId
+    std::unique_ptr<RSCommand> otherCmd = std::make_unique<RSMarkUifirstNode>(otherId, true);
+    preTransactionData->AddCommand(otherCmd, otherId, FollowType::FOLLOW_TO_PARENT);
+
+    auto curTransactionData = std::make_unique<RSTransactionData>();
+    preTransactionData->MoveCommandByNodeIdExcludeTreeCommands(curTransactionData, parentId);
+
+    // AddChild is tree hierarchy but targets childId, not parentId, so it gets moved
+    // MarkUifirstNode(parentId) matches and gets moved
+    // MarkUifirstNode(otherId) does not match and is kept
+    EXPECT_EQ(preTransactionData->GetCommandCount(), 1);
+    EXPECT_EQ(curTransactionData->GetCommandCount(), 2);
 }
 
 } // namespace Rosen

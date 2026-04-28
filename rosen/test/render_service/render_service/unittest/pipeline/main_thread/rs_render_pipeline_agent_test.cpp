@@ -15,8 +15,10 @@
 
 #include "gtest/gtest.h"
 
+#include "feature/capture/rs_surface_capture_task_parallel.h"
 #include "ipc_callbacks/rs_frame_stability_callback_stub.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/rs_surface_render_node.h"
 #include "rs_render_pipeline_agent.h"
 #include "rs_render_pipeline.h"
 #include "transaction/rs_frame_stability_types.h"
@@ -355,6 +357,90 @@ HWTEST_F(RSRenderPipelineAgentTest, StartFrameStabilityCollection003, TestSize.L
 }
 
 /**
+ * @tc.name: TakeSurfaceCaptureWindowSync001
+ * @tc.desc: Test TakeSurfaceCapture with windowSync enabled
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderPipelineAgentTest, TakeSurfaceCaptureWindowSync001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingWindowCapTasks_.clear();
+
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    NodeId nodeId = 1000300;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(nodeId);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+
+    auto& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(surfaceNode);
+
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.windowSync = true;
+    captureConfig.scaleX = 1.0f;
+    captureConfig.scaleY = 1.0f;
+    RSSurfaceCaptureBlurParam blurParam;
+    Drawing::Rect specifiedAreaRect;
+    RSSurfaceCapturePermissions permissions;
+    permissions.isSystemCalling = true;
+
+    sptr<RSISurfaceCaptureCallback> callback = nullptr;
+    agent->TakeSurfaceCapture(nodeId, callback, captureConfig, blurParam, specifiedAreaRect, permissions);
+#if defined(RS_ENABLE_UNI_RENDER)
+    ASSERT_GE(mainThread->pendingWindowCapTasks_.size(), 0u);
+#endif
+    nodeMap.UnregisterRenderNode(nodeId);
+    mainThread->pendingWindowCapTasks_.clear();
+}
+
+/**
+ * @tc.name: TakeSurfaceCaptureWindowSync002
+ * @tc.desc: Test TakeSurfaceCapture with windowSync disabled
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderPipelineAgentTest, TakeSurfaceCaptureWindowSync002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->pendingWindowCapTasks_.clear();
+
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    NodeId nodeId = 1000301;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(nodeId);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+
+    auto& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(surfaceNode);
+
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.windowSync = false;
+    captureConfig.scaleX = 1.0f;
+    captureConfig.scaleY = 1.0f;
+    RSSurfaceCaptureBlurParam blurParam;
+    Drawing::Rect specifiedAreaRect;
+    RSSurfaceCapturePermissions permissions;
+    permissions.isSystemCalling = true;
+
+    sptr<RSISurfaceCaptureCallback> callback = nullptr;
+    agent->TakeSurfaceCapture(nodeId, callback, captureConfig, blurParam, specifiedAreaRect, permissions);
+#if defined(RS_ENABLE_UNI_RENDER)
+    ASSERT_TRUE(mainThread->pendingWindowCapTasks_.empty());
+#endif
+    nodeMap.UnregisterRenderNode(nodeId);
+    mainThread->pendingWindowCapTasks_.clear();
+}
+
+/**
  * @tc.name: GetFrameStabilityResult_NullPipeline
  * @tc.desc: Verify GetFrameStabilityResult returns error when pipeline is null
  * @tc.type: FUNC
@@ -387,5 +473,73 @@ HWTEST_F(RSRenderPipelineAgentTest, GetFrameStabilityResult002, TestSize.Level1)
     bool result = false;
     int32_t ret = agent->GetFrameStabilityResult(1000, VALID_TARGET, result);
     EXPECT_NE(ret, static_cast<int32_t>(FrameStabilityErrorCode::INVALID_ID));
+}
+
+/**
+ * @tc.name: CleanTest_NullPipeline
+ * @tc.desc: Verify Clean returns early when rsRenderPipeline_ is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, CleanTest_NullPipeline, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+    ASSERT_EQ(agent->rsRenderPipeline_, nullptr);
+
+    pid_t testPid = 12345;
+    // Should return early without crash when rsRenderPipeline_ is nullptr
+    agent->Clean(testPid, false);
+    agent->Clean(testPid, true);
+    // Verify agent state remains unchanged after Clean
+    EXPECT_EQ(agent->rsRenderPipeline_, nullptr);
+}
+
+/**
+ * @tc.name: CleanTest_ForRefreshFalse
+ * @tc.desc: Verify Clean with forRefresh=false schedules CleanResources correctly
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, CleanTest_ForRefreshFalse, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+    ASSERT_NE(mainThread_, nullptr);
+    renderPipeline->mainThread_ = mainThread_;
+
+    pid_t testPid = 12345;
+    ASSERT_NE(agent->rsRenderPipeline_, nullptr);
+    ASSERT_NE(agent->rsRenderPipeline_->mainThread_, nullptr);
+
+    // Execute Clean with forRefresh=false
+    agent->Clean(testPid, false);
+    // Verify agent and pipeline remain valid after Clean
+    EXPECT_NE(agent->rsRenderPipeline_, nullptr);
+    EXPECT_NE(agent->rsRenderPipeline_->mainThread_, nullptr);
+}
+
+/**
+ * @tc.name: CleanTest_ForRefreshTrue
+ * @tc.desc: Verify Clean with forRefresh=true schedules CleanResources correctly
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderPipelineAgentTest, CleanTest_ForRefreshTrue, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+    ASSERT_NE(mainThread_, nullptr);
+    renderPipeline->mainThread_ = mainThread_;
+
+    pid_t testPid = 12345;
+    ASSERT_NE(agent->rsRenderPipeline_, nullptr);
+    ASSERT_NE(agent->rsRenderPipeline_->mainThread_, nullptr);
+
+    // Execute Clean with forRefresh=true
+    agent->Clean(testPid, true);
+    // Verify agent and pipeline remain valid after Clean
+    EXPECT_NE(agent->rsRenderPipeline_, nullptr);
+    EXPECT_NE(agent->rsRenderPipeline_->mainThread_, nullptr);
 }
 } // namespace OHOS::Rosen

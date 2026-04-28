@@ -98,11 +98,11 @@ void NdkLineTypographyTest::PrepareTypographyCreate(const char* text)
 }
 
 /*
- * @tc.name: CreateLineTypographyTest001
+ * @tc.name: CreateLineTypographyWithText
  * @tc.desc: testing for the OH_Drawing_CreateLineTypography and OH_Drawing_DestroyLineTypography
  * @tc.type: FUNC
  */
-HWTEST_F(NdkLineTypographyTest, CreateLineTypographyTest001, TestSize.Level0)
+HWTEST_F(NdkLineTypographyTest, CreateLineTypographyWithText, TestSize.Level0)
 {
     PrepareTypographyCreate("OpenHarmony\n");
     OH_Drawing_LineTypography *lineTypography1 = OH_Drawing_CreateLineTypography(handler_);
@@ -119,11 +119,11 @@ HWTEST_F(NdkLineTypographyTest, CreateLineTypographyTest001, TestSize.Level0)
 }
 
 /*
- * @tc.name: CreateLineTypographyTest002
+ * @tc.name: CreateLineTypographyWithoutText
  * @tc.desc: testing for the OH_Drawing_TypographyCreate does not contain text
  * @tc.type: FUNC
  */
-HWTEST_F(NdkLineTypographyTest, CreateLineTypographyTest002, TestSize.Level0)
+HWTEST_F(NdkLineTypographyTest, CreateLineTypographyWithoutText, TestSize.Level0)
 {
     PrepareTypographyCreate(nullptr);
     OH_Drawing_LineTypography *lineTypography = OH_Drawing_CreateLineTypography(handler_);
@@ -131,11 +131,11 @@ HWTEST_F(NdkLineTypographyTest, CreateLineTypographyTest002, TestSize.Level0)
 }
 
 /*
- * @tc.name: GetLineBreakTest003
+ * @tc.name: GetLineBreakNormal
  * @tc.desc: normal testing for the OH_Drawing_LineTypographyGetLineBreak
  * @tc.type: FUNC
  */
-HWTEST_F(NdkLineTypographyTest, GetLineBreakTest003, TestSize.Level0)
+HWTEST_F(NdkLineTypographyTest, GetLineBreakNormal, TestSize.Level0)
 {
     const char* text = "OpenHarmony\n";
     PrepareTypographyCreate(text);
@@ -153,11 +153,11 @@ HWTEST_F(NdkLineTypographyTest, GetLineBreakTest003, TestSize.Level0)
 }
 
 /*
- * @tc.name: GetLineBreakTest004
+ * @tc.name: GetLineBreakAtNewline
  * @tc.desc: testing for the OH_Drawing_LineTypographyGetLineBreak.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkLineTypographyTest, GetLineBreakTest004, TestSize.Level0)
+HWTEST_F(NdkLineTypographyTest, GetLineBreakAtNewline, TestSize.Level0)
 {
     const char* text1 = "hello\n world";
     const char* text2 = "hello\n";
@@ -175,11 +175,11 @@ HWTEST_F(NdkLineTypographyTest, GetLineBreakTest004, TestSize.Level0)
 }
 
 /*
- * @tc.name: GetLineBreakTest005
+ * @tc.name: GetLineBreakBoundary
  * @tc.desc: boundary testing for the OH_Drawing_LineTypographyGetLineBreak.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkLineTypographyTest, GetLineBreakTest005, TestSize.Level0)
+HWTEST_F(NdkLineTypographyTest, GetLineBreakBoundary, TestSize.Level0)
 {
     const char* text = "OpenHarmoney\n";
     PrepareTypographyCreate(text);
@@ -200,11 +200,11 @@ HWTEST_F(NdkLineTypographyTest, GetLineBreakTest005, TestSize.Level0)
 }
 
 /*
- * @tc.name: GetLineBreakTest006
+ * @tc.name: GetLineBreakAbnormal
  * @tc.desc: abnormal testing for the OH_Drawing_LineTypographyGetLineBreak.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkLineTypographyTest, GetLineBreakTest006, TestSize.Level0)
+HWTEST_F(NdkLineTypographyTest, GetLineBreakAbnormal, TestSize.Level0)
 {
     const char* text = "OpenHarmoney\n";
     PrepareTypographyCreate(text);
@@ -227,11 +227,11 @@ HWTEST_F(NdkLineTypographyTest, GetLineBreakTest006, TestSize.Level0)
 }
 
 /*
- * @tc.name: CreateLineTest007
+ * @tc.name: CreateLineFromFullText
  * @tc.desc: testing for the OH_Drawing_LineTypographyGetLineBreak.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkLineTypographyTest, CreateLineTest007, TestSize.Level0)
+HWTEST_F(NdkLineTypographyTest, CreateLineFromFullText, TestSize.Level0)
 {
     const char* text = "OpenHarmoney\n";
     PrepareTypographyCreate(text);
@@ -250,11 +250,11 @@ HWTEST_F(NdkLineTypographyTest, CreateLineTest007, TestSize.Level0)
 }
 
 /*
- * @tc.name: CreateLineTest008
+ * @tc.name: CreateLineWithNewlineText
  * @tc.desc: testing for the OH_Drawing_LineTypographyGetLineBreak.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkLineTypographyTest, CreateLineTest008, TestSize.Level0)
+HWTEST_F(NdkLineTypographyTest, CreateLineWithNewlineText, TestSize.Level0)
 {
     const char* text = "Hello\n world!";
     PrepareTypographyCreate(text);
@@ -273,11 +273,11 @@ HWTEST_F(NdkLineTypographyTest, CreateLineTest008, TestSize.Level0)
 }
 
 /*
- * @tc.name: CreateLineTest009
+ * @tc.name: CreateLineBoundary
  * @tc.desc: boundary testing for the OH_Drawing_LineTypographyGetLineBreak.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkLineTypographyTest, CreateLineTest009, TestSize.Level0)
+HWTEST_F(NdkLineTypographyTest, CreateLineBoundary, TestSize.Level0)
 {
     const char* text = "OpenHarmoney\n";
     PrepareTypographyCreate(text);
@@ -303,11 +303,11 @@ HWTEST_F(NdkLineTypographyTest, CreateLineTest009, TestSize.Level0)
 }
 
 /*
- * @tc.name: CreateLineTest010
+ * @tc.name: CreateLineAbnormal
  * @tc.desc: abnormal testing for the OH_Drawing_LineTypographyGetLineBreak.
  * @tc.type: FUNC
  */
-HWTEST_F(NdkLineTypographyTest, CreateLineTest010, TestSize.Level0)
+HWTEST_F(NdkLineTypographyTest, CreateLineAbnormal, TestSize.Level0)
 {
     const char* text = "OpenHarmoney\n";
     PrepareTypographyCreate(text);
@@ -337,11 +337,11 @@ HWTEST_F(NdkLineTypographyTest, CreateLineTest010, TestSize.Level0)
 }
 
 /*
- * @tc.name: LineTypographyTest011
+ * @tc.name: ComplexUnicodeMultiLineLayout
  * @tc.desc: complex scenes test for the LineTypography
  * @tc.type: FUNC
  */
-HWTEST_F(NdkLineTypographyTest, LineTypographyTest011, TestSize.Level0)
+HWTEST_F(NdkLineTypographyTest, ComplexUnicodeMultiLineLayout, TestSize.Level0)
 {
     std::string text = "Hello \t 中国 测 World \n !@#$%^&*~(){}[] 123 4567890 - = ,. < >、/Drawing testlp 试 ";
     text += "Drawing \n\n   \u231A \u513B \u00A9\uFE0F aaa clp11⌚😀😁🤣👨‍🔬👩‍👩‍👧‍👦👭مرحبا中国 测 World测试文本";
@@ -366,11 +366,11 @@ HWTEST_F(NdkLineTypographyTest, LineTypographyTest011, TestSize.Level0)
 }
 
 /*
- * @tc.name: LineTypographyTest012
+ * @tc.name: ComplexTextGlyphRunCount
  * @tc.desc: complex scenes test for the LineTypography runsize
  * @tc.type: FUNC
  */
-HWTEST_F(NdkLineTypographyTest, LineTypographyTest012, TestSize.Level0)
+HWTEST_F(NdkLineTypographyTest, ComplexTextGlyphRunCount, TestSize.Level0)
 {
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_SetTypographyTextDirection(typoStyle, TEXT_DIRECTION_LTR);

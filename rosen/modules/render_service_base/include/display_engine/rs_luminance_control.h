@@ -23,6 +23,9 @@
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
 #include "screen_manager/screen_types.h"
+#ifndef ROSEN_CROSS_PLATFORM
+#include "surface_buffer.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -55,6 +58,7 @@ enum HdrStatus : uint32_t {
     AI_HDR_VIDEO_GAINMAP = 0x10000,
     HDR_UICOMPONENT = 0x100000,
     HDR_COLOR = 0x1000000,
+    AI_HDR_VIDEO_AI2020 = 0x10000000,
 };
 
 struct BrightnessInfo {
@@ -107,6 +111,12 @@ public:
         const std::unordered_map<HdrStatus, std::unordered_map<uint32_t, uint32_t>>& curDisplayHdrBrightnessScaler) = 0;
     virtual double GetConfigScaler(ScreenId screenId, HdrStatus type) const = 0;
     virtual void SetDualScreenStatus(ScreenId screenId, DualScreenStatus dualScreenStatus) = 0;
+    virtual float HdrDimmingProcess(ScreenId screenId, uint64_t nodeId) = 0;
+    virtual void HdrDimmingPostProcess(ScreenId screenId) = 0;
+#ifndef ROSEN_CROSS_PLATFORM
+    virtual int32_t UpdateMetadataBasedOnScaler(const sptr<SurfaceBuffer>& input, float scaler,
+        HdrStatus hdrStatus) = 0;
+#endif
 };
 
 class RSB_EXPORT RSLuminanceControl {
@@ -150,6 +160,11 @@ public:
         const std::unordered_map<HdrStatus, std::unordered_map<uint32_t, uint32_t>>& curDisplayHdrBrightnessScaler);
     RSB_EXPORT double GetConfigScaler(ScreenId screenId, HdrStatus type) const;
     RSB_EXPORT void SetDualScreenStatus(ScreenId screenId, DualScreenStatus dualScreenStatus);
+    RSB_EXPORT float HdrDimmingProcess(ScreenId screenId, uint64_t nodeId);
+    RSB_EXPORT void HdrDimmingPostProcess(ScreenId screenId);
+#ifndef ROSEN_CROSS_PLATFORM
+    RSB_EXPORT int32_t UpdateMetadataBasedOnScaler(const sptr<SurfaceBuffer>& input, float scaler, HdrStatus hdrStatus);
+#endif
 
 private:
     RSLuminanceControl() = default;

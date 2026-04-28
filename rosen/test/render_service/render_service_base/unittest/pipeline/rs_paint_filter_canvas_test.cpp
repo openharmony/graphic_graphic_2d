@@ -760,6 +760,21 @@ HWTEST_F(RSPaintFilterCanvasTest, DrawTextBlobTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DrawGlyphsTest
+ * @tc.desc: DrawGlyphs Test
+ * @tc.type:FUNC
+ * @tc.require:issuesI9J2YE
+ */
+HWTEST_F(RSPaintFilterCanvasTest, DrawGlyphsTest, TestSize.Level1)
+{
+    Drawing::Font font;
+    uint16_t glyphs[] = {100, 200};
+    Drawing::Point positions[] = {{100, 200}, {200, 400}};
+    paintFilterCanvas_->DrawGlyphs(2, glyphs, positions, {0, 0}, &font);
+    EXPECT_TRUE(paintFilterCanvas_);
+}
+
+/**
  * @tc.name: ClipRectTest
  * @tc.desc: ClipRect Test
  * @tc.type:FUNC
@@ -1622,6 +1637,21 @@ HWTEST_F(RSPaintFilterCanvasTest, HDRBrightnessTest, TestSize.Level1)
     EXPECT_EQ(paintFilterCanvas_->GetHDRBrightness(), 1.0f);
     paintFilterCanvas_->SetHDRBrightness(0.2f);
     EXPECT_EQ(paintFilterCanvas_->GetHDRBrightness(), 0.2f);
+}
+
+/**
+ * @tc.name: SetEDRSurface
+ * @tc.desc: SetEDRSurface
+ * @tc.type:FUNC
+ * @tc.require:issuesI9J2YE
+ */
+HWTEST_F(RSPaintFilterCanvasTest, SetEDRSurfaceTest, TestSize.Level1)
+{
+    ASSERT_NE(paintFilterCanvas_, nullptr);
+    paintFilterCanvas_->SetEDRSurface(true);
+    EXPECT_EQ(paintFilterCanvas_->IsEDRSurface(), true);
+    paintFilterCanvas_->SetEDRSurface(false);
+    EXPECT_EQ(paintFilterCanvas_->IsEDRSurface(), false);
 }
 
 /**

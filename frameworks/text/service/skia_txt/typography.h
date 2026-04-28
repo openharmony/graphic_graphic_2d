@@ -97,10 +97,14 @@ public:
     bool GetTextEffectAssociation() const override { return textEffectAssociation_; }
     bool CanPaintAllText() const override;
     std::string GetDumpInfo() const override;
+    TextProcessState GetProcessState() const override;
+    TextDisplayState GetTextDisplayState() const override;
+    TypographyStyle GetParagraphStyle() const override;
     TextLayoutResult LayoutWithConstraints(const TextRectSize& constraint) override;
 #ifdef ENABLE_OHOS_ENHANCE
     std::shared_ptr<OHOS::Media::PixelMap> GetTextPathImageByIndex(
         size_t start, size_t end, const ImageOptions& options, bool fill) const override;
+    std::vector<TextPathInfo> GetTextPathsByIndex(size_t start = 0, size_t end = SIZE_MAX) const override;
 #endif
 
 private:
@@ -109,7 +113,6 @@ private:
     std::optional<std::vector<LineMetrics>> lineMetrics_;
     bool textEffectAssociation_{false};
     mutable std::shared_mutex mutex_;
-
     std::vector<LineMetrics> GetAllLineMetrics();
 };
 } // namespace AdapterTxt

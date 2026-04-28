@@ -13,9 +13,10 @@
  * limitations under the License.
  */
 
-#include "gfx/dump/rs_dump_manager.h"
 #include "rs_render_to_service_connection_stub.h"
 
+#include "gfx/dump/rs_dump_manager.h"
+#include "ipc_security/rs_ipc_interface_code_access_verifier_base.h"
 #include "rs_irender_to_service_connection_ipc_interface_code.h"
 
 #undef LOG_TAG
@@ -36,10 +37,51 @@ int RSRenderToServiceConnectionStub::OnRemoteRequest(
         RS_LOGE("%{public}s: Read interfaceToken failed.", __func__);
         return ERR_INVALID_STATE;
     }
+    bool isTokenTypeValid = true;
+    bool isNonSystemAppCalling = false;
+    RSInterfaceCodeAccessVerifierBase::GetAccessType(isTokenTypeValid, isNonSystemAppCalling);
+    if (!isTokenTypeValid) {
+        RS_LOGE("%{public}s: invalid token type", __func__);
+        return ERR_INVALID_STATE;
+    }
+    if (isNonSystemAppCalling) {
+        RS_LOGE("%{public}s: isNonSystemAppCalling", __func__);
+        return ERR_INVALID_STATE;
+    }
     switch (code) {
+        case static_cast<uint32_t>(RSIRenderToServiceConnectionInterfaceCode::NOTIFY_RENDER_PROCESS_READY): {
+            sptr<IRemoteObject> serviceToRenderConnection = data.ReadRemoteObject();
+            if (!serviceToRenderConnection) {
+                RS_LOGE("%{public}s::NOTIFY_RENDER_PROCESS_READY Read serviceToRenderConnection failed.", __func__);
+                return ERR_INVALID_STATE;
+            }
+            sptr<IRemoteObject> connectToRenderConnection = data.ReadRemoteObject();
+            if (!connectToRenderConnection) {
+                RS_LOGE("%{public}s::NOTIFY_RENDER_PROCESS_READY Read connectToRenderConnection failed.", __func__);
+                return ERR_INVALID_STATE;
+            }
+            auto result = NotifyRenderProcessInitFinished(serviceToRenderConnection, connectToRenderConnection);
+            if (!reply.WriteBool(result)) {
+                RS_LOGE("%{public}s::NOTIFY_RENDER_PROCESS_READY WriteBool failed.", __func__);
+                return ERR_INVALID_STATE;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderToServiceConnectionInterfaceCode::SEND_PROCESS_INFO): {
+            auto connectToServiceInfo = sptr<ConnectToServiceInfo>(data.ReadParcelable<ConnectToServiceInfo>());
+            if (!connectToServiceInfo) {
+                RS_LOGE("%{public}s::SEND_PROCESS_INFO ReadParcelable failed", __func__);
+                return ERR_INVALID_STATE;
+            }
+            auto replyToRenderInfo = SendProcessInfo(connectToServiceInfo);
+            if (!reply.WriteParcelable(replyToRenderInfo.GetRefPtr())) {
+                RS_LOGE("%{public}s::SEND_PROCESS_INFO writeParcelable failed", __func__);
+                ret = ERR_INVALID_STATE;
+            }
+            break;
+        }
         case static_cast<uint32_t>(RSIRenderToServiceConnectionInterfaceCode::NOTIFY_PROCESS_FRAME_RATE): {
             return ERR_INVALID_STATE;
-            break;
         }
         case static_cast<uint32_t>(RSIRenderToServiceConnectionInterfaceCode::NOTIFY_SCREEN_SWITCH_FINISHED): {
             ScreenId id = 0;

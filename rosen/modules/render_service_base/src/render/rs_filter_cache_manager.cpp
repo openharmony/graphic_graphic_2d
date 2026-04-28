@@ -32,7 +32,6 @@
 #include "render/rs_drawing_filter.h"
 #include "render/rs_filter_cache_memory_controller.h"
 #include "render/rs_high_performance_visual_engine.h"
-#include "render/rs_render_magnifier_filter.h"
 
 #ifdef USE_M133_SKIA
 #include "include/gpu/ganesh/GrBackendSurface.h"
@@ -298,14 +297,8 @@ void RSFilterCacheManager::TakeSnapshot(
     // shrink the srcRect by 1px to avoid edge artifacts.
     Drawing::RectI snapshotIBounds = srcRect;
 
-    auto magnifierShaderFilter = filter->GetShaderFilterWithType(RSUIFilterType::MAGNIFIER);
-    if (magnifierShaderFilter != nullptr) {
-        auto tmpFilter = std::static_pointer_cast<RSMagnifierShaderFilter>(magnifierShaderFilter);
-        snapshotIBounds.Offset(tmpFilter->GetMagnifierOffsetX(), tmpFilter->GetMagnifierOffsetY());
-    }
     std::shared_ptr<Drawing::Image> snapshot;
-    auto aibarShaderFilter = filter->GetShaderFilterWithType(RSUIFilterType::AIBAR);
-    if ((aibarShaderFilter != nullptr) && (HveFilter::GetHveFilter().GetSurfaceNodeSize() > 0)) {
+    if (HveFilter::GetHveFilter().GetSurfaceNodeSize() > 0) {
         snapshot = HveFilter::GetHveFilter().SampleLayer(canvas, srcRect);
     } else {
         RS_TRACE_NAME_FMT("RSFilterCacheManager::TakeSnapshot surface wh: [%d, %d], snapshotIBounds: %s",
@@ -782,6 +775,17 @@ bool RSFilterCacheManager::IsFilterCacheValidForOcclusion()
         static_cast<int>(cacheType), static_cast<int>(renderClearType_));
 
     return cacheType != FilterCacheType::NONE;
+}
+
+bool RSFilterCacheManager::IsFilterCacheValidForPartialRender() const
+{
+    auto cacheType = GetCachedType();
+    RS_OPTIONAL_TRACE_NAME_FMT("RSFilterCacheManager::IsFilterCacheValidForPartialRender"
+        " cacheType:%d renderClearType_:%d", cacheType, renderClearType_);
+    ROSEN_LOGD("RSFilterCacheManager::IsFilterCacheValidForPartialRender cacheType:%{public}d"
+        " renderClearType_:%{public}d", static_cast<int>(cacheType), static_cast<int>(renderClearType_));
+
+    return cacheType == FilterCacheType::FILTERED_SNAPSHOT;
 }
 
 void RSFilterCacheManager::MarkNodeIsOccluded(bool isOccluded)

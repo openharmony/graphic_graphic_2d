@@ -37,7 +37,7 @@ ohos_fuzztest("LineTypographyFuzzTest") {
     "./",
   ]
 
-  sources = [ "line_typography_fuzzer.cpp" ]
+  sources = [ "linetypography_fuzzer.cpp" ]
 
   cflags = [
     "-O0",

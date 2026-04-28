@@ -90,7 +90,9 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_LAYER_TOP_FOR_HARDWARE_COMPOSER),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_WINDOW_CONTAINER),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CLEAR_UIFIRST_CACHE),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOWS),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::FREEZE_SCREEN),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::COMMIT_TRANSACTION),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_NODE),
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_NODE_AND_SURFACE),
@@ -110,10 +112,8 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER),
 #endif
     static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_LOGICAL_CAMERA_ROTATION_CORRECTION),
-    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_FRAME_STABILITY_DETECTION),
-    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::UNREGISTER_FRAME_STABILITY_DETECTION),
-    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::START_FRAME_STABILITY_COLLECTION),
-    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_FRAME_STABILITY_RESULT),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS),
+    static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_MAX_GPU_BUFFER_SIZE),
 };
 
 void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
@@ -486,7 +486,7 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 .mirrorSourceRotation = mirrorSourceRotation,
             };
             bool success;
-            if (CreateNode(config, id, success) != ERR_OK || !reply.WriteBool(success)) {
+            if (CreateDisplayNode(config, id, success) != ERR_OK || !reply.WriteBool(success)) {
                 ret = ERR_INVALID_REPLY;
             }
             break;
@@ -763,13 +763,6 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             }
             break;
         }
-        case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_HIGH_CONTRAST_TEXT_STATE) : {
-            bool highContrast = GetHighContrastTextState();
-            if (!reply.WriteBool(highContrast)) {
-                ret = ERR_INVALID_REPLY;
-            }
-            break;
-        }
         case static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_FOCUS_APP_INFO): {
             int32_t pid{0};
             if (!data.ReadInt32(pid)) {
@@ -795,8 +788,8 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 .abilityName = abilityName,
                 .focusNodeId = focusNodeId};
             int32_t repCode;
-            if (SetFocusAppInfo(info, repCode) != ERR_OK || !reply.WriteInt32(repCode)) {
-                RS_LOGE("RSClientToRenderConnectionStub::SET_FOCUS_APP_INFO Write status failed!");
+            if (SetFocusAppInfo(info, repCode) != ERR_OK) {
+                RS_LOGE("RSClientToRenderConnectionStub::SET_FOCUS_APP_INFO failed!");
                 ret = ERR_INVALID_REPLY;
             }
             break;
@@ -1673,6 +1666,17 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             }
             break;
         }
+        case static_cast<uint32_t>(
+            RSIClientToRenderConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS): {
+            bool enable{false};
+            if (!data.ReadBool(enable)) {
+                RS_LOGE("SET_FREE_MULTI_WINDOW_STATUS Read enable failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            SetFreeMultiWindowStatus(enable);
+            break;
+        }
         default: {
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
         }
@@ -1712,10 +1716,12 @@ bool RSClientToRenderConnectionStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureCo
     MessageParcel& data)
 {
     uint8_t captureType { 0 };
+    uint32_t displayIntent { 0 };
     if (!data.ReadFloat(captureConfig.scaleX) || !data.ReadFloat(captureConfig.scaleY) ||
         !data.ReadBool(captureConfig.useDma) || !data.ReadBool(captureConfig.useCurWindow) ||
         !data.ReadUint8(captureType) || !data.ReadBool(captureConfig.isSync) ||
         !data.ReadBool(captureConfig.isHdrCapture) ||
+        !data.ReadUint32(displayIntent) ||
         !data.ReadBool(captureConfig.needF16WindowCaptureForScRGB) ||
         !data.ReadBool(captureConfig.needErrorCode) ||
         !data.ReadFloat(captureConfig.mainScreenRect.left_) ||
@@ -1734,7 +1740,8 @@ bool RSClientToRenderConnectionStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureCo
         !data.ReadBool(captureConfig.colorSpace.second) ||
         !data.ReadUint32(captureConfig.dynamicRangeMode.first) ||
         !data.ReadBool(captureConfig.dynamicRangeMode.second) ||
-        !data.ReadBool(captureConfig.isSyncRender)) {
+        !data.ReadBool(captureConfig.isSyncRender) ||
+        !data.ReadBool(captureConfig.windowSync)) {
         RS_LOGE("RSClientToRenderConnectionStub::ReadSurfaceCaptureConfig Read captureConfig failed!");
         return false;
     }
@@ -1743,6 +1750,11 @@ bool RSClientToRenderConnectionStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureCo
         return false;
     }
     captureConfig.captureType = static_cast<SurfaceCaptureType>(captureType);
+    if (displayIntent >= static_cast<uint32_t>(DisplayIntent::DISPLAY_INTENT_BUTT)) {
+        RS_LOGE("RSClientToRenderConnectionStub::ReadSurfaceCaptureConfig Read displayIntent failed!");
+        return false;
+    }
+    captureConfig.displayIntent = static_cast<DisplayIntent>(displayIntent);
     return true;
 }
 

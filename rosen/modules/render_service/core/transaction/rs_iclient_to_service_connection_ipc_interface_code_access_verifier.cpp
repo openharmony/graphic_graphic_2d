@@ -171,12 +171,20 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_BACK_LIGHT");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_CONNECT_TO_RENDER): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_CONNECT_TO_RENDER");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_CHANGE_CALLBACK): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_CHANGE_CALLBACK");
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_SWITCHING_NOTIFY_CALLBACK): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_SWITCHING_NOTIFY_CALLBACK");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_ACTIVE_SCREEN_ID_CHANGED_CALLBACK): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_ACTIVE_SCREEN_ID_CHANGED_CALLBACK");
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_CORRECTION): {
@@ -361,6 +369,14 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_POWER_STATUS");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_AS_MAIN_SCREEN): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_AS_MAIN_SCREEN");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_MAIN_SCREEN): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_MAIN_SCREEN");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::REPORT_EVENT_GAMESTATE): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REPORT_EVENT_GAMESTATE");
             break;
@@ -466,10 +482,6 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             hasPermission = IsStylusServiceCalling(codeEnumTypeName_ + "::SET_COLOR_FOLLOW");
             break;
         }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_FREE_MULTI_WINDOW_STATUS): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_FREE_MULTI_WINDOW_STATUS");
-            break;
-        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK");
             break;
@@ -514,6 +526,10 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_BEHIND_WINDOW_FILTER_ENABLED): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_BEHIND_WINDOW_FILTER_ENABLED");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::ON_EXPOSED_EVENT): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::ON_EXPOSED_EVENT");
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_PID_GPU_MEMORY_IN_MB): {

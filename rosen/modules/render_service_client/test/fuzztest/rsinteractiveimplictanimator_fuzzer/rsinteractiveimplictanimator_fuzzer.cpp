@@ -19,7 +19,9 @@
 
 #include "rs_animation_timing_curve.h"
 #include "rs_interactive_implict_animator.h"
+#include "transaction/rs_interfaces.h"
 #include "ui/rs_canvas_node.h"
+#include "ui/rs_ui_context_manager.h"
 
 namespace OHOS {
     using namespace Rosen;
@@ -27,6 +29,7 @@ namespace OHOS {
         const uint8_t* g_data = nullptr;
         size_t g_size = 0;
         size_t g_pos;
+        std::shared_ptr<RSUIContext> g_rsUIContext;
     }
 
     /*
@@ -67,6 +70,14 @@ namespace OHOS {
         return str;
     }
 
+    std::shared_ptr<RSUIContext> CreateRSUIContext()
+    {
+        auto screenId = RSInterfaces::GetInstance().GetDefaultScreenId();
+        sptr<IRemoteObject> connectToRender = RSInterfaces::GetInstance().GetConnectToRenderToken(screenId);
+        auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRender);
+        return rsUIContext;
+    }
+
     void RSInteractiveImplictAnimatorAddImplictAnimationFuzzTest()
     {
         // get data
@@ -80,7 +91,7 @@ namespace OHOS {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetTranslate({ 0, 0 });
         auto interactiveAnimator = RSInteractiveImplictAnimator::Create(
-            protocol, RSAnimationTimingCurve::DEFAULT);
+            nullptr, protocol, RSAnimationTimingCurve::DEFAULT);
         interactiveAnimator->SetFinishCallBack([]() {});
         interactiveAnimator->CallFinishCallback();
         interactiveAnimator->FinishOnCurrent();
@@ -116,10 +127,10 @@ namespace OHOS {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetTranslate({ 0, 0 });
         auto interactiveAnimator = RSInteractiveImplictAnimator::Create(
-            protocol, RSAnimationTimingCurve::DEFAULT);
+            nullptr, protocol, RSAnimationTimingCurve::DEFAULT);
         interactiveAnimator->SetFinishCallBack([]() {});
         interactiveAnimator->AddAnimation([&]() {
-            RSNode::Animate(protocol, RSAnimationTimingCurve::DEFAULT, [&]() {
+            RSNode::Animate(nullptr, protocol, RSAnimationTimingCurve::DEFAULT, [&]() {
                 canvasNode->SetTranslate({ translateX, translateY });
             }, []() {});
         });
@@ -153,7 +164,7 @@ namespace OHOS {
         auto canvasNode = RSCanvasNode::Create();
         canvasNode->SetTranslate({ 0, 0 });
         auto interactiveAnimator = RSInteractiveImplictAnimator::Create(
-            protocol, RSAnimationTimingCurve::DEFAULT);
+            nullptr, protocol, RSAnimationTimingCurve::DEFAULT);
         interactiveAnimator->SetFinishCallBack([]() {});
         interactiveAnimator->AddAnimation([&]() {
             canvasNode->SetTranslate({ translateX, translateY });
@@ -171,6 +182,59 @@ namespace OHOS {
         RSSystemProperties::isUniRenderEnabled_ = isUniEnabled;
     }
 
+    void RSInteractiveImplictAnimatorCreateGroupFuzzTest(std::shared_ptr<RSUIContext> rsUIContext)
+    {
+        auto duration = GetData<int>();
+        auto startDelay = GetData<int>();
+        auto repeatCount = GetData<int>();
+        auto speed = GetData<float>();
+        auto autoReverse = GetData<bool>();
+        auto translateX = GetData<float>();
+        auto translateY = GetData<float>();
+        auto position = GetData<RSInteractiveAnimationPosition>();
+        auto fraction = GetData<float>();
+
+        RSAnimationTimingProtocol timingProtocol;
+        timingProtocol.SetDuration(duration);
+        timingProtocol.SetStartDelay(startDelay);
+        timingProtocol.SetRepeatCount(repeatCount);
+        timingProtocol.SetSpeed(speed);
+        timingProtocol.SetAutoReverse(autoReverse);
+        RSInteractiveImplictAnimator::ValidateTimingProtocol(timingProtocol);
+
+        auto canvasNode1 = RSCanvasNode::Create();
+        canvasNode1->SetTranslate({ 0, 0 });
+        auto groupAnimatorWeak = RSInteractiveImplictAnimator::CreateGroup(
+            rsUIContext, timingProtocol, RSAnimationTimingCurve::DEFAULT);
+        auto groupAnimator = groupAnimatorWeak.lock();
+        if (groupAnimator) {
+            groupAnimator->SetFinishCallBack([]() {});
+            groupAnimator->AddAnimation([&]() {
+                RSAnimationTimingProtocol protocol1;
+                RSNode::Animate(rsUIContext, protocol1, RSAnimationTimingCurve::EASE_OUT,
+                    [&]() { canvasNode1->SetTranslate({ translateX, translateY }); });
+            });
+            groupAnimator->GetId();
+            groupAnimator->StartAnimation();
+            groupAnimator->PauseAnimation();
+            groupAnimator->ContinueAnimation();
+            groupAnimator->SetFraction(fraction);
+            groupAnimator->ReverseAnimation();
+            groupAnimator->FinishAnimation(position);
+            groupAnimator->GetFraction();
+            groupAnimator->GetStatus();
+
+            std::vector<std::pair<NodeId, AnimationId>> renderAnimations;
+            NodeId testNodeId = GetData<NodeId>();
+            AnimationId testAnimationId = GetData<AnimationId>();
+            renderAnimations.emplace_back(testNodeId, testAnimationId);
+            groupAnimator->SendCreateAnimatorCommand(renderAnimations);
+            rsUIContext->AddInteractiveImplictAnimator(groupAnimator);
+            rsUIContext->RemoveInteractiveImplictAnimator(groupAnimator->GetId());
+        }
+        rsUIContext->GetRSTransaction()->FlushImplicitTransaction();
+    }
+
     bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     {
         if (data == nullptr) {
@@ -180,9 +244,15 @@ namespace OHOS {
         g_data = data;
         g_size = size;
         g_pos = 0;
+
+        if (!g_rsUIContext) {
+            g_rsUIContext = CreateRSUIContext();
+        }
+
         RSInteractiveImplictAnimatorAddImplictAnimationFuzzTest();
         RSInteractiveImplictAnimatorAddAnimationFuzzTest();
         RSInteractiveImplictAnimatorUniEnabledFuzzTest();
+        RSInteractiveImplictAnimatorCreateGroupFuzzTest(g_rsUIContext);
         return true;
     }
 } // namespace OHOS

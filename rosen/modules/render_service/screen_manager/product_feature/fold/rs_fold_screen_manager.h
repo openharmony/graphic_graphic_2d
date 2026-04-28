@@ -15,8 +15,10 @@
 
 #ifndef RS_FOLD_SCREEN_MANAGER_H
 #define RS_FOLD_SCREEN_MANAGER_H
+#include <functional>
 #include <mutex>
 #include <screen_manager/screen_types.h>
+#include <event_handler.h>
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
 #include <sensor_agent.h>
 #include <sensor_agent_type.h>
@@ -33,8 +35,9 @@ enum class FoldState : uint32_t {
 
 class RSFoldScreenManager {
 public:
-    explicit RSFoldScreenManager(RSScreenPreprocessor& screenPreprocessor)
-        : screenPreprocessor_(screenPreprocessor) {}
+    explicit RSFoldScreenManager(RSScreenPreprocessor& screenPreprocessor,
+        std::shared_ptr<AppExecFwk::EventHandler> handler)
+        : screenPreprocessor_(screenPreprocessor), mainHandler_(handler) {}
     ~RSFoldScreenManager() noexcept;
     ScreenId GetActiveScreenId();
     void SetExternalScreenId(ScreenId externalScreenId);
@@ -50,15 +53,14 @@ private:
 #endif
 
     RSScreenPreprocessor& screenPreprocessor_;
+    std::shared_ptr<AppExecFwk::EventHandler> mainHandler_;
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
     SensorUser sensorUser_;
     bool hasRegisterSensorCallback_ = false;
     mutable std::mutex registerSensorMutex_;
     const ScreenId innerScreenId_ = 0;
     ScreenId externalScreenId_ = INVALID_SCREEN_ID;
-    ScreenId activeScreenId_ = 0;
-    bool isPostureSensorDataHandled_ = false;
-    std::condition_variable activeScreenIdAssignedCV_;
+    ScreenId activeScreenId_ = INVALID_SCREEN_ID;
     mutable std::mutex activeScreenIdAssignedMutex_;
 #endif
 };

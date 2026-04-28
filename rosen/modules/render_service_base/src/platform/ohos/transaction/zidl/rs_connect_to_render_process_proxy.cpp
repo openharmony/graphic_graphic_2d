@@ -24,7 +24,7 @@ RSConnectToRenderProcessProxy::RSConnectToRenderProcessProxy(const sptr<IRemoteO
     : IRemoteProxy<RSIConnectToRenderProcess>(impl) {}
 
 sptr<RSIClientToRenderConnection> RSConnectToRenderProcessProxy::CreateRenderConnection(
-    const sptr<RSIConnectionToken>& token)
+    const sptr<RSIConnectionToken>& token, bool needRefresh)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -39,6 +39,10 @@ sptr<RSIClientToRenderConnection> RSConnectToRenderProcessProxy::CreateRenderCon
 
     if (!data.WriteRemoteObject(token->AsObject())) {
         ROSEN_LOGE("RSConnectToRenderProcessProxy::CreateRenderConnection WriteRemoteObject callback->AsObject() err.");
+        return nullptr;
+    }
+    if (!data.WriteBool(needRefresh)) {
+        ROSEN_LOGE("RSConnectToRenderProcessProxy::CreateRenderConnection needRefresh err.");
         return nullptr;
     }
     uint32_t code = static_cast<uint32_t>(RSIConnectToRenderProcessInterfaceCode::CREATE_CONNECTION);

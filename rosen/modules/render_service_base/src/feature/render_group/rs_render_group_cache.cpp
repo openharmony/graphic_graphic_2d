@@ -64,6 +64,15 @@ bool RSRenderGroupCache::SetChildHasTranslateOnSqueeze(bool val)
     return true;
 }
 
+bool RSRenderGroupCache::SetNodeGroupHasChildInBlacklist(bool inBlacklist)
+{
+    if (nodeGroupHasChildInBlacklist_ == inBlacklist) {
+        return false;
+    }
+    nodeGroupHasChildInBlacklist_ = inBlacklist;
+    return true;
+}
+
 bool RSRenderGroupCache::SetNeedClipHoleForFilter(bool val)
 {
     if (needClipHoleForFilter_ == val) {
@@ -71,6 +80,24 @@ bool RSRenderGroupCache::SetNeedClipHoleForFilter(bool val)
     }
     needClipHoleForFilter_ = val;
     return true;
+}
+
+bool RSRenderGroupCache::SetRSFreezeFlag(bool freezeFlag, bool isMarkedByUI)
+{
+    RSFreezeFlag originFreezeFlag = freezeFlag_;
+    RSFreezeFlag incomingFreezeFlag = isMarkedByUI ? RSFreezeFlag::FREEZED_BY_UI : RSFreezeFlag::FREEZED_BY_USER;
+    if (freezeFlag) {
+        freezeFlag_ |= incomingFreezeFlag;
+    } else {
+        freezeFlag_ &= ~incomingFreezeFlag;
+    }
+    if (freezeFlag_ == originFreezeFlag) {
+        // freezeFlag_ does not changed
+        return false;
+    } else {
+        // freezeFlag_ changed
+        return true;
+    }
 }
 
 AutoRenderGroupExcludedSubTreeGuard::AutoRenderGroupExcludedSubTreeGuard(

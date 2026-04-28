@@ -50,7 +50,6 @@ const std::map<int, std::string> FILTER_TYPE_MAP {
     { RSFilter::MATERIAL, "RSMaterialFilterBlur" },
     { RSFilter::AIBAR, "RSAIBarFilterBlur" },
     { RSFilter::LINEAR_GRADIENT_BLUR, "RSLinearGradientBlurFilterBlur" },
-    { RSFilter::MAGNIFIER, "RSMagnifierFilter" },
     { RSFilter::WATER_RIPPLE, "RSWaterRippleFilter" },
     { RSFilter::COMPOUND_EFFECT, "CompoundEffect" },
     { RSFilter::FLY_OUT, "FlyOut" },
@@ -598,7 +597,7 @@ void RSDrawingFilter::ApplyImageEffect(Drawing::Canvas& canvas, const std::share
         }
         return;
     }
-    if (geRender->IsGasifyFilter()) {
+    if (geRender->IsNeedExpansionFilter()) {
         Drawing::Rect rect;
         rect.SetTop(attr.dst.GetTop());
         rect.SetLeft(attr.dst.GetLeft());

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -103,6 +103,7 @@ std::unordered_map<uint32_t, std::string> typeOpDes = {
     { DrawOpItem::HYBRID_RENDER_PIXELMAP_OPITEM, "HYBRID_RENDER_PIXELMAP_OPITEM"},
     { DrawOpItem::HYBRID_RENDER_PIXELMAP_SIZE_OPITEM, "HYBRID_RENDER_PIXELMAP_SIZE_OPITEM"},
     { DrawOpItem::UICOLOR_OPITEM, "UICOLOR_OPITEM"},
+    { DrawOpItem::PARTICLE_OPITEM, "PARTICLE_OPITEM"},
 };
 
 namespace {
@@ -144,9 +145,8 @@ void DrawOpItem::BrushHandleToBrush(const BrushHandle& brushHandle, const DrawCm
 {
     brush.SetBlendMode(brushHandle.mode);
     brush.SetAntiAlias(brushHandle.isAntiAlias);
-    brush.SetBlenderEnabled(brushHandle.blenderEnabled);
-
-    if (brushHandle.isUIColor) {
+    brush.SetBlenderEnabled(brushHandle.GetBlenderEnabled());
+    if (brushHandle.IsUIColor()) {
         brush.SetUIColor(brushHandle.uiColor, brushHandle.colorSpaceHandle.size ?
             CmdListHelper::GetColorSpaceFromCmdList(cmdList, brushHandle.colorSpaceHandle) : nullptr);
     } else {
@@ -199,14 +199,14 @@ void DrawOpItem::BrushToBrushHandle(const Brush& brush, DrawCmdList& cmdList, Br
     const Filter& filter = brush.GetFilter();
     if (brush.HasUIColor()) {
         brushHandle.uiColor = brush.GetUIColor();
-        brushHandle.isUIColor = brush.HasUIColor();
+        brushHandle.SetIsUIColor(brush.HasUIColor());
     } else {
         brushHandle.color = brush.GetColor();
-        brushHandle.isUIColor = false;
+        brushHandle.SetIsUIColor(brush.HasUIColor());
     }
     brushHandle.mode = brush.GetBlendMode();
     brushHandle.isAntiAlias = brush.IsAntiAlias();
-    brushHandle.blenderEnabled = brush.GetBlenderEnabled();
+    brushHandle.SetBlenderEnabled(brush.GetBlenderEnabled());
     brushHandle.filterQuality = filter.GetFilterQuality();
     brushHandle.colorSpaceHandle = CmdListHelper::AddColorSpaceToCmdList(cmdList, brush.GetColorSpace());
     brushHandle.shaderEffectHandle = CmdListHelper::AddShaderEffectToCmdList(cmdList, brush.GetShaderEffect());
@@ -219,10 +219,10 @@ void DrawOpItem::GeneratePaintFromHandle(const PaintHandle& paintHandle, const D
 {
     paint.SetBlendMode(paintHandle.mode);
     paint.SetAntiAlias(paintHandle.isAntiAlias);
-    paint.SetBlenderEnabled(paintHandle.blenderEnabled);
+    paint.SetBlenderEnabled(paintHandle.GetBlenderEnabled());
     paint.SetStyle(paintHandle.style);
 
-    if (paintHandle.isUIColor) {
+    if (paintHandle.IsUIColor()) {
         paint.SetUIColor(paintHandle.uiColor, paintHandle.colorSpaceHandle.size ?
             CmdListHelper::GetColorSpaceFromCmdList(cmdList, paintHandle.colorSpaceHandle) : nullptr);
     } else {
@@ -292,14 +292,14 @@ void DrawOpItem::GeneratePaintFromHandle(const PaintHandle& paintHandle, const D
 void DrawOpItem::GenerateHandleFromPaint(CmdList& cmdList, const Paint& paint, PaintHandle& paintHandle)
 {
     paintHandle.isAntiAlias = paint.IsAntiAlias();
-    paintHandle.blenderEnabled = paint.GetBlenderEnabled();
+    paintHandle.SetBlenderEnabled(paint.GetBlenderEnabled());
     paintHandle.style = paint.GetStyle();
     if (paint.HasUIColor()) {
         paintHandle.uiColor = paint.GetUIColor();
-        paintHandle.isUIColor = paint.HasUIColor();
+        paintHandle.SetIsUIColor(paint.HasUIColor());
     } else {
         paintHandle.color = paint.GetColor();
-        paintHandle.isUIColor = false;
+        paintHandle.SetIsUIColor(paint.HasUIColor());
     }
 
     paintHandle.mode = paint.GetBlendMode();
@@ -1651,6 +1651,58 @@ void DrawPictureOpItem::Playback(Canvas* canvas, const Rect* rect)
     canvas->DrawPicture(*picture_);
 }
 
+/* DrawGlyphsOpItem */
+UNMARSHALLING_REGISTER(DrawGlyphs, DrawOpItem::GLYPHS_OPITEM,
+                       DrawGlyphsOpItem::Unmarshalling, sizeof(DrawGlyphsOpItem::ConstructorHandle));
+
+DrawGlyphsOpItem::DrawGlyphsOpItem(const DrawCmdList& cmdList, DrawGlyphsOpItem::ConstructorHandle* handle)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, GLYPHS_OPITEM)
+{
+    glyphs_ = CmdListHelper::GetVectorFromCmdList<uint16_t>(cmdList, handle->glyphs);
+    positions_ = CmdListHelper::GetVectorFromCmdList<Point>(cmdList, handle->positions);
+    origin_ = handle->origin;
+    font_ = CmdListHelper::GetFontFromCmdList(cmdList, handle->font, handle->globalUniqueId);
+    globalUniqueId_ = handle->globalUniqueId;
+}
+
+std::shared_ptr<DrawOpItem> DrawGlyphsOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawGlyphsOpItem>(cmdList, static_cast<DrawGlyphsOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawGlyphsOpItem::Marshalling(DrawCmdList& cmdList)
+{
+    static uint64_t shiftedPid = static_cast<uint64_t>(GetRealPid()) << 32; // 32 for 64-bit unsignd number shift
+    PaintHandle paintHandle;
+    GenerateHandleFromPaint(cmdList, paint_, paintHandle);
+    auto fontHandle = CmdListHelper::AddFontToCmdList(cmdList, font_.get());
+    auto glyphIDs = CmdListHelper::AddVectorToCmdList<uint16_t>(cmdList, glyphs_);
+    auto positions = CmdListHelper::AddVectorToCmdList<Point>(cmdList, positions_);
+    uint64_t globalUniqueId = 0;
+    if (font_ && font_->GetTypeface() != nullptr) {
+        uint32_t typefaceId = font_->GetTypeface()->GetUniqueID();
+        globalUniqueId = (shiftedPid | typefaceId);
+    }
+    if (font_) {
+        cmdList.AddOp<ConstructorHandle>(glyphIDs, positions, origin_, fontHandle,
+                                         globalUniqueId, paintHandle);
+    }
+}
+
+void DrawGlyphsOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    if (glyphs_.size() == 0) {
+        LOGD("DrawGlyphsOpItem run size is invalid");
+        return;
+    }
+    if (font_ == nullptr) {
+        LOGD("DrawGlyphsOpItem font is null");
+        return;
+    }
+    canvas->AttachPaint(paint_);
+    canvas->DrawGlyphs(glyphs_.size(), glyphs_.data(), positions_.data(), origin_, font_.get());
+}
+
 /* DrawTextBlobOpItem */
 UNMARSHALLING_REGISTER(DrawTextBlob, DrawOpItem::TEXT_BLOB_OPITEM,
     DrawTextBlobOpItem::Unmarshalling, sizeof(DrawTextBlobOpItem::ConstructorHandle));
@@ -1675,10 +1727,12 @@ DrawTextBlobOpItem::DrawTextBlobOpItem(const DrawCmdList& cmdList, DrawTextBlobO
     : DrawWithPaintOpItem(cmdList, handle->paintHandle, TEXT_BLOB_OPITEM), x_(handle->x), y_(handle->y)
 {
     globalUniqueId_ = handle->globalUniqueId;
-    textContrast_ = handle->textContrast;
-    textBlob_ = CmdListHelper::GetTextBlobFromCmdList(cmdList, handle->textBlob, handle->globalUniqueId);
+    textBlob_ = CmdListHelper::GetTextBlobFromCmdList(cmdList,
+                                                      handle->textBlob,
+                                                      handle->globalUniqueId,
+                                                      static_cast<bool>(handle->options.bits.preferSpeedOverQuality));
     if (textBlob_) {
-        textBlob_->SetTextContrast(textContrast_);
+        textBlob_->SetTextContrast(static_cast<TextContrast>(handle->options.bits.textContrast));
     }
 }
 
@@ -1699,10 +1753,10 @@ void DrawTextBlobOpItem::Marshalling(DrawCmdList& cmdList)
         uint32_t typefaceId = ctx.GetTypeface()->GetUniqueID();
         globalUniqueId = (shiftedPid | typefaceId);
     }
-
+    TextBlobRenderOption opt = TextBlobRenderOption(textBlob_->GetTextContrast(),
+                                                    textBlob_->IsSpeedOverQualityPreferred());
     if (textBlob_) {
-        cmdList.AddOp<ConstructorHandle>(textBlobHandle,
-            globalUniqueId, textBlob_->GetTextContrast(), x_, y_, paintHandle);
+        cmdList.AddOp<ConstructorHandle>(textBlobHandle, globalUniqueId, opt, x_, y_, paintHandle);
     }
 }
 
@@ -2035,6 +2089,8 @@ void DrawTextBlobOpItem::DumpItems(std::string& out) const
             bounds->Dump(out);
         }
         out += " isEmoji:" + std::string(textBlob_->IsEmoji() ? "true" : "false");
+        out += " isSpeedOverQualityPreferred:" +
+               std::string(textBlob_->IsSpeedOverQualityPreferred() ? "true" : "false");
         out += ']';
     }
 }
@@ -2820,6 +2876,49 @@ float HybridRenderPixelMapSizeOpItem::GetWidth() const
 float HybridRenderPixelMapSizeOpItem::GetHeight() const
 {
     return height_;
+}
+
+/* DrawParticleOpItem */
+UNMARSHALLING_REGISTER(DrawParticle, DrawOpItem::PARTICLE_OPITEM,
+    DrawParticleOpItem::Unmarshalling, sizeof(DrawParticleOpItem::ConstructorHandle));
+
+DrawParticleOpItem::DrawParticleOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle)
+    : DrawOpItem(PARTICLE_OPITEM)
+{
+    if (!handle) {
+        LOGE("DrawParticleOpItem::DrawParticleOpItem: handle is null");
+        return;
+    }
+    particleEffect_ = CmdListHelper::GetParticleEffectFromCmdList(cmdList, handle->particleEffectHandle);
+}
+
+DrawParticleOpItem::DrawParticleOpItem(std::shared_ptr<ParticleEffect> particleEffect)
+    : DrawOpItem(PARTICLE_OPITEM), particleEffect_(particleEffect)
+{}
+
+std::shared_ptr<DrawOpItem> DrawParticleOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawParticleOpItem>(cmdList, static_cast<DrawParticleOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawParticleOpItem::Marshalling(DrawCmdList& cmdList)
+{
+    OpDataHandle effectHandle = CmdListHelper::AddParticleEffectToCmdList(cmdList, particleEffect_);
+    cmdList.AddOp<ConstructorHandle>(effectHandle);
+}
+
+void DrawParticleOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    if (particleEffect_ == nullptr) {
+        LOGE("DrawParticleOpItem::Playback: particleEffect_ is null");
+        return;
+    }
+    canvas->DrawParticle(particleEffect_);
+}
+
+void DrawParticleOpItem::Dump(std::string& out) const
+{
+    out += GetOpDesc();
 }
 } // namespace Drawing
 } // namespace Rosen

@@ -269,15 +269,9 @@ public:
         return globalAlpha_;
     }
 
-    inline bool NodeGroupHasChildInBlacklist() const
-    {
-        return isNodeGroupHasChildInBlacklist_;
-    }
+    bool NodeGroupHasChildInBlacklist() const;
 
-    inline void SetNodeGroupHasChildInBlacklist(bool isInBlackList)
-    {
-        isNodeGroupHasChildInBlacklist_ = isInBlackList;
-    }
+    void SetNodeGroupHasChildInBlacklist(bool inBlacklist);
     
     inline bool IsSnapshotSkipLayer() const
     {
@@ -347,11 +341,10 @@ public:
     {
         return drawingCacheIncludeProperty_;
     }
-    void SetRSFreezeFlag(bool freezeFlag);
-    bool GetRSFreezeFlag() const
-    {
-        return freezeFlag_;
-    }
+    void SetRSFreezeFlag(bool freezeFlag, bool isMarkedByUI = false);
+    bool GetRSFreezeFlag() const;
+    RSRenderGroupCache::RSFreezeFlag GetRSFreezeFlagType() const;
+    bool IsFreezedByUser() const;
     // !used for RenderGroup
 
     void OpincSetIsSuggest(bool isSuggest);
@@ -401,6 +394,13 @@ public:
     bool GetStartingWindowFlag() const
     {
         return startingWindowFlag_;
+    }
+
+    void SetDoubleSidedEnabled(bool isDoubleSided);
+
+    bool GetDoubleSidedEnabled() const
+    {
+        return isDoubleSided_;
     }
 
     bool IsRepaintBoundary() const;
@@ -581,6 +581,7 @@ protected:
     std::bitset<RSRenderParamsDirtyType::MAX_DIRTY_TYPE> dirtyType_;
 
 private:
+    void ApplySandboxMatrixToCanvas(RSPaintFilterCanvas& canvas) const;
     NodeId id_;
     RSRenderParamsType paramsType_ = RSRenderParamsType::RS_PARAM_DEFAULT;
     RSRenderNodeType renderNodeType_ = RSRenderNodeType::RS_NODE;
@@ -599,14 +600,12 @@ private:
     HdrStatus hdrStatus_ = HdrStatus::NO_HDR;
     bool childHasVisibleHDRContent_ = false;
     GraphicColorGamut nodeColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-    bool freezeFlag_ = false;
     bool childHasVisibleEffect_ = false;
     bool childHasVisibleFilter_ = false;
     bool hasSandBox_ = false;
     bool isDrawingCacheChanged_ = false;
     std::atomic_bool isNeedUpdateCache_ = false;
     bool drawingCacheIncludeProperty_ = false;
-    bool isNodeGroupHasChildInBlacklist_ = false;
     bool isSnapshotSkipLayer_ = false;
     bool shouldPaint_ = false;
     bool contentEmpty_  = false;
@@ -623,6 +622,7 @@ private:
     bool isLayerPartRenderEnable_ = false;
     RectI layerPartRenderCurrentFrameDirtyRegion_;
     bool startingWindowFlag_ = false;
+    bool isDoubleSided_ = true;
     bool needFilter_ = false;
     bool effectNodeShouldPaint_ = false;
     bool hasGlobalCorner_ = false;

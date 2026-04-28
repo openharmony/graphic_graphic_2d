@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,6 +26,7 @@
 #include "draw/shadow.h"
 #include "draw/sdf_shaper_base.h"
 #include "effect/filter.h"
+#include "effect/particle_effect.h"
 #include "draw/OpListHandle.h"
 #include "image/bitmap.h"
 #include "image/image_info.h"
@@ -122,6 +123,9 @@ public:
     // UIColor
     virtual void DrawUIColor(UIColor color, BlendMode mode) = 0;
 
+    // particle
+    virtual void DrawParticle(std::shared_ptr<ParticleEffect> particle) = 0;
+
     // opinc calculate realdraw rect
     virtual bool OpCalculateBefore(const Matrix& matrix) = 0;
     virtual std::shared_ptr<Drawing::OpListHandle> OpCalculateAfter(const Rect& bound) = 0;
@@ -145,6 +149,8 @@ public:
     virtual void DrawSVGDOM(const sk_sp<SkSVGDOM>& svgDom) = 0;
 
     // text
+    virtual void DrawGlyphs(int count, const uint16_t glyphs[], const Point positions[],
+                            Point origin, const Font* font, const Paint& paint) = 0;
     virtual void DrawTextBlob(const TextBlob* blob, const scalar x, const scalar y, const Paint& paint) = 0;
 
     // symbol
@@ -200,6 +206,8 @@ public:
     virtual std::array<int, 2> CalcHpsBluredImageDimension(const Drawing::HpsBlurParameter& blurParams) = 0;
 
     virtual void InsertOpaqueRegion(const std::vector<RectI>& opaqueRects) = 0;
+
+    virtual bool IsOpaque() = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

@@ -186,6 +186,7 @@ public:
     }
 
     bool IsFilterCacheValidForOcclusion();
+    bool IsFilterCacheValidForPartialRender() const;
 
     void SetDrawBehindWindowRegion(RectI region);
 

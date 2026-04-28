@@ -113,6 +113,18 @@ public:
      *
      * @param surfaceNodeConfig The configuration settings for the surface node.
      * @param isWindow Indicates whether the surface node is a window. Defaults to true.
+     * @return SharedPtr A shared pointer to the newly created RSSurfaceNode instance.
+     */
+    static SharedPtr CreateSurfaceNode(const RSSurfaceNodeConfig& surfaceNodeConfig, bool isWindow = true);
+
+    bool SendDataToRender(const RSSurfaceNodeConfig& surfaceNodeConfig,
+    RSSurfaceNodeType type, bool isWindow, bool unobscured);
+ 
+    /**
+     * @brief Creates a new instance of RSSurfaceNode with the specified configuration.
+     *
+     * @param surfaceNodeConfig The configuration settings for the surface node.
+     * @param isWindow Indicates whether the surface node is a window. Defaults to true.
      * @param rsUIContext An optional shared pointer to an RSUIContext object. Defaults to nullptr.
      * @return SharedPtr A shared pointer to the newly created RSSurfaceNode instance.
      */
@@ -290,7 +302,7 @@ public:
      *                - true: Freeze current frame into static texture
      *                - false: Resume normal buffer updates
      */
-    void SetFreeze(bool isFreeze) override;
+    void SetFreeze(bool isFreeze, bool isMarkedByUI = false) override;
     
     // codes for arkui-x
 #ifdef USE_SURFACE_TEXTURE
@@ -299,6 +311,7 @@ public:
     void SetSurfaceTextureAttachCallBack(const RSSurfaceTextureAttachCallBack& attachCallback);
     void SetSurfaceTextureUpdateCallBack(const RSSurfaceTextureUpdateCallBack& updateCallback);
     void SetSurfaceTextureInitTypeCallBack(const RSSurfaceTextureInitTypeCallBack& initTypeCallback);
+    void SetSurfaceCaptureCallback(std::function<std::shared_ptr<Media::PixelMap>()> callback);
 #endif
     void SetForeground(bool isForeground);
     // [Attention] The function now used for unlocking screen and other scenes for PC currrently,
@@ -321,6 +334,8 @@ public:
     void SetHDRPresent(bool hdrPresent, NodeId id);
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
+    void SetDarkColorMode(bool isDark);
+    bool GetDarkColorMode() const;
     void SetWatermarkEnabled(const std::string& name, bool isEnabled);
     void SetAbilityState(RSSurfaceNodeAbilityState abilityState);
     RSSurfaceNodeAbilityState GetAbilityState() const;
@@ -360,6 +375,8 @@ public:
     void SetContainerWindowTransparent(bool isContainerWindowTransparent);
     void SetAppRotationCorrection(ScreenRotation appRotationCorrection);
     void SetHDRBrightnessWithType(const float& hdrBrightness, uint32_t hdrType);
+    void SetIsDepthResource(bool isDepthResource);
+
 protected:
     bool NeedForcedSendToRemote() const override;
     RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode,
@@ -395,6 +412,7 @@ private:
         SharedPtr shadowNode, ModifierNG::RSPropertyType propertyType);
 
     void DumpSubClass(std::string& out) const override;
+    void SetHDRType(uint32_t hdrType);
 
     std::shared_ptr<RSSurface> surface_;
     std::string name_;
@@ -403,7 +421,6 @@ private:
     BufferAvailableCallback callback_;
     bool bufferAvailable_ = false;
     BoundsChangedCallback boundsChangedCallback_;
-    bool isShadowNode_ = false;
     // If has shadow node or itself is a shadow node, existsDuplicateModifier_ may be true.
     bool existsDuplicateModifier_ = false;
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
@@ -418,6 +435,7 @@ private:
     RSSurfaceNodeAbilityState abilityState_ = RSSurfaceNodeAbilityState::FOREGROUND;
     bool isFrameGravityNewVersionEnabled_ = false;
     bool isSurfaceBufferOpaque_ = false;
+    bool isDarkColorMode_ = false;
     LeashPersistentId leashPersistentId_ = INVALID_LEASH_PERSISTENTID;
     RSSurfaceNodeType surfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
     std::shared_ptr<RSCompositeLayerUtils> compositeLayerUtils_;

@@ -16,7 +16,11 @@ import("//build/ohos.gni")
 group("test") {
   testonly = true
 
-  deps = [ "fuzztest/rsframeratevote_fuzzer:fuzztest" ]
+  deps = [
+    "fuzztest/rsframeratevote_fuzzer:fuzztest",
+    "fuzztest/nativedisplaysoloist_fuzzer:fuzztest",
+    "fuzztest/rsuidisplaysoloist_fuzzer:fuzztest",
+  ]
 
   if (!use_libfuzzer) {
     deps += [

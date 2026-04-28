@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.. All rights reserved.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -392,6 +392,16 @@ void CoreCanvas::DrawUIColor(UIColor color, BlendMode mode)
     impl_->DrawUIColor(color, mode);
 }
 
+void CoreCanvas::DrawParticle(std::shared_ptr<ParticleEffect> particle)
+{
+#ifdef DRAWING_DISABLE_API
+    if (DrawingConfig::IsDisabled(DrawingConfig::DrawingDisableFlag::DISABLE_PARTICLE)) {
+        return;
+    }
+#endif
+    impl_->DrawParticle(particle);
+}
+
 void CoreCanvas::DrawRegion(const Region& region)
 {
 #ifdef DRAWING_DISABLE_API
@@ -535,6 +545,12 @@ void CoreCanvas::DrawSVGDOM(const sk_sp<SkSVGDOM>& svgDom)
     }
 #endif
     impl_->DrawSVGDOM(svgDom);
+}
+
+void CoreCanvas::DrawGlyphs(int count, const uint16_t glyphs[], const Point positions[],
+                            Point origin, const Font* font)
+{
+    DRAW_API_WITH_PAINT_LOOPER(DrawGlyphs, count, glyphs, positions, origin, font);
 }
 
 void CoreCanvas::DrawTextBlob(const TextBlob* blob, const scalar x, const scalar y)
@@ -900,6 +916,11 @@ std::array<int, 2> CoreCanvas::CalcHpsBluredImageDimension(const Drawing::HpsBlu
 void CoreCanvas::InsertOpaqueRegion(const std::vector<RectI>& rects)
 {
     impl_->InsertOpaqueRegion(rects);
+}
+
+bool CoreCanvas::IsOpaque() const
+{
+    return impl_->IsOpaque();
 }
 } // namespace Drawing
 } // namespace Rosen

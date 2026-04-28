@@ -483,6 +483,7 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
                 context->MarkNeedPurge(ClearMemoryMoment::SCENEBOARD_SURFACE_NODE_HIDE, RSContext::PurgeType::STRONGLY);
             }
         }
+        uifirstState_.needSync = true;
     } else if (GetSurfaceNodeType() == RSSurfaceNodeType::CURSOR_NODE) {
         FindScreenId();
     }
@@ -1113,7 +1114,7 @@ void RSSurfaceRenderNode::UpdateVirtualScreenWhiteListInfo()
     auto screenIds = ScreenSpecialLayerInfo::QueryEnableScreen(
         SpecialLayerType::IS_WHITE_LIST, {GetId(), GetLeashPersistentId()});
     SetScreensWithSubTreeWhitelist(screenIds);
-    RSRenderNode::SyncWhiteListInfoToParent();
+    SyncWhiteListInfoToParent();
 }
 
 void RSSurfaceRenderNode::SyncPrivacyContentInfoToFirstLevelNode()
@@ -1168,7 +1169,6 @@ void RSSurfaceRenderNode::SetClonedNodeInfo(NodeId id, bool needOffscreen, bool 
     }
     clonedSurfaceNode->clonedSourceNodeNeedOffscreen_ = isRelated || needOffscreen;
     isCloneNode_ = (id != INVALID_NODEID);
-    clonedSurfaceNode->SetRelatedSourceNode(isRelated);
     SetRelated(isCloneNode_ && isRelated);
     clonedSourceNodeId_ = id;
     RS_LOGD("RSSurfaceRenderNode::SetClonedNodeInfo clonedNode[%{public}" PRIu64 "] needOffscreen: %{public}d"
@@ -1200,14 +1200,24 @@ bool RSSurfaceRenderNode::CheckCloneCircle(std::shared_ptr<RSSurfaceRenderNode> 
 void RSSurfaceRenderNode::SetForceUIFirst(bool forceUIFirst)
 {
     if (forceUIFirst) {
-        forceUIFirstChanged_ = true;
+        uifirstState_.forceStateChanged = true;
     }
-    forceUIFirst_ = forceUIFirst;
+    uifirstState_.forceUIFirst = forceUIFirst;
 }
 
-bool RSSurfaceRenderNode::GetForceDrawWithSkipped() const
+void RSSurfaceRenderNode::MarkUifirstNode(bool isForceFlag, bool isUifirstEnable)
 {
-    return uifirstForceDrawWithSkipped_;
+    RS_TRACE_NAME_FMT("MarkUifirstNode id:%lu, isForceFlag:%d, isUifirstEnable:%d",
+        GetId(), isForceFlag, isUifirstEnable);
+    ROSEN_LOGI("MarkUifirstNode id:%{public}" PRIu64 " isForceFlag:%{public}d, isUifirstEnable:%{public}d",
+        GetId(), isForceFlag, isUifirstEnable);
+    uifirstState_.isForceMarked = isForceFlag;
+    uifirstState_.isEnabled = isUifirstEnable;
+}
+
+bool RSSurfaceRenderNode::GetUifirstNodeForceFlag() const
+{
+    return uifirstState_.isForceMarked;
 }
 
 void RSSurfaceRenderNode::SetHDRPresent(bool hasHdrPresent)
@@ -1328,11 +1338,11 @@ bool RSSurfaceRenderNode::HDRColorHeadroomEnabled()
 
 void RSSurfaceRenderNode::SetForceUIFirstChanged(bool forceUIFirstChanged)
 {
-    forceUIFirstChanged_ = forceUIFirstChanged;
+    uifirstState_.forceStateChanged = forceUIFirstChanged;
 }
 bool RSSurfaceRenderNode::GetForceUIFirstChanged()
 {
-    return forceUIFirstChanged_;
+    return uifirstState_.forceStateChanged;
 }
 
 void RSSurfaceRenderNode::SetAncoForceDoDirect(bool direct)
@@ -1462,6 +1472,9 @@ void RSSurfaceRenderNode::SetColorSpace(GraphicColorGamut colorSpace)
 
 GraphicColorGamut RSSurfaceRenderNode::GetColorSpace() const
 {
+    if (RsCommonHook::Instance().IsForceSRGBOutputEnabled()) {
+        return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    }
     if (!RSSystemProperties::GetWideColorSpaceEnabled()) {
         return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     }
@@ -1659,12 +1672,12 @@ void RSSurfaceRenderNode::SetNotifyRTBufferAvailable(bool isNotifyRTBufferAvaila
     }
 }
 
-void RSSurfaceRenderNode::ConnectToNodeInRenderService()
+void RSSurfaceRenderNode::ConnectToNodeInRenderService(sptr<IRemoteObject> connectToRender)
 {
     ROSEN_LOGI("RSSurfaceRenderNode::ConnectToNodeInRenderService nodeId = %{public}" PRIu64, GetId());
-    auto renderPipelineClient = std::make_shared<RSRenderPipelineClient>();
-    if (renderPipelineClient != nullptr) {
-        renderPipelineClient->RegisterBufferAvailableListener(
+    rsRenderPipelineClient_ = std::make_shared<RSRenderPipelineClient>(connectToRender);
+    if (rsRenderPipelineClient_ != nullptr) {
+        rsRenderPipelineClient_->RegisterBufferAvailableListener(
             GetId(), [weakThis = weak_from_this()]() {
                 auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(weakThis.lock());
                 if (node == nullptr) {
@@ -1672,7 +1685,7 @@ void RSSurfaceRenderNode::ConnectToNodeInRenderService()
                 }
                 node->NotifyRTBufferAvailable(node->GetIsTextureExportNode());
             }, true);
-        renderPipelineClient->RegisterBufferClearListener(
+        rsRenderPipelineClient_->RegisterBufferClearListener(
             GetId(), [weakThis = weak_from_this()]() {
                 auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(weakThis.lock());
                 if (node == nullptr) {
@@ -1721,7 +1734,7 @@ void RSSurfaceRenderNode::NotifyUIBufferAvailable()
 {
     RS_TRACE_NAME_FMT("RSSurfaceRenderNode::NotifyUIBufferAvailable id:%llu bufferAvailable:%d waitUifirst:%d",
         GetId(), IsNotifyUIBufferAvailable(), IsWaitUifirstFirstFrame());
-    if (isNotifyUIBufferAvailable_ || isWaitUifirstFirstFrame_) {
+    if (isNotifyUIBufferAvailable_ || uifirstState_.isWaitFirstFrame) {
         return;
     }
     isNotifyUIBufferAvailable_ = true;
@@ -2170,7 +2183,7 @@ void RSSurfaceRenderNode::UpdateSurfaceCacheContentStaticFlag(bool isAccessibili
         contentStatic = (!IsSubTreeDirty() || GetForceUpdateByUifirst()) && !IsContentDirty();
     }
     contentStatic = contentStatic && !isAccessibilityChanged;
-    uifirstContentDirty_ = uifirstContentDirty_ || uifirstContentDirty || HasRemovedChild();
+    uifirstState_.contentDirty = uifirstState_.contentDirty || uifirstContentDirty || HasRemovedChild();
     auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (stagingSurfaceParams) {
         stagingSurfaceParams->SetSurfaceCacheContentStatic(contentStatic, lastFrameSynced_);
@@ -2182,7 +2195,7 @@ void RSSurfaceRenderNode::UpdateSurfaceCacheContentStaticFlag(bool isAccessibili
         "name[%s] Id[%" PRIu64 "], contentStatic[%d] subTreeDirty[%d] contentDirty[%d] forceUpdate[%d] "
         "accessibilityChanged[%d] hasRemovedChild[%d], GetChildrenCount[%d], uifirstContentDirty:%d",
         GetName().c_str(), GetId(), contentStatic, IsSubTreeDirty(), IsContentDirty(), GetForceUpdateByUifirst(),
-        isAccessibilityChanged, HasRemovedChild(), GetChildrenCount(), uifirstContentDirty_);
+        isAccessibilityChanged, HasRemovedChild(), GetChildrenCount(), uifirstState_.contentDirty);
 #endif
 }
 
@@ -2441,13 +2454,14 @@ void RSSurfaceRenderNode::OnSync()
     }
     auto syncDirtyManager = renderDrawable_->GetSyncDirtyManager();
     dirtyManager_->OnSync(syncDirtyManager);
-    if (IsMainWindowType() || IsLeashWindow() || GetLastFrameUifirstFlag() != MultiThreadCacheType::NONE) {
+    if (IsMainWindowType() || IsLeashWindow() || GetLastFrameUifirstCacheType() != MultiThreadCacheType::NONE) {
         auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
         if (surfaceParams == nullptr) {
             RS_LOGE("RSSurfaceRenderNode::OnSync surfaceParams is null");
             return;
         }
         surfaceParams->SetNeedSync(true);
+        surfaceParams->SetPartialSynced(IsUifirstSkipPartialSync());
     }
     RSRenderNode::OnSync();
 #endif
@@ -2506,7 +2520,7 @@ void RSSurfaceRenderNode::UpdateLayerPartRenderStatus(std::shared_ptr<RSDirtyReg
     if (dirtyManager == nullptr) {
         return;
     }
-    if (GetLastFrameUifirstFlag() != MultiThreadCacheType::NONE || GetSubThreadAssignable()) {
+    if (GetLastFrameUifirstCacheType() != MultiThreadCacheType::NONE || GetSubThreadAssignable()) {
         dirtyManager->SetHasUifirstChild(true);
     }
 }
@@ -3559,15 +3573,15 @@ RSSurfaceNodeAbilityState RSSurfaceRenderNode::GetAbilityState() const
 
 bool RSSurfaceRenderNode::IsWaitUifirstFirstFrame() const
 {
-    return isWaitUifirstFirstFrame_;
+    return uifirstState_.isWaitFirstFrame.load();
 }
 
 void RSSurfaceRenderNode::SetWaitUifirstFirstFrame(bool wait)
 {
-    if (isWaitUifirstFirstFrame_ == wait) {
+    if (uifirstState_.isWaitFirstFrame.load() == wait) {
         return;
     }
-    isWaitUifirstFirstFrame_ = wait;
+    uifirstState_.isWaitFirstFrame.store(wait);
     RS_TRACE_NAME_FMT("SetWaitUifirstFirstFrame id:%" PRIu64 ", wait:%d", GetId(), wait);
     RS_LOGI("SetWaitUifirstFirstFrame id:%{public}" PRIu64 ", wait:%{public}d", GetId(), wait);
 }
@@ -3792,6 +3806,16 @@ bool RSSurfaceRenderNode::GetSurfaceBufferOpaque() const
     return isSurfaceBufferOpaque_;
 }
 
+void RSSurfaceRenderNode::SetHDRType(uint32_t hdrType)
+{
+    hdrType_ = hdrType;
+}
+
+uint32_t RSSurfaceRenderNode::GetHDRType() const
+{
+    return hdrType_;
+}
+
 bool RSSurfaceRenderNode::isForcedClipHole() const
 {
     const std::string& tvPlayerBundleName = RsCommonHook::Instance().GetTvPlayerBundleName();
@@ -3856,6 +3880,9 @@ GraphicColorGamut RSSurfaceRenderNode::GamutCollector::GetCurGamut() const
 
 GraphicColorGamut RSSurfaceRenderNode::GamutCollector::GetFirstLevelNodeGamut() const
 {
+    if (RsCommonHook::Instance().IsForceSRGBOutputEnabled()) {
+        return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    }
     if (!RSSystemProperties::GetWideColorSpaceEnabled()) {
         return GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     }
@@ -4042,6 +4069,25 @@ void RSSurfaceRenderNode::CopyModifierValue(ModifierNG::RSPropertyType propertyT
     if (newModifier->HasProperty(propertyType) && oldModifier->HasProperty(propertyType)) {
         oldModifier->Setter(propertyType, newModifier->Getter<T>(propertyType));
     }
+}
+
+void RSSurfaceRenderNode::CountRelatedNode(bool isIncrement)
+{
+    relatedNodeNum_ += isIncrement ? 1 : -1;
+    SetRelatedSourceNode(relatedNodeNum_ > 0);
+    if (!IsRelatedSourceNode()) {
+        ClearRelatedSourceCache(true);
+    }
+}
+
+void RSSurfaceRenderNode::ClearRelatedSourceCache(bool value)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        return;
+    }
+    surfaceParams->SetNeedClearRelatedCache(value);
+    AddToPendingSyncList();
 }
 } // namespace Rosen
 } // namespace OHOS

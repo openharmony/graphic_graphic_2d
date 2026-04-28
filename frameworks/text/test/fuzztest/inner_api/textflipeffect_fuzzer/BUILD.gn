@@ -38,7 +38,7 @@ ohos_fuzztest("TextFlipEffectFuzzTest") {
     "./",
   ]
 
-  sources = [ "text_flip_effect_fuzzer.cpp" ]
+  sources = [ "textflipeffect_fuzzer.cpp" ]
 
   cflags = [
     "-O0",

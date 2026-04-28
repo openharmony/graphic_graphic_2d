@@ -671,9 +671,9 @@ int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
         if (presentTimeUpdated && uniRenderLayer) {
             RS_TRACE_NAME_FMT("HdiOutput::RecordMergedPresentTime %lld", timestamp);
             uniRenderLayer->RecordMergedPresentTime(timestamp);
-            thirdFrameAheadPresentFenceFd_ = thirdFrameAheadPresentFence_->Get();
-            thirdFrameAheadPresentTime_ = timestamp;
         }
+        thirdFrameAheadPresentFenceFd_ = thirdFrameAheadPresentFence_->Get();
+        thirdFrameAheadPresentTime_ = timestamp;
     }
 
     int32_t ret = GRAPHIC_DISPLAY_SUCCESS;
@@ -684,6 +684,7 @@ int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
     if (fbFence != nullptr) {
         curPresentFd_ = fbFence->Get();
     }
+    rsComposerJankStats.CalculateJankInfo(timestamp);
     return ret;
 }
 
@@ -739,6 +740,17 @@ void HdiOutput::ReleaseLayers(ReleaseLayerBuffersInfo& releaseLayerInfo)
     }
     std::unordered_map<RSLayerId, sptr<SyncFence>> releaseBufferFenceMap;
     const auto layersReleaseFence = GetLayersReleaseFenceLocked();
+    // lambda for releasing original buffer in device offline mode
+    auto releaseOriginalBuffer = [&releaseLayerInfo](const std::shared_ptr<RSLayer>& rsLayer,
+        const sptr<SyncFence>& fence) {
+        if (!rsLayer->GetUseDeviceOffline()) {
+            return;
+        }
+        auto origPreBuffer = rsLayer->GetHpaeOriginalInfo().originalPreBuffer;
+        releaseLayerInfo.releaseBufferFenceVec.push_back(
+            std::tuple(rsLayer->GetRSLayerId(), origPreBuffer, fence));
+    };
+ 
     if (layersReleaseFence.size() == 0) {
         // When release fence's size is 0, the output may invalid, release all buffer
         // This situation may happen when killing composer_host
@@ -750,6 +762,8 @@ void HdiOutput::ReleaseLayers(ReleaseLayerBuffersInfo& releaseLayerInfo)
             releaseBufferFenceMap[hdiLayer->GetRSLayer()->GetRSLayerId()] = SyncFence::InvalidFence();
             releaseLayerInfo.releaseBufferFenceVec.push_back(std::tuple(hdiLayer->GetRSLayer()->GetRSLayerId(),
                 hdiLayer->GetRSLayer()->GetPreBuffer(), SyncFence::InvalidFence()));
+            // hpae_offline: release original buffer for device offline
+            releaseOriginalBuffer(hdiLayer->GetRSLayer(), SyncFence::InvalidFence());
         }
         HLOGD("%{public}s: no layer needs to release", __func__);
     } else {
@@ -766,6 +780,8 @@ void HdiOutput::ReleaseLayers(ReleaseLayerBuffersInfo& releaseLayerInfo)
                     releaseLayerInfo.releaseBufferFenceVec.push_back(std::tuple(rsLayer->GetRSLayerId(),
                         rsLayer->GetPreBuffer(), fence));
                 }
+                // hpae_offline: release original buffer for device offline
+                releaseOriginalBuffer(rsLayer, fence);
             }
         }
     }
@@ -777,6 +793,8 @@ void HdiOutput::ReleaseLayers(ReleaseLayerBuffersInfo& releaseLayerInfo)
         if (releaseBufferFenceMap.find(hdiLayer->GetRSLayer()->GetRSLayerId()) == releaseBufferFenceMap.end()) {
             releaseLayerInfo.releaseBufferFenceVec.push_back(std::tuple(hdiLayer->GetRSLayer()->GetRSLayerId(),
                 hdiLayer->GetRSLayer()->GetPreBuffer(), SyncFence::InvalidFence()));
+            // hpae_offline: release original buffer for device offline
+            releaseOriginalBuffer(hdiLayer->GetRSLayer(), SyncFence::InvalidFence());
         }
     }
 }

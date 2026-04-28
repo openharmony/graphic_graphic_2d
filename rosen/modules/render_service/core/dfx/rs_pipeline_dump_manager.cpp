@@ -37,7 +37,7 @@ void RSPipelineDumpManager::SetPid(int pid)
     pid_ = pid;
 }
 
-void RSPipelineDumpManager::SetScreenId(unsigned long screenId)
+void RSPipelineDumpManager::SetScreenId(ScreenId screenId)
 {
     screenId_ = screenId;
 }

@@ -57,6 +57,7 @@ constexpr uint8_t TOP_OCCLUSION_SURFACES_NUM = 3;
 constexpr uint8_t OCCLUSION_ENABLE_SCENE_NUM = 2;
 constexpr int16_t DEFAULT_OCCLUSION_SURFACE_ORDER = -1;
 constexpr int MAX_DIRTY_ALIGNMENT_SIZE = 128;
+constexpr uint32_t MAX_NODE_COUNT_PER_PID = 500000;
 constexpr const char* CAPTURE_WINDOW_NAME = "CapsuleWindow";
 constexpr uint32_t DEFAULT_DYNAMIC_RANGE_MODE_STANDARD = 2;
 constexpr uint32_t DYNAMIC_RANGE_MODE_HIGH = 0;
@@ -380,6 +381,13 @@ enum class CaptureError : uint8_t {
     CAPTURE_ERROR_BOUNDARY_BUTT,
 };
 
+// HDR screenShot tonemapping to fixed nits or current screen nits
+enum class DisplayIntent : uint32_t {
+    CANONICAL = 0, // fixed nits
+    LOCAL = 1, // current screen nits
+    DISPLAY_INTENT_BUTT, // a boundary for DisplayIntent Security Check
+};
+
 struct RSSurfaceCaptureConfig {
     float scaleX = 1.0f;
     float scaleY = 1.0f;
@@ -391,6 +399,7 @@ struct RSSurfaceCaptureConfig {
     std::vector<NodeId> blackList = {}; // exclude surfacenode in screenshot
     bool isSoloNodeUiCapture = false;
     bool isHdrCapture = false;
+    DisplayIntent displayIntent = DisplayIntent::CANONICAL;
     bool needF16WindowCaptureForScRGB = false;
     bool needErrorCode = false;
     RSUICaptureInRangeParam uiCaptureInRangeParam = {};
@@ -402,6 +411,7 @@ struct RSSurfaceCaptureConfig {
     std::pair<uint32_t, bool> dynamicRangeMode = {DEFAULT_DYNAMIC_RANGE_MODE_STANDARD, false};
     bool isSyncRender = false;
     bool isConfigTriggered = false;
+    bool windowSync = false;
 
     // When adding new members, please ensure to add the corresponding comparison logic in the operator== and
     // serialization/deserialization logic in the OnSurfaceCapture method.
@@ -413,6 +423,7 @@ struct RSSurfaceCaptureConfig {
                (mainScreenRect == config.mainScreenRect) && (blackList == config.blackList) &&
                (isSoloNodeUiCapture == config.isSoloNodeUiCapture) &&
                (isHdrCapture == config.isHdrCapture) &&
+               (displayIntent == config.displayIntent) &&
                (needF16WindowCaptureForScRGB == config.needF16WindowCaptureForScRGB) &&
                (needErrorCode == config.needErrorCode) &&
                (uiCaptureInRangeParam.endNodeId == config.uiCaptureInRangeParam.endNodeId) &&
@@ -420,7 +431,9 @@ struct RSSurfaceCaptureConfig {
                (specifiedAreaRect == config.specifiedAreaRect) &&
                (backGroundColor == config.backGroundColor) &&
                (colorSpace == config.colorSpace) &&
-               (dynamicRangeMode == config.dynamicRangeMode);
+               (dynamicRangeMode == config.dynamicRangeMode) &&
+               (isSyncRender == config.isSyncRender) &&
+               (windowSync == config.windowSync);
     }
 };
 
@@ -666,21 +679,6 @@ constexpr float PI = M_PI;
 #else
 static const float PI = std::atanf(1.0) * 4;
 #endif
-
-class MemObject {
-public:
-    explicit MemObject(size_t size) : size_(size) {}
-    virtual ~MemObject() = default;
-
-    void* operator new(size_t size);
-    void operator delete(void* ptr);
-
-    void* operator new(std::size_t size, const std::nothrow_t&) noexcept;
-    void operator delete(void* ptr, const std::nothrow_t&) noexcept;
-
-protected:
-    size_t size_;
-};
 
 inline constexpr pid_t ExtractPid(uint64_t id)
 {

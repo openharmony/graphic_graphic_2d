@@ -127,6 +127,7 @@ public:
     void ResetAnimateNodeFlag();
     void GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize);
     void ClearMemoryCache(ClearMemoryMoment moment, bool deeply = false, pid_t pid = -1);
+    void AddWhiteListRect(const std::unordered_set<ScreenId>& screenIds, RectI rect);
 
     void SetForceRsDVsync(const std::string& sceneId);
     void GetNodeInfo(std::unordered_map<int, std::pair<int, int>>& node_info,
@@ -177,7 +178,7 @@ public:
     void ClearSurfaceOcclusionChangeCallback(pid_t pid);
     bool SurfaceOcclusionCallBackIfOnTreeStateChanged();
 
-    void ClearTransactionDataPidInfo(pid_t remotePid);
+    void ClearTransactionDataPidInfo(pid_t remotePid, bool forRefresh = false);
     void AddTransactionDataPidInfo(pid_t remotePid);
 
     void SetFocusAppInfo(const FocusAppInfo& info);
@@ -191,6 +192,10 @@ public:
 
     void AddUiCaptureTask(NodeId id, std::function<void()> task);
     void ProcessUiCaptureTasks();
+
+    void AddWindowCapTask(NodeId id, std::function<void()> task);
+    void CheckWindowCapTasks();
+    void ProcessWindowCapTasks();
 
     void SetDirtyFlag(bool isDirty = true);
     bool GetDirtyFlag();
@@ -423,7 +428,7 @@ public:
 
     bool TransitionDataMutexLockIfNoCommands();
     void TransitionDataMutexUnlock();
-    void CleanResources(pid_t pid);
+    void CleanResources(pid_t pid, bool forRefresh = false);
     bool GetMaxGpuBufferSize(uint32_t& maxWidth, uint32_t& maxHeight);
     
     const std::shared_ptr<RSHwcContext>& GetHwcContext() const { return hwcContext_; }
@@ -787,6 +792,9 @@ private:
     // for ui captures
     std::vector<std::tuple<NodeId, std::function<void()>>> pendingUiCaptureTasks_;
     std::queue<std::tuple<NodeId, std::function<void()>>> uiCaptureTasks_;
+    // for window captures
+    std::vector<std::tuple<NodeId, std::function<void()>, uint64_t, uint64_t, bool>> pendingWindowCapTasks_;
+    std::queue<std::tuple<NodeId, std::function<void()>>> windowCapTasks_;
     // uiextension
     std::mutex uiExtensionMutex_;
     UIExtensionCallbackData uiExtensionCallbackData_;
@@ -830,7 +838,6 @@ private:
     uint32_t curFrameBufferReclaimCount_ = 0;
 
     // for surface fps op
-    std::mutex surfaceFpsOpMutex_;
     std::unordered_map<NodeId, SurfaceFpsOp> addSurfaceFpsOpMap_;
     std::unordered_map<NodeId, SurfaceFpsOp> rmvSurfaceFpsOpMap_;
 };

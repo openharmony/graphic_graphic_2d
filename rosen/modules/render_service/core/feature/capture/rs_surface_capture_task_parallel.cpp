@@ -213,6 +213,8 @@ bool RSSurfaceCaptureTaskParallel::CreateResources()
         if (!captureConfig_.useCurWindow) {
             auto parentNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(surfaceNode->GetParent().lock());
             if (parentNode && parentNode->IsLeashWindow() && parentNode->ShouldPaint()) {
+                RS_TRACE_NAME_FMT("RSSurfaceCaptureTaskParallel::CreateResources parentNodeLeashWindow id: %" PRIu64,
+                    parentNode->GetId());
                 curNode = parentNode;
             }
         }
@@ -225,10 +227,14 @@ bool RSSurfaceCaptureTaskParallel::CreateResources()
         }
         surfaceNodeDrawable_ = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
             DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(curNode));
+        if (!surfaceNodeDrawable_) {
+            return false;
+        }
+        auto surfaceNodeParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable_->GetRenderParams().get());
         // When the window freeze capture invokes the F16 screenshot mode and window need use F16 capture,
         // or when the HDR mode is invoked and the window contains HDR resources, an F16 buffer needs to be allocated.
         bool isF16Capture = (captureConfig_.needF16WindowCaptureForScRGB && RSHdrUtil::NeedUseF16Capture(curNode)) ||
-            (captureConfig_.isHdrCapture && surfaceNode->GetHDRPresent());
+            (captureConfig_.isHdrCapture && surfaceNodeParams->SelfOrChildHasHDR());
         pixelMap_ = CreatePixelMapBySurfaceNode(curNode, isF16Capture);
         auto screenNode = std::static_pointer_cast<RSScreenRenderNode>(surfaceNode->GetAncestorScreenNode().lock());
         if (screenNode) {
@@ -239,6 +245,7 @@ bool RSSurfaceCaptureTaskParallel::CreateResources()
             DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(displayNode));
         pixelMap_ = CreatePixelMapByDisplayNode(displayNode);
         auto screenNode = std::static_pointer_cast<RSScreenRenderNode>(displayNode->GetParent().lock());
+        screenId_ = screenNode ? screenNode->GetScreenId() : INVALID_SCREEN_ID;
         // When the app calls HDR screenshot and the screen contains HDR content, two pixelmaps need to be captured.
         if (captureConfig_.isHdrCapture && screenNode && (screenNode->GetDisplayHdrStatus() != HdrStatus::NO_HDR)) {
             pixelMapHDR_ = CreatePixelMapByDisplayNode(displayNode, true);
@@ -272,6 +279,7 @@ bool RSSurfaceCaptureTaskParallel::Run(
     RSPaintFilterCanvas canvas(surface.get());
     canvas.Scale(captureConfig_.scaleX, captureConfig_.scaleY);
     canvas.SetDisableFilterCache(true);
+    canvas.SetScreenId(screenId_);
     RSSurfaceRenderParams* curNodeParams = nullptr;
     RSUniRenderThread::BufferManagerGuard bufferGuard;
     if (surfaceNodeDrawable_) {
@@ -284,12 +292,12 @@ bool RSSurfaceCaptureTaskParallel::Run(
         RS_LOGD("surfaceCapParam.hasDirtyContent_: %{public}d", surfaceCapParam.hasDirtyContent_);
         RSUniRenderThread::SetCaptureParam(surfaceCapParam);
         DrawableV2::RSRenderNodeDrawable::ClearSnapshotProcessedNodeCount();
-        bool isHDRCapture = captureConfig_.isHdrCapture && curNodeParams->GetHDRPresent();
+        bool isHDRCapture = captureConfig_.isHdrCapture && curNodeParams->SelfOrChildHasHDR();
         RSPaintFilterCanvas::ScreenshotType type = isHDRCapture ? RSPaintFilterCanvas::ScreenshotType::HDR_WINDOWSHOT :
             RSPaintFilterCanvas::ScreenshotType::SDR_WINDOWSHOT;
         canvas.SetScreenshotType(type);
+        canvas.SetOnMultipleScreen(!isHDRCapture); // not isHDRCapture means tmo to sdr
         canvas.SetHdrOn(isHDRCapture);
-        canvas.SetScreenId(screenId_);
         canvas.SetIsWindowFreezeCapture(captureParam.isFreeze);
         canvas.Clear(captureParam.config.backGroundColor);
         surfaceNodeDrawable_->OnCapture(canvas);
@@ -310,6 +318,7 @@ bool RSSurfaceCaptureTaskParallel::Run(
         } else {
             canvas.Translate(-boundsX_, -boundsY_);
         }
+        canvas.SetOnMultipleScreen(true); // sdr screenshot means tmo to sdr
         auto type = RSPaintFilterCanvas::ScreenshotType::SDR_SCREENSHOT;
         CaptureDisplayNode(*displayNodeDrawable_, canvas, captureParam, type);
     } else {
@@ -381,11 +390,15 @@ bool RSSurfaceCaptureTaskParallel::DrawHDRSurfaceContent(
     } else {
         canvas.Translate(-boundsX_, -boundsY_);
     }
+    canvas.SetOnMultipleScreen(!isOnHDR); // not isOnHDR means tmo to sdr
+    canvas.SetHdrOn(isOnHDR);
+    canvas.SetScreenId(screenId_);
     canvas.SetDisableFilterCache(true);
     RSSurfaceRenderParams* curNodeParams = nullptr;
     if (displayNodeDrawable_) {
         RSPaintFilterCanvas::ScreenshotType type = isOnHDR ? RSPaintFilterCanvas::ScreenshotType::HDR_SCREENSHOT :
             RSPaintFilterCanvas::ScreenshotType::SDR_SCREENSHOT;
+        canvas.SetDisplayIntent(captureConfig_.displayIntent);
         CaptureDisplayNode(*displayNodeDrawable_, canvas, captureParam, type);
     } else {
         RS_LOGE("RSSurfaceCaptureTaskParallel::DrawHDRSurfaceContent: Invalid RSRenderNodeDrawable!");
@@ -481,12 +494,12 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByS
     opts.size.height = ceil(pixmapHeight * captureConfig_.scaleY);
     RS_LOGI("RSSurfaceCaptureTaskParallel::CreatePixelMapBySurfaceNode: NodeId:[%{public}" PRIu64 "],"
         " origin pixelmap size: [%{public}u, %{public}u],"
-        " scale: [%{public}f, %{public}f],"
+        " scale: [%{public}f, %{public}f], windowSync: [%{public}d],"
         " useDma: [%{public}d], useCurWindow: [%{public}d],"
         " isOnTheTree: [%{public}d], isVisible: [%{public}d], isF16Capture: [%{public}d]"
         " backGroundColor: [%{public}d]",
         node->GetId(), pixmapWidth, pixmapHeight, captureConfig_.scaleX, captureConfig_.scaleY,
-        captureConfig_.useDma, captureConfig_.useCurWindow, node->IsOnTheTree(),
+        captureConfig_.windowSync, captureConfig_.useDma, captureConfig_.useCurWindow, node->IsOnTheTree(),
         !surfaceNode_->GetVisibleRegion().IsEmpty(), isF16Capture, captureConfig_.backGroundColor);
     std::unique_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
     if (pixelMap) {

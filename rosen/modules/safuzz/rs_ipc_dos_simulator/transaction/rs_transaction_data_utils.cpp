@@ -75,7 +75,6 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyFlyOut),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyLinearGradientBlurPara),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyMotionBlurPara),
-    DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyMagnifierPara),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyEmitterUpdater),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyParticleNoiseFields),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyParticleRippleFields),
@@ -104,6 +103,7 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     DECLARE_ADD_RANDOM(RSNodeCommand, RSMarkNodeSingleFrameComposer),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSMarkSuggestOpincNode),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSMarkLayerPartRender),
+    DECLARE_ADD_RANDOM(RSNodeCommand, RSMarkLayer),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSMarkUifirstNode),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSForceUifirstNode),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSSetUIFirstSwitch),
@@ -168,6 +168,7 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetForceUIFirst),
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetAncoFlags),
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetHDRPresent),
+    DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetDarkColorMode),
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetSkipDraw),
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetWatermarkEnabled),
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetAbilityState),
@@ -182,6 +183,7 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetContainerWindowTransparent),
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetClonedNodeId),
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetAppRotationCorrection),
+    DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetHDRType),
 
     /********** RSProxyNodeCommand **********/
     DECLARE_ADD_RANDOM(RSProxyNodeCommand, RSProxyNodeCreate),

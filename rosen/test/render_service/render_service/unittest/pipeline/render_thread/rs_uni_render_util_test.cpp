@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "drawable/dfx/rs_dirty_rects_dfx.h"
+#include "drawable/rs_logical_display_render_node_drawable.h"
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "feature/capture/rs_surface_capture_task_parallel.h"
@@ -24,6 +25,7 @@
 #include "pipeline/mock/mock_meta_data_helper.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
+ #include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_test_util.h"
 #include "pixel_map.h"
 #include "property/rs_properties_def.h"
@@ -1569,5 +1571,815 @@ HWTEST_F(RSUniRenderUtilTest, GetMatrixByDegree001, TestSize.Level1)
     matrix = RSUniRenderUtil::GetMatrixByDegree(ROTATE_0, bounds);
     degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(matrix);
     ASSERT_EQ(degree, ROTATE_0);
+}
+
+/**
+ * @tc.name: ProcessSingleSelfDrawingNode001
+ * @tc.desc: test ProcessSingleSelfDrawingNode with empty vector
+ * @tc.type: FUNC
+ * @tc.require: #ICGE8J
+ */
+HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode001, TestSize.Level1)
+{
+    RSDisplayNodeConfig config;
+    NodeId displayNodeId = 1;
+    auto renderNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config);
+    renderNode->InitRenderParams();
+
+    auto drawable = std::static_pointer_cast<DrawableV2::RSLogicalDisplayRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode));
+    ASSERT_NE(drawable, nullptr);
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(drawable->renderParams_.get());
+
+    NodeId defaultDisplayId = 2;
+    auto rsContext = std::make_shared<RSContext>();
+    RSScreenRenderNodeDrawable* screenDrawable = GenerateDisplayDrawableById(defaultDisplayId, 0, rsContext);
+    ASSERT_NE(screenDrawable, nullptr);
+    std::unique_ptr<RSScreenRenderParams> screenParams = std::make_unique<RSScreenRenderParams>(defaultDisplayId);
+
+    screenParams->layerSkipContext_.screenLayerInvalid_ = true;
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    std::vector<NodeId> relevantSurfaceNodeIds;
+    screenParams->layerSkipContext_.relevantSurfaceNodeIds_ = relevantSurfaceNodeIds;
+    auto result = RSUniRenderUtil::ProcessSingleSelfDrawingNode(canvas, *screenParams, *displayParams);
+    ASSERT_EQ(result, false);
+}
+
+/**
+ * @tc.name: ProcessSingleSelfDrawingNode002
+ * @tc.desc: test ProcessSingleSelfDrawingNode with invalid surfacetype
+ * @tc.type: FUNC
+ * @tc.require: #ICGE8J
+ */
+HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode002, TestSize.Level1)
+{
+    RSDisplayNodeConfig config;
+    auto renderNode = std::make_shared<RSLogicalDisplayRenderNode>(1, config);
+    renderNode->InitRenderParams();
+    auto drawable = std::static_pointer_cast<DrawableV2::RSLogicalDisplayRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode));
+    ASSERT_NE(drawable, nullptr);
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(drawable->renderParams_.get());
+
+    NodeId defaultDisplayId = 2;
+    auto rsContext = std::make_shared<RSContext>();
+    RSScreenRenderNodeDrawable* screenDrawable = GenerateDisplayDrawableById(defaultDisplayId, 0, rsContext);
+    ASSERT_NE(screenDrawable, nullptr);
+    std::unique_ptr<RSScreenRenderParams> screenParams = std::make_unique<RSScreenRenderParams>(defaultDisplayId);
+
+    screenParams->layerSkipContext_.screenLayerInvalid_ = true;
+
+    NodeId surfaceId = 3;
+    std::shared_ptr<RSSurfaceRenderNode> surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceId);
+    ASSERT_NE(surfaceNode, nullptr);
+
+    auto surfaceDrawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
+    surfaceDrawableAdapter->nodeType_ = RSRenderNodeType::CANVAS_DRAWING_NODE;
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    std::vector<NodeId> relevantSurfaceNodeIds = { surfaceId };
+    screenParams->layerSkipContext_.relevantSurfaceNodeIds_ = relevantSurfaceNodeIds;
+    auto result = RSUniRenderUtil::ProcessSingleSelfDrawingNode(canvas, *screenParams, *displayParams);
+    ASSERT_EQ(result, false);
+}
+
+/**
+ * @tc.name: ProcessSingleSelfDrawingNode003
+ * @tc.desc: test ProcessSingleSelfDrawingNode with valid surfacetype
+ * @tc.type: FUNC
+ * @tc.require: #ICGE8J
+ */
+HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode003, TestSize.Level1)
+{
+    RSDisplayNodeConfig config;
+    auto renderNode = std::make_shared<RSLogicalDisplayRenderNode>(1, config);
+    renderNode->InitRenderParams();
+    auto drawable = std::static_pointer_cast<DrawableV2::RSLogicalDisplayRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode));
+    ASSERT_NE(drawable, nullptr);
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(drawable->renderParams_.get());
+
+    NodeId defaultDisplayId = 2;
+    auto rsContext = std::make_shared<RSContext>();
+    RSScreenRenderNodeDrawable* screenDrawable = GenerateDisplayDrawableById(defaultDisplayId, 0, rsContext);
+    ASSERT_NE(screenDrawable, nullptr);
+    std::unique_ptr<RSScreenRenderParams> screenParams = std::make_unique<RSScreenRenderParams>(defaultDisplayId);
+
+    screenParams->layerSkipContext_.screenLayerInvalid_ = true;
+
+    NodeId surfaceId = 3;
+    std::shared_ptr<RSSurfaceRenderNode> surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceId);
+    ASSERT_NE(surfaceNode, nullptr);
+    auto surfaceDrawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
+    surfaceDrawableAdapter->nodeType_ = RSRenderNodeType::SURFACE_NODE;
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    std::vector<NodeId> relevantSurfaceNodeIds = { surfaceId };
+    screenParams->layerSkipContext_.relevantSurfaceNodeIds_ = relevantSurfaceNodeIds;
+    auto result = RSUniRenderUtil::ProcessSingleSelfDrawingNode(canvas, *screenParams, *displayParams);
+    ASSERT_EQ(result, true);
+}
+
+/**
+ * @tc.name: ProcessSingleSelfDrawingNode004
+ * @tc.desc: test ProcessSingleSelfDrawingNode with valid surfacetype
+ * @tc.type: FUNC
+ * @tc.require: #23391
+ */
+HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode004, TestSize.Level1)
+{
+    constexpr NodeId displayNodeId = 1;
+    constexpr NodeId defaultDisplayId = 2;
+    constexpr NodeId surfaceId = 3;
+
+    RSDisplayNodeConfig config;
+    auto renderNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config);
+    renderNode->InitRenderParams();
+    auto drawable = std::static_pointer_cast<DrawableV2::RSLogicalDisplayRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode));
+    ASSERT_NE(drawable, nullptr);
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(drawable->renderParams_.get());
+
+    auto rsContext = std::make_shared<RSContext>();
+    RSScreenRenderNodeDrawable* screenDrawable = GenerateDisplayDrawableById(defaultDisplayId, 0, rsContext);
+    ASSERT_NE(screenDrawable, nullptr);
+    auto screenParams = std::make_unique<RSScreenRenderParams>(defaultDisplayId);
+    screenParams->layerSkipContext_.screenLayerInvalid_ = true;
+
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceId);
+    ASSERT_NE(surfaceNode, nullptr);
+    auto surfaceDrawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
+    surfaceDrawableAdapter->nodeType_ = RSRenderNodeType::SURFACE_NODE;
+
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (!rtThread.GetRSRenderThreadParams()) {
+        RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    }
+    auto renderThreadParams = std::make_unique<RSRenderThreadParams>();
+    renderThreadParams->hardwareEnabledTypeDrawables_.push_back(std::make_tuple(1, 0, surfaceDrawableAdapter));
+    rtThread.Sync(std::move(renderThreadParams));
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    screenParams->layerSkipContext_.relevantSurfaceNodeIds_ = { surfaceId };
+    auto result = RSUniRenderUtil::ProcessSingleSelfDrawingNode(canvas, *screenParams, *displayParams);
+    ASSERT_EQ(result, true);
+}
+
+/**
+ * @tc.name: DrawSingleSelfDrawingNode001
+ * @tc.desc: test DrawSingleSelfDrawingNode with nullptr surfaceParams
+ * @tc.type: FUNC
+ * @tc.require: #ICGE8J
+ */
+HWTEST_F(RSUniRenderUtilTest, DrawSingleSelfDrawingNode001, TestSize.Level1)
+{
+    RSDisplayNodeConfig config;
+    NodeId displayNodeId = 1;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config);
+    displayNode->InitRenderParams();
+    auto displayDrawable = std::static_pointer_cast<DrawableV2::RSLogicalDisplayRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(displayNode));
+    ASSERT_NE(displayDrawable, nullptr);
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable->renderParams_.get());
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    NodeId surfaceId = 2;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceId);
+    DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr drawable(RSSurfaceRenderNodeDrawable::OnGenerate(surfaceNode));
+    auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
+    surfaceDrawable->renderParams_ = nullptr;
+    auto result = RSUniRenderUtil::DrawSingleSelfDrawingNode(canvas, surfaceDrawable, *displayParams);
+    ASSERT_EQ(result, false);
+}
+
+/**
+ * @tc.name: DrawSingleSelfDrawingNode002
+ * @tc.desc: test DrawSingleSelfDrawingNode with special layer
+ * @tc.type: FUNC
+ * @tc.require: #ICGE8J
+ */
+HWTEST_F(RSUniRenderUtilTest, DrawSingleSelfDrawingNode002, TestSize.Level1)
+{
+    RSDisplayNodeConfig config;
+    NodeId displayNodeId = 1;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config);
+    displayNode->InitRenderParams();
+    auto displayDrawable = std::static_pointer_cast<DrawableV2::RSLogicalDisplayRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(displayNode));
+    ASSERT_NE(displayDrawable, nullptr);
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable->renderParams_.get());
+    displayParams->isSecurityDisplay_ = true;
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    NodeId surfaceId = 2;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceId);
+
+    DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr drawable(RSSurfaceRenderNodeDrawable::OnGenerate(surfaceNode));
+    auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
+    auto renderParams = std::make_unique<RSSurfaceRenderParams>(surfaceId);
+    RSSpecialLayerManager slManager;
+    slManager.specialLayerType_ = SpecialLayerType::HAS_SECURITY;
+    renderParams->specialLayerManager_ = slManager;
+    surfaceDrawable->renderParams_ = std::move(renderParams);
+    if (RSUniRenderThread::Instance().uniRenderEngine_ == nullptr) {
+        RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+    }
+    auto result = RSUniRenderUtil::DrawSingleSelfDrawingNode(canvas, surfaceDrawable, *displayParams);
+    ASSERT_EQ(result, false);
+}
+
+/**
+ * @tc.name: DrawSingleSelfDrawingNode003
+ * @tc.desc: test DrawSingleSelfDrawingNode with blacklist
+ * @tc.type: FUNC
+ * @tc.require: #ICGE8J
+ */
+HWTEST_F(RSUniRenderUtilTest, DrawSingleSelfDrawingNode003, TestSize.Level1)
+{
+    RSDisplayNodeConfig config;
+    NodeId displayNodeId = 1;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config);
+    displayNode->InitRenderParams();
+    auto displayDrawable = std::static_pointer_cast<DrawableV2::RSLogicalDisplayRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(displayNode));
+    ASSERT_NE(displayDrawable, nullptr);
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable->renderParams_.get());
+    displayParams->isSecurityDisplay_ = true;
+    ScreenId screenId = 2;
+    displayParams->SetScreenId(screenId);
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    NodeId surfaceId = 3;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceId);
+
+    DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr drawable(RSSurfaceRenderNodeDrawable::OnGenerate(surfaceNode));
+    auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
+    auto renderParams = std::make_unique<RSSurfaceRenderParams>(surfaceId);
+    RSSpecialLayerManager slManager;
+    slManager.SetWithScreen(screenId, SpecialLayerType::HAS_BLACK_LIST, true);
+    renderParams->specialLayerManager_ = slManager;
+    surfaceDrawable->renderParams_ = std::move(renderParams);
+    if (RSUniRenderThread::Instance().uniRenderEngine_ == nullptr) {
+        RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+    }
+    auto result = RSUniRenderUtil::DrawSingleSelfDrawingNode(canvas, surfaceDrawable, *displayParams);
+    ASSERT_EQ(result, false);
+}
+
+/**
+ * @tc.name: DrawSingleSelfDrawingNode004
+ * @tc.desc: test DrawSingleSelfDrawingNode with whitelist
+ * @tc.type: FUNC
+ * @tc.require: #ICGE8J
+ */
+HWTEST_F(RSUniRenderUtilTest, DrawSingleSelfDrawingNode004, TestSize.Level1)
+{
+    RSDisplayNodeConfig config;
+    NodeId displayNodeId = 1;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config);
+    displayNode->InitRenderParams();
+    auto displayDrawable = std::static_pointer_cast<DrawableV2::RSLogicalDisplayRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(displayNode));
+    ASSERT_NE(displayDrawable, nullptr);
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable->renderParams_.get());
+    displayParams->isSecurityDisplay_ = true;
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    NodeId surfaceId = 2;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceId);
+
+    DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr drawable(RSSurfaceRenderNodeDrawable::OnGenerate(surfaceNode));
+    auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
+    auto renderParams = std::make_unique<RSSurfaceRenderParams>(surfaceId);
+    RSSpecialLayerManager slManager;
+    renderParams->specialLayerManager_ = slManager;
+    std::unordered_set<NodeId> whiteList = { surfaceId };
+    RSUniRenderThread::Instance().SetWhiteList(whiteList);
+    surfaceDrawable->renderParams_ = std::move(renderParams);
+    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+
+    auto result = RSUniRenderUtil::DrawSingleSelfDrawingNode(canvas, surfaceDrawable, *displayParams);
+    ASSERT_EQ(result, false);
+    RSUniRenderThread::Instance().SetWhiteList({});
+}
+
+/**
+ * @tc.name: DrawSingleSelfDrawingNode005
+ * @tc.desc: test DrawSingleSelfDrawingNode with renderEngine is nullptr
+ * @tc.type: FUNC
+ * @tc.require: #ICGE8J
+ */
+HWTEST_F(RSUniRenderUtilTest, DrawSingleSelfDrawingNode005, TestSize.Level1)
+{
+    RSDisplayNodeConfig config;
+    NodeId displayNodeId = 1;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config);
+    displayNode->InitRenderParams();
+    auto displayDrawable = std::static_pointer_cast<DrawableV2::RSLogicalDisplayRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(displayNode));
+    ASSERT_NE(displayDrawable, nullptr);
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable->renderParams_.get());
+    displayParams->isSecurityDisplay_ = false;
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    NodeId surfaceId = 2;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceId);
+
+    DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr drawable(RSSurfaceRenderNodeDrawable::OnGenerate(surfaceNode));
+    auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
+    auto renderParams = std::make_unique<RSSurfaceRenderParams>(surfaceId);
+    RSSpecialLayerManager slManager;
+    renderParams->specialLayerManager_ = slManager;
+    surfaceDrawable->renderParams_ = std::move(renderParams);
+    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+
+    auto result = RSUniRenderUtil::DrawSingleSelfDrawingNode(canvas, surfaceDrawable, *displayParams);
+    ASSERT_EQ(result, false);
+}
+
+/**
+ * @tc.name: DrawSingleSelfDrawingNode006
+ * @tc.desc: Test DrawSingleSelfDrawingNode with varify hardware and hwcEnabledBySolidLayer
+ * @tc.type: FUNC
+ * @tc.require: issueI22872
+ */
+HWTEST_F(RSUniRenderUtilTest, DrawSingleSelfDrawingNode006, TestSize.Level1)
+{
+    RSDisplayNodeConfig config;
+    NodeId displayNodeId = 1;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config);
+    displayNode->InitRenderParams();
+    auto displayDrawable = std::static_pointer_cast<DrawableV2::RSLogicalDisplayRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(displayNode));
+    ASSERT_NE(displayDrawable, nullptr);
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable->renderParams_.get());
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    NodeId surfaceId = 2;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceId);
+    DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr drawable(RSSurfaceRenderNodeDrawable::OnGenerate(surfaceNode));
+    auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
+    surfaceDrawable->renderParams_ = std::make_unique<RSSurfaceRenderParams>(surfaceId);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->renderParams_.get());
+    RSSpecialLayerManager slManager;
+    surfaceParams->specialLayerManager_ = slManager;
+    surfaceParams->buffer_ = OHOS::SurfaceBuffer::Create();
+    surfaceParams->buffer_->SetSurfaceBufferWidth(1920);
+    surfaceParams->buffer_->SetSurfaceBufferHeight(1080);
+    surfaceParams->layerInfo_.srcRect = { 0, 0, 1920, 1080 };
+    surfaceParams->layerInfo_.dstRect = { 0, 0, 1920, 1080 };
+    surfaceParams->boundsRect_ = { 0, 0, 1920, 1080 };
+    surfaceParams->layerInfo_.matrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
+    surfaceParams->SetHardwareEnabled(true);
+    surfaceParams->SetIsHwcEnabledBySolidLayer(false);
+    if (RSUniRenderThread::Instance().uniRenderEngine_ == nullptr) {
+        RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+    }
+    auto result = RSUniRenderUtil::DrawSingleSelfDrawingNode(canvas, surfaceDrawable, *displayParams);
+    ASSERT_EQ(result, true);
+    surfaceParams->SetHardwareEnabled(false);
+    surfaceParams->SetIsHwcEnabledBySolidLayer(true);
+    result = RSUniRenderUtil::DrawSingleSelfDrawingNode(canvas, surfaceDrawable, *displayParams);
+    ASSERT_EQ(result, true);
+}
+
+/**
+ * @tc.name: DrawSingleSelfDrawingNode007
+ * @tc.desc: Test DrawSingleSelfDrawingNode with hardware and hwcEnabledBySolidLayer
+ * @tc.type: FUNC
+ * @tc.require: issueI22872
+ */
+HWTEST_F(RSUniRenderUtilTest, DrawSingleSelfDrawingNode007, TestSize.Level1)
+{
+    RSDisplayNodeConfig config;
+    NodeId displayNodeId = 1;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config);
+    displayNode->InitRenderParams();
+    auto displayDrawable = std::static_pointer_cast<DrawableV2::RSLogicalDisplayRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(displayNode));
+    ASSERT_NE(displayDrawable, nullptr);
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable->renderParams_.get());
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    NodeId surfaceId = 2;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceId);
+    DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr drawable(RSSurfaceRenderNodeDrawable::OnGenerate(surfaceNode));
+    auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
+    surfaceDrawable->renderParams_ = std::make_unique<RSSurfaceRenderParams>(surfaceId);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->renderParams_.get());
+    surfaceParams->buffer_ = OHOS::SurfaceBuffer::Create();
+    surfaceParams->buffer_->SetSurfaceBufferWidth(1920);
+    surfaceParams->buffer_->SetSurfaceBufferHeight(1080);
+    surfaceParams->layerInfo_.srcRect = { 0, 0, 1920, 1080 };
+    surfaceParams->layerInfo_.dstRect = { 0, 0, 1920, 1080 };
+    surfaceParams->boundsRect_ = { 0, 0, 1920, 1080 };
+    surfaceParams->layerInfo_.matrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
+    surfaceParams->SetHardwareEnabled(true);
+    surfaceParams->SetIsHwcEnabledBySolidLayer(true);
+    if (RSUniRenderThread::Instance().uniRenderEngine_ == nullptr) {
+        RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+    }
+    auto result = RSUniRenderUtil::DrawSingleSelfDrawingNode(canvas, surfaceDrawable, *displayParams);
+    ASSERT_EQ(result, true);
+}
+
+/**
+ * @tc.name: ProcessSingleSelfDrawingNode005
+ * @tc.desc: test ProcessSingleSelfDrawingNode with nullptr hardwareDrawable in hardwareEnabledTypeDrawables
+ * @tc.type: FUNC
+ * @tc.require: #23391
+ */
+HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode005, TestSize.Level1)
+{
+    constexpr NodeId displayNodeId = 1;
+    constexpr NodeId defaultDisplayId = 2;
+    constexpr NodeId surfaceId = 3;
+
+    RSDisplayNodeConfig config;
+    auto renderNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config);
+    renderNode->InitRenderParams();
+    auto drawable = std::static_pointer_cast<DrawableV2::RSLogicalDisplayRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode));
+    ASSERT_NE(drawable, nullptr);
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(drawable->renderParams_.get());
+
+    auto rsContext = std::make_shared<RSContext>();
+    RSScreenRenderNodeDrawable* screenDrawable = GenerateDisplayDrawableById(defaultDisplayId, 0, rsContext);
+    ASSERT_NE(screenDrawable, nullptr);
+    auto screenParams = std::make_unique<RSScreenRenderParams>(defaultDisplayId);
+    screenParams->layerSkipContext_.screenLayerInvalid_ = true;
+
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceId);
+    ASSERT_NE(surfaceNode, nullptr);
+    auto surfaceDrawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
+    surfaceDrawableAdapter->nodeType_ = RSRenderNodeType::SURFACE_NODE;
+
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (!rtThread.GetRSRenderThreadParams()) {
+        RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    }
+    auto renderThreadParams = std::make_unique<RSRenderThreadParams>();
+    renderThreadParams->hardwareEnabledTypeDrawables_.push_back(std::make_tuple(1, 0, nullptr));
+    rtThread.Sync(std::move(renderThreadParams));
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    screenParams->layerSkipContext_.relevantSurfaceNodeIds_ = { surfaceId };
+    auto result = RSUniRenderUtil::ProcessSingleSelfDrawingNode(canvas, *screenParams, *displayParams);
+    ASSERT_EQ(result, true);
+}
+
+/**
+ * @tc.name: ProcessSingleSelfDrawingNode006
+ * @tc.desc: test ProcessSingleSelfDrawingNode with hardwareDrawable having nullptr renderParams
+ * @tc.type: FUNC
+ * @tc.require: #23391
+ */
+HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode006, TestSize.Level1)
+{
+    constexpr NodeId displayNodeId = 1;
+    constexpr NodeId defaultDisplayId = 2;
+    constexpr NodeId surfaceId = 3;
+    constexpr NodeId hardwareSurfaceId = 4;
+
+    RSDisplayNodeConfig config;
+    auto renderNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config);
+    renderNode->InitRenderParams();
+    auto drawable = std::static_pointer_cast<DrawableV2::RSLogicalDisplayRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode));
+    ASSERT_NE(drawable, nullptr);
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(drawable->renderParams_.get());
+
+    auto rsContext = std::make_shared<RSContext>();
+    RSScreenRenderNodeDrawable* screenDrawable = GenerateDisplayDrawableById(defaultDisplayId, 0, rsContext);
+    ASSERT_NE(screenDrawable, nullptr);
+    auto screenParams = std::make_unique<RSScreenRenderParams>(defaultDisplayId);
+    screenParams->layerSkipContext_.screenLayerInvalid_ = true;
+
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceId);
+    ASSERT_NE(surfaceNode, nullptr);
+    auto surfaceDrawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
+    surfaceDrawableAdapter->nodeType_ = RSRenderNodeType::SURFACE_NODE;
+
+    auto hardwareSurfaceNode = std::make_shared<RSSurfaceRenderNode>(hardwareSurfaceId);
+    ASSERT_NE(hardwareSurfaceNode, nullptr);
+    auto hardwareDrawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(hardwareSurfaceNode);
+    hardwareDrawableAdapter->nodeType_ = RSRenderNodeType::SURFACE_NODE;
+    hardwareDrawableAdapter->renderParams_ = nullptr;
+
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (!rtThread.GetRSRenderThreadParams()) {
+        RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    }
+    auto renderThreadParams = std::make_unique<RSRenderThreadParams>();
+    renderThreadParams->hardwareEnabledTypeDrawables_.push_back(std::make_tuple(1, 0, hardwareDrawableAdapter));
+    rtThread.Sync(std::move(renderThreadParams));
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    screenParams->layerSkipContext_.relevantSurfaceNodeIds_ = { surfaceId };
+    auto result = RSUniRenderUtil::ProcessSingleSelfDrawingNode(canvas, *screenParams, *displayParams);
+    ASSERT_EQ(result, true);
+}
+
+/**
+ * @tc.name: ProcessSingleSelfDrawingNode007
+ * @tc.desc: test ProcessSingleSelfDrawingNode with hardwareNode zOrder greater than relevantSurface zOrder
+ * @tc.type: FUNC
+ * @tc.require: #23391
+ */
+HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode007, TestSize.Level1)
+{
+    constexpr NodeId displayNodeId = 1;
+    constexpr NodeId defaultDisplayId = 2;
+    constexpr NodeId surfaceId = 3;
+    constexpr NodeId hardwareSurfaceId = 4;
+    constexpr int32_t lowZOrder = 0;
+    constexpr int32_t highZOrder = 10;
+
+    RSDisplayNodeConfig config;
+    auto renderNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config);
+    renderNode->InitRenderParams();
+    auto drawable = std::static_pointer_cast<DrawableV2::RSLogicalDisplayRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode));
+    ASSERT_NE(drawable, nullptr);
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(drawable->renderParams_.get());
+
+    auto rsContext = std::make_shared<RSContext>();
+    RSScreenRenderNodeDrawable* screenDrawable = GenerateDisplayDrawableById(defaultDisplayId, 0, rsContext);
+    ASSERT_NE(screenDrawable, nullptr);
+    auto screenParams = std::make_unique<RSScreenRenderParams>(defaultDisplayId);
+    screenParams->layerSkipContext_.screenLayerInvalid_ = true;
+
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceId);
+    ASSERT_NE(surfaceNode, nullptr);
+    auto surfaceDrawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
+    surfaceDrawableAdapter->nodeType_ = RSRenderNodeType::SURFACE_NODE;
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawableAdapter->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->layerInfo_.zOrder = lowZOrder;
+
+    auto hardwareSurfaceNode = std::make_shared<RSSurfaceRenderNode>(hardwareSurfaceId);
+    ASSERT_NE(hardwareSurfaceNode, nullptr);
+    auto hardwareDrawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(hardwareSurfaceNode);
+    hardwareDrawableAdapter->nodeType_ = RSRenderNodeType::SURFACE_NODE;
+    hardwareDrawableAdapter->renderParams_ = std::make_unique<RSSurfaceRenderParams>(hardwareSurfaceId);
+    auto hardwareParams = static_cast<RSSurfaceRenderParams*>(hardwareDrawableAdapter->renderParams_.get());
+    ASSERT_NE(hardwareParams, nullptr);
+    hardwareParams->layerInfo_.zOrder = highZOrder;
+
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (!rtThread.GetRSRenderThreadParams()) {
+        RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    }
+    auto renderThreadParams = std::make_unique<RSRenderThreadParams>();
+    renderThreadParams->hardwareEnabledTypeDrawables_.push_back(std::make_tuple(1, 0, hardwareDrawableAdapter));
+    rtThread.Sync(std::move(renderThreadParams));
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    screenParams->layerSkipContext_.relevantSurfaceNodeIds_ = { surfaceId };
+    auto result = RSUniRenderUtil::ProcessSingleSelfDrawingNode(canvas, *screenParams, *displayParams);
+    ASSERT_EQ(result, false);
+}
+
+/**
+ * @tc.name: ProcessSingleSelfDrawingNode008
+ * @tc.desc: test ProcessSingleSelfDrawingNode with hardwareNode zOrder less than relevantSurface zOrder
+ * @tc.type: FUNC
+ * @tc.require: #23391
+ */
+HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode008, TestSize.Level1)
+{
+    constexpr NodeId displayNodeId = 1;
+    constexpr NodeId defaultDisplayId = 2;
+    constexpr NodeId surfaceId = 3;
+    constexpr NodeId hardwareSurfaceId = 4;
+    constexpr int32_t lowZOrder = 0;
+    constexpr int32_t highZOrder = 10;
+
+    RSDisplayNodeConfig config;
+    auto renderNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config);
+    renderNode->InitRenderParams();
+    auto drawable = std::static_pointer_cast<DrawableV2::RSLogicalDisplayRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode));
+    ASSERT_NE(drawable, nullptr);
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(drawable->renderParams_.get());
+
+    auto rsContext = std::make_shared<RSContext>();
+    RSScreenRenderNodeDrawable* screenDrawable = GenerateDisplayDrawableById(defaultDisplayId, 0, rsContext);
+    ASSERT_NE(screenDrawable, nullptr);
+    auto screenParams = std::make_unique<RSScreenRenderParams>(defaultDisplayId);
+    screenParams->layerSkipContext_.screenLayerInvalid_ = true;
+
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceId);
+    ASSERT_NE(surfaceNode, nullptr);
+    auto surfaceDrawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
+    surfaceDrawableAdapter->nodeType_ = RSRenderNodeType::SURFACE_NODE;
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawableAdapter->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->layerInfo_.zOrder = highZOrder;
+
+    auto hardwareSurfaceNode = std::make_shared<RSSurfaceRenderNode>(hardwareSurfaceId);
+    ASSERT_NE(hardwareSurfaceNode, nullptr);
+    auto hardwareDrawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(hardwareSurfaceNode);
+    hardwareDrawableAdapter->nodeType_ = RSRenderNodeType::SURFACE_NODE;
+    auto hardwareParams = static_cast<RSSurfaceRenderParams*>(hardwareDrawableAdapter->renderParams_.get());
+    ASSERT_NE(hardwareParams, nullptr);
+    hardwareParams->layerInfo_.zOrder = lowZOrder;
+
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (!rtThread.GetRSRenderThreadParams()) {
+        RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    }
+    auto renderThreadParams = std::make_unique<RSRenderThreadParams>();
+    renderThreadParams->hardwareEnabledTypeDrawables_.push_back(std::make_tuple(1, 0, hardwareDrawableAdapter));
+    rtThread.Sync(std::move(renderThreadParams));
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    screenParams->layerSkipContext_.relevantSurfaceNodeIds_ = { surfaceId };
+    auto result = RSUniRenderUtil::ProcessSingleSelfDrawingNode(canvas, *screenParams, *displayParams);
+    ASSERT_EQ(result, true);
+}
+
+/**
+ * @tc.name: ProcessSingleSelfDrawingNode009
+ * @tc.desc: test ProcessSingleSelfDrawingNode with hardwareNode zOrder equal to relevantSurface zOrder
+ * @tc.type: FUNC
+ * @tc.require: #23391
+ */
+HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode009, TestSize.Level1)
+{
+    constexpr NodeId displayNodeId = 1;
+    constexpr NodeId defaultDisplayId = 2;
+    constexpr NodeId surfaceId = 3;
+    constexpr NodeId hardwareSurfaceId = 4;
+    constexpr int32_t equalZOrder = 5;
+
+    RSDisplayNodeConfig config;
+    auto renderNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config);
+    renderNode->InitRenderParams();
+    auto drawable = std::static_pointer_cast<DrawableV2::RSLogicalDisplayRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode));
+    ASSERT_NE(drawable, nullptr);
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(drawable->renderParams_.get());
+
+    auto rsContext = std::make_shared<RSContext>();
+    RSScreenRenderNodeDrawable* screenDrawable = GenerateDisplayDrawableById(defaultDisplayId, 0, rsContext);
+    ASSERT_NE(screenDrawable, nullptr);
+    auto screenParams = std::make_unique<RSScreenRenderParams>(defaultDisplayId);
+    screenParams->layerSkipContext_.screenLayerInvalid_ = true;
+
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceId);
+    ASSERT_NE(surfaceNode, nullptr);
+    auto surfaceDrawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
+    surfaceDrawableAdapter->nodeType_ = RSRenderNodeType::SURFACE_NODE;
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawableAdapter->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->layerInfo_.zOrder = equalZOrder;
+
+    auto hardwareSurfaceNode = std::make_shared<RSSurfaceRenderNode>(hardwareSurfaceId);
+    ASSERT_NE(hardwareSurfaceNode, nullptr);
+    auto hardwareDrawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(hardwareSurfaceNode);
+    hardwareDrawableAdapter->nodeType_ = RSRenderNodeType::SURFACE_NODE;
+    auto hardwareParams = static_cast<RSSurfaceRenderParams*>(hardwareDrawableAdapter->renderParams_.get());
+    ASSERT_NE(hardwareParams, nullptr);
+    hardwareParams->layerInfo_.zOrder = equalZOrder;
+
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (!rtThread.GetRSRenderThreadParams()) {
+        RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    }
+    auto renderThreadParams = std::make_unique<RSRenderThreadParams>();
+    renderThreadParams->hardwareEnabledTypeDrawables_.push_back(std::make_tuple(1, 0, hardwareDrawableAdapter));
+    rtThread.Sync(std::move(renderThreadParams));
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    screenParams->layerSkipContext_.relevantSurfaceNodeIds_ = { surfaceId };
+    auto result = RSUniRenderUtil::ProcessSingleSelfDrawingNode(canvas, *screenParams, *displayParams);
+    ASSERT_EQ(result, true);
+}
+
+/**
+ * @tc.name: ProcessSingleSelfDrawingNode010
+ * @tc.desc: test ProcessSingleSelfDrawingNode with relevantSurfaceParams nullptr
+ * @tc.type: FUNC
+ * @tc.require: #23391
+ */
+HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode010, TestSize.Level1)
+{
+    constexpr NodeId displayNodeId = 1;
+    constexpr NodeId defaultDisplayId = 2;
+    constexpr NodeId surfaceId = 3;
+
+    RSDisplayNodeConfig config;
+    auto renderNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config);
+    renderNode->InitRenderParams();
+    auto drawable = std::static_pointer_cast<DrawableV2::RSLogicalDisplayRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode));
+    ASSERT_NE(drawable, nullptr);
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(drawable->renderParams_.get());
+
+    auto rsContext = std::make_shared<RSContext>();
+    RSScreenRenderNodeDrawable* screenDrawable = GenerateDisplayDrawableById(defaultDisplayId, 0, rsContext);
+    ASSERT_NE(screenDrawable, nullptr);
+    auto screenParams = std::make_unique<RSScreenRenderParams>(defaultDisplayId);
+    screenParams->layerSkipContext_.screenLayerInvalid_ = true;
+
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceId);
+    ASSERT_NE(surfaceNode, nullptr);
+    auto surfaceDrawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
+    surfaceDrawableAdapter->nodeType_ = RSRenderNodeType::SURFACE_NODE;
+    surfaceDrawableAdapter->renderParams_ = nullptr;
+
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (!rtThread.GetRSRenderThreadParams()) {
+        RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    }
+    auto renderThreadParams = std::make_unique<RSRenderThreadParams>();
+    rtThread.Sync(std::move(renderThreadParams));
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    screenParams->layerSkipContext_.relevantSurfaceNodeIds_ = { surfaceId };
+    auto result = RSUniRenderUtil::ProcessSingleSelfDrawingNode(canvas, *screenParams, *displayParams);
+    ASSERT_EQ(result, false);
+}
+
+/**
+ * @tc.name: ProcessSingleSelfDrawingNode011
+ * @tc.desc: test ProcessSingleSelfDrawingNode with hardwareDrawable nullptr from shared_ptr holding null
+ * @tc.type: FUNC
+ * @tc.require: #23391
+ */
+HWTEST_F(RSUniRenderUtilTest, ProcessSingleSelfDrawingNode011, TestSize.Level1)
+{
+    constexpr NodeId displayNodeId = 1;
+    constexpr NodeId defaultDisplayId = 2;
+    constexpr NodeId surfaceId = 3;
+    constexpr NodeId hardwareSurfaceId = 4;
+    constexpr int32_t lowZOrder = 0;
+    constexpr int32_t highZOrder = 10;
+
+    RSDisplayNodeConfig config;
+    auto renderNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config);
+    renderNode->InitRenderParams();
+    auto drawable = std::static_pointer_cast<DrawableV2::RSLogicalDisplayRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode));
+    ASSERT_NE(drawable, nullptr);
+    auto displayParams = static_cast<RSLogicalDisplayRenderParams*>(drawable->renderParams_.get());
+
+    auto rsContext = std::make_shared<RSContext>();
+    RSScreenRenderNodeDrawable* screenDrawable = GenerateDisplayDrawableById(defaultDisplayId, 0, rsContext);
+    ASSERT_NE(screenDrawable, nullptr);
+    auto screenParams = std::make_unique<RSScreenRenderParams>(defaultDisplayId);
+    screenParams->layerSkipContext_.screenLayerInvalid_ = true;
+
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceId);
+    ASSERT_NE(surfaceNode, nullptr);
+    auto surfaceDrawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
+    surfaceDrawableAdapter->nodeType_ = RSRenderNodeType::SURFACE_NODE;
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawableAdapter->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->layerInfo_.zOrder = highZOrder;
+
+    auto hardwareSurfaceNode = std::make_shared<RSSurfaceRenderNode>(hardwareSurfaceId);
+    ASSERT_NE(hardwareSurfaceNode, nullptr);
+    auto hardwareDrawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(hardwareSurfaceNode);
+    hardwareDrawableAdapter->nodeType_ = RSRenderNodeType::SURFACE_NODE;
+    auto hardwareParams = static_cast<RSSurfaceRenderParams*>(hardwareDrawableAdapter->renderParams_.get());
+    ASSERT_NE(hardwareParams, nullptr);
+    hardwareParams->layerInfo_.zOrder = lowZOrder;
+
+    std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter> nullPtrHolder(nullptr);
+
+    auto& rtThread = RSUniRenderThread::Instance();
+    if (!rtThread.GetRSRenderThreadParams()) {
+        RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    }
+    auto renderThreadParams = std::make_unique<RSRenderThreadParams>();
+    renderThreadParams->hardwareEnabledTypeDrawables_.push_back(std::make_tuple(1, 0, nullPtrHolder));
+    renderThreadParams->hardwareEnabledTypeDrawables_.push_back(std::make_tuple(2, 0, hardwareDrawableAdapter));
+    rtThread.Sync(std::move(renderThreadParams));
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    screenParams->layerSkipContext_.relevantSurfaceNodeIds_ = { surfaceId };
+    auto result = RSUniRenderUtil::ProcessSingleSelfDrawingNode(canvas, *screenParams, *displayParams);
+    ASSERT_EQ(result, true);
 }
 } // namespace OHOS::Rosen

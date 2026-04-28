@@ -89,9 +89,11 @@ BootCompileProgress::~BootCompileProgress()
     }
 }
 
-void BootCompileProgress::Init(const std::string& configPath, const BootAnimationConfig& config)
+void BootCompileProgress::Init(const std::string& configPath, const BootAnimationConfig& config,
+    sptr<IRemoteObject> connectToRender)
 {
     LOGI("ota compile, screenId: " BPUBU64 "", config.screenId);
+    connectToRender_ = connectToRender;
     RecordDeviceType();
     screenId_ = config.screenId;
     rotateDegree_ = config.rotateDegree;
@@ -131,9 +133,13 @@ bool BootCompileProgress::CreateCanvasNode()
     surfaceNodeConfig.SurfaceNodeName = "BootCompileProgressNode";
     surfaceNodeConfig.isSync = true;
     Rosen::RSSurfaceNodeType surfaceNodeType = Rosen::RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
-    rsUIDirector_ = OHOS::Rosen::RSUIDirector::Create();
-    rsUIDirector_->Init(false, false);
+    rsUIDirector_ = OHOS::Rosen::RSUIDirector::Create(connectToRender_);
     auto rsUIContext = rsUIDirector_->GetRSUIContext();
+    if (!rsUIContext) {
+        LOGE("rsUIContext is nullptr");
+        compileRunner_->Stop();
+        return false;
+    }
     rsSurfaceNode_ = Rosen::RSSurfaceNode::Create(surfaceNodeConfig, surfaceNodeType, true, false, rsUIContext);
     if (!rsSurfaceNode_) {
         LOGE("ota compile, SFNode create failed");
@@ -147,9 +153,9 @@ bool BootCompileProgress::CreateCanvasNode()
     rsSurfaceNode_->SetBackgroundColor(SK_ColorTRANSPARENT);
     rsSurfaceNode_->SetFrameGravity(Rosen::Gravity::RESIZE_ASPECT);
     rsSurfaceNode_->SetBootAnimation(true);
-    Rosen::RSTransaction::FlushImplicitTransaction();
+    rsUIDirector_->SendMessages();
     rsSurfaceNode_->AttachToDisplay(screenId_);
-    Rosen::RSTransaction::FlushImplicitTransaction();
+    rsUIDirector_->SendMessages();
 
     rsCanvasNode_ = Rosen::RSCanvasNode::Create(true, false, rsUIContext);
     rsCanvasNode_->SetBounds(0, 0, windowWidth_, windowHeight_);
@@ -226,7 +232,7 @@ void BootCompileProgress::OnVsync()
         compileRunner_->Stop();
         if (rsSurfaceNode_) {
             rsSurfaceNode_->DetachToDisplay(screenId_);
-            OHOS::Rosen::RSTransaction::FlushImplicitTransaction();
+            rsUIDirector_->SendMessages();
         }
     }
 }
@@ -280,7 +286,7 @@ void BootCompileProgress::DrawCompileProgress()
     DrawMarginBrush(canvas);
     DrawCircle(canvas);
     rsCanvasNode_->FinishRecording();
-    Rosen::RSTransaction::FlushImplicitTransaction();
+    rsUIDirector_->SendMessages();
 
     if (progress_ >= ONE_HUNDRED_PERCENT) {
         isUpdateOptEnd_ = true;

@@ -62,9 +62,6 @@ public:
     void RemoveToken(const sptr<RSIConnectionToken>& token);
 
     // Hgm
-    void ProcessHgmFrameRate(uint64_t timestamp, uint64_t vsyncId,
-        const sptr<HgmProcessToServiceInfo>& processToServiceInfo,
-        const sptr<HgmServiceToProcessInfo>& ServiceToProcessInfo);
     const std::shared_ptr<HgmContext>& GetHgmContext() const { return renderService_.GetHgmContext(); }
     void HandlePowerStatus(ScreenId screenId, ScreenPowerStatus status);
 
@@ -73,8 +70,18 @@ public:
     void FpsDump(std::string& dumpString, const std::string& arg);
     void CollectDump(std::string& dumpString);
 
+    // Game Scene Handler
+    void HandleGameSceneChanged() const;
+
+    std::pair<sptr<IRSRenderToComposerConnection>, sptr<VSyncConnection>> GetProcessInfo(
+        ScreenId screenId, sptr<IRemoteObject> vsyncToken);
+
+    HgmProcessCallback& GetHgmProcessCallback() { return hgmProcessCallback_; }
+    void RegisterHgmProcessCallback(HgmProcessCallback hgmProcessCallback);
+
 private:
     RSRenderService& renderService_;
+    HgmProcessCallback hgmProcessCallback_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

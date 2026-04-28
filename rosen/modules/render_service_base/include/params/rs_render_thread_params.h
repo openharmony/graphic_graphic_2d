@@ -177,16 +177,6 @@ public:
         return isUIFirstDebugEnable_;
     }
 
-    void SetUIFirstCurrentFrameCanSkipFirstWait(bool canSkip)
-    {
-        isUIFirstCurrentFrameCanSkipFirstWait_ = canSkip;
-    }
-
-    bool GetUIFirstCurrentFrameCanSkipFirstWait() const
-    {
-        return isUIFirstCurrentFrameCanSkipFirstWait_;
-    }
-
     void SetTimestamp(uint64_t timestamp)
     {
         timestamp_ = timestamp;
@@ -483,6 +473,26 @@ public:
         return isSecurityExemption_;
     }
 
+    void AddWhiteListRect(const std::unordered_set<ScreenId>& screenIds, RectI rect)
+    {
+        for (auto screenId : screenIds) {
+            whiteListRect_[screenId].push_back(rect);
+        }
+    }
+
+    std::vector<RectI> GetWhiteListRectByScreenId(ScreenId screenId) const
+    {
+        if (auto iter = whiteListRect_.find(screenId); iter != whiteListRect_.end()) {
+            return iter->second;
+        }
+        return {};
+    }
+
+    void ClearWhiteListRect()
+    {
+        whiteListRect_.clear();
+    }
+
     bool IsOverDrawEnabled() const
     {
         return isOverDrawEnabled_;
@@ -606,6 +616,16 @@ public:
     }
 #endif
 
+    void SetDrawRelated(bool value)
+    {
+        isDrawRelated_ = value;
+    }
+
+    bool IsDrawRelated()
+    {
+        return isDrawRelated_;
+    }
+
 private:
     bool virtualDirtyRefresh_ = false;
     // Used by hardware thred
@@ -639,7 +659,6 @@ private:
     bool isOcclusionEnabled_ = false;
     CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn_ = CrossNodeOffScreenRenderDebugType::ENABLE;
     bool isUIFirstDebugEnable_ = false;
-    bool isUIFirstCurrentFrameCanSkipFirstWait_ = false;
     bool isVirtualDirtyDfxEnabled_ = false;
     bool isVirtualDirtyEnabled_ = false;
     bool isVirtualExpandScreenDirtyEnabled_ = false;
@@ -682,6 +701,7 @@ private:
     bool isImplicitAnimationEnd_ = false;
     bool discardJankFrames_ = false;
 
+    std::map<ScreenId, std::vector<RectI>> whiteListRect_;
     bool isSecurityExemption_ = false;
     // use to mark security display
     bool isSecurityDisplay_ = false;
@@ -692,6 +712,7 @@ private:
     bool cachedSurfaceNodeOnTheTree_{false};
     NodeId cachedSurfaceNodeId_{0};
 #endif
+    bool isDrawRelated_ = false;
 
     friend class RSMainThread;
     friend class RSUniRenderVisitor;

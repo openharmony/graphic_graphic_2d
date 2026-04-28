@@ -41,7 +41,7 @@ inline HdrStatus CheckAIHDRType(uint8_t metadataType)
         case HDI::Display::Graphic::Common::V2_2::CM_VIDEO_AI_HDR_HIGH_LIGHT:
             return HdrStatus::AI_HDR_VIDEO_GAINMAP;
         case HDI::Display::Graphic::Common::V2_2::CM_VIDEO_AI_HDR_COLOR_ENHANCE:
-            return HdrStatus::AI_HDR_VIDEO_GAINMAP;
+            return HdrStatus::AI_HDR_VIDEO_AI2020;
         default:
             return HdrStatus::NO_HDR;
     }
@@ -63,7 +63,9 @@ bool RSBaseHdrUtil::CheckIsHDRSelfProcessingBuffer(const sptr<SurfaceBuffer>& su
     }
     CM_HDR_Metadata_Type hdrMetadataType = CM_METADATA_NONE;
     ret = MetadataHelper::GetHDRMetadataType(surfaceBuffer, hdrMetadataType);
-    bool noneHDRMetadataType = ret != GSERROR_OK || hdrMetadataType == CM_METADATA_NONE;
+    bool noneHDRMetadataType = ret != GSERROR_OK || hdrMetadataType == CM_METADATA_NONE ||
+        static_cast<int32_t>(hdrMetadataType) ==
+        static_cast<int32_t>(HDI::Display::Graphic::Common::V2_2::CM_COMPONENT_EDR);
     if (!noneHDRMetadataType) {
         return false;
     }
@@ -165,14 +167,16 @@ void RSBaseHdrUtil::SetBufferHDRParam(BufferDrawParam& params, const RSLayerPtr&
     // color temperature
     params.layerLinearMatrix = layer->GetLayerLinearMatrix();
     bool isSurfaceBufferWithMetadata = false;
-    if (CheckIsHdrSurfaceBuffer(layer->GetBuffer()) == HdrStatus::NO_HDR) {
+    auto buffer = layer->GetUseDeviceOffline() ?
+        layer->GetHpaeOriginalInfo().originalBuffer : layer->GetBuffer();
+    if (CheckIsHdrSurfaceBuffer(buffer) == HdrStatus::NO_HDR) {
         params.brightnessRatio = layer->GetBrightnessRatio();
-        isSurfaceBufferWithMetadata = CheckIsSurfaceBufferWithMetadata(layer->GetBuffer());
+        isSurfaceBufferWithMetadata = CheckIsSurfaceBufferWithMetadata(buffer);
     } else {
         params.isHdrRedraw = true;
     }
     if (isSurfaceBufferWithMetadata ||
-        CheckIsSurfaceBufferWithAiHdrMetadata(layer->GetBuffer())) {
+        CheckIsSurfaceBufferWithAiHdrMetadata(buffer)) {
         params.hasMetadata = true;
     }
 #endif
@@ -184,6 +188,20 @@ bool RSBaseHdrUtil::GetRGBA1010108Enabled()
     static bool rgba1010108 = system::GetBoolParameter("const.graphics.rgba_1010108_supported", false);
     static bool debugSwitch = system::GetBoolParameter("persist.sys.graphic.rgba_1010108.enabled", true);
     return isDDGR && rgba1010108 && debugSwitch;
+}
+
+bool RSBaseHdrUtil::CheckAIHDRStatus(HdrStatus hdrStatus)
+{
+    switch (hdrStatus) {
+        case HdrStatus::AI_HDR_VIDEO_GTM:
+            return true;
+        case HdrStatus::AI_HDR_VIDEO_GAINMAP:
+            return true;
+        case HdrStatus::AI_HDR_VIDEO_AI2020:
+            return true;
+        default:
+            return false;
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

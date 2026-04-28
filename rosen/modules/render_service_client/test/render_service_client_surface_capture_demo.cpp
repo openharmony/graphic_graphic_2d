@@ -308,8 +308,8 @@ int main()
     cout << "rs local surface demo create window success: " << rect.width_ << " " << rect.height_ << endl;
     auto surfaceNode = window->GetSurfaceNode();
 
-    auto rsUiDirector = RSUIDirector::Create();
-    rsUiDirector->Init();
+    auto rsUiDirector = RSUIDirector::Create(nullptr, nullptr);
+    
     RSTransaction::FlushImplicitTransaction();
 
     cout << "rs local surface demo init" << endl;

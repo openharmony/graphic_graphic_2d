@@ -27,6 +27,7 @@ namespace OHOS {
 namespace Rosen {
 static constexpr size_t PARCEL_MAX_CAPACITY = 4000 * 1024; // upper bound of parcel capacity
 static constexpr uint64_t MAX_ADVANCE_TIME = 1000000000;  // one second advance most
+static constexpr uint32_t SURFACE_FPS_OP_NUM_MAX = 32; // max SurfaceFpsOpNum
 
 RSLayerTransactionData::~RSLayerTransactionData()
 {
@@ -93,6 +94,10 @@ bool RSLayerTransactionData::UnMarshallingPipelineParam(OHOS::MessageParcel& par
         parcel.ReadUint64(composerInfo_.pipelineParam.pendingConstraintRelativeTime) &&
         parcel.ReadBool(composerInfo_.pipelineParam.hasLppVideo) &&
         parcel.ReadUint32(composerInfo_.pipelineParam.SurfaceFpsOpNum);
+    if (!flag) {
+        RS_LOGE("%{public}s failed", __func__);
+        return flag;
+    }
 
     composerInfo_.pipelineParam.SurfaceFpsOpList = std::vector<SurfaceFpsOp>(
         composerInfo_.pipelineParam.SurfaceFpsOpNum);
@@ -118,10 +123,20 @@ bool RSLayerTransactionData::MarshallingPipelineParam(std::shared_ptr<OHOS::Mess
         parcel->WriteBool(composerInfo_.pipelineParam.hasGameScene) &&
         parcel->WriteUint32(composerInfo_.pipelineParam.pendingScreenRefreshRate) &&
         parcel->WriteUint64(composerInfo_.pipelineParam.pendingConstraintRelativeTime) &&
-        parcel->WriteBool(composerInfo_.pipelineParam.hasLppVideo) &&
-        parcel->WriteUint32(composerInfo_.pipelineParam.SurfaceFpsOpNum);
+        parcel->WriteBool(composerInfo_.pipelineParam.hasLppVideo);
 
-    for (uint32_t i = 0; i < composerInfo_.pipelineParam.GetSurfaceFpsOpNum(); i++) {
+    uint32_t surfaceFpsOpNum = composerInfo_.pipelineParam.GetSurfaceFpsOpNum();
+    if (surfaceFpsOpNum > SURFACE_FPS_OP_NUM_MAX) {
+        RS_LOGE("%{public}s SurfaceFpsOpNum %{public}u exceeds max num, drop excess data",
+                __func__, surfaceFpsOpNum);
+        RS_TRACE_NAME_FMT("%s SurfaceFpsOpNum %u exceeds max num, drop excess data",
+                          __func__, surfaceFpsOpNum);
+        surfaceFpsOpNum = SURFACE_FPS_OP_NUM_MAX;
+    }
+
+    flag = flag && parcel->WriteUint32(surfaceFpsOpNum);
+
+    for (uint32_t i = 0; i < surfaceFpsOpNum; i++) {
         flag = flag && parcel->WriteUint32(composerInfo_.pipelineParam.SurfaceFpsOpList[i].surfaceFpsOpType) &&
         parcel->WriteUint64(composerInfo_.pipelineParam.SurfaceFpsOpList[i].surfaceNodeId) &&
         parcel->WriteString(composerInfo_.pipelineParam.SurfaceFpsOpList[i].surfaceName);
