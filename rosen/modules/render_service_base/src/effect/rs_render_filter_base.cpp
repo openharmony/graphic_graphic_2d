@@ -223,7 +223,7 @@ static std::unordered_map<RSNGEffectType, FilterGetDrawRect> getDrawRectLUT = {
             }
             return RectF(left, top, right - left, bottom - top);
         }
-#ifndef ROSEN_ARKUI_X        
+#ifndef ROSEN_ARKUI_X
     },
     {
         RSNGEffectType::FROSTED_GLASS, [](std::shared_ptr<RSNGRenderFilterBase> filter, RectF rect) {
@@ -231,7 +231,7 @@ static std::unordered_map<RSNGEffectType, FilterGetDrawRect> getDrawRectLUT = {
             auto shape = frostedGlassFilter->Getter<OHOS::Rosen::FrostedGlassShapeRenderTag>()->Get();
             return shape->GetTransformDrawRect();
         }
-#endif   
+#endif
     }
 };
 

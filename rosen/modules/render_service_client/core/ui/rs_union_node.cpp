@@ -28,7 +28,7 @@ namespace Rosen {
 RSUnionNode::SharedPtr RSUnionNode::Create(
     bool isRenderServiceNode, bool isTextureExportNode, std::shared_ptr<RSUIContext> rsUIContext)
 {
-#ifndef ROSEN_ARKUI_X    
+#ifndef ROSEN_ARKUI_X
     SharedPtr node(new RSUnionNode(isRenderServiceNode, isTextureExportNode, rsUIContext));
     if (rsUIContext != nullptr) {
         rsUIContext->GetMutableNodeMap().RegisterNode(node);
