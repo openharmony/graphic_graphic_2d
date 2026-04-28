@@ -98,6 +98,115 @@ HWTEST_F(RSLayerCacheManagerTest, HandleLayerDrawablesTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: HandleLayerDrawablesTest
+ * @tc.desc: Test HandleLayerDrawables
+ * @tc.type: FUNC
+ * @tc.require: issues/22969
+ */
+HWTEST_F(RSLayerCacheManagerTest, HandleLayerDrawablesTest, TestSize.Level1)
+{
+    auto& layerCacheManager = RSLayerCacheManager::Instance();
+    EXPECT_TRUE(layerCacheManager.layerDrawables_.empty());
+
+    Drawing::Canvas canvas;
+    auto curCanvas = std::make_shared<RSPaintFilterCanvas>(&canvas);
+
+    layerCacheManager.HandleLayerDrawables(*curCanvas);
+
+    NodeId nodeId = 0;
+    auto node = std::make_shared<RSCanvasRenderNode>(0);
+    auto drawable = std::static_pointer_cast<DrawableV2::RSCanvasRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
+    canvas.gpuContext_ = std::make_shared<Drawing::GPUContext>();
+
+    EXPECT_TRUE(curCanvas->GetGPUContext() != nullptr);
+
+    drawable->GetRenderParams()->isOpincSuggestFlag_ = false;
+    drawable->isDrawingCacheEnabled_ = false;
+    drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    layerCacheManager.layerDrawables_.emplace_back(drawable);
+    layerCacheManager.HandleLayerDrawables(*curCanvas);
+    layerCacheManager.layerDrawables_.emplace_back(drawable);
+
+    drawable->GetRenderParams()->SetFrameRect(Drawing::RectF(0, 0, 10000, 10000));
+    float a = 0.0f;
+    float b = 0.0f;
+    EXPECT_FALSE(layerCacheManager.ShouldEnableLayerCache(drawable, a, b));
+
+    layerCacheManager.HandleLayerDrawables(*curCanvas);
+}
+
+/**
+ * @tc.name: HandleLayerDrawablesTest002
+ * @tc.desc: Test HandleLayerDrawables
+ * @tc.type: FUNC
+ * @tc.require: issues/22969
+ */
+HWTEST_F(RSLayerCacheManagerTest, HandleLayerDrawablesTest002, TestSize.Level1)
+{
+    auto& layerCacheManager = RSLayerCacheManager::Instance();
+    EXPECT_TRUE(layerCacheManager.layerDrawables_.empty());
+
+    Drawing::Canvas canvas;
+    auto curCanvas = std::make_shared<RSPaintFilterCanvas>(&canvas);
+
+    layerCacheManager.HandleLayerDrawables(*curCanvas);
+
+    NodeId nodeId = 0;
+    auto node = std::make_shared<RSCanvasRenderNode>(0);
+    auto drawable = std::static_pointer_cast<DrawableV2::RSCanvasRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
+    canvas.gpuContext_ = std::make_shared<Drawing::GPUContext>();
+
+    EXPECT_TRUE(curCanvas->GetGPUContext() != nullptr);
+
+    drawable->GetRenderParams()->isOpincSuggestFlag_ = false;
+    drawable->isDrawingCacheEnabled_ = false;
+    drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    layerCacheManager.layerDrawables_.emplace_back(drawable);
+    layerCacheManager.HandleLayerDrawables(*curCanvas);
+    layerCacheManager.layerDrawables_.emplace_back(drawable);
+
+    drawable->GetRenderParams()->SetFrameRect(Drawing::RectF(0, 0, 100, 100));
+    layerCacheManager.HandleLayerDrawables(*curCanvas);
+}
+
+/**
+ * @tc.name: HandleLayerDrawablesTest003
+ * @tc.desc: Test HandleLayerDrawables
+ * @tc.type: FUNC
+ * @tc.require: issues/22969
+ */
+HWTEST_F(RSLayerCacheManagerTest, HandleLayerDrawablesTest003, TestSize.Level1)
+{
+    auto& layerCacheManager = RSLayerCacheManager::Instance();
+    EXPECT_TRUE(layerCacheManager.layerDrawables_.empty());
+
+    Drawing::Canvas canvas;
+    auto curCanvas = std::make_shared<RSPaintFilterCanvas>(&canvas);
+
+    layerCacheManager.HandleLayerDrawables(*curCanvas);
+
+    NodeId nodeId = 0;
+    auto node = std::make_shared<RSCanvasRenderNode>(0);
+    auto drawable = std::static_pointer_cast<DrawableV2::RSCanvasRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
+    canvas.gpuContext_ = std::make_shared<Drawing::GPUContext>();
+
+    EXPECT_TRUE(curCanvas->GetGPUContext() != nullptr);
+
+    drawable->GetRenderParams()->isOpincSuggestFlag_ = false;
+    drawable->isDrawingCacheEnabled_ = false;
+    drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    layerCacheManager.layerDrawables_.emplace_back(drawable);
+    layerCacheManager.HandleLayerDrawables(*curCanvas);
+    layerCacheManager.layerDrawables_.emplace_back(drawable);
+
+    drawable->GetRenderParams()->SetFrameRect(Drawing::RectF(0, 0, 1000, 1000));
+    layerCacheManager.HandleLayerDrawables(*curCanvas);
+}
+
+/**
  * @tc.name: TryPrepareLayerCacheTest001
  * @tc.desc: Test TryPrepareLayerCache
  * @tc.type: FUNC
