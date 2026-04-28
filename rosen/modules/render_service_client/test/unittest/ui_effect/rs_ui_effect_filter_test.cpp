@@ -35,6 +35,23 @@ namespace Rosen {
 using namespace testing;
 using namespace testing::ext;
 
+struct FrostedGlassFloatCounts {
+    // Vector2f(2) + Vector2f(2) + Vector2f(2) + Vector3f(3)
+    static constexpr int BLUR_REFRACT_FLOATS = 9;
+    // Vector2f(2) + Vector3f(3) + Vector3f(3) + Vector3f(3) + float(1)
+    static constexpr int BG_PARAMS_FLOATS = 12;
+    // Vector3f(3) + Vector2f(2) + Vector3f(3) + Vector3f(3) + Vector3f(3)
+    static constexpr int SD_PARAMS_FLOATS = 14;
+    // Vector3f(3) + Vector2f(2) + Vector3f(3) + Vector3f(3) + Vector3f(3)
+    static constexpr int ENV_LIGHT_FLOATS = 14;
+    // Vector2f*4(8) + Vector3f*3(9)
+    static constexpr int ED_LIGHT_FLOATS = 17;
+    static constexpr int TOTAL_PARAMS_FLOATS =
+        BLUR_REFRACT_FLOATS + BG_PARAMS_FLOATS + SD_PARAMS_FLOATS + ENV_LIGHT_FLOATS + ED_LIGHT_FLOATS;
+    // float(1) + float(1) + float(1) + bool(1)
+    static constexpr int BLUR_PARA_FLOATS = 3;
+};
+
 class RSUIEffectFilterTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -700,9 +717,8 @@ HWTEST_F(RSUIEffectFilterTest, RSUIEffectFrostedGlassParaUnmarshallingFailTest, 
     parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
     EXPECT_FALSE(FrostedGlassPara::OnUnmarshalling(parcelTest, valTest));
 
-    constexpr int BLUR_REFRACT_FLOATS = 9;
-    constexpr int BG_EXTRA_FLOATS = 4;
-    constexpr int FLOATS_FOR_BG_FAIL = BLUR_REFRACT_FLOATS + BG_EXTRA_FLOATS;
+    // ReadBgParams fail: write blur+refract params (9 floats) + partial bg params (4 floats)
+    constexpr int FLOATS_FOR_BG_FAIL = FrostedGlassFloatCounts::BLUR_REFRACT_FLOATS + 4;
 
     parcelTest.FlushBuffer();
     parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
@@ -713,6 +729,7 @@ HWTEST_F(RSUIEffectFilterTest, RSUIEffectFrostedGlassParaUnmarshallingFailTest, 
     parcelTest.WriteBool(true);
     EXPECT_FALSE(FrostedGlassPara::OnUnmarshalling(parcelTest, valTest));
 
+    // ReadAdaptiveParams fail after mask=false
     parcelTest.FlushBuffer();
     parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
     parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
@@ -744,16 +761,96 @@ HWTEST_F(RSUIEffectFilterTest, RSUIEffectFrostedGlassBlurParaUnmarshallingFailTe
     parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS_BLUR));
     EXPECT_FALSE(FrostedGlassBlurPara::OnUnmarshalling(parcelTest, valTest));
 
-    constexpr int BLUR_PARA_TOTAL_FLOATS = 3;
-    constexpr int PARTIAL_FLOATS = BLUR_PARA_TOTAL_FLOATS - 1;
-
     parcelTest.FlushBuffer();
     parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS_BLUR));
     parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS_BLUR));
-    for (int i = 0; i < PARTIAL_FLOATS; ++i) {
+    for (int i = 0; i < FrostedGlassFloatCounts::BLUR_PARA_FLOATS - 1; ++i) {
         parcelTest.WriteFloat(1.0f);
     }
     EXPECT_FALSE(FrostedGlassBlurPara::OnUnmarshalling(parcelTest, valTest));
+}
+
+/**
+ * @tc.name: RSUIEffectFrostedGlassParaMarshallingWithInvalidMaskTest
+ * @tc.desc: Verify the FrostedGlassPara Marshalling fails when maskPara_->Marshalling fails
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIEffectFilterTest, RSUIEffectFrostedGlassParaMarshallingWithInvalidMaskTest, TestSize.Level1)
+{
+    auto para = std::make_shared<FrostedGlassPara>();
+    para->SetMask(std::make_shared<MaskPara>());
+
+    Parcel parcel;
+    EXPECT_FALSE(para->Marshalling(parcel));
+}
+
+/**
+ * @tc.name: RSUIEffectFrostedGlassParaUnmarshallingMaskFailTest
+ * @tc.desc: Verify the FrostedGlassPara OnUnmarshalling fails when MaskPara::Unmarshalling fails
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIEffectFilterTest, RSUIEffectFrostedGlassParaUnmarshallingMaskFailTest, TestSize.Level1)
+{
+    std::shared_ptr<FilterPara> valTest = nullptr;
+    Parcel parcelTest;
+
+    parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
+    parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
+    for (int i = 0; i < FrostedGlassFloatCounts::TOTAL_PARAMS_FLOATS; ++i) {
+        parcelTest.WriteFloat(1.0f);
+    }
+    parcelTest.WriteBool(true);
+    parcelTest.WriteUint16(666);
+    EXPECT_FALSE(FrostedGlassPara::OnUnmarshalling(parcelTest, valTest));
+}
+
+/**
+ * @tc.name: RSUIEffectFrostedGlassParaReadParamsBranchTest
+ * @tc.desc: Verify the FrostedGlassPara Read functions branch coverage at different truncate positions
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIEffectFilterTest, RSUIEffectFrostedGlassParaReadParamsBranchTest, TestSize.Level1)
+{
+    std::shared_ptr<FilterPara> valTest = nullptr;
+    Parcel parcelTest;
+
+    constexpr int AFTER_BG_PARAMS =
+        FrostedGlassFloatCounts::BLUR_REFRACT_FLOATS + FrostedGlassFloatCounts::BG_PARAMS_FLOATS;
+    constexpr int AFTER_SD_PARAMS = AFTER_BG_PARAMS + FrostedGlassFloatCounts::SD_PARAMS_FLOATS;
+    constexpr int AFTER_ENV_LIGHT = AFTER_SD_PARAMS + FrostedGlassFloatCounts::ENV_LIGHT_FLOATS;
+    constexpr int AFTER_ED_LIGHT = AFTER_ENV_LIGHT + FrostedGlassFloatCounts::ED_LIGHT_FLOATS;
+
+    parcelTest.FlushBuffer();
+    parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
+    parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
+    for (int i = 0; i < AFTER_BG_PARAMS + 1; ++i) {
+        parcelTest.WriteFloat(1.0f);
+    }
+    EXPECT_FALSE(FrostedGlassPara::OnUnmarshalling(parcelTest, valTest));
+
+    parcelTest.FlushBuffer();
+    parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
+    parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
+    for (int i = 0; i < AFTER_SD_PARAMS + 1; ++i) {
+        parcelTest.WriteFloat(1.0f);
+    }
+    EXPECT_FALSE(FrostedGlassPara::OnUnmarshalling(parcelTest, valTest));
+
+    parcelTest.FlushBuffer();
+    parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
+    parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
+    for (int i = 0; i < AFTER_ENV_LIGHT + 1; ++i) {
+        parcelTest.WriteFloat(1.0f);
+    }
+    EXPECT_FALSE(FrostedGlassPara::OnUnmarshalling(parcelTest, valTest));
+
+    parcelTest.FlushBuffer();
+    parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
+    parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
+    for (int i = 0; i < AFTER_ED_LIGHT + 1; ++i) {
+        parcelTest.WriteFloat(1.0f);
+    }
+    EXPECT_FALSE(FrostedGlassPara::OnUnmarshalling(parcelTest, valTest));
 }
 } // namespace Rosen
 } // namespace OHOS

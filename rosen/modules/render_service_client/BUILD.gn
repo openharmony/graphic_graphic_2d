@@ -217,6 +217,7 @@ template("render_service_client_source_set") {
       "core/ui_effect/filter/src/filter_water_ripple_para.cpp",
       "core/ui_effect/filter/src/filter.cpp",
       "core/ui_effect/mask/src/image_mask_para.cpp",
+      "core/ui_effect/mask/src/mask.cpp",
       "core/ui_effect/mask/src/mask_para.cpp",
       "core/ui_effect/mask/src/mask_unmarshalling_singleton.cpp",
       "core/ui_effect/mask/src/pixel_map_mask_para.cpp",
