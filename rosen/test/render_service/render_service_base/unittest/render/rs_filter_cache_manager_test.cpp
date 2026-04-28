@@ -313,6 +313,10 @@ HWTEST_F(RSFilterCacheManagerTest, GeneratedCachedEffectDataTest, TestSize.Level
     std::optional<Drawing::RectI> dstRect(Drawing::RectI { 0, 0, 100, 100 });
     rsFilterCacheManager->GeneratedCachedEffectData(filterCanvas, filter, id, srcRect, dstRect);
     EXPECT_TRUE(filterCanvas.GetDeviceClipBounds().IsEmpty());
+
+    // test for HveFilter
+    HveFilter::GetHveFilter().PushHveFilterSurfaceNodeMapping(id, 1);
+    rsFilterCacheManager->GeneratedCachedEffectData(filterCanvas, filter, id, srcRect, dstRect);
 }
 
 /**

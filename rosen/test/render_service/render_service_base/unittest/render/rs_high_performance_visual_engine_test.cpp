@@ -187,20 +187,27 @@ HWTEST_F(RSHveFilterTest, PushHveFilterSurfaceNodeMappingTest, TestSize.Level1)
 HWTEST_F(RSHveFilterTest, SampleLayerTest, TestSize.Level1)
 {
     HveFilter filter;
-    auto canvas = std::make_unique<Drawing::Canvas>();
-    RSPaintFilterCanvas paintFilterCanvas(canvas.get());
-    EXPECT_EQ(paintFilterCanvas.GetSurface(), nullptr);
-    const Drawing::RectI srcRect = Drawing::RectI(0, 0, 350, 20);
-    auto outImage = filter.SampleLayer(paintFilterCanvas, srcRect);
+    int canvasHeight = 10;
+    int canvasWidth = 10;
+    std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(canvasHeight, canvasWidth);
+    RSPaintFilterCanvas paintFilterCanvas(drawingCanvas.get());
+    const Drawing::RectI srcRect = Drawing::RectI(0, 0, canvasWidth, canvasHeight);
+    NodeId filterId = 1;
+    auto outImage = filter.SampleLayer(paintFilterCanvas, srcRect, filterId);
     EXPECT_EQ(outImage, nullptr);
 
-    std::shared_ptr<Drawing::Surface> surfacePtr = std::make_shared<Drawing::Surface>();
-    std::shared_ptr<RSPaintFilterCanvas> canvasPtr = std::make_shared<RSPaintFilterCanvas>(canvas.get());
-    paintFilterCanvas.ReplaceMainScreenData(surfacePtr, canvasPtr);
-    EXPECT_EQ(paintFilterCanvas.GetSurface(), surfacePtr.get());
-    NodeId filterId = 1;
+    NodeId surfaceId = 2;
+    Drawing::Rect dstRect = {0, 0, canvasWidth, canvasHeight};
+    Drawing::Matrix rotateMatrix = paintFilterCanvas.GetTotalMatrix();
+    auto surfaceNodeImage = std::make_shared<Drawing::Image>();
+    SurfaceNodeInfo surfaceNodeInfo1 = {surfaceNodeImage, rotateMatrix, srcRect, dstRect, RgbPalette::Transparent(),
+        surfaceId};
+    filter.PushSurfaceNodeInfo(surfaceNodeInfo1);
+    SurfaceNodeInfo surfaceNodeInfo2 = {surfaceNodeImage, rotateMatrix, srcRect, dstRect, RgbPalette::Black(), 3};
+    filter.PushSurfaceNodeInfo(surfaceNodeInfo2);
+    filter.PushHveFilterSurfaceNodeMapping(filterId, surfaceId);
     outImage = filter.SampleLayer(paintFilterCanvas, srcRect, filterId);
-    EXPECT_EQ(outImage, nullptr);
+    EXPECT_NE(outImage, nullptr);
 }
 
 } // namespace Rosen
