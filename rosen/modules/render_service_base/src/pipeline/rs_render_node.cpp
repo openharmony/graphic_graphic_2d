@@ -1743,10 +1743,10 @@ void RSRenderNode::ActivateDisplaySync()
 
 void RSRenderNode::UpdateDisplaySyncRange()
 {
-    if (!displaySync_) {
+    if (!animationManager_ || !displaySync_) {
         return;
     }
-    auto animationRange = animationManager_ ? animationManager_->GetFrameRateRange() : FrameRateRange { 0, 0, 0 };
+    auto animationRange = animationManager_->GetFrameRateRange();
     if (animationRange.IsValid()) {
         displaySync_->SetExpectedFrameRateRange(animationRange);
     }
@@ -4309,6 +4309,7 @@ void RSRenderNode::AddAnimation(const std::shared_ptr<RSRenderAnimation>& animat
     }
     animationManager_->AddAnimation(animation);
 }
+
 RectI RSRenderNode::GetOldDirty() const
 {
     return oldDirty_;

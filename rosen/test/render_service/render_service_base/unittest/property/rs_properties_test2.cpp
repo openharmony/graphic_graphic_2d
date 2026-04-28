@@ -2084,7 +2084,7 @@ HWTEST_F(PropertiesTest, SetParticleRippleFieldsWithAnimation001, TestSize.Level
     renderNode->GetMutableRenderProperties().backref_ = renderNode;
     auto rippleFields = std::make_shared<ParticleRippleFields>();
     renderNode->GetMutableRenderProperties().SetParticleRippleFields(rippleFields);
-    EXPECT_EQ(renderNode->GetRenderProperties().GetParticleRippleFields(), rippleFields);
+    EXPECT_EQ(renderNode->GetRenderProperties().particleRippleFields_, rippleFields);
 }
 
 /**
@@ -2108,7 +2108,7 @@ HWTEST_F(PropertiesTest, SetParticleVelocityFieldsWithAnimation001, TestSize.Lev
     renderNode->GetMutableRenderProperties().backref_ = renderNode;
     auto velocityFields = std::make_shared<ParticleVelocityFields>();
     renderNode->GetMutableRenderProperties().SetParticleVelocityFields(velocityFields);
-    EXPECT_EQ(renderNode->GetRenderProperties().GetParticleVelocityFields(), velocityFields);
+    EXPECT_EQ(renderNode->GetRenderProperties().particleVelocityFields_, velocityFields);
 }
 
 /**
@@ -2177,7 +2177,7 @@ HWTEST_F(PropertiesTest, SetParticleRippleFieldsNullBackref001, TestSize.Level1)
     RSProperties properties;
     auto rippleFields = std::make_shared<ParticleRippleFields>();
     properties.SetParticleRippleFields(rippleFields);
-    EXPECT_EQ(properties.GetParticleRippleFields(), rippleFields);
+    EXPECT_EQ(properties.particleRippleFields_, rippleFields);
 }
 
 /**
@@ -2191,7 +2191,7 @@ HWTEST_F(PropertiesTest, SetParticleVelocityFieldsNullBackref001, TestSize.Level
     RSProperties properties;
     auto velocityFields = std::make_shared<ParticleVelocityFields>();
     properties.SetParticleVelocityFields(velocityFields);
-    EXPECT_EQ(properties.GetParticleVelocityFields(), velocityFields);
+    EXPECT_EQ(properties.particleVelocityFields_, velocityFields);
 }
 
 /**
@@ -2231,7 +2231,7 @@ HWTEST_F(PropertiesTest, SetParticleRippleFieldsNullPara001, TestSize.Level1)
 {
     RSProperties properties;
     properties.SetParticleRippleFields(nullptr);
-    EXPECT_EQ(properties.GetParticleRippleFields(), nullptr);
+    EXPECT_EQ(properties.particleRippleFields_, nullptr);
 }
 
 /**
@@ -2244,7 +2244,7 @@ HWTEST_F(PropertiesTest, SetParticleVelocityFieldsNullPara001, TestSize.Level1)
 {
     RSProperties properties;
     properties.SetParticleVelocityFields(nullptr);
-    EXPECT_EQ(properties.GetParticleVelocityFields(), nullptr);
+    EXPECT_EQ(properties.particleVelocityFields_, nullptr);
 }
 
 /**
