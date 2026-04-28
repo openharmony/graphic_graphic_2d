@@ -216,6 +216,8 @@ rs_effect_feature_sources = [
   "rs_effect_feature/ng_filter_test/ng_filter_material_blur_test.cpp",
   "rs_effect_feature/ng_filter_test/ng_filter_other_extend_test.cpp",
   "rs_effect_feature/ng_filter_test/ng_filter_sound_wave_test.cpp",
+  "rs_effect_feature/ng_filter_test/ng_filter_heat_distortion_test.cpp",
+  "rs_effect_feature/ng_filter_test/ng_filter_blur_bubbles_rise_test.cpp",
   "rs_effect_feature/ng_effect_test/ng_mask_frame_gradient_test.cpp",
 ]
 rs_framework_sources = [
