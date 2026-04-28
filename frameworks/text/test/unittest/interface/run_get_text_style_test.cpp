@@ -90,10 +90,10 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest001, TestSize.Level0)
     typography_->Layout(LAYOUT_WIDTH_NARROW);
 
     auto textLines = typography_->GetTextLines();
-    ASSERT_GT(textLines.size(), 0);
+    EXPECT_EQ(textLines.size(), 1);
 
     spRuns_ = textLines[0]->GetGlyphRuns();
-    ASSERT_GT(spRuns_.size(), 0);
+    EXPECT_EQ(spRuns_.size(), 1);
 
     TextStyle textStyle = spRuns_[0]->GetTextStyle();
     EXPECT_EQ(textStyle.color, Drawing::Color::COLOR_WHITE);
@@ -133,11 +133,11 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest002, TestSize.Level0)
 
     TextStyle resultStyle = spRuns_[0]->GetTextStyle();
 
-    EXPECT_DOUBLE_EQ(resultStyle.fontSize, 24.0);
+    EXPECT_DOUBLE_EQ(resultStyle.fontSize, 24.0); // 24.0px test font size
     EXPECT_EQ(resultStyle.fontWeight, FontWeight::W900);
     EXPECT_EQ(resultStyle.fontWidth, FontWidth::EXPANDED);
     EXPECT_EQ(resultStyle.fontStyle, OHOS::Rosen::FontStyle::ITALIC);
-    EXPECT_GT(resultStyle.fontFamilies.size(), 0);
+    EXPECT_EQ(resultStyle.fontFamilies.size(), 3); // 3 contains default fontFamily
 }
 
 /*
@@ -675,9 +675,9 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest017, TestSize.Level0)
     typography_->Layout(LAYOUT_WIDTH_EXTRA_WIDE);
 
     auto textLines = typography_->GetTextLines();
-    ASSERT_GT(textLines.size(), 0);
+    EXPECT_EQ(textLines.size(), 1);
     auto runs = textLines[0]->GetGlyphRuns();
-    ASSERT_GE(runs.size(), 3);
+    EXPECT_EQ(runs.size(), 3);
 
     VerifySegmentResultStyle(runs[0]->GetTextStyle(), 16.0, Drawing::Color::COLOR_RED, FontWeight::W400, 1);
     VerifySegmentResultStyle(runs[1]->GetTextStyle(), 24.0, Drawing::Color::COLOR_BLUE, FontWeight::W700, 2);
@@ -715,7 +715,7 @@ HWTEST_F(RunGetTextStyleTest, RunGetTextStyleTest018, TestSize.Level0)
     typography_->Layout(LAYOUT_WIDTH_ULTRA_WIDE);
 
     auto textLines = typography_->GetTextLines();
-    ASSERT_GT(textLines.size(), 0);
+    EXPECT_EQ(textLines.size(), 1);
     auto runs = textLines[0]->GetGlyphRuns();
     ASSERT_GE(runs.size(), 3);
 

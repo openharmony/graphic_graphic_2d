@@ -153,7 +153,7 @@ float RunImpl::GetTypographicBounds(float* ascent, float* descent, float* leadin
 
 TextStyle RunImpl::GetTextStyle() const
 {
-    if (!run_) {
+    if (run_ == nullptr) {
         return {};
     }
     return Convert(run_->GetTextStyle());
