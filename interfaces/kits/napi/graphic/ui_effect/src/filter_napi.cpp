@@ -1249,6 +1249,8 @@ void FilterNapi::RegisterFilterParaUnmarshallingCallback()
     MaskTransitionPara::RegisterUnmarshallingCallback();
     WaterRipplePara::RegisterUnmarshallingCallback();
     DirectionLightPara::RegisterUnmarshallingCallback();
+    FrostedGlassPara::RegisterUnmarshallingCallback();
+    FrostedGlassBlurPara::RegisterUnmarshallingCallback();
 }
 
 Drawing::TileMode FilterNapi::ParserArgumentType(napi_env env, napi_value argv)
