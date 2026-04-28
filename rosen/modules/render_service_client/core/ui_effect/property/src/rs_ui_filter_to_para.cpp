@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 #include "ui_effect/property/include/rs_ui_filter_to_para.h"
-#include "ui_effect/property/include/rs_ui_mask_to_para.h"
 
 #include "ui_effect/filter/include/filter_frosted_glass_blur_para.h"
 #include "ui_effect/filter/include/filter_frosted_glass_para.h"
 #include "ui_effect/filter/include/filter_para.h"
 #include "ui_effect/property/include/rs_ui_filter_base.h"
+#include "ui_effect/property/include/rs_ui_mask_to_para.h"
 #include "ui_effect/property/include/rs_ui_property_tag.h"
 
 namespace OHOS {
