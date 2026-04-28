@@ -1243,14 +1243,7 @@ napi_value FilterNapi::SetMaskTransition(napi_env env, napi_callback_info info)
 
 void FilterNapi::RegisterFilterParaUnmarshallingCallback()
 {
-    ContentLightPara::RegisterUnmarshallingCallback();
-    DispersionPara::RegisterUnmarshallingCallback();
-    DisplacementDistortPara::RegisterUnmarshallingCallback();
-    MaskTransitionPara::RegisterUnmarshallingCallback();
-    WaterRipplePara::RegisterUnmarshallingCallback();
-    DirectionLightPara::RegisterUnmarshallingCallback();
-    FrostedGlassPara::RegisterUnmarshallingCallback();
-    FrostedGlassBlurPara::RegisterUnmarshallingCallback();
+    Filter::RegisterUnmarshallingCallback();
 }
 
 Drawing::TileMode FilterNapi::ParserArgumentType(napi_env env, napi_value argv)
