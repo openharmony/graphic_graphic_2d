@@ -204,7 +204,7 @@ public:
                                                     uint64_t globalUniqueId = 0);
     static OpDataHandle AddTextBlobToCmdList(CmdList& cmdList, const TextBlob* textBlob, void* ctx = nullptr);
     static std::shared_ptr<TextBlob> GetTextBlobFromCmdList(const CmdList& cmdList,
-        const OpDataHandle& textBlobHandle, uint64_t globalUniqueId = 0);
+        const OpDataHandle& textBlobHandle, uint64_t globalUniqueId = 0, bool preferSpeedOverQuality = false);
 
     static OpDataHandle AddDataToCmdList(CmdList& cmdList, const Data* data);
     static std::shared_ptr<Data> GetDataFromCmdList(const CmdList& cmdList, const OpDataHandle& imageHandle);

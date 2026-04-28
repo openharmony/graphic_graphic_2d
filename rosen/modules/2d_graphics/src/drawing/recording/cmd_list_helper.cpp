@@ -518,7 +518,7 @@ OpDataHandle CmdListHelper::AddTextBlobToCmdList(CmdList& cmdList, const TextBlo
 }
 
 std::shared_ptr<TextBlob> CmdListHelper::GetTextBlobFromCmdList(const CmdList& cmdList,
-    const OpDataHandle& textBlobHandle, uint64_t globalUniqueId)
+    const OpDataHandle& textBlobHandle, uint64_t globalUniqueId, bool preferSpeedOverQuality)
 {
     if (textBlobHandle.size == 0) {
         return nullptr;
@@ -542,7 +542,11 @@ std::shared_ptr<TextBlob> CmdListHelper::GetTextBlobFromCmdList(const CmdList& c
 
     auto textBlobData = std::make_shared<Data>();
     textBlobData->BuildWithoutCopy(data, textBlobHandle.size);
-    return TextBlob::Deserialize(textBlobData->GetData(), textBlobData->GetSize(), &customCtx);
+    auto blob = TextBlob::Deserialize(textBlobData->GetData(), textBlobData->GetSize(), &customCtx);
+    if (blob != nullptr) {
+        blob->SetSpeedOverQualityPreferred(preferSpeedOverQuality);
+    }
+    return blob;
 }
 
 OpDataHandle CmdListHelper::AddDataToCmdList(CmdList& cmdList, const Data* srcData)
