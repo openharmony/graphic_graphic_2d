@@ -33,7 +33,7 @@ const std::string VOTER_NAME[] = {
     "VOTER_LOW",
 };
 const std::string VRATE_CONTROL_MINIFPS = "minifps";
-const std::string DISABLE_FRAME_SPLIT_MODE = "DISABLE_FRAME_SPLIT";
+const std::string DISABLE_APP_FRAME_SPLIT_MODE = "DISABLE_FRAME_SPLIT";
 }
 
 // LCOV_EXCL_START
@@ -131,7 +131,7 @@ void HgmSoftVSyncManager::SetWindowExpectedRefreshRate(pid_t pid,
         const VsyncName& vsyncName = voter.first;
         const EventInfo& eventInfo = voter.second;
 
-        if (eventInfo.description == DISABLE_FRAME_SPLIT_MODE) {
+        if (eventInfo.description == DISABLE_APP_FRAME_SPLIT_MODE) {
             if (eventInfo.eventStatus) {
                 disableAppFrameVsyncNames_.insert(vsyncName);
             } else {
