@@ -756,7 +756,7 @@ HWTEST_F(RSColorPickerManagerTest, ScheduleColorPickWithNullRect, TestSize.Level
 
     ColorPickerParam params(ColorPlaceholder::NONE, ColorPickStrategyType::AVERAGE, 0);
     NodeId filterId = 1;
-    manager->ScheduleColorPick(canvas, nullptr, params, filterId, filterId);
+    manager->ScheduleColorPick(canvas, nullptr, params, filterId);
 
     auto color = manager->GetColorPick();
     EXPECT_EQ(color.value(), Drawing::Color::COLOR_BLACK);

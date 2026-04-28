@@ -110,13 +110,14 @@ void HveFilter::ClearHveFilterSurfaceNodeMapping()
     hveFilterToSurfaceNodeMap_.clear();
 }
 
-void PushHveFilterSurfaceNodeMapping(NodeId filterId, NodeId surfaceId)
+void HveFilter::PushHveFilterSurfaceNodeMapping(NodeId filterId, NodeId surfaceId)
 {
     if (hveFilterToSurfaceNodeMap_.find(filterId) == hveFilterToSurfaceNodeMap_.end()) {
         hveFilterToSurfaceNodeMap_[filterId] = std::vector<NodeId>();
     }
     hveFilterToSurfaceNodeMap_[filterId].push_back(surfaceId);
 }
+
 void HveFilter::DrawSurfaceImage(std::shared_ptr<RSPaintFilterCanvas>& canvas,
     SurfaceNodeInfo& surfaceNodeInfo, const Drawing::RectI& srcRect)
 {
@@ -139,7 +140,7 @@ void HveFilter::DrawSurfaceImage(std::shared_ptr<RSPaintFilterCanvas>& canvas,
 }
     
 std::shared_ptr<Drawing::Image> HveFilter::SampleLayer(
-    RSPaintFilterCanvas& canvas, const Drawing::RectI& srcRect, NodeID filterId)
+    RSPaintFilterCanvas& canvas, const Drawing::RectI& srcRect, NodeId filterId)
 {
     std::lock_guard<std::mutex> lock(hveFilterMtx_);
     auto drawingSurface = canvas.GetSurface();
@@ -174,7 +175,7 @@ std::shared_ptr<Drawing::Image> HveFilter::SampleLayer(
             continue;
         }
         NodeId surfaceId = vecSurfaceNode[i].surfaceNodeId_;
-        if (std::find(surfaceNodeIds.begin(), surfaceNodeIds.end(), surfaceId) = surfaceNodeIds.end()) {
+        if (std::find(surfaceNodeIds.begin(), surfaceNodeIds.end(), surfaceId) == surfaceNodeIds.end()) {
             continue;
         }
         DrawSurfaceImage(offscreenCanvas, vecSurfaceNode[i], srcRect);
