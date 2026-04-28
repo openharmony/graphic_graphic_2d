@@ -50,7 +50,7 @@ public:
     bool CheckPrecondition(const RSRenderNode& filterNode,
         const RectI& filterRect, RSSurfaceRenderNode& hwcNode);
     void ClearHveFilterSurfaceNodeMapping();
-    void PushHveFilterSurfaceNodeMapping(NodeId filterId, NodeId hwcId);
+    void PushHveFilterSurfaceNodeMapping(NodeId filterId, NodeId surfaceId);
     std::shared_ptr<Drawing::Image> SampleLayer(
         RSPaintFilterCanvas& canvas, const Drawing::RectI& srcRect, NodeId filterId);
 
