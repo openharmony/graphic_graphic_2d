@@ -44,7 +44,7 @@ std::optional<Drawing::ColorQuad> ColorPickAltManager::GetColorPick()
 }
 
 void ColorPickAltManager::ScheduleColorPick(
-    RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, const ColorPickerParam& params, NodeID filterId)
+    RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, const ColorPickerParam& params, NodeId filterId)
 {
     if (params.strategy == ColorPickStrategyType::NONE) {
         return;
