@@ -37,19 +37,19 @@ using namespace testing::ext;
 
 struct FrostedGlassFloatCounts {
     // Vector2f(2) + Vector2f(2) + Vector2f(2) + Vector3f(3)
-    static constexpr int BLUR_REFRACT_FLOATS = 9;
+    static constexpr int blurRefractFloats = 9;
     // Vector2f(2) + Vector3f(3) + Vector3f(3) + Vector3f(3) + float(1)
-    static constexpr int BG_PARAMS_FLOATS = 12;
+    static constexpr int bgParamsFloats = 12;
     // Vector3f(3) + Vector2f(2) + Vector3f(3) + Vector3f(3) + Vector3f(3)
-    static constexpr int SD_PARAMS_FLOATS = 14;
+    static constexpr int sdParamsFloats = 14;
     // Vector3f(3) + Vector2f(2) + Vector3f(3) + Vector3f(3) + Vector3f(3)
-    static constexpr int ENV_LIGHT_FLOATS = 14;
+    static constexpr int envLightFloats = 14;
     // Vector2f*4(8) + Vector3f*3(9)
-    static constexpr int ED_LIGHT_FLOATS = 17;
-    static constexpr int TOTAL_PARAMS_FLOATS =
-        BLUR_REFRACT_FLOATS + BG_PARAMS_FLOATS + SD_PARAMS_FLOATS + ENV_LIGHT_FLOATS + ED_LIGHT_FLOATS;
+    static constexpr int edLightFloats = 17;
+    static constexpr int totalParamsFloats =
+        blurRefractFloats + bgParamsFloats + sdParamsFloats + envLightFloats + edLightFloats;
     // float(1) + float(1) + float(1) + bool(1)
-    static constexpr int BLUR_PARA_FLOATS = 3;
+    static constexpr int blurParaFloats = 3;
 };
 
 class RSUIEffectFilterTest : public testing::Test {
@@ -65,13 +65,7 @@ void RSUIEffectFilterTest::TearDownTestCase() {}
 
 void RSUIEffectFilterTest::SetUp()
 {
-    ContentLightPara::RegisterUnmarshallingCallback();
-    DispersionPara::RegisterUnmarshallingCallback();
-    DisplacementDistortPara::RegisterUnmarshallingCallback();
-    MaskTransitionPara::RegisterUnmarshallingCallback();
-    WaterRipplePara::RegisterUnmarshallingCallback();
-    FrostedGlassPara::RegisterUnmarshallingCallback();
-    FrostedGlassBlurPara::RegisterUnmarshallingCallback();
+    Filter::RegisterUnmarshallingCallback();
 }
 
 void RSUIEffectFilterTest::TearDown() {}
@@ -403,6 +397,23 @@ HWTEST_F(RSUIEffectFilterTest, RSUIEffectMaskTransitionParaTest, TestSize.Level1
 }
 
 /**
+ * @tc.name: RSUIEffectFilterRegisterUnmarshallingCallbackTest
+ * @tc.desc: Verify the Filter::RegisterUnmarshallingCallback static func
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIEffectFilterTest, RSUIEffectFilterRegisterUnmarshallingCallbackTest, TestSize.Level1)
+{
+    auto& singleton = FilterUnmarshallingSingleton::GetInstance();
+    EXPECT_NE(nullptr, singleton.GetCallback(static_cast<uint16_t>(FilterPara::ParaType::CONTENT_LIGHT)));
+    EXPECT_NE(nullptr, singleton.GetCallback(static_cast<uint16_t>(FilterPara::ParaType::DISPERSION)));
+    EXPECT_NE(nullptr, singleton.GetCallback(static_cast<uint16_t>(FilterPara::ParaType::DISPLACEMENT_DISTORT)));
+    EXPECT_NE(nullptr, singleton.GetCallback(static_cast<uint16_t>(FilterPara::ParaType::MASK_TRANSITION)));
+    EXPECT_NE(nullptr, singleton.GetCallback(static_cast<uint16_t>(FilterPara::ParaType::WATER_RIPPLE)));
+    EXPECT_NE(nullptr, singleton.GetCallback(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS)));
+    EXPECT_NE(nullptr, singleton.GetCallback(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS_BLUR)));
+}
+
+/**
  * @tc.name: RSUIEffectFilterUnmarshallingSingletonTest
  * @tc.desc: Verify the FilterUnmarshallingSingleton func
  * @tc.type: FUNC
@@ -524,6 +535,191 @@ HWTEST_F(RSUIEffectFilterTest, RSUIEffectFrostedGlassBlurParaTest, TestSize.Leve
     EXPECT_NE(nullptr, valFilter);
 }
 
+namespace {
+constexpr float FROSTED_BLUR_PARAMS_X = 48.0f;
+constexpr float FROSTED_BLUR_PARAMS_Y = 4.0f;
+constexpr float FROSTED_WEIGHTS_EMBOSS_X = 1.0f;
+constexpr float FROSTED_WEIGHTS_EMBOSS_Y = 2.0f;
+constexpr float FROSTED_WEIGHTS_EDL_X = 0.5f;
+constexpr float FROSTED_WEIGHTS_EDL_Y = 0.6f;
+constexpr float FROSTED_BG_RATES_X = -0.00003f;
+constexpr float FROSTED_BG_RATES_Y = 1.2f;
+constexpr float FROSTED_BG_KBS_X = 0.010834f;
+constexpr float FROSTED_BG_KBS_Y = 0.007349f;
+constexpr float FROSTED_BG_KBS_Z = 1.2f;
+constexpr float FROSTED_BG_POS_X = 0.3f;
+constexpr float FROSTED_BG_POS_Y = 0.5f;
+constexpr float FROSTED_BG_POS_Z = 1.0f;
+constexpr float FROSTED_BG_NEG_X = 0.5f;
+constexpr float FROSTED_BG_NEG_Y = 0.5f;
+constexpr float FROSTED_BG_NEG_Z = 1.0f;
+constexpr float FROSTED_BG_ALPHA = 0.8f;
+constexpr float FROSTED_REFRACT_X = 1.0f;
+constexpr float FROSTED_REFRACT_Y = 2.0f;
+constexpr float FROSTED_REFRACT_Z = 3.0f;
+constexpr float FROSTED_SD_PARAMS_X = 0.1f;
+constexpr float FROSTED_SD_PARAMS_Y = 0.2f;
+constexpr float FROSTED_SD_PARAMS_Z = 0.3f;
+constexpr float FROSTED_SD_RATES_X = 0.4f;
+constexpr float FROSTED_SD_RATES_Y = 0.5f;
+constexpr float FROSTED_SD_KBS_X = 0.6f;
+constexpr float FROSTED_SD_KBS_Y = 0.7f;
+constexpr float FROSTED_SD_KBS_Z = 0.8f;
+constexpr float FROSTED_SD_POS_X = 0.9f;
+constexpr float FROSTED_SD_POS_Y = 1.0f;
+constexpr float FROSTED_SD_POS_Z = 1.1f;
+constexpr float FROSTED_SD_NEG_X = 1.2f;
+constexpr float FROSTED_SD_NEG_Y = 1.3f;
+constexpr float FROSTED_SD_NEG_Z = 1.4f;
+constexpr float FROSTED_ENV_LIGHT_PARAMS_X = 2.0f;
+constexpr float FROSTED_ENV_LIGHT_PARAMS_Y = 3.0f;
+constexpr float FROSTED_ENV_LIGHT_PARAMS_Z = 4.0f;
+constexpr float FROSTED_ENV_LIGHT_RATES_X = 5.0f;
+constexpr float FROSTED_ENV_LIGHT_RATES_Y = 6.0f;
+constexpr float FROSTED_ENV_LIGHT_KBS_X = 7.0f;
+constexpr float FROSTED_ENV_LIGHT_KBS_Y = 8.0f;
+constexpr float FROSTED_ENV_LIGHT_KBS_Z = 9.0f;
+constexpr float FROSTED_ENV_LIGHT_POS_X = 10.0f;
+constexpr float FROSTED_ENV_LIGHT_POS_Y = 11.0f;
+constexpr float FROSTED_ENV_LIGHT_POS_Z = 12.0f;
+constexpr float FROSTED_ENV_LIGHT_NEG_X = 13.0f;
+constexpr float FROSTED_ENV_LIGHT_NEG_Y = 14.0f;
+constexpr float FROSTED_ENV_LIGHT_NEG_Z = 15.0f;
+constexpr float FROSTED_ED_LIGHT_PARAMS_X = 16.0f;
+constexpr float FROSTED_ED_LIGHT_PARAMS_Y = 17.0f;
+constexpr float FROSTED_ED_LIGHT_ANGLES_X = 18.0f;
+constexpr float FROSTED_ED_LIGHT_ANGLES_Y = 19.0f;
+constexpr float FROSTED_ED_LIGHT_DIR_X = 20.0f;
+constexpr float FROSTED_ED_LIGHT_DIR_Y = 21.0f;
+constexpr float FROSTED_ED_LIGHT_RATES_X = 22.0f;
+constexpr float FROSTED_ED_LIGHT_RATES_Y = 23.0f;
+constexpr float FROSTED_ED_LIGHT_KBS_X = 24.0f;
+constexpr float FROSTED_ED_LIGHT_KBS_Y = 25.0f;
+constexpr float FROSTED_ED_LIGHT_KBS_Z = 26.0f;
+constexpr float FROSTED_ED_LIGHT_POS_X = 27.0f;
+constexpr float FROSTED_ED_LIGHT_POS_Y = 28.0f;
+constexpr float FROSTED_ED_LIGHT_POS_Z = 29.0f;
+constexpr float FROSTED_ED_LIGHT_NEG_X = 30.0f;
+constexpr float FROSTED_ED_LIGHT_NEG_Y = 31.0f;
+constexpr float FROSTED_ED_LIGHT_NEG_Z = 32.0f;
+constexpr bool FROSTED_BASE_VIBRANCY_ENABLED = false;
+constexpr float FROSTED_BASE_MATERIAL_TYPE = 1.5f;
+constexpr float FROSTED_MATERIAL_COLOR_X = 0.1f;
+constexpr float FROSTED_MATERIAL_COLOR_Y = 0.2f;
+constexpr float FROSTED_MATERIAL_COLOR_Z = 0.3f;
+constexpr float FROSTED_MATERIAL_COLOR_W = 0.4f;
+constexpr float FROSTED_DARK_SCALE = 0.5f;
+constexpr float FROSTED_SAMPLING_SCALE = 0.75f;
+constexpr bool FROSTED_SKIP_FRAME_ENABLE = true;
+} // namespace
+
+static void SetupFrostedGlassParaParams(FrostedGlassPara& para)
+{
+    Vector2f blurParams(FROSTED_BLUR_PARAMS_X, FROSTED_BLUR_PARAMS_Y);
+    para.SetBlurParams(blurParams);
+    Vector2f weightsEmboss(FROSTED_WEIGHTS_EMBOSS_X, FROSTED_WEIGHTS_EMBOSS_Y);
+    para.SetWeightsEmboss(weightsEmboss);
+    Vector2f weightsEdl(FROSTED_WEIGHTS_EDL_X, FROSTED_WEIGHTS_EDL_Y);
+    para.SetWeightsEdl(weightsEdl);
+    Vector2f bgRates(FROSTED_BG_RATES_X, FROSTED_BG_RATES_Y);
+    para.SetBgRates(bgRates);
+    Vector3f bgKBS(FROSTED_BG_KBS_X, FROSTED_BG_KBS_Y, FROSTED_BG_KBS_Z);
+    para.SetBgKBS(bgKBS);
+    Vector3f bgPos(FROSTED_BG_POS_X, FROSTED_BG_POS_Y, FROSTED_BG_POS_Z);
+    para.SetBgPos(bgPos);
+    Vector3f bgNeg(FROSTED_BG_NEG_X, FROSTED_BG_NEG_Y, FROSTED_BG_NEG_Z);
+    para.SetBgNeg(bgNeg);
+    para.SetBgAlpha(FROSTED_BG_ALPHA);
+    Vector3f refractParams(FROSTED_REFRACT_X, FROSTED_REFRACT_Y, FROSTED_REFRACT_Z);
+    para.SetRefractParams(refractParams);
+    Vector3f sdParams(FROSTED_SD_PARAMS_X, FROSTED_SD_PARAMS_Y, FROSTED_SD_PARAMS_Z);
+    para.SetSdParams(sdParams);
+    Vector2f sdRates(FROSTED_SD_RATES_X, FROSTED_SD_RATES_Y);
+    para.SetSdRates(sdRates);
+    Vector3f sdKBS(FROSTED_SD_KBS_X, FROSTED_SD_KBS_Y, FROSTED_SD_KBS_Z);
+    para.SetSdKBS(sdKBS);
+    Vector3f sdPos(FROSTED_SD_POS_X, FROSTED_SD_POS_Y, FROSTED_SD_POS_Z);
+    para.SetSdPos(sdPos);
+    Vector3f sdNeg(FROSTED_SD_NEG_X, FROSTED_SD_NEG_Y, FROSTED_SD_NEG_Z);
+    para.SetSdNeg(sdNeg);
+    Vector3f envLightParams(FROSTED_ENV_LIGHT_PARAMS_X, FROSTED_ENV_LIGHT_PARAMS_Y, FROSTED_ENV_LIGHT_PARAMS_Z);
+    para.SetEnvLightParams(envLightParams);
+    Vector2f envLightRates(FROSTED_ENV_LIGHT_RATES_X, FROSTED_ENV_LIGHT_RATES_Y);
+    para.SetEnvLightRates(envLightRates);
+    Vector3f envLightKBS(FROSTED_ENV_LIGHT_KBS_X, FROSTED_ENV_LIGHT_KBS_Y, FROSTED_ENV_LIGHT_KBS_Z);
+    para.SetEnvLightKBS(envLightKBS);
+    Vector3f envLightPos(FROSTED_ENV_LIGHT_POS_X, FROSTED_ENV_LIGHT_POS_Y, FROSTED_ENV_LIGHT_POS_Z);
+    para.SetEnvLightPos(envLightPos);
+    Vector3f envLightNeg(FROSTED_ENV_LIGHT_NEG_X, FROSTED_ENV_LIGHT_NEG_Y, FROSTED_ENV_LIGHT_NEG_Z);
+    para.SetEnvLightNeg(envLightNeg);
+    Vector2f edLightParams(FROSTED_ED_LIGHT_PARAMS_X, FROSTED_ED_LIGHT_PARAMS_Y);
+    para.SetEdLightParams(edLightParams);
+    Vector2f edLightAngles(FROSTED_ED_LIGHT_ANGLES_X, FROSTED_ED_LIGHT_ANGLES_Y);
+    para.SetEdLightAngles(edLightAngles);
+    Vector2f edLightDir(FROSTED_ED_LIGHT_DIR_X, FROSTED_ED_LIGHT_DIR_Y);
+    para.SetEdLightDir(edLightDir);
+    Vector2f edLightRates(FROSTED_ED_LIGHT_RATES_X, FROSTED_ED_LIGHT_RATES_Y);
+    para.SetEdLightRates(edLightRates);
+    Vector3f edLightKBS(FROSTED_ED_LIGHT_KBS_X, FROSTED_ED_LIGHT_KBS_Y, FROSTED_ED_LIGHT_KBS_Z);
+    para.SetEdLightKBS(edLightKBS);
+    Vector3f edLightPos(FROSTED_ED_LIGHT_POS_X, FROSTED_ED_LIGHT_POS_Y, FROSTED_ED_LIGHT_POS_Z);
+    para.SetEdLightPos(edLightPos);
+    Vector3f edLightNeg(FROSTED_ED_LIGHT_NEG_X, FROSTED_ED_LIGHT_NEG_Y, FROSTED_ED_LIGHT_NEG_Z);
+    para.SetEdLightNeg(edLightNeg);
+    para.SetBaseVibrancyEnabled(FROSTED_BASE_VIBRANCY_ENABLED);
+    para.SetBaseMaterialType(FROSTED_BASE_MATERIAL_TYPE);
+    Vector4f materialColor(FROSTED_MATERIAL_COLOR_X, FROSTED_MATERIAL_COLOR_Y,
+        FROSTED_MATERIAL_COLOR_Z, FROSTED_MATERIAL_COLOR_W);
+    para.SetMaterialColor(materialColor);
+    para.SetDarkScale(FROSTED_DARK_SCALE);
+    para.SetSamplingScale(FROSTED_SAMPLING_SCALE);
+    para.SetSkipFrameEnable(FROSTED_SKIP_FRAME_ENABLE);
+}
+
+static void VerifyFrostedGlassParaProperties(const FrostedGlassPara& para)
+{
+    EXPECT_EQ(Vector2f(FROSTED_BLUR_PARAMS_X, FROSTED_BLUR_PARAMS_Y), para.GetBlurParams());
+    EXPECT_EQ(Vector2f(FROSTED_WEIGHTS_EMBOSS_X, FROSTED_WEIGHTS_EMBOSS_Y), para.GetWeightsEmboss());
+    EXPECT_EQ(Vector2f(FROSTED_WEIGHTS_EDL_X, FROSTED_WEIGHTS_EDL_Y), para.GetWeightsEdl());
+    EXPECT_EQ(Vector2f(FROSTED_BG_RATES_X, FROSTED_BG_RATES_Y), para.GetBgRates());
+    EXPECT_EQ(Vector3f(FROSTED_BG_KBS_X, FROSTED_BG_KBS_Y, FROSTED_BG_KBS_Z), para.GetBgKBS());
+    EXPECT_EQ(Vector3f(FROSTED_BG_POS_X, FROSTED_BG_POS_Y, FROSTED_BG_POS_Z), para.GetBgPos());
+    EXPECT_EQ(Vector3f(FROSTED_BG_NEG_X, FROSTED_BG_NEG_Y, FROSTED_BG_NEG_Z), para.GetBgNeg());
+    EXPECT_EQ(FROSTED_BG_ALPHA, para.GetBgAlpha());
+    EXPECT_EQ(Vector3f(FROSTED_REFRACT_X, FROSTED_REFRACT_Y, FROSTED_REFRACT_Z), para.GetRefractParams());
+    EXPECT_EQ(Vector3f(FROSTED_SD_PARAMS_X, FROSTED_SD_PARAMS_Y, FROSTED_SD_PARAMS_Z), para.GetSdParams());
+    EXPECT_EQ(Vector2f(FROSTED_SD_RATES_X, FROSTED_SD_RATES_Y), para.GetSdRates());
+    EXPECT_EQ(Vector3f(FROSTED_SD_KBS_X, FROSTED_SD_KBS_Y, FROSTED_SD_KBS_Z), para.GetSdKBS());
+    EXPECT_EQ(Vector3f(FROSTED_SD_POS_X, FROSTED_SD_POS_Y, FROSTED_SD_POS_Z), para.GetSdPos());
+    EXPECT_EQ(Vector3f(FROSTED_SD_NEG_X, FROSTED_SD_NEG_Y, FROSTED_SD_NEG_Z), para.GetSdNeg());
+    EXPECT_EQ(Vector3f(FROSTED_ENV_LIGHT_PARAMS_X, FROSTED_ENV_LIGHT_PARAMS_Y, FROSTED_ENV_LIGHT_PARAMS_Z),
+        para.GetEnvLightParams());
+    EXPECT_EQ(Vector2f(FROSTED_ENV_LIGHT_RATES_X, FROSTED_ENV_LIGHT_RATES_Y), para.GetEnvLightRates());
+    EXPECT_EQ(
+        Vector3f(FROSTED_ENV_LIGHT_KBS_X, FROSTED_ENV_LIGHT_KBS_Y, FROSTED_ENV_LIGHT_KBS_Z), para.GetEnvLightKBS());
+    EXPECT_EQ(
+        Vector3f(FROSTED_ENV_LIGHT_POS_X, FROSTED_ENV_LIGHT_POS_Y, FROSTED_ENV_LIGHT_POS_Z), para.GetEnvLightPos());
+    EXPECT_EQ(
+        Vector3f(FROSTED_ENV_LIGHT_NEG_X, FROSTED_ENV_LIGHT_NEG_Y, FROSTED_ENV_LIGHT_NEG_Z), para.GetEnvLightNeg());
+    EXPECT_EQ(Vector2f(FROSTED_ED_LIGHT_PARAMS_X, FROSTED_ED_LIGHT_PARAMS_Y), para.GetEdLightParams());
+    EXPECT_EQ(Vector2f(FROSTED_ED_LIGHT_ANGLES_X, FROSTED_ED_LIGHT_ANGLES_Y), para.GetEdLightAngles());
+    EXPECT_EQ(Vector2f(FROSTED_ED_LIGHT_DIR_X, FROSTED_ED_LIGHT_DIR_Y), para.GetEdLightDir());
+    EXPECT_EQ(Vector2f(FROSTED_ED_LIGHT_RATES_X, FROSTED_ED_LIGHT_RATES_Y), para.GetEdLightRates());
+    EXPECT_EQ(Vector3f(FROSTED_ED_LIGHT_KBS_X, FROSTED_ED_LIGHT_KBS_Y, FROSTED_ED_LIGHT_KBS_Z), para.GetEdLightKBS());
+    EXPECT_EQ(Vector3f(FROSTED_ED_LIGHT_POS_X, FROSTED_ED_LIGHT_POS_Y, FROSTED_ED_LIGHT_POS_Z), para.GetEdLightPos());
+    EXPECT_EQ(Vector3f(FROSTED_ED_LIGHT_NEG_X, FROSTED_ED_LIGHT_NEG_Y, FROSTED_ED_LIGHT_NEG_Z), para.GetEdLightNeg());
+    EXPECT_EQ(FROSTED_BASE_VIBRANCY_ENABLED, para.GetBaseVibrancyEnabled());
+    EXPECT_EQ(FROSTED_BASE_MATERIAL_TYPE, para.GetBaseMaterialType());
+    EXPECT_EQ(Vector4f(FROSTED_MATERIAL_COLOR_X, FROSTED_MATERIAL_COLOR_Y, FROSTED_MATERIAL_COLOR_Z,
+                  FROSTED_MATERIAL_COLOR_W),
+        para.GetMaterialColor());
+    EXPECT_EQ(FROSTED_DARK_SCALE, para.GetDarkScale());
+    EXPECT_EQ(FROSTED_SAMPLING_SCALE, para.GetSamplingScale());
+    EXPECT_EQ(nullptr, para.GetMask());
+    EXPECT_EQ(nullptr, para.GetDarkAdaptiveParams());
+    EXPECT_EQ(FROSTED_SKIP_FRAME_ENABLE, para.GetSkipFrameEnable());
+}
+
 /**
  * @tc.name: RSUIEffectFrostedGlassParaTest
  * @tc.desc: Verify the FrostedGlassPara Marshalling and Unmarshalling without optional params
@@ -532,71 +728,7 @@ HWTEST_F(RSUIEffectFilterTest, RSUIEffectFrostedGlassBlurParaTest, TestSize.Leve
 HWTEST_F(RSUIEffectFilterTest, RSUIEffectFrostedGlassParaTest, TestSize.Level1)
 {
     auto para = std::make_shared<FrostedGlassPara>();
-    Vector2f blurParams = Vector2f(48.0f, 4.0f);
-    Vector2f weightsEmboss = Vector2f(1.0f, 2.0f);
-    Vector2f weightsEdl = Vector2f(0.5f, 0.6f);
-    Vector2f bgRates = Vector2f(-0.00003f, 1.2f);
-    Vector3f bgKBS = Vector3f(0.010834f, 0.007349f, 1.2f);
-    Vector3f bgPos = Vector3f(0.3f, 0.5f, 1.0f);
-    Vector3f bgNeg = Vector3f(0.5f, 0.5f, 1.0f);
-    constexpr float bgAlpha = 0.8f;
-    Vector3f refractParams = Vector3f(1.0f, 2.0f, 3.0f);
-    Vector3f sdParams = Vector3f(0.1f, 0.2f, 0.3f);
-    Vector2f sdRates = Vector2f(0.4f, 0.5f);
-    Vector3f sdKBS = Vector3f(0.6f, 0.7f, 0.8f);
-    Vector3f sdPos = Vector3f(0.9f, 1.0f, 1.1f);
-    Vector3f sdNeg = Vector3f(1.2f, 1.3f, 1.4f);
-    Vector3f envLightParams = Vector3f(2.0f, 3.0f, 4.0f);
-    Vector2f envLightRates = Vector2f(5.0f, 6.0f);
-    Vector3f envLightKBS = Vector3f(7.0f, 8.0f, 9.0f);
-    Vector3f envLightPos = Vector3f(10.0f, 11.0f, 12.0f);
-    Vector3f envLightNeg = Vector3f(13.0f, 14.0f, 15.0f);
-    Vector2f edLightParams = Vector2f(16.0f, 17.0f);
-    Vector2f edLightAngles = Vector2f(18.0f, 19.0f);
-    Vector2f edLightDir = Vector2f(20.0f, 21.0f);
-    Vector2f edLightRates = Vector2f(22.0f, 23.0f);
-    Vector3f edLightKBS = Vector3f(24.0f, 25.0f, 26.0f);
-    Vector3f edLightPos = Vector3f(27.0f, 28.0f, 29.0f);
-    Vector3f edLightNeg = Vector3f(30.0f, 31.0f, 32.0f);
-    constexpr bool baseVibrancyEnabled = false;
-    constexpr float baseMaterialType = 1.5f;
-    Vector4f materialColor = Vector4f(0.1f, 0.2f, 0.3f, 0.4f);
-    constexpr float darkScale = 0.5f;
-    constexpr float samplingScale = 0.75f;
-    constexpr bool isSkipFrameEnable = true;
-
-    para->SetBlurParams(blurParams);
-    para->SetWeightsEmboss(weightsEmboss);
-    para->SetWeightsEdl(weightsEdl);
-    para->SetBgRates(bgRates);
-    para->SetBgKBS(bgKBS);
-    para->SetBgPos(bgPos);
-    para->SetBgNeg(bgNeg);
-    para->SetBgAlpha(bgAlpha);
-    para->SetRefractParams(refractParams);
-    para->SetSdParams(sdParams);
-    para->SetSdRates(sdRates);
-    para->SetSdKBS(sdKBS);
-    para->SetSdPos(sdPos);
-    para->SetSdNeg(sdNeg);
-    para->SetEnvLightParams(envLightParams);
-    para->SetEnvLightRates(envLightRates);
-    para->SetEnvLightKBS(envLightKBS);
-    para->SetEnvLightPos(envLightPos);
-    para->SetEnvLightNeg(envLightNeg);
-    para->SetEdLightParams(edLightParams);
-    para->SetEdLightAngles(edLightAngles);
-    para->SetEdLightDir(edLightDir);
-    para->SetEdLightRates(edLightRates);
-    para->SetEdLightKBS(edLightKBS);
-    para->SetEdLightPos(edLightPos);
-    para->SetEdLightNeg(edLightNeg);
-    para->SetBaseVibrancyEnabled(baseVibrancyEnabled);
-    para->SetBaseMaterialType(baseMaterialType);
-    para->SetMaterialColor(materialColor);
-    para->SetDarkScale(darkScale);
-    para->SetSamplingScale(samplingScale);
-    para->SetSkipFrameEnable(isSkipFrameEnable);
+    SetupFrostedGlassParaParams(*para);
 
     Parcel parcel;
     EXPECT_TRUE(para->Marshalling(parcel));
@@ -605,40 +737,7 @@ HWTEST_F(RSUIEffectFilterTest, RSUIEffectFrostedGlassParaTest, TestSize.Level1)
     EXPECT_TRUE(FilterPara::Unmarshalling(parcel, val));
     EXPECT_NE(nullptr, val);
     auto frostedGlassPara = std::static_pointer_cast<FrostedGlassPara>(val);
-    EXPECT_EQ(blurParams, frostedGlassPara->GetBlurParams());
-    EXPECT_EQ(weightsEmboss, frostedGlassPara->GetWeightsEmboss());
-    EXPECT_EQ(weightsEdl, frostedGlassPara->GetWeightsEdl());
-    EXPECT_EQ(bgRates, frostedGlassPara->GetBgRates());
-    EXPECT_EQ(bgKBS, frostedGlassPara->GetBgKBS());
-    EXPECT_EQ(bgPos, frostedGlassPara->GetBgPos());
-    EXPECT_EQ(bgNeg, frostedGlassPara->GetBgNeg());
-    EXPECT_EQ(bgAlpha, frostedGlassPara->GetBgAlpha());
-    EXPECT_EQ(refractParams, frostedGlassPara->GetRefractParams());
-    EXPECT_EQ(sdParams, frostedGlassPara->GetSdParams());
-    EXPECT_EQ(sdRates, frostedGlassPara->GetSdRates());
-    EXPECT_EQ(sdKBS, frostedGlassPara->GetSdKBS());
-    EXPECT_EQ(sdPos, frostedGlassPara->GetSdPos());
-    EXPECT_EQ(sdNeg, frostedGlassPara->GetSdNeg());
-    EXPECT_EQ(envLightParams, frostedGlassPara->GetEnvLightParams());
-    EXPECT_EQ(envLightRates, frostedGlassPara->GetEnvLightRates());
-    EXPECT_EQ(envLightKBS, frostedGlassPara->GetEnvLightKBS());
-    EXPECT_EQ(envLightPos, frostedGlassPara->GetEnvLightPos());
-    EXPECT_EQ(envLightNeg, frostedGlassPara->GetEnvLightNeg());
-    EXPECT_EQ(edLightParams, frostedGlassPara->GetEdLightParams());
-    EXPECT_EQ(edLightAngles, frostedGlassPara->GetEdLightAngles());
-    EXPECT_EQ(edLightDir, frostedGlassPara->GetEdLightDir());
-    EXPECT_EQ(edLightRates, frostedGlassPara->GetEdLightRates());
-    EXPECT_EQ(edLightKBS, frostedGlassPara->GetEdLightKBS());
-    EXPECT_EQ(edLightPos, frostedGlassPara->GetEdLightPos());
-    EXPECT_EQ(edLightNeg, frostedGlassPara->GetEdLightNeg());
-    EXPECT_EQ(baseVibrancyEnabled, frostedGlassPara->GetBaseVibrancyEnabled());
-    EXPECT_EQ(baseMaterialType, frostedGlassPara->GetBaseMaterialType());
-    EXPECT_EQ(materialColor, frostedGlassPara->GetMaterialColor());
-    EXPECT_EQ(darkScale, frostedGlassPara->GetDarkScale());
-    EXPECT_EQ(samplingScale, frostedGlassPara->GetSamplingScale());
-    EXPECT_EQ(nullptr, frostedGlassPara->GetMask());
-    EXPECT_EQ(nullptr, frostedGlassPara->GetDarkAdaptiveParams());
-    EXPECT_EQ(isSkipFrameEnable, frostedGlassPara->GetSkipFrameEnable());
+    VerifyFrostedGlassParaProperties(*frostedGlassPara);
     EXPECT_NE(nullptr, para->Clone());
 
     std::shared_ptr<FilterPara> valTest = nullptr;
@@ -718,12 +817,12 @@ HWTEST_F(RSUIEffectFilterTest, RSUIEffectFrostedGlassParaUnmarshallingFailTest, 
     EXPECT_FALSE(FrostedGlassPara::OnUnmarshalling(parcelTest, valTest));
 
     // ReadBgParams fail: write blur+refract params (9 floats) + partial bg params (4 floats)
-    constexpr int FLOATS_FOR_BG_FAIL = FrostedGlassFloatCounts::BLUR_REFRACT_FLOATS + 4;
+    constexpr int floatsForBgFail = FrostedGlassFloatCounts::blurRefractFloats + 4;
 
     parcelTest.FlushBuffer();
     parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
     parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
-    for (int i = 0; i < FLOATS_FOR_BG_FAIL; ++i) {
+    for (int i = 0; i < floatsForBgFail; ++i) {
         parcelTest.WriteFloat(1.0f);
     }
     parcelTest.WriteBool(true);
@@ -733,7 +832,7 @@ HWTEST_F(RSUIEffectFilterTest, RSUIEffectFrostedGlassParaUnmarshallingFailTest, 
     parcelTest.FlushBuffer();
     parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
     parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
-    for (int i = 0; i < FLOATS_FOR_BG_FAIL; ++i) {
+    for (int i = 0; i < floatsForBgFail; ++i) {
         parcelTest.WriteFloat(1.0f);
     }
     parcelTest.WriteBool(false);
@@ -764,7 +863,7 @@ HWTEST_F(RSUIEffectFilterTest, RSUIEffectFrostedGlassBlurParaUnmarshallingFailTe
     parcelTest.FlushBuffer();
     parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS_BLUR));
     parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS_BLUR));
-    for (int i = 0; i < FrostedGlassFloatCounts::BLUR_PARA_FLOATS - 1; ++i) {
+    for (int i = 0; i < FrostedGlassFloatCounts::blurParaFloats - 1; ++i) {
         parcelTest.WriteFloat(1.0f);
     }
     EXPECT_FALSE(FrostedGlassBlurPara::OnUnmarshalling(parcelTest, valTest));
@@ -796,7 +895,7 @@ HWTEST_F(RSUIEffectFilterTest, RSUIEffectFrostedGlassParaUnmarshallingMaskFailTe
 
     parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
     parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
-    for (int i = 0; i < FrostedGlassFloatCounts::TOTAL_PARAMS_FLOATS; ++i) {
+    for (int i = 0; i < FrostedGlassFloatCounts::totalParamsFloats; ++i) {
         parcelTest.WriteFloat(1.0f);
     }
     parcelTest.WriteBool(true);
@@ -814,16 +913,15 @@ HWTEST_F(RSUIEffectFilterTest, RSUIEffectFrostedGlassParaReadParamsBranchTest, T
     std::shared_ptr<FilterPara> valTest = nullptr;
     Parcel parcelTest;
 
-    constexpr int AFTER_BG_PARAMS =
-        FrostedGlassFloatCounts::BLUR_REFRACT_FLOATS + FrostedGlassFloatCounts::BG_PARAMS_FLOATS;
-    constexpr int AFTER_SD_PARAMS = AFTER_BG_PARAMS + FrostedGlassFloatCounts::SD_PARAMS_FLOATS;
-    constexpr int AFTER_ENV_LIGHT = AFTER_SD_PARAMS + FrostedGlassFloatCounts::ENV_LIGHT_FLOATS;
-    constexpr int AFTER_ED_LIGHT = AFTER_ENV_LIGHT + FrostedGlassFloatCounts::ED_LIGHT_FLOATS;
+    constexpr int afterBgParams = FrostedGlassFloatCounts::blurRefractFloats + FrostedGlassFloatCounts::bgParamsFloats;
+    constexpr int afterSdParams = afterBgParams + FrostedGlassFloatCounts::sdParamsFloats;
+    constexpr int afterEnvLight = afterSdParams + FrostedGlassFloatCounts::envLightFloats;
+    constexpr int afterEdLight = afterEnvLight + FrostedGlassFloatCounts::edLightFloats;
 
     parcelTest.FlushBuffer();
     parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
     parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
-    for (int i = 0; i < AFTER_BG_PARAMS + 1; ++i) {
+    for (int i = 0; i < afterBgParams + 1; ++i) {
         parcelTest.WriteFloat(1.0f);
     }
     EXPECT_FALSE(FrostedGlassPara::OnUnmarshalling(parcelTest, valTest));
@@ -831,7 +929,7 @@ HWTEST_F(RSUIEffectFilterTest, RSUIEffectFrostedGlassParaReadParamsBranchTest, T
     parcelTest.FlushBuffer();
     parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
     parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
-    for (int i = 0; i < AFTER_SD_PARAMS + 1; ++i) {
+    for (int i = 0; i < afterSdParams + 1; ++i) {
         parcelTest.WriteFloat(1.0f);
     }
     EXPECT_FALSE(FrostedGlassPara::OnUnmarshalling(parcelTest, valTest));
@@ -839,7 +937,7 @@ HWTEST_F(RSUIEffectFilterTest, RSUIEffectFrostedGlassParaReadParamsBranchTest, T
     parcelTest.FlushBuffer();
     parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
     parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
-    for (int i = 0; i < AFTER_ENV_LIGHT + 1; ++i) {
+    for (int i = 0; i < afterEnvLight + 1; ++i) {
         parcelTest.WriteFloat(1.0f);
     }
     EXPECT_FALSE(FrostedGlassPara::OnUnmarshalling(parcelTest, valTest));
@@ -847,7 +945,7 @@ HWTEST_F(RSUIEffectFilterTest, RSUIEffectFrostedGlassParaReadParamsBranchTest, T
     parcelTest.FlushBuffer();
     parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
     parcelTest.WriteUint16(static_cast<uint16_t>(FilterPara::ParaType::FROSTED_GLASS));
-    for (int i = 0; i < AFTER_ED_LIGHT + 1; ++i) {
+    for (int i = 0; i < afterEdLight + 1; ++i) {
         parcelTest.WriteFloat(1.0f);
     }
     EXPECT_FALSE(FrostedGlassPara::OnUnmarshalling(parcelTest, valTest));
