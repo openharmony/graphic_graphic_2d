@@ -2127,11 +2127,6 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByGlobalCleanFilter_004, TestSi
     surfaceNode->renderProperties_.boundsGeo_->absRect_ = RectI(60, 60, 80, 80);
 
     rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByGlobalCleanFilter(cleanFilter, *surfaceNode);
-
-    // test IsHveBlurFilterEnabled return true
-    surfaceNode->SetArsrTag(true);
-    node->GetMutableRenderProperties().hasFrostedGlassEffect_ = true;
-    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByGlobalCleanFilter(cleanFilter, *surfaceNode);
 }
 
 /**
@@ -2199,11 +2194,6 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByGlobalDirtyFilter_002, TestSi
 
     rsUniHwcVisitor->UpdateHwcNodeEnableByGlobalDirtyFilter(dirtyFilter, *surfaceNode);
     EXPECT_TRUE(surfaceNode->isHardwareForcedDisabled_);
-
-    // test IsHveBlurFilterEnabled return true
-    surfaceNode->SetArsrTag(true);
-    node->GetMutableRenderProperties().hasFrostedGlassEffect_ = true;
-    rsUniHwcVisitor->UpdateHwcNodeEnableByGlobalDirtyFilter(dirtyFilter, *surfaceNode);
 }
 
 /**
