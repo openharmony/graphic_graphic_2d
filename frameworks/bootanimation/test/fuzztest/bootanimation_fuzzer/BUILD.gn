@@ -29,7 +29,7 @@ ohos_fuzztest("BootAnimationFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
   sources = [ "bootanimation_fuzzer.cpp" ]
-  deps = [ "$graphic_2d_root:libbootanimation_utils" ]
+  deps = [ "$graphic_2d_root/frameworks/bootanimation/utils:libbootanimation_utils" ]
 
   external_deps = [
     "c_utils:utils",
