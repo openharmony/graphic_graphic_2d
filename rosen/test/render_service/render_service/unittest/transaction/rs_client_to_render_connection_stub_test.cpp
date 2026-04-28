@@ -762,6 +762,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureWithAllWindowsTes
     data.WriteUint8(static_cast<uint8_t>(captureConfig.captureType));
     data.WriteBool(captureConfig.isSync);
     data.WriteBool(captureConfig.isHdrCapture);
+    data.WriteUint32(static_cast<uint32_t>(captureConfig.displayIntent));
     data.WriteBool(captureConfig.needF16WindowCaptureForScRGB);
     data.WriteBool(captureConfig.needErrorCode);
     data.WriteFloat(captureConfig.mainScreenRect.left_);
@@ -1734,6 +1735,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureSoloTest001, Test
     data2.WriteUint8(static_cast<uint8_t>(captureConfig.captureType));
     data2.WriteBool(captureConfig.isSync);
     data2.WriteBool(captureConfig.isHdrCapture);
+    data2.WriteUint32(static_cast<uint32_t>(captureConfig.displayIntent));
     data2.WriteBool(captureConfig.needF16WindowCaptureForScRGB);
     data2.WriteBool(captureConfig.needErrorCode);
     data2.WriteFloat(captureConfig.mainScreenRect.left_);
@@ -1819,6 +1821,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSelfSurfaceCaptureTest001, Test
     data2.WriteUint8(static_cast<uint8_t>(captureConfig.captureType));
     data2.WriteBool(captureConfig.isSync);
     data2.WriteBool(captureConfig.isHdrCapture);
+    data2.WriteUint32(static_cast<uint32_t>(captureConfig.displayIntent));
     data2.WriteBool(captureConfig.needF16WindowCaptureForScRGB);
     data2.WriteBool(captureConfig.needErrorCode);
     data2.WriteFloat(captureConfig.mainScreenRect.left_);
@@ -1937,6 +1940,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SetWindowFreezeImmediatelyTest001, 
     data3.WriteUint8(static_cast<uint8_t>(captureConfig.captureType));
     data3.WriteBool(captureConfig.isSync);
     data3.WriteBool(captureConfig.isHdrCapture);
+    data3.WriteUint32(static_cast<uint32_t>(captureConfig.displayIntent));
     data3.WriteBool(captureConfig.needF16WindowCaptureForScRGB);
     data3.WriteBool(captureConfig.needErrorCode);
     data3.WriteFloat(captureConfig.mainScreenRect.left_);
@@ -2047,6 +2051,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SetWindowFreezeImmediatelyTest004, 
     data.WriteUint8(static_cast<uint8_t>(captureConfig.captureType));
     data.WriteBool(captureConfig.isSync);
     data.WriteBool(captureConfig.isHdrCapture);
+    data.WriteUint32(static_cast<uint32_t>(captureConfig.displayIntent));
     data.WriteBool(captureConfig.needF16WindowCaptureForScRGB);
     data.WriteFloat(captureConfig.mainScreenRect.left_);
     data.WriteFloat(captureConfig.mainScreenRect.top_);
@@ -2101,6 +2106,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeUICaptureInRangeTest001, TestSi
     data2.WriteUint8(static_cast<uint8_t>(captureConfig.captureType));
     data2.WriteBool(captureConfig.isSync);
     data2.WriteBool(captureConfig.isHdrCapture);
+    data2.WriteUint32(static_cast<uint32_t>(captureConfig.displayIntent));
     data2.WriteBool(captureConfig.needF16WindowCaptureForScRGB);
     data2.WriteBool(captureConfig.needErrorCode);
     data2.WriteFloat(captureConfig.mainScreenRect.left_);

@@ -51,6 +51,7 @@
 #endif
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
+#include "aihdr_enhancer.h"
 #include "render/rs_colorspace_convert.h"
 #endif
 
@@ -65,7 +66,6 @@
 namespace OHOS {
 namespace Rosen {
 constexpr float DEFAULT_DISPLAY_NIT = 500.0f;
-constexpr uint8_t HDR_SELF_PROCESSING_TYPE = HDI::Display::Graphic::Common::V2_2::CM_VIDEO_AI_HDR_HIGH_LIGHT;
 
 std::vector<RectI> RSRenderFrame::CheckAndVerifyDamageRegion(
     const std::vector<RectI>& rects, const RectI& surfaceRect) const
@@ -482,11 +482,6 @@ bool RSBaseRenderEngine::SetColorSpaceConverterDisplayParameter(
     RSColorSpaceConvert::Instance().GetHDRDynamicMetadata(params.buffer, parameter.dynamicMetadata, ret);
     RSColorSpaceConvert::Instance().GetFOVMetadata(params.buffer, parameter.adaptiveFOVMetadata);
     RSColorSpaceConvert::Instance().GetAIHDRVideoMetadata(params.buffer, parameter.aihdrVideoMetadata, ret);
-    if (RSBaseHdrUtil::CheckIsHDRSelfProcessingBuffer(params.buffer)) {
-        RS_LOGD("RSBaseRenderEngine::ColorSpaceConvertor CheckIsHDRSelfProcessingBuffer is true");
-        parameter.inputColorSpace.metadataType = static_cast<CM_HDR_Metadata_Type>(HDR_SELF_PROCESSING_TYPE);
-        parameter.outputColorSpace.metadataType = static_cast<CM_HDR_Metadata_Type>(HDR_SELF_PROCESSING_TYPE);
-    }
 #endif
 
     parameter.width = params.buffer->GetWidth();
@@ -529,19 +524,21 @@ void RSBaseRenderEngine::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffe
         if (params.isTmoToCurrentSDRNits) {
             parameter.tmoNits = parameter.sdrNits;
         } else {
-            parameter.sdrNits = hdrProperties.screenshotType == RSPaintFilterCanvas::ScreenshotType::HDR_SCREENSHOT ?
-                RSLuminanceConst::DEFAULT_CAPTURE_SDR_NITS : DEFAULT_DISPLAY_NIT;
-            parameter.tmoNits = hdrProperties.screenshotType == RSPaintFilterCanvas::ScreenshotType::HDR_SCREENSHOT ?
-                RSLuminanceConst::DEFAULT_CAPTURE_HDR_NITS : DEFAULT_DISPLAY_NIT;
-            parameter.currentDisplayNits = hdrProperties.screenshotType ==
-                RSPaintFilterCanvas::ScreenshotType::HDR_SCREENSHOT ?
-                RSLuminanceConst::DEFAULT_CAPTURE_HDR_NITS : DEFAULT_DISPLAY_NIT;
+            parameter.sdrNits = DEFAULT_DISPLAY_NIT;
+            parameter.tmoNits = DEFAULT_DISPLAY_NIT;
+            parameter.currentDisplayNits = DEFAULT_DISPLAY_NIT;
         }
         parameter.layerLinearMatrix = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
     } else if (hdrProperties.isHDREnabledVirtualScreen) {
         parameter.sdrNits = RSLuminanceConst::DEFAULT_CAST_SDR_NITS;
         parameter.currentDisplayNits = RSLuminanceConst::DEFAULT_CAST_HDR_NITS;
         parameter.tmoNits = RSLuminanceConst::DEFAULT_CAST_HDR_NITS;
+        parameter.layerLinearMatrix = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+    } else if (hdrProperties.screenshotType == RSPaintFilterCanvas::ScreenshotType::HDR_SCREENSHOT &&
+        hdrProperties.displayIntent == DisplayIntent::CANONICAL) {
+        parameter.sdrNits = RSLuminanceConst::DEFAULT_CAPTURE_SDR_NITS;
+        parameter.currentDisplayNits = RSLuminanceConst::DEFAULT_CAPTURE_HDR_NITS;
+        parameter.tmoNits = RSLuminanceConst::DEFAULT_CAPTURE_HDR_NITS;
         parameter.layerLinearMatrix = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
     }
 
@@ -738,7 +735,12 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         params.paint.SetFilter(filter);
     }
 
-    if (videoInfo.retGetColorSpaceInfo_ != GSERROR_OK) {
+    using namespace HDI::Display::Graphic::Common::V1_0;
+    CM_HDR_Metadata_Type hdrMetadataType = CM_METADATA_NONE;
+    MetadataHelper::GetHDRMetadataType(params.buffer, hdrMetadataType);
+    bool isEDRSurface = static_cast<int32_t>(hdrMetadataType) ==
+        static_cast<int32_t>(HDI::Display::Graphic::Common::V2_2::CM_COMPONENT_EDR);
+    if (videoInfo.retGetColorSpaceInfo_ != GSERROR_OK && !isEDRSurface) {
         RS_LOGD("RSBaseRenderEngine::DrawImage GetColorSpaceInfo failed with %{public}u.",
             videoInfo.retGetColorSpaceInfo_);
         DrawImageRect(canvas, image, params, samplingOptions);
@@ -763,7 +765,7 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
     }
 
     if (inClrInfo.primaries == outClrInfo.primaries && inClrInfo.transfunc == outClrInfo.transfunc &&
-        !params.hasMetadata) {
+        !params.hasMetadata && !isEDRSurface) {
         RS_LOGD("RSBaseRenderEngine::DrawImage primaries and transfunc equal with no metadata.");
         DrawImageRect(canvas, image, params, samplingOptions);
         return;

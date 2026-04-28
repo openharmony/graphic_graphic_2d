@@ -1893,6 +1893,21 @@ void RSPaintFilterCanvas::SetHDREnabledVirtualScreen(bool isHDREnabledVirtualScr
     hdrProperties_.isHDREnabledVirtualScreen = isHDREnabledVirtualScreen;
 }
 
+bool RSPaintFilterCanvas::IsEDRSurface() const
+{
+    return hdrProperties_.isEDRSurface;
+}
+
+void RSPaintFilterCanvas::SetEDRSurface(bool isEDRSurface)
+{
+    hdrProperties_.isEDRSurface = isEDRSurface;
+}
+
+void RSPaintFilterCanvas::SetDisplayIntent(DisplayIntent displayIntent)
+{
+    hdrProperties_.displayIntent = displayIntent;
+}
+
 void RSPaintFilterCanvas::RecordState(const RSPaintFilterCanvas& other)
 {
     canvas_->RecordState(other.canvas_);
