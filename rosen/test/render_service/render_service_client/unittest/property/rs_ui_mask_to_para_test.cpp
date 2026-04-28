@@ -14,19 +14,20 @@
  */
 
 #include "gtest/gtest.h"
-#include "ui_effect/property/include/rs_ui_mask_to_para.h"
-#include "ui_effect/property/include/rs_ui_mask_base.h"
-#include "ui_effect/mask/include/mask_para.h"
-#include "ui_effect/mask/include/ripple_mask_para.h"
-#include "ui_effect/mask/include/radial_gradient_mask_para.h"
-#include "ui_effect/mask/include/wave_gradient_mask_para.h"
-#include "ui_effect/mask/include/wave_disturbance_mask_para.h"
-#include "ui_effect/mask/include/image_mask_para.h"
-#include "ui_effect/mask/include/use_effect_mask_para.h"
-#include "ui_effect/mask/include/pixel_map_mask_para.h"
+
 #include "common/rs_vector2.h"
 #include "common/rs_vector3.h"
 #include "common/rs_vector4.h"
+#include "ui_effect/mask/include/image_mask_para.h"
+#include "ui_effect/mask/include/mask_para.h"
+#include "ui_effect/mask/include/pixel_map_mask_para.h"
+#include "ui_effect/mask/include/radial_gradient_mask_para.h"
+#include "ui_effect/mask/include/ripple_mask_para.h"
+#include "ui_effect/mask/include/use_effect_mask_para.h"
+#include "ui_effect/mask/include/wave_disturbance_mask_para.h"
+#include "ui_effect/mask/include/wave_gradient_mask_para.h"
+#include "ui_effect/property/include/rs_ui_mask_base.h"
+#include "ui_effect/property/include/rs_ui_mask_to_para.h"
 
 using namespace testing;
 using namespace testing::ext;
