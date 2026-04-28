@@ -53,7 +53,8 @@ void BootIndependentDisplayStrategy::Display(int32_t duration, std::vector<BootA
 
     if (IsOtaUpdate() && connectToRenderMap_.find(screenConfig.screenId) != connectToRenderMap_.end()) {
         bootCompileProgress_ = std::make_shared<BootCompileProgress>();
-        bootCompileProgress_->Init(configPath_, screenConfig, connectToRenderMap_.find(screenConfig.screenId)->second);
+        bootCompileProgress_->Init(configPath_, screenConfig,
+            connectToRenderMap_.find(screenConfig.screenId)->second);
     }
 
     while (!CheckExitAnimation()) {

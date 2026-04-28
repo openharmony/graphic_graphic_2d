@@ -112,28 +112,28 @@ void BootAnimationStrategy::GetConnectToRenderMap(int count, uint32_t timeoutMs)
     {
         std::unique_lock<std::mutex> lock(connectToRenderMapMtx_);
         if (timeoutMs > 0) {
-            LOGI("BootAnimationStrategy::GetConnectToRenderMap start waiting for %{public}d screens, timeout %{public}u ms.",
+            LOGI("GetConnectToRenderMap start waiting for %{public}d screens, timeout %{public}u ms.",
                  count, timeoutMs);
             bool success = cv->wait_for(lock, std::chrono::milliseconds(timeoutMs), [this, count]() {
                 return this->connectToRenderMap_.size() >= static_cast<size_t>(count);
             });
             if (!success) {
-                LOGI("BootAnimationStrategy::GetConnectToRenderMap wait timeout. Expected %{public}d, got %{public}zu.",
+                LOGI("GetConnectToRenderMap wait timeout. Expected %{public}d, got %{public}zu.",
                      count, this->connectToRenderMap_.size());
             } else {
-                LOGI("BootAnimationStrategy::GetConnectToRenderMap wait finished. Currently got %{public}zu.",
+                LOGI("GetConnectToRenderMap wait finished. Currently got %{public}zu.",
                      this->connectToRenderMap_.size());
             }
         } else {
-            LOGI("BootAnimationStrategy::GetConnectToRenderMap start infinite waiting for %{public}d screens.", count);
+            LOGI("GetConnectToRenderMap start infinite waiting for %{public}d screens.", count);
             cv->wait(lock, [this, count]() {
                 return this->connectToRenderMap_.size() >= static_cast<size_t>(count);
             });
-            LOGI("BootAnimationStrategy::GetConnectToRenderMap wait finished. Currently got %{public}zu.",
+            LOGI("GetConnectToRenderMap wait finished. Currently got %{public}zu.",
                  this->connectToRenderMap_.size());
         }
     }
-    LOGI("BootAnimationStrategy::%{public}s set screen change callback end.", __func__);
+    LOGI("GetConnectToRenderMap %{public}s set screen change callback end.", __func__);
 }
 
 void BootAnimationStrategy::SubscribeActiveScreenIdChanged()
