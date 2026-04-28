@@ -3742,7 +3742,8 @@ HWTEST_F(RSUniHwcVisitorTest, CheckHwcNodeIntersection001, TestSize.Level1)
     // Set up intersecting rect
     RectI colorPickerRect(50, 50, 200, 200);
     constexpr NodeId surfaceId = 1;
-    rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_[surfaceId] = colorPickerRect;
+    rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_[surfaceId].first = surfaceId;
+    rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_[surfaceId].second = colorPickerRect;
 
     // Call UpdateHwcNodeEnableByColorPicker which internally calls CheckHwcNodeIntersection
     rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByColorPicker();
@@ -3785,7 +3786,8 @@ HWTEST_F(RSUniHwcVisitorTest, CheckHwcNodeIntersection002, TestSize.Level1)
     // Set up non-intersecting rect (far away from node position)
     RectI colorPickerRect(500, 500, 100, 100);
     constexpr NodeId surfaceId = 1;
-    rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_[surfaceId] = colorPickerRect;
+    rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_[surfaceId].first = surfaceId;
+    rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_[surfaceId].second = colorPickerRect;
 
     // Call UpdateHwcNodeEnableByColorPicker which internally calls CheckHwcNodeIntersection
     rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByColorPicker();
@@ -3821,7 +3823,8 @@ HWTEST_F(RSUniHwcVisitorTest, CheckHwcNodeIntersection003, TestSize.Level1)
 
     RectI colorPickerRect(50, 50, 200, 200);
     constexpr NodeId surfaceId = 1;
-    rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_[surfaceId] = colorPickerRect;
+    rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_[surfaceId].first = surfaceId;
+    rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_[surfaceId].second = colorPickerRect;
 
     // Should not crash with null node
     rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByColorPicker();
@@ -3860,7 +3863,8 @@ HWTEST_F(RSUniHwcVisitorTest, CheckHwcNodeIntersection004, TestSize.Level1)
 
     RectI colorPickerRect(50, 50, 200, 200);
     constexpr NodeId surfaceId = 1;
-    rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_[surfaceId] = colorPickerRect;
+    rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_[surfaceId].first = surfaceId;
+    rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_[surfaceId].second = colorPickerRect;
 
     // Call UpdateHwcNodeEnableByColorPicker which internally calls CheckHwcNodeIntersection
     rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByColorPicker();
@@ -3907,7 +3911,8 @@ HWTEST_F(RSUniHwcVisitorTest, CheckHwcNodeIntersection005, TestSize.Level1)
     // Set up intersecting rect
     RectI colorPickerRect(50, 50, 200, 200);
     constexpr NodeId surfaceId = 1;
-    rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_[surfaceId] = colorPickerRect;
+    rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_[surfaceId].first = surfaceId;
+    rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_[surfaceId].second = colorPickerRect;
 
     // Call UpdateHwcNodeEnableByColorPicker which internally calls CheckHwcNodeIntersection
     rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByColorPicker();
@@ -3951,13 +3956,14 @@ HWTEST_F(RSUniHwcVisitorTest, ColorPickerHwcDisabledSurfacesDeduplication, TestS
     RectI rect1(10, 10, 100, 100);
     RectI rect2(20, 20, 200, 200);
 
-    rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_[surfaceId] = rect1;
-    rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_[surfaceId] = rect2;
+    rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_[surfaceId].first = surfaceId;
+    rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_[surfaceId].second = rect1;
+    rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_[surfaceId].second = rect2;
 
     // Should only have one entry (unordered_map deduplicates)
     EXPECT_EQ(rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_.size(), 1u);
     // The later rect should overwrite the earlier one
-    EXPECT_EQ(rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_[surfaceId].left_, 20);
+    EXPECT_EQ(rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_[surfaceId].second.left_, 20);
 }
 
 /**
@@ -3971,11 +3977,15 @@ HWTEST_F(RSUniHwcVisitorTest, ColorPickerHwcDisabledSurfacesClear, TestSize.Leve
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     ASSERT_NE(rsUniRenderVisitor->hwcVisitor_, nullptr);
+    NodeId surfaceId = 1;
 
     // Add multiple entries
-    rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_[1] = RectI(10, 10, 100, 100);
-    rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_[2] = RectI(20, 20, 200, 200);
-    rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_[3] = RectI(30, 30, 300, 300);
+    rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_[1].first = surfaceId;
+    rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_[2].first = surfaceId;
+    rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_[3].first = surfaceId;
+    rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_[1].second = RectI(10, 10, 100, 100);
+    rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_[2].second = RectI(20, 20, 200, 200);
+    rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_[3].second = RectI(30, 30, 300, 300);
 
     EXPECT_EQ(rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_.size(), 3u);
 
