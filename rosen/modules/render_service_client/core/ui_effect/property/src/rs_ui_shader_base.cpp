@@ -252,7 +252,7 @@ std::shared_ptr<RSNGShaderBase> ConvertHarmoniumEffectPara(std::shared_ptr<Visua
     if (!harmoniumEffectPara->GetEnable()) {
         ROSEN_LOGE("ConvertHarmoniumEffectPara enable is false");
         return nullptr;
-    }  
+    }
 #if !defined(ROSEN_ARKUI_X)
     harmoniumEffect->Setter<HarmoniumEffectMaskTag>(RSNGMaskBase::Create(harmoniumEffectPara->GetMask()));
     harmoniumEffect->Setter<HarmoniumEffectUseEffectMaskTag>(RSNGMaskBase::Create(
