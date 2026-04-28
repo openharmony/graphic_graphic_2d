@@ -550,7 +550,6 @@ sptr<SurfaceBuffer> RSRenderSurfaceLayer::GetPreBuffer() const
 {
     auto pbuffer = pbuffer_.promote();
     if (pbuffer == nullptr) {
-        RS_LOGD("%{public}s layer id: %{public}" PRIu64 " buffer is released", __func__, rsLayerId_);
         return nullptr;
     }
     return pbuffer;
@@ -659,7 +658,7 @@ const GraphicIRect& RSRenderSurfaceLayer::GetAncoSrcRect() const
 void RSRenderSurfaceLayer::CopyLayerInfo(const std::shared_ptr<RSLayer>& rsLayer)
 {
     rsLayerId_ = rsLayer->GetRSLayerId();
-    zOrder_ = rsLayer->GetZorder();
+    zOrder_ = static_cast<int32_t>(rsLayer->GetZorder());
     layerType_ = rsLayer->GetType();
     layerRect_ = rsLayer->GetLayerSize();
     boundRect_ = rsLayer->GetBoundSize();
@@ -731,7 +730,6 @@ void RSRenderSurfaceLayer::UpdateRSLayerCmd(const std::shared_ptr<RSRenderLayerC
     } else {
         ROSEN_LOGE("%{public}s type err:%{public}d", __func__, static_cast<int32_t>(type));
     }
-    ROSEN_LOGD("%{public}s type:%{public}d", __func__, static_cast<int32_t>(type));
 }
 
 // only used for separate rendering

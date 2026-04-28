@@ -35,10 +35,10 @@ public:
     void PostSyncTask(const std::function<void()>& task);
     void PostDelayTask(const std::function<void()>& task, int64_t delayTime);
     void SurfaceDump(std::string& dumpString);
-    void FpsDump(std::string& dumpString, const std::string& arg);
+    void FpsDump(std::string& dumpString, const std::string& layerName);
     void GetRefreshInfoToSP(std::string& dumpString, NodeId nodeId);
-    void ClearFpsDump(std::string& dumpString, std::string& arg);
-    void HitchsDump(std::string& dumpString, std::string& arg);
+    void ClearFpsDump(std::string& dumpString, std::string& layerName);
+    void HitchsDump(std::string& dumpString, std::string& layerArg);
     void RefreshRateCounts(std::string& dumpString);
     void ClearRefreshRateCounts(std::string& dumpString);
     void HandlePowerStatus(ScreenId screenId, ScreenPowerStatus status);
