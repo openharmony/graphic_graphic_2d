@@ -487,7 +487,10 @@ bool PixelMapFromSurface::CanvasDrawImage(const std::shared_ptr<Drawing::Image> 
         canvas->DrawRect(dstRect);
     } else {
         canvas->ConcatMatrix(matrix);
-        CanvasDrawImageRect(paint, drawingImage, srcDrawRect, dstRect, canvas);
+        //CanvasDrawImageRect(paint, drawingImage, srcDrawRect, dstRect, canvas);
+        canvas->DrawImageRect(*drawingImage, srcDrawRect, dstRect,
+            Drawing::SamplingOptions(Drawing::FilterMode::NEAREST),
+            Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
     }
     return true;
 #else
