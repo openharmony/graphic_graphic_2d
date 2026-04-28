@@ -49,13 +49,10 @@ void RSLayerParcelHelper::UpdateRSLayerCmd(std::shared_ptr<RSRenderComposerConte
     }
     auto rsLayer = context->GetRSRenderLayer(layerId);
     if (rsLayer == nullptr) {
-        ROSEN_LOGI("%{public}s add rsLayer", __func__);
         rsLayer = std::make_shared<RSRenderSurfaceLayer>();
         context->AddRSRenderLayer(layerId, rsLayer);
     }
     rsLayer->UpdateRSLayerCmd(command);
-    ROSEN_LOGD("%{public}s rslayermap size:%{public}d", __func__,
-        static_cast<int32_t>(context->GetRSRenderLayerCount()));
 }
 
 void RSLayerParcelHelper::UpdateRSRCDLayerCmd(std::shared_ptr<RSRenderComposerContext> context, RSLayerId layerId,
@@ -67,7 +64,6 @@ void RSLayerParcelHelper::UpdateRSRCDLayerCmd(std::shared_ptr<RSRenderComposerCo
     }
     auto rsLayer = context->GetRSRenderLayer(layerId);
     if (rsLayer == nullptr) {
-        ROSEN_LOGD("%{public}s add rsLayer", __func__);
         rsLayer = std::make_shared<RSRenderSurfaceRCDLayer>();
         context->AddRSRenderLayer(layerId, rsLayer);
     }
@@ -80,8 +76,6 @@ void RSLayerParcelHelper::UpdateRSRCDLayerCmd(std::shared_ptr<RSRenderComposerCo
         return;
     }
     rsLayer->UpdateRSLayerCmd(command);
-    ROSEN_LOGD("%{public}s rslayermap size:%{public}d", __func__,
-        static_cast<int32_t>(context->GetRSRenderLayerCount()));
 }
 } // namespace Rosen
 } // namespace OHOS
