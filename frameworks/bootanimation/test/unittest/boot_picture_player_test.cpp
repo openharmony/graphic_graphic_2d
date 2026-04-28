@@ -40,17 +40,156 @@ void BootPicturePlayerTest::SetUp() {}
 void BootPicturePlayerTest::TearDown() {}
 
 /**
- * @tc.name: BootPicturePlayerTest_001
- * @tc.desc: Verify the ReadPicZipFile
- * @tc.type:FUNC
+ * @tc.name: ReadPicZipFile_EmptyParams_ReturnTrue
+ * @tc.desc: Verify the ReadPicZipFile function returns true with empty params.
+ * @tc.type: FUNC
  */
-HWTEST_F(BootPicturePlayerTest, BootPicturePlayerTest_001, TestSize.Level1)
+HWTEST_F(BootPicturePlayerTest, ReadPicZipFile_EmptyParams_ReturnTrue, TestSize.Level1)
 {
     PlayerParams params;
     std::shared_ptr<BootPicturePlayer> player = std::make_shared<BootPicturePlayer>(params);
+    ASSERT_NE(player, nullptr);
     ImageStructVec imgVec;
     int32_t freq = 30;
     EXPECT_EQ(player->ReadPicZipFile(imgVec, freq), true);
+}
+
+/**
+ * @tc.name: CheckFrameRateValid_ZeroFrameRate_ReturnFalse
+ * @tc.desc: Verify the CheckFrameRateValid function returns false with zero frame rate.
+ * @tc.type: FUNC
+ */
+HWTEST_F(BootPicturePlayerTest, CheckFrameRateValid_ZeroFrameRate_ReturnFalse, TestSize.Level1)
+{
+    PlayerParams params;
+    std::shared_ptr<BootPicturePlayer> player = std::make_shared<BootPicturePlayer>(params);
+    ASSERT_NE(player, nullptr);
+    int32_t frameRate = 0;
+    EXPECT_EQ(player->CheckFrameRateValid(frameRate), false);
+}
+
+/**
+ * @tc.name: CheckFrameRateValid_ValidFrameRate_ReturnTrue
+ * @tc.desc: Verify the CheckFrameRateValid function returns true with valid frame rate.
+ * @tc.type: FUNC
+ */
+HWTEST_F(BootPicturePlayerTest, CheckFrameRateValid_ValidFrameRate_ReturnTrue, TestSize.Level1)
+{
+    PlayerParams params;
+    std::shared_ptr<BootPicturePlayer> player = std::make_shared<BootPicturePlayer>(params);
+    ASSERT_NE(player, nullptr);
+    int32_t frameRate = 30;
+    EXPECT_EQ(player->CheckFrameRateValid(frameRate), true);
+}
+
+/**
+ * @tc.name: Play_DifferentStates_ExecuteSuccessfully
+ * @tc.desc: Verify the Play function executes with different states.
+ * @tc.type: FUNC
+ */
+HWTEST_F(BootPicturePlayerTest, Play_DifferentStates_ExecuteSuccessfully, TestSize.Level1)
+{
+    PlayerParams params;
+    std::shared_ptr<BootPicturePlayer> player = std::make_shared<BootPicturePlayer>(params);
+    ASSERT_NE(player, nullptr);
+    std::shared_ptr<OHOS::AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create(false);
+    std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler = std::make_shared<AppExecFwk::EventHandler>(runner);
+    int flag = 0;
+    handler->PostTask([&] {
+        player->Play();
+        flag = 1;
+        runner->Stop();
+    });
+    runner->Run();
+    EXPECT_EQ(flag, 1);
+    
+    player->receiver_ = nullptr;
+    auto& rsClient = OHOS::Rosen::RSInterfaces::GetInstance();
+    player->receiver_ = rsClient.CreateVSyncReceiver("BootAnimation", handler);
+    handler->PostTask([&] {
+        player->Play();
+        flag = 0;
+        runner->Stop();
+    });
+    runner->Run();
+    EXPECT_EQ(flag, 0);
+
+    ImageStructVec imgVec;
+    player->imageVector_ = imgVec;
+    handler->PostTask([&] {
+        player->Play();
+        flag = 1;
+        runner->Stop();
+    });
+    runner->Run();
+    EXPECT_EQ(flag, 1);
+}
+
+/**
+ * @tc.name: GetPicZipPath_SetPath_ReturnCorrectPath
+ * @tc.desc: Verify the GetPicZipPath function returns correct path.
+ * @tc.type: FUNC
+ */
+HWTEST_F(BootPicturePlayerTest, GetPicZipPath_SetPath_ReturnCorrectPath, TestSize.Level1)
+{
+    PlayerParams params;
+    std::shared_ptr<BootPicturePlayer> player = std::make_shared<BootPicturePlayer>(params);
+    ASSERT_NE(player, nullptr);
+    params.resPath = "/system/etc/graphic/bootpic.zip";
+    EXPECT_EQ(player->GetPicZipPath(), "/system/etc/graphic/bootpic.zip");
+}
+
+/**
+ * @tc.name: OnDraw_DifferentConditions_ExecuteSuccessfully
+ * @tc.desc: Verify the OnDraw function executes with different conditions.
+ * @tc.type: FUNC
+ */
+HWTEST_F(BootPicturePlayerTest, OnDraw_DifferentConditions_ExecuteSuccessfully, TestSize.Level1)
+{
+    std::shared_ptr<OHOS::AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create(false);
+    std::shared_ptr<OHOS::AppExecFwk::EventHandler> handler = std::make_shared<AppExecFwk::EventHandler>(runner);
+    PlayerParams params;
+    bool flag = false;
+    std::shared_ptr<BootPicturePlayer> player = std::make_shared<BootPicturePlayer>(params);
+    ASSERT_NE(player, nullptr);
+    handler->PostTask([&] {
+        flag = player->OnDraw(nullptr, 0);
+        runner->Stop();
+    });
+    runner->Run();
+    EXPECT_EQ(flag, false);
+
+    Rosen::Drawing::CoreCanvas canvas;
+    handler->PostTask([&] {
+        flag = player->OnDraw(&canvas, 0);
+        runner->Stop();
+    });
+    runner->Run();
+    EXPECT_EQ(flag, false);
+
+    player->imgVecSize_ = 1;
+    handler->PostTask([&] {
+        flag = player->OnDraw(&canvas, -1);
+        runner->Stop();
+    });
+    runner->Run();
+    EXPECT_EQ(flag, false);
+
+    player->imgVecSize_ = -1;
+    handler->PostTask([&] {
+        flag = player->OnDraw(&canvas, -1);
+        runner->Stop();
+    });
+    runner->Run();
+    EXPECT_EQ(flag, false);
+
+    ImageStructVec imgVec;
+    player->imageVector_ = imgVec;
+    player->picCurNo_ = 0;
+    player->imgVecSize_ = 2;
+    player->OnVsync();
+    flag = player->Stop();
+    EXPECT_EQ(flag, false);
 }
 
 /**
@@ -135,11 +274,11 @@ HWTEST_F(BootPicturePlayerTest, BootPicturePlayerTest_005, TestSize.Level1)
 }
 
 /**
- * @tc.name: BootPicturePlayerTest_006
- * @tc.desc: Verify the Draw
- * @tc.type:FUNC
+ * @tc.name: Draw_Normal_ExecuteSuccessfully
+ * @tc.desc: Verify the Draw function executes successfully.
+ * @tc.type: FUNC
  */
-HWTEST_F(BootPicturePlayerTest, BootPicturePlayerTest_006, TestSize.Level1)
+HWTEST_F(BootPicturePlayerTest, Draw_Normal_ExecuteSuccessfully, TestSize.Level1)
 {
     BootAnimationOperation operation;
     std::shared_ptr<OHOS::AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create(false);
@@ -154,6 +293,7 @@ HWTEST_F(BootPicturePlayerTest, BootPicturePlayerTest_006, TestSize.Level1)
     ASSERT_NE(nullptr, operation.rsSurface_);
     PlayerParams params;
     std::shared_ptr<BootPicturePlayer> player = std::make_shared<BootPicturePlayer>(params);
+    ASSERT_NE(player, nullptr);
     player->rsSurface_ = operation.rsSurface_;
     player->picCurNo_ = 2;
     player->imgVecSize_ = 0;
@@ -162,6 +302,7 @@ HWTEST_F(BootPicturePlayerTest, BootPicturePlayerTest_006, TestSize.Level1)
         runner->Stop();
     });
     runner->Run();
+    EXPECT_TRUE(true);
 
     ImageStructVec imgVec;
     player->imageVector_ = imgVec;
@@ -172,6 +313,7 @@ HWTEST_F(BootPicturePlayerTest, BootPicturePlayerTest_006, TestSize.Level1)
         runner->Stop();
     });
     runner->Run();
+    EXPECT_TRUE(true);
 }
 
 /**

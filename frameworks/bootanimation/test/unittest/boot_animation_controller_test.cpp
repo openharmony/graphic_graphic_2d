@@ -35,23 +35,23 @@ void BootAnimationControllerTest::SetUp() {}
 void BootAnimationControllerTest::TearDown() {}
 
 /**
- * @tc.name: BootAnimationControllerTest_001
- * @tc.desc: Verify the CreateDefaultBootConfig
- * @tc.type:FUNC
+ * @tc.name: CreateDefaultBootConfig_Normal_Success
+ * @tc.desc: Verify the CreateDefaultBootConfig function creates default config successfully.
+ * @tc.type: FUNC
  */
-HWTEST_F(BootAnimationControllerTest, BootAnimationControllerTest_001, TestSize.Level1)
+HWTEST_F(BootAnimationControllerTest, CreateDefaultBootConfig_Normal_Success, TestSize.Level1)
 {
     BootAnimationController controller;
     controller.CreateDefaultBootConfig();
-    EXPECT_EQ(1, controller.animationConfigs_.size());
+    EXPECT_EQ(controller.animationConfigs_.size(), 1);
 }
 
 /**
- * @tc.name: BootAnimationControllerTest_002
- * @tc.desc: Verify the GetBootType
- * @tc.type:FUNC
+ * @tc.name: GetBootType_CompatibleMode_ReturnCompatibleType
+ * @tc.desc: Verify the GetBootType function returns COMPATIBLE type when isCompatible_ is true.
+ * @tc.type: FUNC
  */
-HWTEST_F(BootAnimationControllerTest, BootAnimationControllerTest_002, TestSize.Level0)
+HWTEST_F(BootAnimationControllerTest, GetBootType_CompatibleMode_ReturnCompatibleType, TestSize.Level0)
 {
     BootAnimationController controller;
     controller.isCompatible_ = true;
@@ -60,11 +60,11 @@ HWTEST_F(BootAnimationControllerTest, BootAnimationControllerTest_002, TestSize.
 }
 
 /**
- * @tc.name: BootAnimationControllerTest_003
- * @tc.desc: Verify the GetBootType
- * @tc.type:FUNC
+ * @tc.name: GetBootType_MultiDisplay_ReturnIndependentType
+ * @tc.desc: Verify the GetBootType function returns INDEPENDENT type when isMultiDisplay_ is true.
+ * @tc.type: FUNC
  */
-HWTEST_F(BootAnimationControllerTest, BootAnimationControllerTest_003, TestSize.Level0)
+HWTEST_F(BootAnimationControllerTest, GetBootType_MultiDisplay_ReturnIndependentType, TestSize.Level0)
 {
     BootAnimationController controller;
     controller.isMultiDisplay_ = true;
@@ -73,11 +73,11 @@ HWTEST_F(BootAnimationControllerTest, BootAnimationControllerTest_003, TestSize.
 }
 
 /**
- * @tc.name: BootAnimationControllerTest_004
- * @tc.desc: Verify the GetBootType
- * @tc.type:FUNC
+ * @tc.name: GetBootType_SingleConfig_ReturnIndependentType
+ * @tc.desc: Verify the GetBootType function returns INDEPENDENT type when there is single animation config.
+ * @tc.type: FUNC
  */
-HWTEST_F(BootAnimationControllerTest, BootAnimationControllerTest_004, TestSize.Level0)
+HWTEST_F(BootAnimationControllerTest, GetBootType_SingleConfig_ReturnIndependentType, TestSize.Level0)
 {
     BootAnimationController controller;
     BootAnimationConfig config;
@@ -87,11 +87,11 @@ HWTEST_F(BootAnimationControllerTest, BootAnimationControllerTest_004, TestSize.
 }
 
 /**
- * @tc.name: BootAnimationControllerTest_005
- * @tc.desc: Verify the GetBootType
- * @tc.type:FUNC
+ * @tc.name: GetBootType_MultipleConfigs_ReturnAssociativeType
+ * @tc.desc: Verify the GetBootType function returns ASSOCIATIVE type when there are multiple animation configs.
+ * @tc.type: FUNC
  */
-HWTEST_F(BootAnimationControllerTest, BootAnimationControllerTest_005, TestSize.Level0)
+HWTEST_F(BootAnimationControllerTest, GetBootType_MultipleConfigs_ReturnAssociativeType, TestSize.Level0)
 {
     BootAnimationController controller;
     BootAnimationConfig first_config;
@@ -103,11 +103,11 @@ HWTEST_F(BootAnimationControllerTest, BootAnimationControllerTest_005, TestSize.
 }
 
 /**
- * @tc.name: BootAnimationControllerTest_006
- * @tc.desc: Verify the GetBootType
- * @tc.type:FUNC
+ * @tc.name: GetConfigFilePath_FileExists_ReturnCorrectPath
+ * @tc.desc: Verify the GetConfigFilePath function returns correct path when config file exists.
+ * @tc.type: FUNC
  */
-HWTEST_F(BootAnimationControllerTest, BootAnimationControllerTest_006, TestSize.Level1)
+HWTEST_F(BootAnimationControllerTest, GetConfigFilePath_FileExists_ReturnCorrectPath, TestSize.Level1)
 {
     std::shared_ptr<BootAnimationController> controller = std::make_shared<BootAnimationController>();
     std::string path = controller->GetConfigFilePath();
