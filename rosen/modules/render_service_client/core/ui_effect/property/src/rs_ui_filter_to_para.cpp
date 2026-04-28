@@ -40,6 +40,92 @@ std::shared_ptr<FilterPara> ConvertFrostedGlassBlurFilterToPara(std::shared_ptr<
     return para;
 }
 
+void CopyBasicParams(FrostedGlassPara& para, const RSNGFrostedGlassFilter& filter)
+{
+    Vector2f blurParams = filter.Getter<FrostedGlassBlurParamsTag>()->Get();
+    para.SetBlurParams(blurParams);
+    Vector2f weightsEmboss = filter.Getter<FrostedGlassWeightsEmbossTag>()->Get();
+    para.SetWeightsEmboss(weightsEmboss);
+    Vector2f weightsEdl = filter.Getter<FrostedGlassWeightsEdlTag>()->Get();
+    para.SetWeightsEdl(weightsEdl);
+    Vector2f bgRates = filter.Getter<FrostedGlassBgRatesTag>()->Get();
+    para.SetBgRates(bgRates);
+    Vector3f bgKBS = filter.Getter<FrostedGlassBgKBSTag>()->Get();
+    para.SetBgKBS(bgKBS);
+    Vector3f bgPos = filter.Getter<FrostedGlassBgPosTag>()->Get();
+    para.SetBgPos(bgPos);
+    Vector3f bgNeg = filter.Getter<FrostedGlassBgNegTag>()->Get();
+    para.SetBgNeg(bgNeg);
+    para.SetBgAlpha(filter.Getter<FrostedGlassBgAlphaTag>()->Get());
+    Vector3f refractParams = filter.Getter<FrostedGlassRefractParamsTag>()->Get();
+    para.SetRefractParams(refractParams);
+}
+
+void CopySdAndEnvLightParams(FrostedGlassPara& para, const RSNGFrostedGlassFilter& filter)
+{
+    Vector3f sdParams = filter.Getter<FrostedGlassSdParamsTag>()->Get();
+    para.SetSdParams(sdParams);
+    Vector2f sdRates = filter.Getter<FrostedGlassSdRatesTag>()->Get();
+    para.SetSdRates(sdRates);
+    Vector3f sdKBS = filter.Getter<FrostedGlassSdKBSTag>()->Get();
+    para.SetSdKBS(sdKBS);
+    Vector3f sdPos = filter.Getter<FrostedGlassSdPosTag>()->Get();
+    para.SetSdPos(sdPos);
+    Vector3f sdNeg = filter.Getter<FrostedGlassSdNegTag>()->Get();
+    para.SetSdNeg(sdNeg);
+    Vector3f envLightParams = filter.Getter<FrostedGlassEnvLightParamsTag>()->Get();
+    para.SetEnvLightParams(envLightParams);
+    Vector2f envLightRates = filter.Getter<FrostedGlassEnvLightRatesTag>()->Get();
+    para.SetEnvLightRates(envLightRates);
+    Vector3f envLightKBS = filter.Getter<FrostedGlassEnvLightKBSTag>()->Get();
+    para.SetEnvLightKBS(envLightKBS);
+    Vector3f envLightPos = filter.Getter<FrostedGlassEnvLightPosTag>()->Get();
+    para.SetEnvLightPos(envLightPos);
+    Vector3f envLightNeg = filter.Getter<FrostedGlassEnvLightNegTag>()->Get();
+    para.SetEnvLightNeg(envLightNeg);
+}
+
+void CopyEdLightAndFinalParams(FrostedGlassPara& para, const RSNGFrostedGlassFilter& filter)
+{
+    Vector2f edLightParams = filter.Getter<FrostedGlassEdLightParamsTag>()->Get();
+    para.SetEdLightParams(edLightParams);
+    Vector2f edLightAngles = filter.Getter<FrostedGlassEdLightAnglesTag>()->Get();
+    para.SetEdLightAngles(edLightAngles);
+    Vector2f edLightDir = filter.Getter<FrostedGlassEdLightDirTag>()->Get();
+    para.SetEdLightDir(edLightDir);
+    Vector2f edLightRates = filter.Getter<FrostedGlassEdLightRatesTag>()->Get();
+    para.SetEdLightRates(edLightRates);
+    Vector3f edLightKBS = filter.Getter<FrostedGlassEdLightKBSTag>()->Get();
+    para.SetEdLightKBS(edLightKBS);
+    Vector3f edLightPos = filter.Getter<FrostedGlassEdLightPosTag>()->Get();
+    para.SetEdLightPos(edLightPos);
+    Vector3f edLightNeg = filter.Getter<FrostedGlassEdLightNegTag>()->Get();
+    para.SetEdLightNeg(edLightNeg);
+    para.SetBaseVibrancyEnabled(filter.Getter<FrostedGlassBaseVibrancyEnabledTag>()->Get());
+    para.SetBaseMaterialType(filter.Getter<FrostedGlassBaseMaterialTypeTag>()->Get());
+    Vector4f materialColor = filter.Getter<FrostedGlassMaterialColorTag>()->Get();
+    para.SetMaterialColor(materialColor);
+    para.SetSamplingScale(filter.Getter<FrostedGlassSamplingScaleTag>()->Get());
+    auto mask = filter.Getter<FrostedGlassWaveMaskTag>()->Get();
+    para.SetMask(mask ? RSNGMaskToParaHelper::ConvertMaskToPara(mask) : nullptr);
+}
+
+void HandleDarkAdaptiveParams(FrostedGlassPara& para, const RSNGFrostedGlassFilter& filter)
+{
+    auto darkModeBlurParams = filter.Getter<FrostedGlassDarkModeBlurParamsTag>()->Get();
+    if (darkModeBlurParams.x_ <= 0 && darkModeBlurParams.y_ <= 0) {
+        return;
+    }
+    auto darkParams = std::make_shared<AdaptiveFrostedGlassParams>();
+    darkParams->blurParams = darkModeBlurParams;
+    darkParams->weightsEmboss = filter.Getter<FrostedGlassDarkModeWeightsEmbossTag>()->Get();
+    darkParams->bgRates = filter.Getter<FrostedGlassDarkModeBgRatesTag>()->Get();
+    darkParams->bgKBS = filter.Getter<FrostedGlassDarkModeBgKBSTag>()->Get();
+    darkParams->bgPos = filter.Getter<FrostedGlassDarkModeBgPosTag>()->Get();
+    darkParams->bgNeg = filter.Getter<FrostedGlassDarkModeBgNegTag>()->Get();
+    para.SetDarkAdaptiveParams(*darkParams);
+}
+
 std::shared_ptr<FilterPara> ConvertFrostedGlassFilterToPara(std::shared_ptr<RSNGFilterBase> filter)
 {
     if (!filter) {
@@ -47,75 +133,10 @@ std::shared_ptr<FilterPara> ConvertFrostedGlassFilterToPara(std::shared_ptr<RSNG
     }
     auto frostedGlassFilter = std::static_pointer_cast<RSNGFrostedGlassFilter>(filter);
     auto para = std::make_shared<FrostedGlassPara>();
-    Vector2f blurParams = frostedGlassFilter->Getter<FrostedGlassBlurParamsTag>()->Get();
-    para->SetBlurParams(blurParams);
-    Vector2f weightsEmboss = frostedGlassFilter->Getter<FrostedGlassWeightsEmbossTag>()->Get();
-    para->SetWeightsEmboss(weightsEmboss);
-    Vector2f weightsEdl = frostedGlassFilter->Getter<FrostedGlassWeightsEdlTag>()->Get();
-    para->SetWeightsEdl(weightsEdl);
-    Vector2f bgRates = frostedGlassFilter->Getter<FrostedGlassBgRatesTag>()->Get();
-    para->SetBgRates(bgRates);
-    Vector3f bgKBS = frostedGlassFilter->Getter<FrostedGlassBgKBSTag>()->Get();
-    para->SetBgKBS(bgKBS);
-    Vector3f bgPos = frostedGlassFilter->Getter<FrostedGlassBgPosTag>()->Get();
-    para->SetBgPos(bgPos);
-    Vector3f bgNeg = frostedGlassFilter->Getter<FrostedGlassBgNegTag>()->Get();
-    para->SetBgNeg(bgNeg);
-    para->SetBgAlpha(frostedGlassFilter->Getter<FrostedGlassBgAlphaTag>()->Get());
-    Vector3f refractParams = frostedGlassFilter->Getter<FrostedGlassRefractParamsTag>()->Get();
-    para->SetRefractParams(refractParams);
-    Vector3f sdParams = frostedGlassFilter->Getter<FrostedGlassSdParamsTag>()->Get();
-    para->SetSdParams(sdParams);
-    Vector2f sdRates = frostedGlassFilter->Getter<FrostedGlassSdRatesTag>()->Get();
-    para->SetSdRates(sdRates);
-    Vector3f sdKBS = frostedGlassFilter->Getter<FrostedGlassSdKBSTag>()->Get();
-    para->SetSdKBS(sdKBS);
-    Vector3f sdPos = frostedGlassFilter->Getter<FrostedGlassSdPosTag>()->Get();
-    para->SetSdPos(sdPos);
-    Vector3f sdNeg = frostedGlassFilter->Getter<FrostedGlassSdNegTag>()->Get();
-    para->SetSdNeg(sdNeg);
-    Vector3f envLightParams = frostedGlassFilter->Getter<FrostedGlassEnvLightParamsTag>()->Get();
-    para->SetEnvLightParams(envLightParams);
-    Vector2f envLightRates = frostedGlassFilter->Getter<FrostedGlassEnvLightRatesTag>()->Get();
-    para->SetEnvLightRates(envLightRates);
-    Vector3f envLightKBS = frostedGlassFilter->Getter<FrostedGlassEnvLightKBSTag>()->Get();
-    para->SetEnvLightKBS(envLightKBS);
-    Vector3f envLightPos = frostedGlassFilter->Getter<FrostedGlassEnvLightPosTag>()->Get();
-    para->SetEnvLightPos(envLightPos);
-    Vector3f envLightNeg = frostedGlassFilter->Getter<FrostedGlassEnvLightNegTag>()->Get();
-    para->SetEnvLightNeg(envLightNeg);
-    Vector2f edLightParams = frostedGlassFilter->Getter<FrostedGlassEdLightParamsTag>()->Get();
-    para->SetEdLightParams(edLightParams);
-    Vector2f edLightAngles = frostedGlassFilter->Getter<FrostedGlassEdLightAnglesTag>()->Get();
-    para->SetEdLightAngles(edLightAngles);
-    Vector2f edLightDir = frostedGlassFilter->Getter<FrostedGlassEdLightDirTag>()->Get();
-    para->SetEdLightDir(edLightDir);
-    Vector2f edLightRates = frostedGlassFilter->Getter<FrostedGlassEdLightRatesTag>()->Get();
-    para->SetEdLightRates(edLightRates);
-    Vector3f edLightKBS = frostedGlassFilter->Getter<FrostedGlassEdLightKBSTag>()->Get();
-    para->SetEdLightKBS(edLightKBS);
-    Vector3f edLightPos = frostedGlassFilter->Getter<FrostedGlassEdLightPosTag>()->Get();
-    para->SetEdLightPos(edLightPos);
-    Vector3f edLightNeg = frostedGlassFilter->Getter<FrostedGlassEdLightNegTag>()->Get();
-    para->SetEdLightNeg(edLightNeg);
-    para->SetBaseVibrancyEnabled(frostedGlassFilter->Getter<FrostedGlassBaseVibrancyEnabledTag>()->Get());
-    para->SetBaseMaterialType(frostedGlassFilter->Getter<FrostedGlassBaseMaterialTypeTag>()->Get());
-    Vector4f materialColor = frostedGlassFilter->Getter<FrostedGlassMaterialColorTag>()->Get();
-    para->SetMaterialColor(materialColor);
-    para->SetSamplingScale(frostedGlassFilter->Getter<FrostedGlassSamplingScaleTag>()->Get());
-    auto mask = frostedGlassFilter->Getter<FrostedGlassWaveMaskTag>()->Get();
-    para->SetMask(mask ? RSNGMaskToParaHelper::ConvertMaskToPara(mask) : nullptr);
-    auto darkModeBlurParams = frostedGlassFilter->Getter<FrostedGlassDarkModeBlurParamsTag>()->Get();
-    if (darkModeBlurParams.x_ > 0 || darkModeBlurParams.y_ > 0) {
-        auto darkParams = std::make_shared<AdaptiveFrostedGlassParams>();
-        darkParams->blurParams = darkModeBlurParams;
-        darkParams->weightsEmboss = frostedGlassFilter->Getter<FrostedGlassDarkModeWeightsEmbossTag>()->Get();
-        darkParams->bgRates = frostedGlassFilter->Getter<FrostedGlassDarkModeBgRatesTag>()->Get();
-        darkParams->bgKBS = frostedGlassFilter->Getter<FrostedGlassDarkModeBgKBSTag>()->Get();
-        darkParams->bgPos = frostedGlassFilter->Getter<FrostedGlassDarkModeBgPosTag>()->Get();
-        darkParams->bgNeg = frostedGlassFilter->Getter<FrostedGlassDarkModeBgNegTag>()->Get();
-        para->SetDarkAdaptiveParams(*darkParams);
-    }
+    CopyBasicParams(*para, *frostedGlassFilter);
+    CopySdAndEnvLightParams(*para, *frostedGlassFilter);
+    CopyEdLightAndFinalParams(*para, *frostedGlassFilter);
+    HandleDarkAdaptiveParams(*para, *frostedGlassFilter);
     para->SetSkipFrameEnable(frostedGlassFilter->Getter<FrostedGlassSkipFrameEnableTag>()->Get());
     return para;
 }
