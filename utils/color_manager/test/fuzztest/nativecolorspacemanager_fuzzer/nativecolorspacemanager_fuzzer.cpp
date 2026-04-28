@@ -15,7 +15,7 @@
 
 #include "nativecolorspacemanager_fuzzer.h"
 
-#include <securec.h>
+#include <fuzzer/FuzzedDataProvider.h>
 
 #include "color.h"
 #include "color_space.h"
@@ -25,115 +25,79 @@
 namespace OHOS {
 namespace ColorSpaceManager {
 namespace {
-    const uint8_t* DATA = nullptr;
-    size_t g_size = 0;
-    size_t g_pos;
-} // namespace
-
-/*
-* describe: get data from outside untrusted data(DATA) which size is according to sizeof(T)
-* tips: only support basic type
-*/
-template<class T>
-T GetData()
-{
-    T object {};
-    size_t objectSize = sizeof(object);
-    if (DATA == nullptr || objectSize > g_size - g_pos) {
-        return object;
-    }
-    errno_t ret = memcpy_s(&object, objectSize, DATA + g_pos, objectSize);
-    if (ret != EOK) {
-        return {};
-    }
-    g_pos += objectSize;
-    return object;
+const uint8_t DO_COLOR = 0;
+const uint8_t DO_CREATE_FROM_PRIMARIES = 1;
+const uint8_t DO_GET_NAME = 2;
+const uint8_t DO_GET_GAMMA = 3;
+const uint8_t TARGET_SIZE = 4;
 }
 
-bool Init(const uint8_t* data, size_t size)
+void DoColorFuzzTest(FuzzedDataProvider& fdp)
 {
-    if (data == nullptr) {
-        return false;
-    }
- 
-    DATA = data;
-    g_size = size;
-    g_pos = 0;
-    return true;
-}
-
-bool ColorFuzzTest(const uint8_t* data, size_t size)
-{
-    Color randomColor = Color(GetData<float>(), GetData<float>(), GetData<float>(), GetData<float>());
-    ColorSpace csObject = ColorSpace(GetData<ColorSpaceName>());
-    ColorSpaceConvertor convertor = ColorSpaceConvertor(GetData<ColorSpaceName>(), GetData<ColorSpaceName>(),
-                                        GetData<GamutMappingMode>());
-    // color test
-    Color convertColor = Color();
-    (void)randomColor.Convert(GetData<ColorSpaceName>());
+    Color randomColor = Color(fdp.ConsumeFloatingPoint<float>(), fdp.ConsumeFloatingPoint<float>(),
+        fdp.ConsumeFloatingPoint<float>(), fdp.ConsumeFloatingPoint<float>());
+    ColorSpace csObject = ColorSpace(fdp.ConsumeIntegral<ColorSpaceName>());
+    ColorSpaceConvertor convertor = ColorSpaceConvertor(fdp.ConsumeIntegral<ColorSpaceName>(),
+        fdp.ConsumeIntegral<ColorSpaceName>(), fdp.ConsumeIntegral<GamutMappingMode>());
+    (void)randomColor.Convert(fdp.ConsumeIntegral<ColorSpaceName>());
     (void)randomColor.Convert(csObject);
-    convertColor = randomColor.Convert(convertor);
+    Color convertColor = randomColor.Convert(convertor);
     (void)randomColor.ColorEqual(convertColor);
- 
-    return true;
 }
 
-bool DoOH_NativeColorSpaceManager_CreateFromPrimariesAndGammaFuzzTest(const uint8_t* data, size_t size)
+void DoCreateFromPrimariesAndGamma(FuzzedDataProvider& fdp)
 {
-    if (data == nullptr) {
-        return false;
-    }
- 
     OH_NativeColorSpaceManager* nativeColorSpaceManager = nullptr;
     ColorSpaceName colorSpaceName = ColorSpaceName::NONE;
     nativeColorSpaceManager = OH_NativeColorSpaceManager_CreateFromName(colorSpaceName);
- 
     ColorSpacePrimaries primaries = {0.640f, 0.330f, 0.210f, 0.710f, 0.150f, 0.060f, 0.3127f, 0.3290f};
-    float gamma = GetData<float>();
-    nativeColorSpaceManager->OH_NativeColorSpaceManager_CreateFromPrimariesAndGamma(primaries, gamma)
-    return true;
+    float gamma = fdp.ConsumeFloatingPoint<float>();
+    nativeColorSpaceManager->OH_NativeColorSpaceManager_CreateFromPrimariesAndGamma(primaries, gamma);
 }
 
-bool DoOH_NativeColorSpaceManager_GetColorSpaceNameFuzzTest(const uint8_t* data, size_t size)
+void DoGetColorSpaceName(FuzzedDataProvider& fdp)
 {
-    if (data == nullptr) {
-        return false;
-    }
- 
-    OH_NativeColorSpaceManager* nativeColorSpaceManager = nullptr;
-    ColorSpaceName colorSpaceName = ColorSpaceName::NONE;
-    nativeColorSpaceManager = OH_NativeColorSpaceManager_CreateFromName(colorSpaceName);
-    ColorSpaceName colorSpaceName = static_cast<ColorSpaceName>(
+    ColorSpaceName colorSpaceName = fdp.ConsumeIntegral<ColorSpaceName>();
+    OH_NativeColorSpaceManager* nativeColorSpaceManager =
+        OH_NativeColorSpaceManager_CreateFromName(colorSpaceName);
+    (void)static_cast<ColorSpaceName>(
         OH_NativeColorSpaceManager_GetColorSpaceName(nativeColorSpaceManager));
-    return true;
 }
 
-bool DoOH_NativeColorSpaceManager_GetGammaFuzzTest(const uint8_t* data, size_t size)
+void DoGetGamma(FuzzedDataProvider& fdp)
 {
-    if (data == nullptr) {
-        return false;
-    }
- 
-    OH_NativeColorSpaceManager* nativeColorSpaceManager = nullptr;
-    ColorSpaceName colorSpaceName = ColorSpaceName::NONE;
-    nativeColorSpaceManager = OH_NativeColorSpaceManager_CreateFromName(colorSpaceName);
-    ColorSpaceName colorSpaceName = static_cast<ColorSpaceName>(
-        OH_NativeColorSpaceManager_GetGamma(nativeColorSpaceManager));
-    return true;
+    ColorSpaceName colorSpaceName = fdp.ConsumeIntegral<ColorSpaceName>();
+    OH_NativeColorSpaceManager* nativeColorSpaceManager =
+        OH_NativeColorSpaceManager_CreateFromName(colorSpaceName);
+    (void)OH_NativeColorSpaceManager_GetGamma(nativeColorSpaceManager);
 }
+
 } // namespace ColorSpaceManager
 } // namespace OHOS
 
-/* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
-    if (!OHOS::ColorManager::Init(data, size)) {
+    if (data == nullptr) {
         return -1;
     }
-    
-    /* Run your code on data */
-    OHOS::ColorManager::ColorFuzzTest(data, size);
-    OHOS::ColorManager::ColorSpaceFuzzTest(data, size);
-    OHOS::ColorManager::ColorSpaceConvertorFuzzTest(data, size);
+
+    FuzzedDataProvider fdp(data, size);
+    uint8_t tarPos = fdp.ConsumeIntegral<uint8_t>() % OHOS::ColorSpaceManager::TARGET_SIZE;
+    switch (tarPos) {
+        case OHOS::ColorSpaceManager::DO_COLOR:
+            OHOS::ColorSpaceManager::DoColorFuzzTest(fdp);
+            break;
+        case OHOS::ColorSpaceManager::DO_CREATE_FROM_PRIMARIES:
+            OHOS::ColorSpaceManager::DoCreateFromPrimariesAndGamma(fdp);
+            break;
+        case OHOS::ColorSpaceManager::DO_GET_NAME:
+            OHOS::ColorSpaceManager::DoGetColorSpaceName(fdp);
+            break;
+        case OHOS::ColorSpaceManager::DO_GET_GAMMA:
+            OHOS::ColorSpaceManager::DoGetGamma(fdp);
+            break;
+        default:
+            break;
+    }
     return 0;
 }

@@ -15,9 +15,7 @@
 
 #include "rseffectnode_fuzzer.h"
 
-#include <cstddef>
-#include <cstdint>
-#include <securec.h>
+#include <fuzzer/FuzzedDataProvider.h>
 
 #include "ui/rs_effect_node.h"
 #include "transaction/rs_transaction_proxy.h"
@@ -25,83 +23,55 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-const uint8_t* g_data = nullptr;
-size_t g_size = 0;
-size_t g_pos;
-} // namespace
-
-/*
- * describe: get data from outside untrusted data(g_data) which size is according to sizeof(T)
- * tips: only support basic type
- */
-template<class T>
-T GetData()
-{
-    T object {};
-    size_t objectSize = sizeof(object);
-    if (g_data == nullptr || objectSize > g_size - g_pos) {
-        return object;
-    }
-    errno_t ret = memcpy_s(&object, objectSize, g_data + g_pos, objectSize);
-    if (ret != EOK) {
-        return {};
-    }
-    g_pos += objectSize;
-    return object;
+const uint8_t DO_CREATE = 0;
+const uint8_t DO_SET_FREEZE = 1;
+const uint8_t TARGET_SIZE = 2;
 }
 
-bool Init(const uint8_t* data, size_t size)
+void DoCreate(FuzzedDataProvider& fdp)
 {
-    if (data == nullptr) {
-        return false;
-    }
-
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-    return true;
-}
-
-bool DoCreate()
-{
-    // test
-    bool isRenderServiceNode = GetData<bool>();
+    bool isRenderServiceNode = fdp.ConsumeBool();
     delete RSTransactionProxy::instance_;
     RSTransactionProxy::instance_ = nullptr;
     RSEffectNode::SharedPtr effectNode = RSEffectNode::Create(isRenderServiceNode);
     RSTransactionProxy::instance_ = new RSTransactionProxy();
     delete RSTransactionProxy::instance_;
     RSTransactionProxy::instance_ = nullptr;
-    return true;
 }
 
-bool DoSetFreeze()
+void DoSetFreeze(FuzzedDataProvider& fdp)
 {
-    // test
-    bool isRenderServiceNode = GetData<bool>();
+    bool isRenderServiceNode = fdp.ConsumeBool();
     delete RSTransactionProxy::instance_;
     RSTransactionProxy::instance_ = nullptr;
     RSEffectNode::SharedPtr effectNode = RSEffectNode::Create(isRenderServiceNode);
     RSTransactionProxy::instance_ = new RSTransactionProxy();
-    bool isFreeze = GetData<bool>();
+    bool isFreeze = fdp.ConsumeBool();
     effectNode->SetFreeze(isFreeze);
     delete RSTransactionProxy::instance_;
     RSTransactionProxy::instance_ = nullptr;
-    return true;
 }
+
 } // namespace Rosen
 } // namespace OHOS
 
-/* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
-    if (!OHOS::Rosen::Init(data, size)) {
+    if (data == nullptr) {
         return -1;
     }
 
-    /* Run your code on data */
-    OHOS::Rosen::DoCreate();
-    OHOS::Rosen::DoSetFreeze();
+    FuzzedDataProvider fdp(data, size);
+    uint8_t tarPos = fdp.ConsumeIntegral<uint8_t>() % OHOS::Rosen::TARGET_SIZE;
+    switch (tarPos) {
+        case OHOS::Rosen::DO_CREATE:
+            OHOS::Rosen::DoCreate(fdp);
+            break;
+        case OHOS::Rosen::DO_SET_FREEZE:
+            OHOS::Rosen::DoSetFreeze(fdp);
+            break;
+        default:
+            break;
+    }
     return 0;
 }
-
