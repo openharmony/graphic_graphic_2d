@@ -506,7 +506,7 @@ ani_object AniRun::GetTextStyle(ani_env* env, ani_object object)
     AniRun* aniRun = AniTextUtils::GetNativeFromObj<AniRun>(env, object, AniGlobalMethod::GetInstance().runGetNative);
     if (aniRun == nullptr || aniRun->run_ == nullptr) {
         TEXT_LOGE("Run is null");
-        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        AniTextUtils::ThrowBusinessError(env, static_cast<TextErrorCode>(MLB::ERROR_INVALID_PARAM), "Invalid params.");
         return AniTextUtils::CreateAniUndefined(env);
     }
     const TextStyle& textStyle = aniRun->run_->GetTextStyle();
