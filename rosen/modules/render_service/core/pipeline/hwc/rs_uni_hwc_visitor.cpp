@@ -1086,7 +1086,7 @@ void ColorPickerCheckHwcIntersection(const std::shared_ptr<RSSurfaceRenderNode>&
     if (!colorPickerRect.IntersectRect(hwcNodeRect).IsEmpty()) {
         hwcNode->SetHardwareNeedMakeImage(true);
         hwcNode->SetIntersectWithFilterNode(true);
-        HveFilter::GetHveFilter().PushHveFilterSurfaceNodeMapping(pair.first, hwcNode.GetId());
+        HveFilter::GetHveFilter().PushHveFilterSurfaceNodeMapping(pair.first, hwcNode->GetId());
         RS_OPTIONAL_TRACE_FMT("ColorPicker: rect [%d,%d,%d,%d] intersects node %s id:%" PRIu64
             " (rect: [%d,%d,%d,%d])",
             colorPickerRect.left_, colorPickerRect.top_, colorPickerRect.width_, colorPickerRect.height_,
