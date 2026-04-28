@@ -801,6 +801,10 @@ ohos_source_set("render_service_base_src") {
     external_deps += [ "qos_manager:qos" ]
   }
 
+  if (graphic_2d_feature_enable_image_detail_enhancer) {
+    defines += [ "RS_ENABLE_IMAGE_DETAIL_ENHANCER" ]
+  }
+
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

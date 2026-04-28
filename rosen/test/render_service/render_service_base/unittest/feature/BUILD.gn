@@ -354,6 +354,10 @@ ohos_unittest("RSImageDetailEnhancerThreadTest") {
     external_deps += [ "vulkan-loader:vulkan_loader" ]
   }
 
+  if (graphic_2d_feature_enable_image_detail_enhancer) {
+    defines = [ "RS_ENABLE_IMAGE_DETAIL_ENHANCER" ]
+  }
+
   subsystem_name = "graphic"
 }
 

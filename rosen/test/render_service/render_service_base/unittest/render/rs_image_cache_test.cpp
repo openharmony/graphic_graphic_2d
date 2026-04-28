@@ -886,6 +886,7 @@ HWTEST_F(RSImageCacheTest, ReleasePixelMapCacheTest008, TestSize.Level1)
     imageCache.pixelMapCache_.clear();
 }
 
+#ifdef RS_ENABLE_IMAGE_DETAIL_ENHANCER
 /**
  * @tc.name: ReleaseDrawingImageCacheByPixelMapIdTest002
  * @tc.desc: Verify function ReleaseDrawingImageCacheByPixelMapIdTest
@@ -920,6 +921,7 @@ HWTEST_F(RSImageCacheTest, ReleaseDrawingImageCacheByPixelMapIdTest002, TestSize
     imageCache.pixelMapIdRelatedDrawingImageCache_.clear();
     system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", type);
 }
+#endif
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 /**
