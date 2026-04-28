@@ -104,7 +104,8 @@ bool RSComposerContext::CommitLayers(ComposerInfo& composerInfo)
         RS_LOGE("%{public}s rsLayerTransactionHandler is nullptr", __func__);
         return false;
     }
-    RS_LOGD("%{public}s rsLayers_ size: %{public}zu", __func__, rsLayers_.size());
+    RS_LOGD("%{public}s screenId:%{public}" PRId64 "rsLayers_ size: %{public}zu", __func__,
+        composerInfo.composerScreenInfo.id, rsLayers_.size());
     return rsLayerTransactionHandler_->CommitRSLayerTransaction(composerInfo);
 }
 
