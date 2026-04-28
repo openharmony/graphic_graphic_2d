@@ -2192,6 +2192,24 @@ HWTEST_F(RSPropertiesTest, GetFrameRect001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetRenderNodeId001
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, GetRenderNodeId001, TestSize.Level1)
+{
+    RSProperties properties;
+    NodeId id = properties.GetRenderNodeId();
+    EXPECT_TRUE(id == INVALID_NODEID);
+
+    auto node = std::make_shared<RSRenderNode>(10);
+    properties.backref_ = node;
+    id = properties.GetRenderNodeId();
+    EXPECT_TRUE(id == 10);
+}
+
+/**
  * @tc.name: GetBgImageRect001
  * @tc.desc: test
  * @tc.type:FUNC

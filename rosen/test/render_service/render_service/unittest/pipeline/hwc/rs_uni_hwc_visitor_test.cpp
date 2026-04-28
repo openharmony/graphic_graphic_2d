@@ -2127,6 +2127,11 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByGlobalCleanFilter_004, TestSi
     surfaceNode->renderProperties_.boundsGeo_->absRect_ = RectI(60, 60, 80, 80);
 
     rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByGlobalCleanFilter(cleanFilter, *surfaceNode);
+
+    // test IsHveBlurFilterEnabled return true
+    surfaceNode->SetArsrTag(true);
+    node->GetMutableRenderProperties().hasFrostedGlassEffect_ = true;
+    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByGlobalCleanFilter(cleanFilter, *surfaceNode);
 }
 
 /**
@@ -2188,12 +2193,17 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByGlobalDirtyFilter_002, TestSi
     RectI rect{left, top, width, height};
     surfaceNode->SetDstRect(rect);
     surfaceNode->renderProperties_.boundsGeo_->absRect_ = rect;
-    dirtyFilter.emplace_back(NodeId(id), RectI(50, 50, 600, 600));
+    dirtyFilter.emplace_back(NodeId(id), RectI(50, 50, 300, 300));
     auto geo = surfaceNode->GetRenderProperties().GetBoundsGeometry();
     ASSERT_FALSE(geo->GetAbsRect().IntersectRect(dirtyFilter[0].second).IsEmpty());
 
     rsUniHwcVisitor->UpdateHwcNodeEnableByGlobalDirtyFilter(dirtyFilter, *surfaceNode);
-    EXPECT_TRUE(surfaceNode->isHardwareForcedDisabled_);
+    EXPECT_TRUE(surfaceNode->isHardwareForcedDisabled_);    
+
+    // test IsHveBlurFilterEnabled return true
+    surfaceNode->SetArsrTag(true);
+    node->GetMutableRenderProperties().hasFrostedGlassEffect_ = true;
+    rsUniHwcVisitor->UpdateHwcNodeEnableByGlobalDirtyFilter(dirtyFilter, *surfaceNode);
 }
 
 /**
