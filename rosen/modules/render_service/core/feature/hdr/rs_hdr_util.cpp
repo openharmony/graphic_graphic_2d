@@ -28,6 +28,7 @@
 #include "utils/system_properties.h"
 #include "v2_2/cm_color_space.h"
 #ifdef USE_VIDEO_PROCESSING_ENGINE
+#include "aihdr_enhancer.h"
 #include "render/rs_colorspace_convert.h"
 #endif
 
@@ -135,6 +136,7 @@ bool RSHdrUtil::UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId 
         surfaceNode.SetHDRBrightnessFactor(brightnessFactor);
         surfaceNode.SetContentDirty();
     }
+    float targetScaler = 1.0f;
     auto hdrStatus = HdrStatus::NO_HDR;
     float hdrDimmingFactor = rsLuminance.HdrDimmingProcess(screenId, surfaceNode.GetId());
     if (hdrStaticMetadataVec.size() != sizeof(HdrStaticMetadata) || hdrStaticMetadataVec.data() == nullptr) {
@@ -151,6 +153,7 @@ bool RSHdrUtil::UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId 
         const auto& data = *reinterpret_cast<HdrStaticMetadata*>(hdrStaticMetadataVec.data());
         scaler = rsLuminance.CalScaler(data.cta861.maxContentLightLevel, ret == GSERROR_OK ? hdrDynamicMetadataVec :
             std::vector<uint8_t>{}, surfaceNode.GetHDRBrightness() * brightnessFactor, HdrStatus::HDR_VIDEO);
+        targetScaler = data.cta861.maxContentLightLevel / 203.0f;
     }
     if (ROSEN_NE(surfaceNode.GetHDRDimmingFactor(), hdrDimmingFactor)) {
         RS_LOGD("RSHdrUtil::UpdateSurfaceNodeNit GetHDRDimmingFactor: %{public}f, "
@@ -177,13 +180,29 @@ bool RSHdrUtil::UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId 
     } else {
         surfaceNode.SetBrightnessRatio(std::pow(layerNits / displayNits, 1.0f / GAMMA2_2)); // gamma 2.2
     }
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    if (RSBaseHdrUtil::CheckIsHDRSelfProcessingBuffer(surfaceBuffer)) {
+        RS_TRACE_NAME_FMT("%s CheckIsHDRSelfProcessingBuffer is true", __func__);
+        auto aiHDREnhancer = OHOS::Media::VideoProcessingEngine::AihdrEnhancer::Create();
+        if (!aiHDREnhancer) {
+            return false;
+        }
+        Media::Format aihdrParameter {};
+        aihdrParameter.PutFloatValue("targetScaler", targetScaler);
+        aihdrParameter.PutFloatValue("tmoNits", layerNits);
+        aihdrParameter.PutFloatValue("sdrNits", sdrNits);
+        aihdrParameter.PutFloatValue("displayNits", displayNits);
+        aiHDREnhancer->SetParameter(aihdrParameter);
+        aiHDREnhancer->ProcessEDR(surfaceBuffer);
+    }
+#endif
     // color temperature
     UpdateSurfaceNodeLayerLinearMatrix(surfaceNode, screenId);
     RS_LOGD("RSHdrUtil::UpdateSurfaceNodeNit screenId: %{public}" PRIu64 ", nodeId: %{public}" PRIu64 ","
         " layerNits: %{public}.2f, displayNits: %{public}.2f, sdrNits: %{public}.2f, scaler: %{public}.2f,"
-        " HDRBrightness: %{public}f, brightnessFactor: %{public}f, hdrDimmingFactor: %{public}.2f",
-        screenId, surfaceNode.GetId(), layerNits, displayNits, sdrNits, scaler, surfaceNode.GetHDRBrightness(),
-        brightnessFactor, hdrDimmingFactor);
+        " HDRBrightness: %{public}f, brightnessFactor: %{public}f, hdrDimmingFactor: %{public}.2f,"
+        " targetScaler: %{public}f", screenId, surfaceNode.GetId(), layerNits, displayNits, sdrNits, scaler,
+        surfaceNode.GetHDRBrightness(), brightnessFactor, hdrDimmingFactor, targetScaler);
     return true;
 }
 

@@ -381,6 +381,13 @@ enum class CaptureError : uint8_t {
     CAPTURE_ERROR_BOUNDARY_BUTT,
 };
 
+// HDR screenShot tonemapping to fixed nits or current screen nits
+enum class DisplayIntent : uint32_t {
+    CANONICAL = 0, // fixed nits
+    LOCAL = 1, // current screen nits
+    DISPLAY_INTENT_BUTT, // a boundary for DisplayIntent Security Check
+};
+
 struct RSSurfaceCaptureConfig {
     float scaleX = 1.0f;
     float scaleY = 1.0f;
@@ -392,6 +399,7 @@ struct RSSurfaceCaptureConfig {
     std::vector<NodeId> blackList = {}; // exclude surfacenode in screenshot
     bool isSoloNodeUiCapture = false;
     bool isHdrCapture = false;
+    DisplayIntent displayIntent = DisplayIntent::CANONICAL;
     bool needF16WindowCaptureForScRGB = false;
     bool needErrorCode = false;
     RSUICaptureInRangeParam uiCaptureInRangeParam = {};
@@ -415,6 +423,7 @@ struct RSSurfaceCaptureConfig {
                (mainScreenRect == config.mainScreenRect) && (blackList == config.blackList) &&
                (isSoloNodeUiCapture == config.isSoloNodeUiCapture) &&
                (isHdrCapture == config.isHdrCapture) &&
+               (displayIntent == config.displayIntent) &&
                (needF16WindowCaptureForScRGB == config.needF16WindowCaptureForScRGB) &&
                (needErrorCode == config.needErrorCode) &&
                (uiCaptureInRangeParam.endNodeId == config.uiCaptureInRangeParam.endNodeId) &&

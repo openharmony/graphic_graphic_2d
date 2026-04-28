@@ -1640,6 +1640,21 @@ HWTEST_F(RSPaintFilterCanvasTest, HDRBrightnessTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetEDRSurface
+ * @tc.desc: SetEDRSurface
+ * @tc.type:FUNC
+ * @tc.require:issuesI9J2YE
+ */
+HWTEST_F(RSPaintFilterCanvasTest, SetEDRSurfaceTest, TestSize.Level1)
+{
+    ASSERT_NE(paintFilterCanvas_, nullptr);
+    paintFilterCanvas_->SetEDRSurface(true);
+    EXPECT_EQ(paintFilterCanvas_->IsEDRSurface(), true);
+    paintFilterCanvas_->SetEDRSurface(false);
+    EXPECT_EQ(paintFilterCanvas_->IsEDRSurface(), false);
+}
+
+/**
  * @tc.name: DrawAtlasTest002
  * @tc.desc: DrawAtlas Test
  * @tc.type:FUNC
