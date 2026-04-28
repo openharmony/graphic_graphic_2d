@@ -2340,7 +2340,7 @@ RectF RSProperties::GetBoundsRect() const
     return rect;
 }
 
-NodeId RSProperties::GetRenderNodeId()
+NodeId RSProperties::GetRenderNodeId() const
 {
     auto renderNode = backref_.lock();
     if (renderNode != nullptr) {

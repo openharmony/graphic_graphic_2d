@@ -9143,8 +9143,8 @@ HWTEST_F(RSUniRenderVisitorTest, HandleColorPickerHwcDisable001, TestSize.Level1
     EXPECT_EQ(rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_.size(), 1u);
     auto it = rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_.find(surfaceNode->GetId());
     ASSERT_NE(it, rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_.end());
-    EXPECT_EQ(it->second, colorPickerRect);
-    EXPECT_NE(it->second, surfaceRect);
+    EXPECT_EQ(it->second.second, colorPickerRect);
+    EXPECT_NE(it->second.second, surfaceRect);
 }
 
 /**
@@ -9245,8 +9245,8 @@ HWTEST_F(RSUniRenderVisitorTest, HandleColorPickerHwcDisable004, TestSize.Level1
     EXPECT_EQ(rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_.size(), 1u);
     auto it1 = rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_.find(surfaceNode1->GetId());
     ASSERT_NE(it1, rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_.end());
-    EXPECT_EQ(it1->second, colorPickerRect1);
-    EXPECT_NE(it1->second, surfaceRect1);
+    EXPECT_EQ(it1->second.second, colorPickerRect1);
+    EXPECT_NE(it1->second.second, surfaceRect1);
 
     auto colorPickerDrawable2 = std::make_shared<DrawableV2::RSColorPickerDrawable>(false, colorPickerNode2->GetId());
     // Set state to COLOR_PICK_THIS_FRAME to trigger HWC disable
@@ -9260,8 +9260,8 @@ HWTEST_F(RSUniRenderVisitorTest, HandleColorPickerHwcDisable004, TestSize.Level1
 
     auto it2 = rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_.find(surfaceNode2->GetId());
     ASSERT_NE(it2, rsUniRenderVisitor->hwcVisitor_->colorPickerHwcDisabledSurfaces_.end());
-    EXPECT_EQ(it2->second, colorPickerRect2);
-    EXPECT_NE(it2->second, surfaceRect2);
+    EXPECT_EQ(it2->second.second, colorPickerRect2);
+    EXPECT_NE(it2->second.second, surfaceRect2);
 }
 
 /**

@@ -311,7 +311,7 @@ void RSFilterCacheManager::TakeSnapshot(RSPaintFilterCanvas& canvas,
         drawingSurface->Width(), drawingSurface->Height(), snapshotIBounds.ToString().c_str());
     std::shared_ptr<Drawing::Image> snapshot = (filterId == INVALID_NODEID) ?
         drawingSurface->GetImageSnapshot(snapshotIBounds, false) :
-        HveFilter::GetHveFilter().SampleLayer(canvas, srcRect);
+        HveFilter::GetHveFilter().SampleLayer(canvas, srcRect, filterId);
     if (snapshot == nullptr) {
         ROSEN_LOGD("RSFilterCacheManager::TakeSnapshot failed to make an image snapshot.");
         return;
