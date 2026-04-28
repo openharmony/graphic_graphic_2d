@@ -2198,7 +2198,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByGlobalDirtyFilter_002, TestSi
     ASSERT_FALSE(geo->GetAbsRect().IntersectRect(dirtyFilter[0].second).IsEmpty());
 
     rsUniHwcVisitor->UpdateHwcNodeEnableByGlobalDirtyFilter(dirtyFilter, *surfaceNode);
-    EXPECT_TRUE(surfaceNode->isHardwareForcedDisabled_);    
+    EXPECT_TRUE(surfaceNode->isHardwareForcedDisabled_);
 
     // test IsHveBlurFilterEnabled return true
     surfaceNode->SetArsrTag(true);
