@@ -388,7 +388,7 @@ void ConvertOptionalAdaptivePara(FrostedGlassPara const* para, RSNGFrostedGlassF
 
 std::shared_ptr<RSNGFilterBase> ConvertFrostedGlassPara(std::shared_ptr<FilterPara> filterPara)
 {
-#ifndef ROSEN_ARKUI_X    
+#ifndef ROSEN_ARKUI_X
     auto filter = RSNGFilterBase::Create(RSNGEffectType::FROSTED_GLASS);
     if (filter == nullptr || filterPara == nullptr) {
         ROSEN_LOGE("ConvertFrostedGlassPara filter or filterPara is nullptr");
@@ -433,12 +433,12 @@ std::shared_ptr<RSNGFilterBase> ConvertFrostedGlassPara(std::shared_ptr<FilterPa
     return frostedGlassFilter;
 #else
     return nullptr;
-#endif    
+#endif
 }
 
 std::shared_ptr<RSNGFilterBase> ConvertFrostedGlassBlurPara(std::shared_ptr<FilterPara> filterPara)
 {
-#ifndef ROSEN_ARKUI_X    
+#ifndef ROSEN_ARKUI_X
     auto filter = RSNGFilterBase::Create(RSNGEffectType::FROSTED_GLASS_BLUR);
     auto frostedGlassBlurFilter = std::static_pointer_cast<RSNGFrostedGlassBlurFilter>(filter);
     auto frostedGlassBlurFilterPara = std::static_pointer_cast<FrostedGlassBlurPara>(filterPara);
@@ -450,7 +450,7 @@ std::shared_ptr<RSNGFilterBase> ConvertFrostedGlassBlurPara(std::shared_ptr<Filt
     return frostedGlassBlurFilter;
 #else
     return nullptr;
-#endif    
+#endif
 }
 
 std::shared_ptr<RSNGFilterBase> ConvertMagnifierPara(std::shared_ptr<FilterPara> filterPara)
