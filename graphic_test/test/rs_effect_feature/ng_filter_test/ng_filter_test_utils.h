@@ -490,5 +490,22 @@ inline void InitVariableRadiusBlur(std::shared_ptr<RSNGVariableRadiusBlurFilter>
     variableRadiusBlur->Setter<VariableRadiusBlurRadiusTag>(20.0f);
 }
 
+// HeatDistortion初始化函数（4个参数：Intensity, NoiseScale, RiseWeight, Progress）
+inline void InitHeatDistortion(std::shared_ptr<RSNGHeatDistortionFilter>& heatDistortion)
+{
+    heatDistortion->Setter<HeatDistortionIntensityTag>(1.0f);
+    heatDistortion->Setter<HeatDistortionNoiseScaleTag>(1.0f);
+    heatDistortion->Setter<HeatDistortionRiseWeightTag>(0.2f);
+    heatDistortion->Setter<HeatDistortionProgressTag>(0.5f);
+}
+
+// BlurBubblesRise初始化函数（3个参数：BlurIntensity, MixStrength, Progress）
+inline void InitBlurBubblesRise(std::shared_ptr<RSNGBlurBubblesRiseFilter>& blurBubblesRise)
+{
+    blurBubblesRise->Setter<BlurBubblesRiseBlurIntensityTag>(1.0f);
+    blurBubblesRise->Setter<BlurBubblesRiseMixStrengthTag>(0.5f);
+    blurBubblesRise->Setter<BlurBubblesRiseProgressTag>(0.5f);
+}
+
 }  // namespace OHOS::Rosen
 #endif // NG_FILTER_TEST_UTILS_H
