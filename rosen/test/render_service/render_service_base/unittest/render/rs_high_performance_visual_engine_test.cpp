@@ -148,13 +148,9 @@ HWTEST_F(RSHveFilterTest, CheckPreconditionTest, TestSize.Level1)
     rootSurfaceNode->SetArsrTag(false);
     renderNode->GetMutableRenderProperties().backgroundFilter_ = nullptr;
     renderNode->GetMutableRenderProperties().SetUseEffect(false);
-    renderNode->GetMutableRenderProperties().hasFrostedGlassEffect_ = false;
     EXPECT_FALSE(filter.CheckPrecondition(*renderNode, filterRect, *rootSurfaceNode));
     rootSurfaceNode->SetArsrTag(true);
     EXPECT_FALSE(filter.CheckPrecondition(*renderNode, filterRect, *rootSurfaceNode));
-    renderNode->GetMutableRenderProperties().hasFrostedGlassEffect_ = true;
-    filter.CheckPrecondition(*renderNode, filterRect, *rootSurfaceNode);
-    renderNode->GetMutableRenderProperties().hasFrostedGlassEffect_ = false;
     renderNode->GetMutableRenderProperties().SetUseEffect(true);
     filter.CheckPrecondition(*renderNode, filterRect, *rootSurfaceNode);
     filterRect.SetRight(600);
