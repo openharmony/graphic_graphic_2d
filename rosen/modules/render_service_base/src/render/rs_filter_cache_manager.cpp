@@ -252,7 +252,7 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
 }
 
 const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> RSFilterCacheManager::GeneratedCachedEffectData(
-    RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter, NodeId nodeId,
+    RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter, NodeId filterId,
     const std::optional<Drawing::RectI>& srcRect, const std::optional<Drawing::RectI>& dstRect)
 {
     takeNewSnapshot_ = false;
@@ -266,9 +266,9 @@ const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> RSFilterCacheManage
     RSTagTracker tagTrackerCache(canvas.GetGPUContext(), RSTagTracker::TAGTYPE::TAG_FILTER_CACHE);
 #endif
     if (!IsCacheValid()) {
-        if (HveFilter::GetHveFilter().hveFilterToSurfaceNodeMap_.find(nodeId) !=
+        if (HveFilter::GetHveFilter().hveFilterToSurfaceNodeMap_.find(filterId) !=
             HveFilter::GetHveFilter().hveFilterToSurfaceNodeMap_.end()) {
-            TakeSnapshot(canvas, filter, src, nodeId);
+            TakeSnapshot(canvas, filter, src, filterId);
         } else {
             TakeSnapshot(canvas, filter, src);
         }
@@ -296,7 +296,7 @@ const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> RSFilterCacheManage
 }
 
 void RSFilterCacheManager::TakeSnapshot(RSPaintFilterCanvas& canvas,
-    const std::shared_ptr<RSDrawingFilter>& filter, const Drawing::RectI& srcRect, const NodeId filterId)
+    const std::shared_ptr<RSDrawingFilter>& filter, const Drawing::RectI& srcRect, NodeId filterId)
 {
     auto drawingSurface = canvas.GetSurface();
     if (drawingSurface == nullptr) {

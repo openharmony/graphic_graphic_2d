@@ -4250,7 +4250,8 @@ void RSUniRenderVisitor::HandleColorPickerHwcDisable(RSRenderNode& node)
     using State = DrawableV2::ColorPickerState;
     if (colorPicker->GetState() == State::COLOR_PICK_THIS_FRAME && curSurfaceNode_) {
         RectI colorPickerRect = node.GetRenderProperties().GetBoundsGeometry()->GetAbsRect();
-        hwcVisitor_->colorPickerHwcDisabledSurfaces_.emplace(curSurfaceNode_->GetId(), colorPickerRect);
+        hwcVisitor_->colorPickerHwcDisabledSurfaces_.emplace(curSurfaceNode_->GetId(),
+            std::make_pair(node.GetId(), colorPickerRect));
     }
 }
 
