@@ -906,13 +906,6 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSSh
             ROSEN_LOGE("RSMarshallingHelper::Marshalling WriteInt32 -1 failed");
         }
         return flag;
-    } else {
-        bool flag = parcel.WriteInt32(0);
-        if (!flag) {
-            ROSEN_LOGE("RSMarshallingHelper::Marshalling WriteInt32 0 failed");
-            return false;
-        }
-        return parcel.WriteInt32(-1);
     }
     bool success = parcel.WriteInt32(static_cast<int>(val->GetShaderType()));
     success &= val->Marshalling(parcel);
