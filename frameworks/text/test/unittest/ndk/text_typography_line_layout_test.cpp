@@ -487,6 +487,74 @@ HWTEST_F(NdkTypographyLineLayoutTest, TypographyBalancedLineCountEqualsMaxLines,
 }
 
 /*
+ * @tc.name: OH_Drawing_TypographyInnerBalanceTest
+ * @tc.desc: Test for balance strategy maxLines set to 1
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyLineLayoutTest, TypographyBalanceStrategy004, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    // Test for balance strategy 2
+    OH_Drawing_SetTypographyTextBreakStrategy(typoStyle, 2);
+    OH_Drawing_SetTypographyTextMaxLines(typoStyle, 1);
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(txtStyle, nullptr);
+    // Test for font size 50
+    OH_Drawing_SetTextStyleFontSize(txtStyle, 50);
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+    ASSERT_NE(handler, nullptr);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
+    const char* text = "AAAAAAAAAA";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    ASSERT_NE(typography, nullptr);
+    OH_Drawing_TypographyLayout(typography, 300);
+    EXPECT_TRUE(OH_Drawing_TypographyDidExceedMaxLines(typography));
+    EXPECT_DOUBLE_EQ(OH_Drawing_TypographyGetLongestLine(typography), 298.7996826171875);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypography(typography);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyInnerBalanceTest
+ * @tc.desc: Test for balance strategy with indents
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyLineLayoutTest, TypographyBalanceStrategy005, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    // Test for balance strategy 2
+    OH_Drawing_SetTypographyTextBreakStrategy(typoStyle, 2);
+    OH_Drawing_SetTypographyTextMaxLines(typoStyle, 1);
+    OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(txtStyle, nullptr);
+    // Test for font size 50
+    OH_Drawing_SetTextStyleFontSize(txtStyle, 50);
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+    ASSERT_NE(handler, nullptr);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, txtStyle);
+    const char* text = "不易过敏，您可以尽情享受大自然的拥抱";
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    float indents[] = {31, 31};
+    OH_Drawing_TypographySetIndents(typography, 2, indents);
+    ASSERT_NE(typography, nullptr);
+    OH_Drawing_TypographyLayout(typography, 450);
+    EXPECT_TRUE(OH_Drawing_TypographyDidExceedMaxLines(typography));
+    EXPECT_DOUBLE_EQ(OH_Drawing_TypographyGetLongestLineWithIndent(typography), 430.9996337890625);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTypography(typography);
+    OH_Drawing_DestroyTextStyle(txtStyle);
+}
+
+/*
  * @tc.name: TypographyLineSpacingBasic
  * @tc.desc: Test for lineSpacing basic functions
  * @tc.type: FUNC
