@@ -1302,7 +1302,12 @@ ErrCode RSServiceToRenderConnectionProxy::RepaintEverything()
         ROSEN_LOGE("%{public}s: SendRequest failed, err is %{public}d.", __func__, err);
         return ERR_INVALID_VALUE;
     }
-    auto replyMessage = reply.ReadInt32();
+    ErrCode replyMessage = ERR_INVALID_VALUE;
+    if (!reply.ReadInt32(replyMessage)) {
+        ROSEN_LOGE("%{public}s: ReadInt32 failed.", __func__);
+        return ERR_INVALID_VALUE;
+    }
+
     return replyMessage;
 }
 
