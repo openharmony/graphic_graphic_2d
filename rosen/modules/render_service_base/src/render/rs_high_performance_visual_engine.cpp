@@ -146,7 +146,7 @@ std::shared_ptr<Drawing::Image> HveFilter::SampleLayer(
     RS_TRACE_NAME_FMT("surfaceNodeSize:%d", surfaceNodeSize);
     Drawing::RectI dstRect = Drawing::RectI(0, 0, widthUI, heightUI);
     auto it = hveFilterToSurfaceNodeMap_.find(filterId);
-    const auto& surfaceNodeIds = it->second;
+    std::vector<NodeId> surfaceNodeIds = (it != hveFilterToSurfaceNodeMap_.end()) ? it->second : std::vector<NodeId>{};
 
     for (size_t i = 0; i < surfaceNodeSize; i++) {
         auto surfaceImage = vecSurfaceNode[i].surfaceImage_;
