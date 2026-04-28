@@ -630,8 +630,10 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
     RS_LOGI("RSMainThread SetSystemQoS qosRes = %{public}d", qosRes);
 #endif
     RsFrameReport::InitDeadline();
+#ifdef RS_ENABLE_IMAGE_DETAIL_ENHANCER
     RSImageDetailEnhancerThread::Instance().RegisterCallback(
         std::bind(&RSMainThread::MarkNodeDirty, this, std::placeholders::_1));
+#endif
     RSColorPickerThread::Instance().RegisterNodeDirtyCallback(
         std::bind(&RSMainThread::MarkNodeDirty, this, std::placeholders::_1));
     RSColorPickerThread::Instance().RegisterNotifyClientCallback(

@@ -50,6 +50,7 @@
 
 namespace OHOS {
 namespace Rosen {
+#ifdef RS_ENABLE_IMAGE_DETAIL_ENHANCER
 constexpr int IMAGE_DIFF_VALUE = 200; // Image size difference
 constexpr int CHANNELS_CNT = 4; // Number of channels
 constexpr float MEMUNIT_RATE = 1024.0f; // Mem unit rate
@@ -730,5 +731,6 @@ long long DetailEnhancerUtils::GetCurTime() const
     auto ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
     return ms.time_since_epoch().count();
 }
+#endif
 } // OHOS
 } // Rosen
