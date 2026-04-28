@@ -511,6 +511,7 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
 #endif
         }
         RenderFrameStart(timestamp_);
+        RSRenderNodeGC::Instance().SetGCTaskEnable(true);
         SetRSEventDetectorLoopStartTag();
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::DoComposition: " + std::to_string(curTime_));
         ConsumeAndUpdateAllNodes();
