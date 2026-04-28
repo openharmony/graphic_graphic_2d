@@ -223,7 +223,7 @@ void HgmSoftVSyncManager::CalcAppFrameRate(
         OLED_NULL_HZ : HgmSoftVSyncManager::GetDrawingFrameRate(currRefreshRate, expectedRange);
     if (appFrameRate != OLED_NULL_HZ && (expectedRange.type_ & NATIVE_VSYNC_FRAME_RATE_TYPE) != 0) {
         appFrameRate = disableAppFrameVsyncNames_.find(linker.second->GetVsyncName()) !=
-        disableAppFrameVsyncNames_.end() ? OLED_NULL_HZ : appFrameRate;
+            disableAppFrameVsyncNames_.end() ? OLED_NULL_HZ : appFrameRate;
     }
     if (CollectGameRateDiscountChange(linker.first, expectedRange, currRefreshRate)) {
         appFrameRate = static_cast<uint32_t>(expectedRange.preferred_);
