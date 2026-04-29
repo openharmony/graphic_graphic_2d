@@ -81,9 +81,6 @@ std::shared_ptr<RSLayer> RSSurfaceLayer::Create(RSLayerId rsLayerId,
     }
     std::shared_ptr<RSLayer> layer = context->GetRSLayer(rsLayerId);
     if (layer != nullptr) {
-        RS_TRACE_NAME_FMT("%s use exist layer, id: %" PRIu64 ", name: %s",
-            __func__, rsLayerId, layer->GetSurfaceName().c_str());
-        RS_LOGD("%{public}s get cache layer by layer id: %{public}" PRIu64, __func__, rsLayerId);
         layer->SetRSLayerId(rsLayerId);
         return layer;
     }
