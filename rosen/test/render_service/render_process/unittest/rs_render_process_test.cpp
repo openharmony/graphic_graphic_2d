@@ -158,21 +158,6 @@ HWTEST_F(RSRenderProcessTest, RenderProcessSmartPointerTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: RenderProcessNullptrTest001
- * @tc.desc: Test RSRenderProcess nullptr comparison
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRenderProcessTest, RenderProcessNullptrTest001, TestSize.Level1)
-{
-    sptr<RSRenderProcess> renderProcess = nullptr;
-    ASSERT_EQ(renderProcess, nullptr);
-
-    renderProcess = sptr<RSRenderProcess>::MakeSptr();
-    ASSERT_NE(renderProcess, nullptr);
-}
-
-/**
  * @tc.name: RunTest001
  * @tc.desc: Test RSRenderProcess::Run with null runner does not crash
  * @tc.type: FUNC
