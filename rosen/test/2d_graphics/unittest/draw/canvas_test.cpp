@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,6 +18,8 @@
 #include "draw/canvas.h"
 #include "draw/ui_color.h"
 #include "effect/particle_builder.h"
+#include "text/font.h"
+#include "text/glyph_cache.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -1279,6 +1281,439 @@ HWTEST_F(CanvasTest, DrawParticleValidParticleEffect, TestSize.Level1)
     auto data = particleEffect->Serialize();
     EXPECT_TRUE(data != nullptr);
 }
+
+/**
+ * @tc.name: DrawSingleCharacterWithFeaturesTest001
+ * @tc.desc: Test DrawSingleCharacterWithFeatures with nullptr fontFeatures.
+ * @tc.type: FUNC
+ * @tc.require: 23400
+ */
+HWTEST_F(CanvasTest, DrawSingleCharacterWithFeaturesTest001, TestSize.Level1)
+{
+    GlyphCache::Instance().Clear();
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    Font font;
+    std::shared_ptr<OHOS::Rosen::Drawing::Typeface> typeface = Drawing::Typeface::MakeDefault();
+    font.SetTypeface(typeface);
+    const char* str = "a";
+    scalar x = 10.0f;
+    scalar y = 10.0f;
+    canvas->DrawSingleCharacterWithFeatures(str, font, x, y, nullptr);
+    GlyphCache::Instance().Clear();
+}
+
+/**
+ * @tc.name: DrawSingleCharacterWithFeaturesTest002
+ * @tc.desc: Test DrawSingleCharacterWithFeatures with valid typeface and features.
+ * @tc.type: FUNC
+ * @tc.require: 23400
+ */
+HWTEST_F(CanvasTest, DrawSingleCharacterWithFeaturesTest002, TestSize.Level1)
+{
+    GlyphCache::Instance().Clear();
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    Font font;
+    std::shared_ptr<OHOS::Rosen::Drawing::Typeface> typeface = Drawing::Typeface::MakeDefault();
+    font.SetTypeface(typeface);
+    const char* str = "a";
+    scalar x = 10.0f;
+    scalar y = 10.0f;
+    std::shared_ptr<Drawing::DrawingFontFeatures> features = std::make_shared<Drawing::DrawingFontFeatures>();
+    canvas->DrawSingleCharacterWithFeatures(str, font, x, y, features);
+    const char* str2 = "\n";
+    canvas->DrawSingleCharacterWithFeatures(str2, font, x, y, features);
+    GlyphCache::Instance().Clear();
+}
+
+/**
+ * @tc.name: DrawSingleCharacterWithFeaturesTest003
+ * @tc.desc: Test DrawSingleCharacterWithFeatures cache hit on second call.
+ * @tc.type: FUNC
+ * @tc.require: 23400
+ */
+HWTEST_F(CanvasTest, DrawSingleCharacterWithFeaturesTest003, TestSize.Level1)
+{
+    GlyphCache::Instance().Clear();
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    Font font;
+    std::shared_ptr<OHOS::Rosen::Drawing::Typeface> typeface = Drawing::Typeface::MakeDefault();
+    font.SetTypeface(typeface);
+    const char* str = "b";
+    scalar x = 20.0f;
+    scalar y = 20.0f;
+    std::shared_ptr<Drawing::DrawingFontFeatures> features = std::make_shared<Drawing::DrawingFontFeatures>();
+    canvas->DrawSingleCharacterWithFeatures(str, font, x, y, features);
+    canvas->DrawSingleCharacterWithFeatures(str, font, x, y, features);
+    GlyphCache::Instance().Clear();
+}
+
+/**
+ * @tc.name: DrawSingleCharacterWithFeaturesTest004
+ * @tc.desc: Test DrawSingleCharacterWithFeatures with pre-filled cache hit.
+ * @tc.type: FUNC
+ * @tc.require: 23400
+ */
+HWTEST_F(CanvasTest, DrawSingleCharacterWithFeaturesTest004, TestSize.Level1)
+{
+    GlyphCache::Instance().Clear();
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    Font font;
+    std::shared_ptr<OHOS::Rosen::Drawing::Typeface> typeface = Drawing::Typeface::MakeDefault();
+    font.SetTypeface(typeface);
+    uint32_t typefaceHash = typeface->GetHash();
+    GlyphCacheKey key = {static_cast<int32_t>('c'), typefaceHash, {}};
+    GlyphCache::Instance().Put(key, 100);
+    const char* str = "c";
+    scalar x = 30.0f;
+    scalar y = 30.0f;
+    std::shared_ptr<Drawing::DrawingFontFeatures> features = std::make_shared<Drawing::DrawingFontFeatures>();
+    canvas->DrawSingleCharacterWithFeatures(str, font, x, y, features);
+    GlyphCache::Instance().Clear();
+}
+
+/**
+ * @tc.name: DrawSingleCharacterWithFeaturesTest005
+ * @tc.desc: Test DrawSingleCharacterWithFeatures with nullptr typeface goes to fallback.
+ * @tc.type: FUNC
+ * @tc.require: 23400
+ */
+HWTEST_F(CanvasTest, DrawSingleCharacterWithFeaturesTest005, TestSize.Level1)
+{
+    GlyphCache::Instance().Clear();
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    Font font;
+    font.SetTypeface(nullptr);
+    const char* str = "d";
+    scalar x = 40.0f;
+    scalar y = 40.0f;
+    std::shared_ptr<Drawing::DrawingFontFeatures> features = std::make_shared<Drawing::DrawingFontFeatures>();
+    canvas->DrawSingleCharacterWithFeatures(str, font, x, y, features);
+    GlyphCache::Instance().Clear();
+}
+
+/**
+ * @tc.name: DrawSingleCharacterWithFeaturesTest006
+ * @tc.desc: Test DrawSingleCharacterWithFeatures with invalid unicode goes to fallback.
+ * @tc.type: FUNC
+ * @tc.require: 23400
+ */
+HWTEST_F(CanvasTest, DrawSingleCharacterWithFeaturesTest006, TestSize.Level1)
+{
+    GlyphCache::Instance().Clear();
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    Font font;
+    std::shared_ptr<OHOS::Rosen::Drawing::Typeface> typeface = Drawing::Typeface::MakeDefault();
+    font.SetTypeface(typeface);
+    const char* str = "\uFFFF";
+    scalar x = 50.0f;
+    scalar y = 50.0f;
+    std::shared_ptr<Drawing::DrawingFontFeatures> features = std::make_shared<Drawing::DrawingFontFeatures>();
+    canvas->DrawSingleCharacterWithFeatures(str, font, x, y, features);
+    GlyphCache::Instance().Clear();
+}
+
+/**
+ * @tc.name: DrawSingleCharacterWithFeaturesTest007
+ * @tc.desc: Test DrawSingleCharacterWithFeatures with nullptr typeface and invalid unicode.
+ * @tc.type: FUNC
+ * @tc.require: 23400
+ */
+HWTEST_F(CanvasTest, DrawSingleCharacterWithFeaturesTest007, TestSize.Level1)
+{
+    GlyphCache::Instance().Clear();
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    Font font;
+    font.SetTypeface(nullptr);
+    const char* str = "\uFFFF";
+    scalar x = 60.0f;
+    scalar y = 60.0f;
+    std::shared_ptr<Drawing::DrawingFontFeatures> features = std::make_shared<Drawing::DrawingFontFeatures>();
+    canvas->DrawSingleCharacterWithFeatures(str, font, x, y, features);
+    GlyphCache::Instance().Clear();
+}
+
+/**
+ * @tc.name: DrawSingleCharacterWithFeaturesTest008
+ * @tc.desc: Test DrawSingleCharacterWithFeatures with LRU cache eviction.
+ * @tc.type: FUNC
+ * @tc.require: 23400
+ */
+HWTEST_F(CanvasTest, DrawSingleCharacterWithFeaturesTest008, TestSize.Level1)
+{
+    GlyphCache::Instance().Clear();
+    GlyphCache::Instance().SetMaxSize(2);
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    Font font;
+    std::shared_ptr<OHOS::Rosen::Drawing::Typeface> typeface = Drawing::Typeface::MakeDefault();
+    font.SetTypeface(typeface);
+    std::shared_ptr<Drawing::DrawingFontFeatures> features = std::make_shared<Drawing::DrawingFontFeatures>();
+    canvas->DrawSingleCharacterWithFeatures("e", font, 0, 0, features);
+    canvas->DrawSingleCharacterWithFeatures("f", font, 0, 0, features);
+    canvas->DrawSingleCharacterWithFeatures("g", font, 0, 0, features);
+    GlyphCache::Instance().Clear();
+}
+
+/**
+ * @tc.name: GlyphCachePutAndGetTest001
+ * @tc.desc: Test GlyphCache Put and Get basic functionality.
+ * @tc.type: FUNC
+ * @tc.require: 23400
+ */
+HWTEST_F(CanvasTest, GlyphCachePutAndGetTest001, TestSize.Level1)
+{
+    GlyphCache::Instance().Clear();
+    GlyphCacheKey key = {static_cast<int32_t>('h'), 0, {}};
+    GlyphCache::Instance().Put(key, 100);
+    uint16_t retrievedValue = 0;
+    bool result = GlyphCache::Instance().Get(key, retrievedValue);
+    EXPECT_TRUE(result);
+    EXPECT_EQ(retrievedValue, 100);
+    GlyphCache::Instance().Clear();
+}
+
+/**
+ * @tc.name: GlyphCacheUpdateTest001
+ * @tc.desc: Test GlyphCache Put updates existing key value.
+ * @tc.type: FUNC
+ * @tc.require: 23400
+ */
+HWTEST_F(CanvasTest, GlyphCacheUpdateTest001, TestSize.Level1)
+{
+    GlyphCache::Instance().Clear();
+    GlyphCacheKey key = {static_cast<int32_t>('i'), 0, {}};
+    GlyphCache::Instance().Put(key, 100);
+    GlyphCache::Instance().Put(key, 200);
+    uint16_t retrievedValue = 0;
+    bool result = GlyphCache::Instance().Get(key, retrievedValue);
+    EXPECT_TRUE(result);
+    EXPECT_EQ(retrievedValue, 200);
+    GlyphCache::Instance().Clear();
+}
+
+/**
+ * @tc.name: GlyphCacheSetMaxSizeZeroTest001
+ * @tc.desc: Test GlyphCache SetMaxSize clears all entries.
+ * @tc.type: FUNC
+ * @tc.require: 23400
+ */
+HWTEST_F(CanvasTest, GlyphCacheSetMaxSizeZeroTest001, TestSize.Level1)
+{
+    GlyphCache::Instance().Clear();
+    GlyphCacheKey key1 = {static_cast<int32_t>('j'), 0, {}};
+    GlyphCacheKey key2 = {static_cast<int32_t>('k'), 0, {}};
+    GlyphCache::Instance().Put(key1, 100);
+    GlyphCache::Instance().Put(key2, 200);
+    GlyphCache::Instance().SetMaxSize(0);
+    uint16_t retrievedValue1 = 0;
+    bool result1 = GlyphCache::Instance().Get(key1, retrievedValue1);
+    EXPECT_FALSE(result1);
+    uint16_t retrievedValue2 = 0;
+    bool result2 = GlyphCache::Instance().Get(key2, retrievedValue2);
+    EXPECT_FALSE(result2);
+    GlyphCache::Instance().Clear();
+}
+
+/**
+ * @tc.name: GlyphCachePutWhenMaxSizeZeroTest001
+ * @tc.desc: Test GlyphCache Put rejects when maxSize is zero.
+ * @tc.type: FUNC
+ * @tc.require: 23400
+ */
+HWTEST_F(CanvasTest, GlyphCachePutWhenMaxSizeZeroTest001, TestSize.Level1)
+{
+    GlyphCache::Instance().Clear();
+    GlyphCache::Instance().SetMaxSize(0);
+    GlyphCacheKey key = {static_cast<int32_t>('l'), 0, {}};
+    GlyphCache::Instance().Put(key, 100);
+    uint16_t retrievedValue = 0;
+    bool result = GlyphCache::Instance().Get(key, retrievedValue);
+    EXPECT_FALSE(result);
+    GlyphCache::Instance().Clear();
+}
+
+/**
+ * @tc.name: GlyphCacheLRUEvictTest001
+ * @tc.desc: Test GlyphCache LRU eviction when exceeding maxSize.
+ * @tc.type: FUNC
+ * @tc.require: 23400
+ */
+HWTEST_F(CanvasTest, GlyphCacheLRUEvictTest001, TestSize.Level1)
+{
+    GlyphCache::Instance().Clear();
+    GlyphCache::Instance().SetMaxSize(2);
+    GlyphCacheKey key1 = {static_cast<int32_t>('m'), 0, {}};
+    GlyphCacheKey key2 = {static_cast<int32_t>('n'), 0, {}};
+    GlyphCacheKey key3 = {static_cast<int32_t>('o'), 0, {}};
+    GlyphCache::Instance().Put(key1, 100);
+    GlyphCache::Instance().Put(key2, 200);
+    GlyphCache::Instance().Put(key3, 300);
+    uint16_t retrievedValue1 = 0;
+    bool result1 = GlyphCache::Instance().Get(key1, retrievedValue1);
+    EXPECT_FALSE(result1);
+    uint16_t retrievedValue2 = 0;
+    bool result2 = GlyphCache::Instance().Get(key2, retrievedValue2);
+    EXPECT_TRUE(result2);
+    uint16_t retrievedValue3 = 0;
+    bool result3 = GlyphCache::Instance().Get(key3, retrievedValue3);
+    EXPECT_TRUE(result3);
+    GlyphCache::Instance().Clear();
+}
+
+/**
+ * @tc.name: GlyphCacheLRUAccessOrderTest001
+ * @tc.desc: Test GlyphCache LRU access order updates on Get.
+ * @tc.type: FUNC
+ * @tc.require: 23400
+ */
+HWTEST_F(CanvasTest, GlyphCacheLRUAccessOrderTest001, TestSize.Level1)
+{
+    GlyphCache::Instance().Clear();
+    GlyphCache::Instance().SetMaxSize(2);
+    GlyphCacheKey key1 = {static_cast<int32_t>('p'), 0, {}};
+    GlyphCacheKey key2 = {static_cast<int32_t>('q'), 0, {}};
+    GlyphCacheKey key3 = {static_cast<int32_t>('r'), 0, {}};
+    GlyphCache::Instance().Put(key1, 100);
+    GlyphCache::Instance().Put(key2, 200);
+    uint16_t retrievedValue = 0;
+    GlyphCache::Instance().Get(key1, retrievedValue);
+    GlyphCache::Instance().Put(key3, 300);
+    uint16_t retrievedValue1 = 0;
+    bool result1 = GlyphCache::Instance().Get(key1, retrievedValue1);
+    EXPECT_TRUE(result1);
+    uint16_t retrievedValue2 = 0;
+    bool result2 = GlyphCache::Instance().Get(key2, retrievedValue2);
+    EXPECT_FALSE(result2);
+    GlyphCache::Instance().Clear();
+}
+
+/**
+ * @tc.name: GlyphCacheClearTest001
+ * @tc.desc: Test GlyphCache Clear removes all entries.
+ * @tc.type: FUNC
+ * @tc.require: 23400
+ */
+HWTEST_F(CanvasTest, GlyphCacheClearTest001, TestSize.Level1)
+{
+    GlyphCache::Instance().Clear();
+    GlyphCacheKey key = {static_cast<int32_t>('s'), 0, {}};
+    GlyphCache::Instance().Put(key, 100);
+    GlyphCache::Instance().Clear();
+    uint16_t retrievedValue = 0;
+    bool result = GlyphCache::Instance().Get(key, retrievedValue);
+    EXPECT_FALSE(result);
+    GlyphCache::Instance().Clear();
+}
+
+/**
+ * @tc.name: GlyphCacheEvictTailEmptyTest001
+ * @tc.desc: Test GlyphCache EvictTail with empty list.
+ * @tc.type: FUNC
+ * @tc.require: 23400
+ */
+HWTEST_F(CanvasTest, GlyphCacheEvictTailEmptyTest001, TestSize.Level1)
+{
+    GlyphCache::Instance().Clear();
+    GlyphCache::Instance().SetMaxSize(10);
+    GlyphCache::Instance().Clear();
+    GlyphCache::Instance().SetMaxSize(5);
+    uint16_t retrievedValue = 0;
+    GlyphCacheKey key = {static_cast<int32_t>('t'), 0, {}};
+    bool result = GlyphCache::Instance().Get(key, retrievedValue);
+    EXPECT_FALSE(result);
+    GlyphCache::Instance().Clear();
+}
+
+/**
+ * @tc.name: GlyphCacheMergeFontFeaturesTest001
+ * @tc.desc: Test GlyphCache MergeFontFeatures with multiple feature maps.
+ * @tc.type: FUNC
+ * @tc.require: 23400
+ */
+HWTEST_F(CanvasTest, GlyphCacheMergeFontFeaturesTest001, TestSize.Level1)
+{
+    Drawing::DrawingFontFeatures features;
+    std::unordered_map<std::string, double> featureMap1;
+    featureMap1["kern"] = 1.0;
+    featureMap1["liga"] = 0.0;
+    features.push_back(featureMap1);
+    std::unordered_map<std::string, double> featureMap2;
+    featureMap2["kern"] = 0.0;
+    featureMap2["dlig"] = 1.0;
+    features.push_back(featureMap2);
+
+    OrderedFontFeatures merged = GlyphCache::MergeFontFeatures(features);
+    EXPECT_EQ(merged.size(), 3);
+    EXPECT_EQ(merged["kern"], 0.0);
+    EXPECT_EQ(merged["liga"], 0.0);
+    EXPECT_EQ(merged["dlig"], 1.0);
+}
+
+/**
+ * @tc.name: GlyphCacheMergeFontFeaturesTest002
+ * @tc.desc: Test GlyphCache MergeFontFeatures with empty features.
+ * @tc.type: FUNC
+ * @tc.require: 23400
+ */
+HWTEST_F(CanvasTest, GlyphCacheMergeFontFeaturesTest002, TestSize.Level1)
+{
+    Drawing::DrawingFontFeatures features;
+    OrderedFontFeatures merged = GlyphCache::MergeFontFeatures(features);
+    EXPECT_EQ(merged.size(), 0);
+}
+
+/**
+ * @tc.name: DrawSingleCharacterWithFeaturesTest009
+ * @tc.desc: Test DrawSingleCharacterWithFeatures fallback cache hit on second call.
+ * @tc.type: FUNC
+ * @tc.require: 23400
+ */
+HWTEST_F(CanvasTest, DrawSingleCharacterWithFeaturesTest009, TestSize.Level1)
+{
+    GlyphCache::Instance().Clear();
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    Font font;
+    font.SetTypeface(nullptr);
+    const char* str = "\u1234";
+    scalar x = 70.0f;
+    scalar y = 70.0f;
+    std::shared_ptr<Drawing::DrawingFontFeatures> features = std::make_shared<Drawing::DrawingFontFeatures>();
+    canvas->DrawSingleCharacterWithFeatures(str, font, x, y, features);
+    canvas->DrawSingleCharacterWithFeatures(str, font, x, y, features);
+    GlyphCache::Instance().Clear();
+}
+
+/**
+ * @tc.name: DrawSingleCharacterWithFeaturesTest010
+ * @tc.desc: Test DrawSingleCharacterWithFeatures fallback with valid typeface caches glyph.
+ * @tc.type: FUNC
+ * @tc.require: 23400
+ */
+HWTEST_F(CanvasTest, DrawSingleCharacterWithFeaturesTest010, TestSize.Level1)
+{
+    GlyphCache::Instance().Clear();
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    Font font;
+    std::shared_ptr<OHOS::Rosen::Drawing::Typeface> typeface = Drawing::Typeface::MakeDefault();
+    font.SetTypeface(typeface);
+    const char* str = "\u4E00";
+    scalar x = 80.0f;
+    scalar y = 80.0f;
+    std::shared_ptr<Drawing::DrawingFontFeatures> features = std::make_shared<Drawing::DrawingFontFeatures>();
+    canvas->DrawSingleCharacterWithFeatures(str, font, x, y, features);
+    canvas->DrawSingleCharacterWithFeatures(str, font, x, y, features);
+    GlyphCache::Instance().Clear();
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
