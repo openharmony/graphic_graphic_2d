@@ -18,6 +18,7 @@
 #include "frame_report.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 
 #undef LOG_TAG
 #define LOG_TAG "RSServiceToRenderConnection"
@@ -333,6 +334,11 @@ void RSServiceToRenderConnection::OnScreenBacklightChanged(ScreenId screenId, ui
 void RSServiceToRenderConnection::OnGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList)
 {
     renderPipelineAgent_->OnGlobalBlacklistChanged(globalBlackList);
+}
+
+void RSServiceToRenderConnection::SetCacheEnabledForRotation(bool enabled)
+{
+    renderPipelineAgent_->SetCacheEnabledForRotation(enabled);
 }
 } // namespace Rosen
 } // namespace OHOS

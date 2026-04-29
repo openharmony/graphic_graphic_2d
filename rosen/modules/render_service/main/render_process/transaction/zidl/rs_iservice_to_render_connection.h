@@ -136,6 +136,7 @@ public:
     virtual int32_t RegisterUIExtensionCallback(pid_t pid, uint64_t userId, sptr<RSIUIExtensionCallback> callback,
         bool unobscured = false) = 0;
     virtual void ForceRefreshOneFrameWithNextVSync() = 0;
+    virtual void SetCacheEnabledForRotation(bool enabled) = 0;
 };
 
 } // namespace Rosen
