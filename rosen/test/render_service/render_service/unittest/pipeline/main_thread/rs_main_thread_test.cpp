@@ -1370,6 +1370,59 @@ HWTEST_F(RSMainThreadTest, ShowWatermark05, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetWatermarkGrid001
+ * @tc.desc: Test SetWatermark with rowCount and colCount
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, SetWatermarkGrid001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    std::string watermarkName = "gridWatermark";
+    Media::InitializationOptions opts;
+    opts.size.width = DEFAULT_SCREEN_WIDTH;
+    opts.size.height = DEFAULT_SCREEN_HEIGHT;
+    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+
+    mainThread->SetWatermark(100, watermarkName, pixelMap, 2, 3);
+    EXPECT_TRUE(mainThread->watermarkFlag_);
+
+    mainThread->SetWatermark(100, watermarkName, nullptr, 0, 0);
+    EXPECT_FALSE(mainThread->watermarkFlag_);
+}
+
+/**
+ * @tc.name: SetSurfaceWatermarkGrid001
+ * @tc.desc: Test SetSurfaceWatermark with rowCount and colCount
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, SetSurfaceWatermarkGrid001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    std::string watermarkName = "surfaceGridWatermark";
+    Media::InitializationOptions opts;
+    opts.size.width = DEFAULT_SCREEN_WIDTH;
+    opts.size.height = DEFAULT_SCREEN_HEIGHT;
+    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+
+    NodeId surfaceNodeId = 0XFFFFFFFFFFFF1234;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId);
+    mainThread->context_->nodeMap.RegisterRenderNode(surfaceNode);
+    surfaceNode->GetMutableRenderProperties().SetBoundsWidth(DEFAULT_SCREEN_WIDTH);
+    surfaceNode->GetMutableRenderProperties().SetBoundsHeight(DEFAULT_SCREEN_HEIGHT);
+
+    auto res = mainThread->SetSurfaceWatermark(ExtractPid(surfaceNodeId), watermarkName,
+        pixelMap, {surfaceNodeId}, SurfaceWatermarkType::CUSTOM_WATER_MARK, true, 2, 2);
+    EXPECT_EQ(res, SurfaceWatermarkStatusCode::WATER_MARK_SUCCESS);
+
+    mainThread->ClearSurfaceWatermark(ExtractPid(surfaceNodeId), watermarkName, true);
+    mainThread->context_->nodeMap.UnregisterRenderNode(surfaceNodeId);
+}
+
+/**
  * @tc.name: MergeToEffectiveTransactionDataMap001
  * @tc.desc: Test RSMainThreadTest.MergeToEffectiveTransactionDataMap
  * @tc.type: FUNC

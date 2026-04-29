@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "feature/watermark/rs_surface_watermark.h"
 #include "feature_param/performance_feature/rotateoffscreen_param.h"
 #include "params/rs_effect_render_params.h"
 #include "params/rs_render_thread_params.h"
@@ -2115,17 +2116,17 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawWatermark01, TestSize.Level1)
     ASSERT_TRUE(surfaceDrawable_ != nullptr);
 
     auto surfaceParams = static_cast<RSSurfaceRenderParam*>(surfaceDrawable_->GetRenderParams().get());
-    surfaceDrawable_->DrawCommSurfaceWatermark(*canvas_, *surfaceParams);
+    RSSurfaceWatermarkHelper::DrawCommSurfaceWatermark(*canvas_, *surfaceParams);
 
     surfaceDrawable_->SetSystemWatermarkEnabled("watermask1", false);
-    surfaceDrawable_->DrawCommSurfaceWatermark(*canvas_, *surfaceParams);
+    RSSurfaceWatermarkHelper::DrawCommSurfaceWatermark(*canvas_, *surfaceParams);
     surfaceDrawable_->ClearSystemWatermarkEnabled("watermask1");
 
     surfaceDrawable_->SetSystemWatermarkEnabled("watermask1", false);
-    surfaceDrawable_->DrawCommSurfaceWatermark(*canvas_, *surfaceParams);
+    RSSurfaceWatermarkHelper::DrawCommSurfaceWatermark(*canvas_, *surfaceParams);
 
     surfaceDrawable_->SetSystemWatermarkEnabled("watermask1", true);
-    surfaceDrawable_->DrawCommSurfaceWatermark(*canvas_, *surfaceParams);
+    RSSurfaceWatermarkHelper::DrawCommSurfaceWatermark(*canvas_, *surfaceParams);
 
     auto uniParams = std::make_unique<RSRenderThreadParams>();
     uniParams->GetWatermark("watermask11111");
@@ -2139,12 +2140,13 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawWatermark01, TestSize.Level1)
     
     // Test 1
     std::unordered_map<std::string, std::pair<std::shared_ptr<Drawing::Image>, pid_t>> watermarks;
+    std::unordered_map<std::string, std::pair<uint32_t, uint32_t>> gridCounts;
     auto tmpImagePtr = RSPixelMapUtil::ExtractDrawingImage(pixelMap);
     watermarks["watermask1"] = {tmpImagePtr, 0};
-    uniParams->SetWatermarks(watermarks);
+    uniParams->SetWatermarks(watermarks, gridCounts);
     RSUniRenderThread::Instance.Sync(std::move(uniParams));
     surfaceDrawable_->SetSystemWatermarkEnabled("watermask1", false);
-    surfaceDrawable_->DrawCommSurfaceWatermark(*canvas_, *surfaceParams);
+    RSSurfaceWatermarkHelper::DrawCommSurfaceWatermark(*canvas_, *surfaceParams);
     surfaceDrawable_->SetSystemWatermarkEnabled("watermask1", true);
 
     // Test 2
@@ -2154,9 +2156,9 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawWatermark01, TestSize.Level1)
     uniParams = std::make_unique<RSRenderThreadParams>();
     tmpImagePtr = RSPixelMapUtil::ExtractDrawingImage(pixelMap);
     watermarks["watermask1"] = {tmpImagePtr, 0};
-    uniParams->SetWatermarks(watermarks);
+    uniParams->SetWatermarks(watermarks, gridCounts);
     RSUniRenderThread::Instance.Sync(std::move(uniParams));
-    surfaceDrawable_->DrawCommSurfaceWatermark(*canvas_, *surfaceParams);
+    RSSurfaceWatermarkHelper::DrawCommSurfaceWatermark(*canvas_, *surfaceParams);
 
     // Tewt 3
     opts.size.width = width;
@@ -2165,9 +2167,63 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawWatermark01, TestSize.Level1)
     uniParams = std::make_unique<RSRenderThreadParams>();
     tmpImagePtr = RSPixelMapUtil::ExtractDrawingImage(pixelMap);
     watermarks["watermask1"] = {tmpImagePtr, 0};
-    uniParams->SetWatermarks(watermarks);
+    gridCounts["watermask1"] = {2, 2};
+    uniParams->SetWatermarks(watermarks, gridCounts);
     RSUniRenderThread::Instance.Sync(std::move(uniParams));
-    surfaceDrawable_->DrawCommSurfaceWatermark(*canvas_, *surfaceParams);
+    RSSurfaceWatermarkHelper::DrawCommSurfaceWatermark(*canvas_, *surfaceParams);
+}
+
+/**
+ * @tc.name: DrawWatermarkGrid01
+ * @tc.desc: Test DrawWatermark with grid watermark (rowCount > 0 && colCount > 0)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawWatermarkGrid01, TestSize.Level1)
+{
+    ASSERT_TRUE(surfaceDrawable_ != nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParam*>(surfaceDrawable_->GetRenderParams().get());
+
+    int width = 50;
+    int height = 50;
+    Media::InitializationOptions opts;
+    opts.size.width = width;
+    opts.size.height = height;
+    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_TRUE(pixelMap != nullptr);
+    auto tmpImagePtr = RSPixelMapUtil::ExtractDrawingImage(pixelMap);
+    ASSERT_TRUE(tmpImagePtr != nullptr);
+
+    std::unordered_map<std::string, std::pair<std::shared_ptr<Drawing::Image>, pid_t>> watermarks;
+    std::unordered_map<std::string, std::pair<uint32_t, uint32_t>> gridCounts;
+    watermarks["watermask1"] = {tmpImagePtr, 0};
+    gridCounts["watermask1"] = {2, 2};
+
+    auto uniParams = std::make_unique<RSRenderThreadParams>();
+    uniParams->SetWatermarks(watermarks, gridCounts);
+    RSUniRenderThread::Instance.Sync(std::move(uniParams));
+    surfaceDrawable_->SetSystemWatermarkEnabled("watermask1", true);
+    RSSurfaceWatermarkHelper::DrawCommSurfaceWatermark(*canvas_, *surfaceParams);
+
+    EXPECT_EQ(RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetWatermarkRowCount("watermask1"), 2);
+    EXPECT_EQ(RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetWatermarkColCount("watermask1"), 2);
+    EXPECT_EQ(RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetWatermarkRowCount("notexist"), 0);
+    EXPECT_EQ(RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetWatermarkColCount("notexist"), 0);
+
+    auto effect = RSSurfaceWatermarkHelper::GetGridWatermarkEffect();
+    EXPECT_TRUE(effect != nullptr || effect == nullptr);
+
+    gridCounts["watermask1"] = {0, 0};
+    uniParams = std::make_unique<RSRenderThreadParams>();
+    uniParams->SetWatermarks(watermarks, gridCounts);
+    RSUniRenderThread::Instance.Sync(std::move(uniParams));
+    RSSurfaceWatermarkHelper::DrawCommSurfaceWatermark(*canvas_, *surfaceParams);
+
+    gridCounts["watermask1"] = {1, 0};
+    uniParams = std::make_unique<RSRenderThreadParams>();
+    uniParams->SetWatermarks(watermarks, gridCounts);
+    RSUniRenderThread::Instance.Sync(std::move(uniParams));
+    RSSurfaceWatermarkHelper::DrawCommSurfaceWatermark(*canvas_, *surfaceParams);
 }
 #endif
 

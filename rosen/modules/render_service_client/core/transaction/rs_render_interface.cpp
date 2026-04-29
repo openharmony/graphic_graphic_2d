@@ -40,6 +40,7 @@ namespace OHOS {
 namespace Rosen {
 #ifdef ROSEN_OHOS
 constexpr uint32_t WATERMARK_NAME_LENGTH_LIMIT = 128;
+constexpr uint32_t MAX_WATERMARK_GRID_COUNT = 255;
 #endif
 
 RSRenderInterface::RSRenderInterface(sptr<IRemoteObject>& connectToRenderRemote)
@@ -534,7 +535,8 @@ int32_t RSRenderInterface::SubmitCanvasPreAllocatedBuffer(
 
 uint32_t RSRenderInterface::SetSurfaceWatermark(pid_t pid, const std::string &name,
     const std::shared_ptr<Media::PixelMap> &watermark,
-    const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType)
+    const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType,
+    uint32_t rowCount, uint32_t colCount)
 {
 #ifdef ROSEN_OHOS
     if (name.length() > WATERMARK_NAME_LENGTH_LIMIT || name.empty()) {
@@ -550,8 +552,14 @@ uint32_t RSRenderInterface::SetSurfaceWatermark(pid_t pid, const std::string &na
     if (watermarkType >= SurfaceWatermarkType::INVALID_WATER_MARK) {
         return SurfaceWatermarkStatusCode::WATER_MARK_INVALID_WATERMARK_TYPE;
     }
+
+    if (rowCount > MAX_WATERMARK_GRID_COUNT || colCount > MAX_WATERMARK_GRID_COUNT) {
+        ROSEN_LOGE("SetSurfaceWatermark failed, rowCount[%{public}u] or colCount[%{public}u] out of range",
+            rowCount, colCount);
+        return SurfaceWatermarkStatusCode::WATER_MARK_INVALID_GRID_COUNT;
+    }
     return renderPipelineClient_->SetSurfaceWatermark(pid, name, watermark,
-        nodeIdList, watermarkType);
+        nodeIdList, watermarkType, rowCount, colCount);
 #else
     return 0 ;
 #endif

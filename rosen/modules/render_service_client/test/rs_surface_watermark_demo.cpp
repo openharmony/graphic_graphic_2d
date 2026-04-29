@@ -173,6 +173,7 @@ int main()
         pixelmap, nodeList.first, SurfaceWatermarkType::CUSTOM_WATER_MARK);
     std::cout << "Test SetSurfaceWatermark01" << res << std::endl;
     sleep(SEELP_TWO_SECOND);
+
     rsInterefaces.ClearSurfaceWatermarkForNodes(getPid(), watermarkName, nodeList.first);
     sleep(SEELP_TWO_SECOND);
 

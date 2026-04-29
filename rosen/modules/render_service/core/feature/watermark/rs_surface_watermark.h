@@ -15,6 +15,7 @@
 #ifndef RS_SURFACE_WATERMARK_H
 #define RS_SURFACE_WATERMARK_H
 #include <cstdint>
+#include "effect/runtime_effect.h"
 #include "pixel_map.h"
 #include "common/rs_common_def.h"
 #include "pipeline/rs_context.h"
@@ -24,11 +25,20 @@
 #include "screen_manager/rs_screen_property.h"
 namespace OHOS {
 namespace Rosen {
+class RSPaintFilterCanvas;
+class RSSurfaceRenderParams;
 
 struct RSSurfaceWatermarkSpecialParam {
     float maxWidth_ = 0;
     float maxHeight_ = 0;
     bool isWatermarkChange_ = true;
+};
+
+struct RSSurfaceWatermarkInfo {
+    std::shared_ptr<Drawing::Image> image;
+    pid_t pid = 0;
+    uint32_t rowCount = 0;
+    uint32_t colCount = 0;
 };
 
 class RSSurfaceWatermarkHelper {
@@ -37,17 +47,20 @@ public:
     ~RSSurfaceWatermarkHelper() = default;
     uint32_t SetSurfaceWatermark(pid_t pid, const std::string& name, std::shared_ptr<Media::PixelMap> pixelMap,
         const std::vector<NodeId>& nodeIdList, SurfaceWatermarkType watermarkType,
-        RSContext& mainContext, bool isSystemCalling = false);
+        RSContext& mainContext, bool isSystemCalling = false,
+        uint32_t rowCount = 0, uint32_t colCount = 0);
+    static void DrawCommSurfaceWatermark(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& params);
     void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,
         const std::vector<NodeId>& nodeIdList, RSContext& mainContext, bool isSystemCalling = false);
     void ClearSurfaceWatermark(pid_t pid,
         const std::string& name, RSContext& mainContext, bool isSystemCalling = false, bool isDeathMonitor = false);
     void ClearSurfaceWatermark(pid_t pid, RSContext& mainContext);
-    inline std::unordered_map<std::string, std::pair<std::shared_ptr<Drawing::Image>,
-        pid_t>> &GetSurfaceWatermarks()
+    inline std::unordered_map<std::string, RSSurfaceWatermarkInfo>& GetSurfaceWatermarks()
     {
         return surfaceWatermarks_;
     }
+    static std::shared_ptr<Drawing::RuntimeEffect> GetGridWatermarkEffect();
+
 private:
     template<typename Container>
     std::pair<uint32_t, bool> TraverseAndOperateNodeList(const pid_t& pid, const std::string& name,
@@ -73,7 +86,7 @@ private:
         if (iter == surfaceWatermarks_.end()) {
             return false;
         }
-        if (!isSystemCalling && iter->second.second != pid) {
+        if (!isSystemCalling && iter->second.pid != pid) {
             return false;
         }
         return true;
@@ -91,7 +104,9 @@ private:
     void AddWatermarkNameMapNodeId(std::string name, NodeId id, SurfaceWatermarkType watermarkType);
     uint32_t CheckCustomWatermarkCondition(const std::shared_ptr<Drawing::Image>& tmpImagePtr, RSContext& mainContext,
         std::shared_ptr<RSSurfaceRenderNode> node, RSSurfaceWatermarkSpecialParam& param);
-    std::unordered_map<std::string, std::pair<std::shared_ptr<Drawing::Image>, pid_t>> surfaceWatermarks_ = {};
+    static void DrawWatermark(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& params,
+        const SurfaceWatermarkType& watermarkType);
+    std::unordered_map<std::string, RSSurfaceWatermarkInfo> surfaceWatermarks_ = {};
     // Quickly clear watermark when the process is destroyed.
     std::unordered_map<std::string, std::pair<std::unordered_set<NodeId>,
         SurfaceWatermarkType>> watermarkNameMapNodeId_ = {};

@@ -862,16 +862,17 @@ int32_t RSRenderPipelineClient::SubmitCanvasPreAllocatedBuffer(
 }
 #endif // ROSEN_OHOS && RS_ENABLE_VK
 
-uint32_t RSRenderPipelineClient::SetSurfaceWatermark(pid_t pid, const std::string &name,
-    const std::shared_ptr<Media::PixelMap> &watermark,
-    const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType)
+uint32_t RSRenderPipelineClient::SetSurfaceWatermark(pid_t pid, const std::string& name,
+    const std::shared_ptr<Media::PixelMap>& watermark, const std::vector<NodeId>& nodeIdList,
+    SurfaceWatermarkType watermarkType, uint32_t rowCount, uint32_t colCount)
 {
     if (clientToRenderConnection_ == nullptr) {
         return WATER_MARK_RENDER_SERVICE_NULL;
     }
-    return clientToRenderConnection_->SetSurfaceWatermark(pid, name, watermark, nodeIdList, watermarkType);
+    return clientToRenderConnection_->SetSurfaceWatermark(
+        pid, name, watermark, nodeIdList, watermarkType, rowCount, colCount);
 }
-    
+
 void RSRenderPipelineClient::ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,
     const std::vector<NodeId> &nodeIdList)
 {

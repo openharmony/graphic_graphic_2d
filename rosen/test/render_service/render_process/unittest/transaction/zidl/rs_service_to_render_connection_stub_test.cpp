@@ -1508,6 +1508,8 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, SetWatermark001, TestSize.Level1)
     auto pixelMap = Media::PixelMap::Create(opts);
     ASSERT_NE(pixelMap, nullptr);
     data.WriteParcelable(pixelMap.get());
+    data.WriteUint32(2);
+    data.WriteUint32(3);
     
     auto ret = g_connectionStub->OnRemoteRequest(code, data, reply, option);
     EXPECT_EQ(ret, ERR_NONE);

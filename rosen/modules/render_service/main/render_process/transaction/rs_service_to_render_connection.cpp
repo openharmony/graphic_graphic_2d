@@ -238,9 +238,9 @@ ErrCode RSServiceToRenderConnection::GetPixelMapByProcessId(std::vector<PixelMap
 }
 
 ErrCode RSServiceToRenderConnection::SetWatermark(pid_t callingPid, const std::string& name,
-    std::shared_ptr<Media::PixelMap> watermark, bool& success)
+    std::shared_ptr<Media::PixelMap> watermark, bool& success, uint32_t rowCount, uint32_t colCount)
 {
-    return renderPipelineAgent_->SetWatermark(callingPid, name, watermark, success);
+    return renderPipelineAgent_->SetWatermark(callingPid, name, watermark, success, rowCount, colCount);
 }
 
 void RSServiceToRenderConnection::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow)

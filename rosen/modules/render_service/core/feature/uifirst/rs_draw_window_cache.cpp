@@ -16,6 +16,7 @@
 #include "rs_draw_window_cache.h"
 
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "feature/watermark/rs_surface_watermark.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "rs_trace.h"
@@ -228,7 +229,7 @@ void RSDrawWindowCache::DrawCache(DrawableV2::RSSurfaceRenderNodeDrawable* surfa
     // draw foreground
     surfaceDrawable->DrawForeground(canvas, boundSize);
     // draw watermark
-    surfaceDrawable->DrawCommSurfaceWatermark(canvas, surfaceParams);
+    RSSurfaceWatermarkHelper::DrawCommSurfaceWatermark(canvas, surfaceParams);
 }
 #endif
 

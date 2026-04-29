@@ -180,7 +180,8 @@ public:
 #endif
     virtual uint32_t SetSurfaceWatermark(pid_t pid, const std::string &name,
         const std::shared_ptr<Media::PixelMap> &watermark,
-        const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType) = 0;
+        const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType,
+        uint32_t rowCount = 0, uint32_t colCount = 0) = 0;
         
     virtual void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string &name,
         const std::vector<NodeId> &nodeIdList) = 0;

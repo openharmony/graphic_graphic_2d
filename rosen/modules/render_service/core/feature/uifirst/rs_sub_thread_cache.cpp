@@ -29,6 +29,7 @@
 #include "draw/brush.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
+#include "feature/watermark/rs_surface_watermark.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_screen_render_params.h"
@@ -1201,7 +1202,7 @@ bool RsSubThreadCache::DealWithUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawa
     if (needDrawInUniRenderThread) {
         surfaceDrawable->DrawForeground(canvas, bounds);
     }
-    surfaceDrawable->DrawCommSurfaceWatermark(canvas, surfaceParams);
+    RSSurfaceWatermarkHelper::DrawCommSurfaceWatermark(canvas, surfaceParams);
     if (uniParams.GetUIFirstDebugEnabled()) {
         DrawUIFirstDfx(canvas, enableType, surfaceParams, drawCacheSuccess);
     }
