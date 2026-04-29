@@ -35,6 +35,7 @@
 
 namespace OHOS {
 namespace Rosen {
+#ifdef RS_ENABLE_IMAGE_DETAIL_ENHANCER
 struct RSImageParams {
     std::shared_ptr<Media::PixelMap> mPixelMap;
     uint64_t mNodeId;
@@ -130,6 +131,7 @@ public:
     float GetImageSize(const std::shared_ptr<Drawing::Image>& image) const;
     long long GetCurTime() const;
 };
+#endif
 } // OHOS
 } // Rosen
 #endif
