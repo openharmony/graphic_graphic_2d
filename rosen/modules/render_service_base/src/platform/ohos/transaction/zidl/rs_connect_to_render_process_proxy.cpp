@@ -107,6 +107,7 @@ bool RSConnectToRenderProcessProxy::RemoveConnection(const sptr<RSIConnectionTok
     bool result = false;
     if (!reply.ReadBool(result)) {
         ROSEN_LOGE("RSConnectToRenderProcessProxy::RemoveConnection ReadBool failed");
+        return false;
     }
     return result;
 }
