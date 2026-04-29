@@ -52,13 +52,10 @@ public:
     bool HasFilterNode(NodeId filterId);
     bool CheckPrecondition(const RSRenderNode& filterNode,
         const RectI& filterRect, RSSurfaceRenderNode& hwcNode);
-    void ClearHveFilterSurfaceNodeMapping();
     void PushHveFilterSurfaceNodeMapping(NodeId filterId, NodeId surfaceId);
     std::shared_ptr<Drawing::Image> SampleLayer(
         RSPaintFilterCanvas& canvas, const Drawing::RectI& srcRect, NodeId filterId);
 
-    std::unordered_map<NodeId, std::vector<NodeId>> hveFilterToSurfaceNodeStagingMap_ = {};
-    std::unordered_map<NodeId, std::vector<NodeId>> hveFilterToSurfaceNodeMap_ = {};
 private:
     bool HasValidEffectNode(const std::shared_ptr<RSRenderNode>& node);
     bool HasValidEffect(const RSRenderNode* node);
@@ -67,6 +64,9 @@ private:
     HveFilter() = default;
     std::vector<SurfaceNodeInfo> surfaceNodeInfo_;
     mutable std::mutex hveFilterMtx_;
+
+    std::unordered_map<NodeId, std::vector<NodeId>> hveFilterToSurfaceNodeStagingMap_ = {};
+    std::unordered_map<NodeId, std::vector<NodeId>> hveFilterToSurfaceNodeMap_ = {};
 };
 } // namespace Rosen
 } // namespace OHOS

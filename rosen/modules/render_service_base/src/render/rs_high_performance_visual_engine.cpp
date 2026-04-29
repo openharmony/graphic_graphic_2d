@@ -117,11 +117,6 @@ bool HveFilter::CheckPrecondition(const RSRenderNode& renderNode,
     return properties.IsBgBrightnessValid() && HasValidEffect(renderNode.GetParent().lock().get());
 }
 
-void HveFilter::ClearHveFilterSurfaceNodeMapping()
-{
-    hveFilterToSurfaceNodeMap_.clear();
-}
-
 void HveFilter::PushHveFilterSurfaceNodeMapping(NodeId filterId, NodeId surfaceId)
 {
     if (hveFilterToSurfaceNodeStagingMap_.find(filterId) == hveFilterToSurfaceNodeStagingMap_.end()) {
