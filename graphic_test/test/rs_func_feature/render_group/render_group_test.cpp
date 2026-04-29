@@ -36,7 +36,7 @@ namespace {
 constexpr uint32_t SLEEP_TIME_FOR_PROXY = 100000;
 constexpr int SCREEN_WIDTH = 1200;
 constexpr int SCREEN_HEIGHT = 2000;
-const std::string TEST_IMAGE_PATH = "/data/local/tmp/backGroundImage.jpg";
+const std::string TEST_IMAGE_PATH = "/data/local/tmp/Images/backGroundImage.jpg";
 } // namespace
 
 class RenderGroupTest : public RSGraphicTest {
