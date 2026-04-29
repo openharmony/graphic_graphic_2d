@@ -61,6 +61,39 @@ int RSConnectToRenderProcessStub::OnRemoteRequest(
             }
             break;
         }
+        case static_cast<uint32_t>(RSIConnectToRenderProcessInterfaceCode::REMOVE_CONNECTION) : {
+            auto interfaceToken = data.ReadInterfaceToken();
+            if (interfaceToken != RSIConnectToRenderProcess::GetDescriptor()) {
+                RS_LOGE("RSConnectToRenderProcessStub::REMOVE_CONNECTION ReadInterfaceToken failed");
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            auto remoteObj = data.ReadRemoteObject();
+            if (remoteObj == nullptr) {
+                RS_LOGE("RSConnectToRenderProcessStub::REMOVE_CONNECTION Read remoteObj failed!");
+                ret = ERR_NULL_OBJECT;
+                break;
+            }
+            if (!remoteObj->IsProxyObject()) {
+                RS_LOGE("RSConnectToRenderProcessStub::REMOVE_CONNECTION remoteObj !IsProxyObject() failed!");
+                ret = ERR_UNKNOWN_OBJECT;
+                break;
+            }
+            auto token = iface_cast<RSIConnectionToken>(remoteObj);
+            if (token == nullptr) {
+                RS_LOGE("RSConnectToRenderProcessStub::REMOVE_CONNECTION RSIConnectionToken failed!");
+                ret = ERR_UNKNOWN_OBJECT;
+                break;
+            }
+            
+            auto result = RemoveConnection(token);
+            if (!reply.WriteBool(result)) {
+                RS_LOGE("RSConnectToRenderProcessStub::REMOVE_CONNECTION WriteBool failed!");
+                ret = ERR_UNKNOWN_OBJECT;
+                break;
+            }
+            break;
+        }
         default:
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
     }

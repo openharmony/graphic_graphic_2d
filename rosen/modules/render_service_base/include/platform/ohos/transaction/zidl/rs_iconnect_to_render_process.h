@@ -35,6 +35,7 @@ public:
     {
         return nullptr;
     }
+    virtual bool RemoveConnection(const sptr<RSIConnectionToken>& token) {}
 };
 } // namespace Rosen
 } // namespace OHOS

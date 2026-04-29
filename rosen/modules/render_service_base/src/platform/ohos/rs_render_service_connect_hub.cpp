@@ -76,10 +76,12 @@ RSRenderServiceConnectHub::~RSRenderServiceConnectHub() noexcept
         ROSEN_LOGI("token_ is deleted");
         return;
     }
-    ROSEN_LOGI("RefCount: %{public}d", token_->GetSptrRefCount());
+    ROSEN_LOGI("RSRenderServiceConnectHub::RefCount: token_:%{public}d, conn_:%{public}d, renderConn_:%{public}d",
+        token_->GetSptrRefCount(), conn_->GetSptrRefCount(), renderConn_->GetSptrRefCount());
     while (token_->GetSptrRefCount() != TOKEN_STRONG_REF_COUNT) {
         token_->DecStrongRef(this);
     }
+    CleanConnectRenderProcess();
     renderService_->RemoveConnection(token_);
     token_ = nullptr;
     conn_ = nullptr;
@@ -211,5 +213,62 @@ void RSRenderServiceConnectHub::RenderServiceDeathRecipient::OnRemoteDied(const 
 
     rsConnHub->ConnectDied();
 }
+
+void RSRenderServiceConnectHub::AddRenderProcessConnectionToken(sptr<RSIConnectionToken> token,
+    sptr<RSIConnectToRenderProcess> renderPrecess)
+{
+    if (token == nullptr) {
+        ROSEN_LOGE("RSRenderServiceConnectHub::AddRenderProcessConnectionToken token is nullptr");
+        return;
+    }
+    std::unique_lock<std::mutex> lock(renderPipelineClientMutex_);
+    if (connRenderProcesses_.find(token) !+ connRenderProcesses_.end()) {
+        return;
+    }
+    connRenderProcesses_[token] = renderPrecess;
+}
+
+void RSRenderServiceConnectHub::RemoveRenderProcessConnectionToken(sptr<RSIConnectionToken> token)
+{
+    if (token == nullptr) {
+        ROSEN_LOGW("RSRenderServiceConnectHub::RemoveRenderProcessConnectionToken token is nullptr");
+        return;
+    }
+    std::unique_lock<std::mutex> lock(renderPipelineClientMutex_);
+    connRenderProcesses_.erase(token);
+}
+
+void RSRenderServiceConnectHub::CleanConnectRenderProcess()
+{
+    std::unique_lock<std::mutex> lock(renderPipelineClientMutex_);
+    if (connRenderProcesses_.size() == 0) {
+        ROSEN_LOGI("RSRenderServiceConnectHub::CleanConnectRenderProcess connection already release");
+        return;
+    }
+
+    ROSEN_LOGI("CleanConnectRenderProcess release begin size:%{public}lu", connRenderProcesses_.size());
+
+    for (auto it = connRenderProcesses_.begin(); it != connRenderProcesses_.end(); ++it) {
+        sptr<RSIConnectionToken> token = it->first;
+        sptr<RSIConnectToRenderProcess> renderPrecess = it->second;
+
+        if (token == nullptr) {
+            ROSEN_LOGE("RSRenderServiceConnectHub::CleanConnectRenderProcess token is nullptr");
+            return;
+        }
+
+        ROSEN_LOGI("CleanConnectRenderProcess::RefCount: token_:%{public}lu", token_->GetSptrRefCount());
+        while (token_->GetSptrRefCount() != TOKEN_STRONG_REF_COUNT) {
+            token_->DecStrongRef(token.GetRefPtr());
+        }
+
+        if (renderPrecess != nullptr) {
+            renderPrecess->RemoveConnection(token);
+        }
+        connRenderProcesses_.clear();
+    }
+
+}
+
 } // namespace Rosen
 } // namespace OHOS
