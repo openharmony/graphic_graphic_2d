@@ -106,6 +106,7 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
             return std::make_shared<RSNGRenderParticleAblationFilter>();
         }
     },
+#ifndef ROSEN_ARKUI_X
     {RSNGEffectType::FROSTED_GLASS, [] {
             return std::make_shared<RSNGRenderFrostedGlassFilter>();
         }
@@ -114,6 +115,7 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
             return std::make_shared<RSNGRenderFrostedGlassBlurFilter>();
         }
     },
+#endif
     {RSNGEffectType::GRID_WARP, [] {
             return std::make_shared<RSNGRenderGridWarpFilter>();
         }
@@ -134,6 +136,7 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
 
 using FilterGetSnapshotRect = std::function<RectF(std::shared_ptr<RSNGRenderFilterBase>, RectF)>;
 static std::unordered_map<RSNGEffectType, FilterGetSnapshotRect> getSnapshotRectLUT = {
+#ifndef ROSEN_ARKUI_X
     {
         RSNGEffectType::FROSTED_GLASS, [](std::shared_ptr<RSNGRenderFilterBase> filter, RectF rect) {
             auto frostedGlass = std::static_pointer_cast<RSNGRenderFrostedGlassFilter>(filter);
@@ -170,6 +173,7 @@ static std::unordered_map<RSNGEffectType, FilterGetSnapshotRect> getSnapshotRect
             return snapshotRect;
         }
     },
+#endif
     {
         RSNGEffectType::MAGNIFIER, [](std::shared_ptr<RSNGRenderFilterBase> filter, RectF rect) {
             auto magnifier = std::static_pointer_cast<RSNGRenderMagnifierFilter>(filter);
@@ -219,6 +223,7 @@ static std::unordered_map<RSNGEffectType, FilterGetDrawRect> getDrawRectLUT = {
             }
             return RectF(left, top, right - left, bottom - top);
         }
+#ifndef ROSEN_ARKUI_X
     },
     {
         RSNGEffectType::FROSTED_GLASS, [](std::shared_ptr<RSNGRenderFilterBase> filter, RectF rect) {
@@ -226,11 +231,13 @@ static std::unordered_map<RSNGEffectType, FilterGetDrawRect> getDrawRectLUT = {
             auto shape = frostedGlassFilter->Getter<OHOS::Rosen::FrostedGlassShapeRenderTag>()->Get();
             return shape->GetTransformDrawRect();
         }
+#endif
     }
 };
 
 using CheckFilterSkipFrameFunc = std::function<bool(std::shared_ptr<RSNGRenderFilterBase>)>;
 static std::unordered_map<RSNGEffectType, CheckFilterSkipFrameFunc> checkFilterSkipLUT = {
+#ifndef ROSEN_ARKUI_X
     {
         RSNGEffectType::FROSTED_GLASS_BLUR, [](std::shared_ptr<RSNGRenderFilterBase> filter) {
             auto frostedGlassBlur = std::static_pointer_cast<RSNGRenderFrostedGlassBlurFilter>(filter);
@@ -251,6 +258,7 @@ static std::unordered_map<RSNGEffectType, CheckFilterSkipFrameFunc> checkFilterS
                 blurRadius[0] * blurRadius[1] > MATERIAL_SKIP_BLUR_THRESHOLD);
         }
     },
+#endif
 };
 
 std::shared_ptr<RSNGRenderFilterBase> RSNGRenderFilterBase::Create(RSNGEffectType type)

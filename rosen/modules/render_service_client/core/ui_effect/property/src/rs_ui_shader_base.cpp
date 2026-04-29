@@ -80,10 +80,12 @@ static std::unordered_map<RSNGEffectType, ShaderCreator> creatorLUT = {
             return std::make_shared<RSNGCircleFlowlight>();
         }
     },
+#ifndef ROSEN_ARKUI_X
     {RSNGEffectType::FROSTED_GLASS_EFFECT, [] {
             return std::make_shared<RSNGFrostedGlassEffect>();
         }
     },
+#endif
     {RSNGEffectType::DISTORT_CHROMA, [] {
             return std::make_shared<RSNGDistortChroma>();
         }
@@ -185,8 +187,10 @@ std::shared_ptr<RSNGShaderBase> ConvertColorGradientEffectPara(std::shared_ptr<V
         (colorGradientEffect->Setter<std::decay_t<decltype(args)>>(i < strths.size() ? strths[i++] : strth), ...);
         }, strthTag);
 
+#if !defined(ROSEN_ARKUI_X)
     colorGradientEffect->Setter<ColorGradientEffectMaskTag>(
         RSNGMaskBase::Create(colorGradientEffectPara->GetMask()));
+#endif
 
     colorGradientEffect->Setter<ColorGradientEffectColorNumberTag>(static_cast<float>(strths.size()));
 
@@ -195,6 +199,7 @@ std::shared_ptr<RSNGShaderBase> ConvertColorGradientEffectPara(std::shared_ptr<V
 
 std::shared_ptr<RSNGShaderBase> ConvertFrostedGlassEffectPara(std::shared_ptr<VisualEffectPara> effectPara)
 {
+#if !defined(ROSEN_ARKUI_X)
     auto effect = RSNGShaderBase::Create(RSNGEffectType::FROSTED_GLASS_EFFECT);
     if (effect == nullptr || effectPara == nullptr) {
         ROSEN_LOGE("ConvertFrostedGlassEffectPara effect or effectPara is nullptr");
@@ -230,6 +235,9 @@ std::shared_ptr<RSNGShaderBase> ConvertFrostedGlassEffectPara(std::shared_ptr<Vi
     frostedGlassEffect->Setter<FrostedGlassEffectMaterialColorTag>(frostedGlassEffectPara->GetMaterialColor());
     frostedGlassEffect->Setter<FrostedGlassEffectWaveMaskTag>(RSNGMaskBase::Create(frostedGlassEffectPara->GetMask()));
     return frostedGlassEffect;
+#else
+    return nullptr;
+#endif
 }
 
 std::shared_ptr<RSNGShaderBase> ConvertHarmoniumEffectPara(std::shared_ptr<VisualEffectPara> effectPara)
@@ -245,9 +253,11 @@ std::shared_ptr<RSNGShaderBase> ConvertHarmoniumEffectPara(std::shared_ptr<Visua
         ROSEN_LOGE("ConvertHarmoniumEffectPara enable is false");
         return nullptr;
     }
+#if !defined(ROSEN_ARKUI_X)
     harmoniumEffect->Setter<HarmoniumEffectMaskTag>(RSNGMaskBase::Create(harmoniumEffectPara->GetMask()));
     harmoniumEffect->Setter<HarmoniumEffectUseEffectMaskTag>(RSNGMaskBase::Create(
         harmoniumEffectPara->GetUseEffectMask()));
+#endif
     harmoniumEffect->Setter<HarmoniumEffectRipplePositionTag>(harmoniumEffectPara->GetRipplePosition());
     harmoniumEffect->Setter<HarmoniumEffectRippleProgressTag>(harmoniumEffectPara->GetRippleProgress());
     harmoniumEffect->Setter<HarmoniumEffectTintColorTag>(harmoniumEffectPara->GetTintColor());

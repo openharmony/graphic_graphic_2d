@@ -512,6 +512,7 @@ std::vector<NodeId> RSRenderNodeMap::GetSelfDrawingNodeInProcess(pid_t pid)
 bool RSRenderNodeMap::AttachToDisplay(
     std::shared_ptr<RSSurfaceRenderNode> surfaceRenderNode, ScreenId screenId, bool toContainer) const
 {
+#ifndef ROSEN_ARKUI_X
     bool result = false;
     surfaceRenderNode->GetAttachedInfo() = std::nullopt;
     std::shared_ptr<RSRenderNode> displayRenderNodeTop = nullptr;
@@ -552,6 +553,9 @@ bool RSRenderNodeMap::AttachToDisplay(
         result = true;
     }
     return result;
+#else
+    return false;
+#endif
 }
 
 void RSRenderNodeMap::RegisterNeedAttachedNode(std::shared_ptr<RSSurfaceRenderNode> surfaceRenderNode)
